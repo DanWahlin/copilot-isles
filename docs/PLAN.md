@@ -1,4 +1,6 @@
-# Copilot Isles: Game Concept & Plan (v0.2, approved)
+# Copilot Isles: Game Concept & Plan (v0.3, approved + Grok Build review consensus applied)
+
+> Review history: [docs/reviews/2026-09-23-grok-build](reviews/2026-09-23-grok-build/README.md)
 
 > Working title. A relaxing, beautiful, browser-based 3D island adventure that teaches the
 > [GitHub Copilot app for Beginners](https://github.com/github/copilot-app-for-beginners) course.
@@ -19,7 +21,7 @@
 | NPC voices | **Fully voiced, neural TTS** (Azure Speech, pre-generated). See §7a |
 | Art approach | **A. Hybrid stylized realism** |
 | AI-generated art | **Allowed anywhere it helps** (uses the image model in `~/.env`). See §6a |
-| Branding | **Unsure.** Build unbranded, with a theme layer so logos/mascots can be dropped in later |
+| Branding | **Unsure.** Build unbranded, with a theme layer so logos/mascots can be dropped in later. The **affiliation line** wording is a required decision before the first public deploy |
 | Platforms | **Desktop browsers**: keyboard/mouse + gamepad |
 | Hosting | **GitHub Pages** |
 | Project folder | `~/Desktop/test/copilot-isles` |
@@ -87,13 +89,13 @@ The course frames the app as a "desktop cockpit" where **humans stay in control 
 | Project session | A **crew expedition** assigned to real work in a harbor |
 | Interactive / Plan / Autopilot | **Steer together** / **Chart the course first** / **Trusted helmsman** ("options, not levels to unlock") |
 | Model & reasoning effort | Which **navigator** you consult & **how long they study the charts** (and yes, "Auto" ≠ "Autopilot") |
-| Worktrees | **Treehouses on one great tree** (same trunk, separate rooms and branches) |
+| Worktrees | **Treehouses on one great tree**. Each treehouse is its **own house (folder) on its own branch**, and they all share the trunk (the repository). A shared rope bridge shows that **ports can still collide**. The Bard keeps the course's recording-booth analogy |
 | Context `@` `#` `/` `&` | Four **signal flags**: cargo (files), bounty notices (issues/PRs), bosun's commands, another crew's log (sessions) |
 | My work | The **Bounty Board** |
 | Diff / tests / build / preview | Hull before & after / **sea trials** / hull integrity / **test sail** |
-| PR, review, CI checks, merge | Harbormaster **inspection**, notes, **lock gates** that turn green, **launch** |
-| Skills | **Shanty scrolls**: one shared chart so the whole crew works in rhythm |
-| Custom agents | **Specialist crew** (navigator, carpenter, lookout) with a limited **toolbelt** |
+| PR, review, CI checks, merge | Harbormaster **inspection**, notes, **lock gates** that turn green, then **your own review as the final gate** before launch (the course's practice PRs are never launched/merged) |
+| Skills | **Shanty scrolls**: one shared chart so the whole crew works in rhythm. A scroll **doesn't change anyone's toolbelt** (a skill doesn't enforce permissions) |
+| Custom agents | **Specialist crew** (navigator, carpenter, lookout) whose limited **toolbelt is the restriction** |
 | MCP servers / Plugins | **Signal towers** to distant libraries / sealed **supply crates** |
 | Canvas | The **captain's chart table**. You and your first mate both draw on it |
 | Automations | The **clockwork lighthouse**: saved routines on a lever, a clock, or a bell |
@@ -111,12 +113,12 @@ The course frames the app as a "desktop cockpit" where **humans stay in control 
 |:-:|---|---|---|---|---|---|
 | 00 | Setup | **Anchorage Cay** | Tropical crescent, turquoise lagoon, palms, stilt-hut fishing village | Little point lighthouse | Ukulele, marimba, steel pan | **Dry-Run Crane**: preview the supply drop, catch that it's aimed at the *wrong ship*, fix it, then run it for real |
 | 01 | Tour the App | **Port Meridian** | Lush Mediterranean-Caribbean hills, terracotta terraces, harbor walls | **Hilltop citadel/castle** | Renaissance lute, recorder, harp | **Three Helms**: pick the right mode for each voyage, then sail it |
-| 02 | Sessions, Worktrees & Context | **Thousand-Bough Isle** | Misty jungle, waterfalls, a giant banyan world-tree | Treehouse village on one great trunk | Kalimba, flutes, soft rain | **Channel Routing**: reroute water so parallel crews never collide (plus the shared-bridge "port collision" twist) |
-| 03 | Dev & GitHub Workflows | **Keelhaven** | Rocky cove, shipwrecks, weathered **old pirate town** & shipyard | Drydock & canal locks | Tavern shanty, accordion, fiddle | **Lock Gates**: diff → tests → build → preview → review → CI. Every gate must turn green before launch |
-| 04 | Skills & Custom Agents | **Guildcrest** | Temperate highlands, pines, heather, windmills, stone guildhalls | Scriptorium abbey | Celtic harp, tin whistle | **Toolbelt Trial**: staff each job with a specialist and give them only the tools they need |
-| 05 | MCP Servers & Plugins | **Sunspire Sands** | **Desert** with mesas, saguaro cactus, scrub, oasis, adobe bazaar | Heliograph signal towers | Spanish guitar, oud, hand drums | **Mirror Beams**: aim mirrors to *connect* a tower. "Enabled" isn't "connected"; the beam has to arrive |
-| 06 | Canvases | **Inkwell Bluffs** | White-washed cliffside cartographers' colony, bougainvillea, sea stacks | Giant plaza chart table | Mandolin, accordion waltz | **Kanban Crates**: a Sokoban-style push-block puzzle through Propose → Plan → Baseline → Implement → Validate |
-| 07 | Automations | **Tidewheel Caldera** | Volcanic black sand, hot springs, ferns | **Clockwork lighthouse** & tide mill | Music box + soft orchestral finale | **Gears & Bells**: manual lever first, then align the schedule gears. Guard against the siren's song |
+| 02 | Sessions, Worktrees & Context | **Thousand-Bough Isle** | Misty jungle, waterfalls, a giant banyan world-tree | Treehouse village on one great trunk (each house its own folder on its own branch) | Kalimba, flutes, soft rain | **Channel Routing**: reroute water so parallel crews never collide, plus the shared rope-bridge twist (worktrees don't separate ports) |
+| 03 | Dev & GitHub Workflows | **Keelhaven** | Rocky cove, shipwrecks, weathered **old pirate town** & shipyard | Drydock & canal locks | Tavern shanty, accordion, fiddle | **Two Circuits**: an inner loop on your machine (diff → tests → build → preview), then an outer loop on GitHub (PR → review → CI). **The last gate is your own review.** The practice PR doesn't launch |
+| 04 | Skills & Custom Agents | **Guildcrest** | Temperate highlands, pines, heather, windmills, stone guildhalls | Scriptorium abbey | Celtic harp, tin whistle | **Toolbelt Trial**: a shanty scroll (skill) guides *how* the crew works but doesn't lock any tools. A specialist (custom agent) whose toolbelt *is* the restriction does the job with only what they need |
+| 05 | MCP Servers & Plugins | **Sunspire Sands** | **Desert** with mesas, saguaro cactus, scrub, oasis, adobe bazaar | Heliograph signal towers | Spanish guitar, oud, hand drums | **Mirror Beams**: aim mirrors to *connect* a tower. "Enabled" isn't "connected"; the beam has to arrive. Later specs add "installed isn't invoked" and MCP server vs plugin |
+| 06 | Canvases | **Inkwell Bluffs** | White-washed cliffside cartographers' colony, bougainvillea, sea stacks | Giant plaza chart table | Mandolin, accordion waltz | **The Shared Chart**: push-block stages along the rail Propose → Plan → Baseline → Implement → Validate (**no Approve column**; approval happens in the Plan tab), with a beat where **you and your first mate both change the same board** |
+| 07 | Automations | **Tidewheel Caldera** | Volcanic black sand, hot springs, ferns | **Clockwork lighthouse** & tide mill | Music box + soft orchestral finale | **Gears & Bells**: manual lever first, then align the schedule gears, local before cloud, starting with a read-only routine. Guard against the siren's song |
 
 The **Open Sea** between islands has sailing, dolphins, gulls, whales, sea stacks, shipwrecks to peek at, and far-off mountains.
 
@@ -127,12 +129,12 @@ The **Open Sea** between islands has sailing, dolphins, gulls, whales, sea stack
 4. **Your Own Deck:** choose **Local repository** rather than **New worktree** for setup. A hotspot quiz uses `local-repository-workspace-selector`. The islanders say "you'll learn about treehouses later."
 5. **Gear Check:** find the compass (`git`), lantern (`node`), rope (`npm`), and spyglass (`gh`) around the village. Then check them in the **Terminal** tab. You'll learn **View → Toggle Review Panel** along the way.
 6. **Right Signature:** `gh auth status` means signing the ledger with the correct account.
-7. **Open the Sluice:** enable workflows ("I understand my workflows…") so the waterwheel powers the island's automated checks.
-8. **Dry-Run Crane (signature puzzle):** `--dry-run` shows ghost crates (labels, issues, practice branches, PRs) and a sign that reads `Repository:`. It's pointing at someone else's ship! Rotate the crane, confirm it's yours, and then pull `--yes`.
+7. **Open the Sluice:** on GitHub.com, open your fork's **Actions** tab and enable workflows ("I understand my workflows…") so GitHub Actions can run the practice checks. Wingman makes clear that these aren't the app's **Automations**.
+8. **Dry-Run Crane (signature puzzle):** `--dry-run` shows ghost crates (labels, issues, practice branches, PRs) and a sign that reads `Repository:`. It's pointing at someone else's ship! Rotate the crane, confirm it's yours, and then pull `--yes`. Afterwards, a Logbook page shows the real `node .github/scripts/setup-training-scenarios.js` commands and says they run in **Terminal** from the repo root.
 9. **First Words:** send your first prompt to the crew through the speaking tube and see the expected output.
 10. **Bard:** "Before you record, you get the studio ready: soundcheck." This unlocks the tropical track.
-11. **Trial:** put the setup steps in order, then a hotspot round and multiple choice. You earn the Seal, the lighthouse lights, and **Port Meridian** appears on the map.
-- *Side:* messages in bottles hold the troubleshooting tips (policy disabled, Git missing, org fork).
+11. **Trial:** order the five key setup decisions, then a hotspot round and multiple choice. You earn the Seal, the lighthouse lights, and **Port Meridian** appears on the map.
+- *Side:* messages in bottles hold the troubleshooting tips (app policy is separate from the CLI policy, Git missing, org fork).
 
 ### Island 01: Port Meridian (Tour the App), first-pass beats
 The town's districts mirror the app's sidebar:
@@ -142,7 +144,7 @@ The town's districts mirror the app's sidebar:
 - **Outfitter's Shop** is **Customize** (a teaser for islands 04-06).
 - **The Tavern** is where **Chat sessions** happen (no branch), and **The Shipyard** is where **Project sessions** happen (a new worktree).
 - The **Citadel's Hall of Records** holds **Settings**. Each banner or room is a section (General, Accounts, Sessions, Themes, Accessibility, Voice dictation, Customize, Model providers, Experimental).
-- **Scattered Evidence quest:** a merchant's plan is at the tavern, the diff is at the shipyard, the tests are at the fort, and the PR is at the post office. You feel the pain of running between them, and then the Command Deck brings it all together. This is Chapter 01's challenge/solution table, played out. A carpenter's workshop (the editor) also appears, to show that "you still keep your editor."
+- **Scattered Evidence quest:** the course's four scattered places, played out. The plan is at the **tavern** (chat), the diff is at the **carpenter's workshop** (the editor), the tests are at a **terminal hatch**, and the PR is at the **post office** ("The Browser"). You feel the pain of running between them, and then the Command Deck brings it all together. This is Chapter 01's challenge/solution table. The carpenter also shows that "you still keep your editor."
 - **Three Helms (signature puzzle):** at the Naval Academy you match voyages to **Interactive / Plan / Autopilot**, then sail each one. Plan means drawing the route and approving it before you cast off.
 - **Navigator's Observatory:** pick a model and effort level for a task. Includes the trick question "Auto isn't Autopilot."
 - *Optional:* a whispering gallery for **Voice dictation**.
@@ -154,17 +156,17 @@ The town's districts mirror the app's sidebar:
 
 | System | Design |
 |---|---|
-| **Exploration** | Third-person camera, WASD + mouse, sprint, jump, climb ledges, swim in shallows. Gamepad supported. |
-| **Sailing** | Board at a dock into a pirate ship similar to what you'd see in Pirates of the Carribean. W/S trims the sails, A/D steers. There's a wind indicator and wake/spray FX, and the boat rocks with buoyancy that follows the wave shader. Docking is a gentle auto-assist when you're close. Islands stream in as you approach. |
+| **Exploration** | Third-person camera with WASD. The default look is **hold right mouse** (no pointer lock), with arrow-key look, an optional pointer-lock "mouse-look" setting, sprint, and jump. Gamepad is supported. **POC:** wading only (deep water gently returns you to shore). **Swimming and ledge climbing are post-POC.** |
+| **Sailing** | Board at a dock into a pirate ship similar to what you'd see in Pirates of the Carribean. In practice that's a generic Golden Age **brigantine** (two masts, square-rigged, weathered hull, patched canvas), not a copy of any specific film ship's design. W/S trims the sails, A/D steers. There's a wind indicator and wake/spray FX, and the boat rocks on **analytic Gerstner buoyancy** that matches the wave shader. Docking is a gentle auto-assist when you're close. Islands stream in as you approach. |
 | **Dialogue** | Fully voiced lines with portrait, name, and synced subtitles. Screenshots appear inside the dialogue as framed **spyglass views** you can zoom into. Choices can branch. You can always replay lines in the Logbook. |
 | **Chests & Logbook** | Chests reveal **Logbook pages**: a screenshot or illustration plus a clear caption and a link to the course section. The Logbook works as your codex, glossary, and quest log. |
 | **Quizzes** | Multiple choice · **Hotspot** (click the right spot on a real screenshot, with a magnifier) · Ordering (drag steps into sequence) · Matching (`@`→files, `#`→issues) · Scenario ("which mode?"). Feedback explains the *why*, and retries are unlimited. |
 | **Puzzle toolkit** | Reusable grid pieces: push blocks, pressure plates, levers, sluice gates & water flow, rotating mirrors & beams, gears, timers. Each island combines them in new ways. |
-| **Progression** | Islands unlock in order by default. A **"Free explore"** setting opens them all. Each island has 3-5 teaching NPCs, 3-6 chests, 1-2 puzzles, and 1 Trial, which awards a **Seal** and lights the lighthouse. Doubloons buy cosmetics (sails, hats, figureheads, parrot hats). About 15-25 min per island. |
+| **Progression** | Islands unlock in order by default. A **"Free explore"** setting opens them all. Each island has 3-5 teaching NPCs, 3-6 chests, 1-2 puzzles, and 1 Trial, which awards a **Seal** and lights the lighthouse. Doubloons buy cosmetics (sails, hats, figureheads, parrot hats). About **25-45 min per island**, since the voiced dialogue alone is a large share of that. Required stops on each island are clustered about a 60-90 s walk apart, with at most one deliberately long scenic walk. |
 | **Map (Captain's Chart)** | A full-screen parchment chart with an animated compass rose, ink coastlines, and fog that clears. Click an island to see its chapter, progress (NPCs, chests, puzzles, Trial), and **Sail there** or **Fast travel** (to lit lighthouses). In **Free explore**, you can pick any island from the chart and jump straight there. There's also a zoomed island map with points of interest. |
-| **Menus** | The title screen has a live 3D backdrop: your ship at golden hour with a slow camera orbit. It offers **Continue · New Voyage · Chart · Logbook · Settings · Controls · Credits · Quit** (Quit saves and returns to the title, since browsers can't close tabs). The pause menu mirrors it. |
+| **Menus** | The title screen has a live 3D backdrop: **ocean, sky, clouds, and your ship** at golden hour (plus at most one distant impostor island) with a slow camera orbit. The first island streams in only after New Voyage/Continue. It offers **Continue · New Voyage · Chart · Logbook · Settings · Controls · Credits · Quit** (Quit saves and returns to the title, since browsers can't close tabs). The pause menu mirrors it. |
 | **Character creation** | Man or woman pirate, plus name, skin tone, hair, and outfit/sash colors. |
-| **Save** | Autosave at checkpoints to localStorage, with "Keep my journey" / "Begin anew". Export/import a save code. |
+| **Save** | Autosave at checkpoints to localStorage (puzzles checkpoint at their start), with "Keep my journey" / "Begin anew". Export/import a save code. |
 
 ---
 
@@ -173,15 +175,15 @@ The town's districts mirror the app's sidebar:
 ### Recommended stack
 - **TypeScript + Vite** (same foundation as Arkenfall)
 - **Three.js**: custom shaders for water, sky, terrain, foliage, and post-processing. We'll decide between WebGL2 and WebGPU/TSL in the Phase 0 spike, favoring compatibility.
-- **Rapier** (WASM physics) for the character controller, pushable blocks, and boat colliders
+- **Rapier** (WASM physics), limited to **primitive static colliders** (boxes, capsules, heightfield), scene queries, and the **kinematic character controller**. The POC has no dynamic rigid bodies: push blocks are grid logic, and the boat is a kinematic hull on analytic buoyancy
 - **React DOM overlay** for menus, dialogue, quizzes, map, and logbook, plus a small store (e.g. Zustand) to bridge the game and the UI
 - **Custom Web Audio engine** (AudioWorklet + OfflineAudioContext) for procedural music, ambience, and SFX, plus streamed voice lines
 - **gltf-transform** (meshopt + KTX2) and headless **Blender** scripts to restyle and optimize CC0 assets
 - **Vitest** (quiz/puzzle/save logic) + **Playwright** (menu flows, visual smoke tests)
-- Hosting: **GitHub Pages**, deployed by a GitHub Actions workflow. Large audio/texture files may use Git LFS or a Releases-hosted asset bundle to stay within Pages size limits
+- Hosting: **GitHub Pages**. A GitHub Actions workflow builds `dist/` and deploys it with `actions/upload-pages-artifact`. There's **no Git LFS** (Pages would serve LFS pointer files) and **no Releases-hosted bundles** (release downloads redirect cross-origin, so browsers can't reliably fetch them from the Pages site). Generated voice files and compressed textures are small enough to commit directly. Limits to keep in mind: every file < 100 MB, the site < 1 GB, and a soft bandwidth cap of ~100 GB/month
 
 ### Rendering features ("stylized realism")
-- **Ocean:** multi-octave Gerstner waves plus detail normals, shallow turquoise → deep blue by depth, shoreline foam, fresnel sky reflection, sun glints, crest tint, and a boat wake. The CPU samples the same waves for buoyancy.
+- **Ocean:** multi-octave Gerstner waves plus detail normals, shallow turquoise → deep blue by depth, shoreline foam, a fresnel reflection that samples a **prefiltered (PMREM) sky environment map** (one scene render, no planar reflection), sun glints, crest tint, and a boat wake. The CPU evaluates the same wave function analytically at a few hull points for buoyancy, with no GPU readback.
 - **Sky:** physically based atmosphere, drifting noise-based clouds, aerial-perspective haze, and **distant mountain silhouettes**. Each island gets its own lighting preset (dawn, noon, golden hour).
 - **Terrain:** heightmap islands with sand/grass/rock/dirt splat blending using CC0 PBR textures, and tri-planar cliffs.
 - **Vegetation:** instanced grass that bends as you walk, plus palms, cactus, and bushes with vertex wind, LODs, and impostors.
@@ -199,7 +201,7 @@ The town's districts mirror the app's sidebar:
 ### Quality tiers & budgets
 - **Low / Medium / High / Ultra** presets, plus resolution scale. The full per-tier budgets and efficiency rules are in **§12**.
 - Targets: **60 fps @1080p** on an M1/M2 MacBook Air or RTX 3050-class machine at High, and **30+ fps** on Intel Iris Xe at Low.
-- Download size: **under 25 MB** before the title screen, with each island streamed in on demand.
+- Download size: **under 25 MB** before the title screen. The title is ocean, sky, clouds, and the ship only, and each island streams in on demand.
 
 ### Three possible art approaches
 | Option | Look | Speed | Notes |
@@ -221,7 +223,8 @@ It ships **no audio files**. A procedural engine synthesizes everything live in 
 The upside is that the music is adaptive, tiny to download, and has no licensing concerns. The trade-off is that synthesized timbres don't sound as rich as recorded acoustic instruments.
 
 ### 7a. Voice acting (Azure Speech TTS)
-- An **offline build script** (`tools/voice/generate.ts`) reads each island's dialogue YAML and renders every line to **Opus/MP3** with SSML. The key stays in `~/.env` and never ships to the browser.
+- An **offline build script** (`tools/voice/generate.ts`) reads each island's dialogue YAML and renders every line with SSML to **Opus (WebM) plus an AAC (.m4a) fallback**. The client downloads exactly **one** format per line, picked with `canPlayType`. The key stays in `~/.env` and never ships to the browser.
+- **Disclosure:** the credits and Settings say the voices are **synthetic, generated with Azure AI Speech**. Before the first public deploy, we check the current Azure Speech terms for redistributing neural and Dragon HD audio.
 - The script caches by a hash of the text and voice, so only changed lines get re-rendered.
 - **Cast:** the 4 HD voices already configured are `en-US-Andrew` & `en-GB-Ollie` (male) and `en-US-Ava` & `en-GB-Ada` (female), all `DragonHDLatestNeural`. We'll add more Azure neural voices and regional English accents per character, chosen respectfully and never as caricature. Rate and pitch settings give each character a distinct personality. The **parrot** uses a pitch-shifted, bright voice with audio FX.
 - The player can type any name, so **spoken lines call you "Captain"** while the on-screen text uses your name.
@@ -261,7 +264,7 @@ The upside is that the music is adaptive, tiny to download, and has no licensing
 
 ## 9. Accessibility
 
-Text size, dyslexia-friendly font option, adjustable text speed, high-contrast UI, reduced motion (no camera bob or shake), colorblind-safe quiz feedback (icons + color), full keyboard navigation of the UI, rebindable controls, camera sensitivity/invert/FOV, separate volume sliders, and captions for every sound cue that matters.
+Text size, dyslexia-friendly font option, adjustable text speed, high-contrast UI, and reduced motion (no camera bob or shake, lantern flicker, or god rays). Also: colorblind-safe quiz feedback (icons + color), full keyboard navigation of the UI, rebindable controls, and a **no-pointer-lock default look** (hold right mouse, arrow keys, or gamepad) with pointer lock as an option. Plus camera sensitivity/invert/FOV, separate volume sliders, and captions for every sound cue that matters.
 
 ---
 
@@ -269,8 +272,8 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 
 | Phase | Deliverable | Gate |
 |---|---|---|
-| **0 · Look, sound & perf spike** | Ocean, sky, clouds, one greybox island, character + camera, sail and dock, a prototype of the procedural music engine (one island theme), the voice pipeline (a few lines), and the debug HUD + benchmark flythrough. It must **hit the §12 budgets** on reference hardware | You approve the *look*, the *sound*, and the *frame rate* |
-| **1 · Proof of concept** | **Islands 00 + 01 fully playable**, plus all core systems: menu, character creation, dialogue, chests/logbook, all quiz types, puzzle toolkit, map/fast travel, settings, save, audio | You approve the *fun & teaching* |
+| **0 · Look, sound & perf spike** | One frame that shows **the clipmap ocean, one restyled building cluster, a dressed pirate, and ≥ 8 skinned NPCs**, plus sky, clouds, character + camera, sailing and docking the brigantine, a prototype of the procedural music engine (one island theme), the voice pipeline (a few lines), and the debug HUD + benchmark flythrough (which also measures physics time). It must **hit the §12 budgets** on reference hardware | You approve the *look*, the *sound*, and the *frame rate* |
+| **1 · Proof of concept** | **Islands 00 + 01 fully playable**, plus all core systems: menu, character creation, dialogue, chests/logbook, all quiz types, puzzle toolkit, map/fast travel, settings, save, audio. **Vertical-slice gate first:** Anchorage Q0.2-Q0.8 fully playable with real TTS before the rest of the content is built | You approve the *slice*, then the *fun & teaching* |
 | **2 · Expansion** | Islands 02-04 | |
 | **3 · Complete** | Islands 05-07 + finale, certificate, polish, accessibility audit, perf pass, credits, deploy | |
 
@@ -284,9 +287,11 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 | Mixed CC0 kits look inconsistent | 1-2 kits per island, a shared palette and material pass, and Blender restyle scripts |
 | Pirate characters (m/f) need to look great | CC0 base bodies + modular outfits. We may need custom Blender work for hats and coats |
 | Procedural music sounds "synthy" | Physical-modeling plucks, FM bells, detuned ensembles, humanized timing, and good generated reverb. We'll A/B test in Phase 0, and you sign off on the sound before content work starts |
-| Voice lines add a lot of files | Opus at ~32 kbps, loaded per island, cached by hash, regenerated only when a line changes |
+| Voice lines add a lot of files | Opus at ~32 kbps (AAC fallback, and each client downloads one format), loaded per island, cached by hash, regenerated only when a line changes |
 | Course UI and screenshots change | Pinned course SHA in `course.lock.json` + image hashes + CI hotspot check |
-| Trademarks (Octocat, Copilot logo) | Confirm usage rights. Default: screenshots only, no mascots or logos in 3D |
+| Trademarks & affiliation (Octocat, Copilot logo, product name) | The MIT license covers the course's copyright, not GitHub's trademarks. We include the **full MIT notice** in the credits, keep screenshots as screenshots, and **never model or generate the Octocat or Copilot logo**. An **affiliation line** (e.g. "Unofficial fan project…" vs official wording) is a **required decision before the first public deploy** |
+| Film likeness (the "Pirates of the Caribbean" ship brief) | Build a generic Golden Age brigantine. Don't replicate any specific film ship's distinctive design |
+| GitHub Pages bandwidth (~100 GB/month soft cap) | Keep the per-island downloads small, use Service Worker caching, and monitor. Move to a CDN if the game gets popular |
 | Scope (8 islands of bespoke content) | Data-driven content + a reusable puzzle toolkit + a shared template per island |
 
 ## 12. Efficiency (rendering & runtime)
@@ -304,7 +309,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 | Shadows | 1 cascade 1024², blob shadows for characters | 2 × 1024² | 2 × 2048² | 3 × 2048² |
 | Post FX | Tone map + grade + vignette only | + bloom | + SSAO (half-res), god rays | + DOF, full-res AO |
 | JS main thread per frame | < 6 ms | < 5 ms | < 4 ms | < 4 ms |
-| Initial download (to title) | < 25 MB on every tier | | | |
+| Initial download (to title) | < 25 MB on every tier. The title is ocean, sky, clouds, and the ship, with no island | | | |
 
 ### 12.2 Draw calls & batching *(your "minimize draw calls")*
 - **InstancedMesh / BatchedMesh** for vegetation, rocks, crates, barrels, fences, and modular building parts. Each chunk gets its own instance set, so culling still works per chunk.
@@ -326,7 +331,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - The **shadow camera** tightly fits the view, and only large objects cast shadows. Small props rely on baked AO instead.
 
 ### 12.5 Shaders & GPU cost *(your "optimize shaders and materials")*
-- **No planar reflections.** Water uses a fresnel sky reflection plus sun glints and reuses the depth texture for foam. This alone avoids rendering the scene twice.
+- **No planar reflections.** Water samples a prefiltered (PMREM) sky environment map through a fresnel term, adds sun glints, and reuses the depth texture for foam. This alone avoids rendering the scene twice.
 - **Half- or quarter-resolution effects** (clouds, SSAO, god rays, bloom) with a bilateral upsample. Clouds also update on alternate frames.
 - The **sky/atmosphere lookup table** is recomputed only when the sun moves.
 - **All post-processing merges into as few full-screen passes as possible** (tone map, grade, vignette, and chromatic effects in one pass).
@@ -339,19 +344,19 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - **KTX2 transcoding and meshopt decoding run in Web Workers.**
 - **Time-sliced GPU uploads** push only a few textures or meshes per frame, so streaming never causes a frame spike.
 - A **Service Worker** caches assets so return visits load instantly and the game can work offline (PWA).
-- The title screen is procedural and tiny, so the menu appears in a couple of seconds.
+- The title screen is **ocean, sky, clouds, and the player's ship** (at most one distant impostor island), so the menu appears in a couple of seconds. The first island starts streaming only after New Voyage/Continue.
 
 ### 12.7 Compression & memory *(your "compress textures and audio")*
 - **Textures: KTX2/Basis**, with UASTC for normal maps and ETC1S for albedo. They stay **compressed in VRAM**, using 4-8× less memory than PNG/JPG. Mipmaps are always on.
 - **Meshes:** meshopt compression and vertex quantization.
-- **Audio:** music and ambience are **procedural, so they cost 0 bytes**. Voice lines are **Opus mono at ~32 kbps**, with an AAC fallback for Safari. They load **per island**, not all up front.
+- **Audio:** music and ambience are **procedural, so they cost 0 bytes**. Voice lines are **Opus mono at ~32 kbps** with an AAC fallback, and the client downloads **exactly one format** (via `canPlayType`). They load **per island**, not all up front.
 - **Course screenshots** stay as WebP, lazy-load per island, and get decoded off the main thread (`img.decode()`).
 - **Explicit dispose** of geometry, materials, and textures when an island unloads. `renderer.info` is tracked in the debug HUD to catch leaks.
 
 ### 12.8 CPU, GC & pooling *(your "object pooling" and "profile scripts")*
 - **Zero per-frame allocations in hot loops.** Vectors, quaternions, and matrices are reused, and event objects are pooled. This prevents garbage-collection hitches.
 - **Pooling** is used for particles (spray, splashes, sparkles, dust), chest and doubloon pop-ups, toasts, audio voices, and floating UI markers.
-- **Physics (Rapier)** runs at a fixed 60 Hz with interpolation and uses simple colliders (capsules, boxes, heightfield). Idle bodies sleep, and only the active island's colliders are loaded. Physics can move to a worker if we need it.
+- **Physics (Rapier)** runs at a fixed 60 Hz with interpolation, and it only handles **primitive static colliders** (capsules, boxes, heightfield, with **no triangle-mesh colliders** across towns), scene queries, and the **kinematic character controller**. The POC has **no dynamic rigid bodies**. Push blocks are grid logic, and the boat is a kinematic hull on analytic Gerstner buoyancy. Only the active island's colliders are loaded. Phase 0 measures physics time, and it moves to a worker only if it misses the §12.1 budget.
 - **Game logic is event-driven.** Puzzles, quests, and triggers react to changes instead of polling every frame.
 - The **React UI stays out of the render loop.** HUD values update at about 10 Hz through refs, not per-frame React state.
 - **Nothing renders when nothing's visible.** When a full-screen menu, the map, or the Logbook is open, we render a single frame, blur it into a still backdrop, and pause the 3D loop. We also pause everything when the tab is hidden.

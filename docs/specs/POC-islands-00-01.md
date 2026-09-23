@@ -1,4 +1,4 @@
-# Spec: Proof of Concept, Islands 00 & 01 (v0.1 draft)
+# Spec: Proof of Concept, Islands 00 & 01 (v0.2: Grok Build review consensus applied)
 
 > Companion to [`docs/PLAN.md`](../PLAN.md). This spec defines everything needed to play **title → character creation → Anchorage Cay (Ch 00) → Open Sea → Port Meridian (Ch 01)**.
 > Course source: `github/copilot-app-for-beginners` @ `360fcb2` (local: `~/Desktop/projects/copilot-app-for-beginners`).
@@ -12,10 +12,12 @@
 **Out of scope:** Islands 02-07 (they appear on the chart as fogged silhouettes marked "Coming soon"), the cosmetics shop (doubloons are collected, but the shop is stubbed), and the Master Captain certificate.
 
 **The POC succeeds if:**
-1. A first-time player finishes both islands in **~45-55 min** without outside help.
-2. Afterwards they can answer every Ch 00/01 learning objective. We'll measure this with an optional 10-question exit quiz.
+1. A first-time player finishes both islands in **~70-90 min** without outside help. Voice alone is ~44 min of audio, so trims (the Whispering Gallery, the bottles, a shorter Passport review) stay available as levers after the playtest.
+2. Afterwards they can answer every Ch 00/01 learning objective, measured with the **10-question exit quiz in Appendix A** (hints off).
 3. It hits the **High-tier budgets in PLAN §12** on an M1/M2 MacBook Air and the **Low tier** on Intel Iris Xe.
 4. You look at it and say *"that's beautiful."*
+
+**Vertical-slice gate:** **Anchorage Q0.2-Q0.8** must be fully playable, with real TTS for those lines, before the rest of the Phase 1 content is built.
 
 ---
 
@@ -27,16 +29,16 @@ Every course objective is **taught** (by an NPC or a Logbook page), **practiced*
 | Course objective / section | Taught | Practiced | Assessed |
 |---|---|---|---|
 | Prerequisites (GitHub account, Copilot plan *or* own model provider, Business/Enterprise **GitHub Copilot app** policy, Git, Node LTS, `gh`) | Nell (Q0.2) | Gear Check (Q0.5) | T0 #6 |
-| Install → **Sign in to GitHub** → skip **Connect your repositories** → pick theme → **Finish** → **New** page | Nell (Q0.2), C0.1-C0.3 | Paint Your Sails | H0.1, T0 #1 |
-| Fork = your own copy | Ezra (Q0.3) | Copy the Master Chart | T0 #2 |
-| **+** next to **Projects** → **Add GitHub repository**; alternatives **Open folder** / **Clone repository** | Ezra (Q0.3), C0.4 | Moor Your Ship | H0.2, H0.3, MC0.1 |
-| Start a project session; workspace selector → **Local repository** (not **New worktree**) for setup | Bo (Q0.4) | Your Own Deck | H0.4 |
+| Download & install → **Sign in to GitHub** → skip **Connect your repositories** → pick theme → **Finish** → **New** page | Nell (Q0.2), C0.1-C0.3 | Paint Your Sails | H0.1, T0 #1 |
+| Fork = your own copy | Ezra (Q0.3) | Copy the Master Chart | T0 #1, #2 |
+| **+** next to **Projects** → **Add GitHub repository**; alternatives **Open folder** / **Clone repository** | Ezra (Q0.3), C0.4 | Moor Your Ship | H0.2, H0.3, MC0.1, T0 #1 |
+| Start a project session; workspace selector → **Local repository** (not **New worktree**) for setup | Bo (Q0.4) | Your Own Deck | H0.4, T0 #1 |
 | **View → Toggle Review Panel** → **Terminal** tab; version checks; install only what's missing | Bo (Q0.5) | Gear Rack | M0.1 |
 | `gh auth status` / `gh auth login` (GitHub.com → Login with a web browser) | Bo (Q0.5) | Right Signature | S0.1 |
-| Enable workflows on a fork (**Actions** tab) | Suri (Q0.6) | P0.1 Sluice | T0 #4 |
-| Setup script: labels, issues, practice branches, PRs; bugs stay off `main`; `--dry-run`, check the `Repository:` line, then `--yes`, wait for `Setup complete.` | Pim & Pol (Q0.7) | **P0.2 Dry-Run Crane** | T0 #3, #5, #7 |
+| Enable workflows on the fork (GitHub.com → your fork → **Actions** tab) so GitHub Actions can run the practice checks | Suri (Q0.6) | P0.1 Sluice | T0 #4 |
+| Setup script: labels, issues, practice branches, PRs; bugs stay off `main`; in **Terminal**, from the repo root, run `node .github/scripts/setup-training-scenarios.js --dry-run`, check the `Repository:` line, then `--yes`, and wait for `Setup complete.` | Pim & Pol (Q0.7), page P0.S | **P0.2 Dry-Run Crane** | T0 #1, #3, #5, #7 |
 | First prompt goes to the **Copilot app** prompt box, *not* Terminal | Juno (Q0.8) | Speaking Tube | S0.2 |
-| Troubleshooting (sign-in, can't see repo, org fork, Issues disabled) | Bottles B0.1-B0.3 | | T0 #8 |
+| Troubleshooting (sign-in, app policy ≠ CLI policy, Git missing, can't see repo, org fork, Issues disabled) | Bottles B0.1-B0.3 | | T0 #8 |
 | Studio analogy: soundcheck | Lyra (Q0.9), C0.5 | | |
 | Key takeaways (3) | Trial wrap-up | | T0 |
 
@@ -48,7 +50,7 @@ Every course objective is **taught** (by an NPC or a Logbook page), **practiced*
 | Sidebar: **New**, **My work**, **Automations**, **Customize**, **Projects & Chats** | Districts (Q1.4), C1.1-C1.3 | Harbor Passport | H1.1 (×4), H1.2 |
 | Chat session vs Project session (branch/worktree?) | Marisol & Anders (Q1.5) | **P1.1 Tavern or Shipyard** | H1.3, H1.4, A1 #5 |
 | Project sessions use **New worktree** by default; the Ch 00 session was the exception | Anders (Q1.5) | | A1 #4 |
-| Modes: **Interactive / Plan / Autopilot** ("options, not levels to unlock") | Rhea (Q1.6), C1.7 | **P1.2 Three Helms** | S1.2 |
+| Modes: **Interactive / Plan / Autopilot** ("options, not levels to unlock") | Rhea (Q1.6), C1.7 | **P1.2 Three Helms** | S1.2, A1 #9 |
 | **Model** & **Reasoning effort**; **Auto** ≠ **Autopilot**; you can change the model mid-session without changing the mode | Oren (Q1.7) | Star Charts | H1.5, S1.3, A1 #6-7 |
 | Settings sections (9) & what **Model providers** does | Pell (Q1.8), C1.5 | **P1.3 Banners of the Hall** | H1.6, A1 #8 |
 | Voice dictation (optional) | Whispering Gallery (Q1.9) | | O1.1 (optional) |
@@ -61,8 +63,8 @@ Every course objective is **taught** (by an NPC or a Logbook page), **practiced*
 
 ```
 Boot ─▶ Title (live 3D) ─▶ New Voyage ─▶ Character Creation ─▶ Intro (45s, skippable)
-  ─▶ Anchorage Cay (~20 min) ─▶ Christening & Set Sail ─▶ Open Sea (~3 min)
-  ─▶ Port Meridian (~28 min) ─▶ Lighthouse lit ─▶ POC end card (links to Chapter 02)
+  ─▶ Anchorage Cay (~30-40 min) ─▶ Christening & Set Sail ─▶ Open Sea (~3 min)
+  ─▶ Port Meridian (~35-45 min) ─▶ Lighthouse lit ─▶ POC end card (links to Chapter 02)
 ```
 
 **Intro (voiced narrator, `en-GB-Ollie` HD):** Ink draws the archipelago onto the chart while fog rolls in. *"They call it the fog of scattered evidence: plans in one place, changes in another, and nobody quite sure where they left off…"* Then a rowboat glides into Anchorage Cay's lagoon at dawn, and a parrot lands on your shoulder.
@@ -72,7 +74,8 @@ Boot ─▶ Title (live 3D) ─▶ New Voyage ─▶ Character Creation ─▶ I
 ## 3. Shared systems (POC requirements)
 
 ### 3.1 Title & menus
-- **Title backdrop:** the real Anchorage Cay scene (with no extra assets). Your sloop sits at anchor at golden hour, the camera orbits slowly, gulls circle, and the logo fades in using Fraunces at weight 300 with generous letter-spacing.
+- **Title backdrop:** **ocean, sky, clouds, and your brigantine at anchor**, plus at most one distant impostor silhouette of an island on the horizon. The camera orbits slowly at golden hour, gulls circle, and the logo fades in using Fraunces at weight 300 with generous letter-spacing. Anchorage Cay streams in only after **New Voyage** or **Continue**, which keeps the title under the 25 MB budget (PLAN §12.6).
+- **Affiliation line:** a small line under the logo and in the credits. Its wording is a **required decision before the first public deploy** (see §10). It doesn't block Phase 0.
 - **Main menu:** Continue (if a save exists) · New Voyage · Captain's Chart · Logbook · Settings · Controls · Credits · Quit. Quit saves and returns to the title, with a note that you can close the tab.
 - **Pause menu (Esc):** Resume · Captain's Chart · Logbook · Settings · Controls · Save & Return to Title.
 - **Style tokens:**
@@ -95,13 +98,15 @@ Boot ─▶ Title (live 3D) ─▶ New Voyage ─▶ Character Creation ─▶ I
 ### 3.3 Controls (defaults, all rebindable)
 | Action | Keyboard/Mouse | Gamepad |
 |---|---|---|
-| Move / look | WASD / mouse (pointer lock) | LS / RS |
+| Move / look | WASD / **hold right mouse to look** (default, no pointer lock) · arrow keys to look · optional **pointer-lock "mouse-look"** setting | LS / RS |
 | Sprint / jump | Shift / Space | LS-click / A |
 | Interact / advance dialogue | E / Left-click | X |
 | Parrot hint | Q | Y |
 | Logbook / Chart / Pause | J / M / Esc | View / Map (d-pad ↑) / Menu |
 | **Sailing:** trim sails (furled · half · full) | W / S | RT / LT |
 | **Sailing:** rudder / helm camera / leave helm | A-D / C / E (at a dock) | LS / RS-click / B |
+
+**POC movement limits:** you can wade in the shallows, and deep water gently returns you to shore. There's no swimming and no ledge climbing in the POC (PLAN §5 lists both as post-POC).
 
 ### 3.4 Dialogue & voice
 - The subtitle panel sits bottom-center, with speaker name + portrait (AI-painted, 256²). **Word-by-word highlighting** is driven by TTS word-boundary timings.
@@ -135,7 +140,7 @@ lines:
 | Type | Behavior |
 |---|---|
 | **Multiple choice** / **multi-select** | 2-5 options, keys 1-5 |
-| **Hotspot** | A large framed screenshot. Click to place a marker, hold **Shift** for a 2× magnifier lens. **Callout masking** patches over the course's red ①② badges with sampled background color, so the answer isn't given away. Accessible alternative: **Tab** cycles through candidate regions (correct ones + distractors) and **Enter** selects |
+| **Hotspot** | A large framed screenshot. Click to place a marker, hold **Shift** for a 2× magnifier lens. **Callout masking** patches over the course's red ①② badges with sampled background color, so the answer isn't given away. The Hotspot Editor **rejects any mask that overlaps a target rect**. Accessible alternative: **Tab** cycles through candidate regions (correct ones + distractors) and **Enter** selects |
 | **Ordering** | Drag cards into sequence, or use arrow keys |
 | **Matching** | Drag labels onto targets, or use keyboard pairs |
 | **Scenario** | A short situation followed by a choice |
@@ -163,21 +168,22 @@ Lever · rotatable pipe tile · sluice gate · flowing-water channel (a GPU-anim
 
 ### 3.8 Captain's Chart (M)
 - A parchment chart with an ink compass rose, animated wave strokes, and fog that clears. Island cards show the chapter number & title, progress (NPCs · chests · puzzles · Trial), and buttons: **Sail here** (an auto-sail cinematic) / **Fast travel** (lit lighthouses only).
-- **Free explore** (Settings): every island is selectable, including skipping straight to Port Meridian. In the POC, 02-07 show "Coming soon."
+- **Free explore** (Settings): the POC's two built islands, **Anchorage Cay and Port Meridian**, can be entered in any order (including skipping straight to Port Meridian). Islands 02-07 are visible on the chart as "Coming soon" and **can't be entered**.
 
 ### 3.9 Save (localStorage, versioned)
-- **Autosaves** on every quest step, chest, puzzle, quiz pass, docking, and fast travel.
-- **Schema:** `{ v, created, character, settings, island, position, quests{}, chests[], pages[], glossary[], quizzes{id:{firstTry,attempts}}, doubloons, seals[], lighthouses[] }`.
+- **Autosaves** on every quest step, chest, quiz pass, docking, and fast travel.
+- **Puzzles save as checkpoints:** a checkpoint is taken at each puzzle's start (they're ≤ 7 min), and P1.2 takes one after each of its 3 voyages. Reloading mid-puzzle resets that puzzle to its start, and the pause screen says so.
+- **Schema:** `{ v, created, character, settings, island, position, quests{}, chests[], pages[], glossary[], quizzes{id:{firstTry,attempts}}, puzzles{id:{solved,checkpoint}}, doubloons, seals[], lighthouses[] }`.
 - "Begin anew" asks for confirmation. Export/import works as a base64 code.
 
 ### 3.10 Settings (POC)
 - **Graphics:** preset (auto-benchmarked) + render scale, shadows, water, vegetation density, post FX, FPS cap, perf HUD.
-- **Audio:** Master, Music, Ambience, SFX, Voice, UI.
-- **Gameplay:** **Free explore**, hint frequency, camera sensitivity, invert Y, FOV, camera shake, head bob, voice on/off.
-- **Accessibility:** text size (90-150%), subtitle background opacity, high-contrast UI, dyslexia-friendly font, reduced motion.
+- **Audio:** Master, Music, Ambience, SFX, Voice, UI. A note says **voices are synthetic, generated with Azure AI Speech**.
+- **Gameplay:** **Free explore**, hint frequency, look mode (hold-right-mouse / pointer lock), camera sensitivity, invert Y, FOV, camera shake, head bob, voice on/off.
+- **Accessibility:** text size (90-150%), subtitle background opacity, **captions for important sound cues** (chest nearby, water flowing, crane locking, correct/incorrect, lighthouse lit), high-contrast UI, dyslexia-friendly font, and reduced motion. Reduced motion covers camera bob/shake, UI motion, **lantern flicker, and god rays**.
 
 ### 3.11 Wingman the parrot *(placeholder name)*
-- **Q** gives a hint. There are **3 tiers per beat**: a nudge, a direction, then the answer with its explanation.
+- **Q** gives a hint. There are **3 tiers per beat**: a nudge, a direction, then the answer with its explanation. **Inside Trials and the exit quiz, tier 3 is disabled**, so a Seal reflects what you know.
 - He also gives a short recap after each quest step and occasional ambient quips (throttled, and they respect the hint-frequency setting).
 - **Voice:** `en-US-AnaNeural` (bright) + pitch +20% + light formant/high-pass FX. We'll audition this.
 
@@ -232,7 +238,7 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 **Q0.1 · Landfall (tutorial, ~1 min).** You step onto the beach and learn movement, camera, and interaction. Wingman introduces himself: *"First mate's job is hints. Captain's job is decisions."* Nell waves you toward the pier.
 
 **Q0.2 · Captain's Papers** *(00 · Prerequisites, Installation)*
-- Nell covers the GitHub account, a Copilot plan *or* your own model provider, and says that for Business/Enterprise, the **GitHub Copilot app** policy must be enabled. **[P] "What you need."**
+- Nell starts with the basics: *"First, download and install the GitHub Copilot app for your system."* Then she covers the GitHub account, a Copilot plan *or* your own model provider, and says that for Business/Enterprise, the **GitHub Copilot app** policy must be enabled. **[P] "What you need."**
 - The spyglass shows `sign-in-to-app`. **H0.1:** "Point to how you'd sign in with a regular GitHub account."
 - She explains that at **Connect your repositories** you'll *continue without adding one*, because you'll connect your fork shortly.
 - **Paint Your Sails:** a palette stand mirrors the app's theme picker (`pick-a-theme`). Your choice recolors your sails and persists. Nell adds: *"Preferences can be changed anytime from settings."* Then you select **Finish**, and the **New** page appears as a spyglass view (`github-copilot-app`).
@@ -246,7 +252,7 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 **Q0.4 · Your Own Deck** *(00 · Check your tools, steps 1-3)*
 - Bo confirms the project shows under **Projects**, then has you select **+ next to the project** to start a **project session**.
 - **H0.4** uses `local-repository-workspace-selector` with the callouts masked: "For this one-time setup, where should the session run?" → **Local repository**.
-- Explanations: **New worktree** "creates a separate copy for this session" (*"you'll meet those on Thousand-Bough Isle"*), and **Cloud** "runs in a cloud sandbox."
+- Explanations: the checkmark on **New worktree** is just the *default*, and setup changes it to **Local repository**. **New worktree** "creates a separate copy for this session" (*"you'll meet those on Thousand-Bough Isle"*), and **Cloud** "runs in a cloud sandbox."
 
 **Q0.5 · Gear Check & Right Signature** *(00 · Check your tools, steps 4-8)*
 - Bo explains **View → Toggle Review Panel**, then the **Terminal** tab (if it isn't visible, **+ → Terminal**).
@@ -254,11 +260,16 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 - Each piece prints a stylized terminal readout when you place it. **M0.1** matches gear ↔ command. Bo reminds you: *"Only install what's missing, then check again."*
 - **Right Signature:** the ledger shows `gh auth status` as *Logged in as someone-else*. **S0.1:** what now? → `gh auth login` → **GitHub.com** → **Login with a web browser** → run `gh auth status` again and confirm.
 
-**Q0.6 · Open the Sluice** *(00 · Add the course practice items, step 1)*. Suri explains: *"New forks switch workflows off. Turn them on so GitHub can run the automated checks for your practice exercises."* → **P0.1**.
+**Q0.6 · Open the Sluice** *(00 · Add the course practice items, step 1)*. Suri explains: *"This part happens on GitHub.com, not in the app. Open your fork, go to the **Actions** tab, and you'll see 'Workflows aren't being run on this forked repository.' New forks switch GitHub Actions off. Turn it on so GitHub can run the automated checks for your practice exercises."* → **P0.1**. Afterwards, Wingman heads off a mix-up: *"These are GitHub Actions workflows. The Clock Tower's **Automations** are something else, saved agent tasks, and you'll learn those much later."*
 
 **Q0.7 · The Dry-Run Crane** *(00 · Add the course practice items, steps 2-3)*
 - Pim & Pol explain that the script stocks your ship with **labels** (colored pennants), **issues** (bounty notices), **practice branches** (practice hulls, *"the bugs stay on those, never on `main`"*), and **pull requests** (sealed inspection requests: changes to review, a feedback comment, and an intentionally failing check).
 - *"They're training scenarios, not problems with your setup."* → **P0.2**.
+- After the crane, Pol hands you a **[P0.S] "The setup commands"** page. It shows exactly what the crane stood for. You run both commands in the app's **Terminal** tab, from the repository root (the folder that contains `.github` and `samples`):
+  ```bash
+  node .github/scripts/setup-training-scenarios.js --dry-run   # preview; check the Repository: line
+  node .github/scripts/setup-training-scenarios.js --yes       # run it; wait for "Setup complete."
+  ```
 
 **Q0.8 · First Words** *(00 · Your first prompt)*
 - On your ship there are two pipes: the **Prompt Box** speaking tube (to the crew) and the **Terminal** hatch (to the engine room). **S0.2:** where does *"Give me an overview of the copilot-app-for-beginners course repository…"* go? → the **Prompt Box**.
@@ -271,7 +282,7 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 **Q0.10 · The Harbormaster's Trial** at the Point Lighthouse. → §4.7.
 
 **Message bottles (optional):**
-- **B0.1** *I cannot sign in*: check the account, the plan or own model provider, and the org policy. If your org uses `*.ghe.com`, choose **Sign in to GitHub Enterprise Cloud**.
+- **B0.1** *I cannot sign in*: check the account and the plan or own model provider. For Business/Enterprise, the **GitHub Copilot app** policy must be enabled, and **that's separate from the Copilot CLI policy**. If your org uses `*.ghe.com`, choose **Sign in to GitHub Enterprise Cloud**. And if the app says **Git is missing** when you connect your repository, install Git and retry the connection.
 - **B0.2** *I cannot see the repository*: check access, the right account/org, or try **Open folder**.
 - **B0.3** *The script stops for an organization fork*: use `--allow-shared-repository` **only** if you're authorized and the `Repository:` line is right. If issues are missing, go to **Settings → Features**, enable **Issues**, and rerun.
 
@@ -280,7 +291,7 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 **P0.1 · Sluice & Waterwheel** (warm-up, ~2 min)
 - A 3×4 grid of rotatable channel tiles runs between the waterfall ("Actions spring") and the waterwheel. You rotate tiles with E to connect a path. There's a single solution, and 2 dead-end tiles act as distractors.
 - The final gate carries a painted sign: *"Workflows aren't being run on this forked repository."* Its lever reads **"I understand my workflows, go ahead and enable them."**
-- **Solved:** water flows, the wheel turns, and lanterns across the village light up. This is a visual promise that "automation power" is now on.
+- **Solved:** water flows, the wheel turns, and lanterns across the village light up. Suri: *"There. The practice checks can run on your fork now."*
 - **Hints:** (1) "Follow the water from the spring." (2) Highlights the tile nearest the break. (3) Auto-rotates one tile.
 
 **P0.2 · The Dry-Run Crane** (signature, ~4 min)
@@ -305,6 +316,7 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 | C0.4 | Chartmaker's loft | `00-setup/assets/app-add-project.webp` | **+** next to **Projects** → **Add GitHub repository** (or Clone repository / Open folder). |
 | C0.5 | Bard's hammock | `00-setup/assets/studio-setup-soundcheck.webp` | Setting up the app is like prepping a studio before the first take. |
 | C0.6 | Hidden cove (optional) | `00-setup/assets/local-repository-workspace-selector.webp` | **Local repository** works in the clone already on your machine. |
+| P0.S | From Pol, after the crane | *(Logbook page: code block, no image)* | The two setup commands, run in **Terminal** from the repo root: `--dry-run` first, check `Repository:`, then `--yes`. |
 
 ### 4.7 Quizzes
 | ID | Type | Prompt → correct answer | Notes |
@@ -313,13 +325,13 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 | H0.2 | Hotspot `app-add-project` (masked) | "Where do you start adding a repository?" → **+ by Projects** `[0.218,0.322,0.026,0.044]` | See §3.6 YAML |
 | H0.3 | Hotspot `app-add-project` (masked) | "Which option adds your fork from GitHub?" → **Add GitHub repository** `[0.223,0.441,0.228,0.043]` | Distractors: Chat `[0.223,0.381,0.228,0.041]`, Clone repository `[0.223,0.487,0.228,0.043]`, Open folder `[0.223,0.532,0.228,0.042]` |
 | MC0.1 | MC | Local copy already → **Open folder** | Have the URL → Clone repository |
-| H0.4 | Hotspot `local-repository-workspace-selector` (mask ① `[0.227,0.79,0.03,0.09]` ② `[0.414,0.40,0.026,0.10]`) | "Where should the setup session run?" → **Local repository** `[0.248,0.401,0.366,0.196]` | Explains New worktree / Cloud |
+| H0.4 | Hotspot `local-repository-workspace-selector` (mask ① `[0.227,0.79,0.03,0.09]` ② `[0.414,0.40,0.026,0.10]`) | "Where should the setup session run?" → **Local repository** `[0.248,0.401,0.366,0.196]` | Wrong-answer copy: "The checkmark shows the default, **New worktree**. For setup, change it to **Local repository**." Also explains Cloud |
 | M0.1 | Matching | compass→`git --version`, lantern→`node -v`, rope→`npm -v`, spyglass→`gh --version` | |
 | S0.1 | Scenario | `gh auth status` shows the wrong account → **`gh auth login`, GitHub.com, web browser, re-check** | |
 | S0.2 | Scenario | Where does the first prompt go? → **Copilot app prompt box** | Terminal is for commands |
 
-**The Harbormaster's Trial (T0)** is 8 items. You pass when all 8 are correct (retries allowed). Stars are awarded for first-try accuracy.
-1. **Ordering:** Sign in → Pick theme & Finish → Fork → **+ Projects → Add GitHub repository** → Project session on **Local repository** → **Toggle Review Panel → Terminal** → Version checks → `gh auth status` → Enable workflows → `--dry-run` → `--yes` → First prompt.
+**The Harbormaster's Trial (T0)** is 8 items. You pass when all 8 are correct (retries allowed, and hint tier 3 is off). Stars are awarded for first-try accuracy.
+1. **Ordering (the 5 decisions that matter):** Sign in → Fork the course repo → Add your fork (**+ Projects → Add GitHub repository**) → Run this setup session on **Local repository** → `--dry-run` and check `Repository:` **before** `--yes`.
 2. **MC:** "What is a fork?" → *Your own copy of the repository on GitHub.*
 3. **Multi-select:** "What does the setup script create?" → labels, issues, practice branches, pull requests. Distractor: *"bugs on `main`."*
 4. **MC:** "Why enable workflows on your fork?" → *So GitHub can run the automated checks for the practice exercises.*
@@ -331,7 +343,7 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 **Reward:** the **Seal of Anchorage**, the Point Lighthouse lights (fast travel), +50 doubloons, and the chart reveals the route to Port Meridian.
 
 ### 4.8 Christening & Set Sail
-Nell breaks a coconut on the bow, your sails show your chosen theme, and Juno reports, *"Crew's aboard, Captain."* The ship's name is your typed name + "'s Sloop" (editable). Wingman then runs a short sailing tutorial at the berth.
+Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-rigged Golden Age pirate ship with a weathered hull and patched canvas. It's generic historical design, not a copy of any film ship. Your sails show your chosen colors, and Juno reports, *"Crew's aboard, Captain."* The ship's name is your typed name + "'s Brigantine" (editable). Wingman then runs a short sailing tutorial at the berth.
 
 ---
 
@@ -350,6 +362,7 @@ Nell breaks a coconut on the bow, your sails show your chosen theme, and Juno re
 
 ### 6.1 Art & mood
 - **Shape:** roughly 700 × 450 m. Terraced hillside town above a walled harbor, a **mole with a lighthouse**, and the **citadel** on the summit. A mountain ridge sits behind with far ranges beyond.
+- **Pacing rule:** the landmass stays large, but the **required stops are clustered** so neighboring required beats are about a **60-90 s walk** apart. The **citadel climb is the one deliberately long walk**, a scenic payoff before the Hall of Records and the Exam.
 - **Light:** late-afternoon **golden hour** with the sun at 18°, long shadows, and warm god rays through the streets.
 - **Palette:** terracotta `#C8643B`, limestone `#E9DCC3`, bougainvillea `#C2306B`, cypress `#2F4F3A`, sea teal `#2BB3B1`, banners in deep blue `#1F3A6B` and gold `#E8C88A`.
 - **Vegetation:** palms along the quay, cypress and olive on the terraces, bougainvillea on the walls.
@@ -363,9 +376,9 @@ Nell breaks a coconut on the bow, your sails show your chosen theme, and Juno re
                           [K2] Whispering Gallery (opt.)
            [J] Observatory ◔          terraces ▤▤▤▤
       [I] Naval Academy (3 helms) ══ harbor inner basin ══
-  [G] Royal Shipyard ⚒     [D] Clock Tower ⏲      [E] Outfitter ⌂
+  [G] Royal Shipyard ⚒     [D] Clock Tower ⏲      [E] Outfitter ⌂      [P] Post Office ✉ ("The Browser")
   [H] Carpenter's Workshop  [C] Market Sq · Bounty Board ▦    [F] The Quick Chat Tavern 🍺
-        [B] Harbor Plaza · Voyage Office ⌂ · [M] Bard at the fountain
+        [B] Harbor Plaza · Voyage Office ⌂ · [M] Bard at the fountain · [T] Pump-house terminal hatch
   ════ quay ════ [A] Arrival berth ════ mole ════════ ◉ Mole Lighthouse
 ```
 
@@ -393,7 +406,7 @@ Nell breaks a coconut on the bow, your sails show your chosen theme, and Juno re
 **Q1.1 · The Admiral's Summons.** A herald meets you on the quay with a sealed letter: *"Learn the town, prove you can command, and the Seal of Meridian is yours."* Quest tracker: **Harbor Passport** (5 stamps) + **Three Helms** + **Observatory** + **Hall of Records** → Admiral.
 
 **Q1.2 · The Scattered Evidence** *(01 · Why use the GitHub Copilot app?)*
-- Tobias's voyage records are scattered across town: the **plan** at the tavern, the **diff** at the shipyard, the **tests** at the fort steps, and the **PR** at the post box. Collecting each item shows its **challenge card** (Shared working copy · Scattered evidence · Explore vs change · Repeat work).
+- Tobias's voyage records are scattered across four places, which match the course's four tools: the **plan** at the **tavern** (a chat), the **diff** at **Gideon's workshop** (the editor), the **tests** at the **pump-house terminal hatch** (a terminal), and the **PR** at the **post office**, whose sign reads *"The Browser"* (GitHub in your browser, outside the app). Collecting each item shows its **challenge card** (Shared working copy · Scattered evidence · Explore vs change · Repeat work).
 - Back at the Plaza, Tobias lays the cards on the **Command Deck table**. **M1.1** matches each challenge ↔ *what the app adds*:
   - Shared working copy → project sessions keep work separate
   - Scattered evidence → sessions, diffs, terminal, preview, and GitHub work in one app
@@ -406,8 +419,8 @@ Nell breaks a coconut on the bow, your sails show your chosen theme, and Juno re
 - **S1.1** gives 3 tasks → Editor or App: "hand-debug a tricky function" → Editor; "review what an agent changed and move it to a PR" → App; "run a session, pick a mode, check the preview" → App.
 
 **Q1.4 · Harbor Passport** *(01 · Tour the App)*. Visit five districts and each keeper stamps your passport:
-- **Voyage Office = New:** the landing view. Start a chat without a project, pick a connected project, choose mode & model, or use a sample idea (the posters show *"Build a personal landing page with dark mode"* and others). **[C1.1]** `app-new-page`.
-- **Bounty Board = My work:** your GitHub inbox for issues, PRs, and review requests, where you can start work on an item. **The notices are the practice items you loaded on Anchorage Cay**, like *Make search case-insensitive #1* and *Failing stats check practice #7*. **[C1.2]** `app-my-work-page`. Optional **H1.2:** "Click the pull request whose automated check **failed**" → row #7 `[0.207,0.356,0.793,0.053]`.
+- **Voyage Office = New:** the landing view. Start a chat without a project, pick a connected project, choose mode & model, or use a sample idea. The posters match the screenshot you're shown: *"Create a reusable technical design doc template for feature proposals"*, *"Compare monorepo vs multi-repo and when to use each"*, and *"Create an accessibility audit checklist for web interfaces"*. Mina notes that the ideas shown can vary. **[C1.1]** `app-new-page`.
+- **Bounty Board = My work:** your GitHub inbox for issues, PRs, and review requests, where you can start work on an item. **The notices are the practice items you loaded on Anchorage Cay**, like *Make search case-insensitive* and *Failing stats check practice*. Rourke: *"Numbers on your own fork may differ. Go by the title."* **[C1.2]** `app-my-work-page`. Optional **H1.2:** "Which item needs a fix because its automated check failed?" → the **Failing stats check practice** row `[0.207,0.356,0.793,0.053]`. Spotting the **Failed** mark in My work *is* the skill here. Keelhaven teaches opening and fixing the check.
 - **Clock Tower = Automations:** recurring agent tasks. Templates run manually or daily/weekly, events can trigger them, and you choose local or cloud. *"Tidewheel Caldera's clockmakers will teach you properly."* **[C1.3]** `app-automations-page`.
 - **Outfitter = Customize:** skills, MCP servers, plugins, and extensions. *"You don't need any of it yet. Guildcrest, Sunspire Sands, and Inkwell Bluffs will kit you out."*
 - **Tavern & Shipyard = Projects and chats:** covered in Q1.5.
@@ -428,12 +441,12 @@ Nell breaks a coconut on the bow, your sails show your chosen theme, and Juno re
 **Q1.7 · The Navigator's Observatory** *(01 · Models and reasoning effort)*
 - Oren: the **Model** is *which navigator you consult* (they differ in capability, speed, and usage cost). **Reasoning effort** is *how long they study the charts*: higher can help on hard problems but takes longer, and it doesn't guarantee a correct answer.
 - **Where to find it:** below the prompt box, next to the mode selector. It shows **Auto** or a model name, and opening it reveals **Model** and **Effort**. Some app versions show separate controls.
-- **H1.5** on `app-new-page`: "Click the model control" → `[0.414,0.491,0.089,0.029]`. Distractor: the mode selector "Interactive" `[0.365,0.491,0.049,0.029]`.
+- **H1.5** on `app-new-page`: "Click the control that shows the **model name**" → `[0.414,0.491,0.089,0.029]`. Distractor: the mode selector "Interactive" `[0.365,0.491,0.049,0.029]`. The explanation: *"On this screenshot it reads **GPT-5.6 Sol · Medium**. That's the model name, and **Medium** is the reasoning effort. On your machine it might say **Auto**."*
 - **Star Charts (S1.3):** three telescopes, three tasks:
   - Repo tour → keep **Auto**/default effort.
   - Tricky bug across several files → **a complex-coding model + higher effort**.
   - Quick explanation → default.
-- **Try it:** you ask the crew (Juno, via the speaking tube) how `filterBooks` searches. They answer that it matches titles and authors without depending on letter case, see `samples/book-app-web/src/App.tsx`, and no files change.
+- **Try it:** the speaking tube shows the chapter's prompt (*"In samples/book-app-web, explain how filterBooks searches book titles and authors. Does letter case affect the results?…"*) with a **"Try it in the app ↗"** link to the chapter section. You then choose **"I tried it"** or **"Show me a good answer"**. Only after that choice does Juno describe what a good answer contains: it matches titles and authors without depending on letter case, it cites `samples/book-app-web/src/App.tsx`, and no files change. Players who never open the app still learn it, and players who do aren't spoiled.
 
 **Q1.8 · The Hall of Records** *(01 · Settings)*. Pell's hall has **9 alcoves**, one per settings area: General, Accounts, Sessions, Themes, Accessibility, Voice dictation, Customize, Model providers, Experimental. → **P1.3**, then **H1.6** on `app-settings`: "Where would you set **app-wide instructions**?" → **Sessions** `[0.209,0.258,0.140,0.033]`. Pell adds: *"Model providers connects extra providers with your own keys. It doesn't replace the model picker below the prompt box."* **[C1.5]**
 
@@ -463,7 +476,9 @@ Nell breaks a coconut on the bow, your sails show your chosen theme, and Juno re
 **P1.2 · The Three Helms** (signature, ~7 min). Three short harbor voyages in a training cutter, one per helm:
 1. **Interactive · Harbor Slalom:** you steer through 5 buoys. At each buoy the crew *checks in* ("Hard to port, Captain?"), and you confirm or adjust. It teaches step-by-step collaboration.
 2. **Plan · Reef Passage:** at the chart table, place 4-6 waypoints on a top-down chart through a reef. The route validates against shallows (red where it's too shallow). Once you **approve the plan**, the cutter sails it by itself. If you try to cast off without a plan, Rhea says, *"This passage is one where the approach matters. Chart it first."*
-3. **Autopilot · Supply Run:** a clear, well-defined outcome (deliver 3 crates to the mole). Set the destination and let the trusted helmsman sail. You can **interrupt** at any time, and the voyage finishes with minimal intervention.
+3. **Autopilot · Supply Run:** a clear, well-defined outcome (deliver 3 crates to the mole). Set the destination and let the trusted helmsman sail it **end to end with no required input**. A small, de-emphasized **Stop** control exists, but it's optional and the voyage never asks you for anything.
+
+*Checkpoints:* P1.2 saves after each of the three voyages (§3.9).
 
 - **S1.2 (scenario, 5 cards):**
 
@@ -504,15 +519,19 @@ Nell breaks a coconut on the bow, your sails show your chosen theme, and Juno re
 | C1.8 | Fountain | `01-tour-the-app/assets/producer-control-room-modes.webp` | A producer directs each take differently, and so do you. |
 
 ### 6.7 The Admiral's Exam (A1)
-Eight items. Pass with all correct (retries allowed). One item per key takeaway, plus extras.
+Nine items. Pass with all correct (retries allowed, hint tier 3 off). All six key takeaways are covered: takeaway 1 → #1, 2 → #2, 3 → #3, 4 → #5, 5 → #9, 6 → #6-7. The rest are extras.
 1. **MC:** "When do you open the app instead of staying in your editor?" → *When agent work needs a clearer place to run and review.*
 2. **MC:** "Can you open the project in VS Code from the app?" → *Yes, any time.*
 3. **Matching:** New / My work / Automations / Customize → their purposes.
 4. **Scenario:** "Your first project session, fresh." Which workspace by default? → **New worktree**.
-5. **Scenario:** 3 tasks → Chat / Project session / Automation.
+5. **Scenario (3 tasks → Chat / Project session / Automation):**
+   - "Brainstorm when to use a monorepo, with no repository involved" → **Chat session**
+   - "Fix the unread-count bug in `samples/book-app-web` and open a PR" → **Project session**
+   - "Every Monday, summarize open pull requests without retyping the prompt" → **Automation**
 6. **Trick MC:** "**Auto** in the model control means…" → *The app picks a model for your task* (**not** Autopilot).
 7. **True/False:** "You can change the model and effort mid-session without changing the mode." → **True**.
 8. **Hotspot `app-settings`:** "Where do you configure your own model providers?" → **Model providers** `[0.209,0.461,0.140,0.033]`.
+9. **MC (modes):** "What do Interactive, Plan, and Autopilot change?" → *How much autonomy the agent has: step-by-step together, plan-then-approve, or end to end with minimal intervention.* Distractor: *"Which AI model answers."*
 
 **Reward:** the **Seal of Meridian**, the Mole Lighthouse lights, +75 doubloons, and the **POC end card**: *"The fog lifts toward Thousand-Bough Isle… Coming soon."* The card has a button: **Continue learning: Chapter 02 ↗**.
 
@@ -523,15 +542,21 @@ Eight items. Pass with all correct (retries allowed). One item per key takeaway,
 | Item | Estimate |
 |---|---|
 | Voiced lines | ~140 (Island 00) + ~210 (Island 01) + ~25 (intro/sea) + ~70 (parrot hints) ≈ **445 lines** |
-| Voice audio size | ~6 s average × 445 at 32 kbps Opus ≈ **~11 MB** total, loaded per island (~4-6 MB each) |
+| Voice audio size | ~6 s average × 445 at 32 kbps Opus ≈ **~11 MB downloaded** in total, loaded per island (~4-6 MB each). The repo stores two formats per line, but each client downloads exactly one |
 | AI-painted portraits | 21 NPCs + parrot + player (m/f) |
 | AI illustrations | Chart (2 islands + 6 silhouettes), 2 loading paintings, Logbook ornaments, the POC end card |
 | AI tileable textures | Thatch, sailcloth, terracotta, limestone, and plaster, then derived to PBR |
-| CC0 3D | Quaternius Pirate Kit, Stylized Nature MegaKit, Universal Base Characters + Animation Library 1 & 2; Kenney Pirate Kit (fill-ins); ambientCG/Poly Haven PBR |
-| Custom/Blender | Stilt huts, crane, waterwheel, citadel modules, pillar banners, helms, restyle/atlas scripts |
+| CC0 3D | Quaternius Pirate Kit, Stylized Nature MegaKit, Universal Base Characters + Animation Library 1 & 2; Kenney Pirate Kit (fill-ins); ambientCG/Poly Haven PBR. **Re-read each kit's license file when it's vendored** |
+| Custom/Blender | Stilt huts, crane, waterwheel, citadel modules, pillar banners, helms, the player's **brigantine**, restyle/atlas scripts |
 
-- **Voice pipeline:** `tools/voice/generate.ts` reads dialogue YAML and builds SSML (voice + rate/pitch where supported). It calls Azure Speech with the `.env` credentials (local only), writes `voice/<island>/<lineId>.opus` + `.m4a`, plus `.json` word/viseme timings. It caches by hash of text and voice, and loudness-normalizes to **−18 LUFS**.
-- **Provenance:** `ART_PROVENANCE.md` (AI art) and `CREDITS.md`. Credits cover the CC0 kits (a courtesy, since it isn't required), the course content & screenshots (**© GitHub, MIT License**), and the Azure TTS voices.
+- **Voice pipeline:** `tools/voice/generate.ts` reads dialogue YAML and builds SSML (voice + rate/pitch where supported). It calls Azure Speech with the `.env` credentials (local only), writes `voice/<island>/<lineId>.webm` (Opus) + `.m4a` (AAC), plus `.json` word/viseme timings. It caches by hash of text and voice, and loudness-normalizes to **−18 LUFS**. At runtime the client picks **one** format via `canPlayType` (Opus first, AAC fallback). Generated files are committed to the repo directly (no LFS).
+- **Provenance:** `ART_PROVENANCE.md` (AI art) and `CREDITS.md`. The credits include:
+  - the course content & screenshots, with the **full MIT copyright line and permission notice** from the course `LICENSE` (not just "MIT License")
+  - the CC0 kits (a courtesy, since it isn't required)
+  - **"Voices are synthetic, generated with Azure AI Speech"** (no implication that they're human actors)
+  - the affiliation line (§10)
+- **Brand rule:** screenshots stay as screenshots. We **never model or generate the Octocat or the Copilot logo**.
+- **Before the first public deploy:** check the current Azure Speech terms for redistributing neural and Dragon HD audio.
 
 ---
 
@@ -545,6 +570,15 @@ Eight items. Pass with all correct (retries allowed). One item per key takeaway,
 | Dialogue | DOF + portrait | DOF only on High+. Scene resolution scales down during long dialogue if frame time rises |
 | Menus/Chart/Logbook | None | A single blurred frame; the 3D loop is paused |
 
+**Physics & movement split:**
+- **Rapier** provides only **primitive static colliders** (boxes, capsules, a heightfield, with **no triangle-mesh colliders** across the town), scene queries, and the **kinematic character controller**.
+- **There are no dynamic rigid bodies in the POC.**
+- **Push crates** (P1.1) are **grid logic**, with no physics.
+- The **boat** is a kinematic hull driven by **analytic Gerstner buoyancy**. The CPU evaluates the same wave function as the shader at a few hull sample points. There's no GPU readback and no Rapier body.
+- Phase 0 measures physics time, and it moves to a worker only if it misses the §12.1 budget.
+
+**Water reflection:** the water samples a **prefiltered (PMREM) sky environment map** plus a sun-glint term. That's still one scene render, with no planar reflection.
+
 **Benchmark flythrough** (built in Phase 0, then extended here): Anchorage beach → village → crane → sail → Meridian quay → market → citadel interior. **Pass criteria** are the §12.1 High-tier and Low-tier budgets.
 
 ---
@@ -553,14 +587,17 @@ Eight items. Pass with all correct (retries allowed). One item per key takeaway,
 
 - [ ] Every row in §1's matrix is taught, practiced, and assessed as listed.
 - [ ] Every teaching line and Logbook page links to the correct course section.
-- [ ] All hotspot quizzes use masked images where callouts exist, and each has a keyboard alternative.
+- [ ] All hotspot quizzes use masked images where callouts exist, no mask overlaps a target rect (checked by the Hotspot Editor), and each quiz has a keyboard alternative.
 - [ ] Voice plays for every scripted line, with synced subtitles and working lip sync or jaw fallback. The voice-off setting works.
 - [ ] Procedural music plays per island with adaptive layers, beat-quantized stingers, and ducking under voice.
-- [ ] The chart supports sail-to and fast travel, and Free explore unlocks Port Meridian immediately.
-- [ ] Save/continue works across reloads, and export/import works.
-- [ ] The High tier holds 60 fps on an M1/M2 Air, the Low tier holds 30+ fps on Iris Xe, the title appears in under 25 MB, and no frame spikes over 50 ms during streaming.
+- [ ] The chart supports sail-to and fast travel. Free explore can enter Anchorage Cay and Port Meridian in either order, and 02-07 are visible but can't be entered.
+- [ ] Save/continue works across reloads, puzzles restore to their checkpoints, and export/import works.
+- [ ] The High tier holds 60 fps on an M1/M2 Air, the Low tier holds 30+ fps on Iris Xe, and no frame spikes over 50 ms during streaming.
+- [ ] The title (ocean, sky, clouds, and the ship) appears in under 25 MB, and Anchorage isn't part of that download.
+- [ ] The Appendix A exit quiz is implemented with hints off.
 - [ ] No API keys appear in the build output. A CI grep checks for key-like strings.
-- [ ] Credits list the course (MIT), CC0 kits, and TTS.
+- [ ] Credits include the course's full MIT notice, the CC0 kits, and the synthetic-voice disclosure.
+- [ ] **Deploy gate:** the affiliation line is decided and the Azure Speech terms are checked before the first public GitHub Pages deploy.
 
 ---
 
@@ -573,3 +610,21 @@ Eight items. Pass with all correct (retries allowed). One item per key takeaway,
 | First mate "Juno" as the voice of the agent crew | Yes |
 | The optional Whispering Gallery | Included, with no real microphone access |
 | Sail palettes (mirroring the app's theme picker) | 6 **nautical** names (Harbor Blue, Coral Reef, Sunset Sail, Storm Grey, Sea Glass, Parchment), so they don't imply they're real app themes. The spyglass still shows the real picker |
+| **Affiliation line** (title + credits) | **Your decision, required before the first public deploy.** For example "Unofficial fan project. Not affiliated with GitHub." if it's a community project, or official wording if it becomes an official GitHub/Microsoft project. It doesn't block Phase 0 |
+
+---
+
+## Appendix A: Exit quiz (10 questions, hints off)
+
+This is optional for players but required for the POC success measure (§0). It draws only from Ch 00/01 objectives, and none of its items repeat a Trial or Exam item word for word.
+
+1. **MC:** You want your *own* copy of the course repository on GitHub. What do you create? → **A fork**.
+2. **Hotspot `app-add-project` (masked):** "Show where you'd clone a repository from its URL." → **Clone repository**.
+3. **Scenario:** Your company uses Copilot Business and you can't sign in to the app, but Copilot CLI works fine. What's the likely cause? → *The **GitHub Copilot app** policy is disabled. It's separate from the CLI policy.*
+4. **MC:** Where do you run `node .github/scripts/setup-training-scenarios.js --dry-run`? → *In the app's **Terminal** tab, from the repository root.*
+5. **MC:** Why run `--dry-run` before `--yes`? → *To preview the changes and confirm the `Repository:` line is your fork.*
+6. **Hotspot `app-new-page`:** "Where is your GitHub inbox for issues and PRs?" → **My work**.
+7. **Scenario:** "Explain what a pull request is, in general. No repo needed." Chat or project session? → **Chat session**.
+8. **Scenario:** A multi-file change where the initial approach matters, and you want to approve it before any edits. Which mode? → **Plan**.
+9. **MC:** Which control changes how long a supported model reasons? → **Effort (reasoning effort)**, in the model control below the prompt box.
+10. **MC:** Where do you connect your own model provider's API keys? → **Settings → Model providers**.
