@@ -1,6 +1,6 @@
 # Copilot Isles: Game Concept & Plan (v0.3, approved + Grok Build review consensus applied)
 
-> Review history: [docs/reviews/2026-09-23-grok-build](reviews/2026-09-23-grok-build/README.md)
+> Review history: [docs/reviews/2026-09-23-grok-build](../docs/reviews/2026-09-23-grok-build/README.md)
 
 > Working title. A relaxing, beautiful, browser-based 3D island adventure that teaches the
 > [GitHub Copilot app for Beginners](https://github.com/github/copilot-app-for-beginners) course.

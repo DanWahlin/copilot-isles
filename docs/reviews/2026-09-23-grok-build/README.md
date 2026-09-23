@@ -2,7 +2,7 @@
 
 **Reviewer:** Grok Build CLI 1.0.41, model `grok-4.7`, reasoning effort high, read-only plan mode (session `c9b70fe5-35c6-435b-933f-1312a869c616`).
 **Author:** GitHub Copilot CLI.
-**Scope:** `docs/PLAN.md` and `docs/specs/POC-islands-00-01.md`, fact-checked against `github/copilot-app-for-beginners` @ `360fcb2`.
+**Scope:** the plan (then `docs/PLAN.md`, now [`.plans/PLAN.md`](../../../.plans/PLAN.md)) and [`docs/specs/POC-islands-00-01.md`](../../specs/POC-islands-00-01.md), fact-checked against `github/copilot-app-for-beginners` @ `360fcb2`.
 **Verdict (round 1):** *Approve with changes.* 14 findings: 1 Blocker, 10 Major, 3 Minor.
 **Outcome:** **Consensus reached in round 2 and confirmed in round 3.** Grok re-read the edited docs and verified all 14 findings as applied (`CONSENSUS: CONFIRMED`), with no new inconsistencies.
 

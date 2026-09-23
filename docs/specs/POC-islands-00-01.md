@@ -1,6 +1,6 @@
 # Spec: Proof of Concept, Islands 00 & 01 (v0.2: Grok Build review consensus applied)
 
-> Companion to [`docs/PLAN.md`](../PLAN.md). This spec defines everything needed to play **title → character creation → Anchorage Cay (Ch 00) → Open Sea → Port Meridian (Ch 01)**.
+> Companion to [`.plans/PLAN.md`](../../.plans/PLAN.md). This spec defines everything needed to play **title → character creation → Anchorage Cay (Ch 00) → Open Sea → Port Meridian (Ch 01)**.
 > Course source: `github/copilot-app-for-beginners` @ `360fcb2` (local: `~/Desktop/projects/copilot-app-for-beginners`).
 > Hotspot coordinates are **normalized (0-1)** and **approximate**. They'll be finalized in the Hotspot Editor.
 
