@@ -64,14 +64,14 @@ function createGrassGeometry(blades: number, segments: number): BufferGeometry {
   const shade: number[] = [];
   for (let i = 0; i < blades; i += 1) {
     const angle = (i / blades) * Math.PI * 2 + (i % 2) * 0.27;
-    const width = 0.03 + (i % 3) * 0.011;
-    const height = 0.86 + (i % 5) * 0.1;
+    const width = 0.066 + (i % 3) * 0.018;
+    const height = 0.66 + (i % 5) * 0.075;
     const ox = Math.cos(angle * 1.7) * 0.2;
     const oz = Math.sin(angle * 1.7) * 0.2;
     const rightX = Math.cos(angle) * width;
     const rightZ = -Math.sin(angle) * width;
-    const bendX = Math.sin(angle) * height * (0.12 + (i % 2) * 0.04);
-    const bendZ = Math.cos(angle) * height * (0.1 + (i % 3) * 0.025);
+    const bendX = Math.sin(angle) * height * (0.16 + (i % 2) * 0.04);
+    const bendZ = Math.cos(angle) * height * (0.14 + (i % 3) * 0.025);
     const n = [Math.sin(angle), 0.34, Math.cos(angle)];
     for (let s = 0; s < segments; s += 1) {
       const t0 = s / segments;
@@ -121,9 +121,9 @@ function grassWeight(heightField: HeightField, x: number, z: number): { weight: 
 
 function colorFor(kind: GrassKind, jitter: number): Color {
   const color = new Color();
-  if (kind === 'seaOats') color.setHSL(0.16 + jitter * 0.045, 0.48, 0.42 + jitter * 0.16);
-  else if (kind === 'creeper') color.setHSL(0.24 + jitter * 0.04, 0.42, 0.31 + jitter * 0.1);
-  else color.setHSL(0.28 + jitter * 0.045, 0.52, 0.31 + jitter * 0.13);
+  if (kind === 'seaOats') color.setHSL(0.16 + jitter * 0.035, 0.38, 0.36 + jitter * 0.12);
+  else if (kind === 'creeper') color.setHSL(0.24 + jitter * 0.035, 0.34, 0.27 + jitter * 0.08);
+  else color.setHSL(0.285 + jitter * 0.03, 0.46, 0.24 + jitter * 0.08);
   return color;
 }
 
@@ -197,7 +197,8 @@ export class GrassField {
         setClumpMatrix(clump);
         mesh.mesh.setMatrixAt(slot, tmpMatrix);
         mesh.tint.setXYZ(slot, clump.color.r, clump.color.g, clump.color.b);
-        const fadeIn = smoothstep(mesh.minDistance, mesh.minDistance + 5 * this.tierScale, d);
+        const fadeIn =
+          mesh.minDistance <= 0 ? 1 : smoothstep(mesh.minDistance, mesh.minDistance + 5 * this.tierScale, d);
         const fadeOut = 1 - smoothstep(mesh.maxDistance - 16 * this.tierScale, mesh.maxDistance, d);
         mesh.fade.setX(
           slot,

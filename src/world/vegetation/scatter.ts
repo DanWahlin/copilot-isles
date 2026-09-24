@@ -141,14 +141,6 @@ function hillScore(x: number, z: number, y: number, masks: Masks): number {
   return clamp01(hill * smoothstep(3.5, 15, y) * (masks.grass * 0.9 + masks.rock * 0.18));
 }
 
-function villageEdgeScore(x: number, z: number, y: number, masks: Masks): number {
-  const d = Math.hypot(x - COVE.village.center.x, z - COVE.village.center.z);
-  const ring =
-    smoothstep(COVE.village.radius + 6, COVE.village.radius + 18, d) *
-    (1 - smoothstep(COVE.village.radius + 30, COVE.village.radius + 55, d));
-  return clamp01(ring * masks.grass * smoothstep(2, 7, y));
-}
-
 function logScore(_x: number, z: number, y: number, masks: Masks): number {
   const beach = masks.sand * smoothstep(0.55, 1.4, y) * (1 - smoothstep(3.2, 5.5, y));
   const lagoonSide = smoothstep(COVE.beach.z0 - 18, COVE.beach.z0 + 12, z);
@@ -256,11 +248,11 @@ const RULES: RuleMap = {
     lean: (_x, _z, rng) => ({ x: rng.signed(0.02), z: rng.signed(0.02) }),
   },
   flowerBush: {
-    countHigh: 54,
-    minDistance: 2.8,
+    countHigh: 0,
+    minDistance: 3.4,
     maxSlopeDeg: 30,
-    score: (x, z, y, masks) => villageEdgeScore(x, z, y, masks) * 0.85 + hillScore(x, z, y, masks) * 0.16,
-    scale: (rng) => rng.range(0.75, 1.25),
+    score: () => 0,
+    scale: (rng) => rng.range(0.48, 0.82),
     lean: (_x, _z, rng) => ({ x: rng.signed(0.015), z: rng.signed(0.015) }),
   },
   log: {
@@ -310,6 +302,7 @@ export function scatterVegetation(options: ScatterOptions): ScatterSummary {
 
   for (const species of Object.keys(RULES) as PlantSpecies[]) {
     const rule = RULES[species];
+    if (rule.countHigh <= 0) continue;
     const target = Math.max(1, Math.round(rule.countHigh * (0.42 + density * 0.58)));
     const speciesRng = rng.fork(species.length * 997 + rule.countHigh);
     const maxAttempts = target * 55;

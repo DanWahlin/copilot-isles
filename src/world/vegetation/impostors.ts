@@ -22,10 +22,15 @@ import {
   type WebGPURenderer,
   Vector4,
 } from 'three/webgpu';
+import { float, texture, uv } from 'three/tsl';
 import type { PlantInstance } from './types';
 import type { VegetationGeometryCatalog } from './model-loader';
 import { createImpostorMaterial } from './materials';
 import { clamp01, smoothstep } from './random';
+
+// three's TSL typings do not expose map sample swizzles precisely here.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyNode = any;
 
 interface ImpostorEntry extends PlantInstance {
   radius: number;
@@ -48,12 +53,20 @@ function bakeMaterial(source: Material | Material[]): MeshBasicNodeMaterial {
     color?: Color;
     map?: Texture | null;
   };
-  return new MeshBasicNodeMaterial({
+  const out = new MeshBasicNodeMaterial({
     color: material.color ?? new Color(0xffffff),
-    map: material.map ?? null,
     side: DoubleSide,
-    alphaTest: material.map ? 0.38 : 0.1,
+    alphaTest: material.map ? 0.01 : 0.1,
+    transparent: !!material.map,
+    depthWrite: true,
   });
+  if (material.map) {
+    const sample = texture(material.map, uv()) as AnyNode;
+    out.colorNode = sample.rgb;
+    out.opacityNode = sample.a;
+    out.alphaTestNode = float(0.01);
+  }
+  return out;
 }
 
 export async function bakeImpostorAtlas(
@@ -120,10 +133,33 @@ export async function bakeImpostorAtlas(
   return { texture: target.texture, target, bakeMs: performance.now() - started };
 }
 
+function atlasFamily(species: PlantInstance['species']): number {
+  if (species === 'broadleafTree') return 1;
+  if (species === 'shrub' || species === 'flowerBush') return 2;
+  return 0;
+}
+
+function atlasTile(
+  species: PlantInstance['species'],
+  seed: number,
+): { x: number; y: number; w: number; h: number } {
+  const family = atlasFamily(species);
+  const candidates: { x: number; y: number }[] = [];
+  for (let y = 0; y < 6; y += 1) {
+    for (let x = 0; x < 6; x += 1) {
+      if ((x + y) % 3 === family) candidates.push({ x, y });
+    }
+  }
+  const c = candidates[Math.floor(seed * candidates.length) % candidates.length] ?? candidates[0]!;
+  const s = 1 / 6;
+  return { x: c.x * s, y: c.y * s, w: s, h: s };
+}
+
 export class ImpostorBatch {
   readonly mesh: InstancedMesh;
   private readonly fade: InstancedBufferAttribute;
   private readonly tint: InstancedBufferAttribute;
+  private readonly atlasUv: InstancedBufferAttribute;
   private readonly capacity: number;
   private readonly entries: ImpostorEntry[];
   private visible = 0;
@@ -137,8 +173,10 @@ export class ImpostorBatch {
     this.capacity = Math.max(1, maxCount);
     this.fade = new InstancedBufferAttribute(new Float32Array(this.capacity), 1);
     this.tint = new InstancedBufferAttribute(new Float32Array(this.capacity * 3), 3);
+    this.atlasUv = new InstancedBufferAttribute(new Float32Array(this.capacity * 4), 4);
     geometry.setAttribute('fade', this.fade);
     geometry.setAttribute('tint', this.tint);
+    geometry.setAttribute('atlasUv', this.atlasUv);
     this.mesh = new InstancedMesh(geometry, createImpostorMaterial(atlas), this.capacity);
     this.mesh.count = 0;
     this.mesh.frustumCulled = false;
@@ -164,12 +202,15 @@ export class ImpostorBatch {
       this.mesh.setMatrixAt(this.visible, matrix);
       const color = new Color().setHSL(0.26 + entry.colorSeed * 0.07, 0.42, 0.48 + entry.colorSeed * 0.08);
       this.tint.setXYZ(this.visible, color.r, color.g, color.b);
+      const tile = atlasTile(entry.species, entry.lodSeed);
+      this.atlasUv.setXYZW(this.visible, tile.x, tile.y, tile.w, tile.h);
       this.fade.setX(this.visible, clamp01(smoothstep(nearDistance, nearDistance + 18, d) * thin));
       this.visible += 1;
     }
     this.mesh.count = this.visible;
     this.mesh.instanceMatrix.needsUpdate = true;
     this.tint.needsUpdate = true;
+    this.atlasUv.needsUpdate = true;
     this.fade.needsUpdate = true;
   }
 

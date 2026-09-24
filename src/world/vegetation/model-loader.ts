@@ -2,9 +2,11 @@ import {
   Box3,
   BufferGeometry,
   Color,
+  DoubleSide,
   Float32BufferAttribute,
   Matrix4,
   Mesh,
+  MeshStandardMaterial,
   TextureLoader,
   Vector3,
   type Material,
@@ -25,7 +27,7 @@ const MODEL_BY_SPECIES: Partial<Record<PlantSpecies, string>> = {
   fern: 'fern.glb',
   shrub: 'shrub.glb',
   broadleafTree: 'tree_broadleaf.glb',
-  flowerBush: 'flower_bush.glb',
+  flowerBush: 'shrub_flowers.glb',
   log: 'driftwood_dead_tree.glb',
 };
 
@@ -37,7 +39,7 @@ const TARGET_HEIGHT: Record<PlantSpecies, number> = {
   fern: 1.25,
   shrub: 1.65,
   broadleafTree: 9.4,
-  flowerBush: 1.05,
+  flowerBush: 0.85,
   log: 0.9,
 };
 
@@ -48,7 +50,7 @@ const tmpColor = new Color();
 
 export interface VegetationModelPart {
   geometry: BufferGeometry;
-  material: ReturnType<typeof createVegetationMaterial> | ReturnType<typeof createVegetationMaterial>[];
+  material: Material | Material[];
 }
 
 export type VegetationGeometryCatalog = Record<PlantSpecies, VegetationModelPart[]>;
@@ -88,14 +90,32 @@ function materialArray(material: Material | Material[] | undefined): SourceMater
   return Array.isArray(material) ? (material as SourceMaterial[]) : [sourceMaterial(material)];
 }
 
-function toNodeMaterials(material: Material | Material[] | undefined) {
-  const convert = (mat: SourceMaterial) =>
-    createVegetationMaterial({
-      map: mat.map ?? null,
-      color: mat.map ? new Color(0xffffff) : (mat.color ?? new Color(0xffffff)),
-      alphaTest: mat.map || mat.alphaMap ? 0.38 : 0.12,
+function toVegetationMaterials(material: Material | Material[] | undefined): Material | Material[] {
+  const convert = (mat: SourceMaterial): Material => {
+    if (mat.map) {
+      const out = new MeshStandardMaterial({
+        name: `vegetation-${mat.name || 'mapped'}`,
+        map: mat.map,
+        alphaMap: mat.map,
+        color: mat.color ?? new Color(0xffffff),
+        normalMap: (mat as SourceMaterial & { normalMap?: Texture | null }).normalMap ?? null,
+        roughness: (mat as SourceMaterial & { roughness?: number }).roughness ?? 0.82,
+        metalness: 0,
+        side: DoubleSide,
+        alphaTest: 0.75,
+        transparent: true,
+        vertexColors: true,
+      });
+      out.depthWrite = true;
+      return out;
+    }
+    return createVegetationMaterial({
+      map: null,
+      color: mat.color ?? new Color(0xffffff),
+      alphaTest: 0.12,
       name: `vegetation-${mat.name || 'mat'}`,
     });
+  };
   return Array.isArray(material) ? materialArray(material).map(convert) : convert(sourceMaterial(material));
 }
 
@@ -292,7 +312,7 @@ async function loadSpecies(loader: GLTFLoader, species: PlantSpecies): Promise<V
     const geometry = addInstanceAttributes(mesh.geometry, mesh, species);
     geometry.applyMatrix4(mesh.matrixWorld);
     if (species === 'log') geometry.applyMatrix4(new Matrix4().makeRotationX(Math.PI / 2));
-    parts.push({ geometry, material: toNodeMaterials(mesh.material) });
+    parts.push({ geometry, material: toVegetationMaterials(mesh.material) });
   });
   if (parts.length === 0) throw new Error(`Vegetation model has no meshes: ${species}`);
   normalizeParts(parts, TARGET_HEIGHT[species]);

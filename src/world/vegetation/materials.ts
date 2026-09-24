@@ -122,8 +122,10 @@ export function createVegetationMaterial(
     float(0.95),
     (normalWorld as AnyNode).dot(world.sunDir).abs(),
   ).mul(0.18);
-  if (source.map) {
-    material.emissiveNode = sourceColor.mul(translucency.add(frondSheen.mul(0.08)).mul(0.18)) as AnyNode;
+  if (sourceTexel) {
+    material.colorNode = sourceColor.mul(tint.mul(0.22).add(0.9)) as AnyNode;
+    material.opacityNode = sourceTexel.a as AnyNode;
+    material.emissiveNode = sourceColor.mul(translucency.add(frondSheen.mul(0.08)).mul(0.12)) as AnyNode;
     material.roughnessNode = select(isRock, float(0.86), select(isLeaf, float(0.58), float(0.82))) as AnyNode;
     material.maskNode = lodMask();
   } else {
@@ -205,12 +207,12 @@ export function createGrassMaterial(heightTexture: DataTexture, grid: HeightGrid
     terrainY.add(blade),
     worldXZ.y.add(sway.z),
   ) as AnyNode;
-  const root = tint.mul(0.48);
+  const root = tint.mul(0.34);
   const tip = tint
-    .mul(float(1.1).add(sheen))
-    .add(color(0xc8b16c).mul(smoothstep(float(0.55), float(1.45), blade).mul(0.18)));
+    .mul(float(0.84).add(sheen.mul(0.28)))
+    .add(color(0x9d8e55).mul(smoothstep(float(0.62), float(1.45), blade).mul(0.055)));
   material.colorNode = mix(root, tip, smoothstep(float(0.02), float(1.25), blade)) as AnyNode;
-  material.emissiveNode = tint.mul(sheen.mul(0.16)) as AnyNode;
+  material.emissiveNode = tint.mul(sheen.mul(0.018)) as AnyNode;
   material.maskNode = greaterThan(fade, interleavedGradientNoise());
   return material;
 }
@@ -226,7 +228,8 @@ export function createImpostorMaterial(atlas: Texture): MeshBasicNodeMaterial {
     depthWrite: true,
     transparent: false,
   });
-  const sample = texture(atlas, uv()) as AnyNode;
+  const tile = attribute('atlasUv', 'vec4') as AnyNode;
+  const sample = texture(atlas, (uv() as AnyNode).mul(tile.zw).add(tile.xy)) as AnyNode;
   const tint = attribute('tint', 'vec3') as AnyNode;
   const fade = attribute('fade', 'float') as AnyNode;
   const rim = smoothstep(float(0.15), float(0.8), (uv() as AnyNode).y).mul(0.18);
