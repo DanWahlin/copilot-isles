@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent, type WheelEvent } from 'react';
 import { GLOSSARY, IMAGES, PAGES, courseUrl, imageUrl } from '../../learn/content/index';
-import type { LearnState, LearnStore, LogbookTab } from '../../learn/store';
+import type { LearnState, LearnStore, LogbookTab, RevealFrom } from '../../learn/store';
 import type { Page } from '../../learn/types';
 import { Rich } from './Rich';
 
@@ -13,6 +13,12 @@ function useKeys(handler: (e: KeyboardEvent) => void) {
     return () => window.removeEventListener('keydown', fn);
   }, []);
 }
+
+const KICKER: Record<RevealFrom, string> = {
+  page: 'New Logbook page',
+  chest: 'Treasure! A Logbook page',
+  bottle: 'A message in a bottle',
+};
 
 function PageBody({ page, onImage }: { page: Page; onImage?: (id: string) => void }) {
   const img = page.image ? IMAGES.get(page.image) : undefined;
@@ -60,12 +66,12 @@ export function PageReveal({
   return (
     <div className="ci-learn-backdrop">
       <article
-        className="ci-page-card reveal"
+        className={`ci-page-card reveal from-${reveal.from}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="ci-page-title"
       >
-        <p className="ci-page-kicker">{reveal.chest ? 'Treasure! A Logbook page' : 'New Logbook page'}</p>
+        <p className="ci-page-kicker">{KICKER[reveal.from]}</p>
         <h2 id="ci-page-title">{reveal.page.title}</h2>
         <PageBody page={reveal.page} onImage={(id) => store.inspectImage(id, reveal.page.title)} />
         <footer className="ci-page-foot">

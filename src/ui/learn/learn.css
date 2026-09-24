@@ -119,6 +119,11 @@
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
+
+/* Sea glass for message bottles. */
+.ci-page-card.from-bottle .ci-page-kicker {
+  color: #a8dcd2;
+}
 .ci-quiz-dots {
   display: flex;
   gap: 0.3rem;

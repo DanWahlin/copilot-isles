@@ -19,8 +19,10 @@ import { createChest, type TreasureChest } from './chest';
 import { COVE_CHESTS, npcScript, questLog } from './cove-quests';
 import { runScript, type ScriptStep } from './script';
 import { createCrane } from './puzzles/crane';
+import { createFirstWords } from './puzzles/first-words';
+import { createGearCheck } from './puzzles/gear';
 import { createSluice } from './puzzles/sluice';
-import type { HintTier, Puzzle, PuzzleHost } from './puzzles/types';
+import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal } from './puzzles/types';
 
 export type SessionMode = 'walk' | 'sail' | 'docking' | 'transition';
 
@@ -68,6 +70,8 @@ export interface GameSession {
     chests(): { id: string; x: number; z: number; h: number; opened: boolean }[];
     /** Where the Trial is taken (tests). */
     trialAt(): { x: number; z: number; heading: number } | null;
+    /** The message bottles and whether each has been read (tests). */
+    bottles(): { id: string; x: number; z: number; read: boolean }[];
     /** A puzzle's test hooks (state, solve, …) by id, e.g. 'P0.1'. */
     puzzle(id: string): Puzzle['debug'] | null;
     /** Presses Wingman's hint key. */
@@ -134,7 +138,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const npcs = new NpcCrowd(
     o.characters,
     COVE_NPCS,
-    { ...village.anchors, ...sites.anchors },
+    { ...village.anchors, ...sites.anchors, juno: COVE.firstMate },
     world,
     tier,
     camera,
@@ -169,6 +173,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     learn?.setQuests(questLog(quests()));
   };
   if (!quests()['Q0.2']) setQuest('Q0.2', 'start');
+  // Saves from before Q0.8 went straight from the crane to the Trial.
+  else if (quests()['Q0.7'] === 'done' && !quests()['Q0.8']) setQuest('Q0.8', 'start');
   else learn?.setQuests(questLog(quests()));
   let scriptRunning = false;
   let disposed = false;
@@ -281,6 +287,29 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     input.enabled = !paused;
   }
 
+  // Message bottles on the beaches (B0.1-B0.3): optional troubleshooting pages.
+  const bottleSpots = sites.bottles.spots();
+  for (const [id, p] of Object.entries(bottleSpots)) {
+    if (learn?.isChestOpen(id)) sites.bottles.setCollected(id, true);
+    interactions.add({
+      id: `bottle:${id}`,
+      label: () => 'Read the message in the bottle',
+      x: p.x,
+      y: p.y,
+      z: p.z,
+      radius: 2,
+      enabled: () => mode === 'walk' && !!learn && !learn.isChestOpen(id) && !scriptRunning,
+      onInteract: () => void openBottle(id, p),
+    });
+  }
+  async function openBottle(id: string, at: { x: number; y: number; z: number }): Promise<void> {
+    input.enabled = false;
+    audio?.sfx.oneShot('bottle_pop', at, 0.9);
+    sites.bottles.setCollected(id, true);
+    await learn?.openChest(id);
+    input.enabled = !paused;
+  }
+
   // The Harbormaster's Trial at the lighthouse door (POC §4.7): 8 questions, then the Seal.
   const trialAt = village.anchors.lighthouseDoor;
   if (trialAt) {
@@ -350,7 +379,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       return ok;
     },
   };
-  const puzzles: Puzzle[] = [createSluice(puzzleHost, sites.mill), createCrane(puzzleHost, sites.crane)];
+  const puzzles: Puzzle[] = [
+    createSluice(puzzleHost, sites.mill),
+    createCrane(puzzleHost, sites.crane),
+    createGearCheck(puzzleHost, sites.gear),
+    createFirstWords(puzzleHost, ship, () => shipDocked()),
+  ];
   const hintPresses = new Map<string, { key: string; n: number }>();
 
   /** Wingman's hint key: the puzzle you're at, else a nudge toward the current quest. */
@@ -547,6 +581,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
         for (const c of chests) c.chest.update(dt, t);
         for (const p of puzzles) p.update(dt, t);
+        let term: PuzzleTerminal | null = null;
+        for (const p of puzzles) if ((term = p.terminal?.() ?? null)) break;
+        hud.setTerminal(term?.lines ?? null, term?.title);
 
         if (audio) {
           listenerPos.x = camera.position.x;
@@ -609,6 +646,13 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           opened: c.chest.opened,
         })),
       trialAt: () => (trialAt ? { x: trialAt.x, z: trialAt.z, heading: trialAt.heading } : null),
+      bottles: () =>
+        Object.entries(bottleSpots).map(([id, p]) => ({
+          id,
+          x: p.x,
+          z: p.z,
+          read: !!learn?.isChestOpen(id),
+        })),
       puzzle: (id: string) => puzzles.find((p) => p.id === id)?.debug ?? null,
       hint,
       state: () => ({

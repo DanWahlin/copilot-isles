@@ -34,7 +34,16 @@ export const COVE_QUESTS: readonly QuestDef[] = [
     title: 'Your Own Deck',
     steps: {
       start: 'Find Bo Marlin, the quartermaster, at the storehouse.',
-      done: 'Setup session on Local repository, and your gear checks out.',
+      done: 'Your setup session runs on Local repository.',
+    },
+  },
+  {
+    id: 'Q0.5',
+    title: 'Gear Check & Right Signature',
+    steps: {
+      gear: 'Find Bo’s compass, lantern, rope coil, and spyglass around the village, and hang them on his gear rack.',
+      ledger: 'Read Bo’s ledger beside the gear rack. Whose signature is on it?',
+      done: 'Every tool checks out, and GitHub CLI is signed in as you.',
     },
   },
   {
@@ -55,6 +64,15 @@ export const COVE_QUESTS: readonly QuestDef[] = [
       crane: 'Aim the crane at your ship, preview with Dry-Run, check the Repository line, then pull --yes.',
       solved: 'Setup complete. Talk to Pol.',
       done: 'Your fork is stocked with labels, issues, practice branches, and pull requests.',
+    },
+  },
+  {
+    id: 'Q0.8',
+    title: 'First Words',
+    steps: {
+      start: 'Find Juno, your first mate, on the pier beside your ship.',
+      pipes: 'Send the course’s first prompt to the agent. Which fitting on your ship’s rail carries it?',
+      done: 'Your first prompt went to the agent, and the crew answered.',
     },
   },
   {
@@ -163,22 +181,26 @@ export function npcScript(
             { term: 'local-repository' },
             { term: 'worktree' },
             { page: 'C0.6', doubloons: 10 },
-            {
-              text: 'Open View, then Toggle Review Panel, and pick the Terminal tab. Every piece of gear gets a version check.',
-            },
-            { quiz: 'M0.1' },
-            {
-              text: 'GitHub CLI has its own sign-in, separate from the app. Here’s a puzzle for you.',
-            },
-            { quiz: 'S0.1' },
-            {
-              text: 'Deck’s ready. One more job before the practice work: Suri Okoye at the mill race, past the storehouse. Her wheel’s been dry since your fork arrived.',
-            },
             { quest: 'Q0.4', step: 'done' },
-            { quest: 'Q0.6', step: 'start' },
+            {
+              text: 'Next, your tools. Open View, then Toggle Review Panel, and pick the Terminal tab. No tab? Select + and then Terminal.',
+            },
+            {
+              text: 'Every tool gets a version check there. Here, each tool is a piece of my gear, and four pieces have gone walkabout round the village.',
+            },
+            {
+              text: 'My compass, a lantern, a rope coil, and my spyglass. Hang them on the rack by my door, and each hook runs its check.',
+            },
+            { quest: 'Q0.5', step: 'gear' },
           ],
         };
       }
+      if (q['Q0.5'] === 'gear')
+        return {
+          steps: [{ text: 'Hang the gear on my rack, Captain. Each hook runs its version check.' }],
+        };
+      if (q['Q0.5'] === 'ledger')
+        return { steps: [{ text: 'Read my ledger there on the lectern. Whose signature is on it?' }] };
       return null;
 
     case 'suri': {
@@ -223,10 +245,49 @@ export function npcScript(
       };
     }
 
+    case 'juno': {
+      const step = q['Q0.8'];
+      if (!step) return null;
+      if (step === 'start') return { steps: JUNO_BRIEF };
+      if (step === 'pipes')
+        return {
+          steps: [
+            {
+              text: 'It’s a request for the agent, not a command. Pick the fitting on the rail that carries it.',
+            },
+          ],
+        };
+      return {
+        steps: [
+          {
+            text: done(q, 'Q0.10')
+              ? 'The crew’s proud of you, Captain. Wherever you sail next, they’re listening.'
+              : 'The crew knows the ship now. The Harbormaster’s Trial waits at the lighthouse.',
+          },
+        ],
+      };
+    }
+
     default:
       return null;
   }
 }
+
+/** Juno's opening beat (Q0.8): the course's first prompt, and two fittings on the rail. */
+const JUNO_BRIEF: readonly ScriptStep[] = [
+  { text: 'Juno, your first mate. Setup’s done, so let’s give the crew their first order.' },
+  { text: 'In the app, you’d send this to the agent from your project session:' },
+  {
+    text: '“Give me an overview of the copilot-app-for-beginners course repository. Focus on the learning path and the samples/book-app-web folder.”',
+  },
+  {
+    text: 'You’ve been running commands in Terminal all morning. This one’s different. It’s a request for the agent.',
+  },
+  {
+    text: 'Two fittings on the rail, just behind me. The brass speaking tube goes up to the crew, and the iron hatch goes down to the engine room. Your call, Captain.',
+  },
+  { quest: 'Q0.8', step: 'pipes' },
+];
 
 /** Suri's lines once the sluice is solved (P0.1), also used if you come back after quitting mid-way. */
 export const SURI_SOLVED: readonly ScriptStep[] = [
@@ -257,9 +318,12 @@ export const POL_SOLVED: readonly ScriptStep[] = [
   { say: 'pim.solved.01' },
   { page: 'P0.S', doubloons: 20 },
   { say: 'pol.solved.02' },
-  { say: 'pim.solved.02' },
+  {
+    speaker: 'Pim',
+    text: 'Your first mate’s waiting by your ship, Captain. Juno’s got your first order ready.',
+  },
   { quest: 'Q0.7', step: 'done' },
-  { quest: 'Q0.10', step: 'start' },
+  { quest: 'Q0.8', step: 'start' },
 ];
 
 /** The quest log for the Logbook, in story order, for quests that have started. */

@@ -4,6 +4,7 @@ import { Progress } from './progress';
 import type { Page, Quiz } from './types';
 
 export type LogbookTab = 'pages' | 'glossary' | 'quests';
+export type RevealFrom = 'page' | 'chest' | 'bottle';
 
 export interface ActiveQuiz {
   quiz: Quiz;
@@ -23,7 +24,8 @@ export interface LearnState {
   /** Spyglass: a course image framed above the dialogue; `full` opens pan/zoom. */
   spyglass: { image: string; caption: string | null; full: boolean; transient: boolean } | null;
   /** A page granted by a chest or an NPC. */
-  reveal: { page: Page; doubloons: number; chest: boolean } | null;
+  /** `from` styles the card: a treasure chest, a message bottle, or a plain new page. */
+  reveal: { page: Page; doubloons: number; from: RevealFrom } | null;
   logbook: { open: boolean; tab: LogbookTab; page: string | null };
   /** A short line of trial feedback ("Seal of Anchorage earned!"). */
   banner: { title: string; body: string } | null;
@@ -105,6 +107,19 @@ export class LearnStore {
       quiz: { ...a, attempts: a.attempts + 1, last: g, earned: a.earned + earned },
       doubloons: this.progress.data.doubloons,
     });
+    return g;
+  };
+
+  /**
+   * Grades a choice the player made in the world (the pipe they spoke into, say) against a quiz,
+   * without opening the quiz card. It counts the same as answering it there.
+   */
+  answerInWorld = (quizId: string, answer: Answer): Grade => {
+    const quiz = QUIZZES.get(quizId);
+    if (!quiz) throw new Error(`unknown quiz ${quizId}`);
+    const g = grade(quiz, answer);
+    this.progress.recordQuiz(quizId, g.correct);
+    this.set({ doubloons: this.progress.data.doubloons });
     return g;
   };
 
@@ -198,14 +213,14 @@ export class LearnStore {
   // ---- Pages, chests, glossary ----
 
   /** Grants a page (from an NPC or a chest) and resolves when the reveal card is closed. */
-  grantPage = (pageId: string, doubloons = 0, chest = false): Promise<void> => {
+  grantPage = (pageId: string, doubloons = 0, from: RevealFrom = 'page'): Promise<void> => {
     const page = PAGES.get(pageId);
     if (!page) return Promise.reject(new Error(`unknown page ${pageId}`));
     const fresh = this.progress.add('pages', pageId);
     if (fresh && doubloons) this.progress.addDoubloons(doubloons);
     this.revealDone?.();
     this.set({
-      reveal: { page, doubloons: fresh ? doubloons : 0, chest },
+      reveal: { page, doubloons: fresh ? doubloons : 0, from },
       pages: this.progress.data.pages.slice(),
       doubloons: this.progress.data.doubloons,
     });
@@ -225,7 +240,7 @@ export class LearnStore {
     const c = CHESTS.get(chestId);
     if (!c) throw new Error(`unknown chest ${chestId}`);
     const fresh = this.progress.add('chests', chestId);
-    await this.grantPage(c.page, fresh ? c.doubloons : 0, true);
+    await this.grantPage(c.page, fresh ? c.doubloons : 0, c.kind ?? 'chest');
   };
 
   learnTerm = (termId: string): boolean => {

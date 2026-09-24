@@ -103,6 +103,8 @@ export interface Chest {
   id: string;
   page: string;
   doubloons: number;
+  /** A treasure chest (default) or a message bottle; bottles style the reveal card differently. */
+  kind?: 'chest' | 'bottle';
 }
 
 export interface GlossaryTerm {

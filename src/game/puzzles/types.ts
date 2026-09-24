@@ -1,7 +1,7 @@
 import type { IslesAudio } from '../../audio';
 import type { LearnStore } from '../../learn/store';
 import type { Dialogue } from '../dialogue';
-import type { Hud } from '../hud';
+import type { Hud, TerminalLine } from '../hud';
 import type { Interactions } from '../interaction';
 import type { ScriptStep } from '../script';
 
@@ -24,6 +24,12 @@ export interface PuzzleHost {
 
 export type HintTier = 1 | 2 | 3;
 
+/** What a puzzle wants in the HUD terminal panel right now. */
+export interface PuzzleTerminal {
+  title: string;
+  lines: readonly TerminalLine[];
+}
+
 export interface Puzzle {
   readonly id: string;
   /** True when you're at this puzzle and it's in progress, so Wingman's hint key talks about it. */
@@ -36,6 +42,8 @@ export interface Puzzle {
   /** Changes whenever the player makes progress, so the next hint starts again at tier 1. */
   hintKey(): string;
   update(dt: number, t: number): void;
+  /** The terminal readout to show while you're at this puzzle (the session shows the first one). */
+  terminal?(): PuzzleTerminal | null;
   readonly debug: Record<string, (...args: never[]) => unknown>;
   dispose(): void;
 }

@@ -269,12 +269,14 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
       return 'Pulled it for you. Watch the hold fill.';
     },
     update() {
-      // The site animates itself; this just shows the terminal while you're at the crane.
-      const show = started() && host.quests()[QUEST] !== 'done' && near(9);
-      host.hud.setTerminal(
-        show ? terminal.map((text) => ({ text, tone: lineTone(text) })) : null,
-        'Terminal · copilot-app-for-beginners',
-      );
+      // The site animates itself.
+    },
+    terminal() {
+      if (!started() || host.quests()[QUEST] === 'done' || !near(9)) return null;
+      return {
+        title: 'Terminal · copilot-app-for-beginners',
+        lines: terminal.map((text) => ({ text, tone: lineTone(text) })),
+      };
     },
     debug: {
       state: () => ({ ...state, busy: site.busy, running }),
@@ -299,7 +301,6 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
       }),
     },
     dispose() {
-      host.hud.setTerminal(null);
       host.interactions.remove('crane:capstan');
       host.interactions.remove('crane:dry');
       host.interactions.remove('crane:yes');

@@ -132,6 +132,17 @@ export const COVE_NPCS: NpcSpec[] = [
     barks: ['Preview first, always!', 'Check the Repository line. Every time.'],
   },
   {
+    id: 'juno',
+    name: 'Juno',
+    anchor: 'juno',
+    clip: 'idle',
+    keepY: true,
+    barks: [
+      'The crew’s ready when you are, Captain. Finish your setup first.',
+      'A good first mate listens more than she talks.',
+    ],
+  },
+  {
     id: 'lookout',
     name: 'Lookout',
     anchor: 'lookout',

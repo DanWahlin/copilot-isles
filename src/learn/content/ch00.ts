@@ -541,6 +541,28 @@ export const CH00: ChapterContent = {
         'Send requests to the agent from the **prompt box**, not **Terminal**. Your first one asks for an overview of the course, and the reply points out `samples/book-app-web`.',
       source: src('your-first-prompt'),
     },
+    {
+      id: 'B0.1',
+      title: 'I can’t sign in',
+      caption:
+        'Check you’re on the expected GitHub account, with a Copilot plan or your own model provider. Your organization has to leave the **GitHub Copilot app** policy on, and that’s separate from the Copilot CLI policy. On `*.ghe.com`? Select **Sign in to GitHub Enterprise Cloud**. If the app says Git is missing when you connect a repository, install Git and retry.',
+      source: src('i-cannot-sign-in'),
+    },
+    {
+      id: 'B0.2',
+      title: 'I can’t see the repository',
+      caption:
+        'Check you’ve got access to it on GitHub and that you picked the right account or organization. Already cloned it? Try **Open folder**.',
+      source: src('i-cannot-see-the-repository'),
+    },
+    {
+      id: 'B0.3',
+      title: 'The script stops for an organization fork',
+      caption:
+        'The setup script won’t change a repository an organization owns. Add `--allow-shared-repository` only if you’re authorized and the `Repository:` line shows the right target. Issues missing? On GitHub.com, open your fork’s **Settings** → **Features**, turn on **Issues**, and rerun.',
+      code: 'node .github/scripts/setup-training-scenarios.js --yes --allow-shared-repository',
+      source: src('the-script-stops-for-an-organization-fork'),
+    },
   ],
 
   chests: [
@@ -550,6 +572,10 @@ export const CH00: ChapterContent = {
     { id: 'C0.4', page: 'C0.4', doubloons: 10 },
     { id: 'C0.5', page: 'C0.5', doubloons: 10 },
     { id: 'C0.6', page: 'C0.6', doubloons: 25 },
+    // Message bottles washed up round the island: optional troubleshooting pages (POC §4.4).
+    { id: 'B0.1', page: 'B0.1', doubloons: 5, kind: 'bottle' },
+    { id: 'B0.2', page: 'B0.2', doubloons: 5, kind: 'bottle' },
+    { id: 'B0.3', page: 'B0.3', doubloons: 5, kind: 'bottle' },
   ],
 
   glossary: [

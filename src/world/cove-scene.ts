@@ -121,7 +121,11 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   report(0.5, 'Building the harbor');
   const village = await createVillage({ tier, heightField });
   scene.add(village.group);
-  const sites = await createCoveSites({ tier, heightField: terrain.heightField });
+  const sites = await createCoveSites({
+    tier,
+    heightField: terrain.heightField,
+    ground: (x, z) => village.walkable(x, z) ?? terrain.heightField.heightAt(x, z),
+  });
   scene.add(sites.group);
 
   let vegetation: VegetationSystem | null = null;

@@ -26,6 +26,8 @@ export const COVE = {
    * clear of the boathouse (z −93…−100). At heading π the port rail (ship-local +x) faces the pier.
    */
   mooring: { x: -102.2, z: -112.5, heading: Math.PI },
+  /** Juno (Q0.8) waits on the pier just north of the ship's Prompt Box and Terminal fittings. */
+  firstMate: { x: -107.3, y: 1.8, z: -101.6, heading: 2.4 },
   /** Two small moored boats in the basin. */
   boats: [
     { x: -135, z: -118, heading: 0.4 },

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// End-to-end quest run on the play page: Nell (spyglass + hotspot quiz + page), the chest, Ezra, Bo, Suri's sluice (P0.1),
+// End-to-end quest run on the play page: Nell (spyglass + hotspot quiz + page), the chest, Ezra, Bo and his gear rack (Q0.5),
+// Suri's sluice (P0.1),
 // Pim and Pol's Dry-Run Crane (P0.2),
 // and the Harbormaster's Trial at the lighthouse, answered through the real UI where it matters
 // (hotspots are clicked; other types use __dev.answer()), with screenshots at each beat.
@@ -160,7 +161,69 @@ results.ezra = await drive('ezra', (s) => s.quests['Q0.3'] === 'done' && !s.dial
 
 // Bo: Your Own Deck.
 await talk('dockhand_b');
-results.bo = await drive('bo', (s) => s.quests['Q0.4'] === 'done' && !s.dialogue && !s.quiz && !s.reveal);
+results.bo = await drive('bo', (s) => s.quests['Q0.5'] === 'gear' && !s.dialogue && !s.quiz && !s.reveal);
+
+// Bo's gear rack (Q0.5): pick up each piece, hang it (a version check per hook), fetch the missing
+// lens, then read the ledger (S0.1). Everything goes through E at the real interaction spots.
+const gear = () => page.evaluate(() => window.__dev.session().debug.puzzle('Q0.5.gear')?.state() ?? null);
+const gs = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.5.gear')?.spots() ?? null);
+if (gs) {
+  const focus = () => page.evaluate(() => window.__dev.session().debug.state().focus);
+  const standAt = async (a) => {
+    await page.evaluate((a) => {
+      window.__dev.session().debug.teleport(a.x, a.z, a.heading ?? Math.PI);
+      window.__dev.look((a.heading ?? Math.PI) + 0.3, 0.3);
+    }, a);
+    await page.waitForTimeout(700);
+  };
+  /** Stands 1 m from a loose piece, facing it. */
+  const fetch = async (id) => {
+    const p = gs.loose[id];
+    for (const h of [Math.PI, 0, Math.PI / 2, -Math.PI / 2]) {
+      await standAt({ x: p.x - Math.sin(h) * 1.0, z: p.z - Math.cos(h) * 1.0, heading: h });
+      if ((await focus()) === `gear:${id}`) break;
+    }
+    if ((await focus()) !== `gear:${id}`)
+      logs.push(`[questtest] gear: focus at the ${id} was ${await focus()}`);
+    await tap('KeyE');
+    await page.waitForTimeout(500);
+  };
+  const atRack = async (label) => {
+    await standAt(gs.rack);
+    if ((await focus()) !== 'gear:rack')
+      logs.push(`[questtest] gear: focus at the rack was ${await focus()}`);
+    await tap('KeyE');
+    await page.waitForTimeout(900);
+    if (label) await shot(label);
+  };
+  for (const id of ['compass', 'lantern', 'rope', 'spyglass']) await fetch(id);
+  await shot('gear-carried');
+  for (const id of ['compass', 'lantern', 'rope']) await atRack(id === 'rope' ? 'gear-three' : null);
+  await atRack('gear-missing');
+  await drive('gear-missing', (s) => !s.dialogue);
+  if ((await gear())?.lens !== 'loose') logs.push('[questtest] gear: the lens never turned up');
+  await fetch('lens');
+  await atRack();
+  results.gear = await drive(
+    'gear',
+    (s) => s.quests['Q0.5'] === 'ledger' && !s.dialogue && !s.quiz && !s.reveal,
+  );
+  await standAt(gs.rack);
+  await shot('gear-checked');
+  await standAt(gs.ledger);
+  if ((await focus()) !== 'gear:ledger')
+    logs.push(`[questtest] gear: focus at the ledger was ${await focus()}`);
+  await tap('KeyE');
+  await page.waitForTimeout(900);
+  await shot('gear-ledger-wrong');
+  results.ledger = await drive(
+    'ledger',
+    (s) => s.quests['Q0.5'] === 'done' && !s.dialogue && !s.quiz && !s.reveal,
+  );
+  await standAt(gs.ledger);
+  await shot('gear-ledger-signed');
+  if (!(await gear())?.signed) logs.push('[questtest] gear: the ledger never signed');
+} else logs.push('[questtest] no Q0.5 gear debug hook');
 
 // Suri: Open the Sluice (P0.1). The lever and one tile turn go through E like a player would.
 await talk('suri');
@@ -269,6 +332,77 @@ if (cs) {
   await page.waitForTimeout(800);
   await shot('crane-solved');
 } else logs.push('[questtest] no P0.2 debug hook');
+
+// Juno: First Words (Q0.8). Try the Terminal hatch first (wrong), then the Prompt Box tube.
+await talk('juno');
+results.juno = await drive(
+  'juno',
+  (s) => s.quests['Q0.8'] === 'pipes' && !s.dialogue && !s.quiz && !s.reveal,
+);
+const fw = () => page.evaluate(() => window.__dev.session().debug.puzzle('Q0.8.pipes')?.state() ?? null);
+const ps = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.8.pipes')?.spots() ?? null);
+if (ps) {
+  const focus = () => page.evaluate(() => window.__dev.session().debug.state().focus);
+  /** Stands on the pier's east edge, facing the fitting on the ship's rail. */
+  const standAt = async (p) => {
+    await page.evaluate((p) => {
+      window.__dev.session().debug.teleport(p.x - 1.05, p.z, Math.PI / 2);
+      window.__dev.look(Math.PI / 2 + 0.35, 0.12);
+    }, p);
+    await page.waitForTimeout(800);
+  };
+  const settle = async () => {
+    for (let k = 0; k < 40 && (await fw())?.running; k++) await page.waitForTimeout(150);
+  };
+  await standAt(ps.hatch);
+  if ((await focus()) !== 'pipe:hatch')
+    logs.push(`[questtest] pipes: focus at the hatch was ${await focus()}`);
+  await tap('KeyE');
+  await page.waitForTimeout(700);
+  await shot('pipes-hatch');
+  await settle();
+  if ((await learnState()).quests['Q0.8'] !== 'pipes')
+    logs.push('[questtest] pipes: the hatch moved the quest on');
+  await standAt(ps.tube);
+  if ((await focus()) !== 'pipe:tube') logs.push(`[questtest] pipes: focus at the tube was ${await focus()}`);
+  await tap('KeyE');
+  await page.waitForTimeout(1800);
+  await shot('pipes-reply');
+  results.firstWords = await drive(
+    'first-words',
+    (s) => s.quests['Q0.8'] === 'done' && !s.dialogue && !s.quiz && !s.reveal,
+  );
+} else logs.push('[questtest] no Q0.8 debug hook');
+
+// Message bottles (B0.1-B0.3): walk up to each one on its beach, open it with E, stow the page.
+const bottles = () => page.evaluate(() => window.__dev.session().debug.bottles?.() ?? null);
+const washedUp = await bottles();
+if (washedUp?.length) {
+  const doubloons = () => page.evaluate(() => window.__dev.learn.getState().doubloons);
+  const before = await doubloons();
+  for (const b of washedUp) {
+    const h = 0.6;
+    await page.evaluate(
+      ([x, z, h]) => {
+        window.__dev.session().debug.teleport(x, z, h);
+        window.__dev.look(h, 0.4);
+      },
+      [b.x - Math.sin(h) * 1.3, b.z - Math.cos(h) * 1.3, h],
+    );
+    await page.waitForTimeout(900);
+    const f = await page.evaluate(() => window.__dev.session().debug.state().focus);
+    if (f !== `bottle:${b.id}`) logs.push(`[questtest] bottle: focus at ${b.id} was ${f}`);
+    await tap('KeyE');
+    await page.waitForTimeout(700);
+    await drive(`bottle-${b.id}`, (s) => !s.reveal && !s.dialogue);
+  }
+  const unread = (await bottles()).filter((b) => !b.read).map((b) => b.id);
+  if (unread.length) logs.push(`[questtest] bottle: still unread ${unread.join(', ')}`);
+  const got = (await doubloons()) - before;
+  if (got !== washedUp.length * 5)
+    logs.push(`[questtest] bottle: expected ${washedUp.length * 5} doubloons, got ${got}`);
+  results.bottles = unread.length === 0;
+} else logs.push('[questtest] no bottle debug hook');
 
 // The Harbormaster's Trial at the lighthouse.
 const lighthouse = await page.evaluate(() => window.__dev.session().debug.trialAt?.() ?? null);

@@ -215,6 +215,36 @@ engine.start();
     );
     return { solved: f.solved, path: solutionPath(L) };
   },
+  gear: (
+    mode: 'loose' | 'hung' | 'empty' = 'hung',
+    ledger: 'someone-else' | 'you' = 'you',
+    glint: 'compass' | 'lantern' | 'rope' | 'spyglass' | 'lens' | null = null,
+  ) => {
+    const gear = cove.sites.gear;
+    for (const id of ['compass', 'lantern', 'rope', 'spyglass'] as const) {
+      gear.setLoose(id, mode === 'loose');
+      gear.setHung(id, mode === 'hung', false);
+    }
+    gear.setLoose('lens', mode === 'loose');
+    gear.setLensFitted(mode === 'hung');
+    gear.setLedger(ledger);
+    gear.setGlint(glint);
+    return gear.spots();
+  },
+  gearVisible: (visible: boolean) => {
+    cove.sites.gear.group.visible = visible;
+  },
+  gearSwing: (id: 'compass' | 'lantern' | 'rope' | 'spyglass' = 'compass') => {
+    const gear = cove.sites.gear;
+    gear.setLoose(id, false);
+    gear.setHung(id, true, true);
+    return gear.spots();
+  },
+  pipe: (which: 'tube' | 'hatch' | null, hint = false) => {
+    if (hint) cove.ship.pipes.setHint(which);
+    else if (which) cove.ship.pipes.play(which);
+    else cove.ship.pipes.setHint(null);
+  },
   /** Names the objects under a screen point (NDC -1..1), nearest first. */
   pick: (nx: number, ny: number) => {
     const ray = new Raycaster();
