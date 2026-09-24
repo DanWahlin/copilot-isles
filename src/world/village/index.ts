@@ -1223,9 +1223,7 @@ function addBoathouse(
   };
   for (const placement of buildHouse(house)) addKitPlacement(buckets, kit, placement);
   const lantern = localToWorld(x, z, rot, 1.18, -3.1);
-  addBox(buckets.metal, lantern.x, deck + 1.72, lantern.z, 0.24, 0.36, 0.18, rot, 0x2b2722);
-  addBox(buckets.glow, lantern.x, deck + 1.78, lantern.z - 0.04, 0.18, 0.26, 0.08, rot, 0xffb461);
-  addBox(buckets.halo, lantern.x, deck + 1.78, lantern.z - 0.06, 0.8, 0.8, 0.04, rot, 0xffb461);
+  addLanternFixture(buckets, lantern.x, deck + 1.6, lantern.z - 0.04, rot, 0.82);
   colliders.boxes.push({ x, z, hx: BOATHOUSE.hx, hz: BOATHOUSE.hz, rot, height: 3.75 });
   addShipObstacle(shipObstacles, { x, z: z + 0.3, r: 3.1 });
 }
@@ -1704,12 +1702,113 @@ function addLanterns(
     const [x, z] = points[i]!;
     const y = walkable(x, z) ?? heightField.heightAt(x, z);
     addBox(buckets.wood, x, y, z, 0.16, 2.6, 0.16, 0, 0x593b23);
-    addBox(buckets.wood, x + 0.45, y + 2.35, z, 0.9, 0.12, 0.12, 0, 0x593b23);
-    addBox(buckets.metal, x + 0.92, y + 1.86, z, 0.36, 0.5, 0.36, 0, 0x2c2925);
-    addBox(buckets.glow, x + 0.92, y + 1.9, z, 0.26, 0.38, 0.26, 0, 0xffb461);
-    addBox(buckets.halo, x + 0.92, y + 1.9, z, 1.1, 1.1, 0.04, 0, 0xffb461);
+    addLampBracket(buckets, x, y, z, 0);
+    addLanternFixture(buckets, x + 0.92, y + 1.68, z, 0, 1);
     colliders.circles.push({ x, z, r: 0.38 });
   }
+}
+
+function addLampBracket(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  x: number,
+  y: number,
+  z: number,
+  rot: number,
+): void {
+  const armY = y + 2.35;
+  addBox(buckets.wood, x + 0.42, armY, z, 0.86, 0.1, 0.1, rot, 0x6b4a2d);
+  addBox(buckets.metal, x + 0.35, y + 2.06, z, 0.55, 0.055, 0.055, rot, 0x6c6258, 0, 0.72);
+  addTorus(buckets.metal, x + 0.72, y + 2.13, z, 0.17, 0.018, 12, 0x6c6258, Math.PI / 2, 0, 0);
+  addBox(buckets.metal, x + 0.88, armY - 0.18, z, 0.045, 0.24, 0.045, rot, 0x6c6258);
+}
+
+function addLanternFixture(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  x: number,
+  y: number,
+  z: number,
+  rot: number,
+  scale: number,
+): void {
+  const s = scale;
+  const h = 0.46 * s;
+  const w = 0.31 * s;
+  const post = 0.035 * s;
+  const capY = y + h + 0.08 * s;
+  addBox(buckets.metal, x, y, z, w, 0.045 * s, w, rot, 0x5f574f);
+  for (const sx of [-1, 1]) {
+    for (const sz of [-1, 1]) {
+      addBox(
+        buckets.metal,
+        x + sx * w * 0.44,
+        y + 0.035 * s,
+        z + sz * w * 0.44,
+        post,
+        h,
+        post,
+        rot,
+        0x6f665c,
+      );
+    }
+  }
+  addGlassPane(buckets, x, y + 0.11 * s, z + w * 0.5, w * 0.72, h * 0.72, 0.018 * s, rot, 0xffc987);
+  addGlassPane(buckets, x, y + 0.11 * s, z - w * 0.5, w * 0.72, h * 0.72, 0.018 * s, rot, 0xffc987);
+  addGlassPane(buckets, x + w * 0.5, y + 0.11 * s, z, 0.018 * s, h * 0.72, w * 0.72, rot, 0xffc987);
+  addGlassPane(buckets, x - w * 0.5, y + 0.11 * s, z, 0.018 * s, h * 0.72, w * 0.72, rot, 0xffc987);
+  addBox(buckets.glow, x, y + 0.12 * s, z, 0.06 * s, 0.12 * s, 0.06 * s, rot, 0xff9c45);
+  addBox(buckets.glow, x, y + 0.22 * s, z, 0.05 * s, 0.11 * s, 0.05 * s, rot, 0xffc36a);
+  addLanternCap(buckets, x, capY, z, rot, w * 0.62, 0.14 * s, 0x5b534b);
+  addTorus(buckets.metal, x, capY + 0.12 * s, z, 0.09 * s, 0.012 * s, 10, 0x756b60, Math.PI / 2, 0, 0);
+}
+
+function addGlassPane(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  x: number,
+  y: number,
+  z: number,
+  w: number,
+  h: number,
+  d: number,
+  rot: number,
+  tint: number,
+): void {
+  addBox(buckets.glow, x, y, z, w, h, d, rot, tint);
+}
+
+function addLanternCap(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  x: number,
+  y: number,
+  z: number,
+  rot: number,
+  half: number,
+  height: number,
+  tint: number,
+): void {
+  const positions = new Float32Array([
+    -half,
+    0,
+    -half,
+    half,
+    0,
+    -half,
+    half,
+    0,
+    half,
+    -half,
+    0,
+    half,
+    0,
+    height,
+    0,
+  ]);
+  const indices = [0, 1, 4, 1, 2, 4, 2, 3, 4, 3, 0, 4, 0, 3, 1, 1, 3, 2];
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(positions, 3));
+  geometry.setIndex(indices);
+  transform(geometry, x, y, z, rot, 0, 0, 1, 1, 1);
+  paint(geometry, tint);
+  buckets.metal.push(geometry);
 }
 
 function addMooredBoatShipObstacles(shipObstacles: CircleObstacle[]): void {
