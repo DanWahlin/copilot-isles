@@ -100,7 +100,7 @@ It's a **fixed-timestep, semi-physical simulation**. Nothing about the motion is
 |---|---|---|---|
 | 1 | **Wave table → generated GLSL**, deep-water dispersion, **displacement-inverted exact height**, **CPU/GPU-identical distance fade** | The ocean, buoyancy, floats, splashes | All |
 | 2 | **Polar camera grid + `aSpan` wave filtering + roughness-from-variance specular AA + Poisson sparkles** | The open sea (replaces a plain clipmap for the far field) | All (sparkles Medium+) |
-| 3 | **Analytic ship reflection & shadow on the water** (a simplified hull SDF, 4 jittered normals) | The brigantine and moored ships **on every tier**. The planar mirror stays as the High/Ultra harbor add-on | All |
+| 3 | **Analytic ship reflection & shadow on the water** (a simplified hull SDF) | The brigantine and moored ships: **4 jittered rays on High/Ultra, 1 ray on Medium** (inside the ship's screen rectangle), a hull smear on Low, none on Lite. The planar mirror stays as the High/Ultra harbor add-on | Medium+ (per the delta-review consensus) |
 | 4 | Hull **waterline foam ring**, hull **wet band**, **slam spray** | The brigantine, moored boats | All (spray Medium+) |
 | 5 | **Damped-spring buoyancy at ~8 hull stations** (heave/pitch/roll) + orbital coupling + wind heel + anisotropic drag, **layered on our player-controlled kinematic sailing** | Sailing and docking, plus **anchored NPC ships swinging on mooring ropes** | All |
 | 6 | **Secondary motion from measured hull acceleration** (lanterns, rigging, ropes), cloth flags/laundry/sails on the shared wind | The brigantine, harbors, villages | Medium+ |

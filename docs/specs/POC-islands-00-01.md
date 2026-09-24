@@ -8,13 +8,13 @@
 
 ## 0. Scope & success
 
-**In scope:** desktop + **tablet (touch)** play, the **2D Chart & Logbook fallback mode**, title/menus, character creation, intro, the dialogue/voice system, Logbook, all quiz types, the puzzle pieces used here, Captain's Chart + fast travel, settings, save, procedural music and ambience, Island 00, the sea passage, and Island 01.
+**In scope:** desktop + **tablet (touch, one cloud iPad pass)** play, a **2D Chart & Logbook proof slice** (full 2D coverage is Phase 1b), title/menus, character creation, intro, the dialogue/voice system, Logbook, all quiz types, the puzzle pieces used here, Captain's Chart + fast travel, settings, save, procedural music and ambience, Island 00, the sea passage, and Island 01.
 **Out of scope:** Islands 02-07 (they appear on the chart as fogged silhouettes marked "Coming soon"), the cosmetics shop (doubloons are collected, but the shop is stubbed), and the Master Captain certificate.
 
 **The POC succeeds if:**
 1. A first-time player finishes both islands in **~70-90 min** without outside help. Voice alone is ~44 min of audio, so trims (the Whispering Gallery, the bottles, a shorter Passport review) stay available as levers after the playtest.
 2. Afterwards they can answer every Ch 00/01 learning objective, measured with the **10-question exit quiz in Appendix A** (hints off).
-3. It hits the **PLAN §12.1 budgets** for each tier: **Low, 30 fps on the UHD 620 floor** (emulated per PLAN §14.5, real device before launch); **Medium, 45-60 fps on Iris Xe / M1 Air**; High and Ultra on faster machines. It also runs on **tablets with touch** (iPad A13+ at Medium), and the **2D Chart & Logbook mode** covers devices that can't run 3D.
+3. It hits the **PLAN §12.1 budgets** for each tier: **Low, 30 fps on the UHD 620 floor** (emulated per PLAN §14.5; a real-device session before Phase 1 content is recommended); **Medium, 45-60 fps on Iris Xe / M1 Air**; High and Ultra on faster machines. It also runs on **tablets with touch** (iPad A13+ at Medium), and the **2D Chart & Logbook mode** (a proof slice in the POC) covers devices that can't run 3D.
 4. You look at it and say *"that's beautiful."*
 
 **Vertical-slice gate:** **Anchorage Q0.2-Q0.8** must be fully playable, with real TTS for those lines, before the rest of the Phase 1 content is built.
@@ -75,7 +75,7 @@ Boot ─▶ Title (live 3D) ─▶ New Voyage ─▶ Character Creation ─▶ I
 
 ### 3.1 Title & menus
 - **Loading screen (PLAN §13.8):** an instant ink-and-parchment Captain's Chart painted by an inline script. It **resolves in three layers as real loading progresses**, with themed stage messages ("Charting the isles" → "Raising the swell" → "Rigging the brigantine" → "Lighting the lighthouses").
-- **Title backdrop:** **ocean, sky, clouds, and your brigantine at anchor**, **swinging gently on its anchor rope** (mooring spring + damped-spring buoyancy), with its analytic reflection on the swell. Behind it sit **layered procedural distant ranges** in sky-tinted haze with **gold rim light on the ridges**, plus at most one distant impostor island. A far-off ship crosses the horizon, and **the Leaps director stages flying fish and the occasional dolphin pod, never behind the logo or menu text**. The camera orbits slowly at golden hour, gulls circle, and the logo fades in using Fraunces at weight 300 with generous letter-spacing. Anchorage Cay streams in only after **New Voyage** or **Continue** (or quietly while the title sits idle), which keeps the title within its **≤ 4 MB** budget (PLAN §13).
+- **Title backdrop:** **ocean, sky, clouds, and your brigantine at anchor**, **swinging gently on its anchor rope** (mooring spring + damped-spring buoyancy), with its analytic reflection on the swell on Medium+ (a hull smear on Low). Behind it sit **layered procedural distant ranges** in sky-tinted haze with **gold rim light on the ridges**. Contents follow the single definition in PLAN §13.5, with no island mesh. A far-off ship crosses the horizon, and **the Leaps director stages flying fish and the occasional dolphin pod, never behind the logo or menu text** (on Low and above; off on Lite and under reduced motion). The camera orbits slowly at golden hour, gulls circle, and the logo fades in using Fraunces at weight 300 with generous letter-spacing. Anchorage Cay streams in only after **New Voyage** or **Continue** (or quietly while the title sits idle), which keeps the title within its **≤ 4 MB** budget (PLAN §13).
 - **Affiliation line:** a small line under the logo and in the credits. Its wording is a **required decision before the first public deploy** (see §10). It doesn't block Phase 0.
 - **Main menu:** Continue (if a save exists) · New Voyage · Captain's Chart · Logbook · Settings · Controls · Credits · Quit. Quit saves and returns to the title, with a note that you can close the tab.
 - **Pause menu (Esc):** Resume · Captain's Chart · Logbook · Settings · Controls · Save & Return to Title.
@@ -186,7 +186,7 @@ Lever · rotatable pipe tile · sluice gate · flowing-water channel (a GPU-anim
 - **Audio:** Master, Music, Ambience, SFX, Voice, UI. A note says **voices are synthetic, generated with Azure AI Speech**.
 - **Gameplay:** **Free explore**, hint frequency, look mode (hold-right-mouse / pointer lock), camera sensitivity, invert Y, FOV, camera shake, head bob, voice on/off.
 - **Mode & quality:** preset **Lite / Low / Medium / High / Ultra** (auto-picked, PLAN §14.2) and **"Play in 2D Chart & Logbook mode"**.
-- **Accessibility:** text size (90-150%), subtitle background opacity, **captions for important sound cues** (chest nearby, water flowing, crane locking, correct/incorrect, lighthouse lit), high-contrast UI, dyslexia-friendly font, and reduced motion. Reduced motion covers camera bob/shake, UI motion, **lantern flicker, and sun shafts**.
+- **Accessibility:** text size (90-150%), subtitle background opacity, **captions for important sound cues** (chest nearby, water flowing, crane locking, correct/incorrect, lighthouse lit), high-contrast UI, dyslexia-friendly font, and reduced motion. Reduced motion covers camera bob/shake, UI motion, **lantern flicker, sun shafts, Leaps and their splash sounds, and loader drift**, and slows cloud drift to near-static.
 
 ### 3.11 Wingman the parrot *(placeholder name)*
 - **Q** gives a hint. There are **3 tiers per beat**: a nudge, a direction, then the answer with its explanation. **Inside Trials and the exit quiz, tier 3 is disabled**, so a Seal reflects what you know.
@@ -364,7 +364,7 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 - **Buoys** mark the channel. The **citadel** grows on the horizon. Port Meridian's mountain ridge and the far ranges sit behind it.
 - **Optional moments:** a dolphin pod rides the bow wave and **leaps alongside** (Leaps director, nose and tail splashes), flying fish skim ahead of the bow, a distant ship crosses the horizon, there's a sea-stack arch to sail through (hidden achievement), and a floating bottle **B0.4** holds a teaser: *"Why a whole app? Ask the merchant in Port Meridian."*
 - **Music:** the sailing theme, with pads that swell with the wave height, crossfades into the Port Meridian theme within 250 m of the harbor.
-- **Streaming:** Port Meridian's **critical pack is prefetched from the moment the Harbormaster's Trial starts** and raised to top priority when you set sail. Anchorage drops to medium LOD past 400 m and to a silhouette past 900 m. If you'd arrive before the critical pack is resident, a **fog bank** gently slows the ship near the harbor (PLAN §13.4).
+- **Streaming:** Port Meridian's **critical pack is prefetched from the moment the Harbormaster's Trial starts** and raised to top priority when you set sail. Anchorage drops to medium LOD past 400 m and to a silhouette past 900 m. If you'd arrive before the critical pack is resident, a **fog bank** gently slows the ship near the harbor while the lighthouse beam fills to show progress. After ~20 s, or on a fetch failure, the ship docks into a low-detail harbor while streaming continues (PLAN §13.4).
 - **Docking:** once you're within 25 m of the harbor berth below half speed, a soft auto-assist docks you and you step onto the quay.
 
 ---
@@ -489,7 +489,7 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 **P1.2 · The Three Helms** (signature, ~7 min). Three short harbor voyages in a training cutter, one per helm:
 1. **Interactive · Harbor Slalom:** you steer through 5 buoys. At each buoy the crew *checks in* ("Hard to port, Captain?"), and you confirm or adjust. It teaches step-by-step collaboration.
 2. **Plan · Reef Passage:** at the chart table, place 4-6 waypoints on a top-down chart through a reef. The route validates against shallows (red where it's too shallow). Once you **approve the plan**, the cutter sails it by itself. If you try to cast off without a plan, Rhea says, *"This passage is one where the approach matters. Chart it first."*
-3. **Autopilot · Supply Run:** a clear, well-defined outcome (deliver 3 crates to the mole). Set the destination and let the trusted helmsman sail it **end to end with no required input**. The **autopilot planner** (PLAN §6 Physics & motion) picks its own lane around moored boats and buoys. A small, de-emphasized **Stop** control exists, but it's optional and the voyage never asks you for anything.
+3. **Autopilot · Supply Run:** a clear, well-defined outcome (deliver 3 crates to the mole). Set the destination and let the trusted helmsman sail it **end to end with no required input**. It follows an **authored waypoint spline** around moored boats and buoys (PLAN §6 Physics & motion). A small, de-emphasized **Stop** control exists, but it's optional and the voyage never asks you for anything.
 
 *Checkpoints:* P1.2 saves after each of the three voyages (§3.9).
 
@@ -577,7 +577,7 @@ Nine items. Pass with all correct (retries allowed, hint tier 3 off). All six ke
 
 | Scene | Main cost | Tactics |
 |---|---|---|
-| Anchorage Cay | Water + palms + grass | Clipmap ocean. **Lagoon mirror only while the lagoon is on screen (High/Ultra)**. Caustics and foam behind distance branches. **Instanced** palms (3 variants) and grass with shared-wind sway. One merged static chunk per village cluster. Cached static shadows. Beyond 350 m: impostors |
+| Anchorage Cay | Water + palms + grass | Polar-grid ocean (Low/Lite: 3 waves, hull smear or none). **Lagoon mirror only while the lagoon is on screen (High/Ultra)**. Caustics and foam behind distance branches. **Instanced** palms (3 variants) and grass with shared-wind sway. One merged static chunk per village cluster. Cached static shadows. Beyond 350 m: impostors |
 | Open Sea | Water + sky + distant islands | Wave octaves fade with distance. Islands become silhouettes. Clouds render at ¼ resolution on alternate frames |
 | Port Meridian | Town draw calls + harbor mirror | **Atlased building kit** (2 materials). Merged static geometry per terrace chunk. **Zones & portals** for the Citadel interior. The harbor mirror excludes the town's small props and NPCs, and turns off once you're up the hill. NPCs off-screen don't animate. Small props cull at 60 m |
 | Dialogue | DOF + portrait | DOF only on High+. Scene resolution scales down during long dialogue if frame time rises |
@@ -606,10 +606,10 @@ Nine items. Pass with all correct (retries allowed, hint tier 3 off). All six ke
 - [ ] The chart supports sail-to and fast travel. Free explore can enter Anchorage Cay and Port Meridian in either order, and 02-07 are visible but can't be entered.
 - [ ] Save/continue works across reloads, puzzles restore to their checkpoints, and export/import works.
 - [ ] Each tier holds its §12.1 target (**Low 30 fps on the emulated UHD 620 floor**, Medium 45-60 fps on emulated Iris Xe/M1, High 60 fps). The **Lite** preset holds 30 fps on the emulated Chromebook profile, and there are no frame spikes over 50 ms during streaming.
-- [ ] **Tablets:** Anchorage and Port Meridian are fully playable with touch on an iPad (A13+) and a recent Android tablet via cloud real devices, including hotspot quizzes, push-block puzzles, sailing, and the Chart.
-- [ ] **2D Chart & Logbook mode:** it runs automatically when WebGL2 or hardware acceleration is missing (and on request in Settings). Every Island 00/01 objective in the §1 matrix can be completed in it: dialogue, voices, pages, quizzes, and 2D versions of P0.1, P0.2, P1.1, P1.2, and P1.3.
-- [ ] The title (ocean, sky, clouds, and the ship) is interactive at **≤ 4 MB / ≤ 3 s at 25 Mbps**, and Anchorage isn't part of that download.
-- [ ] **Modular loading (PLAN §13):** code chunks and island/zone packs load on demand. First playable is ≤ 14 MB / ≤ 6 s even with every cinematic skipped. The Open Sea passage finishes Port Meridian's prefetch before arrival at 25 Mbps. Fast travel takes ≤ 2 s when cached. Throttled Playwright tests assert all of these.
+- [ ] **Tablets:** Anchorage and Port Meridian are fully playable with touch on a **cloud iPad (A13+)**, including hotspot quizzes, push-block puzzles, sailing, and the Chart. The Android tablet pass is Phase 1b.
+- [ ] **2D Chart & Logbook proof slice:** it runs automatically when WebGL2 or hardware acceleration is missing (and on request in Settings), and covers the **title → Chart, Q0.2 (dialogue, voice, pages), H0.2, and P0.1**. Full 2D coverage of every objective is **Phase 1b**.
+- [ ] The title (PLAN §13.5 contents, no island mesh) stays within **≤ 4 MB wire**. Loader art appears in ≤ 0.5 s, and the **title is interactive in ≤ 5 s on High / ≤ 10 s on the emulated Low floor**.
+- [ ] **Modular loading (PLAN §13):** code chunks and island/zone packs load on demand. First playable is ≤ 14 MB wire, and **≤ 10 s High / ≤ 20 s Low time-to-interactive**, even with every cinematic skipped. The Open Sea passage finishes Port Meridian's prefetch before arrival at 25 Mbps. Fast travel takes ≤ 2 s when cached. Throttled Playwright tests assert all of these.
 - [ ] The Appendix A exit quiz is implemented with hints off.
 - [ ] No API keys appear in the build output. A CI grep checks for key-like strings.
 - [ ] Credits include the course's full MIT notice, the CC0 kits, and the synthetic-voice disclosure.

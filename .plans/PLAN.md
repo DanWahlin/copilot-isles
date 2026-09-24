@@ -1,6 +1,6 @@
 # Copilot Isles: Game Concept & Plan (v0.3, approved + Grok Build review consensus applied)
 
-> Review history: [docs/reviews/2026-09-23-grok-build](../docs/reviews/2026-09-23-grok-build/README.md)
+> Review history: [docs/reviews/2026-09-23-grok-build](../docs/reviews/2026-09-23-grok-build/README.md) · [delta review](../docs/reviews/2026-09-23-grok-build-delta/README.md)
 
 > Working title. A relaxing, beautiful, browser-based 3D island adventure that teaches the
 > [GitHub Copilot app for Beginners](https://github.com/github/copilot-app-for-beginners) course.
@@ -189,7 +189,7 @@ The town's districts mirror the app's sidebar:
 | **Puzzle toolkit** | Reusable grid pieces: push blocks, pressure plates, levers, sluice gates & water flow, rotating mirrors & beams, gears, timers. Each island combines them in new ways. |
 | **Progression** | Islands unlock in order by default. A **"Free explore"** setting opens them all. Each island has 3-5 teaching NPCs, 3-6 chests, 1-2 puzzles, and 1 Trial, which awards a **Seal** and lights the lighthouse. Doubloons buy cosmetics (sails, hats, figureheads, parrot hats). About **25-45 min per island**, since the voiced dialogue alone is a large share of that. Required stops on each island are clustered about a 60-90 s walk apart, with at most one deliberately long scenic walk. |
 | **Map (Captain's Chart)** | A full-screen parchment chart with an animated compass rose, ink coastlines, and fog that clears. Click an island to see its chapter, progress (NPCs, chests, puzzles, Trial), and **Sail there** or **Fast travel** (to lit lighthouses). In **Free explore**, you can pick any island from the chart and jump straight there. There's also a zoomed island map with points of interest. |
-| **Menus** | The title screen has a live 3D backdrop: **ocean, sky, clouds, and your ship** at golden hour (plus at most one distant impostor island) with a slow camera orbit. The first island streams in only after New Voyage/Continue. It offers **Continue · New Voyage · Chart · Logbook · Settings · Controls · Credits · Quit** (Quit saves and returns to the title, since browsers can't close tabs). The pause menu mirrors it. |
+| **Menus** | The title screen has a live 3D backdrop at golden hour with a slow camera orbit. Its contents are defined once in **§13.5**. The first island streams in only after New Voyage/Continue. It offers **Continue · New Voyage · Chart · Logbook · Settings · Controls · Credits · Quit** (Quit saves and returns to the title, since browsers can't close tabs). The pause menu mirrors it. |
 | **Character creation** | Man or woman pirate, plus name, skin tone, hair, and outfit/sash colors. |
 | **Save** | Autosave at checkpoints to localStorage (puzzles checkpoint at their start), with "Keep my journey" / "Begin anew". Export/import a save code. |
 
@@ -199,7 +199,7 @@ The town's districts mirror the app's sidebar:
 
 ### Recommended stack
 - **TypeScript + Vite** (same foundation as Arkenfall)
-- **Three.js**: custom shaders for water, sky, terrain, foliage, and post-processing. We'll decide between WebGL2 and WebGPU/TSL in the Phase 0 spike, favoring compatibility.
+- **Three.js**: custom shaders for water, sky, terrain, foliage, and post-processing. **WebGL2 + GLSL** (decided, §0). WebGPU only for optional HDR output later.
 - **Rapier** (WASM physics), limited to **primitive static colliders** (boxes, capsules, heightfield), scene queries, and the **kinematic character controller**. The POC has no dynamic rigid bodies: push blocks are grid logic, and the boat is a kinematic hull on analytic buoyancy
 - **React DOM overlay** for menus, dialogue, quizzes, map, and logbook, plus a small store (e.g. Zustand) to bridge the game and the UI
 - **Custom Web Audio engine** (AudioWorklet + OfflineAudioContext) for procedural music, ambience, and SFX, plus streamed voice lines
@@ -229,7 +229,7 @@ The town's districts mirror the app's sidebar:
   8. FXAA + a light unsharp mask when rendering below native resolution
   - Soft DOF during dialogue (High+).
 - **Ambient life:** gull flocks (circling, with flapping bouts and glides), lagoon fish, butterflies, fireflies at dusk, chimney smoke, drifting leaves, floating flotsam, and **distant ships crossing the horizon**. All particles **wrap inside camera-following boxes**, so nothing is spawned or allocated per frame.
-- **The "Leaps" director (jumping fish & dolphins):** a stager, not a random spawner. Every ~15-45 s, **in daylight with the camera above water**, it picks a spot ahead of the camera and **only commits if the *entire* leap stays on screen**. It also has to stay **clear of UI text** (title logo, dialogue, prompts) and away from the ship and the camera-to-ship line.
+- **The "Leaps" director (jumping fish & dolphins):** a stager, not a random spawner. Every ~15-45 s, **in daylight with the camera above water**, it picks a spot ahead of the camera and **only commits if the *entire* leap stays on screen**. It also has to stay **clear of UI text** (title logo, menus, prompts) and away from the ship and the camera-to-ship line. **Leaps never start during dialogue, quizzes, puzzles, the Chart, the Logbook, or pause.** The **title screen is exempt** from that rule, since the text-box avoidance keeps leaps off the logo and menu. **Reduced motion disables Leaps and their splash sounds**, and **Lite** has none.
   - **Species:** **flying-fish schools** (taxi with tail-slaps → glide → re-entry) in the tropics and open sea, **mullet** hops in harbors, and **dolphin pods** at sea (nose and tail each splash as they cross the surface). Later islands can add a whale breach or leaping mantas.
   - **Physics:** trajectories are ballistic (g = 9.81), with pitch following velocity. Each leap is baked once at 60 Hz and interpolated.
   - **Events:** splash particles and **stereo-panned splash sounds** are scheduled.
@@ -255,12 +255,12 @@ Our water has to cover **open-ocean swell, surf, lagoons, harbors, and flowing w
 
 | Layer | Technique | Tier |
 |---|---|---|
-| **Surface motion** | Open sea: **4-6 Gerstner waves with deep-water dispersion `ω = √(g·k)`**, defined in **one TS table that generates the GLSL constants**, plus two scrolling detail-normal layers, with amplitude by zone (calm lagoon → open swell). Amplitude also fades with camera distance (`exp(-d/≈240 m)`), **identically on CPU and GPU**. The mesh is a **camera-centred polar grid** (geometric ring spacing out to ~1.6 km). Each vertex carries its spacing, so **wave components the grid can't resolve are dropped instead of aliasing**. Rivers, waterfalls, and **the P0.1 sluice channels** use **two-phase flow maps** (no visible reset). Wind ripples on top | All |
-| **Reflection** | **Baseline:** a Fresnel (Schlick) reflection of a **prefiltered PMREM sky map**, spread by roughness. **Roughness grows with unresolved wave variance and the normal's screen derivative**, so far water becomes a soft sheen rather than sparkling noise. Sun glints use a **microfacet (Beckmann/Smith) BRDF** plus **Poisson sparkles** sized to the pixel footprint. **Ships reflect analytically on every tier:** a simplified hull SDF is ray-tested with 4 jittered normals, with no second render. **Add-on for calm zones:** a **half-res planar mirror pass** (DPR ≤ 1.3) inside the lagoon and harbor basins only. It uses a `noReflect` layer (grass, particles, small props excluded), a global `uReflect` flag that puts every material on a **cheap shading path**, frozen shadows, and normal-distorted lookups | Baseline + analytic ship reflection: all. Sparkles: Medium+. Mirror: **High/Ultra**, calm zones only |
+| **Surface motion** | Open sea: **4-6 Gerstner waves with deep-water dispersion `ω = √(g·k)`**, defined in **one TS table that generates the GLSL constants**, plus two scrolling detail-normal layers, with amplitude by zone (calm lagoon → open swell). Amplitude also fades with camera distance (`exp(-d/≈240 m)`), **identically on CPU and GPU**. The mesh is a **camera-centred polar grid** (geometric ring spacing out to ~1.6 km). Each vertex carries its spacing, so **wave components the grid can't resolve are dropped instead of aliasing**. Rivers, waterfalls, and **the P0.1 sluice channels** use **two-phase flow maps** (no visible reset). Wind ripples on top | All (**Low/Lite: 3 Gerstner waves**) |
+| **Reflection** | **Baseline:** a Fresnel (Schlick) reflection of a **prefiltered PMREM sky map**, spread by roughness. **Roughness grows with unresolved wave variance and the normal's screen derivative**, so far water becomes a soft sheen rather than sparkling noise. Sun glints use a **microfacet (Beckmann/Smith) BRDF** plus **Poisson sparkles** sized to the pixel footprint. **Ships reflect analytically (no second render), tiered:** a simplified hull SDF is ray-tested with **4 jittered normals on High/Ultra** and **1 ray on Medium**, only inside the ship's screen rectangle. **Low** shows just a cheap darkened "hull smear" gradient under the ship, and **Lite** shows nothing. **Add-on for calm zones:** a **half-res planar mirror pass** (DPR ≤ 1.3) inside the lagoon and harbor basins only. It uses a `noReflect` layer (grass, particles, small props excluded), a global `uReflect` flag that puts every material on a **cheap shading path**, frozen shadows, and normal-distorted lookups | Baseline: all. Hull rays: High/Ultra 4, Medium 1, Low smear, Lite none. Sparkles: Medium+. Mirror: **High/Ultra**, calm zones only, **≤ 35% of the main pass** (Phase 0 fails above that), never in the Floor shot |
 | **Refraction & colour** | Copy the opaque pass to a **half-res target with linear depth in alpha**. Offset the lookup by normal × depth, and **fall back to the undistorted sample if the offset hits something in front of the water**. Colour is **Beer-Lambert absorption along the optical path** (depth ÷ view angle, clamped to the depth-buffer bed distance) plus an in-scatter body colour. **Per-island absorption presets**: turquoise lagoon, deep-blue ocean, jade river, and inky volcanic | All (Low: no distortion offset) |
 | **Seabed** | **Caustics** injected into the terrain material as *extra sunlight* (so shadows still hold), fading with depth and distance. **Underwater light attenuation** on anything below the waterline (so the shallows don't glow). Terrain uses a matte, wet look below the surface | Medium+ |
-| **Foam** | "Lace" foam (coverage eroding multi-octave cells, never solid sheets), depth-based **shoreline foam**, a **coast-foam ribbon extracted from the real shoreline contour at build time** (marching squares) with a surge travelling along the coast, **reef-break foam lines**, wave-crest foam from Gerstner steepness, and a **beach run-up (swash)** band with receding wet sand. Noise is **only evaluated where foam is possible** | All (Low: fewer octaves) |
-| **Boat ↔ water** | All **analytic in the water shader**, with no particles or simulation: **Kelvin wake arms + churned trail**, a **bow-wave crescent**, hull-hugging streaky whitewater, rings around the hull at rest, and a **hull cut-out** (water discarded inside the hull, using the *same* hull function as the CPU). The **boat's shadow on water** is ray-stepped against that hull function. The hull also gets a **waterline foam ring** that rides the Gerstner surface, a **wet band** that follows the real sea height, and **spray bursts when the bow slams** a wave (hull-point vs sea velocity) | All (Low: no shadow march, no spray) |
+| **Foam** | "Lace" foam (coverage eroding multi-octave cells, never solid sheets), depth-based **shoreline foam**, a **coast-foam ribbon extracted from the real shoreline contour at build time** (marching squares) with a surge travelling along the coast, **reef-break foam lines**, wave-crest foam from Gerstner steepness, and a **beach run-up (swash)** band with receding wet sand. Noise is **only evaluated where foam is possible** | All (**Low/Lite: one shoreline band + 1 lace octave**) |
+| **Boat ↔ water** | All **analytic in the water shader**, with no particles or simulation: **Kelvin wake arms + churned trail**, a **bow-wave crescent**, hull-hugging streaky whitewater, rings around the hull at rest, and a **hull cut-out** (water discarded inside the hull, using the *same* hull function as the CPU). The **boat's shadow on water** is ray-stepped against that hull function. The hull also gets a **waterline foam ring** that rides the Gerstner surface, a **wet band** that follows the real sea height, and **spray bursts when the bow slams** a wave (hull-point vs sea velocity) | All (**Low/Lite: one wake term**, no shadow march, no spray) |
 | **Other interaction** | Rings + foam around the player's legs when wading, rings where crates or oars touch water, and floating flotsam/leaves that **part around the hull and fan into the wake** | Medium+ |
 | **Night & weather (post-POC)** | Lantern glints smeared into columns by the ripples, rain-ring fields, and wetness | Medium+ |
 
@@ -273,12 +273,13 @@ Our water has to cover **open-ocean swell, surf, lagoons, harbors, and flowing w
   - tested against **circle/capsule obstacles** (dock posts, rocks, buoys, moored ships) and the shoreline distance field, with **3-4 iterations of depenetration**
   - **Impact response:** a hard bow hit reverses a little speed and adds a decaying shake. A glancing hit adds drag.
   - **Grounding:** the depth from `h(x,z)` under the hull slows you in the shallows before you touch sand.
-  - **Motion feel (fixed-timestep):** the player controls heading and speed kinematically (sail trim, rudder), and **heave, pitch, and roll are damped springs** toward the exact sea height at **~8 hull stations**. Each has its own natural frequency and damping, so the hull *lags, overshoots, and settles* instead of snapping to the waves.
+  - **One horizontal integrator, in this order:** trim/rudder set the target speed and heading → drag + a small orbital nudge → integrate → depenetrate. There's no other writer of XZ.
+  - **Motion feel (fixed-timestep):** **heave, pitch, and roll are damped springs** (and they write *only* those three) toward the exact sea height at **~8 hull stations**. Each has its own natural frequency and damping, so the hull *lags, overshoots, and settles* instead of snapping to the waves.
   - **Layered on top:** **orbital-velocity coupling** (the swell nudges the ship), **anisotropic drag** (easy forward, hard sideways), **heel from apparent wind and turning**, and **crew-load heel** (the ship leans slightly toward you as you walk the deck).
   - **Stability:** substeps are capped per frame, with clamps and a NaN guard.
 - **Moored & NPC ships:** the same buoyancy, plus a **nonlinear mooring/anchor-rope spring** and wind drag, so anchored ships **swing and weathervane** naturally in the harbor.
-- **Secondary motion:** lanterns, blocks, loose rigging, and hanging nets sway on springs driven by the **hull's measured acceleration**. Flags, pennants, laundry, and sails use a light cloth/billow solver on the shared wind.
-- **Autopilot planner:** a lane/waypoint planner scores candidate headings against the obstacles ahead every ~0.2 s and steers smoothly. It powers the **P1.2 Autopilot voyage**, the chart's **"Sail here"** auto-sail, and docking assist. Manual input always takes over.
+- **Secondary motion:** a **fixed, small set of CPU springs on the player's ship only** (lanterns, blocks, 1-2 lines) sways from the **hull's measured acceleration**. Flags, pennants, laundry, and sails billow **in the vertex shader** on the shared wind.
+- **Autopilot (POC):** the **P1.2 Autopilot voyage**, the chart's **"Sail here"** auto-sail, and docking assist follow **authored waypoint splines**. Manual input always takes over. A **scoring lane planner** (candidate headings vs obstacles every ~0.2 s) is **post-POC**, for free-roam autopilot.
 - **Player on foot:** the kinematic controller + `h(x,z)`. Wading slows you and spawns ring shaders, and deep water gently returns you to shore (POC).
 
 ### 6a. AI-assisted art pipeline
@@ -289,8 +290,8 @@ Our water has to cover **open-ocean swell, surf, lagoons, harbors, and flowing w
 
 ### Quality tiers & budgets
 - **Low / Medium / High / Ultra** presets, plus resolution scale. The full per-tier budgets and efficiency rules are in **§12**.
-- Targets: **60 fps @1080p** on an M1/M2 MacBook Air or RTX 3050-class machine at High, and **30+ fps** on Intel Iris Xe at Low.
-- Download size: **≤ 4 MB to an interactive title**. The title is ocean, sky, clouds, and the ship only. Code and content load on demand as modules and packs (**§13**).
+- Targets per device class are in **§12.1 and §14.1**: the **floor is Intel UHD 620 at 30 fps (Low)**, Chromebooks use **Lite**, and Iris Xe/M1 Air are Medium.
+- Download size: **≤ 4 MB (wire) to the title**. Its contents and time-to-interactive targets are in **§13.5**. Code and content load on demand as modules and packs (**§13**).
 
 ### Three possible art approaches
 | Option | Look | Speed | Notes |
@@ -353,7 +354,7 @@ The upside is that the music is adaptive, tiny to download, and has no licensing
 
 ## 9. Accessibility
 
-Text size, dyslexia-friendly font option, adjustable text speed, high-contrast UI, and reduced motion (no camera bob or shake, lantern flicker, or sun shafts). Also: colorblind-safe quiz feedback (icons + color), full keyboard navigation of the UI, rebindable controls, and a **no-pointer-lock default look** (hold right mouse, arrow keys, or gamepad) with pointer lock as an option. Plus camera sensitivity/invert/FOV, separate volume sliders, and captions for every sound cue that matters.
+Text size, dyslexia-friendly font option, adjustable text speed, high-contrast UI, and reduced motion (no camera bob or shake, lantern flicker, sun shafts, **Leaps and their splash sounds**, or loader drift, and cloud drift slows to near-static). Also: colorblind-safe quiz feedback (icons + color), full keyboard navigation of the UI, rebindable controls, and a **no-pointer-lock default look** (hold right mouse, arrow keys, or gamepad) with pointer lock as an option. Plus camera sensitivity/invert/FOV, separate volume sliders, and captions for every sound cue that matters.
 
 ---
 
@@ -361,8 +362,9 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 
 | Phase | Deliverable | Gate |
 |---|---|---|
-| **0 · Look, sound & perf spike** | One frame that shows **the polar-grid ocean (with analytic ship reflection), one restyled building cluster, a dressed pirate, and ≥ 8 skinned NPCs**, plus sky, clouds, character + camera, sailing and docking the brigantine, a prototype of the procedural music engine (one island theme), the voice pipeline (a few lines), and the debug HUD + benchmark flythrough (which also measures physics time).<br>**Water must show every layer of the Water system**: Gerstner swell → calm lagoon with **refraction + absorption + caustics**, shoreline/reef foam and **beach run-up**, **analytic wake + bow wave + hull cut-out**, a flow-map channel, and the **High-tier harbor mirror**.<br>Also required: cached shadows, sun shafts, the shared wind (grass, palms, sails), mist/height fog, adaptive resolution, the `shot()` debug API, and the **§13 loading skeleton** (boot/title chunk split, the manifest + one streamed pack, and the Service Worker), with its §13.5 title budget measured.<br>It must **hit the §12 budgets** on reference hardware, with each water layer's cost measured separately | You approve the *look*, the *sound*, and the *frame rate* |
-| **1 · Proof of concept** | **Islands 00 + 01 fully playable**, plus all core systems: **tablet touch controls**, the **2D Chart & Logbook mode**, menu, character creation, dialogue, chests/logbook, all quiz types, puzzle toolkit, map/fast travel, settings, save, audio. **Vertical-slice gate first:** Anchorage Q0.2-Q0.8 fully playable with real TTS before the rest of the content is built | You approve the *slice*, then the *fun & teaching* |
+| **0 · Look, sound & perf spike** | One frame that shows **the polar-grid ocean (with analytic ship reflection), one restyled building cluster, a dressed pirate, and ≥ 8 skinned NPCs**, plus sky, clouds, character + camera, sailing and docking the brigantine, a prototype of the procedural music engine (one island theme), the voice pipeline (a few lines), and the debug HUD + benchmark flythrough (which also measures physics time).<br>**Water must show every layer of the Water system**: Gerstner swell → calm lagoon with **refraction + absorption + caustics**, shoreline/reef foam and **beach run-up**, **analytic wake + bow wave + hull cut-out**, a flow-map channel, and the **High-tier harbor mirror**.<br>Also required: cached shadows, sun shafts, the shared wind (grass, palms, sails), mist/height fog, adaptive resolution, the `shot()` debug API, and the **§13 loading skeleton** (boot/title chunk split, the manifest + one streamed pack, and the Service Worker), with its §13.5 title budget measured.<br>It's judged on **two shots**: a **Floor shot** (the Low feature set in §12.1, on the Low budget) and a **Beauty shot** (mirror, caustics, sun shafts, on the High budget). Each water layer's cost is measured separately. The §14.5 capability ratios are a **smoke alarm with margin, not a hard gate** | You approve the *look*, the *sound*, and the *frame rate* |
+| **1 · Proof of concept** | **Islands 00 + 01 fully playable**, plus all core systems: **tablet touch controls** (with **one cloud iPad A13+ pass through both islands**), a **2D Chart & Logbook proof slice** (title → Chart, Q0.2, H0.2, P0.1), menu, character creation, dialogue, chests/logbook, all quiz types, puzzle toolkit, map/fast travel, settings, save, audio. **Vertical-slice gate first:** Anchorage Q0.2-Q0.8 fully playable with real TTS before the rest of the content is built | You approve the *slice*, then the *fun & teaching* |
+| **1b · Reach** | **Full 2D Chart & Logbook coverage** of every Island 00/01 objective and puzzle, plus the **Android tablet** cloud pass | 2D and tablet parity |
 | **2 · Expansion** | Islands 02-04 | |
 | **2b · Phones** | Phone layout (portrait-friendly HUD, readable screenshot quizzes, a smaller memory budget) and the phone 30 fps tier | Phone UX review |
 | **3 · Complete** | Islands 05-07 + finale, certificate, polish, accessibility audit, perf pass, credits, deploy | |
@@ -384,6 +386,7 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 | Trademarks & affiliation (Octocat, Copilot logo, product name) | The MIT license covers the course's copyright, not GitHub's trademarks. We include the **full MIT notice** in the credits, keep screenshots as screenshots, and **never model or generate the Octocat or Copilot logo**. An **affiliation line** (e.g. "Unofficial fan project…" vs official wording) is a **required decision before the first public deploy** |
 | Film likeness (the "Pirates of the Caribbean" ship brief) | Build a generic Golden Age brigantine. Don't replicate any specific film ship's distinctive design |
 | GitHub Pages bandwidth (~100 GB/month soft cap) | Keep the per-island downloads small, use Service Worker caching, and monitor. Move to a CDN if the game gets popular |
+| **Decision risk (open):** emulated-only testing leaves the 30 fps floor unverified during content production | **Recommended:** one real UHD 620 session **before Phase 1 content** (rather than at launch). The user decides. Until then: conservative ratios with margin, and the Floor shot |
 | Emulated-only performance testing misses real iGPU limits | Conservative emulation ratios with margin, cloud real devices for tablets, and one real UHD 620 laptop before public launch (§14.5) |
 | "Runs everywhere" scope (tablets + 2D mode) | Shared data-driven content, 2D renderers for only 5 POC puzzles, and phones deferred to Phase 2b |
 | Service Worker serves stale or mixed versions | Content-hashed immutable URLs, a network-first manifest, new versions activated only at the title screen, and old packs kept until the new ones verify |
@@ -392,21 +395,22 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 
 ## 12. Efficiency (rendering & runtime)
 
-Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on reference hardware before we build content on top of it. The rules below are adapted from your list. We don't have projectiles, and we're desktop-only, so "mobile" means **integrated laptop GPUs** (Intel Iris Xe, base M1). The same discipline applies.
+Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on reference hardware before we build content on top of it. The rules below are adapted from your list. We don't have projectiles. "Mobile" here means the **§14 device classes**: integrated laptop GPUs down to the **UHD 620 floor**, Chromebooks (Lite), and tablets. The same discipline applies.
 
 ### 12.1 Budgets per quality tier
-| Budget | Low (**floor**: Intel UHD 620) | Medium (Iris Xe, M1 Air 8 GB, iPad A13+) | High (M2/M3 Air, RTX 3050, iPad M1+) | Ultra (M Pro/Max, RTX 3060+) |
-|---|---|---|---|---|
-| Target frame rate | 30 fps | 45-60 | 60 @1080p | 60 @1440p+ |
-| Render scale / max DPR | 0.6-0.75 / 1.0 | 0.8-1.0 / 1.25 | 1.0 / 1.5 | 1.0 / 2.0 |
-| Draw calls (in-game, **whole frame incl. mirror + post passes**) | < 150 | < 225 | < 300 | < 400 |
-| Triangles (**summed across all scene passes, incl. the mirror**) | < 500k | < 1M | < 2M | < 3.5M |
-| GPU texture memory | < 256 MB | < 384 MB | < 512 MB | < 768 MB |
-| Shadows | **Static cached map** 2048² (refresh on movement) + blob shadows for characters | Static cache 2048² + dynamic character map 1024² | Static cache 4096² + dynamic 1024² | Static cache 4096² + dynamic 2048² |
-| Water | PMREM reflection, absorption (no refraction offset), foam, wake | + refraction offset, caustics, flotsam | + **planar mirror in calm zones** (half-res), boat shadow march | + wading/rain detail |
-| Post FX | Tone map + grade + vignette + grain/dither | + bloom, screen-space radial shafts | + SSAO (half-res), **shadow-map sun shafts** | + DOF, full-res AO |
-| JS main thread per frame | < 6 ms | < 5 ms | < 4 ms | < 4 ms |
-| Initial download (to title) | **≤ 4 MB, interactive in ≤ 3 s at 25 Mbps** on every tier (see §13.5). The title is ocean, sky, clouds, and the ship, with no island | | | |
+| Budget | Lite (Chromebooks, weakest GPUs) | Low (**floor**: Intel UHD 620) | Medium (Iris Xe, M1 Air 8 GB, iPad A13+) | High (M2/M3 Air, RTX 3050, iPad M1+) | Ultra (M Pro/Max, RTX 3060+) |
+|---|---|---|---|---|---|
+| Target frame rate | 30 fps | 30 fps | 45-60 | 60 @1080p | 60 @1440p+ |
+| Render scale / max DPR | ~0.55 / 1.0 | 0.6-0.75 / 1.0 | 0.8-1.0 / 1.25 | 1.0 / 1.5 | 1.0 / 2.0 |
+| Draw calls (in-game, **whole frame incl. mirror + post passes**) | < 100 | < 150 | < 225 | < 300 | < 400 |
+| Triangles (**summed across all scene passes, incl. the mirror**) | < 300k | < 500k | < 1M | < 2M | < 3.5M |
+| GPU texture memory | < 192 MB | < 256 MB | < 384 MB | < 512 MB | < 768 MB |
+| Shadows | Blob shadows only | **Static cached map 1024²** (refresh on movement) + blob shadows for characters | Static cache 2048² + dynamic character map 1024² | Static cache 4096² + dynamic 1024² | Static cache 4096² + dynamic 2048² |
+| Water | 3 Gerstner waves, PMREM reflection, absorption (no distortion), 1 foam band, 1 wake term, no hull reflection | Same as Lite + **hull smear**, 1 lace octave | + refraction offset, caustics, flotsam | + **planar mirror in calm zones** (half-res), boat shadow march | + wading/rain detail |
+| Post FX | Tone map + grade + dither | Tone map + grade + vignette + grain/dither | + bloom, screen-space radial shafts | + SSAO (half-res), **shadow-map sun shafts** | + DOF, full-res AO |
+| JS main thread per frame | < 7 ms | < 6 ms | < 5 ms | < 4 ms | < 4 ms |
+| Leaps (jumping fish) | Off | On, splash pool halved | On | On | On |
+| Initial download (to title) | **≤ 4 MB wire**. Time-to-interactive and title contents are in **§13.5** | | | | |
 
 ### 12.2 Draw calls & batching *(your "minimize draw calls")*
 - **InstancedMesh / BatchedMesh** for vegetation, rocks, crates, barrels, fences, and modular building parts. Each chunk gets its own instance set, so culling still works per chunk.
@@ -441,7 +445,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - **Expensive noise only where needed:** foam, caustics, and wake terms are behind distance/coverage branches, so the open sea far away costs little.
 - The **sky/atmosphere lookup table** is recomputed only when the sun moves.
 - **All post-processing merges into as few full-screen passes as possible** (tone map, grade, vignette, and chromatic effects in one pass).
-- **Wind and sway run in the vertex shader** (grass, palms, flags, sails), so the CPU does no per-instance work. Grass bending uses a small "trample" render target around the player.
+- **Wind and sway run in the vertex shader** (grass, palms, flags, sails, laundry), so the CPU does no per-instance work. **The one exception** is the fixed small set of secondary-motion springs on the player's ship (§6). Grass bending uses a small "trample" render target around the player.
 - The **terrain** blends at most 4 splat layers per chunk, with AO/roughness/metal packed into one texture.
 - **Shaders compile during loading.** We call `compileAsync` / `renderer.compile()` with **every object temporarily visible and all layers enabled**, so there's no hitch the first time something appears on screen. Loading runs as staged builds that yield between stages (via `MessageChannel`) and report progress to the loader.
 
@@ -449,7 +453,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - The full design is **§13 Modular loading**: code splitting, asset packs, and world streaming.
 - **KTX2 transcoding and meshopt decoding run in Web Workers.**
 - **Time-sliced GPU uploads** push only a few textures or meshes per frame, so streaming never causes a frame spike.
-- The title screen is **ocean, sky, clouds, and the player's ship** (at most one distant impostor island), so the menu appears in a couple of seconds. The first island starts streaming after New Voyage/Continue (or is prefetched while you sit on the title, §13.4).
+- The title screen uses the **§13.5 title contents** (no island mesh), so the menu appears quickly. The first island starts streaming after New Voyage/Continue (or is prefetched while you sit on the title, §13.4).
 
 ### 12.7 Compression & memory *(your "compress textures and audio")*
 - **Textures: KTX2/Basis**, with UASTC for normal maps and ETC1S for albedo. They stay **compressed in VRAM**, using 4-8× less memory than PNG/JPG. Mipmaps are always on.
@@ -469,8 +473,9 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 ### 12.9 Adaptive quality
 - **GPU time is the primary signal.** We measure it with `EXT_disjoint_timer_query_webgl2` (a ring of ~4 queries, read asynchronously and smoothed). If the extension is missing or disjoint, we fall back to frame-time and missed-frame counting. **We never rescale during transitions** (fast travel, docking, dialogue cuts), and after a failed upscale we **back off exponentially** (≈ 15 s → 120 s).
 - **Dynamic resolution** starts measuring after a ~90-frame warm-up and averages over 60 frames:
-  - **Lowering:** over budget (e.g. > 23.5 ms at a 60 fps target), scale × 0.92, or × 0.84 if badly over (> 45 ms). The floor is **0.72**, and there's an 8 s cooldown after a drop.
-  - **Raising:** with headroom (< 17.6 ms), scale + 0.05, with a 2.5 s cooldown.
+  - **Thresholds are multiples of the tier's target frame time `T`** (33.3 ms at 30 fps, 16.7 ms at 60 fps).
+  - **Lowering:** above **1.25 × T**, scale × 0.92, or × 0.84 above 2.5 × T. The floor is **0.72** (lower for Lite/Low), and there's an 8 s cooldown after a drop.
+  - **Raising:** below **0.85 × T**, scale + 0.05, with a 2.5 s cooldown. A frame that's genuinely hitting its target sits still.
   - It pauses while the tab is hidden, and it can be locked from the debug HUD. Thresholds scale with each tier's target.
   - FXAA + a light unsharp mask restore crispness when the scale is below 1.
 - On first launch, a **quick GPU benchmark** picks the starting preset. You can override it in Settings.
@@ -498,7 +503,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 | `vendor-three` | three.js (measured **184 KB gz** for the whole library, less after tree-shaking). Its own long-lived hashed chunk | Page load (parallel) |
 | `game-core` | Player controller, camera, dialogue runtime, quest/event system, HUD, Logbook, Chart, quiz runtime | Prefetched while the title is idle. Required at New Voyage/Continue |
 | `char-create` | Character creator | New Voyage |
-| `sailing` | Boat kinematics, analytic buoyancy, autopilot planner, wake uniforms | First time you board |
+| `sailing` | Boat kinematics, damped-spring buoyancy, waypoint-spline autopilot, wake uniforms | First time you board |
 | `physics` | Rapier (WASM) for on-foot collision. **Use the separate-`.wasm` build with streaming compile** (`WebAssembly.compileStreaming`) rather than the "compat" build, which inlines base64 WASM (**measured ~1.06 MB gz**) | First time you step onto an island. Not needed for the title or while sailing |
 | `audio-composer` + `palette-<island>` | Procedural music engine + each island's instrument/mode data | After the first user gesture (audio unlock). Palettes per island |
 | `puzzle-<type>` | Sluice, crane, push-block, pillars, helms | Prefetched within ~50 m of the puzzle |
@@ -509,7 +514,8 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 
 ### 13.2 Asset packs & the manifest
 - A build step (`tools/packs/build.ts`) groups assets into **content-hashed packs** and writes `manifest.json`:
-  - `common`: player m/f, parrot, brigantine, UI ornaments
+  - `title/ship`: **the brigantine** (the only pack that contains it), part of the title budget
+  - `common`: player m/f, parrot, UI ornaments
   - **shared kits**: `kit-tropical`, `kit-mediterranean`, … (shared by islands with the same biome)
   - **per-island packs**, split by kind (`geo`, `tex-<tier>`, `voice`, `shots`) and **by zone** (`anchorage/village`, `meridian/citadel`, …)
 - **Quality variants:** Low/Medium download 1K textures and High/Ultra download 2K. A player only ever downloads their own tier.
@@ -533,13 +539,13 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 ### 13.4 When things load (hidden inside play)
 | Moment | What loads | How it's hidden |
 |---|---|---|
-| Page load → title | `boot` + `vendor-three` + title assets | Brush-stroke loader (≤ 3 s target) |
+| Page load → title | `boot` + `vendor-three` + title assets + `title/ship` | The instant chart loader (§13.8) |
 | Title idle (5 s, no Save-Data) | `game-core`, `common/critical`, and the **saved island's critical pack** (Continue) or **island-00 critical** (new players) | Invisible |
 | New Voyage | `char-create` now, then island-00 critical + `physics` + `sailing` | **Character creation + the 45 s intro** cover it |
 | Walking an island | `near` zone packs, NPC voice files (~60 m radius), screenshots for nearby chests/NPCs, puzzle chunks (~50 m) | Invisible, since they're already loaded when you arrive |
 | Trial started / lighthouse lit | Next island's `critical` + its kit at `later` priority | Invisible |
 | **"Set sail"** | Next island raised to `critical`/`near` priority | **The sea passage (~2.5-4 min)** needs only ~1.1 Mbps to finish 20 MB |
-| Arriving before it's ready | Remaining critical assets | **A diegetic fog bank** ("the fog of scattered evidence") slows the ship near the harbor until the critical pack is resident. It never shows a loading screen |
+| Arriving before it's ready | Remaining critical assets | **A diegetic fog bank** ("the fog of scattered evidence") slows the ship near the harbor while the **lighthouse beam fills to show progress**. If the critical pack still isn't resident after **~20 s**, or a fetch fails, we **retry with backoff and dock into a low-detail harbor** while streaming continues. The ship is never held indefinitely |
 | Fast travel (Chart) | Destination critical pack | **Lighthouse-beam transition**: ≤ 2 s if cached, ≤ 10 s uncached at 25 Mbps, with progress shown |
 | Returning visitor | Everything from the Service Worker cache | Title ≤ 1.5 s |
 
@@ -548,13 +554,23 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 |---|---|
 | `boot` JS | ≤ 150 KB gz |
 | `vendor-three` | ≤ 190 KB gz |
-| Title assets (sky, ocean, ship) | ≤ 3.5 MB |
-| **→ Interactive title (cold)** | **≤ 4 MB, ≤ 3 s at 25 Mbps** |
+| Title assets + `title/ship` | ≤ 3.5 MB |
+| **→ Title (cold), wire ceiling** | **≤ 4 MB, ≤ 3 s of transfer at 25 Mbps** |
 | `game-core` + `sailing` + `physics` | ≤ 1.5 MB |
 | `common/critical` | ≤ 4 MB |
 | Island `critical` pack (terrain, colliders, near buildings, first NPCs' voice) | ≤ 8 MB |
-| **→ First playable after New Voyage, if every cinematic is skipped** | **≤ 14 MB, ≤ 6 s at 25 Mbps** |
+| **→ First playable after New Voyage (every cinematic skipped), wire ceiling** | **≤ 14 MB, ≤ 6 s of transfer at 25 Mbps** |
 | Whole island, all zones incl. voice + screenshots | ≤ 20 MB High / ≤ 10 MB Low |
+
+**Time-to-interactive** (measured separately, including shader compile and warm-up):
+
+| Moment | High | Low (emulated floor) |
+|---|---|---|
+| Loader art visible | ≤ 0.5 s (all tiers) | ≤ 0.5 s |
+| Title interactive | ≤ 5 s | ≤ 10 s |
+| First playable | ≤ 10 s | ≤ 20 s |
+
+**Title contents (the single definition, referenced everywhere):** ocean, sky, clouds, **the brigantine at anchor** (`title/ship`), and **procedural distant ranges**, with **no island mesh**. **Leaps** run on Low and above (off on Lite and under reduced motion).
 
 ### 13.6 Caching & updates (GitHub Pages specifics)
 - **GitHub Pages sends `Cache-Control: max-age=600` and gzip only** (no Brotli, verified), and we can't change its headers. A **Service Worker (Workbox)** therefore provides long-term caching:
@@ -573,7 +589,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - **Instant art, before the game code:** a tiny **inline classic script** (not a module) runs as soon as the HTML arrives. It paints the loader art procedurally in a few milliseconds, so there's something beautiful on screen before `boot`/`vendor-three` finish downloading. For us that's an **ink-and-parchment Captain's Chart**: a compass rose, coastlines, and a sailing ship.
 - **The art resolves with progress:** three stacked canvases hold increasing detail (rough ink wash → coastlines and the compass rose → fine hatching, island names, and the ship). A CSS variable `--p` (0-1) fades in each layer, and a slow drift animation runs (off under reduced motion).
 - **Themed stage messages mapped to *real* stages** (never fake timers): "Charting the isles" (manifest), "Raising the swell" (ocean/sky shaders), "Rigging the brigantine" (ship), "Planting the palms" (the island pack), "Waking the harbor" (NPCs and voice), "Lighting the lighthouses" (shader warm-up).
-- **An asymptotic creep** (`p += (0.99 − p) × k`) keeps the progress moving during long compiles.
+- **An asymptotic creep** keeps the progress moving during long compiles, but it's **capped at the next real stage's start value**, so it never passes a stage that hasn't begun.
 - **Fonts are warmed** before reveal (hidden spans + `document.fonts.ready`), so there's no flash of unstyled text. The loader cross-fades into the live title in ~0.8 s.
 - **Two-phase warm-up:** we compile and **warm-draw** (render once off-screen to force GPU uploads) the **title objects first** and reveal the title. The **island is then precompiled in the background, time-boxed**, and revealed in batches. The dev hitch guard confirms nothing compiles during play.
 - **Bake, don't generate:** the Antikythera study took **~17.6 s to a warm title** on an M3 Max because it generates everything at runtime. Our terrain, AO, sun visibility, rim flags, shorelines, and foam ribbons are **baked at build time** into packs. Only small procedural pieces (distant ranges, sky, water) run at load, and anything heavier runs in a worker.

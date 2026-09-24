@@ -90,7 +90,7 @@
 | 15 | Film grain + **dither** (no banding in sky/fog), white balance by sun height, FXAA + unsharp when upscaled | Composite pass | All tiers |
 | 16 | Translucency for thin materials | Palm fronds, sails, paper lanterns, bougainvillea | Medium+ |
 | 17 | **Kinematic boat: multi-point hull sampling + iterative depenetration + bump response** | Brigantine vs docks, rocks, and buoys (no Rapier body, as agreed) | n/a |
-| 18 | **Autopilot lane planner** (obstacle cost, periodic replanning) | **P1.2 Autopilot voyage** and chart **"Sail here"** auto-sail | n/a |
+| 18 | **Autopilot lane planner** (obstacle cost, periodic replanning) | **Post-POC** free-roam autopilot. The POC's P1.2 voyage and "Sail here" use authored waypoint splines (delta-review consensus) | n/a |
 | 19 | Shared analytic functions in TS + GLSL (terrain, shore distance, hull) | Water, placement, buoyancy, wake | n/a |
 | 20 | Procedural idle life on NPCs, layered over skeletal idles | All NPCs | Medium+ |
 | 21 | Debug API with deterministic `shot()` | Playwright visual-regression tests + benchmark flythrough | Dev only |
