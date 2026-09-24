@@ -36,6 +36,7 @@ import {
 } from 'three/tsl';
 import type { TierSettings } from '../../engine/quality';
 import { world } from '../uniforms';
+import { shipOcean } from './ship-interaction';
 import { matchedDepthTexture } from './depth-copy';
 import { createPolarGrid } from './polar-grid';
 import { createRippleTexture } from './ripple-texture';
@@ -230,10 +231,80 @@ export function createOcean({ tier, env }: OceanOptions): Ocean {
           .mul(0.7),
       );
     }
-    const foam = saturate(max(whitecap.mul(smoothstep(0.2, 0.75, pattern)), shore));
-    const foamCol = vec3(0.92, 0.95, 0.96).mul(
-      ambient.mul(0.9).add(world.sunColor.mul(NdL.mul(0.32).add(0.08))),
+    // Ship interaction: analytic cut-out, waterline ring, bow foam, Kelvin arms, and a small CPU trail.
+    const ship = shipOcean.pose;
+    const active = shipOcean.dims.w;
+    const toShip = p.sub(ship.xy);
+    const ch = cos(ship.z);
+    const sh = sin(ship.z);
+    const lx = toShip.x.mul(ch).sub(toShip.y.mul(sh));
+    const lz = toShip.x.mul(sh).add(toShip.y.mul(ch));
+    const zT = clamp(lz.add(12).div(24), 0, 1);
+    const midFullness = pow(max(sin(zT.mul(Math.PI)), 0), 0.42);
+    const bowFade = float(1).sub(smoothstep(0.78, 0.995, zT));
+    const sternFull = mix(float(0.58), float(1), smoothstep(0.02, 0.2, zT));
+    const halfBeam = float(3.3).mul(max(float(0.08), midFullness.mul(bowFade).mul(sternFull)));
+    const inLength = lz.greaterThan(-11.9).and(lz.lessThan(11.65));
+    const insideHull = active
+      .greaterThan(0.5)
+      .and(inLength)
+      .and(lx.abs().lessThan(halfBeam.mul(0.88)));
+    insideHull.discard();
+
+    const speedK = smoothstep(0.25, 5.8, ship.w).mul(active);
+    const sideDist = lx.abs().sub(halfBeam.mul(1.02)).abs();
+    const endFade = smoothstep(-11.9, -10.8, lz).mul(float(1).sub(smoothstep(10.15, 11.7, lz)));
+    const laceNoise = smoothstep(0.46, 0.92, pattern.add(sin(lz.mul(5.7).add(t.mul(1.8))).mul(0.12)));
+    const hullRing = smoothstep(0.34, 0.0, sideDist).mul(endFade).mul(laceNoise).mul(active).mul(0.55);
+
+    const bowLeft = smoothstep(1.35, 0.0, vec2(lx.sub(0.85), lz.sub(10.55)).length());
+    const bowRight = smoothstep(1.35, 0.0, vec2(lx.add(0.85), lz.sub(10.55)).length());
+    const bowSide = smoothstep(0.72, 0.0, sideDist)
+      .mul(smoothstep(7.0, 10.3, lz))
+      .mul(float(1).sub(smoothstep(10.8, 12.0, lz)));
+    const bowFoam = max(max(bowLeft, bowRight), bowSide)
+      .mul(speedK)
+      .mul(smoothstep(0.42, 0.82, pattern.add(0.15)))
+      .mul(1.15);
+
+    const sternAft = max(lz.add(12.0).negate(), 0);
+    const kelvinArm = lx.abs().sub(sternAft.mul(0.354)).abs();
+    const armWidth = float(0.42).add(sternAft.mul(0.012));
+    const wakeBreakup = smoothstep(
+      0.38,
+      0.88,
+      pattern.add(sin(sternAft.mul(0.8).add(lx.mul(2.7))).mul(0.18)),
     );
+    const wakeArms = smoothstep(armWidth, 0.0, kelvinArm)
+      .mul(smoothstep(1.4, 9.0, sternAft))
+      .mul(exp(sternAft.negate().div(58)))
+      .mul(speedK)
+      .mul(wakeBreakup)
+      .mul(1.15);
+    const washBreakup = smoothstep(0.2, 0.72, pattern.add(sin(lx.mul(3.9).add(sternAft.mul(0.9))).mul(0.2)));
+    const sternWash = smoothstep(2.5, 0.0, lx.abs())
+      .mul(smoothstep(0.4, 4.5, sternAft))
+      .mul(exp(sternAft.negate().div(18)))
+      .mul(speedK)
+      .mul(washBreakup)
+      .mul(1.1);
+    let trailFoam: Node<'float'> = float(0);
+    for (const sample of shipOcean.trail) {
+      const blob = smoothstep(3.4, 0.0, p.distance(sample.xy)).mul(sample.w).mul(wakeBreakup);
+      trailFoam = max(trailFoam, blob);
+    }
+    const shipFoam = saturate(
+      max(max(hullRing, bowFoam), max(max(wakeArms, sternWash), trailFoam.mul(0.42))),
+    );
+
+    const foam = saturate(max(max(whitecap.mul(smoothstep(0.2, 0.75, pattern)), shore), shipFoam));
+    const baseFoamCol = vec3(0.92, 0.95, 0.96).mul(
+      ambient
+        .mul(0.45)
+        .add(world.sunColor.mul(NdL.mul(0.18).add(0.06)))
+        .add(0.62),
+    );
+    const foamCol = mix(baseFoamCol, vec3(0.98, 1.0, 0.98), shipFoam.mul(0.92));
 
     const body = under.add(sss.mul(float(1).sub(F)));
     let col = mix(body, refl.rgb, F).add(spec);

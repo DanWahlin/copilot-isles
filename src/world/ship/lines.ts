@@ -8,7 +8,7 @@ export const BRIGANTINE_HALF_LENGTH = BRIGANTINE_LENGTH * 0.5;
 export const BRIGANTINE_HALF_BEAM = BRIGANTINE_BEAM * 0.5;
 
 export interface LocalPoint {
-  /** Starboard-positive metres. */
+  /** Local +x side; at COVE.mooring this is the pier-facing/port rail. */
   x: number;
   /** Up-positive metres, sea level/waterline is 0 for the authored hull. */
   y: number;

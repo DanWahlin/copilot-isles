@@ -461,10 +461,10 @@ export class ShipDynamics {
     cmd.rudder = clamp(headingError * 2.4, -1, 1);
     cmd.targetSpeedOverride = clamp(dist * 0.38, 0, 3.1) * (1 - settle * 0.58);
     cmd.targetYawOverride = clamp(headingError * 1.9 + finalErr * settle * 0.9, -0.46, 0.46);
-    if (dist < 5.5) {
-      const gain = 0.16 + 0.44 * smoothstep(5.5, 0.4, dist);
-      cmd.correctionX = clamp(dx * gain, -1.1, 1.1);
-      cmd.correctionZ = clamp(dz * gain, -1.1, 1.1);
+    if (dist < 12) {
+      const gain = 0.32 + 0.82 * smoothstep(12, 0.4, dist);
+      cmd.correctionX = clamp(dx * gain, -3.0, 3.0);
+      cmd.correctionZ = clamp(dz * gain, -3.0, 3.0);
     }
   }
 

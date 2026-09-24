@@ -1,8 +1,11 @@
 import {
   BufferAttribute,
   BufferGeometry,
+  DataTexture,
   DoubleSide,
   Group,
+  LinearFilter,
+  LinearMipmapLinearFilter,
   LineBasicMaterial,
   LineSegments,
   MathUtils,
@@ -10,7 +13,13 @@ import {
   MeshBasicNodeMaterial,
   MeshStandardNodeMaterial,
   Object3D,
+  RGBAFormat,
+  RepeatWrapping,
+  SRGBColorSpace,
+  TextureLoader,
+  UnsignedByteType,
   type Material,
+  type Texture,
   type UniformNode,
 } from 'three/webgpu';
 import {
@@ -22,10 +31,13 @@ import {
   positionLocal,
   positionWorld,
   sin,
+  texture,
   uniform,
+  uv,
   vec2,
 } from 'three/tsl';
-import type { Tier, WaveSampler, HeightField, CircleObstacle } from '../contracts';
+import type { CircleObstacle, HeightField, Tier, WaveSampler } from '../contracts';
+import { updateShipOceanInteraction } from '../ocean/ship-interaction';
 import { world } from '../uniforms';
 import { gustNode } from '../wind-nodes';
 import { ShipDynamics, type ShipEnv } from './dynamics';
@@ -69,13 +81,72 @@ export interface Brigantine {
   capsules: readonly HullCapsule[];
   triangleCount: number;
   drawCallCount: number;
+  anchors: ShipAnchors;
+  /** Writes 32 closed-polyline world-space xz points: local +x side stern→bow, then local -x side bow→stern. */
+  waterlinePolygon(outWorld: Float32Array): Float32Array;
+  /** Writes [x, z] for the current bow waterline point. */
+  bowWorld(outWorld: Float32Array | number[]): Float32Array | number[];
+  /** Writes [x, z] for the current stern waterline point. */
+  sternWorld(outWorld: Float32Array | number[]): Float32Array | number[];
   dispose(): void;
+}
+
+export interface ShipAnchors {
+  helm: { x: number; y: number; z: number; heading: number };
+  boarding: { x: number; y: number; z: number };
 }
 
 interface P3 {
   x: number;
   y: number;
   z: number;
+}
+
+interface Detail {
+  hullZ: number;
+  hullY: number;
+  sail: number;
+  cyl: number;
+  rig: number;
+  railStep: number;
+}
+
+const WATERLINE_POLYGON_POINTS = 32;
+const BOW_Z = BRIGANTINE_HALF_LENGTH + 0.28;
+const STERN_Z = -BRIGANTINE_HALF_LENGTH - 0.15;
+const HELM_Z = -9.55;
+const BOARDING_Z = -0.15;
+
+function detailForTier(tier: Tier): Detail {
+  if (tier === 'lite') return { hullZ: 44, hullY: 12, sail: 7, cyl: 8, rig: 5, railStep: 1.15 };
+  if (tier === 'low') return { hullZ: 56, hullY: 14, sail: 9, cyl: 10, rig: 5, railStep: 0.9 };
+  if (tier === 'medium') return { hullZ: 88, hullY: 18, sail: 15, cyl: 12, rig: 6, railStep: 0.62 };
+  return { hullZ: 128, hullY: 22, sail: 22, cyl: 14, rig: 7, railStep: 0.45 };
+}
+
+function clamp01(v: number): number {
+  return Math.max(0, Math.min(1, v));
+}
+
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
+function lerpPoint(a: P3, b: P3, t: number): P3 {
+  return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), z: lerp(a.z, b.z, t) };
+}
+
+function localToWorldXZ(
+  pose: ShipDynamics['pose'],
+  x: number,
+  z: number,
+  out: Float32Array | number[],
+  i: number,
+): void {
+  const s = Math.sin(pose.heading);
+  const c = Math.cos(pose.heading);
+  out[i] = pose.x + c * x + s * z;
+  out[i + 1] = pose.z - s * x + c * z;
 }
 
 class MeshBuilder {
@@ -207,6 +278,11 @@ class MeshBuilder {
     }
   }
 
+  addRail(points: P3[], radius: number, segments: number): void {
+    for (let i = 0; i < points.length - 1; i++)
+      this.addCylinderBetween(points[i]!, points[i + 1]!, radius, segments, true);
+  }
+
   build(): BufferGeometry {
     const geometry = new BufferGeometry();
     geometry.setAttribute('position', new BufferAttribute(new Float32Array(this.positions), 3));
@@ -240,9 +316,9 @@ class SailBuilder {
       const v = y / rows;
       for (let x = 0; x <= cols; x++) {
         const u = x / cols;
-        const a = lerpPoint(p00, p10, u);
-        const b = lerpPoint(p01, p11, u);
-        const p = lerpPoint(a, b, v);
+        const lower = lerpPoint(p00, p10, u);
+        const upper = lerpPoint(p01, p11, u);
+        const p = lerpPoint(lower, upper, v);
         const anchor = lerpPoint(p01, p11, u);
         this.addVertex(p, anchor, normal, u, v);
       }
@@ -299,19 +375,14 @@ class SailBuilder {
   }
 }
 
-function lerpPoint(a: P3, b: P3, t: number): P3 {
-  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t };
-}
-
 function triangleCount(group: Object3D): number {
   let tris = 0;
   group.traverse((object) => {
     const mesh = object as Mesh;
-    if (!mesh.isMesh && !(object as LineSegments).isLineSegments) return;
-    const geometry = (object as Mesh | LineSegments).geometry;
+    if (!mesh.isMesh) return;
+    const geometry = mesh.geometry;
     const index = geometry.getIndex();
     const position = geometry.getAttribute('position');
-    if ((object as LineSegments).isLineSegments) return;
     tris += index ? index.count / 3 : position.count / 3;
   });
   return Math.round(tris);
@@ -320,39 +391,42 @@ function triangleCount(group: Object3D): number {
 function drawCallCount(group: Object3D): number {
   let calls = 0;
   group.traverse((object) => {
-    const maybe = object as Mesh | LineSegments;
-    if ('isMesh' in maybe || 'isLineSegments' in maybe) calls += 1;
+    const drawable = object as Mesh | LineSegments;
+    if ('isMesh' in drawable || 'isLineSegments' in drawable) calls += 1;
   });
   return calls;
 }
 
 function createHullGeometry(tier: Tier): BufferGeometry {
+  const d = detailForTier(tier);
   const builder = new MeshBuilder();
-  const zSegments = tier === 'lite' || tier === 'low' ? 28 : 40;
-  const yFractions = [0, 0.12, 0.26, 0.42, 0.6, 0.78, 0.92, 1];
+  const yFractions = Array.from({ length: d.hullY + 1 }, (_, i) => i / d.hullY);
   const star: number[][] = [];
   const port: number[][] = [];
-  for (let zi = 0; zi <= zSegments; zi++) {
-    const z = -BRIGANTINE_HALF_LENGTH + (BRIGANTINE_LENGTH * zi) / zSegments;
+  for (let zi = 0; zi <= d.hullZ; zi++) {
+    const z = -BRIGANTINE_HALF_LENGTH + (BRIGANTINE_LENGTH * zi) / d.hullZ;
     const keel = keelHeightAt(z);
     const sheer = sheerHeightAt(z);
     star[zi] = [];
     port[zi] = [];
     for (let yi = 0; yi < yFractions.length; yi++) {
       const f = yFractions[yi]!;
-      const y = keel + (sheer - keel) * f;
-      const x = halfBeamAt(z, y);
-      star[zi]![yi] = builder.addVertex(x, y, z, zi / zSegments, f);
-      port[zi]![yi] = builder.addVertex(-x, y, z, zi / zSegments, f);
+      const eased =
+        f < 0.55 ? Math.pow(f / 0.55, 0.78) * 0.55 : 0.55 + Math.pow((f - 0.55) / 0.45, 1.18) * 0.45;
+      const y = keel + (sheer - keel) * eased;
+      const tumble = y > 0.25 ? 1 - 0.11 * clamp01((y - 0.25) / Math.max(0.1, sheer - 0.25)) : 1;
+      const x = halfBeamAt(z, y) * tumble;
+      star[zi]![yi] = builder.addVertex(x, y, z, zi / d.hullZ, f);
+      port[zi]![yi] = builder.addVertex(-x, y, z, zi / d.hullZ, f);
     }
   }
-  for (let zi = 0; zi < zSegments; zi++) {
+  for (let zi = 0; zi < d.hullZ; zi++) {
     for (let yi = 0; yi < yFractions.length - 1; yi++) {
       const a = star[zi]![yi]!;
       const b = star[zi + 1]![yi]!;
       const c = star[zi + 1]![yi + 1]!;
-      const d = star[zi]![yi + 1]!;
-      builder.indices.push(a, b, c, a, c, d);
+      const e = star[zi]![yi + 1]!;
+      builder.indices.push(a, b, c, a, c, e);
       const pa = port[zi]![yi]!;
       const pb = port[zi]![yi + 1]!;
       const pc = port[zi + 1]![yi + 1]!;
@@ -360,271 +434,390 @@ function createHullGeometry(tier: Tier): BufferGeometry {
       builder.indices.push(pa, pd, pc, pa, pc, pb);
     }
   }
-  for (let zi = 0; zi < zSegments; zi++) {
+  for (let zi = 0; zi < d.hullZ; zi++) {
     const a = port[zi]![0]!;
     const b = port[zi + 1]![0]!;
     const c = star[zi + 1]![0]!;
-    const d = star[zi]![0]!;
-    builder.indices.push(a, b, c, a, c, d);
+    const e = star[zi]![0]!;
+    builder.indices.push(a, b, c, a, c, e);
   }
-  const lastY = yFractions.length - 1;
-  for (const zi of [0, zSegments]) {
-    for (let yi = 0; yi < lastY; yi++) {
+  const top = yFractions.length - 1;
+  for (const zi of [0, d.hullZ]) {
+    for (let yi = 0; yi < top; yi++) {
       const a = port[zi]![yi]!;
       const b = star[zi]![yi]!;
       const c = star[zi]![yi + 1]!;
-      const d = port[zi]![yi + 1]!;
-      if (zi === 0) builder.indices.push(a, b, c, a, c, d);
-      else builder.indices.push(a, d, c, a, c, b);
+      const e = port[zi]![yi + 1]!;
+      if (zi === 0) builder.indices.push(a, b, c, a, c, e);
+      else builder.indices.push(a, e, c, a, c, b);
     }
   }
+  // Raked cutwater and false keel give the bow a sharp 18th-century profile.
+  builder.addTriangle({ x: 0, y: -2.5, z: 10.6 }, { x: 0, y: 2.35, z: 11.95 }, { x: 0, y: -2.1, z: 12.75 });
+  builder.addBox(0, -2.45, -1.2, 0.18, 0.32, 18.2);
   return builder.build();
 }
 
-function createDeckGeometry(): BufferGeometry {
+function addCurvedRail(
+  builder: MeshBuilder,
+  side: -1 | 1,
+  z0: number,
+  z1: number,
+  yOffset: number,
+  radius: number,
+  detail: Detail,
+): void {
+  const pts: P3[] = [];
+  const steps = Math.max(3, Math.ceil(Math.abs(z1 - z0) / detail.railStep));
+  for (let i = 0; i <= steps; i++) {
+    const z = lerp(z0, z1, i / steps);
+    const y = sheerHeightAt(z) + yOffset;
+    pts.push({ x: side * (halfBeamAt(z, y) * 0.96 + radius * 0.4), y, z });
+  }
+  builder.addRail(pts, radius, detail.cyl);
+}
+
+function createDeckGeometry(tier: Tier): BufferGeometry {
+  const detail = detailForTier(tier);
   const builder = new MeshBuilder();
-  const sections = 36;
+  const sections = tier === 'lite' || tier === 'low' ? 44 : 82;
   for (let i = 0; i < sections; i++) {
-    const z0 = -10.9 + (21.1 * i) / sections;
-    const z1 = -10.9 + (21.1 * (i + 1)) / sections;
-    const x00 = -halfBeamAt(z0, deckHeightAt(z0)) * 0.82;
-    const x01 = halfBeamAt(z0, deckHeightAt(z0)) * 0.82;
-    const x10 = -halfBeamAt(z1, deckHeightAt(z1)) * 0.82;
-    const x11 = halfBeamAt(z1, deckHeightAt(z1)) * 0.82;
+    const z0 = -10.95 + (21.25 * i) / sections;
+    const z1 = -10.95 + (21.25 * (i + 1)) / sections;
+    const y0 = deckHeightAt(z0);
+    const y1 = deckHeightAt(z1);
+    const x00 = -halfBeamAt(z0, y0) * 0.76;
+    const x01 = halfBeamAt(z0, y0) * 0.76;
+    const x10 = -halfBeamAt(z1, y1) * 0.76;
+    const x11 = halfBeamAt(z1, y1) * 0.76;
     builder.addQuad(
-      { x: x00, y: deckHeightAt(z0), z: z0 },
-      { x: x01, y: deckHeightAt(z0), z: z0 },
-      { x: x11, y: deckHeightAt(z1), z: z1 },
-      { x: x10, y: deckHeightAt(z1), z: z1 },
-      4,
+      { x: x00, y: y0, z: z0 },
+      { x: x01, y: y0, z: z0 },
+      { x: x11, y: y1, z: z1 },
+      { x: x10, y: y1, z: z1 },
+      6,
     );
   }
-  builder.addBox(0, deckHeightAt(-2.5) + 0.16, -2.5, 1.35, 0.22, 2.0);
-  builder.addBox(0, deckHeightAt(3.1) + 0.16, 3.1, 1.2, 0.22, 1.65);
-  builder.addBox(0, deckHeightAt(-7.3) + 0.18, -7.3, 1.4, 0.24, 1.15);
+  // Raised platforms, hatches, capstan, helm, companionway, bits, and grates.
+  builder.addBox(0, deckHeightAt(-8.0) + 0.09, -8.0, 4.3, 0.18, 5.8);
+  builder.addBox(0, deckHeightAt(8.7) + 0.08, 8.7, 3.5, 0.16, 3.7);
+  builder.addBox(0, deckHeightAt(-2.45) + 0.16, -2.45, 1.45, 0.22, 2.05);
+  builder.addBox(0, deckHeightAt(3.15) + 0.16, 3.15, 1.25, 0.22, 1.65);
+  builder.addBox(0, deckHeightAt(-7.25) + 0.18, -7.25, 1.55, 0.24, 1.12);
+  for (const z of [-1.8, 2.8, 6.5]) {
+    for (const x of [-0.35, 0.35]) builder.addBox(x, deckHeightAt(z) + 0.12, z, 0.18, 0.12, 1.05);
+  }
   builder.addCylinderBetween(
-    { x: 0, y: deckHeightAt(-0.2), z: -0.2 },
-    { x: 0, y: deckHeightAt(-0.2) + 0.8, z: -0.2 },
-    0.24,
-    12,
+    { x: 0, y: deckHeightAt(-0.15), z: -0.15 },
+    { x: 0, y: deckHeightAt(-0.15) + 0.85, z: -0.15 },
+    0.26,
+    detail.cyl,
   );
   builder.addCylinderBetween(
-    { x: -0.9, y: deckHeightAt(-8.9) + 0.75, z: -8.9 },
-    { x: 0.9, y: deckHeightAt(-8.9) + 0.75, z: -8.9 },
+    { x: -0.95, y: deckHeightAt(-8.95) + 0.78, z: -8.95 },
+    { x: 0.95, y: deckHeightAt(-8.95) + 0.78, z: -8.95 },
     0.055,
-    10,
+    detail.cyl,
   );
   builder.addCylinderBetween(
-    { x: 0, y: deckHeightAt(-8.9) + 0.25, z: -8.9 },
-    { x: 0, y: deckHeightAt(-8.9) + 1.25, z: -8.9 },
+    { x: 0, y: deckHeightAt(-8.95) + 0.25, z: -8.95 },
+    { x: 0, y: deckHeightAt(-8.95) + 1.28, z: -8.95 },
     0.05,
-    8,
+    detail.cyl,
   );
-  for (let s = -1; s <= 1; s += 2) {
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
     builder.addCylinderBetween(
-      { x: s * 0.62, y: deckHeightAt(-8.9) + 0.75, z: -8.9 },
-      { x: -s * 0.62, y: deckHeightAt(-8.9) + 0.75, z: -8.9 },
-      0.025,
-      6,
-    );
-    builder.addCylinderBetween(
-      { x: 0, y: deckHeightAt(-8.9) + 0.75, z: -9.52 * s * 0.02 },
-      { x: 0, y: deckHeightAt(-8.9) + 0.75, z: -8.9 + s * 0.62 },
-      0.025,
-      6,
+      { x: Math.cos(a) * 0.15, y: deckHeightAt(-8.95) + 0.78 + Math.sin(a) * 0.15, z: -8.95 },
+      { x: Math.cos(a) * 0.65, y: deckHeightAt(-8.95) + 0.78 + Math.sin(a) * 0.65, z: -8.95 },
+      0.018,
+      5,
     );
   }
-  return builder.build();
-}
-
-function createSidePaintGeometry(): BufferGeometry {
-  const builder = new MeshBuilder();
-  const steps = 48;
-  for (let i = 0; i < steps; i++) {
-    const z0 = -11.15 + (21.9 * i) / steps;
-    const z1 = -11.15 + (21.9 * (i + 1)) / steps;
-    const y0 = 0.08;
-    const y1 = Math.min(sheerHeightAt((z0 + z1) * 0.5) - 0.12, 2.42);
-    for (const side of [-1, 1] as const) {
-      const x0 = side * (waterlineHalfBeamAt(z0) + 0.075);
-      const x1 = side * (waterlineHalfBeamAt(z1) + 0.075);
-      const a = { x: x0, y: y0, z: z0 };
-      const b = { x: x1, y: y0, z: z1 };
-      const c = { x: x1, y: y1, z: z1 };
-      const d = { x: x0, y: y1, z: z0 };
-      if (side > 0) {
-        builder.addQuad(a, b, c, d);
-        builder.addQuad(d, c, b, a);
-      } else {
-        builder.addQuad(b, a, d, c);
-        builder.addQuad(c, d, a, b);
-      }
+  for (const side of [-1, 1] as const) {
+    addCurvedRail(builder, side, -11.0, 10.4, 0.18, 0.07, detail);
+    addCurvedRail(builder, side, -11.0, 10.4, -0.42, 0.045, detail);
+    const count = tier === 'lite' || tier === 'low' ? 18 : 34;
+    for (let i = 0; i <= count; i++) {
+      const z = lerp(-10.6, 10.0, i / count);
+      const yTop = sheerHeightAt(z) + 0.15;
+      const yBot = sheerHeightAt(z) - 0.36;
+      const x = side * (halfBeamAt(z, yTop) * 0.96 + 0.03);
+      builder.addCylinderBetween({ x, y: yBot, z }, { x, y: yTop, z }, 0.018, 6);
     }
   }
   return builder.build();
 }
 
-function createTrimGeometry(): BufferGeometry {
+function createTrimGeometry(tier: Tier): BufferGeometry {
+  const detail = detailForTier(tier);
   const builder = new MeshBuilder();
-  const steps = 48;
+  const steps = tier === 'lite' || tier === 'low' ? 56 : 116;
   for (let i = 0; i < steps; i++) {
-    const z0 = -11.25 + (22.1 * i) / steps;
-    const z1 = -11.25 + (22.1 * (i + 1)) / steps;
+    const z0 = -11.35 + (22.35 * i) / steps;
+    const z1 = -11.35 + (22.35 * (i + 1)) / steps;
     for (const side of [-1, 1] as const) {
-      const x0 = side * (waterlineHalfBeamAt(z0) + 0.045);
-      const x1 = side * (waterlineHalfBeamAt(z1) + 0.045);
+      const x0 = side * (waterlineHalfBeamAt(z0) + 0.055);
+      const x1 = side * (waterlineHalfBeamAt(z1) + 0.055);
+      // Ochre painted strake, tarred wale, algae boot-top, and rail cap.
       builder.addQuad(
-        { x: x0, y: 0.84, z: z0 },
-        { x: x1, y: 0.84, z: z1 },
-        { x: x1, y: 1.05, z: z1 },
-        { x: x0, y: 1.05, z: z0 },
+        { x: x0, y: 0.75, z: z0 },
+        { x: x1, y: 0.75, z: z1 },
+        { x: x1, y: 1.06, z: z1 },
+        { x: x0, y: 1.06, z: z0 },
       );
       builder.addQuad(
-        { x: x0, y: -0.16, z: z0 },
-        { x: x1, y: -0.16, z: z1 },
-        { x: x1, y: 0.02, z: z1 },
-        { x: x0, y: 0.02, z: z0 },
+        { x: x0, y: 1.96, z: z0 },
+        { x: x1, y: 1.96, z: z1 },
+        { x: x1, y: 2.16, z: z1 },
+        { x: x0, y: 2.16, z: z0 },
       );
       builder.addQuad(
-        { x: x0, y: 2.42, z: z0 },
-        { x: x1, y: 2.42, z: z1 },
-        { x: x1, y: 2.62, z: z1 },
-        { x: x0, y: 2.62, z: z0 },
+        { x: x0, y: -0.2, z: z0 },
+        { x: x1, y: -0.2, z: z1 },
+        { x: x1, y: 0.04, z: z1 },
+        { x: x0, y: 0.04, z: z0 },
       );
     }
   }
-  const portZ = [-7.8, -5.7, -3.6, -1.5, 0.7, 2.8, 5.0, 7.0];
+  const portZ = [-8.1, -6.0, -3.9, -1.8, 0.4, 2.6, 4.8, 6.9];
   for (const z of portZ) {
     for (const side of [-1, 1] as const) {
-      const x = side * (waterlineHalfBeamAt(z) + 0.08);
-      builder.addQuad(
-        { x, y: 1.28, z: z - 0.34 },
-        { x, y: 1.28, z: z + 0.34 },
-        { x, y: 1.82, z: z + 0.34 },
-        { x, y: 1.82, z: z - 0.34 },
+      const x = side * (waterlineHalfBeamAt(z) + 0.12);
+      builder.addBox(x, 1.52, z, 0.12, 0.58, 0.82);
+    }
+  }
+  // Stern gallery, quarter galleries, transom frame, rudder, catheads, anchors, chainplates, deadeyes.
+  builder.addBox(0, 2.1, -12.22, 4.9, 1.15, 0.22);
+  builder.addBox(-2.75, 2.0, -11.55, 0.55, 1.0, 1.2);
+  builder.addBox(2.75, 2.0, -11.55, 0.55, 1.0, 1.2);
+  builder.addBox(0, 0.05, -12.43, 0.44, 2.25, 0.18);
+  for (const side of [-1, 1] as const) {
+    builder.addCylinderBetween(
+      { x: side * 2.25, y: 2.55, z: 8.75 },
+      { x: side * 4.25, y: 2.42, z: 9.35 },
+      0.075,
+      detail.cyl,
+    );
+    builder.addBox(side * 3.65, 0.85, 7.65, 0.34, 0.62, 0.14);
+    builder.addCylinderBetween(
+      { x: side * 3.65, y: 1.15, z: 7.6 },
+      { x: side * 3.65, y: 0.15, z: 7.1 },
+      0.035,
+      detail.cyl,
+    );
+    for (const z of [-6.8, -5.3, -3.8, 1.6, 3.1, 4.6, 6.1]) {
+      const x = side * (waterlineHalfBeamAt(z) + 0.2);
+      builder.addCylinderBetween(
+        { x, y: 1.95, z },
+        { x: side * (waterlineHalfBeamAt(z) + 0.52), y: 1.48, z },
+        0.018,
+        6,
+      );
+      builder.addCylinderBetween(
+        { x: side * (waterlineHalfBeamAt(z) + 0.42), y: 1.48, z },
+        { x: side * (waterlineHalfBeamAt(z) + 0.42), y: 1.25, z },
+        0.055,
+        8,
       );
     }
   }
-  for (const x of [-1.25, 0, 1.25]) {
-    builder.addQuad(
-      { x: x - 0.42, y: 1.45, z: -12.06 },
-      { x: x + 0.42, y: 1.45, z: -12.06 },
-      { x: x + 0.42, y: 2.1, z: -12.06 },
-      { x: x - 0.42, y: 2.1, z: -12.06 },
-    );
-  }
+  builder.addCylinderBetween({ x: 0, y: 1.05, z: 10.9 }, { x: 0, y: 2.8, z: 12.05 }, 0.12, detail.cyl);
+  builder.addCylinderBetween({ x: 0, y: 0.15, z: 12.0 }, { x: 0, y: 1.55, z: 13.0 }, 0.08, detail.cyl);
+  builder.addTriangle({ x: 0, y: 1.65, z: 11.05 }, { x: 0, y: 1.92, z: 11.55 }, { x: 0, y: 1.15, z: 11.55 });
   return builder.build();
 }
 
-function createSparGeometry(): BufferGeometry {
+function createWindowGeometry(): BufferGeometry {
   const b = new MeshBuilder();
-  const fore = { x: 0, z: 4.1, base: deckHeightAt(4.1) };
-  const main = { x: 0, z: -4.25, base: deckHeightAt(-4.25) };
-  b.addCylinderBetween({ x: 0, y: fore.base - 0.7, z: fore.z }, { x: 0, y: 18.2, z: fore.z }, 0.18, 12);
-  b.addCylinderBetween({ x: 0, y: main.base - 0.7, z: main.z }, { x: 0, y: 19.4, z: main.z }, 0.2, 12);
-  b.addCylinderBetween({ x: -5.35, y: 7.2, z: fore.z }, { x: 5.35, y: 7.2, z: fore.z }, 0.11, 10);
-  b.addCylinderBetween({ x: -4.3, y: 11.3, z: fore.z }, { x: 4.3, y: 11.3, z: fore.z }, 0.085, 10);
-  b.addCylinderBetween({ x: -3.25, y: 14.65, z: fore.z }, { x: 3.25, y: 14.65, z: fore.z }, 0.07, 8);
-  b.addCylinderBetween({ x: 0, y: 3.35, z: main.z - 0.15 }, { x: 0, y: 3.0, z: -10.7 }, 0.105, 10);
-  b.addCylinderBetween({ x: 0, y: 8.65, z: main.z - 0.1 }, { x: 0, y: 10.45, z: -9.75 }, 0.08, 10);
-  b.addCylinderBetween({ x: 0, y: 2.35, z: 10.8 }, { x: 0, y: 2.8, z: 18.2 }, 0.13, 10);
-  b.addCylinderBetween({ x: 0, y: 2.72, z: 17.5 }, { x: 0, y: 2.95, z: 21.8 }, 0.075, 8);
+  for (const x of [-1.45, -0.48, 0.48, 1.45]) b.addBox(x, 2.1, -12.39, 0.42, 0.36, 0.035);
+  for (const side of [-1, 1] as const) {
+    b.addBox(side * 2.76, 2.08, -11.17, 0.045, 0.34, 0.46);
+    b.addBox(side * 2.94, 2.1, -11.6, 0.045, 0.32, 0.38);
+  }
+  b.addBox(0, 1.42, -12.41, 2.8, 0.34, 0.04);
+  return b.build();
+}
+
+function addGlyph(builder: MeshBuilder, glyph: string, cx: number, cy: number, z: number): void {
+  const patterns: Record<string, string[]> = {
+    C: ['111', '100', '100', '100', '111'],
+    O: ['111', '101', '101', '101', '111'],
+    P: ['110', '101', '110', '100', '100'],
+    I: ['111', '010', '010', '010', '111'],
+    L: ['100', '100', '100', '100', '111'],
+    T: ['111', '010', '010', '010', '010'],
+  };
+  const rows = patterns[glyph] ?? patterns.O;
+  const s = 0.055;
+  for (let y = 0; y < rows.length; y++) {
+    const row = rows[y]!;
+    for (let x = 0; x < row.length; x++) {
+      if (row[x] !== '1') continue;
+      builder.addBox(cx + (1 - x) * s, cy + (2 - y) * s, z, s * 0.82, s * 0.82, 0.026);
+    }
+  }
+}
+
+function createSternGoldGeometry(): BufferGeometry {
+  const b = new MeshBuilder();
+  // Stern gallery frames, mullions, carved rails and a readable name board.
+  for (const x of [-1.45, -0.48, 0.48, 1.45]) {
+    b.addBox(x, 2.1, -12.44, 0.58, 0.06, 0.035);
+    b.addBox(x, 1.9, -12.44, 0.58, 0.055, 0.035);
+    b.addBox(x - 0.29, 2.0, -12.44, 0.055, 0.36, 0.035);
+    b.addBox(x + 0.29, 2.0, -12.44, 0.055, 0.36, 0.035);
+    b.addBox(x, 2.0, -12.455, 0.035, 0.34, 0.03);
+    b.addBox(x, 2.0, -12.455, 0.5, 0.028, 0.03);
+  }
+  b.addCylinderBetween({ x: -2.35, y: 2.65, z: -12.38 }, { x: 2.35, y: 2.65, z: -12.38 }, 0.045, 10);
+  b.addCylinderBetween({ x: -2.45, y: 1.72, z: -12.4 }, { x: 2.45, y: 1.72, z: -12.4 }, 0.04, 10);
+  for (const x of [-2.25, 2.25]) {
+    b.addCylinderBetween({ x, y: 1.58, z: -12.37 }, { x, y: 2.72, z: -12.37 }, 0.035, 10);
+  }
+  for (const side of [-1, 1] as const) {
+    b.addBox(side * 2.72, 2.33, -11.48, 0.06, 0.75, 0.62);
+    b.addBox(side * 2.95, 1.72, -11.55, 0.08, 0.08, 1.05);
+    b.addCylinderBetween(
+      { x: side * 2.55, y: 2.62, z: -12.1 },
+      { x: side * 3.08, y: 2.42, z: -11.0 },
+      0.035,
+      10,
+    );
+  }
+  const letters = 'COPILOT';
+  for (let i = 0; i < letters.length; i++) addGlyph(b, letters[i]!, 0.84 - i * 0.28, 1.42, -12.455);
+  b.addCylinderBetween({ x: -0.32, y: 3.14, z: -12.36 }, { x: 0.32, y: 3.14, z: -12.36 }, 0.035, 10);
+  b.addCylinderBetween({ x: 0, y: 3.12, z: -12.36 }, { x: 0, y: 2.68, z: -12.36 }, 0.025, 8);
+  return b.build();
+}
+
+function createSparGeometry(tier: Tier): BufferGeometry {
+  const detail = detailForTier(tier);
+  const b = new MeshBuilder();
+  const fore = { z: 4.1, base: deckHeightAt(4.1) };
+  const main = { z: -4.25, base: deckHeightAt(-4.25) };
+  b.addCylinderBetween(
+    { x: 0, y: fore.base - 0.8, z: fore.z },
+    { x: 0, y: 18.7, z: fore.z },
+    0.19,
+    detail.cyl,
+  );
+  b.addCylinderBetween(
+    { x: 0, y: main.base - 0.8, z: main.z },
+    { x: 0, y: 20.0, z: main.z },
+    0.21,
+    detail.cyl,
+  );
+  b.addCylinderBetween({ x: -5.6, y: 7.2, z: fore.z }, { x: 5.6, y: 7.2, z: fore.z }, 0.12, detail.cyl);
+  b.addCylinderBetween({ x: -4.55, y: 11.45, z: fore.z }, { x: 4.55, y: 11.45, z: fore.z }, 0.09, detail.cyl);
+  b.addCylinderBetween({ x: -3.4, y: 14.95, z: fore.z }, { x: 3.4, y: 14.95, z: fore.z }, 0.073, detail.cyl);
+  b.addCylinderBetween({ x: 0, y: 3.35, z: main.z - 0.12 }, { x: 0, y: 3.05, z: -11.0 }, 0.11, detail.cyl);
+  b.addCylinderBetween({ x: 0, y: 8.75, z: main.z - 0.1 }, { x: 0, y: 10.65, z: -10.05 }, 0.082, detail.cyl);
+  b.addCylinderBetween({ x: 0, y: 2.35, z: 10.72 }, { x: 0, y: 2.9, z: 18.6 }, 0.14, detail.cyl);
+  b.addCylinderBetween({ x: 0, y: 2.78, z: 17.8 }, { x: 0, y: 3.05, z: 22.3 }, 0.08, detail.cyl);
   for (const z of [-7.8, -2.6, 3.0, 7.7]) {
     b.addCylinderBetween(
-      { x: -waterlineHalfBeamAt(z) * 0.75, y: deckHeightAt(z) + 0.18, z },
-      { x: waterlineHalfBeamAt(z) * 0.75, y: deckHeightAt(z) + 0.18, z },
-      0.045,
-      8,
+      { x: -waterlineHalfBeamAt(z) * 0.76, y: deckHeightAt(z) + 0.18, z },
+      { x: waterlineHalfBeamAt(z) * 0.76, y: deckHeightAt(z) + 0.18, z },
+      0.047,
+      detail.cyl,
     );
   }
   return b.build();
 }
 
-function createBundledCanvasGeometry(): BufferGeometry {
+function createBundledCanvasGeometry(tier: Tier): BufferGeometry {
+  const detail = detailForTier(tier);
   const b = new MeshBuilder();
   const foreZ = 4.1;
-  b.addCylinderBetween({ x: -4.9, y: 7.0, z: foreZ - 0.05 }, { x: 4.9, y: 7.0, z: foreZ - 0.05 }, 0.23, 10);
   b.addCylinderBetween(
-    { x: -3.9, y: 11.08, z: foreZ - 0.05 },
-    { x: 3.9, y: 11.08, z: foreZ - 0.05 },
-    0.18,
-    10,
+    { x: -5.05, y: 6.98, z: foreZ - 0.05 },
+    { x: 5.05, y: 6.98, z: foreZ - 0.05 },
+    0.24,
+    detail.cyl,
   );
   b.addCylinderBetween(
-    { x: -2.9, y: 14.43, z: foreZ - 0.04 },
-    { x: 2.9, y: 14.43, z: foreZ - 0.04 },
-    0.14,
-    8,
+    { x: -4.08, y: 11.22, z: foreZ - 0.05 },
+    { x: 4.08, y: 11.22, z: foreZ - 0.05 },
+    0.19,
+    detail.cyl,
   );
-  b.addCylinderBetween({ x: 0, y: 3.23, z: -4.6 }, { x: 0, y: 3.05, z: -10.1 }, 0.18, 10);
+  b.addCylinderBetween(
+    { x: -3.05, y: 14.72, z: foreZ - 0.04 },
+    { x: 3.05, y: 14.72, z: foreZ - 0.04 },
+    0.145,
+    detail.cyl,
+  );
+  b.addCylinderBetween({ x: 0, y: 3.23, z: -4.6 }, { x: 0, y: 3.06, z: -10.35 }, 0.19, detail.cyl);
   return b.build();
 }
 
 function createSailGeometry(tier: Tier): BufferGeometry {
   const s = new SailBuilder();
-  const detail = tier === 'lite' || tier === 'low' ? 6 : 10;
+  const detail = detailForTier(tier).sail;
   const foreZ = 4.05;
   s.addQuad(
-    { x: -4.8, y: 3.55, z: foreZ },
-    { x: 4.8, y: 3.55, z: foreZ },
-    { x: -5.05, y: 6.95, z: foreZ },
-    { x: 5.05, y: 6.95, z: foreZ },
+    { x: -4.95, y: 3.45, z: foreZ },
+    { x: 4.95, y: 3.45, z: foreZ },
+    { x: -5.25, y: 6.95, z: foreZ },
+    { x: 5.25, y: 6.95, z: foreZ },
     { x: 0, y: 0, z: -1 },
     detail,
     detail,
   );
   s.addQuad(
-    { x: -3.75, y: 7.65, z: foreZ },
-    { x: 3.75, y: 7.65, z: foreZ },
-    { x: -4.1, y: 11.1, z: foreZ },
-    { x: 4.1, y: 11.1, z: foreZ },
+    { x: -3.95, y: 7.65, z: foreZ },
+    { x: 3.95, y: 7.65, z: foreZ },
+    { x: -4.28, y: 11.2, z: foreZ },
+    { x: 4.28, y: 11.2, z: foreZ },
     { x: 0, y: 0, z: -1 },
     detail,
     detail,
   );
   s.addQuad(
-    { x: -2.75, y: 11.85, z: foreZ },
-    { x: 2.75, y: 11.85, z: foreZ },
-    { x: -3.05, y: 14.45, z: foreZ },
-    { x: 3.05, y: 14.45, z: foreZ },
+    { x: -2.9, y: 11.95, z: foreZ },
+    { x: 2.9, y: 11.95, z: foreZ },
+    { x: -3.18, y: 14.7, z: foreZ },
+    { x: 3.18, y: 14.7, z: foreZ },
     { x: 0, y: 0, z: -1 },
     detail,
-    Math.max(4, detail - 2),
+    Math.max(5, detail - 4),
   );
   s.addQuad(
-    { x: 0, y: 3.2, z: -10.25 },
-    { x: 0, y: 3.35, z: -4.45 },
-    { x: 0, y: 10.0, z: -9.45 },
-    { x: 0, y: 8.35, z: -4.35 },
+    { x: 0, y: 3.15, z: -10.55 },
+    { x: 0, y: 3.38, z: -4.45 },
+    { x: 0, y: 10.1, z: -9.75 },
+    { x: 0, y: 8.45, z: -4.35 },
     { x: 1, y: 0, z: 0 },
     detail,
     detail,
   );
   s.addTriangle(
-    { x: 0, y: 8.65, z: -4.2 },
-    { x: 0, y: 10.25, z: -9.3 },
-    { x: 0, y: 15.3, z: -4.2 },
+    { x: 0, y: 8.75, z: -4.2 },
+    { x: 0, y: 10.42, z: -9.55 },
+    { x: 0, y: 15.7, z: -4.2 },
     { x: 1, y: 0, z: 0 },
     detail,
   );
   s.addTriangle(
-    { x: 0, y: 2.65, z: 17.7 },
-    { x: 0, y: 2.2, z: 9.8 },
-    { x: 0, y: 7.1, z: 4.2 },
+    { x: 0, y: 2.65, z: 18.05 },
+    { x: 0, y: 2.2, z: 9.75 },
+    { x: 0, y: 7.25, z: 4.2 },
     { x: -1, y: 0, z: 0 },
     detail,
   );
   s.addTriangle(
-    { x: 0, y: 2.82, z: 21.4 },
-    { x: 0, y: 2.55, z: 15.7 },
-    { x: 0, y: 9.5, z: 4.15 },
+    { x: 0, y: 2.88, z: 21.9 },
+    { x: 0, y: 2.58, z: 15.85 },
+    { x: 0, y: 9.65, z: 4.15 },
     { x: -1, y: 0, z: 0 },
     detail,
   );
   s.addTriangle(
-    { x: 0, y: 3.2, z: 9.2 },
-    { x: 0, y: 3.05, z: -1.2 },
-    { x: 0, y: 11.0, z: 4.1 },
+    { x: 0, y: 3.2, z: 9.15 },
+    { x: 0, y: 3.05, z: -1.25 },
+    { x: 0, y: 11.25, z: 4.1 },
     { x: -1, y: 0, z: 0 },
     detail,
   );
@@ -634,26 +827,24 @@ function createSailGeometry(tier: Tier): BufferGeometry {
 function createRiggingGeometry(): BufferGeometry {
   const positions: number[] = [];
   const line = (a: P3, b: P3) => positions.push(a.x, a.y, a.z, b.x, b.y, b.z);
-  const foreTop = { x: 0, y: 16.8, z: 4.1 };
-  const mainTop = { x: 0, y: 18.1, z: -4.25 };
+  const foreTop = { x: 0, y: 17.9, z: 4.1 };
+  const mainTop = { x: 0, y: 19.0, z: -4.25 };
   for (const side of [-1, 1] as const) {
-    for (const z of [1.4, 3.0, 5.1, 7.2])
-      line({ x: side * waterlineHalfBeamAt(z) * 0.9, y: deckHeightAt(z) + 0.25, z }, foreTop);
-    for (const z of [-7.9, -5.8, -3.6, -1.7])
-      line({ x: side * waterlineHalfBeamAt(z) * 0.9, y: deckHeightAt(z) + 0.25, z }, mainTop);
-    line({ x: side * 2.7, y: deckHeightAt(-10.2) + 0.1, z: -10.2 }, mainTop);
-    line({ x: side * 2.7, y: deckHeightAt(9.2) + 0.1, z: 9.2 }, foreTop);
+    const foreFeet = [1.1, 2.8, 4.5, 6.2, 7.9];
+    const mainFeet = [-8.4, -6.8, -5.2, -3.6, -2.0];
+    for (const z of foreFeet) line({ x: side * (waterlineHalfBeamAt(z) + 0.38), y: 1.35, z }, foreTop);
+    for (const z of mainFeet) line({ x: side * (waterlineHalfBeamAt(z) + 0.38), y: 1.35, z }, mainTop);
+    line({ x: side * 2.8, y: deckHeightAt(-10.5) + 0.1, z: -10.5 }, mainTop);
+    line({ x: side * 2.85, y: deckHeightAt(9.2) + 0.1, z: 9.2 }, foreTop);
   }
-  line({ x: 0, y: 18.1, z: -4.25 }, { x: 0, y: 16.8, z: 4.1 });
+  line(mainTop, foreTop);
   line(foreTop, { x: 0, y: 2.75, z: 18.8 });
-  line(foreTop, { x: 0, y: 2.9, z: 21.8 });
-  line(mainTop, { x: 0, y: 2.45, z: 10.6 });
-  line(mainTop, { x: 0, y: 3.2, z: -11.2 });
-  for (const side of [-1, 1] as const) {
-    for (let y = 5.0; y < 12.5; y += 1.15) {
-      line({ x: side * 1.65, y, z: 2.2 }, { x: side * 2.65, y: y - 0.2, z: 7.0 });
-      line({ x: side * 1.65, y: y + 0.15, z: -6.3 }, { x: side * 2.55, y: y - 0.1, z: -1.9 });
-    }
+  line(foreTop, { x: 0, y: 2.95, z: 22.3 });
+  line(mainTop, { x: 0, y: 2.55, z: 10.6 });
+  line(mainTop, { x: 0, y: 3.3, z: -11.2 });
+  for (const yard of [7.2, 11.45, 14.95]) {
+    line({ x: -5.0, y: yard, z: 4.1 }, { x: 0, y: yard + 0.45, z: 4.1 });
+    line({ x: 5.0, y: yard, z: 4.1 }, { x: 0, y: yard + 0.45, z: 4.1 });
   }
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
@@ -661,64 +852,119 @@ function createRiggingGeometry(): BufferGeometry {
   return geometry;
 }
 
-function makeHullMaterial(): MeshBasicNodeMaterial {
-  const m = new MeshBasicNodeMaterial({ color: 0x090c0d, side: DoubleSide });
-  const grain = sin(positionLocal.z.mul(9.7).add(positionLocal.y.mul(15.3)))
-    .mul(0.5)
-    .add(0.5);
-  const wet = positionLocal.y.smoothstep(-0.35, 0.25).oneMinus();
-  m.colorNode = mix(color(0x080a0c), color(0x172027), grain.mul(0.24)).add(
-    color(0x0f321f).mul(wet.mul(0.42)),
-  );
-  return m;
+let shipWoodTexture: Texture | null = null;
+
+function getShipWoodTexture(): Texture {
+  if (shipWoodTexture) return shipWoodTexture;
+  if (typeof document === 'undefined') {
+    shipWoodTexture = new DataTexture(new Uint8Array([132, 92, 54, 255]), 1, 1, RGBAFormat, UnsignedByteType);
+    shipWoodTexture.needsUpdate = true;
+  } else {
+    shipWoodTexture = new TextureLoader().load('/packs/testcove/ship/wood-trim.webp');
+  }
+  shipWoodTexture.colorSpace = SRGBColorSpace;
+  shipWoodTexture.wrapS = RepeatWrapping;
+  shipWoodTexture.wrapT = RepeatWrapping;
+  shipWoodTexture.generateMipmaps = true;
+  shipWoodTexture.minFilter = LinearMipmapLinearFilter;
+  shipWoodTexture.magFilter = LinearFilter;
+  shipWoodTexture.anisotropy = 8;
+  shipWoodTexture.repeat.set(1.35, 1.65);
+  return shipWoodTexture;
 }
 
-function makeSidePaintMaterial(): MeshBasicNodeMaterial {
-  const m = new MeshBasicNodeMaterial({ color: 0x07090a, side: DoubleSide });
-  const grain = sin(positionLocal.z.mul(10.0).add(positionLocal.y.mul(18.0)))
-    .mul(0.5)
-    .add(0.5);
-  const wet = positionLocal.y.smoothstep(-0.12, 0.22).oneMinus();
-  m.colorNode = mix(color(0x050607), color(0x162126), grain.mul(0.18)).add(
-    color(0x0b2f1e).mul(wet.mul(0.35)),
+function makeHullMaterial(): MeshStandardNodeMaterial {
+  const m = new MeshStandardNodeMaterial({
+    color: 0x2a1b12,
+    roughness: 0.68,
+    metalness: 0.02,
+    side: DoubleSide,
+  });
+  const wood = texture(getShipWoodTexture(), uv().mul(vec2(1.15, 1.35))).rgb;
+  const plank = abs(sin(positionLocal.z.mul(3.4).add(positionLocal.y.mul(4.8))));
+  const seam = abs(sin(positionLocal.y.mul(6.2)))
+    .smoothstep(0.988, 1.0)
+    .mul(0.08);
+  const warmWood = wood.mul(mix(color(0x5b3925), color(0xa46e43), plank.mul(0.08).add(0.22)));
+  const submerged = mix(color(0x0b2024), color(0x16332c), abs(sin(positionLocal.z.mul(2.2))).mul(0.28));
+  const algae = color(0x0b2a1d).mul(positionLocal.y.smoothstep(-0.4, 0.08).oneMinus().mul(0.35));
+  m.colorNode = mix(
+    submerged,
+    warmWood.sub(color(0x120805).mul(seam)).add(algae),
+    positionLocal.y.smoothstep(-0.06, 0.2),
   );
+  m.roughnessNode = float(0.62).add(positionLocal.y.smoothstep(-0.5, 0.05).oneMinus().mul(0.22));
   return m;
 }
 
 function makeWoodMaterial(): MeshStandardNodeMaterial {
   const m = new MeshStandardNodeMaterial({
     color: 0x8a5d34,
-    roughness: 0.72,
+    roughness: 0.68,
     metalness: 0,
     side: DoubleSide,
   });
-  const grain = sin(positionLocal.x.mul(18).add(positionLocal.z.mul(5.3)))
+  const wood = texture(getShipWoodTexture(), uv().mul(vec2(1.1, 1.8))).rgb;
+  const grain = sin(positionLocal.x.mul(12).add(positionLocal.z.mul(3.4)))
     .mul(0.5)
     .add(0.5);
-  m.colorNode = mix(color(0x6c4324), color(0xb9854c), grain.mul(0.55));
+  const caulk = abs(sin(positionLocal.x.mul(11.7)))
+    .smoothstep(0.975, 1.0)
+    .mul(0.12);
+  m.colorNode = wood
+    .mul(mix(color(0x8a6a46), color(0xffd28a), grain.mul(0.12)))
+    .sub(color(0x24170c).mul(caulk));
   return m;
 }
 
 function makeTrimMaterial(): MeshStandardNodeMaterial {
   const m = new MeshStandardNodeMaterial({
     color: 0xa66a24,
-    roughness: 0.62,
-    metalness: 0.02,
+    roughness: 0.54,
+    metalness: 0.03,
     side: DoubleSide,
   });
-  const algae = positionLocal.y.smoothstep(-0.25, 0.1).oneMinus();
-  const stripe = color(0xb87828).mul(float(1).sub(algae.mul(0.22)));
-  m.colorNode = mix(stripe, color(0x123a25), algae.mul(0.55));
+  const stripe = positionLocal.y.smoothstep(0.68, 0.88).mul(positionLocal.y.smoothstep(1.18, 1.0));
+  const wale = positionLocal.y.smoothstep(1.8, 1.98).mul(positionLocal.y.smoothstep(2.22, 2.05));
+  const boot = positionLocal.y.smoothstep(-0.24, -0.12).mul(positionLocal.y.smoothstep(0.08, 0.0));
+  const base = mix(color(0x2a1a10), color(0x16404a), stripe)
+    .add(color(0xc58a3d).mul(wale.mul(0.75)))
+    .add(color(0x0c3a25).mul(boot.mul(0.4)));
+  m.colorNode = base;
   return m;
+}
+
+function makeWindowMaterial(): MeshBasicNodeMaterial {
+  const m = new MeshBasicNodeMaterial({ color: 0x182225, side: DoubleSide });
+  m.colorNode = mix(color(0x121719), color(0xffa95a), world.night.smoothstep(0.05, 0.9));
+  return m;
+}
+
+function makeGoldMaterial(): MeshStandardNodeMaterial {
+  const m = new MeshStandardNodeMaterial({
+    color: 0xc48a3c,
+    roughness: 0.5,
+    metalness: 0.05,
+    side: DoubleSide,
+  });
+  const wear = sin(positionLocal.x.mul(14).add(positionLocal.y.mul(9)))
+    .mul(0.5)
+    .add(0.5);
+  m.colorNode = mix(color(0x8a5a24), color(0xe0a44e), wear.mul(0.35).add(0.35));
+  return m;
+}
+
+function makeRiggingMaterial(): MeshBasicNodeMaterial {
+  return new MeshBasicNodeMaterial({ color: 0x17110c, transparent: true, opacity: 0.88 });
 }
 
 function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNodeMaterial {
   const m = new MeshStandardNodeMaterial({
-    roughness: 0.9,
+    roughness: 0.88,
     metalness: 0,
     side: DoubleSide,
     transparent: true,
-    opacity: 0.88,
+    opacity: 0.9,
   });
   const sailUv = attribute('sailUv', 'vec2');
   const sailNormal = attribute('sailNormal', 'vec3');
@@ -735,19 +981,26 @@ function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNodeMater
     .mul(0.34);
   const billow = belly
     .mul(uniforms.trim)
-    .mul(world.windSpeed.mul(0.035).add(0.18))
+    .mul(world.windSpeed.mul(0.035).add(0.2))
     .mul(gust.mul(0.28).add(0.86))
     .mul(windFacing)
     .add(flutter);
   m.positionNode = mix(sailAnchor, positionLocal.add(sailNormal.mul(billow)), uniforms.trim);
-  const stain = sin(positionLocal.x.mul(4.1).add(positionLocal.y.mul(2.3)).add(positionLocal.z.mul(1.7)))
-    .mul(0.5)
-    .add(0.5);
-  const patch = sin(positionLocal.x.mul(11.0).add(positionLocal.y.mul(7.0)))
-    .smoothstep(0.74, 0.9)
-    .mul(0.18);
-  m.colorNode = mix(color(0xd8c49a), color(0xffefc1), stain.mul(0.35)).sub(color(0x4d3a24).mul(patch));
-  m.emissiveNode = color(0xffd89a).mul(world.sunDir.y.oneMinus().clamp(0, 1).mul(0.035));
+  const panelU = abs(sin(sailUv.x.mul(Math.PI * 8))).smoothstep(0.965, 1.0);
+  const panelV = abs(sin(sailUv.y.mul(Math.PI * 5))).smoothstep(0.965, 1.0);
+  const dirt = sailUv.y
+    .oneMinus()
+    .mul(0.12)
+    .add(abs(sin(positionLocal.x.mul(3.7).add(positionLocal.y))).mul(0.08));
+  const backlit = world.sunDir.x
+    .mul(sailNormal.x)
+    .add(world.sunDir.z.mul(sailNormal.z))
+    .negate()
+    .smoothstep(0.05, 0.8);
+  m.colorNode = mix(color(0xd4bf91), color(0xffebbd), belly.mul(0.22)).sub(
+    color(0x5b4328).mul(panelU.add(panelV).mul(0.12).add(dirt)),
+  );
+  m.emissiveNode = color(0xffd79a).mul(backlit.mul(world.sunDir.y.smoothstep(0.02, 0.45)).mul(0.08));
   return m;
 }
 
@@ -766,8 +1019,10 @@ function makeBundleMaterial(): MeshStandardNodeMaterial {
 }
 
 function makeLanternMaterial(): MeshBasicNodeMaterial {
-  const m = new MeshBasicNodeMaterial({ transparent: true, opacity: 0.88 });
-  m.colorNode = mix(color(0xff9c3a), color(0xffe3a1), sin(world.time.mul(4)).mul(0.5).add(0.5));
+  const m = new MeshBasicNodeMaterial({ transparent: true, opacity: 0.9 });
+  m.colorNode = mix(color(0xff9c3a), color(0xffe3a1), sin(world.time.mul(4)).mul(0.5).add(0.5)).mul(
+    world.night.mul(0.9).add(0.25),
+  );
   return m;
 }
 
@@ -805,85 +1060,94 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
 
   const dynamics = new ShipDynamics();
   const uniforms: BrigantineUniforms = { trim: uniform(1), luff: uniform(0) };
+  const anchors: ShipAnchors = {
+    helm: { x: 0, y: deckHeightAt(-8.0) + 0.18, z: HELM_Z, heading: 0 },
+    // At COVE.mooring heading π, local +x maps to world -x (west/port rail), which is the pier-facing side.
+    boarding: {
+      x: halfBeamAt(BOARDING_Z, deckHeightAt(BOARDING_Z)) * 0.72,
+      y: deckHeightAt(BOARDING_Z),
+      z: BOARDING_Z,
+    },
+  };
   const materials: Material[] = [];
   const register = <T extends Material>(m: T): T => {
     materials.push(m);
     return m;
   };
 
-  addMesh(group, createHullGeometry(tier), register(makeHullMaterial()), 'lofted hull shell');
-  addMesh(group, createSidePaintGeometry(), register(makeSidePaintMaterial()), 'tarred hull paint panels');
-  addMesh(group, createDeckGeometry(), register(makeWoodMaterial()), 'deck and fittings');
-  addMesh(group, createTrimGeometry(), register(makeTrimMaterial()), 'wales stripe gunports algae');
-  addMesh(group, createSparGeometry(), register(makeWoodMaterial()), 'masts spars bowsprit');
-  addMesh(group, createBundledCanvasGeometry(), register(makeBundleMaterial()), 'furled canvas bundles');
+  const wood = register(makeWoodMaterial());
+  const riggingMaterial = register(makeRiggingMaterial());
+  const riggingLineMaterial = register(
+    new LineBasicMaterial({ color: 0x17110c, transparent: true, opacity: 0.72 }),
+  );
+  addMesh(group, createHullGeometry(tier), register(makeHullMaterial()), 'rounded planked hull');
+  addMesh(group, createDeckGeometry(tier), wood, 'deck planking rails and fittings');
+  addMesh(
+    group,
+    createTrimGeometry(tier),
+    register(makeTrimMaterial()),
+    'wales strakes gunports galleries anchors',
+  );
+  addMesh(
+    group,
+    createWindowGeometry(),
+    register(makeWindowMaterial()),
+    'stern gallery windows and name board backing',
+  );
+  addMesh(
+    group,
+    createSternGoldGeometry(),
+    register(makeGoldMaterial()),
+    'stern gallery trim and COPILOT name board',
+  );
+  addMesh(group, createSparGeometry(tier), wood, 'masts yards boom bowsprit jibboom');
+  addMesh(group, createBundledCanvasGeometry(tier), register(makeBundleMaterial()), 'furled canvas bundles');
   addMesh(
     group,
     createSailGeometry(tier),
     register(makeCanvasMaterial(uniforms)),
     'billowed procedural sails',
   );
-
-  const riggingMaterial = register(
-    new LineBasicMaterial({ color: 0x17110c, transparent: true, opacity: 0.72 }),
-  );
-  const rigging = new LineSegments(createRiggingGeometry(), riggingMaterial);
-  rigging.name = 'standing rigging and ratlines';
+  const rigging = new LineSegments(createRiggingGeometry(), riggingLineMaterial);
+  rigging.name = 'standing and running rigging lines';
   group.add(rigging);
 
   const lanternPivot = new Group();
   lanternPivot.name = 'stern lantern pendulum';
-  lanternPivot.position.set(0, 3.55, -11.85);
-  const lanternLine = addMesh(
-    lanternPivot,
-    (() => {
-      const b = new MeshBuilder();
-      b.addCylinderBetween({ x: 0, y: 0, z: 0 }, { x: 0, y: -0.55, z: 0 }, 0.018, 6);
-      return b.build();
-    })(),
-    riggingMaterial,
-    'lantern hanger',
-  );
-  lanternLine.castShadow = false;
-  const lantern = addMesh(
-    lanternPivot,
-    (() => {
-      const b = new MeshBuilder();
-      b.addBox(0, -0.72, 0, 0.22, 0.28, 0.22);
-      return b.build();
-    })(),
-    register(makeLanternMaterial()),
-    'stern lantern',
-  );
-  lantern.castShadow = false;
+  lanternPivot.position.set(0, 3.65, -12.05);
+  const lanternRig = new MeshBuilder();
+  lanternRig.addCylinderBetween({ x: 0, y: 0, z: 0 }, { x: 0, y: -0.58, z: 0 }, 0.018, 6);
+  lanternRig.addBox(0, -0.2, 0, 0.2, 0.04, 0.2);
+  addMesh(lanternPivot, lanternRig.build(), riggingMaterial, 'lantern hanger').castShadow = false;
+  const lanternGeo = new MeshBuilder();
+  lanternGeo.addBox(0, -0.74, 0, 0.24, 0.3, 0.24);
+  addMesh(lanternPivot, lanternGeo.build(), register(makeLanternMaterial()), 'stern lantern').castShadow =
+    false;
   group.add(lanternPivot);
 
   const blockPivot = new Group();
   blockPivot.name = 'hanging block spring';
   blockPivot.position.set(-1.15, 9.2, -4.65);
-  const blockLine = addMesh(
-    blockPivot,
-    (() => {
-      const b = new MeshBuilder();
-      b.addCylinderBetween({ x: 0, y: 0, z: 0 }, { x: 0, y: -0.85, z: 0.12 }, 0.014, 6);
-      return b.build();
-    })(),
-    riggingMaterial,
-    'block hanger',
-  );
-  blockLine.castShadow = false;
-  const block = addMesh(
-    blockPivot,
-    (() => {
-      const b = new MeshBuilder();
-      b.addBox(0, -0.98, 0.15, 0.18, 0.24, 0.12);
-      return b.build();
-    })(),
-    materials[1]!,
-    'wooden hanging block',
-  );
-  block.castShadow = false;
+  const blockGeo = new MeshBuilder();
+  blockGeo.addCylinderBetween({ x: 0, y: 0, z: 0 }, { x: 0, y: -0.85, z: 0.12 }, 0.014, 6);
+  blockGeo.addBox(0, -0.98, 0.15, 0.18, 0.24, 0.12);
+  addMesh(blockPivot, blockGeo.build(), riggingMaterial, 'hanging line and block').castShadow = false;
   group.add(blockPivot);
+
+  const oceanBow = new Float32Array(2);
+  const oceanStern = new Float32Array(2);
+  const waterlineLocal = new Float32Array(WATERLINE_POLYGON_POINTS * 2);
+  let wi = 0;
+  for (let i = 0; i < WATERLINE_POLYGON_POINTS / 2; i++) {
+    const z = -BRIGANTINE_HALF_LENGTH + (BRIGANTINE_LENGTH * i) / (WATERLINE_POLYGON_POINTS / 2 - 1);
+    waterlineLocal[wi++] = waterlineHalfBeamAt(z);
+    waterlineLocal[wi++] = z;
+  }
+  for (let i = WATERLINE_POLYGON_POINTS / 2 - 1; i >= 0; i--) {
+    const z = -BRIGANTINE_HALF_LENGTH + (BRIGANTINE_LENGTH * i) / (WATERLINE_POLYGON_POINTS / 2 - 1);
+    waterlineLocal[wi++] = -waterlineHalfBeamAt(z);
+    waterlineLocal[wi++] = z;
+  }
 
   let accumulator = 0;
   const fixed = 1 / 60;
@@ -941,11 +1205,26 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     group,
     dynamics,
     uniforms,
+    anchors,
     waterlineTable: BRIGANTINE_HALF_BEAM_TABLE,
     stations: BRIGANTINE_STATIONS,
     capsules: BRIGANTINE_CAPSULES,
     triangleCount: 0,
     drawCallCount: 0,
+    waterlinePolygon(outWorld: Float32Array): Float32Array {
+      const n = Math.min(outWorld.length / 2, WATERLINE_POLYGON_POINTS);
+      for (let i = 0; i < n; i++)
+        localToWorldXZ(dynamics.pose, waterlineLocal[i * 2]!, waterlineLocal[i * 2 + 1]!, outWorld, i * 2);
+      return outWorld;
+    },
+    bowWorld(outWorld: Float32Array | number[]): Float32Array | number[] {
+      localToWorldXZ(dynamics.pose, 0, BOW_Z, outWorld, 0);
+      return outWorld;
+    },
+    sternWorld(outWorld: Float32Array | number[]): Float32Array | number[] {
+      localToWorldXZ(dynamics.pose, 0, STERN_Z, outWorld, 0);
+      return outWorld;
+    },
     update(dt: number, t: number, env: BrigantineEnv): void {
       accumulator = Math.min(accumulator + Math.max(0, dt), fixed * 5);
       while (accumulator >= fixed) {
@@ -971,11 +1250,24 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
       group.rotation.set(pitch + shake * 0.5, yaw, roll + shake, 'YXZ');
       uniforms.trim.value = dynamics.control.trim;
       uniforms.luff.value = dynamics.pose.luff;
+      localToWorldXZ(dynamics.pose, 0, BOW_Z, oceanBow, 0);
+      localToWorldXZ(dynamics.pose, 0, STERN_Z, oceanStern, 0);
+      updateShipOceanInteraction(
+        dynamics.pose.x,
+        dynamics.pose.z,
+        dynamics.pose.heading,
+        dynamics.forwardSpeed,
+        oceanBow[0]!,
+        oceanBow[1]!,
+        oceanStern[0]!,
+        oceanStern[1]!,
+        t,
+      );
       updateSecondary(dt);
     },
     dispose(): void {
       group.traverse((object) => {
-        const mesh = object as Mesh | LineSegments;
+        const mesh = object as Mesh;
         if (mesh.geometry) mesh.geometry.dispose();
       });
       for (const material of materials) material.dispose();

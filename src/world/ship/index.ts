@@ -4,6 +4,7 @@ export {
   type BrigantineEnv,
   type BrigantineOptions,
   type BrigantineUniforms,
+  type ShipAnchors,
 } from './brigantine';
 export {
   ShipDynamics,
@@ -23,6 +24,7 @@ export {
   BRIGANTINE_LENGTH,
   BRIGANTINE_STATIONS,
   BRIGANTINE_WATERLINE,
+  deckHeightAt,
   halfBeamAt,
   halfBeamTable,
   hullLinesSummary,

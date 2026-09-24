@@ -1,34 +1,25 @@
 import {
-  AgXToneMapping,
-  Color,
-  DirectionalLight,
-  FogExp2,
-  HemisphereLight,
   MathUtils,
   Mesh,
   MeshStandardNodeMaterial,
-  PerspectiveCamera,
-  PlaneGeometry,
-  Scene,
   SphereGeometry,
   Vector2,
   Vector3,
-  WebGPURenderer,
-  type Node,
+  type WebGPURenderer,
 } from 'three/webgpu';
-import { color, float, mix, positionLocal, sin, vec3 } from 'three/tsl';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
-import { tierSettings } from '../engine/quality';
+import { Engine } from '../engine/engine';
+import { TIERS } from '../engine/quality';
+import type { Tier } from '../world/contracts';
 import { COVE } from '../world/layout';
-import { WaveField, wavesForTier } from '../world/ocean/waves';
-import { world } from '../world/uniforms';
+import { createOcean } from '../world/ocean/ocean';
+import { createSky } from '../world/sky/sky-system';
 import { createBrigantine, type Brigantine } from '../world/ship';
-import { WIND } from '../world/wind';
 
 interface ShipDevApi {
   ship: Brigantine;
   shot(id: 'bow' | 'broadside' | 'stern' | 'deck'): void;
+  setTrim(value: number): void;
   stats(): { drawCalls: number; triangles: number; backend: 'webgpu' | 'webgl2' };
 }
 
@@ -39,76 +30,23 @@ declare global {
 }
 
 const query = new URLSearchParams(location.search);
+if (query.has('shot')) document.body.classList.add('shot');
 const backend: 'webgpu' | 'webgl2' = query.has('webgl') ? 'webgl2' : 'webgpu';
-const tier = query.get('tier') === 'low' ? 'low' : 'high';
-const settings = tierSettings(tier);
+const tier = TIERS[(query.get('tier') as Tier) ?? 'high'] ?? TIERS.high;
 const canvas = document.getElementById('gl') as HTMLCanvasElement;
 const stats = document.getElementById('stats')!;
 
-const renderer = new WebGPURenderer({
-  canvas,
-  antialias: true,
-  forceWebGL: backend === 'webgl2',
-  powerPreference: 'high-performance',
-  reversedDepthBuffer: true,
-});
-renderer.toneMapping = AgXToneMapping;
+const renderer: WebGPURenderer = Engine.createRenderer({ canvas, backend, tier });
 await renderer.init();
+const engine = Engine.fromRenderer(renderer, { canvas, backend, tier });
+const { scene, camera, clock } = engine;
+clock.set(Number(query.get('time') ?? 16.5), Number(query.get('az') ?? 0));
 
-const scene = new Scene();
-scene.fog = new FogExp2(new Color(0x8eb2ca), 0.00115);
+const sky = createSky(renderer, scene, tier);
+const ocean = createOcean({ tier, env: sky.env });
+scene.add(ocean.mesh);
 
-const camera = new PerspectiveCamera(52, innerWidth / innerHeight, 0.1, 2500);
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.maxDistance = 180;
-controls.minDistance = 4;
-
-const sun = new DirectionalLight(0xffd6a0, 3.2);
-sun.position.set(-150, 72, -190);
-scene.add(sun, new HemisphereLight(0x9fc7ff, 0x162315, 0.86));
-world.sunDir.value.copy(sun.position).normalize();
-world.sunColor.value.set(1, 0.82, 0.56);
-world.windDir.value.set(WIND.dirX, WIND.dirZ).normalize();
-world.windSpeed.value = WIND.speed;
-
-const sky = new SkyMesh();
-sky.scale.setScalar(1200);
-sky.sunPosition.value.copy(sun.position).normalize();
-sky.turbidity.value = 2.8;
-sky.rayleigh.value = 1.5;
-sky.mieCoefficient.value = 0.018;
-sky.mieDirectionalG.value = 0.76;
-sky.cloudCoverage.value = 0.36;
-sky.cloudDensity.value = 0.28;
-sky.cloudScale.value = 0.44;
-scene.add(sky);
-
-function waterMaterial(): MeshStandardNodeMaterial {
-  const mat = new MeshStandardNodeMaterial({ color: 0x0c5d75, roughness: 0.32, metalness: 0 });
-  let h: Node<'float'> = float(0);
-  for (const wave of wavesForTier(settings.waves)) {
-    const phase = positionLocal.x
-      .mul(wave.dx * wave.k)
-      .add(positionLocal.z.mul(wave.dz * wave.k))
-      .sub(world.time.mul(wave.w))
-      .add(wave.ph);
-    h = h.add(sin(phase).mul(wave.a)) as Node<'float'>;
-  }
-  mat.positionNode = positionLocal.add(vec3(0, h, 0));
-  const depthTint = sin(positionLocal.x.mul(0.012).add(positionLocal.z.mul(0.018)))
-    .mul(0.5)
-    .add(0.5);
-  mat.colorNode = mix(color(0x0a4157), color(0x1c8aa0), depthTint.mul(0.34));
-  mat.roughnessNode = float(0.22);
-  return mat;
-}
-
-const water = new Mesh(new PlaneGeometry(1400, 1400, 180, 180).rotateX(-Math.PI / 2), waterMaterial());
-water.receiveShadow = true;
-scene.add(water);
-
-const ship = createBrigantine({ tier });
+const ship = createBrigantine({ tier: tier.tier });
 ship.dynamics.reset(COVE.mooring.x, COVE.mooring.z, COVE.mooring.heading);
 scene.add(ship.group);
 
@@ -119,9 +57,13 @@ for (const buoy of COVE.buoys) {
   scene.add(mesh);
 }
 
-const waveField = new WaveField(wavesForTier(settings.waves));
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.maxDistance = 180;
+controls.minDistance = 4;
+
 const env = {
-  waves: waveField,
+  waves: ocean.field,
   ground: null,
   obstacles: COVE.buoys.map((b) => ({ x: b.x, z: b.z, r: 2.2 })),
   t: 0,
@@ -129,16 +71,19 @@ const env = {
 const keys = new Set<string>();
 let trim = 0.75;
 let rudder = 0;
-let last = performance.now();
-const focus = new Vector2();
 const camOffset = new Vector3();
 const lookTarget = new Vector3();
+const focus = new Vector3();
+const waterFocus = new Vector2();
 const upAxis = new Vector3(0, 1, 0);
 const shotOffset = new Vector3(-28, 11, 30);
 const autopilotPath = [
   { x: COVE.mooring.x, z: COVE.mooring.z },
-  ...COVE.buoys,
-  { x: COVE.mooring.x + 18, z: COVE.mooring.z - 5 },
+  { x: COVE.mooring.x, z: COVE.mooring.z - 18 },
+  { x: COVE.mooring.x + 14, z: COVE.mooring.z - 42 },
+  COVE.buoys[0],
+  COVE.buoys[1],
+  { x: COVE.buoys[1].x + 80, z: COVE.buoys[1].z - 60 },
 ];
 
 function frameCamera(immediate = false): void {
@@ -152,8 +97,8 @@ function frameCamera(immediate = false): void {
 
 function setShot(id: 'bow' | 'broadside' | 'stern' | 'deck'): void {
   if (id === 'bow') shotOffset.set(-26, 10, 28);
-  else if (id === 'broadside') shotOffset.set(38, 13, 10);
-  else if (id === 'stern') shotOffset.set(7, 12, -42);
+  else if (id === 'broadside') shotOffset.set(34, 6.5, 0);
+  else if (id === 'stern') shotOffset.set(0, 8.5, -30);
   else shotOffset.set(7.5, 8.5, -13.5);
   frameCamera(true);
   controls.update();
@@ -169,46 +114,49 @@ addEventListener('keydown', (event) => {
 });
 addEventListener('keyup', (event) => keys.delete(event.code));
 
-function resize(): void {
-  const dpr = Math.min(devicePixelRatio || 1, settings.maxDpr);
-  renderer.setPixelRatio(dpr);
-  renderer.setSize(innerWidth, innerHeight, false);
-  camera.aspect = innerWidth / Math.max(1, innerHeight);
-  camera.updateProjectionMatrix();
-}
-addEventListener('resize', resize);
-resize();
-setShot('bow');
-canvas.focus();
-
-window.__shipDev = {
-  ship,
-  shot: setShot,
-  stats: () => ({ drawCalls: ship.drawCallCount, triangles: ship.triangleCount, backend }),
-};
-
-renderer.setAnimationLoop((now) => {
-  const dt = Math.min(0.05, (now - last) / 1000);
-  last = now;
-  world.time.value += dt;
-  sky.sunPosition.value.copy(sun.position).normalize();
+function updateControls(dt: number): void {
   if (!ship.dynamics.autopilotComplete) {
     trim = ship.dynamics.control.trim;
     rudder = ship.dynamics.control.rudder;
-  } else {
-    if (keys.has('KeyW')) trim += dt * 0.38;
-    if (keys.has('KeyS')) trim -= dt * 0.55;
-    rudder = (keys.has('KeyA') ? 1 : 0) + (keys.has('KeyD') ? -1 : 0);
-    trim = MathUtils.clamp(trim, 0, 1);
-    ship.dynamics.setInput({ trim, rudder });
+    return;
   }
-  focus.set(ship.dynamics.pose.x, ship.dynamics.pose.z);
-  waveField.setFocus(focus.x, focus.y);
-  world.focus.value.copy(focus);
-  env.t = world.time.value;
-  ship.update(dt, world.time.value, env);
-  frameCamera();
-  controls.update();
-  renderer.render(scene, camera);
-  stats.textContent = `backend ${backend} · trim ${ship.uniforms.trim.value.toFixed(2)} · rudder ${rudder.toFixed(2)} · speed ${ship.dynamics.pose.speed.toFixed(2)} m/s · luff ${ship.uniforms.luff.value.toFixed(2)} · calls ${ship.drawCallCount} · tris ${ship.triangleCount}`;
+  if (keys.has('KeyW')) trim += dt * 0.38;
+  if (keys.has('KeyS')) trim -= dt * 0.55;
+  rudder = (keys.has('KeyA') ? 1 : 0) + (keys.has('KeyD') ? -1 : 0);
+  trim = MathUtils.clamp(trim, 0, 1);
+  ship.dynamics.setInput({ trim, rudder });
+}
+
+setShot('bow');
+canvas.focus();
+window.__shipDev = {
+  ship,
+  shot: setShot,
+  setTrim: (value) => {
+    trim = MathUtils.clamp(value, 0, 1);
+    ship.dynamics.setInput({ trim, rudder });
+  },
+  stats: () => ({ drawCalls: ship.drawCallCount, triangles: ship.triangleCount, backend }),
+};
+
+let n = 0;
+engine.add({
+  frame(dt, t) {
+    updateControls(dt);
+    waterFocus.set(ship.dynamics.pose.x, ship.dynamics.pose.z);
+    ocean.field.setFocus(waterFocus.x, waterFocus.y);
+    env.t = t;
+    ship.update(dt, t, env);
+    frameCamera();
+    controls.update();
+    ocean.update(camera);
+    focus.set(camera.position.x, 0, camera.position.z);
+    sky.update(clock, focus);
+    if (++n % 20 === 0) {
+      stats.textContent = `backend ${backend} · trim ${ship.uniforms.trim.value.toFixed(2)} · rudder ${rudder.toFixed(2)} · speed ${ship.dynamics.pose.speed.toFixed(2)} m/s · luff ${ship.uniforms.luff.value.toFixed(2)} · calls ${ship.drawCallCount} · tris ${ship.triangleCount}`;
+    }
+  },
 });
+
+await renderer.compileAsync(scene, camera);
+engine.start();

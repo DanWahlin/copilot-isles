@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { CircleObstacle, HeightField, WaveSampler } from '../contracts';
+import { COVE } from '../layout';
 import { WaveField } from '../ocean/waves';
 import { ShipDynamics, pointOfSailCurve } from './dynamics';
 import { BRIGANTINE_CAPSULES, BRIGANTINE_DRAFT } from './lines';
@@ -111,6 +112,21 @@ describe('ShipDynamics', () => {
     expect(headingErr).toBeLessThan((5 * Math.PI) / 180);
   });
 
+  it('docking assist reaches the pier-side Test Cove mooring heading', () => {
+    const ship = new ShipDynamics(COVE.mooring.x + 18, COVE.mooring.z - 34, Math.PI * 0.92);
+    ship.dockAssist(COVE.mooring);
+    for (let i = 0; i < 240 * 60 && !ship.dockComplete; i++) {
+      ship.step(1 / 60, { trim: 0, rudder: 0 }, { waves: calm, ground: null, obstacles: [], t: i / 60 });
+    }
+    const posErr = Math.hypot(ship.pose.x - COVE.mooring.x, ship.pose.z - COVE.mooring.z);
+    let headingErr = Math.abs(
+      ((COVE.mooring.heading - ship.pose.heading + Math.PI) % (Math.PI * 2)) - Math.PI,
+    );
+    if (headingErr > Math.PI) headingErr = Math.PI * 2 - headingErr;
+    expect(posErr).toBeLessThan(0.5);
+    expect(headingErr).toBeLessThan((5 * Math.PI) / 180);
+  });
+
   it('spline autopilot passes all waypoints and completes without input', () => {
     const points = [
       { x: 0, z: 0 },
@@ -127,6 +143,25 @@ describe('ShipDynamics', () => {
     expect(ship.autopilotComplete).toBe(true);
     expect(ship.passedWaypointCount).toBe(points.length);
     expect(Math.hypot(ship.pose.x - last.x, ship.pose.z - last.z)).toBeLessThan(4.2);
+  });
+
+  it('dev-page buoy spline clears the new berth and completes from the mooring', () => {
+    const points = [
+      { x: COVE.mooring.x, z: COVE.mooring.z },
+      { x: COVE.mooring.x, z: COVE.mooring.z - 18 },
+      { x: COVE.mooring.x + 14, z: COVE.mooring.z - 42 },
+      COVE.buoys[0],
+      COVE.buoys[1],
+      { x: COVE.buoys[1].x + 80, z: COVE.buoys[1].z - 60 },
+    ];
+    const ship = new ShipDynamics(COVE.mooring.x, COVE.mooring.z, COVE.mooring.heading);
+    ship.followSpline(points);
+    for (let i = 0; i < 360 * 60 && !ship.autopilotComplete; i++) {
+      ship.step(1 / 60, { trim: 0, rudder: 0 }, { waves: calm, ground: null, obstacles: [], t: i / 60 });
+    }
+    expect(ship.autopilotComplete).toBe(true);
+    expect(ship.passedWaypointCount).toBe(points.length);
+    expect(ship.pose.z).toBeLessThan(COVE.mooring.z - 180);
   });
 
   it('point-of-sail curve is near zero head-to-wind and strongest on a broad reach', () => {
