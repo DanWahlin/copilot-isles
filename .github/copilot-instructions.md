@@ -9,8 +9,13 @@ A browser 3D island adventure that teaches the **GitHub Copilot app for Beginner
 
 ## Stack
 
-TypeScript + Vite 8, **three.js pinned to 0.186.0** (our shaders patch three's chunks), React 19 for the DOM UI,
-Vitest, and Playwright. **TypeScript stays on 6.0.x** until typescript-eslint supports 7.x. WebGL2 + GLSL only.
+TypeScript + Vite 8, **three.js pinned to 0.186.0**, React 19 for the DOM UI, Vitest, and Playwright. **TypeScript stays
+on 6.0.x** until typescript-eslint supports 7.x.
+
+**Rendering is WebGPU-first** (PLAN §15): import from `three/webgpu` and `three/tsl`, and write shaders as **TSL nodes**
+(no GLSL strings, no `onBeforeCompile`). The same TSL runs on WebGPU and on the automatic WebGL2 backend. **Compute is
+WebGPU-only**, so every compute feature needs a capability check and a non-compute fallback. Keep pipeline counts
+within PLAN §15.4, and don't patch three.js private internals.
 
 ## Commands
 

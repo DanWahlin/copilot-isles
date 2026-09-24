@@ -12,7 +12,10 @@ export default defineConfig({
     baseURL: 'http://127.0.0.1:4173',
     viewport: { width: 1600, height: 900 },
     ...(local
-      ? { channel: 'chrome', launchOptions: { args: ['--use-angle=metal', '--ignore-gpu-blocklist'] } }
+      ? {
+          channel: 'chrome',
+          launchOptions: { args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu'] },
+        }
       : {}),
   },
   webServer: {

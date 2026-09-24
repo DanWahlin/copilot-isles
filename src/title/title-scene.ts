@@ -2,18 +2,19 @@ import {
   AgXToneMapping,
   BackSide,
   Color,
+  DirectionalLight,
   FogExp2,
+  HemisphereLight,
   Mesh,
-  MeshStandardMaterial,
+  MeshBasicNodeMaterial,
+  MeshStandardNodeMaterial,
   PerspectiveCamera,
   PlaneGeometry,
   Scene,
-  ShaderMaterial,
   SphereGeometry,
-  DirectionalLight,
-  HemisphereLight,
-  type WebGLRenderer,
-} from 'three';
+  type WebGPURenderer,
+} from 'three/webgpu';
+import { Fn, color, mix, positionLocal, pow, saturate } from 'three/tsl';
 
 export interface TitleScene {
   scene: Scene;
@@ -24,9 +25,9 @@ export interface TitleScene {
 
 /**
  * Phase 0 scaffold placeholder for the title (PLAN §13.5 contents). T4/T5 replace the sky and
- * ocean with the real systems; this only proves the chunk split, loop, and counters.
+ * ocean with the real systems; this only proves TSL on both backends, the chunk split, and counters.
  */
-export function createTitleScene(renderer: WebGLRenderer): TitleScene {
+export function createTitleScene(renderer: WebGPURenderer): TitleScene {
   renderer.toneMapping = AgXToneMapping;
   const scene = new Scene();
   scene.fog = new FogExp2(new Color(0x9fb8c8), 0.0009);
@@ -35,28 +36,18 @@ export function createTitleScene(renderer: WebGLRenderer): TitleScene {
   camera.position.set(0, 6, 30);
   camera.lookAt(0, 3, -100);
 
-  const sky = new Mesh(
-    new SphereGeometry(4000, 32, 16),
-    new ShaderMaterial({
-      side: BackSide,
-      depthWrite: false,
-      fog: false,
-      uniforms: {},
-      vertexShader:
-        'varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-      fragmentShader: `varying vec3 vDir;
-        void main(){
-          float h = clamp(vDir.y, 0.0, 1.0);
-          vec3 horizon = vec3(1.0, 0.72, 0.48), zenith = vec3(0.16, 0.34, 0.62);
-          gl_FragColor = vec4(mix(horizon, zenith, pow(h, 0.45)), 1.0);
-        }`,
-    }),
-  );
-  scene.add(sky);
+  // TSL sky gradient: one node graph that compiles to WGSL (WebGPU) or GLSL (WebGL2 backend).
+  const skyColor = Fn(() => {
+    const h = saturate(positionLocal.normalize().y);
+    return mix(color(1.0, 0.72, 0.48), color(0.16, 0.34, 0.62), pow(h, 0.45));
+  });
+  const skyMat = new MeshBasicNodeMaterial({ side: BackSide, depthWrite: false, fog: false });
+  skyMat.colorNode = skyColor();
+  scene.add(new Mesh(new SphereGeometry(4000, 32, 16), skyMat));
 
   const sea = new Mesh(
     new PlaneGeometry(8000, 8000, 1, 1).rotateX(-Math.PI / 2),
-    new MeshStandardMaterial({ color: 0x0f4a66, roughness: 0.25, metalness: 0 }),
+    new MeshStandardNodeMaterial({ color: 0x0f4a66, roughness: 0.25, metalness: 0 }),
   );
   scene.add(sea);
 

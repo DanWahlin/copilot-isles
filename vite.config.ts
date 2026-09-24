@@ -11,10 +11,11 @@ export default defineConfig({
     target: 'es2022',
     manifest: true,
     sourcemap: true,
-    chunkSizeWarningLimit: 600, // size is enforced by tools/check-budgets.mjs instead
+    chunkSizeWarningLimit: 1000, // size is enforced by tools/check-budgets.mjs instead
     rollupOptions: {
       output: {
         manualChunks(id) {
+          // three/webgpu + three/tsl (WebGPURenderer with its WebGL2 backend) share one long-lived chunk.
           if (id.includes('node_modules/three/')) return 'vendor-three';
           if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return 'vendor-ui';
           return undefined;

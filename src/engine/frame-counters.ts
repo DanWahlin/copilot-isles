@@ -1,4 +1,4 @@
-import type { WebGLRenderer } from 'three';
+import type { WebGPURenderer } from 'three/webgpu';
 
 export interface FrameStats {
   calls: number;
@@ -6,6 +6,7 @@ export interface FrameStats {
   programs: number;
   geometries: number;
   textures: number;
+  gpuMemoryMB: number;
 }
 
 export interface Hitch {
@@ -17,15 +18,15 @@ export interface Hitch {
 
 /**
  * Whole-frame renderer counters (PLAN §12.10): three.js resets its counters on every render()
- * call, so we disable auto-reset and reset once per frame to sum every pass.
+ * call, so we disable auto-reset and reset once per frame to sum every pass (scene, mirror, post).
  */
 export class FrameCounters {
-  last: FrameStats = { calls: 0, triangles: 0, programs: 0, geometries: 0, textures: 0 };
+  last: FrameStats = { calls: 0, triangles: 0, programs: 0, geometries: 0, textures: 0, gpuMemoryMB: 0 };
   readonly hitches: Hitch[] = [];
   private armed = false;
   private base = { programs: 0, geometries: 0, textures: 0 };
 
-  constructor(private readonly renderer: WebGLRenderer) {
+  constructor(private readonly renderer: WebGPURenderer) {
     renderer.info.autoReset = false;
   }
 
@@ -34,38 +35,38 @@ export class FrameCounters {
   }
 
   endFrame(t: number): void {
-    const { render, memory, programs } = this.renderer.info;
-    const p = programs?.length ?? 0;
+    const { render, memory } = this.renderer.info;
+    const mem = memory as typeof memory & { programs?: number; total?: number };
+    const programs = mem.programs ?? 0;
     this.last = {
       calls: render.calls,
       triangles: render.triangles,
-      programs: p,
+      programs,
       geometries: memory.geometries,
       textures: memory.textures,
+      gpuMemoryMB: (mem.total ?? 0) / 1048576,
     };
-    // Hitch guard: after warm-up, any new program/geometry/texture during play is a missing precompile.
-    if (
-      this.armed &&
-      (p > this.base.programs ||
-        memory.geometries > this.base.geometries ||
-        memory.textures > this.base.textures)
-    ) {
-      if (this.hitches.length < 200) {
-        this.hitches.push({
-          t,
-          programs: p - this.base.programs,
-          geometries: memory.geometries - this.base.geometries,
-          textures: memory.textures - this.base.textures,
-        });
-      }
+    // Hitch guard: after warm-up, any new pipeline/geometry/texture during play is a missing precompile.
+    if (!this.armed) return;
+    const grew =
+      programs > this.base.programs ||
+      memory.geometries > this.base.geometries ||
+      memory.textures > this.base.textures;
+    if (grew && this.hitches.length < 200) {
+      this.hitches.push({
+        t,
+        programs: programs - this.base.programs,
+        geometries: memory.geometries - this.base.geometries,
+        textures: memory.textures - this.base.textures,
+      });
     }
-    if (this.armed) this.base = { programs: p, geometries: memory.geometries, textures: memory.textures };
+    this.base = { programs, geometries: memory.geometries, textures: memory.textures };
   }
 
   /** Call once warm-up is complete. */
   arm(): void {
-    const { memory, programs } = this.renderer.info;
-    this.base = { programs: programs?.length ?? 0, geometries: memory.geometries, textures: memory.textures };
+    const memory = this.renderer.info.memory as { programs?: number; geometries: number; textures: number };
+    this.base = { programs: memory.programs ?? 0, geometries: memory.geometries, textures: memory.textures };
     this.armed = true;
   }
 }

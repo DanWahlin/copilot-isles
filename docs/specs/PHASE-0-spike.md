@@ -1,7 +1,8 @@
-# Spec: Phase 0: Look, Sound & Performance Spike (v0.1)
+# Spec: Phase 0: Look, Sound & Performance Spike (v0.2: WebGPU-first + Tidewater)
 
 > **Gate:** you approve the **look**, the **sound**, and the **frame rate/load numbers** before any island content is built. The spike **isn't a game**. It's the engine proven on one small test cove, built the way the real game will be built.
-> Source of truth for techniques and budgets: [`.plans/PLAN.md`](../../.plans/PLAN.md) §6 (Water, Physics, Environment), §7 (Audio), §12 (Efficiency), §13 (Modular loading), and §14 (Platforms).
+> Source of truth for techniques and budgets: [`.plans/PLAN.md`](../../.plans/PLAN.md) §6 (Water, Physics, Environment), §7 (Audio), §12 (Efficiency), §13 (Modular loading), §14 (Platforms), and **§15 (WebGPU-first technology)**.
+> **Renderer:** three.js `WebGPURenderer` + TSL, with the automatic WebGL2 backend. **Every system is built and measured on both backends.** Tidewater (MIT) code may be adapted with notices (`THIRD_PARTY_NOTICES.md`).
 
 ---
 
@@ -54,19 +55,25 @@ One compact island (~300 × 200 m) that exercises **every hard case** in one pla
 
 | ID | System | Acceptance (all measured by the tooling in S14) |
 |---|---|---|
-| **S1** | **Engine shell:** `boot` / `vendor-three` / chunk split, renderer, fixed-step + render loop, tiers, adaptive resolution (§12.9: GPU timer + fallback, 1.25×/0.85× T), `window.__isles` debug API, `shot()`, hitch guard, `?seed=` | No programs/geometries/textures created after warm-up (hitch guard empty) along the whole benchmark |
-| **S2** | **Sky, atmosphere & lighting keyframes:** procedural sky, curved cloud layer, height fog + mist, sky-sampled land haze, a preset system (~20 params) | Golden hour and noon both approved by you. No sky or fog banding (dither on) |
-| **S3** | **Ocean**, the full §6 Water system:<br>• wave table → GLSL, exact height, distance fade<br>• polar grid + `aSpan` filtering, PMREM + roughness AA, glints + sparkles<br>• copy/absorption, caustics, foam layers + coast ribbon + swash<br>• wake/bow/cut-out/foam ring/wet band/spray<br>• analytic hull reflection (4/1/smear/none by tier)<br>• harbor mirror (High/Ultra, ≤ 35%) | Each layer can be toggled in the HUD, **its GPU cost is listed separately**, the mirror stays ≤ 35% of the main pass, and there's no visible aliasing or shimmer at the horizon in a 10 s pan |
+| **S1** | **Engine shell:** `boot` / `vendor-three` / chunk split, **`WebGPURenderer` with backend detection** (WebGPU adapter → WebGL2 → 2D), reversed-Z, MRT scaffolding, optional **HDR output**, fixed-step + render loop, capability tiers (§15.1), adaptive resolution (§12.9: `timestamp-query` / timer query + fallback, 1.25×/0.85× T), `window.__isles` debug API (incl. backend, features, pipeline count), `shot()`, hitch guard, `?seed=`. **Evaluate OffscreenCanvas worker rendering** (§15.3) | No programs/geometries/textures created after warm-up (hitch guard empty) along the whole benchmark |
+| **S2** | **Sky, atmosphere, clouds & time of day:**
+• **Hillaire atmosphere LUTs** (compute on WebGPU, fragment passes on WebGL2)
+• **the parametric sun path + sun-azimuth rotation, night factor, and sun→moon handoff** (adapted from Tidewater), with a **debug sun-dial** to scrub time and azimuth
+• stars/moon, **progressive env/PMREM refresh**
+• tiered clouds (**volumetric** on WebGPU High/Ultra, dome on Medium, layer on Low) + a **cloud-shadow map**
+• height fog + mist, sky-sampled land haze, and lighting keyframes keyed by sun elevation | Golden hour, noon, dusk, and **night** approved by you. A **full 24 h time scrub** has no pops (env refresh stays ≤ 1 unit/frame) and no sky or fog banding |
+| **S3** | **Ocean**, the full §6 Water system. **WebGPU: 4-cascade FFT ocean on CDLOD, ShoreSim, spectral WakeSim, GPU spray, SSR** (adapted from Tidewater's `OceanFFT`, `ShoreSim`, `WakeSim`, `Spray`). **All tiers: ShoreWaves** travel-time refraction + surf. **WebGL2/Low: the Gerstner path below**:<br>• wave table → TSL, exact height, distance fade<br>• polar grid + `aSpan` filtering, PMREM + roughness AA, glints + sparkles<br>• copy/absorption, caustics, foam layers + coast ribbon + swash<br>• wake/bow/cut-out/foam ring/wet band/spray<br>• analytic hull reflection (4/1/smear/none by tier)<br>• harbor mirror (High/Ultra, ≤ 35%) | Each layer can be toggled in the HUD, **its GPU cost is listed separately**, the mirror stays ≤ 35% of the main pass, and there's no visible aliasing or shimmer at the horizon in a 10 s pan |
 | **S4** | **Terrain, cliffs & distant land:** analytic coast/cliff function **baked by a build tool** (heights, AO, sun visibility ×2, rim flag, shoreline contour → foam ribbon), the cliff/rock shader, 3 distant ranges (procedural at load) | The bake is deterministic (same hash twice). Load-time generation of the distant ranges takes ≤ 150 ms on M3 Max (≤ 450 ms at 3× CPU throttle) |
-| **S5** | **Vegetation & wind:** one shared wind field (TS + GLSL), instanced palms (3 variants) + grass with trample, translucency, LOD → impostor | ≤ 12 draw calls for all vegetation in F1 |
+| **S5** | **Vegetation & wind:** Tidewater-derived **procedural plants + scatter rules**, **8 m grass cells with 3 tiers**, **octahedral impostors**, and **dithered LOD fades**, on one shared wind field (TS → TSL). **GPU culling + indirect draws on WebGPU**, CPU cell culling on WebGL2. Plus translucency and wind sheen | ≤ 12 draw calls for all vegetation in F1 |
 | **S6** | **Characters:** CC0 base body m/f + pirate outfit, idle/walk/run/wade animations, procedural idle life on 8 NPCs, the kinematic controller (Rapier primitives), hold-RMB camera, wading | 8 NPCs + the player cost ≤ 1.5 ms CPU/frame at 3× throttle. Off-screen NPCs don't animate |
-| **S7** | **Brigantine & sailing:** hull defined by **one station function** (mesh + hull SDF + buoyancy from the same source), procedural masts/spars/sails (vertex-shader billow + luffing), damped-spring heave/pitch/roll at 8 stations, one horizontal integrator, trim/rudder, docking assist, a waypoint-spline autopilot demo, a small CPU-spring set (lantern + 1 line), crew-load heel | Motion reviewed on video (lag, overshoot, settle). No NaNs over a 10-minute soak. Docking assist lands within ±0.5 m |
+| **S7** | **Brigantine & sailing:** hull **lofted from naval lines** (adapted from Tidewater's `HullLines`/`GeoKit`), with the hull SDF + buoyancy derived from the same lines. Also evaluate Tidewater's `BoatController` (120 Hz CPU, sail thrust in place of the prop) against our damped-spring design (§6), procedural masts/spars/sails (vertex-shader billow + luffing), damped-spring heave/pitch/roll at 8 stations, one horizontal integrator, trim/rudder, docking assist, a waypoint-spline autopilot demo, a small CPU-spring set (lantern + 1 line), crew-load heel | Motion reviewed on video (lag, overshoot, settle). No NaNs over a 10-minute soak. Docking assist lands within ±0.5 m |
 | **S8** | **Leaps director:** flying fish + dolphins, UI-text-box avoidance, reduced-motion off, Lite off | Across 50 seeded spawns there are zero leaps behind the title text or partly off screen |
 | **S9** | **Post:** SSAO (half-res), shafts (shadow-map ray-march + temporal on High, radial on Medium), bloom mip chain, AgX, white balance, grade, grain + dither, FXAA + unsharp | Each effect can be toggled, with its cost listed |
 | **S10** | **Shadows:** static cache (refresh on movement threshold) + dynamic character map, blob on Lite | Shadow re-render ≤ 1 per ~50 m of travel. No shimmering |
-| **S11** | **Audio:** procedural composer (Anchorage theme, 4 layers), ambience (surf, gulls, wind, palm rustle), leap splashes. **Voice pipeline**: `tools/voice/generate.ts` renders **6 lines** (Nell ×3 in HD, Wingman ×3 with FX) to Opus + AAC with word timings, played with synced subtitles | You approve the music and voices. Audio CPU ≤ 1 ms/frame. Music ducks under voice |
+| **S11** | **Audio:** procedural composer (Anchorage theme, 4 layers). **Sample-based soundscape** (Tidewater's `SoundScape` design: HRTF, buses, ducking, voice caps) with **CC0 field recordings**: surf **timed to ShoreWaves**, gulls, wind, palm rustle, **footsteps by surface**, hull slaps, leap splashes. **Voice pipeline**: `tools/voice/generate.ts` renders **6 lines** (Nell ×3 in HD, Wingman ×3 with FX) to Opus + AAC with word timings, played with synced subtitles | You approve the music and voices. Audio CPU ≤ 1 ms/frame. Music ducks under voice |
 | **S12** | **Loading skeleton (§13):**<br>• the manifest + packs `title/ship`, `common/critical`, and `testcove/critical` + `testcove/harbor` (zone-streamed)<br>• Workbox SW (cache-first for hashed files, network-first manifest, activate at title)<br>• the instant chart loader (3 layers, `--p`, stage messages, capped creep, font warm-up)<br>• two-phase warm-up | §13.5 **wire** and **time-to-interactive** targets met at High and emulated Low. A second visit loads the title from the SW cache in ≤ 1.5 s |
 | **S13** | **Detection & tiers (§14.2):** WebGL2 check, software-render detection, a 1.5 s benchmark picks the tier, and a 2D-mode *stub* (message + course link) | Forcing SwiftShader (`--use-angle=swiftshader`) routes to the stub. The benchmark picks the expected tier in the emulation profiles |
+| **S15** | **Birds** (adapted from Tidewater's wildlife): gulls **perched on the dock rails, roofs, and the brigantine's yards that flush when you approach or set sail**, terns patrolling, frigatebirds soaring, and shorebirds chasing the swash. Coordinated-turn `Flyer` flight, one instanced draw (storage buffer on WebGPU, instance attributes on WebGL2) | Perched → flush → landing looks natural on video. ≤ 0.5 ms CPU for 30 birds at 3× throttle |
 | **S14** | **Measurement:** the debug HUD (whole-frame counters, per-layer GPU ms, pack residency), the benchmark flythrough, Playwright **tier-emulation** runs (render scale + CPU throttle + the GPU budget ÷ ratio), a CI **budget check** (chunk/pack sizes), and visual-regression screenshots of F1/F2/B1/B2/T1 | One command (`npm run bench`) produces the §5 report table |
 
 ---
@@ -80,6 +87,8 @@ One compact island (~300 × 200 m) that exercises **every hard case** in one pla
 | Ground/rock/plaster/wood textures | ambientCG / Poly Haven (CC0), plus **1-2 AI-generated tileables** to evaluate that pipeline | KTX2 (ETC1S albedo, UASTC normals), 1K + 2K tiers |
 | Brigantine | **Procedural** (hull station function → mesh), with CC0 barrels/crates/rigging props | Built at load from the shared function. Props via glTF |
 | Voices | Azure Speech (the `~/.env` key, **build-time only**) | Opus + AAC, −18 LUFS, timings JSON |
+| Ambience & SFX | **Tidewater's 31 CC0 Freesound recordings** (credits carried over) + more CC0 Freesound/Kenney | Loudness-normalized Ogg/Opus + AAC, sprite sheets, logged in `ASSETS.md` |
+| Tidewater code | MIT (© 2026 DRG Software Solutions LLC) | Adapted files keep headers, and the full notice goes in `THIRD_PARTY_NOTICES.md` |
 
 Every asset's source, license, and processing is logged in `ASSETS.md` (CC0 kits) and `ART_PROVENANCE.md` (AI art).
 
@@ -91,12 +100,12 @@ The GPU ms figures are **measured on this M3 Max with timer queries at the tier'
 | Tier (target) | Render (1080p output) | GPU ratio vs M3 Max | **M3 Max GPU budget / frame** | CPU throttle | Main thread budget (throttled) |
 |---|---|---|---|---|---|
 | Lite (30 fps) | ×0.55 | ~40-70× | ≤ 0.5 ms | 6× | ≤ 7 ms |
-| **Low / floor (30 fps)** | ×0.65 | ~25-35× | **≤ 1.0 ms** (33 ms ÷ ~33) | 3× | ≤ 6 ms |
+| **Low / floor (30 fps)**, measured on both backends | ×0.65 | ~25-35× | **≤ 1.0 ms** (33 ms ÷ ~33) | 3× | ≤ 6 ms |
 | Medium (45-60 fps) | ×0.9 | ~5-7× | ≤ 2.5 ms | 2× | ≤ 5 ms |
 | High (60 fps) | ×1.0 | ~4× | ≤ 4.0 ms | 1× | ≤ 4 ms |
 | Ultra (60 fps @1440p) | ×1.0 @1440p | 1× | ≤ 14 ms | 1× | ≤ 4 ms |
 
-The shots are also judged on the §12.1 draw-call, triangle, and texture-memory limits, and the loader/title on §13.5 wire + time-to-interactive.
+The shots are also judged on the §12.1 draw-call, triangle, and texture-memory limits, the **§15.4 pipeline budget** (title ≤ 40, island ≤ 150), and the loader/title on §13.5 wire + time-to-interactive, **each on WebGPU and on the forced WebGL2 backend**.
 
 ---
 
@@ -109,7 +118,7 @@ Tasks are tracked in the session todo list. The dependencies are listed so work 
 | T2 | S1 engine shell + S14 HUD/debug API skeleton | T1 |
 | T3 | S12 loading skeleton (manifest, pack builder, SW, loader art v1, stage messages) | T2 |
 | T4 | S2 sky/atmosphere/presets | T2 |
-| T5 | S3a ocean core (wave table → GLSL, polar grid, exact height, PMREM, roughness AA, glints) | T4 |
+| T5 | S3a ocean core (wave table → TSL, polar grid/CDLOD, exact height, PMREM, roughness AA, glints) + **FFT cascades on WebGPU** | T4 |
 | T6 | S7 brigantine (station function → mesh/SDF/buoyancy) + sailing + docking | T5 |
 | T7 | S3b ocean interaction (wake, bow, cut-out, foam ring, wet band, spray, analytic hull reflection tiers) | T5, T6 |
 | T8 | S4 terrain/cliff bake tool + cliff shader + distant ranges + haze | T4 |
@@ -119,9 +128,10 @@ Tasks are tracked in the session todo list. The dependencies are listed so work 
 | T12 | S10 shadows + S9 post | T5, T8 |
 | T13 | S3d harbor mirror (High/Ultra) + flotsam | T9, T11 |
 | T14 | S8 Leaps director | T5 |
+| T14b | S15 Birds (Tidewater-derived) | T6, T11 |
 | T15 | S11 audio: composer + ambience + voice pipeline (6 lines) + subtitles | T2 |
 | T16 | S13 detection, tiers, benchmark, 2D stub | T2, T12 |
-| T17 | S14 benchmark flythrough + tier-emulation Playwright + visual regression + report | T3-T16 |
+| T17 | S14 benchmark flythrough + tier-emulation Playwright + visual regression + report, **on both backends** | T3-T16, T14b |
 | T18 | **Review package:** F1/F2/B1/B2/T1 stills, a 2-min video, the audio samples, and the perf/load report → your approval | T17 |
 
 ---
@@ -132,6 +142,8 @@ Tasks are tracked in the session todo list. The dependencies are listed so work 
 - [ ] The §5 table is **green** for every tier on the benchmark, or has a written, approved exception.
 - [ ] The §13.5 wire + time-to-interactive targets are met (High + emulated Low), and a second visit is served from the SW cache.
 - [ ] The hitch guard stays empty across the benchmark, and there are no NaNs over the 10-minute sailing soak.
+- [ ] **Both backends:** every shot renders correctly on WebGPU and on the forced WebGL2 backend, compute features are cleanly swapped for their fallbacks, and the §15.4 pipeline budgets hold.
+- [ ] **Time of day:** you approve a full 24 h scrub (dawn → noon → golden hour → dusk → night with lanterns, stars, and moon) and the sun-azimuth control.
 - [ ] CI is green: lint, types, unit tests, budget check, visual regression, and the no-secrets grep.
 - [ ] `ASSETS.md` / `ART_PROVENANCE.md` are complete. No reference-project code or assets are in the repo.
 

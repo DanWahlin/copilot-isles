@@ -1,18 +1,18 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
-// CI runs Chromium without a GPU (SwiftShader), so the 3D path is forced there.
-const forceGpu = process.env.CI ? '&forceGpu' : '';
+// CI runs Chromium without a GPU (SwiftShader, no WebGPU), so the 3D path is forced there and
+// only the WebGL2 backend can be exercised. Locally (real Chrome + GPU) both backends run.
+const CI = Boolean(process.env.CI);
+const force = CI ? '&forceGpu' : '';
 
-// Scaffold smoke test: the loader paints, the title renders with real GPU work, and nothing errors.
-test('loader paints, title renders, no errors', async ({ page }) => {
+async function expectTitleRenders(page: Page, url: string) {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 
-  await page.goto(`/?debug${forceGpu}`);
+  await page.goto(url);
   await expect(page.locator('#loadTitle')).toHaveText('COPILOT ISLES');
-
-  await page.waitForFunction(() => Boolean(window.__isles), null, { timeout: 30_000 });
+  await page.waitForFunction(() => Boolean(window.__isles), null, { timeout: 45_000 });
   await expect(page.getByRole('heading', { name: 'COPILOT ISLES' })).toBeVisible();
   await expect(page.locator('#loading')).toHaveCount(0, { timeout: 5_000 });
 
@@ -21,9 +21,20 @@ test('loader paints, title renders, no errors', async ({ page }) => {
   expect(info.triangles).toBeGreaterThan(0);
 
   await page.waitForTimeout(1_000);
-  const hitches = await page.evaluate(() => window.__isles!.hitches());
-  expect(hitches).toEqual([]);
+  expect(await page.evaluate(() => window.__isles!.hitches())).toEqual([]);
   expect(errors).toEqual([]);
+  return info;
+}
+
+test('WebGPU backend: title renders with no errors or hitches', async ({ page }) => {
+  test.skip(CI, 'CI Chromium has no WebGPU adapter');
+  const info = await expectTitleRenders(page, '/?debug');
+  expect(info.backend).toBe('webgpu');
+});
+
+test('WebGL2 backend (fallback): the same TSL title renders', async ({ page }) => {
+  const info = await expectTitleRenders(page, `/?debug&webgl${force}`);
+  expect(info.backend).toBe('webgl2');
 });
 
 // PLAN §14.2: software rendering routes to the 2D fallback (a stub until Phase 1).

@@ -23,13 +23,13 @@
 | AI-generated art | **Allowed anywhere it helps** (uses the image model in `~/.env`). See §6a |
 | Branding | **Unsure.** Build unbranded, with a theme layer so logos/mascots can be dropped in later. The **affiliation line** wording is a required decision before the first public deploy |
 | Platforms | **Runs everywhere with a WebGL2 browser:** desktop (keyboard/mouse + gamepad) **and tablets (touch) now**, phones in a later phase. **Performance floor: Intel UHD 620 at 30 fps**, plus a **Lite** preset for Chromebooks. Devices that can't run 3D get the **2D Chart & Logbook mode**. See §14 |
-| Rendering backend | **WebGL2 + GLSL** (three.js). WebGPU only for optional HDR output later |
+| Rendering backend | **WebGPU-first: three.js `WebGPURenderer` + TSL** (one node shader language → WGSL on WebGPU, GLSL on the automatic **WebGL2 backend**). Compute features (FFT ocean, sims, volumetric clouds, GPU particles, GPU culling) run on WebGPU tiers, and WebGL2 gets non-compute paths. Decided 2026-09-23 after the Tidewater study. See **§15** |
 | Test hardware | **Emulated** on the M3 Max (locked render scale + scaled GPU budgets + CPU throttling), with **cloud real-device runs** for iPad/Android tablets. A **real UHD 620 check happens before public launch** (user decision; accepted risk in §11) |
 | Repository | `DanWahlin/copilot-isles` (**private**). GitHub Pages from a private repo needs a paid plan, and the published site is public either way |
 | Hosting | **GitHub Pages** |
 | Project folder | `~/Desktop/test/copilot-isles` |
 | Deadline | None |
-| Music | **Fully procedural** (Arkenfall-style), plus procedural ambience and SFX. See §7 |
+| Music & sound | **Procedural music** (Arkenfall-style). **Ambience and SFX use real CC0 field recordings** (Tidewater's 31 Freesound CC0 files + more), spatialized with HRTF and **lazy-loaded per island** (~5 MB). See §7 |
 
 ---
 
@@ -209,10 +209,10 @@ The town's districts mirror the app's sidebar:
 
 ### Recommended stack
 - **TypeScript + Vite** (same foundation as Arkenfall)
-- **Three.js**: custom shaders for water, sky, terrain, foliage, and post-processing. **WebGL2 + GLSL** (decided, §0). WebGPU only for optional HDR output later.
+- **three.js `WebGPURenderer` + TSL** (`three/webgpu`, `three/tsl`): node materials, compute, and the `RenderPipeline` post stack, with the automatic WebGL2 backend as the fallback (§0, §15). No GLSL strings or `onBeforeCompile`. Techniques from the GLSL-based studies are re-expressed as TSL nodes.
 - **Rapier** (WASM physics), limited to **primitive static colliders** (boxes, capsules, heightfield), scene queries, and the **kinematic character controller**. The POC has no dynamic rigid bodies: push blocks are grid logic, and the boat is a kinematic hull on analytic buoyancy
 - **React DOM overlay** for menus, dialogue, quizzes, map, and logbook, plus a small store (e.g. Zustand) to bridge the game and the UI
-- **Custom Web Audio engine** (AudioWorklet + OfflineAudioContext) for procedural music, ambience, and SFX, plus streamed voice lines
+- **Web Audio:** a procedural music engine (AudioWorklet + OfflineAudioContext), plus a **sample-based soundscape** (CC0 field recordings, HRTF panners, buses, ducking, voice caps; Tidewater's `SoundScape` design) and streamed voice lines
 - **Vite code splitting** (dynamic `import()` chunks), a **pack builder** with a hashed `manifest.json`, and a **Workbox Service Worker** for modular loading and caching (§13)
 - **gltf-transform** (meshopt + KTX2) and headless **Blender** scripts to restyle and optimize CC0 assets
 - **Vitest** (quiz/puzzle/save logic) + **Playwright** (menu flows, visual smoke tests)
@@ -284,7 +284,7 @@ Our water has to cover **open-ocean swell, surf, lagoons, harbors, and flowing w
 
 | Layer | Technique | Tier |
 |---|---|---|
-| **Surface motion** | Open sea: **4-6 Gerstner waves with deep-water dispersion `ω = √(g·k)`**, defined in **one TS table that generates the GLSL constants**, plus two scrolling detail-normal layers, with amplitude by zone (calm lagoon → open swell). Amplitude also fades with camera distance (`exp(-d/≈240 m)`), **identically on CPU and GPU**. The mesh is a **camera-centred polar grid** (geometric ring spacing out to ~1.6 km). Each vertex carries its spacing, so **wave components the grid can't resolve are dropped instead of aliasing**. Rivers, waterfalls, and **the P0.1 sluice channels** use **two-phase flow maps** (no visible reset). Wind ripples on top | All (**Low/Lite: 3 Gerstner waves**) |
+| **Surface motion** | Open sea: **4-6 Gerstner waves with deep-water dispersion `ω = √(g·k)`**, defined in **one TS table that builds the TSL wave nodes** (it's all TS, so there's no code generation), plus two scrolling detail-normal layers, with amplitude by zone (calm lagoon → open swell). Amplitude also fades with camera distance (`exp(-d/≈240 m)`), **identically on CPU and GPU**. The mesh is a **camera-centred polar grid** (geometric ring spacing out to ~1.6 km). Each vertex carries its spacing, so **wave components the grid can't resolve are dropped instead of aliasing**. Rivers, waterfalls, and **the P0.1 sluice channels** use **two-phase flow maps** (no visible reset). Wind ripples on top | All (**Low/Lite: 3 Gerstner waves**) |
 | **Reflection** | **Baseline:** a Fresnel (Schlick) reflection of a **prefiltered PMREM sky map**, spread by roughness. **Roughness grows with unresolved wave variance and the normal's screen derivative**, so far water becomes a soft sheen rather than sparkling noise. Sun glints use a **microfacet (Beckmann/Smith) BRDF** plus **Poisson sparkles** sized to the pixel footprint. **Ships reflect analytically (no second render), tiered:** a simplified hull SDF is ray-tested with **4 jittered normals on High/Ultra** and **1 ray on Medium**, only inside the ship's screen rectangle. **Low** shows just a cheap darkened "hull smear" gradient under the ship, and **Lite** shows nothing. **Add-on for calm zones:** a **half-res planar mirror pass** (DPR ≤ 1.3) inside the lagoon and harbor basins only. It uses a `noReflect` layer (grass, particles, small props excluded), a global `uReflect` flag that puts every material on a **cheap shading path**, frozen shadows, and normal-distorted lookups | Baseline: all. Hull rays: High/Ultra 4, Medium 1, Low smear, Lite none. Sparkles: Medium+. Mirror: **High/Ultra**, calm zones only, **≤ 35% of the main pass** (Phase 0 fails above that), never in the Floor shot |
 | **Refraction & colour** | Copy the opaque pass to a **half-res target with linear depth in alpha**. Offset the lookup by normal × depth, and **fall back to the undistorted sample if the offset hits something in front of the water**. Colour is **Beer-Lambert absorption along the optical path** (depth ÷ view angle, clamped to the depth-buffer bed distance) plus an in-scatter body colour. **Per-island absorption presets**: turquoise lagoon, deep-blue ocean, jade river, and inky volcanic | All (Low: no distortion offset) |
 | **Seabed** | **Caustics** injected into the terrain material as *extra sunlight* (so shadows still hold), fading with depth and distance. **Underwater light attenuation** on anything below the waterline (so the shallows don't glow). Terrain uses a matte, wet look below the surface | Medium+ |
@@ -292,8 +292,9 @@ Our water has to cover **open-ocean swell, surf, lagoons, harbors, and flowing w
 | **Boat ↔ water** | All **analytic in the water shader**, with no particles or simulation: **Kelvin wake arms + churned trail**, a **bow-wave crescent**, hull-hugging streaky whitewater, rings around the hull at rest, and a **hull cut-out** (water discarded inside the hull, using the *same* hull function as the CPU). The **boat's shadow on water** is ray-stepped against that hull function. The hull also gets a **waterline foam ring** that rides the Gerstner surface, a **wet band** that follows the real sea height, and **spray bursts when the bow slams** a wave (hull-point vs sea velocity) | All (**Low/Lite: one wake term**, no shadow march, no spray) |
 | **Other interaction** | Rings + foam around the player's legs when wading, rings where crates or oars touch water, and floating flotsam/leaves that **part around the hull and fan into the wake** | Medium+ |
 | **Night & weather (post-POC)** | Lantern glints smeared into columns by the ripples, rain-ring fields, and wetness | Medium+ |
+| **WebGPU compute layers** (adapted from Tidewater, §15) | **4-cascade FFT ocean** (JONSWAP/TMA, persistent Jacobian foam) replacing Gerstner offshore, **ShoreWaves** travel-time refraction around headlands (analytic, *all* tiers), **ShoreSim** swash/foam/wet-sand field, **breakers** synced to spray, **spectral WakeSim** for the brigantine, a **GPU spray pool**, and **SSR** in calm zones | FFT/sims/spray: WebGPU Medium+ (reduced) and High/Ultra (full). ShoreWaves: all |
 
-**Single sources of truth:** the Gerstner wave sum, the terrain height `h(x,z)`, shore distance, and hull shape are each written **once as paired TS + GLSL functions**. Where possible, the GLSL is **generated from the TS constants at build time**. Buoyancy, placement, wading depth, wake, and cut-out all use them, so what you see always matches what the game simulates. Because Gerstner moves points sideways, the **exact surface height at a world point is found by inverting the horizontal displacement** (a 2-3 step fixed-point iteration) before sampling.
+**Single sources of truth:** the Gerstner wave sum, the terrain height `h(x,z)`, shore distance, and hull shape are each written **once in TS**, and the GPU side is **built from the same TS as TSL nodes**. There's no second shader copy to drift. With the **FFT ocean** (WebGPU tiers), the CPU samples the waves either via async GPU readback with latency prediction (Tidewater's `WaterQuery` approach) or via a matched CPU Gerstner/low-cascade approximation. Phase 0 T5 picks one per tier. Buoyancy, placement, wading depth, wake, and cut-out all use them, so what you see always matches what the game simulates. Because Gerstner moves points sideways, the **exact surface height at a world point is found by inverting the horizontal displacement** (a 2-3 step fixed-point iteration) before sampling.
 
 ### Physics & motion
 - The **agreed split stands:** Rapier provides only primitive static colliders, scene queries, and the kinematic character controller. There are no dynamic bodies, and push blocks are grid logic.
@@ -367,7 +368,12 @@ The upside is that the music is adaptive, tiny to download, and has no licensing
 | 07 Tidewheel Caldera | Lydian → triumphant Ionian finale | Music box, soft orchestral pads, bells |
 | Sailing / Title | Ionian, broad and calm | String pads that swell with the waves, harp, leitmotif |
 
-- **Ambient life and SFX are procedural too:** surf, gulls, wind, palm rustle, jungle birds and frogs, market murmur, forge clinks, creaking rigging, and bubbling springs. Positional emitters switch on by distance. **Kenney CC0 SFX** fill in only where synthesis can't do a sound justice.
+- **Ambience & SFX: real CC0 field recordings** (decided 2026-09-23), not synthesis:
+  - **Sources:** Tidewater's 31 Freesound CC0 files (surf crash/wash/backwash, gulls, terns, wind, palms, crickets, boat laps and hull slaps, footsteps on sand, wet sand, wood, rock, grass, and water, splashes, underwater) plus more CC0 Freesound/Kenney for village, market, forge, rigging, and the jungle.
+  - **Mixing:** spatialized with **HRTF panners** on buses with a limiter and **ducking under voice**, with **voice caps** per sound type.
+  - **Timing:** **surf timed to the ShoreWaves crash/wash/backwash**, **footsteps chosen by surface**, and beds that follow the time of day.
+  - **Loading:** gesture-gated and **lazy-loaded per island** as Ogg/Opus (+ AAC fallback), about 5 MB per island, inside the §13 pack budgets.
+  - **Credits:** every file is logged in `ASSETS.md` with its author and link.
 - Settings have separate sliders for Music, Ambience, SFX, Voice, and UI.
 
 ---
@@ -500,7 +506,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - **Nothing renders when nothing's visible.** When a full-screen menu, the map, or the Logbook is open, we render a single frame, blur it into a still backdrop, and pause the 3D loop. We also pause everything when the tab is hidden.
 
 ### 12.9 Adaptive quality
-- **GPU time is the primary signal.** We measure it with `EXT_disjoint_timer_query_webgl2` (a ring of ~4 queries, read asynchronously and smoothed). If the extension is missing or disjoint, we fall back to frame-time and missed-frame counting. **We never rescale during transitions** (fast travel, docking, dialogue cuts), and after a failed upscale we **back off exponentially** (≈ 15 s → 120 s).
+- **GPU time is the primary signal.** On WebGPU it comes from **`timestamp-query`** (the renderer's `trackTimestamp` + `resolveTimestampsAsync`). On the WebGL2 backend it comes from `EXT_disjoint_timer_query_webgl2` where exposed. Both are smoothed. If neither is available, we fall back to frame-time and missed-frame counting. **We never rescale during transitions** (fast travel, docking, dialogue cuts), and after a failed upscale we **back off exponentially** (≈ 15 s → 120 s).
 - **Dynamic resolution** starts measuring after a ~90-frame warm-up and averages over 60 frames:
   - **Thresholds are multiples of the tier's target frame time `T`** (33.3 ms at 30 fps, 16.7 ms at 60 fps).
   - **Lowering:** above **1.25 × T**, scale × 0.92, or × 0.84 above 2.5 × T. The floor is **0.72** (lower for Lite/Low), and there's an 8 s cooldown after a drop.
@@ -529,7 +535,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 | Chunk | Contents | Loaded when |
 |---|---|---|
 | `boot` (entry) | Renderer init, loader UI, input, settings, save, menu shell, the **title scene** (ocean/sky/ship shaders), module loader + manifest client | Page load |
-| `vendor-three` | three.js (measured **184 KB gz** for the whole library, less after tree-shaking). Its own long-lived hashed chunk | Page load (parallel) |
+| `vendor-three` | `three/webgpu` + `three/tsl` (**234 KB gz measured**: WebGPURenderer, its WebGL2 backend, and the node system). Its own long-lived hashed chunk | Page load (parallel) |
 | `game-core` | Player controller, camera, dialogue runtime, quest/event system, HUD, Logbook, Chart, quiz runtime | Prefetched while the title is idle. Required at New Voyage/Continue |
 | `char-create` | Character creator | New Voyage |
 | `sailing` | Boat kinematics, damped-spring buoyancy, waypoint-spline autopilot, wake uniforms | First time you board |
@@ -582,7 +588,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 | Item | Budget |
 |---|---|
 | `boot` JS | ≤ 150 KB gz |
-| `vendor-three` | ≤ 190 KB gz |
+| `vendor-three` | ≤ 250 KB gz (`three/webgpu`: WebGPURenderer + WebGL2 backend + TSL node system, measured 234 KB gz) |
 | Title assets + `title/ship` | ≤ 3.5 MB |
 | **→ Title (cold), wire ceiling** | **≤ 4 MB, ≤ 3 s of transfer at 25 Mbps** |
 | `game-core` + `sailing` + `physics` | ≤ 1.5 MB |
@@ -642,17 +648,19 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 | **No 3D** | No WebGL2, or hardware acceleration off/software rendering (VMs, remote desktop, locked-down PCs) | **2D mode** | The full course journey in 2D |
 
 ### 14.2 Detection & tier choice
-1. **WebGL2 check.** If it's missing, start in 2D mode with an explanation.
-2. **Software-rendering check:** `WEBGL_debug_renderer_info` strings such as SwiftShader, llvmpipe, "Microsoft Basic Render", or "Software". Some browsers mask this string, so we also run the benchmark in step 3. If it's software rendering, offer 2D mode ("Your browser isn't using the graphics card…" plus a how-to for enabling hardware acceleration).
-3. **A ~1.5 s silent benchmark** on the title scene at a fixed render scale, plus GPU-string heuristics and `navigator.deviceMemory` / `hardwareConcurrency` where available. Together these pick Lite/Low/Medium/High/Ultra. The player can always override it, and adaptive resolution (§12.9) fine-tunes within the tier.
-4. **Memory-constrained devices** (tablets, 4 GB machines) keep **one island zone resident** and a lower texture tier. Streaming (§13) respects each tier's memory budget.
-5. **Context loss** (common on mobile/iPad under memory pressure) is handled: `webglcontextlost` pauses, and restore re-uploads resident packs from the decoded cache.
+1. **WebGPU adapter check (first):** `navigator.gpu.requestAdapter({ powerPreference: 'high-performance' })`. A hardware adapter selects the **WebGPU backend**. A **fallback adapter** (`isFallbackAdapter`) or a SwiftShader one counts as software. We record the adapter vendor/architecture, **features** (`timestamp-query`, `shader-f16`, `float32-filterable`, `subgroups`, `texture-compression-astc`/`-bc`), and limits.
+2. **WebGL2 check (fallback):** if there's no hardware adapter, we try WebGL2 through `WebGPURenderer({ forceWebGL: true })`. `WEBGL_debug_renderer_info` strings such as SwiftShader, llvmpipe, "Microsoft Basic Render", or "Software" mean software rendering. Some browsers mask this string, so we also run the benchmark in step 3.
+3. **Neither is hardware:** start in **2D mode** ("Your browser isn't using the graphics card…" plus a how-to for enabling hardware acceleration). Test overrides: `?webgl`, `?forceGpu`, `?forceSoftware`.
+4. **A ~1.5 s silent benchmark** on the title scene at a fixed render scale, plus GPU-string heuristics and `navigator.deviceMemory` / `hardwareConcurrency` where available. Together these pick Lite/Low/Medium/High/Ultra. The player can always override it, and adaptive resolution (§12.9) fine-tunes within the tier.
+5. **Memory-constrained devices** (tablets, 4 GB machines) keep **one island zone resident** and a lower texture tier. Streaming (§13) respects each tier's memory budget.
+6. **Context loss / device loss** (common on mobile/iPad under memory pressure) is handled: `webglcontextlost` pauses, and restore re-uploads resident packs from the decoded cache.
 
 ### 14.3 Browser notes
 | Topic | Handling |
 |---|---|
 | Chrome / Edge / Firefox / Safari | All targets are WebGL2. Playwright runs the same checks on each |
-| GPU timer queries | Effectively Chrome-only, so frame-time measurement is the fallback everywhere else (§12.9) |
+| WebGPU availability (2026) | Default in **Chrome/Edge 113+** (Windows, macOS, ChromeOS), **Chrome Android 121+** (Android 12+, Qualcomm/ARM), **Safari 26+** (macOS, **iOS, iPadOS**, visionOS), and **Firefox 141+ Windows / 147+ macOS**. Firefox Linux/Android and blocked drivers use the WebGL2 backend |
+| GPU timing | WebGPU `timestamp-query` where supported, the WebGL2 timer-query extension on some Chrome builds, otherwise frame time (§12.9) |
 | Texture formats | KTX2/Basis transcodes to whatever the GPU supports (BCn on desktop, ASTC/ETC2 on Apple and Android) |
 | Voice audio | Opus first, AAC fallback via `canPlayType` (Safari versions vary) |
 | Audio unlock | The first click, tap, or key press starts the AudioContext (required on iOS/iPadOS) |
@@ -673,3 +681,52 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
   - The ratios are **estimates**, so we'll add a small margin
 - **Cloud real devices** (e.g. BrowserStack/LambdaTest) for **iPad and Android tablets**: touch, Safari/iPadOS behaviour, memory, and context loss. **Cloud desktop VMs lack real GPUs**, so they're used for compatibility and 2D-mode checks only, never for performance.
 - **Risk:** emulation can't fully predict an Intel iGPU's bandwidth limits or driver quirks. **Before public launch we should test on one real UHD 620 laptop** (a ~$150-250 used 8th-gen i5 ultrabook).
+
+---
+
+## 15. Technology stack: cutting edge, by capability (WebGPU-first)
+
+**Principle:** build on the newest platform features that **modern computers, tablets, and phones actually ship**, and turn them on **per device capability**, never by browser name. Every WebGPU-only feature has a non-compute fallback on the WebGL2 backend, so the game still runs everywhere (§14) and looks fantastic where the hardware allows.
+
+### 15.1 Who gets what
+| Capability class | Typical devices (2026) | Backend | Signature features |
+|---|---|---|---|
+| **WebGPU Ultra/High** | Apple M-series Macs & iPads, iPhone 15 Pro+ (A17 Pro+), RTX/Radeon desktops & laptops, Snapdragon 8 Gen 2+ / Dimensity 9000+ flagships | WebGPU | **4-cascade FFT ocean** (JONSWAP/TMA, persistent Jacobian foam; adapted from Tidewater), **ShoreSim swash + wet sand**, **spectral WakeSim**, **GPU spray pool**, **volumetric clouds + cloud shadows**, **Hillaire atmosphere LUTs in compute**, **GPU-driven culling** (compute + **indirect draws**) for vegetation, props, and birds, **render bundles** (`BundleGroup`) for static towns, **TAAU + RCAS**, GTAO, PCSS near cascade, SSR in calm zones, and **HDR output** on HDR displays (`outputType: HalfFloatType` → extended tone mapping) |
+| **WebGPU Medium** | Intel Iris Xe/Arc, M1 Air, iPad A14-A16, iPhone 13-15, recent mid-range Android | WebGPU | 2-cascade FFT (128²) or Gerstner in lagoons, a reduced ShoreSim (384²), the analytic wake + a smaller GPU spray pool, a quarter-res cloud dome + cloud shadows, TAAU, compute culling |
+| **WebGPU Low (floor)** | Intel UHD 620/630 (D3D12), Vulkan Chromebooks | WebGPU | The Low feature set (§12.1): Gerstner, analytic swash, no sims, a cloud layer + cloud shadows, render scale 0.6-0.75 |
+| **WebGL2 backend** | Firefox Linux/Android, blocklisted drivers, older browsers | WebGL2 (automatic) | Lite/Low/Medium features, **no compute** except transform-feedback particles. The same TSL materials compile to GLSL |
+| **No hardware 3D** | Software rendering, no WebGL2 | none | **2D Chart & Logbook mode** (§14.4) |
+
+### 15.2 Rendering technology
+- **TSL node materials everywhere:** one shader language that compiles to **WGSL** (WebGPU) or **GLSL** (WebGL2 backend). Shared CPU/GPU functions (waves, wind, terrain, hull) are written **once in TS** and build TSL nodes directly, so there's no code-string generation.
+- **Compute (WebGPU):** FFT ocean, shore/wake sims, spray, cloud noise/weather generation, atmosphere LUTs, **GPU frustum + distance culling writing indirect draw args**, and impostor/terrain bakes. Each has a documented WebGL2 fallback (§6 Water system, §6 Sky, §12.1).
+- **Modern pipeline features:**
+  - **reversed-Z depth** for sea-to-horizon precision
+  - **MRT** (colour, velocity, water mask) feeding TAAU and the water compositing
+  - a **half-float HDR** pipeline with `RenderPipeline` post
+  - **render bundles** for static geometry, which cut CPU submit cost (big on phones and tablets)
+  - **storage buffers** for instance data (birds, fish, spray)
+- **Texture formats:** KTX2/Basis transcoded at runtime to **ASTC** (Apple, mobile), **BC7/BC3** (desktop), or **ETC2** (Android), with `texture-compression-*` feature detection.
+- **Optional GPU features, used when present:**
+  - `timestamp-query`: profiling + adaptive resolution
+  - `float32-filterable`: higher-precision sim sampling
+  - `shader-f16`: cheaper math on mobile, where three exposes it
+  - `subgroups`: faster reductions, where exposed
+- **HDR & colour:** HDR canvas output on HDR displays (WebGPU, Ultra/High, opt-in in Settings), AgX tone mapping, dithered output. Wide-gamut Display-P3 output is an evaluation item (not native in three 0.186).
+
+### 15.3 Web platform technology
+- **Installable PWA:** the manifest + Service Worker (§13.6) give a full-screen, home-screen app on iPad/iPhone/Android, with **Screen Orientation lock** (landscape) and the **Fullscreen API** on tablets.
+- **Workers:** KTX2 transcoding, meshopt, pack decoding, and scatter/impostor prep run in **Web Workers**. **Rendering in a worker via `OffscreenCanvas`** (keeping the main thread free for UI, input, and audio) is a **Phase 0 evaluation** (T2), adopted only if input and audio stay simple.
+- **WebAssembly:** **SIMD** builds for anything we compile (Rapier SIMD, if we keep Rapier). Tidewater's plain-JS capsule/collider player model is evaluated in T11 as a lighter alternative (it saves ~1 MB).
+- **Scheduling:** `scheduler.yield()` / `requestIdleCallback` for staged loading, and `navigator.storage.persist()` for offline packs.
+- **Input:** Pointer Events + multi-touch, the **Gamepad API with haptics** (`vibrationActuator`), and the Vibration API on Android for tactile beats (chest open, puzzle solved). There's always a setting to turn it off.
+- **UI:** React 19 with modern CSS (container queries, `@property` transitions, `backdrop-filter` frosted panels, `color-mix()`) and the **View Transitions API** for menu, Chart, and Logbook transitions (with reduced-motion fallbacks).
+- **Sharing:** photo mode → `canvas.toBlob` → the **Web Share API** (the native share sheet on tablets and phones) or a download.
+- **Audio:** AudioWorklet (procedural music), HRTF `PannerNode`s, and `OfflineAudioContext` instrument pre-rendering.
+
+### 15.4 Keeping cutting edge fast (lessons from Tidewater)
+- **Pipeline budget:** we track `renderer.info.memory.programs`, with **title ≤ 40 pipelines** and **island ≤ 150**. We prefer a **small set of uber-materials driven by uniforms/attributes** over many material variants, and we avoid needless MRT/shadow/transparency permutations.
+- **Compile only what the next view needs:** the title first, then the island's pipelines **in the background** during character creation, the intro, the sea passage, or the fast-travel transition (§13.4). We **never force-compile hidden effects up front** (Tidewater's 30-60 s first load came partly from this).
+- **No private-internals patches** (like Tidewater's `TSLPatches.js`). If one becomes unavoidable, it's isolated, version-guarded, and covered by a test.
+- **WebGL2-backend parity is tested** in CI (Playwright forces the WebGL2 backend), and WebGPU is tested on real GPUs locally and on cloud devices.
+- **Device loss** (mobile under memory pressure) is handled like context loss (§14.2).

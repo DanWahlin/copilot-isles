@@ -1,5 +1,5 @@
-import { WebGLRenderer, SRGBColorSpace } from 'three';
-import { detectGpu } from './detect';
+import { HalfFloatType, WebGPURenderer } from 'three/webgpu';
+import { chooseBackend, detectWebGL2, detectWebGPU, type Backend } from './detect';
 import { showFallback } from './fallback';
 import { FixedStep } from '../engine/fixed-step';
 import { FrameCounters } from '../engine/frame-counters';
@@ -10,22 +10,33 @@ const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()
 
 async function boot(): Promise<void> {
   stage(0.05, 'Charting the isles');
-  // Test overrides: ?forceGpu lets CI (software-rendered Chromium) exercise the 3D path;
-  // ?forceSoftware exercises the fallback path on a real GPU.
+  // URL options: ?webgl forces the WebGL2 backend; ?hdr enables HDR output on HDR displays (WebGPU);
+  // ?forceGpu / ?forceSoftware are test overrides (CI's Chromium renders in software).
   const q = new URLSearchParams(location.search);
-  const gpu = detectGpu();
-  if (!gpu.webgl2) return showFallback('no-webgl2');
-  if (q.has('forceSoftware') || (gpu.kind === 'software' && !q.has('forceGpu')))
-    return showFallback('software');
+  const [webgpu, webgl] = [q.has('webgl') ? null : await detectWebGPU(), detectWebGL2()];
+  const choice = chooseBackend(
+    webgpu ?? { available: false, kind: 'none', vendor: '', architecture: '', features: [] },
+    webgl,
+    {
+      preferWebGL: q.has('webgl'),
+      force: q.has('forceGpu'),
+      forceSoftware: q.has('forceSoftware'),
+    },
+  );
+  if (!choice.backend) return showFallback(choice.reason);
+  const backend: Backend = choice.backend;
 
+  const hdr = backend === 'webgpu' && q.has('hdr') && matchMedia('(dynamic-range: high)').matches;
   const canvas = document.getElementById('gl') as HTMLCanvasElement;
-  const renderer = new WebGLRenderer({
+  const renderer = new WebGPURenderer({
     canvas,
     antialias: false,
     powerPreference: 'high-performance',
-    stencil: false,
+    forceWebGL: backend === 'webgl2',
+    reversedDepthBuffer: true,
+    ...(hdr ? { outputType: HalfFloatType } : {}),
   });
-  renderer.outputColorSpace = SRGBColorSpace;
+  await renderer.init();
   const counters = new FrameCounters(renderer);
 
   stage(0.25, 'Raising the swell');
@@ -62,6 +73,7 @@ async function boot(): Promise<void> {
     canvas,
     () => fps,
     () => 'title',
+    { backend, reason: choice.reason, hdr, features: webgpu?.features ?? [] },
   );
   counters.arm();
 

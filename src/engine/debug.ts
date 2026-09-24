@@ -1,7 +1,14 @@
 import type { FrameCounters, FrameStats, Hitch } from './frame-counters';
 
+export interface BackendInfo {
+  backend: 'webgpu' | 'webgl2';
+  reason: string;
+  hdr: boolean;
+  features: string[];
+}
+
 export interface IslesDebug {
-  info(): FrameStats & { width: number; height: number; fps: number };
+  info(): FrameStats & { width: number; height: number; fps: number } & BackendInfo;
   hitches(): Hitch[];
   state(): string;
 }
@@ -23,10 +30,11 @@ export function installDebug(
   canvas: HTMLCanvasElement,
   getFps: () => number,
   getState: () => string,
+  backend: BackendInfo,
 ): void {
   if (!debugEnabled()) return;
   window.__isles = {
-    info: () => ({ ...counters.last, width: canvas.width, height: canvas.height, fps: getFps() }),
+    info: () => ({ ...counters.last, width: canvas.width, height: canvas.height, fps: getFps(), ...backend }),
     hitches: () => [...counters.hitches],
     state: getState,
   };
