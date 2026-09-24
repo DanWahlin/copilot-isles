@@ -1,0 +1,72 @@
+{
+  "id": "wingman.hint.02",
+  "speaker": "Wingman",
+  "text": "If the sign doesn't name your fork, don't pull the yes lever yet.",
+  "words": [
+    {
+      "word": "If",
+      "start": 0.05,
+      "end": 0.2625
+    },
+    {
+      "word": "the",
+      "start": 0.2625,
+      "end": 0.3875
+    },
+    {
+      "word": "sign",
+      "start": 0.3875,
+      "end": 0.7875
+    },
+    {
+      "word": "doesn't",
+      "start": 0.7875,
+      "end": 1.1625
+    },
+    {
+      "word": "name",
+      "start": 1.1625,
+      "end": 1.45
+    },
+    {
+      "word": "your",
+      "start": 1.45,
+      "end": 1.6125
+    },
+    {
+      "word": "fork",
+      "start": 1.6125,
+      "end": 2.375
+    },
+    {
+      "word": "don't",
+      "start": 2.375,
+      "end": 2.7
+    },
+    {
+      "word": "pull",
+      "start": 2.7,
+      "end": 2.9375
+    },
+    {
+      "word": "the",
+      "start": 2.9375,
+      "end": 3.0375
+    },
+    {
+      "word": "yes",
+      "start": 3.0375,
+      "end": 3.4
+    },
+    {
+      "word": "lever",
+      "start": 3.4,
+      "end": 3.7875
+    },
+    {
+      "word": "yet",
+      "start": 3.7875,
+      "end": 4.0375
+    }
+  ]
+}

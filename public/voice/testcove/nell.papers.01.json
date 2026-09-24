@@ -1,0 +1,52 @@
+{
+  "id": "nell.papers.01",
+  "speaker": "Nell",
+  "text": "Morning, Captain! Nobody sails from Anchorage without their papers.",
+  "words": [
+    {
+      "word": "Morning",
+      "start": 0.07,
+      "end": 0.47
+    },
+    {
+      "word": "Captain",
+      "start": 0.47,
+      "end": 1.43
+    },
+    {
+      "word": "Nobody",
+      "start": 1.43,
+      "end": 1.91
+    },
+    {
+      "word": "sails",
+      "start": 1.91,
+      "end": 2.349
+    },
+    {
+      "word": "from",
+      "start": 2.349,
+      "end": 2.55
+    },
+    {
+      "word": "Anchorage",
+      "start": 2.55,
+      "end": 3.23
+    },
+    {
+      "word": "without",
+      "start": 3.23,
+      "end": 3.63
+    },
+    {
+      "word": "their",
+      "start": 3.63,
+      "end": 3.829
+    },
+    {
+      "word": "papers",
+      "start": 3.829,
+      "end": 4.079000000000001
+    }
+  ]
+}

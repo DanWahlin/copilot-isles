@@ -1,0 +1,67 @@
+{
+  "id": "wingman.hint.03",
+  "speaker": "Wingman",
+  "text": "You'll get unlimited retries here, so try the idea that feels safest.",
+  "words": [
+    {
+      "word": "You'll",
+      "start": 0.05,
+      "end": 0.3
+    },
+    {
+      "word": "get",
+      "start": 0.3,
+      "end": 0.5375
+    },
+    {
+      "word": "unlimited",
+      "start": 0.5375,
+      "end": 1.175
+    },
+    {
+      "word": "retries",
+      "start": 1.175,
+      "end": 1.8375
+    },
+    {
+      "word": "here",
+      "start": 1.8375,
+      "end": 2.4125
+    },
+    {
+      "word": "so",
+      "start": 2.4125,
+      "end": 2.65
+    },
+    {
+      "word": "try",
+      "start": 2.65,
+      "end": 2.9625
+    },
+    {
+      "word": "the",
+      "start": 2.9625,
+      "end": 3.1125
+    },
+    {
+      "word": "idea",
+      "start": 3.1125,
+      "end": 3.6125
+    },
+    {
+      "word": "that",
+      "start": 3.6125,
+      "end": 3.85
+    },
+    {
+      "word": "feels",
+      "start": 3.85,
+      "end": 4.2375
+    },
+    {
+      "word": "safest",
+      "start": 4.2375,
+      "end": 4.4875
+    }
+  ]
+}

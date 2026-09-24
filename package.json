@@ -20,7 +20,10 @@
     "check:budgets": "node tools/check-budgets.mjs",
     "check:secrets": "node tools/check-secrets.mjs",
     "toolchain": "bash tools/setup-toolchain.sh",
-    "toolchain:check": "node tools/check-toolchain.mjs"
+    "toolchain:check": "node tools/check-toolchain.mjs",
+    "bake": "tsx tools/bake/bake-terrain.ts",
+    "prebuild": "npm run bake",
+    "predev": "npm run bake"
   },
   "dependencies": {
     "react": "^19.3.0",

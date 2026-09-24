@@ -1,0 +1,390 @@
+// Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/audio/SoundScape.js@d32799f
+
+import { BANK, type LoopName, type SliceName, type SoundName } from './bank';
+import { chooseAudioFormat } from './format';
+import { VoiceLimiter, type LimitedVoice } from './voice-limiter';
+
+export type SurfKind = 'crash' | 'wash' | 'backwash';
+export type FootstepSurface = 'sand' | 'wetsand' | 'wood' | 'rock' | 'grass' | 'water';
+export type BedName = Extract<LoopName, 'wind' | 'palms' | 'surf_far' | 'birds_dawn' | 'crickets'>;
+
+export interface Vec3Like {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+}
+
+export interface SoundBuses {
+  readonly ambience: GainNode;
+  readonly sfx: GainNode;
+}
+
+interface ActiveVoice extends LimitedVoice {
+  readonly source: AudioBufferSourceNode;
+  readonly gain: GainNode;
+  readonly extras: AudioNode[];
+}
+
+interface ActiveBed {
+  readonly source: AudioBufferSourceNode;
+  readonly gain: GainNode;
+  readonly name: BedName;
+}
+
+const BED_NAMES: readonly BedName[] = ['wind', 'palms', 'surf_far', 'birds_dawn', 'crickets'];
+const FOOTSTEP_BANK: Readonly<Record<FootstepSurface, SliceName>> = {
+  sand: 'step_sand',
+  wetsand: 'step_wetsand',
+  wood: 'step_wood',
+  rock: 'step_rock',
+  grass: 'step_grass',
+  water: 'step_water',
+};
+const SURF_BANK: Readonly<Record<SurfKind, SliceName>> = {
+  crash: 'surf_crash',
+  wash: 'surf_wash',
+  backwash: 'surf_backwash',
+};
+const CAPS = {
+  step: 3,
+  crash: 7,
+  wash: 5,
+  backwash: 5,
+  gull: 2,
+  tern: 2,
+  bird: 4,
+  splash: 3,
+  hull: 3,
+} as const;
+const MIX = {
+  step: -50,
+  crash: -15,
+  wash: -20,
+  backwash: -23,
+  gull: -21,
+  tern: -25,
+  bird: -31,
+  dove: -34,
+  splash: -30,
+  hull: -24,
+} as const;
+const MONO_TRIM = Math.pow(10, -3 / 20);
+const DEFAULT_FORWARD: Vec3Like = { x: 0, y: 0, z: -1 };
+
+function clamp(value: number, min: number, max: number): number {
+  return value < min ? min : value > max ? max : value;
+}
+
+function dB(value: number): number {
+  return Math.pow(10, value / 20);
+}
+
+function hasSlices(entry: (typeof BANK)[SoundName]): entry is (typeof BANK)[SliceName] {
+  return 'slices' in entry;
+}
+
+function safeNow(ctx: AudioContext | null): number {
+  return ctx?.currentTime ?? 0;
+}
+
+export class IslesSoundScape {
+  private ctx: AudioContext | null = null;
+  private buses: SoundBuses | null = null;
+  private readonly buffers = new Map<SoundName, AudioBuffer>();
+  private readonly loading = new Map<SoundName, Promise<void>>();
+  private readonly beds = new Map<BedName, ActiveBed>();
+  private readonly limiter = new VoiceLimiter<ActiveVoice>(CAPS);
+  private readonly bedTargets: Record<BedName, number> = {
+    wind: 0,
+    palms: 0,
+    surf_far: 0,
+    birds_dawn: 0,
+    crickets: 0,
+  };
+  private readonly lastSlice: Partial<Record<SliceName, number>> = {};
+  private baseUrl: string;
+  private extension: '.ogg' | '.m4a' = '.ogg';
+  private listenerX = 0;
+  private listenerY = 1.7;
+  private listenerZ = 0;
+  private forwardX = DEFAULT_FORWARD.x;
+  private forwardY = DEFAULT_FORWARD.y;
+  private forwardZ = DEFAULT_FORWARD.z;
+  private night = 0;
+
+  constructor(baseUrl = `${import.meta.env.BASE_URL}audio/`) {
+    this.baseUrl = baseUrl;
+  }
+
+  bind(
+    ctx: AudioContext,
+    buses: SoundBuses,
+    audioElement: Pick<HTMLAudioElement, 'canPlayType'> | null,
+  ): void {
+    this.ctx = ctx;
+    this.buses = buses;
+    this.extension = chooseAudioFormat(audioElement).extension;
+  }
+
+  setListener(pos: Vec3Like, forward: Vec3Like = DEFAULT_FORWARD): void {
+    this.listenerX = pos.x;
+    this.listenerY = pos.y;
+    this.listenerZ = pos.z;
+    const len = Math.hypot(forward.x, forward.y, forward.z) || 1;
+    this.forwardX = forward.x / len;
+    this.forwardY = forward.y / len;
+    this.forwardZ = forward.z / len;
+    this.placeListener();
+  }
+
+  surf(pos: Vec3Like, kind: SurfKind, intensity: number): void {
+    const gain = clamp(intensity, 0, 1);
+    this.oneShotAt(
+      SURF_BANK[kind],
+      kind,
+      pos,
+      MIX[kind] - (1 - gain) * 12,
+      0.92 + Math.random() * 0.12,
+      8,
+      1.15,
+    );
+  }
+
+  footstep(surface: FootstepSurface, pos: Vec3Like): void {
+    this.oneShotAt(
+      FOOTSTEP_BANK[surface],
+      'step',
+      pos,
+      MIX.step + (Math.random() - 0.5) * 3,
+      0.94 + Math.random() * 0.12,
+      2,
+      1.4,
+    );
+  }
+
+  oneShot(name: SliceName, pos?: Vec3Like, gain = 1): void {
+    const target = clamp(gain, 0, 4);
+    const category = this.categoryFor(name);
+    const lufs = this.targetFor(name) + 20 * Math.log10(Math.max(target, 0.001));
+    if (pos) this.oneShotAt(name, category, pos, lufs, 0.96 + Math.random() * 0.08, 8, 1);
+    else this.playSlice(name, category, this.buses?.sfx ?? null, lufs, 0.96 + Math.random() * 0.08);
+  }
+
+  setBed(name: BedName, gain: number): void {
+    this.bedTargets[name] = clamp(gain, 0, 1);
+    if (gain > 0) void this.want(name);
+  }
+
+  setTimeOfDay(night: number): void {
+    this.night = clamp(night, 0, 1);
+  }
+
+  update(): void {
+    if (!this.ctx || this.ctx.state !== 'running') return;
+    this.placeListener();
+    const now = this.ctx.currentTime;
+    for (const name of BED_NAMES) {
+      const target = this.dayNightBedGain(name, this.bedTargets[name]);
+      this.updateBed(name, target, now);
+    }
+  }
+
+  dispose(): void {
+    for (const bed of this.beds.values()) {
+      try {
+        bed.source.stop();
+      } catch {
+        // already stopped
+      }
+    }
+    this.beds.clear();
+    this.buffers.clear();
+    this.loading.clear();
+    this.ctx = null;
+    this.buses = null;
+  }
+
+  private placeListener(): void {
+    const listener = this.ctx?.listener;
+    if (!listener) return;
+    listener.positionX.value = this.listenerX;
+    listener.positionY.value = this.listenerY;
+    listener.positionZ.value = this.listenerZ;
+    listener.forwardX.value = this.forwardX;
+    listener.forwardY.value = this.forwardY;
+    listener.forwardZ.value = this.forwardZ;
+    listener.upX.value = 0;
+    listener.upY.value = 1;
+    listener.upZ.value = 0;
+  }
+
+  private dayNightBedGain(name: BedName, base: number): number {
+    if (name === 'birds_dawn') return base * (1 - this.night);
+    if (name === 'crickets') return base * this.night;
+    return base;
+  }
+
+  private async want(name: SoundName): Promise<AudioBuffer | null> {
+    if (!this.ctx) return null;
+    const ready = this.buffers.get(name);
+    if (ready) return ready;
+    if (!this.loading.has(name)) {
+      const entry = BANK[name];
+      const url = `${this.baseUrl}${entry.file}${this.extension}`;
+      const promise = fetch(url)
+        .then((response) => {
+          if (!response.ok) throw new Error(`audio ${name}: HTTP ${response.status}`);
+          return response.arrayBuffer();
+        })
+        .then((data) => this.ctx?.decodeAudioData(data))
+        .then((buffer) => {
+          if (buffer) this.buffers.set(name, buffer);
+        })
+        .catch(() => undefined);
+      this.loading.set(name, promise);
+    }
+    await this.loading.get(name);
+    return this.buffers.get(name) ?? null;
+  }
+
+  private updateBed(name: BedName, gain: number, now: number): void {
+    const existing = this.beds.get(name);
+    if (!existing) {
+      if (gain <= 0.0001) return;
+      const buffer = this.buffers.get(name);
+      if (!buffer) {
+        void this.want(name);
+        return;
+      }
+      const ctx = this.ctx;
+      const bus = this.buses?.ambience;
+      if (!ctx || !bus) return;
+      const source = ctx.createBufferSource();
+      const gainNode = ctx.createGain();
+      source.buffer = buffer;
+      source.loop = true;
+      gainNode.gain.value = 0;
+      source.connect(gainNode).connect(bus);
+      source.start(now + 0.02, Math.random() * buffer.duration);
+      this.beds.set(name, { source, gain: gainNode, name });
+      this.ramp(gainNode.gain, gain, 0.8);
+      return;
+    }
+    this.ramp(existing.gain.gain, gain, 0.35);
+  }
+
+  private oneShotAt(
+    name: SliceName,
+    category: string,
+    pos: Vec3Like,
+    targetLufs: number,
+    rate: number,
+    refDistance: number,
+    rolloff: number,
+  ): void {
+    const ctx = this.ctx;
+    const bus = this.buses?.sfx;
+    if (!ctx || !bus) return;
+    if (!this.buffers.has(name)) {
+      void this.want(name);
+      return;
+    }
+    const pan = ctx.createPanner();
+    pan.panningModel = 'HRTF';
+    pan.distanceModel = 'inverse';
+    pan.refDistance = refDistance;
+    pan.rolloffFactor = rolloff;
+    pan.maxDistance = 400;
+    pan.positionX.value = pos.x;
+    pan.positionY.value = pos.y;
+    pan.positionZ.value = pos.z;
+    const air = ctx.createBiquadFilter();
+    air.type = 'lowpass';
+    air.frequency.value = clamp(18000 / (1 + this.distanceTo(pos) / 45), 1500, 18000);
+    air.connect(pan).connect(bus);
+    this.playSlice(name, category, air, targetLufs, rate, [air, pan]);
+  }
+
+  private playSlice(
+    name: SliceName,
+    category: string,
+    destination: AudioNode | null,
+    targetLufs: number,
+    rate: number,
+    extras: AudioNode[] = [],
+  ): void {
+    const ctx = this.ctx;
+    if (!ctx || ctx.state !== 'running' || !destination) return;
+    const entry = BANK[name];
+    const buffer = this.buffers.get(name);
+    if (!buffer || !hasSlices(entry)) {
+      void this.want(name);
+      return;
+    }
+    let index = Math.floor(Math.random() * entry.slices.length);
+    if (entry.slices.length > 1 && index === this.lastSlice[name]) index = (index + 1) % entry.slices.length;
+    this.lastSlice[name] = index;
+    const [start, duration] = entry.slices[index];
+    const source = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    source.buffer = buffer;
+    source.playbackRate.value = rate;
+    gain.gain.value =
+      dB(clamp(targetLufs - entry.lufs[index], -80, 24)) * (buffer.numberOfChannels === 1 ? MONO_TRIM : 1);
+    source.connect(gain).connect(destination);
+    const at = ctx.currentTime + 0.006;
+    source.start(at, start, duration);
+    const voice: ActiveVoice = {
+      source,
+      gain,
+      extras,
+      startedAt: at,
+      fadeOut: (now) => this.fadeVoice(source, gain, now),
+    };
+    this.limiter.add(category, voice, ctx.currentTime);
+    source.onended = () => {
+      this.limiter.remove(category, voice);
+      gain.disconnect();
+      for (const extra of extras) extra.disconnect();
+    };
+  }
+
+  private fadeVoice(source: AudioBufferSourceNode, gain: GainNode, now: number): void {
+    this.ramp(gain.gain, 0, 0.05);
+    try {
+      source.stop(now + 0.3);
+    } catch {
+      // already stopped
+    }
+  }
+
+  private ramp(param: AudioParam, value: number, seconds: number): void {
+    const now = safeNow(this.ctx);
+    param.cancelScheduledValues(now);
+    param.setTargetAtTime(value, now, seconds);
+  }
+
+  private distanceTo(pos: Vec3Like): number {
+    return Math.hypot(pos.x - this.listenerX, pos.y - this.listenerY, pos.z - this.listenerZ);
+  }
+
+  private categoryFor(name: SliceName): string {
+    if (name.startsWith('step_')) return 'step';
+    if (name.startsWith('surf_')) return name.slice(5);
+    if (name.startsWith('bird_')) return 'bird';
+    if (name === 'big_splash' || name === 'splash') return 'splash';
+    if (name === 'hull_slap') return 'hull';
+    return name;
+  }
+
+  private targetFor(name: SliceName): number {
+    if (name === 'gull') return MIX.gull;
+    if (name === 'tern') return MIX.tern;
+    if (name === 'bird_dove') return MIX.dove;
+    if (name === 'bird_forest') return MIX.bird;
+    if (name === 'big_splash' || name === 'splash') return MIX.splash;
+    if (name === 'hull_slap') return MIX.hull;
+    if (name.startsWith('surf_')) return MIX.crash;
+    return MIX.step;
+  }
+}

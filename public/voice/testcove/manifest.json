@@ -1,0 +1,415 @@
+{
+  "generatedAt": "2026-09-24T03:47:55.991Z",
+  "set": "testcove",
+  "lines": [
+    {
+      "id": "nell.papers.01",
+      "speaker": "Nell",
+      "text": "Morning, Captain! Nobody sails from Anchorage without their papers.",
+      "duration": 4.608,
+      "files": {
+        "webm": "nell.papers.01.webm",
+        "m4a": "nell.papers.01.m4a"
+      },
+      "hash": "b4bca02ca82e9576",
+      "words": [
+        {
+          "word": "Morning",
+          "start": 0.07,
+          "end": 0.47
+        },
+        {
+          "word": "Captain",
+          "start": 0.47,
+          "end": 1.43
+        },
+        {
+          "word": "Nobody",
+          "start": 1.43,
+          "end": 1.91
+        },
+        {
+          "word": "sails",
+          "start": 1.91,
+          "end": 2.349
+        },
+        {
+          "word": "from",
+          "start": 2.349,
+          "end": 2.55
+        },
+        {
+          "word": "Anchorage",
+          "start": 2.55,
+          "end": 3.23
+        },
+        {
+          "word": "without",
+          "start": 3.23,
+          "end": 3.63
+        },
+        {
+          "word": "their",
+          "start": 3.63,
+          "end": 3.829
+        },
+        {
+          "word": "papers",
+          "start": 3.829,
+          "end": 4.079000000000001
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.papers.02",
+      "speaker": "Nell",
+      "text": "Papers means a GitHub account, and either a Copilot plan or your own model provider.",
+      "duration": 6.208,
+      "files": {
+        "webm": "nell.papers.02.webm",
+        "m4a": "nell.papers.02.m4a"
+      },
+      "hash": "4be5f7a9c1a9f19d",
+      "words": [
+        {
+          "word": "Papers",
+          "start": 0.07,
+          "end": 0.71
+        },
+        {
+          "word": "means",
+          "start": 0.71,
+          "end": 1.11
+        },
+        {
+          "word": "a",
+          "start": 1.11,
+          "end": 1.23
+        },
+        {
+          "word": "GitHub",
+          "start": 1.23,
+          "end": 1.67
+        },
+        {
+          "word": "account",
+          "start": 1.67,
+          "end": 2.389
+        },
+        {
+          "word": "and",
+          "start": 2.389,
+          "end": 2.67
+        },
+        {
+          "word": "either",
+          "start": 2.67,
+          "end": 3.03
+        },
+        {
+          "word": "a",
+          "start": 3.03,
+          "end": 3.15
+        },
+        {
+          "word": "Copilot",
+          "start": 3.15,
+          "end": 3.75
+        },
+        {
+          "word": "plan",
+          "start": 3.75,
+          "end": 4.35
+        },
+        {
+          "word": "or",
+          "start": 4.35,
+          "end": 4.55
+        },
+        {
+          "word": "your",
+          "start": 4.55,
+          "end": 4.75
+        },
+        {
+          "word": "own",
+          "start": 4.75,
+          "end": 5.03
+        },
+        {
+          "word": "model",
+          "start": 5.03,
+          "end": 5.43
+        },
+        {
+          "word": "provider",
+          "start": 5.43,
+          "end": 5.68
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.settings.01",
+      "speaker": "Nell",
+      "text": "Preferences can be changed anytime from settings.",
+      "duration": 3.208,
+      "files": {
+        "webm": "nell.settings.01.webm",
+        "m4a": "nell.settings.01.m4a"
+      },
+      "hash": "1245bb6e5cf29a06",
+      "words": [
+        {
+          "word": "Preferences",
+          "start": 0.07,
+          "end": 0.71
+        },
+        {
+          "word": "can",
+          "start": 0.71,
+          "end": 0.95
+        },
+        {
+          "word": "be",
+          "start": 0.95,
+          "end": 1.07
+        },
+        {
+          "word": "changed",
+          "start": 1.07,
+          "end": 1.59
+        },
+        {
+          "word": "anytime",
+          "start": 1.59,
+          "end": 2.23
+        },
+        {
+          "word": "from",
+          "start": 2.23,
+          "end": 2.429
+        },
+        {
+          "word": "settings",
+          "start": 2.429,
+          "end": 2.679
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "wingman.hint.01",
+      "speaker": "Wingman",
+      "text": "First mate's job is hints. Captain's job is decisions.",
+      "duration": 5.908,
+      "files": {
+        "webm": "wingman.hint.01.webm",
+        "m4a": "wingman.hint.01.m4a"
+      },
+      "hash": "b9c92606196d9961",
+      "words": [
+        {
+          "word": "First",
+          "start": 0.05,
+          "end": 0.5125
+        },
+        {
+          "word": "mate's",
+          "start": 0.5125,
+          "end": 0.8875
+        },
+        {
+          "word": "job",
+          "start": 0.8875,
+          "end": 1.275
+        },
+        {
+          "word": "is",
+          "start": 1.275,
+          "end": 1.4625
+        },
+        {
+          "word": "hints",
+          "start": 1.4625,
+          "end": 2.9125
+        },
+        {
+          "word": "Captain's",
+          "start": 2.9125,
+          "end": 3.575
+        },
+        {
+          "word": "job",
+          "start": 3.575,
+          "end": 3.9625
+        },
+        {
+          "word": "is",
+          "start": 3.9625,
+          "end": 4.1375
+        },
+        {
+          "word": "decisions",
+          "start": 4.1375,
+          "end": 4.3875
+        }
+      ],
+      "voice": "en-US-AnaNeural"
+    },
+    {
+      "id": "wingman.hint.02",
+      "speaker": "Wingman",
+      "text": "If the sign doesn't name your fork, don't pull the yes lever yet.",
+      "duration": 5.007,
+      "files": {
+        "webm": "wingman.hint.02.webm",
+        "m4a": "wingman.hint.02.m4a"
+      },
+      "hash": "6777f91451dbf99e",
+      "words": [
+        {
+          "word": "If",
+          "start": 0.05,
+          "end": 0.2625
+        },
+        {
+          "word": "the",
+          "start": 0.2625,
+          "end": 0.3875
+        },
+        {
+          "word": "sign",
+          "start": 0.3875,
+          "end": 0.7875
+        },
+        {
+          "word": "doesn't",
+          "start": 0.7875,
+          "end": 1.1625
+        },
+        {
+          "word": "name",
+          "start": 1.1625,
+          "end": 1.45
+        },
+        {
+          "word": "your",
+          "start": 1.45,
+          "end": 1.6125
+        },
+        {
+          "word": "fork",
+          "start": 1.6125,
+          "end": 2.375
+        },
+        {
+          "word": "don't",
+          "start": 2.375,
+          "end": 2.7
+        },
+        {
+          "word": "pull",
+          "start": 2.7,
+          "end": 2.9375
+        },
+        {
+          "word": "the",
+          "start": 2.9375,
+          "end": 3.0375
+        },
+        {
+          "word": "yes",
+          "start": 3.0375,
+          "end": 3.4
+        },
+        {
+          "word": "lever",
+          "start": 3.4,
+          "end": 3.7875
+        },
+        {
+          "word": "yet",
+          "start": 3.7875,
+          "end": 4.0375
+        }
+      ],
+      "voice": "en-US-AnaNeural"
+    },
+    {
+      "id": "wingman.hint.03",
+      "speaker": "Wingman",
+      "text": "You'll get unlimited retries here, so try the idea that feels safest.",
+      "duration": 5.808,
+      "files": {
+        "webm": "wingman.hint.03.webm",
+        "m4a": "wingman.hint.03.m4a"
+      },
+      "hash": "d58fe9354348cc1c",
+      "words": [
+        {
+          "word": "You'll",
+          "start": 0.05,
+          "end": 0.3
+        },
+        {
+          "word": "get",
+          "start": 0.3,
+          "end": 0.5375
+        },
+        {
+          "word": "unlimited",
+          "start": 0.5375,
+          "end": 1.175
+        },
+        {
+          "word": "retries",
+          "start": 1.175,
+          "end": 1.8375
+        },
+        {
+          "word": "here",
+          "start": 1.8375,
+          "end": 2.4125
+        },
+        {
+          "word": "so",
+          "start": 2.4125,
+          "end": 2.65
+        },
+        {
+          "word": "try",
+          "start": 2.65,
+          "end": 2.9625
+        },
+        {
+          "word": "the",
+          "start": 2.9625,
+          "end": 3.1125
+        },
+        {
+          "word": "idea",
+          "start": 3.1125,
+          "end": 3.6125
+        },
+        {
+          "word": "that",
+          "start": 3.6125,
+          "end": 3.85
+        },
+        {
+          "word": "feels",
+          "start": 3.85,
+          "end": 4.2375
+        },
+        {
+          "word": "safest",
+          "start": 4.2375,
+          "end": 4.4875
+        }
+      ],
+      "voice": "en-US-AnaNeural"
+    }
+  ]
+}

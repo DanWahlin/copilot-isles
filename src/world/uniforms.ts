@@ -12,6 +12,8 @@ export const world = {
   /** Unit direction toward the sun / moon. */
   sunDir: uniform(new Vector3(0.3, 0.5, -0.8)),
   moonDir: uniform(new Vector3(-0.3, 0.6, 0.7)),
+  /** Direction of the current key light (sun by day, moon at night); pairs with sunColor. */
+  keyDir: uniform(new Vector3(0.3, 0.5, -0.8)),
   /** Direct light colour × intensity of the current key light (sun or moon). */
   sunColor: uniform(new Color(1, 0.86, 0.66)),
   /** Sky ambient tint (used by custom materials that don't rely on the environment map alone). */

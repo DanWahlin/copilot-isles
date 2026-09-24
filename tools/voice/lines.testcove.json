@@ -1,0 +1,50 @@
+{
+  "set": "testcove",
+  "lines": [
+    {
+      "id": "nell.papers.01",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "Morning, Captain! Nobody sails from Anchorage without their papers."
+    },
+    {
+      "id": "nell.papers.02",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "Papers means a GitHub account, and either a Copilot plan or your own model provider."
+    },
+    {
+      "id": "nell.settings.01",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "Preferences can be changed anytime from settings."
+    },
+    {
+      "id": "wingman.hint.01",
+      "speaker": "Wingman",
+      "voice": "en-US-AnaNeural",
+      "prosody": { "pitch": "+20%" },
+      "fx": "wingman-bright",
+      "text": "First mate's job is hints. Captain's job is decisions."
+    },
+    {
+      "id": "wingman.hint.02",
+      "speaker": "Wingman",
+      "voice": "en-US-AnaNeural",
+      "prosody": { "pitch": "+20%" },
+      "fx": "wingman-bright",
+      "text": "If the sign doesn't name your fork, don't pull the yes lever yet."
+    },
+    {
+      "id": "wingman.hint.03",
+      "speaker": "Wingman",
+      "voice": "en-US-AnaNeural",
+      "prosody": { "pitch": "+20%" },
+      "fx": "wingman-bright",
+      "text": "You'll get unlimited retries here, so try the idea that feels safest."
+    }
+  ]
+}

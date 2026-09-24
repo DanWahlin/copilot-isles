@@ -1,0 +1,421 @@
+import type { HeightField } from '../contracts';
+import { COVE } from '../layout';
+
+const SEED = 0x51e_c0de;
+const EPSILON = 1e-6;
+
+export interface CoveMasks {
+  sand: number;
+  grass: number;
+  rock: number;
+  cliff: number;
+}
+
+export interface HeightGridData {
+  heights: Float32Array;
+  nx: number;
+  nz: number;
+  minX: number;
+  minZ: number;
+  cell: number;
+}
+
+export const DEFAULT_TERRAIN_BOUNDS = {
+  minX: -320,
+  maxX: 320,
+  minZ: -260,
+  maxZ: 260,
+  cell: 1,
+} as const;
+
+function clamp01(v: number): number {
+  return Math.min(1, Math.max(0, v));
+}
+
+export function smoothstep(edge0: number, edge1: number, x: number): number {
+  const t = clamp01((x - edge0) / (edge1 - edge0));
+  return t * t * (3 - 2 * t);
+}
+
+function mix(a: number, b: number, t: number): number {
+  return a + (b - a) * clamp01(t);
+}
+
+function gaussian(v: number, width: number): number {
+  return Math.exp(-(v * v) / Math.max(EPSILON, width * width));
+}
+
+function angularGaussian(theta: number, center: number, width: number): number {
+  let d = theta - center;
+  while (d > Math.PI) d -= Math.PI * 2;
+  while (d < -Math.PI) d += Math.PI * 2;
+  return gaussian(d, width);
+}
+
+function fade(t: number): number {
+  return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+function hashInt(x: number, z: number, seed = SEED): number {
+  let h = seed ^ Math.imul(x, 0x27d4eb2d) ^ Math.imul(z, 0x165667b1);
+  h ^= h >>> 15;
+  h = Math.imul(h, 0x85ebca6b);
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xc2b2ae35);
+  h ^= h >>> 16;
+  return h >>> 0;
+}
+
+function hashSigned(x: number, z: number, seed = SEED): number {
+  return hashInt(x, z, seed) / 0x7fffffff - 1;
+}
+
+export function valueNoise2(x: number, z: number, seed = SEED): number {
+  const x0 = Math.floor(x);
+  const z0 = Math.floor(z);
+  const tx = fade(x - x0);
+  const tz = fade(z - z0);
+  const a = hashSigned(x0, z0, seed);
+  const b = hashSigned(x0 + 1, z0, seed);
+  const c = hashSigned(x0, z0 + 1, seed);
+  const d = hashSigned(x0 + 1, z0 + 1, seed);
+  return mix(mix(a, b, tx), mix(c, d, tx), tz);
+}
+
+export function fbm2(x: number, z: number, octaves = 5, seed = SEED): number {
+  let amp = 0.5;
+  let freq = 1;
+  let sum = 0;
+  let norm = 0;
+  for (let i = 0; i < octaves; i++) {
+    sum += valueNoise2(x * freq, z * freq, seed + i * 1013) * amp;
+    norm += amp;
+    amp *= 0.52;
+    freq *= 2.03;
+  }
+  return sum / Math.max(EPSILON, norm);
+}
+
+export function ridged2(x: number, z: number, octaves = 4, seed = SEED + 77): number {
+  let amp = 0.55;
+  let freq = 1;
+  let sum = 0;
+  let norm = 0;
+  for (let i = 0; i < octaves; i++) {
+    const n = 1 - Math.abs(valueNoise2(x * freq, z * freq, seed + i * 4099));
+    sum += n * n * amp;
+    norm += amp;
+    amp *= 0.5;
+    freq *= 2.1;
+  }
+  return sum / Math.max(EPSILON, norm);
+}
+
+function saw01(v: number): number {
+  return v - Math.floor(v);
+}
+
+function ellipseRadius(theta: number, halfX: number, halfZ: number): number {
+  const c = Math.cos(theta);
+  const s = Math.sin(theta);
+  return 1 / Math.sqrt((c * c) / (halfX * halfX) + (s * s) / (halfZ * halfZ));
+}
+
+function coastRadiusAt(theta: number): number {
+  const base = ellipseRadius(theta, COVE.island.halfX, COVE.island.halfZ);
+  const southBeach = 15 * angularGaussian(theta, Math.PI / 2, 0.55);
+  const eastHeadland = 56 * angularGaussian(theta, 0, 0.34);
+  const northHarborBite = -16 * angularGaussian(theta, -2.35, 0.34);
+  const westernCove = -9 * angularGaussian(theta, 2.7, 0.35);
+  return base + southBeach + eastHeadland + northHarborBite + westernCove;
+}
+
+function noisyCoastDistance(
+  x: number,
+  z: number,
+): { distance: number; radius: number; radial: number; theta: number } {
+  const theta = Math.atan2(z, x);
+  const radial = Math.hypot(x, z);
+  const largeNoise = fbm2(Math.cos(theta) * 2.7 + 18.1, Math.sin(theta) * 2.7 - 4.6, 5) * 8;
+  const fineNoise = fbm2(x * 0.024 - 2.5, z * 0.024 + 7.2, 4, SEED + 611) * 3;
+  const radius = coastRadiusAt(theta) + largeNoise + fineNoise;
+  return { distance: radius - radial, radius, radial, theta };
+}
+
+function harborBasinHeight(x: number, z: number, current: number): number {
+  const d = Math.hypot(x - COVE.harbor.center.x, z - COVE.harbor.center.z);
+  const basin = 1 - smoothstep(COVE.harbor.radius - 5, COVE.harbor.radius + 8, d);
+  if (basin <= 0) return current;
+  const dredged = -COVE.harbor.depth + fbm2(x * 0.08, z * 0.08, 3, SEED + 221) * 0.12;
+  const wallSide = z < COVE.quay.z ? 1 : smoothstep(COVE.quay.z + 6, COVE.quay.z - 1, z);
+  return mix(current, dredged, basin * wallSide);
+}
+
+function quayPlatformHeight(x: number, z: number, current: number): number {
+  if (z < COVE.quay.z || z > -46) return current;
+  const wx =
+    smoothstep(COVE.quay.x0 - 5, COVE.quay.x0 + 2, x) *
+    (1 - smoothstep(COVE.quay.x1 - 2, COVE.quay.x1 + 5, x));
+  const wz = 1 - smoothstep(-54, -46, z);
+  return mix(current, COVE.quay.height, wx * wz);
+}
+
+function discPadHeight(
+  x: number,
+  z: number,
+  current: number,
+  cx: number,
+  cz: number,
+  radius: number,
+  target: number,
+  edge = 8,
+): number {
+  const d = Math.hypot(x - cx, z - cz);
+  const w = 1 - smoothstep(radius - edge, radius, d);
+  return mix(current, target, w);
+}
+
+function lagoonAndReefHeight(x: number, z: number, current: number): number {
+  const lx = x - COVE.lagoon.center.x;
+  const lz = z - COVE.lagoon.center.z;
+  const d = Math.hypot(lx, lz);
+  const angle = Math.atan2(lz, lx);
+  const southArc = smoothstep(-0.72, -0.18, lz / Math.max(d, EPSILON));
+  const landBackstop = 1 - smoothstep(64, 92, z);
+
+  const beachAcross = 1 - smoothstep(130, 176, Math.abs(x - 6));
+  const beach =
+    smoothstep(COVE.beach.z0 - 10, COVE.beach.z0 + 2, z) *
+    (1 - smoothstep(COVE.beach.z1 + 14, COVE.beach.z1 + 38, z)) *
+    beachAcross;
+  const beachT = smoothstep(COVE.beach.z0 - 4, COVE.beach.z1 + 28, z);
+  const shelf = mix(2.0, -1.95, beachT) + fbm2(x * 0.07, z * 0.07, 3, SEED + 404) * 0.11;
+  let h = mix(current, shelf, beach * (1 - landBackstop * 0.55));
+
+  const lagoon =
+    (1 - smoothstep(COVE.lagoon.radius - 14, COVE.lagoon.radius + 8, d)) * smoothstep(77, 104, z);
+  const floor = -COVE.lagoon.depth + fbm2(x * 0.045 + 3.1, z * 0.045 - 8.3, 4, SEED + 808) * 0.16;
+  h = mix(h, floor, lagoon);
+
+  const reefRing = gaussian(d - COVE.reef.radius, COVE.reef.width * 0.55) * southArc;
+  const gapA = angularGaussian(angle, 0.34, 0.07);
+  const gapB = angularGaussian(angle, 2.55, 0.08);
+  const channel = clamp01(gapA + gapB);
+  const crestNoise = fbm2(x * 0.11, z * 0.11, 3, SEED + 909) * 0.06;
+  const crest = mix(COVE.reef.crest + crestNoise, -3.4 + crestNoise * 2, channel);
+  h = mix(h, crest, reefRing * (1 - smoothstep(0.45, 0.85, channel)) + reefRing * channel * 0.9);
+
+  return h;
+}
+
+function ravineCut(
+  x: number,
+  z: number,
+  x0: number,
+  z0: number,
+  slope: number,
+  width: number,
+  depth: number,
+): number {
+  const center = z0 + (x - x0) * slope;
+  const line = gaussian(z - center, width);
+  return line * smoothstep(118, 178, x) * (1 - smoothstep(202, 224, x)) * depth;
+}
+
+function headlandHeight(x: number, z: number, current: number): number {
+  const inZ =
+    smoothstep(COVE.headland.z0 - 28, COVE.headland.z0 + 8, z) *
+    (1 - smoothstep(COVE.headland.z1 - 3, COVE.headland.z1 + 36, z));
+  const influence = smoothstep(COVE.headland.x0 - 24, COVE.headland.x0 + 10, x) * inZ;
+  if (influence <= 0) return current;
+
+  const warp = fbm2(x * 0.026 + 13.2, z * 0.026 - 9.1, 4, SEED + 333) * 13;
+  const warpedZ = z + warp;
+  const buttress =
+    (Math.abs(saw01(warpedZ / 28 + valueNoise2(x * 0.018, z * 0.018, SEED + 334) * 0.2) - 0.5) * 2 - 0.45) *
+    8;
+  const flutes = (Math.abs(saw01(warpedZ / 9.5 + x * 0.009) - 0.5) * 2 - 0.55) * 4.5;
+  const cliffEdge = COVE.headland.x1 - x + buttress + flutes + fbm2(x * 0.08, z * 0.08, 3, SEED + 335) * 2;
+  const face = smoothstep(-2, 24, cliffEdge);
+  const ridge =
+    8.5 * gaussian((x - 154) / 46, 1) * gaussian((z + 8) / 72, 1) +
+    4.2 * ridged2(x * 0.035 + 1.7, z * 0.035 - 5.5, 3, SEED + 336);
+  const ravines =
+    ravineCut(x, z, 122, -47, 0.28, 7.5, 15) +
+    ravineCut(x, z, 128, 2, -0.2, 6.5, 11) +
+    ravineCut(x, z, 135, 36, -0.35, 7, 9);
+  const strataSteps = Math.floor(Math.max(0, COVE.headland.cliffTop * face) / 3) * 0.035;
+  let cliff = COVE.headland.cliffTop * face + ridge * smoothstep(0.22, 0.9, face) - ravines + strataSteps;
+  cliff += ridged2(x * 0.18, z * 0.18, 3, SEED + 337) * 1.3 * smoothstep(0.15, 0.95, face);
+
+  const caveDx = (x - COVE.seaCave.x) / (COVE.seaCave.width * 1.25);
+  const caveDz = (z - COVE.seaCave.z) / (COVE.seaCave.width * 0.7);
+  const caveMouth =
+    gaussian(caveDx, 1) * gaussian(caveDz, 1) * smoothstep(188, 199, x) * (1 - smoothstep(206, 213, x));
+  const caveFloor = -0.6 + Math.abs(z - COVE.seaCave.z) * 0.35;
+  cliff = mix(cliff, caveFloor, caveMouth * 0.96);
+
+  const offshore = -2 - smoothstep(0, 55, -cliffEdge) * 22;
+  const head = cliffEdge < -1 ? offshore : cliff;
+  return mix(current, Math.max(current, head), influence);
+}
+
+function seaStackHeight(x: number, z: number, current: number): number {
+  const d = Math.hypot(x - COVE.seaStack.x, z - COVE.seaStack.z);
+  if (d > COVE.seaStack.radius + 18) return current;
+  const side = 1 - smoothstep(COVE.seaStack.radius - 1.5, COVE.seaStack.radius + 5, d);
+  const cap = COVE.seaStack.height - 2.2 * smoothstep(0, COVE.seaStack.radius, d);
+  const column = mix(-4.8, cap + ridged2(x * 0.12, z * 0.12, 3, SEED + 707) * 0.8, side);
+  return Math.max(current, column);
+}
+
+export function coveHeight(x: number, z: number): number {
+  const coast = noisyCoastDistance(x, z);
+  const seaT = smoothstep(coast.radius + 4, COVE.seabedRadius, coast.radial);
+  const seaNoise = fbm2(x * 0.012 + 4, z * 0.012 - 11, 4, SEED + 515) * 0.8 * (1 - seaT);
+  const sea = -mix(0.35, COVE.deepDepth, seaT) + seaNoise;
+
+  const hill =
+    COVE.hill.height *
+    gaussian((x - COVE.hill.center.x) / COVE.hill.radius, 1) *
+    gaussian((z - COVE.hill.center.z) / (COVE.hill.radius * 0.85), 1);
+  const interior = smoothstep(-2, 48, coast.distance);
+  const lowLand = 1.15 + 4.5 * interior + hill * 0.82;
+  const landNoise =
+    fbm2(x * 0.032, z * 0.032, 5, SEED + 616) * 1.2 + ridged2(x * 0.08, z * 0.08, 3, SEED + 617) * 0.65;
+  let h = coast.distance >= 0 ? lowLand + landNoise * smoothstep(4, 35, coast.distance) : sea;
+
+  h = lagoonAndReefHeight(x, z, h);
+  h = harborBasinHeight(x, z, h);
+  h = discPadHeight(
+    x,
+    z,
+    h,
+    COVE.village.center.x,
+    COVE.village.center.z,
+    COVE.village.radius,
+    COVE.village.height,
+    7,
+  );
+  h = quayPlatformHeight(x, z, h);
+  h = headlandHeight(x, z, h);
+  h = seaStackHeight(x, z, h);
+
+  if (coast.radial >= COVE.seabedRadius) {
+    h = Math.min(h, -COVE.deepDepth);
+  }
+  return h;
+}
+
+export function normalAtAnalytic(
+  x: number,
+  z: number,
+  out: Float32Array | number[] = [0, 0, 0],
+): Float32Array | number[] {
+  const e = 0.75;
+  const hx0 = coveHeight(x - e, z);
+  const hx1 = coveHeight(x + e, z);
+  const hz0 = coveHeight(x, z - e);
+  const hz1 = coveHeight(x, z + e);
+  const nx = -(hx1 - hx0) / (2 * e);
+  const nz = -(hz1 - hz0) / (2 * e);
+  const ny = 1;
+  const len = Math.hypot(nx, ny, nz) || 1;
+  out[0] = nx / len;
+  out[1] = ny / len;
+  out[2] = nz / len;
+  return out;
+}
+
+export function coveMasks(x: number, z: number): CoveMasks {
+  const h = coveHeight(x, z);
+  const n = normalAtAnalytic(x, z, [0, 0, 0]);
+  const slope = Math.hypot(n[0], n[2]) / Math.max(0.05, n[1]);
+  const lagoonD = Math.hypot(x - COVE.lagoon.center.x, z - COVE.lagoon.center.z);
+  const stackD = Math.hypot(x - COVE.seaStack.x, z - COVE.seaStack.z);
+  const headland =
+    smoothstep(COVE.headland.x0 - 5, COVE.headland.x0 + 20, x) *
+    smoothstep(COVE.headland.z0 - 18, COVE.headland.z0 + 8, z) *
+    (1 - smoothstep(COVE.headland.z1 - 6, COVE.headland.z1 + 24, z));
+  const shallowSand = smoothstep(-7, -1.2, h) * (1 - smoothstep(2.2, 4.2, h));
+  const beachSand =
+    smoothstep(COVE.beach.z0 - 18, COVE.beach.z0 + 8, z) *
+    (1 - smoothstep(COVE.beach.z1 + 18, COVE.beach.z1 + 48, z)) *
+    (1 - smoothstep(160, 210, Math.abs(x))) *
+    (1 - smoothstep(0.45, 0.9, slope));
+  let sand = Math.max(
+    shallowSand * (1 - headland * 0.7),
+    beachSand,
+    smoothstep(COVE.lagoon.radius + 18, 18, lagoonD) * 0.7,
+  );
+  let cliff = Math.max(
+    smoothstep(0.52, 1.15, slope),
+    headland * smoothstep(7, 26, h),
+    smoothstep(COVE.seaStack.radius + 8, COVE.seaStack.radius - 1, stackD),
+  );
+  let rock = Math.max(smoothstep(0.25, 0.72, slope), headland * 0.75, smoothstep(8, 26, h) * 0.22);
+  let grass = smoothstep(1.2, 4.5, h) * (1 - smoothstep(0.22, 0.52, slope)) * (1 - headland * 0.65);
+
+  if (h < -9) {
+    sand *= 0.3;
+    rock = Math.max(rock, 0.18);
+  }
+  cliff = clamp01(cliff);
+  rock = clamp01(rock * (1 - cliff * 0.35));
+  sand = clamp01(sand * (1 - cliff * 0.75));
+  grass = clamp01(grass * (1 - cliff) * (1 - sand * 0.45));
+
+  const total = sand + grass + rock + cliff;
+  if (total < 0.001) return { sand: 0.25, grass: 0, rock: 0.75, cliff: 0 };
+  return { sand: sand / total, grass: grass / total, rock: rock / total, cliff: cliff / total };
+}
+
+function bilinear(grid: HeightGridData, x: number, z: number): number | null {
+  const gx = (x - grid.minX) / grid.cell;
+  const gz = (z - grid.minZ) / grid.cell;
+  if (gx < 0 || gz < 0 || gx > grid.nx - 1 || gz > grid.nz - 1) return null;
+  const ix = Math.min(grid.nx - 2, Math.max(0, Math.floor(gx)));
+  const iz = Math.min(grid.nz - 2, Math.max(0, Math.floor(gz)));
+  const tx = gx - ix;
+  const tz = gz - iz;
+  const i00 = iz * grid.nx + ix;
+  const i10 = i00 + 1;
+  const i01 = i00 + grid.nx;
+  const i11 = i01 + 1;
+  return mix(
+    mix(grid.heights[i00], grid.heights[i10], tx),
+    mix(grid.heights[i01], grid.heights[i11], tx),
+    tz,
+  );
+}
+
+export class CoveHeightField implements HeightField {
+  constructor(private readonly grid?: HeightGridData) {}
+
+  heightAt(x: number, z: number): number {
+    if (this.grid) {
+      const h = bilinear(this.grid, x, z);
+      if (h !== null) return h;
+    }
+    return coveHeight(x, z);
+  }
+
+  normalAt(x: number, z: number, out: Float32Array | number[]): Float32Array | number[] {
+    const e = this.grid?.cell ?? 0.75;
+    const hx0 = this.heightAt(x - e, z);
+    const hx1 = this.heightAt(x + e, z);
+    const hz0 = this.heightAt(x, z - e);
+    const hz1 = this.heightAt(x, z + e);
+    const nx = -(hx1 - hx0) / (2 * e);
+    const nz = -(hz1 - hz0) / (2 * e);
+    const len = Math.hypot(nx, 1, nz) || 1;
+    out[0] = nx / len;
+    out[1] = 1 / len;
+    out[2] = nz / len;
+    return out;
+  }
+
+  masksAt(x: number, z: number): CoveMasks {
+    return coveMasks(x, z);
+  }
+}
