@@ -82,6 +82,8 @@ class MockBridge implements GameBridge {
     returnTo: 'title',
     progress: { value: 0.58, message: 'Planting palms' },
     hasSave: true,
+    save: { location: 'Anchorage Cay', questsDone: 3 },
+    learn: { doubloons: 155, seals: ['Seal of Anchorage'] },
     captain: 'man',
     settings: DEFAULT_SETTINGS,
     chart: {
@@ -156,6 +158,7 @@ class MockBridge implements GameBridge {
   openSettings = () => this.open('settings');
   openControls = () => this.open('controls');
   openCredits = () => this.open('credits');
+  openLogbook = () => this.set({ screen: 'playing', returnTo: 'playing' });
   back = () => this.set({ screen: this.state.returnTo });
   travelTo = () => this.set({ screen: this.state.returnTo });
   quitToTitle = () => this.set({ screen: 'title', returnTo: 'title' });

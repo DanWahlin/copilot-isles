@@ -33,6 +33,7 @@ const BRIDGE_METHODS = [
   'openSettings',
   'openControls',
   'openCredits',
+  'openLogbook',
   'back',
   'travelTo',
   'quitToTitle',
@@ -56,6 +57,8 @@ export interface GameFlowOptions {
   packBase?: string;
   /** Shows the post-load "ready" frame and hides the boot loader once the title is live. */
   onTitleReady?: () => void;
+  /** Swaps the title's lean post stack for the richer island post after TTI or during voyage load. */
+  upgradePost?: () => Promise<void> | void;
 }
 
 /**
@@ -85,12 +88,15 @@ export class GameFlow implements GameBridge {
       returnTo: 'title',
       progress: { value: 0, message: '' },
       hasSave: !!save,
+      save: save ? this.saveSummary() : null,
+      learn: this.learnSummary(),
       captain: save?.captain ?? 'man',
       settings,
       chart: null,
       renderInfo: o.renderInfo,
     };
     this.applySettings(settings);
+    this.learn.subscribe(() => this.set({}));
     o.engine.add({ frame: (dt) => this.tick(dt) });
     // The UI passes bridge actions around as bare callbacks (onClick, useSyncExternalStore).
     for (const key of BRIDGE_METHODS) {
@@ -111,7 +117,7 @@ export class GameFlow implements GameBridge {
 
   showTitle(): void {
     this.title ??= createTitleBackdrop(this.o.engine);
-    this.set({ screen: 'title', returnTo: 'title' });
+    this.set({ screen: 'title', returnTo: 'title', hasSave: !!readJson<SaveData>(SAVE_KEY) });
     this.o.onTitleReady?.();
     this.prefetchTitlePacks();
   }
@@ -170,6 +176,14 @@ export class GameFlow implements GameBridge {
     this.set({ screen: 'credits', returnTo: this.menuReturn() });
   }
 
+  openLogbook(): void {
+    if (!this.session) return;
+    this.learn.openLogbook();
+    this.session.setPaused(false);
+    this.set({ screen: 'playing', returnTo: 'playing' });
+    this.o.engine.renderer.domElement.focus();
+  }
+
   back(): void {
     if (this.state.screen === 'playing' || this.state.screen === 'title') return;
     const to = this.state.returnTo;
@@ -194,7 +208,7 @@ export class GameFlow implements GameBridge {
   quitToTitle(): void {
     this.save();
     this.endVoyage();
-    this.set({ hasSave: !!readJson<SaveData>(SAVE_KEY) });
+    this.set({ hasSave: !!readJson<SaveData>(SAVE_KEY), save: this.saveSummary() });
     this.showTitle();
   }
 
@@ -213,8 +227,31 @@ export class GameFlow implements GameBridge {
   }
 
   private set(patch: Partial<UiState>): void {
-    this.state = { ...this.state, ...patch };
+    const hasSave = patch.hasSave ?? this.state.hasSave;
+    this.state = {
+      ...this.state,
+      save: hasSave ? this.saveSummary() : null,
+      learn: this.learnSummary(),
+      ...patch,
+    };
     for (const l of this.listeners) l(this.state);
+  }
+
+  private saveSummary(): UiState['save'] {
+    const save = readJson<SaveData>(SAVE_KEY);
+    if (!save) return null;
+    return { location: 'Anchorage Cay', questsDone: this.questsDoneCount() };
+  }
+
+  private learnSummary(): UiState['learn'] {
+    return {
+      doubloons: this.learn.progress.data.doubloons,
+      seals: this.learn.progress.data.seals.slice(),
+    };
+  }
+
+  private questsDoneCount(): number {
+    return Object.values(this.learn.progress.data.quests).filter((step) => step === 'done').length;
   }
 
   private applySettings(s: Settings): void {
@@ -316,6 +353,7 @@ export class GameFlow implements GameBridge {
         this.o.audio.sfx.setBed('birds_dawn', 0.3);
       }
       report(0.92, 'Lighting the lanterns');
+      await this.o.upgradePost?.();
       await engine.renderer.compileAsync(engine.scene, engine.camera);
       engine.renderNow();
       engine.counters.hitches.length = 0;
@@ -323,7 +361,7 @@ export class GameFlow implements GameBridge {
       report(1, 'Landfall');
       this.save(captain);
       await new Promise((r) => setTimeout(r, 300));
-      this.set({ screen: 'playing', returnTo: 'playing', hasSave: true });
+      this.set({ screen: 'playing', returnTo: 'playing', hasSave: true, save: this.saveSummary() });
       engine.renderer.domElement.focus();
     } catch (err) {
       console.error(err);

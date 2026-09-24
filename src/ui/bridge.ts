@@ -90,12 +90,24 @@ export interface VoyageProgress {
   message: string;
 }
 
+export interface SaveSummary {
+  location: string;
+  questsDone: number;
+}
+
+export interface LearnSummary {
+  doubloons: number;
+  seals: readonly string[];
+}
+
 export interface UiState {
   screen: Screen;
   /** The screen to return to when closing settings/controls/credits/chart. */
   returnTo: Screen;
   progress: VoyageProgress;
   hasSave: boolean;
+  save: SaveSummary | null;
+  learn: LearnSummary;
   captain: CaptainBody;
   settings: Settings;
   chart: ChartData | null;
@@ -116,6 +128,8 @@ export interface GameBridge {
   openSettings(): void;
   openControls(): void;
   openCredits(): void;
+  /** Closes the pause menu and opens the learning Logbook overlay. */
+  openLogbook(): void;
   /** Closes chart/settings/controls/credits back to `returnTo`. */
   back(): void;
   /** Fast travel to a chart point on the current island (docks the ship first if sailing). */

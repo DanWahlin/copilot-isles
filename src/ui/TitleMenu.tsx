@@ -144,7 +144,7 @@ export function TitleMenu({ bridge }: TitleMenuProps) {
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
-    const id = window.setTimeout(() => firstFocusable(root)?.focus(), 60);
+    const id = window.setTimeout(() => initialFocusable(root)?.focus(), 60);
     return () => window.clearTimeout(id);
   }, [state.screen]);
 
@@ -182,7 +182,7 @@ export function TitleMenu({ bridge }: TitleMenuProps) {
       {state.screen === 'title' && <TitleScreen state={state} bridge={bridge} />}
       {state.screen === 'captain' && <CaptainSelect bridge={bridge} current={state.captain} />}
       {state.screen === 'voyage-loading' && <VoyageLoading state={state} />}
-      {state.screen === 'paused' && <PausedScreen bridge={bridge} />}
+      {state.screen === 'paused' && <PausedScreen state={state} bridge={bridge} />}
       {state.screen === 'chart' && <ChartScreen state={state} bridge={bridge} />}
       {state.screen === 'settings' && <SettingsScreen state={state} bridge={bridge} />}
       {state.screen === 'controls' && <ControlsScreen bridge={bridge} />}
@@ -204,8 +204,18 @@ function TitleScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) 
         <p className="ci-subtitle">Learn the GitHub Copilot app, one island at a time</p>
       </div>
       <nav className="ci-menu-list" aria-label="Main menu">
-        <MenuButton onClick={bridge.chooseCaptain}>New Voyage</MenuButton>
-        {state.hasSave && <MenuButton onClick={bridge.continueVoyage}>Continue</MenuButton>}
+        <MenuButton onClick={bridge.chooseCaptain} initial={!state.hasSave}>
+          New Voyage
+        </MenuButton>
+        {state.hasSave && (
+          <MenuButton
+            onClick={bridge.continueVoyage}
+            detail={`${state.save?.questsDone ?? 0} quests done`}
+            initial
+          >
+            Continue · {state.save?.location ?? 'Anchorage Cay'}
+          </MenuButton>
+        )}
         <MenuButton onClick={bridge.openChart}>Chart</MenuButton>
         <MenuButton onClick={bridge.openSettings}>Settings</MenuButton>
         <MenuButton onClick={bridge.openControls}>Controls</MenuButton>
@@ -305,12 +315,17 @@ function VoyageLoading({ state }: { state: UiState }) {
   );
 }
 
-function PausedScreen({ bridge }: { bridge: GameBridge }) {
+function PausedScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) {
+  const seals = state.learn.seals.length ? state.learn.seals.join(' · ') : 'No seal yet';
   return (
     <OverlayShell title="Paused" eyebrow="Voyage menu" className="ci-pause" hideBack>
+      <p className="ci-pause-progress">
+        {state.learn.doubloons} doubloons · {seals}
+      </p>
       <nav className="ci-menu-list compact" aria-label="Pause menu">
         <MenuButton onClick={bridge.resume}>Resume</MenuButton>
         <MenuButton onClick={bridge.openChart}>Chart</MenuButton>
+        <MenuButton onClick={bridge.openLogbook}>Logbook</MenuButton>
         <MenuButton onClick={bridge.openSettings}>Settings</MenuButton>
         <MenuButton onClick={bridge.openControls}>Controls</MenuButton>
         <MenuButton onClick={bridge.quitToTitle}>Quit to title</MenuButton>
@@ -333,6 +348,7 @@ function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) 
       eyebrow={mode === 'archipelago' ? 'Archipelago' : chart.island.name}
       onBack={bridge.back}
       wide
+      className="ci-chart-panel"
     >
       <div className="ci-chart-toolbar">
         <button className={mode === 'archipelago' ? 'active' : ''} onClick={() => setMode('archipelago')}>
@@ -343,54 +359,65 @@ function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) 
         </button>
       </div>
       <div className={`ci-chart ${mode === 'island' ? 'zoomed' : ''}`}>
-        <svg viewBox="0 0 1000 620" role="img" aria-label="Parchment nautical chart">
-          <defs>
-            <filter id="paper-noise">
-              <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="7" />
-              <feColorMatrix type="saturate" values="0" />
-              <feComponentTransfer>
-                <feFuncA type="table" tableValues="0 .13" />
-              </feComponentTransfer>
-            </filter>
-            <pattern id="wave-lines" width="58" height="34" patternUnits="userSpaceOnUse">
-              <path
-                d="M4 18c12-9 24 9 36 0 7-5 11-5 18-1"
-                fill="none"
-                stroke="#3e6f86"
-                strokeOpacity=".18"
-                strokeWidth="1.5"
-              />
-            </pattern>
-          </defs>
-          <rect width="1000" height="620" rx="26" fill="#ead9ad" />
-          <rect width="1000" height="620" rx="26" filter="url(#paper-noise)" />
-          <rect
-            x="24"
-            y="24"
-            width="952"
-            height="572"
-            rx="18"
-            fill="url(#wave-lines)"
-            stroke="#6d4b25"
-            strokeOpacity=".25"
-          />
-          {mode === 'archipelago' ? (
-            <ArchipelagoSvg
-              islands={chart.islands.length ? chart.islands : FALLBACK_ISLANDS}
-              selected={selectedIsland}
-              onSelect={setSelectedIsland}
-              onOpenDetail={() => setMode('island')}
+        <div className="ci-chart-map">
+          <svg viewBox="0 0 1000 620" role="img" aria-label="Parchment nautical chart">
+            <defs>
+              <filter id="paper-noise">
+                <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="7" />
+                <feColorMatrix type="saturate" values="0" />
+                <feComponentTransfer>
+                  <feFuncA type="table" tableValues="0 .13" />
+                </feComponentTransfer>
+              </filter>
+              <pattern id="wave-lines" width="58" height="34" patternUnits="userSpaceOnUse">
+                <path
+                  d="M4 18c12-9 24 9 36 0 7-5 11-5 18-1"
+                  fill="none"
+                  stroke="#3e6f86"
+                  strokeOpacity=".18"
+                  strokeWidth="1.5"
+                />
+              </pattern>
+            </defs>
+            <rect width="1000" height="620" rx="26" fill="#ead9ad" />
+            <rect width="1000" height="620" rx="26" filter="url(#paper-noise)" />
+            <rect
+              x="24"
+              y="24"
+              width="952"
+              height="572"
+              rx="18"
+              fill="url(#wave-lines)"
+              stroke="#6d4b25"
+              strokeOpacity=".25"
             />
-          ) : (
-            <IslandSvg chart={chart} selectedPoint={selectedPoint} onSelectPoint={setSelectedPoint} />
+            {mode === 'archipelago' ? (
+              <ArchipelagoSvg
+                islands={chart.islands.length ? chart.islands : FALLBACK_ISLANDS}
+                selected={selectedIsland}
+                onSelect={setSelectedIsland}
+                onOpenDetail={() => setMode('island')}
+              />
+            ) : (
+              <IslandSvg chart={chart} selectedPoint={selectedPoint} onSelectPoint={setSelectedPoint} />
+            )}
+          </svg>
+        </div>
+        <div className="ci-chart-side" aria-live="polite">
+          {mode === 'archipelago' && selectedIsland && (
+            <IslandCard island={selectedIsland} onDetail={() => setMode('island')} />
           )}
-        </svg>
-        {mode === 'archipelago' && selectedIsland && (
-          <IslandCard island={selectedIsland} onDetail={() => setMode('island')} />
-        )}
-        {mode === 'island' && selectedPoint && (
-          <PointCard point={selectedPoint} onTravel={() => bridge.travelTo(selectedPoint.id)} />
-        )}
+          {mode === 'island' && selectedPoint && (
+            <PointCard point={selectedPoint} onTravel={() => bridge.travelTo(selectedPoint.id)} />
+          )}
+          {mode === 'island' && !selectedPoint && (
+            <aside className="ci-map-card muted">
+              <p>Anchorage Cay</p>
+              <h3>Island detail</h3>
+              <small>Select a harbor, landmark, beach, or quest marker to set a travel point.</small>
+            </aside>
+          )}
+        </div>
       </div>
     </OverlayShell>
   );
@@ -450,6 +477,12 @@ function ArchipelagoSvg({
   );
 }
 
+interface IslandFrame {
+  minX: number;
+  minY: number;
+  span: number;
+}
+
 function IslandSvg({
   chart,
   selectedPoint,
@@ -459,34 +492,40 @@ function IslandSvg({
   selectedPoint: ChartPoint | null;
   onSelectPoint: (point: ChartPoint) => void;
 }) {
+  const frame = islandFrame(chart);
+  const project = (x: number, y: number) => projectIslandPoint(frame, x, y);
   return (
     <g className="ci-island-detail">
       <rect x="76" y="58" width="850" height="500" rx="220" fill="#7db4bc" opacity=".22" />
       {chart.island.reef.map((ring, index) => (
-        <path key={`reef-${index}`} className="reef" d={ringPath(ring)} />
+        <path key={`reef-${index}`} className="reef" d={ringPath(ring, frame)} />
       ))}
       {chart.island.coast.map((ring, index) => (
-        <path key={`coast-${index}`} className="coast" d={ringPath(ring)} />
+        <path key={`coast-${index}`} className="coast" d={ringPath(ring, frame)} />
       ))}
-      {chart.island.points.map((point) => (
-        <g
-          key={point.id}
-          tabIndex={0}
-          role="button"
-          className={`ci-chart-point ${point.kind} ${selectedPoint?.id === point.id ? 'selected' : ''}`}
-          onClick={() => onSelectPoint(point)}
-          onKeyDown={(event) => event.key === 'Enter' && onSelectPoint(point)}
-          aria-label={point.label}
-        >
-          <circle cx={point.x * 760 + 120} cy={point.y * 430 + 92} r="8" />
-          <text x={point.x * 760 + 134} y={point.y * 430 + 96}>
-            {point.label}
-          </text>
-        </g>
-      ))}
+      {chart.island.points.map((point) => {
+        const pos = project(point.x, point.y);
+        const offset = pointLabelOffset(point.id);
+        return (
+          <g
+            key={point.id}
+            tabIndex={0}
+            role="button"
+            className={`ci-chart-point ${point.kind} ${selectedPoint?.id === point.id ? 'selected' : ''}`}
+            onClick={() => onSelectPoint(point)}
+            onKeyDown={(event) => event.key === 'Enter' && onSelectPoint(point)}
+            aria-label={point.label}
+          >
+            <circle cx={pos.x} cy={pos.y} r="8" />
+            <text x={pos.x + offset.x} y={pos.y + offset.y} textAnchor={offset.anchor ?? 'start'}>
+              {point.label}
+            </text>
+          </g>
+        );
+      })}
       {chart.player && (
         <g
-          transform={`translate(${chart.player.x * 760 + 120} ${chart.player.y * 430 + 92}) rotate(${(chart.player.heading * 180) / Math.PI})`}
+          transform={`translate(${project(chart.player.x, chart.player.y).x} ${project(chart.player.x, chart.player.y).y}) rotate(${(chart.player.heading * 180) / Math.PI})`}
           className="ci-player-marker"
         >
           <path d="M0 -17l8 24-8-5-8 5z" />
@@ -495,6 +534,60 @@ function IslandSvg({
       )}
     </g>
   );
+}
+
+function islandFrame(chart: ChartData): IslandFrame {
+  const points: [number, number][] = [];
+  for (const ring of [...chart.island.coast, ...chart.island.reef]) points.push(...ring);
+  for (const point of chart.island.points) points.push([point.x, point.y]);
+  if (chart.player) points.push([chart.player.x, chart.player.y]);
+  let minX = 1,
+    maxX = 0,
+    minY = 1,
+    maxY = 0;
+  for (const [x, y] of points) {
+    minX = Math.min(minX, x);
+    maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y);
+    maxY = Math.max(maxY, y);
+  }
+  const pad = 0.035;
+  minX -= pad;
+  maxX += pad;
+  minY -= pad;
+  maxY += pad;
+  const span = Math.max(maxX - minX, maxY - minY, 0.2);
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  return { minX: cx - span / 2, minY: cy - span / 2, span };
+}
+
+function projectIslandPoint(frame: IslandFrame, x: number, y: number): { x: number; y: number } {
+  const u = (x - frame.minX) / frame.span;
+  const v = (y - frame.minY) / frame.span;
+  return { x: 140 + u * 720, y: 76 + v * 468 };
+}
+
+function pointLabelOffset(id: string): { x: number; y: number; anchor?: 'start' | 'end' | 'middle' } {
+  switch (id) {
+    case 'pier':
+      return { x: -42, y: -34, anchor: 'end' };
+    case 'harbor':
+      return { x: -44, y: -14, anchor: 'end' };
+    case 'plaza':
+    case 'village':
+      return { x: -40, y: 37, anchor: 'end' };
+    case 'nell':
+      return { x: 38, y: 30 };
+    case 'beach':
+      return { x: 0, y: 34, anchor: 'middle' };
+    case 'lighthouse':
+      return { x: 38, y: -26 };
+    case 'hill':
+      return { x: 30, y: 13 };
+    default:
+      return { x: 18, y: 6 };
+  }
 }
 
 function SettingsScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) {
@@ -658,10 +751,21 @@ function CreditsScreen({ bridge }: { bridge: GameBridge }) {
   );
 }
 
-function MenuButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+function MenuButton({
+  children,
+  detail,
+  initial = false,
+  onClick,
+}: {
+  children: ReactNode;
+  detail?: ReactNode;
+  initial?: boolean;
+  onClick: () => void;
+}) {
   return (
-    <button className="ci-menu-button" onClick={onClick}>
-      {children}
+    <button className="ci-menu-button" data-initial-focus={initial ? 'true' : undefined} onClick={onClick}>
+      <span>{children}</span>
+      {detail && <small>{detail}</small>}
     </button>
   );
 }
@@ -847,8 +951,13 @@ function CompassRose({ x, y }: { x: number; y: number }) {
   );
 }
 
-function ringPath(ring: [number, number][]): string {
-  return `${ring.map(([x, y], index) => `${index === 0 ? 'M' : 'L'}${x * 760 + 120} ${y * 430 + 92}`).join(' ')} Z`;
+function ringPath(ring: [number, number][], frame: IslandFrame): string {
+  return `${ring
+    .map(([x, y], index) => {
+      const p = projectIslandPoint(frame, x, y);
+      return `${index === 0 ? 'M' : 'L'}${p.x} ${p.y}`;
+    })
+    .join(' ')} Z`;
 }
 
 function islandSilhouette(index: number, x: number, y: number): string {
@@ -864,6 +973,6 @@ function focusable(root: HTMLElement): HTMLElement[] {
   ).filter((el) => el.offsetParent !== null);
 }
 
-function firstFocusable(root: HTMLElement): HTMLElement | null {
-  return focusable(root)[0] ?? null;
+function initialFocusable(root: HTMLElement): HTMLElement | null {
+  return root.querySelector<HTMLElement>('[data-initial-focus="true"]') ?? focusable(root)[0] ?? null;
 }
