@@ -106,7 +106,17 @@ export interface VillageKit {
 }
 
 type MaterialKey =
-  'stone' | 'plaster' | 'roofTile' | 'thatch' | 'wood' | 'cloth' | 'metal' | 'rope' | 'glow' | 'halo';
+  | 'stone'
+  | 'paving'
+  | 'plaster'
+  | 'roofTile'
+  | 'thatch'
+  | 'wood'
+  | 'cloth'
+  | 'metal'
+  | 'rope'
+  | 'glow'
+  | 'halo';
 type RoofType = 'gable' | 'hip' | 'thatch';
 
 interface BuildingSpec {
@@ -339,6 +349,7 @@ function createFallbackVillageKit(): VillageKit {
     pieces: new Map(),
     materials: {
       stone: createStoneMaterial(),
+      paving: createStoneMaterial(),
       plaster: createPlasterMaterial(),
       roofTile: createRoofTileMaterial(),
       thatch: createThatchMaterial(),
@@ -362,7 +373,7 @@ function prepareLoadedMaterial(material: Material, key: MaterialKey): Material {
   if ('roughness' in material) {
     const rough = material as Material & { roughness: number; metalness?: number };
     if (key === 'wood') rough.roughness = 0.82;
-    if (key === 'stone') rough.roughness = 0.88;
+    if (key === 'stone') rough.roughness = 0.97;
     if (key === 'roofTile') rough.roughness = 0.76;
     if (key === 'plaster') rough.roughness = 0.86;
     if (rough.metalness !== undefined && key !== 'metal') rough.metalness = 0;
@@ -402,6 +413,7 @@ function createVillageKitFromGltf(gltf: GLTF): VillageKit {
   for (const key of Object.keys(fallback.materials) as MaterialKey[]) {
     materials[key] ??= fallback.materials[key];
   }
+  materials.paving = clonePavingMaterial(materials.stone!);
 
   for (const scene of gltf.scenes) {
     scene.updateWorldMatrix(true, true);
@@ -436,6 +448,19 @@ function createVillageKitFromGltf(gltf: GLTF): VillageKit {
       for (const parts of pieces.values()) for (const part of parts) part.geometry.dispose();
     },
   };
+}
+
+function clonePavingMaterial(material: Material): Material {
+  const clone = material.clone();
+  clone.name = `${material.name || 'village-stone'}-paving`;
+  clone.vertexColors = true;
+  clone.side = DoubleSide;
+  if ('roughness' in clone) {
+    const rough = clone as Material & { roughness: number; metalness?: number };
+    rough.roughness = 0.96;
+    if (rough.metalness !== undefined) rough.metalness = 0;
+  }
+  return clone;
 }
 
 function kitPieceNameForObject(object: Object3D, gltf: GLTF): string | null {
@@ -511,7 +536,7 @@ export async function createVillage({
   const mediumUp = tier.tier !== 'lite' && tier.tier !== 'low';
   streetHeightField = heightField;
 
-  addQuay(buckets, colliders, shipObstacles, anchors, perches, villageKit);
+  addQuay(buckets, colliders, shipObstacles, anchors, perches);
   addPier(buckets, colliders, shipObstacles, anchors, perches, villageKit, low);
   for (const building of BUILDINGS)
     addBuilding(building, heightField, buckets, colliders, anchors, perches, villageKit, low);
@@ -618,6 +643,7 @@ export function walkable(x: number, z: number): number | null {
 function makeBuckets(): Record<MaterialKey, BufferGeometry[]> {
   return {
     stone: [],
+    paving: [],
     plaster: [],
     roofTile: [],
     thatch: [],
@@ -904,7 +930,7 @@ function addBuildingFoundation(
   const bottom = Math.min(minGround - 0.08, baseY - 0.16);
   const top = baseY + 0.08;
   addBox(
-    buckets.stone,
+    buckets.paving,
     spec.x,
     bottom,
     spec.z,
@@ -931,43 +957,26 @@ function addKitPlacement(
   }
 }
 
-function addGroundFloorTile(
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  kit: VillageKit,
-  x: number,
-  y: number,
-  z: number,
-  ry: number,
-  tint: number,
-): void {
-  if (kit.pieces.has('Floor_UnevenBrick')) {
-    addKitPiece(buckets, kit, 'Floor_UnevenBrick', x, y, z, ry, 1, 1, 1, tint);
-  } else {
-    addBox(buckets.stone, x, y, z, 2, 0.05, 2, ry, tint);
-  }
-}
-
 function addQuay(
   buckets: Record<MaterialKey, BufferGeometry[]>,
   colliders: { circles: CircleObstacle[]; boxes: VillageBoxCollider[] },
   shipObstacles: CircleObstacle[],
   anchors: Record<string, VillageAnchor>,
   perches: Vector3[],
-  kit: VillageKit,
 ): void {
   const q = COVE.quay;
   const length = q.x1 - q.x0;
   const cx = (q.x0 + q.x1) * 0.5;
-  addBox(buckets.stone, cx, 0, q.z - 1.35, length, q.height, 3.0, 0, 0x8f8978);
-  addBox(buckets.stone, cx, q.height - 0.08, q.z - 0.9, length + 1.4, 0.38, 2.15, 0, 0xa99f8b);
-  addBox(buckets.stone, cx, q.height - 0.1, q.z + 3.2, length - 3.0, 0.16, 8.2, 0, 0x9f9684);
-  addQuayPaving(buckets, kit);
+  addBox(buckets.paving, cx, 0, q.z - 1.35, length, q.height, 3.0, 0, 0xd7c8aa);
+  addQuayFrontBand(buckets);
+  addBox(buckets.paving, cx, q.height - 0.1, q.z + 3.2, length - 3.0, 0.16, 8.2, 0, 0xf2e2c6);
+  addQuayPaving(buckets);
   addBox(buckets.stone, cx, 0.35, q.z - 2.95, length - 1.2, 0.72, 0.22, 0, 0x253d2e);
   for (let x = q.x0 + 3; x <= q.x1 - 2; x += 5.2) {
     addBox(buckets.stone, x, q.height + 0.11, q.z - 1.0, 3.9, 0.2, 1.9, 0, x % 2 > 1 ? 0xc0b59e : 0xaaa08c);
   }
   for (const x of [-145, -133, -120, -96, -81]) {
-    addCylinder(buckets.metal, x, q.height, q.z + 0.35, 0.28, 0.33, 0.72, 12, 0, 0x2a2622);
+    addQuayBollard(buckets, x, q.height, q.z + 0.35);
     colliders.circles.push({ x, z: q.z + 0.35, r: 0.75 });
     perches.push(new Vector3(x, q.height + 0.72, q.z + 0.35));
   }
@@ -983,14 +992,48 @@ function addQuay(
   anchors.noticeBoard = { x: -104.7, y: q.height, z: q.z + 5.3, heading: Math.PI };
 }
 
-function addQuayPaving(buckets: Record<MaterialKey, BufferGeometry[]>, kit: VillageKit): void {
+function addQuayFrontBand(buckets: Record<MaterialKey, BufferGeometry[]>): void {
   const q = COVE.quay;
-  for (let x = q.x0 + 1; x <= q.x1 - 1; x += 2) {
-    for (let z = q.z - 0.9; z <= q.z + 7.2; z += 2) {
-      const tint = (Math.floor((x - q.x0) / 2) + Math.floor((z - q.z) / 2)) % 2 ? 0xb6ac96 : 0xa79d89;
-      addGroundFloorTile(buckets, kit, x, q.height + 0.01, z, 0, tint);
-    }
+  const gapHalf = COVE.pier.width * 0.5 + 1.0;
+  const leftX0 = q.x0 - 0.7;
+  const leftX1 = COVE.pier.x - gapHalf;
+  const rightX0 = COVE.pier.x + gapHalf;
+  const rightX1 = q.x1 + 0.7;
+  for (const [x0, x1] of [
+    [leftX0, leftX1],
+    [rightX0, rightX1],
+  ] as const) {
+    const w = x1 - x0;
+    if (w <= 0) continue;
+    addBox(buckets.paving, (x0 + x1) * 0.5, q.height - 0.08, q.z - 0.9, w, 0.32, 2.15, 0, 0xe8d9bc);
   }
+}
+
+function addQuayPaving(buckets: Record<MaterialKey, BufferGeometry[]>): void {
+  const q = COVE.quay;
+  addBox(
+    buckets.paving,
+    (q.x0 + q.x1) * 0.5,
+    q.height + 0.005,
+    q.z + 3.1,
+    q.x1 - q.x0 - 2,
+    0.035,
+    8.6,
+    0,
+    0xf2e2c6,
+  );
+}
+
+function addQuayBollard(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  x: number,
+  y: number,
+  z: number,
+): void {
+  addCylinder(buckets.metal, x, y, z, 0.34, 0.42, 0.16, 14, 0, 0x2e2b27);
+  addCylinder(buckets.metal, x, y + 0.16, z, 0.22, 0.26, 0.52, 14, 0, 0x35312c);
+  addCylinder(buckets.metal, x, y + 0.66, z, 0.5, 0.28, 0.18, 14, 0, 0x2f2b25);
+  addTorus(buckets.metal, x, y + 0.72, z, 0.39, 0.045, 16, 0x4c4133, Math.PI / 2, 0, 0);
 }
 
 function addSteps(buckets: Record<MaterialKey, BufferGeometry[]>, x: number, z: number, top: number): void {
@@ -1203,7 +1246,7 @@ function addPlaza(
       0.08,
       1.0,
       a,
-      i % 2 ? 0xb6a98e : 0x998f7a,
+      i % 2 ? 0xd5c69e : 0xc8ba95,
     );
   }
   addStreetPaving(buckets, heightField, kit, low);
@@ -1229,30 +1272,17 @@ function addPlaza(
 function addStreetPaving(
   buckets: Record<MaterialKey, BufferGeometry[]>,
   heightField: HeightField,
-  kit: VillageKit,
+  _kit: VillageKit,
   low: boolean,
 ): void {
-  const step = low ? 2.8 : 2.0;
-  for (let x = -150; x <= -82; x += step) {
-    for (let z = -66; z <= -25; z += step) {
-      if (!isStreetPavedPoint(x, z)) continue;
-      if (insideAnyBuilding(x, z)) continue;
-      const y = streetTerrainHeightAt(heightField, x, z) + 0.025;
-      const checker = (Math.floor((x + 200) / step) + Math.floor((z + 200) / step)) % 2;
-      addGroundFloorTile(buckets, kit, x, y, z, checker ? Math.PI / 2 : 0, checker ? 0xb2a891 : 0xaca28c);
-    }
-  }
+  buckets.paving.push(createStreetPavingGeometry(heightField, low));
+  addStreetEdgeCobbles(buckets, heightField, low);
 }
 
 let streetHeightField: HeightField | null = null;
 
 function isStreetPavedPoint(x: number, z: number): boolean {
-  const nearPlaza = Math.hypot(x - COVE.village.center.x, z - COVE.village.center.z) < 18.5;
-  const mainStreet = x > -153 && x < -82 && Math.abs(z - COVE.village.center.z) < 7.2;
-  const quayStreet = z < -55 && z > -68.5 && x > COVE.quay.x0 + 2 && x < COVE.quay.x1 - 2;
-  const pierStreet = Math.abs(x - COVE.pier.x) < 8.5 && z < -40 && z > -68.5;
-  const westStreet = Math.abs(x + 143) < 8 && z > -64 && z < -36;
-  return nearPlaza || mainStreet || quayStreet || pierStreet || westStreet;
+  return streetCoverage(x, z, 0) > 0;
 }
 
 function streetTerrainHeightAt(heightField: HeightField, x: number, z: number): number {
@@ -1262,6 +1292,221 @@ function streetTerrainHeightAt(heightField: HeightField, x: number, z: number): 
 function streetWalkable(x: number, z: number): number | null {
   if (!streetHeightField || !isStreetPavedPoint(x, z) || insideAnyBuilding(x, z)) return null;
   return streetTerrainHeightAt(streetHeightField, x, z) + 0.08;
+}
+
+type StreetPoint = readonly [x: number, z: number];
+
+const STREET_ROUTES: readonly (readonly StreetPoint[])[] = [
+  [
+    [-151, -45],
+    [-128, -45],
+    [-115, -45],
+    [-92, -51],
+    [-74, -62.5],
+  ],
+  [
+    [-110, -66.4],
+    [-113, -57.5],
+    [-115, -45],
+  ],
+  [
+    [-115, -45],
+    [-123.5, -49],
+    [-127.1, -58.5],
+  ],
+  [
+    [-115, -45],
+    [-105, -52],
+    [-94, -66.2],
+  ],
+  [
+    [-115, -45],
+    [-97, -49],
+    [-80.2, -53.7],
+  ],
+  [
+    [-115, -45],
+    [-116.5, -33],
+    [-117.2, -21.2],
+  ],
+  [
+    [-91, -55],
+    [-82, -60.5],
+    [-74, -62.5],
+  ],
+  [
+    [-145, -61],
+    [-135, -54],
+    [-115, -45],
+  ],
+] as const;
+
+function createStreetPavingGeometry(heightField: HeightField, low: boolean): BufferGeometry {
+  const cell = low ? 1.0 : 0.72;
+  const x0 = -151.5;
+  const x1 = -73.4;
+  const z0 = -68.6;
+  const z1 = -18.8;
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const colors: number[] = [];
+  const indices: number[] = [];
+  const addVertex = (x: number, z: number) => {
+    const y = streetTerrainHeightAt(heightField, x, z) + 0.06 + organicNoise(x, z) * 0.006;
+    const tint = new Color(streetTint(x, z));
+    positions.push(x, y, z);
+    uvs.push(x * 0.5, z * 0.5);
+    colors.push(tint.r, tint.g, tint.b);
+    return positions.length / 3 - 1;
+  };
+
+  for (let x = x0; x < x1; x += cell) {
+    for (let z = z0; z < z1; z += cell) {
+      const cx = x + cell * 0.5;
+      const cz = z + cell * 0.5;
+      if (insideAnyBuilding(cx, cz) || streetCoverage(cx, cz, 0) <= 0) continue;
+      const a = addVertex(x, z);
+      const b = addVertex(x + cell, z);
+      const c = addVertex(x + cell, z + cell);
+      const d = addVertex(x, z + cell);
+      indices.push(a, d, b, b, d, c);
+    }
+  }
+
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
+  geometry.setAttribute('color', new BufferAttribute(new Float32Array(colors), 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function addStreetEdgeCobbles(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  heightField: HeightField,
+  low: boolean,
+): void {
+  const spacing = low ? 1.1 : 0.72;
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const colors: number[] = [];
+  const indices: number[] = [];
+  const addVertex = (x: number, z: number, tint: number) => {
+    const y = heightField.heightAt(x, z) + 0.072;
+    const c = new Color(tint);
+    positions.push(x, y, z);
+    uvs.push(x * 0.5, z * 0.5);
+    colors.push(c.r, c.g, c.b);
+    return positions.length / 3 - 1;
+  };
+  const addKerbQuad = (a0: StreetPoint, a1: StreetPoint, b0: StreetPoint, b1: StreetPoint) => {
+    const cx = (a0[0] + a1[0] + b0[0] + b1[0]) * 0.25;
+    const cz = (a0[1] + a1[1] + b0[1] + b1[1]) * 0.25;
+    if (insideAnyBuilding(cx, cz) || isReservedPuzzleGround(cx, cz)) return;
+    const tint = organicNoise(cx * 0.75, cz * 0.75) > 0 ? 0xbba989 : 0xa99779;
+    const a = addVertex(a0[0], a0[1], tint);
+    const b = addVertex(a1[0], a1[1], tint);
+    const c = addVertex(b1[0], b1[1], tint);
+    const d = addVertex(b0[0], b0[1], tint);
+    indices.push(a, d, b, b, d, c);
+  };
+
+  for (const route of STREET_ROUTES) {
+    for (let i = 0; i < route.length - 1; i += 1) {
+      const a = route[i]!;
+      const b = route[i + 1]!;
+      const dx = b[0] - a[0];
+      const dz = b[1] - a[1];
+      const length = Math.hypot(dx, dz);
+      const nx = -dz / length;
+      const nz = dx / length;
+      const steps = Math.max(1, Math.floor(length / spacing));
+      for (let s = 0; s < steps; s += 1) {
+        const t0 = s / steps;
+        const t1 = (s + 1) / steps;
+        const x0 = a[0] + dx * t0;
+        const z0 = a[1] + dz * t0;
+        const x1 = a[0] + dx * t1;
+        const z1 = a[1] + dz * t1;
+        const half0 = streetHalfWidth(x0, z0) + 0.1 + organicNoise(x0 * 1.7, z0 * 1.7) * 0.08;
+        const half1 = streetHalfWidth(x1, z1) + 0.1 + organicNoise(x1 * 1.7, z1 * 1.7) * 0.08;
+        const outer0 = half0 + 0.3;
+        const outer1 = half1 + 0.3;
+        for (const side of [-1, 1] as const) {
+          addKerbQuad(
+            [x0 + nx * half0 * side, z0 + nz * half0 * side],
+            [x1 + nx * half1 * side, z1 + nz * half1 * side],
+            [x0 + nx * outer0 * side, z0 + nz * outer0 * side],
+            [x1 + nx * outer1 * side, z1 + nz * outer1 * side],
+          );
+        }
+      }
+    }
+  }
+
+  const plaza = COVE.village.center;
+  const count = low ? 40 : 72;
+  for (let i = 0; i < count; i += 1) {
+    const a0 = (i / count) * Math.PI * 2;
+    const a1 = ((i + 1) / count) * Math.PI * 2;
+    const r0 = 16.0 + organicNoise(i, i * 4.1) * 0.45;
+    const r1 = r0 + 0.3;
+    addKerbQuad(
+      [plaza.x + Math.cos(a0) * r0, plaza.z + Math.sin(a0) * r0],
+      [plaza.x + Math.cos(a1) * r0, plaza.z + Math.sin(a1) * r0],
+      [plaza.x + Math.cos(a0) * r1, plaza.z + Math.sin(a0) * r1],
+      [plaza.x + Math.cos(a1) * r1, plaza.z + Math.sin(a1) * r1],
+    );
+  }
+
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
+  geometry.setAttribute('color', new BufferAttribute(new Float32Array(colors), 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  buckets.paving.push(geometry);
+}
+
+function streetCoverage(x: number, z: number, shrink: number): number {
+  if (isReservedPuzzleGround(x, z)) return -1;
+  const plaza = Math.hypot(x - COVE.village.center.x, z - COVE.village.center.z);
+  let cover = 16.0 - shrink + organicNoise(x * 0.35, z * 0.35) * 0.75 - plaza;
+  for (const route of STREET_ROUTES) {
+    for (let i = 0; i < route.length - 1; i += 1) {
+      const d = distanceToSegment(x, z, route[i]!, route[i + 1]!);
+      const half = streetHalfWidth(x, z) - shrink + organicNoise(x * 0.42 + i * 13, z * 0.42) * 0.42;
+      cover = Math.max(cover, half - d);
+    }
+  }
+  return cover;
+}
+
+function streetHalfWidth(x: number, z: number): number {
+  const quay = z < -55 ? 2.85 : 2.35;
+  return quay + organicNoise(x * 0.16, z * 0.16) * 0.18;
+}
+
+function isReservedPuzzleGround(x: number, z: number): boolean {
+  return x > -72 && x < -54 && z > -64 && z < -44;
+}
+
+function distanceToSegment(x: number, z: number, a: StreetPoint, b: StreetPoint): number {
+  const dx = b[0] - a[0];
+  const dz = b[1] - a[1];
+  const lenSq = dx * dx + dz * dz;
+  const t = lenSq === 0 ? 0 : Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / lenSq));
+  return Math.hypot(x - (a[0] + dx * t), z - (a[1] + dz * t));
+}
+
+function organicNoise(x: number, z: number): number {
+  const n = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453;
+  return (n - Math.floor(n)) * 2 - 1;
+}
+
+function streetTint(x: number, z: number): number {
+  return organicNoise(x * 0.9, z * 0.9) > 0 ? 0xf2e2c6 : 0xddcdae;
 }
 
 function insideAnyBuilding(x: number, z: number): boolean {
@@ -1298,7 +1543,7 @@ function addMarketStalls(
         addBox(buckets.wood, p.x, y, p.z, 0.16, 1.65, 0.16, stall.rot, 0x674429);
       }
     }
-    addBox(buckets.cloth, stall.x, y + 1.72, stall.z, 4.8, 0.16, 2.4, stall.rot, stall.cloth, -8 * DEG, 0);
+    addStripedMarketAwning(buckets, stall.x, y + 1.66, stall.z, stall.rot, stall.cloth);
     perches.push(new Vector3(stall.x, y + 1.88, stall.z));
     colliders.boxes.push({ x: stall.x, z: stall.z, hx: 2.1, hz: 0.75, rot: stall.rot, height: 1.9 });
   }
@@ -1310,6 +1555,62 @@ function addMarketStalls(
   );
   const y = heightField.heightAt(-136.5, -45.2);
   anchors.marketStall = { x: -136.5, y, z: -47.1, heading: 0.15 };
+}
+
+function addStripedMarketAwning(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  x: number,
+  y: number,
+  z: number,
+  rot: number,
+  accent: number,
+): void {
+  const w = 4.9;
+  const d = 2.45;
+  const cols = 10;
+  const rows = 4;
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const colors: number[] = [];
+  const indices: number[] = [];
+  const c = Math.cos(rot);
+  const s = Math.sin(rot);
+  const mutedAccent = new Color(accent).lerp(new Color(0xd8c69c), 0.38);
+  const canvas = new Color(0xe5d6ad);
+  const addVertex = (ix: number, iz: number) => {
+    const lx = -w * 0.5 + (ix / cols) * w;
+    const lz = -d * 0.5 + (iz / rows) * d;
+    const sag = -0.18 * (1 - Math.abs(lx) / (w * 0.5)) - 0.04 * Math.sin((iz / rows) * Math.PI);
+    const wx = x + lx * c + lz * s;
+    const wz = z - lx * s + lz * c;
+    positions.push(wx, y + sag, wz);
+    uvs.push(ix / cols, iz / rows);
+    const stripe = Math.floor((ix / cols) * 6) % 2 === 0 ? mutedAccent : canvas;
+    colors.push(stripe.r, stripe.g, stripe.b);
+    return positions.length / 3 - 1;
+  };
+  for (let iz = 0; iz <= rows; iz += 1) for (let ix = 0; ix <= cols; ix += 1) addVertex(ix, iz);
+  for (let iz = 0; iz < rows; iz += 1) {
+    for (let ix = 0; ix < cols; ix += 1) {
+      const a = iz * (cols + 1) + ix;
+      const b = a + 1;
+      const d0 = a + cols + 1;
+      const c0 = d0 + 1;
+      indices.push(a, b, d0, b, c0, d0);
+    }
+  }
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
+  geometry.setAttribute('color', new BufferAttribute(new Float32Array(colors), 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  buckets.cloth.push(geometry);
+
+  const front = localToWorld(x, z, rot, 0, -d * 0.5);
+  const back = localToWorld(x, z, rot, 0, d * 0.5);
+  addBox(buckets.wood, front.x, y - 0.08, front.z, w + 0.15, 0.11, 0.12, rot, 0x6c482d);
+  addBox(buckets.wood, back.x, y - 0.08, back.z, w + 0.15, 0.11, 0.12, rot, 0x6c482d);
 }
 
 function addNetRack(
@@ -1489,26 +1790,6 @@ function addInstancedProps(
     ),
   );
 
-  const ropes = cut([
-    inst(-119, -70, at(-119, -70), 0.2, 1.0),
-    inst(-100, -69, at(-100, -69), 1.1, 0.86),
-    inst(-108, -84, at(-108, -84), 0.7, 0.9),
-    inst(-107.7, -118, at(-107.7, -118), 0.4, 0.82),
-    inst(-141, -67, at(-141, -67), -0.2, 0.78),
-  ]);
-  meshes.push(
-    addInstances(
-      group,
-      'village-rope-coils',
-      new TorusGeometry(0.46, 0.075, 8, mediumUp ? 22 : 14),
-      materials.rope,
-      ropes,
-      0.06,
-      0xc4a576,
-      Math.PI / 2,
-    ),
-  );
-
   const pots = cut([
     inst(-149, -54, at(-149, -54), 0.1, 0.85),
     inst(-146.8, -55.3, at(-146.8, -55.3), -0.5, 0.75),
@@ -1646,15 +1927,16 @@ function applyWorldBoxUv(geometry: BufferGeometry): void {
     const x = position.getX(i);
     const y = position.getY(i);
     const z = position.getZ(i);
+    const uvScale = 0.5;
     if (ny >= nx && ny >= nz) {
-      uvs[i * 2] = x * 0.5;
-      uvs[i * 2 + 1] = z * 0.5;
+      uvs[i * 2] = x * uvScale;
+      uvs[i * 2 + 1] = z * uvScale;
     } else if (nx >= nz) {
-      uvs[i * 2] = z * 0.5;
-      uvs[i * 2 + 1] = y * 0.5;
+      uvs[i * 2] = z * uvScale;
+      uvs[i * 2 + 1] = y * uvScale;
     } else {
-      uvs[i * 2] = x * 0.5;
-      uvs[i * 2 + 1] = y * 0.5;
+      uvs[i * 2] = x * uvScale;
+      uvs[i * 2 + 1] = y * uvScale;
     }
   }
   geometry.setAttribute('uv', new BufferAttribute(uvs, 2));

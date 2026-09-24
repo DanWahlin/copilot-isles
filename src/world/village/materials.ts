@@ -17,23 +17,26 @@ function lowWorldDirt(strength = 1): AnyNode {
 }
 
 export function createStoneMaterial(): MeshStandardNodeMaterial {
-  const material = new MeshStandardNodeMaterial({ roughness: 0.9, metalness: 0, vertexColors: true });
+  const material = new MeshStandardNodeMaterial({ roughness: 0.97, metalness: 0, vertexColors: true });
   const p = positionWorld as AnyNode;
-  const jointX = abs(sin(p.x.mul(2.35).add(p.y.mul(0.9)))).smoothstep(float(0.965), float(0.998));
-  const jointY = abs(sin(p.y.mul(5.2).add(p.z.mul(0.18)))).smoothstep(float(0.94), float(0.995));
-  const stoneHash = sin(p.x.mul(3.17).add(p.z.mul(4.41)).add(p.y.mul(7.3)))
+  const jointX = abs(sin(p.x.mul(18.5).add(p.z.mul(0.7)))).smoothstep(float(0.91), float(0.996));
+  const jointZ = abs(sin(p.z.mul(17.5).add(p.x.mul(0.6)))).smoothstep(float(0.91), float(0.996));
+  const jointY = abs(sin(p.y.mul(10.5).add(p.x.mul(0.35)))).smoothstep(float(0.94), float(0.998));
+  const stoneHash = sin(p.x.mul(8.17).add(p.z.mul(9.41)).add(p.y.mul(3.3)))
     .mul(0.5)
     .add(0.5);
-  const mortar = jointX.max(jointY).mul(0.62);
+  const mortar = jointX.max(jointZ).max(jointY.mul(0.55)).mul(0.58);
   const algae = float(1)
     .sub(smoothstep(float(-0.08), float(1.25), p.y))
-    .mul(0.8);
+    .mul(0.28);
   const base = tint()
     .mul(float(0.9).add(stoneHash.mul(0.18)))
     .mul(float(1).sub(mortar.mul(0.18)));
-  material.colorNode = mix(base, color(0x31523d), algae.mul(0.3)).mul(float(1).sub(lowWorldDirt(0.08)));
-  material.roughnessNode = float(0.88).sub(algae.mul(0.12));
-  material.aoNode = float(1).sub(lowWorldDirt(0.16));
+  material.colorNode = mix(base.mul(color(0xfff0cc)), color(0x756b53), algae.mul(0.12)).mul(
+    float(1).sub(lowWorldDirt(0.04)),
+  );
+  material.roughnessNode = float(0.96).add(algae.mul(0.02));
+  material.aoNode = float(1).sub(lowWorldDirt(0.08));
   return material;
 }
 
