@@ -32,11 +32,11 @@ import {
   vec2,
   vec3,
   vec4,
-  viewportDepthTexture,
   viewportSharedTexture,
 } from 'three/tsl';
 import type { TierSettings } from '../../engine/quality';
 import { world } from '../uniforms';
+import { matchedDepthTexture } from './depth-copy';
 import { createPolarGrid } from './polar-grid';
 import { createRippleTexture } from './ripple-texture';
 import { FADE_DISTANCE, WaveField, wavesForTier } from './waves';
@@ -162,8 +162,9 @@ export function createOcean({ tier, env }: OceanOptions): Ocean {
     // Refraction: depth-aware screen offset, rejecting samples that land on things above the water.
     const ambient = world.skyColor.mul(0.55).add(world.sunColor.mul(max(world.sunDir.y, 0).mul(0.22)));
     const fragZ = positionView.z;
+    const depthTex = matchedDepthTexture();
     const ratioAt = (uv: Node<'vec2'>) =>
-      perspectiveDepthToViewZ(viewportDepthTexture(uv).x, cameraNear, cameraFar).div(fragZ);
+      perspectiveDepthToViewZ(depthTex.sample(uv).x, cameraNear, cameraFar).div(fragZ);
     const uv0 = screenUV;
     const ratio0 = ratioAt(uv0);
     let uvF: Node<'vec2'> = uv0;

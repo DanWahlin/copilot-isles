@@ -1,6 +1,7 @@
 import { ACESFilmicToneMapping, AgXToneMapping, NeutralToneMapping, type WebGPURenderer } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Engine } from '../engine/engine';
+import { createPost } from '../engine/post';
 import { TIERS } from '../engine/quality';
 import type { Tier } from '../world/contracts';
 import { createCove } from '../world/cove-scene';
@@ -20,6 +21,8 @@ const { scene, camera, clock } = engine;
 const t0 = performance.now();
 const cove = await createCove(engine, { vegetation: !q.has('noveg') });
 const buildMs = performance.now() - t0;
+const post = q.has('nopost') ? null : createPost(renderer, scene, camera, tier);
+if (post) engine.renderFn = post.render;
 
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;

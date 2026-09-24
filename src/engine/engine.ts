@@ -44,7 +44,6 @@ export class Engine {
   private running = false;
   private timestamps = false;
   private resolving = false;
-  private framesSinceResolve = 0;
   private resizeObs: ResizeObserver | null = null;
 
   private constructor(renderer: WebGPURenderer, o: EngineOptions) {
@@ -159,19 +158,19 @@ export class Engine {
     // frame-time signal (see .plans/issues.md: raising relies on backoff probes without GPU time).
     let signal = raw;
     if (this.timestamps) {
-      this.framesSinceResolve++;
       if (!this.resolving) {
         this.resolving = true;
-        const frames = this.framesSinceResolve;
-        this.framesSinceResolve = 0;
+        // three returns the GPU duration of the most recent resolved frame (ms).
         void this.renderer
           .resolveTimestampsAsync('render')
           .then((ms) => {
-            if (typeof ms === 'number' && ms > 0) this.gpuMs = ms / Math.max(1, frames);
+            if (typeof ms === 'number' && ms > 0) this.gpuMs = ms;
           })
           .finally(() => (this.resolving = false));
       }
-      if (this.gpuMs > 0) signal = this.gpuMs / 1000;
+      // A pipelined GPU can't sustain more work than the frame interval, so clamp implausible
+      // readings (tile GPUs report pass wall time; issues.md #11) to the wall frame time.
+      if (this.gpuMs > 0) signal = Math.min(this.gpuMs / 1000, raw);
     } else {
       const T = 1 / this.tier.targetFps;
       if (Math.abs(raw - T) < T * 0.08) signal = raw * 0.8;
