@@ -13,7 +13,7 @@ const opt = Object.fromEntries(
 const base = opt.base || 'http://localhost:5300';
 const out = opt.out || '/tmp/shots/play';
 const tag = opt.webgl ? 'gl' : 'gpu';
-const url = `${base}/devpages/play.html?auto&quiet&shot${opt.webgl ? '&webgl' : ''}${opt.noveg ? '&noveg' : ''}`;
+const url = `${base}/devpages/play.html?auto&quiet&shot&nolearn${opt.webgl ? '&webgl' : ''}${opt.noveg ? '&noveg' : ''}`;
 
 const browser = await chromium.launch({
   channel: 'chrome',

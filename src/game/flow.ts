@@ -16,6 +16,7 @@ import type { CoveScene } from '../world/cove-scene';
 import { world } from '../world/uniforms';
 import { buildChart, coveTravelPoints } from './chart';
 import type { GameSession } from './session';
+import { LearnStore } from '../learn/store';
 
 const SETTINGS_KEY = 'copilot-isles.settings.v1';
 const SAVE_KEY = 'copilot-isles.save.v1';
@@ -69,6 +70,8 @@ export class GameFlow implements GameBridge {
   private cove: CoveScene | null = null;
   private characters: CharacterLibrary | null = null;
   private session: GameSession | null = null;
+  /** Quizzes, pages, chests, and the Logbook (rendered by src/ui/learn). */
+  readonly learn = new LearnStore();
   private loading = false;
   private saveTimer = 0;
   private audioReady = false;
@@ -121,6 +124,7 @@ export class GameFlow implements GameBridge {
 
   newVoyage(captain: CaptainBody): void {
     writeJson(SAVE_KEY, null);
+    this.learn.newGame();
     void this.voyage(captain, null);
   }
 
@@ -305,6 +309,7 @@ export class GameFlow implements GameBridge {
         start: save ? { x: save.x, z: save.z, heading: save.heading } : undefined,
         onMenu: () => this.pause(),
         onChart: () => this.openChart(),
+        learn: this.learn,
       });
       if (this.audioReady) {
         this.o.audio.sfx.setBed('palms', 0.35);

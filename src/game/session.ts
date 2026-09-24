@@ -14,6 +14,10 @@ import { Hud } from './hud';
 import { Interactions } from './interaction';
 import { COVE_NPCS, NpcCrowd, type Npc } from './npcs';
 import { PlayerController } from './player-controller';
+import type { LearnStore } from '../learn/store';
+import { createChest, type TreasureChest } from './chest';
+import { COVE_CHESTS, npcScript, questLog } from './cove-quests';
+import { runScript } from './script';
 
 export type SessionMode = 'walk' | 'sail' | 'docking' | 'transition';
 
@@ -34,6 +38,8 @@ export interface SessionOptions {
   /** Esc / Start and M / Back while playing. */
   onMenu?: () => void;
   onChart?: () => void;
+  /** Quizzes, spyglass, chests, and the Logbook (the session freezes while one is open). */
+  learn?: LearnStore | null;
 }
 
 export interface GameSession {
@@ -55,6 +61,10 @@ export interface GameSession {
     board(): Promise<void>;
     dock(): void;
     state(): Record<string, unknown>;
+    /** Chest positions and facings (tests). */
+    chests(): { id: string; x: number; z: number; h: number; opened: boolean }[];
+    /** Where the Trial is taken (tests). */
+    trialAt(): { x: number; z: number; heading: number } | null;
   };
   dispose(): void;
 }
@@ -131,11 +141,38 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const boardPoint = new Vector3();
   const tmp = new Vector3();
 
-  // Talk to NPCs: Nell's conversation is voiced; everyone else offers a bark.
+  // Quests (POC §4.4 slice): NPC scripts depend on quest state, saved with learning progress.
+  const learn = o.learn ?? null;
+  const quests = (): Record<string, string> => learn?.progress.data.quests ?? localQuests;
+  const localQuests: Record<string, string> = {};
+  const setQuest = (id: string, step: string) => {
+    if (learn) learn.progress.setQuest(id, step);
+    else localQuests[id] = step;
+    learn?.setQuests(questLog(quests()));
+  };
+  if (!quests()['Q0.2']) setQuest('Q0.2', 'start');
+  else learn?.setQuests(questLog(quests()));
+  let scriptRunning = false;
+  let disposed = false;
+
+  // Talk to NPCs: quest beats run as scripts; Nell's lines are voiced; everyone else offers a bark.
   const talkTo = async (n: Npc) => {
-    if (dialogue.active) return;
+    if (dialogue.active || scriptRunning) return;
     npcs.setTalking(n, true);
-    if (n.spec.voiced) {
+    const beat = learn ? npcScript(n.spec.id, quests()) : null;
+    if (beat) {
+      scriptRunning = true;
+      input.enabled = false;
+      await runScript(beat.steps, {
+        dialogue,
+        learn,
+        speaker: n.spec.name.split(' ')[0]!,
+        onQuest: setQuest,
+        cancelled: () => disposed,
+      });
+      input.enabled = !paused;
+      scriptRunning = false;
+    } else if (n.spec.voiced) {
       input.enabled = false;
       await dialogue.play(n.spec.voiced);
       input.enabled = true;
@@ -147,7 +184,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     npcs.setTalking(n, false);
   };
   for (const n of npcs.list) {
-    if (!n.spec.voiced && !n.spec.barks) continue;
+    if (!n.spec.voiced && !n.spec.barks && !npcScript(n.spec.id, quests())) continue;
     interactions.add({
       id: `npc:${n.spec.id}`,
       label: () => `Talk to ${n.spec.name}`,
@@ -183,6 +220,77 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     enabled: () => mode === 'walk' && shipDocked(),
     onInteract: () => void board(),
   });
+
+  // Treasure chests beside their NPCs; each grants a Logbook page once.
+  const chests: { id: string; chest: TreasureChest; x: number; y: number; z: number }[] = [];
+  for (const c of COVE_CHESTS) {
+    const n = npcs.list.find((v) => v.spec.id === c.npc);
+    if (!n) continue;
+    const s = Math.sin(n.heading);
+    const co = Math.cos(n.heading);
+    // NPC-right (for a character facing +heading) is (-cos, +sin) in xz.
+    const x = n.home.x + s * (n.spec.out ?? 0) - co * c.side - s * c.back;
+    const z = n.home.z + co * (n.spec.out ?? 0) + s * c.side - co * c.back;
+    const y = world.surfaceHeightAt(x, z) ?? world.groundAt(x, z);
+    const chest = createChest();
+    chest.group.position.set(x, y, z);
+    chest.group.rotation.y = n.heading;
+    if (learn?.isChestOpen(c.id)) chest.setOpen();
+    engine.scene.add(chest.group);
+    world.addCircle({ x, z, r: 0.55 });
+    chests.push({ id: c.id, chest, x, y, z });
+    interactions.add({
+      id: `chest:${c.id}`,
+      label: () => 'Open the chest',
+      x,
+      y,
+      z,
+      radius: 2.2,
+      enabled: () => mode === 'walk' && !chest.opened && !scriptRunning,
+      onInteract: () => void openChest(c.id, chest),
+    });
+  }
+  async function openChest(id: string, chest: TreasureChest): Promise<void> {
+    input.enabled = false;
+    audio?.sfx.oneShot('step_wood', chest.group.position, 1);
+    await chest.open();
+    await learn?.openChest(id);
+    if (id === 'C0.1' && quests()['Q0.2'] === 'chest') {
+      setQuest('Q0.2', 'done');
+      setQuest('Q0.3', 'start');
+      hud.toast('Quest updated: see Ezra, the chartmaker. Press J for the Logbook.', 4);
+    }
+    input.enabled = !paused;
+  }
+
+  // The Harbormaster's Trial at the lighthouse door (POC §4.7): 8 questions, then the Seal.
+  const trialAt = village.anchors.lighthouseDoor;
+  if (trialAt) {
+    interactions.add({
+      id: 'trial:T0',
+      label: () =>
+        quests()['Q0.10'] === 'done' ? 'Retake the Harbormaster’s Trial' : 'Take the Harbormaster’s Trial',
+      x: trialAt.x,
+      y: trialAt.y,
+      z: trialAt.z,
+      radius: 3,
+      enabled: () => mode === 'walk' && !!learn && !!quests()['Q0.10'] && !scriptRunning,
+      onInteract: () => void takeTrial(),
+    });
+  }
+  async function takeTrial(): Promise<void> {
+    if (!learn) return;
+    scriptRunning = true;
+    input.enabled = false;
+    await dialogue.say('Wingman', 'Eight questions, Captain. No answers from me in here, only nudges.');
+    const out = await learn.runTrial('T0');
+    if (out.passed) {
+      setQuest('Q0.10', 'done');
+      hud.toast('The lighthouse is lit. Fast travel unlocked on the chart.', 4.5);
+    }
+    input.enabled = !paused;
+    scriptRunning = false;
+  }
 
   async function board(): Promise<void> {
     if (mode !== 'walk') return;
@@ -275,6 +383,19 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           audio?.update(dt);
           return;
         }
+        // A quiz, page, or Logbook owns input: freeze the walker (the world keeps living).
+        if (learn?.busy) {
+          hud.setPrompt(null);
+          if (mode === 'walk')
+            player.step(dt, { ...s, moveX: 0, moveY: 0, jump: false, run: false }, cam.yaw, world, t);
+          hero.setSpeed(0);
+          hero.update(dt);
+          npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
+          for (const c of chests) c.chest.update(dt, t);
+          audio?.update(dt);
+          resumedAt = performance.now();
+          return;
+        }
         // Menu keys: ignore the edge from the same key press that closed the menu.
         if (performance.now() - resumedAt > 200) {
           if (s.menu && o.onMenu) return o.onMenu();
@@ -283,7 +404,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         // A short cooldown after a conversation ends so mashing E to skip doesn't restart it.
         if (dialogue.active) cooldown = 0.45;
         else cooldown = Math.max(0, cooldown - dt);
-        if (s.interact) {
+        // The E that closed a quiz or page mustn't also skip the next line or re-open a chat.
+        if (s.interact && performance.now() - resumedAt > 250) {
           if (dialogue.active) dialogue.next();
           else if (cooldown <= 0 && mode === 'sail') dock();
           else if (cooldown <= 0 && mode === 'walk') interactions.fire();
@@ -340,6 +462,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
         hero.update(dt);
         npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
+        for (const c of chests) c.chest.update(dt, t);
 
         if (audio) {
           listenerPos.x = camera.position.x;
@@ -392,6 +515,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       },
       board,
       dock,
+      chests: () =>
+        chests.map((c) => ({
+          id: c.id,
+          x: c.x,
+          z: c.z,
+          h: c.chest.group.rotation.y,
+          opened: c.chest.opened,
+        })),
+      trialAt: () => (trialAt ? { x: trialAt.x, z: trialAt.z, heading: trialAt.heading } : null),
       state: () => ({
         mode,
         x: +player.x.toFixed(2),
@@ -414,6 +546,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       }),
     },
     dispose() {
+      disposed = true;
+      learn?.reset();
+      for (const c of chests) c.chest.dispose();
       remove();
       dialogue.cancel();
       npcs.dispose();

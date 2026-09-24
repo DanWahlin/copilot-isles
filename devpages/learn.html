@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copilot Isles · Learning Dev</title>
+    <link rel="icon" href="data:," />
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 72% 40%, rgba(255, 211, 140, 0.3), transparent 20rem),
+          linear-gradient(180deg, #5aa7dc 0 45%, #1a6f92 46% 60%, #0a2a3a 100%);
+        font-family: Manrope, Inter, system-ui, sans-serif;
+      }
+      #bar {
+        position: fixed;
+        left: 1rem;
+        bottom: 1rem;
+        z-index: 20;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        max-width: 60rem;
+      }
+      #bar button {
+        padding: 0.35rem 0.6rem;
+        border: 1px solid rgba(232, 200, 138, 0.5);
+        border-radius: 6px;
+        background: rgba(8, 18, 27, 0.8);
+        color: #fbefd6;
+        font: 600 12px/1 inherit;
+        cursor: pointer;
+      }
+      .ci-learn .debug-rect {
+        position: absolute;
+        border: 2px dashed #ff00d4;
+        pointer-events: none;
+      }
+      .ci-learn .debug-rect.good {
+        border-color: #00e676;
+      }
+      .ci-learn .debug-rect.mask {
+        border-color: #ffea00;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="bar"></div>
+    <script type="module" src="../src/dev/learn.ts"></script>
+  </body>
+</html>

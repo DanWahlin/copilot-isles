@@ -1,0 +1,162 @@
+/**
+ * Learning progress (POC §3.9 subset): pages, chests, glossary, quiz attempts, quests, trials, seals,
+ * and doubloons, saved to localStorage under a versioned key. Position/captain stay in GameFlow's save.
+ */
+export const PROGRESS_KEY = 'copilot-isles.progress.v1';
+
+export interface QuizRecord {
+  attempts: number;
+  /** True when the first attempt was correct (earns the bonus). */
+  firstTry: boolean;
+  passed: boolean;
+}
+
+export interface ProgressData {
+  v: 1;
+  created: number;
+  pages: string[];
+  chests: string[];
+  glossary: string[];
+  quizzes: Record<string, QuizRecord>;
+  /** Quest id → step reached (quests define their own step names). */
+  quests: Record<string, string>;
+  trials: Record<string, { passed: boolean; stars: number }>;
+  seals: string[];
+  doubloons: number;
+  /** Sail colour picked at the palette stand (Paint Your Sails). */
+  sails: string | null;
+}
+
+export function emptyProgress(now = Date.now()): ProgressData {
+  return {
+    v: 1,
+    created: now,
+    pages: [],
+    chests: [],
+    glossary: [],
+    quizzes: {},
+    quests: {},
+    trials: {},
+    seals: [],
+    doubloons: 0,
+    sails: null,
+  };
+}
+
+/** Parses a stored value, dropping anything malformed instead of throwing (old or hand-edited saves). */
+export function parseProgress(raw: string | null): ProgressData {
+  if (!raw) return emptyProgress();
+  try {
+    const d = JSON.parse(raw) as Partial<ProgressData>;
+    if (d?.v !== 1) return emptyProgress();
+    const base = emptyProgress(typeof d.created === 'number' ? d.created : Date.now());
+    const strings = (v: unknown) =>
+      Array.isArray(v) ? v.filter((s): s is string => typeof s === 'string') : [];
+    return {
+      ...base,
+      pages: strings(d.pages),
+      chests: strings(d.chests),
+      glossary: strings(d.glossary),
+      seals: strings(d.seals),
+      quizzes: d.quizzes && typeof d.quizzes === 'object' ? d.quizzes : {},
+      quests: d.quests && typeof d.quests === 'object' ? d.quests : {},
+      trials: d.trials && typeof d.trials === 'object' ? d.trials : {},
+      doubloons: typeof d.doubloons === 'number' && d.doubloons >= 0 ? Math.floor(d.doubloons) : 0,
+      sails: typeof d.sails === 'string' ? d.sails : null,
+    };
+  } catch {
+    return emptyProgress();
+  }
+}
+
+/** Export/import as a copyable base64 code (POC §3.9). */
+export function exportCode(p: ProgressData): string {
+  const bytes = new TextEncoder().encode(JSON.stringify(p));
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin);
+}
+
+export function importCode(code: string): ProgressData | null {
+  try {
+    const bytes = Uint8Array.from(atob(code.trim()), (c) => c.charCodeAt(0));
+    const raw = new TextDecoder().decode(bytes);
+    const parsed = JSON.parse(raw) as { v?: unknown };
+    return parsed?.v === 1 ? parseProgress(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export interface ProgressStorage {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+}
+
+export class Progress {
+  data: ProgressData;
+
+  constructor(private readonly storage: ProgressStorage | null = safeLocalStorage()) {
+    this.data = parseProgress(storage?.getItem(PROGRESS_KEY) ?? null);
+  }
+
+  save(): void {
+    try {
+      this.storage?.setItem(PROGRESS_KEY, JSON.stringify(this.data));
+    } catch {
+      // Private mode or full storage: progress stays in memory for this session.
+    }
+  }
+
+  reset(): void {
+    this.data = emptyProgress();
+    this.storage?.removeItem(PROGRESS_KEY);
+  }
+
+  has(kind: 'pages' | 'chests' | 'glossary' | 'seals', id: string): boolean {
+    return this.data[kind].includes(id);
+  }
+
+  /** Adds an id to a set; returns false if it was already there. */
+  add(kind: 'pages' | 'chests' | 'glossary' | 'seals', id: string): boolean {
+    if (this.data[kind].includes(id)) return false;
+    this.data[kind].push(id);
+    this.save();
+    return true;
+  }
+
+  /** Records a quiz attempt; returns the doubloons earned (first-try bonus on the first pass). */
+  recordQuiz(id: string, correct: boolean): number {
+    const r = this.data.quizzes[id] ?? { attempts: 0, firstTry: false, passed: false };
+    const wasPassed = r.passed;
+    r.attempts += 1;
+    if (correct && !r.passed) {
+      r.passed = true;
+      r.firstTry = r.attempts === 1;
+    }
+    this.data.quizzes[id] = r;
+    const earned = correct && !wasPassed ? (r.firstTry ? 5 : 2) : 0;
+    this.data.doubloons += earned;
+    this.save();
+    return earned;
+  }
+
+  setQuest(id: string, step: string): void {
+    this.data.quests[id] = step;
+    this.save();
+  }
+
+  addDoubloons(n: number): void {
+    this.data.doubloons += Math.max(0, Math.floor(n));
+    this.save();
+  }
+}
+
+function safeLocalStorage(): ProgressStorage | null {
+  try {
+    return typeof localStorage === 'undefined' ? null : localStorage;
+  } catch {
+    return null;
+  }
+}

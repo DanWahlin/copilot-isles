@@ -93,10 +93,11 @@ async function boot(): Promise<void> {
 
   const engine = Engine.fromRenderer(renderer, { canvas, backend, tier, hdr });
   stage(0.25, 'Raising the swell');
-  const [{ GameFlow }, { mountUi }, { createAudio }] = await Promise.all([
+  const [{ GameFlow }, { mountUi }, { createAudio }, { mountLearn }] = await Promise.all([
     import('../game/flow'),
     import('../ui/mount'),
     import('../audio'),
+    import('../ui/learn/LearnLayer'),
     import('../game/hud.css'),
   ]);
   const post = createPost(renderer, engine.scene, engine.camera, tier);
@@ -133,6 +134,10 @@ async function boot(): Promise<void> {
   }
 
   mountUi(document.getElementById('ui')!, flow);
+  mountLearn(document.body, flow.learn, {
+    subscribe: (fn) => flow.subscribe(() => fn()),
+    get: () => flow.getState().screen === 'playing',
+  });
   engine.start();
   stage(1, 'Ready');
 

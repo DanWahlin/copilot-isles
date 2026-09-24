@@ -9,10 +9,17 @@ import '../game/hud.css';
 import { loadCharacterLibrary, type PlayerBody } from '../world/characters';
 import type { Tier } from '../world/contracts';
 import { createCove } from '../world/cove-scene';
+import { QUIZZES } from '../learn/content/index';
+import type { Answer } from '../learn/grade';
+import { Progress } from '../learn/progress';
+import { LearnStore } from '../learn/store';
+import { mountLearn } from '../ui/learn/LearnLayer';
+import '../ui/ui.css';
 
 /**
  * Test Cove play page (Phase 0 T11): walk the harbor, talk to Nell, board the brigantine, sail,
- * and dock. ?webgl, ?tier=, ?noveg, ?body=man|woman, ?auto (skip the start card), ?shot, ?time=.
+ * and dock. ?webgl, ?tier=, ?noveg, ?body=man|woman, ?auto (skip the start card), ?shot, ?time=,
+ * ?nolearn (plain dialogue, no quizzes/chests), ?keep (keep learning progress in localStorage).
  */
 const q = new URLSearchParams(location.search);
 const backend = q.has('webgl') ? 'webgl2' : 'webgpu';
@@ -37,6 +44,19 @@ const buildMs = performance.now() - t0;
 
 const input = new Input(canvas);
 const audio = createAudio();
+const memory = new Map<string, string>();
+const learn = q.has('nolearn')
+  ? null
+  : new LearnStore(
+      q.has('keep')
+        ? new Progress()
+        : new Progress({
+            getItem: (k) => memory.get(k) ?? null,
+            setItem: (k, v) => void memory.set(k, v),
+            removeItem: (k) => void memory.delete(k),
+          }),
+    );
+if (learn) mountLearn(document.body, learn, { subscribe: () => () => {}, get: () => !!session });
 let session: GameSession | null = null;
 let body: PlayerBody = q.get('body') === 'woman' ? 'woman' : 'man';
 
@@ -61,6 +81,7 @@ async function begin(unlock: boolean): Promise<void> {
     audio: unlock ? audio : null,
     body,
     quiet: q.has('quiet'),
+    learn,
   });
   document.getElementById('start')!.classList.add('hide');
   canvas.focus();
@@ -108,6 +129,33 @@ const key = (code: string, down: boolean) => {
 (window as unknown as { __dev: object }).__dev = {
   ready: true,
   session: () => session,
+  learn,
+  /** Submits the right answer to the open quiz (tests); hotspots can also be clicked for real. */
+  answer: () => {
+    const quiz = learn?.getState().quiz?.quiz;
+    if (!learn || !quiz) return false;
+    if (!QUIZZES.has(quiz.id)) return false;
+    let a: Answer;
+    switch (quiz.type) {
+      case 'mc':
+      case 'scenario':
+        a = { type: quiz.type, option: quiz.answer };
+        break;
+      case 'multi':
+        a = { type: 'multi', options: quiz.answers };
+        break;
+      case 'hotspot':
+        a = { type: 'hotspot-target', target: quiz.targets.find((t) => t.correct)!.id };
+        break;
+      case 'ordering':
+        a = { type: 'ordering', order: quiz.items.map((i) => i.id) };
+        break;
+      case 'matching':
+        a = { type: 'matching', pairs: Object.fromEntries(quiz.pairs.map((p) => [p.left.id, p.right.id])) };
+        break;
+    }
+    return !!learn.submit(a)?.correct;
+  },
   state: () => session?.debug.state() ?? null,
   bench: {
     teleport: (x: number, z: number, heading = 0, yaw = heading, pitch = 0.2) => {

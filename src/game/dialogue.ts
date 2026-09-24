@@ -46,6 +46,22 @@ export class Dialogue {
     this.wake?.();
   }
 
+  /** Shows an unvoiced line with a reading-pace duration; interact skips it. */
+  async say(speaker: string, text: string): Promise<void> {
+    const token = ++this.token;
+    this.active = true;
+    const seconds = Math.min(9, 1.4 + text.split(/\s+/).length * 0.3);
+    this.hud.showText(speaker, text, seconds + 1);
+    await new Promise<void>((resolve) => {
+      this.wake = resolve;
+      this.timers.push(window.setTimeout(resolve, seconds * 1000));
+    });
+    this.clearTimers();
+    if (token !== this.token) return;
+    this.active = false;
+    this.hud.hideSubtitle();
+  }
+
   cancel(): void {
     this.token++;
     const wake = this.wake;
