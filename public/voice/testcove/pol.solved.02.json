@@ -1,0 +1,97 @@
+{
+  "id": "pol.solved.02",
+  "speaker": "Pol",
+  "text": "Next, connect your fork in the app and look for the issues and pull requests under My work.",
+  "words": [
+    {
+      "word": "Next",
+      "start": 0.05,
+      "end": 0.86475
+    },
+    {
+      "word": "connect",
+      "start": 0.86475,
+      "end": 1.233041
+    },
+    {
+      "word": "your",
+      "start": 1.233041,
+      "end": 1.3335
+    },
+    {
+      "word": "fork",
+      "start": 1.3335,
+      "end": 1.634833
+    },
+    {
+      "word": "in",
+      "start": 1.634833,
+      "end": 1.712958
+    },
+    {
+      "word": "the",
+      "start": 1.712958,
+      "end": 1.813375
+    },
+    {
+      "word": "app",
+      "start": 1.813375,
+      "end": 2.08125
+    },
+    {
+      "word": "and",
+      "start": 2.08125,
+      "end": 2.2375
+    },
+    {
+      "word": "look",
+      "start": 2.2375,
+      "end": 2.371416
+    },
+    {
+      "word": "for",
+      "start": 2.371416,
+      "end": 2.471875
+    },
+    {
+      "word": "the",
+      "start": 2.471875,
+      "end": 2.594625
+    },
+    {
+      "word": "issues",
+      "start": 2.594625,
+      "end": 3.041083
+    },
+    {
+      "word": "and",
+      "start": 3.041083,
+      "end": 3.152666
+    },
+    {
+      "word": "pull",
+      "start": 3.152666,
+      "end": 3.375875
+    },
+    {
+      "word": "requests",
+      "start": 3.375875,
+      "end": 3.945083
+    },
+    {
+      "word": "under",
+      "start": 3.945083,
+      "end": 4.134833
+    },
+    {
+      "word": "My",
+      "start": 4.134833,
+      "end": 4.324541
+    },
+    {
+      "word": "work",
+      "start": 4.324541,
+      "end": 4.574541
+    }
+  ]
+}

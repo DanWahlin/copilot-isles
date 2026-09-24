@@ -1,0 +1,67 @@
+{
+  "id": "suri.done.01",
+  "speaker": "Suri",
+  "text": "Hear that wheel sing? Your practice checks can run now. Fair winds.",
+  "words": [
+    {
+      "word": "Hear",
+      "start": 0.05,
+      "end": 0.2875
+    },
+    {
+      "word": "that",
+      "start": 0.2875,
+      "end": 0.45
+    },
+    {
+      "word": "wheel",
+      "start": 0.45,
+      "end": 0.6125
+    },
+    {
+      "word": "sing",
+      "start": 0.6125,
+      "end": 1.9125
+    },
+    {
+      "word": "Your",
+      "start": 1.9125,
+      "end": 2.125
+    },
+    {
+      "word": "practice",
+      "start": 2.125,
+      "end": 2.575
+    },
+    {
+      "word": "checks",
+      "start": 2.575,
+      "end": 2.9
+    },
+    {
+      "word": "can",
+      "start": 2.9,
+      "end": 3.075
+    },
+    {
+      "word": "run",
+      "start": 3.075,
+      "end": 3.275
+    },
+    {
+      "word": "now",
+      "start": 3.275,
+      "end": 4.4875
+    },
+    {
+      "word": "Fair",
+      "start": 4.4875,
+      "end": 4.8375
+    },
+    {
+      "word": "winds",
+      "start": 4.8375,
+      "end": 5.0875
+    }
+  ]
+}

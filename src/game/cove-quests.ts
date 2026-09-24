@@ -183,74 +183,43 @@ export function npcScript(
 
     case 'suri': {
       const step = q['Q0.6'];
-      if (!step)
-        return { steps: [{ text: 'Mill’s dry today, Captain. Come back once Bo’s checked your gear.' }] };
+      if (!step) return { steps: [{ say: 'suri.idle.dry' }] };
       if (step === 'start') {
         return {
           steps: [
-            { text: 'You’re the captain with the new fork? Suri Okoye. I keep the mill.' },
-            {
-              text: 'This part happens on GitHub.com, not in the app. Open your fork and go to the Actions tab.',
-            },
-            {
-              text: 'You’ll see “Workflows aren’t being run on this forked repository.” New forks switch GitHub Actions off.',
-            },
-            { text: 'Turn them on, so GitHub can run the automated checks for your practice exercises.' },
+            { say: 'suri.brief.01' },
+            { say: 'suri.brief.02' },
+            { say: 'suri.brief.03' },
+            { say: 'suri.brief.04' },
             { term: 'github-actions' },
-            {
-              text: 'Here the gate’s your Actions tab. Pull the lever, then turn the channels with E until the spring reaches my wheel.',
-            },
+            { say: 'suri.brief.05' },
             { quest: 'Q0.6', step: 'sluice' },
           ],
         };
       }
       if (step === 'sluice')
         return {
-          steps: [{ text: 'Lever first, then turn the channels. Follow the water from the spring.' }],
+          steps: [{ say: 'suri.sluice.01' }],
         };
       if (step === 'solved') return { steps: SURI_SOLVED };
-      return { steps: [{ text: 'Hear that wheel sing? Your practice checks can run now. Fair winds.' }] };
+      return { steps: [{ say: 'suri.done.01' }] };
     }
 
     case 'pim':
     case 'pol': {
       const step = q['Q0.7'];
-      const me = npc === 'pim' ? 'Pim' : 'Pol';
       if (!step)
         return {
-          steps: [
-            {
-              speaker: me,
-              text: done(q, 'Q0.6')
-                ? 'Crane’s ready when you are, Captain.'
-                : 'We stock forks once their workflows are on. See Suri at the mill first.',
-            },
-          ],
+          steps: [{ say: done(q, 'Q0.6') ? 'pim.idle.ready' : 'pol.idle.waiting' }],
         };
       if (step === 'start') return { steps: CRANE_BRIEF };
       if (step === 'crane')
         return {
-          steps: [
-            {
-              speaker: me,
-              text:
-                npc === 'pim'
-                  ? 'Turn the capstan, pull Dry-Run, and read the Repository line before anything else.'
-                  : 'Preview first, always. Then --yes, but only on your own fork.',
-            },
-          ],
+          steps: [{ say: npc === 'pim' ? 'pim.crane.01' : 'pol.crane.01' }],
         };
       if (step === 'solved') return { steps: POL_SOLVED };
       return {
-        steps: [
-          {
-            speaker: me,
-            text:
-              npc === 'pim'
-                ? 'Nine pennants, five notices, seven hulls, three seals. A well-stocked fork!'
-                : 'Remember: --dry-run first, check the Repository line, then --yes.',
-          },
-        ],
+        steps: [{ say: npc === 'pim' ? 'pim.done.01' : 'pol.done.01' }],
       };
     }
 
@@ -261,57 +230,34 @@ export function npcScript(
 
 /** Suri's lines once the sluice is solved (P0.1), also used if you come back after quitting mid-way. */
 export const SURI_SOLVED: readonly ScriptStep[] = [
-  { text: 'There. The practice checks can run on your fork now.' },
+  { say: 'suri.solved.01' },
   { page: 'pg.workflows', doubloons: 15 },
-  {
-    speaker: 'Wingman',
-    text: 'Quick one, Captain: those are GitHub Actions workflows. The Clock Tower’s Automations are something else, saved agent tasks, and you’ll learn those much later.',
-  },
-  {
-    text: 'Last job before the Trial: Pim and Pol run the crane on the pier head. They’ll stock your fork with practice work.',
-  },
+  { say: 'wingman.suri.01' },
+  { say: 'suri.solved.02' },
   { quest: 'Q0.6', step: 'done' },
   { quest: 'Q0.7', step: 'start' },
 ];
 
 /** Pim and Pol's opening beat (Q0.7): what the setup script adds, before P0.2. */
 const CRANE_BRIEF: readonly ScriptStep[] = [
-  { speaker: 'Pim', text: 'Captain! I’m Pim, that’s Pol. We stock new forks with practice work.' },
-  {
-    speaker: 'Pol',
-    text: 'The course has a setup script. It adds labels, the coloured pennants, and issues, the bounty notices.',
-  },
-  {
-    speaker: 'Pim',
-    text: 'Practice branches too, the practice hulls. The bugs stay on those, never on main.',
-  },
-  {
-    speaker: 'Pol',
-    text: 'And pull requests, sealed inspection requests: changes to review, a feedback comment, and a check that fails on purpose.',
-  },
-  { speaker: 'Pim', text: 'They’re training scenarios, not problems with your setup.' },
+  { say: 'pim.brief.01' },
+  { say: 'pol.brief.01' },
+  { say: 'pim.brief.02' },
+  { say: 'pol.brief.02' },
+  { say: 'pim.brief.03' },
   { term: 'dry-run' },
-  {
-    speaker: 'Pol',
-    text: 'Our crane works like the script. Turn the capstan to aim her, pull Dry-Run to preview, and read the Repository line on her sign.',
-  },
-  { speaker: 'Pim', text: 'Only when it names your own fork do you pull --yes.' },
+  { say: 'pol.brief.03' },
+  { say: 'pim.brief.04' },
   { quest: 'Q0.7', step: 'crane' },
 ];
 
 /** Pol's closing beat once the crane's done (P0.2), also used if you come back after quitting. */
 export const POL_SOLVED: readonly ScriptStep[] = [
-  { speaker: 'Pol', text: 'Setup complete. Your fork’s stocked, Captain.' },
-  {
-    speaker: 'Pim',
-    text: 'In the real course you run both commands in the app’s Terminal tab, from the repository root.',
-  },
+  { say: 'pol.solved.01' },
+  { say: 'pim.solved.01' },
   { page: 'P0.S', doubloons: 20 },
-  {
-    speaker: 'Pol',
-    text: 'Next, connect your fork in the app and look for the issues and pull requests under My work.',
-  },
-  { speaker: 'Pim', text: 'The Harbormaster’s Trial waits at the lighthouse when you’re ready.' },
+  { say: 'pol.solved.02' },
+  { say: 'pim.solved.02' },
   { quest: 'Q0.7', step: 'done' },
   { quest: 'Q0.10', step: 'start' },
 ];

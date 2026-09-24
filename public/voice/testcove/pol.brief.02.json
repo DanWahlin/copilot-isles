@@ -1,0 +1,102 @@
+{
+  "id": "pol.brief.02",
+  "speaker": "Pol",
+  "text": "And pull requests, sealed inspection requests: changes to review, a feedback comment, and a check that fails on purpose.",
+  "words": [
+    {
+      "word": "And",
+      "start": 0.05,
+      "end": 0.250875
+    },
+    {
+      "word": "pull",
+      "start": 0.250875,
+      "end": 0.48525
+    },
+    {
+      "word": "requests",
+      "start": 0.48525,
+      "end": 1.311166
+    },
+    {
+      "word": "sealed",
+      "start": 1.311166,
+      "end": 1.679458
+    },
+    {
+      "word": "inspection",
+      "start": 1.679458,
+      "end": 2.204
+    },
+    {
+      "word": "requests",
+      "start": 2.204,
+      "end": 3.063375
+    },
+    {
+      "word": "changes",
+      "start": 3.063375,
+      "end": 3.465166
+    },
+    {
+      "word": "to",
+      "start": 3.465166,
+      "end": 3.554458
+    },
+    {
+      "word": "review",
+      "start": 3.554458,
+      "end": 4.23525
+    },
+    {
+      "word": "a",
+      "start": 4.23525,
+      "end": 4.313375
+    },
+    {
+      "word": "feedback",
+      "start": 4.313375,
+      "end": 4.782125
+    },
+    {
+      "word": "comment",
+      "start": 4.782125,
+      "end": 5.574541
+    },
+    {
+      "word": "and",
+      "start": 5.574541,
+      "end": 5.697333
+    },
+    {
+      "word": "a",
+      "start": 5.697333,
+      "end": 5.730791
+    },
+    {
+      "word": "check",
+      "start": 5.730791,
+      "end": 5.998666
+    },
+    {
+      "word": "that",
+      "start": 5.998666,
+      "end": 6.154916
+    },
+    {
+      "word": "fails",
+      "start": 6.154916,
+      "end": 6.567875
+    },
+    {
+      "word": "on",
+      "start": 6.567875,
+      "end": 6.712958
+    },
+    {
+      "word": "purpose",
+      "start": 6.712958,
+      "end": 6.962958
+    }
+  ]
+}

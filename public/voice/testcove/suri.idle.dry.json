@@ -1,0 +1,62 @@
+{
+  "id": "suri.idle.dry",
+  "speaker": "Suri",
+  "text": "Mill’s dry today, Captain. Come back once Bo’s checked your gear.",
+  "words": [
+    {
+      "word": "Mill’s",
+      "start": 0.05,
+      "end": 0.3625
+    },
+    {
+      "word": "dry",
+      "start": 0.3625,
+      "end": 0.575
+    },
+    {
+      "word": "today",
+      "start": 0.575,
+      "end": 1.2125
+    },
+    {
+      "word": "Captain",
+      "start": 1.2125,
+      "end": 2.65
+    },
+    {
+      "word": "Come",
+      "start": 2.65,
+      "end": 2.8875
+    },
+    {
+      "word": "back",
+      "start": 2.8875,
+      "end": 3.175
+    },
+    {
+      "word": "once",
+      "start": 3.175,
+      "end": 3.4125
+    },
+    {
+      "word": "Bo’s",
+      "start": 3.4125,
+      "end": 3.6875
+    },
+    {
+      "word": "checked",
+      "start": 3.6875,
+      "end": 3.9625
+    },
+    {
+      "word": "your",
+      "start": 3.9625,
+      "end": 4.0875
+    },
+    {
+      "word": "gear",
+      "start": 4.0875,
+      "end": 4.3375
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "id": "pol.refuse.guild.01",
+  "speaker": "Pol",
+  "text": "Hear that pawl? The script stops before changing a repository owned by an organization.",
+  "words": [
+    {
+      "word": "Hear",
+      "start": 0.0486659,
+      "end": 0.249541
+    },
+    {
+      "word": "that",
+      "start": 0.249541,
+      "end": 0.439291
+    },
+    {
+      "word": "pawl",
+      "start": 0.439291,
+      "end": 1.646
+    },
+    {
+      "word": "The",
+      "start": 1.646,
+      "end": 1.76875
+    },
+    {
+      "word": "script",
+      "start": 1.76875,
+      "end": 2.148208
+    },
+    {
+      "word": "stops",
+      "start": 2.148208,
+      "end": 2.594625
+    },
+    {
+      "word": "before",
+      "start": 2.594625,
+      "end": 2.962958
+    },
+    {
+      "word": "changing",
+      "start": 2.962958,
+      "end": 3.375875
+    },
+    {
+      "word": "a",
+      "start": 3.375875,
+      "end": 3.431708
+    },
+    {
+      "word": "repository",
+      "start": 3.431708,
+      "end": 4.079
+    },
+    {
+      "word": "owned",
+      "start": 4.079,
+      "end": 4.346875
+    },
+    {
+      "word": "by",
+      "start": 4.346875,
+      "end": 4.536625
+    },
+    {
+      "word": "an",
+      "start": 4.536625,
+      "end": 4.61475
+    },
+    {
+      "word": "organization",
+      "start": 4.61475,
+      "end": 4.86475
+    }
+  ]
+}

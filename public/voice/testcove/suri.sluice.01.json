@@ -1,0 +1,67 @@
+{
+  "id": "suri.sluice.01",
+  "speaker": "Suri",
+  "text": "Lever first, then turn the channels. Follow the water from the spring.",
+  "words": [
+    {
+      "word": "Lever",
+      "start": 0.05,
+      "end": 0.4
+    },
+    {
+      "word": "first",
+      "start": 0.4,
+      "end": 1.0625
+    },
+    {
+      "word": "then",
+      "start": 1.0625,
+      "end": 1.2625
+    },
+    {
+      "word": "turn",
+      "start": 1.2625,
+      "end": 1.5
+    },
+    {
+      "word": "the",
+      "start": 1.5,
+      "end": 1.6
+    },
+    {
+      "word": "channels",
+      "start": 1.6,
+      "end": 3.125
+    },
+    {
+      "word": "Follow",
+      "start": 3.125,
+      "end": 3.4625
+    },
+    {
+      "word": "the",
+      "start": 3.4625,
+      "end": 3.575
+    },
+    {
+      "word": "water",
+      "start": 3.575,
+      "end": 3.8875
+    },
+    {
+      "word": "from",
+      "start": 3.8875,
+      "end": 4.075
+    },
+    {
+      "word": "the",
+      "start": 4.075,
+      "end": 4.175
+    },
+    {
+      "word": "spring",
+      "start": 4.175,
+      "end": 4.425
+    }
+  ]
+}

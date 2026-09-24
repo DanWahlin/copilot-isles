@@ -1,0 +1,97 @@
+{
+  "id": "suri.brief.02",
+  "speaker": "Suri",
+  "text": "This part happens on GitHub.com, not in the app. Open your fork and go to the Actions tab.",
+  "words": [
+    {
+      "word": "This",
+      "start": 0.05,
+      "end": 0.3
+    },
+    {
+      "word": "part",
+      "start": 0.3,
+      "end": 0.55
+    },
+    {
+      "word": "happens",
+      "start": 0.55,
+      "end": 0.9625
+    },
+    {
+      "word": "on",
+      "start": 0.9625,
+      "end": 1.1125
+    },
+    {
+      "word": "GitHub.com",
+      "start": 1.1125,
+      "end": 2.35
+    },
+    {
+      "word": "not",
+      "start": 2.35,
+      "end": 2.5625
+    },
+    {
+      "word": "in",
+      "start": 2.5625,
+      "end": 2.6625
+    },
+    {
+      "word": "the",
+      "start": 2.6625,
+      "end": 2.7625
+    },
+    {
+      "word": "app.",
+      "start": 2.7625,
+      "end": 4
+    },
+    {
+      "word": "Open",
+      "start": 4,
+      "end": 4.3
+    },
+    {
+      "word": "your",
+      "start": 4.3,
+      "end": 4.4375
+    },
+    {
+      "word": "fork",
+      "start": 4.4375,
+      "end": 4.8625
+    },
+    {
+      "word": "and",
+      "start": 4.8625,
+      "end": 4.975
+    },
+    {
+      "word": "go",
+      "start": 4.975,
+      "end": 5.125
+    },
+    {
+      "word": "to",
+      "start": 5.125,
+      "end": 5.2375
+    },
+    {
+      "word": "the",
+      "start": 5.2375,
+      "end": 5.3625
+    },
+    {
+      "word": "Actions",
+      "start": 5.3625,
+      "end": 5.8375
+    },
+    {
+      "word": "tab",
+      "start": 5.8375,
+      "end": 6.0875
+    }
+  ]
+}

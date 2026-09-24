@@ -1,0 +1,57 @@
+{
+  "id": "suri.solved.01",
+  "speaker": "Suri",
+  "text": "There. The practice checks can run on your fork now.",
+  "words": [
+    {
+      "word": "There",
+      "start": 0.05,
+      "end": 1.3875
+    },
+    {
+      "word": "The",
+      "start": 1.3875,
+      "end": 1.5375
+    },
+    {
+      "word": "practice",
+      "start": 1.5375,
+      "end": 1.975
+    },
+    {
+      "word": "checks",
+      "start": 1.975,
+      "end": 2.3375
+    },
+    {
+      "word": "can",
+      "start": 2.3375,
+      "end": 2.5375
+    },
+    {
+      "word": "run",
+      "start": 2.5375,
+      "end": 2.7375
+    },
+    {
+      "word": "on",
+      "start": 2.7375,
+      "end": 2.85
+    },
+    {
+      "word": "your",
+      "start": 2.85,
+      "end": 2.975
+    },
+    {
+      "word": "fork",
+      "start": 2.975,
+      "end": 3.3125
+    },
+    {
+      "word": "now",
+      "start": 3.3125,
+      "end": 3.5625
+    }
+  ]
+}

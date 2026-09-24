@@ -1,0 +1,112 @@
+{
+  "id": "suri.brief.05",
+  "speaker": "Suri",
+  "text": "Here the gate’s your Actions tab. Pull the lever, then turn the channels with E until the spring reaches my wheel.",
+  "words": [
+    {
+      "word": "Here",
+      "start": 0.05,
+      "end": 0.2875
+    },
+    {
+      "word": "the",
+      "start": 0.2875,
+      "end": 0.3875
+    },
+    {
+      "word": "gate’s",
+      "start": 0.3875,
+      "end": 0.6625
+    },
+    {
+      "word": "your",
+      "start": 0.6625,
+      "end": 0.8125
+    },
+    {
+      "word": "Actions",
+      "start": 0.8125,
+      "end": 1.2625
+    },
+    {
+      "word": "tab",
+      "start": 1.2625,
+      "end": 2.55
+    },
+    {
+      "word": "Pull",
+      "start": 2.55,
+      "end": 2.775
+    },
+    {
+      "word": "the",
+      "start": 2.775,
+      "end": 2.9
+    },
+    {
+      "word": "lever",
+      "start": 2.9,
+      "end": 3.5625
+    },
+    {
+      "word": "then",
+      "start": 3.5625,
+      "end": 3.7625
+    },
+    {
+      "word": "turn",
+      "start": 3.7625,
+      "end": 3.9875
+    },
+    {
+      "word": "the",
+      "start": 3.9875,
+      "end": 4.1
+    },
+    {
+      "word": "channels",
+      "start": 4.1,
+      "end": 4.55
+    },
+    {
+      "word": "with",
+      "start": 4.55,
+      "end": 4.7
+    },
+    {
+      "word": "E",
+      "start": 4.7,
+      "end": 4.875
+    },
+    {
+      "word": "until",
+      "start": 4.875,
+      "end": 5.15
+    },
+    {
+      "word": "the",
+      "start": 5.15,
+      "end": 5.2625
+    },
+    {
+      "word": "spring",
+      "start": 5.2625,
+      "end": 5.65
+    },
+    {
+      "word": "reaches",
+      "start": 5.65,
+      "end": 6
+    },
+    {
+      "word": "my",
+      "start": 6,
+      "end": 6.15
+    },
+    {
+      "word": "wheel",
+      "start": 6.15,
+      "end": 6.4
+    }
+  ]
+}

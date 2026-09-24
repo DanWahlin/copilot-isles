@@ -1,0 +1,47 @@
+{
+  "id": "pol.refuse.guild.02",
+  "speaker": "Pol",
+  "text": "Not today, though. Aim for your own ship.",
+  "words": [
+    {
+      "word": "Not",
+      "start": 0.0486659,
+      "end": 0.294208
+    },
+    {
+      "word": "today",
+      "start": 0.294208,
+      "end": 1.086625
+    },
+    {
+      "word": "though",
+      "start": 1.086625,
+      "end": 2.247333
+    },
+    {
+      "word": "Aim",
+      "start": 2.247333,
+      "end": 2.5375
+    },
+    {
+      "word": "for",
+      "start": 2.5375,
+      "end": 2.66025
+    },
+    {
+      "word": "your",
+      "start": 2.66025,
+      "end": 2.928125
+    },
+    {
+      "word": "own",
+      "start": 2.928125,
+      "end": 3.117875
+    },
+    {
+      "word": "ship",
+      "start": 3.117875,
+      "end": 3.367875
+    }
+  ]
+}

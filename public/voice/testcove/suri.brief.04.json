@@ -1,0 +1,77 @@
+{
+  "id": "suri.brief.04",
+  "speaker": "Suri",
+  "text": "Turn them on, so GitHub can run the automated checks for your practice exercises.",
+  "words": [
+    {
+      "word": "Turn",
+      "start": 0.05,
+      "end": 0.3
+    },
+    {
+      "word": "them",
+      "start": 0.3,
+      "end": 0.45
+    },
+    {
+      "word": "on",
+      "start": 0.45,
+      "end": 0.9375
+    },
+    {
+      "word": "so",
+      "start": 0.9375,
+      "end": 1.15
+    },
+    {
+      "word": "GitHub",
+      "start": 1.15,
+      "end": 1.575
+    },
+    {
+      "word": "can",
+      "start": 1.575,
+      "end": 1.775
+    },
+    {
+      "word": "run",
+      "start": 1.775,
+      "end": 1.95
+    },
+    {
+      "word": "the",
+      "start": 1.95,
+      "end": 2.05
+    },
+    {
+      "word": "automated",
+      "start": 2.05,
+      "end": 2.575
+    },
+    {
+      "word": "checks",
+      "start": 2.575,
+      "end": 2.9125
+    },
+    {
+      "word": "for",
+      "start": 2.9125,
+      "end": 3.0375
+    },
+    {
+      "word": "your",
+      "start": 3.0375,
+      "end": 3.175
+    },
+    {
+      "word": "practice",
+      "start": 3.175,
+      "end": 3.5875
+    },
+    {
+      "word": "exercises",
+      "start": 3.5875,
+      "end": 3.8375
+    }
+  ]
+}

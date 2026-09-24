@@ -1,0 +1,62 @@
+{
+  "id": "pol.crane.01",
+  "speaker": "Pol",
+  "text": "Preview first, always. Then --yes, but only on your own fork.",
+  "words": [
+    {
+      "word": "Preview",
+      "start": 0.0486659,
+      "end": 0.405791
+    },
+    {
+      "word": "first",
+      "start": 0.405791,
+      "end": 1.198208
+    },
+    {
+      "word": "always",
+      "start": 1.198208,
+      "end": 2.671416
+    },
+    {
+      "word": "Then",
+      "start": 2.671416,
+      "end": 3.084375
+    },
+    {
+      "word": "yes",
+      "start": 3.084375,
+      "end": 3.887958
+    },
+    {
+      "word": "but",
+      "start": 3.887958,
+      "end": 4.0665
+    },
+    {
+      "word": "only",
+      "start": 4.0665,
+      "end": 4.423666
+    },
+    {
+      "word": "on",
+      "start": 4.423666,
+      "end": 4.56875
+    },
+    {
+      "word": "your",
+      "start": 4.56875,
+      "end": 4.7585
+    },
+    {
+      "word": "own",
+      "start": 4.7585,
+      "end": 4.948208
+    },
+    {
+      "word": "fork",
+      "start": 4.948208,
+      "end": 5.198208
+    }
+  ]
+}

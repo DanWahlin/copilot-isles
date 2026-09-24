@@ -1,0 +1,72 @@
+{
+  "id": "suri.brief.01",
+  "speaker": "Suri",
+  "text": "You’re the captain with the new fork? Suri Okoye. I keep the mill.",
+  "words": [
+    {
+      "word": "You’re",
+      "start": 0.05,
+      "end": 0.2375
+    },
+    {
+      "word": "the",
+      "start": 0.2375,
+      "end": 0.3375
+    },
+    {
+      "word": "captain",
+      "start": 0.3375,
+      "end": 0.7625
+    },
+    {
+      "word": "with",
+      "start": 0.7625,
+      "end": 0.8875
+    },
+    {
+      "word": "the",
+      "start": 0.8875,
+      "end": 0.975
+    },
+    {
+      "word": "new",
+      "start": 0.975,
+      "end": 1.1375
+    },
+    {
+      "word": "fork",
+      "start": 1.1375,
+      "end": 2.5375
+    },
+    {
+      "word": "Suri",
+      "start": 2.5375,
+      "end": 2.925
+    },
+    {
+      "word": "Okoye",
+      "start": 2.925,
+      "end": 4.4375
+    },
+    {
+      "word": "I",
+      "start": 4.4375,
+      "end": 4.5875
+    },
+    {
+      "word": "keep",
+      "start": 4.5875,
+      "end": 4.875
+    },
+    {
+      "word": "the",
+      "start": 4.875,
+      "end": 4.975
+    },
+    {
+      "word": "mill",
+      "start": 4.975,
+      "end": 5.225
+    }
+  ]
+}

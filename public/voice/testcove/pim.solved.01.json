@@ -1,0 +1,92 @@
+{
+  "id": "pim.solved.01",
+  "speaker": "Pim",
+  "text": "In the real course you run both commands in the app’s Terminal tab, from the repository root.",
+  "words": [
+    {
+      "word": "In",
+      "start": 0.044625,
+      "end": 0.167416
+    },
+    {
+      "word": "the",
+      "start": 0.167416,
+      "end": 0.256708
+    },
+    {
+      "word": "real",
+      "start": 0.256708,
+      "end": 0.524541
+    },
+    {
+      "word": "course",
+      "start": 0.524541,
+      "end": 0.803583
+    },
+    {
+      "word": "you",
+      "start": 0.803583,
+      "end": 0.926333
+    },
+    {
+      "word": "run",
+      "start": 0.926333,
+      "end": 1.138375
+    },
+    {
+      "word": "both",
+      "start": 1.138375,
+      "end": 1.361625
+    },
+    {
+      "word": "commands",
+      "start": 1.361625,
+      "end": 1.774541
+    },
+    {
+      "word": "in",
+      "start": 1.774541,
+      "end": 1.863833
+    },
+    {
+      "word": "the",
+      "start": 1.863833,
+      "end": 1.964291
+    },
+    {
+      "word": "app’s",
+      "start": 1.964291,
+      "end": 2.165166
+    },
+    {
+      "word": "Terminal",
+      "start": 2.165166,
+      "end": 2.544625
+    },
+    {
+      "word": "tab",
+      "start": 2.544625,
+      "end": 3.0915
+    },
+    {
+      "word": "from",
+      "start": 3.0915,
+      "end": 3.225458
+    },
+    {
+      "word": "the",
+      "start": 3.225458,
+      "end": 3.28125
+    },
+    {
+      "word": "repository",
+      "start": 3.28125,
+      "end": 3.839291
+    },
+    {
+      "word": "root",
+      "start": 3.839291,
+      "end": 4.089290999999999
+    }
+  ]
+}

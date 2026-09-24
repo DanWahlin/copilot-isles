@@ -1,0 +1,77 @@
+{
+  "id": "pol.idle.waiting",
+  "speaker": "Pol",
+  "text": "We stock forks once their workflows are on. See Suri at the mill first.",
+  "words": [
+    {
+      "word": "We",
+      "start": 0.05,
+      "end": 0.217416
+    },
+    {
+      "word": "stock",
+      "start": 0.217416,
+      "end": 0.541083
+    },
+    {
+      "word": "forks",
+      "start": 0.541083,
+      "end": 0.931708
+    },
+    {
+      "word": "once",
+      "start": 0.931708,
+      "end": 1.233041
+    },
+    {
+      "word": "their",
+      "start": 1.233041,
+      "end": 1.355791
+    },
+    {
+      "word": "workflows",
+      "start": 1.355791,
+      "end": 1.936166
+    },
+    {
+      "word": "are",
+      "start": 1.936166,
+      "end": 2.148208
+    },
+    {
+      "word": "on",
+      "start": 2.148208,
+      "end": 3.33125
+    },
+    {
+      "word": "See",
+      "start": 3.33125,
+      "end": 3.64375
+    },
+    {
+      "word": "Suri",
+      "start": 3.64375,
+      "end": 4.101333
+    },
+    {
+      "word": "at",
+      "start": 4.101333,
+      "end": 4.212958
+    },
+    {
+      "word": "the",
+      "start": 4.212958,
+      "end": 4.291083
+    },
+    {
+      "word": "mill",
+      "start": 4.291083,
+      "end": 4.570083
+    },
+    {
+      "word": "first",
+      "start": 4.570083,
+      "end": 4.820083
+    }
+  ]
+}

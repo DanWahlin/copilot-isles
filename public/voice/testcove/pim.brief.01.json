@@ -1,0 +1,67 @@
+{
+  "id": "pim.brief.01",
+  "speaker": "Pim",
+  "text": "Captain! I’m Pim, that’s Pol. We stock new forks with practice work.",
+  "words": [
+    {
+      "word": "Captain",
+      "start": 0.044625,
+      "end": 1.227666
+    },
+    {
+      "word": "I’m",
+      "start": 1.227666,
+      "end": 1.450875
+    },
+    {
+      "word": "Pim",
+      "start": 1.450875,
+      "end": 1.897333
+    },
+    {
+      "word": "that’s",
+      "start": 1.897333,
+      "end": 2.142875
+    },
+    {
+      "word": "Pol.",
+      "start": 2.142875,
+      "end": 3.292416
+    },
+    {
+      "word": "We",
+      "start": 3.292416,
+      "end": 3.426333
+    },
+    {
+      "word": "stock",
+      "start": 3.426333,
+      "end": 3.738833
+    },
+    {
+      "word": "new",
+      "start": 3.738833,
+      "end": 3.917416
+    },
+    {
+      "word": "forks",
+      "start": 3.917416,
+      "end": 4.308041
+    },
+    {
+      "word": "with",
+      "start": 4.308041,
+      "end": 4.453125
+    },
+    {
+      "word": "practice",
+      "start": 4.453125,
+      "end": 4.821416
+    },
+    {
+      "word": "work",
+      "start": 4.821416,
+      "end": 5.071416
+    }
+  ]
+}

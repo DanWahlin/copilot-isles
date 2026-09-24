@@ -190,23 +190,8 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     running = true;
     await host.beat(
       ev.owner === 'guild'
-        ? [
-            {
-              speaker: 'Pol',
-              text: 'Hear that pawl? The script stops before changing a repository owned by an organization.',
-            },
-            {
-              speaker: 'Pim',
-              text: 'There’s an --allow-shared-repository flag for that, used with --yes. Only when you’re authorized and the Repository line is exactly the target you meant.',
-            },
-            { speaker: 'Pol', text: 'Not today, though. Aim for your own ship.' },
-          ]
-        : [
-            {
-              speaker: 'Pol',
-              text: 'Refused! That’s another captain’s fork. The script won’t change a repository you don’t own.',
-            },
-          ],
+        ? [{ say: 'pol.refuse.guild.01' }, { say: 'pim.refuse.guild.01' }, { say: 'pol.refuse.guild.02' }]
+        : [{ say: 'pol.refuse.captain.01' }],
       'Pol',
     );
     running = false;

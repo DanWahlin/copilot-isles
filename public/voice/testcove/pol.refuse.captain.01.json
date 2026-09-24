@@ -1,0 +1,77 @@
+{
+  "id": "pol.refuse.captain.01",
+  "speaker": "Pol",
+  "text": "Refused! That’s another captain’s fork. The script won’t change a repository you don’t own.",
+  "words": [
+    {
+      "word": "Refused",
+      "start": 0.0486659,
+      "end": 1.689291
+    },
+    {
+      "word": "That’s",
+      "start": 1.689291,
+      "end": 1.979458
+    },
+    {
+      "word": "another",
+      "start": 1.979458,
+      "end": 2.314291
+    },
+    {
+      "word": "captain’s",
+      "start": 2.314291,
+      "end": 2.8165
+    },
+    {
+      "word": "fork",
+      "start": 2.8165,
+      "end": 4.1125
+    },
+    {
+      "word": "The",
+      "start": 4.1125,
+      "end": 4.23525
+    },
+    {
+      "word": "script",
+      "start": 4.23525,
+      "end": 4.625875
+    },
+    {
+      "word": "won’t",
+      "start": 4.625875,
+      "end": 4.89375
+    },
+    {
+      "word": "change",
+      "start": 4.89375,
+      "end": 5.284375
+    },
+    {
+      "word": "a",
+      "start": 5.284375,
+      "end": 5.340166
+    },
+    {
+      "word": "repository",
+      "start": 5.340166,
+      "end": 5.9875
+    },
+    {
+      "word": "you",
+      "start": 5.9875,
+      "end": 6.121416
+    },
+    {
+      "word": "don’t",
+      "start": 6.121416,
+      "end": 6.411625
+    },
+    {
+      "word": "own",
+      "start": 6.411625,
+      "end": 6.661625
+    }
+  ]
+}

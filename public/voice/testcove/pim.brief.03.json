@@ -1,0 +1,47 @@
+{
+  "id": "pim.brief.03",
+  "speaker": "Pim",
+  "text": "They’re training scenarios, not problems with your setup.",
+  "words": [
+    {
+      "word": "They’re",
+      "start": 0.044625,
+      "end": 0.256708
+    },
+    {
+      "word": "training",
+      "start": 0.256708,
+      "end": 0.5915
+    },
+    {
+      "word": "scenarios",
+      "start": 0.5915,
+      "end": 1.40625
+    },
+    {
+      "word": "not",
+      "start": 1.40625,
+      "end": 1.584833
+    },
+    {
+      "word": "problems",
+      "start": 1.584833,
+      "end": 2.053583
+    },
+    {
+      "word": "with",
+      "start": 2.053583,
+      "end": 2.176333
+    },
+    {
+      "word": "your",
+      "start": 2.176333,
+      "end": 2.287958
+    },
+    {
+      "word": "setup",
+      "start": 2.287958,
+      "end": 2.537958
+    }
+  ]
+}

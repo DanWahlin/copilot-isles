@@ -1,0 +1,127 @@
+{
+  "id": "pol.brief.03",
+  "speaker": "Pol",
+  "text": "Our crane works like the script. Turn the capstan to aim her, pull Dry-Run to preview, and read the Repository line on her sign.",
+  "words": [
+    {
+      "word": "Our",
+      "start": 0.05,
+      "end": 0.284375
+    },
+    {
+      "word": "crane",
+      "start": 0.284375,
+      "end": 0.7085
+    },
+    {
+      "word": "works",
+      "start": 0.7085,
+      "end": 1.054458
+    },
+    {
+      "word": "like",
+      "start": 1.054458,
+      "end": 1.199541
+    },
+    {
+      "word": "the",
+      "start": 1.199541,
+      "end": 1.2665
+    },
+    {
+      "word": "script",
+      "start": 1.2665,
+      "end": 2.616958
+    },
+    {
+      "word": "Turn",
+      "start": 2.616958,
+      "end": 2.940625
+    },
+    {
+      "word": "the",
+      "start": 2.940625,
+      "end": 2.98525
+    },
+    {
+      "word": "capstan",
+      "start": 2.98525,
+      "end": 3.442875
+    },
+    {
+      "word": "to",
+      "start": 3.442875,
+      "end": 3.565625
+    },
+    {
+      "word": "aim",
+      "start": 3.565625,
+      "end": 3.8
+    },
+    {
+      "word": "her",
+      "start": 3.8,
+      "end": 4.436166
+    },
+    {
+      "word": "pull",
+      "start": 4.436166,
+      "end": 4.681708
+    },
+    {
+      "word": "Dry-Run",
+      "start": 4.681708,
+      "end": 5.116958
+    },
+    {
+      "word": "to",
+      "start": 5.116958,
+      "end": 5.183916
+    },
+    {
+      "word": "preview",
+      "start": 5.183916,
+      "end": 5.976333
+    },
+    {
+      "word": "and",
+      "start": 5.976333,
+      "end": 6.14375
+    },
+    {
+      "word": "read",
+      "start": 6.14375,
+      "end": 6.3335
+    },
+    {
+      "word": "the",
+      "start": 6.3335,
+      "end": 6.411625
+    },
+    {
+      "word": "Repository",
+      "start": 6.411625,
+      "end": 6.969625
+    },
+    {
+      "word": "line",
+      "start": 6.969625,
+      "end": 7.271
+    },
+    {
+      "word": "on",
+      "start": 7.271,
+      "end": 7.42725
+    },
+    {
+      "word": "her",
+      "start": 7.42725,
+      "end": 7.527666
+    },
+    {
+      "word": "sign",
+      "start": 7.527666,
+      "end": 7.777666
+    }
+  ]
+}

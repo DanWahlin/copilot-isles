@@ -1,0 +1,52 @@
+{
+  "id": "pol.done.01",
+  "speaker": "Pol",
+  "text": "Remember: --dry-run first, check the Repository line, then --yes.",
+  "words": [
+    {
+      "word": "Remember",
+      "start": 0.05,
+      "end": 0.965166
+    },
+    {
+      "word": "dry-run",
+      "start": 0.965166,
+      "end": 1.433916
+    },
+    {
+      "word": "first",
+      "start": 1.433916,
+      "end": 2.181708
+    },
+    {
+      "word": "check",
+      "start": 2.181708,
+      "end": 2.39375
+    },
+    {
+      "word": "the",
+      "start": 2.39375,
+      "end": 2.471875
+    },
+    {
+      "word": "Repository",
+      "start": 2.471875,
+      "end": 3.029916
+    },
+    {
+      "word": "line",
+      "start": 3.029916,
+      "end": 3.666083
+    },
+    {
+      "word": "then",
+      "start": 3.666083,
+      "end": 4.067875
+    },
+    {
+      "word": "yes",
+      "start": 4.067875,
+      "end": 4.317875
+    }
+  ]
+}

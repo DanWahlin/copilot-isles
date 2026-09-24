@@ -26,7 +26,9 @@
       "id": "wingman.hint.01",
       "speaker": "Wingman",
       "voice": "en-US-AnaNeural",
-      "prosody": { "pitch": "+20%" },
+      "prosody": {
+        "pitch": "+20%"
+      },
       "fx": "wingman-bright",
       "text": "First mate's job is hints. Captain's job is decisions."
     },
@@ -34,7 +36,9 @@
       "id": "wingman.hint.02",
       "speaker": "Wingman",
       "voice": "en-US-AnaNeural",
-      "prosody": { "pitch": "+20%" },
+      "prosody": {
+        "pitch": "+20%"
+      },
       "fx": "wingman-bright",
       "text": "If the sign doesn't name your fork, don't pull the yes lever yet."
     },
@@ -42,9 +46,270 @@
       "id": "wingman.hint.03",
       "speaker": "Wingman",
       "voice": "en-US-AnaNeural",
-      "prosody": { "pitch": "+20%" },
+      "prosody": {
+        "pitch": "+20%"
+      },
       "fx": "wingman-bright",
       "text": "You'll get unlimited retries here, so try the idea that feels safest."
+    },
+    {
+      "id": "wingman.suri.01",
+      "speaker": "Wingman",
+      "voice": "en-US-AnaNeural",
+      "prosody": {
+        "pitch": "+20%"
+      },
+      "fx": "wingman-bright",
+      "text": "Quick one, Captain: those are GitHub Actions workflows. The Clock Tower’s Automations are something else, saved agent tasks, and you’ll learn those much later."
+    },
+    {
+      "id": "suri.idle.dry",
+      "speaker": "Suri",
+      "voice": "en-US-JennyNeural",
+      "text": "Mill’s dry today, Captain. Come back once Bo’s checked your gear."
+    },
+    {
+      "id": "suri.brief.01",
+      "speaker": "Suri",
+      "voice": "en-US-JennyNeural",
+      "text": "You’re the captain with the new fork? Suri Okoye. I keep the mill."
+    },
+    {
+      "id": "suri.brief.02",
+      "speaker": "Suri",
+      "voice": "en-US-JennyNeural",
+      "text": "This part happens on GitHub.com, not in the app. Open your fork and go to the Actions tab."
+    },
+    {
+      "id": "suri.brief.03",
+      "speaker": "Suri",
+      "voice": "en-US-JennyNeural",
+      "text": "You’ll see “Workflows aren’t being run on this forked repository.” New forks switch GitHub Actions off."
+    },
+    {
+      "id": "suri.brief.04",
+      "speaker": "Suri",
+      "voice": "en-US-JennyNeural",
+      "text": "Turn them on, so GitHub can run the automated checks for your practice exercises."
+    },
+    {
+      "id": "suri.brief.05",
+      "speaker": "Suri",
+      "voice": "en-US-JennyNeural",
+      "text": "Here the gate’s your Actions tab. Pull the lever, then turn the channels with E until the spring reaches my wheel."
+    },
+    {
+      "id": "suri.sluice.01",
+      "speaker": "Suri",
+      "voice": "en-US-JennyNeural",
+      "text": "Lever first, then turn the channels. Follow the water from the spring."
+    },
+    {
+      "id": "suri.done.01",
+      "speaker": "Suri",
+      "voice": "en-US-JennyNeural",
+      "text": "Hear that wheel sing? Your practice checks can run now. Fair winds."
+    },
+    {
+      "id": "suri.solved.01",
+      "speaker": "Suri",
+      "voice": "en-US-JennyNeural",
+      "text": "There. The practice checks can run on your fork now."
+    },
+    {
+      "id": "suri.solved.02",
+      "speaker": "Suri",
+      "voice": "en-US-JennyNeural",
+      "text": "Last job before the Trial: Pim and Pol run the crane on the pier head. They’ll stock your fork with practice work."
+    },
+    {
+      "id": "pim.idle.ready",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "text": "Crane’s ready when you are, Captain.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pol.idle.waiting",
+      "speaker": "Pol",
+      "voice": "en-IE-EmilyNeural",
+      "text": "We stock forks once their workflows are on. See Suri at the mill first.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pim.crane.01",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "text": "Turn the capstan, pull Dry-Run, and read the Repository line before anything else.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pol.crane.01",
+      "speaker": "Pol",
+      "voice": "en-IE-EmilyNeural",
+      "text": "Preview first, always. Then --yes, but only on your own fork.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pim.done.01",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "text": "Nine pennants, five notices, seven hulls, three seals. A well-stocked fork!",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pol.done.01",
+      "speaker": "Pol",
+      "voice": "en-IE-EmilyNeural",
+      "text": "Remember: --dry-run first, check the Repository line, then --yes.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pim.brief.01",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "text": "Captain! I’m Pim, that’s Pol. We stock new forks with practice work.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pol.brief.01",
+      "speaker": "Pol",
+      "voice": "en-IE-EmilyNeural",
+      "text": "The course has a setup script. It adds labels, the coloured pennants, and issues, the bounty notices.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pim.brief.02",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "text": "Practice branches too, the practice hulls. The bugs stay on those, never on main.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pol.brief.02",
+      "speaker": "Pol",
+      "voice": "en-IE-EmilyNeural",
+      "text": "And pull requests, sealed inspection requests: changes to review, a feedback comment, and a check that fails on purpose.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pim.brief.03",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "text": "They’re training scenarios, not problems with your setup.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pol.brief.03",
+      "speaker": "Pol",
+      "voice": "en-IE-EmilyNeural",
+      "text": "Our crane works like the script. Turn the capstan to aim her, pull Dry-Run to preview, and read the Repository line on her sign.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pim.brief.04",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "text": "Only when it names your own fork do you pull --yes.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pol.solved.01",
+      "speaker": "Pol",
+      "voice": "en-IE-EmilyNeural",
+      "text": "Setup complete. Your fork’s stocked, Captain.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pim.solved.01",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "text": "In the real course you run both commands in the app’s Terminal tab, from the repository root.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pol.solved.02",
+      "speaker": "Pol",
+      "voice": "en-IE-EmilyNeural",
+      "text": "Next, connect your fork in the app and look for the issues and pull requests under My work.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pim.solved.02",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "text": "The Harbormaster’s Trial waits at the lighthouse when you’re ready.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pol.refuse.guild.01",
+      "speaker": "Pol",
+      "voice": "en-IE-EmilyNeural",
+      "text": "Hear that pawl? The script stops before changing a repository owned by an organization.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pim.refuse.guild.01",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "text": "There’s an --allow-shared-repository flag for that, used with --yes. Only when you’re authorized and the Repository line is exactly the target you meant.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pol.refuse.guild.02",
+      "speaker": "Pol",
+      "voice": "en-IE-EmilyNeural",
+      "text": "Not today, though. Aim for your own ship.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pol.refuse.captain.01",
+      "speaker": "Pol",
+      "voice": "en-IE-EmilyNeural",
+      "text": "Refused! That’s another captain’s fork. The script won’t change a repository you don’t own.",
+      "prosody": {
+        "rate": "+12%"
+      }
     }
   ]
 }

@@ -1,0 +1,37 @@
+{
+  "id": "pol.solved.01",
+  "speaker": "Pol",
+  "text": "Setup complete. Your fork’s stocked, Captain.",
+  "words": [
+    {
+      "word": "Setup",
+      "start": 0.05,
+      "end": 0.585708
+    },
+    {
+      "word": "complete",
+      "start": 0.585708,
+      "end": 2.03525
+    },
+    {
+      "word": "Your",
+      "start": 2.03525,
+      "end": 2.314291
+    },
+    {
+      "word": "fork’s",
+      "start": 2.314291,
+      "end": 2.72725
+    },
+    {
+      "word": "stocked",
+      "start": 2.72725,
+      "end": 3.497333
+    },
+    {
+      "word": "Captain",
+      "start": 3.497333,
+      "end": 3.747333
+    }
+  ]
+}

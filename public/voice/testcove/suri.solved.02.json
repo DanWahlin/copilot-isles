@@ -1,0 +1,117 @@
+{
+  "id": "suri.solved.02",
+  "speaker": "Suri",
+  "text": "Last job before the Trial: Pim and Pol run the crane on the pier head. They’ll stock your fork with practice work.",
+  "words": [
+    {
+      "word": "Last",
+      "start": 0.05,
+      "end": 0.4375
+    },
+    {
+      "word": "job",
+      "start": 0.4375,
+      "end": 0.7375
+    },
+    {
+      "word": "before",
+      "start": 0.7375,
+      "end": 1.0375
+    },
+    {
+      "word": "the",
+      "start": 1.0375,
+      "end": 1.15
+    },
+    {
+      "word": "Trial",
+      "start": 1.15,
+      "end": 1.8625
+    },
+    {
+      "word": "Pim",
+      "start": 1.8625,
+      "end": 2.1125
+    },
+    {
+      "word": "and",
+      "start": 2.1125,
+      "end": 2.2375
+    },
+    {
+      "word": "Pol",
+      "start": 2.2375,
+      "end": 2.5375
+    },
+    {
+      "word": "run",
+      "start": 2.5375,
+      "end": 2.725
+    },
+    {
+      "word": "the",
+      "start": 2.725,
+      "end": 2.825
+    },
+    {
+      "word": "crane",
+      "start": 2.825,
+      "end": 3.175
+    },
+    {
+      "word": "on",
+      "start": 3.175,
+      "end": 3.3
+    },
+    {
+      "word": "the",
+      "start": 3.3,
+      "end": 3.3875
+    },
+    {
+      "word": "pier",
+      "start": 3.3875,
+      "end": 3.65
+    },
+    {
+      "word": "head",
+      "start": 3.65,
+      "end": 4.8875
+    },
+    {
+      "word": "They’ll",
+      "start": 4.8875,
+      "end": 5.125
+    },
+    {
+      "word": "stock",
+      "start": 5.125,
+      "end": 5.4125
+    },
+    {
+      "word": "your",
+      "start": 5.4125,
+      "end": 5.55
+    },
+    {
+      "word": "fork",
+      "start": 5.55,
+      "end": 5.9125
+    },
+    {
+      "word": "with",
+      "start": 5.9125,
+      "end": 6.0375
+    },
+    {
+      "word": "practice",
+      "start": 6.0375,
+      "end": 6.4875
+    },
+    {
+      "word": "work",
+      "start": 6.4875,
+      "end": 6.7375
+    }
+  ]
+}

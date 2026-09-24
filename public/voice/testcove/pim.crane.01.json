@@ -1,0 +1,72 @@
+{
+  "id": "pim.crane.01",
+  "speaker": "Pim",
+  "text": "Turn the capstan, pull Dry-Run, and read the Repository line before anything else.",
+  "words": [
+    {
+      "word": "Turn",
+      "start": 0.044625,
+      "end": 0.256708
+    },
+    {
+      "word": "the",
+      "start": 0.256708,
+      "end": 0.368291
+    },
+    {
+      "word": "capstan",
+      "start": 0.368291,
+      "end": 0.971
+    },
+    {
+      "word": "pull",
+      "start": 0.971,
+      "end": 1.183041
+    },
+    {
+      "word": "Dry-Run",
+      "start": 1.183041,
+      "end": 1.919625
+    },
+    {
+      "word": "and",
+      "start": 1.919625,
+      "end": 2.03125
+    },
+    {
+      "word": "read",
+      "start": 2.03125,
+      "end": 2.254458
+    },
+    {
+      "word": "the",
+      "start": 2.254458,
+      "end": 2.332583
+    },
+    {
+      "word": "Repository",
+      "start": 2.332583,
+      "end": 2.901791
+    },
+    {
+      "word": "line",
+      "start": 2.901791,
+      "end": 3.169625
+    },
+    {
+      "word": "before",
+      "start": 3.169625,
+      "end": 3.56025
+    },
+    {
+      "word": "anything",
+      "start": 3.56025,
+      "end": 3.93975
+    },
+    {
+      "word": "else",
+      "start": 3.93975,
+      "end": 4.18975
+    }
+  ]
+}

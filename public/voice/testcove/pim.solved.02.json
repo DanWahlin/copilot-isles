@@ -1,0 +1,57 @@
+{
+  "id": "pim.solved.02",
+  "speaker": "Pim",
+  "text": "The Harbormaster’s Trial waits at the lighthouse when you’re ready.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.044625,
+      "end": 0.145083
+    },
+    {
+      "word": "Harbormaster’s",
+      "start": 0.145083,
+      "end": 0.792416
+    },
+    {
+      "word": "Trial",
+      "start": 0.792416,
+      "end": 1.12725
+    },
+    {
+      "word": "waits",
+      "start": 1.12725,
+      "end": 1.43975
+    },
+    {
+      "word": "at",
+      "start": 1.43975,
+      "end": 1.551333
+    },
+    {
+      "word": "the",
+      "start": 1.551333,
+      "end": 1.640625
+    },
+    {
+      "word": "lighthouse",
+      "start": 1.640625,
+      "end": 2.087041
+    },
+    {
+      "word": "when",
+      "start": 2.087041,
+      "end": 2.254458
+    },
+    {
+      "word": "you’re",
+      "start": 2.254458,
+      "end": 2.37725
+    },
+    {
+      "word": "ready",
+      "start": 2.37725,
+      "end": 2.62725
+    }
+  ]
+}
