@@ -59,6 +59,19 @@ I reverse-read its production bundle:
 - It uses AgX tone mapping, fbm-noise clouds, shoreline foam, and a DOM UI overlay with **Fraunces + Manrope** fonts.
 - **Takeaway:** its beauty comes from **lighting, atmosphere, water, and color grading**, not from asset fidelity. We should invest in the same places.
 
+### Sakura River Valley (water, physics & environment reference)
+Full study: [docs/research/2026-09-23-sakura-river-valley.md](../docs/research/2026-09-23-sakura-river-valley.md). This is a three.js river scene with **the best browser water we've seen**. It weighs **~7.5 MB** in total and draws **239 calls per frame**, though it pushes **~5.9 M triangles per frame** (mirror + main pass).
+- **Water:**
+  - half-res planar reflection with cheap-path shaders
+  - scene-copy refraction with **Beer-Lambert absorption** along the optical path
+  - two-phase flow maps and lace foam
+  - **riverbed caustics**
+  - **analytic Kelvin wake, bow wave, hull cut-out, and boat shadow**, all computed in the water shader
+- **Physics:** no engine. The boat is a **kinematic hull sampled at 8 points** with iterative depenetration, bump response, procedural bob/heel, and an **autopilot lane planner**.
+- **Environment:** analytic height fog + drifting mist, **shadow-map ray-marched sun shafts** with temporal accumulation, one shared wind field, a keyframed time-of-day/weather system, and particles in camera-following boxes.
+- **Performance:** a cached shadow map refreshed on movement, half-res effect buffers (DPR ≤ 1.3), adaptive resolution (0.72-1.0), and shader precompile before reveal.
+- **The scene code isn't licensed**, so we re-implement the *techniques* and don't copy code.
+
 ### CC0 asset sources (verified CC0)
 | Need | Source |
 |---|---|
@@ -183,14 +196,53 @@ The town's districts mirror the app's sidebar:
 - Hosting: **GitHub Pages**. A GitHub Actions workflow builds `dist/` and deploys it with `actions/upload-pages-artifact`. There's **no Git LFS** (Pages would serve LFS pointer files) and **no Releases-hosted bundles** (release downloads redirect cross-origin, so browsers can't reliably fetch them from the Pages site). Generated voice files and compressed textures are small enough to commit directly. Limits to keep in mind: every file < 100 MB, the site < 1 GB, and a soft bandwidth cap of ~100 GB/month
 
 ### Rendering features ("stylized realism")
-- **Ocean:** multi-octave Gerstner waves plus detail normals, shallow turquoise → deep blue by depth, shoreline foam, a fresnel reflection that samples a **prefiltered (PMREM) sky environment map** (one scene render, no planar reflection), sun glints, crest tint, and a boat wake. The CPU evaluates the same wave function analytically at a few hull points for buoyancy, with no GPU readback.
-- **Sky:** physically based atmosphere, drifting noise-based clouds, aerial-perspective haze, and **distant mountain silhouettes**. Each island gets its own lighting preset (dawn, noon, golden hour).
-- **Terrain:** heightmap islands with sand/grass/rock/dirt splat blending using CC0 PBR textures, and tri-planar cliffs.
-- **Vegetation:** instanced grass that bends as you walk, plus palms, cactus, and bushes with vertex wind, LODs, and impostors.
-- **Buildings:** one architecture kit per island, restyled to a shared palette with baked AO and weathering.
-- **Characters:** CC0 base bodies with pirate outfit pieces and CC0 animations, plus NPC idle routines and head look-at.
-- **Post:** AgX tone mapping, cascaded shadows, SSAO (High+), bloom, subtle god rays, height fog, a per-island color-grading LUT, and soft DOF during dialogue.
-- **Ambient life:** gulls, lagoon fish, dolphins, butterflies/fireflies, chimney smoke, and flags and sails that ripple.
+- **Water:** see the **Water system** section below.
+- **Sky:** a procedural atmosphere with a warm horizon glow, a **curved, drifting cloud layer** (silver-gold edges toward the sun, cool undersides), aerial-perspective haze, and **distant mountain silhouettes**. Night-capable (stars, moon) for later islands.
+- **Lighting keyframes:** each island's look is a **preset of about 20 blendable parameters**: sun colour/angle, hemisphere light, fog, mist, sky & cloud colours, exposure, bloom, shafts, lamp level, and white balance. Islands pick fixed presets (dawn, noon, golden hour) and can drift slowly, and the same system blends presets while sailing between islands.
+- **Atmosphere:** **analytic exponential height fog** (closed-form, no ray-march), distance haze, and **low mist banks** that drift over water and glow where the sun rakes through. Fog colour follows the view direction relative to the sun (cool → warm).
+- **One shared wind field:** gust fronts roll across the world along the wind direction. The **same field** drives grass, palms, flags, **sails (tied to the sailing wind and trim, with luffing into the wind)**, and CPU springs on sashes, coats, and hanging nets.
+- **Terrain:** heightmap islands with sand/grass/rock/dirt splat blending using CC0 PBR textures, triplanar cliffs (skipping weak projections), and **wet-sand darkening** where waves run up.
+- **Vegetation:** instanced grass that bends as you walk, plus palms, cactus, and bushes with shared-wind sway, LODs, impostors, and **translucency** for fronds, leaves, and petals when the low sun is behind them.
+- **Buildings:** one architecture kit per island, restyled to a shared palette with baked AO, weathering, and a **waterline tidemark** (wet, darker wood plus an algae band) on docks, piers, and hulls.
+- **Characters:** CC0 base bodies with pirate outfit pieces and CC0 animations. NPCs layer **procedural idle life** on top (breathing, weight shifts, head look-at, wind on cloth).
+- **Post, in order:**
+  1. SSAO (half-res, bilateral blur, fades with distance)
+  2. **sun shafts** (see §12.5)
+  3. a 6-level mip bloom chain
+  4. AgX tone mapping
+  5. **white balance by sun height**, then a per-island grade (LUT)
+  6. subtle edge chromatic fringe and a warm veil near the sun
+  7. vignette, then **film grain + dither**, which prevents banding in sky and fog gradients
+  8. FXAA + a light unsharp mask when rendering below native resolution
+  - Soft DOF during dialogue (High+).
+- **Ambient life:** gull flocks (circling, with flapping bouts and glides), lagoon fish, dolphins, butterflies, fireflies at dusk, chimney smoke, drifting leaves, and floating flotsam. All particles **wrap inside camera-following boxes**, so nothing is spawned or allocated per frame.
+
+### Water system
+Our water has to cover **open-ocean swell, surf, lagoons, harbors, and flowing water**. The Sakura Valley techniques cover the last three, and Gerstner covers the swell.
+
+| Layer | Technique | Tier |
+|---|---|---|
+| **Surface motion** | Open sea: 4-8 **Gerstner** waves + two scrolling detail-normal layers on a camera-centred clipmap, with amplitude by zone (calm lagoon → open swell). Rivers, waterfalls, and **the P0.1 sluice channels**: **two-phase flow maps** (no visible reset). Wind ripples on top. Normal strength fades with distance (anti-aliasing) | All |
+| **Reflection** | **Baseline:** a Fresnel (Schlick) reflection of a **prefiltered PMREM sky map** plus two-lobe sun glitter (the agreed consensus). **Add-on for calm zones:** a **half-res planar mirror pass** (DPR ≤ 1.3) inside the lagoon and harbor basins only. It uses a `noReflect` layer (grass, particles, small props excluded), a global `uReflect` flag that puts every material on a **cheap shading path**, frozen shadows, and normal-distorted lookups | Baseline: all. Mirror: **High/Ultra**, calm zones only |
+| **Refraction & colour** | Copy the opaque pass to a **half-res target with linear depth in alpha**. Offset the lookup by normal × depth, and **fall back to the undistorted sample if the offset hits something in front of the water**. Colour is **Beer-Lambert absorption along the optical path** (depth ÷ view angle, clamped to the depth-buffer bed distance) plus an in-scatter body colour. **Per-island absorption presets**: turquoise lagoon, deep-blue ocean, jade river, and inky volcanic | All (Low: no distortion offset) |
+| **Seabed** | **Caustics** injected into the terrain material as *extra sunlight* (so shadows still hold), fading with depth and distance. **Underwater light attenuation** on anything below the waterline (so the shallows don't glow). Terrain uses a matte, wet look below the surface | Medium+ |
+| **Foam** | "Lace" foam (coverage eroding multi-octave cells, never solid sheets), depth-based **shoreline foam**, **reef-break foam lines**, wave-crest foam from Gerstner steepness, and a **beach run-up (swash)** band with receding wet sand. Noise is **only evaluated where foam is possible** | All (Low: fewer octaves) |
+| **Boat ↔ water** | All **analytic in the water shader**, with no particles or simulation: **Kelvin wake arms + churned trail**, a **bow-wave crescent**, hull-hugging streaky whitewater, rings around the hull at rest, and a **hull cut-out** (water discarded inside the hull, using the *same* hull function as the CPU). The **boat's shadow on water** is ray-stepped against that hull function | All (Low: no shadow march) |
+| **Other interaction** | Rings + foam around the player's legs when wading, rings where crates or oars touch water, and floating flotsam/leaves that **part around the hull and fan into the wake** | Medium+ |
+| **Night & weather (post-POC)** | Lantern glints smeared into columns by the ripples, rain-ring fields, and wetness | Medium+ |
+
+**Single sources of truth:** the Gerstner wave sum, the terrain height `h(x,z)`, shore distance, and hull shape are each written **once as paired TS + GLSL functions**. Buoyancy, placement, wading depth, wake, and cut-out all use them, so what you see always matches what the game simulates.
+
+### Physics & motion
+- The **agreed split stands:** Rapier provides only primitive static colliders, scene queries, and the kinematic character controller. There are no dynamic bodies, and push blocks are grid logic.
+- **Boat (no physics engine, following the Valley's approach):**
+  - a **kinematic hull sampled at ~8 points** along the keel, each widened by the analytic beam
+  - tested against **circle/capsule obstacles** (dock posts, rocks, buoys, moored ships) and the shoreline distance field, with **3-4 iterations of depenetration**
+  - **Impact response:** a hard bow hit reverses a little speed and adds a decaying shake. A glancing hit adds drag.
+  - **Grounding:** the depth from `h(x,z)` under the hull slows you in the shallows before you touch sand.
+  - **Motion feel:** buoyancy from the analytic Gerstner sum at 4 hull points gives heave, pitch, and roll. Turns add heel, and speed, wind, and sail trim drive the thrust.
+- **Autopilot planner:** a lane/waypoint planner scores candidate headings against the obstacles ahead every ~0.2 s and steers smoothly. It powers the **P1.2 Autopilot voyage**, the chart's **"Sail here"** auto-sail, and docking assist. Manual input always takes over.
+- **Player on foot:** the kinematic controller + `h(x,z)`. Wading slows you and spawns ring shaders, and deep water gently returns you to shore (POC).
 
 ### 6a. AI-assisted art pipeline
 - **Image model** (`AI_IMAGE_*` in `~/.env`) generates the parchment map & island illustrations, NPC portrait paintings, loading-screen art, Logbook page ornaments, UI flourishes, and **tileable textures** (sand, plaster, thatch, sailcloth) that we then turn into PBR maps.
@@ -264,7 +316,7 @@ The upside is that the music is adaptive, tiny to download, and has no licensing
 
 ## 9. Accessibility
 
-Text size, dyslexia-friendly font option, adjustable text speed, high-contrast UI, and reduced motion (no camera bob or shake, lantern flicker, or god rays). Also: colorblind-safe quiz feedback (icons + color), full keyboard navigation of the UI, rebindable controls, and a **no-pointer-lock default look** (hold right mouse, arrow keys, or gamepad) with pointer lock as an option. Plus camera sensitivity/invert/FOV, separate volume sliders, and captions for every sound cue that matters.
+Text size, dyslexia-friendly font option, adjustable text speed, high-contrast UI, and reduced motion (no camera bob or shake, lantern flicker, or sun shafts). Also: colorblind-safe quiz feedback (icons + color), full keyboard navigation of the UI, rebindable controls, and a **no-pointer-lock default look** (hold right mouse, arrow keys, or gamepad) with pointer lock as an option. Plus camera sensitivity/invert/FOV, separate volume sliders, and captions for every sound cue that matters.
 
 ---
 
@@ -272,7 +324,7 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 
 | Phase | Deliverable | Gate |
 |---|---|---|
-| **0 · Look, sound & perf spike** | One frame that shows **the clipmap ocean, one restyled building cluster, a dressed pirate, and ≥ 8 skinned NPCs**, plus sky, clouds, character + camera, sailing and docking the brigantine, a prototype of the procedural music engine (one island theme), the voice pipeline (a few lines), and the debug HUD + benchmark flythrough (which also measures physics time). It must **hit the §12 budgets** on reference hardware | You approve the *look*, the *sound*, and the *frame rate* |
+| **0 · Look, sound & perf spike** | One frame that shows **the clipmap ocean, one restyled building cluster, a dressed pirate, and ≥ 8 skinned NPCs**, plus sky, clouds, character + camera, sailing and docking the brigantine, a prototype of the procedural music engine (one island theme), the voice pipeline (a few lines), and the debug HUD + benchmark flythrough (which also measures physics time).<br>**Water must show every layer of the Water system**: Gerstner swell → calm lagoon with **refraction + absorption + caustics**, shoreline/reef foam and **beach run-up**, **analytic wake + bow wave + hull cut-out**, a flow-map channel, and the **High-tier harbor mirror**.<br>Also required: cached shadows, sun shafts, the shared wind (grass, palms, sails), mist/height fog, adaptive resolution, and the `shot()` debug API.<br>It must **hit the §12 budgets** on reference hardware, with each water layer's cost measured separately | You approve the *look*, the *sound*, and the *frame rate* |
 | **1 · Proof of concept** | **Islands 00 + 01 fully playable**, plus all core systems: menu, character creation, dialogue, chests/logbook, all quiz types, puzzle toolkit, map/fast travel, settings, save, audio. **Vertical-slice gate first:** Anchorage Q0.2-Q0.8 fully playable with real TTS before the rest of the content is built | You approve the *slice*, then the *fun & teaching* |
 | **2 · Expansion** | Islands 02-04 | |
 | **3 · Complete** | Islands 05-07 + finale, certificate, polish, accessibility audit, perf pass, credits, deploy | |
@@ -284,6 +336,8 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 | Risk | Mitigation |
 |---|---|
 | Realism vs browser performance | Quality tiers and an early Phase 0 look/perf gate |
+| Planar mirror doubles the scene cost | Limited to High/Ultra and calm-zone visibility. Half-res, layer-culled, cheap-path shaders, a ≤ 35% budget, and PMREM always as the fallback |
+| Copying code from reference scenes | Arkenfall and Sakura Valley are **study references only**. We re-implement their techniques and never copy their code, shaders, or assets |
 | Mixed CC0 kits look inconsistent | 1-2 kits per island, a shared palette and material pass, and Blender restyle scripts |
 | Pirate characters (m/f) need to look great | CC0 base bodies + modular outfits. We may need custom Blender work for hats and coats |
 | Procedural music sounds "synthy" | Physical-modeling plucks, FM bells, detuned ensembles, humanized timing, and good generated reverb. We'll A/B test in Phase 0, and you sign off on the sound before content work starts |
@@ -303,11 +357,12 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 |---|---|---|---|---|
 | Target frame rate | 30+ fps | 45-60 | 60 @1080p | 60 @1440p+ |
 | Render scale / max DPR | 0.75 / 1.0 | 1.0 / 1.25 | 1.0 / 1.5 | 1.0 / 2.0 |
-| Draw calls (in-game) | < 150 | < 225 | < 300 | < 400 |
-| Triangles on screen | < 500k | < 1M | < 2M | < 3.5M |
+| Draw calls (in-game, **whole frame incl. mirror + post passes**) | < 150 | < 225 | < 300 | < 400 |
+| Triangles (**summed across all scene passes, incl. the mirror**) | < 500k | < 1M | < 2M | < 3.5M |
 | GPU texture memory | < 256 MB | < 384 MB | < 512 MB | < 768 MB |
-| Shadows | 1 cascade 1024², blob shadows for characters | 2 × 1024² | 2 × 2048² | 3 × 2048² |
-| Post FX | Tone map + grade + vignette only | + bloom | + SSAO (half-res), god rays | + DOF, full-res AO |
+| Shadows | **Static cached map** 2048² (refresh on movement) + blob shadows for characters | Static cache 2048² + dynamic character map 1024² | Static cache 4096² + dynamic 1024² | Static cache 4096² + dynamic 2048² |
+| Water | PMREM reflection, absorption (no refraction offset), foam, wake | + refraction offset, caustics, flotsam | + **planar mirror in calm zones** (half-res), boat shadow march | + wading/rain detail |
+| Post FX | Tone map + grade + vignette + grain/dither | + bloom, screen-space radial shafts | + SSAO (half-res), **shadow-map sun shafts** | + DOF, full-res AO |
 | JS main thread per frame | < 6 ms | < 5 ms | < 4 ms | < 4 ms |
 | Initial download (to title) | < 25 MB on every tier. The title is ocean, sky, clouds, and the ship, with no island | | | |
 
@@ -328,16 +383,25 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - **Frustum culling** with correct bounds on instanced and batched chunks.
 - **Distance culling per layer:** small props at around 60 m, grass at around 40 m, and particles at around 30 m. The distances scale with the quality tier.
 - **Zones and portals** for towns and interiors, so a room renders only when you're inside it or looking through its doorway.
-- The **shadow camera** tightly fits the view, and only large objects cast shadows. Small props rely on baked AO instead.
+- **Render layers** gate which objects draw in which pass: mirror (no grass, particles, or small props), opaque, transparent, and shadow casters.
+- **Shadows are cached.** The static-world shadow map has `autoUpdate = false` and is re-rendered only when the focus point moves past a threshold (~50 m, snapped to a grid so it doesn't shimmer) or the sun preset changes. Moving characters use a small separate dynamic map (or blob shadows on Low). The **boat's shadow on water is analytic** in the water shader. Only large objects cast into the static map, and small props rely on baked AO.
 
 ### 12.5 Shaders & GPU cost *(your "optimize shaders and materials")*
-- **No planar reflections.** Water samples a prefiltered (PMREM) sky environment map through a fresnel term, adds sun glints, and reuses the depth texture for foam. This alone avoids rendering the scene twice.
-- **Half- or quarter-resolution effects** (clouds, SSAO, god rays, bloom) with a bilateral upsample. Clouds also update on alternate frames.
+- **Water reflection is tiered.** Everywhere, the baseline is a Fresnel reflection of a prefiltered (PMREM) sky map + sun glints, which needs no second scene render. On **High/Ultra only, inside calm lagoon/harbor zones**, we add a **half-res planar mirror pass**:
+  - Its budget is **≤ 35% of the main pass's GPU time**.
+  - Its content is layer-culled: no grass, particles, or small props.
+  - Every material takes a **cheap shading path** in it (no triplanar, caustics, or AO).
+  - Shadow updates are frozen during it.
+  - The mirror switches off whenever the calm zone isn't on screen.
+- **Refraction reuses one half-res copy** of the opaque pass (color + linear depth in alpha). The copy also feeds foam, shoreline fades, and soft particles, so no extra depth pre-pass is needed.
+- **Half- or quarter-resolution effects** (clouds, SSAO, shafts, bloom, mirror, scene copy), with **offscreen buffers capped at DPR 1.3**, a depth-aware (bilateral) blur/upsample, and clouds updated on alternate frames.
+- **Sun shafts (High+)** ray-march the sun's shadow map at half res with ~24-26 steps, interleaved-gradient-noise jitter, and **temporal accumulation**, which hides the noise so few steps are needed. Medium uses a cheap screen-space radial blur, and Low has none.
+- **Expensive noise only where needed:** foam, caustics, and wake terms are behind distance/coverage branches, so the open sea far away costs little.
 - The **sky/atmosphere lookup table** is recomputed only when the sun moves.
 - **All post-processing merges into as few full-screen passes as possible** (tone map, grade, vignette, and chromatic effects in one pass).
 - **Wind and sway run in the vertex shader** (grass, palms, flags, sails), so the CPU does no per-instance work. Grass bending uses a small "trample" render target around the player.
 - The **terrain** blends at most 4 splat layers per chunk, with AO/roughness/metal packed into one texture.
-- **Shaders compile during loading** (`compileAsync`) so there's no hitch the first time something appears on screen.
+- **Shaders compile during loading.** We call `compileAsync` / `renderer.compile()` with **every object temporarily visible and all layers enabled**, so there's no hitch the first time something appears on screen. Loading runs as staged builds that yield between stages (via `MessageChannel`) and report progress to the loader.
 
 ### 12.6 Streaming & async loading *(your "asynchronous loading")*
 - **Islands stream in by distance** while you sail. We prefetch the next island once it's within range and unload anything two hops away.
@@ -362,10 +426,15 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - **Nothing renders when nothing's visible.** When a full-screen menu, the map, or the Logbook is open, we render a single frame, blur it into a still backdrop, and pause the 3D loop. We also pause everything when the tab is hidden.
 
 ### 12.9 Adaptive quality
-- **Dynamic resolution** lowers the render scale when frame time runs over budget and raises it again once there's headroom.
+- **Dynamic resolution** starts measuring after a ~90-frame warm-up and averages frame time over 60 frames:
+  - **Lowering:** over budget (e.g. > 23.5 ms at a 60 fps target), scale × 0.92, or × 0.84 if badly over (> 45 ms). The floor is **0.72**, and there's an 8 s cooldown after a drop.
+  - **Raising:** with headroom (< 17.6 ms), scale + 0.05, with a 2.5 s cooldown.
+  - It pauses while the tab is hidden, and it can be locked from the debug HUD. Thresholds scale with each tier's target.
+  - FXAA + a light unsharp mask restore crispness when the scale is below 1.
 - On first launch, a **quick GPU benchmark** picks the starting preset. You can override it in Settings.
 
 ### 12.10 Measuring it
-- **Debug HUD** (`?debug`): FPS, frame ms (CPU/GPU), draw calls, triangles, textures, geometries, and JS heap, plus a lil-gui tuning panel.
+- **Debug HUD** (`?debug`): FPS, frame ms (CPU/GPU), **whole-frame** draw calls and triangles (counters accumulated across all passes, not just the last render), textures, geometries, and JS heap, plus a lil-gui tuning panel.
+- **Debug API** (dev builds only, e.g. `window.__isles`): `info()`, `setRes()`, `setPreset()`/`setTime()`, and a deterministic **`shot(id)`** that places the camera, freezes time, and renders one frame. Playwright uses it for **visual-regression screenshots** and for the benchmark.
 - A **benchmark flythrough** follows a fixed camera path across the ocean, into the town, and through a dialogue scene. It reports average FPS and 1% lows, and we run it before merging any visual change.
 - For deeper profiling we'll use Chrome Performance traces and Spector.js frame captures.

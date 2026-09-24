@@ -180,7 +180,7 @@ Lever · rotatable pipe tile · sluice gate · flowing-water channel (a GPU-anim
 - **Graphics:** preset (auto-benchmarked) + render scale, shadows, water, vegetation density, post FX, FPS cap, perf HUD.
 - **Audio:** Master, Music, Ambience, SFX, Voice, UI. A note says **voices are synthetic, generated with Azure AI Speech**.
 - **Gameplay:** **Free explore**, hint frequency, look mode (hold-right-mouse / pointer lock), camera sensitivity, invert Y, FOV, camera shake, head bob, voice on/off.
-- **Accessibility:** text size (90-150%), subtitle background opacity, **captions for important sound cues** (chest nearby, water flowing, crane locking, correct/incorrect, lighthouse lit), high-contrast UI, dyslexia-friendly font, and reduced motion. Reduced motion covers camera bob/shake, UI motion, **lantern flicker, and god rays**.
+- **Accessibility:** text size (90-150%), subtitle background opacity, **captions for important sound cues** (chest nearby, water flowing, crane locking, correct/incorrect, lighthouse lit), high-contrast UI, dyslexia-friendly font, and reduced motion. Reduced motion covers camera bob/shake, UI motion, **lantern flicker, and sun shafts**.
 
 ### 3.11 Wingman the parrot *(placeholder name)*
 - **Q** gives a hint. There are **3 tiers per beat**: a nudge, a direction, then the answer with its explanation. **Inside Trials and the exit quiz, tier 3 is disabled**, so a Seal reflects what you know.
@@ -196,6 +196,11 @@ Lever · rotatable pipe tile · sluice gate · flowing-water channel (a GPU-anim
 - **Light:** dawn to early morning, sun elevation 12° → 25°, warm key light with cool sky fill. Fair-weather cumulus drift from the SW.
 - **Palette:** lagoon `#3FD0C9`, deep `#0F5A7A`, sand `#F3E6C8`, palm `#3E8E4E`, driftwood `#9A7B5B`, sun-bleached canvas `#EFE7D6`.
 - **Horizon:** **Port Meridian's citadel is faintly visible to the NE** (your next goal), and a volcanic silhouette sits far to the E (a nod to Tidewheel Caldera).
+- **Water (PLAN §6 Water system):**
+  - The **lagoon** gets turquoise absorption, **caustics dancing on the sand floor**, and the planar mirror on High/Ultra. Palms and stilt huts reflect in the calm water.
+  - The **reef** gets break foam lines, and the **beach** gets run-up with a receding wet-sand band.
+  - The waterfall and the **P0.1 channels** use flow maps.
+  - The **pier and huts** carry waterline tidemarks, and wading in the shallows spawns rings.
 - **Ambient life:** gulls, scuttling crabs, lagoon fish, butterflies, palm rustle, surf on the reef.
 - **Music (procedural):** major pentatonic at ~84 bpm, with marimba ostinato, steel-pan, and ukulele pluck.
 
@@ -289,7 +294,7 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 ### 4.5 Puzzles
 
 **P0.1 · Sluice & Waterwheel** (warm-up, ~2 min)
-- A 3×4 grid of rotatable channel tiles runs between the waterfall ("Actions spring") and the waterwheel. You rotate tiles with E to connect a path. There's a single solution, and 2 dead-end tiles act as distractors.
+- A 3×4 grid of rotatable channel tiles runs between the waterfall ("Actions spring") and the waterwheel. You rotate tiles with E to connect a path. There's a single solution, and 2 dead-end tiles act as distractors. The water is a **flow-map surface** that follows each tile's direction. When a tile connects, its water visibly starts moving, and a dead end pools and stops.
 - The final gate carries a painted sign: *"Workflows aren't being run on this forked repository."* Its lever reads **"I understand my workflows, go ahead and enable them."**
 - **Solved:** water flows, the wheel turns, and lanterns across the village light up. Suri: *"There. The practice checks can run on your fork now."*
 - **Hints:** (1) "Follow the water from the spring." (2) Highlights the tile nearest the break. (3) Auto-rotates one tile.
@@ -363,7 +368,8 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 ### 6.1 Art & mood
 - **Shape:** roughly 700 × 450 m. Terraced hillside town above a walled harbor, a **mole with a lighthouse**, and the **citadel** on the summit. A mountain ridge sits behind with far ranges beyond.
 - **Pacing rule:** the landmass stays large, but the **required stops are clustered** so neighboring required beats are about a **60-90 s walk** apart. The **citadel climb is the one deliberately long walk**, a scenic payoff before the Hall of Records and the Exam.
-- **Light:** late-afternoon **golden hour** with the sun at 18°, long shadows, and warm god rays through the streets.
+- **Light:** late-afternoon **golden hour** with the sun at 18°, long shadows, and warm **shadow-map sun shafts** through the streets (High+).
+- **Water:** the walled inner basin is a calm zone (planar mirror on High/Ultra), so the terracotta town and moored ships reflect in it at golden hour. Floating flotsam parts around your hull as you dock.
 - **Palette:** terracotta `#C8643B`, limestone `#E9DCC3`, bougainvillea `#C2306B`, cypress `#2F4F3A`, sea teal `#2BB3B1`, banners in deep blue `#1F3A6B` and gold `#E8C88A`.
 - **Vegetation:** palms along the quay, cypress and olive on the terraces, bougainvillea on the walls.
 - **Ambient life:** market murmur, church-bell-style chimes on the quarter hour (from the Clock Tower), pigeons, a harbor cat, flags snapping.
@@ -476,7 +482,7 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 **P1.2 · The Three Helms** (signature, ~7 min). Three short harbor voyages in a training cutter, one per helm:
 1. **Interactive · Harbor Slalom:** you steer through 5 buoys. At each buoy the crew *checks in* ("Hard to port, Captain?"), and you confirm or adjust. It teaches step-by-step collaboration.
 2. **Plan · Reef Passage:** at the chart table, place 4-6 waypoints on a top-down chart through a reef. The route validates against shallows (red where it's too shallow). Once you **approve the plan**, the cutter sails it by itself. If you try to cast off without a plan, Rhea says, *"This passage is one where the approach matters. Chart it first."*
-3. **Autopilot · Supply Run:** a clear, well-defined outcome (deliver 3 crates to the mole). Set the destination and let the trusted helmsman sail it **end to end with no required input**. A small, de-emphasized **Stop** control exists, but it's optional and the voyage never asks you for anything.
+3. **Autopilot · Supply Run:** a clear, well-defined outcome (deliver 3 crates to the mole). Set the destination and let the trusted helmsman sail it **end to end with no required input**. The **autopilot planner** (PLAN §6 Physics & motion) picks its own lane around moored boats and buoys. A small, de-emphasized **Stop** control exists, but it's optional and the voyage never asks you for anything.
 
 *Checkpoints:* P1.2 saves after each of the three voyages (§3.9).
 
@@ -564,9 +570,9 @@ Nine items. Pass with all correct (retries allowed, hint tier 3 off). All six ke
 
 | Scene | Main cost | Tactics |
 |---|---|---|
-| Anchorage Cay | Water + palms + grass | Clipmap ocean. **Instanced** palms (3 variants) and grass with vertex wind. One merged static chunk per village cluster. Beyond 350 m: impostors |
+| Anchorage Cay | Water + palms + grass | Clipmap ocean. **Lagoon mirror only while the lagoon is on screen (High/Ultra)**. Caustics and foam behind distance branches. **Instanced** palms (3 variants) and grass with shared-wind sway. One merged static chunk per village cluster. Cached static shadows. Beyond 350 m: impostors |
 | Open Sea | Water + sky + distant islands | Wave octaves fade with distance. Islands become silhouettes. Clouds render at ¼ resolution on alternate frames |
-| Port Meridian | Town draw calls | **Atlased building kit** (2 materials). Merged static geometry per terrace chunk. **Zones & portals** for the Citadel interior. NPCs off-screen don't animate. Small props cull at 60 m |
+| Port Meridian | Town draw calls + harbor mirror | **Atlased building kit** (2 materials). Merged static geometry per terrace chunk. **Zones & portals** for the Citadel interior. The harbor mirror excludes the town's small props and NPCs, and turns off once you're up the hill. NPCs off-screen don't animate. Small props cull at 60 m |
 | Dialogue | DOF + portrait | DOF only on High+. Scene resolution scales down during long dialogue if frame time rises |
 | Menus/Chart/Logbook | None | A single blurred frame; the 3D loop is paused |
 
@@ -577,7 +583,7 @@ Nine items. Pass with all correct (retries allowed, hint tier 3 off). All six ke
 - The **boat** is a kinematic hull driven by **analytic Gerstner buoyancy**. The CPU evaluates the same wave function as the shader at a few hull sample points. There's no GPU readback and no Rapier body.
 - Phase 0 measures physics time, and it moves to a worker only if it misses the §12.1 budget.
 
-**Water reflection:** the water samples a **prefiltered (PMREM) sky environment map** plus a sun-glint term. That's still one scene render, with no planar reflection.
+**Water reflection (tiered, PLAN §12.5):** everywhere, the water samples a **prefiltered (PMREM) sky environment map** plus a sun-glint term, with no second scene render. On **High/Ultra only**, while the **Anchorage lagoon** or the **Port Meridian inner basin** is on screen, a half-res, layer-culled, cheap-path **planar mirror** is added within a ≤ 35% budget of the main pass.
 
 **Benchmark flythrough** (built in Phase 0, then extended here): Anchorage beach → village → crane → sail → Meridian quay → market → citadel interior. **Pass criteria** are the §12.1 High-tier and Low-tier budgets.
 
