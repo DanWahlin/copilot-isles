@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { NAME_MAX, cleanName, defaultShipName } from '../learn/progress';
+import { DEFAULT_SAIL_PALETTE, SAIL_PALETTES } from '../world/ship/sail-palettes';
 import type {
   CaptainBody,
   ChartData,
@@ -227,14 +229,51 @@ function TitleScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) 
 
 function CaptainSelect({ bridge, current }: { bridge: GameBridge; current: CaptainBody }) {
   const [captain, setCaptain] = useState<CaptainBody>(current);
+  const [name, setName] = useState('');
+  const [ship, setShip] = useState<string | null>(null);
+  const shipShown = ship ?? defaultShipName(cleanName(name));
+  const start = () => bridge.newVoyage(captain, { captain: name, ship: shipShown });
   return (
     <OverlayShell title="Choose your captain" eyebrow="New voyage" onBack={bridge.back}>
       <div className="ci-captain-grid" role="radiogroup" aria-label="Captain body">
         <CaptainCard id="man" title="Captain" selected={captain === 'man'} onSelect={setCaptain} />
         <CaptainCard id="woman" title="Captain Anne" selected={captain === 'woman'} onSelect={setCaptain} />
       </div>
+      <form
+        className="ci-name-fields"
+        onSubmit={(e) => {
+          e.preventDefault();
+          start();
+        }}
+      >
+        <label className="ci-name-field">
+          <span>Your name</span>
+          <input
+            type="text"
+            value={name}
+            maxLength={NAME_MAX}
+            placeholder="What should the crew call you?"
+            autoComplete="off"
+            spellCheck={false}
+            onChange={(e) => setName(e.currentTarget.value)}
+          />
+        </label>
+        <label className="ci-name-field">
+          <span>Your ship</span>
+          <input
+            type="text"
+            value={shipShown}
+            maxLength={NAME_MAX}
+            autoComplete="off"
+            spellCheck={false}
+            onChange={(e) => setShip(e.currentTarget.value)}
+          />
+          <small>Nell christens her with this name before you sail.</small>
+        </label>
+        <button type="submit" hidden aria-hidden tabIndex={-1} />
+      </form>
       <div className="ci-panel-actions">
-        <button className="ci-primary" onClick={() => bridge.newVoyage(captain)}>
+        <button className="ci-primary" onClick={start}>
           Set sail
         </button>
         <button className="ci-secondary" onClick={bridge.back}>
@@ -317,8 +356,11 @@ function VoyageLoading({ state }: { state: UiState }) {
 
 function PausedScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) {
   const seals = state.learn.seals.length ? state.learn.seals.join(' · ') : 'No seal yet';
+  const who = [state.learn.captainName && `Captain ${state.learn.captainName}`, state.learn.shipName]
+    .filter(Boolean)
+    .join(' · ');
   return (
-    <OverlayShell title="Paused" eyebrow="Voyage menu" className="ci-pause" hideBack>
+    <OverlayShell title="Paused" eyebrow={who || 'Voyage menu'} className="ci-pause" hideBack>
       <p className="ci-pause-progress">
         {state.learn.doubloons} doubloons · {seals}
       </p>
@@ -668,6 +710,14 @@ function SettingsScreen({ state, bridge }: { state: UiState; bridge: GameBridge 
             onChange={(subtitleSize) => bridge.updateSettings({ subtitleSize: subtitleSize as SubtitleSize })}
           />
         </SettingsGroup>
+        {(state.hasSave || state.returnTo === 'paused') && (
+          <SettingsGroup title="Your sails" wide>
+            <SailSwatches
+              value={state.learn.sails ?? DEFAULT_SAIL_PALETTE}
+              onChange={(id) => bridge.setSails(id)}
+            />
+          </SettingsGroup>
+        )}
       </div>
       <footer className="ci-render-info">{state.renderInfo}</footer>
     </OverlayShell>
@@ -819,9 +869,40 @@ function OverlayShell({
   );
 }
 
-function SettingsGroup({ title, children }: { title: string; children: ReactNode }) {
+/** Paint Your Sails, from Settings ("Preferences can be changed anytime from settings"). */
+function SailSwatches({ value, onChange }: { value: string; onChange: (id: string) => void }) {
   return (
-    <fieldset className="ci-settings-group">
+    <div className="ci-sail-swatches" role="radiogroup" aria-label="Sail palette">
+      {SAIL_PALETTES.map((p) => (
+        <button
+          key={p.id}
+          type="button"
+          role="radio"
+          aria-checked={p.id === value}
+          className={`ci-sail-swatch${p.id === value ? ' on' : ''}`}
+          onClick={() => onChange(p.id)}
+        >
+          <svg viewBox="0 0 32 32" aria-hidden>
+            <path d="M16 2v28" stroke="#6b4a2b" strokeWidth="1.6" />
+            <path d="M5 6h22" stroke="#6b4a2b" strokeWidth="1.8" strokeLinecap="round" />
+            <path
+              d="M6 7h20q-1.6 8 0 17H6q1.6-9 0-17z"
+              fill={`#${p.cloth.toString(16).padStart(6, '0')}`}
+              stroke="rgba(0,0,0,0.35)"
+              strokeWidth="0.8"
+            />
+            <path d="M6.3 19.2h19.4v2.6H6.3z" fill={`#${p.stripe.toString(16).padStart(6, '0')}`} />
+          </svg>
+          <span>{p.name}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function SettingsGroup({ title, children, wide }: { title: string; children: ReactNode; wide?: boolean }) {
+  return (
+    <fieldset className={`ci-settings-group${wide ? ' wide' : ''}`}>
       <legend>{title}</legend>
       {children}
     </fieldset>

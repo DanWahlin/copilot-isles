@@ -34,6 +34,10 @@ export interface LearnState {
   glossary: readonly string[];
   /** Quest log lines for the Logbook: [title, detail, done]. */
   quests: readonly { id: string; title: string; detail: string; done: boolean }[];
+  /** The saved sail palette (Paint Your Sails), or null for the default. */
+  sails: string | null;
+  /** The palette stand's theme picker while it's open; `selected` previews on the sails. */
+  palette: { selected: string } | null;
 }
 
 export interface QuizOutcome {
@@ -55,6 +59,7 @@ export class LearnStore {
   private quizDone: ((o: QuizOutcome) => void) | null = null;
   private revealDone: (() => void) | null = null;
   private bannerDone: (() => void) | null = null;
+  private paletteDone: ((id: string | null) => void) | null = null;
   private seed = 1;
 
   constructor(progress = new Progress()) {
@@ -69,6 +74,8 @@ export class LearnStore {
       pages: progress.data.pages.slice(),
       glossary: progress.data.glossary.slice(),
       quests: [],
+      sails: progress.data.sails,
+      palette: null,
     };
   }
 
@@ -82,7 +89,7 @@ export class LearnStore {
   /** True while a modal learning overlay owns input (the game pauses walking/interaction). */
   get busy(): boolean {
     const s = this.state;
-    return !!(s.quiz || s.reveal || s.banner || s.logbook.open || s.spyglass?.full);
+    return !!(s.quiz || s.reveal || s.banner || s.palette || s.logbook.open || s.spyglass?.full);
   }
 
   // ---- Quizzes ----
@@ -254,6 +261,46 @@ export class LearnStore {
     this.set({ quests });
   };
 
+  // ---- Paint Your Sails ----
+
+  /**
+   * Opens the theme picker at the palette stand. Resolves with the palette you finished on, or null
+   * if you went back without choosing (the sails return to the saved palette).
+   */
+  openPalette = (selected: string): Promise<string | null> => {
+    this.paletteDone?.(null);
+    this.set({ palette: { selected } });
+    return new Promise((resolve) => (this.paletteDone = resolve));
+  };
+
+  previewPalette = (id: string): void => {
+    if (this.state.palette) this.set({ palette: { selected: id } });
+  };
+
+  finishPalette = (): void => {
+    const p = this.state.palette;
+    if (!p) return;
+    const done = this.paletteDone;
+    this.paletteDone = null;
+    this.progress.setSails(p.selected);
+    this.set({ palette: null, sails: p.selected });
+    done?.(p.selected);
+  };
+
+  closePalette = (): void => {
+    if (!this.state.palette) return;
+    const done = this.paletteDone;
+    this.paletteDone = null;
+    this.set({ palette: null });
+    done?.(null);
+  };
+
+  /** Changes the sails outside the stand (the Settings menu). */
+  setSails = (id: string): void => {
+    this.progress.setSails(id);
+    this.set({ sails: id });
+  };
+
   // ---- Logbook ----
 
   openLogbook = (tab: LogbookTab = this.state.logbook.tab, page: string | null = null): void => {
@@ -274,11 +321,13 @@ export class LearnStore {
     this.quizDone?.({ correct: false, attempts: 0, completed: false });
     this.revealDone?.();
     this.bannerDone?.();
-    this.quizDone = this.revealDone = this.bannerDone = null;
+    this.paletteDone?.(null);
+    this.quizDone = this.revealDone = this.bannerDone = this.paletteDone = null;
     this.set({
       quiz: null,
       reveal: null,
       banner: null,
+      palette: null,
       spyglass: null,
       logbook: { open: false, tab: 'pages', page: null },
     });
@@ -288,7 +337,7 @@ export class LearnStore {
   newGame = (): void => {
     this.reset();
     this.progress.reset();
-    this.set({ doubloons: 0, pages: [], glossary: [], quests: [] });
+    this.set({ doubloons: 0, pages: [], glossary: [], quests: [], sails: null });
   };
 
   private set(patch: Partial<LearnState>): void {

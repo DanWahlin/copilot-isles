@@ -43,16 +43,10 @@ const REPLY_LINES: readonly TerminalLine[] = [
 
 /** Juno's lines once the crew answers: the expected output, the page, then on to the Trial. */
 export const JUNO_REPLY: readonly ScriptStep[] = [
-  { speaker: 'Juno', text: 'Hear that? The crew’s answering.' },
-  {
-    speaker: 'Juno',
-    text: 'They’ve summed up the course, chapter by chapter, and flagged samples/book-app-web. That’s the web sample you’ll use in later exercises.',
-  },
+  { say: 'juno.reply.01' },
+  { say: 'juno.reply.02' },
   { page: 'pg.first-prompt', doubloons: 10 },
-  {
-    speaker: 'Juno',
-    text: 'Commands go to the Terminal. Requests go to the agent, through the prompt box. That’s setup done, Captain. The Harbormaster’s Trial waits at the lighthouse.',
-  },
+  { say: 'juno.reply.03' },
   { quest: QUEST, step: 'done' },
   { quest: 'Q0.10', step: 'start' },
 ];
@@ -86,7 +80,6 @@ export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked:
     hinted = which;
     ship.pipes.setHint(which);
   };
-  const say = (line: string, s = 5) => host.hud.showText('Juno', line, s);
   const canUse = () => host.canAct() && active() && docked() && !running;
 
   const at = (v: Vector3, id: Pipe, label: string) =>
@@ -123,12 +116,7 @@ export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked:
       title = 'Terminal · engine room';
       lines = HATCH_LINES;
       await wait(900);
-      say(
-        g && !g.correct
-          ? `That went to the engine room, Captain. ${plain(g.feedback)}`
-          : 'That went to the engine room, Captain. Terminal runs commands, not requests.',
-        6,
-      );
+      await host.beat([{ say: g && !g.correct ? 'juno.hatch.feedback.01' : 'juno.hatch.01' }], 'Juno');
       running = false;
       return;
     }
@@ -171,7 +159,11 @@ export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked:
         if (!on) setHint(null);
         if (!on && host.quests()[QUEST] !== 'done') lines = null;
       }
-      if (lines && host.quests()[QUEST] === 'done' && (replyAge += dt) > 60) lines = null;
+      // The reply lingers a minute by the tube, but not over the christening once the Trial's passed.
+      if (lines && host.quests()[QUEST] === 'done') {
+        replyAge += dt;
+        if (replyAge > 60 || host.quests()['Q0.10'] === 'done') lines = null;
+      }
     },
     terminal(): PuzzleTerminal | null {
       const q = host.quests()[QUEST];
@@ -206,6 +198,3 @@ export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked:
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Strips the markdown the quiz card uses (`code`, **bold**) for a subtitle line. */
-function plain(s: string): string {
-  return s.replace(/\*\*(.+?)\*\*/g, '$1').replace(/`([^`]+)`/g, '$1');
-}

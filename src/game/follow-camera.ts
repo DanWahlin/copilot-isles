@@ -52,6 +52,20 @@ export interface CameraLook {
 }
 
 const SAMPLES = 14;
+const NO_LOOK: CameraLook = { lookX: 0, lookY: 0, zoom: 0 };
+
+/** A held camera shot for a story beat: where the camera sits and what it looks at (world space). */
+export interface CameraShot {
+  x: number;
+  y: number;
+  z: number;
+  tx: number;
+  ty: number;
+  tz: number;
+}
+
+/** Seconds to ease into a held shot and back out to the follow camera. */
+const SHOT_EASE = 1.1;
 
 /**
  * Third-person orbit camera (Phase 0 S6): hold-RMB/right-stick orbit, wheel zoom, a gentle
@@ -71,6 +85,23 @@ export class FollowCamera {
   private blend = 1;
   private readonly from = { x: 0, y: 0, z: 0 };
   private readonly last = { x: 0, y: 0, z: 0 };
+  private shot: CameraShot | null = null;
+  private held: CameraShot | null = null;
+  private shotMix = 0;
+
+  /**
+   * Holds a framed shot (the christening's look at the bow) until cleared with null, easing in and
+   * back out to the follow camera. Look input is ignored while a shot holds.
+   */
+  frame(shot: CameraShot | null): void {
+    this.shot = shot;
+    if (shot) this.held = shot;
+  }
+
+  /** Whether a held shot is on screen (or still easing out). */
+  get framing(): boolean {
+    return this.shotMix > 0;
+  }
 
   setRig(rig: CameraRig, snap = false): void {
     if (rig === this.rig) return;
@@ -102,11 +133,12 @@ export class FollowCamera {
     t: number,
   ): void {
     const r = this.rig;
-    const looking = look.lookX !== 0 || look.lookY !== 0;
-    this.yaw = wrapAngle(this.yaw - look.lookX);
-    this.pitch = Math.min(r.pitchMax, Math.max(r.pitchMin, this.pitch + look.lookY));
-    if (look.zoom)
-      this.wantDist = Math.min(r.maxDist, Math.max(r.minDist, this.wantDist * Math.pow(1.12, look.zoom)));
+    const input = this.shot ? NO_LOOK : look;
+    const looking = input.lookX !== 0 || input.lookY !== 0;
+    this.yaw = wrapAngle(this.yaw - input.lookX);
+    this.pitch = Math.min(r.pitchMax, Math.max(r.pitchMin, this.pitch + input.lookY));
+    if (input.zoom)
+      this.wantDist = Math.min(r.maxDist, Math.max(r.minDist, this.wantDist * Math.pow(1.12, input.zoom)));
 
     // Recenter behind the target while it moves, unless you're steering the camera or walking toward it.
     this.idle = looking ? 0 : this.idle + dt;
@@ -172,12 +204,27 @@ export class FollowCamera {
       y = this.from.y + (y - this.from.y) * e;
       z = this.from.z + (z - this.from.z) * e;
     }
+    let lx = this.pivot.x,
+      ly = this.pivot.y,
+      lz = this.pivot.z;
+    this.shotMix = Math.min(1, Math.max(0, this.shotMix + (this.shot ? dt : -dt) / SHOT_EASE));
+    if (this.shotMix > 0 && this.held) {
+      const h = this.held;
+      const e = this.shotMix * this.shotMix * (3 - 2 * this.shotMix);
+      x += (h.x - x) * e;
+      y += (h.y - y) * e;
+      z += (h.z - z) * e;
+      lx += (h.tx - lx) * e;
+      ly += (h.ty - ly) * e;
+      lz += (h.tz - lz) * e;
+    } else if (!this.shot) this.held = null;
+
     this.last.x = x;
     this.last.y = y;
     this.last.z = z;
 
     cam.position.set(x, y, z);
-    cam.lookAt(this.pivot.x, this.pivot.y, this.pivot.z);
+    cam.lookAt(lx, ly, lz);
     if (Math.abs(cam.fov - r.fov) > 0.01) {
       cam.fov += (r.fov - cam.fov) * (1 - Math.exp(-4 * dt));
       cam.updateProjectionMatrix();

@@ -951,3 +951,105 @@
     0 0 0 1px rgba(255, 244, 216, 0.72),
     0 0 0 4px rgba(232, 200, 138, 0.38);
 }
+
+.ci-settings-group.wide {
+  grid-column: 1 / -1;
+}
+
+.ci-sail-swatches {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.ci-sail-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.6rem 0.4rem 0.55rem;
+  border: 1px solid rgba(232, 200, 138, 0.22);
+  border-radius: 0.8rem;
+  background: rgba(4, 13, 20, 0.35);
+  color: rgba(255, 246, 225, 0.86);
+  font: 600 0.8rem/1.2 var(--ci-ui);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease-out,
+    transform 160ms ease-out,
+    background 160ms ease-out;
+}
+
+.ci-sail-swatch svg {
+  width: 2.9rem;
+  height: 2.9rem;
+}
+
+.ci-sail-swatch:hover {
+  transform: translateY(-1px);
+  background: rgba(232, 200, 138, 0.08);
+}
+
+.ci-sail-swatch.on {
+  border-color: var(--ci-gold);
+  background: rgba(232, 200, 138, 0.14);
+  color: #fff6de;
+}
+
+@media (max-width: 760px) {
+  .ci-sail-swatches {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.ci-name-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.1rem;
+}
+
+.ci-name-field {
+  display: grid;
+  align-content: start;
+  gap: 0.4rem;
+}
+
+.ci-name-field span {
+  color: var(--ci-gold);
+  font: 700 0.74rem/1 var(--ci-ui);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ci-name-field input {
+  min-height: 2.6rem;
+  padding: 0 0.85rem;
+  border: 1px solid rgba(232, 200, 138, 0.32);
+  border-radius: 0.65rem;
+  background: rgba(4, 13, 20, 0.55);
+  color: var(--ci-cream);
+  font: 600 1rem/1.2 var(--ci-ui);
+  transition: border-color 160ms ease-out;
+}
+
+.ci-name-field input::placeholder {
+  color: rgba(246, 236, 214, 0.42);
+}
+
+.ci-name-field input:focus-visible {
+  border-color: var(--ci-focus, #65e5ff);
+  outline: none;
+}
+
+.ci-name-field small {
+  color: var(--ci-muted);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 760px) {
+  .ci-name-fields {
+    grid-template-columns: 1fr;
+  }
+}

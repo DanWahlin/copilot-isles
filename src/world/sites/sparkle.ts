@@ -25,6 +25,7 @@ export function createSparkleMaterial(): MeshBasicNodeMaterial {
     vertexColors: true,
     fog: false,
   });
+  m.forceSinglePass = true;
   const p = positionWorld as AnyNode;
   const pulse = sin((world.time as AnyNode).mul(3.1).add(p.x.mul(0.9)).add(p.z.mul(0.7)))
     .mul(0.28)

@@ -8,6 +8,8 @@ import type { LeapsSystem, ScreenRect } from '../world/life/leaps';
 
 export interface TitleBackdrop {
   setAvoidRects(rects: ScreenRect[]): void;
+  /** Flies the voyage's sail palette (Paint Your Sails). */
+  setSails(paletteId: string | null): void;
   dispose(): void;
 }
 
@@ -88,6 +90,9 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
     setAvoidRects(rects: ScreenRect[]) {
       avoidRects = rects;
       leaps?.setAvoidRects(rects);
+    },
+    setSails(paletteId: string | null) {
+      ship.setSails(paletteId);
     },
     dispose() {
       disposed = true;

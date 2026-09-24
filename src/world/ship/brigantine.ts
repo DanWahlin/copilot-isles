@@ -2,6 +2,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
+  Color,
   DataTexture,
   DoubleSide,
   Group,
@@ -18,6 +19,7 @@ import {
   SRGBColorSpace,
   TextureLoader,
   UnsignedByteType,
+  Vector3,
   type Material,
   type Texture,
   type UniformNode,
@@ -42,6 +44,7 @@ import { updateShipOceanInteraction } from '../ocean/ship-interaction';
 import { world } from '../uniforms';
 import { gustNode } from '../wind-nodes';
 import { ShipDynamics, type ShipEnv } from './dynamics';
+import { createChristeningSystem } from './christening';
 import {
   BRIGANTINE_CAPSULES,
   BRIGANTINE_HALF_BEAM_TABLE,
@@ -57,6 +60,7 @@ import {
   type HullCapsule,
 } from './lines';
 import { createShipPipes, type ShipPipes } from './pipes';
+import { DEFAULT_SAIL_PALETTE, sailPalette } from './sail-palettes';
 
 export interface BrigantineOptions {
   tier: Tier;
@@ -65,6 +69,9 @@ export interface BrigantineOptions {
 export interface BrigantineUniforms {
   trim: UniformNode<'float', number>;
   luff: UniformNode<'float', number>;
+  /** Sail cloth and the band across each sail (Paint Your Sails). */
+  sailCloth: UniformNode<'color', Color>;
+  sailStripe: UniformNode<'color', Color>;
 }
 
 export interface BrigantineEnv extends ShipEnv {
@@ -85,10 +92,18 @@ export interface Brigantine {
   drawCallCount: number;
   anchors: ShipAnchors;
   readonly pipes: ShipPipes;
+  /** Recolours the canvas to a Paint Your Sails palette (uniforms only, no recompile). */
+  setSails(paletteId: string | null): void;
+  /** Paints the christened ship name onto the stern and bow name boards. */
+  setName(name: string | null): void;
+  /** Plays Nell's coconut christening throw from a world-space hand position. */
+  christen(from: { x: number; y: number; z: number }): Promise<void>;
   /** Writes 32 closed-polyline world-space xz points: local +x side stern→bow, then local -x side bow→stern. */
   waterlinePolygon(outWorld: Float32Array): Float32Array;
   /** Writes [x, z] for the current bow waterline point. */
   bowWorld(outWorld: Float32Array | number[]): Float32Array | number[];
+  /** Writes [x, y, z] for the current bow stem point. */
+  bowStemWorld(outWorld: Float32Array | number[]): Float32Array | number[];
   /** Writes [x, z] for the current stern waterline point. */
   sternWorld(outWorld: Float32Array | number[]): Float32Array | number[];
   dispose(): void;
@@ -116,6 +131,7 @@ interface Detail {
 
 const WATERLINE_POLYGON_POINTS = 32;
 const BOW_Z = BRIGANTINE_HALF_LENGTH + 0.28;
+const BOW_STEM = { x: 0, y: 2.05, z: 12.1 } as const;
 const STERN_Z = -BRIGANTINE_HALF_LENGTH - 0.15;
 const HELM_Z = -9.55;
 const BOARDING_Z = -0.15;
@@ -183,6 +199,14 @@ class MeshBuilder {
     this.addVertex(b.x, b.y, b.z, uvScale, 0);
     this.addVertex(c.x, c.y, c.z, uvScale, uvScale);
     this.addVertex(d.x, d.y, d.z, 0, uvScale);
+    this.indices.push(i, i + 1, i + 2, i, i + 2, i + 3);
+  }
+
+  addQuadUv(a: P3, b: P3, c: P3, d: P3, uv: { u0: number; v0: number; u1: number; v1: number }): void {
+    const i = this.addVertex(a.x, a.y, a.z, uv.u0, uv.v0);
+    this.addVertex(b.x, b.y, b.z, uv.u1, uv.v0);
+    this.addVertex(c.x, c.y, c.z, uv.u1, uv.v1);
+    this.addVertex(d.x, d.y, d.z, uv.u0, uv.v1);
     this.indices.push(i, i + 1, i + 2, i, i + 2, i + 3);
   }
 
@@ -410,6 +434,7 @@ function triangleCount(group: Object3D): number {
 function drawCallCount(group: Object3D): number {
   let calls = 0;
   group.traverse((object) => {
+    if (!object.visible) return;
     const drawable = object as Mesh | LineSegments;
     if ('isMesh' in drawable || 'isLineSegments' in drawable) calls += 1;
   });
@@ -680,26 +705,6 @@ function createWindowGeometry(): BufferGeometry {
   return b.build();
 }
 
-function addGlyph(builder: MeshBuilder, glyph: string, cx: number, cy: number, z: number): void {
-  const patterns: Record<string, string[]> = {
-    C: ['111', '100', '100', '100', '111'],
-    O: ['111', '101', '101', '101', '111'],
-    P: ['110', '101', '110', '100', '100'],
-    I: ['111', '010', '010', '010', '111'],
-    L: ['100', '100', '100', '100', '111'],
-    T: ['111', '010', '010', '010', '010'],
-  };
-  const rows = patterns[glyph] ?? patterns.O;
-  const s = 0.055;
-  for (let y = 0; y < rows.length; y++) {
-    const row = rows[y]!;
-    for (let x = 0; x < row.length; x++) {
-      if (row[x] !== '1') continue;
-      builder.addBox(cx + (1 - x) * s, cy + (2 - y) * s, z, s * 0.82, s * 0.82, 0.026);
-    }
-  }
-}
-
 function createSternGoldGeometry(): BufferGeometry {
   const b = new MeshBuilder();
   b.setRegion(3);
@@ -728,10 +733,51 @@ function createSternGoldGeometry(): BufferGeometry {
       10,
     );
   }
-  const letters = 'COPILOT';
-  for (let i = 0; i < letters.length; i++) addGlyph(b, letters[i]!, 0.84 - i * 0.28, 1.42, -12.455);
   b.addCylinderBetween({ x: -0.32, y: 3.14, z: -12.36 }, { x: 0.32, y: 3.14, z: -12.36 }, 0.035, 10);
   b.addCylinderBetween({ x: 0, y: 3.12, z: -12.36 }, { x: 0, y: 2.68, z: -12.36 }, 0.025, 8);
+  return b.build();
+}
+
+function createNameBoardGeometry(): BufferGeometry {
+  const b = new MeshBuilder();
+  b.setRegion(7);
+  b.setColor(0xffffff);
+  const nameUv = { u0: 0.06, v0: 0.04, u1: 0.94, v1: 0.48 };
+  b.addQuadUv(
+    { x: 1.85, y: 1.22, z: -12.49 },
+    { x: -1.85, y: 1.22, z: -12.49 },
+    { x: -1.85, y: 1.63, z: -12.49 },
+    { x: 1.85, y: 1.63, z: -12.49 },
+    nameUv,
+  );
+  const bowZ0 = 6.65;
+  const bowZ1 = 8.65;
+  const bowY0 = 2.18;
+  const bowY1 = 2.52;
+  const segments = 8;
+  for (const side of [-1, 1] as const) {
+    for (let i = 0; i < segments; i++) {
+      const t0 = i / segments;
+      const t1 = (i + 1) / segments;
+      const z0 = lerp(bowZ0, bowZ1, t0);
+      const z1 = lerp(bowZ0, bowZ1, t1);
+      const out0 = lerp(0.07, 0.16, t0);
+      const out1 = lerp(0.07, 0.16, t1);
+      const x00 = side * (halfBeamAt(z0, bowY0) + out0);
+      const x01 = side * (halfBeamAt(z1, bowY0) + out1);
+      const x10 = side * (halfBeamAt(z0, bowY1) + out0);
+      const x11 = side * (halfBeamAt(z1, bowY1) + out1);
+      const uAtZ0 = side > 0 ? lerp(nameUv.u1, nameUv.u0, t0) : lerp(nameUv.u0, nameUv.u1, t0);
+      const uAtZ1 = side > 0 ? lerp(nameUv.u1, nameUv.u0, t1) : lerp(nameUv.u0, nameUv.u1, t1);
+      b.addQuadUv(
+        { x: x00, y: bowY0, z: z0 },
+        { x: x01, y: bowY0, z: z1 },
+        { x: x11, y: bowY1, z: z1 },
+        { x: x10, y: bowY1, z: z0 },
+        { u0: uAtZ0, v0: nameUv.v0, u1: uAtZ1, v1: nameUv.v1 },
+      );
+    }
+  }
   return b.build();
 }
 
@@ -901,6 +947,21 @@ function createRiggingGeometry(): BufferGeometry {
 
 let shipWoodTexture: Texture | null = null;
 let shipLabelTexture: Texture | null = null;
+let shipLabelCanvas: HTMLCanvasElement | null = null;
+let shipName = '';
+
+export function fitShipNameFontSize(
+  name: string,
+  maxWidth: number,
+  measure: (fontSize: number, text: string) => number,
+  maxSize = 86,
+  minSize = 20,
+): number {
+  const text = name.trim() || ' ';
+  let size = maxSize;
+  while (size > minSize && measure(size, text) > maxWidth) size -= 2;
+  return size;
+}
 
 function getShipWoodTexture(): Texture {
   if (shipWoodTexture) return shipWoodTexture;
@@ -935,66 +996,10 @@ function getShipLabelTexture(): Texture {
   } else {
     const canvas = document.createElement('canvas');
     canvas.width = 1024;
-    canvas.height = 256;
-    const ctx = canvas.getContext('2d')!;
-    const drawPlaque = (
-      x: number,
-      fill: CanvasGradient | string,
-      stroke: string,
-      text: string,
-      font: string,
-      ink: string,
-    ) => {
-      const plaqueWidth = 464;
-      const plaqueHeight = 188;
-      ctx.save();
-      ctx.translate(x, 0);
-      ctx.fillStyle = fill;
-      ctx.strokeStyle = stroke;
-      ctx.lineWidth = 18;
-      ctx.beginPath();
-      ctx.roundRect(24, 34, plaqueWidth, plaqueHeight, 26);
-      ctx.fill();
-      ctx.stroke();
-      ctx.strokeStyle = 'rgba(255,255,255,0.16)';
-      ctx.lineWidth = 4;
-      ctx.strokeRect(52, 62, 408, 132);
-      ctx.fillStyle = ink;
-      let size = 76;
-      do {
-        ctx.font = font.replace('{size}', String(size));
-        size -= 2;
-      } while (size > 28 && ctx.measureText(text).width > plaqueWidth * 0.78);
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, 256, 128);
-      ctx.restore();
-    };
-    const brass = ctx.createLinearGradient(0, 28, 0, 226);
-    brass.addColorStop(0, '#f1cb73');
-    brass.addColorStop(0.48, '#b98231');
-    brass.addColorStop(1, '#f0c46a');
-    drawPlaque(
-      0,
-      brass,
-      '#7a4a17',
-      'PROMPT BOX',
-      "700 {size}px Georgia, 'Times New Roman', serif",
-      '#2b1707',
-    );
-    const iron = ctx.createLinearGradient(512, 28, 512, 226);
-    iron.addColorStop(0, '#4b4a46');
-    iron.addColorStop(0.55, '#171717');
-    iron.addColorStop(1, '#302f2b');
-    drawPlaque(
-      512,
-      iron,
-      '#090909',
-      'TERMINAL',
-      "700 {size}px 'SFMono-Regular', Consolas, monospace",
-      '#ffb160',
-    );
+    canvas.height = 512;
+    shipLabelCanvas = canvas;
     shipLabelTexture = new CanvasTexture(canvas);
+    repaintShipLabelCanvas();
   }
   shipLabelTexture.colorSpace = SRGBColorSpace;
   shipLabelTexture.generateMipmaps = true;
@@ -1002,6 +1007,121 @@ function getShipLabelTexture(): Texture {
   shipLabelTexture.magFilter = LinearFilter;
   shipLabelTexture.anisotropy = 4;
   return shipLabelTexture;
+}
+
+function repaintShipLabelCanvas(): void {
+  if (!shipLabelCanvas) return;
+  const ctx = shipLabelCanvas.getContext('2d')!;
+  ctx.clearRect(0, 0, shipLabelCanvas.width, shipLabelCanvas.height);
+  const drawPlaque = (
+    x: number,
+    y: number,
+    fill: CanvasGradient | string,
+    stroke: string,
+    text: string,
+    font: string,
+    ink: string,
+  ) => {
+    const plaqueWidth = 464;
+    const plaqueHeight = 188;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = fill;
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 18;
+    ctx.beginPath();
+    ctx.roundRect(24, 34, plaqueWidth, plaqueHeight, 26);
+    ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(52, 62, 408, 132);
+    ctx.fillStyle = ink;
+    const size = fitShipNameFontSize(
+      text,
+      plaqueWidth * 0.78,
+      (s, t) => {
+        ctx.font = font.replace('{size}', String(s));
+        return ctx.measureText(t).width;
+      },
+      76,
+      28,
+    );
+    ctx.font = font.replace('{size}', String(size));
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 256, 128);
+    ctx.restore();
+  };
+  const brass = ctx.createLinearGradient(0, 28, 0, 226);
+  brass.addColorStop(0, '#f1cb73');
+  brass.addColorStop(0.48, '#b98231');
+  brass.addColorStop(1, '#f0c46a');
+  drawPlaque(
+    0,
+    0,
+    brass,
+    '#7a4a17',
+    'PROMPT BOX',
+    "700 {size}px Georgia, 'Times New Roman', serif",
+    '#2b1707',
+  );
+  const iron = ctx.createLinearGradient(512, 28, 512, 226);
+  iron.addColorStop(0, '#4b4a46');
+  iron.addColorStop(0.55, '#171717');
+  iron.addColorStop(1, '#302f2b');
+  drawPlaque(
+    512,
+    0,
+    iron,
+    '#090909',
+    'TERMINAL',
+    "700 {size}px 'SFMono-Regular', Consolas, monospace",
+    '#ffb160',
+  );
+
+  const board = ctx.createLinearGradient(0, 280, 0, 480);
+  board.addColorStop(0, '#0f3334');
+  board.addColorStop(0.55, '#071516');
+  board.addColorStop(1, '#164547');
+  ctx.fillStyle = board;
+  ctx.strokeStyle = '#c5973f';
+  ctx.lineWidth = 18;
+  ctx.beginPath();
+  ctx.roundRect(58, 302, 908, 142, 24);
+  ctx.fill();
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(255, 233, 168, 0.38)';
+  ctx.lineWidth = 5;
+  ctx.strokeRect(88, 331, 848, 84);
+  if (shipName) {
+    ctx.fillStyle = '#f2c76e';
+    ctx.shadowColor = 'rgba(120, 72, 12, 0.9)';
+    ctx.shadowBlur = 4;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const size = fitShipNameFontSize(
+      shipName,
+      810,
+      (s, t) => {
+        ctx.font = `800 ${s}px Georgia, 'Times New Roman', serif`;
+        return ctx.measureText(t).width;
+      },
+      82,
+      24,
+    );
+    ctx.font = `800 ${size}px Georgia, 'Times New Roman', serif`;
+    ctx.fillText(shipName, 512, 374);
+    ctx.shadowBlur = 0;
+  }
+  shipLabelTexture!.needsUpdate = true;
+}
+
+function paintShipName(name: string | null): void {
+  shipName = (name ?? '').trim();
+  getShipLabelTexture();
+  repaintShipLabelCanvas();
+  if (shipLabelTexture) shipLabelTexture.needsUpdate = true;
 }
 
 function makeShipMaterial(): MeshStandardNodeMaterial {
@@ -1115,10 +1235,14 @@ function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNodeMater
     .add(world.sunDir.z.mul(sailNormal.z))
     .negate()
     .smoothstep(0.05, 0.8);
-  m.colorNode = mix(color(0xd4bf91), color(0xffebbd), belly.mul(0.22)).sub(
-    color(0x5b4328).mul(panelU.add(panelV).mul(0.12).add(dirt)),
-  );
-  m.emissiveNode = color(0xffd79a).mul(backlit.mul(world.sunDir.y.smoothstep(0.02, 0.45)).mul(0.08));
+  // The palette band sits just above the foot of each sail (v runs foot → head).
+  const band = smoothstep(0.17, 0.19, sailUv.y).mul(float(1).sub(smoothstep(0.27, 0.29, sailUv.y)));
+  const cloth = mix(uniforms.sailCloth, uniforms.sailStripe, band);
+  const wear = float(1).sub(panelU.add(panelV).mul(0.12).add(dirt).mul(0.85));
+  m.colorNode = cloth.mul(belly.mul(0.12).add(0.9)).mul(wear);
+  m.emissiveNode = cloth
+    .mul(color(0xffe2b0))
+    .mul(backlit.mul(world.sunDir.y.smoothstep(0.02, 0.45)).mul(0.09));
   return m;
 }
 
@@ -1161,7 +1285,13 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   group.rotation.order = 'YXZ';
 
   const dynamics = new ShipDynamics();
-  const uniforms: BrigantineUniforms = { trim: uniform(1), luff: uniform(0) };
+  const startSails = sailPalette(DEFAULT_SAIL_PALETTE);
+  const uniforms: BrigantineUniforms = {
+    trim: uniform(1),
+    luff: uniform(0),
+    sailCloth: uniform(new Color(startSails.cloth)),
+    sailStripe: uniform(new Color(startSails.stripe)),
+  };
   const anchors: ShipAnchors = {
     helm: { x: 0, y: deckHeightAt(-8.0) + 0.18, z: HELM_Z, heading: 0 },
     // At COVE.mooring heading π, local +x maps to world -x (west/port rail), which is the pier-facing side.
@@ -1182,11 +1312,14 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     new LineBasicMaterial({ color: 0x17110c, transparent: true, opacity: 0.72 }),
   );
   const pipeSystem = createShipPipes(shipMaterial);
+  const christening = createChristeningSystem(shipMaterial);
+  paintShipName(null);
   addMesh(group, createHullGeometry(tier), shipMaterial, 'rounded planked hull');
   addMesh(group, createDeckGeometry(tier), shipMaterial, 'deck planking rails and fittings', false);
   addMesh(group, createTrimGeometry(tier), shipMaterial, 'wales strakes gunports galleries anchors');
   addMesh(group, createWindowGeometry(), shipMaterial, 'stern gallery windows and name board backing', false);
-  addMesh(group, createSternGoldGeometry(), shipMaterial, 'stern gallery trim and COPILOT name board');
+  addMesh(group, createSternGoldGeometry(), shipMaterial, 'stern gallery trim and lantern bracket');
+  addMesh(group, createNameBoardGeometry(), shipMaterial, 'christening ship name boards', false);
   addMesh(group, createSparGeometry(tier), shipMaterial, 'masts yards boom bowsprit jibboom', false);
   addMesh(group, createBundledCanvasGeometry(tier), shipMaterial, 'furled canvas bundles', false);
   addMesh(
@@ -1199,6 +1332,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   rigging.name = 'standing and running rigging lines';
   group.add(rigging);
   group.add(pipeSystem.group);
+  group.add(christening.group);
 
   const lanternPivot = new Group();
   lanternPivot.name = 'stern lantern pendulum';
@@ -1274,6 +1408,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   let blockZ = 0;
   let blockVx = 0;
   let blockVz = 0;
+  const bowStemTmp = new Vector3();
 
   const updateSecondary = (dt: number) => {
     const ax = MathUtils.clamp(dynamics.measuredAcceleration[0] * 0.012, -0.28, 0.28);
@@ -1300,6 +1435,18 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     uniforms,
     anchors,
     pipes: pipeSystem,
+    setSails(paletteId: string | null): void {
+      const p = sailPalette(paletteId);
+      uniforms.sailCloth.value.setHex(p.cloth);
+      uniforms.sailStripe.value.setHex(p.stripe);
+    },
+    setName(name: string | null): void {
+      paintShipName(name);
+    },
+    christen(from: { x: number; y: number; z: number }): Promise<void> {
+      dynamics.pose.shake = Math.max(dynamics.pose.shake, 0.18);
+      return christening.play(from, group);
+    },
     waterlineTable: BRIGANTINE_HALF_BEAM_TABLE,
     stations: BRIGANTINE_STATIONS,
     capsules: BRIGANTINE_CAPSULES,
@@ -1313,6 +1460,15 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     },
     bowWorld(outWorld: Float32Array | number[]): Float32Array | number[] {
       localToWorldXZ(dynamics.pose, 0, BOW_Z, outWorld, 0);
+      return outWorld;
+    },
+    bowStemWorld(outWorld: Float32Array | number[]): Float32Array | number[] {
+      bowStemTmp.set(BOW_STEM.x, BOW_STEM.y, BOW_STEM.z);
+      group.updateMatrixWorld(true);
+      group.localToWorld(bowStemTmp);
+      outWorld[0] = bowStemTmp.x;
+      outWorld[1] = bowStemTmp.y;
+      outWorld[2] = bowStemTmp.z;
       return outWorld;
     },
     sternWorld(outWorld: Float32Array | number[]): Float32Array | number[] {
@@ -1359,6 +1515,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
       );
       updateSecondary(dt);
       pipeSystem.update(dt, t);
+      christening.update(dt);
     },
     dispose(): void {
       group.traverse((object) => {
@@ -1366,6 +1523,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
         if (mesh.geometry) mesh.geometry.dispose();
       });
       pipeSystem.dispose();
+      christening.dispose();
       for (const material of materials) material.dispose();
     },
   };

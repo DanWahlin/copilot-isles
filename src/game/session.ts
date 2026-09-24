@@ -18,9 +18,12 @@ import type { LearnStore } from '../learn/store';
 import { createChest, type TreasureChest } from './chest';
 import { COVE_CHESTS, npcScript, questLog } from './cove-quests';
 import { runScript, type ScriptStep } from './script';
+import { defaultShipName } from '../learn/progress';
+import { createChristening } from './puzzles/christening';
 import { createCrane } from './puzzles/crane';
 import { createFirstWords } from './puzzles/first-words';
 import { createGearCheck } from './puzzles/gear';
+import { createPaintSails } from './puzzles/paint-sails';
 import { createSluice } from './puzzles/sluice';
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal } from './puzzles/types';
 
@@ -86,6 +89,10 @@ const WALK_HELP =
 const SAIL_HELP =
   '<kbd>W</kbd>/<kbd>S</kbd> raise / lower sails · <kbd>A</kbd>/<kbd>D</kbd> helm<br>' +
   'hold <kbd>RMB</kbd> look · wheel zoom · <kbd>E</kbd> dock at the pier';
+
+/** The christening's shot of the port bow name board, in ship-local space (+x is the pier side). */
+const CHRISTEN_EYE = new Vector3(-7.2, 4.4, 4.6);
+const CHRISTEN_AT = new Vector3(-1.6, 2.4, 10.6);
 
 const STEP_WALK = 0.78;
 const STEP_RUN = 1.15;
@@ -173,11 +180,23 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     learn?.setQuests(questLog(quests()));
   };
   if (!quests()['Q0.2']) setQuest('Q0.2', 'start');
-  // Saves from before Q0.8 went straight from the crane to the Trial.
-  else if (quests()['Q0.7'] === 'done' && !quests()['Q0.8']) setQuest('Q0.8', 'start');
-  else learn?.setQuests(questLog(quests()));
+  // Older saves: Nell's chest used to lead straight to Ezra (before Paint Your Sails), the crane
+  // straight to the Trial (before Q0.8), and the Trial ended the island (before the christening).
+  if (quests()['Q0.2'] === 'chest' && learn?.isChestOpen('C0.1')) setQuest('Q0.2', 'palette');
+  if (quests()['Q0.7'] === 'done' && !quests()['Q0.8']) setQuest('Q0.8', 'start');
+  if (quests()['Q0.10'] === 'done' && !quests()['Q0.11']) setQuest('Q0.11', 'start');
+  learn?.setQuests(questLog(quests()));
   let scriptRunning = false;
   let disposed = false;
+  // World beats a script can wait on (`{ cue }` steps), registered by the puzzles below.
+  const cues = new Map<string, () => Promise<void>>();
+  const scriptExtras = {
+    onCue: (cue: string) => cues.get(cue)?.(),
+    format: (text: string) =>
+      text
+        .replaceAll('{ship}', learn?.progress.shipName ?? defaultShipName(null))
+        .replaceAll('{captain}', learn?.progress.data.captainName ?? 'Captain'),
+  };
 
   // Talk to NPCs: quest beats run as scripts; Nell's lines are voiced; everyone else offers a bark.
   const talkTo = async (n: Npc) => {
@@ -193,6 +212,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         speaker: n.spec.name.split(' ')[0]!,
         onQuest: setQuest,
         cancelled: () => disposed,
+        ...scriptExtras,
       });
       input.enabled = !paused;
       scriptRunning = false;
@@ -280,9 +300,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     await chest.open();
     await learn?.openChest(id);
     if (id === 'C0.1' && quests()['Q0.2'] === 'chest') {
-      setQuest('Q0.2', 'done');
-      setQuest('Q0.3', 'start');
-      hud.toast('Quest updated: see Ezra, the chartmaker. Press J for the Logbook.', 4);
+      setQuest('Q0.2', 'palette');
+      hud.toast('Quest updated: paint your sails at the palette stand by Nell’s door.', 4);
     }
     input.enabled = !paused;
   }
@@ -333,7 +352,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     const out = await learn.runTrial('T0');
     if (out.passed) {
       setQuest('Q0.10', 'done');
-      hud.toast('The lighthouse is lit. Fast travel unlocked on the chart.', 4.5);
+      if (!quests()['Q0.11']) {
+        setQuest('Q0.11', 'start');
+        hud.toast('The lighthouse is lit. Nell’s waiting by your bow to christen your ship.', 5);
+      } else hud.toast('The lighthouse is lit. Fast travel unlocked on the chart.', 4.5);
     }
     input.enabled = !paused;
     scriptRunning = false;
@@ -373,17 +395,55 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         speaker,
         onQuest: setQuest,
         cancelled: () => disposed,
+        ...scriptExtras,
       });
       input.enabled = !paused;
       scriptRunning = false;
       return ok;
     },
   };
+  const nell = npcs.list.find((n) => n.spec.id === 'nell');
+  const bowXZ: number[] = [0, 0];
+  const christening = nell
+    ? createChristening(puzzleHost, {
+        ship,
+        nell: {
+          get x() {
+            return nell.x;
+          },
+          get y() {
+            return nell.y;
+          },
+          get z() {
+            return nell.z;
+          },
+          face: (t) => (nell.faceTarget = t),
+          moveTo: (spot) => npcs.moveTo(nell, spot),
+        },
+        spot: COVE.christening,
+        bow: () => {
+          ship.bowWorld(bowXZ);
+          return { x: bowXZ[0]!, z: bowXZ[1]! };
+        },
+        shipName: () => learn?.progress.shipName ?? defaultShipName(null),
+        frame: (shot) => cam.frame(shot),
+        shot: () => {
+          // Ship-local: over the pier, aft of the bow and up high, looking at the port bow name board.
+          ship.group.updateMatrixWorld();
+          const eye = ship.group.localToWorld(CHRISTEN_EYE.clone());
+          const at = ship.group.localToWorld(CHRISTEN_AT.clone());
+          return { x: eye.x, y: eye.y, z: eye.z, tx: at.x, ty: at.y, tz: at.z };
+        },
+      })
+    : null;
+  if (christening) cues.set('christen', christening.cue);
   const puzzles: Puzzle[] = [
+    createPaintSails(puzzleHost, sites.palette, ship),
     createSluice(puzzleHost, sites.mill),
     createCrane(puzzleHost, sites.crane),
     createGearCheck(puzzleHost, sites.gear),
     createFirstWords(puzzleHost, ship, () => shipDocked()),
+    ...(christening ? [christening] : []),
   ];
   const hintPresses = new Map<string, { key: string; n: number }>();
 

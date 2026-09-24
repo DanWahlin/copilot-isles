@@ -163,6 +163,8 @@ export interface Npc {
   obstacle: CircleObstacle;
   talking: boolean;
   lastBark: number;
+  /** Faces this point instead of the player while set (Nell watching the coconut fly). */
+  faceTarget: { x: number; z: number } | null;
 }
 
 const tmp = new Vector3();
@@ -207,11 +209,15 @@ export class NpcCrowd {
         obstacle,
         talking: false,
         lastBark: -99,
+        faceTarget: null,
       });
+      this.homes.set(this.list[this.list.length - 1]!, home);
     });
   }
 
   private patrolIndex = new Map<Npc, number>();
+  /** Each NPC's own anchor, so `moveTo(n, null)` can send it home. */
+  private readonly homes = new Map<Npc, VillageAnchor>();
 
   update(dt: number, player: { x: number; y: number; z: number }): void {
     this.t += dt;
@@ -241,7 +247,9 @@ export class NpcCrowd {
         n.heading = Math.atan2(-Math.sin(a), Math.cos(a));
         moving = true;
       }
-      if (!moving && (near || n.talking))
+      if (n.faceTarget)
+        n.heading = turn(n.heading, Math.atan2(n.faceTarget.x - n.x, n.faceTarget.z - n.z), dt, 5);
+      else if (!moving && (near || n.talking))
         n.heading = turn(n.heading, Math.atan2(player.x - n.x, player.z - n.z), dt, 5);
       if (!s.keepY) n.y = this.world.groundAt(n.x, n.z);
       n.obstacle.x = n.x;
@@ -253,6 +261,20 @@ export class NpcCrowd {
       n.character.lookAt(near ? tmp.set(player.x, player.y + 1.5, player.z) : null);
       n.character.update(dt);
     }
+  }
+
+  /** Moves an NPC to a new standing spot (a quest beat elsewhere), or back to its anchor. */
+  moveTo(n: Npc, spot: VillageAnchor | null): void {
+    const home = spot ?? this.homes.get(n)!;
+    if (n.home === home) return;
+    n.home = home;
+    const out = spot ? 0 : (n.spec.out ?? 0);
+    n.x = home.x + Math.sin(home.heading) * out;
+    n.z = home.z + Math.cos(home.heading) * out;
+    n.y = n.spec.keepY || spot ? home.y : this.world.groundAt(n.x, n.z);
+    n.heading = home.heading;
+    n.obstacle.x = n.x;
+    n.obstacle.z = n.z;
   }
 
   setTalking(n: Npc, on: boolean): void {

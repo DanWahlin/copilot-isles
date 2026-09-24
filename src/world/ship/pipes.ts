@@ -485,7 +485,7 @@ export function createShipPipes(material: Material): ShipPipesSystem {
     { x: TUBE.x + 0.132, y: 2.34, z: TUBE.z - 0.98 },
     { x: TUBE.x + 0.132, y: 2.34, z: TUBE.z - 0.14 },
     { x: TUBE.x + 0.132, y: 2.07, z: TUBE.z - 0.14 },
-    { u0: 0.485, v0: 0.03, u1: 0.015, v1: 0.97 },
+    { u0: 0.485, v0: 0.53, u1: 0.015, v1: 0.97 },
   );
 
   builder.setRegion(4);
@@ -523,7 +523,7 @@ export function createShipPipes(material: Material): ShipPipesSystem {
     { x: HATCH.x + 0.182, y: HATCH.y - 0.23, z: HATCH.z - 0.44 },
     { x: HATCH.x + 0.182, y: HATCH.y - 0.23, z: HATCH.z + 0.44 },
     { x: HATCH.x + 0.182, y: HATCH.y - 0.45, z: HATCH.z + 0.44 },
-    { u0: 0.985, v0: 0.03, u1: 0.515, v1: 0.97 },
+    { u0: 0.985, v0: 0.53, u1: 0.515, v1: 0.97 },
   );
 
   const geometry = builder.build();

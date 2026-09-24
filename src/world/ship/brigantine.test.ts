@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createBrigantine } from './brigantine';
+import { createBrigantine, fitShipNameFontSize } from './brigantine';
 import { COVE } from '../layout';
 import { deckHeightAt } from './index';
 
@@ -46,14 +46,26 @@ describe('createBrigantine', () => {
     ship.dynamics.reset(10, -20, Math.PI / 2);
     const poly = new Float32Array(64);
     const bow = new Float32Array(2);
+    const bowStem = new Float32Array(3);
     const stern = new Float32Array(2);
     ship.waterlinePolygon(poly);
     ship.bowWorld(bow);
+    ship.bowStemWorld(bowStem);
     ship.sternWorld(stern);
     for (const v of poly) expect(Number.isFinite(v)).toBe(true);
+    for (const v of bowStem) expect(Number.isFinite(v)).toBe(true);
     expect(poly.length).toBe(64);
     expect(bow[0]).toBeGreaterThan(stern[0]);
     expect(Math.abs(bow[1] - stern[1])).toBeLessThan(0.001);
+    expect(bowStem[1]).toBeGreaterThan(1);
     ship.dispose();
+  });
+
+  it('fits christening names down to the board width', () => {
+    const measure = (size: number, text: string) => size * text.length * 0.58;
+    const long = 'Anne’s Brigantine';
+    const wide = fitShipNameFontSize(long, 320, measure, 86, 20);
+    expect(measure(wide, long)).toBeLessThanOrEqual(320);
+    expect(wide).toBeGreaterThanOrEqual(20);
   });
 });

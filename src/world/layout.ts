@@ -28,6 +28,11 @@ export const COVE = {
   mooring: { x: -102.2, z: -112.5, heading: Math.PI },
   /** Juno (Q0.8) waits on the pier just north of the ship's Prompt Box and Terminal fittings. */
   firstMate: { x: -107.3, y: 1.8, z: -101.6, heading: 2.4 },
+  /**
+   * Nell waits at the pier head for the christening (Q0.11), facing back down the pier so you can
+   * walk up to her. The bow stem is about 8 m off her port side, clear of the crane.
+   */
+  christening: { x: -107.0, y: 1.8, z: -116.6, heading: 0 },
   /** Two small moored boats in the basin. */
   boats: [
     { x: -135, z: -118, heading: 0.4 },

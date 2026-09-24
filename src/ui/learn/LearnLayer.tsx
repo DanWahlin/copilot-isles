@@ -3,6 +3,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import type { LearnStore } from '../../learn/store';
 import { Logbook, PageReveal, Spyglass } from './PageViews';
 import { QuizPanel } from './QuizPanel';
+import { ThemePicker } from './ThemePicker';
 import './learn.css';
 
 /**
@@ -48,6 +49,7 @@ export function LearnLayer({ store, playing }: { store: LearnStore; playing: Pla
       )}
       {s.spyglass && !s.spyglass.full && !s.quiz && <Spyglass store={store} spy={s.spyglass} />}
       {s.quiz && <QuizPanel key={`${s.quiz.quiz.id}:${s.quiz.seed}`} store={store} active={s.quiz} />}
+      {s.palette && !s.quiz && !s.reveal && <ThemePicker store={store} selected={s.palette.selected} />}
       {s.reveal && !s.quiz && <PageReveal store={store} reveal={s.reveal} />}
       {s.logbook.open && !s.quiz && !s.reveal && <Logbook store={store} state={s} />}
       {s.banner && !s.quiz && (

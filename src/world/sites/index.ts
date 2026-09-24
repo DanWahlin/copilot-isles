@@ -6,6 +6,7 @@ import { createBottles, type BottleSite } from './bottles';
 import { createCrane, type CraneSite } from './crane';
 import { createGearRack, type GearRackSite } from './gear-rack';
 import { createMill, type MillSite } from './mill';
+import { createPaletteStand, type PaletteStandSite } from './palette-stand';
 import { ANCHORAGE_SLUICE } from './sluice-logic';
 
 export type { BottleSite } from './bottles';
@@ -13,6 +14,7 @@ export type { CraneSite, CrateKind } from './crane';
 export { BRIGANTINE_CARGO } from './crane';
 export type { GearId, GearRackSite, LooseId } from './gear-rack';
 export type { MillCellWater, MillSite } from './mill';
+export type { PaletteStandSite } from './palette-stand';
 
 /** Anchorage Cay's puzzle set pieces (POC §4.5), built with the world so vegetation keeps off them. */
 export interface CoveSites {
@@ -20,6 +22,7 @@ export interface CoveSites {
   readonly mill: MillSite;
   readonly crane: CraneSite;
   readonly gear: GearRackSite;
+  readonly palette: PaletteStandSite;
   /** The message bottles on the beaches (B0.1-B0.3). */
   readonly bottles: BottleSite;
   /** Extra obstacles for the brigantine (the moored sloops). */
@@ -47,34 +50,52 @@ export async function createCoveSites(o: {
   });
   const crane = createCrane({ tier: o.tier, kit });
   const gear = createGearRack({ tier: o.tier, kit, ground: o.ground });
+  const palette = createPaletteStand({ tier: o.tier, kit, ground: o.ground });
   const bottles = createBottles({ kit, ground: o.ground });
   const group = new Group();
   group.name = 'puzzle sites';
-  group.add(mill.group, crane.group, gear.group, bottles.group);
+  group.add(mill.group, crane.group, gear.group, palette.group, bottles.group);
   return {
     group,
     mill,
     crane,
     gear,
+    palette,
     bottles,
     shipObstacles: [...crane.shipObstacles],
     heightAt: (x, z) => mill.heightAt(x, z) ?? crane.heightAt(x, z),
     colliders: {
-      circles: [...mill.colliders.circles, ...crane.colliders.circles, ...gear.colliders.circles],
-      boxes: [...mill.colliders.boxes, ...crane.colliders.boxes, ...gear.colliders.boxes],
+      circles: [
+        ...mill.colliders.circles,
+        ...crane.colliders.circles,
+        ...gear.colliders.circles,
+        ...palette.colliders.circles,
+      ],
+      boxes: [
+        ...mill.colliders.boxes,
+        ...crane.colliders.boxes,
+        ...gear.colliders.boxes,
+        ...palette.colliders.boxes,
+      ],
     },
-    anchors: { ...mill.anchors, ...crane.anchors, ...gear.anchors },
+    anchors: { ...mill.anchors, ...crane.anchors, ...gear.anchors, ...palette.anchors },
     excludes: (x, z) =>
-      mill.excludes(x, z) || crane.excludes(x, z) || gear.excludes(x, z) || bottles.excludes(x, z),
+      mill.excludes(x, z) ||
+      crane.excludes(x, z) ||
+      gear.excludes(x, z) ||
+      palette.excludes(x, z) ||
+      bottles.excludes(x, z),
     update(dt, t) {
       mill.update(dt, t);
       crane.update(dt, t);
       gear.update(dt, t);
+      palette.update(dt, t);
     },
     dispose() {
       mill.dispose();
       crane.dispose();
       gear.dispose();
+      palette.dispose();
       bottles.dispose();
       group.removeFromParent();
     },

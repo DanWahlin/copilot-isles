@@ -32,6 +32,9 @@ export interface ProgressData {
   doubloons: number;
   /** Sail colour picked at the palette stand (Paint Your Sails). */
   sails: string | null;
+  /** Typed at captain select; the ship's name defaults to "<captain>’s Brigantine" (POC §4.8). */
+  captainName: string | null;
+  shipName: string | null;
   /** Puzzle id → saved state. */
   puzzles: Record<string, PuzzleSave>;
 }
@@ -49,8 +52,27 @@ export function emptyProgress(now = Date.now()): ProgressData {
     seals: [],
     doubloons: 0,
     sails: null,
+    captainName: null,
+    shipName: null,
     puzzles: {},
   };
+}
+
+export const NAME_MAX = 24;
+
+/** Trims a typed name to one clean line (no control characters), or null if nothing's left. */
+export function cleanName(v: unknown): string | null {
+  if (typeof v !== 'string') return null;
+  const s = v
+    .replace(/\s+/g, ' ')
+    .replace(/\p{Cc}/gu, '')
+    .trim();
+  return s ? Array.from(s).slice(0, NAME_MAX).join('').trim() : null;
+}
+
+/** The ship's default name for a captain (POC §4.8): "<name>’s Brigantine". */
+export function defaultShipName(captain: string | null): string {
+  return captain ? `${captain}’s Brigantine` : 'The Wayfinder';
 }
 
 /** Parses a stored value, dropping anything malformed instead of throwing (old or hand-edited saves). */
@@ -73,6 +95,8 @@ export function parseProgress(raw: string | null): ProgressData {
       trials: d.trials && typeof d.trials === 'object' ? d.trials : {},
       doubloons: typeof d.doubloons === 'number' && d.doubloons >= 0 ? Math.floor(d.doubloons) : 0,
       sails: typeof d.sails === 'string' ? d.sails : null,
+      captainName: cleanName(d.captainName),
+      shipName: cleanName(d.shipName),
       puzzles: parsePuzzles(d.puzzles),
     };
   } catch {
@@ -175,6 +199,22 @@ export class Progress {
   setPuzzle(id: string, save: PuzzleSave): void {
     this.data.puzzles[id] = save;
     this.save();
+  }
+
+  setSails(id: string): void {
+    this.data.sails = id;
+    this.save();
+  }
+
+  setNames(captain: string | null, ship: string | null): void {
+    this.data.captainName = cleanName(captain);
+    this.data.shipName = cleanName(ship);
+    this.save();
+  }
+
+  /** The ship's name, falling back to the captain's default. */
+  get shipName(): string {
+    return this.data.shipName ?? defaultShipName(this.data.captainName);
   }
 
   addDoubloons(n: number): void {

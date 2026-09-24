@@ -83,7 +83,13 @@ class MockBridge implements GameBridge {
     progress: { value: 0.58, message: 'Planting palms' },
     hasSave: true,
     save: { location: 'Anchorage Cay', questsDone: 3 },
-    learn: { doubloons: 155, seals: ['Seal of Anchorage'] },
+    learn: {
+      doubloons: 155,
+      seals: ['Seal of Anchorage'],
+      sails: 'noctis-azureus',
+      captainName: 'Anne',
+      shipName: 'Anne’s Brigantine',
+    },
     captain: 'man',
     settings: DEFAULT_SETTINGS,
     chart: {
@@ -163,6 +169,7 @@ class MockBridge implements GameBridge {
   travelTo = () => this.set({ screen: this.state.returnTo });
   quitToTitle = () => this.set({ screen: 'title', returnTo: 'title' });
   updateSettings = (patch: Partial<Settings>) => this.set({ settings: { ...this.state.settings, ...patch } });
+  setSails = (sails: string) => this.set({ learn: { ...this.state.learn, sails } });
 
   show(screen: Screen): void {
     this.set({ screen, returnTo: screen === 'paused' ? 'playing' : 'title' });

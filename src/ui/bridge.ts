@@ -98,6 +98,15 @@ export interface SaveSummary {
 export interface LearnSummary {
   doubloons: number;
   seals: readonly string[];
+  /** The voyage's sail palette (Paint Your Sails), or null for the default. */
+  sails: string | null;
+  captainName: string | null;
+  shipName: string | null;
+}
+
+export interface VoyageNames {
+  captain: string;
+  ship: string;
 }
 
 export interface UiState {
@@ -118,7 +127,7 @@ export interface UiState {
 export interface GameBridge {
   getState(): UiState;
   subscribe(listener: (state: UiState) => void): () => void;
-  newVoyage(captain: CaptainBody): void;
+  newVoyage(captain: CaptainBody, names?: VoyageNames): void;
   continueVoyage(): void;
   /** Title → captain select. */
   chooseCaptain(): void;
@@ -136,4 +145,6 @@ export interface GameBridge {
   travelTo(pointId: string): void;
   quitToTitle(): void;
   updateSettings(patch: Partial<Settings>): void;
+  /** Repaints the sails (the palette stand's choice, changed from Settings). */
+  setSails(paletteId: string): void;
 }

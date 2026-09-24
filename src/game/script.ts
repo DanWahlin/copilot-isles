@@ -13,7 +13,9 @@ export type ScriptStep =
   | { quiz: string }
   | { page: string; doubloons?: number }
   | { term: string }
-  | { quest: string; step: string };
+  | { quest: string; step: string }
+  /** A world beat the session plays and awaits (the christening's coconut, say). */
+  | { cue: string };
 
 export interface ScriptContext {
   dialogue: Dialogue;
@@ -24,6 +26,10 @@ export interface ScriptContext {
   onQuest?(quest: string, step: string): void;
   /** Stops the script (e.g. quitting to the title or fast travel). */
   cancelled?(): boolean;
+  /** Plays a `cue` step; the script waits for it. */
+  onCue?(cue: string): Promise<void> | void;
+  /** Fills `{captain}` and `{ship}` in unvoiced lines. */
+  format?(text: string): string;
 }
 
 /** Runs a script; resolves false if a quiz was abandoned (the NPC will ask again next time). */
@@ -33,7 +39,7 @@ export async function runScript(steps: readonly ScriptStep[], ctx: ScriptContext
     for (const s of steps) {
       if (ctx.cancelled?.()) return false;
       if ('say' in s) await dialogue.play([s.say]);
-      else if ('text' in s) await dialogue.say(s.speaker ?? ctx.speaker, s.text);
+      else if ('text' in s) await dialogue.say(s.speaker ?? ctx.speaker, ctx.format?.(s.text) ?? s.text);
       else if ('show' in s) learn?.showImage(s.show, s.caption ?? null);
       else if ('hide' in s) learn?.hideImage();
       else if ('quiz' in s) {
@@ -43,6 +49,7 @@ export async function runScript(steps: readonly ScriptStep[], ctx: ScriptContext
       } else if ('page' in s) await learn?.grantPage(s.page, s.doubloons ?? 0);
       else if ('term' in s) learn?.learnTerm(s.term);
       else if ('quest' in s) ctx.onQuest?.(s.quest, s.step);
+      else if ('cue' in s) await ctx.onCue?.(s.cue);
     }
     return true;
   } finally {

@@ -7,6 +7,7 @@ export {
   type ShipAnchors,
 } from './brigantine';
 export { type ShipPipes } from './pipes';
+export { DEFAULT_SAIL_PALETTE, SAIL_PALETTES, sailPalette, type SailPalette } from './sail-palettes';
 export {
   ShipDynamics,
   pointOfSailCurve,

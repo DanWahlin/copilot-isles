@@ -10,7 +10,7 @@ function fallbackBridge(): GameBridge {
     progress: { value: 0, message: 'Ready' },
     hasSave: false,
     save: null,
-    learn: { doubloons: 0, seals: [] },
+    learn: { doubloons: 0, seals: [], sails: null, captainName: null, shipName: null },
     captain: 'man',
     settings: DEFAULT_SETTINGS,
     chart: null,
@@ -47,6 +47,7 @@ function fallbackBridge(): GameBridge {
     travelTo: () => setState({ screen: state.returnTo }),
     quitToTitle: () => setState({ screen: 'title', returnTo: 'title' }),
     updateSettings: (patch) => setState({ settings: { ...state.settings, ...patch } }),
+    setSails: (sails) => setState({ learn: { ...state.learn, sails } }),
   };
 }
 

@@ -240,10 +240,94 @@ engine.start();
     gear.setHung(id, true, true);
     return gear.spots();
   },
+  palette: (id = 'github', hint = false) => {
+    const palette = cove.sites.palette;
+    palette.setPalette(id);
+    palette.setHint(hint);
+    camera.position.set(-94.6, 4.6, -67.8);
+    controls.target.set(-100.0, 2.95, -70.75);
+    controls.update();
+    return palette.spot;
+  },
+  paletteVisible: (visible: boolean) => {
+    cove.sites.palette.group.visible = visible;
+  },
+  paletteClearance: () => {
+    const box = cove.sites.palette.colliders.boxes[0]!;
+    const c = Math.cos(box.rot);
+    const s = Math.sin(box.rot);
+    const corners = [
+      [-box.hx, -box.hz],
+      [box.hx, -box.hz],
+      [box.hx, box.hz],
+      [-box.hx, box.hz],
+    ].map(([lx, lz]) => ({ x: box.x + lx * c + lz * s, z: box.z - lx * s + lz * c }));
+    const boxDistance = (
+      p: { x: number; z: number },
+      b: { x: number; z: number; hx: number; hz: number; rot: number },
+    ) => {
+      const bc = Math.cos(-b.rot);
+      const bs = Math.sin(-b.rot);
+      const dx = p.x - b.x;
+      const dz = p.z - b.z;
+      const lx = dx * bc + dz * bs;
+      const lz = -dx * bs + dz * bc;
+      const ox = Math.abs(lx) - b.hx;
+      const oz = Math.abs(lz) - b.hz;
+      return ox <= 0 && oz <= 0 ? Math.max(ox, oz) : Math.hypot(Math.max(0, ox), Math.max(0, oz));
+    };
+    const circleDistance = (p: { x: number; z: number }, q: { x: number; z: number; r: number }) =>
+      Math.hypot(p.x - q.x, p.z - q.z) - q.r;
+    const samples = corners.map((p, i) => {
+      const villageBox = Math.min(...cove.village.colliders.boxes.map((b) => boxDistance(p, b)));
+      const villageCircle = Math.min(...cove.village.colliders.circles.map((q) => circleDistance(p, q)));
+      return {
+        corner: i,
+        x: p.x,
+        z: p.z,
+        villageBox,
+        villageCircle,
+        clearance: Math.min(villageBox, villageCircle),
+      };
+    });
+    const compass = cove.sites.gear.spots().loose.compass;
+    const nellDoor = cove.village.anchors.harbourmasterDoor!;
+    const nellOut = 1.3;
+    const nell = {
+      x: nellDoor.x + Math.sin(nellDoor.heading) * nellOut,
+      z: nellDoor.z + Math.cos(nellDoor.heading) * nellOut,
+      heading: nellDoor.heading,
+    };
+    const chest = {
+      x: nell.x - Math.cos(nell.heading) * 2.1 - Math.sin(nell.heading) * 0.6,
+      z: nell.z + Math.sin(nell.heading) * 2.1 - Math.cos(nell.heading) * 0.6,
+    };
+    return {
+      box,
+      spot: cove.sites.palette.spot,
+      corners: samples,
+      minClearance: Math.min(...samples.map((p) => p.clearance)),
+      compassDistance: Math.hypot(box.x - compass.x, box.z - compass.z),
+      spotCompassDistance: Math.hypot(
+        cove.sites.palette.spot.x - compass.x,
+        cove.sites.palette.spot.z - compass.z,
+      ),
+      nellDistance: Math.hypot(cove.sites.palette.spot.x - nell.x, cove.sites.palette.spot.z - nell.z),
+      chestDistance: Math.hypot(cove.sites.palette.spot.x - chest.x, cove.sites.palette.spot.z - chest.z),
+    };
+  },
   pipe: (which: 'tube' | 'hatch' | null, hint = false) => {
     if (hint) cove.ship.pipes.setHint(which);
     else if (which) cove.ship.pipes.play(which);
     else cove.ship.pipes.setHint(null);
+  },
+  christen: (name = 'Anne’s Brigantine') => {
+    cove.ship.setName(name);
+    const bow = cove.ship.bowStemWorld(new Float32Array(3));
+    camera.position.set(bow[0]! - 4.0, 3.55, bow[2]! - 4.6);
+    controls.target.set(bow[0]!, bow[1]! + 0.15, bow[2]!);
+    controls.update();
+    return cove.ship.christen({ x: bow[0]! - 4.2, y: bow[1]! + 1.05, z: bow[2]! + 1.35 });
   },
   /** Names the objects under a screen point (NDC -1..1), nearest first. */
   pick: (nx: number, ny: number) => {

@@ -1,8 +1,9 @@
 import type { ScriptStep } from './script';
 
 /**
- * Test Cove's slice of the Anchorage Cay quest line (POC §4.4, trimmed for the spike): Nell's papers,
- * Ezra's fork, Bo's deck and gear, and the Harbormaster's Trial at the lighthouse.
+ * Test Cove's slice of the Anchorage Cay quest line (POC §4.4, trimmed for the spike): Nell's papers and
+ * the palette stand, Ezra's fork, Bo's deck and gear, the sluice and crane, Juno's first words, the
+ * Harbormaster's Trial at the lighthouse, and the christening.
  */
 export interface QuestDef {
   id: string;
@@ -18,6 +19,7 @@ export const COVE_QUESTS: readonly QuestDef[] = [
     steps: {
       start: 'Talk to Nell Tidewell by the harbourmaster’s door.',
       chest: 'Open the chest beside Nell’s door.',
+      palette: 'Paint your sails at the palette stand by Nell’s door, then select Finish.',
       done: 'Signed in, theme picked, and the New page is open.',
     },
   },
@@ -83,6 +85,14 @@ export const COVE_QUESTS: readonly QuestDef[] = [
       done: 'The Seal of Anchorage is yours.',
     },
   },
+  {
+    id: 'Q0.11',
+    title: 'Christen Your Ship',
+    steps: {
+      start: 'Meet Nell by your bow at the pier head.',
+      done: 'Your ship has her name, and the crew’s aboard.',
+    },
+  },
 ];
 
 /** The chests placed in the cove: chest id → which NPC it sits beside (metres to their right). */
@@ -105,59 +115,47 @@ export function npcScript(
         return {
           steps: [
             { say: 'nell.papers.01' },
-            { text: 'First things first: download and install the GitHub Copilot app for your system.' },
+            { say: 'nell.papers.03' },
             { show: 'ch00/sign-in-to-app', caption: 'Open the app and select **Sign in to GitHub**.' },
             { say: 'nell.papers.02' },
-            {
-              text: 'On Copilot Business or Enterprise, your org has to switch on the GitHub Copilot app policy. Now, show me how you’d sign in.',
-            },
+            { say: 'nell.papers.04' },
             { quiz: 'H0.1' },
             { hide: true },
             { page: 'pg.prereqs' },
-            {
-              text: 'At Connect your repositories, carry on without adding one. You’ll connect your fork shortly. Then pick a theme and select Finish.',
-            },
+            { say: 'nell.papers.05' },
             { show: 'ch00/pick-a-theme', caption: 'Pick a theme and select **Finish**.' },
-            { say: 'nell.settings.01' },
+            { say: 'nell.papers.06' },
             { hide: true },
-            {
-              text: 'There’s a chest by my door with your first Logbook page. Then go and see Ezra, the chartmaker.',
-            },
+            { say: 'nell.papers.07' },
             { quest: 'Q0.2', step: 'chest' },
           ],
         };
       }
-      if (q['Q0.2'] === 'chest') return { steps: [{ text: 'The chest’s right beside my door, Captain.' }] };
-      return {
-        steps: [
-          { text: done(q, 'Q0.10') ? 'A sealed captain! Fair winds.' : 'Papers in order. Off you go!' },
-        ],
-      };
+      if (q['Q0.2'] === 'chest') return { steps: [{ say: 'nell.chest.01' }] };
+      if (q['Q0.2'] === 'palette') return { steps: [{ say: 'nell.palette.01' }] };
+      if (q['Q0.11'] === 'start') return { steps: CHRISTENING };
+      if (done(q, 'Q0.11')) return { steps: [{ say: 'nell.christen.03' }] };
+      return { steps: [{ say: done(q, 'Q0.10') ? 'nell.done.02' : 'nell.done.01' }] };
 
     case 'merchant':
-      if (!done(q, 'Q0.2'))
-        return { steps: [{ text: 'Get your papers from Nell first, Captain. Then we’ll talk charts.' }] };
+      if (!done(q, 'Q0.2')) return { steps: [{ say: 'ezra.wait.01' }] };
       if (!done(q, 'Q0.3')) {
         return {
           steps: [
-            {
-              text: 'Every captain needs their own chart. A fork is your own copy of the course repository, on GitHub.',
-            },
+            { say: 'ezra.fork.01' },
             { term: 'fork' },
-            { text: 'Once you’ve forked it, add it to the app. Where would you start?' },
+            { say: 'ezra.fork.02' },
             {
               show: 'ch00/app-add-project',
               caption: '**+** next to **Projects** → **Add GitHub repository**.',
             },
             { quiz: 'H0.2' },
             { quiz: 'H0.3' },
-            {
-              text: 'Then search for copilot-app-for-beginners and pick your fork. The app clones it and adds it to the sidebar.',
-            },
+            { say: 'ezra.fork.03' },
             { hide: true },
             { quiz: 'MC0.1' },
             { page: 'C0.4', doubloons: 10 },
-            { text: 'Bo, the quartermaster, will get your deck ready. You’ll find him at the storehouse.' },
+            { say: 'ezra.fork.04' },
             { quest: 'Q0.3', step: 'done' },
             { quest: 'Q0.4', step: 'start' },
           ],
@@ -170,37 +168,26 @@ export function npcScript(
       if (!done(q, 'Q0.4')) {
         return {
           steps: [
-            {
-              text: 'Your project shows under Projects? Good. Select the + next to it to start a project session.',
-            },
+            { say: 'bo.deck.01' },
             { term: 'project-session' },
-            {
-              text: 'Now, the workspace selector below the prompt box. Don’t trust the checkmark, it just shows the default.',
-            },
+            { say: 'bo.deck.02' },
             { quiz: 'H0.4' },
             { term: 'local-repository' },
             { term: 'worktree' },
             { page: 'C0.6', doubloons: 10 },
             { quest: 'Q0.4', step: 'done' },
-            {
-              text: 'Next, your tools. Open View, then Toggle Review Panel, and pick the Terminal tab. No tab? Select + and then Terminal.',
-            },
-            {
-              text: 'Every tool gets a version check there. Here, each tool is a piece of my gear, and four pieces have gone walkabout round the village.',
-            },
-            {
-              text: 'My compass, a lantern, a rope coil, and my spyglass. Hang them on the rack by my door, and each hook runs its check.',
-            },
+            { say: 'bo.gear.brief.01' },
+            { say: 'bo.gear.brief.02' },
+            { say: 'bo.gear.brief.03' },
             { quest: 'Q0.5', step: 'gear' },
           ],
         };
       }
       if (q['Q0.5'] === 'gear')
         return {
-          steps: [{ text: 'Hang the gear on my rack, Captain. Each hook runs its version check.' }],
+          steps: [{ say: 'bo.gear.reminder.01' }],
         };
-      if (q['Q0.5'] === 'ledger')
-        return { steps: [{ text: 'Read my ledger there on the lectern. Whose signature is on it?' }] };
+      if (q['Q0.5'] === 'ledger') return { steps: [{ say: 'bo.ledger.reminder.01' }] };
       return null;
 
     case 'suri': {
@@ -251,20 +238,10 @@ export function npcScript(
       if (step === 'start') return { steps: JUNO_BRIEF };
       if (step === 'pipes')
         return {
-          steps: [
-            {
-              text: 'It’s a request for the agent, not a command. Pick the fitting on the rail that carries it.',
-            },
-          ],
+          steps: [{ say: 'juno.pipes.01' }],
         };
       return {
-        steps: [
-          {
-            text: done(q, 'Q0.10')
-              ? 'The crew’s proud of you, Captain. Wherever you sail next, they’re listening.'
-              : 'The crew knows the ship now. The Harbormaster’s Trial waits at the lighthouse.',
-          },
-        ],
+        steps: [{ say: done(q, 'Q0.10') ? 'juno.done.sealed.01' : 'juno.done.01' }],
       };
     }
 
@@ -273,19 +250,30 @@ export function npcScript(
   }
 }
 
+/**
+ * The christening (Q0.11): Nell names the ship at the bow (the `christen` cue throws the coconut), Juno
+ * reports the crew's aboard, and Wingman gives the sailing lesson. The naming line carries the
+ * captain's own ship name, so it stays a subtitle.
+ */
+const CHRISTENING: readonly ScriptStep[] = [
+  { say: 'nell.christen.01' },
+  { text: 'I name this ship {ship}!' },
+  { cue: 'christen' },
+  { say: 'nell.christen.02' },
+  { say: 'juno.christen.01' },
+  { say: 'wingman.sail.01' },
+  { say: 'wingman.sail.02' },
+  { say: 'wingman.sail.03' },
+  { quest: 'Q0.11', step: 'done' },
+];
+
 /** Juno's opening beat (Q0.8): the course's first prompt, and two fittings on the rail. */
 const JUNO_BRIEF: readonly ScriptStep[] = [
-  { text: 'Juno, your first mate. Setup’s done, so let’s give the crew their first order.' },
-  { text: 'In the app, you’d send this to the agent from your project session:' },
-  {
-    text: '“Give me an overview of the copilot-app-for-beginners course repository. Focus on the learning path and the samples/book-app-web folder.”',
-  },
-  {
-    text: 'You’ve been running commands in Terminal all morning. This one’s different. It’s a request for the agent.',
-  },
-  {
-    text: 'Two fittings on the rail, just behind me. The brass speaking tube goes up to the crew, and the iron hatch goes down to the engine room. Your call, Captain.',
-  },
+  { say: 'juno.brief.01' },
+  { say: 'juno.brief.02' },
+  { say: 'juno.brief.03' },
+  { say: 'juno.brief.04' },
+  { say: 'juno.brief.05' },
   { quest: 'Q0.8', step: 'pipes' },
 ];
 
@@ -318,10 +306,7 @@ export const POL_SOLVED: readonly ScriptStep[] = [
   { say: 'pim.solved.01' },
   { page: 'P0.S', doubloons: 20 },
   { say: 'pol.solved.02' },
-  {
-    speaker: 'Pim',
-    text: 'Your first mate’s waiting by your ship, Captain. Juno’s got your first order ready.',
-  },
+  { say: 'pim.solved.03' },
   { quest: 'Q0.7', step: 'done' },
   { quest: 'Q0.8', step: 'start' },
 ];

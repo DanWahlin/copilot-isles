@@ -10,6 +10,7 @@ import {
   type Screen,
   type Settings,
   type UiState,
+  type VoyageNames,
 } from '../ui/bridge';
 import type { CharacterLibrary } from '../world/characters';
 import type { CoveScene } from '../world/cove-scene';
@@ -38,6 +39,7 @@ const BRIDGE_METHODS = [
   'travelTo',
   'quitToTitle',
   'updateSettings',
+  'setSails',
 ] as const satisfies readonly (keyof GameBridge)[];
 
 interface SaveData {
@@ -96,7 +98,10 @@ export class GameFlow implements GameBridge {
       renderInfo: o.renderInfo,
     };
     this.applySettings(settings);
-    this.learn.subscribe(() => this.set({}));
+    this.learn.subscribe((s) => {
+      this.title?.setSails(s.sails);
+      this.set({});
+    });
     o.engine.add({ frame: (dt) => this.tick(dt) });
     // The UI passes bridge actions around as bare callbacks (onClick, useSyncExternalStore).
     for (const key of BRIDGE_METHODS) {
@@ -117,6 +122,7 @@ export class GameFlow implements GameBridge {
 
   showTitle(): void {
     this.title ??= createTitleBackdrop(this.o.engine);
+    this.title.setSails(this.learn.getState().sails);
     this.set({ screen: 'title', returnTo: 'title', hasSave: !!readJson<SaveData>(SAVE_KEY) });
     this.o.onTitleReady?.();
     this.prefetchTitlePacks();
@@ -128,9 +134,10 @@ export class GameFlow implements GameBridge {
     this.set({ screen: 'captain', returnTo: 'title' });
   }
 
-  newVoyage(captain: CaptainBody): void {
+  newVoyage(captain: CaptainBody, names?: VoyageNames): void {
     writeJson(SAVE_KEY, null);
     this.learn.newGame();
+    if (names) this.learn.progress.setNames(names.captain, names.ship);
     void this.voyage(captain, null);
   }
 
@@ -219,6 +226,10 @@ export class GameFlow implements GameBridge {
     this.set({ settings });
   }
 
+  setSails(paletteId: string): void {
+    this.learn.setSails(paletteId);
+  }
+
   // ---- internals ----
   private menuReturn(): Screen {
     const s = this.state.screen;
@@ -247,6 +258,12 @@ export class GameFlow implements GameBridge {
     return {
       doubloons: this.learn.progress.data.doubloons,
       seals: this.learn.progress.data.seals.slice(),
+      sails: this.learn.progress.data.sails,
+      captainName: this.learn.progress.data.captainName,
+      shipName:
+        this.learn.progress.data.captainName || this.learn.progress.data.shipName
+          ? this.learn.progress.shipName
+          : null,
     };
   }
 

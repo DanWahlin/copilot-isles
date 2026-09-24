@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { QUIZZES } from './content/index';
 import { grade, shuffled } from './grade';
-import { Progress, exportCode, importCode, parseProgress, type ProgressStorage } from './progress';
+import {
+  Progress,
+  cleanName,
+  defaultShipName,
+  exportCode,
+  importCode,
+  parseProgress,
+  type ProgressStorage,
+} from './progress';
+import { LearnStore } from './store';
+import { SAIL_PALETTES, sailPalette } from '../world/ship/sail-palettes';
 
 const q = (id: string) => {
   const quiz = QUIZZES.get(id);
@@ -118,5 +128,69 @@ describe('progress', () => {
     expect(back?.seals).toEqual(['Seal of Anchorage ⚓']);
     expect(back?.doubloons).toBe(12);
     expect(importCode('not base64 !!')).toBeNull();
+  });
+});
+
+describe('paint your sails', () => {
+  it('previews in the picker, saves on Finish, and reverts on Back', async () => {
+    const storage = new MemStorage();
+    const learn = new LearnStore(new Progress(storage));
+    expect(learn.getState().sails).toBeNull();
+
+    const back = learn.openPalette('github');
+    expect(learn.busy).toBe(true);
+    learn.previewPalette('fox');
+    expect(learn.getState().palette?.selected).toBe('fox');
+    learn.closePalette();
+    expect(await back).toBeNull();
+    expect(learn.getState().sails).toBeNull();
+
+    const pick = learn.openPalette('github');
+    learn.previewPalette('monochrome');
+    learn.finishPalette();
+    expect(await pick).toBe('monochrome');
+    expect(learn.busy).toBe(false);
+    expect(new Progress(storage).data.sails).toBe('monochrome');
+
+    learn.setSails('notionish');
+    expect(learn.getState().sails).toBe('notionish');
+    learn.newGame();
+    expect(learn.getState().sails).toBeNull();
+  });
+
+  it('mirrors the app’s six themes and falls back to GitHub', () => {
+    expect(SAIL_PALETTES.map((p) => p.name)).toEqual([
+      'GitHub',
+      'Fox',
+      'IC Orange PPL',
+      'Monochrome',
+      'Noctis Azureus',
+      'Notionish',
+    ]);
+    expect(new Set(SAIL_PALETTES.map((p) => p.id)).size).toBe(SAIL_PALETTES.length);
+    expect(sailPalette('nope').id).toBe('github');
+    expect(sailPalette(null).id).toBe('github');
+  });
+});
+
+describe('captain and ship names', () => {
+  it('cleans typed names and defaults the ship', () => {
+    expect(cleanName('  Anne \n  Bonny ')).toBe('Anne Bonny');
+    expect(cleanName('   ')).toBeNull();
+    expect(cleanName(42)).toBeNull();
+    expect(cleanName('x'.repeat(40))?.length).toBe(24);
+    expect(defaultShipName('Anne')).toBe('Anne’s Brigantine');
+    expect(defaultShipName(null)).toBe('The Wayfinder');
+  });
+
+  it('saves names with progress and survives old saves', () => {
+    const storage = new MemStorage();
+    const p = new Progress(storage);
+    expect(p.shipName).toBe('The Wayfinder');
+    p.setNames('Mira', null);
+    expect(new Progress(storage).shipName).toBe('Mira’s Brigantine');
+    p.setNames('Mira', 'Sea Sprite');
+    expect(new Progress(storage).data).toMatchObject({ captainName: 'Mira', shipName: 'Sea Sprite' });
+    expect(parseProgress('{"v":1}')).toMatchObject({ captainName: null, shipName: null });
   });
 });

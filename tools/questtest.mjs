@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// End-to-end quest run on the play page: Nell (spyglass + hotspot quiz + page), the chest, Ezra, Bo and his gear rack (Q0.5),
+// End-to-end quest run on the play page: Nell (spyglass + hotspot quiz + page), the chest, the palette
+// stand (Paint Your Sails), Ezra, Bo and his gear rack (Q0.5),
 // Suri's sluice (P0.1),
 // Pim and Pol's Dry-Run Crane (P0.2),
-// and the Harbormaster's Trial at the lighthouse, answered through the real UI where it matters
+// the Harbormaster's Trial at the lighthouse, and the christening at the pier head, answered through the real UI where it matters
 // (hotspots are clicked; other types use __dev.answer()), with screenshots at each beat.
 // node tools/questtest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/quest]
 import { chromium } from '@playwright/test';
@@ -153,7 +154,39 @@ if (chestPos) {
 } else {
   logs.push(`[questtest] no chest debug hook (nell at ${JSON.stringify(chest)})`);
 }
-results.chest = await drive('chest', (s) => s.quests['Q0.2'] === 'done' && !s.reveal);
+results.chest = await drive('chest', (s) => s.quests['Q0.2'] === 'palette' && !s.reveal);
+
+// Paint Your Sails: E at the palette stand opens the theme picker; pick a card and select Finish
+// through the real UI, then the C0.2 and C0.3 pages and Nell's lines.
+const stand = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.2.palette')?.spot() ?? null);
+if (stand) {
+  await page.evaluate((a) => {
+    window.__dev.session().debug.teleport(a.x, a.z, a.heading);
+    window.__dev.look(a.heading + 0.25, 0.22);
+  }, stand);
+  await page.waitForTimeout(900);
+  const focus = await page.evaluate(() => window.__dev.session().debug.state().focus);
+  if (focus !== 'palette:stand') logs.push(`[questtest] palette: focus is ${focus}, not palette:stand`);
+  await shot('palette-stand');
+  await tap('KeyE');
+  await page.waitForSelector('.ci-palette', { timeout: 5000 }).catch(() => null);
+  if (await page.$('.ci-palette')) {
+    await page.click('.ci-palette-card[data-id="noctis-azureus"]');
+    await page.waitForTimeout(500);
+    await shot('palette-picker');
+    const preview = await page.evaluate(
+      () => window.__dev.session().debug.puzzle('Q0.2.palette').state().shown,
+    );
+    if (preview !== 'noctis-azureus') logs.push(`[questtest] palette: preview is ${preview}`);
+    await page.click('.ci-palette-actions .ci-btn.primary');
+  } else logs.push('[questtest] palette: the picker did not open');
+  results.palette = await drive(
+    'palette',
+    (s) => s.quests['Q0.2'] === 'done' && !s.dialogue && !s.reveal && !s.spyglass,
+  );
+  const sails = await page.evaluate(() => window.__dev.learn.progress.data.sails);
+  if (sails !== 'noctis-azureus') logs.push(`[questtest] palette: saved sails are ${sails}`);
+} else logs.push('[questtest] no palette stand hook');
 
 // Ezra: Copy the Master Chart.
 await talk('merchant');
@@ -418,6 +451,35 @@ if (lighthouse) {
     (s) => s.quests['Q0.10'] === 'done' && !s.banner && !s.quiz && !s.dialogue,
   );
 } else logs.push('[questtest] no lighthouse trial hook');
+
+// The Christening (Q0.11): Nell waits at the pier head; talking to her names the ship, the coconut
+// flies (the `christen` cue), then Juno and Wingman's sailing lesson.
+if (await page.evaluate(() => !!window.__dev.session().debug.puzzle('Q0.11.christen'))) {
+  await page.waitForTimeout(600);
+  const at = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.11.christen').state());
+  if (!at.atPier) logs.push(`[questtest] christening: Nell isn't at the pier (${JSON.stringify(at)})`);
+  await talk('nell');
+  await shot('christen-talk');
+  results.christening = await drive(
+    'christening',
+    (s) => s.quests['Q0.11'] === 'done' && !s.dialogue && !s.reveal,
+    90000,
+  );
+  const sawThrow = await page.evaluate(
+    () => window.__dev.session().debug.puzzle('Q0.11.christen').state().thrown,
+  );
+  if (!sawThrow) logs.push('[questtest] christening: the coconut never flew');
+  const named = await page.evaluate(
+    () => window.__dev.session().debug.puzzle('Q0.11.christen').state().named,
+  );
+  if (!named) logs.push('[questtest] christening: the ship has no name');
+  // The ceremony's own shot of the bow, now with the name on it.
+  await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.11.christen').frame(true));
+  await page.waitForTimeout(1600);
+  await shot('christen-named');
+  await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.11.christen').frame(false));
+  await page.waitForTimeout(1300);
+} else logs.push('[questtest] no christening hook');
 
 await tap('KeyJ');
 await page.waitForTimeout(600);
