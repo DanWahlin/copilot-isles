@@ -23,6 +23,9 @@ export const BANK = {
   birds_dawn: { file: 'birds_dawn', loop: true, lufs: -23.3 },
   boat_lap: { file: 'boat_lap', loop: true, lufs: -32.2 },
   pier_lap: { file: 'pier_lap', loop: true, lufs: -30.7 },
+  stream: { file: 'stream', loop: true, lufs: -23 },
+  waterfall_small: { file: 'waterfall_small', loop: true, lufs: -23 },
+  wheel_creak: { file: 'wheel_creak', loop: true, lufs: -23 },
   step_sand: {
     file: 'step_sand',
     slices: [
@@ -209,6 +212,12 @@ export const BANK = {
     ],
     lufs: [-15.6, -18.7],
   },
+  stone_turn: { file: 'stone_turn', slices: [[0, 0.4865]], lufs: [-18] },
+  lever: { file: 'lever', slices: [[0, 0.5565]], lufs: [-18] },
+  gate_lift: { file: 'gate_lift', slices: [[0, 1.1565]], lufs: [-18] },
+  chime_solve: { file: 'chime_solve', slices: [[0, 1.9065]], lufs: [-18] },
+  crane_ratchet: { file: 'crane_ratchet', slices: [[0, 0.7265]], lufs: [-18] },
+  crate_thud: { file: 'crate_thud', slices: [[0, 0.7065]], lufs: [-18] },
 } as const satisfies Record<string, BankEntry>;
 
 export type SoundName = keyof typeof BANK;

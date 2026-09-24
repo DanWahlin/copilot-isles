@@ -7,6 +7,7 @@ import { VoiceLimiter, type LimitedVoice } from './voice-limiter';
 export type SurfKind = 'crash' | 'wash' | 'backwash';
 export type FootstepSurface = 'sand' | 'wetsand' | 'wood' | 'rock' | 'grass' | 'water';
 export type BedName = Extract<LoopName, 'wind' | 'palms' | 'surf_far' | 'birds_dawn' | 'crickets'>;
+export type SoundLoopName = Extract<LoopName, 'stream' | 'waterfall_small' | 'wheel_creak'>;
 
 export interface Vec3Like {
   readonly x: number;
@@ -19,6 +20,12 @@ export interface SoundBuses {
   readonly sfx: GainNode;
 }
 
+export interface SoundLoopHandle {
+  setGain(gain: number): void;
+  setPos(pos: Vec3Like): void;
+  stop(): void;
+}
+
 interface ActiveVoice extends LimitedVoice {
   readonly source: AudioBufferSourceNode;
   readonly gain: GainNode;
@@ -29,6 +36,13 @@ interface ActiveBed {
   readonly source: AudioBufferSourceNode;
   readonly gain: GainNode;
   readonly name: BedName;
+}
+
+interface ActiveLoop {
+  source: AudioBufferSourceNode | null;
+  readonly gain: GainNode;
+  readonly pan: PannerNode;
+  stopped: boolean;
 }
 
 const BED_NAMES: readonly BedName[] = ['wind', 'palms', 'surf_far', 'birds_dawn', 'crickets'];
@@ -55,6 +69,7 @@ const CAPS = {
   bird: 4,
   splash: 3,
   hull: 3,
+  puzzle: 4,
 } as const;
 const MIX = {
   step: -50,
@@ -67,6 +82,9 @@ const MIX = {
   dove: -34,
   splash: -30,
   hull: -24,
+  puzzle: -24,
+  chime: -20,
+  thud: -24,
 } as const;
 const MONO_TRIM = Math.pow(10, -3 / 20);
 const DEFAULT_FORWARD: Vec3Like = { x: 0, y: 0, z: -1 };
@@ -87,12 +105,36 @@ function safeNow(ctx: AudioContext | null): number {
   return ctx?.currentTime ?? 0;
 }
 
+const NOOP_LOOP_HANDLE: SoundLoopHandle = {
+  setGain: () => undefined,
+  setPos: () => undefined,
+  stop: () => undefined,
+};
+
+function setPannerPosition(pan: PannerNode, pos: Vec3Like): void {
+  pan.positionX.value = pos.x;
+  pan.positionY.value = pos.y;
+  pan.positionZ.value = pos.z;
+}
+
+function isPuzzleOneShot(name: SliceName): boolean {
+  return (
+    name === 'stone_turn' ||
+    name === 'lever' ||
+    name === 'gate_lift' ||
+    name === 'chime_solve' ||
+    name === 'crane_ratchet' ||
+    name === 'crate_thud'
+  );
+}
+
 export class IslesSoundScape {
   private ctx: AudioContext | null = null;
   private buses: SoundBuses | null = null;
   private readonly buffers = new Map<SoundName, AudioBuffer>();
   private readonly loading = new Map<SoundName, Promise<void>>();
   private readonly beds = new Map<BedName, ActiveBed>();
+  private readonly positionalLoops = new Set<ActiveLoop>();
   private readonly limiter = new VoiceLimiter<ActiveVoice>(CAPS);
   private readonly bedTargets: Record<BedName, number> = {
     wind: 0,
@@ -170,6 +212,44 @@ export class IslesSoundScape {
     else this.playSlice(name, category, this.buses?.sfx ?? null, lufs, 0.96 + Math.random() * 0.08);
   }
 
+  loop(name: SoundLoopName, pos: Vec3Like, gain = 1): SoundLoopHandle {
+    const ctx = this.ctx;
+    const bus = this.buses?.sfx;
+    if (!ctx || !bus) return NOOP_LOOP_HANDLE;
+    const pan = ctx.createPanner();
+    pan.panningModel = 'HRTF';
+    pan.distanceModel = 'inverse';
+    pan.refDistance = name === 'waterfall_small' ? 6 : 4;
+    pan.rolloffFactor = 1.15;
+    pan.maxDistance = 220;
+    setPannerPosition(pan, pos);
+    const gainNode = ctx.createGain();
+    gainNode.gain.value = 0;
+    gainNode.connect(pan).connect(bus);
+    const loop: ActiveLoop = { source: null, gain: gainNode, pan, stopped: false };
+    this.positionalLoops.add(loop);
+    this.ramp(gainNode.gain, clamp(gain, 0, 1.5), 0.15);
+    void this.want(name).then((buffer) => {
+      if (!buffer || loop.stopped || !this.ctx) return;
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      source.connect(gainNode);
+      source.start(this.ctx.currentTime + 0.02, Math.random() * buffer.duration);
+      loop.source = source;
+    });
+    return {
+      setGain: (value) => {
+        if (loop.stopped) return;
+        this.ramp(gainNode.gain, clamp(value, 0, 1.5), 0.12);
+      },
+      setPos: (value) => {
+        if (!loop.stopped) setPannerPosition(pan, value);
+      },
+      stop: () => this.stopLoop(loop),
+    };
+  }
+
   setBed(name: BedName, gain: number): void {
     this.bedTargets[name] = clamp(gain, 0, 1);
     if (gain > 0) void this.want(name);
@@ -197,7 +277,9 @@ export class IslesSoundScape {
         // already stopped
       }
     }
+    for (const loop of this.positionalLoops) this.stopLoop(loop);
     this.beds.clear();
+    this.positionalLoops.clear();
     this.buffers.clear();
     this.loading.clear();
     this.ctx = null;
@@ -349,6 +431,24 @@ export class IslesSoundScape {
     };
   }
 
+  private stopLoop(loop: ActiveLoop): void {
+    if (loop.stopped) return;
+    loop.stopped = true;
+    this.positionalLoops.delete(loop);
+    this.ramp(loop.gain.gain, 0, 0.08);
+    const now = this.ctx?.currentTime ?? 0;
+    try {
+      loop.source?.stop(now + 0.25);
+    } catch {
+      // already stopped
+    }
+    globalThis.setTimeout(() => {
+      loop.source?.disconnect();
+      loop.gain.disconnect();
+      loop.pan.disconnect();
+    }, 320);
+  }
+
   private fadeVoice(source: AudioBufferSourceNode, gain: GainNode, now: number): void {
     this.ramp(gain.gain, 0, 0.05);
     try {
@@ -374,6 +474,7 @@ export class IslesSoundScape {
     if (name.startsWith('bird_')) return 'bird';
     if (name === 'big_splash' || name === 'splash') return 'splash';
     if (name === 'hull_slap') return 'hull';
+    if (isPuzzleOneShot(name)) return 'puzzle';
     return name;
   }
 
@@ -384,6 +485,9 @@ export class IslesSoundScape {
     if (name === 'bird_forest') return MIX.bird;
     if (name === 'big_splash' || name === 'splash') return MIX.splash;
     if (name === 'hull_slap') return MIX.hull;
+    if (name === 'chime_solve') return MIX.chime;
+    if (name === 'crate_thud') return MIX.thud;
+    if (isPuzzleOneShot(name)) return MIX.puzzle;
     if (name.startsWith('surf_')) return MIX.crash;
     return MIX.step;
   }

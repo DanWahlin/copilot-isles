@@ -360,7 +360,12 @@ function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) 
       </div>
       <div className={`ci-chart ${mode === 'island' ? 'zoomed' : ''}`}>
         <div className="ci-chart-map">
-          <svg viewBox="0 0 1000 620" role="img" aria-label="Parchment nautical chart">
+          <svg
+            viewBox="0 0 1000 620"
+            preserveAspectRatio="none"
+            role="img"
+            aria-label="Parchment nautical chart"
+          >
             <defs>
               <filter id="paper-noise">
                 <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="7" />
@@ -407,15 +412,13 @@ function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) 
           {mode === 'archipelago' && selectedIsland && (
             <IslandCard island={selectedIsland} onDetail={() => setMode('island')} />
           )}
-          {mode === 'island' && selectedPoint && (
-            <PointCard point={selectedPoint} onTravel={() => bridge.travelTo(selectedPoint.id)} />
-          )}
-          {mode === 'island' && !selectedPoint && (
-            <aside className="ci-map-card muted">
-              <p>Anchorage Cay</p>
-              <h3>Island detail</h3>
-              <small>Select a harbor, landmark, beach, or quest marker to set a travel point.</small>
-            </aside>
+          {mode === 'island' && (
+            <IslandDetailSide
+              points={chart.island.points}
+              selectedPoint={selectedPoint}
+              onSelectPoint={setSelectedPoint}
+              onTravel={(point) => bridge.travelTo(point.id)}
+            />
           )}
         </div>
       </div>
@@ -480,7 +483,8 @@ function ArchipelagoSvg({
 interface IslandFrame {
   minX: number;
   minY: number;
-  span: number;
+  spanX: number;
+  spanY: number;
 }
 
 function IslandSvg({
@@ -516,6 +520,13 @@ function IslandSvg({
             onKeyDown={(event) => event.key === 'Enter' && onSelectPoint(point)}
             aria-label={point.label}
           >
+            <line
+              className="leader"
+              x1={pos.x}
+              y1={pos.y}
+              x2={pos.x + offset.x * 0.82}
+              y2={pos.y + offset.y * 0.82}
+            />
             <circle cx={pos.x} cy={pos.y} r="8" />
             <text x={pos.x + offset.x} y={pos.y + offset.y} textAnchor={offset.anchor ?? 'start'}>
               {point.label}
@@ -551,40 +562,38 @@ function islandFrame(chart: ChartData): IslandFrame {
     minY = Math.min(minY, y);
     maxY = Math.max(maxY, y);
   }
-  const pad = 0.035;
-  minX -= pad;
-  maxX += pad;
-  minY -= pad;
-  maxY += pad;
-  const span = Math.max(maxX - minX, maxY - minY, 0.2);
-  const cx = (minX + maxX) / 2;
-  const cy = (minY + maxY) / 2;
-  return { minX: cx - span / 2, minY: cy - span / 2, span };
+  const padX = Math.max(0.025, (maxX - minX) * 0.035);
+  const padY = Math.max(0.025, (maxY - minY) * 0.035);
+  minX -= padX;
+  maxX += padX;
+  minY -= padY;
+  maxY += padY;
+  return { minX, minY, spanX: Math.max(0.001, maxX - minX), spanY: Math.max(0.001, maxY - minY) };
 }
 
 function projectIslandPoint(frame: IslandFrame, x: number, y: number): { x: number; y: number } {
-  const u = (x - frame.minX) / frame.span;
-  const v = (y - frame.minY) / frame.span;
-  return { x: 140 + u * 720, y: 76 + v * 468 };
+  const u = (x - frame.minX) / frame.spanX;
+  const v = (y - frame.minY) / frame.spanY;
+  return { x: 120 + u * 760, y: 70 + v * 480 };
 }
 
 function pointLabelOffset(id: string): { x: number; y: number; anchor?: 'start' | 'end' | 'middle' } {
   switch (id) {
     case 'pier':
-      return { x: -42, y: -34, anchor: 'end' };
+      return { x: -82, y: -56, anchor: 'end' };
     case 'harbor':
-      return { x: -44, y: -14, anchor: 'end' };
+      return { x: -96, y: -10, anchor: 'end' };
     case 'plaza':
     case 'village':
-      return { x: -40, y: 37, anchor: 'end' };
+      return { x: -84, y: 56, anchor: 'end' };
     case 'nell':
-      return { x: 38, y: 30 };
+      return { x: 108, y: 50 };
     case 'beach':
-      return { x: 0, y: 34, anchor: 'middle' };
+      return { x: 0, y: 70, anchor: 'middle' };
     case 'lighthouse':
-      return { x: 38, y: -26 };
+      return { x: 94, y: -62 };
     case 'hill':
-      return { x: 30, y: 13 };
+      return { x: 86, y: 34 };
     default:
       return { x: 18, y: 6 };
   }
@@ -763,7 +772,11 @@ function MenuButton({
   onClick: () => void;
 }) {
   return (
-    <button className="ci-menu-button" data-initial-focus={initial ? 'true' : undefined} onClick={onClick}>
+    <button
+      className={`ci-menu-button ${detail ? 'has-detail' : ''}`}
+      data-initial-focus={initial ? 'true' : undefined}
+      onClick={onClick}
+    >
       <span>{children}</span>
       {detail && <small>{detail}</small>}
     </button>
@@ -906,6 +919,56 @@ function ControlColumn({ title, rows }: { title: string; rows: readonly [readonl
       ))}
     </section>
   );
+}
+
+function IslandDetailSide({
+  points,
+  selectedPoint,
+  onSelectPoint,
+  onTravel,
+}: {
+  points: readonly ChartPoint[];
+  selectedPoint: ChartPoint | null;
+  onSelectPoint: (point: ChartPoint) => void;
+  onTravel: (point: ChartPoint) => void;
+}) {
+  const active = selectedPoint ?? points[0] ?? null;
+  return (
+    <div className="ci-detail-side">
+      {active ? (
+        <PointCard point={active} onTravel={() => onTravel(active)} />
+      ) : (
+        <aside className="ci-map-card muted">
+          <p>Anchorage Cay</p>
+          <h3>Island detail</h3>
+          <small>Select a harbor, landmark, beach, or quest marker to set a travel point.</small>
+        </aside>
+      )}
+      <nav className="ci-travel-list" aria-label="Island travel points">
+        {points.map((point) => (
+          <button
+            key={point.id}
+            className={selectedPoint?.id === point.id ? 'selected' : ''}
+            onClick={() => onSelectPoint(point)}
+          >
+            <span>{point.label}</span>
+            <small>{travelHint(point)}</small>
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+function travelHint(point: ChartPoint): string {
+  if (point.id === 'lighthouse') return 'Trial';
+  if (point.id === 'pier') return 'Ship berth';
+  if (point.id === 'harbor') return 'Spawn quay';
+  if (point.id === 'nell') return 'Quest giver';
+  if (point.id === 'plaza') return 'Village hub';
+  if (point.id === 'beach') return 'Lagoon shore';
+  if (point.id === 'hill') return 'Lookout';
+  return point.kind;
 }
 
 function IslandCard({ island, onDetail }: { island: ChartIsland; onDetail: () => void }) {

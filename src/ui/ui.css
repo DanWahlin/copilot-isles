@@ -826,3 +826,128 @@
     font-size: 0.72rem;
   }
 }
+
+/* v5 chart and title polish. */
+.ci-menu-button.has-detail::after {
+  display: none;
+}
+
+.ci-subtitle {
+  opacity: 1;
+  text-shadow:
+    0 1px 2px rgba(8, 20, 32, 0.6),
+    0 0 18px rgba(8, 20, 32, 0.35),
+    0 2px 10px rgba(0, 0, 0, 0.42);
+}
+
+.ci-chart.zoomed .ci-chart-side {
+  align-items: start;
+}
+
+.ci-detail-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.ci-detail-side .ci-map-card {
+  width: 100%;
+}
+
+.ci-travel-list {
+  display: grid;
+  gap: 0.42rem;
+  width: 100%;
+}
+
+.ci-travel-list button {
+  display: grid;
+  gap: 0.15rem;
+  min-height: 2.85rem;
+  padding: 0.48rem 0.7rem;
+  border: 1px solid rgba(232, 200, 138, 0.24);
+  border-radius: 0.62rem;
+  background: rgba(255, 255, 255, 0.055);
+  color: rgba(255, 246, 225, 0.9);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ci-travel-list button.selected,
+.ci-travel-list button:hover,
+.ci-travel-list button:focus-visible {
+  border-color: var(--ci-gold);
+  background: rgba(232, 200, 138, 0.13);
+}
+
+.ci-travel-list span {
+  font: 700 0.8rem/1.1 var(--ci-ui);
+}
+
+.ci-travel-list small {
+  color: rgba(246, 236, 214, 0.66);
+  font: 600 0.68rem/1.1 var(--ci-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ci-chart-point .leader {
+  stroke: rgba(86, 57, 30, 0.42);
+  stroke-width: 1.4;
+  stroke-dasharray: 5 4;
+}
+
+.ci-chart-panel .ci-chart-point text {
+  stroke-width: 6px;
+}
+
+@media (max-height: 760px) {
+  .ci-travel-list {
+    gap: 0.32rem;
+  }
+
+  .ci-travel-list button {
+    min-height: 2.35rem;
+    padding: 0.38rem 0.55rem;
+  }
+
+  .ci-travel-list small {
+    display: none;
+  }
+}
+
+/* v5b: keep Island Detail side content inside one measured column. */
+.ci-chart-side,
+.ci-detail-side,
+.ci-detail-side .ci-map-card,
+.ci-travel-list,
+.ci-travel-list button {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.ci-chart-side {
+  overflow: hidden;
+}
+
+.ci-detail-side .ci-map-card,
+.ci-travel-list,
+.ci-travel-list button {
+  width: 100%;
+}
+
+.ci-travel-list button.selected {
+  border-color: var(--ci-gold);
+  background: linear-gradient(90deg, rgba(232, 200, 138, 0.22), rgba(232, 200, 138, 0.08));
+  box-shadow:
+    inset 3px 0 0 var(--ci-gold),
+    inset 0 0 0 1px rgba(232, 200, 138, 0.2);
+}
+
+.ci-travel-list button:focus-visible {
+  box-shadow:
+    inset 3px 0 0 var(--ci-gold),
+    0 0 0 1px rgba(255, 244, 216, 0.72),
+    0 0 0 4px rgba(232, 200, 138, 0.38);
+}

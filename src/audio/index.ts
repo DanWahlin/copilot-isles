@@ -3,6 +3,8 @@ import {
   IslesSoundScape,
   type BedName,
   type FootstepSurface,
+  type SoundLoopHandle,
+  type SoundLoopName,
   type SurfKind,
   type Vec3Like,
 } from './soundscape/soundscape';
@@ -21,6 +23,7 @@ export interface IslesAudio {
     surf(pos: Vec3Like, kind: SurfKind, intensity: number): void;
     footstep(surface: FootstepSurface, pos: Vec3Like): void;
     oneShot(name: SliceName, pos?: Vec3Like, gain?: number): void;
+    loop(name: SoundLoopName, pos: Vec3Like, gain?: number): SoundLoopHandle;
     setBed(name: BedName, gain: number): void;
     setTimeOfDay(night: number): void;
   };
@@ -134,6 +137,7 @@ class IslesAudioImpl implements IslesAudio {
     surf: (pos: Vec3Like, kind: SurfKind, intensity: number) => this.soundscape.surf(pos, kind, intensity),
     footstep: (surface: FootstepSurface, pos: Vec3Like) => this.soundscape.footstep(surface, pos),
     oneShot: (name: SliceName, pos?: Vec3Like, gain?: number) => this.soundscape.oneShot(name, pos, gain),
+    loop: (name: SoundLoopName, pos: Vec3Like, gain?: number) => this.soundscape.loop(name, pos, gain),
     setBed: (name: BedName, gain: number) => this.soundscape.setBed(name, gain),
     setTimeOfDay: (night: number) => this.soundscape.setTimeOfDay(night),
   };
