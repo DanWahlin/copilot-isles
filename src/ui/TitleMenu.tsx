@@ -11,6 +11,9 @@ import type {
   SubtitleSize,
   UiState,
 } from './bridge';
+import { ARCH_H, ARCH_W, ARCHIPELAGO } from './chart/archipelago';
+import { ArchipelagoMap, CompassRose, Parchment } from './chart/ArchipelagoMap';
+import { IslandCard } from './chart/IslandCard';
 
 interface TitleMenuProps {
   bridge: GameBridge;
@@ -18,83 +21,8 @@ interface TitleMenuProps {
 
 type ChartMode = 'archipelago' | 'island';
 
-const FALLBACK_ISLANDS: ChartIsland[] = [
-  {
-    id: 'anchorage',
-    name: 'Anchorage Cay',
-    chapter: '00 · Setup',
-    x: 0.18,
-    y: 0.62,
-    status: 'current',
-    blurb: 'Captain’s papers, gear checks, and your first seal.',
-  },
-  {
-    id: 'meridian',
-    name: 'Port Meridian',
-    chapter: '01 · Tour the App',
-    x: 0.3,
-    y: 0.42,
-    status: 'locked',
-    blurb: 'The city of districts and the app tour.',
-  },
-  {
-    id: 'bough',
-    name: 'Thousand-Bough Isle',
-    chapter: '02 · Sessions, Worktrees & Context',
-    x: 0.44,
-    y: 0.58,
-    status: 'locked',
-    blurb: 'Treehouses, signal flags, and context routes.',
-  },
-  {
-    id: 'keelhaven',
-    name: 'Keelhaven',
-    chapter: '03 · Dev & GitHub Workflows',
-    x: 0.55,
-    y: 0.34,
-    status: 'locked',
-    blurb: 'Sea trials, PR gates, and reviews.',
-  },
-  {
-    id: 'guildcrest',
-    name: 'Guildcrest',
-    chapter: '04 · Skills & Custom Agents',
-    x: 0.66,
-    y: 0.51,
-    status: 'locked',
-    blurb: 'Shanty scrolls and specialist crews.',
-  },
-  {
-    id: 'sunspire',
-    name: 'Sunspire Sands',
-    chapter: '05 · MCP Servers & Plugins',
-    x: 0.74,
-    y: 0.27,
-    status: 'locked',
-    blurb: 'Signal towers and supply crates.',
-  },
-  {
-    id: 'inkwell',
-    name: 'Inkwell Bluffs',
-    chapter: '06 · Canvases',
-    x: 0.83,
-    y: 0.47,
-    status: 'locked',
-    blurb: 'Shared chart tables and plans.',
-  },
-  {
-    id: 'tidewheel',
-    name: 'Tidewheel Caldera',
-    chapter: '07 · Automations',
-    x: 0.91,
-    y: 0.22,
-    status: 'locked',
-    blurb: 'Clockwork lighthouses and routines.',
-  },
-];
-
 const FALLBACK_CHART: ChartData = {
-  islands: FALLBACK_ISLANDS,
+  islands: ARCHIPELAGO,
   island: {
     id: 'anchorage',
     name: 'Anchorage Cay',
@@ -182,6 +110,7 @@ export function TitleMenu({ bridge }: TitleMenuProps) {
   return (
     <div ref={rootRef} className={`ci-ui ci-screen-${state.screen}`} aria-live="polite">
       {state.screen === 'title' && <TitleScreen state={state} bridge={bridge} />}
+      {state.screen === 'title' && <TitleHint />}
       {state.screen === 'captain' && <CaptainSelect bridge={bridge} current={state.captain} />}
       {state.screen === 'voyage-loading' && <VoyageLoading state={state} />}
       {state.screen === 'paused' && <PausedScreen state={state} bridge={bridge} />}
@@ -224,6 +153,17 @@ function TitleScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) 
         <MenuButton onClick={bridge.openCredits}>Credits</MenuButton>
       </nav>
     </main>
+  );
+}
+
+function TitleHint() {
+  return (
+    <p className="ci-title-hint" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M8 13V6.5a1.5 1.5 0 0 1 3 0V12m0-1.5v-6a1.5 1.5 0 0 1 3 0V12m0-5.5a1.5 1.5 0 0 1 3 0V13m0-3a1.5 1.5 0 0 1 3 0v5a6 6 0 0 1-6 6h-1.2a6 6 0 0 1-4.9-2.5L5 15.5a1.6 1.6 0 0 1 2.6-1.9L8 14" />
+      </svg>
+      Drag the sea to look around · scroll to zoom
+    </p>
   );
 }
 
@@ -378,10 +318,11 @@ function PausedScreen({ state, bridge }: { state: UiState; bridge: GameBridge })
 
 function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) {
   const chart = state.chart ?? FALLBACK_CHART;
+  const islands = chart.islands.length ? chart.islands : ARCHIPELAGO;
   const [mode, setMode] = useState<ChartMode>('archipelago');
   const [selectedPoint, setSelectedPoint] = useState<ChartPoint | null>(null);
   const [selectedIsland, setSelectedIsland] = useState<ChartIsland | null>(
-    chart.islands.find((island) => island.status === 'current') ?? chart.islands[0],
+    islands.find((island) => island.status === 'current') ?? islands[0] ?? null,
   );
 
   return (
@@ -400,50 +341,23 @@ function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) 
           Island detail
         </button>
       </div>
-      <div className={`ci-chart ${mode === 'island' ? 'zoomed' : ''}`}>
+      <div className={`ci-chart ${mode === 'island' ? 'zoomed' : 'archipelago'}`}>
         <div className="ci-chart-map">
           <svg
-            viewBox="0 0 1000 620"
-            preserveAspectRatio="none"
-            role="img"
-            aria-label="Parchment nautical chart"
+            viewBox={`0 0 ${ARCH_W} ${ARCH_H}`}
+            preserveAspectRatio="xMidYMid meet"
+            role="group"
+            aria-label={
+              mode === 'archipelago' ? 'Chart of the Copilot Isles' : `Chart of ${chart.island.name}`
+            }
           >
-            <defs>
-              <filter id="paper-noise">
-                <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="7" />
-                <feColorMatrix type="saturate" values="0" />
-                <feComponentTransfer>
-                  <feFuncA type="table" tableValues="0 .13" />
-                </feComponentTransfer>
-              </filter>
-              <pattern id="wave-lines" width="58" height="34" patternUnits="userSpaceOnUse">
-                <path
-                  d="M4 18c12-9 24 9 36 0 7-5 11-5 18-1"
-                  fill="none"
-                  stroke="#3e6f86"
-                  strokeOpacity=".18"
-                  strokeWidth="1.5"
-                />
-              </pattern>
-            </defs>
-            <rect width="1000" height="620" rx="26" fill="#ead9ad" />
-            <rect width="1000" height="620" rx="26" filter="url(#paper-noise)" />
-            <rect
-              x="24"
-              y="24"
-              width="952"
-              height="572"
-              rx="18"
-              fill="url(#wave-lines)"
-              stroke="#6d4b25"
-              strokeOpacity=".25"
-            />
+            <Parchment w={ARCH_W} h={ARCH_H} />
             {mode === 'archipelago' ? (
-              <ArchipelagoSvg
-                islands={chart.islands.length ? chart.islands : FALLBACK_ISLANDS}
+              <ArchipelagoMap
+                islands={islands}
                 selected={selectedIsland}
                 onSelect={setSelectedIsland}
-                onOpenDetail={() => setMode('island')}
+                onOpen={() => setMode('island')}
               />
             ) : (
               <IslandSvg chart={chart} selectedPoint={selectedPoint} onSelectPoint={setSelectedPoint} />
@@ -452,7 +366,7 @@ function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) 
         </div>
         <div className="ci-chart-side" aria-live="polite">
           {mode === 'archipelago' && selectedIsland && (
-            <IslandCard island={selectedIsland} onDetail={() => setMode('island')} />
+            <IslandCard island={selectedIsland} islands={islands} onOpen={() => setMode('island')} />
           )}
           {mode === 'island' && (
             <IslandDetailSide
@@ -465,60 +379,6 @@ function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) 
         </div>
       </div>
     </OverlayShell>
-  );
-}
-
-function ArchipelagoSvg({
-  islands,
-  selected,
-  onSelect,
-  onOpenDetail,
-}: {
-  islands: readonly ChartIsland[];
-  selected: ChartIsland | null;
-  onSelect: (island: ChartIsland) => void;
-  onOpenDetail: () => void;
-}) {
-  const path = islands.map((island) => `${island.x * 880 + 60},${island.y * 500 + 60}`).join(' ');
-  return (
-    <g className="ci-archipelago">
-      <path
-        d="M148 496C282 330 476 434 604 262S803 230 885 135"
-        fill="none"
-        stroke="#714e28"
-        strokeWidth="1.2"
-        strokeDasharray="9 8"
-        opacity=".42"
-      />
-      <polyline points={path} fill="none" stroke="#263e4a" strokeOpacity=".2" strokeWidth="2" />
-      <CompassRose x={122} y={126} />
-      {islands.map((island, index) => {
-        const x = island.x * 880 + 60;
-        const y = island.y * 500 + 60;
-        const locked = island.status === 'locked';
-        return (
-          <g
-            key={island.id}
-            className={`ci-island-node ${island.status} ${selected?.id === island.id ? 'selected' : ''}`}
-            tabIndex={0}
-            role="button"
-            aria-label={`${island.chapter} ${island.name}`}
-            onClick={() => (onSelect(island), !locked && onOpenDetail())}
-            onKeyDown={(event) => event.key === 'Enter' && (onSelect(island), !locked && onOpenDetail())}
-          >
-            <path d={islandSilhouette(index, x, y)} />
-            <circle cx={x} cy={y} r={locked ? 5 : 7} />
-            {locked && <path d={`M${x - 7} ${y - 12}h14v15h-14zM${x - 4} ${y - 12}a4 4 0 0 1 8 0`} />}
-            <text x={x + 18} y={y - 2}>
-              {island.chapter.split('·')[0].trim()}
-            </text>
-            <text x={x + 18} y={y + 14}>
-              {island.name}
-            </text>
-          </g>
-        );
-      })}
-    </g>
   );
 }
 
@@ -542,7 +402,7 @@ function IslandSvg({
   const project = (x: number, y: number) => projectIslandPoint(frame, x, y);
   return (
     <g className="ci-island-detail">
-      <rect x="76" y="58" width="850" height="500" rx="220" fill="#7db4bc" opacity=".22" />
+      <CompassRose x={ARCH_W - 110} y={118} r={48} />
       {chart.island.reef.map((ring, index) => (
         <path key={`reef-${index}`} className="reef" d={ringPath(ring, frame)} />
       ))}
@@ -613,10 +473,14 @@ function islandFrame(chart: ChartData): IslandFrame {
   return { minX, minY, spanX: Math.max(0.001, maxX - minX), spanY: Math.max(0.001, maxY - minY) };
 }
 
+/** Chart → SVG, one scale for both axes (no stretching), centred in the parchment's inner frame. */
 function projectIslandPoint(frame: IslandFrame, x: number, y: number): { x: number; y: number } {
-  const u = (x - frame.minX) / frame.spanX;
-  const v = (y - frame.minY) / frame.spanY;
-  return { x: 120 + u * 760, y: 70 + v * 480 };
+  const box = { x: 90, y: 60, w: ARCH_W - 180, h: ARCH_H - 120 };
+  const k = Math.min(box.w / frame.spanX, box.h / frame.spanY);
+  return {
+    x: box.x + (box.w - frame.spanX * k) / 2 + (x - frame.minX) * k,
+    y: box.y + (box.h - frame.spanY * k) / 2 + (y - frame.minY) * k,
+  };
 }
 
 function pointLabelOffset(id: string): { x: number; y: number; anchor?: 'start' | 'end' | 'middle' } {
@@ -674,6 +538,7 @@ function SettingsScreen({ state, bridge }: { state: UiState; bridge: GameBridge 
             label="Quality"
             value={settings.quality}
             options={['auto', 'lite', 'low', 'medium', 'high', 'ultra']}
+            names={QUALITY_NAMES}
             onChange={(quality) => bridge.updateSettings({ quality: quality as QualitySetting })}
           />
           <Toggle
@@ -707,6 +572,7 @@ function SettingsScreen({ state, bridge }: { state: UiState; bridge: GameBridge 
             label="Subtitle size"
             value={settings.subtitleSize}
             options={['s', 'm', 'l']}
+            names={SUBTITLE_NAMES}
             onChange={(subtitleSize) => bridge.updateSettings({ subtitleSize: subtitleSize as SubtitleSize })}
           />
         </SettingsGroup>
@@ -900,12 +766,26 @@ function SailSwatches({ value, onChange }: { value: string; onChange: (id: strin
   );
 }
 
+const QUALITY_NAMES = {
+  auto: 'Auto (recommended)',
+  lite: 'Lite',
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+  ultra: 'Ultra',
+} as const;
+
+const SUBTITLE_NAMES = { s: 'Small', m: 'Medium', l: 'Large' } as const;
+
 function SettingsGroup({ title, children, wide }: { title: string; children: ReactNode; wide?: boolean }) {
+  const id = `settings-${title.toLowerCase().replace(/[^a-z]+/g, '-')}`;
   return (
-    <fieldset className={`ci-settings-group${wide ? ' wide' : ''}`}>
-      <legend>{title}</legend>
-      {children}
-    </fieldset>
+    <section className={`ci-settings-group${wide ? ' wide' : ''}`} role="group" aria-labelledby={id}>
+      <h3 id={id} className="ci-settings-title">
+        {title}
+      </h3>
+      <div className="ci-settings-body">{children}</div>
+    </section>
   );
 }
 
@@ -962,11 +842,14 @@ function Select({
   label,
   value,
   options,
+  names,
   onChange,
 }: {
   label: string;
   value: string;
   options: readonly string[];
+  /** Display names for the option values (defaults to the values). */
+  names?: Readonly<Record<string, string>>;
   onChange: (value: string) => void;
 }) {
   return (
@@ -975,29 +858,31 @@ function Select({
       <select value={value} onChange={(event) => onChange(event.currentTarget.value)}>
         {options.map((option) => (
           <option key={option} value={option}>
-            {option}
+            {names?.[option] ?? option}
           </option>
         ))}
       </select>
-      <em />{' '}
+      <em />
     </label>
   );
 }
 
 function ControlColumn({ title, rows }: { title: string; rows: readonly [readonly string[], string][] }) {
   return (
-    <section className="ci-control-column">
-      <h3>{title}</h3>
-      {rows.map(([keys, action]) => (
-        <div key={action} className="ci-control-row">
-          <span>
-            {keys.map((key) => (
-              <kbd key={key}>{key}</kbd>
-            ))}
-          </span>
-          <p>{action}</p>
-        </div>
-      ))}
+    <section className="ci-control-column ci-settings-group">
+      <h3 className="ci-settings-title">{title}</h3>
+      <div className="ci-settings-body">
+        {rows.map(([keys, action]) => (
+          <div key={action} className="ci-control-row">
+            <span>
+              {keys.map((key) => (
+                <kbd key={key}>{key}</kbd>
+              ))}
+            </span>
+            <p>{action}</p>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
@@ -1053,18 +938,6 @@ function travelHint(point: ChartPoint): string {
   return point.kind;
 }
 
-function IslandCard({ island, onDetail }: { island: ChartIsland; onDetail: () => void }) {
-  return (
-    <aside className="ci-map-card">
-      <p>{island.chapter}</p>
-      <h3>{island.name}</h3>
-      <span className={`status ${island.status}`}>{island.status}</span>
-      <small>{island.blurb}</small>
-      {island.status !== 'locked' && <button onClick={onDetail}>Open island chart</button>}
-    </aside>
-  );
-}
-
 function PointCard({ point, onTravel }: { point: ChartPoint; onTravel: () => void }) {
   return (
     <aside className="ci-map-card point">
@@ -1086,16 +959,6 @@ function ChartMedallion({ progress }: { progress: number }) {
   );
 }
 
-function CompassRose({ x, y }: { x: number; y: number }) {
-  return (
-    <g className="ci-compass" transform={`translate(${x} ${y})`}>
-      <circle r="54" />
-      <path d="M0-49l10 39 39 10-39 10-10 39-10-39-39-10 39-10z" />
-      <text y="-63">N</text>
-    </g>
-  );
-}
-
 function ringPath(ring: [number, number][], frame: IslandFrame): string {
   return `${ring
     .map(([x, y], index) => {
@@ -1103,11 +966,6 @@ function ringPath(ring: [number, number][], frame: IslandFrame): string {
       return `${index === 0 ? 'M' : 'L'}${p.x} ${p.y}`;
     })
     .join(' ')} Z`;
-}
-
-function islandSilhouette(index: number, x: number, y: number): string {
-  const r = 17 + (index % 3) * 4;
-  return `M${x - r} ${y + 2}c${r * 0.2}-${r * 0.9} ${r * 0.8}-${r * 1.1} ${r * 1.2}-${r * 0.45}c${r * 0.9}-${r * 0.2} ${r * 1.25} ${r * 0.75} ${r * 0.34} ${r * 1.12}c-${r * 0.72} ${r * 0.48}-${r * 1.35} ${r * 0.4}-${r * 1.88} ${r * 0.25}c-${r * 0.45} ${r * 0.24}-${r * 0.9} ${r * 0.06}-${r * 0.98}-${r * 0.92}z`;
 }
 
 function focusable(root: HTMLElement): HTMLElement[] {

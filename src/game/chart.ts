@@ -1,4 +1,5 @@
-import type { ChartData, ChartIsland, ChartPoint } from '../ui/bridge';
+import type { ChartData, ChartPoint } from '../ui/bridge';
+import { ARCHIPELAGO } from '../ui/chart/archipelago';
 import { COVE } from '../world/layout';
 import { extractShoreline } from '../world/terrain/bake';
 import { coveHeight } from '../world/terrain/cove-height';
@@ -16,81 +17,7 @@ export const fromChart = (u: number, v: number): [number, number] => [
   v * CHART_FRAME.half * 2 - CHART_FRAME.half + CHART_FRAME.cz,
 ];
 
-export const ARCHIPELAGO: ChartIsland[] = [
-  {
-    id: 'anchorage',
-    name: 'Anchorage Cay',
-    chapter: '00 · Setup',
-    x: 0.2,
-    y: 0.7,
-    status: 'current',
-    blurb:
-      'A tropical crescent with a turquoise lagoon and a little point lighthouse. Your voyage begins here.',
-  },
-  {
-    id: 'meridian',
-    name: 'Port Meridian',
-    chapter: '01 · Tour the App',
-    x: 0.36,
-    y: 0.5,
-    status: 'locked',
-    blurb: 'Terracotta terraces and harbor walls beneath a hilltop citadel.',
-  },
-  {
-    id: 'thousand-bough',
-    name: 'Thousand-Bough Isle',
-    chapter: '02 · Sessions, Worktrees & Context',
-    x: 0.52,
-    y: 0.34,
-    status: 'locked',
-    blurb: 'Misty jungle, waterfalls, and a treehouse village on one great banyan.',
-  },
-  {
-    id: 'keelhaven',
-    name: 'Keelhaven',
-    chapter: '03 · Dev & GitHub Workflows',
-    x: 0.7,
-    y: 0.27,
-    status: 'locked',
-    blurb: 'A weathered old pirate town with a shipyard, drydock, and canal locks.',
-  },
-  {
-    id: 'guildcrest',
-    name: 'Guildcrest',
-    chapter: '04 · Skills & Custom Agents',
-    x: 0.84,
-    y: 0.4,
-    status: 'locked',
-    blurb: 'Pine highlands, windmills, stone guildhalls, and a scriptorium abbey.',
-  },
-  {
-    id: 'sunspire',
-    name: 'Sunspire Sands',
-    chapter: '05 · MCP Servers & Plugins',
-    x: 0.8,
-    y: 0.64,
-    status: 'locked',
-    blurb: 'Desert mesas, saguaro, an oasis bazaar, and heliograph towers.',
-  },
-  {
-    id: 'inkwell',
-    name: 'Inkwell Bluffs',
-    chapter: '06 · Canvases',
-    x: 0.62,
-    y: 0.78,
-    status: 'locked',
-    blurb: "Whitewashed cliffs, bougainvillea, and the cartographers' great chart table.",
-  },
-  {
-    id: 'tidewheel',
-    name: 'Tidewheel Caldera',
-    chapter: '07 · Automations',
-    x: 0.42,
-    y: 0.86,
-    status: 'locked',
-    blurb: 'Black sand, hot springs, and a clockwork lighthouse beside a tide mill.',
-  },
-];
+export { ARCHIPELAGO };
 
 export interface TravelPoint extends ChartPoint {
   wx: number;

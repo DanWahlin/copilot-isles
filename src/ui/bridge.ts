@@ -58,6 +58,10 @@ export interface ChartIsland {
   y: number;
   status: 'current' | 'visited' | 'locked';
   blurb: string;
+  /** What the chapter teaches (its learning objectives, shortened). */
+  topics: readonly string[];
+  /** The course's estimated time for the chapter. */
+  minutes: number;
 }
 
 export interface ChartPoint {
@@ -70,7 +74,7 @@ export interface ChartPoint {
 
 export interface ChartData {
   /** The archipelago (world chart): every island in the course. */
-  islands: ChartIsland[];
+  islands: readonly ChartIsland[];
   /** The current island's detail chart. */
   island: {
     id: string;

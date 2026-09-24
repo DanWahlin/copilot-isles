@@ -6,74 +6,8 @@ import {
   type Settings,
   type UiState,
 } from '../ui/bridge';
+import { ARCHIPELAGO } from '../ui/chart/archipelago';
 import { mountUi } from '../ui/mount';
-
-const islands = [
-  [
-    'anchorage',
-    'Anchorage Cay',
-    '00 · Setup',
-    0.18,
-    0.62,
-    'current',
-    'Captain’s papers, gear checks, and your first seal.',
-  ],
-  [
-    'meridian',
-    'Port Meridian',
-    '01 · Tour the App',
-    0.3,
-    0.42,
-    'locked',
-    'The city of districts and the app tour.',
-  ],
-  [
-    'bough',
-    'Thousand-Bough Isle',
-    '02 · Sessions, Worktrees & Context',
-    0.44,
-    0.58,
-    'locked',
-    'Treehouses, signal flags, and context routes.',
-  ],
-  [
-    'keelhaven',
-    'Keelhaven',
-    '03 · Dev & GitHub Workflows',
-    0.55,
-    0.34,
-    'locked',
-    'Sea trials, PR gates, and reviews.',
-  ],
-  [
-    'guildcrest',
-    'Guildcrest',
-    '04 · Skills & Custom Agents',
-    0.66,
-    0.51,
-    'locked',
-    'Shanty scrolls and specialist crews.',
-  ],
-  [
-    'sunspire',
-    'Sunspire Sands',
-    '05 · MCP Servers & Plugins',
-    0.74,
-    0.27,
-    'locked',
-    'Signal towers and supply crates.',
-  ],
-  ['inkwell', 'Inkwell Bluffs', '06 · Canvases', 0.83, 0.47, 'locked', 'Shared chart tables and plans.'],
-  [
-    'tidewheel',
-    'Tidewheel Caldera',
-    '07 · Automations',
-    0.91,
-    0.22,
-    'locked',
-    'Clockwork lighthouses and routines.',
-  ],
-] as const;
 
 class MockBridge implements GameBridge {
   private listeners = new Set<(state: UiState) => void>();
@@ -93,15 +27,7 @@ class MockBridge implements GameBridge {
     captain: 'man',
     settings: DEFAULT_SETTINGS,
     chart: {
-      islands: islands.map(([id, name, chapter, x, y, status, blurb]) => ({
-        id,
-        name,
-        chapter,
-        x,
-        y,
-        status,
-        blurb,
-      })),
+      islands: ARCHIPELAGO,
       island: {
         id: 'anchorage',
         name: 'Anchorage Cay',

@@ -247,6 +247,7 @@ export class GameFlow implements GameBridge {
       learn: this.learnSummary(),
       ...patch,
     };
+    this.title?.setInteractive(this.state.screen === 'title');
     for (const l of this.listeners) l(this.state);
   }
 

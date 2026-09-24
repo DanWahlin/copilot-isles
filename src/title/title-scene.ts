@@ -5,11 +5,17 @@ import { createSky } from '../world/sky/sky-system';
 import { createDistantRanges } from '../world/terrain/distant-ranges';
 import { createBrigantine, type BrigantineEnv } from '../world/ship';
 import type { LeapsSystem, ScreenRect } from '../world/life/leaps';
+import { world } from '../world/uniforms';
+import { bindTitleDrag, TitleOrbit } from './title-orbit';
 
 export interface TitleBackdrop {
   setAvoidRects(rects: ScreenRect[]): void;
   /** Flies the voyage's sail palette (Paint Your Sails). */
   setSails(paletteId: string | null): void;
+  /** Whether dragging the scene turns the view (only while the title menu itself is showing). */
+  setInteractive(on: boolean): void;
+  /** Drag-to-look state, for tests. */
+  readonly orbit: TitleOrbit;
   dispose(): void;
 }
 
@@ -17,7 +23,8 @@ export interface TitleBackdrop {
  * The title backdrop (PLAN §13.5, POC §3.1): open ocean, sky, and your brigantine at anchor,
  * swinging gently on its rope, with distant ranges in the haze and a slow golden-hour orbit.
  * No island mesh, so the title stays inside its budget; Anchorage Cay streams after New Voyage.
- * The ship sits right of centre so the menu column on the left stays clear.
+ * The ship sits right of centre so the menu column on the left stays clear. Dragging turns the view
+ * round the ship (title-orbit.ts), and the wheel zooms.
  */
 export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   const { renderer, scene, tier, camera, clock } = engine;
@@ -55,7 +62,9 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
 
   const focus = new Vector3();
   const look = new Vector3();
-  let orbit = 0.35;
+  const orbit = new TitleOrbit(0.35);
+  let interactive = true;
+  const unbind = bindTitleDrag(renderer.domElement, orbit, () => interactive);
   const remove = engine.add(
     {
       frame(dt, t) {
@@ -67,13 +76,16 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
         shipEnv.t = t;
         ship.update(dt, t, shipEnv);
 
-        orbit += dt * 0.012;
-        const r = 58;
-        camera.position.set(Math.sin(orbit) * r, 7.5 + Math.sin(t * 0.11) * 0.4, Math.cos(orbit) * r);
-        // Aim left of the ship so it sits right of centre, clear of the menu column.
-        const sx = Math.cos(orbit),
-          sz = -Math.sin(orbit);
-        look.set(anchor.x - sx * 14, 9, anchor.z - sz * 14);
+        orbit.update(dt, world.reducedMotion.value > 0.5);
+        const r = orbit.radius;
+        const yaw = orbit.yaw;
+        camera.position.set(Math.sin(yaw) * r, orbit.height + Math.sin(t * 0.11) * 0.4, Math.cos(yaw) * r);
+        // Aim left of the ship so it sits right of centre, clear of the menu column. Looking down from
+        // higher up, aim a little lower so the ship stays framed.
+        const sx = Math.cos(yaw),
+          sz = -Math.sin(yaw);
+        const side = 14 * (r / 58);
+        look.set(anchor.x - sx * side, 9 - (orbit.height - 7.5) * 0.35, anchor.z - sz * side);
         camera.lookAt(look);
 
         ocean.update(camera);
@@ -94,8 +106,15 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
     setSails(paletteId: string | null) {
       ship.setSails(paletteId);
     },
+    setInteractive(on: boolean) {
+      interactive = on;
+      if (!on && orbit.dragging) orbit.up(performance.now() / 1000);
+      renderer.domElement.style.cursor = on ? 'grab' : '';
+    },
+    orbit,
     dispose() {
       disposed = true;
+      unbind();
       if (lazyLeapsTimer) window.clearTimeout(lazyLeapsTimer);
       remove();
       scene.remove(ocean.mesh, ranges, ship.group);

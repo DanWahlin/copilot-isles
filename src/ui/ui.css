@@ -326,54 +326,24 @@
   min-height: 25rem;
 }
 
-.ci-island-node,
 .ci-chart-point {
   cursor: pointer;
 }
 
-.ci-island-node path:first-child {
-  fill: #6e7f4d;
-  stroke: #21321f;
-  stroke-width: 1.5;
-}
-
-.ci-island-node.current path:first-child {
-  fill: #547d58;
-}
-
-.ci-island-node.locked {
-  opacity: 0.55;
-}
-
-.ci-island-node circle,
 .ci-chart-point circle {
   fill: #26323c;
   stroke: var(--ci-gold);
   stroke-width: 2;
 }
 
-.ci-island-node.selected path:first-child,
 .ci-chart-point.selected circle {
   filter: drop-shadow(0 0 8px rgba(255, 216, 138, 0.75));
 }
 
-.ci-island-node text,
-.ci-chart-point text,
-.ci-compass text {
+.ci-chart-point text {
   fill: #2e2416;
   font: 700 13px var(--ci-ui);
   letter-spacing: 0.03em;
-}
-
-.ci-compass circle,
-.ci-compass path {
-  fill: none;
-  stroke: #56391e;
-  stroke-width: 1.4;
-}
-
-.ci-compass path {
-  fill: rgba(86, 57, 30, 0.12);
 }
 
 .ci-island-detail .reef {
@@ -458,7 +428,7 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
-.ci-settings-group legend,
+.ci-settings-title,
 .ci-control-column h3,
 .ci-credits h3 {
   color: var(--ci-gold);
@@ -1114,4 +1084,745 @@
 
 .ci-screen-title .ci-menu-button > small {
   color: rgba(246, 236, 214, 0.86);
+}
+
+/*
+ * Captain's Chart v6: an unstretched parchment sheet, distinct islands with landmarks, labels that
+ * name each chapter's topic, and a side card with what the chapter teaches.
+ */
+.ci-chart-panel .ci-chart {
+  grid-template-columns: minmax(0, 1fr) clamp(17rem, 25vw, 22rem);
+}
+
+.ci-chart-map {
+  display: grid;
+  place-items: center;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.ci-chart-map svg {
+  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.35));
+}
+
+.ci-parchment .paper {
+  fill: #ecdcb0;
+}
+
+.ci-parchment .sea {
+  fill: url(#ci-sea-lines);
+}
+
+.ci-parchment pattern path {
+  fill: none;
+  stroke: #3e6f86;
+  stroke-opacity: 0.16;
+  stroke-width: 1.4;
+}
+
+.ci-parchment .ticks rect {
+  fill: #5a3f1f;
+  opacity: 0.55;
+}
+
+.ci-parchment .neat {
+  fill: none;
+  stroke: #5a3f1f;
+  stroke-opacity: 0.55;
+  stroke-width: 1.2;
+}
+
+.ci-parchment .neat.outer {
+  stroke-width: 1.6;
+}
+
+.ci-rhumbs line {
+  stroke: #6b4a20;
+  stroke-opacity: 0.1;
+  stroke-width: 1;
+}
+
+.ci-cartouche .title {
+  fill: #3b2a14;
+  font: italic 500 26px var(--ci-display);
+  letter-spacing: 0.02em;
+}
+
+.ci-cartouche .sub {
+  fill: #6f4a21;
+  font: 700 10.5px var(--ci-ui);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.ci-cartouche path {
+  stroke: #6f4a21;
+  stroke-opacity: 0.5;
+}
+
+.ci-arch-route {
+  fill: none;
+  stroke: #7a5226;
+  stroke-width: 2;
+  stroke-dasharray: 2 9;
+  stroke-linecap: round;
+  opacity: 0.7;
+}
+
+.ci-arch-route.done {
+  stroke: #b88422;
+  stroke-dasharray: none;
+  opacity: 0.9;
+}
+
+.ci-compass .ring {
+  fill: rgba(236, 220, 176, 0.55);
+  stroke: #56391e;
+  stroke-width: 1.4;
+}
+
+.ci-compass .ring.thin {
+  fill: none;
+  stroke-width: 0.8;
+}
+
+.ci-compass line {
+  stroke: #56391e;
+  stroke-width: 1;
+}
+
+.ci-compass .dark {
+  fill: #4a3218;
+}
+
+.ci-compass .light {
+  fill: #efe0b8;
+  stroke: #4a3218;
+  stroke-width: 0.8;
+}
+
+.ci-compass .mid {
+  fill: #9a7a4c;
+  stroke: #4a3218;
+  stroke-width: 0.6;
+}
+
+.ci-compass .hub {
+  fill: #b88422;
+  stroke: #4a3218;
+}
+
+.ci-compass text {
+  fill: #3b2a14;
+  font: 700 15px var(--ci-display);
+  text-anchor: middle;
+}
+
+.ci-arch-island {
+  cursor: pointer;
+  outline: none;
+}
+
+.ci-arch-art {
+  transition:
+    transform 0.25s ease,
+    filter 0.25s ease;
+}
+
+.ci-arch-island:hover .ci-arch-art,
+.ci-arch-island:focus-visible .ci-arch-art,
+.ci-arch-island.selected .ci-arch-art {
+  transform: scale(1.06);
+}
+
+.ci-arch-island.selected .ci-arch-art {
+  filter: drop-shadow(0 0 7px rgba(255, 214, 120, 0.85));
+}
+
+.ci-arch-island.locked .ci-arch-art {
+  filter: saturate(0.55) sepia(0.18);
+  opacity: 0.86;
+}
+
+.ci-arch-island.locked.selected .ci-arch-art {
+  filter: saturate(0.75) sepia(0.1) drop-shadow(0 0 7px rgba(255, 214, 120, 0.8));
+  opacity: 1;
+}
+
+.ci-arch-island:focus-visible .ci-arch-label .name {
+  text-decoration: underline;
+  text-decoration-color: #b88422;
+}
+
+.ci-arch-art path,
+.ci-arch-art ellipse,
+.ci-arch-art circle {
+  vector-effect: non-scaling-stroke;
+}
+
+.ci-arch-art .shoal {
+  fill: rgba(96, 178, 178, 0.28);
+  stroke: rgba(46, 116, 124, 0.45);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 4;
+}
+
+.ci-arch-art .beach {
+  stroke: rgba(107, 74, 32, 0.35);
+  stroke-width: 0.8;
+}
+
+.ci-arch-art .land {
+  stroke: #33291a;
+  stroke-width: 1.8;
+}
+
+.ci-arch-art .contour {
+  fill: none;
+  stroke: #33291a;
+  stroke-opacity: 0.22;
+  stroke-width: 1;
+}
+
+.ci-arch-art .lagoon,
+.ci-arch-art .harbour,
+.ci-arch-art .oasis {
+  fill: #8fd0cb;
+  stroke: #2e6f74;
+  stroke-width: 1.2;
+}
+
+.ci-arch-art .reef {
+  fill: none;
+  stroke: #2e6f74;
+  stroke-width: 1.4;
+  stroke-dasharray: 3 3;
+}
+
+.ci-arch-art .wall {
+  fill: none;
+  stroke: #7d6440;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.ci-arch-art .pier {
+  stroke: #5a3f1f;
+  stroke-width: 2.2;
+}
+
+.ci-arch-art .river {
+  fill: none;
+  stroke: #6fb9c4;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.ci-arch-art .cliff {
+  fill: #f2ebd9;
+  stroke: #33291a;
+  stroke-width: 1.8;
+}
+
+.ci-arch-art .cliff-lines {
+  fill: none;
+  stroke: #33291a;
+  stroke-opacity: 0.25;
+  stroke-dasharray: 1 5;
+  stroke-width: 6;
+}
+
+.ci-arch-art .bloom {
+  fill: #c9459b;
+  stroke: #6b1f4f;
+  stroke-width: 0.8;
+}
+
+.ci-arch-art .crater-rim {
+  fill: #3a3431;
+  stroke: #d0672f;
+  stroke-width: 2.2;
+}
+
+.ci-arch-art .crater {
+  fill: #3f7f86;
+  stroke: #1f3f44;
+  stroke-width: 1;
+}
+
+.ci-arch-art .steam {
+  fill: none;
+  stroke: #f6efe0;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.ci-arch-art .ink path,
+.ci-arch-art .ink circle,
+.ci-arch-art .ink line,
+.ci-arch-art .ink rect {
+  fill: none;
+  stroke: #2a2014;
+  stroke-width: 1.3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.ci-arch-art .ink .fill-light {
+  fill: #f6ecd2;
+}
+.ci-arch-art .ink .fill-dark {
+  fill: #3a2c1c;
+}
+.ci-arch-art .ink .fill-stone {
+  fill: #e4d6b6;
+}
+.ci-arch-art .ink .fill-roof {
+  fill: #c0573a;
+}
+.ci-arch-art .ink .fill-canopy {
+  fill: #2f5e34;
+}
+.ci-arch-art .ink .fill-wood {
+  fill: #9a6a3a;
+}
+.ci-arch-art .ink .fill-rock {
+  fill: #8d8a80;
+}
+.ci-arch-art .ink .fill-snow {
+  fill: #fbf7ee;
+}
+.ci-arch-art .ink .fill-pine {
+  fill: #2f5439;
+}
+.ci-arch-art .ink .fill-mesa {
+  fill: #b87a3e;
+}
+.ci-arch-art .ink .fill-cactus {
+  fill: #5d8a4b;
+}
+.ci-arch-art .ink .fill-brass {
+  fill: #c89a3c;
+}
+
+.ci-arch-art .ink .rays {
+  stroke: #d59a1f;
+  stroke-width: 1.6;
+}
+
+.ci-arch-here {
+  fill: none;
+  stroke: #b88422;
+  stroke-width: 2;
+  stroke-dasharray: 6 7;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ci-arch-spin 24s linear infinite;
+}
+
+@keyframes ci-arch-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ci-arch-pennant line {
+  stroke: #2a2014;
+  stroke-width: 1.6;
+}
+
+.ci-arch-pennant path {
+  fill: #b3322c;
+  stroke: #5a1411;
+  stroke-width: 0.8;
+}
+
+.ci-arch-badge circle {
+  fill: #203240;
+  stroke: #e8c88a;
+  stroke-width: 2;
+}
+
+.ci-arch-badge text {
+  fill: #fff4d8;
+  font: 800 12px var(--ci-ui);
+  letter-spacing: 0.04em;
+  text-anchor: middle;
+}
+
+.ci-arch-island.current .ci-arch-badge circle {
+  fill: #b88422;
+  stroke: #fff4d8;
+}
+
+.ci-arch-island.current .ci-arch-badge text {
+  fill: #1b1206;
+}
+
+.ci-arch-lock circle {
+  fill: #ecdcb0;
+  stroke: #5a3f1f;
+  stroke-width: 1.2;
+}
+
+.ci-arch-lock path,
+.ci-arch-lock rect {
+  fill: none;
+  stroke: #3b2a14;
+  stroke-width: 1.3;
+}
+
+.ci-arch-lock rect {
+  fill: #5a3f1f;
+}
+
+.ci-arch-label text {
+  text-anchor: middle;
+  paint-order: stroke fill;
+  stroke: rgba(236, 220, 176, 0.92);
+  stroke-linejoin: round;
+}
+
+.ci-arch-label .name {
+  fill: #2a1d0e;
+  font: 600 19px var(--ci-display);
+  stroke-width: 5px;
+}
+
+.ci-arch-label .topic {
+  fill: #6b4a20;
+  font: 800 10.5px var(--ci-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  stroke-width: 4px;
+}
+
+.ci-arch-island.locked .ci-arch-label .name {
+  fill: #4a3a26;
+}
+
+.ci-chart.archipelago .ci-chart-side {
+  align-items: stretch;
+  overflow: auto;
+}
+
+.ci-island-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 1.15rem 1.2rem 1.25rem;
+  border: 1px solid rgba(86, 57, 30, 0.35);
+  border-radius: 1rem;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.35), transparent 40%), #efe0b8;
+  color: #2a2115;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
+}
+
+.ci-island-card header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.ci-island-card .num {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 2px solid #e8c88a;
+  border-radius: 50%;
+  background: #203240;
+  color: #fff4d8;
+  font: 800 0.95rem/1 var(--ci-ui);
+}
+
+.ci-island-card.current .num {
+  background: #b88422;
+  border-color: #fff4d8;
+  color: #1b1206;
+}
+
+.ci-island-card .eyebrow {
+  margin: 0 0 0.2rem;
+  color: #7a5226;
+  font: 800 0.68rem/1.2 var(--ci-ui);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ci-island-card h3 {
+  margin: 0;
+  font: 500 1.5rem/1.05 var(--ci-display);
+}
+
+.ci-island-card .topic {
+  margin: 0.2rem 0 0;
+  color: #203240;
+  font: 700 1.02rem/1.3 var(--ci-ui);
+}
+
+.ci-island-card .status {
+  align-self: flex-start;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(86, 57, 30, 0.14);
+  color: #5a3f1f;
+  font: 800 0.66rem/1.2 var(--ci-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ci-island-card .status.current {
+  background: #b88422;
+  color: #1b1206;
+}
+
+.ci-island-card .status.visited {
+  background: #3f7a55;
+  color: #f4f9ef;
+}
+
+.ci-island-card .blurb {
+  margin: 0.15rem 0 0.2rem;
+  color: #4a3a26;
+  font: italic 0.95rem/1.45 var(--ci-display);
+}
+
+.ci-island-card h4 {
+  margin: 0.35rem 0 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(86, 57, 30, 0.22);
+  color: #7a5226;
+  font: 800 0.7rem/1.2 var(--ci-ui);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ci-island-card ul {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.1rem 0 0.4rem;
+  padding: 0;
+  list-style: none;
+}
+
+.ci-island-card li {
+  position: relative;
+  padding-left: 1.25rem;
+  font: 600 0.9rem/1.35 var(--ci-ui);
+}
+
+.ci-island-card li::before {
+  content: '';
+  position: absolute;
+  left: 0.15rem;
+  top: 0.42em;
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 1.5px solid #b88422;
+  transform: rotate(45deg);
+}
+
+.ci-island-card .hint {
+  margin: 0.2rem 0 0;
+  color: #6b4a20;
+  font: 600 0.85rem/1.4 var(--ci-ui);
+}
+
+.ci-island-card button {
+  align-self: flex-start;
+  min-height: 2.6rem;
+  margin-top: 0.3rem;
+  padding: 0 1.2rem;
+  border: 1px solid rgba(86, 57, 30, 0.4);
+  border-radius: 999px;
+  background: linear-gradient(#f5d994, #bf8f3c);
+  color: #10202a;
+  font: 800 0.78rem/1 var(--ci-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* Tall or narrow windows: the chart takes the full width and the card sits underneath. */
+@media (max-aspect-ratio: 5/4), (max-width: 900px) {
+  .ci-chart-panel .ci-panel {
+    overflow: auto;
+  }
+
+  .ci-chart-panel .ci-chart {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+  }
+
+  .ci-chart-map svg {
+    height: auto;
+  }
+
+  .ci-chart.archipelago .ci-chart-side,
+  .ci-chart.zoomed .ci-chart-side {
+    overflow: visible;
+  }
+}
+
+.ci-chart.archipelago .ci-chart-map,
+.ci-chart.zoomed .ci-chart-map {
+  align-items: start;
+}
+
+.ci-chart.archipelago .ci-chart-side {
+  align-items: flex-start;
+}
+
+.ci-chart-panel .ci-chart-map svg {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 10 / 7;
+}
+
+/* The panel hugs the chart instead of filling the screen height. */
+@media (min-aspect-ratio: 5/4) and (min-width: 901px) {
+  .ci-chart-panel .ci-panel {
+    height: auto;
+  }
+
+  .ci-chart-panel .ci-chart-map svg {
+    width: 100%;
+    max-height: calc(100dvh - 15rem);
+  }
+}
+
+/* Settings cards: the title sits inside the card as a header with a rule, not on the border. */
+.ci-settings-grid {
+  gap: 1.1rem;
+}
+
+.ci-settings-group {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.ci-settings-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.95rem 1.2rem 0.85rem;
+  border-bottom: 1px solid rgba(232, 200, 138, 0.16);
+  background: linear-gradient(180deg, rgba(232, 200, 138, 0.08), rgba(232, 200, 138, 0.02));
+}
+
+.ci-settings-title::before {
+  content: '';
+  width: 0.42rem;
+  height: 0.42rem;
+  border: 1.5px solid var(--ci-gold);
+  transform: rotate(45deg);
+}
+
+.ci-settings-body {
+  padding: 0.35rem 1.2rem 0.75rem;
+}
+
+.ci-settings-body .ci-setting-row {
+  margin: 0.8rem 0;
+}
+
+.ci-settings-body .ci-setting-row select {
+  padding: 0 0.6rem;
+  font: 600 0.9rem/1 var(--ci-ui);
+}
+
+.ci-settings-body .ci-setting-row input[type='checkbox'] {
+  justify-self: start;
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--ci-gold);
+}
+
+.ci-settings-body .ci-sail-swatches {
+  margin: 0.6rem 0 0.4rem;
+}
+
+/* Title menu: a little more air between the buttons. */
+.ci-screen-title .ci-menu-list {
+  gap: 0.85rem;
+}
+
+.ci-screen-title .ci-menu-button {
+  min-height: 3.35rem;
+}
+
+.ci-screen-title .ci-subtitle {
+  margin-bottom: 2.8rem;
+}
+
+/* Panels include their padding in the width so they never spill past a narrow window. */
+.ci-panel {
+  box-sizing: border-box;
+}
+
+.ci-control-column .ci-settings-title {
+  margin: 0;
+}
+
+/* Title: a quiet nudge that the scene can be turned, gone once you've tried it. */
+.ci-title-hint {
+  position: fixed;
+  right: clamp(1.2rem, 3vw, 2.4rem);
+  bottom: clamp(1rem, 3vh, 2rem);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid rgba(232, 200, 138, 0.22);
+  border-radius: 999px;
+  background: rgba(7, 19, 30, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: rgba(255, 246, 225, 0.86);
+  font: 600 0.78rem/1 var(--ci-ui);
+  letter-spacing: 0.04em;
+  text-shadow: none;
+  pointer-events: none;
+  opacity: 0;
+  animation: ci-hint-in 0.8s ease 2.5s forwards;
+  transition: opacity 0.6s ease;
+}
+
+.ci-title-hint svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: var(--ci-gold);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ci-title-dragged .ci-title-hint {
+  animation: none;
+  opacity: 0;
+}
+
+@keyframes ci-hint-in {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 840px) {
+  .ci-title-hint {
+    display: none;
+  }
 }
