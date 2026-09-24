@@ -191,6 +191,7 @@ The town's districts mirror the app's sidebar:
 - **Rapier** (WASM physics), limited to **primitive static colliders** (boxes, capsules, heightfield), scene queries, and the **kinematic character controller**. The POC has no dynamic rigid bodies: push blocks are grid logic, and the boat is a kinematic hull on analytic buoyancy
 - **React DOM overlay** for menus, dialogue, quizzes, map, and logbook, plus a small store (e.g. Zustand) to bridge the game and the UI
 - **Custom Web Audio engine** (AudioWorklet + OfflineAudioContext) for procedural music, ambience, and SFX, plus streamed voice lines
+- **Vite code splitting** (dynamic `import()` chunks), a **pack builder** with a hashed `manifest.json`, and a **Workbox Service Worker** for modular loading and caching (§13)
 - **gltf-transform** (meshopt + KTX2) and headless **Blender** scripts to restyle and optimize CC0 assets
 - **Vitest** (quiz/puzzle/save logic) + **Playwright** (menu flows, visual smoke tests)
 - Hosting: **GitHub Pages**. A GitHub Actions workflow builds `dist/` and deploys it with `actions/upload-pages-artifact`. There's **no Git LFS** (Pages would serve LFS pointer files) and **no Releases-hosted bundles** (release downloads redirect cross-origin, so browsers can't reliably fetch them from the Pages site). Generated voice files and compressed textures are small enough to commit directly. Limits to keep in mind: every file < 100 MB, the site < 1 GB, and a soft bandwidth cap of ~100 GB/month
@@ -253,7 +254,7 @@ Our water has to cover **open-ocean swell, surf, lagoons, harbors, and flowing w
 ### Quality tiers & budgets
 - **Low / Medium / High / Ultra** presets, plus resolution scale. The full per-tier budgets and efficiency rules are in **§12**.
 - Targets: **60 fps @1080p** on an M1/M2 MacBook Air or RTX 3050-class machine at High, and **30+ fps** on Intel Iris Xe at Low.
-- Download size: **under 25 MB** before the title screen. The title is ocean, sky, clouds, and the ship only, and each island streams in on demand.
+- Download size: **≤ 4 MB to an interactive title**. The title is ocean, sky, clouds, and the ship only. Code and content load on demand as modules and packs (**§13**).
 
 ### Three possible art approaches
 | Option | Look | Speed | Notes |
@@ -324,7 +325,7 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 
 | Phase | Deliverable | Gate |
 |---|---|---|
-| **0 · Look, sound & perf spike** | One frame that shows **the clipmap ocean, one restyled building cluster, a dressed pirate, and ≥ 8 skinned NPCs**, plus sky, clouds, character + camera, sailing and docking the brigantine, a prototype of the procedural music engine (one island theme), the voice pipeline (a few lines), and the debug HUD + benchmark flythrough (which also measures physics time).<br>**Water must show every layer of the Water system**: Gerstner swell → calm lagoon with **refraction + absorption + caustics**, shoreline/reef foam and **beach run-up**, **analytic wake + bow wave + hull cut-out**, a flow-map channel, and the **High-tier harbor mirror**.<br>Also required: cached shadows, sun shafts, the shared wind (grass, palms, sails), mist/height fog, adaptive resolution, and the `shot()` debug API.<br>It must **hit the §12 budgets** on reference hardware, with each water layer's cost measured separately | You approve the *look*, the *sound*, and the *frame rate* |
+| **0 · Look, sound & perf spike** | One frame that shows **the clipmap ocean, one restyled building cluster, a dressed pirate, and ≥ 8 skinned NPCs**, plus sky, clouds, character + camera, sailing and docking the brigantine, a prototype of the procedural music engine (one island theme), the voice pipeline (a few lines), and the debug HUD + benchmark flythrough (which also measures physics time).<br>**Water must show every layer of the Water system**: Gerstner swell → calm lagoon with **refraction + absorption + caustics**, shoreline/reef foam and **beach run-up**, **analytic wake + bow wave + hull cut-out**, a flow-map channel, and the **High-tier harbor mirror**.<br>Also required: cached shadows, sun shafts, the shared wind (grass, palms, sails), mist/height fog, adaptive resolution, the `shot()` debug API, and the **§13 loading skeleton** (boot/title chunk split, the manifest + one streamed pack, and the Service Worker), with its §13.5 title budget measured.<br>It must **hit the §12 budgets** on reference hardware, with each water layer's cost measured separately | You approve the *look*, the *sound*, and the *frame rate* |
 | **1 · Proof of concept** | **Islands 00 + 01 fully playable**, plus all core systems: menu, character creation, dialogue, chests/logbook, all quiz types, puzzle toolkit, map/fast travel, settings, save, audio. **Vertical-slice gate first:** Anchorage Q0.2-Q0.8 fully playable with real TTS before the rest of the content is built | You approve the *slice*, then the *fun & teaching* |
 | **2 · Expansion** | Islands 02-04 | |
 | **3 · Complete** | Islands 05-07 + finale, certificate, polish, accessibility audit, perf pass, credits, deploy | |
@@ -346,6 +347,8 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 | Trademarks & affiliation (Octocat, Copilot logo, product name) | The MIT license covers the course's copyright, not GitHub's trademarks. We include the **full MIT notice** in the credits, keep screenshots as screenshots, and **never model or generate the Octocat or Copilot logo**. An **affiliation line** (e.g. "Unofficial fan project…" vs official wording) is a **required decision before the first public deploy** |
 | Film likeness (the "Pirates of the Caribbean" ship brief) | Build a generic Golden Age brigantine. Don't replicate any specific film ship's distinctive design |
 | GitHub Pages bandwidth (~100 GB/month soft cap) | Keep the per-island downloads small, use Service Worker caching, and monitor. Move to a CDN if the game gets popular |
+| Service Worker serves stale or mixed versions | Content-hashed immutable URLs, a network-first manifest, new versions activated only at the title screen, and old packs kept until the new ones verify |
+| Player outruns streaming (fast travel, fast sailing) | Critical packs kept small (≤ 8 MB), prefetch starting at the Trial, a diegetic fog-bank slowdown, and a lighthouse transition with progress |
 | Scope (8 islands of bespoke content) | Data-driven content + a reusable puzzle toolkit + a shared template per island |
 
 ## 12. Efficiency (rendering & runtime)
@@ -364,7 +367,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 | Water | PMREM reflection, absorption (no refraction offset), foam, wake | + refraction offset, caustics, flotsam | + **planar mirror in calm zones** (half-res), boat shadow march | + wading/rain detail |
 | Post FX | Tone map + grade + vignette + grain/dither | + bloom, screen-space radial shafts | + SSAO (half-res), **shadow-map sun shafts** | + DOF, full-res AO |
 | JS main thread per frame | < 6 ms | < 5 ms | < 4 ms | < 4 ms |
-| Initial download (to title) | < 25 MB on every tier. The title is ocean, sky, clouds, and the ship, with no island | | | |
+| Initial download (to title) | **≤ 4 MB, interactive in ≤ 3 s at 25 Mbps** on every tier (see §13.5). The title is ocean, sky, clouds, and the ship, with no island | | | |
 
 ### 12.2 Draw calls & batching *(your "minimize draw calls")*
 - **InstancedMesh / BatchedMesh** for vegetation, rocks, crates, barrels, fences, and modular building parts. Each chunk gets its own instance set, so culling still works per chunk.
@@ -404,11 +407,10 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - **Shaders compile during loading.** We call `compileAsync` / `renderer.compile()` with **every object temporarily visible and all layers enabled**, so there's no hitch the first time something appears on screen. Loading runs as staged builds that yield between stages (via `MessageChannel`) and report progress to the loader.
 
 ### 12.6 Streaming & async loading *(your "asynchronous loading")*
-- **Islands stream in by distance** while you sail. We prefetch the next island once it's within range and unload anything two hops away.
+- The full design is **§13 Modular loading**: code splitting, asset packs, and world streaming.
 - **KTX2 transcoding and meshopt decoding run in Web Workers.**
 - **Time-sliced GPU uploads** push only a few textures or meshes per frame, so streaming never causes a frame spike.
-- A **Service Worker** caches assets so return visits load instantly and the game can work offline (PWA).
-- The title screen is **ocean, sky, clouds, and the player's ship** (at most one distant impostor island), so the menu appears in a couple of seconds. The first island starts streaming only after New Voyage/Continue.
+- The title screen is **ocean, sky, clouds, and the player's ship** (at most one distant impostor island), so the menu appears in a couple of seconds. The first island starts streaming after New Voyage/Continue (or is prefetched while you sit on the title, §13.4).
 
 ### 12.7 Compression & memory *(your "compress textures and audio")*
 - **Textures: KTX2/Basis**, with UASTC for normal maps and ETC1S for albedo. They stay **compressed in VRAM**, using 4-8× less memory than PNG/JPG. Mipmaps are always on.
@@ -438,3 +440,90 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - **Debug API** (dev builds only, e.g. `window.__isles`): `info()`, `setRes()`, `setPreset()`/`setTime()`, and a deterministic **`shot(id)`** that places the camera, freezes time, and renders one frame. Playwright uses it for **visual-regression screenshots** and for the benchmark.
 - A **benchmark flythrough** follows a fixed camera path across the ocean, into the town, and through a dialogue scene. It reports average FPS and 1% lows, and we run it before merging any visual change.
 - For deeper profiling we'll use Chrome Performance traces and Spector.js frame captures.
+
+---
+
+## 13. Modular loading (code splitting, asset packs & world streaming)
+
+**Terminology:**
+- **Code** is split into **chunks** that are lazy-loaded with dynamic `import()`. This is *code splitting*.
+- **Content** ships as **asset packs** (also called asset bundles), which are **streamed** per island and per zone. This is *level/world streaming*. Unity calls this **Addressables**, and Unreal calls it **pak chunks + World Partition**.
+- The goal is to download and hold **only what the player is about to need**. That makes the first load faster, and it cuts memory, JS parse time, shader compiles, and GPU residency during play.
+
+### 13.1 Code chunks (Vite dynamic `import()`)
+| Chunk | Contents | Loaded when |
+|---|---|---|
+| `boot` (entry) | Renderer init, loader UI, input, settings, save, menu shell, the **title scene** (ocean/sky/ship shaders), module loader + manifest client | Page load |
+| `vendor-three` | three.js (measured **184 KB gz** for the whole library, less after tree-shaking). Its own long-lived hashed chunk | Page load (parallel) |
+| `game-core` | Player controller, camera, dialogue runtime, quest/event system, HUD, Logbook, Chart, quiz runtime | Prefetched while the title is idle. Required at New Voyage/Continue |
+| `char-create` | Character creator | New Voyage |
+| `sailing` | Boat kinematics, analytic buoyancy, autopilot planner, wake uniforms | First time you board |
+| `physics` | Rapier (WASM) for on-foot collision. **Use the separate-`.wasm` build with streaming compile** (`WebAssembly.compileStreaming`) rather than the "compat" build, which inlines base64 WASM (**measured ~1.06 MB gz**) | First time you step onto an island. Not needed for the title or while sailing |
+| `audio-composer` + `palette-<island>` | Procedural music engine + each island's instrument/mode data | After the first user gesture (audio unlock). Palettes per island |
+| `puzzle-<type>` | Sluice, crane, push-block, pillars, helms | Prefetched within ~50 m of the puzzle |
+| `island-<nn>` | That island's build code + **compiled content JSON** (dialogue, quizzes, puzzles, NPCs, lighting and music presets) | With the island's packs (§13.3) |
+| `dev-*` | Debug HUD, Hotspot Editor, `window.__isles` | **Dev builds only**. Never shipped |
+
+`import.meta.glob('./islands/*/index.ts')` registers islands without importing them. Vite's preload helper emits `modulepreload` hints for each chunk's dependencies.
+
+### 13.2 Asset packs & the manifest
+- A build step (`tools/packs/build.ts`) groups assets into **content-hashed packs** and writes `manifest.json`:
+  - `common`: player m/f, parrot, brigantine, UI ornaments
+  - **shared kits**: `kit-tropical`, `kit-mediterranean`, … (shared by islands with the same biome)
+  - **per-island packs**, split by kind (`geo`, `tex-<tier>`, `voice`, `shots`) and **by zone** (`anchorage/village`, `meridian/citadel`, …)
+- **Quality variants:** Low/Medium download 1K textures and High/Ultra download 2K. A player only ever downloads their own tier.
+- **Manifest entries** list the URL, byte size, hash, dependencies (e.g. `island-00 → kit-tropical, common`), priority class (`critical` / `near` / `later`), and the zone bounds that trigger loading.
+```json
+{ "v": 12, "packs": {
+  "island-00/critical": { "url": "packs/i00-crit.3f9a1c.bin", "bytes": 6800000, "deps": ["common/critical", "kit-tropical"], "class": "critical" },
+  "island-00/village":  { "url": "packs/i00-vil.b21e07.bin",  "bytes": 5200000, "deps": ["island-00/critical"], "class": "near", "zone": [ -40, 10, 120, 90 ] },
+  "island-00/voice-nell": { "url": "voice/i00-nell.8c2d11.webm", "bytes": 310000, "class": "near", "npc": "nell" } } }
+```
+- **CI budget check:** the build **fails if any pack, or any critical path in §13.5, exceeds its budget**.
+
+### 13.3 Streaming scheduler
+- **Priority queue:** `critical` (needed to play here, now) > `near` (the zone you're walking into, the NPC you're approaching, a puzzle ahead) > `later` (the next island, optional areas).
+- **Up to 4-6 concurrent fetches**, each cancellable with `AbortController` when priorities change (e.g. you fast travel elsewhere mid-download).
+- **Decode & upload throttling:** KTX2 and meshopt run in a worker pool, and screenshots decode with `createImageBitmap`. GPU uploads are limited to **~2 ms per frame during play** (unlimited behind transitions). Decode pauses while frame time is over budget.
+- **Shader warm-up per island:** `compileAsync` for that island's materials runs **behind the arrival transition or the sea passage**, never on first sight.
+- **Residency states:** `remote` → `cached` (on disk via the Service Worker) → `decoded` (CPU memory) → `resident` (on the GPU). Eviction is **LRU against each tier's GPU/CPU memory budget** (§12.1). Normally that means the current island is resident, the next one is decoded, and islands two hops away are released (`dispose()`).
+- **Network awareness:** with `navigator.connection.saveData` or a slow `effectiveType`, prefetching is limited to `critical` + `near`. Settings offers **"Download all islands for offline play"**, shows storage used, and has a "Clear downloaded content" button.
+
+### 13.4 When things load (hidden inside play)
+| Moment | What loads | How it's hidden |
+|---|---|---|
+| Page load → title | `boot` + `vendor-three` + title assets | Brush-stroke loader (≤ 3 s target) |
+| Title idle (5 s, no Save-Data) | `game-core`, `common/critical`, and the **saved island's critical pack** (Continue) or **island-00 critical** (new players) | Invisible |
+| New Voyage | `char-create` now, then island-00 critical + `physics` + `sailing` | **Character creation + the 45 s intro** cover it |
+| Walking an island | `near` zone packs, NPC voice files (~60 m radius), screenshots for nearby chests/NPCs, puzzle chunks (~50 m) | Invisible, since they're already loaded when you arrive |
+| Trial started / lighthouse lit | Next island's `critical` + its kit at `later` priority | Invisible |
+| **"Set sail"** | Next island raised to `critical`/`near` priority | **The sea passage (~2.5-4 min)** needs only ~1.1 Mbps to finish 20 MB |
+| Arriving before it's ready | Remaining critical assets | **A diegetic fog bank** ("the fog of scattered evidence") slows the ship near the harbor until the critical pack is resident. It never shows a loading screen |
+| Fast travel (Chart) | Destination critical pack | **Lighthouse-beam transition**: ≤ 2 s if cached, ≤ 10 s uncached at 25 Mbps, with progress shown |
+| Returning visitor | Everything from the Service Worker cache | Title ≤ 1.5 s |
+
+### 13.5 Load budgets (over the wire, gzip, High tier)
+| Item | Budget |
+|---|---|
+| `boot` JS | ≤ 150 KB gz |
+| `vendor-three` | ≤ 190 KB gz |
+| Title assets (sky, ocean, ship) | ≤ 3.5 MB |
+| **→ Interactive title (cold)** | **≤ 4 MB, ≤ 3 s at 25 Mbps** |
+| `game-core` + `sailing` + `physics` | ≤ 1.5 MB |
+| `common/critical` | ≤ 4 MB |
+| Island `critical` pack (terrain, colliders, near buildings, first NPCs' voice) | ≤ 8 MB |
+| **→ First playable after New Voyage, if every cinematic is skipped** | **≤ 14 MB, ≤ 6 s at 25 Mbps** |
+| Whole island, all zones incl. voice + screenshots | ≤ 20 MB High / ≤ 10 MB Low |
+
+### 13.6 Caching & updates (GitHub Pages specifics)
+- **GitHub Pages sends `Cache-Control: max-age=600` and gzip only** (no Brotli, verified), and we can't change its headers. A **Service Worker (Workbox)** therefore provides long-term caching:
+  - precaches `boot` + `vendor-three` + title assets
+  - **cache-first for content-hashed URLs**, which are immutable
+  - **network-first for `manifest.json`**
+- Heavy assets are already compressed formats (KTX2, meshopt, Opus), so the lack of Brotli only costs ~10-15% on JS.
+- **Safe updates:** a new manifest version downloads in the background. The SW **only activates the new version at the title screen** (never mid-session), and old packs are kept until the new ones verify. `navigator.storage.persist()` is requested when the player enables offline play.
+- Phase 0 verifies that Pages serves `.wasm` as `application/wasm`, which streaming compile needs. If it doesn't, we fall back to the compat build.
+
+### 13.7 Verification
+- The **Playwright** suite runs throttled network profiles (25 Mbps broadband, 9 Mbps "fast 4G") and asserts the §13.5 timings: title interactive, first playable, fast travel cached/uncached, and that a sea passage finishes its prefetch before arrival.
+- The **debug HUD** shows pack residency, the download queue, bytes/s, and GPU memory per pack.

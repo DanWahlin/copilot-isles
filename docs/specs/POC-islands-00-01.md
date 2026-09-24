@@ -74,7 +74,7 @@ Boot ─▶ Title (live 3D) ─▶ New Voyage ─▶ Character Creation ─▶ I
 ## 3. Shared systems (POC requirements)
 
 ### 3.1 Title & menus
-- **Title backdrop:** **ocean, sky, clouds, and your brigantine at anchor**, plus at most one distant impostor silhouette of an island on the horizon. The camera orbits slowly at golden hour, gulls circle, and the logo fades in using Fraunces at weight 300 with generous letter-spacing. Anchorage Cay streams in only after **New Voyage** or **Continue**, which keeps the title under the 25 MB budget (PLAN §12.6).
+- **Title backdrop:** **ocean, sky, clouds, and your brigantine at anchor**, plus at most one distant impostor silhouette of an island on the horizon. The camera orbits slowly at golden hour, gulls circle, and the logo fades in using Fraunces at weight 300 with generous letter-spacing. Anchorage Cay streams in only after **New Voyage** or **Continue** (or quietly while the title sits idle), which keeps the title within its **≤ 4 MB** budget (PLAN §13).
 - **Affiliation line:** a small line under the logo and in the credits. Its wording is a **required decision before the first public deploy** (see §10). It doesn't block Phase 0.
 - **Main menu:** Continue (if a save exists) · New Voyage · Captain's Chart · Logbook · Settings · Controls · Credits · Quit. Quit saves and returns to the title, with a note that you can close the tab.
 - **Pause menu (Esc):** Resume · Captain's Chart · Logbook · Settings · Controls · Save & Return to Title.
@@ -358,7 +358,7 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 - **Buoys** mark the channel. The **citadel** grows on the horizon. Port Meridian's mountain ridge and the far ranges sit behind it.
 - **Optional moments:** a dolphin pod rides the bow wave, there's a sea-stack arch to sail through (hidden achievement), and a floating bottle **B0.4** holds a teaser: *"Why a whole app? Ask the merchant in Port Meridian."*
 - **Music:** the sailing theme, with pads that swell with the wave height, crossfades into the Port Meridian theme within 250 m of the harbor.
-- **Streaming:** Port Meridian high-LOD loads during the sail (prefetch triggers as you leave the berth). Anchorage drops to medium LOD past 400 m and to a silhouette past 900 m.
+- **Streaming:** Port Meridian's **critical pack is prefetched from the moment the Harbormaster's Trial starts** and raised to top priority when you set sail. Anchorage drops to medium LOD past 400 m and to a silhouette past 900 m. If you'd arrive before the critical pack is resident, a **fog bank** gently slows the ship near the harbor (PLAN §13.4).
 - **Docking:** once you're within 25 m of the harbor berth below half speed, a soft auto-assist docks you and you step onto the quay.
 
 ---
@@ -599,7 +599,8 @@ Nine items. Pass with all correct (retries allowed, hint tier 3 off). All six ke
 - [ ] The chart supports sail-to and fast travel. Free explore can enter Anchorage Cay and Port Meridian in either order, and 02-07 are visible but can't be entered.
 - [ ] Save/continue works across reloads, puzzles restore to their checkpoints, and export/import works.
 - [ ] The High tier holds 60 fps on an M1/M2 Air, the Low tier holds 30+ fps on Iris Xe, and no frame spikes over 50 ms during streaming.
-- [ ] The title (ocean, sky, clouds, and the ship) appears in under 25 MB, and Anchorage isn't part of that download.
+- [ ] The title (ocean, sky, clouds, and the ship) is interactive at **≤ 4 MB / ≤ 3 s at 25 Mbps**, and Anchorage isn't part of that download.
+- [ ] **Modular loading (PLAN §13):** code chunks and island/zone packs load on demand. First playable is ≤ 14 MB / ≤ 6 s even with every cinematic skipped. The Open Sea passage finishes Port Meridian's prefetch before arrival at 25 Mbps. Fast travel takes ≤ 2 s when cached. Throttled Playwright tests assert all of these.
 - [ ] The Appendix A exit quiz is implemented with hints off.
 - [ ] No API keys appear in the build output. A CI grep checks for key-like strings.
 - [ ] Credits include the course's full MIT notice, the CC0 kits, and the synthetic-voice disclosure.
