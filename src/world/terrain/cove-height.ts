@@ -310,7 +310,18 @@ export function coveHeight(x: number, z: number): number {
   const lowLand = 1.15 + 4.5 * interior + hill * 0.82;
   const landNoise =
     fbm2(x * 0.032, z * 0.032, 5, SEED + 616) * 1.2 + ridged2(x * 0.08, z * 0.08, 3, SEED + 617) * 0.65;
-  let h = coast.distance >= 0 ? lowLand + landNoise * smoothstep(4, 35, coast.distance) : sea;
+  const harborBack =
+    smoothstep(COVE.quay.x0 - 28, COVE.quay.x0 - 2, x) *
+    (1 - smoothstep(COVE.quay.x1 + 2, COVE.quay.x1 + 34, x)) *
+    smoothstep(-76, -58, z) *
+    (1 - smoothstep(-38, -16, z));
+  const shoreRamp = -0.2 + coast.distance * 0.055 + fbm2(x * 0.055, z * 0.055, 3, SEED + 1601) * 0.14;
+  const shoreBlend = smoothstep(36, 90, coast.distance);
+  let h =
+    coast.distance >= 0
+      ? mix(shoreRamp, lowLand + landNoise * smoothstep(4, 35, coast.distance), shoreBlend)
+      : sea;
+  h = mix(h, Math.max(h, 1.1 + coast.distance * 0.12), harborBack * (1 - smoothstep(4, 30, coast.distance)));
   const hillMask =
     gaussian((x - COVE.hill.center.x) / (COVE.hill.radius * 0.8), 1) *
     gaussian((z - COVE.hill.center.z) / COVE.hill.radius, 1);

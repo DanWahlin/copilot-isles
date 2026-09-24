@@ -110,11 +110,70 @@ function shoreAndStackRocks(out: RockInstance[]): void {
   }
 }
 
+function coveCoastRocks(out: RockInstance[]): void {
+  for (let i = 0; i < 34; i++) {
+    const t = i / 33;
+    const angle = Math.PI * (0.72 + t * 0.68);
+    const rx = COVE.island.halfX + 5 + rand(i + 410) * 12;
+    const rz = COVE.island.halfZ + 3 + rand(i + 411) * 9;
+    const x = Math.cos(angle) * rx + (rand(i + 412) - 0.5) * 7;
+    const z = Math.sin(angle) * rz + (rand(i + 413) - 0.5) * 7;
+    if (z > COVE.beach.z0 - 10 && Math.abs(x) < 150) continue;
+    const s = 1.8 + rand(i + 414) * 5.2;
+    out.push({
+      asset: i % 3,
+      x,
+      z,
+      sx: s * (1.4 + rand(i + 415)),
+      sy: s * (0.45 + rand(i + 416) * 0.65),
+      sz: s * (0.8 + rand(i + 417) * 0.9),
+      yaw: rand(i + 418) * Math.PI * 2,
+      pitch: (rand(i + 419) - 0.5) * 0.18,
+      roll: (rand(i + 420) - 0.5) * 0.22,
+      yOffset: -0.75,
+    });
+  }
+
+  for (let i = 0; i < 18; i++) {
+    const t = i / 17;
+    const x = -158 + t * 95 + (rand(i + 520) - 0.5) * 7;
+    const z = -32 + Math.sin(t * Math.PI * 2) * 5 + (rand(i + 521) - 0.5) * 5;
+    const s = 1.7 + rand(i + 522) * 3.2;
+    out.push({
+      asset: (i + 1) % 3,
+      x,
+      z,
+      sx: s * (1.8 + rand(i + 523) * 1.2),
+      sy: s * (0.5 + rand(i + 524) * 0.45),
+      sz: s * (0.8 + rand(i + 525) * 0.75),
+      yaw: rand(i + 526) * Math.PI * 2,
+      yOffset: -0.35,
+    });
+  }
+
+  for (let i = 0; i < 28; i++) {
+    const x = -82 + rand(i + 620) * 150;
+    const z = -58 + rand(i + 621) * 98;
+    const s = 1.3 + rand(i + 622) * 3.6;
+    out.push({
+      asset: i % 3,
+      x,
+      z,
+      sx: s * (1.1 + rand(i + 623) * 0.8),
+      sy: s * (0.42 + rand(i + 624) * 0.55),
+      sz: s * (0.9 + rand(i + 625) * 0.7),
+      yaw: rand(i + 626) * Math.PI * 2,
+      yOffset: -0.28,
+    });
+  }
+}
+
 function allRockInstances(): RockInstance[] {
   const out: RockInstance[] = [];
   headlandBaseRocks(out);
   cliffFaceAndTopRocks(out);
   shoreAndStackRocks(out);
+  coveCoastRocks(out);
   return out;
 }
 
