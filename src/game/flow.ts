@@ -163,7 +163,7 @@ export class GameFlow implements GameBridge {
   openChart(): void {
     const from = this.state.screen;
     this.session?.setPaused(true);
-    const anchors = this.cove?.village.anchors ?? {};
+    const anchors = this.cove ? { ...this.cove.village.anchors, ...this.cove.sites.anchors } : {};
     this.set({
       screen: 'chart',
       returnTo: from === 'playing' ? 'playing' : from === 'paused' ? 'paused' : 'title',
@@ -200,7 +200,9 @@ export class GameFlow implements GameBridge {
 
   travelTo(pointId: string): void {
     if (!this.session || !this.cove) return;
-    const p = coveTravelPoints(this.cove.village.anchors).find((q) => q.id === pointId);
+    const p = coveTravelPoints({ ...this.cove.village.anchors, ...this.cove.sites.anchors }).find(
+      (q) => q.id === pointId,
+    );
     if (!p) return;
     const session = this.session;
     void (async () => {

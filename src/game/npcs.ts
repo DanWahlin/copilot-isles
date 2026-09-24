@@ -143,6 +143,14 @@ export const COVE_NPCS: NpcSpec[] = [
     ],
   },
   {
+    id: 'lyra',
+    name: 'Lyra Wren',
+    anchor: 'lyra',
+    clip: 'sit',
+    keepY: true,
+    barks: ['Every island has its own tune, Captain.', 'Hush. The reef’s keeping time.'],
+  },
+  {
     id: 'lookout',
     name: 'Lookout',
     anchor: 'lookout',

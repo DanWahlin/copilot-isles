@@ -252,6 +252,16 @@ engine.start();
   paletteVisible: (visible: boolean) => {
     cove.sites.palette.group.visible = visible;
   },
+  hammock: () => {
+    const hammock = cove.sites.hammock;
+    camera.position.set(-18.2, 4.05, 80.8);
+    controls.target.set(hammock.seat.x, hammock.seat.y + 0.55, hammock.seat.z + 0.6);
+    controls.update();
+    return { seat: hammock.seat, spot: hammock.spot, diagnostics: hammock.diagnostics };
+  },
+  hammockVisible: (visible: boolean) => {
+    cove.sites.hammock.group.visible = visible;
+  },
   paletteClearance: () => {
     const box = cove.sites.palette.colliders.boxes[0]!;
     const c = Math.cos(box.rot);

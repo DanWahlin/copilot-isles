@@ -17,6 +17,7 @@ const PUZZLE_ONE_SHOTS = [
   'bottle_pop',
   'coconut_crack',
   'crowd_cheer_small',
+  'lute_strum',
 ] as const;
 const PUZZLE_LOOPS = ['stream', 'waterfall_small', 'wheel_creak'] as const;
 

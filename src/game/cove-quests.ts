@@ -2,8 +2,8 @@ import type { ScriptStep } from './script';
 
 /**
  * Test Cove's slice of the Anchorage Cay quest line (POC §4.4, trimmed for the spike): Nell's papers and
- * the palette stand, Ezra's fork, Bo's deck and gear, the sluice and crane, Juno's first words, the
- * Harbormaster's Trial at the lighthouse, and the christening.
+ * the palette stand, Ezra's fork, Bo's deck and gear, the sluice and crane, Juno's first words, Lyra's
+ * soundcheck (optional), the Harbormaster's Trial at the lighthouse, and the christening.
  */
 export interface QuestDef {
   id: string;
@@ -78,6 +78,14 @@ export const COVE_QUESTS: readonly QuestDef[] = [
     },
   },
   {
+    id: 'Q0.9',
+    title: 'Soundcheck (optional)',
+    steps: {
+      start: 'Lute music’s drifting up from the lagoon. Find Lyra Wren, the bard, at her hammock.',
+      done: 'Setting up the app is like prepping a studio before the first take.',
+    },
+  },
+  {
     id: 'Q0.10',
     title: 'The Harbormaster’s Trial',
     steps: {
@@ -136,6 +144,10 @@ export function npcScript(
       if (q['Q0.11'] === 'start') return { steps: CHRISTENING };
       if (done(q, 'Q0.11')) return { steps: [{ say: 'nell.christen.03' }] };
       return { steps: [{ say: done(q, 'Q0.10') ? 'nell.done.02' : 'nell.done.01' }] };
+
+    case 'lyra':
+      if (q['Q0.9'] === 'start') return { steps: LYRA_SOUNDCHECK };
+      return { steps: [{ say: done(q, 'Q0.9') ? 'lyra.done.01' : 'lyra.idle.01' }] };
 
     case 'merchant':
       if (!done(q, 'Q0.2')) return { steps: [{ say: 'ezra.wait.01' }] };
@@ -265,6 +277,16 @@ const CHRISTENING: readonly ScriptStep[] = [
   { say: 'wingman.sail.02' },
   { say: 'wingman.sail.03' },
   { quest: 'Q0.11', step: 'done' },
+];
+
+/** Lyra's soundcheck (Q0.9, optional): the course's recording-studio theme, and C0.5. */
+const LYRA_SOUNDCHECK: readonly ScriptStep[] = [
+  { say: 'lyra.soundcheck.01' },
+  { say: 'lyra.soundcheck.02' },
+  { page: 'C0.5', doubloons: 10 },
+  { say: 'lyra.soundcheck.03' },
+  { say: 'lyra.soundcheck.04' },
+  { quest: 'Q0.9', step: 'done' },
 ];
 
 /** Juno's opening beat (Q0.8): the course's first prompt, and two fittings on the rail. */

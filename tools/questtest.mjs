@@ -3,7 +3,8 @@
 // stand (Paint Your Sails), Ezra, Bo and his gear rack (Q0.5),
 // Suri's sluice (P0.1),
 // Pim and Pol's Dry-Run Crane (P0.2),
-// the Harbormaster's Trial at the lighthouse, and the christening at the pier head, answered through the real UI where it matters
+// Juno's First Words (Q0.8), the message bottles, Lyra's soundcheck (Q0.9), the Harbormaster's Trial at
+// the lighthouse, and the christening at the pier head, answered through the real UI where it matters
 // (hotspots are clicked; other types use __dev.answer()), with screenshots at each beat.
 // node tools/questtest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/quest]
 import { chromium } from '@playwright/test';
@@ -436,6 +437,15 @@ if (washedUp?.length) {
     logs.push(`[questtest] bottle: expected ${washedUp.length * 5} doubloons, got ${got}`);
   results.bottles = unread.length === 0;
 } else logs.push('[questtest] no bottle debug hook');
+
+// Lyra's soundcheck (Q0.9, optional): the bard at her hammock by the lagoon, and C0.5.
+if (await page.evaluate(() => !!window.__dev.session().debug.puzzle('Q0.9.bard'))) {
+  const bard = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.9.bard').state());
+  if (bard.quest !== 'start') logs.push(`[questtest] bard: Q0.9 didn't start (${JSON.stringify(bard)})`);
+  await talk('lyra');
+  await shot('lyra-talk');
+  results.lyra = await drive('lyra', (s) => s.quests['Q0.9'] === 'done' && !s.dialogue && !s.reveal);
+} else logs.push('[questtest] no bard hook');
 
 // The Harbormaster's Trial at the lighthouse.
 const lighthouse = await page.evaluate(() => window.__dev.session().debug.trialAt?.() ?? null);

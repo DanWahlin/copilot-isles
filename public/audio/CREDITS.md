@@ -30,8 +30,10 @@ Field recordings reused from Tidewater (MIT project) and originally sourced from
 
 ## Project-owned synthesized puzzle sounds
 
-The following files are generated locally for Copilot Isles: `stream`, `waterfall_small`, `wheel_creak`, `stone_turn`, `lever`, `gate_lift`, `chime_solve`, `crane_ratchet`, `crate_thud`, `gear_pickup`, `gear_hang`, `quill`, `tube_voice`, `hatch_clank`, `bottle_pop`, `coconut_crack`, and `crowd_cheer_small` (each shipped as `.ogg` and `.m4a`). They were assembled as PCM, loudness-normalized with ffmpeg, then encoded to Ogg/Opus and AAC.
+The following files are generated locally for Copilot Isles: `stream`, `waterfall_small`, `wheel_creak`, `stone_turn`, `lever`, `gate_lift`, `chime_solve`, `crane_ratchet`, `crate_thud`, `gear_pickup`, `gear_hang`, `quill`, `tube_voice`, `hatch_clank`, `bottle_pop`, `coconut_crack`, `crowd_cheer_small`, and `lute_strum` (each shipped as `.ogg` and `.m4a`). They were assembled as PCM, loudness-normalized with ffmpeg, then encoded to Ogg/Opus and AAC.
 
 The gear/bottle/hatch one-shots also layer tiny fragments from the existing CC0 Tidewater-derived `step_wood`, `step_rock`, `step_grass`, and `hull_slap` files; those source recordings and authors are credited above.
 
 The christening one-shots (`coconut_crack`, `crowd_cheer_small`) are fully synthesized project-owned CC0 assets with no third-party source recordings.
+
+The bard one-shot (`lute_strum`) is a fully synthesized project-owned CC0 asset with no third-party source recordings.

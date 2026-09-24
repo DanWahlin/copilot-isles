@@ -1,0 +1,112 @@
+{
+  "id": "lyra.soundcheck.03",
+  "speaker": "Lyra",
+  "text": "You’ve just done the sailor’s version: papers signed, the chart forked, your own deck, and a first word to your crew.",
+  "words": [
+    {
+      "word": "You’ve",
+      "start": 0.092125,
+      "end": 0.289458
+    },
+    {
+      "word": "just",
+      "start": 0.289458,
+      "end": 0.552625
+    },
+    {
+      "word": "done",
+      "start": 0.552625,
+      "end": 0.776333
+    },
+    {
+      "word": "the",
+      "start": 0.776333,
+      "end": 0.89475
+    },
+    {
+      "word": "sailor’s",
+      "start": 0.89475,
+      "end": 1.342125
+    },
+    {
+      "word": "version",
+      "start": 1.342125,
+      "end": 2.184208
+    },
+    {
+      "word": "papers",
+      "start": 2.184208,
+      "end": 2.618416
+    },
+    {
+      "word": "signed",
+      "start": 2.618416,
+      "end": 3.328958
+    },
+    {
+      "word": "the",
+      "start": 3.328958,
+      "end": 3.434208
+    },
+    {
+      "word": "chart",
+      "start": 3.434208,
+      "end": 3.802625
+    },
+    {
+      "word": "forked",
+      "start": 3.802625,
+      "end": 4.5
+    },
+    {
+      "word": "your",
+      "start": 4.5,
+      "end": 4.684208
+    },
+    {
+      "word": "own",
+      "start": 4.684208,
+      "end": 4.907875
+    },
+    {
+      "word": "deck",
+      "start": 4.907875,
+      "end": 5.526333
+    },
+    {
+      "word": "and",
+      "start": 5.526333,
+      "end": 5.631583
+    },
+    {
+      "word": "a",
+      "start": 5.631583,
+      "end": 5.697375
+    },
+    {
+      "word": "first",
+      "start": 5.697375,
+      "end": 6.078958
+    },
+    {
+      "word": "word",
+      "start": 6.078958,
+      "end": 6.35525
+    },
+    {
+      "word": "to",
+      "start": 6.35525,
+      "end": 6.460541
+    },
+    {
+      "word": "your",
+      "start": 6.460541,
+      "end": 6.592125
+    },
+    {
+      "word": "crew",
+      "start": 6.592125,
+      "end": 6.842125
+    }
+  ]
+}

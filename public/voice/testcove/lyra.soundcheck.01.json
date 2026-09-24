@@ -1,0 +1,107 @@
+{
+  "id": "lyra.soundcheck.01",
+  "speaker": "Lyra",
+  "text": "Ah, the new captain. Sit a moment. The course you’re sailing has a song running through it: a recording studio.",
+  "words": [
+    {
+      "word": "Ah",
+      "start": 0.092125,
+      "end": 0.697375
+    },
+    {
+      "word": "the",
+      "start": 0.697375,
+      "end": 0.815791
+    },
+    {
+      "word": "new",
+      "start": 0.815791,
+      "end": 1.065791
+    },
+    {
+      "word": "captain",
+      "start": 1.065791,
+      "end": 2.131583
+    },
+    {
+      "word": "Sit",
+      "start": 2.131583,
+      "end": 2.421041
+    },
+    {
+      "word": "a",
+      "start": 2.421041,
+      "end": 2.5
+    },
+    {
+      "word": "moment",
+      "start": 2.5,
+      "end": 3.60525
+    },
+    {
+      "word": "The",
+      "start": 3.60525,
+      "end": 3.723666
+    },
+    {
+      "word": "course",
+      "start": 3.723666,
+      "end": 4.092125
+    },
+    {
+      "word": "you’re",
+      "start": 4.092125,
+      "end": 4.236833
+    },
+    {
+      "word": "sailing",
+      "start": 4.236833,
+      "end": 4.802625
+    },
+    {
+      "word": "has",
+      "start": 4.802625,
+      "end": 4.986833
+    },
+    {
+      "word": "a",
+      "start": 4.986833,
+      "end": 5.065791
+    },
+    {
+      "word": "song",
+      "start": 5.065791,
+      "end": 5.473666
+    },
+    {
+      "word": "running",
+      "start": 5.473666,
+      "end": 5.802625
+    },
+    {
+      "word": "through",
+      "start": 5.802625,
+      "end": 6.078958
+    },
+    {
+      "word": "it",
+      "start": 6.078958,
+      "end": 6.671041
+    },
+    {
+      "word": "a",
+      "start": 6.671041,
+      "end": 6.723666
+    },
+    {
+      "word": "recording",
+      "start": 6.723666,
+      "end": 7.276333
+    },
+    {
+      "word": "studio",
+      "start": 7.276333,
+      "end": 7.526333
+    }
+  ]
+}

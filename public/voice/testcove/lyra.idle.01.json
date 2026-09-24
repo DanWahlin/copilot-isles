@@ -1,0 +1,112 @@
+{
+  "id": "lyra.idle.01",
+  "speaker": "Lyra",
+  "text": "Every island has a song, Captain. Come back once your crew’s heard your first words, and I’ll play you this one.",
+  "words": [
+    {
+      "word": "Every",
+      "start": 0.065791,
+      "end": 0.407875
+    },
+    {
+      "word": "island",
+      "start": 0.407875,
+      "end": 0.881583
+    },
+    {
+      "word": "has",
+      "start": 0.881583,
+      "end": 1.092125
+    },
+    {
+      "word": "a",
+      "start": 1.092125,
+      "end": 1.171041
+    },
+    {
+      "word": "song",
+      "start": 1.171041,
+      "end": 1.960541
+    },
+    {
+      "word": "Captain",
+      "start": 1.960541,
+      "end": 2.985541
+    },
+    {
+      "word": "Come",
+      "start": 2.985541,
+      "end": 3.275
+    },
+    {
+      "word": "back",
+      "start": 3.275,
+      "end": 3.564458
+    },
+    {
+      "word": "once",
+      "start": 3.564458,
+      "end": 3.867125
+    },
+    {
+      "word": "your",
+      "start": 3.867125,
+      "end": 4.011833
+    },
+    {
+      "word": "crew’s",
+      "start": 4.011833,
+      "end": 4.485541
+    },
+    {
+      "word": "heard",
+      "start": 4.485541,
+      "end": 4.761833
+    },
+    {
+      "word": "your",
+      "start": 4.761833,
+      "end": 4.893416
+    },
+    {
+      "word": "first",
+      "start": 4.893416,
+      "end": 5.301333
+    },
+    {
+      "word": "words",
+      "start": 5.301333,
+      "end": 6.038166
+    },
+    {
+      "word": "and",
+      "start": 6.038166,
+      "end": 6.182875
+    },
+    {
+      "word": "I’ll",
+      "start": 6.182875,
+      "end": 6.327625
+    },
+    {
+      "word": "play",
+      "start": 6.327625,
+      "end": 6.577625
+    },
+    {
+      "word": "you",
+      "start": 6.577625,
+      "end": 6.748666
+    },
+    {
+      "word": "this",
+      "start": 6.748666,
+      "end": 6.998666
+    },
+    {
+      "word": "one",
+      "start": 6.998666,
+      "end": 7.248666
+    }
+  ]
+}

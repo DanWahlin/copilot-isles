@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-24T12:54:54.433Z",
+  "generatedAt": "2026-09-24T13:57:15.113Z",
   "set": "testcove",
   "lines": [
     {
@@ -7628,6 +7628,675 @@
         }
       ],
       "voice": "en-US-AnaNeural"
+    },
+    {
+      "id": "lyra.idle.01",
+      "speaker": "Lyra",
+      "text": "Every island has a song, Captain. Come back once your crew’s heard your first words, and I’ll play you this one.",
+      "duration": 7.707,
+      "files": {
+        "webm": "lyra.idle.01.webm",
+        "m4a": "lyra.idle.01.m4a"
+      },
+      "hash": "5b54e12d219d8089",
+      "words": [
+        {
+          "word": "Every",
+          "start": 0.065791,
+          "end": 0.407875
+        },
+        {
+          "word": "island",
+          "start": 0.407875,
+          "end": 0.881583
+        },
+        {
+          "word": "has",
+          "start": 0.881583,
+          "end": 1.092125
+        },
+        {
+          "word": "a",
+          "start": 1.092125,
+          "end": 1.171041
+        },
+        {
+          "word": "song",
+          "start": 1.171041,
+          "end": 1.960541
+        },
+        {
+          "word": "Captain",
+          "start": 1.960541,
+          "end": 2.985541
+        },
+        {
+          "word": "Come",
+          "start": 2.985541,
+          "end": 3.275
+        },
+        {
+          "word": "back",
+          "start": 3.275,
+          "end": 3.564458
+        },
+        {
+          "word": "once",
+          "start": 3.564458,
+          "end": 3.867125
+        },
+        {
+          "word": "your",
+          "start": 3.867125,
+          "end": 4.011833
+        },
+        {
+          "word": "crew’s",
+          "start": 4.011833,
+          "end": 4.485541
+        },
+        {
+          "word": "heard",
+          "start": 4.485541,
+          "end": 4.761833
+        },
+        {
+          "word": "your",
+          "start": 4.761833,
+          "end": 4.893416
+        },
+        {
+          "word": "first",
+          "start": 4.893416,
+          "end": 5.301333
+        },
+        {
+          "word": "words",
+          "start": 5.301333,
+          "end": 6.038166
+        },
+        {
+          "word": "and",
+          "start": 6.038166,
+          "end": 6.182875
+        },
+        {
+          "word": "I’ll",
+          "start": 6.182875,
+          "end": 6.327625
+        },
+        {
+          "word": "play",
+          "start": 6.327625,
+          "end": 6.577625
+        },
+        {
+          "word": "you",
+          "start": 6.577625,
+          "end": 6.748666
+        },
+        {
+          "word": "this",
+          "start": 6.748666,
+          "end": 6.998666
+        },
+        {
+          "word": "one",
+          "start": 6.998666,
+          "end": 7.248666
+        }
+      ],
+      "voice": "en-GB-SoniaNeural"
+    },
+    {
+      "id": "lyra.soundcheck.01",
+      "speaker": "Lyra",
+      "text": "Ah, the new captain. Sit a moment. The course you’re sailing has a song running through it: a recording studio.",
+      "duration": 8.307,
+      "files": {
+        "webm": "lyra.soundcheck.01.webm",
+        "m4a": "lyra.soundcheck.01.m4a"
+      },
+      "hash": "181e45223c5b963c",
+      "words": [
+        {
+          "word": "Ah",
+          "start": 0.092125,
+          "end": 0.697375
+        },
+        {
+          "word": "the",
+          "start": 0.697375,
+          "end": 0.815791
+        },
+        {
+          "word": "new",
+          "start": 0.815791,
+          "end": 1.065791
+        },
+        {
+          "word": "captain",
+          "start": 1.065791,
+          "end": 2.131583
+        },
+        {
+          "word": "Sit",
+          "start": 2.131583,
+          "end": 2.421041
+        },
+        {
+          "word": "a",
+          "start": 2.421041,
+          "end": 2.5
+        },
+        {
+          "word": "moment",
+          "start": 2.5,
+          "end": 3.60525
+        },
+        {
+          "word": "The",
+          "start": 3.60525,
+          "end": 3.723666
+        },
+        {
+          "word": "course",
+          "start": 3.723666,
+          "end": 4.092125
+        },
+        {
+          "word": "you’re",
+          "start": 4.092125,
+          "end": 4.236833
+        },
+        {
+          "word": "sailing",
+          "start": 4.236833,
+          "end": 4.802625
+        },
+        {
+          "word": "has",
+          "start": 4.802625,
+          "end": 4.986833
+        },
+        {
+          "word": "a",
+          "start": 4.986833,
+          "end": 5.065791
+        },
+        {
+          "word": "song",
+          "start": 5.065791,
+          "end": 5.473666
+        },
+        {
+          "word": "running",
+          "start": 5.473666,
+          "end": 5.802625
+        },
+        {
+          "word": "through",
+          "start": 5.802625,
+          "end": 6.078958
+        },
+        {
+          "word": "it",
+          "start": 6.078958,
+          "end": 6.671041
+        },
+        {
+          "word": "a",
+          "start": 6.671041,
+          "end": 6.723666
+        },
+        {
+          "word": "recording",
+          "start": 6.723666,
+          "end": 7.276333
+        },
+        {
+          "word": "studio",
+          "start": 7.276333,
+          "end": 7.526333
+        }
+      ],
+      "voice": "en-GB-SoniaNeural"
+    },
+    {
+      "id": "lyra.soundcheck.02",
+      "speaker": "Lyra",
+      "text": "Before you record anything, you get the studio ready. You sign in, plug in your gear, load the song, and run a quick soundcheck.",
+      "duration": 9.007,
+      "files": {
+        "webm": "lyra.soundcheck.02.webm",
+        "m4a": "lyra.soundcheck.02.m4a"
+      },
+      "hash": "cb128b95fddeb8eb",
+      "words": [
+        {
+          "word": "Before",
+          "start": 0.065791,
+          "end": 0.447375
+        },
+        {
+          "word": "you",
+          "start": 0.447375,
+          "end": 0.64475
+        },
+        {
+          "word": "record",
+          "start": 0.64475,
+          "end": 1.10525
+        },
+        {
+          "word": "anything",
+          "start": 1.10525,
+          "end": 1.986833
+        },
+        {
+          "word": "you",
+          "start": 1.986833,
+          "end": 2.092125
+        },
+        {
+          "word": "get",
+          "start": 2.092125,
+          "end": 2.328958
+        },
+        {
+          "word": "the",
+          "start": 2.328958,
+          "end": 2.447375
+        },
+        {
+          "word": "studio",
+          "start": 2.447375,
+          "end": 3
+        },
+        {
+          "word": "ready",
+          "start": 3,
+          "end": 3.85525
+        },
+        {
+          "word": "You",
+          "start": 3.85525,
+          "end": 4
+        },
+        {
+          "word": "sign",
+          "start": 4,
+          "end": 4.368416
+        },
+        {
+          "word": "in",
+          "start": 4.368416,
+          "end": 4.89475
+        },
+        {
+          "word": "plug",
+          "start": 4.89475,
+          "end": 5.157875
+        },
+        {
+          "word": "in",
+          "start": 5.157875,
+          "end": 5.263166
+        },
+        {
+          "word": "your",
+          "start": 5.263166,
+          "end": 5.434208
+        },
+        {
+          "word": "gear",
+          "start": 5.434208,
+          "end": 6.131583
+        },
+        {
+          "word": "load",
+          "start": 6.131583,
+          "end": 6.381583
+        },
+        {
+          "word": "the",
+          "start": 6.381583,
+          "end": 6.5
+        },
+        {
+          "word": "song",
+          "start": 6.5,
+          "end": 7.14475
+        },
+        {
+          "word": "and",
+          "start": 7.14475,
+          "end": 7.276333
+        },
+        {
+          "word": "run",
+          "start": 7.276333,
+          "end": 7.486833
+        },
+        {
+          "word": "a",
+          "start": 7.486833,
+          "end": 7.552625
+        },
+        {
+          "word": "quick",
+          "start": 7.552625,
+          "end": 7.842125
+        },
+        {
+          "word": "soundcheck",
+          "start": 7.842125,
+          "end": 8.092125
+        }
+      ],
+      "voice": "en-GB-SoniaNeural"
+    },
+    {
+      "id": "lyra.soundcheck.03",
+      "speaker": "Lyra",
+      "text": "You’ve just done the sailor’s version: papers signed, the chart forked, your own deck, and a first word to your crew.",
+      "duration": 7.407,
+      "files": {
+        "webm": "lyra.soundcheck.03.webm",
+        "m4a": "lyra.soundcheck.03.m4a"
+      },
+      "hash": "bdac2b37f87613df",
+      "words": [
+        {
+          "word": "You’ve",
+          "start": 0.092125,
+          "end": 0.289458
+        },
+        {
+          "word": "just",
+          "start": 0.289458,
+          "end": 0.552625
+        },
+        {
+          "word": "done",
+          "start": 0.552625,
+          "end": 0.776333
+        },
+        {
+          "word": "the",
+          "start": 0.776333,
+          "end": 0.89475
+        },
+        {
+          "word": "sailor’s",
+          "start": 0.89475,
+          "end": 1.342125
+        },
+        {
+          "word": "version",
+          "start": 1.342125,
+          "end": 2.184208
+        },
+        {
+          "word": "papers",
+          "start": 2.184208,
+          "end": 2.618416
+        },
+        {
+          "word": "signed",
+          "start": 2.618416,
+          "end": 3.328958
+        },
+        {
+          "word": "the",
+          "start": 3.328958,
+          "end": 3.434208
+        },
+        {
+          "word": "chart",
+          "start": 3.434208,
+          "end": 3.802625
+        },
+        {
+          "word": "forked",
+          "start": 3.802625,
+          "end": 4.5
+        },
+        {
+          "word": "your",
+          "start": 4.5,
+          "end": 4.684208
+        },
+        {
+          "word": "own",
+          "start": 4.684208,
+          "end": 4.907875
+        },
+        {
+          "word": "deck",
+          "start": 4.907875,
+          "end": 5.526333
+        },
+        {
+          "word": "and",
+          "start": 5.526333,
+          "end": 5.631583
+        },
+        {
+          "word": "a",
+          "start": 5.631583,
+          "end": 5.697375
+        },
+        {
+          "word": "first",
+          "start": 5.697375,
+          "end": 6.078958
+        },
+        {
+          "word": "word",
+          "start": 6.078958,
+          "end": 6.35525
+        },
+        {
+          "word": "to",
+          "start": 6.35525,
+          "end": 6.460541
+        },
+        {
+          "word": "your",
+          "start": 6.460541,
+          "end": 6.592125
+        },
+        {
+          "word": "crew",
+          "start": 6.592125,
+          "end": 6.842125
+        }
+      ],
+      "voice": "en-GB-SoniaNeural"
+    },
+    {
+      "id": "lyra.soundcheck.04",
+      "speaker": "Lyra",
+      "text": "Next comes Port Meridian, where you’ll learn why the app matters and tour its rooms. I’ll travel on ahead.",
+      "duration": 7.307,
+      "files": {
+        "webm": "lyra.soundcheck.04.webm",
+        "m4a": "lyra.soundcheck.04.m4a"
+      },
+      "hash": "edf6fab32e667f0b",
+      "words": [
+        {
+          "word": "Next",
+          "start": 0.078958,
+          "end": 0.513166
+        },
+        {
+          "word": "comes",
+          "start": 0.513166,
+          "end": 0.868416
+        },
+        {
+          "word": "Port",
+          "start": 0.868416,
+          "end": 1.210541
+        },
+        {
+          "word": "Meridian",
+          "start": 1.210541,
+          "end": 2.092125
+        },
+        {
+          "word": "where",
+          "start": 2.092125,
+          "end": 2.236833
+        },
+        {
+          "word": "you’ll",
+          "start": 2.236833,
+          "end": 2.447375
+        },
+        {
+          "word": "learn",
+          "start": 2.447375,
+          "end": 2.815791
+        },
+        {
+          "word": "why",
+          "start": 2.815791,
+          "end": 2.986833
+        },
+        {
+          "word": "the",
+          "start": 2.986833,
+          "end": 3.14475
+        },
+        {
+          "word": "app",
+          "start": 3.14475,
+          "end": 3.368416
+        },
+        {
+          "word": "matters",
+          "start": 3.368416,
+          "end": 3.921041
+        },
+        {
+          "word": "and",
+          "start": 3.921041,
+          "end": 4.10525
+        },
+        {
+          "word": "tour",
+          "start": 4.10525,
+          "end": 4.35525
+        },
+        {
+          "word": "its",
+          "start": 4.35525,
+          "end": 4.565791
+        },
+        {
+          "word": "rooms",
+          "start": 4.565791,
+          "end": 5.526333
+        },
+        {
+          "word": "I’ll",
+          "start": 5.526333,
+          "end": 5.75
+        },
+        {
+          "word": "travel",
+          "start": 5.75,
+          "end": 6.25
+        },
+        {
+          "word": "on",
+          "start": 6.25,
+          "end": 6.407875
+        },
+        {
+          "word": "ahead",
+          "start": 6.407875,
+          "end": 6.657875
+        }
+      ],
+      "voice": "en-GB-SoniaNeural"
+    },
+    {
+      "id": "lyra.done.01",
+      "speaker": "Lyra",
+      "text": "Fair winds, Captain. Meridian’s plaza has the best acoustics in the isles.",
+      "duration": 6.207,
+      "files": {
+        "webm": "lyra.done.01.webm",
+        "m4a": "lyra.done.01.m4a"
+      },
+      "hash": "732b30eb5d506b0b",
+      "words": [
+        {
+          "word": "Fair",
+          "start": 0.065791,
+          "end": 0.39475
+        },
+        {
+          "word": "winds",
+          "start": 0.39475,
+          "end": 1.236833
+        },
+        {
+          "word": "Captain",
+          "start": 1.236833,
+          "end": 2.289458
+        },
+        {
+          "word": "Meridian’s",
+          "start": 2.289458,
+          "end": 2.947375
+        },
+        {
+          "word": "plaza",
+          "start": 2.947375,
+          "end": 3.526333
+        },
+        {
+          "word": "has",
+          "start": 3.526333,
+          "end": 3.802625
+        },
+        {
+          "word": "the",
+          "start": 3.802625,
+          "end": 3.947375
+        },
+        {
+          "word": "best",
+          "start": 3.947375,
+          "end": 4.276333
+        },
+        {
+          "word": "acoustics",
+          "start": 4.276333,
+          "end": 4.947375
+        },
+        {
+          "word": "in",
+          "start": 4.947375,
+          "end": 5.065791
+        },
+        {
+          "word": "the",
+          "start": 5.065791,
+          "end": 5.210541
+        },
+        {
+          "word": "isles",
+          "start": 5.210541,
+          "end": 5.460541
+        }
+      ],
+      "voice": "en-GB-SoniaNeural"
     }
   ]
 }

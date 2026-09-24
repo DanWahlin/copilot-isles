@@ -49,6 +49,7 @@ export const JUNO_REPLY: readonly ScriptStep[] = [
   { say: 'juno.reply.03' },
   { quest: QUEST, step: 'done' },
   { quest: 'Q0.10', step: 'start' },
+  { quest: 'Q0.9', step: 'start' },
 ];
 
 /**

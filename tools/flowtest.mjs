@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // End-to-end flow check on the real entry (index.html): title → captain → voyage → play → pause →
-// chart → travel → quit. node tools/flowtest.mjs [--webgl] [--base=http://localhost:5301] [--out=/tmp/shots/flow]
+// chart (archipelago, island detail) → travel to the bard's hammock and the lighthouse → quit.
+// node tools/flowtest.mjs [--webgl] [--base=http://localhost:5301] [--out=/tmp/shots/flow]
 import { chromium } from '@playwright/test';
 
 const opt = Object.fromEntries(
@@ -66,6 +67,19 @@ await shot('paused');
 await flow('openChart()');
 await page.waitForTimeout(1000);
 await shot('chart');
+await page.click('.ci-chart-toolbar button:nth-child(2)');
+await page.waitForTimeout(700);
+await shot('chart-island');
+const travel = await page.$$eval('.ci-travel-list button span', (els) => els.map((e) => e.textContent));
+if (!travel.includes('Bard’s hammock'))
+  logs.push(`[flowtest] no Bard’s hammock travel point (${travel.join(', ')})`);
+await flow("travelTo('bard')");
+await page.waitForTimeout(2500);
+await shot('travel-bard');
+await page.keyboard.press('Escape');
+await page.waitForTimeout(700);
+await flow('openChart()');
+await page.waitForTimeout(800);
 await flow("travelTo('lighthouse')");
 await page.waitForTimeout(2500);
 await shot('travel-lighthouse');

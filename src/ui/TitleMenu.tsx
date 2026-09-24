@@ -1046,6 +1046,7 @@ function travelHint(point: ChartPoint): string {
   if (point.id === 'pier') return 'Ship berth';
   if (point.id === 'harbor') return 'Spawn quay';
   if (point.id === 'nell') return 'Quest giver';
+  if (point.id === 'bard') return 'Soundcheck';
   if (point.id === 'plaza') return 'Village hub';
   if (point.id === 'beach') return 'Lagoon shore';
   if (point.id === 'hill') return 'Lookout';

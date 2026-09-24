@@ -5,6 +5,7 @@ import { loadVillageKit, type VillageAnchor, type VillageBoxCollider } from '../
 import { createBottles, type BottleSite } from './bottles';
 import { createCrane, type CraneSite } from './crane';
 import { createGearRack, type GearRackSite } from './gear-rack';
+import { createHammock, type HammockSite } from './hammock';
 import { createMill, type MillSite } from './mill';
 import { createPaletteStand, type PaletteStandSite } from './palette-stand';
 import { ANCHORAGE_SLUICE } from './sluice-logic';
@@ -13,6 +14,7 @@ export type { BottleSite } from './bottles';
 export type { CraneSite, CrateKind } from './crane';
 export { BRIGANTINE_CARGO } from './crane';
 export type { GearId, GearRackSite, LooseId } from './gear-rack';
+export type { HammockSite } from './hammock';
 export type { MillCellWater, MillSite } from './mill';
 export type { PaletteStandSite } from './palette-stand';
 
@@ -23,6 +25,7 @@ export interface CoveSites {
   readonly crane: CraneSite;
   readonly gear: GearRackSite;
   readonly palette: PaletteStandSite;
+  readonly hammock: HammockSite;
   /** The message bottles on the beaches (B0.1-B0.3). */
   readonly bottles: BottleSite;
   /** Extra obstacles for the brigantine (the moored sloops). */
@@ -51,16 +54,18 @@ export async function createCoveSites(o: {
   const crane = createCrane({ tier: o.tier, kit });
   const gear = createGearRack({ tier: o.tier, kit, ground: o.ground });
   const palette = createPaletteStand({ tier: o.tier, kit, ground: o.ground });
+  const hammock = createHammock({ tier: o.tier, kit, heightField: o.heightField, ground: o.ground });
   const bottles = createBottles({ kit, ground: o.ground });
   const group = new Group();
   group.name = 'puzzle sites';
-  group.add(mill.group, crane.group, gear.group, palette.group, bottles.group);
+  group.add(mill.group, crane.group, gear.group, palette.group, hammock.group, bottles.group);
   return {
     group,
     mill,
     crane,
     gear,
     palette,
+    hammock,
     bottles,
     shipObstacles: [...crane.shipObstacles],
     heightAt: (x, z) => mill.heightAt(x, z) ?? crane.heightAt(x, z),
@@ -70,32 +75,37 @@ export async function createCoveSites(o: {
         ...crane.colliders.circles,
         ...gear.colliders.circles,
         ...palette.colliders.circles,
+        ...hammock.colliders.circles,
       ],
       boxes: [
         ...mill.colliders.boxes,
         ...crane.colliders.boxes,
         ...gear.colliders.boxes,
         ...palette.colliders.boxes,
+        ...hammock.colliders.boxes,
       ],
     },
-    anchors: { ...mill.anchors, ...crane.anchors, ...gear.anchors, ...palette.anchors },
+    anchors: { ...mill.anchors, ...crane.anchors, ...gear.anchors, ...palette.anchors, ...hammock.anchors },
     excludes: (x, z) =>
       mill.excludes(x, z) ||
       crane.excludes(x, z) ||
       gear.excludes(x, z) ||
       palette.excludes(x, z) ||
+      hammock.excludes(x, z) ||
       bottles.excludes(x, z),
     update(dt, t) {
       mill.update(dt, t);
       crane.update(dt, t);
       gear.update(dt, t);
       palette.update(dt, t);
+      hammock.update(dt, t);
     },
     dispose() {
       mill.dispose();
       crane.dispose();
       gear.dispose();
       palette.dispose();
+      hammock.dispose();
       bottles.dispose();
       group.removeFromParent();
     },

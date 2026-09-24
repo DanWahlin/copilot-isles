@@ -158,6 +158,16 @@ export function coveTravelPoints(
       wz: nell.z + Math.cos(nell.heading) * 3.4,
       heading: nell.heading + Math.PI,
     });
+  const bard = anchors.bardHammock;
+  if (bard)
+    pts.push({
+      id: 'bard',
+      label: 'Bard’s hammock',
+      kind: 'quest',
+      wx: bard.x,
+      wz: bard.z,
+      heading: bard.heading,
+    });
   return pts.map((p) => {
     const [x, y] = toChart(p.wx, p.wz);
     return { ...p, x, y };

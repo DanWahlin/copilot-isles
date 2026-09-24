@@ -19,6 +19,7 @@ import { createChest, type TreasureChest } from './chest';
 import { COVE_CHESTS, npcScript, questLog } from './cove-quests';
 import { runScript, type ScriptStep } from './script';
 import { defaultShipName } from '../learn/progress';
+import { createBard } from './puzzles/bard';
 import { createChristening } from './puzzles/christening';
 import { createCrane } from './puzzles/crane';
 import { createFirstWords } from './puzzles/first-words';
@@ -145,7 +146,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const npcs = new NpcCrowd(
     o.characters,
     COVE_NPCS,
-    { ...village.anchors, ...sites.anchors, juno: COVE.firstMate },
+    { ...village.anchors, ...sites.anchors, juno: COVE.firstMate, lyra: sites.hammock.seat },
     world,
     tier,
     camera,
@@ -181,9 +182,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   };
   if (!quests()['Q0.2']) setQuest('Q0.2', 'start');
   // Older saves: Nell's chest used to lead straight to Ezra (before Paint Your Sails), the crane
-  // straight to the Trial (before Q0.8), and the Trial ended the island (before the christening).
+  // straight to the Trial (before Q0.8), First Words had no bard after it (before Q0.9), and the Trial
+  // ended the island (before the christening).
   if (quests()['Q0.2'] === 'chest' && learn?.isChestOpen('C0.1')) setQuest('Q0.2', 'palette');
   if (quests()['Q0.7'] === 'done' && !quests()['Q0.8']) setQuest('Q0.8', 'start');
+  if (quests()['Q0.8'] === 'done' && !quests()['Q0.9']) setQuest('Q0.9', 'start');
   if (quests()['Q0.10'] === 'done' && !quests()['Q0.11']) setQuest('Q0.11', 'start');
   learn?.setQuests(questLog(quests()));
   let scriptRunning = false;
@@ -437,8 +440,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       })
     : null;
   if (christening) cues.set('christen', christening.cue);
+  const lyra = npcs.list.find((n) => n.spec.id === 'lyra');
   const puzzles: Puzzle[] = [
     createPaintSails(puzzleHost, sites.palette, ship),
+    createBard(puzzleHost, sites.hammock, () => lyra?.talking ?? false),
     createSluice(puzzleHost, sites.mill),
     createCrane(puzzleHost, sites.crane),
     createGearCheck(puzzleHost, sites.gear),

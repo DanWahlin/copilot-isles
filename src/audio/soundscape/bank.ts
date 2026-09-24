@@ -226,6 +226,7 @@ export const BANK = {
   bottle_pop: { file: 'bottle_pop', slices: [[0, 0.5465]], lufs: [-18] },
   coconut_crack: { file: 'coconut_crack', slices: [[0, 0.4265]], lufs: [-18] },
   crowd_cheer_small: { file: 'crowd_cheer_small', slices: [[0, 2.0565]], lufs: [-18] },
+  lute_strum: { file: 'lute_strum', slices: [[0, 2.1665]], lufs: [-18] },
 } as const satisfies Record<string, BankEntry>;
 
 export type SoundName = keyof typeof BANK;

@@ -1,0 +1,67 @@
+{
+  "id": "lyra.done.01",
+  "speaker": "Lyra",
+  "text": "Fair winds, Captain. Meridian’s plaza has the best acoustics in the isles.",
+  "words": [
+    {
+      "word": "Fair",
+      "start": 0.065791,
+      "end": 0.39475
+    },
+    {
+      "word": "winds",
+      "start": 0.39475,
+      "end": 1.236833
+    },
+    {
+      "word": "Captain",
+      "start": 1.236833,
+      "end": 2.289458
+    },
+    {
+      "word": "Meridian’s",
+      "start": 2.289458,
+      "end": 2.947375
+    },
+    {
+      "word": "plaza",
+      "start": 2.947375,
+      "end": 3.526333
+    },
+    {
+      "word": "has",
+      "start": 3.526333,
+      "end": 3.802625
+    },
+    {
+      "word": "the",
+      "start": 3.802625,
+      "end": 3.947375
+    },
+    {
+      "word": "best",
+      "start": 3.947375,
+      "end": 4.276333
+    },
+    {
+      "word": "acoustics",
+      "start": 4.276333,
+      "end": 4.947375
+    },
+    {
+      "word": "in",
+      "start": 4.947375,
+      "end": 5.065791
+    },
+    {
+      "word": "the",
+      "start": 5.065791,
+      "end": 5.210541
+    },
+    {
+      "word": "isles",
+      "start": 5.210541,
+      "end": 5.460541
+    }
+  ]
+}

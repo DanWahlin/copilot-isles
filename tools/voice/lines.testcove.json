@@ -666,6 +666,60 @@
       },
       "fx": "wingman-bright",
       "text": "Port Meridian’s east on the chart. Press M when you’re ready to plan the passage."
+    },
+    {
+      "id": "lyra.idle.01",
+      "speaker": "Lyra",
+      "voice": "en-GB-SoniaNeural",
+      "prosody": {
+        "rate": "-5%"
+      },
+      "text": "Every island has a song, Captain. Come back once your crew’s heard your first words, and I’ll play you this one."
+    },
+    {
+      "id": "lyra.soundcheck.01",
+      "speaker": "Lyra",
+      "voice": "en-GB-SoniaNeural",
+      "prosody": {
+        "rate": "-5%"
+      },
+      "text": "Ah, the new captain. Sit a moment. The course you’re sailing has a song running through it: a recording studio."
+    },
+    {
+      "id": "lyra.soundcheck.02",
+      "speaker": "Lyra",
+      "voice": "en-GB-SoniaNeural",
+      "prosody": {
+        "rate": "-5%"
+      },
+      "text": "Before you record anything, you get the studio ready. You sign in, plug in your gear, load the song, and run a quick soundcheck."
+    },
+    {
+      "id": "lyra.soundcheck.03",
+      "speaker": "Lyra",
+      "voice": "en-GB-SoniaNeural",
+      "prosody": {
+        "rate": "-5%"
+      },
+      "text": "You’ve just done the sailor’s version: papers signed, the chart forked, your own deck, and a first word to your crew."
+    },
+    {
+      "id": "lyra.soundcheck.04",
+      "speaker": "Lyra",
+      "voice": "en-GB-SoniaNeural",
+      "prosody": {
+        "rate": "-5%"
+      },
+      "text": "Next comes Port Meridian, where you’ll learn why the app matters and tour its rooms. I’ll travel on ahead."
+    },
+    {
+      "id": "lyra.done.01",
+      "speaker": "Lyra",
+      "voice": "en-GB-SoniaNeural",
+      "prosody": {
+        "rate": "-5%"
+      },
+      "text": "Fair winds, Captain. Meridian’s plaza has the best acoustics in the isles."
     }
   ]
 }

@@ -1,0 +1,102 @@
+{
+  "id": "lyra.soundcheck.04",
+  "speaker": "Lyra",
+  "text": "Next comes Port Meridian, where you’ll learn why the app matters and tour its rooms. I’ll travel on ahead.",
+  "words": [
+    {
+      "word": "Next",
+      "start": 0.078958,
+      "end": 0.513166
+    },
+    {
+      "word": "comes",
+      "start": 0.513166,
+      "end": 0.868416
+    },
+    {
+      "word": "Port",
+      "start": 0.868416,
+      "end": 1.210541
+    },
+    {
+      "word": "Meridian",
+      "start": 1.210541,
+      "end": 2.092125
+    },
+    {
+      "word": "where",
+      "start": 2.092125,
+      "end": 2.236833
+    },
+    {
+      "word": "you’ll",
+      "start": 2.236833,
+      "end": 2.447375
+    },
+    {
+      "word": "learn",
+      "start": 2.447375,
+      "end": 2.815791
+    },
+    {
+      "word": "why",
+      "start": 2.815791,
+      "end": 2.986833
+    },
+    {
+      "word": "the",
+      "start": 2.986833,
+      "end": 3.14475
+    },
+    {
+      "word": "app",
+      "start": 3.14475,
+      "end": 3.368416
+    },
+    {
+      "word": "matters",
+      "start": 3.368416,
+      "end": 3.921041
+    },
+    {
+      "word": "and",
+      "start": 3.921041,
+      "end": 4.10525
+    },
+    {
+      "word": "tour",
+      "start": 4.10525,
+      "end": 4.35525
+    },
+    {
+      "word": "its",
+      "start": 4.35525,
+      "end": 4.565791
+    },
+    {
+      "word": "rooms",
+      "start": 4.565791,
+      "end": 5.526333
+    },
+    {
+      "word": "I’ll",
+      "start": 5.526333,
+      "end": 5.75
+    },
+    {
+      "word": "travel",
+      "start": 5.75,
+      "end": 6.25
+    },
+    {
+      "word": "on",
+      "start": 6.25,
+      "end": 6.407875
+    },
+    {
+      "word": "ahead",
+      "start": 6.407875,
+      "end": 6.657875
+    }
+  ]
+}
