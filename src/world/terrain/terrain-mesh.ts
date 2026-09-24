@@ -1,19 +1,10 @@
-import {
-  BufferAttribute,
-  BufferGeometry,
-  Camera,
-  Group,
-  Mesh,
-  Sphere,
-  Vector3,
-  type Material,
-} from 'three/webgpu';
+import { BufferAttribute, BufferGeometry, Camera, Group, Mesh, Sphere, Vector3 } from 'three/webgpu';
 import type { Tier, HeightField } from '../contracts';
-import { COVE } from '../layout';
 import { tierSettings, type TierSettings } from '../../engine/quality';
-import { coveHeight, coveMasks, CoveHeightField, type HeightGridData } from './cove-height';
+import { CoveHeightField, type HeightGridData } from './cove-height';
 import type { TerrainBakeData } from './bake';
 import { createTerrainMaterial } from './terrain-material';
+import { createTerrainRocks } from './terrain-rocks';
 
 interface ChunkGeometrySet {
   step: number;
@@ -48,18 +39,67 @@ function resolveTier(tier: Tier | TierSettings): TierSettings {
 }
 
 function stepsForTier(tier: TierSettings): readonly number[] {
-  if (tier.tier === 'lite' || tier.tier === 'low') return [4, 8, 16];
-  return [2, 4, 8];
+  if (tier.tier === 'lite') return [4, 8, 16];
+  if (tier.tier === 'low') return [3, 6, 12];
+  if (tier.tier === 'medium') return [2, 4, 8];
+  return [1, 2, 3];
 }
 
 function thresholdsForTier(tier: TierSettings): readonly number[] {
   if (tier.tier === 'lite' || tier.tier === 'low') return [110, 285];
   if (tier.tier === 'medium') return [190, 400];
-  return [260, 520];
+  return [115, 320];
 }
 
-function clampIndex(v: number, max: number): number {
-  return Math.max(0, Math.min(max, v));
+function clamp(v: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, v));
+}
+
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
+function bilinearIndices(
+  data: TerrainBakeData,
+  x: number,
+  z: number,
+): [number, number, number, number, number, number] {
+  const gx = clamp((x - data.minX) / data.cell, 0, data.nx - 1.001);
+  const gz = clamp((z - data.minZ) / data.cell, 0, data.nz - 1.001);
+  const ix = Math.floor(gx);
+  const iz = Math.floor(gz);
+  const tx = gx - ix;
+  const tz = gz - iz;
+  const i00 = iz * data.nx + ix;
+  return [i00, i00 + 1, i00 + data.nx, i00 + data.nx + 1, tx, tz];
+}
+
+function sampleFloat(
+  values: Float32Array,
+  data: TerrainBakeData,
+  x: number,
+  z: number,
+  component = 0,
+  stride = 1,
+): number {
+  const [i00, i10, i01, i11, tx, tz] = bilinearIndices(data, x, z);
+  const a = lerp(values[i00 * stride + component], values[i10 * stride + component], tx);
+  const b = lerp(values[i01 * stride + component], values[i11 * stride + component], tx);
+  return lerp(a, b, tz);
+}
+
+function sampleByte(
+  values: Uint8Array,
+  data: TerrainBakeData,
+  x: number,
+  z: number,
+  component = 0,
+  stride = 1,
+): number {
+  const [i00, i10, i01, i11, tx, tz] = bilinearIndices(data, x, z);
+  const a = lerp(values[i00 * stride + component], values[i10 * stride + component], tx);
+  const b = lerp(values[i01 * stride + component], values[i11 * stride + component], tx);
+  return lerp(a, b, tz) / 255;
 }
 
 function sampleVertex(
@@ -72,20 +112,24 @@ function sampleVertex(
   light: [number, number, number, number];
   mask: [number, number, number, number];
 } {
-  const gx = clampIndex(Math.round((x - data.minX) / data.cell), data.nx - 1);
-  const gz = clampIndex(Math.round((z - data.minZ) / data.cell), data.nz - 1);
-  const i = gz * data.nx + gx;
-  const no = i * 3;
-  const mo = i * 4;
+  const nx = sampleFloat(data.normals, data, x, z, 0, 3);
+  const ny = sampleFloat(data.normals, data, x, z, 1, 3);
+  const nz = sampleFloat(data.normals, data, x, z, 2, 3);
+  const normalLength = Math.hypot(nx, ny, nz) || 1;
   return {
-    h: data.heights[i],
-    normal: [data.normals[no], data.normals[no + 1], data.normals[no + 2]],
-    light: [data.ao[i] / 255, data.sunMorning[i] / 255, data.sunGolden[i] / 255, data.rim[i] / 255],
+    h: sampleFloat(data.heights, data, x, z),
+    normal: [nx / normalLength, ny / normalLength, nz / normalLength],
+    light: [
+      sampleByte(data.ao, data, x, z),
+      sampleByte(data.sunMorning, data, x, z),
+      sampleByte(data.sunGolden, data, x, z),
+      sampleByte(data.rim, data, x, z),
+    ],
     mask: [
-      data.masks[mo] / 255,
-      data.masks[mo + 1] / 255,
-      data.masks[mo + 2] / 255,
-      data.masks[mo + 3] / 255,
+      sampleByte(data.masks, data, x, z, 0, 4),
+      sampleByte(data.masks, data, x, z, 1, 4),
+      sampleByte(data.masks, data, x, z, 2, 4),
+      sampleByte(data.masks, data, x, z, 3, 4),
     ],
   };
 }
@@ -195,64 +239,14 @@ function buildChunkGeometry(
   return { step, geometry, triangles: indices.length / 3 };
 }
 
-function buildFarSeabed(material: Material): Mesh {
-  const inner = 390;
-  const outer = COVE.seabedRadius;
-  const rings = 10;
-  const segments = 144;
-  const positions: number[] = [];
-  const normals: number[] = [];
-  const masks: number[] = [];
-  const lights: number[] = [];
-  const uvs: number[] = [];
-  const indices: number[] = [];
-  for (let r = 0; r <= rings; r++) {
-    const t = r / rings;
-    const radius = inner + (outer - inner) * t;
-    for (let s = 0; s <= segments; s++) {
-      const a = (s / segments) * Math.PI * 2;
-      const x = Math.cos(a) * radius;
-      const z = Math.sin(a) * radius;
-      const h = coveHeight(x, z);
-      const m = coveMasks(x, z);
-      positions.push(x, h, z);
-      normals.push(0, 1, 0);
-      masks.push(m.sand, m.grass, m.rock, m.cliff);
-      lights.push(0.92, 1, 1, 0);
-      uvs.push(s / segments, t);
-    }
-  }
-  const stride = segments + 1;
-  for (let r = 0; r < rings; r++) {
-    for (let s = 0; s < segments; s++) {
-      const a = r * stride + s;
-      const b = a + 1;
-      const c = a + stride;
-      const d = c + 1;
-      indices.push(a, c, b, b, c, d);
-    }
-  }
-  const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
-  geometry.setAttribute('normal', new BufferAttribute(new Float32Array(normals), 3));
-  geometry.setAttribute('terrainMask', new BufferAttribute(new Float32Array(masks), 4));
-  geometry.setAttribute('terrainLight', new BufferAttribute(new Float32Array(lights), 4));
-  geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
-  geometry.setIndex(indices);
-  geometry.computeBoundingSphere();
-  const mesh = new Mesh(geometry, material);
-  mesh.name = 'terrain-far-seabed-ring';
-  return mesh;
-}
-
 export function createTerrain(options: CreateTerrainOptions): CreatedTerrain {
   const tier = resolveTier(options.tier);
   const data = options.data;
   const group = new Group();
   group.name = 'test-cove-terrain';
-  const material = createTerrainMaterial();
+  const material = createTerrainMaterial({ tier: tier.tier });
   const chunks: TerrainChunk[] = [];
-  const chunkSize = 128;
+  const chunkSize = 256;
   const steps = stepsForTier(tier);
   const thresholds = thresholdsForTier(tier);
 
@@ -274,8 +268,6 @@ export function createTerrain(options: CreateTerrainOptions): CreatedTerrain {
     }
   }
 
-  const farSeabed = buildFarSeabed(material);
-  group.add(farSeabed);
   const heightGrid: TerrainHeightGrid = {
     heights: data.heights,
     nx: data.nx,
@@ -285,6 +277,8 @@ export function createTerrain(options: CreateTerrainOptions): CreatedTerrain {
     cell: data.cell,
   };
   const heightField = new CoveHeightField(heightGrid);
+  const rocks = createTerrainRocks(heightField);
+  group.add(rocks);
 
   return {
     group,
@@ -312,7 +306,12 @@ export function createTerrain(options: CreateTerrainOptions): CreatedTerrain {
           }
         }
       }
-      farSeabed.geometry.dispose();
+      rocks.traverse((object) => {
+        if (!(object instanceof Mesh)) return;
+        object.geometry.dispose();
+        if (Array.isArray(object.material)) object.material.forEach((m) => m.dispose());
+        else object.material.dispose();
+      });
       material.dispose();
     },
   };

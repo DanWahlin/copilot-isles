@@ -5,6 +5,7 @@ import {
   coveMasks,
   DEFAULT_TERRAIN_BOUNDS,
   smoothstep,
+  TERRAIN_DEEP_DEPTH,
   type HeightGridData,
 } from './cove-height';
 
@@ -41,7 +42,7 @@ export interface TerrainBakeData extends HeightGridData {
 }
 
 export interface PackedTerrainJson {
-  version: 1;
+  version: 2;
   nx: number;
   nz: number;
   minX: number;
@@ -52,8 +53,7 @@ export interface PackedTerrainJson {
   seabedRadius: number;
   deepDepth: number;
   channels: {
-    heights: { offset: number; length: number; type: 'float32'; components: 1 };
-    normals: { offset: number; length: number; type: 'snorm16'; components: 3 };
+    heights: { offset: number; length: number; type: 'uint16'; components: 1; min: number; max: number };
     packed: {
       offset: number;
       length: number;
@@ -394,16 +394,23 @@ export function packTerrain(
   hash = data.hash,
 ): { binary: ArrayBuffer; json: PackedTerrainJson } {
   const count = data.nx * data.nz;
-  const heightsBytes = count * 4;
-  const normalsBytes = count * 3 * 2;
+  const heightsBytes = count * 2;
   const packedBytes = count * 8;
-  const binary = new ArrayBuffer(heightsBytes + normalsBytes + packedBytes);
-  const heightsView = new Float32Array(binary, 0, count);
-  heightsView.set(data.heights);
-  const normalView = new Int16Array(binary, heightsBytes, count * 3);
-  for (let i = 0; i < count * 3; i++)
-    normalView[i] = Math.max(-32767, Math.min(32767, Math.round(data.normals[i] * 32767)));
-  const packedView = new Uint8Array(binary, heightsBytes + normalsBytes, packedBytes);
+  let minHeight = Infinity;
+  let maxHeight = -Infinity;
+  for (const h of data.heights) {
+    minHeight = Math.min(minHeight, h);
+    maxHeight = Math.max(maxHeight, h);
+  }
+  const heightRange = Math.max(1e-6, maxHeight - minHeight);
+  const binary = new ArrayBuffer(heightsBytes + packedBytes);
+  const heightsView = new Uint16Array(binary, 0, count);
+  for (let i = 0; i < count; i++)
+    heightsView[i] = Math.max(
+      0,
+      Math.min(65535, Math.round(((data.heights[i] - minHeight) / heightRange) * 65535)),
+    );
+  const packedView = new Uint8Array(binary, heightsBytes, packedBytes);
   for (let i = 0; i < count; i++) {
     const o = i * 8;
     const mo = i * 4;
@@ -416,8 +423,22 @@ export function packTerrain(
     packedView[o + 6] = data.masks[mo + 2];
     packedView[o + 7] = data.masks[mo + 3];
   }
+  const shoreline = data.shoreline.map((chain) => {
+    const points = chain.points
+      .filter((_, i) => i % 3 === 0 || i === chain.points.length - 1)
+      .map((p) => ({
+        x: Math.round(p.x * 100) / 100,
+        z: Math.round(p.z * 100) / 100,
+      }));
+    if (
+      chain.closed &&
+      (points[0].x !== points[points.length - 1].x || points[0].z !== points[points.length - 1].z)
+    )
+      points.push({ ...points[0] });
+    return { points, closed: chain.closed, length: Math.round(chain.length * 100) / 100 };
+  });
   const json: PackedTerrainJson = {
-    version: 1,
+    version: 2,
     nx: data.nx,
     nz: data.nz,
     minX: data.minX,
@@ -426,19 +447,25 @@ export function packTerrain(
     maxZ: data.maxZ,
     cell: data.cell,
     seabedRadius: COVE.seabedRadius,
-    deepDepth: COVE.deepDepth,
+    deepDepth: TERRAIN_DEEP_DEPTH,
     channels: {
-      heights: { offset: 0, length: heightsBytes, type: 'float32', components: 1 },
-      normals: { offset: heightsBytes, length: normalsBytes, type: 'snorm16', components: 3 },
+      heights: {
+        offset: 0,
+        length: heightsBytes,
+        type: 'uint16',
+        components: 1,
+        min: minHeight,
+        max: maxHeight,
+      },
       packed: {
-        offset: heightsBytes + normalsBytes,
+        offset: heightsBytes,
         length: packedBytes,
         type: 'unorm8',
         components: 8,
         order: ['ao', 'sunMorning', 'sunGolden', 'rim', 'sand', 'grass', 'rock', 'cliff'],
       },
     },
-    shoreline: data.shoreline,
+    shoreline,
     farSeabedRing: { innerRadius: 390, outerRadius: COVE.seabedRadius, segments: 144 },
     hash,
   };
@@ -468,10 +495,27 @@ export function hashTerrainPack(
 
 export function terrainDataFromPack(json: PackedTerrainJson, binary: ArrayBuffer): TerrainBakeData {
   const count = json.nx * json.nz;
-  const heights = new Float32Array(binary, json.channels.heights.offset, count);
-  const normalPacked = new Int16Array(binary, json.channels.normals.offset, count * 3);
+  const heightPacked = new Uint16Array(binary, json.channels.heights.offset, count);
+  const heights = new Float32Array(count);
+  const heightRange = json.channels.heights.max - json.channels.heights.min;
+  for (let i = 0; i < count; i++)
+    heights[i] = json.channels.heights.min + (heightPacked[i] / 65535) * heightRange;
   const normals = new Float32Array(count * 3);
-  for (let i = 0; i < normalPacked.length; i++) normals[i] = normalPacked[i] / 32767;
+  for (let iz = 0; iz < json.nz; iz++) {
+    for (let ix = 0; ix < json.nx; ix++)
+      normalFromGrid(
+        heights,
+        json.nx,
+        json.nz,
+        json.minX,
+        json.minZ,
+        json.cell,
+        ix,
+        iz,
+        normals,
+        (iz * json.nx + ix) * 3,
+      );
+  }
   const packed = new Uint8Array(binary, json.channels.packed.offset, count * 8);
   const ao = new Uint8Array(count);
   const sunMorning = new Uint8Array(count);

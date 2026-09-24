@@ -3,6 +3,7 @@ import { COVE } from '../layout';
 
 const SEED = 0x51e_c0de;
 const EPSILON = 1e-6;
+export const TERRAIN_DEEP_DEPTH = 52;
 
 export interface CoveMasks {
   sand: number;
@@ -24,7 +25,7 @@ export const DEFAULT_TERRAIN_BOUNDS = {
   minX: -320,
   maxX: 320,
   minZ: -260,
-  maxZ: 260,
+  maxZ: 295,
   cell: 1,
 } as const;
 
@@ -175,6 +176,25 @@ function discPadHeight(
   return mix(current, target, w);
 }
 
+function segmentDistance(x: number, z: number, ax: number, az: number, bx: number, bz: number): number {
+  const dx = bx - ax;
+  const dz = bz - az;
+  const t = clamp01(((x - ax) * dx + (z - az) * dz) / Math.max(EPSILON, dx * dx + dz * dz));
+  return Math.hypot(x - (ax + dx * t), z - (az + dz * t));
+}
+
+function pathMask(x: number, z: number): number {
+  const villageToHill = segmentDistance(x, z, COVE.village.center.x, COVE.village.center.z, -18, -10);
+  const hillToBeach = segmentDistance(x, z, -18, -10, -28, 103);
+  const quayToVillage = segmentDistance(x, z, -112, -64, COVE.village.center.x, COVE.village.center.z);
+  return clamp01(
+    1 -
+      smoothstep(2.4, 7.2, villageToHill) +
+      (1 - smoothstep(2.8, 8.6, hillToBeach)) +
+      (1 - smoothstep(2.2, 6.5, quayToVillage)),
+  );
+}
+
 function lagoonAndReefHeight(x: number, z: number, current: number): number {
   const lx = x - COVE.lagoon.center.x;
   const lz = z - COVE.lagoon.center.z;
@@ -197,11 +217,16 @@ function lagoonAndReefHeight(x: number, z: number, current: number): number {
   const floor = -COVE.lagoon.depth + fbm2(x * 0.045 + 3.1, z * 0.045 - 8.3, 4, SEED + 808) * 0.16;
   h = mix(h, floor, lagoon);
 
-  const reefRing = gaussian(d - COVE.reef.radius, COVE.reef.width * 0.55) * southArc;
+  const reefRing = gaussian(d - COVE.reef.radius, COVE.reef.width * 0.95) * southArc;
   const gapA = angularGaussian(angle, 0.34, 0.07);
   const gapB = angularGaussian(angle, 2.55, 0.08);
   const channel = clamp01(gapA + gapB);
-  const crestNoise = fbm2(x * 0.11, z * 0.11, 3, SEED + 909) * 0.06;
+  const apronBand = smoothstep(COVE.reef.radius - 20, COVE.reef.radius + 18, d) * southArc;
+  const apronT = smoothstep(COVE.reef.radius + 3, COVE.reef.radius + 20, d);
+  const apronNoise = fbm2(x * 0.03 - 4.2, z * 0.03 + 3.4, 4, SEED + 910) * 0.22;
+  const reefApron = mix(-3.1, -48, apronT) + apronNoise * (1 - apronT);
+  h = mix(h, reefApron, apronBand * (1 - channel * 0.5));
+  const crestNoise = fbm2(x * 0.055, z * 0.055, 3, SEED + 909) * 0.035;
   const crest = mix(COVE.reef.crest + crestNoise, -3.4 + crestNoise * 2, channel);
   h = mix(h, crest, reefRing * (1 - smoothstep(0.45, 0.85, channel)) + reefRing * channel * 0.9);
 
@@ -245,7 +270,8 @@ function headlandHeight(x: number, z: number, current: number): number {
     ravineCut(x, z, 128, 2, -0.2, 6.5, 11) +
     ravineCut(x, z, 135, 36, -0.35, 7, 9);
   const strataSteps = Math.floor(Math.max(0, COVE.headland.cliffTop * face) / 3) * 0.035;
-  let cliff = COVE.headland.cliffTop * face + ridge * smoothstep(0.22, 0.9, face) - ravines + strataSteps;
+  let cliff =
+    COVE.headland.cliffTop * 0.68 * face + ridge * 1.2 * smoothstep(0.22, 0.9, face) - ravines + strataSteps;
   cliff += ridged2(x * 0.18, z * 0.18, 3, SEED + 337) * 1.3 * smoothstep(0.15, 0.95, face);
 
   const caveDx = (x - COVE.seaCave.x) / (COVE.seaCave.width * 1.25);
@@ -271,9 +297,10 @@ function seaStackHeight(x: number, z: number, current: number): number {
 
 export function coveHeight(x: number, z: number): number {
   const coast = noisyCoastDistance(x, z);
-  const seaT = smoothstep(coast.radius + 4, COVE.seabedRadius, coast.radial);
-  const seaNoise = fbm2(x * 0.012 + 4, z * 0.012 - 11, 4, SEED + 515) * 0.8 * (1 - seaT);
-  const sea = -mix(0.35, COVE.deepDepth, seaT) + seaNoise;
+  const offshoreDistance = Math.max(0, coast.radial - coast.radius);
+  const seaT = smoothstep(28, 125, offshoreDistance);
+  const seaNoise = fbm2(x * 0.012 + 4, z * 0.012 - 11, 4, SEED + 515) * 0.45 * (1 - seaT);
+  const sea = -mix(0.35, TERRAIN_DEEP_DEPTH, seaT) + seaNoise;
 
   const hill =
     COVE.hill.height *
@@ -284,6 +311,14 @@ export function coveHeight(x: number, z: number): number {
   const landNoise =
     fbm2(x * 0.032, z * 0.032, 5, SEED + 616) * 1.2 + ridged2(x * 0.08, z * 0.08, 3, SEED + 617) * 0.65;
   let h = coast.distance >= 0 ? lowLand + landNoise * smoothstep(4, 35, coast.distance) : sea;
+  const hillMask =
+    gaussian((x - COVE.hill.center.x) / (COVE.hill.radius * 0.8), 1) *
+    gaussian((z - COVE.hill.center.z) / COVE.hill.radius, 1);
+  const hillRidges = ridged2(x * 0.045 - 2.1, z * 0.045 + 8.4, 4, SEED + 1201) * 2.4;
+  const gullies = ridged2((x + z * 0.35) * 0.07, (z - x * 0.28) * 0.07, 3, SEED + 1202) * 1.7;
+  const paths = pathMask(x, z);
+  h += hillMask * (hillRidges - gullies * 0.65) * smoothstep(1, 18, h);
+  h -= paths * 0.38 * smoothstep(0.5, 12, h);
 
   h = lagoonAndReefHeight(x, z, h);
   h = harborBasinHeight(x, z, h);
@@ -302,7 +337,7 @@ export function coveHeight(x: number, z: number): number {
   h = seaStackHeight(x, z, h);
 
   if (coast.radial >= COVE.seabedRadius) {
-    h = Math.min(h, -COVE.deepDepth);
+    h = Math.min(h, -TERRAIN_DEEP_DEPTH);
   }
   return h;
 }
@@ -343,18 +378,30 @@ export function coveMasks(x: number, z: number): CoveMasks {
     (1 - smoothstep(COVE.beach.z1 + 18, COVE.beach.z1 + 48, z)) *
     (1 - smoothstep(160, 210, Math.abs(x))) *
     (1 - smoothstep(0.45, 0.9, slope));
+  const path = pathMask(x, z) * smoothstep(1.0, 6.5, h);
+  const outcrop =
+    smoothstep(5, 20, h) *
+    smoothstep(0.28, 0.7, ridged2(x * 0.075 - 3.4, z * 0.075 + 1.8, 3, SEED + 1501)) *
+    (1 - smoothstep(0.65, 1.1, slope));
   let sand = Math.max(
     shallowSand * (1 - headland * 0.7),
     beachSand,
     smoothstep(COVE.lagoon.radius + 18, 18, lagoonD) * 0.7,
+    path * 0.85,
   );
   let cliff = Math.max(
     smoothstep(0.52, 1.15, slope),
     headland * smoothstep(7, 26, h),
     smoothstep(COVE.seaStack.radius + 8, COVE.seaStack.radius - 1, stackD),
   );
-  let rock = Math.max(smoothstep(0.25, 0.72, slope), headland * 0.75, smoothstep(8, 26, h) * 0.22);
-  let grass = smoothstep(1.2, 4.5, h) * (1 - smoothstep(0.22, 0.52, slope)) * (1 - headland * 0.65);
+  let rock = Math.max(
+    smoothstep(0.25, 0.72, slope),
+    headland * 0.75,
+    smoothstep(8, 26, h) * 0.22,
+    outcrop * 0.45,
+  );
+  let grass =
+    smoothstep(1.2, 4.5, h) * (1 - smoothstep(0.22, 0.52, slope)) * (1 - headland * 0.65) * (1 - path * 0.82);
 
   if (h < -9) {
     sand *= 0.3;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { COVE } from '../layout';
-import { CoveHeightField, coveHeight, coveMasks } from './cove-height';
+import { CoveHeightField, coveHeight, coveMasks, TERRAIN_DEEP_DEPTH } from './cove-height';
 
 describe('coveHeight', () => {
   it('places the harbor basin, quay, village, lagoon, reef, cliffs, and seabed at expected elevations', () => {
@@ -14,7 +14,8 @@ describe('coveHeight', () => {
     );
     expect(coveHeight(176, 0)).toBeGreaterThanOrEqual(30);
     expect(coveHeight(COVE.seaStack.x, COVE.seaStack.z)).toBeGreaterThanOrEqual(29);
-    expect(coveHeight(COVE.seabedRadius, 0)).toBeCloseTo(-COVE.deepDepth, 0);
+    expect(coveHeight(COVE.seabedRadius, 0)).toBeCloseTo(-TERRAIN_DEEP_DEPTH, 0);
+    expect(coveHeight(0, 295)).toBeLessThanOrEqual(-45);
   });
 
   it('returns unit normals from the height field', () => {

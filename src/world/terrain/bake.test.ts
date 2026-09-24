@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { bakeTerrain, hashTerrainPack, packTerrain } from './bake';
+import { bakeTerrain, hashTerrainPack, packTerrain, terrainDataFromPack } from './bake';
 
 describe('terrain bake', () => {
-  const smallBounds = { minX: -320, maxX: 320, minZ: -260, maxZ: 320, cell: 8 };
+  const smallBounds = { minX: -320, maxX: 320, minZ: -260, maxZ: 295, cell: 8 };
 
   it('is deterministic for the same bounds', () => {
     const a = bakeTerrain(smallBounds);
@@ -10,6 +10,8 @@ describe('terrain bake', () => {
     const packA = packTerrain(a, '');
     const packB = packTerrain(b, '');
     expect(hashTerrainPack(packA.binary, packA.json)).toBe(hashTerrainPack(packB.binary, packB.json));
+    expect(packA.json.channels.heights.type).toBe('uint16');
+    expect(packA.json.channels.packed.type).toBe('unorm8');
   });
 
   it('extracts ordered shoreline chains including closed island loops', () => {
@@ -32,5 +34,14 @@ describe('terrain bake', () => {
       expect(sum).toBeGreaterThanOrEqual(250);
       expect(sum).toBeLessThanOrEqual(258);
     }
+  });
+
+  it('round-trips quantized heights and derives unit normals at load', () => {
+    const baked = bakeTerrain(smallBounds);
+    const packed = packTerrain(baked, baked.hash);
+    const loaded = terrainDataFromPack(packed.json, packed.binary);
+    expect(loaded.heights[10]).toBeCloseTo(baked.heights[10], 2);
+    const len = Math.hypot(loaded.normals[0], loaded.normals[1], loaded.normals[2]);
+    expect(len).toBeCloseTo(1, 4);
   });
 });
