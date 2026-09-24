@@ -8,13 +8,13 @@
 
 ## 0. Scope & success
 
-**In scope:** title/menus, character creation, intro, the dialogue/voice system, Logbook, all quiz types, the puzzle pieces used here, Captain's Chart + fast travel, settings, save, procedural music and ambience, Island 00, the sea passage, and Island 01.
+**In scope:** desktop + **tablet (touch)** play, the **2D Chart & Logbook fallback mode**, title/menus, character creation, intro, the dialogue/voice system, Logbook, all quiz types, the puzzle pieces used here, Captain's Chart + fast travel, settings, save, procedural music and ambience, Island 00, the sea passage, and Island 01.
 **Out of scope:** Islands 02-07 (they appear on the chart as fogged silhouettes marked "Coming soon"), the cosmetics shop (doubloons are collected, but the shop is stubbed), and the Master Captain certificate.
 
 **The POC succeeds if:**
 1. A first-time player finishes both islands in **~70-90 min** without outside help. Voice alone is ~44 min of audio, so trims (the Whispering Gallery, the bottles, a shorter Passport review) stay available as levers after the playtest.
 2. Afterwards they can answer every Ch 00/01 learning objective, measured with the **10-question exit quiz in Appendix A** (hints off).
-3. It hits the **High-tier budgets in PLAN §12** on an M1/M2 MacBook Air and the **Low tier** on Intel Iris Xe.
+3. It hits the **PLAN §12.1 budgets** for each tier: **Low, 30 fps on the UHD 620 floor** (emulated per PLAN §14.5, real device before launch); **Medium, 45-60 fps on Iris Xe / M1 Air**; High and Ultra on faster machines. It also runs on **tablets with touch** (iPad A13+ at Medium), and the **2D Chart & Logbook mode** covers devices that can't run 3D.
 4. You look at it and say *"that's beautiful."*
 
 **Vertical-slice gate:** **Anchorage Q0.2-Q0.8** must be fully playable, with real TTS for those lines, before the rest of the Phase 1 content is built.
@@ -97,15 +97,19 @@ Boot ─▶ Title (live 3D) ─▶ New Voyage ─▶ Character Creation ─▶ I
 - Voiced lines address you as **"Captain."** Your typed name appears in text only: save slot, Logbook cover, chart cartouche.
 
 ### 3.3 Controls (defaults, all rebindable)
-| Action | Keyboard/Mouse | Gamepad |
-|---|---|---|
-| Move / look | WASD / **hold right mouse to look** (default, no pointer lock) · arrow keys to look · optional **pointer-lock "mouse-look"** setting | LS / RS |
-| Sprint / jump | Shift / Space | LS-click / A |
-| Interact / advance dialogue | E / Left-click | X |
-| Parrot hint | Q | Y |
-| Logbook / Chart / Pause | J / M / Esc | View / Map (d-pad ↑) / Menu |
-| **Sailing:** trim sails (furled · half · full) | W / S | RT / LT |
-| **Sailing:** rudder / helm camera / leave helm | A-D / C / E (at a dock) | LS / RS-click / B |
+| Action | Keyboard/Mouse | Gamepad | Touch (tablets) |
+|---|---|---|---|
+| Move / look | WASD / **hold right mouse to look** (default, no pointer lock) · arrow keys to look · optional **pointer-lock "mouse-look"** setting | LS / RS | **Left virtual stick** (appears where your thumb lands) / **drag on the right half** to look |
+| Sprint / jump | Shift / Space | LS-click / A | Push the stick to its edge to sprint / **Jump** button |
+| Interact / advance dialogue | E / Left-click | X | **Tap** the prompt, NPC, or chest (large context button) / tap the dialogue |
+| Parrot hint | Q | Y | Parrot button |
+| Logbook / Chart / Pause | J / M / Esc | View / Map (d-pad ↑) / Menu | Top-bar buttons |
+| **Sailing:** trim sails (furled · half · full) | W / S | RT / LT | Trim slider (right edge) |
+| **Sailing:** rudder / helm camera / leave helm | A-D / C / E (at a dock) | LS / RS-click / B | Helm wheel (drag) / camera button / Leave button |
+| **Quizzes & screenshots** | Click, Shift for the magnifier | Cursor on LS, A to select | **Tap to place, pinch to zoom, long-press for the magnifier** |
+| **Push-block puzzles** | Walk into a crate | Walk into a crate | Walk into a crate, or **tap a crate then tap a direction arrow** |
+
+Touch targets are **≥ 44 px**, UI scales with the viewport, and tablets play **landscape** (portrait shows a "rotate" card). Audio unlocks on the first tap.
 
 **POC movement limits:** you can wade in the shallows, and deep water gently returns you to shore. There's no swimming and no ledge climbing in the POC (PLAN §5 lists both as post-POC).
 
@@ -181,6 +185,7 @@ Lever · rotatable pipe tile · sluice gate · flowing-water channel (a GPU-anim
 - **Graphics:** preset (auto-benchmarked) + render scale, shadows, water, vegetation density, post FX, FPS cap, perf HUD.
 - **Audio:** Master, Music, Ambience, SFX, Voice, UI. A note says **voices are synthetic, generated with Azure AI Speech**.
 - **Gameplay:** **Free explore**, hint frequency, look mode (hold-right-mouse / pointer lock), camera sensitivity, invert Y, FOV, camera shake, head bob, voice on/off.
+- **Mode & quality:** preset **Lite / Low / Medium / High / Ultra** (auto-picked, PLAN §14.2) and **"Play in 2D Chart & Logbook mode"**.
 - **Accessibility:** text size (90-150%), subtitle background opacity, **captions for important sound cues** (chest nearby, water flowing, crane locking, correct/incorrect, lighthouse lit), high-contrast UI, dyslexia-friendly font, and reduced motion. Reduced motion covers camera bob/shake, UI motion, **lantern flicker, and sun shafts**.
 
 ### 3.11 Wingman the parrot *(placeholder name)*
@@ -600,7 +605,9 @@ Nine items. Pass with all correct (retries allowed, hint tier 3 off). All six ke
 - [ ] Procedural music plays per island with adaptive layers, beat-quantized stingers, and ducking under voice.
 - [ ] The chart supports sail-to and fast travel. Free explore can enter Anchorage Cay and Port Meridian in either order, and 02-07 are visible but can't be entered.
 - [ ] Save/continue works across reloads, puzzles restore to their checkpoints, and export/import works.
-- [ ] The High tier holds 60 fps on an M1/M2 Air, the Low tier holds 30+ fps on Iris Xe, and no frame spikes over 50 ms during streaming.
+- [ ] Each tier holds its §12.1 target (**Low 30 fps on the emulated UHD 620 floor**, Medium 45-60 fps on emulated Iris Xe/M1, High 60 fps). The **Lite** preset holds 30 fps on the emulated Chromebook profile, and there are no frame spikes over 50 ms during streaming.
+- [ ] **Tablets:** Anchorage and Port Meridian are fully playable with touch on an iPad (A13+) and a recent Android tablet via cloud real devices, including hotspot quizzes, push-block puzzles, sailing, and the Chart.
+- [ ] **2D Chart & Logbook mode:** it runs automatically when WebGL2 or hardware acceleration is missing (and on request in Settings). Every Island 00/01 objective in the §1 matrix can be completed in it: dialogue, voices, pages, quizzes, and 2D versions of P0.1, P0.2, P1.1, P1.2, and P1.3.
 - [ ] The title (ocean, sky, clouds, and the ship) is interactive at **≤ 4 MB / ≤ 3 s at 25 Mbps**, and Anchorage isn't part of that download.
 - [ ] **Modular loading (PLAN §13):** code chunks and island/zone packs load on demand. First playable is ≤ 14 MB / ≤ 6 s even with every cinematic skipped. The Open Sea passage finishes Port Meridian's prefetch before arrival at 25 Mbps. Fast travel takes ≤ 2 s when cached. Throttled Playwright tests assert all of these.
 - [ ] The Appendix A exit quiz is implemented with hints off.

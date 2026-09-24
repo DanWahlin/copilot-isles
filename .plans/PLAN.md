@@ -22,7 +22,10 @@
 | Art approach | **A. Hybrid stylized realism** |
 | AI-generated art | **Allowed anywhere it helps** (uses the image model in `~/.env`). See §6a |
 | Branding | **Unsure.** Build unbranded, with a theme layer so logos/mascots can be dropped in later. The **affiliation line** wording is a required decision before the first public deploy |
-| Platforms | **Desktop browsers**: keyboard/mouse + gamepad |
+| Platforms | **Runs everywhere with a WebGL2 browser:** desktop (keyboard/mouse + gamepad) **and tablets (touch) now**, phones in a later phase. **Performance floor: Intel UHD 620 at 30 fps**, plus a **Lite** preset for Chromebooks. Devices that can't run 3D get the **2D Chart & Logbook mode**. See §14 |
+| Rendering backend | **WebGL2 + GLSL** (three.js). WebGPU only for optional HDR output later |
+| Test hardware | **Emulated** on the M3 Max (locked render scale + scaled GPU budgets + CPU throttling), with **cloud real-device runs** for iPad/Android tablets. A real UHD 620 laptop is recommended before public launch (§14.5) |
+| Repository | `DanWahlin/copilot-isles` (**private**). GitHub Pages from a private repo needs a paid plan, and the published site is public either way |
 | Hosting | **GitHub Pages** |
 | Project folder | `~/Desktop/test/copilot-isles` |
 | Deadline | None |
@@ -359,8 +362,9 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 | Phase | Deliverable | Gate |
 |---|---|---|
 | **0 · Look, sound & perf spike** | One frame that shows **the polar-grid ocean (with analytic ship reflection), one restyled building cluster, a dressed pirate, and ≥ 8 skinned NPCs**, plus sky, clouds, character + camera, sailing and docking the brigantine, a prototype of the procedural music engine (one island theme), the voice pipeline (a few lines), and the debug HUD + benchmark flythrough (which also measures physics time).<br>**Water must show every layer of the Water system**: Gerstner swell → calm lagoon with **refraction + absorption + caustics**, shoreline/reef foam and **beach run-up**, **analytic wake + bow wave + hull cut-out**, a flow-map channel, and the **High-tier harbor mirror**.<br>Also required: cached shadows, sun shafts, the shared wind (grass, palms, sails), mist/height fog, adaptive resolution, the `shot()` debug API, and the **§13 loading skeleton** (boot/title chunk split, the manifest + one streamed pack, and the Service Worker), with its §13.5 title budget measured.<br>It must **hit the §12 budgets** on reference hardware, with each water layer's cost measured separately | You approve the *look*, the *sound*, and the *frame rate* |
-| **1 · Proof of concept** | **Islands 00 + 01 fully playable**, plus all core systems: menu, character creation, dialogue, chests/logbook, all quiz types, puzzle toolkit, map/fast travel, settings, save, audio. **Vertical-slice gate first:** Anchorage Q0.2-Q0.8 fully playable with real TTS before the rest of the content is built | You approve the *slice*, then the *fun & teaching* |
+| **1 · Proof of concept** | **Islands 00 + 01 fully playable**, plus all core systems: **tablet touch controls**, the **2D Chart & Logbook mode**, menu, character creation, dialogue, chests/logbook, all quiz types, puzzle toolkit, map/fast travel, settings, save, audio. **Vertical-slice gate first:** Anchorage Q0.2-Q0.8 fully playable with real TTS before the rest of the content is built | You approve the *slice*, then the *fun & teaching* |
 | **2 · Expansion** | Islands 02-04 | |
+| **2b · Phones** | Phone layout (portrait-friendly HUD, readable screenshot quizzes, a smaller memory budget) and the phone 30 fps tier | Phone UX review |
 | **3 · Complete** | Islands 05-07 + finale, certificate, polish, accessibility audit, perf pass, credits, deploy | |
 
 ---
@@ -380,6 +384,8 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 | Trademarks & affiliation (Octocat, Copilot logo, product name) | The MIT license covers the course's copyright, not GitHub's trademarks. We include the **full MIT notice** in the credits, keep screenshots as screenshots, and **never model or generate the Octocat or Copilot logo**. An **affiliation line** (e.g. "Unofficial fan project…" vs official wording) is a **required decision before the first public deploy** |
 | Film likeness (the "Pirates of the Caribbean" ship brief) | Build a generic Golden Age brigantine. Don't replicate any specific film ship's distinctive design |
 | GitHub Pages bandwidth (~100 GB/month soft cap) | Keep the per-island downloads small, use Service Worker caching, and monitor. Move to a CDN if the game gets popular |
+| Emulated-only performance testing misses real iGPU limits | Conservative emulation ratios with margin, cloud real devices for tablets, and one real UHD 620 laptop before public launch (§14.5) |
+| "Runs everywhere" scope (tablets + 2D mode) | Shared data-driven content, 2D renderers for only 5 POC puzzles, and phones deferred to Phase 2b |
 | Service Worker serves stale or mixed versions | Content-hashed immutable URLs, a network-first manifest, new versions activated only at the title screen, and old packs kept until the new ones verify |
 | Player outruns streaming (fast travel, fast sailing) | Critical packs kept small (≤ 8 MB), prefetch starting at the Trial, a diegetic fog-bank slowdown, and a lighthouse transition with progress |
 | Scope (8 islands of bespoke content) | Data-driven content + a reusable puzzle toolkit + a shared template per island |
@@ -389,10 +395,10 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on reference hardware before we build content on top of it. The rules below are adapted from your list. We don't have projectiles, and we're desktop-only, so "mobile" means **integrated laptop GPUs** (Intel Iris Xe, base M1). The same discipline applies.
 
 ### 12.1 Budgets per quality tier
-| Budget | Low (Iris Xe) | Medium | High (M1/M2, RTX 3050) | Ultra |
+| Budget | Low (**floor**: Intel UHD 620) | Medium (Iris Xe, M1 Air 8 GB, iPad A13+) | High (M2/M3 Air, RTX 3050, iPad M1+) | Ultra (M Pro/Max, RTX 3060+) |
 |---|---|---|---|---|
-| Target frame rate | 30+ fps | 45-60 | 60 @1080p | 60 @1440p+ |
-| Render scale / max DPR | 0.75 / 1.0 | 1.0 / 1.25 | 1.0 / 1.5 | 1.0 / 2.0 |
+| Target frame rate | 30 fps | 45-60 | 60 @1080p | 60 @1440p+ |
+| Render scale / max DPR | 0.6-0.75 / 1.0 | 0.8-1.0 / 1.25 | 1.0 / 1.5 | 1.0 / 2.0 |
 | Draw calls (in-game, **whole frame incl. mirror + post passes**) | < 150 | < 225 | < 300 | < 400 |
 | Triangles (**summed across all scene passes, incl. the mirror**) | < 500k | < 1M | < 2M | < 3.5M |
 | GPU texture memory | < 256 MB | < 384 MB | < 512 MB | < 768 MB |
@@ -571,3 +577,54 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - **Fonts are warmed** before reveal (hidden spans + `document.fonts.ready`), so there's no flash of unstyled text. The loader cross-fades into the live title in ~0.8 s.
 - **Two-phase warm-up:** we compile and **warm-draw** (render once off-screen to force GPU uploads) the **title objects first** and reveal the title. The **island is then precompiled in the background, time-boxed**, and revealed in batches. The dev hitch guard confirms nothing compiles during play.
 - **Bake, don't generate:** the Antikythera study took **~17.6 s to a warm title** on an M3 Max because it generates everything at runtime. Our terrain, AO, sun visibility, rim flags, shorelines, and foam ribbons are **baked at build time** into packs. Only small procedural pieces (distant ranges, sky, water) run at load, and anything heavier runs in a worker.
+
+---
+
+## 14. Platform support ("runs everywhere")
+
+**Promise:** the **same course content, voices, quizzes, and puzzles on every device**. Only the visuals scale. Devices that can't run 3D get the same learning journey in the **2D Chart & Logbook mode**.
+
+### 14.1 Device classes
+| Device class | Examples | Preset | Expectation |
+|---|---|---|---|
+| High-end | RTX 3060+, Apple M Pro/Max | Ultra | Everything at 60 fps |
+| Mainstream (2020+) | M2/M3 Air, RTX 3050 | High | 60 fps @1080p |
+| Mainstream (older) | Intel Iris Xe, M1 Air 8 GB, AMD 680M/780M, iPad A13+ | Medium | 45-60 fps with adaptive resolution |
+| **Floor** (2017-2020, common in schools and enterprise) | **Intel UHD 620/630** | **Low** | **30 fps** at render scale 0.6-0.75. No mirror, sun shafts, SSAO, caustics, or flotsam. Fewer foam octaves, sparser grass, blob shadows, and NPC animation at a reduced rate |
+| Chromebooks & very weak GPUs | Celeron/UHD 600, ARM Mali | **Lite** | 30 fps target: render scale ~0.55, no post except tone map + grade, PMREM water with no refraction, impostor-heavy vegetation, shadows off (blob only), and only one island zone resident |
+| Tablets | iPad A13+ (Medium), iPad M1+ (High), recent Android tablets (Low/Medium) | per GPU | Touch controls, larger UI, landscape |
+| Phones | iPhone 12+, mid-range Android | *later phase (2b)* | Needs a dedicated small-screen UX |
+| **No 3D** | No WebGL2, or hardware acceleration off/software rendering (VMs, remote desktop, locked-down PCs) | **2D mode** | The full course journey in 2D |
+
+### 14.2 Detection & tier choice
+1. **WebGL2 check.** If it's missing, start in 2D mode with an explanation.
+2. **Software-rendering check:** `WEBGL_debug_renderer_info` strings such as SwiftShader, llvmpipe, "Microsoft Basic Render", or "Software". Some browsers mask this string, so we also run the benchmark in step 3. If it's software rendering, offer 2D mode ("Your browser isn't using the graphics card…" plus a how-to for enabling hardware acceleration).
+3. **A ~1.5 s silent benchmark** on the title scene at a fixed render scale, plus GPU-string heuristics and `navigator.deviceMemory` / `hardwareConcurrency` where available. Together these pick Lite/Low/Medium/High/Ultra. The player can always override it, and adaptive resolution (§12.9) fine-tunes within the tier.
+4. **Memory-constrained devices** (tablets, 4 GB machines) keep **one island zone resident** and a lower texture tier. Streaming (§13) respects each tier's memory budget.
+5. **Context loss** (common on mobile/iPad under memory pressure) is handled: `webglcontextlost` pauses, and restore re-uploads resident packs from the decoded cache.
+
+### 14.3 Browser notes
+| Topic | Handling |
+|---|---|
+| Chrome / Edge / Firefox / Safari | All targets are WebGL2. Playwright runs the same checks on each |
+| GPU timer queries | Effectively Chrome-only, so frame-time measurement is the fallback everywhere else (§12.9) |
+| Texture formats | KTX2/Basis transcodes to whatever the GPU supports (BCn on desktop, ASTC/ETC2 on Apple and Android) |
+| Voice audio | Opus first, AAC fallback via `canPlayType` (Safari versions vary) |
+| Audio unlock | The first click, tap, or key press starts the AudioContext (required on iOS/iPadOS) |
+| iOS/iPadOS memory limits | Pack budgets, one resident zone on Medium/Low tablets, and context-loss recovery |
+
+### 14.4 2D Chart & Logbook mode
+- A **DOM/Canvas-2D experience** built on the parchment Captain's Chart. You travel island to island on the chart, and each island opens as an **illustrated scene** (AI-painted art per location) with clickable characters, chests, and puzzle boards.
+- **The content is shared:** it uses the same data files as 3D mode (dialogue, voice lines, Logbook pages, quizzes, hotspots, and puzzle definitions). Each puzzle has a **2D renderer**: the P0.1 channel grid, the P0.2 crane as a top-down berth diagram, the P1.1 push-block grid, the P1.2 helms as three chart voyages (waypoints for Plan, a check-in steering slalom for Interactive, set-and-watch for Autopilot), and the P1.3 rotating banners.
+- **Same progress, same save:** Seals, the Logbook, and progress are shared, so a player can switch modes at any time.
+- It's also the **accessibility-first path**: fully keyboard- and screen-reader-navigable, with minimal motion.
+- It uses the procedural music (low CPU) and voice, and makes no WebGL calls at all.
+
+### 14.5 Testing without the physical devices (chosen: emulate)
+- **Emulated GPU tiers on the M3 Max:**
+  - lock the render resolution per tier
+  - **scale the GPU-time budget by rough capability ratios:** ~5-8× less headroom for M1/Iris Xe, **~25-35× for UHD 620**, ~40× for Chromebook-class. In practice a tier's frame must render in ≤ its budget ÷ that ratio on the M3 Max
+  - apply **Chrome DevTools CPU throttling** (4× for Medium, 6× for Low/Lite) to catch main-thread and physics costs
+  - The ratios are **estimates**, so we'll add a small margin
+- **Cloud real devices** (e.g. BrowserStack/LambdaTest) for **iPad and Android tablets**: touch, Safari/iPadOS behaviour, memory, and context loss. **Cloud desktop VMs lack real GPUs**, so they're used for compatibility and 2D-mode checks only, never for performance.
+- **Risk:** emulation can't fully predict an Intel iGPU's bandwidth limits or driver quirks. **Before public launch we should test on one real UHD 620 laptop** (a ~$150-250 used 8th-gen i5 ultrabook).
