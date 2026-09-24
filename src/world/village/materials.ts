@@ -139,13 +139,13 @@ export function createClothMaterial(): MeshStandardNodeMaterial {
 }
 
 export function createMetalMaterial(): MeshStandardNodeMaterial {
-  const material = new MeshStandardNodeMaterial({ roughness: 0.48, metalness: 0.74, vertexColors: true });
+  const material = new MeshStandardNodeMaterial({ roughness: 0.72, metalness: 0.25, vertexColors: true });
   const p = positionWorld as AnyNode;
   const tarnish = sin(p.x.mul(8.1).add(p.z.mul(5.3)))
     .mul(0.5)
     .add(0.5);
-  material.colorNode = tint().mul(float(0.7).add(tarnish.mul(0.18)));
-  material.roughnessNode = float(0.46).add(tarnish.mul(0.16));
+  material.colorNode = tint().mul(float(0.84).add(tarnish.mul(0.2)));
+  material.roughnessNode = float(0.7).add(tarnish.mul(0.12));
   return material;
 }
 
