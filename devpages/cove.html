@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copilot Isles · Test Cove Dev</title>
+    <link rel="icon" href="data:," />
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #0a1720;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      #hud {
+        position: fixed;
+        left: 16px;
+        top: 16px;
+        z-index: 5;
+        width: 260px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        color: #f4fbff;
+        background: rgb(8 21 30 / 70%);
+        backdrop-filter: blur(14px);
+        font-size: 12px;
+      }
+      #hud strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+      #hud label {
+        display: grid;
+        grid-template-columns: 58px 1fr 38px;
+        gap: 6px;
+        align-items: center;
+        margin: 4px 0;
+      }
+      #hud button {
+        margin: 2px;
+        border: 0;
+        border-radius: 999px;
+        padding: 5px 9px;
+        color: #09202d;
+        background: #d8eff9;
+        cursor: pointer;
+        font-size: 11px;
+      }
+      #stats {
+        margin-top: 8px;
+        color: #b9d8e5;
+        font:
+          11px/1.4 ui-monospace,
+          Menlo,
+          monospace;
+        white-space: pre;
+      }
+      body.shot #hud {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gl"></canvas>
+    <div id="hud">
+      <strong>Test Cove</strong>
+      <label
+        >Time <input id="time" type="range" min="0" max="24" step="0.05" /><span id="timeV"></span
+      ></label>
+      <label>Sun az <input id="az" type="range" min="-180" max="180" step="1" /><span id="azV"></span></label>
+      <label>Wind <input id="wind" type="range" min="1" max="14" step="0.1" /><span id="windV"></span></label>
+      <div>
+        <button data-view="harbor">Harbor</button>
+        <button data-view="village">Village</button>
+        <button data-view="lagoon">Lagoon</button>
+        <button data-view="headland">Headland</button>
+        <button data-view="stack">Sea stack</button>
+        <button data-view="approach">Approach</button>
+        <button data-view="aerial">Aerial</button>
+      </div>
+      <div>
+        <button data-time="7">Dawn</button>
+        <button data-time="12">Noon</button>
+        <button data-time="16.5">Golden</button>
+        <button data-time="18.3">Sunset</button>
+        <button data-time="23">Night</button>
+      </div>
+      <div id="stats">Loading…</div>
+    </div>
+    <script type="module" src="/src/dev/cove.ts"></script>
+  </body>
+</html>

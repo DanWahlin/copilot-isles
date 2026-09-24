@@ -18,6 +18,7 @@ import {
   type PerspectiveCamera,
   type Texture,
   type WebGPURenderer,
+  Vector4,
 } from 'three/webgpu';
 import type { PlantInstance } from './types';
 import { createPlantGeometry } from './plant-geometry';
@@ -61,6 +62,12 @@ export async function bakeImpostorAtlas(renderer: WebGPURenderer): Promise<Impos
   camera.position.set(0, 5, 15);
   camera.lookAt(0, 4, 0);
 
+  // Save shared renderer state; the bake must leave the canvas viewport/scissor/clear untouched.
+  const prevViewport = renderer.getViewport(new Vector4());
+  const prevScissor = renderer.getScissor(new Vector4());
+  const prevScissorTest = renderer.getScissorTest();
+  const prevClear = renderer.getClearColor(new Color());
+  const prevAlpha = renderer.getClearAlpha();
   renderer.setRenderTarget(target);
   renderer.setClearColor(new Color(0x000000), 0);
   renderer.clear();
@@ -78,8 +85,11 @@ export async function bakeImpostorAtlas(renderer: WebGPURenderer): Promise<Impos
       renderer.render(scene, camera);
     }
   }
-  renderer.setScissorTest(false);
   renderer.setRenderTarget(previousTarget);
+  renderer.setViewport(prevViewport);
+  renderer.setScissor(prevScissor);
+  renderer.setScissorTest(prevScissorTest);
+  renderer.setClearColor(prevClear, prevAlpha);
   for (const prototype of prototypes) prototype.geometry.dispose();
   material.dispose();
   return { texture: target.texture, target, bakeMs: performance.now() - started };

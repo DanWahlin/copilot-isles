@@ -1,11 +1,4 @@
-import {
-  AgXToneMapping,
-  Mesh,
-  MeshStandardNodeMaterial,
-  PlaneGeometry,
-  Vector3,
-  type WebGPURenderer,
-} from 'three/webgpu';
+import { Mesh, MeshStandardNodeMaterial, PlaneGeometry, Vector3, type WebGPURenderer } from 'three/webgpu';
 import { color, mix, positionWorld, smoothstep, vec3 } from 'three/tsl';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Engine } from '../engine/engine';
@@ -21,7 +14,6 @@ const backend = q.has('webgl') ? 'webgl2' : 'webgpu';
 const tier = TIERS[(q.get('tier') as Tier) ?? 'high'] ?? TIERS.high;
 const canvas = document.getElementById('gl') as HTMLCanvasElement;
 const renderer: WebGPURenderer = Engine.createRenderer({ canvas, backend, tier });
-renderer.toneMapping = AgXToneMapping;
 await renderer.init();
 const engine = Engine.fromRenderer(renderer, { canvas, backend, tier });
 const { scene, camera, clock } = engine;
