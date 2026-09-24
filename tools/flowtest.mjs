@@ -36,7 +36,9 @@ await page.goto(url, { waitUntil: 'load' });
 await page.evaluate(() => localStorage.clear());
 await page.waitForFunction(() => window.__flow?.getState().screen === 'title', null, { timeout: 60000 });
 const titleMs = Date.now() - t0;
-await page.waitForTimeout(2500);
+// The splash holds for a moment even on a fast load; wait for it to fade before the first shot.
+await page.waitForFunction(() => !document.getElementById('loading'), null, { timeout: 15000 });
+await page.waitForTimeout(1500);
 
 const results = [];
 const shot = async (name) => {

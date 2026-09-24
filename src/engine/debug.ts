@@ -18,6 +18,8 @@ declare global {
   interface Window {
     __isles?: IslesDebug;
     __load?: (progress: number, message?: string) => void;
+    /** Resolves when the splash has finished filling and shown for its minimum time (index.html). */
+    __loadDone?: () => Promise<void>;
   }
 }
 

@@ -170,8 +170,10 @@ async function boot(): Promise<void> {
   if (import.meta.env.DEV || q.has('debug')) (window as unknown as { __flow: unknown }).__flow = flow;
 
   const loading = document.getElementById('loading');
-  loading?.classList.add('gone');
-  setTimeout(() => loading?.remove(), 900);
+  void (window.__loadDone?.() ?? Promise.resolve()).then(() => {
+    loading?.classList.add('gone');
+    setTimeout(() => loading?.remove(), 1000);
+  });
 }
 
 function registerServiceWorker(): void {

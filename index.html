@@ -44,7 +44,7 @@
         display: grid;
         place-items: center;
         background: radial-gradient(ellipse 80% 70% at 50% 40%, #13283a 0%, #0b1620 60%, #070e15 100%);
-        transition: opacity 0.8s ease;
+        transition: opacity 0.9s ease;
         font-family: Georgia, 'Times New Roman', serif;
         color: var(--ink);
       }
@@ -72,11 +72,9 @@
       }
       #loadArt .l1 {
         opacity: clamp(0, calc((var(--p) - 0.1) * 1.65), 1);
-        transition: opacity 1.2s ease;
       }
       #loadArt .l2 {
         opacity: clamp(0, calc((var(--p) - 0.6) * 2.6), 1);
-        transition: opacity 1.2s ease;
       }
       #loadTitle {
         margin: 1.2em 0 0;
@@ -169,12 +167,57 @@
           g.textBaseline = 'middle';
           g.fillText('N', 0, -100 + 4);
         });
-        var shown = 0;
-        // boot calls window.__load(progress 0-1, message); progress never goes backwards.
-        window.__load = function (p, msg) {
-          shown = Math.max(shown, Math.min(1, p));
+        // boot calls window.__load(progress 0-1, message); progress never goes backwards. The compass
+        // fills at a steady pace rather than jumping, each message shows as the fill reaches it, and
+        // the splash stays up for at least MIN_MS so a fast local load doesn't flash past.
+        var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var MIN_MS = reduce ? 1200 : 2600;
+        var FILL = 0.6;
+        var target = 0,
+          shown = 0,
+          last = performance.now(),
+          msgs = [],
+          waiters = [],
+          done = false;
+        function tick(now) {
+          var dt = Math.min(0.1, (now - last) / 1000);
+          last = now;
+          // After the minimum time, catch up quickly instead of holding a slow load back.
+          var rate = now > MIN_MS ? 2.5 : FILL;
+          if (shown < target) shown = Math.min(target, shown + dt * rate);
           art.style.setProperty('--p', String(shown));
-          if (msg) text.textContent = msg;
+          for (var i = msgs.length - 1; i >= 0; i--) {
+            if (msgs[i].p <= shown + 1e-3) {
+              text.textContent = msgs[i].msg;
+              break;
+            }
+          }
+          if (shown >= 1 && now >= MIN_MS) {
+            done = true;
+            // Let "Ready" register before the fade.
+            setTimeout(function () {
+              for (var j = 0; j < waiters.length; j++) waiters[j]();
+              waiters = [];
+            }, 350);
+            return;
+          }
+          requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+        window.__load = function (p, msg) {
+          p = Math.min(1, p);
+          target = Math.max(target, p);
+          if (!msg) return;
+          msgs.push({ p: p, msg: msg });
+          // Errors (sent at 1 before the game's ready) show at once.
+          if (p >= 1 && msg !== 'Ready') text.textContent = msg;
+        };
+        // Resolves once the fill has finished and the minimum time has passed (boot then fades out).
+        window.__loadDone = function () {
+          return new Promise(function (resolve) {
+            if (done) setTimeout(resolve, 350);
+            else waiters.push(resolve);
+          });
         };
       })();
     </script>
