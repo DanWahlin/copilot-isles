@@ -9,6 +9,10 @@
   --edge: rgba(232, 200, 138, 0.35);
   --gold: #e8c88a;
 }
+/* Menus (pause, chart, settings) cover the game: keep only the fade layer. */
+.hud.menu-open > :not(.hud-fade) {
+  visibility: hidden;
+}
 
 .hud-prompt {
   position: absolute;

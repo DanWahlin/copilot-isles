@@ -79,6 +79,11 @@ export class Hud {
     }
   }
 
+  /** Hides the prompt, subtitles, gauges, toasts, and help while a menu covers the game. */
+  setMenuOpen(on: boolean): void {
+    this.root.classList.toggle('menu-open', on);
+  }
+
   setHelp(html: string): void {
     this.help.innerHTML = html;
   }

@@ -494,6 +494,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     },
     setPaused(on) {
       paused = on;
+      hud.setMenuOpen(on);
       input.enabled = !on && !dialogue.active;
       if (!on) resumedAt = performance.now();
       if (on) hero.setSpeed(0);
