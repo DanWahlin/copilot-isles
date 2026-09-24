@@ -1,5 +1,5 @@
 import { type WebGPURenderer } from 'three/webgpu';
-import { createAudio } from '../audio';
+import { AMBIENT_BEDS, createAudio } from '../audio';
 import { Engine } from '../engine/engine';
 import { Input } from '../engine/input';
 import { createPost } from '../engine/post';
@@ -66,10 +66,8 @@ async function begin(unlock: boolean): Promise<void> {
     const ok = await audio.unlock();
     if (ok) {
       audio.music.setIsland('anchorage');
-      audio.sfx.setBed('wind', 0.3);
-      audio.sfx.setBed('palms', 0.35);
-      audio.sfx.setBed('surf_far', 0.55);
-      audio.sfx.setBed('birds_dawn', 0.3);
+      for (const [bed, gain] of Object.entries(AMBIENT_BEDS))
+        audio.sfx.setBed(bed as keyof typeof AMBIENT_BEDS, gain);
     }
   }
   session = await createSession({

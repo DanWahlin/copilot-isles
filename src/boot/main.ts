@@ -147,10 +147,19 @@ async function boot(): Promise<void> {
   }
 
   mountUi(document.getElementById('ui')!, flow);
-  mountLearn(document.body, flow.learn, {
-    subscribe: (fn) => flow.subscribe(() => fn()),
-    get: () => flow.getState().screen === 'playing',
-  });
+  mountLearn(
+    document.body,
+    flow.learn,
+    {
+      subscribe: (fn) => flow.subscribe(() => fn()),
+      get: () => flow.getState().screen === 'playing',
+    },
+    {
+      subscribe: (fn) => flow.subscribe(() => fn()),
+      muted: () => flow.getState().settings.muted,
+      toggle: () => flow.updateSettings({ muted: !flow.getState().settings.muted }),
+    },
+  );
   engine.start();
   stage(1, 'Ready');
 

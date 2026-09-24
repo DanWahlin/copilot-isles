@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import type { LearnStore } from '../../learn/store';
+import { SoundButton } from '../SoundButton';
 import { Logbook, PageReveal, Spyglass } from './PageViews';
 import { QuizPanel } from './QuizPanel';
 import { ThemePicker } from './ThemePicker';
@@ -16,9 +17,31 @@ export interface PlayingSource {
   get(): boolean;
 }
 
-export function LearnLayer({ store, playing }: { store: LearnStore; playing: PlayingSource }) {
+/** The mute switch for the purse's speaker button (settings live in the game flow). */
+export interface SoundSource {
+  subscribe(fn: () => void): () => void;
+  muted(): boolean;
+  toggle(): void;
+}
+
+const NO_SOUND: SoundSource = {
+  subscribe: () => () => undefined,
+  muted: () => false,
+  toggle: () => undefined,
+};
+
+export function LearnLayer({
+  store,
+  playing,
+  sound = NO_SOUND,
+}: {
+  store: LearnStore;
+  playing: PlayingSource;
+  sound?: SoundSource;
+}) {
   const s = useSyncExternalStore(store.subscribe, store.getState);
   const visible = useSyncExternalStore(playing.subscribe, playing.get);
+  const muted = useSyncExternalStore(sound.subscribe, sound.muted);
 
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
@@ -40,8 +63,11 @@ export function LearnLayer({ store, playing }: { store: LearnStore; playing: Pla
   return (
     <>
       {visible && (
-        <div className="ci-purse" aria-label={`${s.doubloons} doubloons`}>
-          <span className="ci-coin">{s.doubloons}</span>
+        <div className="ci-purse">
+          {sound !== NO_SOUND && <SoundButton muted={muted} onToggle={sound.toggle} className="in-purse" />}
+          <span className="ci-coin" aria-label={`${s.doubloons} doubloons`}>
+            {s.doubloons}
+          </span>
           <span className="ci-purse-hint">
             <kbd>J</kbd> Logbook
           </span>
@@ -72,11 +98,16 @@ export function LearnLayer({ store, playing }: { store: LearnStore; playing: Pla
 }
 
 /** Mounts the learning overlay in its own root (so it can run with or without the menu UI). */
-export function mountLearn(parent: HTMLElement, store: LearnStore, playing: PlayingSource): Root {
+export function mountLearn(
+  parent: HTMLElement,
+  store: LearnStore,
+  playing: PlayingSource,
+  sound?: SoundSource,
+): Root {
   const el = document.createElement('div');
   el.className = 'ci-learn';
   parent.append(el);
   const root = createRoot(el);
-  root.render(<LearnLayer store={store} playing={playing} />);
+  root.render(<LearnLayer store={store} playing={playing} sound={sound} />);
   return root;
 }

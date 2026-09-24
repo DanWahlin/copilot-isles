@@ -1923,3 +1923,82 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Mute / unmute: a round speaker button on the title screen and inside the in-game purse. */
+.ci-sound-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  padding: 0;
+  border: 1px solid rgba(232, 200, 138, 0.3);
+  border-radius: 50%;
+  background: rgba(7, 19, 30, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff4d8;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.ci-sound-btn:hover,
+.ci-sound-btn:focus-visible {
+  border-color: var(--ci-gold, #e8c88a);
+  background: rgba(14, 31, 45, 0.85);
+  transform: scale(1.06);
+}
+
+.ci-sound-btn svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ci-sound-btn svg .body {
+  fill: currentColor;
+  fill-opacity: 0.18;
+}
+
+.ci-sound-btn.muted {
+  color: rgba(246, 236, 214, 0.7);
+}
+
+.ci-sound-btn.muted svg .x {
+  stroke: #f0a38a;
+}
+
+.ci-title-sound {
+  position: fixed;
+  top: clamp(1rem, 2.6vh, 1.6rem);
+  right: clamp(1.2rem, 3vw, 2.4rem);
+  z-index: 2;
+}
+
+.ci-sound-btn.in-purse {
+  width: 1.9rem;
+  height: 1.9rem;
+  margin: -0.2rem -0.15rem -0.2rem -0.4rem;
+  border-color: transparent;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.ci-sound-btn.in-purse:hover,
+.ci-sound-btn.in-purse:focus-visible {
+  border-color: rgba(232, 200, 138, 0.35);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ci-sound-btn.in-purse svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}

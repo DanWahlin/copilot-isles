@@ -21,6 +21,8 @@ export type QualitySetting = 'auto' | Tier;
 export type SubtitleSize = 's' | 'm' | 'l';
 
 export interface Settings {
+  /** Silences all audio (the levels below are kept for when you unmute). */
+  muted: boolean;
   master: number;
   music: number;
   ambience: number;
@@ -35,6 +37,7 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
+  muted: false,
   master: 0.85,
   music: 0.75,
   ambience: 0.8,

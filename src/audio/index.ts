@@ -11,6 +11,8 @@ import {
 import type { SliceName } from './soundscape/bank';
 import { VoicePlayer, type WordCallback } from './voice/player';
 
+export { AMBIENT_BEDS } from './beds';
+
 export interface IslesAudio {
   unlock(): Promise<boolean>;
   readonly music: {
@@ -57,7 +59,24 @@ export class VolumeControls {
     ui: 0.82,
   };
 
+  private mutedValue = false;
+
   constructor(private readonly apply: (name: VolumeName, value: number) => void) {}
+
+  /** Silences everything without touching the levels, so unmuting restores the mix. */
+  get muted(): boolean {
+    return this.mutedValue;
+  }
+  set muted(value: boolean) {
+    if (value === this.mutedValue) return;
+    this.mutedValue = value;
+    this.apply('master', this.values.master);
+  }
+
+  /** The master gain to apply right now (0 while muted). */
+  get masterGain(): number {
+    return this.mutedValue ? 0 : this.values.master ** 2;
+  }
 
   get master(): number {
     return this.values.master;
@@ -229,11 +248,11 @@ class IslesAudioImpl implements IslesAudio {
   private applyVolume(name: VolumeName): void {
     const ctx = this.ctx;
     if (!ctx) return;
-    const value = this.volumes.valueOf(name) ** 2;
     if (name === 'master') {
-      this.ramp(this.master?.gain, value, 0.05);
+      this.ramp(this.master?.gain, this.volumes.masterGain, 0.05);
       return;
     }
+    const value = this.volumes.valueOf(name) ** 2;
     const duck = name === 'music' && this.ducked ? DUCK_GAIN : 1;
     this.ramp(this.buses[name]?.gain, value * duck, 0.08);
   }

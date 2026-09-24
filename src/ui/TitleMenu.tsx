@@ -14,6 +14,7 @@ import type {
 import { ARCH_H, ARCH_W, ARCHIPELAGO } from './chart/archipelago';
 import { ArchipelagoMap, CompassRose, Parchment } from './chart/ArchipelagoMap';
 import { IslandCard } from './chart/IslandCard';
+import { SoundButton } from './SoundButton';
 
 interface TitleMenuProps {
   bridge: GameBridge;
@@ -80,6 +81,12 @@ export function TitleMenu({ bridge }: TitleMenuProps) {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target instanceof HTMLElement ? event.target : null;
+      const editing = target?.matches('input, select, textarea') ?? false;
+      // N mutes and unmutes on every screen (but not while typing a name).
+      if (!editing && event.code === 'KeyN' && !event.repeat && !event.metaKey && !event.ctrlKey) {
+        bridge.updateSettings({ muted: !bridge.getState().settings.muted });
+      }
       // While playing, the game's input layer owns Esc (pause) and M (chart).
       if (state.screen === 'playing') return;
       if (event.key === 'Escape') {
@@ -91,8 +98,6 @@ export function TitleMenu({ bridge }: TitleMenuProps) {
         if (state.screen === 'chart') bridge.back();
         else if (state.screen === 'paused') bridge.openChart();
       }
-      const target = event.target instanceof HTMLElement ? event.target : null;
-      const editing = target?.matches('input, select, textarea') ?? false;
       if (!editing && (event.key === 'ArrowDown' || event.key === 'ArrowUp') && rootRef.current) {
         const focusables = focusable(rootRef.current);
         if (focusables.length === 0) return;
@@ -111,6 +116,13 @@ export function TitleMenu({ bridge }: TitleMenuProps) {
     <div ref={rootRef} className={`ci-ui ci-screen-${state.screen}`} aria-live="polite">
       {state.screen === 'title' && <TitleScreen state={state} bridge={bridge} />}
       {state.screen === 'title' && <TitleHint />}
+      {state.screen === 'title' && (
+        <SoundButton
+          className="ci-title-sound"
+          muted={state.settings.muted}
+          onToggle={() => bridge.updateSettings({ muted: !state.settings.muted })}
+        />
+      )}
       {state.screen === 'captain' && <CaptainSelect bridge={bridge} current={state.captain} />}
       {state.screen === 'voyage-loading' && <VoyageLoading state={state} />}
       {state.screen === 'paused' && <PausedScreen state={state} bridge={bridge} />}
@@ -694,6 +706,11 @@ function SettingsScreen({ state, bridge }: { state: UiState; bridge: GameBridge 
     <OverlayShell title="Settings" eyebrow="Ship’s instruments" onBack={bridge.back} wide>
       <div className="ci-settings-grid">
         <SettingsGroup title="Audio">
+          <Toggle
+            label="Mute all"
+            checked={settings.muted}
+            onChange={(muted) => bridge.updateSettings({ muted })}
+          />
           <Slider
             label="Master"
             value={settings.master}
@@ -787,6 +804,7 @@ function ControlsScreen({ bridge }: { bridge: GameBridge }) {
             [['Mouse wheel'], 'Zoom'],
             [['E'], 'Interact'],
             [['M'], 'Chart'],
+            [['N'], 'Mute / unmute'],
             [['Esc'], 'Menu'],
           ]}
         />

@@ -1,4 +1,5 @@
 import type { IslesAudio } from '../audio';
+import { AMBIENT_BEDS } from '../audio/beds';
 import type { Engine } from '../engine/engine';
 import { packs, type PackProgress } from '../engine/packs';
 import type { Input } from '../engine/input';
@@ -276,6 +277,7 @@ export class GameFlow implements GameBridge {
 
   private applySettings(s: Settings): void {
     const v = this.o.audio.volumes;
+    v.muted = s.muted;
     v.master = s.master;
     v.music = s.music;
     v.ambience = s.ambience;
@@ -311,8 +313,8 @@ export class GameFlow implements GameBridge {
     this.audioReady = true;
     const a = this.o.audio;
     a.music.setIsland('anchorage');
-    a.sfx.setBed('wind', 0.3);
-    a.sfx.setBed('surf_far', 0.5);
+    a.sfx.setBed('wind', AMBIENT_BEDS.wind);
+    a.sfx.setBed('surf_far', AMBIENT_BEDS.surf_far);
   }
 
   private async voyage(captain: CaptainBody, save: SaveData | null): Promise<void> {
@@ -369,8 +371,8 @@ export class GameFlow implements GameBridge {
         learn: this.learn,
       });
       if (this.audioReady) {
-        this.o.audio.sfx.setBed('palms', 0.35);
-        this.o.audio.sfx.setBed('birds_dawn', 0.3);
+        this.o.audio.sfx.setBed('palms', AMBIENT_BEDS.palms);
+        this.o.audio.sfx.setBed('birds_dawn', AMBIENT_BEDS.birds_dawn);
       }
       report(0.92, 'Lighting the lanterns');
       await this.o.upgradePost?.();
