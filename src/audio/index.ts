@@ -10,6 +10,7 @@ import {
 } from './soundscape/soundscape';
 import type { SliceName } from './soundscape/bank';
 import { VoicePlayer, type WordCallback } from './voice/player';
+import { MUSIC_TRIM } from './beds';
 
 export { AMBIENT_BEDS } from './beds';
 
@@ -162,6 +163,8 @@ class IslesAudioImpl implements IslesAudio {
   };
 
   unlock(): Promise<boolean> {
+    // A context that started before the page had a gesture stays suspended; each later gesture resumes it.
+    if (this.ctx?.state === 'suspended') void this.ctx.resume().catch(() => undefined);
     this.unlocking ??= this.doUnlock();
     return this.unlocking;
   }
@@ -232,9 +235,12 @@ class IslesAudioImpl implements IslesAudio {
     this.limiter.release.value = 0.25;
     this.limiter.connect(ctx.destination);
     this.master = ctx.createGain();
+    // Start at the real levels (0 if muted), not the node default of 1, so nothing blips on unlock.
+    this.master.gain.value = this.volumes.masterGain;
     this.master.connect(this.limiter);
     for (const name of BUS_NAMES) {
       const bus = ctx.createGain();
+      bus.gain.value = this.volumes.valueOf(name) ** 2 * (name === 'music' ? MUSIC_TRIM : 1);
       bus.connect(this.master);
       this.buses[name] = bus;
     }
@@ -253,7 +259,7 @@ class IslesAudioImpl implements IslesAudio {
       return;
     }
     const value = this.volumes.valueOf(name) ** 2;
-    const duck = name === 'music' && this.ducked ? DUCK_GAIN : 1;
+    const duck = name === 'music' ? MUSIC_TRIM * (this.ducked ? DUCK_GAIN : 1) : 1;
     this.ramp(this.buses[name]?.gain, value * duck, 0.08);
   }
 

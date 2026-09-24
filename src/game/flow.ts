@@ -104,6 +104,7 @@ export class GameFlow implements GameBridge {
       this.set({});
     });
     o.engine.add({ frame: (dt) => this.tick(dt) });
+    this.armAudioUnlock();
     // The UI passes bridge actions around as bare callbacks (onClick, useSyncExternalStore).
     for (const key of BRIDGE_METHODS) {
       const fn = this[key] as (...args: unknown[]) => unknown;
@@ -218,6 +219,9 @@ export class GameFlow implements GameBridge {
   quitToTitle(): void {
     this.save();
     this.endVoyage();
+    // Back to the open-sea title: just wind and surf, no island palms or birdsong.
+    this.o.audio.sfx.setBed('palms', 0);
+    this.o.audio.sfx.setBed('birds_dawn', 0);
     this.set({ hasSave: !!readJson<SaveData>(SAVE_KEY), save: this.saveSummary() });
     this.showTitle();
   }
@@ -306,10 +310,31 @@ export class GameFlow implements GameBridge {
     else window.setTimeout(run, 1200);
   }
 
+  /**
+   * Browsers only allow sound after a click, tap, or key press, so the title's music and sea start on
+   * the first one anywhere (not just New Voyage). Escape and bare modifier keys don't count as a
+   * gesture, so they're skipped.
+   */
+  private armAudioUnlock(): void {
+    if (typeof window === 'undefined') return;
+    const events = ['pointerdown', 'keydown', 'touchend'] as const;
+    const onGesture = (e: Event) => {
+      if (
+        e instanceof KeyboardEvent &&
+        (e.key === 'Escape' || ['Shift', 'Control', 'Alt', 'Meta'].includes(e.key))
+      )
+        return;
+      void this.unlockAudio().then(() => {
+        if (this.audioReady) for (const type of events) window.removeEventListener(type, onGesture, true);
+      });
+    };
+    for (const type of events) window.addEventListener(type, onGesture, true);
+  }
+
   private async unlockAudio(): Promise<void> {
     if (this.audioReady) return;
     const ok = await this.o.audio.unlock();
-    if (!ok) return;
+    if (!ok || this.audioReady) return;
     this.audioReady = true;
     const a = this.o.audio;
     a.music.setIsland('anchorage');
@@ -416,6 +441,8 @@ export class GameFlow implements GameBridge {
   }
 
   private tick(dt: number): void {
+    // The session ticks the audio engine during a voyage; on the title and menus before one, we do.
+    if (!this.session && this.audioReady) this.o.audio.update(dt);
     if (this.state.screen !== 'playing') return;
     this.saveTimer += dt;
     if (this.saveTimer > 5) {

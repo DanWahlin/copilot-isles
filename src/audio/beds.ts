@@ -5,7 +5,11 @@
  */
 export const AMBIENT_BEDS = {
   wind: 0.18,
-  surf_far: 0.13,
+  // 0.13 → 0.1: Dan asked for the waves another 25% down.
+  surf_far: 0.1,
   palms: 0.22,
   birds_dawn: 0.2,
 } as const;
+
+/** Trim on the music bus, under the Music slider (Dan: music 25% quieter overall). */
+export const MUSIC_TRIM = 0.75;
