@@ -23,7 +23,7 @@ export type PlantSpecies =
   | 'flowerBush'
   | 'log';
 
-export type GrassKind = 'seaOats' | 'meadow' | 'creeper' | 'wildflower';
+export type GrassKind = 'seaOats' | 'meadow' | 'creeper' | 'wildflower' | 'seedHead';
 
 export interface PlantInstance {
   species: PlantSpecies;

@@ -176,6 +176,8 @@ export function createGrassMaterial(heightTexture: DataTexture, grid: HeightGrid
   });
   const tint = attribute('tint', 'vec3') as AnyNode;
   const fade = attribute('fade', 'float') as AnyNode;
+  const shade = attribute('shade', 'float') as AnyNode;
+  const part = attribute('vegPart', 'float') as AnyNode;
   const params = uniform(
     new Vector4(grid.minX, grid.minZ, (grid.nx - 1) * grid.cell, (grid.nz - 1) * grid.cell),
   );
@@ -200,7 +202,7 @@ export function createGrassMaterial(heightTexture: DataTexture, grid: HeightGrid
     .mul(bladeGate)
     .mul(motion);
   const sheen = smoothstep(float(0.05), float(0.75), (normalWorld as AnyNode).dot(world.sunDir).abs()).mul(
-    0.22,
+    0.12,
   );
 
   material.positionNode = (vec3 as AnyNode)(
@@ -208,12 +210,20 @@ export function createGrassMaterial(heightTexture: DataTexture, grid: HeightGrid
     terrainY.add(blade.mul(sizeFade)),
     worldXZ.y.add(sway.z),
   ) as AnyNode;
-  const root = tint.mul(0.28);
-  const tip = tint
-    .mul(float(0.72).add(sheen.mul(0.18)))
-    .add(color(0x8f8348).mul(smoothstep(float(0.62), float(1.45), blade).mul(0.045)));
-  material.colorNode = mix(root, tip, smoothstep(float(0.02), float(1.25), blade)) as AnyNode;
-  material.emissiveNode = tint.mul(sheen.mul(0.006)) as AnyNode;
+  const root = tint.mul(0.52);
+  const tip = mix(tint.mul(float(1.08).add(sheen.mul(0.04))), color(0xb5c95a), float(0.42)) as AnyNode;
+  const grassColor = (mix(root, tip, smoothstep(float(0.04), float(1.0), shade)) as AnyNode).mul(
+    color(0xfff02a),
+  );
+  const seedColor = mix(
+    color(0x756331),
+    color(0xc9b77a),
+    smoothstep(float(0.0), float(1.0), shade),
+  ) as AnyNode;
+  const isSeed = greaterThan(part, float(1.5));
+  const maskMode = typeof location !== 'undefined' && new URLSearchParams(location.search).has('grassMask');
+  material.colorNode = maskMode ? color(0xff00ff) : (select(isSeed, seedColor, grassColor) as AnyNode);
+  material.emissiveNode = maskMode ? color(0xff00ff) : (color(0x6f6d24).mul(sheen.mul(0.006)) as AnyNode);
   return material;
 }
 
