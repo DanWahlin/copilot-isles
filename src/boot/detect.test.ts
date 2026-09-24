@@ -55,6 +55,16 @@ describe('chooseBackend', () => {
     expect(chooseBackend(gpu('software'), gl('software'))).toEqual({ backend: null, reason: 'software' });
     expect(chooseBackend(gpu('none'), gl('none'))).toEqual({ backend: null, reason: 'no-webgl2' });
   });
+  it('uses hardware WebGPU when WebGL2 is missing, even with ?webgl', () => {
+    expect(chooseBackend(gpu('hardware'), gl('none')).backend).toBe('webgpu');
+    expect(chooseBackend(gpu('hardware'), gl('none'), { preferWebGL: true })).toEqual({
+      backend: 'webgpu',
+      reason: 'webgl2 unavailable',
+    });
+  });
+  it('never picks a software (fallback) WebGPU adapter without force', () => {
+    expect(chooseBackend(gpu('software'), gl('none'))).toEqual({ backend: null, reason: 'no-webgl2' });
+  });
   it('lets tests force the 3D path on software rendering', () => {
     expect(chooseBackend(gpu('none'), gl('software'), { force: true }).backend).toBe('webgl2');
     expect(chooseBackend(gpu('hardware'), gl('hardware'), { forceSoftware: true }).backend).toBeNull();

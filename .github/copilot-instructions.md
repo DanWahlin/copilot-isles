@@ -38,7 +38,7 @@ Solutions LLC, MIT, <path>@<commit>`), and the full notice goes in `THIRD_PARTY_
 - **Budgets are enforced:** chunk/title sizes via `tools/budgets.json`, and per-tier frame budgets per PLAN §12.1 and
   the Phase 0 spec §5. Tier feature cuts follow PLAN §12.1 (Lite/Low/Medium/High/Ultra).
 - **Single sources of truth:** functions shared by CPU and GPU (waves, terrain height, hull shape, wind) are written
-  once in TS, and their GLSL is generated from the same constants.
+  once in TS, and the GPU side is built from the same TS as TSL nodes (no second shader copy).
 - **Hot loops don't allocate.** Reuse vectors/matrices, keep a fixed timestep, and after warm-up the hitch guard
   (`window.__isles.hitches()`) must stay empty.
 - **Teaching accuracy:** every teaching line cites its course chapter/section. Don't invent app UI names.

@@ -1,6 +1,6 @@
 # Copilot Isles: Game Concept & Plan (v0.3, approved + Grok Build review consensus applied)
 
-> Review history: [docs/reviews/2026-09-23-grok-build](../docs/reviews/2026-09-23-grok-build/README.md) · [delta review](../docs/reviews/2026-09-23-grok-build-delta/README.md)
+> Review history: [docs/reviews/2026-09-23-grok-build](../docs/reviews/2026-09-23-grok-build/README.md) · [delta review](../docs/reviews/2026-09-23-grok-build-delta/README.md) · [WebGPU-pivot review](../docs/reviews/2026-09-23-grok-build-pivot/README.md)
 
 > Working title. A relaxing, beautiful, browser-based 3D island adventure that teaches the
 > [GitHub Copilot app for Beginners](https://github.com/github/copilot-app-for-beginners) course.
@@ -22,7 +22,7 @@
 | Art approach | **A. Hybrid stylized realism** |
 | AI-generated art | **Allowed anywhere it helps** (uses the image model in `~/.env`). See §6a |
 | Branding | **Unsure.** Build unbranded, with a theme layer so logos/mascots can be dropped in later. The **affiliation line** wording is a required decision before the first public deploy |
-| Platforms | **Runs everywhere with a WebGL2 browser:** desktop (keyboard/mouse + gamepad) **and tablets (touch) now**, phones in a later phase. **Performance floor: Intel UHD 620 at 30 fps**, plus a **Lite** preset for Chromebooks. Devices that can't run 3D get the **2D Chart & Logbook mode**. See §14 |
+| Platforms | **Runs everywhere, WebGPU-first** (capability classes in **§15.1**, with the automatic WebGL2 backend as the fallback): desktop (keyboard/mouse + gamepad) **and tablets (touch) now**. Phones get the same technology **capped at the Medium feature set**, and **phone UX lands in Phase 2b**. **Performance floor: Intel UHD 620 at 30 fps**, plus a **Lite** preset for Chromebooks. Devices that can't run 3D get the **2D Chart & Logbook mode**. See §14 |
 | Rendering backend | **WebGPU-first: three.js `WebGPURenderer` + TSL** (one node shader language → WGSL on WebGPU, GLSL on the automatic **WebGL2 backend**). Compute features (FFT ocean, sims, volumetric clouds, GPU particles, GPU culling) run on WebGPU tiers, and WebGL2 gets non-compute paths. Decided 2026-09-23 after the Tidewater study. See **§15** |
 | Test hardware | **Emulated** on the M3 Max (locked render scale + scaled GPU budgets + CPU throttling), with **cloud real-device runs** for iPad/Android tablets. A **real UHD 620 check happens before public launch** (user decision; accepted risk in §11) |
 | Repository | `DanWahlin/copilot-isles` (**private**). GitHub Pages from a private repo needs a paid plan, and the published site is public either way |
@@ -423,7 +423,7 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 | GitHub Pages bandwidth (~100 GB/month soft cap) | Keep the per-island downloads small, use Service Worker caching, and monitor. Move to a CDN if the game gets popular |
 | **Accepted risk (user decision, 2026-09-23):** emulated-only testing leaves the 30 fps floor unverified during content production | The user chose **real-device verification before public launch**. Until then: conservative ratios with margin, the Floor shot, and extra headroom on the Low budget. If the launch check fails, Low features get cut rather than content |
 | Emulated-only performance testing misses real iGPU limits | Conservative emulation ratios with margin, cloud real devices for tablets, and one real UHD 620 laptop before public launch (§14.5) |
-| "Runs everywhere" scope (tablets + 2D mode) | Shared data-driven content, 2D renderers for only 5 POC puzzles, and phones deferred to Phase 2b |
+| "Runs everywhere" scope (tablets + 2D mode) | Shared data-driven content, a 2D **proof slice** in Phase 1 (title → Chart, Q0.2, H0.2, P0.1) with full 2D coverage in **Phase 1b**, and phone UX deferred to Phase 2b |
 | Service Worker serves stale or mixed versions | Content-hashed immutable URLs, a network-first manifest, new versions activated only at the title screen, and old packs kept until the new ones verify |
 | Player outruns streaming (fast travel, fast sailing) | Critical packs kept small (≤ 8 MB), prefetch starting at the Trial, a diegetic fog-bank slowdown, and a lighthouse transition with progress |
 | Scope (8 islands of bespoke content) | Data-driven content + a reusable puzzle toolkit + a shared template per island |
@@ -445,13 +445,14 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 | Post FX | Tone map + grade + dither | Tone map + grade + vignette + grain/dither | + bloom, screen-space radial shafts | + SSAO (half-res), **shadow-map sun shafts** | + DOF, full-res AO |
 | JS main thread per frame | < 7 ms | < 6 ms | < 5 ms | < 4 ms | < 4 ms |
 | Leaps (jumping fish) | Off | On, splash pool halved | On | On | On |
+| Clouds & cloud shadows | Cloud layer, no cloud shadows | Cloud layer + **128² cloud-shadow map** (one slice/frame, one terrain fetch) | Quarter-res dome + 256² | Dome, or **volumetric on WebGPU** (Phase 0b), + 256² | Volumetric (WebGPU) + 256² |
 | Initial download (to title) | **≤ 4 MB wire**. Time-to-interactive and title contents are in **§13.5** | | | | |
 
 ### 12.2 Draw calls & batching *(your "minimize draw calls")*
 - **InstancedMesh / BatchedMesh** for vegetation, rocks, crates, barrels, fences, and modular building parts. Each chunk gets its own instance set, so culling still works per chunk.
 - **Merge static geometry** per island chunk (`mergeGeometries`) for things that never move, like docks, walls, and terrain dressing.
 - **Texture atlases / array textures** so each island's building kit shares one or two materials.
-- **A small material library**, so there are only a few unique shader programs in the whole game. Quality tiers are `#define` variants of the same shaders.
+- **A small material library**, so there are only a few unique shader programs in the whole game. Quality tiers are **uniform- or attribute-driven branches on one TSL material** (not per-tier material variants), so tier changes don't multiply pipelines (§15.4).
 
 ### 12.3 Level of detail *(your "LOD")*
 - **Islands:** the island you're on renders at full detail and its neighbors at medium. Far islands are low-poly silhouettes that fade into the haze, and anything past the horizon isn't drawn at all.
@@ -493,7 +494,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 ### 12.7 Compression & memory *(your "compress textures and audio")*
 - **Textures: KTX2/Basis**, with UASTC for normal maps and ETC1S for albedo. They stay **compressed in VRAM**, using 4-8× less memory than PNG/JPG. Mipmaps are always on.
 - **Meshes:** meshopt compression and vertex quantization.
-- **Audio:** music and ambience are **procedural, so they cost 0 bytes**. Voice lines are **Opus mono at ~32 kbps** with an AAC fallback, and the client downloads **exactly one format** (via `canPlayType`). They load **per island**, not all up front.
+- **Audio:** the music is **procedural (0 bytes)**. **Ambience & SFX are CC0 recordings in a ~5 MB per-island ambience pack** (Ogg/Opus + AAC, one format downloaded), counted in the island budget (§13.5). Voice lines are **Opus mono at ~32 kbps** with an AAC fallback, and the client downloads **exactly one format** (via `canPlayType`). They load **per island**, not all up front.
 - **Course screenshots** stay as WebP, lazy-load per island, and get decoded off the main thread (`img.decode()`).
 - **Explicit dispose** of geometry, materials, and textures when an island unloads. `renderer.info` is tracked in the debug HUD to catch leaks.
 
@@ -595,7 +596,8 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 | `common/critical` | ≤ 4 MB |
 | Island `critical` pack (terrain, colliders, near buildings, first NPCs' voice) | ≤ 8 MB |
 | **→ First playable after New Voyage (every cinematic skipped), wire ceiling** | **≤ 14 MB, ≤ 6 s of transfer at 25 Mbps** |
-| Whole island, all zones incl. voice + screenshots | ≤ 20 MB High / ≤ 10 MB Low |
+| Ambience pack (CC0 field recordings, per island) | ≤ 5 MB (included in the whole-island total). Enforced by the budget CI once packs exist (T3) |
+| Whole island, all zones incl. voice + screenshots + ambience | ≤ 20 MB High / ≤ 10 MB Low |
 
 **Time-to-interactive** (measured separately, including shader compile and warm-up):
 
@@ -641,7 +643,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 | High-end | RTX 3060+, Apple M Pro/Max | Ultra | Everything at 60 fps |
 | Mainstream (2020+) | M2/M3 Air, RTX 3050 | High | 60 fps @1080p |
 | Mainstream (older) | Intel Iris Xe, M1 Air 8 GB, AMD 680M/780M, iPad A13+ | Medium | 45-60 fps with adaptive resolution |
-| **Floor** (2017-2020, common in schools and enterprise) | **Intel UHD 620/630** | **Low** | **30 fps** at render scale 0.6-0.75. No mirror, sun shafts, SSAO, caustics, or flotsam. Fewer foam octaves, sparser grass, blob shadows, and NPC animation at a reduced rate |
+| **Floor** (2017-2020, common in schools and enterprise) | **Intel UHD 620/630** | **Low** | **30 fps** at render scale 0.6-0.75. No mirror, sun shafts, SSAO, caustics, or flotsam. Fewer foam octaves, sparser grass, shadows per **§12.1's Low row** (1024² cached map + blob character shadows), a 128² cloud-shadow map, and NPC animation at a reduced rate |
 | Chromebooks & very weak GPUs | Celeron/UHD 600, ARM Mali | **Lite** | 30 fps target: render scale ~0.55, no post except tone map + grade, PMREM water with no refraction, impostor-heavy vegetation, shadows off (blob only), and only one island zone resident |
 | Tablets | iPad A13+ (Medium), iPad M1+ (High), recent Android tablets (Low/Medium) | per GPU | Touch controls, larger UI, landscape |
 | Phones | iPhone 12+, mid-range Android | *later phase (2b)* | Needs a dedicated small-screen UX |
@@ -653,7 +655,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 3. **Neither is hardware:** start in **2D mode** ("Your browser isn't using the graphics card…" plus a how-to for enabling hardware acceleration). Test overrides: `?webgl`, `?forceGpu`, `?forceSoftware`.
 4. **A ~1.5 s silent benchmark** on the title scene at a fixed render scale, plus GPU-string heuristics and `navigator.deviceMemory` / `hardwareConcurrency` where available. Together these pick Lite/Low/Medium/High/Ultra. The player can always override it, and adaptive resolution (§12.9) fine-tunes within the tier.
 5. **Memory-constrained devices** (tablets, 4 GB machines) keep **one island zone resident** and a lower texture tier. Streaming (§13) respects each tier's memory budget.
-6. **Context loss / device loss** (common on mobile/iPad under memory pressure) is handled: `webglcontextlost` pauses, and restore re-uploads resident packs from the decoded cache.
+6. **Device loss / context loss** (common on phones and iPads under memory pressure or when backgrounded) is handled on both backends: WebGPU's **`GPUDevice.lost`** (three's `renderer.onDeviceLost`) and WebGL2's `webglcontextlost` both pause the loop, **recreate the device/context**, and re-upload resident packs from the decoded cache. (The Phase 0 scaffold reloads once. T2 builds the real recovery.)
 
 ### 14.3 Browser notes
 | Topic | Handling |
@@ -691,8 +693,8 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 ### 15.1 Who gets what
 | Capability class | Typical devices (2026) | Backend | Signature features |
 |---|---|---|---|
-| **WebGPU Ultra/High** | Apple M-series Macs & iPads, iPhone 15 Pro+ (A17 Pro+), RTX/Radeon desktops & laptops, Snapdragon 8 Gen 2+ / Dimensity 9000+ flagships | WebGPU | **4-cascade FFT ocean** (JONSWAP/TMA, persistent Jacobian foam; adapted from Tidewater), **ShoreSim swash + wet sand**, **spectral WakeSim**, **GPU spray pool**, **volumetric clouds + cloud shadows**, **Hillaire atmosphere LUTs in compute**, **GPU-driven culling** (compute + **indirect draws**) for vegetation, props, and birds, **render bundles** (`BundleGroup`) for static towns, **TAAU + RCAS**, GTAO, PCSS near cascade, SSR in calm zones, and **HDR output** on HDR displays (`outputType: HalfFloatType` → extended tone mapping) |
-| **WebGPU Medium** | Intel Iris Xe/Arc, M1 Air, iPad A14-A16, iPhone 13-15, recent mid-range Android | WebGPU | 2-cascade FFT (128²) or Gerstner in lagoons, a reduced ShoreSim (384²), the analytic wake + a smaller GPU spray pool, a quarter-res cloud dome + cloud shadows, TAAU, compute culling |
+| **WebGPU Ultra/High** | Apple M-series Macs & **iPads** (adaptive resolution is the thermal response), RTX/Radeon desktops & laptops | WebGPU | **4-cascade FFT ocean** (JONSWAP/TMA, persistent Jacobian foam; adapted from Tidewater), **ShoreSim swash + wet sand**, **spectral WakeSim**, **GPU spray pool**, **volumetric clouds + cloud shadows**, **Hillaire atmosphere LUTs in compute**, **GPU-driven culling** (compute + **indirect draws**) for vegetation, props, and birds, **render bundles** (`BundleGroup`) for static towns, **TAAU + RCAS**, GTAO, PCSS near cascade, SSR in calm zones, and **HDR output** on HDR displays (`outputType: HalfFloatType` → extended tone mapping) |
+| **WebGPU Medium** | Intel Iris Xe/Arc, M1 Air, iPad A14-A16, and **all phones until Phase 2b** (iPhone 13+, flagship and mid-range Android), which get **no volumetric clouds and no 4-cascade FFT** | WebGPU | 2-cascade FFT (128²) or Gerstner in lagoons, a reduced ShoreSim (384²), the analytic wake + a smaller GPU spray pool, a quarter-res cloud dome + cloud shadows, TAAU, compute culling |
 | **WebGPU Low (floor)** | Intel UHD 620/630 (D3D12), Vulkan Chromebooks | WebGPU | The Low feature set (§12.1): Gerstner, analytic swash, no sims, a cloud layer + cloud shadows, render scale 0.6-0.75 |
 | **WebGL2 backend** | Firefox Linux/Android, blocklisted drivers, older browsers | WebGL2 (automatic) | Lite/Low/Medium features, **no compute** except transform-feedback particles. The same TSL materials compile to GLSL |
 | **No hardware 3D** | Software rendering, no WebGL2 | none | **2D Chart & Logbook mode** (§14.4) |
@@ -713,9 +715,10 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
   - `shader-f16`: cheaper math on mobile, where three exposes it
   - `subgroups`: faster reductions, where exposed
 - **HDR & colour:** HDR canvas output on HDR displays (WebGPU, Ultra/High, opt-in in Settings), AgX tone mapping, dithered output. Wide-gamut Display-P3 output is an evaluation item (not native in three 0.186).
+- **Optional, never required** (consensus E7): `timestamp-query`, HDR canvas output, worker (`OffscreenCanvas`) rendering, and render bundles are all capability-checked, with fallbacks: frame-time adaptive resolution, LDR output, main-thread rendering, and ordinary draws. iOS Safari often lacks `timestamp-query`, and HDR or worker WebGPU are unreliable there.
 
 ### 15.3 Web platform technology
-- **Installable PWA:** the manifest + Service Worker (§13.6) give a full-screen, home-screen app on iPad/iPhone/Android, with **Screen Orientation lock** (landscape) and the **Fullscreen API** on tablets.
+- **Installable PWA:** the manifest + Service Worker (§13.6) give a full-screen, home-screen app on iPad/iPhone/Android, with a **best-effort Screen Orientation lock** (landscape; usually only works in an installed PWA) and the **Fullscreen API** on tablets.
 - **Workers:** KTX2 transcoding, meshopt, pack decoding, and scatter/impostor prep run in **Web Workers**. **Rendering in a worker via `OffscreenCanvas`** (keeping the main thread free for UI, input, and audio) is a **Phase 0 evaluation** (T2), adopted only if input and audio stay simple.
 - **WebAssembly:** **SIMD** builds for anything we compile (Rapier SIMD, if we keep Rapier). Tidewater's plain-JS capsule/collider player model is evaluated in T11 as a lighter alternative (it saves ~1 MB).
 - **Scheduling:** `scheduler.yield()` / `requestIdleCallback` for staged loading, and `navigator.storage.persist()` for offline packs.

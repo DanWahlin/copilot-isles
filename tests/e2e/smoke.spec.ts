@@ -17,7 +17,8 @@ async function expectTitleRenders(page: Page, url: string) {
   await expect(page.locator('#loading')).toHaveCount(0, { timeout: 5_000 });
 
   const info = await page.evaluate(() => window.__isles!.info());
-  expect(info.calls).toBeGreaterThan(0);
+  expect(info.drawCalls).toBeGreaterThan(0);
+  expect(info.programs).toBeGreaterThan(0);
   expect(info.triangles).toBeGreaterThan(0);
 
   await page.waitForTimeout(1_000);

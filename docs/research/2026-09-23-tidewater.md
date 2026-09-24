@@ -104,13 +104,16 @@
 | TerrainData + CDLOD selection | JS + shader | **Reuse the JS**, port the vertex node | ★★ |
 | ShoreWaves (travel-time refraction), SurfFoam | Shader + JS | TSL as-is, or GLSL port. **Floor-friendly** (analytic) | ★★★ |
 | Water shading (refraction, absorption, crest escape, SSR optional) | Shader | TSL as-is, or GLSL port. SSR is High+ only | ★★ |
-| BoatController (CPU 120 Hz, buoyancy patches, keel lift, rudder) | JS | **Reuse as-is**, feeding it CPU wave samples (our Gerstner table) instead of GPU queries | ★★★ |
+| BoatController (CPU 120 Hz, buoyancy patches, keel lift, rudder) | JS | **Reference only, don't adopt** (pivot consensus E6): our sailing model stays the one horizontal integrator + 8 attitude springs (PLAN §6). It may be compared on video in S7 | ★ |
 | Fish ecology, crabs, whale brain | JS | **Reuse as-is**, port the deformation shaders | ★★ |
 | SoundScape (HRTF, buses, ducking, voice caps, surf sync, footsteps) + CC0 recordings | JS + CC0 | **Reuse as-is** (Web Audio) + recordings | ★★★ |
 | Contact shadows, ground bounce, PCSS near cascade, TAAU + RCAS | Shader | TSL as-is, or GLSL port. TAAU/RCAS beat FXAA + unsharp when upscaling | ★★ |
 | FFT ocean, ShoreSim, WakeSim, spray pool, volumetric clouds, atmosphere compute | Compute | **WebGPU tiers only** (TSL as-is). WebGL2 gets fallbacks (Gerstner, analytic swash, analytic wake, CPU/instanced spray, cloud dome) | ★★ (High/Ultra) |
 
-## 8. The decision this raises: renderer & shader language
+## 8. The decision this raised: renderer & shader language
+
+> **Decided 2026-09-23 by the user: WebGPU-first (`WebGPURenderer` + TSL, with the automatic WebGL2 backend).** The bake-off's intent survives as the **Phase 0 abort rule** (Phase 0 spec §7a, pivot consensus E1): the title must meet §13.5 time-to-interactive on both backends with ≤ 40 pipelines, and the forced-WebGL2 Low shots must pass *before* any compute work starts.
+
 Our plan says **WebGL2 + GLSL** (PLAN §0). Tidewater changes the trade-off:
 
 | Option | For | Against |

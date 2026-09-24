@@ -37,21 +37,26 @@ export async function detectWebGPU(): Promise<WebGpuInfo> {
   const none: WebGpuInfo = { available: false, kind: 'none', vendor: '', architecture: '', features: [] };
   if (!('gpu' in navigator) || !navigator.gpu) return none;
   try {
-    const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+    // Same options three.js uses internally, so we probe the adapter the renderer will actually get.
+    const adapter = await navigator.gpu.requestAdapter({
+      powerPreference: 'high-performance',
+      featureLevel: 'compatibility',
+    });
     if (!adapter) return none;
-    const info = adapter.info as GPUAdapterInfo & { isFallbackAdapter?: boolean };
+    const info = (adapter.info ?? {}) as Partial<GPUAdapterInfo> & { isFallbackAdapter?: boolean };
     const legacyFallback = (adapter as GPUAdapter & { isFallbackAdapter?: boolean }).isFallbackAdapter;
+    const vendor = info.vendor ?? '';
+    const architecture = info.architecture ?? '';
     return {
       available: true,
       kind: classifyAdapter({
-        ...info,
         isFallbackAdapter: info.isFallbackAdapter ?? legacyFallback,
-        vendor: info.vendor,
-        architecture: info.architecture,
-        description: info.description,
+        vendor,
+        architecture,
+        description: info.description ?? '',
       }),
-      vendor: info.vendor,
-      architecture: info.architecture,
+      vendor,
+      architecture,
       features: [...adapter.features].map(String).sort(),
     };
   } catch {
@@ -87,10 +92,13 @@ export function chooseBackend(
   if (!opts.preferWebGL && webgpu.available && (webgpu.kind === 'hardware' || opts.force)) {
     return { backend: 'webgpu', reason: webgpu.kind === 'hardware' ? 'webgpu adapter' : 'forced' };
   }
-  if (!webgl.webgl2)
-    return webgpu.available && opts.force
-      ? { backend: 'webgpu', reason: 'forced' }
-      : { backend: null, reason: 'no-webgl2' };
+  if (!webgl.webgl2) {
+    // ?webgl was asked for but WebGL2 is missing: a hardware WebGPU adapter beats the 2D stub.
+    if (webgpu.available && (webgpu.kind === 'hardware' || opts.force)) {
+      return { backend: 'webgpu', reason: 'webgl2 unavailable' };
+    }
+    return { backend: null, reason: 'no-webgl2' };
+  }
   if (webgl.kind === 'hardware' || opts.force)
     return { backend: 'webgl2', reason: opts.preferWebGL ? 'requested' : 'webgl2 fallback' };
   return { backend: null, reason: 'software' };

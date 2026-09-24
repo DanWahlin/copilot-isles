@@ -13,30 +13,55 @@ async function boot(): Promise<void> {
   // URL options: ?webgl forces the WebGL2 backend; ?hdr enables HDR output on HDR displays (WebGPU);
   // ?forceGpu / ?forceSoftware are test overrides (CI's Chromium renders in software).
   const q = new URLSearchParams(location.search);
-  const [webgpu, webgl] = [q.has('webgl') ? null : await detectWebGPU(), detectWebGL2()];
-  const choice = chooseBackend(
-    webgpu ?? { available: false, kind: 'none', vendor: '', architecture: '', features: [] },
-    webgl,
-    {
-      preferWebGL: q.has('webgl'),
-      force: q.has('forceGpu'),
-      forceSoftware: q.has('forceSoftware'),
-    },
-  );
+  // Always probe WebGPU: even with ?webgl, a device without WebGL2 should still get WebGPU (not the 2D stub).
+  const [webgpu, webgl] = [await detectWebGPU(), detectWebGL2()];
+  const choice = chooseBackend(webgpu, webgl, {
+    preferWebGL: q.has('webgl'),
+    force: q.has('forceGpu'),
+    forceSoftware: q.has('forceSoftware'),
+  });
   if (!choice.backend) return showFallback(choice.reason);
-  const backend: Backend = choice.backend;
+  let backend: Backend = choice.backend;
 
   const hdr = backend === 'webgpu' && q.has('hdr') && matchMedia('(dynamic-range: high)').matches;
   const canvas = document.getElementById('gl') as HTMLCanvasElement;
-  const renderer = new WebGPURenderer({
-    canvas,
-    antialias: false,
-    powerPreference: 'high-performance',
-    forceWebGL: backend === 'webgl2',
-    reversedDepthBuffer: true,
-    ...(hdr ? { outputType: HalfFloatType } : {}),
-  });
-  await renderer.init();
+  const create = (b: Backend) =>
+    new WebGPURenderer({
+      canvas,
+      antialias: false,
+      powerPreference: 'high-performance',
+      forceWebGL: b === 'webgl2',
+      reversedDepthBuffer: true,
+      ...(hdr && b === 'webgpu' ? { outputType: HalfFloatType } : {}),
+    });
+  // Consensus E1/E3: if WebGPU device creation fails, retry on the WebGL2 backend, then the 2D stub.
+  let renderer = create(backend);
+  try {
+    await renderer.init();
+  } catch (err) {
+    if (backend !== 'webgpu' || !(webgl.webgl2 && (webgl.kind === 'hardware' || q.has('forceGpu')))) {
+      console.error(err);
+      return showFallback(webgl.webgl2 ? 'software' : 'no-webgl2');
+    }
+    console.warn('WebGPU init failed; retrying on the WebGL2 backend', err);
+    renderer.dispose();
+    backend = 'webgl2';
+    renderer = create(backend);
+    await renderer.init();
+  }
+  // PLAN §14.2: mobile GPUs can drop the device (memory pressure, backgrounding). Phase 0 scaffold
+  // reloads once; T2 replaces this with recreate-device + re-upload of resident packs.
+  renderer.onDeviceLost = (info: unknown) => {
+    console.warn('GPU device lost', info);
+    renderer.setAnimationLoop(null);
+    if (!q.has('recovered')) {
+      const url = new URL(location.href);
+      url.searchParams.set('recovered', '1');
+      location.replace(url);
+    } else {
+      stage(1, 'The graphics device was lost. Please reload.');
+    }
+  };
   const counters = new FrameCounters(renderer);
 
   stage(0.25, 'Raising the swell');
@@ -73,7 +98,12 @@ async function boot(): Promise<void> {
     canvas,
     () => fps,
     () => 'title',
-    { backend, reason: choice.reason, hdr, features: webgpu?.features ?? [] },
+    {
+      backend,
+      reason: backend === choice.backend ? choice.reason : 'webgpu init failed',
+      hdr: hdr && backend === 'webgpu',
+      features: webgpu.features,
+    },
   );
   counters.arm();
 
