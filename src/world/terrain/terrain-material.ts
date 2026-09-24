@@ -31,6 +31,7 @@ import {
 import { packs } from '../../engine/packs';
 import { world } from '../uniforms';
 import type { Tier } from '../contracts';
+import { COVE } from '../layout';
 import { terrainNoiseTexture } from './noise-texture';
 
 export const uSunBlend = uniform(1);
@@ -60,6 +61,22 @@ function triplanarColor(texture: Texture, scale: number): AnyNode {
   const wz = textureNode(texture, vec2(positionWorld.x, positionWorld.y).mul(scale)) as AnyNode;
   const sum = n.x.add(n.y).add(n.z).max(0.001);
   return wx.rgb.mul(n.x).add(wy.rgb.mul(n.y)).add(wz.rgb.mul(n.z)).div(sum);
+}
+
+function segmentMaskNode(
+  ax: number,
+  az: number,
+  bx: number,
+  bz: number,
+  inner: number,
+  outer: number,
+): AnyNode {
+  const p = vec2(positionWorld.x, positionWorld.z);
+  const a = vec2(ax, az);
+  const ba = vec2(bx - ax, bz - az);
+  const pa = p.sub(a);
+  const t = saturate(pa.dot(ba).div((bx - ax) * (bx - ax) + (bz - az) * (bz - az)));
+  return float(1).sub(smoothstep(inner, outer, pa.sub(ba.mul(t)).length()));
 }
 
 export interface TerrainMaterialOptions {
@@ -126,7 +143,8 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const grassBladeB = noiseFine.g;
   const grassBladeC = noiseFine.a;
 
-  const sandDetail = pathTexel.rgb.dot(vec3(0.3, 0.48, 0.22));
+  const pathDetail = pathTexel.rgb.dot(vec3(0.3, 0.48, 0.22));
+  const sandDetail = sandGrain.mul(0.54).add(rippleNoise.mul(0.28)).add(broadNoise.mul(0.18));
   const grassCloseLum = saturate(
     grassBladeA.mul(0.34).add(grassBladeB.mul(0.29)).add(grassBladeC.mul(0.2)).add(meadowMacro.mul(0.17)),
   );
@@ -163,10 +181,17 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const grassMask = masks.y;
   const rockMask = masks.z;
   const cliffMask = masks.w;
+  const shaderPathMask = saturate(
+    segmentMaskNode(COVE.village.center.x, COVE.village.center.z, -18, -10, 2.4, 7.2)
+      .add(segmentMaskNode(-18, -10, -28, 103, 2.8, 8.6))
+      .add(segmentMaskNode(-112, -64, COVE.village.center.x, COVE.village.center.z, 2.2, 6.5)),
+  ).mul(smoothstep(1.0, 6.5, y));
+  const pathSandMask = sandMask.mul(shaderPathMask);
+  const beachSandMask = saturate(sandMask.sub(pathSandMask));
   const waterline = float(1).sub(smoothstep(0.015, 0.28, abs(y)));
   const wetSandBand = smoothstep(-0.12, 0.08, y)
     .mul(float(1).sub(smoothstep(0.28, 0.82, y)))
-    .mul(sandMask);
+    .mul(beachSandMask);
   const underwater = smoothstep(0.04, 12.0, y.negate());
   const shallowUnderwater = smoothstep(0.02, 2.7, y.negate()).mul(
     float(1).sub(smoothstep(9.0, 20.0, y.negate())),
@@ -216,8 +241,10 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(smoothstep(2.9, 4.4, y)))
     .mul(cliffMask.add(rockMask).mul(0.65));
   let base = mix(drySand, wetSand, wetSandBand.mul(0.58));
-  base = mix(base, color(0xe8cf9a), waterline.mul(sandMask).mul(0.16));
-  base = mix(base, submergedSand, shallowUnderwater.mul(sandMask).mul(0.78));
+  const pathBase = mix(color(0x715b3b), color(0xc7b17e), pathDetail);
+  base = mix(base, pathBase, pathSandMask.mul(0.84));
+  base = mix(base, color(0xe8cf9a), waterline.mul(beachSandMask).mul(0.16));
+  base = mix(base, submergedSand, shallowUnderwater.mul(beachSandMask).mul(0.78));
   base = mix(base, grass, grassMask);
   base = mix(base, dirt, dirtPatch);
   base = mix(base, rock, rockMask);
@@ -247,9 +274,11 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
       sandMask.add(grassMask.mul(smoothstep(0.28, 0.92, normalWorld.y))).add(lowGroundDetail.mul(0.92)),
     ),
   );
+  const sandHeightDetail = sandGrain.mul(0.6).add(rippleNoise.mul(0.28)).add(noiseMid.a.mul(0.12));
   const detailHeight = grassCloseLum
     .mul(grassMask)
-    .add(pathCloseLum.mul(sandMask))
+    .add(pathCloseLum.mul(pathSandMask))
+    .add(sandHeightDetail.mul(beachSandMask))
     .add(rockCloseLum.mul(rockMask.add(cliffMask)));
   const microShade = float(0.72)
     .add(detailHeight.mul(0.46))
@@ -266,6 +295,13 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   closeGrass = mix(closeGrass, color(0x68c45d), cloverPatch.mul(0.3));
   closeGrass = closeGrass.mul(float(0.82).add(meadowMacro.mul(0.34)).add(grassBladeC.mul(0.08)));
   const closeEarth = mix(color(0x6d5937), color(0xc6ad79), pathCloseLum);
+  const closeDrySand = mix(color(0xdcb06e), color(0xf4d79d), sandDetail);
+  const closeWetSand = mix(color(0xa97845), color(0xd0a973), sandGrain.mul(0.46).add(rippleNoise.mul(0.34)));
+  const closeSand = mix(
+    closeDrySand,
+    closeWetSand,
+    saturate(wetSandBand.mul(1.2).add(waterline.mul(0.18))),
+  ).mul(float(0.94).add(sandGrain.mul(0.12)).add(noiseFine.g.mul(0.04)));
   const closeRock = mix(color(0x5d594f), color(0xa79b81), rockCloseLum);
   const rockBandColor = mix(
     color(0x4c4b43),
@@ -274,10 +310,17 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   );
   let closeLayer = mix(closeEarth, closeGrass, grassMask);
   closeLayer = mix(closeLayer, closeRock, saturate(rockMask.add(cliffMask)));
-  closeLayer = mix(closeLayer, closeEarth, sandMask.mul(0.82));
+  closeLayer = mix(closeLayer, closeEarth, pathSandMask.mul(0.82));
+  closeLayer = mix(closeLayer, closeSand, beachSandMask.mul(0.9));
   const pebble = pow(saturate(pathCloseLum.sub(0.54).mul(2.8)), 3.0)
     .mul(closeMeadowDetail)
-    .mul(sandMask.add(grassMask).mul(0.2));
+    .mul(pathSandMask.add(grassMask).mul(0.2));
+  const shellFlecks = pow(saturate(sandGrain.sub(0.74).mul(3.4)), 3.0)
+    .mul(beachSandMask)
+    .mul(closeDetail);
+  const sandPepper = pow(saturate(float(0.38).sub(noiseFine.a).mul(3.2)), 2.4)
+    .mul(beachSandMask)
+    .mul(closeDetail);
   const wornSoil = pow(saturate(fineNoise.mul(0.55).add(meadowMacroB.mul(0.45)).sub(0.5).mul(2.0)), 2.0)
     .mul(grassMask)
     .mul(closeMeadowDetail);
@@ -285,7 +328,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(grassMask)
     .mul(closeMeadowDetail);
   const soilFlecks = pow(saturate(float(0.46).sub(pathCloseLum).mul(2.8)), 2.0)
-    .mul(grassMask.add(sandMask).mul(0.5))
+    .mul(grassMask.add(pathSandMask).mul(0.5))
     .mul(closeMeadowDetail);
   const slopeOutcrop = steepSlope
     .mul(smoothstep(3, 28, y))
@@ -306,6 +349,8 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   base = mix(base, color(0xbad878), cloverPatch.mul(grassMask).mul(closeMeadowDetail).mul(0.32));
   base = mix(base, closeEarth, wornSoil.mul(0.56).add(soilFlecks.mul(0.34)));
   base = mix(base, color(0x3f382b), pebble);
+  base = mix(base, color(0xf8e0aa), shellFlecks.mul(0.16));
+  base = mix(base, color(0xad8050), sandPepper.mul(0.13));
   const meadowFleckDark = pow(
     saturate(
       float(0.62)
@@ -404,7 +449,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   );
   material.aoNode = light.x;
   const bumpStrength = closeDetail
-    .mul(grassMask.mul(0.22).add(sandMask.mul(0.13)))
+    .mul(grassMask.mul(0.22).add(pathSandMask.mul(0.13)).add(beachSandMask.mul(0.09)))
     .mul(float(1).sub(underwater.mul(0.85)));
   material.normalNode = bumpMap(detailHeight, bumpStrength);
 
