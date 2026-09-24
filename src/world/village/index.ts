@@ -23,9 +23,20 @@ import {
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { packs } from '../../engine/packs';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle, HeightField } from '../contracts';
 import { COVE } from '../layout';
+import {
+  VILLAGE_HOUSE_PIECES,
+  buildHouse,
+  houseDoorAnchor,
+  housePerches,
+  placementWorldMaxY,
+  type HouseFootprint,
+  type HouseSpec,
+  type PiecePlacement,
+} from './house-builder';
 import {
   createClothMaterial,
   createGlowMaterial,
@@ -83,7 +94,7 @@ export interface CreateVillageOptions {
   kit?: VillageKit;
 }
 
-interface VillageKitPart {
+export interface VillageKitPart {
   geometry: BufferGeometry;
   materialKey: MaterialKey;
 }
@@ -149,68 +160,7 @@ const PIER_RAMP = {
   width: COVE.pier.width + 0.8,
 } as const;
 const BRIGANTINE_BERTH = { minX: -105.5, maxX: -98.9, minZ: -124.5, maxZ: -100.5 } as const;
-const KIT_PIECES = new Set([
-  'Wall_Plaster_Window_Wide_Flat',
-  'Wall_Plaster_Window_Wide_Round',
-  'Wall_Plaster_Window_Thin_Round',
-  'Wall_Plaster_Door_Flat',
-  'Wall_Plaster_Door_Round',
-  'Wall_Plaster_Straight',
-  'Wall_Plaster_Straight_Base',
-  'Wall_Plaster_WoodGrid',
-  'Wall_UnevenBrick_Door_Flat',
-  'Wall_UnevenBrick_Door_Round',
-  'Wall_UnevenBrick_Window_Wide_Flat',
-  'Wall_UnevenBrick_Window_Wide_Round',
-  'Wall_UnevenBrick_Window_Thin_Round',
-  'Wall_UnevenBrick_Straight',
-  'Corner_Exterior_Wood',
-  'DoorFrame_Round_Brick',
-  'DoorFrame_Flat_Brick',
-  'Door_1_Flat',
-  'Door_1_Round',
-  'Door_2_Round',
-  'Window_Wide_Round1',
-  'Window_Wide_Flat1',
-  'Window_Thin_Round1',
-  'WindowShutters_Wide_Flat_Open',
-  'WindowShutters_Wide_Round_Open',
-  'WindowShutters_Thin_Flat_Open',
-  'WindowShutters_Thin_Round_Open',
-  'Balcony_Simple_Straight',
-  'Balcony_Cross_Straight',
-  'Balcony_Cross_Corner',
-  'Overhang_Plaster_Long',
-  'Overhang_Plaster_Corner',
-  'Overhang_UnevenBrick_Long',
-  'Roof_RoundTiles_4x4',
-  'Roof_RoundTiles_4x6',
-  'Roof_RoundTiles_6x4',
-  'Roof_RoundTiles_6x6',
-  'Roof_RoundTiles_6x8',
-  'Roof_RoundTiles_8x8',
-  'Roof_Front_Brick4',
-  'Roof_Front_Brick6',
-  'Roof_Front_Brick8',
-  'Roof_Dormer_RoundTile',
-  'Roof_Tower_RoundTiles',
-  'Roof_FrontSupports',
-  'Prop_Chimney',
-  'Prop_Chimney2',
-  'Prop_Crate',
-  'Prop_Wagon',
-  'Prop_Vine1',
-  'Prop_Vine2',
-  'Prop_Vine4',
-  'Prop_Support',
-  'Stairs_Exterior_Straight',
-  'Stairs_Exterior_Platform',
-  'Floor_UnevenBrick',
-  'Floor_RedBrick',
-  'Floor_WoodLight',
-  'Prop_WoodenFence_Single',
-  'Prop_WoodenFence_Extension1',
-]);
+const KIT_PIECES = new Set([...VILLAGE_HOUSE_PIECES, 'Prop_Crate']);
 
 function kitMaterialKey(material: string): MaterialKey {
   if (material.includes('RoundTiles')) return 'roofTile';
@@ -379,7 +329,7 @@ const BUILDINGS: BuildingSpec[] = [
 
 let villageKitPromise: Promise<VillageKit> | null = null;
 
-export function loadVillageKit(base = '/packs/testcove/village/kit.glb?v=real-kit-v1'): Promise<VillageKit> {
+export function loadVillageKit(base = '/packs/testcove/village/kit.glb'): Promise<VillageKit> {
   villageKitPromise ??= loadVillageKitInternal(base);
   return villageKitPromise;
 }
@@ -428,7 +378,7 @@ function prepareLoadedMaterial(material: Material, key: MaterialKey): Material {
 async function loadVillageKitInternal(url: string): Promise<VillageKit> {
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
-  const gltf: GLTF = await loader.loadAsync(url);
+  const gltf: GLTF = await loader.loadAsync(packs.url(url));
   return createVillageKitFromGltf(gltf);
 }
 
@@ -446,7 +396,7 @@ function createVillageKitFromGltf(gltf: GLTF): VillageKit {
   }
   for (const material of rawMaterials) {
     const key = kitMaterialKey(material.name);
-    materials[key] ??= prepareLoadedMaterial(material.clone(), key);
+    materials[key] ??= key === 'glow' ? createGlowMaterial() : prepareLoadedMaterial(material.clone(), key);
   }
   const fallback = createFallbackVillageKit();
   for (const key of Object.keys(fallback.materials) as MaterialKey[]) {
@@ -466,14 +416,12 @@ function createVillageKitFromGltf(gltf: GLTF): VillageKit {
         for (const group of geometry.groups) {
           const material = materialList[group.materialIndex ?? 0] ?? materialList[0]!;
           const part = subsetGeometry(geometry, group.start, group.count);
-          object.updateWorldMatrix(true, false);
           part.applyMatrix4(object.matrixWorld);
           parts.push({ geometry: part, materialKey: kitMaterialKey(material.name) });
         }
       } else {
         const material = materialList[0]!;
-        const part = geometry.clone();
-        object.updateWorldMatrix(true, false);
+        const part = cloneGeometryAsFloat(geometry);
         part.applyMatrix4(object.matrixWorld);
         parts.push({ geometry: part, materialKey: kitMaterialKey(material.name) });
       }
@@ -506,6 +454,15 @@ function kitPieceNameForObject(object: Object3D, gltf: GLTF): string | null {
     current = current.parent;
   }
   return null;
+}
+
+function cloneGeometryAsFloat(source: BufferGeometry): BufferGeometry {
+  const result = source.clone();
+  for (const name of ['position', 'normal', 'uv', 'tangent'] as const) {
+    const attr = source.getAttribute(name) as BufferAttribute | undefined;
+    if (attr) result.setAttribute(name, floatAttribute(attr));
+  }
+  return result;
 }
 
 function subsetGeometry(source: BufferGeometry, start: number, count: number): BufferGeometry {
@@ -669,30 +626,225 @@ function makeBuckets(): Record<MaterialKey, BufferGeometry[]> {
   };
 }
 
-interface BuildingGrid {
-  w: 4 | 6 | 8;
-  d: 4 | 6 | 8;
-  floors: 1 | 2 | 3;
-  roof: string;
-  doorSegment: number;
-  jetty?: boolean;
-  tower?: boolean;
-}
-
-const BUILDING_GRID: Record<string, BuildingGrid> = {
-  harbourmaster: { w: 6, d: 4, floors: 2, roof: 'Roof_RoundTiles_6x4', doorSegment: 1, jetty: true },
-  tavern: { w: 6, d: 8, floors: 3, roof: 'Roof_RoundTiles_6x8', doorSegment: 1, jetty: true },
-  chandlery: { w: 6, d: 4, floors: 2, roof: 'Roof_RoundTiles_6x4', doorSegment: 1 },
-  'fish-market': { w: 6, d: 4, floors: 1, roof: 'Roof_RoundTiles_6x4', doorSegment: 1 },
-  storehouse: { w: 6, d: 6, floors: 2, roof: 'Roof_RoundTiles_6x6', doorSegment: 1 },
-  'sky-blue-house': { w: 6, d: 4, floors: 2, roof: 'Roof_RoundTiles_6x4', doorSegment: 1 },
-  'lime-cottage': { w: 4, d: 4, floors: 2, roof: 'Roof_RoundTiles_4x4', doorSegment: 0 },
-  chartmaker: { w: 6, d: 4, floors: 2, roof: 'Roof_RoundTiles_6x4', doorSegment: 1, tower: true },
-  'cream-rowhouse': { w: 4, d: 6, floors: 2, roof: 'Roof_RoundTiles_4x6', doorSegment: 0 },
-  'green-leaning-house': { w: 4, d: 4, floors: 2, roof: 'Roof_RoundTiles_4x4', doorSegment: 0 },
+type BuildingHousePlan = Omit<HouseSpec, 'id' | 'origin' | 'rotY' | 'tint' | 'roofTint'> & {
+  seed: number;
 };
 
-const STOREY_H = 3.12;
+const BUILDING_HOUSE_PLANS = {
+  harbourmaster: {
+    footprint: { w: 6, d: 4 },
+    storeys: 2,
+    ground: 'unevenbrick',
+    upper: 'mixed',
+    doorSide: 'front',
+    doorSegment: 1,
+    windows: 'regular',
+    roof: 'gable',
+    dormers: 1,
+    chimney: true,
+    balcony: true,
+    overhang: true,
+    stairs: true,
+    vines: 1,
+    seed: 11,
+  },
+  tavern: {
+    footprint: { w: 6, d: 8 },
+    storeys: 3,
+    ground: 'unevenbrick',
+    upper: 'woodgrid',
+    doorSide: 'front',
+    doorSegment: 1,
+    windows: 'regular',
+    roof: 'gable',
+    dormers: 2,
+    chimney: true,
+    balcony: true,
+    overhang: true,
+    stairs: true,
+    vines: 2,
+    seed: 17,
+  },
+  chandlery: {
+    footprint: { w: 6, d: 4 },
+    storeys: 2,
+    ground: 'unevenbrick',
+    upper: 'mixed',
+    doorSide: 'front',
+    doorSegment: 1,
+    windows: 'regular',
+    roof: 'gable',
+    dormers: 1,
+    chimney: true,
+    balcony: false,
+    overhang: false,
+    stairs: true,
+    vines: false,
+    seed: 23,
+  },
+  'fish-market': {
+    footprint: { w: 6, d: 4 },
+    storeys: 1,
+    ground: 'unevenbrick',
+    upper: 'plaster',
+    doorSide: 'front',
+    doorSegment: 1,
+    windows: 'sparse',
+    roof: 'gable',
+    dormers: false,
+    chimney: false,
+    balcony: false,
+    overhang: false,
+    stairs: false,
+    vines: 1,
+    seed: 31,
+  },
+  storehouse: {
+    footprint: { w: 6, d: 6 },
+    storeys: 2,
+    ground: 'unevenbrick',
+    upper: 'plaster',
+    doorSide: 'front',
+    doorSegment: 1,
+    windows: 'sparse',
+    roof: 'gable',
+    dormers: false,
+    chimney: false,
+    balcony: false,
+    overhang: false,
+    stairs: false,
+    vines: false,
+    seed: 37,
+  },
+  'sky-blue-house': {
+    footprint: { w: 6, d: 4 },
+    storeys: 2,
+    ground: 'unevenbrick',
+    upper: 'mixed',
+    doorSide: 'front',
+    doorSegment: 1,
+    windows: 'regular',
+    roof: 'gable',
+    dormers: false,
+    chimney: true,
+    balcony: false,
+    overhang: false,
+    stairs: false,
+    vines: false,
+    seed: 41,
+  },
+  'lime-cottage': {
+    footprint: { w: 4, d: 4 },
+    storeys: 2,
+    ground: 'unevenbrick',
+    upper: 'plaster',
+    doorSide: 'front',
+    doorSegment: 0,
+    windows: 'regular',
+    roof: 'gable',
+    dormers: false,
+    chimney: true,
+    balcony: false,
+    overhang: false,
+    stairs: false,
+    vines: 1,
+    seed: 43,
+  },
+  chartmaker: {
+    footprint: { w: 6, d: 4 },
+    storeys: 2,
+    ground: 'unevenbrick',
+    upper: 'woodgrid',
+    doorSide: 'front',
+    doorSegment: 1,
+    windows: 'regular',
+    roof: 'gable',
+    dormers: 1,
+    chimney: true,
+    balcony: true,
+    overhang: true,
+    stairs: true,
+    vines: 1,
+    seed: 47,
+  },
+  'cream-rowhouse': {
+    footprint: { w: 4, d: 6 },
+    storeys: 2,
+    ground: 'unevenbrick',
+    upper: 'mixed',
+    doorSide: 'front',
+    doorSegment: 0,
+    windows: 'regular',
+    roof: 'gable',
+    dormers: false,
+    chimney: true,
+    balcony: false,
+    overhang: false,
+    stairs: false,
+    vines: false,
+    seed: 53,
+  },
+  'green-leaning-house': {
+    footprint: { w: 4, d: 4 },
+    storeys: 2,
+    ground: 'unevenbrick',
+    upper: 'woodgrid',
+    doorSide: 'front',
+    doorSegment: 0,
+    windows: 'sparse',
+    roof: 'gable',
+    dormers: false,
+    chimney: false,
+    balcony: false,
+    overhang: false,
+    stairs: false,
+    vines: false,
+    seed: 59,
+  },
+} as const satisfies Record<string, BuildingHousePlan>;
+
+function buildingHousePlan(spec: BuildingSpec): BuildingHousePlan {
+  return (
+    BUILDING_HOUSE_PLANS[spec.id as keyof typeof BUILDING_HOUSE_PLANS] ?? {
+      footprint: { w: 6, d: 4 },
+      storeys: spec.floors,
+      ground: 'unevenbrick',
+      upper: 'mixed',
+      doorSide: 'front',
+      doorSegment: 1,
+      windows: 'regular',
+      roof: 'gable',
+      dormers: false,
+      chimney: spec.chimney ?? false,
+      balcony: spec.balcony ?? false,
+      overhang: false,
+      stairs: false,
+      vines: false,
+      seed: 7,
+    }
+  );
+}
+
+function buildingFootprint(spec: BuildingSpec): HouseFootprint {
+  return buildingHousePlan(spec).footprint;
+}
+
+function houseSpecForBuilding(spec: BuildingSpec, baseY: number, low: boolean): HouseSpec {
+  const plan = buildingHousePlan(spec);
+  return {
+    ...plan,
+    id: spec.id,
+    dormers: low ? false : plan.dormers,
+    chimney: !low && (spec.chimney ?? plan.chimney),
+    balcony: !low && Boolean(spec.balcony && plan.balcony),
+    overhang: !low && Boolean(plan.overhang),
+    vines: low ? false : plan.vines,
+    origin: { x: spec.x, y: baseY, z: spec.z },
+    rotY: spec.rot,
+    tint: spec.colour,
+    roofTint: spec.roofColour,
+  };
+}
 
 function addBuilding(
   spec: BuildingSpec,
@@ -704,449 +856,38 @@ function addBuilding(
   kit: VillageKit,
   low: boolean,
 ): void {
-  const grid = BUILDING_GRID[spec.id] ?? {
-    w: 6,
-    d: 4,
-    floors: spec.floors,
-    roof: 'Roof_RoundTiles_6x4',
-    doorSegment: 1,
-  };
   const baseY = spec.quay ? COVE.quay.height : heightField.heightAt(spec.x, spec.z);
-  const doorLocalX = -grid.w * 0.5 + 1 + Math.min(grid.doorSegment, grid.w / 2 - 1) * 2;
-  const doorWorld = localToWorld(spec.x, spec.z, spec.rot, doorLocalX, -grid.d * 0.5 - 0.44);
+  const house = houseSpecForBuilding(spec, baseY, low);
+  const placements = buildHouse(house);
+  for (const placement of placements) addKitPlacement(buckets, kit, placement);
+  perches.push(...housePerches(house, placements));
 
-  for (let floor = 0; floor < grid.floors; floor += 1) {
-    addWallSide(
-      spec,
-      grid,
-      kit,
-      buckets,
-      baseY,
-      'front',
-      floor,
-      doorLocalX,
-      floor === 0 ? 'door' : 'windows',
-    );
-    addWallSide(spec, grid, kit, buckets, baseY, 'back', floor, doorLocalX, 'windows');
-    addWallSide(
-      spec,
-      grid,
-      kit,
-      buckets,
-      baseY,
-      'left',
-      floor,
-      doorLocalX,
-      floor === 0 ? 'sparse' : 'windows',
-    );
-    addWallSide(
-      spec,
-      grid,
-      kit,
-      buckets,
-      baseY,
-      'right',
-      floor,
-      doorLocalX,
-      floor === 0 ? 'sparse' : 'windows',
-    );
-    addFloorGrid(
-      spec,
-      grid,
-      kit,
-      buckets,
-      baseY + floor * STOREY_H,
-      floor === 0 ? 'Floor_UnevenBrick' : 'Floor_WoodLight',
-    );
-  }
-
-  addBuildingCorners(spec, grid, kit, buckets, baseY);
-  if (grid.jetty && !low) addJettiedOverhang(spec, grid, kit, buckets, baseY + STOREY_H - 0.04);
-
-  const roofY = baseY + grid.floors * STOREY_H;
-  addKitPiece(buckets, kit, grid.roof, spec.x, roofY, spec.z, spec.rot, 1, 1, 1, spec.roofColour);
-  addRoofFronts(spec, grid, kit, buckets, roofY);
-  if (!low && (spec.id === 'tavern' || spec.id === 'harbourmaster'))
-    addDormer(spec, { x: spec.x, z: spec.z }, roofY, buckets, kit);
-  if (!low && grid.tower)
-    addKitPiece(
-      buckets,
-      kit,
-      'Roof_Tower_RoundTiles',
-      spec.x,
-      roofY + 2.4,
-      spec.z,
-      spec.rot,
-      1,
-      1,
-      1,
-      spec.roofColour,
-    );
-  if (spec.chimney && !low) addChimney(spec.x, spec.z, roofY + 0.2, spec.rot, buckets, perches, kit);
-  addRoofPerches(perches, spec.x, spec.z, roofY, grid.d, spec.roof, spec.rot);
-
-  if (spec.balcony && !low) addBalcony(spec, baseY + STOREY_H + 0.05, buckets, kit);
-  if (spec.awning) addAwning(spec, baseY + 2.25, spec.awning, buckets);
-  if (spec.sign) addSign(spec, baseY + 2.6, spec.sign, buckets);
-  if (!low) addVines(spec, grid, kit, buckets, baseY);
-
+  const footprint = house.footprint;
+  const maxY = placements.reduce((max, placement) => Math.max(max, placementWorldMaxY(placement)), baseY);
   colliders.boxes.push({
     x: spec.x,
     z: spec.z,
-    hx: grid.w * 0.52,
-    hz: grid.d * 0.52,
+    hx: footprint.w * 0.52,
+    hz: footprint.d * 0.52,
     rot: spec.rot,
-    height: grid.floors * STOREY_H + 2.4,
+    height: Math.max(3.2, maxY - baseY),
   });
-  if (spec.anchor)
-    anchors[spec.anchor] = { x: doorWorld.x, y: baseY, z: doorWorld.z, heading: spec.rot + Math.PI };
+  if (spec.anchor) anchors[spec.anchor] = houseDoorAnchor(house);
 }
 
-type WallSide = 'front' | 'back' | 'left' | 'right';
-type WallPattern = 'door' | 'windows' | 'sparse';
-
-function addWallSide(
-  spec: BuildingSpec,
-  grid: BuildingGrid,
-  kit: VillageKit,
+function addKitPlacement(
   buckets: Record<MaterialKey, BufferGeometry[]>,
-  baseY: number,
-  side: WallSide,
-  floor: number,
-  doorLocalX: number,
-  pattern: WallPattern,
+  kit: VillageKit,
+  placement: PiecePlacement,
 ): void {
-  const segments = side === 'front' || side === 'back' ? grid.w / 2 : grid.d / 2;
-  const y = baseY + floor * STOREY_H;
-  for (let i = 0; i < segments; i += 1) {
-    const local = sideSegmentLocal(grid, side, i);
-    const world = localToWorld(spec.x, spec.z, spec.rot, local.x, local.z);
-    const ry = wallRotation(spec.rot, side);
-    const isDoor = pattern === 'door' && side === 'front' && Math.abs(local.x - doorLocalX) < 0.01;
-    const window =
-      pattern === 'windows' ||
-      (pattern === 'door' && !isDoor && i % 2 === 0) ||
-      (pattern === 'sparse' && i === segments - 1);
-    const piece = wallPieceName(floor, isDoor, window);
-    const tint = floor === 0 && !isDoor && !piece.includes('Plaster') ? 0xffffff : spec.colour;
-    addKitPiece(buckets, kit, piece, world.x, y, world.z, ry, 1, 1, 1, tint);
-    if (isDoor) addOpeningKit(buckets, kit, 'Door_1_Round', world.x, y, world.z, ry, 0x8b6040);
-    else if (window) {
-      const dressed = side === 'front' || (side === 'back' && i % 2 === 0);
-      if (dressed) {
-        addOpeningKit(
-          buckets,
-          kit,
-          floor === 0 ? 'Window_Wide_Round1' : 'Window_Wide_Flat1',
-          world.x,
-          y,
-          world.z,
-          ry,
-          0xffffff,
-        );
-        addOpeningKit(
-          buckets,
-          kit,
-          i % 2 === 0 ? 'WindowShutters_Wide_Round_Open' : 'WindowShutters_Wide_Flat_Open',
-          world.x,
-          y,
-          world.z,
-          ry,
-          0x7d9aa0,
-        );
-      }
-    }
+  const parts = kit.pieces.get(placement.piece);
+  if (!parts) return;
+  for (const base of parts) {
+    const geometry = base.geometry.clone();
+    geometry.applyMatrix4(placement.matrix);
+    paint(geometry, base.materialKey === 'plaster' ? (placement.tint ?? 0xffffff) : 0xffffff);
+    buckets[base.materialKey].push(geometry);
   }
-}
-
-function wallPieceName(floor: number, door: boolean, window: boolean): string {
-  if (floor === 0) {
-    if (door) return 'Wall_UnevenBrick_Door_Round';
-    if (window) return 'Wall_UnevenBrick_Window_Wide_Round';
-    return 'Wall_UnevenBrick_Straight';
-  }
-  if (door) return 'Wall_Plaster_Door_Round';
-  if (window) return floor % 2 === 0 ? 'Wall_Plaster_Window_Wide_Round' : 'Wall_Plaster_Window_Thin_Round';
-  return floor % 2 === 0 ? 'Wall_Plaster_WoodGrid' : 'Wall_Plaster_Straight_Base';
-}
-
-function sideSegmentLocal(grid: BuildingGrid, side: WallSide, i: number): { x: number; z: number } {
-  if (side === 'front') return { x: -grid.w * 0.5 + 1 + i * 2, z: -grid.d * 0.5 };
-  if (side === 'back') return { x: grid.w * 0.5 - 1 - i * 2, z: grid.d * 0.5 };
-  if (side === 'right') return { x: grid.w * 0.5, z: -grid.d * 0.5 + 1 + i * 2 };
-  return { x: -grid.w * 0.5, z: grid.d * 0.5 - 1 - i * 2 };
-}
-
-function wallRotation(rot: number, side: WallSide): number {
-  if (side === 'front') return rot + Math.PI;
-  if (side === 'back') return rot;
-  if (side === 'right') return rot + Math.PI / 2;
-  return rot - Math.PI / 2;
-}
-
-function addOpeningKit(
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  kit: VillageKit,
-  name: string,
-  x: number,
-  y: number | undefined,
-  z: number,
-  ry: number,
-  tint: number,
-): void {
-  addKitPiece(buckets, kit, name, x, y ?? 0, z, ry, 1, 1, 1, tint);
-}
-
-function addFloorGrid(
-  spec: BuildingSpec,
-  grid: BuildingGrid,
-  kit: VillageKit,
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  y: number,
-  floorPiece: string,
-): void {
-  for (let lx = -grid.w * 0.5 + 1; lx < grid.w * 0.5; lx += 2) {
-    for (let lz = -grid.d * 0.5 + 1; lz < grid.d * 0.5; lz += 2) {
-      const p = localToWorld(spec.x, spec.z, spec.rot, lx, lz);
-      addKitPiece(buckets, kit, floorPiece, p.x, y + 0.02, p.z, spec.rot, 1, 1, 1, 0xffffff);
-    }
-  }
-}
-
-function addBuildingCorners(
-  spec: BuildingSpec,
-  grid: BuildingGrid,
-  kit: VillageKit,
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  baseY: number,
-): void {
-  const corners = [
-    [-grid.w * 0.5, -grid.d * 0.5, spec.rot + Math.PI],
-    [grid.w * 0.5, -grid.d * 0.5, spec.rot + Math.PI / 2],
-    [grid.w * 0.5, grid.d * 0.5, spec.rot],
-    [-grid.w * 0.5, grid.d * 0.5, spec.rot - Math.PI / 2],
-  ] as const;
-  for (let floor = 0; floor < grid.floors; floor += 1) {
-    for (const [lx, lz, ry] of corners) {
-      const p = localToWorld(spec.x, spec.z, spec.rot, lx, lz);
-      addKitPiece(
-        buckets,
-        kit,
-        'Corner_Exterior_Wood',
-        p.x,
-        baseY + floor * STOREY_H,
-        p.z,
-        ry,
-        1,
-        1,
-        1,
-        0xffffff,
-      );
-    }
-  }
-}
-
-function addJettiedOverhang(
-  spec: BuildingSpec,
-  grid: BuildingGrid,
-  kit: VillageKit,
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  y: number,
-): void {
-  for (let i = 0; i < grid.w / 2; i += 1) {
-    const p = localToWorld(spec.x, spec.z, spec.rot, -grid.w * 0.5 + 1 + i * 2, -grid.d * 0.5 - 0.55);
-    addKitPiece(buckets, kit, 'Overhang_Plaster_Long', p.x, y, p.z, spec.rot + Math.PI, 1, 1, 1, spec.colour);
-  }
-}
-
-function addRoofFronts(
-  spec: BuildingSpec,
-  grid: BuildingGrid,
-  kit: VillageKit,
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  roofY: number,
-): void {
-  const frontName =
-    grid.w >= 8 ? 'Roof_Front_Brick8' : grid.w >= 6 ? 'Roof_Front_Brick6' : 'Roof_Front_Brick4';
-  for (const lz of [-grid.d * 0.5, grid.d * 0.5]) {
-    const p = localToWorld(spec.x, spec.z, spec.rot, 0, lz);
-    addKitPiece(
-      buckets,
-      kit,
-      frontName,
-      p.x,
-      roofY,
-      p.z,
-      lz < 0 ? spec.rot + Math.PI : spec.rot,
-      1,
-      1,
-      1,
-      0xffffff,
-    );
-  }
-}
-
-function addDormer(
-  spec: BuildingSpec,
-  roofPos: { x: number; z: number },
-  roofBase: number,
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  kit: VillageKit,
-): void {
-  const pos = localToWorld(roofPos.x, roofPos.z, spec.rot, 0.75, -1.2);
-  addKitPiece(
-    buckets,
-    kit,
-    'Roof_Dormer_RoundTile',
-    pos.x,
-    roofBase + 0.15,
-    pos.z,
-    spec.rot,
-    1,
-    1,
-    1,
-    spec.roofColour,
-  );
-}
-
-function addVines(
-  spec: BuildingSpec,
-  grid: BuildingGrid,
-  kit: VillageKit,
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  baseY: number,
-): void {
-  if (!['tavern', 'chartmaker', 'lime-cottage', 'harbourmaster'].includes(spec.id)) return;
-  const p = localToWorld(spec.x, spec.z, spec.rot, grid.w * 0.5 - 0.65, -grid.d * 0.5 - 0.02);
-  addKitPiece(
-    buckets,
-    kit,
-    spec.id === 'tavern' ? 'Prop_Vine2' : 'Prop_Vine1',
-    p.x,
-    baseY + 0.15,
-    p.z,
-    spec.rot + Math.PI,
-    1,
-    1,
-    1,
-    0xffffff,
-  );
-}
-
-function addRoofPerches(
-  perches: Vector3[],
-  x: number,
-  z: number,
-  roofBase: number,
-  roofD: number,
-  roof: RoofType,
-  rot: number,
-): void {
-  const ridgeY = roofBase + (roof === 'thatch' ? 1.45 : roof === 'hip' ? 3.2 : 3.2);
-  const ridgeHalf = roofD * 0.28;
-  for (const lz of [-ridgeHalf, ridgeHalf]) {
-    const p = localToWorld(x, z, rot, 0, lz);
-    perches.push(new Vector3(p.x, ridgeY, p.z));
-  }
-}
-
-function addBalcony(
-  spec: BuildingSpec,
-  y: number,
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  kit: VillageKit,
-): void {
-  const center = localToWorld(spec.x, spec.z, spec.rot, 0, -spec.d * 0.5 - 0.78);
-  addKitPiece(
-    buckets,
-    kit,
-    'Balcony_Simple_Straight',
-    center.x,
-    y - 0.16,
-    center.z,
-    spec.rot,
-    2.35,
-    1.0,
-    1.0,
-    0x8f7258,
-  );
-  addBox(buckets.wood, center.x, y, center.z, Math.min(spec.w * 0.62, 5.2), 0.18, 1.15, spec.rot, 0x7d512e);
-  for (const lx of [-2.2, -0.7, 0.7, 2.2]) {
-    if (Math.abs(lx) > spec.w * 0.32) continue;
-    const post = localToWorld(spec.x, spec.z, spec.rot, lx, -spec.d * 0.5 - 1.24);
-    addBox(buckets.wood, post.x, y + 0.08, post.z, 0.13, 0.85, 0.13, spec.rot, 0x5c3a22);
-  }
-  const rail = localToWorld(spec.x, spec.z, spec.rot, 0, -spec.d * 0.5 - 1.24);
-  addBox(
-    buckets.wood,
-    rail.x,
-    y + 0.72,
-    rail.z,
-    Math.min(spec.w * 0.62, 5.2),
-    0.12,
-    0.12,
-    spec.rot,
-    0x5c3a22,
-  );
-}
-
-function addAwning(
-  spec: BuildingSpec,
-  y: number,
-  colour: number,
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-): void {
-  const center = localToWorld(spec.x, spec.z, spec.rot, spec.w * 0.16, -spec.d * 0.5 - 0.74);
-  addBox(
-    buckets.cloth,
-    center.x,
-    y,
-    center.z,
-    Math.min(4.4, spec.w * 0.56),
-    0.18,
-    1.2,
-    spec.rot,
-    colour,
-    -10 * DEG,
-    0,
-  );
-}
-
-function addSign(
-  spec: BuildingSpec,
-  y: number,
-  colour: number,
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-): void {
-  const bracket = localToWorld(spec.x, spec.z, spec.rot, -spec.w * 0.44, -spec.d * 0.5 - 0.52);
-  addBox(buckets.metal, bracket.x, y + 0.18, bracket.z, 0.08, 0.08, 1.0, spec.rot, 0x242326);
-  const plaque = localToWorld(spec.x, spec.z, spec.rot, -spec.w * 0.44, -spec.d * 0.5 - 1.02);
-  addBox(buckets.wood, plaque.x, y - 0.36, plaque.z, 1.25, 0.62, 0.1, spec.rot, 0x704522);
-  addBox(
-    buckets.glow,
-    plaque.x,
-    y - 0.28,
-    plaque.z - Math.cos(spec.rot) * 0.01,
-    0.72,
-    0.12,
-    0.04,
-    spec.rot,
-    colour,
-  );
-}
-
-function addChimney(
-  x: number,
-  z: number,
-  y: number,
-  rot: number,
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  perches: Vector3[],
-  kit: VillageKit,
-): void {
-  const pos = localToWorld(x, z, rot, 2.0, 0.5);
-  addKitPiece(buckets, kit, 'Prop_Chimney', pos.x, y, pos.z, rot, 1.0, 0.45, 1.0, 0x928873);
-  perches.push(new Vector3(pos.x, y + 1.4, pos.z));
 }
 
 function addQuay(
@@ -1230,9 +971,23 @@ function addPier(
   const p = COVE.pier;
   const minZ = Math.min(p.z0, p.z1);
   const maxZ = Math.max(p.z0, p.z1);
-  const plankStep = low ? 2.2 : 1.25;
-  for (let z = minZ + 0.8; z <= maxZ - 0.3; z += plankStep) {
-    addBox(buckets.wood, p.x, p.deck - 0.15, z, p.width + 0.45, 0.18, plankStep * 0.72, 0, 0x9a8064);
+  const pierLength = maxZ - minZ;
+  addBox(
+    buckets.wood,
+    p.x,
+    p.deck - 0.2,
+    (minZ + maxZ) * 0.5,
+    p.width + 0.5,
+    0.14,
+    pierLength + 0.6,
+    0,
+    0x6f5a42,
+  );
+  const plankStep = low ? 1.4 : 1.05;
+  const plankGap = 0.015;
+  for (let z = minZ + plankStep * 0.5; z <= maxZ - plankStep * 0.25; z += plankStep) {
+    const tint = Math.floor((z - minZ) / plankStep) % 2 === 0 ? 0x9a8064 : 0x8f7459;
+    addBox(buckets.wood, p.x, p.deck - 0.13, z, p.width + 0.45, 0.16, plankStep - plankGap, 0, tint);
   }
   addPierRamp(buckets, kit);
   for (let z = minZ + 2.5; z <= maxZ - 1.5; z += low ? 8.4 : 6.0) {
@@ -1396,13 +1151,14 @@ function addStreetPaving(
 
 function insideAnyBuilding(x: number, z: number): boolean {
   for (const b of BUILDINGS) {
+    const footprint = buildingFootprint(b);
     const c = Math.cos(-b.rot);
     const s = Math.sin(-b.rot);
     const dx = x - b.x;
     const dz = z - b.z;
     const lx = dx * c + dz * s;
     const lz = -dx * s + dz * c;
-    if (Math.abs(lx) < b.w * 0.58 && Math.abs(lz) < b.d * 0.58) return true;
+    if (Math.abs(lx) < footprint.w * 0.58 && Math.abs(lz) < footprint.d * 0.58) return true;
   }
   return false;
 }

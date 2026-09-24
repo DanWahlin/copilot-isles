@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copilot Isles · Medieval House Dev</title>
+    <link rel="icon" href="data:," />
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #8dccf6;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      #hud {
+        position: fixed;
+        left: 16px;
+        top: 16px;
+        z-index: 4;
+        width: 250px;
+        border-radius: 12px;
+        padding: 12px 14px;
+        color: #f6fbff;
+        background: rgb(8 20 28 / 72%);
+        backdrop-filter: blur(12px);
+        font:
+          12px/1.4 ui-monospace,
+          Menlo,
+          monospace;
+        white-space: pre;
+      }
+      body.shot #hud {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gl"></canvas>
+    <div id="hud">
+      <strong>Medieval house</strong>
+      <div id="stats">Loading…</div>
+    </div>
+    <script type="module" src="/src/dev/house.ts"></script>
+  </body>
+</html>

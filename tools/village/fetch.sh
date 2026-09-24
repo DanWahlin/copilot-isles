@@ -12,41 +12,35 @@ OUT="$OUT_DIR/kit.glb"
 URL="https://opengameart.org/sites/default/files/medieval_village_megakitstandard.zip"
 SHA="58c3e1b9713ee85749ade230c36e1195af5d96951435532b4411e993b46387bd"
 PIECES=(
-  Wall_Plaster_Window_Wide_Flat
-  Wall_Plaster_Window_Wide_Round
-  Wall_Plaster_Window_Thin_Round
-  Wall_Plaster_Door_Flat
-  Wall_Plaster_Door_Round
+  Wall_UnevenBrick_Straight
+  Wall_UnevenBrick_Door_Round
+  Wall_UnevenBrick_Window_Wide_Round
+  Wall_UnevenBrick_Window_Wide_Flat
+  Wall_UnevenBrick_Window_Thin_Round
   Wall_Plaster_Straight
   Wall_Plaster_Straight_Base
   Wall_Plaster_WoodGrid
-  Wall_UnevenBrick_Door_Flat
-  Wall_UnevenBrick_Door_Round
-  Wall_UnevenBrick_Window_Wide_Flat
-  Wall_UnevenBrick_Window_Wide_Round
-  Wall_UnevenBrick_Window_Thin_Round
-  Wall_UnevenBrick_Straight
+  Wall_Plaster_Door_Round
+  Wall_Plaster_Window_Wide_Flat
+  Wall_Plaster_Window_Wide_Round
+  Wall_Plaster_Window_Thin_Round
   Corner_Exterior_Wood
-  DoorFrame_Round_Brick
-  DoorFrame_Flat_Brick
-  Door_1_Flat
   Door_1_Round
-  Door_2_Round
+  DoorFrame_Round_WoodDark
   Window_Wide_Round1
   Window_Wide_Flat1
   Window_Thin_Round1
-  WindowShutters_Wide_Flat_Open
   WindowShutters_Wide_Round_Open
-  WindowShutters_Thin_Flat_Open
+  WindowShutters_Wide_Flat_Open
   WindowShutters_Thin_Round_Open
-  Balcony_Simple_Straight
+  Floor_UnevenBrick
+  Floor_WoodLight
   Balcony_Cross_Straight
-  Balcony_Cross_Corner
+  Stairs_Exterior_Straight
   Overhang_Plaster_Long
-  Overhang_Plaster_Corner
-  Overhang_UnevenBrick_Long
   Roof_RoundTiles_4x4
   Roof_RoundTiles_4x6
+  Roof_RoundTiles_4x8
   Roof_RoundTiles_6x4
   Roof_RoundTiles_6x6
   Roof_RoundTiles_6x8
@@ -56,22 +50,12 @@ PIECES=(
   Roof_Front_Brick8
   Roof_Dormer_RoundTile
   Roof_Tower_RoundTiles
-  Roof_FrontSupports
   Prop_Chimney
   Prop_Chimney2
-  Prop_Crate
-  Prop_Wagon
   Prop_Vine1
   Prop_Vine2
   Prop_Vine4
-  Prop_Support
-  Stairs_Exterior_Straight
-  Stairs_Exterior_Platform
-  Floor_UnevenBrick
-  Floor_RedBrick
-  Floor_WoodLight
-  Prop_WoodenFence_Single
-  Prop_WoodenFence_Extension1
+  Prop_Crate
 )
 mkdir -p "$CACHE" "$OUT_DIR"
 if [[ ! -f "$ZIP" ]]; then
