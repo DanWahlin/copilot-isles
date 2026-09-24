@@ -100,12 +100,25 @@ async function boot(): Promise<void> {
     import('../ui/learn/LearnLayer'),
     import('../game/hud.css'),
   ]);
-  const post = createPost(renderer, engine.scene, engine.camera, tier);
+  let post = createPost(renderer, engine.scene, engine.camera, tier, { lean: true });
   if (post) engine.renderFn = post.render;
+  let richPostReady = false;
+  const upgradePost = async () => {
+    if (richPostReady || tier.tier === 'lite') return;
+    const rich = createPost(renderer, engine.scene, engine.camera, tier);
+    if (!rich) return;
+    await renderer.compileAsync(engine.scene, engine.camera);
+    const previous = post;
+    post = rich;
+    engine.renderFn = rich.render;
+    engine.renderNow();
+    previous?.dispose();
+    richPostReady = true;
+  };
   const input = new Input(canvas);
   const audio = createAudio();
   const renderInfo = `${backend === 'webgpu' ? 'WebGPU' : 'WebGL2'} · ${TIER_NAMES[tier.tier]}`;
-  const flow = new GameFlow({ engine, input, audio, hudParent: document.body, renderInfo });
+  const flow = new GameFlow({ engine, input, audio, hudParent: document.body, renderInfo, upgradePost });
 
   stage(0.55, 'Rigging the brigantine');
   flow.showTitle();

@@ -3,6 +3,7 @@ import {
   Fn,
   float,
   interleavedGradientNoise,
+  luminance,
   mix,
   pass,
   renderOutput,
@@ -10,6 +11,7 @@ import {
   screenCoordinate,
   screenUV,
   smoothstep,
+  toneMappingExposure,
   uniform,
   vec2,
   vec4,
@@ -30,29 +32,42 @@ export interface Post {
   dispose(): void;
 }
 
-/**
- * Lean title-safe post pipeline: scene pass → tone mapping → display grade → FXAA → dither.
- * Bloom/SMAA were cut from Phase 0a because they dominated title pipeline count (§7a issue #29).
- */
+export interface PostOptions {
+  /** Title TTI path: no rich highlight lift, so §7a title programs stay ≤ 40. */
+  lean?: boolean;
+}
+
+/** Scene pass → tone mapping/grade → local highlight lift → FXAA → dither. */
 export function createPost(
   renderer: WebGPURenderer,
   scene: Scene,
   camera: Camera,
   tier: TierSettings,
+  options: PostOptions = {},
 ): Post | null {
   if (tier.tier === 'lite') return null;
+  const rich = !options.lean && (tier.tier === 'high' || tier.tier === 'ultra');
   const pipeline = new RenderPipeline(renderer);
   const scenePass = pass(scene, camera);
-  const ldr = renderOutput(scenePass.getTextureNode('output'));
+  const hdr = scenePass.getTextureNode('output');
+  const ldr = renderOutput(hdr);
 
-  const uVibrance = uniform(0.18);
-  const uSaturation = uniform(1.03);
-  const uContrast = uniform(0.16);
-  const uVignette = uniform(0.18);
+  const exposure = toneMappingExposure as unknown as Node<'float'>;
+  const uVibrance = uniform(0.2);
+  const uSaturation = uniform(1.04);
+  const uContrast = uniform(0.18);
+  const uVignette = uniform(0.2);
   const graded = Fn(() => {
     let c = ldr.rgb;
     c = vibrance(c, uVibrance);
     c = saturation(c, uSaturation);
+    if (rich) {
+      // Cheap selective bloom approximation: only over-bright emissive/glint pixels lift locally.
+      // The high threshold avoids the daytime sky, sea, pale stone, and canvas.
+      const exposed = hdr.rgb.mul(exposure);
+      const high = smoothstep(2.35, 3.6, luminance(exposed));
+      c = c.add(exposed.mul(high).mul(0.045));
+    }
     const s = c.clamp(0, 1);
     c = mix(c, s.mul(s).mul(float(3).sub(s.mul(2))), uContrast);
     const d = screenUV.sub(0.5).mul(vec2(1.0, 0.8)).length();
@@ -60,6 +75,7 @@ export function createPost(
     return vec4(c, 1);
   })();
 
+  // SMAA was tested but exceeded the High-tier post budget; FXAA keeps thin-rigging quality acceptable.
   const aa = fxaa(graded) as unknown as Node<'vec4'>;
   const dither = interleavedGradientNoise(screenCoordinate.xy).sub(0.5).div(255);
   pipeline.outputColorTransform = false;

@@ -33,6 +33,7 @@ export interface HarborMirrorStats {
 export interface HarborMirrorInput {
   texture: WebGLRenderTarget['texture'];
   active: UniformNode<'float', number>;
+  matrix: UniformNode<'mat4', Matrix4>;
 }
 
 export interface HarborMirrorOptions {
@@ -48,7 +49,12 @@ const MIRROR_MAX_DISTANCE = HARBOR_RADIUS + 155;
 export class HarborMirror {
   readonly target = new WebGLRenderTarget(1, 1, { depthBuffer: true, stencilBuffer: false });
   readonly active = uniform(0);
-  readonly input: HarborMirrorInput = { texture: this.target.texture, active: this.active };
+  readonly matrix = uniform(new Matrix4());
+  readonly input: HarborMirrorInput = {
+    texture: this.target.texture,
+    active: this.active,
+    matrix: this.matrix,
+  };
   readonly camera = new PerspectiveCamera();
   readonly stats: HarborMirrorStats = {
     enabled: false,
@@ -74,6 +80,7 @@ export class HarborMirror {
   private readonly prevViewport = new Vector4();
   private readonly prevScissor = new Vector4();
   private readonly prevClear = new Color();
+  private readonly bias = new Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
 
   constructor({ tier, disabled = false }: HarborMirrorOptions) {
     this.enabled = (tier.tier === 'high' || tier.tier === 'ultra') && tier.mirror && !disabled;
@@ -127,6 +134,10 @@ export class HarborMirror {
     }
 
     this.configureCamera(sourceCamera);
+    this.matrix.value
+      .copy(this.bias)
+      .multiply(this.camera.projectionMatrix)
+      .multiply(this.camera.matrixWorldInverse);
     renderer.getDrawingBufferSize(this.size);
     const w = Math.max(64, Math.floor(this.size.x * 0.5));
     const h = Math.max(64, Math.floor(this.size.y * 0.5));

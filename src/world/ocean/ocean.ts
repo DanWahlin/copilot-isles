@@ -1,12 +1,4 @@
-import {
-  Mesh,
-  MeshBasicNodeMaterial,
-  NoBlending,
-  type Camera,
-  type Node,
-  type Texture,
-  type UniformNode,
-} from 'three/webgpu';
+import { Mesh, MeshBasicNodeMaterial, NoBlending, type Camera, type Node, type Texture } from 'three/webgpu';
 import {
   Fn,
   attribute,
@@ -45,6 +37,7 @@ import {
 import type { TierSettings } from '../../engine/quality';
 import { COVE } from '../layout';
 import { world } from '../uniforms';
+import type { HarborMirrorInput } from './harbor-mirror';
 import { shipOcean } from './ship-interaction';
 import { matchedDepthTexture } from './depth-copy';
 import { createPolarGrid } from './polar-grid';
@@ -55,7 +48,7 @@ export interface OceanOptions {
   tier: TierSettings;
   /** PMREM environment (a stable texture object; see sky-system). */
   env: Texture;
-  mirror?: { texture: Texture; active: UniformNode<'float', number> };
+  mirror?: HarborMirrorInput;
 }
 
 export interface Ocean {
@@ -166,8 +159,15 @@ export function createOcean({ tier, env, mirror }: OceanOptions): Ocean {
       const harborMask = float(1)
         .sub(smoothstep(COVE.harbor.radius * 0.78, COVE.harbor.radius, harborDist))
         .mul(mirror.active);
-      const mirrorUv = screenUV.add(N.xz.mul(0.014).mul(harborMask));
-      reflRgb = mix(reflRgb, texture(mirror.texture, mirrorUv).rgb, harborMask.mul(0.92));
+      const mirrorClip = mirror.matrix.mul(vec4(positionWorld.x, positionWorld.y, positionWorld.z, 1));
+      const mirrorUv = mirrorClip.xy.div(mirrorClip.w).mul(0.5).add(0.5).add(N.xz.mul(0.008).mul(harborMask));
+      const uvOk = mirrorUv.x
+        .greaterThanEqual(0)
+        .and(mirrorUv.x.lessThanEqual(1))
+        .and(mirrorUv.y.greaterThanEqual(0))
+        .and(mirrorUv.y.lessThanEqual(1))
+        .select(float(1), float(0));
+      reflRgb = mix(reflRgb, texture(mirror.texture, mirrorUv).rgb, harborMask.mul(uvOk).mul(0.34));
     }
 
     // GGX key-light highlight (sun by day, a moon path at night).

@@ -10,7 +10,6 @@ import {
   LineSegments,
   MathUtils,
   Mesh,
-  MeshBasicNodeMaterial,
   MeshStandardNodeMaterial,
   Object3D,
   RGBAFormat,
@@ -31,9 +30,9 @@ import {
   positionLocal,
   positionWorld,
   sin,
+  smoothstep,
   texture,
   uniform,
-  uv,
   vec2,
 } from 'three/tsl';
 import { packs } from '../../engine/packs';
@@ -153,12 +152,26 @@ function localToWorldXZ(
 class MeshBuilder {
   readonly positions: number[] = [];
   readonly uvs: number[] = [];
+  readonly colors: number[] = [];
+  readonly regions: number[] = [];
   readonly indices: number[] = [];
+  private currentColor: [number, number, number] = [1, 1, 1];
+  private currentRegion = 0;
+
+  setColor(hex: number): void {
+    this.currentColor = [((hex >> 16) & 255) / 255, ((hex >> 8) & 255) / 255, (hex & 255) / 255];
+  }
+
+  setRegion(region: number): void {
+    this.currentRegion = region;
+  }
 
   addVertex(x: number, y: number, z: number, u = 0, v = 0): number {
     const i = this.positions.length / 3;
     this.positions.push(x, y, z);
     this.uvs.push(u, v);
+    this.colors.push(this.currentColor[0], this.currentColor[1], this.currentColor[2]);
+    this.regions.push(this.currentRegion);
     return i;
   }
 
@@ -288,6 +301,8 @@ class MeshBuilder {
     const geometry = new BufferGeometry();
     geometry.setAttribute('position', new BufferAttribute(new Float32Array(this.positions), 3));
     geometry.setAttribute('uv', new BufferAttribute(new Float32Array(this.uvs), 2));
+    geometry.setAttribute('color', new BufferAttribute(new Float32Array(this.colors), 3));
+    geometry.setAttribute('shipRegion', new BufferAttribute(new Float32Array(this.regions), 1));
     geometry.setIndex(this.indices);
     geometry.computeVertexNormals();
     geometry.computeBoundingSphere();
@@ -401,6 +416,8 @@ function drawCallCount(group: Object3D): number {
 function createHullGeometry(tier: Tier): BufferGeometry {
   const d = detailForTier(tier);
   const builder = new MeshBuilder();
+  builder.setRegion(0);
+  builder.setColor(0xa0663a);
   const yFractions = Array.from({ length: d.hullY + 1 }, (_, i) => i / d.hullY);
   const star: number[][] = [];
   const port: number[][] = [];
@@ -454,6 +471,8 @@ function createHullGeometry(tier: Tier): BufferGeometry {
     }
   }
   // Raked cutwater and false keel give the bow a sharp 18th-century profile.
+  builder.setRegion(4);
+  builder.setColor(0x24201c);
   builder.addTriangle({ x: 0, y: -2.5, z: 10.6 }, { x: 0, y: 2.35, z: 11.95 }, { x: 0, y: -2.1, z: 12.75 });
   builder.addBox(0, -2.45, -1.2, 0.18, 0.32, 18.2);
   return builder.build();
@@ -481,6 +500,8 @@ function addCurvedRail(
 function createDeckGeometry(tier: Tier): BufferGeometry {
   const detail = detailForTier(tier);
   const builder = new MeshBuilder();
+  builder.setRegion(1);
+  builder.setColor(0xd8b078);
   const sections = tier === 'lite' || tier === 'low' ? 44 : 82;
   for (let i = 0; i < sections; i++) {
     const z0 = -10.95 + (21.25 * i) / sections;
@@ -553,6 +574,8 @@ function createDeckGeometry(tier: Tier): BufferGeometry {
 function createTrimGeometry(tier: Tier): BufferGeometry {
   const detail = detailForTier(tier);
   const builder = new MeshBuilder();
+  builder.setRegion(2);
+  builder.setColor(0x7bc0bd);
   const steps = tier === 'lite' || tier === 'low' ? 56 : 116;
   for (let i = 0; i < steps; i++) {
     const z0 = -11.35 + (22.35 * i) / steps;
@@ -560,19 +583,25 @@ function createTrimGeometry(tier: Tier): BufferGeometry {
     for (const side of [-1, 1] as const) {
       const x0 = side * (waterlineHalfBeamAt(z0) + 0.055);
       const x1 = side * (waterlineHalfBeamAt(z1) + 0.055);
-      // Ochre painted strake, tarred wale, algae boot-top, and rail cap.
+      // Painted strake, ochre wale, algae boot-top, and rail cap.
+      builder.setRegion(2);
+      builder.setColor(0x7bc0bd);
       builder.addQuad(
         { x: x0, y: 0.75, z: z0 },
         { x: x1, y: 0.75, z: z1 },
         { x: x1, y: 1.06, z: z1 },
         { x: x0, y: 1.06, z: z0 },
       );
+      builder.setRegion(3);
+      builder.setColor(0xd2a352);
       builder.addQuad(
         { x: x0, y: 1.96, z: z0 },
         { x: x1, y: 1.96, z: z1 },
         { x: x1, y: 2.16, z: z1 },
         { x: x0, y: 2.16, z: z0 },
       );
+      builder.setRegion(2);
+      builder.setColor(0x2b827b);
       builder.addQuad(
         { x: x0, y: -0.2, z: z0 },
         { x: x1, y: -0.2, z: z1 },
@@ -581,6 +610,8 @@ function createTrimGeometry(tier: Tier): BufferGeometry {
       );
     }
   }
+  builder.setRegion(4);
+  builder.setColor(0x34332f);
   const portZ = [-8.1, -6.0, -3.9, -1.8, 0.4, 2.6, 4.8, 6.9];
   for (const z of portZ) {
     for (const side of [-1, 1] as const) {
@@ -589,6 +620,8 @@ function createTrimGeometry(tier: Tier): BufferGeometry {
     }
   }
   // Stern gallery, quarter galleries, transom frame, rudder, catheads, anchors, chainplates, deadeyes.
+  builder.setRegion(3);
+  builder.setColor(0xd2a352);
   builder.addBox(0, 2.1, -12.22, 4.9, 1.15, 0.22);
   builder.addBox(-2.75, 2.0, -11.55, 0.55, 1.0, 1.2);
   builder.addBox(2.75, 2.0, -11.55, 0.55, 1.0, 1.2);
@@ -631,11 +664,15 @@ function createTrimGeometry(tier: Tier): BufferGeometry {
 
 function createWindowGeometry(): BufferGeometry {
   const b = new MeshBuilder();
+  b.setRegion(6);
+  b.setColor(0xffb060);
   for (const x of [-1.45, -0.48, 0.48, 1.45]) b.addBox(x, 2.1, -12.39, 0.42, 0.36, 0.035);
   for (const side of [-1, 1] as const) {
     b.addBox(side * 2.76, 2.08, -11.17, 0.045, 0.34, 0.46);
     b.addBox(side * 2.94, 2.1, -11.6, 0.045, 0.32, 0.38);
   }
+  b.setRegion(4);
+  b.setColor(0x0a0d0e);
   b.addBox(0, 1.42, -12.41, 2.8, 0.34, 0.04);
   return b.build();
 }
@@ -662,6 +699,8 @@ function addGlyph(builder: MeshBuilder, glyph: string, cx: number, cy: number, z
 
 function createSternGoldGeometry(): BufferGeometry {
   const b = new MeshBuilder();
+  b.setRegion(3);
+  b.setColor(0xd2a352);
   // Stern gallery frames, mullions, carved rails and a readable name board.
   for (const x of [-1.45, -0.48, 0.48, 1.45]) {
     b.addBox(x, 2.1, -12.44, 0.58, 0.06, 0.035);
@@ -696,6 +735,8 @@ function createSternGoldGeometry(): BufferGeometry {
 function createSparGeometry(tier: Tier): BufferGeometry {
   const detail = detailForTier(tier);
   const b = new MeshBuilder();
+  b.setRegion(1);
+  b.setColor(0xb77a42);
   const fore = { z: 4.1, base: deckHeightAt(4.1) };
   const main = { z: -4.25, base: deckHeightAt(-4.25) };
   b.addCylinderBetween(
@@ -731,6 +772,8 @@ function createSparGeometry(tier: Tier): BufferGeometry {
 function createBundledCanvasGeometry(tier: Tier): BufferGeometry {
   const detail = detailForTier(tier);
   const b = new MeshBuilder();
+  b.setRegion(5);
+  b.setColor(0xefe4cc);
   const foreZ = 4.1;
   b.addCylinderBetween(
     { x: -5.05, y: 6.98, z: foreZ - 0.05 },
@@ -874,89 +917,73 @@ function getShipWoodTexture(): Texture {
   return shipWoodTexture;
 }
 
-function makeHullMaterial(): MeshStandardNodeMaterial {
+function makeShipMaterial(): MeshStandardNodeMaterial {
   const m = new MeshStandardNodeMaterial({
-    color: 0x2a1b12,
-    roughness: 0.68,
+    color: 0xffffff,
+    roughness: 0.66,
     metalness: 0.02,
     side: DoubleSide,
   });
-  const wood = texture(getShipWoodTexture(), uv().mul(vec2(1.15, 1.35))).rgb;
-  const plank = abs(sin(positionLocal.z.mul(3.4).add(positionLocal.y.mul(4.8))));
-  const seam = abs(sin(positionLocal.y.mul(6.2)))
-    .smoothstep(0.988, 1.0)
-    .mul(0.08);
-  const warmWood = wood.mul(mix(color(0x5b3925), color(0xa46e43), plank.mul(0.08).add(0.22)));
-  const submerged = mix(color(0x0b2024), color(0x16332c), abs(sin(positionLocal.z.mul(2.2))).mul(0.28));
-  const algae = color(0x0b2a1d).mul(positionLocal.y.smoothstep(-0.4, 0.08).oneMinus().mul(0.35));
-  m.colorNode = mix(
-    submerged,
-    warmWood.sub(color(0x120805).mul(seam)).add(algae),
-    positionLocal.y.smoothstep(-0.06, 0.2),
+  const vc = attribute('color', 'vec3');
+  const region = attribute('shipRegion', 'float');
+  const r1 = smoothstep(0.6, 0.9, region).mul(float(1).sub(smoothstep(1.1, 1.4, region)));
+  const r2 = smoothstep(1.6, 1.9, region).mul(float(1).sub(smoothstep(2.1, 2.4, region)));
+  const r3 = smoothstep(2.6, 2.9, region).mul(float(1).sub(smoothstep(3.1, 3.4, region)));
+  const r4 = smoothstep(3.6, 3.9, region).mul(float(1).sub(smoothstep(4.1, 4.4, region)));
+  const r5 = smoothstep(4.6, 4.9, region).mul(float(1).sub(smoothstep(5.1, 5.4, region)));
+  const r6 = smoothstep(5.6, 5.9, region);
+
+  const hullWood = texture(
+    getShipWoodTexture(),
+    vec2(positionLocal.z.mul(0.085).add(positionLocal.x.mul(0.02)), positionLocal.y.mul(0.23).add(0.42)),
+  ).rgb;
+  const deckWood = texture(
+    getShipWoodTexture(),
+    vec2(positionLocal.x.mul(0.18).add(positionLocal.z.mul(0.015)), positionLocal.z.mul(0.12).add(0.18)),
+  ).rgb;
+  const plankNoise = sin(positionLocal.z.mul(5.5).add(positionLocal.y.mul(1.7)))
+    .mul(0.5)
+    .add(0.5);
+  const hullSeam = abs(sin(positionLocal.y.mul(7.6)))
+    .smoothstep(0.986, 1.0)
+    .mul(0.13);
+  const deckSeam = abs(sin(positionLocal.x.mul(8.2)))
+    .smoothstep(0.965, 1.0)
+    .mul(0.22);
+  const hull = hullWood
+    .mul(mix(color(0x8b5130), color(0xd08748), plankNoise.mul(0.2).add(0.24)))
+    .sub(color(0x1a0905).mul(hullSeam));
+  const deck = deckWood.mul(mix(color(0xc08c55), color(0xffce87), 0.34)).sub(color(0x2a170c).mul(deckSeam));
+  const paintGrain = hullWood.mul(0.28).add(0.72);
+  const teal = paintGrain.mul(color(0x2d8b88));
+  const gold = paintGrain.mul(color(0xd7a554));
+  const iron = mix(
+    color(0x171717),
+    color(0x4a4840),
+    sin(positionLocal.x.mul(13).add(positionLocal.z.mul(9)))
+      .mul(0.18)
+      .add(0.24),
   );
-  m.roughnessNode = float(0.62).add(positionLocal.y.smoothstep(-0.5, 0.05).oneMinus().mul(0.22));
-  return m;
-}
+  const weave = sin(positionLocal.x.mul(38))
+    .mul(sin(positionLocal.z.mul(32)))
+    .mul(0.045)
+    .add(0.96);
+  const canvas = color(0xefe4cc)
+    .mul(weave)
+    .sub(color(0x5b4328).mul(abs(sin(positionLocal.z.mul(4.5))).mul(0.04)));
+  const glow = color(0xffb060).mul(world.night.smoothstep(0.08, 0.9).mul(2.8).add(0.2));
 
-function makeWoodMaterial(): MeshStandardNodeMaterial {
-  const m = new MeshStandardNodeMaterial({
-    color: 0x8a5d34,
-    roughness: 0.68,
-    metalness: 0,
-    side: DoubleSide,
-  });
-  const wood = texture(getShipWoodTexture(), uv().mul(vec2(1.1, 1.8))).rgb;
-  const grain = sin(positionLocal.x.mul(12).add(positionLocal.z.mul(3.4)))
-    .mul(0.5)
-    .add(0.5);
-  const caulk = abs(sin(positionLocal.x.mul(11.7)))
-    .smoothstep(0.975, 1.0)
-    .mul(0.12);
-  m.colorNode = wood
-    .mul(mix(color(0x8a6a46), color(0xffd28a), grain.mul(0.12)))
-    .sub(color(0x24170c).mul(caulk));
+  let outColor = hull;
+  outColor = mix(outColor, deck, r1);
+  outColor = mix(outColor, teal, r2);
+  outColor = mix(outColor, gold, r3);
+  outColor = mix(outColor, iron, r4);
+  outColor = mix(outColor, canvas, r5);
+  outColor = mix(outColor, glow, r6);
+  m.colorNode = outColor.mul(vc.mul(0.18).add(0.88));
+  m.emissiveNode = glow.mul(r6).mul(world.night.smoothstep(0.08, 0.9));
+  m.roughnessNode = mix(float(0.62), float(0.88), r5).add(r4.mul(0.1));
   return m;
-}
-
-function makeTrimMaterial(): MeshStandardNodeMaterial {
-  const m = new MeshStandardNodeMaterial({
-    color: 0xa66a24,
-    roughness: 0.54,
-    metalness: 0.03,
-    side: DoubleSide,
-  });
-  const stripe = positionLocal.y.smoothstep(0.68, 0.88).mul(positionLocal.y.smoothstep(1.18, 1.0));
-  const wale = positionLocal.y.smoothstep(1.8, 1.98).mul(positionLocal.y.smoothstep(2.22, 2.05));
-  const boot = positionLocal.y.smoothstep(-0.24, -0.12).mul(positionLocal.y.smoothstep(0.08, 0.0));
-  const base = mix(color(0x2a1a10), color(0x16404a), stripe)
-    .add(color(0xc58a3d).mul(wale.mul(0.75)))
-    .add(color(0x0c3a25).mul(boot.mul(0.4)));
-  m.colorNode = base;
-  return m;
-}
-
-function makeWindowMaterial(): MeshBasicNodeMaterial {
-  const m = new MeshBasicNodeMaterial({ color: 0x182225, side: DoubleSide });
-  m.colorNode = mix(color(0x121719), color(0xffa95a), world.night.smoothstep(0.05, 0.9));
-  return m;
-}
-
-function makeGoldMaterial(): MeshStandardNodeMaterial {
-  const m = new MeshStandardNodeMaterial({
-    color: 0xc48a3c,
-    roughness: 0.5,
-    metalness: 0.05,
-    side: DoubleSide,
-  });
-  const wear = sin(positionLocal.x.mul(14).add(positionLocal.y.mul(9)))
-    .mul(0.5)
-    .add(0.5);
-  m.colorNode = mix(color(0x8a5a24), color(0xe0a44e), wear.mul(0.35).add(0.35));
-  return m;
-}
-
-function makeRiggingMaterial(): MeshBasicNodeMaterial {
-  return new MeshBasicNodeMaterial({ color: 0x17110c, transparent: true, opacity: 0.88 });
 }
 
 function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNodeMaterial {
@@ -1005,32 +1032,16 @@ function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNodeMater
   return m;
 }
 
-function makeBundleMaterial(): MeshStandardNodeMaterial {
-  const m = new MeshStandardNodeMaterial({
-    color: 0xc9b184,
-    roughness: 0.92,
-    metalness: 0,
-    side: DoubleSide,
-  });
-  const fold = sin(positionLocal.x.mul(18).add(positionLocal.z.mul(21)))
-    .mul(0.5)
-    .add(0.5);
-  m.colorNode = mix(color(0xbba57a), color(0xe5cf9d), fold.mul(0.35));
-  return m;
-}
-
-function makeLanternMaterial(): MeshBasicNodeMaterial {
-  const m = new MeshBasicNodeMaterial({ transparent: true, opacity: 0.9 });
-  m.colorNode = mix(color(0xff9c3a), color(0xffe3a1), sin(world.time.mul(4)).mul(0.5).add(0.5)).mul(
-    world.night.mul(0.9).add(0.25),
-  );
-  return m;
-}
-
-function addMesh(group: Group, geometry: BufferGeometry, material: Material, name: string): Mesh {
+function addMesh(
+  group: Group,
+  geometry: BufferGeometry,
+  material: Material,
+  name: string,
+  castShadow = true,
+): Mesh {
   const mesh = new Mesh(geometry, material);
   mesh.name = name;
-  mesh.castShadow = true;
+  mesh.castShadow = castShadow;
   mesh.receiveShadow = true;
   group.add(mesh);
   return mesh;
@@ -1076,33 +1087,17 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     return m;
   };
 
-  const wood = register(makeWoodMaterial());
-  const riggingMaterial = register(makeRiggingMaterial());
+  const shipMaterial = register(makeShipMaterial());
   const riggingLineMaterial = register(
     new LineBasicMaterial({ color: 0x17110c, transparent: true, opacity: 0.72 }),
   );
-  addMesh(group, createHullGeometry(tier), register(makeHullMaterial()), 'rounded planked hull');
-  addMesh(group, createDeckGeometry(tier), wood, 'deck planking rails and fittings');
-  addMesh(
-    group,
-    createTrimGeometry(tier),
-    register(makeTrimMaterial()),
-    'wales strakes gunports galleries anchors',
-  );
-  addMesh(
-    group,
-    createWindowGeometry(),
-    register(makeWindowMaterial()),
-    'stern gallery windows and name board backing',
-  );
-  addMesh(
-    group,
-    createSternGoldGeometry(),
-    register(makeGoldMaterial()),
-    'stern gallery trim and COPILOT name board',
-  );
-  addMesh(group, createSparGeometry(tier), wood, 'masts yards boom bowsprit jibboom');
-  addMesh(group, createBundledCanvasGeometry(tier), register(makeBundleMaterial()), 'furled canvas bundles');
+  addMesh(group, createHullGeometry(tier), shipMaterial, 'rounded planked hull');
+  addMesh(group, createDeckGeometry(tier), shipMaterial, 'deck planking rails and fittings', false);
+  addMesh(group, createTrimGeometry(tier), shipMaterial, 'wales strakes gunports galleries anchors');
+  addMesh(group, createWindowGeometry(), shipMaterial, 'stern gallery windows and name board backing', false);
+  addMesh(group, createSternGoldGeometry(), shipMaterial, 'stern gallery trim and COPILOT name board');
+  addMesh(group, createSparGeometry(tier), shipMaterial, 'masts yards boom bowsprit jibboom', false);
+  addMesh(group, createBundledCanvasGeometry(tier), shipMaterial, 'furled canvas bundles', false);
   addMesh(
     group,
     createSailGeometry(tier),
@@ -1117,22 +1112,27 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   lanternPivot.name = 'stern lantern pendulum';
   lanternPivot.position.set(0, 3.65, -12.05);
   const lanternRig = new MeshBuilder();
+  lanternRig.setRegion(4);
+  lanternRig.setColor(0x17110c);
   lanternRig.addCylinderBetween({ x: 0, y: 0, z: 0 }, { x: 0, y: -0.58, z: 0 }, 0.018, 6);
   lanternRig.addBox(0, -0.2, 0, 0.2, 0.04, 0.2);
-  addMesh(lanternPivot, lanternRig.build(), riggingMaterial, 'lantern hanger').castShadow = false;
+  addMesh(lanternPivot, lanternRig.build(), shipMaterial, 'lantern hanger', false);
   const lanternGeo = new MeshBuilder();
+  lanternGeo.setRegion(6);
+  lanternGeo.setColor(0xffb060);
   lanternGeo.addBox(0, -0.74, 0, 0.24, 0.3, 0.24);
-  addMesh(lanternPivot, lanternGeo.build(), register(makeLanternMaterial()), 'stern lantern').castShadow =
-    false;
+  addMesh(lanternPivot, lanternGeo.build(), shipMaterial, 'stern lantern', false);
   group.add(lanternPivot);
 
   const blockPivot = new Group();
   blockPivot.name = 'hanging block spring';
   blockPivot.position.set(-1.15, 9.2, -4.65);
   const blockGeo = new MeshBuilder();
+  blockGeo.setRegion(4);
+  blockGeo.setColor(0x17110c);
   blockGeo.addCylinderBetween({ x: 0, y: 0, z: 0 }, { x: 0, y: -0.85, z: 0.12 }, 0.014, 6);
   blockGeo.addBox(0, -0.98, 0.15, 0.18, 0.24, 0.12);
-  addMesh(blockPivot, blockGeo.build(), riggingMaterial, 'hanging line and block').castShadow = false;
+  addMesh(blockPivot, blockGeo.build(), shipMaterial, 'hanging line and block', false);
   group.add(blockPivot);
 
   const oceanBow = new Float32Array(2);

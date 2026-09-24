@@ -4,7 +4,7 @@ import { createOcean } from '../world/ocean/ocean';
 import { createSky } from '../world/sky/sky-system';
 import { createDistantRanges } from '../world/terrain/distant-ranges';
 import { createBrigantine, type BrigantineEnv } from '../world/ship';
-import type { ScreenRect } from '../world/life/leaps';
+import type { LeapsSystem, ScreenRect } from '../world/life/leaps';
 
 export interface TitleBackdrop {
   setAvoidRects(rects: ScreenRect[]): void;
@@ -23,8 +23,24 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   const ocean = createOcean({ tier, env: sky.env });
   const ranges = createDistantRanges();
   const ship = createBrigantine({ tier: tier.tier });
-  // Decorative leaps are deferred off the initial title to keep §7a title pipelines ≤ 40.
   const anchor = { x: 0, z: 0, heading: 2.3 };
+  let leaps: LeapsSystem | null = null;
+  let disposed = false;
+  let avoidRects = titleAvoidRects();
+  const loadLeaps = async () => {
+    if (disposed || tier.leaps <= 0) return;
+    const { createLeaps } = await import('../world/life/leaps');
+    if (disposed) return;
+    const created = createLeaps({ tier, titleMode: true, avoidRects });
+    await renderer.compileAsync(created.group, camera);
+    if (disposed) {
+      created.dispose();
+      return;
+    }
+    leaps = created;
+    scene.add(created.group);
+  };
+  const lazyLeapsTimer = typeof window !== 'undefined' ? window.setTimeout(() => void loadLeaps(), 4000) : 0;
   ship.dynamics.reset(anchor.x, anchor.z, anchor.heading);
   scene.add(ocean.mesh, ranges, ship.group);
 
@@ -59,6 +75,8 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
         camera.lookAt(look);
 
         ocean.update(camera);
+        updateTitleRects(leaps);
+        leaps?.update(dt, t, camera);
         focus.set(camera.position.x, 0, camera.position.z);
         sky.update(clock, focus);
       },
@@ -68,12 +86,16 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
 
   return {
     setAvoidRects(rects: ScreenRect[]) {
-      void rects;
+      avoidRects = rects;
+      leaps?.setAvoidRects(rects);
     },
     dispose() {
+      disposed = true;
+      if (lazyLeapsTimer) window.clearTimeout(lazyLeapsTimer);
       remove();
       scene.remove(ocean.mesh, ranges, ship.group);
-
+      if (leaps) scene.remove(leaps.group);
+      leaps?.dispose();
       ship.dispose();
       ocean.dispose();
       sky.dispose();
@@ -84,4 +106,18 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
       });
     },
   };
+}
+
+function updateTitleRects(leaps: LeapsSystem | null): void {
+  leaps?.setAvoidRects(titleAvoidRects());
+}
+
+function titleAvoidRects(): ScreenRect[] {
+  if (typeof window === 'undefined') return [{ x: 0, y: 0, w: 430, h: 720 }];
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  return [
+    { x: 0, y: 0, w: Math.min(460, w * 0.42), h },
+    { x: Math.max(0, w * 0.5 - 260), y: Math.max(0, h - 150), w: 520, h: 150 },
+  ];
 }
