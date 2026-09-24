@@ -1053,3 +1053,65 @@
     grid-template-columns: 1fr;
   }
 }
+
+/*
+ * Title contrast: the wordmark and menu sit over a bright, hazy sky and sea, so a soft navy scrim
+ * darkens the left of the screen, and the menu buttons are solid blurred glass rather than a fade.
+ */
+.ci-ui.ci-screen-title::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 60% 85% at 12% 52%,
+      rgba(5, 16, 26, 0.62),
+      rgba(5, 16, 26, 0.3) 55%,
+      transparent 80%
+    ),
+    linear-gradient(90deg, rgba(5, 16, 26, 0.45), rgba(5, 16, 26, 0.12) 45%, transparent 62%);
+}
+
+.ci-screen-title .ci-kicker {
+  color: var(--ci-gold-strong);
+  text-shadow:
+    0 1px 2px rgba(5, 14, 22, 0.85),
+    0 0 14px rgba(5, 14, 22, 0.55);
+}
+
+.ci-screen-title .ci-wordmark-block h1 {
+  color: #fff6de;
+  text-shadow:
+    0 2px 4px rgba(5, 14, 22, 0.55),
+    0 4px 30px rgba(5, 14, 22, 0.5);
+}
+
+.ci-screen-title .ci-subtitle {
+  color: #fffaf0;
+  text-shadow:
+    0 1px 2px rgba(5, 14, 22, 0.9),
+    0 0 16px rgba(5, 14, 22, 0.6);
+}
+
+.ci-screen-title .ci-menu-button {
+  border-color: rgba(232, 200, 138, 0.22);
+  border-left-color: rgba(232, 200, 138, 0.7);
+  background: linear-gradient(90deg, rgba(7, 19, 30, 0.86), rgba(7, 19, 30, 0.66));
+  backdrop-filter: blur(8px) saturate(1.15);
+  -webkit-backdrop-filter: blur(8px) saturate(1.15);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.22);
+  color: #fff6de;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.ci-screen-title .ci-menu-button:hover,
+.ci-screen-title .ci-menu-button:focus-visible {
+  border-color: rgba(232, 200, 138, 0.62);
+  background: linear-gradient(90deg, rgba(12, 30, 45, 0.94), rgba(12, 30, 45, 0.78));
+  color: #ffffff;
+}
+
+.ci-screen-title .ci-menu-button > small {
+  color: rgba(246, 236, 214, 0.86);
+}

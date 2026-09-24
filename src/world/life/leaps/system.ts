@@ -43,7 +43,8 @@ interface Agent {
   height: number;
   scale: number;
   phase: number;
-  swimAfter: number;
+  /** Arc parameter where it's deep enough to hide after re-entry (it starts that deep at 1 − this). */
+  dive: number;
   splashedExit: boolean;
   splashedEntry: boolean;
 }
@@ -81,17 +82,31 @@ function seedFromUrl(): number {
   return h || 0x1ea9_5eed;
 }
 
-function pointAt(agent: Agent, t: number, out: Vector3): Vector3 {
-  const u = Math.max(0, Math.min(1, t));
-  out.lerpVectors(agent.start, agent.end, u).add(agent.offset);
-  out.y = 0.2 + Math.sin(Math.PI * u) * agent.height;
-  if (u >= 1) out.y = 0.15 + Math.sin((u - 1) * Math.PI * 2) * 0.04;
+/**
+ * Height above the sea along a leap: a ballistic parabola in the arc parameter `s`, which breaks the
+ * surface at s = 0, peaks at `height`, and re-enters at s = 1. Outside 0…1 it's under water.
+ */
+export function leapHeight(s: number, height: number): number {
+  return 4 * height * s * (1 - s);
+}
+
+/** The arc parameter where a leap of `height` is `depth` under water again after re-entry. */
+export function leapDive(height: number, depth: number): number {
+  return 0.5 + 0.5 * Math.sqrt(1 + depth / Math.max(0.01, height));
+}
+
+/** How deep (m) the body's centre goes before it's hidden: its half-length plus a wave's worth. */
+const HIDE_DEPTH = { dolphin: 2.6, fish: 0.7 } as const;
+
+function pointAt(agent: Agent, s: number, out: Vector3): Vector3 {
+  out.lerpVectors(agent.start, agent.end, s).add(agent.offset);
+  out.y = leapHeight(s, agent.height);
   return out;
 }
 
-function velocityAt(agent: Agent, u: number, out: Vector3): Vector3 {
+function velocityAt(agent: Agent, s: number, out: Vector3): Vector3 {
   out.copy(agent.end).sub(agent.start).divideScalar(agent.duration);
-  out.y = (Math.PI * agent.height * Math.cos(Math.PI * Math.max(0, Math.min(1, u)))) / agent.duration;
+  out.y = (4 * agent.height * (1 - 2 * s)) / agent.duration;
   return out;
 }
 
@@ -107,6 +122,7 @@ function addPod(agents: Agent[], splashes: Splash[], arc: LeapArc, now: number, 
   const count = Math.min(arc.school, Math.max(0, max - agents.filter((a) => a.kind === arc.kind).length));
   for (let i = 0; i < count; i++) {
     const lane = i - (count - 1) * 0.5;
+    const height = arc.controlHeight * (0.82 + rng() * 0.35);
     const startOffset = right
       .clone()
       .multiplyScalar(lane * (arc.kind === 'dolphin' ? 1.9 : 0.75) + (rng() - 0.5) * 0.9)
@@ -118,10 +134,10 @@ function addPod(agents: Agent[], splashes: Splash[], arc: LeapArc, now: number, 
       offset: startOffset,
       startTime: now + i * (arc.kind === 'dolphin' ? 0.18 : 0.055),
       duration: arc.duration * (0.88 + rng() * 0.25),
-      height: arc.controlHeight * (0.82 + rng() * 0.35),
+      height,
       scale: arc.kind === 'dolphin' ? 1.35 + rng() * 0.22 : 0.75 + rng() * 0.25,
       phase: rng() * Math.PI * 2,
-      swimAfter: arc.kind === 'dolphin' ? 1.2 + rng() * 2.0 : 0.15,
+      dive: leapDive(height, HIDE_DEPTH[arc.kind]),
       splashedExit: false,
       splashedEntry: false,
     });
@@ -230,20 +246,21 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
     let f = 0;
     for (let i = agents.length - 1; i >= 0; i--) {
       const a = agents[i];
+      // Rise from under water, break the surface at s = 0, re-enter at s = 1, then dive out of sight.
       const local = (now - a.startTime) / a.duration;
-      if (local > 1 + a.swimAfter) {
+      if (local < 0) continue;
+      const s = 1 - a.dive + local;
+      if (s > a.dive) {
         agents.splice(i, 1);
         continue;
       }
-      if (local < 0) continue;
-      const u = Math.min(1, local);
-      pointAt(a, u, tmpPos);
-      velocityAt(a, u, tmpVel);
-      if (!a.splashedExit && local >= 0) {
+      pointAt(a, s, tmpPos);
+      velocityAt(a, s, tmpVel);
+      if (!a.splashedExit && s >= 0) {
         spawnSplash(splashes, tmpPos.x, tmpPos.z, now, a.kind === 'dolphin' ? 2.2 * a.scale : 0.6);
         a.splashedExit = true;
       }
-      if (!a.splashedEntry && local >= 0.94) {
+      if (!a.splashedEntry && s >= 1) {
         spawnSplash(
           splashes,
           a.end.x + a.offset.x,
@@ -267,7 +284,7 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
       if (a.kind === 'dolphin' && d < MAX_DOLPHINS) {
         dolphinMesh.setMatrixAt(d, tmpMatrix);
         dolphinPhase.setX(d, a.phase);
-        dolphinAmp.setX(d, local < 1 ? 1 : 0.2);
+        dolphinAmp.setX(d, s > 0 && s < 1 ? 1 : 0.6);
         d++;
       } else if (a.kind === 'fish' && f < MAX_FISH) {
         fishMesh.setMatrixAt(f, tmpMatrix);

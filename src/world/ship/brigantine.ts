@@ -262,6 +262,32 @@ class MeshBuilder {
     );
   }
 
+  addBeamBetween(a: P3, b: P3, width: number, height: number): void {
+    const dx = b.x - a.x;
+    const dz = b.z - a.z;
+    const len = Math.hypot(dx, dz) || 1;
+    const px = (-dz / len) * width * 0.5;
+    const pz = (dx / len) * width * 0.5;
+    const ay0 = a.y - height * 0.5;
+    const ay1 = a.y + height * 0.5;
+    const by0 = b.y - height * 0.5;
+    const by1 = b.y + height * 0.5;
+    const a0 = { x: a.x - px, y: ay0, z: a.z - pz };
+    const a1 = { x: a.x + px, y: ay0, z: a.z + pz };
+    const a2 = { x: a.x + px, y: ay1, z: a.z + pz };
+    const a3 = { x: a.x - px, y: ay1, z: a.z - pz };
+    const b0 = { x: b.x - px, y: by0, z: b.z - pz };
+    const b1 = { x: b.x + px, y: by0, z: b.z + pz };
+    const b2 = { x: b.x + px, y: by1, z: b.z + pz };
+    const b3 = { x: b.x - px, y: by1, z: b.z - pz };
+    this.addQuad(a0, b0, b3, a3);
+    this.addQuad(a1, a2, b2, b1);
+    this.addQuad(a3, b3, b2, a2);
+    this.addQuad(a0, a1, b1, b0);
+    this.addQuad(a0, a3, a2, a1);
+    this.addQuad(b0, b1, b2, b3);
+  }
+
   addCylinderBetween(a: P3, b: P3, radius: number, segments = 10, cap = true): void {
     const ax = b.x - a.x;
     const ay = b.y - a.y;
@@ -647,46 +673,117 @@ function createTrimGeometry(tier: Tier): BufferGeometry {
       builder.addBox(x, 1.52, z, 0.12, 0.58, 0.82);
     }
   }
-  // Stern gallery, quarter galleries, transom frame, rudder, catheads, anchors, chainplates, deadeyes.
+  // Stern gallery, quarter galleries, transom frame, rudder, catheads, anchors, channels, chainplates, deadeyes.
   builder.setRegion(3);
   builder.setColor(0xd2a352);
   builder.addBox(0, 2.1, -12.22, 4.9, 1.15, 0.22);
   builder.addBox(-2.75, 2.0, -11.55, 0.55, 1.0, 1.2);
   builder.addBox(2.75, 2.0, -11.55, 0.55, 1.0, 1.2);
   builder.addBox(0, 0.05, -12.43, 0.44, 2.25, 0.18);
-  for (const side of [-1, 1] as const) {
-    builder.addCylinderBetween(
-      { x: side * 2.25, y: 2.55, z: 8.75 },
-      { x: side * 4.25, y: 2.42, z: 9.35 },
-      0.075,
-      detail.cyl,
-    );
-    builder.addBox(side * 3.65, 0.85, 7.65, 0.34, 0.62, 0.14);
-    builder.addCylinderBetween(
-      { x: side * 3.65, y: 1.15, z: 7.6 },
-      { x: side * 3.65, y: 0.15, z: 7.1 },
-      0.035,
-      detail.cyl,
-    );
-    for (const z of [-6.8, -5.3, -3.8, 1.6, 3.1, 4.6, 6.1]) {
-      const x = side * (waterlineHalfBeamAt(z) + 0.2);
-      builder.addCylinderBetween(
-        { x, y: 1.95, z },
-        { x: side * (waterlineHalfBeamAt(z) + 0.52), y: 1.48, z },
-        0.018,
-        6,
+  const foreDeadeyes = [1.1, 2.8, 4.5, 6.2, 7.9];
+  const mainDeadeyes = [-8.4, -6.8, -5.2, -3.6, -2.0];
+  const addChannel = (side: -1 | 1, z0: number, z1: number) => {
+    builder.setRegion(1);
+    builder.setColor(0x9b6536);
+    const yTop = 1.98;
+    const yBot = 1.84;
+    const yOut = 1.93;
+    const n = 12;
+    for (let i = 0; i < n; i++) {
+      const a = lerp(z0, z1, i / n);
+      const b = lerp(z0, z1, (i + 1) / n);
+      const xa = side * (halfBeamAt(a, yOut) + 0.06);
+      const xb = side * (halfBeamAt(b, yOut) + 0.06);
+      const xai = side * (halfBeamAt(a, yOut) + 0.02);
+      const xbi = side * (halfBeamAt(b, yOut) + 0.02);
+      const xao = side * (halfBeamAt(a, yOut) + 0.24);
+      const xbo = side * (halfBeamAt(b, yOut) + 0.24);
+      builder.addQuad(
+        { x: xa, y: yBot, z: a },
+        { x: xb, y: yBot, z: b },
+        { x: xb, y: yTop, z: b },
+        { x: xa, y: yTop, z: a },
       );
-      builder.addCylinderBetween(
-        { x: side * (waterlineHalfBeamAt(z) + 0.42), y: 1.48, z },
-        { x: side * (waterlineHalfBeamAt(z) + 0.42), y: 1.25, z },
-        0.055,
-        8,
+      builder.addQuad(
+        { x: xai, y: yTop, z: a },
+        { x: xbi, y: yTop, z: b },
+        { x: xbo, y: yTop, z: b },
+        { x: xao, y: yTop, z: a },
       );
     }
+  };
+  const addDeadeye = (side: -1 | 1, z: number) => {
+    builder.setRegion(4);
+    builder.setColor(0x1f1d1b);
+    const y = 1.94;
+    const x = side * (halfBeamAt(z, y) + 0.18);
+    builder.addCylinderBetween({ x: x - side * 0.04, y, z }, { x: x + side * 0.08, y, z }, 0.095, 10);
+    const yTop = 1.84;
+    const yBot = 1.22;
+    const xTop = side * (halfBeamAt(z, yTop) + 0.05);
+    const xBot = side * (halfBeamAt(z, yBot) + 0.05);
+    builder.addQuad(
+      { x: xBot, y: yBot, z: z - 0.035 },
+      { x: xBot, y: yBot, z: z + 0.035 },
+      { x: xTop, y: yTop, z: z + 0.035 },
+      { x: xTop, y: yTop, z: z - 0.035 },
+    );
+  };
+  const addAnchor = (side: -1 | 1, catEnd: P3) => {
+    builder.setRegion(4);
+    builder.setColor(0x2a2826);
+    const top = { x: side * (halfBeamAt(8.42, 2.06) + 0.13), y: 2.06, z: 8.42 };
+    const crown = { x: side * (halfBeamAt(7.85, 1.3) + 0.12), y: 1.3, z: 7.85 };
+    builder.addCylinderBetween(catEnd, top, 0.018, 6);
+    builder.addCylinderBetween(top, crown, 0.032, 8);
+    builder.addCylinderBetween(
+      { x: top.x, y: top.y + 0.12, z: top.z - 0.28 },
+      { x: top.x, y: top.y + 0.12, z: top.z + 0.28 },
+      0.025,
+      8,
+    );
+    const palmA = { x: side * (halfBeamAt(7.58, 1.46) + 0.11), y: 1.46, z: 7.58 };
+    const palmB = { x: side * (halfBeamAt(8.17, 1.45) + 0.11), y: 1.45, z: 8.17 };
+    builder.addCylinderBetween(crown, palmA, 0.03, 8);
+    builder.addCylinderBetween(crown, palmB, 0.03, 8);
+    builder.addTriangle(
+      crown,
+      { x: palmA.x, y: palmA.y + 0.18, z: palmA.z - 0.16 },
+      { x: palmA.x, y: palmA.y - 0.02, z: palmA.z + 0.06 },
+    );
+    builder.addTriangle(
+      crown,
+      { x: palmB.x, y: palmB.y + 0.18, z: palmB.z + 0.16 },
+      { x: palmB.x, y: palmB.y - 0.02, z: palmB.z - 0.06 },
+    );
+  };
+  for (const side of [-1, 1] as const) {
+    builder.setRegion(1);
+    builder.setColor(0x9b6536);
+    const catBase = { x: side * (halfBeamAt(8.75, 2.5) + 0.02), y: 2.5, z: 8.75 };
+    const catEnd = { x: catBase.x + side * 0.86, y: 2.47, z: 9.25 };
+    builder.addBeamBetween(catBase, catEnd, 0.18, 0.18);
+    builder.setRegion(4);
+    builder.setColor(0x22201e);
+    builder.addCylinderBetween(
+      { x: catEnd.x, y: catEnd.y - 0.1, z: catEnd.z },
+      { x: catEnd.x, y: catEnd.y + 0.1, z: catEnd.z },
+      0.07,
+      8,
+    );
+    addAnchor(side, catEnd);
+    addChannel(side, mainDeadeyes[0]! - 0.45, mainDeadeyes[mainDeadeyes.length - 1]! + 0.45);
+    addChannel(side, foreDeadeyes[0]! - 0.45, foreDeadeyes[foreDeadeyes.length - 1]! + 0.45);
+    for (const z of [...mainDeadeyes, ...foreDeadeyes]) addDeadeye(side, z);
   }
   builder.addCylinderBetween({ x: 0, y: 1.05, z: 10.9 }, { x: 0, y: 2.8, z: 12.05 }, 0.12, detail.cyl);
   builder.addCylinderBetween({ x: 0, y: 0.15, z: 12.0 }, { x: 0, y: 1.55, z: 13.0 }, 0.08, detail.cyl);
   builder.addTriangle({ x: 0, y: 1.65, z: 11.05 }, { x: 0, y: 1.92, z: 11.55 }, { x: 0, y: 1.15, z: 11.55 });
+  builder.setRegion(4);
+  builder.setColor(0x17110c);
+  builder.addBox(0, 3.52, -12.4, 0.42, 0.18, 0.055);
+  builder.addCylinderBetween({ x: 0, y: 3.56, z: -12.36 }, { x: 0, y: 3.78, z: -12.2 }, 0.025, 8);
+  builder.addCylinderBetween({ x: 0, y: 3.78, z: -12.2 }, { x: 0, y: 3.65, z: -12.05 }, 0.025, 8);
   return builder.build();
 }
 
@@ -807,6 +904,11 @@ function createSparGeometry(tier: Tier): BufferGeometry {
   b.addCylinderBetween({ x: 0, y: 8.75, z: main.z - 0.1 }, { x: 0, y: 10.65, z: -10.05 }, 0.082, detail.cyl);
   b.addCylinderBetween({ x: 0, y: 2.35, z: 10.72 }, { x: 0, y: 2.9, z: 18.6 }, 0.14, detail.cyl);
   b.addCylinderBetween({ x: 0, y: 2.78, z: 17.8 }, { x: 0, y: 3.05, z: 22.3 }, 0.08, detail.cyl);
+  b.setRegion(4);
+  b.setColor(0x27231f);
+  b.addCylinderBetween({ x: 0, y: 3.04, z: 22.05 }, { x: 0, y: 3.05, z: 22.32 }, 0.083, detail.cyl);
+  b.setRegion(1);
+  b.setColor(0xb77a42);
   for (const z of [-7.8, -2.6, 3.0, 7.7]) {
     b.addCylinderBetween(
       { x: -waterlineHalfBeamAt(z) * 0.76, y: deckHeightAt(z) + 0.18, z },
@@ -925,8 +1027,8 @@ function createRiggingGeometry(): BufferGeometry {
   for (const side of [-1, 1] as const) {
     const foreFeet = [1.1, 2.8, 4.5, 6.2, 7.9];
     const mainFeet = [-8.4, -6.8, -5.2, -3.6, -2.0];
-    for (const z of foreFeet) line({ x: side * (waterlineHalfBeamAt(z) + 0.38), y: 1.35, z }, foreTop);
-    for (const z of mainFeet) line({ x: side * (waterlineHalfBeamAt(z) + 0.38), y: 1.35, z }, mainTop);
+    for (const z of foreFeet) line({ x: side * (halfBeamAt(z, 1.94) + 0.2), y: 1.94, z }, foreTop);
+    for (const z of mainFeet) line({ x: side * (halfBeamAt(z, 1.94) + 0.2), y: 1.94, z }, mainTop);
     line({ x: side * 2.8, y: deckHeightAt(-10.5) + 0.1, z: -10.5 }, mainTop);
     line({ x: side * 2.85, y: deckHeightAt(9.2) + 0.1, z: 9.2 }, foreTop);
   }
