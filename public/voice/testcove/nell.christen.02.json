@@ -1,0 +1,62 @@
+{
+  "id": "nell.christen.02",
+  "speaker": "Nell",
+  "text": "Fair winds to her, and to all who sail in her!",
+  "words": [
+    {
+      "word": "Fair",
+      "start": 0.07,
+      "end": 0.31
+    },
+    {
+      "word": "winds",
+      "start": 0.31,
+      "end": 0.71
+    },
+    {
+      "word": "to",
+      "start": 0.71,
+      "end": 0.83
+    },
+    {
+      "word": "her",
+      "start": 0.83,
+      "end": 1.31
+    },
+    {
+      "word": "and",
+      "start": 1.31,
+      "end": 1.55
+    },
+    {
+      "word": "to",
+      "start": 1.55,
+      "end": 1.71
+    },
+    {
+      "word": "all",
+      "start": 1.71,
+      "end": 1.99
+    },
+    {
+      "word": "who",
+      "start": 1.99,
+      "end": 2.15
+    },
+    {
+      "word": "sail",
+      "start": 2.15,
+      "end": 2.51
+    },
+    {
+      "word": "in",
+      "start": 2.51,
+      "end": 2.67
+    },
+    {
+      "word": "her",
+      "start": 2.67,
+      "end": 2.92
+    }
+  ]
+}

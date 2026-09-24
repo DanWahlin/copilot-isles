@@ -1,0 +1,22 @@
+{
+  "id": "juno.christen.01",
+  "speaker": "Juno",
+  "text": "Crew’s aboard, Captain.",
+  "words": [
+    {
+      "word": "Crew’s",
+      "start": 0.07,
+      "end": 0.35
+    },
+    {
+      "word": "aboard",
+      "start": 0.35,
+      "end": 0.59
+    },
+    {
+      "word": "Captain",
+      "start": 0.59,
+      "end": 0.84
+    }
+  ]
+}

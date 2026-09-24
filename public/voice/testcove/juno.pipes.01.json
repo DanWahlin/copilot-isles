@@ -1,0 +1,97 @@
+{
+  "id": "juno.pipes.01",
+  "speaker": "Juno",
+  "text": "It’s a request for the agent, not a command. Pick the fitting on the rail that carries it.",
+  "words": [
+    {
+      "word": "It’s",
+      "start": 0.07,
+      "end": 0.23
+    },
+    {
+      "word": "a",
+      "start": 0.23,
+      "end": 0.27
+    },
+    {
+      "word": "request",
+      "start": 0.27,
+      "end": 0.75
+    },
+    {
+      "word": "for",
+      "start": 0.75,
+      "end": 0.91
+    },
+    {
+      "word": "the",
+      "start": 0.91,
+      "end": 1.07
+    },
+    {
+      "word": "agent",
+      "start": 1.07,
+      "end": 1.75
+    },
+    {
+      "word": "not",
+      "start": 1.75,
+      "end": 2.07
+    },
+    {
+      "word": "a",
+      "start": 2.07,
+      "end": 2.11
+    },
+    {
+      "word": "command",
+      "start": 2.11,
+      "end": 3.23
+    },
+    {
+      "word": "Pick",
+      "start": 3.23,
+      "end": 3.469
+    },
+    {
+      "word": "the",
+      "start": 3.469,
+      "end": 3.63
+    },
+    {
+      "word": "fitting",
+      "start": 3.63,
+      "end": 3.949
+    },
+    {
+      "word": "on",
+      "start": 3.949,
+      "end": 4.03
+    },
+    {
+      "word": "the",
+      "start": 4.03,
+      "end": 4.15
+    },
+    {
+      "word": "rail",
+      "start": 4.15,
+      "end": 4.35
+    },
+    {
+      "word": "that",
+      "start": 4.35,
+      "end": 4.51
+    },
+    {
+      "word": "carries",
+      "start": 4.51,
+      "end": 4.91
+    },
+    {
+      "word": "it",
+      "start": 4.91,
+      "end": 5.108
+    }
+  ]
+}

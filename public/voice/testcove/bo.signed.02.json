@@ -1,0 +1,127 @@
+{
+  "id": "bo.signed.02",
+  "speaker": "Bo",
+  "text": "One more job before the practice work: Suri Okoye at the mill race, past the storehouse. Her wheel’s been dry since your fork arrived.",
+  "words": [
+    {
+      "word": "One",
+      "start": 0.05,
+      "end": 0.3375
+    },
+    {
+      "word": "more",
+      "start": 0.3375,
+      "end": 0.5625
+    },
+    {
+      "word": "job",
+      "start": 0.5625,
+      "end": 0.85
+    },
+    {
+      "word": "before",
+      "start": 0.85,
+      "end": 1.1375
+    },
+    {
+      "word": "the",
+      "start": 1.1375,
+      "end": 1.2625
+    },
+    {
+      "word": "practice",
+      "start": 1.2625,
+      "end": 1.6875
+    },
+    {
+      "word": "work",
+      "start": 1.6875,
+      "end": 2.2625
+    },
+    {
+      "word": "Suri",
+      "start": 2.2625,
+      "end": 2.5875
+    },
+    {
+      "word": "Okoye",
+      "start": 2.5875,
+      "end": 3.2125
+    },
+    {
+      "word": "at",
+      "start": 3.2125,
+      "end": 3.3125
+    },
+    {
+      "word": "the",
+      "start": 3.3125,
+      "end": 3.3875
+    },
+    {
+      "word": "mill",
+      "start": 3.3875,
+      "end": 3.65
+    },
+    {
+      "word": "race",
+      "start": 3.65,
+      "end": 4.275
+    },
+    {
+      "word": "past",
+      "start": 4.275,
+      "end": 4.6375
+    },
+    {
+      "word": "the",
+      "start": 4.6375,
+      "end": 4.725
+    },
+    {
+      "word": "storehouse",
+      "start": 4.725,
+      "end": 6.3125
+    },
+    {
+      "word": "Her",
+      "start": 6.3125,
+      "end": 6.5125
+    },
+    {
+      "word": "wheel’s",
+      "start": 6.5125,
+      "end": 6.85
+    },
+    {
+      "word": "been",
+      "start": 6.85,
+      "end": 7.0125
+    },
+    {
+      "word": "dry",
+      "start": 7.0125,
+      "end": 7.2625
+    },
+    {
+      "word": "since",
+      "start": 7.2625,
+      "end": 7.5375
+    },
+    {
+      "word": "your",
+      "start": 7.5375,
+      "end": 7.7
+    },
+    {
+      "word": "fork",
+      "start": 7.7,
+      "end": 8.025
+    },
+    {
+      "word": "arrived",
+      "start": 8.025,
+      "end": 8.275
+    }
+  ]
+}

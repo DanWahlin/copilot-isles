@@ -1,0 +1,72 @@
+{
+  "id": "ezra.fork.02",
+  "speaker": "Ezra",
+  "text": "Once you’ve forked it, add it to the app. Where would you start?",
+  "words": [
+    {
+      "word": "Once",
+      "start": 0.07,
+      "end": 0.23
+    },
+    {
+      "word": "you’ve",
+      "start": 0.23,
+      "end": 1.11
+    },
+    {
+      "word": "forked",
+      "start": 1.11,
+      "end": 1.35
+    },
+    {
+      "word": "it",
+      "start": 1.35,
+      "end": 1.63
+    },
+    {
+      "word": "add",
+      "start": 1.63,
+      "end": 1.75
+    },
+    {
+      "word": "it",
+      "start": 1.75,
+      "end": 1.83
+    },
+    {
+      "word": "to",
+      "start": 1.83,
+      "end": 1.91
+    },
+    {
+      "word": "the",
+      "start": 1.91,
+      "end": 2.029
+    },
+    {
+      "word": "app.",
+      "start": 2.029,
+      "end": 2.15
+    },
+    {
+      "word": "Where",
+      "start": 2.15,
+      "end": 2.55
+    },
+    {
+      "word": "would",
+      "start": 2.55,
+      "end": 2.829
+    },
+    {
+      "word": "you",
+      "start": 2.829,
+      "end": 2.949
+    },
+    {
+      "word": "start",
+      "start": 2.949,
+      "end": 3.199
+    }
+  ]
+}

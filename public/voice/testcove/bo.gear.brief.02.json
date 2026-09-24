@@ -1,0 +1,132 @@
+{
+  "id": "bo.gear.brief.02",
+  "speaker": "Bo",
+  "text": "Every tool gets a version check there. Here, each tool is a piece of my gear, and four pieces have gone walkabout round the village.",
+  "words": [
+    {
+      "word": "Every",
+      "start": 0.05,
+      "end": 0.35
+    },
+    {
+      "word": "tool",
+      "start": 0.35,
+      "end": 0.65
+    },
+    {
+      "word": "gets",
+      "start": 0.65,
+      "end": 0.9
+    },
+    {
+      "word": "a",
+      "start": 0.9,
+      "end": 0.975
+    },
+    {
+      "word": "version",
+      "start": 0.975,
+      "end": 1.3875
+    },
+    {
+      "word": "check",
+      "start": 1.3875,
+      "end": 1.65
+    },
+    {
+      "word": "there",
+      "start": 1.65,
+      "end": 2.7625
+    },
+    {
+      "word": "Here",
+      "start": 2.7625,
+      "end": 3.2625
+    },
+    {
+      "word": "each",
+      "start": 3.2625,
+      "end": 3.5
+    },
+    {
+      "word": "tool",
+      "start": 3.5,
+      "end": 3.8125
+    },
+    {
+      "word": "is",
+      "start": 3.8125,
+      "end": 3.925
+    },
+    {
+      "word": "a",
+      "start": 3.925,
+      "end": 4.0125
+    },
+    {
+      "word": "piece",
+      "start": 4.0125,
+      "end": 4.2875
+    },
+    {
+      "word": "of",
+      "start": 4.2875,
+      "end": 4.3875
+    },
+    {
+      "word": "my",
+      "start": 4.3875,
+      "end": 4.575
+    },
+    {
+      "word": "gear",
+      "start": 4.575,
+      "end": 5.25
+    },
+    {
+      "word": "and",
+      "start": 5.25,
+      "end": 5.3875
+    },
+    {
+      "word": "four",
+      "start": 5.3875,
+      "end": 5.6375
+    },
+    {
+      "word": "pieces",
+      "start": 5.6375,
+      "end": 6.025
+    },
+    {
+      "word": "have",
+      "start": 6.025,
+      "end": 6.15
+    },
+    {
+      "word": "gone",
+      "start": 6.15,
+      "end": 6.3625
+    },
+    {
+      "word": "walkabout",
+      "start": 6.3625,
+      "end": 6.9125
+    },
+    {
+      "word": "round",
+      "start": 6.9125,
+      "end": 7.1875
+    },
+    {
+      "word": "the",
+      "start": 7.1875,
+      "end": 7.2625
+    },
+    {
+      "word": "village",
+      "start": 7.2625,
+      "end": 7.5125
+    }
+  ]
+}

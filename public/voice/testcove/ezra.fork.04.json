@@ -1,0 +1,77 @@
+{
+  "id": "ezra.fork.04",
+  "speaker": "Ezra",
+  "text": "Bo, the quartermaster, will get your deck ready. You’ll find him at the storehouse.",
+  "words": [
+    {
+      "word": "Bo",
+      "start": 0.07,
+      "end": 0.63
+    },
+    {
+      "word": "the",
+      "start": 0.63,
+      "end": 0.83
+    },
+    {
+      "word": "quartermaster",
+      "start": 0.83,
+      "end": 1.75
+    },
+    {
+      "word": "will",
+      "start": 1.75,
+      "end": 1.95
+    },
+    {
+      "word": "get",
+      "start": 1.95,
+      "end": 2.07
+    },
+    {
+      "word": "your",
+      "start": 2.07,
+      "end": 2.23
+    },
+    {
+      "word": "deck",
+      "start": 2.23,
+      "end": 2.429
+    },
+    {
+      "word": "ready",
+      "start": 2.429,
+      "end": 3.19
+    },
+    {
+      "word": "You’ll",
+      "start": 3.19,
+      "end": 3.469
+    },
+    {
+      "word": "find",
+      "start": 3.469,
+      "end": 3.67
+    },
+    {
+      "word": "him",
+      "start": 3.67,
+      "end": 3.789
+    },
+    {
+      "word": "at",
+      "start": 3.789,
+      "end": 3.869
+    },
+    {
+      "word": "the",
+      "start": 3.869,
+      "end": 3.989
+    },
+    {
+      "word": "storehouse",
+      "start": 3.989,
+      "end": 4.239
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "id": "nell.done.01",
+  "speaker": "Nell",
+  "text": "Papers in order. Off you go!",
+  "words": [
+    {
+      "word": "Papers",
+      "start": 0.07,
+      "end": 0.63
+    },
+    {
+      "word": "in",
+      "start": 0.63,
+      "end": 0.71
+    },
+    {
+      "word": "order",
+      "start": 0.71,
+      "end": 1.55
+    },
+    {
+      "word": "Off",
+      "start": 1.55,
+      "end": 1.83
+    },
+    {
+      "word": "you",
+      "start": 1.83,
+      "end": 1.95
+    },
+    {
+      "word": "go",
+      "start": 1.95,
+      "end": 2.2
+    }
+  ]
+}

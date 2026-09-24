@@ -310,6 +310,362 @@
       "prosody": {
         "rate": "+12%"
       }
+    },
+    {
+      "id": "nell.papers.03",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "First things first: download and install the GitHub Copilot app for your system."
+    },
+    {
+      "id": "nell.papers.04",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "On Copilot Business or Enterprise, your org has to switch on the GitHub Copilot app policy. Now, show me how you’d sign in."
+    },
+    {
+      "id": "nell.papers.05",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "At Connect your repositories, carry on without adding one. You’ll connect your fork shortly."
+    },
+    {
+      "id": "nell.papers.06",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "Then the app asks you to pick a theme. Here, you pick your sails. The palette stand’s right by my door."
+    },
+    {
+      "id": "nell.chest.01",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "The chest’s right beside my door, Captain."
+    },
+    {
+      "id": "nell.done.01",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "Papers in order. Off you go!"
+    },
+    {
+      "id": "ezra.wait.01",
+      "speaker": "Ezra",
+      "voice": "en-US-Andrew:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AndrewNeural",
+      "text": "Get your papers from Nell first, Captain. Then we’ll talk charts."
+    },
+    {
+      "id": "ezra.fork.01",
+      "speaker": "Ezra",
+      "voice": "en-US-Andrew:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AndrewNeural",
+      "text": "Every captain needs their own chart. A fork is your own copy of the course repository, on GitHub."
+    },
+    {
+      "id": "ezra.fork.02",
+      "speaker": "Ezra",
+      "voice": "en-US-Andrew:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AndrewNeural",
+      "text": "Once you’ve forked it, add it to the app. Where would you start?"
+    },
+    {
+      "id": "ezra.fork.03",
+      "speaker": "Ezra",
+      "voice": "en-US-Andrew:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AndrewNeural",
+      "text": "Then search for copilot-app-for-beginners and pick your fork. The app clones it and adds it to the sidebar."
+    },
+    {
+      "id": "ezra.fork.04",
+      "speaker": "Ezra",
+      "voice": "en-US-Andrew:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AndrewNeural",
+      "text": "Bo, the quartermaster, will get your deck ready. You’ll find him at the storehouse."
+    },
+    {
+      "id": "bo.deck.01",
+      "speaker": "Bo",
+      "voice": "en-GB-RyanNeural",
+      "text": "Your project shows under Projects? Good. Select the + next to it to start a project session."
+    },
+    {
+      "id": "bo.deck.02",
+      "speaker": "Bo",
+      "voice": "en-GB-RyanNeural",
+      "text": "Now, the workspace selector below the prompt box. Don’t trust the checkmark, it just shows the default."
+    },
+    {
+      "id": "bo.gear.brief.01",
+      "speaker": "Bo",
+      "voice": "en-GB-RyanNeural",
+      "text": "Next, your tools. Open View, then Toggle Review Panel, and pick the Terminal tab. No tab? Select + and then Terminal."
+    },
+    {
+      "id": "bo.gear.brief.02",
+      "speaker": "Bo",
+      "voice": "en-GB-RyanNeural",
+      "text": "Every tool gets a version check there. Here, each tool is a piece of my gear, and four pieces have gone walkabout round the village."
+    },
+    {
+      "id": "bo.gear.brief.03",
+      "speaker": "Bo",
+      "voice": "en-GB-RyanNeural",
+      "text": "My compass, a lantern, a rope coil, and my spyglass. Hang them on the rack by my door, and each hook runs its check."
+    },
+    {
+      "id": "bo.gear.reminder.01",
+      "speaker": "Bo",
+      "voice": "en-GB-RyanNeural",
+      "text": "Hang the gear on my rack, Captain. Each hook runs its version check."
+    },
+    {
+      "id": "bo.ledger.reminder.01",
+      "speaker": "Bo",
+      "voice": "en-GB-RyanNeural",
+      "text": "Read my ledger there on the lectern. Whose signature is on it?"
+    },
+    {
+      "id": "bo.gear.missing.01",
+      "speaker": "Bo",
+      "voice": "en-GB-RyanNeural",
+      "text": "“Command not found.” No lens, no GitHub CLI. That one’s missing."
+    },
+    {
+      "id": "bo.gear.missing.02",
+      "speaker": "Bo",
+      "voice": "en-GB-RyanNeural",
+      "text": "Only install what’s missing, then check again. The chandler at the market stall keeps spare lenses."
+    },
+    {
+      "id": "bo.gear.checked.01",
+      "speaker": "Bo",
+      "voice": "en-GB-RyanNeural",
+      "text": "Four checks, four versions. That’s a ship I’d sail. Let’s see if you remember which is which."
+    },
+    {
+      "id": "bo.gear.checked.02",
+      "speaker": "Bo",
+      "voice": "en-GB-RyanNeural",
+      "text": "One more thing. GitHub CLI has its own sign-in, separate from the app. Read my ledger, there on the lectern."
+    },
+    {
+      "id": "bo.ledger.01",
+      "speaker": "Bo",
+      "voice": "en-GB-RyanNeural",
+      "text": "Logged in as someone-else? That’s not your signature, Captain."
+    },
+    {
+      "id": "bo.signed.01",
+      "speaker": "Bo",
+      "voice": "en-GB-RyanNeural",
+      "text": "Logged in as you. Deck’s ready, gear’s checked, and your signature’s your own."
+    },
+    {
+      "id": "bo.signed.02",
+      "speaker": "Bo",
+      "voice": "en-GB-RyanNeural",
+      "text": "One more job before the practice work: Suri Okoye at the mill race, past the storehouse. Her wheel’s been dry since your fork arrived."
+    },
+    {
+      "id": "juno.brief.01",
+      "speaker": "Juno",
+      "voice": "en-US-Ava:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AvaNeural",
+      "text": "Juno, your first mate. Setup’s done, so let’s give the crew their first order."
+    },
+    {
+      "id": "juno.brief.02",
+      "speaker": "Juno",
+      "voice": "en-US-Ava:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AvaNeural",
+      "text": "In the app, you’d send this to the agent from your project session:"
+    },
+    {
+      "id": "juno.brief.03",
+      "speaker": "Juno",
+      "voice": "en-US-Ava:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AvaNeural",
+      "prosody": {
+        "rate": "-8%"
+      },
+      "text": "“Give me an overview of the copilot-app-for-beginners course repository. Focus on the learning path and the samples/book-app-web folder.”"
+    },
+    {
+      "id": "juno.brief.04",
+      "speaker": "Juno",
+      "voice": "en-US-Ava:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AvaNeural",
+      "text": "You’ve been running commands in Terminal all morning. This one’s different. It’s a request for the agent."
+    },
+    {
+      "id": "juno.brief.05",
+      "speaker": "Juno",
+      "voice": "en-US-Ava:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AvaNeural",
+      "text": "Two fittings on the rail, just behind me. The brass speaking tube goes up to the crew, and the iron hatch goes down to the engine room. Your call, Captain."
+    },
+    {
+      "id": "juno.pipes.01",
+      "speaker": "Juno",
+      "voice": "en-US-Ava:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AvaNeural",
+      "text": "It’s a request for the agent, not a command. Pick the fitting on the rail that carries it."
+    },
+    {
+      "id": "juno.done.sealed.01",
+      "speaker": "Juno",
+      "voice": "en-US-Ava:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AvaNeural",
+      "text": "The crew’s proud of you, Captain. Wherever you sail next, they’re listening."
+    },
+    {
+      "id": "juno.done.01",
+      "speaker": "Juno",
+      "voice": "en-US-Ava:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AvaNeural",
+      "text": "The crew knows the ship now. The Harbormaster’s Trial waits at the lighthouse."
+    },
+    {
+      "id": "juno.reply.01",
+      "speaker": "Juno",
+      "voice": "en-US-Ava:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AvaNeural",
+      "text": "Hear that? The crew’s answering."
+    },
+    {
+      "id": "juno.reply.02",
+      "speaker": "Juno",
+      "voice": "en-US-Ava:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AvaNeural",
+      "text": "They’ve summed up the course, chapter by chapter, and flagged samples/book-app-web. That’s the web sample you’ll use in later exercises."
+    },
+    {
+      "id": "juno.reply.03",
+      "speaker": "Juno",
+      "voice": "en-US-Ava:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AvaNeural",
+      "text": "Commands go to the Terminal. Requests go to the agent, through the prompt box. That’s setup done, Captain. The Harbormaster’s Trial waits at the lighthouse."
+    },
+    {
+      "id": "juno.hatch.feedback.01",
+      "speaker": "Juno",
+      "voice": "en-US-Ava:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AvaNeural",
+      "text": "That went to the engine room, Captain. Terminal runs commands like git --version. Requests to the agent go in the prompt box.",
+      "prosody": {
+        "rate": "+35%"
+      }
+    },
+    {
+      "id": "juno.hatch.01",
+      "speaker": "Juno",
+      "voice": "en-US-Ava:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AvaNeural",
+      "text": "That went to the engine room, Captain. Terminal runs commands, not requests.",
+      "prosody": {
+        "rate": "+20%"
+      }
+    },
+    {
+      "id": "pim.solved.03",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "prosody": {
+        "rate": "+12%"
+      },
+      "text": "Your first mate’s waiting by your ship, Captain. Juno’s got your first order ready."
+    },
+    {
+      "id": "nell.palette.02",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "Fine colours, Captain. Ezra the chartmaker’s expecting you."
+    },
+    {
+      "id": "nell.papers.07",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "There’s a chest there too, with your first Logbook page. Open it first, then paint your sails and select Finish."
+    },
+    {
+      "id": "nell.palette.01",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "Pick your sails at the palette stand, then select Finish."
+    },
+    {
+      "id": "nell.done.02",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "A sealed captain! Fair winds."
+    },
+    {
+      "id": "nell.christen.01",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "There you are, Captain. No ship leaves Anchorage without a name, and yours has been waiting all morning."
+    },
+    {
+      "id": "nell.christen.02",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "Fair winds to her, and to all who sail in her!"
+    },
+    {
+      "id": "nell.christen.03",
+      "speaker": "Nell",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "She suits you, Captain. Fair winds."
+    },
+    {
+      "id": "juno.christen.01",
+      "speaker": "Juno",
+      "voice": "en-US-Ava:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-AvaNeural",
+      "text": "Crew’s aboard, Captain."
+    },
+    {
+      "id": "wingman.sail.01",
+      "speaker": "Wingman",
+      "voice": "en-US-AnaNeural",
+      "prosody": {
+        "pitch": "+20%"
+      },
+      "fx": "wingman-bright",
+      "text": "Right, a quick sailing lesson. Take the helm at the gangway. W and S trim the sails, and A and D steer."
+    },
+    {
+      "id": "wingman.sail.02",
+      "speaker": "Wingman",
+      "voice": "en-US-AnaNeural",
+      "prosody": {
+        "pitch": "+20%"
+      },
+      "fx": "wingman-bright",
+      "text": "Bring her back alongside the pier and press E, and I’ll help you dock."
+    },
+    {
+      "id": "wingman.sail.03",
+      "speaker": "Wingman",
+      "voice": "en-US-AnaNeural",
+      "prosody": {
+        "pitch": "+20%"
+      },
+      "fx": "wingman-bright",
+      "text": "Port Meridian’s east on the chart. Press M when you’re ready to plan the passage."
     }
   ]
 }

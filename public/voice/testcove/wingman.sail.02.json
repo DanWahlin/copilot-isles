@@ -1,0 +1,77 @@
+{
+  "id": "wingman.sail.02",
+  "speaker": "Wingman",
+  "text": "Bring her back alongside the pier and press E, and I’ll help you dock.",
+  "words": [
+    {
+      "word": "Bring",
+      "start": 0.05,
+      "end": 0.3375
+    },
+    {
+      "word": "her",
+      "start": 0.3375,
+      "end": 0.5375
+    },
+    {
+      "word": "back",
+      "start": 0.5375,
+      "end": 0.825
+    },
+    {
+      "word": "alongside",
+      "start": 0.825,
+      "end": 1.55
+    },
+    {
+      "word": "the",
+      "start": 1.55,
+      "end": 1.6625
+    },
+    {
+      "word": "pier",
+      "start": 1.6625,
+      "end": 2.0875
+    },
+    {
+      "word": "and",
+      "start": 2.0875,
+      "end": 2.25
+    },
+    {
+      "word": "press",
+      "start": 2.25,
+      "end": 2.6625
+    },
+    {
+      "word": "E",
+      "start": 2.6625,
+      "end": 3.225
+    },
+    {
+      "word": "and",
+      "start": 3.225,
+      "end": 3.4625
+    },
+    {
+      "word": "I’ll",
+      "start": 3.4625,
+      "end": 3.625
+    },
+    {
+      "word": "help",
+      "start": 3.625,
+      "end": 3.8875
+    },
+    {
+      "word": "you",
+      "start": 3.8875,
+      "end": 4.0375
+    },
+    {
+      "word": "dock",
+      "start": 4.0375,
+      "end": 4.2875
+    }
+  ]
+}

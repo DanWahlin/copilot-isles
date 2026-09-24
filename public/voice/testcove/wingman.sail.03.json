@@ -1,0 +1,82 @@
+{
+  "id": "wingman.sail.03",
+  "speaker": "Wingman",
+  "text": "Port Meridian’s east on the chart. Press M when you’re ready to plan the passage.",
+  "words": [
+    {
+      "word": "Port",
+      "start": 0.05,
+      "end": 0.3875
+    },
+    {
+      "word": "Meridian’s",
+      "start": 0.3875,
+      "end": 1.0875
+    },
+    {
+      "word": "east",
+      "start": 1.0875,
+      "end": 1.4625
+    },
+    {
+      "word": "on",
+      "start": 1.4625,
+      "end": 1.6
+    },
+    {
+      "word": "the",
+      "start": 1.6,
+      "end": 1.6875
+    },
+    {
+      "word": "chart",
+      "start": 1.6875,
+      "end": 3.025
+    },
+    {
+      "word": "Press",
+      "start": 3.025,
+      "end": 3.4125
+    },
+    {
+      "word": "M",
+      "start": 3.4125,
+      "end": 3.6875
+    },
+    {
+      "word": "when",
+      "start": 3.6875,
+      "end": 3.8625
+    },
+    {
+      "word": "you’re",
+      "start": 3.8625,
+      "end": 4.05
+    },
+    {
+      "word": "ready",
+      "start": 4.05,
+      "end": 4.35
+    },
+    {
+      "word": "to",
+      "start": 4.35,
+      "end": 4.4875
+    },
+    {
+      "word": "plan",
+      "start": 4.4875,
+      "end": 4.875
+    },
+    {
+      "word": "the",
+      "start": 4.875,
+      "end": 4.975
+    },
+    {
+      "word": "passage",
+      "start": 4.975,
+      "end": 5.225
+    }
+  ]
+}

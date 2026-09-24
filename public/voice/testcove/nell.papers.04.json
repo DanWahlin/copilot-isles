@@ -1,0 +1,122 @@
+{
+  "id": "nell.papers.04",
+  "speaker": "Nell",
+  "text": "On Copilot Business or Enterprise, your org has to switch on the GitHub Copilot app policy. Now, show me how you’d sign in.",
+  "words": [
+    {
+      "word": "On",
+      "start": 0.07,
+      "end": 0.27
+    },
+    {
+      "word": "Copilot",
+      "start": 0.27,
+      "end": 0.87
+    },
+    {
+      "word": "Business",
+      "start": 0.87,
+      "end": 1.39
+    },
+    {
+      "word": "or",
+      "start": 1.39,
+      "end": 1.63
+    },
+    {
+      "word": "Enterprise",
+      "start": 1.63,
+      "end": 2.59
+    },
+    {
+      "word": "your",
+      "start": 2.59,
+      "end": 2.989
+    },
+    {
+      "word": "org",
+      "start": 2.989,
+      "end": 3.389
+    },
+    {
+      "word": "has",
+      "start": 3.389,
+      "end": 3.63
+    },
+    {
+      "word": "to",
+      "start": 3.63,
+      "end": 3.789
+    },
+    {
+      "word": "switch",
+      "start": 3.789,
+      "end": 4.19
+    },
+    {
+      "word": "on",
+      "start": 4.19,
+      "end": 4.35
+    },
+    {
+      "word": "the",
+      "start": 4.35,
+      "end": 4.51
+    },
+    {
+      "word": "GitHub",
+      "start": 4.51,
+      "end": 4.99
+    },
+    {
+      "word": "Copilot",
+      "start": 4.99,
+      "end": 5.67
+    },
+    {
+      "word": "app",
+      "start": 5.67,
+      "end": 5.95
+    },
+    {
+      "word": "policy",
+      "start": 5.95,
+      "end": 7.35
+    },
+    {
+      "word": "Now",
+      "start": 7.35,
+      "end": 7.99
+    },
+    {
+      "word": "show",
+      "start": 7.99,
+      "end": 8.309
+    },
+    {
+      "word": "me",
+      "start": 8.309,
+      "end": 8.51
+    },
+    {
+      "word": "how",
+      "start": 8.51,
+      "end": 8.629
+    },
+    {
+      "word": "you’d",
+      "start": 8.629,
+      "end": 8.87
+    },
+    {
+      "word": "sign",
+      "start": 8.87,
+      "end": 9.19
+    },
+    {
+      "word": "in",
+      "start": 9.19,
+      "end": 9.44
+    }
+  ]
+}

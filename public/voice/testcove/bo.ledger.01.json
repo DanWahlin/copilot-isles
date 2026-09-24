@@ -1,0 +1,52 @@
+{
+  "id": "bo.ledger.01",
+  "speaker": "Bo",
+  "text": "Logged in as someone-else? That’s not your signature, Captain.",
+  "words": [
+    {
+      "word": "Logged",
+      "start": 0.05,
+      "end": 0.3625
+    },
+    {
+      "word": "in",
+      "start": 0.3625,
+      "end": 0.475
+    },
+    {
+      "word": "as",
+      "start": 0.475,
+      "end": 0.5875
+    },
+    {
+      "word": "someone-else",
+      "start": 0.5875,
+      "end": 2.1375
+    },
+    {
+      "word": "That’s",
+      "start": 2.1375,
+      "end": 2.425
+    },
+    {
+      "word": "not",
+      "start": 2.425,
+      "end": 2.625
+    },
+    {
+      "word": "your",
+      "start": 2.625,
+      "end": 2.7625
+    },
+    {
+      "word": "signature",
+      "start": 2.7625,
+      "end": 3.65
+    },
+    {
+      "word": "Captain",
+      "start": 3.65,
+      "end": 3.9
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "id": "ezra.wait.01",
+  "speaker": "Ezra",
+  "text": "Get your papers from Nell first, Captain. Then we’ll talk charts.",
+  "words": [
+    {
+      "word": "Get",
+      "start": 0.07,
+      "end": 0.19
+    },
+    {
+      "word": "your",
+      "start": 0.19,
+      "end": 0.35
+    },
+    {
+      "word": "papers",
+      "start": 0.35,
+      "end": 0.63
+    },
+    {
+      "word": "from",
+      "start": 0.63,
+      "end": 0.83
+    },
+    {
+      "word": "Nell",
+      "start": 0.83,
+      "end": 0.99
+    },
+    {
+      "word": "first",
+      "start": 0.99,
+      "end": 1.35
+    },
+    {
+      "word": "Captain",
+      "start": 1.35,
+      "end": 2.07
+    },
+    {
+      "word": "Then",
+      "start": 2.07,
+      "end": 2.23
+    },
+    {
+      "word": "we’ll",
+      "start": 2.23,
+      "end": 2.429
+    },
+    {
+      "word": "talk",
+      "start": 2.429,
+      "end": 2.63
+    },
+    {
+      "word": "charts",
+      "start": 2.63,
+      "end": 2.88
+    }
+  ]
+}

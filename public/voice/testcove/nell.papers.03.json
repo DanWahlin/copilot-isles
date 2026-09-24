@@ -1,0 +1,72 @@
+{
+  "id": "nell.papers.03",
+  "speaker": "Nell",
+  "text": "First things first: download and install the GitHub Copilot app for your system.",
+  "words": [
+    {
+      "word": "First",
+      "start": 0.07,
+      "end": 0.39
+    },
+    {
+      "word": "things",
+      "start": 0.39,
+      "end": 0.75
+    },
+    {
+      "word": "first",
+      "start": 0.75,
+      "end": 1.75
+    },
+    {
+      "word": "download",
+      "start": 1.75,
+      "end": 2.429
+    },
+    {
+      "word": "and",
+      "start": 2.429,
+      "end": 2.59
+    },
+    {
+      "word": "install",
+      "start": 2.59,
+      "end": 3.23
+    },
+    {
+      "word": "the",
+      "start": 3.23,
+      "end": 3.349
+    },
+    {
+      "word": "GitHub",
+      "start": 3.349,
+      "end": 3.869
+    },
+    {
+      "word": "Copilot",
+      "start": 3.869,
+      "end": 4.55
+    },
+    {
+      "word": "app",
+      "start": 4.55,
+      "end": 4.91
+    },
+    {
+      "word": "for",
+      "start": 4.91,
+      "end": 5.07
+    },
+    {
+      "word": "your",
+      "start": 5.07,
+      "end": 5.23
+    },
+    {
+      "word": "system",
+      "start": 5.23,
+      "end": 5.48
+    }
+  ]
+}

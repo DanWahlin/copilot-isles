@@ -1,0 +1,97 @@
+{
+  "id": "nell.christen.01",
+  "speaker": "Nell",
+  "text": "There you are, Captain. No ship leaves Anchorage without a name, and yours has been waiting all morning.",
+  "words": [
+    {
+      "word": "There",
+      "start": 0.07,
+      "end": 0.27
+    },
+    {
+      "word": "you",
+      "start": 0.27,
+      "end": 0.39
+    },
+    {
+      "word": "are",
+      "start": 0.39,
+      "end": 0.51
+    },
+    {
+      "word": "Captain",
+      "start": 0.51,
+      "end": 1.83
+    },
+    {
+      "word": "No",
+      "start": 1.83,
+      "end": 2.23
+    },
+    {
+      "word": "ship",
+      "start": 2.23,
+      "end": 2.63
+    },
+    {
+      "word": "leaves",
+      "start": 2.63,
+      "end": 2.909
+    },
+    {
+      "word": "Anchorage",
+      "start": 2.909,
+      "end": 3.469
+    },
+    {
+      "word": "without",
+      "start": 3.469,
+      "end": 3.869
+    },
+    {
+      "word": "a",
+      "start": 3.869,
+      "end": 3.909
+    },
+    {
+      "word": "name",
+      "start": 3.909,
+      "end": 4.59
+    },
+    {
+      "word": "and",
+      "start": 4.59,
+      "end": 4.83
+    },
+    {
+      "word": "yours",
+      "start": 4.83,
+      "end": 5.27
+    },
+    {
+      "word": "has",
+      "start": 5.27,
+      "end": 5.43
+    },
+    {
+      "word": "been",
+      "start": 5.43,
+      "end": 5.59
+    },
+    {
+      "word": "waiting",
+      "start": 5.59,
+      "end": 5.99
+    },
+    {
+      "word": "all",
+      "start": 5.99,
+      "end": 6.19
+    },
+    {
+      "word": "morning",
+      "start": 6.19,
+      "end": 6.44
+    }
+  ]
+}

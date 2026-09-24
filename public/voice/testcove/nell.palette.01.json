@@ -1,0 +1,57 @@
+{
+  "id": "nell.palette.01",
+  "speaker": "Nell",
+  "text": "Pick your sails at the palette stand, then select Finish.",
+  "words": [
+    {
+      "word": "Pick",
+      "start": 0.07,
+      "end": 0.27
+    },
+    {
+      "word": "your",
+      "start": 0.27,
+      "end": 0.47
+    },
+    {
+      "word": "sails",
+      "start": 0.47,
+      "end": 0.87
+    },
+    {
+      "word": "at",
+      "start": 0.87,
+      "end": 0.95
+    },
+    {
+      "word": "the",
+      "start": 0.95,
+      "end": 1.07
+    },
+    {
+      "word": "palette",
+      "start": 1.07,
+      "end": 1.47
+    },
+    {
+      "word": "stand",
+      "start": 1.47,
+      "end": 2.19
+    },
+    {
+      "word": "then",
+      "start": 2.19,
+      "end": 2.51
+    },
+    {
+      "word": "select",
+      "start": 2.51,
+      "end": 2.989
+    },
+    {
+      "word": "Finish",
+      "start": 2.989,
+      "end": 3.239
+    }
+  ]
+}

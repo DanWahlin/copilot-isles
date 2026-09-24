@@ -1,0 +1,47 @@
+{
+  "id": "nell.palette.02",
+  "speaker": "Nell",
+  "text": "Fine colours, Captain. Ezra the chartmaker’s expecting you.",
+  "words": [
+    {
+      "word": "Fine",
+      "start": 0.07,
+      "end": 0.47
+    },
+    {
+      "word": "colours",
+      "start": 0.47,
+      "end": 0.87
+    },
+    {
+      "word": "Captain",
+      "start": 0.87,
+      "end": 1.83
+    },
+    {
+      "word": "Ezra",
+      "start": 1.83,
+      "end": 2.71
+    },
+    {
+      "word": "the",
+      "start": 2.71,
+      "end": 2.909
+    },
+    {
+      "word": "chartmaker’s",
+      "start": 2.909,
+      "end": 3.55
+    },
+    {
+      "word": "expecting",
+      "start": 3.55,
+      "end": 4.11
+    },
+    {
+      "word": "you",
+      "start": 4.11,
+      "end": 4.36
+    }
+  ]
+}

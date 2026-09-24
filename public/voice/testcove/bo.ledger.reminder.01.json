@@ -1,0 +1,67 @@
+{
+  "id": "bo.ledger.reminder.01",
+  "speaker": "Bo",
+  "text": "Read my ledger there on the lectern. Whose signature is on it?",
+  "words": [
+    {
+      "word": "Read",
+      "start": 0.05,
+      "end": 0.375
+    },
+    {
+      "word": "my",
+      "start": 0.375,
+      "end": 0.525
+    },
+    {
+      "word": "ledger",
+      "start": 0.525,
+      "end": 0.8875
+    },
+    {
+      "word": "there",
+      "start": 0.8875,
+      "end": 1.05
+    },
+    {
+      "word": "on",
+      "start": 1.05,
+      "end": 1.2
+    },
+    {
+      "word": "the",
+      "start": 1.2,
+      "end": 1.275
+    },
+    {
+      "word": "lectern",
+      "start": 1.275,
+      "end": 2.6125
+    },
+    {
+      "word": "Whose",
+      "start": 2.6125,
+      "end": 2.9
+    },
+    {
+      "word": "signature",
+      "start": 2.9,
+      "end": 3.3125
+    },
+    {
+      "word": "is",
+      "start": 3.3125,
+      "end": 3.475
+    },
+    {
+      "word": "on",
+      "start": 3.475,
+      "end": 3.625
+    },
+    {
+      "word": "it",
+      "start": 3.625,
+      "end": 3.875
+    }
+  ]
+}

@@ -130,7 +130,9 @@ function isPuzzleOneShot(name: SliceName): boolean {
     name === 'quill' ||
     name === 'tube_voice' ||
     name === 'hatch_clank' ||
-    name === 'bottle_pop'
+    name === 'bottle_pop' ||
+    name === 'coconut_crack' ||
+    name === 'crowd_cheer_small'
   );
 }
 

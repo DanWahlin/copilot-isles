@@ -1,0 +1,72 @@
+{
+  "id": "juno.brief.02",
+  "speaker": "Juno",
+  "text": "In the app, you’d send this to the agent from your project session:",
+  "words": [
+    {
+      "word": "In",
+      "start": 0.07,
+      "end": 0.15
+    },
+    {
+      "word": "the",
+      "start": 0.15,
+      "end": 0.35
+    },
+    {
+      "word": "app",
+      "start": 0.35,
+      "end": 0.75
+    },
+    {
+      "word": "you’d",
+      "start": 0.75,
+      "end": 1.03
+    },
+    {
+      "word": "send",
+      "start": 1.03,
+      "end": 1.23
+    },
+    {
+      "word": "this",
+      "start": 1.23,
+      "end": 1.39
+    },
+    {
+      "word": "to",
+      "start": 1.39,
+      "end": 1.51
+    },
+    {
+      "word": "the",
+      "start": 1.51,
+      "end": 1.67
+    },
+    {
+      "word": "agent",
+      "start": 1.67,
+      "end": 2.07
+    },
+    {
+      "word": "from",
+      "start": 2.07,
+      "end": 2.23
+    },
+    {
+      "word": "your",
+      "start": 2.23,
+      "end": 2.389
+    },
+    {
+      "word": "project",
+      "start": 2.389,
+      "end": 2.789
+    },
+    {
+      "word": "session",
+      "start": 2.789,
+      "end": 3.039
+    }
+  ]
+}

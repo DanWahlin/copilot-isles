@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-24T10:10:01.175Z",
+  "generatedAt": "2026-09-24T12:54:54.433Z",
   "set": "testcove",
   "lines": [
     {
@@ -3118,6 +3118,4516 @@
         }
       ],
       "voice": "en-IE-EmilyNeural"
+    },
+    {
+      "id": "nell.papers.03",
+      "speaker": "Nell",
+      "text": "First things first: download and install the GitHub Copilot app for your system.",
+      "duration": 5.908,
+      "files": {
+        "webm": "nell.papers.03.webm",
+        "m4a": "nell.papers.03.m4a"
+      },
+      "hash": "4cdf5ab6bf9917d0",
+      "words": [
+        {
+          "word": "First",
+          "start": 0.07,
+          "end": 0.39
+        },
+        {
+          "word": "things",
+          "start": 0.39,
+          "end": 0.75
+        },
+        {
+          "word": "first",
+          "start": 0.75,
+          "end": 1.75
+        },
+        {
+          "word": "download",
+          "start": 1.75,
+          "end": 2.429
+        },
+        {
+          "word": "and",
+          "start": 2.429,
+          "end": 2.59
+        },
+        {
+          "word": "install",
+          "start": 2.59,
+          "end": 3.23
+        },
+        {
+          "word": "the",
+          "start": 3.23,
+          "end": 3.349
+        },
+        {
+          "word": "GitHub",
+          "start": 3.349,
+          "end": 3.869
+        },
+        {
+          "word": "Copilot",
+          "start": 3.869,
+          "end": 4.55
+        },
+        {
+          "word": "app",
+          "start": 4.55,
+          "end": 4.91
+        },
+        {
+          "word": "for",
+          "start": 4.91,
+          "end": 5.07
+        },
+        {
+          "word": "your",
+          "start": 5.07,
+          "end": 5.23
+        },
+        {
+          "word": "system",
+          "start": 5.23,
+          "end": 5.48
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.papers.04",
+      "speaker": "Nell",
+      "text": "On Copilot Business or Enterprise, your org has to switch on the GitHub Copilot app policy. Now, show me how you’d sign in.",
+      "duration": 9.608,
+      "files": {
+        "webm": "nell.papers.04.webm",
+        "m4a": "nell.papers.04.m4a"
+      },
+      "hash": "686362a64ae03c60",
+      "words": [
+        {
+          "word": "On",
+          "start": 0.07,
+          "end": 0.27
+        },
+        {
+          "word": "Copilot",
+          "start": 0.27,
+          "end": 0.87
+        },
+        {
+          "word": "Business",
+          "start": 0.87,
+          "end": 1.39
+        },
+        {
+          "word": "or",
+          "start": 1.39,
+          "end": 1.63
+        },
+        {
+          "word": "Enterprise",
+          "start": 1.63,
+          "end": 2.59
+        },
+        {
+          "word": "your",
+          "start": 2.59,
+          "end": 2.989
+        },
+        {
+          "word": "org",
+          "start": 2.989,
+          "end": 3.389
+        },
+        {
+          "word": "has",
+          "start": 3.389,
+          "end": 3.63
+        },
+        {
+          "word": "to",
+          "start": 3.63,
+          "end": 3.789
+        },
+        {
+          "word": "switch",
+          "start": 3.789,
+          "end": 4.19
+        },
+        {
+          "word": "on",
+          "start": 4.19,
+          "end": 4.35
+        },
+        {
+          "word": "the",
+          "start": 4.35,
+          "end": 4.51
+        },
+        {
+          "word": "GitHub",
+          "start": 4.51,
+          "end": 4.99
+        },
+        {
+          "word": "Copilot",
+          "start": 4.99,
+          "end": 5.67
+        },
+        {
+          "word": "app",
+          "start": 5.67,
+          "end": 5.95
+        },
+        {
+          "word": "policy",
+          "start": 5.95,
+          "end": 7.35
+        },
+        {
+          "word": "Now",
+          "start": 7.35,
+          "end": 7.99
+        },
+        {
+          "word": "show",
+          "start": 7.99,
+          "end": 8.309
+        },
+        {
+          "word": "me",
+          "start": 8.309,
+          "end": 8.51
+        },
+        {
+          "word": "how",
+          "start": 8.51,
+          "end": 8.629
+        },
+        {
+          "word": "you’d",
+          "start": 8.629,
+          "end": 8.87
+        },
+        {
+          "word": "sign",
+          "start": 8.87,
+          "end": 9.19
+        },
+        {
+          "word": "in",
+          "start": 9.19,
+          "end": 9.44
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.papers.05",
+      "speaker": "Nell",
+      "text": "At Connect your repositories, carry on without adding one. You’ll connect your fork shortly.",
+      "duration": 6.108,
+      "files": {
+        "webm": "nell.papers.05.webm",
+        "m4a": "nell.papers.05.m4a"
+      },
+      "hash": "5458196919615ce9",
+      "words": [
+        {
+          "word": "At",
+          "start": 0.07,
+          "end": 0.31
+        },
+        {
+          "word": "Connect",
+          "start": 0.31,
+          "end": 0.75
+        },
+        {
+          "word": "your",
+          "start": 0.75,
+          "end": 0.95
+        },
+        {
+          "word": "repositories",
+          "start": 0.95,
+          "end": 2.029
+        },
+        {
+          "word": "carry",
+          "start": 2.029,
+          "end": 2.469
+        },
+        {
+          "word": "on",
+          "start": 2.469,
+          "end": 2.63
+        },
+        {
+          "word": "without",
+          "start": 2.63,
+          "end": 3.03
+        },
+        {
+          "word": "adding",
+          "start": 3.03,
+          "end": 3.389
+        },
+        {
+          "word": "one",
+          "start": 3.389,
+          "end": 4.15
+        },
+        {
+          "word": "You’ll",
+          "start": 4.15,
+          "end": 4.51
+        },
+        {
+          "word": "connect",
+          "start": 4.51,
+          "end": 4.87
+        },
+        {
+          "word": "your",
+          "start": 4.87,
+          "end": 5.03
+        },
+        {
+          "word": "fork",
+          "start": 5.03,
+          "end": 5.43
+        },
+        {
+          "word": "shortly",
+          "start": 5.43,
+          "end": 5.68
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.papers.06",
+      "speaker": "Nell",
+      "text": "Then the app asks you to pick a theme. Here, you pick your sails. The palette stand’s right by my door.",
+      "duration": 7.308,
+      "files": {
+        "webm": "nell.papers.06.webm",
+        "m4a": "nell.papers.06.m4a"
+      },
+      "hash": "16cca39a92456f76",
+      "words": [
+        {
+          "word": "Then",
+          "start": 0.07,
+          "end": 0.51
+        },
+        {
+          "word": "the",
+          "start": 0.51,
+          "end": 0.63
+        },
+        {
+          "word": "app",
+          "start": 0.63,
+          "end": 0.99
+        },
+        {
+          "word": "asks",
+          "start": 0.99,
+          "end": 1.47
+        },
+        {
+          "word": "you",
+          "start": 1.47,
+          "end": 1.59
+        },
+        {
+          "word": "to",
+          "start": 1.59,
+          "end": 1.71
+        },
+        {
+          "word": "pick",
+          "start": 1.71,
+          "end": 1.91
+        },
+        {
+          "word": "a",
+          "start": 1.91,
+          "end": 1.95
+        },
+        {
+          "word": "theme",
+          "start": 1.95,
+          "end": 2.75
+        },
+        {
+          "word": "Here",
+          "start": 2.75,
+          "end": 3.349
+        },
+        {
+          "word": "you",
+          "start": 3.349,
+          "end": 3.63
+        },
+        {
+          "word": "pick",
+          "start": 3.63,
+          "end": 3.869
+        },
+        {
+          "word": "your",
+          "start": 3.869,
+          "end": 4.03
+        },
+        {
+          "word": "sails",
+          "start": 4.03,
+          "end": 5.11
+        },
+        {
+          "word": "The",
+          "start": 5.11,
+          "end": 5.35
+        },
+        {
+          "word": "palette",
+          "start": 5.35,
+          "end": 5.71
+        },
+        {
+          "word": "stand’s",
+          "start": 5.71,
+          "end": 6.15
+        },
+        {
+          "word": "right",
+          "start": 6.15,
+          "end": 6.43
+        },
+        {
+          "word": "by",
+          "start": 6.43,
+          "end": 6.59
+        },
+        {
+          "word": "my",
+          "start": 6.59,
+          "end": 6.79
+        },
+        {
+          "word": "door",
+          "start": 6.79,
+          "end": 7.04
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.chest.01",
+      "speaker": "Nell",
+      "text": "The chest’s right beside my door, Captain.",
+      "duration": 2.558,
+      "files": {
+        "webm": "nell.chest.01.webm",
+        "m4a": "nell.chest.01.m4a"
+      },
+      "hash": "9362651ebaf59cd5",
+      "words": [
+        {
+          "word": "The",
+          "start": 0.07,
+          "end": 0.23
+        },
+        {
+          "word": "chest’s",
+          "start": 0.23,
+          "end": 0.67
+        },
+        {
+          "word": "right",
+          "start": 0.67,
+          "end": 0.91
+        },
+        {
+          "word": "beside",
+          "start": 0.91,
+          "end": 1.27
+        },
+        {
+          "word": "my",
+          "start": 1.27,
+          "end": 1.47
+        },
+        {
+          "word": "door",
+          "start": 1.47,
+          "end": 1.87
+        },
+        {
+          "word": "Captain",
+          "start": 1.87,
+          "end": 2.12
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.done.01",
+      "speaker": "Nell",
+      "text": "Papers in order. Off you go!",
+      "duration": 2.408,
+      "files": {
+        "webm": "nell.done.01.webm",
+        "m4a": "nell.done.01.m4a"
+      },
+      "hash": "2470a167202c520c",
+      "words": [
+        {
+          "word": "Papers",
+          "start": 0.07,
+          "end": 0.63
+        },
+        {
+          "word": "in",
+          "start": 0.63,
+          "end": 0.71
+        },
+        {
+          "word": "order",
+          "start": 0.71,
+          "end": 1.55
+        },
+        {
+          "word": "Off",
+          "start": 1.55,
+          "end": 1.83
+        },
+        {
+          "word": "you",
+          "start": 1.83,
+          "end": 1.95
+        },
+        {
+          "word": "go",
+          "start": 1.95,
+          "end": 2.2
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "ezra.wait.01",
+      "speaker": "Ezra",
+      "text": "Get your papers from Nell first, Captain. Then we’ll talk charts.",
+      "duration": 3.308,
+      "files": {
+        "webm": "ezra.wait.01.webm",
+        "m4a": "ezra.wait.01.m4a"
+      },
+      "hash": "573b6bb81fe0f1de",
+      "words": [
+        {
+          "word": "Get",
+          "start": 0.07,
+          "end": 0.19
+        },
+        {
+          "word": "your",
+          "start": 0.19,
+          "end": 0.35
+        },
+        {
+          "word": "papers",
+          "start": 0.35,
+          "end": 0.63
+        },
+        {
+          "word": "from",
+          "start": 0.63,
+          "end": 0.83
+        },
+        {
+          "word": "Nell",
+          "start": 0.83,
+          "end": 0.99
+        },
+        {
+          "word": "first",
+          "start": 0.99,
+          "end": 1.35
+        },
+        {
+          "word": "Captain",
+          "start": 1.35,
+          "end": 2.07
+        },
+        {
+          "word": "Then",
+          "start": 2.07,
+          "end": 2.23
+        },
+        {
+          "word": "we’ll",
+          "start": 2.23,
+          "end": 2.429
+        },
+        {
+          "word": "talk",
+          "start": 2.429,
+          "end": 2.63
+        },
+        {
+          "word": "charts",
+          "start": 2.63,
+          "end": 2.88
+        }
+      ],
+      "voice": "en-US-Andrew:DragonHDLatestNeural"
+    },
+    {
+      "id": "ezra.fork.01",
+      "speaker": "Ezra",
+      "text": "Every captain needs their own chart. A fork is your own copy of the course repository, on GitHub.",
+      "duration": 5.508,
+      "files": {
+        "webm": "ezra.fork.01.webm",
+        "m4a": "ezra.fork.01.m4a"
+      },
+      "hash": "45549afaa998894a",
+      "words": [
+        {
+          "word": "Every",
+          "start": 0.07,
+          "end": 0.31
+        },
+        {
+          "word": "captain",
+          "start": 0.31,
+          "end": 0.75
+        },
+        {
+          "word": "needs",
+          "start": 0.75,
+          "end": 0.95
+        },
+        {
+          "word": "their",
+          "start": 0.95,
+          "end": 1.15
+        },
+        {
+          "word": "own",
+          "start": 1.15,
+          "end": 1.31
+        },
+        {
+          "word": "chart",
+          "start": 1.31,
+          "end": 1.91
+        },
+        {
+          "word": "A",
+          "start": 1.91,
+          "end": 2.029
+        },
+        {
+          "word": "fork",
+          "start": 2.029,
+          "end": 2.469
+        },
+        {
+          "word": "is",
+          "start": 2.469,
+          "end": 2.63
+        },
+        {
+          "word": "your",
+          "start": 2.63,
+          "end": 2.829
+        },
+        {
+          "word": "own",
+          "start": 2.829,
+          "end": 3.11
+        },
+        {
+          "word": "copy",
+          "start": 3.11,
+          "end": 3.429
+        },
+        {
+          "word": "of",
+          "start": 3.429,
+          "end": 3.55
+        },
+        {
+          "word": "the",
+          "start": 3.55,
+          "end": 3.67
+        },
+        {
+          "word": "course",
+          "start": 3.67,
+          "end": 3.909
+        },
+        {
+          "word": "repository",
+          "start": 3.909,
+          "end": 4.71
+        },
+        {
+          "word": "on",
+          "start": 4.71,
+          "end": 4.91
+        },
+        {
+          "word": "GitHub",
+          "start": 4.91,
+          "end": 5.16
+        }
+      ],
+      "voice": "en-US-Andrew:DragonHDLatestNeural"
+    },
+    {
+      "id": "ezra.fork.02",
+      "speaker": "Ezra",
+      "text": "Once you’ve forked it, add it to the app. Where would you start?",
+      "duration": 3.508,
+      "files": {
+        "webm": "ezra.fork.02.webm",
+        "m4a": "ezra.fork.02.m4a"
+      },
+      "hash": "878a6a523b963275",
+      "words": [
+        {
+          "word": "Once",
+          "start": 0.07,
+          "end": 0.23
+        },
+        {
+          "word": "you’ve",
+          "start": 0.23,
+          "end": 1.11
+        },
+        {
+          "word": "forked",
+          "start": 1.11,
+          "end": 1.35
+        },
+        {
+          "word": "it",
+          "start": 1.35,
+          "end": 1.63
+        },
+        {
+          "word": "add",
+          "start": 1.63,
+          "end": 1.75
+        },
+        {
+          "word": "it",
+          "start": 1.75,
+          "end": 1.83
+        },
+        {
+          "word": "to",
+          "start": 1.83,
+          "end": 1.91
+        },
+        {
+          "word": "the",
+          "start": 1.91,
+          "end": 2.029
+        },
+        {
+          "word": "app.",
+          "start": 2.029,
+          "end": 2.15
+        },
+        {
+          "word": "Where",
+          "start": 2.15,
+          "end": 2.55
+        },
+        {
+          "word": "would",
+          "start": 2.55,
+          "end": 2.829
+        },
+        {
+          "word": "you",
+          "start": 2.829,
+          "end": 2.949
+        },
+        {
+          "word": "start",
+          "start": 2.949,
+          "end": 3.199
+        }
+      ],
+      "voice": "en-US-Andrew:DragonHDLatestNeural"
+    },
+    {
+      "id": "ezra.fork.03",
+      "speaker": "Ezra",
+      "text": "Then search for copilot-app-for-beginners and pick your fork. The app clones it and adds it to the sidebar.",
+      "duration": 6.308,
+      "files": {
+        "webm": "ezra.fork.03.webm",
+        "m4a": "ezra.fork.03.m4a"
+      },
+      "hash": "280397fa7085cfe1",
+      "words": [
+        {
+          "word": "Then",
+          "start": 0.07,
+          "end": 0.23
+        },
+        {
+          "word": "search",
+          "start": 0.23,
+          "end": 0.59
+        },
+        {
+          "word": "for",
+          "start": 0.59,
+          "end": 0.75
+        },
+        {
+          "word": "copilot-app-for-beginners",
+          "start": 0.75,
+          "end": 2.349
+        },
+        {
+          "word": "and",
+          "start": 2.349,
+          "end": 2.55
+        },
+        {
+          "word": "pick",
+          "start": 2.55,
+          "end": 2.75
+        },
+        {
+          "word": "your",
+          "start": 2.75,
+          "end": 2.909
+        },
+        {
+          "word": "fork",
+          "start": 2.909,
+          "end": 3.829
+        },
+        {
+          "word": "The",
+          "start": 3.829,
+          "end": 4.03
+        },
+        {
+          "word": "app",
+          "start": 4.03,
+          "end": 4.23
+        },
+        {
+          "word": "clones",
+          "start": 4.23,
+          "end": 4.63
+        },
+        {
+          "word": "it",
+          "start": 4.63,
+          "end": 4.83
+        },
+        {
+          "word": "and",
+          "start": 4.83,
+          "end": 5.07
+        },
+        {
+          "word": "adds",
+          "start": 5.07,
+          "end": 5.35
+        },
+        {
+          "word": "it",
+          "start": 5.35,
+          "end": 5.43
+        },
+        {
+          "word": "to",
+          "start": 5.43,
+          "end": 5.51
+        },
+        {
+          "word": "the",
+          "start": 5.51,
+          "end": 5.63
+        },
+        {
+          "word": "sidebar",
+          "start": 5.63,
+          "end": 5.88
+        }
+      ],
+      "voice": "en-US-Andrew:DragonHDLatestNeural"
+    },
+    {
+      "id": "ezra.fork.04",
+      "speaker": "Ezra",
+      "text": "Bo, the quartermaster, will get your deck ready. You’ll find him at the storehouse.",
+      "duration": 4.808,
+      "files": {
+        "webm": "ezra.fork.04.webm",
+        "m4a": "ezra.fork.04.m4a"
+      },
+      "hash": "28494abc48d818cc",
+      "words": [
+        {
+          "word": "Bo",
+          "start": 0.07,
+          "end": 0.63
+        },
+        {
+          "word": "the",
+          "start": 0.63,
+          "end": 0.83
+        },
+        {
+          "word": "quartermaster",
+          "start": 0.83,
+          "end": 1.75
+        },
+        {
+          "word": "will",
+          "start": 1.75,
+          "end": 1.95
+        },
+        {
+          "word": "get",
+          "start": 1.95,
+          "end": 2.07
+        },
+        {
+          "word": "your",
+          "start": 2.07,
+          "end": 2.23
+        },
+        {
+          "word": "deck",
+          "start": 2.23,
+          "end": 2.429
+        },
+        {
+          "word": "ready",
+          "start": 2.429,
+          "end": 3.19
+        },
+        {
+          "word": "You’ll",
+          "start": 3.19,
+          "end": 3.469
+        },
+        {
+          "word": "find",
+          "start": 3.469,
+          "end": 3.67
+        },
+        {
+          "word": "him",
+          "start": 3.67,
+          "end": 3.789
+        },
+        {
+          "word": "at",
+          "start": 3.789,
+          "end": 3.869
+        },
+        {
+          "word": "the",
+          "start": 3.869,
+          "end": 3.989
+        },
+        {
+          "word": "storehouse",
+          "start": 3.989,
+          "end": 4.239
+        }
+      ],
+      "voice": "en-US-Andrew:DragonHDLatestNeural"
+    },
+    {
+      "id": "bo.deck.01",
+      "speaker": "Bo",
+      "text": "Your project shows under Projects? Good. Select the + next to it to start a project session.",
+      "duration": 7.608,
+      "files": {
+        "webm": "bo.deck.01.webm",
+        "m4a": "bo.deck.01.m4a"
+      },
+      "hash": "0acee62ff61d1998",
+      "words": [
+        {
+          "word": "Your",
+          "start": 0.05,
+          "end": 0.25
+        },
+        {
+          "word": "project",
+          "start": 0.25,
+          "end": 0.675
+        },
+        {
+          "word": "shows",
+          "start": 0.675,
+          "end": 0.9875
+        },
+        {
+          "word": "under",
+          "start": 0.9875,
+          "end": 1.2125
+        },
+        {
+          "word": "Projects",
+          "start": 1.2125,
+          "end": 2.7375
+        },
+        {
+          "word": "Good",
+          "start": 2.7375,
+          "end": 4.0375
+        },
+        {
+          "word": "Select",
+          "start": 4.0375,
+          "end": 4.45
+        },
+        {
+          "word": "the",
+          "start": 4.45,
+          "end": 4.8125
+        },
+        {
+          "word": "next",
+          "start": 4.8125,
+          "end": 5.0875
+        },
+        {
+          "word": "to",
+          "start": 5.0875,
+          "end": 5.225
+        },
+        {
+          "word": "it",
+          "start": 5.225,
+          "end": 5.35
+        },
+        {
+          "word": "to",
+          "start": 5.35,
+          "end": 5.4375
+        },
+        {
+          "word": "start",
+          "start": 5.4375,
+          "end": 5.7875
+        },
+        {
+          "word": "a",
+          "start": 5.7875,
+          "end": 5.8625
+        },
+        {
+          "word": "project",
+          "start": 5.8625,
+          "end": 6.2875
+        },
+        {
+          "word": "session",
+          "start": 6.2875,
+          "end": 6.5375
+        }
+      ],
+      "voice": "en-GB-RyanNeural"
+    },
+    {
+      "id": "bo.deck.02",
+      "speaker": "Bo",
+      "text": "Now, the workspace selector below the prompt box. Don’t trust the checkmark, it just shows the default.",
+      "duration": 7.607,
+      "files": {
+        "webm": "bo.deck.02.webm",
+        "m4a": "bo.deck.02.m4a"
+      },
+      "hash": "8a4288334bc58677",
+      "words": [
+        {
+          "word": "Now",
+          "start": 0.05,
+          "end": 0.675
+        },
+        {
+          "word": "the",
+          "start": 0.675,
+          "end": 0.775
+        },
+        {
+          "word": "workspace",
+          "start": 0.775,
+          "end": 1.375
+        },
+        {
+          "word": "selector",
+          "start": 1.375,
+          "end": 1.8
+        },
+        {
+          "word": "below",
+          "start": 1.8,
+          "end": 2.0875
+        },
+        {
+          "word": "the",
+          "start": 2.0875,
+          "end": 2.2125
+        },
+        {
+          "word": "prompt",
+          "start": 2.2125,
+          "end": 2.525
+        },
+        {
+          "word": "box",
+          "start": 2.525,
+          "end": 3.875
+        },
+        {
+          "word": "Don’t",
+          "start": 3.875,
+          "end": 4.15
+        },
+        {
+          "word": "trust",
+          "start": 4.15,
+          "end": 4.45
+        },
+        {
+          "word": "the",
+          "start": 4.45,
+          "end": 4.525
+        },
+        {
+          "word": "checkmark",
+          "start": 4.525,
+          "end": 5.35
+        },
+        {
+          "word": "it",
+          "start": 5.35,
+          "end": 5.4625
+        },
+        {
+          "word": "just",
+          "start": 5.4625,
+          "end": 5.7125
+        },
+        {
+          "word": "shows",
+          "start": 5.7125,
+          "end": 6.025
+        },
+        {
+          "word": "the",
+          "start": 6.025,
+          "end": 6.1375
+        },
+        {
+          "word": "default",
+          "start": 6.1375,
+          "end": 6.3875
+        }
+      ],
+      "voice": "en-GB-RyanNeural"
+    },
+    {
+      "id": "bo.gear.brief.01",
+      "speaker": "Bo",
+      "text": "Next, your tools. Open View, then Toggle Review Panel, and pick the Terminal tab. No tab? Select + and then Terminal.",
+      "duration": 11.307,
+      "files": {
+        "webm": "bo.gear.brief.01.webm",
+        "m4a": "bo.gear.brief.01.m4a"
+      },
+      "hash": "f3b3f07dc640de78",
+      "words": [
+        {
+          "word": "Next",
+          "start": 0.05,
+          "end": 0.825
+        },
+        {
+          "word": "your",
+          "start": 0.825,
+          "end": 1
+        },
+        {
+          "word": "tools",
+          "start": 1,
+          "end": 2.4875
+        },
+        {
+          "word": "Open",
+          "start": 2.4875,
+          "end": 2.85
+        },
+        {
+          "word": "View",
+          "start": 2.85,
+          "end": 3.425
+        },
+        {
+          "word": "then",
+          "start": 3.425,
+          "end": 3.6125
+        },
+        {
+          "word": "Toggle",
+          "start": 3.6125,
+          "end": 3.975
+        },
+        {
+          "word": "Review",
+          "start": 3.975,
+          "end": 4.325
+        },
+        {
+          "word": "Panel",
+          "start": 4.325,
+          "end": 4.875
+        },
+        {
+          "word": "and",
+          "start": 4.875,
+          "end": 5
+        },
+        {
+          "word": "pick",
+          "start": 5,
+          "end": 5.225
+        },
+        {
+          "word": "the",
+          "start": 5.225,
+          "end": 5.3375
+        },
+        {
+          "word": "Terminal",
+          "start": 5.3375,
+          "end": 5.8
+        },
+        {
+          "word": "tab",
+          "start": 5.8,
+          "end": 7.0875
+        },
+        {
+          "word": "No",
+          "start": 7.0875,
+          "end": 7.3625
+        },
+        {
+          "word": "tab",
+          "start": 7.3625,
+          "end": 8.7
+        },
+        {
+          "word": "Select",
+          "start": 8.7,
+          "end": 9.475
+        },
+        {
+          "word": "and",
+          "start": 9.475,
+          "end": 9.6375
+        },
+        {
+          "word": "then",
+          "start": 9.6375,
+          "end": 9.9
+        },
+        {
+          "word": "Terminal",
+          "start": 9.9,
+          "end": 10.15
+        }
+      ],
+      "voice": "en-GB-RyanNeural"
+    },
+    {
+      "id": "bo.gear.brief.02",
+      "speaker": "Bo",
+      "text": "Every tool gets a version check there. Here, each tool is a piece of my gear, and four pieces have gone walkabout round the village.",
+      "duration": 8.607,
+      "files": {
+        "webm": "bo.gear.brief.02.webm",
+        "m4a": "bo.gear.brief.02.m4a"
+      },
+      "hash": "d9f3a162c8febb40",
+      "words": [
+        {
+          "word": "Every",
+          "start": 0.05,
+          "end": 0.35
+        },
+        {
+          "word": "tool",
+          "start": 0.35,
+          "end": 0.65
+        },
+        {
+          "word": "gets",
+          "start": 0.65,
+          "end": 0.9
+        },
+        {
+          "word": "a",
+          "start": 0.9,
+          "end": 0.975
+        },
+        {
+          "word": "version",
+          "start": 0.975,
+          "end": 1.3875
+        },
+        {
+          "word": "check",
+          "start": 1.3875,
+          "end": 1.65
+        },
+        {
+          "word": "there",
+          "start": 1.65,
+          "end": 2.7625
+        },
+        {
+          "word": "Here",
+          "start": 2.7625,
+          "end": 3.2625
+        },
+        {
+          "word": "each",
+          "start": 3.2625,
+          "end": 3.5
+        },
+        {
+          "word": "tool",
+          "start": 3.5,
+          "end": 3.8125
+        },
+        {
+          "word": "is",
+          "start": 3.8125,
+          "end": 3.925
+        },
+        {
+          "word": "a",
+          "start": 3.925,
+          "end": 4.0125
+        },
+        {
+          "word": "piece",
+          "start": 4.0125,
+          "end": 4.2875
+        },
+        {
+          "word": "of",
+          "start": 4.2875,
+          "end": 4.3875
+        },
+        {
+          "word": "my",
+          "start": 4.3875,
+          "end": 4.575
+        },
+        {
+          "word": "gear",
+          "start": 4.575,
+          "end": 5.25
+        },
+        {
+          "word": "and",
+          "start": 5.25,
+          "end": 5.3875
+        },
+        {
+          "word": "four",
+          "start": 5.3875,
+          "end": 5.6375
+        },
+        {
+          "word": "pieces",
+          "start": 5.6375,
+          "end": 6.025
+        },
+        {
+          "word": "have",
+          "start": 6.025,
+          "end": 6.15
+        },
+        {
+          "word": "gone",
+          "start": 6.15,
+          "end": 6.3625
+        },
+        {
+          "word": "walkabout",
+          "start": 6.3625,
+          "end": 6.9125
+        },
+        {
+          "word": "round",
+          "start": 6.9125,
+          "end": 7.1875
+        },
+        {
+          "word": "the",
+          "start": 7.1875,
+          "end": 7.2625
+        },
+        {
+          "word": "village",
+          "start": 7.2625,
+          "end": 7.5125
+        }
+      ],
+      "voice": "en-GB-RyanNeural"
+    },
+    {
+      "id": "bo.gear.brief.03",
+      "speaker": "Bo",
+      "text": "My compass, a lantern, a rope coil, and my spyglass. Hang them on the rack by my door, and each hook runs its check.",
+      "duration": 9.208,
+      "files": {
+        "webm": "bo.gear.brief.03.webm",
+        "m4a": "bo.gear.brief.03.m4a"
+      },
+      "hash": "b541502bb6d9fbab",
+      "words": [
+        {
+          "word": "My",
+          "start": 0.05,
+          "end": 0.3375
+        },
+        {
+          "word": "compass",
+          "start": 0.3375,
+          "end": 1.1625
+        },
+        {
+          "word": "a",
+          "start": 1.1625,
+          "end": 1.2125
+        },
+        {
+          "word": "lantern",
+          "start": 1.2125,
+          "end": 1.975
+        },
+        {
+          "word": "a",
+          "start": 1.975,
+          "end": 2.0375
+        },
+        {
+          "word": "rope",
+          "start": 2.0375,
+          "end": 2.3375
+        },
+        {
+          "word": "coil",
+          "start": 2.3375,
+          "end": 2.9
+        },
+        {
+          "word": "and",
+          "start": 2.9,
+          "end": 3
+        },
+        {
+          "word": "my",
+          "start": 3,
+          "end": 3.1875
+        },
+        {
+          "word": "spyglass",
+          "start": 3.1875,
+          "end": 4.875
+        },
+        {
+          "word": "Hang",
+          "start": 4.875,
+          "end": 5.175
+        },
+        {
+          "word": "them",
+          "start": 5.175,
+          "end": 5.3125
+        },
+        {
+          "word": "on",
+          "start": 5.3125,
+          "end": 5.425
+        },
+        {
+          "word": "the",
+          "start": 5.425,
+          "end": 5.5125
+        },
+        {
+          "word": "rack",
+          "start": 5.5125,
+          "end": 5.75
+        },
+        {
+          "word": "by",
+          "start": 5.75,
+          "end": 5.9
+        },
+        {
+          "word": "my",
+          "start": 5.9,
+          "end": 6.1
+        },
+        {
+          "word": "door",
+          "start": 6.1,
+          "end": 6.9
+        },
+        {
+          "word": "and",
+          "start": 6.9,
+          "end": 7.0375
+        },
+        {
+          "word": "each",
+          "start": 7.0375,
+          "end": 7.25
+        },
+        {
+          "word": "hook",
+          "start": 7.25,
+          "end": 7.4375
+        },
+        {
+          "word": "runs",
+          "start": 7.4375,
+          "end": 7.725
+        },
+        {
+          "word": "its",
+          "start": 7.725,
+          "end": 7.925
+        },
+        {
+          "word": "check",
+          "start": 7.925,
+          "end": 8.175
+        }
+      ],
+      "voice": "en-GB-RyanNeural"
+    },
+    {
+      "id": "bo.gear.reminder.01",
+      "speaker": "Bo",
+      "text": "Hang the gear on my rack, Captain. Each hook runs its version check.",
+      "duration": 5.708,
+      "files": {
+        "webm": "bo.gear.reminder.01.webm",
+        "m4a": "bo.gear.reminder.01.m4a"
+      },
+      "hash": "16b7434f201236e5",
+      "words": [
+        {
+          "word": "Hang",
+          "start": 0.05,
+          "end": 0.3375
+        },
+        {
+          "word": "the",
+          "start": 0.3375,
+          "end": 0.4375
+        },
+        {
+          "word": "gear",
+          "start": 0.4375,
+          "end": 0.7375
+        },
+        {
+          "word": "on",
+          "start": 0.7375,
+          "end": 0.9
+        },
+        {
+          "word": "my",
+          "start": 0.9,
+          "end": 1.05
+        },
+        {
+          "word": "rack",
+          "start": 1.05,
+          "end": 1.6625
+        },
+        {
+          "word": "Captain",
+          "start": 1.6625,
+          "end": 3.1
+        },
+        {
+          "word": "Each",
+          "start": 3.1,
+          "end": 3.4
+        },
+        {
+          "word": "hook",
+          "start": 3.4,
+          "end": 3.5875
+        },
+        {
+          "word": "runs",
+          "start": 3.5875,
+          "end": 3.875
+        },
+        {
+          "word": "its",
+          "start": 3.875,
+          "end": 4.0375
+        },
+        {
+          "word": "version",
+          "start": 4.0375,
+          "end": 4.475
+        },
+        {
+          "word": "check",
+          "start": 4.475,
+          "end": 4.725
+        }
+      ],
+      "voice": "en-GB-RyanNeural"
+    },
+    {
+      "id": "bo.ledger.reminder.01",
+      "speaker": "Bo",
+      "text": "Read my ledger there on the lectern. Whose signature is on it?",
+      "duration": 4.708,
+      "files": {
+        "webm": "bo.ledger.reminder.01.webm",
+        "m4a": "bo.ledger.reminder.01.m4a"
+      },
+      "hash": "ccfa8179d3ce4755",
+      "words": [
+        {
+          "word": "Read",
+          "start": 0.05,
+          "end": 0.375
+        },
+        {
+          "word": "my",
+          "start": 0.375,
+          "end": 0.525
+        },
+        {
+          "word": "ledger",
+          "start": 0.525,
+          "end": 0.8875
+        },
+        {
+          "word": "there",
+          "start": 0.8875,
+          "end": 1.05
+        },
+        {
+          "word": "on",
+          "start": 1.05,
+          "end": 1.2
+        },
+        {
+          "word": "the",
+          "start": 1.2,
+          "end": 1.275
+        },
+        {
+          "word": "lectern",
+          "start": 1.275,
+          "end": 2.6125
+        },
+        {
+          "word": "Whose",
+          "start": 2.6125,
+          "end": 2.9
+        },
+        {
+          "word": "signature",
+          "start": 2.9,
+          "end": 3.3125
+        },
+        {
+          "word": "is",
+          "start": 3.3125,
+          "end": 3.475
+        },
+        {
+          "word": "on",
+          "start": 3.475,
+          "end": 3.625
+        },
+        {
+          "word": "it",
+          "start": 3.625,
+          "end": 3.875
+        }
+      ],
+      "voice": "en-GB-RyanNeural"
+    },
+    {
+      "id": "bo.gear.missing.01",
+      "speaker": "Bo",
+      "text": "“Command not found.” No lens, no GitHub CLI. That one’s missing.",
+      "duration": 7.107,
+      "files": {
+        "webm": "bo.gear.missing.01.webm",
+        "m4a": "bo.gear.missing.01.m4a"
+      },
+      "hash": "b12a0cec5598618b",
+      "words": [
+        {
+          "word": "“Command",
+          "start": 0.05,
+          "end": 0.5
+        },
+        {
+          "word": "not",
+          "start": 0.5,
+          "end": 0.7125
+        },
+        {
+          "word": "found",
+          "start": 0.7125,
+          "end": 2.125
+        },
+        {
+          "word": "” No",
+          "start": 2.125,
+          "end": 2.4375
+        },
+        {
+          "word": "lens",
+          "start": 2.4375,
+          "end": 3.0625
+        },
+        {
+          "word": "no",
+          "start": 3.0625,
+          "end": 3.325
+        },
+        {
+          "word": "GitHub",
+          "start": 3.325,
+          "end": 3.775
+        },
+        {
+          "word": "CLI",
+          "start": 3.775,
+          "end": 5.225
+        },
+        {
+          "word": "That",
+          "start": 5.225,
+          "end": 5.475
+        },
+        {
+          "word": "one’s",
+          "start": 5.475,
+          "end": 5.7625
+        },
+        {
+          "word": "missing",
+          "start": 5.7625,
+          "end": 6.0125
+        }
+      ],
+      "voice": "en-GB-RyanNeural"
+    },
+    {
+      "id": "bo.gear.missing.02",
+      "speaker": "Bo",
+      "text": "Only install what’s missing, then check again. The chandler at the market stall keeps spare lenses.",
+      "duration": 7.108,
+      "files": {
+        "webm": "bo.gear.missing.02.webm",
+        "m4a": "bo.gear.missing.02.m4a"
+      },
+      "hash": "1d4093a599271aa0",
+      "words": [
+        {
+          "word": "Only",
+          "start": 0.05,
+          "end": 0.375
+        },
+        {
+          "word": "install",
+          "start": 0.375,
+          "end": 0.8375
+        },
+        {
+          "word": "what’s",
+          "start": 0.8375,
+          "end": 1.0875
+        },
+        {
+          "word": "missing",
+          "start": 1.0875,
+          "end": 1.6875
+        },
+        {
+          "word": "then",
+          "start": 1.6875,
+          "end": 1.85
+        },
+        {
+          "word": "check",
+          "start": 1.85,
+          "end": 2.075
+        },
+        {
+          "word": "again",
+          "start": 2.075,
+          "end": 3.3625
+        },
+        {
+          "word": "The",
+          "start": 3.3625,
+          "end": 3.525
+        },
+        {
+          "word": "chandler",
+          "start": 3.525,
+          "end": 4.0125
+        },
+        {
+          "word": "at",
+          "start": 4.0125,
+          "end": 4.125
+        },
+        {
+          "word": "the",
+          "start": 4.125,
+          "end": 4.2125
+        },
+        {
+          "word": "market",
+          "start": 4.2125,
+          "end": 4.6375
+        },
+        {
+          "word": "stall",
+          "start": 4.6375,
+          "end": 5
+        },
+        {
+          "word": "keeps",
+          "start": 5,
+          "end": 5.3
+        },
+        {
+          "word": "spare",
+          "start": 5.3,
+          "end": 5.575
+        },
+        {
+          "word": "lenses",
+          "start": 5.575,
+          "end": 5.825
+        }
+      ],
+      "voice": "en-GB-RyanNeural"
+    },
+    {
+      "id": "bo.gear.checked.01",
+      "speaker": "Bo",
+      "text": "Four checks, four versions. That’s a ship I’d sail. Let’s see if you remember which is which.",
+      "duration": 7.607,
+      "files": {
+        "webm": "bo.gear.checked.01.webm",
+        "m4a": "bo.gear.checked.01.m4a"
+      },
+      "hash": "33c4a7fbb8598556",
+      "words": [
+        {
+          "word": "Four",
+          "start": 0.05,
+          "end": 0.2375
+        },
+        {
+          "word": "checks",
+          "start": 0.2375,
+          "end": 0.9375
+        },
+        {
+          "word": "four",
+          "start": 0.9375,
+          "end": 1.0625
+        },
+        {
+          "word": "versions",
+          "start": 1.0625,
+          "end": 2.6875
+        },
+        {
+          "word": "That’s",
+          "start": 2.6875,
+          "end": 2.95
+        },
+        {
+          "word": "a",
+          "start": 2.95,
+          "end": 3.0125
+        },
+        {
+          "word": "ship",
+          "start": 3.0125,
+          "end": 3.2875
+        },
+        {
+          "word": "I’d",
+          "start": 3.2875,
+          "end": 3.5
+        },
+        {
+          "word": "sail",
+          "start": 3.5,
+          "end": 4.875
+        },
+        {
+          "word": "Let’s",
+          "start": 4.875,
+          "end": 5.1875
+        },
+        {
+          "word": "see",
+          "start": 5.1875,
+          "end": 5.4
+        },
+        {
+          "word": "if",
+          "start": 5.4,
+          "end": 5.5
+        },
+        {
+          "word": "you",
+          "start": 5.5,
+          "end": 5.6
+        },
+        {
+          "word": "remember",
+          "start": 5.6,
+          "end": 5.9625
+        },
+        {
+          "word": "which",
+          "start": 5.9625,
+          "end": 6.225
+        },
+        {
+          "word": "is",
+          "start": 6.225,
+          "end": 6.3375
+        },
+        {
+          "word": "which",
+          "start": 6.3375,
+          "end": 6.5875
+        }
+      ],
+      "voice": "en-GB-RyanNeural"
+    },
+    {
+      "id": "bo.gear.checked.02",
+      "speaker": "Bo",
+      "text": "One more thing. GitHub CLI has its own sign-in, separate from the app. Read my ledger, there on the lectern.",
+      "duration": 8.807,
+      "files": {
+        "webm": "bo.gear.checked.02.webm",
+        "m4a": "bo.gear.checked.02.m4a"
+      },
+      "hash": "9ede29720dce0d14",
+      "words": [
+        {
+          "word": "One",
+          "start": 0.05,
+          "end": 0.3625
+        },
+        {
+          "word": "more",
+          "start": 0.3625,
+          "end": 0.55
+        },
+        {
+          "word": "thing",
+          "start": 0.55,
+          "end": 1.8125
+        },
+        {
+          "word": "GitHub",
+          "start": 1.8125,
+          "end": 2.3125
+        },
+        {
+          "word": "CLI",
+          "start": 2.3125,
+          "end": 2.85
+        },
+        {
+          "word": "has",
+          "start": 2.85,
+          "end": 3.0375
+        },
+        {
+          "word": "its",
+          "start": 3.0375,
+          "end": 3.1875
+        },
+        {
+          "word": "own",
+          "start": 3.1875,
+          "end": 3.425
+        },
+        {
+          "word": "sign-in",
+          "start": 3.425,
+          "end": 4.125
+        },
+        {
+          "word": "separate",
+          "start": 4.125,
+          "end": 4.5375
+        },
+        {
+          "word": "from",
+          "start": 4.5375,
+          "end": 4.7
+        },
+        {
+          "word": "the",
+          "start": 4.7,
+          "end": 4.825
+        },
+        {
+          "word": "app.",
+          "start": 4.825,
+          "end": 5.9875
+        },
+        {
+          "word": "Read",
+          "start": 5.9875,
+          "end": 6.3125
+        },
+        {
+          "word": "my",
+          "start": 6.3125,
+          "end": 6.4625
+        },
+        {
+          "word": "ledger",
+          "start": 6.4625,
+          "end": 7.125
+        },
+        {
+          "word": "there",
+          "start": 7.125,
+          "end": 7.2625
+        },
+        {
+          "word": "on",
+          "start": 7.2625,
+          "end": 7.4125
+        },
+        {
+          "word": "the",
+          "start": 7.4125,
+          "end": 7.4875
+        },
+        {
+          "word": "lectern",
+          "start": 7.4875,
+          "end": 7.7375
+        }
+      ],
+      "voice": "en-GB-RyanNeural"
+    },
+    {
+      "id": "bo.ledger.01",
+      "speaker": "Bo",
+      "text": "Logged in as someone-else? That’s not your signature, Captain.",
+      "duration": 5.108,
+      "files": {
+        "webm": "bo.ledger.01.webm",
+        "m4a": "bo.ledger.01.m4a"
+      },
+      "hash": "d6a33fdfe0c6a746",
+      "words": [
+        {
+          "word": "Logged",
+          "start": 0.05,
+          "end": 0.3625
+        },
+        {
+          "word": "in",
+          "start": 0.3625,
+          "end": 0.475
+        },
+        {
+          "word": "as",
+          "start": 0.475,
+          "end": 0.5875
+        },
+        {
+          "word": "someone-else",
+          "start": 0.5875,
+          "end": 2.1375
+        },
+        {
+          "word": "That’s",
+          "start": 2.1375,
+          "end": 2.425
+        },
+        {
+          "word": "not",
+          "start": 2.425,
+          "end": 2.625
+        },
+        {
+          "word": "your",
+          "start": 2.625,
+          "end": 2.7625
+        },
+        {
+          "word": "signature",
+          "start": 2.7625,
+          "end": 3.65
+        },
+        {
+          "word": "Captain",
+          "start": 3.65,
+          "end": 3.9
+        }
+      ],
+      "voice": "en-GB-RyanNeural"
+    },
+    {
+      "id": "bo.signed.01",
+      "speaker": "Bo",
+      "text": "Logged in as you. Deck’s ready, gear’s checked, and your signature’s your own.",
+      "duration": 5.808,
+      "files": {
+        "webm": "bo.signed.01.webm",
+        "m4a": "bo.signed.01.m4a"
+      },
+      "hash": "975f681c3f516d26",
+      "words": [
+        {
+          "word": "Logged",
+          "start": 0.05,
+          "end": 0.425
+        },
+        {
+          "word": "in",
+          "start": 0.425,
+          "end": 0.55
+        },
+        {
+          "word": "as",
+          "start": 0.55,
+          "end": 0.6625
+        },
+        {
+          "word": "you",
+          "start": 0.6625,
+          "end": 1.775
+        },
+        {
+          "word": "Deck’s",
+          "start": 1.775,
+          "end": 2.125
+        },
+        {
+          "word": "ready",
+          "start": 2.125,
+          "end": 2.7375
+        },
+        {
+          "word": "gear’s",
+          "start": 2.7375,
+          "end": 2.9875
+        },
+        {
+          "word": "checked",
+          "start": 2.9875,
+          "end": 3.575
+        },
+        {
+          "word": "and",
+          "start": 3.575,
+          "end": 3.675
+        },
+        {
+          "word": "your",
+          "start": 3.675,
+          "end": 3.825
+        },
+        {
+          "word": "signature’s",
+          "start": 3.825,
+          "end": 4.4
+        },
+        {
+          "word": "your",
+          "start": 4.4,
+          "end": 4.6
+        },
+        {
+          "word": "own",
+          "start": 4.6,
+          "end": 4.85
+        }
+      ],
+      "voice": "en-GB-RyanNeural"
+    },
+    {
+      "id": "bo.signed.02",
+      "speaker": "Bo",
+      "text": "One more job before the practice work: Suri Okoye at the mill race, past the storehouse. Her wheel’s been dry since your fork arrived.",
+      "duration": 9.508,
+      "files": {
+        "webm": "bo.signed.02.webm",
+        "m4a": "bo.signed.02.m4a"
+      },
+      "hash": "9d9fc44860776d4b",
+      "words": [
+        {
+          "word": "One",
+          "start": 0.05,
+          "end": 0.3375
+        },
+        {
+          "word": "more",
+          "start": 0.3375,
+          "end": 0.5625
+        },
+        {
+          "word": "job",
+          "start": 0.5625,
+          "end": 0.85
+        },
+        {
+          "word": "before",
+          "start": 0.85,
+          "end": 1.1375
+        },
+        {
+          "word": "the",
+          "start": 1.1375,
+          "end": 1.2625
+        },
+        {
+          "word": "practice",
+          "start": 1.2625,
+          "end": 1.6875
+        },
+        {
+          "word": "work",
+          "start": 1.6875,
+          "end": 2.2625
+        },
+        {
+          "word": "Suri",
+          "start": 2.2625,
+          "end": 2.5875
+        },
+        {
+          "word": "Okoye",
+          "start": 2.5875,
+          "end": 3.2125
+        },
+        {
+          "word": "at",
+          "start": 3.2125,
+          "end": 3.3125
+        },
+        {
+          "word": "the",
+          "start": 3.3125,
+          "end": 3.3875
+        },
+        {
+          "word": "mill",
+          "start": 3.3875,
+          "end": 3.65
+        },
+        {
+          "word": "race",
+          "start": 3.65,
+          "end": 4.275
+        },
+        {
+          "word": "past",
+          "start": 4.275,
+          "end": 4.6375
+        },
+        {
+          "word": "the",
+          "start": 4.6375,
+          "end": 4.725
+        },
+        {
+          "word": "storehouse",
+          "start": 4.725,
+          "end": 6.3125
+        },
+        {
+          "word": "Her",
+          "start": 6.3125,
+          "end": 6.5125
+        },
+        {
+          "word": "wheel’s",
+          "start": 6.5125,
+          "end": 6.85
+        },
+        {
+          "word": "been",
+          "start": 6.85,
+          "end": 7.0125
+        },
+        {
+          "word": "dry",
+          "start": 7.0125,
+          "end": 7.2625
+        },
+        {
+          "word": "since",
+          "start": 7.2625,
+          "end": 7.5375
+        },
+        {
+          "word": "your",
+          "start": 7.5375,
+          "end": 7.7
+        },
+        {
+          "word": "fork",
+          "start": 7.7,
+          "end": 8.025
+        },
+        {
+          "word": "arrived",
+          "start": 8.025,
+          "end": 8.275
+        }
+      ],
+      "voice": "en-GB-RyanNeural"
+    },
+    {
+      "id": "juno.brief.01",
+      "speaker": "Juno",
+      "text": "Juno, your first mate. Setup’s done, so let’s give the crew their first order.",
+      "duration": 4.608,
+      "files": {
+        "webm": "juno.brief.01.webm",
+        "m4a": "juno.brief.01.m4a"
+      },
+      "hash": "d1621e5d69b27926",
+      "words": [
+        {
+          "word": "Juno",
+          "start": 0.07,
+          "end": 0.27
+        },
+        {
+          "word": "your",
+          "start": 0.27,
+          "end": 0.75
+        },
+        {
+          "word": "first",
+          "start": 0.75,
+          "end": 1.15
+        },
+        {
+          "word": "mate",
+          "start": 1.15,
+          "end": 1.95
+        },
+        {
+          "word": "Setup’s",
+          "start": 1.95,
+          "end": 2.429
+        },
+        {
+          "word": "done",
+          "start": 2.429,
+          "end": 2.869
+        },
+        {
+          "word": "so",
+          "start": 2.869,
+          "end": 3.11
+        },
+        {
+          "word": "let’s",
+          "start": 3.11,
+          "end": 3.309
+        },
+        {
+          "word": "give",
+          "start": 3.309,
+          "end": 3.469
+        },
+        {
+          "word": "the",
+          "start": 3.469,
+          "end": 3.59
+        },
+        {
+          "word": "crew",
+          "start": 3.59,
+          "end": 3.75
+        },
+        {
+          "word": "their",
+          "start": 3.75,
+          "end": 3.949
+        },
+        {
+          "word": "first",
+          "start": 3.949,
+          "end": 4.19
+        },
+        {
+          "word": "order",
+          "start": 4.19,
+          "end": 4.44
+        }
+      ],
+      "voice": "en-US-Ava:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.brief.02",
+      "speaker": "Juno",
+      "text": "In the app, you’d send this to the agent from your project session:",
+      "duration": 3.308,
+      "files": {
+        "webm": "juno.brief.02.webm",
+        "m4a": "juno.brief.02.m4a"
+      },
+      "hash": "bde1f8d404f68183",
+      "words": [
+        {
+          "word": "In",
+          "start": 0.07,
+          "end": 0.15
+        },
+        {
+          "word": "the",
+          "start": 0.15,
+          "end": 0.35
+        },
+        {
+          "word": "app",
+          "start": 0.35,
+          "end": 0.75
+        },
+        {
+          "word": "you’d",
+          "start": 0.75,
+          "end": 1.03
+        },
+        {
+          "word": "send",
+          "start": 1.03,
+          "end": 1.23
+        },
+        {
+          "word": "this",
+          "start": 1.23,
+          "end": 1.39
+        },
+        {
+          "word": "to",
+          "start": 1.39,
+          "end": 1.51
+        },
+        {
+          "word": "the",
+          "start": 1.51,
+          "end": 1.67
+        },
+        {
+          "word": "agent",
+          "start": 1.67,
+          "end": 2.07
+        },
+        {
+          "word": "from",
+          "start": 2.07,
+          "end": 2.23
+        },
+        {
+          "word": "your",
+          "start": 2.23,
+          "end": 2.389
+        },
+        {
+          "word": "project",
+          "start": 2.389,
+          "end": 2.789
+        },
+        {
+          "word": "session",
+          "start": 2.789,
+          "end": 3.039
+        }
+      ],
+      "voice": "en-US-Ava:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.brief.03",
+      "speaker": "Juno",
+      "text": "“Give me an overview of the copilot-app-for-beginners course repository. Focus on the learning path and the samples/book-app-web folder.”",
+      "duration": 8.807,
+      "files": {
+        "webm": "juno.brief.03.webm",
+        "m4a": "juno.brief.03.m4a"
+      },
+      "hash": "b39845ec27949b59",
+      "words": [
+        {
+          "word": "Give",
+          "start": 0.076,
+          "end": 0.25
+        },
+        {
+          "word": "me",
+          "start": 0.25,
+          "end": 0.336
+        },
+        {
+          "word": "an",
+          "start": 0.336,
+          "end": 0.467
+        },
+        {
+          "word": "overview",
+          "start": 0.467,
+          "end": 1.119
+        },
+        {
+          "word": "of",
+          "start": 1.119,
+          "end": 1.25
+        },
+        {
+          "word": "the",
+          "start": 1.25,
+          "end": 1.38
+        },
+        {
+          "word": "copilot-app-for-beginners",
+          "start": 1.38,
+          "end": 2.902
+        },
+        {
+          "word": "course",
+          "start": 2.902,
+          "end": 3.248
+        },
+        {
+          "word": "repository",
+          "start": 3.248,
+          "end": 4.423
+        },
+        {
+          "word": "Focus",
+          "start": 4.423,
+          "end": 4.902
+        },
+        {
+          "word": "on",
+          "start": 4.902,
+          "end": 4.989
+        },
+        {
+          "word": "the",
+          "start": 4.989,
+          "end": 5.119
+        },
+        {
+          "word": "learning",
+          "start": 5.119,
+          "end": 5.51
+        },
+        {
+          "word": "path",
+          "start": 5.51,
+          "end": 5.902
+        },
+        {
+          "word": "and",
+          "start": 5.902,
+          "end": 6.032
+        },
+        {
+          "word": "the",
+          "start": 6.032,
+          "end": 6.163
+        },
+        {
+          "word": "samples",
+          "start": 6.163,
+          "end": 7.293
+        },
+        {
+          "word": "book-app-web",
+          "start": 7.293,
+          "end": 8.206
+        },
+        {
+          "word": "folder",
+          "start": 8.206,
+          "end": 8.456
+        }
+      ],
+      "voice": "en-US-Ava:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.brief.04",
+      "speaker": "Juno",
+      "text": "You’ve been running commands in Terminal all morning. This one’s different. It’s a request for the agent.",
+      "duration": 6.108,
+      "files": {
+        "webm": "juno.brief.04.webm",
+        "m4a": "juno.brief.04.m4a"
+      },
+      "hash": "04719745e782fd7b",
+      "words": [
+        {
+          "word": "You’ve",
+          "start": 0.07,
+          "end": 0.43
+        },
+        {
+          "word": "been",
+          "start": 0.43,
+          "end": 0.71
+        },
+        {
+          "word": "running",
+          "start": 0.71,
+          "end": 1.27
+        },
+        {
+          "word": "commands",
+          "start": 1.27,
+          "end": 2.029
+        },
+        {
+          "word": "in",
+          "start": 2.029,
+          "end": 2.15
+        },
+        {
+          "word": "Terminal",
+          "start": 2.15,
+          "end": 2.67
+        },
+        {
+          "word": "all",
+          "start": 2.67,
+          "end": 2.789
+        },
+        {
+          "word": "morning",
+          "start": 2.789,
+          "end": 3.07
+        },
+        {
+          "word": "This",
+          "start": 3.07,
+          "end": 3.389
+        },
+        {
+          "word": "one’s",
+          "start": 3.389,
+          "end": 3.63
+        },
+        {
+          "word": "different",
+          "start": 3.63,
+          "end": 4.47
+        },
+        {
+          "word": "It’s",
+          "start": 4.47,
+          "end": 4.75
+        },
+        {
+          "word": "a",
+          "start": 4.75,
+          "end": 4.79
+        },
+        {
+          "word": "request",
+          "start": 4.79,
+          "end": 5.27
+        },
+        {
+          "word": "for",
+          "start": 5.27,
+          "end": 5.39
+        },
+        {
+          "word": "the",
+          "start": 5.39,
+          "end": 5.51
+        },
+        {
+          "word": "agent",
+          "start": 5.51,
+          "end": 5.76
+        }
+      ],
+      "voice": "en-US-Ava:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.brief.05",
+      "speaker": "Juno",
+      "text": "Two fittings on the rail, just behind me. The brass speaking tube goes up to the crew, and the iron hatch goes down to the engine room. Your call, Captain.",
+      "duration": 8.608,
+      "files": {
+        "webm": "juno.brief.05.webm",
+        "m4a": "juno.brief.05.m4a"
+      },
+      "hash": "3e293b5ad0f50c61",
+      "words": [
+        {
+          "word": "Two",
+          "start": 0.07,
+          "end": 0.23
+        },
+        {
+          "word": "fittings",
+          "start": 0.23,
+          "end": 0.59
+        },
+        {
+          "word": "on",
+          "start": 0.59,
+          "end": 0.67
+        },
+        {
+          "word": "the",
+          "start": 0.67,
+          "end": 0.79
+        },
+        {
+          "word": "rail",
+          "start": 0.79,
+          "end": 1.11
+        },
+        {
+          "word": "just",
+          "start": 1.11,
+          "end": 1.35
+        },
+        {
+          "word": "behind",
+          "start": 1.35,
+          "end": 1.71
+        },
+        {
+          "word": "me",
+          "start": 1.71,
+          "end": 2.23
+        },
+        {
+          "word": "The",
+          "start": 2.23,
+          "end": 2.429
+        },
+        {
+          "word": "brass",
+          "start": 2.429,
+          "end": 2.789
+        },
+        {
+          "word": "speaking",
+          "start": 2.789,
+          "end": 3.15
+        },
+        {
+          "word": "tube",
+          "start": 3.15,
+          "end": 3.429
+        },
+        {
+          "word": "goes",
+          "start": 3.429,
+          "end": 3.63
+        },
+        {
+          "word": "up",
+          "start": 3.63,
+          "end": 3.75
+        },
+        {
+          "word": "to",
+          "start": 3.75,
+          "end": 3.869
+        },
+        {
+          "word": "the",
+          "start": 3.869,
+          "end": 3.989
+        },
+        {
+          "word": "crew",
+          "start": 3.989,
+          "end": 4.47
+        },
+        {
+          "word": "and",
+          "start": 4.47,
+          "end": 4.71
+        },
+        {
+          "word": "the",
+          "start": 4.71,
+          "end": 4.87
+        },
+        {
+          "word": "iron",
+          "start": 4.87,
+          "end": 5.19
+        },
+        {
+          "word": "hatch",
+          "start": 5.19,
+          "end": 5.59
+        },
+        {
+          "word": "goes",
+          "start": 5.59,
+          "end": 5.83
+        },
+        {
+          "word": "down",
+          "start": 5.83,
+          "end": 6.11
+        },
+        {
+          "word": "to",
+          "start": 6.11,
+          "end": 6.19
+        },
+        {
+          "word": "the",
+          "start": 6.19,
+          "end": 6.31
+        },
+        {
+          "word": "engine",
+          "start": 6.31,
+          "end": 6.63
+        },
+        {
+          "word": "room",
+          "start": 6.63,
+          "end": 7.47
+        },
+        {
+          "word": "Your",
+          "start": 7.47,
+          "end": 7.71
+        },
+        {
+          "word": "call",
+          "start": 7.71,
+          "end": 7.99
+        },
+        {
+          "word": "Captain",
+          "start": 7.99,
+          "end": 8.24
+        }
+      ],
+      "voice": "en-US-Ava:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.pipes.01",
+      "speaker": "Juno",
+      "text": "It’s a request for the agent, not a command. Pick the fitting on the rail that carries it.",
+      "duration": 5.108,
+      "files": {
+        "webm": "juno.pipes.01.webm",
+        "m4a": "juno.pipes.01.m4a"
+      },
+      "hash": "8a244ffd7cdd0f82",
+      "words": [
+        {
+          "word": "It’s",
+          "start": 0.07,
+          "end": 0.23
+        },
+        {
+          "word": "a",
+          "start": 0.23,
+          "end": 0.27
+        },
+        {
+          "word": "request",
+          "start": 0.27,
+          "end": 0.75
+        },
+        {
+          "word": "for",
+          "start": 0.75,
+          "end": 0.91
+        },
+        {
+          "word": "the",
+          "start": 0.91,
+          "end": 1.07
+        },
+        {
+          "word": "agent",
+          "start": 1.07,
+          "end": 1.75
+        },
+        {
+          "word": "not",
+          "start": 1.75,
+          "end": 2.07
+        },
+        {
+          "word": "a",
+          "start": 2.07,
+          "end": 2.11
+        },
+        {
+          "word": "command",
+          "start": 2.11,
+          "end": 3.23
+        },
+        {
+          "word": "Pick",
+          "start": 3.23,
+          "end": 3.469
+        },
+        {
+          "word": "the",
+          "start": 3.469,
+          "end": 3.63
+        },
+        {
+          "word": "fitting",
+          "start": 3.63,
+          "end": 3.949
+        },
+        {
+          "word": "on",
+          "start": 3.949,
+          "end": 4.03
+        },
+        {
+          "word": "the",
+          "start": 4.03,
+          "end": 4.15
+        },
+        {
+          "word": "rail",
+          "start": 4.15,
+          "end": 4.35
+        },
+        {
+          "word": "that",
+          "start": 4.35,
+          "end": 4.51
+        },
+        {
+          "word": "carries",
+          "start": 4.51,
+          "end": 4.91
+        },
+        {
+          "word": "it",
+          "start": 4.91,
+          "end": 5.108
+        }
+      ],
+      "voice": "en-US-Ava:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.done.sealed.01",
+      "speaker": "Juno",
+      "text": "The crew’s proud of you, Captain. Wherever you sail next, they’re listening.",
+      "duration": 4.108,
+      "files": {
+        "webm": "juno.done.sealed.01.webm",
+        "m4a": "juno.done.sealed.01.m4a"
+      },
+      "hash": "d3d9557338f2eda5",
+      "words": [
+        {
+          "word": "The",
+          "start": 0.07,
+          "end": 0.19
+        },
+        {
+          "word": "crew’s",
+          "start": 0.19,
+          "end": 0.47
+        },
+        {
+          "word": "proud",
+          "start": 0.47,
+          "end": 0.75
+        },
+        {
+          "word": "of",
+          "start": 0.75,
+          "end": 0.83
+        },
+        {
+          "word": "you",
+          "start": 0.83,
+          "end": 0.95
+        },
+        {
+          "word": "Captain",
+          "start": 0.95,
+          "end": 1.71
+        },
+        {
+          "word": "Wherever",
+          "start": 1.71,
+          "end": 2.15
+        },
+        {
+          "word": "you",
+          "start": 2.15,
+          "end": 2.309
+        },
+        {
+          "word": "sail",
+          "start": 2.309,
+          "end": 2.51
+        },
+        {
+          "word": "next",
+          "start": 2.51,
+          "end": 3.15
+        },
+        {
+          "word": "they’re",
+          "start": 3.15,
+          "end": 3.469
+        },
+        {
+          "word": "listening",
+          "start": 3.469,
+          "end": 3.719
+        }
+      ],
+      "voice": "en-US-Ava:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.done.01",
+      "speaker": "Juno",
+      "text": "The crew knows the ship now. The Harbormaster’s Trial waits at the lighthouse.",
+      "duration": 4.508,
+      "files": {
+        "webm": "juno.done.01.webm",
+        "m4a": "juno.done.01.m4a"
+      },
+      "hash": "744275671f365599",
+      "words": [
+        {
+          "word": "The",
+          "start": 0.07,
+          "end": 0.23
+        },
+        {
+          "word": "crew",
+          "start": 0.23,
+          "end": 0.59
+        },
+        {
+          "word": "knows",
+          "start": 0.59,
+          "end": 0.91
+        },
+        {
+          "word": "the",
+          "start": 0.91,
+          "end": 1.03
+        },
+        {
+          "word": "ship",
+          "start": 1.03,
+          "end": 1.27
+        },
+        {
+          "word": "now",
+          "start": 1.27,
+          "end": 1.95
+        },
+        {
+          "word": "The",
+          "start": 1.95,
+          "end": 2.15
+        },
+        {
+          "word": "Harbormaster’s",
+          "start": 2.15,
+          "end": 2.829
+        },
+        {
+          "word": "Trial",
+          "start": 2.829,
+          "end": 3.349
+        },
+        {
+          "word": "waits",
+          "start": 3.349,
+          "end": 3.67
+        },
+        {
+          "word": "at",
+          "start": 3.67,
+          "end": 3.75
+        },
+        {
+          "word": "the",
+          "start": 3.75,
+          "end": 3.869
+        },
+        {
+          "word": "lighthouse",
+          "start": 3.869,
+          "end": 4.119
+        }
+      ],
+      "voice": "en-US-Ava:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.reply.01",
+      "speaker": "Juno",
+      "text": "Hear that? The crew’s answering.",
+      "duration": 1.758,
+      "files": {
+        "webm": "juno.reply.01.webm",
+        "m4a": "juno.reply.01.m4a"
+      },
+      "hash": "46baf46be994d978",
+      "words": [
+        {
+          "word": "Hear",
+          "start": 0.07,
+          "end": 0.23
+        },
+        {
+          "word": "that",
+          "start": 0.23,
+          "end": 0.79
+        },
+        {
+          "word": "The",
+          "start": 0.79,
+          "end": 0.95
+        },
+        {
+          "word": "crew’s",
+          "start": 0.95,
+          "end": 1.23
+        },
+        {
+          "word": "answering",
+          "start": 1.23,
+          "end": 1.48
+        }
+      ],
+      "voice": "en-US-Ava:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.reply.02",
+      "speaker": "Juno",
+      "text": "They’ve summed up the course, chapter by chapter, and flagged samples/book-app-web. That’s the web sample you’ll use in later exercises.",
+      "duration": 8.008,
+      "files": {
+        "webm": "juno.reply.02.webm",
+        "m4a": "juno.reply.02.m4a"
+      },
+      "hash": "c2af07ff3d970b84",
+      "words": [
+        {
+          "word": "They’ve",
+          "start": 0.07,
+          "end": 0.75
+        },
+        {
+          "word": "summed",
+          "start": 0.75,
+          "end": 1.31
+        },
+        {
+          "word": "up",
+          "start": 1.31,
+          "end": 1.39
+        },
+        {
+          "word": "the",
+          "start": 1.39,
+          "end": 1.55
+        },
+        {
+          "word": "course",
+          "start": 1.55,
+          "end": 1.91
+        },
+        {
+          "word": "chapter",
+          "start": 1.91,
+          "end": 2.59
+        },
+        {
+          "word": "by",
+          "start": 2.59,
+          "end": 2.67
+        },
+        {
+          "word": "chapter",
+          "start": 2.67,
+          "end": 2.949
+        },
+        {
+          "word": "and",
+          "start": 2.949,
+          "end": 3.07
+        },
+        {
+          "word": "flagged",
+          "start": 3.07,
+          "end": 3.349
+        },
+        {
+          "word": "samples",
+          "start": 3.349,
+          "end": 4.27
+        },
+        {
+          "word": "book-app-web",
+          "start": 4.27,
+          "end": 5.35
+        },
+        {
+          "word": "That’s",
+          "start": 5.35,
+          "end": 5.67
+        },
+        {
+          "word": "the",
+          "start": 5.67,
+          "end": 5.79
+        },
+        {
+          "word": "web",
+          "start": 5.79,
+          "end": 5.95
+        },
+        {
+          "word": "sample",
+          "start": 5.95,
+          "end": 6.27
+        },
+        {
+          "word": "you’ll",
+          "start": 6.27,
+          "end": 6.51
+        },
+        {
+          "word": "use",
+          "start": 6.51,
+          "end": 6.71
+        },
+        {
+          "word": "in",
+          "start": 6.71,
+          "end": 6.79
+        },
+        {
+          "word": "later",
+          "start": 6.79,
+          "end": 7.03
+        },
+        {
+          "word": "exercises",
+          "start": 7.03,
+          "end": 7.28
+        }
+      ],
+      "voice": "en-US-Ava:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.reply.03",
+      "speaker": "Juno",
+      "text": "Commands go to the Terminal. Requests go to the agent, through the prompt box. That’s setup done, Captain. The Harbormaster’s Trial waits at the lighthouse.",
+      "duration": 8.608,
+      "files": {
+        "webm": "juno.reply.03.webm",
+        "m4a": "juno.reply.03.m4a"
+      },
+      "hash": "9c793735e2c74704",
+      "words": [
+        {
+          "word": "Commands",
+          "start": 0.07,
+          "end": 0.51
+        },
+        {
+          "word": "go",
+          "start": 0.51,
+          "end": 0.67
+        },
+        {
+          "word": "to",
+          "start": 0.67,
+          "end": 0.75
+        },
+        {
+          "word": "the",
+          "start": 0.75,
+          "end": 0.87
+        },
+        {
+          "word": "Terminal",
+          "start": 0.87,
+          "end": 1.63
+        },
+        {
+          "word": "Requests",
+          "start": 1.63,
+          "end": 2.309
+        },
+        {
+          "word": "go",
+          "start": 2.309,
+          "end": 2.429
+        },
+        {
+          "word": "to",
+          "start": 2.429,
+          "end": 2.51
+        },
+        {
+          "word": "the",
+          "start": 2.51,
+          "end": 2.67
+        },
+        {
+          "word": "agent",
+          "start": 2.67,
+          "end": 3.07
+        },
+        {
+          "word": "through",
+          "start": 3.07,
+          "end": 3.429
+        },
+        {
+          "word": "the",
+          "start": 3.429,
+          "end": 3.55
+        },
+        {
+          "word": "prompt",
+          "start": 3.55,
+          "end": 3.789
+        },
+        {
+          "word": "box",
+          "start": 3.789,
+          "end": 4.67
+        },
+        {
+          "word": "That’s",
+          "start": 4.67,
+          "end": 4.95
+        },
+        {
+          "word": "setup",
+          "start": 4.95,
+          "end": 5.23
+        },
+        {
+          "word": "done",
+          "start": 5.23,
+          "end": 5.47
+        },
+        {
+          "word": "Captain",
+          "start": 5.47,
+          "end": 6.23
+        },
+        {
+          "word": "The",
+          "start": 6.23,
+          "end": 6.39
+        },
+        {
+          "word": "Harbormaster’s",
+          "start": 6.39,
+          "end": 7.03
+        },
+        {
+          "word": "Trial",
+          "start": 7.03,
+          "end": 7.47
+        },
+        {
+          "word": "waits",
+          "start": 7.47,
+          "end": 7.75
+        },
+        {
+          "word": "at",
+          "start": 7.75,
+          "end": 7.83
+        },
+        {
+          "word": "the",
+          "start": 7.83,
+          "end": 7.95
+        },
+        {
+          "word": "lighthouse",
+          "start": 7.95,
+          "end": 8.2
+        }
+      ],
+      "voice": "en-US-Ava:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.hatch.feedback.01",
+      "speaker": "Juno",
+      "text": "That went to the engine room, Captain. Terminal runs commands like git --version. Requests to the agent go in the prompt box.",
+      "duration": 5.507,
+      "files": {
+        "webm": "juno.hatch.feedback.01.webm",
+        "m4a": "juno.hatch.feedback.01.m4a"
+      },
+      "hash": "c8c81943f4ef1bac",
+      "words": [
+        {
+          "word": "That",
+          "start": 0.051,
+          "end": 0.17
+        },
+        {
+          "word": "went",
+          "start": 0.17,
+          "end": 0.288
+        },
+        {
+          "word": "to",
+          "start": 0.288,
+          "end": 0.348
+        },
+        {
+          "word": "the",
+          "start": 0.348,
+          "end": 0.437
+        },
+        {
+          "word": "engine",
+          "start": 0.437,
+          "end": 0.674
+        },
+        {
+          "word": "room",
+          "start": 0.674,
+          "end": 0.822
+        },
+        {
+          "word": "Captain",
+          "start": 0.822,
+          "end": 1.444
+        },
+        {
+          "word": "Terminal",
+          "start": 1.444,
+          "end": 1.859
+        },
+        {
+          "word": "runs",
+          "start": 1.859,
+          "end": 2.065
+        },
+        {
+          "word": "commands",
+          "start": 2.065,
+          "end": 2.392
+        },
+        {
+          "word": "like",
+          "start": 2.392,
+          "end": 2.569
+        },
+        {
+          "word": "git",
+          "start": 2.569,
+          "end": 3.074
+        },
+        {
+          "word": "version",
+          "start": 3.074,
+          "end": 3.725
+        },
+        {
+          "word": "Requests",
+          "start": 3.725,
+          "end": 4.111
+        },
+        {
+          "word": "to",
+          "start": 4.111,
+          "end": 4.17
+        },
+        {
+          "word": "the",
+          "start": 4.17,
+          "end": 4.288
+        },
+        {
+          "word": "agent",
+          "start": 4.288,
+          "end": 4.555
+        },
+        {
+          "word": "go",
+          "start": 4.555,
+          "end": 4.703
+        },
+        {
+          "word": "in",
+          "start": 4.703,
+          "end": 4.762
+        },
+        {
+          "word": "the",
+          "start": 4.762,
+          "end": 4.851
+        },
+        {
+          "word": "prompt",
+          "start": 4.851,
+          "end": 5.088
+        },
+        {
+          "word": "box",
+          "start": 5.088,
+          "end": 5.338
+        }
+      ],
+      "voice": "en-US-Ava:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.hatch.01",
+      "speaker": "Juno",
+      "text": "That went to the engine room, Captain. Terminal runs commands, not requests.",
+      "duration": 3.707,
+      "files": {
+        "webm": "juno.hatch.01.webm",
+        "m4a": "juno.hatch.01.m4a"
+      },
+      "hash": "6afcab5aea993bd9",
+      "words": [
+        {
+          "word": "That",
+          "start": 0.058,
+          "end": 0.224
+        },
+        {
+          "word": "went",
+          "start": 0.224,
+          "end": 0.391
+        },
+        {
+          "word": "to",
+          "start": 0.391,
+          "end": 0.458
+        },
+        {
+          "word": "the",
+          "start": 0.458,
+          "end": 0.558
+        },
+        {
+          "word": "engine",
+          "start": 0.558,
+          "end": 0.791
+        },
+        {
+          "word": "room",
+          "start": 0.791,
+          "end": 0.958
+        },
+        {
+          "word": "Captain",
+          "start": 0.958,
+          "end": 1.591
+        },
+        {
+          "word": "Terminal",
+          "start": 1.591,
+          "end": 1.99
+        },
+        {
+          "word": "runs",
+          "start": 1.99,
+          "end": 2.225
+        },
+        {
+          "word": "commands",
+          "start": 2.225,
+          "end": 2.824
+        },
+        {
+          "word": "not",
+          "start": 2.824,
+          "end": 3.025
+        },
+        {
+          "word": "requests",
+          "start": 3.025,
+          "end": 3.275
+        }
+      ],
+      "voice": "en-US-Ava:DragonHDLatestNeural"
+    },
+    {
+      "id": "pim.solved.03",
+      "speaker": "Pim",
+      "text": "Your first mate’s waiting by your ship, Captain. Juno’s got your first order ready.",
+      "duration": 5.507,
+      "files": {
+        "webm": "pim.solved.03.webm",
+        "m4a": "pim.solved.03.m4a"
+      },
+      "hash": "8b7cd6214667abce",
+      "words": [
+        {
+          "word": "Your",
+          "start": 0.044625,
+          "end": 0.200875
+        },
+        {
+          "word": "first",
+          "start": 0.200875,
+          "end": 0.513375
+        },
+        {
+          "word": "mate’s",
+          "start": 0.513375,
+          "end": 0.758916
+        },
+        {
+          "word": "waiting",
+          "start": 0.758916,
+          "end": 1.037958
+        },
+        {
+          "word": "by",
+          "start": 1.037958,
+          "end": 1.205375
+        },
+        {
+          "word": "your",
+          "start": 1.205375,
+          "end": 1.316958
+        },
+        {
+          "word": "ship",
+          "start": 1.316958,
+          "end": 1.785708
+        },
+        {
+          "word": "Captain",
+          "start": 1.785708,
+          "end": 2.957583
+        },
+        {
+          "word": "Juno’s",
+          "start": 2.957583,
+          "end": 3.404
+        },
+        {
+          "word": "got",
+          "start": 3.404,
+          "end": 3.582583
+        },
+        {
+          "word": "your",
+          "start": 3.582583,
+          "end": 3.705375
+        },
+        {
+          "word": "first",
+          "start": 3.705375,
+          "end": 4.0625
+        },
+        {
+          "word": "order",
+          "start": 4.0625,
+          "end": 4.330375
+        },
+        {
+          "word": "ready",
+          "start": 4.330375,
+          "end": 4.580375
+        }
+      ],
+      "voice": "en-IE-ConnorNeural"
+    },
+    {
+      "id": "nell.palette.02",
+      "speaker": "Nell",
+      "text": "Fine colours, Captain. Ezra the chartmaker’s expecting you.",
+      "duration": 4.508,
+      "files": {
+        "webm": "nell.palette.02.webm",
+        "m4a": "nell.palette.02.m4a"
+      },
+      "hash": "362760416f4b7265",
+      "words": [
+        {
+          "word": "Fine",
+          "start": 0.07,
+          "end": 0.47
+        },
+        {
+          "word": "colours",
+          "start": 0.47,
+          "end": 0.87
+        },
+        {
+          "word": "Captain",
+          "start": 0.87,
+          "end": 1.83
+        },
+        {
+          "word": "Ezra",
+          "start": 1.83,
+          "end": 2.71
+        },
+        {
+          "word": "the",
+          "start": 2.71,
+          "end": 2.909
+        },
+        {
+          "word": "chartmaker’s",
+          "start": 2.909,
+          "end": 3.55
+        },
+        {
+          "word": "expecting",
+          "start": 3.55,
+          "end": 4.11
+        },
+        {
+          "word": "you",
+          "start": 4.11,
+          "end": 4.36
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.papers.07",
+      "speaker": "Nell",
+      "text": "There’s a chest there too, with your first Logbook page. Open it first, then paint your sails and select Finish.",
+      "duration": 8.008,
+      "files": {
+        "webm": "nell.papers.07.webm",
+        "m4a": "nell.papers.07.m4a"
+      },
+      "hash": "7c486b084851632f",
+      "words": [
+        {
+          "word": "There’s",
+          "start": 0.07,
+          "end": 0.35
+        },
+        {
+          "word": "a",
+          "start": 0.35,
+          "end": 0.39
+        },
+        {
+          "word": "chest",
+          "start": 0.39,
+          "end": 0.67
+        },
+        {
+          "word": "there",
+          "start": 0.67,
+          "end": 0.91
+        },
+        {
+          "word": "too",
+          "start": 0.91,
+          "end": 1.43
+        },
+        {
+          "word": "with",
+          "start": 1.43,
+          "end": 1.67
+        },
+        {
+          "word": "your",
+          "start": 1.67,
+          "end": 1.83
+        },
+        {
+          "word": "first",
+          "start": 1.83,
+          "end": 2.27
+        },
+        {
+          "word": "Logbook",
+          "start": 2.27,
+          "end": 2.789
+        },
+        {
+          "word": "page",
+          "start": 2.789,
+          "end": 3.829
+        },
+        {
+          "word": "Open",
+          "start": 3.829,
+          "end": 4.31
+        },
+        {
+          "word": "it",
+          "start": 4.31,
+          "end": 4.39
+        },
+        {
+          "word": "first",
+          "start": 4.39,
+          "end": 5.15
+        },
+        {
+          "word": "then",
+          "start": 5.15,
+          "end": 5.51
+        },
+        {
+          "word": "paint",
+          "start": 5.51,
+          "end": 5.79
+        },
+        {
+          "word": "your",
+          "start": 5.79,
+          "end": 5.95
+        },
+        {
+          "word": "sails",
+          "start": 5.95,
+          "end": 6.71
+        },
+        {
+          "word": "and",
+          "start": 6.71,
+          "end": 6.87
+        },
+        {
+          "word": "select",
+          "start": 6.87,
+          "end": 7.35
+        },
+        {
+          "word": "Finish",
+          "start": 7.35,
+          "end": 7.6
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.palette.01",
+      "speaker": "Nell",
+      "text": "Pick your sails at the palette stand, then select Finish.",
+      "duration": 3.708,
+      "files": {
+        "webm": "nell.palette.01.webm",
+        "m4a": "nell.palette.01.m4a"
+      },
+      "hash": "c3679b074453554a",
+      "words": [
+        {
+          "word": "Pick",
+          "start": 0.07,
+          "end": 0.27
+        },
+        {
+          "word": "your",
+          "start": 0.27,
+          "end": 0.47
+        },
+        {
+          "word": "sails",
+          "start": 0.47,
+          "end": 0.87
+        },
+        {
+          "word": "at",
+          "start": 0.87,
+          "end": 0.95
+        },
+        {
+          "word": "the",
+          "start": 0.95,
+          "end": 1.07
+        },
+        {
+          "word": "palette",
+          "start": 1.07,
+          "end": 1.47
+        },
+        {
+          "word": "stand",
+          "start": 1.47,
+          "end": 2.19
+        },
+        {
+          "word": "then",
+          "start": 2.19,
+          "end": 2.51
+        },
+        {
+          "word": "select",
+          "start": 2.51,
+          "end": 2.989
+        },
+        {
+          "word": "Finish",
+          "start": 2.989,
+          "end": 3.239
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.done.02",
+      "speaker": "Nell",
+      "text": "A sealed captain! Fair winds.",
+      "duration": 2.708,
+      "files": {
+        "webm": "nell.done.02.webm",
+        "m4a": "nell.done.02.m4a"
+      },
+      "hash": "daa9fa17253d885c",
+      "words": [
+        {
+          "word": "A",
+          "start": 0.07,
+          "end": 0.15
+        },
+        {
+          "word": "sealed",
+          "start": 0.15,
+          "end": 0.67
+        },
+        {
+          "word": "captain",
+          "start": 0.67,
+          "end": 1.67
+        },
+        {
+          "word": "Fair",
+          "start": 1.67,
+          "end": 2.029
+        },
+        {
+          "word": "winds",
+          "start": 2.029,
+          "end": 2.279
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.christen.01",
+      "speaker": "Nell",
+      "text": "There you are, Captain. No ship leaves Anchorage without a name, and yours has been waiting all morning.",
+      "duration": 6.808,
+      "files": {
+        "webm": "nell.christen.01.webm",
+        "m4a": "nell.christen.01.m4a"
+      },
+      "hash": "0d88d791e6ab6b73",
+      "words": [
+        {
+          "word": "There",
+          "start": 0.07,
+          "end": 0.27
+        },
+        {
+          "word": "you",
+          "start": 0.27,
+          "end": 0.39
+        },
+        {
+          "word": "are",
+          "start": 0.39,
+          "end": 0.51
+        },
+        {
+          "word": "Captain",
+          "start": 0.51,
+          "end": 1.83
+        },
+        {
+          "word": "No",
+          "start": 1.83,
+          "end": 2.23
+        },
+        {
+          "word": "ship",
+          "start": 2.23,
+          "end": 2.63
+        },
+        {
+          "word": "leaves",
+          "start": 2.63,
+          "end": 2.909
+        },
+        {
+          "word": "Anchorage",
+          "start": 2.909,
+          "end": 3.469
+        },
+        {
+          "word": "without",
+          "start": 3.469,
+          "end": 3.869
+        },
+        {
+          "word": "a",
+          "start": 3.869,
+          "end": 3.909
+        },
+        {
+          "word": "name",
+          "start": 3.909,
+          "end": 4.59
+        },
+        {
+          "word": "and",
+          "start": 4.59,
+          "end": 4.83
+        },
+        {
+          "word": "yours",
+          "start": 4.83,
+          "end": 5.27
+        },
+        {
+          "word": "has",
+          "start": 5.27,
+          "end": 5.43
+        },
+        {
+          "word": "been",
+          "start": 5.43,
+          "end": 5.59
+        },
+        {
+          "word": "waiting",
+          "start": 5.59,
+          "end": 5.99
+        },
+        {
+          "word": "all",
+          "start": 5.99,
+          "end": 6.19
+        },
+        {
+          "word": "morning",
+          "start": 6.19,
+          "end": 6.44
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.christen.02",
+      "speaker": "Nell",
+      "text": "Fair winds to her, and to all who sail in her!",
+      "duration": 3.108,
+      "files": {
+        "webm": "nell.christen.02.webm",
+        "m4a": "nell.christen.02.m4a"
+      },
+      "hash": "1de8a76c990b3505",
+      "words": [
+        {
+          "word": "Fair",
+          "start": 0.07,
+          "end": 0.31
+        },
+        {
+          "word": "winds",
+          "start": 0.31,
+          "end": 0.71
+        },
+        {
+          "word": "to",
+          "start": 0.71,
+          "end": 0.83
+        },
+        {
+          "word": "her",
+          "start": 0.83,
+          "end": 1.31
+        },
+        {
+          "word": "and",
+          "start": 1.31,
+          "end": 1.55
+        },
+        {
+          "word": "to",
+          "start": 1.55,
+          "end": 1.71
+        },
+        {
+          "word": "all",
+          "start": 1.71,
+          "end": 1.99
+        },
+        {
+          "word": "who",
+          "start": 1.99,
+          "end": 2.15
+        },
+        {
+          "word": "sail",
+          "start": 2.15,
+          "end": 2.51
+        },
+        {
+          "word": "in",
+          "start": 2.51,
+          "end": 2.67
+        },
+        {
+          "word": "her",
+          "start": 2.67,
+          "end": 2.92
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.christen.03",
+      "speaker": "Nell",
+      "text": "She suits you, Captain. Fair winds.",
+      "duration": 2.758,
+      "files": {
+        "webm": "nell.christen.03.webm",
+        "m4a": "nell.christen.03.m4a"
+      },
+      "hash": "21f0e66e6bf07003",
+      "words": [
+        {
+          "word": "She",
+          "start": 0.07,
+          "end": 0.27
+        },
+        {
+          "word": "suits",
+          "start": 0.27,
+          "end": 0.75
+        },
+        {
+          "word": "you",
+          "start": 0.75,
+          "end": 0.91
+        },
+        {
+          "word": "Captain",
+          "start": 0.91,
+          "end": 1.75
+        },
+        {
+          "word": "Fair",
+          "start": 1.75,
+          "end": 2.11
+        },
+        {
+          "word": "winds",
+          "start": 2.11,
+          "end": 2.36
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.christen.01",
+      "speaker": "Juno",
+      "text": "Crew’s aboard, Captain.",
+      "duration": 1.208,
+      "files": {
+        "webm": "juno.christen.01.webm",
+        "m4a": "juno.christen.01.m4a"
+      },
+      "hash": "6acb209b526afc25",
+      "words": [
+        {
+          "word": "Crew’s",
+          "start": 0.07,
+          "end": 0.35
+        },
+        {
+          "word": "aboard",
+          "start": 0.35,
+          "end": 0.59
+        },
+        {
+          "word": "Captain",
+          "start": 0.59,
+          "end": 0.84
+        }
+      ],
+      "voice": "en-US-Ava:DragonHDLatestNeural"
+    },
+    {
+      "id": "wingman.sail.01",
+      "speaker": "Wingman",
+      "text": "Right, a quick sailing lesson. Take the helm at the gangway. W and S trim the sails, and A and D steer.",
+      "duration": 10.408,
+      "files": {
+        "webm": "wingman.sail.01.webm",
+        "m4a": "wingman.sail.01.m4a"
+      },
+      "hash": "fd008fe345c84b66",
+      "words": [
+        {
+          "word": "Right",
+          "start": 0.05,
+          "end": 0.7375
+        },
+        {
+          "word": "a",
+          "start": 0.7375,
+          "end": 0.85
+        },
+        {
+          "word": "quick",
+          "start": 0.85,
+          "end": 1.1875
+        },
+        {
+          "word": "sailing",
+          "start": 1.1875,
+          "end": 1.725
+        },
+        {
+          "word": "lesson",
+          "start": 1.725,
+          "end": 3.1375
+        },
+        {
+          "word": "Take",
+          "start": 3.1375,
+          "end": 3.4625
+        },
+        {
+          "word": "the",
+          "start": 3.4625,
+          "end": 3.575
+        },
+        {
+          "word": "helm",
+          "start": 3.575,
+          "end": 3.9125
+        },
+        {
+          "word": "at",
+          "start": 3.9125,
+          "end": 4.075
+        },
+        {
+          "word": "the",
+          "start": 4.075,
+          "end": 4.1875
+        },
+        {
+          "word": "gangway",
+          "start": 4.1875,
+          "end": 5.65
+        },
+        {
+          "word": "W",
+          "start": 5.65,
+          "end": 6.2625
+        },
+        {
+          "word": "and",
+          "start": 6.2625,
+          "end": 6.5125
+        },
+        {
+          "word": "S",
+          "start": 6.5125,
+          "end": 6.775
+        },
+        {
+          "word": "trim",
+          "start": 6.775,
+          "end": 7.075
+        },
+        {
+          "word": "the",
+          "start": 7.075,
+          "end": 7.1875
+        },
+        {
+          "word": "sails",
+          "start": 7.1875,
+          "end": 8.0625
+        },
+        {
+          "word": "and",
+          "start": 8.0625,
+          "end": 8.3375
+        },
+        {
+          "word": "A",
+          "start": 8.3375,
+          "end": 8.5625
+        },
+        {
+          "word": "and",
+          "start": 8.5625,
+          "end": 8.8125
+        },
+        {
+          "word": "D",
+          "start": 8.8125,
+          "end": 9.025
+        },
+        {
+          "word": "steer",
+          "start": 9.025,
+          "end": 9.275
+        }
+      ],
+      "voice": "en-US-AnaNeural"
+    },
+    {
+      "id": "wingman.sail.02",
+      "speaker": "Wingman",
+      "text": "Bring her back alongside the pier and press E, and I’ll help you dock.",
+      "duration": 5.407,
+      "files": {
+        "webm": "wingman.sail.02.webm",
+        "m4a": "wingman.sail.02.m4a"
+      },
+      "hash": "2a63d0679d74a9f9",
+      "words": [
+        {
+          "word": "Bring",
+          "start": 0.05,
+          "end": 0.3375
+        },
+        {
+          "word": "her",
+          "start": 0.3375,
+          "end": 0.5375
+        },
+        {
+          "word": "back",
+          "start": 0.5375,
+          "end": 0.825
+        },
+        {
+          "word": "alongside",
+          "start": 0.825,
+          "end": 1.55
+        },
+        {
+          "word": "the",
+          "start": 1.55,
+          "end": 1.6625
+        },
+        {
+          "word": "pier",
+          "start": 1.6625,
+          "end": 2.0875
+        },
+        {
+          "word": "and",
+          "start": 2.0875,
+          "end": 2.25
+        },
+        {
+          "word": "press",
+          "start": 2.25,
+          "end": 2.6625
+        },
+        {
+          "word": "E",
+          "start": 2.6625,
+          "end": 3.225
+        },
+        {
+          "word": "and",
+          "start": 3.225,
+          "end": 3.4625
+        },
+        {
+          "word": "I’ll",
+          "start": 3.4625,
+          "end": 3.625
+        },
+        {
+          "word": "help",
+          "start": 3.625,
+          "end": 3.8875
+        },
+        {
+          "word": "you",
+          "start": 3.8875,
+          "end": 4.0375
+        },
+        {
+          "word": "dock",
+          "start": 4.0375,
+          "end": 4.2875
+        }
+      ],
+      "voice": "en-US-AnaNeural"
+    },
+    {
+      "id": "wingman.sail.03",
+      "speaker": "Wingman",
+      "text": "Port Meridian’s east on the chart. Press M when you’re ready to plan the passage.",
+      "duration": 6.507,
+      "files": {
+        "webm": "wingman.sail.03.webm",
+        "m4a": "wingman.sail.03.m4a"
+      },
+      "hash": "d77bb72787e893de",
+      "words": [
+        {
+          "word": "Port",
+          "start": 0.05,
+          "end": 0.3875
+        },
+        {
+          "word": "Meridian’s",
+          "start": 0.3875,
+          "end": 1.0875
+        },
+        {
+          "word": "east",
+          "start": 1.0875,
+          "end": 1.4625
+        },
+        {
+          "word": "on",
+          "start": 1.4625,
+          "end": 1.6
+        },
+        {
+          "word": "the",
+          "start": 1.6,
+          "end": 1.6875
+        },
+        {
+          "word": "chart",
+          "start": 1.6875,
+          "end": 3.025
+        },
+        {
+          "word": "Press",
+          "start": 3.025,
+          "end": 3.4125
+        },
+        {
+          "word": "M",
+          "start": 3.4125,
+          "end": 3.6875
+        },
+        {
+          "word": "when",
+          "start": 3.6875,
+          "end": 3.8625
+        },
+        {
+          "word": "you’re",
+          "start": 3.8625,
+          "end": 4.05
+        },
+        {
+          "word": "ready",
+          "start": 4.05,
+          "end": 4.35
+        },
+        {
+          "word": "to",
+          "start": 4.35,
+          "end": 4.4875
+        },
+        {
+          "word": "plan",
+          "start": 4.4875,
+          "end": 4.875
+        },
+        {
+          "word": "the",
+          "start": 4.875,
+          "end": 4.975
+        },
+        {
+          "word": "passage",
+          "start": 4.975,
+          "end": 5.225
+        }
+      ],
+      "voice": "en-US-AnaNeural"
     }
   ]
 }

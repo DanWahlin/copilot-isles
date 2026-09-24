@@ -1,0 +1,32 @@
+{
+  "id": "nell.done.02",
+  "speaker": "Nell",
+  "text": "A sealed captain! Fair winds.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0.07,
+      "end": 0.15
+    },
+    {
+      "word": "sealed",
+      "start": 0.15,
+      "end": 0.67
+    },
+    {
+      "word": "captain",
+      "start": 0.67,
+      "end": 1.67
+    },
+    {
+      "word": "Fair",
+      "start": 1.67,
+      "end": 2.029
+    },
+    {
+      "word": "winds",
+      "start": 2.029,
+      "end": 2.279
+    }
+  ]
+}

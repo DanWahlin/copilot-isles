@@ -1,0 +1,92 @@
+{
+  "id": "juno.brief.04",
+  "speaker": "Juno",
+  "text": "You’ve been running commands in Terminal all morning. This one’s different. It’s a request for the agent.",
+  "words": [
+    {
+      "word": "You’ve",
+      "start": 0.07,
+      "end": 0.43
+    },
+    {
+      "word": "been",
+      "start": 0.43,
+      "end": 0.71
+    },
+    {
+      "word": "running",
+      "start": 0.71,
+      "end": 1.27
+    },
+    {
+      "word": "commands",
+      "start": 1.27,
+      "end": 2.029
+    },
+    {
+      "word": "in",
+      "start": 2.029,
+      "end": 2.15
+    },
+    {
+      "word": "Terminal",
+      "start": 2.15,
+      "end": 2.67
+    },
+    {
+      "word": "all",
+      "start": 2.67,
+      "end": 2.789
+    },
+    {
+      "word": "morning",
+      "start": 2.789,
+      "end": 3.07
+    },
+    {
+      "word": "This",
+      "start": 3.07,
+      "end": 3.389
+    },
+    {
+      "word": "one’s",
+      "start": 3.389,
+      "end": 3.63
+    },
+    {
+      "word": "different",
+      "start": 3.63,
+      "end": 4.47
+    },
+    {
+      "word": "It’s",
+      "start": 4.47,
+      "end": 4.75
+    },
+    {
+      "word": "a",
+      "start": 4.75,
+      "end": 4.79
+    },
+    {
+      "word": "request",
+      "start": 4.79,
+      "end": 5.27
+    },
+    {
+      "word": "for",
+      "start": 5.27,
+      "end": 5.39
+    },
+    {
+      "word": "the",
+      "start": 5.39,
+      "end": 5.51
+    },
+    {
+      "word": "agent",
+      "start": 5.51,
+      "end": 5.76
+    }
+  ]
+}

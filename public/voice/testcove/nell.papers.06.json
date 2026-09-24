@@ -1,0 +1,112 @@
+{
+  "id": "nell.papers.06",
+  "speaker": "Nell",
+  "text": "Then the app asks you to pick a theme. Here, you pick your sails. The palette stand’s right by my door.",
+  "words": [
+    {
+      "word": "Then",
+      "start": 0.07,
+      "end": 0.51
+    },
+    {
+      "word": "the",
+      "start": 0.51,
+      "end": 0.63
+    },
+    {
+      "word": "app",
+      "start": 0.63,
+      "end": 0.99
+    },
+    {
+      "word": "asks",
+      "start": 0.99,
+      "end": 1.47
+    },
+    {
+      "word": "you",
+      "start": 1.47,
+      "end": 1.59
+    },
+    {
+      "word": "to",
+      "start": 1.59,
+      "end": 1.71
+    },
+    {
+      "word": "pick",
+      "start": 1.71,
+      "end": 1.91
+    },
+    {
+      "word": "a",
+      "start": 1.91,
+      "end": 1.95
+    },
+    {
+      "word": "theme",
+      "start": 1.95,
+      "end": 2.75
+    },
+    {
+      "word": "Here",
+      "start": 2.75,
+      "end": 3.349
+    },
+    {
+      "word": "you",
+      "start": 3.349,
+      "end": 3.63
+    },
+    {
+      "word": "pick",
+      "start": 3.63,
+      "end": 3.869
+    },
+    {
+      "word": "your",
+      "start": 3.869,
+      "end": 4.03
+    },
+    {
+      "word": "sails",
+      "start": 4.03,
+      "end": 5.11
+    },
+    {
+      "word": "The",
+      "start": 5.11,
+      "end": 5.35
+    },
+    {
+      "word": "palette",
+      "start": 5.35,
+      "end": 5.71
+    },
+    {
+      "word": "stand’s",
+      "start": 5.71,
+      "end": 6.15
+    },
+    {
+      "word": "right",
+      "start": 6.15,
+      "end": 6.43
+    },
+    {
+      "word": "by",
+      "start": 6.43,
+      "end": 6.59
+    },
+    {
+      "word": "my",
+      "start": 6.59,
+      "end": 6.79
+    },
+    {
+      "word": "door",
+      "start": 6.79,
+      "end": 7.04
+    }
+  ]
+}

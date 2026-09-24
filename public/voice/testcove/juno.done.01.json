@@ -1,0 +1,72 @@
+{
+  "id": "juno.done.01",
+  "speaker": "Juno",
+  "text": "The crew knows the ship now. The Harbormaster’s Trial waits at the lighthouse.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.07,
+      "end": 0.23
+    },
+    {
+      "word": "crew",
+      "start": 0.23,
+      "end": 0.59
+    },
+    {
+      "word": "knows",
+      "start": 0.59,
+      "end": 0.91
+    },
+    {
+      "word": "the",
+      "start": 0.91,
+      "end": 1.03
+    },
+    {
+      "word": "ship",
+      "start": 1.03,
+      "end": 1.27
+    },
+    {
+      "word": "now",
+      "start": 1.27,
+      "end": 1.95
+    },
+    {
+      "word": "The",
+      "start": 1.95,
+      "end": 2.15
+    },
+    {
+      "word": "Harbormaster’s",
+      "start": 2.15,
+      "end": 2.829
+    },
+    {
+      "word": "Trial",
+      "start": 2.829,
+      "end": 3.349
+    },
+    {
+      "word": "waits",
+      "start": 3.349,
+      "end": 3.67
+    },
+    {
+      "word": "at",
+      "start": 3.67,
+      "end": 3.75
+    },
+    {
+      "word": "the",
+      "start": 3.75,
+      "end": 3.869
+    },
+    {
+      "word": "lighthouse",
+      "start": 3.869,
+      "end": 4.119
+    }
+  ]
+}

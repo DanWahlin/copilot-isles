@@ -1,0 +1,87 @@
+{
+  "id": "bo.gear.missing.02",
+  "speaker": "Bo",
+  "text": "Only install what’s missing, then check again. The chandler at the market stall keeps spare lenses.",
+  "words": [
+    {
+      "word": "Only",
+      "start": 0.05,
+      "end": 0.375
+    },
+    {
+      "word": "install",
+      "start": 0.375,
+      "end": 0.8375
+    },
+    {
+      "word": "what’s",
+      "start": 0.8375,
+      "end": 1.0875
+    },
+    {
+      "word": "missing",
+      "start": 1.0875,
+      "end": 1.6875
+    },
+    {
+      "word": "then",
+      "start": 1.6875,
+      "end": 1.85
+    },
+    {
+      "word": "check",
+      "start": 1.85,
+      "end": 2.075
+    },
+    {
+      "word": "again",
+      "start": 2.075,
+      "end": 3.3625
+    },
+    {
+      "word": "The",
+      "start": 3.3625,
+      "end": 3.525
+    },
+    {
+      "word": "chandler",
+      "start": 3.525,
+      "end": 4.0125
+    },
+    {
+      "word": "at",
+      "start": 4.0125,
+      "end": 4.125
+    },
+    {
+      "word": "the",
+      "start": 4.125,
+      "end": 4.2125
+    },
+    {
+      "word": "market",
+      "start": 4.2125,
+      "end": 4.6375
+    },
+    {
+      "word": "stall",
+      "start": 4.6375,
+      "end": 5
+    },
+    {
+      "word": "keeps",
+      "start": 5,
+      "end": 5.3
+    },
+    {
+      "word": "spare",
+      "start": 5.3,
+      "end": 5.575
+    },
+    {
+      "word": "lenses",
+      "start": 5.575,
+      "end": 5.825
+    }
+  ]
+}

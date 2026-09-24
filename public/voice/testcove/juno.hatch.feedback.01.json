@@ -1,0 +1,117 @@
+{
+  "id": "juno.hatch.feedback.01",
+  "speaker": "Juno",
+  "text": "That went to the engine room, Captain. Terminal runs commands like git --version. Requests to the agent go in the prompt box.",
+  "words": [
+    {
+      "word": "That",
+      "start": 0.051,
+      "end": 0.17
+    },
+    {
+      "word": "went",
+      "start": 0.17,
+      "end": 0.288
+    },
+    {
+      "word": "to",
+      "start": 0.288,
+      "end": 0.348
+    },
+    {
+      "word": "the",
+      "start": 0.348,
+      "end": 0.437
+    },
+    {
+      "word": "engine",
+      "start": 0.437,
+      "end": 0.674
+    },
+    {
+      "word": "room",
+      "start": 0.674,
+      "end": 0.822
+    },
+    {
+      "word": "Captain",
+      "start": 0.822,
+      "end": 1.444
+    },
+    {
+      "word": "Terminal",
+      "start": 1.444,
+      "end": 1.859
+    },
+    {
+      "word": "runs",
+      "start": 1.859,
+      "end": 2.065
+    },
+    {
+      "word": "commands",
+      "start": 2.065,
+      "end": 2.392
+    },
+    {
+      "word": "like",
+      "start": 2.392,
+      "end": 2.569
+    },
+    {
+      "word": "git",
+      "start": 2.569,
+      "end": 3.074
+    },
+    {
+      "word": "version",
+      "start": 3.074,
+      "end": 3.725
+    },
+    {
+      "word": "Requests",
+      "start": 3.725,
+      "end": 4.111
+    },
+    {
+      "word": "to",
+      "start": 4.111,
+      "end": 4.17
+    },
+    {
+      "word": "the",
+      "start": 4.17,
+      "end": 4.288
+    },
+    {
+      "word": "agent",
+      "start": 4.288,
+      "end": 4.555
+    },
+    {
+      "word": "go",
+      "start": 4.555,
+      "end": 4.703
+    },
+    {
+      "word": "in",
+      "start": 4.703,
+      "end": 4.762
+    },
+    {
+      "word": "the",
+      "start": 4.762,
+      "end": 4.851
+    },
+    {
+      "word": "prompt",
+      "start": 4.851,
+      "end": 5.088
+    },
+    {
+      "word": "box",
+      "start": 5.088,
+      "end": 5.338
+    }
+  ]
+}

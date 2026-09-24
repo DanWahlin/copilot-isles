@@ -1,0 +1,112 @@
+{
+  "id": "juno.reply.02",
+  "speaker": "Juno",
+  "text": "They’ve summed up the course, chapter by chapter, and flagged samples/book-app-web. That’s the web sample you’ll use in later exercises.",
+  "words": [
+    {
+      "word": "They’ve",
+      "start": 0.07,
+      "end": 0.75
+    },
+    {
+      "word": "summed",
+      "start": 0.75,
+      "end": 1.31
+    },
+    {
+      "word": "up",
+      "start": 1.31,
+      "end": 1.39
+    },
+    {
+      "word": "the",
+      "start": 1.39,
+      "end": 1.55
+    },
+    {
+      "word": "course",
+      "start": 1.55,
+      "end": 1.91
+    },
+    {
+      "word": "chapter",
+      "start": 1.91,
+      "end": 2.59
+    },
+    {
+      "word": "by",
+      "start": 2.59,
+      "end": 2.67
+    },
+    {
+      "word": "chapter",
+      "start": 2.67,
+      "end": 2.949
+    },
+    {
+      "word": "and",
+      "start": 2.949,
+      "end": 3.07
+    },
+    {
+      "word": "flagged",
+      "start": 3.07,
+      "end": 3.349
+    },
+    {
+      "word": "samples",
+      "start": 3.349,
+      "end": 4.27
+    },
+    {
+      "word": "book-app-web",
+      "start": 4.27,
+      "end": 5.35
+    },
+    {
+      "word": "That’s",
+      "start": 5.35,
+      "end": 5.67
+    },
+    {
+      "word": "the",
+      "start": 5.67,
+      "end": 5.79
+    },
+    {
+      "word": "web",
+      "start": 5.79,
+      "end": 5.95
+    },
+    {
+      "word": "sample",
+      "start": 5.95,
+      "end": 6.27
+    },
+    {
+      "word": "you’ll",
+      "start": 6.27,
+      "end": 6.51
+    },
+    {
+      "word": "use",
+      "start": 6.51,
+      "end": 6.71
+    },
+    {
+      "word": "in",
+      "start": 6.71,
+      "end": 6.79
+    },
+    {
+      "word": "later",
+      "start": 6.79,
+      "end": 7.03
+    },
+    {
+      "word": "exercises",
+      "start": 7.03,
+      "end": 7.28
+    }
+  ]
+}

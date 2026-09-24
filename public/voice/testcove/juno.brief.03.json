@@ -1,0 +1,102 @@
+{
+  "id": "juno.brief.03",
+  "speaker": "Juno",
+  "text": "“Give me an overview of the copilot-app-for-beginners course repository. Focus on the learning path and the samples/book-app-web folder.”",
+  "words": [
+    {
+      "word": "Give",
+      "start": 0.076,
+      "end": 0.25
+    },
+    {
+      "word": "me",
+      "start": 0.25,
+      "end": 0.336
+    },
+    {
+      "word": "an",
+      "start": 0.336,
+      "end": 0.467
+    },
+    {
+      "word": "overview",
+      "start": 0.467,
+      "end": 1.119
+    },
+    {
+      "word": "of",
+      "start": 1.119,
+      "end": 1.25
+    },
+    {
+      "word": "the",
+      "start": 1.25,
+      "end": 1.38
+    },
+    {
+      "word": "copilot-app-for-beginners",
+      "start": 1.38,
+      "end": 2.902
+    },
+    {
+      "word": "course",
+      "start": 2.902,
+      "end": 3.248
+    },
+    {
+      "word": "repository",
+      "start": 3.248,
+      "end": 4.423
+    },
+    {
+      "word": "Focus",
+      "start": 4.423,
+      "end": 4.902
+    },
+    {
+      "word": "on",
+      "start": 4.902,
+      "end": 4.989
+    },
+    {
+      "word": "the",
+      "start": 4.989,
+      "end": 5.119
+    },
+    {
+      "word": "learning",
+      "start": 5.119,
+      "end": 5.51
+    },
+    {
+      "word": "path",
+      "start": 5.51,
+      "end": 5.902
+    },
+    {
+      "word": "and",
+      "start": 5.902,
+      "end": 6.032
+    },
+    {
+      "word": "the",
+      "start": 6.032,
+      "end": 6.163
+    },
+    {
+      "word": "samples",
+      "start": 6.163,
+      "end": 7.293
+    },
+    {
+      "word": "book-app-web",
+      "start": 7.293,
+      "end": 8.206
+    },
+    {
+      "word": "folder",
+      "start": 8.206,
+      "end": 8.456
+    }
+  ]
+}

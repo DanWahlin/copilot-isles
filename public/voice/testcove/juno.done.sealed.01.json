@@ -1,0 +1,67 @@
+{
+  "id": "juno.done.sealed.01",
+  "speaker": "Juno",
+  "text": "The crew’s proud of you, Captain. Wherever you sail next, they’re listening.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.07,
+      "end": 0.19
+    },
+    {
+      "word": "crew’s",
+      "start": 0.19,
+      "end": 0.47
+    },
+    {
+      "word": "proud",
+      "start": 0.47,
+      "end": 0.75
+    },
+    {
+      "word": "of",
+      "start": 0.75,
+      "end": 0.83
+    },
+    {
+      "word": "you",
+      "start": 0.83,
+      "end": 0.95
+    },
+    {
+      "word": "Captain",
+      "start": 0.95,
+      "end": 1.71
+    },
+    {
+      "word": "Wherever",
+      "start": 1.71,
+      "end": 2.15
+    },
+    {
+      "word": "you",
+      "start": 2.15,
+      "end": 2.309
+    },
+    {
+      "word": "sail",
+      "start": 2.309,
+      "end": 2.51
+    },
+    {
+      "word": "next",
+      "start": 2.51,
+      "end": 3.15
+    },
+    {
+      "word": "they’re",
+      "start": 3.15,
+      "end": 3.469
+    },
+    {
+      "word": "listening",
+      "start": 3.469,
+      "end": 3.719
+    }
+  ]
+}

@@ -35,42 +35,21 @@ const LOOSE_NAME: Record<LooseId, string> = {
 };
 
 /** Bo's lines when the spyglass check fails: install what's missing, then check again. */
-const BO_MISSING: readonly ScriptStep[] = [
-  { speaker: 'Bo', text: '“Command not found.” No lens, no GitHub CLI. That one’s missing.' },
-  {
-    speaker: 'Bo',
-    text: 'Only install what’s missing, then check again. The chandler at the market stall keeps spare lenses.',
-  },
-];
+const BO_MISSING: readonly ScriptStep[] = [{ say: 'bo.gear.missing.01' }, { say: 'bo.gear.missing.02' }];
 
 /** Once all four checks pass: match them up (M0.1), then the ledger. */
 const BO_CHECKED: readonly ScriptStep[] = [
-  {
-    speaker: 'Bo',
-    text: 'Four checks, four versions. That’s a ship I’d sail. Let’s see if you remember which is which.',
-  },
+  { say: 'bo.gear.checked.01' },
   { quiz: 'M0.1' },
-  {
-    speaker: 'Bo',
-    text: 'One more thing. GitHub CLI has its own sign-in, separate from the app. Read my ledger, there on the lectern.',
-  },
+  { say: 'bo.gear.checked.02' },
 ];
 
 /** The ledger shows someone else's signature: S0.1, then `gh auth login`. */
-const BO_LEDGER: readonly ScriptStep[] = [
-  { speaker: 'Bo', text: 'Logged in as someone-else? That’s not your signature, Captain.' },
-  { quiz: 'S0.1' },
-];
+const BO_LEDGER: readonly ScriptStep[] = [{ say: 'bo.ledger.01' }, { quiz: 'S0.1' }];
 
 const BO_SIGNED: readonly ScriptStep[] = [
-  {
-    speaker: 'Bo',
-    text: 'Logged in as you. Deck’s ready, gear’s checked, and your signature’s your own.',
-  },
-  {
-    speaker: 'Bo',
-    text: 'One more job before the practice work: Suri Okoye at the mill race, past the storehouse. Her wheel’s been dry since your fork arrived.',
-  },
+  { say: 'bo.signed.01' },
+  { say: 'bo.signed.02' },
   { quest: QUEST, step: 'done' },
   { quest: 'Q0.6', step: 'start' },
 ];

@@ -1,0 +1,87 @@
+{
+  "id": "bo.deck.01",
+  "speaker": "Bo",
+  "text": "Your project shows under Projects? Good. Select the + next to it to start a project session.",
+  "words": [
+    {
+      "word": "Your",
+      "start": 0.05,
+      "end": 0.25
+    },
+    {
+      "word": "project",
+      "start": 0.25,
+      "end": 0.675
+    },
+    {
+      "word": "shows",
+      "start": 0.675,
+      "end": 0.9875
+    },
+    {
+      "word": "under",
+      "start": 0.9875,
+      "end": 1.2125
+    },
+    {
+      "word": "Projects",
+      "start": 1.2125,
+      "end": 2.7375
+    },
+    {
+      "word": "Good",
+      "start": 2.7375,
+      "end": 4.0375
+    },
+    {
+      "word": "Select",
+      "start": 4.0375,
+      "end": 4.45
+    },
+    {
+      "word": "the",
+      "start": 4.45,
+      "end": 4.8125
+    },
+    {
+      "word": "next",
+      "start": 4.8125,
+      "end": 5.0875
+    },
+    {
+      "word": "to",
+      "start": 5.0875,
+      "end": 5.225
+    },
+    {
+      "word": "it",
+      "start": 5.225,
+      "end": 5.35
+    },
+    {
+      "word": "to",
+      "start": 5.35,
+      "end": 5.4375
+    },
+    {
+      "word": "start",
+      "start": 5.4375,
+      "end": 5.7875
+    },
+    {
+      "word": "a",
+      "start": 5.7875,
+      "end": 5.8625
+    },
+    {
+      "word": "project",
+      "start": 5.8625,
+      "end": 6.2875
+    },
+    {
+      "word": "session",
+      "start": 6.2875,
+      "end": 6.5375
+    }
+  ]
+}

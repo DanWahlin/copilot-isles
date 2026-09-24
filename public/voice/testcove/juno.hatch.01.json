@@ -1,0 +1,67 @@
+{
+  "id": "juno.hatch.01",
+  "speaker": "Juno",
+  "text": "That went to the engine room, Captain. Terminal runs commands, not requests.",
+  "words": [
+    {
+      "word": "That",
+      "start": 0.058,
+      "end": 0.224
+    },
+    {
+      "word": "went",
+      "start": 0.224,
+      "end": 0.391
+    },
+    {
+      "word": "to",
+      "start": 0.391,
+      "end": 0.458
+    },
+    {
+      "word": "the",
+      "start": 0.458,
+      "end": 0.558
+    },
+    {
+      "word": "engine",
+      "start": 0.558,
+      "end": 0.791
+    },
+    {
+      "word": "room",
+      "start": 0.791,
+      "end": 0.958
+    },
+    {
+      "word": "Captain",
+      "start": 0.958,
+      "end": 1.591
+    },
+    {
+      "word": "Terminal",
+      "start": 1.591,
+      "end": 1.99
+    },
+    {
+      "word": "runs",
+      "start": 1.99,
+      "end": 2.225
+    },
+    {
+      "word": "commands",
+      "start": 2.225,
+      "end": 2.824
+    },
+    {
+      "word": "not",
+      "start": 2.824,
+      "end": 3.025
+    },
+    {
+      "word": "requests",
+      "start": 3.025,
+      "end": 3.275
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "id": "bo.deck.02",
+  "speaker": "Bo",
+  "text": "Now, the workspace selector below the prompt box. Don’t trust the checkmark, it just shows the default.",
+  "words": [
+    {
+      "word": "Now",
+      "start": 0.05,
+      "end": 0.675
+    },
+    {
+      "word": "the",
+      "start": 0.675,
+      "end": 0.775
+    },
+    {
+      "word": "workspace",
+      "start": 0.775,
+      "end": 1.375
+    },
+    {
+      "word": "selector",
+      "start": 1.375,
+      "end": 1.8
+    },
+    {
+      "word": "below",
+      "start": 1.8,
+      "end": 2.0875
+    },
+    {
+      "word": "the",
+      "start": 2.0875,
+      "end": 2.2125
+    },
+    {
+      "word": "prompt",
+      "start": 2.2125,
+      "end": 2.525
+    },
+    {
+      "word": "box",
+      "start": 2.525,
+      "end": 3.875
+    },
+    {
+      "word": "Don’t",
+      "start": 3.875,
+      "end": 4.15
+    },
+    {
+      "word": "trust",
+      "start": 4.15,
+      "end": 4.45
+    },
+    {
+      "word": "the",
+      "start": 4.45,
+      "end": 4.525
+    },
+    {
+      "word": "checkmark",
+      "start": 4.525,
+      "end": 5.35
+    },
+    {
+      "word": "it",
+      "start": 5.35,
+      "end": 5.4625
+    },
+    {
+      "word": "just",
+      "start": 5.4625,
+      "end": 5.7125
+    },
+    {
+      "word": "shows",
+      "start": 5.7125,
+      "end": 6.025
+    },
+    {
+      "word": "the",
+      "start": 6.025,
+      "end": 6.1375
+    },
+    {
+      "word": "default",
+      "start": 6.1375,
+      "end": 6.3875
+    }
+  ]
+}

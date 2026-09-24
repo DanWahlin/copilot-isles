@@ -1,0 +1,72 @@
+{
+  "id": "bo.signed.01",
+  "speaker": "Bo",
+  "text": "Logged in as you. Deck’s ready, gear’s checked, and your signature’s your own.",
+  "words": [
+    {
+      "word": "Logged",
+      "start": 0.05,
+      "end": 0.425
+    },
+    {
+      "word": "in",
+      "start": 0.425,
+      "end": 0.55
+    },
+    {
+      "word": "as",
+      "start": 0.55,
+      "end": 0.6625
+    },
+    {
+      "word": "you",
+      "start": 0.6625,
+      "end": 1.775
+    },
+    {
+      "word": "Deck’s",
+      "start": 1.775,
+      "end": 2.125
+    },
+    {
+      "word": "ready",
+      "start": 2.125,
+      "end": 2.7375
+    },
+    {
+      "word": "gear’s",
+      "start": 2.7375,
+      "end": 2.9875
+    },
+    {
+      "word": "checked",
+      "start": 2.9875,
+      "end": 3.575
+    },
+    {
+      "word": "and",
+      "start": 3.575,
+      "end": 3.675
+    },
+    {
+      "word": "your",
+      "start": 3.675,
+      "end": 3.825
+    },
+    {
+      "word": "signature’s",
+      "start": 3.825,
+      "end": 4.4
+    },
+    {
+      "word": "your",
+      "start": 4.4,
+      "end": 4.6
+    },
+    {
+      "word": "own",
+      "start": 4.6,
+      "end": 4.85
+    }
+  ]
+}

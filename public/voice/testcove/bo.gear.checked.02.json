@@ -1,0 +1,107 @@
+{
+  "id": "bo.gear.checked.02",
+  "speaker": "Bo",
+  "text": "One more thing. GitHub CLI has its own sign-in, separate from the app. Read my ledger, there on the lectern.",
+  "words": [
+    {
+      "word": "One",
+      "start": 0.05,
+      "end": 0.3625
+    },
+    {
+      "word": "more",
+      "start": 0.3625,
+      "end": 0.55
+    },
+    {
+      "word": "thing",
+      "start": 0.55,
+      "end": 1.8125
+    },
+    {
+      "word": "GitHub",
+      "start": 1.8125,
+      "end": 2.3125
+    },
+    {
+      "word": "CLI",
+      "start": 2.3125,
+      "end": 2.85
+    },
+    {
+      "word": "has",
+      "start": 2.85,
+      "end": 3.0375
+    },
+    {
+      "word": "its",
+      "start": 3.0375,
+      "end": 3.1875
+    },
+    {
+      "word": "own",
+      "start": 3.1875,
+      "end": 3.425
+    },
+    {
+      "word": "sign-in",
+      "start": 3.425,
+      "end": 4.125
+    },
+    {
+      "word": "separate",
+      "start": 4.125,
+      "end": 4.5375
+    },
+    {
+      "word": "from",
+      "start": 4.5375,
+      "end": 4.7
+    },
+    {
+      "word": "the",
+      "start": 4.7,
+      "end": 4.825
+    },
+    {
+      "word": "app.",
+      "start": 4.825,
+      "end": 5.9875
+    },
+    {
+      "word": "Read",
+      "start": 5.9875,
+      "end": 6.3125
+    },
+    {
+      "word": "my",
+      "start": 6.3125,
+      "end": 6.4625
+    },
+    {
+      "word": "ledger",
+      "start": 6.4625,
+      "end": 7.125
+    },
+    {
+      "word": "there",
+      "start": 7.125,
+      "end": 7.2625
+    },
+    {
+      "word": "on",
+      "start": 7.2625,
+      "end": 7.4125
+    },
+    {
+      "word": "the",
+      "start": 7.4125,
+      "end": 7.4875
+    },
+    {
+      "word": "lectern",
+      "start": 7.4875,
+      "end": 7.7375
+    }
+  ]
+}
