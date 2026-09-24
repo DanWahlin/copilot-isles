@@ -66,6 +66,52 @@ function setView(name: string) {
   controls.target.set(v[1][0], v[1][1], v[1][2]);
   controls.update();
 }
+
+const SHOTS: Record<string, { view?: string; time: number; camera?: [number[], number[]] }> = {
+  F1: {
+    view: 'harbor',
+    time: 16.5,
+    camera: [
+      [-96, 5.2, -69],
+      [-118, 3, -92],
+    ],
+  },
+  F2: {
+    time: 16.5,
+    camera: [
+      [-96, 8, -132],
+      [-96, 3, -108],
+    ],
+  },
+  B1: {
+    view: 'lagoon',
+    time: 16.5,
+    camera: [
+      [-46, 6.5, 205],
+      [30, 1.2, 116],
+    ],
+  },
+  B2: {
+    view: 'headland',
+    time: 16.5,
+    camera: [
+      [292, 20, -18],
+      [158, 24, 0],
+    ],
+  },
+};
+function shot(id: string) {
+  const s = SHOTS[id];
+  if (!s) return false;
+  setTime(s.time);
+  if (s.camera) {
+    camera.position.set(s.camera[0][0], s.camera[0][1], s.camera[0][2]);
+    controls.target.set(s.camera[1][0], s.camera[1][1], s.camera[1][2]);
+    controls.update();
+  } else if (s.view) setView(s.view);
+  return true;
+}
+
 setView(q.get('view') ?? 'harbor');
 
 const timeEl = document.getElementById('time') as HTMLInputElement;
@@ -97,6 +143,7 @@ engine.add({
     controls.update();
     if (++n % 20 === 0) {
       const c = engine.counters.last;
+      cove.mirror?.finalizeFrame(c.drawCalls, c.triangles);
       stats.textContent =
         `${backend} · ${tier.tier} · ${engine.fps.toFixed(0)} fps · gpu ${engine.gpuMs.toFixed(2)} ms\n` +
         `draws ${c.drawCalls} · programs ${c.programs} · tris ${(c.triangles / 1000).toFixed(0)}k\n` +
@@ -113,22 +160,28 @@ await renderer.compileAsync(scene, camera);
 const compileMs = performance.now() - tc;
 engine.start();
 
-window.__dev = {
+(window as unknown as { __dev: object }).__dev = {
   ready: true,
   setTime,
   setView,
-  setCam: (p, t) => {
+  shot,
+  setCam: (p: number[], t: number[]) => {
     camera.position.set(p[0], p[1], p[2]);
     controls.target.set(t[0], t[1], t[2]);
     controls.update();
   },
-  stats: () => ({
-    ...engine.counters.last,
-    fps: engine.fps,
-    gpuMs: engine.gpuMs,
-    backend,
-    tier: tier.tier,
-    buildMs,
-    compileMs,
-  }),
+  stats: () => {
+    cove.mirror?.finalizeFrame(engine.counters.last.drawCalls, engine.counters.last.triangles);
+    return {
+      ...engine.counters.last,
+      fps: engine.fps,
+      gpuMs: engine.gpuMs,
+      cpuMs: engine.cpuMs,
+      backend,
+      tier: tier.tier,
+      buildMs,
+      compileMs,
+      mirror: cove.mirror?.stats ?? null,
+    };
+  },
 };

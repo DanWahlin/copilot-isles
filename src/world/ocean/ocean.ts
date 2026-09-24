@@ -1,4 +1,12 @@
-import { Mesh, MeshBasicNodeMaterial, NoBlending, type Camera, type Node, type Texture } from 'three/webgpu';
+import {
+  Mesh,
+  MeshBasicNodeMaterial,
+  NoBlending,
+  type Camera,
+  type Node,
+  type Texture,
+  type UniformNode,
+} from 'three/webgpu';
 import {
   Fn,
   attribute,
@@ -35,6 +43,7 @@ import {
   viewportSharedTexture,
 } from 'three/tsl';
 import type { TierSettings } from '../../engine/quality';
+import { COVE } from '../layout';
 import { world } from '../uniforms';
 import { shipOcean } from './ship-interaction';
 import { matchedDepthTexture } from './depth-copy';
@@ -46,6 +55,7 @@ export interface OceanOptions {
   tier: TierSettings;
   /** PMREM environment (a stable texture object; see sky-system). */
   env: Texture;
+  mirror?: { texture: Texture; active: UniformNode<'float', number> };
 }
 
 export interface Ocean {
@@ -68,7 +78,7 @@ const SCATTER = vec3(0.05, 0.42, 0.4);
  * glints, screen-space refraction with Beer-Lambert absorption, crest scattering, and whitecap and
  * contact foam. Low/Lite follow the D1 cuts (3 waves, no distortion, 1 foam band).
  */
-export function createOcean({ tier, env }: OceanOptions): Ocean {
+export function createOcean({ tier, env, mirror }: OceanOptions): Ocean {
   const waves = wavesForTier(tier.waves);
   const field = new WaveField(waves);
   const low = tier.tier === 'lite' || tier.tier === 'low';
@@ -150,6 +160,15 @@ export function createOcean({ tier, env }: OceanOptions): Ocean {
     const Rr = reflect(V.negate(), N);
     const R = normalize(vec3(Rr.x, max(Rr.y, 0.015), Rr.z));
     const refl = pmremTexture(env, R, rough.mul(1.5));
+    let reflRgb: Node<'vec3'> = refl.rgb;
+    if (mirror) {
+      const harborDist = p.sub(vec2(COVE.harbor.center.x, COVE.harbor.center.z)).length();
+      const harborMask = float(1)
+        .sub(smoothstep(COVE.harbor.radius * 0.78, COVE.harbor.radius, harborDist))
+        .mul(mirror.active);
+      const mirrorUv = screenUV.add(N.xz.mul(0.014).mul(harborMask));
+      reflRgb = mix(reflRgb, texture(mirror.texture, mirrorUv).rgb, harborMask.mul(0.92));
+    }
 
     // GGX key-light highlight (sun by day, a moon path at night).
     const H = normalize(L.add(V));
@@ -307,7 +326,7 @@ export function createOcean({ tier, env }: OceanOptions): Ocean {
     const foamCol = mix(baseFoamCol, vec3(0.98, 1.0, 0.98), shipFoam.mul(0.92));
 
     const body = under.add(sss.mul(float(1).sub(F)));
-    let col = mix(body, refl.rgb, F).add(spec);
+    let col = mix(body, reflRgb, F).add(spec);
     col = mix(col, foamCol, foam.mul(0.9));
 
     // Far-field: blend to the environment's horizon so the sea meets the sky without a seam.

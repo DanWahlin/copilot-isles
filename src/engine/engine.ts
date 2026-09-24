@@ -35,6 +35,7 @@ export class Engine {
   backend: Backend;
   fps = 60;
   gpuMs = 0;
+  cpuMs = 0;
   /** Overrides the default scene render (e.g. the post-processing pipeline). */
   renderFn: (() => void) | null = null;
 
@@ -141,6 +142,7 @@ export class Engine {
   };
 
   private tick(now: number): void {
+    const tickStart = performance.now();
     const raw = (now - this.last) / 1000;
     this.last = now;
     const dt = Math.min(raw, 0.1);
@@ -155,6 +157,7 @@ export class Engine {
     world.time.value = this.clock.sim;
     for (const s of this.systems) s.frame?.(dt, this.clock.sim);
     this.renderNow();
+    this.cpuMs = performance.now() - tickStart;
 
     // Adaptive resolution: GPU time where the backend exposes timestamps, else a vsync-aware
     // frame-time signal (see .plans/issues.md: raising relies on backoff probes without GPU time).

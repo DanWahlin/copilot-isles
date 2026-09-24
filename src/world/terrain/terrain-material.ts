@@ -28,6 +28,7 @@ import {
   vec2,
   vec3,
 } from 'three/tsl';
+import { packs } from '../../engine/packs';
 import { world } from '../uniforms';
 import type { Tier } from '../contracts';
 
@@ -42,7 +43,7 @@ const textureCache = new Map<string, Texture>();
 function terrainTexture(file: string): Texture {
   const cached = textureCache.get(file);
   if (cached) return cached;
-  const texture = new TextureLoader().load(`/packs/testcove/terrain-textures/${file}`);
+  const texture = new TextureLoader().load(packs.url(`/packs/testcove/terrain-textures/${file}`));
   texture.wrapS = RepeatWrapping;
   texture.wrapT = RepeatWrapping;
   texture.colorSpace = SRGBColorSpace;

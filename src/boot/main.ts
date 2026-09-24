@@ -1,7 +1,13 @@
 import { WebGPURenderer } from 'three/webgpu';
 import { chooseBackend, detectWebGL2, detectWebGPU, type Backend } from './detect';
 import { showFallback } from './fallback';
-import { heuristicTier, isPhoneDevice } from '../engine/capability';
+import { heuristicTier, isPhoneDevice, refineWithBenchmark } from '../engine/capability';
+import {
+  benchmarkStorageKey,
+  readStartupBenchmark,
+  runTitleStartupBenchmark,
+  writeStartupBenchmark,
+} from '../engine/benchmark';
 import { installDebug } from '../engine/debug';
 import type { Tier } from '../world/contracts';
 
@@ -39,12 +45,16 @@ async function boot(): Promise<void> {
   const saved = readQuality();
   const phone = isPhoneDevice(navigator, Math.min(screen.width, screen.height));
   const gpuName = backend === 'webgpu' ? `${webgpu.vendor} ${webgpu.architecture}` : webgl.renderer;
-  const autoTier = heuristicTier({
+  const heuristic = heuristicTier({
     backend,
     gpu: gpuName,
     isPhone: phone,
     deviceMemory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory,
   });
+  const benchmarkKey = benchmarkStorageKey(backend, gpuName);
+  const cachedBenchmark = readStartupBenchmark(benchmarkKey);
+  const autoTier = cachedBenchmark ? refineWithBenchmark(heuristic, cachedBenchmark.gpuMs, phone) : heuristic;
+  const hasTierOverride = q.has('tier') || (saved !== null && saved !== 'auto');
   const tierName = (q.get('tier') as Tier) || (saved && saved !== 'auto' ? saved : autoTier);
   const tier = TIERS[tierName] ?? TIERS.medium;
 
@@ -98,10 +108,29 @@ async function boot(): Promise<void> {
 
   stage(0.55, 'Rigging the brigantine');
   flow.showTitle();
+  registerServiceWorker();
   stage(0.75, 'Lighting the lighthouses');
   await renderer.compileAsync(engine.scene, engine.camera);
   engine.renderNow();
   await nextFrame();
+
+  if (!hasTierOverride && !cachedBenchmark && !q.has('skipBenchmark')) {
+    stage(0.86, 'Testing the trade winds');
+    try {
+      const sample = await runTitleStartupBenchmark(engine, {
+        backend,
+        gpu: gpuName,
+        heuristicTier: heuristic,
+        isPhone: phone,
+      });
+      writeStartupBenchmark(benchmarkKey, sample);
+      if (sample.refinedTier !== tier.tier) {
+        console.info(`Benchmark selected ${sample.refinedTier}; applying on next load.`);
+      }
+    } catch (err) {
+      console.warn('Startup benchmark failed', err);
+    }
+  }
 
   mountUi(document.getElementById('ui')!, flow);
   engine.start();
@@ -118,12 +147,22 @@ async function boot(): Promise<void> {
       hdr: hdr && backend === 'webgpu',
       features: webgpu.features,
     },
+    { getCpuMs: () => engine.cpuMs },
   );
   if (import.meta.env.DEV || q.has('debug')) (window as unknown as { __flow: unknown }).__flow = flow;
 
   const loading = document.getElementById('loading');
   loading?.classList.add('gone');
   setTimeout(() => loading?.remove(), 900);
+}
+
+function registerServiceWorker(): void {
+  if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return;
+  window.setTimeout(() => {
+    void navigator.serviceWorker.register('./sw.js').catch((err: unknown) => {
+      console.warn('Service worker registration failed', err);
+    });
+  }, 0);
 }
 
 function readQuality(): string | null {

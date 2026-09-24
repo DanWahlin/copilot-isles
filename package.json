@@ -23,7 +23,10 @@
     "toolchain:check": "node tools/check-toolchain.mjs",
     "bake": "tsx tools/bake/bake-terrain.ts",
     "prebuild": "npm run bake",
-    "predev": "npm run bake"
+    "predev": "npm run bake",
+    "bench": "node tools/bench.mjs --base=http://127.0.0.1:5301 --out=docs/reports/phase0-bench",
+    "shots": "node tools/shots.mjs --base=http://127.0.0.1:5301 --out=tests/visual/baseline",
+    "shots:compare": "node tools/visual-compare.mjs --base=tests/visual/baseline --candidate=test-results/visual"
   },
   "dependencies": {
     "react": "^19.3.0",

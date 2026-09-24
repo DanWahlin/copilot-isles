@@ -1,5 +1,6 @@
 import type { IslesAudio } from '../audio';
 import type { Engine } from '../engine/engine';
+import { packs, type PackProgress } from '../engine/packs';
 import type { Input } from '../engine/input';
 import { createTitleBackdrop, type TitleBackdrop } from '../title/title-scene';
 import {
@@ -12,6 +13,7 @@ import {
 } from '../ui/bridge';
 import type { CharacterLibrary } from '../world/characters';
 import type { CoveScene } from '../world/cove-scene';
+import { world } from '../world/uniforms';
 import { buildChart, coveTravelPoints } from './chart';
 import type { GameSession } from './session';
 
@@ -70,6 +72,7 @@ export class GameFlow implements GameBridge {
   private loading = false;
   private saveTimer = 0;
   private audioReady = false;
+  private titlePrefetchStarted = false;
 
   constructor(private readonly o: GameFlowOptions) {
     const settings = { ...DEFAULT_SETTINGS, ...readJson<Partial<Settings>>(SETTINGS_KEY) };
@@ -107,10 +110,12 @@ export class GameFlow implements GameBridge {
     this.title ??= createTitleBackdrop(this.o.engine);
     this.set({ screen: 'title', returnTo: 'title' });
     this.o.onTitleReady?.();
+    this.prefetchTitlePacks();
   }
 
   chooseCaptain(): void {
     void this.unlockAudio();
+    this.prefetchTitlePacks();
     this.set({ screen: 'captain', returnTo: 'title' });
   }
 
@@ -219,6 +224,23 @@ export class GameFlow implements GameBridge {
     this.o.input.invertY = s.invertY;
     document.documentElement.dataset.subtitles = s.subtitles ? s.subtitleSize : 'off';
     document.documentElement.classList.toggle('reduced-motion', s.reducedMotion);
+    world.reducedMotion.value = s.reducedMotion ? 1 : 0;
+  }
+
+  private prefetchTitlePacks(): void {
+    if (this.titlePrefetchStarted) return;
+    this.titlePrefetchStarted = true;
+    const run = () => {
+      void packs
+        .loadManifest()
+        .then(() => packs.prefetch('testcove/critical'))
+        .catch(() => undefined);
+    };
+    const idle = (
+      globalThis as { requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number }
+    ).requestIdleCallback;
+    if (idle) idle(run, { timeout: 2500 });
+    else window.setTimeout(run, 1200);
   }
 
   private async unlockAudio(): Promise<void> {
@@ -240,6 +262,9 @@ export class GameFlow implements GameBridge {
     this.set({ screen: 'voyage-loading', captain, progress: { value: 0.02, message: 'Weighing anchor' } });
     try {
       const report = (value: number, message: string) => this.set({ progress: { value, message } });
+      const progress = (start: number, end: number, message: string) => (p: PackProgress) => {
+        report(start + (end - start) * p.ratio, message);
+      };
       const [{ createCove }, { loadCharacterLibrary }, { createSession }] = await Promise.all([
         import('../world/cove-scene'),
         import('../world/characters'),
@@ -250,8 +275,13 @@ export class GameFlow implements GameBridge {
       this.title?.dispose();
       this.title = null;
       const base = this.o.packBase ?? '/packs';
+      await packs.loadManifest();
+      report(0.06, 'Loading Test Cove essentials');
+      await packs.prefetch('testcove/critical', progress(0.06, 0.24, 'Loading Test Cove essentials'));
+      report(0.24, 'Streaming the harbor');
+      await packs.streamZone('testcove/harbor', progress(0.24, 0.42, 'Streaming the harbor'));
       const [cove, characters] = await Promise.all([
-        createCove(engine, { packBase: base, onProgress: (p, m) => report(0.05 + p * 0.7, m) }),
+        createCove(engine, { packBase: base, onProgress: (p, m) => report(0.42 + p * 0.34, m) }),
         loadCharacterLibrary(`${base}/testcove/characters`),
       ]);
       this.cove = cove;
@@ -260,7 +290,9 @@ export class GameFlow implements GameBridge {
       engine.camera.updateProjectionMatrix();
       engine.clock.set(16.2, 0);
       cove.sky.invalidate();
-      report(0.82, 'Waking the villagers');
+      report(0.8, 'Warming the harbor');
+      await engine.renderer.compileAsync(cove.village.group, engine.camera);
+      report(0.86, 'Waking the villagers');
       this.session = await createSession({
         engine,
         cove,
@@ -280,6 +312,9 @@ export class GameFlow implements GameBridge {
       }
       report(0.92, 'Lighting the lanterns');
       await engine.renderer.compileAsync(engine.scene, engine.camera);
+      engine.renderNow();
+      engine.counters.hitches.length = 0;
+      engine.counters.arm();
       report(1, 'Landfall');
       this.save(captain);
       await new Promise((r) => setTimeout(r, 300));

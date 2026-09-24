@@ -8,7 +8,8 @@ export interface BackendInfo {
 }
 
 export interface IslesDebug {
-  info(): FrameStats & { width: number; height: number; fps: number } & BackendInfo;
+  info(): FrameStats & { width: number; height: number; fps: number; cpuMs: number } & BackendInfo;
+  shot?(id: string): void;
   hitches(): Hitch[];
   state(): string;
 }
@@ -31,11 +32,20 @@ export function installDebug(
   getFps: () => number,
   getState: () => string,
   backend: BackendInfo,
+  options: { getCpuMs?: () => number; shot?: (id: string) => void } = {},
 ): void {
   if (!debugEnabled()) return;
   window.__isles = {
-    info: () => ({ ...counters.last, width: canvas.width, height: canvas.height, fps: getFps(), ...backend }),
+    info: () => ({
+      ...counters.last,
+      width: canvas.width,
+      height: canvas.height,
+      fps: getFps(),
+      cpuMs: options.getCpuMs?.() ?? 0,
+      ...backend,
+    }),
     hitches: () => [...counters.hitches],
     state: getState,
+    ...(options.shot ? { shot: options.shot } : {}),
   };
 }

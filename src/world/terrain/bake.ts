@@ -1,3 +1,4 @@
+import { packs } from '../../engine/packs';
 import { sunState } from '../sky/sun';
 import { COVE } from '../layout';
 import {
@@ -555,7 +556,10 @@ export function terrainDataFromPack(json: PackedTerrainJson, binary: ArrayBuffer
 }
 
 export async function loadTerrainPack(baseUrl = '/packs/testcove/terrain'): Promise<TerrainBakeData> {
-  const [jsonResponse, binResponse] = await Promise.all([fetch(`${baseUrl}.json`), fetch(`${baseUrl}.bin`)]);
+  const [jsonResponse, binResponse] = await Promise.all([
+    fetch(packs.url(`${baseUrl}.json`)),
+    fetch(packs.url(`${baseUrl}.bin`)),
+  ]);
   if (!jsonResponse.ok) throw new Error(`Failed to load terrain JSON: ${jsonResponse.status}`);
   if (!binResponse.ok) throw new Error(`Failed to load terrain binary: ${binResponse.status}`);
   const json = (await jsonResponse.json()) as PackedTerrainJson;

@@ -13,6 +13,7 @@ import {
 } from 'three/webgpu';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'meshoptimizer/decoder';
+import { packs } from '../../engine/packs';
 import { createVegetationMaterial } from './materials';
 import { createPlantGeometry } from './plant-geometry';
 import type { PlantSpecies } from './types';
@@ -165,6 +166,7 @@ function addInstanceAttributes(geometry: BufferGeometry, mesh: Mesh, species: Pl
     const lum = colors[i * 3] * 0.2126 + colors[i * 3 + 1] * 0.7152 + colors[i * 3 + 2] * 0.0722;
     shade[i] = Math.min(1, Math.max(0, 0.22 + h * 0.58 + lum * 0.18));
   }
+  if (!g.getAttribute('uv')) g.setAttribute('uv', new Float32BufferAttribute(new Float32Array(count * 2), 2));
   g.setAttribute('vegPart', new Float32BufferAttribute(parts, 1));
   g.setAttribute('shade', new Float32BufferAttribute(shade, 1));
   return g;
@@ -236,7 +238,7 @@ function sliceGeometryByPart(source: BufferGeometry, keep: (part: number) => boo
 
 async function createPalmParts(species: PlantSpecies): Promise<VegetationModelPart[]> {
   const loader = new TextureLoader();
-  const bark = await loader.loadAsync('/packs/testcove/vegetation/textures/palm_bark.webp');
+  const bark = await loader.loadAsync(packs.url('/packs/testcove/vegetation/textures/palm_bark.webp'));
   bark.flipY = false;
   const source = createPlantGeometry(species);
   const parts: VegetationModelPart[] = [];
@@ -281,7 +283,7 @@ async function loadSpecies(loader: GLTFLoader, species: PlantSpecies): Promise<V
   if (species.startsWith('palm')) return createPalmParts(species);
   const model = MODEL_BY_SPECIES[species];
   if (!model) throw new Error(`No vegetation model mapped for ${species}`);
-  const gltf = await loader.loadAsync(`${MODEL_BASE}${model}`);
+  const gltf = await loader.loadAsync(packs.url(`${MODEL_BASE}${model}`));
   gltf.scene.updateMatrixWorld(true);
   const parts: VegetationModelPart[] = [];
   gltf.scene.traverse((object: Object3D) => {

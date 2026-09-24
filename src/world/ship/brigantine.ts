@@ -36,6 +36,7 @@ import {
   uv,
   vec2,
 } from 'three/tsl';
+import { packs } from '../../engine/packs';
 import type { CircleObstacle, HeightField, Tier, WaveSampler } from '../contracts';
 import { updateShipOceanInteraction } from '../ocean/ship-interaction';
 import { world } from '../uniforms';
@@ -860,7 +861,7 @@ function getShipWoodTexture(): Texture {
     shipWoodTexture = new DataTexture(new Uint8Array([132, 92, 54, 255]), 1, 1, RGBAFormat, UnsignedByteType);
     shipWoodTexture.needsUpdate = true;
   } else {
-    shipWoodTexture = new TextureLoader().load('/packs/testcove/ship/wood-trim.webp');
+    shipWoodTexture = new TextureLoader().load(packs.url('/packs/testcove/ship/wood-trim.webp'));
   }
   shipWoodTexture.colorSpace = SRGBColorSpace;
   shipWoodTexture.wrapS = RepeatWrapping;

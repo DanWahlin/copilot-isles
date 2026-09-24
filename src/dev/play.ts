@@ -109,6 +109,17 @@ const key = (code: string, down: boolean) => {
   ready: true,
   session: () => session,
   state: () => session?.debug.state() ?? null,
+  bench: {
+    teleport: (x: number, z: number, heading = 0, yaw = heading, pitch = 0.2) => {
+      session?.debug.teleport(x, z, heading);
+      if (session) {
+        session.camera.yaw = yaw;
+        session.camera.pitch = pitch;
+      }
+    },
+    board: () => session?.debug.board(),
+    dock: () => session?.debug.dock(),
+  },
   /** Holds keys for `ms` (e.g. hold(['KeyW','ShiftLeft'], 1500)). */
   hold: async (codes: string[], ms: number) => {
     for (const c of codes) key(c, true);
@@ -129,6 +140,7 @@ const key = (code: string, down: boolean) => {
     ...engine.counters.last,
     fps: engine.fps,
     gpuMs: engine.gpuMs,
+    cpuMs: engine.cpuMs,
     backend,
     tier: tier.tier,
     buildMs,

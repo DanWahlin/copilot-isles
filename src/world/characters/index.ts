@@ -14,6 +14,7 @@ import {
 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { packs } from '../../engine/packs';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import type { TierSettings } from '../../engine/quality';
 
@@ -117,7 +118,7 @@ export async function loadCharacterLibrary(base = '/packs/testcove/characters'):
   const root = base.endsWith('/') ? base : `${base}/`;
   const loaded = await Promise.all(
     SOURCES.map(async ({ key, file }) => {
-      const gltf = await loader.loadAsync(`${root}${file}`);
+      const gltf = await loader.loadAsync(packs.url(`${root}${file}`));
       const scene = gltf.scene;
       scene.name = `source_${key}`;
       prepareSourceScene(scene);
