@@ -83,11 +83,9 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const detail = options.tier === 'lite' ? 0 : options.tier === 'low' ? 1 : 2;
   const rockTexture = terrainTexture('rocks.webp');
   const pathTexture = terrainTexture('path-rocks.webp');
-  const grassTexture = terrainTexture('grass.webp');
   const flatUv = vec2(positionWorld.x, positionWorld.z);
   const rockTexel = triplanarColor(rockTexture, 0.045);
   const pathTexel = textureNode(pathTexture, flatUv.mul(0.036)) as AnyNode;
-  const grassTexel = textureNode(grassTexture, flatUv.mul(0.09)) as AnyNode;
 
   const broadNoise = sin(positionWorld.x.mul(0.038).add(sin(positionWorld.z.mul(0.031)).mul(1.9)))
     .mul(0.5)
@@ -99,21 +97,43 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const rippleNoise = sin(positionWorld.x.mul(0.72).add(sin(positionWorld.z.mul(0.28)).mul(1.4)))
     .mul(0.5)
     .add(0.5);
+  const sandGrain = sin(positionWorld.x.mul(1.9).add(positionWorld.z.mul(2.35)))
+    .mul(sin(positionWorld.x.mul(-2.65).add(positionWorld.z.mul(1.15))))
+    .mul(0.5)
+    .add(0.5);
+  const grassFineA = sin(positionWorld.x.mul(1.35).add(sin(positionWorld.z.mul(0.92)).mul(1.1)))
+    .mul(0.5)
+    .add(0.5);
+  const grassFineB = sin(positionWorld.x.mul(-1.9).add(positionWorld.z.mul(1.62)))
+    .mul(cos(positionWorld.x.mul(0.74).sub(positionWorld.z.mul(1.28))))
+    .mul(0.5)
+    .add(0.5);
 
   const sandDetail = pathTexel.rgb.dot(vec3(0.3, 0.48, 0.22));
-  const grassDetail = grassTexel.rgb.dot(vec3(0.25, 0.58, 0.17));
+  const grassDetail = grassFineA.mul(0.42).add(grassFineB.mul(0.34)).add(broadNoise.mul(0.24));
   const rockDetail = rockTexel.dot(vec3(0.32, 0.43, 0.25));
-  const drySand = mix(color(0xd8b66f), color(0xf0d394), broadNoise.mul(0.45).add(sandDetail.mul(0.22)));
-  const wetSand = mix(color(0x755b39), color(0xa98555), fineNoise.mul(0.34).add(sandDetail.mul(0.24)));
+  const drySand = mix(
+    color(0xdcb875),
+    color(0xf4dca4),
+    broadNoise.mul(0.36).add(sandDetail.mul(0.13)).add(sandGrain.mul(0.13)),
+  );
+  const wetSand = mix(
+    color(0xb28150),
+    color(0xd1ad75),
+    fineNoise.mul(0.24).add(sandDetail.mul(0.08)).add(sandGrain.mul(0.1)),
+  );
   const submergedSand = mix(
-    color(0x8ec2b2),
-    color(0xd7c08a),
+    color(0x9ed0bd),
+    color(0xe1c78d),
     rippleNoise.mul(0.42).add(sandDetail.mul(0.18)),
   );
-  const grass = mix(color(0x315f31), color(0x77a850), broadNoise.mul(0.48).add(grassDetail.mul(0.3)));
-  const dirt = mix(color(0x614529), color(0xa47a48), fineNoise.mul(0.55).add(sandDetail.mul(0.2)));
-  const rock = mix(color(0x5f5d55), color(0x9a927c), broadNoise.mul(0.28).add(rockDetail.mul(0.38)));
-  const limestone = mix(color(0x554d43), color(0x907956), broadNoise.mul(0.28).add(rockDetail.mul(0.32)));
+  const grassBase = mix(color(0x2d6934), color(0x79ad4d), broadNoise.mul(0.5).add(grassDetail.mul(0.28)));
+  const grass = grassBase
+    .mul(float(0.9).add(grassFineA.mul(0.1)).add(grassFineB.mul(0.05)))
+    .add(color(0xd0e08e).mul(pow(saturate(grassFineB.sub(0.62).mul(2.5)), 2.0).mul(0.055)));
+  const dirt = mix(color(0x68462a), color(0xa97945), fineNoise.mul(0.48).add(sandDetail.mul(0.16)));
+  const rock = mix(color(0x5b5b55), color(0xa0937a), broadNoise.mul(0.24).add(rockDetail.mul(0.42)));
+  const limestone = mix(color(0x5d5549), color(0x9b8965), broadNoise.mul(0.22).add(rockDetail.mul(0.38)));
   const seabed = mix(color(0x608c82), color(0xb8a676), rippleNoise.mul(0.28).add(sandDetail.mul(0.22)));
   const reefRock = mix(color(0x4f5f56), color(0x8b8468), fineNoise.mul(0.35).add(rockDetail.mul(0.32)));
 
@@ -121,9 +141,9 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const grassMask = masks.y;
   const rockMask = masks.z;
   const cliffMask = masks.w;
-  const waterline = float(1).sub(smoothstep(0.02, 0.72, abs(y)));
+  const waterline = float(1).sub(smoothstep(0.015, 0.28, abs(y)));
   const wetSandBand = smoothstep(-0.12, 0.08, y)
-    .mul(float(1).sub(smoothstep(0.58, 1.08, y)))
+    .mul(float(1).sub(smoothstep(0.28, 0.82, y)))
     .mul(sandMask);
   const underwater = smoothstep(0.04, 12.0, y.negate());
   const shallowUnderwater = smoothstep(0.02, 2.7, y.negate()).mul(
@@ -164,7 +184,8 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const algaeBase = smoothstep(-0.25, 0.3, y)
     .mul(float(1).sub(smoothstep(2.9, 4.4, y)))
     .mul(cliffMask.add(rockMask).mul(0.65));
-  let base = mix(drySand, wetSand, wetSandBand.add(waterline.mul(sandMask).mul(0.35)));
+  let base = mix(drySand, wetSand, wetSandBand.mul(0.58));
+  base = mix(base, color(0xe8cf9a), waterline.mul(sandMask).mul(0.16));
   base = mix(base, submergedSand, shallowUnderwater.mul(sandMask).mul(0.78));
   base = mix(base, grass, grassMask);
   base = mix(base, dirt, dirtPatch);
@@ -176,7 +197,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(cavity.mul(0.34)))
     .mul(float(1).sub(notch.mul(0.48)))
     .mul(float(1).sub(algaeBase.mul(0.52)))
-    .mul(float(1).sub(waterline.mul(0.2)))
+    .mul(float(1).sub(waterline.mul(0.05)))
     .mul(float(1).sub(cave.mul(0.72)));
   base = mix(base, cliffColor, cliffMask);
   base = mix(base, reefRock, underwater.mul(rockMask.add(cliffMask).mul(0.7)));
@@ -276,9 +297,9 @@ export function createRockMaterial(): MeshStandardNodeMaterial {
   );
   const algae = smoothstep(-0.15, 0.05, y).mul(float(1).sub(smoothstep(1.35, 1.8, y)));
   const texLum = rockTexel.dot(vec3(0.32, 0.43, 0.25));
-  let base = mix(color(0x4c463b), color(0x8b7653), triNoise.mul(0.32).add(texLum.mul(0.42)));
-  base = base.mul(float(0.76).add(strata.mul(0.16))).mul(float(1).sub(joints.mul(0.38)));
-  base = mix(base, color(0x263c32), algae.mul(0.42));
+  let base = mix(color(0x5c5548), color(0xae9b78), triNoise.mul(0.3).add(texLum.mul(0.38)));
+  base = base.mul(float(0.84).add(strata.mul(0.13))).mul(float(1).sub(joints.mul(0.28)));
+  base = mix(base, color(0x3e5640), algae.mul(0.24));
   material.colorNode = base;
   material.roughnessNode = float(0.93);
   material.aoNode = float(0.86);

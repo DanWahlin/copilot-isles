@@ -289,9 +289,17 @@ function headlandHeight(x: number, z: number, current: number): number {
 function seaStackHeight(x: number, z: number, current: number): number {
   const d = Math.hypot(x - COVE.seaStack.x, z - COVE.seaStack.z);
   if (d > COVE.seaStack.radius + 18) return current;
-  const side = 1 - smoothstep(COVE.seaStack.radius - 1.5, COVE.seaStack.radius + 5, d);
-  const cap = COVE.seaStack.height - 2.2 * smoothstep(0, COVE.seaStack.radius, d);
-  const column = mix(-4.8, cap + ridged2(x * 0.12, z * 0.12, 3, SEED + 707) * 0.8, side);
+  const a = Math.atan2(z - COVE.seaStack.z, x - COVE.seaStack.x);
+  const ribs =
+    Math.sin(a * 7 + fbm2(x * 0.035, z * 0.035, 3, SEED + 706) * 1.8) * 1.5 +
+    ridged2(x * 0.08, z * 0.08, 3, SEED + 707) * 1.7;
+  const radius = COVE.seaStack.radius * 0.58 + ribs * 0.7;
+  const side = 1 - smoothstep(radius - 1.8, radius + 3.8, d);
+  const cap =
+    COVE.seaStack.height -
+    3.2 * smoothstep(0, COVE.seaStack.radius + 2, d) +
+    ridged2(x * 0.11, z * 0.11, 3, SEED + 708) * 1.1;
+  const column = mix(-5.6, cap, side);
   return Math.max(current, column);
 }
 
@@ -377,29 +385,33 @@ export function coveMasks(x: number, z: number): CoveMasks {
   const h = coveHeight(x, z);
   const n = normalAtAnalytic(x, z, [0, 0, 0]);
   const slope = Math.hypot(n[0], n[2]) / Math.max(0.05, n[1]);
+  const coast = noisyCoastDistance(x, z);
   const lagoonD = Math.hypot(x - COVE.lagoon.center.x, z - COVE.lagoon.center.z);
   const stackD = Math.hypot(x - COVE.seaStack.x, z - COVE.seaStack.z);
   const headland =
     smoothstep(COVE.headland.x0 - 5, COVE.headland.x0 + 20, x) *
     smoothstep(COVE.headland.z0 - 18, COVE.headland.z0 + 8, z) *
     (1 - smoothstep(COVE.headland.z1 - 6, COVE.headland.z1 + 24, z));
-  const shallowSand = smoothstep(-7, -1.2, h) * (1 - smoothstep(2.2, 4.2, h));
+  const shoreBand = smoothstep(-7, -1.2, h) * (1 - smoothstep(2.2, 4.2, h));
   const beachSand =
     smoothstep(COVE.beach.z0 - 18, COVE.beach.z0 + 8, z) *
     (1 - smoothstep(COVE.beach.z1 + 18, COVE.beach.z1 + 48, z)) *
     (1 - smoothstep(160, 210, Math.abs(x))) *
     (1 - smoothstep(0.45, 0.9, slope));
+  const lagoonSand = smoothstep(COVE.lagoon.radius + 18, 18, lagoonD);
+  const deliberateBeach = Math.max(beachSand, lagoonSand * 0.72);
+  const shallowSand = shoreBand * (0.22 + deliberateBeach * 0.78) * (1 - headland * 0.78);
+  const rockyShore =
+    shoreBand *
+    smoothstep(-3, 10, coast.distance) *
+    (1 - smoothstep(16, 38, coast.distance)) *
+    (1 - deliberateBeach * 0.9);
   const path = pathMask(x, z) * smoothstep(1.0, 6.5, h);
   const outcrop =
     smoothstep(5, 20, h) *
     smoothstep(0.28, 0.7, ridged2(x * 0.075 - 3.4, z * 0.075 + 1.8, 3, SEED + 1501)) *
     (1 - smoothstep(0.65, 1.1, slope));
-  let sand = Math.max(
-    shallowSand * (1 - headland * 0.7),
-    beachSand,
-    smoothstep(COVE.lagoon.radius + 18, 18, lagoonD) * 0.7,
-    path * 0.85,
-  );
+  let sand = Math.max(shallowSand * (1 - headland * 0.7), beachSand, lagoonSand * 0.7, path * 0.85);
   let cliff = Math.max(
     smoothstep(0.52, 1.15, slope),
     headland * smoothstep(7, 26, h),
@@ -408,6 +420,7 @@ export function coveMasks(x: number, z: number): CoveMasks {
   let rock = Math.max(
     smoothstep(0.25, 0.72, slope),
     headland * 0.75,
+    rockyShore * 0.72,
     smoothstep(8, 26, h) * 0.22,
     outcrop * 0.45,
   );

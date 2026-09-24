@@ -27,7 +27,7 @@ function createFoamMaterial(maxDistance: number): MeshBasicNodeMaterial {
   const wash = sin(along.mul(0.035).sub(world.time.mul(0.7)))
     .mul(0.5)
     .add(0.5);
-  const band = smoothstep(0.0, 0.16, coord.y).mul(float(1).sub(smoothstep(0.62, 1.0, coord.y)));
+  const band = smoothstep(0.0, 0.11, coord.y).mul(float(1).sub(smoothstep(0.42, 0.86, coord.y)));
   const lace = sin(along.mul(0.17).add(coord.y.mul(11.0)).add(world.time.mul(0.55)))
     .mul(sin(along.mul(0.37).sub(world.time.mul(0.9))))
     .mul(0.5)
@@ -41,7 +41,7 @@ function createFoamMaterial(maxDistance: number): MeshBasicNodeMaterial {
   material.colorNode = mix(color(0xbfe9ef), color(0xffffff), pow(lace, 2.5));
   material.opacityNode = band
     .mul(distanceFade)
-    .mul(float(0.045).add(surge.mul(0.16)).add(wash.mul(0.08)))
+    .mul(float(0.075).add(surge.mul(0.22)).add(wash.mul(0.08)))
     .mul(float(0.45).add(lace.mul(0.55)));
   return material;
 }
@@ -78,7 +78,7 @@ export function createCoastFoam(
       sx /= len;
       sz /= len;
       const base = positions.length / 3;
-      positions.push(p.x + sx * 0.35, 0.055, p.z + sz * 0.35, p.x + sx * width, 0.065, p.z + sz * width);
+      positions.push(p.x + sx * 0.18, 0.058, p.z + sz * 0.18, p.x + sx * width, 0.066, p.z + sz * width);
       normals.push(0, 1, 0, 0, 1, 0);
       uvs.push(along * 0.025, 0, along * 0.025, 1);
       alongAttr.push(along, along);
