@@ -1,0 +1,9 @@
+{
+  "$comment": "PLAN §13.5 load budgets, enforced in CI on the production build (gzip -9 sizes).",
+  "chunks": {
+    "boot (entry)": { "entry": true, "maxGzipKB": 150 },
+    "vendor-three": { "name": "vendor-three", "maxGzipKB": 190 },
+    "vendor-ui": { "name": "vendor-ui", "maxGzipKB": 70 }
+  },
+  "titleWireMaxKB": 4096
+}

@@ -1,0 +1,7 @@
+dist/
+.tools/
+playwright-report/
+test-results/
+docs/
+.plans/
+package-lock.json

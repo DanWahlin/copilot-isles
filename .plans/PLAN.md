@@ -24,7 +24,7 @@
 | Branding | **Unsure.** Build unbranded, with a theme layer so logos/mascots can be dropped in later. The **affiliation line** wording is a required decision before the first public deploy |
 | Platforms | **Runs everywhere with a WebGL2 browser:** desktop (keyboard/mouse + gamepad) **and tablets (touch) now**, phones in a later phase. **Performance floor: Intel UHD 620 at 30 fps**, plus a **Lite** preset for Chromebooks. Devices that can't run 3D get the **2D Chart & Logbook mode**. See §14 |
 | Rendering backend | **WebGL2 + GLSL** (three.js). WebGPU only for optional HDR output later |
-| Test hardware | **Emulated** on the M3 Max (locked render scale + scaled GPU budgets + CPU throttling), with **cloud real-device runs** for iPad/Android tablets. A real UHD 620 laptop is recommended before public launch (§14.5) |
+| Test hardware | **Emulated** on the M3 Max (locked render scale + scaled GPU budgets + CPU throttling), with **cloud real-device runs** for iPad/Android tablets. A **real UHD 620 check happens before public launch** (user decision; accepted risk in §11) |
 | Repository | `DanWahlin/copilot-isles` (**private**). GitHub Pages from a private repo needs a paid plan, and the published site is public either way |
 | Hosting | **GitHub Pages** |
 | Project folder | `~/Desktop/test/copilot-isles` |
@@ -386,7 +386,7 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 | Trademarks & affiliation (Octocat, Copilot logo, product name) | The MIT license covers the course's copyright, not GitHub's trademarks. We include the **full MIT notice** in the credits, keep screenshots as screenshots, and **never model or generate the Octocat or Copilot logo**. An **affiliation line** (e.g. "Unofficial fan project…" vs official wording) is a **required decision before the first public deploy** |
 | Film likeness (the "Pirates of the Caribbean" ship brief) | Build a generic Golden Age brigantine. Don't replicate any specific film ship's distinctive design |
 | GitHub Pages bandwidth (~100 GB/month soft cap) | Keep the per-island downloads small, use Service Worker caching, and monitor. Move to a CDN if the game gets popular |
-| **Decision risk (open):** emulated-only testing leaves the 30 fps floor unverified during content production | **Recommended:** one real UHD 620 session **before Phase 1 content** (rather than at launch). The user decides. Until then: conservative ratios with margin, and the Floor shot |
+| **Accepted risk (user decision, 2026-09-23):** emulated-only testing leaves the 30 fps floor unverified during content production | The user chose **real-device verification before public launch**. Until then: conservative ratios with margin, the Floor shot, and extra headroom on the Low budget. If the launch check fails, Low features get cut rather than content |
 | Emulated-only performance testing misses real iGPU limits | Conservative emulation ratios with margin, cloud real devices for tablets, and one real UHD 620 laptop before public launch (§14.5) |
 | "Runs everywhere" scope (tablets + 2D mode) | Shared data-driven content, 2D renderers for only 5 POC puzzles, and phones deferred to Phase 2b |
 | Service Worker serves stale or mixed versions | Content-hashed immutable URLs, a network-first manifest, new versions activated only at the title screen, and old packs kept until the new ones verify |
@@ -639,8 +639,8 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 ### 14.5 Testing without the physical devices (chosen: emulate)
 - **Emulated GPU tiers on the M3 Max:**
   - lock the render resolution per tier
-  - **scale the GPU-time budget by rough capability ratios:** ~5-8× less headroom for M1/Iris Xe, **~25-35× for UHD 620**, ~40× for Chromebook-class. In practice a tier's frame must render in ≤ its budget ÷ that ratio on the M3 Max
-  - apply **Chrome DevTools CPU throttling** (4× for Medium, 6× for Low/Lite) to catch main-thread and physics costs
+  - **scale the GPU-time budget by rough capability ratios** vs this M3 Max: ~4× for M2 Air (High), ~5-7× for M1/Iris Xe (Medium), **~25-35× for UHD 620 (Low)**, ~40-70× for Chromebook-class (Lite). In practice a tier's frame must render in ≤ its budget ÷ that ratio on the M3 Max, measured with GPU timer queries at that tier's render scale. The Phase 0 spec's §5 has the table
+  - apply **Chrome DevTools CPU throttling** by approximate single-thread ratios (**~2× Medium, ~3× Low, ~6× Lite**) to catch main-thread and physics costs
   - The ratios are **estimates**, so we'll add a small margin
 - **Cloud real devices** (e.g. BrowserStack/LambdaTest) for **iPad and Android tablets**: touch, Safari/iPadOS behaviour, memory, and context loss. **Cloud desktop VMs lack real GPUs**, so they're used for compatibility and 2D-mode checks only, never for performance.
 - **Risk:** emulation can't fully predict an Intel iGPU's bandwidth limits or driver quirks. **Before public launch we should test on one real UHD 620 laptop** (a ~$150-250 used 8th-gen i5 ultrabook).

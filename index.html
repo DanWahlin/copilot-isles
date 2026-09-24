@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b1620" />
+    <title>Copilot Isles</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <meta
+      name="description"
+      content="Sail the Copilot Isles and learn the GitHub Copilot app, one island per chapter."
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #e8c88a;
+        --bg: #0b1620;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        overflow: hidden;
+      }
+      #gl {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        display: block;
+        outline: none;
+      }
+      #ui {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+      }
+      /* PLAN §13.8: the loader paints before any module downloads. */
+      #loading {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(ellipse 80% 70% at 50% 40%, #13283a 0%, #0b1620 60%, #070e15 100%);
+        transition: opacity 0.8s ease;
+        font-family: Georgia, 'Times New Roman', serif;
+        color: var(--ink);
+      }
+      #loading.gone {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #loading .ld {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      #loadArt {
+        --p: 0;
+        position: relative;
+        width: min(18em, 46vh);
+        aspect-ratio: 1;
+      }
+      #loadArt canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #loadArt .l1 {
+        opacity: clamp(0, calc((var(--p) - 0.1) * 1.65), 1);
+        transition: opacity 1.2s ease;
+      }
+      #loadArt .l2 {
+        opacity: clamp(0, calc((var(--p) - 0.6) * 2.6), 1);
+        transition: opacity 1.2s ease;
+      }
+      #loadTitle {
+        margin: 1.2em 0 0;
+        font-weight: 300;
+        font-size: 2em;
+        letter-spacing: 0.3em;
+        padding-left: 0.3em;
+      }
+      #loadText {
+        margin: 0.5em 0 0;
+        min-height: 1.4em;
+        font-style: italic;
+        opacity: 0.7;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #loadArt .l1,
+        #loadArt .l2,
+        #loading {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gl" tabindex="0" aria-label="Copilot Isles"></canvas>
+    <div id="ui"></div>
+    <div id="loading" role="status" aria-live="polite">
+      <div class="ld">
+        <div id="loadArt" aria-hidden="true">
+          <canvas class="l0"></canvas><canvas class="l1"></canvas><canvas class="l2"></canvas>
+        </div>
+        <p id="loadTitle">COPILOT ISLES</p>
+        <p id="loadText">Charting the isles</p>
+      </div>
+    </div>
+    <script>
+      // Classic (non-module) script: runs before the game code downloads (PLAN §13.8).
+      // Phase 0 placeholder art: a compass rose in three layers that resolve with progress.
+      (function () {
+        var art = document.getElementById('loadArt');
+        var text = document.getElementById('loadText');
+        var cv = art.getElementsByTagName('canvas');
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var S = Math.round(art.getBoundingClientRect().width * dpr) || 320;
+        function layer(el, draw) {
+          el.width = el.height = S;
+          var g = el.getContext('2d');
+          g.translate(S / 2, S / 2);
+          g.scale(S / 200, S / 200);
+          g.strokeStyle = g.fillStyle = '#e8c88a';
+          draw(g);
+        }
+        layer(cv[0], function (g) {
+          g.globalAlpha = 0.35;
+          g.lineWidth = 1.2;
+          g.beginPath();
+          g.arc(0, 0, 92, 0, Math.PI * 2);
+          g.stroke();
+          g.beginPath();
+          g.arc(0, 0, 84, 0, Math.PI * 2);
+          g.stroke();
+        });
+        layer(cv[1], function (g) {
+          g.globalAlpha = 0.8;
+          for (var i = 0; i < 8; i++) {
+            var a = (i * Math.PI) / 4,
+              r = i % 2 ? 44 : 78;
+            g.beginPath();
+            g.moveTo(0, 0);
+            g.lineTo(Math.cos(a - 0.12) * 14, Math.sin(a - 0.12) * 14);
+            g.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+            g.lineTo(Math.cos(a + 0.12) * 14, Math.sin(a + 0.12) * 14);
+            g.closePath();
+            g.fill();
+          }
+        });
+        layer(cv[2], function (g) {
+          g.globalAlpha = 0.6;
+          g.lineWidth = 0.8;
+          for (var i = 0; i < 64; i++) {
+            var a = (i * Math.PI) / 32,
+              r0 = i % 8 ? 86 : 80;
+            g.beginPath();
+            g.moveTo(Math.cos(a) * r0, Math.sin(a) * r0);
+            g.lineTo(Math.cos(a) * 92, Math.sin(a) * 92);
+            g.stroke();
+          }
+          g.font = '600 12px Georgia, serif';
+          g.textAlign = 'center';
+          g.textBaseline = 'middle';
+          g.fillText('N', 0, -100 + 4);
+        });
+        var shown = 0;
+        // boot calls window.__load(progress 0-1, message); progress never goes backwards.
+        window.__load = function (p, msg) {
+          shown = Math.max(shown, Math.min(1, p));
+          art.style.setProperty('--p', String(shown));
+          if (msg) text.textContent = msg;
+        };
+      })();
+    </script>
+    <script type="module" src="/src/boot/main.ts"></script>
+  </body>
+</html>

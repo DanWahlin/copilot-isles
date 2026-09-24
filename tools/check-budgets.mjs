@@ -1,0 +1,64 @@
+// Enforces PLAN §13.5 size budgets on dist/ (run after `npm run build`).
+// "Title" = index.html + everything reachable from the entry through static and dynamic imports.
+// Phase 0 note: once game chunks exist (T3), the title set narrows to the title-critical chunks.
+import { gzipSync } from 'node:zlib';
+import { readFileSync, existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const dist = join(root, 'dist');
+const manifestPath = join(dist, '.vite/manifest.json');
+if (!existsSync(manifestPath)) {
+  console.error('dist/.vite/manifest.json not found. Run `npm run build` first.');
+  process.exit(1);
+}
+const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+const budgets = JSON.parse(readFileSync(join(root, 'tools/budgets.json'), 'utf8'));
+const gz = (file) => gzipSync(readFileSync(join(dist, file)), { level: 9 }).length;
+const kb = (b) => (b / 1024).toFixed(1);
+
+const entries = Object.entries(manifest);
+const entryKey = entries.find(([, v]) => v.isEntry)?.[0];
+if (!entryKey) {
+  console.error('No entry chunk in the manifest.');
+  process.exit(1);
+}
+
+let failed = false;
+const rows = [];
+for (const [label, rule] of Object.entries(budgets.chunks)) {
+  const hit = rule.entry ? manifest[entryKey] : entries.map(([, v]) => v).find((v) => v.name === rule.name);
+  if (!hit) {
+    rows.push([label, '-', `${rule.maxGzipKB}`, 'not built']);
+    continue;
+  }
+  const size = gz(hit.file);
+  const ok = size <= rule.maxGzipKB * 1024;
+  if (!ok) failed = true;
+  rows.push([label, kb(size), `${rule.maxGzipKB}`, ok ? 'ok' : 'OVER']);
+}
+
+const seen = new Set();
+const files = new Set(['index.html']);
+const walk = (key) => {
+  if (seen.has(key) || !manifest[key]) return;
+  seen.add(key);
+  const m = manifest[key];
+  files.add(m.file);
+  (m.css || []).forEach((c) => files.add(c));
+  (m.assets || []).forEach((a) => files.add(a));
+  [...(m.imports || []), ...(m.dynamicImports || [])].forEach(walk);
+};
+walk(entryKey);
+const title = [...files].reduce((sum, f) => sum + gz(f), 0);
+const titleOk = title <= budgets.titleWireMaxKB * 1024;
+if (!titleOk) failed = true;
+rows.push(['title (wire, gz)', kb(title), `${budgets.titleWireMaxKB}`, titleOk ? 'ok' : 'OVER']);
+
+console.log('budget                 KB gz    max KB   status');
+for (const [a, b, c, d] of rows) console.log(`${a.padEnd(22)} ${b.padStart(7)}  ${c.padStart(7)}   ${d}`);
+if (failed) {
+  console.error('\nA size budget was exceeded (PLAN §13.5).');
+  process.exit(1);
+}
