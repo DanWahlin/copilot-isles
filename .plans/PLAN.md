@@ -72,6 +72,15 @@ Full study: [docs/research/2026-09-23-sakura-river-valley.md](../docs/research/2
 - **Performance:** a cached shadow map refreshed on movement, half-res effect buffers (DPR ≤ 1.3), adaptive resolution (0.72-1.0), and shader precompile before reveal.
 - **The scene code isn't licensed**, so we re-implement the *techniques* and don't copy code.
 
+### "Antikythera" Claude artifact (cliffs, leaps, waves, boat motion, loader reference)
+Full study: [docs/research/2026-09-23-antikythera-artifact.md](../docs/research/2026-09-23-antikythera-artifact.md). This is a single-file three.js dive game: a Greek sponge boat anchored under sea cliffs. It draws **58 calls and 1.4 M triangles at the title**, and everything is procedural.
+- **Waves:** a JS wave table that *generates* the GLSL, an exact height via displacement inversion, a CPU/GPU-identical distance fade, a polar grid that filters waves it can't resolve, and roughness-based specular anti-aliasing with Poisson sparkles. The **ship's reflection and shadow are analytic**.
+- **Boat:** **damped-spring buoyancy at 8 hull stations**, wind/hull drag, an anchor-rope spring, orbital coupling, heel from wind and crew weight, and rigging that sways from the hull's real acceleration.
+- **Jumping fish:** a **director** that stages flying fish, mullet, and dolphins only where the whole leap is on screen and away from UI text.
+- **Cliffs:** an analytic coastline with **fluted buttresses**, ravines, strata, a tidal notch, sea caves, baked sun visibility, **silhouette rim light**, and layered distant ranges in sky-tinted haze.
+- **Loader:** instant procedural art that **"resolves" with progress**, and themed stage messages.
+- **Caveat:** it generates everything at load (17.6 s to a warm title on an M3 Max, 213 shader programs), so we **bake at build time** instead. Its license is unknown, so we re-implement techniques only.
+
 ### CC0 asset sources (verified CC0)
 | Need | Source |
 |---|---|
@@ -216,23 +225,43 @@ The town's districts mirror the app's sidebar:
   7. vignette, then **film grain + dither**, which prevents banding in sky and fog gradients
   8. FXAA + a light unsharp mask when rendering below native resolution
   - Soft DOF during dialogue (High+).
-- **Ambient life:** gull flocks (circling, with flapping bouts and glides), lagoon fish, dolphins, butterflies, fireflies at dusk, chimney smoke, drifting leaves, and floating flotsam. All particles **wrap inside camera-following boxes**, so nothing is spawned or allocated per frame.
+- **Ambient life:** gull flocks (circling, with flapping bouts and glides), lagoon fish, butterflies, fireflies at dusk, chimney smoke, drifting leaves, floating flotsam, and **distant ships crossing the horizon**. All particles **wrap inside camera-following boxes**, so nothing is spawned or allocated per frame.
+- **The "Leaps" director (jumping fish & dolphins):** a stager, not a random spawner. Every ~15-45 s, **in daylight with the camera above water**, it picks a spot ahead of the camera and **only commits if the *entire* leap stays on screen**. It also has to stay **clear of UI text** (title logo, dialogue, prompts) and away from the ship and the camera-to-ship line.
+  - **Species:** **flying-fish schools** (taxi with tail-slaps → glide → re-entry) in the tropics and open sea, **mullet** hops in harbors, and **dolphin pods** at sea (nose and tail each splash as they cross the surface). Later islands can add a whale breach or leaping mantas.
+  - **Physics:** trajectories are ballistic (g = 9.81), with pitch following velocity. Each leap is baked once at 60 Hz and interpolated.
+  - **Events:** splash particles and **stereo-panned splash sounds** are scheduled.
+  - **Budgets & testing:** tiny instanced pools (≈ 6 fish, 3 dolphins, 48 splashes), and a `?seed=` for reproducible tests.
+
+### Cliffs, coastline & distant land
+- **Coastlines are analytic functions** (baked to terrain at build time). Each is a noisy base shape with Gaussian coves and capes, a **sea-cliff profile** rising to inland ridges, and **radial ravines**.
+- **Cliff faces are carved** by "buttress" and "flute" functions (sawtooth waves over rotated, noise-warped coordinates). **This vertical fluting is what makes cliffs read as real.** Ridged-noise detail and flat features (terraces, threshing floors, plazas) sit on the gentle slopes.
+- **The cliff/rock shader** adds:
+  - **strata ledges** (anti-aliased with `fwidth`) and dark water streaks
+  - a **tidal-notch** erosion line just above the sea, plus a **wet, darker, glossier band** at the waterline
+  - **sea caves** placed in hashed cells along the cliff base
+  - terraces with stone walls, and scrub dots
+  - **per-biome palettes:** limestone and terracotta at Port Meridian, dark basalt at Keelhaven and Tidewheel, red sandstone mesas at Sunspire
+- **Baked lighting (build time):**
+  - per-vertex AO
+  - **sun visibility ray-marched against the height field for two sun states** (blended when a preset drifts), for cheap soft terrain self-shadowing at any distance
+  - a **skyline rim-light flag** on vertices silhouetted against the sky, so **ridges glow gold when the sun sits behind them**
+- **Distant ranges:** several layered, procedurally generated ridgelines (a few thousand vertices each, ~0 bytes of assets) carry a **"faint" depth attribute**. A **land-haze shader** (height-fog integral + distance haze) **samples its colour from the sky at the horizon**: warm gold toward the sun, cool blue away. It's clamped so sunlit faces never wash out. The same ranges appear on the **title screen** and every sea view.
 
 ### Water system
 Our water has to cover **open-ocean swell, surf, lagoons, harbors, and flowing water**. The Sakura Valley techniques cover the last three, and Gerstner covers the swell.
 
 | Layer | Technique | Tier |
 |---|---|---|
-| **Surface motion** | Open sea: 4-8 **Gerstner** waves + two scrolling detail-normal layers on a camera-centred clipmap, with amplitude by zone (calm lagoon → open swell). Rivers, waterfalls, and **the P0.1 sluice channels**: **two-phase flow maps** (no visible reset). Wind ripples on top. Normal strength fades with distance (anti-aliasing) | All |
-| **Reflection** | **Baseline:** a Fresnel (Schlick) reflection of a **prefiltered PMREM sky map** plus two-lobe sun glitter (the agreed consensus). **Add-on for calm zones:** a **half-res planar mirror pass** (DPR ≤ 1.3) inside the lagoon and harbor basins only. It uses a `noReflect` layer (grass, particles, small props excluded), a global `uReflect` flag that puts every material on a **cheap shading path**, frozen shadows, and normal-distorted lookups | Baseline: all. Mirror: **High/Ultra**, calm zones only |
+| **Surface motion** | Open sea: **4-6 Gerstner waves with deep-water dispersion `ω = √(g·k)`**, defined in **one TS table that generates the GLSL constants**, plus two scrolling detail-normal layers, with amplitude by zone (calm lagoon → open swell). Amplitude also fades with camera distance (`exp(-d/≈240 m)`), **identically on CPU and GPU**. The mesh is a **camera-centred polar grid** (geometric ring spacing out to ~1.6 km). Each vertex carries its spacing, so **wave components the grid can't resolve are dropped instead of aliasing**. Rivers, waterfalls, and **the P0.1 sluice channels** use **two-phase flow maps** (no visible reset). Wind ripples on top | All |
+| **Reflection** | **Baseline:** a Fresnel (Schlick) reflection of a **prefiltered PMREM sky map**, spread by roughness. **Roughness grows with unresolved wave variance and the normal's screen derivative**, so far water becomes a soft sheen rather than sparkling noise. Sun glints use a **microfacet (Beckmann/Smith) BRDF** plus **Poisson sparkles** sized to the pixel footprint. **Ships reflect analytically on every tier:** a simplified hull SDF is ray-tested with 4 jittered normals, with no second render. **Add-on for calm zones:** a **half-res planar mirror pass** (DPR ≤ 1.3) inside the lagoon and harbor basins only. It uses a `noReflect` layer (grass, particles, small props excluded), a global `uReflect` flag that puts every material on a **cheap shading path**, frozen shadows, and normal-distorted lookups | Baseline + analytic ship reflection: all. Sparkles: Medium+. Mirror: **High/Ultra**, calm zones only |
 | **Refraction & colour** | Copy the opaque pass to a **half-res target with linear depth in alpha**. Offset the lookup by normal × depth, and **fall back to the undistorted sample if the offset hits something in front of the water**. Colour is **Beer-Lambert absorption along the optical path** (depth ÷ view angle, clamped to the depth-buffer bed distance) plus an in-scatter body colour. **Per-island absorption presets**: turquoise lagoon, deep-blue ocean, jade river, and inky volcanic | All (Low: no distortion offset) |
 | **Seabed** | **Caustics** injected into the terrain material as *extra sunlight* (so shadows still hold), fading with depth and distance. **Underwater light attenuation** on anything below the waterline (so the shallows don't glow). Terrain uses a matte, wet look below the surface | Medium+ |
-| **Foam** | "Lace" foam (coverage eroding multi-octave cells, never solid sheets), depth-based **shoreline foam**, **reef-break foam lines**, wave-crest foam from Gerstner steepness, and a **beach run-up (swash)** band with receding wet sand. Noise is **only evaluated where foam is possible** | All (Low: fewer octaves) |
-| **Boat ↔ water** | All **analytic in the water shader**, with no particles or simulation: **Kelvin wake arms + churned trail**, a **bow-wave crescent**, hull-hugging streaky whitewater, rings around the hull at rest, and a **hull cut-out** (water discarded inside the hull, using the *same* hull function as the CPU). The **boat's shadow on water** is ray-stepped against that hull function | All (Low: no shadow march) |
+| **Foam** | "Lace" foam (coverage eroding multi-octave cells, never solid sheets), depth-based **shoreline foam**, a **coast-foam ribbon extracted from the real shoreline contour at build time** (marching squares) with a surge travelling along the coast, **reef-break foam lines**, wave-crest foam from Gerstner steepness, and a **beach run-up (swash)** band with receding wet sand. Noise is **only evaluated where foam is possible** | All (Low: fewer octaves) |
+| **Boat ↔ water** | All **analytic in the water shader**, with no particles or simulation: **Kelvin wake arms + churned trail**, a **bow-wave crescent**, hull-hugging streaky whitewater, rings around the hull at rest, and a **hull cut-out** (water discarded inside the hull, using the *same* hull function as the CPU). The **boat's shadow on water** is ray-stepped against that hull function. The hull also gets a **waterline foam ring** that rides the Gerstner surface, a **wet band** that follows the real sea height, and **spray bursts when the bow slams** a wave (hull-point vs sea velocity) | All (Low: no shadow march, no spray) |
 | **Other interaction** | Rings + foam around the player's legs when wading, rings where crates or oars touch water, and floating flotsam/leaves that **part around the hull and fan into the wake** | Medium+ |
 | **Night & weather (post-POC)** | Lantern glints smeared into columns by the ripples, rain-ring fields, and wetness | Medium+ |
 
-**Single sources of truth:** the Gerstner wave sum, the terrain height `h(x,z)`, shore distance, and hull shape are each written **once as paired TS + GLSL functions**. Buoyancy, placement, wading depth, wake, and cut-out all use them, so what you see always matches what the game simulates.
+**Single sources of truth:** the Gerstner wave sum, the terrain height `h(x,z)`, shore distance, and hull shape are each written **once as paired TS + GLSL functions**. Where possible, the GLSL is **generated from the TS constants at build time**. Buoyancy, placement, wading depth, wake, and cut-out all use them, so what you see always matches what the game simulates. Because Gerstner moves points sideways, the **exact surface height at a world point is found by inverting the horizontal displacement** (a 2-3 step fixed-point iteration) before sampling.
 
 ### Physics & motion
 - The **agreed split stands:** Rapier provides only primitive static colliders, scene queries, and the kinematic character controller. There are no dynamic bodies, and push blocks are grid logic.
@@ -241,7 +270,11 @@ Our water has to cover **open-ocean swell, surf, lagoons, harbors, and flowing w
   - tested against **circle/capsule obstacles** (dock posts, rocks, buoys, moored ships) and the shoreline distance field, with **3-4 iterations of depenetration**
   - **Impact response:** a hard bow hit reverses a little speed and adds a decaying shake. A glancing hit adds drag.
   - **Grounding:** the depth from `h(x,z)` under the hull slows you in the shallows before you touch sand.
-  - **Motion feel:** buoyancy from the analytic Gerstner sum at 4 hull points gives heave, pitch, and roll. Turns add heel, and speed, wind, and sail trim drive the thrust.
+  - **Motion feel (fixed-timestep):** the player controls heading and speed kinematically (sail trim, rudder), and **heave, pitch, and roll are damped springs** toward the exact sea height at **~8 hull stations**. Each has its own natural frequency and damping, so the hull *lags, overshoots, and settles* instead of snapping to the waves.
+  - **Layered on top:** **orbital-velocity coupling** (the swell nudges the ship), **anisotropic drag** (easy forward, hard sideways), **heel from apparent wind and turning**, and **crew-load heel** (the ship leans slightly toward you as you walk the deck).
+  - **Stability:** substeps are capped per frame, with clamps and a NaN guard.
+- **Moored & NPC ships:** the same buoyancy, plus a **nonlinear mooring/anchor-rope spring** and wind drag, so anchored ships **swing and weathervane** naturally in the harbor.
+- **Secondary motion:** lanterns, blocks, loose rigging, and hanging nets sway on springs driven by the **hull's measured acceleration**. Flags, pennants, laundry, and sails use a light cloth/billow solver on the shared wind.
 - **Autopilot planner:** a lane/waypoint planner scores candidate headings against the obstacles ahead every ~0.2 s and steers smoothly. It powers the **P1.2 Autopilot voyage**, the chart's **"Sail here"** auto-sail, and docking assist. Manual input always takes over.
 - **Player on foot:** the kinematic controller + `h(x,z)`. Wading slows you and spawns ring shaders, and deep water gently returns you to shore (POC).
 
@@ -325,7 +358,7 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 
 | Phase | Deliverable | Gate |
 |---|---|---|
-| **0 · Look, sound & perf spike** | One frame that shows **the clipmap ocean, one restyled building cluster, a dressed pirate, and ≥ 8 skinned NPCs**, plus sky, clouds, character + camera, sailing and docking the brigantine, a prototype of the procedural music engine (one island theme), the voice pipeline (a few lines), and the debug HUD + benchmark flythrough (which also measures physics time).<br>**Water must show every layer of the Water system**: Gerstner swell → calm lagoon with **refraction + absorption + caustics**, shoreline/reef foam and **beach run-up**, **analytic wake + bow wave + hull cut-out**, a flow-map channel, and the **High-tier harbor mirror**.<br>Also required: cached shadows, sun shafts, the shared wind (grass, palms, sails), mist/height fog, adaptive resolution, the `shot()` debug API, and the **§13 loading skeleton** (boot/title chunk split, the manifest + one streamed pack, and the Service Worker), with its §13.5 title budget measured.<br>It must **hit the §12 budgets** on reference hardware, with each water layer's cost measured separately | You approve the *look*, the *sound*, and the *frame rate* |
+| **0 · Look, sound & perf spike** | One frame that shows **the polar-grid ocean (with analytic ship reflection), one restyled building cluster, a dressed pirate, and ≥ 8 skinned NPCs**, plus sky, clouds, character + camera, sailing and docking the brigantine, a prototype of the procedural music engine (one island theme), the voice pipeline (a few lines), and the debug HUD + benchmark flythrough (which also measures physics time).<br>**Water must show every layer of the Water system**: Gerstner swell → calm lagoon with **refraction + absorption + caustics**, shoreline/reef foam and **beach run-up**, **analytic wake + bow wave + hull cut-out**, a flow-map channel, and the **High-tier harbor mirror**.<br>Also required: cached shadows, sun shafts, the shared wind (grass, palms, sails), mist/height fog, adaptive resolution, the `shot()` debug API, and the **§13 loading skeleton** (boot/title chunk split, the manifest + one streamed pack, and the Service Worker), with its §13.5 title budget measured.<br>It must **hit the §12 budgets** on reference hardware, with each water layer's cost measured separately | You approve the *look*, the *sound*, and the *frame rate* |
 | **1 · Proof of concept** | **Islands 00 + 01 fully playable**, plus all core systems: menu, character creation, dialogue, chests/logbook, all quiz types, puzzle toolkit, map/fast travel, settings, save, audio. **Vertical-slice gate first:** Anchorage Q0.2-Q0.8 fully playable with real TTS before the rest of the content is built | You approve the *slice*, then the *fun & teaching* |
 | **2 · Expansion** | Islands 02-04 | |
 | **3 · Complete** | Islands 05-07 + finale, certificate, polish, accessibility audit, perf pass, credits, deploy | |
@@ -338,7 +371,7 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 |---|---|
 | Realism vs browser performance | Quality tiers and an early Phase 0 look/perf gate |
 | Planar mirror doubles the scene cost | Limited to High/Ultra and calm-zone visibility. Half-res, layer-culled, cheap-path shaders, a ≤ 35% budget, and PMREM always as the fallback |
-| Copying code from reference scenes | Arkenfall and Sakura Valley are **study references only**. We re-implement their techniques and never copy their code, shaders, or assets |
+| Copying code from reference scenes | Arkenfall, Sakura Valley, and the Antikythera artifact are **study references only**. We re-implement their techniques and never copy their code, shaders, or assets |
 | Mixed CC0 kits look inconsistent | 1-2 kits per island, a shared palette and material pass, and Blender restyle scripts |
 | Pirate characters (m/f) need to look great | CC0 base bodies + modular outfits. We may need custom Blender work for hats and coats |
 | Procedural music sounds "synthy" | Physical-modeling plucks, FM bells, detuned ensembles, humanized timing, and good generated reverb. We'll A/B test in Phase 0, and you sign off on the sound before content work starts |
@@ -378,7 +411,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 ### 12.3 Level of detail *(your "LOD")*
 - **Islands:** the island you're on renders at full detail and its neighbors at medium. Far islands are low-poly silhouettes that fade into the haze, and anything past the horizon isn't drawn at all.
 - **Vegetation:** full mesh → simplified mesh → **billboard impostor** → dithered fade-out.
-- **Water:** a camera-centered **clipmap grid**, with dense vertices near you and sparse ones far away. Wave octaves drop out with distance.
+- **Water:** a camera-centred **polar grid** with geometric ring spacing (dense near you, sparse far away, out to ~1.6 km). Each vertex carries its spacing, so the shader **drops wave components the grid can't resolve**, and the wave amplitude fades with distance identically on CPU and GPU.
 - **Terrain:** chunked, with geomorphing between LODs to avoid visible popping.
 - **Characters:** skinned-mesh LODs. Distant NPCs update their animation at a lower rate, and NPCs you can't see don't animate at all.
 
@@ -428,7 +461,8 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - **Nothing renders when nothing's visible.** When a full-screen menu, the map, or the Logbook is open, we render a single frame, blur it into a still backdrop, and pause the 3D loop. We also pause everything when the tab is hidden.
 
 ### 12.9 Adaptive quality
-- **Dynamic resolution** starts measuring after a ~90-frame warm-up and averages frame time over 60 frames:
+- **GPU time is the primary signal.** We measure it with `EXT_disjoint_timer_query_webgl2` (a ring of ~4 queries, read asynchronously and smoothed). If the extension is missing or disjoint, we fall back to frame-time and missed-frame counting. **We never rescale during transitions** (fast travel, docking, dialogue cuts), and after a failed upscale we **back off exponentially** (≈ 15 s → 120 s).
+- **Dynamic resolution** starts measuring after a ~90-frame warm-up and averages over 60 frames:
   - **Lowering:** over budget (e.g. > 23.5 ms at a 60 fps target), scale × 0.92, or × 0.84 if badly over (> 45 ms). The floor is **0.72**, and there's an 8 s cooldown after a drop.
   - **Raising:** with headroom (< 17.6 ms), scale + 0.05, with a 2.5 s cooldown.
   - It pauses while the tab is hidden, and it can be locked from the debug HUD. Thresholds scale with each tier's target.
@@ -437,7 +471,8 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 
 ### 12.10 Measuring it
 - **Debug HUD** (`?debug`): FPS, frame ms (CPU/GPU), **whole-frame** draw calls and triangles (counters accumulated across all passes, not just the last render), textures, geometries, and JS heap, plus a lil-gui tuning panel.
-- **Debug API** (dev builds only, e.g. `window.__isles`): `info()`, `setRes()`, `setPreset()`/`setTime()`, and a deterministic **`shot(id)`** that places the camera, freezes time, and renders one frame. Playwright uses it for **visual-regression screenshots** and for the benchmark.
+- **Debug API** (dev builds only, e.g. `window.__isles`): `info()`, `setRes()`, `setPreset()`/`setTime()`, and a deterministic **`shot(id)`** that places the camera, freezes time, and renders one frame. Playwright uses it for **visual-regression screenshots** and for the benchmark. A **`?seed=`** parameter makes ambient systems (Leaps, birds, flotsam) reproducible.
+- **Hitch guard (dev):** after warm-up, log every shader program, geometry, or texture created during play, with the game state and time. Any entry is a bug to fix (a missing precompile or preload).
 - A **benchmark flythrough** follows a fixed camera path across the ocean, into the town, and through a dialogue scene. It reports average FPS and 1% lows, and we run it before merging any visual change.
 - For deeper profiling we'll use Chrome Performance traces and Spector.js frame captures.
 
@@ -527,3 +562,12 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 ### 13.7 Verification
 - The **Playwright** suite runs throttled network profiles (25 Mbps broadband, 9 Mbps "fast 4G") and asserts the §13.5 timings: title interactive, first playable, fast travel cached/uncached, and that a sea passage finishes its prefetch before arrival.
 - The **debug HUD** shows pack residency, the download queue, bytes/s, and GPU memory per pack.
+
+### 13.8 The loading screen (first impression)
+- **Instant art, before the game code:** a tiny **inline classic script** (not a module) runs as soon as the HTML arrives. It paints the loader art procedurally in a few milliseconds, so there's something beautiful on screen before `boot`/`vendor-three` finish downloading. For us that's an **ink-and-parchment Captain's Chart**: a compass rose, coastlines, and a sailing ship.
+- **The art resolves with progress:** three stacked canvases hold increasing detail (rough ink wash → coastlines and the compass rose → fine hatching, island names, and the ship). A CSS variable `--p` (0-1) fades in each layer, and a slow drift animation runs (off under reduced motion).
+- **Themed stage messages mapped to *real* stages** (never fake timers): "Charting the isles" (manifest), "Raising the swell" (ocean/sky shaders), "Rigging the brigantine" (ship), "Planting the palms" (the island pack), "Waking the harbor" (NPCs and voice), "Lighting the lighthouses" (shader warm-up).
+- **An asymptotic creep** (`p += (0.99 − p) × k`) keeps the progress moving during long compiles.
+- **Fonts are warmed** before reveal (hidden spans + `document.fonts.ready`), so there's no flash of unstyled text. The loader cross-fades into the live title in ~0.8 s.
+- **Two-phase warm-up:** we compile and **warm-draw** (render once off-screen to force GPU uploads) the **title objects first** and reveal the title. The **island is then precompiled in the background, time-boxed**, and revealed in batches. The dev hitch guard confirms nothing compiles during play.
+- **Bake, don't generate:** the Antikythera study took **~17.6 s to a warm title** on an M3 Max because it generates everything at runtime. Our terrain, AO, sun visibility, rim flags, shorelines, and foam ribbons are **baked at build time** into packs. Only small procedural pieces (distant ranges, sky, water) run at load, and anything heavier runs in a worker.

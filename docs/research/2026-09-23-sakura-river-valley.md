@@ -9,7 +9,7 @@
 
 | Metric | Value | vs our PLAN §12.1 (High) |
 |---|---|---|
-| Total download | **~7.5 MB**: 7.25 MB of assets (45 files: WebP color+normal pairs and gzipped custom meshes) + a 283 KB Brotli JS bundle | Well under our 25 MB title budget |
+| Total download | **~7.5 MB**: 7.25 MB of assets (45 files: WebP color+normal pairs and gzipped custom meshes) + a 283 KB Brotli JS bundle | About one island pack (≤ 20 MB). Above our ≤ 4 MB title budget (§13.5) |
 | Draw calls per frame | **239**, counting the mirror pass, main pass, and every post pass | Within our < 300 |
 | Triangles per frame | **~5.9 M** across both scene passes (mirror + main) | Far over our < 2 M. That's fine on an M3 Max, but it wouldn't be on Iris Xe/M1 |
 | Shader programs | 85 | Fine (all compiled up front) |

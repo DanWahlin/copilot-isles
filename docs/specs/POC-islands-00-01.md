@@ -74,7 +74,8 @@ Boot ─▶ Title (live 3D) ─▶ New Voyage ─▶ Character Creation ─▶ I
 ## 3. Shared systems (POC requirements)
 
 ### 3.1 Title & menus
-- **Title backdrop:** **ocean, sky, clouds, and your brigantine at anchor**, plus at most one distant impostor silhouette of an island on the horizon. The camera orbits slowly at golden hour, gulls circle, and the logo fades in using Fraunces at weight 300 with generous letter-spacing. Anchorage Cay streams in only after **New Voyage** or **Continue** (or quietly while the title sits idle), which keeps the title within its **≤ 4 MB** budget (PLAN §13).
+- **Loading screen (PLAN §13.8):** an instant ink-and-parchment Captain's Chart painted by an inline script. It **resolves in three layers as real loading progresses**, with themed stage messages ("Charting the isles" → "Raising the swell" → "Rigging the brigantine" → "Lighting the lighthouses").
+- **Title backdrop:** **ocean, sky, clouds, and your brigantine at anchor**, **swinging gently on its anchor rope** (mooring spring + damped-spring buoyancy), with its analytic reflection on the swell. Behind it sit **layered procedural distant ranges** in sky-tinted haze with **gold rim light on the ridges**, plus at most one distant impostor island. A far-off ship crosses the horizon, and **the Leaps director stages flying fish and the occasional dolphin pod, never behind the logo or menu text**. The camera orbits slowly at golden hour, gulls circle, and the logo fades in using Fraunces at weight 300 with generous letter-spacing. Anchorage Cay streams in only after **New Voyage** or **Continue** (or quietly while the title sits idle), which keeps the title within its **≤ 4 MB** budget (PLAN §13).
 - **Affiliation line:** a small line under the logo and in the credits. Its wording is a **required decision before the first public deploy** (see §10). It doesn't block Phase 0.
 - **Main menu:** Continue (if a save exists) · New Voyage · Captain's Chart · Logbook · Settings · Controls · Credits · Quit. Quit saves and returns to the title, with a note that you can close the tab.
 - **Pause menu (Esc):** Resume · Captain's Chart · Logbook · Settings · Controls · Save & Return to Title.
@@ -201,7 +202,7 @@ Lever · rotatable pipe tile · sluice gate · flowing-water channel (a GPU-anim
   - The **reef** gets break foam lines, and the **beach** gets run-up with a receding wet-sand band.
   - The waterfall and the **P0.1 channels** use flow maps.
   - The **pier and huts** carry waterline tidemarks, and wading in the shallows spawns rings.
-- **Ambient life:** gulls, scuttling crabs, lagoon fish, butterflies, palm rustle, surf on the reef.
+- **Ambient life:** gulls, scuttling crabs, lagoon fish, butterflies, palm rustle, and surf on the reef. **Flying-fish schools** skip across the reef edge and lagoon mouth (Leaps director). The hill's seaward face gets fluted cliffs with a tidal notch and wet band, and the shoreline gets a coast-foam ribbon.
 - **Music (procedural):** major pentatonic at ~84 bpm, with marimba ostinato, steel-pan, and ukulele pluck.
 
 | Layer | What plays |
@@ -356,7 +357,7 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 
 - The trip is about 1.2 km: roughly 2.5 min at full sail and 4 min at half. A steady SW wind makes it a comfortable broad reach.
 - **Buoys** mark the channel. The **citadel** grows on the horizon. Port Meridian's mountain ridge and the far ranges sit behind it.
-- **Optional moments:** a dolphin pod rides the bow wave, there's a sea-stack arch to sail through (hidden achievement), and a floating bottle **B0.4** holds a teaser: *"Why a whole app? Ask the merchant in Port Meridian."*
+- **Optional moments:** a dolphin pod rides the bow wave and **leaps alongside** (Leaps director, nose and tail splashes), flying fish skim ahead of the bow, a distant ship crosses the horizon, there's a sea-stack arch to sail through (hidden achievement), and a floating bottle **B0.4** holds a teaser: *"Why a whole app? Ask the merchant in Port Meridian."*
 - **Music:** the sailing theme, with pads that swell with the wave height, crossfades into the Port Meridian theme within 250 m of the harbor.
 - **Streaming:** Port Meridian's **critical pack is prefetched from the moment the Harbormaster's Trial starts** and raised to top priority when you set sail. Anchorage drops to medium LOD past 400 m and to a silhouette past 900 m. If you'd arrive before the critical pack is resident, a **fog bank** gently slows the ship near the harbor (PLAN §13.4).
 - **Docking:** once you're within 25 m of the harbor berth below half speed, a soft auto-assist docks you and you step onto the quay.
@@ -369,7 +370,8 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 - **Shape:** roughly 700 × 450 m. Terraced hillside town above a walled harbor, a **mole with a lighthouse**, and the **citadel** on the summit. A mountain ridge sits behind with far ranges beyond.
 - **Pacing rule:** the landmass stays large, but the **required stops are clustered** so neighboring required beats are about a **60-90 s walk** apart. The **citadel climb is the one deliberately long walk**, a scenic payoff before the Hall of Records and the Exam.
 - **Light:** late-afternoon **golden hour** with the sun at 18°, long shadows, and warm **shadow-map sun shafts** through the streets (High+).
-- **Water:** the walled inner basin is a calm zone (planar mirror on High/Ultra), so the terracotta town and moored ships reflect in it at golden hour. Floating flotsam parts around your hull as you dock.
+- **Water:** the walled inner basin is a calm zone (planar mirror on High/Ultra), so the terracotta town and **moored ships (swinging on their mooring springs)** reflect in it at golden hour. **Mullet** hop in the basin now and then.
+- **Cliffs:** the ridge behind the citadel and the headland below it are **fluted limestone cliffs** with strata ledges, a tidal notch, sea caves at the waterline, **gold rim light at golden hour**, and terraced slopes. The far ranges layer into the haze. Floating flotsam parts around your hull as you dock.
 - **Palette:** terracotta `#C8643B`, limestone `#E9DCC3`, bougainvillea `#C2306B`, cypress `#2F4F3A`, sea teal `#2BB3B1`, banners in deep blue `#1F3A6B` and gold `#E8C88A`.
 - **Vegetation:** palms along the quay, cypress and olive on the terraces, bougainvillea on the walls.
 - **Ambient life:** market murmur, church-bell-style chimes on the quarter hour (from the Clock Tower), pigeons, a harbor cat, flags snapping.
