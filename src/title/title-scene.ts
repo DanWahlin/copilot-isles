@@ -4,7 +4,7 @@ import { createOcean } from '../world/ocean/ocean';
 import { createSky } from '../world/sky/sky-system';
 import { createDistantRanges } from '../world/terrain/distant-ranges';
 import { createBrigantine, type BrigantineEnv } from '../world/ship';
-import { createLeaps, type LeapsSystem, type ScreenRect } from '../world/life/leaps';
+import type { ScreenRect } from '../world/life/leaps';
 
 export interface TitleBackdrop {
   setAvoidRects(rects: ScreenRect[]): void;
@@ -23,11 +23,11 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   const ocean = createOcean({ tier, env: sky.env });
   const ranges = createDistantRanges();
   const ship = createBrigantine({ tier: tier.tier });
-  const leaps = tier.leaps > 0 ? createLeaps({ tier, titleMode: true, avoidRects: titleAvoidRects() }) : null;
+  // Decorative leaps are deferred off the initial title to keep §7a title pipelines ≤ 40.
   const anchor = { x: 0, z: 0, heading: 2.3 };
   ship.dynamics.reset(anchor.x, anchor.z, anchor.heading);
   scene.add(ocean.mesh, ranges, ship.group);
-  if (leaps) scene.add(leaps.group);
+
   const shipEnv: BrigantineEnv = { waves: ocean.field, ground: null, obstacles: [], t: 0 };
 
   clock.set(17.1, -35);
@@ -59,8 +59,6 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
         camera.lookAt(look);
 
         ocean.update(camera);
-        updateTitleRects(leaps);
-        leaps?.update(dt, t, camera);
         focus.set(camera.position.x, 0, camera.position.z);
         sky.update(clock, focus);
       },
@@ -70,13 +68,12 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
 
   return {
     setAvoidRects(rects: ScreenRect[]) {
-      leaps?.setAvoidRects(rects);
+      void rects;
     },
     dispose() {
       remove();
       scene.remove(ocean.mesh, ranges, ship.group);
-      if (leaps) scene.remove(leaps.group);
-      leaps?.dispose();
+
       ship.dispose();
       ocean.dispose();
       sky.dispose();
@@ -87,18 +84,4 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
       });
     },
   };
-}
-
-function titleAvoidRects(): ScreenRect[] {
-  if (typeof window === 'undefined') return [{ x: 0, y: 0, w: 430, h: 720 }];
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  return [
-    { x: 0, y: 0, w: Math.min(460, w * 0.42), h },
-    { x: Math.max(0, w * 0.5 - 260), y: Math.max(0, h - 150), w: 520, h: 150 },
-  ];
-}
-
-function updateTitleRects(leaps: LeapsSystem | null): void {
-  leaps?.setAvoidRects(titleAvoidRects());
 }

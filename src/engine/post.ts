@@ -10,15 +10,12 @@ import {
   screenCoordinate,
   screenUV,
   smoothstep,
-  toneMappingExposure,
   uniform,
   vec2,
   vec4,
   vibrance,
 } from 'three/tsl';
-import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
-import { smaa } from 'three/addons/tsl/display/SMAANode.js';
 import type { TierSettings } from './quality';
 
 export interface Post {
@@ -34,10 +31,8 @@ export interface Post {
 }
 
 /**
- * Post pipeline (Phase 0 T12, PLAN §6/§15): scene pass → bloom (tiered) → tone mapping + sRGB →
- * display-space grade (vibrance, saturation, S-curve contrast, vignette) → AA (SMAA on High/Ultra,
- * FXAA below) → 1-LSB interleaved-gradient dither against sky/sea banding.
- * Lite renders directly with the renderer's tone mapping (returns null).
+ * Lean title-safe post pipeline: scene pass → tone mapping → display grade → FXAA → dither.
+ * Bloom/SMAA were cut from Phase 0a because they dominated title pipeline count (§7a issue #29).
  */
 export function createPost(
   renderer: WebGPURenderer,
@@ -48,21 +43,12 @@ export function createPost(
   if (tier.tier === 'lite') return null;
   const pipeline = new RenderPipeline(renderer);
   const scenePass = pass(scene, camera);
-  const hdr = scenePass.getTextureNode('output');
+  const ldr = renderOutput(scenePass.getTextureNode('output'));
 
-  // Bloom works on exposure-scaled colour, so the threshold means "brighter than display white"
-  // rather than "brighter than 1 in raw HDR" (which caught the whole daytime sky and washed out
-  // anything near the sun). The clamp stops the sun disc from blooming into a huge halo.
-  const exposure = toneMappingExposure as unknown as Node<'float'>;
-  const exposed = hdr.rgb.mul(exposure).min(4);
-  const bloomNode = tier.bloom ? bloom(vec4(exposed, 1), 0.14, 0.4, 1.05) : null;
-  const lit = bloomNode ? hdr.add(vec4(bloomNode.rgb.div(exposure), 0)) : hdr;
-  const ldr = renderOutput(lit);
-
-  const uVibrance = uniform(0.22);
-  const uSaturation = uniform(1.04);
-  const uContrast = uniform(0.2);
-  const uVignette = uniform(0.22);
+  const uVibrance = uniform(0.18);
+  const uSaturation = uniform(1.03);
+  const uContrast = uniform(0.16);
+  const uVignette = uniform(0.18);
   const graded = Fn(() => {
     let c = ldr.rgb;
     c = vibrance(c, uVibrance);
@@ -74,9 +60,7 @@ export function createPost(
     return vec4(c, 1);
   })();
 
-  const aa = (tier.tier === 'high' || tier.tier === 'ultra'
-    ? smaa(graded)
-    : fxaa(graded)) as unknown as Node<'vec4'>;
+  const aa = fxaa(graded) as unknown as Node<'vec4'>;
   const dither = interleavedGradientNoise(screenCoordinate.xy).sub(0.5).div(255);
   pipeline.outputColorTransform = false;
   pipeline.outputNode = vec4(aa.rgb.add(dither), 1);
@@ -85,7 +69,6 @@ export function createPost(
     render: () => pipeline.render(),
     grade: { vibrance: uVibrance, saturation: uSaturation, contrast: uContrast, vignette: uVignette },
     dispose() {
-      bloomNode?.dispose();
       scenePass.dispose();
       pipeline.dispose();
     },
