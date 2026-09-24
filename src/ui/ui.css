@@ -1915,3 +1915,11 @@
     row-gap: 0.8rem;
   }
 }
+
+/* "Captain <name>" can get long: keep it on one line inside the card. */
+.ci-captain-card span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -130,7 +130,7 @@ function TitleScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) 
   return (
     <main className="ci-title-shell" aria-labelledby="title-wordmark">
       <div className="ci-wordmark-block">
-        <p className="ci-kicker">A browser island adventure</p>
+        <p className="ci-kicker">A pirate island adventure</p>
         <h1 id="title-wordmark">COPILOT ISLES</h1>
         <p className="ci-subtitle">Learn the GitHub Copilot app, one island at a time</p>
       </div>
@@ -170,14 +170,15 @@ function TitleHint() {
 function CaptainSelect({ bridge, current }: { bridge: GameBridge; current: CaptainBody }) {
   const [captain, setCaptain] = useState<CaptainBody>(current);
   const [name, setName] = useState('');
+  const captainTitle = cleanName(name) ? `Captain ${cleanName(name)}` : 'Captain';
   const [ship, setShip] = useState<string | null>(null);
   const shipShown = ship ?? defaultShipName(cleanName(name));
   const start = () => bridge.newVoyage(captain, { captain: name, ship: shipShown });
   return (
     <OverlayShell title="Choose your captain" eyebrow="New voyage" onBack={bridge.back}>
       <div className="ci-captain-grid" role="radiogroup" aria-label="Captain body">
-        <CaptainCard id="man" title="Captain" selected={captain === 'man'} onSelect={setCaptain} />
-        <CaptainCard id="woman" title="Captain Anne" selected={captain === 'woman'} onSelect={setCaptain} />
+        <CaptainCard id="man" title={captainTitle} selected={captain === 'man'} onSelect={setCaptain} />
+        <CaptainCard id="woman" title={captainTitle} selected={captain === 'woman'} onSelect={setCaptain} />
       </div>
       <form
         className="ci-name-fields"
@@ -240,22 +241,21 @@ function CaptainCard({
       className={`ci-captain-card ${selected ? 'selected' : ''}`}
       role="radio"
       aria-checked={selected}
+      aria-label={`${title}, ${id === 'man' ? 'bearded' : 'long-haired'}`}
       onClick={() => onSelect(id)}
     >
       <CaptainPortrait body={id} />
       <span>{title}</span>
       <small>
-        {id === 'man'
-          ? 'Red tricorn, ginger beard, loyal parrot'
-          : 'Gold-trimmed tricorn, sharp eyes, quick smile'}
+        {id === 'man' ? 'Ginger beard, loyal parrot, steady hand' : 'Long fair hair, sharp eyes, quick smile'}
       </small>
     </button>
   );
 }
 
 /**
- * The captain-select portraits, drawn to match the in-game models: the Captain's red-crowned tricorn,
- * ginger beard, and parrot, and Anne's gold-trimmed tricorn over long fair hair.
+ * The captain-select portraits: the bearded captain with his parrot, and the long-haired captain.
+ * Both wear the same gold-trimmed tricorn as Anne's in-game hat.
  */
 function CaptainPortrait({ body }: { body: CaptainBody }) {
   const man = body === 'man';
@@ -268,21 +268,79 @@ function CaptainPortrait({ body }: { body: CaptainBody }) {
           <stop offset="1" stopColor="#1b2a36" />
         </radialGradient>
         <linearGradient id={`${id}-felt`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#2b221c" />
+          <stop offset="0" stopColor="#2e241d" />
           <stop offset="1" stopColor="#15110d" />
+        </linearGradient>
+        <linearGradient id={`${id}-wingL`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#453629" />
+          <stop offset="1" stopColor="#1c1611" />
+        </linearGradient>
+        <linearGradient id={`${id}-wingR`} x1="1" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#2c231b" />
+          <stop offset="1" stopColor="#110d0a" />
         </linearGradient>
         <linearGradient id={`${id}-skin`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#f1c7a3" />
           <stop offset="1" stopColor="#d9a47f" />
+        </linearGradient>
+        <linearGradient id={`${id}-hair`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#e6c77e" />
+          <stop offset="1" stopColor="#b98c45" />
         </linearGradient>
         <clipPath id={`${id}-clip`}>
           <circle cx="90" cy="90" r="80" />
         </clipPath>
       </defs>
       <circle cx="90" cy="90" r="80" fill={`url(#${id}-bg)`} />
-      <g clipPath={`url(#${id}-clip)`}>{man ? <CaptainFigure id={id} /> : <AnneFigure id={id} />}</g>
+      <g clipPath={`url(#${id}-clip)`}>
+        {man ? <CaptainFigure id={id} /> : <AnneFigure id={id} />}
+        <Tricorn id={id} dy={man ? 4 : 2} />
+      </g>
       <circle cx="90" cy="90" r="80" fill="none" stroke="rgba(232,200,138,.55)" strokeWidth="2" />
     </svg>
+  );
+}
+
+/**
+ * A front-on tricorn: the crown peeking above two upturned wings of brim that meet in a point over
+ * the brow (the red band shows through the dip), edged in gold.
+ */
+function Tricorn({ id, dy }: { id: string; dy: number }) {
+  return (
+    <g transform={`translate(0 ${dy})`}>
+      <path d="M58 70C58 38 72 24 90 24s32 14 32 46z" fill={`url(#${id}-felt)`} />
+      <path d="M58 60c10-4 22-6 32-6s22 2 32 6v9c-10-4-22-6-32-6s-22 2-32 6z" fill="#8b1e1f" />
+      <path
+        d="M22 60C26 44 36 32 50 30c16 0 30 20 40 44-16 4-32 2-46-4-8-3-16-6-22-10z"
+        fill={`url(#${id}-wingL)`}
+      />
+      <path
+        d="M158 60c-4-16-14-28-28-30-16 0-30 20-40 44 16 4 32 2 46-4 8-3 16-6 22-10z"
+        fill={`url(#${id}-wingR)`}
+      />
+      <path
+        d="M32 56c4-10 10-17 18-19M148 56c-4-10-10-17-18-19"
+        fill="none"
+        stroke="rgba(255,236,200,.12)"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M22 60c6 4 14 7 22 10 14 6 30 8 46 4 16 4 32 2 46-4 8-3 16-6 22-10"
+        fill="none"
+        stroke="#0b0907"
+        strokeWidth="1.6"
+        opacity=".7"
+      />
+      <path
+        d="M22 60C26 44 36 32 50 30c16 0 30 20 40 44 10-24 24-44 40-44 14 2 24 14 28 30"
+        fill="none"
+        stroke="#d6a74e"
+        strokeWidth="3.2"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </g>
   );
 }
 
@@ -302,7 +360,7 @@ function CaptainFigure({ id }: { id: string }) {
         <path d="M22 0c6 1 9 5 7 10-3-3-6-4-9-4z" fill="#f29a2e" />
         <circle cx="13" cy="-4" r="2.6" fill="#15110d" />
       </g>
-      {/* Head, ears, beard. */}
+      {/* Head, ears, sideburns, and beard. */}
       <ellipse cx="62" cy="92" rx="7" ry="9" fill="#e2ad88" />
       <ellipse cx="118" cy="92" rx="7" ry="9" fill="#e2ad88" />
       <path
@@ -310,81 +368,76 @@ function CaptainFigure({ id }: { id: string }) {
         fill={`url(#${id}-skin)`}
       />
       <path
+        d="M59 68c-1 10 1 20 5 30l5-2c-2-10-3-19-2-28zM121 68c1 10-1 20-5 30l-5-2c2-10 3-19 2-28z"
+        fill="#c9581f"
+      />
+      <path
         d="M62 92c2 18 10 36 28 40 18-4 26-22 28-40-6 6-10 10-16 10-4-3-8-4-12-4s-8 1-12 4c-6 0-10-4-16-10z"
         fill="#d8662a"
       />
       <path d="M80 104c6-4 14-4 20 0-4 3-8 4-10 4s-6-1-10-4z" fill="#b84d1c" />
-      <path d="M74 80l12 3M106 80l-12 3" stroke="#b84d1c" strokeWidth="4.5" strokeLinecap="round" />
-      <ellipse cx="80" cy="90" rx="4" ry="4.6" fill="#15110d" />
-      <ellipse cx="100" cy="90" rx="4" ry="4.6" fill="#15110d" />
-      <circle cx="81.4" cy="88.4" r="1.2" fill="#fff" />
-      <circle cx="101.4" cy="88.4" r="1.2" fill="#fff" />
-      <path d="M88 92c-2 5-2 8 2 9" fill="none" stroke="#c98a66" strokeWidth="2" strokeLinecap="round" />
-      {/* Tricorn: red crown, dark brim cocked into a point at the front. */}
-      <path d="M56 70c2-26 16-38 34-38s32 12 34 38z" fill="#9c1f24" />
-      <path d="M60 60c6-12 16-18 30-18s24 6 30 18" fill="none" stroke="#7a1519" strokeWidth="3" />
-      <path
-        d="M28 64c16-6 36-6 62 8 26-14 46-14 62-8-8 10-20 16-34 16-12 0-20-3-28-8-8 5-16 8-28 8-14 0-26-6-34-16z"
-        fill={`url(#${id}-felt)`}
-      />
-      <path d="M28 64c16-6 36-6 62 8 26-14 46-14 62-8" fill="none" stroke="#3b2e22" strokeWidth="2" />
+      <path d="M74 81l12 3M106 81l-12 3" stroke="#b84d1c" strokeWidth="4.5" strokeLinecap="round" />
+      <ellipse cx="80" cy="91" rx="4" ry="4.6" fill="#15110d" />
+      <ellipse cx="100" cy="91" rx="4" ry="4.6" fill="#15110d" />
+      <circle cx="81.4" cy="89.4" r="1.2" fill="#fff" />
+      <circle cx="101.4" cy="89.4" r="1.2" fill="#fff" />
+      <path d="M88 93c-2 5-2 8 2 9" fill="none" stroke="#c98a66" strokeWidth="2" strokeLinecap="round" />
     </>
   );
 }
 
 function AnneFigure({ id }: { id: string }) {
+  const hair = `url(#${id}-hair)`;
   return (
     <>
-      {/* Long fair hair behind the shoulders. */}
-      <path d="M52 86c-6 30-4 58 4 80h68c8-22 10-50 4-80z" fill="#c9a35a" />
-      {/* Vest over a cream blouse, with a gold buckle. */}
+      {/* Hair falling from under the hat to below the shoulders. */}
+      <path d="M52 60C40 90 42 126 36 158c10 8 24 10 40 6h28c16 4 30 2 40-6-6-32-4-68-16-98z" fill={hair} />
+      <path
+        d="M50 96c-2 20-4 40-8 58M130 96c2 20 4 40 8 58M58 112c-2 16-3 30-6 44M122 112c2 16 3 30 6 44"
+        fill="none"
+        stroke="#a67a38"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        opacity=".7"
+      />
+      {/* Cream blouse under a laced brown vest, with a gold buckle. */}
       <path d="M30 184c4-32 24-48 60-48s56 16 60 48z" fill="#e7dcc4" />
       <path d="M52 184c2-24 12-40 22-44l16 26 16-26c10 4 20 20 22 44z" fill="#6b4524" />
-      <rect x="82" y="162" width="16" height="11" rx="2" fill="none" stroke="#d6a74e" strokeWidth="3" />
-      {/* Head and ears. */}
-      <ellipse cx="62" cy="94" rx="6" ry="8" fill="#e8b996" />
-      <ellipse cx="118" cy="94" rx="6" ry="8" fill="#e8b996" />
+      <path d="M84 152l12 6M84 160l12-6" stroke="#d9c49a" strokeWidth="1.4" />
+      <rect x="82" y="166" width="16" height="10" rx="2" fill="none" stroke="#d6a74e" strokeWidth="3" />
+      {/* Face. */}
       <path
-        d="M62 84c0-22 12-32 28-32s28 10 28 32v10c0 22-12 34-28 34S62 116 62 94z"
+        d="M63 86c0-22 12-32 27-32s27 10 27 32v8c0 22-11 34-27 34S63 116 63 94z"
         fill={`url(#${id}-skin)`}
       />
-      {/* Fringe swept to the side, framing the face. */}
+      {/* Locks framing the face and falling forward over the shoulders. */}
+      <path d="M60 66C52 96 50 124 46 152c6 6 14 6 19-1 0-26 2-50 5-80z" fill={hair} />
+      <path d="M120 66c8 30 10 58 14 86-6 6-14 6-19-1 0-26-2-50-5-80z" fill={hair} />
+      {/* Side-swept fringe under the hat. */}
+      <path d="M62 90c0-16 12-28 28-28s28 10 28 20c-8-4-16-4-22-1-8 4-18 5-26 4-4 1-7 3-8 5z" fill={hair} />
+      <path d="M78 76c6 4 12 5 18 4" fill="none" stroke="#b98c45" strokeWidth="1.4" strokeLinecap="round" />
+      {/* Brows, eyes with lashes, nose, blush, and smile. */}
+      <path d="M74 89l10 1M106 89l-10 1" stroke="#9a7440" strokeWidth="3" strokeLinecap="round" />
+      <ellipse cx="80" cy="98" rx="4.6" ry="5.4" fill="#15110d" />
+      <ellipse cx="100" cy="98" rx="4.6" ry="5.4" fill="#15110d" />
+      <path d="M75 94l-3-2M105 94l3-2" stroke="#15110d" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="81.6" cy="96" r="1.4" fill="#fff" />
+      <circle cx="101.6" cy="96" r="1.4" fill="#fff" />
       <path
-        d="M60 90c-2-20 8-34 30-34s32 14 30 34c-4-10-10-16-18-18-8 6-20 10-34 10-4 2-6 5-8 8z"
-        fill="#d8b56a"
-      />
-      <path
-        d="M60 90c0 14-2 26-6 36M120 90c0 14 2 26 6 36"
-        stroke="#c9a35a"
-        strokeWidth="8"
-        strokeLinecap="round"
-      />
-      <path d="M74 84l11 2M106 84l-11 2" stroke="#8a6a3a" strokeWidth="3" strokeLinecap="round" />
-      <ellipse cx="80" cy="94" rx="4.6" ry="5.4" fill="#15110d" />
-      <ellipse cx="100" cy="94" rx="4.6" ry="5.4" fill="#15110d" />
-      <circle cx="81.6" cy="92" r="1.4" fill="#fff" />
-      <circle cx="101.6" cy="92" r="1.4" fill="#fff" />
-      <path
-        d="M89 97c-1.6 4-1 6 1.4 6.4"
+        d="M89 101c-1.6 4-1 6 1.4 6.4"
         fill="none"
         stroke="#c98a66"
         strokeWidth="2"
         strokeLinecap="round"
       />
-      <path d="M82 111c5 4 11 4 16 0" fill="none" stroke="#9a4a3a" strokeWidth="3" strokeLinecap="round" />
-      {/* Tricorn: dark felt crown with a red band, brim cocked into a point, edged in gold. */}
-      <path d="M58 66c2-24 14-36 32-36s30 12 32 36z" fill={`url(#${id}-felt)`} />
-      <path d="M58 64c10-4 22-6 32-6s22 2 32 6v6c-10-4-22-6-32-6s-22 2-32 6z" fill="#8b1e1f" />
+      <ellipse cx="73" cy="108" rx="5" ry="3" fill="#e8907a" opacity=".35" />
+      <ellipse cx="107" cy="108" rx="5" ry="3" fill="#e8907a" opacity=".35" />
       <path
-        d="M26 58c16-6 38-4 64 12 26-16 48-18 64-12-6 12-20 20-36 20-12 0-20-3-28-8-8 5-16 8-28 8-16 0-30-8-36-20z"
-        fill={`url(#${id}-felt)`}
-      />
-      <path
-        d="M26 58c16-6 38-4 64 12 26-16 48-18 64-12"
+        d="M83 114c4 3.4 10 3.4 14 0"
         fill="none"
-        stroke="#d6a74e"
+        stroke="#9a4a3a"
         strokeWidth="3"
-        strokeLinejoin="round"
+        strokeLinecap="round"
       />
     </>
   );
