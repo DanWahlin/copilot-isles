@@ -18,6 +18,18 @@ export interface TerrainBounds {
   cell: number;
 }
 
+export interface TerrainBakeSource {
+  bounds: TerrainBounds;
+  heightAt(x: number, z: number): number;
+  masksAt(x: number, z: number): { sand: number; grass: number; rock: number; cliff: number };
+}
+
+export interface TerrainPackOptions {
+  seabedRadius?: number;
+  deepDepth?: number;
+  farSeabedRing?: { innerRadius: number; outerRadius: number; segments: number };
+}
+
 export interface ShorelinePoint {
   x: number;
   z: number;
@@ -318,7 +330,8 @@ export function extractShoreline(
   return chains;
 }
 
-export function bakeTerrain(bounds: TerrainBounds = DEFAULT_TERRAIN_BOUNDS): TerrainBakeData {
+export function bakeTerrainFrom(source: TerrainBakeSource): TerrainBakeData {
+  const { bounds } = source;
   const nx = Math.round((bounds.maxX - bounds.minX) / bounds.cell) + 1;
   const nz = Math.round((bounds.maxZ - bounds.minZ) / bounds.cell) + 1;
   const count = nx * nz;
@@ -334,7 +347,7 @@ export function bakeTerrain(bounds: TerrainBounds = DEFAULT_TERRAIN_BOUNDS): Ter
     const z = bounds.minZ + iz * bounds.cell;
     for (let ix = 0; ix < nx; ix++) {
       const x = bounds.minX + ix * bounds.cell;
-      heights[gridIndex(nx, ix, iz)] = coveHeight(x, z);
+      heights[gridIndex(nx, ix, iz)] = source.heightAt(x, z);
     }
   }
 
@@ -357,7 +370,7 @@ export function bakeTerrain(bounds: TerrainBounds = DEFAULT_TERRAIN_BOUNDS): Ter
       rim[i] = Math.round(
         rimFlag(heights, normals, nx, nz, bounds.minX, bounds.minZ, bounds.cell, ix, iz) * 255,
       );
-      const m = coveMasks(x, z);
+      const m = source.masksAt(x, z);
       const mo = i * 4;
       masks[mo] = Math.round(m.sand * 255);
       masks[mo + 1] = Math.round(m.grass * 255);
@@ -390,9 +403,14 @@ export function bakeTerrain(bounds: TerrainBounds = DEFAULT_TERRAIN_BOUNDS): Ter
   return data;
 }
 
+export function bakeTerrain(bounds: TerrainBounds = DEFAULT_TERRAIN_BOUNDS): TerrainBakeData {
+  return bakeTerrainFrom({ bounds, heightAt: coveHeight, masksAt: coveMasks });
+}
+
 export function packTerrain(
   data: TerrainBakeData,
   hash = data.hash,
+  options: TerrainPackOptions = {},
 ): { binary: ArrayBuffer; json: PackedTerrainJson } {
   const count = data.nx * data.nz;
   const heightsBytes = count * 2;
@@ -447,8 +465,8 @@ export function packTerrain(
     minZ: data.minZ,
     maxZ: data.maxZ,
     cell: data.cell,
-    seabedRadius: COVE.seabedRadius,
-    deepDepth: TERRAIN_DEEP_DEPTH,
+    seabedRadius: options.seabedRadius ?? COVE.seabedRadius,
+    deepDepth: options.deepDepth ?? TERRAIN_DEEP_DEPTH,
     channels: {
       heights: {
         offset: 0,
@@ -467,7 +485,11 @@ export function packTerrain(
       },
     },
     shoreline,
-    farSeabedRing: { innerRadius: 390, outerRadius: COVE.seabedRadius, segments: 144 },
+    farSeabedRing: options.farSeabedRing ?? {
+      innerRadius: 390,
+      outerRadius: COVE.seabedRadius,
+      segments: 144,
+    },
     hash,
   };
   return { binary, json };

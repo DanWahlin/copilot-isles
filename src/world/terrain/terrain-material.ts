@@ -83,9 +83,22 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const detail = options.tier === 'lite' ? 0 : options.tier === 'low' ? 1 : 2;
   const rockTexture = terrainTexture('rocks.webp');
   const pathTexture = terrainTexture('path-rocks.webp');
+  const grassTexture = terrainTexture('grass.webp');
   const flatUv = vec2(positionWorld.x, positionWorld.z);
   const rockTexel = triplanarColor(rockTexture, 0.045);
   const pathTexel = textureNode(pathTexture, flatUv.mul(0.036)) as AnyNode;
+  const closeUvA = vec2(
+    positionWorld.x.mul(0.86).add(positionWorld.z.mul(0.31)),
+    positionWorld.z.mul(0.86).sub(positionWorld.x.mul(0.31)),
+  );
+  const closeUvB = vec2(
+    positionWorld.x.mul(-1.12).add(positionWorld.z.mul(0.43)),
+    positionWorld.z.mul(1.12).add(positionWorld.x.mul(0.43)),
+  );
+  const grassCloseA = textureNode(grassTexture, closeUvA) as AnyNode;
+  const grassCloseB = textureNode(grassTexture, closeUvB) as AnyNode;
+  const pathClose = textureNode(pathTexture, closeUvA.mul(1.08)) as AnyNode;
+  const rockClose = textureNode(rockTexture, closeUvB.mul(0.92)) as AnyNode;
 
   const broadNoise = sin(positionWorld.x.mul(0.038).add(sin(positionWorld.z.mul(0.031)).mul(1.9)))
     .mul(0.5)
@@ -110,6 +123,12 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .add(0.5);
 
   const sandDetail = pathTexel.rgb.dot(vec3(0.3, 0.48, 0.22));
+  const grassCloseLum = grassCloseA.rgb
+    .mul(0.55)
+    .add(grassCloseB.rgb.mul(0.45))
+    .dot(vec3(0.25, 0.58, 0.17));
+  const pathCloseLum = pathClose.rgb.dot(vec3(0.3, 0.48, 0.22));
+  const rockCloseLum = rockClose.rgb.dot(vec3(0.32, 0.43, 0.25));
   const grassDetail = grassFineA.mul(0.42).add(grassFineB.mul(0.34)).add(broadNoise.mul(0.24));
   const rockDetail = rockTexel.dot(vec3(0.32, 0.43, 0.25));
   const drySand = mix(
@@ -156,6 +175,9 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(underwater)
     .mul(float(1).sub(smoothstep(18, 38, y.negate())));
 
+  const steepSlope = smoothstep(0.68, 0.46, normalWorld.y);
+  const cliffInfluence = saturate(cliffMask.add(steepSlope.mul(0.72)));
+  const steepFace = steepSlope.mul(saturate(cliffMask.add(rockMask)));
   const strataPhase = fract(y.div(7.8).add(sin(positionWorld.x.mul(0.025)).mul(0.035)));
   const strataWidth = strataPhase.fwidth().mul(1.5).add(0.009);
   const strata = float(1).sub(
@@ -164,14 +186,27 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const ledges = float(1).sub(
     smoothstep(float(0.18).sub(strataWidth), float(0.18).add(strataWidth), strataPhase),
   );
-  const streakSeed = sin(positionWorld.z.mul(0.5).add(sin(positionWorld.x.mul(0.095)).mul(2.7)))
+  const fineStrataPhase = fract(
+    y
+      .div(2.35)
+      .add(sin(positionWorld.z.mul(0.055)).mul(0.05))
+      .add(sin(positionWorld.x.mul(0.041)).mul(0.03)),
+  );
+  const fineStrataWidth = fineStrataPhase.fwidth().mul(1.7).add(0.012);
+  const fineStrata = float(1).sub(
+    smoothstep(float(0.1).sub(fineStrataWidth), float(0.1).add(fineStrataWidth), fineStrataPhase),
+  );
+  const creviceSeed = sin(positionWorld.x.mul(0.083).add(positionWorld.z.mul(0.069)))
+    .mul(sin(y.mul(0.18).add(positionWorld.z.mul(0.035))))
     .mul(0.5)
     .add(0.5);
-  const streaks = pow(saturate(streakSeed.sub(0.56).mul(2.4)), 3)
+  const crevices = pow(saturate(creviceSeed.sub(0.58).mul(2.6)), 2.6)
     .mul(cliffMask)
     .mul(smoothstep(5, 31, y));
   const jointPhase = sin(positionWorld.z.mul(0.11).add(sin(positionWorld.x.mul(0.04)).mul(2.5)));
-  const joints = pow(saturate(abs(jointPhase).mul(-1).add(0.18).mul(5.8)), 2.0).mul(cliffMask);
+  const joints = pow(saturate(abs(jointPhase).mul(-1).add(0.18).mul(5.8)), 2.0)
+    .mul(cliffMask)
+    .mul(smoothstep(8, 28, y));
   const cavity = float(1).sub(light.x).mul(cliffMask);
   const notch = smoothstep(1.25, 1.45, y)
     .mul(float(1).sub(smoothstep(2.05, 2.35, y)))
@@ -190,19 +225,55 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   base = mix(base, grass, grassMask);
   base = mix(base, dirt, dirtPatch);
   base = mix(base, rock, rockMask);
-  const cliffColor = limestone
-    .mul(float(0.7).add(strata.mul(0.16)).add(ledges.mul(0.07)))
-    .mul(float(1).sub(streaks.mul(0.46)))
+  const cliffBase = mix(limestone, rockTexel.mul(vec3(1.22, 1.12, 0.92)), steepFace.mul(0.68));
+  const cliffColor = cliffBase
+    .mul(float(0.6).add(strata.mul(0.25)).add(fineStrata.mul(0.13)).add(ledges.mul(0.12)))
+    .mul(float(1).sub(crevices.mul(0.34)))
     .mul(float(1).sub(joints.mul(0.42)))
     .mul(float(1).sub(cavity.mul(0.34)))
     .mul(float(1).sub(notch.mul(0.48)))
     .mul(float(1).sub(algaeBase.mul(0.52)))
     .mul(float(1).sub(waterline.mul(0.05)))
     .mul(float(1).sub(cave.mul(0.72)));
-  base = mix(base, cliffColor, cliffMask);
+  base = mix(base, cliffColor, cliffInfluence);
   base = mix(base, reefRock, underwater.mul(rockMask.add(cliffMask).mul(0.7)));
   base = mix(base, seabed, underwater.mul(0.72));
   base = mix(base, color(0x315545), seagrassPatch.mul(0.36));
+  const detailDistance = cameraPosition.sub(positionWorld).length();
+  const closeDetail = float(1).sub(smoothstep(25, 82, detailDistance));
+  const detailHeight = grassCloseLum
+    .mul(grassMask)
+    .add(pathCloseLum.mul(sandMask))
+    .add(rockCloseLum.mul(rockMask.add(cliffMask)));
+  const microShade = float(0.84)
+    .add(detailHeight.mul(0.18))
+    .sub(pow(saturate(float(0.36).sub(detailHeight).mul(2.6)), 2.0).mul(0.06));
+  const closeGrass = mix(
+    color(0x315d31),
+    color(0x8faa5b),
+    grassCloseLum.mul(0.38).add(grassFineA.mul(0.5)),
+  ).mul(float(0.94).add(grassFineB.mul(0.08)));
+  const closeEarth = mix(color(0x6d5937), color(0xc6ad79), pathCloseLum);
+  const closeRock = mix(color(0x5d594f), color(0xa79b81), rockCloseLum);
+  let closeLayer = mix(closeEarth, closeGrass, grassMask);
+  closeLayer = mix(closeLayer, closeRock, saturate(rockMask.add(cliffMask)));
+  closeLayer = mix(closeLayer, closeEarth, sandMask.mul(0.82));
+  const pebble = pow(saturate(pathCloseLum.sub(0.58).mul(2.4)), 3.0)
+    .mul(closeDetail)
+    .mul(sandMask.add(grassMask).mul(0.1));
+  const wornSoil = pow(saturate(fineNoise.sub(0.5).mul(1.85)), 2.0)
+    .mul(grassMask)
+    .mul(closeDetail);
+  const grassClumps = pow(saturate(grassFineA.mul(0.58).add(grassFineB.mul(0.42)).sub(0.48).mul(2.2)), 2.0)
+    .mul(grassMask)
+    .mul(closeDetail);
+  const soilFlecks = pow(saturate(float(0.46).sub(pathCloseLum).mul(2.8)), 2.0)
+    .mul(grassMask.add(sandMask).mul(0.5))
+    .mul(closeDetail);
+  base = mix(base, base.mul(microShade).mul(0.58).add(closeLayer.mul(0.42)), closeDetail.mul(0.42));
+  base = mix(base, color(0x274824), grassClumps.mul(0.18));
+  base = mix(base, closeEarth, wornSoil.mul(0.32).add(soilFlecks.mul(0.16)));
+  base = mix(base, color(0x3f382b), pebble);
 
   const sunVis = mix(light.y, light.z, uSunBlend);
   const cloud = options.cloudShadowNode ?? float(1);

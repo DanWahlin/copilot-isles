@@ -5,6 +5,7 @@ import { createPost } from '../engine/post';
 import { TIERS } from '../engine/quality';
 import type { Tier } from '../world/contracts';
 import { createCove } from '../world/cove-scene';
+import { MERIDIAN } from '../world/islands/meridian';
 import { world } from '../world/uniforms';
 import { ANCHORAGE_SLUICE, flow, openings, solutionPath } from '../world/sites/sluice-logic';
 
@@ -59,6 +60,26 @@ const VIEWS: Record<string, [number[], number[]]> = {
   aerial: [
     [-420, 260, 380],
     [0, 0, 0],
+  ],
+  'anchorage-quay-to-meridian': [
+    [-112, 6, -69],
+    [MERIDIAN.pads.citadel.x, MERIDIAN.pads.citadel.height + 22, MERIDIAN.pads.citadel.z],
+  ],
+  'meridian-harbor': [
+    [570, 24, -610],
+    [700, 10, -735],
+  ],
+  'meridian-town': [
+    [610, 82, -610],
+    [855, 32, -875],
+  ],
+  'meridian-citadel': [
+    [890, 105, -855],
+    [1028, 64, -1002],
+  ],
+  'meridian-ridge': [
+    [910, 118, -780],
+    [1110, 92, -1078],
   ],
 };
 function setView(name: string) {

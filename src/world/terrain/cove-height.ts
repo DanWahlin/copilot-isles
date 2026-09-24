@@ -400,6 +400,12 @@ export function coveMasks(x: number, z: number): CoveMasks {
     (1 - smoothstep(0.45, 0.9, slope));
   const lagoonSand = smoothstep(COVE.lagoon.radius + 18, 18, lagoonD);
   const deliberateBeach = Math.max(beachSand, lagoonSand * 0.72);
+  const harborBackMeadow =
+    smoothstep(-86, -72, x) *
+    (1 - smoothstep(-40, -30, x)) *
+    smoothstep(-88, -78, z) *
+    (1 - smoothstep(-45, -34, z));
+  const dryHarborMeadow = harborBackMeadow * smoothstep(0.55, 1.8, h) * (1 - smoothstep(0.38, 0.76, slope));
   const shallowSand = shoreBand * (0.22 + deliberateBeach * 0.78) * (1 - headland * 0.78);
   const rockyShore =
     shoreBand *
@@ -411,7 +417,12 @@ export function coveMasks(x: number, z: number): CoveMasks {
     smoothstep(5, 20, h) *
     smoothstep(0.28, 0.7, ridged2(x * 0.075 - 3.4, z * 0.075 + 1.8, 3, SEED + 1501)) *
     (1 - smoothstep(0.65, 1.1, slope));
-  let sand = Math.max(shallowSand * (1 - headland * 0.7), beachSand, lagoonSand * 0.7, path * 0.85);
+  let sand = Math.max(
+    shallowSand * (1 - headland * 0.7),
+    beachSand,
+    lagoonSand * 0.7,
+    path * 0.85 * (1 - dryHarborMeadow),
+  );
   let cliff = Math.max(
     smoothstep(0.52, 1.15, slope),
     headland * smoothstep(7, 26, h),
@@ -426,6 +437,8 @@ export function coveMasks(x: number, z: number): CoveMasks {
   );
   let grass =
     smoothstep(1.2, 4.5, h) * (1 - smoothstep(0.22, 0.52, slope)) * (1 - headland * 0.65) * (1 - path * 0.82);
+  sand *= 1 - dryHarborMeadow * 0.94;
+  grass = Math.max(grass, dryHarborMeadow * 0.92);
 
   if (h < -9) {
     sand *= 0.3;

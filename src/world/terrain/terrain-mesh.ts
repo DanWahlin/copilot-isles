@@ -1,7 +1,7 @@
 import { BufferAttribute, BufferGeometry, Camera, Group, Mesh, Sphere, Vector3 } from 'three/webgpu';
 import type { Tier, HeightField } from '../contracts';
 import { tierSettings, type TierSettings } from '../../engine/quality';
-import { CoveHeightField, type HeightGridData } from './cove-height';
+import type { HeightGridData } from './cove-height';
 import type { TerrainBakeData } from './bake';
 import { createTerrainMaterial } from './terrain-material';
 import { createTerrainRocks } from './terrain-rocks';
@@ -32,6 +32,8 @@ export interface CreatedTerrain {
 export interface CreateTerrainOptions {
   tier: Tier | TierSettings;
   data: TerrainBakeData;
+  name?: string;
+  createRocks?: ((heightField: HeightField, data: TerrainBakeData) => Group | null) | null;
 }
 
 function resolveTier(tier: Tier | TierSettings): TierSettings {
@@ -132,6 +134,46 @@ function sampleVertex(
       sampleByte(data.masks, data, x, z, 3, 4),
     ],
   };
+}
+
+export class BakedTerrainHeightField implements HeightField {
+  constructor(private readonly data: TerrainBakeData) {}
+
+  heightAt(x: number, z: number): number {
+    if (!this.contains(x, z)) return -52;
+    return sampleFloat(this.data.heights, this.data, x, z);
+  }
+
+  normalAt(x: number, z: number, out: Float32Array | number[]): Float32Array | number[] {
+    if (!this.contains(x, z)) {
+      out[0] = 0;
+      out[1] = 1;
+      out[2] = 0;
+      return out;
+    }
+    const nx = sampleFloat(this.data.normals, this.data, x, z, 0, 3);
+    const ny = sampleFloat(this.data.normals, this.data, x, z, 1, 3);
+    const nz = sampleFloat(this.data.normals, this.data, x, z, 2, 3);
+    const len = Math.hypot(nx, ny, nz) || 1;
+    out[0] = nx / len;
+    out[1] = ny / len;
+    out[2] = nz / len;
+    return out;
+  }
+
+  masksAt(x: number, z: number): { sand: number; grass: number; rock: number; cliff: number } {
+    if (!this.contains(x, z)) return { sand: 0, grass: 0, rock: 1, cliff: 0 };
+    return {
+      sand: sampleByte(this.data.masks, this.data, x, z, 0, 4),
+      grass: sampleByte(this.data.masks, this.data, x, z, 1, 4),
+      rock: sampleByte(this.data.masks, this.data, x, z, 2, 4),
+      cliff: sampleByte(this.data.masks, this.data, x, z, 3, 4),
+    };
+  }
+
+  private contains(x: number, z: number): boolean {
+    return x >= this.data.minX && x <= this.data.maxX && z >= this.data.minZ && z <= this.data.maxZ;
+  }
 }
 
 function pushVertex(
@@ -243,7 +285,7 @@ export function createTerrain(options: CreateTerrainOptions): CreatedTerrain {
   const tier = resolveTier(options.tier);
   const data = options.data;
   const group = new Group();
-  group.name = 'test-cove-terrain';
+  group.name = options.name ?? 'test-cove-terrain';
   const material = createTerrainMaterial({ tier: tier.tier });
   const chunks: TerrainChunk[] = [];
   const chunkSize = 256;
@@ -276,9 +318,9 @@ export function createTerrain(options: CreateTerrainOptions): CreatedTerrain {
     minZ: data.minZ,
     cell: data.cell,
   };
-  const heightField = new CoveHeightField(heightGrid);
-  const rocks = createTerrainRocks(heightField);
-  group.add(rocks);
+  const heightField = new BakedTerrainHeightField(data);
+  const rocks = (options.createRocks ?? createTerrainRocks)(heightField, data);
+  if (rocks) group.add(rocks);
 
   return {
     group,
@@ -306,7 +348,7 @@ export function createTerrain(options: CreateTerrainOptions): CreatedTerrain {
           }
         }
       }
-      rocks.traverse((object) => {
+      rocks?.traverse((object) => {
         if (!(object instanceof Mesh)) return;
         object.geometry.dispose();
         if (Array.isArray(object.material)) object.material.forEach((m) => m.dispose());

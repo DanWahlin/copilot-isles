@@ -98,6 +98,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const { engine, cove, input, audio } = o;
   const { camera, tier } = engine;
   const { village, ship, terrain, ocean } = cove;
+  const ground = cove.heightField ?? terrain.heightField;
 
   const pier = COVE.pier;
   const pierKind = (x: number, z: number): SurfaceKind =>
@@ -108,7 +109,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const sites = cove.sites;
   const sitesSurface: WalkSurface = { heightAt: sites.heightAt, kind: 'stone' };
   const world = new CollisionWorld({
-    ground: terrain.heightField,
+    ground,
     waves: ocean.field,
     surfaces: [villageSurface, sitesSurface],
     circles: [...village.colliders.circles, ...sites.colliders.circles],

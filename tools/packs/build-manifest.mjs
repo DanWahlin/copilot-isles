@@ -28,6 +28,15 @@ const PACK_DEFS = [
     id: 'testcove/harbor',
     include: ['packs/testcove/village/**', 'packs/testcove/characters/**', 'packs/testcove/vegetation/**'],
   },
+  {
+    id: 'meridian/critical',
+    include: [
+      'packs/meridian/terrain.bin',
+      'packs/meridian/terrain.json',
+      'packs/testcove/terrain-textures/**',
+      'packs/testcove/rocks/**',
+    ],
+  },
 ];
 
 function toPosix(path) {

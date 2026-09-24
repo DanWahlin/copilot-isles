@@ -43,6 +43,18 @@ const SHOTS = {
       [35, 8, 55],
     ],
   },
+  'stack-headland-eye': {
+    camera: [
+      [300, 6, 245],
+      [270, 14, 210],
+    ],
+  },
+  'meridian-harbor-mouth': {
+    camera: [
+      [520, 7, -575],
+      [716, 17, -772],
+    ],
+  },
 };
 
 const shotIds = opt.shots ? String(opt.shots).split(',') : Object.keys(SHOTS);

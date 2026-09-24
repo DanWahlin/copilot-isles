@@ -12,6 +12,7 @@ import {
   uv,
 } from 'three/tsl';
 import type { HeightField } from '../contracts';
+import { COVE } from '../layout';
 import { world } from '../uniforms';
 import type { TerrainBakeData } from './bake';
 
@@ -59,6 +60,22 @@ export function createCoastFoam(
   const alongAttr: number[] = [];
   const indices: number[] = [];
   const normal = new Float32Array(3);
+  const pushRibbonPair = (
+    x: number,
+    z: number,
+    sx: number,
+    sz: number,
+    along: number,
+    inner: number,
+    outer: number,
+  ) => {
+    const base = positions.length / 3;
+    positions.push(x + sx * inner, 0.058, z + sz * inner, x + sx * outer, 0.066, z + sz * outer);
+    normals.push(0, 1, 0, 0, 1, 0);
+    uvs.push(along * 0.025, 0, along * 0.025, 1);
+    alongAttr.push(along, along);
+    return base;
+  };
 
   for (const chain of data.shoreline) {
     if (chain.length < 10 || chain.points.length < 4) continue;
@@ -77,11 +94,30 @@ export function createCoastFoam(
       const len = Math.hypot(sx, sz) || 1;
       sx /= len;
       sz /= len;
-      const base = positions.length / 3;
-      positions.push(p.x + sx * 0.18, 0.058, p.z + sz * 0.18, p.x + sx * width, 0.066, p.z + sz * width);
-      normals.push(0, 1, 0, 0, 1, 0);
-      uvs.push(along * 0.025, 0, along * 0.025, 1);
-      alongAttr.push(along, along);
+      const base = pushRibbonPair(p.x, p.z, sx, sz, along, 0.18, width);
+      if (previousBase >= 0) indices.push(previousBase, previousOuter, base, base, previousOuter, base + 1);
+      previousBase = base;
+      previousOuter = base + 1;
+    }
+  }
+
+  if (
+    COVE.seaStack.x >= data.minX &&
+    COVE.seaStack.x <= data.maxX &&
+    COVE.seaStack.z >= data.minZ &&
+    COVE.seaStack.z <= data.maxZ
+  ) {
+    const segments = 72;
+    const radius = COVE.seaStack.radius + 8.2;
+    let previousBase = -1;
+    let previousOuter = -1;
+    for (let i = 0; i <= segments; i++) {
+      const a = (i / segments) * Math.PI * 2;
+      const sx = Math.cos(a);
+      const sz = Math.sin(a);
+      const x = COVE.seaStack.x + sx * radius;
+      const z = COVE.seaStack.z + sz * radius;
+      const base = pushRibbonPair(x, z, sx, sz, i * ((Math.PI * 2 * radius) / segments), -0.25, 2.2);
       if (previousBase >= 0) indices.push(previousBase, previousOuter, base, base, previousOuter, base + 1);
       previousBase = base;
       previousOuter = base + 1;

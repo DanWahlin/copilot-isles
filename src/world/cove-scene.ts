@@ -1,4 +1,4 @@
-import { Vector3, type Group, type Mesh, type Object3D } from 'three/webgpu';
+import { Group, Vector3, type Mesh, type Object3D } from 'three/webgpu';
 import type { Engine } from '../engine/engine';
 import { HarborFlotsam } from './ocean/flotsam';
 import { HarborMirror } from './ocean/harbor-mirror';
@@ -8,12 +8,14 @@ import { createCoastFoam } from './terrain/coast-foam';
 import { createDistantRanges } from './terrain/distant-ranges';
 import { loadTerrainPack } from './terrain/bake';
 import { createTerrain, type CreatedTerrain } from './terrain/terrain-mesh';
+import { CompositeHeightField } from './terrain/composite-height-field';
 import { COVE } from './layout';
+import { MERIDIAN, createMeridianRocks, createMeridianSilhouette } from './islands/meridian';
 import { createBrigantine, type Brigantine } from './ship';
 import { createVegetation, type VegetationSystem } from './vegetation';
 import { createVillage, type VillageSystem } from './village';
 import { createBirds, type BirdsSystem } from './life/birds';
-import { createLeaps, type LeapsSystem } from './life/leaps';
+import type { LeapsSystem } from './life/leaps';
 import { villageExclusion } from './village-exclusion';
 import { createCoveSites, type CoveSites } from './sites';
 
@@ -23,8 +25,15 @@ export interface CoveScene {
   mirror: HarborMirror | null;
   flotsam: HarborFlotsam;
   terrain: CreatedTerrain;
+  heightField: CompositeHeightField;
   foam: Mesh;
   ranges: Group;
+  meridian: {
+    silhouette: Group;
+    terrain: CreatedTerrain | null;
+    foam: Mesh | null;
+    ready: boolean;
+  };
   vegetation: VegetationSystem | null;
   ship: Brigantine;
   village: VillageSystem;
@@ -53,8 +62,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const report = o.onProgress ?? (() => {});
   report(0.1, 'Raising the sky');
   const sky = createSky(renderer, scene, tier);
-  const mirrorDisabled =
-    typeof location !== 'undefined' && new URLSearchParams(location.search).has('nomirror');
+  const params =
+    typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+  const mirrorDisabled = params.has('nomirror');
+  const meridianDisabled = params.has('nomeridian');
   const mirror = tier.mirror ? new HarborMirror({ renderer, tier, disabled: mirrorDisabled }) : null;
   const ocean = createOcean({ tier, env: sky.env, mirror: mirror?.input });
   scene.add(ocean.mesh);
@@ -62,12 +73,53 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   report(0.3, 'Charting the cove');
   const data = await loadTerrainPack(`${o.packBase ?? '/packs'}/testcove/terrain`);
   const terrain = createTerrain({ tier, data });
+  const heightField = new CompositeHeightField(-52);
+  heightField.add(
+    { minX: data.minX, maxX: data.maxX, minZ: data.minZ, maxZ: data.maxZ },
+    terrain.heightField,
+  );
   const foam = createCoastFoam(data, terrain.heightField);
   const ranges = createDistantRanges();
-  scene.add(terrain.group, foam, ranges);
+  const meridianSilhouette = meridianDisabled ? new Group() : createMeridianSilhouette();
+  scene.add(terrain.group, foam, ranges, meridianSilhouette);
+  const meridian = {
+    silhouette: meridianSilhouette,
+    terrain: null as CreatedTerrain | null,
+    foam: null as Mesh | null,
+    ready: false,
+  };
+  if (!meridianDisabled)
+    void loadTerrainPack(`${o.packBase ?? '/packs'}/meridian/terrain`)
+      .then((meridianData) => {
+        const meridianTerrain = createTerrain({
+          tier,
+          data: meridianData,
+          name: 'port-meridian-terrain',
+          createRocks: createMeridianRocks,
+        });
+        const meridianFoam = createCoastFoam(meridianData, meridianTerrain.heightField, {
+          maxDistance: 1100,
+        });
+        meridianTerrain.group.visible = false;
+        meridianFoam.visible = false;
+        scene.add(meridianTerrain.group, meridianFoam);
+        heightField.add(
+          {
+            minX: meridianData.minX,
+            maxX: meridianData.maxX,
+            minZ: meridianData.minZ,
+            maxZ: meridianData.maxZ,
+          },
+          meridianTerrain.heightField,
+        );
+        meridian.terrain = meridianTerrain;
+        meridian.foam = meridianFoam;
+        meridian.ready = true;
+      })
+      .catch((error) => console.warn('[meridian] terrain stream failed', error));
 
   report(0.5, 'Building the harbor');
-  const village = await createVillage({ tier, heightField: terrain.heightField });
+  const village = await createVillage({ tier, heightField });
   scene.add(village.group);
   const sites = await createCoveSites({ tier, heightField: terrain.heightField });
   scene.add(sites.group);
@@ -76,7 +128,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   if (o.vegetation !== false) {
     report(0.6, 'Planting palms');
     vegetation = await createVegetation({
-      heightField: terrain.heightField,
+      heightField,
       heightGrid: terrain.heightGrid,
       tier,
       renderer,
@@ -90,16 +142,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   ship.dynamics.reset(COVE.mooring.x, COVE.mooring.z, COVE.mooring.heading);
   const flotsam = new HarborFlotsam(tier);
   scene.add(ship.group, flotsam.group);
-  const shipEnv = { waves: ocean.field, ground: terrain.heightField, obstacles: village.shipObstacles, t: 0 };
-  const shipMirrorHidden = ship.group.children.filter(
-    (child) =>
-      child.name.includes('sails') ||
-      child.name.includes('canvas') ||
-      child.name.includes('rigging') ||
-      child.name.includes('pendulum') ||
-      child.name.includes('spring'),
-  );
-
+  const shipEnv = { waves: ocean.field, ground: heightField, obstacles: village.shipObstacles, t: 0 };
   let birds: BirdsSystem | null = null;
   if (o.birds !== false && tier.birds > 0) {
     birds = createBirds({
@@ -111,8 +154,27 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     scene.add(birds.group);
   }
 
-  const leaps = tier.leaps > 0 ? createLeaps({ tier, heightField: terrain.heightField }) : null;
-  if (leaps) scene.add(leaps.group);
+  let leaps: LeapsSystem | null = null;
+  let disposed = false;
+  let result: CoveScene | null = null;
+  const immediateLeaps = typeof location !== 'undefined' && location.pathname.includes('leaps');
+  const loadLeaps = async () => {
+    if (disposed || leaps || tier.leaps <= 0) return;
+    const { createLeaps } = await import('./life/leaps');
+    if (disposed || leaps) return;
+    const created = createLeaps({ tier, heightField });
+    await renderer.compileAsync(created.group, camera);
+    if (disposed) {
+      created.dispose();
+      return;
+    }
+    leaps = created;
+    if (result) result.leaps = created;
+    scene.add(created.group);
+  };
+  if (immediateLeaps) void loadLeaps();
+  const leapsTimer =
+    !immediateLeaps && typeof window !== 'undefined' ? window.setTimeout(() => void loadLeaps(), 90000) : 0;
 
   const focus = new Vector3();
   const removeSystem = engine.add({
@@ -121,6 +183,17 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       shipEnv.t = t;
       ship.update(dt, t, shipEnv);
       terrain.update(camera);
+      const toMeridian = Math.hypot(
+        camera.position.x - MERIDIAN.center.x,
+        camera.position.z - MERIDIAN.center.z,
+      );
+      const showMeridian = toMeridian < 760;
+      if (meridian.terrain && meridian.foam) {
+        meridian.terrain.group.visible = showMeridian;
+        meridian.foam.visible = showMeridian;
+        if (showMeridian) meridian.terrain.update(camera);
+      }
+      meridian.silhouette.visible = !showMeridian;
       vegetation?.update(camera);
       village.update(dt, t, camera);
       sites.update(dt, t);
@@ -134,9 +207,12 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         terrain.group,
         foam,
         ranges,
+        meridian.terrain?.group,
+        meridian.foam,
+        meridian.silhouette,
         village.group,
         sites.group,
-        ...shipMirrorHidden,
+        ship.group,
         vegetation?.group,
         birds?.group,
         leaps?.group,
@@ -147,14 +223,16 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   });
   report(0.9, 'Lighting the lanterns');
 
-  return {
+  result = {
     sky,
     ocean,
     mirror,
     flotsam,
     terrain,
+    heightField,
     foam,
     ranges,
+    meridian,
     vegetation,
     ship,
     village,
@@ -162,13 +240,29 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     birds,
     leaps,
     dispose() {
+      disposed = true;
+      if (leapsTimer) window.clearTimeout(leapsTimer);
       removeSystem();
-      scene.remove(ocean.mesh, terrain.group, foam, ranges, village.group, ship.group, flotsam.group);
+      scene.remove(
+        ocean.mesh,
+        terrain.group,
+        foam,
+        ranges,
+        meridian.silhouette,
+        village.group,
+        ship.group,
+        flotsam.group,
+      );
+      if (meridian.terrain) scene.remove(meridian.terrain.group);
+      if (meridian.foam) scene.remove(meridian.foam);
       if (vegetation) scene.remove(vegetation.group);
       if (birds) scene.remove(birds.group);
       if (leaps) scene.remove(leaps.group);
       disposeTree(foam);
       disposeTree(ranges);
+      disposeTree(meridian.silhouette);
+      meridian.terrain?.dispose();
+      if (meridian.foam) disposeTree(meridian.foam);
       birds?.dispose();
       leaps?.dispose();
       village.dispose();
@@ -182,6 +276,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       sky.dispose();
     },
   };
+  return result;
 }
 
 function excludeVillageAndSites(
