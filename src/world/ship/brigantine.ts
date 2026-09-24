@@ -1,6 +1,7 @@
 import {
   BufferAttribute,
   BufferGeometry,
+  CanvasTexture,
   DataTexture,
   DoubleSide,
   Group,
@@ -55,6 +56,7 @@ import {
   type BuoyancyStation,
   type HullCapsule,
 } from './lines';
+import { createShipPipes, type ShipPipes } from './pipes';
 
 export interface BrigantineOptions {
   tier: Tier;
@@ -82,6 +84,7 @@ export interface Brigantine {
   triangleCount: number;
   drawCallCount: number;
   anchors: ShipAnchors;
+  readonly pipes: ShipPipes;
   /** Writes 32 closed-polyline world-space xz points: local +x side stern→bow, then local -x side bow→stern. */
   waterlinePolygon(outWorld: Float32Array): Float32Array;
   /** Writes [x, z] for the current bow waterline point. */
@@ -897,6 +900,7 @@ function createRiggingGeometry(): BufferGeometry {
 }
 
 let shipWoodTexture: Texture | null = null;
+let shipLabelTexture: Texture | null = null;
 
 function getShipWoodTexture(): Texture {
   if (shipWoodTexture) return shipWoodTexture;
@@ -917,6 +921,89 @@ function getShipWoodTexture(): Texture {
   return shipWoodTexture;
 }
 
+function getShipLabelTexture(): Texture {
+  if (shipLabelTexture) return shipLabelTexture;
+  if (typeof document === 'undefined') {
+    shipLabelTexture = new DataTexture(
+      new Uint8Array([205, 151, 64, 255, 24, 23, 22, 255]),
+      2,
+      1,
+      RGBAFormat,
+      UnsignedByteType,
+    );
+    shipLabelTexture.needsUpdate = true;
+  } else {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d')!;
+    const drawPlaque = (
+      x: number,
+      fill: CanvasGradient | string,
+      stroke: string,
+      text: string,
+      font: string,
+      ink: string,
+    ) => {
+      const plaqueWidth = 464;
+      const plaqueHeight = 188;
+      ctx.save();
+      ctx.translate(x, 0);
+      ctx.fillStyle = fill;
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = 18;
+      ctx.beginPath();
+      ctx.roundRect(24, 34, plaqueWidth, plaqueHeight, 26);
+      ctx.fill();
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(52, 62, 408, 132);
+      ctx.fillStyle = ink;
+      let size = 76;
+      do {
+        ctx.font = font.replace('{size}', String(size));
+        size -= 2;
+      } while (size > 28 && ctx.measureText(text).width > plaqueWidth * 0.78);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 256, 128);
+      ctx.restore();
+    };
+    const brass = ctx.createLinearGradient(0, 28, 0, 226);
+    brass.addColorStop(0, '#f1cb73');
+    brass.addColorStop(0.48, '#b98231');
+    brass.addColorStop(1, '#f0c46a');
+    drawPlaque(
+      0,
+      brass,
+      '#7a4a17',
+      'PROMPT BOX',
+      "700 {size}px Georgia, 'Times New Roman', serif",
+      '#2b1707',
+    );
+    const iron = ctx.createLinearGradient(512, 28, 512, 226);
+    iron.addColorStop(0, '#4b4a46');
+    iron.addColorStop(0.55, '#171717');
+    iron.addColorStop(1, '#302f2b');
+    drawPlaque(
+      512,
+      iron,
+      '#090909',
+      'TERMINAL',
+      "700 {size}px 'SFMono-Regular', Consolas, monospace",
+      '#ffb160',
+    );
+    shipLabelTexture = new CanvasTexture(canvas);
+  }
+  shipLabelTexture.colorSpace = SRGBColorSpace;
+  shipLabelTexture.generateMipmaps = true;
+  shipLabelTexture.minFilter = LinearMipmapLinearFilter;
+  shipLabelTexture.magFilter = LinearFilter;
+  shipLabelTexture.anisotropy = 4;
+  return shipLabelTexture;
+}
+
 function makeShipMaterial(): MeshStandardNodeMaterial {
   const m = new MeshStandardNodeMaterial({
     color: 0xffffff,
@@ -931,7 +1018,8 @@ function makeShipMaterial(): MeshStandardNodeMaterial {
   const r3 = smoothstep(2.6, 2.9, region).mul(float(1).sub(smoothstep(3.1, 3.4, region)));
   const r4 = smoothstep(3.6, 3.9, region).mul(float(1).sub(smoothstep(4.1, 4.4, region)));
   const r5 = smoothstep(4.6, 4.9, region).mul(float(1).sub(smoothstep(5.1, 5.4, region)));
-  const r6 = smoothstep(5.6, 5.9, region);
+  const r6 = smoothstep(5.6, 5.9, region).mul(float(1).sub(smoothstep(6.1, 6.4, region)));
+  const r7 = smoothstep(6.6, 6.9, region);
 
   const hullWood = texture(
     getShipWoodTexture(),
@@ -972,6 +1060,7 @@ function makeShipMaterial(): MeshStandardNodeMaterial {
     .mul(weave)
     .sub(color(0x5b4328).mul(abs(sin(positionLocal.z.mul(4.5))).mul(0.04)));
   const glow = color(0xffb060).mul(world.night.smoothstep(0.08, 0.9).mul(2.8).add(0.2));
+  const label = texture(getShipLabelTexture(), attribute('uv', 'vec2')).rgb;
 
   let outColor = hull;
   outColor = mix(outColor, deck, r1);
@@ -980,9 +1069,10 @@ function makeShipMaterial(): MeshStandardNodeMaterial {
   outColor = mix(outColor, iron, r4);
   outColor = mix(outColor, canvas, r5);
   outColor = mix(outColor, glow, r6);
+  outColor = mix(outColor, label, r7);
   m.colorNode = outColor.mul(vc.mul(0.18).add(0.88));
   m.emissiveNode = glow.mul(r6).mul(world.night.smoothstep(0.08, 0.9));
-  m.roughnessNode = mix(float(0.62), float(0.88), r5).add(r4.mul(0.1));
+  m.roughnessNode = mix(float(0.62), float(0.88), r5).add(r4.mul(0.1)).add(r7.mul(0.04));
   return m;
 }
 
@@ -1091,6 +1181,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   const riggingLineMaterial = register(
     new LineBasicMaterial({ color: 0x17110c, transparent: true, opacity: 0.72 }),
   );
+  const pipeSystem = createShipPipes(shipMaterial);
   addMesh(group, createHullGeometry(tier), shipMaterial, 'rounded planked hull');
   addMesh(group, createDeckGeometry(tier), shipMaterial, 'deck planking rails and fittings', false);
   addMesh(group, createTrimGeometry(tier), shipMaterial, 'wales strakes gunports galleries anchors');
@@ -1107,6 +1198,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   const rigging = new LineSegments(createRiggingGeometry(), riggingLineMaterial);
   rigging.name = 'standing and running rigging lines';
   group.add(rigging);
+  group.add(pipeSystem.group);
 
   const lanternPivot = new Group();
   lanternPivot.name = 'stern lantern pendulum';
@@ -1207,6 +1299,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     dynamics,
     uniforms,
     anchors,
+    pipes: pipeSystem,
     waterlineTable: BRIGANTINE_HALF_BEAM_TABLE,
     stations: BRIGANTINE_STATIONS,
     capsules: BRIGANTINE_CAPSULES,
@@ -1265,12 +1358,14 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
         t,
       );
       updateSecondary(dt);
+      pipeSystem.update(dt, t);
     },
     dispose(): void {
       group.traverse((object) => {
         const mesh = object as Mesh;
         if (mesh.geometry) mesh.geometry.dispose();
       });
+      pipeSystem.dispose();
       for (const material of materials) material.dispose();
     },
   };

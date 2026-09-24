@@ -6,6 +6,7 @@ export {
   type BrigantineUniforms,
   type ShipAnchors,
 } from './brigantine';
+export { type ShipPipes } from './pipes';
 export {
   ShipDynamics,
   pointOfSailCurve,

@@ -19,6 +19,8 @@ describe('createBrigantine', () => {
     expect(ship.anchors.helm.heading).toBe(0);
     expect(ship.anchors.boarding.x).toBeGreaterThan(0);
     expect(ship.anchors.boarding.y).toBeCloseTo(deckHeightAt(ship.anchors.boarding.z), 6);
+    expect(ship.pipes.tube.x).toBeGreaterThan(0);
+    expect(ship.pipes.hatch.x).toBeGreaterThan(0);
 
     ship.dynamics.reset(COVE.mooring.x, COVE.mooring.z, COVE.mooring.heading);
     const pose = ship.dynamics.pose;
@@ -32,6 +34,10 @@ describe('createBrigantine', () => {
       Math.cos(pose.heading) * ship.anchors.boarding.z;
     expect(worldX).toBeLessThan(COVE.mooring.x);
     expect(worldZ).toBeCloseTo(COVE.mooring.z - ship.anchors.boarding.z, 6);
+    expect(COVE.mooring.z - ship.pipes.tube.z).toBeGreaterThan(-106.6);
+    expect(COVE.mooring.z - ship.pipes.tube.z).toBeLessThan(-103.8);
+    expect(COVE.mooring.z - ship.pipes.hatch.z).toBeGreaterThan(-106.6);
+    expect(COVE.mooring.z - ship.pipes.hatch.z).toBeLessThan(-103.8);
     ship.dispose();
   });
 
