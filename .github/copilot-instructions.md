@@ -25,8 +25,9 @@ npm run toolchain        # installs KTX-Software into .tools/, finds Blender, ve
 
 ## Non-negotiables
 
-- **No copying from reference projects** (Arkenfall, Sakura River Valley, the Antikythera artifact). Study techniques
-  from `docs/research/` and write our own code, shaders, and assets.
+- **Only copy code with a license that allows it.** Arkenfall, Sakura River Valley, and the Antikythera artifact are
+  **technique-only**. **Tidewater is MIT:** adapted files keep a header (`Adapted from Tidewater © 2026 DRG Software
+Solutions LLC, MIT, <path>@<commit>`), and the full notice goes in `THIRD_PARTY_NOTICES.md` (create it if missing).
 - **Secrets are build-time only.** Tools in `tools/` may read `~/.env` (Azure Speech, image model). Nothing in `src/`
   may read env keys, and `npm run check:secrets` must pass on every build.
 - **Budgets are enforced:** chunk/title sizes via `tools/budgets.json`, and per-tier frame budgets per PLAN §12.1 and

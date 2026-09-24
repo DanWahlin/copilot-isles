@@ -84,6 +84,16 @@ Full study: [docs/research/2026-09-23-antikythera-artifact.md](../docs/research/
 - **Loader:** instant procedural art that **"resolves" with progress**, and themed stage messages.
 - **Caveat:** it generates everything at load (17.6 s to a warm title on an M3 Max, 213 shader programs), so we **bake at build time** instead. Its license is unknown, so we re-implement techniques only.
 
+### Tidewater (MIT, open source; time of day, birds, water, clouds, trees)
+Full study: [docs/research/2026-09-23-tidewater.md](../docs/research/2026-09-23-tidewater.md). It's a tropical island + ocean on **three 0.186 + Vite 8** (our versions), using **WebGPURenderer + TSL, WebGPU-only**. It's **MIT-licensed, so we may reuse its code** with the notice kept. Measured on an M3 Max: **~23 MB and 30-60 s to playable** (shader compiles), then 60 fps.
+- **Time of day:** a cheap parametric sun path (latitude, declination, hour angle) **rotated by a sun-azimuth setting**, a night factor, a sun→moon handoff, a sky-view LUT, **progressive env/PMREM refresh**, emissive night windows, and 8 packed local lights. It's a draggable sun dial in the UI.
+- **Birds:** 5 species with **staged behaviours**: perched gulls that **flush when you approach or sail off**, a pelican line, frigatebirds soaring, sanderlings chasing the swash. They use a coordinated-turn `Flyer` model and a single instanced draw.
+- **Vegetation:** procedural plants + scatter rules, **8 m grass cells with 3 tiers**, **baked octahedral impostors**, dithered LOD fades, and wind sheen.
+- **Water & shore:** a 4-cascade FFT ocean (WebGPU compute), **ShoreWaves** that refract around headlands via a travel-time field (analytic), breakers synced to spray, a swash/wet-sand sim, a spectral wake sim, and a waterline-split underwater view.
+- **Clouds & light:** volumetric Nubis-style clouds (compute), a **cloud-shadow map on land**, contact shadows, ground bounce, PCSS near cascade, and TAAU + RCAS.
+- **World:** hulls **lofted from naval lines**, a village `GeoBuilder` with weathering attributes, ~40 procedural props, and a **CC0 field-recording soundscape** (surf synced to waves, footsteps by surface).
+- **Caveats:** it's WebGPU-only, there's no lazy loading, it builds hundreds of pipeline variants, and it patches private three internals. **This reopens our renderer decision** (§0; see the study's §8 bake-off).
+
 ### CC0 asset sources (verified CC0)
 | Need | Source |
 |---|---|
@@ -210,12 +220,26 @@ The town's districts mirror the app's sidebar:
 
 ### Rendering features ("stylized realism")
 - **Water:** see the **Water system** section below.
-- **Sky:** a procedural atmosphere with a warm horizon glow, a **curved, drifting cloud layer** (silver-gold edges toward the sun, cool undersides), aerial-perspective haze, and **distant mountain silhouettes**. Night-capable (stars, moon) for later islands.
-- **Lighting keyframes:** each island's look is a **preset of about 20 blendable parameters**: sun colour/angle, hemisphere light, fog, mist, sky & cloud colours, exposure, bloom, shafts, lamp level, and white balance. Islands pick fixed presets (dawn, noon, golden hour) and can drift slowly, and the same system blends presets while sailing between islands.
+- **Sky:** a physically based atmosphere (Hillaire-style transmittance + sky-view LUTs, as fragment passes on WebGL2), a warm horizon glow, aerial-perspective haze, **distant mountain silhouettes**, and a sun, moon, and stars.
+- **Clouds, tiered:**
+  - **Lite/Low:** a curved, drifting cloud layer (silver-gold edges toward the sun, cool undersides).
+  - **Medium+:** a low-step, quarter-res raymarched cloud dome with temporal reprojection.
+  - **WebGPU High/Ultra (if adopted):** volumetric cumulus + cirrus.
+  - **Every tier from Low up** gets a **cloud-shadow map on the land** (a 128-256² sun-transmittance map, updated a slice per frame), which is cheap and very high impact.
+- **Time of day & sun position (a player-facing feature):**
+  - **Sun direction** comes from a parametric sun path (latitude, declination, hour angle) **rotated by a sun-azimuth setting** (Tidewater's model).
+  - A **night factor** from sun elevation drives stars, the moon (with a **sun→moon key-light handoff** through twilight), night ambient, **emissive windows and lanterns**, and **the 8 nearest local lights** (inverse-square, optional spot cone, no shadows).
+  - **Changes are cheap:** only the sky LUT and uniforms update. The **environment map + PMREM refresh progressively** (one face or roughness level per frame, only after a meaningful sun move), and the cached shadow map refreshes on sun moves (§12.4).
+  - **Islands start at their authored time** (dawn, noon, golden hour). The player can **change the time and sun azimuth**, pause time, or let it flow, from Settings → **Sky & Time** (a draggable sun-dial) and in photo mode. The ~20-parameter **lighting keyframes** (sun colour, hemisphere, fog, mist, sky and cloud colours, exposure, bloom, shafts, lamps, white balance) are now **keyed by sun elevation** and blended continuously, and they still blend between islands while sailing.
 - **Atmosphere:** **analytic exponential height fog** (closed-form, no ray-march), distance haze, and **low mist banks** that drift over water and glow where the sun rakes through. Fog colour follows the view direction relative to the sun (cool → warm).
 - **One shared wind field:** gust fronts roll across the world along the wind direction. The **same field** drives grass, palms, flags, **sails (tied to the sailing wind and trim, with luffing into the wind)**, and CPU springs on sashes, coats, and hanging nets.
 - **Terrain:** heightmap islands with sand/grass/rock/dirt splat blending using CC0 PBR textures, triplanar cliffs (skipping weak projections), and **wet-sand darkening** where waves run up.
-- **Vegetation:** instanced grass that bends as you walk, plus palms, cactus, and bushes with shared-wind sway, LODs, impostors, and **translucency** for fronds, leaves, and petals when the low sun is behind them.
+- **Vegetation:**
+  - **Geometry and placement:** procedural plants (palms, banana plants, ferns, broadleaf trees, shrubs, and per-biome additions: cactus, pines, castle gardens) placed by **rule-based scatter** (height, slope, gullies, exclusions, min spacing). Tidewater's JS is reusable.
+  - **Grass:** in **8 m cells**, with near/mid/far tiers (~18/46/88 m, scaled per quality tier) and **wind sheen**.
+  - **Trees & shrubs:** **octahedral impostors baked at build/load time** (coverage, normal, AO; colour applied per instance), handing off at ~75 m for trees and ~45 m for shrubs.
+  - **LOD transitions** are **dithered** (Bayer), never alpha-blended.
+  - **Shading:** shared-wind sway, and **translucency** for fronds, leaves, and petals when the low sun is behind them.
 - **Buildings:** one architecture kit per island, restyled to a shared palette with baked AO, weathering, and a **waterline tidemark** (wet, darker wood plus an algae band) on docks, piers, and hulls.
 - **Characters:** CC0 base bodies with pirate outfit pieces and CC0 animations. NPCs layer **procedural idle life** on top (breathing, weight shifts, head look-at, wind on cloth).
 - **Post, in order:**
@@ -228,7 +252,12 @@ The town's districts mirror the app's sidebar:
   7. vignette, then **film grain + dither**, which prevents banding in sky and fog gradients
   8. FXAA + a light unsharp mask when rendering below native resolution
   - Soft DOF during dialogue (High+).
-- **Ambient life:** gull flocks (circling, with flapping bouts and glides), lagoon fish, butterflies, fireflies at dusk, chimney smoke, drifting leaves, floating flotsam, and **distant ships crossing the horizon**. All particles **wrap inside camera-following boxes**, so nothing is spawned or allocated per frame.
+- **Birds (staged, not random):** species-specific behaviours on a coordinated-turn flight model:
+  - **gulls** perch on rails, roofs, beaches, and **the brigantine's yards**, and **flush when you approach or set sail**
+  - **terns** patrol, **pelicans** fly in lines and plunge-forage, **frigatebirds** soar in high circles with almost no flapping, and **shorebirds** chase the swash
+  - landings follow curved paths with the legs dropping, and there's one instanced draw for every species
+  - **per-island casts:** parrots in Thousand-Bough's jungle, crows around Keelhaven, swifts around Guildcrest, and desert raptors at Sunspire
+- **Ambient life:** lagoon fish (schooling ecology), crabs that scuttle and burrow, butterflies, fireflies at dusk, chimney smoke, drifting leaves, floating flotsam, and **distant ships crossing the horizon**. All particles **wrap inside camera-following boxes**, so nothing is spawned or allocated per frame.
 - **The "Leaps" director (jumping fish & dolphins):** a stager, not a random spawner. Every ~15-45 s, **in daylight with the camera above water**, it picks a spot ahead of the camera and **only commits if the *entire* leap stays on screen**. It also has to stay **clear of UI text** (title logo, menus, prompts) and away from the ship and the camera-to-ship line. **Leaps never start during dialogue, quizzes, puzzles, the Chart, the Logbook, or pause.** The **title screen is exempt** from that rule, since the text-box avoidance keeps leaps off the logo and menu. **Reduced motion disables Leaps and their splash sounds**, and **Lite** has none.
   - **Species:** **flying-fish schools** (taxi with tail-slaps → glide → re-entry) in the tropics and open sea, **mullet** hops in harbors, and **dolphin pods** at sea (nose and tail each splash as they cross the surface). Later islands can add a whale breach or leaping mantas.
   - **Physics:** trajectories are ballistic (g = 9.81), with pitch following velocity. Each leap is baked once at 60 Hz and interpolated.
