@@ -518,6 +518,13 @@ export const CH00: ChapterContent = {
       source: src('check-your-tools-in-terminal'),
     },
     {
+      id: 'pg.workflows',
+      title: 'Turn on workflows',
+      caption:
+        'New forks start with GitHub Actions switched off. On GitHub.com, open your fork’s **Actions** tab and select **I understand my workflows, go ahead and enable them** so the practice checks can run.',
+      source: src('add-the-course-practice-items'),
+    },
+    {
       id: 'P0.S',
       title: 'The setup commands',
       caption:
@@ -561,6 +568,12 @@ export const CH00: ChapterContent = {
       id: 'worktree',
       term: 'Worktree',
       definition: 'A separate working copy of your repository, so a session’s changes stay out of your way.',
+    },
+    {
+      id: 'github-actions',
+      term: 'GitHub Actions workflows',
+      definition:
+        'Automated checks and jobs that GitHub runs for a repository. Not the same as the app’s Automations, which are saved agent tasks.',
     },
     {
       id: 'dry-run',

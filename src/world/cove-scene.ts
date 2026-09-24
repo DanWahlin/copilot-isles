@@ -15,6 +15,7 @@ import { createVillage, type VillageSystem } from './village';
 import { createBirds, type BirdsSystem } from './life/birds';
 import { createLeaps, type LeapsSystem } from './life/leaps';
 import { villageExclusion } from './village-exclusion';
+import { createCoveSites, type CoveSites } from './sites';
 
 export interface CoveScene {
   sky: SkySystem;
@@ -27,6 +28,8 @@ export interface CoveScene {
   vegetation: VegetationSystem | null;
   ship: Brigantine;
   village: VillageSystem;
+  /** Puzzle set pieces (the P0.1 mill race). */
+  sites: CoveSites;
   birds: BirdsSystem | null;
   leaps: LeapsSystem | null;
   dispose(): void;
@@ -66,6 +69,8 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   report(0.5, 'Building the harbor');
   const village = await createVillage({ tier, heightField: terrain.heightField });
   scene.add(village.group);
+  const sites = await createCoveSites({ tier, heightField: terrain.heightField });
+  scene.add(sites.group);
 
   let vegetation: VegetationSystem | null = null;
   if (o.vegetation !== false) {
@@ -75,7 +80,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       heightGrid: terrain.heightGrid,
       tier,
       renderer,
-      exclude: villageExclusion(village),
+      exclude: excludeVillageAndSites(villageExclusion(village), sites),
     });
     scene.add(vegetation.group);
   }
@@ -118,6 +123,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       terrain.update(camera);
       vegetation?.update(camera);
       village.update(dt, t, camera);
+      sites.update(dt, t);
       birds?.update(dt, t, camera);
       leaps?.update(dt, t, camera);
       flotsam.update(dt, t, ocean.field, ship);
@@ -129,6 +135,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         foam,
         ranges,
         village.group,
+        sites.group,
         ...shipMirrorHidden,
         vegetation?.group,
         birds?.group,
@@ -151,6 +158,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     vegetation,
     ship,
     village,
+    sites,
     birds,
     leaps,
     dispose() {
@@ -164,6 +172,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       birds?.dispose();
       leaps?.dispose();
       village.dispose();
+      sites.dispose();
       ship.dispose();
       flotsam.dispose();
       mirror?.dispose();
@@ -173,6 +182,13 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       sky.dispose();
     },
   };
+}
+
+function excludeVillageAndSites(
+  village: (x: number, z: number) => boolean,
+  sites: CoveSites,
+): (x: number, z: number) => boolean {
+  return (x, z) => village(x, z) || sites.excludes(x, z);
 }
 
 function disposeTree(root: Object3D): void {

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// End-to-end quest run on the play page: Nell (spyglass + hotspot quiz + page), the chest, Ezra, Bo,
+// End-to-end quest run on the play page: Nell (spyglass + hotspot quiz + page), the chest, Ezra, Bo, Suri's sluice (P0.1),
 // and the Harbormaster's Trial at the lighthouse, answered through the real UI where it matters
 // (hotspots are clicked; other types use __dev.answer()), with screenshots at each beat.
 // node tools/questtest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/quest]
@@ -160,6 +160,44 @@ results.ezra = await drive('ezra', (s) => s.quests['Q0.3'] === 'done' && !s.dial
 // Bo: Your Own Deck.
 await talk('dockhand_b');
 results.bo = await drive('bo', (s) => s.quests['Q0.4'] === 'done' && !s.dialogue && !s.quiz && !s.reveal);
+
+// Suri: Open the Sluice (P0.1). The lever and one tile turn go through E like a player would.
+await talk('suri');
+results.suri = await drive(
+  'suri',
+  (s) => s.quests['Q0.6'] === 'sluice' && !s.dialogue && !s.quiz && !s.reveal,
+);
+const sluice = () => page.evaluate(() => window.__dev.session().debug.puzzle('P0.1')?.state() ?? null);
+const spots = await page.evaluate(() => window.__dev.session().debug.puzzle('P0.1')?.spots() ?? null);
+if (spots) {
+  await page.evaluate(({ lever }) => {
+    window.__dev.session().debug.teleport(lever.x + 1.1, lever.z, -Math.PI / 2);
+    window.__dev.look(-Math.PI / 2 + 0.5, 0.3);
+  }, spots);
+  await page.waitForTimeout(900);
+  await shot('mill-lever');
+  await tap('KeyE');
+  await page.waitForTimeout(1200);
+  if (!(await sluice())?.gate) logs.push('[questtest] mill: E at the lever did not open the gate');
+
+  const cell = spots.cells.findIndex((c) => c.turns);
+  const before = (await sluice())?.rots[cell];
+  await page.evaluate((c) => {
+    window.__dev.session().debug.teleport(c.x, c.z - 1, 0);
+    window.__dev.look(0.4, 0.45);
+  }, spots.cells[cell]);
+  await page.waitForTimeout(900);
+  await tap('KeyE');
+  await page.waitForTimeout(900);
+  const after = (await sluice())?.rots[cell];
+  if (after === before) logs.push(`[questtest] mill: E on tile ${cell} did not turn it`);
+  await shot('mill-turned');
+
+  await page.evaluate(() => window.__dev.session().debug.puzzle('P0.1').solve());
+  results.sluice = await drive('sluice', (s) => s.quests['Q0.6'] === 'done' && !s.dialogue && !s.reveal);
+  await page.waitForTimeout(1500);
+  await shot('mill-solved');
+} else logs.push('[questtest] no P0.1 debug hook');
 
 // The Harbormaster's Trial at the lighthouse.
 const lighthouse = await page.evaluate(() => window.__dev.session().debug.trialAt?.() ?? null);

@@ -11,6 +11,13 @@ export interface QuizRecord {
   passed: boolean;
 }
 
+/** A puzzle's saved state (POC §3.9): solved, plus whatever the puzzle needs to resume (tile turns, levers). */
+export interface PuzzleSave {
+  solved: boolean;
+  state?: number[];
+  flags?: string[];
+}
+
 export interface ProgressData {
   v: 1;
   created: number;
@@ -25,6 +32,8 @@ export interface ProgressData {
   doubloons: number;
   /** Sail colour picked at the palette stand (Paint Your Sails). */
   sails: string | null;
+  /** Puzzle id → saved state. */
+  puzzles: Record<string, PuzzleSave>;
 }
 
 export function emptyProgress(now = Date.now()): ProgressData {
@@ -40,6 +49,7 @@ export function emptyProgress(now = Date.now()): ProgressData {
     seals: [],
     doubloons: 0,
     sails: null,
+    puzzles: {},
   };
 }
 
@@ -63,10 +73,25 @@ export function parseProgress(raw: string | null): ProgressData {
       trials: d.trials && typeof d.trials === 'object' ? d.trials : {},
       doubloons: typeof d.doubloons === 'number' && d.doubloons >= 0 ? Math.floor(d.doubloons) : 0,
       sails: typeof d.sails === 'string' ? d.sails : null,
+      puzzles: parsePuzzles(d.puzzles),
     };
   } catch {
     return emptyProgress();
   }
+}
+
+function parsePuzzles(v: unknown): Record<string, PuzzleSave> {
+  const out: Record<string, PuzzleSave> = {};
+  if (!v || typeof v !== 'object') return out;
+  for (const [id, raw] of Object.entries(v as Record<string, unknown>)) {
+    if (!raw || typeof raw !== 'object') continue;
+    const r = raw as Partial<PuzzleSave>;
+    const save: PuzzleSave = { solved: r.solved === true };
+    if (Array.isArray(r.state)) save.state = r.state.filter((n): n is number => Number.isFinite(n));
+    if (Array.isArray(r.flags)) save.flags = r.flags.filter((f): f is string => typeof f === 'string');
+    out[id] = save;
+  }
+  return out;
 }
 
 /** Export/import as a copyable base64 code (POC §3.9). */
@@ -144,6 +169,11 @@ export class Progress {
 
   setQuest(id: string, step: string): void {
     this.data.quests[id] = step;
+    this.save();
+  }
+
+  setPuzzle(id: string, save: PuzzleSave): void {
+    this.data.puzzles[id] = save;
     this.save();
   }
 

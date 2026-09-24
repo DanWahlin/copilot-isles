@@ -32,6 +32,14 @@ export const COVE = {
     { x: -80, z: -132, heading: -0.9 },
   ],
 
+  /**
+   * Puzzle sites. P0.1's mill race sits on the low slope east of the lighthouse: the Actions spring
+   * spouts from the foot of the hill to the south, a 3 × 4 grid of channel tiles (row 0 at the
+   * spring) runs north, and the waterwheel turns in its tail pool by the shore. `x`, `z` is the grid
+   * centre; keep x −71…−53, z −75…−51 clear of other props.
+   */
+  mill: { x: -61, z: -63, tile: 2.4, rows: 4, cols: 3 },
+
   /** Central hill. */
   hill: { center: { x: -10, z: -20 }, radius: 110, height: 24 },
 

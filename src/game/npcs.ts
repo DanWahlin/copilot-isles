@@ -103,6 +103,17 @@ export const COVE_NPCS: NpcSpec[] = [
     barks: ['Race you to the lighthouse!', 'Is that your ship? It is so big!'],
   },
   {
+    id: 'suri',
+    name: 'Suri Okoye',
+    anchor: 'suri',
+    clip: 'idle',
+    keepY: true,
+    barks: [
+      'The spring never stops. Getting it to the wheel is the trick.',
+      'Actions on, checks on. That’s the rule.',
+    ],
+  },
+  {
     id: 'lookout',
     name: 'Lookout',
     anchor: 'lookout',

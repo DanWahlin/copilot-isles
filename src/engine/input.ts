@@ -17,6 +17,8 @@ export interface InputState {
   jump: boolean;
   map: boolean;
   menu: boolean;
+  /** Wingman's hint (Q / gamepad X). */
+  hint: boolean;
   usingGamepad: boolean;
 }
 
@@ -36,9 +38,10 @@ const KEYMAP: Record<string, keyof InputState | 'up' | 'down' | 'left' | 'right'
   Space: 'jump',
   KeyM: 'map',
   Escape: 'menu',
+  KeyQ: 'hint',
 };
 
-const EDGE = new Set(['interact', 'jump', 'map', 'menu']);
+const EDGE = new Set(['interact', 'jump', 'map', 'menu', 'hint']);
 
 export class Input {
   readonly state: InputState = {
@@ -52,6 +55,7 @@ export class Input {
     jump: false,
     map: false,
     menu: false,
+    hint: false,
     usingGamepad: false,
   };
   /** When false (dialogue, menus), movement and look read as zero; edges still fire. */
@@ -135,6 +139,7 @@ export class Input {
         this.padEdges.set(i, down);
       };
       btn(0, 'interact');
+      btn(2, 'hint');
       btn(3, 'jump');
       btn(8, 'map');
       btn(9, 'menu');
@@ -157,6 +162,7 @@ export class Input {
     s.jump = on && edges.has('jump');
     s.map = edges.has('map');
     s.menu = edges.has('menu');
+    s.hint = on && edges.has('hint');
 
     this.pressed.clear();
     this.look[0] = this.look[1] = 0;

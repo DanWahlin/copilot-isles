@@ -6,6 +6,7 @@ import { TIERS } from '../engine/quality';
 import type { Tier } from '../world/contracts';
 import { createCove } from '../world/cove-scene';
 import { world } from '../world/uniforms';
+import { ANCHORAGE_SLUICE, flow, openings, solutionPath } from '../world/sites/sluice-logic';
 
 /** Test Cove dev page: every world module together under the shared sky (?webgl, ?tier=, ?tm=). */
 const q = new URLSearchParams(location.search);
@@ -169,6 +170,22 @@ engine.start();
     camera.position.set(p[0], p[1], p[2]);
     controls.target.set(t[0], t[1], t[2]);
     controls.update();
+  },
+  /** Poses the P0.1 mill race: 'dry' (start tiles, gate shut), 'gate' (start tiles, gate open), or 'solved'. */
+  mill: (mode: 'dry' | 'gate' | 'solved' = 'solved') => {
+    const L = ANCHORAGE_SLUICE;
+    const rots = L.tiles.map((t) => (mode === 'solved' ? t.solution : t.start));
+    const gate = mode !== 'dry';
+    const m = cove.sites.mill;
+    rots.forEach((r, i) => m.setRotation(i, r, true));
+    m.setLever(gate, true);
+    const f = flow(L, rots, gate, 2.4);
+    m.setWater(
+      f.cells.map((c, i) => ({ ...c, mask: openings(L.tiles[i]!.kind, rots[i]!) })),
+      gate,
+      f.solved,
+    );
+    return { solved: f.solved, path: solutionPath(L) };
   },
   stats: () => {
     cove.mirror?.finalizeFrame(engine.counters.last.drawCalls, engine.counters.last.triangles);

@@ -17,7 +17,9 @@ import { PlayerController } from './player-controller';
 import type { LearnStore } from '../learn/store';
 import { createChest, type TreasureChest } from './chest';
 import { COVE_CHESTS, npcScript, questLog } from './cove-quests';
-import { runScript } from './script';
+import { runScript, type ScriptStep } from './script';
+import { createSluice } from './puzzles/sluice';
+import type { HintTier, Puzzle, PuzzleHost } from './puzzles/types';
 
 export type SessionMode = 'walk' | 'sail' | 'docking' | 'transition';
 
@@ -65,6 +67,10 @@ export interface GameSession {
     chests(): { id: string; x: number; z: number; h: number; opened: boolean }[];
     /** Where the Trial is taken (tests). */
     trialAt(): { x: number; z: number; heading: number } | null;
+    /** A puzzle's test hooks (state, solve, …) by id, e.g. 'P0.1'. */
+    puzzle(id: string): Puzzle['debug'] | null;
+    /** Presses Wingman's hint key. */
+    hint(): void;
   };
   dispose(): void;
 }
@@ -99,12 +105,14 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       ? 'wood'
       : 'stone';
   const villageSurface: WalkSurface = { heightAt: village.walkable, kind: pierKind };
+  const sites = cove.sites;
+  const sitesSurface: WalkSurface = { heightAt: sites.heightAt, kind: 'stone' };
   const world = new CollisionWorld({
     ground: terrain.heightField,
     waves: ocean.field,
-    surfaces: [villageSurface],
-    circles: village.colliders.circles,
-    boxes: village.colliders.boxes,
+    surfaces: [villageSurface, sitesSurface],
+    circles: [...village.colliders.circles, ...sites.colliders.circles],
+    boxes: [...village.colliders.boxes, ...sites.colliders.boxes],
   });
 
   const hud = new Hud(o.hudParent);
@@ -121,12 +129,20 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   hero.group.rotation.y = player.heading;
   engine.scene.add(hero.group);
 
-  const npcs = new NpcCrowd(o.characters, COVE_NPCS, village.anchors, world, tier, camera, {
-    x: COVE.spawn.x,
-    y: COVE.quay.height,
-    z: COVE.spawn.z + 3,
-    heading: 0,
-  });
+  const npcs = new NpcCrowd(
+    o.characters,
+    COVE_NPCS,
+    { ...village.anchors, ...sites.anchors },
+    world,
+    tier,
+    camera,
+    {
+      x: COVE.spawn.x,
+      y: COVE.quay.height,
+      z: COVE.spawn.z + 3,
+      heading: 0,
+    },
+  );
   for (const n of npcs.list) engine.scene.add(n.character.group);
 
   const cam = new FollowCamera();
@@ -292,6 +308,70 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     scriptRunning = false;
   }
 
+  // Puzzles (POC §4.5): each registers its own interactions and saves its own state.
+  const puzzleHost: PuzzleHost = {
+    learn,
+    hud,
+    dialogue,
+    audio,
+    interactions,
+    player: {
+      get x() {
+        return player.x;
+      },
+      get y() {
+        return player.y;
+      },
+      get z() {
+        return player.z;
+      },
+      get heading() {
+        return player.heading;
+      },
+    },
+    quests,
+    setQuest,
+    canAct: () => mode === 'walk' && !paused && !scriptRunning && !dialogue.active && !learn?.busy,
+    beat: async (steps: readonly ScriptStep[], speaker: string) => {
+      if (scriptRunning) return false;
+      scriptRunning = true;
+      input.enabled = false;
+      const ok = await runScript(steps, {
+        dialogue,
+        learn,
+        speaker,
+        onQuest: setQuest,
+        cancelled: () => disposed,
+      });
+      input.enabled = !paused;
+      scriptRunning = false;
+      return ok;
+    },
+  };
+  const puzzles: Puzzle[] = [createSluice(puzzleHost, sites.mill)];
+  const hintPresses = new Map<string, { key: string; n: number }>();
+
+  /** Wingman's hint key: the puzzle you're at, else a nudge toward the current quest. */
+  function hint(): void {
+    const p = puzzles.find((z) => z.engaged());
+    if (p) {
+      const key = p.hintKey();
+      const last = hintPresses.get(p.id);
+      const n = last?.key === key ? Math.min(3, last.n + 1) : 1;
+      const line = p.hint(n as HintTier);
+      // Tier 3 does a step, which changes the key, so the next press starts over at a nudge.
+      const after = p.hintKey();
+      hintPresses.set(p.id, { key: after, n: after === key ? n : 0 });
+      if (line) void dialogue.say('Wingman', line);
+      return;
+    }
+    const open = questLog(quests()).find((q) => !q.done);
+    void dialogue.say(
+      'Wingman',
+      open ? `Logbook says: ${open.detail}` : 'Nothing pressing, Captain. Enjoy the view.',
+    );
+  }
+
   async function board(): Promise<void> {
     if (mode !== 'walk') return;
     mode = 'transition';
@@ -413,6 +493,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
         if (hintTimer > 0 && (hintTimer -= dt) <= 0 && !dialogue.active)
           void dialogue.play(['wingman.hint.01']);
+        if (s.hint && mode === 'walk' && !dialogue.active && !scriptRunning) hint();
 
         ship.group.updateMatrixWorld();
         ship.group.localToWorld(
@@ -463,6 +544,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         hero.update(dt);
         npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
         for (const c of chests) c.chest.update(dt, t);
+        for (const p of puzzles) p.update(dt, t);
 
         if (audio) {
           listenerPos.x = camera.position.x;
@@ -525,6 +607,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           opened: c.chest.opened,
         })),
       trialAt: () => (trialAt ? { x: trialAt.x, z: trialAt.z, heading: trialAt.heading } : null),
+      puzzle: (id: string) => puzzles.find((p) => p.id === id)?.debug ?? null,
+      hint,
       state: () => ({
         mode,
         x: +player.x.toFixed(2),
@@ -549,6 +633,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     dispose() {
       disposed = true;
       learn?.reset();
+      for (const p of puzzles) p.dispose();
       for (const c of chests) c.chest.dispose();
       remove();
       dialogue.cancel();

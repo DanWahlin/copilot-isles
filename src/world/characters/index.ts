@@ -28,6 +28,11 @@ export const NPC_IDS = [
   'lookout',
   'child',
   'old_sailor',
+  'suri',
+  'pim',
+  'pol',
+  'juno',
+  'lyra',
 ] as const;
 export const CHARACTER_BODIES = [...PLAYER_BODIES, ...NPC_IDS] as const;
 export const CHARACTER_CLIPS = ['idle', 'walk', 'run', 'talk', 'wave', 'sit', 'helm', 'wade'] as const;
@@ -103,6 +108,12 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
   lookout: { source: 'anne', scale: 1.03, radius: 0.33, height: 1.78, tint: 0xffffff },
   child: { source: 'henry', scale: 0.72, radius: 0.23, height: 1.25, tint: 0xffffff },
   old_sailor: { source: 'captain', scale: 0.96, radius: 0.33, height: 1.67, tint: 0xffffff },
+  // Chapter 00 cast from the POC spec §4.3 (reusing the source rigs with tints until more models land).
+  suri: { source: 'adventurer', scale: 0.97, radius: 0.32, height: 1.7, tint: 0xffe2c8 },
+  pim: { source: 'farmer', scale: 0.94, radius: 0.33, height: 1.66, tint: 0xdff5e0 },
+  pol: { source: 'farmer', scale: 0.94, radius: 0.33, height: 1.66, tint: 0xf5dedb },
+  juno: { source: 'lis', scale: 1.02, radius: 0.31, height: 1.74, tint: 0xd9e6ff },
+  lyra: { source: 'anne', scale: 0.96, radius: 0.31, height: 1.68, tint: 0xf0dcff },
 };
 
 const PLAYER_VARIANTS = [0xffffff, 0xe8f5ff, 0xffeee4, 0xebffe4] as const;
