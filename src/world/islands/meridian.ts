@@ -332,14 +332,14 @@ export function createMeridianSilhouette(): Group {
     const peakA = Math.exp(-((u - 0.36) ** 2) / 0.006) * 34;
     const peakB = Math.exp(-((u - 0.53) ** 2) / 0.012) * 46;
     const peakC = Math.exp(-((u - 0.69) ** 2) / 0.01) * 28;
-    const ridge = 11 + peakA + peakB + peakC + Math.sin(u * Math.PI * 5.5) * 3;
-    const width = 145 + Math.sin(u * Math.PI) * 52;
+    const ridge = 9 + peakA + peakB + peakC + Math.sin(u * Math.PI * 5.5) * 3;
+    const width = 190 + Math.sin(u * Math.PI) * 64;
     for (let j = 0; j <= depthSegments; j++) {
       const v = j / depthSegments;
-      const depth = (v - 0.52) * width;
-      const mound = Math.sin(Math.PI * v);
-      const shoreDip = Math.pow(Math.abs(v - 0.52) * 2, 2) * 9;
-      const y = -5 + ridge * Math.pow(Math.max(0, mound), 0.86) - shoreDip;
+      const depth = (v - 0.25) * width;
+      const backSlope = smoothstep(0.5, 0.94, v);
+      const crown = Math.sin(Math.PI * Math.min(1, v * 0.82 + 0.18));
+      const y = -5.2 + ridge * backSlope * Math.pow(Math.max(0, crown), 0.65) - (1 - backSlope) * 4.2;
       const x = MERIDIAN.center.x + ca * along - sa * depth;
       const z = MERIDIAN.center.z + sa * along + ca * depth;
       positions.push(x, y, z);
@@ -361,10 +361,8 @@ export function createMeridianSilhouette(): Group {
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
   const material = new MeshBasicNodeMaterial({
-    color: 0x9db2b0,
-    transparent: true,
-    opacity: 0.56,
-    depthWrite: false,
+    color: 0x8ba5a4,
+    depthWrite: true,
     side: DoubleSide,
   });
   material.fog = true;
