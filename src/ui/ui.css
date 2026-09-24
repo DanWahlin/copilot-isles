@@ -1703,15 +1703,24 @@
     font-size: clamp(1.8rem, 4.8vh, 2.8rem);
   }
 
-  .ci-chart-panel .ci-chart-toolbar {
-    position: absolute;
-    top: clamp(0.8rem, 1.8vh, 1.4rem);
-    right: 7.5rem;
-    margin: 0;
-  }
-
+  /* The tabs head the side column, level with the top of the parchment, and span the card's width. */
   .ci-chart-panel .ci-chart {
     grid-template-columns: minmax(0, 1fr) clamp(16rem, 19vw, 21rem);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      'map tabs'
+      'map side';
+    row-gap: 0.85rem;
+  }
+
+  .ci-chart-panel .ci-chart-toolbar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .ci-chart-panel .ci-chart-toolbar button {
+    padding: 0 0.6rem;
   }
 
   .ci-chart-panel .ci-chart-map {
@@ -1878,5 +1887,31 @@
 @media (max-width: 840px) {
   .ci-title-hint {
     display: none;
+  }
+}
+
+/* The chart's tabs live inside its grid: beside the map on wide windows, above it on tall ones. */
+.ci-chart-panel .ci-chart-toolbar {
+  grid-area: tabs;
+  position: static;
+  margin: 0;
+}
+
+.ci-chart-panel .ci-chart-map {
+  grid-area: map;
+}
+
+.ci-chart-panel .ci-chart-side {
+  grid-area: side;
+}
+
+@media (max-aspect-ratio: 5/4), (max-width: 900px) {
+  .ci-chart-panel .ci-chart {
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      'tabs'
+      'map'
+      'side';
+    row-gap: 0.8rem;
   }
 }

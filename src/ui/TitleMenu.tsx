@@ -244,29 +244,149 @@ function CaptainCard({
     >
       <CaptainPortrait body={id} />
       <span>{title}</span>
-      <small>{id === 'man' ? 'Tricorn, blue coat, steady hand' : 'Bandana, sharp eyes, quick smile'}</small>
+      <small>
+        {id === 'man'
+          ? 'Red tricorn, ginger beard, loyal parrot'
+          : 'Gold-trimmed tricorn, sharp eyes, quick smile'}
+      </small>
     </button>
   );
 }
 
+/**
+ * The captain-select portraits, drawn to match the in-game models: the Captain's red-crowned tricorn,
+ * ginger beard, and parrot, and Anne's gold-trimmed tricorn over long fair hair.
+ */
 function CaptainPortrait({ body }: { body: CaptainBody }) {
-  const hair = body === 'man' ? '#2a1d17' : '#6a2a1f';
+  const man = body === 'man';
+  const id = `portrait-${body}`;
   return (
     <svg className="ci-portrait" viewBox="0 0 180 180" aria-hidden="true">
       <defs>
-        <linearGradient id={`coat-${body}`} x1="0" x2="1">
-          <stop offset="0" stopColor={body === 'man' ? '#123656' : '#11474f'} />
-          <stop offset="1" stopColor={body === 'man' ? '#245d7d' : '#1a6a65'} />
+        <radialGradient id={`${id}-bg`} cx="50%" cy="42%" r="60%">
+          <stop offset="0" stopColor={man ? '#3c5a6e' : '#4a5a5a'} />
+          <stop offset="1" stopColor="#1b2a36" />
+        </radialGradient>
+        <linearGradient id={`${id}-felt`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#2b221c" />
+          <stop offset="1" stopColor="#15110d" />
         </linearGradient>
+        <linearGradient id={`${id}-skin`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#f1c7a3" />
+          <stop offset="1" stopColor="#d9a47f" />
+        </linearGradient>
+        <clipPath id={`${id}-clip`}>
+          <circle cx="90" cy="90" r="80" />
+        </clipPath>
       </defs>
-      <circle cx="90" cy="90" r="78" fill="rgba(232,200,138,.13)" />
-      <path d="M48 150c9-35 74-35 84 0" fill={`url(#coat-${body})`} />
-      <circle cx="90" cy="72" r="31" fill="#c88a62" />
-      <path d="M62 67c12-23 48-25 61-1-12-8-48-8-61 1z" fill={hair} />
-      <path d="M55 51h70l10 12H45z" fill={body === 'man' ? '#111a22' : '#8a1f2d'} />
-      <path d="M73 85c10 8 25 8 35 0" fill="none" stroke="#4b2118" strokeWidth="4" strokeLinecap="round" />
-      <path d="M75 73h1M105 73h1" stroke="#10151b" strokeWidth="7" strokeLinecap="round" />
+      <circle cx="90" cy="90" r="80" fill={`url(#${id}-bg)`} />
+      <g clipPath={`url(#${id}-clip)`}>{man ? <CaptainFigure id={id} /> : <AnneFigure id={id} />}</g>
+      <circle cx="90" cy="90" r="80" fill="none" stroke="rgba(232,200,138,.55)" strokeWidth="2" />
     </svg>
+  );
+}
+
+function CaptainFigure({ id }: { id: string }) {
+  return (
+    <>
+      {/* Coat, shirt, and lapels. */}
+      <path d="M30 184c4-34 24-50 60-50s56 16 60 50z" fill="#5a3a24" />
+      <path d="M72 138l18 30 18-30z" fill="#e8dcc4" />
+      <path d="M62 140l28 36-10-40zM118 140l-28 36 10-40z" fill="#3e2616" />
+      <path d="M58 150h64" stroke="#b5872f" strokeWidth="3" />
+      {/* Parrot on his shoulder. */}
+      <g transform="translate(132 110)">
+        <path d="M-6 26c-2-14 2-26 12-30 8-3 14 2 14 10 0 10-8 18-26 20z" fill="#2f86c9" />
+        <path d="M0 -4c0-10 8-16 16-14 7 2 10 9 8 16z" fill="#f4f4ef" />
+        <path d="M2 -12c2-8 8-12 16-10-4 2-7 5-8 9z" fill="#6cc832" />
+        <path d="M22 0c6 1 9 5 7 10-3-3-6-4-9-4z" fill="#f29a2e" />
+        <circle cx="13" cy="-4" r="2.6" fill="#15110d" />
+      </g>
+      {/* Head, ears, beard. */}
+      <ellipse cx="62" cy="92" rx="7" ry="9" fill="#e2ad88" />
+      <ellipse cx="118" cy="92" rx="7" ry="9" fill="#e2ad88" />
+      <path
+        d="M62 80c0-22 12-32 28-32s28 10 28 32v14c0 20-12 32-28 32S62 114 62 94z"
+        fill={`url(#${id}-skin)`}
+      />
+      <path
+        d="M62 92c2 18 10 36 28 40 18-4 26-22 28-40-6 6-10 10-16 10-4-3-8-4-12-4s-8 1-12 4c-6 0-10-4-16-10z"
+        fill="#d8662a"
+      />
+      <path d="M80 104c6-4 14-4 20 0-4 3-8 4-10 4s-6-1-10-4z" fill="#b84d1c" />
+      <path d="M74 80l12 3M106 80l-12 3" stroke="#b84d1c" strokeWidth="4.5" strokeLinecap="round" />
+      <ellipse cx="80" cy="90" rx="4" ry="4.6" fill="#15110d" />
+      <ellipse cx="100" cy="90" rx="4" ry="4.6" fill="#15110d" />
+      <circle cx="81.4" cy="88.4" r="1.2" fill="#fff" />
+      <circle cx="101.4" cy="88.4" r="1.2" fill="#fff" />
+      <path d="M88 92c-2 5-2 8 2 9" fill="none" stroke="#c98a66" strokeWidth="2" strokeLinecap="round" />
+      {/* Tricorn: red crown, dark brim cocked into a point at the front. */}
+      <path d="M56 70c2-26 16-38 34-38s32 12 34 38z" fill="#9c1f24" />
+      <path d="M60 60c6-12 16-18 30-18s24 6 30 18" fill="none" stroke="#7a1519" strokeWidth="3" />
+      <path
+        d="M28 64c16-6 36-6 62 8 26-14 46-14 62-8-8 10-20 16-34 16-12 0-20-3-28-8-8 5-16 8-28 8-14 0-26-6-34-16z"
+        fill={`url(#${id}-felt)`}
+      />
+      <path d="M28 64c16-6 36-6 62 8 26-14 46-14 62-8" fill="none" stroke="#3b2e22" strokeWidth="2" />
+    </>
+  );
+}
+
+function AnneFigure({ id }: { id: string }) {
+  return (
+    <>
+      {/* Long fair hair behind the shoulders. */}
+      <path d="M52 86c-6 30-4 58 4 80h68c8-22 10-50 4-80z" fill="#c9a35a" />
+      {/* Vest over a cream blouse, with a gold buckle. */}
+      <path d="M30 184c4-32 24-48 60-48s56 16 60 48z" fill="#e7dcc4" />
+      <path d="M52 184c2-24 12-40 22-44l16 26 16-26c10 4 20 20 22 44z" fill="#6b4524" />
+      <rect x="82" y="162" width="16" height="11" rx="2" fill="none" stroke="#d6a74e" strokeWidth="3" />
+      {/* Head and ears. */}
+      <ellipse cx="62" cy="94" rx="6" ry="8" fill="#e8b996" />
+      <ellipse cx="118" cy="94" rx="6" ry="8" fill="#e8b996" />
+      <path
+        d="M62 84c0-22 12-32 28-32s28 10 28 32v10c0 22-12 34-28 34S62 116 62 94z"
+        fill={`url(#${id}-skin)`}
+      />
+      {/* Fringe swept to the side, framing the face. */}
+      <path
+        d="M60 90c-2-20 8-34 30-34s32 14 30 34c-4-10-10-16-18-18-8 6-20 10-34 10-4 2-6 5-8 8z"
+        fill="#d8b56a"
+      />
+      <path
+        d="M60 90c0 14-2 26-6 36M120 90c0 14 2 26 6 36"
+        stroke="#c9a35a"
+        strokeWidth="8"
+        strokeLinecap="round"
+      />
+      <path d="M74 84l11 2M106 84l-11 2" stroke="#8a6a3a" strokeWidth="3" strokeLinecap="round" />
+      <ellipse cx="80" cy="94" rx="4.6" ry="5.4" fill="#15110d" />
+      <ellipse cx="100" cy="94" rx="4.6" ry="5.4" fill="#15110d" />
+      <circle cx="81.6" cy="92" r="1.4" fill="#fff" />
+      <circle cx="101.6" cy="92" r="1.4" fill="#fff" />
+      <path
+        d="M89 97c-1.6 4-1 6 1.4 6.4"
+        fill="none"
+        stroke="#c98a66"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path d="M82 111c5 4 11 4 16 0" fill="none" stroke="#9a4a3a" strokeWidth="3" strokeLinecap="round" />
+      {/* Tricorn: dark felt crown with a red band, brim cocked into a point, edged in gold. */}
+      <path d="M58 66c2-24 14-36 32-36s30 12 32 36z" fill={`url(#${id}-felt)`} />
+      <path d="M58 64c10-4 22-6 32-6s22 2 32 6v6c-10-4-22-6-32-6s-22 2-32 6z" fill="#8b1e1f" />
+      <path
+        d="M26 58c16-6 38-4 64 12 26-16 48-18 64-12-6 12-20 20-36 20-12 0-20-3-28-8-8 5-16 8-28 8-16 0-30-8-36-20z"
+        fill={`url(#${id}-felt)`}
+      />
+      <path
+        d="M26 58c16-6 38-4 64 12 26-16 48-18 64-12"
+        fill="none"
+        stroke="#d6a74e"
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+    </>
   );
 }
 
@@ -333,15 +453,25 @@ function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) 
       wide
       className="ci-chart-panel"
     >
-      <div className="ci-chart-toolbar">
-        <button className={mode === 'archipelago' ? 'active' : ''} onClick={() => setMode('archipelago')}>
-          Archipelago
-        </button>
-        <button className={mode === 'island' ? 'active' : ''} onClick={() => setMode('island')}>
-          Island detail
-        </button>
-      </div>
       <div className={`ci-chart ${mode === 'island' ? 'zoomed' : 'archipelago'}`}>
+        <div className="ci-chart-toolbar" role="tablist" aria-label="Chart view">
+          <button
+            role="tab"
+            aria-selected={mode === 'archipelago'}
+            className={mode === 'archipelago' ? 'active' : ''}
+            onClick={() => setMode('archipelago')}
+          >
+            Archipelago
+          </button>
+          <button
+            role="tab"
+            aria-selected={mode === 'island'}
+            className={mode === 'island' ? 'active' : ''}
+            onClick={() => setMode('island')}
+          >
+            Island detail
+          </button>
+        </div>
         <div className="ci-chart-map">
           <svg
             viewBox={`0 0 ${ARCH_W} ${ARCH_H}`}

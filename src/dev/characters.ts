@@ -174,6 +174,9 @@ engine.start();
 
 (window as unknown as { __dev: object }).__dev = {
   ready: true,
+  /** The lineup's characters in CHARACTER_BODIES order (man, woman, …), for probes. */
+  characters,
+  camera,
   setView,
   setCam,
   playClip,

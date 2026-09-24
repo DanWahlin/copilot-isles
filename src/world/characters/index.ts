@@ -17,6 +17,7 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { packs } from '../../engine/packs';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import type { TierSettings } from '../../engine/quality';
+import { ANNE_HAT_SWATCHES, ANNE_TRICORN_FIT, createTricornGeometry } from './tricorn';
 
 export const PLAYER_BODIES = ['man', 'woman'] as const;
 export const NPC_IDS = [
@@ -155,6 +156,8 @@ class CharacterLibraryImpl implements CharacterLibrary {
     clone.scale.setScalar(config.scale);
     clone.updateMatrixWorld(true);
     cloneCharacterMaterials(clone, tintFor(body, config, options.variant ?? 0));
+    // The Anne model is bare-headed; as a captain she wears a tricorn like the Captain's.
+    if (body === 'woman') addTricorn(clone);
     return new RuntimeCharacter(clone, source.clips, body, config, options);
   }
 
@@ -253,6 +256,7 @@ class RuntimeCharacter implements Character {
     this.mixer.stopAllAction();
     this.group.traverse((object) => {
       if (object instanceof Mesh) disposeOwnedMaterial(object.material);
+      if (object instanceof Mesh && object.userData.ownedGeometry) object.geometry.dispose();
     });
   }
 
@@ -284,6 +288,31 @@ class RuntimeCharacter implements Character {
     if (this.neck) this.neck.lookAt(this.lookWorld);
     if (this.head) this.head.lookAt(this.lookWorld);
   }
+}
+
+/**
+ * Hangs a tricorn on the Head bone so it follows every nod and look. It reuses the body's atlas
+ * material, so it shares the program the rigid weapon meshes already compile (+1 draw, +0 programs).
+ */
+function addTricorn(root: Group): void {
+  const head = root.getObjectByName('Head');
+  let body: SkinnedMesh | null = null;
+  root.traverse((o) => {
+    if (!body && o instanceof SkinnedMesh) body = o;
+  });
+  if (!(head instanceof Bone) || !body) return;
+  const skinned: SkinnedMesh = body;
+  root.updateMatrixWorld(true);
+  const headScale = head.getWorldScale(new Vector3()).x;
+  const rootScale = root.getWorldScale(new Vector3()).x;
+  const hat = new Mesh(createTricornGeometry(ANNE_TRICORN_FIT, ANNE_HAT_SWATCHES), skinned.material);
+  hat.name = 'captain tricorn';
+  hat.userData.ownedGeometry = true;
+  // Author in metres: undo the armature's scale between the root and the Head bone.
+  hat.scale.setScalar(rootScale / headScale);
+  hat.castShadow = true;
+  hat.receiveShadow = true;
+  head.add(hat);
 }
 
 function prepareSourceScene(scene: Group): void {
