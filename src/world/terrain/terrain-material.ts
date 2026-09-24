@@ -354,6 +354,18 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(saturate(grassMask.add(rockMask.mul(0.24))));
   const rootGreen = mix(color(0x5d7432), color(0x7d9a45), noiseLow.g.mul(0.62).add(noiseMid.g.mul(0.38)));
   base = mix(base, rootGreen, hillFootMeadow.mul(midDetail).mul(0.42));
+  const hilltopMeadow = smoothstep(7, 12, y)
+    .mul(float(1).sub(smoothstep(34, 46, y)))
+    .mul(smoothstep(0.46, 0.94, normalWorld.y))
+    .mul(saturate(grassMask.add(rockMask.mul(0.38)).add(sandMask.mul(0.18))));
+  const hilltopGreen = mix(color(0x4c6500), color(0x6f8800), noiseLow.g.mul(0.58).add(noiseMid.g.mul(0.42)));
+  base = mix(base, hilltopGreen, hilltopMeadow.mul(midDetail));
+  const sunnyHeadland = smoothstep(6, 18, y)
+    .mul(float(1).sub(smoothstep(52, 88, detailDistance)))
+    .mul(saturate(grassMask.mul(0.9).add(rockMask.mul(0.45))))
+    .mul(smoothstep(0.28, 0.88, normalWorld.y));
+  const warmHeadland = mix(color(0x5c7136), color(0xa29569), noiseLow.a.mul(0.46).add(noiseMid.r.mul(0.54)));
+  base = mix(base, warmHeadland, sunnyHeadland.mul(0.24));
 
   const sunVis = mix(light.y, light.z, uSunBlend);
   const cloud = options.cloudShadowNode ?? float(1);
