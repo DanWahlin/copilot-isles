@@ -1,4 +1,11 @@
-import { ACESFilmicToneMapping, AgXToneMapping, NeutralToneMapping, type WebGPURenderer } from 'three/webgpu';
+import {
+  ACESFilmicToneMapping,
+  AgXToneMapping,
+  NeutralToneMapping,
+  Raycaster,
+  Vector2,
+  type WebGPURenderer,
+} from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Engine } from '../engine/engine';
 import { createPost } from '../engine/post';
@@ -207,6 +214,19 @@ engine.start();
       f.solved,
     );
     return { solved: f.solved, path: solutionPath(L) };
+  },
+  /** Names the objects under a screen point (NDC -1..1), nearest first. */
+  pick: (nx: number, ny: number) => {
+    const ray = new Raycaster();
+    ray.setFromCamera(new Vector2(nx, ny), camera);
+    return ray
+      .intersectObjects(scene.children, true)
+      .slice(0, 6)
+      .map((h) => {
+        const path: string[] = [];
+        for (let o: typeof h.object | null = h.object; o; o = o.parent) path.push(o.name || o.type);
+        return `${h.distance.toFixed(1)} ${path.join('<')}`;
+      });
   },
   stats: () => {
     cove.mirror?.finalizeFrame(engine.counters.last.drawCalls, engine.counters.last.triangles);

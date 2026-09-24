@@ -17,7 +17,7 @@ import { createVillage, type VillageSystem } from './village';
 import { createBirds, type BirdsSystem } from './life/birds';
 import type { LeapsSystem } from './life/leaps';
 import { villageExclusion } from './village-exclusion';
-import { createCoveSites, type CoveSites } from './sites';
+import { BRIGANTINE_CARGO, createCoveSites, type CoveSites } from './sites';
 
 export interface CoveScene {
   sky: SkySystem;
@@ -142,7 +142,13 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   ship.dynamics.reset(COVE.mooring.x, COVE.mooring.z, COVE.mooring.heading);
   const flotsam = new HarborFlotsam(tier);
   scene.add(ship.group, flotsam.group);
-  const shipEnv = { waves: ocean.field, ground: heightField, obstacles: village.shipObstacles, t: 0 };
+  sites.crane.setShip(ship.group, BRIGANTINE_CARGO);
+  const shipEnv = {
+    waves: ocean.field,
+    ground: heightField,
+    obstacles: [...village.shipObstacles, ...sites.shipObstacles],
+    t: 0,
+  };
   let birds: BirdsSystem | null = null;
   if (o.birds !== false && tier.birds > 0) {
     birds = createBirds({

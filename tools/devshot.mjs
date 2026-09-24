@@ -29,9 +29,9 @@ await page.goto(url, { waitUntil: 'load' });
 await page
   .waitForFunction(() => window.__dev?.ready === true, null, { timeout: 60000 })
   .catch(() => logs.push('[devshot] __dev.ready never became true'));
-if (opt.eval) await page.evaluate(opt.eval);
+const evalResult = opt.eval ? await page.evaluate(opt.eval) : undefined;
 await page.waitForTimeout(Number(opt.wait || 2500));
 const stats = await page.evaluate(() => window.__dev?.stats?.() ?? null).catch(() => null);
 await page.screenshot({ path: out });
 await browser.close();
-console.log(JSON.stringify({ out, stats, logs: logs.slice(0, 20) }, null, 1));
+console.log(JSON.stringify({ out, stats, evalResult, logs: logs.slice(0, 20) }, null, 1));

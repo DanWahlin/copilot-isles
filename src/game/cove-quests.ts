@@ -48,6 +48,16 @@ export const COVE_QUESTS: readonly QuestDef[] = [
     },
   },
   {
+    id: 'Q0.7',
+    title: 'The Dry-Run Crane',
+    steps: {
+      start: 'Find Pim and Pol at the crane on the pier head.',
+      crane: 'Aim the crane at your ship, preview with Dry-Run, check the Repository line, then pull --yes.',
+      solved: 'Setup complete. Talk to Pol.',
+      done: 'Your fork is stocked with labels, issues, practice branches, and pull requests.',
+    },
+  },
+  {
     id: 'Q0.10',
     title: 'The Harbormaster’s Trial',
     steps: {
@@ -202,6 +212,48 @@ export function npcScript(
       return { steps: [{ text: 'Hear that wheel sing? Your practice checks can run now. Fair winds.' }] };
     }
 
+    case 'pim':
+    case 'pol': {
+      const step = q['Q0.7'];
+      const me = npc === 'pim' ? 'Pim' : 'Pol';
+      if (!step)
+        return {
+          steps: [
+            {
+              speaker: me,
+              text: done(q, 'Q0.6')
+                ? 'Crane’s ready when you are, Captain.'
+                : 'We stock forks once their workflows are on. See Suri at the mill first.',
+            },
+          ],
+        };
+      if (step === 'start') return { steps: CRANE_BRIEF };
+      if (step === 'crane')
+        return {
+          steps: [
+            {
+              speaker: me,
+              text:
+                npc === 'pim'
+                  ? 'Turn the capstan, pull Dry-Run, and read the Repository line before anything else.'
+                  : 'Preview first, always. Then --yes, but only on your own fork.',
+            },
+          ],
+        };
+      if (step === 'solved') return { steps: POL_SOLVED };
+      return {
+        steps: [
+          {
+            speaker: me,
+            text:
+              npc === 'pim'
+                ? 'Nine pennants, five notices, seven hulls, three seals. A well-stocked fork!'
+                : 'Remember: --dry-run first, check the Repository line, then --yes.',
+          },
+        ],
+      };
+    }
+
     default:
       return null;
   }
@@ -215,8 +267,52 @@ export const SURI_SOLVED: readonly ScriptStep[] = [
     speaker: 'Wingman',
     text: 'Quick one, Captain: those are GitHub Actions workflows. The Clock Tower’s Automations are something else, saved agent tasks, and you’ll learn those much later.',
   },
-  { text: 'The Harbormaster’s Trial waits at the lighthouse when you’re ready.' },
+  {
+    text: 'Last job before the Trial: Pim and Pol run the crane on the pier head. They’ll stock your fork with practice work.',
+  },
   { quest: 'Q0.6', step: 'done' },
+  { quest: 'Q0.7', step: 'start' },
+];
+
+/** Pim and Pol's opening beat (Q0.7): what the setup script adds, before P0.2. */
+const CRANE_BRIEF: readonly ScriptStep[] = [
+  { speaker: 'Pim', text: 'Captain! I’m Pim, that’s Pol. We stock new forks with practice work.' },
+  {
+    speaker: 'Pol',
+    text: 'The course has a setup script. It adds labels, the coloured pennants, and issues, the bounty notices.',
+  },
+  {
+    speaker: 'Pim',
+    text: 'Practice branches too, the practice hulls. The bugs stay on those, never on main.',
+  },
+  {
+    speaker: 'Pol',
+    text: 'And pull requests, sealed inspection requests: changes to review, a feedback comment, and a check that fails on purpose.',
+  },
+  { speaker: 'Pim', text: 'They’re training scenarios, not problems with your setup.' },
+  { term: 'dry-run' },
+  {
+    speaker: 'Pol',
+    text: 'Our crane works like the script. Turn the capstan to aim her, pull Dry-Run to preview, and read the Repository line on her sign.',
+  },
+  { speaker: 'Pim', text: 'Only when it names your own fork do you pull --yes.' },
+  { quest: 'Q0.7', step: 'crane' },
+];
+
+/** Pol's closing beat once the crane's done (P0.2), also used if you come back after quitting. */
+export const POL_SOLVED: readonly ScriptStep[] = [
+  { speaker: 'Pol', text: 'Setup complete. Your fork’s stocked, Captain.' },
+  {
+    speaker: 'Pim',
+    text: 'In the real course you run both commands in the app’s Terminal tab, from the repository root.',
+  },
+  { page: 'P0.S', doubloons: 20 },
+  {
+    speaker: 'Pol',
+    text: 'Next, connect your fork in the app and look for the issues and pull requests under My work.',
+  },
+  { speaker: 'Pim', text: 'The Harbormaster’s Trial waits at the lighthouse when you’re ready.' },
+  { quest: 'Q0.7', step: 'done' },
   { quest: 'Q0.10', step: 'start' },
 ];
 

@@ -18,6 +18,7 @@ import type { LearnStore } from '../learn/store';
 import { createChest, type TreasureChest } from './chest';
 import { COVE_CHESTS, npcScript, questLog } from './cove-quests';
 import { runScript, type ScriptStep } from './script';
+import { createCrane } from './puzzles/crane';
 import { createSluice } from './puzzles/sluice';
 import type { HintTier, Puzzle, PuzzleHost } from './puzzles/types';
 
@@ -349,7 +350,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       return ok;
     },
   };
-  const puzzles: Puzzle[] = [createSluice(puzzleHost, sites.mill)];
+  const puzzles: Puzzle[] = [createSluice(puzzleHost, sites.mill), createCrane(puzzleHost, sites.crane)];
   const hintPresses = new Map<string, { key: string; n: number }>();
 
   /** Wingman's hint key: the puzzle you're at, else a nudge toward the current quest. */

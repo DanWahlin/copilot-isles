@@ -200,6 +200,76 @@
   transform: translate(-50%, 0);
 }
 
+.hud-term {
+  position: absolute;
+  right: 1.2rem;
+  /* Below the doubloon purse. */
+  top: 4.2rem;
+  width: min(31rem, 42vw);
+  border-radius: 0.8em;
+  overflow: hidden;
+  background: rgba(12, 18, 24, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+.hud-term.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.hud-term-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.5em 0.8em;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font:
+    600 0.72rem/1 system-ui,
+    sans-serif;
+  letter-spacing: 0.04em;
+  color: rgba(246, 236, 214, 0.62);
+}
+.hud-term-bar i {
+  width: 0.62em;
+  height: 0.62em;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+}
+.hud-term-title {
+  margin-left: 0.5em;
+}
+.hud-term-body {
+  padding: 0.75em 1em 0.85em;
+  font:
+    0.8rem/1.55 ui-monospace,
+    Menlo,
+    'SF Mono',
+    Consolas,
+    monospace;
+  color: #dfe6e1;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.hud-term-body .t-cmd {
+  color: #8fb3c8;
+}
+.hud-term-body .t-you {
+  color: #ffd98a;
+}
+.hud-term-body .t-other {
+  color: #ffab94;
+}
+.hud-term-body .t-ok {
+  color: #aee89a;
+}
+
 .hud-help {
   position: absolute;
   right: 1.6rem;

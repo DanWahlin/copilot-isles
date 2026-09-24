@@ -1,6 +1,6 @@
 /**
- * In-game HUD (Phase 0): the interaction prompt, synced subtitles, the sailing gauge, and short
- * toasts. Plain DOM, updated only on change, so it costs nothing per frame. The React UI owns
+ * In-game HUD (Phase 0): the interaction prompt, synced subtitles, the sailing gauge, short
+ * toasts, and a terminal panel for puzzles that run commands. Plain DOM, updated only on change, so it costs nothing per frame. The React UI owns
  * menus; this stays lightweight so it can run under the canvas without re-rendering.
  */
 export interface SubtitleLine {
@@ -9,6 +9,12 @@ export interface SubtitleLine {
   text: string;
   duration: number;
   words: { word: string; start: number; end: number }[];
+}
+
+/** A terminal panel line; `tone` picks the ink (command, your fork, someone else's, success). */
+export interface TerminalLine {
+  text: string;
+  tone?: 'cmd' | 'you' | 'other' | 'ok';
 }
 
 export class Hud {
@@ -24,6 +30,10 @@ export class Hud {
   private readonly toastEl: HTMLDivElement;
   private readonly help: HTMLDivElement;
   private readonly fadeEl: HTMLDivElement;
+  private readonly term: HTMLDivElement;
+  private readonly termTitle: HTMLSpanElement;
+  private readonly termBody: HTMLDivElement;
+  private lastTerm = '';
   private lastPrompt = '';
   private toastTimer = 0;
   private subtitleTimer = 0;
@@ -54,7 +64,14 @@ export class Hud {
     this.toastEl = el('div', 'hud-toast');
     this.help = el('div', 'hud-help');
     this.fadeEl = el('div', 'hud-fade');
-    this.root.append(this.prompt, this.subtitle, this.sail, this.toastEl, this.help, this.fadeEl);
+    this.term = el('div', 'hud-term');
+    const bar = el('div', 'hud-term-bar');
+    bar.append(el('i', ''), el('i', ''), el('i', ''));
+    this.termTitle = text('span', 'hud-term-title', 'Terminal');
+    bar.append(this.termTitle);
+    this.termBody = el('div', 'hud-term-body');
+    this.term.append(bar, this.termBody);
+    this.root.append(this.prompt, this.subtitle, this.sail, this.toastEl, this.term, this.help, this.fadeEl);
     parent.append(this.root);
   }
 
@@ -147,6 +164,19 @@ export class Hud {
     this.sailTrim.style.transform = `scaleX(${trim.toFixed(3)})`;
     this.sailRudder.style.left = `${(50 + rudder * 46).toFixed(1)}%`;
     this.sailSpeed.textContent = `${(speed * 1.944).toFixed(1)} kn`;
+  }
+
+  /** Shows (or with null, hides) the terminal panel. Only touches the DOM when the lines change. */
+  setTerminal(lines: readonly TerminalLine[] | null, title = 'Terminal'): void {
+    const key = lines ? `${title}\n${lines.map((l) => `${l.tone ?? ''}|${l.text}`).join('\n')}` : '';
+    if (key === this.lastTerm) return;
+    this.lastTerm = key;
+    this.term.classList.toggle('show', !!lines);
+    if (!lines) return;
+    this.termTitle.textContent = title;
+    this.termBody.replaceChildren(
+      ...lines.map((l) => text('div', l.tone ? `t-${l.tone}` : '', l.text || '\u00a0')),
+    );
   }
 
   /** Fades the screen to (or from) black; resolves when the fade finishes. */

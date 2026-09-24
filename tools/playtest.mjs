@@ -86,8 +86,11 @@ await step(
 );
 
 await step('board', async () => {
+  const focus = (await state())?.focus;
+  if (focus !== 'ship:board') logs.push(`[playtest] focus at the gangway was ${focus}`);
   await page.evaluate(() => window.__dev.tap('KeyE'));
   await page.waitForTimeout(2200);
+  if ((await state())?.mode === 'walk') logs.push('[playtest] E at the gangway did not board');
 });
 
 await step('sail', async () => {

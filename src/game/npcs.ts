@@ -75,8 +75,7 @@ export const COVE_NPCS: NpcSpec[] = [
   {
     id: 'fisherman',
     name: 'Old Finn',
-    anchor: 'pierEnd',
-    out: -0.4,
+    anchor: 'finn',
     clip: 'sit',
     keepY: true,
     barks: ['Fish bite best when the Terminal is quiet.', 'Patience, Captain. Same as prompting.'],
@@ -112,6 +111,25 @@ export const COVE_NPCS: NpcSpec[] = [
       'The spring never stops. Getting it to the wheel is the trick.',
       'Actions on, checks on. That’s the rule.',
     ],
+  },
+  {
+    id: 'pim',
+    name: 'Pim',
+    anchor: 'pim',
+    clip: 'idle',
+    keepY: true,
+    barks: [
+      'Dry run first. Always a dry run first.',
+      'Nine pennants, five notices, seven hulls, three seals.',
+    ],
+  },
+  {
+    id: 'pol',
+    name: 'Pol',
+    anchor: 'pol',
+    clip: 'idle',
+    keepY: true,
+    barks: ['Preview first, always!', 'Check the Repository line. Every time.'],
   },
   {
     id: 'lookout',

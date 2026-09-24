@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // End-to-end quest run on the play page: Nell (spyglass + hotspot quiz + page), the chest, Ezra, Bo, Suri's sluice (P0.1),
+// Pim and Pol's Dry-Run Crane (P0.2),
 // and the Harbormaster's Trial at the lighthouse, answered through the real UI where it matters
 // (hotspots are clicked; other types use __dev.answer()), with screenshots at each beat.
 // node tools/questtest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/quest]
@@ -198,6 +199,76 @@ if (spots) {
   await page.waitForTimeout(1500);
   await shot('mill-solved');
 } else logs.push('[questtest] no P0.1 debug hook');
+
+// Pim & Pol: the Dry-Run Crane (P0.2). Every capstan turn and lever pull goes through E.
+await talk('pim');
+results.pim = await drive('pim', (s) => s.quests['Q0.7'] === 'crane' && !s.dialogue && !s.quiz && !s.reveal);
+const crane = () => page.evaluate(() => window.__dev.session().debug.puzzle('P0.2')?.state() ?? null);
+const cs = await page.evaluate(() => window.__dev.session().debug.puzzle('P0.2')?.spots() ?? null);
+if (cs) {
+  const stand = async (p, look = 0.35) => {
+    await page.evaluate(
+      ({ p, look }) => {
+        window.__dev.session().debug.teleport(p.x, p.z, Math.PI);
+        window.__dev.look(Math.PI + look, 0.3);
+      },
+      { p, look },
+    );
+    await page.waitForTimeout(700);
+  };
+  const idle = async () => {
+    for (let k = 0; k < 60 && ((await crane())?.busy || (await crane())?.running); k++)
+      await page.waitForTimeout(250);
+  };
+  const focus = () => page.evaluate(() => window.__dev.session().debug.state().focus);
+
+  // --yes before any preview: Pol stops you.
+  await stand(cs.yes);
+  if ((await focus()) !== 'crane:yes') logs.push(`[questtest] crane: focus at --yes was ${await focus()}`);
+  await tap('KeyE');
+  await page.waitForTimeout(500);
+  await shot('crane-preview-first');
+  if ((await crane())?.complete) logs.push('[questtest] crane: --yes without a preview completed');
+
+  // Preview the captain's berth (the starting facing) and get refused.
+  await stand(cs.dry, -0.35);
+  await tap('KeyE');
+  await idle();
+  await shot('crane-ghosts-captain');
+  await stand(cs.yes);
+  await tap('KeyE');
+  await page.waitForTimeout(600);
+  await shot('crane-refused');
+  await drive('crane-refused', (s) => !s.dialogue);
+  await idle();
+
+  // Turn to your own berth.
+  await stand(cs.capstan, 0);
+  if ((await focus()) !== 'crane:capstan')
+    logs.push(`[questtest] crane: focus at the capstan was ${await focus()}`);
+  for (let k = 0; k < 4 && (await crane())?.facing !== cs.yours; k++) {
+    await tap('KeyE');
+    await page.waitForTimeout(300);
+    await idle();
+  }
+  if ((await crane())?.facing !== cs.yours) logs.push('[questtest] crane: capstan never reached your berth');
+  await shot('crane-aimed');
+
+  // Preview, then --yes for real.
+  await stand(cs.dry, -0.35);
+  await tap('KeyE');
+  await idle();
+  await shot('crane-ghosts-yours');
+  await stand(cs.yes);
+  await tap('KeyE');
+  await page.waitForTimeout(2500);
+  await shot('crane-loading');
+  results.crane = await drive('crane', (s) => s.quests['Q0.7'] === 'done' && !s.dialogue && !s.reveal);
+  if (!(await crane())?.complete) logs.push('[questtest] crane: not complete after --yes');
+  await stand(cs.dry, -0.35);
+  await page.waitForTimeout(800);
+  await shot('crane-solved');
+} else logs.push('[questtest] no P0.2 debug hook');
 
 // The Harbormaster's Trial at the lighthouse.
 const lighthouse = await page.evaluate(() => window.__dev.session().debug.trialAt?.() ?? null);

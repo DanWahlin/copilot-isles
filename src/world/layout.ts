@@ -39,6 +39,19 @@ export const COVE = {
    * centre; keep x −71…−53, z −75…−51 clear of other props.
    */
   mill: { x: -61, z: -63, tile: 2.4, rows: 4, cols: 3 },
+  /**
+   * P0.2's dry-run crane slews on the pier head (`x`, `z` is its pivot). Berth 1 is your
+   * brigantine at the mooring, Berth 2 another captain's sloop off the pier's west face, and
+   * Berth 3 a guild sloop lying across the pier head (bow east, clear of the brigantine's jib-boom).
+   */
+  crane: {
+    x: -108,
+    z: -120,
+    sloops: [
+      { berth: 2, x: -112.9, z: -118.8, heading: Math.PI },
+      { berth: 3, x: -109.6, z: -126.0, heading: Math.PI / 2 },
+    ],
+  },
 
   /** Central hill. */
   hill: { center: { x: -10, z: -20 }, radius: 110, height: 24 },

@@ -2,16 +2,13 @@ import {
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
-  CanvasTexture,
   Group,
   InstancedMesh,
   Matrix4,
   Mesh,
   MeshBasicNodeMaterial,
   MeshStandardNodeMaterial,
-  PlaneGeometry,
   Quaternion,
-  SRGBColorSpace,
   Vector3,
 } from 'three/webgpu';
 import { color, float, mix, positionWorld, sin, uniform } from 'three/tsl';
@@ -23,6 +20,7 @@ import { createRockMaterial } from '../terrain/terrain-material';
 import { world } from '../uniforms';
 import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village';
 import { box, cylinder, merge, plank, TRIM } from './geo';
+import { paintedSign } from './sign';
 import { WaterStrips } from './water';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1003,66 +1001,4 @@ function rockGeometry(index: number): BufferGeometry {
   g.setIndex(new BufferAttribute(a.indices.slice(), 1));
   g.computeBoundingSphere();
   return g;
-}
-
-/** A painted wooden board with carved-looking serif text (canvas texture). */
-function paintedSign(lines: string[], w: number, h: number, o: { size?: number } = {}): Mesh {
-  const px = 1024;
-  const canvas = document.createElement('canvas');
-  canvas.width = px;
-  canvas.height = Math.round((px * h) / w);
-  const ctx = canvas.getContext('2d')!;
-  const ch = canvas.height;
-  const grad = ctx.createLinearGradient(0, 0, 0, ch);
-  grad.addColorStop(0, '#9a6b43');
-  grad.addColorStop(1, '#7a5031');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, px, ch);
-  // Plank seams and grain.
-  ctx.strokeStyle = 'rgba(40, 22, 10, 0.35)';
-  ctx.lineWidth = 2;
-  for (let y = ch / 3; y < ch; y += ch / 3) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(px, y);
-    ctx.stroke();
-  }
-  ctx.strokeStyle = 'rgba(255, 230, 190, 0.06)';
-  for (let k = 0; k < 40; k++) {
-    const y = (k * 37) % ch;
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.bezierCurveTo(px * 0.3, y + 3, px * 0.6, y - 3, px, y + 1);
-    ctx.stroke();
-  }
-  ctx.strokeStyle = 'rgba(30, 16, 6, 0.8)';
-  ctx.lineWidth = 14;
-  ctx.strokeRect(7, 7, px - 14, ch - 14);
-  // Shrink the lettering until the longest line fits inside the frame (and the lines fit the height).
-  let size = Math.round(px * (o.size ?? 0.085));
-  const font = (sz: number) => `600 ${sz}px Georgia, 'Times New Roman', serif`;
-  ctx.font = font(size);
-  const widest = () => Math.max(...lines.map((l) => ctx.measureText(l).width));
-  while (size > 10 && (widest() > px * 0.88 || lines.length * size * 1.18 > ch * 0.84)) {
-    size -= 2;
-    ctx.font = font(size);
-  }
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  const lh = size * 1.18;
-  const y0 = ch / 2 - ((lines.length - 1) * lh) / 2;
-  lines.forEach((line, k) => {
-    ctx.fillStyle = 'rgba(255, 236, 200, 0.35)';
-    ctx.fillText(line, px / 2, y0 + k * lh + 3);
-    ctx.fillStyle = '#f3e3c2';
-    ctx.fillText(line, px / 2, y0 + k * lh);
-  });
-  const tex = new CanvasTexture(canvas);
-  tex.colorSpace = SRGBColorSpace;
-  tex.anisotropy = 4;
-  const mat = new MeshStandardNodeMaterial({ map: tex, roughness: 0.85, metalness: 0 });
-  const board = new Mesh(new PlaneGeometry(w, h), mat);
-  board.castShadow = true;
-  board.name = `sign: ${lines[0]}`;
-  return board;
 }
