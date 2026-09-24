@@ -170,8 +170,8 @@ export function createVegetationMaterial(
 export function createGrassMaterial(heightTexture: DataTexture, grid: HeightGrid): MeshStandardNodeMaterial {
   const material = new MeshStandardNodeMaterial({
     side: DoubleSide,
-    alphaTest: 0.5,
-    roughness: 0.76,
+    alphaTest: 0,
+    roughness: 0.82,
     metalness: 0,
   });
   const tint = attribute('tint', 'vec3') as AnyNode;
@@ -187,14 +187,15 @@ export function createGrassMaterial(heightTexture: DataTexture, grid: HeightGrid
   );
   const terrainY = (texture(heightTexture, hUv) as AnyNode).r;
   const blade = (positionGeometry as AnyNode).y;
-  const bladeGate = smoothstep(float(0.02), float(1.0), blade);
+  const sizeFade = fade;
+  const bladeGate = smoothstep(float(0.02), float(1.0), blade).mul(sizeFade);
   const gust = gustNode(worldXZ) as AnyNode;
   const motion = float(1).sub(world.reducedMotion.mul(0.9));
   const phase = world.time
     .mul(3.8)
     .add((positionLocal as AnyNode).x.mul(0.6))
     .add((positionLocal as AnyNode).z.mul(0.35));
-  const wave = sin(phase).mul(0.09).add(gust.mul(0.065));
+  const wave = sin(phase).mul(0.06).add(gust.mul(0.045));
   const sway = (vec3 as AnyNode)(world.windDir.x.mul(wave), 0, world.windDir.y.mul(wave))
     .mul(bladeGate)
     .mul(motion);
@@ -204,16 +205,15 @@ export function createGrassMaterial(heightTexture: DataTexture, grid: HeightGrid
 
   material.positionNode = (vec3 as AnyNode)(
     worldXZ.x.add(sway.x),
-    terrainY.add(blade),
+    terrainY.add(blade.mul(sizeFade)),
     worldXZ.y.add(sway.z),
   ) as AnyNode;
-  const root = tint.mul(0.34);
+  const root = tint.mul(0.28);
   const tip = tint
-    .mul(float(0.84).add(sheen.mul(0.28)))
-    .add(color(0x9d8e55).mul(smoothstep(float(0.62), float(1.45), blade).mul(0.055)));
+    .mul(float(0.72).add(sheen.mul(0.18)))
+    .add(color(0x8f8348).mul(smoothstep(float(0.62), float(1.45), blade).mul(0.045)));
   material.colorNode = mix(root, tip, smoothstep(float(0.02), float(1.25), blade)) as AnyNode;
-  material.emissiveNode = tint.mul(sheen.mul(0.018)) as AnyNode;
-  material.maskNode = greaterThan(fade, interleavedGradientNoise());
+  material.emissiveNode = tint.mul(sheen.mul(0.006)) as AnyNode;
   return material;
 }
 
@@ -228,15 +228,18 @@ export function createImpostorMaterial(atlas: Texture): MeshBasicNodeMaterial {
     depthWrite: true,
     transparent: false,
   });
-  const tile = attribute('atlasUv', 'vec4') as AnyNode;
-  const sample = texture(atlas, (uv() as AnyNode).mul(tile.zw).add(tile.xy)) as AnyNode;
   const tint = attribute('tint', 'vec3') as AnyNode;
   const fade = attribute('fade', 'float') as AnyNode;
-  const rim = smoothstep(float(0.15), float(0.8), (uv() as AnyNode).y).mul(0.18);
-  material.colorNode = sample.rgb.mul(tint).mul(float(0.85).add(rim)) as AnyNode;
-  material.maskNode = (sample.a.greaterThan(float(0.42)) as AnyNode).and(
-    greaterThan(fade, interleavedGradientNoise()),
+  const q = (uv() as AnyNode).mul(2).sub(1);
+  const oval = float(1).sub(
+    smoothstep(float(0.78), float(1.0), (vec2 as AnyNode)(q.x, q.y.mul(1.18)).length()),
   );
+  const trunk = smoothstep(float(0.08), float(0.0), q.x.abs())
+    .mul(smoothstep(float(-1.0), float(-0.08), q.y))
+    .mul(0.38);
+  const crownLight = smoothstep(float(-0.15), float(0.85), q.y).mul(0.24).add(0.78);
+  material.colorNode = tint.mul(crownLight).add(color(0x4e3521).mul(trunk)) as AnyNode;
+  material.maskNode = greaterThan(oval.max(trunk).mul(fade), interleavedGradientNoise());
   return material;
 }
 

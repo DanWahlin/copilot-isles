@@ -161,10 +161,12 @@ function updateBatch(batch: PlantBatch, camera: PerspectiveCamera, tier: TierSet
   batch.fade.needsUpdate = true;
 }
 
-function collectTreeLike(): PlantInstance[] {
-  // The 6x6 atlas path is disabled for this pass: WebGL2 was exposing source-texture padding
-  // as floating coloured quads on shrub/tree impostors. Near mesh LODs remain active.
-  return [];
+function collectTreeLike(scatter: Record<PlantSpecies, PlantInstance[]>): PlantInstance[] {
+  const output: PlantInstance[] = [];
+  for (const species of Object.keys(scatter) as PlantSpecies[]) {
+    if (TREE_LIKE.has(species) || species === 'shrub') output.push(...scatter[species]);
+  }
+  return output;
 }
 
 export async function createVegetation(options: CreateVegetationOptions): Promise<VegetationSystem> {
@@ -202,7 +204,7 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
   group.add(grass.group);
 
   const impostorBake = await bakeImpostorAtlas(options.renderer, geometries);
-  const impostors = new ImpostorBatch(collectTreeLike(), impostorBake.texture);
+  const impostors = new ImpostorBatch(collectTreeLike(scatter.plants), impostorBake.texture);
   group.add(impostors.mesh);
 
   let lastStats: VegetationStats = {
