@@ -30,4 +30,6 @@ Field recordings reused from Tidewater (MIT project) and originally sourced from
 
 ## Project-owned synthesized puzzle sounds
 
-The following files are synthesized locally for Copilot Isles and contain no third-party recordings: `stream`, `waterfall_small`, `wheel_creak`, `stone_turn`, `lever`, `gate_lift`, `chime_solve`, `crane_ratchet`, and `crate_thud` (each shipped as `.ogg` and `.m4a`). They were generated as PCM, loudness-normalized with ffmpeg, then encoded to Ogg/Opus and AAC.
+The following files are generated locally for Copilot Isles: `stream`, `waterfall_small`, `wheel_creak`, `stone_turn`, `lever`, `gate_lift`, `chime_solve`, `crane_ratchet`, `crate_thud`, `gear_pickup`, `gear_hang`, `quill`, `tube_voice`, `hatch_clank`, and `bottle_pop` (each shipped as `.ogg` and `.m4a`). They were assembled as PCM, loudness-normalized with ffmpeg, then encoded to Ogg/Opus and AAC.
+
+The gear/bottle/hatch one-shots also layer tiny fragments from the existing CC0 Tidewater-derived `step_wood`, `step_rock`, `step_grass`, and `hull_slap` files; those source recordings and authors are credited above.

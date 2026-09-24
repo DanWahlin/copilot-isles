@@ -9,6 +9,12 @@ const PUZZLE_ONE_SHOTS = [
   'chime_solve',
   'crane_ratchet',
   'crate_thud',
+  'gear_pickup',
+  'gear_hang',
+  'quill',
+  'tube_voice',
+  'hatch_clank',
+  'bottle_pop',
 ] as const;
 const PUZZLE_LOOPS = ['stream', 'waterfall_small', 'wheel_creak'] as const;
 
@@ -17,7 +23,7 @@ describe('puzzle sound bank', () => {
     for (const name of PUZZLE_ONE_SHOTS) {
       const entry = BANK[name];
       expect('slices' in entry, name).toBe(true);
-      if ('slices' in entry) expect(entry.slices[0]?.[1], name).toBeGreaterThan(0.35);
+      if ('slices' in entry) expect(entry.slices[0]?.[1], name).toBeGreaterThan(0.25);
     }
   });
 

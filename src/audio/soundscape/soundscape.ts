@@ -124,7 +124,13 @@ function isPuzzleOneShot(name: SliceName): boolean {
     name === 'gate_lift' ||
     name === 'chime_solve' ||
     name === 'crane_ratchet' ||
-    name === 'crate_thud'
+    name === 'crate_thud' ||
+    name === 'gear_pickup' ||
+    name === 'gear_hang' ||
+    name === 'quill' ||
+    name === 'tube_voice' ||
+    name === 'hatch_clank' ||
+    name === 'bottle_pop'
   );
 }
 

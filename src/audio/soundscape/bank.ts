@@ -218,6 +218,12 @@ export const BANK = {
   chime_solve: { file: 'chime_solve', slices: [[0, 1.9065]], lufs: [-18] },
   crane_ratchet: { file: 'crane_ratchet', slices: [[0, 0.7265]], lufs: [-18] },
   crate_thud: { file: 'crate_thud', slices: [[0, 0.7065]], lufs: [-18] },
+  gear_pickup: { file: 'gear_pickup', slices: [[0, 0.3465]], lufs: [-18] },
+  gear_hang: { file: 'gear_hang', slices: [[0, 0.4465]], lufs: [-18] },
+  quill: { file: 'quill', slices: [[0, 0.8265]], lufs: [-18] },
+  tube_voice: { file: 'tube_voice', slices: [[0, 0.8665]], lufs: [-18] },
+  hatch_clank: { file: 'hatch_clank', slices: [[0, 1.2265]], lufs: [-18] },
+  bottle_pop: { file: 'bottle_pop', slices: [[0, 0.5465]], lufs: [-18] },
 } as const satisfies Record<string, BankEntry>;
 
 export type SoundName = keyof typeof BANK;
