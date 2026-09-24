@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { HeightField } from '../contracts';
 import { COVE } from '../layout';
+import { exclusionWeight } from './exclusions';
 import { isVegetationExcluded, scatterVegetation, slopeDegFromNormal } from './scatter';
 import type { PlantInstance } from './types';
 
@@ -78,13 +79,32 @@ describe('vegetation scatter', () => {
     }
   });
 
+  it('honours dynamic exclusion hooks with a soft margin', () => {
+    const exclude = (x: number, z: number) => x > -20 && x < 35 && z > -20 && z < 50;
+    expect(exclusionWeight(exclude, 0, 0)).toBe(0);
+    expect(exclusionWeight(exclude, -20.3, 0)).toBeGreaterThan(0);
+    expect(exclusionWeight(exclude, -20.3, 0)).toBeLessThan(1);
+    expect(exclusionWeight(exclude, -25, 0)).toBe(1);
+
+    const scatter = scatterVegetation({
+      heightField: new TestHeightField(),
+      tier: 'high',
+      seed: 123,
+      exclude,
+    });
+    for (const instance of flatten(scatter.plants)) {
+      expect(exclude(instance.x, instance.z)).toBe(false);
+      expect(exclusionWeight(exclude, instance.x, instance.z)).toBe(1);
+    }
+  });
+
   it('rejects steep slopes', () => {
     expect(slopeDegFromNormal(1)).toBeCloseTo(0);
     expect(slopeDegFromNormal(0.5)).toBeGreaterThan(50);
     const scatter = scatterVegetation({ heightField: new TestHeightField(true), tier: 'high', seed: 5678 });
     for (const instance of flatten(scatter.plants)) {
       expect(instance.x).toBeLessThanOrEqual(0);
-      expect(instance.slopeDeg).toBeLessThan(42);
+      expect(instance.slopeDeg).toBeLessThanOrEqual(35);
     }
   });
 });

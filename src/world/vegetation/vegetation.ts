@@ -8,15 +8,16 @@ import {
   Vector3,
   type BufferGeometry,
   type Group,
-  type MeshStandardNodeMaterial,
+  type Material,
   type PerspectiveCamera,
 } from 'three/webgpu';
 import { tierSettings, type TierSettings } from '../../engine/quality';
 import type { Tier } from '../contracts';
-import { createHeightDataTexture, createVegetationMaterial } from './materials';
+import { createHeightDataTexture } from './materials';
 import { GrassField } from './grass';
 import { ImpostorBatch, bakeImpostorAtlas } from './impostors';
-import { createPlantGeometry, triangleCount } from './plant-geometry';
+import { triangleCount } from './plant-geometry';
+import { loadVegetationGeometries, type VegetationModelPart } from './model-loader';
 import { scatterVegetation } from './scatter';
 import type {
   CreateVegetationOptions,
@@ -52,15 +53,29 @@ function resolveTier(tier: Tier | TierSettings): TierSettings {
 
 function tintFor(instance: PlantInstance): Color {
   const color = new Color();
-  if (instance.species.startsWith('palm'))
-    color.setHSL(0.28 + instance.colorSeed * 0.045, 0.48, 0.39 + instance.colorSeed * 0.12);
-  else if (instance.species === 'banana')
-    color.setHSL(0.25 + instance.colorSeed * 0.04, 0.55, 0.42 + instance.colorSeed * 0.13);
-  else if (instance.species === 'fern')
-    color.setHSL(0.32 + instance.colorSeed * 0.05, 0.5, 0.32 + instance.colorSeed * 0.1);
-  else if (instance.species === 'shrub')
-    color.setHSL(0.27 + instance.colorSeed * 0.06, 0.42, 0.34 + instance.colorSeed * 0.09);
-  else color.setHSL(0.25 + instance.colorSeed * 0.05, 0.38, 0.36 + instance.colorSeed * 0.1);
+  switch (instance.species) {
+    case 'palmTall':
+    case 'palmCluster':
+    case 'palmYoung':
+      color.setHSL(0.28 + instance.colorSeed * 0.045, 0.48, 0.39 + instance.colorSeed * 0.12);
+      break;
+    case 'banana':
+      color.setHSL(0.25 + instance.colorSeed * 0.04, 0.55, 0.42 + instance.colorSeed * 0.13);
+      break;
+    case 'fern':
+      color.setHSL(0.32 + instance.colorSeed * 0.05, 0.5, 0.32 + instance.colorSeed * 0.1);
+      break;
+    case 'shrub':
+    case 'flowerBush':
+      color.setHSL(0.27 + instance.colorSeed * 0.06, 0.42, 0.36 + instance.colorSeed * 0.1);
+      break;
+    case 'log':
+      color.setHSL(0.08, 0.28, 0.48 + instance.colorSeed * 0.08);
+      break;
+    case 'broadleafTree':
+      color.setHSL(0.25 + instance.colorSeed * 0.05, 0.38, 0.36 + instance.colorSeed * 0.1);
+      break;
+  }
   return color;
 }
 
@@ -91,12 +106,12 @@ function attachInstanceAttributes(
 function createBatch(
   species: PlantSpecies,
   instances: PlantInstance[],
-  material: MeshStandardNodeMaterial,
+  part: VegetationModelPart,
   tier: TierSettings,
 ): PlantBatch {
-  const geometry = createPlantGeometry(species);
+  const geometry = part.geometry.clone();
   const { fade, tint } = attachInstanceAttributes(geometry, instances.length);
-  const mesh = new InstancedMesh(geometry, material, Math.max(1, instances.length));
+  const mesh = new InstancedMesh(geometry, part.material as Material, Math.max(1, instances.length));
   mesh.name = `vegetation-${species}`;
   mesh.count = 0;
   mesh.frustumCulled = false;
@@ -160,22 +175,35 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
   const group = new Object3D() as Group;
   group.name = 'vegetation';
 
-  const scatter = scatterVegetation({ heightField: options.heightField, tier, seed });
-  const plantMaterial = createVegetationMaterial();
+  const [scatter, geometries] = await Promise.all([
+    Promise.resolve(
+      scatterVegetation({ heightField: options.heightField, tier, seed, exclude: options.exclude }),
+    ),
+    loadVegetationGeometries(),
+  ]);
   const batches: PlantBatch[] = [];
   for (const species of Object.keys(scatter.plants) as PlantSpecies[]) {
     const instances = scatter.plants[species];
     if (instances.length === 0) continue;
-    const batch = createBatch(species, instances, plantMaterial, tier);
-    batches.push(batch);
-    group.add(batch.mesh);
+    for (const part of geometries[species]) {
+      const batch = createBatch(species, instances, part, tier);
+      batches.push(batch);
+      group.add(batch.mesh);
+    }
   }
 
   const heightTexture = createHeightDataTexture(options.heightGrid);
-  const grass = new GrassField(options.heightField, options.heightGrid, heightTexture, tier, seed);
+  const grass = new GrassField(
+    options.heightField,
+    options.heightGrid,
+    heightTexture,
+    tier,
+    seed,
+    options.exclude,
+  );
   group.add(grass.group);
 
-  const impostorBake = await bakeImpostorAtlas(options.renderer);
+  const impostorBake = await bakeImpostorAtlas(options.renderer, geometries);
   const impostors = new ImpostorBatch(collectTreeLike(scatter.plants), impostorBake.texture);
   group.add(impostors.mesh);
 
@@ -233,11 +261,18 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
         batch.mesh.geometry.dispose();
         batch.mesh.dispose();
       }
-      plantMaterial.dispose();
       grass.dispose();
       impostors.dispose();
       impostorBake.target.dispose();
       heightTexture.dispose();
+      for (const parts of Object.values(geometries)) {
+        for (const part of parts) {
+          part.geometry.dispose();
+          const material = part.material as Material | Material[];
+          if (Array.isArray(material)) for (const m of material) m.dispose();
+          else material.dispose();
+        }
+      }
     },
     stats() {
       return lastStats;

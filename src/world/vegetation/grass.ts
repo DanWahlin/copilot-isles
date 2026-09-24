@@ -17,6 +17,7 @@ import { COVE } from '../layout';
 import type { HeightField } from '../contracts';
 import type { TierSettings } from '../../engine/quality';
 import type { GrassKind, HeightGrid } from './types';
+import { EXCLUSION_SOFT_MARGIN, exclusionWeight, type VegetationExclude } from './exclusions';
 import { SeededRandom, clamp01, hash2, smoothstep } from './random';
 import { createGrassMaterial } from './materials';
 
@@ -28,6 +29,7 @@ interface GrassClump {
   kind: GrassKind;
   color: Color;
   lodSeed: number;
+  edgeWeight: number;
 }
 
 interface GrassCell {
@@ -54,7 +56,7 @@ const tmpQuat = new Quaternion();
 const tmpScale = new Vector3();
 const tmpMatrix = new Matrix4();
 
-function createGrassGeometry(blades: number): BufferGeometry {
+function createGrassGeometry(blades: number, segments: number): BufferGeometry {
   const positions: number[] = [];
   const normals: number[] = [];
   const uvs: number[] = [];
@@ -62,25 +64,35 @@ function createGrassGeometry(blades: number): BufferGeometry {
   const shade: number[] = [];
   for (let i = 0; i < blades; i += 1) {
     const angle = (i / blades) * Math.PI * 2 + (i % 2) * 0.27;
-    const width = 0.035 + (i % 3) * 0.012;
-    const height = 0.72 + (i % 5) * 0.08;
-    const ox = Math.cos(angle * 1.7) * 0.18;
-    const oz = Math.sin(angle * 1.7) * 0.18;
-    const sx = Math.cos(angle) * width;
-    const sz = Math.sin(angle) * width;
-    const tx = Math.sin(angle) * height * 0.12;
-    const tz = Math.cos(angle) * height * 0.12;
-    const p0 = [ox - sx, 0, oz + sz];
-    const p1 = [ox + sx, 0, oz - sz];
-    const p2 = [ox + sx * 0.35 + tx, height, oz - sz * 0.35 + tz];
-    const p3 = [ox - sx * 0.35 + tx, height, oz + sz * 0.35 + tz];
-    const n = [Math.sin(angle), 0.28, Math.cos(angle)];
-    positions.push(...p0, ...p1, ...p2, ...p0, ...p2, ...p3);
-    for (let v = 0; v < 6; v += 1) normals.push(...n);
-    uvs.push(0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1);
-    for (let v = 0; v < 6; v += 1) {
-      parts.push(1);
-      shade.push(0.55 + (i % 5) * 0.09);
+    const width = 0.03 + (i % 3) * 0.011;
+    const height = 0.86 + (i % 5) * 0.1;
+    const ox = Math.cos(angle * 1.7) * 0.2;
+    const oz = Math.sin(angle * 1.7) * 0.2;
+    const rightX = Math.cos(angle) * width;
+    const rightZ = -Math.sin(angle) * width;
+    const bendX = Math.sin(angle) * height * (0.12 + (i % 2) * 0.04);
+    const bendZ = Math.cos(angle) * height * (0.1 + (i % 3) * 0.025);
+    const n = [Math.sin(angle), 0.34, Math.cos(angle)];
+    for (let s = 0; s < segments; s += 1) {
+      const t0 = s / segments;
+      const t1 = (s + 1) / segments;
+      const w0 = (1 - t0 * 0.78) * width;
+      const w1 = (1 - t1 * 0.78) * width;
+      const curve0 = t0 * t0;
+      const curve1 = t1 * t1;
+      const c0 = [ox + bendX * curve0, height * t0, oz + bendZ * curve0];
+      const c1 = [ox + bendX * curve1, height * t1, oz + bendZ * curve1];
+      const p0 = [c0[0] - rightX * (w0 / width), c0[1], c0[2] - rightZ * (w0 / width)];
+      const p1 = [c0[0] + rightX * (w0 / width), c0[1], c0[2] + rightZ * (w0 / width)];
+      const p2 = [c1[0] + rightX * (w1 / width), c1[1], c1[2] + rightZ * (w1 / width)];
+      const p3 = [c1[0] - rightX * (w1 / width), c1[1], c1[2] - rightZ * (w1 / width)];
+      positions.push(...p0, ...p1, ...p2, ...p0, ...p2, ...p3);
+      for (let v = 0; v < 6; v += 1) normals.push(...n);
+      uvs.push(0, t0, 1, t0, 1, t1, 0, t0, 1, t1, 0, t1);
+      for (let v = 0; v < 6; v += 1) {
+        parts.push(1);
+        shade.push(0.42 + t1 * 0.55 + (i % 5) * 0.025);
+      }
     }
   }
   const geometry = new BufferGeometry();
@@ -102,16 +114,16 @@ function grassWeight(heightField: HeightField, x: number, z: number): { weight: 
   const beach = masks.sand * (1 - smoothstep(5, 13, y));
   const hill = masks.grass * smoothstep(1, 8, y);
   const creeper = masks.sand * (1 - smoothstep(1.2, 4, y));
-  if (beach > hill && beach > 0.18) return { weight: beach * 0.7, kind: 'seaOats' };
-  if (creeper > 0.2) return { weight: creeper * 0.35, kind: 'creeper' };
-  return { weight: hill * 0.85, kind: 'meadow' };
+  if (beach > hill && beach > 0.18) return { weight: beach * 0.9, kind: 'seaOats' };
+  if (creeper > 0.2) return { weight: creeper * 0.55, kind: 'creeper' };
+  return { weight: hill * 1.05, kind: 'meadow' };
 }
 
 function colorFor(kind: GrassKind, jitter: number): Color {
   const color = new Color();
-  if (kind === 'seaOats') color.setHSL(0.18 + jitter * 0.03, 0.42, 0.47 + jitter * 0.08);
-  else if (kind === 'creeper') color.setHSL(0.25 + jitter * 0.03, 0.36, 0.34 + jitter * 0.06);
-  else color.setHSL(0.29 + jitter * 0.035, 0.45, 0.36 + jitter * 0.08);
+  if (kind === 'seaOats') color.setHSL(0.16 + jitter * 0.045, 0.48, 0.42 + jitter * 0.16);
+  else if (kind === 'creeper') color.setHSL(0.24 + jitter * 0.04, 0.42, 0.31 + jitter * 0.1);
+  else color.setHSL(0.28 + jitter * 0.045, 0.52, 0.31 + jitter * 0.13);
   return color;
 }
 
@@ -119,7 +131,7 @@ function setClumpMatrix(clump: GrassClump): void {
   tmpObject.position.set(clump.x, 0, clump.z);
   tmpQuat.setFromAxisAngle(new Vector3(0, 1, 0), clump.rotation);
   const heightScale = clump.kind === 'seaOats' ? 1.55 : clump.kind === 'creeper' ? 0.32 : 0.86;
-  tmpScale.setScalar(clump.scale);
+  tmpScale.setScalar(clump.scale * (0.35 + clump.edgeWeight * 0.65));
   tmpScale.y *= heightScale;
   tmpObject.quaternion.copy(tmpQuat);
   tmpObject.scale.copy(tmpScale);
@@ -141,23 +153,24 @@ export class GrassField {
     heightTexture: DataTexture,
     tier: TierSettings,
     seed: number,
+    exclude?: VegetationExclude,
   ) {
     this.material = createGrassMaterial(heightTexture, heightGrid);
     this.tierScale = Math.max(0.34, tier.grassDistance / HIGH_DISTANCES.far);
-    this.buildCells(heightField, tier, seed);
+    this.buildCells(heightField, tier, seed, exclude);
     const maxClumps = Math.max(
       1,
       this.cells.reduce((sum, cell) => sum + cell.clumps.length, 0),
     );
-    this.addTierMesh(createGrassGeometry(7), 0, HIGH_DISTANCES.near * this.tierScale, maxClumps);
+    this.addTierMesh(createGrassGeometry(7, 2), 0, HIGH_DISTANCES.near * this.tierScale, maxClumps);
     this.addTierMesh(
-      createGrassGeometry(4),
+      createGrassGeometry(4, 1),
       HIGH_DISTANCES.near * this.tierScale,
       HIGH_DISTANCES.mid * this.tierScale,
       maxClumps,
     );
     this.addTierMesh(
-      createGrassGeometry(2),
+      createGrassGeometry(2, 1),
       HIGH_DISTANCES.mid * this.tierScale,
       HIGH_DISTANCES.far * this.tierScale,
       maxClumps,
@@ -184,9 +197,12 @@ export class GrassField {
         setClumpMatrix(clump);
         mesh.mesh.setMatrixAt(slot, tmpMatrix);
         mesh.tint.setXYZ(slot, clump.color.r, clump.color.g, clump.color.b);
-        const fadeIn = smoothstep(mesh.minDistance, mesh.minDistance + 4 * this.tierScale, d);
-        const fadeOut = 1 - smoothstep(mesh.maxDistance - 8 * this.tierScale, mesh.maxDistance, d);
-        mesh.fade.setX(slot, clamp01(Math.min(fadeIn || 1, fadeOut) - clump.lodSeed * 0.04));
+        const fadeIn = smoothstep(mesh.minDistance, mesh.minDistance + 5 * this.tierScale, d);
+        const fadeOut = 1 - smoothstep(mesh.maxDistance - 16 * this.tierScale, mesh.maxDistance, d);
+        mesh.fade.setX(
+          slot,
+          clamp01(Math.min(fadeIn || 1, fadeOut) * clump.edgeWeight - clump.lodSeed * 0.04),
+        );
         mesh.visible += 1;
       }
     }
@@ -222,7 +238,12 @@ export class GrassField {
     this.material.dispose();
   }
 
-  private buildCells(heightField: HeightField, tier: TierSettings, seed: number): void {
+  private buildCells(
+    heightField: HeightField,
+    tier: TierSettings,
+    seed: number,
+    exclude?: VegetationExclude,
+  ): void {
     const rng = new SeededRandom(seed ^ 0x67a91f);
     const density = Math.max(0.15, tier.grassDensity);
     for (let x = -COVE.island.halfX; x <= COVE.island.halfX; x += CELL_SIZE) {
@@ -231,8 +252,10 @@ export class GrassField {
         const cz = z + CELL_SIZE * 0.5;
         const probe = grassWeight(heightField, cx, cz);
         if (probe.weight <= 0) continue;
+        const cellWeight = this.cellExclusionWeight(exclude, cx, cz);
+        if (cellWeight <= 0.02) continue;
         const clumps: GrassClump[] = [];
-        const target = Math.floor((5 + probe.weight * 18) * density);
+        const target = Math.floor((12 + probe.weight * 40) * density * cellWeight);
         const local = rng.fork(Math.floor((x + 300) * 17 + (z + 220) * 31));
         for (let i = 0; i < target; i += 1) {
           const ox = local.range(-CELL_SIZE * 0.42, CELL_SIZE * 0.42);
@@ -241,21 +264,36 @@ export class GrassField {
           const pz = cz + oz;
           const sample = grassWeight(heightField, px, pz);
           const blue = hash2(Math.floor(px / 1.7), Math.floor(pz / 1.7), seed);
-          if (sample.weight <= 0 || blue < 0.16) continue;
+          const edgeWeight = exclusionWeight(exclude, px, pz, EXCLUSION_SOFT_MARGIN);
+          if (sample.weight <= 0 || edgeWeight <= 0.02 || blue < 0.05 || local.next() > edgeWeight) continue;
           const jitter = local.next();
           clumps.push({
             x: px,
             z: pz,
-            scale: (0.75 + sample.weight * 0.55) * local.range(0.72, 1.22),
+            scale: (0.65 + sample.weight * 0.72) * local.range(0.68, 1.28),
             rotation: local.range(-Math.PI, Math.PI),
             kind: sample.kind,
             color: colorFor(sample.kind, jitter),
             lodSeed: local.next(),
+            edgeWeight,
           });
         }
         if (clumps.length > 0) this.cells.push({ x: cx, z: cz, clumps });
       }
     }
+  }
+
+  private cellExclusionWeight(exclude: VegetationExclude | undefined, x: number, z: number): number {
+    if (!exclude) return 1;
+    const half = CELL_SIZE * 0.5;
+    const samples = [
+      exclusionWeight(exclude, x, z, EXCLUSION_SOFT_MARGIN),
+      exclusionWeight(exclude, x - half, z - half, EXCLUSION_SOFT_MARGIN),
+      exclusionWeight(exclude, x + half, z - half, EXCLUSION_SOFT_MARGIN),
+      exclusionWeight(exclude, x - half, z + half, EXCLUSION_SOFT_MARGIN),
+      exclusionWeight(exclude, x + half, z + half, EXCLUSION_SOFT_MARGIN),
+    ];
+    return Math.max(...samples);
   }
 
   private addTierMesh(

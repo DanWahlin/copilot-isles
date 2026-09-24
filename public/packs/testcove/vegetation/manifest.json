@@ -1,0 +1,132 @@
+{
+  "generated": "2026-09-24T05:07:55.823Z",
+  "assets": [
+    {
+      "name": "tree_broadleaf",
+      "source": "CommonTree_1.gltf",
+      "title": "CommonTree_1",
+      "file": "models/tree_broadleaf.glb",
+      "textureSize": 1024,
+      "creator": "Quaternius",
+      "license": "CC0 1.0",
+      "page": "https://opengameart.org/content/stylized-nature-megakit",
+      "zip": "https://opengameart.org/sites/default/files/stylized_nature_megakitstandard.zip",
+      "zipSha256": "298f6732b872e4cf7b30e6e7abf9641c7f6dc6b326df37ac089533ed7e3d58c9",
+      "sha256": "5d69fd9a0fd9aa13e87a77c31b5ab04faebaa28e0a96a0d70cafe7decbeb5b55"
+    },
+    {
+      "name": "shrub",
+      "source": "Bush_Common.gltf",
+      "title": "Bush_Common",
+      "file": "models/shrub.glb",
+      "textureSize": 512,
+      "creator": "Quaternius",
+      "license": "CC0 1.0",
+      "page": "https://opengameart.org/content/stylized-nature-megakit",
+      "zip": "https://opengameart.org/sites/default/files/stylized_nature_megakitstandard.zip",
+      "zipSha256": "298f6732b872e4cf7b30e6e7abf9641c7f6dc6b326df37ac089533ed7e3d58c9",
+      "sha256": "93eed4fd06982f7c3ea699919630b0334e526285aa441dc64d6f654750655b66"
+    },
+    {
+      "name": "shrub_flowers",
+      "source": "Bush_Common_Flowers.gltf",
+      "title": "Bush_Common_Flowers",
+      "file": "models/shrub_flowers.glb",
+      "textureSize": 512,
+      "creator": "Quaternius",
+      "license": "CC0 1.0",
+      "page": "https://opengameart.org/content/stylized-nature-megakit",
+      "zip": "https://opengameart.org/sites/default/files/stylized_nature_megakitstandard.zip",
+      "zipSha256": "298f6732b872e4cf7b30e6e7abf9641c7f6dc6b326df37ac089533ed7e3d58c9",
+      "sha256": "dc5eb841862ae09b0ddf579d05e58b501f7a64377d0c1144d1390ec5a5c123a4"
+    },
+    {
+      "name": "flower_bush",
+      "source": "Flower_4_Group.gltf",
+      "title": "Flower_4_Group",
+      "file": "models/flower_bush.glb",
+      "textureSize": 512,
+      "creator": "Quaternius",
+      "license": "CC0 1.0",
+      "page": "https://opengameart.org/content/stylized-nature-megakit",
+      "zip": "https://opengameart.org/sites/default/files/stylized_nature_megakitstandard.zip",
+      "zipSha256": "298f6732b872e4cf7b30e6e7abf9641c7f6dc6b326df37ac089533ed7e3d58c9",
+      "sha256": "ee2c51729499efd3a60dab997dae516560f72899bb66393231e2724db395b25a"
+    },
+    {
+      "name": "fern",
+      "source": "Fern_1.gltf",
+      "title": "Fern_1",
+      "file": "models/fern.glb",
+      "textureSize": 512,
+      "creator": "Quaternius",
+      "license": "CC0 1.0",
+      "page": "https://opengameart.org/content/stylized-nature-megakit",
+      "zip": "https://opengameart.org/sites/default/files/stylized_nature_megakitstandard.zip",
+      "zipSha256": "298f6732b872e4cf7b30e6e7abf9641c7f6dc6b326df37ac089533ed7e3d58c9",
+      "sha256": "76f12bd0a5b96e54141ed9e3cbb1c4672d6b722aa2ba9495e0ee3315be1c3c30"
+    },
+    {
+      "name": "plant_big",
+      "source": "Plant_1_Big.gltf",
+      "title": "Plant_1_Big",
+      "file": "models/plant_big.glb",
+      "textureSize": 512,
+      "creator": "Quaternius",
+      "license": "CC0 1.0",
+      "page": "https://opengameart.org/content/stylized-nature-megakit",
+      "zip": "https://opengameart.org/sites/default/files/stylized_nature_megakitstandard.zip",
+      "zipSha256": "298f6732b872e4cf7b30e6e7abf9641c7f6dc6b326df37ac089533ed7e3d58c9",
+      "sha256": "82073b62e2adef2ee7a61f14cb1a8d6f7d9f6fe796049029e82e29ad22f303d7"
+    },
+    {
+      "name": "driftwood_dead_tree",
+      "source": "DeadTree_3.gltf",
+      "title": "DeadTree_3",
+      "file": "models/driftwood_dead_tree.glb",
+      "textureSize": 512,
+      "creator": "Quaternius",
+      "license": "CC0 1.0",
+      "page": "https://opengameart.org/content/stylized-nature-megakit",
+      "zip": "https://opengameart.org/sites/default/files/stylized_nature_megakitstandard.zip",
+      "zipSha256": "298f6732b872e4cf7b30e6e7abf9641c7f6dc6b326df37ac089533ed7e3d58c9",
+      "sha256": "14b69d685a464c4ec31644296bd67d71d98fa0438ca0a1b66150e548c9bd4fd6"
+    },
+    {
+      "name": "palm_bark",
+      "source": "Bark_NormalTree.png",
+      "file": "textures/palm_bark.webp",
+      "size": 512,
+      "creator": "Quaternius",
+      "license": "CC0 1.0",
+      "page": "https://opengameart.org/content/stylized-nature-megakit",
+      "zip": "https://opengameart.org/sites/default/files/stylized_nature_megakitstandard.zip",
+      "zipSha256": "298f6732b872e4cf7b30e6e7abf9641c7f6dc6b326df37ac089533ed7e3d58c9",
+      "sha256": "8a7418543564e007c04bc89a1aedbeb074796d6f71a377ac95467e2f9d1eef4b"
+    },
+    {
+      "name": "palm_leaf",
+      "source": "Leaves_NormalTree.png",
+      "file": "textures/palm_leaf.webp",
+      "size": 512,
+      "creator": "Quaternius",
+      "license": "CC0 1.0",
+      "page": "https://opengameart.org/content/stylized-nature-megakit",
+      "zip": "https://opengameart.org/sites/default/files/stylized_nature_megakitstandard.zip",
+      "zipSha256": "298f6732b872e4cf7b30e6e7abf9641c7f6dc6b326df37ac089533ed7e3d58c9",
+      "sha256": "06552fb72c771604d28ad3b6eb4a973199fbaab5f6dce56b1cf71fc43c3d0f05"
+    },
+    {
+      "name": "grass",
+      "source": "Grass.png",
+      "file": "textures/grass.webp",
+      "size": 512,
+      "creator": "Quaternius",
+      "license": "CC0 1.0",
+      "page": "https://opengameart.org/content/stylized-nature-megakit",
+      "zip": "https://opengameart.org/sites/default/files/stylized_nature_megakitstandard.zip",
+      "zipSha256": "298f6732b872e4cf7b30e6e7abf9641c7f6dc6b326df37ac089533ed7e3d58c9",
+      "sha256": "3e5a9d31ae49782b6d8f96d96fab1caf503423e5798465385876328b14b709e4"
+    }
+  ]
+}

@@ -1,10 +1,12 @@
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/world/vegetation/PlantGeometry.js@d32799f
 import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three/webgpu';
 import type { PlantSpecies } from './types';
+import { hash2 } from './random';
 
 const PART_BARK = 0;
 const PART_LEAF = 1;
 const PART_FRUIT = 2;
+const PART_DEAD = 3;
 
 class GeoBuilder {
   positions: number[] = [];
@@ -60,179 +62,370 @@ class GeoBuilder {
   }
 }
 
-function addCylinder(
+const tmpV = new Vector3();
+const tmpA = new Vector3();
+const tmpB = new Vector3();
+const tmpC = new Vector3();
+
+function basisFromDir(dir: Vector3): { right: Vector3; up: Vector3 } {
+  const upRef = Math.abs(dir.y) > 0.92 ? new Vector3(1, 0, 0) : new Vector3(0, 1, 0);
+  const right = tmpA.copy(upRef).cross(dir).normalize().clone();
+  const up = tmpB.copy(dir).cross(right).normalize().clone();
+  return { right, up };
+}
+
+function addBranch(
+  builder: GeoBuilder,
+  start: Vector3,
+  end: Vector3,
+  radius0: number,
+  radius1: number,
+  sides: number,
+  part = PART_BARK,
+  shade0 = 0.55,
+): void {
+  const dir = tmpV.copy(end).sub(start);
+  const len = dir.length();
+  if (len < 0.001) return;
+  dir.divideScalar(len);
+  const { right, up } = basisFromDir(dir);
+  for (let i = 0; i < sides; i += 1) {
+    const a0 = (i / sides) * Math.PI * 2;
+    const a1 = ((i + 1) / sides) * Math.PI * 2;
+    const ring = (center: Vector3, r: number, a: number) =>
+      center
+        .clone()
+        .addScaledVector(right, Math.cos(a) * r)
+        .addScaledVector(up, Math.sin(a) * r);
+    builder.addQuad(
+      ring(start, radius0, a0).toArray(),
+      ring(start, radius0, a1).toArray(),
+      ring(end, radius1, a1).toArray(),
+      ring(end, radius1, a0).toArray(),
+      part,
+      shade0 + (i % 2) * 0.08,
+    );
+  }
+}
+
+function addCurvedTrunk(
   builder: GeoBuilder,
   height: number,
   radius0: number,
   radius1: number,
   sides: number,
   segments: number,
-  curveX = 0,
-  curveZ = 0,
-): void {
+  curveX: number,
+  curveZ: number,
+  offsetX = 0,
+  offsetZ = 0,
+): Vector3 {
+  let prev = new Vector3(offsetX, 0, offsetZ);
   for (let y = 0; y < segments; y += 1) {
-    const t0 = y / segments;
     const t1 = (y + 1) / segments;
-    const c0 = [curveX * t0 * t0, height * t0, curveZ * t0 * t0];
-    const c1 = [curveX * t1 * t1, height * t1, curveZ * t1 * t1];
-    const r0 = radius0 + (radius1 - radius0) * t0;
+    const next = new Vector3(offsetX + curveX * t1 * t1, height * t1, offsetZ + curveZ * t1 * t1);
+    const r0 = radius0 + (radius1 - radius0) * (y / segments);
     const r1 = radius0 + (radius1 - radius0) * t1;
-    for (let i = 0; i < sides; i += 1) {
-      const a0 = (i / sides) * Math.PI * 2;
-      const a1 = ((i + 1) / sides) * Math.PI * 2;
-      const p00 = [c0[0] + Math.cos(a0) * r0, c0[1], c0[2] + Math.sin(a0) * r0];
-      const p10 = [c0[0] + Math.cos(a1) * r0, c0[1], c0[2] + Math.sin(a1) * r0];
-      const p11 = [c1[0] + Math.cos(a1) * r1, c1[1], c1[2] + Math.sin(a1) * r1];
-      const p01 = [c1[0] + Math.cos(a0) * r1, c1[1], c1[2] + Math.sin(a0) * r1];
-      builder.addQuad(p00, p10, p11, p01, PART_BARK, 0.55 + t0 * 0.3);
-    }
+    addBranch(builder, prev, next, r0, r1, sides, PART_BARK, y % 2 === 0 ? 0.44 : 0.67);
+    prev = next;
   }
+  return prev;
 }
 
-function addLeafStrip(
+function addDiamondCard(
   builder: GeoBuilder,
-  origin: number[],
+  center: Vector3,
+  axis: Vector3,
+  side: Vector3,
+  length: number,
+  width: number,
+  part: number,
+  shade: number,
+): void {
+  const tip = center.clone().addScaledVector(axis, length * 0.55);
+  const base = center.clone().addScaledVector(axis, -length * 0.45);
+  const left = center.clone().addScaledVector(side, width);
+  const right = center.clone().addScaledVector(side, -width);
+  builder.addTri(base.toArray(), left.toArray(), tip.toArray(), part, shade);
+  builder.addTri(base.toArray(), tip.toArray(), right.toArray(), part, shade * 0.94);
+}
+
+function addPalmFrond(
+  builder: GeoBuilder,
+  origin: Vector3,
   yaw: number,
   pitch: number,
   length: number,
   width: number,
-  segments: number,
-  part = PART_LEAF,
+  seed: number,
+  dead = false,
 ): void {
-  const dir = new Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
-  const side = new Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
-  const droop = new Vector3(0, -1, 0);
-  for (let i = 0; i < segments; i += 1) {
-    const t0 = i / segments;
-    const t1 = (i + 1) / segments;
-    const center0 = new Vector3(origin[0], origin[1], origin[2])
-      .addScaledVector(dir, length * t0)
-      .addScaledVector(droop, length * 0.23 * t0 * t0);
-    const center1 = new Vector3(origin[0], origin[1], origin[2])
-      .addScaledVector(dir, length * t1)
-      .addScaledVector(droop, length * 0.23 * t1 * t1);
-    const w0 = width * Math.sin((1 - t0) * Math.PI * 0.5) * (1 - t0 * 0.72);
-    const w1 = width * Math.sin((1 - t1) * Math.PI * 0.5) * (1 - t1 * 0.72);
-    const lift0 = Math.sin(t0 * Math.PI) * width * 0.08;
-    const lift1 = Math.sin(t1 * Math.PI) * width * 0.08;
-    const a = center0
+  const forward = new Vector3(
+    Math.sin(yaw) * Math.cos(pitch),
+    Math.sin(pitch),
+    Math.cos(yaw) * Math.cos(pitch),
+  );
+  const side = new Vector3(Math.cos(yaw), 0, -Math.sin(yaw)).normalize();
+  const last = origin.clone();
+  const segments = 5;
+  for (let i = 1; i <= segments; i += 1) {
+    const t = i / segments;
+    const p = origin
       .clone()
-      .addScaledVector(side, -w0)
-      .addScaledVector(new Vector3(0, 1, 0), lift0);
-    const b = center0
+      .addScaledVector(forward, length * t)
+      .addScaledVector(new Vector3(0, -1, 0), length * (0.1 * t + 0.42 * t * t));
+    addBranch(
+      builder,
+      last,
+      p,
+      width * 0.035 * (1 - (i - 1) / segments),
+      width * 0.02 * (1 - t),
+      4,
+      dead ? PART_DEAD : PART_LEAF,
+      0.62,
+    );
+    last.copy(p);
+  }
+
+  const leaflets = Math.max(9, Math.floor(length * 2.2));
+  for (let i = 0; i < leaflets; i += 1) {
+    const t = (i + 0.45) / leaflets;
+    const center = origin
       .clone()
-      .addScaledVector(side, w0)
-      .addScaledVector(new Vector3(0, 1, 0), lift0);
-    const c = center1
-      .clone()
-      .addScaledVector(side, w1)
-      .addScaledVector(new Vector3(0, 1, 0), lift1);
-    const d = center1
-      .clone()
-      .addScaledVector(side, -w1)
-      .addScaledVector(new Vector3(0, 1, 0), lift1);
-    builder.addQuad(a.toArray(), b.toArray(), c.toArray(), d.toArray(), part, 0.5 + (1 - t0) * 0.45);
+      .addScaledVector(forward, length * t)
+      .addScaledVector(new Vector3(0, -1, 0), length * (0.1 * t + 0.42 * t * t));
+    const leafletLen = width * (1.45 - Math.abs(t - 0.42) * 1.2) * (0.85 + hash2(i, seed, 71) * 0.25);
+    const leafletWidth = width * 0.09 * (1 - t * 0.25);
+    const sweep = 0.35 + t * 0.55;
+    const shade = dead ? 0.45 + t * 0.25 : 0.42 + t * 0.55;
+    for (const sideSign of [-1, 1]) {
+      const axis = side
+        .clone()
+        .multiplyScalar(sideSign)
+        .addScaledVector(forward, 0.18 - t * 0.16)
+        .addScaledVector(new Vector3(0, -1, 0), 0.18 + t * 0.22)
+        .normalize();
+      const cross = tmpC.copy(axis).cross(forward).normalize();
+      const c = center.clone().addScaledVector(side, sideSign * width * sweep * Math.sin(Math.PI * t));
+      addDiamondCard(builder, c, axis, cross, leafletLen, leafletWidth, dead ? PART_DEAD : PART_LEAF, shade);
+    }
   }
 }
 
-function addCrownBlob(
+function addCoconutCluster(builder: GeoBuilder, origin: Vector3, seed: number): void {
+  const count = 5 + Math.floor(hash2(seed, 2, 9) * 4);
+  for (let i = 0; i < count; i += 1) {
+    const yaw = (i / count) * Math.PI * 2;
+    const center = origin
+      .clone()
+      .add(new Vector3(Math.cos(yaw) * 0.28, -0.45 - (i % 3) * 0.06, Math.sin(yaw) * 0.28));
+    const r = 0.16 + hash2(i, seed, 3) * 0.05;
+    const top = center.clone().add(new Vector3(0, r, 0));
+    const bottom = center.clone().add(new Vector3(0, -r, 0));
+    const east = center.clone().add(new Vector3(r, 0, 0));
+    const west = center.clone().add(new Vector3(-r, 0, 0));
+    const north = center.clone().add(new Vector3(0, 0, r));
+    const south = center.clone().add(new Vector3(0, 0, -r));
+    builder.addTri(top.toArray(), east.toArray(), north.toArray(), PART_FRUIT, 0.45);
+    builder.addTri(top.toArray(), north.toArray(), west.toArray(), PART_FRUIT, 0.5);
+    builder.addTri(top.toArray(), west.toArray(), south.toArray(), PART_FRUIT, 0.42);
+    builder.addTri(top.toArray(), south.toArray(), east.toArray(), PART_FRUIT, 0.48);
+    builder.addTri(bottom.toArray(), north.toArray(), east.toArray(), PART_FRUIT, 0.32);
+    builder.addTri(bottom.toArray(), west.toArray(), north.toArray(), PART_FRUIT, 0.36);
+    builder.addTri(bottom.toArray(), south.toArray(), west.toArray(), PART_FRUIT, 0.3);
+    builder.addTri(bottom.toArray(), east.toArray(), south.toArray(), PART_FRUIT, 0.34);
+  }
+}
+
+function addPalmTree(
   builder: GeoBuilder,
-  cx: number,
-  cy: number,
-  cz: number,
-  rx: number,
-  ry: number,
-  rz: number,
-  shade: number,
+  height: number,
+  crownRadius: number,
+  fronds: number,
+  offsetX: number,
+  offsetZ: number,
+  curveX: number,
+  curveZ: number,
+  seed: number,
 ): void {
-  const rings = 5;
-  const sides = 8;
-  for (let j = 0; j < rings; j += 1) {
-    const v0 = -Math.PI / 2 + (j / rings) * Math.PI;
-    const v1 = -Math.PI / 2 + ((j + 1) / rings) * Math.PI;
-    for (let i = 0; i < sides; i += 1) {
-      const u0 = (i / sides) * Math.PI * 2;
-      const u1 = ((i + 1) / sides) * Math.PI * 2;
-      const p = (u: number, v: number) => [
-        cx + Math.cos(v) * Math.cos(u) * rx,
-        cy + Math.sin(v) * ry,
-        cz + Math.cos(v) * Math.sin(u) * rz,
-      ];
-      builder.addQuad(p(u0, v0), p(u1, v0), p(u1, v1), p(u0, v1), PART_LEAF, shade);
+  const crown = addCurvedTrunk(
+    builder,
+    height,
+    height * 0.026,
+    height * 0.014,
+    8,
+    Math.max(7, Math.floor(height * 0.85)),
+    curveX,
+    curveZ,
+    offsetX,
+    offsetZ,
+  );
+  const crownLift = crown.clone().add(new Vector3(0, 0.12, 0));
+  for (let i = 0; i < fronds; i += 1) {
+    const yaw = (i / fronds) * Math.PI * 2 + hash2(i, seed, 4) * 0.25;
+    const pitch = -0.03 - hash2(i, seed, 5) * 0.18;
+    const len = crownRadius * (0.83 + hash2(i, seed, 6) * 0.28);
+    const width = crownRadius * 0.13 * (0.85 + hash2(i, seed, 7) * 0.35);
+    addPalmFrond(builder, crownLift, yaw, pitch, len, width, seed + i, false);
+  }
+  if (hash2(seed, 9, 12) > 0.32) {
+    const deadCount = 1 + Math.floor(hash2(seed, 13, 19) * 2);
+    for (let i = 0; i < deadCount; i += 1) {
+      const yaw = hash2(seed, i, 22) * Math.PI * 2;
+      addPalmFrond(
+        builder,
+        crown.clone().add(new Vector3(0, -0.18, 0)),
+        yaw,
+        -0.62,
+        crownRadius * 0.65,
+        crownRadius * 0.08,
+        seed + 100 + i,
+        true,
+      );
     }
   }
+  addCoconutCluster(builder, crown.clone().add(new Vector3(0, -0.08, 0)), seed);
 }
 
 function createPalmGeometry(kind: 'tall' | 'cluster' | 'young'): BufferGeometry {
   const b = new GeoBuilder();
-  const tall = kind === 'tall';
-  const young = kind === 'young';
-  const height = tall ? 12.5 : young ? 5.6 : 8.2;
-  const crownY = height;
-  addCylinder(
-    b,
-    height,
-    young ? 0.18 : 0.28,
-    young ? 0.13 : 0.18,
-    8,
-    tall ? 9 : 6,
-    tall ? 0.4 : 0.15,
-    tall ? 1.0 : 0.25,
-  );
-  const fronds = tall ? 24 : young ? 12 : 20;
-  for (let i = 0; i < fronds; i += 1) {
-    const yaw = (i / fronds) * Math.PI * 2 + (i % 2) * 0.12;
-    const pitch = -0.08 - (i % 3) * 0.045;
-    const len = (tall ? 6.2 : young ? 3.2 : 4.7) * (0.86 + ((i * 17) % 9) * 0.025);
-    const wid = (tall ? 0.72 : young ? 0.42 : 0.58) * (0.9 + ((i * 13) % 7) * 0.025);
-    addLeafStrip(b, [tall ? 0.4 : 0.15, crownY, tall ? 1.0 : 0.25], yaw, pitch, len, wid, 5);
-  }
-  if (kind !== 'young') {
-    for (let i = 0; i < 5; i += 1) {
-      const yaw = (i / 5) * Math.PI * 2;
-      addLeafStrip(b, [0.25, crownY - 0.35, 0.35], yaw, -0.85, 0.65, 0.09, 2, PART_FRUIT);
+  if (kind === 'cluster') {
+    const trunks = 2 + Math.floor(hash2(1, 2, 3) * 2.99);
+    for (let i = 0; i < trunks; i += 1) {
+      const yaw = (i / trunks) * Math.PI * 2 + 0.4;
+      const h = 7.3 + i * 0.8 + hash2(i, 4, 5) * 1.3;
+      addPalmTree(
+        b,
+        h,
+        4.4 + hash2(i, 8, 9) * 0.6,
+        15 + (i % 3),
+        Math.cos(yaw) * 0.55,
+        Math.sin(yaw) * 0.55,
+        Math.cos(yaw + 0.7) * 0.35,
+        0.45 + Math.sin(yaw) * 0.28,
+        100 + i * 17,
+      );
     }
+    return b.toGeometry();
   }
+  if (kind === 'young') {
+    addPalmTree(b, 5.2, 3.1, 14, 0, 0, 0.1, 0.18, 37);
+    return b.toGeometry();
+  }
+  addPalmTree(b, 12.6, 6.1, 19, 0, 0, 0.35, 1.15, 71);
   return b.toGeometry();
+}
+
+function addBroadLeaf(builder: GeoBuilder, center: Vector3, yaw: number, size: number, shade: number): void {
+  const axis = new Vector3(Math.sin(yaw), 0.22 + Math.sin(yaw * 1.7) * 0.12, Math.cos(yaw)).normalize();
+  const side = new Vector3(Math.cos(yaw), 0.05, -Math.sin(yaw)).normalize();
+  addDiamondCard(builder, center, axis, side, size, size * 0.36, PART_LEAF, shade);
+}
+
+function addLeafCluster(
+  builder: GeoBuilder,
+  center: Vector3,
+  rx: number,
+  ry: number,
+  rz: number,
+  cards: number,
+  seed: number,
+  shadeBase: number,
+): void {
+  for (let i = 0; i < cards; i += 1) {
+    const a = hash2(seed, i, 101) * Math.PI * 2;
+    const e = Math.asin(hash2(seed, i, 102) * 2 - 1) * 0.65;
+    const r = 0.35 + hash2(seed, i, 103) * 0.75;
+    const p = center
+      .clone()
+      .add(
+        new Vector3(
+          Math.cos(a) * Math.cos(e) * rx * r,
+          Math.sin(e) * ry * r,
+          Math.sin(a) * Math.cos(e) * rz * r,
+        ),
+      );
+    const shade = shadeBase + hash2(seed, i, 104) * 0.32 + Math.max(0, p.y - center.y) * 0.08;
+    addBroadLeaf(builder, p, a + hash2(seed, i, 105) * 1.2, 0.55 + hash2(seed, i, 106) * 0.48, shade);
+  }
 }
 
 function createBananaGeometry(): BufferGeometry {
   const b = new GeoBuilder();
-  addCylinder(b, 2.4, 0.28, 0.2, 7, 4, 0.08, 0.02);
-  for (let i = 0; i < 9; i += 1) {
-    const yaw = (i / 9) * Math.PI * 2 + (i % 2) * 0.22;
-    addLeafStrip(b, [0, 2.2 + (i % 3) * 0.12, 0], yaw, 0.22 - (i % 3) * 0.12, 3.3 + (i % 4) * 0.25, 0.62, 5);
+  addCurvedTrunk(b, 2.25, 0.28, 0.19, 7, 5, 0.08, 0.02);
+  for (let i = 0; i < 10; i += 1) {
+    const yaw = (i / 10) * Math.PI * 2 + (i % 2) * 0.2;
+    addPalmFrond(
+      b,
+      new Vector3(0, 2.2 + (i % 3) * 0.12, 0),
+      yaw,
+      0.16 - (i % 3) * 0.08,
+      3.1 + (i % 4) * 0.22,
+      0.44,
+      200 + i,
+    );
   }
   return b.toGeometry();
 }
 
 function createFernGeometry(): BufferGeometry {
   const b = new GeoBuilder();
-  addCylinder(b, 0.35, 0.05, 0.03, 5, 1);
-  for (let i = 0; i < 14; i += 1) {
-    const yaw = (i / 14) * Math.PI * 2;
-    addLeafStrip(b, [0, 0.18, 0], yaw, 0.18, 1.15 + (i % 4) * 0.08, 0.14, 4);
+  addCurvedTrunk(b, 0.3, 0.05, 0.03, 5, 1, 0, 0);
+  for (let i = 0; i < 16; i += 1) {
+    const yaw = (i / 16) * Math.PI * 2;
+    addPalmFrond(b, new Vector3(0, 0.16, 0), yaw, 0.15, 1.05 + (i % 4) * 0.08, 0.11, 300 + i);
   }
   return b.toGeometry();
 }
 
 function createShrubGeometry(): BufferGeometry {
   const b = new GeoBuilder();
-  addCylinder(b, 0.8, 0.11, 0.07, 6, 2);
-  addCrownBlob(b, -0.3, 0.95, 0.05, 0.75, 0.52, 0.65, 0.68);
-  addCrownBlob(b, 0.25, 1.08, -0.18, 0.7, 0.58, 0.72, 0.82);
-  addCrownBlob(b, 0.08, 0.82, 0.33, 0.66, 0.42, 0.55, 0.58);
+  addCurvedTrunk(b, 0.78, 0.12, 0.06, 6, 3, 0.05, -0.03);
+  const centers = [
+    new Vector3(-0.42, 0.82, 0.1),
+    new Vector3(0.3, 1.02, -0.24),
+    new Vector3(0.16, 0.78, 0.38),
+    new Vector3(-0.12, 1.16, 0.08),
+  ];
+  centers.forEach((c, i) => addLeafCluster(b, c, 0.62, 0.42, 0.58, 18, 400 + i * 19, 0.38 + i * 0.06));
   return b.toGeometry();
 }
 
 function createBroadleafTreeGeometry(): BufferGeometry {
   const b = new GeoBuilder();
-  addCylinder(b, 5.4, 0.3, 0.18, 8, 6, -0.12, 0.08);
-  addCylinder(b, 4.0, 0.13, 0.07, 6, 3, -0.9, 0.6);
-  addCylinder(b, 4.1, 0.12, 0.06, 6, 3, 0.8, -0.4);
-  addCrownBlob(b, -0.8, 5.6, 0.4, 1.8, 1.2, 1.55, 0.68);
-  addCrownBlob(b, 0.75, 5.95, -0.25, 1.9, 1.28, 1.7, 0.78);
-  addCrownBlob(b, 0.05, 6.55, 0.1, 1.65, 1.05, 1.45, 0.92);
+  const root = new Vector3(0, 0, 0);
+  const trunkTop = new Vector3(-0.06, 4.8, 0.05);
+  addBranch(b, root, trunkTop, 0.34, 0.18, 9, PART_BARK, 0.55);
+  const branches = [
+    { end: new Vector3(-1.45, 5.55, 0.7), r: 0.11 },
+    { end: new Vector3(1.35, 5.75, -0.55), r: 0.1 },
+    { end: new Vector3(0.25, 6.25, 1.05), r: 0.095 },
+    { end: new Vector3(-0.35, 6.35, -1.0), r: 0.09 },
+    { end: new Vector3(0.05, 7.0, 0.1), r: 0.08 },
+  ];
+  branches.forEach((branch, i) =>
+    addBranch(b, trunkTop, branch.end, 0.15, branch.r, 7, PART_BARK, 0.48 + i * 0.04),
+  );
+  const clusters = [
+    { c: new Vector3(-1.45, 5.6, 0.7), r: [1.35, 0.95, 1.2] },
+    { c: new Vector3(1.3, 5.75, -0.55), r: [1.45, 1.0, 1.25] },
+    { c: new Vector3(0.25, 6.2, 1.0), r: [1.25, 0.92, 1.3] },
+    { c: new Vector3(-0.35, 6.25, -1.0), r: [1.22, 0.9, 1.22] },
+    { c: new Vector3(0.0, 6.9, 0.05), r: [1.35, 1.0, 1.35] },
+    { c: new Vector3(-0.4, 5.35, -0.15), r: [1.1, 0.75, 1.0] },
+  ];
+  clusters.forEach((cluster, i) =>
+    addLeafCluster(
+      b,
+      cluster.c,
+      cluster.r[0],
+      cluster.r[1],
+      cluster.r[2],
+      30,
+      500 + i * 31,
+      0.34 + i * 0.045,
+    ),
+  );
   return b.toGeometry();
 }
 
@@ -252,6 +445,10 @@ export function createPlantGeometry(species: PlantSpecies): BufferGeometry {
       return createShrubGeometry();
     case 'broadleafTree':
       return createBroadleafTreeGeometry();
+    case 'flowerBush':
+      return createShrubGeometry();
+    case 'log':
+      return createShrubGeometry();
   }
 }
 

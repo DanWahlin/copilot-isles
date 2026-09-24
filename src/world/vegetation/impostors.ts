@@ -2,12 +2,13 @@
 import {
   AmbientLight,
   Color,
+  DoubleSide,
   DirectionalLight,
   InstancedBufferAttribute,
   InstancedMesh,
   Matrix4,
   Mesh,
-  MeshStandardNodeMaterial,
+  MeshBasicNodeMaterial,
   Object3D,
   OrthographicCamera,
   PlaneGeometry,
@@ -16,12 +17,13 @@ import {
   Vector3,
   WebGLRenderTarget,
   type PerspectiveCamera,
+  type Material,
   type Texture,
   type WebGPURenderer,
   Vector4,
 } from 'three/webgpu';
 import type { PlantInstance } from './types';
-import { createPlantGeometry } from './plant-geometry';
+import type { VegetationGeometryCatalog } from './model-loader';
 import { createImpostorMaterial } from './materials';
 import { clamp01, smoothstep } from './random';
 
@@ -41,7 +43,23 @@ export interface ImpostorBake {
   bakeMs: number;
 }
 
-export async function bakeImpostorAtlas(renderer: WebGPURenderer): Promise<ImpostorBake> {
+function bakeMaterial(source: Material | Material[]): MeshBasicNodeMaterial {
+  const material = (Array.isArray(source) ? source[0] : source) as Material & {
+    color?: Color;
+    map?: Texture | null;
+  };
+  return new MeshBasicNodeMaterial({
+    color: material.color ?? new Color(0xffffff),
+    map: material.map ?? null,
+    side: DoubleSide,
+    alphaTest: material.map ? 0.38 : 0.1,
+  });
+}
+
+export async function bakeImpostorAtlas(
+  renderer: WebGPURenderer,
+  geometries: VegetationGeometryCatalog,
+): Promise<ImpostorBake> {
   const started = performance.now();
   const target = new WebGLRenderTarget(768, 768, { depthBuffer: true });
   target.texture.name = 'vegetation-hemi-octahedral-impostors';
@@ -52,12 +70,12 @@ export async function bakeImpostorAtlas(renderer: WebGPURenderer): Promise<Impos
   const sun = new DirectionalLight(0xffd69c, 2.2);
   sun.position.set(-4, 7, 5);
   scene.add(sun);
-  const material = new MeshStandardNodeMaterial({ color: 0x4f7735, roughness: 0.85, metalness: 0 });
-  const prototypes = [
-    new Mesh(createPlantGeometry('palmTall'), material),
-    new Mesh(createPlantGeometry('broadleafTree'), material),
-    new Mesh(createPlantGeometry('shrub'), material),
-  ];
+  const makePrototype = (species: 'palmTall' | 'broadleafTree' | 'shrub') => {
+    const root = new Object3D();
+    for (const part of geometries[species]) root.add(new Mesh(part.geometry, bakeMaterial(part.material)));
+    return root;
+  };
+  const prototypes = [makePrototype('palmTall'), makePrototype('broadleafTree'), makePrototype('shrub')];
   const camera = new OrthographicCamera(-7, 7, 8, -2, 0.1, 40);
   camera.position.set(0, 5, 15);
   camera.lookAt(0, 4, 0);
@@ -90,8 +108,15 @@ export async function bakeImpostorAtlas(renderer: WebGPURenderer): Promise<Impos
   renderer.setScissor(prevScissor);
   renderer.setScissorTest(prevScissorTest);
   renderer.setClearColor(prevClear, prevAlpha);
-  for (const prototype of prototypes) prototype.geometry.dispose();
-  material.dispose();
+
+  for (const prototype of prototypes) {
+    prototype.traverse((object) => {
+      const mesh = object as Mesh;
+      if (!mesh.isMesh) return;
+      if (Array.isArray(mesh.material)) for (const m of mesh.material) m.dispose();
+      else mesh.material.dispose();
+    });
+  }
   return { texture: target.texture, target, bakeMs: performance.now() - started };
 }
 

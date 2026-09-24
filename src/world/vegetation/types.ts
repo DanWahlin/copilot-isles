@@ -1,6 +1,7 @@
 import type { PerspectiveCamera, Group, WebGPURenderer } from 'three/webgpu';
 import type { HeightField, Tier } from '../contracts';
 import type { TierSettings } from '../../engine/quality';
+import type { VegetationExclude } from './exclusions';
 
 export interface HeightGrid {
   heights: Float32Array;
@@ -12,7 +13,15 @@ export interface HeightGrid {
 }
 
 export type PlantSpecies =
-  'palmTall' | 'palmCluster' | 'palmYoung' | 'banana' | 'fern' | 'shrub' | 'broadleafTree';
+  | 'palmTall'
+  | 'palmCluster'
+  | 'palmYoung'
+  | 'banana'
+  | 'fern'
+  | 'shrub'
+  | 'broadleafTree'
+  | 'flowerBush'
+  | 'log';
 
 export type GrassKind = 'seaOats' | 'meadow' | 'creeper';
 
@@ -61,10 +70,13 @@ export interface CreateVegetationOptions {
   tier: Tier | TierSettings;
   renderer: WebGPURenderer;
   seed?: number;
+  /** Optional dynamic exclusion mask (for village walkables, buildings, puzzle pads, etc.). */
+  exclude?: VegetationExclude;
 }
 
 export interface ScatterOptions {
   heightField: HeightField;
   tier: Tier | TierSettings;
   seed?: number;
+  exclude?: VegetationExclude;
 }
