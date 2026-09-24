@@ -9,12 +9,19 @@ const opt = Object.fromEntries(
 );
 const base = opt.base || 'http://localhost:4173';
 const modes = opt.mode ? [String(opt.mode)] : ['webgpu', 'webgl'];
-const [w, h] = String(opt.size || '1280x720').split('x').map(Number);
+const [w, h] = String(opt.size || '1280x720')
+  .split('x')
+  .map(Number);
 
 async function runMode(mode) {
   const browser = await chromium.launch({
     channel: 'chrome',
-    args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu', '--autoplay-policy=no-user-gesture-required'],
+    args: [
+      '--use-angle=metal',
+      '--ignore-gpu-blocklist',
+      '--enable-unsafe-webgpu',
+      '--autoplay-policy=no-user-gesture-required',
+    ],
   });
   const context = await browser.newContext({ viewport: { width: w, height: h }, serviceWorkers: 'allow' });
   const page = await context.newPage();
@@ -46,7 +53,9 @@ async function runMode(mode) {
   await page.reload({ waitUntil: 'load' });
   await page.waitForFunction(() => window.__flow?.getState().screen === 'title', null, { timeout: 60000 });
   const secondTitleMs = performance.now() - r0;
-  const controlled = await page.evaluate(() => navigator.serviceWorker?.controller !== null).catch(() => false);
+  const controlled = await page
+    .evaluate(() => navigator.serviceWorker?.controller !== null)
+    .catch(() => false);
   const cachedResources = await page.evaluate(() =>
     performance
       .getEntriesByType('resource')

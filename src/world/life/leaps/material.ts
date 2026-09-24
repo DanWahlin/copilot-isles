@@ -1,5 +1,18 @@
 import { AdditiveBlending, DoubleSide, MeshBasicNodeMaterial, MeshStandardNodeMaterial } from 'three/webgpu';
-import { abs, attribute, color, float, mix, positionLocal, pow, select, sin, smoothstep, uv, vec3 } from 'three/tsl';
+import {
+  abs,
+  attribute,
+  color,
+  float,
+  mix,
+  positionLocal,
+  pow,
+  select,
+  sin,
+  smoothstep,
+  uv,
+  vec3,
+} from 'three/tsl';
 import { world } from '../../uniforms';
 
 // TSL fluent typings do not cover this mixed scalar/vector graph.

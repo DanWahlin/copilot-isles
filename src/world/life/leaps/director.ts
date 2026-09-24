@@ -149,7 +149,11 @@ function shoreDistance(heightField: HeightField | null | undefined, x: number, z
   return best;
 }
 
-function hasTerrainBackdrop(arc: LeapArc, camera: PerspectiveCamera, heightField: HeightField | null | undefined): boolean {
+function hasTerrainBackdrop(
+  arc: LeapArc,
+  camera: PerspectiveCamera,
+  heightField: HeightField | null | undefined,
+): boolean {
   if (!heightField) return false;
   for (const p of predictArcPoints(arc, 8)) {
     tmpForward.copy(p).sub(camera.position);

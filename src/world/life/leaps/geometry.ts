@@ -112,11 +112,17 @@ export function createSplashGeometry(): BufferGeometry {
     const z0 = Math.sin(a) * r0;
     const x1 = Math.cos(a) * r1;
     const z1 = Math.sin(a) * r1;
-    b.tri([x0 - Math.sin(a) * w, 0.03, z0 + Math.cos(a) * w], [x0 + Math.sin(a) * w, 0.03, z0 - Math.cos(a) * w], [x1, 0.22 + (i % 4) * 0.06, z1], 1);
+    b.tri(
+      [x0 - Math.sin(a) * w, 0.03, z0 + Math.cos(a) * w],
+      [x0 + Math.sin(a) * w, 0.03, z0 - Math.cos(a) * w],
+      [x1, 0.22 + (i % 4) * 0.06, z1],
+      1,
+    );
   }
   const geometry = finish(b);
   const uvData: number[] = [];
-  for (let i = 0; i < 6; i++) uvData.push([0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1][i * 2], [0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1][i * 2 + 1]);
+  for (let i = 0; i < 6; i++)
+    uvData.push([0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1][i * 2], [0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1][i * 2 + 1]);
   for (let i = 6; i < b.positions.length / 3; i++) uvData.push(0.5, 0.5);
   geometry.setAttribute('uv', new Float32BufferAttribute(uvData, 2));
   return geometry;
