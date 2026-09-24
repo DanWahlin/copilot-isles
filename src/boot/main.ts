@@ -1,17 +1,24 @@
-import { HalfFloatType, WebGPURenderer } from 'three/webgpu';
+import { WebGPURenderer } from 'three/webgpu';
 import { chooseBackend, detectWebGL2, detectWebGPU, type Backend } from './detect';
 import { showFallback } from './fallback';
-import { FixedStep } from '../engine/fixed-step';
-import { FrameCounters } from '../engine/frame-counters';
+import { heuristicTier, isPhoneDevice } from '../engine/capability';
 import { installDebug } from '../engine/debug';
+import type { Tier } from '../world/contracts';
 
 const stage = (p: number, msg: string) => window.__load?.(p, msg);
 const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+const TIER_NAMES: Record<Tier, string> = {
+  lite: 'Lite',
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+  ultra: 'Ultra',
+};
 
 async function boot(): Promise<void> {
   stage(0.05, 'Charting the isles');
   // URL options: ?webgl forces the WebGL2 backend; ?hdr enables HDR output on HDR displays (WebGPU);
-  // ?forceGpu / ?forceSoftware are test overrides (CI's Chromium renders in software).
+  // ?tier= overrides the quality tier; ?forceGpu / ?forceSoftware are test overrides.
   const q = new URLSearchParams(location.search);
   // Always probe WebGPU: even with ?webgl, a device without WebGL2 should still get WebGPU (not the 2D stub).
   const [webgpu, webgl] = [await detectWebGPU(), detectWebGL2()];
@@ -23,17 +30,28 @@ async function boot(): Promise<void> {
   if (!choice.backend) return showFallback(choice.reason);
   let backend: Backend = choice.backend;
 
+  const [{ Engine }, { TIERS }, { createPost }, { Input }] = await Promise.all([
+    import('../engine/engine'),
+    import('../engine/quality'),
+    import('../engine/post'),
+    import('../engine/input'),
+  ]);
+  const saved = readQuality();
+  const phone = isPhoneDevice(navigator, Math.min(screen.width, screen.height));
+  const gpuName = backend === 'webgpu' ? `${webgpu.vendor} ${webgpu.architecture}` : webgl.renderer;
+  const autoTier = heuristicTier({
+    backend,
+    gpu: gpuName,
+    isPhone: phone,
+    deviceMemory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory,
+  });
+  const tierName = (q.get('tier') as Tier) || (saved && saved !== 'auto' ? saved : autoTier);
+  const tier = TIERS[tierName] ?? TIERS.medium;
+
   const hdr = backend === 'webgpu' && q.has('hdr') && matchMedia('(dynamic-range: high)').matches;
   const canvas = document.getElementById('gl') as HTMLCanvasElement;
-  const create = (b: Backend) =>
-    new WebGPURenderer({
-      canvas,
-      antialias: false,
-      powerPreference: 'high-performance',
-      forceWebGL: b === 'webgl2',
-      reversedDepthBuffer: true,
-      ...(hdr && b === 'webgpu' ? { outputType: HalfFloatType } : {}),
-    });
+  canvas.tabIndex = 0;
+  const create = (b: Backend): WebGPURenderer => Engine.createRenderer({ canvas, backend: b, tier, hdr });
   // Consensus E1/E3: if WebGPU device creation fails, retry on the WebGL2 backend, then the 2D stub.
   let renderer = create(backend);
   try {
@@ -49,8 +67,8 @@ async function boot(): Promise<void> {
     renderer = create(backend);
     await renderer.init();
   }
-  // PLAN §14.2: mobile GPUs can drop the device (memory pressure, backgrounding). Phase 0 scaffold
-  // reloads once; T2 replaces this with recreate-device + re-upload of resident packs.
+  // PLAN §14.2: mobile GPUs can drop the device (memory pressure, backgrounding). Phase 0 reloads
+  // once; real recovery (recreate device + re-upload packs) is issues.md #5.
   renderer.onDeviceLost = (info: unknown) => {
     console.warn('GPU device lost', info);
     renderer.setAnimationLoop(null);
@@ -62,42 +80,38 @@ async function boot(): Promise<void> {
       stage(1, 'The graphics device was lost. Please reload.');
     }
   };
-  const counters = new FrameCounters(renderer);
 
+  const engine = Engine.fromRenderer(renderer, { canvas, backend, tier, hdr });
   stage(0.25, 'Raising the swell');
-  const [{ createTitleScene }, { mountUi }] = await Promise.all([
-    import('../title/title-scene'),
+  const [{ GameFlow }, { mountUi }, { createAudio }] = await Promise.all([
+    import('../game/flow'),
     import('../ui/mount'),
+    import('../audio'),
+    import('../game/hud.css'),
   ]);
-  const title = createTitleScene(renderer);
+  const post = createPost(renderer, engine.scene, engine.camera, tier);
+  if (post) engine.renderFn = post.render;
+  const input = new Input(canvas);
+  const audio = createAudio();
+  const renderInfo = `${backend === 'webgpu' ? 'WebGPU' : 'WebGL2'} · ${TIER_NAMES[tier.tier]}`;
+  const flow = new GameFlow({ engine, input, audio, hudParent: document.body, renderInfo });
 
-  const resize = () => {
-    const w = window.innerWidth,
-      h = window.innerHeight;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setSize(w, h, false);
-    title.resize(w, h);
-  };
-  resize();
-  window.addEventListener('resize', resize);
-
-  stage(0.7, 'Lighting the lighthouses');
-  await renderer.compileAsync(title.scene, title.camera);
-  renderer.render(title.scene, title.camera);
+  stage(0.55, 'Rigging the brigantine');
+  flow.showTitle();
+  stage(0.75, 'Lighting the lighthouses');
+  await renderer.compileAsync(engine.scene, engine.camera);
+  engine.renderNow();
   await nextFrame();
 
-  mountUi(document.getElementById('ui')!);
+  mountUi(document.getElementById('ui')!, flow);
+  engine.start();
   stage(1, 'Ready');
 
-  const step = new FixedStep(1 / 60);
-  let simTime = 0,
-    last = performance.now(),
-    fps = 60;
   installDebug(
-    counters,
+    engine.counters,
     canvas,
-    () => fps,
-    () => 'title',
+    () => engine.fps,
+    () => flow.getState().screen,
     {
       backend,
       reason: backend === choice.backend ? choice.reason : 'webgpu init failed',
@@ -105,33 +119,22 @@ async function boot(): Promise<void> {
       features: webgpu.features,
     },
   );
-  counters.arm();
-
-  const loop = (now: number) => {
-    const dt = (now - last) / 1000;
-    last = now;
-    if (dt > 0) fps += (1 / dt - fps) * 0.05;
-    step.advance(dt, (h) => (simTime += h));
-    counters.beginFrame();
-    title.update(simTime);
-    renderer.render(title.scene, title.camera);
-    counters.endFrame(simTime);
-  };
-  renderer.setAnimationLoop(loop);
-
-  // PLAN §12.8: nothing renders while the tab is hidden; resume without a time jump.
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      renderer.setAnimationLoop(null);
-    } else {
-      last = performance.now();
-      renderer.setAnimationLoop(loop);
-    }
-  });
+  if (import.meta.env.DEV || q.has('debug')) (window as unknown as { __flow: unknown }).__flow = flow;
 
   const loading = document.getElementById('loading');
   loading?.classList.add('gone');
   setTimeout(() => loading?.remove(), 900);
+}
+
+function readQuality(): string | null {
+  try {
+    const s = JSON.parse(localStorage.getItem('copilot-isles.settings.v1') ?? 'null') as {
+      quality?: string;
+    } | null;
+    return s?.quality ?? null;
+  } catch {
+    return null;
+  }
 }
 
 boot().catch((err) => {

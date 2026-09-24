@@ -21,6 +21,7 @@ const { scene, camera, clock } = engine;
 const t0 = performance.now();
 const cove = await createCove(engine, { vegetation: !q.has('noveg') });
 const buildMs = performance.now() - t0;
+if (q.has('env')) scene.environmentIntensity = Number(q.get('env'));
 const post = q.has('nopost') ? null : createPost(renderer, scene, camera, tier);
 if (post) engine.renderFn = post.render;
 

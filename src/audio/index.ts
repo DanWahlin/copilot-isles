@@ -27,6 +27,8 @@ export interface IslesAudio {
   readonly volumes: VolumeControls;
   onWord: WordCallback | null;
   playVoice(lineId: string): Promise<void>;
+  /** Stops the current voice line (skip) and releases the music duck. */
+  stopVoice(): void;
   update(dt: number): void;
   dispose(): void;
 }
@@ -144,6 +146,10 @@ class IslesAudioImpl implements IslesAudio {
   async playVoice(lineId: string): Promise<void> {
     if (!this.voicePlayer) return;
     await this.voicePlayer.play(lineId, this.onWord);
+  }
+
+  stopVoice(): void {
+    this.voicePlayer?.stop();
   }
 
   update(dt: number): void {

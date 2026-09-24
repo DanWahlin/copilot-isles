@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copilot Isles · UI Dev</title>
+    <link rel="icon" href="data:," />
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #071520;
+      }
+      #backdrop {
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(circle at 72% 52%, rgba(255, 211, 140, 0.34), transparent 16rem),
+          linear-gradient(
+            180deg,
+            rgba(84, 164, 220, 0.95) 0 42%,
+            rgba(19, 98, 132, 0.95) 43% 56%,
+            #071520 100%
+          );
+      }
+      #backdrop::before {
+        content: '';
+        position: absolute;
+        inset: 44% 0 auto;
+        height: 32vh;
+        background:
+          radial-gradient(ellipse at 66% 55%, rgba(238, 218, 160, 0.78), transparent 12rem),
+          linear-gradient(90deg, transparent, rgba(238, 218, 160, 0.46), transparent),
+          repeating-linear-gradient(170deg, rgba(255, 255, 255, 0.16) 0 2px, transparent 2px 22px);
+        clip-path: polygon(0 36%, 18% 32%, 29% 41%, 44% 30%, 58% 39%, 70% 31%, 100% 36%, 100% 100%, 0 100%);
+      }
+      #backdrop::after {
+        content: '⚓';
+        position: absolute;
+        right: 11vw;
+        bottom: 20vh;
+        color: rgba(8, 18, 27, 0.38);
+        font:
+          13rem/1 Georgia,
+          serif;
+        transform: rotate(-10deg);
+      }
+      #ui {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="backdrop" aria-hidden="true"></div>
+    <div id="ui"></div>
+    <script type="module" src="/src/dev/ui.ts"></script>
+  </body>
+</html>

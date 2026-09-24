@@ -215,7 +215,7 @@ export function createSky(renderer: WebGPURenderer, scene: Scene, tier: TierSett
   const hemi = new HemisphereLight(0xffffff, 0x222222, 0.3);
   scene.add(sun, sun.target, hemi);
   // The PMREM sky is the main ambient; the hemisphere light is only a ground-bounce fill.
-  scene.environmentIntensity = 0.38;
+  scene.environmentIntensity = 0.8;
 
   // Height- and sun-aware haze (PLAN §6 Atmosphere), coloured by the sky itself toward the view
   // direction's horizon so distant land and sea melt into the sky (warmer toward a low sun, for free).
@@ -315,6 +315,10 @@ export function createSky(renderer: WebGPURenderer, scene: Scene, tier: TierSett
       forced = true;
     },
     dispose() {
+      scene.remove(sky, nightDome, sun, sun.target, hemi);
+      if (scene.environment === envRT.texture) scene.environment = null;
+      if (scene.fogNode === hazeNode) scene.fogNode = null;
+      sun.dispose();
       envRT.dispose();
       pmrem.dispose();
       sky.geometry.dispose();

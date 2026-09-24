@@ -10,6 +10,7 @@ import {
   screenCoordinate,
   screenUV,
   smoothstep,
+  toneMappingExposure,
   uniform,
   vec2,
   vec4,
@@ -49,8 +50,13 @@ export function createPost(
   const scenePass = pass(scene, camera);
   const hdr = scenePass.getTextureNode('output');
 
-  const bloomNode = tier.bloom ? bloom(hdr, 0.16, 0.45, 0.92) : null;
-  const lit = bloomNode ? hdr.add(bloomNode) : hdr;
+  // Bloom works on exposure-scaled colour, so the threshold means "brighter than display white"
+  // rather than "brighter than 1 in raw HDR" (which caught the whole daytime sky and washed out
+  // anything near the sun). The clamp stops the sun disc from blooming into a huge halo.
+  const exposure = toneMappingExposure as unknown as Node<'float'>;
+  const exposed = hdr.rgb.mul(exposure).min(4);
+  const bloomNode = tier.bloom ? bloom(vec4(exposed, 1), 0.14, 0.4, 1.05) : null;
+  const lit = bloomNode ? hdr.add(vec4(bloomNode.rgb.div(exposure), 0)) : hdr;
   const ldr = renderOutput(lit);
 
   const uVibrance = uniform(0.22);

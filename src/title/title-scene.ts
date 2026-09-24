@@ -1,70 +1,79 @@
-import {
-  AgXToneMapping,
-  BackSide,
-  Color,
-  DirectionalLight,
-  FogExp2,
-  HemisphereLight,
-  Mesh,
-  MeshBasicNodeMaterial,
-  MeshStandardNodeMaterial,
-  PerspectiveCamera,
-  PlaneGeometry,
-  Scene,
-  SphereGeometry,
-  type WebGPURenderer,
-} from 'three/webgpu';
-import { Fn, color, mix, positionLocal, pow, saturate } from 'three/tsl';
+import { Vector3 } from 'three/webgpu';
+import type { Engine } from '../engine/engine';
+import { createOcean } from '../world/ocean/ocean';
+import { createSky } from '../world/sky/sky-system';
+import { createDistantRanges } from '../world/terrain/distant-ranges';
+import { createBrigantine, type BrigantineEnv } from '../world/ship';
 
-export interface TitleScene {
-  scene: Scene;
-  camera: PerspectiveCamera;
-  update(t: number): void;
-  resize(width: number, height: number): void;
+export interface TitleBackdrop {
+  dispose(): void;
 }
 
 /**
- * Phase 0 scaffold placeholder for the title (PLAN §13.5 contents). T4/T5 replace the sky and
- * ocean with the real systems; this only proves TSL on both backends, the chunk split, and counters.
+ * The title backdrop (PLAN §13.5, POC §3.1): open ocean, sky, and your brigantine at anchor,
+ * swinging gently on its rope, with distant ranges in the haze and a slow golden-hour orbit.
+ * No island mesh, so the title stays inside its budget; Anchorage Cay streams after New Voyage.
+ * The ship sits right of centre so the menu column on the left stays clear.
  */
-export function createTitleScene(renderer: WebGPURenderer): TitleScene {
-  renderer.toneMapping = AgXToneMapping;
-  const scene = new Scene();
-  scene.fog = new FogExp2(new Color(0x9fb8c8), 0.0009);
+export function createTitleBackdrop(engine: Engine): TitleBackdrop {
+  const { renderer, scene, tier, camera, clock } = engine;
+  const sky = createSky(renderer, scene, tier);
+  const ocean = createOcean({ tier, env: sky.env });
+  const ranges = createDistantRanges();
+  const ship = createBrigantine({ tier: tier.tier });
+  const anchor = { x: 0, z: 0, heading: 2.3 };
+  ship.dynamics.reset(anchor.x, anchor.z, anchor.heading);
+  scene.add(ocean.mesh, ranges, ship.group);
+  const shipEnv: BrigantineEnv = { waves: ocean.field, ground: null, obstacles: [], t: 0 };
 
-  const camera = new PerspectiveCamera(50, 16 / 9, 0.3, 6000);
-  camera.position.set(0, 6, 30);
-  camera.lookAt(0, 3, -100);
+  clock.set(17.1, -35);
+  sky.invalidate();
+  camera.fov = 42;
+  camera.updateProjectionMatrix();
 
-  // TSL sky gradient: one node graph that compiles to WGSL (WebGPU) or GLSL (WebGL2 backend).
-  const skyColor = Fn(() => {
-    const h = saturate(positionLocal.normalize().y);
-    return mix(color(1.0, 0.72, 0.48), color(0.16, 0.34, 0.62), pow(h, 0.45));
-  });
-  const skyMat = new MeshBasicNodeMaterial({ side: BackSide, depthWrite: false, fog: false });
-  skyMat.colorNode = skyColor();
-  scene.add(new Mesh(new SphereGeometry(4000, 32, 16), skyMat));
+  const focus = new Vector3();
+  const look = new Vector3();
+  let orbit = 0.35;
+  const remove = engine.add(
+    {
+      frame(dt, t) {
+        // Swing on the anchor rope: slow yaw and a little drift around the anchor.
+        const pose = ship.dynamics.pose;
+        pose.heading = anchor.heading + Math.sin(t * 0.07) * 0.22 + Math.sin(t * 0.023) * 0.12;
+        pose.x = anchor.x + Math.sin(t * 0.05) * 1.2;
+        pose.z = anchor.z + Math.cos(t * 0.04) * 1.0;
+        shipEnv.t = t;
+        ship.update(dt, t, shipEnv);
 
-  const sea = new Mesh(
-    new PlaneGeometry(8000, 8000, 1, 1).rotateX(-Math.PI / 2),
-    new MeshStandardNodeMaterial({ color: 0x0f4a66, roughness: 0.25, metalness: 0 }),
+        orbit += dt * 0.012;
+        const r = 58;
+        camera.position.set(Math.sin(orbit) * r, 7.5 + Math.sin(t * 0.11) * 0.4, Math.cos(orbit) * r);
+        // Aim left of the ship so it sits right of centre, clear of the menu column.
+        const sx = Math.cos(orbit),
+          sz = -Math.sin(orbit);
+        look.set(anchor.x - sx * 14, 9, anchor.z - sz * 14);
+        camera.lookAt(look);
+
+        ocean.update(camera);
+        focus.set(camera.position.x, 0, camera.position.z);
+        sky.update(clock, focus);
+      },
+    },
+    true,
   );
-  scene.add(sea);
-
-  const sun = new DirectionalLight(0xffd2a0, 2.2);
-  sun.position.set(-300, 120, -600);
-  scene.add(sun, new HemisphereLight(0x9cc4ff, 0x0b2230, 0.6));
 
   return {
-    scene,
-    camera,
-    update(t) {
-      camera.position.x = Math.sin(t * 0.05) * 6;
-      camera.lookAt(0, 3, -100);
-    },
-    resize(width, height) {
-      camera.aspect = width / Math.max(1, height);
-      camera.updateProjectionMatrix();
+    dispose() {
+      remove();
+      scene.remove(ocean.mesh, ranges, ship.group);
+      ship.dispose();
+      ocean.dispose();
+      sky.dispose();
+      ranges.traverse((o) => {
+        const m = o as { geometry?: { dispose(): void }; material?: { dispose(): void } };
+        m.geometry?.dispose();
+        m.material?.dispose();
+      });
     },
   };
 }

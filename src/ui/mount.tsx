@@ -1,6 +1,55 @@
-import { createRoot } from 'react-dom/client';
+import { createRoot, type Root } from 'react-dom/client';
 import { TitleMenu } from './TitleMenu';
+import { DEFAULT_SETTINGS, type GameBridge, type UiState } from './bridge';
+import './ui.css';
 
-export function mountUi(el: HTMLElement): void {
-  createRoot(el).render(<TitleMenu />);
+function fallbackBridge(): GameBridge {
+  let state: UiState = {
+    screen: 'title',
+    returnTo: 'title',
+    progress: { value: 0, message: 'Ready' },
+    hasSave: false,
+    captain: 'man',
+    settings: DEFAULT_SETTINGS,
+    chart: null,
+    renderInfo: 'Title preview',
+  };
+  const listeners = new Set<(state: UiState) => void>();
+  const setState = (patch: Partial<UiState>) => {
+    state = { ...state, ...patch };
+    for (const listener of listeners) listener(state);
+  };
+  const open = (screen: UiState['screen']) => setState({ screen, returnTo: state.screen });
+  return {
+    getState: () => state,
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    chooseCaptain: () => open('captain'),
+    newVoyage: (captain) =>
+      setState({
+        captain,
+        screen: 'voyage-loading',
+        progress: { value: 0.35, message: 'Charting the cove' },
+      }),
+    continueVoyage: () => setState({ screen: 'playing' }),
+    resume: () => setState({ screen: 'playing' }),
+    pause: () => setState({ screen: 'paused', returnTo: 'playing' }),
+    openChart: () => open('chart'),
+    openSettings: () => open('settings'),
+    openControls: () => open('controls'),
+    openCredits: () => open('credits'),
+    back: () => setState({ screen: state.returnTo }),
+    travelTo: () => setState({ screen: state.returnTo }),
+    quitToTitle: () => setState({ screen: 'title', returnTo: 'title' }),
+    updateSettings: (patch) => setState({ settings: { ...state.settings, ...patch } }),
+  };
+}
+
+export function mountUi(el: HTMLElement, bridge: GameBridge): () => void;
+export function mountUi(el: HTMLElement, bridge: GameBridge = fallbackBridge()): () => void {
+  const root: Root = createRoot(el);
+  root.render(<TitleMenu bridge={bridge} />);
+  return () => root.unmount();
 }

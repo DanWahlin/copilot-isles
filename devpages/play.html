@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copilot Isles · Test Cove Play</title>
+    <link rel="icon" href="data:," />
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #06121b;
+        font-family: Georgia, 'Times New Roman', serif;
+        color: #f6ecd6;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        outline: none;
+      }
+      #start {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(ellipse at 50% 40%, rgb(6 18 27 / 35%), rgb(6 18 27 / 78%));
+        transition: opacity 0.6s ease;
+      }
+      #start.hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .card {
+        width: min(30rem, 88vw);
+        padding: 2.2rem 2.4rem 2rem;
+        border-radius: 1.2rem;
+        background: rgb(10 22 32 / 62%);
+        border: 1px solid rgb(232 200 138 / 30%);
+        backdrop-filter: blur(14px) saturate(1.2);
+        box-shadow: 0 20px 60px rgb(0 0 0 / 35%);
+        text-align: center;
+      }
+      .card h1 {
+        margin: 0 0 0.2em;
+        font-weight: 300;
+        font-size: 2rem;
+        letter-spacing: 0.08em;
+      }
+      .card p {
+        margin: 0 0 1.4rem;
+        color: rgb(246 236 214 / 70%);
+        font-style: italic;
+      }
+      .choices {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+        margin-bottom: 1.4rem;
+      }
+      .choices button,
+      #go {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+        border-radius: 0.8rem;
+        border: 1px solid rgb(232 200 138 / 30%);
+        background: rgb(255 255 255 / 5%);
+        padding: 0.9rem 0.6rem;
+        letter-spacing: 0.04em;
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease;
+      }
+      .choices button[aria-pressed='true'] {
+        border-color: #e8c88a;
+        background: rgb(232 200 138 / 16%);
+      }
+      #go {
+        width: 100%;
+        background: linear-gradient(#f3dfb2, #d8b877);
+        color: #1d2a33;
+        border: 0;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+      }
+      #go:disabled {
+        opacity: 0.5;
+        cursor: progress;
+      }
+      #stats {
+        position: fixed;
+        left: 12px;
+        top: 10px;
+        z-index: 6;
+        color: #b9d8e5;
+        font:
+          11px/1.4 ui-monospace,
+          Menlo,
+          monospace;
+        white-space: pre;
+        text-shadow: 0 1px 3px #000;
+        pointer-events: none;
+      }
+      body.shot #stats {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gl" tabindex="0"></canvas>
+    <div id="stats"></div>
+    <div id="start">
+      <div class="card">
+        <h1>Test Cove</h1>
+        <p>Choose your captain</p>
+        <div class="choices">
+          <button data-body="man" aria-pressed="true">Captain</button>
+          <button data-body="woman" aria-pressed="false">Captain Anne</button>
+        </div>
+        <button id="go" disabled>Loading the cove…</button>
+      </div>
+    </div>
+    <script type="module" src="/src/dev/play.ts"></script>
+  </body>
+</html>

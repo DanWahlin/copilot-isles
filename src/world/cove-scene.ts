@@ -1,4 +1,4 @@
-import { Vector3, type Group, type Mesh } from 'three/webgpu';
+import { Vector3, type Group, type Mesh, type Object3D } from 'three/webgpu';
 import type { Engine } from '../engine/engine';
 import { createOcean, type Ocean } from './ocean/ocean';
 import { createSky, type SkySystem } from './sky/sky-system';
@@ -9,6 +9,9 @@ import { createTerrain, type CreatedTerrain } from './terrain/terrain-mesh';
 import { COVE } from './layout';
 import { createBrigantine, type Brigantine } from './ship';
 import { createVegetation, type VegetationSystem } from './vegetation';
+import { createVillage, type VillageSystem } from './village';
+import { createBirds, type BirdsSystem } from './life/birds';
+import { villageExclusion } from './village-exclusion';
 
 export interface CoveScene {
   sky: SkySystem;
@@ -18,6 +21,8 @@ export interface CoveScene {
   ranges: Group;
   vegetation: VegetationSystem | null;
   ship: Brigantine;
+  village: VillageSystem;
+  birds: BirdsSystem | null;
   dispose(): void;
 }
 
@@ -25,6 +30,7 @@ export interface CoveOptions {
   /** Base URL for packs (dev: '/packs', built: './packs'). */
   packBase?: string;
   vegetation?: boolean;
+  birds?: boolean;
   onProgress?: (p: number, msg: string) => void;
 }
 
@@ -48,6 +54,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const ranges = createDistantRanges();
   scene.add(terrain.group, foam, ranges);
 
+  report(0.5, 'Building the harbor');
+  const village = await createVillage({ tier, heightField: terrain.heightField });
+  scene.add(village.group);
+
   let vegetation: VegetationSystem | null = null;
   if (o.vegetation !== false) {
     report(0.6, 'Planting palms');
@@ -56,6 +66,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       heightGrid: terrain.heightGrid,
       tier,
       renderer,
+      exclude: villageExclusion(village),
     });
     scene.add(vegetation.group);
   }
@@ -64,16 +75,29 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const ship = createBrigantine({ tier: tier.tier });
   ship.dynamics.reset(COVE.mooring.x, COVE.mooring.z, COVE.mooring.heading);
   scene.add(ship.group);
-  const shipEnv = { waves: ocean.field, ground: terrain.heightField, obstacles: [], t: 0 };
+  const shipEnv = { waves: ocean.field, ground: terrain.heightField, obstacles: village.shipObstacles, t: 0 };
+
+  let birds: BirdsSystem | null = null;
+  if (o.birds !== false && tier.birds > 0) {
+    birds = createBirds({
+      tier,
+      perches: village.perches,
+      center: new Vector3(COVE.harbor.center.x, 0, COVE.harbor.center.z + 40),
+      radius: 220,
+    });
+    scene.add(birds.group);
+  }
 
   const focus = new Vector3();
-  engine.add({
+  const removeSystem = engine.add({
     frame(dt, t) {
       ocean.update(camera);
       shipEnv.t = t;
       ship.update(dt, t, shipEnv);
       terrain.update(camera);
       vegetation?.update(camera);
+      village.update(dt, t, camera);
+      birds?.update(dt, t, camera);
       focus.set(camera.position.x, 0, camera.position.z);
       sky.update(clock, focus);
     },
@@ -88,7 +112,17 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     ranges,
     vegetation,
     ship,
+    village,
+    birds,
     dispose() {
+      removeSystem();
+      scene.remove(ocean.mesh, terrain.group, foam, ranges, village.group, ship.group);
+      if (vegetation) scene.remove(vegetation.group);
+      if (birds) scene.remove(birds.group);
+      disposeTree(foam);
+      disposeTree(ranges);
+      birds?.dispose();
+      village.dispose();
       ship.dispose();
       vegetation?.dispose();
       terrain.dispose();
@@ -96,4 +130,12 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       sky.dispose();
     },
   };
+}
+
+function disposeTree(root: Object3D): void {
+  root.traverse((o) => {
+    const m = o as Object3D & { geometry?: { dispose(): void }; material?: { dispose(): void } };
+    m.geometry?.dispose();
+    m.material?.dispose();
+  });
 }

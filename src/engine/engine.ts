@@ -80,8 +80,10 @@ export class Engine {
     return e;
   }
 
-  add(s: System): () => void {
-    this.systems.push(s);
+  /** Registers a system. `first` runs it before the others (e.g. the camera, before camera-dependent systems). */
+  add(s: System, first = false): () => void {
+    if (first) this.systems.unshift(s);
+    else this.systems.push(s);
     return () => {
       const i = this.systems.indexOf(s);
       if (i >= 0) this.systems.splice(i, 1);

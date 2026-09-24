@@ -21,8 +21,11 @@ export const COVE = {
   quay: { x0: -150, x1: -70, z: -72, height: 2.4 },
   pier: { x: -108, z0: -72, z1: -122, width: 4, deck: 1.8 },
   village: { center: { x: -115, z: -45 }, radius: 32, height: 3.2 },
-  /** Where the brigantine moors (bow pointing east), alongside the pier. */
-  mooring: { x: -96, z: -110, heading: Math.PI / 2 },
+  /**
+   * Where the brigantine moors: alongside the pier's east face, bow north toward the harbor mouth,
+   * clear of the boathouse (z −93…−100). At heading π the port rail (ship-local +x) faces the pier.
+   */
+  mooring: { x: -102.2, z: -112.5, heading: Math.PI },
   /** Two small moored boats in the basin. */
   boats: [
     { x: -135, z: -118, heading: 0.4 },
