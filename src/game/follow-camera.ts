@@ -1,6 +1,6 @@
 import type { PerspectiveCamera } from 'three/webgpu';
 import type { CollisionWorld } from './collision';
-import { wrapAngle } from './player-controller';
+import { wrapAngle } from '../util/math';
 
 export interface CameraRig {
   /** Distance limits and the default. */

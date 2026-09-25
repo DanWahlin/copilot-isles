@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { HeightField } from '../world/contracts';
 import { CollisionWorld } from './collision';
-import { PlayerController, wrapAngle } from './player-controller';
+import { wrapAngle } from '../util/math';
+import { PlayerController } from './player-controller';
 
 /** Beach sloping into the sea along +z (sea level 0 at z = 20), a 3 m cliff at x > 30. */
 const ground: HeightField = {

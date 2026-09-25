@@ -8,6 +8,7 @@ import type { CoveScene } from '../world/cove-scene';
 import { COVE } from '../world/layout';
 import { CollisionWorld, type SurfaceKind, type WalkSurface } from './collision';
 import { Dialogue } from './dialogue';
+import { FootstepPuffs } from './footstep-puffs';
 import { FollowCamera, SAIL_RIG, WALK_RIG } from './follow-camera';
 import { Helm } from './helm';
 import { Hud } from './hud';
@@ -142,6 +143,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   hero.group.position.set(player.x, player.y, player.z);
   hero.group.rotation.y = player.heading;
   engine.scene.add(hero.group);
+  const footstepPuffs = new FootstepPuffs();
+  footstepPuffs.addTo(engine.scene);
 
   const npcs = new NpcCrowd(
     o.characters,
@@ -495,6 +498,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     input.enabled = true;
     await hud.fade(false);
     hud.toast('Raise the sails with W. Steer with A and D.', 4);
+    audio?.music.setIsland('harbour');
     audio?.music.setLayer('explore', true);
   }
 
@@ -533,6 +537,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     mode = 'walk';
     input.enabled = true;
     await hud.fade(false);
+    audio?.music.setIsland('anchorage');
     audio?.music.setLayer('explore', false);
   }
 
@@ -543,6 +548,23 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     if (kind === 'stone') return 'rock';
     if (kind === 'sand') return player.waterY - player.y > -0.18 ? 'wetsand' : 'sand';
     return kind;
+  };
+  let stepSide = 1;
+  const puffFootstep = (intensity = 1) => {
+    stepSide *= -1;
+    const side = stepSide * 0.17;
+    const forward = player.speed > 2.8 ? 0.18 : 0.08;
+    const s = Math.sin(player.heading);
+    const c = Math.cos(player.heading);
+    const surface = player.mode === 'wade' ? 'water' : player.surface;
+    footstepPuffs.spawn(
+      player.x + c * side + s * forward,
+      surface === 'water' ? Math.max(player.y, player.waterY) : player.y,
+      player.z - s * side + c * forward,
+      surface,
+      player.heading,
+      intensity,
+    );
   };
 
   let anim: 'move' | 'wade' = 'move';
@@ -608,11 +630,17 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           hero.group.position.set(player.x, player.y, player.z);
           hero.group.rotation.y = player.heading;
           const sp = player.speed;
+          hero.setGrounding({
+            mode: player.mode,
+            verticalSpeed: player.vy,
+            landed: player.landed,
+            groundAt: (x, z) => world.groundAt(x, z),
+          });
           const wading = player.mode === 'wade' && sp > 0.15;
           if (wading && anim !== 'wade') hero.play('wade');
           else if (!wading && anim === 'wade') hero.play('idle');
           anim = wading ? 'wade' : 'move';
-          if (!wading) hero.setSpeed(sp);
+          hero.setSpeed(sp);
 
           if (player.mode !== 'air' && sp > 0.3) {
             stride += sp * dt;
@@ -620,9 +648,13 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
             if (stride > len) {
               stride -= len;
               audio?.sfx.footstep(footstep(player.surface), player);
+              puffFootstep(sp > 3 ? 1.25 : 0.9);
             }
           }
-          if (player.landed) audio?.sfx.footstep(footstep(player.surface), player);
+          if (player.landed) {
+            audio?.sfx.footstep(footstep(player.surface), player);
+            puffFootstep(1.35);
+          }
 
           const focus = interactions.update(player.x, player.y, player.z, player.heading);
           hud.setPrompt(dialogue.active ? null : (focus?.label() ?? null));
@@ -644,6 +676,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
         hero.update(dt);
         npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
+        footstepPuffs.update(dt);
         for (const c of chests) c.chest.update(dt, t);
         for (const p of puzzles) p.update(dt, t);
         let term: PuzzleTerminal | null = null;
@@ -751,6 +784,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       npcs.dispose();
       hero.group.removeFromParent();
       hero.dispose();
+      footstepPuffs.dispose();
       hud.dispose();
     },
   };

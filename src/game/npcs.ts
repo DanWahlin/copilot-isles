@@ -4,7 +4,7 @@ import type { Character, CharacterClip, CharacterLibrary, NpcId } from '../world
 import type { CircleObstacle } from '../world/contracts';
 import type { VillageAnchor } from '../world/village';
 import type { CollisionWorld } from './collision';
-import { wrapAngle } from './player-controller';
+import { wrapAngle } from '../util/math';
 
 export interface NpcSpec {
   id: NpcId;

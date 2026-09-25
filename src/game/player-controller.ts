@@ -1,4 +1,5 @@
 import type { CollisionWorld, SurfaceKind } from './collision';
+import { smoothstep, wrapAngle } from '../util/math';
 
 export interface MoveIntent {
   /** Strafe right (+) / left (−), camera-relative. */
@@ -33,10 +34,10 @@ export interface PlayerTuning {
 export const DEFAULT_TUNING: PlayerTuning = {
   radius: 0.36,
   walkSpeed: 1.75,
-  runSpeed: 4.6,
-  accel: 9,
-  decel: 12,
-  turnRate: 11,
+  runSpeed: 4.45,
+  accel: 7.6,
+  decel: 10.5,
+  turnRate: 9.4,
   stepUp: 0.55,
   stepDown: 0.7,
   minSlopeY: 0.74,
@@ -121,7 +122,14 @@ export class PlayerController {
     if (moving) {
       const target = Math.atan2(wx, wz);
       const d = wrapAngle(target - this.heading);
-      this.heading = wrapAngle(this.heading + d * (1 - Math.exp(-T.turnRate * dt)));
+      const pivot = Math.abs(d) > 1.25 && this.speed < T.walkSpeed * 0.75;
+      const turnRate = T.turnRate * (pivot ? 1.65 : 1);
+      this.heading = wrapAngle(this.heading + d * (1 - Math.exp(-turnRate * dt)));
+      if (!air && Math.abs(d) > 1.75 && this.speed > T.walkSpeed) {
+        const settle = 1 - Math.exp(-5.5 * dt);
+        this.vx *= 1 - settle * 0.28;
+        this.vz *= 1 - settle * 0.28;
+      }
     }
 
     // Horizontal move with collision, then walkability (step, slope, depth) with axis sliding.
@@ -185,15 +193,4 @@ export class PlayerController {
     this.z = gz;
     return true;
   }
-}
-
-export function wrapAngle(a: number): number {
-  a = (a + Math.PI) % (Math.PI * 2);
-  if (a < 0) a += Math.PI * 2;
-  return a - Math.PI;
-}
-
-function smoothstep(a: number, b: number, x: number): number {
-  const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
 }

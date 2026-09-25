@@ -1,91 +1,46 @@
-import {
-  AnimationAction,
-  AnimationClip,
-  AnimationMixer,
-  Bone,
-  Color,
-  Group,
-  LoopRepeat,
-  Material,
-  Mesh,
-  Object3D,
-  SkinnedMesh,
-  Vector3,
-} from 'three/webgpu';
+import { AnimationClip, Color, Group, Material, Mesh, SkinnedMesh } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { packs } from '../../engine/packs';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
-import type { TierSettings } from '../../engine/quality';
-import { ANNE_HAT_SWATCHES, ANNE_TRICORN_FIT, createTricornGeometry } from './tricorn';
+import { packs } from '../../engine/packs';
+import { cloneClipWithUserData, loadClipPack } from './loco-pack';
+import { addTricorn, stowPlayerWeapon } from './props';
+import { RuntimeCharacter } from './runtime-character';
+import {
+  CHARACTER_BODIES,
+  CHARACTER_CLIPS,
+  PLAYER_BODIES,
+  type BodyConfig,
+  type Character,
+  type CharacterBody,
+  type CharacterClip,
+  type CharacterCreateOptions,
+  type CharacterLibrary,
+  type PlayerBody,
+  type SourceKey,
+} from './types';
 
-export const PLAYER_BODIES = ['man', 'woman'] as const;
-export const NPC_IDS = [
-  'nell',
-  'dockhand_a',
-  'dockhand_b',
-  'fisherman',
-  'merchant',
-  'lookout',
-  'child',
-  'old_sailor',
-  'suri',
-  'pim',
-  'pol',
-  'juno',
-  'lyra',
-] as const;
-export const CHARACTER_BODIES = [...PLAYER_BODIES, ...NPC_IDS] as const;
-export const CHARACTER_CLIPS = ['idle', 'walk', 'run', 'talk', 'wave', 'sit', 'helm', 'wade'] as const;
+export {
+  CHARACTER_BODIES,
+  CHARACTER_CLIPS,
+  type Character,
+  type CharacterBody,
+  type CharacterClip,
+  type CharacterLibrary,
+  type NpcId,
+  type PlayerBody,
+} from './types';
 
-export type PlayerBody = (typeof PLAYER_BODIES)[number];
-export type NpcId = (typeof NPC_IDS)[number];
-export type CharacterBody = (typeof CHARACTER_BODIES)[number];
-export type CharacterClip = (typeof CHARACTER_CLIPS)[number];
-export type LookTarget = Vector3 | Object3D | null;
-
-export interface CharacterCreateOptions {
-  body: CharacterBody;
-  /** Player palette 0-3; NPCs use role defaults plus this optional tint offset. */
-  variant?: number;
-  /** Pass the runtime tier so NPC mixers can be throttled on Low/Lite. */
-  tier?: Pick<TierSettings, 'npcAnimRate' | 'tier'>;
-  /** Optional camera/player object for distance-based NPC mixer throttling. */
-  updateTarget?: Object3D;
-}
-
-export interface Character {
-  readonly group: Group;
-  play(clip: CharacterClip, fade?: number): void;
-  setSpeed(mps: number): void;
-  lookAt(target: LookTarget): void;
-  update(dt: number): void;
-  readonly capsule: { readonly radius: number; readonly height: number };
-  dispose(): void;
-}
-
-export interface CharacterLibrary {
-  readonly clips: readonly CharacterClip[];
-  readonly bodies: readonly CharacterBody[];
-  create(options: CharacterCreateOptions): Character;
-  dispose(): void;
-}
-
-type SourceKey = 'captain' | 'anne' | 'henry' | 'farmer' | 'lis' | 'worker' | 'adventurer';
+/**
+ * The character library (Phase 0 T11): loads the Quaternius source models and the baked locomotion
+ * packs once, then clones a tinted, rigged character per body on demand.
+ */
 
 interface SourceAsset {
   readonly key: SourceKey;
   readonly file: string;
   readonly scene: Group;
   readonly clips: ReadonlyMap<CharacterClip, AnimationClip>;
-}
-
-interface BodyConfig {
-  readonly source: SourceKey;
-  readonly scale: number;
-  readonly radius: number;
-  readonly height: number;
-  readonly tint: number;
 }
 
 const SOURCES: readonly { readonly key: SourceKey; readonly file: string }[] = [
@@ -118,23 +73,25 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
 };
 
 const PLAYER_VARIANTS = [0xffffff, 0xe8f5ff, 0xffeee4, 0xebffe4] as const;
-const WALK_STRIDE_METERS = 1.15;
-const RUN_STRIDE_METERS = 2.05;
-const WALK_SPEED = 1.35;
-const RUN_SPEED = 3.8;
 const TEMP_COLOR = new Color();
 
 export async function loadCharacterLibrary(base = '/packs/testcove/characters'): Promise<CharacterLibrary> {
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
   const root = base.endsWith('/') ? base : `${base}/`;
+  const locomotion = await loadLocomotionPacks(root);
   const loaded = await Promise.all(
     SOURCES.map(async ({ key, file }) => {
       const gltf = await loader.loadAsync(packs.url(`${root}${file}`));
       const scene = gltf.scene;
       scene.name = `source_${key}`;
       prepareSourceScene(scene);
-      return { key, file, scene, clips: normalizeClips(gltf.animations) } satisfies SourceAsset;
+      return {
+        key,
+        file,
+        scene,
+        clips: normalizeClips(gltf.animations, locomotion.get(key)),
+      } satisfies SourceAsset;
     }),
   );
   return new CharacterLibraryImpl(new Map(loaded.map((asset) => [asset.key, asset])));
@@ -158,6 +115,7 @@ class CharacterLibraryImpl implements CharacterLibrary {
     cloneCharacterMaterials(clone, tintFor(body, config, options.variant ?? 0));
     // The Anne model is bare-headed; as a captain she wears a tricorn like the Captain's.
     if (body === 'woman') addTricorn(clone);
+    if (body === 'man' || body === 'woman') stowPlayerWeapon(clone, body);
     return new RuntimeCharacter(clone, source.clips, body, config, options);
   }
 
@@ -173,148 +131,6 @@ class CharacterLibraryImpl implements CharacterLibrary {
   }
 }
 
-class RuntimeCharacter implements Character {
-  readonly capsule: { readonly radius: number; readonly height: number };
-
-  private readonly mixer: AnimationMixer;
-  private readonly actions = new Map<CharacterClip, AnimationAction>();
-  private readonly head: Bone | null;
-  private readonly neck: Bone | null;
-  private readonly targetWorld = new Vector3();
-  private readonly lookWorld = new Vector3();
-  private lookTarget: LookTarget = null;
-  private readonly npc: boolean;
-  private readonly npcAnimRate: number;
-  private readonly updateTarget: Object3D | null;
-  private throttledDt = 0;
-
-  constructor(
-    readonly group: Group,
-    clips: ReadonlyMap<CharacterClip, AnimationClip>,
-    body: CharacterBody,
-    config: BodyConfig,
-    options: CharacterCreateOptions,
-  ) {
-    this.npc = !PLAYER_BODIES.includes(body as PlayerBody);
-    this.npcAnimRate = Math.max(0.1, options.tier?.npcAnimRate ?? 1);
-    this.updateTarget = options.updateTarget ?? null;
-    this.capsule = { radius: config.radius * config.scale, height: config.height * config.scale };
-    this.mixer = new AnimationMixer(group);
-    for (const clipName of CHARACTER_CLIPS) {
-      const clip = clips.get(clipName);
-      if (!clip) continue;
-      const action = this.mixer.clipAction(clip);
-      action.loop = LoopRepeat;
-      action.enabled = true;
-      action.setEffectiveWeight(clipName === 'idle' ? 1 : 0);
-      action.play();
-      this.actions.set(clipName, action);
-    }
-    this.head =
-      group.getObjectByName('Head') instanceof Bone ? (group.getObjectByName('Head') as Bone) : null;
-    this.neck =
-      group.getObjectByName('Neck') instanceof Bone ? (group.getObjectByName('Neck') as Bone) : null;
-    this.mixer.update(0.001);
-  }
-
-  play(clip: CharacterClip, fade = 0.22): void {
-    if (!this.actions.has(clip)) return;
-    for (const [name, action] of this.actions) fadeAction(action, name === clip ? 1 : 0, fade);
-    if (clip === 'wade') this.actions.get('wade')?.setEffectiveTimeScale(0.55);
-  }
-
-  setSpeed(mps: number): void {
-    const speed = Math.max(0, Number.isFinite(mps) ? mps : 0);
-    const idle = this.actions.get('idle');
-    const walk = this.actions.get('walk');
-    const run = this.actions.get('run');
-    if (!idle || !walk || !run) return;
-    const runWeight = smoothstep(WALK_SPEED, RUN_SPEED, speed);
-    const walkWeight = smoothstep(0.08, WALK_SPEED, speed) * (1 - runWeight);
-    const idleWeight = Math.max(0, 1 - walkWeight - runWeight);
-    fadeAction(idle, idleWeight, 0.18);
-    fadeAction(walk, walkWeight, 0.18);
-    fadeAction(run, runWeight, 0.18);
-    for (const [name, action] of this.actions) {
-      if (name !== 'idle' && name !== 'walk' && name !== 'run') fadeAction(action, 0, 0.18);
-    }
-    syncStride(walk, speed, WALK_STRIDE_METERS);
-    syncStride(run, speed, RUN_STRIDE_METERS);
-  }
-
-  lookAt(target: LookTarget): void {
-    this.lookTarget = target;
-  }
-
-  update(dt: number): void {
-    const step = this.animationStep(dt);
-    if (step > 0) this.mixer.update(step);
-    this.applyLookAt();
-  }
-
-  dispose(): void {
-    this.mixer.stopAllAction();
-    this.group.traverse((object) => {
-      if (object instanceof Mesh) disposeOwnedMaterial(object.material);
-      if (object instanceof Mesh && object.userData.ownedGeometry) object.geometry.dispose();
-    });
-  }
-
-  private animationStep(dt: number): number {
-    if (!this.npc) return dt;
-    this.throttledDt += dt;
-    const interval = this.npcInterval();
-    if (this.throttledDt < interval) return 0;
-    const step = this.throttledDt;
-    this.throttledDt = 0;
-    return step;
-  }
-
-  private npcInterval(): number {
-    let interval = 1 / 60 / this.npcAnimRate;
-    if (!this.updateTarget) return interval;
-    this.updateTarget.getWorldPosition(this.targetWorld);
-    const distanceSq = this.group.position.distanceToSquared(this.targetWorld);
-    if (distanceSq > 170 * 170) return Math.max(interval, 0.5);
-    if (distanceSq > 95 * 95) interval = Math.max(interval, 1 / 10);
-    else if (distanceSq > 55 * 55) interval = Math.max(interval, 1 / 20);
-    return interval;
-  }
-
-  private applyLookAt(): void {
-    if (!this.lookTarget || (!this.head && !this.neck)) return;
-    if (this.lookTarget instanceof Object3D) this.lookTarget.getWorldPosition(this.lookWorld);
-    else this.lookWorld.copy(this.lookTarget);
-    if (this.neck) this.neck.lookAt(this.lookWorld);
-    if (this.head) this.head.lookAt(this.lookWorld);
-  }
-}
-
-/**
- * Hangs a tricorn on the Head bone so it follows every nod and look. It reuses the body's atlas
- * material, so it shares the program the rigid weapon meshes already compile (+1 draw, +0 programs).
- */
-function addTricorn(root: Group): void {
-  const head = root.getObjectByName('Head');
-  let body: SkinnedMesh | null = null;
-  root.traverse((o) => {
-    if (!body && o instanceof SkinnedMesh) body = o;
-  });
-  if (!(head instanceof Bone) || !body) return;
-  const skinned: SkinnedMesh = body;
-  root.updateMatrixWorld(true);
-  const headScale = head.getWorldScale(new Vector3()).x;
-  const rootScale = root.getWorldScale(new Vector3()).x;
-  const hat = new Mesh(createTricornGeometry(ANNE_TRICORN_FIT, ANNE_HAT_SWATCHES), skinned.material);
-  hat.name = 'captain tricorn';
-  hat.userData.ownedGeometry = true;
-  // Author in metres: undo the armature's scale between the root and the Head bone.
-  hat.scale.setScalar(rootScale / headScale);
-  hat.castShadow = true;
-  hat.receiveShadow = true;
-  head.add(hat);
-}
-
 function prepareSourceScene(scene: Group): void {
   scene.traverse((object) => {
     if (object instanceof Mesh) {
@@ -325,14 +141,35 @@ function prepareSourceScene(scene: Group): void {
   });
 }
 
-function normalizeClips(clips: readonly AnimationClip[]): Map<CharacterClip, AnimationClip> {
+async function loadLocomotionPacks(
+  root: string,
+): Promise<Map<SourceKey, ReadonlyMap<CharacterClip, AnimationClip>>> {
+  const [captain, anne] = await Promise.all([
+    loadClipPack(`${root}locomotion-captain.loco`),
+    loadClipPack(`${root}locomotion-anne.loco`),
+  ]);
+  const packs = new Map<SourceKey, ReadonlyMap<CharacterClip, AnimationClip>>();
+  if (captain.size) packs.set('captain', captain);
+  if (anne.size) packs.set('anne', anne);
+  return packs;
+}
+
+function normalizeClips(
+  clips: readonly AnimationClip[],
+  locomotion?: ReadonlyMap<CharacterClip, AnimationClip>,
+): Map<CharacterClip, AnimationClip> {
   const byName = new Map<CharacterClip, AnimationClip>();
   const find = (needle: string) =>
     clips.find((clip) => clip.name.toLowerCase().includes(needle.toLowerCase()));
+  const motion = (name: CharacterClip) => cloneClipWithUserData(locomotion?.get(name));
   const mapping: readonly [CharacterClip, AnimationClip | undefined][] = [
-    ['idle', find('|Idle|') ?? find('Idle')],
-    ['walk', find('|Walk|') ?? find('Walk')],
-    ['run', find('|Run|') ?? find('Run')],
+    ['idle', find('|Idle|') ?? find('Idle') ?? motion('idle')],
+    ['walk', motion('walk') ?? find('|Walk|') ?? find('Walk')],
+    ['jog', motion('jog') ?? find('|Run|') ?? find('Run')],
+    ['run', motion('run') ?? find('|Run|') ?? find('Run')],
+    ['jumpStart', motion('jumpStart') ?? find('|Jump|') ?? find('Jump')],
+    ['jumpLoop', motion('jumpLoop') ?? find('Jump_Idle') ?? find('|Jump|') ?? find('Jump')],
+    ['jumpLand', motion('jumpLand') ?? find('Jump_Land') ?? find('|Jump|') ?? find('Jump')],
     ['talk', find('|Yes|') ?? find('|No|') ?? find('|Wave|') ?? find('Idle')],
     ['wave', find('|Wave|') ?? find('Wave')],
     ['sit', find('|Duck|') ?? find('Duck') ?? find('Idle')],
@@ -367,31 +204,6 @@ function cloneMaterial(material: Material | Material[], tint: number): Material 
   if ('roughness' in clone && typeof clone.roughness === 'number') clone.roughness = 0.72;
   if ('metalness' in clone && typeof clone.metalness === 'number') clone.metalness = 0.02;
   return clone;
-}
-
-function fadeAction(action: AnimationAction, weight: number, fade: number): void {
-  action.enabled = true;
-  action.paused = false;
-  action.setEffectiveWeight(Math.max(0, Math.min(1, weight)));
-  if (weight > 0) action.fadeIn(fade);
-  else action.fadeOut(fade);
-}
-
-function syncStride(action: AnimationAction, speed: number, stride: number): void {
-  const duration = Math.max(0.001, action.getClip().duration);
-  const cyclesPerSecond = speed <= 0.02 ? 1 : speed / stride;
-  action.setEffectiveTimeScale(Math.max(0.25, cyclesPerSecond * duration));
-}
-
-function smoothstep(a: number, b: number, x: number): number {
-  const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
-}
-
-function disposeOwnedMaterial(material: Material | Material[]): void {
-  if (Array.isArray(material)) {
-    for (const entry of material) disposeOwnedMaterial(entry);
-  } else if (material.userData.isCharacterCloneMaterial) material.dispose();
 }
 
 function disposeMaterial(material: Material | Material[]): void {
