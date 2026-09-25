@@ -32,11 +32,11 @@ const HIGH_TIER_MESH_SIGNATURES: MeshSignature[] = [
   },
   {
     name: 'wales strakes gunports galleries anchors',
-    vertices: 12299,
-    indices: 42237,
-    position: 'da188c1e',
-    uv: 'a6923508',
-    color: '09a52af4',
+    vertices: 12107,
+    indices: 41949,
+    position: 'b326431e',
+    uv: '0760d908',
+    color: '70cb0d74',
   },
   {
     name: 'stern gallery windows and name board backing',

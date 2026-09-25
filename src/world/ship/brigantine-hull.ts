@@ -638,15 +638,6 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
       );
     }
   }
-  builder.setRegion(3);
-  builder.setColor(0xd2a352);
-  for (const z of [stripeZ0, stripeZ1]) {
-    for (const side of [-1, 1] as const) {
-      const x = side * (waterlineHalfBeamAt(z) + 0.065);
-      builder.addBox(x, 0.88, z, 0.055, 0.42, 0.09);
-      builder.addBox(x, -0.29, z, 0.05, 0.34, 0.08);
-    }
-  }
   const portZ = [-8.1, -6.0, -3.9, -1.8, 0.4, 2.6, 4.8, 6.9];
   for (const z of portZ) {
     for (const side of [-1, 1] as const) {
