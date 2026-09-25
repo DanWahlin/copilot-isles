@@ -207,7 +207,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // Talk to NPCs: quest beats run as scripts; Nell's lines are voiced; everyone else offers a bark.
   const talkTo = async (n: Npc) => {
     if (dialogue.active || scriptRunning) return;
-    cam.frame(npcTalkShot(n));
+    const shot = npcTalkShot(n);
+    const priorFaceTarget = n.faceTarget;
+    cam.frame(shot);
+    if (n.spec.id === 'lyra') n.faceTarget = { x: n.x + 6, z: n.z };
     try {
       npcs.setTalking(n, true);
       const beat = learn ? npcScript(n.spec.id, quests()) : null;
@@ -234,6 +237,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         await new Promise((r) => setTimeout(r, 2600));
       }
     } finally {
+      n.faceTarget = priorFaceTarget;
       npcs.setTalking(n, false);
       cam.frame(null);
       if (scriptRunning) {
@@ -486,12 +490,22 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   }
 
   function npcTalkShot(n: Npc) {
+    if (n.spec.id === 'lyra') {
+      return {
+        x: n.x,
+        y: n.y + 1.85,
+        z: n.z + 4.0,
+        tx: n.x,
+        ty: n.y + 1.35,
+        tz: n.z,
+      };
+    }
     const dx = player.x - n.x;
     const dz = player.z - n.z;
     const len = Math.hypot(dx, dz) || 1;
     const fx = dx / len;
     const fz = dz / len;
-    const side = n.spec.id === 'lyra' || n.spec.id === 'lookout' ? -1 : 1;
+    const side = n.spec.id === 'lookout' ? -1 : 1;
     const sx = fz * side;
     const sz = -fx * side;
     const seated = n.spec.clip === 'sit';

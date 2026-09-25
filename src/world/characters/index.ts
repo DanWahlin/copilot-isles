@@ -186,18 +186,18 @@ function normalizeClips(
     clips.find((clip) => clip.name.toLowerCase().includes(needle.toLowerCase()));
   const motion = (name: CharacterClip) => cloneClipWithUserData(locomotion?.get(name));
   const mapping: readonly [CharacterClip, AnimationClip | undefined][] = [
-    ['idle', motion('idle') ?? find('|Idle|') ?? find('Idle')],
-    ['walk', motion('walk') ?? find('|Walk|') ?? find('Walk')],
-    ['jog', motion('jog') ?? find('|Run|') ?? find('Run')],
-    ['run', motion('run') ?? find('|Run|') ?? find('Run')],
+    ['idle', find('|Idle|') ?? find('Idle') ?? motion('idle')],
+    ['walk', find('|Walk|') ?? find('Walk') ?? motion('walk')],
+    ['jog', find('|Run|') ?? find('Run') ?? motion('jog')],
+    ['run', find('|Run|') ?? find('Run') ?? motion('run')],
     ['jumpStart', motion('jumpStart') ?? find('|Jump|') ?? find('Jump')],
     ['jumpLoop', motion('jumpLoop') ?? find('Jump_Idle') ?? find('|Jump|') ?? find('Jump')],
     ['jumpLand', motion('jumpLand') ?? find('Jump_Land') ?? find('|Jump|') ?? find('Jump')],
-    ['talk', motion('talk') ?? find('|Yes|') ?? find('|No|') ?? find('|Wave|') ?? find('Idle')],
-    ['wave', motion('wave') ?? find('|Wave|') ?? find('Wave')],
-    ['sit', motion('sit') ?? find('|Duck|') ?? find('Duck') ?? find('Idle')],
-    ['helm', motion('helm') ?? find('|Punch|') ?? find('|Sword|') ?? find('Idle')],
-    ['wade', motion('wade') ?? find('|Walk|') ?? find('Walk')],
+    ['talk', find('|Wave|') ?? find('Wave') ?? find('|Yes|') ?? motion('talk') ?? find('Idle')],
+    ['wave', find('|Wave|') ?? find('Wave') ?? motion('wave')],
+    ['sit', find('|Idle|') ?? find('Idle') ?? motion('sit')],
+    ['helm', find('|Punch|') ?? find('|Sword|') ?? motion('helm') ?? find('Idle')],
+    ['wade', find('|Walk|') ?? find('Walk') ?? motion('wade')],
   ];
   for (const [name, clip] of mapping) {
     if (clip) byName.set(name, clip.clone());

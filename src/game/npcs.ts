@@ -263,10 +263,16 @@ export class NpcCrowd {
       n.obstacle.x = n.x;
       n.obstacle.z = n.z;
       const g = n.character.group;
-      g.position.set(n.x, n.y, n.z);
+      g.position.set(n.x, n.y - seatedVisualDrop(s.id, s.clip), n.z);
       g.rotation.y = n.heading;
       if (s.patrol || s.orbit) n.character.setSpeed(moving ? (s.speed ?? 1.2) : 0);
-      n.character.lookAt(near || n.talking ? tmp.set(player.x, player.y + 1.5, player.z) : null);
+      n.character.lookAt(
+        n.faceTarget
+          ? tmp.set(n.faceTarget.x, n.y + 1.5, n.faceTarget.z)
+          : near || n.talking
+            ? tmp.set(player.x, player.y + 1.5, player.z)
+            : null,
+      );
       n.character.update(dt);
     }
   }
@@ -305,4 +311,9 @@ export class NpcCrowd {
 
 function turn(h: number, target: number, dt: number, rate: number): number {
   return wrapAngle(h + wrapAngle(target - h) * (1 - Math.exp(-rate * dt)));
+}
+
+function seatedVisualDrop(id: NpcId, clip: CharacterClip): number {
+  if (clip !== 'sit') return 0;
+  return id === 'lyra' ? 0.08 : 0.22;
 }

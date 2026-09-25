@@ -53,11 +53,9 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
       break;
     case 'dockhand_b':
       addWatchCap(root, 0x6a3728);
-      addRopeCoil(root, 1, 'belt');
       break;
     case 'dockhand_a':
       addBandana(root, 0xb33a2f, 0xf0dfbd);
-      addRopeCoil(root, -1, 'belt');
       break;
     case 'fisherman':
       addStrawHat(root);
@@ -78,11 +76,9 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
       break;
     case 'pim':
       addBandana(root, 0x3a7b45, 0xe2c170);
-      addRopeCoil(root, 1, 'belt');
       break;
     case 'pol':
       addBandana(root, 0x9b3428, 0xe2c170);
-      addRopeCoil(root, -1, 'belt');
       break;
     case 'juno':
       addBicorne(root, 0x171b25, 0xc94a38);
@@ -272,27 +268,6 @@ function addFishingRod(root: Group): void {
   rod.position.set(0.36, 1.02, 0.36);
   rod.rotation.z = -0.72;
   addRoot(root, rod);
-}
-
-function addRopeCoil(root: Group, side: -1 | 1, mode: 'belt' | 'shoulder'): void {
-  const parts: BufferGeometry[] = [];
-  for (let i = 0; i < 4; i += 1) {
-    const wrap = new TorusGeometry(0.11 + i * 0.006, 0.022, 6, 18);
-    wrap.rotateX(0.1 * i);
-    wrap.translate(0, 0, i * 0.014);
-    parts.push(wrap);
-  }
-  const group = mesh(mergeGeometries(parts, false)!, mat(0xc8a66a), `${mode} rope coil`);
-  for (const part of parts) part.dispose();
-  if (mode === 'shoulder') {
-    group.position.set(side * 0.25, 1.02, 0.48);
-    group.rotation.set(0.2, side * 0.35, side * 0.52);
-    addRoot(root, group, 'Torso');
-  } else {
-    group.position.set(side * 0.33, 0.68, 0.43);
-    group.rotation.set(0.05, side * 0.15, side * 0.05);
-    addRoot(root, group, 'Hips');
-  }
 }
 
 function addBucket(root: Group, color: ColorHex, side: -1 | 1): void {

@@ -370,6 +370,16 @@ export class RuntimeCharacter implements Character {
       if (!this.lookTarget) this.head?.rotateY(Math.sin(this.idleClock * 1.6) * 0.04 * npcScale);
     } else if (this.activeClip === 'sit') {
       const settle = Math.sin(this.idleClock * 0.9) * npcScale;
+      this.hips?.rotateX(-0.08);
+      this.torso?.rotateX(0.06);
+      this.upperLegL?.rotateX(-1.22);
+      this.upperLegR?.rotateX(-1.22);
+      this.lowerLegL?.rotateX(1.42);
+      this.lowerLegR?.rotateX(1.42);
+      this.footL?.rotateX(-0.28);
+      this.footR?.rotateX(-0.28);
+      this.shoulderL?.rotateZ(0.1);
+      this.shoulderR?.rotateZ(-0.1);
       this.torso?.rotateY(settle * 0.025);
       this.neck?.rotateY(-settle * 0.035);
       if (!this.lookTarget) this.head?.rotateY(-settle * 0.045);
