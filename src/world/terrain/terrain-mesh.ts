@@ -5,6 +5,7 @@ import type { HeightGridData } from './cove-height';
 import type { TerrainBakeData } from './bake';
 import { createTerrainMaterial } from './terrain-material';
 import { createTerrainRocks } from './terrain-rocks';
+import { clamp, lerp } from '../../util/math';
 
 interface ChunkGeometrySet {
   step: number;
@@ -51,14 +52,6 @@ function thresholdsForTier(tier: TierSettings): readonly number[] {
   if (tier.tier === 'lite' || tier.tier === 'low') return [110, 285];
   if (tier.tier === 'medium') return [190, 400];
   return [115, 320];
-}
-
-function clamp(v: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, v));
-}
-
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
 }
 
 function bilinearIndices(

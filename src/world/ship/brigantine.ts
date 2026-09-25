@@ -61,6 +61,7 @@ import {
 } from './lines';
 import { createShipPipes, type ShipPipes } from './pipes';
 import { DEFAULT_SAIL_PALETTE, sailPalette } from './sail-palettes';
+import { clamp01, lerp } from '../../util/math';
 
 export interface BrigantineOptions {
   tier: Tier;
@@ -141,14 +142,6 @@ function detailForTier(tier: Tier): Detail {
   if (tier === 'low') return { hullZ: 56, hullY: 14, sail: 9, cyl: 10, rig: 5, railStep: 0.9 };
   if (tier === 'medium') return { hullZ: 88, hullY: 18, sail: 15, cyl: 12, rig: 6, railStep: 0.62 };
   return { hullZ: 128, hullY: 22, sail: 22, cyl: 14, rig: 7, railStep: 0.45 };
-}
-
-function clamp01(v: number): number {
-  return Math.max(0, Math.min(1, v));
-}
-
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
 }
 
 function lerpPoint(a: P3, b: P3, t: number): P3 {

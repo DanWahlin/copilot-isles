@@ -2,6 +2,7 @@ import { Vector3 } from 'three/webgpu';
 import type { TerminalLine } from '../hud';
 import type { ScriptStep } from '../script';
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal } from './types';
+import { sleep } from '../../util/math';
 
 export const FIRST_WORDS_ID = 'Q0.8.pipes';
 const QUEST = 'Q0.8';
@@ -116,14 +117,14 @@ export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked:
       host.audio?.sfx.oneShot('hatch_clank', hatch, 0.9);
       title = 'Terminal · engine room';
       lines = HATCH_LINES;
-      await wait(900);
+      await sleep(900);
       await host.beat([{ say: g && !g.correct ? 'juno.hatch.feedback.01' : 'juno.hatch.01' }], 'Juno');
       running = false;
       return;
     }
     setHint(null);
     host.audio?.sfx.oneShot('tube_voice', tube, 0.9);
-    await wait(1300);
+    await sleep(1300);
     title = 'Copilot app · project session';
     lines = REPLY_LINES;
     host.audio?.sfx.oneShot('chime_solve', undefined, 0.7);
@@ -195,7 +196,5 @@ export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked:
     },
   };
 }
-
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Strips the markdown the quiz card uses (`code`, **bold**) for a subtitle line. */

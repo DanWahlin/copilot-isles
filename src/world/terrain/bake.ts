@@ -5,10 +5,10 @@ import {
   coveHeight,
   coveMasks,
   DEFAULT_TERRAIN_BOUNDS,
-  smoothstep,
   TERRAIN_DEEP_DEPTH,
   type HeightGridData,
 } from './cove-height';
+import { clamp01, smoothstep } from '../../util/math';
 
 export interface TerrainBounds {
   minX: number;
@@ -90,10 +90,6 @@ const AO_DIRECTIONS: readonly [number, number][] = [
 ];
 
 const SUNS = [sunState(10).sun, sunState(16.5).sun] as const;
-
-function clamp01(v: number): number {
-  return Math.min(1, Math.max(0, v));
-}
 
 function gridIndex(nx: number, ix: number, iz: number): number {
   return iz * nx + ix;

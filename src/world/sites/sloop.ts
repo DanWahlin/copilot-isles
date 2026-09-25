@@ -17,6 +17,7 @@ import {
 import type { TierSettings } from '../../engine/quality';
 import type { VillageKit } from '../village';
 import { box, cylinder, merge, paint, plank, TRIM, worldUv } from './geo';
+import { lerp } from '../../util/math';
 
 export type FlagKind = 'you' | 'captain' | 'guild';
 
@@ -798,8 +799,4 @@ function drawCompass(ctx: CanvasRenderingContext2D, colorText: string): void {
 function seeded(seed: number): number {
   const n = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
   return n - Math.floor(n);
-}
-
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
 }

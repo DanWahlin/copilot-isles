@@ -12,9 +12,10 @@ import {
   Vector3,
 } from 'three/webgpu';
 import type { HeightField } from '../contracts';
-import { fbm2, ridged2, smoothstep } from '../terrain/cove-height';
+import { fbm2, ridged2 } from '../terrain/cove-height';
 import { ROCK_ASSETS } from '../terrain/rock-assets';
 import { createRockMaterial } from '../terrain/terrain-material';
+import { clamp01, smoothstep } from '../../util/math';
 
 export const MERIDIAN = {
   center: { x: 850, z: -850 },
@@ -67,10 +68,6 @@ export const MERIDIAN = {
 export type MeridianPadName = keyof typeof MERIDIAN.pads;
 
 const SEED = 0x1_01a_d1a;
-
-function clamp01(v: number): number {
-  return Math.min(1, Math.max(0, v));
-}
 
 function rand(seed: number): number {
   const v = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;

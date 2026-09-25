@@ -1,3 +1,5 @@
+import { clamp, smoothstep } from '../util/math';
+
 /**
  * Drag-to-look for the title backdrop: dragging orbits the camera round the anchored ship and tilts
  * it up or down, a flick keeps turning with momentum, the wheel zooms, and the slow auto-orbit picks
@@ -75,16 +77,10 @@ export class TitleOrbit {
     this.vel *= Math.exp(-2.2 * dt);
     if (Math.abs(this.vel) < 1e-3) this.vel = 0;
     this.idle += dt;
-    const auto = reducedMotion ? 0 : TitleOrbit.AUTO * smooth(this.idle / TitleOrbit.RESUME);
+    const auto = reducedMotion ? 0 : TitleOrbit.AUTO * smoothstep(0, 1, this.idle / TitleOrbit.RESUME);
     this.yaw += auto * dt;
   }
 }
-
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
-const smooth = (x: number) => {
-  const t = clamp(x, 0, 1);
-  return t * t * (3 - 2 * t);
-};
 
 /**
  * Hooks the orbit to pointer and wheel events on the canvas while `active()` (the title menu is up),

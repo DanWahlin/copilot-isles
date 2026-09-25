@@ -17,6 +17,7 @@ import type { Tier } from '../../contracts';
 import { world } from '../../uniforms';
 import { createBirdGeometry } from './geometry';
 import { createBirdMaterial } from './material';
+import { clamp } from '../../../util/math';
 
 export interface CreateBirdsOptions {
   tier: Tier | TierSettings;
@@ -80,10 +81,6 @@ function angleDiff(a: number, b: number): number {
   while (d > Math.PI) d -= Math.PI * 2;
   while (d < -Math.PI) d += Math.PI * 2;
   return d;
-}
-
-function clamp(x: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, x));
 }
 
 function chooseTarget(agent: BirdAgent, center: Vector3, radius: number, rng: () => number): void {

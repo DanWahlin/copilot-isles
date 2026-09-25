@@ -38,7 +38,8 @@ import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
 import type { TierSettings } from '../../engine/quality';
 import type { DayClock } from '../../engine/day-clock';
 import { world } from '../uniforms';
-import { sunState, smoothstep as ss, type SunState } from './sun';
+import { smoothstep as ss } from '../../util/math';
+import { sunState, type SunState } from './sun';
 
 /** Lighting keyframes keyed by sun elevation (PLAN §6), blended continuously. */
 interface Key {

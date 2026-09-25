@@ -1,5 +1,6 @@
 import type { HeightField } from '../contracts';
 import { COVE } from '../layout';
+import { clamp01, smoothstep } from '../../util/math';
 
 const SEED = 0x51e_c0de;
 const EPSILON = 1e-6;
@@ -28,15 +29,6 @@ export const DEFAULT_TERRAIN_BOUNDS = {
   maxZ: 295,
   cell: 1,
 } as const;
-
-function clamp01(v: number): number {
-  return Math.min(1, Math.max(0, v));
-}
-
-export function smoothstep(edge0: number, edge1: number, x: number): number {
-  const t = clamp01((x - edge0) / (edge1 - edge0));
-  return t * t * (3 - 2 * t);
-}
 
 function mix(a: number, b: number, t: number): number {
   return a + (b - a) * clamp01(t);

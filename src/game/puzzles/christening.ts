@@ -1,6 +1,7 @@
 import type { VillageAnchor } from '../../world/village';
 import type { CameraShot } from '../follow-camera';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
+import { sleep } from '../../util/math';
 
 export const CHRISTENING_ID = 'Q0.11.christen';
 const QUEST = 'Q0.11';
@@ -80,7 +81,7 @@ export function createChristening(
     const bow = o.bow();
     o.nell.face(bow);
     frame(true);
-    await wait(900);
+    await sleep(900);
     thrown = true;
     host.audio?.sfx.oneShot('step_wood', { x: o.nell.x, y: o.nell.y, z: o.nell.z }, 0.5);
     const at = { x: bow.x, y: o.nell.y + 0.4, z: bow.z };
@@ -127,5 +128,3 @@ export function createChristening(
     },
   };
 }
-
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));

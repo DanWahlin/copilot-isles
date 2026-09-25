@@ -11,7 +11,7 @@ import {
 } from 'three/webgpu';
 import type { HeightField } from '../contracts';
 import { COVE } from '../layout';
-import { smoothstep } from './cove-height';
+import { smoothstep } from '../../util/math';
 import { ROCK_ASSETS } from './rock-assets';
 import { createRockMaterial } from './terrain-material';
 

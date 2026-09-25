@@ -18,7 +18,8 @@ import type { HeightField } from '../contracts';
 import type { TierSettings } from '../../engine/quality';
 import type { GrassKind, HeightGrid } from './types';
 import { EXCLUSION_SOFT_MARGIN, exclusionWeight, type VegetationExclude } from './exclusions';
-import { SeededRandom, clamp01, hash2, smoothstep } from './random';
+import { clamp01, smoothstep } from '../../util/math';
+import { SeededRandom, hash2 } from './random';
 import { createGrassMaterial } from './materials';
 
 interface GrassClump {

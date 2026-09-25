@@ -20,6 +20,7 @@ import type { HeightField } from '../world/contracts';
 import { COVE } from '../world/layout';
 import { world } from '../world/uniforms';
 import { createVegetation, type HeightGrid } from '../world/vegetation';
+import { clamp01, smoothstep } from '../util/math';
 
 const maybeAppRoot = document.getElementById('app');
 const maybeHudElement = document.getElementById('hud');
@@ -70,15 +71,6 @@ class DevHeightField implements HeightField {
     const grass = clamp01((1 - sand * 0.7) * (1 - cliff * 0.8) * smoothstep(0.8, 4.5, y));
     return { sand, grass, rock, cliff };
   }
-}
-
-function smoothstep(edge0: number, edge1: number, x: number): number {
-  const t = clamp01((x - edge0) / (edge1 - edge0));
-  return t * t * (3 - 2 * t);
-}
-
-function clamp01(x: number): number {
-  return Math.min(1, Math.max(0, x));
 }
 
 function mix(a: number, b: number, t: number): number {

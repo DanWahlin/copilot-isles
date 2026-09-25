@@ -3,7 +3,8 @@ import { COVE } from '../layout';
 import { tierSettings, type TierSettings } from '../../engine/quality';
 import type { Tier } from '../contracts';
 import type { PlantInstance, PlantSpecies, ScatterOptions, ScatterSummary } from './types';
-import { SeededRandom, clamp01, hash2, smoothstep } from './random';
+import { clamp01, smoothstep } from '../../util/math';
+import { SeededRandom, hash2 } from './random';
 import { excludedByMargin } from './exclusions';
 
 const DEFAULT_SEED = 0xc0c011e5;

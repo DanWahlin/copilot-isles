@@ -8,6 +8,7 @@ import {
   UnsignedByteType,
   type Texture,
 } from 'three/webgpu';
+import { lerp } from '../../util/math';
 
 const SIZE = 256;
 const CHANNELS = 4;
@@ -16,10 +17,6 @@ let cached: Texture | null = null;
 
 function fade(t: number): number {
   return t * t * t * (t * (t * 6 - 15) + 10);
-}
-
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
 }
 
 function hash(ix: number, iy: number, seed: number): number {

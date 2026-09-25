@@ -26,7 +26,7 @@ import type {
   VegetationStats,
   VegetationSystem,
 } from './types';
-import { clamp01, smoothstep } from './random';
+import { clamp01, smoothstep } from '../../util/math';
 
 interface PlantBatch {
   species: PlantSpecies;

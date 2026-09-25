@@ -1,4 +1,5 @@
 import type { Tier } from '../contracts';
+import { clamp01, smoothstep } from '../../util/math';
 
 export const BRIGANTINE_LENGTH = 24;
 export const BRIGANTINE_BEAM = 6.6;
@@ -40,15 +41,6 @@ export interface HullLinesSummary {
   freeboard: number;
   stationCount: number;
   waterlineSamples: number;
-}
-
-function clamp01(v: number): number {
-  return Math.max(0, Math.min(1, v));
-}
-
-export function smoothstep(edge0: number, edge1: number, x: number): number {
-  const t = clamp01((x - edge0) / (edge1 - edge0));
-  return t * t * (3 - 2 * t);
 }
 
 export function stationT(z: number): number {

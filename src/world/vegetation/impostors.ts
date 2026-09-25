@@ -26,7 +26,7 @@ import { float, texture, uv } from 'three/tsl';
 import type { PlantInstance } from './types';
 import type { VegetationGeometryCatalog } from './model-loader';
 import { createImpostorMaterial } from './materials';
-import { clamp01, smoothstep } from './random';
+import { clamp01, smoothstep } from '../../util/math';
 
 // three's TSL typings do not expose map sample swizzles precisely here.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

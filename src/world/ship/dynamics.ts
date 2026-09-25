@@ -9,6 +9,7 @@ import {
   type BuoyancyStation,
   type HullCapsule,
 } from './lines';
+import { clamp, smoothstep } from '../../util/math';
 
 export interface ShipInput {
   trim: number;
@@ -60,15 +61,6 @@ const MAX_SPEED = 7.2;
 const MAX_YAW_RATE = 0.42;
 const TWO_PI = Math.PI * 2;
 const EPS = 1e-6;
-
-function clamp(v: number, lo: number, hi: number): number {
-  return Math.max(lo, Math.min(hi, v));
-}
-
-function smoothstep(edge0: number, edge1: number, x: number): number {
-  const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
-  return t * t * (3 - 2 * t);
-}
 
 function angleDiff(target: number, current: number): number {
   let d = (target - current + Math.PI) % TWO_PI;

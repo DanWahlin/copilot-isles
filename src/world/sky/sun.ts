@@ -1,3 +1,4 @@
+import { smoothstep } from '../../util/math';
 /**
  * Sun & moon from time of day (PLAN §6 "Time of day & sun position").
  * A simple parametric solar path (latitude, declination, hour angle) rotated by a sun-azimuth
@@ -24,11 +25,6 @@ export interface SunParams {
 }
 
 export const DEFAULT_SUN: SunParams = { latitude: 18, declination: 8 };
-
-export function smoothstep(e0: number, e1: number, x: number): number {
-  const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
-  return t * t * (3 - 2 * t);
-}
 
 /**
  * @param hours Local solar time, 0-24.

@@ -3,6 +3,7 @@
 import { BANK, type LoopName, type SliceName, type SoundName } from './bank';
 import { chooseAudioFormat } from './format';
 import { VoiceLimiter, type LimitedVoice } from './voice-limiter';
+import { clamp } from '../../util/math';
 
 export type SurfKind = 'crash' | 'wash' | 'backwash';
 export type FootstepSurface = 'sand' | 'wetsand' | 'wood' | 'rock' | 'grass' | 'water';
@@ -88,10 +89,6 @@ const MIX = {
 } as const;
 const MONO_TRIM = Math.pow(10, -3 / 20);
 const DEFAULT_FORWARD: Vec3Like = { x: 0, y: 0, z: -1 };
-
-function clamp(value: number, min: number, max: number): number {
-  return value < min ? min : value > max ? max : value;
-}
 
 function dB(value: number): number {
   return Math.pow(10, value / 20);
