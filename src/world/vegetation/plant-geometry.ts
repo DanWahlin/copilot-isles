@@ -15,6 +15,7 @@ class GeoBuilder {
   parts: number[] = [];
   shade: number[] = [];
   colors: number[] = [];
+  palmCards: number[] = [];
 
   addVertex(
     x: number,
@@ -28,6 +29,7 @@ class GeoBuilder {
     part: number,
     s: number,
     color = partColor(part, s),
+    palmCard = 0,
   ): number {
     this.positions.push(x, y, z);
     this.normals.push(nx, ny, nz);
@@ -35,6 +37,7 @@ class GeoBuilder {
     this.parts.push(part);
     this.shade.push(s);
     this.colors.push(color.r, color.g, color.b);
+    this.palmCards.push(palmCard);
     return this.parts.length - 1;
   }
 
@@ -52,6 +55,30 @@ class GeoBuilder {
     this.addTri(a, c, d, part, s);
   }
 
+  addQuadCard(
+    a: Vector3,
+    b: Vector3,
+    c: Vector3,
+    d: Vector3,
+    normal: Vector3,
+    uvA: [number, number],
+    uvB: [number, number],
+    uvC: [number, number],
+    uvD: [number, number],
+    part: number,
+    s: number,
+  ): void {
+    const color = partColor(part, s);
+    const push = (p: Vector3, uv: [number, number]) =>
+      this.addVertex(p.x, p.y, p.z, normal.x, normal.y, normal.z, uv[0], uv[1], part, s, color, 1);
+    push(a, uvA);
+    push(b, uvB);
+    push(c, uvC);
+    push(a, uvA);
+    push(c, uvC);
+    push(d, uvD);
+  }
+
   toGeometry(): BufferGeometry {
     const geometry = new BufferGeometry();
     geometry.setAttribute('position', new Float32BufferAttribute(this.positions, 3));
@@ -60,6 +87,7 @@ class GeoBuilder {
     geometry.setAttribute('vegPart', new Float32BufferAttribute(this.parts, 1));
     geometry.setAttribute('shade', new Float32BufferAttribute(this.shade, 1));
     geometry.setAttribute('color', new Float32BufferAttribute(this.colors, 3));
+    geometry.setAttribute('palmCard', new Float32BufferAttribute(this.palmCards, 1));
     const fade = new Float32Array(this.parts.length);
     fade.fill(1);
     geometry.setAttribute('fade', new Float32BufferAttribute(fade, 1));
@@ -75,16 +103,15 @@ class GeoBuilder {
 const tmpV = new Vector3();
 const tmpA = new Vector3();
 const tmpB = new Vector3();
-const tmpC = new Vector3();
 const tmpD = new Vector3();
 const DOWN = new Vector3(0, -1, 0);
 const tmpColor = new Color();
 
 function partColor(part: number, shade: number): Color {
-  if (part === PART_LEAF) return tmpColor.setHSL(0.255 - shade * 0.018, 0.52, 0.28 + shade * 0.19).clone();
-  if (part === PART_FRUIT) return tmpColor.setHSL(0.085, 0.42, 0.2 + shade * 0.1).clone();
+  if (part === PART_LEAF) return tmpColor.setHSL(0.245 - shade * 0.014, 0.5, 0.17 + shade * 0.12).clone();
+  if (part === PART_FRUIT) return tmpColor.setHSL(0.085, 0.46, 0.18 + shade * 0.1).clone();
   if (part === PART_DEAD) return tmpColor.setHSL(0.105, 0.38, 0.34 + shade * 0.12).clone();
-  return tmpColor.setHSL(0.072, 0.34, 0.32 + shade * 0.17).clone();
+  return tmpColor.setHSL(0.074, 0.36, 0.38 + shade * 0.16).clone();
 }
 
 function basisFromDir(dir: Vector3): { right: Vector3; up: Vector3 } {
@@ -201,39 +228,6 @@ function addCurvedTrunk(
   return centerAt(1);
 }
 
-function addLeafletBlade(
-  builder: GeoBuilder,
-  root: Vector3,
-  axis: Vector3,
-  side: Vector3,
-  length: number,
-  width: number,
-  part: number,
-  shade: number,
-): void {
-  const mid = root.clone().addScaledVector(axis, length * 0.46);
-  const tip = root.clone().addScaledVector(axis, length);
-  const rootW = width * 0.36;
-  const midW = width;
-  const tipW = width * 0.1;
-  builder.addQuad(
-    root.clone().addScaledVector(side, -rootW).toArray(),
-    mid.clone().addScaledVector(side, -midW).toArray(),
-    mid.clone().addScaledVector(side, midW).toArray(),
-    root.clone().addScaledVector(side, rootW).toArray(),
-    part,
-    shade,
-  );
-  builder.addQuad(
-    mid.clone().addScaledVector(side, -midW).toArray(),
-    tip.clone().addScaledVector(side, -tipW).toArray(),
-    tip.clone().addScaledVector(side, tipW).toArray(),
-    mid.clone().addScaledVector(side, midW).toArray(),
-    part,
-    Math.min(1, shade + 0.08),
-  );
-}
-
 function addPalmFrond(
   builder: GeoBuilder,
   origin: Vector3,
@@ -274,48 +268,98 @@ function addPalmFrond(
     last.copy(p);
   }
 
-  for (let i = 0; i < segments; i += 1) {
-    const t0 = i / segments;
-    const t1 = (i + 1) / segments;
-    const p0 = curvePoint(t0);
-    const p1 = curvePoint(t1);
-    const w0 = width * 0.42 * Math.sin(Math.PI * Math.max(0.02, t0)) * (1 - t0 * 0.24);
-    const w1 = width * 0.42 * Math.sin(Math.PI * Math.max(0.02, t1)) * (1 - t1 * 0.24);
-    if (w0 <= 0.005 && w1 <= 0.005) continue;
-    builder.addQuad(
-      p0.clone().addScaledVector(side, -w0).toArray(),
-      p1.clone().addScaledVector(side, -w1).toArray(),
-      p1.clone().addScaledVector(side, w1).toArray(),
-      p0.clone().addScaledVector(side, w0).toArray(),
-      dead ? PART_DEAD : PART_LEAF,
-      dead ? 0.48 + t0 * 0.24 : 0.5 + t0 * 0.42,
-    );
-  }
-
-  const leaflets = Math.max(9, Math.floor(length * 1.55));
+  const leaflets = Math.max(8, Math.floor(length * 1.35));
   for (let i = 0; i < leaflets; i += 1) {
     const t = (i + 0.55) / leaflets;
     const center = curvePoint(t);
     const fullness = Math.sin(Math.PI * t);
-    const leafletLen = width * (0.95 + fullness * 1.15) * (0.92 + hash2(i, seed, 71) * 0.16);
-    const leafletWidth = width * 0.105 * (1 - t * 0.26) * (dead ? 0.72 : 1);
-    const sweep = 0.24 + fullness * 0.4 + t * 0.1;
-    const shade = dead ? 0.34 + t * 0.28 : 0.34 + t * 0.56;
+    const shade = dead ? 0.34 + t * 0.26 : 0.3 + t * 0.56;
     for (const sideSign of [-1, 1]) {
       const axis = side
         .clone()
         .multiplyScalar(sideSign)
-        .addScaledVector(forward, -0.18 + t * 0.3)
-        .addScaledVector(DOWN, 0.32 + t * 0.34)
+        .addScaledVector(forward, -0.16 + t * 0.28)
+        .addScaledVector(DOWN, 0.42 + t * 0.38)
         .normalize();
-      const cross = tmpC.copy(axis).cross(forward).normalize();
-      const c = center
+      const bladeSide = tmpD.copy(axis).cross(forward).normalize();
+      const root = center
         .clone()
-        .addScaledVector(side, sideSign * width * sweep)
-        .addScaledVector(DOWN, fullness * width * 0.14);
-      addLeafletBlade(builder, c, axis, cross, leafletLen, leafletWidth, dead ? PART_DEAD : PART_LEAF, shade);
+        .addScaledVector(side, sideSign * width * (0.16 + fullness * 0.18))
+        .addScaledVector(DOWN, width * fullness * 0.1);
+      addLeafletBlade(
+        builder,
+        root,
+        axis,
+        bladeSide,
+        width * (1.05 + fullness * 1.25) * (0.92 + hash2(seed, i, 71) * 0.14),
+        width * 0.16 * (1 - t * 0.28) * (dead ? 0.7 : 1),
+        dead ? PART_DEAD : PART_LEAF,
+        shade,
+      );
     }
   }
+}
+
+function addLeafletBlade(
+  builder: GeoBuilder,
+  root: Vector3,
+  axis: Vector3,
+  side: Vector3,
+  length: number,
+  width: number,
+  part: number,
+  shade: number,
+): void {
+  const mid = root.clone().addScaledVector(axis, length * 0.5);
+  const tip = root.clone().addScaledVector(axis, length);
+  const normal = side.clone().cross(axis).normalize();
+  const rootW = width * 0.28;
+  const midW = width;
+  const tipW = width * 0.08;
+  builder.addQuadCard(
+    root.clone().addScaledVector(side, -rootW),
+    mid.clone().addScaledVector(side, -midW),
+    mid.clone().addScaledVector(side, midW),
+    root.clone().addScaledVector(side, rootW),
+    normal,
+    [0, 0],
+    [0.5, 1],
+    [0.5, 0],
+    [0, 1],
+    part,
+    shade,
+  );
+  builder.addQuadCard(
+    mid.clone().addScaledVector(side, -midW),
+    tip.clone().addScaledVector(side, -tipW),
+    tip.clone().addScaledVector(side, tipW),
+    mid.clone().addScaledVector(side, midW),
+    normal,
+    [0.5, 1],
+    [1, 1],
+    [1, 0],
+    [0.5, 0],
+    part,
+    Math.min(1, shade + 0.08),
+  );
+}
+
+function addDiamondCard(
+  builder: GeoBuilder,
+  center: Vector3,
+  axis: Vector3,
+  side: Vector3,
+  length: number,
+  width: number,
+  part: number,
+  shade: number,
+): void {
+  const tip = center.clone().addScaledVector(axis, length * 0.55);
+  const base = center.clone().addScaledVector(axis, -length * 0.45);
+  const left = center.clone().addScaledVector(side, width);
+  const right = center.clone().addScaledVector(side, -width);
+  builder.addTri(base.toArray(), left.toArray(), tip.toArray(), part, shade);
+  builder.addTri(base.toArray(), tip.toArray(), right.toArray(), part, shade * 0.94);
 }
 
 function addCoconutCluster(builder: GeoBuilder, origin: Vector3, seed: number): void {
@@ -324,8 +368,8 @@ function addCoconutCluster(builder: GeoBuilder, origin: Vector3, seed: number): 
     const yaw = (i / count) * Math.PI * 2;
     const center = origin
       .clone()
-      .add(new Vector3(Math.cos(yaw) * 0.28, -1.65 - (i % 3) * 0.12, Math.sin(yaw) * 0.28));
-    const r = 0.34 + hash2(i, seed, 3) * 0.08;
+      .add(new Vector3(Math.cos(yaw) * 0.24, -2.0 - (i % 3) * 0.13, Math.sin(yaw) * 0.24));
+    const r = 0.4 + hash2(i, seed, 3) * 0.08;
     const top = center.clone().add(new Vector3(0, r, 0));
     const bottom = center.clone().add(new Vector3(0, -r, 0));
     const east = center.clone().add(new Vector3(r, 0, 0));
@@ -462,16 +506,7 @@ function createPalmGeometry(kind: 'tall' | 'cluster' | 'young'): BufferGeometry 
 function addBroadLeaf(builder: GeoBuilder, center: Vector3, yaw: number, size: number, shade: number): void {
   const axis = new Vector3(Math.sin(yaw), 0.22 + Math.sin(yaw * 1.7) * 0.12, Math.cos(yaw)).normalize();
   const side = new Vector3(Math.cos(yaw), 0.05, -Math.sin(yaw)).normalize();
-  addLeafletBlade(
-    builder,
-    center.clone().addScaledVector(axis, size * -0.38),
-    axis,
-    side,
-    size,
-    size * 0.36,
-    PART_LEAF,
-    shade,
-  );
+  addDiamondCard(builder, center, axis, side, size, size * 0.36, PART_LEAF, shade);
 }
 
 function addLeafCluster(

@@ -312,6 +312,15 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const fringeNoise = saturate(noiseFine.g.mul(0.46).add(noiseMid.a.mul(0.34)).add(noiseLow.g.mul(0.2)));
   const sandFinger = pow(saturate(float(0.48).sub(fringeNoise).mul(2.8)), 1.35).mul(beachGrassFringe);
   const grassFinger = pow(saturate(fringeNoise.sub(0.38).mul(2.2)), 1.2).mul(beachGrassFringe);
+  const bardCampSand = float(1)
+    .sub(
+      smoothstep(
+        4.2,
+        9.0,
+        (vec2 as AnyNode)(positionWorld.x.add(18).mul(1.05), positionWorld.z.sub(86.2).mul(0.82)).length(),
+      ),
+    )
+    .mul(smoothstep(0.05, 2.8, y));
   const rootGreen = mix(color(0x5d7432), color(0x7d9a45), noiseLow.g.mul(0.62).add(noiseMid.g.mul(0.38)));
   let closeLayer = mix(closeEarth, closeGrass, grassMask);
   closeLayer = mix(closeLayer, closeRock, saturate(rockMask.add(cliffMask)));
@@ -355,6 +364,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   base = mix(base, closeEarth, wornSoil.mul(0.56).add(soilFlecks.mul(0.34)));
   base = mix(base, closeSand, sandFinger.mul(0.62));
   base = mix(base, rootGreen, grassFinger.mul(0.5));
+  base = mix(base, color(0xe7d39b), bardCampSand.mul(0.86));
   base = mix(base, color(0x3f382b), pebble);
   base = mix(base, color(0xf8e0aa), shellFlecks.mul(0.16));
   base = mix(base, color(0xad8050), sandPepper.mul(0.13));

@@ -442,20 +442,20 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
   ],
   "hammock": [
     {
-      "color": "69f673f2",
+      "color": "e1c1024b",
       "indices": 0,
       "path": "bard hammock camp (Q0.9)/bard hammock left coconut palm#0",
-      "position": "e293d6f7",
-      "uv": "a340b825",
-      "vertices": 9486,
+      "position": "04f24f76",
+      "uv": "15136d25",
+      "vertices": 8190,
     },
     {
-      "color": "69f673f2",
+      "color": "e1c1024b",
       "indices": 0,
       "path": "bard hammock camp (Q0.9)/bard hammock right coconut palm#1",
-      "position": "e293d6f7",
-      "uv": "a340b825",
-      "vertices": 9486,
+      "position": "04f24f76",
+      "uv": "15136d25",
+      "vertices": 8190,
     },
     {
       "color": "2d01b6fe",

@@ -188,6 +188,7 @@ function addInstanceAttributes(geometry: BufferGeometry, mesh: Mesh, species: Pl
   if (!g.getAttribute('uv')) g.setAttribute('uv', new Float32BufferAttribute(new Float32Array(count * 2), 2));
   g.setAttribute('vegPart', new Float32BufferAttribute(parts, 1));
   g.setAttribute('shade', new Float32BufferAttribute(shade, 1));
+  g.setAttribute('palmCard', new Float32BufferAttribute(new Float32Array(count), 1));
   return g;
 }
 
