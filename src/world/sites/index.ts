@@ -2,6 +2,7 @@ import { Group } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle, HeightField } from '../contracts';
 import { loadVillageKit, type VillageAnchor, type VillageBoxCollider } from '../village';
+import { loadPalmObject } from '../vegetation/model-loader';
 import { createBottles, type BottleSite } from './bottles';
 import { createCrane, type CraneSite } from './crane';
 import { createGearRack, type GearRackSite } from './gear-rack';
@@ -51,7 +52,16 @@ export async function createCoveSites(o: {
   const crane = createCrane({ tier: o.tier, kit });
   const gear = createGearRack({ tier: o.tier, kit, ground: o.ground });
   const palette = createPaletteStand({ tier: o.tier, kit, ground: o.ground });
-  const hammock = createHammock({ tier: o.tier, kit, ground: o.ground });
+  const [hammockPalmA, hammockPalmB] = await Promise.all([
+    loadPalmObject('a', 8.2),
+    loadPalmObject('b', 8.2),
+  ]);
+  const hammock = createHammock({
+    tier: o.tier,
+    kit,
+    ground: o.ground,
+    palms: { left: hammockPalmA, right: hammockPalmB },
+  });
   const bottles = createBottles({ kit, ground: o.ground });
   const group = new Group();
   group.name = 'puzzle sites';

@@ -1,17 +1,16 @@
 import {
   BufferAttribute,
   BufferGeometry,
-  Color,
   CylinderGeometry,
   Group,
   Mesh,
+  Object3D,
   SphereGeometry,
 } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle } from '../contracts';
 import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village';
-import { createVegetationMaterial } from '../vegetation/materials';
-import { createPlantGeometry } from '../vegetation/plant-geometry';
+import { palmMaterial } from '../vegetation/model-loader';
 import {
   MeshBuilder,
   box,
@@ -42,6 +41,7 @@ export function createHammock(o: {
   tier: TierSettings;
   kit: VillageKit;
   ground: (x: number, z: number) => number;
+  palms?: { left: Object3D; right: Object3D };
 }): HammockSite {
   const detail = o.tier.tier === 'lite' ? 8 : o.tier.tier === 'low' ? 10 : 12;
   const group = new Group();
@@ -70,30 +70,10 @@ export function createHammock(o: {
   woodMesh.castShadow = true;
   woodMesh.receiveShadow = true;
 
-  const palmMaterial = createVegetationMaterial({
-    map: null,
-    color: new Color(0xffffff),
-    alphaTest: 0.05,
-    name: 'bard-hammock-coconut-palms',
-  });
-  const palmL = createPalmPost(
-    'bard hammock left coconut palm',
-    y,
-    PALM_L.x,
-    PALM_L.z,
-    0.34,
-    0.46,
-    palmMaterial,
-  );
-  const palmR = createPalmPost(
-    'bard hammock right coconut palm',
-    y,
-    PALM_R.x,
-    PALM_R.z,
-    -0.34,
-    0.47,
-    palmMaterial,
-  );
+  const palmL = o.palms?.left ?? new Group();
+  const palmR = o.palms?.right ?? new Group();
+  placePalmPost(palmL, 'bard hammock left coconut palm', y, PALM_L.x, PALM_L.z, 0.34, 1);
+  placePalmPost(palmR, 'bard hammock right coconut palm', y, PALM_R.x, PALM_R.z, -0.34, 1.02);
 
   const cloth = buildCloth(y);
   const clothMesh = new Mesh(cloth.geometry, o.kit.materials.cloth);
@@ -139,9 +119,8 @@ export function createHammock(o: {
       swayHammock(cloth, t);
     },
     dispose() {
-      palmL.geometry.dispose();
-      palmR.geometry.dispose();
-      palmMaterial.dispose();
+      disposeTree(palmL);
+      disposeTree(palmR);
       woodMesh.geometry.dispose();
       clothMesh.geometry.dispose();
       stoneMesh.geometry.dispose();
@@ -167,23 +146,38 @@ const HAMMOCK_R = { x: -15.45, z: CAMP.z + 0.45 } as const;
 const STOOL = { x: -15.55, z: 84.6 } as const;
 const FIRE = { x: -20.05, z: 84.2 } as const;
 
-function createPalmPost(
+function placePalmPost(
+  palm: Object3D,
   name: string,
   ground: (x: number, z: number) => number,
   x: number,
   z: number,
   yaw: number,
   scale: number,
-  material: ReturnType<typeof createVegetationMaterial>,
-): Mesh {
-  const mesh = new Mesh(createPlantGeometry('palmTall'), material);
-  mesh.name = name;
-  mesh.position.set(x, ground(x, z) - 0.05, z);
-  mesh.rotation.y = yaw;
-  mesh.scale.setScalar(scale);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  return mesh;
+): void {
+  palm.name = name;
+  palm.position.set(x, ground(x, z) - 0.05, z);
+  palm.rotation.y = yaw;
+  palm.scale.setScalar(scale);
+  palm.traverse((object) => {
+    const mesh = object as Mesh;
+    if (!mesh.isMesh) return;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+  });
+}
+
+function disposeTree(root: Object3D): void {
+  const sharedPalmMaterial = palmMaterial();
+  root.traverse((object) => {
+    const mesh = object as Mesh;
+    if (!mesh.isMesh) return;
+    mesh.geometry?.dispose();
+    const material = mesh.material as { dispose?: () => void } | Array<{ dispose?: () => void }>;
+    if (Array.isArray(material)) {
+      for (const m of material) if (m !== sharedPalmMaterial) m.dispose?.();
+    } else if (material !== sharedPalmMaterial) material.dispose?.();
+  });
 }
 
 function buildWood(ground: (x: number, z: number) => number, detail: number): BufferGeometry {

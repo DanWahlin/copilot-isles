@@ -16,8 +16,13 @@ import type { Tier } from '../contracts';
 import { createHeightDataTexture } from './materials';
 import { GrassField } from './grass';
 import { ImpostorBatch, bakeImpostorAtlas } from './impostors';
-import { triangleCount } from './plant-geometry';
-import { loadVegetationGeometries, type VegetationModelPart } from './model-loader';
+import {
+  loadVegetationGeometries,
+  palmMaterial,
+  type PalmLod,
+  type PalmVariant,
+  type VegetationModelPart,
+} from './model-loader';
 import { scatterVegetation } from './scatter';
 import type {
   CreateVegetationOptions,
@@ -41,6 +46,10 @@ interface PlantBatch {
 }
 
 const TREE_LIKE = new Set<PlantSpecies>(['palmTall', 'palmCluster', 'palmYoung', 'broadleafTree']);
+const HERO_PALM_ZONES = [
+  { x: -18, z: 86, r: 38 },
+  { x: -110, z: -66, r: 54 },
+] as const;
 const tmpObject = new Object3D();
 const tmpQuat = new Quaternion();
 const tmpScale = new Vector3();
@@ -51,11 +60,35 @@ function resolveTier(tier: Tier | TierSettings): TierSettings {
   return typeof tier === 'string' ? tierSettings(tier) : tier;
 }
 
+function triangleCount(geometry: BufferGeometry): number {
+  if (geometry.index) return Math.floor(geometry.index.count / 3);
+  return Math.floor((geometry.getAttribute('position')?.count ?? 0) / 3);
+}
+
 function palmGeometryDistance(tier: TierSettings): number {
   if (tier.tier === 'lite') return tier.treeNear * 1.25;
   if (tier.tier === 'low') return tier.treeNear * 1.4;
   if (tier.tier === 'medium') return tier.treeNear * 1.55;
   return Math.min(120, tier.treeNear * 1.6);
+}
+
+function palmVariant(instance: PlantInstance): PalmVariant {
+  return instance.lodSeed < 0.6 ? 'a' : 'b';
+}
+
+function palmLod(instance: PlantInstance): PalmLod {
+  if (!instance.species.startsWith('palm')) return 'grove';
+  for (const zone of HERO_PALM_ZONES) {
+    if (Math.hypot(instance.x - zone.x, instance.z - zone.z) < zone.r) return 'hero';
+  }
+  return 'grove';
+}
+
+function instancesForPart(instances: PlantInstance[], part: VegetationModelPart): PlantInstance[] {
+  if (!instances[0]?.species.startsWith('palm')) return instances;
+  return instances.filter(
+    (instance) => palmVariant(instance) === part.palmVariant && palmLod(instance) === part.palmLod,
+  );
 }
 
 function tintFor(instance: PlantInstance): Color {
@@ -198,7 +231,9 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
     const instances = scatter.plants[species];
     if (instances.length === 0) continue;
     for (const part of geometries[species]) {
-      const batch = createBatch(species, instances, part, tier);
+      const partInstances = instancesForPart(instances, part);
+      if (partInstances.length === 0) continue;
+      const batch = createBatch(species, partInstances, part, tier);
       batches.push(batch);
       group.add(batch.mesh);
     }
@@ -278,17 +313,19 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
       impostorBake.target.dispose();
       heightTexture.dispose();
       const disposedMaterials = new Set<Material>();
+      const sharedPalmMaterial = palmMaterial();
       for (const parts of Object.values(geometries)) {
         for (const part of parts) {
           part.geometry.dispose();
           const material = part.material as Material | Material[];
           if (Array.isArray(material)) {
             for (const m of material) {
+              if (m === sharedPalmMaterial) continue;
               if (disposedMaterials.has(m)) continue;
               disposedMaterials.add(m);
               m.dispose();
             }
-          } else if (!disposedMaterials.has(material)) {
+          } else if (material !== sharedPalmMaterial && !disposedMaterials.has(material)) {
             disposedMaterials.add(material);
             material.dispose();
           }

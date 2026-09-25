@@ -1,0 +1,49 @@
+{
+  "generated": "2026-09-25T21:14:26.212Z",
+  "sources": [
+    {
+      "id": "quaternius-a",
+      "page": "https://poly.pizza/m/P0tgwyXBgr",
+      "url": "https://static.poly.pizza/66cd7d94-abba-471e-8d8b-c8ad30aa5c70.glb",
+      "sourceSha256": "56ce27c93426e137e996844a7e99457218e513468e5a567046590c183224b436",
+      "author": "Quaternius",
+      "title": "Palm Tree",
+      "licenseEvidence": "Poly Pizza page shows Public Domain (CC0); embedded metadata Licence: CC0 1.0."
+    },
+    {
+      "id": "quaternius-b",
+      "page": "https://poly.pizza/m/A6cKJYFsIb",
+      "url": "https://static.poly.pizza/4c17decd-3087-4afe-9611-cfd92cca47cd.glb",
+      "sourceSha256": "ae8c66e5e2206c5efd12c2cf96b9064f643076c2d8bac5f3c5f457b2ee6491ca",
+      "author": "Quaternius",
+      "title": "Palm Tree",
+      "licenseEvidence": "Poly Pizza page shows Public Domain (CC0); embedded metadata Licence: CC0 1.0."
+    }
+  ],
+  "assets": [
+    {
+      "source": "quaternius-a",
+      "kind": "hero",
+      "file": "models/palm_quaternius_a_hero.glb",
+      "sha256": "56ce27c93426e137e996844a7e99457218e513468e5a567046590c183224b436"
+    },
+    {
+      "source": "quaternius-a",
+      "kind": "grove",
+      "file": "models/palm_quaternius_a_grove.glb",
+      "sha256": "8c4c5d3102b66b793ab59b0ac1cf4e32b82350fb1f47e4c91bb4e4e066570c6c"
+    },
+    {
+      "source": "quaternius-b",
+      "kind": "hero",
+      "file": "models/palm_quaternius_b_hero.glb",
+      "sha256": "ae8c66e5e2206c5efd12c2cf96b9064f643076c2d8bac5f3c5f457b2ee6491ca"
+    },
+    {
+      "source": "quaternius-b",
+      "kind": "grove",
+      "file": "models/palm_quaternius_b_grove.glb",
+      "sha256": "63517fbddaeb08e8fd19b187e281cb2a51a07b36118a40679e3c2b58b659c0e7"
+    }
+  ]
+}
