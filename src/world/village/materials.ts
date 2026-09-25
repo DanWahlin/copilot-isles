@@ -40,6 +40,30 @@ export function createStoneMaterial(): MeshStandardNodeMaterial {
   return material;
 }
 
+export function createPavingMaterial(): MeshStandardNodeMaterial {
+  const material = new MeshStandardNodeMaterial({ roughness: 0.98, metalness: 0, vertexColors: true });
+  const p = positionWorld as AnyNode;
+  const cobbleRow = abs(sin(p.z.mul(11.4).add(sin(p.x.mul(0.45)).mul(0.7)))).smoothstep(
+    float(0.982),
+    float(0.999),
+  );
+  const cobbleCol = abs(sin(p.x.mul(9.8).add(p.z.mul(0.62)))).smoothstep(float(0.984), float(0.999));
+  const chip = sin(p.x.mul(23.1).add(p.z.mul(19.7)).add(p.y.mul(2.3)))
+    .mul(0.5)
+    .add(0.5);
+  const damp = float(1)
+    .sub(smoothstep(float(1.15), float(2.85), p.y))
+    .mul(0.12);
+  const seams = cobbleRow.max(cobbleCol).mul(0.035);
+  material.colorNode = tint()
+    .mul(float(0.84).add(chip.mul(0.13)))
+    .mul(float(1).sub(seams))
+    .sub(color(0x3f3628).mul(damp.mul(0.14)));
+  material.roughnessNode = float(0.96).add(damp.mul(0.03));
+  material.aoNode = float(1).sub(seams.mul(0.24)).sub(lowWorldDirt(0.05));
+  return material;
+}
+
 export function createPlasterMaterial(): MeshStandardNodeMaterial {
   const material = new MeshStandardNodeMaterial({ roughness: 0.86, metalness: 0, vertexColors: true });
   const p = positionWorld as AnyNode;
@@ -101,7 +125,7 @@ export function createThatchMaterial(): MeshStandardNodeMaterial {
 
 export function createWoodMaterial(): MeshStandardNodeMaterial {
   const material = new MeshStandardNodeMaterial({
-    roughness: 0.76,
+    roughness: 0.9,
     metalness: 0,
     vertexColors: true,
     side: DoubleSide,
@@ -113,10 +137,10 @@ export function createWoodMaterial(): MeshStandardNodeMaterial {
   const planks = abs(sin(p.x.mul(2.6).add(p.z.mul(2.2)))).smoothstep(float(0.93), float(0.995));
   const wet = float(1).sub(smoothstep(float(-0.12), float(1.35), p.y));
   material.colorNode = tint()
-    .mul(float(0.86).add(grain.mul(0.18)))
-    .mul(float(1).sub(planks.mul(0.09)))
+    .mul(float(0.82).add(grain.mul(0.14)))
+    .mul(float(1).sub(planks.mul(0.035)))
     .add(color(0x254130).mul(wet.mul(0.18)));
-  material.roughnessNode = float(0.78).sub(wet.mul(0.08));
+  material.roughnessNode = float(0.88).add(wet.mul(0.05));
   material.aoNode = float(1).sub(lowWorldDirt(0.08));
   return material;
 }
