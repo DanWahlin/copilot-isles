@@ -167,10 +167,10 @@ export const COVE_NPCS: NpcSpec[] = [
     keepY: true,
     seatDrop: 0.14,
     talkShot: {
-      shotLocal: [1.6, 1.72, -3.35],
-      targetLocal: [0, 1.22, 0],
+      shotLocal: [4.5, 1.35, -3.0],
+      targetLocal: [0, 1.0, 0],
       faceLocal: [0, -6],
-      standLocal: [1.2, -1.45],
+      standLocal: [0, -1.45],
     },
     barks: ['Every island has its own tune, Captain.', 'Hush. The reef’s keeping time.'],
   },
