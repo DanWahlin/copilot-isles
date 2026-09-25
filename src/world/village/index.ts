@@ -1286,7 +1286,7 @@ function addWeatheredPierDeck(
     const noise = organicNoise(index * 0.53, z * 0.18);
     const replaced = !low && (index === 145 || index === 161);
     const missingEdge = !low && (index === 173 || index === 181);
-    const tint = replaced ? 0x756d60 : noise > 0.42 ? 0x806e5d : noise < -0.42 ? 0x6a5f52 : 0x746656;
+    const tint = replaced ? 0xa99b8a : noise > 0.42 ? 0xb6a18a : noise < -0.42 ? 0x9b8f80 : 0xaa9982;
     const depth = plankDepth + organicNoise(index * 1.7, z * 0.3) * 0.018;
     const y = pier.deck - 0.12 + organicNoise(index * 0.7, z * 0.2) * 0.006;
     if (missingEdge) {
@@ -1443,6 +1443,7 @@ function addPier(
       addCylinder(buckets.wood, x, p.deck + 0.06, z, 0.08, 0.1, 1.28, 8, 0, 0x6a4b31);
     }
   }
+  if (!low) addPierSideStructure(buckets, p, minZ, maxZ);
   for (let z = minZ + 1.2; z <= maxZ - 1.2; z += 3) {
     addShipObstacle(shipObstacles, { x: p.x - p.width * 0.5 - 0.75, z, r: 1.2 });
     addShipObstacle(shipObstacles, { x: p.x + p.width * 0.5 + 0.75, z, r: 1.2 });
@@ -1451,6 +1452,35 @@ function addPier(
   addPierDressing(buckets, colliders, p, low);
   addBoathouse(buckets, colliders, shipObstacles, kit, BOATHOUSE.x, BOATHOUSE.z, p.deck);
   anchors.pierEnd = { x: p.x, y: p.deck, z: p.z1 + 2.2, heading: Math.PI };
+}
+
+function addPierSideStructure(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  pier: typeof COVE.pier,
+  minZ: number,
+  maxZ: number,
+): void {
+  const length = maxZ - minZ;
+  const centerZ = (minZ + maxZ) * 0.5;
+  for (const side of [-1, 1]) {
+    const x = pier.x + side * (pier.width * 0.5 + 0.2);
+    addBox(buckets.wood, x, pier.deck - 0.34, centerZ, 0.18, 0.42, length - 1.2, 0, 0x5f4e3f);
+    addBox(buckets.wood, x, pier.deck - 0.04, centerZ, 0.16, 0.16, length - 1.0, 0, 0x7a6651);
+  }
+  for (const z of [-111.5, -95.5]) {
+    addPierCrossBrace(buckets, pier.x - pier.width * 0.5 - 0.2, pier.deck, z, -0.72);
+    addPierCrossBrace(buckets, pier.x + pier.width * 0.5 + 0.2, pier.deck, z + 1.6, 0.72);
+  }
+}
+
+function addPierCrossBrace(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  x: number,
+  deck: number,
+  z: number,
+  tilt: number,
+): void {
+  addBox(buckets.wood, x, deck - 1.78, z, 0.12, 2.55, 0.12, 0, 0x6c5846, tilt, 0);
 }
 
 function addPierRootSteps(buckets: Record<MaterialKey, BufferGeometry[]>): void {
@@ -1502,8 +1532,8 @@ function addPierDressing(
   if (!low) {
     addNetRack(buckets, pier.x - 3.05, -89.5, pier.deck, -0.15);
     colliders.boxes.push({ x: pier.x - 3.05, z: -89.5, hx: 1.25, hz: 0.24, rot: -0.15, height: 1.8 });
-    addPierPostLantern(buckets, pier.x - pier.width * 0.5 - 0.55, pier.deck, -86.5, -1);
-    addPierPostLantern(buckets, pier.x + pier.width * 0.5 + 0.55, pier.deck, -104.5, 1);
+    addPierPostLantern(buckets, colliders, pier.x - pier.width * 0.5 - 0.55, pier.deck, -89.5, -1);
+    addPierPostLantern(buckets, colliders, pier.x + pier.width * 0.5 + 0.55, pier.deck, -107.5, 1);
   }
 }
 
@@ -1552,14 +1582,17 @@ function addCargoStack(
 
 function addPierPostLantern(
   buckets: Record<MaterialKey, BufferGeometry[]>,
+  colliders: { circles: CircleObstacle[] },
   x: number,
   y: number,
   z: number,
   side: -1 | 1,
 ): void {
+  addCylinder(buckets.wood, x, y, z, 0.11, 0.14, 2.7, 8, 0, 0x6b523c);
   addBox(buckets.metal, x + side * 0.28, y + 2.1, z, 0.62, 0.055, 0.055, 0, 0x4d463d);
   addBox(buckets.metal, x + side * 0.54, y + 1.86, z, 0.035, 0.34, 0.035, 0, 0x5f574f);
   addLanternFixture(buckets, x + side * 0.58, y + 1.42, z, 0, 0.6);
+  colliders.circles.push({ x, z, r: 0.35 });
 }
 
 function addBoathouse(
@@ -1924,7 +1957,7 @@ function organicNoise(x: number, z: number): number {
 }
 
 function streetTint(x: number, z: number): number {
-  return organicNoise(x * 0.9, z * 0.9) > 0 ? 0xf0dcc0 : 0xddc8aa;
+  return organicNoise(x * 0.9, z * 0.9) > 0 ? 0xa59a80 : 0x948a73;
 }
 
 function insideAnyBuilding(x: number, z: number): boolean {
@@ -2448,9 +2481,6 @@ function addInstancedProps(
   const pots = cut([
     inst(-149, -54, at(-149, -54), 0.1, 0.85),
     inst(-146.8, -55.3, at(-146.8, -55.3), -0.5, 0.75),
-    inst(-109.8, -105, at(-109.8, -105), 0.4, 0.72),
-    inst(-106.4, -103, at(-106.4, -103), -0.2, 0.7),
-    inst(-107.2, -88.2, at(-107.2, -88.2), 0.3, 0.64),
     inst(-143.4, -52.0, at(-143.4, -52.0), 0.15, 0.58),
   ]);
   addCirclePropColliders(colliders, pots, 0.62);
