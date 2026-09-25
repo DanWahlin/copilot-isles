@@ -1667,6 +1667,7 @@ function addPlaza(
     );
   }
   addStreetPaving(buckets, heightField, kit, low);
+  if (!low) addSpawnPlantingBeds(buckets, heightField);
   addCylinder(buckets.stone, cx, y, cz, 1.05, 1.15, 0.82, 16, 0, 0x908675);
   addCylinder(buckets.stone, cx, y + 0.72, cz, 0.72, 0.78, 0.55, 16, 0, 0xa79c86);
   addBox(buckets.wood, cx, y + 1.18, cz, 3.1, 0.16, 0.18, 0, 0x6d4b2e);
@@ -1693,6 +1694,84 @@ function addStreetPaving(
   low: boolean,
 ): void {
   buckets.paving.push(createStreetPavingGeometry(heightField, low));
+}
+
+function addSpawnPlantingBeds(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  heightField: HeightField,
+): void {
+  addSpawnPavingApron(buckets, heightField);
+  addGroundPlantingBed(buckets, heightField, -125.0, -60.8, 5.0, 2.0, 0.06);
+  addGroundPlantingBed(buckets, heightField, -95.6, -60.6, 4.6, 1.9, -0.04);
+}
+
+function addSpawnPavingApron(buckets: Record<MaterialKey, BufferGeometry[]>, heightField: HeightField): void {
+  buckets.paving.push(createTerrainPavingRect(heightField, COVE.quay.x0 + 5, COVE.quay.x1 - 5, -64.2, -55.2));
+}
+
+function createTerrainPavingRect(
+  heightField: HeightField,
+  x0: number,
+  x1: number,
+  z0: number,
+  z1: number,
+): BufferGeometry {
+  const cols = 18;
+  const rows = 5;
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const colors: number[] = [];
+  const indices: number[] = [];
+  const palette = [0x9e9275, 0x91866d, 0xa89b7d, 0x867c66] as const;
+  for (let iz = 0; iz <= rows; iz += 1) {
+    const tz = iz / rows;
+    for (let ix = 0; ix <= cols; ix += 1) {
+      const tx = ix / cols;
+      const x = x0 + (x1 - x0) * tx;
+      const z = z0 + (z1 - z0) * tz;
+      const y = heightField.heightAt(x, z) + 0.105;
+      const tint = new Color(
+        palette[Math.abs(Math.floor(organicNoise(x * 0.2, z * 0.2) * 10)) % palette.length]!,
+      );
+      positions.push(x, y, z);
+      uvs.push(x * 0.5, z * 0.5);
+      colors.push(tint.r, tint.g, tint.b);
+    }
+  }
+  for (let iz = 0; iz < rows; iz += 1) {
+    for (let ix = 0; ix < cols; ix += 1) {
+      const a = iz * (cols + 1) + ix;
+      const b = a + 1;
+      const d = a + cols + 1;
+      const c = d + 1;
+      indices.push(a, d, b, b, d, c);
+    }
+  }
+  return coloredIndexedGeometry(positions, uvs, colors, indices);
+}
+
+function addGroundPlantingBed(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  heightField: HeightField,
+  x: number,
+  z: number,
+  w: number,
+  d: number,
+  rot: number,
+): void {
+  const y = heightField.heightAt(x, z);
+  addBox(buckets.stone, x, y + 0.01, z, w, 0.08, d, rot, 0x4e4934);
+  addBox(buckets.stone, x, y + 0.1, z - d * 0.5, w + 0.2, 0.22, 0.16, rot, 0x8f8469);
+  addBox(buckets.stone, x, y + 0.1, z + d * 0.5, w + 0.2, 0.22, 0.16, rot, 0x9b9072);
+  addBox(buckets.stone, x - w * 0.5, y + 0.1, z, 0.16, 0.22, d, rot, 0x8a8068);
+  addBox(buckets.stone, x + w * 0.5, y + 0.1, z, 0.16, 0.22, d, rot, 0x8a8068);
+  for (let i = 0; i < 7; i += 1) {
+    const lx = -w * 0.36 + i * w * 0.12;
+    const lz = organicNoise(x * 0.2 + i, z * 0.2) * d * 0.28;
+    const p = localToWorld(x, z, rot, lx, lz);
+    addBox(buckets.rope, p.x, y + 0.16, p.z, 0.16, 0.28, 0.16, rot, 0x3f7041);
+    if (i % 3 === 0) addCylinder(buckets.cloth, p.x, y + 0.42, p.z, 0.06, 0.04, 0.1, 7, rot, 0xd65b7f);
+  }
 }
 
 let streetHeightField: HeightField | null = null;
@@ -1773,7 +1852,7 @@ function createStreetPavingGeometry(heightField: HeightField, low: boolean): Buf
   const pushQuad = (a: StreetPoint, b: StreetPoint, c: StreetPoint, d: StreetPoint) => {
     const cx = (a[0] + b[0] + c[0] + d[0]) * 0.25;
     const cz = (a[1] + b[1] + c[1] + d[1]) * 0.25;
-    if (insideAnyBuilding(cx, cz) || isReservedPuzzleGround(cx, cz)) return;
+    if (insideAnyBuilding(cx, cz) || isReservedPuzzleGround(cx, cz) || isQuayDeckPoint(cx, cz)) return;
     const ia = addVertex(a[0], a[1]);
     const ib = addVertex(b[0], b[1]);
     const ic = addVertex(c[0], c[1]);
@@ -1828,7 +1907,7 @@ function createStreetPavingGeometry(heightField: HeightField, low: boolean): Buf
       const p1: StreetPoint = [center[0] + Math.cos(a1) * r1, center[1] + Math.sin(a1) * r1];
       const cx = (center[0] + p0[0] + p1[0]) / 3;
       const cz = (center[1] + p0[1] + p1[1]) / 3;
-      if (insideAnyBuilding(cx, cz) || isReservedPuzzleGround(cx, cz)) continue;
+      if (insideAnyBuilding(cx, cz) || isReservedPuzzleGround(cx, cz) || isQuayDeckPoint(cx, cz)) continue;
       const a = addVertex(p0[0], p0[1]);
       const b = addVertex(p1[0], p1[1]);
       indices.push(c, a, b);
@@ -1836,6 +1915,11 @@ function createStreetPavingGeometry(heightField: HeightField, low: boolean): Buf
   }
 
   return coloredIndexedGeometry(positions, uvs, colors, indices);
+}
+
+function isQuayDeckPoint(x: number, z: number): boolean {
+  const q = COVE.quay;
+  return x >= q.x0 - 0.5 && x <= q.x1 + 0.5 && z >= q.z - 1.1 && z <= q.z + 8.4;
 }
 
 function sampleStreetRoute(
@@ -2072,14 +2156,6 @@ function addVillageFestooning(
     buckets,
     { x: -148.0, y: heightField.heightAt(-147.2, -51.6) + 2.75, z: -48.4 },
     { x: -137.4, y: heightField.heightAt(-136.5, -45.2) + 2.5, z: -44.4 },
-  );
-  addBox(buckets.wood, -101.7, COVE.quay.height, COVE.quay.z + 5.1, 0.12, 2.3, 0.12, 0, 0x5f4028);
-  addBox(buckets.wood, -119.5, COVE.quay.height, COVE.quay.z + 5.8, 0.12, 2.5, 0.12, 0, 0x5f4028);
-  addBuntingLine(
-    buckets,
-    { x: -101.7, y: COVE.quay.height + 3.05, z: COVE.quay.z + 5.1 },
-    { x: -119.5, y: COVE.quay.height + 3.18, z: COVE.quay.z + 5.8 },
-    [0xc24f3d, 0xe6c66b, 0x2f7890, 0xefe1bd],
   );
 }
 
