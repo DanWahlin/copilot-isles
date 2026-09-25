@@ -1,7 +1,14 @@
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createCove } from '../world/cove-scene';
 import { createVillage } from '../world/village';
-import { bindSkyPanel, createDevHarness, engineStats, orbitViews, showSkyReadouts } from './harness';
+import {
+  bindSkyPanel,
+  compileAndStart,
+  createDevHarness,
+  engineStats,
+  orbitViews,
+  showSkyReadouts,
+} from './harness';
 
 /** Anchorage Cay village dev page: Test Cove plus the procedural harbor village (?webgl, ?tier=, ?view=). */
 const h = await createDevHarness();
@@ -65,24 +72,9 @@ engine.add({
   },
 });
 
-const tc = performance.now();
-await renderer.compileAsync(scene, camera);
-const compileMs = performance.now() - tc;
-engine.start();
+const compileMs = await compileAndStart(renderer, engine, scene, camera);
 
-declare global {
-  interface Window {
-    __dev?: {
-      ready: boolean;
-      setTime(h: number, az?: number): void;
-      setView(v: string): void;
-      setCam(p: number[], t: number[]): void;
-      stats(): unknown;
-    };
-  }
-}
-
-window.__dev = {
+(window as unknown as { __dev: object }).__dev = {
   ready: true,
   setTime,
   setView,

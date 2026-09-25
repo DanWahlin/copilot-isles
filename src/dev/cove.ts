@@ -4,7 +4,14 @@ import { createPost } from '../engine/post';
 import { createCove } from '../world/cove-scene';
 import { MERIDIAN } from '../world/islands/meridian';
 import { ANCHORAGE_SLUICE, flow, openings, solutionPath } from '../world/sites/sluice-logic';
-import { bindSkyPanel, createDevHarness, engineStats, orbitViews, showSkyReadouts } from './harness';
+import {
+  bindSkyPanel,
+  compileAndStart,
+  createDevHarness,
+  engineStats,
+  orbitViews,
+  showSkyReadouts,
+} from './harness';
 
 /** Test Cove dev page: every world module together under the shared sky (?webgl, ?tier=, ?tm=). */
 const h = await createDevHarness();
@@ -136,10 +143,7 @@ engine.add({
   },
 });
 
-const tc = performance.now();
-await renderer.compileAsync(scene, camera);
-const compileMs = performance.now() - tc;
-engine.start();
+const compileMs = await compileAndStart(renderer, engine, scene, camera);
 
 (window as unknown as { __dev: object }).__dev = {
   ready: true,

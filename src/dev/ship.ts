@@ -4,7 +4,7 @@ import { COVE } from '../world/layout';
 import { createOcean } from '../world/ocean/ocean';
 import { createSky } from '../world/sky/sky-system';
 import { createBrigantine, type Brigantine } from '../world/ship';
-import { createDevHarness } from './harness';
+import { compileAndStart, createDevHarness } from './harness';
 
 interface ShipDevApi {
   ship: Brigantine;
@@ -163,5 +163,4 @@ engine.add({
   },
 });
 
-await renderer.compileAsync(scene, camera);
-engine.start();
+await compileAndStart(renderer, engine, scene, camera);

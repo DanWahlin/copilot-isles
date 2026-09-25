@@ -3,7 +3,14 @@ import { color, mix, positionWorld, smoothstep, vec3 } from 'three/tsl';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createSky } from '../world/sky/sky-system';
 import { createOcean } from '../world/ocean/ocean';
-import { bindSkyPanel, createDevHarness, engineStats, orbitViews, showSkyReadouts } from './harness';
+import {
+  bindSkyPanel,
+  compileAndStart,
+  createDevHarness,
+  engineStats,
+  orbitViews,
+  showSkyReadouts,
+} from './harness';
 
 /** Sea & Sky dev page: the T4 sky + T5 ocean with a test beach, on either backend (?webgl). */
 const h = await createDevHarness();
@@ -88,21 +95,9 @@ engine.add({
   },
 });
 
-await renderer.compileAsync(scene, camera);
-engine.start();
+await compileAndStart(renderer, engine, scene, camera);
 
-declare global {
-  interface Window {
-    __dev?: {
-      ready: boolean;
-      setTime(h: number, az?: number): void;
-      setView(v: string): void;
-      setCam(p: number[], t: number[]): void;
-      stats(): unknown;
-    };
-  }
-}
-window.__dev = {
+(window as unknown as { __dev: object }).__dev = {
   ready: true,
   setTime,
   setView,
