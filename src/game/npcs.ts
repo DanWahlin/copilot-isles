@@ -266,7 +266,7 @@ export class NpcCrowd {
       g.position.set(n.x, n.y, n.z);
       g.rotation.y = n.heading;
       if (s.patrol || s.orbit) n.character.setSpeed(moving ? (s.speed ?? 1.2) : 0);
-      n.character.lookAt(near ? tmp.set(player.x, player.y + 1.5, player.z) : null);
+      n.character.lookAt(near || n.talking ? tmp.set(player.x, player.y + 1.5, player.z) : null);
       n.character.update(dt);
     }
   }

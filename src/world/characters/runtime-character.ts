@@ -138,6 +138,7 @@ export class RuntimeCharacter implements Character {
       const action = this.mixer.clipAction(bindableClip(clip, group));
       action.loop = LoopRepeat;
       action.enabled = true;
+      action.time = Math.random() * Math.max(0.001, clip.duration);
       action.setEffectiveWeight(clipName === 'idle' ? 1 : 0);
       action.play();
       this.actions.set(clipName, action);
@@ -291,10 +292,12 @@ export class RuntimeCharacter implements Character {
   private applyProceduralPolish(dt: number): void {
     const yaw = this.group.rotation.y;
     const turnRate = MathUtils.clamp(wrapAngle(yaw - this.lastHeading) / Math.max(0.001, dt), -8, 8);
+    const npcScale = this.npc ? 0.55 : 1;
     this.lastHeading = yaw;
     if (!LOCOMOTION_CLIPS.has(this.activeClip)) {
       this.group.rotation.set(0, yaw, 0);
       this.group.scale.setScalar(this.baseScale);
+      this.applyPoseLife(dt, npcScale);
       return;
     }
 
@@ -304,7 +307,6 @@ export class RuntimeCharacter implements Character {
     this.previousVisualSpeed = this.visualSpeed;
     const speed01 = MathUtils.clamp(this.visualSpeed / RUN_SPEED, 0, 1);
     const move = smoothstep(0.05, 0.75, this.visualSpeed);
-    const npcScale = this.npc ? 0.55 : 1;
     const stride =
       this.visualSpeed > 2.8
         ? RUN_STRIDE_METERS
@@ -354,6 +356,26 @@ export class RuntimeCharacter implements Character {
     this.applyArmMask(move, npcScale);
     this.applyFootPlant(move, dt);
     this.applyIdleLife(dt, move, npcScale);
+  }
+
+  private applyPoseLife(dt: number, npcScale: number): void {
+    this.idleClock += dt;
+    const breath = Math.sin(this.idleClock * 2.1) * 0.009;
+    if (this.body) this.body.position.y += breath * this.rigMeters;
+    if (this.activeClip === 'talk') {
+      const beat = Math.sin(this.idleClock * 4.4);
+      this.torso?.rotateY(beat * 0.028 * npcScale);
+      this.shoulderL?.rotateZ(Math.max(0, beat) * 0.04 * npcScale);
+      this.shoulderR?.rotateZ(Math.min(0, beat) * 0.04 * npcScale);
+      if (!this.lookTarget) this.head?.rotateY(Math.sin(this.idleClock * 1.6) * 0.04 * npcScale);
+    } else if (this.activeClip === 'sit') {
+      const settle = Math.sin(this.idleClock * 0.9) * npcScale;
+      this.torso?.rotateY(settle * 0.025);
+      this.neck?.rotateY(-settle * 0.035);
+      if (!this.lookTarget) this.head?.rotateY(-settle * 0.045);
+    } else if (this.activeClip === 'helm') {
+      this.torso?.rotateZ(Math.sin(this.idleClock * 1.5) * 0.025 * npcScale);
+    }
   }
 
   private captureArmCarry(): void {

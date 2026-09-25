@@ -4,6 +4,7 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { packs } from '../../engine/packs';
 import { cloneClipWithUserData, loadClipPack } from './loco-pack';
+import { dressNpcCharacter } from './npc-accessories';
 import { addTricorn, stowPlayerWeapon } from './props';
 import { RuntimeCharacter } from './runtime-character';
 import {
@@ -47,29 +48,37 @@ const SOURCES: readonly { readonly key: SourceKey; readonly file: string }[] = [
   { key: 'captain', file: 'captain.glb' },
   { key: 'anne', file: 'anne.glb' },
   { key: 'henry', file: 'henry.glb' },
-  { key: 'farmer', file: 'farmer.glb' },
-  { key: 'lis', file: 'lis.glb' },
-  { key: 'worker', file: 'worker.glb' },
-  { key: 'adventurer', file: 'adventurer.glb' },
+  { key: 'captain_npc', file: 'captain-npc.glb' },
+  { key: 'anne_npc', file: 'anne-npc.glb' },
+  { key: 'henry_npc', file: 'henry-npc.glb' },
 ];
+
+const SOURCE_LOCOMOTION: Record<SourceKey, 'captain' | 'anne' | 'henry'> = {
+  captain: 'captain',
+  anne: 'anne',
+  henry: 'henry',
+  captain_npc: 'captain',
+  anne_npc: 'anne',
+  henry_npc: 'henry',
+};
 
 const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
   man: { source: 'captain', scale: 1, radius: 0.34, height: 1.78, tint: 0xffffff },
   woman: { source: 'anne', scale: 0.98, radius: 0.31, height: 1.7, tint: 0xffffff },
-  nell: { source: 'lis', scale: 1, radius: 0.31, height: 1.72, tint: 0xffffff },
-  dockhand_a: { source: 'worker', scale: 1, radius: 0.33, height: 1.75, tint: 0xffffff },
-  dockhand_b: { source: 'henry', scale: 1.02, radius: 0.34, height: 1.78, tint: 0xffffff },
-  fisherman: { source: 'farmer', scale: 0.98, radius: 0.34, height: 1.72, tint: 0xffffff },
-  merchant: { source: 'adventurer', scale: 0.98, radius: 0.33, height: 1.74, tint: 0xffffff },
-  lookout: { source: 'anne', scale: 1.03, radius: 0.33, height: 1.78, tint: 0xffffff },
-  child: { source: 'henry', scale: 0.72, radius: 0.23, height: 1.25, tint: 0xffffff },
-  old_sailor: { source: 'captain', scale: 0.96, radius: 0.33, height: 1.67, tint: 0xffffff },
-  // Chapter 00 cast from the POC spec §4.3 (reusing the source rigs with tints until more models land).
-  suri: { source: 'adventurer', scale: 0.97, radius: 0.32, height: 1.7, tint: 0xffe2c8 },
-  pim: { source: 'farmer', scale: 0.94, radius: 0.33, height: 1.66, tint: 0xdff5e0 },
-  pol: { source: 'farmer', scale: 0.94, radius: 0.33, height: 1.66, tint: 0xf5dedb },
-  juno: { source: 'lis', scale: 1.02, radius: 0.31, height: 1.74, tint: 0xd9e6ff },
-  lyra: { source: 'anne', scale: 0.96, radius: 0.31, height: 1.68, tint: 0xf0dcff },
+  nell: { source: 'anne_npc', scale: 1, radius: 0.31, height: 1.72, tint: 0xffffff },
+  dockhand_a: { source: 'henry_npc', scale: 1, radius: 0.33, height: 1.75, tint: 0xffffff },
+  dockhand_b: { source: 'henry_npc', scale: 1.02, radius: 0.34, height: 1.78, tint: 0xffffff },
+  fisherman: { source: 'henry_npc', scale: 0.98, radius: 0.34, height: 1.72, tint: 0xffffff },
+  merchant: { source: 'henry_npc', scale: 0.98, radius: 0.33, height: 1.74, tint: 0xffffff },
+  lookout: { source: 'anne_npc', scale: 1.03, radius: 0.33, height: 1.78, tint: 0xffffff },
+  child: { source: 'henry_npc', scale: 0.72, radius: 0.23, height: 1.25, tint: 0xffffff },
+  old_sailor: { source: 'captain_npc', scale: 0.96, radius: 0.33, height: 1.67, tint: 0xffffff },
+  // Chapter 00 cast from the POC spec §4.3, dressed as period variants of the chibi Pirate Kit rigs.
+  suri: { source: 'anne_npc', scale: 0.97, radius: 0.32, height: 1.7, tint: 0xffffff },
+  pim: { source: 'henry_npc', scale: 0.94, radius: 0.33, height: 1.66, tint: 0xffffff },
+  pol: { source: 'henry_npc', scale: 0.94, radius: 0.33, height: 1.66, tint: 0xffffff },
+  juno: { source: 'anne_npc', scale: 1.02, radius: 0.31, height: 1.74, tint: 0xffffff },
+  lyra: { source: 'anne_npc', scale: 0.96, radius: 0.31, height: 1.68, tint: 0xffffff },
 };
 
 const PLAYER_VARIANTS = [0xffffff, 0xe8f5ff, 0xffeee4, 0xebffe4] as const;
@@ -90,7 +99,7 @@ export async function loadCharacterLibrary(base = '/packs/testcove/characters'):
         key,
         file,
         scene,
-        clips: normalizeClips(gltf.animations, locomotion.get(key)),
+        clips: normalizeClips(gltf.animations, locomotion.get(SOURCE_LOCOMOTION[key])),
       } satisfies SourceAsset;
     }),
   );
@@ -116,6 +125,7 @@ class CharacterLibraryImpl implements CharacterLibrary {
     // The Anne model is bare-headed; as a captain she wears a tricorn like the Captain's.
     if (body === 'woman') addTricorn(clone);
     if (body === 'man' || body === 'woman') stowPlayerWeapon(clone, body);
+    else dressNpcCharacter(clone, body);
     return new RuntimeCharacter(clone, source.clips, body, config, options);
   }
 
@@ -144,13 +154,13 @@ function prepareSourceScene(scene: Group): void {
 async function loadLocomotionPacks(
   root: string,
 ): Promise<Map<SourceKey, ReadonlyMap<CharacterClip, AnimationClip>>> {
-  const [captain, anne] = await Promise.all([
-    loadClipPack(`${root}locomotion-captain.loco`),
-    loadClipPack(`${root}locomotion-anne.loco`),
-  ]);
+  const loaded = await Promise.all(
+    (['captain', 'anne', 'henry'] as const).map(
+      async (key) => [key, await loadClipPack(`${root}locomotion-${key}.loco`)] as const,
+    ),
+  );
   const packs = new Map<SourceKey, ReadonlyMap<CharacterClip, AnimationClip>>();
-  if (captain.size) packs.set('captain', captain);
-  if (anne.size) packs.set('anne', anne);
+  for (const [key, pack] of loaded) if (pack.size) packs.set(key, pack);
   return packs;
 }
 
@@ -163,18 +173,18 @@ function normalizeClips(
     clips.find((clip) => clip.name.toLowerCase().includes(needle.toLowerCase()));
   const motion = (name: CharacterClip) => cloneClipWithUserData(locomotion?.get(name));
   const mapping: readonly [CharacterClip, AnimationClip | undefined][] = [
-    ['idle', find('|Idle|') ?? find('Idle') ?? motion('idle')],
+    ['idle', motion('idle') ?? find('|Idle|') ?? find('Idle')],
     ['walk', motion('walk') ?? find('|Walk|') ?? find('Walk')],
     ['jog', motion('jog') ?? find('|Run|') ?? find('Run')],
     ['run', motion('run') ?? find('|Run|') ?? find('Run')],
     ['jumpStart', motion('jumpStart') ?? find('|Jump|') ?? find('Jump')],
     ['jumpLoop', motion('jumpLoop') ?? find('Jump_Idle') ?? find('|Jump|') ?? find('Jump')],
     ['jumpLand', motion('jumpLand') ?? find('Jump_Land') ?? find('|Jump|') ?? find('Jump')],
-    ['talk', find('|Yes|') ?? find('|No|') ?? find('|Wave|') ?? find('Idle')],
-    ['wave', find('|Wave|') ?? find('Wave')],
-    ['sit', find('|Duck|') ?? find('Duck') ?? find('Idle')],
-    ['helm', find('|Punch|') ?? find('|Sword|') ?? find('Idle')],
-    ['wade', find('|Walk|') ?? find('Walk')],
+    ['talk', motion('talk') ?? find('|Yes|') ?? find('|No|') ?? find('|Wave|') ?? find('Idle')],
+    ['wave', motion('wave') ?? find('|Wave|') ?? find('Wave')],
+    ['sit', motion('sit') ?? find('|Duck|') ?? find('Duck') ?? find('Idle')],
+    ['helm', motion('helm') ?? find('|Punch|') ?? find('|Sword|') ?? find('Idle')],
+    ['wade', motion('wade') ?? find('|Walk|') ?? find('Walk')],
   ];
   for (const [name, clip] of mapping) {
     if (clip) byName.set(name, clip.clone());
@@ -200,10 +210,17 @@ function cloneMaterial(material: Material | Material[], tint: number): Material 
   if (Array.isArray(material)) return material.map((entry) => cloneMaterial(entry, tint) as Material);
   const clone = material.clone();
   clone.userData.isCharacterCloneMaterial = true;
-  if ('color' in clone && clone.color instanceof Color) clone.color.copy(TEMP_COLOR.setHex(tint));
+  if ('color' in clone && clone.color instanceof Color && tint !== 0xffffff && canTintMaterial(clone)) {
+    clone.color.copy(TEMP_COLOR.setHex(tint));
+  }
   if ('roughness' in clone && typeof clone.roughness === 'number') clone.roughness = 0.72;
   if ('metalness' in clone && typeof clone.metalness === 'number') clone.metalness = 0.02;
   return clone;
+}
+
+function canTintMaterial(material: Material): boolean {
+  const name = material.name.toLowerCase();
+  return !name.includes('skin') && !name.includes('atlas');
 }
 
 function disposeMaterial(material: Material | Material[]): void {
