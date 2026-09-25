@@ -1,22 +1,11 @@
-import { ACESFilmicToneMapping, AgXToneMapping, NeutralToneMapping, type WebGPURenderer } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Engine } from '../engine/engine';
-import { TIERS } from '../engine/quality';
-import type { Tier } from '../world/contracts';
 import { createCove } from '../world/cove-scene';
-import { world } from '../world/uniforms';
 import { createVillage } from '../world/village';
+import { bindSkyPanel, createDevHarness, engineStats, orbitViews, showSkyReadouts } from './harness';
 
 /** Anchorage Cay village dev page: Test Cove plus the procedural harbor village (?webgl, ?tier=, ?view=). */
-const q = new URLSearchParams(location.search);
-const backend = q.has('webgl') ? 'webgl2' : 'webgpu';
-const tier = TIERS[(q.get('tier') as Tier) ?? 'high'] ?? TIERS.high;
-const canvas = document.getElementById('gl') as HTMLCanvasElement;
-const renderer: WebGPURenderer = Engine.createRenderer({ canvas, backend, tier });
-const TM = { agx: AgXToneMapping, neutral: NeutralToneMapping, aces: ACESFilmicToneMapping } as const;
-await renderer.init();
-const engine = Engine.fromRenderer(renderer, { canvas, backend, tier });
-if (q.has('tm')) renderer.toneMapping = TM[q.get('tm') as keyof typeof TM] ?? renderer.toneMapping;
+const h = await createDevHarness();
+const { q, backend, tier, canvas, renderer, engine } = h;
 const { scene, camera, clock } = engine;
 
 const t0 = performance.now();
@@ -55,35 +44,10 @@ const VIEWS: Record<string, [number[], number[]]> = {
     [-115, 3.4, -55],
   ],
 };
-function setView(name: string) {
-  const v = VIEWS[name] ?? VIEWS.quay;
-  camera.position.set(v[0][0], v[0][1], v[0][2]);
-  controls.target.set(v[1][0], v[1][1], v[1][2]);
-  controls.update();
-}
+const { setCam, setView } = orbitViews(camera, controls, VIEWS, 'quay');
 setView(q.get('view') ?? 'quay');
 
-const timeEl = document.getElementById('time') as HTMLInputElement;
-const azEl = document.getElementById('az') as HTMLInputElement;
-const windEl = document.getElementById('wind') as HTMLInputElement;
-const setTime = (h: number, az = clock.azimuth) => {
-  clock.set(h, az);
-  timeEl.value = String(h);
-  azEl.value = String(az);
-  cove.sky.invalidate();
-};
-setTime(Number(q.get('time') ?? 16.5), Number(q.get('az') ?? 0));
-windEl.value = String(world.windSpeed.value);
-timeEl.oninput = () => setTime(Number(timeEl.value));
-azEl.oninput = () => setTime(clock.hours, Number(azEl.value));
-windEl.oninput = () => (world.windSpeed.value = Number(windEl.value));
-document
-  .querySelectorAll<HTMLButtonElement>('[data-view]')
-  .forEach((b) => (b.onclick = () => setView(b.dataset.view!)));
-document
-  .querySelectorAll<HTMLButtonElement>('[data-time]')
-  .forEach((b) => (b.onclick = () => setTime(Number(b.dataset.time))));
-if (q.has('shot')) document.body.classList.add('shot');
+const setTime = bindSkyPanel({ q, clock, invalidate: () => cove.sky.invalidate(), setView });
 
 const stats = document.getElementById('stats')!;
 let n = 0;
@@ -92,15 +56,11 @@ engine.add({
     controls.update();
     village.update(dt, t, camera);
     if (++n % 20 === 0) {
-      const c = engine.counters.last;
       stats.textContent =
-        `${backend} · ${tier.tier} · ${engine.fps.toFixed(0)} fps · gpu ${engine.gpuMs.toFixed(2)} ms\n` +
-        `draws ${c.drawCalls} · programs ${c.programs} · tris ${(c.triangles / 1000).toFixed(0)}k\n` +
+        `${engineStats(h).join('\n')}\n` +
         `village ${village.metrics.drawCalls} draws · ${(village.metrics.triangles / 1000).toFixed(1)}k tris\n` +
         `scale ${engine.adaptive.scale.toFixed(2)} · ${clock.hours.toFixed(2)}h · build ${buildMs.toFixed(0)} ms`;
-      document.getElementById('timeV')!.textContent = clock.hours.toFixed(1);
-      document.getElementById('azV')!.textContent = String(clock.azimuth);
-      document.getElementById('windV')!.textContent = world.windSpeed.value.toFixed(1);
+      showSkyReadouts(clock);
     }
   },
 });
@@ -126,11 +86,7 @@ window.__dev = {
   ready: true,
   setTime,
   setView,
-  setCam: (p: number[], t: number[]) => {
-    camera.position.set(p[0], p[1], p[2]);
-    controls.target.set(t[0], t[1], t[2]);
-    controls.update();
-  },
+  setCam,
   stats: () => ({
     ...engine.counters.last,
     fps: engine.fps,

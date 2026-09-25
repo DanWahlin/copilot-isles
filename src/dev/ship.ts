@@ -1,20 +1,10 @@
-import {
-  MathUtils,
-  Mesh,
-  MeshStandardNodeMaterial,
-  SphereGeometry,
-  Vector2,
-  Vector3,
-  type WebGPURenderer,
-} from 'three/webgpu';
+import { MathUtils, Mesh, MeshStandardNodeMaterial, SphereGeometry, Vector2, Vector3 } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Engine } from '../engine/engine';
-import { TIERS } from '../engine/quality';
-import type { Tier } from '../world/contracts';
 import { COVE } from '../world/layout';
 import { createOcean } from '../world/ocean/ocean';
 import { createSky } from '../world/sky/sky-system';
 import { createBrigantine, type Brigantine } from '../world/ship';
+import { createDevHarness } from './harness';
 
 interface ShipDevApi {
   ship: Brigantine;
@@ -29,16 +19,9 @@ declare global {
   }
 }
 
-const query = new URLSearchParams(location.search);
-if (query.has('shot')) document.body.classList.add('shot');
-const backend: 'webgpu' | 'webgl2' = query.has('webgl') ? 'webgl2' : 'webgpu';
-const tier = TIERS[(query.get('tier') as Tier) ?? 'high'] ?? TIERS.high;
-const canvas = document.getElementById('gl') as HTMLCanvasElement;
+const { q: query, backend, tier, canvas, renderer, engine } = await createDevHarness();
 const stats = document.getElementById('stats')!;
 
-const renderer: WebGPURenderer = Engine.createRenderer({ canvas, backend, tier });
-await renderer.init();
-const engine = Engine.fromRenderer(renderer, { canvas, backend, tier });
 const { scene, camera, clock } = engine;
 clock.set(Number(query.get('time') ?? 16.5), Number(query.get('az') ?? 0));
 

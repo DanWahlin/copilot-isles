@@ -1,18 +1,9 @@
-import { type WebGPURenderer } from 'three/webgpu';
-import { Engine } from '../engine/engine';
 import { createPost } from '../engine/post';
-import { TIERS } from '../engine/quality';
-import type { Tier } from '../world/contracts';
 import { createCove } from '../world/cove-scene';
 import { createLeaps } from '../world/life/leaps';
+import { createDevHarness } from './harness';
 
-const q = new URLSearchParams(location.search);
-const backend = q.has('webgl') ? 'webgl2' : 'webgpu';
-const tier = TIERS[(q.get('tier') as Tier) ?? 'high'] ?? TIERS.high;
-const canvas = document.getElementById('gl') as HTMLCanvasElement;
-const renderer: WebGPURenderer = Engine.createRenderer({ canvas, backend, tier });
-await renderer.init();
-const engine = Engine.fromRenderer(renderer, { canvas, backend, tier });
+const { q, backend, tier, renderer, engine } = await createDevHarness();
 const { scene, camera, clock } = engine;
 clock.set(16.5, 0);
 camera.position.set(40, 12, 145);
@@ -23,7 +14,6 @@ const demoLeaps = createLeaps({ tier, titleMode: true, seed: 0x1ea9 });
 scene.add(demoLeaps.group);
 const post = q.has('nopost') ? null : createPost(renderer, scene, camera, tier);
 if (post) engine.renderFn = post.render;
-if (q.has('shot')) document.body.classList.add('shot');
 
 let forced = false;
 let n = 0;

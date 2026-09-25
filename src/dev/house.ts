@@ -8,24 +8,14 @@ import {
   MeshStandardNodeMaterial,
   PlaneGeometry,
   type BufferGeometry,
-  type WebGPURenderer,
 } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Engine } from '../engine/engine';
-import { TIERS } from '../engine/quality';
-import type { Tier } from '../world/contracts';
 import { world } from '../world/uniforms';
 import { loadVillageKit, type VillageKit } from '../world/village';
 import { buildHouse, type HouseSpec } from '../world/village/house-builder';
+import { createDevHarness } from './harness';
 
-const q = new URLSearchParams(location.search);
-const backend = q.has('webgl') ? 'webgl2' : 'webgpu';
-const tier = TIERS[(q.get('tier') as Tier) ?? 'high'] ?? TIERS.high;
-if (q.has('shot')) document.body.classList.add('shot');
-const canvas = document.getElementById('gl') as HTMLCanvasElement;
-const renderer: WebGPURenderer = Engine.createRenderer({ canvas, backend, tier });
-await renderer.init();
-const engine = Engine.fromRenderer(renderer, { canvas, backend, tier });
+const { q, backend, tier, canvas, renderer, engine } = await createDevHarness();
 const { scene, camera } = engine;
 
 scene.background = new Color(0x8dccf6);

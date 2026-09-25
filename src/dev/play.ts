@@ -1,13 +1,9 @@
-import { type WebGPURenderer } from 'three/webgpu';
 import { AMBIENT_BEDS, createAudio } from '../audio';
-import { Engine } from '../engine/engine';
 import { Input } from '../engine/input';
 import { createPost } from '../engine/post';
-import { TIERS } from '../engine/quality';
 import { createSession, type GameSession } from '../game/session';
 import '../game/hud.css';
 import { loadCharacterLibrary, type PlayerBody } from '../world/characters';
-import type { Tier } from '../world/contracts';
 import { createCove } from '../world/cove-scene';
 import { QUIZZES } from '../learn/content/index';
 import type { Answer } from '../learn/grade';
@@ -15,21 +11,15 @@ import { Progress } from '../learn/progress';
 import { LearnStore } from '../learn/store';
 import { mountLearn } from '../ui/learn/LearnLayer';
 import '../ui/ui.css';
+import { createDevHarness } from './harness';
 
 /**
  * Test Cove play page (Phase 0 T11): walk the harbor, talk to Nell, board the brigantine, sail,
  * and dock. ?webgl, ?tier=, ?noveg, ?body=man|woman, ?auto (skip the start card), ?shot, ?time=,
  * ?nolearn (plain dialogue, no quizzes/chests), ?keep (keep learning progress in localStorage).
  */
-const q = new URLSearchParams(location.search);
-const backend = q.has('webgl') ? 'webgl2' : 'webgpu';
-const tier = TIERS[(q.get('tier') as Tier) ?? 'high'] ?? TIERS.high;
-const canvas = document.getElementById('gl') as HTMLCanvasElement;
-const renderer: WebGPURenderer = Engine.createRenderer({ canvas, backend, tier });
-await renderer.init();
-const engine = Engine.fromRenderer(renderer, { canvas, backend, tier });
+const { q, backend, tier, canvas, renderer, engine } = await createDevHarness();
 const { scene, camera, clock } = engine;
-if (q.has('shot')) document.body.classList.add('shot');
 
 const t0 = performance.now();
 const [cove, characters] = await Promise.all([

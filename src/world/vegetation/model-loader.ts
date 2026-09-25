@@ -13,8 +13,8 @@ import {
   type Object3D,
   type Texture,
 } from 'three/webgpu';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'meshoptimizer/decoder';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { packs } from '../../engine/packs';
 import { createVegetationMaterial } from './materials';
 import { createPlantGeometry } from './plant-geometry';

@@ -1,21 +1,13 @@
-import { Mesh, MeshStandardNodeMaterial, PlaneGeometry, Vector3, type WebGPURenderer } from 'three/webgpu';
+import { Mesh, MeshStandardNodeMaterial, PlaneGeometry, Vector3 } from 'three/webgpu';
 import { color, mix, positionWorld, smoothstep, vec3 } from 'three/tsl';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Engine } from '../engine/engine';
-import { TIERS } from '../engine/quality';
-import type { Tier } from '../world/contracts';
 import { createSky } from '../world/sky/sky-system';
 import { createOcean } from '../world/ocean/ocean';
-import { world } from '../world/uniforms';
+import { bindSkyPanel, createDevHarness, engineStats, orbitViews, showSkyReadouts } from './harness';
 
 /** Sea & Sky dev page: the T4 sky + T5 ocean with a test beach, on either backend (?webgl). */
-const q = new URLSearchParams(location.search);
-const backend = q.has('webgl') ? 'webgl2' : 'webgpu';
-const tier = TIERS[(q.get('tier') as Tier) ?? 'high'] ?? TIERS.high;
-const canvas = document.getElementById('gl') as HTMLCanvasElement;
-const renderer: WebGPURenderer = Engine.createRenderer({ canvas, backend, tier });
-await renderer.init();
-const engine = Engine.fromRenderer(renderer, { canvas, backend, tier });
+const h = await createDevHarness();
+const { q, backend, tier, canvas, renderer, engine } = h;
 const { scene, camera, clock } = engine;
 
 const sky = createSky(renderer, scene, tier);
@@ -73,35 +65,10 @@ const VIEWS: Record<string, [number[], number[]]> = {
     [-600, 0, 900],
   ],
 };
-function setView(name: string) {
-  const v = VIEWS[name] ?? VIEWS.deck;
-  camera.position.set(v[0][0], v[0][1], v[0][2]);
-  controls.target.set(v[1][0], v[1][1], v[1][2]);
-  controls.update();
-}
+const { setCam, setView } = orbitViews(camera, controls, VIEWS, 'deck');
 setView(q.get('view') ?? 'deck');
 
-const timeEl = document.getElementById('time') as HTMLInputElement;
-const azEl = document.getElementById('az') as HTMLInputElement;
-const windEl = document.getElementById('wind') as HTMLInputElement;
-const setTime = (h: number, az = clock.azimuth) => {
-  clock.set(h, az);
-  timeEl.value = String(h);
-  azEl.value = String(az);
-  sky.invalidate();
-};
-setTime(Number(q.get('time') ?? 16.5), Number(q.get('az') ?? 0));
-windEl.value = String(world.windSpeed.value);
-timeEl.oninput = () => setTime(Number(timeEl.value));
-azEl.oninput = () => setTime(clock.hours, Number(azEl.value));
-windEl.oninput = () => (world.windSpeed.value = Number(windEl.value));
-document
-  .querySelectorAll<HTMLButtonElement>('[data-view]')
-  .forEach((b) => (b.onclick = () => setView(b.dataset.view!)));
-document
-  .querySelectorAll<HTMLButtonElement>('[data-time]')
-  .forEach((b) => (b.onclick = () => setTime(Number(b.dataset.time))));
-if (q.has('shot')) document.body.classList.add('shot');
+const setTime = bindSkyPanel({ q, clock, invalidate: () => sky.invalidate(), setView });
 
 const focus = new Vector3();
 const stats = document.getElementById('stats')!;
@@ -113,14 +80,10 @@ engine.add({
     focus.set(camera.position.x, 0, camera.position.z);
     sky.update(clock, focus);
     if (++n % 20 === 0) {
-      const c = engine.counters.last;
       stats.textContent =
-        `${backend} · ${tier.tier} · ${engine.fps.toFixed(0)} fps · gpu ${engine.gpuMs.toFixed(2)} ms\n` +
-        `draws ${c.drawCalls} · programs ${c.programs} · tris ${(c.triangles / 1000).toFixed(0)}k\n` +
+        `${engineStats(h).join('\n')}\n` +
         `scale ${engine.adaptive.scale.toFixed(2)} · ${clock.hours.toFixed(2)}h`;
-      document.getElementById('timeV')!.textContent = clock.hours.toFixed(1);
-      document.getElementById('azV')!.textContent = String(clock.azimuth);
-      document.getElementById('windV')!.textContent = world.windSpeed.value.toFixed(1);
+      showSkyReadouts(clock);
     }
   },
 });
@@ -143,11 +106,7 @@ window.__dev = {
   ready: true,
   setTime,
   setView,
-  setCam: (p, t) => {
-    camera.position.set(p[0], p[1], p[2]);
-    controls.target.set(t[0], t[1], t[2]);
-    controls.update();
-  },
+  setCam,
   stats: () => ({
     sunI: sky.sun.intensity,
     sunPos: sky.sun.position.toArray(),

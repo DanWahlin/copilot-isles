@@ -1,20 +1,13 @@
 import {
-  ACESFilmicToneMapping,
   Color,
-  AgXToneMapping,
   DirectionalLight,
   HemisphereLight,
   Mesh,
   MeshStandardMaterial,
-  NeutralToneMapping,
   PlaneGeometry,
   Vector3,
-  type WebGPURenderer,
 } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Engine } from '../engine/engine';
-import { TIERS } from '../engine/quality';
-import type { Tier } from '../world/contracts';
 import { createCove } from '../world/cove-scene';
 import { COVE } from '../world/layout';
 import {
@@ -25,16 +18,10 @@ import {
   type CharacterBody,
   type CharacterClip,
 } from '../world/characters';
+import { createDevHarness, engineStats, orbitViews } from './harness';
 
-const q = new URLSearchParams(location.search);
-const backend = q.has('webgl') ? 'webgl2' : 'webgpu';
-const tier = TIERS[(q.get('tier') as Tier) ?? 'high'] ?? TIERS.high;
-const canvas = document.getElementById('gl') as HTMLCanvasElement;
-const renderer: WebGPURenderer = Engine.createRenderer({ canvas, backend, tier });
-const TM = { agx: AgXToneMapping, neutral: NeutralToneMapping, aces: ACESFilmicToneMapping } as const;
-await renderer.init();
-const engine = Engine.fromRenderer(renderer, { canvas, backend, tier });
-if (q.has('tm')) renderer.toneMapping = TM[q.get('tm') as keyof typeof TM] ?? renderer.toneMapping;
+const h = await createDevHarness();
+const { q, backend, tier, canvas, renderer, engine } = h;
 const { scene, camera, clock } = engine;
 
 const studio = q.has('studio');
@@ -105,15 +92,7 @@ const VIEWS: Record<string, [number[], number[]]> = {
     [-108, 3.2, -62],
   ],
 };
-function setCam(pos: number[], target: number[]): void {
-  camera.position.set(pos[0], pos[1], pos[2]);
-  controls.target.set(target[0], target[1], target[2]);
-  controls.update();
-}
-function setView(name: string): void {
-  const view = VIEWS[name] ?? VIEWS.lineup;
-  setCam(view[0], view[1]);
-}
+const { setCam, setView } = orbitViews(camera, controls, VIEWS, 'lineup');
 setView(q.get('view') ?? 'lineup');
 
 const clipRoot = document.getElementById('clips')!;
@@ -151,7 +130,6 @@ document.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((button) => 
     setView(button.dataset.view!);
   };
 });
-if (q.has('shot')) document.body.classList.add('shot');
 
 const stats = document.getElementById('stats')!;
 let frameCount = 0;
@@ -160,11 +138,8 @@ engine.add({
     controls.update();
     for (const character of characters) character.update(dt);
     if (++frameCount % 20 === 0) {
-      const counters = engine.counters.last;
-      stats.textContent =
-        `${backend} · ${tier.tier} · ${engine.fps.toFixed(0)} fps · gpu ${engine.gpuMs.toFixed(2)} ms\n` +
-        `${characters.length} characters · clips ${library.clips.join(', ')}\n` +
-        `draws ${counters.drawCalls} · programs ${counters.programs} · tris ${(counters.triangles / 1000).toFixed(0)}k`;
+      const [head, draws] = engineStats(h);
+      stats.textContent = `${head}\n${characters.length} characters · clips ${library.clips.join(', ')}\n${draws}`;
     }
   },
 });

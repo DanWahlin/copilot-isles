@@ -13,8 +13,8 @@ import {
   Vector3,
   WebGPURenderer,
 } from 'three/webgpu';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { SkyMesh } from 'three/examples/jsm/objects/SkyMesh.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
 import { tierSettings } from '../engine/quality';
 import type { HeightField } from '../world/contracts';
 import { COVE } from '../world/layout';
