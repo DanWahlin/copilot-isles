@@ -45,34 +45,37 @@ export function waterlineHalfBeamAt(z: number): number {
   return BRIGANTINE_HALF_BEAM * Math.max(0.035, run);
 }
 
-/** Half breadth at a section height. Below the waterline it narrows to a fine keel; above it flares subtly. */
+/** Half breadth at a section height. Below the waterline it narrows to a fine keel; above it tumbles home. */
 export function halfBeamAt(z: number, y: number): number {
   const wl = waterlineHalfBeamAt(z);
   if (y <= 0) {
     const t = clamp01((y + BRIGANTINE_DRAFT) / BRIGANTINE_DRAFT);
-    return wl * Math.pow(Math.sin(t * Math.PI * 0.5), 0.62);
+    return wl * Math.pow(Math.sin(t * Math.PI * 0.5), 0.7);
   }
   const sheer = sheerHeightAt(z);
   const t = clamp01(y / Math.max(0.001, sheer));
-  const flare = 1 + 0.11 * smoothstep(0.15, 1, t);
-  const tumblehome = 1 - 0.04 * smoothstep(0.72, 1, t);
+  const flare = 1 + 0.08 * smoothstep(0.08, 0.46, t);
+  const tumblehome = 1 - 0.19 * smoothstep(0.55, 1, t);
   return wl * flare * tumblehome;
 }
 
 /** Deck sheer, including raised quarterdeck aft and forecastle forward. */
 export function sheerHeightAt(z: number): number {
   const t = Math.abs(z) / BRIGANTINE_HALF_LENGTH;
-  const endSheer = 0.42 * t * t;
-  const quarterdeck = 0.92 * (1 - smoothstep(-7.0, -4.0, z));
-  const forecastle = 0.55 * smoothstep(6.8, 9.8, z);
-  const transomLift = 0.22 * (1 - smoothstep(-12, -10.7, z));
-  return BRIGANTINE_FREEBOARD + endSheer + quarterdeck + forecastle + transomLift;
+  const endSheer = 0.52 * t * t;
+  const quarterdeck = 1.22 * (1 - smoothstep(-7.2, -4.2, z));
+  const poop = 0.38 * (1 - smoothstep(-11.4, -9.2, z));
+  const forecastle = 0.82 * smoothstep(6.6, 9.7, z);
+  const transomLift = 0.36 * (1 - smoothstep(-12, -10.7, z));
+  const bowLift = 0.18 * smoothstep(9.0, 12, z);
+  return BRIGANTINE_FREEBOARD + endSheer + quarterdeck + poop + forecastle + transomLift + bowLift;
 }
 
 export function deckHeightAt(z: number): number {
-  const quarterdeck = 0.78 * (1 - smoothstep(-7.3, -4.8, z));
-  const forecastle = 0.38 * smoothstep(7.0, 9.8, z);
-  return 1.82 + quarterdeck + forecastle + 0.16 * Math.pow(Math.abs(z) / BRIGANTINE_HALF_LENGTH, 1.6);
+  const quarterdeck = 0.96 * (1 - smoothstep(-7.3, -4.8, z));
+  const poop = 0.34 * (1 - smoothstep(-11.1, -9.0, z));
+  const forecastle = 0.52 * smoothstep(7.0, 9.8, z);
+  return 1.82 + quarterdeck + poop + forecastle + 0.16 * Math.pow(Math.abs(z) / BRIGANTINE_HALF_LENGTH, 1.6);
 }
 
 export function keelHeightAt(z: number): number {

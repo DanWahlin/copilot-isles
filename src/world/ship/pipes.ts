@@ -1,5 +1,6 @@
 import { BufferAttribute, BufferGeometry, Group, Mesh, type Material } from 'three/webgpu';
 import { createSparkleMaterial, shaftGeometry, starGeometry } from '../sites/sparkle';
+import { deckHeightAt } from './lines';
 import { basisFromAxis, MeshBuilder, type P3 } from './mesh-builder';
 
 type PipeKind = 'tube' | 'hatch';
@@ -31,12 +32,14 @@ interface ShipPipesSystem extends ShipPipes {
   dispose(): void;
 }
 
-const TUBE = { x: 2.58, y: 2.72, z: -8.55 };
-const HATCH = { x: 2.65, y: 2.58, z: -7.45 };
-const TUBE_PROMPT = { x: 2.78, y: 2.74, z: -8.55 };
-const HATCH_PROMPT = { x: 2.83, y: 2.58, z: -7.45 };
+const TUBE_Z = -8.55;
+const HATCH_Z = -7.45;
+const TUBE = { x: 2.58, y: deckHeightAt(TUBE_Z) + 0.14, z: TUBE_Z };
+const HATCH = { x: 2.65, y: deckHeightAt(HATCH_Z) + 0.04, z: HATCH_Z };
+const TUBE_PROMPT = { x: 2.78, y: TUBE.y + 0.02, z: TUBE_Z };
+const HATCH_PROMPT = { x: 2.83, y: HATCH.y, z: HATCH_Z };
 const TUBE_AXIS = { x: Math.cos(0.39), y: -Math.sin(0.39), z: 0 };
-const TUBE_MOUTH = { x: TUBE.x + 0.78, y: 2.88, z: TUBE.z };
+const TUBE_MOUTH = { x: TUBE.x + 0.78, y: TUBE.y + 0.16, z: TUBE.z };
 const TUBE_THROAT = add(TUBE_MOUTH, TUBE_AXIS, -0.54);
 const HATCH_GAP = { x: HATCH.x + 0.18, y: HATCH.y - 0.02, z: HATCH.z };
 

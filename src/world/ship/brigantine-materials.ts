@@ -176,9 +176,9 @@ function repaintShipLabelCanvas(): void {
   );
 
   const board = ctx.createLinearGradient(0, 280, 0, 480);
-  board.addColorStop(0, '#0f3334');
-  board.addColorStop(0.55, '#071516');
-  board.addColorStop(1, '#164547');
+  board.addColorStop(0, '#24100c');
+  board.addColorStop(0.55, '#080607');
+  board.addColorStop(1, '#5a1712');
   ctx.fillStyle = board;
   ctx.strokeStyle = '#c5973f';
   ctx.lineWidth = 18;
@@ -254,11 +254,11 @@ export function makeShipMaterial(): MeshStandardNodeMaterial {
     .smoothstep(0.965, 1.0)
     .mul(0.22);
   const hull = hullWood
-    .mul(mix(color(0x8b5130), color(0xd08748), plankNoise.mul(0.2).add(0.24)))
+    .mul(mix(color(0x090706), color(0x352018), plankNoise.mul(0.22).add(0.08)))
     .sub(color(0x1a0905).mul(hullSeam));
   const deck = deckWood.mul(mix(color(0xc08c55), color(0xffce87), 0.34)).sub(color(0x2a170c).mul(deckSeam));
   const paintGrain = hullWood.mul(0.28).add(0.72);
-  const teal = paintGrain.mul(color(0x2d8b88));
+  const red = paintGrain.mul(color(0x9c2418));
   const gold = paintGrain.mul(color(0xd7a554));
   const iron = mix(
     color(0x171717),
@@ -279,15 +279,18 @@ export function makeShipMaterial(): MeshStandardNodeMaterial {
 
   let outColor = hull;
   outColor = mix(outColor, deck, r1);
-  outColor = mix(outColor, teal, r2);
+  outColor = mix(outColor, red, r2);
   outColor = mix(outColor, gold, r3);
   outColor = mix(outColor, iron, r4);
   outColor = mix(outColor, canvas, r5);
   outColor = mix(outColor, glow, r6);
   outColor = mix(outColor, label, r7);
-  m.colorNode = outColor.mul(vc.mul(0.18).add(0.88));
+  m.colorNode = outColor.mul(vc.mul(0.52).add(0.52));
   m.emissiveNode = glow.mul(r6).mul(world.night.smoothstep(0.08, 0.9));
-  m.roughnessNode = mix(float(0.62), float(0.88), r5).add(r4.mul(0.1)).add(r7.mul(0.04));
+  m.roughnessNode = mix(mix(float(0.62), float(0.88), r5), float(0.34), r3)
+    .add(r4.mul(0.1))
+    .add(r7.mul(0.04));
+  m.metalnessNode = mix(float(0.02), float(0.46), r3);
   return m;
 }
 
@@ -296,8 +299,6 @@ export function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNo
     roughness: 0.88,
     metalness: 0,
     side: DoubleSide,
-    transparent: true,
-    opacity: 0.9,
   });
   const sailUv = attribute('sailUv', 'vec2');
   const sailNormal = attribute('sailNormal', 'vec3');
@@ -311,20 +312,22 @@ export function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNo
     .add(0.65);
   const flutter = sin(world.time.mul(12.0).add(sailUv.x.mul(31)).add(sailUv.y.mul(17)))
     .mul(uniforms.luff)
-    .mul(0.34);
+    .mul(0.46);
   const billow = belly
     .mul(uniforms.trim)
-    .mul(world.windSpeed.mul(0.035).add(0.2))
+    .mul(world.windSpeed.mul(0.08).add(0.72))
     .mul(gust.mul(0.28).add(0.86))
     .mul(windFacing)
+    .mul(2.05)
     .add(flutter);
   m.positionNode = mix(sailAnchor, positionLocal.add(sailNormal.mul(billow)), uniforms.trim);
-  const panelU = abs(sin(sailUv.x.mul(Math.PI * 8))).smoothstep(0.965, 1.0);
-  const panelV = abs(sin(sailUv.y.mul(Math.PI * 5))).smoothstep(0.965, 1.0);
+  const panelU = abs(sin(sailUv.x.mul(Math.PI * 9))).smoothstep(0.972, 1.0);
   const dirt = sailUv.y
     .oneMinus()
     .mul(0.12)
     .add(abs(sin(positionLocal.x.mul(3.7).add(positionLocal.y))).mul(0.08));
+  const yardShadow = smoothstep(0.78, 1.0, sailUv.y).mul(0.2);
+  const bellyOcclusion = belly.mul(uniforms.trim).mul(0.16);
   const backlit = world.sunDir.x
     .mul(sailNormal.x)
     .add(world.sunDir.z.mul(sailNormal.z))
@@ -333,8 +336,13 @@ export function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNo
   // The palette band sits just above the foot of each sail (v runs foot → head).
   const band = smoothstep(0.17, 0.19, sailUv.y).mul(float(1).sub(smoothstep(0.27, 0.29, sailUv.y)));
   const cloth = mix(uniforms.sailCloth, uniforms.sailStripe, band);
-  const wear = float(1).sub(panelU.add(panelV).mul(0.12).add(dirt).mul(0.85));
-  m.colorNode = cloth.mul(belly.mul(0.12).add(0.9)).mul(wear);
+  const reefBands = abs(sin(sailUv.y.mul(Math.PI * 7)))
+    .smoothstep(0.965, 1.0)
+    .mul(0.08);
+  const wear = float(1).sub(
+    panelU.mul(0.18).add(reefBands).add(dirt).add(yardShadow).add(bellyOcclusion).mul(0.85),
+  );
+  m.colorNode = cloth.mul(color(0xffe0a8)).mul(belly.mul(0.06).add(0.9)).mul(wear);
   m.emissiveNode = cloth
     .mul(color(0xffe2b0))
     .mul(backlit.mul(world.sunDir.y.smoothstep(0.02, 0.45)).mul(0.09));

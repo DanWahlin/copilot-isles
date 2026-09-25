@@ -60,6 +60,7 @@ const focus = new Vector3();
 const waterFocus = new Vector2();
 const upAxis = new Vector3(0, 1, 0);
 const shotOffset = new Vector3(-28, 11, 30);
+let manualCamera = false;
 const autopilotPath = [
   { x: COVE.mooring.x, z: COVE.mooring.z },
   { x: COVE.mooring.x, z: COVE.mooring.z - 18 },
@@ -70,6 +71,7 @@ const autopilotPath = [
 ];
 
 function frameCamera(immediate = false): void {
+  if (manualCamera) return;
   const p = ship.group.position;
   controls.target.set(p.x, p.y + 5.0, p.z);
   camOffset.copy(shotOffset).applyAxisAngle(upAxis, ship.dynamics.pose.heading);
@@ -79,6 +81,7 @@ function frameCamera(immediate = false): void {
 }
 
 function setShot(id: 'bow' | 'broadside' | 'stern' | 'deck'): void {
+  manualCamera = false;
   if (id === 'bow') shotOffset.set(-26, 10, 28);
   else if (id === 'broadside') shotOffset.set(34, 6.5, 0);
   else if (id === 'stern') shotOffset.set(0, 8.5, -30);
@@ -120,6 +123,25 @@ window.__shipDev = {
     ship.dynamics.setInput({ trim, rudder });
   },
   stats: () => ({ drawCalls: ship.drawCallCount, triangles: ship.triangleCount, backend }),
+};
+(window as unknown as { __dev: object }).__dev = {
+  ready: true,
+  ship,
+  camera,
+  controls,
+  setShotOffset(offset: [number, number, number]) {
+    manualCamera = false;
+    shotOffset.set(offset[0], offset[1], offset[2]);
+    frameCamera(true);
+    controls.update();
+  },
+  setManualCamera(position: [number, number, number], target: [number, number, number]) {
+    manualCamera = true;
+    camera.position.set(position[0], position[1], position[2]);
+    controls.target.set(target[0], target[1], target[2]);
+    controls.update();
+  },
+  stats: window.__shipDev.stats,
 };
 
 let n = 0;

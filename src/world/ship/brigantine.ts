@@ -42,6 +42,7 @@ import {
   createSailGeometry,
   createSparGeometry,
 } from './brigantine-rig';
+import { createFlagGeometry, makeFlagMaterial } from './ship-flags';
 import {
   makeCanvasMaterial,
   makeShipMaterial,
@@ -99,9 +100,9 @@ interface ShipAnchors {
 
 const WATERLINE_POLYGON_POINTS = 32;
 const BOW_Z = BRIGANTINE_HALF_LENGTH + 0.28;
-const BOW_STEM = { x: 0, y: 2.05, z: 12.1 } as const;
+const BOW_STEM = { x: 0, y: 1.9, z: 13.18 } as const;
 const STERN_Z = -BRIGANTINE_HALF_LENGTH - 0.15;
-const HELM_Z = -9.55;
+const HELM_Z = -8.85;
 const BOARDING_Z = -0.15;
 
 function localToWorldXZ(
@@ -187,7 +188,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     sailStripe: uniform(new Color(startSails.stripe)),
   };
   const anchors: ShipAnchors = {
-    helm: { x: 0, y: deckHeightAt(-8.0) + 0.18, z: HELM_Z, heading: 0 },
+    helm: { x: 0, y: deckHeightAt(HELM_Z) + 0.18, z: HELM_Z, heading: 0 },
     // At COVE.mooring heading π, local +x maps to world -x (west/port rail), which is the pier-facing side.
     boarding: {
       x: halfBeamAt(BOARDING_Z, deckHeightAt(BOARDING_Z)) * 0.72,
@@ -222,7 +223,14 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     register(makeCanvasMaterial(uniforms)),
     'billowed procedural sails',
   );
-  const rigging = new LineSegments(createRiggingGeometry(), riggingLineMaterial);
+  addMesh(
+    group,
+    createFlagGeometry(),
+    register(makeFlagMaterial()),
+    'animated jolly roger and pennants',
+    false,
+  );
+  const rigging = new LineSegments(createRiggingGeometry(tier), riggingLineMaterial);
   rigging.name = 'standing and running rigging lines';
   group.add(rigging);
   group.add(pipeSystem.group);
@@ -234,13 +242,23 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   const lanternRig = new MeshBuilder();
   lanternRig.setRegion(4);
   lanternRig.setColor(0x17110c);
-  lanternRig.addCylinderBetween({ x: 0, y: 0, z: 0 }, { x: 0, y: -0.58, z: 0 }, 0.018, 6);
-  lanternRig.addBox(0, -0.2, 0, 0.2, 0.04, 0.2);
+  for (const x of [-0.72, 0, 0.72]) {
+    lanternRig.addCylinderBetween({ x, y: 0, z: 0 }, { x, y: -0.58, z: 0 }, 0.018, 6);
+    lanternRig.addBox(x, -0.2, 0, 0.2, 0.04, 0.2);
+  }
   addMesh(lanternPivot, lanternRig.build(), shipMaterial, 'lantern hanger', false);
   const lanternGeo = new MeshBuilder();
   lanternGeo.setRegion(6);
   lanternGeo.setColor(0xffb060);
-  lanternGeo.addBox(0, -0.74, 0, 0.24, 0.3, 0.24);
+  for (const x of [-0.72, 0, 0.72]) {
+    lanternGeo.addBox(x, -0.74, 0, 0.24, 0.3, 0.24);
+    lanternGeo.setRegion(4);
+    lanternGeo.setColor(0x17110c);
+    lanternGeo.addBox(x, -0.74, 0, 0.31, 0.04, 0.31);
+    lanternGeo.addBox(x, -0.58, 0, 0.28, 0.04, 0.28);
+    lanternGeo.setRegion(6);
+    lanternGeo.setColor(0xffb060);
+  }
   addMesh(lanternPivot, lanternGeo.build(), shipMaterial, 'stern lantern', false);
   group.add(lanternPivot);
 

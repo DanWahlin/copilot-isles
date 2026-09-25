@@ -52,6 +52,9 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   const lazyLeapsTimer = typeof window !== 'undefined' ? window.setTimeout(() => void loadLeaps(), 4000) : 0;
   ship.dynamics.reset(anchor.x, anchor.z, anchor.heading);
   scene.add(ocean.mesh, ranges, ship.group);
+  if (typeof window !== 'undefined') {
+    (window as unknown as { __dev: object }).__dev = { ready: true, stats: () => null };
+  }
 
   const shipEnv: BrigantineEnv = { waves: ocean.field, ground: null, obstacles: [], t: 0 };
 

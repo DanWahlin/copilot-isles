@@ -18,7 +18,7 @@ export function createHullGeometry(tier: Tier): BufferGeometry {
   const d = detailForTier(tier);
   const builder = new MeshBuilder();
   builder.setRegion(0);
-  builder.setColor(0xa0663a);
+  builder.setColor(0x17100c);
   const yFractions = Array.from({ length: d.hullY + 1 }, (_, i) => i / d.hullY);
   const star: number[][] = [];
   const port: number[][] = [];
@@ -98,6 +98,285 @@ function addCurvedRail(
   builder.addRail(pts, radius, detail.cyl);
 }
 
+function addDeckCannon(builder: MeshBuilder, side: -1 | 1, z: number, detail: Detail): void {
+  const y = deckHeightAt(z);
+  const x = side * halfBeamAt(z, y) * 0.56;
+  builder.setRegion(2);
+  builder.setColor(0x842015);
+  builder.addBox(x - side * 0.06, y + 0.17, z, 0.54, 0.22, 0.46);
+  builder.addBox(x - side * 0.16, y + 0.25, z, 0.42, 0.18, 0.34);
+  builder.setRegion(4);
+  builder.setColor(0x12100e);
+  builder.addCylinderBetween(
+    { x: x - side * 0.1, y: y + 0.34, z },
+    { x: x + side * 0.78, y: y + 0.38, z },
+    0.095,
+    detail.cyl,
+    { endRadius: 0.075 },
+  );
+  for (const dz of [-0.17, 0.17]) {
+    builder.addCylinderBetween(
+      { x: x - side * 0.27, y: y + 0.06, z: z + dz },
+      { x: x + side * 0.18, y: y + 0.06, z: z + dz },
+      0.045,
+      8,
+    );
+    for (const wx of [-0.28, 0.16]) {
+      builder.addCylinderBetween(
+        { x: x + side * wx, y: y + 0.08, z: z + dz - 0.035 },
+        { x: x + side * wx, y: y + 0.08, z: z + dz + 0.035 },
+        0.085,
+        10,
+      );
+    }
+  }
+}
+
+function addBarrel(builder: MeshBuilder, x: number, z: number, detail: Detail): void {
+  const y = deckHeightAt(z);
+  builder.setRegion(1);
+  builder.setColor(0x7b4a27);
+  builder.addLathe(
+    [
+      { center: { x, y: y + 0.03, z }, radius: 0.18 },
+      { center: { x, y: y + 0.22, z }, radius: 0.24 },
+      { center: { x, y: y + 0.46, z }, radius: 0.2 },
+    ],
+    { x: 0, y: 1, z: 0 },
+    detail.cyl,
+  );
+  builder.setRegion(4);
+  builder.setColor(0x1f1b17);
+  builder.addCylinderBetween({ x, y: y + 0.2, z: z - 0.25 }, { x, y: y + 0.2, z: z + 0.25 }, 0.012, 6);
+  builder.addCylinderBetween({ x, y: y + 0.38, z: z - 0.22 }, { x, y: y + 0.38, z: z + 0.22 }, 0.012, 6);
+}
+
+function addLadder(builder: MeshBuilder, side: -1 | 1, z0: number, z1: number): void {
+  const low = deckHeightAt(z0) + 0.08;
+  const high = deckHeightAt(z1) + 0.08;
+  const x = side * 1.35;
+  builder.setRegion(1);
+  builder.setColor(0x7b4a27);
+  for (const dx of [-0.18, 0.18])
+    builder.addCylinderBetween({ x: x + dx, y: low, z: z0 }, { x: x + dx, y: high, z: z1 }, 0.022, 6);
+  for (let i = 0; i <= 5; i++) {
+    const t = i / 5;
+    const z = lerp(z0, z1, t);
+    const y = lerp(low, high, t);
+    builder.addCylinderBetween({ x: x - 0.25, y, z }, { x: x + 0.25, y, z }, 0.018, 6);
+  }
+}
+
+function addSternCounter(builder: MeshBuilder, detail: Detail): void {
+  builder.setRegion(0);
+  builder.setColor(0x17100c);
+  const rings = [
+    { y: -0.75, z: -11.58, half: 0.26 },
+    { y: -0.18, z: -12.12, half: 0.62 },
+    { y: 0.56, z: -12.42, half: 1.28 },
+    { y: 1.26, z: -12.42, half: 2.1 },
+    { y: 2.08, z: -12.2, half: 2.62 },
+    { y: 2.86, z: -12.05, half: 2.34 },
+  ];
+  for (let i = 0; i < rings.length - 1; i++) {
+    const a = rings[i]!;
+    const b = rings[i + 1]!;
+    builder.addQuad(
+      { x: -a.half, y: a.y, z: a.z },
+      { x: a.half, y: a.y, z: a.z },
+      { x: b.half, y: b.y, z: b.z },
+      { x: -b.half, y: b.y, z: b.z },
+    );
+  }
+  builder.setRegion(3);
+  builder.setColor(0xd2a352);
+  for (const ring of [rings[2]!, rings[3]!, rings[4]!]) {
+    builder.addCylinderBetween(
+      { x: -ring.half, y: ring.y + 0.02, z: ring.z - 0.015 },
+      { x: ring.half, y: ring.y + 0.02, z: ring.z - 0.015 },
+      0.036,
+      detail.cyl,
+    );
+  }
+  builder.setRegion(4);
+  builder.setColor(0x17110c);
+  builder.addBox(0, 0.0, -12.56, 0.48, 1.95, 0.16);
+  builder.setRegion(1);
+  builder.setColor(0x4a2a1a);
+  builder.addBox(0, -0.18, -12.68, 0.34, 1.72, 0.12);
+  builder.setRegion(3);
+  builder.setColor(0xd2a352);
+  builder.addCylinderBetween({ x: -0.26, y: 1.1, z: -12.6 }, { x: 0.26, y: 1.1, z: -12.6 }, 0.03, detail.cyl);
+}
+
+function addHeadRails(builder: MeshBuilder, detail: Detail): void {
+  builder.setRegion(3);
+  builder.setColor(0xd2a352);
+  for (const side of [-1, 1] as const) {
+    const railA: P3[] = [];
+    const railB: P3[] = [];
+    for (let i = 0; i <= 10; i++) {
+      const t = i / 10;
+      const z = lerp(9.4, 12.72, t);
+      const yA = lerp(2.58, 1.28, t) + Math.sin(t * Math.PI) * 0.22;
+      const yB = yA - 0.38;
+      const x = side * lerp(halfBeamAt(9.4, 2.55) + 0.2, 0.55, t);
+      railA.push({ x, y: yA, z });
+      railB.push({ x: x * 0.86, y: yB, z: z - 0.06 });
+    }
+    builder.addRail(railA, 0.026, detail.cyl);
+    builder.addRail(railB, 0.021, detail.cyl);
+    for (const i of [2, 5, 8]) {
+      builder.addCylinderBetween(railA[i]!, railB[i]!, 0.018, 6);
+    }
+  }
+  builder.setRegion(1);
+  builder.setColor(0x55341f);
+  builder.addCylinderBetween({ x: 0, y: 0.78, z: 11.25 }, { x: 0, y: 2.32, z: 13.42 }, 0.11, detail.cyl, {
+    endRadius: 0.08,
+  });
+  builder.setRegion(3);
+  builder.setColor(0xc99732);
+  builder.addTriangle({ x: 0, y: 1.02, z: 11.45 }, { x: 0, y: 2.08, z: 12.9 }, { x: 0, y: 0.88, z: 13.28 });
+}
+
+function addLionLock(builder: MeshBuilder, base: P3, mid: P3, tip: P3, radius: number, detail: Detail): void {
+  builder.addCylinderBetween(base, mid, radius, detail.cyl, { endRadius: radius * 0.7 });
+  builder.addCylinderBetween(mid, tip, radius * 0.7, detail.cyl, { endRadius: 0.018 });
+}
+
+function addGildedLionFigurehead(builder: MeshBuilder, detail: Detail): void {
+  const seg = Math.max(16, detail.cyl);
+  builder.setRegion(3);
+  builder.setColor(0xd8a84a);
+  builder.addLathe(
+    [
+      { center: { x: 0, y: 1.2, z: 12.2 }, radius: 0.13 },
+      { center: { x: 0, y: 1.35, z: 12.52 }, radius: 0.28 },
+      { center: { x: 0, y: 1.52, z: 12.93 }, radius: 0.36 },
+      { center: { x: 0, y: 1.68, z: 13.25 }, radius: 0.25 },
+    ],
+    { x: 0, y: 0.34, z: 1 },
+    seg,
+  );
+  builder.addLathe(
+    [
+      { center: { x: 0, y: 1.68, z: 13.15 }, radius: 0.28 },
+      { center: { x: 0, y: 1.88, z: 13.38 }, radius: 0.42 },
+      { center: { x: 0, y: 2.1, z: 13.46 }, radius: 0.34 },
+      { center: { x: 0, y: 2.25, z: 13.37 }, radius: 0.18 },
+    ],
+    { x: 0, y: 1, z: 0.2 },
+    seg,
+  );
+  builder.addLathe(
+    [
+      { center: { x: 0, y: 1.86, z: 13.5 }, radius: 0.22 },
+      { center: { x: 0, y: 1.9, z: 13.72 }, radius: 0.25 },
+      { center: { x: 0, y: 1.87, z: 13.92 }, radius: 0.11 },
+    ],
+    { x: 0, y: -0.05, z: 1 },
+    seg,
+  );
+  builder.setRegion(4);
+  builder.setColor(0x3b2612);
+  builder.addCylinderBetween({ x: -0.1, y: 1.98, z: 13.94 }, { x: 0.1, y: 1.98, z: 13.94 }, 0.035, 8);
+  builder.addCylinderBetween({ x: -0.06, y: 1.72, z: 13.66 }, { x: 0.06, y: 1.72, z: 13.66 }, 0.028, 8);
+  builder.addBox(0, 1.78, 13.82, 0.2, 0.035, 0.08);
+  for (const side of [-1, 1] as const) {
+    builder.addCylinderBetween(
+      { x: side * 0.16, y: 2.06, z: 13.82 },
+      { x: side * 0.3, y: 2.1, z: 13.74 },
+      0.018,
+      6,
+    );
+    builder.addBox(side * 0.16, 1.99, 13.88, 0.04, 0.035, 0.026);
+  }
+  builder.setRegion(3);
+  builder.setColor(0xe2b756);
+  for (const side of [-1, 1] as const) {
+    for (let i = 0; i < 6; i++) {
+      const t = i / 5;
+      const y = 2.22 - t * 0.58;
+      const z = 13.34 - t * 0.46;
+      const x = side * (0.13 + t * 0.22);
+      addLionLock(
+        builder,
+        { x: side * 0.08, y, z: z + 0.12 },
+        { x, y: y - 0.05, z },
+        { x: side * (0.22 + t * 0.25), y: y - 0.18, z: z - 0.22 },
+        0.052 - t * 0.014,
+        detail,
+      );
+    }
+  }
+  for (let i = 0; i < 5; i++) {
+    const t = i / 4;
+    addLionLock(
+      builder,
+      { x: 0, y: 2.26 - t * 0.14, z: 13.32 - t * 0.16 },
+      { x: 0, y: 2.36 - t * 0.18, z: 13.18 - t * 0.2 },
+      { x: 0, y: 2.28 - t * 0.25, z: 12.94 - t * 0.28 },
+      0.045 - t * 0.007,
+      detail,
+    );
+  }
+  builder.setColor(0xd7a13e);
+  for (const side of [-1, 1] as const) {
+    builder.addCylinderBetween(
+      { x: side * 0.22, y: 1.4, z: 12.94 },
+      { x: side * 0.38, y: 1.08, z: 13.18 },
+      0.07,
+      10,
+      {
+        endRadius: 0.045,
+      },
+    );
+    builder.addCylinderBetween(
+      { x: side * 0.16, y: 1.32, z: 12.5 },
+      { x: side * 0.28, y: 1.08, z: 12.78 },
+      0.058,
+      10,
+      {
+        endRadius: 0.04,
+      },
+    );
+    builder.addCylinderBetween(
+      { x: side * 0.34, y: 1.07, z: 13.15 },
+      { x: side * 0.52, y: 1.04, z: 13.25 },
+      0.035,
+      8,
+      {
+        endRadius: 0.02,
+      },
+    );
+    builder.addCylinderBetween(
+      { x: side * 0.25, y: 1.05, z: 12.76 },
+      { x: side * 0.4, y: 1.02, z: 12.86 },
+      0.032,
+      8,
+      {
+        endRadius: 0.018,
+      },
+    );
+    builder.addCylinderBetween(
+      { x: side * 0.18, y: 1.82, z: 12.46 },
+      { x: side * 0.42, y: 2.04, z: 12.18 },
+      0.04,
+      8,
+      {
+        endRadius: 0.02,
+      },
+    );
+  }
+  builder.addCylinderBetween({ x: 0.18, y: 1.34, z: 12.25 }, { x: 0.48, y: 1.55, z: 12.05 }, 0.035, 10, {
+    endRadius: 0.018,
+  });
+  builder.addCylinderBetween({ x: 0.48, y: 1.55, z: 12.05 }, { x: 0.2, y: 1.78, z: 12.2 }, 0.026, 10, {
+    endRadius: 0.012,
+  });
+}
+
 export function createDeckGeometry(tier: Tier): BufferGeometry {
   const detail = detailForTier(tier);
   const builder = new MeshBuilder();
@@ -157,6 +436,61 @@ export function createDeckGeometry(tier: Tier): BufferGeometry {
       5,
     );
   }
+  builder.setRegion(3);
+  builder.setColor(0xd2a352);
+  builder.addBox(0, deckHeightAt(-8.15) + 0.36, -8.15, 0.46, 0.62, 0.38);
+  builder.setRegion(4);
+  builder.setColor(0x181410);
+  builder.addBox(0, deckHeightAt(-8.15) + 0.72, -8.15, 0.35, 0.12, 0.28);
+  builder.addCylinderBetween(
+    { x: -0.32, y: deckHeightAt(0.8) + 0.06, z: 0.8 },
+    { x: 0.32, y: deckHeightAt(0.8) + 0.06, z: 0.8 },
+    0.11,
+    detail.cyl,
+  );
+  builder.setRegion(1);
+  builder.setColor(0x7b4a27);
+  for (const z of [-4.9, -2.65, 1.65, 4.15]) {
+    builder.addBox(-1.0, deckHeightAt(z) + 0.13, z, 0.48, 0.26, 0.56);
+    builder.addBox(1.0, deckHeightAt(z + 0.18) + 0.16, z + 0.18, 0.6, 0.32, 0.46);
+  }
+  for (const [x, z] of [
+    [-1.32, -5.9],
+    [1.42, -6.15],
+    [-1.1, 2.05],
+    [1.08, 3.85],
+  ] as const)
+    addBarrel(builder, x, z, detail);
+  if (tier !== 'lite') {
+    for (const z of [-5.8, -3.55, -1.3, 1.0, 3.25, 5.55]) {
+      addDeckCannon(builder, -1, z, detail);
+      addDeckCannon(builder, 1, z, detail);
+    }
+    addLadder(builder, -1, -5.2, -7.35);
+    addLadder(builder, 1, 6.9, 8.45);
+  }
+  builder.setRegion(3);
+  builder.setColor(0xd2a352);
+  builder.addCylinderBetween(
+    { x: -0.36, y: deckHeightAt(7.85) + 0.96, z: 7.85 },
+    { x: 0.36, y: deckHeightAt(7.85) + 0.96, z: 7.85 },
+    0.035,
+    8,
+  );
+  builder.addCylinderBetween(
+    { x: 0, y: deckHeightAt(7.85) + 0.62, z: 7.85 },
+    { x: 0, y: deckHeightAt(7.85) + 1.12, z: 7.85 },
+    0.028,
+    8,
+  );
+  builder.setRegion(4);
+  builder.setColor(0x1a1510);
+  builder.addCylinderBetween(
+    { x: -0.12, y: deckHeightAt(7.85) + 1.08, z: 7.85 },
+    { x: 0.12, y: deckHeightAt(7.85) + 1.08, z: 7.85 },
+    0.08,
+    10,
+  );
   for (const side of [-1, 1] as const) {
     addCurvedRail(builder, side, -11.0, 10.4, 0.18, 0.07, detail);
     addCurvedRail(builder, side, -11.0, 10.4, -0.42, 0.045, detail);
@@ -176,7 +510,7 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
   const detail = detailForTier(tier);
   const builder = new MeshBuilder();
   builder.setRegion(2);
-  builder.setColor(0x7bc0bd);
+  builder.setColor(0x8f2016);
   const steps = tier === 'lite' || tier === 'low' ? 56 : 116;
   for (let i = 0; i < steps; i++) {
     const z0 = -11.35 + (22.35 * i) / steps;
@@ -184,9 +518,9 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
     for (const side of [-1, 1] as const) {
       const x0 = side * (waterlineHalfBeamAt(z0) + 0.055);
       const x1 = side * (waterlineHalfBeamAt(z1) + 0.055);
-      // Painted strake, ochre wale, algae boot-top, and rail cap.
+      // Painted strake, ochre wale, black boot-top, and rail cap.
       builder.setRegion(2);
-      builder.setColor(0x7bc0bd);
+      builder.setColor(0x8f2016);
       builder.addQuad(
         { x: x0, y: 0.75, z: z0 },
         { x: x1, y: 0.75, z: z1 },
@@ -202,7 +536,7 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
         { x: x0, y: 2.16, z: z0 },
       );
       builder.setRegion(2);
-      builder.setColor(0x2b827b);
+      builder.setColor(0x11100f);
       builder.addQuad(
         { x: x0, y: -0.2, z: z0 },
         { x: x1, y: -0.2, z: z1 },
@@ -211,24 +545,79 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
       );
     }
   }
-  builder.setRegion(4);
-  builder.setColor(0x34332f);
   const portZ = [-8.1, -6.0, -3.9, -1.8, 0.4, 2.6, 4.8, 6.9];
   for (const z of portZ) {
     for (const side of [-1, 1] as const) {
       const x = side * (waterlineHalfBeamAt(z) + 0.12);
-      builder.addBox(x, 1.52, z, 0.12, 0.58, 0.82);
+      builder.setRegion(2);
+      builder.setColor(0x8f2016);
+      builder.addBox(x - side * 0.035, 1.55, z, 0.09, 0.72, 0.96);
+      builder.setRegion(4);
+      builder.setColor(0x090807);
+      builder.addBox(x, 1.52, z, 0.13, 0.5, 0.72);
+      builder.addCylinderBetween(
+        { x: x - side * 0.08, y: 1.5, z },
+        { x: x + side * 0.42, y: 1.5, z },
+        0.075,
+        detail.cyl,
+        { endRadius: 0.065 },
+      );
+      builder.setRegion(3);
+      builder.setColor(0xd2a352);
+      builder.addBox(x + side * 0.006, 1.9, z, 0.065, 0.06, 1.04);
     }
   }
   // Stern gallery, quarter galleries, transom frame, rudder, catheads, anchors, channels, chainplates, deadeyes.
-  builder.setRegion(3);
-  builder.setColor(0xd2a352);
+  addSternCounter(builder, detail);
+  builder.setRegion(0);
+  builder.setColor(0x17100c);
   builder.addBox(0, 2.1, -12.22, 4.9, 1.15, 0.22);
+  builder.addBox(0, 2.85, -12.28, 4.45, 0.92, 0.2);
   builder.addBox(-2.75, 2.0, -11.55, 0.55, 1.0, 1.2);
   builder.addBox(2.75, 2.0, -11.55, 0.55, 1.0, 1.2);
+  for (const side of [-1, 1] as const) {
+    const xHullLow = side * (halfBeamAt(-10.65, 1.55) + 0.04);
+    const xHullHigh = side * (halfBeamAt(-10.85, 2.55) + 0.02);
+    const xGallery = side * 2.98;
+    builder.addQuad(
+      { x: xHullLow, y: 1.5, z: -10.65 },
+      { x: xGallery, y: 1.62, z: -11.05 },
+      { x: xGallery, y: 2.55, z: -11.05 },
+      { x: xHullHigh, y: 2.48, z: -10.85 },
+    );
+    builder.addQuad(
+      { x: xGallery, y: 1.62, z: -11.05 },
+      { x: side * 2.68, y: 1.48, z: -12.1 },
+      { x: side * 2.68, y: 2.68, z: -12.1 },
+      { x: xGallery, y: 2.55, z: -11.05 },
+    );
+    builder.setRegion(3);
+    builder.setColor(0xd2a352);
+    builder.addCylinderBetween(
+      { x: xHullLow, y: 1.55, z: -10.65 },
+      { x: xGallery, y: 1.68, z: -11.05 },
+      0.032,
+      detail.cyl,
+    );
+    builder.addCylinderBetween(
+      { x: xHullHigh, y: 2.5, z: -10.85 },
+      { x: xGallery, y: 2.58, z: -11.05 },
+      0.032,
+      detail.cyl,
+    );
+    builder.setRegion(0);
+    builder.setColor(0x17100c);
+  }
+  builder.setRegion(2);
+  builder.setColor(0x8f2016);
+  builder.addBox(0, 1.58, -12.36, 4.65, 0.18, 0.08);
+  builder.addBox(0, 2.48, -12.37, 4.35, 0.16, 0.08);
+  builder.setRegion(4);
+  builder.setColor(0x17110c);
   builder.addBox(0, 0.05, -12.43, 0.44, 2.25, 0.18);
   const foreDeadeyes = [1.1, 2.8, 4.5, 6.2, 7.9];
   const mainDeadeyes = [-8.4, -6.8, -5.2, -3.6, -2.0];
+  const mizzenDeadeyes = [-9.4, -8.4, -7.4, -6.4];
   const addChannel = (side: -1 | 1, z0: number, z1: number) => {
     builder.setRegion(1);
     builder.setColor(0x9b6536);
@@ -319,13 +708,13 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
       8,
     );
     addAnchor(side, catEnd);
+    addChannel(side, mizzenDeadeyes[0]! - 0.32, mizzenDeadeyes[mizzenDeadeyes.length - 1]! + 0.32);
     addChannel(side, mainDeadeyes[0]! - 0.45, mainDeadeyes[mainDeadeyes.length - 1]! + 0.45);
     addChannel(side, foreDeadeyes[0]! - 0.45, foreDeadeyes[foreDeadeyes.length - 1]! + 0.45);
-    for (const z of [...mainDeadeyes, ...foreDeadeyes]) addDeadeye(side, z);
+    for (const z of [...mizzenDeadeyes, ...mainDeadeyes, ...foreDeadeyes]) addDeadeye(side, z);
   }
-  builder.addCylinderBetween({ x: 0, y: 1.05, z: 10.9 }, { x: 0, y: 2.8, z: 12.05 }, 0.12, detail.cyl);
-  builder.addCylinderBetween({ x: 0, y: 0.15, z: 12.0 }, { x: 0, y: 1.55, z: 13.0 }, 0.08, detail.cyl);
-  builder.addTriangle({ x: 0, y: 1.65, z: 11.05 }, { x: 0, y: 1.92, z: 11.55 }, { x: 0, y: 1.15, z: 11.55 });
+  addHeadRails(builder, detail);
+  addGildedLionFigurehead(builder, detail);
   builder.setRegion(4);
   builder.setColor(0x17110c);
   builder.addBox(0, 3.52, -12.4, 0.42, 0.18, 0.055);
@@ -339,13 +728,16 @@ export function createWindowGeometry(): BufferGeometry {
   b.setRegion(6);
   b.setColor(0xffb060);
   for (const x of [-1.45, -0.48, 0.48, 1.45]) b.addBox(x, 2.1, -12.39, 0.42, 0.36, 0.035);
+  for (const x of [-1.18, -0.4, 0.4, 1.18]) b.addBox(x, 2.84, -12.43, 0.34, 0.3, 0.035);
   for (const side of [-1, 1] as const) {
     b.addBox(side * 2.76, 2.08, -11.17, 0.045, 0.34, 0.46);
     b.addBox(side * 2.94, 2.1, -11.6, 0.045, 0.32, 0.38);
+    b.addBox(side * 2.82, 2.76, -11.32, 0.045, 0.28, 0.4);
   }
   b.setRegion(4);
   b.setColor(0x0a0d0e);
   b.addBox(0, 1.42, -12.41, 2.8, 0.34, 0.04);
+  b.addBox(0, 2.47, -12.44, 3.15, 0.16, 0.04);
   return b.build();
 }
 
@@ -362,7 +754,15 @@ export function createSternGoldGeometry(): BufferGeometry {
     b.addBox(x, 2.0, -12.455, 0.035, 0.34, 0.03);
     b.addBox(x, 2.0, -12.455, 0.5, 0.028, 0.03);
   }
+  for (const x of [-1.18, -0.4, 0.4, 1.18]) {
+    b.addBox(x, 2.99, -12.46, 0.48, 0.055, 0.035);
+    b.addBox(x, 2.69, -12.46, 0.48, 0.055, 0.035);
+    b.addBox(x - 0.24, 2.84, -12.46, 0.048, 0.33, 0.035);
+    b.addBox(x + 0.24, 2.84, -12.46, 0.048, 0.33, 0.035);
+    b.addBox(x, 2.84, -12.475, 0.028, 0.29, 0.03);
+  }
   b.addCylinderBetween({ x: -2.35, y: 2.65, z: -12.38 }, { x: 2.35, y: 2.65, z: -12.38 }, 0.045, 10);
+  b.addCylinderBetween({ x: -2.05, y: 3.24, z: -12.4 }, { x: 2.05, y: 3.24, z: -12.4 }, 0.038, 10);
   b.addCylinderBetween({ x: -2.45, y: 1.72, z: -12.4 }, { x: 2.45, y: 1.72, z: -12.4 }, 0.04, 10);
   for (const x of [-2.25, 2.25]) {
     b.addCylinderBetween({ x, y: 1.58, z: -12.37 }, { x, y: 2.72, z: -12.37 }, 0.035, 10);

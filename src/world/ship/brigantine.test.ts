@@ -16,81 +16,89 @@ interface MeshSignature {
 const HIGH_TIER_MESH_SIGNATURES: MeshSignature[] = [
   {
     name: 'rounded planked hull',
-    vertices: 5961,
-    indices: 34863,
-    position: '7f84bc43',
-    uv: 'b4f04a70',
-    color: 'c852e15b',
+    vertices: 10505,
+    indices: 61887,
+    position: '54024027',
+    uv: 'fb751034',
+    color: '147597e7',
   },
   {
     name: 'deck planking rails and fittings',
-    vertices: 7518,
-    indices: 39168,
-    position: '054dadab',
-    uv: '9ecd61a9',
-    color: '412647b1',
+    vertices: 14310,
+    indices: 73896,
+    position: 'fcd67b7e',
+    uv: 'fc6136f1',
+    color: '788fded1',
   },
   {
     name: 'wales strakes gunports galleries anchors',
-    vertices: 4559,
-    indices: 9747,
-    position: '7634f2f8',
-    uv: 'fec43050',
-    color: 'f3e3ca03',
+    vertices: 10243,
+    indices: 36513,
+    position: '164295f3',
+    uv: '21734776',
+    color: 'ac0b2d54',
   },
   {
     name: 'stern gallery windows and name board backing',
-    vertices: 216,
-    indices: 324,
-    position: '4e049b61',
-    uv: 'f66e3745',
-    color: '2d2b4c95',
+    vertices: 384,
+    indices: 576,
+    position: '8c0c37d1',
+    uv: '414a55c5',
+    color: '6cd57a25',
   },
   {
     name: 'stern gallery trim and lantern bracket',
-    vertices: 844,
-    indices: 1944,
-    position: 'ba5d4393',
-    uv: 'ce333ee1',
-    color: '48d9c03d',
+    vertices: 1346,
+    indices: 2784,
+    position: 'ca5e3583',
+    uv: 'd0b34fc5',
+    color: 'bcc6a239',
   },
   {
     name: 'christening ship name boards',
     vertices: 68,
     indices: 102,
-    position: '178e56a9',
+    position: 'ea1be3f1',
     uv: '85cdb10d',
     color: '5b4c32a5',
   },
   {
     name: 'masts yards boom bowsprit jibboom',
-    vertices: 420,
-    indices: 2352,
-    position: '3dcc7322',
-    uv: 'fa58637d',
-    color: '55531c91',
+    vertices: 3343,
+    indices: 18078,
+    position: 'c3d6b2c2',
+    uv: 'f7de7d45',
+    color: '016fcd69',
   },
   {
     name: 'furled canvas bundles',
-    vertices: 120,
-    indices: 672,
-    position: '876c4373',
-    uv: 'a1fbb6d5',
-    color: '8eeabca5',
+    vertices: 494,
+    indices: 2808,
+    position: '8f86aed8',
+    uv: 'f7318079',
+    color: '71ad0869',
   },
   {
     name: 'billowed procedural sails',
-    vertices: 3128,
-    indices: 16896,
-    position: 'cf0d1ec4',
+    vertices: 11949,
+    indices: 67035,
+    position: 'cd825833',
     uv: '00000000',
     color: '00000000',
+  },
+  {
+    name: 'animated jolly roger and pennants',
+    vertices: 189,
+    indices: 636,
+    position: '24349af8',
+    uv: '00000000',
+    color: 'b49c4daf',
   },
   {
     name: 'first words prompt and terminal pipes',
     vertices: 730,
     indices: 1920,
-    position: '11104c3b',
+    position: '5af3c35e',
     uv: 'a4869269',
     color: '9935413e',
   },
@@ -98,7 +106,7 @@ const HIGH_TIER_MESH_SIGNATURES: MeshSignature[] = [
     name: 'pipe hint and response sparkles',
     vertices: 297,
     indices: 936,
-    position: '9b57d349',
+    position: '45e7a6b5',
     uv: '00000000',
     color: '14ff7c35',
   },
@@ -120,19 +128,19 @@ const HIGH_TIER_MESH_SIGNATURES: MeshSignature[] = [
   },
   {
     name: 'lantern hanger',
-    vertices: 38,
-    indices: 108,
-    position: '16b625bf',
-    uv: '16ac0665',
-    color: '9ccdf591',
+    vertices: 114,
+    indices: 324,
+    position: '04bfa6ab',
+    uv: '68814c25',
+    color: '65444cf9',
   },
   {
     name: 'stern lantern',
-    vertices: 24,
-    indices: 36,
-    position: 'f6518add',
-    uv: 'fc735b45',
-    color: '12296445',
+    vertices: 216,
+    indices: 324,
+    position: 'bee7f94d',
+    uv: 'f66e3745',
+    color: '3041cae5',
   },
   {
     name: 'hanging line and block',
@@ -178,9 +186,9 @@ function captureMeshSignatures(root: Object3D): MeshSignature[] {
 describe('createBrigantine', () => {
   it('keeps the hero asset inside the draw-call and high-tier triangle budget', () => {
     const ship = createBrigantine({ tier: 'high' });
-    expect(ship.drawCallCount).toBeLessThanOrEqual(16);
-    expect(ship.triangleCount).toBeGreaterThanOrEqual(25_000);
-    expect(ship.triangleCount).toBeLessThanOrEqual(40_000);
+    expect(ship.drawCallCount).toBeLessThanOrEqual(20);
+    expect(ship.triangleCount).toBeGreaterThanOrEqual(45_000);
+    expect(ship.triangleCount).toBeLessThanOrEqual(110_000);
     ship.dispose();
   });
 
@@ -193,7 +201,7 @@ describe('createBrigantine', () => {
   it('exposes local helm and pier-side boarding anchors', () => {
     const ship = createBrigantine({ tier: 'low' });
     expect(ship.anchors.helm.z).toBeLessThan(-8);
-    expect(ship.anchors.helm.y).toBeCloseTo(deckHeightAt(-8) + 0.18, 6);
+    expect(ship.anchors.helm.y).toBeCloseTo(deckHeightAt(ship.anchors.helm.z) + 0.18, 6);
     expect(ship.anchors.helm.heading).toBe(0);
     expect(ship.anchors.boarding.x).toBeGreaterThan(0);
     expect(ship.anchors.boarding.y).toBeCloseTo(deckHeightAt(ship.anchors.boarding.z), 6);
