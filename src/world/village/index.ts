@@ -1,6 +1,5 @@
 import {
   BoxGeometry,
-  Box3,
   BufferAttribute,
   BufferGeometry,
   Camera,
@@ -1164,7 +1163,6 @@ function addQuay(
   addQuayFrontBand(buckets);
   addBox(buckets.paving, cx, q.height - 0.1, q.z + 3.2, length - 3.0, 0.16, 8.2, 0, 0xb9a783);
   addQuayBackCurb(buckets);
-  addQuayPlantingBeds(buckets);
   addBox(buckets.stone, cx, 0.35, q.z - 2.95, length - 1.2, 0.72, 0.22, 0, 0x253d2e);
   for (const x of [-145, -133, -120, -96, -81]) {
     addQuayBollard(buckets, x, q.height, q.z + 0.35);
@@ -1197,10 +1195,10 @@ function addQuayFrontBand(buckets: Record<MaterialKey, BufferGeometry[]>): void 
   ] as const) {
     const w = x1 - x0;
     if (w <= 0) continue;
-    addBox(buckets.paving, (x0 + x1) * 0.5, q.height - 0.08, q.z - 0.9, w, 0.32, 2.15, 0, 0xf0dcc0);
-    addBox(buckets.paving, (x0 + x1) * 0.5, q.height + 0.14, q.z - 1.02, w, 0.12, 1.95, 0, 0xf4e4ca);
+    addBox(buckets.paving, (x0 + x1) * 0.5, q.height - 0.08, q.z - 0.9, w, 0.32, 2.15, 0, 0x9a9078);
+    addBox(buckets.paving, (x0 + x1) * 0.5, q.height + 0.14, q.z - 1.02, w, 0.12, 1.95, 0, 0xa59a80);
     for (let x = x0 + 2.0; x < x1 - 0.6; x += 3.2) {
-      addBox(buckets.paving, x, q.height + 0.205, q.z - 1.02, 0.045, 0.014, 1.78, 0, 0xb8a488);
+      addBox(buckets.paving, x, q.height + 0.205, q.z - 1.02, 0.045, 0.014, 1.78, 0, 0x756e5d);
     }
   }
 }
@@ -1208,39 +1206,9 @@ function addQuayFrontBand(buckets: Record<MaterialKey, BufferGeometry[]>): void 
 function addQuayBackCurb(buckets: Record<MaterialKey, BufferGeometry[]>): void {
   const q = COVE.quay;
   const cx = (q.x0 + q.x1) * 0.5;
-  addBox(buckets.stone, cx, q.height + 0.02, q.z + 7.34, q.x1 - q.x0 - 3.0, 0.22, 0.34, 0, 0x8a8068);
-  addBox(buckets.stone, q.x0 + 1.28, q.height + 0.02, q.z + 3.1, 0.3, 0.18, 7.5, 0, 0x8a8068);
-  addBox(buckets.stone, q.x1 - 1.28, q.height + 0.02, q.z + 3.1, 0.3, 0.18, 7.5, 0, 0x8a8068);
-}
-
-function addQuayPlantingBeds(buckets: Record<MaterialKey, BufferGeometry[]>): void {
-  const y = COVE.quay.height;
-  addPlantingBed(buckets, -119.8, y, COVE.quay.z + 6.5, 3.8, 1.45, -0.05);
-  addPlantingBed(buckets, -99.5, y, COVE.quay.z + 6.35, 3.4, 1.4, 0.04);
-  addPlantingBed(buckets, -137.8, y, COVE.quay.z + 5.65, 3.3, 1.25, 0.14);
-}
-
-function addPlantingBed(
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  x: number,
-  y: number,
-  z: number,
-  w: number,
-  d: number,
-  rot: number,
-): void {
-  addBox(buckets.stone, x, y + 0.005, z, w, 0.08, d, rot, 0x4f4933);
-  addBox(buckets.stone, x, y + 0.1, z - d * 0.5, w + 0.24, 0.22, 0.16, rot, 0x9a9074);
-  addBox(buckets.stone, x, y + 0.1, z + d * 0.5, w + 0.24, 0.22, 0.16, rot, 0x9a9074);
-  addBox(buckets.stone, x - w * 0.5, y + 0.1, z, 0.16, 0.22, d, rot, 0x8d836a);
-  addBox(buckets.stone, x + w * 0.5, y + 0.1, z, 0.16, 0.22, d, rot, 0x8d836a);
-  for (let i = 0; i < 5; i += 1) {
-    const lx = -w * 0.36 + i * w * 0.18;
-    const lz = organicNoise(x * 0.2 + i, z * 0.2) * d * 0.22;
-    const p = localToWorld(x, z, rot, lx, lz);
-    addBox(buckets.rope, p.x, y + 0.18, p.z, 0.14, 0.28, 0.14, rot, 0x3f7041);
-    if (i % 2 === 0) addCylinder(buckets.cloth, p.x, y + 0.45, p.z, 0.06, 0.04, 0.09, 7, rot, 0xd65b7f);
-  }
+  addBox(buckets.stone, cx, q.height + 0.02, q.z + 7.34, q.x1 - q.x0 - 3.0, 0.18, 0.28, 0, 0x9a9178);
+  addBox(buckets.stone, q.x0 + 1.28, q.height + 0.02, q.z + 3.1, 0.26, 0.16, 7.5, 0, 0x9a9178);
+  addBox(buckets.stone, q.x1 - 1.28, q.height + 0.02, q.z + 3.1, 0.26, 0.16, 7.5, 0, 0x9a9178);
 }
 
 function addQuayBollard(
@@ -1318,12 +1286,12 @@ function addWeatheredPierDeck(
     const noise = organicNoise(index * 0.53, z * 0.18);
     const replaced = !low && (index === 145 || index === 161);
     const missingEdge = !low && (index === 173 || index === 181);
-    const tint = replaced ? 0x756956 : noise > 0.42 ? 0xaa7d55 : noise < -0.42 ? 0x75553b : 0x906a49;
+    const tint = replaced ? 0x756d60 : noise > 0.42 ? 0x806e5d : noise < -0.42 ? 0x6a5f52 : 0x746656;
     const depth = plankDepth + organicNoise(index * 1.7, z * 0.3) * 0.018;
     const y = pier.deck - 0.12 + organicNoise(index * 0.7, z * 0.2) * 0.006;
     if (missingEdge) {
       addPierPlank(
-        buckets.wood,
+        buckets.rope,
         pier.x - 0.36,
         y,
         z,
@@ -1427,10 +1395,13 @@ function addPierPile(
   pier: typeof COVE.pier,
   low: boolean,
 ): void {
-  addCylinder(buckets.wood, x, -2.9, z, 0.3, 0.38, pier.deck + 3.45, low ? 8 : 12, 0, 0x67462c);
-  addCylinder(buckets.wood, x, -0.34, z, 0.33, 0.4, 0.95, low ? 8 : 12, 0, 0x2d3028);
-  addCylinder(buckets.stone, x, -0.02, z, 0.34, 0.4, 0.18, low ? 8 : 12, 0, 0xd8d0bd);
-  addCylinder(buckets.wood, x, pier.deck + 0.78, z, 0.35, 0.4, 0.13, low ? 8 : 12, 0, 0x3b3024);
+  const pileBottom = -2.9;
+  const pileHeight = pier.deck + 3.45;
+  const pileTop = pileBottom + pileHeight;
+  addCylinder(buckets.rope, x, pileBottom, z, 0.31, 0.38, pileHeight, low ? 8 : 12, 0, 0x9a8168);
+  addCylinder(buckets.rope, x, -0.12, z, 0.32, 0.39, 0.44, low ? 8 : 12, 0, 0x3d4538);
+  addCylinder(buckets.rope, x, -0.02, z, 0.34, 0.4, 0.075, low ? 8 : 12, 0, 0x456044);
+  addCylinder(buckets.wood, x, pileTop, z, 0.32, 0.36, 0.06, low ? 8 : 12, 0, 0x2e281f);
   if (low) return;
   for (let i = 0; i < 3; i += 1) {
     const a = i * 2.1 + organicNoise(x * 0.17, z * 0.13);
@@ -1461,7 +1432,6 @@ function addPier(
   const minZ = Math.min(p.z0, p.z1);
   const maxZ = Math.max(p.z0, p.z1);
   addWeatheredPierDeck(buckets, p, minZ, maxZ, low);
-  addPierRamp(buckets, kit);
   addPierRootSteps(buckets);
   for (let z = minZ + 2.5; z <= maxZ - 1.5; z += low ? 8.4 : 6.0) {
     for (const side of [-1, 1]) {
@@ -1481,23 +1451,6 @@ function addPier(
   addPierDressing(buckets, colliders, p, low);
   addBoathouse(buckets, colliders, shipObstacles, kit, BOATHOUSE.x, BOATHOUSE.z, p.deck);
   anchors.pierEnd = { x: p.x, y: p.deck, z: p.z1 + 2.2, heading: Math.PI };
-}
-
-function addPierRamp(buckets: Record<MaterialKey, BufferGeometry[]>, kit: VillageKit): void {
-  const zMid = (PIER_RAMP.z0 + PIER_RAMP.z1) * 0.5;
-  addKitPiece(
-    buckets,
-    kit,
-    'Stairs_Exterior_Straight',
-    PIER_RAMP.x,
-    COVE.pier.deck - 0.18,
-    zMid,
-    0,
-    1,
-    1,
-    1,
-    0xffffff,
-  );
 }
 
 function addPierRootSteps(buckets: Record<MaterialKey, BufferGeometry[]>): void {
@@ -1628,8 +1581,8 @@ function addBoathouse(
     }
   }
   addBox(buckets.wood, x, deck + 1.88, z, 0.18, 0.16, 5.0, rot, 0x6f4d31);
-  addBox(buckets.roofTile, x - 0.62, deck + 1.9, z, 1.7, 0.18, 5.15, rot, 0xa86648, 0, 0.56);
-  addBox(buckets.roofTile, x + 0.62, deck + 1.9, z, 1.7, 0.18, 5.15, rot, 0xa86648, 0, -0.56);
+  addBox(buckets.wood, x - 0.62, deck + 1.9, z, 1.7, 0.18, 5.15, rot, 0x5f3f2b, 0, 0.56);
+  addBox(buckets.wood, x + 0.62, deck + 1.9, z, 1.7, 0.18, 5.15, rot, 0x5f3f2b, 0, -0.56);
   addBox(buckets.wood, x, deck + 0.38, z + 2.25, 2.45, 0.5, 0.16, rot, 0x7b5638);
   addBox(buckets.wood, x - 1.18, deck + 0.28, z, 0.14, 0.48, 3.5, rot, 0x725035);
   addNetRack(buckets, x + 1.62, z - 0.8, deck, 0.05);
@@ -1701,12 +1654,10 @@ function addSpawnPlantingBeds(
   heightField: HeightField,
 ): void {
   addSpawnPavingApron(buckets, heightField);
-  addGroundPlantingBed(buckets, heightField, -125.0, -60.8, 5.0, 2.0, 0.06);
-  addGroundPlantingBed(buckets, heightField, -95.6, -60.6, 4.6, 1.9, -0.04);
 }
 
 function addSpawnPavingApron(buckets: Record<MaterialKey, BufferGeometry[]>, heightField: HeightField): void {
-  buckets.paving.push(createTerrainPavingRect(heightField, COVE.quay.x0 + 5, COVE.quay.x1 - 5, -64.2, -55.2));
+  buckets.paving.push(createTerrainPavingRect(heightField, COVE.quay.x0 + 4, COVE.quay.x1 - 4, -66.5, -51.5));
 }
 
 function createTerrainPavingRect(
@@ -1722,7 +1673,7 @@ function createTerrainPavingRect(
   const uvs: number[] = [];
   const colors: number[] = [];
   const indices: number[] = [];
-  const palette = [0x9e9275, 0x91866d, 0xa89b7d, 0x867c66] as const;
+  const palette = [0x8a806a, 0x928771, 0x817863, 0x998c74] as const;
   for (let iz = 0; iz <= rows; iz += 1) {
     const tz = iz / rows;
     for (let ix = 0; ix <= cols; ix += 1) {
@@ -1748,30 +1699,6 @@ function createTerrainPavingRect(
     }
   }
   return coloredIndexedGeometry(positions, uvs, colors, indices);
-}
-
-function addGroundPlantingBed(
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  heightField: HeightField,
-  x: number,
-  z: number,
-  w: number,
-  d: number,
-  rot: number,
-): void {
-  const y = heightField.heightAt(x, z);
-  addBox(buckets.stone, x, y + 0.01, z, w, 0.08, d, rot, 0x4e4934);
-  addBox(buckets.stone, x, y + 0.1, z - d * 0.5, w + 0.2, 0.22, 0.16, rot, 0x8f8469);
-  addBox(buckets.stone, x, y + 0.1, z + d * 0.5, w + 0.2, 0.22, 0.16, rot, 0x9b9072);
-  addBox(buckets.stone, x - w * 0.5, y + 0.1, z, 0.16, 0.22, d, rot, 0x8a8068);
-  addBox(buckets.stone, x + w * 0.5, y + 0.1, z, 0.16, 0.22, d, rot, 0x8a8068);
-  for (let i = 0; i < 7; i += 1) {
-    const lx = -w * 0.36 + i * w * 0.12;
-    const lz = organicNoise(x * 0.2 + i, z * 0.2) * d * 0.28;
-    const p = localToWorld(x, z, rot, lx, lz);
-    addBox(buckets.rope, p.x, y + 0.16, p.z, 0.16, 0.28, 0.16, rot, 0x3f7041);
-    if (i % 3 === 0) addCylinder(buckets.cloth, p.x, y + 0.42, p.z, 0.06, 0.04, 0.1, 7, rot, 0xd65b7f);
-  }
 }
 
 let streetHeightField: HeightField | null = null;
@@ -2523,7 +2450,7 @@ function addInstancedProps(
     inst(-146.8, -55.3, at(-146.8, -55.3), -0.5, 0.75),
     inst(-109.8, -105, at(-109.8, -105), 0.4, 0.72),
     inst(-106.4, -103, at(-106.4, -103), -0.2, 0.7),
-    inst(-109.45, -88.2, at(-109.45, -88.2), 0.3, 0.64),
+    inst(-107.2, -88.2, at(-107.2, -88.2), 0.3, 0.64),
     inst(-143.4, -52.0, at(-143.4, -52.0), 0.15, 0.58),
   ]);
   addCirclePropColliders(colliders, pots, 0.62);
@@ -2672,41 +2599,6 @@ function applyWorldBoxUv(geometry: BufferGeometry): void {
     }
   }
   geometry.setAttribute('uv', new BufferAttribute(uvs, 2));
-}
-
-function addKitPiece(
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  kit: VillageKit,
-  name: string,
-  x: number,
-  y: number,
-  z: number,
-  ry: number,
-  sx: number,
-  sy: number,
-  sz: number,
-  fallbackTint: number,
-): void {
-  const parts = kit.pieces.get(name);
-  if (!parts) return;
-  const bounds = pieceBounds(kit, name);
-  for (const base of parts) {
-    const geometry = base.geometry.clone();
-    transform(geometry, x, y - bounds[1] * sy, z, ry, 0, 0, sx, sy, sz);
-    paint(geometry, kitPaintColour(base.materialKey, fallbackTint));
-    buckets[base.materialKey].push(geometry);
-  }
-}
-
-function pieceBounds(kit: VillageKit, name: string): [number, number, number, number, number, number] {
-  const parts = kit.pieces.get(name);
-  if (!parts?.length) return [-0.5, 0, -0.5, 0.5, 1, 0.5];
-  const box = new Box3();
-  for (const part of parts) {
-    part.geometry.computeBoundingBox();
-    if (part.geometry.boundingBox) box.union(part.geometry.boundingBox);
-  }
-  return [box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z];
 }
 
 function mergedKitGeometry(kit: VillageKit, name: string, colour: number): BufferGeometry {
