@@ -46,7 +46,7 @@ export function wavesForTier(count: number): readonly Wave[] {
   return ALL_WAVES.slice(0, Math.max(1, Math.min(ALL_WAVES.length, count)));
 }
 
-export function fadeAt(x: number, z: number, focusX: number, focusZ: number): number {
+function fadeAt(x: number, z: number, focusX: number, focusZ: number): number {
   return Math.exp(-Math.hypot(x - focusX, z - focusZ) / FADE_DISTANCE);
 }
 
@@ -79,7 +79,7 @@ export function heightAt(waves: readonly Wave[], x: number, z: number, t: number
 }
 
 /** Horizontal orbital velocity of the water surface at (x, z). */
-export function velocityAt(
+function velocityAt(
   waves: readonly Wave[],
   x: number,
   z: number,

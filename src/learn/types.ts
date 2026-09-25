@@ -7,7 +7,7 @@
 /** Normalized image rect: x, y, width, height, all 0-1 of the image size. */
 export type Rect = readonly [x: number, y: number, w: number, h: number];
 
-export type ChapterId = '00-setup' | '01-tour-the-app';
+type ChapterId = '00-setup' | '01-tour-the-app';
 
 /** A link back to the exact course section ("Open in the course ↗"). */
 export interface SourceRef {
@@ -56,7 +56,7 @@ export interface MultiQuiz extends QuizBase {
   answers: readonly string[];
 }
 
-export interface HotspotTarget {
+interface HotspotTarget {
   id: string;
   rect: Rect;
   /** Read by screen readers and the Tab-cycling alternative. */
@@ -86,7 +86,6 @@ export interface MatchingQuiz extends QuizBase {
 }
 
 export type Quiz = ChoiceQuiz | MultiQuiz | HotspotQuiz | OrderingQuiz | MatchingQuiz;
-export type QuizType = Quiz['type'];
 
 export interface Page {
   id: string;

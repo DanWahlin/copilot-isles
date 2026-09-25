@@ -4,13 +4,10 @@ import type { ScriptStep } from '../script';
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal } from './types';
 import { sleep } from '../../util/math';
 
-export const FIRST_WORDS_ID = 'Q0.8.pipes';
+const FIRST_WORDS_ID = 'Q0.8.pipes';
 const QUEST = 'Q0.8';
 const QUIZ = 'S0.2';
 
-/** The course's first prompt (00 · Your first prompt). */
-export const FIRST_PROMPT =
-  'Give me an overview of the copilot-app-for-beginners course repository. Focus on the learning path and the samples/book-app-web folder.';
 const SHORT_PROMPT = 'Give me an overview of the copilot-app-for-beginners course repository…';
 
 type Pipe = 'tube' | 'hatch';
@@ -43,7 +40,7 @@ const REPLY_LINES: readonly TerminalLine[] = [
 ];
 
 /** Juno's lines once the crew answers: the expected output, the page, then on to the Trial. */
-export const JUNO_REPLY: readonly ScriptStep[] = [
+const JUNO_REPLY: readonly ScriptStep[] = [
   { say: 'juno.reply.01' },
   { say: 'juno.reply.02' },
   { page: 'pg.first-prompt', doubloons: 10 },

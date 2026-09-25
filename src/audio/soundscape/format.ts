@@ -1,4 +1,4 @@
-export type AudioFormat = 'ogg' | 'm4a';
+type AudioFormat = 'ogg' | 'm4a';
 
 export interface FormatChoice {
   readonly format: AudioFormat;

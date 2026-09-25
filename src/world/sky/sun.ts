@@ -24,7 +24,7 @@ export interface SunParams {
   declination: number; // degrees
 }
 
-export const DEFAULT_SUN: SunParams = { latitude: 18, declination: 8 };
+const DEFAULT_SUN: SunParams = { latitude: 18, declination: 8 };
 
 /**
  * @param hours Local solar time, 0-24.

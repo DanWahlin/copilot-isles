@@ -2,9 +2,9 @@
  * Learning progress (POC §3.9 subset): pages, chests, glossary, quiz attempts, quests, trials, seals,
  * and doubloons, saved to localStorage under a versioned key. Position/captain stay in GameFlow's save.
  */
-export const PROGRESS_KEY = 'copilot-isles.progress.v1';
+const PROGRESS_KEY = 'copilot-isles.progress.v1';
 
-export interface QuizRecord {
+interface QuizRecord {
   attempts: number;
   /** True when the first attempt was correct (earns the bonus). */
   firstTry: boolean;
@@ -39,7 +39,7 @@ export interface ProgressData {
   puzzles: Record<string, PuzzleSave>;
 }
 
-export function emptyProgress(now = Date.now()): ProgressData {
+function emptyProgress(now = Date.now()): ProgressData {
   return {
     v: 1,
     created: now,

@@ -3,7 +3,7 @@ import { DEFAULT_SAIL_PALETTE } from '../../world/ship/sail-palettes';
 import type { ScriptStep } from '../script';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 
-export const PAINT_SAILS_ID = 'Q0.2.palette';
+const PAINT_SAILS_ID = 'Q0.2.palette';
 const QUEST = 'Q0.2';
 
 /** What the puzzle needs from the palette stand site. */
@@ -14,7 +14,7 @@ export interface PaintSailsStand {
 }
 
 /** Finish on the theme step: the theme page, the New page in the spyglass, then on to Ezra. */
-export const PALETTE_FINISHED: readonly ScriptStep[] = [
+const PALETTE_FINISHED: readonly ScriptStep[] = [
   { page: 'C0.2', doubloons: 10 },
   {
     show: 'shared/github-copilot-app',

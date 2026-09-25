@@ -1,21 +1,10 @@
 export const ANCHORAGE_BPM = 84;
-export const ANCHORAGE_ROOT_MIDI = 60;
-export const MAJOR_PENTATONIC_STEPS = [0, 2, 4, 7, 9] as const;
+const ANCHORAGE_ROOT_MIDI = 60;
+const MAJOR_PENTATONIC_STEPS = [0, 2, 4, 7, 9] as const;
 export const COPILOT_LEITMOTIF = [0, 2, 4, 2, 7, 4] as const;
-
-export interface NoteEvent {
-  readonly midi: number;
-  readonly beat: number;
-  readonly durationBeats: number;
-  readonly velocity: number;
-}
 
 export function beatDuration(bpm: number): number {
   return 60 / bpm;
-}
-
-export function beatToSeconds(beat: number, bpm: number): number {
-  return beat * beatDuration(bpm);
 }
 
 export function secondsToBeat(seconds: number, bpm: number): number {

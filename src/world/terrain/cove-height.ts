@@ -63,7 +63,7 @@ function hashSigned(x: number, z: number, seed = SEED): number {
   return hashInt(x, z, seed) / 0x7fffffff - 1;
 }
 
-export function valueNoise2(x: number, z: number, seed = SEED): number {
+function valueNoise2(x: number, z: number, seed = SEED): number {
   const x0 = Math.floor(x);
   const z0 = Math.floor(z);
   const tx = fade(x - x0);
@@ -353,7 +353,7 @@ export function coveHeight(x: number, z: number): number {
   return h;
 }
 
-export function normalAtAnalytic(
+function normalAtAnalytic(
   x: number,
   z: number,
   out: Float32Array | number[] = [0, 0, 0],

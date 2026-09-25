@@ -5,19 +5,12 @@ import { extractShoreline } from '../world/terrain/bake';
 import { coveHeight } from '../world/terrain/cove-height';
 
 /** The island chart frame: a square around Anchorage Cay (x → east, z → south). */
-export const CHART_FRAME = { cx: 0, cz: 17.5, half: 330 };
+const CHART_FRAME = { cx: 0, cz: 17.5, half: 330 };
 
-export const toChart = (x: number, z: number): [number, number] => [
+const toChart = (x: number, z: number): [number, number] => [
   (x - CHART_FRAME.cx + CHART_FRAME.half) / (CHART_FRAME.half * 2),
   (z - CHART_FRAME.cz + CHART_FRAME.half) / (CHART_FRAME.half * 2),
 ];
-
-export const fromChart = (u: number, v: number): [number, number] => [
-  u * CHART_FRAME.half * 2 - CHART_FRAME.half + CHART_FRAME.cx,
-  v * CHART_FRAME.half * 2 - CHART_FRAME.half + CHART_FRAME.cz,
-];
-
-export { ARCHIPELAGO };
 
 export interface TravelPoint extends ChartPoint {
   wx: number;
@@ -104,7 +97,7 @@ export function coveTravelPoints(
 let cachedCoast: { coast: [number, number][][]; reef: [number, number][][] } | null = null;
 
 /** Coast (h = 0) and shallows (h = −2.5) contours from the analytic cove height, in chart space. */
-export function coveCoast(cell = 4): { coast: [number, number][][]; reef: [number, number][][] } {
+function coveCoast(cell = 4): { coast: [number, number][][]; reef: [number, number][][] } {
   if (cachedCoast) return cachedCoast;
   const { cx, cz, half } = CHART_FRAME;
   const minX = cx - half,

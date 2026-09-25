@@ -34,7 +34,7 @@ import type { Tier } from '../contracts';
 import { COVE } from '../layout';
 import { terrainNoiseTexture } from './noise-texture';
 
-export const uSunBlend = uniform(1);
+const uSunBlend = uniform(1);
 
 // TSL's fluent typings don't cover every mixed scalar/vector graph used by this material.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

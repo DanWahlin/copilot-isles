@@ -29,19 +29,10 @@ interface RockInstance {
   yOffset?: number;
 }
 
-export interface TerrainRockStats {
-  drawCalls: number;
-  instances: number;
-  triangles: number;
-  byAsset: Array<{ key: string; instances: number; triangles: number }>;
-}
-
 const ROCK_VARIANTS = Math.min(3, ROCK_ASSETS.length);
 const STOREHOUSE_EAST_PAD = { x0: -71, x1: -53, z0: -75, z1: -51 };
 const SEA_STACK_RADIAL_SEGMENTS = 44;
 const SEA_STACK_VERTICAL_SEGMENTS = 24;
-const SEA_STACK_CORE_TRIANGLES =
-  SEA_STACK_RADIAL_SEGMENTS * SEA_STACK_VERTICAL_SEGMENTS * 2 + SEA_STACK_RADIAL_SEGMENTS;
 
 function fract(v: number): number {
   return v - Math.floor(v);
@@ -378,24 +369,6 @@ function rockGeometry(asset: (typeof ROCK_ASSETS)[number]): BufferGeometry {
   geometry.setIndex(new BufferAttribute(asset.indices, 1));
   geometry.computeBoundingSphere();
   return geometry;
-}
-
-export function terrainRockStats(): TerrainRockStats {
-  const instances = allRockInstances();
-  const counts = new Map<number, number>();
-  for (const instance of instances) counts.set(instance.asset, (counts.get(instance.asset) ?? 0) + 1);
-  const byAsset = [...counts.entries()]
-    .sort(([a], [b]) => a - b)
-    .map(([asset, count]) => {
-      const triangles = (ROCK_ASSETS[asset].indices.length / 3) * count;
-      return { key: ROCK_ASSETS[asset].key, instances: count, triangles };
-    });
-  return {
-    drawCalls: byAsset.length + 1,
-    instances: instances.length,
-    triangles: byAsset.reduce((sum, asset) => sum + asset.triangles, 0) + SEA_STACK_CORE_TRIANGLES,
-    byAsset,
-  };
 }
 
 export function createTerrainRocks(heightField: HeightField): Group {

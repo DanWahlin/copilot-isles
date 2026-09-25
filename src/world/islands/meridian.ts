@@ -65,8 +65,6 @@ export const MERIDIAN = {
   deepDepth: 58,
 } as const;
 
-export type MeridianPadName = keyof typeof MERIDIAN.pads;
-
 const SEED = 0x1_01a_d1a;
 
 function rand(seed: number): number {
@@ -245,7 +243,7 @@ export function meridianHeight(x: number, z: number): number {
   return h;
 }
 
-export function meridianNormalAt(
+function meridianNormalAt(
   x: number,
   z: number,
   out: Float32Array | number[] = [0, 0, 0],

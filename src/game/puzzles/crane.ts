@@ -19,7 +19,7 @@ import {
 import { POL_SOLVED } from '../cove-quests';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 
-export const CRANE_ID = 'P0.2';
+const CRANE_ID = 'P0.2';
 const QUEST = 'Q0.7';
 
 /**

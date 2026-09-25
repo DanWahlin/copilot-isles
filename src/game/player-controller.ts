@@ -31,7 +31,7 @@ export interface PlayerTuning {
   wadeMax: number;
 }
 
-export const DEFAULT_TUNING: PlayerTuning = {
+const DEFAULT_TUNING: PlayerTuning = {
   radius: 0.36,
   walkSpeed: 1.75,
   runSpeed: 4.45,

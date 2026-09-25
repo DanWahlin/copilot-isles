@@ -7,7 +7,7 @@ export interface BackendInfo {
   features: string[];
 }
 
-export interface IslesDebug {
+interface IslesDebug {
   info(): FrameStats & { width: number; height: number; fps: number; cpuMs: number } & BackendInfo;
   shot?(id: string): void;
   hitches(): Hitch[];
@@ -24,7 +24,7 @@ declare global {
 }
 
 /** Dev builds, or any build opened with ?debug (used by Playwright). Never exposes secrets. */
-export function debugEnabled(): boolean {
+function debugEnabled(): boolean {
   return import.meta.env.DEV || new URLSearchParams(location.search).has('debug');
 }
 

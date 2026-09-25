@@ -5,13 +5,13 @@ import type { WindState } from './contracts';
  * the ship. The GPU side (wind-nodes.ts) builds TSL nodes from the same constants and the
  * `uWindTime` uniform, so CPU (ship thrust, sail luffing) and GPU (sway) agree.
  */
-export const WIND: WindState = { dirX: 0.8, dirZ: -0.6, speed: 6.5 };
+const WIND: WindState = { dirX: 0.8, dirZ: -0.6, speed: 6.5 };
 
 /** Gust front scale along the wind direction (m) and travel speed (m/s). */
 export const GUST = { wavelength: 140, speed: 9, strength: 0.45 };
 
 /** Gust factor (≈0.55-1.45) at a world point and time; mirrors `gustNode` on the GPU. */
-export function gustAt(x: number, z: number, t: number): number {
+function gustAt(x: number, z: number, t: number): number {
   const along = x * WIND.dirX + z * WIND.dirZ;
   const phase = ((along - t * GUST.speed) / GUST.wavelength) * Math.PI * 2;
   const cross = (x * -WIND.dirZ + z * WIND.dirX) * 0.013;

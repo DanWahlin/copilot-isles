@@ -3,18 +3,18 @@ import type { CameraShot } from '../follow-camera';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 import { sleep } from '../../util/math';
 
-export const CHRISTENING_ID = 'Q0.11.christen';
+const CHRISTENING_ID = 'Q0.11.christen';
 const QUEST = 'Q0.11';
 
 /** What the christening needs from the brigantine. */
-export interface ChristeningShip {
+interface ChristeningShip {
   setName(name: string | null): void;
   /** Throws a coconut from `from` at the bow stem and resolves once the spray settles. */
   christen(from: { x: number; y: number; z: number }): Promise<void>;
 }
 
 /** Nell, and a way to send her to the pier head and back home. */
-export interface ChristeningNell {
+interface ChristeningNell {
   readonly x: number;
   readonly y: number;
   readonly z: number;

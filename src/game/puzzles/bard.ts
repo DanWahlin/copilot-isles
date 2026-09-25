@@ -1,6 +1,6 @@
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 
-export const BARD_ID = 'Q0.9.bard';
+const BARD_ID = 'Q0.9.bard';
 const QUEST = 'Q0.9';
 
 /** Where Lyra sits and where you stand to talk to her (the hammock site's anchors). */

@@ -1,16 +1,15 @@
 import { Euler, Matrix4, Quaternion, Vector3 } from 'three/webgpu';
 
-export const HOUSE_UNIT = 2;
+const HOUSE_UNIT = 2;
 export const HOUSE_STOREY_HEIGHT = 3.12;
 
 export type HouseSide = 'front' | 'back' | 'left' | 'right';
-export type HouseGround = 'unevenbrick' | 'plaster';
-export type HouseUpper = 'plaster' | 'woodgrid' | 'mixed';
-export type HouseRoof = 'gable' | 'tower';
-export type HouseWindowPattern =
-  'regular' | 'sparse' | 'busy' | Partial<Record<HouseSide, readonly number[]>>;
-export type HouseWidth = 4 | 6 | 8;
-export type HouseDepth = 4 | 6 | 8;
+type HouseGround = 'unevenbrick' | 'plaster';
+type HouseUpper = 'plaster' | 'woodgrid' | 'mixed';
+type HouseRoof = 'gable' | 'tower';
+type HouseWindowPattern = 'regular' | 'sparse' | 'busy' | Partial<Record<HouseSide, readonly number[]>>;
+type HouseWidth = 4 | 6 | 8;
+type HouseDepth = 4 | 6 | 8;
 
 export interface HouseFootprint {
   w: HouseWidth;
@@ -40,7 +39,7 @@ export interface HouseSpec {
   roofTint?: number;
 }
 
-export type HousePieceRole =
+type HousePieceRole =
   | 'wall'
   | 'corner'
   | 'floor'
@@ -74,7 +73,7 @@ export interface PiecePlacement {
 
 type Bounds = readonly [minX: number, minY: number, minZ: number, maxX: number, maxY: number, maxZ: number];
 
-export const HOUSE_PIECE_BOUNDS = {
+const HOUSE_PIECE_BOUNDS = {
   Wall_UnevenBrick_Straight: [-1, 0, -0.314, 1, 3.123, 0.092],
   Wall_UnevenBrick_Door_Round: [-1, 0, -0.314, 1, 3.123, 0.092],
   Wall_UnevenBrick_Window_Wide_Round: [-1, 0, -0.314, 1, 3.123, 0.092],

@@ -12,7 +12,7 @@ import {
 import { SURI_SOLVED } from '../cove-quests';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 
-export const SLUICE_ID = 'P0.1';
+const SLUICE_ID = 'P0.1';
 const QUEST = 'Q0.6';
 
 /**

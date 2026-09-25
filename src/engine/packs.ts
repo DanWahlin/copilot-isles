@@ -1,16 +1,16 @@
-export interface PackFile {
+interface PackFile {
   readonly path: string;
   readonly bytes: number;
   readonly sha256: string;
 }
 
-export interface PackEntry {
+interface PackEntry {
   readonly id: string;
   readonly files: readonly PackFile[];
   readonly totalBytes: number;
 }
 
-export interface PackManifest {
+interface PackManifest {
   readonly version: number;
   readonly packs: Readonly<Record<string, PackEntry>>;
   readonly fileIndex?: Readonly<
@@ -41,7 +41,7 @@ function stripQuery(path: string): string {
   return clean.replace(/^\//, '');
 }
 
-export class PackLoader {
+class PackLoader {
   private manifestPromise: Promise<PackManifest | null> | null = null;
   private manifest: PackManifest | null = null;
   private readonly resident = new Set<string>();

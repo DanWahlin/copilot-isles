@@ -1,13 +1,13 @@
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, public/audio/CREDITS.md@d32799f
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/audio/soundBank.js@d32799f
 
-export interface SliceBank {
+interface SliceBank {
   readonly file: string;
   readonly slices: readonly (readonly [start: number, duration: number])[];
   readonly lufs: readonly number[];
 }
 
-export interface LoopBank {
+interface LoopBank {
   readonly file: string;
   readonly loop: true;
   readonly lufs: number;

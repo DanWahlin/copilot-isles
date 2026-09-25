@@ -20,7 +20,7 @@ interface TerrainChunk {
   current: number;
 }
 
-export type TerrainHeightGrid = HeightGridData;
+type TerrainHeightGrid = HeightGridData;
 
 export interface CreatedTerrain {
   group: Group;
@@ -129,7 +129,7 @@ function sampleVertex(
   };
 }
 
-export class BakedTerrainHeightField implements HeightField {
+class BakedTerrainHeightField implements HeightField {
   constructor(private readonly data: TerrainBakeData) {}
 
   heightAt(x: number, z: number): number {

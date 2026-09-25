@@ -1,7 +1,7 @@
 import { COPILOT_LEITMOTIF } from './theory';
 
 export type MusicPalette = 'harbour' | 'tropical';
-export type AnchorageSection = 'intro' | 'a' | 'aPrime' | 'b' | 'aDouble' | 'drone';
+type AnchorageSection = 'intro' | 'a' | 'aPrime' | 'b' | 'aDouble' | 'drone';
 
 export interface AnchorageBar {
   readonly index: number;
@@ -57,9 +57,6 @@ const TROPICAL_FORM: readonly SectionDef[] = [
 const HARBOUR_MODE = [0, 2, 3, 5, 7, 8, 10] as const; // Aeolian/Dorian colour, rooted at A.
 const TROPICAL_MODE = [0, 2, 4, 5, 7, 9, 10] as const; // Mixolydian, rooted at D/G by transposition in composer.
 
-export const ANCHORAGE_FORM_BARS = TROPICAL_FORM.reduce((sum, section) => sum + section.bars, 0);
-export const HARBOUR_FORM_BARS = HARBOUR_FORM.reduce((sum, section) => sum + section.bars, 0);
-
 export function createAnchoragePlan(
   seed: number,
   bars: number,
@@ -76,7 +73,7 @@ export function createAnchoragePlan(
   };
 }
 
-export function createBar(seed: number, index: number, palette: MusicPalette): AnchorageBar {
+function createBar(seed: number, index: number, palette: MusicPalette): AnchorageBar {
   const form = formFor(palette);
   const formBars = form.reduce((sum, section) => sum + section.bars, 0);
   const movement = Math.floor(index / formBars);

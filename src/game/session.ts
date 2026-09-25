@@ -29,7 +29,7 @@ import { createPaintSails } from './puzzles/paint-sails';
 import { createSluice } from './puzzles/sluice';
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal } from './puzzles/types';
 
-export type SessionMode = 'walk' | 'sail' | 'docking' | 'transition';
+type SessionMode = 'walk' | 'sail' | 'docking' | 'transition';
 
 export interface SessionOptions {
   engine: Engine;

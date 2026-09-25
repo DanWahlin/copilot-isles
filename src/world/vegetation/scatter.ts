@@ -13,7 +13,7 @@ const MAX_SLOPE_DEG = 35;
 const PATH_A = { x: COVE.quay.x0 + 32, z: COVE.quay.z + 2 };
 const PATH_B = { x: -34, z: COVE.beach.z0 + 10 };
 
-export const BUILDING_FOOTPRINTS = [
+const BUILDING_FOOTPRINTS = [
   { x: COVE.village.center.x - 12, z: COVE.village.center.z - 8, r: 8 },
   { x: COVE.village.center.x + 5, z: COVE.village.center.z - 12, r: 9 },
   { x: COVE.village.center.x + 15, z: COVE.village.center.z + 6, r: 7 },

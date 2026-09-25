@@ -30,5 +30,3 @@ export const world = {
   /** Reduced motion (0/1): materials damp decorative motion (cloud drift, sway amplitude). */
   reducedMotion: uniform(0),
 };
-
-export type WorldUniforms = typeof world;

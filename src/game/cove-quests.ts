@@ -5,14 +5,14 @@ import type { ScriptStep } from './script';
  * the palette stand, Ezra's fork, Bo's deck and gear, the sluice and crane, Juno's first words, Lyra's
  * soundcheck (optional), the Harbormaster's Trial at the lighthouse, and the christening.
  */
-export interface QuestDef {
+interface QuestDef {
   id: string;
   title: string;
   /** Step id → what the Logbook says to do next. `done` marks completion. */
   steps: Record<string, string>;
 }
 
-export const COVE_QUESTS: readonly QuestDef[] = [
+const COVE_QUESTS: readonly QuestDef[] = [
   {
     id: 'Q0.2',
     title: 'Captain’s Papers',

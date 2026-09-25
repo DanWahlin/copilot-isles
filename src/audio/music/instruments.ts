@@ -22,7 +22,7 @@ export type InstrumentName =
   | 'bass'
   | 'tick';
 
-export interface InstrumentBuffer {
+interface InstrumentBuffer {
   readonly buffer: AudioBuffer;
   readonly rootMidi: number;
   readonly offset: number;

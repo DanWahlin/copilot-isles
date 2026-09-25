@@ -30,7 +30,7 @@ export interface TerrainPackOptions {
   farSeabedRing?: { innerRadius: number; outerRadius: number; segments: number };
 }
 
-export interface ShorelinePoint {
+interface ShorelinePoint {
   x: number;
   z: number;
 }

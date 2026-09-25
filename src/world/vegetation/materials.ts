@@ -2,7 +2,6 @@
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/world/vegetation/VegNodes.js@d32799f
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/materials/LODFade.js@d32799f
 import {
-  AdditiveBlending,
   ClampToEdgeWrapping,
   Color,
   DataTexture,
@@ -12,7 +11,6 @@ import {
   MeshBasicNodeMaterial,
   MeshStandardNodeMaterial,
   type Texture as ThreeTexture,
-  NearestFilter,
   RedFormat,
   RepeatWrapping,
   Texture,
@@ -252,15 +250,3 @@ export function createImpostorMaterial(atlas: Texture): MeshBasicNodeMaterial {
   material.maskNode = greaterThan(oval.max(trunk).mul(fade), interleavedGradientNoise());
   return material;
 }
-
-export function createWindSheenMaterial(): MeshBasicNodeMaterial {
-  const material = new MeshBasicNodeMaterial({
-    blending: AdditiveBlending,
-    depthWrite: false,
-    transparent: true,
-  });
-  material.color = new Color(0xa7d9b8);
-  return material;
-}
-
-export { NearestFilter };

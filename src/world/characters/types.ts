@@ -4,7 +4,7 @@ import type { TierSettings } from '../../engine/quality';
 /** Character bodies, clips, and the public character API (shared by the library and the runtime). */
 
 export const PLAYER_BODIES = ['man', 'woman'] as const;
-export const NPC_IDS = [
+const NPC_IDS = [
   'nell',
   'dockhand_a',
   'dockhand_b',

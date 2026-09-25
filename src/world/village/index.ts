@@ -27,6 +27,7 @@ import { packs } from '../../engine/packs';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle, HeightField } from '../contracts';
 import { COVE } from '../layout';
+import { coloredIndexedGeometry } from '../sites/geo';
 import {
   VILLAGE_HOUSE_PIECES,
   buildHouse,
@@ -66,7 +67,7 @@ export interface VillageAnchor {
   heading: number;
 }
 
-export interface VillageMetrics {
+interface VillageMetrics {
   staticDraws: number;
   propDraws: number;
   drawCalls: number;
@@ -94,7 +95,7 @@ export interface CreateVillageOptions {
   kit?: VillageKit;
 }
 
-export interface VillageKitPart {
+interface VillageKitPart {
   geometry: BufferGeometry;
   materialKey: MaterialKey;
 }
@@ -1423,13 +1424,7 @@ function createStreetPavingGeometry(heightField: HeightField, low: boolean): Buf
     }
   }
 
-  const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
-  geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
-  geometry.setAttribute('color', new BufferAttribute(new Float32Array(colors), 3));
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-  return geometry;
+  return coloredIndexedGeometry(positions, uvs, colors, indices);
 }
 
 function sampleStreetRoute(
@@ -1600,13 +1595,7 @@ function addStripedMarketAwning(
       indices.push(a, b, d0, b, c0, d0);
     }
   }
-  const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
-  geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
-  geometry.setAttribute('color', new BufferAttribute(new Float32Array(colors), 3));
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-  buckets.cloth.push(geometry);
+  buckets.cloth.push(coloredIndexedGeometry(positions, uvs, colors, indices));
 
   const front = localToWorld(x, z, rot, 0, -d * 0.5);
   const back = localToWorld(x, z, rot, 0, d * 0.5);

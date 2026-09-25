@@ -9,7 +9,7 @@ import { CHARACTER_CLIPS, type CharacterClip } from './types';
  */
 
 export type FootContactMap = Record<'L' | 'R', [number, number][]>;
-export type LocoClip = AnimationClip & { userData?: { contacts?: FootContactMap } };
+type LocoClip = AnimationClip & { userData?: { contacts?: FootContactMap } };
 
 const LOCO_MAGIC = 0x434f4c49;
 
