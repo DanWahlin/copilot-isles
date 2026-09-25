@@ -207,31 +207,40 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // Talk to NPCs: quest beats run as scripts; Nell's lines are voiced; everyone else offers a bark.
   const talkTo = async (n: Npc) => {
     if (dialogue.active || scriptRunning) return;
-    npcs.setTalking(n, true);
-    const beat = learn ? npcScript(n.spec.id, quests()) : null;
-    if (beat) {
-      scriptRunning = true;
-      input.enabled = false;
-      await runScript(beat.steps, {
-        dialogue,
-        learn,
-        speaker: n.spec.name.split(' ')[0]!,
-        onQuest: setQuest,
-        cancelled: () => disposed,
-        ...scriptExtras,
-      });
-      input.enabled = !paused;
-      scriptRunning = false;
-    } else if (n.spec.voiced) {
-      input.enabled = false;
-      await dialogue.play(n.spec.voiced);
-      input.enabled = true;
-    } else if (n.spec.barks?.length) {
-      const i = Math.floor(Math.random() * n.spec.barks.length);
-      hud.showText(n.spec.name, n.spec.barks[i]!, 4.5);
-      await new Promise((r) => setTimeout(r, 2600));
+    cam.frame(npcTalkShot(n));
+    try {
+      npcs.setTalking(n, true);
+      const beat = learn ? npcScript(n.spec.id, quests()) : null;
+      if (beat) {
+        scriptRunning = true;
+        input.enabled = false;
+        await runScript(beat.steps, {
+          dialogue,
+          learn,
+          speaker: n.spec.name.split(' ')[0]!,
+          onQuest: setQuest,
+          cancelled: () => disposed,
+          ...scriptExtras,
+        });
+        input.enabled = !paused;
+        scriptRunning = false;
+      } else if (n.spec.voiced) {
+        input.enabled = false;
+        await dialogue.play(n.spec.voiced);
+        input.enabled = true;
+      } else if (n.spec.barks?.length) {
+        const i = Math.floor(Math.random() * n.spec.barks.length);
+        hud.showText(n.spec.name, n.spec.barks[i]!, 4.5);
+        await new Promise((r) => setTimeout(r, 2600));
+      }
+    } finally {
+      npcs.setTalking(n, false);
+      cam.frame(null);
+      if (scriptRunning) {
+        scriptRunning = false;
+        input.enabled = !paused;
+      }
     }
-    npcs.setTalking(n, false);
   };
   for (const n of npcs.list) {
     if (!n.spec.voiced && !n.spec.barks && !npcScript(n.spec.id, quests())) continue;
@@ -474,6 +483,28 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       'Wingman',
       open ? `Logbook says: ${open.detail}` : 'Nothing pressing, Captain. Enjoy the view.',
     );
+  }
+
+  function npcTalkShot(n: Npc) {
+    const dx = player.x - n.x;
+    const dz = player.z - n.z;
+    const len = Math.hypot(dx, dz) || 1;
+    const fx = dx / len;
+    const fz = dz / len;
+    const side = n.spec.id === 'lyra' || n.spec.id === 'lookout' ? -1 : 1;
+    const sx = fz * side;
+    const sz = -fx * side;
+    const seated = n.spec.clip === 'sit';
+    const targetY = n.y + (seated ? 0.82 : 1.18);
+    const eyeLift = n.spec.id === 'lookout' ? 2.0 : seated ? 1.25 : 1.45;
+    return {
+      x: player.x + fx * 0.72 + sx * 1.65,
+      y: Math.max(player.y + eyeLift, targetY + 0.18),
+      z: player.z + fz * 0.72 + sz * 1.65,
+      tx: n.x,
+      ty: targetY,
+      tz: n.z,
+    };
   }
 
   async function board(): Promise<void> {

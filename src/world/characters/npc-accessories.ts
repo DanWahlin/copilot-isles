@@ -5,12 +5,14 @@ import {
   Group,
   Mesh,
   MeshStandardMaterial,
+  Object3D,
   SphereGeometry,
   TorusGeometry,
   Vector3,
   type BufferGeometry,
   type Material,
 } from 'three/webgpu';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createTricornGeometry, type TricornFit } from './tricorn';
 import type { CharacterBody, NpcId } from './types';
 
@@ -43,20 +45,19 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
       addLedger(root, 0x5a3925, 1);
       break;
     case 'merchant':
-      addBandana(root, 0x314f69, 0xd7b16c);
+      addWatchCap(root, 0x26384a);
       addSpectacles(root);
       addSatchel(root, 0x5c3b23, -1);
       addLedger(root, 0x23445f, -1);
       addScroll(root, 1);
       break;
     case 'dockhand_b':
-      addBandana(root, 0x8f2a1e, 0xe8d0a0);
-      addApron(root, 0x8a5a31);
-      addRopeCoil(root, 1);
+      addWatchCap(root, 0x6a3728);
+      addRopeCoil(root, 1, 'belt');
       break;
     case 'dockhand_a':
       addBandana(root, 0xb33a2f, 0xf0dfbd);
-      addRopeCoil(root, -1);
+      addRopeCoil(root, -1, 'belt');
       break;
     case 'fisherman':
       addStrawHat(root);
@@ -65,27 +66,23 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
       addBucket(root, 0x7b6b57, -1);
       break;
     case 'old_sailor':
-      addBandana(root, 0x23364a, 0xd8c69a);
       addBeard(root, 0xf0ead8);
       addPipe(root);
       break;
     case 'child':
-      addBandana(root, 0xd44e2d, 0xf0d798);
       addSatchel(root, 0x704422, 1);
       break;
     case 'suri':
-      addHeadScarf(root, 0x3d6b57);
-      addApron(root, 0xe4c28d);
       addSatchel(root, 0x4f3925, 1);
       addTool(root, 0x9aa0a4, -1);
       break;
     case 'pim':
       addBandana(root, 0x3a7b45, 0xe2c170);
-      addRopeCoil(root, 1);
+      addRopeCoil(root, 1, 'belt');
       break;
     case 'pol':
-      addBandana(root, 0x285a91, 0xd95b3f);
-      addRopeCoil(root, -1);
+      addBandana(root, 0x9b3428, 0xe2c170);
+      addRopeCoil(root, -1, 'belt');
       break;
     case 'juno':
       addBicorne(root, 0x171b25, 0xc94a38);
@@ -94,11 +91,10 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
       addSpyglass(root, 1);
       break;
     case 'lyra':
-      addHeadScarf(root, 0x6b4a8f);
       addLute(root);
       break;
     case 'lookout':
-      addBandana(root, 0x2f5c71, 0xe1c56b);
+      addWatchCap(root, 0x24394a);
       addSpyglass(root, -1);
       break;
   }
@@ -144,12 +140,11 @@ function addBandana(root: Group, cloth: ColorHex, tie: ColorHex): void {
   addHead(root, tail);
 }
 
-function addHeadScarf(root: Group, cloth: ColorHex): void {
-  addBandana(root, cloth, 0xe2cfab);
-  const drape = mesh(new BoxGeometry(0.32, 0.32, 0.035), mat(cloth), 'head scarf drape');
-  drape.position.set(0, -0.01, -0.22);
-  drape.rotation.x = -0.18;
-  addHead(root, drape);
+function addWatchCap(root: Group, wool: ColorHex): void {
+  const cap = mesh(new SphereGeometry(0.265, 12, 7), mat(wool), 'watch cap crown');
+  cap.position.set(0, 0.24, 0.0);
+  cap.scale.set(1, 0.48, 0.92);
+  addHead(root, cap);
 }
 
 function addStrawHat(root: Group): void {
@@ -164,27 +159,35 @@ function addStrawHat(root: Group): void {
 }
 
 function addSpectacles(root: Group): void {
+  const parts: BufferGeometry[] = [];
   for (const x of [-0.075, 0.075]) {
-    const lens = mesh(new TorusGeometry(0.055, 0.006, 5, 10), mat(0xd9c38f), 'spectacle lens');
-    lens.position.set(x, 0.0, 0.29);
-    addHead(root, lens);
+    const lens = new TorusGeometry(0.055, 0.006, 5, 10);
+    lens.translate(x, 0, 0.29);
+    parts.push(lens);
   }
-  const bridge = mesh(new BoxGeometry(0.05, 0.012, 0.012), mat(0xd9c38f), 'spectacle bridge');
-  bridge.position.set(0, 0.0, 0.29);
-  addHead(root, bridge);
+  const bridge = new BoxGeometry(0.05, 0.012, 0.012);
+  bridge.translate(0, 0, 0.29);
+  parts.push(bridge);
+  const geometry = mergeGeometries(parts, false)!;
+  for (const part of parts) part.dispose();
+  addHead(root, mesh(geometry, mat(0xd9c38f), 'spectacles'));
 }
 
 function addBeard(root: Group, color: ColorHex): void {
-  const beard = mesh(new SphereGeometry(0.14, 8, 5), mat(color), 'beard');
-  beard.position.set(0, -0.14, 0.23);
-  beard.scale.set(1.15, 0.72, 0.42);
-  addHead(root, beard);
+  const parts: BufferGeometry[] = [];
+  const beard = new SphereGeometry(0.14, 8, 5);
+  beard.scale(1.15, 0.72, 0.42);
+  beard.translate(0, -0.14, 0.23);
+  parts.push(beard);
   for (const x of [-0.07, 0.07]) {
-    const moustache = mesh(new SphereGeometry(0.07, 6, 4), mat(color), 'moustache');
-    moustache.position.set(x, -0.055, 0.285);
-    moustache.scale.set(1.15, 0.35, 0.28);
-    addHead(root, moustache);
+    const moustache = new SphereGeometry(0.07, 6, 4);
+    moustache.scale(1.15, 0.35, 0.28);
+    moustache.translate(x, -0.055, 0.285);
+    parts.push(moustache);
   }
+  const geometry = mergeGeometries(parts, false)!;
+  for (const part of parts) part.dispose();
+  addHead(root, mesh(geometry, mat(color), 'beard and moustache'));
 }
 
 function addPipe(root: Group): void {
@@ -202,15 +205,6 @@ function addSash(root: Group, color: ColorHex, side: -1 | 1): void {
   sash.position.set(side * 0.08, 0.86, 0.4);
   sash.rotation.z = side * 0.38;
   addRoot(root, sash);
-}
-
-function addApron(root: Group, color: ColorHex): void {
-  const bib = mesh(new BoxGeometry(0.38, 0.34, 0.035), mat(color), 'apron bib');
-  bib.position.set(0, 0.93, 0.49);
-  addRoot(root, bib);
-  const skirt = mesh(new BoxGeometry(0.48, 0.52, 0.035), mat(color), 'apron');
-  skirt.position.set(0, 0.59, 0.48);
-  addRoot(root, skirt);
 }
 
 function addSatchel(root: Group, color: ColorHex, side: -1 | 1): void {
@@ -280,11 +274,25 @@ function addFishingRod(root: Group): void {
   addRoot(root, rod);
 }
 
-function addRopeCoil(root: Group, side: -1 | 1): void {
-  const coil = mesh(new TorusGeometry(0.105, 0.018, 6, 14), mat(0xc8a66a), 'rope coil');
-  coil.position.set(side * 0.34, 0.72, 0.5);
-  coil.rotation.z = side * 0.1;
-  addRoot(root, coil);
+function addRopeCoil(root: Group, side: -1 | 1, mode: 'belt' | 'shoulder'): void {
+  const parts: BufferGeometry[] = [];
+  for (let i = 0; i < 4; i += 1) {
+    const wrap = new TorusGeometry(0.11 + i * 0.006, 0.022, 6, 18);
+    wrap.rotateX(0.1 * i);
+    wrap.translate(0, 0, i * 0.014);
+    parts.push(wrap);
+  }
+  const group = mesh(mergeGeometries(parts, false)!, mat(0xc8a66a), `${mode} rope coil`);
+  for (const part of parts) part.dispose();
+  if (mode === 'shoulder') {
+    group.position.set(side * 0.25, 1.02, 0.48);
+    group.rotation.set(0.2, side * 0.35, side * 0.52);
+    addRoot(root, group, 'Torso');
+  } else {
+    group.position.set(side * 0.33, 0.68, 0.43);
+    group.rotation.set(0.05, side * 0.15, side * 0.05);
+    addRoot(root, group, 'Hips');
+  }
 }
 
 function addBucket(root: Group, color: ColorHex, side: -1 | 1): void {
@@ -316,8 +324,16 @@ function addHead(root: Group, child: Mesh): void {
   head.add(child);
 }
 
-function addRoot(root: Group, child: Mesh): void {
+function addRoot(root: Group, child: Object3D, boneName?: string): void {
   root.add(child);
+  if (boneName) attachToBone(root, child, boneName);
+}
+
+function attachToBone(root: Group, child: Object3D, boneName: string): void {
+  const bone = root.getObjectByName(boneName);
+  if (!(bone instanceof Bone)) return;
+  root.updateMatrixWorld(true);
+  bone.attach(child);
 }
 
 function mesh(geometry: BufferGeometry, material: Material, name: string): Mesh {

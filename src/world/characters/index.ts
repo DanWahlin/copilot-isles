@@ -5,6 +5,11 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { packs } from '../../engine/packs';
 import { cloneClipWithUserData, loadClipPack } from './loco-pack';
 import { dressNpcCharacter } from './npc-accessories';
+import {
+  applyCharacterPalette,
+  disposeCharacterPaletteCache,
+  type CharacterPaletteCache,
+} from './npc-palettes';
 import { addTricorn, stowPlayerWeapon } from './props';
 import { RuntimeCharacter } from './runtime-character';
 import {
@@ -76,7 +81,7 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
   // Chapter 00 cast from the POC spec §4.3, dressed as period variants of the chibi Pirate Kit rigs.
   suri: { source: 'anne_npc', scale: 0.97, radius: 0.32, height: 1.7, tint: 0xffffff },
   pim: { source: 'henry_npc', scale: 0.94, radius: 0.33, height: 1.66, tint: 0xffffff },
-  pol: { source: 'henry_npc', scale: 0.94, radius: 0.33, height: 1.66, tint: 0xffffff },
+  pol: { source: 'anne_npc', scale: 0.94, radius: 0.33, height: 1.66, tint: 0xffffff },
   juno: { source: 'anne_npc', scale: 1.02, radius: 0.31, height: 1.74, tint: 0xffffff },
   lyra: { source: 'anne_npc', scale: 0.96, radius: 0.31, height: 1.68, tint: 0xffffff },
 };
@@ -109,6 +114,7 @@ export async function loadCharacterLibrary(base = '/packs/testcove/characters'):
 class CharacterLibraryImpl implements CharacterLibrary {
   readonly clips = CHARACTER_CLIPS;
   readonly bodies = CHARACTER_BODIES;
+  private readonly characterPaletteCache: CharacterPaletteCache = new Map();
 
   constructor(private readonly sources: ReadonlyMap<SourceKey, SourceAsset>) {}
 
@@ -121,7 +127,13 @@ class CharacterLibraryImpl implements CharacterLibrary {
     clone.name = `character_${body}`;
     clone.scale.setScalar(config.scale);
     clone.updateMatrixWorld(true);
-    cloneCharacterMaterials(clone, tintFor(body, config, options.variant ?? 0));
+    cloneCharacterMaterials(
+      clone,
+      body,
+      config.source,
+      this.characterPaletteCache,
+      tintFor(body, config, options.variant ?? 0),
+    );
     // The Anne model is bare-headed; as a captain she wears a tricorn like the Captain's.
     if (body === 'woman') addTricorn(clone);
     if (body === 'man' || body === 'woman') stowPlayerWeapon(clone, body);
@@ -138,6 +150,7 @@ class CharacterLibraryImpl implements CharacterLibrary {
         }
       });
     }
+    disposeCharacterPaletteCache(this.characterPaletteCache);
   }
 }
 
@@ -199,17 +212,34 @@ function tintFor(body: CharacterBody, config: BodyConfig, variant: number): numb
   return config.tint;
 }
 
-function cloneCharacterMaterials(root: Group, tint: number): void {
+function cloneCharacterMaterials(
+  root: Group,
+  body: CharacterBody,
+  source: SourceKey,
+  characterPaletteCache: CharacterPaletteCache,
+  tint: number,
+): void {
   root.traverse((object) => {
     if (object instanceof SkinnedMesh) object.normalizeSkinWeights();
-    if (object instanceof Mesh) object.material = cloneMaterial(object.material, tint);
+    if (object instanceof Mesh)
+      object.material = cloneMaterial(object.material, body, source, characterPaletteCache, tint);
   });
 }
 
-function cloneMaterial(material: Material | Material[], tint: number): Material | Material[] {
-  if (Array.isArray(material)) return material.map((entry) => cloneMaterial(entry, tint) as Material);
+function cloneMaterial(
+  material: Material | Material[],
+  body: CharacterBody,
+  source: SourceKey,
+  characterPaletteCache: CharacterPaletteCache,
+  tint: number,
+): Material | Material[] {
+  if (Array.isArray(material))
+    return material.map(
+      (entry) => cloneMaterial(entry, body, source, characterPaletteCache, tint) as Material,
+    );
   const clone = material.clone();
   clone.userData.isCharacterCloneMaterial = true;
+  applyCharacterPalette(clone, body, source, characterPaletteCache);
   if ('color' in clone && clone.color instanceof Color && tint !== 0xffffff && canTintMaterial(clone)) {
     clone.color.copy(TEMP_COLOR.setHex(tint));
   }
