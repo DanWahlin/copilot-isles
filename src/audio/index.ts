@@ -1,4 +1,5 @@
-import { AnchorageComposer, type IslandMusic, type MusicLayer, type StingerName } from './music/composer';
+import { MusicPlayer } from './music/music-player';
+import type { IslandMusic } from './music/tracks';
 import {
   IslesSoundScape,
   type BedName,
@@ -17,9 +18,8 @@ export { AMBIENT_BEDS } from './beds';
 export interface IslesAudio {
   unlock(): Promise<boolean>;
   readonly music: {
+    /** Crossfades to the track for where you are (the title and open sea, or ashore). */
     setIsland(island: IslandMusic): void;
-    setLayer(name: MusicLayer, on: boolean): void;
-    stinger(name: StingerName): void;
   };
   readonly sfx: {
     setListener(pos: Vec3Like, forward?: Vec3Like): void;
@@ -134,7 +134,7 @@ export class VolumeControls {
 
 class IslesAudioImpl implements IslesAudio {
   readonly soundscape = new IslesSoundScape();
-  readonly composer = new AnchorageComposer();
+  readonly musicPlayer = new MusicPlayer();
   readonly volumes = new VolumeControls((name) => this.applyVolume(name));
   onWord: WordCallback | null = null;
 
@@ -147,9 +147,7 @@ class IslesAudioImpl implements IslesAudio {
   private unlocking: Promise<boolean> | null = null;
 
   readonly music = {
-    setIsland: (island: IslandMusic) => this.composer.setIsland(island),
-    setLayer: (name: MusicLayer, on: boolean) => this.composer.setLayer(name, on),
-    stinger: (name: StingerName) => this.composer.stinger(name),
+    setIsland: (island: IslandMusic) => this.musicPlayer.setIsland(island),
   };
 
   readonly sfx = {
@@ -165,6 +163,7 @@ class IslesAudioImpl implements IslesAudio {
   unlock(): Promise<boolean> {
     // A context that started before the page had a gesture stays suspended; each later gesture resumes it.
     if (this.ctx?.state === 'suspended') void this.ctx.resume().catch(() => undefined);
+    this.musicPlayer.resume();
     this.unlocking ??= this.doUnlock();
     return this.unlocking;
   }
@@ -180,13 +179,13 @@ class IslesAudioImpl implements IslesAudio {
 
   update(dt: number): void {
     void dt;
-    this.composer.update();
+    this.musicPlayer.update();
     this.soundscape.update();
   }
 
   dispose(): void {
     this.voicePlayer?.stop();
-    this.composer.dispose();
+    this.musicPlayer.dispose();
     this.soundscape.dispose();
     this.limiter?.disconnect();
     if (this.ctx) void this.ctx.close().catch(() => undefined);
@@ -209,7 +208,7 @@ class IslesAudioImpl implements IslesAudio {
       const music = this.buses.music;
       const voice = this.buses.voice;
       if (ambience && sfx) this.soundscape.bind(ctx, { ambience, sfx }, audioElement);
-      if (music) await this.composer.bind(ctx, music);
+      if (music) this.musicPlayer.bind(ctx, music);
       if (voice) {
         this.voicePlayer = new VoicePlayer(
           new URL(`${import.meta.env.BASE_URL}voice/testcove/manifest.json`, location.href).toString(),

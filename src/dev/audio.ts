@@ -1,5 +1,5 @@
 import { createAudio } from '../audio';
-import type { MusicLayer, StingerName } from '../audio/music/composer';
+import type { IslandMusic } from '../audio/music/tracks';
 import type { BedName, FootstepSurface, SurfKind } from '../audio/soundscape/soundscape';
 import type { VoiceManifest, VoiceManifestLine } from '../audio/voice/player';
 
@@ -29,7 +29,7 @@ function button(label: string, onClick: () => void): HTMLButtonElement {
 mustElement('unlock').addEventListener('click', () => {
   void audio.unlock().then((ok) => {
     status.textContent = ok ? 'Unlocked' : 'Audio unavailable';
-    audio.music.setIsland('anchorage');
+    showTrack('anchorage');
     audio.sfx.setBed('wind', 0.35);
     audio.sfx.setBed('palms', 0.45);
     audio.sfx.setBed('surf_far', 0.55);
@@ -62,26 +62,21 @@ for (const name of [
   volumeRoot.append(label);
 }
 
-const layerRoot = mustElement('layers');
-const layerState: Record<MusicLayer, boolean> = { base: true, explore: false, puzzle: false, trial: false };
-for (const layer of ['base', 'explore', 'puzzle', 'trial'] as const satisfies readonly MusicLayer[]) {
-  const layerButton = button(`Layer: ${layer}`, () => {
-    layerState[layer] = !layerState[layer];
-    layerButton.setAttribute('aria-pressed', String(layerState[layer]));
-    audio.music.setLayer(layer, layerState[layer]);
-  });
-  layerButton.setAttribute('aria-pressed', String(layerState[layer]));
-  layerRoot.append(layerButton);
+const trackRoot = mustElement('tracks');
+const trackButtons = new Map<IslandMusic, HTMLButtonElement>();
+for (const [island, label] of [
+  ['harbour', "Title & sea: The Bard's Tale"],
+  ['anchorage', 'Island: Reggae'],
+] as const satisfies readonly (readonly [IslandMusic, string])[]) {
+  const trackButton = button(label, () => showTrack(island));
+  trackButtons.set(island, trackButton);
+  trackRoot.append(trackButton);
 }
 
-const stingerRoot = mustElement('stingers');
-for (const stinger of [
-  'chestOpened',
-  'correct',
-  'puzzleSolved',
-  'lighthouseLit',
-] as const satisfies readonly StingerName[]) {
-  stingerRoot.append(button(`Stinger: ${stinger}`, () => audio.music.stinger(stinger)));
+function showTrack(island: IslandMusic): void {
+  audio.music.setIsland(island);
+  for (const [name, trackButton] of trackButtons)
+    trackButton.setAttribute('aria-pressed', String(name === island));
 }
 
 const soundRoot = mustElement('soundscape');

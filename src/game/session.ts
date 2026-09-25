@@ -499,7 +499,6 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     await hud.fade(false);
     hud.toast('Raise the sails with W. Steer with A and D.', 4);
     audio?.music.setIsland('harbour');
-    audio?.music.setLayer('explore', true);
   }
 
   function dock(): void {
@@ -538,7 +537,6 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     input.enabled = true;
     await hud.fade(false);
     audio?.music.setIsland('anchorage');
-    audio?.music.setLayer('explore', false);
   }
 
   // Footsteps and ship sounds.
