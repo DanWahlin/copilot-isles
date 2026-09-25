@@ -78,7 +78,7 @@ function pointAt(arc: LeapArc, u: number, out = new Vector3()): Vector3 {
   return out;
 }
 
-export function predictArcPoints(arc: LeapArc, samples = 18): Vector3[] {
+function predictArcPoints(arc: LeapArc, samples = 18): Vector3[] {
   const points: Vector3[] = [];
   for (let i = 0; i <= samples; i++) points.push(pointAt(arc, i / samples, new Vector3()));
   return points;

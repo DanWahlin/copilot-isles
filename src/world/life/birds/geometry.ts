@@ -1,36 +1,20 @@
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/world/wildlife/BirdShapes.js@d32799f
 import { BufferGeometry, Float32BufferAttribute } from 'three/webgpu';
+import { FlatTriangles } from '../flat-triangles';
 
 const PART_BODY = 0;
 const PART_WING = 1;
 const PART_TAIL = 2;
 const PART_BILL = 3;
 
-class BirdBuilder {
-  positions: number[] = [];
-  normals: number[] = [];
-  parts: number[] = [];
-  wingSides: number[] = [];
-  shade: number[] = [];
+class BirdBuilder extends FlatTriangles {
+  readonly wingSides: number[] = [];
+  readonly shade: number[] = [];
 
-  tri(a: number[], b: number[], c: number[], part: number, wingSide = 0, shade = 1): void {
-    const ux = b[0] - a[0];
-    const uy = b[1] - a[1];
-    const uz = b[2] - a[2];
-    const vx = c[0] - a[0];
-    const vy = c[1] - a[1];
-    const vz = c[2] - a[2];
-    const nx = uy * vz - uz * vy;
-    const ny = uz * vx - ux * vz;
-    const nz = ux * vy - uy * vx;
-    const l = Math.hypot(nx, ny, nz) || 1;
-    for (const p of [a, b, c]) {
-      this.positions.push(p[0], p[1], p[2]);
-      this.normals.push(nx / l, ny / l, nz / l);
-      this.parts.push(part);
-      this.wingSides.push(wingSide);
-      this.shade.push(shade);
-    }
+  override tri(a: number[], b: number[], c: number[], part: number, wingSide = 0, shade = 1): void {
+    super.tri(a, b, c, part);
+    this.wingSides.push(wingSide, wingSide, wingSide);
+    this.shade.push(shade, shade, shade);
   }
 
   quad(a: number[], b: number[], c: number[], d: number[], part: number, wingSide = 0, shade = 1): void {
