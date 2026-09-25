@@ -308,6 +308,11 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     color(0xb0a57e),
     noiseLow.a.mul(0.38).add(noiseMid.r.mul(0.42)).add(fineStrata.mul(0.2)),
   );
+  const beachGrassFringe = saturate(sandMask.mul(grassMask).mul(smoothstep(0.35, 5.6, y))).mul(closeDetail);
+  const fringeNoise = saturate(noiseFine.g.mul(0.46).add(noiseMid.a.mul(0.34)).add(noiseLow.g.mul(0.2)));
+  const sandFinger = pow(saturate(float(0.48).sub(fringeNoise).mul(2.8)), 1.35).mul(beachGrassFringe);
+  const grassFinger = pow(saturate(fringeNoise.sub(0.38).mul(2.2)), 1.2).mul(beachGrassFringe);
+  const rootGreen = mix(color(0x5d7432), color(0x7d9a45), noiseLow.g.mul(0.62).add(noiseMid.g.mul(0.38)));
   let closeLayer = mix(closeEarth, closeGrass, grassMask);
   closeLayer = mix(closeLayer, closeRock, saturate(rockMask.add(cliffMask)));
   closeLayer = mix(closeLayer, closeEarth, pathSandMask.mul(0.82));
@@ -348,6 +353,8 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   base = mix(base, color(0xd0ca73), dryPatch.mul(grassMask).mul(closeMeadowDetail).mul(0.32));
   base = mix(base, color(0xbad878), cloverPatch.mul(grassMask).mul(closeMeadowDetail).mul(0.32));
   base = mix(base, closeEarth, wornSoil.mul(0.56).add(soilFlecks.mul(0.34)));
+  base = mix(base, closeSand, sandFinger.mul(0.62));
+  base = mix(base, rootGreen, grassFinger.mul(0.5));
   base = mix(base, color(0x3f382b), pebble);
   base = mix(base, color(0xf8e0aa), shellFlecks.mul(0.16));
   base = mix(base, color(0xad8050), sandPepper.mul(0.13));
@@ -397,7 +404,6 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(smoothstep(18, 34, y)))
     .mul(smoothstep(0.5, 0.94, normalWorld.y))
     .mul(saturate(grassMask.add(rockMask.mul(0.24))));
-  const rootGreen = mix(color(0x5d7432), color(0x7d9a45), noiseLow.g.mul(0.62).add(noiseMid.g.mul(0.38)));
   base = mix(base, rootGreen, hillFootMeadow.mul(midDetail).mul(0.42));
   const hilltopMeadow = smoothstep(7, 12, y)
     .mul(float(1).sub(smoothstep(34, 46, y)))
