@@ -79,19 +79,19 @@ export function createHammock(o: {
   const palmL = createPalmPost(
     'bard hammock left coconut palm',
     y,
-    POST_L.x - 0.85,
-    POST_L.z - 0.05,
-    0.42,
-    0.43,
+    PALM_L.x,
+    PALM_L.z,
+    0.34,
+    0.46,
     palmMaterial,
   );
   const palmR = createPalmPost(
     'bard hammock right coconut palm',
     y,
-    POST_R.x + 0.85,
-    POST_R.z - 0.05,
-    -0.42,
-    0.44,
+    PALM_R.x,
+    PALM_R.z,
+    -0.34,
+    0.47,
     palmMaterial,
   );
 
@@ -160,6 +160,10 @@ interface ClothBuild {
 const CAMP = { x: -18, z: 86.2, heading: Math.PI } as const;
 const POST_L = { x: -21.0, z: CAMP.z + 0.28 } as const;
 const POST_R = { x: -15.0, z: CAMP.z + 0.28 } as const;
+const PALM_L = { x: -21.15, z: CAMP.z + 0.22 } as const;
+const PALM_R = { x: -14.85, z: CAMP.z + 0.22 } as const;
+const HAMMOCK_L = { x: -20.55, z: CAMP.z + 0.45 } as const;
+const HAMMOCK_R = { x: -15.45, z: CAMP.z + 0.45 } as const;
 const STOOL = { x: -15.55, z: 84.6 } as const;
 const FIRE = { x: -20.05, z: 84.2 } as const;
 
@@ -184,23 +188,22 @@ function createPalmPost(
 
 function buildWood(ground: (x: number, z: number) => number, detail: number): BufferGeometry {
   const parts: BufferGeometry[] = [];
-  const postLTop = { x: POST_L.x + 0.52, y: ground(POST_L.x, POST_L.z) + 2.25, z: POST_L.z + 0.18 };
-  const postRTop = { x: POST_R.x - 0.52, y: ground(POST_R.x, POST_R.z) + 2.25, z: POST_R.z + 0.18 };
-  parts.push(tubeBetween(0.035, postLTop, postRTop, 0xd8c2a0, 6));
+  const hammockL = { x: HAMMOCK_L.x, y: ground(HAMMOCK_L.x, HAMMOCK_L.z) + 1.2, z: HAMMOCK_L.z };
+  const hammockR = { x: HAMMOCK_R.x, y: ground(HAMMOCK_R.x, HAMMOCK_R.z) + 1.2, z: HAMMOCK_R.z };
+  const palmLTie = { x: PALM_L.x + 0.1, y: ground(PALM_L.x, PALM_L.z) + 1.58, z: PALM_L.z + 0.03 };
+  const palmRTie = { x: PALM_R.x - 0.1, y: ground(PALM_R.x, PALM_R.z) + 1.58, z: PALM_R.z + 0.03 };
+  const buntingL = { x: PALM_L.x + 0.12, y: ground(PALM_L.x, PALM_L.z) + 2.05, z: CAMP.z - 0.3 };
+  const buntingR = { x: PALM_R.x - 0.12, y: ground(PALM_R.x, PALM_R.z) + 2.05, z: CAMP.z - 0.3 };
+  const buntingMid = { x: CAMP.x, y: ground(CAMP.x, CAMP.z) + 1.86, z: CAMP.z - 0.3 };
+  parts.push(tubeBetween(0.018, palmLTie, hammockL, 0xd8c2a0, 6));
+  parts.push(tubeBetween(0.018, hammockR, palmRTie, 0xd8c2a0, 6));
+  parts.push(tubeBetween(0.01, buntingL, buntingMid, 0xd8c2a0, 5));
+  parts.push(tubeBetween(0.01, buntingMid, buntingR, 0xd8c2a0, 5));
   parts.push(
     tubeBetween(
-      0.018,
-      { x: postLTop.x - 0.28, y: postLTop.y - 0.03, z: postLTop.z + 0.04 },
-      { x: postLTop.x + 0.22, y: postLTop.y + 0.02, z: postLTop.z - 0.02 },
-      0xd8c2a0,
-      6,
-    ),
-  );
-  parts.push(
-    tubeBetween(
-      0.018,
-      { x: postRTop.x - 0.22, y: postRTop.y + 0.02, z: postRTop.z - 0.02 },
-      { x: postRTop.x + 0.28, y: postRTop.y - 0.03, z: postRTop.z + 0.04 },
+      0.022,
+      { x: PALM_L.x + 0.14, y: ground(PALM_L.x, PALM_L.z) + 1.56, z: CAMP.z + 0.44 },
+      { x: HAMMOCK_L.x + 0.26, y: ground(HAMMOCK_L.x, HAMMOCK_L.z) + 1.18, z: CAMP.z + 0.45 },
       0xd8c2a0,
       6,
     ),
@@ -208,17 +211,8 @@ function buildWood(ground: (x: number, z: number) => number, detail: number): Bu
   parts.push(
     tubeBetween(
       0.022,
-      { x: POST_L.x + 0.48, y: ground(POST_L.x, POST_L.z) + 1.65, z: CAMP.z + 0.45 },
-      { x: POST_L.x + 0.9, y: ground(POST_L.x, POST_L.z) + 1.53, z: CAMP.z + 0.45 },
-      0xd8c2a0,
-      6,
-    ),
-  );
-  parts.push(
-    tubeBetween(
-      0.022,
-      { x: POST_R.x - 0.48, y: ground(POST_R.x, POST_R.z) + 1.65, z: CAMP.z + 0.45 },
-      { x: POST_R.x - 0.9, y: ground(POST_R.x, POST_R.z) + 1.53, z: CAMP.z + 0.45 },
+      { x: HAMMOCK_R.x - 0.26, y: ground(HAMMOCK_R.x, HAMMOCK_R.z) + 1.18, z: CAMP.z + 0.45 },
+      { x: PALM_R.x - 0.14, y: ground(PALM_R.x, PALM_R.z) + 1.56, z: CAMP.z + 0.44 },
       0xd8c2a0,
       6,
     ),
@@ -338,12 +332,12 @@ function buildCloth(ground: (x: number, z: number) => number): ClothBuild {
 function addHammock(builder: MeshBuilder, ground: (x: number, z: number) => number): void {
   const cols = 18;
   const rows = 6;
-  const leftY = ground(POST_L.x, POST_L.z) + 1.08;
-  const rightY = ground(POST_R.x, POST_R.z) + 1.08;
+  const leftY = ground(HAMMOCK_L.x, HAMMOCK_L.z) + 1.18;
+  const rightY = ground(HAMMOCK_R.x, HAMMOCK_R.z) + 1.18;
   const start = builder.vertexCount;
   for (let i = 0; i <= cols; i += 1) {
     const u = i / cols;
-    const x = POST_L.x + 0.9 + (POST_R.x - POST_L.x - 1.8) * u;
+    const x = HAMMOCK_L.x + (HAMMOCK_R.x - HAMMOCK_L.x) * u;
     const y = leftY + (rightY - leftY) * u - Math.sin(u * Math.PI) * 0.54;
     const stripe = i % 4 < 2;
     const width = 0.16 + Math.pow(Math.sin(u * Math.PI), 0.55) * 1.0;
@@ -370,8 +364,8 @@ function addBunting(builder: MeshBuilder, ground: (x: number, z: number) => numb
   const count = 7;
   for (let i = 0; i < count; i += 1) {
     const u = i / (count - 1);
-    const x = POST_L.x + 0.8 + (POST_R.x - POST_L.x - 1.6) * u;
-    const y = ground(x, CAMP.z) + 1.96 - Math.sin(u * Math.PI) * 0.18;
+    const x = PALM_L.x + 0.35 + (PALM_R.x - PALM_L.x - 0.7) * u;
+    const y = ground(x, CAMP.z) + 2.0 - Math.sin(u * Math.PI) * 0.22;
     const z = CAMP.z - 0.32;
     const w = 0.22;
     const h = 0.28;

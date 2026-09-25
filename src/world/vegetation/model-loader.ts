@@ -7,7 +7,6 @@ import {
   Matrix4,
   Mesh,
   MeshStandardMaterial,
-  TextureLoader,
   Vector3,
   type Material,
   type Object3D,
@@ -212,95 +211,16 @@ function normalizeParts(parts: VegetationModelPart[], targetHeight: number): voi
   }
 }
 
-function sliceGeometryByPart(source: BufferGeometry, keep: (part: number) => boolean): BufferGeometry | null {
-  const geometry = source.index ? source.toNonIndexed() : source.clone();
-  const pos = geometry.getAttribute('position') as Float32BufferAttribute;
-  const normal = geometry.getAttribute('normal') as Float32BufferAttribute | undefined;
-  const uv = geometry.getAttribute('uv') as Float32BufferAttribute | undefined;
-  const vegPart = geometry.getAttribute('vegPart') as Float32BufferAttribute;
-  const shadeAttr = geometry.getAttribute('shade') as Float32BufferAttribute | undefined;
-  const positions: number[] = [];
-  const normals: number[] = [];
-  const uvs: number[] = [];
-  const parts: number[] = [];
-  const shades: number[] = [];
-  const colors: number[] = [];
-  for (let tri = 0; tri < pos.count; tri += 3) {
-    const p0 = vegPart.getX(tri);
-    const p1 = vegPart.getX(tri + 1);
-    const p2 = vegPart.getX(tri + 2);
-    const avg = (p0 + p1 + p2) / 3;
-    if (!keep(avg)) continue;
-    for (let j = 0; j < 3; j += 1) {
-      const i = tri + j;
-      positions.push(pos.getX(i), pos.getY(i), pos.getZ(i));
-      if (normal) normals.push(normal.getX(i), normal.getY(i), normal.getZ(i));
-      else normals.push(0, 1, 0);
-      if (uv) uvs.push(uv.getX(i), uv.getY(i));
-      else uvs.push(0, 0);
-      parts.push(vegPart.getX(i));
-      shades.push(shadeAttr?.getX(i) ?? 0.75);
-      colors.push(1, 1, 1);
-    }
-  }
-  if (positions.length === 0) return null;
-  const out = new BufferGeometry();
-  out.setAttribute('position', new Float32BufferAttribute(positions, 3));
-  out.setAttribute('normal', new Float32BufferAttribute(normals, 3));
-  out.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
-  out.setAttribute('vegPart', new Float32BufferAttribute(parts, 1));
-  out.setAttribute('shade', new Float32BufferAttribute(shades, 1));
-  out.setAttribute('color', new Float32BufferAttribute(colors, 3));
-  out.computeBoundingBox();
-  out.computeBoundingSphere();
-  return out;
+async function createPalmParts(species: PlantSpecies, material: Material): Promise<VegetationModelPart[]> {
+  return [{ geometry: createPlantGeometry(species), material }];
 }
 
-async function createPalmParts(species: PlantSpecies): Promise<VegetationModelPart[]> {
-  const loader = new TextureLoader();
-  const bark = await loader.loadAsync(packs.url('/packs/testcove/vegetation/textures/palm_bark.webp'));
-  bark.flipY = false;
-  const source = createPlantGeometry(species);
-  const parts: VegetationModelPart[] = [];
-  const barkGeometry = sliceGeometryByPart(source, (part) => part < 0.5 || (part > 1.5 && part < 2.5));
-  const leafGeometry = sliceGeometryByPart(source, (part) => part >= 0.5 && part < 1.5);
-  const deadGeometry = sliceGeometryByPart(source, (part) => part >= 2.5);
-  if (barkGeometry)
-    parts.push({
-      geometry: barkGeometry,
-      material: createVegetationMaterial({
-        map: bark,
-        color: new Color(0xffffff),
-        alphaTest: 0.2,
-        name: 'palm-bark',
-      }),
-    });
-  if (leafGeometry)
-    parts.push({
-      geometry: leafGeometry,
-      material: createVegetationMaterial({
-        map: null,
-        color: new Color(0x4f8c38),
-        alphaTest: 0.05,
-        name: 'palm-leaves',
-      }),
-    });
-  if (deadGeometry)
-    parts.push({
-      geometry: deadGeometry,
-      material: createVegetationMaterial({
-        map: null,
-        color: new Color(0xb99153),
-        alphaTest: 0.05,
-        name: 'palm-dead-fronds',
-      }),
-    });
-  source.dispose();
-  return parts;
-}
-
-async function loadSpecies(loader: GLTFLoader, species: PlantSpecies): Promise<VegetationModelPart[]> {
-  if (species.startsWith('palm')) return createPalmParts(species);
+async function loadSpecies(
+  loader: GLTFLoader,
+  species: PlantSpecies,
+  palmMaterial: Material,
+): Promise<VegetationModelPart[]> {
+  if (species.startsWith('palm')) return createPalmParts(species, palmMaterial);
   const model = MODEL_BY_SPECIES[species];
   if (!model) throw new Error(`No vegetation model mapped for ${species}`);
   const gltf = await loader.loadAsync(packs.url(`${MODEL_BASE}${model}`));
@@ -323,6 +243,12 @@ export async function loadVegetationGeometries(): Promise<VegetationGeometryCata
   await MeshoptDecoder.ready;
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
+  const palmMaterial = createVegetationMaterial({
+    map: null,
+    color: new Color(0xffffff),
+    alphaTest: 0.05,
+    name: 'procedural-coconut-palm',
+  });
   const speciesList = [
     'palmTall',
     'palmCluster',
@@ -330,7 +256,7 @@ export async function loadVegetationGeometries(): Promise<VegetationGeometryCata
     ...(Object.keys(MODEL_BY_SPECIES) as PlantSpecies[]),
   ] as PlantSpecies[];
   const entries = await Promise.all(
-    speciesList.map(async (species) => [species, await loadSpecies(loader, species)] as const),
+    speciesList.map(async (species) => [species, await loadSpecies(loader, species, palmMaterial)] as const),
   );
   return Object.fromEntries(entries) as VegetationGeometryCatalog;
 }

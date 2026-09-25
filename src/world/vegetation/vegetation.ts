@@ -51,6 +51,13 @@ function resolveTier(tier: Tier | TierSettings): TierSettings {
   return typeof tier === 'string' ? tierSettings(tier) : tier;
 }
 
+function palmGeometryDistance(tier: TierSettings): number {
+  if (tier.tier === 'lite') return tier.treeNear * 1.25;
+  if (tier.tier === 'low') return tier.treeNear * 1.4;
+  if (tier.tier === 'medium') return tier.treeNear * 1.55;
+  return Math.min(120, tier.treeNear * 1.6);
+}
+
 function tintFor(instance: PlantInstance): Color {
   const color = new Color();
   switch (instance.species) {
@@ -137,7 +144,12 @@ function createBatch(
 
 function updateBatch(batch: PlantBatch, camera: PerspectiveCamera, tier: TierSettings): void {
   batch.visible = 0;
-  const handoff = batch.species === 'shrub' ? Math.min(45, tier.treeNear * 0.62) : tier.treeNear;
+  const handoff =
+    batch.species === 'shrub'
+      ? Math.min(45, tier.treeNear * 0.62)
+      : batch.species.startsWith('palm')
+        ? palmGeometryDistance(tier)
+        : tier.treeNear;
   for (const instance of batch.instances) {
     const d = Math.hypot(instance.x - camera.position.x, instance.z - camera.position.z);
     const maxD = batch.nearOnly ? handoff + 10 : batch.farDistance;
@@ -223,7 +235,7 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
     update(camera) {
       for (const batch of batches) updateBatch(batch, camera, tier);
       grass.update(camera);
-      impostors.update(camera, tier.treeNear);
+      impostors.update(camera, palmGeometryDistance(tier));
       const grassStats = grass.stats();
       const impostorStats = impostors.stats();
       let visibleInstances = grassStats.visibleInstances + impostorStats.visibleInstances;
@@ -265,12 +277,21 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
       impostors.dispose();
       impostorBake.target.dispose();
       heightTexture.dispose();
+      const disposedMaterials = new Set<Material>();
       for (const parts of Object.values(geometries)) {
         for (const part of parts) {
           part.geometry.dispose();
           const material = part.material as Material | Material[];
-          if (Array.isArray(material)) for (const m of material) m.dispose();
-          else material.dispose();
+          if (Array.isArray(material)) {
+            for (const m of material) {
+              if (disposedMaterials.has(m)) continue;
+              disposedMaterials.add(m);
+              m.dispose();
+            }
+          } else if (!disposedMaterials.has(material)) {
+            disposedMaterials.add(material);
+            material.dispose();
+          }
         }
       }
     },
