@@ -44,6 +44,11 @@ const TARGETS = [
     in: 'public/packs/testcove/characters/anne.glb',
     out: 'public/packs/testcove/characters/locomotion-anne.loco',
   },
+  {
+    key: 'henry',
+    in: 'public/packs/testcove/characters/henry.glb',
+    out: 'public/packs/testcove/characters/locomotion-henry.loco',
+  },
 ];
 
 const CLIPS = {
@@ -54,6 +59,11 @@ const CLIPS = {
   jumpStart: 'Jump_Start',
   jumpLoop: 'Jump_Loop',
   jumpLand: 'Jump_Land',
+  talk: 'Idle_Talking_Loop',
+  wave: 'Interact',
+  sit: 'Sitting_Idle_Loop',
+  helm: 'Driving_Loop',
+  wade: 'Walk_Loop',
 };
 
 const BONE_MAP = {
@@ -289,7 +299,6 @@ function bakeClip(name, clip, ctx) {
     tracks.push(new QuaternionKeyframeTrack(`${targetName}.quaternion`, times, values));
   }
   const out = new AnimationClip(`ual:${name}`, sourceClip.duration, tracks);
-  out.optimize();
   out.userData.contacts = detectContacts(target.scene, targetMesh, targetBones, out);
   return out;
 }

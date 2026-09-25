@@ -78,7 +78,7 @@ export interface CharacterLibrary {
 }
 
 /** Which source model a body uses, and how it's scaled and tinted. */
-export type SourceKey = 'captain' | 'anne' | 'henry' | 'farmer' | 'lis' | 'worker' | 'adventurer';
+export type SourceKey = 'captain' | 'anne' | 'henry' | 'captain_npc' | 'anne_npc' | 'henry_npc';
 
 export interface BodyConfig {
   readonly source: SourceKey;
