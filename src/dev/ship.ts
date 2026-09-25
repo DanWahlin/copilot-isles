@@ -31,6 +31,8 @@ scene.add(ocean.mesh);
 
 const ship = createBrigantine({ tier: tier.tier });
 ship.dynamics.reset(COVE.mooring.x, COVE.mooring.z, COVE.mooring.heading);
+ship.group.position.set(COVE.mooring.x, 0, COVE.mooring.z);
+ship.group.rotation.set(0, COVE.mooring.heading, 0, 'YXZ');
 scene.add(ship.group);
 
 const buoyMat = new MeshStandardNodeMaterial({ color: 0xd64d2a, roughness: 0.55 });

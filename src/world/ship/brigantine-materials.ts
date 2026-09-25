@@ -250,12 +250,19 @@ export function makeShipMaterial(): MeshStandardNodeMaterial {
   const hullSeam = abs(sin(positionLocal.y.mul(7.6)))
     .smoothstep(0.986, 1.0)
     .mul(0.13);
+  const hullButts = abs(sin(positionLocal.z.mul(3.6).add(positionLocal.y.mul(0.7))))
+    .smoothstep(0.992, 1.0)
+    .mul(0.08);
+  const hullWeather = abs(sin(positionLocal.z.mul(1.3).add(positionLocal.x.mul(2.7))))
+    .mul(0.035)
+    .add(positionLocal.y.smoothstep(-0.15, 0.55).oneMinus().mul(0.12));
   const deckSeam = abs(sin(positionLocal.x.mul(8.2)))
     .smoothstep(0.965, 1.0)
     .mul(0.22);
   const hull = hullWood
     .mul(mix(color(0x090706), color(0x352018), plankNoise.mul(0.22).add(0.08)))
-    .sub(color(0x1a0905).mul(hullSeam));
+    .sub(color(0x1a0905).mul(hullSeam.add(hullButts)))
+    .add(color(0x6f6f60).mul(hullWeather));
   const deck = deckWood.mul(mix(color(0xc08c55), color(0xffce87), 0.34)).sub(color(0x2a170c).mul(deckSeam));
   const paintGrain = hullWood.mul(0.28).add(0.72);
   const red = paintGrain.mul(color(0x9c2418));
