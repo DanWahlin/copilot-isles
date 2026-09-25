@@ -19,12 +19,15 @@ export interface SailPalette {
   };
 }
 
+/** The default GitHub theme's warm canvas colour; change this single constant to retint the starting sails. */
+export const GITHUB_SAIL_CLOTH = 0xdfca9b;
+
 export const SAIL_PALETTES: readonly SailPalette[] = [
   {
     id: 'github',
     name: 'GitHub',
     // The classic cream canvas the brigantine has always flown.
-    cloth: 0xdfca9b,
+    cloth: GITHUB_SAIL_CLOTH,
     stripe: 0x2a8a45,
     card: {
       page: '#ffffff',

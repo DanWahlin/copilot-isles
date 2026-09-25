@@ -4,7 +4,7 @@ import { COVE } from '../world/layout';
 import { createOcean } from '../world/ocean/ocean';
 import { createSky } from '../world/sky/sky-system';
 import { createBrigantine, type Brigantine } from '../world/ship';
-import { createDevHarness } from './harness';
+import { compileAndStart, createDevHarness } from './harness';
 
 interface ShipDevApi {
   ship: Brigantine;
@@ -31,6 +31,8 @@ scene.add(ocean.mesh);
 
 const ship = createBrigantine({ tier: tier.tier });
 ship.dynamics.reset(COVE.mooring.x, COVE.mooring.z, COVE.mooring.heading);
+ship.group.position.set(COVE.mooring.x, 0, COVE.mooring.z);
+ship.group.rotation.set(0, COVE.mooring.heading, 0, 'YXZ');
 scene.add(ship.group);
 
 const buoyMat = new MeshStandardNodeMaterial({ color: 0xd64d2a, roughness: 0.55 });
@@ -163,5 +165,4 @@ engine.add({
   },
 });
 
-await renderer.compileAsync(scene, camera);
-engine.start();
+await compileAndStart(renderer, engine, scene, camera);

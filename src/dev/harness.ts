@@ -3,6 +3,7 @@ import {
   AgXToneMapping,
   NeutralToneMapping,
   type Camera,
+  type Object3D,
   type WebGPURenderer,
 } from 'three/webgpu';
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -117,4 +118,17 @@ export function engineStats({ backend, tier, engine }: DevHarness): [string, str
     `${backend} · ${tier.tier} · ${engine.fps.toFixed(0)} fps · gpu ${engine.gpuMs.toFixed(2)} ms`,
     `draws ${c.drawCalls} · programs ${c.programs} · tris ${(c.triangles / 1000).toFixed(0)}k`,
   ];
+}
+
+/** Compiles the scene's pipelines before the first frame, starts the engine, and returns the compile time in ms. */
+export async function compileAndStart(
+  renderer: WebGPURenderer,
+  engine: Engine,
+  scene: Object3D,
+  camera: Camera,
+): Promise<number> {
+  const t0 = performance.now();
+  await renderer.compileAsync(scene, camera);
+  engine.start();
+  return performance.now() - t0;
 }
