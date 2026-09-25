@@ -18,6 +18,14 @@ interface LayerState {
   nextBeat: number;
 }
 
+/** A half-beat step of a layer: its bar, the step within the bar, the beat, and its on-beat time. */
+interface LayerStep {
+  readonly bar: AnchorageBar;
+  readonly pos: number;
+  readonly beat: number;
+  readonly at: number;
+}
+
 const LAYERS: readonly MusicLayer[] = ['base', 'explore', 'puzzle', 'trial'];
 const PLAN_BARS = 320;
 const THEME_INPUT_GAIN = 1.05;
@@ -152,47 +160,39 @@ export class AnchorageComposer {
     this.started = true;
   }
 
+  /** Calls `each` for every half-beat step of `layer` due by `horizon`, advancing the layer past it. */
+  private eachStep(layer: LayerState, horizon: number, each: (step: LayerStep) => void): void {
+    while (this.beatTime(layer.nextBeat) <= horizon) {
+      const step = Math.round(layer.nextBeat * 2);
+      const beat = step / 2;
+      each({ bar: this.barAtStep(step), pos: this.posStep(step), beat, at: this.beatTime(beat) });
+      layer.nextBeat += 0.5;
+    }
+  }
+
   private scheduleBase(horizon: number): void {
     const layer = this.layers?.base;
     if (!layer) return;
-    while (this.beatTime(layer.nextBeat) <= horizon) {
-      const step = Math.round(layer.nextBeat * 2);
-      const bar = this.barAtStep(step);
-      const pos = this.posStep(step);
-      const beat = step / 2;
-      const at = this.beatTime(beat);
+    this.eachStep(layer, horizon, ({ bar, pos, beat, at }) => {
       if (this.palette === 'harbour') this.scheduleHarbourBase(layer.gain, bar, pos, at, beat);
       else this.scheduleTropicalBase(layer.gain, bar, pos, at);
-      layer.nextBeat += 0.5;
-    }
+    });
   }
 
   private scheduleExplore(horizon: number): void {
     const layer = this.layers?.explore;
-    if (!layer) return;
-    if (!this.layerActive(layer)) return;
-    while (this.beatTime(layer.nextBeat) <= horizon) {
-      const step = Math.round(layer.nextBeat * 2);
-      const bar = this.barAtStep(step);
-      const pos = this.posStep(step);
-      const beat = step / 2;
-      const at = this.beatTime(beat);
+    if (!layer || !this.layerActive(layer)) return;
+    this.eachStep(layer, horizon, ({ bar, pos, beat, at }) => {
       if (this.palette === 'harbour') this.scheduleHarbourExplore(layer.gain, bar, pos, at, beat);
       else this.scheduleTropicalExplore(layer.gain, bar, pos, at, beat);
-      layer.nextBeat += 0.5;
-    }
+    });
   }
 
   private schedulePuzzle(horizon: number): void {
     const layer = this.layers?.puzzle;
-    if (!layer) return;
-    if (!this.layerActive(layer)) return;
-    while (this.beatTime(layer.nextBeat) <= horizon) {
-      const step = Math.round(layer.nextBeat * 2);
-      const bar = this.barAtStep(step);
-      const pos = this.posStep(step);
-      const beat = step / 2;
-      const at = this.beatTime(beat) + humanize(beat + 20, 0.012);
+    if (!layer || !this.layerActive(layer)) return;
+    this.eachStep(layer, horizon, ({ bar, pos, beat, at: onBeat }) => {
+      const at = onBeat + humanize(beat + 20, 0.012);
       if (pos === 0 || (pos === this.stepsPerBar() - 2 && !bar.rest)) {
         const tone = this.modeMidi(bar, bar.chordRoot + (pos === 0 ? 7 : 4), 12);
         this.play(
@@ -205,20 +205,14 @@ export class AnchorageComposer {
         );
       }
       if (pos === Math.floor(this.stepsPerBar() / 2)) this.play('tick', layer.gain, at, 72, 0.024, 0.12);
-      layer.nextBeat += 0.5;
-    }
+    });
   }
 
   private scheduleTrial(horizon: number): void {
     const layer = this.layers?.trial;
-    if (!layer) return;
-    if (!this.layerActive(layer)) return;
-    while (this.beatTime(layer.nextBeat) <= horizon) {
-      const step = Math.round(layer.nextBeat * 2);
-      const bar = this.barAtStep(step);
-      const pos = this.posStep(step);
-      const beat = step / 2;
-      const at = this.beatTime(beat) + humanize(beat + 30, 0.009);
+    if (!layer || !this.layerActive(layer)) return;
+    this.eachStep(layer, horizon, ({ bar, pos, beat, at: onBeat }) => {
+      const at = onBeat + humanize(beat + 30, 0.009);
       if (pos === 0) {
         if (this.palette === 'tropical') this.play('conga', layer.gain, at, 48, 0.09, 0.5);
         else this.play('handDrum', layer.gain, at, 48, 0.055, 0.55);
@@ -227,8 +221,7 @@ export class AnchorageComposer {
       if (this.palette === 'tropical' && pos === this.stepsPerBar() - 2) {
         this.play('bongoLow', layer.gain, at, 60, 0.055, 0.35);
       }
-      layer.nextBeat += 0.5;
-    }
+    });
   }
 
   private scheduleHarbourBase(
