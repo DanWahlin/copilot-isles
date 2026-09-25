@@ -1486,7 +1486,7 @@ function addPierRootSteps(buckets: Record<MaterialKey, BufferGeometry[]>): void 
     const z = PIER_RAMP.z0 + dz * (i + 0.5);
     const y = COVE.pier.deck + (COVE.quay.height - COVE.pier.deck) * t0;
     addBox(
-      buckets.wood,
+      buckets.rope,
       PIER_RAMP.x,
       y - 0.02,
       z,
@@ -1494,7 +1494,7 @@ function addPierRootSteps(buckets: Record<MaterialKey, BufferGeometry[]>): void 
       0.18,
       dz + 0.02,
       0,
-      i % 2 ? 0x9b8f80 : 0xb6a18a,
+      i % 2 ? 0x9f8e7a : 0xaa9982,
     );
   }
 }
