@@ -1464,23 +1464,18 @@ function addPierSideStructure(
   const centerZ = (minZ + maxZ) * 0.5;
   for (const side of [-1, 1]) {
     const x = pier.x + side * (pier.width * 0.5 + 0.2);
-    addBox(buckets.wood, x, pier.deck - 0.34, centerZ, 0.18, 0.42, length - 1.2, 0, 0x5f4e3f);
-    addBox(buckets.wood, x, pier.deck - 0.04, centerZ, 0.16, 0.16, length - 1.0, 0, 0x7a6651);
+    addBox(buckets.rope, x, pier.deck - 0.36, centerZ, 0.18, 0.42, length - 1.2, 0, 0x806b56);
+    addBox(buckets.rope, x, pier.deck - 0.18, centerZ, 0.14, 0.14, length - 1.0, 0, 0x927861);
   }
   for (const z of [-111.5, -95.5]) {
-    addPierCrossBrace(buckets, pier.x - pier.width * 0.5 - 0.2, pier.deck, z, -0.72);
-    addPierCrossBrace(buckets, pier.x + pier.width * 0.5 + 0.2, pier.deck, z + 1.6, 0.72);
+    addPierCrossBrace(buckets, pier.x - pier.width * 0.5 - 0.74, z);
+    addPierCrossBrace(buckets, pier.x + pier.width * 0.5 + 0.74, z + 1.6);
   }
 }
 
-function addPierCrossBrace(
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  x: number,
-  deck: number,
-  z: number,
-  tilt: number,
-): void {
-  addBox(buckets.wood, x, deck - 1.78, z, 0.12, 2.55, 0.12, 0, 0x6c5846, tilt, 0);
+function addPierCrossBrace(buckets: Record<MaterialKey, BufferGeometry[]>, x: number, z: number): void {
+  addBox(buckets.rope, x, 0.18, z, 0.24, 1.85, 0.22, 0, 0xb08a68, 0.92, 0);
+  addBox(buckets.rope, x, 0.18, z, 0.24, 1.85, 0.22, 0, 0xb08a68, -0.92, 0);
 }
 
 function addPierRootSteps(buckets: Record<MaterialKey, BufferGeometry[]>): void {
@@ -1499,7 +1494,7 @@ function addPierRootSteps(buckets: Record<MaterialKey, BufferGeometry[]>): void 
       0.18,
       dz + 0.02,
       0,
-      i % 2 ? 0x8f7459 : 0x9a8064,
+      i % 2 ? 0x9b8f80 : 0xb6a18a,
     );
   }
 }
@@ -1826,51 +1821,6 @@ function createStreetPavingGeometry(heightField: HeightField, low: boolean): Buf
       const a = samples[i]!;
       const b = samples[i + 1]!;
       pushQuad(a.left, b.left, b.right, a.right);
-    }
-    for (const point of route)
-      pushStreetDisk(point, streetHalfWidth(point[0], point[1]) + 0.2, low ? 18 : 28);
-  }
-
-  const center = COVE.village.center;
-  const rings = low ? 3 : 5;
-  const count = low ? 48 : 84;
-  const plazaRadius = 6.2;
-  for (let r = 0; r < rings; r += 1) {
-    const inner = (r / rings) * plazaRadius;
-    const outer = ((r + 1) / rings) * plazaRadius;
-    for (let i = 0; i < count; i += 1) {
-      const a0 = (i / count) * Math.PI * 2;
-      const a1 = ((i + 1) / count) * Math.PI * 2;
-      const edge0 = organicNoise(i * 0.7, r * 9.1) * 0.38;
-      const edge1 = organicNoise((i + 1) * 0.7, r * 9.1) * 0.38;
-      const r0 = r === rings - 1 ? inner + edge0 * 0.35 : inner;
-      const r1 = r === rings - 1 ? outer + edge0 : outer;
-      const r2 = r === rings - 1 ? outer + edge1 : outer;
-      const r3 = r === rings - 1 ? inner + edge1 * 0.35 : inner;
-      pushQuad(
-        [center.x + Math.cos(a0) * r0, center.z + Math.sin(a0) * r0],
-        [center.x + Math.cos(a1) * r3, center.z + Math.sin(a1) * r3],
-        [center.x + Math.cos(a1) * r2, center.z + Math.sin(a1) * r2],
-        [center.x + Math.cos(a0) * r1, center.z + Math.sin(a0) * r1],
-      );
-    }
-  }
-
-  function pushStreetDisk(center: StreetPoint, radius: number, count: number) {
-    const c = addVertex(center[0], center[1]);
-    for (let i = 0; i < count; i += 1) {
-      const a0 = (i / count) * Math.PI * 2;
-      const a1 = ((i + 1) / count) * Math.PI * 2;
-      const r0 = radius + organicNoise(i * 0.7, center[0] * 0.13) * 0.16;
-      const r1 = radius + organicNoise((i + 1) * 0.7, center[1] * 0.13) * 0.16;
-      const p0: StreetPoint = [center[0] + Math.cos(a0) * r0, center[1] + Math.sin(a0) * r0];
-      const p1: StreetPoint = [center[0] + Math.cos(a1) * r1, center[1] + Math.sin(a1) * r1];
-      const cx = (center[0] + p0[0] + p1[0]) / 3;
-      const cz = (center[1] + p0[1] + p1[1]) / 3;
-      if (insideAnyBuilding(cx, cz) || isReservedPuzzleGround(cx, cz) || isQuayDeckPoint(cx, cz)) continue;
-      const a = addVertex(p0[0], p0[1]);
-      const b = addVertex(p1[0], p1[1]);
-      indices.push(c, a, b);
     }
   }
 
@@ -2495,30 +2445,6 @@ function addInstancedProps(
       0x927145,
     ),
   );
-
-  const potsFlowers = low
-    ? []
-    : [
-        inst(-121.5, -58.8, at(-121.5, -58.8), 0, 0.55),
-        inst(-104, -34.5, at(-104, -34.5), 0, 0.5),
-        inst(-116.5, -22, at(-116.5, -22), 0, 0.52),
-        inst(-94.2, -61.1, at(-94.2, -61.1), 0, 0.48),
-        inst(-123.8, -54.8, at(-123.8, -54.8), 0, 0.5),
-        inst(-139.2, -63.4, at(-139.2, -63.4), 0, 0.46),
-      ];
-  if (potsFlowers.length > 0) addCirclePropColliders(colliders, potsFlowers, 0.4);
-  if (potsFlowers.length > 0)
-    meshes.push(
-      addInstances(
-        group,
-        'village-flower-pots',
-        new ConeGeometry(0.35, 0.52, 8),
-        materials.stone,
-        potsFlowers,
-        0.26,
-        0xae7155,
-      ),
-    );
 
   return meshes.filter((mesh) => mesh.count > 0);
 }
