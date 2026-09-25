@@ -60,8 +60,8 @@ const tmpBox = new Box3();
 const tmpSize = new Vector3();
 const tmpCenter = new Vector3();
 const tmpColor = new Color();
-const tmpLeafBase = new Color(0x315f24);
-const tmpLeafTip = new Color(0x93a948);
+const tmpLeafBase = new Color(0x2b5622);
+const tmpLeafTip = new Color(0x7c8f32);
 const tmpBarkLight = new Color(0x8b7b63);
 const tmpBarkDark = new Color(0x4a4038);
 const tmpFruit = new Color(0x5b4a26);
@@ -364,11 +364,15 @@ function gradePalmGeometry(geometry: BufferGeometry): void {
     const x = pos.getX(i);
     const y = pos.getY(i);
     const z = pos.getZ(i);
-    const p = part.getX(i);
+    const normalizedY = Math.min(1, Math.max(0, (y - tmpBox.min.y) / h));
+    const radial = Math.hypot(x - cx, z - cz);
+    const isTrunk = radial < h * 0.16 && normalizedY < 0.86;
+    const p = isTrunk ? 0 : 1;
+    part.setX(i, p);
     if (p >= 0.5 && p < 1.5) {
-      const radial = Math.min(1, Math.hypot(x - cx, z - cz) / Math.max(0.001, h * 0.42));
+      const radialWeight = Math.min(1, radial / Math.max(0.001, h * 0.42));
       const vertical = Math.min(1, Math.max(0, (y - crownY + h * 0.18) / (h * 0.42)));
-      const t = Math.min(1, radial * 0.65 + vertical * 0.35);
+      const t = Math.min(1, radialWeight * 0.65 + vertical * 0.35);
       tmpColor
         .copy(tmpLeafBase)
         .lerp(tmpLeafTip, t)
@@ -394,6 +398,7 @@ function gradePalmGeometry(geometry: BufferGeometry): void {
     }
   }
   color.needsUpdate = true;
+  part.needsUpdate = true;
   shade.needsUpdate = true;
   normal.needsUpdate = true;
 }
@@ -481,12 +486,7 @@ export async function loadVegetationGeometries(): Promise<VegetationGeometryCata
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
   const sharedMaterial = palmMaterial();
-  const speciesList = [
-    'palmTall',
-    'palmCluster',
-    'palmYoung',
-    ...(Object.keys(MODEL_BY_SPECIES) as PlantSpecies[]),
-  ] as PlantSpecies[];
+  const speciesList = ['palmTall', ...(Object.keys(MODEL_BY_SPECIES) as PlantSpecies[])] as PlantSpecies[];
   const entries = await Promise.all(
     speciesList.map(
       async (species) => [species, await loadSpecies(loader, species, sharedMaterial)] as const,

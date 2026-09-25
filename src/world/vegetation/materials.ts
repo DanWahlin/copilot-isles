@@ -98,15 +98,15 @@ export function createVegetationMaterial(
   const isFruit = greaterThan(part, float(1.5)).and(part.lessThan(float(2.5))) as AnyNode;
   const isDead = greaterThan(part, float(2.5)).and(part.lessThan(float(3.5))) as AnyNode;
   const isRock = greaterThan(part, float(3.5));
-  const leafDeep = color(0x315f24);
-  const leafSun = color(0x7f9135);
+  const leafDeep = color(0x2b5622);
+  const leafSun = color(0x72862e);
   const bark = sourceColor.mul(mix(color(0xa08f74), color(0xd2ac79), shade.mul(0.36)));
   const fruit = sourceColor.mul(mix(color(0x4a351d), color(0x8b6a37), shade.mul(0.5).add(0.28)));
   const dead = sourceColor.mul(mix(color(0x8a6334), color(0xd3ad67), shade));
   const rock = sourceColor.mul(mix(color(0x8a8d86), color(0xc5bea7), shade.mul(0.4)));
   const leafAo = smoothstep(float(0.18), float(1.0), shade);
   const leafColor = mix(leafDeep, leafSun, leafAo) as AnyNode;
-  const leaf = (mix(sourceColor, leafColor, float(0.62)) as AnyNode).mul(tint.mul(0.16).add(0.84));
+  const leaf = (mix(sourceColor, leafColor, float(0.68)) as AnyNode).mul(tint.mul(0.14).add(0.72));
 
   const translucency = smoothstep(
     float(-0.35),
@@ -131,8 +131,8 @@ export function createVegetationMaterial(
     material.opacityNode = sourceTexel.a as AnyNode;
     material.emissiveNode = select(
       isLeaf,
-      leaf.mul(float(1.45).add(translucency).add(frondSheen.mul(0.025)).mul(0.72)),
-      select(isFruit, fruit.mul(1.1), select(isDead, dead.mul(0.9), bark.mul(1.9))),
+      leaf.mul(float(0.22).add(translucency).add(frondSheen.mul(0.025)).mul(0.42)),
+      select(isFruit, fruit.mul(0.5), select(isDead, dead.mul(0.55), bark.mul(1.45))),
     ) as AnyNode;
     material.roughnessNode = select(isRock, float(0.86), select(isLeaf, float(0.58), float(0.82))) as AnyNode;
     material.maskNode = lodMask();
@@ -144,8 +144,8 @@ export function createVegetationMaterial(
     ) as AnyNode;
     material.emissiveNode = select(
       isLeaf,
-      leaf.mul(float(1.45).add(translucency).add(frondSheen.mul(0.025)).mul(0.72)),
-      select(isFruit, fruit.mul(1.1), select(isDead, dead.mul(0.9), bark.mul(1.9))),
+      leaf.mul(float(0.22).add(translucency).add(frondSheen.mul(0.025)).mul(0.42)),
+      select(isFruit, fruit.mul(0.5), select(isDead, dead.mul(0.55), bark.mul(1.45))),
     ) as AnyNode;
     material.roughnessNode = select(
       isRock,

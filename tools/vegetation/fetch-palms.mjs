@@ -21,7 +21,7 @@ const SOURCES = [
     licenseEvidence: 'Poly Pizza page shows Public Domain (CC0); embedded metadata Licence: CC0 1.0.',
     outputs: [
       { kind: 'hero', file: 'models/palm_quaternius_a_hero.glb', simplifyRatio: 1.0 },
-      { kind: 'grove', file: 'models/palm_quaternius_a_grove.glb', simplifyRatio: 0.22 },
+      { kind: 'grove', file: 'models/palm_quaternius_a_grove.glb', simplifyRatio: 0.16 },
     ],
   },
   {
@@ -34,7 +34,7 @@ const SOURCES = [
     licenseEvidence: 'Poly Pizza page shows Public Domain (CC0); embedded metadata Licence: CC0 1.0.',
     outputs: [
       { kind: 'hero', file: 'models/palm_quaternius_b_hero.glb', simplifyRatio: 1.0 },
-      { kind: 'grove', file: 'models/palm_quaternius_b_grove.glb', simplifyRatio: 0.22 },
+      { kind: 'grove', file: 'models/palm_quaternius_b_grove.glb', simplifyRatio: 0.16 },
     ],
   },
 ];
@@ -86,7 +86,7 @@ async function build(source, input, spec) {
       '--ratio',
       String(spec.simplifyRatio),
       '--error',
-      '0.01',
+      '0.018',
     ]);
     await run('npx', ['gltf-transform', 'prune', tmp, output]);
     await rm(tmp, { force: true }).catch(() => {});
