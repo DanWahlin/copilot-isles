@@ -98,35 +98,149 @@ function addCurvedRail(
   builder.addRail(pts, radius, detail.cyl);
 }
 
-function addDeckCannon(builder: MeshBuilder, side: -1 | 1, z: number, detail: Detail): void {
+function addShipBell(builder: MeshBuilder, x: number, z: number, detail: Detail): void {
+  const y = deckHeightAt(z);
+  builder.setRegion(3);
+  builder.setColor(0xd6a64a);
+  builder.addCylinderBetween(
+    { x: x - 0.34, y: y + 0.92, z },
+    { x: x + 0.34, y: y + 0.92, z },
+    0.035,
+    detail.cyl,
+  );
+  builder.addCylinderBetween({ x, y: y + 0.58, z }, { x, y: y + 1.08, z }, 0.026, detail.cyl);
+  builder.addLathe(
+    [
+      { center: { x, y: y + 0.54, z }, radius: 0.15 },
+      { center: { x, y: y + 0.72, z }, radius: 0.11 },
+      { center: { x, y: y + 0.86, z }, radius: 0.055 },
+    ],
+    { x: 0, y: 1, z: 0 },
+    detail.cyl,
+  );
+  builder.setRegion(4);
+  builder.setColor(0x1b1510);
+  builder.addCylinderBetween({ x, y: y + 0.52, z }, { x, y: y + 0.46, z }, 0.025, 6);
+}
+
+function addGrating(
+  builder: MeshBuilder,
+  x: number,
+  z: number,
+  sx: number,
+  sz: number,
+  detail: Detail,
+): void {
+  const y = deckHeightAt(z);
+  builder.setRegion(4);
+  builder.setColor(0x21160d);
+  builder.addBox(x, y + 0.11, z, sx, 0.08, sz);
+  builder.setRegion(1);
+  builder.setColor(0xb57943);
+  builder.addBox(x, y + 0.16, z, sx + 0.12, 0.08, 0.08);
+  builder.addBox(x, y + 0.16, z, 0.08, 0.08, sz + 0.12);
+  const slats = Math.max(3, Math.min(7, Math.round(sz / 0.32)));
+  for (let i = 0; i < slats; i++) {
+    const f = slats === 1 ? 0.5 : i / (slats - 1);
+    builder.addCylinderBetween(
+      { x: x - sx * 0.42, y: y + 0.22, z: z - sz * 0.36 + sz * 0.72 * f },
+      { x: x + sx * 0.42, y: y + 0.22, z: z - sz * 0.36 + sz * 0.72 * f },
+      0.018,
+      detail.cyl,
+    );
+  }
+}
+
+function addCoiledLine(builder: MeshBuilder, x: number, z: number, radius: number, detail: Detail): void {
+  const y = deckHeightAt(z) + 0.12;
+  builder.setRegion(4);
+  builder.setColor(0x2b2118);
+  const turns = 2.7;
+  const steps = Math.max(14, detail.cyl * 2);
+  let previous = { x: x + radius, y, z };
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps;
+    const a = t * Math.PI * 2 * turns;
+    const r = radius * (1 - t * 0.68);
+    const next = { x: x + Math.cos(a) * r, y: y + t * 0.045, z: z + Math.sin(a) * r };
+    builder.addCylinderBetween(previous, next, 0.024, 6);
+    previous = next;
+  }
+}
+
+function addDeckCannon(builder: MeshBuilder, side: -1 | 1, z: number, detail: Detail, rich: boolean): void {
   const y = deckHeightAt(z);
   const x = side * halfBeamAt(z, y) * 0.56;
   builder.setRegion(2);
   builder.setColor(0x842015);
-  builder.addBox(x - side * 0.06, y + 0.17, z, 0.54, 0.22, 0.46);
-  builder.addBox(x - side * 0.16, y + 0.25, z, 0.42, 0.18, 0.34);
-  builder.setRegion(4);
-  builder.setColor(0x12100e);
-  builder.addCylinderBetween(
-    { x: x - side * 0.1, y: y + 0.34, z },
-    { x: x + side * 0.78, y: y + 0.38, z },
-    0.095,
-    detail.cyl,
-    { endRadius: 0.075 },
+  builder.addBox(x - side * 0.18, y + 0.2, z - 0.22, 0.55, 0.24, 0.1);
+  builder.addBox(x - side * 0.18, y + 0.2, z + 0.22, 0.55, 0.24, 0.1);
+  builder.addBeamBetween(
+    { x: x - side * 0.46, y: y + 0.16, z: z - 0.2 },
+    { x: x + side * 0.18, y: y + 0.2, z: z - 0.2 },
+    0.08,
+    0.13,
   );
-  for (const dz of [-0.17, 0.17]) {
+  builder.addBeamBetween(
+    { x: x - side * 0.46, y: y + 0.16, z: z + 0.2 },
+    { x: x + side * 0.18, y: y + 0.2, z: z + 0.2 },
+    0.08,
+    0.13,
+  );
+  builder.setRegion(1);
+  builder.setColor(0x5f351f);
+  for (const axleX of [-0.34, 0.12]) {
     builder.addCylinderBetween(
-      { x: x - side * 0.27, y: y + 0.06, z: z + dz },
-      { x: x + side * 0.18, y: y + 0.06, z: z + dz },
-      0.045,
+      { x: x + side * axleX, y: y + 0.08, z: z - 0.3 },
+      { x: x + side * axleX, y: y + 0.08, z: z + 0.3 },
+      0.032,
       8,
     );
-    for (const wx of [-0.28, 0.16]) {
+  }
+  builder.setRegion(4);
+  builder.setColor(0x12100e);
+  const wheelSeg = rich ? 12 : 8;
+  for (const axleX of [-0.34, 0.12]) {
+    for (const dz of [-0.28, 0.28]) {
       builder.addCylinderBetween(
-        { x: x + side * wx, y: y + 0.08, z: z + dz - 0.035 },
-        { x: x + side * wx, y: y + 0.08, z: z + dz + 0.035 },
-        0.085,
-        10,
+        { x: x + side * axleX, y: y + 0.08, z: z + dz - 0.028 },
+        { x: x + side * axleX, y: y + 0.08, z: z + dz + 0.028 },
+        0.105,
+        wheelSeg,
+      );
+    }
+  }
+  builder.addCylinderBetween(
+    { x: x - side * 0.56, y: y + 0.35, z },
+    { x: x + side * 0.8, y: y + 0.39, z },
+    0.105,
+    detail.cyl,
+    { endRadius: 0.072 },
+  );
+  for (const ringX of [-0.32, 0.04, 0.42]) {
+    builder.addCylinderBetween(
+      { x: x + side * (ringX - 0.022), y: y + 0.35, z },
+      { x: x + side * (ringX + 0.022), y: y + 0.35, z },
+      0.119,
+      detail.cyl,
+    );
+  }
+  builder.addCylinderBetween(
+    { x: x - side * 0.66, y: y + 0.345, z },
+    { x: x - side * 0.82, y: y + 0.34, z },
+    0.052,
+    detail.cyl,
+    { endRadius: 0.03 },
+  );
+  if (rich) {
+    builder.setRegion(4);
+    builder.setColor(0x2d2117);
+    for (const dz of [-0.27, 0.27]) {
+      builder.addCylinderBetween(
+        { x: side * (halfBeamAt(z, y) * 0.75), y: y + 0.34, z: z + dz },
+        { x: x - side * 0.78, y: y + 0.33, z },
+        0.017,
+        6,
       );
     }
   }
@@ -240,141 +354,111 @@ function addHeadRails(builder: MeshBuilder, detail: Detail): void {
   builder.addTriangle({ x: 0, y: 1.02, z: 11.45 }, { x: 0, y: 2.08, z: 12.9 }, { x: 0, y: 0.88, z: 13.28 });
 }
 
-function addLionLock(builder: MeshBuilder, base: P3, mid: P3, tip: P3, radius: number, detail: Detail): void {
-  builder.addCylinderBetween(base, mid, radius, detail.cyl, { endRadius: radius * 0.7 });
-  builder.addCylinderBetween(mid, tip, radius * 0.7, detail.cyl, { endRadius: 0.018 });
-}
-
-function addGildedLionFigurehead(builder: MeshBuilder, detail: Detail): void {
-  const seg = Math.max(16, detail.cyl);
-  builder.setRegion(3);
-  builder.setColor(0xd8a84a);
-  builder.addLathe(
-    [
-      { center: { x: 0, y: 1.2, z: 12.2 }, radius: 0.13 },
-      { center: { x: 0, y: 1.35, z: 12.52 }, radius: 0.28 },
-      { center: { x: 0, y: 1.52, z: 12.93 }, radius: 0.36 },
-      { center: { x: 0, y: 1.68, z: 13.25 }, radius: 0.25 },
-    ],
-    { x: 0, y: 0.34, z: 1 },
-    seg,
-  );
-  builder.addLathe(
-    [
-      { center: { x: 0, y: 1.68, z: 13.15 }, radius: 0.28 },
-      { center: { x: 0, y: 1.88, z: 13.38 }, radius: 0.42 },
-      { center: { x: 0, y: 2.1, z: 13.46 }, radius: 0.34 },
-      { center: { x: 0, y: 2.25, z: 13.37 }, radius: 0.18 },
-    ],
-    { x: 0, y: 1, z: 0.2 },
-    seg,
-  );
-  builder.addLathe(
-    [
-      { center: { x: 0, y: 1.86, z: 13.5 }, radius: 0.22 },
-      { center: { x: 0, y: 1.9, z: 13.72 }, radius: 0.25 },
-      { center: { x: 0, y: 1.87, z: 13.92 }, radius: 0.11 },
-    ],
-    { x: 0, y: -0.05, z: 1 },
-    seg,
-  );
+function addGunport(builder: MeshBuilder, side: -1 | 1, z: number, detail: Detail, rich: boolean): void {
+  const x = side * (waterlineHalfBeamAt(z) + 0.12);
+  const seg = rich ? detail.cyl : Math.min(8, detail.cyl);
+  builder.setRegion(2);
+  builder.setColor(0x8f2016);
+  builder.addBox(x - side * 0.035, 1.55, z, 0.09, 0.72, 0.96);
   builder.setRegion(4);
-  builder.setColor(0x3b2612);
-  builder.addCylinderBetween({ x: -0.1, y: 1.98, z: 13.94 }, { x: 0.1, y: 1.98, z: 13.94 }, 0.035, 8);
-  builder.addCylinderBetween({ x: -0.06, y: 1.72, z: 13.66 }, { x: 0.06, y: 1.72, z: 13.66 }, 0.028, 8);
-  builder.addBox(0, 1.78, 13.82, 0.2, 0.035, 0.08);
-  for (const side of [-1, 1] as const) {
-    builder.addCylinderBetween(
-      { x: side * 0.16, y: 2.06, z: 13.82 },
-      { x: side * 0.3, y: 2.1, z: 13.74 },
-      0.018,
-      6,
-    );
-    builder.addBox(side * 0.16, 1.99, 13.88, 0.04, 0.035, 0.026);
-  }
-  builder.setRegion(3);
-  builder.setColor(0xe2b756);
-  for (const side of [-1, 1] as const) {
-    for (let i = 0; i < 6; i++) {
-      const t = i / 5;
-      const y = 2.22 - t * 0.58;
-      const z = 13.34 - t * 0.46;
-      const x = side * (0.13 + t * 0.22);
-      addLionLock(
-        builder,
-        { x: side * 0.08, y, z: z + 0.12 },
-        { x, y: y - 0.05, z },
-        { x: side * (0.22 + t * 0.25), y: y - 0.18, z: z - 0.22 },
-        0.052 - t * 0.014,
-        detail,
+  builder.setColor(0x080706);
+  builder.addBox(x, 1.52, z, 0.14, 0.5, 0.72);
+  builder.addCylinderBetween(
+    { x: x - side * 0.16, y: 1.5, z },
+    { x: x + side * 0.48, y: 1.5, z },
+    0.083,
+    seg,
+    { endRadius: 0.067 },
+  );
+  if (rich) {
+    for (const ringX of [-0.02, 0.22]) {
+      builder.addCylinderBetween(
+        { x: x + side * ringX, y: 1.5, z },
+        { x: x + side * (ringX + 0.03), y: 1.5, z },
+        0.092,
+        seg,
       );
     }
-  }
-  for (let i = 0; i < 5; i++) {
-    const t = i / 4;
-    addLionLock(
-      builder,
-      { x: 0, y: 2.26 - t * 0.14, z: 13.32 - t * 0.16 },
-      { x: 0, y: 2.36 - t * 0.18, z: 13.18 - t * 0.2 },
-      { x: 0, y: 2.28 - t * 0.25, z: 12.94 - t * 0.28 },
-      0.045 - t * 0.007,
-      detail,
-    );
-  }
-  builder.setColor(0xd7a13e);
-  for (const side of [-1, 1] as const) {
     builder.addCylinderBetween(
-      { x: side * 0.22, y: 1.4, z: 12.94 },
-      { x: side * 0.38, y: 1.08, z: 13.18 },
-      0.07,
-      10,
-      {
-        endRadius: 0.045,
-      },
-    );
-    builder.addCylinderBetween(
-      { x: side * 0.16, y: 1.32, z: 12.5 },
-      { x: side * 0.28, y: 1.08, z: 12.78 },
-      0.058,
-      10,
-      {
-        endRadius: 0.04,
-      },
-    );
-    builder.addCylinderBetween(
-      { x: side * 0.34, y: 1.07, z: 13.15 },
-      { x: side * 0.52, y: 1.04, z: 13.25 },
+      { x: x - side * 0.22, y: 1.5, z },
+      { x: x - side * 0.34, y: 1.5, z },
       0.035,
-      8,
-      {
-        endRadius: 0.02,
-      },
-    );
-    builder.addCylinderBetween(
-      { x: side * 0.25, y: 1.05, z: 12.76 },
-      { x: side * 0.4, y: 1.02, z: 12.86 },
-      0.032,
-      8,
-      {
-        endRadius: 0.018,
-      },
-    );
-    builder.addCylinderBetween(
-      { x: side * 0.18, y: 1.82, z: 12.46 },
-      { x: side * 0.42, y: 2.04, z: 12.18 },
-      0.04,
-      8,
-      {
-        endRadius: 0.02,
-      },
+      seg,
+      { endRadius: 0.022 },
     );
   }
-  builder.addCylinderBetween({ x: 0.18, y: 1.34, z: 12.25 }, { x: 0.48, y: 1.55, z: 12.05 }, 0.035, 10, {
-    endRadius: 0.018,
+  builder.setRegion(3);
+  builder.setColor(0xd2a352);
+  builder.addBox(x + side * 0.006, 1.9, z, 0.065, 0.06, 1.04);
+  if (rich) builder.addBox(x + side * 0.006, 1.18, z, 0.055, 0.055, 0.86);
+}
+
+function addBowFittings(builder: MeshBuilder, detail: Detail): void {
+  builder.setRegion(0);
+  builder.setColor(0x101416);
+  for (const side of [-1, 1] as const) {
+    builder.addQuad(
+      { x: side * 0.72, y: 0.22, z: 10.9 },
+      { x: side * 0.18, y: 0.66, z: 12.85 },
+      { x: side * 0.26, y: 2.42, z: 12.7 },
+      { x: side * 1.05, y: 2.62, z: 10.55 },
+    );
+    builder.addQuad(
+      { x: side * 0.18, y: 0.66, z: 12.85 },
+      { x: side * 0.02, y: 0.82, z: 13.44 },
+      { x: side * 0.08, y: 2.25, z: 13.26 },
+      { x: side * 0.26, y: 2.42, z: 12.7 },
+    );
+  }
+  builder.setRegion(4);
+  builder.setColor(0x15110d);
+  builder.addCylinderBetween({ x: 0, y: -0.72, z: 11.0 }, { x: 0, y: 2.5, z: 13.38 }, 0.13, detail.cyl, {
+    endRadius: 0.065,
   });
-  builder.addCylinderBetween({ x: 0.48, y: 1.55, z: 12.05 }, { x: 0.2, y: 1.78, z: 12.2 }, 0.026, 10, {
-    endRadius: 0.012,
-  });
+  builder.setRegion(3);
+  builder.setColor(0xd2a352);
+  builder.addCylinderBetween(
+    { x: -0.12, y: 2.36, z: 12.85 },
+    { x: 0.12, y: 2.36, z: 12.85 },
+    0.032,
+    detail.cyl,
+  );
+
+  builder.setRegion(1);
+  builder.setColor(0x4b2b1b);
+  for (const side of [-1, 1] as const) {
+    const x = side * 0.42;
+    builder.addCylinderBetween({ x, y: 1.75, z: 10.9 }, { x, y: 3.08, z: 11.55 }, 0.095, detail.cyl, {
+      endRadius: 0.075,
+    });
+    builder.addBox(side * 0.72, 2.2, 10.45, 0.14, 0.95, 0.22);
+  }
+  builder.setRegion(4);
+  builder.setColor(0x17110c);
+  for (const z of [11.15, 11.38, 11.62]) {
+    builder.addCylinderBetween({ x: -0.34, y: 2.22, z }, { x: 0.34, y: 2.22, z }, 0.034, detail.cyl);
+    builder.addCylinderBetween({ x: -0.24, y: 1.82, z }, { x: 0.24, y: 2.64, z }, 0.026, 6);
+    builder.addCylinderBetween({ x: 0.24, y: 1.82, z }, { x: -0.24, y: 2.64, z }, 0.026, 6);
+  }
+  builder.setRegion(3);
+  builder.setColor(0xd2a352);
+  for (const side of [-1, 1] as const) {
+    builder.addRail(
+      [
+        { x: side * 0.66, y: 2.35, z: 10.55 },
+        { x: side * 0.55, y: 2.12, z: 11.35 },
+        { x: side * 0.32, y: 1.72, z: 12.3 },
+      ],
+      0.028,
+      detail.cyl,
+    );
+    builder.addCylinderBetween(
+      { x: side * 0.58, y: 2.22, z: 10.85 },
+      { x: side * 0.38, y: 1.62, z: 12.12 },
+      0.022,
+      6,
+    );
+  }
 }
 
 export function createDeckGeometry(tier: Tier): BufferGeometry {
@@ -406,6 +490,8 @@ export function createDeckGeometry(tier: Tier): BufferGeometry {
   builder.addBox(0, deckHeightAt(-2.45) + 0.16, -2.45, 1.45, 0.22, 2.05);
   builder.addBox(0, deckHeightAt(3.15) + 0.16, 3.15, 1.25, 0.22, 1.65);
   builder.addBox(0, deckHeightAt(-7.25) + 0.18, -7.25, 1.55, 0.24, 1.12);
+  addGrating(builder, 0, -2.45, 1.14, 1.58, detail);
+  addGrating(builder, 0, 3.15, 0.95, 1.24, detail);
   for (const z of [-1.8, 2.8, 6.5]) {
     for (const x of [-0.35, 0.35]) builder.addBox(x, deckHeightAt(z) + 0.12, z, 0.18, 0.12, 1.05);
   }
@@ -415,6 +501,15 @@ export function createDeckGeometry(tier: Tier): BufferGeometry {
     0.26,
     detail.cyl,
   );
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    builder.addCylinderBetween(
+      { x: Math.cos(a) * 0.22, y: deckHeightAt(-0.15) + 0.78, z: -0.15 + Math.sin(a) * 0.22 },
+      { x: Math.cos(a) * 0.82, y: deckHeightAt(-0.15) + 0.78, z: -0.15 + Math.sin(a) * 0.82 },
+      0.022,
+      6,
+    );
+  }
   builder.addCylinderBetween(
     { x: -0.95, y: deckHeightAt(-8.95) + 0.78, z: -8.95 },
     { x: 0.95, y: deckHeightAt(-8.95) + 0.78, z: -8.95 },
@@ -462,35 +557,23 @@ export function createDeckGeometry(tier: Tier): BufferGeometry {
   ] as const)
     addBarrel(builder, x, z, detail);
   if (tier !== 'lite') {
-    for (const z of [-5.8, -3.55, -1.3, 1.0, 3.25, 5.55]) {
-      addDeckCannon(builder, -1, z, detail);
-      addDeckCannon(builder, 1, z, detail);
+    for (const [x, z] of [
+      [-1.55, -1.1],
+      [1.5, -0.45],
+      [-1.42, 5.75],
+    ] as const)
+      addCoiledLine(builder, x, z, 0.26, detail);
+  }
+  if (tier !== 'lite') {
+    const cannonZ = tier === 'low' ? [-5.8, -1.3, 3.25] : [-5.8, -3.55, -1.3, 1.0, 3.25, 5.55];
+    for (const z of cannonZ) {
+      addDeckCannon(builder, -1, z, detail, tier !== 'low');
+      addDeckCannon(builder, 1, z, detail, tier !== 'low');
     }
     addLadder(builder, -1, -5.2, -7.35);
     addLadder(builder, 1, 6.9, 8.45);
   }
-  builder.setRegion(3);
-  builder.setColor(0xd2a352);
-  builder.addCylinderBetween(
-    { x: -0.36, y: deckHeightAt(7.85) + 0.96, z: 7.85 },
-    { x: 0.36, y: deckHeightAt(7.85) + 0.96, z: 7.85 },
-    0.035,
-    8,
-  );
-  builder.addCylinderBetween(
-    { x: 0, y: deckHeightAt(7.85) + 0.62, z: 7.85 },
-    { x: 0, y: deckHeightAt(7.85) + 1.12, z: 7.85 },
-    0.028,
-    8,
-  );
-  builder.setRegion(4);
-  builder.setColor(0x1a1510);
-  builder.addCylinderBetween(
-    { x: -0.12, y: deckHeightAt(7.85) + 1.08, z: 7.85 },
-    { x: 0.12, y: deckHeightAt(7.85) + 1.08, z: 7.85 },
-    0.08,
-    10,
-  );
+  addShipBell(builder, 0, 7.85, detail);
   for (const side of [-1, 1] as const) {
     addCurvedRail(builder, side, -11.0, 10.4, 0.18, 0.07, detail);
     addCurvedRail(builder, side, -11.0, 10.4, -0.42, 0.045, detail);
@@ -512,13 +595,15 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
   builder.setRegion(2);
   builder.setColor(0x8f2016);
   const steps = tier === 'lite' || tier === 'low' ? 56 : 116;
+  const stripeZ0 = -10.45;
+  const stripeZ1 = 9.35;
   for (let i = 0; i < steps; i++) {
-    const z0 = -11.35 + (22.35 * i) / steps;
-    const z1 = -11.35 + (22.35 * (i + 1)) / steps;
+    const z0 = stripeZ0 + ((stripeZ1 - stripeZ0) * i) / steps;
+    const z1 = stripeZ0 + ((stripeZ1 - stripeZ0) * (i + 1)) / steps;
     for (const side of [-1, 1] as const) {
       const x0 = side * (waterlineHalfBeamAt(z0) + 0.055);
       const x1 = side * (waterlineHalfBeamAt(z1) + 0.055);
-      // Painted strake, ochre wale, black boot-top, and rail cap.
+      // Painted strake, ochre wale, black boot-top, and a dark lower fairing at the waterline.
       builder.setRegion(2);
       builder.setColor(0x8f2016);
       builder.addQuad(
@@ -535,8 +620,16 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
         { x: x1, y: 2.16, z: z1 },
         { x: x0, y: 2.16, z: z0 },
       );
-      builder.setRegion(2);
+      builder.setRegion(4);
       builder.setColor(0x11100f);
+      builder.addQuad(
+        { x: x0, y: -0.58, z: z0 },
+        { x: x1, y: -0.58, z: z1 },
+        { x: x1, y: -0.24, z: z1 },
+        { x: x0, y: -0.24, z: z0 },
+      );
+      builder.setRegion(2);
+      builder.setColor(0x8f2016);
       builder.addQuad(
         { x: x0, y: -0.2, z: z0 },
         { x: x1, y: -0.2, z: z1 },
@@ -548,23 +641,7 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
   const portZ = [-8.1, -6.0, -3.9, -1.8, 0.4, 2.6, 4.8, 6.9];
   for (const z of portZ) {
     for (const side of [-1, 1] as const) {
-      const x = side * (waterlineHalfBeamAt(z) + 0.12);
-      builder.setRegion(2);
-      builder.setColor(0x8f2016);
-      builder.addBox(x - side * 0.035, 1.55, z, 0.09, 0.72, 0.96);
-      builder.setRegion(4);
-      builder.setColor(0x090807);
-      builder.addBox(x, 1.52, z, 0.13, 0.5, 0.72);
-      builder.addCylinderBetween(
-        { x: x - side * 0.08, y: 1.5, z },
-        { x: x + side * 0.42, y: 1.5, z },
-        0.075,
-        detail.cyl,
-        { endRadius: 0.065 },
-      );
-      builder.setRegion(3);
-      builder.setColor(0xd2a352);
-      builder.addBox(x + side * 0.006, 1.9, z, 0.065, 0.06, 1.04);
+      addGunport(builder, side, z, detail, tier !== 'lite' && tier !== 'low');
     }
   }
   // Stern gallery, quarter galleries, transom frame, rudder, catheads, anchors, channels, chainplates, deadeyes.
@@ -713,8 +790,8 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
     addChannel(side, foreDeadeyes[0]! - 0.45, foreDeadeyes[foreDeadeyes.length - 1]! + 0.45);
     for (const z of [...mizzenDeadeyes, ...mainDeadeyes, ...foreDeadeyes]) addDeadeye(side, z);
   }
+  addBowFittings(builder, detail);
   addHeadRails(builder, detail);
-  addGildedLionFigurehead(builder, detail);
   builder.setRegion(4);
   builder.setColor(0x17110c);
   builder.addBox(0, 3.52, -12.4, 0.42, 0.18, 0.055);

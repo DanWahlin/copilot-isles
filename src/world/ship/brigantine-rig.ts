@@ -22,6 +22,11 @@ interface YardSpec {
   canvasRadius: number;
 }
 
+interface CurvedQuadOptions {
+  leechInset: number;
+  footRoach: number;
+}
+
 const FORE: MastSpec = {
   id: 'fore',
   z: 5.25,
@@ -84,7 +89,25 @@ class SailBuilder {
     return i;
   }
 
-  addQuad(p00: P3, p10: P3, p01: P3, p11: P3, normal: P3, cols: number, rows: number): void {
+  private addPanelIndices(base: number, cols: number, rows: number): void {
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const i = base + y * (cols + 1) + x;
+        this.indices.push(i, i + 1, i + cols + 2, i, i + cols + 2, i + cols + 1);
+      }
+    }
+  }
+
+  private addPanel(
+    p00: P3,
+    p10: P3,
+    p01: P3,
+    p11: P3,
+    normal: P3,
+    cols: number,
+    rows: number,
+    curve?: CurvedQuadOptions,
+  ): void {
     const base = this.positions.length / 3;
     for (let y = 0; y <= rows; y++) {
       const v = y / rows;
@@ -93,16 +116,22 @@ class SailBuilder {
         const lower = lerpPoint(p00, p10, u);
         const upper = lerpPoint(p01, p11, u);
         const p = lerpPoint(lower, upper, v);
+        if (curve) {
+          const center = lerpPoint(lerpPoint(p00, p10, 0.5), lerpPoint(p01, p11, 0.5), v);
+          const edge = Math.pow(Math.abs(u - 0.5) * 2, 1.7) * Math.sin(Math.PI * v);
+          const roach = Math.sin(Math.PI * u) * Math.pow(1 - v, 1.9) * curve.footRoach;
+          p.x += (center.x - p.x) * edge * curve.leechInset;
+          p.y -= roach;
+        }
         const anchor = lerpPoint(p01, p11, u);
         this.addVertex(p, anchor, normal, u, v);
       }
     }
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        const i = base + y * (cols + 1) + x;
-        this.indices.push(i, i + 1, i + cols + 2, i, i + cols + 2, i + cols + 1);
-      }
-    }
+    this.addPanelIndices(base, cols, rows);
+  }
+
+  addQuad(p00: P3, p10: P3, p01: P3, p11: P3, normal: P3, cols: number, rows: number): void {
+    this.addPanel(p00, p10, p01, p11, normal, cols, rows);
   }
 
   addCurvedQuad(
@@ -116,29 +145,7 @@ class SailBuilder {
     leechInset: number,
     footRoach: number,
   ): void {
-    const base = this.positions.length / 3;
-    for (let y = 0; y <= rows; y++) {
-      const v = y / rows;
-      for (let x = 0; x <= cols; x++) {
-        const u = x / cols;
-        const lower = lerpPoint(p00, p10, u);
-        const upper = lerpPoint(p01, p11, u);
-        const p = lerpPoint(lower, upper, v);
-        const center = lerpPoint(lerpPoint(p00, p10, 0.5), lerpPoint(p01, p11, 0.5), v);
-        const edge = Math.pow(Math.abs(u - 0.5) * 2, 1.7) * Math.sin(Math.PI * v);
-        const roach = Math.sin(Math.PI * u) * Math.pow(1 - v, 1.9) * footRoach;
-        p.x += (center.x - p.x) * edge * leechInset;
-        p.y -= roach;
-        const anchor = lerpPoint(p01, p11, u);
-        this.addVertex(p, anchor, normal, u, v);
-      }
-    }
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        const i = base + y * (cols + 1) + x;
-        this.indices.push(i, i + 1, i + cols + 2, i, i + cols + 2, i + cols + 1);
-      }
-    }
+    this.addPanel(p00, p10, p01, p11, normal, cols, rows, { leechInset, footRoach });
   }
 
   addTriangle(p0: P3, p1: P3, p2: P3, normal: P3, steps: number): void {

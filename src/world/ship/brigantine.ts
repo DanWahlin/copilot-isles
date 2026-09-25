@@ -51,6 +51,7 @@ import {
 } from './brigantine-materials';
 import { createShipPipes, type ShipPipes } from './pipes';
 import { DEFAULT_SAIL_PALETTE, sailPalette } from './sail-palettes';
+import { loadLionHeadFigurehead } from './ship-lion';
 
 export { fitShipNameFontSize } from './brigantine-materials';
 
@@ -235,6 +236,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   group.add(rigging);
   group.add(pipeSystem.group);
   group.add(christening.group);
+  let disposed = false;
 
   const lanternPivot = new Group();
   lanternPivot.name = 'stern lantern pendulum';
@@ -430,6 +432,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
       christening.update(dt);
     },
     dispose(): void {
+      disposed = true;
       group.traverse((object) => {
         const mesh = object as Mesh;
         if (mesh.geometry) mesh.geometry.dispose();
@@ -441,5 +444,18 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   };
   api.triangleCount = triangleCount(group);
   api.drawCallCount = drawCallCount(group);
+  if (typeof window !== 'undefined') {
+    void loadLionHeadFigurehead(tier, shipMaterial)
+      .then((mesh) => {
+        if (disposed) {
+          mesh.geometry.dispose();
+          return;
+        }
+        group.add(mesh);
+        api.triangleCount = triangleCount(group);
+        api.drawCallCount = drawCallCount(group);
+      })
+      .catch(() => undefined);
+  }
   return api;
 }
