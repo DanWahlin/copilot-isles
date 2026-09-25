@@ -12,7 +12,6 @@ import {
 } from './lines';
 import { detailForTier, type Detail } from './brigantine-detail';
 import { MeshBuilder, type P3 } from './mesh-builder';
-import { addLionHeadFigurehead } from './ship-lion';
 
 /** Builds the brigantine hull, deck, rail, trim, and name-board geometry. */
 export function createHullGeometry(tier: Tier): BufferGeometry {
@@ -621,7 +620,7 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
         { x: x1, y: 2.16, z: z1 },
         { x: x0, y: 2.16, z: z0 },
       );
-      builder.setRegion(2);
+      builder.setRegion(4);
       builder.setColor(0x11100f);
       builder.addQuad(
         { x: x0, y: -0.58, z: z0 },
@@ -629,21 +628,13 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
         { x: x1, y: -0.24, z: z1 },
         { x: x0, y: -0.24, z: z0 },
       );
+      builder.setRegion(2);
+      builder.setColor(0x8f2016);
       builder.addQuad(
         { x: x0, y: -0.2, z: z0 },
         { x: x1, y: -0.2, z: z1 },
         { x: x1, y: 0.04, z: z1 },
         { x: x0, y: 0.04, z: z0 },
-      );
-      const xo0 = side * (waterlineHalfBeamAt(z0) + 0.18);
-      const xo1 = side * (waterlineHalfBeamAt(z1) + 0.18);
-      builder.setRegion(4);
-      builder.setColor(0x0b0d0d);
-      builder.addQuad(
-        { x: xo0, y: -1.05, z: z0 },
-        { x: xo1, y: -1.05, z: z1 },
-        { x: xo1, y: 0.28, z: z1 },
-        { x: xo0, y: 0.28, z: z0 },
       );
     }
   }
@@ -810,7 +801,6 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
   }
   addBowFittings(builder, detail);
   addHeadRails(builder, detail);
-  addLionHeadFigurehead(builder, tier);
   builder.setRegion(4);
   builder.setColor(0x17110c);
   builder.addBox(0, 3.52, -12.4, 0.42, 0.18, 0.055);

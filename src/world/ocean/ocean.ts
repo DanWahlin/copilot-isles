@@ -267,14 +267,14 @@ export function createOcean({ tier, env, mirror }: OceanOptions): Ocean {
     const insideHull = active
       .greaterThan(0.5)
       .and(inLength)
-      .and(lx.abs().lessThan(halfBeam.mul(1.08)));
+      .and(lx.abs().lessThan(halfBeam.mul(0.92)));
     insideHull.discard();
 
     const speedK = smoothstep(0.25, 5.8, ship.w).mul(active);
     const sideDist = lx.abs().sub(halfBeam.mul(1.02)).abs();
     const endFade = smoothstep(-11.9, -10.8, lz).mul(float(1).sub(smoothstep(10.15, 11.7, lz)));
     const laceNoise = smoothstep(0.46, 0.92, pattern.add(sin(lz.mul(5.7).add(t.mul(1.8))).mul(0.12)));
-    const hullRing = smoothstep(0.07, 0.0, sideDist).mul(endFade).mul(laceNoise).mul(active).mul(0.02);
+    const hullRing = smoothstep(0.11, 0.0, sideDist).mul(endFade).mul(laceNoise).mul(active).mul(0.22);
 
     const bowLeft = smoothstep(1.35, 0.0, vec2(lx.sub(0.85), lz.sub(10.55)).length());
     const bowRight = smoothstep(1.35, 0.0, vec2(lx.add(0.85), lz.sub(10.55)).length());

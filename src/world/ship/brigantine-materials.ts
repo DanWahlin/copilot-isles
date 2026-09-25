@@ -235,6 +235,7 @@ export function makeShipMaterial(): MeshStandardNodeMaterial {
   const r5 = smoothstep(4.6, 4.9, region).mul(float(1).sub(smoothstep(5.1, 5.4, region)));
   const r6 = smoothstep(5.6, 5.9, region).mul(float(1).sub(smoothstep(6.1, 6.4, region)));
   const r7 = smoothstep(6.6, 6.9, region);
+  const r0 = float(1).sub(smoothstep(0.25, 0.6, region));
 
   const hullWood = texture(
     getShipWoodTexture(),
@@ -292,6 +293,8 @@ export function makeShipMaterial(): MeshStandardNodeMaterial {
   outColor = mix(outColor, canvas, r5);
   outColor = mix(outColor, glow, r6);
   outColor = mix(outColor, label, r7);
+  const submerged = positionLocal.y.negate().smoothstep(0.05, 0.85).mul(r0).mul(0.92);
+  outColor = mix(outColor, color(0x06242b), submerged);
   m.colorNode = outColor.mul(vc.mul(0.52).add(0.52));
   m.emissiveNode = glow.mul(r6).mul(world.night.smoothstep(0.08, 0.9));
   m.roughnessNode = mix(mix(float(0.62), float(0.88), r5), float(0.34), r3)
