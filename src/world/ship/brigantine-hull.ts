@@ -12,6 +12,7 @@ import {
 } from './lines';
 import { detailForTier, type Detail } from './brigantine-detail';
 import { MeshBuilder, type P3 } from './mesh-builder';
+import { addLionHeadFigurehead } from './ship-lion';
 
 /** Builds the brigantine hull, deck, rail, trim, and name-board geometry. */
 export function createHullGeometry(tier: Tier): BufferGeometry {
@@ -354,152 +355,6 @@ function addHeadRails(builder: MeshBuilder, detail: Detail): void {
   builder.addTriangle({ x: 0, y: 1.02, z: 11.45 }, { x: 0, y: 2.08, z: 12.9 }, { x: 0, y: 0.88, z: 13.28 });
 }
 
-function addLionLock(builder: MeshBuilder, base: P3, mid: P3, tip: P3, radius: number, detail: Detail): void {
-  builder.addCylinderBetween(base, mid, radius, detail.cyl, { endRadius: radius * 0.7 });
-  builder.addCylinderBetween(mid, tip, radius * 0.7, detail.cyl, { endRadius: 0.018 });
-}
-
-function addGildedLionFigurehead(builder: MeshBuilder, detail: Detail): void {
-  const seg = detail.cyl;
-  const maneSideLocks = detail.cyl <= 9 ? 3 : detail.cyl <= 12 ? 4 : 6;
-  const maneTopLocks = detail.cyl <= 9 ? 2 : detail.cyl <= 12 ? 3 : 5;
-  builder.setRegion(3);
-  builder.setColor(0xd8a84a);
-  builder.addLathe(
-    [
-      { center: { x: 0, y: 1.2, z: 12.2 }, radius: 0.13 },
-      { center: { x: 0, y: 1.35, z: 12.52 }, radius: 0.28 },
-      { center: { x: 0, y: 1.52, z: 12.93 }, radius: 0.36 },
-      { center: { x: 0, y: 1.68, z: 13.25 }, radius: 0.25 },
-    ],
-    { x: 0, y: 0.34, z: 1 },
-    seg,
-  );
-  builder.addLathe(
-    [
-      { center: { x: 0, y: 1.68, z: 13.15 }, radius: 0.28 },
-      { center: { x: 0, y: 1.88, z: 13.38 }, radius: 0.42 },
-      { center: { x: 0, y: 2.1, z: 13.46 }, radius: 0.34 },
-      { center: { x: 0, y: 2.25, z: 13.37 }, radius: 0.18 },
-    ],
-    { x: 0, y: 1, z: 0.2 },
-    seg,
-  );
-  builder.addLathe(
-    [
-      { center: { x: 0, y: 1.86, z: 13.5 }, radius: 0.22 },
-      { center: { x: 0, y: 1.9, z: 13.72 }, radius: 0.25 },
-      { center: { x: 0, y: 1.87, z: 13.92 }, radius: 0.11 },
-    ],
-    { x: 0, y: -0.05, z: 1 },
-    seg,
-  );
-  builder.setRegion(4);
-  builder.setColor(0x3b2612);
-  builder.addCylinderBetween({ x: -0.1, y: 1.98, z: 13.94 }, { x: 0.1, y: 1.98, z: 13.94 }, 0.035, 8);
-  builder.addCylinderBetween({ x: -0.06, y: 1.72, z: 13.66 }, { x: 0.06, y: 1.72, z: 13.66 }, 0.028, 8);
-  builder.addBox(0, 1.78, 13.82, 0.2, 0.035, 0.08);
-  for (const side of [-1, 1] as const) {
-    builder.addCylinderBetween(
-      { x: side * 0.16, y: 2.06, z: 13.82 },
-      { x: side * 0.3, y: 2.1, z: 13.74 },
-      0.018,
-      6,
-    );
-    builder.addBox(side * 0.16, 1.99, 13.88, 0.04, 0.035, 0.026);
-    builder.addCylinderBetween(
-      { x: side * 0.12, y: 1.82, z: 13.92 },
-      { x: side * 0.28, y: 1.7, z: 13.66 },
-      0.014,
-      6,
-    );
-    builder.addBox(side * 0.05, 1.9, 14.0, 0.08, 0.05, 0.04);
-  }
-  builder.setRegion(3);
-  builder.setColor(0xe2b756);
-  for (const side of [-1, 1] as const) {
-    for (let i = 0; i < maneSideLocks; i++) {
-      const t = i / (maneSideLocks - 1);
-      const y = 2.22 - t * 0.58;
-      const z = 13.34 - t * 0.46;
-      const x = side * (0.13 + t * 0.22);
-      addLionLock(
-        builder,
-        { x: side * 0.08, y, z: z + 0.12 },
-        { x, y: y - 0.05, z },
-        { x: side * (0.22 + t * 0.25), y: y - 0.18, z: z - 0.22 },
-        0.052 - t * 0.014,
-        detail,
-      );
-    }
-  }
-  for (let i = 0; i < maneTopLocks; i++) {
-    const t = i / (maneTopLocks - 1);
-    addLionLock(
-      builder,
-      { x: 0, y: 2.26 - t * 0.14, z: 13.32 - t * 0.16 },
-      { x: 0, y: 2.36 - t * 0.18, z: 13.18 - t * 0.2 },
-      { x: 0, y: 2.28 - t * 0.25, z: 12.94 - t * 0.28 },
-      0.045 - t * 0.007,
-      detail,
-    );
-  }
-  builder.setColor(0xd7a13e);
-  for (const side of [-1, 1] as const) {
-    builder.addCylinderBetween(
-      { x: side * 0.22, y: 1.4, z: 12.94 },
-      { x: side * 0.38, y: 1.08, z: 13.18 },
-      0.07,
-      10,
-      {
-        endRadius: 0.045,
-      },
-    );
-    builder.addCylinderBetween(
-      { x: side * 0.16, y: 1.32, z: 12.5 },
-      { x: side * 0.28, y: 1.08, z: 12.78 },
-      0.058,
-      10,
-      {
-        endRadius: 0.04,
-      },
-    );
-    builder.addCylinderBetween(
-      { x: side * 0.34, y: 1.07, z: 13.15 },
-      { x: side * 0.52, y: 1.04, z: 13.25 },
-      0.035,
-      8,
-      {
-        endRadius: 0.02,
-      },
-    );
-    builder.addCylinderBetween(
-      { x: side * 0.25, y: 1.05, z: 12.76 },
-      { x: side * 0.4, y: 1.02, z: 12.86 },
-      0.032,
-      8,
-      {
-        endRadius: 0.018,
-      },
-    );
-    builder.addCylinderBetween(
-      { x: side * 0.18, y: 1.82, z: 12.46 },
-      { x: side * 0.42, y: 2.04, z: 12.18 },
-      0.04,
-      8,
-      {
-        endRadius: 0.02,
-      },
-    );
-  }
-  builder.addCylinderBetween({ x: 0.18, y: 1.34, z: 12.25 }, { x: 0.48, y: 1.55, z: 12.05 }, 0.035, 10, {
-    endRadius: 0.018,
-  });
-  builder.addCylinderBetween({ x: 0.48, y: 1.55, z: 12.05 }, { x: 0.2, y: 1.78, z: 12.2 }, 0.026, 10, {
-    endRadius: 0.012,
-  });
-}
-
 function addGunport(builder: MeshBuilder, side: -1 | 1, z: number, detail: Detail, rich: boolean): void {
   const x = side * (waterlineHalfBeamAt(z) + 0.12);
   const seg = rich ? detail.cyl : Math.min(8, detail.cyl);
@@ -540,6 +395,36 @@ function addGunport(builder: MeshBuilder, side: -1 | 1, z: number, detail: Detai
 }
 
 function addBowFittings(builder: MeshBuilder, detail: Detail): void {
+  builder.setRegion(0);
+  builder.setColor(0x101416);
+  for (const side of [-1, 1] as const) {
+    builder.addQuad(
+      { x: side * 0.72, y: 0.22, z: 10.9 },
+      { x: side * 0.18, y: 0.66, z: 12.85 },
+      { x: side * 0.26, y: 2.42, z: 12.7 },
+      { x: side * 1.05, y: 2.62, z: 10.55 },
+    );
+    builder.addQuad(
+      { x: side * 0.18, y: 0.66, z: 12.85 },
+      { x: side * 0.02, y: 0.82, z: 13.44 },
+      { x: side * 0.08, y: 2.25, z: 13.26 },
+      { x: side * 0.26, y: 2.42, z: 12.7 },
+    );
+  }
+  builder.setRegion(4);
+  builder.setColor(0x15110d);
+  builder.addCylinderBetween({ x: 0, y: -0.72, z: 11.0 }, { x: 0, y: 2.5, z: 13.38 }, 0.13, detail.cyl, {
+    endRadius: 0.065,
+  });
+  builder.setRegion(3);
+  builder.setColor(0xd2a352);
+  builder.addCylinderBetween(
+    { x: -0.12, y: 2.36, z: 12.85 },
+    { x: 0.12, y: 2.36, z: 12.85 },
+    0.032,
+    detail.cyl,
+  );
+
   builder.setRegion(1);
   builder.setColor(0x4b2b1b);
   for (const side of [-1, 1] as const) {
@@ -711,13 +596,15 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
   builder.setRegion(2);
   builder.setColor(0x8f2016);
   const steps = tier === 'lite' || tier === 'low' ? 56 : 116;
+  const stripeZ0 = -10.45;
+  const stripeZ1 = 9.35;
   for (let i = 0; i < steps; i++) {
-    const z0 = -11.35 + (22.35 * i) / steps;
-    const z1 = -11.35 + (22.35 * (i + 1)) / steps;
+    const z0 = stripeZ0 + ((stripeZ1 - stripeZ0) * i) / steps;
+    const z1 = stripeZ0 + ((stripeZ1 - stripeZ0) * (i + 1)) / steps;
     for (const side of [-1, 1] as const) {
       const x0 = side * (waterlineHalfBeamAt(z0) + 0.055);
       const x1 = side * (waterlineHalfBeamAt(z1) + 0.055);
-      // Painted strake, ochre wale, black boot-top, and rail cap.
+      // Painted strake, ochre wale, black boot-top, and a dark lower fairing at the waterline.
       builder.setRegion(2);
       builder.setColor(0x8f2016);
       builder.addQuad(
@@ -737,11 +624,36 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
       builder.setRegion(2);
       builder.setColor(0x11100f);
       builder.addQuad(
+        { x: x0, y: -0.58, z: z0 },
+        { x: x1, y: -0.58, z: z1 },
+        { x: x1, y: -0.24, z: z1 },
+        { x: x0, y: -0.24, z: z0 },
+      );
+      builder.addQuad(
         { x: x0, y: -0.2, z: z0 },
         { x: x1, y: -0.2, z: z1 },
         { x: x1, y: 0.04, z: z1 },
         { x: x0, y: 0.04, z: z0 },
       );
+      const xo0 = side * (waterlineHalfBeamAt(z0) + 0.18);
+      const xo1 = side * (waterlineHalfBeamAt(z1) + 0.18);
+      builder.setRegion(4);
+      builder.setColor(0x0b0d0d);
+      builder.addQuad(
+        { x: xo0, y: -1.05, z: z0 },
+        { x: xo1, y: -1.05, z: z1 },
+        { x: xo1, y: 0.28, z: z1 },
+        { x: xo0, y: 0.28, z: z0 },
+      );
+    }
+  }
+  builder.setRegion(3);
+  builder.setColor(0xd2a352);
+  for (const z of [stripeZ0, stripeZ1]) {
+    for (const side of [-1, 1] as const) {
+      const x = side * (waterlineHalfBeamAt(z) + 0.065);
+      builder.addBox(x, 0.88, z, 0.055, 0.42, 0.09);
+      builder.addBox(x, -0.29, z, 0.05, 0.34, 0.08);
     }
   }
   const portZ = [-8.1, -6.0, -3.9, -1.8, 0.4, 2.6, 4.8, 6.9];
@@ -898,7 +810,7 @@ export function createTrimGeometry(tier: Tier): BufferGeometry {
   }
   addBowFittings(builder, detail);
   addHeadRails(builder, detail);
-  addGildedLionFigurehead(builder, detail);
+  addLionHeadFigurehead(builder, tier);
   builder.setRegion(4);
   builder.setColor(0x17110c);
   builder.addBox(0, 3.52, -12.4, 0.42, 0.18, 0.055);
