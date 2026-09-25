@@ -35,6 +35,8 @@ export function Slider({
   max?: number;
   step?: number;
 }) {
+  const clamp = (next: number) => Math.min(max, Math.max(min, next));
+  const keyboardStep = Math.max(step, 0.05);
   return (
     <label className="ci-setting-row">
       <span>{label}</span>
@@ -45,6 +47,12 @@ export function Slider({
         step={step}
         value={value}
         onChange={(event) => onChange(Number(event.currentTarget.value))}
+        onKeyDown={(event) => {
+          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+          event.preventDefault();
+          const dir = event.key === 'ArrowLeft' ? -1 : 1;
+          onChange(clamp(Number(event.currentTarget.value) + dir * keyboardStep));
+        }}
       />
       <em>{value.toFixed(step < 0.1 ? 2 : 1)}</em>
     </label>

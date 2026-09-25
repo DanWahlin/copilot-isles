@@ -12,6 +12,8 @@ export interface NpcSpec {
   anchor: string;
   /** Metres to step out along the anchor heading (doors face outward). */
   out?: number;
+  /** Rotates only the NPC's facing, not the anchor placement. */
+  headingOffset?: number;
   clip: CharacterClip;
   /** Walks a loop through these world xz points. */
   patrol?: [number, number][];
@@ -24,6 +26,14 @@ export interface NpcSpec {
   barks?: string[];
   /** Keeps the anchor's height instead of snapping to the ground (tower tops, benches). */
   keepY?: boolean;
+  /** Visual drop from the anchor to put a seated rig's pelvis on the seat top. */
+  seatDrop?: number;
+  /** Optional anchor-local talk framing: +x is right of heading, +z is forward. */
+  talkShot?: {
+    shotLocal: readonly [x: number, y: number, z: number];
+    targetLocal: readonly [x: number, y: number, z: number];
+    faceLocal?: readonly [x: number, z: number];
+  };
 }
 
 /** Test Cove folk (POC §4.3 cast, trimmed for the spike). Barks tease chapter-00 lessons. */
@@ -52,7 +62,7 @@ export const COVE_NPCS: NpcSpec[] = [
     name: 'Bo Marlin',
     anchor: 'storehouseDoor',
     out: 1.4,
-    clip: 'talk',
+    clip: 'idle',
     barks: [
       'For setup, choose Local repository, Captain. New worktrees come later.',
       'Check your gear in the Terminal tab before you sail. Install only what is missing.',
@@ -76,16 +86,20 @@ export const COVE_NPCS: NpcSpec[] = [
     id: 'fisherman',
     name: 'Old Finn',
     anchor: 'finn',
+    headingOffset: Math.PI / 2,
     clip: 'sit',
     keepY: true,
+    seatDrop: 0.22,
     barks: ['Fish bite best when the Terminal is quiet.', 'Patience, Captain. Same as prompting.'],
   },
   {
     id: 'old_sailor',
     name: 'Salt',
     anchor: 'quayBenches',
+    headingOffset: Math.PI,
     clip: 'sit',
     keepY: true,
+    seatDrop: 0.22,
     barks: [
       'Sailed with three captains. The good ones read the logbook.',
       'Aye, that lighthouse has seen things.',
@@ -148,6 +162,12 @@ export const COVE_NPCS: NpcSpec[] = [
     anchor: 'lyra',
     clip: 'sit',
     keepY: true,
+    seatDrop: 0.14,
+    talkShot: {
+      shotLocal: [0, 1.85, -4],
+      targetLocal: [0, 1.35, 0],
+      faceLocal: [0, -6],
+    },
     barks: ['Every island has its own tune, Captain.', 'Hush. The reef’s keeping time.'],
   },
   {
@@ -200,9 +220,10 @@ export class NpcCrowd {
       const x = home.x + Math.sin(home.heading) * out;
       const z = home.z + Math.cos(home.heading) * out;
       const y = spec.keepY ? home.y : world.groundAt(x, z);
+      const heading = npcHeading(spec, home);
       const character = lib.create({ body: spec.id, tier, updateTarget });
       character.group.position.set(x, y, z);
-      character.group.rotation.y = home.heading;
+      character.group.rotation.y = heading;
       character.play(spec.patrol || spec.orbit ? 'idle' : spec.clip);
       const obstacle: CircleObstacle = { x, z, r: character.capsule.radius + 0.1 };
       world.addDynamic(obstacle);
@@ -212,7 +233,7 @@ export class NpcCrowd {
         x,
         y,
         z,
-        heading: home.heading,
+        heading,
         home,
         obstacle,
         talking: false,
@@ -263,10 +284,16 @@ export class NpcCrowd {
       n.obstacle.x = n.x;
       n.obstacle.z = n.z;
       const g = n.character.group;
-      g.position.set(n.x, n.y, n.z);
+      g.position.set(n.x, n.y - seatedVisualDrop(s), n.z);
       g.rotation.y = n.heading;
       if (s.patrol || s.orbit) n.character.setSpeed(moving ? (s.speed ?? 1.2) : 0);
-      n.character.lookAt(near ? tmp.set(player.x, player.y + 1.5, player.z) : null);
+      n.character.lookAt(
+        n.faceTarget
+          ? tmp.set(n.faceTarget.x, n.y + 1.5, n.faceTarget.z)
+          : near || n.talking
+            ? tmp.set(player.x, player.y + 1.5, player.z)
+            : null,
+      );
       n.character.update(dt);
     }
   }
@@ -280,7 +307,7 @@ export class NpcCrowd {
     n.x = home.x + Math.sin(home.heading) * out;
     n.z = home.z + Math.cos(home.heading) * out;
     n.y = n.spec.keepY || spot ? home.y : this.world.groundAt(n.x, n.z);
-    n.heading = home.heading;
+    n.heading = npcHeading(n.spec, home);
     n.obstacle.x = n.x;
     n.obstacle.z = n.z;
   }
@@ -305,4 +332,12 @@ export class NpcCrowd {
 
 function turn(h: number, target: number, dt: number, rate: number): number {
   return wrapAngle(h + wrapAngle(target - h) * (1 - Math.exp(-rate * dt)));
+}
+
+function seatedVisualDrop(spec: NpcSpec): number {
+  return spec.clip === 'sit' ? (spec.seatDrop ?? 0.18) : 0;
+}
+
+function npcHeading(spec: NpcSpec, home: VillageAnchor): number {
+  return wrapAngle(home.heading + (spec.headingOffset ?? 0));
 }

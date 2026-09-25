@@ -56,6 +56,12 @@ function parseLocoPack(buffer: ArrayBuffer): Map<CharacterClip, AnimationClip> {
     const tracks = src.tracks.map((track) => {
       const times = new Float32Array(src.frames);
       for (let i = 0; i < times.length; i += 1) times[i] = Math.min(src.duration, i / src.fps);
+      const itemSize = track.type === 'quat16' ? 4 : 3;
+      if (track.count !== src.frames * itemSize) {
+        throw new Error(
+          `Bad locomotion track ${track.name}: expected ${src.frames * itemSize}, got ${track.count}`,
+        );
+      }
       if (track.type === 'quat16') {
         const ints = new Int16Array(buffer, dataStart + track.offset, track.count);
         const values = new Float32Array(track.count);

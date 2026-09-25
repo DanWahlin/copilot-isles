@@ -9,7 +9,7 @@ import { COVE } from '../world/layout';
 import { CollisionWorld, type SurfaceKind, type WalkSurface } from './collision';
 import { Dialogue } from './dialogue';
 import { FootstepPuffs } from './footstep-puffs';
-import { FollowCamera, SAIL_RIG, WALK_RIG } from './follow-camera';
+import { FollowCamera, SAIL_RIG, WALK_RIG, type CameraShot } from './follow-camera';
 import { Helm } from './helm';
 import { Hud } from './hud';
 import { Interactions } from './interaction';
@@ -207,31 +207,44 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // Talk to NPCs: quest beats run as scripts; Nell's lines are voiced; everyone else offers a bark.
   const talkTo = async (n: Npc) => {
     if (dialogue.active || scriptRunning) return;
-    npcs.setTalking(n, true);
-    const beat = learn ? npcScript(n.spec.id, quests()) : null;
-    if (beat) {
-      scriptRunning = true;
-      input.enabled = false;
-      await runScript(beat.steps, {
-        dialogue,
-        learn,
-        speaker: n.spec.name.split(' ')[0]!,
-        onQuest: setQuest,
-        cancelled: () => disposed,
-        ...scriptExtras,
-      });
-      input.enabled = !paused;
-      scriptRunning = false;
-    } else if (n.spec.voiced) {
-      input.enabled = false;
-      await dialogue.play(n.spec.voiced);
-      input.enabled = true;
-    } else if (n.spec.barks?.length) {
-      const i = Math.floor(Math.random() * n.spec.barks.length);
-      hud.showText(n.spec.name, n.spec.barks[i]!, 4.5);
-      await new Promise((r) => setTimeout(r, 2600));
+    const shot = npcTalkShot(n);
+    const priorFaceTarget = n.faceTarget;
+    cam.frame(shot);
+    if (n.spec.talkShot?.faceLocal) n.faceTarget = localNpcPoint(n, n.spec.talkShot.faceLocal);
+    try {
+      npcs.setTalking(n, true);
+      const beat = learn ? npcScript(n.spec.id, quests()) : null;
+      if (beat) {
+        scriptRunning = true;
+        input.enabled = false;
+        await runScript(beat.steps, {
+          dialogue,
+          learn,
+          speaker: n.spec.name.split(' ')[0]!,
+          onQuest: setQuest,
+          cancelled: () => disposed,
+          ...scriptExtras,
+        });
+        input.enabled = !paused;
+        scriptRunning = false;
+      } else if (n.spec.voiced) {
+        input.enabled = false;
+        await dialogue.play(n.spec.voiced);
+        input.enabled = true;
+      } else if (n.spec.barks?.length) {
+        const i = Math.floor(Math.random() * n.spec.barks.length);
+        hud.showText(n.spec.name, n.spec.barks[i]!, 4.5);
+        await new Promise((r) => setTimeout(r, 2600));
+      }
+    } finally {
+      n.faceTarget = priorFaceTarget;
+      npcs.setTalking(n, false);
+      cam.frame(null);
+      if (scriptRunning) {
+        scriptRunning = false;
+        input.enabled = !paused;
+      }
     }
-    npcs.setTalking(n, false);
   };
   for (const n of npcs.list) {
     if (!n.spec.voiced && !n.spec.barks && !npcScript(n.spec.id, quests())) continue;
@@ -474,6 +487,103 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       'Wingman',
       open ? `Logbook says: ${open.detail}` : 'Nothing pressing, Captain. Enjoy the view.',
     );
+  }
+
+  function npcTalkShot(n: Npc) {
+    if (n.spec.talkShot) return localNpcShot(n, n.spec.talkShot.shotLocal, n.spec.talkShot.targetLocal);
+    const dx = player.x - n.x;
+    const dz = player.z - n.z;
+    const len = Math.hypot(dx, dz) || 1;
+    const fx = dx / len;
+    const fz = dz / len;
+    const rightX = fz;
+    const rightZ = -fx;
+    const seated = n.spec.clip === 'sit';
+    const targetY = n.y + (seated ? 0.82 : 1.18);
+    const eyeLift = n.spec.id === 'lookout' ? 2.0 : seated ? 1.25 : 1.45;
+    const target = { x: n.x, y: targetY, z: n.z };
+    const candidates: CameraShot[] = [
+      {
+        x: player.x + fx * 0.72 + rightX * 1.65,
+        y: Math.max(player.y + eyeLift, targetY + 0.18),
+        z: player.z + fz * 0.72 + rightZ * 1.65,
+        tx: target.x,
+        ty: target.y,
+        tz: target.z,
+      },
+      {
+        x: player.x + fx * 0.72 - rightX * 1.65,
+        y: Math.max(player.y + eyeLift, targetY + 0.18),
+        z: player.z + fz * 0.72 - rightZ * 1.65,
+        tx: target.x,
+        ty: target.y,
+        tz: target.z,
+      },
+      {
+        x: n.x + fx * 2.75 + rightX * 1.35,
+        y: Math.max(n.y + eyeLift, targetY + 0.28),
+        z: n.z + fz * 2.75 + rightZ * 1.35,
+        tx: target.x,
+        ty: target.y,
+        tz: target.z,
+      },
+      {
+        x: n.x + fx * 2.75 - rightX * 1.35,
+        y: Math.max(n.y + eyeLift, targetY + 0.28),
+        z: n.z + fz * 2.75 - rightZ * 1.35,
+        tx: target.x,
+        ty: target.y,
+        tz: target.z,
+      },
+    ].map((candidate) => ({
+      ...candidate,
+      y: Math.max(
+        candidate.y,
+        world.waterAt(candidate.x, candidate.z, 0) + 0.7,
+        world.groundAt(candidate.x, candidate.z) + 0.45,
+      ),
+    }));
+    return candidates.find((candidate) => validTalkShot(candidate, target)) ?? candidates[0]!;
+  }
+
+  function validTalkShot(shot: CameraShot, target: { x: number; y: number; z: number }): boolean {
+    if (Math.hypot(shot.x - player.x, shot.y - (player.y + 1.5), shot.z - player.z) < 0.7) return false;
+    for (let i = 1; i < 8; i += 1) {
+      const t = i / 8;
+      const x = shot.x + (target.x - shot.x) * t;
+      const y = shot.y + (target.y - shot.y) * t;
+      const z = shot.z + (target.z - shot.z) * t;
+      if (world.occludedAt(x, y, z, 0.08)) return false;
+    }
+    return true;
+  }
+
+  function localNpcShot(
+    n: Npc,
+    shotLocal: readonly [number, number, number],
+    targetLocal: readonly [number, number, number],
+  ): CameraShot {
+    const shot = localNpcPoint(n, [shotLocal[0], shotLocal[2]]);
+    const target = localNpcPoint(n, [targetLocal[0], targetLocal[2]]);
+    return {
+      x: shot.x,
+      y: n.y + shotLocal[1],
+      z: shot.z,
+      tx: target.x,
+      ty: n.y + targetLocal[1],
+      tz: target.z,
+    };
+  }
+
+  function localNpcPoint(n: Npc, local: readonly [x: number, z: number]): { x: number; z: number } {
+    const rightX = Math.cos(n.heading);
+    const rightZ = -Math.sin(n.heading);
+    const forwardX = Math.sin(n.heading);
+    const forwardZ = Math.cos(n.heading);
+    return {
+      x: n.x + rightX * local[0] + forwardX * local[1],
+      z: n.z + rightZ * local[0] + forwardZ * local[1],
+    };
   }
 
   async function board(): Promise<void> {

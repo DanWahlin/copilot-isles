@@ -54,6 +54,12 @@ interface PlantState {
   z: number;
 }
 
+interface BoneRest {
+  readonly bone: Bone;
+  readonly position: Vector3;
+  readonly quaternion: Quaternion;
+}
+
 /**
  * One animated character: an AnimationMixer blending idle, walk, jog, run, jump, and wade by speed
  * and grounding, plus a cheap procedural layer on top (lean and bank, hip sway, breathing, idle
@@ -83,6 +89,7 @@ export class RuntimeCharacter implements Character {
   private readonly lowerLegEndR: Bone | null;
   private readonly footL: Bone | null;
   private readonly footR: Bone | null;
+  private readonly proceduralRests: readonly BoneRest[];
   private readonly head: Bone | null;
   private readonly neck: Bone | null;
   private readonly targetWorld = new Vector3();
@@ -138,6 +145,7 @@ export class RuntimeCharacter implements Character {
       const action = this.mixer.clipAction(bindableClip(clip, group));
       action.loop = LoopRepeat;
       action.enabled = true;
+      action.time = Math.random() * Math.max(0.001, clip.duration);
       action.setEffectiveWeight(clipName === 'idle' ? 1 : 0);
       action.play();
       this.actions.set(clipName, action);
@@ -162,6 +170,26 @@ export class RuntimeCharacter implements Character {
     this.footR = bone(group, 'FootR');
     this.head = bone(group, 'Head');
     this.neck = bone(group, 'Neck');
+    this.proceduralRests = proceduralBones([
+      this.body,
+      this.hips,
+      this.abdomen,
+      this.torso,
+      this.neck,
+      this.head,
+      this.shoulderL,
+      this.shoulderR,
+      this.upperArmL,
+      this.upperArmR,
+      this.lowerArmL,
+      this.lowerArmR,
+      this.upperLegL,
+      this.upperLegR,
+      this.lowerLegL,
+      this.lowerLegR,
+      this.footL,
+      this.footR,
+    ]);
     this.baseScale = config.scale;
     this.lastHeading = group.rotation.y;
     const root = group.getObjectByName('Root');
@@ -244,6 +272,7 @@ export class RuntimeCharacter implements Character {
   update(dt: number): void {
     const step = this.animationStep(dt);
     if (step > 0) {
+      this.restoreProceduralBones();
       this.mixer.update(step);
       this.applyProceduralPolish(step);
     }
@@ -280,6 +309,13 @@ export class RuntimeCharacter implements Character {
     return interval;
   }
 
+  private restoreProceduralBones(): void {
+    for (const rest of this.proceduralRests) {
+      rest.bone.position.copy(rest.position);
+      rest.bone.quaternion.copy(rest.quaternion);
+    }
+  }
+
   private applyLookAt(): void {
     if (!this.lookTarget || (!this.head && !this.neck)) return;
     if (this.lookTarget instanceof Object3D) this.lookTarget.getWorldPosition(this.lookWorld);
@@ -291,10 +327,12 @@ export class RuntimeCharacter implements Character {
   private applyProceduralPolish(dt: number): void {
     const yaw = this.group.rotation.y;
     const turnRate = MathUtils.clamp(wrapAngle(yaw - this.lastHeading) / Math.max(0.001, dt), -8, 8);
+    const npcScale = this.npc ? 0.55 : 1;
     this.lastHeading = yaw;
     if (!LOCOMOTION_CLIPS.has(this.activeClip)) {
       this.group.rotation.set(0, yaw, 0);
       this.group.scale.setScalar(this.baseScale);
+      this.applyPoseLife(dt, npcScale);
       return;
     }
 
@@ -304,7 +342,6 @@ export class RuntimeCharacter implements Character {
     this.previousVisualSpeed = this.visualSpeed;
     const speed01 = MathUtils.clamp(this.visualSpeed / RUN_SPEED, 0, 1);
     const move = smoothstep(0.05, 0.75, this.visualSpeed);
-    const npcScale = this.npc ? 0.55 : 1;
     const stride =
       this.visualSpeed > 2.8
         ? RUN_STRIDE_METERS
@@ -340,7 +377,7 @@ export class RuntimeCharacter implements Character {
     const shoulderCounter = Math.sin(this.locomotionClock) * 0.032 * move * npcScale;
     const bob =
       Math.max(0, Math.cos(twoStep)) * 0.026 * move - this.landBlend * 0.05 - this.stopBlend * 0.016;
-    const breath = Math.sin(this.idleClock * 2.1) * (1 - move) * 0.012;
+    const breath = Math.sin(this.idleClock * 2.1) * (1 - move) * 0.006;
     if (this.body) this.body.position.y += (bob + breath) * this.rigMeters;
     this.hips?.rotateZ(hipSway);
     this.abdomen?.rotateZ(-hipSway * 0.42);
@@ -354,6 +391,36 @@ export class RuntimeCharacter implements Character {
     this.applyArmMask(move, npcScale);
     this.applyFootPlant(move, dt);
     this.applyIdleLife(dt, move, npcScale);
+  }
+
+  private applyPoseLife(dt: number, npcScale: number): void {
+    this.idleClock += dt;
+    const breath = Math.sin(this.idleClock * 2.1) * 0.004;
+    if (this.body) this.body.position.y += breath * this.rigMeters;
+    if (this.activeClip === 'talk') {
+      const beat = Math.sin(this.idleClock * 4.4);
+      this.torso?.rotateY(beat * 0.028 * npcScale);
+      this.shoulderL?.rotateZ(Math.max(0, beat) * 0.04 * npcScale);
+      this.shoulderR?.rotateZ(Math.min(0, beat) * 0.04 * npcScale);
+      if (!this.lookTarget) this.head?.rotateY(Math.sin(this.idleClock * 1.6) * 0.04 * npcScale);
+    } else if (this.activeClip === 'sit') {
+      const settle = Math.sin(this.idleClock * 0.9) * npcScale;
+      this.hips?.rotateX(-0.08);
+      this.torso?.rotateX(0.06);
+      this.upperLegL?.rotateX(-1.22);
+      this.upperLegR?.rotateX(-1.22);
+      this.lowerLegL?.rotateX(1.42);
+      this.lowerLegR?.rotateX(1.42);
+      this.footL?.rotateX(-0.28);
+      this.footR?.rotateX(-0.28);
+      this.shoulderL?.rotateZ(0.1);
+      this.shoulderR?.rotateZ(-0.1);
+      this.torso?.rotateY(settle * 0.025);
+      this.neck?.rotateY(-settle * 0.035);
+      if (!this.lookTarget) this.head?.rotateY(-settle * 0.045);
+    } else if (this.activeClip === 'helm') {
+      this.torso?.rotateZ(Math.sin(this.idleClock * 1.5) * 0.025 * npcScale);
+    }
   }
 
   private captureArmCarry(): void {
@@ -525,6 +592,21 @@ function trackTargetName(name: string): string | null {
 function bone(root: Group, name: string): Bone | null {
   const found = root.getObjectByName(name);
   return found instanceof Bone ? found : null;
+}
+
+function proceduralBones(bones: readonly (Bone | null)[]): BoneRest[] {
+  const rests: BoneRest[] = [];
+  const seen = new Set<Bone>();
+  for (const bone of bones) {
+    if (!bone || seen.has(bone)) continue;
+    seen.add(bone);
+    rests.push({
+      bone,
+      position: bone.position.clone(),
+      quaternion: bone.quaternion.clone(),
+    });
+  }
+  return rests;
 }
 
 function fadeAction(action: AnimationAction, weight: number, fade: number): void {
