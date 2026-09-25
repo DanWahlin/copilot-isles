@@ -2,29 +2,17 @@
 // Scripted play-through of the Test Cove play page (Phase 0 T11 verification).
 // node tools/playtest.mjs [--webgl] [--out=/tmp/shots/play] [--base=http://localhost:5300]
 // Walks the quay, talks to Nell, boards the brigantine, sails, and docks, capturing state + shots.
-import { chromium } from '@playwright/test';
+import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
 
-const opt = Object.fromEntries(
-  process.argv.slice(2).map((a) => {
-    const [k, ...v] = a.replace(/^--/, '').split('=');
-    return [k, v.length ? v.join('=') : true];
-  }),
-);
+const opt = parseFlags();
 const base = opt.base || 'http://localhost:5300';
 const out = opt.out || '/tmp/shots/play';
 const tag = opt.webgl ? 'gl' : 'gpu';
 const url = `${base}/devpages/play.html?auto&quiet&shot&nolearn${opt.webgl ? '&webgl' : ''}${opt.noveg ? '&noveg' : ''}`;
 
-const browser = await chromium.launch({
-  channel: 'chrome',
-  args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu'],
-});
+const browser = await launchChrome();
 const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
-const logs = [];
-page.on('console', (m) => {
-  if (m.type() === 'error' || m.type() === 'warning') logs.push(`[${m.type()}] ${m.text()}`);
-});
-page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
+const logs = collectLogs(page);
 await page.goto(url, { waitUntil: 'load' });
 await page.waitForFunction(() => window.__dev?.ready === true && window.__dev.session(), null, {
   timeout: 90000,

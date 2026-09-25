@@ -1,12 +1,7 @@
 #!/usr/bin/env node
-import { chromium } from '@playwright/test';
+import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
 
-const opt = Object.fromEntries(
-  process.argv.slice(2).map((a) => {
-    const [k, ...v] = a.replace(/^--/, '').split('=');
-    return [k, v.length ? v.join('=') : true];
-  }),
-);
+const opt = parseFlags();
 const base = opt.base || 'http://localhost:4173';
 const modes = opt.mode ? [String(opt.mode)] : ['webgpu', 'webgl'];
 const [w, h] = String(opt.size || '1280x720')
@@ -14,23 +9,11 @@ const [w, h] = String(opt.size || '1280x720')
   .map(Number);
 
 async function runMode(mode) {
-  const browser = await chromium.launch({
-    channel: 'chrome',
-    args: [
-      '--use-angle=metal',
-      '--ignore-gpu-blocklist',
-      '--enable-unsafe-webgpu',
-      '--autoplay-policy=no-user-gesture-required',
-    ],
-  });
+  const browser = await launchChrome({ autoplay: true });
   const context = await browser.newContext({ viewport: { width: w, height: h }, serviceWorkers: 'allow' });
   const page = await context.newPage();
-  const logs = [];
+  const logs = collectLogs(page);
   const swResponses = [];
-  page.on('console', (m) => {
-    if (m.type() === 'error' || m.type() === 'warning') logs.push(`[${m.type()}] ${m.text()}`);
-  });
-  page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
   page.on('response', (response) => {
     if (response.fromServiceWorker()) swResponses.push(response.url());
   });

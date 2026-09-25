@@ -1,15 +1,10 @@
 #!/usr/bin/env node
 // Capture deterministic Phase 0 shots. Example:
 //   node tools/shots.mjs --base=http://127.0.0.1:5301 --out=tests/visual/baseline
-import { chromium } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
+import { collectLogs, launchChrome, parseFlags, parseSize, waitForTitle } from './lib/browser.mjs';
 
-const opt = Object.fromEntries(
-  process.argv.slice(2).map((a) => {
-    const [k, ...v] = a.replace(/^--/, '').split('=');
-    return [k, v.length ? v.join('=') : true];
-  }),
-);
+const opt = parseFlags();
 const base = String(opt.base || 'http://127.0.0.1:5301').replace(/\/$/, '');
 const out = String(opt.out || 'tests/visual/baseline');
 const viewport = parseSize(String(opt.size || '1600x900'));
@@ -22,18 +17,9 @@ const shots = [
   { id: 'B2', tier: 'high', page: 'cove' },
 ];
 
-function parseSize(s) {
-  const [width, height] = s.split('x').map(Number);
-  return { width: width || 1600, height: height || 900 };
-}
-
 async function captureCove(browser, backend, shot) {
   const page = await browser.newPage({ viewport });
-  const logs = [];
-  page.on('console', (m) => {
-    if (m.type() === 'error' || m.type() === 'warning') logs.push(`[${m.type()}] ${m.text()}`);
-  });
-  page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
+  const logs = collectLogs(page);
   const url = `${base}/devpages/cove.html?shot&tier=${shot.tier}&time=16.5${backend === 'webgl' ? '&webgl' : ''}`;
   await page.goto(url, { waitUntil: 'load', timeout: 120_000 });
   await page.waitForFunction(() => window.__dev?.ready === true, null, { timeout: 180_000 });
@@ -48,14 +34,10 @@ async function captureCove(browser, backend, shot) {
 
 async function captureTitle(browser, backend, tier) {
   const page = await browser.newPage({ viewport });
-  const logs = [];
-  page.on('console', (m) => {
-    if (m.type() === 'error' || m.type() === 'warning') logs.push(`[${m.type()}] ${m.text()}`);
-  });
-  page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
+  const logs = collectLogs(page);
   const url = `${base}/?debug&skipBenchmark&tier=${tier}${backend === 'webgl' ? '&webgl' : ''}`;
   await page.goto(url, { waitUntil: 'load', timeout: 120_000 });
-  await page.waitForFunction(() => window.__flow?.getState().screen === 'title', null, { timeout: 120_000 });
+  await waitForTitle(page);
   await page.waitForTimeout(Number(opt.wait || 2500));
   const path = `${out}/${backend}-T1-${tier}.png`;
   await page.screenshot({ path });
@@ -65,10 +47,7 @@ async function captureTitle(browser, backend, tier) {
 }
 
 await mkdir(out, { recursive: true });
-const browser = await chromium.launch({
-  channel: 'chrome',
-  args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu'],
-});
+const browser = await launchChrome();
 const results = [];
 for (const backend of backends) {
   for (const shot of shots)

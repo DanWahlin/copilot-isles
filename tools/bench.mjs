@@ -1,16 +1,11 @@
 #!/usr/bin/env node
 // Phase 0 benchmark / tier emulation. Example:
 //   node tools/bench.mjs --base=http://127.0.0.1:5301 --out=docs/reports/phase0-bench --duration=60
-import { chromium } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import { collectLogs, launchChrome, parseFlags, parseSize } from './lib/browser.mjs';
 
-const opt = Object.fromEntries(
-  process.argv.slice(2).map((a) => {
-    const [k, ...v] = a.replace(/^--/, '').split('=');
-    return [k, v.length ? v.join('=') : true];
-  }),
-);
+const opt = parseFlags();
 
 const base = String(opt.base || 'http://127.0.0.1:5301').replace(/\/$/, '');
 const outBase = String(opt.out || 'docs/reports/phase0-bench');
@@ -27,11 +22,6 @@ const BUDGET = {
   high: { gpuMs: 4.0, cpuMs: 4, draws: 300, tris: 2_000_000, programs: 150, throttle: 1 },
   ultra: { gpuMs: 14.0, cpuMs: 4, draws: 400, tris: 3_500_000, programs: 150, throttle: 1 },
 };
-
-function parseSize(s) {
-  const [width, height] = s.split('x').map(Number);
-  return { width: width || 1600, height: height || 900 };
-}
 
 function percentile(values, p) {
   if (!values.length) return 0;
@@ -51,11 +41,7 @@ async function openPage(browser, url, throttle = 1) {
   const page = await browser.newPage({ viewport });
   const cdp = await page.context().newCDPSession(page);
   if (throttle > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: throttle });
-  const logs = [];
-  page.on('console', (m) => {
-    if (m.type() === 'error' || m.type() === 'warning') logs.push(`[${m.type()}] ${m.text()}`);
-  });
-  page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
+  const logs = collectLogs(page);
   await page.goto(url, { waitUntil: 'load', timeout: 120_000 });
   return { page, logs, cdp };
 }
@@ -224,15 +210,7 @@ function makeMarkdown({ runs, titles, fallback }) {
 }
 
 await mkdir(dirname(outBase), { recursive: true });
-const browser = await chromium.launch({
-  channel: 'chrome',
-  args: [
-    '--use-angle=metal',
-    '--ignore-gpu-blocklist',
-    '--enable-unsafe-webgpu',
-    '--autoplay-policy=no-user-gesture-required',
-  ],
-});
+const browser = await launchChrome({ autoplay: true });
 const selectedTiers = quick ? ['low', 'high'] : tiers;
 const titleTiers = ['high', 'low'];
 const titles = [];

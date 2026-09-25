@@ -1,16 +1,11 @@
 #!/usr/bin/env node
 // Simple PNG baseline comparator using browser canvas decoding.
 // node tools/visual-compare.mjs --base=tests/visual/baseline --candidate=test-results/visual --tolerance=0.015
-import { chromium } from '@playwright/test';
-import { readdir, stat } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { launchChrome, parseFlags } from './lib/browser.mjs';
 
-const opt = Object.fromEntries(
-  process.argv.slice(2).map((a) => {
-    const [k, ...v] = a.replace(/^--/, '').split('=');
-    return [k, v.length ? v.join('=') : true];
-  }),
-);
+const opt = parseFlags();
 const baseDir = resolve(String(opt.base || 'tests/visual/baseline'));
 const candidateDir = resolve(String(opt.candidate || 'test-results/visual'));
 const tolerance = Number(opt.tolerance || 0.015);
@@ -20,12 +15,13 @@ async function pngs(dir) {
   return (await readdir(dir)).filter((f) => f.endsWith('.png')).sort();
 }
 
+const dataUrl = async (path) => `data:image/png;base64,${(await readFile(path)).toString('base64')}`;
+
 const files = await pngs(baseDir);
-const browser = await chromium.launch({ channel: 'chrome' });
+const browser = await launchChrome({ gpu: false });
 const page = await browser.newPage();
 const results = [];
 for (const file of files) {
-  const a = `file://${join(baseDir, file)}`;
   const bPath = join(candidateDir, file);
   try {
     await stat(bPath);
@@ -33,7 +29,9 @@ for (const file of files) {
     results.push({ file, ok: false, error: 'missing candidate' });
     continue;
   }
-  const b = `file://${bPath}`;
+  // Data URLs, since Chrome won't decode file:// images into a blank page's canvas.
+  const a = await dataUrl(join(baseDir, file));
+  const b = await dataUrl(bPath);
   const r = await page.evaluate(
     async ({ a, b }) => {
       async function load(url) {

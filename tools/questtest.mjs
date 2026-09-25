@@ -7,29 +7,17 @@
 // the lighthouse, and the christening at the pier head, answered through the real UI where it matters
 // (hotspots are clicked; other types use __dev.answer()), with screenshots at each beat.
 // node tools/questtest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/quest]
-import { chromium } from '@playwright/test';
+import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
 
-const opt = Object.fromEntries(
-  process.argv.slice(2).map((a) => {
-    const [k, ...v] = a.replace(/^--/, '').split('=');
-    return [k, v.length ? v.join('=') : true];
-  }),
-);
+const opt = parseFlags();
 const base = opt.base || 'http://localhost:5301';
 const out = opt.out || '/tmp/shots/quest';
 const tag = opt.webgl ? 'gl' : 'gpu';
 const url = `${base}/devpages/play.html?auto&quiet&shot${opt.webgl ? '&webgl' : ''}`;
 
-const browser = await chromium.launch({
-  channel: 'chrome',
-  args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu'],
-});
+const browser = await launchChrome();
 const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
-const logs = [];
-page.on('console', (m) => {
-  if (m.type() === 'error') logs.push(`[error] ${m.text()}`);
-});
-page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
+const logs = collectLogs(page, { types: ['error'] });
 await page.goto(url, { waitUntil: 'load' });
 await page.waitForFunction(() => window.__dev?.ready === true && window.__dev.session(), null, {
   timeout: 90000,

@@ -1,17 +1,12 @@
 #!/usr/bin/env node
 // Screenshots of the learning overlay (devpages/learn.html): every quiz type, answered states, pages, Logbook.
 // node tools/learnshots.mjs [--base=http://localhost:5301] [--out=/tmp/shots/learn] [--debug]
-import { chromium } from '@playwright/test';
+import { launchChrome, parseFlags } from './lib/browser.mjs';
 
-const opt = Object.fromEntries(
-  process.argv.slice(2).map((a) => {
-    const [k, ...v] = a.replace(/^--/, '').split('=');
-    return [k, v.length ? v.join('=') : true];
-  }),
-);
+const opt = parseFlags();
 const base = opt.base || 'http://localhost:5301';
 const out = opt.out || '/tmp/shots/learn';
-const browser = await chromium.launch({ channel: 'chrome' });
+const browser = await launchChrome({ gpu: false });
 const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
 const logs = [];
 page.on('console', (m) => m.type() === 'error' && logs.push(m.text()));
