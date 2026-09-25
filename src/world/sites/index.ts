@@ -10,13 +10,10 @@ import { createMill, type MillSite } from './mill';
 import { createPaletteStand, type PaletteStandSite } from './palette-stand';
 import { ANCHORAGE_SLUICE } from './sluice-logic';
 
-export type { BottleSite } from './bottles';
-export type { CraneSite, CrateKind } from './crane';
+export type { CraneSite } from './crane';
 export { BRIGANTINE_CARGO } from './crane';
-export type { GearId, GearRackSite, LooseId } from './gear-rack';
-export type { HammockSite } from './hammock';
+export type { GearRackSite } from './gear-rack';
 export type { MillCellWater, MillSite } from './mill';
-export type { PaletteStandSite } from './palette-stand';
 
 /** Anchorage Cay's puzzle set pieces (POC §4.5), built with the world so vegetation keeps off them. */
 export interface CoveSites {
@@ -54,7 +51,7 @@ export async function createCoveSites(o: {
   const crane = createCrane({ tier: o.tier, kit });
   const gear = createGearRack({ tier: o.tier, kit, ground: o.ground });
   const palette = createPaletteStand({ tier: o.tier, kit, ground: o.ground });
-  const hammock = createHammock({ tier: o.tier, kit, heightField: o.heightField, ground: o.ground });
+  const hammock = createHammock({ tier: o.tier, kit, ground: o.ground });
   const bottles = createBottles({ kit, ground: o.ground });
   const group = new Group();
   group.name = 'puzzle sites';

@@ -20,7 +20,7 @@ export interface SignStyle {
 const FONT = (sz: number) => `600 ${sz}px Georgia, 'Times New Roman', serif`;
 
 /** Paints `lines` onto `canvas` as a timber board or a canvas banner, with lettering that fits. */
-export function paintSign(canvas: HTMLCanvasElement, lines: readonly string[], o: SignStyle = {}): void {
+function paintSign(canvas: HTMLCanvasElement, lines: readonly string[], o: SignStyle = {}): void {
   const ctx = canvas.getContext('2d')!;
   const px = canvas.width;
   const ch = canvas.height;

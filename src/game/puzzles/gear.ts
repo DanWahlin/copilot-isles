@@ -1,4 +1,4 @@
-import type { GearRackSite } from '../../world/sites/gear-rack';
+import type { GearRackSite } from '../../world/sites';
 import {
   GEAR_IDS,
   allChecked,

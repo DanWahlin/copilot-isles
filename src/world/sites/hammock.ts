@@ -1,19 +1,19 @@
-import {
-  BufferAttribute,
-  BufferGeometry,
-  Color,
-  CylinderGeometry,
-  Group,
-  Matrix4,
-  Mesh,
-  Quaternion,
-  SphereGeometry,
-  Vector3,
-} from 'three/webgpu';
+import { BufferAttribute, BufferGeometry, CylinderGeometry, Group, Mesh, SphereGeometry } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
-import type { CircleObstacle, HeightField } from '../contracts';
+import type { CircleObstacle } from '../contracts';
 import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village';
-import { box, cylinder, merge, paint, plank, TRIM, worldUv } from './geo';
+import {
+  MeshBuilder,
+  box,
+  cylinder,
+  linearHex,
+  merge,
+  paint,
+  plank,
+  TRIM,
+  tubeBetween,
+  worldUv,
+} from './geo';
 
 export interface HammockSite {
   readonly group: Group;
@@ -23,26 +23,14 @@ export interface HammockSite {
   readonly spot: { x: number; y: number; z: number; heading: number };
   readonly colliders: { circles: CircleObstacle[]; boxes: VillageBoxCollider[] };
   readonly anchors: Record<string, VillageAnchor>;
-  readonly diagnostics: HammockDiagnostics;
   excludes(x: number, z: number): boolean;
   update(dt: number, t: number): void;
   dispose(): void;
 }
 
-export interface HammockDiagnostics {
-  readonly seatSand: number;
-  readonly spotSand: number;
-  readonly seatHeight: number;
-  readonly spotHeight: number;
-  readonly bottleB03Distance: number;
-  readonly lagoonCenterDistance: number;
-  readonly walkable: boolean;
-}
-
 export function createHammock(o: {
   tier: TierSettings;
   kit: VillageKit;
-  heightField: HeightField;
   ground: (x: number, z: number) => number;
 }): HammockSite {
   const detail = o.tier.tier === 'lite' ? 8 : o.tier.tier === 'low' ? 10 : 12;
@@ -66,7 +54,6 @@ export function createHammock(o: {
     x: seat.x + Math.sin(seat.heading) * 3.5,
     z: seat.z + Math.cos(seat.heading) * 3.5,
   };
-  const diagnostics = placementDiagnostics(o.heightField, seat, spot);
 
   const woodMesh = new Mesh(buildWood(y, detail), o.kit.materials.wood);
   woodMesh.name = 'bard hammock wood props';
@@ -110,7 +97,6 @@ export function createHammock(o: {
     spot,
     colliders,
     anchors,
-    diagnostics,
     excludes(x, z) {
       return Math.hypot(x - CAMP.x, z - CAMP.z) < 10.5 || Math.hypot(x - FIRE.x, z - FIRE.z) < 1.2;
     },
@@ -138,11 +124,6 @@ const POST_L = { x: -21.0, z: CAMP.z + 0.28 } as const;
 const POST_R = { x: -15.0, z: CAMP.z + 0.28 } as const;
 const STOOL = { x: -15.55, z: 84.6 } as const;
 const FIRE = { x: -20.05, z: 84.2 } as const;
-const BOTTLE_B03 = { x: 8, z: 88 } as const;
-const LAGOON_CENTER = { x: 10, z: 150 } as const;
-const tmpQ = new Quaternion();
-const tmpM = new Matrix4();
-const tmpC = new Color();
 
 function buildWood(ground: (x: number, z: number) => number, detail: number): BufferGeometry {
   const parts: BufferGeometry[] = [];
@@ -268,7 +249,7 @@ function addColdLogs(parts: BufferGeometry[], ground: (x: number, z: number) => 
 }
 
 function buildCloth(ground: (x: number, z: number) => number): ClothBuild {
-  const builder = new MeshBuild();
+  const builder = new MeshBuilder('xz', 0.35);
   const hammockStart = builder.vertexCount;
   addHammock(builder, ground);
   const hammockCount = builder.vertexCount - hammockStart;
@@ -283,7 +264,7 @@ function buildCloth(ground: (x: number, z: number) => number): ClothBuild {
   return { geometry, hammockStart, hammockCount, hammockBase };
 }
 
-function addHammock(builder: MeshBuild, ground: (x: number, z: number) => number): void {
+function addHammock(builder: MeshBuilder, ground: (x: number, z: number) => number): void {
   const cols = 18;
   const rows = 6;
   const leftY = ground(POST_L.x, POST_L.z) + 1.08;
@@ -314,7 +295,7 @@ function addHammock(builder: MeshBuild, ground: (x: number, z: number) => number
   }
 }
 
-function addBunting(builder: MeshBuild, ground: (x: number, z: number) => number): void {
+function addBunting(builder: MeshBuilder, ground: (x: number, z: number) => number): void {
   const count = 7;
   for (let i = 0; i < count; i += 1) {
     const u = i / (count - 1);
@@ -328,7 +309,7 @@ function addBunting(builder: MeshBuild, ground: (x: number, z: number) => number
   }
 }
 
-function addSongbook(builder: MeshBuild, ground: (x: number, z: number) => number): void {
+function addSongbook(builder: MeshBuilder, ground: (x: number, z: number) => number): void {
   const y = ground(STOOL.x, STOOL.z) + 0.595;
   const cx = STOOL.x - 0.02;
   const cz = STOOL.z - 0.01;
@@ -347,7 +328,7 @@ function addSongbook(builder: MeshBuild, ground: (x: number, z: number) => numbe
   );
 }
 
-function addMat(builder: MeshBuild, ground: (x: number, z: number) => number): void {
+function addMat(builder: MeshBuilder, ground: (x: number, z: number) => number): void {
   const y = ground(STOOL.x - 0.15, STOOL.z + 0.75) + 0.025;
   const x0 = STOOL.x - 0.65;
   const z0 = STOOL.z + 0.42;
@@ -437,107 +418,4 @@ function swayHammock(build: ClothBuild, t: number): void {
     pos.setXYZ(build.hammockStart + i, x, y + sway * (0.4 + Math.sin(u * Math.PI) * 0.6), z + sway * 0.45);
   }
   pos.needsUpdate = true;
-}
-
-function placementDiagnostics(
-  heightField: HeightField,
-  seat: { x: number; y: number; z: number },
-  spot: { x: number; y: number; z: number },
-): HammockDiagnostics {
-  const seatMask = heightField.masksAt(seat.x, seat.z);
-  const spotMask = heightField.masksAt(spot.x, spot.z);
-  const seatHeight = heightField.heightAt(seat.x, seat.z);
-  const spotHeight = heightField.heightAt(spot.x, spot.z);
-  return {
-    seatSand: seatMask.sand,
-    spotSand: spotMask.sand,
-    seatHeight,
-    spotHeight,
-    bottleB03Distance: Math.hypot(CAMP.x - BOTTLE_B03.x, CAMP.z - BOTTLE_B03.z),
-    lagoonCenterDistance: Math.hypot(CAMP.x - LAGOON_CENTER.x, CAMP.z - LAGOON_CENTER.z),
-    walkable: seatMask.sand > 0.8 && spotMask.sand > 0.8 && seatHeight > 0 && spotHeight > 0,
-  };
-}
-
-class MeshBuild {
-  readonly positions: number[] = [];
-  readonly colors: number[] = [];
-  readonly uvs: number[] = [];
-  readonly indices: number[] = [];
-  private tint = 0xffffff;
-
-  get vertexCount(): number {
-    return this.positions.length / 3;
-  }
-
-  color(c: number): void {
-    this.tint = c;
-  }
-
-  vertex(p: { x: number; y: number; z: number }, c = this.tint): number {
-    const i = this.vertexCount;
-    this.positions.push(p.x, p.y, p.z);
-    this.uvs.push(p.x * 0.35, p.z * 0.35);
-    this.colors.push(((c >> 16) & 255) / 255, ((c >> 8) & 255) / 255, (c & 255) / 255);
-    return i;
-  }
-
-  tri(
-    a: { x: number; y: number; z: number },
-    b: { x: number; y: number; z: number },
-    c: { x: number; y: number; z: number },
-  ): void {
-    const i = this.vertex(a);
-    this.vertex(b);
-    this.vertex(c);
-    this.indices.push(i, i + 1, i + 2);
-  }
-
-  quad(
-    a: { x: number; y: number; z: number },
-    b: { x: number; y: number; z: number },
-    c: { x: number; y: number; z: number },
-    d: { x: number; y: number; z: number },
-  ): void {
-    const i = this.vertex(a);
-    this.vertex(b);
-    this.vertex(c);
-    this.vertex(d);
-    this.indices.push(i, i + 1, i + 3, i + 1, i + 2, i + 3);
-  }
-
-  geometry(): BufferGeometry {
-    const g = new BufferGeometry();
-    g.setAttribute('position', new BufferAttribute(new Float32Array(this.positions), 3));
-    g.setAttribute('uv', new BufferAttribute(new Float32Array(this.uvs), 2));
-    g.setAttribute('color', new BufferAttribute(new Float32Array(this.colors), 3));
-    g.setIndex(this.indices);
-    g.computeVertexNormals();
-    return g;
-  }
-}
-
-function linearHex(hex: number): number {
-  tmpC.setHex(hex);
-  const b = (c: number) => Math.round(Math.min(1, Math.max(0, c)) * 255);
-  return (b(tmpC.r) << 16) | (b(tmpC.g) << 8) | b(tmpC.b);
-}
-
-function tubeBetween(
-  radius: number,
-  a: { x: number; y: number; z: number },
-  b: { x: number; y: number; z: number },
-  tint: number,
-  segments: number,
-): BufferGeometry {
-  const va = new Vector3(a.x, a.y, a.z);
-  const vb = new Vector3(b.x, b.y, b.z);
-  const dir = vb.clone().sub(va);
-  const len = Math.max(0.03, dir.length());
-  const g = new CylinderGeometry(radius, radius, len, segments, 1);
-  tmpQ.setFromUnitVectors(new Vector3(0, 1, 0), dir.normalize());
-  tmpM.compose(va.add(vb).multiplyScalar(0.5), tmpQ, new Vector3(1, 1, 1));
-  g.applyMatrix4(tmpM);
-  worldUv(g, 0.8);
-  return paint(g, tint);
 }

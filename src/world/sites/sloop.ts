@@ -2,13 +2,10 @@ import {
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
-  CylinderGeometry,
   DoubleSide,
   Group,
-  Matrix4,
   Mesh,
   MeshStandardNodeMaterial,
-  Quaternion,
   SRGBColorSpace,
   TorusGeometry,
   Vector3,
@@ -16,13 +13,23 @@ import {
 } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
 import type { VillageKit } from '../village';
-import { box, cylinder, merge, paint, plank, TRIM, worldUv } from './geo';
+import {
+  box,
+  coloredIndexedGeometry,
+  cylinder,
+  merge,
+  paint,
+  plank,
+  TRIM,
+  tubeBetween,
+  worldUv,
+} from './geo';
 import { lerp } from '../../util/math';
 
 export type FlagKind = 'you' | 'captain' | 'guild';
 
 /** Canvas artwork for a flag, about 2:1 (each call returns a new canvas). */
-export function drawFlag(kind: FlagKind): HTMLCanvasElement {
+function drawFlag(kind: FlagKind): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 256;
@@ -111,12 +118,8 @@ const MAST_Z = 0.55;
 const MAST_H = 6.2;
 const FLAG_H = 0.56;
 const FLAG_W = 1.12;
-const tmpA = new Vector3();
-const tmpB = new Vector3();
-const tmpMid = new Vector3();
-const tmpDir = new Vector3();
-const tmpQuat = new Quaternion();
-const tmpMat = new Matrix4();
+/** The sloop's rigging runs at a finer UV scale than the other sites, and lines can be very short. */
+const SLOOP_TUBE = { uvScale: 0.6, minLength: 0 } as const;
 
 export function createSloop(o: SloopOptions): Sloop {
   const detail = detailForTier(o.tier);
@@ -254,13 +257,7 @@ function createHull(stations: number, accent: number): BufferGeometry {
   }
   addSideRibbon(indices, positions, uvs, colors, stations, 0.14, 0.31, accent);
   addSideRibbon(indices, positions, uvs, colors, stations, -0.16, -0.03, 0x2f2f2a);
-  const g = new BufferGeometry();
-  g.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
-  g.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
-  g.setAttribute('color', new BufferAttribute(new Float32Array(colors), 3));
-  g.setIndex(indices);
-  g.computeVertexNormals();
-  return g;
+  return coloredIndexedGeometry(positions, uvs, colors, indices);
 }
 
 function hullShapeAt(z: number): number {
@@ -337,9 +334,9 @@ function createDeck(): BufferGeometry {
       const cover = { x: side * half, y: y + 0.035, z };
       const rail = { x: side * (half + 0.08), y: y + 0.17, z };
       const rub = { x: side * (hullHalfBeamAt(z) + 0.04), y: 0.24, z };
-      if (coverPrev) parts.push(tubeBetween(0.038, coverPrev, cover, 0xeedcc4, 5));
-      if (railPrev) parts.push(tubeBetween(0.035, railPrev, rail, 0xd8bea0, 5));
-      if (rubPrev) parts.push(tubeBetween(0.045, rubPrev, rub, 0xb78652, 5));
+      if (coverPrev) parts.push(tubeBetween(0.038, coverPrev, cover, 0xeedcc4, 5, SLOOP_TUBE));
+      if (railPrev) parts.push(tubeBetween(0.035, railPrev, rail, 0xd8bea0, 5, SLOOP_TUBE));
+      if (rubPrev) parts.push(tubeBetween(0.045, rubPrev, rub, 0xb78652, 5, SLOOP_TUBE));
       coverPrev = cover;
       railPrev = rail;
       rubPrev = rub;
@@ -365,6 +362,7 @@ function createDeck(): BufferGeometry {
           { x, y: deckYAt(x, b) + 0.016, z: b },
           0x6f4a28,
           5,
+          SLOOP_TUBE,
         ),
       );
     }
@@ -376,6 +374,7 @@ function createDeck(): BufferGeometry {
       { x: 0, y: 1.26, z: HALF_LENGTH - 0.22 },
       0xe0c7a8,
       7,
+      SLOOP_TUBE,
     ),
   );
   parts.push(plank(2.0, 0.78, 0.13, { y: 0.02, z: -HALF_LENGTH + 0.1 }, 0xd3b18c, TRIM.dark, 0.7));
@@ -409,13 +408,7 @@ function deckSurface(stations: number, across: number): BufferGeometry {
       indices.push(a, a + across + 1, a + 1, a + 1, a + across + 1, a + across + 2);
     }
   }
-  const g = new BufferGeometry();
-  g.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
-  g.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
-  g.setAttribute('color', new BufferAttribute(new Float32Array(colors), 3));
-  g.setIndex(indices);
-  g.computeVertexNormals();
-  return g;
+  return coloredIndexedGeometry(positions, uvs, colors, indices);
 }
 
 function addDeckDetails(buckets: Record<BucketKey, BufferGeometry[]>, detail: Detail, accent: number): void {
@@ -435,6 +428,7 @@ function addDeckDetails(buckets: Record<BucketKey, BufferGeometry[]>, detail: De
       { x: 0, y: deckYAt(0, 4.45) + 0.32, z: 6.25 },
       0xe3ccb0,
       detail.cyl,
+      SLOOP_TUBE,
     ),
   );
   buckets.wood.push(
@@ -448,6 +442,7 @@ function addDeckDetails(buckets: Record<BucketKey, BufferGeometry[]>, detail: De
       { x: -1.18, y: deckYAt(-1.18, 1.55) + 0.08, z: 1.55 },
       0xe5d1b8,
       6,
+      SLOOP_TUBE,
     ),
   );
   buckets.wood.push(
@@ -457,6 +452,7 @@ function addDeckDetails(buckets: Record<BucketKey, BufferGeometry[]>, detail: De
       { x: 1.18, y: deckYAt(1.18, 1.9) + 0.08, z: 1.9 },
       0xe5d1b8,
       6,
+      SLOOP_TUBE,
     ),
   );
   buckets.wood.push(
@@ -467,7 +463,7 @@ function addDeckDetails(buckets: Record<BucketKey, BufferGeometry[]>, detail: De
       buckets.metal.push(cylinder(0.05, 0.06, 0.12, { x, y: deckYAt(x, z) + 0.03, z }, 0xd0c9bd, detail.cyl));
     for (const z of [-1.85, 1.85]) {
       buckets.rope.push(
-        tubeBetween(0.09, { x, y: 0.1, z }, { x, y: 0.78, z: z + 0.08 }, 0xd8c092, detail.cyl),
+        tubeBetween(0.09, { x, y: 0.1, z }, { x, y: 0.78, z: z + 0.08 }, 0xd8c092, detail.cyl, SLOOP_TUBE),
       );
     }
   }
@@ -480,6 +476,7 @@ function addDeckDetails(buckets: Record<BucketKey, BufferGeometry[]>, detail: De
       { x: -1.05, y: deckYAt(-1.05, -2.95) + 0.12, z: -2.95 },
       0xd9bf93,
       5,
+      SLOOP_TUBE,
     ),
   );
   buckets.rope.push(
@@ -489,6 +486,7 @@ function addDeckDetails(buckets: Record<BucketKey, BufferGeometry[]>, detail: De
       { x: 1.05, y: deckYAt(1.05, -2.95) + 0.12, z: -2.95 },
       0xd9bf93,
       5,
+      SLOOP_TUBE,
     ),
   );
 }
@@ -499,8 +497,8 @@ function addRig(buckets: Record<BucketKey, BufferGeometry[]>, detail: Detail): v
   const boomIn = { x: 0, y: 2.24, z: MAST_Z - 0.2 };
   const boomEnd = { x: 0, y: 2.22, z: -3.45 };
   const bow = { x: 0, y: 0.8, z: 4.72 };
-  buckets.wood.push(tubeBetween(0.085, mastBase, mastTop, 0xe9d7bf, detail.cyl));
-  buckets.wood.push(tubeBetween(0.055, boomIn, boomEnd, 0xe4cfb3, detail.cyl));
+  buckets.wood.push(tubeBetween(0.085, mastBase, mastTop, 0xe9d7bf, detail.cyl, SLOOP_TUBE));
+  buckets.wood.push(tubeBetween(0.055, boomIn, boomEnd, 0xe4cfb3, detail.cyl, SLOOP_TUBE));
   buckets.wood.push(
     tubeBetween(
       0.045,
@@ -508,6 +506,7 @@ function addRig(buckets: Record<BucketKey, BufferGeometry[]>, detail: Detail): v
       { x: 0.04, y: 2.36, z: -2.95 },
       0xdfc7a9,
       detail.cyl,
+      SLOOP_TUBE,
     ),
   );
   addFurledBundle(
@@ -528,11 +527,13 @@ function addRig(buckets: Record<BucketKey, BufferGeometry[]>, detail: Detail): v
     0xefe4cc,
     detail,
   );
-  buckets.rope.push(tubeBetween(detail.ropeRadius, mastTop, bow, 0xe6cfa3, 6));
-  buckets.rope.push(tubeBetween(detail.ropeRadius, mastTop, { x: 0, y: 0.82, z: -4.55 }, 0xe6cfa3, 6));
+  buckets.rope.push(tubeBetween(detail.ropeRadius, mastTop, bow, 0xe6cfa3, 6, SLOOP_TUBE));
+  buckets.rope.push(
+    tubeBetween(detail.ropeRadius, mastTop, { x: 0, y: 0.82, z: -4.55 }, 0xe6cfa3, 6, SLOOP_TUBE),
+  );
   for (const x of [-1.12, 1.12]) {
     for (const z of [-2.2, -0.5, 1.2])
-      buckets.rope.push(tubeBetween(detail.ropeRadius, mastTop, { x, y: 0.88, z }, 0xe6cfa3, 6));
+      buckets.rope.push(tubeBetween(detail.ropeRadius, mastTop, { x, y: 0.88, z }, 0xe6cfa3, 6, SLOOP_TUBE));
   }
 }
 
@@ -542,20 +543,55 @@ function addDolphinPiles(buckets: Record<BucketKey, BufferGeometry[]>, detail: D
     pile(-0.82, -6.0),
     pile(0.82, -6.0),
     pile(0, -6.38),
-    tubeBetween(0.045, { x: -0.82, y: 0.65, z: -6.0 }, { x: 0.82, y: 0.65, z: -6.0 }, 0xe1c898, detail.cyl),
-    tubeBetween(0.04, { x: -0.62, y: 0.45, z: -5.92 }, { x: 0, y: 0.5, z: -6.38 }, 0xe1c898, detail.cyl),
-    tubeBetween(0.04, { x: 0.62, y: 0.45, z: -5.92 }, { x: 0, y: 0.5, z: -6.38 }, 0xe1c898, detail.cyl),
+    tubeBetween(
+      0.045,
+      { x: -0.82, y: 0.65, z: -6.0 },
+      { x: 0.82, y: 0.65, z: -6.0 },
+      0xe1c898,
+      detail.cyl,
+      SLOOP_TUBE,
+    ),
+    tubeBetween(
+      0.04,
+      { x: -0.62, y: 0.45, z: -5.92 },
+      { x: 0, y: 0.5, z: -6.38 },
+      0xe1c898,
+      detail.cyl,
+      SLOOP_TUBE,
+    ),
+    tubeBetween(
+      0.04,
+      { x: 0.62, y: 0.45, z: -5.92 },
+      { x: 0, y: 0.5, z: -6.38 },
+      0xe1c898,
+      detail.cyl,
+      SLOOP_TUBE,
+    ),
   );
   for (const x of [-0.82, 0, 0.82]) {
     buckets.rope.push(
-      tubeBetween(0.025, { x: x - 0.18, y: 0.15, z: -6.06 }, { x: x + 0.18, y: 0.16, z: -5.94 }, 0xc9ad7f, 6),
+      tubeBetween(
+        0.025,
+        { x: x - 0.18, y: 0.15, z: -6.06 },
+        { x: x + 0.18, y: 0.16, z: -5.94 },
+        0xc9ad7f,
+        6,
+        SLOOP_TUBE,
+      ),
     );
     buckets.rope.push(
-      tubeBetween(0.025, { x: x - 0.18, y: 0.55, z: -6.06 }, { x: x + 0.18, y: 0.56, z: -5.94 }, 0xc9ad7f, 6),
+      tubeBetween(
+        0.025,
+        { x: x - 0.18, y: 0.55, z: -6.06 },
+        { x: x + 0.18, y: 0.56, z: -5.94 },
+        0xc9ad7f,
+        6,
+        SLOOP_TUBE,
+      ),
     );
   }
   buckets.rope.push(
-    tubeBetween(0.028, { x: 0, y: 0.72, z: -4.92 }, { x: 0, y: 0.48, z: -6.38 }, 0xd8bd8c, 7),
+    tubeBetween(0.028, { x: 0, y: 0.72, z: -4.92 }, { x: 0, y: 0.48, z: -6.38 }, 0xd8bd8c, 7, SLOOP_TUBE),
   );
 }
 
@@ -584,11 +620,11 @@ function addFurledBundle(
       z: lerp(a.z, b.z, t1),
     };
     buckets.cloth.push(
-      tubeBetween(radius * (0.78 + (i % 3) * 0.12), p0, p1, color, Math.max(6, detail.cyl - 2)),
+      tubeBetween(radius * (0.78 + (i % 3) * 0.12), p0, p1, color, Math.max(6, detail.cyl - 2), SLOOP_TUBE),
     );
     if (i > 0 && i % 2 === 0)
       buckets.rope.push(
-        tubeBetween(0.014, { ...p0, x: p0.x - 0.17 }, { ...p0, x: p0.x + 0.17 }, 0xc5a778, 5),
+        tubeBetween(0.014, { ...p0, x: p0.x - 0.17 }, { ...p0, x: p0.x + 0.17 }, 0xc5a778, 5, SLOOP_TUBE),
       );
   }
 }
@@ -598,26 +634,6 @@ function coil(radius: number, p: { x: number; y: number; z: number }, color: num
   g.rotateX(Math.PI / 2);
   g.translate(p.x, p.y, p.z);
   worldUv(g, 0.8);
-  return paint(g, color);
-}
-
-function tubeBetween(
-  radius: number,
-  a: { x: number; y: number; z: number },
-  b: { x: number; y: number; z: number },
-  color: number,
-  segments: number,
-): BufferGeometry {
-  tmpA.set(a.x, a.y, a.z);
-  tmpB.set(b.x, b.y, b.z);
-  tmpDir.subVectors(tmpB, tmpA);
-  const len = tmpDir.length();
-  const g = new CylinderGeometry(radius, radius, len, segments, 1);
-  tmpQuat.setFromUnitVectors(new Vector3(0, 1, 0), tmpDir.normalize());
-  tmpMid.addVectors(tmpA, tmpB).multiplyScalar(0.5);
-  tmpMat.compose(tmpMid, tmpQuat, new Vector3(1, 1, 1));
-  g.applyMatrix4(tmpMat);
-  worldUv(g, 0.6);
   return paint(g, color);
 }
 

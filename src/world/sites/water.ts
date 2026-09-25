@@ -178,7 +178,7 @@ export class WaterStrips {
 }
 
 /** Shallow, clear channel water: travelling streaks, lighter in the middle, foam at the edges and in falls. */
-export function createFlowingWaterMaterial(): MeshStandardNodeMaterial {
+function createFlowingWaterMaterial(): MeshStandardNodeMaterial {
   const m = new MeshStandardNodeMaterial({
     transparent: true,
     depthWrite: false,

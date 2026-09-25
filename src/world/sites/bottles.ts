@@ -17,7 +17,7 @@ export interface BottleSpot {
   yaw: number;
 }
 
-export const COVE_BOTTLES: readonly BottleSpot[] = [
+const COVE_BOTTLES: readonly BottleSpot[] = [
   // West strand, just past the end of the quay: the first one most players find.
   { id: 'B0.1', x: -156, z: -48, yaw: 2.2 },
   // South-west cove below the hill.

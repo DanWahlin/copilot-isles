@@ -9,7 +9,7 @@ export const N = 0;
 export const E = 1;
 export const S = 2;
 export const W = 3;
-export type Dir = 0 | 1 | 2 | 3;
+type Dir = 0 | 1 | 2 | 3;
 
 export type TileKind = 'straight' | 'corner' | 'cap' | 'blank';
 
@@ -40,9 +40,9 @@ export interface SluiceLayout {
   outlet: { row: number; col: number; side: Dir };
 }
 
-export const opposite = (d: Dir): Dir => ((d + 2) % 4) as Dir;
-export const ROW_STEP = [1, 0, -1, 0] as const;
-export const COL_STEP = [0, 1, 0, -1] as const;
+const opposite = (d: Dir): Dir => ((d + 2) % 4) as Dir;
+const ROW_STEP = [1, 0, -1, 0] as const;
+const COL_STEP = [0, 1, 0, -1] as const;
 
 /** Open sides of a tile turned `rot` quarter turns clockwise (N → E → S → W). */
 export function openings(kind: TileKind, rot: number): number {
@@ -51,9 +51,9 @@ export function openings(kind: TileKind, rot: number): number {
   return ((b << r) | (b >> (4 - r))) & 0b1111;
 }
 
-export const isOpen = (mask: number, d: Dir): boolean => (mask & (1 << d)) !== 0;
+const isOpen = (mask: number, d: Dir): boolean => (mask & (1 << d)) !== 0;
 
-export interface CellFlow {
+interface CellFlow {
   wet: boolean;
   /** Side the water came in through, or null when dry. */
   entry: Dir | null;

@@ -22,7 +22,7 @@ export interface GearDef {
 }
 
 /** In hanging order, left to right on the rack. */
-export const GEAR: readonly GearDef[] = [
+const GEAR: readonly GearDef[] = [
   { id: 'compass', name: 'compass', tool: 'Git', command: 'git --version', output: 'git version 2.49.0' },
   { id: 'lantern', name: 'lantern', tool: 'Node.js', command: 'node -v', output: 'v22.16.0' },
   { id: 'rope', name: 'rope coil', tool: 'npm', command: 'npm -v', output: '10.9.2' },
@@ -38,9 +38,9 @@ export const GEAR: readonly GearDef[] = [
 export const GEAR_IDS: readonly GearId[] = GEAR.map((g) => g.id);
 export const gearDef = (id: GearId): GearDef => GEAR.find((g) => g.id === id)!;
 
-export type PieceAt = 'loose' | 'carried' | 'hung';
+type PieceAt = 'loose' | 'carried' | 'hung';
 /** The lens only turns up once the spyglass check has failed. */
-export type LensAt = 'hidden' | 'loose' | 'carried' | 'fitted';
+type LensAt = 'hidden' | 'loose' | 'carried' | 'fitted';
 
 export interface GearState {
   pieces: Record<GearId, PieceAt>;
@@ -53,7 +53,7 @@ export interface GearState {
 
 export type GearPhase = 'gather' | 'lens' | 'ledger' | 'done';
 
-export type GearEvent =
+type GearEvent =
   | { kind: 'picked'; id: LooseId }
   | { kind: 'checked'; id: GearId }
   | { kind: 'missing'; id: 'spyglass' }
@@ -182,8 +182,8 @@ export function restoreGear(saved: readonly number[] | undefined, solved: boolea
   return s;
 }
 
-export const YOUR_HANDLE = 'your-handle';
-export const WRONG_HANDLE = 'someone-else';
+const YOUR_HANDLE = 'your-handle';
+const WRONG_HANDLE = 'someone-else';
 
 /** The terminal panel's readout at the rack: one version check per hung piece, in rack order. */
 export function rackTerminal(s: GearState): string[] {

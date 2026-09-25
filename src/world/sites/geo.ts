@@ -1,14 +1,16 @@
 import {
   BoxGeometry,
   BufferAttribute,
+  BufferGeometry,
+  Color,
   CylinderGeometry,
   Euler,
   Matrix4,
   Quaternion,
   Vector3,
-  type BufferGeometry,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { clamp01 } from '../../util/math';
 
 /**
  * Small geometry helpers for set pieces (puzzle sites): boxes and cylinders with a vertex colour
@@ -22,6 +24,14 @@ const q = new Quaternion();
 const e = new Euler();
 const v = new Vector3();
 const one = new Vector3(1, 1, 1);
+const tubeA = new Vector3();
+const tubeB = new Vector3();
+const tubeMid = new Vector3();
+const tubeDir = new Vector3();
+const tubeQ = new Quaternion();
+const tubeM = new Matrix4();
+const tubeUp = new Vector3(0, 1, 0);
+const linearColor = new Color();
 
 export function paint(g: BufferGeometry, hex: Rgb): BufferGeometry {
   const n = g.getAttribute('position').count;
@@ -66,6 +76,50 @@ export function worldUv(g: BufferGeometry, scale = 3.25): BufferGeometry {
   }
   g.setAttribute('uv', new BufferAttribute(uv, 2));
   return g;
+}
+
+export interface Point3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface XzPose {
+  x: number;
+  z: number;
+  rot: number;
+}
+
+export interface PoseFrame {
+  toWorld(lx: number, lz: number): { x: number; z: number };
+  right(amount: number): Vector3;
+  forward(amount: number): Vector3;
+}
+
+export function poseFrame(pose: XzPose): PoseFrame {
+  const c = Math.cos(pose.rot);
+  const s = Math.sin(pose.rot);
+  return {
+    toWorld(lx, lz) {
+      return { x: pose.x + lx * c + lz * s, z: pose.z - lx * s + lz * c };
+    },
+    right(amount) {
+      return new Vector3(c * amount, 0, -s * amount);
+    },
+    forward(amount) {
+      return new Vector3(s * amount, 0, c * amount);
+    },
+  };
+}
+
+/**
+ * Converts sail/app palette sRGB hex values into the same packed linear colour that three's
+ * `Color.setHex()` gives the ship materials.
+ */
+export function linearHex(hex: number): number {
+  linearColor.setHex(hex);
+  const b = (c: number) => Math.round(clamp01(c) * 255);
+  return (b(linearColor.r) << 16) | (b(linearColor.g) << 8) | b(linearColor.b);
 }
 
 export interface Placement {
@@ -170,6 +224,145 @@ export function cylinder(
   g.translate(0, h / 2, 0);
   place(g, p);
   return paint(g, hex);
+}
+
+export interface TubeBetweenOptions {
+  /** UV units per metre after placement. */
+  uvScale?: number;
+  /** Short safeguards for props whose endpoints are nearly coincident. */
+  minLength?: number;
+}
+
+export function tubeBetween(
+  radius: number,
+  a: Point3,
+  b: Point3,
+  hex: Rgb,
+  segments: number,
+  options: TubeBetweenOptions = {},
+): BufferGeometry {
+  tubeA.set(a.x, a.y, a.z);
+  tubeB.set(b.x, b.y, b.z);
+  tubeDir.subVectors(tubeB, tubeA);
+  const len = Math.max(options.minLength ?? 0.03, tubeDir.length());
+  const g = new CylinderGeometry(radius, radius, len, segments, 1);
+  tubeQ.setFromUnitVectors(tubeUp, tubeDir.normalize());
+  tubeMid.addVectors(tubeA, tubeB).multiplyScalar(0.5);
+  tubeM.compose(tubeMid, tubeQ, one);
+  g.applyMatrix4(tubeM);
+  worldUv(g, options.uvScale ?? 0.8);
+  return paint(g, hex);
+}
+
+export type MeshUvMode = 'xy' | 'xz';
+
+export class MeshBuilder {
+  readonly positions: number[] = [];
+  readonly colors: number[] = [];
+  readonly uvs: number[] = [];
+  readonly indices: number[] = [];
+  private tint = 0xffffff;
+
+  constructor(
+    private readonly uvMode: MeshUvMode,
+    private readonly uvScale: number,
+  ) {}
+
+  get vertexCount(): number {
+    return this.positions.length / 3;
+  }
+
+  color(c: number): void {
+    this.tint = c;
+  }
+
+  vertex(p: Point3, c = this.tint): number {
+    const i = this.vertexCount;
+    this.positions.push(p.x, p.y, p.z);
+    this.uvs.push(p.x * this.uvScale, (this.uvMode === 'xy' ? p.y : p.z) * this.uvScale);
+    this.colors.push(((c >> 16) & 255) / 255, ((c >> 8) & 255) / 255, (c & 255) / 255);
+    return i;
+  }
+
+  tri(a: Point3, b: Point3, c: Point3): void {
+    const i = this.vertex(a);
+    this.vertex(b);
+    this.vertex(c);
+    this.indices.push(i, i + 1, i + 2);
+  }
+
+  quad(a: Point3, b: Point3, c: Point3, d: Point3): void {
+    const i = this.vertex(a);
+    this.vertex(b);
+    this.vertex(c);
+    this.vertex(d);
+    this.indices.push(i, i + 1, i + 3, i + 1, i + 2, i + 3);
+  }
+
+  geometry(): BufferGeometry {
+    return coloredIndexedGeometry(this.positions, this.uvs, this.colors, this.indices);
+  }
+}
+
+export interface UvRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export class UvQuadBuilder {
+  readonly positions: number[] = [];
+  readonly uvs: number[] = [];
+  readonly indices: number[] = [];
+
+  constructor(
+    private readonly width = 1024,
+    private readonly height = 1024,
+  ) {}
+
+  plane(center: Vector3, right: Vector3, up: Vector3, rect: UvRect): void {
+    const u0 = rect.x / this.width;
+    const v0 = 1 - (rect.y + rect.h) / this.height;
+    const u1 = (rect.x + rect.w) / this.width;
+    const v1 = 1 - rect.y / this.height;
+    const a = this.vertex(center.clone().sub(right).sub(up), u0, v0);
+    const b = this.vertex(center.clone().add(right).sub(up), u1, v0);
+    const c = this.vertex(center.clone().add(right).add(up), u1, v1);
+    const d = this.vertex(center.clone().sub(right).add(up), u0, v1);
+    this.indices.push(a, b, d, b, c, d);
+  }
+
+  geometry(): BufferGeometry {
+    const g = new BufferGeometry();
+    g.setAttribute('position', new BufferAttribute(new Float32Array(this.positions), 3));
+    g.setAttribute('uv', new BufferAttribute(new Float32Array(this.uvs), 2));
+    g.setIndex(this.indices);
+    g.computeVertexNormals();
+    return g;
+  }
+
+  private vertex(p: Vector3, u: number, v: number): number {
+    const i = this.positions.length / 3;
+    this.positions.push(p.x, p.y, p.z);
+    this.uvs.push(u, v);
+    return i;
+  }
+}
+
+export function coloredIndexedGeometry(
+  positions: readonly number[],
+  uvs: readonly number[],
+  colors: readonly number[],
+  indices: readonly number[],
+): BufferGeometry {
+  const g = new BufferGeometry();
+  g.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  g.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
+  g.setAttribute('color', new BufferAttribute(new Float32Array(colors), 3));
+  g.setIndex(Array.from(indices));
+  g.computeVertexNormals();
+  return g;
 }
 
 /** Merges and disposes the parts (returns an empty geometry for an empty list). */

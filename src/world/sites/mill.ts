@@ -26,7 +26,7 @@ import { WaterStrips } from './water';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyNode = any;
 
-export type MillTileKind = 'straight' | 'corner' | 'cap' | 'blank';
+type MillTileKind = 'straight' | 'corner' | 'cap' | 'blank';
 
 /** What the sluice logic says about one cell's water (mirrors game/puzzles/sluice-logic CellFlow). */
 export interface MillCellWater {

@@ -1,9 +1,7 @@
 import {
-  BufferAttribute,
   BufferGeometry,
   CanvasTexture,
   ConeGeometry,
-  CylinderGeometry,
   DoubleSide,
   Euler,
   Group,
@@ -19,11 +17,9 @@ import {
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle } from '../contracts';
 import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village';
-import { box, cylinder, merge, paint, plank, TRIM, worldUv } from './geo';
+import { UvQuadBuilder, box, cylinder, merge, paint, plank, poseFrame, TRIM, tubeBetween } from './geo';
+import type { GearId, LooseId } from './gear-logic';
 import { createSparkleMaterial, shaftGeometry, starGeometry } from './sparkle';
-
-export type GearId = 'compass' | 'lantern' | 'rope' | 'spyglass';
-export type LooseId = GearId | 'lens';
 
 export interface GearRackSite {
   readonly group: Group;
@@ -237,7 +233,7 @@ export function createGearRack(o: {
   }
 
   function hungPose(id: GearId): Pose {
-    const p = localToWorld(RACK, hookLocalX(id), -0.25);
+    const p = poseFrame(RACK).toWorld(hookLocalX(id), -0.25);
     return {
       x: p.x,
       y: groundAt(RACK.x, RACK.z) + 1.04 + (settle[id] ?? 0),
@@ -254,16 +250,16 @@ export function createGearRack(o: {
   function addStaticRack(buckets: Buckets, detail: Detail): void {
     const y = groundAt(RACK.x, RACK.z);
     for (const sx of [-1, 1] as const) {
-      const foot = localToWorld(RACK, sx * 1.0, 0.08);
+      const foot = poseFrame(RACK).toWorld(sx * 1.0, 0.08);
       buckets.wood.push(plank(0.13, 1.95, 0.13, { x: foot.x, y, z: foot.z, ry: RACK.rot }, WOOD, TRIM.dark));
     }
     for (const ly of [0.62, 1.42, 1.84]) {
-      const p = localToWorld(RACK, 0, 0);
+      const p = poseFrame(RACK).toWorld(0, 0);
       buckets.wood.push(
         plank(2.15, 0.12, 0.16, { x: p.x, y: y + ly, z: p.z, ry: RACK.rot }, WOOD, TRIM.light),
       );
     }
-    const roof = localToWorld(RACK, 0, 0.08);
+    const roof = poseFrame(RACK).toWorld(0, 0.08);
     buckets.wood.push(
       plank(
         2.36,
@@ -275,7 +271,7 @@ export function createGearRack(o: {
       ),
     );
     for (let i = 0; i < GEAR_IDS.length; i += 1) {
-      const p = localToWorld(RACK, hookLocalX(GEAR_IDS[i]!), -0.18);
+      const p = poseFrame(RACK).toWorld(hookLocalX(GEAR_IDS[i]!), -0.18);
       buckets.metal.push(
         tubeBetween(
           0.018,
@@ -295,7 +291,7 @@ export function createGearRack(o: {
     buckets.wood.push(
       plank(1.25, 0.1, 0.88, { x: l.x, y: ly + 0.72, z: l.z, ry: l.rot, rx: -0.28 }, WOOD, TRIM.light),
     );
-    const cover = localToWorld(l, 0, 0.02);
+    const cover = poseFrame(l).toWorld(0, 0.02);
     buckets.cloth.push(
       box(
         0.08,
@@ -337,10 +333,6 @@ const BRASS = 0xd9b65a;
 const IRON = 0x6f6962;
 const ROPE = 0xd6bc8e;
 const GLASS = 0x9fd2dc;
-const tmpA = new Vector3();
-const tmpB = new Vector3();
-const tmpMid = new Vector3();
-const tmpDir = new Vector3();
 const tmpQ = new Quaternion();
 const tmpM = new Matrix4();
 const tmpE = new Euler();
@@ -375,18 +367,8 @@ function vectorAt(x: number, y: number, z: number): Vector3 {
   return new Vector3(x, y, z);
 }
 
-function localToWorld(
-  o: { x: number; z: number; rot: number },
-  lx: number,
-  lz: number,
-): { x: number; z: number } {
-  const c = Math.cos(o.rot);
-  const s = Math.sin(o.rot);
-  return { x: o.x + lx * c + lz * s, z: o.z - lx * s + lz * c };
-}
-
 function anchorFromLocal(o: { x: number; z: number; rot: number }, lx: number, lz: number): VillageAnchor {
-  const p = localToWorld(o, lx, lz);
+  const p = poseFrame(o).toWorld(lx, lz);
   return { x: p.x, y: 0, z: p.z, heading: o.rot };
 }
 
@@ -621,26 +603,6 @@ function coneCap(
   return paint(g, tint);
 }
 
-function tubeBetween(
-  radius: number,
-  a: { x: number; y: number; z: number },
-  b: { x: number; y: number; z: number },
-  tint: number,
-  segments: number,
-): BufferGeometry {
-  tmpA.set(a.x, a.y, a.z);
-  tmpB.set(b.x, b.y, b.z);
-  tmpDir.subVectors(tmpB, tmpA);
-  const len = Math.max(0.03, tmpDir.length());
-  const g = new CylinderGeometry(radius, radius, len, segments, 1);
-  tmpQ.setFromUnitVectors(new Vector3(0, 1, 0), tmpDir.normalize());
-  tmpMid.addVectors(tmpA, tmpB).multiplyScalar(0.5);
-  tmpM.compose(tmpMid, tmpQ, new Vector3(1, 1, 1));
-  g.applyMatrix4(tmpM);
-  worldUv(g, 0.8);
-  return paint(g, tint);
-}
-
 function transformGeometry(
   g: BufferGeometry,
   x: number,
@@ -765,32 +727,13 @@ function createTextGeometry(
   rects: Record<string, Rect>,
   ground: (x: number, z: number) => number,
 ): BufferGeometry {
-  const pos: number[] = [];
-  const uv: number[] = [];
-  const indices: number[] = [];
-  const add = (p: Vector3, u: number, v: number) => {
-    const i = pos.length / 3;
-    pos.push(p.x, p.y, p.z);
-    uv.push(u, v);
-    return i;
-  };
-  const addPlane = (center: Vector3, right: Vector3, up: Vector3, rect: Rect) => {
-    const u0 = rect.x / 1024;
-    const v0 = 1 - (rect.y + rect.h) / 1024;
-    const u1 = (rect.x + rect.w) / 1024;
-    const v1 = 1 - rect.y / 1024;
-    const a = add(center.clone().sub(right).sub(up), u0, v0);
-    const b = add(center.clone().add(right).sub(up), u1, v0);
-    const c = add(center.clone().add(right).add(up), u1, v1);
-    const d = add(center.clone().sub(right).add(up), u0, v1);
-    indices.push(a, b, d, b, c, d);
-  };
+  const quads = new UvQuadBuilder();
   const rackY = ground(RACK.x, RACK.z);
   for (let i = 0; i < GEAR_IDS.length; i += 1) {
-    const p = localToWorld(RACK, gearHookX(GEAR_IDS[i]!), -0.26);
-    addPlane(
+    const p = poseFrame(RACK).toWorld(gearHookX(GEAR_IDS[i]!), -0.26);
+    quads.plane(
       new Vector3(p.x, rackY + 0.64, p.z),
-      localRight(RACK.rot, -0.22),
+      poseFrame(RACK).right(-0.22),
       new Vector3(0, 0.085, 0),
       rects[
         GEAR_IDS[i] === 'compass'
@@ -803,23 +746,14 @@ function createTextGeometry(
       ]!,
     );
   }
-  const ledgerCenter = localToWorld(LEDGER, 0, -0.18);
-  addPlane(
+  const ledgerCenter = poseFrame(LEDGER).toWorld(0, -0.18);
+  quads.plane(
     new Vector3(ledgerCenter.x, ground(LEDGER.x, LEDGER.z) + 1.08, ledgerCenter.z),
-    localRight(LEDGER.rot, 0.6),
+    poseFrame(LEDGER).right(0.6),
     slopedLedgerUp(LEDGER.rot),
     rects.ledger,
   );
-  const g = new BufferGeometry();
-  g.setAttribute('position', new BufferAttribute(new Float32Array(pos), 3));
-  g.setAttribute('uv', new BufferAttribute(new Float32Array(uv), 2));
-  g.setIndex(indices);
-  g.computeVertexNormals();
-  return g;
-}
-
-function localRight(rot: number, amount: number): Vector3 {
-  return new Vector3(Math.cos(rot) * amount, 0, -Math.sin(rot) * amount);
+  return quads.geometry();
 }
 
 function slopedLedgerUp(rot: number): Vector3 {

@@ -27,7 +27,7 @@ import { createBerthFlag, createSloop, type Sloop } from './sloop';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyNode = any;
 
-export type CrateKind = 'ghost' | 'real';
+type CrateKind = 'ghost' | 'real';
 
 export interface CraneSite {
   readonly group: Group;

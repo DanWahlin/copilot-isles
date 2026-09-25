@@ -10,7 +10,7 @@
  * - Outside a clone it stops with "Run this script from the root of a cloned Git repository."
  * - "Preview first" is the course's rule rather than the script's, so Pol enforces it.
  */
-export type Owner = 'you' | 'captain' | 'guild';
+type Owner = 'you' | 'captain' | 'guild';
 
 export interface CraneFacing {
   id: 'berth1' | 'berth2' | 'berth3' | 'quay';
@@ -54,7 +54,6 @@ export const CRANE_CARGO = [
   { id: 'branches', title: 'Practice branches', count: 7, prop: 'hulls' },
   { id: 'prs', title: 'Pull requests', count: 3, prop: 'seals' },
 ] as const;
-export type CargoKind = (typeof CRANE_CARGO)[number]['id'];
 
 export interface CraneState {
   facing: number;
