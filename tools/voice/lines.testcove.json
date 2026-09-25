@@ -25,42 +25,42 @@
     {
       "id": "wingman.hint.01",
       "speaker": "Wingman",
-      "voice": "en-US-AnaNeural",
+      "voice": "en-US-Brian:DragonHDLatestNeural",
       "prosody": {
-        "pitch": "+20%"
+        "rate": "+3%"
       },
-      "fx": "wingman-bright",
-      "text": "First mate's job is hints. Captain's job is decisions."
+      "text": "First mate's job is hints. Captain's job is decisions.",
+      "fallbackVoice": "en-US-BrianNeural"
     },
     {
       "id": "wingman.hint.02",
       "speaker": "Wingman",
-      "voice": "en-US-AnaNeural",
+      "voice": "en-US-Brian:DragonHDLatestNeural",
       "prosody": {
-        "pitch": "+20%"
+        "rate": "+3%"
       },
-      "fx": "wingman-bright",
-      "text": "If the sign doesn't name your fork, don't pull the yes lever yet."
+      "text": "If the sign doesn't name your fork, don't pull the yes lever yet.",
+      "fallbackVoice": "en-US-BrianNeural"
     },
     {
       "id": "wingman.hint.03",
       "speaker": "Wingman",
-      "voice": "en-US-AnaNeural",
+      "voice": "en-US-Brian:DragonHDLatestNeural",
       "prosody": {
-        "pitch": "+20%"
+        "rate": "+3%"
       },
-      "fx": "wingman-bright",
-      "text": "You'll get unlimited retries here, so try the idea that feels safest."
+      "text": "You'll get unlimited retries here, so try the idea that feels safest.",
+      "fallbackVoice": "en-US-BrianNeural"
     },
     {
       "id": "wingman.suri.01",
       "speaker": "Wingman",
-      "voice": "en-US-AnaNeural",
+      "voice": "en-US-Brian:DragonHDLatestNeural",
       "prosody": {
-        "pitch": "+20%"
+        "rate": "+3%"
       },
-      "fx": "wingman-bright",
-      "text": "Quick one, Captain: those are GitHub Actions workflows. The Clock Tower’s Automations are something else, saved agent tasks, and you’ll learn those much later."
+      "text": "Quick one, Captain: those are GitHub Actions workflows. The Clock Tower’s Automations are something else, saved agent tasks, and you’ll learn those much later.",
+      "fallbackVoice": "en-US-BrianNeural"
     },
     {
       "id": "suri.idle.dry",
@@ -640,32 +640,32 @@
     {
       "id": "wingman.sail.01",
       "speaker": "Wingman",
-      "voice": "en-US-AnaNeural",
+      "voice": "en-US-Brian:DragonHDLatestNeural",
       "prosody": {
-        "pitch": "+20%"
+        "rate": "+3%"
       },
-      "fx": "wingman-bright",
-      "text": "Right, a quick sailing lesson. Take the helm at the gangway. W and S trim the sails, and A and D steer."
+      "text": "Right, a quick sailing lesson. Take the helm at the gangway. W and S trim the sails, and A and D steer.",
+      "fallbackVoice": "en-US-BrianNeural"
     },
     {
       "id": "wingman.sail.02",
       "speaker": "Wingman",
-      "voice": "en-US-AnaNeural",
+      "voice": "en-US-Brian:DragonHDLatestNeural",
       "prosody": {
-        "pitch": "+20%"
+        "rate": "+3%"
       },
-      "fx": "wingman-bright",
-      "text": "Bring her back alongside the pier and press E, and I’ll help you dock."
+      "text": "Bring her back alongside the pier and press E, and I’ll help you dock.",
+      "fallbackVoice": "en-US-BrianNeural"
     },
     {
       "id": "wingman.sail.03",
       "speaker": "Wingman",
-      "voice": "en-US-AnaNeural",
+      "voice": "en-US-Brian:DragonHDLatestNeural",
       "prosody": {
-        "pitch": "+20%"
+        "rate": "+3%"
       },
-      "fx": "wingman-bright",
-      "text": "Port Meridian’s east on the chart. Press M when you’re ready to plan the passage."
+      "text": "Port Meridian’s east on the chart. Press M when you’re ready to plan the passage.",
+      "fallbackVoice": "en-US-BrianNeural"
     },
     {
       "id": "lyra.idle.01",

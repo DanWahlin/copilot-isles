@@ -5,48 +5,48 @@
   "words": [
     {
       "word": "First",
-      "start": 0.05,
-      "end": 0.5125
+      "start": 0.067,
+      "end": 0.378
     },
     {
       "word": "mate's",
-      "start": 0.5125,
-      "end": 0.8875
+      "start": 0.378,
+      "end": 0.689
     },
     {
       "word": "job",
-      "start": 0.8875,
-      "end": 1.275
+      "start": 0.689,
+      "end": 1.31
     },
     {
       "word": "is",
-      "start": 1.275,
-      "end": 1.4625
+      "start": 1.31,
+      "end": 1.582
     },
     {
       "word": "hints",
-      "start": 1.4625,
-      "end": 2.9125
+      "start": 1.582,
+      "end": 2.707
     },
     {
       "word": "Captain's",
-      "start": 2.9125,
-      "end": 3.575
+      "start": 2.707,
+      "end": 3.212
     },
     {
       "word": "job",
-      "start": 3.575,
-      "end": 3.9625
+      "start": 3.212,
+      "end": 3.833
     },
     {
       "word": "is",
-      "start": 3.9625,
-      "end": 4.1375
+      "start": 3.833,
+      "end": 4.067
     },
     {
       "word": "decisions",
-      "start": 4.1375,
-      "end": 4.3875
+      "start": 4.067,
+      "end": 4.317
     }
   ]
 }

@@ -1,14 +1,47 @@
-type OfflineCtor = new (options: OfflineAudioContextOptions) => OfflineAudioContext;
+import { audioFileFor } from '../soundscape/format';
 
 export type InstrumentName =
-  'ukulele' | 'marimba' | 'steelPan' | 'shaker' | 'pad' | 'kalimba' | 'handDrum' | 'tick';
-export type InstrumentBuffers = Readonly<Record<InstrumentName, AudioBuffer>>;
+  | 'ukulele'
+  | 'islandPluck'
+  | 'islandPluckHigh'
+  | 'marimba'
+  | 'marimbaLow'
+  | 'marimbaHigh'
+  | 'steelPan'
+  | 'shaker'
+  | 'sampledShakerDown'
+  | 'sampledShakerUp'
+  | 'pad'
+  | 'kalimba'
+  | 'kalimbaHigh'
+  | 'handDrum'
+  | 'bongoLow'
+  | 'bongoHigh'
+  | 'conga'
+  | 'quinto'
+  | 'bass'
+  | 'tick';
+
+export interface InstrumentBuffer {
+  readonly buffer: AudioBuffer;
+  readonly rootMidi: number;
+  readonly offset: number;
+  readonly duration: number;
+  readonly percussion?: boolean;
+}
+
+export type InstrumentBuffers = Readonly<Record<InstrumentName, InstrumentBuffer>>;
+
+type OfflineCtor = new (options: OfflineAudioContextOptions) => OfflineAudioContext;
 
 type OfflineGlobal = typeof globalThis & {
   readonly webkitOfflineAudioContext?: OfflineCtor;
 };
 
-const OFFLINE_DURATION: Readonly<Record<InstrumentName, number>> = {
+type ProceduralInstrumentName =
+  'ukulele' | 'marimba' | 'steelPan' | 'shaker' | 'pad' | 'kalimba' | 'handDrum' | 'bass' | 'tick';
+
+const OFFLINE_DURATION: Readonly<Record<ProceduralInstrumentName, number>> = {
   ukulele: 1.8,
   marimba: 1.4,
   steelPan: 2.2,
@@ -16,19 +49,81 @@ const OFFLINE_DURATION: Readonly<Record<InstrumentName, number>> = {
   pad: 5.5,
   kalimba: 1.5,
   handDrum: 0.8,
+  bass: 1.7,
   tick: 0.18,
 };
 
-export async function prerenderInstruments(sampleRate: number): Promise<InstrumentBuffers | null> {
+const PROCEDURAL_ROOT: Readonly<Record<keyof typeof OFFLINE_DURATION, number>> = {
+  ukulele: 69,
+  marimba: 60,
+  steelPan: 69,
+  shaker: 72,
+  pad: 60,
+  kalimba: 69,
+  handDrum: 48,
+  bass: 36,
+  tick: 72,
+};
+
+const PERCUSSION = new Set<InstrumentName>([
+  'shaker',
+  'sampledShakerDown',
+  'sampledShakerUp',
+  'handDrum',
+  'bongoLow',
+  'bongoHigh',
+  'conga',
+  'quinto',
+  'tick',
+]);
+
+const VCSL_ATLAS: Partial<Record<InstrumentName, { offset: number; duration: number; rootMidi: number }>> = {
+  marimba: { offset: 0, duration: 1.45, rootMidi: 60 },
+  marimbaLow: { offset: 1.51, duration: 1.55, rootMidi: 53 },
+  marimbaHigh: { offset: 3.12, duration: 1.35, rootMidi: 67 },
+  kalimba: { offset: 4.53, duration: 1.45, rootMidi: 61 },
+  kalimbaHigh: { offset: 6.04, duration: 1.3, rootMidi: 71 },
+  islandPluck: { offset: 7.4, duration: 1.4, rootMidi: 60 },
+  islandPluckHigh: { offset: 8.86, duration: 1.25, rootMidi: 64 },
+  bongoHigh: { offset: 10.17, duration: 0.65, rootMidi: 72 },
+  bongoLow: { offset: 10.88, duration: 0.75, rootMidi: 60 },
+  conga: { offset: 11.69, duration: 0.7931, rootMidi: 55 },
+  quinto: { offset: 12.5431, duration: 0.65, rootMidi: 65 },
+  sampledShakerDown: { offset: 13.2531, duration: 0.2653, rootMidi: 72 },
+  sampledShakerUp: { offset: 13.5784, duration: 0.1265, rootMidi: 72 },
+};
+
+export async function prerenderInstruments(ctx: AudioContext): Promise<InstrumentBuffers | null> {
   const ctor = offlineCtor();
   if (!ctor) return null;
   const entries = await Promise.all(
-    (Object.keys(OFFLINE_DURATION) as InstrumentName[]).map(async (name) => [
+    (Object.keys(OFFLINE_DURATION) as ProceduralInstrumentName[]).map(async (name) => [
       name,
-      await renderInstrument(ctor, name, sampleRate),
+      wrap(await renderInstrument(ctor, name, ctx.sampleRate), PROCEDURAL_ROOT[name], name),
     ]),
   );
-  return Object.fromEntries(entries) as InstrumentBuffers;
+  const instruments = Object.fromEntries(entries) as Record<InstrumentName, InstrumentBuffer>;
+  instruments.marimbaLow = instruments.marimba;
+  instruments.marimbaHigh = instruments.marimba;
+  instruments.islandPluck = instruments.ukulele;
+  instruments.islandPluckHigh = instruments.ukulele;
+  instruments.kalimbaHigh = instruments.kalimba;
+  instruments.bongoLow = instruments.handDrum;
+  instruments.bongoHigh = instruments.handDrum;
+  instruments.conga = instruments.handDrum;
+  instruments.quinto = instruments.handDrum;
+  instruments.sampledShakerDown = instruments.shaker;
+  instruments.sampledShakerUp = instruments.shaker;
+  const atlas = await loadVcslAtlas(ctx);
+  if (atlas) {
+    for (const [name, sample] of Object.entries(VCSL_ATLAS) as [
+      InstrumentName,
+      NonNullable<(typeof VCSL_ATLAS)[InstrumentName]>,
+    ][]) {
+      instruments[name] = wrap(atlas, sample.rootMidi, name, sample.offset, sample.duration);
+    }
+  }
+  return instruments;
 }
 
 export function createReverbImpulse(ctx: BaseAudioContext, seconds = 1.9): AudioBuffer {
@@ -52,7 +147,7 @@ function offlineCtor(): OfflineCtor | null {
 
 async function renderInstrument(
   ctor: OfflineCtor,
-  name: InstrumentName,
+  name: ProceduralInstrumentName,
   sampleRate: number,
 ): Promise<AudioBuffer> {
   const duration = OFFLINE_DURATION[name];
@@ -81,11 +176,37 @@ async function renderInstrument(
     case 'handDrum':
       renderHandDrum(ctx, duration);
       break;
+    case 'bass':
+      renderBass(ctx, duration);
+      break;
     case 'tick':
       renderNoise(ctx, duration, 'bandpass', 2600, 0.12, 0.001, 0.035);
       break;
   }
   return ctx.startRendering();
+}
+
+function wrap(
+  buffer: AudioBuffer,
+  rootMidi: number,
+  name: InstrumentName,
+  offset = 0,
+  duration = buffer.duration,
+): InstrumentBuffer {
+  return { buffer, rootMidi, offset, duration, percussion: PERCUSSION.has(name) };
+}
+
+async function loadVcslAtlas(ctx: BaseAudioContext): Promise<AudioBuffer | null> {
+  if (typeof fetch !== 'function') return null;
+  try {
+    const audio = typeof Audio === 'function' ? new Audio() : null;
+    const response = await fetch(audioFileFor('/audio/music/anchorage-vcsl', audio));
+    if (!response.ok) return null;
+    const data = await response.arrayBuffer();
+    return await ctx.decodeAudioData(data);
+  } catch {
+    return null;
+  }
 }
 
 function renderKarplusStrong(
@@ -214,4 +335,27 @@ function renderHandDrum(ctx: OfflineAudioContext, duration: number): void {
   tone.start(0);
   tone.stop(duration);
   renderNoise(ctx, 0.18, 'lowpass', 900, 0.18, 0.001, 0.12);
+}
+
+function renderBass(ctx: OfflineAudioContext, duration: number): void {
+  const osc = ctx.createOscillator();
+  const sub = ctx.createOscillator();
+  const filter = ctx.createBiquadFilter();
+  const amp = ctx.createGain();
+  osc.type = 'triangle';
+  sub.type = 'sine';
+  osc.frequency.value = 110;
+  sub.frequency.value = 55;
+  filter.type = 'lowpass';
+  filter.frequency.value = 520;
+  amp.gain.setValueAtTime(0.0001, 0);
+  amp.gain.exponentialRampToValueAtTime(0.56, 0.018);
+  amp.gain.exponentialRampToValueAtTime(0.0001, duration);
+  osc.connect(filter);
+  sub.connect(filter);
+  filter.connect(amp).connect(ctx.destination);
+  osc.start(0);
+  sub.start(0);
+  osc.stop(duration);
+  sub.stop(duration);
 }

@@ -5,63 +5,63 @@
   "words": [
     {
       "word": "You'll",
-      "start": 0.05,
+      "start": 0.067,
       "end": 0.3
     },
     {
       "word": "get",
       "start": 0.3,
-      "end": 0.5375
+      "end": 0.456
     },
     {
       "word": "unlimited",
-      "start": 0.5375,
-      "end": 1.175
+      "start": 0.456,
+      "end": 1
     },
     {
       "word": "retries",
-      "start": 1.175,
-      "end": 1.8375
+      "start": 1,
+      "end": 1.582
     },
     {
       "word": "here",
-      "start": 1.8375,
-      "end": 2.4125
+      "start": 1.582,
+      "end": 1.893
     },
     {
       "word": "so",
-      "start": 2.4125,
-      "end": 2.65
+      "start": 1.893,
+      "end": 2.241
     },
     {
       "word": "try",
-      "start": 2.65,
-      "end": 2.9625
+      "start": 2.241,
+      "end": 2.514
     },
     {
       "word": "the",
-      "start": 2.9625,
-      "end": 3.1125
+      "start": 2.514,
+      "end": 2.669
     },
     {
       "word": "idea",
-      "start": 3.1125,
-      "end": 3.6125
+      "start": 2.669,
+      "end": 3.058
     },
     {
       "word": "that",
-      "start": 3.6125,
-      "end": 3.85
+      "start": 3.058,
+      "end": 3.251
     },
     {
       "word": "feels",
-      "start": 3.85,
-      "end": 4.2375
+      "start": 3.251,
+      "end": 3.524
     },
     {
       "word": "safest",
-      "start": 4.2375,
-      "end": 4.4875
+      "start": 3.524,
+      "end": 3.774
     }
   ]
 }

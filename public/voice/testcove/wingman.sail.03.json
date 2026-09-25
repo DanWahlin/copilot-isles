@@ -5,78 +5,78 @@
   "words": [
     {
       "word": "Port",
-      "start": 0.05,
-      "end": 0.3875
+      "start": 0.067,
+      "end": 0.223
     },
     {
       "word": "Meridian’s",
-      "start": 0.3875,
-      "end": 1.0875
+      "start": 0.223,
+      "end": 0.728
     },
     {
       "word": "east",
-      "start": 1.0875,
-      "end": 1.4625
+      "start": 0.728,
+      "end": 1.233
     },
     {
       "word": "on",
-      "start": 1.4625,
-      "end": 1.6
+      "start": 1.233,
+      "end": 1.427
     },
     {
       "word": "the",
-      "start": 1.6,
-      "end": 1.6875
+      "start": 1.427,
+      "end": 1.543
     },
     {
       "word": "chart",
-      "start": 1.6875,
-      "end": 3.025
+      "start": 1.543,
+      "end": 2.319
     },
     {
       "word": "Press",
-      "start": 3.025,
-      "end": 3.4125
+      "start": 2.319,
+      "end": 2.785
     },
     {
       "word": "M",
-      "start": 3.4125,
-      "end": 3.6875
+      "start": 2.785,
+      "end": 2.98
     },
     {
       "word": "when",
-      "start": 3.6875,
-      "end": 3.8625
+      "start": 2.98,
+      "end": 3.135
     },
     {
       "word": "you’re",
-      "start": 3.8625,
-      "end": 4.05
+      "start": 3.135,
+      "end": 3.367
     },
     {
       "word": "ready",
-      "start": 4.05,
-      "end": 4.35
+      "start": 3.367,
+      "end": 3.563
     },
     {
       "word": "to",
-      "start": 4.35,
-      "end": 4.4875
+      "start": 3.563,
+      "end": 3.717
     },
     {
       "word": "plan",
-      "start": 4.4875,
-      "end": 4.875
+      "start": 3.717,
+      "end": 3.99
     },
     {
       "word": "the",
-      "start": 4.875,
-      "end": 4.975
+      "start": 3.99,
+      "end": 4.106
     },
     {
       "word": "passage",
-      "start": 4.975,
-      "end": 5.225
+      "start": 4.106,
+      "end": 4.356
     }
   ]
 }

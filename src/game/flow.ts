@@ -125,6 +125,7 @@ export class GameFlow implements GameBridge {
   showTitle(): void {
     this.title ??= createTitleBackdrop(this.o.engine);
     this.title.setSails(this.learn.getState().sails);
+    if (this.audioReady) this.o.audio.music.setIsland('harbour');
     this.set({ screen: 'title', returnTo: 'title', hasSave: !!readJson<SaveData>(SAVE_KEY) });
     this.o.onTitleReady?.();
     this.prefetchTitlePacks();
@@ -337,7 +338,7 @@ export class GameFlow implements GameBridge {
     if (!ok || this.audioReady) return;
     this.audioReady = true;
     const a = this.o.audio;
-    a.music.setIsland('anchorage');
+    a.music.setIsland('harbour');
     a.sfx.setBed('wind', AMBIENT_BEDS.wind);
     a.sfx.setBed('surf_far', AMBIENT_BEDS.surf_far);
   }
@@ -396,6 +397,7 @@ export class GameFlow implements GameBridge {
         learn: this.learn,
       });
       if (this.audioReady) {
+        this.o.audio.music.setIsland('anchorage');
         this.o.audio.sfx.setBed('palms', AMBIENT_BEDS.palms);
         this.o.audio.sfx.setBed('birds_dawn', AMBIENT_BEDS.birds_dawn);
       }
