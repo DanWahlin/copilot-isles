@@ -11,7 +11,7 @@ import { Progress } from '../learn/progress';
 import { LearnStore } from '../learn/store';
 import { mountLearn } from '../ui/learn/LearnLayer';
 import '../ui/ui.css';
-import { createDevHarness } from './harness';
+import { compileAndStart, createDevHarness } from './harness';
 
 /**
  * Test Cove play page (Phase 0 T11): walk the harbor, talk to Nell, board the brigantine, sail,
@@ -100,8 +100,7 @@ engine.add({
   },
 });
 
-await renderer.compileAsync(scene, camera);
-engine.start();
+await compileAndStart(renderer, engine, scene, camera);
 startBtn.disabled = false;
 startBtn.textContent = 'Set sail';
 if (q.has('auto')) await begin(false);

@@ -13,7 +13,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { world } from '../world/uniforms';
 import { loadVillageKit, type VillageKit } from '../world/village';
 import { buildHouse, type HouseSpec } from '../world/village/house-builder';
-import { createDevHarness } from './harness';
+import { compileAndStart, createDevHarness } from './harness';
 
 const { q, backend, tier, canvas, renderer, engine } = await createDevHarness();
 const { scene, camera } = engine;
@@ -224,8 +224,7 @@ engine.add({
   },
 });
 
-await renderer.compileAsync(scene, camera);
-engine.start();
+await compileAndStart(renderer, engine, scene, camera);
 
 type HouseDev = {
   ready: boolean;

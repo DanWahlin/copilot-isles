@@ -18,7 +18,7 @@ import {
   type CharacterBody,
   type CharacterClip,
 } from '../world/characters';
-import { createDevHarness, engineStats, orbitViews } from './harness';
+import { compileAndStart, createDevHarness, engineStats, orbitViews } from './harness';
 
 const h = await createDevHarness();
 const { q, backend, tier, canvas, renderer, engine } = h;
@@ -144,8 +144,7 @@ engine.add({
   },
 });
 
-await renderer.compileAsync(scene, camera);
-engine.start();
+await compileAndStart(renderer, engine, scene, camera);
 
 (window as unknown as { __dev: object }).__dev = {
   ready: true,

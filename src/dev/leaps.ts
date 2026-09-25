@@ -1,7 +1,7 @@
 import { createPost } from '../engine/post';
 import { createCove } from '../world/cove-scene';
 import { createLeaps } from '../world/life/leaps';
-import { createDevHarness } from './harness';
+import { compileAndStart, createDevHarness } from './harness';
 
 const { q, backend, tier, renderer, engine } = await createDevHarness();
 const { scene, camera, clock } = engine;
@@ -33,8 +33,7 @@ engine.add({
   },
 });
 
-await renderer.compileAsync(scene, camera);
-engine.start();
+await compileAndStart(renderer, engine, scene, camera);
 
 const dev = window as unknown as { __dev: Record<string, unknown> };
 dev.__dev = {};
