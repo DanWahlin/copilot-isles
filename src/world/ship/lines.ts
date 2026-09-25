@@ -1,14 +1,13 @@
-import type { Tier } from '../contracts';
 import { clamp01, smoothstep } from '../../util/math';
 
 export const BRIGANTINE_LENGTH = 24;
 export const BRIGANTINE_BEAM = 6.6;
 export const BRIGANTINE_DRAFT = 2.7;
-export const BRIGANTINE_FREEBOARD = 2.3;
+const BRIGANTINE_FREEBOARD = 2.3;
 export const BRIGANTINE_HALF_LENGTH = BRIGANTINE_LENGTH * 0.5;
-export const BRIGANTINE_HALF_BEAM = BRIGANTINE_BEAM * 0.5;
+const BRIGANTINE_HALF_BEAM = BRIGANTINE_BEAM * 0.5;
 
-export interface LocalPoint {
+interface LocalPoint {
   /** Local +x side; at COVE.mooring this is the pier-facing/port rail. */
   x: number;
   /** Up-positive metres, sea level/waterline is 0 for the authored hull. */
@@ -28,22 +27,7 @@ export interface HullCapsule {
   radius: number;
 }
 
-export interface ShipCapsuleWorld {
-  x: number;
-  z: number;
-  r: number;
-}
-
-export interface HullLinesSummary {
-  length: number;
-  beam: number;
-  draft: number;
-  freeboard: number;
-  stationCount: number;
-  waterlineSamples: number;
-}
-
-export function stationT(z: number): number {
+function stationT(z: number): number {
   return clamp01((z + BRIGANTINE_HALF_LENGTH) / BRIGANTINE_LENGTH);
 }
 
@@ -98,24 +82,7 @@ export function keelHeightAt(z: number): number {
   return -BRIGANTINE_DRAFT + liftedEnds + bowLift;
 }
 
-export function makeWaterline(samples: number): Float32Array {
-  const n = Math.max(8, Math.floor(samples));
-  const data = new Float32Array(n * 2 * 2);
-  let i = 0;
-  for (let s = 0; s < n; s++) {
-    const z = -BRIGANTINE_HALF_LENGTH + (BRIGANTINE_LENGTH * s) / (n - 1);
-    data[i++] = waterlineHalfBeamAt(z);
-    data[i++] = z;
-  }
-  for (let s = n - 1; s >= 0; s--) {
-    const z = -BRIGANTINE_HALF_LENGTH + (BRIGANTINE_LENGTH * s) / (n - 1);
-    data[i++] = -waterlineHalfBeamAt(z);
-    data[i++] = z;
-  }
-  return data;
-}
-
-export function makeHalfBeamTable(samples = 32): Float32Array {
+function makeHalfBeamTable(samples = 32): Float32Array {
   const n = Math.max(4, Math.floor(samples));
   const data = new Float32Array(n);
   for (let i = 0; i < n; i++) {
@@ -152,25 +119,4 @@ export const BRIGANTINE_CAPSULES: readonly HullCapsule[] = Array.from({ length: 
   return { z, radius: waterlineHalfBeamAt(z) * 0.9 + 0.22 };
 });
 
-export const BRIGANTINE_WATERLINE = makeWaterline(72);
 export const BRIGANTINE_HALF_BEAM_TABLE = makeHalfBeamTable(32);
-
-export function waterline(samples = 72): Float32Array {
-  return makeWaterline(samples);
-}
-
-export function halfBeamTable(samples = 32): Float32Array {
-  return makeHalfBeamTable(samples);
-}
-
-export function hullLinesSummary(tier: Tier = 'high'): HullLinesSummary {
-  const sampleCount = tier === 'lite' || tier === 'low' ? 48 : 72;
-  return {
-    length: BRIGANTINE_LENGTH,
-    beam: BRIGANTINE_BEAM,
-    draft: BRIGANTINE_DRAFT,
-    freeboard: BRIGANTINE_FREEBOARD,
-    stationCount: BRIGANTINE_STATIONS.length,
-    waterlineSamples: sampleCount,
-  };
-}

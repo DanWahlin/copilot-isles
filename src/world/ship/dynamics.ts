@@ -11,7 +11,7 @@ import {
 } from './lines';
 import { clamp, smoothstep } from '../../util/math';
 
-export interface ShipInput {
+interface ShipInput {
   trim: number;
   rudder: number;
 }
@@ -23,18 +23,18 @@ export interface ShipEnv {
   t: number;
 }
 
-export interface DockTarget {
+interface DockTarget {
   x: number;
   z: number;
   heading: number;
 }
 
-export interface SplinePoint {
+interface SplinePoint {
   x: number;
   z: number;
 }
 
-export interface ShipPose {
+interface ShipPose {
   x: number;
   z: number;
   heading: number;

@@ -191,7 +191,7 @@ function copyPart(
   }
 }
 
-export interface ChristeningSystem {
+interface ChristeningSystem {
   readonly group: Group;
   play(fromWorld: P3, shipGroup: Group): Promise<void>;
   update(dt: number): void;
