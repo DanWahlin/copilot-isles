@@ -104,10 +104,10 @@ for (const clip of CHARACTER_CLIPS) {
   clipRoot.append(button);
 }
 function playClip(clip: CharacterClip): void {
-  if (clip === 'walk') setSpeed(1.35);
-  else if (clip === 'run') setSpeed(3.2);
-  else if (clip === 'idle') setSpeed(0);
-  else characters.forEach((character) => character.play(clip));
+  if (clip === 'walk' || clip === 'run' || clip === 'idle') {
+    characters.forEach((character) => character.play('idle', 0.05));
+    setSpeed(clip === 'walk' ? 1.35 : clip === 'run' ? 3.2 : 0);
+  } else characters.forEach((character) => character.play(clip));
 }
 
 const speedEl = document.getElementById('speed') as HTMLInputElement;
