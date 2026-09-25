@@ -29,7 +29,7 @@
 | Hosting | **GitHub Pages** |
 | Project folder | `~/Desktop/test/copilot-isles` |
 | Deadline | None |
-| Music & sound | **Procedural music** (Arkenfall-style). **Ambience and SFX use real CC0 field recordings** (Tidewater's 31 Freesound CC0 files + more), spatialized with HRTF and **lazy-loaded per island** (~5 MB). See §7 |
+| Music & sound | **Recorded CC0 music** (changed 2026-09-25 from procedural, after Dan A/B'd both): one streamed track per place, crossfaded. **Ambience and SFX use real CC0 field recordings** (Tidewater's 31 Freesound CC0 files + more), spatialized with HRTF and **lazy-loaded per island** (~5 MB). See §7 |
 
 ---
 
@@ -105,7 +105,7 @@ Full study: [docs/research/2026-09-23-tidewater.md](../docs/research/2026-09-23-
 | Photoreal PBR textures (sand, rock, wood, plaster), HDRIs | **Poly Haven**, **ambientCG** |
 | SFX & UI sounds | **Kenney** audio packs, **Freesound** (CC0 filter) |
 
-### CC0 music sources (researched; not used since we chose procedural music)
+### CC0 music sources (researched; now in use, see §7)
 - If we ever need a recorded track: OpenGameArt (CC0 filter, e.g. Tallbeard Studios), Free Music Archive (HoliznaCC0, Loyalty Freak Music, Komiku), and nullrights.com.
 - ⚠️ Pixabay, Kevin MacLeod, and Alexander Nakarada **aren't** CC0.
 
@@ -212,7 +212,7 @@ The town's districts mirror the app's sidebar:
 - **three.js `WebGPURenderer` + TSL** (`three/webgpu`, `three/tsl`): node materials, compute, and the `RenderPipeline` post stack, with the automatic WebGL2 backend as the fallback (§0, §15). No GLSL strings or `onBeforeCompile`. Techniques from the GLSL-based studies are re-expressed as TSL nodes.
 - **Rapier** (WASM physics), limited to **primitive static colliders** (boxes, capsules, heightfield), scene queries, and the **kinematic character controller**. The POC has no dynamic rigid bodies: push blocks are grid logic, and the boat is a kinematic hull on analytic buoyancy
 - **React DOM overlay** for menus, dialogue, quizzes, map, and logbook, plus a small store (e.g. Zustand) to bridge the game and the UI
-- **Web Audio:** a procedural music engine (AudioWorklet + OfflineAudioContext), plus a **sample-based soundscape** (CC0 field recordings, HRTF panners, buses, ducking, voice caps; Tidewater's `SoundScape` design) and streamed voice lines
+- **Web Audio:** streamed CC0 music tracks crossfaded through the music bus, plus a **sample-based soundscape** (CC0 field recordings, HRTF panners, buses, ducking, voice caps; Tidewater's `SoundScape` design) and streamed voice lines
 - **Vite code splitting** (dynamic `import()` chunks), a **pack builder** with a hashed `manifest.json`, and a **Workbox Service Worker** for modular loading and caching (§13)
 - **gltf-transform** (meshopt + KTX2) and headless **Blender** scripts to restyle and optimize CC0 assets
 - **Vitest** (quiz/puzzle/save logic) + **Playwright** (menu flows, visual smoke tests)
@@ -351,10 +351,11 @@ The upside is that the music is adaptive, tiny to download, and has no licensing
 - **Lip sync** comes from Azure viseme events where the voice supports them, and falls back to amplitude-driven jaw movement. Subtitles are always on, with word-by-word highlighting from word-boundary events.
 - Settings include a voice volume slider, "skip voice", and a text-only mode.
 
-### Music plan: fully procedural (Arkenfall-style)
-- A custom **Web Audio engine**. Instrument one-shots (plucks via Karplus-Strong, FM bells and marimbas, breathy flutes, pads) are **synthesized once at load time with `OfflineAudioContext` into AudioBuffers**. After that, playing them is cheap. Anything that has to stay live runs in an `AudioWorklet`, off the main thread.
-- A **generative composer** uses a look-ahead scheduler. It works from each island's mode, tempo, chord progression, motif, and instrument palette. A shared **Copilot Isles leitmotif** is re-voiced on every island so the whole game feels like one score.
-- The music **adapts** to what you're doing. Layers fade in and out across exploring, dialogue, puzzle, Trial, and sailing. Stingers for chest opened, correct answer, puzzle solved, and lighthouse lit are quantized to the beat. Music **ducks under voice lines**.
+### Music plan: recorded CC0 tracks (changed 2026-09-25)
+- **The decision:** we built a generative Web Audio score first (a look-ahead composer with adaptive layers and stingers). Dan A/B'd it against CC0 recordings and picked the recordings: **"Medieval: The Bard's Tale" by RandomMind** for the title screen and open sea, and **"Reggae" by Pro Sensory** for Anchorage Cay. Both are CC0 from OpenGameArt and logged in `ASSETS.md`. `tools/music/fetch.sh` re-downloads them, checks their hashes, trims the dead air, and encodes Opus + AAC.
+- **How it plays:** each track streams from its own `<audio>` element through the music bus, so the sliders, mute, and the voice duck all apply. Tracks loop, are loudness-matched to -13.7 LUFS, and **crossfade over 3 s** when you go ashore or set sail. A track you leave pauses and picks up mid-song when you come back.
+- The generative composer is in git history (last in commit `cafbe02`) if we ever want adaptive layers back.
+- **Future islands** get one CC0 track each, picked with Dan. The table below is the mood brief for choosing them.
 
 | Island | Mode / feel | Palette |
 |---|---|---|
@@ -415,7 +416,7 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 | Copying code from reference scenes | Arkenfall, Sakura Valley, and the Antikythera artifact are **study references only**. We re-implement their techniques and never copy their code, shaders, or assets |
 | Mixed CC0 kits look inconsistent | 1-2 kits per island, a shared palette and material pass, and Blender restyle scripts |
 | Pirate characters (m/f) need to look great | CC0 base bodies + modular outfits. We may need custom Blender work for hats and coats |
-| Procedural music sounds "synthy" | Physical-modeling plucks, FM bells, detuned ensembles, humanized timing, and good generated reverb. We'll A/B test in Phase 0, and you sign off on the sound before content work starts |
+| Procedural music sounds "synthy" | **Resolved 2026-09-25:** we A/B tested the generated score against CC0 recordings, and Dan picked the recordings (§7) |
 | Voice lines add a lot of files | Opus at ~32 kbps (AAC fallback, and each client downloads one format), loaded per island, cached by hash, regenerated only when a line changes |
 | Course UI and screenshots change | Pinned course SHA in `course.lock.json` + image hashes + CI hotspot check |
 | Trademarks & affiliation (Octocat, Copilot logo, product name) | The MIT license covers the course's copyright, not GitHub's trademarks. We include the **full MIT notice** in the credits, keep screenshots as screenshots, and **never model or generate the Octocat or Copilot logo**. An **affiliation line** (e.g. "Unofficial fan project…" vs official wording) is a **required decision before the first public deploy** |
@@ -494,7 +495,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 ### 12.7 Compression & memory *(your "compress textures and audio")*
 - **Textures: KTX2/Basis**, with UASTC for normal maps and ETC1S for albedo. They stay **compressed in VRAM**, using 4-8× less memory than PNG/JPG. Mipmaps are always on.
 - **Meshes:** meshopt compression and vertex quantization.
-- **Audio:** the music is **procedural (0 bytes)**. **Ambience & SFX are CC0 recordings in a ~5 MB per-island ambience pack** (Ogg/Opus + AAC, one format downloaded), counted in the island budget (§13.5). Voice lines are **Opus mono at ~32 kbps** with an AAC fallback, and the client downloads **exactly one format** (via `canPlayType`). They load **per island**, not all up front.
+- **Audio:** the music is **one streamed CC0 track per place** (Opus ~100 kbps + AAC fallback, about 2-3 MB each, one format downloaded). It streams after the first gesture, so it's outside the title budget. **Ambience & SFX are CC0 recordings in a ~5 MB per-island ambience pack** (Ogg/Opus + AAC, one format downloaded), counted in the island budget (§13.5). Voice lines are **Opus mono at ~32 kbps** with an AAC fallback, and the client downloads **exactly one format** (via `canPlayType`). They load **per island**, not all up front.
 - **Course screenshots** stay as WebP, lazy-load per island, and get decoded off the main thread (`img.decode()`).
 - **Explicit dispose** of geometry, materials, and textures when an island unloads. `renderer.info` is tracked in the debug HUD to catch leaks.
 
@@ -541,7 +542,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 | `char-create` | Character creator | New Voyage |
 | `sailing` | Boat kinematics, damped-spring buoyancy, waypoint-spline autopilot, wake uniforms | First time you board |
 | `physics` | Rapier (WASM) for on-foot collision. **Use the separate-`.wasm` build with streaming compile** (`WebAssembly.compileStreaming`) rather than the "compat" build, which inlines base64 WASM (**measured ~1.06 MB gz**) | First time you step onto an island. Not needed for the title or while sailing |
-| `audio-composer` + `palette-<island>` | Procedural music engine + each island's instrument/mode data | After the first user gesture (audio unlock). Palettes per island |
+| `public/audio/music_*` | The recorded CC0 music tracks (not a pack; streamed by `<audio>` elements) | Streamed after the first user gesture (audio unlock), one track per place |
 | `puzzle-<type>` | Sluice, crane, push-block, pillars, helms | Prefetched within ~50 m of the puzzle |
 | `island-<nn>` | That island's build code + **compiled content JSON** (dialogue, quizzes, puzzles, NPCs, lighting and music presets) | With the island's packs (§13.3) |
 | `dev-*` | Debug HUD, Hotspot Editor, `window.__isles` | **Dev builds only**. Never shipped |
@@ -673,7 +674,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - **The content is shared:** it uses the same data files as 3D mode (dialogue, voice lines, Logbook pages, quizzes, hotspots, and puzzle definitions). Each puzzle has a **2D renderer**: the P0.1 channel grid, the P0.2 crane as a top-down berth diagram, the P1.1 push-block grid, the P1.2 helms as three chart voyages (waypoints for Plan, a check-in steering slalom for Interactive, set-and-watch for Autopilot), and the P1.3 rotating banners.
 - **Same progress, same save:** Seals, the Logbook, and progress are shared, so a player can switch modes at any time.
 - It's also the **accessibility-first path**: fully keyboard- and screen-reader-navigable, with minimal motion.
-- It uses the procedural music (low CPU) and voice, and makes no WebGL calls at all.
+- It uses the same streamed music (low CPU) and voice, and makes no WebGL calls at all.
 
 ### 14.5 Testing without the physical devices (chosen: emulate)
 - **Emulated GPU tiers on the M3 Max:**
@@ -725,7 +726,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - **Input:** Pointer Events + multi-touch, the **Gamepad API with haptics** (`vibrationActuator`), and the Vibration API on Android for tactile beats (chest open, puzzle solved). There's always a setting to turn it off.
 - **UI:** React 19 with modern CSS (container queries, `@property` transitions, `backdrop-filter` frosted panels, `color-mix()`) and the **View Transitions API** for menu, Chart, and Logbook transitions (with reduced-motion fallbacks).
 - **Sharing:** photo mode → `canvas.toBlob` → the **Web Share API** (the native share sheet on tablets and phones) or a download.
-- **Audio:** AudioWorklet (procedural music), HRTF `PannerNode`s, and `OfflineAudioContext` instrument pre-rendering.
+- **Audio:** `MediaElementAudioSourceNode` (streamed music) and HRTF `PannerNode`s.
 
 ### 15.4 Keeping cutting edge fast (lessons from Tidewater)
 - **Pipeline budget:** we track `renderer.info.memory.programs`, with **title ≤ 40 pipelines** and **island ≤ 150**. We prefer a **small set of uber-materials driven by uniforms/attributes** over many material variants, and we avoid needless MRT/shadow/transparency permutations.

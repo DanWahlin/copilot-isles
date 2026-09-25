@@ -8,7 +8,7 @@
 
 ## 0. Scope & success
 
-**In scope:** desktop + **tablet (touch, one cloud iPad pass)** play, a **2D Chart & Logbook proof slice** (full 2D coverage is Phase 1b), title/menus, character creation, intro, the dialogue/voice system, Logbook, all quiz types, the puzzle pieces used here, Captain's Chart + fast travel, settings, save, procedural music and ambience, Island 00, the sea passage, and Island 01.
+**In scope:** desktop + **tablet (touch, one cloud iPad pass)** play, a **2D Chart & Logbook proof slice** (full 2D coverage is Phase 1b), title/menus, character creation, intro, the dialogue/voice system, Logbook, all quiz types, the puzzle pieces used here, Captain's Chart + fast travel, settings, save, music (recorded CC0 tracks) and ambience, Island 00, the sea passage, and Island 01.
 **Out of scope:** Islands 02-07 (they appear on the chart as fogged silhouettes marked "Coming soon"), the cosmetics shop (doubloons are collected, but the shop is stubbed), and the Master Captain certificate.
 
 **The POC succeeds if:**
@@ -139,7 +139,7 @@ lines:
 - **Tabs:** Quests · Pages · Glossary · Crew · Songbook.
 - **Pages** come from chests and NPCs. Each has a title, the image, a 1-3 sentence caption in plain words, and an **"Open in the course ↗"** link to the exact chapter section on GitHub.
 - The **Glossary** fills in as terms are taught (fork, project session, worktree, mode, model, reasoning effort…).
-- The **Songbook** plays each unlocked island theme. The procedural composer renders it live.
+- The **Songbook** plays each unlocked island's music track.
 
 ### 3.6 Quiz system
 | Type | Behavior |
@@ -208,7 +208,7 @@ Lever · rotatable pipe tile · sluice gate · flowing-water channel (a GPU-anim
   - The waterfall and the **P0.1 channels** use flow maps.
   - The **pier and huts** carry waterline tidemarks, and wading in the shallows spawns rings.
 - **Ambient life:** gulls, scuttling crabs, lagoon fish, butterflies, palm rustle, and surf on the reef. **Flying-fish schools** skip across the reef edge and lagoon mouth (Leaps director). The hill's seaward face gets fluted cliffs with a tidal notch and wet band, and the shoreline gets a coast-foam ribbon.
-- **Music (procedural):** major pentatonic at ~84 bpm, with marimba ostinato, steel-pan, and ukulele pluck.
+- **Music:** "Reggae" by Pro Sensory (CC0), which Dan picked on 2026-09-25.
 
 | Layer | What plays |
 |---|---|
@@ -363,7 +363,7 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 - The trip is about 1.2 km: roughly 2.5 min at full sail and 4 min at half. A steady SW wind makes it a comfortable broad reach.
 - **Buoys** mark the channel. The **citadel** grows on the horizon. Port Meridian's mountain ridge and the far ranges sit behind it.
 - **Optional moments:** a dolphin pod rides the bow wave and **leaps alongside** (Leaps director, nose and tail splashes), flying fish skim ahead of the bow, a distant ship crosses the horizon, there's a sea-stack arch to sail through (hidden achievement), and a floating bottle **B0.4** holds a teaser: *"Why a whole app? Ask the merchant in Port Meridian."*
-- **Music:** the sailing theme, with pads that swell with the wave height, crossfades into the Port Meridian theme within 250 m of the harbor.
+- **Music:** the sea track ("The Bard's Tale"), crossfading into the Port Meridian track within 250 m of the harbor.
 - **Streaming:** Port Meridian's **critical pack is prefetched from the moment the Harbormaster's Trial starts** and raised to top priority when you set sail. Anchorage drops to medium LOD past 400 m and to a silhouette past 900 m. If you'd arrive before the critical pack is resident, a **fog bank** gently slows the ship near the harbor while the lighthouse beam fills to show progress. After ~20 s, or on a fetch failure, the ship docks into a low-detail harbor while streaming continues (PLAN §13.4).
 - **Docking:** once you're within 25 m of the harbor berth below half speed, a soft auto-assist docks you and you step onto the quay.
 
@@ -380,7 +380,7 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 - **Palette:** terracotta `#C8643B`, limestone `#E9DCC3`, bougainvillea `#C2306B`, cypress `#2F4F3A`, sea teal `#2BB3B1`, banners in deep blue `#1F3A6B` and gold `#E8C88A`.
 - **Vegetation:** palms along the quay, cypress and olive on the terraces, bougainvillea on the walls.
 - **Ambient life:** market murmur, church-bell-style chimes on the quarter hour (from the Clock Tower), pigeons, a harbor cat, flags snapping.
-- **Music (procedural):** Ionian ↔ Dorian at ~76 bpm, with lute, recorder, harp arpeggios, and soft strings. It uses the same layer system as Anchorage Cay. The Trial layer adds low timpani rolls.
+- **Music:** a CC0 track we'll pick with Dan. The mood brief: Ionian ↔ Dorian at ~76 bpm, with lute, recorder, harp arpeggios, and soft strings.
 - **Efficiency:** the town is split into **chunked zones**. The Citadel hall is an interior zone behind a portal. See §8.
 
 ### 6.2 Layout
@@ -602,7 +602,7 @@ Nine items. Pass with all correct (retries allowed, hint tier 3 off). All six ke
 - [ ] Every teaching line and Logbook page links to the correct course section.
 - [ ] All hotspot quizzes use masked images where callouts exist, no mask overlaps a target rect (checked by the Hotspot Editor), and each quiz has a keyboard alternative.
 - [ ] Voice plays for every scripted line, with synced subtitles and working lip sync or jaw fallback. The voice-off setting works.
-- [ ] Procedural music plays per island with adaptive layers, beat-quantized stingers, and ducking under voice.
+- [ ] Each place's music track plays and crossfades when you arrive, with ducking under voice.
 - [ ] The chart supports sail-to and fast travel. Free explore can enter Anchorage Cay and Port Meridian in either order, and 02-07 are visible but can't be entered.
 - [ ] Save/continue works across reloads, puzzles restore to their checkpoints, and export/import works.
 - [ ] Each tier holds its §12.1 target (**Low 30 fps on the emulated UHD 620 floor**, Medium 45-60 fps on emulated Iris Xe/M1, High 60 fps). The **Lite** preset holds 30 fps on the emulated Chromebook profile, and there are no frame spikes over 50 ms during streaming.
