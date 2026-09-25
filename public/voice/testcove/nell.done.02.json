@@ -11,22 +11,22 @@
     {
       "word": "sealed",
       "start": 0.15,
-      "end": 0.67
+      "end": 0.63
     },
     {
       "word": "captain",
-      "start": 0.67,
-      "end": 1.67
+      "start": 0.63,
+      "end": 1.71
     },
     {
       "word": "Fair",
-      "start": 1.67,
-      "end": 2.029
+      "start": 1.71,
+      "end": 2.19
     },
     {
       "word": "winds",
-      "start": 2.029,
-      "end": 2.279
+      "start": 2.19,
+      "end": 2.44
     }
   ]
 }

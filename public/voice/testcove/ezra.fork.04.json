@@ -6,72 +6,72 @@
     {
       "word": "Bo",
       "start": 0.07,
-      "end": 0.63
+      "end": 0.27
     },
     {
       "word": "the",
-      "start": 0.63,
-      "end": 0.83
+      "start": 0.27,
+      "end": 0.47
     },
     {
       "word": "quartermaster",
-      "start": 0.83,
-      "end": 1.75
+      "start": 0.47,
+      "end": 1.35
     },
     {
       "word": "will",
-      "start": 1.75,
-      "end": 1.95
+      "start": 1.35,
+      "end": 1.59
     },
     {
       "word": "get",
-      "start": 1.95,
-      "end": 2.07
+      "start": 1.59,
+      "end": 1.71
     },
     {
       "word": "your",
-      "start": 2.07,
-      "end": 2.23
+      "start": 1.71,
+      "end": 1.91
     },
     {
       "word": "deck",
-      "start": 2.23,
-      "end": 2.429
+      "start": 1.91,
+      "end": 2.23
     },
     {
       "word": "ready",
-      "start": 2.429,
-      "end": 3.19
+      "start": 2.23,
+      "end": 3.11
     },
     {
       "word": "You’ll",
-      "start": 3.19,
-      "end": 3.469
+      "start": 3.11,
+      "end": 3.429
     },
     {
       "word": "find",
-      "start": 3.469,
-      "end": 3.67
+      "start": 3.429,
+      "end": 3.63
     },
     {
       "word": "him",
-      "start": 3.67,
-      "end": 3.789
+      "start": 3.63,
+      "end": 3.75
     },
     {
       "word": "at",
-      "start": 3.789,
-      "end": 3.869
+      "start": 3.75,
+      "end": 3.829
     },
     {
       "word": "the",
-      "start": 3.869,
-      "end": 3.989
+      "start": 3.829,
+      "end": 3.949
     },
     {
       "word": "storehouse",
-      "start": 3.989,
-      "end": 4.239
+      "start": 3.949,
+      "end": 4.199
     }
   ]
 }

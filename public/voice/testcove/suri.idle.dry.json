@@ -5,58 +5,58 @@
   "words": [
     {
       "word": "Mill’s",
-      "start": 0.05,
-      "end": 0.3625
+      "start": 0.07,
+      "end": 0.35
     },
     {
       "word": "dry",
-      "start": 0.3625,
-      "end": 0.575
+      "start": 0.35,
+      "end": 0.59
     },
     {
       "word": "today",
-      "start": 0.575,
-      "end": 1.2125
+      "start": 0.59,
+      "end": 0.91
     },
     {
       "word": "Captain",
-      "start": 1.2125,
-      "end": 2.65
+      "start": 0.91,
+      "end": 1.63
     },
     {
       "word": "Come",
-      "start": 2.65,
-      "end": 2.8875
+      "start": 1.63,
+      "end": 1.91
     },
     {
       "word": "back",
-      "start": 2.8875,
-      "end": 3.175
+      "start": 1.91,
+      "end": 2.11
     },
     {
       "word": "once",
-      "start": 3.175,
-      "end": 3.4125
+      "start": 2.11,
+      "end": 2.429
     },
     {
       "word": "Bo’s",
-      "start": 3.4125,
-      "end": 3.6875
+      "start": 2.429,
+      "end": 2.75
     },
     {
       "word": "checked",
-      "start": 3.6875,
-      "end": 3.9625
+      "start": 2.75,
+      "end": 3.07
     },
     {
       "word": "your",
-      "start": 3.9625,
-      "end": 4.0875
+      "start": 3.07,
+      "end": 3.23
     },
     {
       "word": "gear",
-      "start": 4.0875,
-      "end": 4.3375
+      "start": 3.23,
+      "end": 3.48
     }
   ]
 }

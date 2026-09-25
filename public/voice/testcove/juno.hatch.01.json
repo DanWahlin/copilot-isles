@@ -16,52 +16,52 @@
     {
       "word": "to",
       "start": 0.391,
-      "end": 0.458
+      "end": 0.491
     },
     {
       "word": "the",
-      "start": 0.458,
-      "end": 0.558
+      "start": 0.491,
+      "end": 0.591
     },
     {
       "word": "engine",
-      "start": 0.558,
-      "end": 0.791
+      "start": 0.591,
+      "end": 0.924
     },
     {
       "word": "room",
-      "start": 0.791,
-      "end": 0.958
+      "start": 0.924,
+      "end": 1.158
     },
     {
       "word": "Captain",
-      "start": 0.958,
-      "end": 1.591
-    },
-    {
-      "word": "Terminal",
-      "start": 1.591,
-      "end": 1.99
-    },
-    {
-      "word": "runs",
-      "start": 1.99,
+      "start": 1.158,
       "end": 2.225
     },
     {
-      "word": "commands",
+      "word": "Terminal",
       "start": 2.225,
-      "end": 2.824
+      "end": 2.691
+    },
+    {
+      "word": "runs",
+      "start": 2.691,
+      "end": 2.991
+    },
+    {
+      "word": "commands",
+      "start": 2.991,
+      "end": 3.624
     },
     {
       "word": "not",
-      "start": 2.824,
-      "end": 3.025
+      "start": 3.624,
+      "end": 3.824
     },
     {
       "word": "requests",
-      "start": 3.025,
-      "end": 3.275
+      "start": 3.824,
+      "end": 4.074
     }
   ]
 }

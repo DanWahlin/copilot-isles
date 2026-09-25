@@ -5,123 +5,123 @@
   "words": [
     {
       "word": "One",
-      "start": 0.05,
-      "end": 0.3375
+      "start": 0.07,
+      "end": 0.27
     },
     {
       "word": "more",
-      "start": 0.3375,
-      "end": 0.5625
+      "start": 0.27,
+      "end": 0.47
     },
     {
       "word": "job",
-      "start": 0.5625,
-      "end": 0.85
+      "start": 0.47,
+      "end": 0.67
     },
     {
       "word": "before",
-      "start": 0.85,
-      "end": 1.1375
+      "start": 0.67,
+      "end": 1.03
     },
     {
       "word": "the",
-      "start": 1.1375,
-      "end": 1.2625
+      "start": 1.03,
+      "end": 1.15
     },
     {
       "word": "practice",
-      "start": 1.2625,
-      "end": 1.6875
+      "start": 1.15,
+      "end": 1.51
     },
     {
       "word": "work",
-      "start": 1.6875,
-      "end": 2.2625
+      "start": 1.51,
+      "end": 2.11
     },
     {
       "word": "Suri",
-      "start": 2.2625,
-      "end": 2.5875
+      "start": 2.11,
+      "end": 2.55
     },
     {
       "word": "Okoye",
-      "start": 2.5875,
-      "end": 3.2125
+      "start": 2.55,
+      "end": 2.989
     },
     {
       "word": "at",
-      "start": 3.2125,
-      "end": 3.3125
+      "start": 2.989,
+      "end": 3.23
     },
     {
       "word": "the",
-      "start": 3.3125,
-      "end": 3.3875
+      "start": 3.23,
+      "end": 3.349
     },
     {
       "word": "mill",
-      "start": 3.3875,
-      "end": 3.65
+      "start": 3.349,
+      "end": 3.59
     },
     {
       "word": "race",
-      "start": 3.65,
-      "end": 4.275
+      "start": 3.59,
+      "end": 4.07
     },
     {
       "word": "past",
-      "start": 4.275,
-      "end": 4.6375
+      "start": 4.07,
+      "end": 4.43
     },
     {
       "word": "the",
-      "start": 4.6375,
-      "end": 4.725
+      "start": 4.43,
+      "end": 4.55
     },
     {
       "word": "storehouse",
-      "start": 4.725,
-      "end": 6.3125
+      "start": 4.55,
+      "end": 5.51
     },
     {
       "word": "Her",
-      "start": 6.3125,
-      "end": 6.5125
+      "start": 5.51,
+      "end": 5.75
     },
     {
       "word": "wheel’s",
-      "start": 6.5125,
-      "end": 6.85
+      "start": 5.75,
+      "end": 6.11
     },
     {
       "word": "been",
-      "start": 6.85,
-      "end": 7.0125
+      "start": 6.11,
+      "end": 6.31
     },
     {
       "word": "dry",
-      "start": 7.0125,
-      "end": 7.2625
+      "start": 6.31,
+      "end": 6.51
     },
     {
       "word": "since",
-      "start": 7.2625,
-      "end": 7.5375
+      "start": 6.51,
+      "end": 6.91
     },
     {
       "word": "your",
-      "start": 7.5375,
-      "end": 7.7
+      "start": 6.91,
+      "end": 7.07
     },
     {
       "word": "fork",
-      "start": 7.7,
-      "end": 8.025
+      "start": 7.07,
+      "end": 7.39
     },
     {
       "word": "arrived",
-      "start": 8.025,
-      "end": 8.275
+      "start": 7.39,
+      "end": 7.64
     }
   ]
 }

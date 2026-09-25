@@ -374,7 +374,8 @@ if (ps) {
     await page.waitForTimeout(800);
   };
   const settle = async () => {
-    for (let k = 0; k < 40 && (await fw())?.running; k++) await page.waitForTimeout(150);
+    // Juno's hatch reply runs about 8 s with the clank and her full line.
+    for (let k = 0; k < 100 && (await fw())?.running; k++) await page.waitForTimeout(150);
   };
   await standAt(ps.hatch);
   if ((await focus()) !== 'pipe:hatch')

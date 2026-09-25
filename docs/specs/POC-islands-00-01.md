@@ -234,13 +234,13 @@ Lever · rotatable pipe tile · sluice gate · flowing-water channel (a GPU-anim
 ### 4.3 Cast
 | NPC | Role · personality | Location | Voice *(proposed; audition)* | Teaches |
 |---|---|---|---|---|
-| **Nell Tidewell** | Harbormaster · warm, brisk | C | `en-GB-Ada` HD | Prereqs, sign-in, theme |
-| **Ezra Quill** | Chartmaker · meticulous, dry wit | D | `en-US-Andrew` HD | Fork, add a project |
-| **Bo Marlin** | Quartermaster · hearty | E | `en-GB-RyanNeural` | Project session, Local repository, Terminal, tools, `gh` |
-| **Suri Okoye** | Millwright · practical | F | `en-US-JennyNeural` | Enable workflows |
+| **Nell Tidewell** | Harbormaster · warm, brisk | C | `en-GB-Sonia` HD | Prereqs, sign-in, theme |
+| **Ezra Quill** | Chartmaker · meticulous, dry wit | D | `en-GB-Ollie` HD (`AZURE_SPEECH_MALE_VOICE_UK`) | Fork, add a project |
+| **Bo Marlin** | Quartermaster · hearty | E | `en-GB-Ryan` HD | Project session, Local repository, Terminal, tools, `gh` |
+| **Suri Okoye** | Millwright · practical | F | `en-US-Jenny` HD | Enable workflows |
 | **Pim & Pol** | Crane twins · finish each other's sentences | G | `en-IE-ConnorNeural` / `en-IE-EmilyNeural` | Setup script, dry-run |
-| **Juno** | Your first mate (crew lead = agents) · calm, precise | H (ship) | `en-US-Ava` HD | First prompt & expected output |
-| **Lyra Wren** | Wandering Bard · wistful | K | `en-GB-SoniaNeural` | Studio analogy |
+| **Juno** | Your first mate (crew lead = agents) · calm, precise | H (ship) | `en-GB-Ada` HD (`AZURE_SPEECH_FEMALE_VOICE_UK`) | First prompt & expected output |
+| **Lyra Wren** | Wandering Bard · wistful | K | `en-GB-LibbyNeural` | Studio analogy |
 | Villagers ×6 | Short voiced barks | B | assorted | Flavor |
 
 ### 4.4 Quest flow
@@ -398,7 +398,7 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 ### 6.3 Cast
 | NPC | Role | Location | Voice *(proposed)* | Teaches |
 |---|---|---|---|---|
-| **Admiral Isadora Vale** | Governor, gives the Trial | L | `en-GB-Ada` HD *(alt. `en-GB-LibbyNeural`)* | Summons, key takeaways |
+| **Admiral Isadora Vale** | Governor, gives the Trial | L | `en-GB-Sonia` HD *(Juno already uses Ada)* | Summons, key takeaways |
 | **Tobias Finch** | Merchant, scattered evidence | B | `en-GB-Ollie` HD | Why the app |
 | **Gideon Hart** | Carpenter (your editor) | H | `en-US-DavisNeural` | Use both |
 | **Mina Sol** | Voyage clerk | B | `en-US-EmmaNeural` | **New** |
@@ -407,10 +407,10 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 | **Dee Castellan** | Outfitter | E | `en-US-AriaNeural` | **Customize** (teaser) |
 | **Marisol** | Tavern keeper | F | `en-US-JaneNeural` | Chat sessions |
 | **Anders Holm** | Shipwright | G | `en-US-GuyNeural` | Project sessions / New worktree |
-| **Captain Rhea Storm** | Academy master | I | `en-US-NancyNeural` *(Juno already uses Ava on this island)* | Modes |
+| **Captain Rhea Storm** | Academy master | I | `en-US-NancyNeural` | Modes |
 | **Oren Vey** | Astronomer | J | `en-US-Andrew` HD *(alt. `en-US-BrianNeural`)* | Model & reasoning effort |
 | **Archivist Pell** | Keeper of records | K | `en-GB-NoahNeural` | Settings |
-| **Lyra Wren** | Wandering Bard (traveled on ahead) | M | `en-GB-SoniaNeural` | Control-room analogy |
+| **Lyra Wren** | Wandering Bard (traveled on ahead) | M | `en-GB-LibbyNeural` | Control-room analogy |
 
 > Casting rule: no two NPCs on the same island share a voice. HD voices are reserved for the 3-4 most-heard characters per island. We'll audition in Phase 0.
 

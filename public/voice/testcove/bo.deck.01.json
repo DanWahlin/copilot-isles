@@ -5,83 +5,83 @@
   "words": [
     {
       "word": "Your",
-      "start": 0.05,
-      "end": 0.25
+      "start": 0.07,
+      "end": 0.23
     },
     {
       "word": "project",
-      "start": 0.25,
-      "end": 0.675
+      "start": 0.23,
+      "end": 0.63
     },
     {
       "word": "shows",
-      "start": 0.675,
-      "end": 0.9875
+      "start": 0.63,
+      "end": 0.99
     },
     {
       "word": "under",
-      "start": 0.9875,
-      "end": 1.2125
+      "start": 0.99,
+      "end": 1.27
     },
     {
       "word": "Projects",
-      "start": 1.2125,
-      "end": 2.7375
+      "start": 1.27,
+      "end": 2.27
     },
     {
       "word": "Good",
-      "start": 2.7375,
-      "end": 4.0375
+      "start": 2.27,
+      "end": 3.19
     },
     {
       "word": "Select",
-      "start": 4.0375,
-      "end": 4.45
+      "start": 3.19,
+      "end": 3.55
     },
     {
       "word": "the",
-      "start": 4.45,
-      "end": 4.8125
+      "start": 3.55,
+      "end": 3.989
     },
     {
       "word": "next",
-      "start": 4.8125,
-      "end": 5.0875
+      "start": 3.989,
+      "end": 4.23
     },
     {
       "word": "to",
-      "start": 5.0875,
-      "end": 5.225
+      "start": 4.23,
+      "end": 4.39
     },
     {
       "word": "it",
-      "start": 5.225,
-      "end": 5.35
+      "start": 4.39,
+      "end": 4.47
     },
     {
       "word": "to",
-      "start": 5.35,
-      "end": 5.4375
+      "start": 4.47,
+      "end": 4.59
     },
     {
       "word": "start",
-      "start": 5.4375,
-      "end": 5.7875
+      "start": 4.59,
+      "end": 4.91
     },
     {
       "word": "a",
-      "start": 5.7875,
-      "end": 5.8625
+      "start": 4.91,
+      "end": 5.03
     },
     {
       "word": "project",
-      "start": 5.8625,
-      "end": 6.2875
+      "start": 5.03,
+      "end": 5.43
     },
     {
       "word": "session",
-      "start": 6.2875,
-      "end": 6.5375
+      "start": 5.43,
+      "end": 5.68
     }
   ]
 }

@@ -5,83 +5,83 @@
   "words": [
     {
       "word": "You’ll",
-      "start": 0.05,
-      "end": 0.275
+      "start": 0.07,
+      "end": 0.35
     },
     {
       "word": "see",
-      "start": 0.275,
-      "end": 0.5
+      "start": 0.35,
+      "end": 0.63
     },
     {
-      "word": "“Workflows",
-      "start": 0.5,
-      "end": 1.05
+      "word": "Workflows",
+      "start": 0.63,
+      "end": 1.31
     },
     {
       "word": "aren’t",
-      "start": 1.05,
-      "end": 1.275
+      "start": 1.31,
+      "end": 1.91
     },
     {
       "word": "being",
-      "start": 1.275,
-      "end": 1.5125
+      "start": 1.91,
+      "end": 2.11
     },
     {
       "word": "run",
-      "start": 1.5125,
-      "end": 1.775
+      "start": 2.11,
+      "end": 2.23
     },
     {
       "word": "on",
-      "start": 1.775,
-      "end": 1.8875
+      "start": 2.23,
+      "end": 2.309
     },
     {
       "word": "this",
-      "start": 1.8875,
-      "end": 2.075
+      "start": 2.309,
+      "end": 2.59
     },
     {
       "word": "forked",
-      "start": 2.075,
-      "end": 2.375
+      "start": 2.59,
+      "end": 2.909
     },
     {
       "word": "repository",
-      "start": 2.375,
-      "end": 4.1125
+      "start": 2.909,
+      "end": 4.03
     },
     {
-      "word": "” New",
-      "start": 4.1125,
-      "end": 4.3625
+      "word": "New",
+      "start": 4.03,
+      "end": 4.39
     },
     {
       "word": "forks",
-      "start": 4.3625,
-      "end": 4.725
+      "start": 4.39,
+      "end": 4.79
     },
     {
       "word": "switch",
-      "start": 4.725,
-      "end": 5.0375
+      "start": 4.79,
+      "end": 5.27
     },
     {
       "word": "GitHub",
-      "start": 5.0375,
-      "end": 5.375
+      "start": 5.27,
+      "end": 5.63
     },
     {
       "word": "Actions",
-      "start": 5.375,
-      "end": 5.825
+      "start": 5.63,
+      "end": 6.15
     },
     {
       "word": "off",
-      "start": 5.825,
-      "end": 6.075
+      "start": 6.15,
+      "end": 6.4
     }
   ]
 }

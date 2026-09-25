@@ -6,17 +6,17 @@
     {
       "word": "Crew’s",
       "start": 0.07,
-      "end": 0.35
+      "end": 0.39
     },
     {
       "word": "aboard",
-      "start": 0.35,
-      "end": 0.59
+      "start": 0.39,
+      "end": 1.11
     },
     {
       "word": "Captain",
-      "start": 0.59,
-      "end": 0.84
+      "start": 1.11,
+      "end": 1.36
     }
   ]
 }

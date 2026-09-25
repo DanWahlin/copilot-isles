@@ -5,43 +5,43 @@
   "words": [
     {
       "word": "Fine",
-      "start": 0.07,
-      "end": 0.47
+      "start": 0.15,
+      "end": 0.63
     },
     {
       "word": "colours",
-      "start": 0.47,
-      "end": 0.87
+      "start": 0.63,
+      "end": 0.99
     },
     {
       "word": "Captain",
-      "start": 0.87,
-      "end": 1.83
+      "start": 0.99,
+      "end": 2.11
     },
     {
       "word": "Ezra",
-      "start": 1.83,
-      "end": 2.71
+      "start": 2.11,
+      "end": 2.469
     },
     {
       "word": "the",
-      "start": 2.71,
-      "end": 2.909
+      "start": 2.469,
+      "end": 2.59
     },
     {
       "word": "chartmaker’s",
-      "start": 2.909,
-      "end": 3.55
+      "start": 2.59,
+      "end": 3.19
     },
     {
       "word": "expecting",
-      "start": 3.55,
-      "end": 4.11
+      "start": 3.19,
+      "end": 3.829
     },
     {
       "word": "you",
-      "start": 4.11,
-      "end": 4.36
+      "start": 3.829,
+      "end": 4.079000000000001
     }
   ]
 }

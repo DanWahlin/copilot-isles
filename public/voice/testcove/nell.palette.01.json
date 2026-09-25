@@ -6,52 +6,52 @@
     {
       "word": "Pick",
       "start": 0.07,
-      "end": 0.27
+      "end": 0.23
     },
     {
       "word": "your",
-      "start": 0.27,
-      "end": 0.47
+      "start": 0.23,
+      "end": 0.43
     },
     {
       "word": "sails",
-      "start": 0.47,
-      "end": 0.87
+      "start": 0.43,
+      "end": 0.71
     },
     {
       "word": "at",
-      "start": 0.87,
-      "end": 0.95
+      "start": 0.71,
+      "end": 0.79
     },
     {
       "word": "the",
-      "start": 0.95,
-      "end": 1.07
+      "start": 0.79,
+      "end": 0.95
     },
     {
       "word": "palette",
-      "start": 1.07,
-      "end": 1.47
+      "start": 0.95,
+      "end": 1.31
     },
     {
       "word": "stand",
-      "start": 1.47,
-      "end": 2.19
+      "start": 1.31,
+      "end": 1.83
     },
     {
       "word": "then",
-      "start": 2.19,
-      "end": 2.51
+      "start": 1.83,
+      "end": 2.11
     },
     {
       "word": "select",
-      "start": 2.51,
-      "end": 2.989
+      "start": 2.11,
+      "end": 2.55
     },
     {
       "word": "Finish",
-      "start": 2.989,
-      "end": 3.239
+      "start": 2.55,
+      "end": 2.8
     }
   ]
 }

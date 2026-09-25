@@ -5,113 +5,113 @@
   "words": [
     {
       "word": "Last",
-      "start": 0.05,
-      "end": 0.4375
+      "start": 0.07,
+      "end": 0.39
     },
     {
       "word": "job",
-      "start": 0.4375,
-      "end": 0.7375
+      "start": 0.39,
+      "end": 0.63
     },
     {
       "word": "before",
-      "start": 0.7375,
-      "end": 1.0375
+      "start": 0.63,
+      "end": 0.95
     },
     {
       "word": "the",
-      "start": 1.0375,
-      "end": 1.15
+      "start": 0.95,
+      "end": 1.07
     },
     {
       "word": "Trial",
-      "start": 1.15,
-      "end": 1.8625
+      "start": 1.07,
+      "end": 1.67
     },
     {
       "word": "Pim",
-      "start": 1.8625,
-      "end": 2.1125
+      "start": 1.67,
+      "end": 2.029
     },
     {
       "word": "and",
-      "start": 2.1125,
-      "end": 2.2375
+      "start": 2.029,
+      "end": 2.23
     },
     {
       "word": "Pol",
-      "start": 2.2375,
-      "end": 2.5375
+      "start": 2.23,
+      "end": 2.55
     },
     {
       "word": "run",
-      "start": 2.5375,
-      "end": 2.725
+      "start": 2.55,
+      "end": 2.71
     },
     {
       "word": "the",
-      "start": 2.725,
-      "end": 2.825
+      "start": 2.71,
+      "end": 2.869
     },
     {
       "word": "crane",
-      "start": 2.825,
-      "end": 3.175
+      "start": 2.869,
+      "end": 3.23
     },
     {
       "word": "on",
-      "start": 3.175,
-      "end": 3.3
+      "start": 3.23,
+      "end": 3.309
     },
     {
       "word": "the",
-      "start": 3.3,
-      "end": 3.3875
+      "start": 3.309,
+      "end": 3.469
     },
     {
       "word": "pier",
-      "start": 3.3875,
-      "end": 3.65
+      "start": 3.469,
+      "end": 3.71
     },
     {
       "word": "head",
-      "start": 3.65,
-      "end": 4.8875
+      "start": 3.71,
+      "end": 4.23
     },
     {
       "word": "They’ll",
-      "start": 4.8875,
-      "end": 5.125
+      "start": 4.23,
+      "end": 4.51
     },
     {
       "word": "stock",
-      "start": 5.125,
-      "end": 5.4125
+      "start": 4.51,
+      "end": 4.83
     },
     {
       "word": "your",
-      "start": 5.4125,
-      "end": 5.55
+      "start": 4.83,
+      "end": 4.99
     },
     {
       "word": "fork",
-      "start": 5.55,
-      "end": 5.9125
+      "start": 4.99,
+      "end": 5.31
     },
     {
       "word": "with",
-      "start": 5.9125,
-      "end": 6.0375
+      "start": 5.31,
+      "end": 5.51
     },
     {
       "word": "practice",
-      "start": 6.0375,
-      "end": 6.4875
+      "start": 5.51,
+      "end": 5.91
     },
     {
       "word": "work",
-      "start": 6.4875,
-      "end": 6.7375
+      "start": 5.91,
+      "end": 6.16
     }
   ]
 }

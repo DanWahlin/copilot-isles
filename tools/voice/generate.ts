@@ -62,12 +62,12 @@ async function main(): Promise<void> {
   await mkdir(cacheDir, { recursive: true });
   await mkdir(outDir, { recursive: true });
   const lines: GeneratedLine[] = [];
-  let nellFallback = false;
+  const fallbackSpeakers = new Set<string>();
 
   for (const line of data.lines) {
     const result = await generateLine(line, env.values, secrets);
     lines.push(result);
-    if (line.speaker === 'Nell' && result.usedFallback) nellFallback = true;
+    if (result.usedFallback) fallbackSpeakers.add(line.speaker);
     console.log(
       `${line.id}: ${result.voice}${result.usedFallback ? ' (fallback)' : ''}, ${result.duration.toFixed(2)}s`,
     );
@@ -88,7 +88,8 @@ async function main(): Promise<void> {
     })),
   };
   await writeJson(join(outDir, 'manifest.json'), manifest);
-  if (nellFallback) console.log('Nell HD voice failed; generated Nell with en-GB-SoniaNeural fallback.');
+  if (fallbackSpeakers.size)
+    console.log(`Primary voice failed for ${[...fallbackSpeakers].join(', ')}; used their fallback voices.`);
   console.log(`Generated ${lines.length} voice lines in public/voice/testcove.`);
 }
 
@@ -269,7 +270,8 @@ function ssml(line: VoiceLineDefinition, voice: string): string {
     .map(([key, value]) => `${key}="${escapeXml(value)}"`)
     .join(' ');
   const body = attrs ? `<prosody ${attrs}>${escapeXml(line.text)}</prosody>` : escapeXml(line.text);
-  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US"><voice name="${escapeXml(voice)}">${body}</voice></speak>`;
+  const lang = /^[a-z]{2}-[a-z]{2}/i.exec(voice)?.[0] ?? 'en-US';
+  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${lang}"><voice name="${escapeXml(voice)}">${body}</voice></speak>`;
 }
 
 function hashLine(line: VoiceLineDefinition, voice: string): string {

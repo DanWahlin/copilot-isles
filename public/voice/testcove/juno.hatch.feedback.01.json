@@ -6,112 +6,112 @@
     {
       "word": "That",
       "start": 0.051,
-      "end": 0.17
+      "end": 0.2
     },
     {
       "word": "went",
-      "start": 0.17,
-      "end": 0.288
+      "start": 0.2,
+      "end": 0.377
     },
     {
       "word": "to",
-      "start": 0.288,
-      "end": 0.348
+      "start": 0.377,
+      "end": 0.466
     },
     {
       "word": "the",
-      "start": 0.348,
-      "end": 0.437
+      "start": 0.466,
+      "end": 0.555
     },
     {
       "word": "engine",
-      "start": 0.437,
-      "end": 0.674
+      "start": 0.555,
+      "end": 0.851
     },
     {
       "word": "room",
-      "start": 0.674,
-      "end": 0.822
+      "start": 0.851,
+      "end": 1.059
     },
     {
       "word": "Captain",
-      "start": 0.822,
-      "end": 1.444
+      "start": 1.059,
+      "end": 1.888
     },
     {
       "word": "Terminal",
-      "start": 1.444,
-      "end": 1.859
+      "start": 1.888,
+      "end": 2.362
     },
     {
       "word": "runs",
-      "start": 1.859,
-      "end": 2.065
+      "start": 2.362,
+      "end": 2.629
     },
     {
       "word": "commands",
-      "start": 2.065,
-      "end": 2.392
+      "start": 2.629,
+      "end": 3.014
     },
     {
       "word": "like",
-      "start": 2.392,
-      "end": 2.569
+      "start": 3.014,
+      "end": 3.222
     },
     {
       "word": "git",
-      "start": 2.569,
-      "end": 3.074
+      "start": 3.222,
+      "end": 3.755
     },
     {
       "word": "version",
-      "start": 3.074,
-      "end": 3.725
+      "start": 3.755,
+      "end": 4.585
     },
     {
       "word": "Requests",
-      "start": 3.725,
-      "end": 4.111
+      "start": 4.585,
+      "end": 5.148
     },
     {
       "word": "to",
-      "start": 4.111,
-      "end": 4.17
+      "start": 5.148,
+      "end": 5.207
     },
     {
       "word": "the",
-      "start": 4.17,
-      "end": 4.288
+      "start": 5.207,
+      "end": 5.355
     },
     {
       "word": "agent",
-      "start": 4.288,
-      "end": 4.555
+      "start": 5.355,
+      "end": 5.711
     },
     {
       "word": "go",
-      "start": 4.555,
-      "end": 4.703
+      "start": 5.711,
+      "end": 5.859
     },
     {
       "word": "in",
-      "start": 4.703,
-      "end": 4.762
+      "start": 5.859,
+      "end": 5.918
     },
     {
       "word": "the",
-      "start": 4.762,
-      "end": 4.851
+      "start": 5.918,
+      "end": 6.036
     },
     {
       "word": "prompt",
-      "start": 4.851,
-      "end": 5.088
+      "start": 6.036,
+      "end": 6.332
     },
     {
       "word": "box",
-      "start": 5.088,
-      "end": 5.338
+      "start": 6.332,
+      "end": 6.582
     }
   ]
 }

@@ -16,47 +16,47 @@
     {
       "word": "papers",
       "start": 0.35,
-      "end": 0.63
+      "end": 0.71
     },
     {
       "word": "from",
-      "start": 0.63,
-      "end": 0.83
+      "start": 0.71,
+      "end": 0.95
     },
     {
       "word": "Nell",
-      "start": 0.83,
-      "end": 0.99
+      "start": 0.95,
+      "end": 1.19
     },
     {
       "word": "first",
-      "start": 0.99,
-      "end": 1.35
+      "start": 1.19,
+      "end": 1.55
     },
     {
       "word": "Captain",
-      "start": 1.35,
-      "end": 2.07
+      "start": 1.55,
+      "end": 2.349
     },
     {
       "word": "Then",
-      "start": 2.07,
-      "end": 2.23
+      "start": 2.349,
+      "end": 2.59
     },
     {
       "word": "we’ll",
-      "start": 2.23,
-      "end": 2.429
+      "start": 2.59,
+      "end": 2.789
     },
     {
       "word": "talk",
-      "start": 2.429,
-      "end": 2.63
+      "start": 2.789,
+      "end": 2.949
     },
     {
       "word": "charts",
-      "start": 2.63,
-      "end": 2.88
+      "start": 2.949,
+      "end": 3.199
     }
   ]
 }

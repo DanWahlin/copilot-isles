@@ -6,47 +6,47 @@
     {
       "word": "Morning",
       "start": 0.07,
-      "end": 0.47
+      "end": 0.59
     },
     {
       "word": "Captain",
-      "start": 0.47,
-      "end": 1.43
+      "start": 0.59,
+      "end": 1.71
     },
     {
       "word": "Nobody",
-      "start": 1.43,
-      "end": 1.91
+      "start": 1.71,
+      "end": 2.309
     },
     {
       "word": "sails",
-      "start": 1.91,
-      "end": 2.349
+      "start": 2.309,
+      "end": 2.67
     },
     {
       "word": "from",
-      "start": 2.349,
-      "end": 2.55
+      "start": 2.67,
+      "end": 2.829
     },
     {
       "word": "Anchorage",
-      "start": 2.55,
-      "end": 3.23
+      "start": 2.829,
+      "end": 3.309
     },
     {
       "word": "without",
-      "start": 3.23,
-      "end": 3.63
+      "start": 3.309,
+      "end": 3.59
     },
     {
       "word": "their",
-      "start": 3.63,
-      "end": 3.829
+      "start": 3.59,
+      "end": 3.789
     },
     {
       "word": "papers",
-      "start": 3.829,
-      "end": 4.079000000000001
+      "start": 3.789,
+      "end": 4.039
     }
   ]
 }

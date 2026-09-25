@@ -5,93 +5,93 @@
   "words": [
     {
       "word": "This",
-      "start": 0.05,
-      "end": 0.3
+      "start": 0.07,
+      "end": 0.27
     },
     {
       "word": "part",
-      "start": 0.3,
-      "end": 0.55
+      "start": 0.27,
+      "end": 0.47
     },
     {
       "word": "happens",
-      "start": 0.55,
-      "end": 0.9625
+      "start": 0.47,
+      "end": 0.87
     },
     {
       "word": "on",
-      "start": 0.9625,
-      "end": 1.1125
+      "start": 0.87,
+      "end": 1.03
     },
     {
       "word": "GitHub.com",
-      "start": 1.1125,
-      "end": 2.35
+      "start": 1.03,
+      "end": 2.27
     },
     {
       "word": "not",
-      "start": 2.35,
-      "end": 2.5625
+      "start": 2.27,
+      "end": 2.63
     },
     {
       "word": "in",
-      "start": 2.5625,
-      "end": 2.6625
+      "start": 2.63,
+      "end": 2.71
     },
     {
       "word": "the",
-      "start": 2.6625,
-      "end": 2.7625
+      "start": 2.71,
+      "end": 2.869
     },
     {
       "word": "app.",
-      "start": 2.7625,
-      "end": 4
+      "start": 2.869,
+      "end": 3.63
     },
     {
       "word": "Open",
-      "start": 4,
-      "end": 4.3
+      "start": 3.63,
+      "end": 3.909
     },
     {
       "word": "your",
-      "start": 4.3,
-      "end": 4.4375
+      "start": 3.909,
+      "end": 4.11
     },
     {
       "word": "fork",
-      "start": 4.4375,
-      "end": 4.8625
+      "start": 4.11,
+      "end": 4.55
     },
     {
       "word": "and",
-      "start": 4.8625,
-      "end": 4.975
+      "start": 4.55,
+      "end": 4.67
     },
     {
       "word": "go",
-      "start": 4.975,
-      "end": 5.125
+      "start": 4.67,
+      "end": 4.79
     },
     {
       "word": "to",
-      "start": 5.125,
-      "end": 5.2375
+      "start": 4.79,
+      "end": 4.91
     },
     {
       "word": "the",
-      "start": 5.2375,
-      "end": 5.3625
+      "start": 4.91,
+      "end": 5.07
     },
     {
       "word": "Actions",
-      "start": 5.3625,
-      "end": 5.8375
+      "start": 5.07,
+      "end": 5.55
     },
     {
       "word": "tab",
-      "start": 5.8375,
-      "end": 6.0875
+      "start": 5.55,
+      "end": 5.8
     }
   ]
 }

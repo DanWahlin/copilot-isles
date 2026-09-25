@@ -16,92 +16,92 @@
     {
       "word": "chest",
       "start": 0.39,
-      "end": 0.67
+      "end": 0.59
     },
     {
       "word": "there",
-      "start": 0.67,
-      "end": 0.91
+      "start": 0.59,
+      "end": 0.79
     },
     {
       "word": "too",
-      "start": 0.91,
-      "end": 1.43
+      "start": 0.79,
+      "end": 0.95
     },
     {
       "word": "with",
-      "start": 1.43,
-      "end": 1.67
+      "start": 0.95,
+      "end": 1.15
     },
     {
       "word": "your",
-      "start": 1.67,
-      "end": 1.83
+      "start": 1.15,
+      "end": 1.31
     },
     {
       "word": "first",
-      "start": 1.83,
-      "end": 2.27
+      "start": 1.31,
+      "end": 1.51
     },
     {
       "word": "Logbook",
-      "start": 2.27,
-      "end": 2.789
+      "start": 1.51,
+      "end": 1.83
     },
     {
       "word": "page",
-      "start": 2.789,
-      "end": 3.829
+      "start": 1.83,
+      "end": 2.63
     },
     {
       "word": "Open",
-      "start": 3.829,
-      "end": 4.31
+      "start": 2.63,
+      "end": 2.949
     },
     {
       "word": "it",
-      "start": 4.31,
-      "end": 4.39
+      "start": 2.949,
+      "end": 3.07
     },
     {
       "word": "first",
-      "start": 4.39,
-      "end": 5.15
+      "start": 3.07,
+      "end": 3.429
     },
     {
       "word": "then",
-      "start": 5.15,
-      "end": 5.51
+      "start": 3.429,
+      "end": 3.63
     },
     {
       "word": "paint",
-      "start": 5.51,
-      "end": 5.79
+      "start": 3.63,
+      "end": 3.869
     },
     {
       "word": "your",
-      "start": 5.79,
-      "end": 5.95
+      "start": 3.869,
+      "end": 4.03
     },
     {
       "word": "sails",
-      "start": 5.95,
-      "end": 6.71
+      "start": 4.03,
+      "end": 4.39
     },
     {
       "word": "and",
-      "start": 6.71,
-      "end": 6.87
+      "start": 4.39,
+      "end": 4.59
     },
     {
       "word": "select",
-      "start": 6.87,
-      "end": 7.35
+      "start": 4.59,
+      "end": 4.95
     },
     {
       "word": "Finish",
-      "start": 7.35,
-      "end": 7.6
+      "start": 4.95,
+      "end": 5.2
     }
   ]
 }

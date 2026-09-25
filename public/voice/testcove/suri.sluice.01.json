@@ -5,63 +5,63 @@
   "words": [
     {
       "word": "Lever",
-      "start": 0.05,
-      "end": 0.4
+      "start": 0.07,
+      "end": 0.43
     },
     {
       "word": "first",
-      "start": 0.4,
-      "end": 1.0625
+      "start": 0.43,
+      "end": 0.87
     },
     {
       "word": "then",
-      "start": 1.0625,
-      "end": 1.2625
+      "start": 0.87,
+      "end": 1.27
     },
     {
       "word": "turn",
-      "start": 1.2625,
-      "end": 1.5
+      "start": 1.27,
+      "end": 1.47
     },
     {
       "word": "the",
-      "start": 1.5,
-      "end": 1.6
+      "start": 1.47,
+      "end": 1.63
     },
     {
       "word": "channels",
-      "start": 1.6,
-      "end": 3.125
+      "start": 1.63,
+      "end": 2.55
     },
     {
       "word": "Follow",
-      "start": 3.125,
-      "end": 3.4625
+      "start": 2.55,
+      "end": 2.949
     },
     {
       "word": "the",
-      "start": 3.4625,
-      "end": 3.575
+      "start": 2.949,
+      "end": 3.07
     },
     {
       "word": "water",
-      "start": 3.575,
-      "end": 3.8875
+      "start": 3.07,
+      "end": 3.429
     },
     {
       "word": "from",
-      "start": 3.8875,
-      "end": 4.075
+      "start": 3.429,
+      "end": 3.59
     },
     {
       "word": "the",
-      "start": 4.075,
-      "end": 4.175
+      "start": 3.59,
+      "end": 3.71
     },
     {
       "word": "spring",
-      "start": 4.175,
-      "end": 4.425
+      "start": 3.71,
+      "end": 3.96
     }
   ]
 }

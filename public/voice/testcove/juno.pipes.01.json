@@ -21,11 +21,11 @@
     {
       "word": "for",
       "start": 0.75,
-      "end": 0.91
+      "end": 0.87
     },
     {
       "word": "the",
-      "start": 0.91,
+      "start": 0.87,
       "end": 1.07
     },
     {
@@ -36,62 +36,62 @@
     {
       "word": "not",
       "start": 1.75,
-      "end": 2.07
+      "end": 2.029
     },
     {
       "word": "a",
-      "start": 2.07,
-      "end": 2.11
+      "start": 2.029,
+      "end": 2.07
     },
     {
       "word": "command",
-      "start": 2.11,
+      "start": 2.07,
       "end": 3.23
     },
     {
       "word": "Pick",
       "start": 3.23,
-      "end": 3.469
+      "end": 3.59
     },
     {
       "word": "the",
-      "start": 3.469,
-      "end": 3.63
+      "start": 3.59,
+      "end": 3.75
     },
     {
       "word": "fitting",
-      "start": 3.63,
-      "end": 3.949
+      "start": 3.75,
+      "end": 4.07
     },
     {
       "word": "on",
-      "start": 3.949,
-      "end": 4.03
+      "start": 4.07,
+      "end": 4.19
     },
     {
       "word": "the",
-      "start": 4.03,
-      "end": 4.15
+      "start": 4.19,
+      "end": 4.31
     },
     {
       "word": "rail",
-      "start": 4.15,
-      "end": 4.35
+      "start": 4.31,
+      "end": 4.63
     },
     {
       "word": "that",
-      "start": 4.35,
-      "end": 4.51
+      "start": 4.63,
+      "end": 4.79
     },
     {
       "word": "carries",
-      "start": 4.51,
-      "end": 4.91
+      "start": 4.79,
+      "end": 5.27
     },
     {
       "word": "it",
-      "start": 4.91,
-      "end": 5.108
+      "start": 5.27,
+      "end": 5.508
     }
   ]
 }

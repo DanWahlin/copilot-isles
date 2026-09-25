@@ -5,88 +5,88 @@
   "words": [
     {
       "word": "Now",
-      "start": 0.05,
-      "end": 0.675
+      "start": 0.07,
+      "end": 0.43
     },
     {
       "word": "the",
-      "start": 0.675,
-      "end": 0.775
+      "start": 0.43,
+      "end": 0.59
     },
     {
       "word": "workspace",
-      "start": 0.775,
-      "end": 1.375
+      "start": 0.59,
+      "end": 1.15
     },
     {
       "word": "selector",
-      "start": 1.375,
-      "end": 1.8
+      "start": 1.15,
+      "end": 1.59
     },
     {
       "word": "below",
-      "start": 1.8,
-      "end": 2.0875
+      "start": 1.59,
+      "end": 1.99
     },
     {
       "word": "the",
-      "start": 2.0875,
-      "end": 2.2125
+      "start": 1.99,
+      "end": 2.11
     },
     {
       "word": "prompt",
-      "start": 2.2125,
-      "end": 2.525
+      "start": 2.11,
+      "end": 2.469
     },
     {
       "word": "box",
-      "start": 2.525,
-      "end": 3.875
+      "start": 2.469,
+      "end": 3.469
     },
     {
       "word": "Don’t",
-      "start": 3.875,
-      "end": 4.15
+      "start": 3.469,
+      "end": 3.75
     },
     {
       "word": "trust",
-      "start": 4.15,
-      "end": 4.45
+      "start": 3.75,
+      "end": 3.949
     },
     {
       "word": "the",
-      "start": 4.45,
-      "end": 4.525
+      "start": 3.949,
+      "end": 4.07
     },
     {
       "word": "checkmark",
-      "start": 4.525,
-      "end": 5.35
+      "start": 4.07,
+      "end": 4.75
     },
     {
       "word": "it",
-      "start": 5.35,
-      "end": 5.4625
+      "start": 4.75,
+      "end": 4.91
     },
     {
       "word": "just",
-      "start": 5.4625,
-      "end": 5.7125
+      "start": 4.91,
+      "end": 5.19
     },
     {
       "word": "shows",
-      "start": 5.7125,
-      "end": 6.025
+      "start": 5.19,
+      "end": 5.47
     },
     {
       "word": "the",
-      "start": 6.025,
-      "end": 6.1375
+      "start": 5.47,
+      "end": 5.59
     },
     {
       "word": "default",
-      "start": 6.1375,
-      "end": 6.3875
+      "start": 5.59,
+      "end": 5.84
     }
   ]
 }
