@@ -1,7 +1,17 @@
-import { BufferAttribute, BufferGeometry, CylinderGeometry, Group, Mesh, SphereGeometry } from 'three/webgpu';
+import {
+  BufferAttribute,
+  BufferGeometry,
+  Color,
+  CylinderGeometry,
+  Group,
+  Mesh,
+  SphereGeometry,
+} from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle } from '../contracts';
 import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village';
+import { createVegetationMaterial } from '../vegetation/materials';
+import { createPlantGeometry } from '../vegetation/plant-geometry';
 import {
   MeshBuilder,
   box,
@@ -60,6 +70,31 @@ export function createHammock(o: {
   woodMesh.castShadow = true;
   woodMesh.receiveShadow = true;
 
+  const palmMaterial = createVegetationMaterial({
+    map: null,
+    color: new Color(0xffffff),
+    alphaTest: 0.05,
+    name: 'bard-hammock-coconut-palms',
+  });
+  const palmL = createPalmPost(
+    'bard hammock left coconut palm',
+    y,
+    POST_L.x - 0.85,
+    POST_L.z - 0.05,
+    0.42,
+    0.43,
+    palmMaterial,
+  );
+  const palmR = createPalmPost(
+    'bard hammock right coconut palm',
+    y,
+    POST_R.x + 0.85,
+    POST_R.z - 0.05,
+    -0.42,
+    0.44,
+    palmMaterial,
+  );
+
   const cloth = buildCloth(y);
   const clothMesh = new Mesh(cloth.geometry, o.kit.materials.cloth);
   clothMesh.name = 'bard hammock animated cloth';
@@ -71,7 +106,7 @@ export function createHammock(o: {
   stoneMesh.castShadow = true;
   stoneMesh.receiveShadow = true;
 
-  group.add(woodMesh, clothMesh, stoneMesh);
+  group.add(palmL, palmR, woodMesh, clothMesh, stoneMesh);
 
   const colliders = {
     circles: [
@@ -104,6 +139,9 @@ export function createHammock(o: {
       swayHammock(cloth, t);
     },
     dispose() {
+      palmL.geometry.dispose();
+      palmR.geometry.dispose();
+      palmMaterial.dispose();
       woodMesh.geometry.dispose();
       clothMesh.geometry.dispose();
       stoneMesh.geometry.dispose();
@@ -125,15 +163,48 @@ const POST_R = { x: -15.0, z: CAMP.z + 0.28 } as const;
 const STOOL = { x: -15.55, z: 84.6 } as const;
 const FIRE = { x: -20.05, z: 84.2 } as const;
 
+function createPalmPost(
+  name: string,
+  ground: (x: number, z: number) => number,
+  x: number,
+  z: number,
+  yaw: number,
+  scale: number,
+  material: ReturnType<typeof createVegetationMaterial>,
+): Mesh {
+  const mesh = new Mesh(createPlantGeometry('palmTall'), material);
+  mesh.name = name;
+  mesh.position.set(x, ground(x, z) - 0.05, z);
+  mesh.rotation.y = yaw;
+  mesh.scale.setScalar(scale);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
 function buildWood(ground: (x: number, z: number) => number, detail: number): BufferGeometry {
   const parts: BufferGeometry[] = [];
-  const postLBase = { x: POST_L.x, y: ground(POST_L.x, POST_L.z) - 0.05, z: POST_L.z };
-  const postRBase = { x: POST_R.x, y: ground(POST_R.x, POST_R.z) - 0.05, z: POST_R.z };
   const postLTop = { x: POST_L.x + 0.52, y: ground(POST_L.x, POST_L.z) + 2.25, z: POST_L.z + 0.18 };
   const postRTop = { x: POST_R.x - 0.52, y: ground(POST_R.x, POST_R.z) + 2.25, z: POST_R.z + 0.18 };
-  parts.push(tubeBetween(0.12, postLBase, postLTop, 0xb68a5b, detail));
-  parts.push(tubeBetween(0.12, postRBase, postRTop, 0xb68a5b, detail));
   parts.push(tubeBetween(0.035, postLTop, postRTop, 0xd8c2a0, 6));
+  parts.push(
+    tubeBetween(
+      0.018,
+      { x: postLTop.x - 0.28, y: postLTop.y - 0.03, z: postLTop.z + 0.04 },
+      { x: postLTop.x + 0.22, y: postLTop.y + 0.02, z: postLTop.z - 0.02 },
+      0xd8c2a0,
+      6,
+    ),
+  );
+  parts.push(
+    tubeBetween(
+      0.018,
+      { x: postRTop.x - 0.22, y: postRTop.y + 0.02, z: postRTop.z - 0.02 },
+      { x: postRTop.x + 0.28, y: postRTop.y - 0.03, z: postRTop.z + 0.04 },
+      0xd8c2a0,
+      6,
+    ),
+  );
   parts.push(
     tubeBetween(
       0.022,

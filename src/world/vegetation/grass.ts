@@ -283,7 +283,11 @@ function grassWeight(heightField: HeightField, x: number, z: number): { weight: 
   const y = heightField.heightAt(x, z);
   if (y < 0.2) return { weight: 0, kind: 'creeper' };
   const masks = heightField.masksAt(x, z);
-  if (masks.sand > 0.68 || masks.rock > 0.55 || masks.cliff > 0.2) return { weight: 0, kind: 'creeper' };
+  if (masks.rock > 0.55 || masks.cliff > 0.2) return { weight: 0, kind: 'creeper' };
+  const seaOats =
+    masks.sand * smoothstep(0.38, 1.1, y) * (1 - smoothstep(3.6, 6.2, y)) * (0.72 + masks.grass * 0.42);
+  if (seaOats > 0.16) return { weight: seaOats * 0.8, kind: 'seaOats' };
+  if (masks.sand > 0.78) return { weight: 0, kind: 'creeper' };
   const hill = masks.grass * smoothstep(1, 8, y) * (1 - masks.sand * 0.9) * (1 - masks.rock * 0.85);
   const creeper = masks.sand * (1 - smoothstep(1.2, 4, y));
   if (creeper > 0.2) return { weight: creeper * 0.35, kind: 'creeper' };

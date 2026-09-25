@@ -98,14 +98,15 @@ export function createVegetationMaterial(
   const isFruit = greaterThan(part, float(1.5)).and(part.lessThan(float(2.5))) as AnyNode;
   const isDead = greaterThan(part, float(2.5)).and(part.lessThan(float(3.5))) as AnyNode;
   const isRock = greaterThan(part, float(3.5));
-  const leafDeep = color(0x183b21);
-  const leafSun = color(0x7da34a);
+  const leafDeep = color(0x235326);
+  const leafSun = color(0xa5c65d);
   const bark = sourceColor.mul(mix(color(0x8f6e50), color(0xd0aa79), shade.mul(0.35)));
-  const fruit = sourceColor.mul(mix(color(0x79562c), color(0xffcc5e), shade.mul(0.45).add(0.55)));
+  const fruit = sourceColor.mul(mix(color(0x31451f), color(0x80602f), shade.mul(0.5).add(0.28)));
   const dead = sourceColor.mul(mix(color(0x8a6334), color(0xd3ad67), shade));
   const rock = sourceColor.mul(mix(color(0x8a8d86), color(0xc5bea7), shade.mul(0.4)));
   const leafAo = smoothstep(float(0.18), float(1.0), shade);
-  const leaf = sourceColor.mul(mix(leafDeep, leafSun, leafAo)).mul(tint.mul(0.32).add(0.82));
+  const leafColor = mix(leafDeep, leafSun, leafAo) as AnyNode;
+  const leaf = (mix(sourceColor, leafColor, float(0.72)) as AnyNode).mul(tint.mul(0.26).add(0.9));
 
   const translucency = smoothstep(
     float(-0.35),
@@ -135,7 +136,7 @@ export function createVegetationMaterial(
     material.emissiveNode = select(
       isLeaf,
       leaf.mul(translucency.add(frondSheen.mul(0.08))),
-      color(0x000000),
+      select(isFruit, fruit, select(isDead, dead, bark)).mul(0.035),
     ) as AnyNode;
     material.roughnessNode = select(
       isRock,
@@ -238,15 +239,50 @@ export function createImpostorMaterial(atlas: Texture): MeshBasicNodeMaterial {
   });
   const tint = attribute('tint', 'vec3') as AnyNode;
   const fade = attribute('fade', 'float') as AnyNode;
+  const family = attribute('family', 'float') as AnyNode;
+  const tile = attribute('atlasUv', 'vec4') as AnyNode;
   const q = (uv() as AnyNode).mul(2).sub(1);
-  const oval = float(1).sub(
-    smoothstep(float(0.78), float(1.0), (vec2 as AnyNode)(q.x, q.y.mul(1.18)).length()),
+  const atlasSample = texture(atlas, tile.xy.add((uv() as AnyNode).mul(tile.zw))) as AnyNode;
+  const tintMix = tint.mul(0.18).add(0.9);
+  const sampleMask = atlasSample.a.max(atlasSample.rgb.dot(vec3(0.3, 0.52, 0.18)));
+  const isPalm = family.lessThan(float(0.5));
+  const isShrub = greaterThan(family, float(1.5));
+  const trunk = smoothstep(float(0.09), float(0.0), q.x.add(q.y.mul(0.055)).abs())
+    .mul(smoothstep(float(-1.0), float(-0.18), q.y))
+    .mul(float(1).sub(smoothstep(float(0.08), float(0.24), q.y)));
+  const crownCore = float(1).sub(
+    smoothstep(float(0.52), float(0.95), (vec2 as AnyNode)(q.x.mul(0.92), q.y.sub(0.28).mul(1.45)).length()),
   );
-  const trunk = smoothstep(float(0.08), float(0.0), q.x.abs())
-    .mul(smoothstep(float(-1.0), float(-0.08), q.y))
-    .mul(0.38);
-  const crownLight = smoothstep(float(-0.15), float(0.85), q.y).mul(0.24).add(0.78);
-  material.colorNode = tint.mul(crownLight).add(color(0x4e3521).mul(trunk)) as AnyNode;
-  material.maskNode = greaterThan(oval.max(trunk).mul(fade), interleavedGradientNoise());
+  const frondFlat = smoothstep(float(0.24), float(0.025), q.y.sub(0.25).abs()).mul(
+    float(1).sub(smoothstep(float(0.25), float(0.98), q.x.abs())),
+  );
+  const frondUp = smoothstep(float(0.22), float(0.03), q.y.sub(0.26).sub(q.x.mul(0.3)).abs()).mul(
+    float(1).sub(smoothstep(float(0.28), float(0.98), q.x.abs())),
+  );
+  const frondDown = smoothstep(float(0.22), float(0.03), q.y.sub(0.22).add(q.x.mul(0.32)).abs()).mul(
+    float(1).sub(smoothstep(float(0.28), float(0.98), q.x.abs())),
+  );
+  const palmMask = trunk.max(crownCore.mul(0.18).max(frondFlat).max(frondUp).max(frondDown));
+  const broadleafMask = float(1).sub(
+    smoothstep(float(0.74), float(1.0), (vec2 as AnyNode)(q.x.mul(0.82), q.y.mul(1.16)).length()),
+  );
+  const shrubMask = float(1).sub(
+    smoothstep(float(0.62), float(0.96), (vec2 as AnyNode)(q.x.mul(0.95), q.y.add(0.18).mul(1.45)).length()),
+  );
+  const effectiveSampleMask = select(isPalm, float(0), sampleMask) as AnyNode;
+  const fallbackMask = select(isPalm, palmMask, select(isShrub, shrubMask, broadleafMask)) as AnyNode;
+  const fallbackColor = select(
+    isPalm,
+    mix(color(0x244820), color(0xa5bf6a), smoothstep(float(-0.18), float(0.78), q.y)),
+    tint.mul(smoothstep(float(-0.35), float(0.86), q.y).mul(0.22).add(0.72)),
+  ) as AnyNode;
+  const atlasColor = atlasSample.rgb.mul(tintMix);
+  material.colorNode = atlasColor.add(
+    fallbackColor.mul(fallbackMask).mul(float(1).sub(effectiveSampleMask)),
+  ) as AnyNode;
+  material.maskNode = greaterThan(
+    effectiveSampleMask.max(fallbackMask).mul(fade),
+    interleavedGradientNoise().mul(0.82),
+  );
   return material;
 }

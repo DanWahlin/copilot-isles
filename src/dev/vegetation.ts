@@ -16,7 +16,7 @@ import {
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
 import { tierSettings } from '../engine/quality';
-import type { HeightField } from '../world/contracts';
+import type { HeightField, Tier } from '../world/contracts';
 import { COVE } from '../world/layout';
 import { world } from '../world/uniforms';
 import { createVegetation, type HeightGrid } from '../world/vegetation';
@@ -131,6 +131,8 @@ function createTerrain(heightField: HeightField): Mesh {
 
 async function main(): Promise<void> {
   const params = new URLSearchParams(location.search);
+  const tierName = (params.get('tier') ?? 'high') as Tier;
+  const tier = tierSettings(tierName);
   const canvas = document.createElement('canvas');
   appRoot.append(canvas);
   const renderer = new WebGPURenderer({
@@ -188,7 +190,7 @@ async function main(): Promise<void> {
   const vegetation = await createVegetation({
     heightField,
     heightGrid,
-    tier: tierSettings('high'),
+    tier,
     renderer,
     seed: 42,
   });
@@ -223,26 +225,45 @@ async function main(): Promise<void> {
     },
   } satisfies Record<string, () => void>;
 
-  (window as unknown as { __vegetationDebug: unknown }).__vegetationDebug = {
+  const debugApi = {
+    ready: true,
     renderer,
     scene,
     vegetation,
     camera,
     controls,
     shots,
+    stats: () => {
+      const info = renderer.info as unknown as {
+        render: { calls?: number; drawCalls?: number; triangles?: number };
+        memory: { programs?: number };
+      };
+      return {
+        ...vegetation.stats(),
+        drawCalls: info.render.drawCalls ?? info.render.calls ?? 0,
+        triangles: info.render.triangles ?? 0,
+        programs: info.memory.programs ?? 0,
+        backend: params.has('webgl') ? 'webgl2' : 'webgpu',
+        tier: tier.tier,
+      };
+    },
   };
+
+  (window as unknown as { __vegetationDebug: unknown; __dev: unknown }).__vegetationDebug = debugApi;
+  (window as unknown as { __dev: unknown }).__dev = debugApi;
 
   renderer.setAnimationLoop(() => {
     world.time.value = performance.now() * 0.001;
     controls.update();
     vegetation.update(camera);
+    renderer.info.reset();
     renderer.render(scene, camera);
     const stats = vegetation.stats();
     const info = renderer.info as unknown as {
       render: { calls?: number; drawCalls?: number; triangles?: number };
       memory: { programs?: number };
     };
-    hudElement.innerHTML = `<strong>Copilot Isles vegetation</strong><br />Backend: <code>${params.has('webgl') ? 'forced WebGL2' : 'WebGPU'}</code><br />Vegetation draws: <code>${stats.drawCalls}</code>, tris: <code>${stats.triangles.toLocaleString()}</code><br />Frame draws: <code>${info.render.drawCalls ?? info.render.calls ?? 0}</code>, tris: <code>${(info.render.triangles ?? 0).toLocaleString()}</code>, pipelines: <code>${info.memory.programs ?? 0}</code><br />Impostor bake: <code>${stats.impostorBakeMs.toFixed(1)} ms</code><br />Shots available: <code>beach()</code>, <code>hill()</code>, <code>far()</code>`;
+    hudElement.innerHTML = `<strong>Copilot Isles vegetation</strong><br />Backend: <code>${params.has('webgl') ? 'forced WebGL2' : 'WebGPU'}</code> · Tier: <code>${tier.tier}</code><br />Vegetation draws: <code>${stats.drawCalls}</code>, tris: <code>${stats.triangles.toLocaleString()}</code><br />Frame draws: <code>${info.render.drawCalls ?? info.render.calls ?? 0}</code>, tris: <code>${(info.render.triangles ?? 0).toLocaleString()}</code>, pipelines: <code>${info.memory.programs ?? 0}</code><br />Impostor bake: <code>${stats.impostorBakeMs.toFixed(1)} ms</code><br />Shots available: <code>beach()</code>, <code>hill()</code>, <code>far()</code>`;
   });
 }
 

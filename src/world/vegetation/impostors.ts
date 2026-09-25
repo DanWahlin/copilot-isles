@@ -160,6 +160,7 @@ export class ImpostorBatch {
   private readonly fade: InstancedBufferAttribute;
   private readonly tint: InstancedBufferAttribute;
   private readonly atlasUv: InstancedBufferAttribute;
+  private readonly family: InstancedBufferAttribute;
   private readonly capacity: number;
   private readonly entries: ImpostorEntry[];
   private visible = 0;
@@ -174,9 +175,11 @@ export class ImpostorBatch {
     this.fade = new InstancedBufferAttribute(new Float32Array(this.capacity), 1);
     this.tint = new InstancedBufferAttribute(new Float32Array(this.capacity * 3), 3);
     this.atlasUv = new InstancedBufferAttribute(new Float32Array(this.capacity * 4), 4);
+    this.family = new InstancedBufferAttribute(new Float32Array(this.capacity), 1);
     geometry.setAttribute('fade', this.fade);
     geometry.setAttribute('tint', this.tint);
     geometry.setAttribute('atlasUv', this.atlasUv);
+    geometry.setAttribute('family', this.family);
     this.mesh = new InstancedMesh(geometry, createImpostorMaterial(atlas), this.capacity);
     this.mesh.count = 0;
     this.mesh.frustumCulled = false;
@@ -184,18 +187,19 @@ export class ImpostorBatch {
 
   update(camera: PerspectiveCamera, nearDistance: number): void {
     this.visible = 0;
-    const far = Math.max(nearDistance + 80, 330);
+    const far = Math.max(nearDistance + 190, 620);
     for (const entry of this.entries) {
       const d = Math.hypot(entry.x - camera.position.x, entry.z - camera.position.z);
       if (d < nearDistance * (entry.species === 'shrub' ? 0.62 : 1) || d > far) continue;
       if (this.visible >= this.capacity) continue;
       const yaw = Math.atan2(camera.position.x - entry.x, camera.position.z - entry.z);
       quat.setFromAxisAngle(up, yaw);
-      tmp.position.set(entry.x, entry.y + entry.radius * 0.54, entry.z);
+      const isPalm = entry.species.startsWith('palm');
+      const s = entry.radius * entry.scale;
+      tmp.position.set(entry.x, entry.y + s * (isPalm ? 0.62 : 0.54), entry.z);
       tmp.quaternion.copy(quat);
       const thin = 1 - smoothstep(far - 110, far, d) * (0.35 + entry.lodSeed * 0.45);
-      const s = entry.radius * entry.scale;
-      scale.set(s * 1.45, s * 1.2, s * 1.45);
+      scale.set(s * (isPalm ? 1.68 : 1.32), s * (isPalm ? 1.52 : 1.12), s * (isPalm ? 1.68 : 1.32));
       tmp.scale.copy(scale);
       tmp.updateMatrix();
       matrix.copy(tmp.matrix);
@@ -204,6 +208,7 @@ export class ImpostorBatch {
       this.tint.setXYZ(this.visible, color.r, color.g, color.b);
       const tile = atlasTile(entry.species, entry.lodSeed);
       this.atlasUv.setXYZW(this.visible, tile.x, tile.y, tile.w, tile.h);
+      this.family.setX(this.visible, atlasFamily(entry.species));
       this.fade.setX(this.visible, clamp01(smoothstep(nearDistance, nearDistance + 18, d) * thin));
       this.visible += 1;
     }
@@ -211,6 +216,7 @@ export class ImpostorBatch {
     this.mesh.instanceMatrix.needsUpdate = true;
     this.tint.needsUpdate = true;
     this.atlasUv.needsUpdate = true;
+    this.family.needsUpdate = true;
     this.fade.needsUpdate = true;
   }
 

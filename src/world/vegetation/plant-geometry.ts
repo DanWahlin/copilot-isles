@@ -56,6 +56,15 @@ class GeoBuilder {
     geometry.setAttribute('uv', new Float32BufferAttribute(this.uvs, 2));
     geometry.setAttribute('vegPart', new Float32BufferAttribute(this.parts, 1));
     geometry.setAttribute('shade', new Float32BufferAttribute(this.shade, 1));
+    const colors = new Float32Array(this.parts.length * 3);
+    colors.fill(1);
+    geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
+    const fade = new Float32Array(this.parts.length);
+    fade.fill(1);
+    geometry.setAttribute('fade', new Float32BufferAttribute(fade, 1));
+    const tint = new Float32Array(this.parts.length * 3);
+    tint.fill(1);
+    geometry.setAttribute('tint', new Float32BufferAttribute(tint, 3));
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
     return geometry;
@@ -66,6 +75,8 @@ const tmpV = new Vector3();
 const tmpA = new Vector3();
 const tmpB = new Vector3();
 const tmpC = new Vector3();
+const tmpD = new Vector3();
+const DOWN = new Vector3(0, -1, 0);
 
 function basisFromDir(dir: Vector3): { right: Vector3; up: Vector3 } {
   const upRef = Math.abs(dir.y) > 0.92 ? new Vector3(1, 0, 0) : new Vector3(0, 1, 0);
@@ -120,16 +131,55 @@ function addCurvedTrunk(
   offsetX = 0,
   offsetZ = 0,
 ): Vector3 {
-  let prev = new Vector3(offsetX, 0, offsetZ);
+  const centerAt = (t: number) => new Vector3(offsetX + curveX * t * t, height * t, offsetZ + curveZ * t * t);
+  const radiusAt = (t: number) => {
+    const taper = radius0 + (radius1 - radius0) * t;
+    const flare = 1 + Math.max(0, 1 - t * 6.8) ** 2 * 1.25;
+    const ring = 1 + Math.max(0, Math.sin(t * height * 5.35)) * 0.045;
+    return taper * flare * ring;
+  };
+
+  let prev = centerAt(0);
   for (let y = 0; y < segments; y += 1) {
     const t1 = (y + 1) / segments;
-    const next = new Vector3(offsetX + curveX * t1 * t1, height * t1, offsetZ + curveZ * t1 * t1);
-    const r0 = radius0 + (radius1 - radius0) * (y / segments);
-    const r1 = radius0 + (radius1 - radius0) * t1;
-    addBranch(builder, prev, next, r0, r1, sides, PART_BARK, y % 2 === 0 ? 0.44 : 0.67);
+    const next = centerAt(t1);
+    const r0 = radiusAt(y / segments);
+    const r1 = radiusAt(t1);
+    addBranch(builder, prev, next, r0, r1, sides, PART_BARK, y % 2 === 0 ? 0.42 : 0.66);
     prev = next;
   }
-  return prev;
+
+  const leanYaw = Math.atan2(curveX, curveZ);
+  const base = centerAt(0);
+  for (let i = 0; i < 4; i += 1) {
+    const a = leanYaw + i * (Math.PI / 2) + (i % 2) * 0.18;
+    addBranch(
+      builder,
+      base.clone().add(new Vector3(Math.sin(a) * radius0 * 0.58, 0.08, Math.cos(a) * radius0 * 0.58)),
+      base.clone().add(new Vector3(Math.sin(a) * radius0 * 2.75, 0.01, Math.cos(a) * radius0 * 2.75)),
+      radius0 * 0.36,
+      radius0 * 0.1,
+      Math.max(5, sides - 3),
+      PART_BARK,
+      0.5,
+    );
+  }
+
+  for (let i = 1; i < segments; i += 1) {
+    const t = i / segments;
+    const half = Math.min(0.006, 0.34 / height);
+    addBranch(
+      builder,
+      centerAt(Math.max(0, t - half)),
+      centerAt(Math.min(1, t + half)),
+      radiusAt(t) * 1.12,
+      radiusAt(t) * 1.1,
+      sides,
+      PART_BARK,
+      i % 2 === 0 ? 0.34 : 0.52,
+    );
+  }
+  return centerAt(1);
 }
 
 function addDiamondCard(
@@ -166,47 +216,69 @@ function addPalmFrond(
     Math.cos(yaw) * Math.cos(pitch),
   );
   const side = new Vector3(Math.cos(yaw), 0, -Math.sin(yaw)).normalize();
-  const last = origin.clone();
-  const segments = 5;
-  for (let i = 1; i <= segments; i += 1) {
-    const t = i / segments;
-    const p = origin
+  const curvePoint = (t: number) =>
+    origin
       .clone()
       .addScaledVector(forward, length * t)
-      .addScaledVector(new Vector3(0, -1, 0), length * (0.1 * t + 0.42 * t * t));
+      .addScaledVector(DOWN, length * (0.035 * t + 0.31 * t * t))
+      .addScaledVector(new Vector3(0, 1, 0), Math.sin(Math.PI * t) * length * 0.08);
+  const last = origin.clone();
+  const segments = 7;
+  for (let i = 1; i <= segments; i += 1) {
+    const t = i / segments;
+    const p = curvePoint(t);
     addBranch(
       builder,
       last,
       p,
-      width * 0.035 * (1 - (i - 1) / segments),
-      width * 0.02 * (1 - t),
+      width * 0.042 * (1 - (i - 1) / segments),
+      width * 0.018 * (1 - t),
       4,
       dead ? PART_DEAD : PART_LEAF,
-      0.62,
+      dead ? 0.56 : 0.66,
     );
     last.copy(p);
   }
 
-  const leaflets = Math.max(9, Math.floor(length * 2.2));
+  for (let i = 0; i < segments; i += 1) {
+    const t0 = i / segments;
+    const t1 = (i + 1) / segments;
+    const p0 = curvePoint(t0);
+    const p1 = curvePoint(t1);
+    const w0 = width * 0.34 * Math.sin(Math.PI * Math.max(0.02, t0)) * (1 - t0 * 0.22);
+    const w1 = width * 0.34 * Math.sin(Math.PI * Math.max(0.02, t1)) * (1 - t1 * 0.22);
+    if (w0 <= 0.005 && w1 <= 0.005) continue;
+    builder.addQuad(
+      p0.clone().addScaledVector(side, -w0).toArray(),
+      p1.clone().addScaledVector(side, -w1).toArray(),
+      p1.clone().addScaledVector(side, w1).toArray(),
+      p0.clone().addScaledVector(side, w0).toArray(),
+      dead ? PART_DEAD : PART_LEAF,
+      dead ? 0.48 + t0 * 0.24 : 0.5 + t0 * 0.42,
+    );
+  }
+
+  const leaflets = Math.max(16, Math.floor(length * 3.0));
   for (let i = 0; i < leaflets; i += 1) {
     const t = (i + 0.45) / leaflets;
-    const center = origin
-      .clone()
-      .addScaledVector(forward, length * t)
-      .addScaledVector(new Vector3(0, -1, 0), length * (0.1 * t + 0.42 * t * t));
-    const leafletLen = width * (1.45 - Math.abs(t - 0.42) * 1.2) * (0.85 + hash2(i, seed, 71) * 0.25);
-    const leafletWidth = width * 0.09 * (1 - t * 0.25);
-    const sweep = 0.35 + t * 0.55;
-    const shade = dead ? 0.45 + t * 0.25 : 0.42 + t * 0.55;
+    const center = curvePoint(t);
+    const fullness = Math.sin(Math.PI * t);
+    const leafletLen = width * (0.62 + fullness * 0.72) * (0.9 + hash2(i, seed, 71) * 0.18);
+    const leafletWidth = width * 0.048 * (1 - t * 0.18);
+    const sweep = 0.22 + fullness * 0.36 + t * 0.12;
+    const shade = dead ? 0.42 + t * 0.28 : 0.48 + t * 0.46;
     for (const sideSign of [-1, 1]) {
       const axis = side
         .clone()
         .multiplyScalar(sideSign)
-        .addScaledVector(forward, 0.18 - t * 0.16)
-        .addScaledVector(new Vector3(0, -1, 0), 0.18 + t * 0.22)
+        .addScaledVector(forward, -0.08 + t * 0.22)
+        .addScaledVector(DOWN, 0.08 + t * 0.2)
         .normalize();
       const cross = tmpC.copy(axis).cross(forward).normalize();
-      const c = center.clone().addScaledVector(side, sideSign * width * sweep * Math.sin(Math.PI * t));
+      const c = center
+        .clone()
+        .addScaledVector(side, sideSign * width * sweep)
+        .addScaledVector(DOWN, fullness * width * 0.08);
       addDiamondCard(builder, c, axis, cross, leafletLen, leafletWidth, dead ? PART_DEAD : PART_LEAF, shade);
     }
   }
@@ -237,6 +309,23 @@ function addCoconutCluster(builder: GeoBuilder, origin: Vector3, seed: number): 
   }
 }
 
+function addCrownBoot(builder: GeoBuilder, origin: Vector3, seed: number): void {
+  for (let i = 0; i < 7; i += 1) {
+    const yaw = (i / 7) * Math.PI * 2 + hash2(seed, i, 41) * 0.18;
+    const dir = tmpD.set(Math.sin(yaw), -0.28, Math.cos(yaw)).normalize();
+    addBranch(
+      builder,
+      origin.clone().addScaledVector(dir, 0.05),
+      origin.clone().addScaledVector(dir, 0.52),
+      0.085,
+      0.025,
+      4,
+      PART_DEAD,
+      0.5 + hash2(seed, i, 42) * 0.18,
+    );
+  }
+}
+
 function addPalmTree(
   builder: GeoBuilder,
   height: number,
@@ -261,24 +350,42 @@ function addPalmTree(
     offsetZ,
   );
   const crownLift = crown.clone().add(new Vector3(0, 0.12, 0));
+  addCrownBoot(builder, crown.clone().add(new Vector3(0, -0.08, 0)), seed);
   for (let i = 0; i < fronds; i += 1) {
-    const yaw = (i / fronds) * Math.PI * 2 + hash2(i, seed, 4) * 0.25;
-    const pitch = -0.03 - hash2(i, seed, 5) * 0.18;
-    const len = crownRadius * (0.83 + hash2(i, seed, 6) * 0.28);
-    const width = crownRadius * 0.13 * (0.85 + hash2(i, seed, 7) * 0.35);
-    addPalmFrond(builder, crownLift, yaw, pitch, len, width, seed + i, false);
+    const layer = i % 4;
+    const yaw = (i / fronds) * Math.PI * 2 + hash2(i, seed, 4) * 0.32;
+    const pitch =
+      layer === 0
+        ? 0.08 + hash2(i, seed, 5) * 0.06
+        : layer === 1
+          ? -0.04 - hash2(i, seed, 5) * 0.08
+          : layer === 2
+            ? -0.18 - hash2(i, seed, 5) * 0.11
+            : -0.32 - hash2(i, seed, 5) * 0.08;
+    const len = crownRadius * (0.76 + hash2(i, seed, 6) * 0.34) * (layer === 0 ? 0.82 : 1);
+    const width = crownRadius * 0.17 * (0.9 + hash2(i, seed, 7) * 0.26);
+    addPalmFrond(
+      builder,
+      crownLift.clone().add(new Vector3(0, layer === 0 ? 0.16 : 0, 0)),
+      yaw,
+      pitch,
+      len,
+      width,
+      seed + i,
+      false,
+    );
   }
   if (hash2(seed, 9, 12) > 0.32) {
-    const deadCount = 1 + Math.floor(hash2(seed, 13, 19) * 2);
+    const deadCount = 2 + Math.floor(hash2(seed, 13, 19) * 2);
     for (let i = 0; i < deadCount; i += 1) {
       const yaw = hash2(seed, i, 22) * Math.PI * 2;
       addPalmFrond(
         builder,
         crown.clone().add(new Vector3(0, -0.18, 0)),
         yaw,
-        -0.62,
-        crownRadius * 0.65,
-        crownRadius * 0.08,
+        -0.74,
+        crownRadius * 0.58,
+        crownRadius * 0.075,
         seed + 100 + i,
         true,
       );
@@ -297,8 +404,8 @@ function createPalmGeometry(kind: 'tall' | 'cluster' | 'young'): BufferGeometry 
       addPalmTree(
         b,
         h,
-        4.4 + hash2(i, 8, 9) * 0.6,
-        15 + (i % 3),
+        4.6 + hash2(i, 8, 9) * 0.55,
+        18 + (i % 4),
         Math.cos(yaw) * 0.55,
         Math.sin(yaw) * 0.55,
         Math.cos(yaw + 0.7) * 0.35,
@@ -309,10 +416,10 @@ function createPalmGeometry(kind: 'tall' | 'cluster' | 'young'): BufferGeometry 
     return b.toGeometry();
   }
   if (kind === 'young') {
-    addPalmTree(b, 5.2, 3.1, 14, 0, 0, 0.1, 0.18, 37);
+    addPalmTree(b, 5.2, 3.05, 16, 0, 0, 0.1, 0.18, 37);
     return b.toGeometry();
   }
-  addPalmTree(b, 12.6, 6.1, 19, 0, 0, 0.35, 1.15, 71);
+  addPalmTree(b, 12.6, 6.0, 24, 0, 0, 0.35, 1.15, 71);
   return b.toGeometry();
 }
 

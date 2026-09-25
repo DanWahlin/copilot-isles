@@ -164,7 +164,7 @@ function updateBatch(batch: PlantBatch, camera: PerspectiveCamera, tier: TierSet
 function collectTreeLike(scatter: Record<PlantSpecies, PlantInstance[]>): PlantInstance[] {
   const output: PlantInstance[] = [];
   for (const species of Object.keys(scatter) as PlantSpecies[]) {
-    if (TREE_LIKE.has(species) || species === 'shrub') output.push(...scatter[species]);
+    if (species.startsWith('palm')) output.push(...scatter[species]);
   }
   return output;
 }
