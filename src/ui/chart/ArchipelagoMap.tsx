@@ -505,7 +505,7 @@ function mulberry32(seed: number): () => number {
 }
 
 /** A smooth, seeded, organic closed outline around (0, 0). */
-export function blob(seed: number, rx: number, ry: number, wobble: number, n = 14): string {
+function blob(seed: number, rx: number, ry: number, wobble: number, n = 14): string {
   const r = mulberry32(seed);
   const pts: [number, number][] = [];
   for (let i = 0; i < n; i++) {
@@ -532,7 +532,7 @@ function closedCurve(p: readonly [number, number][]): string {
 }
 
 /** A smooth open curve through the points (Catmull-Rom), for the voyage route. */
-export function openCurve(p: readonly [number, number][]): string {
+function openCurve(p: readonly [number, number][]): string {
   if (p.length < 2) return '';
   let d = `M${f(p[0]![0])} ${f(p[0]![1])}`;
   for (let i = 0; i < p.length - 1; i++) {

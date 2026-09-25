@@ -30,7 +30,7 @@ const NO_SOUND: SoundSource = {
   toggle: () => undefined,
 };
 
-export function LearnLayer({
+function LearnLayer({
   store,
   playing,
   sound = NO_SOUND,

@@ -23,7 +23,7 @@ export function SoundButton({
   );
 }
 
-export function SpeakerIcon({ muted }: { muted: boolean }) {
+function SpeakerIcon({ muted }: { muted: boolean }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path className="body" d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" />

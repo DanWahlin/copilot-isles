@@ -92,17 +92,17 @@ export interface ChartData {
   player: { x: number; y: number; heading: number; onShip: boolean } | null;
 }
 
-export interface VoyageProgress {
+interface VoyageProgress {
   value: number;
   message: string;
 }
 
-export interface SaveSummary {
+interface SaveSummary {
   location: string;
   questsDone: number;
 }
 
-export interface LearnSummary {
+interface LearnSummary {
   doubloons: number;
   seals: readonly string[];
   /** The voyage's sail palette (Paint Your Sails), or null for the default. */
