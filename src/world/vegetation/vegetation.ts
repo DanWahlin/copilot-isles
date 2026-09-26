@@ -69,6 +69,13 @@ function palmGeometryDistance(tier: TierSettings): number {
   return 285;
 }
 
+/** Distance where a species' live geometry dissolves into its impostor (shared by both sides). */
+function geometryHandoff(species: PlantSpecies, tier: TierSettings): number {
+  if (species === 'shrub') return Math.min(45, tier.treeNear * 0.62);
+  if (species.startsWith('palm')) return palmGeometryDistance(tier);
+  return tier.treeNear;
+}
+
 function palmVariant(instance: PlantInstance): PalmVariant {
   return instance.lodSeed < 0.6 ? 'a' : 'b';
 }
@@ -178,12 +185,7 @@ function createBatch(
 
 function updateBatch(batch: PlantBatch, camera: PerspectiveCamera, tier: TierSettings): void {
   batch.visible = 0;
-  const handoff =
-    batch.species === 'shrub'
-      ? Math.min(45, tier.treeNear * 0.62)
-      : batch.species.startsWith('palm')
-        ? palmGeometryDistance(tier)
-        : tier.treeNear;
+  const handoff = geometryHandoff(batch.species, tier);
   for (const instance of batch.instances) {
     const d = Math.hypot(instance.x - camera.position.x, instance.z - camera.position.z);
     const maxD = batch.nearOnly ? handoff + 10 : batch.farDistance;
@@ -208,8 +210,11 @@ function updateBatch(batch: PlantBatch, camera: PerspectiveCamera, tier: TierSet
 }
 
 function collectTreeLike(scatter: Record<PlantSpecies, PlantInstance[]>): PlantInstance[] {
-  void scatter;
-  return [];
+  const output: PlantInstance[] = [];
+  for (const species of Object.keys(scatter) as PlantSpecies[]) {
+    if (TREE_LIKE.has(species) || species === 'shrub') output.push(...scatter[species]);
+  }
+  return output;
 }
 
 export async function createVegetation(options: CreateVegetationOptions): Promise<VegetationSystem> {
@@ -262,7 +267,13 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
   const impostorEntries = collectTreeLike(scatter.plants);
   const impostorBake =
     impostorEntries.length > 0 ? await bakeImpostorAtlas(options.renderer, geometries) : null;
-  const impostors = impostorBake ? new ImpostorBatch(impostorEntries, impostorBake.texture) : null;
+  const impostors = impostorBake
+    ? new ImpostorBatch(impostorEntries, impostorBake, {
+        handoff: (species) => geometryHandoff(species, tier),
+        palmVariant,
+        tint: tintFor,
+      })
+    : null;
   if (impostors) group.add(impostors.mesh);
 
   let lastStats: VegetationStats = {
@@ -281,7 +292,7 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
     update(camera) {
       for (const batch of batches) updateBatch(batch, camera, tier);
       grass.update(camera);
-      impostors?.update(camera, palmGeometryDistance(tier));
+      impostors?.update(camera);
       const grassStats = grass.stats();
       const impostorStats = impostors?.stats() ?? { visibleInstances: 0, drawCalls: 0, triangles: 0 };
       let visibleInstances = grassStats.visibleInstances + impostorStats.visibleInstances;
@@ -321,7 +332,6 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
       }
       grass.dispose();
       impostors?.dispose();
-      impostorBake?.target.dispose();
       heightTexture.dispose();
       const disposedMaterials = new Set<Material>();
       const sharedPalmMaterial = palmMaterial();
