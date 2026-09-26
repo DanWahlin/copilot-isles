@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { CircleObstacle, HeightField, WaveSampler } from '../contracts';
 import { COVE } from '../layout';
 import { WaveField } from '../ocean/waves';
-import { ShipDynamics, pointOfSailCurve } from './dynamics';
+import { ShipDynamics, pointOfSailCurve, windOnBow } from './dynamics';
 import { BRIGANTINE_CAPSULES, BRIGANTINE_DRAFT } from './lines';
 
 const calm: WaveSampler = {
@@ -173,5 +173,35 @@ describe('ShipDynamics', () => {
     expect(broadReach).toBeGreaterThan(beamReach);
     expect(broadReach).toBeGreaterThan(running);
     expect(broadReach).toBeGreaterThan(0.95);
+  });
+
+  it('fends off a boat on the bow so the helm can still swing her clear', () => {
+    // Beam reach (the shared wind blows toward +x/-z), bow jammed against a moored boat.
+    const heading = Math.atan2(0.6, 0.8);
+    const ship = new ShipDynamics(0, 0, heading);
+    const boat: CircleObstacle = { x: 0.6 * 13.2, z: 0.8 * 13.2, r: 1.9 };
+    stepMany(ship, 6, 1, 1, [boat]);
+    const turned = Math.abs(
+      Math.atan2(Math.sin(ship.pose.heading - heading), Math.cos(ship.pose.heading - heading)),
+    );
+    expect(turned).toBeGreaterThan(1);
+  });
+
+  it('windOnBow reads the wind off the bow and agrees with the no-go zone', () => {
+    // Wind blowing toward -z: a ship heading +z (0) is head to wind, heading -z (π) runs before it.
+    expect(windOnBow(0, 0, -6).point).toBe('in-irons');
+    expect(windOnBow(0, 0, -6).angle).toBeCloseTo(0);
+    expect(windOnBow(Math.PI, 0, -6).point).toBe('running');
+    // Facing +x, starboard is +z, so wind blowing toward +z comes from port (a negative angle).
+    const beam = windOnBow(Math.PI / 2, 0, 6);
+    expect(beam.point).toBe('beam-reach');
+    expect(beam.angle).toBeCloseTo(-Math.PI / 2);
+    for (let deg = 0; deg <= 180; deg += 5) {
+      const h = (deg * Math.PI) / 180;
+      const { point } = windOnBow(h, 0, -1);
+      const thrust = pointOfSailCurve(-Math.cos(h));
+      if (point === 'in-irons') expect(thrust).toBeLessThan(0.1);
+      if (point === 'beam-reach' || point === 'broad-reach') expect(thrust).toBeGreaterThan(0.55);
+    }
   });
 });

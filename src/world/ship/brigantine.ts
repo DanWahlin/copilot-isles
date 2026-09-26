@@ -42,7 +42,8 @@ import {
   createSailGeometry,
   createSparGeometry,
 } from './brigantine-rig';
-import { createFlagGeometry, makeFlagMaterial } from './ship-flags';
+import { createFlagGeometry, flagYaw, makeFlagMaterial } from './ship-flags';
+import { windAt } from '../wind';
 import {
   makeCanvasMaterial,
   makeShipMaterial,
@@ -187,6 +188,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     luff: uniform(0),
     sailCloth: uniform(new Color(startSails.cloth)),
     sailStripe: uniform(new Color(startSails.stripe)),
+    flagYaw: uniform(0),
   };
   const anchors: ShipAnchors = {
     helm: { x: 0, y: deckHeightAt(HELM_Z) + 0.18, z: HELM_Z, heading: 0 },
@@ -227,7 +229,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   addMesh(
     group,
     createFlagGeometry(),
-    register(makeFlagMaterial()),
+    register(makeFlagMaterial(uniforms.flagYaw)),
     'animated jolly roger and pennants',
     false,
   );
@@ -237,6 +239,8 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   group.add(pipeSystem.group);
   group.add(christening.group);
   let disposed = false;
+  const flagWind = new Float32Array(2);
+  let flagEased = false;
 
   const lanternPivot = new Group();
   lanternPivot.name = 'stern lantern pendulum';
@@ -414,6 +418,14 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
       group.rotation.set(pitch + shake * 0.5, yaw, roll + shake, 'YXZ');
       uniforms.trim.value = dynamics.control.trim;
       uniforms.luff.value = dynamics.pose.luff;
+      // Flags stream down the apparent wind: the true wind less the ship's own way through the water.
+      windAt(x, z, t, flagWind);
+      const fs = dynamics.forwardSpeed;
+      const targetFlag = flagYaw(yaw, flagWind[0] - Math.sin(yaw) * fs, flagWind[1] - Math.cos(yaw) * fs);
+      const was = uniforms.flagYaw.value;
+      const turn = Math.atan2(Math.sin(targetFlag - was), Math.cos(targetFlag - was));
+      uniforms.flagYaw.value = flagEased ? was + turn * Math.min(1, dt * 2.5) : targetFlag;
+      flagEased = true;
       localToWorldXZ(dynamics.pose, 0, BOW_Z, oceanBow, 0);
       localToWorldXZ(dynamics.pose, 0, STERN_Z, oceanStern, 0);
       updateShipOceanInteraction(

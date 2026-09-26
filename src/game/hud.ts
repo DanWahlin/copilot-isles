@@ -17,6 +17,30 @@ export interface TerminalLine {
   tone?: 'cmd' | 'you' | 'other' | 'ok';
 }
 
+/** The wind as the helmsman reads it: angle off the bow (radians, + to starboard) and point of sail. */
+export interface WindReading {
+  angle: number;
+  point: 'in-irons' | 'close-hauled' | 'beam-reach' | 'broad-reach' | 'running';
+}
+
+const POINT_LABEL: Record<WindReading['point'], string> = {
+  'in-irons': 'In irons',
+  'close-hauled': 'Close-hauled',
+  'beam-reach': 'Beam reach',
+  'broad-reach': 'Broad reach',
+  running: 'Running',
+};
+
+/** A top-down telltale: the hull points up, the arrow shows where the wind comes from, and the
+ * shaded wedge is the no-go zone (±40°, matching the sail model). */
+const WIND_DIAL_SVG =
+  '<svg viewBox="-20 -20 40 40" aria-hidden="true">' +
+  '<circle r="16.5" class="ring"/>' +
+  '<path d="M0 0L-10.6 -12.6A16.5 16.5 0 0 1 10.6 -12.6Z" class="nogo"/>' +
+  '<path d="M0 -8.5C2.9 -4.6 3.1 3.6 2.3 8.2L-2.3 8.2C-3.1 3.6-2.9 -4.6 0 -8.5Z" class="hull"/>' +
+  '<g class="arrow"><path d="M0 -19.5V-10.5M-3 -13.6L0 -10L3 -13.6"/></g>' +
+  '</svg>';
+
 export class Hud {
   readonly root: HTMLDivElement;
   private readonly prompt: HTMLDivElement;
@@ -27,6 +51,11 @@ export class Hud {
   private readonly sailTrim: HTMLDivElement;
   private readonly sailRudder: HTMLDivElement;
   private readonly sailSpeed: HTMLSpanElement;
+  private readonly windArrow: SVGGElement;
+  private readonly windLabel: HTMLSpanElement;
+  private lastWindDeg = NaN;
+  private windShown = NaN;
+  private lastPoint = '';
   private readonly toastEl: HTMLDivElement;
   private readonly help: HTMLDivElement;
   private readonly fadeEl: HTMLDivElement;
@@ -60,7 +89,15 @@ export class Hud {
     rudBar.append(this.sailRudder);
     rudWrap.append(rudBar);
     this.sailSpeed = text('span', 'hud-speed', '0.0 kn');
-    this.sail.append(trimWrap, rudWrap, this.sailSpeed);
+    const windRow = el('div', 'hud-wind-row');
+    const dial = el('div', 'hud-wind');
+    dial.innerHTML = WIND_DIAL_SVG;
+    this.windArrow = dial.querySelector('.arrow') as SVGGElement;
+    this.windLabel = text('span', 'hud-wind-label', '');
+    const readout = el('div', 'hud-readout');
+    readout.append(this.sailSpeed, this.windLabel);
+    windRow.append(dial, readout);
+    this.sail.append(trimWrap, rudWrap, windRow);
     this.toastEl = el('div', 'hud-toast');
     this.help = el('div', 'hud-help');
     this.fadeEl = el('div', 'hud-fade');
@@ -160,10 +197,24 @@ export class Hud {
     this.sail.classList.toggle('show', on);
   }
 
-  updateSail(trim: number, rudder: number, speed: number): void {
+  updateSail(trim: number, rudder: number, speed: number, wind?: WindReading): void {
     this.sailTrim.style.transform = `scaleX(${trim.toFixed(3)})`;
     this.sailRudder.style.left = `${(50 + rudder * 46).toFixed(1)}%`;
     this.sailSpeed.textContent = `${(speed * 1.944).toFixed(1)} kn`;
+    if (!wind) return;
+    const deg = Math.round((wind.angle * 180) / Math.PI / 2) * 2;
+    if (deg !== this.lastWindDeg) {
+      // Unwrapped so the eased arrow takes the short way round when the wind crosses the stern.
+      const prev = Number.isNaN(this.windShown) ? deg : this.windShown;
+      this.windShown = prev + ((((deg - prev) % 360) + 540) % 360) - 180;
+      this.lastWindDeg = deg;
+      this.windArrow.style.transform = `rotate(${this.windShown}deg)`;
+    }
+    if (wind.point !== this.lastPoint) {
+      this.lastPoint = wind.point;
+      this.windLabel.textContent = POINT_LABEL[wind.point];
+      this.sail.classList.toggle('irons', wind.point === 'in-irons');
+    }
   }
 
   /** Shows (or with null, hides) the terminal panel. Only touches the DOM when the lines change. */
