@@ -1,4 +1,5 @@
 import { CanvasTexture, ClampToEdgeWrapping, Material, Texture } from 'three/webgpu';
+import { MACAW_PAINT } from './parrot';
 import type { CharacterBody, NpcId, SourceKey } from './types';
 
 type Hex = number;
@@ -312,6 +313,8 @@ function textureForSource(source: SourceKey, base: Texture, cache: CharacterPale
   if (existing) return existing;
   const built = buildCanvasTexture(base, `character-atlas-${source}`);
   if (!built) return base;
+  // Anne's macaw is repainted into free cells of her atlas copy.
+  if (source === 'anne') for (const [cell, color] of MACAW_PAINT) paint(built.ctx, [cell], color, built.cell);
   cache.set(key, built.texture);
   return built.texture;
 }

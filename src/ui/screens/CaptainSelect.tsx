@@ -84,7 +84,9 @@ function CaptainCard({
       <CaptainPortrait body={id} />
       <span>{title}</span>
       <small>
-        {id === 'man' ? 'Ginger beard, loyal parrot, steady hand' : 'Long fair hair, sharp eyes, quick smile'}
+        {id === 'man'
+          ? 'Ginger beard, loyal parrot, steady hand'
+          : 'Long fair hair, scarlet macaw, quick smile'}
       </small>
     </button>
   );
