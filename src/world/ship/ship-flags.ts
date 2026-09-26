@@ -1,5 +1,34 @@
-import { BufferAttribute, BufferGeometry, DoubleSide, MeshStandardNodeMaterial } from 'three/webgpu';
-import { Fn, attribute, color, cos, float, normalLocal, positionLocal, sin, vec3 } from 'three/tsl';
+import {
+  BufferAttribute,
+  BufferGeometry,
+  CanvasTexture,
+  DataTexture,
+  DoubleSide,
+  LinearFilter,
+  LinearMipmapLinearFilter,
+  MeshStandardNodeMaterial,
+  RGBAFormat,
+  SRGBColorSpace,
+  UnsignedByteType,
+  type Texture,
+} from 'three/webgpu';
+import {
+  Fn,
+  attribute,
+  clamp,
+  cos,
+  float,
+  mix,
+  normalLocal,
+  normalize,
+  positionLocal,
+  sign,
+  sin,
+  texture,
+  uv,
+  varying,
+  vec3,
+} from 'three/tsl';
 import type { UniformNode } from 'three/webgpu';
 import { world } from '../uniforms';
 
@@ -7,55 +36,80 @@ import { world } from '../uniforms';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyNode = any;
 
-interface FlagVertex {
-  x: number;
-  y: number;
-  z: number;
-  r: number;
-  g: number;
-  b: number;
-  wave: number;
-  /** Ship-local z of the mast the flag flies from (it swings about x = 0 there). */
-  pivot: number;
+/**
+ * Every flag is one finely divided sheet of cloth in the ship-local x-y plane at its mast's z,
+ * streaming along +x from the hoist. The jolly roger's skull and bones are painted into a texture
+ * so they ripple with the cloth instead of floating in front of it.
+ */
+interface FlagBuilder {
+  positions: number[];
+  uvs: number[];
+  colors: number[];
+  painted: number[];
+  pivots: number[];
+  indices: number[];
 }
 
-function pushVertex(
-  vertices: FlagVertex[],
-  x: number,
-  y: number,
-  z: number,
-  colorHex: number,
-  wave: number,
-): number {
-  const r = ((colorHex >> 16) & 255) / 255;
-  const g = ((colorHex >> 8) & 255) / 255;
-  const b = (colorHex & 255) / 255;
-  vertices.push({ x, y, z, r, g, b, wave, pivot: 0 });
-  return vertices.length - 1;
+const JOLLY = { z: -1.69, x0: 0.18, x1: 2.28, y0: 20.88, y1: 22.35 };
+const FORE_Z = 5.25;
+const MIZZEN_Z = -7.8;
+/** The ripple phase wraps here; every wave term's frequency is a multiple of 1/2 so it stays seamless. */
+export const FLAG_PHASE_PERIOD = Math.PI * 4;
+
+function hexRgb(hex: number): [number, number, number] {
+  return [((hex >> 16) & 255) / 255, ((hex >> 8) & 255) / 255, (hex & 255) / 255];
 }
 
-function addQuad(
-  vertices: FlagVertex[],
-  indices: number[],
-  a: [number, number, number],
-  b: [number, number, number],
-  c: [number, number, number],
-  d: [number, number, number],
+function addSheet(
+  b: FlagBuilder,
+  cols: number,
+  rows: number,
+  pivot: number,
   colorHex: number,
-  hoistX: number,
-  flyX: number,
+  painted: boolean,
+  at: (u: number, v: number) => [number, number],
+  texU: (x: number) => number,
 ): void {
-  const waveAt = (x: number) => Math.max(0, Math.min(1, (x - hoistX) / Math.max(0.001, flyX - hoistX)));
-  const i = pushVertex(vertices, a[0], a[1], a[2], colorHex, waveAt(a[0]));
-  pushVertex(vertices, b[0], b[1], b[2], colorHex, waveAt(b[0]));
-  pushVertex(vertices, c[0], c[1], c[2], colorHex, waveAt(c[0]));
-  pushVertex(vertices, d[0], d[1], d[2], colorHex, waveAt(d[0]));
-  indices.push(i, i + 1, i + 2, i, i + 2, i + 3);
+  const base = b.positions.length / 3;
+  const [r, g, bl] = hexRgb(colorHex);
+  for (let row = 0; row <= rows; row++) {
+    for (let col = 0; col <= cols; col++) {
+      const [x, y] = at(col / cols, row / rows);
+      b.positions.push(x, y, pivot);
+      b.uvs.push(texU(x), row / rows);
+      b.colors.push(r, g, bl);
+      b.painted.push(painted ? 1 : 0);
+      b.pivots.push(pivot);
+    }
+  }
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const i = base + row * (cols + 1) + col;
+      b.indices.push(i, i + 1, i + cols + 2, i, i + cols + 2, i + cols + 1);
+    }
+  }
 }
 
-function addRibbon(
-  vertices: FlagVertex[],
-  indices: number[],
+function addJollyRoger(b: FlagBuilder): void {
+  const { x0, x1, y0, y1, z } = JOLLY;
+  addSheet(
+    b,
+    24,
+    14,
+    z,
+    0xffffff,
+    true,
+    (u, v) => {
+      // A frayed fly edge: the last column is bitten back by an uneven amount down the flag.
+      const bite = Math.max(0, Math.sin(v * Math.PI * 3.1) * 0.11 + Math.sin(v * Math.PI * 8.0) * 0.045);
+      return [x0 + (x1 - bite - x0) * u, y0 + (y1 - y0) * v];
+    },
+    (x) => (x - x0) / (x1 - x0),
+  );
+}
+
+function addPennant(
+  b: FlagBuilder,
   z: number,
   y: number,
   length: number,
@@ -63,204 +117,239 @@ function addRibbon(
   colorHex: number,
 ): void {
   const x0 = 0.12;
-  const x1 = length;
-  const notch = length - height * 1.25;
-  addQuad(
-    vertices,
-    indices,
-    [x0, y - height, z],
-    [notch, y - height * 0.82, z],
-    [notch, y + height * 0.82, z],
-    [x0, y + height, z],
+  addSheet(
+    b,
+    18,
+    2,
+    z,
     colorHex,
-    x0,
-    x1,
+    false,
+    (u, v) => {
+      const half = height * (1 - 0.9 * u);
+      return [x0 + (length - x0) * u, y + (v * 2 - 1) * half];
+    },
+    () => 0,
   );
-  const i = pushVertex(vertices, notch, y - height * 0.82, z, colorHex, (notch - x0) / (x1 - x0));
-  pushVertex(vertices, x1, y, z, colorHex, 1);
-  pushVertex(vertices, notch, y + height * 0.82, z, colorHex, (notch - x0) / (x1 - x0));
-  indices.push(i, i + 1, i + 2);
-}
-
-function addFlagPanel(
-  vertices: FlagVertex[],
-  indices: number[],
-  z: number,
-  x0: number,
-  x1: number,
-  y0: number,
-  y1: number,
-  ragged = false,
-): void {
-  const cols = 10;
-  const rows = 7;
-  const base = vertices.length;
-  for (let r = 0; r <= rows; r++) {
-    const v = r / rows;
-    const bite = ragged
-      ? Math.max(0, Math.sin(v * Math.PI * 3.1) * 0.11 + Math.sin(v * Math.PI * 8.0) * 0.045)
-      : 0;
-    const fly = x1 - bite;
-    for (let c = 0; c <= cols; c++) {
-      const u = c / cols;
-      pushVertex(vertices, x0 + (fly - x0) * u, y0 + (y1 - y0) * v, z, 0x070707, u);
-    }
-  }
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const i = base + r * (cols + 1) + c;
-      indices.push(i, i + 1, i + cols + 2, i, i + cols + 2, i + cols + 1);
-    }
-  }
-}
-
-function addRotatedRect(
-  vertices: FlagVertex[],
-  indices: number[],
-  cx: number,
-  cy: number,
-  z: number,
-  length: number,
-  width: number,
-  angle: number,
-  colorHex: number,
-  hoistX: number,
-  flyX: number,
-): void {
-  const ux = Math.cos(angle) * length * 0.5;
-  const uy = Math.sin(angle) * length * 0.5;
-  const vx = -Math.sin(angle) * width * 0.5;
-  const vy = Math.cos(angle) * width * 0.5;
-  addQuad(
-    vertices,
-    indices,
-    [cx - ux - vx, cy - uy - vy, z],
-    [cx + ux - vx, cy + uy - vy, z],
-    [cx + ux + vx, cy + uy + vy, z],
-    [cx - ux + vx, cy - uy + vy, z],
-    colorHex,
-    hoistX,
-    flyX,
-  );
-}
-
-function addEllipse(
-  vertices: FlagVertex[],
-  indices: number[],
-  cx: number,
-  cy: number,
-  z: number,
-  rx: number,
-  ry: number,
-  colorHex: number,
-  hoistX: number,
-  flyX: number,
-  segments = 18,
-): void {
-  const waveAt = (x: number) => Math.max(0, Math.min(1, (x - hoistX) / Math.max(0.001, flyX - hoistX)));
-  const start = vertices.length;
-  pushVertex(vertices, cx, cy, z, colorHex, waveAt(cx));
-  for (let i = 0; i < segments; i++) {
-    const a = (i / segments) * Math.PI * 2;
-    const x = cx + Math.cos(a) * rx;
-    pushVertex(vertices, x, cy + Math.sin(a) * ry, z, colorHex, waveAt(x));
-  }
-  for (let i = 0; i < segments; i++) indices.push(start, start + 1 + i, start + 1 + ((i + 1) % segments));
-}
-
-const JOLLY_Z = -1.69;
-
-function addJollyRoger(vertices: FlagVertex[], indices: number[]): void {
-  const z = JOLLY_Z;
-  const x0 = 0.18;
-  const x1 = 2.28;
-  const y0 = 20.88;
-  const y1 = 22.35;
-  addFlagPanel(vertices, indices, z, x0, x1, y0, y1, true);
-  addRotatedRect(vertices, indices, 1.24, 21.55, z - 0.012, 1.42, 0.13, 0.62, 0xf2eee4, x0, x1);
-  addRotatedRect(vertices, indices, 1.24, 21.55, z - 0.014, 1.42, 0.13, -0.62, 0xf2eee4, x0, x1);
-  addEllipse(vertices, indices, 1.24, 21.88, z - 0.02, 0.28, 0.31, 0xf7f2e8, x0, x1, 24);
-  addQuad(
-    vertices,
-    indices,
-    [1.02, 21.43, z - 0.021],
-    [1.46, 21.43, z - 0.021],
-    [1.42, 21.74, z - 0.021],
-    [1.06, 21.74, z - 0.021],
-    0xf7f2e8,
-    x0,
-    x1,
-  );
-  addEllipse(vertices, indices, 1.13, 21.94, z - 0.03, 0.062, 0.078, 0x050505, x0, x1, 12);
-  addEllipse(vertices, indices, 1.36, 21.94, z - 0.03, 0.062, 0.078, 0x050505, x0, x1, 12);
-  addRotatedRect(vertices, indices, 1.24, 21.8, z - 0.031, 0.09, 0.052, Math.PI / 2, 0x050505, x0, x1);
-  for (let i = 0; i < 5; i++) {
-    addRotatedRect(vertices, indices, 1.08 + i * 0.08, 21.49, z - 0.031, 0.045, 0.13, 0, 0x050505, x0, x1);
-  }
 }
 
 export function createFlagGeometry(): BufferGeometry {
-  const vertices: FlagVertex[] = [];
-  const indices: number[] = [];
-  const onMast = (pivot: number, add: () => void) => {
-    const from = vertices.length;
-    add();
-    for (let i = from; i < vertices.length; i++) vertices[i].pivot = pivot;
-  };
-  onMast(JOLLY_Z, () => addJollyRoger(vertices, indices));
-  onMast(FORE_Z, () => addRibbon(vertices, indices, FORE_Z, 20.36, 2.05, 0.16, 0x8f1712));
-  onMast(MIZZEN_Z, () => addRibbon(vertices, indices, MIZZEN_Z, 17.88, 1.75, 0.14, 0xa01c14));
-  const positions: number[] = [];
-  const colors: number[] = [];
-  const wave: number[] = [];
-  const pivot: number[] = [];
-  for (const v of vertices) {
-    positions.push(v.x, v.y, v.z);
-    colors.push(v.r, v.g, v.b);
-    wave.push(v.wave);
-    pivot.push(v.pivot);
-  }
+  const b: FlagBuilder = { positions: [], uvs: [], colors: [], painted: [], pivots: [], indices: [] };
+  addJollyRoger(b);
+  addPennant(b, FORE_Z, 20.36, 2.05, 0.16, 0x8f1712);
+  addPennant(b, MIZZEN_Z, 17.88, 1.75, 0.14, 0xa01c14);
   const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
-  geometry.setAttribute('color', new BufferAttribute(new Float32Array(colors), 3));
-  geometry.setAttribute('flagWave', new BufferAttribute(new Float32Array(wave), 1));
-  geometry.setAttribute('flagPivot', new BufferAttribute(new Float32Array(pivot), 1));
-  geometry.setIndex(indices);
+  geometry.setAttribute('position', new BufferAttribute(new Float32Array(b.positions), 3));
+  geometry.setAttribute('uv', new BufferAttribute(new Float32Array(b.uvs), 2));
+  geometry.setAttribute('color', new BufferAttribute(new Float32Array(b.colors), 3));
+  geometry.setAttribute('flagPainted', new BufferAttribute(new Float32Array(b.painted), 1));
+  geometry.setAttribute('flagPivot', new BufferAttribute(new Float32Array(b.pivots), 1));
+  geometry.setIndex(b.indices);
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
   return geometry;
 }
 
-const FORE_Z = 5.25;
-const MIZZEN_Z = -7.8;
+function rng(seed: number): () => number {
+  let s = seed >>> 0;
+  return () => {
+    s = (s + 0x6d2b79f5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function drawBone(
+  ctx: CanvasRenderingContext2D,
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+  width: number,
+  fill: string,
+): void {
+  const len = Math.hypot(bx - ax, by - ay);
+  const nx = (-(by - ay) / len) * width * 0.52;
+  const ny = ((bx - ax) / len) * width * 0.52;
+  ctx.fillStyle = fill;
+  ctx.strokeStyle = fill;
+  ctx.lineCap = 'round';
+  ctx.lineWidth = width;
+  ctx.beginPath();
+  ctx.moveTo(ax, ay);
+  ctx.lineTo(bx, by);
+  ctx.stroke();
+  for (const [x, y] of [
+    [ax, ay],
+    [bx, by],
+  ] as const) {
+    for (const side of [1, -1]) {
+      ctx.beginPath();
+      ctx.arc(x + nx * side, y + ny * side, width * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+function drawSkull(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  grow: number,
+  fill: string | CanvasGradient,
+): void {
+  ctx.fillStyle = fill;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy - 10, 62 + grow, 58 + grow, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.roundRect(cx - 32 - grow, cy + 18 - grow, 64 + grow * 2, 52 + grow * 2, 14 + grow);
+  ctx.fill();
+}
+
+/** Canvas artwork for the jolly roger (512 × 360, the flag's 2.1 × 1.47 m aspect). */
+function paintJollyRoger(): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 360;
+  const ctx = canvas.getContext('2d')!;
+  const rand = rng(1715);
+
+  ctx.fillStyle = '#0f0f11';
+  ctx.fillRect(0, 0, 512, 360);
+  // Sun-bleached toward the fly, where the cloth takes the weather.
+  const fade = ctx.createLinearGradient(0, 0, 512, 0);
+  fade.addColorStop(0, 'rgba(0,0,0,0)');
+  fade.addColorStop(1, 'rgba(92,84,74,0.22)');
+  ctx.fillStyle = fade;
+  ctx.fillRect(0, 0, 512, 360);
+  // Weave: faint threads both ways plus a speckle of lint.
+  ctx.fillStyle = 'rgba(255,255,255,0.028)';
+  for (let y = 0; y < 360; y += 3) ctx.fillRect(0, y, 512, 1);
+  for (let x = 0; x < 512; x += 3) ctx.fillRect(x, 0, 1, 360);
+  for (let i = 0; i < 1400; i++) {
+    ctx.fillStyle = `rgba(255,255,255,${0.02 + rand() * 0.05})`;
+    ctx.fillRect(rand() * 512, rand() * 360, 1 + rand() * 2, 1);
+  }
+  // Canvas sleeve at the hoist, where the halyard runs.
+  ctx.fillStyle = '#2b2620';
+  ctx.fillRect(0, 0, 12, 360);
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.fillRect(12, 0, 2, 360);
+
+  const bone = '#ece5d3';
+  const edge = '#8f877a';
+  const bones: [number, number, number, number][] = [
+    [118, 98, 394, 290],
+    [118, 290, 394, 98],
+  ];
+  for (const [ax, ay, bx, by] of bones) drawBone(ctx, ax, ay, bx, by, 34, edge);
+  for (const [ax, ay, bx, by] of bones) drawBone(ctx, ax, ay, bx, by, 28, bone);
+
+  const sx = 256;
+  const sy = 118;
+  drawSkull(ctx, sx, sy, 3, edge);
+  drawSkull(ctx, sx, sy, 0, bone);
+  const shade = ctx.createRadialGradient(sx - 22, sy - 38, 8, sx, sy, 96);
+  shade.addColorStop(0, 'rgba(255,255,255,0.18)');
+  shade.addColorStop(1, 'rgba(60,50,40,0.22)');
+  drawSkull(ctx, sx, sy, 0, shade);
+
+  ctx.fillStyle = '#0f0f11';
+  for (const side of [-1, 1]) {
+    ctx.beginPath();
+    ctx.ellipse(sx + side * 24, sy + 2, 17, 20, side * -0.18, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.beginPath();
+  ctx.moveTo(sx, sy + 26);
+  ctx.lineTo(sx - 10, sy + 46);
+  ctx.lineTo(sx + 10, sy + 46);
+  ctx.closePath();
+  ctx.fill();
+  for (let i = -2; i <= 2; i++) ctx.fillRect(sx + i * 11 - 1.5, sy + 56, 3, 16);
+  ctx.fillRect(sx - 27, sy + 63, 54, 2);
+  return canvas;
+}
+
+function makeJollyTexture(): Texture {
+  let tex: Texture;
+  if (typeof document === 'undefined') {
+    tex = new DataTexture(new Uint8Array([15, 15, 17, 255]), 1, 1, RGBAFormat, UnsignedByteType);
+  } else {
+    tex = new CanvasTexture(paintJollyRoger());
+    tex.generateMipmaps = true;
+    tex.minFilter = LinearMipmapLinearFilter;
+    tex.magFilter = LinearFilter;
+    tex.anisotropy = 8;
+  }
+  tex.colorSpace = SRGBColorSpace;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+export interface FlagUniforms {
+  /** Swings each flag about its mast so it streams downwind (see `flagYaw`). */
+  yaw: UniformNode<'float', number>;
+  /** Ripple phase, advanced on the CPU so the wave speeds up smoothly with the wind. */
+  phase: UniformNode<'float', number>;
+  /** 0 (a breath of air: the flag droops and lolls) to 1 (a stiff breeze: it streams and snaps). */
+  strength: UniformNode<'float', number>;
+}
 
 /**
- * Flags are built streaming along ship-local +x; `yaw` (radians about +y, from `flagYaw`) swings
- * each one about its own mast so it streams downwind in the apparent wind.
+ * Waves run from hoist to fly, growing toward the free end; the cloth's shading follows them, so
+ * the wind reads even in a still frame. Flags are built streaming along ship-local +x, then swung
+ * about their own mast by `yaw`.
  */
-export function makeFlagMaterial(yaw: UniformNode<'float', number>): MeshStandardNodeMaterial {
-  const material = new MeshStandardNodeMaterial({ side: DoubleSide, roughness: 0.82, metalness: 0 });
-  const wave = attribute('flagWave', 'float') as AnyNode;
+export function makeFlagMaterial(u: FlagUniforms): MeshStandardNodeMaterial {
+  const material = new MeshStandardNodeMaterial({ side: DoubleSide, roughness: 0.74, metalness: 0 });
+  const jolly = makeJollyTexture();
+  material.addEventListener('dispose', () => jolly.dispose());
   const pivot = attribute('flagPivot', 'float') as AnyNode;
-  const flutter = sin(world.time.mul(4.4).add(positionLocal.y.mul(1.7)).add(wave.mul(5.8)))
-    .mul(wave)
-    .mul(float(0.16))
-    .mul(float(1).sub(world.reducedMotion.mul(0.85)));
+  const phase = u.phase as AnyNode;
+  const strength = u.strength as AnyNode;
+  const amp = float(0.09)
+    .add(strength.mul(0.12))
+    .mul(float(1).sub(world.reducedMotion.mul(0.85))) as AnyNode;
+  const reach = (x: AnyNode) => {
+    const e = clamp(x.sub(0.12).div(2.0), 0, 1) as AnyNode;
+    return e.mul(e.mul(0.6).add(0.4));
+  };
+  /** Cloth offset across the flag in units of `amp`: zero at the hoist, about ±1.9 at the fly. */
+  const wave = (x: AnyNode, y: AnyNode) => {
+    const main = sin(x.mul(4.2).sub(phase).add(y.mul(0.9)));
+    const chop = sin(x.mul(8.6).sub(phase.mul(2)).add(y.mul(2.4)).add(1.3)).mul(0.32);
+    const billow = sin(x.mul(1.9).sub(phase.mul(0.5)).add(0.7)).mul(0.55);
+    return reach(x).mul(main.add(chop).add(billow)) as AnyNode;
+  };
+  const ripple = (x: AnyNode, y: AnyNode) => wave(x, y).mul(amp) as AnyNode;
+  const rest = attribute('position', 'vec3') as AnyNode;
+  // Crests catch a little more light and troughs a little less, so the folds read on black cloth too.
+  const fold = varying(clamp(wave(rest.x, rest.y).mul(0.11), -0.2, 0.2).add(1), 'vFlagFold') as AnyNode;
   material.positionNode = (Fn as AnyNode)(() => {
     const p = positionLocal as AnyNode;
     const n = normalLocal as AnyNode;
-    const c = cos(yaw) as AnyNode;
-    const s = sin(yaw) as AnyNode;
-    const dx = p.x;
-    const dz = p.z.add(flutter).sub(pivot);
-    n.assign((vec3 as AnyNode)(n.x.mul(c).add(n.z.mul(s)), n.y, n.z.mul(c).sub(n.x.mul(s))));
-    return (vec3 as AnyNode)(
-      dx.mul(c).add(dz.mul(s)),
-      p.y.add(flutter.mul(0.1)),
-      pivot.add(dz.mul(c)).sub(dx.mul(s)),
-    );
+    const eps = 0.025;
+    const f = ripple(p.x, p.y);
+    const dfdx = ripple(p.x.add(eps), p.y).sub(f).div(eps);
+    const dfdy = ripple(p.x, p.y.add(eps)).sub(f).div(eps);
+    const bent = normalize((vec3 as AnyNode)(dfdx.negate(), dfdy.negate(), 1)).mul(sign(n.z)) as AnyNode;
+    const reachX = reach(p.x);
+    // Light air lets the fly sag; the cloth also tugs in a little as each wave passes.
+    const sag = float(1).sub(strength).mul(reachX.mul(reachX)).mul(0.24);
+    const dx = p.x.sub(reachX.mul(0.035).mul(sin(phase.mul(1.5).add(p.y)).add(1)));
+    const dy = p.y.sub(sag).add(f.mul(0.12));
+    const dz = f;
+    const c = cos(u.yaw) as AnyNode;
+    const s = sin(u.yaw) as AnyNode;
+    n.assign((vec3 as AnyNode)(bent.x.mul(c).add(bent.z.mul(s)), bent.y, bent.z.mul(c).sub(bent.x.mul(s))));
+    return (vec3 as AnyNode)(dx.mul(c).add(dz.mul(s)), dy, pivot.add(dz.mul(c)).sub(dx.mul(s)));
   })();
-  material.colorNode = (color(0xffffff) as AnyNode).mul(attribute('color', 'vec3'));
+  const painted = attribute('flagPainted', 'float') as AnyNode;
+  const cloth = attribute('color', 'vec3') as AnyNode;
+  material.colorNode = mix(cloth, (texture(jolly, uv()) as AnyNode).rgb, painted).mul(fold);
   return material;
 }
 

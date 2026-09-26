@@ -40,6 +40,9 @@ export interface BrigantineUniforms {
   sailStripe: UniformNode<'color', Color>;
   /** Swings the jolly roger and pennants downwind (see ship-flags `flagYaw`). */
   flagYaw: UniformNode<'float', number>;
+  /** Flag ripple phase and apparent-wind strength (see ship-flags `FlagUniforms`). */
+  flagPhase: UniformNode<'float', number>;
+  flagStrength: UniformNode<'float', number>;
 }
 
 let shipWoodTexture: Texture | null = null;

@@ -42,7 +42,7 @@ import {
   createSailGeometry,
   createSparGeometry,
 } from './brigantine-rig';
-import { createFlagGeometry, flagYaw, makeFlagMaterial } from './ship-flags';
+import { FLAG_PHASE_PERIOD, createFlagGeometry, flagYaw, makeFlagMaterial } from './ship-flags';
 import { windAt } from '../wind';
 import {
   makeCanvasMaterial,
@@ -189,6 +189,8 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     sailCloth: uniform(new Color(startSails.cloth)),
     sailStripe: uniform(new Color(startSails.stripe)),
     flagYaw: uniform(0),
+    flagPhase: uniform(0),
+    flagStrength: uniform(0.6),
   };
   const anchors: ShipAnchors = {
     helm: { x: 0, y: deckHeightAt(HELM_Z) + 0.18, z: HELM_Z, heading: 0 },
@@ -229,7 +231,9 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   addMesh(
     group,
     createFlagGeometry(),
-    register(makeFlagMaterial(uniforms.flagYaw)),
+    register(
+      makeFlagMaterial({ yaw: uniforms.flagYaw, phase: uniforms.flagPhase, strength: uniforms.flagStrength }),
+    ),
     'animated jolly roger and pennants',
     false,
   );
@@ -421,10 +425,19 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
       // Flags stream down the apparent wind: the true wind less the ship's own way through the water.
       windAt(x, z, t, flagWind);
       const fs = dynamics.forwardSpeed;
-      const targetFlag = flagYaw(yaw, flagWind[0] - Math.sin(yaw) * fs, flagWind[1] - Math.cos(yaw) * fs);
+      const apparentX = flagWind[0] - Math.sin(yaw) * fs;
+      const apparentZ = flagWind[1] - Math.cos(yaw) * fs;
+      const targetFlag = flagYaw(yaw, apparentX, apparentZ);
       const was = uniforms.flagYaw.value;
       const turn = Math.atan2(Math.sin(targetFlag - was), Math.cos(targetFlag - was));
       uniforms.flagYaw.value = flagEased ? was + turn * Math.min(1, dt * 2.5) : targetFlag;
+      const targetStrength = MathUtils.clamp((Math.hypot(apparentX, apparentZ) - 2) / 9, 0, 1);
+      const strength = uniforms.flagStrength.value;
+      uniforms.flagStrength.value = flagEased
+        ? strength + (targetStrength - strength) * Math.min(1, dt * 1.5)
+        : targetStrength;
+      uniforms.flagPhase.value =
+        (uniforms.flagPhase.value + dt * (4 + 5 * uniforms.flagStrength.value)) % FLAG_PHASE_PERIOD;
       flagEased = true;
       localToWorldXZ(dynamics.pose, 0, BOW_Z, oceanBow, 0);
       localToWorldXZ(dynamics.pose, 0, STERN_Z, oceanStern, 0);

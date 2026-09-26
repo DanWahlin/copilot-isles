@@ -88,11 +88,11 @@ const HIGH_TIER_MESH_SIGNATURES: MeshSignature[] = [
   },
   {
     name: 'animated jolly roger and pennants',
-    vertices: 189,
-    indices: 636,
-    position: '24349af8',
-    uv: '00000000',
-    color: 'b49c4daf',
+    vertices: 489,
+    indices: 2448,
+    position: 'c4975a1e',
+    uv: '2a5ae3de',
+    color: '37408793',
   },
   {
     name: 'first words prompt and terminal pipes',
