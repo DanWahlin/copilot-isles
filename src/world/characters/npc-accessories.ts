@@ -265,8 +265,8 @@ function addLute(root: Group): void {
 
 function addFishingRod(root: Group): void {
   const rod = mesh(new CylinderGeometry(0.01, 0.014, 1.2, 8), mat(0x5d4027), 'fishing rod');
-  rod.position.set(0.36, 1.02, 0.36);
-  rod.rotation.z = -0.72;
+  rod.position.set(0.48, 0.74, 0.18);
+  rod.rotation.set(0.12, 0.18, -0.32);
   addRoot(root, rod);
 }
 

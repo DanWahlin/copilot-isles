@@ -33,7 +33,10 @@ export interface NpcSpec {
     shotLocal: readonly [x: number, y: number, z: number];
     targetLocal: readonly [x: number, y: number, z: number];
     faceLocal?: readonly [x: number, z: number];
+    standLocal?: readonly [x: number, z: number];
   };
+  /** Camera eye lift for generic talk framing. */
+  talkEyeLift?: number;
 }
 
 /** Test Cove folk (POC §4.3 cast, trimmed for the spike). Barks tease chapter-00 lessons. */
@@ -164,9 +167,10 @@ export const COVE_NPCS: NpcSpec[] = [
     keepY: true,
     seatDrop: 0.14,
     talkShot: {
-      shotLocal: [0, 1.85, -4],
-      targetLocal: [0, 1.35, 0],
+      shotLocal: [4.5, 1.35, -3.0],
+      targetLocal: [0, 1.0, 0],
       faceLocal: [0, -6],
+      standLocal: [0, -1.45],
     },
     barks: ['Every island has its own tune, Captain.', 'Hush. The reef’s keeping time.'],
   },
@@ -176,6 +180,7 @@ export const COVE_NPCS: NpcSpec[] = [
     anchor: 'lookout',
     clip: 'idle',
     keepY: true,
+    talkEyeLift: 2,
     barks: ['Clear skies to the horizon, Captain.'],
   },
 ];
@@ -314,6 +319,8 @@ export class NpcCrowd {
 
   setTalking(n: Npc, on: boolean): void {
     n.talking = on;
+    n.character.setTalking(on);
+    if (n.spec.clip === 'sit') return;
     if (on) {
       n.character.setSpeed(0);
       n.character.play('talk');

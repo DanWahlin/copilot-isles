@@ -137,11 +137,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
   // Player: stepUp covers the 0.6 m quay-to-pier lip.
   const player = new PlayerController({ stepUp: 0.66 });
-  const start = o.start ?? COVE.spawn;
-  player.teleport(world, start.x, start.z, start.heading);
   const hero: Character = o.characters.create({ body: o.body, variant: o.variant ?? 0, tier });
-  hero.group.position.set(player.x, player.y, player.z);
-  hero.group.rotation.y = player.heading;
+  /** Teleports the player and snaps the hero model with it, so no frame shows the old spot. */
+  const placePlayer = (x: number, z: number, heading: number) => {
+    player.teleport(world, x, z, heading);
+    hero.group.position.set(player.x, player.y, player.z);
+    hero.group.rotation.y = player.heading;
+  };
+  const start = o.start ?? COVE.spawn;
+  placePlayer(start.x, start.z, start.heading);
   engine.scene.add(hero.group);
   const footstepPuffs = new FootstepPuffs();
   footstepPuffs.addTo(engine.scene);
@@ -207,6 +211,13 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // Talk to NPCs: quest beats run as scripts; Nell's lines are voiced; everyone else offers a bark.
   const talkTo = async (n: Npc) => {
     if (dialogue.active || scriptRunning) return;
+    const originalPlayer = { x: player.x, z: player.z, heading: player.heading };
+    const originalInputEnabled = input.enabled;
+    if (n.spec.talkShot?.standLocal) {
+      const stand = localNpcPoint(n, n.spec.talkShot.standLocal);
+      placePlayer(stand.x, stand.z, Math.atan2(n.x - stand.x, n.z - stand.z));
+      input.enabled = false;
+    }
     const shot = npcTalkShot(n);
     const priorFaceTarget = n.faceTarget;
     cam.frame(shot);
@@ -240,6 +251,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       n.faceTarget = priorFaceTarget;
       npcs.setTalking(n, false);
       cam.frame(null);
+      if (n.spec.talkShot?.standLocal) {
+        placePlayer(originalPlayer.x, originalPlayer.z, originalPlayer.heading);
+        input.enabled = originalInputEnabled && !paused;
+      }
       if (scriptRunning) {
         scriptRunning = false;
         input.enabled = !paused;
@@ -500,7 +515,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     const rightZ = -fx;
     const seated = n.spec.clip === 'sit';
     const targetY = n.y + (seated ? 0.82 : 1.18);
-    const eyeLift = n.spec.id === 'lookout' ? 2.0 : seated ? 1.25 : 1.45;
+    const eyeLift = n.spec.talkEyeLift ?? (seated ? 1.25 : 1.45);
     const target = { x: n.x, y: targetY, z: n.z };
     const candidates: CameraShot[] = [
       {
@@ -638,7 +653,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     hero.play('idle');
     const b = ship.anchors.boarding;
     const boardZ = m.z - Math.sin(m.heading) * b.x + Math.cos(m.heading) * b.z;
-    player.teleport(world, pier.x + 0.9, boardZ, 0);
+    placePlayer(pier.x + 0.9, boardZ, 0);
     cam.setRig(WALK_RIG, true);
     cam.snapBehind(0);
     hud.setSailing(false);
@@ -765,7 +780,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           }
 
           const focus = interactions.update(player.x, player.y, player.z, player.heading);
-          hud.setPrompt(dialogue.active ? null : (focus?.label() ?? null));
+          hud.setPrompt(
+            dialogue.active || npcs.list.some((n) => n.talking) ? null : (focus?.label() ?? null),
+          );
           cam.update(dt, camera, s, player, player.heading, sp > 0.3, world, t);
         } else if (mode === 'sail' || mode === 'docking') {
           if (mode === 'sail') helm.update(dt, s.moveX, s.moveY, dyn);
@@ -811,7 +828,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     if (mode === 'transition') return;
     dialogue.cancel();
     if (mode === 'sail' || mode === 'docking') await disembark();
-    player.teleport(world, x, z, heading);
+    placePlayer(x, z, heading);
     cam.snapBehind(heading);
   }
 

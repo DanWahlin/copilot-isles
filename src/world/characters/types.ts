@@ -65,6 +65,8 @@ export interface Character {
   setSpeed(mps: number): void;
   setGrounding(state: CharacterGrounding): void;
   lookAt(target: LookTarget): void;
+  /** Layers conversational upper-body gestures over the active clip, so seated rigs stay seated. */
+  setTalking(on: boolean): void;
   update(dt: number): void;
   readonly capsule: { readonly radius: number; readonly height: number };
   dispose(): void;

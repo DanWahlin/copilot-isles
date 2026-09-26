@@ -116,6 +116,7 @@ export class RuntimeCharacter implements Character {
   private idleFidget = 0;
   private idleFidgetKind = 0;
   private activeClip: CharacterClip = 'idle';
+  private talking = false;
   private groundMode: CharacterGroundMode = 'ground';
   private airTime = 0;
   private verticalSpeed = 0;
@@ -269,6 +270,10 @@ export class RuntimeCharacter implements Character {
     this.lookTarget = target;
   }
 
+  setTalking(on: boolean): void {
+    this.talking = on;
+  }
+
   update(dt: number): void {
     const step = this.animationStep(dt);
     if (step > 0) {
@@ -397,13 +402,7 @@ export class RuntimeCharacter implements Character {
     this.idleClock += dt;
     const breath = Math.sin(this.idleClock * 2.1) * 0.004;
     if (this.body) this.body.position.y += breath * this.rigMeters;
-    if (this.activeClip === 'talk') {
-      const beat = Math.sin(this.idleClock * 4.4);
-      this.torso?.rotateY(beat * 0.028 * npcScale);
-      this.shoulderL?.rotateZ(Math.max(0, beat) * 0.04 * npcScale);
-      this.shoulderR?.rotateZ(Math.min(0, beat) * 0.04 * npcScale);
-      if (!this.lookTarget) this.head?.rotateY(Math.sin(this.idleClock * 1.6) * 0.04 * npcScale);
-    } else if (this.activeClip === 'sit') {
+    if (this.activeClip === 'sit') {
       const settle = Math.sin(this.idleClock * 0.9) * npcScale;
       this.hips?.rotateX(-0.08);
       this.torso?.rotateX(0.06);
@@ -421,6 +420,20 @@ export class RuntimeCharacter implements Character {
     } else if (this.activeClip === 'helm') {
       this.torso?.rotateZ(Math.sin(this.idleClock * 1.5) * 0.025 * npcScale);
     }
+    if (this.activeClip === 'talk' || this.talking) this.applyTalkBeat(npcScale);
+  }
+
+  /** Conversational beat; seated rigs have no wave clip, so they lean in and gesture harder. */
+  private applyTalkBeat(npcScale: number): void {
+    const seated = this.activeClip === 'sit';
+    const gain = (seated ? 2.2 : 1) * npcScale;
+    const beat = Math.sin(this.idleClock * 4.4);
+    const phrase = 0.5 + 0.5 * Math.sin(this.idleClock * 1.1);
+    if (seated) this.torso?.rotateX(0.05 * phrase);
+    this.torso?.rotateY(beat * 0.028 * gain);
+    this.shoulderL?.rotateZ(Math.max(0, beat) * 0.04 * gain);
+    this.shoulderR?.rotateZ(Math.min(0, beat) * 0.04 * gain);
+    if (!this.lookTarget) this.head?.rotateY(Math.sin(this.idleClock * 1.6) * 0.04 * npcScale);
   }
 
   private captureArmCarry(): void {
