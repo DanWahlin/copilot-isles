@@ -4,10 +4,10 @@ import {
   Color,
   DoubleSide,
   Float32BufferAttribute,
+  Group,
   Matrix4,
   Mesh,
   MeshStandardMaterial,
-  TextureLoader,
   Vector3,
   type Material,
   type Object3D,
@@ -17,7 +17,6 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { packs } from '../../engine/packs';
 import { createVegetationMaterial } from './materials';
-import { createPlantGeometry } from './plant-geometry';
 import type { PlantSpecies } from './types';
 
 const MODEL_BASE = '/packs/testcove/vegetation/models/';
@@ -29,6 +28,20 @@ const MODEL_BY_SPECIES: Partial<Record<PlantSpecies, string>> = {
   broadleafTree: 'tree_broadleaf.glb',
   flowerBush: 'shrub_flowers.glb',
   log: 'driftwood_dead_tree.glb',
+};
+
+export type PalmVariant = 'a' | 'b';
+export type PalmLod = 'hero' | 'grove';
+
+const PALM_MODEL: Record<PalmVariant, Record<PalmLod, string>> = {
+  a: {
+    hero: 'palm_quaternius_a_hero.glb',
+    grove: 'palm_quaternius_a_grove.glb',
+  },
+  b: {
+    hero: 'palm_quaternius_b_hero.glb',
+    grove: 'palm_quaternius_b_grove.glb',
+  },
 };
 
 const TARGET_HEIGHT: Record<PlantSpecies, number> = {
@@ -47,10 +60,13 @@ const tmpBox = new Box3();
 const tmpSize = new Vector3();
 const tmpCenter = new Vector3();
 const tmpColor = new Color();
+let sharedPalmMaterial: Material | null = null;
 
 export interface VegetationModelPart {
   geometry: BufferGeometry;
   material: Material | Material[];
+  palmVariant?: PalmVariant;
+  palmLod?: PalmLod;
 }
 
 export type VegetationGeometryCatalog = Record<PlantSpecies, VegetationModelPart[]>;
@@ -61,6 +77,16 @@ type SourceMaterial = Material & {
   alphaMap?: Texture | null;
   alphaMode?: string;
 };
+
+/** The one material every palm shares; both Quaternius palms paint from the same palette atlas. */
+export function palmMaterial(atlas?: Texture | null): Material {
+  sharedPalmMaterial ??= createVegetationMaterial({
+    map: atlas ?? null,
+    alphaTest: 0.05,
+    name: 'quaternius-palm',
+  });
+  return sharedPalmMaterial;
+}
 
 function sourceMaterial(material: Material | Material[] | undefined, index = 0): SourceMaterial {
   return (Array.isArray(material) ? material[index] : (material ?? {})) as SourceMaterial;
@@ -96,21 +122,18 @@ function toVegetationMaterials(material: Material | Material[] | undefined): Mat
       const out = new MeshStandardMaterial({
         name: `vegetation-${mat.name || 'mapped'}`,
         map: mat.map,
-        alphaMap: mat.map,
         color: mat.color ?? new Color(0xffffff),
         normalMap: (mat as SourceMaterial & { normalMap?: Texture | null }).normalMap ?? null,
         roughness: (mat as SourceMaterial & { roughness?: number }).roughness ?? 0.82,
         metalness: 0,
         side: DoubleSide,
-        alphaTest: 0.75,
-        transparent: true,
+        // Cut out on the map's own alpha; blending foliage cards would need sorting.
+        alphaTest: 0.5,
         vertexColors: true,
       });
-      out.depthWrite = true;
       return out;
     }
     return createVegetationMaterial({
-      map: null,
       color: mat.color ?? new Color(0xffffff),
       alphaTest: 0.12,
       name: `vegetation-${mat.name || 'mat'}`,
@@ -132,8 +155,25 @@ function classifyPart(species: PlantSpecies, r: number, g: number, b: number): n
     : 0;
 }
 
+/**
+ * Meshopt-quantized models store positions/normals/UVs as normalized integers, which can only hold
+ * -1..1; baking the node transform and target height into them would overflow. Widen to float first.
+ */
+function dequantize(geometry: BufferGeometry): void {
+  for (const name of ['position', 'normal', 'uv'] as const) {
+    const attr = geometry.getAttribute(name);
+    if (!attr || (attr.array instanceof Float32Array && !attr.normalized)) continue;
+    const out = new Float32Array(attr.count * attr.itemSize);
+    for (let i = 0; i < attr.count; i += 1) {
+      for (let c = 0; c < attr.itemSize; c += 1) out[i * attr.itemSize + c] = attr.getComponent(i, c);
+    }
+    geometry.setAttribute(name, new Float32BufferAttribute(out, attr.itemSize));
+  }
+}
+
 function addInstanceAttributes(geometry: BufferGeometry, mesh: Mesh, species: PlantSpecies): BufferGeometry {
-  const g = geometry.clone();
+  const g = species.startsWith('palm') && geometry.index ? geometry.toNonIndexed() : geometry.clone();
+  dequantize(g);
   const pos = g.getAttribute('position') as Float32BufferAttribute;
   const count = pos.count;
   const existingColor = g.getAttribute('color') as Float32BufferAttribute | undefined;
@@ -154,7 +194,11 @@ function addInstanceAttributes(geometry: BufferGeometry, mesh: Mesh, species: Pl
   }
 
   const parts = new Float32Array(count);
-  if (g.groups.length > 0) {
+  // Build-time part tags (tools/vegetation/fetch-palms.mjs); GLTFLoader lower-cases `_PART`.
+  const tagged = g.getAttribute('_part') as Float32BufferAttribute | undefined;
+  if (tagged) {
+    for (let i = 0; i < count; i += 1) parts[i] = tagged.getX(i);
+  } else if (g.groups.length > 0) {
     const index = g.index;
     const mats = materialArray(mesh.material);
     for (const group of g.groups) {
@@ -189,6 +233,20 @@ function addInstanceAttributes(geometry: BufferGeometry, mesh: Mesh, species: Pl
   if (!g.getAttribute('uv')) g.setAttribute('uv', new Float32BufferAttribute(new Float32Array(count * 2), 2));
   g.setAttribute('vegPart', new Float32BufferAttribute(parts, 1));
   g.setAttribute('shade', new Float32BufferAttribute(shade, 1));
+  const fade = new Float32Array(count);
+  fade.fill(1);
+  g.setAttribute('fade', new Float32BufferAttribute(fade, 1));
+  const tint = new Float32Array(count * 3);
+  tint.fill(1);
+  g.setAttribute('tint', new Float32BufferAttribute(tint, 3));
+  if (species.startsWith('palm')) {
+    for (const name of Object.keys(g.attributes)) {
+      if (!['position', 'normal', 'uv', 'color', 'vegPart', 'shade', 'fade', 'tint'].includes(name))
+        g.deleteAttribute(name);
+    }
+    g.clearGroups();
+    g.setIndex(null);
+  }
   return g;
 }
 
@@ -212,95 +270,54 @@ function normalizeParts(parts: VegetationModelPart[], targetHeight: number): voi
   }
 }
 
-function sliceGeometryByPart(source: BufferGeometry, keep: (part: number) => boolean): BufferGeometry | null {
-  const geometry = source.index ? source.toNonIndexed() : source.clone();
-  const pos = geometry.getAttribute('position') as Float32BufferAttribute;
-  const normal = geometry.getAttribute('normal') as Float32BufferAttribute | undefined;
-  const uv = geometry.getAttribute('uv') as Float32BufferAttribute | undefined;
-  const vegPart = geometry.getAttribute('vegPart') as Float32BufferAttribute;
-  const shadeAttr = geometry.getAttribute('shade') as Float32BufferAttribute | undefined;
-  const positions: number[] = [];
-  const normals: number[] = [];
-  const uvs: number[] = [];
-  const parts: number[] = [];
-  const shades: number[] = [];
-  const colors: number[] = [];
-  for (let tri = 0; tri < pos.count; tri += 3) {
-    const p0 = vegPart.getX(tri);
-    const p1 = vegPart.getX(tri + 1);
-    const p2 = vegPart.getX(tri + 2);
-    const avg = (p0 + p1 + p2) / 3;
-    if (!keep(avg)) continue;
-    for (let j = 0; j < 3; j += 1) {
-      const i = tri + j;
-      positions.push(pos.getX(i), pos.getY(i), pos.getZ(i));
-      if (normal) normals.push(normal.getX(i), normal.getY(i), normal.getZ(i));
-      else normals.push(0, 1, 0);
-      if (uv) uvs.push(uv.getX(i), uv.getY(i));
-      else uvs.push(0, 0);
-      parts.push(vegPart.getX(i));
-      shades.push(shadeAttr?.getX(i) ?? 0.75);
-      colors.push(1, 1, 1);
-    }
-  }
-  if (positions.length === 0) return null;
-  const out = new BufferGeometry();
-  out.setAttribute('position', new Float32BufferAttribute(positions, 3));
-  out.setAttribute('normal', new Float32BufferAttribute(normals, 3));
-  out.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
-  out.setAttribute('vegPart', new Float32BufferAttribute(parts, 1));
-  out.setAttribute('shade', new Float32BufferAttribute(shades, 1));
-  out.setAttribute('color', new Float32BufferAttribute(colors, 3));
-  out.computeBoundingBox();
-  out.computeBoundingSphere();
-  return out;
-}
-
-async function createPalmParts(species: PlantSpecies): Promise<VegetationModelPart[]> {
-  const loader = new TextureLoader();
-  const bark = await loader.loadAsync(packs.url('/packs/testcove/vegetation/textures/palm_bark.webp'));
-  bark.flipY = false;
-  const source = createPlantGeometry(species);
+async function createPalmParts(
+  loader: GLTFLoader,
+  species: PlantSpecies,
+  variant: PalmVariant,
+  lod: PalmLod,
+  targetHeight = TARGET_HEIGHT[species],
+): Promise<VegetationModelPart[]> {
+  const gltf = await loader.loadAsync(packs.url(`${MODEL_BASE}${PALM_MODEL[variant][lod]}`));
+  gltf.scene.updateMatrixWorld(true);
   const parts: VegetationModelPart[] = [];
-  const barkGeometry = sliceGeometryByPart(source, (part) => part < 0.5 || (part > 1.5 && part < 2.5));
-  const leafGeometry = sliceGeometryByPart(source, (part) => part >= 0.5 && part < 1.5);
-  const deadGeometry = sliceGeometryByPart(source, (part) => part >= 2.5);
-  if (barkGeometry)
-    parts.push({
-      geometry: barkGeometry,
-      material: createVegetationMaterial({
-        map: bark,
-        color: new Color(0xffffff),
-        alphaTest: 0.2,
-        name: 'palm-bark',
-      }),
-    });
-  if (leafGeometry)
-    parts.push({
-      geometry: leafGeometry,
-      material: createVegetationMaterial({
-        map: null,
-        color: new Color(0x4f8c38),
-        alphaTest: 0.05,
-        name: 'palm-leaves',
-      }),
-    });
-  if (deadGeometry)
-    parts.push({
-      geometry: deadGeometry,
-      material: createVegetationMaterial({
-        map: null,
-        color: new Color(0xb99153),
-        alphaTest: 0.05,
-        name: 'palm-dead-fronds',
-      }),
-    });
-  source.dispose();
+  gltf.scene.traverse((object: Object3D) => {
+    const mesh = object as Mesh;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    const geometry = addInstanceAttributes(mesh.geometry, mesh, species);
+    geometry.applyMatrix4(mesh.matrixWorld);
+    const material = palmMaterial(sourceMaterial(mesh.material).map);
+    parts.push({ geometry, material, palmVariant: variant, palmLod: lod });
+  });
+  normalizeParts(parts, targetHeight);
   return parts;
 }
 
+export async function loadPalmObject(variant: PalmVariant, height: number): Promise<Group> {
+  await MeshoptDecoder.ready;
+  const loader = new GLTFLoader();
+  loader.setMeshoptDecoder(MeshoptDecoder);
+  const parts = await createPalmParts(loader, 'palmTall', variant, 'hero', height);
+  const group = new Group();
+  group.name = `quaternius-palm-${variant}`;
+  for (const part of parts) {
+    const mesh = new Mesh(part.geometry, part.material as Material);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    group.add(mesh);
+  }
+  return group;
+}
+
 async function loadSpecies(loader: GLTFLoader, species: PlantSpecies): Promise<VegetationModelPart[]> {
-  if (species.startsWith('palm')) return createPalmParts(species);
+  if (species.startsWith('palm')) {
+    return (
+      await Promise.all(
+        (['a', 'b'] as const).flatMap((variant) =>
+          (['hero', 'grove'] as const).map((lod) => createPalmParts(loader, species, variant, lod)),
+        ),
+      )
+    ).flat();
+  }
   const model = MODEL_BY_SPECIES[species];
   if (!model) throw new Error(`No vegetation model mapped for ${species}`);
   const gltf = await loader.loadAsync(packs.url(`${MODEL_BASE}${model}`));
@@ -323,12 +340,7 @@ export async function loadVegetationGeometries(): Promise<VegetationGeometryCata
   await MeshoptDecoder.ready;
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
-  const speciesList = [
-    'palmTall',
-    'palmCluster',
-    'palmYoung',
-    ...(Object.keys(MODEL_BY_SPECIES) as PlantSpecies[]),
-  ] as PlantSpecies[];
+  const speciesList = ['palmTall', ...(Object.keys(MODEL_BY_SPECIES) as PlantSpecies[])] as PlantSpecies[];
   const entries = await Promise.all(
     speciesList.map(async (species) => [species, await loadSpecies(loader, species)] as const),
   );

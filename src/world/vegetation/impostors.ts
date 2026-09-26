@@ -1,9 +1,8 @@
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/world/vegetation/Impostors.js@d32799f
 import {
-  AmbientLight,
+  Box3,
   Color,
   DoubleSide,
-  DirectionalLight,
   InstancedBufferAttribute,
   InstancedMesh,
   Matrix4,
@@ -16,143 +15,177 @@ import {
   Scene,
   Vector3,
   WebGLRenderTarget,
-  type PerspectiveCamera,
   type Material,
+  type PerspectiveCamera,
   type Texture,
   type WebGPURenderer,
-  Vector4,
 } from 'three/webgpu';
-import { float, texture, uv } from 'three/tsl';
-import type { PlantInstance } from './types';
-import type { VegetationGeometryCatalog } from './model-loader';
+import type { PlantInstance, PlantSpecies } from './types';
+import type { PalmVariant, VegetationGeometryCatalog, VegetationModelPart } from './model-loader';
 import { createImpostorMaterial } from './materials';
 import { clamp01, smoothstep } from '../../util/math';
 
-// three's TSL typings do not expose map sample swizzles precisely here.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyNode = any;
-
-interface ImpostorEntry extends PlantInstance {
-  radius: number;
-}
-
 const tmp = new Object3D();
 const matrix = new Matrix4();
-const scale = new Vector3();
 const quat = new Quaternion();
 const up = new Vector3(0, 1, 0);
+const tmpBox = new Box3();
+
+/** Atlas layout: each prototype is baked from `VIEWS` yaw angles into a `GRID`×`GRID` sheet. */
+const GRID = 6;
+const TILE_PX = 128;
+const VIEWS = 9;
+const PROTOTYPES = ['palmA', 'palmB', 'broadleaf', 'shrub'] as const;
+type Prototype = (typeof PROTOTYPES)[number];
+
+/** Square world-space frame each prototype was baked into (metres at instance scale 1). */
+interface PrototypeFrame {
+  size: number;
+  bottom: number;
+}
 
 export interface ImpostorBake {
   texture: Texture;
   target: WebGLRenderTarget;
+  frames: Record<Prototype, PrototypeFrame>;
   bakeMs: number;
 }
 
-function bakeMaterial(source: Material | Material[]): MeshBasicNodeMaterial {
-  const material = (Array.isArray(source) ? source[0] : source) as Material & {
+/** Which baked prototype stands in for an instance; palms match the geometry batch's variant. */
+function prototypeFor(
+  instance: PlantInstance,
+  palmVariant: (instance: PlantInstance) => PalmVariant,
+): Prototype {
+  if (instance.species.startsWith('palm')) return palmVariant(instance) === 'a' ? 'palmA' : 'palmB';
+  return instance.species === 'broadleafTree' ? 'broadleaf' : 'shrub';
+}
+
+function prototypeParts(geometries: VegetationGeometryCatalog, prototype: Prototype): VegetationModelPart[] {
+  if (prototype === 'broadleaf') return geometries.broadleafTree;
+  if (prototype === 'shrub') return geometries.shrub;
+  const variant: PalmVariant = prototype === 'palmA' ? 'a' : 'b';
+  return geometries.palmTall.filter((part) => part.palmVariant === variant && part.palmLod === 'grove');
+}
+
+function tileIndex(prototype: Prototype, view: number): number {
+  return PROTOTYPES.indexOf(prototype) * VIEWS + view;
+}
+
+/** Unlit copy of a vegetation material, so the atlas holds albedo and impostors light in-scene. */
+function albedoMaterial(source: Material): MeshBasicNodeMaterial {
+  const src = source as Material & {
     color?: Color;
     map?: Texture | null;
+    colorNode?: MeshBasicNodeMaterial['colorNode'];
   };
   const out = new MeshBasicNodeMaterial({
-    color: material.color ?? new Color(0xffffff),
+    color: src.color ?? new Color(0xffffff),
+    map: src.map ?? null,
+    alphaTest: src.alphaTest,
+    vertexColors: true,
     side: DoubleSide,
-    alphaTest: material.map ? 0.01 : 0.1,
-    transparent: !!material.map,
-    depthWrite: true,
   });
-  if (material.map) {
-    const sample = texture(material.map, uv()) as AnyNode;
-    out.colorNode = sample.rgb;
-    out.opacityNode = sample.a;
-    out.alphaTestNode = float(0.01);
-  }
+  if (src.colorNode) out.colorNode = src.colorNode;
   return out;
 }
 
+/**
+ * Renders the real vegetation models' albedo into an atlas: one square tile per prototype per yaw,
+ * framed from each model's true radius and height so crowns and fronds never crop.
+ */
 export async function bakeImpostorAtlas(
   renderer: WebGPURenderer,
   geometries: VegetationGeometryCatalog,
 ): Promise<ImpostorBake> {
   const started = performance.now();
-  const target = new WebGLRenderTarget(768, 768, { depthBuffer: true });
-  target.texture.name = 'vegetation-hemi-octahedral-impostors';
+  const target = new WebGLRenderTarget(GRID * TILE_PX, GRID * TILE_PX, { depthBuffer: true });
+  target.texture.name = 'vegetation-impostor-atlas';
   const previousTarget = renderer.getRenderTarget();
   const scene = new Scene();
   scene.background = null;
-  scene.add(new AmbientLight(0xb8d0a0, 1.6));
-  const sun = new DirectionalLight(0xffd69c, 2.2);
-  sun.position.set(-4, 7, 5);
-  scene.add(sun);
-  const makePrototype = (species: 'palmTall' | 'broadleafTree' | 'shrub') => {
-    const root = new Object3D();
-    for (const part of geometries[species]) root.add(new Mesh(part.geometry, bakeMaterial(part.material)));
-    return root;
-  };
-  const prototypes = [makePrototype('palmTall'), makePrototype('broadleafTree'), makePrototype('shrub')];
-  const camera = new OrthographicCamera(-7, 7, 8, -2, 0.1, 40);
-  camera.position.set(0, 5, 15);
-  camera.lookAt(0, 4, 0);
+  const camera = new OrthographicCamera(-1, 1, 1, -1, 0.1, 80);
 
-  // Save shared renderer state; the bake must leave the canvas viewport/scissor/clear untouched.
-  const prevViewport = renderer.getViewport(new Vector4());
-  const prevScissor = renderer.getScissor(new Vector4());
+  // Render targets use their own viewport/scissor; autoClear would wipe earlier tiles, so the
+  // target is cleared once and each tile is scissored in. Shared renderer state is restored after.
   const prevScissorTest = renderer.getScissorTest();
+  const prevAutoClear = renderer.autoClear;
   const prevClear = renderer.getClearColor(new Color());
   const prevAlpha = renderer.getClearAlpha();
   renderer.setRenderTarget(target);
   renderer.setClearColor(new Color(0x000000), 0);
   renderer.clear();
+  renderer.autoClear = false;
   renderer.setScissorTest(true);
-  const tile = 128;
-  for (let y = 0; y < 6; y += 1) {
-    for (let x = 0; x < 6; x += 1) {
-      const prototype = prototypes[(x + y) % prototypes.length];
-      scene.remove(...prototypes);
-      scene.add(prototype);
-      prototype.rotation.y = (x / 6) * Math.PI * 2;
-      prototype.rotation.x = -0.18 + y * 0.055;
-      renderer.setViewport(x * tile, y * tile, tile, tile);
-      renderer.setScissor(x * tile, y * tile, tile, tile);
+
+  const frames = {} as Record<Prototype, PrototypeFrame>;
+  for (const prototype of PROTOTYPES) {
+    const root = new Object3D();
+    tmpBox.makeEmpty();
+    let radius = 0;
+    for (const part of prototypeParts(geometries, prototype)) {
+      // Bake from a clone: drawing the shared catalog geometry into the target renders only its
+      // first few triangles on WebGPU (r186), while a fresh copy of the same data draws fully.
+      const geometry = part.geometry.clone();
+      const materials = Array.isArray(part.material) ? part.material : [part.material];
+      root.add(
+        new Mesh(
+          geometry,
+          materials.length > 1 ? materials.map(albedoMaterial) : albedoMaterial(materials[0]!),
+        ),
+      );
+      geometry.computeBoundingBox();
+      tmpBox.union(geometry.boundingBox!);
+      const position = geometry.getAttribute('position');
+      for (let i = 0; i < position.count; i += 1)
+        radius = Math.max(radius, Math.hypot(position.getX(i), position.getZ(i)));
+    }
+    const size = Math.max(radius * 2, tmpBox.max.y - tmpBox.min.y) * 1.06;
+    const bottom = tmpBox.min.y - size * 0.02;
+    frames[prototype] = { size, bottom };
+    camera.left = -size / 2;
+    camera.right = size / 2;
+    camera.bottom = bottom;
+    camera.top = bottom + size;
+    camera.position.set(0, 0, 40);
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+    scene.add(root);
+    for (let view = 0; view < VIEWS; view += 1) {
+      const k = tileIndex(prototype, view);
+      const x = (k % GRID) * TILE_PX;
+      const y = Math.floor(k / GRID) * TILE_PX;
+      root.rotation.y = (view / VIEWS) * Math.PI * 2;
+      target.viewport.set(x, y, TILE_PX, TILE_PX);
+      target.scissor.set(x, y, TILE_PX, TILE_PX);
       renderer.render(scene, camera);
     }
-  }
-  renderer.setRenderTarget(previousTarget);
-  renderer.setViewport(prevViewport);
-  renderer.setScissor(prevScissor);
-  renderer.setScissorTest(prevScissorTest);
-  renderer.setClearColor(prevClear, prevAlpha);
-
-  for (const prototype of prototypes) {
-    prototype.traverse((object) => {
+    scene.remove(root);
+    root.traverse((object) => {
       const mesh = object as Mesh;
       if (!mesh.isMesh) return;
-      if (Array.isArray(mesh.material)) for (const m of mesh.material) m.dispose();
-      else mesh.material.dispose();
+      mesh.geometry.dispose();
+      for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material])
+        material.dispose();
     });
   }
-  return { texture: target.texture, target, bakeMs: performance.now() - started };
+  renderer.setRenderTarget(previousTarget);
+  renderer.setScissorTest(prevScissorTest);
+  renderer.autoClear = prevAutoClear;
+  renderer.setClearColor(prevClear, prevAlpha);
+  return { texture: target.texture, target, frames, bakeMs: performance.now() - started };
 }
 
-function atlasFamily(species: PlantInstance['species']): number {
-  if (species === 'broadleafTree') return 1;
-  if (species === 'shrub' || species === 'flowerBush') return 2;
-  return 0;
+interface ImpostorEntry {
+  instance: PlantInstance;
+  prototype: Prototype;
+  tint: Color;
 }
 
-function atlasTile(
-  species: PlantInstance['species'],
-  seed: number,
-): { x: number; y: number; w: number; h: number } {
-  const family = atlasFamily(species);
-  const candidates: { x: number; y: number }[] = [];
-  for (let y = 0; y < 6; y += 1) {
-    for (let x = 0; x < 6; x += 1) {
-      if ((x + y) % 3 === family) candidates.push({ x, y });
-    }
-  }
-  const c = candidates[Math.floor(seed * candidates.length) % candidates.length] ?? candidates[0]!;
-  const s = 1 / 6;
-  return { x: c.x * s, y: c.y * s, w: s, h: s };
+export interface ImpostorOptions {
+  /** Distance where each species' geometry hands off to its impostor. */
+  handoff: (species: PlantSpecies) => number;
+  palmVariant: (instance: PlantInstance) => PalmVariant;
+  tint: (instance: PlantInstance) => Color;
 }
 
 export class ImpostorBatch {
@@ -160,51 +193,59 @@ export class ImpostorBatch {
   private readonly fade: InstancedBufferAttribute;
   private readonly tint: InstancedBufferAttribute;
   private readonly atlasUv: InstancedBufferAttribute;
-  private readonly capacity: number;
   private readonly entries: ImpostorEntry[];
   private visible = 0;
 
-  constructor(entries: PlantInstance[], atlas: Texture, maxCount = entries.length) {
-    this.entries = entries.map((entry) => ({
-      ...entry,
-      radius: entry.species === 'shrub' ? 2.4 : entry.species === 'broadleafTree' ? 6 : 7.5,
+  constructor(
+    instances: PlantInstance[],
+    private readonly bake: ImpostorBake,
+    private readonly options: ImpostorOptions,
+  ) {
+    this.entries = instances.map((instance) => ({
+      instance,
+      prototype: prototypeFor(instance, options.palmVariant),
+      tint: options.tint(instance),
     }));
     const geometry = new PlaneGeometry(1, 1, 1, 1);
-    this.capacity = Math.max(1, maxCount);
-    this.fade = new InstancedBufferAttribute(new Float32Array(this.capacity), 1);
-    this.tint = new InstancedBufferAttribute(new Float32Array(this.capacity * 3), 3);
-    this.atlasUv = new InstancedBufferAttribute(new Float32Array(this.capacity * 4), 4);
+    const capacity = Math.max(1, instances.length);
+    this.fade = new InstancedBufferAttribute(new Float32Array(capacity), 1);
+    this.tint = new InstancedBufferAttribute(new Float32Array(capacity * 3), 3);
+    this.atlasUv = new InstancedBufferAttribute(new Float32Array(capacity * 4), 4);
     geometry.setAttribute('fade', this.fade);
     geometry.setAttribute('tint', this.tint);
     geometry.setAttribute('atlasUv', this.atlasUv);
-    this.mesh = new InstancedMesh(geometry, createImpostorMaterial(atlas), this.capacity);
+    this.mesh = new InstancedMesh(geometry, createImpostorMaterial(bake.texture), capacity);
+    this.mesh.name = 'vegetation-impostors';
     this.mesh.count = 0;
     this.mesh.frustumCulled = false;
   }
 
-  update(camera: PerspectiveCamera, nearDistance: number): void {
+  update(camera: PerspectiveCamera): void {
     this.visible = 0;
-    const far = Math.max(nearDistance + 80, 330);
-    for (const entry of this.entries) {
-      const d = Math.hypot(entry.x - camera.position.x, entry.z - camera.position.z);
-      if (d < nearDistance * (entry.species === 'shrub' ? 0.62 : 1) || d > far) continue;
-      if (this.visible >= this.capacity) continue;
-      const yaw = Math.atan2(camera.position.x - entry.x, camera.position.z - entry.z);
+    const tile = 1 / GRID;
+    for (const { instance, prototype, tint } of this.entries) {
+      const near = this.options.handoff(instance.species);
+      const far = Math.max(near + 190, 620);
+      const d = Math.hypot(instance.x - camera.position.x, instance.z - camera.position.z);
+      if (d < near - 10 || d > far) continue;
+      const yaw = Math.atan2(camera.position.x - instance.x, camera.position.z - instance.z);
+      const frame = this.bake.frames[prototype];
+      const s = frame.size * instance.scale;
       quat.setFromAxisAngle(up, yaw);
-      tmp.position.set(entry.x, entry.y + entry.radius * 0.54, entry.z);
+      tmp.position.set(instance.x, instance.y + (frame.bottom + frame.size / 2) * instance.scale, instance.z);
       tmp.quaternion.copy(quat);
-      const thin = 1 - smoothstep(far - 110, far, d) * (0.35 + entry.lodSeed * 0.45);
-      const s = entry.radius * entry.scale;
-      scale.set(s * 1.45, s * 1.2, s * 1.45);
-      tmp.scale.copy(scale);
+      tmp.scale.set(s, s, s);
       tmp.updateMatrix();
       matrix.copy(tmp.matrix);
       this.mesh.setMatrixAt(this.visible, matrix);
-      const color = new Color().setHSL(0.26 + entry.colorSeed * 0.07, 0.42, 0.48 + entry.colorSeed * 0.08);
-      this.tint.setXYZ(this.visible, color.r, color.g, color.b);
-      const tile = atlasTile(entry.species, entry.lodSeed);
-      this.atlasUv.setXYZW(this.visible, tile.x, tile.y, tile.w, tile.h);
-      this.fade.setX(this.visible, clamp01(smoothstep(nearDistance, nearDistance + 18, d) * thin));
+      this.tint.setXYZ(this.visible, tint.r, tint.g, tint.b);
+      // The baked view whose yaw matches how the camera sees this instance's mesh rotation.
+      const turns = (instance.rotation - yaw) / (Math.PI * 2);
+      const view = Math.round((turns - Math.floor(turns)) * VIEWS) % VIEWS;
+      const k = tileIndex(prototype, view);
+      this.atlasUv.setXYZW(this.visible, (k % GRID) * tile, Math.floor(k / GRID) * tile, tile, tile);
+      const thin = 1 - smoothstep(far - 110, far, d) * (0.35 + instance.lodSeed * 0.45);
+      this.fade.setX(this.visible, clamp01(smoothstep(near - 10, near + 6, d) * thin));
       this.visible += 1;
     }
     this.mesh.count = this.visible;
@@ -227,5 +268,6 @@ export class ImpostorBatch {
     if (Array.isArray(this.mesh.material)) for (const material of this.mesh.material) material.dispose();
     else this.mesh.material.dispose();
     this.mesh.dispose();
+    this.bake.target.dispose();
   }
 }

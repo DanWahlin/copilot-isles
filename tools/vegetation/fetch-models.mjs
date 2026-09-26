@@ -60,11 +60,7 @@ const ASSETS = [
   },
 ];
 
-const PALM_TEXTURES = [
-  { name: 'palm_bark', source: 'Bark_NormalTree.png', file: 'textures/palm_bark.webp', size: 512 },
-  { name: 'palm_leaf', source: 'Leaves_NormalTree.png', file: 'textures/palm_leaf.webp', size: 512 },
-  { name: 'grass', source: 'Grass.png', file: 'textures/grass.webp', size: 512 },
-];
+const PALM_TEXTURES = [{ name: 'grass', source: 'Grass.png', file: 'textures/grass.webp', size: 512 }];
 
 async function sha256(path) {
   return createHash('sha256')

@@ -8,17 +8,15 @@ import {
   DoubleSide,
   FloatType,
   LinearFilter,
-  MeshBasicNodeMaterial,
   MeshStandardNodeMaterial,
-  type Texture as ThreeTexture,
   RedFormat,
-  RepeatWrapping,
   Texture,
   Vector4,
 } from 'three/webgpu';
 import {
   Fn,
   attribute,
+  cameraViewMatrix,
   clamp,
   color,
   float,
@@ -74,7 +72,13 @@ function lodMask(): AnyNode {
 }
 
 export function createVegetationMaterial(
-  source: { map?: ThreeTexture | null; color?: Color; alphaTest?: number; name?: string } = {},
+  source: {
+    /** Authored albedo; when set it's used as-is (fronds get a subtle per-instance tint). */
+    map?: Texture | null;
+    color?: Color;
+    alphaTest?: number;
+    name?: string;
+  } = {},
 ): MeshStandardNodeMaterial {
   const material = new MeshStandardNodeMaterial({
     side: DoubleSide,
@@ -82,7 +86,6 @@ export function createVegetationMaterial(
     roughness: 0.82,
     metalness: 0,
     color: source.color ?? new Color(0xffffff),
-    map: source.map ?? null,
     vertexColors: true,
   });
   material.name = source.name ?? 'vegetation';
@@ -90,60 +93,47 @@ export function createVegetationMaterial(
   const shade = attribute('shade', 'float') as AnyNode;
   const tint = attribute('tint', 'vec3') as AnyNode;
   const vertexColor = attribute('color', 'vec3') as AnyNode;
-  const sourceTexel = source.map ? (texture(source.map, uv()) as AnyNode) : null;
-  const sourceColor = (sourceTexel ? sourceTexel.rgb : (materialColor as AnyNode).rgb).mul(
-    vertexColor.mul(0.35).add(0.75),
-  );
+  const sourceColor = (materialColor as AnyNode).rgb.mul(vertexColor.mul(0.35).add(0.75));
   const isLeaf = greaterThan(part, float(0.5));
   const isFruit = greaterThan(part, float(1.5)).and(part.lessThan(float(2.5))) as AnyNode;
   const isDead = greaterThan(part, float(2.5)).and(part.lessThan(float(3.5))) as AnyNode;
   const isRock = greaterThan(part, float(3.5));
-  const leafDeep = color(0x183b21);
-  const leafSun = color(0x7da34a);
-  const bark = sourceColor.mul(mix(color(0x8f6e50), color(0xd0aa79), shade.mul(0.35)));
-  const fruit = sourceColor.mul(mix(color(0x79562c), color(0xffcc5e), shade.mul(0.45).add(0.55)));
+  const leafDeep = color(0x2b5622);
+  const leafSun = color(0x72862e);
+  const bark = sourceColor.mul(mix(color(0xa08f74), color(0xd2ac79), shade.mul(0.36)));
+  const fruit = sourceColor.mul(mix(color(0x4a351d), color(0x8b6a37), shade.mul(0.5).add(0.28)));
   const dead = sourceColor.mul(mix(color(0x8a6334), color(0xd3ad67), shade));
   const rock = sourceColor.mul(mix(color(0x8a8d86), color(0xc5bea7), shade.mul(0.4)));
   const leafAo = smoothstep(float(0.18), float(1.0), shade);
-  const leaf = sourceColor.mul(mix(leafDeep, leafSun, leafAo)).mul(tint.mul(0.32).add(0.82));
+  const leafColor = mix(leafDeep, leafSun, leafAo) as AnyNode;
+  const leaf = (mix(sourceColor, leafColor, float(0.68)) as AnyNode).mul(tint.mul(0.14).add(0.72));
 
+  // Sun-through-leaf glow on backlit fronds only, capped at 15% of albedo; wood and rock stay lit.
+  // Normal-dependent terms must be evaluated unconditionally: TSL assigns the shared `normalWorld`
+  // var at first use, so reading it inside a leaf-only select() left non-leaf fragments with a zero
+  // normal (unlit, sky-grey trunks).
   const translucency = smoothstep(
     float(-0.35),
     float(0.82),
     (normalWorld as AnyNode).dot(world.sunDir).negate(),
   )
     .mul(smoothstep(float(0.02), float(0.24), world.sunDir.value.y))
-    .mul(0.28);
-
-  const frondSheen = smoothstep(
-    float(0.15),
-    float(0.95),
-    (normalWorld as AnyNode).dot(world.sunDir).abs(),
-  ).mul(0.18);
-  if (sourceTexel) {
-    material.colorNode = sourceColor.mul(tint.mul(0.22).add(0.9)) as AnyNode;
-    material.opacityNode = sourceTexel.a as AnyNode;
-    material.emissiveNode = sourceColor.mul(translucency.add(frondSheen.mul(0.08)).mul(0.12)) as AnyNode;
-    material.roughnessNode = select(isRock, float(0.86), select(isLeaf, float(0.58), float(0.82))) as AnyNode;
-    material.maskNode = lodMask();
+    .mul(0.15);
+  const leafWeight = select(isLeaf, float(1), float(0)) as AnyNode;
+  let albedo: AnyNode;
+  if (source.map) {
+    const texel = (texture(source.map, uv()) as AnyNode).rgb;
+    // The authored frond swatch is a lime green that reads neon in full tropical sun; grade it
+    // toward a deeper palm green and let the per-instance tint add grove variety.
+    const frond = texel.mul(vec3(0.5, 0.47, 0.72)).mul(tint.mul(0.3).add(0.85));
+    albedo = select(isLeaf, frond, texel);
   } else {
-    material.colorNode = select(
-      isRock,
-      rock,
-      select(isDead, dead, select(isFruit, fruit, select(isLeaf, leaf, bark))),
-    ) as AnyNode;
-    material.emissiveNode = select(
-      isLeaf,
-      leaf.mul(translucency.add(frondSheen.mul(0.08))),
-      color(0x000000),
-    ) as AnyNode;
-    material.roughnessNode = select(
-      isRock,
-      float(0.86),
-      select(isLeaf, float(0.62).sub(frondSheen.mul(0.18)), float(0.9)),
-    ) as AnyNode;
-    material.maskNode = lodMask();
+    albedo = select(isRock, rock, select(isDead, dead, select(isFruit, fruit, select(isLeaf, leaf, bark))));
   }
+  material.colorNode = albedo;
+  material.emissiveNode = albedo.mul(translucency).mul(leafWeight) as AnyNode;
+  material.roughnessNode = select(isRock, float(0.86), select(isLeaf, float(0.6), float(0.9))) as AnyNode;
+  material.maskNode = lodMask();
 
   const windDamp = float(1).sub(world.reducedMotion.mul(0.82));
   const heightGate = smoothstep(float(0.4), float(7.5), (positionGeometry as AnyNode).y);
@@ -225,28 +215,27 @@ export function createGrassMaterial(heightTexture: DataTexture, grid: HeightGrid
   return material;
 }
 
-export function createImpostorMaterial(atlas: Texture): MeshBasicNodeMaterial {
-  atlas.wrapS = RepeatWrapping;
-  atlas.wrapT = RepeatWrapping;
+export function createImpostorMaterial(atlas: Texture): MeshStandardNodeMaterial {
+  atlas.wrapS = ClampToEdgeWrapping;
+  atlas.wrapT = ClampToEdgeWrapping;
   atlas.magFilter = LinearFilter;
   atlas.minFilter = LinearFilter;
-  const material = new MeshBasicNodeMaterial({
-    side: DoubleSide,
-    alphaTest: 0.35,
-    depthWrite: true,
-    transparent: false,
-  });
+  const material = new MeshStandardNodeMaterial({ side: DoubleSide, roughness: 0.9, metalness: 0 });
+  material.name = 'vegetation-impostor';
   const tint = attribute('tint', 'vec3') as AnyNode;
   const fade = attribute('fade', 'float') as AnyNode;
-  const q = (uv() as AnyNode).mul(2).sub(1);
-  const oval = float(1).sub(
-    smoothstep(float(0.78), float(1.0), (vec2 as AnyNode)(q.x, q.y.mul(1.18)).length()),
-  );
-  const trunk = smoothstep(float(0.08), float(0.0), q.x.abs())
-    .mul(smoothstep(float(-1.0), float(-0.08), q.y))
-    .mul(0.38);
-  const crownLight = smoothstep(float(-0.15), float(0.85), q.y).mul(0.24).add(0.78);
-  material.colorNode = tint.mul(crownLight).add(color(0x4e3521).mul(trunk)) as AnyNode;
-  material.maskNode = greaterThan(oval.max(trunk).mul(fade), interleavedGradientNoise());
+  const tile = attribute('atlasUv', 'vec4') as AnyNode;
+  // Render-target tiles come back vertically flipped relative to the card's UVs.
+  const cardUv = (vec2 as AnyNode)((uv() as AnyNode).x, float(1).sub((uv() as AnyNode).y));
+  const sample = texture(atlas, tile.xy.add(cardUv.mul(tile.zw))) as AnyNode;
+  // The atlas holds albedo; light the card like a canopy (mostly up, a little toward the viewer)
+  // so distant trees follow the scene's sun and time of day.
+  const upView = (vec3(0, 1, 0) as AnyNode).transformDirection(cameraViewMatrix);
+  material.normalNode = upView
+    .mul(0.8)
+    .add(vec3(0, 0, 0.45))
+    .normalize() as AnyNode;
+  material.colorNode = sample.rgb.mul(tint.mul(0.16).add(0.84)) as AnyNode;
+  material.maskNode = greaterThan(sample.a.mul(fade), interleavedGradientNoise().mul(0.8).add(0.1));
   return material;
 }

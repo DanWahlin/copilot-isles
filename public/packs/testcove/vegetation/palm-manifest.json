@@ -1,0 +1,73 @@
+{
+  "generated": "2026-09-26T06:52:33.230Z",
+  "sources": [
+    {
+      "id": "quaternius-a",
+      "page": "https://poly.pizza/m/P0tgwyXBgr",
+      "url": "https://static.poly.pizza/66cd7d94-abba-471e-8d8b-c8ad30aa5c70.glb",
+      "sourceSha256": "56ce27c93426e137e996844a7e99457218e513468e5a567046590c183224b436",
+      "author": "Quaternius",
+      "title": "Palm Tree",
+      "licenseEvidence": "Poly Pizza page shows Public Domain (CC0); embedded metadata Licence: CC0 1.0.",
+      "outputs": [
+        {
+          "kind": "hero",
+          "file": "models/palm_quaternius_a_hero.glb",
+          "simplifyRatio": 1
+        },
+        {
+          "kind": "grove",
+          "file": "models/palm_quaternius_a_grove.glb",
+          "simplifyRatio": 0.16
+        }
+      ]
+    },
+    {
+      "id": "quaternius-b",
+      "page": "https://poly.pizza/m/A6cKJYFsIb",
+      "url": "https://static.poly.pizza/4c17decd-3087-4afe-9611-cfd92cca47cd.glb",
+      "sourceSha256": "ae8c66e5e2206c5efd12c2cf96b9064f643076c2d8bac5f3c5f457b2ee6491ca",
+      "author": "Quaternius",
+      "title": "Palm Tree",
+      "licenseEvidence": "Poly Pizza page shows Public Domain (CC0); embedded metadata Licence: CC0 1.0.",
+      "outputs": [
+        {
+          "kind": "hero",
+          "file": "models/palm_quaternius_b_hero.glb",
+          "simplifyRatio": 1
+        },
+        {
+          "kind": "grove",
+          "file": "models/palm_quaternius_b_grove.glb",
+          "simplifyRatio": 0.16
+        }
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "source": "quaternius-a",
+      "kind": "hero",
+      "file": "models/palm_quaternius_a_hero.glb",
+      "sha256": "4c468dc4f8dbc725c263176e7da939e5bb2a1e0ff537b0c4a38f9ac0e7d1724b"
+    },
+    {
+      "source": "quaternius-a",
+      "kind": "grove",
+      "file": "models/palm_quaternius_a_grove.glb",
+      "sha256": "f12fa67c63071038fa01f6476998f11b59dd2db55b16ac8087bcc6b842cd6b06"
+    },
+    {
+      "source": "quaternius-b",
+      "kind": "hero",
+      "file": "models/palm_quaternius_b_hero.glb",
+      "sha256": "66b0851cf92183162b88ae88f74c44973000a5c21b076352baa54648bf18e054"
+    },
+    {
+      "source": "quaternius-b",
+      "kind": "grove",
+      "file": "models/palm_quaternius_b_grove.glb",
+      "sha256": "902a123312055e8969eb7bdcdaba94969edc27647bac4fff8e0179482c32e9a1"
+    }
+  ]
+}

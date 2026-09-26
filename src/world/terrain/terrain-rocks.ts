@@ -31,6 +31,7 @@ interface RockInstance {
 
 const ROCK_VARIANTS = Math.min(3, ROCK_ASSETS.length);
 const STOREHOUSE_EAST_PAD = { x0: -71, x1: -53, z0: -75, z1: -51 };
+const VILLAGE_MEADOW_PAD = { x0: -174, x1: -55, z0: -50, z1: 18 };
 const SEA_STACK_RADIAL_SEGMENTS = 44;
 const SEA_STACK_VERTICAL_SEGMENTS = 24;
 
@@ -48,10 +49,14 @@ function rockAsset(seed: number): number {
 
 function inBlockedPad(r: RockInstance): boolean {
   return (
-    r.x >= STOREHOUSE_EAST_PAD.x0 &&
-    r.x <= STOREHOUSE_EAST_PAD.x1 &&
-    r.z >= STOREHOUSE_EAST_PAD.z0 &&
-    r.z <= STOREHOUSE_EAST_PAD.z1
+    (r.x >= STOREHOUSE_EAST_PAD.x0 &&
+      r.x <= STOREHOUSE_EAST_PAD.x1 &&
+      r.z >= STOREHOUSE_EAST_PAD.z0 &&
+      r.z <= STOREHOUSE_EAST_PAD.z1) ||
+    (r.x >= VILLAGE_MEADOW_PAD.x0 &&
+      r.x <= VILLAGE_MEADOW_PAD.x1 &&
+      r.z >= VILLAGE_MEADOW_PAD.z0 &&
+      r.z <= VILLAGE_MEADOW_PAD.z1)
   );
 }
 
