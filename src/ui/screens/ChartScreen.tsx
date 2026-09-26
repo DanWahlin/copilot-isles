@@ -125,7 +125,8 @@ export function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBri
               points={chart.island.points}
               selectedPoint={selectedPoint}
               onSelectPoint={setSelectedPoint}
-              onTravel={(point) => bridge.travelTo(point.id)}
+              // From the title there's no voyage to move yet.
+              onTravel={state.returnTo === 'title' ? null : (point) => bridge.travelTo(point.id)}
             />
           )}
         </div>
@@ -265,13 +266,13 @@ function IslandDetailSide({
   points: readonly ChartPoint[];
   selectedPoint: ChartPoint | null;
   onSelectPoint: (point: ChartPoint) => void;
-  onTravel: (point: ChartPoint) => void;
+  onTravel: ((point: ChartPoint) => void) | null;
 }) {
   const active = selectedPoint ?? points[0] ?? null;
   return (
     <div className="ci-detail-side">
       {active ? (
-        <PointCard point={active} onTravel={() => onTravel(active)} />
+        <PointCard point={active} onTravel={onTravel ? () => onTravel(active) : null} />
       ) : (
         <aside className="ci-map-card muted">
           <p>Anchorage Cay</p>
@@ -307,13 +308,19 @@ function travelHint(point: ChartPoint): string {
   return point.kind;
 }
 
-function PointCard({ point, onTravel }: { point: ChartPoint; onTravel: () => void }) {
+function PointCard({ point, onTravel }: { point: ChartPoint; onTravel: (() => void) | null }) {
   return (
     <aside className="ci-map-card point">
       <p>{point.kind}</p>
       <h3>{point.label}</h3>
-      <small>Set a course to this marker.</small>
-      <button onClick={onTravel}>Travel here</button>
+      {onTravel ? (
+        <>
+          <small>Set a course to this marker.</small>
+          <button onClick={onTravel}>Travel here</button>
+        </>
+      ) : (
+        <small>Start or continue a voyage to travel here.</small>
+      )}
     </aside>
   );
 }
