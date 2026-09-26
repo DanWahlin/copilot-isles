@@ -38,6 +38,8 @@ export interface BrigantineUniforms {
   /** Sail cloth and the band across each sail (Paint Your Sails). */
   sailCloth: UniformNode<'color', Color>;
   sailStripe: UniformNode<'color', Color>;
+  /** Swings the jolly roger and pennants downwind (see ship-flags `flagYaw`). */
+  flagYaw: UniformNode<'float', number>;
 }
 
 let shipWoodTexture: Texture | null = null;

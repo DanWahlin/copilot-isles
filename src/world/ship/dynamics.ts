@@ -59,6 +59,9 @@ const STEP = 1 / 60;
 const MAX_SUBSTEPS = 10;
 const MAX_SPEED = 7.2;
 const MAX_YAW_RATE = 0.42;
+/** Steerage while the hull touches an obstacle, and how long it lasts after the last contact (s). */
+const FEND_OFF_STEERAGE = 0.75;
+const FEND_OFF_HOLD = 0.6;
 const TWO_PI = Math.PI * 2;
 const EPS = 1e-6;
 
@@ -83,6 +86,37 @@ export function pointOfSailCurve(forwardDotWind: number): number {
   const broadReachPeak = 0.58 + 0.46 * Math.exp(-Math.pow((d - 0.42) / 0.5, 2));
   const runningPenalty = 1 - 0.25 * smoothstep(0.72, 1, d);
   return clamp(noGo * broadReachPeak * runningPenalty, 0, 1.05);
+}
+
+export type PointOfSail = 'in-irons' | 'close-hauled' | 'beam-reach' | 'broad-reach' | 'running';
+
+/**
+ * Where the wind comes from relative to the bow (radians; 0 dead ahead, +π/2 the starboard beam)
+ * and the point of sail that gives. The in-irons band matches `pointOfSailCurve`'s no-go zone.
+ */
+export function windOnBow(
+  heading: number,
+  windX: number,
+  windZ: number,
+): { angle: number; point: PointOfSail } {
+  const len = Math.hypot(windX, windZ) || 1;
+  const s = Math.sin(heading);
+  const c = Math.cos(heading);
+  const ahead = -(s * windX + c * windZ) / len;
+  const starboard = (c * windX - s * windZ) / len;
+  const angle = Math.atan2(starboard, ahead);
+  const off = (Math.abs(angle) * 180) / Math.PI;
+  const point: PointOfSail =
+    off < 40
+      ? 'in-irons'
+      : off < 70
+        ? 'close-hauled'
+        : off < 110
+          ? 'beam-reach'
+          : off < 155
+            ? 'broad-reach'
+            : 'running';
+  return { angle, point };
 }
 
 function integrateSpring(
@@ -128,6 +162,8 @@ export class ShipDynamics {
   lateralSpeed = 0;
   headingRate = 0;
   crewOffset = 0;
+  /** Seconds left of "fending off": the hull touched a pile or boat, so the helm keeps steerage. */
+  private fendOff = 0;
   autopilotComplete = true;
   dockComplete = false;
   passedWaypointCount = 0;
@@ -172,6 +208,7 @@ export class ShipDynamics {
     this.lateralSpeed = 0;
     this.headingRate = 0;
     this.crewOffset = 0;
+    this.fendOff = 0;
     this.heaveVelocity = 0;
     this.pitchVelocity = 0;
     this.rollVelocity = 0;
@@ -366,11 +403,13 @@ export class ShipDynamics {
 
     const windScale = Math.pow(clamp(windSpeed / 6.5, 0, 2.2), 0.72);
     let targetSpeed = MAX_SPEED * command.trim * pointOfSail * windScale;
-    let targetYaw =
-      command.rudder *
-      MAX_YAW_RATE *
-      clamp((Math.abs(this.forwardSpeed) + 0.8) / 4.5, 0.18, 1) *
-      (0.45 + command.trim * 0.55);
+    // Pinned against a pile or boat the crew fends off, so the helm can still swing her clear.
+    this.fendOff = Math.max(0, this.fendOff - dt);
+    const steerage = Math.max(
+      clamp((Math.abs(this.forwardSpeed) + 0.8) / 4.5, 0.18, 1),
+      this.fendOff > 0 ? FEND_OFF_STEERAGE : 0,
+    );
+    let targetYaw = command.rudder * MAX_YAW_RATE * steerage * (0.45 + command.trim * 0.55);
     if (finite(command.targetSpeedOverride)) targetSpeed = command.targetSpeedOverride;
     if (finite(command.targetYawOverride)) targetYaw = command.targetYawOverride;
 
@@ -538,6 +577,7 @@ export class ShipDynamics {
           this.pose.x += nx * push;
           this.pose.z += nz * push;
           moved = true;
+          this.fendOff = FEND_OFF_HOLD;
           const bowHit =
             cap.z > BRIGANTINE_HALF_LENGTH * 0.42 &&
             nx * fwdX + nz * fwdZ < -0.28 &&

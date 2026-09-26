@@ -170,11 +170,71 @@
 .hud-bar:has(.hud-bar-needle) {
   overflow: visible;
 }
+.hud-readout {
+  display: grid;
+  justify-items: end;
+  gap: 0.15em;
+  margin-left: auto;
+  white-space: nowrap;
+}
 .hud-speed {
-  justify-self: end;
   font-size: 1.5rem;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
+}
+.hud-wind-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+}
+.hud-wind {
+  flex: none;
+  width: 2.6rem;
+  height: 2.6rem;
+}
+.hud-wind svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.hud-wind .ring {
+  fill: rgba(255, 255, 255, 0.05);
+  stroke: rgba(255, 255, 255, 0.22);
+  stroke-width: 1;
+}
+.hud-wind .nogo {
+  fill: rgba(255, 138, 112, 0.16);
+  transition: fill 0.3s;
+}
+.hud-wind .hull {
+  fill: rgba(255, 255, 255, 0.82);
+}
+.hud-wind .arrow path {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.hud-wind .arrow {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  transition: transform 0.25s ease-out;
+}
+.hud-wind-label {
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  transition: color 0.3s;
+}
+.hud-sail.irons .hud-wind-label {
+  color: #ff9d86;
+}
+.hud-sail.irons .hud-wind .nogo {
+  fill: rgba(255, 138, 112, 0.34);
 }
 
 .hud-toast {

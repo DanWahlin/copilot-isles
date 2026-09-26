@@ -49,14 +49,15 @@ export const COVE = {
   /**
    * P0.2's dry-run crane slews on the pier head (`x`, `z` is its pivot). Berth 1 is your
    * brigantine at the mooring, Berth 2 another captain's sloop off the pier's west face, and
-   * Berth 3 a guild sloop lying across the pier head (bow east, clear of the brigantine's jib-boom).
+   * Berth 3 a guild sloop lying across the pier head (bow east). Its bow stops short of
+   * x ≈ −106 so the brigantine sails straight out of her berth without scraping it.
    */
   crane: {
     x: -108,
     z: -120,
     sloops: [
       { berth: 2, x: -112.9, z: -118.8, heading: Math.PI },
-      { berth: 3, x: -109.6, z: -126.0, heading: Math.PI / 2 },
+      { berth: 3, x: -111.2, z: -126.0, heading: Math.PI / 2 },
     ],
   },
 

@@ -6,6 +6,8 @@ import type { Input } from '../engine/input';
 import type { Character, CharacterLibrary, PlayerBody } from '../world/characters';
 import type { CoveScene } from '../world/cove-scene';
 import { COVE } from '../world/layout';
+import { windOnBow } from '../world/ship/dynamics';
+import { windAt } from '../world/wind';
 import { CollisionWorld, type SurfaceKind, type WalkSurface } from './collision';
 import { Dialogue } from './dialogue';
 import { FootstepPuffs } from './footstep-puffs';
@@ -622,6 +624,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     mode = 'sail';
     input.enabled = true;
     await hud.fade(false);
+    ironsFor = 0;
+    ironsNudged = false;
     hud.toast('Raise the sails with W. Steer with A and D.', 4);
     audio?.music.setIsland('harbour');
   }
@@ -667,6 +671,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // Footsteps and ship sounds.
   let stride = 0;
   let slapIn = 2;
+  const windHere = new Float32Array(2);
+  /** Seconds stalled head to wind with the sails up; one nudge per boarding. */
+  let ironsFor = 0;
+  let ironsNudged = false;
   const footstep = (kind: SurfaceKind): FootstepSurface => {
     if (kind === 'stone') return 'rock';
     if (kind === 'sand') return player.waterY - player.y > -0.18 ? 'wetsand' : 'sand';
@@ -790,7 +798,19 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           const pose = dyn.pose;
           const near = Math.hypot(pose.x - COVE.mooring.x, pose.z - COVE.mooring.z) < DOCK_RANGE;
           hud.setPrompt(mode === 'sail' && near ? 'Dock at the pier' : null);
-          hud.updateSail(helm.trim, helm.rudder, Math.abs(dyn.forwardSpeed));
+          windAt(pose.x, pose.z, t, windHere);
+          const bow = windOnBow(pose.heading, windHere[0], windHere[1]);
+          hud.updateSail(helm.trim, helm.rudder, Math.abs(dyn.forwardSpeed), bow);
+          const stalled =
+            mode === 'sail' && bow.point === 'in-irons' && helm.trim > 0.4 && Math.abs(dyn.forwardSpeed) < 1;
+          ironsFor = stalled ? ironsFor + dt : 0;
+          if (ironsFor > 5 && !ironsNudged && !dialogue.active) {
+            ironsNudged = true;
+            hud.toast(
+              'We’re head to wind, so the sails can’t fill. Steer with A or D until the arrow’s off the bow.',
+              6,
+            );
+          }
           tmp.set(pose.x, ship.group.position.y, pose.z);
           cam.update(dt, camera, s, tmp, pose.heading, Math.abs(dyn.forwardSpeed) > 0.5, world, t);
           if (Math.abs(dyn.forwardSpeed) > 0.8 && (slapIn -= dt) <= 0) {

@@ -65,6 +65,8 @@ export interface ChartIsland {
   topics: readonly string[];
   /** The course's estimated time for the chapter. */
   minutes: number;
+  /** The seal its Harbormaster's Trial awards, which opens the course to the next island. */
+  seal?: string;
 }
 
 export interface ChartPoint {

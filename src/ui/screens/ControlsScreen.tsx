@@ -14,6 +14,7 @@ export function ControlsScreen({ bridge }: { bridge: GameBridge }) {
             [['Hold RMB'], 'Look'],
             [['Mouse wheel'], 'Zoom'],
             [['E'], 'Interact'],
+            [['Q'], 'Wingman’s hint'],
             [['M'], 'Chart'],
             [['N'], 'Mute / unmute'],
             [['Esc'], 'Menu'],
@@ -22,10 +23,9 @@ export function ControlsScreen({ bridge }: { bridge: GameBridge }) {
         <ControlColumn
           title="Sailing"
           rows={[
-            [['W', 'S'], 'Trim sails'],
+            [['W', 'S'], 'Raise / lower sails'],
             [['A', 'D'], 'Helm'],
-            [['E'], 'Dock / leave helm'],
-            [['C'], 'Helm camera'],
+            [['E'], 'Dock at the pier'],
           ]}
         />
         <ControlColumn
@@ -33,8 +33,10 @@ export function ControlsScreen({ bridge }: { bridge: GameBridge }) {
           rows={[
             [['Left stick'], 'Move / helm'],
             [['Right stick'], 'Look'],
+            [['RT'], 'Run'],
             [['A'], 'Interact'],
-            [['Y'], 'Hop / hint'],
+            [['X'], 'Wingman’s hint'],
+            [['Y'], 'Hop'],
             [['Back'], 'Chart'],
             [['Start'], 'Menu'],
           ]}

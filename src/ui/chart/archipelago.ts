@@ -20,6 +20,7 @@ export const ARCHIPELAGO: readonly ChartIsland[] = [
     blurb:
       'A tropical crescent with a turquoise lagoon and a little point lighthouse. Your voyage begins here.',
     minutes: 20,
+    seal: 'Seal of Anchorage',
     topics: [
       'Install the app and sign in',
       'Fork the course repository',

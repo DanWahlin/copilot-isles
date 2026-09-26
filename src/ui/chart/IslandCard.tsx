@@ -6,15 +6,20 @@ import { statusLabel } from './ArchipelagoMap';
 export function IslandCard({
   island,
   islands,
+  seals = [],
   onOpen,
 }: {
   island: ChartIsland;
   islands: readonly ChartIsland[];
+  /** Seals the captain has earned. */
+  seals?: readonly string[];
   onOpen: () => void;
 }) {
   const { num, title } = chapterParts(island.chapter);
   const index = islands.findIndex((i) => i.id === island.id);
-  const prev = index > 0 ? chapterParts(islands[index - 1]!.chapter).num : null;
+  const before = index > 0 ? islands[index - 1]! : null;
+  const prev = before ? chapterParts(before.chapter).num : null;
+  const prevSealed = !!before?.seal && seals.includes(before.seal);
   return (
     <aside className={`ci-island-card ${island.status}`} aria-live="polite">
       <header>
@@ -38,7 +43,13 @@ export function IslandCard({
         ))}
       </ul>
       {island.status === 'locked' ? (
-        <p className="hint">{prev ? `Finish Chapter ${prev} to set a course here.` : 'Not charted yet.'}</p>
+        <p className="hint">
+          {prevSealed
+            ? `You’ve earned the ${before!.seal}. These waters are still being charted, so check back soon.`
+            : prev
+              ? `Finish Chapter ${prev} to set a course here.`
+              : 'Not charted yet.'}
+        </p>
       ) : (
         <button onClick={onOpen}>Open island chart</button>
       )}

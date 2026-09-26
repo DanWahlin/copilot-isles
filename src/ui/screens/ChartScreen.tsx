@@ -113,7 +113,12 @@ export function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBri
         </div>
         <div className="ci-chart-side" aria-live="polite">
           {mode === 'archipelago' && selectedIsland && (
-            <IslandCard island={selectedIsland} islands={islands} onOpen={() => setMode('island')} />
+            <IslandCard
+              island={selectedIsland}
+              islands={islands}
+              seals={state.learn.seals}
+              onOpen={() => setMode('island')}
+            />
           )}
           {mode === 'island' && (
             <IslandDetailSide
