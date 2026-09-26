@@ -2216,23 +2216,26 @@ function addLanterns(
   heightField: HeightField,
   low: boolean,
 ): void {
+  // [x, z, side]: the bracket reaches toward +x (side 1) or −x. The two pier lamps stand on the
+  // west edge between piles and hang out over the water, clear of the walkway and the camera.
+  const pierWest = COVE.pier.x - COVE.pier.width * 0.5 + 0.28;
   const points = [
-    [-118, -49],
-    [-132, -59],
-    [-90, -68],
-    [-146, -67],
-    [-109, -82],
-    [-108, -110],
-    [-101, -34],
-    [-72.6, -70.5],
+    [-118, -49, 1],
+    [-132, -59, 1],
+    [-90, -68, 1],
+    [-146, -67, 1],
+    [pierWest, -80.5, -1],
+    [pierWest, -110.5, -1],
+    [-101, -34, 1],
+    [-72.6, -70.5, 1],
   ] as const;
   const max = low ? 5 : points.length;
   for (let i = 0; i < max; i += 1) {
-    const [x, z] = points[i]!;
+    const [x, z, side] = points[i]!;
     const y = walkable(x, z) ?? heightField.heightAt(x, z);
     addBox(buckets.wood, x, y, z, 0.16, 2.6, 0.16, 0, 0x593b23);
-    addLampBracket(buckets, x, y, z, 0);
-    addLanternFixture(buckets, x + 0.92, y + 1.68, z, 0, 1);
+    addLampBracket(buckets, x, y, z, side);
+    addLanternFixture(buckets, x + side * 0.92, y + 1.68, z, 0, 1);
     colliders.circles.push({ x, z, r: 0.38 });
   }
 }
@@ -2242,13 +2245,13 @@ function addLampBracket(
   x: number,
   y: number,
   z: number,
-  rot: number,
+  side: -1 | 1,
 ): void {
   const armY = y + 2.35;
-  addBox(buckets.wood, x + 0.42, armY, z, 0.86, 0.1, 0.1, rot, 0x6b4a2d);
-  addBox(buckets.metal, x + 0.35, y + 2.06, z, 0.55, 0.055, 0.055, rot, 0x6c6258, 0, 0.72);
-  addTorus(buckets.metal, x + 0.72, y + 2.13, z, 0.17, 0.018, 12, 0x6c6258, Math.PI / 2, 0, 0);
-  addBox(buckets.metal, x + 0.88, armY - 0.18, z, 0.045, 0.24, 0.045, rot, 0x6c6258);
+  addBox(buckets.wood, x + side * 0.42, armY, z, 0.86, 0.1, 0.1, 0, 0x6b4a2d);
+  addBox(buckets.metal, x + side * 0.35, y + 2.06, z, 0.55, 0.055, 0.055, 0, 0x6c6258, 0, side * 0.72);
+  addTorus(buckets.metal, x + side * 0.72, y + 2.13, z, 0.17, 0.018, 12, 0x6c6258, Math.PI / 2, 0, 0);
+  addBox(buckets.metal, x + side * 0.88, armY - 0.18, z, 0.045, 0.24, 0.045, 0, 0x6c6258);
 }
 
 function addLanternFixture(

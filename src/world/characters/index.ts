@@ -1,4 +1,4 @@
-import { AnimationClip, Color, Group, Material, Mesh, SkinnedMesh } from 'three/webgpu';
+import { AnimationClip, BufferGeometry, Color, Group, Material, Mesh, SkinnedMesh } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
@@ -10,6 +10,7 @@ import {
   disposeCharacterPaletteCache,
   type CharacterPaletteCache,
 } from './npc-palettes';
+import { addShoulderMacaw, createMacawGeometry } from './parrot';
 import { addTricorn, stowPlayerWeapon } from './props';
 import { RuntimeCharacter } from './runtime-character';
 import {
@@ -108,7 +109,9 @@ export async function loadCharacterLibrary(base = '/packs/testcove/characters'):
       } satisfies SourceAsset;
     }),
   );
-  return new CharacterLibraryImpl(new Map(loaded.map((asset) => [asset.key, asset])));
+  const captain = loaded.find((asset) => asset.key === 'captain')?.scene;
+  const macaw = captain ? createMacawGeometry(captain) : null;
+  return new CharacterLibraryImpl(new Map(loaded.map((asset) => [asset.key, asset])), macaw);
 }
 
 class CharacterLibraryImpl implements CharacterLibrary {
@@ -116,7 +119,10 @@ class CharacterLibraryImpl implements CharacterLibrary {
   readonly bodies = CHARACTER_BODIES;
   private readonly characterPaletteCache: CharacterPaletteCache = new Map();
 
-  constructor(private readonly sources: ReadonlyMap<SourceKey, SourceAsset>) {}
+  constructor(
+    private readonly sources: ReadonlyMap<SourceKey, SourceAsset>,
+    private readonly macaw: BufferGeometry | null,
+  ) {}
 
   create(options: CharacterCreateOptions): Character {
     const body = CHARACTER_BODIES.includes(options.body) ? options.body : 'man';
@@ -134,8 +140,11 @@ class CharacterLibraryImpl implements CharacterLibrary {
       this.characterPaletteCache,
       tintFor(body, config, options.variant ?? 0),
     );
-    // The Anne model is bare-headed; as a captain she wears a tricorn like the Captain's.
-    if (body === 'woman') addTricorn(clone);
+    // The Anne model is bare-headed and bird-less; as a captain she gets a tricorn and a macaw.
+    if (body === 'woman') {
+      addTricorn(clone);
+      if (this.macaw) addShoulderMacaw(clone, this.macaw);
+    }
     if (body === 'man' || body === 'woman') stowPlayerWeapon(clone, body);
     else dressNpcCharacter(clone, body);
     return new RuntimeCharacter(clone, source.clips, body, config, options);
@@ -150,6 +159,7 @@ class CharacterLibraryImpl implements CharacterLibrary {
         }
       });
     }
+    this.macaw?.dispose();
     disposeCharacterPaletteCache(this.characterPaletteCache);
   }
 }

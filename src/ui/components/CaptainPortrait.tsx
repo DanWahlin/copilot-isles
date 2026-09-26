@@ -1,7 +1,8 @@
 import type { CaptainBody } from '../bridge';
 
 /**
- * The captain-select portraits: the bearded captain with his parrot, and the long-haired captain.
+ * The captain-select portraits: the bearded captain with his parrot, and the long-haired captain
+ * with her scarlet macaw.
  * Both wear the same gold-trimmed tricorn as Anne's in-game hat.
  */
 export function CaptainPortrait({ body }: { body: CaptainBody }) {
@@ -160,6 +161,19 @@ function AnneFigure({ id }: { id: string }) {
       {/* Locks framing the face and falling forward over the shoulders. */}
       <path d="M60 66C52 96 50 124 46 152c6 6 14 6 19-1 0-26 2-50 5-80z" fill={hair} />
       <path d="M120 66c8 30 10 58 14 86-6 6-14 6-19-1 0-26-2-50-5-80z" fill={hair} />
+      {/* Scarlet macaw on her right shoulder: red head, gold wing band, blue tail. */}
+      <g transform="translate(46 114) scale(-1 1)">
+        <path d="M-6 22l-9 22 6-1 9-19z" fill="#1f5ec4" />
+        <path d="M-6 26c-2-14 2-26 12-30 8-3 14 2 14 10 0 10-8 18-26 20z" fill="#d42a1c" />
+        <path d="M-3 13c3-6 8-9 14-9-2 6-6 9-14 9z" fill="#f2b300" />
+        <path d="M-5 22c1-4 4-7 8-8-1 4-3 7-8 8z" fill="#1f5ec4" />
+        <path d="M0 -4c0-10 8-16 16-14 7 2 10 9 8 16z" fill="#d42a1c" />
+        <path d="M2 -12c2-8 8-12 16-10-4 2-7 5-8 9z" fill="#b81f16" />
+        <ellipse cx="15" cy="-3" rx="6.4" ry="4.6" fill="#f4efe6" />
+        <path d="M22 0c6 1 9 5 7 10-3-3-6-4-9-4z" fill="#e8dcc0" />
+        <path d="M21 5c3 0 5 2 5 4-2-1-4-2-6-2z" fill="#2a2420" />
+        <circle cx="14" cy="-3.4" r="2.4" fill="#15110d" />
+      </g>
       {/* Side-swept fringe under the hat. */}
       <path d="M62 90c0-16 12-28 28-28s28 10 28 20c-8-4-16-4-22-1-8 4-18 5-26 4-4 1-7 3-8 5z" fill={hair} />
       <path d="M78 76c6 4 12 5 18 4" fill="none" stroke="#b98c45" strokeWidth="1.4" strokeLinecap="round" />
