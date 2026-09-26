@@ -131,6 +131,8 @@ export interface UiState {
   chart: ChartData | null;
   /** The backend/tier line for the settings footer, e.g. "WebGPU · High". */
   renderInfo: string;
+  /** The quality setting the renderer was built with; a different choice needs a reload. */
+  bootQuality: QualitySetting;
 }
 
 export interface GameBridge {

@@ -15,6 +15,7 @@ function fallbackBridge(): GameBridge {
     settings: DEFAULT_SETTINGS,
     chart: null,
     renderInfo: 'Title preview',
+    bootQuality: DEFAULT_SETTINGS.quality,
   };
   const listeners = new Set<(state: UiState) => void>();
   const setState = (patch: Partial<UiState>) => {
