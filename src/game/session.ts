@@ -137,11 +137,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
   // Player: stepUp covers the 0.6 m quay-to-pier lip.
   const player = new PlayerController({ stepUp: 0.66 });
-  const start = o.start ?? COVE.spawn;
-  player.teleport(world, start.x, start.z, start.heading);
   const hero: Character = o.characters.create({ body: o.body, variant: o.variant ?? 0, tier });
-  hero.group.position.set(player.x, player.y, player.z);
-  hero.group.rotation.y = player.heading;
+  /** Teleports the player and snaps the hero model with it, so no frame shows the old spot. */
+  const placePlayer = (x: number, z: number, heading: number) => {
+    player.teleport(world, x, z, heading);
+    hero.group.position.set(player.x, player.y, player.z);
+    hero.group.rotation.y = player.heading;
+  };
+  const start = o.start ?? COVE.spawn;
+  placePlayer(start.x, start.z, start.heading);
   engine.scene.add(hero.group);
   const footstepPuffs = new FootstepPuffs();
   footstepPuffs.addTo(engine.scene);
@@ -211,9 +215,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     const originalInputEnabled = input.enabled;
     if (n.spec.talkShot?.standLocal) {
       const stand = localNpcPoint(n, n.spec.talkShot.standLocal);
-      player.teleport(world, stand.x, stand.z, Math.atan2(n.x - stand.x, n.z - stand.z));
-      hero.group.position.set(player.x, player.y, player.z);
-      hero.group.rotation.y = player.heading;
+      placePlayer(stand.x, stand.z, Math.atan2(n.x - stand.x, n.z - stand.z));
       input.enabled = false;
     }
     const shot = npcTalkShot(n);
@@ -250,9 +252,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       npcs.setTalking(n, false);
       cam.frame(null);
       if (n.spec.talkShot?.standLocal) {
-        player.teleport(world, originalPlayer.x, originalPlayer.z, originalPlayer.heading);
-        hero.group.position.set(player.x, player.y, player.z);
-        hero.group.rotation.y = player.heading;
+        placePlayer(originalPlayer.x, originalPlayer.z, originalPlayer.heading);
         input.enabled = originalInputEnabled && !paused;
       }
       if (scriptRunning) {
@@ -653,7 +653,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     hero.play('idle');
     const b = ship.anchors.boarding;
     const boardZ = m.z - Math.sin(m.heading) * b.x + Math.cos(m.heading) * b.z;
-    player.teleport(world, pier.x + 0.9, boardZ, 0);
+    placePlayer(pier.x + 0.9, boardZ, 0);
     cam.setRig(WALK_RIG, true);
     cam.snapBehind(0);
     hud.setSailing(false);
@@ -828,7 +828,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     if (mode === 'transition') return;
     dialogue.cancel();
     if (mode === 'sail' || mode === 'docking') await disembark();
-    player.teleport(world, x, z, heading);
+    placePlayer(x, z, heading);
     cam.snapBehind(heading);
   }
 

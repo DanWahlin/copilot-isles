@@ -319,6 +319,8 @@ export class NpcCrowd {
 
   setTalking(n: Npc, on: boolean): void {
     n.talking = on;
+    n.character.setTalking(on);
+    if (n.spec.clip === 'sit') return;
     if (on) {
       n.character.setSpeed(0);
       n.character.play('talk');
