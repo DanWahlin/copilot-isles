@@ -977,6 +977,19 @@
   font-size: 0.8rem;
 }
 
+.ci-save-warning {
+  flex: 1 1 14rem;
+  align-self: center;
+  margin: 0;
+  padding: 0.45rem 0.8rem;
+  border-left: 2px solid rgba(255, 157, 134, 0.7);
+  border-radius: 0 0.5rem 0.5rem 0;
+  background: rgba(255, 157, 134, 0.08);
+  color: rgba(255, 236, 228, 0.86);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
 @media (max-width: 760px) {
   .ci-name-fields {
     grid-template-columns: 1fr;

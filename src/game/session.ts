@@ -391,7 +391,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       if (!quests()['Q0.11']) {
         setQuest('Q0.11', 'start');
         hud.toast('The lighthouse is lit. Nell’s waiting by your bow to christen your ship.', 5);
-      } else hud.toast('The lighthouse is lit. Fast travel unlocked on the chart.', 4.5);
+      } else hud.toast('The lighthouse is lit. Well sailed, Captain.', 4.5);
     }
     input.enabled = !paused;
     scriptRunning = false;

@@ -72,7 +72,9 @@ export function TitleMenu({ bridge }: TitleMenuProps) {
           onToggle={() => bridge.updateSettings({ muted: !state.settings.muted })}
         />
       )}
-      {state.screen === 'captain' && <CaptainSelect bridge={bridge} current={state.captain} />}
+      {state.screen === 'captain' && (
+        <CaptainSelect bridge={bridge} current={state.captain} save={state.hasSave ? state.save : null} />
+      )}
       {state.screen === 'voyage-loading' && <VoyageLoading state={state} />}
       {state.screen === 'paused' && <PausedScreen state={state} bridge={bridge} />}
       {state.screen === 'chart' && <ChartScreen state={state} bridge={bridge} />}

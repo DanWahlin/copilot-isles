@@ -1,10 +1,19 @@
 import { useState } from 'react';
 import { NAME_MAX, cleanName, defaultShipName } from '../../learn/progress';
-import type { CaptainBody, GameBridge } from '../bridge';
+import type { CaptainBody, GameBridge, UiState } from '../bridge';
 import { CaptainPortrait } from '../components/CaptainPortrait';
 import { OverlayShell } from '../components/OverlayShell';
 
-export function CaptainSelect({ bridge, current }: { bridge: GameBridge; current: CaptainBody }) {
+export function CaptainSelect({
+  bridge,
+  current,
+  save,
+}: {
+  bridge: GameBridge;
+  current: CaptainBody;
+  /** The saved voyage a new one replaces, if any. */
+  save: UiState['save'];
+}) {
   const [captain, setCaptain] = useState<CaptainBody>(current);
   const [name, setName] = useState('');
   const captainTitle = cleanName(name) ? `Captain ${cleanName(name)}` : 'Captain';
@@ -57,6 +66,12 @@ export function CaptainSelect({ bridge, current }: { bridge: GameBridge; current
         <button className="ci-secondary" onClick={bridge.back}>
           Back
         </button>
+        {save && (
+          <p className="ci-save-warning" role="note">
+            This replaces your saved voyage ({save.location}, {save.questsDone}{' '}
+            {save.questsDone === 1 ? 'quest' : 'quests'} done).
+          </p>
+        )}
       </div>
     </OverlayShell>
   );
