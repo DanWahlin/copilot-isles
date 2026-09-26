@@ -44,6 +44,11 @@ export function SettingsScreen({ state, bridge }: { state: UiState; bridge: Game
             names={QUALITY_NAMES}
             onChange={(quality) => bridge.updateSettings({ quality: quality as QualitySetting })}
           />
+          {settings.quality !== state.bootQuality && (
+            <p className="ci-setting-note" role="status">
+              Reload the page to switch quality. Your progress is saved.
+            </p>
+          )}
           <Toggle
             label="Reduced motion"
             checked={settings.reducedMotion}

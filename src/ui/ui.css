@@ -465,6 +465,13 @@
   color: rgba(255, 246, 225, 0.88);
 }
 
+.ci-setting-note {
+  margin: -0.35rem 0 0.8rem calc(8.2rem + 0.8rem);
+  color: var(--ci-gold);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
 .ci-setting-row em {
   color: var(--ci-muted);
   font-style: normal;

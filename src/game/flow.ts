@@ -97,6 +97,7 @@ export class GameFlow implements GameBridge {
       settings,
       chart: null,
       renderInfo: o.renderInfo,
+      bootQuality: settings.quality,
     };
     this.applySettings(settings);
     this.learn.subscribe((s) => {

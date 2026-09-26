@@ -72,6 +72,7 @@ class MockBridge implements GameBridge {
       player: { x: 0.29, y: 0.55, heading: Math.PI * 0.84, onShip: false },
     },
     renderInfo: 'WebGPU · High · 60 fps target',
+    bootQuality: 'auto',
   };
 
   getState = () => this.state;
