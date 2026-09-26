@@ -29,9 +29,35 @@ describe('RuntimeCharacter procedural pose layers', () => {
     expect(Math.abs(body.position.y - frame60BodyY)).toBeLessThan(0.02);
     expect(torso.quaternion.angleTo(frame60Torso)).toBeLessThan(0.05);
   });
+
+  it('keeps a seated rig seated while it talks, gesturing with the upper body', () => {
+    const { group, torso, upperLegL } = testRig();
+    const character = new RuntimeCharacter(
+      group,
+      new Map<CharacterClip, AnimationClip>([['sit', hipsOnlyClip()]]),
+      'lyra',
+      { source: 'henry_npc', scale: 1, radius: 0.3, height: 1.7, tint: 0xffffff } satisfies BodyConfig,
+      { body: 'lyra', tier: { tier: 'high', npcAnimRate: 1 } },
+    );
+    character.play('sit', 0);
+    const dt = 1 / 60;
+    for (let frame = 0; frame < 30; frame += 1) character.update(dt);
+    const seatedLeg = upperLegL.quaternion.clone();
+    const quietTorso = torso.quaternion.clone();
+
+    character.setTalking(true);
+    let torsoSwing = 0;
+    for (let frame = 0; frame < 90; frame += 1) {
+      character.update(dt);
+      torsoSwing = Math.max(torsoSwing, torso.quaternion.angleTo(quietTorso));
+    }
+
+    expect(upperLegL.quaternion.angleTo(seatedLeg)).toBeLessThan(0.01);
+    expect(torsoSwing).toBeGreaterThan(0.03);
+  });
 });
 
-function testRig(): { group: Group; body: Bone; torso: Bone } {
+function testRig(): { group: Group; body: Bone; torso: Bone; upperLegL: Bone } {
   const group = new Group();
   const root = new Bone();
   root.name = 'Root';
@@ -41,17 +67,19 @@ function testRig(): { group: Group; body: Bone; torso: Bone } {
   const torso = child(abdomen, 'Torso', [0, 0.16, 0]);
   child(torso, 'Neck', [0, 0.18, 0]);
   child(torso, 'Head', [0, 0.32, 0]);
+  const upperLegs: Bone[] = [];
   for (const side of ['L', 'R'] as const) {
     const x = side === 'L' ? 0.16 : -0.16;
     const shoulder = child(torso, `Shoulder${side}`, [x, 0.12, 0]);
     const upperArm = child(shoulder, `UpperArm${side}`, [x, -0.08, 0]);
     child(upperArm, `LowerArm${side}`, [x, -0.18, 0]);
     const upperLeg = child(body, `UpperLeg${side}`, [x * 0.6, -0.18, 0]);
+    upperLegs.push(upperLeg);
     const lowerLeg = child(upperLeg, `LowerLeg${side}`, [0, -0.22, 0]);
     child(lowerLeg, `Foot${side}`, [0, -0.2, 0.06]);
   }
   group.add(root);
-  return { group, body, torso };
+  return { group, body, torso, upperLegL: upperLegs[0]! };
 }
 
 function child(parent: Bone, name: string, position: [number, number, number]): Bone {
