@@ -20,6 +20,8 @@ interface QuestDef {
 
 /** Chapter 00's "Download and install the GitHub Copilot app" link. */
 const APP_INSTALL_URL = 'https://github.com/features/ai/github-app';
+/** Chapter 00's "Fork the course repository on GitHub" link. */
+const FORK_URL = 'https://github.com/github/copilot-app-for-beginners/fork';
 
 const COVE_QUESTS: readonly QuestDef[] = [
   {
@@ -38,6 +40,7 @@ const COVE_QUESTS: readonly QuestDef[] = [
     id: 'Q0.3',
     title: 'Copy the Master Chart',
     task: 'Fork the course and add it to Projects',
+    link: { label: 'Fork the course repository', url: FORK_URL },
     steps: {
       start: 'Ask Ezra Quill, the chartmaker, about forks.',
       done: 'Your fork is added under Projects.',
@@ -174,7 +177,7 @@ export function questTarget(q: QuestState): { ids: readonly string[]; label: str
 
 /** The chests placed in the cove: chest id → which NPC it sits beside (metres to their right). */
 export const COVE_CHESTS: readonly { id: string; npc: string; side: number; back: number }[] = [
-  { id: 'C0.1', npc: 'nell', side: 2.1, back: 0.6 },
+  { id: 'C0.1', npc: 'nell', side: 2.1, back: 1.2 },
 ];
 
 export type QuestState = Readonly<Record<string, string>>;
@@ -236,15 +239,23 @@ export function npcScript(
       if (!done(q, 'Q0.3')) {
         return {
           steps: [
+            // The course's order: fork on GitHub (the link stays in the Logbook and tracker), then
+            // add it from the New page: the + first (H0.2), then the menu it opens (H0.3).
             { say: 'ezra.fork.01' },
             { term: 'fork' },
-            { say: 'ezra.fork.02' },
+            { page: 'pg.fork' },
+            { say: 'ezra.fork.link' },
             {
-              show: 'ch00/app-add-project',
-              caption: '**+** next to **Projects** → **Add GitHub repository**.',
+              show: 'shared/github-copilot-app',
+              caption: 'Then add your fork to the app, starting from the **New** page.',
             },
+            { say: 'ezra.fork.02' },
             { quiz: 'H0.2' },
             { quiz: 'H0.3' },
+            {
+              show: 'ch00/app-add-project',
+              caption: '**+** next to **Projects** → **Add GitHub repository**, then pick your fork.',
+            },
             { say: 'ezra.fork.03' },
             { hide: true },
             { quiz: 'MC0.1' },

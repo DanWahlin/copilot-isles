@@ -1,5 +1,6 @@
 import type { Group, Object3D, Vector3 } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
+import type { GestureHand } from './gestures';
 
 /** Character bodies, clips, and the public character API (shared by the library and the runtime). */
 
@@ -30,6 +31,8 @@ export const CHARACTER_CLIPS = [
   'jumpLand',
   'talk',
   'wave',
+  'nod',
+  'shake',
   'sit',
   'helm',
   'wade',
@@ -67,6 +70,8 @@ export interface Character {
   lookAt(target: LookTarget): void;
   /** Layers conversational upper-body gestures over the active clip, so seated rigs stay seated. */
   setTalking(on: boolean): void;
+  /** A one-off wave hello (standing NPCs, not mid-conversation). */
+  greet(): void;
   update(dt: number): void;
   readonly capsule: { readonly radius: number; readonly height: number };
   dispose(): void;
@@ -88,4 +93,8 @@ export interface BodyConfig {
   readonly radius: number;
   readonly height: number;
   readonly tint: number;
+  /** The hand an NPC talks with (the other one's holding something); default either. */
+  readonly hand?: GestureHand;
+  /** Glances down at what they're carrying now and then while idle (a ledger, a chart). */
+  readonly reads?: boolean;
 }

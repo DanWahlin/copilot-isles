@@ -45,7 +45,8 @@ export const COVE_NPCS: NpcSpec[] = [
     id: 'nell',
     name: 'Nell Tidewell',
     anchor: 'harbourmasterDoor',
-    out: 1.3,
+    // At the foot of her door stairs (they run 2.25 m out from the wall; the anchor's 0.9 out).
+    out: 1.9,
     clip: 'idle',
     voiced: ['nell.papers.01', 'nell.papers.02', 'nell.settings.01'],
   },
@@ -53,7 +54,7 @@ export const COVE_NPCS: NpcSpec[] = [
     id: 'merchant',
     name: 'Ezra Quill',
     anchor: 'chartmakerDoor',
-    out: 1.2,
+    out: 1.9,
     clip: 'idle',
     barks: [
       'A fork is your own copy of the master chart. Mark it up all you like.',
@@ -200,7 +201,15 @@ export interface Npc {
   lastBark: number;
   /** Faces this point instead of the player while set (Nell watching the coconut fly). */
   faceTarget: { x: number; z: number } | null;
+  /** When they last waved hello, and whether you've wandered off since (so they'll wave again). */
+  greetedAt: number;
+  greetArmed: boolean;
 }
+
+/** Wave hello inside this range, once you've been at least REARM away, and not more often than GAP. */
+const GREET_RANGE = 4.2;
+const GREET_REARM = 7;
+const GREET_GAP = 40;
 
 const tmp = new Vector3();
 
@@ -248,6 +257,8 @@ export class NpcCrowd {
         talking: false,
         lastBark: -99,
         faceTarget: null,
+        greetedAt: -GREET_GAP,
+        greetArmed: true,
       });
       this.homes.set(this.list[this.list.length - 1]!, home);
     });
@@ -262,7 +273,16 @@ export class NpcCrowd {
     for (const n of this.list) {
       const s = n.spec;
       let moving = false;
-      const near = Math.hypot(player.x - n.x, player.z - n.z) < 4.2;
+      const dist = Math.hypot(player.x - n.x, player.z - n.z);
+      const near = dist < GREET_RANGE;
+      if (dist > GREET_REARM) n.greetArmed = true;
+      else if (near && n.greetArmed && !n.talking && s.clip === 'idle' && !s.patrol && !s.orbit) {
+        n.greetArmed = false;
+        if (this.t - n.greetedAt > GREET_GAP) {
+          n.greetedAt = this.t;
+          n.character.greet();
+        }
+      }
       if (!n.talking && s.patrol) {
         const i = this.patrolIndex.get(n) ?? 0;
         const [px, pz] = s.patrol[i]!;
@@ -321,14 +341,18 @@ export class NpcCrowd {
     n.obstacle.z = n.z;
   }
 
+  /**
+   * Talking stops them where they stand on their idle, and the character gestures over it (no
+   * looping wave). Afterwards patrollers and runners pick their clip back up.
+   */
   setTalking(n: Npc, on: boolean): void {
     n.talking = on;
-    n.character.setTalking(on);
-    if (n.spec.clip === 'sit') return;
-    if (on) {
+    if (on && n.spec.clip !== 'sit') {
       n.character.setSpeed(0);
-      n.character.play('talk');
-    } else n.character.play(n.spec.patrol || n.spec.orbit ? 'idle' : n.spec.clip);
+      if (n.spec.clip !== 'idle') n.character.play('idle', 0.2);
+    }
+    n.character.setTalking(on);
+    if (!on && n.spec.clip !== 'sit') n.character.play(n.spec.patrol || n.spec.orbit ? 'idle' : n.spec.clip);
   }
 
   dispose(): void {
