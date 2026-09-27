@@ -454,6 +454,57 @@ function addBalcony(placements: PiecePlacement[], root: Matrix4, spec: HouseSpec
   }
 }
 
+/** How far out from the door's wall the kit's exterior stairs are centred. */
+const STAIRS_OUT = 1.25;
+/** The stairs' half-width across the door. */
+const STAIRS_HALF_WIDTH = 1.0;
+/**
+ * The tread tops of Stairs_Exterior_Straight as placed (its base on the ground), measured from the
+ * kit mesh: [from, to] metres outward from the stairs' centre, and the height there. The top tread
+ * meets the wall; the bottom one ends 2.25 m out.
+ */
+const STAIR_TREADS: readonly (readonly [from: number, to: number, height: number])[] = [
+  [-1.07, -0.64, 1.02],
+  [-0.64, -0.24, 0.81],
+  [-0.24, 0.13, 0.62],
+  [0.13, 0.54, 0.42],
+  [0.54, 1.0, 0.2],
+];
+
+/** A house's exterior stairs in world space: centre, outward heading, and the ground they sit on. */
+export interface StairSpan {
+  x: number;
+  y: number;
+  z: number;
+  heading: number;
+}
+
+/** Where a house's exterior stairs stand, or null when it has none. */
+export function houseStairsSpan(spec: HouseSpec): StairSpan | null {
+  if (!spec.stairs) return null;
+  const door = sideSegmentLocal(spec.footprint, spec.doorSide, clampedDoorSegment(spec));
+  const normal = sideNormal(spec.doorSide);
+  const world = localToWorld(spec, door.x + normal.x * STAIRS_OUT, door.z + normal.z * STAIRS_OUT);
+  return {
+    x: world.x,
+    y: spec.origin?.y ?? 0,
+    z: world.z,
+    heading: (spec.rotY ?? 0) + sideRotation(spec.doorSide),
+  };
+}
+
+/** The tread height under (x, z) on these stairs, or null when (x, z) isn't on them. */
+export function stairsHeightAt(span: StairSpan, x: number, z: number): number | null {
+  const dx = x - span.x;
+  const dz = z - span.z;
+  const fx = Math.sin(span.heading);
+  const fz = Math.cos(span.heading);
+  if (Math.abs(dx * fz - dz * fx) > STAIRS_HALF_WIDTH) return null;
+  const out = dx * fx + dz * fz;
+  for (const [from, to, height] of STAIR_TREADS) if (out >= from && out <= to) return span.y + height;
+  return null;
+}
+
 function addStairs(placements: PiecePlacement[], root: Matrix4, spec: HouseSpec, doorSegment: number): void {
   const door = sideSegmentLocal(spec.footprint, spec.doorSide, doorSegment);
   const normal = sideNormal(spec.doorSide);
@@ -463,9 +514,9 @@ function addStairs(placements: PiecePlacement[], root: Matrix4, spec: HouseSpec,
       spec,
       'Stairs_Exterior_Straight',
       'stairs',
-      door.x + normal.x * 1.25,
+      door.x + normal.x * STAIRS_OUT,
       0,
-      door.z + normal.z * 1.25,
+      door.z + normal.z * STAIRS_OUT,
       sideRotation(spec.doorSide),
       { bottom: true, side: spec.doorSide, storey: 0, segment: doorSegment },
     ),

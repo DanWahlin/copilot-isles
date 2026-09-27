@@ -41,12 +41,12 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
   switch (body) {
     case 'nell':
       addBicorne(root, 0x202a3a, 0xd8ad5a);
-      addSpectacles(root);
+      addSpectacles(root, 0.068);
       addLedger(root, 0x5a3925, 1);
       break;
     case 'merchant':
       addWatchCap(root, 0x26384a);
-      addSpectacles(root);
+      addSpectacles(root, 0.078);
       addSatchel(root, 0x5c3b23, -1);
       addLedger(root, 0x23445f, -1);
       addScroll(root, 1);
@@ -154,15 +154,26 @@ function addStrawHat(root: Group): void {
   addHead(root, crown);
 }
 
-function addSpectacles(root: Group): void {
+/**
+ * Round spectacles at eye level (`eyeY` above the head bone's origin, which sits at the jaw), with
+ * arms running back to the ears so they sit on the face rather than floating in front of it.
+ */
+function addSpectacles(root: Group, eyeY: number): void {
   const parts: BufferGeometry[] = [];
-  for (const x of [-0.075, 0.075]) {
+  for (const side of [-1, 1]) {
     const lens = new TorusGeometry(0.055, 0.006, 5, 10);
-    lens.translate(x, 0, 0.29);
+    lens.translate(side * 0.075, eyeY, 0.29);
     parts.push(lens);
+    // The arm: from the lens's outer rim back and a little out to the ear.
+    const from = new Vector3(side * 0.128, eyeY + 0.01, 0.285);
+    const to = new Vector3(side * 0.17, eyeY + 0.02, 0.1);
+    const arm = new BoxGeometry(0.008, 0.008, from.distanceTo(to));
+    arm.rotateY(Math.atan2(to.x - from.x, to.z - from.z));
+    arm.translate((from.x + to.x) / 2, (from.y + to.y) / 2, (from.z + to.z) / 2);
+    parts.push(arm);
   }
   const bridge = new BoxGeometry(0.05, 0.012, 0.012);
-  bridge.translate(0, 0, 0.29);
+  bridge.translate(0, eyeY + 0.012, 0.29);
   parts.push(bridge);
   const geometry = mergeGeometries(parts, false)!;
   for (const part of parts) part.dispose();

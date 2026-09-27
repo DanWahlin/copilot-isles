@@ -474,6 +474,13 @@
       "text": "Once you’ve forked it, add it to the app. Where would you start?"
     },
     {
+      "id": "ezra.fork.link",
+      "speaker": "Ezra",
+      "voiceEnv": "AZURE_SPEECH_MALE_VOICE_UK",
+      "fallbackVoice": "en-GB-OllieMultilingualNeural",
+      "text": "That link takes you straight to the fork page. It’s in your Logbook now, and under your task, whenever you need it."
+    },
+    {
       "id": "ezra.fork.03",
       "speaker": "Ezra",
       "voiceEnv": "AZURE_SPEECH_MALE_VOICE_UK",

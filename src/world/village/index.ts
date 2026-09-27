@@ -35,10 +35,13 @@ import {
   houseDoorAnchor,
   houseDoorSideSpot,
   housePerches,
+  houseStairsSpan,
   placementWorldMaxY,
+  stairsHeightAt,
   type HouseFootprint,
   type HouseSpec,
   type PiecePlacement,
+  type StairSpan,
 } from './house-builder';
 import {
   createClothMaterial,
@@ -552,6 +555,7 @@ export async function createVillage({
   const low = tier.tier === 'lite' || tier.tier === 'low';
   const mediumUp = tier.tier !== 'lite' && tier.tier !== 'low';
   streetHeightField = heightField;
+  stairSpans.length = 0;
 
   addQuay(buckets, colliders, shipObstacles, anchors, perches);
   addPier(buckets, colliders, shipObstacles, anchors, perches, villageKit, low);
@@ -630,6 +634,11 @@ export async function createVillage({
 }
 
 export function walkable(x: number, z: number): number | null {
+  // Door stairs first: they stand on the quay and streets, so they're the higher surface there.
+  for (const span of stairSpans) {
+    const h = stairsHeightAt(span, x, z);
+    if (h !== null) return h;
+  }
   if (Math.abs(x - PIER_RAMP.x) <= PIER_RAMP.width * 0.5 && z >= PIER_RAMP.z0 && z <= PIER_RAMP.z1) {
     const t = (z - PIER_RAMP.z0) / (PIER_RAMP.z1 - PIER_RAMP.z0);
     return COVE.pier.deck + (COVE.quay.height - COVE.pier.deck) * t;
@@ -923,6 +932,8 @@ function addBuilding(
     height: Math.max(3.2, maxY - baseY),
   });
   if (spec.anchor) anchors[spec.anchor] = houseDoorAnchor(house);
+  const stairs = houseStairsSpan(house);
+  if (stairs) stairSpans.push(stairs);
 }
 
 function addBuildingFoundation(
@@ -1783,6 +1794,8 @@ function createTerrainPavingRect(
 }
 
 let streetHeightField: HeightField | null = null;
+/** Every building's exterior door stairs, so you climb them instead of walking through them. */
+const stairSpans: StairSpan[] = [];
 
 function isStreetPavedPoint(x: number, z: number): boolean {
   return streetCoverage(x, z, 0) > 0;

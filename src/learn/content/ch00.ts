@@ -82,18 +82,22 @@ export const CH00: ChapterContent = {
     {
       id: 'H0.2',
       type: 'hotspot',
-      image: 'ch00/app-add-project',
-      mask: [
-        [0.23, 0.274, 0.031, 0.054],
-        [0.371, 0.436, 0.031, 0.054],
-      ],
-      prompt: 'Where do you start adding a repository to the app?',
+      // The New page before anything's selected; H0.3 then shows the menu the + opens.
+      image: 'shared/github-copilot-app',
+      mask: [],
+      prompt: 'Where do you start adding your fork to the app?',
       targets: [
         {
           id: 'projects-plus',
           rect: [0.216, 0.318, 0.029, 0.052],
           label: '+ next to Projects',
           correct: true,
+        },
+        {
+          id: 'prompt-plus',
+          rect: [0.291, 0.482, 0.028, 0.052],
+          label: '+ in the prompt box',
+          feedback: 'That **+** belongs to the prompt box. Projects have their own **+** in the sidebar.',
         },
         {
           id: 'new',
@@ -109,7 +113,7 @@ export const CH00: ChapterContent = {
         },
       ],
       explain: {
-        correct: 'Right: the **+** next to **Projects** opens the menu for adding a project.',
+        correct: 'Right! The **+** next to **Projects** opens the menu for adding a project.',
         wrong: 'Close! Look for the **+** beside the **Projects** heading in the sidebar.',
       },
       hints: [
@@ -127,7 +131,7 @@ export const CH00: ChapterContent = {
         [0.23, 0.274, 0.031, 0.054],
         [0.371, 0.436, 0.031, 0.054],
       ],
-      prompt: 'Which option adds your fork from GitHub?',
+      prompt: 'The **+** opened this menu. Which option adds your fork from GitHub?',
       targets: [
         {
           id: 'add-github',
@@ -481,6 +485,13 @@ export const CH00: ChapterContent = {
       caption:
         'A GitHub account, and a Copilot plan **or** your own model provider. For Copilot Business or Enterprise, the **GitHub Copilot app** policy must be on. You’ll also want Git, Node.js LTS, and GitHub CLI (`gh`).',
       source: src('prerequisites'),
+    },
+    {
+      id: 'pg.fork',
+      title: 'Fork the course',
+      caption:
+        'Fork the course repository on GitHub at [github.com/github/copilot-app-for-beginners/fork](https://github.com/github/copilot-app-for-beginners/fork). A fork is your own copy of the repository, so your changes stay yours.',
+      source: src('connect-to-your-repository'),
     },
     {
       id: 'C0.1',

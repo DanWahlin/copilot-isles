@@ -4,7 +4,9 @@ import {
   HOUSE_STOREY_HEIGHT,
   buildHouse,
   houseDoorAnchor,
+  houseStairsSpan,
   placementWorldMinY,
+  stairsHeightAt,
   type HouseSide,
   type HouseSpec,
 } from './house-builder';
@@ -106,5 +108,30 @@ describe('buildHouse', () => {
     expect(door?.segment).toBe(2);
     expect(anchor.x).toBeGreaterThan(SPEC.footprint.w * 0.5);
     expect(anchor.heading).toBeCloseTo(Math.PI / 2, 5);
+  });
+});
+
+describe('houseStairsSpan', () => {
+  const spec: HouseSpec = { ...SPEC, stairs: true, rotY: 0.7, origin: { x: 12, y: 1.5, z: -4 } };
+
+  it('is null for a house without stairs', () => {
+    expect(houseStairsSpan(SPEC)).toBeNull();
+  });
+
+  it('climbs from the bottom tread out front to the top one at the wall', () => {
+    const span = houseStairsSpan(spec)!;
+    const door = houseDoorAnchor(spec);
+    const fx = Math.sin(door.heading);
+    const fz = Math.cos(door.heading);
+    const heightOut = (out: number, across = 0) =>
+      stairsHeightAt(span, door.x + fx * (out - 0.9) + fz * across, door.z + fz * (out - 0.9) - fx * across);
+    // Distances are from the wall; the door anchor stands 0.9 m out.
+    expect(heightOut(0.4)).toBeCloseTo(1.5 + 1.02, 5);
+    expect(heightOut(2.0)).toBeCloseTo(1.5 + 0.2, 5);
+    expect(heightOut(2.0, 0.8)).toBeCloseTo(1.5 + 0.2, 5);
+    expect(heightOut(2.4)).toBeNull();
+    expect(heightOut(1.2, 1.3)).toBeNull();
+    const profile = [0.4, 0.8, 1.2, 1.6, 2.0].map((out) => heightOut(out)!);
+    for (let i = 1; i < profile.length; i++) expect(profile[i]).toBeLessThan(profile[i - 1]!);
   });
 });

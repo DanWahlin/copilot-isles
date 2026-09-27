@@ -13,6 +13,7 @@ import {
   type Material,
 } from 'three/webgpu';
 import { smoothstep, wrapAngle } from '../../util/math';
+import { GesturePlanner, gestureArm, gestureLean, type ActiveGesture, type Side } from './gestures';
 import { LegIk } from './leg-ik';
 import { contactsOf, inContact, type FootContactMap } from './loco-pack';
 import {
@@ -117,6 +118,11 @@ export class RuntimeCharacter implements Character {
   private idleFidgetKind = 0;
   private activeClip: CharacterClip = 'idle';
   private talking = false;
+  private readonly gestures: GesturePlanner;
+  private gesture: ActiveGesture | null = null;
+  private readonly reads: boolean;
+  /** A one-shot clip (a wave hello, a nod) blended over a standing idle, then handed back. */
+  private overlay: { clip: CharacterClip; t: number; dur: number; peak: number } | null = null;
   private groundMode: CharacterGroundMode = 'ground';
   private airTime = 0;
   private verticalSpeed = 0;
@@ -138,6 +144,8 @@ export class RuntimeCharacter implements Character {
     this.npc = !PLAYER_BODIES.includes(body as PlayerBody);
     this.npcAnimRate = Math.max(0.1, options.tier?.npcAnimRate ?? 1);
     this.updateTarget = options.updateTarget ?? null;
+    this.gestures = new GesturePlanner(config.hand ?? 'either', clips.has('nod'));
+    this.reads = !!config.reads;
     this.capsule = { radius: config.radius * config.scale, height: config.height * config.scale };
     this.mixer = new AnimationMixer(group);
     for (const clipName of CHARACTER_CLIPS) {
@@ -201,6 +209,7 @@ export class RuntimeCharacter implements Character {
 
   play(clip: CharacterClip, fade = 0.22): void {
     if (!this.actions.has(clip)) return;
+    this.overlay = null;
     this.activeClip = clip;
     for (const [name, action] of this.actions) fadeAction(action, name === clip ? 1 : 0, fade);
     if (clip === 'wade') this.actions.get('wade')?.setEffectiveTimeScale(0.55);
@@ -272,12 +281,28 @@ export class RuntimeCharacter implements Character {
 
   setTalking(on: boolean): void {
     this.talking = on;
+    // Seated rigs keep their upper-body beat; standing talkers gesture.
+    if (on && this.standing()) {
+      if (this.overlay?.clip === 'wave') this.overlay.dur = Math.min(this.overlay.dur, this.overlay.t + 0.3);
+      this.gestures.start();
+    } else if (!on) {
+      this.gestures.stop();
+      this.gesture = null;
+    }
+  }
+
+  greet(): void {
+    if (this.talking || !this.npc) return;
+    this.startOverlay('wave', 1);
   }
 
   update(dt: number): void {
     const step = this.animationStep(dt);
     if (step > 0) {
       this.restoreProceduralBones();
+      this.gesture = this.gestures.update(step);
+      if (this.gesture?.started && this.gesture.kind === 'nod') this.startOverlay('nod', 0.8);
+      this.updateOverlay(step);
       this.mixer.update(step);
       this.applyProceduralPolish(step);
     }
@@ -291,6 +316,32 @@ export class RuntimeCharacter implements Character {
       if (object instanceof Mesh) disposeOwnedMaterial(object.material);
       if (object instanceof Mesh && object.userData.ownedGeometry) object.geometry.dispose();
     });
+  }
+
+  /** Standing still on the idle clip, where overlays and gestures can play. */
+  private standing(): boolean {
+    return this.activeClip === 'idle' && this.targetSpeed < 0.05 && this.groundMode === 'ground';
+  }
+
+  private startOverlay(clip: CharacterClip, peak: number): void {
+    const action = this.actions.get(clip);
+    if (!action || !this.standing() || this.overlay) return;
+    action.reset();
+    this.overlay = { clip, t: 0, dur: action.getClip().duration, peak };
+  }
+
+  /** Blends the overlay clip in and back out over the idle; runs before the mixer samples. */
+  private updateOverlay(dt: number): void {
+    const o = this.overlay;
+    if (!o) return;
+    const action = this.actions.get(o.clip);
+    const idle = this.actions.get('idle');
+    o.t += dt;
+    const done = o.t >= o.dur || !this.standing();
+    const w = done ? 0 : smoothstep(0, 0.25, o.t) * (1 - smoothstep(o.dur - 0.35, o.dur, o.t)) * o.peak;
+    if (action) setBlendWeight(action, w);
+    if (idle) setBlendWeight(idle, 1 - w);
+    if (done) this.overlay = null;
   }
 
   private animationStep(dt: number): number {
@@ -396,6 +447,44 @@ export class RuntimeCharacter implements Character {
     this.applyArmMask(move, npcScale);
     this.applyFootPlant(move, dt);
     this.applyIdleLife(dt, move, npcScale);
+    if (this.talking) {
+      this.applyTalkBeat(npcScale);
+      if (this.gesture) this.applyGesture(this.gesture);
+    }
+  }
+
+  /** Poses the gesturing arm (and the other, for two-handed ones) and leans in, eased in and out. */
+  private applyGesture(g: ActiveGesture): void {
+    const w = g.weight;
+    const lean = gestureLean(g.kind) * w;
+    if (lean) this.rotateInRoot(this.torso, AXIS_X, lean);
+    const arm = gestureArm(g.kind, g.t, g.dur);
+    if (!arm) return;
+    this.poseArm(g.side, arm.flex * w, arm.abduct * w, arm.elbow * w);
+    if (g.kind === 'open') this.poseArm(-g.side as Side, arm.flex * w, arm.abduct * w, arm.elbow * w);
+  }
+
+  private poseArm(side: Side, flex: number, abduct: number, elbow: number): void {
+    const upper = side === 1 ? this.upperArmL : this.upperArmR;
+    const lower = side === 1 ? this.lowerArmL : this.lowerArmR;
+    this.rotateInRoot(upper, AXIS_Z, side * abduct);
+    this.rotateInRoot(upper, AXIS_X, -flex);
+    this.rotateInRoot(lower, AXIS_X, -elbow);
+  }
+
+  /**
+   * Turns a bone about an axis given in the character's own frame (+x left, +y up, +z forward), so
+   * poses read the same on both arms whatever each bone's local axes are.
+   */
+  private rotateInRoot(bone: Bone | null, axis: Vector3, angle: number): void {
+    if (!bone?.parent || Math.abs(angle) < 1e-4) return;
+    this.group.getWorldQuaternion(ROOT_Q);
+    bone.parent.getWorldQuaternion(PARENT_Q);
+    WORLD_AXIS.copy(axis).applyQuaternion(ROOT_Q);
+    DELTA_Q.setFromAxisAngle(WORLD_AXIS, angle);
+    // Local change = parent⁻¹ · Δ · parent, applied ahead of the bone's current local rotation.
+    LOCAL_Q.copy(PARENT_Q).invert().multiply(DELTA_Q).multiply(PARENT_Q);
+    bone.quaternion.premultiply(LOCAL_Q);
   }
 
   private applyPoseLife(dt: number, npcScale: number): void {
@@ -556,32 +645,57 @@ export class RuntimeCharacter implements Character {
 
   private applyIdleLife(dt: number, move: number, npcScale: number): void {
     this.idleClock += dt;
-    if (move > 0.1 || this.groundMode === 'air') {
+    if (move > 0.1 || this.groundMode === 'air' || this.talking || this.overlay) {
       this.idleFidget = 0;
       return;
     }
+    // Look about, lift an arm, shift weight, or (for anyone carrying a ledger) glance down at it.
+    // Never the same one twice running, and NPCs wait longer between them than the player.
+    const kinds = this.npc && this.reads ? 5 : this.npc ? 4 : 3;
     if (this.idleClock > this.idleFidgetAt && this.idleFidget <= 0) {
-      this.idleFidget = 1.8 + Math.random() * 0.7;
-      this.idleFidgetKind = (this.idleFidgetKind + 1 + Math.floor(Math.random() * 2)) % 3;
-      this.idleFidgetAt = this.idleClock + 5 + Math.random() * 4;
+      this.idleFidget = this.npc ? 2.2 + Math.random() * 0.9 : 1.8 + Math.random() * 0.7;
+      this.idleFidgetKind = (this.idleFidgetKind + 1 + Math.floor(Math.random() * (kinds - 1))) % kinds;
+      this.idleFidgetAt = this.idleClock + (this.npc ? 6 + Math.random() * 7 : 5 + Math.random() * 4);
     }
     if (this.idleFidget <= 0) return;
     this.idleFidget = Math.max(0, this.idleFidget - dt);
     const t = 1 - this.idleFidget / 2.5;
     const e = Math.sin(MathUtils.clamp(t, 0, 1) * Math.PI);
-    const side = this.idleFidgetKind === 0 ? 1 : -1;
+    const kind = this.idleFidgetKind;
+    if (kind === 3) {
+      // Weight onto one leg: hips tip, the torso counters.
+      this.hips?.rotateZ(e * 0.05);
+      this.torso?.rotateZ(-e * 0.035);
+      return;
+    }
+    if (kind === 4) {
+      if (!this.lookTarget) {
+        this.rotateInRoot(this.neck, AXIS_X, e * 0.18);
+        this.rotateInRoot(this.head, AXIS_X, e * 0.22);
+      }
+      return;
+    }
+    const side = kind === 0 ? 1 : -1;
     this.torso?.rotateY(e * 0.055 * side * npcScale);
     this.neck?.rotateY(e * 0.08 * side * npcScale);
     if (!this.lookTarget) this.head?.rotateY(e * 0.1 * side * npcScale);
-    if (this.idleFidgetKind === 1) {
+    if (kind === 1) {
       this.shoulderR?.rotateZ(-e * 0.08 * npcScale);
       this.upperArmR?.rotateX(e * 0.16 * npcScale);
-    } else if (this.idleFidgetKind === 2) {
+    } else if (kind === 2) {
       this.shoulderL?.rotateZ(e * 0.06 * npcScale);
       this.upperArmL?.rotateX(e * 0.12 * npcScale);
     }
   }
 }
+
+const AXIS_X = new Vector3(1, 0, 0);
+const AXIS_Z = new Vector3(0, 0, 1);
+const ROOT_Q = new Quaternion();
+const PARENT_Q = new Quaternion();
+const DELTA_Q = new Quaternion();
+const LOCAL_Q = new Quaternion();
+const WORLD_AXIS = new Vector3();
 
 function bindableClip(clip: AnimationClip, root: Group): AnimationClip {
   const tracks = clip.tracks.filter((track) => {

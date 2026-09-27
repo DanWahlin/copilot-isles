@@ -254,15 +254,15 @@ const compileMs = await compileAndStart(renderer, engine, scene, camera);
     });
     const compass = cove.sites.gear.spots().loose.compass;
     const nellDoor = cove.village.anchors.harbourmasterDoor!;
-    const nellOut = 1.3;
+    const nellOut = 1.9;
     const nell = {
       x: nellDoor.x + Math.sin(nellDoor.heading) * nellOut,
       z: nellDoor.z + Math.cos(nellDoor.heading) * nellOut,
       heading: nellDoor.heading,
     };
     const chest = {
-      x: nell.x - Math.cos(nell.heading) * 2.1 - Math.sin(nell.heading) * 0.6,
-      z: nell.z + Math.sin(nell.heading) * 2.1 - Math.cos(nell.heading) * 0.6,
+      x: nell.x - Math.cos(nell.heading) * 2.1 - Math.sin(nell.heading) * 1.2,
+      z: nell.z + Math.sin(nell.heading) * 2.1 - Math.cos(nell.heading) * 1.2,
     };
     return {
       box,
