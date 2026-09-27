@@ -37,6 +37,8 @@ export interface ProgressData {
   shipName: string | null;
   /** Puzzle id → saved state. */
   puzzles: Record<string, PuzzleSave>;
+  /** Whether the player has opened the Logbook yet (until then, new pages say where they went). */
+  logbookOpened: boolean;
 }
 
 function emptyProgress(now = Date.now()): ProgressData {
@@ -55,6 +57,7 @@ function emptyProgress(now = Date.now()): ProgressData {
     captainName: null,
     shipName: null,
     puzzles: {},
+    logbookOpened: false,
   };
 }
 
@@ -98,6 +101,7 @@ export function parseProgress(raw: string | null): ProgressData {
       captainName: cleanName(d.captainName),
       shipName: cleanName(d.shipName),
       puzzles: parsePuzzles(d.puzzles),
+      logbookOpened: d.logbookOpened === true,
     };
   } catch {
     return emptyProgress();
@@ -219,6 +223,12 @@ export class Progress {
 
   addDoubloons(n: number): void {
     this.data.doubloons += Math.max(0, Math.floor(n));
+    this.save();
+  }
+
+  markLogbookOpened(): void {
+    if (this.data.logbookOpened) return;
+    this.data.logbookOpened = true;
     this.save();
   }
 }

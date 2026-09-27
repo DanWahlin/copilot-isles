@@ -42,6 +42,8 @@ export interface LearnState {
   /** `from` styles the card: a treasure chest, a message bottle, or a plain new page. */
   reveal: { page: Page; doubloons: number; from: RevealFrom } | null;
   logbook: { open: boolean; tab: LogbookTab; page: string | null };
+  /** Whether the player has opened the Logbook yet; until then, new pages say where they're kept. */
+  logbookOpened: boolean;
   /** A short line of trial feedback ("Seal of Anchorage earned!"). */
   banner: { title: string; body: string } | null;
   doubloons: number;
@@ -86,6 +88,7 @@ export class LearnStore {
       spyglass: null,
       reveal: null,
       logbook: { open: false, tab: 'pages', page: null },
+      logbookOpened: progress.data.logbookOpened,
       banner: null,
       doubloons: progress.data.doubloons,
       pages: progress.data.pages.slice(),
@@ -322,7 +325,20 @@ export class LearnStore {
   // ---- Logbook ----
 
   openLogbook = (tab: LogbookTab = this.state.logbook.tab, page: string | null = null): void => {
-    this.set({ logbook: { open: true, tab, page } });
+    this.progress.markLogbookOpened();
+    this.set({ logbook: { open: true, tab, page }, logbookOpened: true });
+  };
+
+  /** Resolves once the Logbook is closed, or at once if it isn't open. */
+  logbookClosed = (): Promise<void> => {
+    if (!this.state.logbook.open) return Promise.resolve();
+    return new Promise((resolve) => {
+      const off = this.subscribe((s) => {
+        if (s.logbook.open) return;
+        off();
+        resolve();
+      });
+    });
   };
 
   closeLogbook = (): void => {
@@ -355,7 +371,15 @@ export class LearnStore {
   newGame = (): void => {
     this.reset();
     this.progress.reset();
-    this.set({ doubloons: 0, pages: [], glossary: [], quests: [], tracker: null, sails: null });
+    this.set({
+      doubloons: 0,
+      pages: [],
+      glossary: [],
+      quests: [],
+      tracker: null,
+      sails: null,
+      logbookOpened: false,
+    });
   };
 
   private set(patch: Partial<LearnState>): void {

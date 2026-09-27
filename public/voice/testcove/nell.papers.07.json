@@ -1,107 +1,112 @@
 {
   "id": "nell.papers.07",
   "speaker": "Nell",
-  "text": "There’s a chest there too, with your first Logbook page. Open it first, then paint your sails and select Finish.",
+  "text": "There’s a chest there too, with another page for your Logbook. Open it first, then paint your sails and select Finish.",
   "words": [
     {
       "word": "There’s",
       "start": 0.07,
-      "end": 0.35
+      "end": 0.51
     },
     {
       "word": "a",
-      "start": 0.35,
-      "end": 0.39
+      "start": 0.51,
+      "end": 0.55
     },
     {
       "word": "chest",
-      "start": 0.39,
-      "end": 0.59
+      "start": 0.55,
+      "end": 0.75
     },
     {
       "word": "there",
-      "start": 0.59,
-      "end": 0.79
+      "start": 0.75,
+      "end": 1.19
     },
     {
       "word": "too",
-      "start": 0.79,
-      "end": 0.95
+      "start": 1.19,
+      "end": 1.47
     },
     {
       "word": "with",
-      "start": 0.95,
-      "end": 1.15
+      "start": 1.47,
+      "end": 1.75
     },
     {
-      "word": "your",
-      "start": 1.15,
-      "end": 1.31
-    },
-    {
-      "word": "first",
-      "start": 1.31,
-      "end": 1.51
-    },
-    {
-      "word": "Logbook",
-      "start": 1.51,
-      "end": 1.83
+      "word": "another",
+      "start": 1.75,
+      "end": 3.11
     },
     {
       "word": "page",
-      "start": 1.83,
-      "end": 2.63
+      "start": 3.11,
+      "end": 3.389
     },
     {
-      "word": "Open",
-      "start": 2.63,
-      "end": 2.949
-    },
-    {
-      "word": "it",
-      "start": 2.949,
-      "end": 3.07
-    },
-    {
-      "word": "first",
-      "start": 3.07,
-      "end": 3.429
-    },
-    {
-      "word": "then",
-      "start": 3.429,
-      "end": 3.63
-    },
-    {
-      "word": "paint",
-      "start": 3.63,
-      "end": 3.869
+      "word": "for",
+      "start": 3.389,
+      "end": 3.55
     },
     {
       "word": "your",
-      "start": 3.869,
-      "end": 4.03
+      "start": 3.55,
+      "end": 3.71
+    },
+    {
+      "word": "Logbook",
+      "start": 3.71,
+      "end": 3.989
+    },
+    {
+      "word": "Open",
+      "start": 3.989,
+      "end": 4.19
+    },
+    {
+      "word": "it",
+      "start": 4.19,
+      "end": 4.27
+    },
+    {
+      "word": "first",
+      "start": 4.27,
+      "end": 4.47
+    },
+    {
+      "word": "then",
+      "start": 4.47,
+      "end": 4.63
+    },
+    {
+      "word": "paint",
+      "start": 4.63,
+      "end": 4.83
+    },
+    {
+      "word": "your",
+      "start": 4.83,
+      "end": 4.99
     },
     {
       "word": "sails",
-      "start": 4.03,
-      "end": 4.39
+      "start": 4.99,
+      "end": 5.35
     },
     {
       "word": "and",
-      "start": 4.39,
-      "end": 4.59
+      "start": 5.35,
+      "end": 5.55
     },
     {
       "word": "select",
-      "start": 4.59,
-      "end": 4.95
+      "start": 5.55,
+      "end": 5.95
     },
     {
       "word": "Finish",
-      "start": 4.95,
-      "end": 5.2
+      "start": 5.95,
+      "end": 6.2
     }
   ]
 }

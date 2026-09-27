@@ -52,9 +52,12 @@ function PageBody({ page, onImage }: { page: Page; onImage?: (id: string) => voi
 export function PageReveal({
   store,
   reveal,
+  firstTime = false,
 }: {
   store: LearnStore;
   reveal: NonNullable<LearnState['reveal']>;
+  /** The player hasn't opened the Logbook yet, so say where the page goes and how to get back to it. */
+  firstTime?: boolean;
 }) {
   useKeys((e) => {
     if (e.repeat || store.getState().spyglass?.full) return;
@@ -74,6 +77,11 @@ export function PageReveal({
         <p className="ci-page-kicker">{KICKER[reveal.from]}</p>
         <h2 id="ci-page-title">{reveal.page.title}</h2>
         <PageBody page={reveal.page} onImage={(id) => store.inspectImage(id, reveal.page.title)} />
+        {firstTime && (
+          <p className="ci-page-tip">
+            Pages you collect are kept in your Logbook. Press <kbd>J</kbd> any time to read this one again.
+          </p>
+        )}
         <footer className="ci-page-foot">
           {reveal.doubloons > 0 && <span className="ci-coin big">+{reveal.doubloons} doubloons</span>}
           <button type="button" className="ci-btn primary" onClick={store.closeReveal} autoFocus>

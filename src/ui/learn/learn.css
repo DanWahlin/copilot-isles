@@ -642,6 +642,28 @@
   gap: 0.35rem;
   color: var(--ci-muted);
   font-size: 0.8rem;
+  transition: color 300ms;
+}
+.ci-purse-hint.nudge {
+  color: #ffd98a;
+}
+.ci-purse-hint.nudge kbd {
+  animation: ci-nudge 1.8s ease-in-out infinite;
+}
+@keyframes ci-nudge {
+  50% {
+    border-color: #ffd98a;
+    color: #ffd98a;
+    box-shadow:
+      0 0 0 4px rgba(255, 217, 138, 0.3),
+      0 0 16px rgba(255, 217, 138, 0.55);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ci-purse-hint.nudge kbd {
+    animation: none;
+    border-color: #ffd98a;
+  }
 }
 
 /* ---- Task tracker (top left) ---- */
@@ -916,6 +938,16 @@
 }
 .ci-page-foot .ci-btn {
   margin-left: auto;
+}
+.ci-page-tip {
+  margin: 1rem 0 0;
+  padding: 0.55rem 0.8rem;
+  border-left: 2px solid #ffd98a;
+  border-radius: 0 8px 8px 0;
+  background: rgba(255, 217, 138, 0.08);
+  color: var(--ci-muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 
 /* ---- Spyglass ---- */

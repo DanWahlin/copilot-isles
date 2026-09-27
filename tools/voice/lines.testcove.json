@@ -404,6 +404,13 @@
       "text": "First things first: download and install the GitHub Copilot app for your system."
     },
     {
+      "id": "nell.papers.logbook",
+      "speaker": "Nell",
+      "voice": "en-GB-Sonia:DragonHDLatestNeural",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "I've put that page in your Logbook, download link and all. Press J whenever you need it, and every page you find ends up there too."
+    },
+    {
       "id": "nell.papers.signin",
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
@@ -699,7 +706,7 @@
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-SoniaNeural",
-      "text": "There’s a chest there too, with your first Logbook page. Open it first, then paint your sails and select Finish."
+      "text": "There’s a chest there too, with another page for your Logbook. Open it first, then paint your sails and select Finish."
     },
     {
       "id": "nell.palette.01",

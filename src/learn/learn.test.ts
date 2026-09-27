@@ -194,3 +194,21 @@ describe('captain and ship names', () => {
     expect(parseProgress('{"v":1}')).toMatchObject({ captainName: null, shipName: null });
   });
 });
+
+describe('logbook first use', () => {
+  it('remembers once the Logbook has been opened, and a new voyage forgets', () => {
+    const storage = new MemStorage();
+    const learn = new LearnStore(new Progress(storage));
+    expect(learn.getState().logbookOpened).toBe(false);
+    void learn.grantPage('pg.install');
+    learn.closeReveal();
+    expect(learn.getState().logbookOpened).toBe(false);
+    learn.openLogbook();
+    expect(learn.getState().logbookOpened).toBe(true);
+    expect(new LearnStore(new Progress(storage)).getState().logbookOpened).toBe(true);
+    learn.newGame();
+    expect(learn.getState().logbookOpened).toBe(false);
+    expect(new Progress(storage).data.logbookOpened).toBe(false);
+    expect(parseProgress('{"v":1}').logbookOpened).toBe(false);
+  });
+});

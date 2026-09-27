@@ -37,6 +37,8 @@ export async function runScript(steps: readonly ScriptStep[], ctx: ScriptContext
   const { dialogue, learn } = ctx;
   try {
     for (const s of steps) {
+      // NPCs tell you to press J; if you do, the conversation waits until you close the Logbook.
+      if (learn?.getState().logbook.open) await learn.logbookClosed();
       if (ctx.cancelled?.()) return false;
       if ('say' in s) await dialogue.play([s.say]);
       else if ('text' in s) await dialogue.say(s.speaker ?? ctx.speaker, ctx.format?.(s.text) ?? s.text);
