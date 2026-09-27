@@ -1,77 +1,107 @@
 {
   "id": "wingman.sail.02",
   "speaker": "Wingman",
-  "text": "Bring her back alongside the pier and press E, and I’ll help you dock.",
+  "text": "The compass up top points back to the pier. Bring her alongside and press E, and I’ll help you dock.",
   "words": [
     {
-      "word": "Bring",
+      "word": "The",
       "start": 0.067,
-      "end": 0.262
+      "end": 0.184
     },
     {
-      "word": "her",
-      "start": 0.262,
-      "end": 0.378
+      "word": "compass",
+      "start": 0.184,
+      "end": 0.495
+    },
+    {
+      "word": "up",
+      "start": 0.495,
+      "end": 0.65
+    },
+    {
+      "word": "top",
+      "start": 0.65,
+      "end": 0.883
+    },
+    {
+      "word": "points",
+      "start": 0.883,
+      "end": 1.349
     },
     {
       "word": "back",
-      "start": 0.378,
-      "end": 0.611
+      "start": 1.349,
+      "end": 1.621
     },
     {
-      "word": "alongside",
-      "start": 0.611,
-      "end": 1.155
-    },
-    {
-      "word": "the",
-      "start": 1.155,
-      "end": 1.271
-    },
-    {
-      "word": "pier",
-      "start": 1.271,
-      "end": 1.582
-    },
-    {
-      "word": "and",
-      "start": 1.582,
+      "word": "to",
+      "start": 1.621,
       "end": 1.737
     },
     {
-      "word": "press",
+      "word": "the",
       "start": 1.737,
-      "end": 2.087
+      "end": 1.854
     },
     {
-      "word": "E",
-      "start": 2.087,
-      "end": 2.669
+      "word": "pier",
+      "start": 1.854,
+      "end": 2.514
+    },
+    {
+      "word": "Bring",
+      "start": 2.514,
+      "end": 2.746
+    },
+    {
+      "word": "her",
+      "start": 2.746,
+      "end": 2.863
+    },
+    {
+      "word": "alongside",
+      "start": 2.863,
+      "end": 3.524
     },
     {
       "word": "and",
-      "start": 2.669,
-      "end": 2.901
+      "start": 3.524,
+      "end": 3.717
+    },
+    {
+      "word": "press",
+      "start": 3.717,
+      "end": 4.067
+    },
+    {
+      "word": "E",
+      "start": 4.067,
+      "end": 4.922
+    },
+    {
+      "word": "and",
+      "start": 4.922,
+      "end": 5.077
     },
     {
       "word": "I’ll",
-      "start": 2.901,
-      "end": 3.058
+      "start": 5.077,
+      "end": 5.271
     },
     {
       "word": "help",
-      "start": 3.058,
-      "end": 3.251
+      "start": 5.271,
+      "end": 5.504
     },
     {
       "word": "you",
-      "start": 3.251,
-      "end": 3.367
+      "start": 5.504,
+      "end": 5.621
     },
     {
       "word": "dock",
-      "start": 3.367,
-      "end": 3.617
+      "start": 5.621,
+      "end": 5.871
     }
   ]
 }

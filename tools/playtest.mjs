@@ -65,6 +65,8 @@ await step(
     await page.waitForTimeout(600);
     await page.evaluate(() => {
       const s = window.__dev.session();
+      // The gangway stays up until the christening; skip ahead so the pier walk can board.
+      s.debug.quest('Q0.11', 'sail');
       s.debug.teleport(-106.9, -111.6, Math.PI / 2);
       window.__dev.look(Math.PI - 0.6, 0.25);
     });

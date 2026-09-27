@@ -38,3 +38,22 @@ describe('Interactions focus', () => {
     expect(set.update(0, 0, 0, Math.PI / 2)).toBeNull();
   });
 });
+
+describe('Interactions.nearest', () => {
+  it('matches exact ids and prefixes, and prefers the nearest usable one', () => {
+    const set = new Interactions();
+    set.add(item('gear:compass', 10, 0));
+    set.add({ ...item('gear:rack', 2, 0), enabled: () => false });
+    set.add(item('gear:rope', 5, 0));
+    set.add(item('npc:bo', 1, 0));
+    expect(set.nearest(['gear:*'], 0, 0)?.id).toBe('gear:rope');
+    expect(set.nearest(['npc:bo'], 0, 0)?.id).toBe('npc:bo');
+    expect(set.nearest(['npc:b'], 0, 0)).toBeNull();
+  });
+
+  it('falls back to an unusable match rather than pointing nowhere', () => {
+    const set = new Interactions();
+    set.add({ ...item('ship:board', 3, 0), enabled: () => false });
+    expect(set.nearest(['ship:board'], 0, 0)?.id).toBe('ship:board');
+  });
+});

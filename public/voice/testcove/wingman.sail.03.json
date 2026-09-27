@@ -1,82 +1,107 @@
 {
   "id": "wingman.sail.03",
   "speaker": "Wingman",
-  "text": "Port Meridian’s east on the chart. Press M when you’re ready to plan the passage.",
+  "text": "Port Meridian’s east on the chart, but she’s not ready for visitors yet. Until she is, these waters are yours.",
   "words": [
     {
       "word": "Port",
       "start": 0.067,
-      "end": 0.223
+      "end": 0.262
     },
     {
       "word": "Meridian’s",
-      "start": 0.223,
-      "end": 0.728
+      "start": 0.262,
+      "end": 0.766
     },
     {
       "word": "east",
-      "start": 0.728,
-      "end": 1.233
+      "start": 0.766,
+      "end": 1.349
     },
     {
       "word": "on",
-      "start": 1.233,
-      "end": 1.427
-    },
-    {
-      "word": "the",
-      "start": 1.427,
+      "start": 1.349,
       "end": 1.543
     },
     {
-      "word": "chart",
+      "word": "the",
       "start": 1.543,
-      "end": 2.319
+      "end": 1.66
     },
     {
-      "word": "Press",
-      "start": 2.319,
-      "end": 2.785
+      "word": "chart",
+      "start": 1.66,
+      "end": 2.048
     },
     {
-      "word": "M",
-      "start": 2.785,
-      "end": 2.98
+      "word": "but",
+      "start": 2.048,
+      "end": 2.241
     },
     {
-      "word": "when",
-      "start": 2.98,
-      "end": 3.135
+      "word": "she’s",
+      "start": 2.241,
+      "end": 2.475
     },
     {
-      "word": "you’re",
-      "start": 3.135,
-      "end": 3.367
+      "word": "not",
+      "start": 2.475,
+      "end": 2.669
     },
     {
       "word": "ready",
-      "start": 3.367,
-      "end": 3.563
+      "start": 2.669,
+      "end": 2.941
     },
     {
-      "word": "to",
-      "start": 3.563,
-      "end": 3.717
+      "word": "for",
+      "start": 2.941,
+      "end": 3.097
     },
     {
-      "word": "plan",
-      "start": 3.717,
-      "end": 3.99
+      "word": "visitors",
+      "start": 3.097,
+      "end": 3.524
     },
     {
-      "word": "the",
-      "start": 3.99,
-      "end": 4.106
+      "word": "yet",
+      "start": 3.524,
+      "end": 3.872
     },
     {
-      "word": "passage",
-      "start": 4.106,
-      "end": 4.356
+      "word": "Until",
+      "start": 3.872,
+      "end": 4.3
+    },
+    {
+      "word": "she",
+      "start": 4.3,
+      "end": 4.611
+    },
+    {
+      "word": "is",
+      "start": 4.611,
+      "end": 5.466
+    },
+    {
+      "word": "these",
+      "start": 5.466,
+      "end": 5.737
+    },
+    {
+      "word": "waters",
+      "start": 5.737,
+      "end": 6.165
+    },
+    {
+      "word": "are",
+      "start": 6.165,
+      "end": 6.281
+    },
+    {
+      "word": "yours",
+      "start": 6.281,
+      "end": 6.531
     }
   ]
 }

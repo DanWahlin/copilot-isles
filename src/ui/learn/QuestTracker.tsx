@@ -66,7 +66,10 @@ export function QuestTracker({ tracker }: { tracker: Tracker }) {
         </span>
       </button>
       {complete ? (
-        <p className="ci-tracker-complete">Every task’s done. Anchorage Cay is yours, Captain.</p>
+        <div className="ci-tracker-complete">
+          <p>Every task’s done. {tracker.island} is yours, Captain.</p>
+          {tracker.next && <p className="next">{tracker.next}</p>}
+        </div>
       ) : (
         <ol className="ci-tracker-list">
           {shown.map((t) => (

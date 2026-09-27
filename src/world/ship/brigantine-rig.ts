@@ -68,6 +68,15 @@ const YARDS: readonly YardSpec[] = [
   { mast: MIZZEN, y: 12.95, span: 2.95, radius: 0.092, canvasRadius: 0.15 },
 ];
 
+const MIZZEN_STAY_AFT: P3 = { x: 0, y: MIZZEN.lowerTop + 0.05, z: MIZZEN.z };
+const MIZZEN_STAY_FORE: P3 = { x: 0, y: MAIN.lowerTop + 0.05, z: MAIN.z };
+
+/** The point on the lower mizzen stay (mizzen top to main top) at local `z`, for things hung from it. */
+export function mizzenStayPoint(z: number): P3 {
+  const t = (z - MIZZEN_STAY_AFT.z) / (MIZZEN_STAY_FORE.z - MIZZEN_STAY_AFT.z);
+  return lerpPoint(MIZZEN_STAY_AFT, MIZZEN_STAY_FORE, Math.min(1, Math.max(0, t)));
+}
+
 function yardPoint(yard: YardSpec, x: number, y = yard.y): P3 {
   return { x, y, z: yard.mast.z + x * YARD_BRACE };
 }
@@ -509,7 +518,7 @@ export function createRiggingGeometry(tier: Tier): BufferGeometry {
 
   line({ x: 0, y: MAIN.lowerTop + 0.05, z: MAIN.z }, { x: 0, y: FORE.lowerTop + 0.1, z: FORE.z });
   line({ x: 0, y: MAIN.topTop, z: MAIN.z }, { x: 0, y: FORE.topTop - 0.35, z: FORE.z });
-  line({ x: 0, y: MIZZEN.lowerTop + 0.05, z: MIZZEN.z }, { x: 0, y: MAIN.lowerTop + 0.05, z: MAIN.z });
+  line(MIZZEN_STAY_AFT, MIZZEN_STAY_FORE);
   line({ x: 0, y: MIZZEN.topTop, z: MIZZEN.z }, { x: 0, y: MAIN.topTop - 0.3, z: MAIN.z });
 
   for (const side of [-1, 1] as const) {

@@ -835,6 +835,15 @@
   color: var(--good);
   font-size: 0.86rem;
 }
+.ci-tracker-complete p {
+  margin: 0;
+}
+.ci-tracker-complete .next {
+  margin-top: 0.4rem;
+  color: rgba(246, 236, 214, 0.78);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
 .ci-tracker-hint {
   display: flex;
   align-items: center;

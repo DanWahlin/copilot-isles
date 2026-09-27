@@ -74,7 +74,7 @@ describe('createVillage', () => {
     ).toBe(6);
     expect(
       village.perches.some(
-        (p) => Math.abs(p.x + 136.5) < 0.01 && p.y > heightField.heightAt(-136.5, -45.2) + 1.8,
+        (p) => Math.abs(p.x + 122) < 0.01 && p.y > heightField.heightAt(-122, -43.4) + 1.8,
       ),
     ).toBe(true);
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { BufferAttribute, Mesh, Object3D } from 'three/webgpu';
 import { createBrigantine, fitShipNameFontSize } from './brigantine';
+import { createRiggingGeometry } from './brigantine-rig';
 import { COVE } from '../layout';
 import { deckHeightAt } from './lines';
 
@@ -203,6 +204,27 @@ describe('createBrigantine', () => {
   it('keeps generated brigantine and pipe mesh geometry byte-identical', () => {
     const ship = createBrigantine({ tier: 'high' });
     expect(captureMeshSignatures(ship.group)).toEqual(HIGH_TIER_MESH_SIGNATURES);
+    ship.dispose();
+  });
+
+  it('hangs the swaying block from a real rigging line', () => {
+    const ship = createBrigantine({ tier: 'high' });
+    const pivot = ship.group.getObjectByName('hanging block spring')!;
+    const p = pivot.position;
+    const rig = createRiggingGeometry('high').getAttribute('position') as BufferAttribute;
+    let nearest = Infinity;
+    for (let i = 0; i < rig.count; i += 2) {
+      const ax = rig.getX(i),
+        ay = rig.getY(i),
+        az = rig.getZ(i);
+      const dx = rig.getX(i + 1) - ax,
+        dy = rig.getY(i + 1) - ay,
+        dz = rig.getZ(i + 1) - az;
+      const len2 = dx * dx + dy * dy + dz * dz;
+      const t = Math.min(1, Math.max(0, ((p.x - ax) * dx + (p.y - ay) * dy + (p.z - az) * dz) / len2));
+      nearest = Math.min(nearest, Math.hypot(ax + dx * t - p.x, ay + dy * t - p.y, az + dz * t - p.z));
+    }
+    expect(nearest).toBeLessThan(0.02);
     ship.dispose();
   });
 

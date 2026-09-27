@@ -203,6 +203,35 @@ export function houseDoorAnchor(spec: HouseSpec): { x: number; y: number; z: num
   };
 }
 
+/**
+ * A spot on the door's wall surface beside the door, toward the middle of that wall (so a fitting
+ * there never overhangs a corner). `heading` faces out of the wall.
+ */
+export function houseDoorSideSpot(
+  spec: HouseSpec,
+  along = 0.95,
+): { x: number; y: number; z: number; heading: number } {
+  const wall = sideSegmentLocal(spec.footprint, spec.doorSide, clampedDoorSegment(spec));
+  const normal = sideNormal(spec.doorSide);
+  let tx = -normal.z;
+  let tz = normal.x;
+  if (tx * wall.x + tz * wall.z > 0) {
+    tx = -tx;
+    tz = -tz;
+  }
+  const world = localToWorld(
+    spec,
+    wall.x + tx * along + normal.x * 0.06,
+    wall.z + tz * along + normal.z * 0.06,
+  );
+  return {
+    x: world.x,
+    y: spec.origin?.y ?? 0,
+    z: world.z,
+    heading: (spec.rotY ?? 0) + sideRotation(spec.doorSide),
+  };
+}
+
 export function housePerches(spec: HouseSpec, placements = buildHouse(spec)): Vector3[] {
   const perches: Vector3[] = [];
   const roof = placements.find((placement) => placement.role === 'roof');

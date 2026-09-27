@@ -119,10 +119,58 @@ const COVE_QUESTS: readonly QuestDef[] = [
     task: 'Name your ship and set sail',
     steps: {
       start: 'Meet Nell by your bow at the pier head.',
-      done: 'Your ship has her name, and the crew’s aboard.',
+      sail: 'The gangway’s down. Walk up it to take the helm.',
+      done: 'Your ship has her name, and you’ve taken her out.',
     },
   },
 ];
+
+/**
+ * The ship's gangway stays up until the christening: every task before it is on Anchorage, so there's
+ * nowhere to sail yet. Christened (or an older save that already sailed), it's down whenever you're
+ * ashore and she's moored.
+ */
+export function boardingOpen(q: QuestState): boolean {
+  return q['Q0.11'] === 'sail' || q['Q0.11'] === 'done';
+}
+
+/** The main quest the player's on now: the first unfinished one in story order, or null when all done. */
+export function currentQuest(q: QuestState): { id: string; task: string; step: string | null } | null {
+  const d = COVE_QUESTS.find((c) => !c.optional && q[c.id] !== 'done');
+  return d ? { id: d.id, task: d.task, step: q[d.id] ?? null } : null;
+}
+
+/**
+ * Where the compass points for each quest step: interaction ids (a trailing `*` matches a prefix; the
+ * nearest usable one wins) and the marker's label. Puzzles point at their parts, never at an answer.
+ */
+const QUEST_TARGETS: Readonly<Record<string, { ids: readonly string[]; label: string }>> = {
+  'Q0.2:start': { ids: ['npc:nell'], label: 'Nell Tidewell' },
+  'Q0.2:chest': { ids: ['chest:C0.1'], label: 'Nell’s chest' },
+  'Q0.2:palette': { ids: ['palette:stand'], label: 'Palette stand' },
+  'Q0.3:start': { ids: ['npc:merchant'], label: 'Ezra Quill' },
+  'Q0.4:start': { ids: ['npc:dockhand_b'], label: 'Bo Marlin' },
+  'Q0.5:gear': { ids: ['gear:*'], label: 'Bo’s gear' },
+  'Q0.5:ledger': { ids: ['gear:ledger'], label: 'Bo’s ledger' },
+  'Q0.6:start': { ids: ['npc:suri'], label: 'Suri Okoye' },
+  'Q0.6:sluice': { ids: ['mill:*'], label: 'The sluice' },
+  'Q0.6:solved': { ids: ['npc:suri'], label: 'Suri Okoye' },
+  'Q0.7:start': { ids: ['npc:pim', 'npc:pol'], label: 'Pim and Pol' },
+  'Q0.7:crane': { ids: ['crane:*'], label: 'The crane' },
+  'Q0.7:solved': { ids: ['npc:pol'], label: 'Pol' },
+  'Q0.8:start': { ids: ['npc:juno'], label: 'Juno' },
+  'Q0.8:pipes': { ids: ['pipe:*'], label: 'Your ship’s rail' },
+  'Q0.10:start': { ids: ['trial:T0'], label: 'The lighthouse' },
+  'Q0.11:start': { ids: ['npc:nell'], label: 'Nell Tidewell' },
+  'Q0.11:sail': { ids: ['ship:board'], label: 'The gangway' },
+};
+
+/** What the compass should point at ashore right now, or null once every task's done. */
+export function questTarget(q: QuestState): { ids: readonly string[]; label: string } | null {
+  const c = currentQuest(q);
+  if (!c) return null;
+  return QUEST_TARGETS[`${c.id}:${c.step ?? 'start'}`] ?? null;
+}
 
 /** The chests placed in the cove: chest id → which NPC it sits beside (metres to their right). */
 export const COVE_CHESTS: readonly { id: string; npc: string; side: number; back: number }[] = [
@@ -176,7 +224,7 @@ export function npcScript(
       if (q['Q0.2'] === 'chest') return { steps: [{ say: 'nell.chest.01' }] };
       if (q['Q0.2'] === 'palette') return { steps: [{ say: 'nell.palette.01' }] };
       if (q['Q0.11'] === 'start') return { steps: CHRISTENING };
-      if (done(q, 'Q0.11')) return { steps: [{ say: 'nell.christen.03' }] };
+      if (boardingOpen(q)) return { steps: [{ say: 'nell.christen.03' }] };
       return { steps: [{ say: done(q, 'Q0.10') ? 'nell.done.02' : 'nell.done.01' }] };
 
     case 'lyra':
@@ -321,7 +369,7 @@ const CHRISTENING: readonly ScriptStep[] = [
   { say: 'wingman.sail.01' },
   { say: 'wingman.sail.02' },
   { say: 'wingman.sail.03' },
-  { quest: 'Q0.11', step: 'done' },
+  { quest: 'Q0.11', step: 'sail' },
 ];
 
 /** Lyra's soundcheck (Q0.9, optional): the course's recording-studio theme, and C0.5. */
@@ -383,6 +431,7 @@ export const COVE_ISLAND = {
   name: 'Anchorage Cay',
   chapter: 'Chapter 00 · Setup',
   goal: 'Set up the Copilot app and earn the Seal of Anchorage',
+  next: 'Port Meridian’s the next island, and she’s coming soon. Until then these waters are yours, and the compass points back to the pier.',
 } as const;
 
 export type TrackerStatus = 'done' | 'active' | 'upcoming';
@@ -391,6 +440,7 @@ export interface QuestTracker {
   island: string;
   chapter: string;
   goal: string;
+  next: string;
   tasks: readonly {
     id: string;
     title: string;
@@ -407,13 +457,22 @@ export interface QuestTracker {
  * player always sees the island's goal, what's done, and what to do next.
  */
 export function questTracker(q: QuestState): QuestTracker {
+  const current = currentQuest(q)?.id;
   const tasks = COVE_QUESTS.filter((d) => !d.optional || q[d.id]).map((d) => {
-    const step = q[d.id];
+    // The current task shows its first step even before anyone's set it (Ezra's fork starts when
+    // you talk to him, so until then it would read as upcoming with nothing to do).
+    const step = q[d.id] ?? (d.id === current ? 'start' : undefined);
     const status: TrackerStatus = step === 'done' ? 'done' : step ? 'active' : 'upcoming';
     const detail = step ? (d.steps[step] ?? '') : '';
     return { id: d.id, title: d.title, task: d.task, detail, status, optional: !!d.optional, link: d.link };
   });
-  return { island: COVE_ISLAND.name, chapter: COVE_ISLAND.chapter, goal: COVE_ISLAND.goal, tasks };
+  return {
+    island: COVE_ISLAND.name,
+    chapter: COVE_ISLAND.chapter,
+    goal: COVE_ISLAND.goal,
+    next: COVE_ISLAND.next,
+    tasks,
+  };
 }
 
 /** The quest log for the Logbook, in story order, for quests that have started. */

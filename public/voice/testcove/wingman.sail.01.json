@@ -1,16 +1,16 @@
 {
   "id": "wingman.sail.01",
   "speaker": "Wingman",
-  "text": "Right, a quick sailing lesson. Take the helm at the gangway. W and S trim the sails, and A and D steer.",
+  "text": "Right, a quick sailing lesson. The gangway’s down now, so walk up it to take the helm. W and S trim the sails, and A and D steer.",
   "words": [
     {
       "word": "Right",
       "start": 0.067,
-      "end": 0.262
+      "end": 0.3
     },
     {
       "word": "a",
-      "start": 0.262,
+      "start": 0.3,
       "end": 0.339
     },
     {
@@ -21,97 +21,127 @@
     {
       "word": "sailing",
       "start": 0.572,
-      "end": 1.038
+      "end": 0.961
     },
     {
       "word": "lesson",
-      "start": 1.038,
-      "end": 1.969
+      "start": 0.961,
+      "end": 1.466
     },
     {
-      "word": "Take",
-      "start": 1.969,
-      "end": 2.241
+      "word": "The",
+      "start": 1.466,
+      "end": 1.582
     },
     {
-      "word": "the",
-      "start": 2.241,
-      "end": 2.397
+      "word": "gangway’s",
+      "start": 1.582,
+      "end": 2.009
     },
     {
-      "word": "helm",
-      "start": 2.397,
-      "end": 2.707
+      "word": "down",
+      "start": 2.009,
+      "end": 2.28
     },
     {
-      "word": "at",
-      "start": 2.707,
-      "end": 2.785
+      "word": "now",
+      "start": 2.28,
+      "end": 2.514
     },
     {
-      "word": "the",
-      "start": 2.785,
+      "word": "so",
+      "start": 2.514,
+      "end": 2.631
+    },
+    {
+      "word": "walk",
+      "start": 2.631,
       "end": 2.901
     },
     {
-      "word": "gangway",
+      "word": "up",
       "start": 2.901,
-      "end": 3.833
+      "end": 3.058
     },
     {
-      "word": "W",
-      "start": 3.833,
-      "end": 4.223
+      "word": "it",
+      "start": 3.058,
+      "end": 3.135
     },
     {
-      "word": "and",
-      "start": 4.223,
-      "end": 4.495
+      "word": "to",
+      "start": 3.135,
+      "end": 3.29
     },
     {
-      "word": "S",
-      "start": 4.495,
-      "end": 4.766
-    },
-    {
-      "word": "trim",
-      "start": 4.766,
-      "end": 5.077
+      "word": "take",
+      "start": 3.29,
+      "end": 3.524
     },
     {
       "word": "the",
+      "start": 3.524,
+      "end": 3.64
+    },
+    {
+      "word": "helm",
+      "start": 3.64,
+      "end": 4.533
+    },
+    {
+      "word": "W",
+      "start": 4.533,
+      "end": 4.766
+    },
+    {
+      "word": "and",
+      "start": 4.766,
+      "end": 4.961
+    },
+    {
+      "word": "S",
+      "start": 4.961,
+      "end": 5.077
+    },
+    {
+      "word": "trim",
       "start": 5.077,
-      "end": 5.194
+      "end": 5.349
+    },
+    {
+      "word": "the",
+      "start": 5.349,
+      "end": 5.466
     },
     {
       "word": "sails",
-      "start": 5.194,
-      "end": 5.699
+      "start": 5.466,
+      "end": 5.932
     },
     {
       "word": "and",
-      "start": 5.699,
-      "end": 5.97
+      "start": 5.932,
+      "end": 6.165
     },
     {
       "word": "A",
-      "start": 5.97,
-      "end": 6.009
+      "start": 6.165,
+      "end": 6.203
     },
     {
       "word": "and",
-      "start": 6.009,
-      "end": 6.398
+      "start": 6.203,
+      "end": 6.669
     },
     {
       "word": "D",
-      "start": 6.398,
-      "end": 6.592
+      "start": 6.669,
+      "end": 6.941
     },
     {
       "word": "steer",
-      "start": 6.592,
-      "end": 6.842
+      "start": 6.941,
+      "end": 7.191
     }
   ]
 }

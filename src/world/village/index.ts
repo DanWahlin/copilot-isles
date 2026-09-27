@@ -33,6 +33,7 @@ import {
   VILLAGE_HOUSE_PIECES,
   buildHouse,
   houseDoorAnchor,
+  houseDoorSideSpot,
   housePerches,
   placementWorldMaxY,
   type HouseFootprint,
@@ -558,7 +559,7 @@ export async function createVillage({
     addBuilding(building, heightField, buckets, colliders, anchors, perches, villageKit, low);
   addPlaza(buckets, colliders, anchors, heightField, villageKit, low);
   addMarketStalls(buckets, colliders, anchors, heightField, perches);
-  if (!low) addVillageFestooning(buckets, heightField);
+  if (!low) addVillageFestooning(buckets, colliders, heightField);
   addLighthouse(buckets, colliders, shipObstacles, anchors, perches);
   addLanterns(buckets, colliders, heightField, low);
   addMooredBoatShipObstacles(shipObstacles);
@@ -980,9 +981,9 @@ function addColonialBuildingDetails(
     }
   }
 
-  const door = houseDoorAnchor(houseSpecForBuilding(spec, baseY, false));
   const doorSign = localToWorld(spec.x, spec.z, spec.rot, -footprint.w * 0.34, frontZ - 0.08);
-  addDoorLantern(buckets, door.x, door.y + 1.25, door.z, spec.rot);
+  const lamp = houseDoorSideSpot(houseSpecForBuilding(spec, baseY, false));
+  addDoorLantern(buckets, lamp, lamp.y + 1.5);
   if (spec.sign) addHangingShopSign(buckets, doorSign.x, baseY + 2.1, doorSign.z, spec.rot, spec.sign);
   if (spec.awning)
     addDoorAwning(buckets, spec.x, baseY + 2.2, spec.z, spec.rot, footprint.w, frontZ, spec.awning);
@@ -1020,16 +1021,29 @@ function addFlowerBox(
   addBox(buckets.rope, x, y + 0.12, z, 0.86, 0.08, 0.08, rot, 0x3f7a43);
 }
 
+/**
+ * A small lantern on a wall bracket beside a door: a plate on the wall, an arm straight out, and the
+ * lantern hanging from its end. `spot` is on the wall surface, `heading` facing out; `y` is the
+ * lantern's base.
+ */
 function addDoorLantern(
   buckets: Record<MaterialKey, BufferGeometry[]>,
-  x: number,
+  spot: { x: number; z: number; heading: number },
   y: number,
-  z: number,
-  rot: number,
 ): void {
-  const p = localToWorld(x, z, rot, 0.62, -0.12);
-  addBox(buckets.metal, p.x, y + 0.34, p.z, 0.46, 0.045, 0.045, rot, 0x5f574f);
-  addLanternFixture(buckets, p.x + Math.cos(rot) * 0.38, y - 0.1, p.z - Math.sin(rot) * 0.38, rot, 0.52);
+  const nx = Math.sin(spot.heading);
+  const nz = Math.cos(spot.heading);
+  // addBox's length runs along its local x; this yaw points it out of the wall.
+  const out = spot.heading - Math.PI / 2;
+  const reach = 0.36;
+  const at = (d: number) => ({ x: spot.x + nx * d, z: spot.z + nz * d });
+  const plate = at(0.015);
+  const arm = at(reach * 0.5);
+  const lamp = at(reach - 0.02);
+  addBox(buckets.metal, plate.x, y + 0.38, plate.z, 0.03, 0.22, 0.12, out, 0x5f574f);
+  addBox(buckets.metal, arm.x, y + 0.5, arm.z, reach, 0.04, 0.04, out, 0x5f574f);
+  addBox(buckets.metal, lamp.x, y + 0.39, lamp.z, 0.016, 0.12, 0.016, out, 0x5f574f);
+  addLanternFixture(buckets, lamp.x, y, lamp.z, spot.heading, 0.52);
 }
 
 function addHangingShopSign(
@@ -1178,8 +1192,45 @@ function addQuay(
   addLadder(buckets, -91.5, q.z - 2.9, 0.1, q.height + 0.45);
   addLadder(buckets, -144.5, q.z - 2.9, 0.1, q.height + 0.45);
   shipObstacles.push({ x: q.x0, z: q.z - 1.5, r: 3.2 }, { x: q.x1, z: q.z - 1.5, r: 3.2 });
-  anchors.quayBenches = { x: -88.5, y: q.height, z: q.z + 5.2, heading: -0.4 };
+  // Salt's bench, looking out over the harbour. The seated rig tucks its feet under the seat, so it
+  // needs a bench with open space beneath (a barrel put his legs through the staves).
+  const salt = { x: -88.5, z: q.z + 5.2, faces: -0.4 + Math.PI };
+  const seatTop = addQuayBench(buckets, colliders, salt.x, q.height + 0.06, salt.z, salt.faces);
+  anchors.quayBenches = { x: salt.x, y: seatTop, z: salt.z, heading: -0.4 };
   anchors.noticeBoard = { x: -104.7, y: q.height, z: q.z + 5.3, heading: Math.PI };
+}
+
+/**
+ * A plank bench with a backrest for someone sitting at (x, z) facing `faces`; the seat sits a little
+ * behind that point so their knees clear the front edge. Returns the seat's top height.
+ */
+function addQuayBench(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  colliders: { boxes: VillageBoxCollider[] },
+  x: number,
+  floor: number,
+  z: number,
+  faces: number,
+): number {
+  const fx = Math.sin(faces);
+  const fz = Math.cos(faces);
+  // addBox's length runs along (cos rot, −sin rot): across the sitter's lap.
+  const rot = faces;
+  const tx = Math.cos(rot);
+  const tz = -Math.sin(rot);
+  const cx = x - fx * 0.1;
+  const cz = z - fz * 0.1;
+  const seat = 0.4;
+  addBox(buckets.wood, cx, floor + seat, cz, 1.5, 0.07, 0.42, rot, 0x7a5232);
+  for (const s of [-0.62, 0.62]) {
+    addBox(buckets.wood, cx + tx * s, floor, cz + tz * s, 0.08, seat, 0.36, rot, 0x5e3f25);
+    const bx = cx + tx * s - fx * 0.19;
+    const bz = cz + tz * s - fz * 0.19;
+    addBox(buckets.wood, bx, floor + seat + 0.07, bz, 0.07, 0.4, 0.05, rot, 0x5e3f25);
+  }
+  addBox(buckets.wood, cx - fx * 0.2, floor + seat + 0.3, cz - fz * 0.2, 1.46, 0.13, 0.04, rot, 0x7a5232);
+  colliders.boxes.push({ x: cx, z: cz, hx: 0.78, hz: 0.24, rot, height: 0.9 });
+  return floor + seat + 0.07;
 }
 
 function addQuayFrontBand(buckets: Record<MaterialKey, BufferGeometry[]>): void {
@@ -1950,10 +2001,9 @@ function addMarketStalls(
   heightField: HeightField,
   perches: Vector3[],
 ): void {
-  const stalls = [
-    { x: -136.5, z: -45.2, rot: 16 * DEG, cloth: 0xda5e4a },
-    { x: -122.0, z: -43.4, rot: -12 * DEG, cloth: 0x4f9bc0 },
-  ];
+  // The west stall (−136.5, −45.2) came out: nobody kept it, and it read as a low table under the
+  // laundry line, which now ends on its own post there.
+  const stalls = [{ x: -122.0, z: -43.4, rot: -12 * DEG, cloth: 0x4f9bc0 }];
   for (const stall of stalls) {
     const y = heightField.heightAt(stall.x, stall.z);
     addBox(buckets.wood, stall.x, y + 0.72, stall.z, 4.1, 0.22, 1.15, stall.rot, 0x6e4729);
@@ -1973,8 +2023,13 @@ function addMarketStalls(
     { x: -149.7, z: -57.2, hx: 1.25, hz: 0.25, rot: 0.2, height: 1.8 },
     { x: -104.7, z: COVE.quay.z + 5.3, hx: 1.35, hz: 0.22, rot: Math.PI, height: 2.0 },
   );
-  const y = heightField.heightAt(-136.5, -45.2);
-  anchors.marketStall = { x: -136.5, y, z: -47.1, heading: 0.15 };
+  const front = localToWorld(-122.0, -43.4, -12 * DEG, 0, -1.9);
+  anchors.marketStall = {
+    x: front.x,
+    y: heightField.heightAt(front.x, front.z),
+    z: front.z,
+    heading: -12 * DEG,
+  };
 }
 
 function addStripedMarketAwning(
@@ -2075,6 +2130,7 @@ function addNoticeBoard(
 
 function addVillageFestooning(
   buckets: Record<MaterialKey, BufferGeometry[]>,
+  colliders: { circles: CircleObstacle[] },
   heightField: HeightField,
 ): void {
   addBuntingLine(
@@ -2091,6 +2147,8 @@ function addVillageFestooning(
   );
   addLaundryLine(
     buckets,
+    colliders,
+    heightField,
     { x: -148.0, y: heightField.heightAt(-147.2, -51.6) + 2.75, z: -48.4 },
     { x: -137.4, y: heightField.heightAt(-136.5, -45.2) + 2.5, z: -44.4 },
   );
@@ -2169,6 +2227,8 @@ function addTriangleFlag(
 
 function addLaundryLine(
   buckets: Record<MaterialKey, BufferGeometry[]>,
+  colliders: { circles: CircleObstacle[] },
+  heightField: HeightField,
   a: FestoonPoint,
   b: FestoonPoint,
 ): void {
@@ -2176,17 +2236,13 @@ function addLaundryLine(
   const dz = b.z - a.z;
   const len = Math.hypot(dx, dz);
   const rot = Math.atan2(-dz, dx);
-  addBox(
-    buckets.rope,
-    (a.x + b.x) * 0.5,
-    (a.y + b.y) * 0.5,
-    (a.z + b.z) * 0.5,
-    len,
-    0.035,
-    0.035,
-    rot,
-    0xc4a576,
-  );
+  const lineY = (a.y + b.y) * 0.5;
+  addBox(buckets.rope, (a.x + b.x) * 0.5, lineY, (a.z + b.z) * 0.5, len, 0.035, 0.035, rot, 0xc4a576);
+  // The far end ties off on a T-post (the near end is under the house's eave).
+  const ground = heightField.heightAt(b.x, b.z);
+  addBox(buckets.wood, b.x, ground - 0.1, b.z, 0.12, lineY - ground + 0.28, 0.12, rot, 0x674429);
+  addBox(buckets.wood, b.x, lineY - 0.04, b.z, 0.1, 0.08, 0.62, rot, 0x6e4729);
+  colliders.circles.push({ x: b.x, z: b.z, r: 0.22 });
   for (let i = 0; i < 4; i += 1) {
     const t = 0.22 + i * 0.18;
     const x = a.x + dx * t;
@@ -2399,7 +2455,8 @@ function addInstancedProps(
     inst(-106.6, -91.8, at(-106.6, -91.8), 0.2, 0.78),
     inst(-113.2, -91.4, at(-113.2, -91.4), -0.1, 0.74),
     inst(-129.3, -64.2, at(-129.3, -64.2), 0.6, 0.82),
-    inst(-88.8, -66.8, at(-88.8, -66.8), -0.4, 0.7),
+    // Beside the east end of Salt's bench.
+    inst(-87.35, -66.2, at(-87.35, -66.2), -0.4, 0.7),
   ]);
   addCirclePropColliders(colliders, barrels, 0.58);
   meshes.push(
