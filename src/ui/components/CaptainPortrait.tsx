@@ -92,6 +92,77 @@ function Tricorn({ id, dy }: { id: string; dy: number }) {
   );
 }
 
+/** Where a perched bird's feet grip the shoulder, in the bird's own frame, with the slope there (deg). */
+interface Foot {
+  x: number;
+  y: number;
+  slope: number;
+}
+/** The parrot's belly bottoms out near y 24 in its frame; each leg runs from there to its foot. */
+const BELLY_Y = 21;
+const MAN_PARROT_FEET: Foot[] = [
+  { x: 2, y: 26.3, slope: 30 },
+  { x: 6, y: 28.9, slope: 37 },
+];
+const ANNE_MACAW_FEET: Foot[] = [
+  { x: 2, y: 26.2, slope: 30 },
+  { x: 6, y: 28.7, slope: 36 },
+];
+
+/** The contact shadow on the shoulder and the legs, drawn under the bird's body. */
+function ParrotFeet({ feet, shade }: { feet: Foot[]; shade: string }) {
+  return (
+    <>
+      {feet.map((f) => (
+        <ellipse
+          key={`s${f.x}`}
+          cx={f.x}
+          cy={f.y + 2}
+          rx="5"
+          ry="1.6"
+          fill={shade}
+          opacity=".4"
+          transform={`rotate(${f.slope} ${f.x} ${f.y + 2})`}
+        />
+      ))}
+      {feet.map((f) => (
+        <path
+          key={`l${f.x}`}
+          d={`M${f.x} ${BELLY_Y}V${f.y - 0.6}`}
+          stroke="#8a8f99"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+      ))}
+    </>
+  );
+}
+
+/** Grey toes arched over the curve of the shoulder, tipped with dark talons. */
+function ParrotToes({ feet }: { feet: Foot[] }) {
+  return (
+    <>
+      {feet.map((f) => (
+        <g key={f.x} transform={`translate(${f.x} ${f.y}) rotate(${f.slope})`}>
+          <path
+            d="M-3.4 1.2Q0 -1.4 3.4 1.2"
+            fill="none"
+            stroke="#8a8f99"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <path
+            d="M3.6 1.6l.5 1.4M-3.6 1.6l-.5 1.4"
+            stroke="#2a2420"
+            strokeWidth="1.3"
+            strokeLinecap="round"
+          />
+        </g>
+      ))}
+    </>
+  );
+}
+
 function CaptainFigure({ id }: { id: string }) {
   return (
     <>
@@ -100,9 +171,13 @@ function CaptainFigure({ id }: { id: string }) {
       <path d="M72 138l18 30 18-30z" fill="#e8dcc4" />
       <path d="M62 140l28 36-10-40zM118 140l-28 36 10-40z" fill="#3e2616" />
       <path d="M58 150h64" stroke="#b5872f" strokeWidth="3" />
-      {/* Parrot on his shoulder. */}
-      <g transform="translate(132 110)">
+      {/* Parrot perched on his shoulder. */}
+      <g transform="translate(124 117)">
+        <ParrotFeet shade="#1a0f08" feet={MAN_PARROT_FEET} />
+        <path d="M-6 22l-9 22 6-1 9-19z" fill="#1d5f9a" />
         <path d="M-6 26c-2-14 2-26 12-30 8-3 14 2 14 10 0 10-8 18-26 20z" fill="#2f86c9" />
+        <path d="M-3 13c3-6 8-9 14-9-2 6-6 9-14 9z" fill="#236ea9" />
+        <ParrotToes feet={MAN_PARROT_FEET} />
         <path d="M0 -4c0-10 8-16 16-14 7 2 10 9 8 16z" fill="#f4f4ef" />
         <path d="M2 -12c2-8 8-12 16-10-4 2-7 5-8 9z" fill="#6cc832" />
         <path d="M22 0c6 1 9 5 7 10-3-3-6-4-9-4z" fill="#f29a2e" />
@@ -134,6 +209,11 @@ function CaptainFigure({ id }: { id: string }) {
   );
 }
 
+/** Anne's blouse; its top edge is her shoulder line. */
+const ANNE_BLOUSE = 'M30 184c4-32 24-48 60-48s56 16 60 48z';
+const ANNE_LOCKS =
+  'M60 66C52 96 50 124 46 152c6 6 14 6 19-1 0-26 2-50 5-80zM120 66c8 30 10 58 14 86-6 6-14 6-19-1 0-26-2-50-5-80z';
+
 function AnneFigure({ id }: { id: string }) {
   const hair = `url(#${id}-hair)`;
   return (
@@ -149,7 +229,7 @@ function AnneFigure({ id }: { id: string }) {
         opacity=".7"
       />
       {/* Cream blouse under a laced brown vest, with a gold buckle. */}
-      <path d="M30 184c4-32 24-48 60-48s56 16 60 48z" fill="#e7dcc4" />
+      <path d={ANNE_BLOUSE} fill="#e7dcc4" />
       <path d="M52 184c2-24 12-40 22-44l16 26 16-26c10 4 20 20 22 44z" fill="#6b4524" />
       <path d="M84 152l12 6M84 160l12-6" stroke="#d9c49a" strokeWidth="1.4" />
       <rect x="82" y="166" width="16" height="10" rx="2" fill="none" stroke="#d6a74e" strokeWidth="3" />
@@ -158,15 +238,22 @@ function AnneFigure({ id }: { id: string }) {
         d="M63 86c0-22 12-32 27-32s27 10 27 32v8c0 22-11 34-27 34S63 116 63 94z"
         fill={`url(#${id}-skin)`}
       />
-      {/* Locks framing the face and falling forward over the shoulders. */}
-      <path d="M60 66C52 96 50 124 46 152c6 6 14 6 19-1 0-26 2-50 5-80z" fill={hair} />
-      <path d="M120 66c8 30 10 58 14 86-6 6-14 6-19-1 0-26-2-50-5-80z" fill={hair} />
+      {/* Locks framing the face and falling forward over the shoulders, shaded below the fold. */}
+      <defs>
+        <clipPath id={`${id}-locks`}>
+          <path d={ANNE_LOCKS} />
+        </clipPath>
+      </defs>
+      <path d={ANNE_LOCKS} fill={hair} />
+      <path d={ANNE_BLOUSE} fill="#7a5424" opacity=".28" clipPath={`url(#${id}-locks)`} />
       {/* Scarlet macaw on her right shoulder: red head, gold wing band, blue tail. */}
-      <g transform="translate(46 114) scale(-1 1)">
+      <g transform="translate(56 119) scale(-1 1)">
+        <ParrotFeet shade="#6b4a1e" feet={ANNE_MACAW_FEET} />
         <path d="M-6 22l-9 22 6-1 9-19z" fill="#1f5ec4" />
         <path d="M-6 26c-2-14 2-26 12-30 8-3 14 2 14 10 0 10-8 18-26 20z" fill="#d42a1c" />
         <path d="M-3 13c3-6 8-9 14-9-2 6-6 9-14 9z" fill="#f2b300" />
         <path d="M-5 22c1-4 4-7 8-8-1 4-3 7-8 8z" fill="#1f5ec4" />
+        <ParrotToes feet={ANNE_MACAW_FEET} />
         <path d="M0 -4c0-10 8-16 16-14 7 2 10 9 8 16z" fill="#d42a1c" />
         <path d="M2 -12c2-8 8-12 16-10-4 2-7 5-8 9z" fill="#b81f16" />
         <ellipse cx="15" cy="-3" rx="6.4" ry="4.6" fill="#f4efe6" />
