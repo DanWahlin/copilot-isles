@@ -249,7 +249,8 @@
 .ci-captain-card span {
   max-width: 100%;
   overflow: hidden;
-  font: 1.25rem/1 var(--ci-display);
+  /* Room for descenders (the tail of a J or g) inside the clip that the ellipsis needs. */
+  font: 1.25rem/1.3 var(--ci-display);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
