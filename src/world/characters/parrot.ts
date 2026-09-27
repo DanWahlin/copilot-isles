@@ -53,10 +53,11 @@ const TEMP_MATRIX = new Matrix4();
 const TEMP_VECTOR = new Vector3();
 
 /**
- * Bakes Ernest's rest pose into a static macaw: metres, feet centred on the origin, facing as he
- * does on the Captain's arm. Returns null if the Captain model has no parrot.
+ * Bakes Ernest's rest pose into a static bird: metres, feet centred on the origin, facing as he
+ * does on the Captain's arm. `repaint` turns him into Anne's scarlet macaw; without it he stays
+ * Ernest (the Captain's own shoulder parrot). Returns null if the Captain model has no parrot.
  */
-export function createMacawGeometry(captain: Group): BufferGeometry | null {
+export function createMacawGeometry(captain: Group, repaint = true): BufferGeometry | null {
   let ernest: SkinnedMesh | null = null;
   captain.traverse((object) => {
     if (!ernest && object instanceof SkinnedMesh && object.name === 'Ernest') ernest = object;
@@ -72,7 +73,7 @@ export function createMacawGeometry(captain: Group): BufferGeometry | null {
   geometry.deleteAttribute('skinIndex');
   geometry.deleteAttribute('skinWeight');
   toFloat32(geometry);
-  repaintMacaw(geometry);
+  if (repaint) repaintMacaw(geometry);
 
   captain.updateMatrixWorld(true);
   const bone = source.skeleton.bones[boneIndex];
@@ -85,20 +86,26 @@ export function createMacawGeometry(captain: Group): BufferGeometry | null {
   geometry.translate(-(box.min.x + box.max.x) / 2, -box.min.y, -(box.min.z + box.max.z) / 2);
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
-  geometry.name = 'macaw';
+  geometry.name = repaint ? 'macaw' : 'ernest';
   return geometry;
 }
 
 /**
- * Perches the macaw on Anne's right shoulder. It rides the Torso bone, so it leans and twists with
- * her body but arm poses (walk swing, the helm grip) don't swing it across her face.
+ * Perches a baked parrot on a shoulder: Anne's macaw on her right, and Ernest on the Captain's
+ * left (moved off his hook arm, where the walk swing carried him through barrels and crates). It
+ * rides the Torso bone, so it leans and twists with the body but arm poses (walk swing, the helm
+ * grip) don't swing it across the face or out past the body's collision radius.
  */
-export function addShoulderMacaw(root: Group, geometry: BufferGeometry): void {
+export function addShoulderMacaw(
+  root: Group,
+  geometry: BufferGeometry,
+  shoulder: 'UpperArmR' | 'UpperArmL' = 'UpperArmR',
+): void {
   const torso = root.getObjectByName('Torso');
-  const upperArm = root.getObjectByName('UpperArmR');
+  const upperArm = root.getObjectByName(shoulder);
   let body: SkinnedMesh | null = null;
   root.traverse((object) => {
-    if (!body && object instanceof SkinnedMesh) body = object;
+    if (!body && object instanceof SkinnedMesh && object.name !== 'Ernest') body = object;
   });
   if (!(torso instanceof Bone) || !(upperArm instanceof Bone) || !body) return;
   const skinned: SkinnedMesh = body;
@@ -109,6 +116,7 @@ export function addShoulderMacaw(root: Group, geometry: BufferGeometry): void {
 
   const parrot = new Mesh(geometry, skinned.material);
   parrot.name = 'hero parrot';
+  parrot.userData.shoulder = shoulder;
   parrot.castShadow = true;
   parrot.receiveShadow = true;
   const local = root.worldToLocal(joint.clone());

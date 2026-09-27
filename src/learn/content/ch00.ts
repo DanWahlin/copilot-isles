@@ -468,6 +468,14 @@ export const CH00: ChapterContent = {
 
   pages: [
     {
+      id: 'pg.install',
+      title: 'Get the Copilot app',
+      image: 'shared/github-copilot-app',
+      caption:
+        'Download and install the **GitHub Copilot app** for your system from [github.com/features/ai/github-app](https://github.com/features/ai/github-app). Then open it and select **Sign in to GitHub**.',
+      source: src('installation'),
+    },
+    {
       id: 'pg.prereqs',
       title: 'What you need',
       caption:

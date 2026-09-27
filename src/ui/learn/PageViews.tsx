@@ -100,21 +100,24 @@ export function Spyglass({ store, spy }: { store: LearnStore; spy: NonNullable<L
   });
   if (!img) return null;
   if (!spy.full) {
+    // The caption sits outside the enlarge button so its course links stay separately clickable.
     return (
-      <button
-        type="button"
-        className="ci-spyglass"
-        onClick={() => store.expandImage()}
-        aria-label={`Enlarge: ${img.alt}`}
-      >
-        <img src={imageUrl(img.id)} alt={img.alt} />
+      <div className="ci-spyglass">
+        <button
+          type="button"
+          className="ci-spyglass-open"
+          onClick={() => store.expandImage()}
+          aria-label={`Enlarge: ${img.alt}`}
+        >
+          <img src={imageUrl(img.id)} alt={img.alt} />
+        </button>
         {spy.caption && (
           <span className="ci-spyglass-caption">
             <Rich text={spy.caption} />
           </span>
         )}
-        <span className="ci-spyglass-hint">Click to enlarge</span>
-      </button>
+        <span className="ci-spyglass-hint">Click the picture to enlarge</span>
+      </div>
     );
   }
   const wheel = (e: WheelEvent) => {

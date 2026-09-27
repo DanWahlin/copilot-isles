@@ -127,6 +127,14 @@ const HIGH_TIER_MESH_SIGNATURES: MeshSignature[] = [
     color: '531f62c5',
   },
   {
+    name: 'gangplank',
+    vertices: 408,
+    indices: 612,
+    position: '1bcd840d',
+    uv: '06091345',
+    color: '374baac5',
+  },
+  {
     name: 'lantern hanger',
     vertices: 114,
     indices: 324,

@@ -1,0 +1,117 @@
+{
+  "id": "wingman.welcome.02",
+  "speaker": "Wingman",
+  "text": "Each island teaches a chapter of the GitHub Copilot app for Beginners course, and each one has a Captain's Seal to earn.",
+  "words": [
+    {
+      "word": "Each",
+      "start": 0.067,
+      "end": 0.3
+    },
+    {
+      "word": "island",
+      "start": 0.3,
+      "end": 0.689
+    },
+    {
+      "word": "teaches",
+      "start": 0.689,
+      "end": 1.077
+    },
+    {
+      "word": "a",
+      "start": 1.077,
+      "end": 1.155
+    },
+    {
+      "word": "chapter",
+      "start": 1.155,
+      "end": 1.699
+    },
+    {
+      "word": "of",
+      "start": 1.699,
+      "end": 1.969
+    },
+    {
+      "word": "the",
+      "start": 1.969,
+      "end": 2.165
+    },
+    {
+      "word": "GitHub",
+      "start": 2.165,
+      "end": 2.669
+    },
+    {
+      "word": "Copilot",
+      "start": 2.669,
+      "end": 3.367
+    },
+    {
+      "word": "app",
+      "start": 3.367,
+      "end": 3.756
+    },
+    {
+      "word": "for",
+      "start": 3.756,
+      "end": 4.067
+    },
+    {
+      "word": "Beginners",
+      "start": 4.067,
+      "end": 4.495
+    },
+    {
+      "word": "course",
+      "start": 4.495,
+      "end": 5.155
+    },
+    {
+      "word": "and",
+      "start": 5.155,
+      "end": 5.699
+    },
+    {
+      "word": "each",
+      "start": 5.699,
+      "end": 6.009
+    },
+    {
+      "word": "one",
+      "start": 6.009,
+      "end": 6.281
+    },
+    {
+      "word": "has",
+      "start": 6.281,
+      "end": 6.475
+    },
+    {
+      "word": "a",
+      "start": 6.475,
+      "end": 6.553
+    },
+    {
+      "word": "Captain's",
+      "start": 6.553,
+      "end": 7.058
+    },
+    {
+      "word": "Seal",
+      "start": 7.058,
+      "end": 7.485
+    },
+    {
+      "word": "to",
+      "start": 7.485,
+      "end": 7.64
+    },
+    {
+      "word": "earn",
+      "start": 7.64,
+      "end": 7.89
+    }
+  ]
+}

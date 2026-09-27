@@ -74,7 +74,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
       "indices": 54,
       "path": "dry-run crane (P0.2)/moored sloop captain#0/sloop bobbing hull#0/captain flag#4",
       "position": "665d8d09",
-      "uv": "2fcc1a95",
+      "uv": "08c32461",
       "vertices": 20,
     },
     {
@@ -114,7 +114,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
       "indices": 54,
       "path": "dry-run crane (P0.2)/moored sloop guild#1/sloop bobbing hull#0/guild flag#4",
       "position": "665d8d09",
-      "uv": "2fcc1a95",
+      "uv": "08c32461",
       "vertices": 20,
     },
     {
@@ -130,7 +130,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
       "indices": 36,
       "path": "dry-run crane (P0.2)/berth 1 flag#2/you flag#1",
       "position": "d44f1991",
-      "uv": "be367c14",
+      "uv": "e6d7ed54",
       "vertices": 14,
     },
     {
@@ -146,7 +146,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
       "indices": 36,
       "path": "dry-run crane (P0.2)/berth 2 flag#3/captain flag#1",
       "position": "d44f1991",
-      "uv": "be367c14",
+      "uv": "e6d7ed54",
       "vertices": 14,
     },
     {
@@ -162,7 +162,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
       "indices": 36,
       "path": "dry-run crane (P0.2)/berth 3 flag#4/guild flag#1",
       "position": "d44f1991",
-      "uv": "be367c14",
+      "uv": "e6d7ed54",
       "vertices": 14,
     },
     {
@@ -216,7 +216,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
     {
       "color": "none",
       "indices": 6,
-      "path": "dry-run crane (P0.2)/sign: Stores for your fork#11",
+      "path": "dry-run crane (P0.2)/sign: Practice items for your fork#11",
       "position": "3056c255",
       "uv": "4990eb05",
       "vertices": 4,

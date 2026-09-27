@@ -76,11 +76,13 @@ export const COVE_NPCS: NpcSpec[] = [
     name: 'Dockhand',
     anchor: 'noticeBoard',
     clip: 'walk',
+    // A loop along the quay, seaward of the cargo crates and the harbourmaster's notice board
+    // (npcs.test.ts checks it against every village collider).
     patrol: [
-      [-118, -67.5],
-      [-96, -67.5],
-      [-92, -65.5],
-      [-120, -65.5],
+      [-118, -69.0],
+      [-93.5, -69.0],
+      [-93.5, -69.8],
+      [-119, -69.8],
     ],
     speed: 1.2,
     barks: ['Mind the bollards!', 'Tide waits for no one.', "Heard you're sailing soon. Fair winds!"],
@@ -222,8 +224,10 @@ export class NpcCrowd {
     specs.forEach((spec, i) => {
       const home = anchors[spec.anchor] ?? { ...fallback, x: fallback.x + i * 1.5 };
       const out = spec.out ?? 0;
-      const x = home.x + Math.sin(home.heading) * out;
-      const z = home.z + Math.cos(home.heading) * out;
+      // Patrollers start on their loop, so they never cut through props to reach it.
+      const start = spec.patrol?.[0];
+      const x = start ? start[0] : home.x + Math.sin(home.heading) * out;
+      const z = start ? start[1] : home.z + Math.cos(home.heading) * out;
       const y = spec.keepY ? home.y : world.groundAt(x, z);
       const heading = npcHeading(spec, home);
       const character = lib.create({ body: spec.id, tier, updateTarget });

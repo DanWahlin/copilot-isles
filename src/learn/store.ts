@@ -4,6 +4,21 @@ import { Progress } from './progress';
 import type { Page, Quiz } from './types';
 
 export type LogbookTab = 'pages' | 'glossary' | 'quests';
+
+export interface Tracker {
+  island: string;
+  chapter: string;
+  goal: string;
+  tasks: readonly {
+    id: string;
+    title: string;
+    task: string;
+    detail: string;
+    status: 'done' | 'active' | 'upcoming';
+    optional?: boolean;
+    link?: { label: string; url: string };
+  }[];
+}
 export type RevealFrom = 'page' | 'chest' | 'bottle';
 
 export interface ActiveQuiz {
@@ -34,6 +49,8 @@ export interface LearnState {
   glossary: readonly string[];
   /** Quest log lines for the Logbook: [title, detail, done]. */
   quests: readonly { id: string; title: string; detail: string; done: boolean }[];
+  /** The on-screen task tracker (island goal + key tasks), or null when there's no quest line. */
+  tracker: Tracker | null;
   /** The saved sail palette (Paint Your Sails), or null for the default. */
   sails: string | null;
   /** The palette stand's theme picker while it's open; `selected` previews on the sails. */
@@ -74,6 +91,7 @@ export class LearnStore {
       pages: progress.data.pages.slice(),
       glossary: progress.data.glossary.slice(),
       quests: [],
+      tracker: null,
       sails: progress.data.sails,
       palette: null,
     };
@@ -257,8 +275,8 @@ export class LearnStore {
     return fresh;
   };
 
-  setQuests = (quests: LearnState['quests']): void => {
-    this.set({ quests });
+  setQuests = (quests: LearnState['quests'], tracker?: Tracker | null): void => {
+    this.set(tracker === undefined ? { quests } : { quests, tracker });
   };
 
   // ---- Paint Your Sails ----
@@ -337,7 +355,7 @@ export class LearnStore {
   newGame = (): void => {
     this.reset();
     this.progress.reset();
-    this.set({ doubloons: 0, pages: [], glossary: [], quests: [], sails: null });
+    this.set({ doubloons: 0, pages: [], glossary: [], quests: [], tracker: null, sails: null });
   };
 
   private set(patch: Partial<LearnState>): void {

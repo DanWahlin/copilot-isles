@@ -366,9 +366,11 @@ const ps = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.8.p
 if (ps) {
   const focus = () => page.evaluate(() => window.__dev.session().debug.state().focus);
   /** Stands on the pier's east edge, facing the fitting on the ship's rail. */
+  // The fittings are on the ship's rail, across a narrow gap from the pier; stand on the pier's
+  // east edge (x −106, less the player's radius), as a player would.
   const standAt = async (p) => {
     await page.evaluate((p) => {
-      window.__dev.session().debug.teleport(p.x - 1.05, p.z, Math.PI / 2);
+      window.__dev.session().debug.teleport(Math.min(p.x - 1.05, -106.45), p.z, Math.PI / 2);
       window.__dev.look(Math.PI / 2 + 0.35, 0.12);
     }, p);
     await page.waitForTimeout(800);

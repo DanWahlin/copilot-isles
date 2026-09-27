@@ -11,6 +11,7 @@ import {
   Vector3,
   type Material,
 } from 'three/webgpu';
+import { frontFacing, select, texture as sampleTexture, uv, vec2 } from 'three/tsl';
 import type { TierSettings } from '../../engine/quality';
 import type { VillageKit } from '../village';
 import {
@@ -57,17 +58,24 @@ function drawFlag(kind: FlagKind): HTMLCanvasElement {
   }
   ctx.globalAlpha = 1;
 
+  // The owner's name is the point of the flag (whose fork is this?), so it's big and the emblem
+  // sits small above it.
+  ctx.save();
+  ctx.translate(256, 70);
+  ctx.scale(0.55, 0.55);
+  ctx.translate(-256, -110);
   if (kind === 'captain') drawGull(ctx, palette.mark);
   else if (kind === 'guild') drawKeys(ctx, palette.mark);
   else drawCompass(ctx, palette.mark);
+  ctx.restore();
 
-  ctx.font = 'bold 34px ui-serif, Georgia, serif';
+  ctx.font = 'bold 50px ui-serif, Georgia, serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = palette.text;
   ctx.shadowColor = 'rgba(0,0,0,0.45)';
   ctx.shadowBlur = 3;
-  ctx.fillText(kind === 'captain' ? 'M. REYES' : kind === 'guild' ? 'GUILD' : 'YOUR FORK', 256, 214);
+  ctx.fillText(kind === 'captain' ? 'REYES’S FORK' : kind === 'guild' ? 'GUILD FORK' : 'YOUR FORK', 256, 178);
   ctx.shadowBlur = 0;
   return canvas;
 }
@@ -665,12 +673,18 @@ function addFlag(
   texture.colorSpace = SRGBColorSpace;
   texture.needsUpdate = true;
   const material = new MeshStandardNodeMaterial({
-    map: texture,
     roughness: 0.78,
     metalness: 0,
     side: DoubleSide,
     transparent: false,
   });
+  // The strip's winding makes its front face look toward -z, where u runs right-to-left; mirror
+  // it there so the owner's name reads left-to-right from both sides.
+  const flagUv = uv();
+  material.colorNode = sampleTexture(
+    texture,
+    select(frontFacing, vec2(flagUv.x.oneMinus(), flagUv.y), flagUv),
+  );
   const mesh = new Mesh(geometry, material);
   mesh.name = `${kind} flag`;
   mesh.castShadow = true;
@@ -687,7 +701,7 @@ function flagGeometry(cols: number, width: number, height: number): BufferGeomet
     const u = x / cols;
     for (let y = 0; y <= 1; y += 1) {
       positions.push(u * width, (0.5 - y) * height, 0);
-      uvs.push(u, y);
+      uvs.push(u, 1 - y); // canvas textures are flipY: v = 1 is the canvas top
     }
   }
   for (let x = 0; x < cols; x += 1) {

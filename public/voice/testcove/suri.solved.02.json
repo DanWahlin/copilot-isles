@@ -1,7 +1,7 @@
 {
   "id": "suri.solved.02",
   "speaker": "Suri",
-  "text": "Last job before the Trial: Pim and Pol run the crane on the pier head. They’ll stock your fork with practice work.",
+  "text": "Last job before the Trial: Pim and Pol run the crane on the pier head. They'll add the course's practice items to your fork.",
   "words": [
     {
       "word": "Last",
@@ -16,102 +16,112 @@
     {
       "word": "before",
       "start": 0.63,
-      "end": 0.95
+      "end": 0.99
     },
     {
       "word": "the",
-      "start": 0.95,
-      "end": 1.07
+      "start": 0.99,
+      "end": 1.15
     },
     {
       "word": "Trial",
-      "start": 1.07,
-      "end": 1.67
+      "start": 1.15,
+      "end": 1.87
     },
     {
       "word": "Pim",
-      "start": 1.67,
-      "end": 2.029
-    },
-    {
-      "word": "and",
-      "start": 2.029,
+      "start": 1.87,
       "end": 2.23
     },
     {
-      "word": "Pol",
+      "word": "and",
       "start": 2.23,
-      "end": 2.55
+      "end": 2.469
     },
     {
-      "word": "run",
-      "start": 2.55,
-      "end": 2.71
-    },
-    {
-      "word": "the",
-      "start": 2.71,
+      "word": "Pol",
+      "start": 2.469,
       "end": 2.869
     },
     {
-      "word": "crane",
+      "word": "run",
       "start": 2.869,
-      "end": 3.23
-    },
-    {
-      "word": "on",
-      "start": 3.23,
-      "end": 3.309
+      "end": 3.07
     },
     {
       "word": "the",
-      "start": 3.309,
-      "end": 3.469
+      "start": 3.07,
+      "end": 3.19
+    },
+    {
+      "word": "crane",
+      "start": 3.19,
+      "end": 3.55
+    },
+    {
+      "word": "on",
+      "start": 3.55,
+      "end": 3.67
+    },
+    {
+      "word": "the",
+      "start": 3.67,
+      "end": 3.789
     },
     {
       "word": "pier",
-      "start": 3.469,
-      "end": 3.71
+      "start": 3.789,
+      "end": 4.07
     },
     {
       "word": "head",
-      "start": 3.71,
-      "end": 4.23
+      "start": 4.07,
+      "end": 4.67
     },
     {
-      "word": "They’ll",
-      "start": 4.23,
-      "end": 4.51
+      "word": "They'll",
+      "start": 4.67,
+      "end": 4.95
     },
     {
-      "word": "stock",
-      "start": 4.51,
-      "end": 4.83
+      "word": "add",
+      "start": 4.95,
+      "end": 5.19
     },
     {
-      "word": "your",
-      "start": 4.83,
-      "end": 4.99
-    },
-    {
-      "word": "fork",
-      "start": 4.99,
+      "word": "the",
+      "start": 5.19,
       "end": 5.31
     },
     {
-      "word": "with",
+      "word": "course's",
       "start": 5.31,
-      "end": 5.51
+      "end": 5.75
     },
     {
       "word": "practice",
-      "start": 5.51,
-      "end": 5.91
+      "start": 5.75,
+      "end": 6.23
     },
     {
-      "word": "work",
-      "start": 5.91,
-      "end": 6.16
+      "word": "items",
+      "start": 6.23,
+      "end": 6.55
+    },
+    {
+      "word": "to",
+      "start": 6.55,
+      "end": 6.63
+    },
+    {
+      "word": "your",
+      "start": 6.63,
+      "end": 6.83
+    },
+    {
+      "word": "fork",
+      "start": 6.83,
+      "end": 7.08
     }
   ]
 }

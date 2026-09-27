@@ -95,7 +95,8 @@ export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked:
       get z() {
         return v.z;
       },
-      radius: 1.7,
+      // From the pier edge to the rail fittings is ~2.2 m (the hull lies off the fender piles).
+      radius: 2.6,
       enabled: canUse,
       onInteract: () => void speak(id),
     });

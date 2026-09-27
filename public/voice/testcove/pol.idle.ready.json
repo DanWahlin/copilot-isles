@@ -1,0 +1,57 @@
+{
+  "id": "pol.idle.ready",
+  "speaker": "Pol",
+  "text": "The crane's all set, Captain. Come up whenever you're ready.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.05,
+      "end": 0.161625
+    },
+    {
+      "word": "crane's",
+      "start": 0.161625,
+      "end": 0.619208
+    },
+    {
+      "word": "all",
+      "start": 0.619208,
+      "end": 0.83125
+    },
+    {
+      "word": "set",
+      "start": 0.83125,
+      "end": 1.545541
+    },
+    {
+      "word": "Captain",
+      "start": 1.545541,
+      "end": 2.861166
+    },
+    {
+      "word": "Come",
+      "start": 2.861166,
+      "end": 3.062041
+    },
+    {
+      "word": "up",
+      "start": 3.062041,
+      "end": 3.274125
+    },
+    {
+      "word": "whenever",
+      "start": 3.274125,
+      "end": 3.709375
+    },
+    {
+      "word": "you're",
+      "start": 3.709375,
+      "end": 3.887958
+    },
+    {
+      "word": "ready",
+      "start": 3.887958,
+      "end": 4.137957999999999
+    }
+  ]
+}

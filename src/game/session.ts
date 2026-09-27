@@ -19,7 +19,7 @@ import { COVE_NPCS, NpcCrowd, type Npc } from './npcs';
 import { PlayerController } from './player-controller';
 import type { LearnStore } from '../learn/store';
 import { createChest, type TreasureChest } from './chest';
-import { COVE_CHESTS, npcScript, questLog } from './cove-quests';
+import { COVE_CHESTS, npcScript, questLog, questTracker } from './cove-quests';
 import { runScript, type ScriptStep } from './script';
 import { defaultShipName } from '../learn/progress';
 import { createBard } from './puzzles/bard';
@@ -187,8 +187,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const setQuest = (id: string, step: string) => {
     if (learn) learn.progress.setQuest(id, step);
     else localQuests[id] = step;
-    learn?.setQuests(questLog(quests()));
+    publishQuests();
   };
+  const publishQuests = () => learn?.setQuests(questLog(quests()), questTracker(quests()));
   if (!quests()['Q0.2']) setQuest('Q0.2', 'start');
   // Older saves: Nell's chest used to lead straight to Ezra (before Paint Your Sails), the crane
   // straight to the Trial (before Q0.8), First Words had no bard after it (before Q0.9), and the Trial
@@ -197,7 +198,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   if (quests()['Q0.7'] === 'done' && !quests()['Q0.8']) setQuest('Q0.8', 'start');
   if (quests()['Q0.8'] === 'done' && !quests()['Q0.9']) setQuest('Q0.9', 'start');
   if (quests()['Q0.10'] === 'done' && !quests()['Q0.11']) setQuest('Q0.11', 'start');
-  learn?.setQuests(questLog(quests()));
+  publishQuests();
   let scriptRunning = false;
   let disposed = false;
   // World beats a script can wait on (`{ cue }` steps), registered by the puzzles below.
@@ -286,7 +287,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const shipDocked = () => Math.hypot(dyn.pose.x - COVE.mooring.x, dyn.pose.z - COVE.mooring.z) < 1.5;
   interactions.add({
     id: 'ship:board',
-    label: () => 'Take the helm',
+    label: () => 'Board your ship',
     get x() {
       return boardPoint.x;
     },
@@ -296,7 +297,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     get z() {
       return boardPoint.z;
     },
-    radius: 3.4,
+    radius: 2.4,
     enabled: () => mode === 'walk' && shipDocked(),
     onInteract: () => void board(),
   });
@@ -703,6 +704,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   let paused = false;
   let resumedAt = 0;
   let hintTimer = o.quiet ? -1 : 2.2;
+  // A fresh voyage (Nell not met yet) gets Wingman's welcome and the first step; later sessions a
+  // short welcome back.
+  const welcomeLines = (): string[] =>
+    quests()['Q0.2'] === 'start'
+      ? ['wingman.welcome.01', 'wingman.welcome.02', 'wingman.welcome.03', 'wingman.welcome.04']
+      : ['wingman.welcome.back'];
   const listenerPos = { x: 0, y: 0, z: 0 };
   const listenerFwd = { x: 0, y: 0, z: -1 };
 
@@ -745,14 +752,13 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           else if (cooldown <= 0 && mode === 'walk') interactions.fire();
         }
 
-        if (hintTimer > 0 && (hintTimer -= dt) <= 0 && !dialogue.active)
-          void dialogue.play(['wingman.hint.01']);
+        if (hintTimer > 0 && (hintTimer -= dt) <= 0 && !dialogue.active) void dialogue.play(welcomeLines());
         if (s.hint && mode === 'walk' && !dialogue.active && !scriptRunning) hint();
 
         ship.group.updateMatrixWorld();
-        ship.group.localToWorld(
-          boardPoint.set(ship.anchors.boarding.x, ship.anchors.boarding.y, ship.anchors.boarding.z),
-        );
+        const foot = ship.anchors.gangway;
+        ship.group.localToWorld(boardPoint.set(foot.x, foot.y, foot.z));
+        ship.setGangway(mode === 'walk' && shipDocked());
 
         if (mode === 'walk') {
           const n = Math.max(1, Math.ceil(dt / (1 / 60)));

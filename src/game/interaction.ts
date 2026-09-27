@@ -42,8 +42,9 @@ export class Interactions {
       const d = Math.hypot(dx, dz);
       if (d > it.radius || Math.abs(it.y - y) > 3) continue;
       const facing = d > 0.01 ? (dx * fx + dz * fz) / d : 1;
-      // Behind you counts as 2.5× farther; the current focus gets a little stickiness.
-      const score = d * (facing < -0.2 ? 2.5 : 1.25 - 0.25 * facing) * (it === this.current ? 0.85 : 1);
+      // Behind you counts as 2.5× farther. The current focus gets a fixed 0.15 m of stickiness so it
+      // doesn't flicker; a percentage would grow with range and hold a neighbour you've walked past.
+      const score = d * (facing < -0.2 ? 2.5 : 1.25 - 0.25 * facing) - (it === this.current ? 0.15 : 0);
       if (score < bestScore) {
         bestScore = score;
         best = it;

@@ -1,77 +1,142 @@
 {
   "id": "pol.idle.waiting",
   "speaker": "Pol",
-  "text": "We stock forks once their workflows are on. See Suri at the mill first.",
+  "text": "Not yet, Captain. Our crane adds the course's practice items to your fork, and GitHub Actions has to be on first. Suri at the mill can help.",
   "words": [
     {
-      "word": "We",
-      "start": 0.05,
-      "end": 0.217416
+      "word": "Not",
+      "start": 0.0486659,
+      "end": 0.327666
     },
     {
-      "word": "stock",
-      "start": 0.217416,
-      "end": 0.541083
+      "word": "yet",
+      "start": 0.327666,
+      "end": 1.030791
     },
     {
-      "word": "forks",
-      "start": 0.541083,
-      "end": 0.931708
+      "word": "Captain",
+      "start": 1.030791,
+      "end": 2.36025
     },
     {
-      "word": "once",
-      "start": 0.931708,
-      "end": 1.233041
+      "word": "Our",
+      "start": 2.36025,
+      "end": 2.594625
     },
     {
-      "word": "their",
-      "start": 1.233041,
-      "end": 1.355791
+      "word": "crane",
+      "start": 2.594625,
+      "end": 2.996416
     },
     {
-      "word": "workflows",
-      "start": 1.355791,
-      "end": 1.936166
-    },
-    {
-      "word": "are",
-      "start": 1.936166,
-      "end": 2.148208
-    },
-    {
-      "word": "on",
-      "start": 2.148208,
-      "end": 3.33125
-    },
-    {
-      "word": "See",
-      "start": 3.33125,
-      "end": 3.64375
-    },
-    {
-      "word": "Suri",
-      "start": 3.64375,
-      "end": 4.101333
-    },
-    {
-      "word": "at",
-      "start": 4.101333,
-      "end": 4.212958
+      "word": "adds",
+      "start": 2.996416,
+      "end": 3.241958
     },
     {
       "word": "the",
-      "start": 4.212958,
-      "end": 4.291083
+      "start": 3.241958,
+      "end": 3.29775
     },
     {
-      "word": "mill",
-      "start": 4.291083,
-      "end": 4.570083
+      "word": "course's",
+      "start": 3.29775,
+      "end": 3.710708
+    },
+    {
+      "word": "practice",
+      "start": 3.710708,
+      "end": 4.090166
+    },
+    {
+      "word": "items",
+      "start": 4.090166,
+      "end": 4.4585
+    },
+    {
+      "word": "to",
+      "start": 4.4585,
+      "end": 4.536625
+    },
+    {
+      "word": "your",
+      "start": 4.536625,
+      "end": 4.670541
+    },
+    {
+      "word": "fork",
+      "start": 4.670541,
+      "end": 5.462958
+    },
+    {
+      "word": "and",
+      "start": 5.462958,
+      "end": 5.619208
+    },
+    {
+      "word": "GitHub",
+      "start": 5.619208,
+      "end": 5.954
+    },
+    {
+      "word": "Actions",
+      "start": 5.954,
+      "end": 6.445083
+    },
+    {
+      "word": "has",
+      "start": 6.445083,
+      "end": 6.6125
+    },
+    {
+      "word": "to",
+      "start": 6.6125,
+      "end": 6.679458
+    },
+    {
+      "word": "be",
+      "start": 6.679458,
+      "end": 6.858041
+    },
+    {
+      "word": "on",
+      "start": 6.858041,
+      "end": 7.003125
     },
     {
       "word": "first",
-      "start": 4.570083,
-      "end": 4.820083
+      "start": 7.003125,
+      "end": 8.329916
+    },
+    {
+      "word": "Suri",
+      "start": 8.329916,
+      "end": 8.854458
+    },
+    {
+      "word": "at",
+      "start": 8.854458,
+      "end": 8.954916
+    },
+    {
+      "word": "the",
+      "start": 8.954916,
+      "end": 9.021875
+    },
+    {
+      "word": "mill",
+      "start": 9.021875,
+      "end": 9.334375
+    },
+    {
+      "word": "can",
+      "start": 9.334375,
+      "end": 9.501791
+    },
+    {
+      "word": "help",
+      "start": 9.501791,
+      "end": 9.751791
     }
   ]
 }

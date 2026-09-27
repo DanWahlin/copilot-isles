@@ -16,6 +16,8 @@ export function ControlsScreen({ bridge }: { bridge: GameBridge }) {
             [['E'], 'Interact'],
             [['Q'], 'Wingman’s hint'],
             [['M'], 'Chart'],
+            [['J'], 'Logbook'],
+            [['T'], 'Show / hide tasks'],
             [['N'], 'Mute / unmute'],
             [['Esc'], 'Menu'],
           ]}

@@ -1,7 +1,7 @@
 {
   "id": "pim.done.01",
   "speaker": "Pim",
-  "text": "Nine pennants, five notices, seven hulls, three seals. A well-stocked fork!",
+  "text": "Nine pennants, five notices, seven hulls, three seals. Your fork's ready for practice!",
   "words": [
     {
       "word": "Nine",
@@ -44,19 +44,29 @@
       "end": 4.285708
     },
     {
-      "word": "A",
+      "word": "Your",
       "start": 4.285708,
-      "end": 4.375
+      "end": 4.419625
     },
     {
-      "word": "well-stocked",
-      "start": 4.375,
-      "end": 4.866083
+      "word": "fork's",
+      "start": 4.419625,
+      "end": 4.754458
     },
     {
-      "word": "fork",
-      "start": 4.866083,
-      "end": 5.116083
+      "word": "ready",
+      "start": 4.754458,
+      "end": 4.977666
+    },
+    {
+      "word": "for",
+      "start": 4.977666,
+      "end": 5.100458
+    },
+    {
+      "word": "practice",
+      "start": 5.100458,
+      "end": 5.350458
     }
   ]
 }

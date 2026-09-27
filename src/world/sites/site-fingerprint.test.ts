@@ -57,6 +57,7 @@ class NullCanvasContext {
   restore(): void {}
   translate(): void {}
   rotate(): void {}
+  scale(): void {}
   setLineDash(): void {}
   createLinearGradient(): CanvasGradient {
     return { addColorStop: () => undefined } as unknown as CanvasGradient;
