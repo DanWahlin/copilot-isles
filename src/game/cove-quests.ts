@@ -153,9 +153,11 @@ export function npcScript(
               caption: `Download and install it from [${APP_INSTALL_URL.replace('https://', '')}](${APP_INSTALL_URL}).`,
             },
             { say: 'nell.papers.03' },
-            // The download link lives on in the Logbook (J) and the tracker once the spyglass closes.
+            // The download link lives on in the Logbook (J) and the tracker once the spyglass closes,
+            // and Nell says so: it's the first page most captains get.
             { hide: true },
             { page: 'pg.install' },
+            { say: 'nell.papers.logbook' },
             { show: 'ch00/sign-in-to-app', caption: 'Open the app and select **Sign in to GitHub**.' },
             { say: 'nell.papers.signin' },
             { say: 'nell.papers.04' },

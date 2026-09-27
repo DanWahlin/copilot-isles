@@ -69,7 +69,8 @@ function LearnLayer({
           <span className="ci-coin" aria-label={`${s.doubloons} doubloons`}>
             {s.doubloons}
           </span>
-          <span className="ci-purse-hint">
+          {/* Glows from the first page until the player has opened the Logbook once. */}
+          <span className={`ci-purse-hint${!s.logbookOpened && s.pages.length > 0 ? ' nudge' : ''}`}>
             <kbd>J</kbd> Logbook
           </span>
         </div>
@@ -82,10 +83,12 @@ function LearnLayer({
         !s.palette &&
         !s.banner &&
         !s.spyglass && <QuestTracker tracker={s.tracker} />}
-      {s.spyglass && !s.spyglass.full && !s.quiz && <Spyglass store={store} spy={s.spyglass} />}
+      {s.spyglass && !s.spyglass.full && !s.quiz && !s.logbook.open && (
+        <Spyglass store={store} spy={s.spyglass} />
+      )}
       {s.quiz && <QuizPanel key={`${s.quiz.quiz.id}:${s.quiz.seed}`} store={store} active={s.quiz} />}
       {s.palette && !s.quiz && !s.reveal && <ThemePicker store={store} selected={s.palette.selected} />}
-      {s.reveal && !s.quiz && <PageReveal store={store} reveal={s.reveal} />}
+      {s.reveal && !s.quiz && <PageReveal store={store} reveal={s.reveal} firstTime={!s.logbookOpened} />}
       {s.logbook.open && !s.quiz && !s.reveal && <Logbook store={store} state={s} />}
       {s.banner && !s.quiz && (
         <div className="ci-learn-backdrop">
