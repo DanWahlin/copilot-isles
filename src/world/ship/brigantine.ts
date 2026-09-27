@@ -42,6 +42,7 @@ import {
   createRiggingGeometry,
   createSailGeometry,
   createSparGeometry,
+  mizzenStayPoint,
 } from './brigantine-rig';
 import { FLAG_PHASE_PERIOD, createFlagGeometry, flagYaw, makeFlagMaterial } from './ship-flags';
 import { windAt } from '../wind';
@@ -83,8 +84,14 @@ export interface Brigantine {
   setSails(paletteId: string | null): void;
   /** Paints the christened ship name onto the stern and bow name boards. */
   setName(name: string | null): void;
-  /** Shows the gangplank from the port rail down to the pier (only while moored and ashore). */
-  setGangway(visible: boolean): void;
+  /**
+   * Lowers the gangplank from the port rail to `foot` (world space, on the pier), or with null raises
+   * it. The foot stays where it's put while the rail end rides the swell; call after the ship's pose
+   * is applied each frame.
+   */
+  setGangway(foot: { x: number; y: number; z: number } | null): void;
+  /** Writes the world-space point where the plank hooks over the rail (the top of its walk). */
+  gangwayTopWorld(out: Vector3): Vector3;
   /** Plays Nell's coconut christening throw from a world-space hand position. */
   christen(from: { x: number; y: number; z: number }): Promise<void>;
   /** Writes 32 closed-polyline world-space xz points: local +x side stern→bow, then local -x side bow→stern. */
@@ -168,20 +175,27 @@ function addMesh(
   return mesh;
 }
 
+/** Where the gangplank hooks over the port rail, in ship-local space. */
+const GANGWAY_TOP = {
+  x: halfBeamAt(BOARDING_Z, sheerHeightAt(BOARDING_Z)) - 0.04,
+  y: sheerHeightAt(BOARDING_Z) + 0.04,
+  z: BOARDING_Z,
+} as const;
+/** The plank's built length (rail to GANGWAY_FOOT at a calm mooring); it stretches a little from there. */
+const GANGWAY_LENGTH = Math.hypot(GANGWAY_FOOT.x - GANGWAY_TOP.x, GANGWAY_TOP.y - GANGWAY_FOOT.y);
+
 /**
- * A plank with cleats and rope hand lines, hooked over the port rail at BOARDING_Z and sloping
- * down to GANGWAY_FOOT on the pier. Built along a pivot's +x so the slope is one rotation.
+ * A plank with cleats and rope hand lines, hooked over the port rail at GANGWAY_TOP. Built along a
+ * pivot's +x so `aimGangway` can point it at the pier with a yaw and a pitch.
  */
 function createGangway(material: Material): Group {
-  const railX = halfBeamAt(BOARDING_Z, sheerHeightAt(BOARDING_Z)) - 0.04;
-  const railY = sheerHeightAt(BOARDING_Z) + 0.04;
-  const run = GANGWAY_FOOT.x - railX;
-  const drop = railY - GANGWAY_FOOT.y;
-  const length = Math.hypot(run, drop);
+  const length = GANGWAY_LENGTH;
   const pivot = new Group();
   pivot.name = 'gangway';
-  pivot.position.set(railX, railY, BOARDING_Z);
-  pivot.rotation.z = -Math.atan2(drop, run);
+  pivot.position.set(GANGWAY_TOP.x, GANGWAY_TOP.y, GANGWAY_TOP.z);
+  // Yaw about y, then pitch about the yawed z, so +x runs from the rail to the foot.
+  pivot.rotation.order = 'YZX';
+  aimGangway(pivot, GANGWAY_FOOT);
 
   const b = new MeshBuilder();
   b.setRegion(1);
@@ -199,6 +213,17 @@ function createGangway(material: Material): Group {
   for (const z of [-0.22, 0.22]) b.addBox(-0.02, -0.08, z, 0.05, 0.16, 0.06);
   addMesh(pivot, b.build(), material, 'gangplank', true);
   return pivot;
+}
+
+/** Points the plank from the rail at `foot` (ship-local) and stretches it to reach. */
+function aimGangway(pivot: Object3D, foot: { x: number; y: number; z: number }): void {
+  const dx = foot.x - GANGWAY_TOP.x;
+  const dy = foot.y - GANGWAY_TOP.y;
+  const dz = foot.z - GANGWAY_TOP.z;
+  const run = Math.hypot(dx, dz);
+  pivot.rotation.y = Math.atan2(-dz, dx);
+  pivot.rotation.z = Math.atan2(dy, run);
+  pivot.scale.x = Math.hypot(run, dy) / GANGWAY_LENGTH;
 }
 
 function copyPose(source: ShipDynamics['pose'], target: ShipDynamics['pose']): void {
@@ -243,7 +268,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
       y: deckHeightAt(BOARDING_Z),
       z: BOARDING_Z,
     },
-    gangway: { x: GANGWAY_FOOT.x - 0.2, y: 1.8, z: GANGWAY_FOOT.z },
+    gangway: { x: GANGWAY_FOOT.x, y: 1.8, z: GANGWAY_FOOT.z },
   };
   const materials: Material[] = [];
   const register = <T extends Material>(m: T): T => {
@@ -289,6 +314,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   const gangway = createGangway(shipMaterial);
   gangway.visible = false;
   group.add(gangway);
+  const gangwayFoot = new Vector3();
   let disposed = false;
   const flagWind = new Float32Array(2);
   let flagEased = false;
@@ -319,9 +345,11 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   addMesh(lanternPivot, lanternGeo.build(), shipMaterial, 'stern lantern', false);
   group.add(lanternPivot);
 
+  // A tackle block dangling from the lower mizzen stay, swaying with the ship.
   const blockPivot = new Group();
   blockPivot.name = 'hanging block spring';
-  blockPivot.position.set(-1.15, 9.2, -4.65);
+  const blockTop = mizzenStayPoint(-4.65);
+  blockPivot.position.set(blockTop.x, blockTop.y, blockTop.z);
   const blockGeo = new MeshBuilder();
   blockGeo.setRegion(4);
   blockGeo.setColor(0x17110c);
@@ -412,8 +440,15 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     setName(name: string | null): void {
       paintShipName(name);
     },
-    setGangway(visible: boolean): void {
-      gangway.visible = visible;
+    setGangway(foot: { x: number; y: number; z: number } | null): void {
+      gangway.visible = !!foot;
+      if (!foot) return;
+      group.updateMatrixWorld();
+      aimGangway(gangway, group.worldToLocal(gangwayFoot.set(foot.x, foot.y, foot.z)));
+    },
+    gangwayTopWorld(out: Vector3): Vector3 {
+      group.updateMatrixWorld();
+      return group.localToWorld(out.set(GANGWAY_TOP.x, GANGWAY_TOP.y, GANGWAY_TOP.z));
     },
     christen(from: { x: number; y: number; z: number }): Promise<void> {
       dynamics.pose.shake = Math.max(dynamics.pose.shake, 0.18);

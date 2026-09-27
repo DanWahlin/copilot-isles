@@ -463,7 +463,7 @@ if (await page.evaluate(() => !!window.__dev.session().debug.puzzle('Q0.11.chris
   await shot('christen-talk');
   results.christening = await drive(
     'christening',
-    (s) => s.quests['Q0.11'] === 'done' && !s.dialogue && !s.reveal,
+    (s) => s.quests['Q0.11'] === 'sail' && !s.dialogue && !s.reveal,
     90000,
   );
   const sawThrow = await page.evaluate(
@@ -480,6 +480,31 @@ if (await page.evaluate(() => !!window.__dev.session().debug.puzzle('Q0.11.chris
   await shot('christen-named');
   await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.11.christen').frame(false));
   await page.waitForTimeout(1300);
+  // The gangway's down now and the compass points at it; walking up the plank takes the helm.
+  const gangway = await page.evaluate(() => window.__dev.session().debug.gangway());
+  if (!gangway.down) logs.push('[questtest] gangway still up after the christening');
+  const compass = await page.evaluate(() => {
+    const el = document.querySelector('.hud-compass');
+    return { show: !!el?.classList.contains('show'), label: el?.textContent ?? '' };
+  });
+  if (!compass.show) logs.push('[questtest] no compass after the christening');
+  else if (!/gangway/i.test(compass.label))
+    logs.push(`[questtest] compass points elsewhere: ${compass.label}`);
+  await page.evaluate(({ foot, top }) => {
+    const s = window.__dev.session();
+    const yaw = Math.atan2(top.x - foot.x, top.z - foot.z);
+    s.debug.teleport(foot.x - Math.sin(yaw) * 0.8, foot.z - Math.cos(yaw) * 0.8, yaw);
+  }, gangway);
+  await page.waitForTimeout(500);
+  await page.evaluate(() => window.__dev.hold(['KeyW'], 2600));
+  await page
+    .waitForFunction(() => window.__dev.state()?.mode === 'sail', null, { timeout: 8000 })
+    .catch(() => logs.push('[questtest] walking up the gangway did not board'));
+  const boarded = await learnState();
+  if (boarded?.quests?.['Q0.11'] !== 'done')
+    logs.push(`[questtest] Q0.11 is ${boarded?.quests?.['Q0.11']} after boarding`);
+  await page.waitForTimeout(1500);
+  await shot('boarded');
 } else logs.push('[questtest] no christening hook');
 
 await tap('KeyJ');

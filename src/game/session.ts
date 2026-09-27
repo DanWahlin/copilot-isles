@@ -19,7 +19,17 @@ import { COVE_NPCS, NpcCrowd, type Npc } from './npcs';
 import { PlayerController } from './player-controller';
 import type { LearnStore } from '../learn/store';
 import { createChest, type TreasureChest } from './chest';
-import { COVE_CHESTS, npcScript, questLog, questTracker } from './cove-quests';
+import {
+  COVE_CHESTS,
+  boardingOpen,
+  currentQuest,
+  npcScript,
+  questLog,
+  questTarget,
+  questTracker,
+} from './cove-quests';
+import { bearingOf, type CompassTarget } from './compass';
+import { plankProgress, plankSurface, type PlankSpan } from './gangway';
 import { runScript, type ScriptStep } from './script';
 import { defaultShipName } from '../learn/progress';
 import { createBard } from './puzzles/bard';
@@ -81,6 +91,14 @@ export interface GameSession {
     bottles(): { id: string; x: number; z: number; read: boolean }[];
     /** A puzzle's test hooks (state, solve, …) by id, e.g. 'P0.1'. */
     puzzle(id: string): Puzzle['debug'] | null;
+    /** Sets a quest step, e.g. to lower the gangway without playing the island (tests). */
+    quest(id: string, step: string): void;
+    /** Whether the gangway's down, and its world-space foot and top (tests). */
+    gangway(): {
+      down: boolean;
+      foot: { x: number; y: number; z: number };
+      top: { x: number; y: number; z: number };
+    };
     /** Presses Wingman's hint key. */
     hint(): void;
   };
@@ -124,10 +142,25 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const villageSurface: WalkSurface = { heightAt: village.walkable, kind: pierKind };
   const sites = cove.sites;
   const sitesSurface: WalkSurface = { heightAt: sites.heightAt, kind: 'stone' };
+  // The gangplank: its foot rests on the pier where the calm-moored ship's plank would land, and its
+  // top rides the rail each frame. Walkable only while it's down.
+  const mooring = COVE.mooring;
+  const footLocal = ship.anchors.gangway;
+  const plank: PlankSpan = {
+    top: { x: 0, y: 0, z: 0 },
+    foot: {
+      x: mooring.x + Math.cos(mooring.heading) * footLocal.x + Math.sin(mooring.heading) * footLocal.z,
+      y: footLocal.y,
+      z: mooring.z - Math.sin(mooring.heading) * footLocal.x + Math.cos(mooring.heading) * footLocal.z,
+    },
+    halfWidth: 0.3,
+    tread: 0.06,
+  };
+  let gangwayDown = false;
   const world = new CollisionWorld({
     ground,
     waves: ocean.field,
-    surfaces: [villageSurface, sitesSurface],
+    surfaces: [villageSurface, sitesSurface, plankSurface(plank, () => gangwayDown)],
     circles: [...village.colliders.circles, ...sites.colliders.circles],
     boxes: [...village.colliders.boxes, ...sites.colliders.boxes],
   });
@@ -177,7 +210,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   let mode: SessionMode = 'walk';
   let dockTime = 0;
   const interactions = new Interactions();
-  const boardPoint = new Vector3();
+  // The plank's foot sits on the pier deck, its axis half the plank's thickness up.
+  plank.foot.y = world.groundAt(plank.foot.x, plank.foot.z) + 0.035;
+  const plankTop = new Vector3();
   const tmp = new Vector3();
 
   // Quests (POC §4.4 slice): NPC scripts depend on quest state, saved with learning progress.
@@ -288,18 +323,22 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   interactions.add({
     id: 'ship:board',
     label: () => 'Board your ship',
-    get x() {
-      return boardPoint.x;
-    },
-    get y() {
-      return boardPoint.y;
-    },
-    get z() {
-      return boardPoint.z;
-    },
+    x: plank.foot.x,
+    y: plank.foot.y,
+    z: plank.foot.z,
     radius: 2.4,
     enabled: () => mode === 'walk' && shipDocked(),
-    onInteract: () => void board(),
+    onInteract: () => {
+      if (boardingOpen(quests())) return void board();
+      // Everything before the christening happens ashore, so say what's next instead.
+      const next = currentQuest(quests());
+      hud.toast(
+        next
+          ? `The gangway’s up until Anchorage is done. Next: ${next.task}.`
+          : 'The gangway’s up until your ship has her name.',
+        4.5,
+      );
+    },
   });
 
   // Treasure chests beside their NPCs; each grants a Logbook page once.
@@ -628,6 +667,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     ironsFor = 0;
     ironsNudged = false;
     hud.toast('Raise the sails with W. Steer with A and D.', 4);
+    if (quests()['Q0.11'] === 'sail') setQuest('Q0.11', 'done');
     audio?.music.setIsland('harbour');
   }
 
@@ -667,6 +707,38 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     input.enabled = true;
     await hud.fade(false);
     audio?.music.setIsland('anchorage');
+  }
+
+  /**
+   * The compass, top centre: where the camera looks, and a gold marker on the current task ashore (the
+   * nearest usable part of it) or on the pier while you're sailing. Hidden in conversations.
+   */
+  const compassDir = new Vector3();
+  function updateCompass(): void {
+    const ashore = mode === 'walk';
+    const afloat = mode === 'sail' || mode === 'docking';
+    if ((!ashore && !afloat) || dialogue.active || scriptRunning || npcs.list.some((n) => n.talking)) {
+      hud.setCompass(null);
+      return;
+    }
+    camera.getWorldDirection(compassDir);
+    let target: CompassTarget | null = null;
+    if (ashore) {
+      const goal = questTarget(quests());
+      const it = goal ? interactions.nearest(goal.ids, player.x, player.z) : null;
+      if (goal && it) {
+        const dx = it.x - player.x;
+        const dz = it.z - player.z;
+        target = { bearing: bearingOf(dx, dz), label: goal.label, distance: Math.hypot(dx, dz) };
+      }
+    } else {
+      // Home to the pier once you're out past docking range (inside it, the dock prompt takes over).
+      const dx = mooring.x - dyn.pose.x;
+      const dz = mooring.z - dyn.pose.z;
+      const distance = Math.hypot(dx, dz);
+      if (distance > DOCK_RANGE) target = { bearing: bearingOf(dx, dz), label: 'Anchorage pier', distance };
+    }
+    hud.setCompass(bearingOf(compassDir.x, compassDir.z), target);
   }
 
   // Footsteps and ship sounds.
@@ -727,6 +799,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         // A quiz, page, or Logbook owns input: freeze the walker (the world keeps living).
         if (learn?.busy) {
           hud.setPrompt(null);
+          hud.setCompass(null);
           if (mode === 'walk')
             player.step(dt, { ...s, moveX: 0, moveY: 0, jump: false, run: false }, cam.yaw, world, t);
           hero.setSpeed(0);
@@ -755,10 +828,14 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         if (hintTimer > 0 && (hintTimer -= dt) <= 0 && !dialogue.active) void dialogue.play(welcomeLines());
         if (s.hint && mode === 'walk' && !dialogue.active && !scriptRunning) hint();
 
-        ship.group.updateMatrixWorld();
-        const foot = ship.anchors.gangway;
-        ship.group.localToWorld(boardPoint.set(foot.x, foot.y, foot.z));
-        ship.setGangway(mode === 'walk' && shipDocked());
+        gangwayDown = mode === 'walk' && shipDocked() && boardingOpen(quests());
+        ship.setGangway(gangwayDown ? plank.foot : null);
+        if (gangwayDown) {
+          ship.gangwayTopWorld(plankTop);
+          plank.top.x = plankTop.x;
+          plank.top.y = plankTop.y;
+          plank.top.z = plankTop.z;
+        }
 
         if (mode === 'walk') {
           const n = Math.max(1, Math.ceil(dt / (1 / 60)));
@@ -798,6 +875,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
             dialogue.active || npcs.list.some((n) => n.talking) ? null : (focus?.label() ?? null),
           );
           cam.update(dt, camera, s, player, player.heading, sp > 0.3, world, t);
+          // Up the plank to the rail, and she's yours: over the side to the helm.
+          if (gangwayDown && !dialogue.active && !scriptRunning) {
+            const along = plankProgress(plank, player.x, player.z);
+            if (along !== null && along > 0.8) void board();
+          }
         } else if (mode === 'sail' || mode === 'docking') {
           if (mode === 'sail') helm.update(dt, s.moveX, s.moveY, dyn);
           else if (dyn.dockComplete || (dockTime += dt) > DOCK_ASSIST_MAX) void disembark();
@@ -825,6 +907,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           }
         }
 
+        updateCompass();
         hero.update(dt);
         npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
         footstepPuffs.update(dt);
@@ -903,6 +986,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           read: !!learn?.isChestOpen(id),
         })),
       puzzle: (id: string) => puzzles.find((p) => p.id === id)?.debug ?? null,
+      quest: (id: string, step: string) => setQuest(id, step),
+      gangway: () => ({ down: gangwayDown, foot: { ...plank.foot }, top: { ...plank.top } }),
       hint,
       state: () => ({
         mode,

@@ -60,7 +60,8 @@ export function createChristening(
 
   const step = () => host.quests()[QUEST];
   const paintName = () => {
-    const name = step() === 'done' || thrown ? o.shipName() : null;
+    const s = step();
+    const name = s === 'sail' || s === 'done' || thrown ? o.shipName() : null;
     if (name !== named) {
       named = name;
       o.ship.setName(name);
@@ -108,7 +109,7 @@ export function createChristening(
     update() {
       const s = step();
       // Nell walks down to the pier head for the ceremony, and home again once you've sailed off.
-      const want = s === 'start' || (s === 'done' && atPier && !far());
+      const want = s === 'start' || ((s === 'sail' || s === 'done') && atPier && !far());
       if (want !== atPier) {
         atPier = want;
         o.nell.moveTo(want ? o.spot : null);

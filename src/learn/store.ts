@@ -9,6 +9,8 @@ export interface Tracker {
   island: string;
   chapter: string;
   goal: string;
+  /** What comes after the island, shown once every task's done. */
+  next?: string;
   tasks: readonly {
     id: string;
     title: string;

@@ -757,7 +757,7 @@
       "prosody": {
         "rate": "+3%"
       },
-      "text": "Right, a quick sailing lesson. Take the helm at the gangway. W and S trim the sails, and A and D steer.",
+      "text": "Right, a quick sailing lesson. The gangway’s down now, so walk up it to take the helm. W and S trim the sails, and A and D steer.",
       "fallbackVoice": "en-US-BrianNeural"
     },
     {
@@ -767,7 +767,7 @@
       "prosody": {
         "rate": "+3%"
       },
-      "text": "Bring her back alongside the pier and press E, and I’ll help you dock.",
+      "text": "The compass up top points back to the pier. Bring her alongside and press E, and I’ll help you dock.",
       "fallbackVoice": "en-US-BrianNeural"
     },
     {
@@ -777,7 +777,7 @@
       "prosody": {
         "rate": "+3%"
       },
-      "text": "Port Meridian’s east on the chart. Press M when you’re ready to plan the passage.",
+      "text": "Port Meridian’s east on the chart, but she’s not ready for visitors yet. Until she is, these waters are yours.",
       "fallbackVoice": "en-US-BrianNeural"
     },
     {

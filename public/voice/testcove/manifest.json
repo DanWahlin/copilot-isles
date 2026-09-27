@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-27T04:40:08.251Z",
+  "generatedAt": "2026-09-27T06:38:13.070Z",
   "set": "testcove",
   "lines": [
     {
@@ -8475,22 +8475,22 @@
     {
       "id": "wingman.sail.01",
       "speaker": "Wingman",
-      "text": "Right, a quick sailing lesson. Take the helm at the gangway. W and S trim the sails, and A and D steer.",
-      "duration": 7.308,
+      "text": "Right, a quick sailing lesson. The gangway’s down now, so walk up it to take the helm. W and S trim the sails, and A and D steer.",
+      "duration": 7.507,
       "files": {
         "webm": "wingman.sail.01.webm",
         "m4a": "wingman.sail.01.m4a"
       },
-      "hash": "bc8bde445ce9f534",
+      "hash": "a67ccbe4a63ccc73",
       "words": [
         {
           "word": "Right",
           "start": 0.067,
-          "end": 0.262
+          "end": 0.3
         },
         {
           "word": "a",
-          "start": 0.262,
+          "start": 0.3,
           "end": 0.339
         },
         {
@@ -8501,97 +8501,127 @@
         {
           "word": "sailing",
           "start": 0.572,
-          "end": 1.038
+          "end": 0.961
         },
         {
           "word": "lesson",
-          "start": 1.038,
-          "end": 1.969
+          "start": 0.961,
+          "end": 1.466
         },
         {
-          "word": "Take",
-          "start": 1.969,
-          "end": 2.241
+          "word": "The",
+          "start": 1.466,
+          "end": 1.582
         },
         {
-          "word": "the",
-          "start": 2.241,
-          "end": 2.397
+          "word": "gangway’s",
+          "start": 1.582,
+          "end": 2.009
         },
         {
-          "word": "helm",
-          "start": 2.397,
-          "end": 2.707
+          "word": "down",
+          "start": 2.009,
+          "end": 2.28
         },
         {
-          "word": "at",
-          "start": 2.707,
-          "end": 2.785
+          "word": "now",
+          "start": 2.28,
+          "end": 2.514
         },
         {
-          "word": "the",
-          "start": 2.785,
+          "word": "so",
+          "start": 2.514,
+          "end": 2.631
+        },
+        {
+          "word": "walk",
+          "start": 2.631,
           "end": 2.901
         },
         {
-          "word": "gangway",
+          "word": "up",
           "start": 2.901,
-          "end": 3.833
+          "end": 3.058
         },
         {
-          "word": "W",
-          "start": 3.833,
-          "end": 4.223
+          "word": "it",
+          "start": 3.058,
+          "end": 3.135
         },
         {
-          "word": "and",
-          "start": 4.223,
-          "end": 4.495
+          "word": "to",
+          "start": 3.135,
+          "end": 3.29
         },
         {
-          "word": "S",
-          "start": 4.495,
-          "end": 4.766
-        },
-        {
-          "word": "trim",
-          "start": 4.766,
-          "end": 5.077
+          "word": "take",
+          "start": 3.29,
+          "end": 3.524
         },
         {
           "word": "the",
+          "start": 3.524,
+          "end": 3.64
+        },
+        {
+          "word": "helm",
+          "start": 3.64,
+          "end": 4.533
+        },
+        {
+          "word": "W",
+          "start": 4.533,
+          "end": 4.766
+        },
+        {
+          "word": "and",
+          "start": 4.766,
+          "end": 4.961
+        },
+        {
+          "word": "S",
+          "start": 4.961,
+          "end": 5.077
+        },
+        {
+          "word": "trim",
           "start": 5.077,
-          "end": 5.194
+          "end": 5.349
+        },
+        {
+          "word": "the",
+          "start": 5.349,
+          "end": 5.466
         },
         {
           "word": "sails",
-          "start": 5.194,
-          "end": 5.699
+          "start": 5.466,
+          "end": 5.932
         },
         {
           "word": "and",
-          "start": 5.699,
-          "end": 5.97
+          "start": 5.932,
+          "end": 6.165
         },
         {
           "word": "A",
-          "start": 5.97,
-          "end": 6.009
+          "start": 6.165,
+          "end": 6.203
         },
         {
           "word": "and",
-          "start": 6.009,
-          "end": 6.398
+          "start": 6.203,
+          "end": 6.669
         },
         {
           "word": "D",
-          "start": 6.398,
-          "end": 6.592
+          "start": 6.669,
+          "end": 6.941
         },
         {
           "word": "steer",
-          "start": 6.592,
-          "end": 6.842
+          "start": 6.941,
+          "end": 7.191
         }
       ],
       "voice": "en-US-Brian:DragonHDLatestNeural"
@@ -8599,83 +8629,113 @@
     {
       "id": "wingman.sail.02",
       "speaker": "Wingman",
-      "text": "Bring her back alongside the pier and press E, and I’ll help you dock.",
-      "duration": 3.807,
+      "text": "The compass up top points back to the pier. Bring her alongside and press E, and I’ll help you dock.",
+      "duration": 6.107,
       "files": {
         "webm": "wingman.sail.02.webm",
         "m4a": "wingman.sail.02.m4a"
       },
-      "hash": "7c94aa81c4f6e1c9",
+      "hash": "e112b2fe40afe9dc",
       "words": [
         {
-          "word": "Bring",
+          "word": "The",
           "start": 0.067,
-          "end": 0.262
+          "end": 0.184
         },
         {
-          "word": "her",
-          "start": 0.262,
-          "end": 0.378
+          "word": "compass",
+          "start": 0.184,
+          "end": 0.495
+        },
+        {
+          "word": "up",
+          "start": 0.495,
+          "end": 0.65
+        },
+        {
+          "word": "top",
+          "start": 0.65,
+          "end": 0.883
+        },
+        {
+          "word": "points",
+          "start": 0.883,
+          "end": 1.349
         },
         {
           "word": "back",
-          "start": 0.378,
-          "end": 0.611
+          "start": 1.349,
+          "end": 1.621
         },
         {
-          "word": "alongside",
-          "start": 0.611,
-          "end": 1.155
-        },
-        {
-          "word": "the",
-          "start": 1.155,
-          "end": 1.271
-        },
-        {
-          "word": "pier",
-          "start": 1.271,
-          "end": 1.582
-        },
-        {
-          "word": "and",
-          "start": 1.582,
+          "word": "to",
+          "start": 1.621,
           "end": 1.737
         },
         {
-          "word": "press",
+          "word": "the",
           "start": 1.737,
-          "end": 2.087
+          "end": 1.854
         },
         {
-          "word": "E",
-          "start": 2.087,
-          "end": 2.669
+          "word": "pier",
+          "start": 1.854,
+          "end": 2.514
+        },
+        {
+          "word": "Bring",
+          "start": 2.514,
+          "end": 2.746
+        },
+        {
+          "word": "her",
+          "start": 2.746,
+          "end": 2.863
+        },
+        {
+          "word": "alongside",
+          "start": 2.863,
+          "end": 3.524
         },
         {
           "word": "and",
-          "start": 2.669,
-          "end": 2.901
+          "start": 3.524,
+          "end": 3.717
+        },
+        {
+          "word": "press",
+          "start": 3.717,
+          "end": 4.067
+        },
+        {
+          "word": "E",
+          "start": 4.067,
+          "end": 4.922
+        },
+        {
+          "word": "and",
+          "start": 4.922,
+          "end": 5.077
         },
         {
           "word": "I’ll",
-          "start": 2.901,
-          "end": 3.058
+          "start": 5.077,
+          "end": 5.271
         },
         {
           "word": "help",
-          "start": 3.058,
-          "end": 3.251
+          "start": 5.271,
+          "end": 5.504
         },
         {
           "word": "you",
-          "start": 3.251,
-          "end": 3.367
+          "start": 5.504,
+          "end": 5.621
         },
         {
           "word": "dock",
-          "start": 3.367,
-          "end": 3.617
+          "start": 5.621,
+          "end": 5.871
         }
       ],
       "voice": "en-US-Brian:DragonHDLatestNeural"
@@ -8683,88 +8743,113 @@
     {
       "id": "wingman.sail.03",
       "speaker": "Wingman",
-      "text": "Port Meridian’s east on the chart. Press M when you’re ready to plan the passage.",
-      "duration": 4.807,
+      "text": "Port Meridian’s east on the chart, but she’s not ready for visitors yet. Until she is, these waters are yours.",
+      "duration": 6.907,
       "files": {
         "webm": "wingman.sail.03.webm",
         "m4a": "wingman.sail.03.m4a"
       },
-      "hash": "43cc74b8b1669f0c",
+      "hash": "5ceb8850b05eb22b",
       "words": [
         {
           "word": "Port",
           "start": 0.067,
-          "end": 0.223
+          "end": 0.262
         },
         {
           "word": "Meridian’s",
-          "start": 0.223,
-          "end": 0.728
+          "start": 0.262,
+          "end": 0.766
         },
         {
           "word": "east",
-          "start": 0.728,
-          "end": 1.233
+          "start": 0.766,
+          "end": 1.349
         },
         {
           "word": "on",
-          "start": 1.233,
-          "end": 1.427
-        },
-        {
-          "word": "the",
-          "start": 1.427,
+          "start": 1.349,
           "end": 1.543
         },
         {
-          "word": "chart",
+          "word": "the",
           "start": 1.543,
-          "end": 2.319
+          "end": 1.66
         },
         {
-          "word": "Press",
-          "start": 2.319,
-          "end": 2.785
+          "word": "chart",
+          "start": 1.66,
+          "end": 2.048
         },
         {
-          "word": "M",
-          "start": 2.785,
-          "end": 2.98
+          "word": "but",
+          "start": 2.048,
+          "end": 2.241
         },
         {
-          "word": "when",
-          "start": 2.98,
-          "end": 3.135
+          "word": "she’s",
+          "start": 2.241,
+          "end": 2.475
         },
         {
-          "word": "you’re",
-          "start": 3.135,
-          "end": 3.367
+          "word": "not",
+          "start": 2.475,
+          "end": 2.669
         },
         {
           "word": "ready",
-          "start": 3.367,
-          "end": 3.563
+          "start": 2.669,
+          "end": 2.941
         },
         {
-          "word": "to",
-          "start": 3.563,
-          "end": 3.717
+          "word": "for",
+          "start": 2.941,
+          "end": 3.097
         },
         {
-          "word": "plan",
-          "start": 3.717,
-          "end": 3.99
+          "word": "visitors",
+          "start": 3.097,
+          "end": 3.524
         },
         {
-          "word": "the",
-          "start": 3.99,
-          "end": 4.106
+          "word": "yet",
+          "start": 3.524,
+          "end": 3.872
         },
         {
-          "word": "passage",
-          "start": 4.106,
-          "end": 4.356
+          "word": "Until",
+          "start": 3.872,
+          "end": 4.3
+        },
+        {
+          "word": "she",
+          "start": 4.3,
+          "end": 4.611
+        },
+        {
+          "word": "is",
+          "start": 4.611,
+          "end": 5.466
+        },
+        {
+          "word": "these",
+          "start": 5.466,
+          "end": 5.737
+        },
+        {
+          "word": "waters",
+          "start": 5.737,
+          "end": 6.165
+        },
+        {
+          "word": "are",
+          "start": 6.165,
+          "end": 6.281
+        },
+        {
+          "word": "yours",
+          "start": 6.281,
+          "end": 6.531
         }
       ],
       "voice": "en-US-Brian:DragonHDLatestNeural"

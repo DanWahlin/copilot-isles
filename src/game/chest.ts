@@ -4,14 +4,17 @@ import {
   BufferAttribute,
   CanvasTexture,
   CylinderGeometry,
+  DoubleSide,
   Group,
   Mesh,
   MeshStandardNodeMaterial,
   Sprite,
+  SphereGeometry,
   SpriteNodeMaterial,
   SRGBColorSpace,
   type BufferGeometry,
 } from 'three/webgpu';
+import { float, frontFacing, select, vec3 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const W = 0.92;
@@ -23,6 +26,9 @@ const WOOD = [0.42, 0.25, 0.13] as const;
 const WOOD_DARK = [0.3, 0.17, 0.09] as const;
 const IRON = [0.16, 0.15, 0.15] as const;
 const GOLD = [0.86, 0.64, 0.22] as const;
+/** The chest's hollow, seen once the lid's up (a dark inset over the body's top). */
+const HOLLOW = [0.09, 0.055, 0.03] as const;
+const WALL = 0.045;
 
 function tint(g: BufferGeometry, c: readonly [number, number, number]): BufferGeometry {
   const n = g.getAttribute('position').count;
@@ -55,6 +61,8 @@ function lidShell(r: number, len: number, x: number, c: readonly [number, number
 }
 
 let sharedMaterial: MeshStandardNodeMaterial | null = null;
+/** The lid's shell is one surface: drawn from both sides, with the inside of the lid darker. */
+let sharedLidMaterial: MeshStandardNodeMaterial | null = null;
 let sharedGlow: CanvasTexture | null = null;
 
 function glowTexture(): CanvasTexture {
@@ -85,11 +93,21 @@ export interface TreasureChest {
 }
 
 /**
- * A small iron-banded treasure chest (2 draws, one vertex-coloured material shared by every chest)
+ * A small iron-banded treasure chest (2 draws: the body, and a double-sided lid; both materials are
+ * shared by every chest)
  * with a warm shimmer until it's opened.
  */
 export function createChest(): TreasureChest {
   sharedMaterial ??= new MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.18 });
+  if (!sharedLidMaterial) {
+    sharedLidMaterial = new MeshStandardNodeMaterial({
+      vertexColors: true,
+      roughness: 0.66,
+      metalness: 0.12,
+      side: DoubleSide,
+    });
+    sharedLidMaterial.colorNode = vec3(select(frontFacing, float(1), float(0.42)));
+  }
   const group = new Group();
   group.name = 'treasure chest';
 
@@ -103,6 +121,18 @@ export function createChest(): TreasureChest {
   for (const sx of [-1, 1])
     for (const sz of [-1, 1]) parts.push(box(0.09, 0.09, 0.09, (sx * W) / 2, 0.045, (sz * D) / 2, GOLD));
   parts.push(box(0.12, 0.14, 0.03, 0, H - 0.06, D / 2 + 0.02, GOLD));
+  // The open chest: a dark hollow inside the walls, heaped with coins (hidden under the lid until then).
+  parts.push(box(W - WALL * 2, 0.004, D - WALL * 2, 0, H + 0.002, 0, HOLLOW));
+  for (const [x, z, r, sy] of [
+    [-0.14, 0.02, 0.16, 0.42],
+    [0.12, -0.04, 0.14, 0.38],
+    [0.02, 0.08, 0.1, 0.5],
+  ] as const) {
+    const heap = new SphereGeometry(r, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2);
+    heap.scale(1, sy, 1);
+    heap.translate(x, H, z);
+    parts.push(tint(heap, GOLD));
+  }
   const bodyGeo = mergeGeometries(parts)!;
   for (const p of parts) p.dispose();
   const body = new Mesh(bodyGeo, sharedMaterial);
@@ -117,7 +147,7 @@ export function createChest(): TreasureChest {
   ];
   const lidGeo = mergeGeometries(lidParts)!;
   for (const p of lidParts) p.dispose();
-  const lid = new Mesh(lidGeo, sharedMaterial);
+  const lid = new Mesh(lidGeo, sharedLidMaterial);
   lid.castShadow = true;
   const hinge = new Group();
   hinge.position.set(0, H, -D / 2);

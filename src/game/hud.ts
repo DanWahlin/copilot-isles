@@ -1,6 +1,8 @@
+import { formatDistance, relativeBearing, type CompassTarget } from './compass';
+
 /**
- * In-game HUD (Phase 0): the interaction prompt, synced subtitles, the sailing gauge, short
- * toasts, and a terminal panel for puzzles that run commands. Plain DOM, updated only on change, so it costs nothing per frame. The React UI owns
+ * In-game HUD (Phase 0): the interaction prompt, synced subtitles, the sailing gauge, the compass,
+ * short toasts, and a terminal panel for puzzles that run commands. Plain DOM, updated only on change, so it costs nothing per frame. The React UI owns
  * menus; this stays lightweight so it can run under the canvas without re-rendering.
  */
 export interface SubtitleLine {
@@ -41,6 +43,12 @@ const WIND_DIAL_SVG =
   '<g class="arrow"><path d="M0 -19.5V-10.5M-3 -13.6L0 -10L3 -13.6"/></g>' +
   '</svg>';
 
+/** The compass window's width in px (CSS matches) and how much of the horizon it shows. */
+const COMPASS_W = 320;
+const COMPASS_SPAN_DEG = 180;
+const COMPASS_PX = COMPASS_W / COMPASS_SPAN_DEG;
+const CARDINALS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
+
 export class Hud {
   readonly root: HTMLDivElement;
   private readonly prompt: HTMLDivElement;
@@ -67,6 +75,15 @@ export class Hud {
   private toastTimer = 0;
   private subtitleTimer = 0;
   private lines = new Map<string, SubtitleLine>();
+  private readonly compass: HTMLDivElement;
+  private readonly compassStrip: HTMLDivElement;
+  private readonly compassMarker: HTMLDivElement;
+  private readonly compassName: HTMLSpanElement;
+  private readonly compassDist: HTMLSpanElement;
+  private compassShown = false;
+  private lastStripX = NaN;
+  private lastMarker = '';
+  private lastCompassLabel = '';
 
   constructor(parent: HTMLElement) {
     this.root = el('div', 'hud');
@@ -108,7 +125,44 @@ export class Hud {
     bar.append(this.termTitle);
     this.termBody = el('div', 'hud-term-body');
     this.term.append(bar, this.termBody);
-    this.root.append(this.prompt, this.subtitle, this.sail, this.toastEl, this.term, this.help, this.fadeEl);
+    this.compass = el('div', 'hud-compass');
+    const window_ = el('div', 'hud-compass-window');
+    this.compassStrip = el('div', 'hud-compass-strip');
+    // Two turns of ticks (-180° to 540°) so any heading's ±90° window is always covered.
+    for (let deg = -180; deg <= 540; deg += 15) {
+      const at = `${((deg + 180) * COMPASS_PX).toFixed(1)}px`;
+      const wrapped = ((deg % 360) + 360) % 360;
+      if (wrapped % 45 === 0) {
+        const c = text(
+          'span',
+          `hud-compass-card${wrapped % 90 === 0 ? ' major' : ''}`,
+          CARDINALS[wrapped / 45]!,
+        );
+        c.style.left = at;
+        this.compassStrip.append(c);
+      } else {
+        const tick = el('i', 'hud-compass-tick');
+        tick.style.left = at;
+        this.compassStrip.append(tick);
+      }
+    }
+    this.compassMarker = el('div', 'hud-compass-marker');
+    window_.append(this.compassStrip, el('div', 'hud-compass-lubber'), this.compassMarker);
+    const label = el('div', 'hud-compass-label');
+    this.compassName = text('span', 'name', '');
+    this.compassDist = text('span', 'dist', '');
+    label.append(this.compassName, this.compassDist);
+    this.compass.append(window_, label);
+    this.root.append(
+      this.prompt,
+      this.subtitle,
+      this.sail,
+      this.compass,
+      this.toastEl,
+      this.term,
+      this.help,
+      this.fadeEl,
+    );
     parent.append(this.root);
   }
 
@@ -214,6 +268,51 @@ export class Hud {
       this.lastPoint = wind.point;
       this.windLabel.textContent = POINT_LABEL[wind.point];
       this.sail.classList.toggle('irons', wind.point === 'in-irons');
+    }
+  }
+
+  /**
+   * The compass strip, top centre: `heading` is where the camera looks (a bearing, radians clockwise
+   * from north) and `target` the gold marker for what to do next. Null hides it (dialogue, overlays).
+   * Only touches the DOM when something visible changes.
+   */
+  setCompass(heading: number | null, target: CompassTarget | null = null): void {
+    const show = heading !== null;
+    if (show !== this.compassShown) {
+      this.compassShown = show;
+      this.compass.classList.toggle('show', show);
+    }
+    if (heading === null) return;
+    const deg = (heading * 180) / Math.PI;
+    const x = Math.round((COMPASS_W / 2 - (deg + 180) * COMPASS_PX) * 2) / 2;
+    if (x !== this.lastStripX) {
+      this.lastStripX = x;
+      this.compassStrip.style.transform = `translateX(${x}px)`;
+    }
+    let marker = 'none';
+    if (target) {
+      const rel = (relativeBearing(target.bearing, heading) * 180) / Math.PI;
+      const half = COMPASS_SPAN_DEG / 2 - 4;
+      const edge = rel < -half ? 'left' : rel > half ? 'right' : '';
+      const left = Math.round(COMPASS_W / 2 + Math.max(-half, Math.min(half, rel)) * COMPASS_PX);
+      marker = `${left}|${edge}`;
+    }
+    if (marker !== this.lastMarker) {
+      this.lastMarker = marker;
+      this.compassMarker.classList.toggle('show', marker !== 'none');
+      if (marker !== 'none') {
+        const [left, edge] = marker.split('|');
+        this.compassMarker.style.left = `${left}px`;
+        this.compassMarker.classList.toggle('edge-left', edge === 'left');
+        this.compassMarker.classList.toggle('edge-right', edge === 'right');
+      }
+    }
+    const label = target ? `${target.label}|${formatDistance(target.distance)}` : '';
+    if (label !== this.lastCompassLabel) {
+      this.lastCompassLabel = label;
+      this.compass.classList.toggle('has-target', !!target);
+      this.compassName.textContent = target?.label ?? '';
+      this.compassDist.textContent = target ? formatDistance(target.distance) : '';
     }
   }
 
