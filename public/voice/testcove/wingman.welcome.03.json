@@ -1,0 +1,77 @@
+{
+  "id": "wingman.welcome.03",
+  "speaker": "Wingman",
+  "text": "This is Anchorage Cay, the setup chapter. Start with Nell, by the harbourmaster's door.",
+  "words": [
+    {
+      "word": "This",
+      "start": 0.067,
+      "end": 0.3
+    },
+    {
+      "word": "is",
+      "start": 0.3,
+      "end": 0.495
+    },
+    {
+      "word": "Anchorage",
+      "start": 0.495,
+      "end": 1.116
+    },
+    {
+      "word": "Cay",
+      "start": 1.116,
+      "end": 1.699
+    },
+    {
+      "word": "the",
+      "start": 1.699,
+      "end": 1.854
+    },
+    {
+      "word": "setup",
+      "start": 1.854,
+      "end": 2.241
+    },
+    {
+      "word": "chapter",
+      "start": 2.241,
+      "end": 3.174
+    },
+    {
+      "word": "Start",
+      "start": 3.174,
+      "end": 3.601
+    },
+    {
+      "word": "with",
+      "start": 3.601,
+      "end": 3.833
+    },
+    {
+      "word": "Nell",
+      "start": 3.833,
+      "end": 4.495
+    },
+    {
+      "word": "by",
+      "start": 4.495,
+      "end": 4.689
+    },
+    {
+      "word": "the",
+      "start": 4.689,
+      "end": 4.805
+    },
+    {
+      "word": "harbourmaster's",
+      "start": 4.805,
+      "end": 5.621
+    },
+    {
+      "word": "door",
+      "start": 5.621,
+      "end": 5.871
+    }
+  ]
+}

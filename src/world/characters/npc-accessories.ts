@@ -196,94 +196,107 @@ function addPipe(root: Group): void {
   addHead(root, bowl);
 }
 
+// Worn and carried kit, posed in the root's frame (units scale with the body; +z forward, +x the
+// character's left) against the body's surface, then attached to a bone so it moves with the
+// walk and idle instead of hanging in the air. Reference body: hips ≈ (0, 0.37, −0.16), chest
+// front z ≈ 0.08, back z ≈ −0.28, hip sides x ≈ ±0.22.
+
 function addSash(root: Group, color: ColorHex, side: -1 | 1): void {
-  const sash = mesh(new BoxGeometry(0.09, 0.58, 0.025), mat(color), 'sash');
-  sash.position.set(side * 0.08, 0.86, 0.4);
-  sash.rotation.z = side * 0.38;
-  addRoot(root, sash);
+  const sash = mesh(new BoxGeometry(0.075, 0.46, 0.02), mat(color), 'sash');
+  sash.position.set(side * 0.01, 0.6, 0.09);
+  sash.rotation.z = side * 0.62;
+  addRoot(root, sash, 'Torso');
 }
 
 function addSatchel(root: Group, color: ColorHex, side: -1 | 1): void {
-  const bag = mesh(new BoxGeometry(0.22, 0.18, 0.08), mat(color), 'satchel');
-  bag.position.set(side * 0.34, 0.62, 0.39);
-  addRoot(root, bag);
+  const bag = mesh(new BoxGeometry(0.07, 0.16, 0.2), mat(color), 'satchel');
+  bag.position.set(side * 0.25, 0.4, -0.15);
+  addRoot(root, bag, 'Hips');
 }
 
 function addLedger(root: Group, color: ColorHex, side: -1 | 1): void {
-  const book = mesh(new BoxGeometry(0.22, 0.3, 0.035), mat(color), 'ledger');
-  book.position.set(side * 0.34, 0.82, 0.53);
-  book.rotation.set(0.05, side * 0.24, side * 0.08);
-  addRoot(root, book);
-  const page = mesh(new BoxGeometry(0.18, 0.25, 0.008), mat(0xe8dcb8), 'ledger page');
-  page.position.set(side * 0.34, 0.82, 0.553);
+  // Held flat against the chest, as if hugged.
+  const book = mesh(new BoxGeometry(0.2, 0.26, 0.035), mat(color), 'ledger');
+  book.position.set(side * 0.1, 0.52, 0.11);
+  book.rotation.set(-0.12, side * 0.18, side * 0.1);
+  addRoot(root, book, 'Torso');
+  const page = mesh(new BoxGeometry(0.17, 0.22, 0.008), mat(0xe8dcb8), 'ledger page');
+  page.position.set(side * 0.1, 0.52, 0.13);
   page.rotation.copy(book.rotation);
-  addRoot(root, page);
+  addRoot(root, page, 'Torso');
 }
 
 function addScroll(root: Group, side: -1 | 1): void {
-  const scroll = mesh(new CylinderGeometry(0.035, 0.035, 0.27, 8), mat(0xe4d1a4), 'rolled chart');
-  scroll.position.set(side * 0.36, 0.96, 0.5);
-  scroll.rotation.z = side * 1.18;
-  addRoot(root, scroll);
+  // Tucked into the satchel on the same side, poking up out of the flap.
+  const scroll = mesh(new CylinderGeometry(0.03, 0.03, 0.26, 8), mat(0xe4d1a4), 'rolled chart');
+  scroll.position.set(-side * 0.25, 0.5, -0.14);
+  scroll.rotation.x = -0.25;
+  addRoot(root, scroll, 'Hips');
 }
 
 function addSpyglass(root: Group, side: -1 | 1): void {
-  const tube = mesh(new CylinderGeometry(0.032, 0.045, 0.36, 8), mat(0xb27a35), 'spyglass');
-  tube.position.set(side * 0.34, 1.02, 0.52);
-  tube.rotation.z = Math.PI / 2;
-  addRoot(root, tube);
-  const rim = mesh(new CylinderGeometry(0.05, 0.05, 0.025, 8), mat(0xd5b75f), 'spyglass rim');
-  rim.position.set(side * 0.52, 1.02, 0.52);
-  rim.rotation.z = Math.PI / 2;
-  addRoot(root, rim);
+  // Pushed through the belt at the hip, pointing forward and a little down.
+  const tube = mesh(new CylinderGeometry(0.03, 0.04, 0.32, 8), mat(0xb27a35), 'spyglass');
+  tube.position.set(side * 0.22, 0.44, -0.08);
+  tube.rotation.x = Math.PI / 2 + 0.35;
+  addRoot(root, tube, 'Hips');
+  const rim = mesh(new CylinderGeometry(0.046, 0.046, 0.025, 8), mat(0xd5b75f), 'spyglass rim');
+  rim.position.set(side * 0.22, 0.385, 0.07);
+  rim.rotation.x = tube.rotation.x;
+  addRoot(root, rim, 'Hips');
 }
 
 function addLute(root: Group): void {
-  const body = mesh(new CylinderGeometry(0.18, 0.22, 0.055, 14), mat(0x9a5f2e), 'lute body');
-  body.position.set(-0.31, 0.65, 0.54);
+  // Slung across the back, neck up over the right shoulder.
+  const body = mesh(new CylinderGeometry(0.16, 0.2, 0.055, 14), mat(0x9a5f2e), 'lute body');
+  body.position.set(0.05, 0.5, -0.33);
   body.rotation.x = Math.PI / 2;
   body.scale.set(0.85, 1.1, 1);
-  addRoot(root, body);
+  addRoot(root, body, 'Torso');
 
-  const soundHole = mesh(new CylinderGeometry(0.055, 0.055, 0.061, 8), mat(0x382619), 'lute soundhole');
-  soundHole.position.set(-0.31, 0.66, 0.57);
+  const soundHole = mesh(new CylinderGeometry(0.05, 0.05, 0.061, 8), mat(0x382619), 'lute soundhole');
+  soundHole.position.set(0.05, 0.51, -0.36);
   soundHole.rotation.x = Math.PI / 2;
-  addRoot(root, soundHole);
+  addRoot(root, soundHole, 'Torso');
 
-  const neck = mesh(new BoxGeometry(0.045, 0.52, 0.035), mat(0x7a4625), 'lute neck');
-  neck.position.set(-0.16, 0.91, 0.54);
+  const neck = mesh(new BoxGeometry(0.045, 0.5, 0.035), mat(0x7a4625), 'lute neck');
+  neck.position.set(-0.08, 0.78, -0.33);
   neck.rotation.z = -0.46;
-  addRoot(root, neck);
+  addRoot(root, neck, 'Torso');
 
   for (const x of [-0.035, 0, 0.035]) {
-    const string = mesh(new BoxGeometry(0.006, 0.48, 0.006), mat(0xe5d6a4), 'lute string');
-    string.position.set(-0.19 + x, 0.84, 0.577);
+    const string = mesh(new BoxGeometry(0.006, 0.46, 0.006), mat(0xe5d6a4), 'lute string');
+    string.position.set(-0.04 + x, 0.7, -0.362);
     string.rotation.z = -0.39;
-    addRoot(root, string);
+    addRoot(root, string, 'Torso');
   }
 }
 
 function addFishingRod(root: Group): void {
+  // Tucked under the right arm, raised forward over the water.
   const rod = mesh(new CylinderGeometry(0.01, 0.014, 1.2, 8), mat(0x5d4027), 'fishing rod');
-  rod.position.set(0.48, 0.74, 0.18);
-  rod.rotation.set(0.12, 0.18, -0.32);
-  addRoot(root, rod);
+  const tilt = 0.95;
+  rod.position.set(-0.27, 0.42 + Math.cos(tilt) * 0.5, -0.12 + Math.sin(tilt) * 0.5);
+  rod.rotation.x = tilt;
+  addRoot(root, rod, 'Torso');
 }
 
 function addBucket(root: Group, color: ColorHex, side: -1 | 1): void {
+  // On the ground by the feet (it stays put while its owner idles).
   const bucket = mesh(new CylinderGeometry(0.12, 0.1, 0.18, 8), mat(color), 'fish bucket');
-  bucket.position.set(side * 0.38, 0.24, 0.32);
+  bucket.position.set(side * 0.36, 0.09, 0.02);
   addRoot(root, bucket);
 }
 
 function addTool(root: Group, metal: ColorHex, side: -1 | 1): void {
-  const handle = mesh(new BoxGeometry(0.035, 0.38, 0.035), mat(0x5c3b23), 'tool handle');
-  handle.position.set(side * 0.35, 0.78, 0.51);
-  handle.rotation.z = side * 0.22;
-  addRoot(root, handle);
-  const head = mesh(new BoxGeometry(0.16, 0.045, 0.04), mat(metal), 'tool head');
-  head.position.set(side * 0.33, 0.98, 0.51);
-  addRoot(root, head);
+  // A mallet hung from the belt, head up.
+  const handle = mesh(new BoxGeometry(0.03, 0.3, 0.03), mat(0x5c3b23), 'tool handle');
+  handle.position.set(side * 0.23, 0.33, -0.1);
+  handle.rotation.x = 0.12;
+  addRoot(root, handle, 'Hips');
+  const head = mesh(new BoxGeometry(0.05, 0.05, 0.14), mat(metal), 'tool head');
+  head.position.set(side * 0.23, 0.49, -0.08);
+  addRoot(root, head, 'Hips');
 }
 
 function addHead(root: Group, child: Mesh): void {

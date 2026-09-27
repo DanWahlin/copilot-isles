@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-25T17:30:43.775Z",
+  "generatedAt": "2026-09-26T23:37:33.031Z",
   "set": "testcove",
   "lines": [
     {
@@ -254,6 +254,496 @@
           "word": "decisions",
           "start": 4.067,
           "end": 4.317
+        }
+      ],
+      "voice": "en-US-Brian:DragonHDLatestNeural"
+    },
+    {
+      "id": "wingman.welcome.01",
+      "speaker": "Wingman",
+      "text": "Welcome to Copilot Isles, Captain! I'm Wingman, your parrot and first mate.",
+      "duration": 5.207,
+      "files": {
+        "webm": "wingman.welcome.01.webm",
+        "m4a": "wingman.welcome.01.m4a"
+      },
+      "hash": "469de1d7dba0ad1c",
+      "words": [
+        {
+          "word": "Welcome",
+          "start": 0.067,
+          "end": 0.572
+        },
+        {
+          "word": "to",
+          "start": 0.572,
+          "end": 0.766
+        },
+        {
+          "word": "Copilot",
+          "start": 0.766,
+          "end": 1.388
+        },
+        {
+          "word": "Isles",
+          "start": 1.388,
+          "end": 1.776
+        },
+        {
+          "word": "Captain",
+          "start": 1.776,
+          "end": 2.746
+        },
+        {
+          "word": "I'm",
+          "start": 2.746,
+          "end": 3.019
+        },
+        {
+          "word": "Wingman",
+          "start": 3.019,
+          "end": 3.563
+        },
+        {
+          "word": "your",
+          "start": 3.563,
+          "end": 3.756
+        },
+        {
+          "word": "parrot",
+          "start": 3.756,
+          "end": 4.223
+        },
+        {
+          "word": "and",
+          "start": 4.223,
+          "end": 4.456
+        },
+        {
+          "word": "first",
+          "start": 4.456,
+          "end": 4.805
+        },
+        {
+          "word": "mate",
+          "start": 4.805,
+          "end": 5.055
+        }
+      ],
+      "voice": "en-US-Brian:DragonHDLatestNeural"
+    },
+    {
+      "id": "wingman.welcome.02",
+      "speaker": "Wingman",
+      "text": "Each island teaches a chapter of the GitHub Copilot app for Beginners course, and each one has a Captain's Seal to earn.",
+      "duration": 8.107,
+      "files": {
+        "webm": "wingman.welcome.02.webm",
+        "m4a": "wingman.welcome.02.m4a"
+      },
+      "hash": "b673a226ca17879d",
+      "words": [
+        {
+          "word": "Each",
+          "start": 0.067,
+          "end": 0.3
+        },
+        {
+          "word": "island",
+          "start": 0.3,
+          "end": 0.689
+        },
+        {
+          "word": "teaches",
+          "start": 0.689,
+          "end": 1.077
+        },
+        {
+          "word": "a",
+          "start": 1.077,
+          "end": 1.155
+        },
+        {
+          "word": "chapter",
+          "start": 1.155,
+          "end": 1.699
+        },
+        {
+          "word": "of",
+          "start": 1.699,
+          "end": 1.969
+        },
+        {
+          "word": "the",
+          "start": 1.969,
+          "end": 2.165
+        },
+        {
+          "word": "GitHub",
+          "start": 2.165,
+          "end": 2.669
+        },
+        {
+          "word": "Copilot",
+          "start": 2.669,
+          "end": 3.367
+        },
+        {
+          "word": "app",
+          "start": 3.367,
+          "end": 3.756
+        },
+        {
+          "word": "for",
+          "start": 3.756,
+          "end": 4.067
+        },
+        {
+          "word": "Beginners",
+          "start": 4.067,
+          "end": 4.495
+        },
+        {
+          "word": "course",
+          "start": 4.495,
+          "end": 5.155
+        },
+        {
+          "word": "and",
+          "start": 5.155,
+          "end": 5.699
+        },
+        {
+          "word": "each",
+          "start": 5.699,
+          "end": 6.009
+        },
+        {
+          "word": "one",
+          "start": 6.009,
+          "end": 6.281
+        },
+        {
+          "word": "has",
+          "start": 6.281,
+          "end": 6.475
+        },
+        {
+          "word": "a",
+          "start": 6.475,
+          "end": 6.553
+        },
+        {
+          "word": "Captain's",
+          "start": 6.553,
+          "end": 7.058
+        },
+        {
+          "word": "Seal",
+          "start": 7.058,
+          "end": 7.485
+        },
+        {
+          "word": "to",
+          "start": 7.485,
+          "end": 7.64
+        },
+        {
+          "word": "earn",
+          "start": 7.64,
+          "end": 7.89
+        }
+      ],
+      "voice": "en-US-Brian:DragonHDLatestNeural"
+    },
+    {
+      "id": "wingman.welcome.03",
+      "speaker": "Wingman",
+      "text": "This is Anchorage Cay, the setup chapter. Start with Nell, by the harbourmaster's door.",
+      "duration": 6.107,
+      "files": {
+        "webm": "wingman.welcome.03.webm",
+        "m4a": "wingman.welcome.03.m4a"
+      },
+      "hash": "175ea238925e52cd",
+      "words": [
+        {
+          "word": "This",
+          "start": 0.067,
+          "end": 0.3
+        },
+        {
+          "word": "is",
+          "start": 0.3,
+          "end": 0.495
+        },
+        {
+          "word": "Anchorage",
+          "start": 0.495,
+          "end": 1.116
+        },
+        {
+          "word": "Cay",
+          "start": 1.116,
+          "end": 1.699
+        },
+        {
+          "word": "the",
+          "start": 1.699,
+          "end": 1.854
+        },
+        {
+          "word": "setup",
+          "start": 1.854,
+          "end": 2.241
+        },
+        {
+          "word": "chapter",
+          "start": 2.241,
+          "end": 3.174
+        },
+        {
+          "word": "Start",
+          "start": 3.174,
+          "end": 3.601
+        },
+        {
+          "word": "with",
+          "start": 3.601,
+          "end": 3.833
+        },
+        {
+          "word": "Nell",
+          "start": 3.833,
+          "end": 4.495
+        },
+        {
+          "word": "by",
+          "start": 4.495,
+          "end": 4.689
+        },
+        {
+          "word": "the",
+          "start": 4.689,
+          "end": 4.805
+        },
+        {
+          "word": "harbourmaster's",
+          "start": 4.805,
+          "end": 5.621
+        },
+        {
+          "word": "door",
+          "start": 5.621,
+          "end": 5.871
+        }
+      ],
+      "voice": "en-US-Brian:DragonHDLatestNeural"
+    },
+    {
+      "id": "wingman.welcome.04",
+      "speaker": "Wingman",
+      "text": "Your tasks are in the top left, and Q gets you a hint. First mate's job is hints. Captain's job is decisions.",
+      "duration": 8.207,
+      "files": {
+        "webm": "wingman.welcome.04.webm",
+        "m4a": "wingman.welcome.04.m4a"
+      },
+      "hash": "dd5433b56dcb9b31",
+      "words": [
+        {
+          "word": "Your",
+          "start": 0.067,
+          "end": 0.262
+        },
+        {
+          "word": "tasks",
+          "start": 0.262,
+          "end": 0.689
+        },
+        {
+          "word": "are",
+          "start": 0.689,
+          "end": 0.805
+        },
+        {
+          "word": "in",
+          "start": 0.805,
+          "end": 0.883
+        },
+        {
+          "word": "the",
+          "start": 0.883,
+          "end": 1
+        },
+        {
+          "word": "top",
+          "start": 1,
+          "end": 1.271
+        },
+        {
+          "word": "left",
+          "start": 1.271,
+          "end": 1.621
+        },
+        {
+          "word": "and",
+          "start": 1.621,
+          "end": 1.854
+        },
+        {
+          "word": "Q",
+          "start": 1.854,
+          "end": 2.203
+        },
+        {
+          "word": "gets",
+          "start": 2.203,
+          "end": 2.475
+        },
+        {
+          "word": "you",
+          "start": 2.475,
+          "end": 2.592
+        },
+        {
+          "word": "a",
+          "start": 2.592,
+          "end": 2.669
+        },
+        {
+          "word": "hint",
+          "start": 2.669,
+          "end": 4.029
+        },
+        {
+          "word": "First",
+          "start": 4.029,
+          "end": 4.339
+        },
+        {
+          "word": "mate's",
+          "start": 4.339,
+          "end": 4.65
+        },
+        {
+          "word": "job",
+          "start": 4.65,
+          "end": 5.038
+        },
+        {
+          "word": "is",
+          "start": 5.038,
+          "end": 5.271
+        },
+        {
+          "word": "hints",
+          "start": 5.271,
+          "end": 6.165
+        },
+        {
+          "word": "Captain's",
+          "start": 6.165,
+          "end": 6.669
+        },
+        {
+          "word": "job",
+          "start": 6.669,
+          "end": 7.135
+        },
+        {
+          "word": "is",
+          "start": 7.135,
+          "end": 7.33
+        },
+        {
+          "word": "decisions",
+          "start": 7.33,
+          "end": 7.58
+        }
+      ],
+      "voice": "en-US-Brian:DragonHDLatestNeural"
+    },
+    {
+      "id": "wingman.welcome.back",
+      "speaker": "Wingman",
+      "text": "Welcome back to Copilot Isles, Captain! Your next task is in the top left.",
+      "duration": 4.407,
+      "files": {
+        "webm": "wingman.welcome.back.webm",
+        "m4a": "wingman.welcome.back.m4a"
+      },
+      "hash": "31a20bda65d27774",
+      "words": [
+        {
+          "word": "Welcome",
+          "start": 0.067,
+          "end": 0.378
+        },
+        {
+          "word": "back",
+          "start": 0.378,
+          "end": 0.611
+        },
+        {
+          "word": "to",
+          "start": 0.611,
+          "end": 0.728
+        },
+        {
+          "word": "Copilot",
+          "start": 0.728,
+          "end": 1.271
+        },
+        {
+          "word": "Isles",
+          "start": 1.271,
+          "end": 1.543
+        },
+        {
+          "word": "Captain",
+          "start": 1.543,
+          "end": 2.319
+        },
+        {
+          "word": "Your",
+          "start": 2.319,
+          "end": 2.553
+        },
+        {
+          "word": "next",
+          "start": 2.553,
+          "end": 2.824
+        },
+        {
+          "word": "task",
+          "start": 2.824,
+          "end": 3.174
+        },
+        {
+          "word": "is",
+          "start": 3.174,
+          "end": 3.29
+        },
+        {
+          "word": "in",
+          "start": 3.29,
+          "end": 3.407
+        },
+        {
+          "word": "the",
+          "start": 3.407,
+          "end": 3.524
+        },
+        {
+          "word": "top",
+          "start": 3.524,
+          "end": 3.833
+        },
+        {
+          "word": "left",
+          "start": 3.833,
+          "end": 4.083
         }
       ],
       "voice": "en-US-Brian:DragonHDLatestNeural"
@@ -1309,13 +1799,13 @@
     {
       "id": "suri.solved.02",
       "speaker": "Suri",
-      "text": "Last job before the Trial: Pim and Pol run the crane on the pier head. They’ll stock your fork with practice work.",
-      "duration": 6.408,
+      "text": "Last job before the Trial: Pim and Pol run the crane on the pier head. They'll add the course's practice items to your fork.",
+      "duration": 7.308,
       "files": {
         "webm": "suri.solved.02.webm",
         "m4a": "suri.solved.02.m4a"
       },
-      "hash": "116d1013e41ec562",
+      "hash": "368f10a0f39cf67c",
       "words": [
         {
           "word": "Last",
@@ -1330,102 +1820,112 @@
         {
           "word": "before",
           "start": 0.63,
-          "end": 0.95
+          "end": 0.99
         },
         {
           "word": "the",
-          "start": 0.95,
-          "end": 1.07
+          "start": 0.99,
+          "end": 1.15
         },
         {
           "word": "Trial",
-          "start": 1.07,
-          "end": 1.67
+          "start": 1.15,
+          "end": 1.87
         },
         {
           "word": "Pim",
-          "start": 1.67,
-          "end": 2.029
-        },
-        {
-          "word": "and",
-          "start": 2.029,
+          "start": 1.87,
           "end": 2.23
         },
         {
-          "word": "Pol",
+          "word": "and",
           "start": 2.23,
-          "end": 2.55
+          "end": 2.469
         },
         {
-          "word": "run",
-          "start": 2.55,
-          "end": 2.71
-        },
-        {
-          "word": "the",
-          "start": 2.71,
+          "word": "Pol",
+          "start": 2.469,
           "end": 2.869
         },
         {
-          "word": "crane",
+          "word": "run",
           "start": 2.869,
-          "end": 3.23
-        },
-        {
-          "word": "on",
-          "start": 3.23,
-          "end": 3.309
+          "end": 3.07
         },
         {
           "word": "the",
-          "start": 3.309,
-          "end": 3.469
+          "start": 3.07,
+          "end": 3.19
+        },
+        {
+          "word": "crane",
+          "start": 3.19,
+          "end": 3.55
+        },
+        {
+          "word": "on",
+          "start": 3.55,
+          "end": 3.67
+        },
+        {
+          "word": "the",
+          "start": 3.67,
+          "end": 3.789
         },
         {
           "word": "pier",
-          "start": 3.469,
-          "end": 3.71
+          "start": 3.789,
+          "end": 4.07
         },
         {
           "word": "head",
-          "start": 3.71,
-          "end": 4.23
+          "start": 4.07,
+          "end": 4.67
         },
         {
-          "word": "They’ll",
-          "start": 4.23,
-          "end": 4.51
+          "word": "They'll",
+          "start": 4.67,
+          "end": 4.95
         },
         {
-          "word": "stock",
-          "start": 4.51,
-          "end": 4.83
+          "word": "add",
+          "start": 4.95,
+          "end": 5.19
         },
         {
-          "word": "your",
-          "start": 4.83,
-          "end": 4.99
-        },
-        {
-          "word": "fork",
-          "start": 4.99,
+          "word": "the",
+          "start": 5.19,
           "end": 5.31
         },
         {
-          "word": "with",
+          "word": "course's",
           "start": 5.31,
-          "end": 5.51
+          "end": 5.75
         },
         {
           "word": "practice",
-          "start": 5.51,
-          "end": 5.91
+          "start": 5.75,
+          "end": 6.23
         },
         {
-          "word": "work",
-          "start": 5.91,
-          "end": 6.16
+          "word": "items",
+          "start": 6.23,
+          "end": 6.55
+        },
+        {
+          "word": "to",
+          "start": 6.55,
+          "end": 6.63
+        },
+        {
+          "word": "your",
+          "start": 6.63,
+          "end": 6.83
+        },
+        {
+          "word": "fork",
+          "start": 6.83,
+          "end": 7.08
         }
       ],
       "voice": "en-US-Jenny:DragonHDLatestNeural"
@@ -1477,83 +1977,326 @@
     {
       "id": "pol.idle.waiting",
       "speaker": "Pol",
-      "text": "We stock forks once their workflows are on. See Suri at the mill first.",
-      "duration": 5.907,
+      "text": "Not yet, Captain. Our crane adds the course's practice items to your fork, and GitHub Actions has to be on first. Suri at the mill can help.",
+      "duration": 10.807,
       "files": {
         "webm": "pol.idle.waiting.webm",
         "m4a": "pol.idle.waiting.m4a"
       },
-      "hash": "b6d8895489e2dc41",
+      "hash": "c982b9410c154098",
       "words": [
         {
-          "word": "We",
-          "start": 0.05,
-          "end": 0.217416
+          "word": "Not",
+          "start": 0.0486659,
+          "end": 0.327666
         },
         {
-          "word": "stock",
-          "start": 0.217416,
-          "end": 0.541083
+          "word": "yet",
+          "start": 0.327666,
+          "end": 1.030791
         },
         {
-          "word": "forks",
-          "start": 0.541083,
-          "end": 0.931708
+          "word": "Captain",
+          "start": 1.030791,
+          "end": 2.36025
         },
         {
-          "word": "once",
-          "start": 0.931708,
-          "end": 1.233041
+          "word": "Our",
+          "start": 2.36025,
+          "end": 2.594625
         },
         {
-          "word": "their",
-          "start": 1.233041,
-          "end": 1.355791
+          "word": "crane",
+          "start": 2.594625,
+          "end": 2.996416
         },
         {
-          "word": "workflows",
-          "start": 1.355791,
-          "end": 1.936166
-        },
-        {
-          "word": "are",
-          "start": 1.936166,
-          "end": 2.148208
-        },
-        {
-          "word": "on",
-          "start": 2.148208,
-          "end": 3.33125
-        },
-        {
-          "word": "See",
-          "start": 3.33125,
-          "end": 3.64375
-        },
-        {
-          "word": "Suri",
-          "start": 3.64375,
-          "end": 4.101333
-        },
-        {
-          "word": "at",
-          "start": 4.101333,
-          "end": 4.212958
+          "word": "adds",
+          "start": 2.996416,
+          "end": 3.241958
         },
         {
           "word": "the",
-          "start": 4.212958,
-          "end": 4.291083
+          "start": 3.241958,
+          "end": 3.29775
         },
         {
-          "word": "mill",
-          "start": 4.291083,
-          "end": 4.570083
+          "word": "course's",
+          "start": 3.29775,
+          "end": 3.710708
+        },
+        {
+          "word": "practice",
+          "start": 3.710708,
+          "end": 4.090166
+        },
+        {
+          "word": "items",
+          "start": 4.090166,
+          "end": 4.4585
+        },
+        {
+          "word": "to",
+          "start": 4.4585,
+          "end": 4.536625
+        },
+        {
+          "word": "your",
+          "start": 4.536625,
+          "end": 4.670541
+        },
+        {
+          "word": "fork",
+          "start": 4.670541,
+          "end": 5.462958
+        },
+        {
+          "word": "and",
+          "start": 5.462958,
+          "end": 5.619208
+        },
+        {
+          "word": "GitHub",
+          "start": 5.619208,
+          "end": 5.954
+        },
+        {
+          "word": "Actions",
+          "start": 5.954,
+          "end": 6.445083
+        },
+        {
+          "word": "has",
+          "start": 6.445083,
+          "end": 6.6125
+        },
+        {
+          "word": "to",
+          "start": 6.6125,
+          "end": 6.679458
+        },
+        {
+          "word": "be",
+          "start": 6.679458,
+          "end": 6.858041
+        },
+        {
+          "word": "on",
+          "start": 6.858041,
+          "end": 7.003125
         },
         {
           "word": "first",
-          "start": 4.570083,
-          "end": 4.820083
+          "start": 7.003125,
+          "end": 8.329916
+        },
+        {
+          "word": "Suri",
+          "start": 8.329916,
+          "end": 8.854458
+        },
+        {
+          "word": "at",
+          "start": 8.854458,
+          "end": 8.954916
+        },
+        {
+          "word": "the",
+          "start": 8.954916,
+          "end": 9.021875
+        },
+        {
+          "word": "mill",
+          "start": 9.021875,
+          "end": 9.334375
+        },
+        {
+          "word": "can",
+          "start": 9.334375,
+          "end": 9.501791
+        },
+        {
+          "word": "help",
+          "start": 9.501791,
+          "end": 9.751791
+        }
+      ],
+      "voice": "en-IE-EmilyNeural"
+    },
+    {
+      "id": "pim.idle.waiting",
+      "speaker": "Pim",
+      "text": "I'm Pim, and that's Pol. Once your fork's workflows are on, we'll load it with practice issues and pull requests.",
+      "duration": 7.307,
+      "files": {
+        "webm": "pim.idle.waiting.webm",
+        "m4a": "pim.idle.waiting.m4a"
+      },
+      "hash": "c42d5f7b729e1a5d",
+      "words": [
+        {
+          "word": "I'm",
+          "start": 0.044625,
+          "end": 0.245541
+        },
+        {
+          "word": "Pim",
+          "start": 0.245541,
+          "end": 0.736625
+        },
+        {
+          "word": "and",
+          "start": 0.736625,
+          "end": 0.859375
+        },
+        {
+          "word": "that's",
+          "start": 0.859375,
+          "end": 1.082583
+        },
+        {
+          "word": "Pol.",
+          "start": 1.082583,
+          "end": 2.232125
+        },
+        {
+          "word": "Once",
+          "start": 2.232125,
+          "end": 2.477666
+        },
+        {
+          "word": "your",
+          "start": 2.477666,
+          "end": 2.589291
+        },
+        {
+          "word": "fork's",
+          "start": 2.589291,
+          "end": 2.912958
+        },
+        {
+          "word": "workflows",
+          "start": 2.912958,
+          "end": 3.404
+        },
+        {
+          "word": "are",
+          "start": 3.404,
+          "end": 3.56025
+        },
+        {
+          "word": "on",
+          "start": 3.56025,
+          "end": 4.040166
+        },
+        {
+          "word": "we'll",
+          "start": 4.040166,
+          "end": 4.18525
+        },
+        {
+          "word": "load",
+          "start": 4.18525,
+          "end": 4.4085
+        },
+        {
+          "word": "it",
+          "start": 4.4085,
+          "end": 4.508916
+        },
+        {
+          "word": "with",
+          "start": 4.508916,
+          "end": 4.665166
+        },
+        {
+          "word": "practice",
+          "start": 4.665166,
+          "end": 5.066958
+        },
+        {
+          "word": "issues",
+          "start": 5.066958,
+          "end": 5.491083
+        },
+        {
+          "word": "and",
+          "start": 5.491083,
+          "end": 5.647333
+        },
+        {
+          "word": "pull",
+          "start": 5.647333,
+          "end": 5.859375
+        },
+        {
+          "word": "requests",
+          "start": 5.859375,
+          "end": 6.109375
+        }
+      ],
+      "voice": "en-IE-ConnorNeural"
+    },
+    {
+      "id": "pol.idle.ready",
+      "speaker": "Pol",
+      "text": "The crane's all set, Captain. Come up whenever you're ready.",
+      "duration": 5.107,
+      "files": {
+        "webm": "pol.idle.ready.webm",
+        "m4a": "pol.idle.ready.m4a"
+      },
+      "hash": "69bde6a2223b2063",
+      "words": [
+        {
+          "word": "The",
+          "start": 0.05,
+          "end": 0.161625
+        },
+        {
+          "word": "crane's",
+          "start": 0.161625,
+          "end": 0.619208
+        },
+        {
+          "word": "all",
+          "start": 0.619208,
+          "end": 0.83125
+        },
+        {
+          "word": "set",
+          "start": 0.83125,
+          "end": 1.545541
+        },
+        {
+          "word": "Captain",
+          "start": 1.545541,
+          "end": 2.861166
+        },
+        {
+          "word": "Come",
+          "start": 2.861166,
+          "end": 3.062041
+        },
+        {
+          "word": "up",
+          "start": 3.062041,
+          "end": 3.274125
+        },
+        {
+          "word": "whenever",
+          "start": 3.274125,
+          "end": 3.709375
+        },
+        {
+          "word": "you're",
+          "start": 3.709375,
+          "end": 3.887958
+        },
+        {
+          "word": "ready",
+          "start": 3.887958,
+          "end": 4.137957999999999
         }
       ],
       "voice": "en-IE-EmilyNeural"
@@ -1709,13 +2452,13 @@
     {
       "id": "pim.done.01",
       "speaker": "Pim",
-      "text": "Nine pennants, five notices, seven hulls, three seals. A well-stocked fork!",
-      "duration": 6.007,
+      "text": "Nine pennants, five notices, seven hulls, three seals. Your fork's ready for practice!",
+      "duration": 6.407,
       "files": {
         "webm": "pim.done.01.webm",
         "m4a": "pim.done.01.m4a"
       },
-      "hash": "b1f8a22d309e532d",
+      "hash": "2f0e9dfa1b6697b1",
       "words": [
         {
           "word": "Nine",
@@ -1758,19 +2501,29 @@
           "end": 4.285708
         },
         {
-          "word": "A",
+          "word": "Your",
           "start": 4.285708,
-          "end": 4.375
+          "end": 4.419625
         },
         {
-          "word": "well-stocked",
-          "start": 4.375,
-          "end": 4.866083
+          "word": "fork's",
+          "start": 4.419625,
+          "end": 4.754458
         },
         {
-          "word": "fork",
-          "start": 4.866083,
-          "end": 5.116083
+          "word": "ready",
+          "start": 4.754458,
+          "end": 4.977666
+        },
+        {
+          "word": "for",
+          "start": 4.977666,
+          "end": 5.100458
+        },
+        {
+          "word": "practice",
+          "start": 5.100458,
+          "end": 5.350458
         }
       ],
       "voice": "en-IE-ConnorNeural"
@@ -1837,13 +2590,13 @@
     {
       "id": "pim.brief.01",
       "speaker": "Pim",
-      "text": "Captain! I’m Pim, that’s Pol. We stock new forks with practice work.",
-      "duration": 6.007,
+      "text": "Captain! I'm Pim, that's Pol. We add the course's practice items to new forks.",
+      "duration": 6.407,
       "files": {
         "webm": "pim.brief.01.webm",
         "m4a": "pim.brief.01.m4a"
       },
-      "hash": "d02ab1d91be016b6",
+      "hash": "23138df912663e92",
       "words": [
         {
           "word": "Captain",
@@ -1851,7 +2604,7 @@
           "end": 1.227666
         },
         {
-          "word": "I’m",
+          "word": "I'm",
           "start": 1.227666,
           "end": 1.450875
         },
@@ -1861,7 +2614,7 @@
           "end": 1.897333
         },
         {
-          "word": "that’s",
+          "word": "that's",
           "start": 1.897333,
           "end": 2.142875
         },
@@ -1873,37 +2626,47 @@
         {
           "word": "We",
           "start": 3.292416,
-          "end": 3.426333
+          "end": 3.459833
         },
         {
-          "word": "stock",
-          "start": 3.426333,
-          "end": 3.738833
+          "word": "add",
+          "start": 3.459833,
+          "end": 3.56025
         },
         {
-          "word": "new",
-          "start": 3.738833,
-          "end": 3.917416
+          "word": "the",
+          "start": 3.56025,
+          "end": 3.683041
         },
         {
-          "word": "forks",
-          "start": 3.917416,
-          "end": 4.308041
-        },
-        {
-          "word": "with",
-          "start": 4.308041,
-          "end": 4.453125
+          "word": "course's",
+          "start": 3.683041,
+          "end": 4.051333
         },
         {
           "word": "practice",
-          "start": 4.453125,
-          "end": 4.821416
+          "start": 4.051333,
+          "end": 4.464291
         },
         {
-          "word": "work",
-          "start": 4.821416,
-          "end": 5.071416
+          "word": "items",
+          "start": 4.464291,
+          "end": 4.84375
+        },
+        {
+          "word": "to",
+          "start": 4.84375,
+          "end": 4.9665
+        },
+        {
+          "word": "new",
+          "start": 4.9665,
+          "end": 5.133916
+        },
+        {
+          "word": "forks",
+          "start": 5.133916,
+          "end": 5.383916
         }
       ],
       "voice": "en-IE-ConnorNeural"
@@ -2460,43 +3223,63 @@
     {
       "id": "pol.solved.01",
       "speaker": "Pol",
-      "text": "Setup complete. Your fork’s stocked, Captain.",
-      "duration": 4.807,
+      "text": "Setup complete. Your fork has everything the course needs, Captain.",
+      "duration": 5.707,
       "files": {
         "webm": "pol.solved.01.webm",
         "m4a": "pol.solved.01.m4a"
       },
-      "hash": "725aba1cef5b4fc1",
+      "hash": "3dcca7dffe9b9567",
       "words": [
         {
           "word": "Setup",
-          "start": 0.05,
-          "end": 0.585708
+          "start": 0.0486659,
+          "end": 0.573208
         },
         {
           "word": "complete",
-          "start": 0.585708,
-          "end": 2.03525
+          "start": 0.573208,
+          "end": 2.025458
         },
         {
           "word": "Your",
-          "start": 2.03525,
-          "end": 2.314291
+          "start": 2.025458,
+          "end": 2.304458
         },
         {
-          "word": "fork’s",
-          "start": 2.314291,
-          "end": 2.72725
+          "word": "fork",
+          "start": 2.304458,
+          "end": 2.683916
         },
         {
-          "word": "stocked",
-          "start": 2.72725,
-          "end": 3.497333
+          "word": "has",
+          "start": 2.683916,
+          "end": 2.940625
+        },
+        {
+          "word": "everything",
+          "start": 2.940625,
+          "end": 3.33125
+        },
+        {
+          "word": "the",
+          "start": 3.33125,
+          "end": 3.375875
+        },
+        {
+          "word": "course",
+          "start": 3.375875,
+          "end": 3.699541
+        },
+        {
+          "word": "needs",
+          "start": 3.699541,
+          "end": 4.436166
         },
         {
           "word": "Captain",
-          "start": 3.497333,
-          "end": 3.747333
+          "start": 4.436166,
+          "end": 4.686166
         }
       ],
       "voice": "en-IE-EmilyNeural"
@@ -3120,6 +3903,110 @@
       "voice": "en-IE-EmilyNeural"
     },
     {
+      "id": "nell.papers.app",
+      "speaker": "Nell",
+      "text": "This is the GitHub Copilot app. It's where you'll give Copilot's agents their orders and check their work.",
+      "duration": 6.008,
+      "files": {
+        "webm": "nell.papers.app.webm",
+        "m4a": "nell.papers.app.m4a"
+      },
+      "hash": "b427d2b177264326",
+      "words": [
+        {
+          "word": "This",
+          "start": 0.07,
+          "end": 0.27
+        },
+        {
+          "word": "is",
+          "start": 0.27,
+          "end": 0.35
+        },
+        {
+          "word": "the",
+          "start": 0.35,
+          "end": 0.51
+        },
+        {
+          "word": "GitHub",
+          "start": 0.51,
+          "end": 0.99
+        },
+        {
+          "word": "Copilot",
+          "start": 0.99,
+          "end": 1.63
+        },
+        {
+          "word": "app.",
+          "start": 1.63,
+          "end": 2.23
+        },
+        {
+          "word": "It's",
+          "start": 2.23,
+          "end": 2.469
+        },
+        {
+          "word": "where",
+          "start": 2.469,
+          "end": 2.67
+        },
+        {
+          "word": "you'll",
+          "start": 2.67,
+          "end": 2.909
+        },
+        {
+          "word": "give",
+          "start": 2.909,
+          "end": 3.07
+        },
+        {
+          "word": "Copilot's",
+          "start": 3.07,
+          "end": 3.71
+        },
+        {
+          "word": "agents",
+          "start": 3.71,
+          "end": 4.19
+        },
+        {
+          "word": "their",
+          "start": 4.19,
+          "end": 4.39
+        },
+        {
+          "word": "orders",
+          "start": 4.39,
+          "end": 4.83
+        },
+        {
+          "word": "and",
+          "start": 4.83,
+          "end": 4.99
+        },
+        {
+          "word": "check",
+          "start": 4.99,
+          "end": 5.23
+        },
+        {
+          "word": "their",
+          "start": 5.23,
+          "end": 5.43
+        },
+        {
+          "word": "work",
+          "start": 5.43,
+          "end": 5.68
+        }
+      ],
+      "voice": "en-GB-Sonia:DragonHDLatestNeural"
+    },
+    {
       "id": "nell.papers.03",
       "speaker": "Nell",
       "text": "First things first: download and install the GitHub Copilot app for your system.",
@@ -3194,6 +4081,110 @@
           "word": "system",
           "start": 4.03,
           "end": 4.28
+        }
+      ],
+      "voice": "en-GB-Sonia:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.papers.signin",
+      "speaker": "Nell",
+      "text": "Once it's installed, open the app, select Sign in to GitHub, and sign in with your GitHub account.",
+      "duration": 6.108,
+      "files": {
+        "webm": "nell.papers.signin.webm",
+        "m4a": "nell.papers.signin.m4a"
+      },
+      "hash": "2df4394c2c0954f3",
+      "words": [
+        {
+          "word": "Once",
+          "start": 0.07,
+          "end": 0.35
+        },
+        {
+          "word": "it's",
+          "start": 0.35,
+          "end": 0.51
+        },
+        {
+          "word": "installed",
+          "start": 0.51,
+          "end": 1.11
+        },
+        {
+          "word": "open",
+          "start": 1.11,
+          "end": 1.47
+        },
+        {
+          "word": "the",
+          "start": 1.47,
+          "end": 1.59
+        },
+        {
+          "word": "app",
+          "start": 1.59,
+          "end": 2.11
+        },
+        {
+          "word": "select",
+          "start": 2.11,
+          "end": 2.59
+        },
+        {
+          "word": "Sign",
+          "start": 2.59,
+          "end": 2.949
+        },
+        {
+          "word": "in",
+          "start": 2.949,
+          "end": 3.11
+        },
+        {
+          "word": "to",
+          "start": 3.11,
+          "end": 3.23
+        },
+        {
+          "word": "GitHub",
+          "start": 3.23,
+          "end": 3.989
+        },
+        {
+          "word": "and",
+          "start": 3.989,
+          "end": 4.23
+        },
+        {
+          "word": "sign",
+          "start": 4.23,
+          "end": 4.59
+        },
+        {
+          "word": "in",
+          "start": 4.59,
+          "end": 4.75
+        },
+        {
+          "word": "with",
+          "start": 4.75,
+          "end": 4.91
+        },
+        {
+          "word": "your",
+          "start": 4.91,
+          "end": 5.07
+        },
+        {
+          "word": "GitHub",
+          "start": 5.07,
+          "end": 5.39
+        },
+        {
+          "word": "account",
+          "start": 5.39,
+          "end": 5.64
         }
       ],
       "voice": "en-GB-Sonia:DragonHDLatestNeural"

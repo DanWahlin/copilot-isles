@@ -1,0 +1,77 @@
+{
+  "id": "wingman.welcome.back",
+  "speaker": "Wingman",
+  "text": "Welcome back to Copilot Isles, Captain! Your next task is in the top left.",
+  "words": [
+    {
+      "word": "Welcome",
+      "start": 0.067,
+      "end": 0.378
+    },
+    {
+      "word": "back",
+      "start": 0.378,
+      "end": 0.611
+    },
+    {
+      "word": "to",
+      "start": 0.611,
+      "end": 0.728
+    },
+    {
+      "word": "Copilot",
+      "start": 0.728,
+      "end": 1.271
+    },
+    {
+      "word": "Isles",
+      "start": 1.271,
+      "end": 1.543
+    },
+    {
+      "word": "Captain",
+      "start": 1.543,
+      "end": 2.319
+    },
+    {
+      "word": "Your",
+      "start": 2.319,
+      "end": 2.553
+    },
+    {
+      "word": "next",
+      "start": 2.553,
+      "end": 2.824
+    },
+    {
+      "word": "task",
+      "start": 2.824,
+      "end": 3.174
+    },
+    {
+      "word": "is",
+      "start": 3.174,
+      "end": 3.29
+    },
+    {
+      "word": "in",
+      "start": 3.29,
+      "end": 3.407
+    },
+    {
+      "word": "the",
+      "start": 3.407,
+      "end": 3.524
+    },
+    {
+      "word": "top",
+      "start": 3.524,
+      "end": 3.833
+    },
+    {
+      "word": "left",
+      "start": 3.833,
+      "end": 4.083
+    }
+  ]
+}

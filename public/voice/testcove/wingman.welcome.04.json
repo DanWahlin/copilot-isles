@@ -1,0 +1,117 @@
+{
+  "id": "wingman.welcome.04",
+  "speaker": "Wingman",
+  "text": "Your tasks are in the top left, and Q gets you a hint. First mate's job is hints. Captain's job is decisions.",
+  "words": [
+    {
+      "word": "Your",
+      "start": 0.067,
+      "end": 0.262
+    },
+    {
+      "word": "tasks",
+      "start": 0.262,
+      "end": 0.689
+    },
+    {
+      "word": "are",
+      "start": 0.689,
+      "end": 0.805
+    },
+    {
+      "word": "in",
+      "start": 0.805,
+      "end": 0.883
+    },
+    {
+      "word": "the",
+      "start": 0.883,
+      "end": 1
+    },
+    {
+      "word": "top",
+      "start": 1,
+      "end": 1.271
+    },
+    {
+      "word": "left",
+      "start": 1.271,
+      "end": 1.621
+    },
+    {
+      "word": "and",
+      "start": 1.621,
+      "end": 1.854
+    },
+    {
+      "word": "Q",
+      "start": 1.854,
+      "end": 2.203
+    },
+    {
+      "word": "gets",
+      "start": 2.203,
+      "end": 2.475
+    },
+    {
+      "word": "you",
+      "start": 2.475,
+      "end": 2.592
+    },
+    {
+      "word": "a",
+      "start": 2.592,
+      "end": 2.669
+    },
+    {
+      "word": "hint",
+      "start": 2.669,
+      "end": 4.029
+    },
+    {
+      "word": "First",
+      "start": 4.029,
+      "end": 4.339
+    },
+    {
+      "word": "mate's",
+      "start": 4.339,
+      "end": 4.65
+    },
+    {
+      "word": "job",
+      "start": 4.65,
+      "end": 5.038
+    },
+    {
+      "word": "is",
+      "start": 5.038,
+      "end": 5.271
+    },
+    {
+      "word": "hints",
+      "start": 5.271,
+      "end": 6.165
+    },
+    {
+      "word": "Captain's",
+      "start": 6.165,
+      "end": 6.669
+    },
+    {
+      "word": "job",
+      "start": 6.669,
+      "end": 7.135
+    },
+    {
+      "word": "is",
+      "start": 7.135,
+      "end": 7.33
+    },
+    {
+      "word": "decisions",
+      "start": 7.33,
+      "end": 7.58
+    }
+  ]
+}

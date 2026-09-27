@@ -1525,8 +1525,10 @@ function addPierDressing(
   colliders.boxes.push({ x: pier.x - 1.35, z: -92.2, hx: 0.95, hz: 0.75, rot: -0.08, height: 1.45 });
 
   if (!low) {
-    addNetRack(buckets, pier.x - 3.05, -89.5, pier.deck, -0.15);
-    colliders.boxes.push({ x: pier.x - 3.05, z: -89.5, hx: 1.25, hz: 0.24, rot: -0.15, height: 1.8 });
+    // Along the west edge, on the deck and clear of the pile lantern at z −89.5.
+    const rackX = pier.x - pier.width * 0.5 + 0.38;
+    addNetRack(buckets, rackX, -85.6, pier.deck, Math.PI / 2);
+    colliders.boxes.push({ x: rackX, z: -85.6, hx: 1.25, hz: 0.2, rot: Math.PI / 2, height: 1.8 });
     addPierPostLantern(buckets, colliders, pier.x - pier.width * 0.5 - 0.55, pier.deck, -89.5, -1);
     addPierPostLantern(buckets, colliders, pier.x + pier.width * 0.5 + 0.55, pier.deck, -107.5, 1);
   }
@@ -1791,6 +1793,8 @@ const STREET_ROUTES: readonly (readonly StreetPoint[])[] = [
   ],
 ] as const;
 
+const MIN_PAVING_RUN = 4;
+
 function createStreetPavingGeometry(heightField: HeightField, low: boolean): BufferGeometry {
   const positions: number[] = [];
   const uvs: number[] = [];
@@ -1805,23 +1809,38 @@ function createStreetPavingGeometry(heightField: HeightField, low: boolean): Buf
     return positions.length / 3 - 1;
   };
   const pushQuad = (a: StreetPoint, b: StreetPoint, c: StreetPoint, d: StreetPoint) => {
-    const cx = (a[0] + b[0] + c[0] + d[0]) * 0.25;
-    const cz = (a[1] + b[1] + c[1] + d[1]) * 0.25;
-    if (insideAnyBuilding(cx, cz) || isReservedPuzzleGround(cx, cz) || isQuayDeckPoint(cx, cz)) return;
     const ia = addVertex(a[0], a[1]);
     const ib = addVertex(b[0], b[1]);
     const ic = addVertex(c[0], c[1]);
     const id = addVertex(d[0], d[1]);
     indices.push(ia, id, ib, ib, id, ic);
   };
+  const keep = (a: StreetPoint, b: StreetPoint, c: StreetPoint, d: StreetPoint) => {
+    const cx = (a[0] + b[0] + c[0] + d[0]) * 0.25;
+    const cz = (a[1] + b[1] + c[1] + d[1]) * 0.25;
+    return !(insideAnyBuilding(cx, cz) || isReservedPuzzleGround(cx, cz) || isQuayDeckPoint(cx, cz));
+  };
 
   for (const route of STREET_ROUTES) {
     const samples = sampleStreetRoute(route, low ? 1.0 : 0.72);
+    const quads: [StreetPoint, StreetPoint, StreetPoint, StreetPoint][] = [];
     for (let i = 0; i < samples.length - 1; i += 1) {
       const a = samples[i]!;
       const b = samples[i + 1]!;
-      pushQuad(a.left, b.left, b.right, a.right);
+      quads.push([a.left, b.left, b.right, a.right]);
     }
+    // Where a building or the quay deck cuts the street, a run of one or two leftover quads
+    // would read as a loose paving slab in the grass, so short runs are dropped.
+    let run: typeof quads = [];
+    const flush = () => {
+      if (run.length >= MIN_PAVING_RUN) for (const q of run) pushQuad(...q);
+      run = [];
+    };
+    for (const q of quads) {
+      if (keep(...q)) run.push(q);
+      else flush();
+    }
+    flush();
   }
 
   return coloredIndexedGeometry(positions, uvs, colors, indices);
@@ -2008,6 +2027,7 @@ function addStripedMarketAwning(
   addBox(buckets.wood, back.x, y - 0.08, back.z, w + 0.15, 0.11, 0.12, rot, 0x6c482d);
 }
 
+/** A fish-net drying rack: two posts and a head bar, a hemp net hung from it, and cork floats. */
 function addNetRack(
   buckets: Record<MaterialKey, BufferGeometry[]>,
   x: number,
@@ -2015,18 +2035,25 @@ function addNetRack(
   y: number,
   rot: number,
 ): void {
-  addBox(buckets.wood, x - 1.1, y, z, 0.14, 1.75, 0.14, rot, 0x664326);
-  addBox(buckets.wood, x + 1.1, y, z, 0.14, 1.75, 0.14, rot, 0x664326);
+  const net = 0x76674a;
+  const at = (lx: number, lz = 0) => localToWorld(x, z, rot, lx, lz);
+  for (const lx of [-1.1, 1.1]) {
+    const p = at(lx);
+    addBox(buckets.wood, p.x, y, p.z, 0.14, 1.75, 0.14, rot, 0x664326);
+  }
   addBox(buckets.wood, x, y + 1.48, z, 2.35, 0.12, 0.12, rot, 0x664326);
+  for (let i = 0; i < 9; i += 1) {
+    const p = at(-0.96 + i * 0.24, 0.04);
+    addBox(buckets.rope, p.x, y + 0.3, p.z, 0.028, 1.14, 0.028, rot, net);
+  }
+  for (let i = 0; i < 6; i += 1) {
+    const p = at(0, 0.04);
+    addBox(buckets.rope, p.x, y + 0.36 + i * 0.2, p.z, 1.96, 0.028, 0.028, rot, net);
+  }
   for (let i = 0; i < 5; i += 1) {
-    const p = localToWorld(x, z, rot, -0.9 + i * 0.45, 0.04);
-    addBox(buckets.rope, p.x, y + 0.25, p.z, 0.045, 1.2, 0.045, rot, 0xbba070);
+    const p = at(-0.8 + i * 0.4, 0.07);
+    addCylinder(buckets.wood, p.x, y + 1.3, p.z, 0.055, 0.055, 0.12, 8, rot, 0xd9c08a);
   }
-  for (let i = 0; i < 4; i += 1) {
-    addBox(buckets.rope, x, y + 0.42 + i * 0.27, z + 0.04, 2.0, 0.04, 0.04, rot, 0xbba070);
-  }
-  addBox(buckets.rope, x, y + 0.66, z + 0.07, 2.05, 0.035, 0.035, rot, 0xbba070, 0, 0.42);
-  addBox(buckets.rope, x, y + 1.02, z + 0.07, 2.05, 0.035, 0.035, rot, 0xbba070, 0, -0.42);
 }
 
 function addNoticeBoard(

@@ -33,6 +33,56 @@
       "fallbackVoice": "en-US-BrianNeural"
     },
     {
+      "id": "wingman.welcome.01",
+      "speaker": "Wingman",
+      "voice": "en-US-Brian:DragonHDLatestNeural",
+      "prosody": {
+        "rate": "+3%"
+      },
+      "fallbackVoice": "en-US-BrianNeural",
+      "text": "Welcome to Copilot Isles, Captain! I'm Wingman, your parrot and first mate."
+    },
+    {
+      "id": "wingman.welcome.02",
+      "speaker": "Wingman",
+      "voice": "en-US-Brian:DragonHDLatestNeural",
+      "prosody": {
+        "rate": "+3%"
+      },
+      "fallbackVoice": "en-US-BrianNeural",
+      "text": "Each island teaches a chapter of the GitHub Copilot app for Beginners course, and each one has a Captain's Seal to earn."
+    },
+    {
+      "id": "wingman.welcome.03",
+      "speaker": "Wingman",
+      "voice": "en-US-Brian:DragonHDLatestNeural",
+      "prosody": {
+        "rate": "+3%"
+      },
+      "fallbackVoice": "en-US-BrianNeural",
+      "text": "This is Anchorage Cay, the setup chapter. Start with Nell, by the harbourmaster's door."
+    },
+    {
+      "id": "wingman.welcome.04",
+      "speaker": "Wingman",
+      "voice": "en-US-Brian:DragonHDLatestNeural",
+      "prosody": {
+        "rate": "+3%"
+      },
+      "fallbackVoice": "en-US-BrianNeural",
+      "text": "Your tasks are in the top left, and Q gets you a hint. First mate's job is hints. Captain's job is decisions."
+    },
+    {
+      "id": "wingman.welcome.back",
+      "speaker": "Wingman",
+      "voice": "en-US-Brian:DragonHDLatestNeural",
+      "prosody": {
+        "rate": "+3%"
+      },
+      "fallbackVoice": "en-US-BrianNeural",
+      "text": "Welcome back to Copilot Isles, Captain! Your next task is in the top left."
+    },
+    {
       "id": "wingman.hint.02",
       "speaker": "Wingman",
       "voice": "en-US-Brian:DragonHDLatestNeural",
@@ -130,7 +180,7 @@
       "speaker": "Suri",
       "voice": "en-US-Jenny:DragonHDLatestNeural",
       "fallbackVoice": "en-US-JennyNeural",
-      "text": "Last job before the Trial: Pim and Pol run the crane on the pier head. They’ll stock your fork with practice work."
+      "text": "Last job before the Trial: Pim and Pol run the crane on the pier head. They'll add the course's practice items to your fork."
     },
     {
       "id": "pim.idle.ready",
@@ -145,10 +195,28 @@
       "id": "pol.idle.waiting",
       "speaker": "Pol",
       "voice": "en-IE-EmilyNeural",
-      "text": "We stock forks once their workflows are on. See Suri at the mill first.",
+      "text": "Not yet, Captain. Our crane adds the course's practice items to your fork, and GitHub Actions has to be on first. Suri at the mill can help.",
       "prosody": {
         "rate": "+12%"
       }
+    },
+    {
+      "id": "pim.idle.waiting",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "prosody": {
+        "rate": "+12%"
+      },
+      "text": "I'm Pim, and that's Pol. Once your fork's workflows are on, we'll load it with practice issues and pull requests."
+    },
+    {
+      "id": "pol.idle.ready",
+      "speaker": "Pol",
+      "voice": "en-IE-EmilyNeural",
+      "prosody": {
+        "rate": "+12%"
+      },
+      "text": "The crane's all set, Captain. Come up whenever you're ready."
     },
     {
       "id": "pim.crane.01",
@@ -172,7 +240,7 @@
       "id": "pim.done.01",
       "speaker": "Pim",
       "voice": "en-IE-ConnorNeural",
-      "text": "Nine pennants, five notices, seven hulls, three seals. A well-stocked fork!",
+      "text": "Nine pennants, five notices, seven hulls, three seals. Your fork's ready for practice!",
       "prosody": {
         "rate": "+12%"
       }
@@ -190,7 +258,7 @@
       "id": "pim.brief.01",
       "speaker": "Pim",
       "voice": "en-IE-ConnorNeural",
-      "text": "Captain! I’m Pim, that’s Pol. We stock new forks with practice work.",
+      "text": "Captain! I'm Pim, that's Pol. We add the course's practice items to new forks.",
       "prosody": {
         "rate": "+12%"
       }
@@ -253,7 +321,7 @@
       "id": "pol.solved.01",
       "speaker": "Pol",
       "voice": "en-IE-EmilyNeural",
-      "text": "Setup complete. Your fork’s stocked, Captain.",
+      "text": "Setup complete. Your fork has everything the course needs, Captain.",
       "prosody": {
         "rate": "+12%"
       }
@@ -322,11 +390,25 @@
       }
     },
     {
+      "id": "nell.papers.app",
+      "speaker": "Nell",
+      "voice": "en-GB-Sonia:DragonHDLatestNeural",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "This is the GitHub Copilot app. It's where you'll give Copilot's agents their orders and check their work."
+    },
+    {
       "id": "nell.papers.03",
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-SoniaNeural",
       "text": "First things first: download and install the GitHub Copilot app for your system."
+    },
+    {
+      "id": "nell.papers.signin",
+      "speaker": "Nell",
+      "voice": "en-GB-Sonia:DragonHDLatestNeural",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "Once it's installed, open the app, select Sign in to GitHub, and sign in with your GitHub account."
     },
     {
       "id": "nell.papers.04",

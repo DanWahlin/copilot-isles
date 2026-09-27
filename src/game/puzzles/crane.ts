@@ -64,6 +64,24 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
   const say = (speaker: string, line: string, s = 4.5) => host.hud.showText(speaker, line, s);
   const canUse = () => host.canAct() && started() && !state.complete && !running;
 
+  // Before the crane job starts, the capstan explains what the crane is for and who opens it.
+  host.interactions.add({
+    id: 'crane:notice',
+    label: () => 'Read the crane notice',
+    x: spots.capstan.x,
+    y: spots.capstan.y,
+    z: spots.capstan.z,
+    radius: 2.5,
+    enabled: () => host.canAct() && !started() && !state.complete,
+    onInteract: () =>
+      say(
+        'Crane notice',
+        host.quests()['Q0.6'] === 'done'
+          ? 'This crane runs the course’s setup script. Talk to Pim and Pol to start.'
+          : 'This crane runs the course’s setup script, which adds practice items to your fork. It opens once Actions is on: see Suri at the mill.',
+        6,
+      ),
+  });
   host.interactions.add({
     id: 'crane:capstan',
     label: () => 'Turn the capstan',

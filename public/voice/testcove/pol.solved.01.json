@@ -1,37 +1,57 @@
 {
   "id": "pol.solved.01",
   "speaker": "Pol",
-  "text": "Setup complete. Your fork’s stocked, Captain.",
+  "text": "Setup complete. Your fork has everything the course needs, Captain.",
   "words": [
     {
       "word": "Setup",
-      "start": 0.05,
-      "end": 0.585708
+      "start": 0.0486659,
+      "end": 0.573208
     },
     {
       "word": "complete",
-      "start": 0.585708,
-      "end": 2.03525
+      "start": 0.573208,
+      "end": 2.025458
     },
     {
       "word": "Your",
-      "start": 2.03525,
-      "end": 2.314291
+      "start": 2.025458,
+      "end": 2.304458
     },
     {
-      "word": "fork’s",
-      "start": 2.314291,
-      "end": 2.72725
+      "word": "fork",
+      "start": 2.304458,
+      "end": 2.683916
     },
     {
-      "word": "stocked",
-      "start": 2.72725,
-      "end": 3.497333
+      "word": "has",
+      "start": 2.683916,
+      "end": 2.940625
+    },
+    {
+      "word": "everything",
+      "start": 2.940625,
+      "end": 3.33125
+    },
+    {
+      "word": "the",
+      "start": 3.33125,
+      "end": 3.375875
+    },
+    {
+      "word": "course",
+      "start": 3.375875,
+      "end": 3.699541
+    },
+    {
+      "word": "needs",
+      "start": 3.699541,
+      "end": 4.436166
     },
     {
       "word": "Captain",
-      "start": 3.497333,
-      "end": 3.747333
+      "start": 4.436166,
+      "end": 4.686166
     }
   ]
 }

@@ -24,8 +24,9 @@ export const COVE = {
   /**
    * Where the brigantine moors: alongside the pier's east face, bow north toward the harbor mouth,
    * clear of the boathouse (z −93…−100). At heading π the port rail (ship-local +x) faces the pier.
+   * x keeps the widest hull ~0.15 m clear of the east fender piles and cross braces.
    */
-  mooring: { x: -102.2, z: -112.5, heading: Math.PI },
+  mooring: { x: -101.35, z: -112.5, heading: Math.PI },
   /** Juno (Q0.8) waits on the pier just north of the ship's Prompt Box and Terminal fittings. */
   firstMate: { x: -107.3, y: 1.8, z: -101.6, heading: 2.4 },
   /**

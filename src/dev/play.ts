@@ -46,7 +46,12 @@ const learn = q.has('nolearn')
             removeItem: (k) => void memory.delete(k),
           }),
     );
-if (learn) mountLearn(document.body, learn, { subscribe: () => () => {}, get: () => !!session });
+const playingListeners = new Set<() => void>();
+if (learn)
+  mountLearn(document.body, learn, {
+    subscribe: (fn) => (playingListeners.add(fn), () => playingListeners.delete(fn)),
+    get: () => !!session,
+  });
 let session: GameSession | null = null;
 let body: PlayerBody = q.get('body') === 'woman' ? 'woman' : 'man';
 
@@ -71,6 +76,7 @@ async function begin(unlock: boolean): Promise<void> {
     quiet: q.has('quiet'),
     learn,
   });
+  for (const fn of playingListeners) fn();
   document.getElementById('start')!.classList.add('hide');
   canvas.focus();
 }

@@ -3,6 +3,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import type { LearnStore } from '../../learn/store';
 import { SoundButton } from '../SoundButton';
 import { Logbook, PageReveal, Spyglass } from './PageViews';
+import { QuestTracker } from './QuestTracker';
 import { QuizPanel } from './QuizPanel';
 import { ThemePicker } from './ThemePicker';
 import './learn.css';
@@ -73,6 +74,14 @@ function LearnLayer({
           </span>
         </div>
       )}
+      {visible &&
+        s.tracker &&
+        !s.quiz &&
+        !s.reveal &&
+        !s.logbook.open &&
+        !s.palette &&
+        !s.banner &&
+        !s.spyglass && <QuestTracker tracker={s.tracker} />}
       {s.spyglass && !s.spyglass.full && !s.quiz && <Spyglass store={store} spy={s.spyglass} />}
       {s.quiz && <QuizPanel key={`${s.quiz.quiz.id}:${s.quiz.seed}`} store={store} active={s.quiz} />}
       {s.palette && !s.quiz && !s.reveal && <ThemePicker store={store} selected={s.palette.selected} />}

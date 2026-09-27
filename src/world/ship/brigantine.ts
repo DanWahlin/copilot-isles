@@ -23,6 +23,7 @@ import {
   BRIGANTINE_STATIONS,
   deckHeightAt,
   halfBeamAt,
+  sheerHeightAt,
   waterlineHalfBeamAt,
   type BuoyancyStation,
   type HullCapsule,
@@ -82,6 +83,8 @@ export interface Brigantine {
   setSails(paletteId: string | null): void;
   /** Paints the christened ship name onto the stern and bow name boards. */
   setName(name: string | null): void;
+  /** Shows the gangplank from the port rail down to the pier (only while moored and ashore). */
+  setGangway(visible: boolean): void;
   /** Plays Nell's coconut christening throw from a world-space hand position. */
   christen(from: { x: number; y: number; z: number }): Promise<void>;
   /** Writes 32 closed-polyline world-space xz points: local +x side stern→bow, then local -x side bow→stern. */
@@ -98,6 +101,8 @@ export interface Brigantine {
 interface ShipAnchors {
   helm: { x: number; y: number; z: number; heading: number };
   boarding: { x: number; y: number; z: number };
+  /** The gangplank's foot on the pier deck, where "Board your ship" is offered. */
+  gangway: { x: number; y: number; z: number };
 }
 
 const WATERLINE_POLYGON_POINTS = 32;
@@ -106,6 +111,11 @@ const BOW_STEM = { x: 0, y: 1.9, z: 13.18 } as const;
 const STERN_Z = -BRIGANTINE_HALF_LENGTH - 0.15;
 const HELM_Z = -8.85;
 const BOARDING_Z = -0.15;
+/**
+ * The gangplank's foot in ship-local space: at COVE.mooring the pier's east edge is ~4.65 m out on
+ * local +x, so the foot rests 0.4 m onto the deck (1.8 m, the pier deck height at a calm mooring).
+ */
+const GANGWAY_FOOT = { x: 5.05, y: 1.86, z: BOARDING_Z } as const;
 
 function localToWorldXZ(
   pose: ShipDynamics['pose'],
@@ -158,6 +168,39 @@ function addMesh(
   return mesh;
 }
 
+/**
+ * A plank with cleats and rope hand lines, hooked over the port rail at BOARDING_Z and sloping
+ * down to GANGWAY_FOOT on the pier. Built along a pivot's +x so the slope is one rotation.
+ */
+function createGangway(material: Material): Group {
+  const railX = halfBeamAt(BOARDING_Z, sheerHeightAt(BOARDING_Z)) - 0.04;
+  const railY = sheerHeightAt(BOARDING_Z) + 0.04;
+  const run = GANGWAY_FOOT.x - railX;
+  const drop = railY - GANGWAY_FOOT.y;
+  const length = Math.hypot(run, drop);
+  const pivot = new Group();
+  pivot.name = 'gangway';
+  pivot.position.set(railX, railY, BOARDING_Z);
+  pivot.rotation.z = -Math.atan2(drop, run);
+
+  const b = new MeshBuilder();
+  b.setRegion(1);
+  b.setColor(0xffffff);
+  b.addBox(length / 2, 0, 0, length, 0.07, 0.64);
+  for (let x = 0.3; x < length - 0.1; x += 0.34) b.addBox(x, 0.05, 0, 0.05, 0.035, 0.56);
+  for (const z of [-0.35, 0.35]) {
+    for (const x of [0.08, length / 2, length - 0.12]) b.addBox(x, 0.3, z, 0.04, 0.56, 0.04);
+  }
+  b.setRegion(5);
+  b.setColor(0xb89a6a);
+  for (const z of [-0.35, 0.35]) b.addBox(length / 2, 0.57, z, length - 0.1, 0.03, 0.03);
+  b.setRegion(4);
+  b.setColor(0xffffff);
+  for (const z of [-0.22, 0.22]) b.addBox(-0.02, -0.08, z, 0.05, 0.16, 0.06);
+  addMesh(pivot, b.build(), material, 'gangplank', true);
+  return pivot;
+}
+
 function copyPose(source: ShipDynamics['pose'], target: ShipDynamics['pose']): void {
   target.x = source.x;
   target.z = source.z;
@@ -200,6 +243,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
       y: deckHeightAt(BOARDING_Z),
       z: BOARDING_Z,
     },
+    gangway: { x: GANGWAY_FOOT.x - 0.2, y: 1.8, z: GANGWAY_FOOT.z },
   };
   const materials: Material[] = [];
   const register = <T extends Material>(m: T): T => {
@@ -242,6 +286,9 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   group.add(rigging);
   group.add(pipeSystem.group);
   group.add(christening.group);
+  const gangway = createGangway(shipMaterial);
+  gangway.visible = false;
+  group.add(gangway);
   let disposed = false;
   const flagWind = new Float32Array(2);
   let flagEased = false;
@@ -364,6 +411,9 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     },
     setName(name: string | null): void {
       paintShipName(name);
+    },
+    setGangway(visible: boolean): void {
+      gangway.visible = visible;
     },
     christen(from: { x: number; y: number; z: number }): Promise<void> {
       dynamics.pose.shake = Math.max(dynamics.pose.shake, 0.18);

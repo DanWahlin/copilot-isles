@@ -500,7 +500,7 @@ export function createCrane(o: CraneOptions): CraneSite {
 
   function boardLines(n: number): string[] {
     return [
-      'Stores for your fork',
+      'Practice items for your fork',
       ...CRANE_CARGO.map((c, k) => `${k < n ? '✓' : '○'}  ${c.count} ${c.title.toLowerCase()}`),
     ];
   }

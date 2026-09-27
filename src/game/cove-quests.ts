@@ -8,14 +8,25 @@ import type { ScriptStep } from './script';
 interface QuestDef {
   id: string;
   title: string;
+  /** The plain-words task for the on-screen tracker (what the player is doing in the app). */
+  task: string;
+  /** Optional quests only appear in the tracker once they've started. */
+  optional?: boolean;
+  /** A link the tracker keeps under this task (e.g. where to download the app). */
+  link?: { label: string; url: string };
   /** Step id → what the Logbook says to do next. `done` marks completion. */
   steps: Record<string, string>;
 }
+
+/** Chapter 00's "Download and install the GitHub Copilot app" link. */
+const APP_INSTALL_URL = 'https://github.com/features/ai/github-app';
 
 const COVE_QUESTS: readonly QuestDef[] = [
   {
     id: 'Q0.2',
     title: 'Captain’s Papers',
+    task: 'Sign in and pick a theme',
+    link: { label: 'Download the Copilot app', url: APP_INSTALL_URL },
     steps: {
       start: 'Talk to Nell Tidewell by the harbourmaster’s door.',
       chest: 'Open the chest beside Nell’s door.',
@@ -26,6 +37,7 @@ const COVE_QUESTS: readonly QuestDef[] = [
   {
     id: 'Q0.3',
     title: 'Copy the Master Chart',
+    task: 'Fork the course and add it to Projects',
     steps: {
       start: 'Ask Ezra Quill, the chartmaker, about forks.',
       done: 'Your fork is added under Projects.',
@@ -34,6 +46,7 @@ const COVE_QUESTS: readonly QuestDef[] = [
   {
     id: 'Q0.4',
     title: 'Your Own Deck',
+    task: 'Choose Local repository for setup',
     steps: {
       start: 'Find Bo Marlin, the quartermaster, at the storehouse.',
       done: 'Your setup session runs on Local repository.',
@@ -42,6 +55,7 @@ const COVE_QUESTS: readonly QuestDef[] = [
   {
     id: 'Q0.5',
     title: 'Gear Check & Right Signature',
+    task: 'Check your tools in Terminal',
     steps: {
       gear: 'Find Bo’s compass, lantern, rope coil, and spyglass around the village, and hang them on his gear rack.',
       ledger: 'Read Bo’s ledger beside the gear rack. Whose signature is on it?',
@@ -51,6 +65,7 @@ const COVE_QUESTS: readonly QuestDef[] = [
   {
     id: 'Q0.6',
     title: 'Open the Sluice',
+    task: 'Turn on Actions for your fork',
     steps: {
       start: 'Find Suri Okoye at the mill race past the storehouse.',
       sluice: 'Pull the gate lever, then turn the channels until the water reaches the wheel.',
@@ -61,16 +76,18 @@ const COVE_QUESTS: readonly QuestDef[] = [
   {
     id: 'Q0.7',
     title: 'The Dry-Run Crane',
+    task: 'Add the course practice items',
     steps: {
       start: 'Find Pim and Pol at the crane on the pier head.',
       crane: 'Aim the crane at your ship, preview with Dry-Run, check the Repository line, then pull --yes.',
       solved: 'Setup complete. Talk to Pol.',
-      done: 'Your fork is stocked with labels, issues, practice branches, and pull requests.',
+      done: 'Your fork has its practice labels, issues, branches, and pull requests.',
     },
   },
   {
     id: 'Q0.8',
     title: 'First Words',
+    task: 'Send your first prompt',
     steps: {
       start: 'Find Juno, your first mate, on the pier beside your ship.',
       pipes: 'Send the course’s first prompt to the agent. Which fitting on your ship’s rail carries it?',
@@ -80,6 +97,8 @@ const COVE_QUESTS: readonly QuestDef[] = [
   {
     id: 'Q0.9',
     title: 'Soundcheck (optional)',
+    task: 'Hear the studio analogy',
+    optional: true,
     steps: {
       start: 'Lute music’s drifting up from the lagoon. Find Lyra Wren, the bard, at her hammock.',
       done: 'Setting up the app is like prepping a studio before the first take.',
@@ -88,6 +107,7 @@ const COVE_QUESTS: readonly QuestDef[] = [
   {
     id: 'Q0.10',
     title: 'The Harbormaster’s Trial',
+    task: 'Pass the Trial to earn the Seal',
     steps: {
       start: 'Take the Trial at the lighthouse door.',
       done: 'The Seal of Anchorage is yours.',
@@ -96,6 +116,7 @@ const COVE_QUESTS: readonly QuestDef[] = [
   {
     id: 'Q0.11',
     title: 'Christen Your Ship',
+    task: 'Name your ship and set sail',
     steps: {
       start: 'Meet Nell by your bow at the pier head.',
       done: 'Your ship has her name, and the crew’s aboard.',
@@ -122,10 +143,21 @@ export function npcScript(
       if (!q['Q0.2'] || q['Q0.2'] === 'start') {
         return {
           steps: [
+            // The course's order: prerequisites, what the app is, download, then sign in.
             { say: 'nell.papers.01' },
-            { say: 'nell.papers.03' },
-            { show: 'ch00/sign-in-to-app', caption: 'Open the app and select **Sign in to GitHub**.' },
             { say: 'nell.papers.02' },
+            { show: 'shared/github-copilot-app', caption: 'The **GitHub Copilot app**.' },
+            { say: 'nell.papers.app' },
+            {
+              show: 'shared/github-copilot-app',
+              caption: `Download and install it from [${APP_INSTALL_URL.replace('https://', '')}](${APP_INSTALL_URL}).`,
+            },
+            { say: 'nell.papers.03' },
+            // The download link lives on in the Logbook (J) and the tracker once the spyglass closes.
+            { hide: true },
+            { page: 'pg.install' },
+            { show: 'ch00/sign-in-to-app', caption: 'Open the app and select **Sign in to GitHub**.' },
+            { say: 'nell.papers.signin' },
             { say: 'nell.papers.04' },
             { quiz: 'H0.1' },
             { hide: true },
@@ -231,7 +263,18 @@ export function npcScript(
       const step = q['Q0.7'];
       if (!step)
         return {
-          steps: [{ say: done(q, 'Q0.6') ? 'pim.idle.ready' : 'pol.idle.waiting' }],
+          steps: [
+            {
+              say:
+                npc === 'pim'
+                  ? done(q, 'Q0.6')
+                    ? 'pim.idle.ready'
+                    : 'pim.idle.waiting'
+                  : done(q, 'Q0.6')
+                    ? 'pol.idle.ready'
+                    : 'pol.idle.waiting',
+            },
+          ],
         };
       if (step === 'start') return { steps: CRANE_BRIEF };
       if (step === 'crane')
@@ -332,6 +375,44 @@ export const POL_SOLVED: readonly ScriptStep[] = [
   { quest: 'Q0.7', step: 'done' },
   { quest: 'Q0.8', step: 'start' },
 ];
+
+/** The island this quest line belongs to, for the tracker's header. */
+export const COVE_ISLAND = {
+  name: 'Anchorage Cay',
+  chapter: 'Chapter 00 · Setup',
+  goal: 'Set up the Copilot app and earn the Seal of Anchorage',
+} as const;
+
+export type TrackerStatus = 'done' | 'active' | 'upcoming';
+
+export interface QuestTracker {
+  island: string;
+  chapter: string;
+  goal: string;
+  tasks: readonly {
+    id: string;
+    title: string;
+    task: string;
+    detail: string;
+    status: TrackerStatus;
+    optional: boolean;
+    link?: { label: string; url: string };
+  }[];
+}
+
+/**
+ * The on-screen task list: every main quest in story order (optional ones once started), so the
+ * player always sees the island's goal, what's done, and what to do next.
+ */
+export function questTracker(q: QuestState): QuestTracker {
+  const tasks = COVE_QUESTS.filter((d) => !d.optional || q[d.id]).map((d) => {
+    const step = q[d.id];
+    const status: TrackerStatus = step === 'done' ? 'done' : step ? 'active' : 'upcoming';
+    const detail = step ? (d.steps[step] ?? '') : '';
+    return { id: d.id, title: d.title, task: d.task, detail, status, optional: !!d.optional, link: d.link };
+  });
+  return { island: COVE_ISLAND.name, chapter: COVE_ISLAND.chapter, goal: COVE_ISLAND.goal, tasks };
+}
 
 /** The quest log for the Logbook, in story order, for quests that have started. */
 export function questLog(q: QuestState): { id: string; title: string; detail: string; done: boolean }[] {

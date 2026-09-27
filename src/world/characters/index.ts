@@ -111,7 +111,8 @@ export async function loadCharacterLibrary(base = '/packs/testcove/characters'):
   );
   const captain = loaded.find((asset) => asset.key === 'captain')?.scene;
   const macaw = captain ? createMacawGeometry(captain) : null;
-  return new CharacterLibraryImpl(new Map(loaded.map((asset) => [asset.key, asset])), macaw);
+  const ernest = captain ? createMacawGeometry(captain, false) : null;
+  return new CharacterLibraryImpl(new Map(loaded.map((asset) => [asset.key, asset])), macaw, ernest);
 }
 
 class CharacterLibraryImpl implements CharacterLibrary {
@@ -122,6 +123,7 @@ class CharacterLibraryImpl implements CharacterLibrary {
   constructor(
     private readonly sources: ReadonlyMap<SourceKey, SourceAsset>,
     private readonly macaw: BufferGeometry | null,
+    private readonly ernest: BufferGeometry | null,
   ) {}
 
   create(options: CharacterCreateOptions): Character {
@@ -145,6 +147,14 @@ class CharacterLibraryImpl implements CharacterLibrary {
       addTricorn(clone);
       if (this.macaw) addShoulderMacaw(clone, this.macaw);
     }
+    // The Captain's Ernest moves from his hook arm to his left shoulder (a baked copy).
+    if (body === 'man' && this.ernest) {
+      const onArm = clone.getObjectByName('Ernest');
+      if (onArm) {
+        onArm.visible = false;
+        addShoulderMacaw(clone, this.ernest, 'UpperArmL');
+      }
+    }
     if (body === 'man' || body === 'woman') stowPlayerWeapon(clone, body);
     else dressNpcCharacter(clone, body);
     return new RuntimeCharacter(clone, source.clips, body, config, options);
@@ -160,6 +170,7 @@ class CharacterLibraryImpl implements CharacterLibrary {
       });
     }
     this.macaw?.dispose();
+    this.ernest?.dispose();
     disposeCharacterPaletteCache(this.characterPaletteCache);
   }
 }
