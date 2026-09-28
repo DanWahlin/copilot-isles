@@ -1,4 +1,4 @@
-import { AnimationClip, Bone, Group, Quaternion, QuaternionKeyframeTrack } from 'three/webgpu';
+import { AnimationClip, Bone, Group, Quaternion, QuaternionKeyframeTrack, Vector3 } from 'three/webgpu';
 import { describe, expect, it } from 'vitest';
 import { RuntimeCharacter } from './runtime-character';
 import type { BodyConfig, CharacterClip } from './types';
@@ -55,6 +55,49 @@ describe('RuntimeCharacter procedural pose layers', () => {
     expect(upperLegL.quaternion.angleTo(seatedLeg)).toBeLessThan(0.01);
     expect(torsoSwing).toBeGreaterThan(0.03);
   });
+
+  it('holds the helm with both hands on the grip, fingers closed, without drifting', () => {
+    const { group } = testRig();
+    const character = new RuntimeCharacter(
+      group,
+      new Map<CharacterClip, AnimationClip>([
+        ['idle', hipsOnlyClip('idle')],
+        ['helm', hipsOnlyClip('helm')],
+      ]),
+      'man',
+      { source: 'captain', scale: 1, radius: 0.3, height: 1.2, tint: 0xffffff } satisfies BodyConfig,
+      { body: 'man', tier: { tier: 'high', npcAnimRate: 1 } },
+    );
+    group.rotation.y = 0.7;
+    group.position.set(3, 1, -2);
+    const knuckle = group.getObjectByName('Middle2L')!;
+    const open = knuckle.quaternion.clone();
+    character.play('helm', 0);
+    character.setGrip({ y: 0.5, z: 0.35, spread: 0.3 });
+
+    const wristAt = (name: string) =>
+      group.worldToLocal(group.getObjectByName(name)!.getWorldPosition(new Vector3()));
+    for (let frame = 0; frame < 5; frame += 1) character.update(1 / 60);
+    const first = wristAt('Middle1L');
+    for (let frame = 0; frame < 120; frame += 1) character.update(1 / 60);
+    // The wrist stops just short of the grip, so the hand closes on it.
+    for (const [name, x] of [
+      ['Middle1L', 0.3],
+      ['Middle1R', -0.3],
+    ] as const) {
+      const wrist = wristAt(name);
+      expect(wrist.x).toBeCloseTo(x, 2);
+      expect(wrist.y).toBeCloseTo(0.5, 2);
+      expect(wrist.z).toBeCloseTo(0.29, 2);
+    }
+    expect(wristAt('Middle1L').distanceTo(first)).toBeLessThan(0.01);
+    expect(knuckle.quaternion.angleTo(open)).toBeGreaterThan(0.5);
+
+    character.setGrip(null);
+    character.play('idle', 0);
+    character.update(1 / 60);
+    expect(knuckle.quaternion.angleTo(open)).toBeLessThan(1e-4);
+  });
 });
 
 function testRig(): { group: Group; body: Bone; torso: Bone; upperLegL: Bone } {
@@ -72,7 +115,12 @@ function testRig(): { group: Group; body: Bone; torso: Bone; upperLegL: Bone } {
     const x = side === 'L' ? 0.16 : -0.16;
     const shoulder = child(torso, `Shoulder${side}`, [x, 0.12, 0]);
     const upperArm = child(shoulder, `UpperArm${side}`, [x, -0.08, 0]);
-    child(upperArm, `LowerArm${side}`, [x, -0.18, 0]);
+    const lowerArm = child(upperArm, `LowerArm${side}`, [x, -0.18, 0]);
+    // A finger off the wrist: knuckle, two joints, and the tip.
+    let finger = child(lowerArm, `Middle1${side}`, [0, -0.2, 0]);
+    finger = child(finger, `Middle2${side}`, [0, -0.03, 0]);
+    finger = child(finger, `Middle3${side}`, [0, -0.03, 0]);
+    child(finger, `Middle3${side}_end`, [0, -0.02, 0]);
     const upperLeg = child(body, `UpperLeg${side}`, [x * 0.6, -0.18, 0]);
     upperLegs.push(upperLeg);
     const lowerLeg = child(upperLeg, `LowerLeg${side}`, [0, -0.22, 0]);
@@ -90,8 +138,10 @@ function child(parent: Bone, name: string, position: [number, number, number]): 
   return bone;
 }
 
-function hipsOnlyClip(): AnimationClip {
+function hipsOnlyClip(name = 'sit'): AnimationClip {
   const times = new Float32Array([0, 1]);
   const values = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1]);
-  return new AnimationClip('test:sit', 1, [new QuaternionKeyframeTrack('Hips.quaternion', times, values)]);
+  return new AnimationClip(`test:${name}`, 1, [
+    new QuaternionKeyframeTrack('Hips.quaternion', times, values),
+  ]);
 }

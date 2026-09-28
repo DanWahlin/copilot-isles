@@ -13,6 +13,11 @@ import {
 import { detailForTier, type Detail } from './brigantine-detail';
 import { MeshBuilder, type P3 } from './mesh-builder';
 
+/** The quarterdeck platform's centre; its flat top is 0.18 above the deck line here. */
+export const QUARTERDECK_Z = -8.0;
+/** The ship's wheel stands athwartships on the quarterdeck, its hub this high above the deck line. */
+export const WHEEL = { z: -8.95, hub: 0.78 } as const;
+
 /** Builds the brigantine hull, deck, rail, trim, and name-board geometry. */
 export function createHullGeometry(tier: Tier): BufferGeometry {
   const d = detailForTier(tier);
@@ -485,7 +490,7 @@ export function createDeckGeometry(tier: Tier): BufferGeometry {
     );
   }
   // Raised platforms, hatches, capstan, helm, companionway, bits, and grates.
-  builder.addBox(0, deckHeightAt(-8.0) + 0.09, -8.0, 4.3, 0.18, 5.8);
+  builder.addBox(0, deckHeightAt(QUARTERDECK_Z) + 0.09, QUARTERDECK_Z, 4.3, 0.18, 5.8);
   builder.addBox(0, deckHeightAt(8.7) + 0.08, 8.7, 3.5, 0.16, 3.7);
   builder.addBox(0, deckHeightAt(-2.45) + 0.16, -2.45, 1.45, 0.22, 2.05);
   builder.addBox(0, deckHeightAt(3.15) + 0.16, 3.15, 1.25, 0.22, 1.65);
@@ -510,23 +515,24 @@ export function createDeckGeometry(tier: Tier): BufferGeometry {
       6,
     );
   }
+  const wheelHub = deckHeightAt(WHEEL.z) + WHEEL.hub;
   builder.addCylinderBetween(
-    { x: -0.95, y: deckHeightAt(-8.95) + 0.78, z: -8.95 },
-    { x: 0.95, y: deckHeightAt(-8.95) + 0.78, z: -8.95 },
+    { x: -0.95, y: wheelHub, z: WHEEL.z },
+    { x: 0.95, y: wheelHub, z: WHEEL.z },
     0.055,
     detail.cyl,
   );
   builder.addCylinderBetween(
-    { x: 0, y: deckHeightAt(-8.95) + 0.25, z: -8.95 },
-    { x: 0, y: deckHeightAt(-8.95) + 1.28, z: -8.95 },
+    { x: 0, y: wheelHub - 0.53, z: WHEEL.z },
+    { x: 0, y: wheelHub + 0.5, z: WHEEL.z },
     0.05,
     detail.cyl,
   );
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2;
     builder.addCylinderBetween(
-      { x: Math.cos(a) * 0.15, y: deckHeightAt(-8.95) + 0.78 + Math.sin(a) * 0.15, z: -8.95 },
-      { x: Math.cos(a) * 0.65, y: deckHeightAt(-8.95) + 0.78 + Math.sin(a) * 0.65, z: -8.95 },
+      { x: Math.cos(a) * 0.15, y: wheelHub + Math.sin(a) * 0.15, z: WHEEL.z },
+      { x: Math.cos(a) * 0.65, y: wheelHub + Math.sin(a) * 0.65, z: WHEEL.z },
       0.018,
       5,
     );

@@ -26,6 +26,7 @@ import {
   type CharacterCreateOptions,
   type CharacterGroundMode,
   type CharacterGrounding,
+  type HandGrip,
   type LookTarget,
   type PlayerBody,
 } from './types';
@@ -36,6 +37,12 @@ const RUN_STRIDE_METERS = 2.12;
 const WALK_SPEED = 1.35;
 const JOG_SPEED = 2.35;
 const RUN_SPEED = 4.15;
+/** The wrist stops this far short of the grip, so the hand, not the wrist, closes on it (m). */
+const GRIP_HAND = 0.06;
+/** Elbows drop down, out and a touch back when both hands hold something in front. */
+const GRIP_POLE = new Vector3(0.55, -1, -0.35).normalize();
+/** How far each finger joint folds round a grip, knuckle to tip (rad). */
+const FINGER_CURL = [0.55, 0.95, 0.75] as const;
 const LOCOMOTION_CLIPS = new Set<CharacterClip>([
   'idle',
   'walk',
@@ -82,6 +89,13 @@ export class RuntimeCharacter implements Character {
   private readonly upperArmR: Bone | null;
   private readonly lowerArmL: Bone | null;
   private readonly lowerArmR: Bone | null;
+  /** The first bone past each forearm (the palm's root), for reaching the hands. */
+  private readonly wristL: Bone | null;
+  private readonly wristR: Bone | null;
+  /** Each hand's finger chains (knuckle outward), curled round a grip; player captains only. */
+  private readonly fingersL: readonly Bone[][];
+  private readonly fingersR: readonly Bone[][];
+  private grip: HandGrip | null = null;
   private readonly upperLegL: Bone | null;
   private readonly upperLegR: Bone | null;
   private readonly lowerLegL: Bone | null;
@@ -169,6 +183,10 @@ export class RuntimeCharacter implements Character {
     this.upperArmR = bone(group, 'UpperArmR');
     this.lowerArmL = bone(group, 'LowerArmL');
     this.lowerArmR = bone(group, 'LowerArmR');
+    this.wristL = firstChildBone(this.lowerArmL);
+    this.wristR = firstChildBone(this.lowerArmR);
+    this.fingersL = this.npc ? [] : fingerChains(this.lowerArmL);
+    this.fingersR = this.npc ? [] : fingerChains(this.lowerArmR);
     this.upperLegL = bone(group, 'UpperLegL');
     this.upperLegR = bone(group, 'UpperLegR');
     this.lowerLegL = bone(group, 'LowerLegL');
@@ -198,6 +216,8 @@ export class RuntimeCharacter implements Character {
       this.lowerLegR,
       this.footL,
       this.footR,
+      ...this.fingersL.flat(),
+      ...this.fingersR.flat(),
     ]);
     this.baseScale = config.scale;
     this.lastHeading = group.rotation.y;
@@ -277,6 +297,10 @@ export class RuntimeCharacter implements Character {
 
   lookAt(target: LookTarget): void {
     this.lookTarget = target;
+  }
+
+  setGrip(grip: HandGrip | null): void {
+    this.grip = grip;
   }
 
   setTalking(on: boolean): void {
@@ -473,15 +497,86 @@ export class RuntimeCharacter implements Character {
   }
 
   /**
+   * Two-bone reach: bends the elbow to span the distance, swings the arm so the wrist lands on
+   * `target` (the character's own frame, metres from the feet), then rolls the elbow toward the pole.
+   */
+  private reachArm(side: Side, target: Vector3): void {
+    const upper = side === 1 ? this.upperArmL : this.upperArmR;
+    const lower = side === 1 ? this.lowerArmL : this.lowerArmR;
+    const wrist = side === 1 ? this.wristL : this.wristR;
+    if (!upper || !lower || !wrist) return;
+    this.group.getWorldQuaternion(ROOT_Q);
+    this.group.getWorldPosition(IK_T);
+    IK_T.add(IK_U.copy(target).applyQuaternion(ROOT_Q));
+    const s = upper.getWorldPosition(IK_S);
+    const e = lower.getWorldPosition(IK_E);
+    const h = wrist.getWorldPosition(IK_H);
+    const a = s.distanceTo(e);
+    const b = e.distanceTo(h);
+    if (a < 1e-4 || b < 1e-4) return;
+    const c = MathUtils.clamp(s.distanceTo(IK_T), Math.abs(a - b) + 1e-3, a + b - 1e-3);
+
+    IK_U.subVectors(s, e);
+    IK_V.subVectors(h, e);
+    IK_AXIS.crossVectors(IK_U, IK_V);
+    if (IK_AXIS.lengthSq() < 1e-12) IK_AXIS.set(1, 0, 0).applyQuaternion(ROOT_Q);
+    const wanted = Math.acos(MathUtils.clamp((a * a + b * b - c * c) / (2 * a * b), -1, 1));
+    this.rotateInWorld(lower, IK_AXIS.normalize(), wanted - IK_U.angleTo(IK_V));
+
+    wrist.getWorldPosition(IK_H);
+    IK_U.subVectors(IK_H, s);
+    IK_V.subVectors(IK_T, s);
+    IK_AXIS.crossVectors(IK_U, IK_V);
+    if (IK_AXIS.lengthSq() > 1e-12) this.rotateInWorld(upper, IK_AXIS.normalize(), IK_U.angleTo(IK_V));
+
+    // Roll about shoulder→target until the elbow faces the pole (down, out, and back).
+    const dir = IK_V.normalize();
+    lower.getWorldPosition(IK_E);
+    IK_U.subVectors(IK_E, s);
+    IK_U.addScaledVector(dir, -IK_U.dot(dir));
+    IK_H.copy(GRIP_POLE)
+      .setX(side * GRIP_POLE.x)
+      .applyQuaternion(ROOT_Q);
+    IK_H.addScaledVector(dir, -IK_H.dot(dir));
+    if (IK_U.lengthSq() < 1e-10 || IK_H.lengthSq() < 1e-10) return;
+    const roll = Math.atan2(dir.dot(IK_AXIS.crossVectors(IK_U, IK_H)), IK_U.dot(IK_H));
+    this.rotateInWorld(upper, dir, roll);
+  }
+
+  /** Closes each finger down and round what the hand's holding, knuckle to tip. */
+  private curlFingers(chains: readonly Bone[][]): void {
+    if (!chains.length) return;
+    this.group.getWorldQuaternion(ROOT_Q);
+    const down = IK_V.set(0, -1, 0).applyQuaternion(ROOT_Q);
+    for (const chain of chains) {
+      const knuckle = chain[0]!;
+      const next = chain[1]!;
+      // One hinge axis per finger, so the joints fold in the same plane.
+      next.getWorldPosition(IK_H).sub(knuckle.getWorldPosition(IK_S));
+      IK_AXIS.crossVectors(IK_H, down);
+      if (IK_AXIS.lengthSq() < 1e-12) continue;
+      IK_AXIS.normalize();
+      const thumb = knuckle.name.startsWith('Thumb');
+      chain.forEach((joint, i) =>
+        this.rotateInWorld(joint, IK_AXIS, (FINGER_CURL[i] ?? 0) * (thumb ? 0.45 : 1)),
+      );
+    }
+  }
+
+  /**
    * Turns a bone about an axis given in the character's own frame (+x left, +y up, +z forward), so
    * poses read the same on both arms whatever each bone's local axes are.
    */
   private rotateInRoot(bone: Bone | null, axis: Vector3, angle: number): void {
-    if (!bone?.parent || Math.abs(angle) < 1e-4) return;
     this.group.getWorldQuaternion(ROOT_Q);
+    this.rotateInWorld(bone, WORLD_AXIS.copy(axis).applyQuaternion(ROOT_Q), angle);
+  }
+
+  /** Turns a bone about a world-space axis (unit length). */
+  private rotateInWorld(bone: Bone | null, axis: Vector3, angle: number): void {
+    if (!bone?.parent || Math.abs(angle) < 1e-4) return;
     bone.parent.getWorldQuaternion(PARENT_Q);
-    WORLD_AXIS.copy(axis).applyQuaternion(ROOT_Q);
-    DELTA_Q.setFromAxisAngle(WORLD_AXIS, angle);
+    DELTA_Q.setFromAxisAngle(axis, angle);
     // Local change = parent⁻¹ · Δ · parent, applied ahead of the bone's current local rotation.
     LOCAL_Q.copy(PARENT_Q).invert().multiply(DELTA_Q).multiply(PARENT_Q);
     bone.quaternion.premultiply(LOCAL_Q);
@@ -507,7 +602,15 @@ export class RuntimeCharacter implements Character {
       this.neck?.rotateY(-settle * 0.035);
       if (!this.lookTarget) this.head?.rotateY(-settle * 0.045);
     } else if (this.activeClip === 'helm') {
-      this.torso?.rotateZ(Math.sin(this.idleClock * 1.5) * 0.025 * npcScale);
+      // A slow weight shift with the ship's roll; the hands stay put on the spokes.
+      this.torso?.rotateZ(Math.sin(this.idleClock * 0.7) * 0.012);
+      if (this.grip) {
+        const { y, z, spread } = this.grip;
+        for (const side of [1, -1] as const) {
+          this.reachArm(side, GRIP_TARGET.set(side * spread, y, z - GRIP_HAND));
+          this.curlFingers(side === 1 ? this.fingersL : this.fingersR);
+        }
+      }
     }
     if (this.activeClip === 'talk' || this.talking) this.applyTalkBeat(npcScale);
   }
@@ -696,6 +799,14 @@ const PARENT_Q = new Quaternion();
 const DELTA_Q = new Quaternion();
 const LOCAL_Q = new Quaternion();
 const WORLD_AXIS = new Vector3();
+const GRIP_TARGET = new Vector3();
+const IK_S = new Vector3();
+const IK_E = new Vector3();
+const IK_H = new Vector3();
+const IK_T = new Vector3();
+const IK_U = new Vector3();
+const IK_V = new Vector3();
+const IK_AXIS = new Vector3();
 
 function bindableClip(clip: AnimationClip, root: Group): AnimationClip {
   const tracks = clip.tracks.filter((track) => {
@@ -714,6 +825,25 @@ function trackTargetName(name: string): string | null {
   if (bone) return bone[1] ?? null;
   const dot = name.indexOf('.');
   return dot > 0 ? name.slice(0, dot) : null;
+}
+
+/**
+ * The finger chains below a forearm: each bone off the wrist, then its joints out to (not
+ * including) the tip. Chains of one joint (the captain's hook) are left alone.
+ */
+function fingerChains(lowerArm: Bone | null): Bone[][] {
+  const chains: Bone[][] = [];
+  for (const start of lowerArm?.children ?? []) {
+    if (!(start instanceof Bone)) continue;
+    const chain: Bone[] = [];
+    for (let b: Bone | null = start; b && !b.name.endsWith('_end'); b = firstChildBone(b)) chain.push(b);
+    if (chain.length >= 2) chains.push(chain);
+  }
+  return chains;
+}
+
+function firstChildBone(parent: Bone | null): Bone | null {
+  return (parent?.children.find((child) => child instanceof Bone) as Bone | undefined) ?? null;
 }
 
 function bone(root: Group, name: string): Bone | null {

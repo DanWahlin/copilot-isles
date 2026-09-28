@@ -41,12 +41,12 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
   switch (body) {
     case 'nell':
       addBicorne(root, 0x202a3a, 0xd8ad5a);
-      addSpectacles(root, 0.068);
+      addSpectacles(root, SPECTACLES.nell);
       addLedger(root, 0x5a3925, 1);
       break;
     case 'merchant':
       addWatchCap(root, 0x26384a);
-      addSpectacles(root, 0.078);
+      addSpectacles(root, SPECTACLES.merchant);
       addSatchel(root, 0x5c3b23, -1);
       addLedger(root, 0x23445f, -1);
       addScroll(root, 1);
@@ -155,29 +155,97 @@ function addStrawHat(root: Group): void {
 }
 
 /**
- * Round spectacles at eye level (`eyeY` above the head bone's origin, which sits at the jaw), with
- * arms running back to the ears so they sit on the face rather than floating in front of it.
+ * Where a pair of spectacles sits on one face, in accessory units (the head bone's origin is at the
+ * jaw). Measured from each rig's eye meshes and face depth, since the two rigs differ: Nell's eyes
+ * sit lower and closer together, Ezra's are higher and wider, with a longer nose to bridge.
  */
-function addSpectacles(root: Group, eyeY: number): void {
+interface SpectacleFit {
+  /** Lens centre, over the pupil. */
+  eyeX: number;
+  eyeY: number;
+  radius: number;
+  /** Lens plane, just clear of the eye and brow. */
+  lensZ: number;
+  /** The bridge rests on the nose at this height and depth. */
+  bridgeY: number;
+  bridgeZ: number;
+  /** The arms run from the hinge past the temple to the ear, hugging the side of the head. */
+  temple: readonly [x: number, z: number];
+  ear: readonly [x: number, z: number];
+}
+
+const SPECTACLES: Record<'nell' | 'merchant', SpectacleFit> = {
+  nell: {
+    eyeX: 0.122,
+    eyeY: 0.063,
+    radius: 0.064,
+    lensZ: 0.262,
+    bridgeY: 0.084,
+    bridgeZ: 0.292,
+    temple: [0.232, 0.17],
+    ear: [0.29, 0.05],
+  },
+  merchant: {
+    eyeX: 0.138,
+    eyeY: 0.09,
+    radius: 0.058,
+    lensZ: 0.257,
+    bridgeY: 0.122,
+    bridgeZ: 0.293,
+    temple: [0.235, 0.13],
+    ear: [0.268, 0.0],
+  },
+};
+
+/** Lenses wrap back a touch at their outer edge to follow the face. */
+const LENS_WRAP = 0.18;
+
+/** Round wire spectacles over the eyes, bridged over the nose, with arms back to the ears. */
+function addSpectacles(root: Group, fit: SpectacleFit): void {
   const parts: BufferGeometry[] = [];
+  const wire = 0.0065;
+  const cos = Math.cos(LENS_WRAP);
+  const sin = Math.sin(LENS_WRAP);
+  const bridgeRim = Math.sqrt(Math.max(0, fit.radius ** 2 - (fit.bridgeY - fit.eyeY) ** 2));
+  const nose = 0.022;
   for (const side of [-1, 1]) {
-    const lens = new TorusGeometry(0.055, 0.006, 5, 10);
-    lens.translate(side * 0.075, eyeY, 0.29);
+    // `u` runs outward from the lens centre, across the wrapped lens plane.
+    const onLens = (u: number, y: number) => new Vector3(side * (fit.eyeX + u * cos), y, fit.lensZ - u * sin);
+    const lens = new TorusGeometry(fit.radius, wire, 5, 14);
+    lens.rotateY(side * LENS_WRAP);
+    lens.translate(side * fit.eyeX, fit.eyeY, fit.lensZ);
     parts.push(lens);
-    // The arm: from the lens's outer rim back and a little out to the ear.
-    const from = new Vector3(side * 0.128, eyeY + 0.01, 0.285);
-    const to = new Vector3(side * 0.17, eyeY + 0.02, 0.1);
-    const arm = new BoxGeometry(0.008, 0.008, from.distanceTo(to));
-    arm.rotateY(Math.atan2(to.x - from.x, to.z - from.z));
-    arm.translate((from.x + to.x) / 2, (from.y + to.y) / 2, (from.z + to.z) / 2);
-    parts.push(arm);
+
+    const hinge = onLens(fit.radius, fit.eyeY + 0.008);
+    const temple = new Vector3(side * fit.temple[0], fit.eyeY + 0.016, fit.temple[1]);
+    const ear = new Vector3(side * fit.ear[0], fit.eyeY + 0.024, fit.ear[1]);
+    parts.push(rod(hinge, temple, wire * 1.3), rod(temple, ear, wire * 1.3));
+    // The bridge steps forward from the inner rims to clear the nose.
+    parts.push(
+      rod(onLens(-bridgeRim, fit.bridgeY), new Vector3(side * nose, fit.bridgeY, fit.bridgeZ), wire * 1.6),
+    );
   }
-  const bridge = new BoxGeometry(0.05, 0.012, 0.012);
-  bridge.translate(0, eyeY + 0.012, 0.29);
-  parts.push(bridge);
+  parts.push(
+    rod(
+      new Vector3(-nose, fit.bridgeY, fit.bridgeZ),
+      new Vector3(nose, fit.bridgeY, fit.bridgeZ),
+      wire * 1.6,
+    ),
+  );
   const geometry = mergeGeometries(parts, false)!;
   for (const part of parts) part.dispose();
   addHead(root, mesh(geometry, mat(0xd9c38f), 'spectacles'));
+}
+
+/** A thin square rod from `a` to `b`. */
+function rod(a: Vector3, b: Vector3, thickness: number): BufferGeometry {
+  const length = a.distanceTo(b);
+  const geometry = new BoxGeometry(thickness, thickness, length);
+  const dir = b.clone().sub(a).normalize();
+  geometry.rotateX(-Math.asin(Math.max(-1, Math.min(1, dir.y))));
+  geometry.rotateY(Math.atan2(dir.x, dir.z));
+  geometry.translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
+  return geometry;
 }
 
 function addBeard(root: Group, color: ColorHex): void {

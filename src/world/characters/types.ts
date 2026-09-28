@@ -62,9 +62,21 @@ export interface CharacterCreateOptions {
   updateTarget?: Object3D;
 }
 
+/**
+ * Where both hands hold something (a ship's wheel), in the character's own frame: feet at the
+ * origin, +z forward, metres. The hands go `spread` either side of centre.
+ */
+export interface HandGrip {
+  readonly y: number;
+  readonly z: number;
+  readonly spread: number;
+}
+
 export interface Character {
   readonly group: Group;
   play(clip: CharacterClip, fade?: number): void;
+  /** Reaches both hands to a grip over the 'helm' clip (null lets go). */
+  setGrip(grip: HandGrip | null): void;
   setSpeed(mps: number): void;
   setGrounding(state: CharacterGrounding): void;
   lookAt(target: LookTarget): void;

@@ -45,11 +45,15 @@ const SOURCE_FAMILY: Record<SourceKey, AtlasFamily> = {
 /**
  * UV audit of the Quaternius Pirate Kit chibi atlas (1024²; 32 px swatches).
  * Coordinates are `(column,row)` in image space, verified from primitive UV clusters:
- * - Captain body row 7: skin 0, beard/hair 5, tricorn 1/8, shirt 4, coat 7/11, trousers 3.
- * - Anne body row 9: hair 5, skin 4, top 0, sleeve/vest 3/7, trousers/boots 2/8, belt/accent 1.
- * - Henry body row 11: skin 4, hair/shadow 5/7, head cloth 2/9, shirt 3, vest 6, trousers 8.
+ * - Captain body row 7: skin 0, beard/hair 5, tricorn 1/8, shirt 4, coat 7/11, trousers 3, eyes 6.
+ * - Anne body row 9: hair 5, skin 4, top 0, sleeve/vest 3/7, trousers/boots 2, belt/accent 1,
+ *   eyes 8, lids 6.
+ * - Henry body row 11: skin 4, hair 5, head cloth 2/9, shirt 3, vest 6, trousers 8, eyes 7.
+ * The eye cells hold only the two eyeballs and keep the kit's near-black, so no palette paints them.
  */
-const ATLAS_SWATCHES: Record<AtlasFamily, AtlasSwatches> = {
+export const ATLAS_EYES: Record<AtlasFamily, Swatch> = { captain: [6, 7], anne: [8, 9], henry: [7, 11] };
+
+export const ATLAS_SWATCHES: Record<AtlasFamily, AtlasSwatches> = {
   captain: {
     skin: [[0, 7]],
     hair: [[5, 7]],
@@ -75,10 +79,7 @@ const ATLAS_SWATCHES: Record<AtlasFamily, AtlasSwatches> = {
       [3, 9],
       [7, 9],
     ],
-    trousers: [
-      [2, 9],
-      [8, 9],
-    ],
+    trousers: [[2, 9]],
     sash: [[1, 9]],
     bandana: [],
     bandanaStripe: [],
@@ -86,10 +87,7 @@ const ATLAS_SWATCHES: Record<AtlasFamily, AtlasSwatches> = {
   },
   henry: {
     skin: [[4, 11]],
-    hair: [
-      [5, 11],
-      [7, 11],
-    ],
+    hair: [[5, 11]],
     shirt: [[3, 11]],
     vest: [[6, 11]],
     trousers: [[8, 11]],

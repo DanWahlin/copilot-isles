@@ -231,12 +231,14 @@ function normalizeClips(
     ['jumpStart', motion('jumpStart') ?? find('|Jump|') ?? find('Jump')],
     ['jumpLoop', motion('jumpLoop') ?? find('Jump_Idle') ?? find('|Jump|') ?? find('Jump')],
     ['jumpLand', motion('jumpLand') ?? find('Jump_Land') ?? find('|Jump|') ?? find('Jump')],
-    ['talk', find('|Wave|') ?? find('Wave') ?? find('|Yes|') ?? motion('talk') ?? find('Idle')],
+    // Talkers gesture procedurally over the idle (setTalking); Wave is only ever a one-off hello.
+    ['talk', find('|Idle|') ?? find('Idle') ?? motion('talk')],
     ['wave', find('|Wave|') ?? find('Wave') ?? motion('wave')],
     ['nod', find('|Yes|')],
     ['shake', find('|No|')],
     ['sit', find('|Idle|') ?? find('Idle') ?? motion('sit')],
-    ['helm', find('|Punch|') ?? find('|Sword|') ?? motion('helm') ?? find('Idle')],
+    // Hands on the wheel are posed procedurally over the idle (runtime-character's applyPoseLife).
+    ['helm', find('|Idle|') ?? find('Idle') ?? motion('helm')],
     ['wade', find('|Walk|') ?? find('Walk') ?? motion('wade')],
   ];
   for (const [name, clip] of mapping) {
