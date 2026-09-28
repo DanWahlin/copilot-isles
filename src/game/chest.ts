@@ -5,13 +5,18 @@ import {
   CanvasTexture,
   CylinderGeometry,
   DoubleSide,
+  Euler,
   Group,
   Mesh,
+  Matrix4,
   MeshStandardNodeMaterial,
+  OctahedronGeometry,
+  Quaternion,
   Sprite,
   SphereGeometry,
   SpriteNodeMaterial,
   SRGBColorSpace,
+  Vector3,
   type BufferGeometry,
 } from 'three/webgpu';
 import { float, frontFacing, select, vec3 } from 'three/tsl';
@@ -60,7 +65,104 @@ function lidShell(r: number, len: number, x: number, c: readonly [number, number
   return tint(g, c);
 }
 
+/**
+ * Coin faces, their milled edges, and the heap they sit on (so no gaps show the hollow), in linear
+ * colour: a deep gold, since a pale one washes out to grey-green under the blue sky light.
+ */
+const COIN_FACE = [0.86, 0.52, 0.1] as const;
+const COIN_EDGE = [0.5, 0.27, 0.05] as const;
+const COIN_BED = [0.4, 0.22, 0.035] as const;
+const COIN_R = 0.034;
+const COIN_T = 0.007;
+
+/** The same heap every time (a tiny LCG), so every chest and every test sees the same coins. */
+function seeded(seed: number): () => number {
+  let s = seed >>> 0;
+  return () => {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+}
+
+/** Colours a coin by face: bright faces, darker milled edges, so each disc reads on its own. */
+function coin(): BufferGeometry {
+  const g = new CylinderGeometry(COIN_R, COIN_R, COIN_T, 14, 1).toNonIndexed();
+  const n = g.getAttribute('normal');
+  const colors = new Float32Array(n.count * 3);
+  for (let i = 0; i < n.count; i++) colors.set(Math.abs(n.getY(i)) > 0.5 ? COIN_FACE : COIN_EDGE, i * 3);
+  g.setAttribute('color', new BufferAttribute(colors, 3));
+  g.deleteAttribute('uv');
+  return g;
+}
+
+/**
+ * A heap of gold coins over the open chest's hollow: a low bed, discs scattered over a mound and
+ * tilted to its slope, a couple leaning on edge, and two gems on top.
+ */
+function coinHeap(): BufferGeometry {
+  const rand = seeded(20260928);
+  const inW = W - WALL * 2 - COIN_R * 2;
+  const inD = D - WALL * 2 - COIN_R * 2;
+  const mound = (x: number, z: number) =>
+    0.035 + 0.1 * Math.max(0, 1 - (x / (inW * 0.56)) ** 2 - (z / (inD * 0.6)) ** 2);
+  const parts: BufferGeometry[] = [];
+  const bed = new SphereGeometry(1, 16, 6, 0, Math.PI * 2, 0, Math.PI / 2).toNonIndexed();
+  bed.scale(inW * 0.55, 0.11, inD * 0.56);
+  bed.translate(0, H - 0.012, 0);
+  bed.deleteAttribute('uv');
+  parts.push(tint(bed, COIN_BED));
+  const m = new Matrix4();
+  const q = new Quaternion();
+  const e = new Euler();
+  const one = new Vector3(1, 1, 1);
+  const at = new Vector3();
+  const place = (x: number, y: number, z: number, rx: number, ry: number, rz: number) => {
+    const g = coin();
+    m.compose(at.set(x, y, z), q.setFromEuler(e.set(rx, ry, rz, 'YXZ')), one);
+    g.applyMatrix4(m);
+    parts.push(g);
+  };
+  for (let i = 0; i < 110; i++) {
+    const x = (rand() - 0.5) * inW;
+    const z = (rand() - 0.5) * inD;
+    const h = mound(x, z);
+    // Tilt with the mound's slope, plus a little tumble.
+    const dx = (mound(x + 0.02, z) - mound(x - 0.02, z)) / 0.04;
+    const dz = (mound(x, z + 0.02) - mound(x, z - 0.02)) / 0.04;
+    const y = H + h - rand() * 0.012;
+    place(
+      x,
+      y,
+      z,
+      Math.atan(dz) + (rand() - 0.5) * 0.5,
+      rand() * Math.PI,
+      -Math.atan(dx) + (rand() - 0.5) * 0.5,
+    );
+  }
+  // Two coins leaning on edge against the heap.
+  place(-0.2, H + 0.06, 0.1, 0.25, 0.4, Math.PI / 2 - 0.35);
+  place(0.23, H + 0.05, -0.06, -0.2, -0.7, Math.PI / 2 + 0.4);
+  for (const [x, z, r, c] of [
+    [0.05, 0.02, 0.028, [0.72, 0.06, 0.12]],
+    [-0.1, -0.07, 0.022, [0.08, 0.6, 0.32]],
+  ] as const) {
+    const gem = new OctahedronGeometry(r, 0);
+    gem.scale(1, 1.3, 1);
+    gem.translate(x, H + mound(x, z) + r * 0.9, z);
+    gem.deleteAttribute('uv');
+    parts.push(tint(gem, c));
+  }
+  const heap = mergeGeometries(parts)!;
+  for (const p of parts) p.dispose();
+  return heap;
+}
+
 let sharedMaterial: MeshStandardNodeMaterial | null = null;
+/**
+ * Gold for the coins and gems: a little metallic to catch the light, but mostly its own colour (a
+ * fully metal coin mirrors the blue sky and reads green).
+ */
+let sharedCoinMaterial: MeshStandardNodeMaterial | null = null;
 /** The lid's shell is one surface: drawn from both sides, with the inside of the lid darker. */
 let sharedLidMaterial: MeshStandardNodeMaterial | null = null;
 let sharedGlow: CanvasTexture | null = null;
@@ -93,9 +195,8 @@ export interface TreasureChest {
 }
 
 /**
- * A small iron-banded treasure chest (2 draws: the body, and a double-sided lid; both materials are
- * shared by every chest)
- * with a warm shimmer until it's opened.
+ * A small iron-banded treasure chest heaped with gold coins, with a warm shimmer until it's opened.
+ * Three draws (the body, the coins, and a double-sided lid); every chest shares the materials.
  */
 export function createChest(): TreasureChest {
   sharedMaterial ??= new MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.18 });
@@ -121,23 +222,22 @@ export function createChest(): TreasureChest {
   for (const sx of [-1, 1])
     for (const sz of [-1, 1]) parts.push(box(0.09, 0.09, 0.09, (sx * W) / 2, 0.045, (sz * D) / 2, GOLD));
   parts.push(box(0.12, 0.14, 0.03, 0, H - 0.06, D / 2 + 0.02, GOLD));
-  // The open chest: a dark hollow inside the walls, heaped with coins (hidden under the lid until then).
+  // The open chest: a dark hollow inside the walls (the coins sit in it, under the lid until then).
   parts.push(box(W - WALL * 2, 0.004, D - WALL * 2, 0, H + 0.002, 0, HOLLOW));
-  for (const [x, z, r, sy] of [
-    [-0.14, 0.02, 0.16, 0.42],
-    [0.12, -0.04, 0.14, 0.38],
-    [0.02, 0.08, 0.1, 0.5],
-  ] as const) {
-    const heap = new SphereGeometry(r, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2);
-    heap.scale(1, sy, 1);
-    heap.translate(x, H, z);
-    parts.push(tint(heap, GOLD));
-  }
   const bodyGeo = mergeGeometries(parts)!;
   for (const p of parts) p.dispose();
   const body = new Mesh(bodyGeo, sharedMaterial);
   body.castShadow = true;
   body.receiveShadow = true;
+  sharedCoinMaterial ??= new MeshStandardNodeMaterial({
+    vertexColors: true,
+    roughness: 0.42,
+    metalness: 0.3,
+  });
+  const coinGeo = coinHeap();
+  const coins = new Mesh(coinGeo, sharedCoinMaterial);
+  coins.name = 'chest coins';
+  coins.receiveShadow = true;
 
   const lidParts: BufferGeometry[] = [
     lidShell(LID_R, W, 0, WOOD),
@@ -152,7 +252,7 @@ export function createChest(): TreasureChest {
   const hinge = new Group();
   hinge.position.set(0, H, -D / 2);
   hinge.add(lid);
-  group.add(body, hinge);
+  group.add(body, coins, hinge);
 
   const glowMat = new SpriteNodeMaterial({
     map: glowTexture(),
@@ -211,6 +311,7 @@ export function createChest(): TreasureChest {
     },
     dispose() {
       bodyGeo.dispose();
+      coinGeo.dispose();
       lidGeo.dispose();
       glowMat.dispose();
       group.removeFromParent();
