@@ -95,6 +95,14 @@
       "fx": "wingman-bird"
     },
     {
+      "id": "wingman.trial.01",
+      "speaker": "Wingman",
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "text": "Eight questions, Captain. No answers from me in there, only nudges.",
+      "fallbackVoice": "en-GB-NoahNeural",
+      "fx": "wingman-bird"
+    },
+    {
       "id": "wingman.suri.01",
       "speaker": "Wingman",
       "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
@@ -107,7 +115,7 @@
       "speaker": "Suri",
       "voice": "en-US-Jenny:DragonHDLatestNeural",
       "fallbackVoice": "en-US-JennyNeural",
-      "text": "Mill’s dry today, Captain. Come back once Bo’s checked your gear."
+      "text": "Mill's dry today, Captain. Come back once your fork has its practice items."
     },
     {
       "id": "suri.brief.01",
@@ -121,21 +129,7 @@
       "speaker": "Suri",
       "voice": "en-US-Jenny:DragonHDLatestNeural",
       "fallbackVoice": "en-US-JennyNeural",
-      "text": "This part happens on GitHub.com, not in the app. Open your fork and go to the Actions tab."
-    },
-    {
-      "id": "suri.brief.03",
-      "speaker": "Suri",
-      "voice": "en-US-Jenny:DragonHDLatestNeural",
-      "fallbackVoice": "en-US-JennyNeural",
-      "text": "You’ll see “Workflows aren’t being run on this forked repository.” New forks switch GitHub Actions off."
-    },
-    {
-      "id": "suri.brief.04",
-      "speaker": "Suri",
-      "voice": "en-US-Jenny:DragonHDLatestNeural",
-      "fallbackVoice": "en-US-JennyNeural",
-      "text": "Turn them on, so GitHub can run the automated checks for your practice exercises."
+      "text": "Pim and Pol had you turn on workflows in your fork's Actions tab. My mill shows what that does."
     },
     {
       "id": "suri.brief.05",
@@ -170,7 +164,7 @@
       "speaker": "Suri",
       "voice": "en-US-Jenny:DragonHDLatestNeural",
       "fallbackVoice": "en-US-JennyNeural",
-      "text": "Last job before the Trial: Pim and Pol run the crane on the pier head. They'll add the course's practice items to your fork."
+      "text": "Later chapters use those checks, so that's time well spent. Fair winds, Captain."
     },
     {
       "id": "pim.idle.ready",
@@ -185,7 +179,7 @@
       "id": "pol.idle.waiting",
       "speaker": "Pol",
       "voice": "en-IE-EmilyNeural",
-      "text": "Not yet, Captain. Our crane adds the course's practice items to your fork, and GitHub Actions has to be on first. Suri at the mill can help.",
+      "text": "Not yet, Captain. Our crane adds the course's practice items to your fork. Bo gets your session ready first, by the pier foot.",
       "prosody": {
         "rate": "+12%"
       }
@@ -197,7 +191,7 @@
       "prosody": {
         "rate": "+12%"
       },
-      "text": "I'm Pim, and that's Pol. Once your fork's workflows are on, we'll load it with practice issues and pull requests."
+      "text": "I'm Pim, and that's Pol. Once your session's ready, we'll load your fork with practice issues and pull requests."
     },
     {
       "id": "pol.idle.ready",
@@ -290,10 +284,28 @@
       }
     },
     {
+      "id": "pol.brief.actions",
+      "speaker": "Pol",
+      "voice": "en-IE-EmilyNeural",
+      "text": "First, a job on GitHub.com. Open your fork's Actions tab. New forks switch workflows off.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pim.brief.actions",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "text": "Select, I understand my workflows, go ahead and enable them. Then GitHub can run the practice checks.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
       "id": "pol.brief.03",
       "speaker": "Pol",
       "voice": "en-IE-EmilyNeural",
-      "text": "Our crane works like the script. Turn the capstan to aim her, pull Dry-Run to preview, and read the Repository line on her sign.",
+      "text": "Then the script, in the app's Terminal. Our crane works the same way. Turn the capstan to aim her, pull Dry-Run to preview, and read the Repository line on her sign.",
       "prosody": {
         "rate": "+12%"
       }
@@ -320,7 +332,7 @@
       "id": "pim.solved.01",
       "speaker": "Pim",
       "voice": "en-IE-ConnorNeural",
-      "text": "In the real course you run both commands in the app’s Terminal tab, from the repository root.",
+      "text": "In the app, you run both commands in that same Terminal tab, from the repository root.",
       "prosody": {
         "rate": "+12%"
       }
@@ -330,15 +342,6 @@
       "speaker": "Pol",
       "voice": "en-IE-EmilyNeural",
       "text": "Your fork's got its practice issues and pull requests now. You'll work through them in later chapters.",
-      "prosody": {
-        "rate": "+12%"
-      }
-    },
-    {
-      "id": "pim.solved.02",
-      "speaker": "Pim",
-      "voice": "en-IE-ConnorNeural",
-      "text": "The Harbormaster’s Trial waits at the lighthouse when you’re ready.",
       "prosody": {
         "rate": "+12%"
       }
@@ -391,7 +394,7 @@
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-SoniaNeural",
-      "text": "First things first: download and install the GitHub Copilot app for your system."
+      "text": "Next, download and install the GitHub Copilot app for your system."
     },
     {
       "id": "nell.papers.logbook",
@@ -415,6 +418,13 @@
       "text": "On Copilot Business or Enterprise, your organization has to switch on the GitHub Copilot app policy first."
     },
     {
+      "id": "nell.papers.tools",
+      "speaker": "Nell",
+      "voice": "en-GB-Sonia:DragonHDLatestNeural",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "You'll also need Git, Node.js, and GitHub CLI. The list's in my chest here, with where to get each one."
+    },
+    {
       "id": "nell.papers.05",
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
@@ -426,14 +436,7 @@
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-SoniaNeural",
-      "text": "Then the app asks you to pick a theme. Here, you pick your sails. The palette stand’s right by my door."
-    },
-    {
-      "id": "nell.chest.01",
-      "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
-      "text": "The chest’s right beside my door, Captain."
+      "text": "Then pick a theme and select Finish. Here, your theme's your sails. The palette stand's right beside me."
     },
     {
       "id": "nell.done.01",
@@ -489,7 +492,7 @@
       "speaker": "Ezra",
       "voiceEnv": "AZURE_SPEECH_MALE_VOICE_UK",
       "fallbackVoice": "en-GB-OllieMultilingualNeural",
-      "text": "Bo, the quartermaster, will get your deck ready. You’ll find him at the storehouse."
+      "text": "Next, your session. Bo's right beside me, at his gear rack."
     },
     {
       "id": "bo.deck.01",
@@ -517,77 +520,31 @@
       "speaker": "Bo",
       "voice": "en-GB-Ryan:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-RyanNeural",
-      "text": "Commands run there, and every tool gets a version check. My gear rack stands in for it: compass for Git, lantern for Node.js, rope for npm, and spyglass for GitHub CLI."
+      "text": "Commands run there. Start with the four version checks on my rack. Each should print a version number."
     },
     {
       "id": "bo.gear.brief.03",
       "speaker": "Bo",
       "voice": "en-GB-Ryan:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-RyanNeural",
-      "text": "Run the checks at my rack, Captain. Each one should print a version number."
-    },
-    {
-      "id": "bo.gear.reminder.01",
-      "speaker": "Bo",
-      "voice": "en-GB-Ryan:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-RyanNeural",
-      "text": "Run the version checks at my rack, Captain. Each one should print a version number."
-    },
-    {
-      "id": "bo.ledger.reminder.01",
-      "speaker": "Bo",
-      "voice": "en-GB-Ryan:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-RyanNeural",
-      "text": "Read my ledger there on the lectern. Whose signature is on it?"
-    },
-    {
-      "id": "bo.gear.missing.01",
-      "speaker": "Bo",
-      "voice": "en-GB-Ryan:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-RyanNeural",
-      "text": "“Command not found.” No lens, no GitHub CLI. That one’s missing."
-    },
-    {
-      "id": "bo.gear.missing.02",
-      "speaker": "Bo",
-      "voice": "en-GB-Ryan:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-RyanNeural",
-      "text": "Only install what’s missing, then check again. The chandler at the market stall keeps spare lenses."
-    },
-    {
-      "id": "bo.gear.checked.01",
-      "speaker": "Bo",
-      "voice": "en-GB-Ryan:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-RyanNeural",
-      "text": "Four checks, four versions. That's a ship I'd sail."
+      "text": "If one says command not found, install just that tool, then run the checks again."
     },
     {
       "id": "bo.gear.checked.02",
       "speaker": "Bo",
       "voice": "en-GB-Ryan:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-RyanNeural",
-      "text": "One more thing. GitHub CLI has its own sign-in, separate from the app. Read my ledger, there on the lectern."
-    },
-    {
-      "id": "bo.ledger.01",
-      "speaker": "Bo",
-      "voice": "en-GB-Ryan:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-RyanNeural",
-      "text": "Logged in as someone-else? That’s not your signature, Captain."
-    },
-    {
-      "id": "bo.signed.01",
-      "speaker": "Bo",
-      "voice": "en-GB-Ryan:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-RyanNeural",
-      "text": "Logged in as you. Deck’s ready, gear’s checked, and your signature’s your own."
+      "text": "One more thing. GitHub CLI has its own sign-in, separate from the app. Run gh auth status, and make sure it shows the account that owns your fork.",
+      "sub": {
+        "gh": "G H"
+      }
     },
     {
       "id": "bo.signed.02",
       "speaker": "Bo",
       "voice": "en-GB-Ryan:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-RyanNeural",
-      "text": "One more job before the practice work: Suri Okoye at the mill race, past the storehouse. Her wheel’s been dry since your fork arrived."
+      "text": "Deck's ready, and your gear checks out. Pim and Pol add the practice items next, at the crane at the end of the pier."
     },
     {
       "id": "juno.brief.01",
@@ -646,7 +603,7 @@
       "speaker": "Juno",
       "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
       "fallbackVoice": "en-GB-AdaMultilingualNeural",
-      "text": "The crew knows the ship now. The Harbormaster’s Trial waits at the lighthouse."
+      "text": "The crew knows the ship now. Nell's waiting by your bow with the Harbormaster's Trial."
     },
     {
       "id": "juno.reply.01",
@@ -674,7 +631,7 @@
       "speaker": "Juno",
       "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
       "fallbackVoice": "en-GB-AdaMultilingualNeural",
-      "text": "Commands go to the Terminal. Requests go to the agent, through the prompt box. That’s setup done, Captain. The Harbormaster’s Trial waits at the lighthouse."
+      "text": "Commands go to the Terminal. Requests go to the agent, through the prompt box. That's setup done, Captain. Nell's waiting by your bow with the Harbormaster's Trial."
     },
     {
       "id": "juno.hatch.feedback.01",
@@ -710,14 +667,7 @@
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-SoniaNeural",
-      "text": "Fine colours, Captain. Ezra the chartmaker’s expecting you."
-    },
-    {
-      "id": "nell.papers.07",
-      "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
-      "text": "There's a chest there too, with the list of tools you'll need: Git, Node.js, and GitHub CLI. Open it, then paint your sails and select Finish."
+      "text": "Fine colours, Captain. Next, your own copy of the course. Ezra's at his chart table, down by the pier."
     },
     {
       "id": "nell.palette.01",
@@ -738,7 +688,7 @@
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-SoniaNeural",
-      "text": "There you are, Captain. No ship leaves Anchorage without a name, and yours has been waiting all morning."
+      "text": "No ship leaves Anchorage without a name, Captain, and yours has been waiting all morning."
     },
     {
       "id": "nell.christen.02",
@@ -753,6 +703,20 @@
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-SoniaNeural",
       "text": "She suits you, Captain. Fair winds."
+    },
+    {
+      "id": "nell.trial.01",
+      "speaker": "Nell",
+      "voice": "en-GB-Sonia:DragonHDLatestNeural",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "Setup's done, Captain. Before your ship gets her name, there's the Harbormaster's Trial: eight questions on what you've set up."
+    },
+    {
+      "id": "nell.trial.02",
+      "speaker": "Nell",
+      "voice": "en-GB-Sonia:DragonHDLatestNeural",
+      "fallbackVoice": "en-GB-SoniaNeural",
+      "text": "The Seal of Anchorage, and well earned. Now, about that ship."
     },
     {
       "id": "juno.christen.01",

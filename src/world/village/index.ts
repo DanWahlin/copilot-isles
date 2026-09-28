@@ -1209,6 +1209,50 @@ function addQuay(
   const seatTop = addQuayBench(buckets, colliders, salt.x, q.height + 0.06, salt.z, salt.faces);
   anchors.quayBenches = { x: salt.x, y: seatTop, z: salt.z, heading: -0.4 };
   anchors.noticeBoard = { x: -104.7, y: q.height, z: q.z + 5.3, heading: Math.PI };
+  addChartTable(buckets, colliders, anchors, q.height + 0.06);
+}
+
+/**
+ * Ezra's chart table at the foot of the pier (Q0.3), so forking the course is a few steps from Nell
+ * rather than a walk up to his shop. He stands at its east end, facing the way you come from Nell.
+ */
+function addChartTable(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  colliders: { boxes: VillageBoxCollider[] },
+  anchors: Record<string, VillageAnchor>,
+  floor: number,
+): void {
+  const t = COVE.chartTable;
+  const top = floor + 0.84;
+  addBox(buckets.wood, t.x, top - 0.06, t.z, 1.5, 0.06, 0.86, 0, 0x7a5232);
+  for (const sx of [-0.66, 0.66])
+    for (const sz of [-0.34, 0.34])
+      addBox(buckets.wood, t.x + sx, floor, t.z + sz, 0.08, top - 0.06 - floor, 0.08, 0, 0x5e3f25);
+  addBox(buckets.wood, t.x, floor + 0.18, t.z, 1.3, 0.05, 0.05, 0, 0x5e3f25);
+  // The master chart, weighted at the corners, with its islands inked in and a rolled spare.
+  addBox(buckets.cloth, t.x - 0.05, top, t.z, 1.08, 0.012, 0.7, 0.04, 0xe8d9b0);
+  for (const [dx, dz, w, d, r] of [
+    [-0.32, -0.12, 0.2, 0.14, 0.4],
+    [0.05, 0.14, 0.26, 0.12, -0.3],
+    [0.3, -0.18, 0.14, 0.1, 0.9],
+    [-0.1, -0.2, 0.08, 0.07, 0.2],
+  ] as const)
+    addBox(buckets.cloth, t.x + dx, top + 0.012, t.z + dz, w, 0.004, d, r, 0x6f8b5a);
+  addBox(buckets.cloth, t.x + 0.12, top + 0.013, t.z - 0.02, 0.5, 0.003, 0.012, -0.5, 0x7a3b28);
+  for (const [dx, dz] of [
+    [-0.55, -0.3],
+    [0.45, -0.3],
+    [-0.55, 0.3],
+    [0.45, 0.3],
+  ] as const)
+    addCylinder(buckets.metal, t.x + dx, top, t.z + dz, 0.035, 0.04, 0.05, 8, 0, 0x6b6258);
+  const roll = new CylinderGeometry(0.045, 0.045, 0.62, 10, 1);
+  transform(roll, t.x + 0.6, top + 0.045, t.z + 0.12, 0.2, 0, Math.PI / 2, 1, 1, 1);
+  paint(roll, 0xdcc99c);
+  buckets.cloth.push(roll);
+  addCylinder(buckets.metal, t.x + 0.58, top, t.z - 0.24, 0.035, 0.045, 0.07, 8, 0, 0x2b2622);
+  colliders.boxes.push({ x: t.x, z: t.z, hx: 0.8, hz: 0.48, rot: 0, height: 1 });
+  anchors.chartTable = { x: t.x + 1.45, y: floor, z: t.z, heading: Math.PI / 2 };
 }
 
 /**

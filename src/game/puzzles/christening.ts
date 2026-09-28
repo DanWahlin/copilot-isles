@@ -42,10 +42,10 @@ export interface ChristeningOptions {
 const HOLD_MS = 3200;
 
 /**
- * The Christening (POC §4.8, Q0.11): once you've passed the Harbormaster's Trial, Nell waits at the
- * pier head by your bow. Talking to her names the ship (the `christen` cue throws the coconut), Juno
- * reports the crew's aboard, and Wingman runs the berth's sailing lesson. The name board on the
- * transom stays blank until then.
+ * The Christening (POC §4.8, Q0.11): once your first prompt's sent, Nell waits at the pier head by
+ * your bow with the Harbormaster's Trial (Q0.10). Passing it names the ship (the `christen` cue
+ * throws the coconut), Juno reports the crew's aboard, and Wingman runs the berth's sailing lesson.
+ * The name board on the transom stays blank until then.
  */
 export function createChristening(
   host: PuzzleHost,
@@ -108,8 +108,9 @@ export function createChristening(
     cue,
     update() {
       const s = step();
-      // Nell walks down to the pier head for the ceremony, and home again once you've sailed off.
-      const want = s === 'start' || ((s === 'sail' || s === 'done') && atPier && !far());
+      // Nell waits at the pier head for the Trial and the ceremony, and goes home once you've sailed off.
+      const trial = host.quests()['Q0.10'] === 'start';
+      const want = trial || s === 'start' || ((s === 'sail' || s === 'done') && atPier && !far());
       if (want !== atPier) {
         atPier = want;
         o.nell.moveTo(want ? o.spot : null);

@@ -1,0 +1,112 @@
+{
+  "id": "nell.papers.tools",
+  "speaker": "Nell",
+  "text": "You'll also need Git, Node.js, and GitHub CLI. The list's in my chest here, with where to get each one.",
+  "words": [
+    {
+      "word": "You'll",
+      "start": 0.07,
+      "end": 0.31
+    },
+    {
+      "word": "also",
+      "start": 0.31,
+      "end": 0.55
+    },
+    {
+      "word": "need",
+      "start": 0.55,
+      "end": 0.87
+    },
+    {
+      "word": "Git",
+      "start": 0.87,
+      "end": 1.31
+    },
+    {
+      "word": "Node",
+      "start": 1.31,
+      "end": 1.59
+    },
+    {
+      "word": "js",
+      "start": 1.59,
+      "end": 2.23
+    },
+    {
+      "word": "and",
+      "start": 2.23,
+      "end": 2.389
+    },
+    {
+      "word": "GitHub",
+      "start": 2.389,
+      "end": 2.829
+    },
+    {
+      "word": "CLI",
+      "start": 2.829,
+      "end": 3.71
+    },
+    {
+      "word": "The",
+      "start": 3.71,
+      "end": 3.909
+    },
+    {
+      "word": "list's",
+      "start": 3.909,
+      "end": 4.27
+    },
+    {
+      "word": "in",
+      "start": 4.27,
+      "end": 4.35
+    },
+    {
+      "word": "my",
+      "start": 4.35,
+      "end": 4.51
+    },
+    {
+      "word": "chest",
+      "start": 4.51,
+      "end": 4.87
+    },
+    {
+      "word": "here",
+      "start": 4.87,
+      "end": 5.11
+    },
+    {
+      "word": "with",
+      "start": 5.11,
+      "end": 5.27
+    },
+    {
+      "word": "where",
+      "start": 5.27,
+      "end": 5.47
+    },
+    {
+      "word": "to",
+      "start": 5.47,
+      "end": 5.55
+    },
+    {
+      "word": "get",
+      "start": 5.55,
+      "end": 5.71
+    },
+    {
+      "word": "each",
+      "start": 5.71,
+      "end": 5.91
+    },
+    {
+      "word": "one",
+      "start": 5.91,
+      "end": 6.16
+    }
+  ]
+}

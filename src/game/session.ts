@@ -24,6 +24,7 @@ import {
   COVE_CHESTS,
   boardingOpen,
   currentQuest,
+  migrateQuests,
   npcScript,
   questLog,
   questTarget,
@@ -37,7 +38,7 @@ import { createBard } from './puzzles/bard';
 import { createChristening } from './puzzles/christening';
 import { createCrane } from './puzzles/crane';
 import { createFirstWords } from './puzzles/first-words';
-import { createGearCheck } from './puzzles/gear';
+import { createGearRack } from './puzzles/gear-rack';
 import { createPaintSails } from './puzzles/paint-sails';
 import { createSluice } from './puzzles/sluice';
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal } from './puzzles/types';
@@ -86,8 +87,6 @@ export interface GameSession {
     state(): Record<string, unknown>;
     /** Chest positions and facings (tests). */
     chests(): { id: string; x: number; z: number; h: number; opened: boolean }[];
-    /** Where the Trial is taken (tests). */
-    trialAt(): { x: number; z: number; heading: number } | null;
     /** The message bottles and whether each has been read (tests). */
     bottles(): { id: string; x: number; z: number; read: boolean }[];
     /** A puzzle's test hooks (state, solve, …) by id, e.g. 'P0.1'. */
@@ -253,13 +252,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   };
   const publishQuests = () => learn?.setQuests(questLog(quests()), questTracker(quests()));
   if (!quests()['Q0.2']) setQuest('Q0.2', 'start');
-  // Older saves: Nell's chest used to lead straight to Ezra (before Paint Your Sails), the crane
-  // straight to the Trial (before Q0.8), First Words had no bard after it (before Q0.9), and the Trial
-  // ended the island (before the christening).
-  if (quests()['Q0.2'] === 'chest' && learn?.isChestOpen('C0.1')) setQuest('Q0.2', 'palette');
-  if (quests()['Q0.7'] === 'done' && !quests()['Q0.8']) setQuest('Q0.8', 'start');
-  if (quests()['Q0.8'] === 'done' && !quests()['Q0.9']) setQuest('Q0.9', 'start');
-  if (quests()['Q0.10'] === 'done' && !quests()['Q0.11']) setQuest('Q0.11', 'start');
+  migrateQuests(quests(), setQuest);
   publishQuests();
   let scriptRunning = false;
   let disposed = false;
@@ -402,12 +395,18 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     audio?.sfx.oneShot('step_wood', chest.group.position, 1);
     await chest.open();
     await learn?.openChest(id);
-    if (id === 'C0.1' && quests()['Q0.2'] === 'chest') {
-      setQuest('Q0.2', 'palette');
-      hud.toast('Quest updated: paint your sails at the palette stand by Nell’s door.', 4);
-    }
     input.enabled = !paused;
   }
+  // Nell opens her chest while she talks you through the prerequisites (the `nell-chest` cue).
+  cues.set('nell-chest', async () => {
+    const c = chests.find((v) => v.id === 'C0.1');
+    if (!c) return;
+    if (!c.chest.opened) {
+      audio?.sfx.oneShot('step_wood', c.chest.group.position, 1);
+      await c.chest.open();
+    }
+    await learn?.openChest('C0.1');
+  });
 
   // Message bottles on the beaches (B0.1-B0.3): optional troubleshooting pages.
   const bottleSpots = sites.bottles.spots();
@@ -430,38 +429,6 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     sites.bottles.setCollected(id, true);
     await learn?.openChest(id);
     input.enabled = !paused;
-  }
-
-  // The Harbormaster's Trial at the lighthouse door (POC §4.7): 8 questions, then the Seal.
-  const trialAt = village.anchors.lighthouseDoor;
-  if (trialAt) {
-    interactions.add({
-      id: 'trial:T0',
-      label: () =>
-        quests()['Q0.10'] === 'done' ? 'Retake the Harbormaster’s Trial' : 'Take the Harbormaster’s Trial',
-      x: trialAt.x,
-      y: trialAt.y,
-      z: trialAt.z,
-      radius: 3,
-      enabled: () => mode === 'walk' && !!learn && !!quests()['Q0.10'] && !scriptRunning,
-      onInteract: () => void takeTrial(),
-    });
-  }
-  async function takeTrial(): Promise<void> {
-    if (!learn) return;
-    scriptRunning = true;
-    input.enabled = false;
-    await dialogue.say('Wingman', 'Eight questions, Captain. No answers from me in here, only nudges.');
-    const out = await learn.runTrial('T0');
-    if (out.passed) {
-      setQuest('Q0.10', 'done');
-      if (!quests()['Q0.11']) {
-        setQuest('Q0.11', 'start');
-        hud.toast('The lighthouse is lit. Nell’s waiting by your bow to christen your ship.', 5);
-      } else hud.toast('The lighthouse is lit. Well sailed, Captain.', 4.5);
-    }
-    input.enabled = !paused;
-    scriptRunning = false;
   }
 
   // Puzzles (POC §4.5): each registers its own interactions and saves its own state.
@@ -540,13 +507,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       })
     : null;
   if (christening) cues.set('christen', christening.cue);
+  const gearRack = createGearRack(puzzleHost, sites.gear);
+  cues.set('gear-checks', async () => gearRack.cue());
   const lyra = npcs.list.find((n) => n.spec.id === 'lyra');
   const puzzles: Puzzle[] = [
     createPaintSails(puzzleHost, sites.palette, ship),
     createBard(puzzleHost, sites.hammock, () => lyra?.talking ?? false),
     createSluice(puzzleHost, sites.mill),
     createCrane(puzzleHost, sites.crane),
-    createGearCheck(puzzleHost, sites.gear),
+    gearRack,
     createFirstWords(puzzleHost, ship, () => shipDocked()),
     ...(christening ? [christening] : []),
   ];
@@ -1083,7 +1052,6 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           h: c.chest.group.rotation.y,
           opened: c.chest.opened,
         })),
-      trialAt: () => (trialAt ? { x: trialAt.x, z: trialAt.z, heading: trialAt.heading } : null),
       bottles: () =>
         Object.entries(bottleSpots).map(([id, p]) => ({
           id,

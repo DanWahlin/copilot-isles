@@ -1,11 +1,10 @@
 #!/usr/bin/env node
-// End-to-end quest run on the play page: Nell (spyglass views + pages), the chest, the palette
-// stand (Paint Your Sails), Ezra, Bo and his gear rack (Q0.5),
-// Suri's sluice (P0.1),
-// Pim and Pol's Dry-Run Crane (P0.2),
-// Juno's First Words (Q0.8), the message bottles, Lyra's soundcheck (Q0.9), the Harbormaster's Trial at
-// the lighthouse, and the christening at the pier head, answered through the real UI where it matters
-// (hotspots are clicked; other types use __dev.answer()), with screenshots at each beat.
+// End-to-end quest run on the play page, in Chapter 00's order: Nell (prerequisites chest, spyglass
+// views, pages), the palette stand (Paint Your Sails), Ezra's fork, Bo's session and tool checks at
+// his gear rack, Pim and Pol's Dry-Run Crane (P0.2), Suri's optional sluice (P0.1), Juno's First
+// Words (Q0.8), the message bottles, Lyra's soundcheck (Q0.9), then Nell at the bow: the
+// Harbormaster's Trial and the christening. Answered through the real UI where it matters (hotspots
+// are clicked; other types use __dev.answer()), with screenshots at each beat.
 // node tools/questtest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/quest]
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
 
@@ -116,34 +115,15 @@ const talk = async (npcId) => {
 
 const results = {};
 
-// Nell: Captain's Papers.
+// Nell: Captain's Papers. She opens her chest of prerequisites while she talks (the `nell-chest` cue).
 await talk('nell');
 results.nell = await drive(
   'nell',
-  (s) => s.quests['Q0.2'] === 'chest' && !s.dialogue && !s.quiz && !s.reveal,
+  (s) => s.quests['Q0.2'] === 'palette' && !s.dialogue && !s.quiz && !s.reveal,
 );
-
-// The chest beside Nell's door.
-const chest = await page.evaluate(() => {
-  const n = window.__dev.session().npcs.list.find((v) => v.spec.id === 'nell');
-  return { x: n.x, z: n.z, h: n.heading };
-});
-const chestPos = await page.evaluate(() => window.__dev.session().debug.chests?.()[0] ?? null);
-if (chestPos) {
-  await page.evaluate(({ x, z, h }) => {
-    const s = window.__dev.session();
-    s.debug.teleport(x + Math.sin(h) * 1.6, z + Math.cos(h) * 1.6, h + Math.PI);
-    window.__dev.look(h + Math.PI + 0.6, 0.35);
-  }, chestPos);
-  await page.waitForTimeout(900);
-  await shot('chest-closed');
-  await tap('KeyE');
-  await page.waitForTimeout(400);
-  await shot('chest-opening');
-} else {
-  logs.push(`[questtest] no chest debug hook (nell at ${JSON.stringify(chest)})`);
-}
-results.chest = await drive('chest', (s) => s.quests['Q0.2'] === 'palette' && !s.reveal);
+const chestOpen = await page.evaluate(() => window.__dev.session().debug.chests?.()[0]?.opened ?? null);
+if (!chestOpen) logs.push(`[questtest] Nell's chest isn't open after her talk (${chestOpen})`);
+if (!seen.has('reveal-pg.prereqs')) logs.push('[questtest] the prerequisites page never showed');
 
 // Paint Your Sails: E at the palette stand opens the theme picker; pick a card and select Finish
 // through the real UI, then the New page (C0.3) and Nell's lines.
@@ -181,108 +161,28 @@ if (stand) {
 await talk('merchant');
 results.ezra = await drive('ezra', (s) => s.quests['Q0.3'] === 'done' && !s.dialogue && !s.quiz && !s.reveal);
 
-// Bo: Your Own Deck.
+// Bo: a Local repository session, Terminal, and the version checks at his rack (every one passes),
+// then GitHub CLI's sign-in (S0.1).
 await talk('dockhand_b');
-results.bo = await drive('bo', (s) => s.quests['Q0.5'] === 'gear' && !s.dialogue && !s.quiz && !s.reveal);
-
-// Bo's gear rack (Q0.5): E at the rack runs the four version checks (GitHub CLI's fails), fetch the
-// lens and check again, then read the ledger (S0.1). Everything goes through E at the real spots.
-const gear = () => page.evaluate(() => window.__dev.session().debug.puzzle('Q0.5.gear')?.state() ?? null);
-const gs = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.5.gear')?.spots() ?? null);
+results.bo = await drive('bo', (s) => s.quests['Q0.4'] === 'done' && !s.dialogue && !s.quiz && !s.reveal);
+const rack = () => page.evaluate(() => window.__dev.session().debug.puzzle('gear.rack')?.state() ?? null);
+if (!(await rack())?.shown) logs.push('[questtest] gear: Bo never ran the checks at his rack');
+const gs = await page.evaluate(() => window.__dev.session().debug.puzzle('gear.rack')?.spots() ?? null);
 if (gs) {
-  const focus = () => page.evaluate(() => window.__dev.session().debug.state().focus);
-  const standAt = async (a) => {
-    await page.evaluate((a) => {
-      window.__dev.session().debug.teleport(a.x, a.z, a.heading ?? Math.PI);
-      window.__dev.look((a.heading ?? Math.PI) + 0.3, 0.3);
-    }, a);
-    await page.waitForTimeout(700);
-  };
-  /** Stands 1 m from the loose lens, facing it. */
-  const fetch = async (id) => {
-    const p = gs.loose[id];
-    for (const h of [Math.PI, 0, Math.PI / 2, -Math.PI / 2]) {
-      await standAt({ x: p.x - Math.sin(h) * 1.0, z: p.z - Math.cos(h) * 1.0, heading: h });
-      if ((await focus()) === `gear:${id}`) break;
-    }
-    if ((await focus()) !== `gear:${id}`)
-      logs.push(`[questtest] gear: focus at the ${id} was ${await focus()}`);
-    await tap('KeyE');
-    await page.waitForTimeout(500);
-  };
-  const atRack = async (label) => {
-    await standAt(gs.rack);
-    if ((await focus()) !== 'gear:rack')
-      logs.push(`[questtest] gear: focus at the rack was ${await focus()}`);
-    await tap('KeyE');
-    await page.waitForTimeout(900);
-    if (label) await shot(label);
-  };
-  await standAt(gs.rack);
-  await shot('gear-rack');
-  await atRack('gear-missing');
-  await drive('gear-missing', (s) => !s.dialogue);
-  if ((await gear())?.lens !== 'loose') logs.push('[questtest] gear: the lens never turned up');
-  await fetch('lens');
-  await atRack();
-  results.gear = await drive(
-    'gear',
-    (s) => s.quests['Q0.5'] === 'ledger' && !s.dialogue && !s.quiz && !s.reveal,
-  );
-  await standAt(gs.rack);
-  await shot('gear-checked');
-  await standAt(gs.ledger);
-  if ((await focus()) !== 'gear:ledger')
-    logs.push(`[questtest] gear: focus at the ledger was ${await focus()}`);
+  await page.evaluate((a) => {
+    window.__dev.session().debug.teleport(a.x, a.z, a.heading);
+    window.__dev.look(a.heading + 0.3, 0.2);
+  }, gs.rack);
+  await page.waitForTimeout(900);
+  const focus = await page.evaluate(() => window.__dev.session().debug.state().focus);
+  if (focus !== 'gear:rack') logs.push(`[questtest] gear: focus at the rack was ${focus}`);
   await tap('KeyE');
   await page.waitForTimeout(900);
-  await shot('gear-ledger-wrong');
-  results.ledger = await drive(
-    'ledger',
-    (s) => s.quests['Q0.5'] === 'done' && !s.dialogue && !s.quiz && !s.reveal,
-  );
-  await standAt(gs.ledger);
-  await shot('gear-ledger-signed');
-  if (!(await gear())?.signed) logs.push('[questtest] gear: the ledger never signed');
-} else logs.push('[questtest] no Q0.5 gear debug hook');
-
-// Suri: Open the Sluice (P0.1). The lever and one tile turn go through E like a player would.
-await talk('suri');
-results.suri = await drive(
-  'suri',
-  (s) => s.quests['Q0.6'] === 'sluice' && !s.dialogue && !s.quiz && !s.reveal,
-);
-const sluice = () => page.evaluate(() => window.__dev.session().debug.puzzle('P0.1')?.state() ?? null);
-const spots = await page.evaluate(() => window.__dev.session().debug.puzzle('P0.1')?.spots() ?? null);
-if (spots) {
-  await page.evaluate(({ lever }) => {
-    window.__dev.session().debug.teleport(lever.x + 1.1, lever.z, -Math.PI / 2);
-    window.__dev.look(-Math.PI / 2 + 0.5, 0.3);
-  }, spots);
-  await page.waitForTimeout(900);
-  await shot('mill-lever');
-  await tap('KeyE');
-  await page.waitForTimeout(1200);
-  if (!(await sluice())?.gate) logs.push('[questtest] mill: E at the lever did not open the gate');
-
-  const cell = spots.cells.findIndex((c) => c.turns);
-  const before = (await sluice())?.rots[cell];
-  await page.evaluate((c) => {
-    window.__dev.session().debug.teleport(c.x, c.z - 1, 0);
-    window.__dev.look(0.4, 0.45);
-  }, spots.cells[cell]);
-  await page.waitForTimeout(900);
-  await tap('KeyE');
-  await page.waitForTimeout(900);
-  const after = (await sluice())?.rots[cell];
-  if (after === before) logs.push(`[questtest] mill: E on tile ${cell} did not turn it`);
-  await shot('mill-turned');
-
-  await page.evaluate(() => window.__dev.session().debug.puzzle('P0.1').solve());
-  results.sluice = await drive('sluice', (s) => s.quests['Q0.6'] === 'done' && !s.dialogue && !s.reveal);
-  await page.waitForTimeout(1500);
-  await shot('mill-solved');
-} else logs.push('[questtest] no P0.1 debug hook');
+  const term = await page.evaluate(() => document.querySelector('.hud-term')?.textContent ?? '');
+  if (!/gh version/.test(term) || /not found/.test(term))
+    logs.push(`[questtest] gear: the rack's terminal read ${JSON.stringify(term.slice(0, 160))}`);
+  await shot('gear-checks');
+} else logs.push('[questtest] no gear rack hook');
 
 // Pim & Pol: the Dry-Run Crane (P0.2). Every capstan turn and lever pull goes through E.
 await talk('pim');
@@ -353,6 +253,45 @@ if (cs) {
   await page.waitForTimeout(800);
   await shot('crane-solved');
 } else logs.push('[questtest] no P0.2 debug hook');
+
+// Suri: Open the Sluice (P0.1, optional once the crane's done). The lever and one tile turn go
+// through E like a player would.
+await talk('suri');
+results.suri = await drive(
+  'suri',
+  (s) => s.quests['Q0.6'] === 'sluice' && !s.dialogue && !s.quiz && !s.reveal,
+);
+const sluice = () => page.evaluate(() => window.__dev.session().debug.puzzle('P0.1')?.state() ?? null);
+const spots = await page.evaluate(() => window.__dev.session().debug.puzzle('P0.1')?.spots() ?? null);
+if (spots) {
+  await page.evaluate(({ lever }) => {
+    window.__dev.session().debug.teleport(lever.x + 1.1, lever.z, -Math.PI / 2);
+    window.__dev.look(-Math.PI / 2 + 0.5, 0.3);
+  }, spots);
+  await page.waitForTimeout(900);
+  await shot('mill-lever');
+  await tap('KeyE');
+  await page.waitForTimeout(1200);
+  if (!(await sluice())?.gate) logs.push('[questtest] mill: E at the lever did not open the gate');
+
+  const cell = spots.cells.findIndex((c) => c.turns);
+  const before = (await sluice())?.rots[cell];
+  await page.evaluate((c) => {
+    window.__dev.session().debug.teleport(c.x, c.z - 1, 0);
+    window.__dev.look(0.4, 0.45);
+  }, spots.cells[cell]);
+  await page.waitForTimeout(900);
+  await tap('KeyE');
+  await page.waitForTimeout(900);
+  const after = (await sluice())?.rots[cell];
+  if (after === before) logs.push(`[questtest] mill: E on tile ${cell} did not turn it`);
+  await shot('mill-turned');
+
+  await page.evaluate(() => window.__dev.session().debug.puzzle('P0.1').solve());
+  results.sluice = await drive('sluice', (s) => s.quests['Q0.6'] === 'done' && !s.dialogue && !s.reveal);
+  await page.waitForTimeout(1500);
+  await shot('mill-solved');
+} else logs.push('[questtest] no P0.1 debug hook');
 
 // Juno: First Words (Q0.8). Try the Terminal hatch first (wrong), then the Prompt Box tube.
 await talk('juno');
@@ -437,29 +376,15 @@ if (await page.evaluate(() => !!window.__dev.session().debug.puzzle('Q0.9.bard')
   results.lyra = await drive('lyra', (s) => s.quests['Q0.9'] === 'done' && !s.dialogue && !s.reveal);
 } else logs.push('[questtest] no bard hook');
 
-// The Harbormaster's Trial at the lighthouse.
-const lighthouse = await page.evaluate(() => window.__dev.session().debug.trialAt?.() ?? null);
-if (lighthouse) {
-  await page.evaluate(({ x, z, heading }) => {
-    const s = window.__dev.session();
-    s.debug.teleport(x + Math.sin(heading) * 1.5, z + Math.cos(heading) * 1.5, heading + Math.PI);
-  }, lighthouse);
-  await page.waitForTimeout(900);
-  await tap('KeyE');
-  results.trial = await drive(
-    'trial',
-    (s) => s.quests['Q0.10'] === 'done' && !s.banner && !s.quiz && !s.dialogue,
-  );
-} else logs.push('[questtest] no lighthouse trial hook');
-
-// The Christening (Q0.11): Nell waits at the pier head; talking to her names the ship, the coconut
-// flies (the `christen` cue), then Juno and Wingman's sailing lesson.
+// Nell at the pier head, by your bow: the Harbormaster's Trial (Q0.10), then straight on to the
+// christening (Q0.11): the coconut flies (the `christen` cue), then Juno and Wingman's sailing lesson.
 if (await page.evaluate(() => !!window.__dev.session().debug.puzzle('Q0.11.christen'))) {
   await page.waitForTimeout(600);
   const at = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.11.christen').state());
-  if (!at.atPier) logs.push(`[questtest] christening: Nell isn't at the pier (${JSON.stringify(at)})`);
+  if (!at.atPier) logs.push(`[questtest] trial: Nell isn't at the pier (${JSON.stringify(at)})`);
   await talk('nell');
-  await shot('christen-talk');
+  await shot('trial-talk');
+  results.trial = await drive('trial', (s) => s.quests['Q0.10'] === 'done' && !s.banner && !s.quiz, 150000);
   results.christening = await drive(
     'christening',
     (s) => s.quests['Q0.11'] === 'sail' && !s.dialogue && !s.reveal,

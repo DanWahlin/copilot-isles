@@ -53,8 +53,8 @@ export const COVE_NPCS: NpcSpec[] = [
   {
     id: 'merchant',
     name: 'Ezra Quill',
-    anchor: 'chartmakerDoor',
-    out: 1.9,
+    // At his chart table on the quay by the pier foot, facing the way you come from Nell.
+    anchor: 'chartTable',
     clip: 'idle',
     barks: [
       'A fork is your own copy of the master chart. Mark it up all you like.',
@@ -64,12 +64,12 @@ export const COVE_NPCS: NpcSpec[] = [
   {
     id: 'dockhand_b',
     name: 'Bo Marlin',
-    anchor: 'storehouseDoor',
-    out: 1.4,
+    // In front of his gear rack, beside Ezra at the pier foot.
+    anchor: 'boRack',
     clip: 'idle',
     barks: [
       'For setup, choose Local repository, Captain. New worktrees come later.',
-      'Check your gear in the Terminal tab before you sail. Install only what is missing.',
+      'Git, Node.js, npm, and GitHub CLI. Check them in Terminal, and install only what’s missing.',
     ],
   },
   {

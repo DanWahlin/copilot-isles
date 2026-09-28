@@ -456,7 +456,10 @@ export const CH00: ChapterContent = {
       image: 'shared/app-review-panel',
       caption:
         'Select **View → Toggle Review Panel**, then the **Terminal** tab. No tab? Select **+**, then **Terminal**. Commands run here: the version checks, `gh auth status`, and the setup script. Requests to the agent go in the prompt box.',
-      code: 'git --version\nnode -v\nnpm -v\ngh --version\ngh auth status   # signed in as the account that owns your fork?',
+      code:
+        'git --version\nnode -v\nnpm -v\ngh --version\n' +
+        'gh auth status   # signed in as the account that owns your fork?\n' +
+        'gh auth login    # if not: GitHub.com → Login with a web browser',
       source: src('check-your-tools-in-terminal'),
     },
     {
@@ -464,6 +467,13 @@ export const CH00: ChapterContent = {
       title: 'Turn on workflows',
       caption:
         'New forks start with GitHub Actions switched off. On GitHub.com, open your fork’s **Actions** tab and select **I understand my workflows, go ahead and enable them** so the practice checks can run.',
+      source: src('add-the-course-practice-items'),
+    },
+    {
+      id: 'pg.checks',
+      title: 'The practice checks',
+      caption:
+        'With workflows on, GitHub runs automated checks on your fork’s pull requests. One of the practice pull requests has a check that fails on purpose, so you can fix it in a later chapter.',
       source: src('add-the-course-practice-items'),
     },
     {

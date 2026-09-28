@@ -1,72 +1,62 @@
 {
   "id": "nell.papers.03",
   "speaker": "Nell",
-  "text": "First things first: download and install the GitHub Copilot app for your system.",
+  "text": "Next, download and install the GitHub Copilot app for your system.",
   "words": [
     {
-      "word": "First",
+      "word": "Next",
       "start": 0.07,
-      "end": 0.27
-    },
-    {
-      "word": "things",
-      "start": 0.27,
-      "end": 0.55
-    },
-    {
-      "word": "first",
-      "start": 0.55,
-      "end": 1.35
+      "end": 0.63
     },
     {
       "word": "download",
-      "start": 1.35,
-      "end": 1.91
+      "start": 0.63,
+      "end": 1.11
     },
     {
       "word": "and",
-      "start": 1.91,
-      "end": 2.029
+      "start": 1.11,
+      "end": 1.27
     },
     {
       "word": "install",
-      "start": 2.029,
-      "end": 2.429
+      "start": 1.27,
+      "end": 1.63
     },
     {
       "word": "the",
-      "start": 2.429,
-      "end": 2.55
+      "start": 1.63,
+      "end": 1.79
     },
     {
       "word": "GitHub",
-      "start": 2.55,
-      "end": 2.949
+      "start": 1.79,
+      "end": 2.19
     },
     {
       "word": "Copilot",
-      "start": 2.949,
-      "end": 3.469
+      "start": 2.19,
+      "end": 2.75
     },
     {
       "word": "app",
-      "start": 3.469,
-      "end": 3.75
+      "start": 2.75,
+      "end": 3.03
     },
     {
       "word": "for",
-      "start": 3.75,
-      "end": 3.869
+      "start": 3.03,
+      "end": 3.19
     },
     {
       "word": "your",
-      "start": 3.869,
-      "end": 4.03
+      "start": 3.19,
+      "end": 3.349
     },
     {
       "word": "system",
-      "start": 4.03,
-      "end": 4.28
+      "start": 3.349,
+      "end": 3.599
     }
   ]
 }

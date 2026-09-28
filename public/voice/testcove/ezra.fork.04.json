@@ -1,77 +1,62 @@
 {
   "id": "ezra.fork.04",
   "speaker": "Ezra",
-  "text": "Bo, the quartermaster, will get your deck ready. You’ll find him at the storehouse.",
+  "text": "Next, your session. Bo's right beside me, at his gear rack.",
   "words": [
     {
-      "word": "Bo",
+      "word": "Next",
       "start": 0.07,
-      "end": 0.27
-    },
-    {
-      "word": "the",
-      "start": 0.27,
-      "end": 0.47
-    },
-    {
-      "word": "quartermaster",
-      "start": 0.47,
-      "end": 1.35
-    },
-    {
-      "word": "will",
-      "start": 1.35,
-      "end": 1.59
-    },
-    {
-      "word": "get",
-      "start": 1.59,
-      "end": 1.71
+      "end": 0.43
     },
     {
       "word": "your",
-      "start": 1.71,
-      "end": 1.91
+      "start": 0.43,
+      "end": 0.63
     },
     {
-      "word": "deck",
-      "start": 1.91,
-      "end": 2.23
+      "word": "session",
+      "start": 0.63,
+      "end": 1.75
     },
     {
-      "word": "ready",
-      "start": 2.23,
-      "end": 3.11
+      "word": "Bo's",
+      "start": 1.75,
+      "end": 2.07
     },
     {
-      "word": "You’ll",
-      "start": 3.11,
-      "end": 3.429
+      "word": "right",
+      "start": 2.07,
+      "end": 2.309
     },
     {
-      "word": "find",
-      "start": 3.429,
-      "end": 3.63
+      "word": "beside",
+      "start": 2.309,
+      "end": 2.71
     },
     {
-      "word": "him",
-      "start": 3.63,
-      "end": 3.75
+      "word": "me",
+      "start": 2.71,
+      "end": 2.989
     },
     {
       "word": "at",
-      "start": 3.75,
-      "end": 3.829
+      "start": 2.989,
+      "end": 3.19
     },
     {
-      "word": "the",
-      "start": 3.829,
-      "end": 3.949
+      "word": "his",
+      "start": 3.19,
+      "end": 3.349
     },
     {
-      "word": "storehouse",
-      "start": 3.949,
-      "end": 4.199
+      "word": "gear",
+      "start": 3.349,
+      "end": 3.59
+    },
+    {
+      "word": "rack",
+      "start": 3.59,
+      "end": 3.84
     }
   ]
 }

@@ -167,30 +167,9 @@ const compileMs = await compileAndStart(renderer, engine, scene, camera);
     );
     return { solved: f.solved, path: solutionPath(L) };
   },
-  gear: (
-    mode: 'loose' | 'hung' | 'empty' = 'hung',
-    ledger: 'someone-else' | 'you' = 'you',
-    glint: 'compass' | 'lantern' | 'rope' | 'spyglass' | 'lens' | null = null,
-  ) => {
-    const gear = cove.sites.gear;
-    for (const id of ['compass', 'lantern', 'rope', 'spyglass'] as const) {
-      gear.setLoose(id, mode === 'loose');
-      gear.setHung(id, mode === 'hung', false);
-    }
-    gear.setLoose('lens', mode === 'loose');
-    gear.setLensFitted(mode === 'hung');
-    gear.setLedger(ledger);
-    gear.setGlint(glint);
-    return gear.spots();
-  },
+  gear: () => cove.sites.gear.spots(),
   gearVisible: (visible: boolean) => {
     cove.sites.gear.group.visible = visible;
-  },
-  gearSwing: (id: 'compass' | 'lantern' | 'rope' | 'spyglass' = 'compass') => {
-    const gear = cove.sites.gear;
-    gear.setLoose(id, false);
-    gear.setHung(id, true, true);
-    return gear.spots();
   },
   palette: (id = 'github', hint = false) => {
     const palette = cove.sites.palette;
@@ -252,7 +231,6 @@ const compileMs = await compileAndStart(renderer, engine, scene, camera);
         clearance: Math.min(villageBox, villageCircle),
       };
     });
-    const compass = cove.sites.gear.spots().loose.compass;
     const nellDoor = cove.village.anchors.harbourmasterDoor!;
     const nellOut = 1.9;
     const nell = {
@@ -269,11 +247,6 @@ const compileMs = await compileAndStart(renderer, engine, scene, camera);
       spot: cove.sites.palette.spot,
       corners: samples,
       minClearance: Math.min(...samples.map((p) => p.clearance)),
-      compassDistance: Math.hypot(box.x - compass.x, box.z - compass.z),
-      spotCompassDistance: Math.hypot(
-        cove.sites.palette.spot.x - compass.x,
-        cove.sites.palette.spot.z - compass.z,
-      ),
       nellDistance: Math.hypot(cove.sites.palette.spot.x - nell.x, cove.sites.palette.spot.z - nell.z),
       chestDistance: Math.hypot(cove.sites.palette.spot.x - chest.x, cove.sites.palette.spot.z - chest.z),
     };

@@ -14,6 +14,8 @@ export type ScriptStep =
   | { page: string; doubloons?: number }
   | { term: string }
   | { quest: string; step: string }
+  /** Runs a Trial; failing or leaving it ends the script (the NPC offers it again). */
+  | { trial: string }
   /** A world beat the session plays and awaits (the christening's coconut, say). */
   | { cue: string };
 
@@ -48,6 +50,10 @@ export async function runScript(steps: readonly ScriptStep[], ctx: ScriptContext
         if (!learn) continue;
         const out = await learn.ask(s.quiz);
         if (!out.completed) return false;
+      } else if ('trial' in s) {
+        if (!learn) continue;
+        const out = await learn.runTrial(s.trial);
+        if (!out.passed) return false;
       } else if ('page' in s) await learn?.grantPage(s.page, s.doubloons ?? 0);
       else if ('term' in s) learn?.learnTerm(s.term);
       else if ('quest' in s) ctx.onQuest?.(s.quest, s.step);
