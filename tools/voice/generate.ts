@@ -16,7 +16,7 @@ interface VoiceLineDefinition {
   readonly voiceEnv?: string;
   readonly fallbackVoice?: string;
   readonly prosody?: Readonly<Record<string, string>>;
-  readonly fx?: 'wingman-bright';
+  readonly fx?: 'wingman-bright' | 'wingman-bird';
 }
 
 interface LinesFile {
@@ -54,6 +54,8 @@ const cacheDir = join(root, '.tools', 'voice-cache');
 const outDir = join(root, 'public', 'voice', 'testcove');
 const linesPath = join(root, 'tools', 'voice', 'lines.testcove.json');
 const requiredEnv = ['AZURE_SPEECH_KEY', 'AZURE_SPEECH_REGION'] as const;
+/** Azure synthesizes Riff24Khz16BitMonoPcm. */
+const SAMPLE_RATE = 24000;
 
 async function main(): Promise<void> {
   const env = await loadEnv();
@@ -233,6 +235,18 @@ async function ffmpeg(
   await mkdir(dirname(output), { recursive: true });
   const filters = ['loudnorm=I=-18:TP=-1.5:LRA=11'];
   if (fx === 'wingman-bright') filters.push('highpass=f=420', 'treble=g=4:f=6000');
+  if (fx === 'wingman-bird') {
+    // Up 2.5 semitones with the formants (a smaller speaker), at the same tempo so the word
+    // timings still hold, then a little brighter.
+    const f = 2 ** (2.5 / 12);
+    filters.unshift(
+      `asetrate=${Math.round(SAMPLE_RATE * f)}`,
+      `aresample=${SAMPLE_RATE}`,
+      `atempo=${(1 / f).toFixed(4)}`,
+      'highpass=f=170',
+      'treble=g=3:f=5000',
+    );
+  }
   await exec('ffmpeg', [
     '-hide_banner',
     '-loglevel',

@@ -25,92 +25,82 @@
     {
       "id": "wingman.hint.01",
       "speaker": "Wingman",
-      "voice": "en-US-Brian:DragonHDLatestNeural",
-      "prosody": {
-        "rate": "+3%"
-      },
-      "text": "First mate's job is hints. Captain's job is decisions.",
-      "fallbackVoice": "en-US-BrianNeural"
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "text": "Hints are my job, Captain. Decisions are yours.",
+      "fallbackVoice": "en-GB-NoahNeural",
+      "fx": "wingman-bird"
     },
     {
       "id": "wingman.welcome.01",
       "speaker": "Wingman",
-      "voice": "en-US-Brian:DragonHDLatestNeural",
-      "prosody": {
-        "rate": "+3%"
-      },
-      "fallbackVoice": "en-US-BrianNeural",
-      "text": "Welcome to Copilot Isles, Captain! I'm Wingman, your parrot and first mate."
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "fallbackVoice": "en-GB-NoahNeural",
+      "text": "Ahoy, Captain! Up here! I'm Wingman, your parrot and first mate.",
+      "fx": "wingman-bird"
     },
     {
       "id": "wingman.welcome.02",
       "speaker": "Wingman",
-      "voice": "en-US-Brian:DragonHDLatestNeural",
-      "prosody": {
-        "rate": "+3%"
-      },
-      "fallbackVoice": "en-US-BrianNeural",
-      "text": "Each island teaches a chapter of the GitHub Copilot app for Beginners course, and each one has a Captain's Seal to earn."
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "fallbackVoice": "en-GB-NoahNeural",
+      "text": "Every island out here teaches a chapter of the GitHub Copilot app for Beginners course, and each one has a Seal to earn.",
+      "fx": "wingman-bird"
     },
     {
       "id": "wingman.welcome.03",
       "speaker": "Wingman",
-      "voice": "en-US-Brian:DragonHDLatestNeural",
-      "prosody": {
-        "rate": "+3%"
-      },
-      "fallbackVoice": "en-US-BrianNeural",
-      "text": "This is Anchorage Cay, the setup chapter. Start with Nell, by the harbourmaster's door."
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "fallbackVoice": "en-GB-NoahNeural",
+      "text": "We're on Anchorage Cay, where you'll set up the app. Nell's by the harbourmaster's door, so start with her.",
+      "fx": "wingman-bird"
     },
     {
       "id": "wingman.welcome.04",
       "speaker": "Wingman",
-      "voice": "en-US-Brian:DragonHDLatestNeural",
-      "prosody": {
-        "rate": "+3%"
-      },
-      "fallbackVoice": "en-US-BrianNeural",
-      "text": "Your tasks are in the top left, and Q gets you a hint. First mate's job is hints. Captain's job is decisions."
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "fallbackVoice": "en-GB-NoahNeural",
+      "text": "Your tasks are in the top left. If you get stuck, press Q, and I'll give you a hint.",
+      "fx": "wingman-bird"
+    },
+    {
+      "id": "wingman.welcome.05",
+      "speaker": "Wingman",
+      "text": "Right, I'll ride on your shoulder. Hints are my job. Decisions are yours!",
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "fallbackVoice": "en-GB-NoahNeural",
+      "fx": "wingman-bird"
     },
     {
       "id": "wingman.welcome.back",
       "speaker": "Wingman",
-      "voice": "en-US-Brian:DragonHDLatestNeural",
-      "prosody": {
-        "rate": "+3%"
-      },
-      "fallbackVoice": "en-US-BrianNeural",
-      "text": "Welcome back to Copilot Isles, Captain! Your next task is in the top left."
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "fallbackVoice": "en-GB-NoahNeural",
+      "text": "Welcome back, Captain! Your next task's in the top left.",
+      "fx": "wingman-bird"
     },
     {
       "id": "wingman.hint.02",
       "speaker": "Wingman",
-      "voice": "en-US-Brian:DragonHDLatestNeural",
-      "prosody": {
-        "rate": "+3%"
-      },
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
       "text": "If the sign doesn't name your fork, don't pull the yes lever yet.",
-      "fallbackVoice": "en-US-BrianNeural"
+      "fallbackVoice": "en-GB-NoahNeural",
+      "fx": "wingman-bird"
     },
     {
       "id": "wingman.hint.03",
       "speaker": "Wingman",
-      "voice": "en-US-Brian:DragonHDLatestNeural",
-      "prosody": {
-        "rate": "+3%"
-      },
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
       "text": "You'll get unlimited retries here, so try the idea that feels safest.",
-      "fallbackVoice": "en-US-BrianNeural"
+      "fallbackVoice": "en-GB-NoahNeural",
+      "fx": "wingman-bird"
     },
     {
       "id": "wingman.suri.01",
       "speaker": "Wingman",
-      "voice": "en-US-Brian:DragonHDLatestNeural",
-      "prosody": {
-        "rate": "+3%"
-      },
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
       "text": "Quick one, Captain: those are GitHub Actions workflows. The Clock Tower’s Automations are something else, saved agent tasks, and you’ll learn those much later.",
-      "fallbackVoice": "en-US-BrianNeural"
+      "fallbackVoice": "en-GB-NoahNeural",
+      "fx": "wingman-bird"
     },
     {
       "id": "suri.idle.dry",
@@ -774,32 +764,26 @@
     {
       "id": "wingman.sail.01",
       "speaker": "Wingman",
-      "voice": "en-US-Brian:DragonHDLatestNeural",
-      "prosody": {
-        "rate": "+3%"
-      },
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
       "text": "Right, a quick sailing lesson. The gangway’s down now, so walk up it to take the helm. W and S trim the sails, and A and D steer.",
-      "fallbackVoice": "en-US-BrianNeural"
+      "fallbackVoice": "en-GB-NoahNeural",
+      "fx": "wingman-bird"
     },
     {
       "id": "wingman.sail.02",
       "speaker": "Wingman",
-      "voice": "en-US-Brian:DragonHDLatestNeural",
-      "prosody": {
-        "rate": "+3%"
-      },
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
       "text": "The compass up top points back to the pier. Bring her alongside and press E, and I’ll help you dock.",
-      "fallbackVoice": "en-US-BrianNeural"
+      "fallbackVoice": "en-GB-NoahNeural",
+      "fx": "wingman-bird"
     },
     {
       "id": "wingman.sail.03",
       "speaker": "Wingman",
-      "voice": "en-US-Brian:DragonHDLatestNeural",
-      "prosody": {
-        "rate": "+3%"
-      },
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
       "text": "Port Meridian’s east on the chart, but she’s not ready for visitors yet. Until she is, these waters are yours.",
-      "fallbackVoice": "en-US-BrianNeural"
+      "fallbackVoice": "en-GB-NoahNeural",
+      "fx": "wingman-bird"
     },
     {
       "id": "lyra.idle.01",

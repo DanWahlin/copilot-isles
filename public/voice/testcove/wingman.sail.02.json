@@ -5,103 +5,103 @@
   "words": [
     {
       "word": "The",
-      "start": 0.067,
-      "end": 0.184
+      "start": 0.23,
+      "end": 0.39
     },
     {
       "word": "compass",
-      "start": 0.184,
-      "end": 0.495
+      "start": 0.39,
+      "end": 0.71
     },
     {
       "word": "up",
-      "start": 0.495,
-      "end": 0.65
+      "start": 0.71,
+      "end": 0.87
     },
     {
       "word": "top",
-      "start": 0.65,
-      "end": 0.883
+      "start": 0.87,
+      "end": 1.03
     },
     {
       "word": "points",
-      "start": 0.883,
-      "end": 1.349
+      "start": 1.03,
+      "end": 1.39
     },
     {
       "word": "back",
-      "start": 1.349,
-      "end": 1.621
+      "start": 1.39,
+      "end": 1.59
     },
     {
       "word": "to",
-      "start": 1.621,
-      "end": 1.737
+      "start": 1.59,
+      "end": 1.71
     },
     {
       "word": "the",
-      "start": 1.737,
-      "end": 1.854
+      "start": 1.71,
+      "end": 1.83
     },
     {
       "word": "pier",
-      "start": 1.854,
-      "end": 2.514
+      "start": 1.83,
+      "end": 2.75
     },
     {
       "word": "Bring",
-      "start": 2.514,
-      "end": 2.746
+      "start": 2.75,
+      "end": 2.989
     },
     {
       "word": "her",
-      "start": 2.746,
-      "end": 2.863
+      "start": 2.989,
+      "end": 3.15
     },
     {
       "word": "alongside",
-      "start": 2.863,
-      "end": 3.524
+      "start": 3.15,
+      "end": 3.71
     },
     {
       "word": "and",
-      "start": 3.524,
-      "end": 3.717
+      "start": 3.71,
+      "end": 3.829
     },
     {
       "word": "press",
-      "start": 3.717,
-      "end": 4.067
+      "start": 3.829,
+      "end": 4.11
     },
     {
       "word": "E",
-      "start": 4.067,
-      "end": 4.922
+      "start": 4.11,
+      "end": 4.63
     },
     {
       "word": "and",
-      "start": 4.922,
-      "end": 5.077
+      "start": 4.63,
+      "end": 4.79
     },
     {
       "word": "I’ll",
-      "start": 5.077,
-      "end": 5.271
+      "start": 4.79,
+      "end": 4.95
     },
     {
       "word": "help",
-      "start": 5.271,
-      "end": 5.504
+      "start": 4.95,
+      "end": 5.19
     },
     {
       "word": "you",
-      "start": 5.504,
-      "end": 5.621
+      "start": 5.19,
+      "end": 5.31
     },
     {
       "word": "dock",
-      "start": 5.621,
-      "end": 5.871
+      "start": 5.31,
+      "end": 5.56
     }
   ]
 }

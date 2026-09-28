@@ -19,6 +19,8 @@ export interface InputState {
   menu: boolean;
   /** Wingman's hint (Q / gamepad X). */
   hint: boolean;
+  /** A move key or stick is held, even while input is disabled (to cut a cutscene short). */
+  stirring: boolean;
   usingGamepad: boolean;
 }
 
@@ -56,6 +58,7 @@ export class Input {
     map: false,
     menu: false,
     hint: false,
+    stirring: false,
     usingGamepad: false,
   };
   /** When false (dialogue, menus), movement and look read as zero; edges still fire. */
@@ -152,6 +155,7 @@ export class Input {
       my /= len;
     }
     const on = this.enabled;
+    s.stirring = len > 0.2;
     s.moveX = on ? mx : 0;
     s.moveY = on ? my : 0;
     s.lookX = on ? lx : 0;

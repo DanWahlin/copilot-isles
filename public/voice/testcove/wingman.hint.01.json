@@ -1,52 +1,47 @@
 {
   "id": "wingman.hint.01",
   "speaker": "Wingman",
-  "text": "First mate's job is hints. Captain's job is decisions.",
+  "text": "Hints are my job, Captain. Decisions are yours.",
   "words": [
     {
-      "word": "First",
-      "start": 0.067,
-      "end": 0.378
+      "word": "Hints",
+      "start": 0.19,
+      "end": 0.55
     },
     {
-      "word": "mate's",
-      "start": 0.378,
-      "end": 0.689
+      "word": "are",
+      "start": 0.55,
+      "end": 0.67
     },
     {
-      "word": "job",
-      "start": 0.689,
-      "end": 1.31
-    },
-    {
-      "word": "is",
-      "start": 1.31,
-      "end": 1.582
-    },
-    {
-      "word": "hints",
-      "start": 1.582,
-      "end": 2.707
-    },
-    {
-      "word": "Captain's",
-      "start": 2.707,
-      "end": 3.212
+      "word": "my",
+      "start": 0.67,
+      "end": 0.83
     },
     {
       "word": "job",
-      "start": 3.212,
-      "end": 3.833
+      "start": 0.83,
+      "end": 1.11
     },
     {
-      "word": "is",
-      "start": 3.833,
-      "end": 4.067
+      "word": "Captain",
+      "start": 1.11,
+      "end": 1.99
     },
     {
-      "word": "decisions",
-      "start": 4.067,
-      "end": 4.317
+      "word": "Decisions",
+      "start": 1.99,
+      "end": 2.51
+    },
+    {
+      "word": "are",
+      "start": 2.51,
+      "end": 2.63
+    },
+    {
+      "word": "yours",
+      "start": 2.63,
+      "end": 2.88
     }
   ]
 }

@@ -1,117 +1,122 @@
 {
   "id": "wingman.welcome.02",
   "speaker": "Wingman",
-  "text": "Each island teaches a chapter of the GitHub Copilot app for Beginners course, and each one has a Captain's Seal to earn.",
+  "text": "Every island out here teaches a chapter of the GitHub Copilot app for Beginners course, and each one has a Seal to earn.",
   "words": [
     {
-      "word": "Each",
-      "start": 0.067,
-      "end": 0.3
+      "word": "Every",
+      "start": 0.31,
+      "end": 0.67
     },
     {
       "word": "island",
-      "start": 0.3,
-      "end": 0.689
+      "start": 0.67,
+      "end": 1.07
+    },
+    {
+      "word": "out",
+      "start": 1.07,
+      "end": 1.27
+    },
+    {
+      "word": "here",
+      "start": 1.27,
+      "end": 1.55
     },
     {
       "word": "teaches",
-      "start": 0.689,
-      "end": 1.077
+      "start": 1.55,
+      "end": 1.91
     },
     {
       "word": "a",
-      "start": 1.077,
-      "end": 1.155
+      "start": 1.91,
+      "end": 1.99
     },
     {
       "word": "chapter",
-      "start": 1.155,
-      "end": 1.699
+      "start": 1.99,
+      "end": 2.349
     },
     {
       "word": "of",
-      "start": 1.699,
-      "end": 1.969
+      "start": 2.349,
+      "end": 2.469
     },
     {
       "word": "the",
-      "start": 1.969,
-      "end": 2.165
+      "start": 2.469,
+      "end": 2.63
     },
     {
       "word": "GitHub",
-      "start": 2.165,
-      "end": 2.669
+      "start": 2.63,
+      "end": 2.989
     },
     {
       "word": "Copilot",
-      "start": 2.669,
-      "end": 3.367
+      "start": 2.989,
+      "end": 3.51
     },
     {
       "word": "app",
-      "start": 3.367,
-      "end": 3.756
+      "start": 3.51,
+      "end": 3.75
     },
     {
       "word": "for",
-      "start": 3.756,
-      "end": 4.067
+      "start": 3.75,
+      "end": 3.909
     },
     {
       "word": "Beginners",
-      "start": 4.067,
-      "end": 4.495
+      "start": 3.909,
+      "end": 4.31
     },
     {
       "word": "course",
-      "start": 4.495,
-      "end": 5.155
+      "start": 4.31,
+      "end": 4.95
     },
     {
       "word": "and",
-      "start": 5.155,
-      "end": 5.699
+      "start": 4.95,
+      "end": 5.19
     },
     {
       "word": "each",
-      "start": 5.699,
-      "end": 6.009
+      "start": 5.19,
+      "end": 5.47
     },
     {
       "word": "one",
-      "start": 6.009,
-      "end": 6.281
+      "start": 5.47,
+      "end": 5.71
     },
     {
       "word": "has",
-      "start": 6.281,
-      "end": 6.475
+      "start": 5.71,
+      "end": 5.87
     },
     {
       "word": "a",
-      "start": 6.475,
-      "end": 6.553
-    },
-    {
-      "word": "Captain's",
-      "start": 6.553,
-      "end": 7.058
+      "start": 5.87,
+      "end": 5.95
     },
     {
       "word": "Seal",
-      "start": 7.058,
-      "end": 7.485
+      "start": 5.95,
+      "end": 6.23
     },
     {
       "word": "to",
-      "start": 7.485,
-      "end": 7.64
+      "start": 6.23,
+      "end": 6.47
     },
     {
       "word": "earn",
-      "start": 7.64,
-      "end": 7.89
+      "start": 6.47,
+      "end": 6.72
     }
   ]
 }

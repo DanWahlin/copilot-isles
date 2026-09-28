@@ -1,77 +1,102 @@
 {
   "id": "wingman.welcome.03",
   "speaker": "Wingman",
-  "text": "This is Anchorage Cay, the setup chapter. Start with Nell, by the harbourmaster's door.",
+  "text": "We're on Anchorage Cay, where you'll set up the app. Nell's by the harbourmaster's door, so start with her.",
   "words": [
     {
-      "word": "This",
-      "start": 0.067,
-      "end": 0.3
+      "word": "We're",
+      "start": 0.23,
+      "end": 0.47
     },
     {
-      "word": "is",
-      "start": 0.3,
-      "end": 0.495
+      "word": "on",
+      "start": 0.47,
+      "end": 0.59
     },
     {
       "word": "Anchorage",
-      "start": 0.495,
-      "end": 1.116
+      "start": 0.59,
+      "end": 0.99
     },
     {
       "word": "Cay",
-      "start": 1.116,
-      "end": 1.699
+      "start": 0.99,
+      "end": 1.51
+    },
+    {
+      "word": "where",
+      "start": 1.51,
+      "end": 1.71
+    },
+    {
+      "word": "you'll",
+      "start": 1.71,
+      "end": 1.95
+    },
+    {
+      "word": "set",
+      "start": 1.95,
+      "end": 2.11
+    },
+    {
+      "word": "up",
+      "start": 2.11,
+      "end": 2.23
     },
     {
       "word": "the",
-      "start": 1.699,
-      "end": 1.854
+      "start": 2.23,
+      "end": 2.389
     },
     {
-      "word": "setup",
-      "start": 1.854,
-      "end": 2.241
+      "word": "app.",
+      "start": 2.389,
+      "end": 3.51
     },
     {
-      "word": "chapter",
-      "start": 2.241,
-      "end": 3.174
-    },
-    {
-      "word": "Start",
-      "start": 3.174,
-      "end": 3.601
-    },
-    {
-      "word": "with",
-      "start": 3.601,
-      "end": 3.833
-    },
-    {
-      "word": "Nell",
-      "start": 3.833,
-      "end": 4.495
+      "word": "Nell's",
+      "start": 3.51,
+      "end": 3.909
     },
     {
       "word": "by",
-      "start": 4.495,
-      "end": 4.689
+      "start": 3.909,
+      "end": 4.07
     },
     {
       "word": "the",
-      "start": 4.689,
-      "end": 4.805
+      "start": 4.07,
+      "end": 4.19
     },
     {
       "word": "harbourmaster's",
-      "start": 4.805,
-      "end": 5.621
+      "start": 4.19,
+      "end": 4.87
     },
     {
       "word": "door",
-      "start": 5.621,
-      "end": 5.871
+      "start": 4.87,
+      "end": 5.39
+    },
+    {
+      "word": "so",
+      "start": 5.39,
+      "end": 5.63
+    },
+    {
+      "word": "start",
+      "start": 5.63,
+      "end": 5.95
+    },
+    {
+      "word": "with",
+      "start": 5.95,
+      "end": 6.11
+    },
+    {
+      "word": "her",
+      "start": 6.11,
+      "end": 6.36
     }
   ]
 }

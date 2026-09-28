@@ -5,123 +5,123 @@
   "words": [
     {
       "word": "Quick",
-      "start": 0.067,
-      "end": 0.3
+      "start": 0.11,
+      "end": 0.39
     },
     {
       "word": "one",
-      "start": 0.3,
-      "end": 0.572
+      "start": 0.39,
+      "end": 0.83
     },
     {
       "word": "Captain",
-      "start": 0.572,
-      "end": 1.271
+      "start": 0.83,
+      "end": 1.79
     },
     {
       "word": "those",
-      "start": 1.271,
-      "end": 1.621
+      "start": 1.79,
+      "end": 2.11
     },
     {
       "word": "are",
-      "start": 1.621,
-      "end": 1.815
+      "start": 2.11,
+      "end": 2.23
     },
     {
       "word": "GitHub",
-      "start": 1.815,
-      "end": 2.358
+      "start": 2.23,
+      "end": 2.51
     },
     {
       "word": "Actions",
-      "start": 2.358,
-      "end": 2.863
+      "start": 2.51,
+      "end": 2.949
     },
     {
       "word": "workflows",
-      "start": 2.863,
-      "end": 4.029
+      "start": 2.949,
+      "end": 4.19
     },
     {
       "word": "The",
-      "start": 4.029,
-      "end": 4.184
+      "start": 4.19,
+      "end": 4.35
     },
     {
       "word": "Clock",
-      "start": 4.184,
-      "end": 4.495
+      "start": 4.35,
+      "end": 4.63
     },
     {
       "word": "Tower’s",
-      "start": 4.495,
-      "end": 4.922
+      "start": 4.63,
+      "end": 4.99
     },
     {
       "word": "Automations",
-      "start": 4.922,
-      "end": 5.66
+      "start": 4.99,
+      "end": 5.67
     },
     {
       "word": "are",
-      "start": 5.66,
-      "end": 5.932
+      "start": 5.67,
+      "end": 5.79
     },
     {
       "word": "something",
-      "start": 5.932,
-      "end": 6.32
+      "start": 5.79,
+      "end": 6.15
     },
     {
       "word": "else",
-      "start": 6.32,
-      "end": 6.98
+      "start": 6.15,
+      "end": 6.71
     },
     {
       "word": "saved",
-      "start": 6.98,
-      "end": 7.485
+      "start": 6.71,
+      "end": 7.15
     },
     {
       "word": "agent",
-      "start": 7.485,
-      "end": 7.872
+      "start": 7.15,
+      "end": 7.55
     },
     {
       "word": "tasks",
-      "start": 7.872,
-      "end": 8.377
+      "start": 7.55,
+      "end": 8.35
     },
     {
       "word": "and",
-      "start": 8.377,
-      "end": 8.533
+      "start": 8.35,
+      "end": 8.549
     },
     {
       "word": "you’ll",
-      "start": 8.533,
-      "end": 8.766
+      "start": 8.549,
+      "end": 8.79
     },
     {
       "word": "learn",
-      "start": 8.766,
-      "end": 8.96
+      "start": 8.79,
+      "end": 8.99
     },
     {
       "word": "those",
-      "start": 8.96,
-      "end": 9.193
+      "start": 8.99,
+      "end": 9.229
     },
     {
       "word": "much",
-      "start": 9.193,
-      "end": 9.466
+      "start": 9.229,
+      "end": 9.469
     },
     {
       "word": "later",
-      "start": 9.466,
-      "end": 9.716
+      "start": 9.469,
+      "end": 9.719
     }
   ]
 }
