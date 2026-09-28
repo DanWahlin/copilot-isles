@@ -1,12 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
-  GEAR_IDS,
   gearPhase,
   gearTone,
   initialGear,
   ledgerTerminal,
   looseLeft,
-  nearestLoose,
   pickUp,
   rackAction,
   rackTerminal,
@@ -16,56 +14,60 @@ import {
   signIn,
   useRack,
   type GearState,
-  type LooseId,
 } from './gear-logic';
 
-const pickAll = (s: GearState, ids: readonly LooseId[]) => ids.reduce((a, id) => pickUp(a, id).state, s);
+/** Runs the checks, fetches the lens, and fits it: every tool checks out. */
+const checkedOut = (): GearState => useRack(pickUp(useRack(initialGear()).state, 'lens').state).state;
 
 describe('gear rack logic', () => {
-  it('starts with four loose pieces and no lens in sight', () => {
+  it('starts with the gear on the rack, nothing lying around, and the checks not yet run', () => {
     const s = initialGear();
-    expect(looseLeft(s)).toEqual(['compass', 'lantern', 'rope', 'spyglass']);
-    expect(gearPhase(s)).toBe('gather');
-    expect(rackAction(s)).toBeNull();
-    expect(useRack(s).event.kind).toBe('nothing');
+    expect(looseLeft(s)).toEqual([]);
+    expect(gearPhase(s)).toBe('check');
+    expect(rackAction(s)).toEqual({ kind: 'run' });
+    expect(rackTerminal(s)).toEqual(['(run the version checks at the rack)']);
   });
 
-  it('hangs carried pieces in rack order, one version check per press', () => {
-    let s = pickAll(initialGear(), ['rope', 'compass']);
-    let step = useRack(s);
-    expect(step.event).toEqual({ kind: 'checked', id: 'compass' });
-    s = step.state;
-    step = useRack(s);
-    expect(step.event).toEqual({ kind: 'checked', id: 'rope' });
-    expect(rackTerminal(step.state)).toEqual(['$ git --version', 'git version 2.49.0', '$ npm -v', '10.9.2']);
-  });
-
-  it('fails the spyglass check until the lens is fetched, then re-checks', () => {
-    let s = pickAll(initialGear(), ['compass', 'lantern', 'rope', 'spyglass']);
-    for (let k = 0; k < 3; k++) s = useRack(s).state;
-    const miss = useRack(s);
+  it('runs all four version checks at once, and the missing GitHub CLI sends you for a lens', () => {
+    const miss = useRack(initialGear());
     expect(miss.event).toEqual({ kind: 'missing', id: 'spyglass' });
-    s = miss.state;
-    expect(s.lens).toBe('loose');
-    expect(gearPhase(s)).toBe('lens');
-    expect(rackTerminal(s).slice(-1)).toEqual(['zsh: command not found: gh']);
-    expect(looseLeft(s)).toEqual(['lens']);
-    s = pickUp(s, 'lens').state;
+    expect(rackTerminal(miss.state)).toEqual([
+      '$ git --version',
+      'git version 2.49.0',
+      '$ node -v',
+      'v22.16.0',
+      '$ npm -v',
+      '10.9.2',
+      '$ gh --version',
+      'zsh: command not found: gh',
+    ]);
+    expect(gearPhase(miss.state)).toBe('lens');
+    expect(looseLeft(miss.state)).toEqual(['lens']);
+    expect(rackAction(miss.state)).toBeNull();
+  });
+
+  it('fits the lens and checks GitHub CLI again', () => {
+    const s = pickUp(useRack(initialGear()).state, 'lens').state;
     expect(rackAction(s)).toEqual({ kind: 'fit' });
     const fit = useRack(s);
     expect(fit.event.kind).toBe('all-checked');
-    expect(rackTerminal(fit.state).slice(-2)).toEqual(['$ gh --version', 'gh version 2.74.0']);
+    expect(rackTerminal(fit.state).slice(-4)).toEqual([
+      '$ gh --version',
+      'zsh: command not found: gh',
+      '$ gh --version',
+      'gh version 2.74.0',
+    ]);
     expect(gearPhase(fit.state)).toBe('ledger');
+    expect(useRack(fit.state).event.kind).toBe('nothing');
   });
 
   it('can’t pick up the lens before the spyglass check turns it up', () => {
     expect(pickUp(initialGear(), 'lens').event.kind).toBe('nothing');
+    expect(pickUp(useRack(initialGear()).state, 'compass').event.kind).toBe('nothing');
   });
 
   it('reads the wrong signature, then signs in as you', () => {
-    let s = pickAll(initialGear(), ['compass', 'lantern', 'rope', 'spyglass']);
-    for (let k = 0; k < 4; k++) s = useRack(s).state;
-    s = useRack(pickUp(s, 'lens').state).state;
+    const s = checkedOut();
     expect(signIn(s).event.kind).toBe('nothing');
     const read = readLedger(s);
     expect(read.event.kind).toBe('ledger-wrong');
@@ -78,19 +80,30 @@ describe('gear rack logic', () => {
 
   it('won’t read the ledger before the gear checks out', () => {
     expect(readLedger(initialGear()).event.kind).toBe('nothing');
+    expect(readLedger(useRack(initialGear()).state).event.kind).toBe('nothing');
   });
 
   it('round-trips saves and repairs inconsistent ones', () => {
-    let s = pickAll(initialGear(), ['compass', 'spyglass']);
-    s = useRack(s).state;
-    s = useRack(s).state;
-    expect(restoreGear(saveGear(s), false)).toEqual(s);
-    expect(restoreGear([0, 0, 0, 0, 3, 1, 1], false).lens).toBe('carried');
-    expect(restoreGear([0, 0, 0, 2, 0, 0, 0], false).lens).toBe('loose');
-    expect(restoreGear([2, 2, 0, 2, 3, 1, 1], false).signed).toBe(false);
-    const solved = restoreGear(undefined, true);
-    expect(GEAR_IDS.every((id) => solved.pieces[id] === 'hung')).toBe(true);
-    expect(gearPhase(solved)).toBe('done');
+    const mid = useRack(initialGear()).state;
+    expect(restoreGear(saveGear(mid), false)).toEqual(mid);
+    expect(restoreGear(saveGear(checkedOut()), false)).toEqual(checkedOut());
+    // A found lens means the checks ran; a run check means the lens is out there.
+    expect(restoreGear([0, 2, 0, 0], false)).toMatchObject({ ran: true, lens: 'carried' });
+    expect(restoreGear([1, 0, 0, 0], false).lens).toBe('loose');
+    // No signature without reading the ledger, and no ledger before the gear checks out.
+    expect(restoreGear([1, 1, 1, 1], false)).toMatchObject({ ledgerRead: false, signed: false });
+    expect(gearPhase(restoreGear(undefined, true))).toBe('done');
+  });
+
+  it('restores saves from the old gear hunt', () => {
+    expect(restoreGear([0, 1, 2, 0, 0, 0, 0], false)).toEqual(initialGear());
+    expect(restoreGear([2, 2, 2, 2, 1, 0, 0], false)).toMatchObject({ ran: true, lens: 'loose' });
+    expect(restoreGear([2, 2, 2, 2, 3, 1, 1], false)).toEqual({
+      ran: true,
+      lens: 'fitted',
+      ledgerRead: true,
+      signed: true,
+    });
   });
 
   it('inks commands, failures, successes, and your account', () => {
@@ -99,12 +112,5 @@ describe('gear rack logic', () => {
     expect(gearTone('v22.16.0')).toBe('ok');
     expect(gearTone('✓ Logged in as your-handle')).toBe('you');
     expect(gearTone('github.com')).toBeUndefined();
-  });
-
-  it('points hints at the nearest loose piece', () => {
-    const at = (id: LooseId) =>
-      ({ compass: { x: 0, z: 0 }, lantern: { x: 10, z: 0 } })[id as 'compass'] ?? { x: 99, z: 99 };
-    expect(nearestLoose(initialGear(), { x: 8, z: 0 }, at)).toBe('lantern');
-    expect(nearestLoose(pickUp(initialGear(), 'lantern').state, { x: 8, z: 0 }, at)).toBe('compass');
   });
 });

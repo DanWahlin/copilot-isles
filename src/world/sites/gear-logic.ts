@@ -3,14 +3,16 @@
  * ledger, so the order of things is unit-tested.
  *
  * It follows the course's "Check your tools in Terminal" steps:
- * - Each tool gets a version check in the app's **Terminal** tab: `git --version`, `node -v`,
- *   `npm -v`, and `gh --version`. Each piece of gear stands for one.
- * - "Only install what's missing, then check again." The spyglass turns up without its lens, so
- *   its check fails (`command not found`) until you fetch a lens from the market and re-check.
+ * - Four version checks run in the app's **Terminal** tab: `git --version`, `node -v`, `npm -v`, and
+ *   `gh --version`. Bo's rack holds a piece of gear for each, and one E at the rack runs them all, the
+ *   way you'd paste the course's block into Terminal. Developers don't need a hunt for `node -v`.
+ * - "Only install what's missing, then check again." The spyglass has no lens, so `gh` is
+ *   `command not found` until you fetch a lens from the market and check again.
  * - GitHub CLI has its own sign-in. `gh auth status` shows the wrong account until you run
  *   `gh auth login` (GitHub.com → Login with a web browser) and check again.
  */
 export type GearId = 'compass' | 'lantern' | 'rope' | 'spyglass';
+/** What the rack site can show lying in the village. Only the lens turns up in this quest. */
 export type LooseId = GearId | 'lens';
 
 export interface GearDef {
@@ -38,12 +40,12 @@ const GEAR: readonly GearDef[] = [
 export const GEAR_IDS: readonly GearId[] = GEAR.map((g) => g.id);
 export const gearDef = (id: GearId): GearDef => GEAR.find((g) => g.id === id)!;
 
-type PieceAt = 'loose' | 'carried' | 'hung';
 /** The lens only turns up once the spyglass check has failed. */
 type LensAt = 'hidden' | 'loose' | 'carried' | 'fitted';
 
 export interface GearState {
-  pieces: Record<GearId, PieceAt>;
+  /** The four version checks have run at the rack. */
+  ran: boolean;
   lens: LensAt;
   /** The ledger's `gh auth status` has been read (the wrong account showed). */
   ledgerRead: boolean;
@@ -51,13 +53,11 @@ export interface GearState {
   signed: boolean;
 }
 
-export type GearPhase = 'gather' | 'lens' | 'ledger' | 'done';
+export type GearPhase = 'check' | 'lens' | 'ledger' | 'done';
 
 type GearEvent =
-  | { kind: 'picked'; id: LooseId }
-  | { kind: 'checked'; id: GearId }
+  | { kind: 'picked'; id: 'lens' }
   | { kind: 'missing'; id: 'spyglass' }
-  | { kind: 'fitted' }
   | { kind: 'all-checked' }
   | { kind: 'ledger-wrong' }
   | { kind: 'signed' }
@@ -69,69 +69,46 @@ export interface GearStep {
 }
 
 export function initialGear(): GearState {
-  return {
-    pieces: { compass: 'loose', lantern: 'loose', rope: 'loose', spyglass: 'loose' },
-    lens: 'hidden',
-    ledgerRead: false,
-    signed: false,
-  };
+  return { ran: false, lens: 'hidden', ledgerRead: false, signed: false };
 }
 
-export const allChecked = (s: GearState): boolean =>
-  GEAR_IDS.every((id) => s.pieces[id] === 'hung') && s.lens === 'fitted';
+export const allChecked = (s: GearState): boolean => s.ran && s.lens === 'fitted';
 
 export function gearPhase(s: GearState): GearPhase {
   if (s.signed) return 'done';
   if (allChecked(s)) return 'ledger';
-  if (s.lens !== 'hidden' && s.lens !== 'fitted') return 'lens';
-  return 'gather';
+  if (s.ran) return 'lens';
+  return 'check';
 }
 
-/** What's still lying around the village (the lens only once it's turned up). */
+/** What's lying around the village: the lens, once the spyglass check has sent you for it. */
 export function looseLeft(s: GearState): LooseId[] {
-  const out: LooseId[] = GEAR_IDS.filter((id) => s.pieces[id] === 'loose');
-  if (s.lens === 'loose') out.push('lens');
-  return out;
+  return s.lens === 'loose' ? ['lens'] : [];
 }
 
-/** Picks up a loose piece. */
+/** Picks up the lens. */
 export function pickUp(s: GearState, id: LooseId): GearStep {
-  if (id === 'lens') {
-    if (s.lens !== 'loose') return { state: s, event: { kind: 'nothing' } };
-    return { state: { ...s, lens: 'carried' }, event: { kind: 'picked', id } };
-  }
-  if (s.pieces[id] !== 'loose') return { state: s, event: { kind: 'nothing' } };
-  return { state: { ...s, pieces: { ...s.pieces, [id]: 'carried' } }, event: { kind: 'picked', id } };
+  if (id !== 'lens' || s.lens !== 'loose') return { state: s, event: { kind: 'nothing' } };
+  return { state: { ...s, lens: 'carried' }, event: { kind: 'picked', id } };
 }
 
-/** What E at the rack does next: fit the lens, or hang the first carried piece. */
-export function rackAction(s: GearState): { kind: 'fit' } | { kind: 'hang'; id: GearId } | null {
-  if (s.lens === 'carried' && s.pieces.spyglass === 'hung') return { kind: 'fit' };
-  const id = GEAR_IDS.find((g) => s.pieces[g] === 'carried');
-  return id ? { kind: 'hang', id } : null;
+/** What E at the rack does next: run the four checks, or fit the lens and check again. */
+export function rackAction(s: GearState): { kind: 'run' } | { kind: 'fit' } | null {
+  if (!s.ran) return { kind: 'run' };
+  if (s.lens === 'carried') return { kind: 'fit' };
+  return null;
 }
 
 /**
- * E at the rack: hangs the next carried piece and runs its version check, or fits the lens and
- * re-checks the spyglass. A carried lens goes straight into a carried spyglass as it's hung.
+ * E at the rack: runs all four version checks (the spyglass's fails, and its lens turns up at the
+ * market), or fits the lens and checks again.
  */
 export function useRack(s: GearState): GearStep {
   const a = rackAction(s);
   if (!a) return { state: s, event: { kind: 'nothing' } };
-  if (a.kind === 'fit') return finish({ ...s, lens: 'fitted' }, { kind: 'fitted' });
-  const next: GearState = { ...s, pieces: { ...s.pieces, [a.id]: 'hung' } };
-  if (a.id === 'spyglass') {
-    if (next.lens === 'carried') return finish({ ...next, lens: 'fitted' }, { kind: 'fitted' });
-    if (next.lens === 'hidden')
-      return { state: { ...next, lens: 'loose' }, event: { kind: 'missing', id: 'spyglass' } };
-    if (next.lens === 'loose') return { state: next, event: { kind: 'missing', id: 'spyglass' } };
-  }
-  return finish(next, { kind: 'checked', id: a.id });
-}
-
-/** Reports `all-checked` instead once the last check passes. */
-function finish(s: GearState, ev: GearEvent): GearStep {
-  return { state: s, event: allChecked(s) ? { kind: 'all-checked' } : ev };
+  if (a.kind === 'run')
+    return { state: { ...s, ran: true, lens: 'loose' }, event: { kind: 'missing', id: 'spyglass' } };
+  return { state: { ...s, lens: 'fitted' }, event: { kind: 'all-checked' } };
 }
 
 /** E at the ledger: `gh auth status` first shows someone else; S0.1 then leads to the sign-in. */
@@ -146,55 +123,43 @@ export function signIn(s: GearState): GearStep {
   return { state: { ...s, signed: true }, event: { kind: 'signed' } };
 }
 
-const PIECE_CODE: readonly PieceAt[] = ['loose', 'carried', 'hung'];
 const LENS_CODE: readonly LensAt[] = ['hidden', 'loose', 'carried', 'fitted'];
 
 export function saveGear(s: GearState): number[] {
-  return [
-    ...GEAR_IDS.map((id) => PIECE_CODE.indexOf(s.pieces[id])),
-    LENS_CODE.indexOf(s.lens),
-    s.ledgerRead ? 1 : 0,
-    s.signed ? 1 : 0,
-  ];
+  return [s.ran ? 1 : 0, LENS_CODE.indexOf(s.lens), s.ledgerRead ? 1 : 0, s.signed ? 1 : 0];
 }
 
-/** Restores a saved state, repairing anything inconsistent (a fitted lens with no spyglass hung…). */
+/**
+ * Restores a saved state, repairing anything inconsistent. Saves from the old gear hunt (seven
+ * numbers: four pieces, then lens, ledger, signed) count as run once every piece was hung.
+ */
 export function restoreGear(saved: readonly number[] | undefined, solved: boolean): GearState {
-  if (solved) {
-    return {
-      pieces: { compass: 'hung', lantern: 'hung', rope: 'hung', spyglass: 'hung' },
-      lens: 'fitted',
-      ledgerRead: true,
-      signed: true,
-    };
-  }
+  if (solved) return { ran: true, lens: 'fitted', ledgerRead: true, signed: true };
   const s = initialGear();
   if (!saved) return s;
-  GEAR_IDS.forEach((id, i) => {
-    const at = PIECE_CODE[saved[i] ?? 0];
-    if (at) s.pieces[id] = at;
-  });
-  s.lens = LENS_CODE[saved[4] ?? 0] ?? 'hidden';
-  if (s.lens === 'fitted' && s.pieces.spyglass !== 'hung') s.lens = 'carried';
-  if (s.lens === 'hidden' && s.pieces.spyglass === 'hung') s.lens = 'loose';
-  s.ledgerRead = saved[5] === 1 && allChecked(s);
-  s.signed = saved[6] === 1 && s.ledgerRead;
+  const legacy = saved.length === 7;
+  const at = legacy ? 4 : 1;
+  s.ran = legacy ? saved.slice(0, 4).every((n) => n === 2) : saved[0] === 1;
+  s.lens = LENS_CODE[saved[at] ?? 0] ?? 'hidden';
+  if (s.lens !== 'hidden') s.ran = true;
+  else if (s.ran) s.lens = 'loose';
+  s.ledgerRead = saved[at + 1] === 1 && allChecked(s);
+  s.signed = saved[at + 2] === 1 && s.ledgerRead;
   return s;
 }
 
 const YOUR_HANDLE = 'your-handle';
 const WRONG_HANDLE = 'someone-else';
 
-/** The terminal panel's readout at the rack: one version check per hung piece, in rack order. */
+/** The terminal panel's readout at the rack: the four version checks, then the re-check once fixed. */
 export function rackTerminal(s: GearState): string[] {
+  if (!s.ran) return ['(run the version checks at the rack)'];
   const lines: string[] = [];
   for (const g of GEAR) {
-    if (s.pieces[g.id] !== 'hung') continue;
     lines.push(`$ ${g.command}`);
-    if (g.id === 'spyglass' && s.lens !== 'fitted') lines.push(`zsh: command not found: gh`);
-    else lines.push(g.output);
+    lines.push(g.id === 'spyglass' ? 'zsh: command not found: gh' : g.output);
   }
-  if (!lines.length) return ['(hang a piece of gear to check it)'];
+  if (s.lens === 'fitted') lines.push(`$ ${gearDef('spyglass').command}`, gearDef('spyglass').output);
   return lines;
 }
 
@@ -228,23 +193,4 @@ export function gearTone(line: string): GearTone | undefined {
   if (line.includes('command not found') || line.includes(WRONG_HANDLE)) return 'other';
   if (GEAR.some((g) => g.output === line)) return 'ok';
   return undefined;
-}
-
-/** Which loose piece a tier-2/3 hint should point at: the nearest one still lying around. */
-export function nearestLoose(
-  s: GearState,
-  from: { x: number; z: number },
-  at: (id: LooseId) => { x: number; z: number },
-): LooseId | null {
-  let best: LooseId | null = null;
-  let bd = Infinity;
-  for (const id of looseLeft(s)) {
-    const p = at(id);
-    const d = Math.hypot(p.x - from.x, p.z - from.z);
-    if (d < bd) {
-      bd = d;
-      best = id;
-    }
-  }
-  return best;
 }

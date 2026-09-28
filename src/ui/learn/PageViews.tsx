@@ -227,7 +227,7 @@ export function Logbook({ store, state }: { store: LearnStore; state: LearnState
               {t.label}
               {t.id === 'pages' && (
                 <small>
-                  {state.pages.length}/{allPages.length}
+                  {allPages.filter((p) => state.pages.includes(p.id)).length}/{allPages.length}
                 </small>
               )}
               {t.id === 'glossary' && (

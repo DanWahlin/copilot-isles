@@ -1,42 +1,92 @@
 {
   "id": "nell.settings.01",
   "speaker": "Nell",
-  "text": "Preferences can be changed anytime from settings.",
+  "text": "That's the New page, where new work starts. You can change your theme any time in Settings.",
   "words": [
     {
-      "word": "Preferences",
+      "word": "That's",
       "start": 0.07,
-      "end": 0.59
+      "end": 0.31
+    },
+    {
+      "word": "the",
+      "start": 0.31,
+      "end": 0.43
+    },
+    {
+      "word": "New",
+      "start": 0.43,
+      "end": 0.67
+    },
+    {
+      "word": "page",
+      "start": 0.67,
+      "end": 1.11
+    },
+    {
+      "word": "where",
+      "start": 1.11,
+      "end": 1.31
+    },
+    {
+      "word": "new",
+      "start": 1.31,
+      "end": 1.55
+    },
+    {
+      "word": "work",
+      "start": 1.55,
+      "end": 1.87
+    },
+    {
+      "word": "starts",
+      "start": 1.87,
+      "end": 2.75
+    },
+    {
+      "word": "You",
+      "start": 2.75,
+      "end": 2.989
     },
     {
       "word": "can",
-      "start": 0.59,
-      "end": 0.75
+      "start": 2.989,
+      "end": 3.15
     },
     {
-      "word": "be",
-      "start": 0.75,
-      "end": 0.87
+      "word": "change",
+      "start": 3.15,
+      "end": 3.51
     },
     {
-      "word": "changed",
-      "start": 0.87,
-      "end": 1.23
+      "word": "your",
+      "start": 3.51,
+      "end": 3.67
     },
     {
-      "word": "anytime",
-      "start": 1.23,
-      "end": 2.389
+      "word": "theme",
+      "start": 3.67,
+      "end": 3.989
     },
     {
-      "word": "from",
-      "start": 2.389,
-      "end": 2.71
+      "word": "any",
+      "start": 3.989,
+      "end": 4.35
     },
     {
-      "word": "settings",
-      "start": 2.71,
-      "end": 2.96
+      "word": "time",
+      "start": 4.35,
+      "end": 4.67
+    },
+    {
+      "word": "in",
+      "start": 4.67,
+      "end": 4.79
+    },
+    {
+      "word": "Settings",
+      "start": 4.79,
+      "end": 5.04
     }
   ]
 }

@@ -25,7 +25,7 @@ const button = (label: string, fn: () => void) => {
 };
 for (const id of QUIZZES.keys()) if (!id.startsWith('T0.')) button(id, () => void store.ask(id));
 button('Trial T0', () => void store.runTrial('T0'));
-button('Chest C0.4', () => void store.openChest('C0.4'));
+button('Chest C0.1', () => void store.openChest('C0.1'));
 button('Page P0.S', () => void store.grantPage('P0.S'));
 button('Spyglass', () => store.showImage('ch00/sign-in-to-app', 'Select **Sign in to GitHub**.'));
 button('Hide spyglass', () => store.hideImage());

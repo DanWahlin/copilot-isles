@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// End-to-end quest run on the play page: Nell (spyglass + hotspot quiz + page), the chest, the palette
+// End-to-end quest run on the play page: Nell (spyglass views + pages), the chest, the palette
 // stand (Paint Your Sails), Ezra, Bo and his gear rack (Q0.5),
 // Suri's sluice (P0.1),
 // Pim and Pol's Dry-Run Crane (P0.2),
@@ -146,7 +146,7 @@ if (chestPos) {
 results.chest = await drive('chest', (s) => s.quests['Q0.2'] === 'palette' && !s.reveal);
 
 // Paint Your Sails: E at the palette stand opens the theme picker; pick a card and select Finish
-// through the real UI, then the C0.2 and C0.3 pages and Nell's lines.
+// through the real UI, then the New page (C0.3) and Nell's lines.
 const stand = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.2.palette')?.spot() ?? null);
 if (stand) {
   await page.evaluate((a) => {
@@ -185,8 +185,8 @@ results.ezra = await drive('ezra', (s) => s.quests['Q0.3'] === 'done' && !s.dial
 await talk('dockhand_b');
 results.bo = await drive('bo', (s) => s.quests['Q0.5'] === 'gear' && !s.dialogue && !s.quiz && !s.reveal);
 
-// Bo's gear rack (Q0.5): pick up each piece, hang it (a version check per hook), fetch the missing
-// lens, then read the ledger (S0.1). Everything goes through E at the real interaction spots.
+// Bo's gear rack (Q0.5): E at the rack runs the four version checks (GitHub CLI's fails), fetch the
+// lens and check again, then read the ledger (S0.1). Everything goes through E at the real spots.
 const gear = () => page.evaluate(() => window.__dev.session().debug.puzzle('Q0.5.gear')?.state() ?? null);
 const gs = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.5.gear')?.spots() ?? null);
 if (gs) {
@@ -198,7 +198,7 @@ if (gs) {
     }, a);
     await page.waitForTimeout(700);
   };
-  /** Stands 1 m from a loose piece, facing it. */
+  /** Stands 1 m from the loose lens, facing it. */
   const fetch = async (id) => {
     const p = gs.loose[id];
     for (const h of [Math.PI, 0, Math.PI / 2, -Math.PI / 2]) {
@@ -218,9 +218,8 @@ if (gs) {
     await page.waitForTimeout(900);
     if (label) await shot(label);
   };
-  for (const id of ['compass', 'lantern', 'rope', 'spyglass']) await fetch(id);
-  await shot('gear-carried');
-  for (const id of ['compass', 'lantern', 'rope']) await atRack(id === 'rope' ? 'gear-three' : null);
+  await standAt(gs.rack);
+  await shot('gear-rack');
   await atRack('gear-missing');
   await drive('gear-missing', (s) => !s.dialogue);
   if ((await gear())?.lens !== 'loose') logs.push('[questtest] gear: the lens never turned up');

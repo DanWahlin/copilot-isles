@@ -1,0 +1,77 @@
+{
+  "id": "ezra.fork.careful",
+  "speaker": "Ezra",
+  "text": "Mind the search, though. The original course can show up right beside your fork.",
+  "words": [
+    {
+      "word": "Mind",
+      "start": 0.07,
+      "end": 0.39
+    },
+    {
+      "word": "the",
+      "start": 0.39,
+      "end": 0.51
+    },
+    {
+      "word": "search",
+      "start": 0.51,
+      "end": 0.83
+    },
+    {
+      "word": "though",
+      "start": 0.83,
+      "end": 1.15
+    },
+    {
+      "word": "The",
+      "start": 1.15,
+      "end": 1.91
+    },
+    {
+      "word": "original",
+      "start": 1.91,
+      "end": 2.309
+    },
+    {
+      "word": "course",
+      "start": 2.309,
+      "end": 2.909
+    },
+    {
+      "word": "can",
+      "start": 2.909,
+      "end": 3.15
+    },
+    {
+      "word": "show",
+      "start": 3.15,
+      "end": 3.349
+    },
+    {
+      "word": "up",
+      "start": 3.349,
+      "end": 3.429
+    },
+    {
+      "word": "right",
+      "start": 3.429,
+      "end": 3.67
+    },
+    {
+      "word": "beside",
+      "start": 3.67,
+      "end": 4.03
+    },
+    {
+      "word": "your",
+      "start": 4.03,
+      "end": 4.19
+    },
+    {
+      "word": "fork",
+      "start": 4.19,
+      "end": 4.44
+    }
+  ]
+}

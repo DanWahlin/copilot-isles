@@ -1,7 +1,7 @@
 {
   "id": "ezra.fork.01",
   "speaker": "Ezra",
-  "text": "Every captain needs their own chart. A fork is your own copy of the course repository, on GitHub.",
+  "text": "Every captain needs their own chart. Fork the course repository on GitHub, so your practice work lands in your own copy.",
   "words": [
     {
       "word": "Every",
@@ -11,87 +11,102 @@
     {
       "word": "captain",
       "start": 0.35,
-      "end": 0.79
+      "end": 0.75
     },
     {
       "word": "needs",
-      "start": 0.79,
-      "end": 1.31
+      "start": 0.75,
+      "end": 1.07
     },
     {
       "word": "their",
-      "start": 1.31,
-      "end": 1.51
+      "start": 1.07,
+      "end": 1.31
     },
     {
       "word": "own",
-      "start": 1.51,
-      "end": 1.67
+      "start": 1.31,
+      "end": 1.43
     },
     {
       "word": "chart",
-      "start": 1.67,
-      "end": 2.59
+      "start": 1.43,
+      "end": 2.429
     },
     {
-      "word": "A",
-      "start": 2.59,
-      "end": 2.789
-    },
-    {
-      "word": "fork",
-      "start": 2.789,
-      "end": 3.27
-    },
-    {
-      "word": "is",
-      "start": 3.27,
-      "end": 3.349
-    },
-    {
-      "word": "your",
-      "start": 3.349,
-      "end": 3.55
-    },
-    {
-      "word": "own",
-      "start": 3.55,
-      "end": 3.67
-    },
-    {
-      "word": "copy",
-      "start": 3.67,
-      "end": 3.989
-    },
-    {
-      "word": "of",
-      "start": 3.989,
-      "end": 4.07
+      "word": "Fork",
+      "start": 2.429,
+      "end": 2.829
     },
     {
       "word": "the",
-      "start": 4.07,
-      "end": 4.19
+      "start": 2.829,
+      "end": 2.949
     },
     {
       "word": "course",
-      "start": 4.19,
-      "end": 4.51
+      "start": 2.949,
+      "end": 3.309
     },
     {
       "word": "repository",
-      "start": 4.51,
-      "end": 5.31
+      "start": 3.309,
+      "end": 3.909
     },
     {
       "word": "on",
-      "start": 5.31,
-      "end": 5.51
+      "start": 3.909,
+      "end": 4.03
     },
     {
       "word": "GitHub",
-      "start": 5.51,
-      "end": 5.76
+      "start": 4.03,
+      "end": 4.79
+    },
+    {
+      "word": "so",
+      "start": 4.79,
+      "end": 5.03
+    },
+    {
+      "word": "your",
+      "start": 5.03,
+      "end": 5.27
+    },
+    {
+      "word": "practice",
+      "start": 5.27,
+      "end": 5.71
+    },
+    {
+      "word": "work",
+      "start": 5.71,
+      "end": 6.07
+    },
+    {
+      "word": "lands",
+      "start": 6.07,
+      "end": 6.43
+    },
+    {
+      "word": "in",
+      "start": 6.43,
+      "end": 6.51
+    },
+    {
+      "word": "your",
+      "start": 6.51,
+      "end": 6.71
+    },
+    {
+      "word": "own",
+      "start": 6.71,
+      "end": 6.83
+    },
+    {
+      "word": "copy",
+      "start": 6.83,
+      "end": 7.08
     }
   ]
 }

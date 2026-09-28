@@ -21,21 +21,21 @@ const q = (id: string) => {
 
 describe('grade', () => {
   it('grades multiple choice with per-option feedback', () => {
-    expect(grade(q('MC0.1'), { type: 'mc', option: 'open' }).correct).toBe(true);
-    const wrong = grade(q('MC0.1'), { type: 'mc', option: 'clone' });
+    expect(grade(q('T0.10'), { type: 'mc', option: 'project-plus' }).correct).toBe(true);
+    const wrong = grade(q('T0.10'), { type: 'mc', option: 'projects-plus' });
     expect(wrong.correct).toBe(false);
-    expect(wrong.feedback).toContain('URL');
+    expect(wrong.feedback).toContain('another project');
   });
 
   it('grades hotspots by point, picking the target under the click', () => {
-    expect(grade(q('H0.1'), { type: 'hotspot', x: 0.2, y: 0.76 })).toMatchObject({
+    expect(grade(q('H0.2'), { type: 'hotspot', x: 0.23, y: 0.344 })).toMatchObject({
       correct: true,
-      hit: 'github',
+      hit: 'projects-plus',
     });
-    const ghe = grade(q('H0.1'), { type: 'hotspot', x: 0.5, y: 0.76 });
-    expect(ghe).toMatchObject({ correct: false, hit: 'ghe' });
-    expect(ghe.feedback).toContain('ghe.com');
-    expect(grade(q('H0.1'), { type: 'hotspot', x: 0.05, y: 0.05 })).toMatchObject({
+    const prompt = grade(q('H0.2'), { type: 'hotspot', x: 0.305, y: 0.508 });
+    expect(prompt).toMatchObject({ correct: false, hit: 'prompt-plus' });
+    expect(prompt.feedback).toContain('prompt box');
+    expect(grade(q('H0.2'), { type: 'hotspot', x: 0.9, y: 0.9 })).toMatchObject({
       correct: false,
       hit: undefined,
     });
@@ -63,11 +63,11 @@ describe('grade', () => {
     expect(g.correct).toBe(false);
     expect(g.marks).toMatchObject({ [right[0]!]: false, [right[2]!]: true });
 
-    const m = q('M0.1');
+    const m = q('T0.9');
     if (m.type !== 'matching') throw new Error();
     const pairs = Object.fromEntries(m.pairs.map((p) => [p.left.id, p.right.id]));
     expect(grade(m, { type: 'matching', pairs }).correct).toBe(true);
-    expect(grade(m, { type: 'matching', pairs: { ...pairs, compass: 'npm' } }).correct).toBe(false);
+    expect(grade(m, { type: 'matching', pairs: { ...pairs, workflows: 'terminal' } }).correct).toBe(false);
   });
 
   it('shuffles deterministically and never returns the original order', () => {

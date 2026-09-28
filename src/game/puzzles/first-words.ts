@@ -43,6 +43,7 @@ const REPLY_LINES: readonly TerminalLine[] = [
 const JUNO_REPLY: readonly ScriptStep[] = [
   { say: 'juno.reply.01' },
   { say: 'juno.reply.02' },
+  { say: 'juno.reply.vary' },
   { page: 'pg.first-prompt', doubloons: 10 },
   { say: 'juno.reply.03' },
   { quest: QUEST, step: 'done' },

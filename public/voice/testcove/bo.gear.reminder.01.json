@@ -1,10 +1,10 @@
 {
   "id": "bo.gear.reminder.01",
   "speaker": "Bo",
-  "text": "Hang the gear on my rack, Captain. Each hook runs its version check.",
+  "text": "Run the version checks at my rack, Captain. Each one should print a version number.",
   "words": [
     {
-      "word": "Hang",
+      "word": "Run",
       "start": 0.07,
       "end": 0.27
     },
@@ -14,59 +14,69 @@
       "end": 0.39
     },
     {
-      "word": "gear",
+      "word": "version",
       "start": 0.39,
-      "end": 0.63
-    },
-    {
-      "word": "on",
-      "start": 0.63,
       "end": 0.75
     },
     {
-      "word": "my",
+      "word": "checks",
       "start": 0.75,
-      "end": 0.95
+      "end": 1.07
+    },
+    {
+      "word": "at",
+      "start": 1.07,
+      "end": 1.19
+    },
+    {
+      "word": "my",
+      "start": 1.19,
+      "end": 1.47
     },
     {
       "word": "rack",
-      "start": 0.95,
-      "end": 1.27
+      "start": 1.47,
+      "end": 1.83
     },
     {
       "word": "Captain",
-      "start": 1.27,
-      "end": 2.029
-    },
-    {
-      "word": "Each",
-      "start": 2.029,
-      "end": 2.389
-    },
-    {
-      "word": "hook",
-      "start": 2.389,
+      "start": 1.83,
       "end": 2.75
     },
     {
-      "word": "runs",
+      "word": "Each",
       "start": 2.75,
       "end": 3.03
     },
     {
-      "word": "its",
+      "word": "one",
       "start": 3.03,
       "end": 3.19
     },
     {
-      "word": "version",
+      "word": "should",
       "start": 3.19,
-      "end": 3.55
+      "end": 3.429
     },
     {
-      "word": "check",
-      "start": 3.55,
-      "end": 3.8
+      "word": "print",
+      "start": 3.429,
+      "end": 3.67
+    },
+    {
+      "word": "a",
+      "start": 3.67,
+      "end": 3.71
+    },
+    {
+      "word": "version",
+      "start": 3.71,
+      "end": 4.11
+    },
+    {
+      "word": "number",
+      "start": 4.11,
+      "end": 4.36
     }
   ]
 }

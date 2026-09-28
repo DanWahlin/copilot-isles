@@ -23,7 +23,7 @@ const frameClick = async (x, y) => {
   await page.waitForTimeout(400);
 };
 
-for (const id of ['H0.1', 'H0.2', 'H0.3', 'H0.4']) {
+for (const id of ['H0.2', 'H0.4']) {
   await open(`q=${id}`);
   await shot(`${id}`);
 }
@@ -42,21 +42,21 @@ await page.waitForTimeout(300);
 await shot('H0.4-lens');
 await page.keyboard.up('Shift');
 
-await open('q=MC0.1');
+await open('q=S0.3');
 await page.keyboard.press('Digit2');
 await page.waitForTimeout(300);
-await shot('MC0.1-wrong');
+await shot('S0.3-wrong');
 await open('q=S0.1');
 await shot('S0.1');
-await open('q=M0.1');
-await shot('M0.1');
+await open('q=T0.9');
+await shot('T0.9');
 await page.click('.ci-match-right >> nth=0');
 await page.click('.ci-match-right >> nth=1');
 await page.click('.ci-match-right >> nth=2');
 await page.click('.ci-match-right >> nth=3');
 await page.keyboard.press('KeyE');
 await page.waitForTimeout(300);
-await shot('M0.1-checked');
+await shot('T0.9-checked');
 await open('q=T0');
 await shot('T0.1');
 await page.keyboard.press('KeyE');
@@ -64,7 +64,7 @@ await page.waitForTimeout(300);
 await shot('T0.1-checked');
 
 await open('');
-await page.click('text=Chest C0.4');
+await page.click('text=Chest C0.1');
 await page.waitForTimeout(500);
 await shot('chest');
 await page.keyboard.press('KeyE');

@@ -28,17 +28,17 @@ Every course objective is **taught** (by an NPC or a Logbook page), **practiced*
 ### Chapter 00: Setup
 | Course objective / section | Taught | Practiced | Assessed |
 |---|---|---|---|
-| Prerequisites (GitHub account, Copilot plan *or* own model provider, Business/Enterprise **GitHub Copilot app** policy, Git, Node LTS, `gh`) | Nell (Q0.2) | Gear Check (Q0.5) | T0 #6 |
-| Download & install → **Sign in to GitHub** → skip **Connect your repositories** → pick theme → **Finish** → **New** page | Nell (Q0.2), C0.1-C0.3 | Paint Your Sails | H0.1, T0 #1 |
-| Fork = your own copy | Ezra (Q0.3) | Copy the Master Chart | T0 #1, #2 |
-| **+** next to **Projects** → **Add GitHub repository**; alternatives **Open folder** / **Clone repository** | Ezra (Q0.3), C0.4 | Moor Your Ship | H0.2, H0.3, MC0.1, T0 #1 |
-| Start a project session; workspace selector → **Local repository** (not **New worktree**) for setup | Bo (Q0.4) | Your Own Deck | H0.4, T0 #1 |
-| **View → Toggle Review Panel** → **Terminal** tab; version checks; install only what's missing | Bo (Q0.5) | Gear Rack | M0.1 |
-| `gh auth status` / `gh auth login` (GitHub.com → Login with a web browser) | Bo (Q0.5) | Right Signature | S0.1 |
-| Enable workflows on the fork (GitHub.com → your fork → **Actions** tab) so GitHub Actions can run the practice checks | Suri (Q0.6) | P0.1 Sluice | T0 #4 |
-| Setup script: labels, issues, practice branches, PRs; bugs stay off `main`; in **Terminal**, from the repo root, run `node .github/scripts/setup-training-scenarios.js --dry-run`, check the `Repository:` line, then `--yes`, and wait for `Setup complete.` | Pim & Pol (Q0.7), page P0.S | **P0.2 Dry-Run Crane** | T0 #1, #3, #5, #7 |
-| First prompt goes to the **Copilot app** prompt box, *not* Terminal | Juno (Q0.8) | Speaking Tube | S0.2 |
-| Troubleshooting (sign-in, app policy ≠ CLI policy, Git missing, can't see repo, org fork, Issues disabled) | Bottles B0.1-B0.3 | | T0 #8 |
+| Prerequisites (GitHub account, Copilot plan *or* own model provider, Business/Enterprise **GitHub Copilot app** policy, Git, Node LTS, `gh`) | Nell (Q0.2), chest C0.1 → pg.prereqs | Gear Check (Q0.5) | T0 #6 |
+| Download & install → **Sign in to GitHub** → continue past **Connect your repositories** → pick theme → **Finish** → **New** page | Nell (Q0.2), pg.install, C0.3 | Paint Your Sails | *(shown, not quizzed: one obvious button)* |
+| Fork = your own copy; pick **your fork**, not the original, in search | Ezra (Q0.3), pg.fork | Copy the Master Chart | S0.3, T0 #1 |
+| **+** next to **Projects** → **Add GitHub repository**; alternatives **Open folder** / **Clone repository** | Ezra (Q0.3), C0.4 | Moor Your Ship | H0.2, T0 #1 |
+| Start a project session with the **+ next to the project** (not the **Projects +**); workspace selector → **Local repository** (not **New worktree**) for setup | Bo (Q0.4), C0.6 | Your Own Deck | H0.4, T0 #1, #2, #7 |
+| **View → Toggle Review Panel** → **Terminal** tab (or **+ → Terminal**); version checks; install only what's missing | Bo (Q0.5), pg.terminal | Gear Rack | T0 #2 |
+| `gh auth status` / `gh auth login` (GitHub.com → Login with a web browser) | Bo (Q0.5), pg.terminal | Right Signature | S0.1, T0 #2 |
+| Enable workflows on the fork (GitHub.com → your fork → **Actions** tab) so GitHub Actions can run the practice checks | Suri (Q0.6), pg.workflows | P0.1 Sluice | T0 #4, #2 |
+| Setup script: labels, issues, practice branches, PRs; bugs stay off `main`; in **Terminal**, from the repo root, run `node .github/scripts/setup-training-scenarios.js --dry-run`, check the `Repository:` line, then `--yes`, and wait for `Setup complete.` | Pim & Pol (Q0.7), page P0.S | **P0.2 Dry-Run Crane** | T0 #1, #3, #5 |
+| First prompt goes to the **Copilot app** prompt box, *not* Terminal; model output varies | Juno (Q0.8), pg.first-prompt | Speaking Tube | S0.2, T0 #2 |
+| Troubleshooting (sign-in, app policy ≠ CLI policy, Git missing, can't see repo / chat can't explain it, org fork, Issues disabled, manual appendix) | Bottles B0.1-B0.3 | | T0 #8 |
 | Studio analogy: soundcheck | Lyra (Q0.9), C0.5 | | |
 | Key takeaways (3) | Trial wrap-up | | T0 |
 
@@ -249,26 +249,25 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 **Q0.1 · Landfall (tutorial, ~1 min).** You step onto the beach and learn movement, camera, and interaction. Wingman introduces himself: *"First mate's job is hints. Captain's job is decisions."* Nell waves you toward the pier.
 
 **Q0.2 · Captain's Papers** *(00 · Prerequisites, Installation)*
-- Nell starts with the basics: *"First, download and install the GitHub Copilot app for your system."* Then she covers the GitHub account, a Copilot plan *or* your own model provider, and says that for Business/Enterprise, the **GitHub Copilot app** policy must be enabled. **[P] "What you need."**
-- The spyglass shows `sign-in-to-app`. **H0.1:** "Point to how you'd sign in with a regular GitHub account."
-- She explains that at **Connect your repositories** you'll *continue without adding one*, because you'll connect your fork shortly.
-- **Paint Your Sails:** a palette stand mirrors the app's theme picker (`pick-a-theme`). Your choice recolors your sails and persists. Nell adds: *"Preferences can be changed anytime from settings."* Then you select **Finish**, and the **New** page appears as a spyglass view (`github-copilot-app`).
-- Rewards: **[C0.1]** sign-in, **[C0.2]** theme picker, **[C0.3]** the New page. You also get the key item *Captain's Papers*.
+- Nell starts with the basics: the GitHub account, a Copilot plan *or* your own model provider, and, for Business/Enterprise, the **GitHub Copilot app** policy. Then the spyglass shows the app (`github-copilot-app`) with the download link, and she grants **[P] "Get the Copilot app"** (pg.install).
+- The spyglass shows `sign-in-to-app`. Signing in is one obvious button, so it's shown and told, not quizzed. She explains that at **Connect your repositories** you'll *continue without adding one*, because you'll connect your fork shortly.
+- **Paint Your Sails:** a palette stand mirrors the app's theme picker (`pick-a-theme`). Your choice recolors your sails and persists. Nell adds: *"Preferences can be changed anytime from settings."* Then you select **Finish** and get **[C0.3] "The New page"**.
+- **[C0.1] Nell's chest** holds **[P] "What you need"** (pg.prereqs): the tool links, what each is for, and that you'll check them in the app's **Terminal** later. You also get the key item *Captain's Papers*.
 
 **Q0.3 · Copy the Master Chart** *(00 · Connect to your repository)*
-- Ezra explains that a **fork** is *your own copy* of the course repository on GitHub. You hold E at the copy table and ink traces a fresh chart that has your name on the cartouche.
-- **Moor Your Ship:** **H0.2** asks you to find the **+** next to **Projects**. **H0.3** asks you to pick **Add GitHub repository**. Then you "search for `copilot-app-for-beginners` and select your fork": the app clones it and adds the project to the sidebar. **[C0.4]**
-- **MC0.1:** "You already have a local copy of your fork. Which option?" → **Open folder**. The explanation adds that **Clone repository** is for when you have the fork's URL.
+- Ezra explains that a **fork** is *your own copy* of the course repository on GitHub, and grants **[P] "Fork the course"** (pg.fork, with the fork URL). You hold E at the copy table and ink traces a fresh chart that has your name on the cartouche.
+- **Moor Your Ship:** on the unopened New page, **H0.2** asks you to find the **+** next to **Projects**. Then the spyglass shows the menu it opens (`app-add-project`): **Add GitHub repository** is told, not quizzed, along with **Open folder** / **Clone repository**.
+- Ezra warns that search can show the original too. **S0.3:** `github/…` or `your-handle/…`? → **your fork**. The app clones it and adds the project to the sidebar. **[C0.4]**
 
 **Q0.4 · Your Own Deck** *(00 · Check your tools, steps 1-3)*
-- Bo confirms the project shows under **Projects**, then has you select **+ next to the project** to start a **project session**.
+- Bo confirms the project shows under **Projects**, then has you select **+ next to the project** (not the **Projects +**, which adds another project) to start a **project session**.
 - **H0.4** uses `local-repository-workspace-selector` with the callouts masked: "For this one-time setup, where should the session run?" → **Local repository**.
-- Explanations: the checkmark on **New worktree** is just the *default*, and setup changes it to **Local repository**. **New worktree** "creates a separate copy for this session" (*"you'll meet those on Thousand-Bough Isle"*), and **Cloud** "runs in a cloud sandbox."
+- Explanations: the checkmark on **New worktree** is just the *default*, and setup changes it to **Local repository**. **New worktree** "creates a separate copy for this session" (*"you'll meet those on Thousand-Bough Isle"*), and **Cloud** "runs in a cloud sandbox." **[C0.6]**
 
 **Q0.5 · Gear Check & Right Signature** *(00 · Check your tools, steps 4-8)*
-- Bo explains **View → Toggle Review Panel**, then the **Terminal** tab (if it isn't visible, **+ → Terminal**).
-- You find four gear pieces around the village and set them on the **Gear Rack**: compass = `git --version`, lantern = `node -v`, rope coil = `npm -v`, spyglass = `gh --version`.
-- Each piece prints a stylized terminal readout when you place it. **M0.1** matches gear ↔ command. Bo reminds you: *"Only install what's missing, then check again."*
+- The spyglass shows the review panel (`shared/app-review-panel`, cropped from Ch03's workspace shot). Bo explains **View → Toggle Review Panel**, then the **Terminal** tab (if it isn't visible, **+ → Terminal**), and grants **[P] "Terminal in the app"** (pg.terminal) with the four checks and `gh auth status` as a code block.
+- The **Gear Rack** hangs four pieces: compass = `git --version`, lantern = `node -v`, rope coil = `npm -v`, spyglass = `gh --version`. One E runs all four checks (these are developers; fetching gear for `node -v` taught nothing).
+- `gh` comes back *command not found* and the spyglass has lost its lens. You find the lens nearby, fit it, and check again. Bo: *"Only install what's missing, then check again."*
 - **Right Signature:** the ledger shows `gh auth status` as *Logged in as someone-else*. **S0.1:** what now? → `gh auth login` → **GitHub.com** → **Login with a web browser** → run `gh auth status` again and confirm.
 
 **Q0.6 · Open the Sluice** *(00 · Add the course practice items, step 1)*. Suri explains: *"This part happens on GitHub.com, not in the app. Open your fork, go to the **Actions** tab, and you'll see 'Workflows aren't being run on this forked repository.' New forks switch GitHub Actions off. Turn it on so GitHub can run the automated checks for your practice exercises."* → **P0.1**. Afterwards, Wingman heads off a mix-up: *"These are GitHub Actions workflows. The Clock Tower's **Automations** are something else, saved agent tasks, and you'll learn those much later."*
@@ -293,9 +292,9 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 **Q0.10 · The Harbormaster's Trial** at the Point Lighthouse. → §4.7.
 
 **Message bottles (optional):**
-- **B0.1** *I cannot sign in*: check the account and the plan or own model provider. For Business/Enterprise, the **GitHub Copilot app** policy must be enabled, and **that's separate from the Copilot CLI policy**. If your org uses `*.ghe.com`, choose **Sign in to GitHub Enterprise Cloud**. And if the app says **Git is missing** when you connect your repository, install Git and retry the connection.
-- **B0.2** *I cannot see the repository*: check access, the right account/org, or try **Open folder**.
-- **B0.3** *The script stops for an organization fork*: use `--allow-shared-repository` **only** if you're authorized and the `Repository:` line is right. If issues are missing, go to **Settings → Features**, enable **Issues**, and rerun.
+- **B0.1** *I cannot sign in*: check the account and the plan or own model provider. For Business/Enterprise, the **GitHub Copilot app** policy must be enabled, and **that's separate from the Copilot CLI policy**. If your org uses `*.ghe.com`, choose **Sign in to GitHub Enterprise Cloud**.
+- **B0.2** *I cannot see the repository*: check access, the right account/org, or try **Open folder**. If the app says **Git is missing**, install Git and retry. If a chat can't explain the repository, check the right one's connected and the prompt names it.
+- **B0.3** *The script stops for an organization fork*: use `--allow-shared-repository` **only** if you're authorized and the `Repository:` line is right. If issues are missing, go to **Settings → Features**, enable **Issues**, and rerun. If the script can't run at all, the course's manual appendix covers it; do it before Chapter 02.
 
 ### 4.5 Puzzles
 
@@ -321,34 +320,34 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 ### 4.6 Chests & pages
 | ID | Where | Image | Caption |
 |---|---|---|---|
-| C0.1 | Harbormaster's desk | `00-setup/assets/sign-in-to-app.webp` | Open the app and select **Sign in to GitHub**. |
-| C0.2 | Palette stand | `00-setup/assets/pick-a-theme.webp` | Pick a theme and select **Finish**. You can change it any time in settings. |
-| C0.3 | Pier lookout | `assets/github-copilot-app.webp` | The **New** page is where work starts. |
+| C0.1 | Nell's chest (beside her door) | *(page pg.prereqs, no image)* | What you need: account, plan or own provider, app policy, Git, Node LTS, `gh`, with links. |
+| C0.3 | Palette stand (after Finish) | `assets/github-copilot-app.webp` | Pick a theme and select **Finish**; the **New** page is where work starts. Theme changes live in **Settings**. |
 | C0.4 | Chartmaker's loft | `00-setup/assets/app-add-project.webp` | **+** next to **Projects** → **Add GitHub repository** (or Clone repository / Open folder). |
 | C0.5 | Bard's hammock | `00-setup/assets/studio-setup-soundcheck.webp` | Setting up the app is like prepping a studio before the first take. |
 | C0.6 | Hidden cove (optional) | `00-setup/assets/local-repository-workspace-selector.webp` | **Local repository** works in the clone already on your machine. |
 | P0.S | From Pol, after the crane | *(Logbook page: code block, no image)* | The two setup commands, run in **Terminal** from the repo root: `--dry-run` first, check `Repository:`, then `--yes`. |
 
+Pages granted in dialogue (not chests): **pg.install** (Nell), **pg.fork** (Ezra), **pg.terminal** (Bo: review-panel image, the Terminal tab, and the checks as a code block), **pg.workflows** (Suri), **pg.first-prompt** (Juno: the prompt as a code block, and a note that models word replies differently). The sign-in and theme screenshots appear in Nell's spyglass rather than as separate pages.
+
 ### 4.7 Quizzes
+Quizzes cover what's specific to the app or easy to get wrong. Obvious steps (the sign-in button, a menu item named after what you want, `node -v`) are shown and told instead; the old H0.1, H0.3, MC0.1 and M0.1 were cut for that reason.
+
 | ID | Type | Prompt → correct answer | Notes |
 |---|---|---|---|
-| H0.1 | Hotspot `sign-in-to-app` | "Sign in with a regular GitHub account" → **Sign in to GitHub** `[0.136,0.714,0.200,0.100]` | Distractor: Enterprise Cloud `[0.349,0.714,0.415,0.100]`. Explanation: that one's for `*.ghe.com` orgs |
-| H0.2 | Hotspot `app-add-project` (masked) | "Where do you start adding a repository?" → **+ by Projects** `[0.218,0.322,0.026,0.044]` | See §3.6 YAML |
-| H0.3 | Hotspot `app-add-project` (masked) | "Which option adds your fork from GitHub?" → **Add GitHub repository** `[0.223,0.441,0.228,0.043]` | Distractors: Chat `[0.223,0.381,0.228,0.041]`, Clone repository `[0.223,0.487,0.228,0.043]`, Open folder `[0.223,0.532,0.228,0.042]` |
-| MC0.1 | MC | Local copy already → **Open folder** | Have the URL → Clone repository |
+| H0.2 | Hotspot `shared/github-copilot-app` (unopened New page) | "Where do you start adding your fork to the app?" → **+ by Projects** `[0.216,0.318,0.029,0.052]` | Distractors: the prompt-box **+**, **New**, **Customize** |
+| S0.3 | Scenario | Search shows `github/…` and `your-handle/…` → **your fork** | The setup script refuses the original |
 | H0.4 | Hotspot `local-repository-workspace-selector` (mask ① `[0.227,0.79,0.03,0.09]` ② `[0.414,0.40,0.026,0.10]`) | "Where should the setup session run?" → **Local repository** `[0.248,0.401,0.366,0.196]` | Wrong-answer copy: "The checkmark shows the default, **New worktree**. For setup, change it to **Local repository**." Also explains Cloud |
-| M0.1 | Matching | compass→`git --version`, lantern→`node -v`, rope→`npm -v`, spyglass→`gh --version` | |
 | S0.1 | Scenario | `gh auth status` shows the wrong account → **`gh auth login`, GitHub.com, web browser, re-check** | |
 | S0.2 | Scenario | Where does the first prompt go? → **Copilot app prompt box** | Terminal is for commands |
 
 **The Harbormaster's Trial (T0)** is 8 items. You pass when all 8 are correct (retries allowed, and hint tier 3 is off). Stars are awarded for first-try accuracy.
-1. **Ordering (the 5 decisions that matter):** Sign in → Fork the course repo → Add your fork (**+ Projects → Add GitHub repository**) → Run this setup session on **Local repository** → `--dry-run` and check `Repository:` **before** `--yes`.
-2. **MC:** "What is a fork?" → *Your own copy of the repository on GitHub.*
+1. **Ordering (5 dependent steps):** Fork the course repo → Add your fork (**+ Projects → Add GitHub repository**) → Start a project session on **Local repository** → `--dry-run` and check `Repository:` → `--yes` and wait for `Setup complete.`
+2. **Matching (T0.9, where each step happens):** turn on workflows → GitHub.com · switch to Local repository → workspace selector · `gh auth status` → Terminal tab · ask for an overview → prompt box.
 3. **Multi-select:** "What does the setup script create?" → labels, issues, practice branches, pull requests. Distractor: *"bugs on `main`."*
 4. **MC:** "Why enable workflows on your fork?" → *So GitHub can run the automated checks for the practice exercises.*
 5. **Scenario:** "The dry-run shows `Repository: someone-else/…`. What now?" → *Stop and point it at your fork before running `--yes`.*
 6. **Multi-select:** prerequisites (GitHub account · Copilot plan **or** own model provider · Git · Node LTS · `gh`).
-7. **MC:** "When is setup done?" → *When the terminal shows `Setup complete.`*
+7. **MC (T0.10):** "Your fork shows under **Projects**. How do you start the setup session?" → *the **+** next to the project*. Distractors: the **Projects +** (adds another project), **Chat** (not tied to the repo).
 8. **Scenario:** "Practice issues weren't created." → *Enable **Issues** in the fork's **Settings → Features**, then rerun.*
 
 **Reward:** the **Seal of Anchorage**, the Point Lighthouse lights (fast travel), +50 doubloons, and the chart reveals the route to Port Meridian.

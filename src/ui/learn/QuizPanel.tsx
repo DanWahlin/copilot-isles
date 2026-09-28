@@ -386,12 +386,12 @@ function MatchingBody({
                   <Rich text={p.left.text} />
                 </span>
                 {r && (
-                  <code
+                  <span
                     className="ci-match-chip"
                     style={{ background: PAIR_COLOURS[i % PAIR_COLOURS.length] }}
                   >
-                    {rights.find((x) => x.id === r)?.text}
-                  </code>
+                    <Rich text={rights.find((x) => x.id === r)?.text ?? ''} />
+                  </span>
                 )}
                 {mark && <b className="ci-mark">{mark === 'good' ? '✓' : '✕'}</b>}
               </button>
@@ -412,7 +412,9 @@ function MatchingBody({
                 onClick={() => assign(o.id)}
                 disabled={!!active.last}
               >
-                <code>{o.text}</code>
+                <span>
+                  <Rich text={o.text} />
+                </span>
               </button>
             </li>
           );

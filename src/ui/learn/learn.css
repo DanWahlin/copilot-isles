@@ -369,9 +369,18 @@
   opacity: 0.72;
 }
 .ci-match-chip {
+  flex: none;
   margin-left: auto;
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
   color: #10202a !important;
+  font-size: 0.85rem;
   font-weight: 700;
+  white-space: nowrap;
+}
+.ci-match-chip code {
+  background: none;
+  color: inherit;
 }
 .ci-match-help {
   grid-column: 1 / -1;
