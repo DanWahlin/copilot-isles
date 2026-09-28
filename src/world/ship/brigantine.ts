@@ -36,6 +36,8 @@ import {
   createSternGoldGeometry,
   createTrimGeometry,
   createWindowGeometry,
+  QUARTERDECK_Z,
+  WHEEL,
 } from './brigantine-hull';
 import {
   createBundledCanvasGeometry,
@@ -106,7 +108,14 @@ export interface Brigantine {
 }
 
 interface ShipAnchors {
-  helm: { x: number; y: number; z: number; heading: number };
+  /** `grip`: where the helmsman's hands go, in their own frame (feet origin, +z forward, metres). */
+  helm: {
+    x: number;
+    y: number;
+    z: number;
+    heading: number;
+    grip: { y: number; z: number; spread: number };
+  };
   boarding: { x: number; y: number; z: number };
   /** The gangplank's foot on the pier deck, where "Board your ship" is offered. */
   gangway: { x: number; y: number; z: number };
@@ -116,7 +125,8 @@ const WATERLINE_POLYGON_POINTS = 32;
 const BOW_Z = BRIGANTINE_HALF_LENGTH + 0.28;
 const BOW_STEM = { x: 0, y: 1.9, z: 13.18 } as const;
 const STERN_Z = -BRIGANTINE_HALF_LENGTH - 0.15;
-const HELM_Z = -8.85;
+/** The helmsman stands just aft of the wheel, facing forward, with it at arm's length. */
+const HELM_Z = WHEEL.z - 0.33;
 const BOARDING_Z = -0.15;
 /**
  * The gangplank's foot in ship-local space: at COVE.mooring the pier's east edge is ~4.65 m out on
@@ -260,8 +270,16 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     flagPhase: uniform(0),
     flagStrength: uniform(0.6),
   };
+  const helmY = deckHeightAt(QUARTERDECK_Z) + 0.18;
   const anchors: ShipAnchors = {
-    helm: { x: 0, y: deckHeightAt(HELM_Z) + 0.18, z: HELM_Z, heading: 0 },
+    helm: {
+      x: 0,
+      y: helmY,
+      z: HELM_Z,
+      heading: 0,
+      // Hands on the spokes either side of the hub, a little below it.
+      grip: { y: deckHeightAt(WHEEL.z) + WHEEL.hub - 0.03 - helmY, z: WHEEL.z - HELM_Z, spread: 0.36 },
+    },
     // At COVE.mooring heading π, local +x maps to world -x (west/port rail), which is the pier-facing side.
     boarding: {
       x: halfBeamAt(BOARDING_Z, deckHeightAt(BOARDING_Z)) * 0.72,

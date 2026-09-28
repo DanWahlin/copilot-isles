@@ -655,6 +655,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     hero.group.rotation.set(0, a.heading, 0);
     hero.setSpeed(0);
     hero.play('helm');
+    hero.setGrip(a.grip);
     dyn.clearDockAssist();
     helm.reset();
     cam.setRig(SAIL_RIG, true);
@@ -695,6 +696,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     dyn.dockAssist(m);
     engine.scene.add(hero.group);
     hero.group.rotation.set(0, 0, 0);
+    hero.setGrip(null);
     hero.play('idle');
     const b = ship.anchors.boarding;
     const boardZ = m.z - Math.sin(m.heading) * b.x + Math.cos(m.heading) * b.z;

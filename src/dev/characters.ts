@@ -63,7 +63,8 @@ CHARACTER_BODIES.forEach((body: CharacterBody, index) => {
   character.group.position.set(x, y, z);
   character.group.rotation.y = Math.PI;
   character.lookAt(lookPoint);
-  character.play(index % 3 === 0 ? 'talk' : 'idle');
+  character.play('idle');
+  if (index % 3 === 0) character.setTalking(true);
   scene.add(character.group);
   characters.push(character);
 });

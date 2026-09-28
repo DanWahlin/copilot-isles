@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { BufferAttribute, Mesh, Object3D } from 'three/webgpu';
 import { createBrigantine, fitShipNameFontSize } from './brigantine';
+import { QUARTERDECK_Z, WHEEL } from './brigantine-hull';
 import { createRiggingGeometry } from './brigantine-rig';
 import { COVE } from '../layout';
 import { deckHeightAt } from './lines';
@@ -230,8 +231,10 @@ describe('createBrigantine', () => {
 
   it('exposes local helm and pier-side boarding anchors', () => {
     const ship = createBrigantine({ tier: 'low' });
-    expect(ship.anchors.helm.z).toBeLessThan(-8);
-    expect(ship.anchors.helm.y).toBeCloseTo(deckHeightAt(ship.anchors.helm.z) + 0.18, 6);
+    // Aft of the wheel, facing it, standing on the quarterdeck's flat top.
+    expect(ship.anchors.helm.z).toBeLessThan(WHEEL.z - 0.2);
+    expect(ship.anchors.helm.z).toBeGreaterThan(WHEEL.z - 0.5);
+    expect(ship.anchors.helm.y).toBeCloseTo(deckHeightAt(QUARTERDECK_Z) + 0.18, 6);
     expect(ship.anchors.helm.heading).toBe(0);
     expect(ship.anchors.boarding.x).toBeGreaterThan(0);
     expect(ship.anchors.boarding.y).toBeCloseTo(deckHeightAt(ship.anchors.boarding.z), 6);
