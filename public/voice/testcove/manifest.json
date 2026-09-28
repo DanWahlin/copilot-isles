@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-27T22:30:14.218Z",
+  "generatedAt": "2026-09-28T02:40:28.738Z",
   "set": "testcove",
   "lines": [
     {
@@ -153,48 +153,98 @@
     {
       "id": "nell.settings.01",
       "speaker": "Nell",
-      "text": "Preferences can be changed anytime from settings.",
-      "duration": 3.508,
+      "text": "That's the New page, where new work starts. You can change your theme any time in Settings.",
+      "duration": 5.608,
       "files": {
         "webm": "nell.settings.01.webm",
         "m4a": "nell.settings.01.m4a"
       },
-      "hash": "fc396616d4b33b86",
+      "hash": "ae7db0a2d8799b8d",
       "words": [
         {
-          "word": "Preferences",
+          "word": "That's",
           "start": 0.07,
-          "end": 0.59
+          "end": 0.31
+        },
+        {
+          "word": "the",
+          "start": 0.31,
+          "end": 0.43
+        },
+        {
+          "word": "New",
+          "start": 0.43,
+          "end": 0.67
+        },
+        {
+          "word": "page",
+          "start": 0.67,
+          "end": 1.11
+        },
+        {
+          "word": "where",
+          "start": 1.11,
+          "end": 1.31
+        },
+        {
+          "word": "new",
+          "start": 1.31,
+          "end": 1.55
+        },
+        {
+          "word": "work",
+          "start": 1.55,
+          "end": 1.87
+        },
+        {
+          "word": "starts",
+          "start": 1.87,
+          "end": 2.75
+        },
+        {
+          "word": "You",
+          "start": 2.75,
+          "end": 2.989
         },
         {
           "word": "can",
-          "start": 0.59,
-          "end": 0.75
+          "start": 2.989,
+          "end": 3.15
         },
         {
-          "word": "be",
-          "start": 0.75,
-          "end": 0.87
+          "word": "change",
+          "start": 3.15,
+          "end": 3.51
         },
         {
-          "word": "changed",
-          "start": 0.87,
-          "end": 1.23
+          "word": "your",
+          "start": 3.51,
+          "end": 3.67
         },
         {
-          "word": "anytime",
-          "start": 1.23,
-          "end": 2.389
+          "word": "theme",
+          "start": 3.67,
+          "end": 3.989
         },
         {
-          "word": "from",
-          "start": 2.389,
-          "end": 2.71
+          "word": "any",
+          "start": 3.989,
+          "end": 4.35
         },
         {
-          "word": "settings",
-          "start": 2.71,
-          "end": 2.96
+          "word": "time",
+          "start": 4.35,
+          "end": 4.67
+        },
+        {
+          "word": "in",
+          "start": 4.67,
+          "end": 4.79
+        },
+        {
+          "word": "Settings",
+          "start": 4.79,
+          "end": 5.04
         }
       ],
       "voice": "en-GB-Sonia:DragonHDLatestNeural"
@@ -3386,103 +3436,98 @@
     {
       "id": "pol.solved.02",
       "speaker": "Pol",
-      "text": "Next, connect your fork in the app and look for the issues and pull requests under My work.",
-      "duration": 5.507,
+      "text": "Your fork's got its practice issues and pull requests now. You'll work through them in later chapters.",
+      "duration": 6.807,
       "files": {
         "webm": "pol.solved.02.webm",
         "m4a": "pol.solved.02.m4a"
       },
-      "hash": "6fcf9797c8550717",
+      "hash": "9ac7e811cbf6d266",
       "words": [
         {
-          "word": "Next",
+          "word": "Your",
           "start": 0.05,
-          "end": 0.86475
+          "end": 0.317875
         },
         {
-          "word": "connect",
-          "start": 0.86475,
-          "end": 1.233041
+          "word": "fork's",
+          "start": 0.317875,
+          "end": 0.741958
         },
         {
-          "word": "your",
-          "start": 1.233041,
-          "end": 1.3335
+          "word": "got",
+          "start": 0.741958,
+          "end": 0.920541
         },
         {
-          "word": "fork",
-          "start": 1.3335,
-          "end": 1.634833
+          "word": "its",
+          "start": 0.920541,
+          "end": 1.043291
         },
         {
-          "word": "in",
-          "start": 1.634833,
-          "end": 1.712958
-        },
-        {
-          "word": "the",
-          "start": 1.712958,
-          "end": 1.813375
-        },
-        {
-          "word": "app",
-          "start": 1.813375,
-          "end": 2.08125
-        },
-        {
-          "word": "and",
-          "start": 2.08125,
-          "end": 2.2375
-        },
-        {
-          "word": "look",
-          "start": 2.2375,
-          "end": 2.371416
-        },
-        {
-          "word": "for",
-          "start": 2.371416,
-          "end": 2.471875
-        },
-        {
-          "word": "the",
-          "start": 2.471875,
-          "end": 2.594625
+          "word": "practice",
+          "start": 1.043291,
+          "end": 1.433916
         },
         {
           "word": "issues",
-          "start": 2.594625,
-          "end": 3.041083
+          "start": 1.433916,
+          "end": 1.835708
         },
         {
           "word": "and",
-          "start": 3.041083,
-          "end": 3.152666
+          "start": 1.835708,
+          "end": 1.9585
         },
         {
           "word": "pull",
-          "start": 3.152666,
-          "end": 3.375875
+          "start": 1.9585,
+          "end": 2.204
         },
         {
           "word": "requests",
-          "start": 3.375875,
-          "end": 3.945083
+          "start": 2.204,
+          "end": 2.73975
         },
         {
-          "word": "under",
-          "start": 3.945083,
-          "end": 4.134833
+          "word": "now",
+          "start": 2.73975,
+          "end": 3.900458
         },
         {
-          "word": "My",
-          "start": 4.134833,
-          "end": 4.324541
+          "word": "You'll",
+          "start": 3.900458,
+          "end": 4.179458
         },
         {
           "word": "work",
-          "start": 4.324541,
-          "end": 4.574541
+          "start": 4.179458,
+          "end": 4.447333
+        },
+        {
+          "word": "through",
+          "start": 4.447333,
+          "end": 4.692875
+        },
+        {
+          "word": "them",
+          "start": 4.692875,
+          "end": 4.938375
+        },
+        {
+          "word": "in",
+          "start": 4.938375,
+          "end": 5.105791
+        },
+        {
+          "word": "later",
+          "start": 5.105791,
+          "end": 5.373666
+        },
+        {
+          "word": "chapters",
+          "start": 5.373666,
+          "end": 5.623666
         }
       ],
       "voice": "en-IE-EmilyNeural"
@@ -4232,103 +4277,143 @@
     {
       "id": "nell.papers.signin",
       "speaker": "Nell",
-      "text": "Once it's installed, open the app, select Sign in to GitHub, and sign in with your GitHub account.",
-      "duration": 6.108,
+      "text": "Once it's installed, open it and select Sign in to GitHub. If your company's account lives on GHE.com, choose Sign in to GitHub Enterprise Cloud instead.",
+      "duration": 9.208,
       "files": {
         "webm": "nell.papers.signin.webm",
         "m4a": "nell.papers.signin.m4a"
       },
-      "hash": "2df4394c2c0954f3",
+      "hash": "1db26b1f86684dbb",
       "words": [
         {
           "word": "Once",
           "start": 0.07,
-          "end": 0.35
+          "end": 0.31
         },
         {
           "word": "it's",
-          "start": 0.35,
-          "end": 0.51
+          "start": 0.31,
+          "end": 0.47
         },
         {
           "word": "installed",
-          "start": 0.51,
-          "end": 1.11
+          "start": 0.47,
+          "end": 1.15
         },
         {
           "word": "open",
-          "start": 1.11,
-          "end": 1.47
+          "start": 1.15,
+          "end": 1.55
         },
         {
-          "word": "the",
-          "start": 1.47,
-          "end": 1.59
-        },
-        {
-          "word": "app",
-          "start": 1.59,
-          "end": 2.11
-        },
-        {
-          "word": "select",
-          "start": 2.11,
-          "end": 2.59
-        },
-        {
-          "word": "Sign",
-          "start": 2.59,
-          "end": 2.949
-        },
-        {
-          "word": "in",
-          "start": 2.949,
-          "end": 3.11
-        },
-        {
-          "word": "to",
-          "start": 3.11,
-          "end": 3.23
-        },
-        {
-          "word": "GitHub",
-          "start": 3.23,
-          "end": 3.989
+          "word": "it",
+          "start": 1.55,
+          "end": 1.71
         },
         {
           "word": "and",
-          "start": 3.989,
-          "end": 4.23
+          "start": 1.71,
+          "end": 1.91
         },
         {
-          "word": "sign",
-          "start": 4.23,
-          "end": 4.59
+          "word": "select",
+          "start": 1.91,
+          "end": 2.309
+        },
+        {
+          "word": "Sign",
+          "start": 2.309,
+          "end": 2.71
         },
         {
           "word": "in",
-          "start": 4.59,
-          "end": 4.75
+          "start": 2.71,
+          "end": 2.869
         },
         {
-          "word": "with",
-          "start": 4.75,
-          "end": 4.91
-        },
-        {
-          "word": "your",
-          "start": 4.91,
-          "end": 5.07
+          "word": "to",
+          "start": 2.869,
+          "end": 3.349
         },
         {
           "word": "GitHub",
-          "start": 5.07,
-          "end": 5.39
+          "start": 3.349,
+          "end": 3.829
+        },
+        {
+          "word": "If",
+          "start": 3.829,
+          "end": 3.949
+        },
+        {
+          "word": "your",
+          "start": 3.949,
+          "end": 4.11
+        },
+        {
+          "word": "company's",
+          "start": 4.11,
+          "end": 4.51
         },
         {
           "word": "account",
-          "start": 5.39,
-          "end": 5.64
+          "start": 4.51,
+          "end": 4.87
+        },
+        {
+          "word": "lives",
+          "start": 4.87,
+          "end": 5.11
+        },
+        {
+          "word": "on",
+          "start": 5.11,
+          "end": 5.27
+        },
+        {
+          "word": "GHE.com",
+          "start": 5.27,
+          "end": 6.35
+        },
+        {
+          "word": "choose",
+          "start": 6.35,
+          "end": 6.75
+        },
+        {
+          "word": "Sign",
+          "start": 6.75,
+          "end": 7.07
+        },
+        {
+          "word": "in",
+          "start": 7.07,
+          "end": 7.23
+        },
+        {
+          "word": "to",
+          "start": 7.23,
+          "end": 7.35
+        },
+        {
+          "word": "GitHub",
+          "start": 7.35,
+          "end": 7.71
+        },
+        {
+          "word": "Enterprise",
+          "start": 7.71,
+          "end": 8.27
+        },
+        {
+          "word": "Cloud",
+          "start": 8.27,
+          "end": 8.549
+        },
+        {
+          "word": "instead",
+          "start": 8.549,
+          "end": 8.799
         }
       ],
       "voice": "en-GB-Sonia:DragonHDLatestNeural"
@@ -4336,128 +4421,98 @@
     {
       "id": "nell.papers.04",
       "speaker": "Nell",
-      "text": "On Copilot Business or Enterprise, your org has to switch on the GitHub Copilot app policy. Now, show me how you’d sign in.",
-      "duration": 7.008,
+      "text": "On Copilot Business or Enterprise, your organization has to switch on the GitHub Copilot app policy first.",
+      "duration": 6.308,
       "files": {
         "webm": "nell.papers.04.webm",
         "m4a": "nell.papers.04.m4a"
       },
-      "hash": "873bfeb233a27d91",
+      "hash": "970e640d1b3255c1",
       "words": [
         {
           "word": "On",
           "start": 0.07,
-          "end": 0.23
+          "end": 0.19
         },
         {
           "word": "Copilot",
-          "start": 0.23,
-          "end": 0.71
+          "start": 0.19,
+          "end": 0.67
         },
         {
           "word": "Business",
-          "start": 0.71,
-          "end": 1.11
+          "start": 0.67,
+          "end": 1.03
         },
         {
           "word": "or",
-          "start": 1.11,
-          "end": 1.23
+          "start": 1.03,
+          "end": 1.19
         },
         {
           "word": "Enterprise",
-          "start": 1.23,
-          "end": 1.79
+          "start": 1.19,
+          "end": 1.95
         },
         {
           "word": "your",
-          "start": 1.79,
-          "end": 1.99
-        },
-        {
-          "word": "org",
-          "start": 1.99,
+          "start": 1.95,
           "end": 2.27
         },
         {
-          "word": "has",
+          "word": "organization",
           "start": 2.27,
-          "end": 2.51
-        },
-        {
-          "word": "to",
-          "start": 2.51,
-          "end": 2.59
-        },
-        {
-          "word": "switch",
-          "start": 2.59,
           "end": 2.949
         },
         {
-          "word": "on",
+          "word": "has",
           "start": 2.949,
           "end": 3.15
         },
         {
-          "word": "the",
+          "word": "to",
           "start": 3.15,
           "end": 3.27
         },
         {
-          "word": "GitHub",
+          "word": "switch",
           "start": 3.27,
-          "end": 3.67
+          "end": 3.63
+        },
+        {
+          "word": "on",
+          "start": 3.63,
+          "end": 3.75
+        },
+        {
+          "word": "the",
+          "start": 3.75,
+          "end": 3.909
+        },
+        {
+          "word": "GitHub",
+          "start": 3.909,
+          "end": 4.39
         },
         {
           "word": "Copilot",
-          "start": 3.67,
-          "end": 4.23
+          "start": 4.39,
+          "end": 4.91
         },
         {
           "word": "app",
-          "start": 4.23,
-          "end": 4.43
+          "start": 4.91,
+          "end": 5.19
         },
         {
           "word": "policy",
-          "start": 4.43,
-          "end": 5.47
+          "start": 5.19,
+          "end": 5.67
         },
         {
-          "word": "Now",
-          "start": 5.47,
-          "end": 5.75
-        },
-        {
-          "word": "show",
-          "start": 5.75,
-          "end": 5.95
-        },
-        {
-          "word": "me",
-          "start": 5.95,
-          "end": 6.07
-        },
-        {
-          "word": "how",
-          "start": 6.07,
-          "end": 6.19
-        },
-        {
-          "word": "you’d",
-          "start": 6.19,
-          "end": 6.39
-        },
-        {
-          "word": "sign",
-          "start": 6.39,
-          "end": 6.71
-        },
-        {
-          "word": "in",
-          "start": 6.71,
-          "end": 6.96
+          "word": "first",
+          "start": 5.67,
+          "end": 5.92
         }
       ],
       "voice": "en-GB-Sonia:DragonHDLatestNeural"
@@ -4830,13 +4885,13 @@
     {
       "id": "ezra.fork.01",
       "speaker": "Ezra",
-      "text": "Every captain needs their own chart. A fork is your own copy of the course repository, on GitHub.",
-      "duration": 6.008,
+      "text": "Every captain needs their own chart. Fork the course repository on GitHub, so your practice work lands in your own copy.",
+      "duration": 7.308,
       "files": {
         "webm": "ezra.fork.01.webm",
         "m4a": "ezra.fork.01.m4a"
       },
-      "hash": "09496997ed3e6341",
+      "hash": "2e06e0e4f95214a2",
       "words": [
         {
           "word": "Every",
@@ -4846,87 +4901,102 @@
         {
           "word": "captain",
           "start": 0.35,
-          "end": 0.79
+          "end": 0.75
         },
         {
           "word": "needs",
-          "start": 0.79,
-          "end": 1.31
+          "start": 0.75,
+          "end": 1.07
         },
         {
           "word": "their",
-          "start": 1.31,
-          "end": 1.51
+          "start": 1.07,
+          "end": 1.31
         },
         {
           "word": "own",
-          "start": 1.51,
-          "end": 1.67
+          "start": 1.31,
+          "end": 1.43
         },
         {
           "word": "chart",
-          "start": 1.67,
-          "end": 2.59
+          "start": 1.43,
+          "end": 2.429
         },
         {
-          "word": "A",
-          "start": 2.59,
-          "end": 2.789
-        },
-        {
-          "word": "fork",
-          "start": 2.789,
-          "end": 3.27
-        },
-        {
-          "word": "is",
-          "start": 3.27,
-          "end": 3.349
-        },
-        {
-          "word": "your",
-          "start": 3.349,
-          "end": 3.55
-        },
-        {
-          "word": "own",
-          "start": 3.55,
-          "end": 3.67
-        },
-        {
-          "word": "copy",
-          "start": 3.67,
-          "end": 3.989
-        },
-        {
-          "word": "of",
-          "start": 3.989,
-          "end": 4.07
+          "word": "Fork",
+          "start": 2.429,
+          "end": 2.829
         },
         {
           "word": "the",
-          "start": 4.07,
-          "end": 4.19
+          "start": 2.829,
+          "end": 2.949
         },
         {
           "word": "course",
-          "start": 4.19,
-          "end": 4.51
+          "start": 2.949,
+          "end": 3.309
         },
         {
           "word": "repository",
-          "start": 4.51,
-          "end": 5.31
+          "start": 3.309,
+          "end": 3.909
         },
         {
           "word": "on",
-          "start": 5.31,
-          "end": 5.51
+          "start": 3.909,
+          "end": 4.03
         },
         {
           "word": "GitHub",
-          "start": 5.51,
-          "end": 5.76
+          "start": 4.03,
+          "end": 4.79
+        },
+        {
+          "word": "so",
+          "start": 4.79,
+          "end": 5.03
+        },
+        {
+          "word": "your",
+          "start": 5.03,
+          "end": 5.27
+        },
+        {
+          "word": "practice",
+          "start": 5.27,
+          "end": 5.71
+        },
+        {
+          "word": "work",
+          "start": 5.71,
+          "end": 6.07
+        },
+        {
+          "word": "lands",
+          "start": 6.07,
+          "end": 6.43
+        },
+        {
+          "word": "in",
+          "start": 6.43,
+          "end": 6.51
+        },
+        {
+          "word": "your",
+          "start": 6.51,
+          "end": 6.71
+        },
+        {
+          "word": "own",
+          "start": 6.71,
+          "end": 6.83
+        },
+        {
+          "word": "copy",
+          "start": 6.83,
+          "end": 7.08
         }
       ],
       "voice": "en-GB-Ollie:DragonHDLatestNeural"
@@ -5137,103 +5207,227 @@
     {
       "id": "ezra.fork.03",
       "speaker": "Ezra",
-      "text": "Then search for copilot-app-for-beginners and pick your fork. The app clones it and adds it to the sidebar.",
-      "duration": 6.708,
+      "text": "That plus opens this menu. Pick Add GitHub repository, search for copilot-app-for-beginners, and select your fork. The app clones it and adds it to the sidebar.",
+      "duration": 12.108,
       "files": {
         "webm": "ezra.fork.03.webm",
         "m4a": "ezra.fork.03.m4a"
       },
-      "hash": "85e65f1f551fb34f",
+      "hash": "50c9a4b73553c430",
       "words": [
         {
-          "word": "Then",
+          "word": "That",
           "start": 0.07,
-          "end": 0.23
+          "end": 0.59
+        },
+        {
+          "word": "plus",
+          "start": 0.59,
+          "end": 1.07
+        },
+        {
+          "word": "opens",
+          "start": 1.07,
+          "end": 1.47
+        },
+        {
+          "word": "this",
+          "start": 1.47,
+          "end": 1.67
+        },
+        {
+          "word": "menu",
+          "start": 1.67,
+          "end": 2.71
+        },
+        {
+          "word": "Pick",
+          "start": 2.71,
+          "end": 3.19
+        },
+        {
+          "word": "Add",
+          "start": 3.19,
+          "end": 3.469
+        },
+        {
+          "word": "GitHub",
+          "start": 3.469,
+          "end": 3.869
+        },
+        {
+          "word": "repository",
+          "start": 3.869,
+          "end": 4.99
         },
         {
           "word": "search",
-          "start": 0.23,
-          "end": 0.71
+          "start": 4.99,
+          "end": 5.51
         },
         {
           "word": "for",
-          "start": 0.71,
-          "end": 0.87
+          "start": 5.51,
+          "end": 5.87
         },
         {
           "word": "copilot-app-for-beginners",
-          "start": 0.87,
-          "end": 2.55
+          "start": 5.87,
+          "end": 7.71
         },
         {
           "word": "and",
-          "start": 2.55,
-          "end": 2.75
+          "start": 7.71,
+          "end": 7.95
         },
         {
-          "word": "pick",
-          "start": 2.75,
-          "end": 2.909
+          "word": "select",
+          "start": 7.95,
+          "end": 8.27
         },
         {
           "word": "your",
-          "start": 2.909,
-          "end": 3.07
+          "start": 8.27,
+          "end": 8.43
         },
         {
           "word": "fork",
-          "start": 3.07,
-          "end": 4.15
+          "start": 8.43,
+          "end": 9.549
         },
         {
           "word": "The",
-          "start": 4.15,
-          "end": 4.35
+          "start": 9.549,
+          "end": 9.75
         },
         {
           "word": "app",
-          "start": 4.35,
-          "end": 4.51
+          "start": 9.75,
+          "end": 9.87
         },
         {
           "word": "clones",
-          "start": 4.51,
-          "end": 4.95
+          "start": 9.87,
+          "end": 10.59
         },
         {
           "word": "it",
-          "start": 4.95,
-          "end": 5.31
+          "start": 10.59,
+          "end": 10.67
         },
         {
           "word": "and",
-          "start": 5.31,
-          "end": 5.47
+          "start": 10.67,
+          "end": 10.83
         },
         {
           "word": "adds",
-          "start": 5.47,
-          "end": 5.71
+          "start": 10.83,
+          "end": 11.03
         },
         {
           "word": "it",
-          "start": 5.71,
-          "end": 5.79
+          "start": 11.03,
+          "end": 11.149
         },
         {
           "word": "to",
-          "start": 5.79,
-          "end": 5.91
+          "start": 11.149,
+          "end": 11.229
         },
         {
           "word": "the",
-          "start": 5.91,
-          "end": 6.03
+          "start": 11.229,
+          "end": 11.389
         },
         {
           "word": "sidebar",
-          "start": 6.03,
-          "end": 6.28
+          "start": 11.389,
+          "end": 11.639
+        }
+      ],
+      "voice": "en-GB-Ollie:DragonHDLatestNeural"
+    },
+    {
+      "id": "ezra.fork.careful",
+      "speaker": "Ezra",
+      "text": "Mind the search, though. The original course can show up right beside your fork.",
+      "duration": 4.608,
+      "files": {
+        "webm": "ezra.fork.careful.webm",
+        "m4a": "ezra.fork.careful.m4a"
+      },
+      "hash": "0c38e1c5396b6fbb",
+      "words": [
+        {
+          "word": "Mind",
+          "start": 0.07,
+          "end": 0.39
+        },
+        {
+          "word": "the",
+          "start": 0.39,
+          "end": 0.51
+        },
+        {
+          "word": "search",
+          "start": 0.51,
+          "end": 0.83
+        },
+        {
+          "word": "though",
+          "start": 0.83,
+          "end": 1.15
+        },
+        {
+          "word": "The",
+          "start": 1.15,
+          "end": 1.91
+        },
+        {
+          "word": "original",
+          "start": 1.91,
+          "end": 2.309
+        },
+        {
+          "word": "course",
+          "start": 2.309,
+          "end": 2.909
+        },
+        {
+          "word": "can",
+          "start": 2.909,
+          "end": 3.15
+        },
+        {
+          "word": "show",
+          "start": 3.15,
+          "end": 3.349
+        },
+        {
+          "word": "up",
+          "start": 3.349,
+          "end": 3.429
+        },
+        {
+          "word": "right",
+          "start": 3.429,
+          "end": 3.67
+        },
+        {
+          "word": "beside",
+          "start": 3.67,
+          "end": 4.03
+        },
+        {
+          "word": "your",
+          "start": 4.03,
+          "end": 4.19
+        },
+        {
+          "word": "fork",
+          "start": 4.19,
+          "end": 4.44
         }
       ],
       "voice": "en-GB-Ollie:DragonHDLatestNeural"
@@ -5632,138 +5826,173 @@
     {
       "id": "bo.gear.brief.02",
       "speaker": "Bo",
-      "text": "Every tool gets a version check there. Here, each tool is a piece of my gear, and four pieces have gone walkabout round the village.",
-      "duration": 7.308,
+      "text": "Commands run there, and every tool gets a version check. My gear rack stands in for it: compass for Git, lantern for Node.js, rope for npm, and spyglass for GitHub CLI.",
+      "duration": 11.608,
       "files": {
         "webm": "bo.gear.brief.02.webm",
         "m4a": "bo.gear.brief.02.m4a"
       },
-      "hash": "755a6ff131e74632",
+      "hash": "c56bc3f29c95a014",
       "words": [
         {
-          "word": "Every",
+          "word": "Commands",
           "start": 0.07,
-          "end": 0.35
+          "end": 0.47
         },
         {
-          "word": "tool",
-          "start": 0.35,
+          "word": "run",
+          "start": 0.47,
           "end": 0.67
         },
         {
-          "word": "gets",
+          "word": "there",
           "start": 0.67,
-          "end": 0.91
-        },
-        {
-          "word": "a",
-          "start": 0.91,
           "end": 0.99
         },
         {
-          "word": "version",
+          "word": "and",
           "start": 0.99,
-          "end": 1.39
+          "end": 1.15
         },
         {
-          "word": "check",
-          "start": 1.39,
-          "end": 1.71
-        },
-        {
-          "word": "there",
-          "start": 1.71,
-          "end": 2.389
-        },
-        {
-          "word": "Here",
-          "start": 2.389,
-          "end": 2.829
-        },
-        {
-          "word": "each",
-          "start": 2.829,
-          "end": 3.19
+          "word": "every",
+          "start": 1.15,
+          "end": 1.47
         },
         {
           "word": "tool",
-          "start": 3.19,
-          "end": 3.469
+          "start": 1.47,
+          "end": 1.79
         },
         {
-          "word": "is",
-          "start": 3.469,
-          "end": 3.59
+          "word": "gets",
+          "start": 1.79,
+          "end": 1.99
         },
         {
           "word": "a",
-          "start": 3.59,
-          "end": 3.71
+          "start": 1.99,
+          "end": 2.07
         },
         {
-          "word": "piece",
-          "start": 3.71,
-          "end": 3.909
+          "word": "version",
+          "start": 2.07,
+          "end": 2.469
         },
         {
-          "word": "of",
-          "start": 3.909,
-          "end": 4.03
+          "word": "check",
+          "start": 2.469,
+          "end": 3.03
         },
         {
-          "word": "my",
-          "start": 4.03,
-          "end": 4.23
+          "word": "My",
+          "start": 3.03,
+          "end": 3.309
         },
         {
           "word": "gear",
-          "start": 4.23,
-          "end": 4.79
+          "start": 3.309,
+          "end": 3.59
+        },
+        {
+          "word": "rack",
+          "start": 3.59,
+          "end": 3.869
+        },
+        {
+          "word": "stands",
+          "start": 3.869,
+          "end": 4.19
+        },
+        {
+          "word": "in",
+          "start": 4.19,
+          "end": 4.35
+        },
+        {
+          "word": "for",
+          "start": 4.35,
+          "end": 4.59
+        },
+        {
+          "word": "it",
+          "start": 4.59,
+          "end": 4.91
+        },
+        {
+          "word": "compass",
+          "start": 4.91,
+          "end": 5.39
+        },
+        {
+          "word": "for",
+          "start": 5.39,
+          "end": 5.51
+        },
+        {
+          "word": "Git",
+          "start": 5.51,
+          "end": 5.99
+        },
+        {
+          "word": "lantern",
+          "start": 5.99,
+          "end": 6.51
+        },
+        {
+          "word": "for",
+          "start": 6.51,
+          "end": 6.67
+        },
+        {
+          "word": "Node",
+          "start": 6.67,
+          "end": 7.31
+        },
+        {
+          "word": "js",
+          "start": 7.31,
+          "end": 8.109
+        },
+        {
+          "word": "rope",
+          "start": 8.109,
+          "end": 8.51
+        },
+        {
+          "word": "for",
+          "start": 8.51,
+          "end": 8.709
+        },
+        {
+          "word": "npm",
+          "start": 8.709,
+          "end": 9.35
         },
         {
           "word": "and",
-          "start": 4.79,
-          "end": 4.95
+          "start": 9.35,
+          "end": 9.549
         },
         {
-          "word": "four",
-          "start": 4.95,
-          "end": 5.23
+          "word": "spyglass",
+          "start": 9.549,
+          "end": 10.229
         },
         {
-          "word": "pieces",
-          "start": 5.23,
-          "end": 5.55
+          "word": "for",
+          "start": 10.229,
+          "end": 10.35
         },
         {
-          "word": "have",
-          "start": 5.55,
-          "end": 5.71
+          "word": "GitHub",
+          "start": 10.35,
+          "end": 10.75
         },
         {
-          "word": "gone",
-          "start": 5.71,
-          "end": 5.91
-        },
-        {
-          "word": "walkabout",
-          "start": 5.91,
-          "end": 6.43
-        },
-        {
-          "word": "round",
-          "start": 6.43,
-          "end": 6.63
-        },
-        {
-          "word": "the",
-          "start": 6.63,
-          "end": 6.75
-        },
-        {
-          "word": "village",
-          "start": 6.75,
-          "end": 7
+          "word": "CLI",
+          "start": 10.75,
+          "end": 11
         }
       ],
       "voice": "en-GB-Ryan:DragonHDLatestNeural"
@@ -5771,150 +6000,16 @@
     {
       "id": "bo.gear.brief.03",
       "speaker": "Bo",
-      "text": "My compass, a lantern, a rope coil, and my spyglass. Hang them on the rack by my door, and each hook runs its check.",
-      "duration": 7.808,
+      "text": "Run the checks at my rack, Captain. Each one should print a version number.",
+      "duration": 4.008,
       "files": {
         "webm": "bo.gear.brief.03.webm",
         "m4a": "bo.gear.brief.03.m4a"
       },
-      "hash": "047c5aea1ee79ad1",
+      "hash": "253bf9011151a3a0",
       "words": [
         {
-          "word": "My",
-          "start": 0.07,
-          "end": 0.31
-        },
-        {
-          "word": "compass",
-          "start": 0.31,
-          "end": 0.91
-        },
-        {
-          "word": "a",
-          "start": 0.91,
-          "end": 1.03
-        },
-        {
-          "word": "lantern",
-          "start": 1.03,
-          "end": 1.75
-        },
-        {
-          "word": "a",
-          "start": 1.75,
-          "end": 1.87
-        },
-        {
-          "word": "rope",
-          "start": 1.87,
-          "end": 2.15
-        },
-        {
-          "word": "coil",
-          "start": 2.15,
-          "end": 2.71
-        },
-        {
-          "word": "and",
-          "start": 2.71,
-          "end": 2.869
-        },
-        {
-          "word": "my",
-          "start": 2.869,
-          "end": 3.07
-        },
-        {
-          "word": "spyglass",
-          "start": 3.07,
-          "end": 4.31
-        },
-        {
-          "word": "Hang",
-          "start": 4.31,
-          "end": 4.67
-        },
-        {
-          "word": "them",
-          "start": 4.67,
-          "end": 4.83
-        },
-        {
-          "word": "on",
-          "start": 4.83,
-          "end": 4.91
-        },
-        {
-          "word": "the",
-          "start": 4.91,
-          "end": 5.03
-        },
-        {
-          "word": "rack",
-          "start": 5.03,
-          "end": 5.27
-        },
-        {
-          "word": "by",
-          "start": 5.27,
-          "end": 5.47
-        },
-        {
-          "word": "my",
-          "start": 5.47,
-          "end": 5.67
-        },
-        {
-          "word": "door",
-          "start": 5.67,
-          "end": 6.11
-        },
-        {
-          "word": "and",
-          "start": 6.11,
-          "end": 6.31
-        },
-        {
-          "word": "each",
-          "start": 6.31,
-          "end": 6.55
-        },
-        {
-          "word": "hook",
-          "start": 6.55,
-          "end": 6.91
-        },
-        {
-          "word": "runs",
-          "start": 6.91,
-          "end": 7.15
-        },
-        {
-          "word": "its",
-          "start": 7.15,
-          "end": 7.31
-        },
-        {
-          "word": "check",
-          "start": 7.31,
-          "end": 7.56
-        }
-      ],
-      "voice": "en-GB-Ryan:DragonHDLatestNeural"
-    },
-    {
-      "id": "bo.gear.reminder.01",
-      "speaker": "Bo",
-      "text": "Hang the gear on my rack, Captain. Each hook runs its version check.",
-      "duration": 4.108,
-      "files": {
-        "webm": "bo.gear.reminder.01.webm",
-        "m4a": "bo.gear.reminder.01.m4a"
-      },
-      "hash": "6fb77b909f859ce1",
-      "words": [
-        {
-          "word": "Hang",
+          "word": "Run",
           "start": 0.07,
           "end": 0.27
         },
@@ -5924,59 +6019,153 @@
           "end": 0.39
         },
         {
-          "word": "gear",
+          "word": "checks",
           "start": 0.39,
-          "end": 0.63
+          "end": 0.67
         },
         {
-          "word": "on",
-          "start": 0.63,
-          "end": 0.75
+          "word": "at",
+          "start": 0.67,
+          "end": 0.79
         },
         {
           "word": "my",
-          "start": 0.75,
-          "end": 0.95
+          "start": 0.79,
+          "end": 1.03
         },
         {
           "word": "rack",
-          "start": 0.95,
-          "end": 1.27
+          "start": 1.03,
+          "end": 1.31
         },
         {
           "word": "Captain",
-          "start": 1.27,
-          "end": 2.029
+          "start": 1.31,
+          "end": 1.99
         },
         {
           "word": "Each",
-          "start": 2.029,
-          "end": 2.389
+          "start": 1.99,
+          "end": 2.309
         },
         {
-          "word": "hook",
-          "start": 2.389,
+          "word": "one",
+          "start": 2.309,
+          "end": 2.469
+        },
+        {
+          "word": "should",
+          "start": 2.469,
+          "end": 2.71
+        },
+        {
+          "word": "print",
+          "start": 2.71,
+          "end": 2.949
+        },
+        {
+          "word": "a",
+          "start": 2.949,
+          "end": 2.989
+        },
+        {
+          "word": "version",
+          "start": 2.989,
+          "end": 3.389
+        },
+        {
+          "word": "number",
+          "start": 3.389,
+          "end": 3.639
+        }
+      ],
+      "voice": "en-GB-Ryan:DragonHDLatestNeural"
+    },
+    {
+      "id": "bo.gear.reminder.01",
+      "speaker": "Bo",
+      "text": "Run the version checks at my rack, Captain. Each one should print a version number.",
+      "duration": 4.708,
+      "files": {
+        "webm": "bo.gear.reminder.01.webm",
+        "m4a": "bo.gear.reminder.01.m4a"
+      },
+      "hash": "be5eca229ce42943",
+      "words": [
+        {
+          "word": "Run",
+          "start": 0.07,
+          "end": 0.27
+        },
+        {
+          "word": "the",
+          "start": 0.27,
+          "end": 0.39
+        },
+        {
+          "word": "version",
+          "start": 0.39,
+          "end": 0.75
+        },
+        {
+          "word": "checks",
+          "start": 0.75,
+          "end": 1.07
+        },
+        {
+          "word": "at",
+          "start": 1.07,
+          "end": 1.19
+        },
+        {
+          "word": "my",
+          "start": 1.19,
+          "end": 1.47
+        },
+        {
+          "word": "rack",
+          "start": 1.47,
+          "end": 1.83
+        },
+        {
+          "word": "Captain",
+          "start": 1.83,
           "end": 2.75
         },
         {
-          "word": "runs",
+          "word": "Each",
           "start": 2.75,
           "end": 3.03
         },
         {
-          "word": "its",
+          "word": "one",
           "start": 3.03,
           "end": 3.19
         },
         {
-          "word": "version",
+          "word": "should",
           "start": 3.19,
-          "end": 3.55
+          "end": 3.429
         },
         {
-          "word": "check",
-          "start": 3.55,
-          "end": 3.8
+          "word": "print",
+          "start": 3.429,
+          "end": 3.67
+        },
+        {
+          "word": "a",
+          "start": 3.67,
+          "end": 3.71
+        },
+        {
+          "word": "version",
+          "start": 3.71,
+          "end": 4.11
+        },
+        {
+          "word": "number",
+          "start": 4.11,
+          "end": 4.36
         }
       ],
       "voice": "en-GB-Ryan:DragonHDLatestNeural"
@@ -6221,13 +6410,13 @@
     {
       "id": "bo.gear.checked.01",
       "speaker": "Bo",
-      "text": "Four checks, four versions. That’s a ship I’d sail. Let’s see if you remember which is which.",
-      "duration": 5.908,
+      "text": "Four checks, four versions. That's a ship I'd sail.",
+      "duration": 3.808,
       "files": {
         "webm": "bo.gear.checked.01.webm",
         "m4a": "bo.gear.checked.01.m4a"
       },
-      "hash": "063da68b71026544",
+      "hash": "60861765a1168040",
       "words": [
         {
           "word": "Four",
@@ -6242,77 +6431,37 @@
         {
           "word": "four",
           "start": 0.83,
-          "end": 1.19
+          "end": 1.23
         },
         {
           "word": "versions",
-          "start": 1.19,
-          "end": 2.15
+          "start": 1.23,
+          "end": 2.27
         },
         {
-          "word": "That’s",
-          "start": 2.15,
-          "end": 2.429
+          "word": "That's",
+          "start": 2.27,
+          "end": 2.55
         },
         {
           "word": "a",
-          "start": 2.429,
-          "end": 2.469
+          "start": 2.55,
+          "end": 2.59
         },
         {
           "word": "ship",
-          "start": 2.469,
-          "end": 2.869
+          "start": 2.59,
+          "end": 2.949
         },
         {
-          "word": "I’d",
-          "start": 2.869,
-          "end": 3.07
+          "word": "I'd",
+          "start": 2.949,
+          "end": 3.19
         },
         {
           "word": "sail",
-          "start": 3.07,
-          "end": 3.869
-        },
-        {
-          "word": "Let’s",
-          "start": 3.869,
-          "end": 4.19
-        },
-        {
-          "word": "see",
-          "start": 4.19,
-          "end": 4.35
-        },
-        {
-          "word": "if",
-          "start": 4.35,
-          "end": 4.47
-        },
-        {
-          "word": "you",
-          "start": 4.47,
-          "end": 4.59
-        },
-        {
-          "word": "remember",
-          "start": 4.59,
-          "end": 4.99
-        },
-        {
-          "word": "which",
-          "start": 4.99,
-          "end": 5.19
-        },
-        {
-          "word": "is",
-          "start": 5.19,
-          "end": 5.31
-        },
-        {
-          "word": "which",
-          "start": 5.31,
-          "end": 5.56
+          "start": 3.19,
+          "end": 3.44
         }
       ],
       "voice": "en-GB-Ryan:DragonHDLatestNeural"
@@ -7654,6 +7803,90 @@
       "voice": "en-GB-Ada:DragonHDLatestNeural"
     },
     {
+      "id": "juno.reply.vary",
+      "speaker": "Juno",
+      "text": "In the app, your reply will be worded differently. Models vary, and that's fine.",
+      "duration": 6.008,
+      "files": {
+        "webm": "juno.reply.vary.webm",
+        "m4a": "juno.reply.vary.m4a"
+      },
+      "hash": "20eb72dd01cc4bcc",
+      "words": [
+        {
+          "word": "In",
+          "start": 0.07,
+          "end": 0.19
+        },
+        {
+          "word": "the",
+          "start": 0.19,
+          "end": 0.51
+        },
+        {
+          "word": "app",
+          "start": 0.51,
+          "end": 0.95
+        },
+        {
+          "word": "your",
+          "start": 0.95,
+          "end": 1.23
+        },
+        {
+          "word": "reply",
+          "start": 1.23,
+          "end": 1.75
+        },
+        {
+          "word": "will",
+          "start": 1.75,
+          "end": 1.91
+        },
+        {
+          "word": "be",
+          "start": 1.91,
+          "end": 2.07
+        },
+        {
+          "word": "worded",
+          "start": 2.07,
+          "end": 2.429
+        },
+        {
+          "word": "differently",
+          "start": 2.429,
+          "end": 3.829
+        },
+        {
+          "word": "Models",
+          "start": 3.829,
+          "end": 4.43
+        },
+        {
+          "word": "vary",
+          "start": 4.43,
+          "end": 5.07
+        },
+        {
+          "word": "and",
+          "start": 5.07,
+          "end": 5.23
+        },
+        {
+          "word": "that's",
+          "start": 5.23,
+          "end": 5.47
+        },
+        {
+          "word": "fine",
+          "start": 5.47,
+          "end": 5.72
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
       "id": "juno.reply.03",
       "speaker": "Juno",
       "text": "Commands go to the Terminal. Requests go to the agent, through the prompt box. That’s setup done, Captain. The Harbormaster’s Trial waits at the lighthouse.",
@@ -8131,118 +8364,148 @@
     {
       "id": "nell.papers.07",
       "speaker": "Nell",
-      "text": "There’s a chest there too, with another page for your Logbook. Open it first, then paint your sails and select Finish.",
-      "duration": 6.608,
+      "text": "There's a chest there too, with the list of tools you'll need: Git, Node.js, and GitHub CLI. Open it, then paint your sails and select Finish.",
+      "duration": 9.208,
       "files": {
         "webm": "nell.papers.07.webm",
         "m4a": "nell.papers.07.m4a"
       },
-      "hash": "7555ab5e73fd280c",
+      "hash": "6ea84f5f1214225a",
       "words": [
         {
-          "word": "There’s",
+          "word": "There's",
           "start": 0.07,
-          "end": 0.51
-        },
-        {
-          "word": "a",
-          "start": 0.51,
           "end": 0.55
         },
         {
-          "word": "chest",
+          "word": "a",
           "start": 0.55,
-          "end": 0.75
+          "end": 0.59
+        },
+        {
+          "word": "chest",
+          "start": 0.59,
+          "end": 0.79
         },
         {
           "word": "there",
-          "start": 0.75,
-          "end": 1.19
+          "start": 0.79,
+          "end": 1.35
         },
         {
           "word": "too",
-          "start": 1.19,
+          "start": 1.35,
           "end": 1.47
         },
         {
           "word": "with",
           "start": 1.47,
-          "end": 1.75
+          "end": 1.63
         },
         {
-          "word": "another",
-          "start": 1.75,
-          "end": 3.11
+          "word": "the",
+          "start": 1.63,
+          "end": 1.79
         },
         {
-          "word": "page",
-          "start": 3.11,
-          "end": 3.389
+          "word": "list",
+          "start": 1.79,
+          "end": 2.63
         },
         {
-          "word": "for",
-          "start": 3.389,
-          "end": 3.55
+          "word": "of",
+          "start": 2.63,
+          "end": 2.789
         },
         {
-          "word": "your",
-          "start": 3.55,
-          "end": 3.71
+          "word": "tools",
+          "start": 2.789,
+          "end": 3.469
         },
         {
-          "word": "Logbook",
-          "start": 3.71,
-          "end": 3.989
+          "word": "you'll",
+          "start": 3.469,
+          "end": 3.789
         },
         {
-          "word": "Open",
-          "start": 3.989,
-          "end": 4.19
+          "word": "need",
+          "start": 3.789,
+          "end": 3.949
         },
         {
-          "word": "it",
-          "start": 4.19,
-          "end": 4.27
+          "word": "Git",
+          "start": 3.949,
+          "end": 4.07
         },
         {
-          "word": "first",
-          "start": 4.27,
-          "end": 4.47
+          "word": "Node",
+          "start": 4.07,
+          "end": 4.23
         },
         {
-          "word": "then",
-          "start": 4.47,
-          "end": 4.63
-        },
-        {
-          "word": "paint",
-          "start": 4.63,
-          "end": 4.83
-        },
-        {
-          "word": "your",
-          "start": 4.83,
-          "end": 4.99
-        },
-        {
-          "word": "sails",
-          "start": 4.99,
-          "end": 5.35
+          "word": "js",
+          "start": 4.23,
+          "end": 4.51
         },
         {
           "word": "and",
-          "start": 5.35,
-          "end": 5.55
+          "start": 4.51,
+          "end": 4.71
+        },
+        {
+          "word": "GitHub",
+          "start": 4.71,
+          "end": 5.07
+        },
+        {
+          "word": "CLI",
+          "start": 5.07,
+          "end": 6.11
+        },
+        {
+          "word": "Open",
+          "start": 6.11,
+          "end": 6.59
+        },
+        {
+          "word": "it",
+          "start": 6.59,
+          "end": 7.03
+        },
+        {
+          "word": "then",
+          "start": 7.03,
+          "end": 7.31
+        },
+        {
+          "word": "paint",
+          "start": 7.31,
+          "end": 7.51
+        },
+        {
+          "word": "your",
+          "start": 7.51,
+          "end": 7.67
+        },
+        {
+          "word": "sails",
+          "start": 7.67,
+          "end": 8.109
+        },
+        {
+          "word": "and",
+          "start": 8.109,
+          "end": 8.229
         },
         {
           "word": "select",
-          "start": 5.55,
-          "end": 5.95
+          "start": 8.229,
+          "end": 8.59
         },
         {
           "word": "Finish",
-          "start": 5.95,
-          "end": 6.2
+          "start": 8.59,
+          "end": 8.84
         }
       ],
       "voice": "en-GB-Sonia:DragonHDLatestNeural"

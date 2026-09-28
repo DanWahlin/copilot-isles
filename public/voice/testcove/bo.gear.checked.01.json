@@ -1,7 +1,7 @@
 {
   "id": "bo.gear.checked.01",
   "speaker": "Bo",
-  "text": "Four checks, four versions. That’s a ship I’d sail. Let’s see if you remember which is which.",
+  "text": "Four checks, four versions. That's a ship I'd sail.",
   "words": [
     {
       "word": "Four",
@@ -16,77 +16,37 @@
     {
       "word": "four",
       "start": 0.83,
-      "end": 1.19
+      "end": 1.23
     },
     {
       "word": "versions",
-      "start": 1.19,
-      "end": 2.15
+      "start": 1.23,
+      "end": 2.27
     },
     {
-      "word": "That’s",
-      "start": 2.15,
-      "end": 2.429
+      "word": "That's",
+      "start": 2.27,
+      "end": 2.55
     },
     {
       "word": "a",
-      "start": 2.429,
-      "end": 2.469
+      "start": 2.55,
+      "end": 2.59
     },
     {
       "word": "ship",
-      "start": 2.469,
-      "end": 2.869
+      "start": 2.59,
+      "end": 2.949
     },
     {
-      "word": "I’d",
-      "start": 2.869,
-      "end": 3.07
+      "word": "I'd",
+      "start": 2.949,
+      "end": 3.19
     },
     {
       "word": "sail",
-      "start": 3.07,
-      "end": 3.869
-    },
-    {
-      "word": "Let’s",
-      "start": 3.869,
-      "end": 4.19
-    },
-    {
-      "word": "see",
-      "start": 4.19,
-      "end": 4.35
-    },
-    {
-      "word": "if",
-      "start": 4.35,
-      "end": 4.47
-    },
-    {
-      "word": "you",
-      "start": 4.47,
-      "end": 4.59
-    },
-    {
-      "word": "remember",
-      "start": 4.59,
-      "end": 4.99
-    },
-    {
-      "word": "which",
-      "start": 4.99,
-      "end": 5.19
-    },
-    {
-      "word": "is",
-      "start": 5.19,
-      "end": 5.31
-    },
-    {
-      "word": "which",
-      "start": 5.31,
-      "end": 5.56
+      "start": 3.19,
+      "end": 3.44
     }
   ]
 }

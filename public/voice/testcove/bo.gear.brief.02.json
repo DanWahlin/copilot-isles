@@ -1,132 +1,167 @@
 {
   "id": "bo.gear.brief.02",
   "speaker": "Bo",
-  "text": "Every tool gets a version check there. Here, each tool is a piece of my gear, and four pieces have gone walkabout round the village.",
+  "text": "Commands run there, and every tool gets a version check. My gear rack stands in for it: compass for Git, lantern for Node.js, rope for npm, and spyglass for GitHub CLI.",
   "words": [
     {
-      "word": "Every",
+      "word": "Commands",
       "start": 0.07,
-      "end": 0.35
+      "end": 0.47
     },
     {
-      "word": "tool",
-      "start": 0.35,
+      "word": "run",
+      "start": 0.47,
       "end": 0.67
     },
     {
-      "word": "gets",
+      "word": "there",
       "start": 0.67,
-      "end": 0.91
-    },
-    {
-      "word": "a",
-      "start": 0.91,
       "end": 0.99
     },
     {
-      "word": "version",
+      "word": "and",
       "start": 0.99,
-      "end": 1.39
+      "end": 1.15
     },
     {
-      "word": "check",
-      "start": 1.39,
-      "end": 1.71
-    },
-    {
-      "word": "there",
-      "start": 1.71,
-      "end": 2.389
-    },
-    {
-      "word": "Here",
-      "start": 2.389,
-      "end": 2.829
-    },
-    {
-      "word": "each",
-      "start": 2.829,
-      "end": 3.19
+      "word": "every",
+      "start": 1.15,
+      "end": 1.47
     },
     {
       "word": "tool",
-      "start": 3.19,
-      "end": 3.469
+      "start": 1.47,
+      "end": 1.79
     },
     {
-      "word": "is",
-      "start": 3.469,
-      "end": 3.59
+      "word": "gets",
+      "start": 1.79,
+      "end": 1.99
     },
     {
       "word": "a",
-      "start": 3.59,
-      "end": 3.71
+      "start": 1.99,
+      "end": 2.07
     },
     {
-      "word": "piece",
-      "start": 3.71,
-      "end": 3.909
+      "word": "version",
+      "start": 2.07,
+      "end": 2.469
     },
     {
-      "word": "of",
-      "start": 3.909,
-      "end": 4.03
+      "word": "check",
+      "start": 2.469,
+      "end": 3.03
     },
     {
-      "word": "my",
-      "start": 4.03,
-      "end": 4.23
+      "word": "My",
+      "start": 3.03,
+      "end": 3.309
     },
     {
       "word": "gear",
-      "start": 4.23,
-      "end": 4.79
+      "start": 3.309,
+      "end": 3.59
+    },
+    {
+      "word": "rack",
+      "start": 3.59,
+      "end": 3.869
+    },
+    {
+      "word": "stands",
+      "start": 3.869,
+      "end": 4.19
+    },
+    {
+      "word": "in",
+      "start": 4.19,
+      "end": 4.35
+    },
+    {
+      "word": "for",
+      "start": 4.35,
+      "end": 4.59
+    },
+    {
+      "word": "it",
+      "start": 4.59,
+      "end": 4.91
+    },
+    {
+      "word": "compass",
+      "start": 4.91,
+      "end": 5.39
+    },
+    {
+      "word": "for",
+      "start": 5.39,
+      "end": 5.51
+    },
+    {
+      "word": "Git",
+      "start": 5.51,
+      "end": 5.99
+    },
+    {
+      "word": "lantern",
+      "start": 5.99,
+      "end": 6.51
+    },
+    {
+      "word": "for",
+      "start": 6.51,
+      "end": 6.67
+    },
+    {
+      "word": "Node",
+      "start": 6.67,
+      "end": 7.31
+    },
+    {
+      "word": "js",
+      "start": 7.31,
+      "end": 8.109
+    },
+    {
+      "word": "rope",
+      "start": 8.109,
+      "end": 8.51
+    },
+    {
+      "word": "for",
+      "start": 8.51,
+      "end": 8.709
+    },
+    {
+      "word": "npm",
+      "start": 8.709,
+      "end": 9.35
     },
     {
       "word": "and",
-      "start": 4.79,
-      "end": 4.95
+      "start": 9.35,
+      "end": 9.549
     },
     {
-      "word": "four",
-      "start": 4.95,
-      "end": 5.23
+      "word": "spyglass",
+      "start": 9.549,
+      "end": 10.229
     },
     {
-      "word": "pieces",
-      "start": 5.23,
-      "end": 5.55
+      "word": "for",
+      "start": 10.229,
+      "end": 10.35
     },
     {
-      "word": "have",
-      "start": 5.55,
-      "end": 5.71
+      "word": "GitHub",
+      "start": 10.35,
+      "end": 10.75
     },
     {
-      "word": "gone",
-      "start": 5.71,
-      "end": 5.91
-    },
-    {
-      "word": "walkabout",
-      "start": 5.91,
-      "end": 6.43
-    },
-    {
-      "word": "round",
-      "start": 6.43,
-      "end": 6.63
-    },
-    {
-      "word": "the",
-      "start": 6.63,
-      "end": 6.75
-    },
-    {
-      "word": "village",
-      "start": 6.75,
-      "end": 7
+      "word": "CLI",
+      "start": 10.75,
+      "end": 11
     }
   ]
 }

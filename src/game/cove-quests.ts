@@ -31,7 +31,7 @@ const COVE_QUESTS: readonly QuestDef[] = [
     link: { label: 'Download the Copilot app', url: APP_INSTALL_URL },
     steps: {
       start: 'Talk to Nell Tidewell by the harbourmaster’s door.',
-      chest: 'Open the chest beside Nell’s door.',
+      chest: 'Open the chest beside Nell’s door for the list of tools you’ll need.',
       palette: 'Paint your sails at the palette stand by Nell’s door, then select Finish.',
       done: 'Signed in, theme picked, and the New page is open.',
     },
@@ -60,7 +60,7 @@ const COVE_QUESTS: readonly QuestDef[] = [
     title: 'Gear Check & Right Signature',
     task: 'Check your tools in Terminal',
     steps: {
-      gear: 'Find Bo’s compass, lantern, rope coil, and spyglass around the village, and hang them on his gear rack.',
+      gear: 'Run the version checks at Bo’s gear rack. Install whatever’s missing, then check again.',
       ledger: 'Read Bo’s ledger beside the gear rack. Whose signature is on it?',
       done: 'Every tool checks out, and GitHub CLI is signed in as you.',
     },
@@ -153,7 +153,7 @@ const QUEST_TARGETS: Readonly<Record<string, { ids: readonly string[]; label: st
   'Q0.2:palette': { ids: ['palette:stand'], label: 'Palette stand' },
   'Q0.3:start': { ids: ['npc:merchant'], label: 'Ezra Quill' },
   'Q0.4:start': { ids: ['npc:dockhand_b'], label: 'Bo Marlin' },
-  'Q0.5:gear': { ids: ['gear:*'], label: 'Bo’s gear' },
+  'Q0.5:gear': { ids: ['gear:rack', 'gear:lens'], label: 'Bo’s gear' },
   'Q0.5:ledger': { ids: ['gear:ledger'], label: 'Bo’s ledger' },
   'Q0.6:start': { ids: ['npc:suri'], label: 'Suri Okoye' },
   'Q0.6:sluice': { ids: ['mill:*'], label: 'The sluice' },
@@ -194,9 +194,11 @@ export function npcScript(
       if (!q['Q0.2'] || q['Q0.2'] === 'start') {
         return {
           steps: [
-            // The course's order: prerequisites, what the app is, download, then sign in.
+            // The course's order: prerequisites, what the app is, download, sign in, then the theme.
+            // Signing in is one obvious button, so it's shown and told rather than quizzed.
             { say: 'nell.papers.01' },
             { say: 'nell.papers.02' },
+            { say: 'nell.papers.04' },
             { show: 'shared/github-copilot-app', caption: 'The **GitHub Copilot app**.' },
             { say: 'nell.papers.app' },
             {
@@ -211,10 +213,6 @@ export function npcScript(
             { say: 'nell.papers.logbook' },
             { show: 'ch00/sign-in-to-app', caption: 'Open the app and select **Sign in to GitHub**.' },
             { say: 'nell.papers.signin' },
-            { say: 'nell.papers.04' },
-            { quiz: 'H0.1' },
-            { hide: true },
-            { page: 'pg.prereqs' },
             { say: 'nell.papers.05' },
             { show: 'ch00/pick-a-theme', caption: 'Pick a theme and select **Finish**.' },
             { say: 'nell.papers.06' },
@@ -240,7 +238,8 @@ export function npcScript(
         return {
           steps: [
             // The course's order: fork on GitHub (the link stays in the Logbook and tracker), then
-            // add it from the New page: the + first (H0.2), then the menu it opens (H0.3).
+            // add it from the New page: find the + (H0.2), see the menu it opens, and pick your fork
+            // rather than the original (S0.3).
             { say: 'ezra.fork.01' },
             { term: 'fork' },
             { page: 'pg.fork' },
@@ -251,15 +250,15 @@ export function npcScript(
             },
             { say: 'ezra.fork.02' },
             { quiz: 'H0.2' },
-            { quiz: 'H0.3' },
             {
               show: 'ch00/app-add-project',
               caption: '**+** next to **Projects** → **Add GitHub repository**, then pick your fork.',
             },
             { say: 'ezra.fork.03' },
+            { say: 'ezra.fork.careful' },
             { hide: true },
-            { quiz: 'MC0.1' },
-            { page: 'C0.4', doubloons: 10 },
+            { quiz: 'S0.3' },
+            { page: 'C0.4', doubloons: 20 },
             { say: 'ezra.fork.04' },
             { quest: 'Q0.3', step: 'done' },
             { quest: 'Q0.4', step: 'start' },
@@ -281,8 +280,17 @@ export function npcScript(
             { term: 'worktree' },
             { page: 'C0.6', doubloons: 10 },
             { quest: 'Q0.4', step: 'done' },
+            // Where Terminal lives is the app-specific part; the version checks themselves are quick.
+            {
+              show: 'shared/app-review-panel',
+              caption:
+                '**View → Toggle Review Panel**, then the **Terminal** tab. No tab? **+** → **Terminal**.',
+            },
             { say: 'bo.gear.brief.01' },
+            { term: 'review-panel' },
             { say: 'bo.gear.brief.02' },
+            { hide: true },
+            { page: 'pg.terminal', doubloons: 10 },
             { say: 'bo.gear.brief.03' },
             { quest: 'Q0.5', step: 'gear' },
           ],
@@ -393,12 +401,17 @@ const LYRA_SOUNDCHECK: readonly ScriptStep[] = [
   { quest: 'Q0.9', step: 'done' },
 ];
 
-/** Juno's opening beat (Q0.8): the course's first prompt, and two fittings on the rail. */
+/** Juno's opening beat (Q0.8): the course's first prompt, where it goes in the app, and two fittings on the rail. */
 const JUNO_BRIEF: readonly ScriptStep[] = [
   { say: 'juno.brief.01' },
   { say: 'juno.brief.02' },
   { say: 'juno.brief.03' },
+  {
+    show: 'shared/app-review-panel',
+    caption: 'Requests go in the **prompt box**. Commands go in **Terminal**.',
+  },
   { say: 'juno.brief.04' },
+  { hide: true },
   { say: 'juno.brief.05' },
   { quest: 'Q0.8', step: 'pipes' },
 ];

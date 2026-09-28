@@ -49,40 +49,23 @@ export const CH00: ChapterContent = {
       height: 1024,
       alt: 'A recording studio being set up for a soundcheck',
     },
+    {
+      // Chapter 03's review panel shot, cropped to the prompt box and the panel (no sidebar).
+      id: 'shared/app-review-panel',
+      src: 'course/shared/app-review-panel.webp',
+      width: 1556,
+      height: 1080,
+      alt: 'A project session: the prompt box on the left, set to Local, and the review panel on the right with its Changes, Terminal, and + tabs',
+    },
   ],
 
+  // Quizzes cover what's specific to the app or easy to get wrong. Obvious steps (the sign-in button,
+  // a menu item named after what you want, `node -v`) are shown and told, not quizzed.
   quizzes: [
-    {
-      id: 'H0.1',
-      type: 'hotspot',
-      image: 'ch00/sign-in-to-app',
-      mask: [],
-      prompt: 'Point to how you’d sign in with a regular GitHub account.',
-      targets: [
-        { id: 'github', rect: [0.136, 0.714, 0.2, 0.1], label: 'Sign in to GitHub', correct: true },
-        {
-          id: 'ghe',
-          rect: [0.349, 0.714, 0.415, 0.1],
-          label: 'Sign in to GitHub Enterprise Cloud',
-          feedback:
-            'That one’s for organizations on *.ghe.com. A regular account uses **Sign in to GitHub**.',
-        },
-      ],
-      explain: {
-        correct: 'Right! **Sign in to GitHub** is the one for a regular GitHub account.',
-        wrong: 'Look for the plain GitHub sign-in button.',
-      },
-      hints: [
-        'There are two sign-in buttons. Which one isn’t for a special kind of organization?',
-        'The Enterprise Cloud button is for *.ghe.com orgs.',
-        'Select the green **Sign in to GitHub** button.',
-      ],
-      source: src('installation'),
-    },
     {
       id: 'H0.2',
       type: 'hotspot',
-      // The New page before anything's selected; H0.3 then shows the menu the + opens.
+      // The New page before anything's selected; Ezra then shows the menu the + opens.
       image: 'shared/github-copilot-app',
       mask: [],
       prompt: 'Where do you start adding your fork to the app?',
@@ -124,81 +107,30 @@ export const CH00: ChapterContent = {
       source: src('connect-to-your-repository'),
     },
     {
-      id: 'H0.3',
-      type: 'hotspot',
-      image: 'ch00/app-add-project',
-      mask: [
-        [0.23, 0.274, 0.031, 0.054],
-        [0.371, 0.436, 0.031, 0.054],
-      ],
-      prompt: 'The **+** opened this menu. Which option adds your fork from GitHub?',
-      targets: [
-        {
-          id: 'add-github',
-          rect: [0.223, 0.441, 0.228, 0.043],
-          label: 'Add GitHub repository',
-          correct: true,
-        },
-        {
-          id: 'chat',
-          rect: [0.223, 0.381, 0.228, 0.041],
-          label: 'Chat',
-          feedback: '**Chat** starts a chat session, not a project.',
-        },
-        {
-          id: 'clone',
-          rect: [0.223, 0.487, 0.228, 0.043],
-          label: 'Clone repository',
-          feedback:
-            '**Clone repository** works when you have the fork’s URL. From GitHub, pick **Add GitHub repository**.',
-        },
-        {
-          id: 'open-folder',
-          rect: [0.223, 0.532, 0.228, 0.042],
-          label: 'Open folder',
-          feedback: '**Open folder** is for a copy that’s already on your machine.',
-        },
-      ],
-      explain: {
-        correct:
-          'Yes! **Add GitHub repository**, then search for `copilot-app-for-beginners` and pick your fork.',
-        wrong: 'Your fork lives on GitHub. Which option talks about GitHub?',
-      },
-      hints: [
-        'Your fork is on GitHub.',
-        'One option has the GitHub logo.',
-        'Select **Add GitHub repository**.',
-      ],
-      source: src('connect-to-your-repository'),
-    },
-    {
-      id: 'MC0.1',
-      type: 'mc',
-      prompt:
-        'You already have a local copy of your fork. Which option do you pick after the **+** by **Projects**?',
+      id: 'S0.3',
+      type: 'scenario',
+      situation:
+        'You select **Add GitHub repository** and search for `copilot-app-for-beginners`. Say two results come up: `github/copilot-app-for-beginners` and `your-handle/copilot-app-for-beginners`.',
+      prompt: 'Which one do you pick?',
       options: [
-        { id: 'open', text: 'Open folder' },
+        { id: 'fork', text: '`your-handle/copilot-app-for-beginners`, your fork' },
         {
-          id: 'clone',
-          text: 'Clone repository',
-          feedback: '**Clone repository** is for when you have the fork’s URL and no local copy yet.',
+          id: 'upstream',
+          text: '`github/copilot-app-for-beginners`, the original course',
+          feedback:
+            'That’s the original. Your practice work belongs in your fork, and the setup script refuses to change the original.',
         },
         {
-          id: 'add',
-          text: 'Add GitHub repository',
-          feedback: 'That downloads a fresh copy. You’ve already got one.',
-        },
-        {
-          id: 'chat',
-          text: 'Chat',
-          feedback: '**Chat** starts a chat session. It doesn’t connect a repository.',
+          id: 'either',
+          text: 'Either one. They have the same files',
+          feedback:
+            'They start out the same, but only your fork is yours to change. The setup script refuses the original.',
         },
       ],
-      answer: 'open',
+      answer: 'fork',
       explain: {
-        correct:
-          'Right: **Open folder**, then select the folder. **Clone repository** is for when you have the URL.',
-        wrong: 'You’ve already got the files on your machine. Which option opens them?',
+        correct: 'Right. Pick your fork. The app clones it and adds it under **Projects**.',
+        wrong: 'Your practice work belongs in your own copy of the course.',
       },
       source: src('connect-to-your-repository'),
     },
@@ -242,26 +174,6 @@ export const CH00: ChapterContent = {
         'You want the option that uses the repository already on your machine.',
         'Select **Local repository**.',
       ],
-      source: src('check-your-tools-in-terminal'),
-    },
-    {
-      id: 'M0.1',
-      type: 'matching',
-      prompt: 'Match each piece of gear to the version check it stands for.',
-      pairs: [
-        { left: { id: 'compass', text: '🧭 Compass (Git)' }, right: { id: 'git', text: 'git --version' } },
-        { left: { id: 'lantern', text: '🏮 Lantern (Node.js)' }, right: { id: 'node', text: 'node -v' } },
-        { left: { id: 'rope', text: '🪢 Rope coil (npm)' }, right: { id: 'npm', text: 'npm -v' } },
-        {
-          left: { id: 'spyglass', text: '🔭 Spyglass (GitHub CLI)' },
-          right: { id: 'gh', text: 'gh --version' },
-        },
-      ],
-      explain: {
-        correct:
-          'All four check out. Each command should print a version number. Install only what’s missing.',
-        wrong: 'Think about which tool each command belongs to.',
-      },
       source: src('check-your-tools-in-terminal'),
     },
     {
@@ -327,37 +239,50 @@ export const CH00: ChapterContent = {
     {
       id: 'T0.1',
       type: 'ordering',
-      prompt: 'Put the five decisions that matter in order.',
+      prompt: 'Put the five setup steps in order. Each one depends on the step before it.',
       items: [
-        { id: 'signin', text: 'Sign in to GitHub in the app' },
         { id: 'fork', text: 'Fork the course repository' },
         { id: 'add', text: 'Add your fork: **+** by **Projects** → **Add GitHub repository**' },
-        { id: 'local', text: 'Run this setup session on **Local repository**' },
-        { id: 'dry', text: 'Run `--dry-run` and check `Repository:` before `--yes`' },
+        { id: 'local', text: 'Start a project session on **Local repository**' },
+        { id: 'dry', text: 'Run `--dry-run` and check the `Repository:` line' },
+        { id: 'yes', text: 'Run `--yes` and wait for `Setup complete.`' },
       ],
       explain: {
         correct:
-          'That’s the whole voyage: sign in, fork, add, local repository, and preview before you commit.',
-        wrong: 'You can’t add a fork you haven’t made yet, and the preview always comes first.',
+          'That’s the whole voyage: fork, add it, a **Local repository** session, preview, then run it for real.',
+        wrong: 'You can’t add a fork you haven’t made, and the preview always comes before `--yes`.',
       },
       source: src('connect-to-your-repository'),
     },
     {
-      id: 'T0.2',
-      type: 'mc',
-      prompt: 'What is a fork?',
-      options: [
-        { id: 'copy', text: 'Your own copy of the repository on GitHub' },
-        { id: 'branch', text: 'A branch inside the course repository' },
-        { id: 'local', text: 'The folder on your computer' },
-        { id: 'session', text: 'A kind of project session' },
+      id: 'T0.9',
+      type: 'matching',
+      prompt: 'Setup hops between GitHub.com and the app. Match each step to where you do it.',
+      pairs: [
+        {
+          left: { id: 'workflows', text: 'Turn on workflows for your fork' },
+          right: { id: 'github', text: 'GitHub.com' },
+        },
+        {
+          left: { id: 'local', text: 'Switch the session to **Local repository**' },
+          right: { id: 'selector', text: 'Workspace selector' },
+        },
+        {
+          left: { id: 'auth', text: 'Run `gh auth status`' },
+          right: { id: 'terminal', text: 'Terminal tab' },
+        },
+        {
+          left: { id: 'overview', text: 'Ask for a course overview' },
+          right: { id: 'prompt', text: 'Prompt box' },
+        },
       ],
-      answer: 'copy',
       explain: {
-        correct: 'Right: a fork is your own copy of the repository, on GitHub.',
-        wrong: 'A fork lives on GitHub, and it belongs to you.',
+        correct:
+          'That’s it. Workflows live in your fork’s **Actions** tab on GitHub.com, the workspace selector sits below the prompt box, commands go in **Terminal**, and requests go in the prompt box.',
+        wrong:
+          'Workflows are a GitHub.com setting. In the app, commands and requests go to different places.',
       },
-      source: src('connect-to-your-repository'),
+      source: src('check-your-tools-in-terminal'),
     },
     {
       id: 'T0.3',
@@ -433,20 +358,28 @@ export const CH00: ChapterContent = {
       source: src('prerequisites'),
     },
     {
-      id: 'T0.7',
+      id: 'T0.10',
       type: 'mc',
-      prompt: 'When is setup done?',
+      prompt: 'Your fork shows under **Projects**. How do you start the session you’ll run setup in?',
       options: [
-        { id: 'complete', text: 'When the terminal shows `Setup complete.`' },
-        { id: 'dry', text: 'As soon as the dry-run finishes' },
-        { id: 'fork', text: 'When the fork appears on GitHub' },
+        { id: 'project-plus', text: 'Select **+** next to `copilot-app-for-beginners`' },
+        {
+          id: 'projects-plus',
+          text: 'Select **+** next to the **Projects** heading',
+          feedback: 'That **+** adds another project. Each project has its own **+** for a new session.',
+        },
+        {
+          id: 'chat',
+          text: 'Pick **Chat** from the **Projects** menu',
+          feedback: 'A chat isn’t tied to your repository. Setup runs in a project session.',
+        },
       ],
-      answer: 'complete',
+      answer: 'project-plus',
       explain: {
-        correct: 'Right. Wait for `Setup complete.` in the terminal.',
-        wrong: 'The dry-run is only a preview. Watch the terminal for the finish line.',
+        correct: 'Right. The **+** beside the project starts a project session in it.',
+        wrong: 'Look beside the project itself, not the **Projects** heading.',
       },
-      source: src('add-the-course-practice-items'),
+      source: src('check-your-tools-in-terminal'),
     },
     {
       id: 'T0.8',
@@ -476,64 +409,54 @@ export const CH00: ChapterContent = {
       title: 'Get the Copilot app',
       image: 'shared/github-copilot-app',
       caption:
-        'Download and install the **GitHub Copilot app** for your system from [github.com/features/ai/github-app](https://github.com/features/ai/github-app). Then open it and select **Sign in to GitHub**.',
+        'Download and install the **GitHub Copilot app** for your system from [github.com/features/ai/github-app](https://github.com/features/ai/github-app). Open it and select **Sign in to GitHub** (on `*.ghe.com`, **Sign in to GitHub Enterprise Cloud**). At **Connect your repositories**, continue without adding one.',
       source: src('installation'),
     },
     {
       id: 'pg.prereqs',
       title: 'What you need',
       caption:
-        'A GitHub account, and a Copilot plan **or** your own model provider. For Copilot Business or Enterprise, the **GitHub Copilot app** policy must be on. You’ll also want Git, Node.js LTS, and GitHub CLI (`gh`).',
+        'A GitHub account, and a Copilot plan **or** your own model provider. On Copilot Business or Enterprise, your organization has to enable the **GitHub Copilot app** policy. Install [Git](https://git-scm.com/install), [Node.js LTS](https://nodejs.org) (it runs the course’s sample app), and [GitHub CLI](https://cli.github.com) (`gh`, for the one-time setup script). You’ll check their versions in the app’s **Terminal** once your fork is connected.',
       source: src('prerequisites'),
-    },
-    {
-      id: 'pg.fork',
-      title: 'Fork the course',
-      caption:
-        'Fork the course repository on GitHub at [github.com/github/copilot-app-for-beginners/fork](https://github.com/github/copilot-app-for-beginners/fork). A fork is your own copy of the repository, so your changes stay yours.',
-      source: src('connect-to-your-repository'),
-    },
-    {
-      id: 'C0.1',
-      title: 'Sign in',
-      image: 'ch00/sign-in-to-app',
-      caption: 'Open the app and select **Sign in to GitHub**.',
-      source: src('installation'),
-    },
-    {
-      id: 'C0.2',
-      title: 'Pick a theme',
-      image: 'ch00/pick-a-theme',
-      caption: 'Pick a theme and select **Finish**. You can change it any time in settings.',
-      source: src('installation'),
     },
     {
       id: 'C0.3',
       title: 'The New page',
       image: 'shared/github-copilot-app',
-      caption: 'The **New** page is where work starts.',
+      caption:
+        'Pick a theme and select **Finish**, and the app opens the **New** page, where new work starts. You can change the theme any time in **Settings**.',
       source: src('installation'),
+    },
+    {
+      id: 'pg.fork',
+      title: 'Fork the course',
+      caption:
+        'Fork the course repository on GitHub at [github.com/github/copilot-app-for-beginners/fork](https://github.com/github/copilot-app-for-beginners/fork). Your practice work, and the practice items the setup script adds, go in your fork, not the original.',
+      source: src('connect-to-your-repository'),
     },
     {
       id: 'C0.4',
       title: 'Add your fork',
       image: 'ch00/app-add-project',
       caption:
-        '**+** next to **Projects** → **Add GitHub repository**. Already have a local copy? **Open folder**. Have the URL? **Clone repository**.',
+        '**+** next to **Projects** → **Add GitHub repository**, search for `copilot-app-for-beginners`, and pick your fork, not the original. Already have a local copy? **Open folder**. Have the URL? **Clone repository**. If the app says Git is missing, install Git and try again.',
       source: src('connect-to-your-repository'),
     },
     {
-      id: 'C0.5',
-      title: 'Soundcheck',
-      image: 'ch00/studio-setup-soundcheck',
-      caption: 'Setting up the app is like prepping a studio before the first take.',
-      source: src('the-course-theme-working-in-a-recording-studio'),
+      id: 'C0.6',
+      title: 'A Local repository session',
+      image: 'ch00/local-repository-workspace-selector',
+      caption:
+        'Select **+** next to your project to start a project session. Sessions start on **New worktree** by default. For setup, pick **Local repository** in the workspace selector below the prompt box, so it runs in the clone already on your machine.',
+      source: src('check-your-tools-in-terminal'),
     },
     {
-      id: 'C0.6',
-      title: 'Local repository',
-      image: 'ch00/local-repository-workspace-selector',
-      caption: '**Local repository** works in the clone that’s already on your machine.',
+      id: 'pg.terminal',
+      title: 'Terminal in the app',
+      image: 'shared/app-review-panel',
+      caption:
+        'Select **View → Toggle Review Panel**, then the **Terminal** tab. No tab? Select **+**, then **Terminal**. Commands run here: the version checks, `gh auth status`, and the setup script. Requests to the agent go in the prompt box.',
+      code: 'git --version\nnode -v\nnpm -v\ngh --version\ngh auth status   # signed in as the account that owns your fork?',
       source: src('check-your-tools-in-terminal'),
     },
     {
@@ -557,40 +480,44 @@ export const CH00: ChapterContent = {
       id: 'pg.first-prompt',
       title: 'Your first prompt',
       caption:
-        'Send requests to the agent from the **prompt box**, not **Terminal**. Your first one asks for an overview of the course, and the reply points out `samples/book-app-web`.',
+        'Send requests to the agent from the **prompt box**, not **Terminal**. The reply should sum up the course’s learning path and point out `samples/book-app-web`, the web sample for later chapters. Models vary, so yours will be worded differently.',
+      code: 'Give me an overview of the copilot-app-for-beginners course repository. Focus on the learning path and the samples/book-app-web folder.',
       source: src('your-first-prompt'),
+    },
+    {
+      id: 'C0.5',
+      title: 'Soundcheck',
+      image: 'ch00/studio-setup-soundcheck',
+      caption: 'Setting up the app is like prepping a studio before the first take.',
+      source: src('the-course-theme-working-in-a-recording-studio'),
     },
     {
       id: 'B0.1',
       title: 'I can’t sign in',
       caption:
-        'Check you’re on the expected GitHub account, with a Copilot plan or your own model provider. Your organization has to leave the **GitHub Copilot app** policy on, and that’s separate from the Copilot CLI policy. On `*.ghe.com`? Select **Sign in to GitHub Enterprise Cloud**. If the app says Git is missing when you connect a repository, install Git and retry.',
+        'Check you’re on the expected GitHub account, with a Copilot plan or your own model provider. Your organization has to leave the **GitHub Copilot app** policy on, and that’s separate from the Copilot CLI policy. On `*.ghe.com`? Select **Sign in to GitHub Enterprise Cloud**.',
       source: src('i-cannot-sign-in'),
     },
     {
       id: 'B0.2',
       title: 'I can’t see the repository',
       caption:
-        'Check you’ve got access to it on GitHub and that you picked the right account or organization. Already cloned it? Try **Open folder**.',
+        'Check you’ve got access to it on GitHub and that you picked the right account or organization. Already cloned it? Try **Open folder**. If the app says Git is missing, install Git and retry. A chat can’t explain the repository? Check the right one’s connected and your prompt names `copilot-app-for-beginners`.',
       source: src('i-cannot-see-the-repository'),
     },
     {
       id: 'B0.3',
       title: 'The script stops for an organization fork',
       caption:
-        'The setup script won’t change a repository an organization owns. Add `--allow-shared-repository` only if you’re authorized and the `Repository:` line shows the right target. Issues missing? On GitHub.com, open your fork’s **Settings** → **Features**, turn on **Issues**, and rerun.',
+        'The setup script won’t change a repository an organization owns. Add `--allow-shared-repository` only if you’re authorized and the `Repository:` line shows the right target. Issues missing? On GitHub.com, open your fork’s **Settings** → **Features**, turn on **Issues**, and rerun. Can’t run the script at all? The course’s Training GitHub Scenarios appendix has the manual steps. Do them before Chapter 02.',
       code: 'node .github/scripts/setup-training-scenarios.js --yes --allow-shared-repository',
       source: src('the-script-stops-for-an-organization-fork'),
     },
   ],
 
   chests: [
-    { id: 'C0.1', page: 'C0.1', doubloons: 10 },
-    { id: 'C0.2', page: 'C0.2', doubloons: 10 },
-    { id: 'C0.3', page: 'C0.3', doubloons: 10 },
-    { id: 'C0.4', page: 'C0.4', doubloons: 10 },
-    { id: 'C0.5', page: 'C0.5', doubloons: 10 },
-    { id: 'C0.6', page: 'C0.6', doubloons: 25 },
+    // Nell's chest holds the tool list (pages granted in dialogue aren't chests).
+    { id: 'C0.1', page: 'pg.prereqs', doubloons: 10 },
     // Message bottles washed up round the island: optional troubleshooting pages (POC §4.4).
     { id: 'B0.1', page: 'B0.1', doubloons: 5, kind: 'bottle' },
     { id: 'B0.2', page: 'B0.2', doubloons: 5, kind: 'bottle' },
@@ -615,6 +542,12 @@ export const CH00: ChapterContent = {
       definition: 'A separate working copy of your repository, so a session’s changes stay out of your way.',
     },
     {
+      id: 'review-panel',
+      term: 'Review panel',
+      definition:
+        'The app’s side panel, with tabs such as Changes and Terminal. Open it with View → Toggle Review Panel.',
+    },
+    {
       id: 'github-actions',
       term: 'GitHub Actions workflows',
       definition:
@@ -631,7 +564,7 @@ export const CH00: ChapterContent = {
     {
       id: 'T0',
       title: 'The Harbormaster’s Trial',
-      items: ['T0.1', 'T0.2', 'T0.3', 'T0.4', 'T0.5', 'T0.6', 'T0.7', 'T0.8'],
+      items: ['T0.1', 'T0.9', 'T0.3', 'T0.4', 'T0.5', 'T0.6', 'T0.10', 'T0.8'],
       reward: { seal: 'Seal of Anchorage', doubloons: 50 },
     },
   ],

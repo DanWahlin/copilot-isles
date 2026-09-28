@@ -2,12 +2,10 @@ import type { GearRackSite } from '../../world/sites';
 import {
   GEAR_IDS,
   allChecked,
-  gearDef,
   gearPhase,
   gearTone,
   ledgerTerminal,
   looseLeft,
-  nearestLoose,
   pickUp,
   rackAction,
   rackTerminal,
@@ -17,7 +15,6 @@ import {
   signIn,
   useRack,
   type GearState,
-  type LooseId,
 } from '../../world/sites/gear-logic';
 import type { ScriptStep } from '../script';
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal } from './types';
@@ -26,23 +23,11 @@ const GEAR_PUZZLE = 'Q0.5.gear';
 const QUEST = 'Q0.5';
 const TITLE = 'Terminal · copilot-app-for-beginners';
 
-const LOOSE_NAME: Record<LooseId, string> = {
-  compass: 'compass',
-  lantern: 'lantern',
-  rope: 'rope coil',
-  spyglass: 'spyglass',
-  lens: 'spyglass lens',
-};
-
 /** Bo's lines when the spyglass check fails: install what's missing, then check again. */
 const BO_MISSING: readonly ScriptStep[] = [{ say: 'bo.gear.missing.01' }, { say: 'bo.gear.missing.02' }];
 
-/** Once all four checks pass: match them up (M0.1), then the ledger. */
-const BO_CHECKED: readonly ScriptStep[] = [
-  { say: 'bo.gear.checked.01' },
-  { quiz: 'M0.1' },
-  { say: 'bo.gear.checked.02' },
-];
+/** Once all four checks pass: on to the ledger. */
+const BO_CHECKED: readonly ScriptStep[] = [{ say: 'bo.gear.checked.01' }, { say: 'bo.gear.checked.02' }];
 
 /** The ledger shows someone else's signature: S0.1, then `gh auth login`. */
 const BO_LEDGER: readonly ScriptStep[] = [{ say: 'bo.ledger.01' }, { quiz: 'S0.1' }];
@@ -55,16 +40,15 @@ const BO_SIGNED: readonly ScriptStep[] = [
 ];
 
 /**
- * Q0.5 Gear Check & Right Signature (POC §4.4): find Bo's four pieces of gear around the village
- * and hang them on his rack. Each hook runs its version check in the terminal panel. The spyglass
- * comes without a lens, so `gh` is "command not found" until you fetch one from the market and
- * check again. Then Bo's ledger shows `gh auth status` signed in as someone else (S0.1), and
- * `gh auth login` puts your own signature on it.
+ * Q0.5 Gear Check & Right Signature (POC §4.4): Bo's gear hangs on his rack, one piece per tool, and
+ * E there runs all four version checks in the terminal panel. The spyglass has no lens, so `gh` is
+ * "command not found" until you fetch one from the market and check again. Then Bo's ledger shows
+ * `gh auth status` signed in as someone else (S0.1), and `gh auth login` puts your own signature on it.
  */
 export function createGearCheck(host: PuzzleHost, site: GearRackSite): Puzzle {
   const saved = host.learn?.progress.data.puzzles[GEAR_PUZZLE];
   let state: GearState = restoreGear(saved?.state, saved?.solved ?? false);
-  let hint: LooseId | null = null;
+  let hint = false;
   let running = false;
   /** Which readout the terminal shows: the rack's checks or the ledger's sign-in. */
   let screen: 'rack' | 'ledger' = gearPhase(state) === 'ledger' || state.signed ? 'ledger' : 'rack';
@@ -79,21 +63,21 @@ export function createGearCheck(host: PuzzleHost, site: GearRackSite): Puzzle {
   const spots = site.spots();
   const canUse = () => host.canAct() && active() && !running;
 
-  /** Brings the harbour in line with `state` (loose pieces only show once Bo's asked for them). */
-  function sync(animate = false): void {
+  /** Brings the harbour in line with `state`: the gear's always on the rack; the lens shows once it's needed. */
+  function sync(): void {
     for (const g of GEAR_IDS) {
-      site.setLoose(g, active() && state.pieces[g] === 'loose');
-      site.setHung(g, state.pieces[g] === 'hung', animate);
+      site.setLoose(g, false);
+      site.setHung(g, true);
     }
     site.setLoose('lens', active() && state.lens === 'loose');
     site.setLensFitted(state.lens === 'fitted');
     site.setLedger(state.signed ? 'you' : 'someone-else');
-    if (hint && !looseLeft(state).includes(hint)) setHint(null);
+    if (hint && state.lens !== 'loose') setHint(false);
   }
 
-  function setHint(id: LooseId | null): void {
-    hint = id;
-    site.setGlint(id);
+  function setHint(on: boolean): void {
+    hint = on;
+    site.setGlint(on ? 'lens' : null);
   }
 
   // Quest state from an older save: Q0.6 already under way means the gear was checked in dialogue.
@@ -101,27 +85,23 @@ export function createGearCheck(host: PuzzleHost, site: GearRackSite): Puzzle {
   let wasActive = active();
   sync();
 
-  for (const id of [...GEAR_IDS, 'lens'] as const) {
-    const p = spots.loose[id];
-    host.interactions.add({
-      id: `gear:${id}`,
-      label: () => `Pick up the ${LOOSE_NAME[id]}`,
-      x: p.x,
-      y: p.y,
-      z: p.z,
-      radius: 1.8,
-      enabled: () => canUse() && looseLeft(state).includes(id),
-      onInteract: () => pick(id),
-    });
-  }
+  const lensAt = spots.loose.lens;
+  host.interactions.add({
+    id: 'gear:lens',
+    label: () => 'Pick up the spyglass lens',
+    x: lensAt.x,
+    y: lensAt.y,
+    z: lensAt.z,
+    radius: 1.8,
+    enabled: () => canUse() && looseLeft(state).includes('lens'),
+    onInteract: () => pick(),
+  });
   host.interactions.add({
     id: 'gear:rack',
     label: () => {
       const a = rackAction(state);
       if (!a) return 'Gear rack';
-      if (a.kind === 'fit') return 'Fit the lens and check again';
-      const more = GEAR_IDS.filter((g) => state.pieces[g] === 'carried').length - 1;
-      return `Hang the ${gearDef(a.id).name}${more > 0 ? ` (${more} more)` : ''}`;
+      return a.kind === 'fit' ? 'Fit the lens and check again' : 'Run the version checks';
     },
     x: spots.rack.x,
     y: spots.rack.y,
@@ -141,20 +121,14 @@ export function createGearCheck(host: PuzzleHost, site: GearRackSite): Puzzle {
     onInteract: () => void ledger(),
   });
 
-  function pick(id: LooseId): void {
-    const s = pickUp(state, id);
+  function pick(): void {
+    const s = pickUp(state, 'lens');
     if (s.event.kind !== 'picked') return;
     state = s.state;
     save();
     sync();
-    host.audio?.sfx.oneShot('gear_pickup', spots.loose[id], 0.4);
-    const left = looseLeft(state).filter((l) => l !== 'lens').length;
-    host.hud.toast(
-      id === 'lens'
-        ? 'Spyglass lens stowed. Fit it at the gear rack.'
-        : `${cap(LOOSE_NAME[id])} stowed.${left ? ` ${left} more to find.` : ' Take it all to Bo’s gear rack.'}`,
-      2.6,
-    );
+    host.audio?.sfx.oneShot('gear_pickup', lensAt, 0.4);
+    host.hud.toast('Spyglass lens stowed. Fit it at the gear rack.', 2.6);
   }
 
   async function rack(): Promise<void> {
@@ -164,16 +138,10 @@ export function createGearCheck(host: PuzzleHost, site: GearRackSite): Puzzle {
     state = r.state;
     screen = 'rack';
     save();
-    sync(true);
+    sync();
     host.audio?.sfx.oneShot('gear_hang', spots.rack, 0.4);
-    if (ev.kind === 'checked') {
-      const g = gearDef(ev.id);
-      host.hud.toast(`${g.tool} checks out: ${g.output}`, 2.6);
-      return;
-    }
     running = true;
     if (ev.kind === 'missing') await host.beat(BO_MISSING, 'Bo');
-    else if (ev.kind === 'fitted') host.hud.toast('Lens fitted. GitHub CLI checks out.', 2.6);
     else if (ev.kind === 'all-checked') {
       host.audio?.sfx.oneShot('chime_solve', undefined, 0.6);
       await host.beat(BO_CHECKED, 'Bo');
@@ -215,20 +183,21 @@ export function createGearCheck(host: PuzzleHost, site: GearRackSite): Puzzle {
         if (tier === 1) return 'Bo’s ledger is on the lectern beside the rack. Whose signature is on it?';
         return 'Read the ledger with E. The wrong account means you sign in again with gh auth login.';
       }
-      if (rackAction(state) && tier === 1)
-        return 'You’re carrying gear. Hang it on Bo’s rack by the storehouse.';
-      const target = nearestLoose(state, host.player, (id) => spots.loose[id]);
-      if (!target) return 'Take what you’re carrying to the gear rack.';
-      if (tier === 1)
-        return ph === 'lens'
-          ? 'The chandler at the market stall keeps spare lenses. Install what’s missing, then check again.'
-          : 'Bo’s gear is scattered round the village: the quay, the well, the pier, and the lookout.';
-      if (tier === 2) {
-        setHint(target);
-        return `See that glint? That’s the ${LOOSE_NAME[target]}.`;
+      if (ph === 'check') {
+        if (tier < 3 || !near(spots.rack, 3))
+          return 'Bo’s gear rack is by the storehouse door. Press E there to run the version checks.';
+        void rack();
+        return 'I ran the checks for you. Watch the terminal.';
       }
-      pick(target);
-      return `I fetched the ${LOOSE_NAME[target]} for you.`;
+      if (state.lens === 'carried') return 'You’ve got the lens. Fit it at Bo’s rack, then check again.';
+      if (tier === 1)
+        return 'The chandler at the market stall keeps spare lenses. Install what’s missing, then check again.';
+      if (tier === 2) {
+        setHint(true);
+        return 'See that glint? That’s the spyglass lens.';
+      }
+      pick();
+      return 'I fetched the spyglass lens for you.';
     },
     terminal(): PuzzleTerminal | null {
       if (!active() && step() !== 'done') return null;
@@ -246,23 +215,18 @@ export function createGearCheck(host: PuzzleHost, site: GearRackSite): Puzzle {
       }
     },
     debug: {
-      state: () => ({ ...state, pieces: { ...state.pieces }, phase: phase(), running }),
-      pick: (id: LooseId) => pick(id),
+      state: () => ({ ...state, phase: phase(), running }),
+      pick: () => pick(),
       rack: () => rack(),
       ledger: () => ledger(),
       spots: () => ({
         rack: site.anchors.gearRack ?? { x: spots.rack.x, z: spots.rack.z },
         ledger: site.anchors.gearLedger ?? { x: spots.ledger.x, z: spots.ledger.z },
-        loose: Object.fromEntries(
-          [...GEAR_IDS, 'lens'].map((id) => [
-            id,
-            { x: spots.loose[id as LooseId].x, z: spots.loose[id as LooseId].z },
-          ]),
-        ),
+        loose: { lens: { x: lensAt.x, z: lensAt.z } },
       }),
       /** Skips to the ledger: every piece hung and checked, no beats (they wait for E). */
       solve: () => {
-        state = { ...restoreGear(undefined, true), ledgerRead: false, signed: false };
+        state = { ran: true, lens: 'fitted', ledgerRead: false, signed: false };
         screen = 'rack';
         save();
         sync();
@@ -270,11 +234,9 @@ export function createGearCheck(host: PuzzleHost, site: GearRackSite): Puzzle {
       },
     },
     dispose() {
-      for (const id of [...GEAR_IDS, 'lens']) host.interactions.remove(`gear:${id}`);
+      host.interactions.remove('gear:lens');
       host.interactions.remove('gear:rack');
       host.interactions.remove('gear:ledger');
     },
   };
 }
-
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);

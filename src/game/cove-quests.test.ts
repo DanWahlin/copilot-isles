@@ -37,7 +37,7 @@ describe('Anchorage guidance', () => {
   it('points the compass at the current step, and nowhere once the island is done', () => {
     expect(questTarget({ 'Q0.2': 'start' })?.ids).toEqual(['npc:nell']);
     expect(questTarget({ 'Q0.2': 'done' })?.ids).toEqual(['npc:merchant']);
-    expect(questTarget({ ...through('Q0.4'), 'Q0.5': 'gear' })?.ids).toEqual(['gear:*']);
+    expect(questTarget({ ...through('Q0.4'), 'Q0.5': 'gear' })?.ids).toEqual(['gear:rack', 'gear:lens']);
     // First Words asks which fitting carries the prompt: the marker mustn't pick one for you.
     expect(questTarget({ ...through('Q0.7'), 'Q0.8': 'pipes' })?.ids).toEqual(['pipe:*']);
     expect(questTarget({ ...through('Q0.10'), 'Q0.11': 'sail' })?.ids).toEqual(['ship:board']);

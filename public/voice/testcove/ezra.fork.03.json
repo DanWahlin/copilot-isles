@@ -1,97 +1,137 @@
 {
   "id": "ezra.fork.03",
   "speaker": "Ezra",
-  "text": "Then search for copilot-app-for-beginners and pick your fork. The app clones it and adds it to the sidebar.",
+  "text": "That plus opens this menu. Pick Add GitHub repository, search for copilot-app-for-beginners, and select your fork. The app clones it and adds it to the sidebar.",
   "words": [
     {
-      "word": "Then",
+      "word": "That",
       "start": 0.07,
-      "end": 0.23
+      "end": 0.59
+    },
+    {
+      "word": "plus",
+      "start": 0.59,
+      "end": 1.07
+    },
+    {
+      "word": "opens",
+      "start": 1.07,
+      "end": 1.47
+    },
+    {
+      "word": "this",
+      "start": 1.47,
+      "end": 1.67
+    },
+    {
+      "word": "menu",
+      "start": 1.67,
+      "end": 2.71
+    },
+    {
+      "word": "Pick",
+      "start": 2.71,
+      "end": 3.19
+    },
+    {
+      "word": "Add",
+      "start": 3.19,
+      "end": 3.469
+    },
+    {
+      "word": "GitHub",
+      "start": 3.469,
+      "end": 3.869
+    },
+    {
+      "word": "repository",
+      "start": 3.869,
+      "end": 4.99
     },
     {
       "word": "search",
-      "start": 0.23,
-      "end": 0.71
+      "start": 4.99,
+      "end": 5.51
     },
     {
       "word": "for",
-      "start": 0.71,
-      "end": 0.87
+      "start": 5.51,
+      "end": 5.87
     },
     {
       "word": "copilot-app-for-beginners",
-      "start": 0.87,
-      "end": 2.55
+      "start": 5.87,
+      "end": 7.71
     },
     {
       "word": "and",
-      "start": 2.55,
-      "end": 2.75
+      "start": 7.71,
+      "end": 7.95
     },
     {
-      "word": "pick",
-      "start": 2.75,
-      "end": 2.909
+      "word": "select",
+      "start": 7.95,
+      "end": 8.27
     },
     {
       "word": "your",
-      "start": 2.909,
-      "end": 3.07
+      "start": 8.27,
+      "end": 8.43
     },
     {
       "word": "fork",
-      "start": 3.07,
-      "end": 4.15
+      "start": 8.43,
+      "end": 9.549
     },
     {
       "word": "The",
-      "start": 4.15,
-      "end": 4.35
+      "start": 9.549,
+      "end": 9.75
     },
     {
       "word": "app",
-      "start": 4.35,
-      "end": 4.51
+      "start": 9.75,
+      "end": 9.87
     },
     {
       "word": "clones",
-      "start": 4.51,
-      "end": 4.95
+      "start": 9.87,
+      "end": 10.59
     },
     {
       "word": "it",
-      "start": 4.95,
-      "end": 5.31
+      "start": 10.59,
+      "end": 10.67
     },
     {
       "word": "and",
-      "start": 5.31,
-      "end": 5.47
+      "start": 10.67,
+      "end": 10.83
     },
     {
       "word": "adds",
-      "start": 5.47,
-      "end": 5.71
+      "start": 10.83,
+      "end": 11.03
     },
     {
       "word": "it",
-      "start": 5.71,
-      "end": 5.79
+      "start": 11.03,
+      "end": 11.149
     },
     {
       "word": "to",
-      "start": 5.79,
-      "end": 5.91
+      "start": 11.149,
+      "end": 11.229
     },
     {
       "word": "the",
-      "start": 5.91,
-      "end": 6.03
+      "start": 11.229,
+      "end": 11.389
     },
     {
       "word": "sidebar",
-      "start": 6.03,
-      "end": 6.28
+      "start": 11.389,
+      "end": 11.639
     }
   ]
 }

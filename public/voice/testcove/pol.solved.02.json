@@ -1,97 +1,92 @@
 {
   "id": "pol.solved.02",
   "speaker": "Pol",
-  "text": "Next, connect your fork in the app and look for the issues and pull requests under My work.",
+  "text": "Your fork's got its practice issues and pull requests now. You'll work through them in later chapters.",
   "words": [
     {
-      "word": "Next",
+      "word": "Your",
       "start": 0.05,
-      "end": 0.86475
+      "end": 0.317875
     },
     {
-      "word": "connect",
-      "start": 0.86475,
-      "end": 1.233041
+      "word": "fork's",
+      "start": 0.317875,
+      "end": 0.741958
     },
     {
-      "word": "your",
-      "start": 1.233041,
-      "end": 1.3335
+      "word": "got",
+      "start": 0.741958,
+      "end": 0.920541
     },
     {
-      "word": "fork",
-      "start": 1.3335,
-      "end": 1.634833
+      "word": "its",
+      "start": 0.920541,
+      "end": 1.043291
     },
     {
-      "word": "in",
-      "start": 1.634833,
-      "end": 1.712958
-    },
-    {
-      "word": "the",
-      "start": 1.712958,
-      "end": 1.813375
-    },
-    {
-      "word": "app",
-      "start": 1.813375,
-      "end": 2.08125
-    },
-    {
-      "word": "and",
-      "start": 2.08125,
-      "end": 2.2375
-    },
-    {
-      "word": "look",
-      "start": 2.2375,
-      "end": 2.371416
-    },
-    {
-      "word": "for",
-      "start": 2.371416,
-      "end": 2.471875
-    },
-    {
-      "word": "the",
-      "start": 2.471875,
-      "end": 2.594625
+      "word": "practice",
+      "start": 1.043291,
+      "end": 1.433916
     },
     {
       "word": "issues",
-      "start": 2.594625,
-      "end": 3.041083
+      "start": 1.433916,
+      "end": 1.835708
     },
     {
       "word": "and",
-      "start": 3.041083,
-      "end": 3.152666
+      "start": 1.835708,
+      "end": 1.9585
     },
     {
       "word": "pull",
-      "start": 3.152666,
-      "end": 3.375875
+      "start": 1.9585,
+      "end": 2.204
     },
     {
       "word": "requests",
-      "start": 3.375875,
-      "end": 3.945083
+      "start": 2.204,
+      "end": 2.73975
     },
     {
-      "word": "under",
-      "start": 3.945083,
-      "end": 4.134833
+      "word": "now",
+      "start": 2.73975,
+      "end": 3.900458
     },
     {
-      "word": "My",
-      "start": 4.134833,
-      "end": 4.324541
+      "word": "You'll",
+      "start": 3.900458,
+      "end": 4.179458
     },
     {
       "word": "work",
-      "start": 4.324541,
-      "end": 4.574541
+      "start": 4.179458,
+      "end": 4.447333
+    },
+    {
+      "word": "through",
+      "start": 4.447333,
+      "end": 4.692875
+    },
+    {
+      "word": "them",
+      "start": 4.692875,
+      "end": 4.938375
+    },
+    {
+      "word": "in",
+      "start": 4.938375,
+      "end": 5.105791
+    },
+    {
+      "word": "later",
+      "start": 5.105791,
+      "end": 5.373666
+    },
+    {
+      "word": "chapters",
+      "start": 5.373666,
+      "end": 5.623666
     }
   ]
 }

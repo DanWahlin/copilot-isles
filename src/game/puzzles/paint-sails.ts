@@ -13,16 +13,15 @@ export interface PaintSailsStand {
   setHint(on: boolean): void;
 }
 
-/** Finish on the theme step: the theme page, the New page in the spyglass, then on to Ezra. */
+/** Finish on the theme step: the New page in the spyglass and its Logbook page, then on to Ezra. */
 const PALETTE_FINISHED: readonly ScriptStep[] = [
-  { page: 'C0.2', doubloons: 10 },
   {
     show: 'shared/github-copilot-app',
-    caption: 'Select **Finish**, and the **New** page opens. Work starts here.',
+    caption: 'Select **Finish**, and the **New** page opens. New work starts here.',
   },
   { say: 'nell.settings.01' },
   { hide: true },
-  { page: 'C0.3', doubloons: 10 },
+  { page: 'C0.3', doubloons: 20 },
   { say: 'nell.palette.02' },
   { quest: QUEST, step: 'done' },
   { quest: 'Q0.3', step: 'start' },
@@ -31,7 +30,7 @@ const PALETTE_FINISHED: readonly ScriptStep[] = [
 /**
  * Paint Your Sails (POC §4.4, Q0.2): the palette stand beside Nell's door mirrors the app's theme
  * step. Pick a palette (it previews on the stand's sample sail and on your ship), then select
- * Finish. The first time, during Q0.2, that grants C0.2 and shows the New page (C0.3). The stand
+ * Finish. The first time, during Q0.2, that shows the New page (C0.3). The stand
  * stays open for repainting afterwards, and so does Settings → Your sails.
  */
 export function createPaintSails(

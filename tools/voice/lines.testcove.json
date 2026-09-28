@@ -20,7 +20,7 @@
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-SoniaNeural",
-      "text": "Preferences can be changed anytime from settings."
+      "text": "That's the New page, where new work starts. You can change your theme any time in Settings."
     },
     {
       "id": "wingman.hint.01",
@@ -339,7 +339,7 @@
       "id": "pol.solved.02",
       "speaker": "Pol",
       "voice": "en-IE-EmilyNeural",
-      "text": "Next, connect your fork in the app and look for the issues and pull requests under My work.",
+      "text": "Your fork's got its practice issues and pull requests now. You'll work through them in later chapters.",
       "prosody": {
         "rate": "+12%"
       }
@@ -415,14 +415,14 @@
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-SoniaNeural",
-      "text": "Once it's installed, open the app, select Sign in to GitHub, and sign in with your GitHub account."
+      "text": "Once it's installed, open it and select Sign in to GitHub. If your company's account lives on GHE.com, choose Sign in to GitHub Enterprise Cloud instead."
     },
     {
       "id": "nell.papers.04",
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-SoniaNeural",
-      "text": "On Copilot Business or Enterprise, your org has to switch on the GitHub Copilot app policy. Now, show me how you’d sign in."
+      "text": "On Copilot Business or Enterprise, your organization has to switch on the GitHub Copilot app policy first."
     },
     {
       "id": "nell.papers.05",
@@ -464,7 +464,7 @@
       "speaker": "Ezra",
       "voiceEnv": "AZURE_SPEECH_MALE_VOICE_UK",
       "fallbackVoice": "en-GB-OllieMultilingualNeural",
-      "text": "Every captain needs their own chart. A fork is your own copy of the course repository, on GitHub."
+      "text": "Every captain needs their own chart. Fork the course repository on GitHub, so your practice work lands in your own copy."
     },
     {
       "id": "ezra.fork.02",
@@ -485,7 +485,14 @@
       "speaker": "Ezra",
       "voiceEnv": "AZURE_SPEECH_MALE_VOICE_UK",
       "fallbackVoice": "en-GB-OllieMultilingualNeural",
-      "text": "Then search for copilot-app-for-beginners and pick your fork. The app clones it and adds it to the sidebar."
+      "text": "That plus opens this menu. Pick Add GitHub repository, search for copilot-app-for-beginners, and select your fork. The app clones it and adds it to the sidebar."
+    },
+    {
+      "id": "ezra.fork.careful",
+      "speaker": "Ezra",
+      "voiceEnv": "AZURE_SPEECH_MALE_VOICE_UK",
+      "fallbackVoice": "en-GB-OllieMultilingualNeural",
+      "text": "Mind the search, though. The original course can show up right beside your fork."
     },
     {
       "id": "ezra.fork.04",
@@ -520,21 +527,21 @@
       "speaker": "Bo",
       "voice": "en-GB-Ryan:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-RyanNeural",
-      "text": "Every tool gets a version check there. Here, each tool is a piece of my gear, and four pieces have gone walkabout round the village."
+      "text": "Commands run there, and every tool gets a version check. My gear rack stands in for it: compass for Git, lantern for Node.js, rope for npm, and spyglass for GitHub CLI."
     },
     {
       "id": "bo.gear.brief.03",
       "speaker": "Bo",
       "voice": "en-GB-Ryan:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-RyanNeural",
-      "text": "My compass, a lantern, a rope coil, and my spyglass. Hang them on the rack by my door, and each hook runs its check."
+      "text": "Run the checks at my rack, Captain. Each one should print a version number."
     },
     {
       "id": "bo.gear.reminder.01",
       "speaker": "Bo",
       "voice": "en-GB-Ryan:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-RyanNeural",
-      "text": "Hang the gear on my rack, Captain. Each hook runs its version check."
+      "text": "Run the version checks at my rack, Captain. Each one should print a version number."
     },
     {
       "id": "bo.ledger.reminder.01",
@@ -562,7 +569,7 @@
       "speaker": "Bo",
       "voice": "en-GB-Ryan:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-RyanNeural",
-      "text": "Four checks, four versions. That’s a ship I’d sail. Let’s see if you remember which is which."
+      "text": "Four checks, four versions. That's a ship I'd sail."
     },
     {
       "id": "bo.gear.checked.02",
@@ -666,6 +673,13 @@
       "text": "They’ve summed up the course, chapter by chapter, and flagged samples/book-app-web. That’s the web sample you’ll use in later exercises."
     },
     {
+      "id": "juno.reply.vary",
+      "speaker": "Juno",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "text": "In the app, your reply will be worded differently. Models vary, and that's fine."
+    },
+    {
       "id": "juno.reply.03",
       "speaker": "Juno",
       "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
@@ -713,7 +727,7 @@
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-SoniaNeural",
-      "text": "There’s a chest there too, with another page for your Logbook. Open it first, then paint your sails and select Finish."
+      "text": "There's a chest there too, with the list of tools you'll need: Git, Node.js, and GitHub CLI. Open it, then paint your sails and select Finish."
     },
     {
       "id": "nell.palette.01",

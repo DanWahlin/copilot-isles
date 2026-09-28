@@ -1,4 +1,5 @@
 import { formatDistance, relativeBearing, type CompassTarget } from './compass';
+import { alignSubtitle } from './subtitle-align';
 
 /**
  * In-game HUD (Phase 0): the interaction prompt, synced subtitles, the sailing gauge, the compass,
@@ -203,11 +204,18 @@ export class Hud {
     clearTimeout(this.subtitleTimer);
     this.subtitle.replaceChildren(text('span', 'hud-speaker', line.speaker));
     const body = el('span', 'hud-line');
-    // Word timings drop punctuation; show the manifest text's tokens when they line up one-to-one.
-    const tokens = line.text.split(/\s+/).filter(Boolean);
-    const shown = tokens.length === line.words.length ? tokens : line.words.map((w) => w.word);
+    // Word timings drop punctuation and symbols, so the text's own tokens are lined up against them;
+    // each token lights with its word. If they can't be matched, the bare words are shown.
+    const aligned = alignSubtitle(
+      line.text,
+      line.words.map((w) => w.word),
+    );
+    const shown = aligned?.tokens ?? line.words.map((w) => w.word);
     shown.forEach((w, i) => {
-      body.append(text('span', i <= wordIndex ? 'spoken' : '', w), ' ');
+      const at = aligned?.at[i] ?? i;
+      const span = text('span', at <= wordIndex ? 'spoken' : '', w);
+      span.dataset.at = String(at);
+      body.append(span, ' ');
     });
     if (!line.words.length) body.textContent = line.text;
     this.subtitle.append(body);
@@ -224,7 +232,9 @@ export class Hud {
     if (!line) return;
     const body = this.subtitle.querySelector('.hud-line');
     if (!body) return this.showLine(id, wordIndex);
-    body.querySelectorAll('span').forEach((s, i) => s.classList.toggle('spoken', i <= wordIndex));
+    body
+      .querySelectorAll<HTMLElement>('span')
+      .forEach((s) => s.classList.toggle('spoken', Number(s.dataset.at) <= wordIndex));
   }
 
   /** Shows an unvoiced line (NPC barks, hints) for `seconds`. */
