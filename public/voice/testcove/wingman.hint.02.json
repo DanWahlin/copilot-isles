@@ -5,68 +5,68 @@
   "words": [
     {
       "word": "If",
-      "start": 0.067,
-      "end": 0.184
+      "start": 0.31,
+      "end": 0.47
     },
     {
       "word": "the",
-      "start": 0.184,
-      "end": 0.339
+      "start": 0.47,
+      "end": 0.59
     },
     {
       "word": "sign",
-      "start": 0.339,
-      "end": 0.689
+      "start": 0.59,
+      "end": 0.87
     },
     {
       "word": "doesn't",
-      "start": 0.689,
-      "end": 1.038
+      "start": 0.87,
+      "end": 1.19
     },
     {
       "word": "name",
-      "start": 1.038,
-      "end": 1.271
+      "start": 1.19,
+      "end": 1.39
     },
     {
       "word": "your",
-      "start": 1.271,
-      "end": 1.466
+      "start": 1.39,
+      "end": 1.55
     },
     {
       "word": "fork",
-      "start": 1.466,
-      "end": 2.203
+      "start": 1.55,
+      "end": 2.11
     },
     {
       "word": "don't",
-      "start": 2.203,
-      "end": 2.669
+      "start": 2.11,
+      "end": 2.429
     },
     {
       "word": "pull",
-      "start": 2.669,
-      "end": 2.98
+      "start": 2.429,
+      "end": 2.63
     },
     {
       "word": "the",
-      "start": 2.98,
-      "end": 3.135
+      "start": 2.63,
+      "end": 2.75
     },
     {
       "word": "yes",
-      "start": 3.135,
-      "end": 3.407
+      "start": 2.75,
+      "end": 3.07
     },
     {
       "word": "lever",
-      "start": 3.407,
-      "end": 3.717
+      "start": 3.07,
+      "end": 3.309
     },
     {
       "word": "yet",
-      "start": 3.717,
-      "end": 3.967
+      "start": 3.309,
+      "end": 3.559
     }
   ]
 }

@@ -150,6 +150,17 @@ await step('HUD mute', async () => {
   check('HUD mute button', muted && !(await ui()).settings.muted);
 });
 
+await step('Wingman welcome', async () => {
+  // A fresh voyage: Wingman flies up in front of the captain to introduce himself.
+  await page.waitForFunction(() => window.__flow.session.debug.wingman()?.phase === 'hover', null, {
+    timeout: 15_000,
+  });
+  await shot('wingman-welcome');
+  check('Wingman flies up to welcome you', true);
+  // Listen for a moment, as a player would, before walking off.
+  await page.waitForTimeout(1700);
+});
+
 await step('walk', async () => {
   // The main entry has no __dev page hooks; the flow's live session carries the same debug state.
   const where = () => page.evaluate(() => window.__flow.session.debug.state());
@@ -161,6 +172,8 @@ await step('walk', async () => {
   const p1 = await where();
   const moved = Math.hypot(p1.x - p0.x, p1.z - p0.z);
   check('W walks the captain', moved > 1.5, `${moved.toFixed(2)} m`);
+  const bird = await page.evaluate(() => window.__flow.session.debug.wingman()?.phase);
+  check('walking sends Wingman back to the shoulder', bird === 'landing' || bird === 'perched', bird);
 });
 
 await step('pause menu', async () => {

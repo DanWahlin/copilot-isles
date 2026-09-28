@@ -1,67 +1,62 @@
 {
   "id": "wingman.welcome.01",
   "speaker": "Wingman",
-  "text": "Welcome to Copilot Isles, Captain! I'm Wingman, your parrot and first mate.",
+  "text": "Ahoy, Captain! Up here! I'm Wingman, your parrot and first mate.",
   "words": [
     {
-      "word": "Welcome",
-      "start": 0.067,
-      "end": 0.572
-    },
-    {
-      "word": "to",
-      "start": 0.572,
-      "end": 0.766
-    },
-    {
-      "word": "Copilot",
-      "start": 0.766,
-      "end": 1.388
-    },
-    {
-      "word": "Isles",
-      "start": 1.388,
-      "end": 1.776
+      "word": "Ahoy",
+      "start": 0.27,
+      "end": 0.67
     },
     {
       "word": "Captain",
-      "start": 1.776,
-      "end": 2.746
+      "start": 0.67,
+      "end": 1.59
+    },
+    {
+      "word": "Up",
+      "start": 1.59,
+      "end": 1.79
+    },
+    {
+      "word": "here",
+      "start": 1.79,
+      "end": 2.59
     },
     {
       "word": "I'm",
-      "start": 2.746,
-      "end": 3.019
+      "start": 2.59,
+      "end": 2.829
     },
     {
       "word": "Wingman",
-      "start": 3.019,
-      "end": 3.563
+      "start": 2.829,
+      "end": 3.389
     },
     {
       "word": "your",
-      "start": 3.563,
-      "end": 3.756
+      "start": 3.389,
+      "end": 3.67
     },
     {
       "word": "parrot",
-      "start": 3.756,
-      "end": 4.223
+      "start": 3.67,
+      "end": 4.03
     },
     {
       "word": "and",
-      "start": 4.223,
-      "end": 4.456
+      "start": 4.03,
+      "end": 4.23
     },
     {
       "word": "first",
-      "start": 4.456,
-      "end": 4.805
+      "start": 4.23,
+      "end": 4.47
     },
     {
       "word": "mate",
-      "start": 4.805,
-      "end": 5.055
+      "start": 4.47,
+      "end": 4.72
     }
   ]
 }

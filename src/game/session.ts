@@ -4,6 +4,7 @@ import type { FootstepSurface } from '../audio/soundscape/soundscape';
 import type { Engine } from '../engine/engine';
 import type { Input } from '../engine/input';
 import type { Character, CharacterLibrary, PlayerBody } from '../world/characters';
+import { ParrotFlight, type FlightView } from '../world/characters/parrot-flight';
 import type { CoveScene } from '../world/cove-scene';
 import { COVE } from '../world/layout';
 import { windOnBow } from '../world/ship/dynamics';
@@ -101,6 +102,10 @@ export interface GameSession {
     };
     /** Presses Wingman's hint key. */
     hint(): void;
+    /** Plays Wingman's welcome (the flight and his lines). */
+    welcome(): Promise<void>;
+    /** Wingman's flight phase and position (tests). */
+    wingman(): { phase: string; x: number; y: number; z: number } | null;
   };
   dispose(): void;
 }
@@ -115,6 +120,9 @@ const SAIL_HELP =
 /** The christening's shot of the port bow name board, in ship-local space (+x is the pier side). */
 const CHRISTEN_EYE = new Vector3(-7.2, 4.4, 4.6);
 const CHRISTEN_AT = new Vector3(-1.6, 2.4, 10.6);
+
+/** How long Wingman's framed welcome holds before moving can cut it short. */
+const INTRO_HOLD_MS = 1600;
 
 const STEP_WALK = 0.78;
 const STEP_RUN = 1.15;
@@ -182,6 +190,25 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const start = o.start ?? COVE.spawn;
   placePlayer(start.x, start.z, start.heading);
   engine.scene.add(hero.group);
+  // Wingman leaves the shoulder to introduce himself, so it's clear who's talking.
+  const wingman = ParrotFlight.attach(hero.group, engine.scene);
+  const flightView: {
+    captain: Vector3;
+    height: number;
+    eye: Vector3;
+    ahead: { x: number; z: number } | null;
+  } = {
+    captain: new Vector3(),
+    height: hero.capsule.height,
+    eye: new Vector3(),
+    ahead: null,
+  };
+  const updateWingman = (dt: number) => {
+    if (!wingman || wingman.phase === 'perched') return;
+    hero.group.getWorldPosition(flightView.captain);
+    camera.getWorldPosition(flightView.eye);
+    wingman.update(dt, flightView);
+  };
   const footstepPuffs = new FootstepPuffs();
   footstepPuffs.addTo(engine.scene);
 
@@ -649,6 +676,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     input.enabled = false;
     hud.setPrompt(null);
     await hud.fade(true);
+    wingman?.landNow();
     const a = ship.anchors.helm;
     ship.group.add(hero.group);
     hero.group.position.set(a.x, a.y, a.z);
@@ -778,12 +806,83 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   let paused = false;
   let resumedAt = 0;
   let hintTimer = o.quiet ? -1 : 2.2;
+  /** Ends Wingman's framed welcome early when the player moves (null when it isn't running). */
+  let introCut: (() => void) | null = null;
   // A fresh voyage (Nell not met yet) gets Wingman's welcome and the first step; later sessions a
   // short welcome back.
   const welcomeLines = (): string[] =>
     quests()['Q0.2'] === 'start'
-      ? ['wingman.welcome.01', 'wingman.welcome.02', 'wingman.welcome.03', 'wingman.welcome.04']
+      ? [
+          'wingman.welcome.01',
+          'wingman.welcome.02',
+          'wingman.welcome.03',
+          'wingman.welcome.04',
+          'wingman.welcome.05',
+        ]
       : ['wingman.welcome.back'];
+  /**
+   * Wingman flies up in front of the captain to talk, and heads back to the shoulder on his last
+   * line. The first time, the captain holds still and the camera frames him over their shoulder;
+   * moving (after a moment to see who's talking) sends him back early while he keeps talking.
+   */
+  async function welcome(): Promise<void> {
+    const lines = welcomeLines();
+    const framed = !!wingman && mode === 'walk' && lines.length > 1;
+    if (wingman) {
+      hero.group.getWorldPosition(flightView.captain);
+      camera.getWorldPosition(flightView.eye);
+      flightView.ahead = framed ? { x: Math.sin(player.heading), z: Math.cos(player.heading) } : null;
+      wingman.takeOff(flightView as FlightView);
+    }
+    let held = framed;
+    const release = () => {
+      if (!held) return;
+      held = false;
+      introCut = null;
+      cam.frame(null);
+      input.enabled = !paused;
+    };
+    if (framed && wingman) {
+      input.enabled = false;
+      hero.setSpeed(0);
+      cam.frame(wingmanShot(wingman.hoverAt(flightView as FlightView)));
+      const from = performance.now();
+      introCut = () => {
+        if (performance.now() - from < INTRO_HOLD_MS) return;
+        wingman?.land();
+        release();
+      };
+    }
+    await new Promise((r) => setTimeout(r, wingman ? 350 : 0));
+    if (disposed) return;
+    const last = lines.length > 1 ? lines[lines.length - 1] : null;
+    await dialogue.play(lines, (id) => {
+      if (id !== last) return;
+      wingman?.land();
+      release();
+    });
+    wingman?.land();
+    release();
+    flightView.ahead = null;
+  }
+  /** Over the captain's shoulder (the one away from the parrot), on Wingman hovering ahead. */
+  function wingmanShot(hover: Vector3): CameraShot {
+    const ax = Math.sin(player.heading);
+    const az = Math.cos(player.heading);
+    // Screen-right of the view ahead is (-az, ax); the camera sits across from the parrot.
+    const side = Math.sign((hover.x - player.x) * -az + (hover.z - player.z) * ax) || 1;
+    const headY = player.y + hero.capsule.height;
+    // A three-quarter view from behind: the captain on one side of the frame, Wingman on the other.
+    const chestY = headY - 0.35;
+    return {
+      x: player.x - ax * 4.3 + az * side * 1.2,
+      y: headY + 0.5,
+      z: player.z - az * 4.3 - ax * side * 1.2,
+      tx: player.x + (hover.x - player.x) * 0.5,
+      ty: chestY + (hover.y - chestY) * 0.45,
+      tz: player.z + (hover.z - player.z) * 0.5,
+    };
+  }
   const listenerPos = { x: 0, y: 0, z: 0 };
   const listenerFwd = { x: 0, y: 0, z: -1 };
 
@@ -794,6 +893,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         if (paused) {
           hud.setPrompt(null);
           hero.update(dt);
+          updateWingman(dt);
           npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
           audio?.update(dt);
           return;
@@ -806,6 +906,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
             player.step(dt, { ...s, moveX: 0, moveY: 0, jump: false, run: false }, cam.yaw, world, t);
           hero.setSpeed(0);
           hero.update(dt);
+          updateWingman(dt);
           npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
           for (const c of chests) c.chest.update(dt, t);
           audio?.update(dt);
@@ -827,7 +928,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           else if (cooldown <= 0 && mode === 'walk') interactions.fire();
         }
 
-        if (hintTimer > 0 && (hintTimer -= dt) <= 0 && !dialogue.active) void dialogue.play(welcomeLines());
+        if (hintTimer > 0 && (hintTimer -= dt) <= 0 && !dialogue.active) void welcome();
+        if (introCut && s.stirring) introCut();
         if (s.hint && mode === 'walk' && !dialogue.active && !scriptRunning) hint();
 
         gangwayDown = mode === 'walk' && shipDocked() && boardingOpen(quests());
@@ -911,6 +1013,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
         updateCompass();
         hero.update(dt);
+        updateWingman(dt);
         npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
         footstepPuffs.update(dt);
         for (const c of chests) c.chest.update(dt, t);
@@ -938,6 +1041,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   async function travel(x: number, z: number, heading: number): Promise<void> {
     if (mode === 'transition') return;
     dialogue.cancel();
+    wingman?.landNow();
     if (mode === 'sail' || mode === 'docking') await disembark();
     placePlayer(x, z, heading);
     cam.snapBehind(heading);
@@ -991,6 +1095,16 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       quest: (id: string, step: string) => setQuest(id, step),
       gangway: () => ({ down: gangwayDown, foot: { ...plank.foot }, top: { ...plank.top } }),
       hint,
+      welcome,
+      wingman: () =>
+        wingman
+          ? {
+              phase: wingman.phase,
+              x: +wingman.root.position.x.toFixed(2),
+              y: +wingman.root.position.y.toFixed(2),
+              z: +wingman.root.position.z.toFixed(2),
+            }
+          : null,
       state: () => ({
         mode,
         x: +player.x.toFixed(2),
@@ -1020,6 +1134,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       remove();
       dialogue.cancel();
       npcs.dispose();
+      wingman?.dispose();
       hero.group.removeFromParent();
       hero.dispose();
       footstepPuffs.dispose();

@@ -17,13 +17,15 @@ export class Dialogue {
     private readonly audio: IslesAudio | null,
   ) {}
 
-  async play(ids: readonly string[]): Promise<void> {
+  /** `onLine` hears each line as it starts (Wingman heads back to the shoulder on his last). */
+  async play(ids: readonly string[], onLine?: (id: string) => void): Promise<void> {
     const token = ++this.token;
     this.active = true;
     for (const id of ids) {
       if (token !== this.token) return;
       const line = this.hud.line(id);
       if (!line) continue;
+      onLine?.(id);
       this.hud.showLine(id, -1);
       line.words.forEach((w, i) => {
         this.timers.push(window.setTimeout(() => this.hud.showSpoken(id, i), w.start * 1000));

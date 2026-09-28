@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-28T02:40:28.738Z",
+  "generatedAt": "2026-09-28T07:46:41.499Z",
   "set": "testcove",
   "lines": [
     {
@@ -252,838 +252,902 @@
     {
       "id": "wingman.hint.01",
       "speaker": "Wingman",
-      "text": "First mate's job is hints. Captain's job is decisions.",
-      "duration": 4.907,
+      "text": "Hints are my job, Captain. Decisions are yours.",
+      "duration": 3.507,
       "files": {
         "webm": "wingman.hint.01.webm",
         "m4a": "wingman.hint.01.m4a"
       },
-      "hash": "439769a989c88755",
+      "hash": "6704404757bee1dd",
       "words": [
         {
-          "word": "First",
-          "start": 0.067,
-          "end": 0.378
+          "word": "Hints",
+          "start": 0.19,
+          "end": 0.55
         },
         {
-          "word": "mate's",
-          "start": 0.378,
-          "end": 0.689
+          "word": "are",
+          "start": 0.55,
+          "end": 0.67
         },
         {
-          "word": "job",
-          "start": 0.689,
-          "end": 1.31
-        },
-        {
-          "word": "is",
-          "start": 1.31,
-          "end": 1.582
-        },
-        {
-          "word": "hints",
-          "start": 1.582,
-          "end": 2.707
-        },
-        {
-          "word": "Captain's",
-          "start": 2.707,
-          "end": 3.212
+          "word": "my",
+          "start": 0.67,
+          "end": 0.83
         },
         {
           "word": "job",
-          "start": 3.212,
-          "end": 3.833
+          "start": 0.83,
+          "end": 1.11
         },
         {
-          "word": "is",
-          "start": 3.833,
-          "end": 4.067
+          "word": "Captain",
+          "start": 1.11,
+          "end": 1.99
         },
         {
-          "word": "decisions",
-          "start": 4.067,
-          "end": 4.317
+          "word": "Decisions",
+          "start": 1.99,
+          "end": 2.51
+        },
+        {
+          "word": "are",
+          "start": 2.51,
+          "end": 2.63
+        },
+        {
+          "word": "yours",
+          "start": 2.63,
+          "end": 2.88
         }
       ],
-      "voice": "en-US-Brian:DragonHDLatestNeural"
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
     },
     {
       "id": "wingman.welcome.01",
       "speaker": "Wingman",
-      "text": "Welcome to Copilot Isles, Captain! I'm Wingman, your parrot and first mate.",
-      "duration": 5.207,
+      "text": "Ahoy, Captain! Up here! I'm Wingman, your parrot and first mate.",
+      "duration": 5.227,
       "files": {
         "webm": "wingman.welcome.01.webm",
         "m4a": "wingman.welcome.01.m4a"
       },
-      "hash": "469de1d7dba0ad1c",
+      "hash": "a10c484134d573ed",
       "words": [
         {
-          "word": "Welcome",
-          "start": 0.067,
-          "end": 0.572
-        },
-        {
-          "word": "to",
-          "start": 0.572,
-          "end": 0.766
-        },
-        {
-          "word": "Copilot",
-          "start": 0.766,
-          "end": 1.388
-        },
-        {
-          "word": "Isles",
-          "start": 1.388,
-          "end": 1.776
+          "word": "Ahoy",
+          "start": 0.27,
+          "end": 0.67
         },
         {
           "word": "Captain",
-          "start": 1.776,
-          "end": 2.746
+          "start": 0.67,
+          "end": 1.59
+        },
+        {
+          "word": "Up",
+          "start": 1.59,
+          "end": 1.79
+        },
+        {
+          "word": "here",
+          "start": 1.79,
+          "end": 2.59
         },
         {
           "word": "I'm",
-          "start": 2.746,
-          "end": 3.019
+          "start": 2.59,
+          "end": 2.829
         },
         {
           "word": "Wingman",
-          "start": 3.019,
-          "end": 3.563
+          "start": 2.829,
+          "end": 3.389
         },
         {
           "word": "your",
-          "start": 3.563,
-          "end": 3.756
+          "start": 3.389,
+          "end": 3.67
         },
         {
           "word": "parrot",
-          "start": 3.756,
-          "end": 4.223
+          "start": 3.67,
+          "end": 4.03
         },
         {
           "word": "and",
-          "start": 4.223,
-          "end": 4.456
+          "start": 4.03,
+          "end": 4.23
         },
         {
           "word": "first",
-          "start": 4.456,
-          "end": 4.805
+          "start": 4.23,
+          "end": 4.47
         },
         {
           "word": "mate",
-          "start": 4.805,
-          "end": 5.055
+          "start": 4.47,
+          "end": 4.72
         }
       ],
-      "voice": "en-US-Brian:DragonHDLatestNeural"
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
     },
     {
       "id": "wingman.welcome.02",
       "speaker": "Wingman",
-      "text": "Each island teaches a chapter of the GitHub Copilot app for Beginners course, and each one has a Captain's Seal to earn.",
-      "duration": 8.107,
+      "text": "Every island out here teaches a chapter of the GitHub Copilot app for Beginners course, and each one has a Seal to earn.",
+      "duration": 6.808,
       "files": {
         "webm": "wingman.welcome.02.webm",
         "m4a": "wingman.welcome.02.m4a"
       },
-      "hash": "b673a226ca17879d",
+      "hash": "c0436eb74cfef809",
       "words": [
         {
-          "word": "Each",
-          "start": 0.067,
-          "end": 0.3
+          "word": "Every",
+          "start": 0.31,
+          "end": 0.67
         },
         {
           "word": "island",
-          "start": 0.3,
-          "end": 0.689
+          "start": 0.67,
+          "end": 1.07
+        },
+        {
+          "word": "out",
+          "start": 1.07,
+          "end": 1.27
+        },
+        {
+          "word": "here",
+          "start": 1.27,
+          "end": 1.55
         },
         {
           "word": "teaches",
-          "start": 0.689,
-          "end": 1.077
+          "start": 1.55,
+          "end": 1.91
         },
         {
           "word": "a",
-          "start": 1.077,
-          "end": 1.155
+          "start": 1.91,
+          "end": 1.99
         },
         {
           "word": "chapter",
-          "start": 1.155,
-          "end": 1.699
+          "start": 1.99,
+          "end": 2.349
         },
         {
           "word": "of",
-          "start": 1.699,
-          "end": 1.969
+          "start": 2.349,
+          "end": 2.469
         },
         {
           "word": "the",
-          "start": 1.969,
-          "end": 2.165
+          "start": 2.469,
+          "end": 2.63
         },
         {
           "word": "GitHub",
-          "start": 2.165,
-          "end": 2.669
+          "start": 2.63,
+          "end": 2.989
         },
         {
           "word": "Copilot",
-          "start": 2.669,
-          "end": 3.367
+          "start": 2.989,
+          "end": 3.51
         },
         {
           "word": "app",
-          "start": 3.367,
-          "end": 3.756
+          "start": 3.51,
+          "end": 3.75
         },
         {
           "word": "for",
-          "start": 3.756,
-          "end": 4.067
+          "start": 3.75,
+          "end": 3.909
         },
         {
           "word": "Beginners",
-          "start": 4.067,
-          "end": 4.495
+          "start": 3.909,
+          "end": 4.31
         },
         {
           "word": "course",
-          "start": 4.495,
-          "end": 5.155
+          "start": 4.31,
+          "end": 4.95
         },
         {
           "word": "and",
-          "start": 5.155,
-          "end": 5.699
+          "start": 4.95,
+          "end": 5.19
         },
         {
           "word": "each",
-          "start": 5.699,
-          "end": 6.009
+          "start": 5.19,
+          "end": 5.47
         },
         {
           "word": "one",
-          "start": 6.009,
-          "end": 6.281
+          "start": 5.47,
+          "end": 5.71
         },
         {
           "word": "has",
-          "start": 6.281,
-          "end": 6.475
+          "start": 5.71,
+          "end": 5.87
         },
         {
           "word": "a",
-          "start": 6.475,
-          "end": 6.553
-        },
-        {
-          "word": "Captain's",
-          "start": 6.553,
-          "end": 7.058
+          "start": 5.87,
+          "end": 5.95
         },
         {
           "word": "Seal",
-          "start": 7.058,
-          "end": 7.485
+          "start": 5.95,
+          "end": 6.23
         },
         {
           "word": "to",
-          "start": 7.485,
-          "end": 7.64
+          "start": 6.23,
+          "end": 6.47
         },
         {
           "word": "earn",
-          "start": 7.64,
-          "end": 7.89
+          "start": 6.47,
+          "end": 6.72
         }
       ],
-      "voice": "en-US-Brian:DragonHDLatestNeural"
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
     },
     {
       "id": "wingman.welcome.03",
       "speaker": "Wingman",
-      "text": "This is Anchorage Cay, the setup chapter. Start with Nell, by the harbourmaster's door.",
-      "duration": 6.107,
+      "text": "We're on Anchorage Cay, where you'll set up the app. Nell's by the harbourmaster's door, so start with her.",
+      "duration": 6.507,
       "files": {
         "webm": "wingman.welcome.03.webm",
         "m4a": "wingman.welcome.03.m4a"
       },
-      "hash": "175ea238925e52cd",
+      "hash": "c487c84764c7e666",
       "words": [
         {
-          "word": "This",
-          "start": 0.067,
-          "end": 0.3
+          "word": "We're",
+          "start": 0.23,
+          "end": 0.47
         },
         {
-          "word": "is",
-          "start": 0.3,
-          "end": 0.495
+          "word": "on",
+          "start": 0.47,
+          "end": 0.59
         },
         {
           "word": "Anchorage",
-          "start": 0.495,
-          "end": 1.116
+          "start": 0.59,
+          "end": 0.99
         },
         {
           "word": "Cay",
-          "start": 1.116,
-          "end": 1.699
+          "start": 0.99,
+          "end": 1.51
+        },
+        {
+          "word": "where",
+          "start": 1.51,
+          "end": 1.71
+        },
+        {
+          "word": "you'll",
+          "start": 1.71,
+          "end": 1.95
+        },
+        {
+          "word": "set",
+          "start": 1.95,
+          "end": 2.11
+        },
+        {
+          "word": "up",
+          "start": 2.11,
+          "end": 2.23
         },
         {
           "word": "the",
-          "start": 1.699,
-          "end": 1.854
+          "start": 2.23,
+          "end": 2.389
         },
         {
-          "word": "setup",
-          "start": 1.854,
-          "end": 2.241
+          "word": "app.",
+          "start": 2.389,
+          "end": 3.51
         },
         {
-          "word": "chapter",
-          "start": 2.241,
-          "end": 3.174
-        },
-        {
-          "word": "Start",
-          "start": 3.174,
-          "end": 3.601
-        },
-        {
-          "word": "with",
-          "start": 3.601,
-          "end": 3.833
-        },
-        {
-          "word": "Nell",
-          "start": 3.833,
-          "end": 4.495
+          "word": "Nell's",
+          "start": 3.51,
+          "end": 3.909
         },
         {
           "word": "by",
-          "start": 4.495,
-          "end": 4.689
+          "start": 3.909,
+          "end": 4.07
         },
         {
           "word": "the",
-          "start": 4.689,
-          "end": 4.805
+          "start": 4.07,
+          "end": 4.19
         },
         {
           "word": "harbourmaster's",
-          "start": 4.805,
-          "end": 5.621
+          "start": 4.19,
+          "end": 4.87
         },
         {
           "word": "door",
-          "start": 5.621,
-          "end": 5.871
+          "start": 4.87,
+          "end": 5.39
+        },
+        {
+          "word": "so",
+          "start": 5.39,
+          "end": 5.63
+        },
+        {
+          "word": "start",
+          "start": 5.63,
+          "end": 5.95
+        },
+        {
+          "word": "with",
+          "start": 5.95,
+          "end": 6.11
+        },
+        {
+          "word": "her",
+          "start": 6.11,
+          "end": 6.36
         }
       ],
-      "voice": "en-US-Brian:DragonHDLatestNeural"
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
     },
     {
       "id": "wingman.welcome.04",
       "speaker": "Wingman",
-      "text": "Your tasks are in the top left, and Q gets you a hint. First mate's job is hints. Captain's job is decisions.",
-      "duration": 8.207,
+      "text": "Your tasks are in the top left. If you get stuck, press Q, and I'll give you a hint.",
+      "duration": 5.527,
       "files": {
         "webm": "wingman.welcome.04.webm",
         "m4a": "wingman.welcome.04.m4a"
       },
-      "hash": "dd5433b56dcb9b31",
+      "hash": "8a187868e25f214d",
       "words": [
         {
           "word": "Your",
-          "start": 0.067,
-          "end": 0.262
+          "start": 0.11,
+          "end": 0.35
         },
         {
           "word": "tasks",
-          "start": 0.262,
-          "end": 0.689
+          "start": 0.35,
+          "end": 0.75
         },
         {
           "word": "are",
-          "start": 0.689,
-          "end": 0.805
+          "start": 0.75,
+          "end": 0.87
         },
         {
           "word": "in",
-          "start": 0.805,
-          "end": 0.883
+          "start": 0.87,
+          "end": 0.95
         },
         {
           "word": "the",
-          "start": 0.883,
-          "end": 1
+          "start": 0.95,
+          "end": 1.07
         },
         {
           "word": "top",
-          "start": 1,
-          "end": 1.271
+          "start": 1.07,
+          "end": 1.27
         },
         {
           "word": "left",
-          "start": 1.271,
-          "end": 1.621
+          "start": 1.27,
+          "end": 2.15
         },
         {
-          "word": "and",
-          "start": 1.621,
-          "end": 1.854
-        },
-        {
-          "word": "Q",
-          "start": 1.854,
-          "end": 2.203
-        },
-        {
-          "word": "gets",
-          "start": 2.203,
-          "end": 2.475
+          "word": "If",
+          "start": 2.15,
+          "end": 2.309
         },
         {
           "word": "you",
-          "start": 2.475,
-          "end": 2.592
+          "start": 2.309,
+          "end": 2.429
+        },
+        {
+          "word": "get",
+          "start": 2.429,
+          "end": 2.59
+        },
+        {
+          "word": "stuck",
+          "start": 2.59,
+          "end": 3.309
+        },
+        {
+          "word": "press",
+          "start": 3.309,
+          "end": 3.67
+        },
+        {
+          "word": "Q",
+          "start": 3.67,
+          "end": 4.23
+        },
+        {
+          "word": "and",
+          "start": 4.23,
+          "end": 4.39
+        },
+        {
+          "word": "I'll",
+          "start": 4.39,
+          "end": 4.55
+        },
+        {
+          "word": "give",
+          "start": 4.55,
+          "end": 4.71
+        },
+        {
+          "word": "you",
+          "start": 4.71,
+          "end": 4.87
         },
         {
           "word": "a",
-          "start": 2.592,
-          "end": 2.669
+          "start": 4.87,
+          "end": 4.91
         },
         {
           "word": "hint",
-          "start": 2.669,
-          "end": 4.029
-        },
-        {
-          "word": "First",
-          "start": 4.029,
-          "end": 4.339
-        },
-        {
-          "word": "mate's",
-          "start": 4.339,
-          "end": 4.65
-        },
-        {
-          "word": "job",
-          "start": 4.65,
-          "end": 5.038
-        },
-        {
-          "word": "is",
-          "start": 5.038,
-          "end": 5.271
-        },
-        {
-          "word": "hints",
-          "start": 5.271,
-          "end": 6.165
-        },
-        {
-          "word": "Captain's",
-          "start": 6.165,
-          "end": 6.669
-        },
-        {
-          "word": "job",
-          "start": 6.669,
-          "end": 7.135
-        },
-        {
-          "word": "is",
-          "start": 7.135,
-          "end": 7.33
-        },
-        {
-          "word": "decisions",
-          "start": 7.33,
-          "end": 7.58
+          "start": 4.91,
+          "end": 5.16
         }
       ],
-      "voice": "en-US-Brian:DragonHDLatestNeural"
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
+    },
+    {
+      "id": "wingman.welcome.05",
+      "speaker": "Wingman",
+      "text": "Right, I'll ride on your shoulder. Hints are my job. Decisions are yours!",
+      "duration": 4.507,
+      "files": {
+        "webm": "wingman.welcome.05.webm",
+        "m4a": "wingman.welcome.05.m4a"
+      },
+      "hash": "f4f9253c4f9f235c",
+      "words": [
+        {
+          "word": "Right",
+          "start": 0.31,
+          "end": 0.87
+        },
+        {
+          "word": "I'll",
+          "start": 0.87,
+          "end": 1.03
+        },
+        {
+          "word": "ride",
+          "start": 1.03,
+          "end": 1.27
+        },
+        {
+          "word": "on",
+          "start": 1.27,
+          "end": 1.35
+        },
+        {
+          "word": "your",
+          "start": 1.35,
+          "end": 1.51
+        },
+        {
+          "word": "shoulder",
+          "start": 1.51,
+          "end": 2.23
+        },
+        {
+          "word": "Hints",
+          "start": 2.23,
+          "end": 2.55
+        },
+        {
+          "word": "are",
+          "start": 2.55,
+          "end": 2.67
+        },
+        {
+          "word": "my",
+          "start": 2.67,
+          "end": 2.75
+        },
+        {
+          "word": "job",
+          "start": 2.75,
+          "end": 3.27
+        },
+        {
+          "word": "Decisions",
+          "start": 3.27,
+          "end": 3.789
+        },
+        {
+          "word": "are",
+          "start": 3.789,
+          "end": 3.909
+        },
+        {
+          "word": "yours",
+          "start": 3.909,
+          "end": 4.159
+        }
+      ],
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
     },
     {
       "id": "wingman.welcome.back",
       "speaker": "Wingman",
-      "text": "Welcome back to Copilot Isles, Captain! Your next task is in the top left.",
-      "duration": 4.407,
+      "text": "Welcome back, Captain! Your next task's in the top left.",
+      "duration": 3.308,
       "files": {
         "webm": "wingman.welcome.back.webm",
         "m4a": "wingman.welcome.back.m4a"
       },
-      "hash": "31a20bda65d27774",
+      "hash": "2e880f6d1905f1b6",
       "words": [
         {
           "word": "Welcome",
-          "start": 0.067,
-          "end": 0.378
+          "start": 0.31,
+          "end": 0.67
         },
         {
           "word": "back",
-          "start": 0.378,
-          "end": 0.611
-        },
-        {
-          "word": "to",
-          "start": 0.611,
-          "end": 0.728
-        },
-        {
-          "word": "Copilot",
-          "start": 0.728,
-          "end": 1.271
-        },
-        {
-          "word": "Isles",
-          "start": 1.271,
-          "end": 1.543
+          "start": 0.67,
+          "end": 0.91
         },
         {
           "word": "Captain",
-          "start": 1.543,
-          "end": 2.319
+          "start": 0.91,
+          "end": 1.55
         },
         {
           "word": "Your",
-          "start": 2.319,
-          "end": 2.553
+          "start": 1.55,
+          "end": 1.75
         },
         {
           "word": "next",
-          "start": 2.553,
-          "end": 2.824
+          "start": 1.75,
+          "end": 2.029
         },
         {
-          "word": "task",
-          "start": 2.824,
-          "end": 3.174
-        },
-        {
-          "word": "is",
-          "start": 3.174,
-          "end": 3.29
+          "word": "task's",
+          "start": 2.029,
+          "end": 2.389
         },
         {
           "word": "in",
-          "start": 3.29,
-          "end": 3.407
+          "start": 2.389,
+          "end": 2.469
         },
         {
           "word": "the",
-          "start": 3.407,
-          "end": 3.524
+          "start": 2.469,
+          "end": 2.59
         },
         {
           "word": "top",
-          "start": 3.524,
-          "end": 3.833
+          "start": 2.59,
+          "end": 2.789
         },
         {
           "word": "left",
-          "start": 3.833,
-          "end": 4.083
+          "start": 2.789,
+          "end": 3.039
         }
       ],
-      "voice": "en-US-Brian:DragonHDLatestNeural"
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
     },
     {
       "id": "wingman.hint.02",
       "speaker": "Wingman",
       "text": "If the sign doesn't name your fork, don't pull the yes lever yet.",
-      "duration": 4.207,
+      "duration": 3.927,
       "files": {
         "webm": "wingman.hint.02.webm",
         "m4a": "wingman.hint.02.m4a"
       },
-      "hash": "64834d171a5763b7",
+      "hash": "693ea9bdb44c66d6",
       "words": [
         {
           "word": "If",
-          "start": 0.067,
-          "end": 0.184
+          "start": 0.31,
+          "end": 0.47
         },
         {
           "word": "the",
-          "start": 0.184,
-          "end": 0.339
+          "start": 0.47,
+          "end": 0.59
         },
         {
           "word": "sign",
-          "start": 0.339,
-          "end": 0.689
+          "start": 0.59,
+          "end": 0.87
         },
         {
           "word": "doesn't",
-          "start": 0.689,
-          "end": 1.038
+          "start": 0.87,
+          "end": 1.19
         },
         {
           "word": "name",
-          "start": 1.038,
-          "end": 1.271
+          "start": 1.19,
+          "end": 1.39
         },
         {
           "word": "your",
-          "start": 1.271,
-          "end": 1.466
+          "start": 1.39,
+          "end": 1.55
         },
         {
           "word": "fork",
-          "start": 1.466,
-          "end": 2.203
+          "start": 1.55,
+          "end": 2.11
         },
         {
           "word": "don't",
-          "start": 2.203,
-          "end": 2.669
+          "start": 2.11,
+          "end": 2.429
         },
         {
           "word": "pull",
-          "start": 2.669,
-          "end": 2.98
+          "start": 2.429,
+          "end": 2.63
         },
         {
           "word": "the",
-          "start": 2.98,
-          "end": 3.135
+          "start": 2.63,
+          "end": 2.75
         },
         {
           "word": "yes",
-          "start": 3.135,
-          "end": 3.407
+          "start": 2.75,
+          "end": 3.07
         },
         {
           "word": "lever",
-          "start": 3.407,
-          "end": 3.717
+          "start": 3.07,
+          "end": 3.309
         },
         {
           "word": "yet",
-          "start": 3.717,
-          "end": 3.967
+          "start": 3.309,
+          "end": 3.559
         }
       ],
-      "voice": "en-US-Brian:DragonHDLatestNeural"
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
     },
     {
       "id": "wingman.hint.03",
       "speaker": "Wingman",
       "text": "You'll get unlimited retries here, so try the idea that feels safest.",
-      "duration": 4.207,
+      "duration": 4.407,
       "files": {
         "webm": "wingman.hint.03.webm",
         "m4a": "wingman.hint.03.m4a"
       },
-      "hash": "ac7372b1abbbcfe8",
+      "hash": "67edbc6f437d1776",
       "words": [
         {
           "word": "You'll",
-          "start": 0.067,
-          "end": 0.3
+          "start": 0.23,
+          "end": 0.51
         },
         {
           "word": "get",
-          "start": 0.3,
-          "end": 0.456
+          "start": 0.51,
+          "end": 0.63
         },
         {
           "word": "unlimited",
-          "start": 0.456,
-          "end": 1
+          "start": 0.63,
+          "end": 1.11
         },
         {
           "word": "retries",
-          "start": 1,
-          "end": 1.582
+          "start": 1.11,
+          "end": 1.55
         },
         {
           "word": "here",
-          "start": 1.582,
-          "end": 1.893
+          "start": 1.55,
+          "end": 2.23
         },
         {
           "word": "so",
-          "start": 1.893,
-          "end": 2.241
+          "start": 2.23,
+          "end": 2.51
         },
         {
           "word": "try",
-          "start": 2.241,
-          "end": 2.514
+          "start": 2.51,
+          "end": 2.789
         },
         {
           "word": "the",
-          "start": 2.514,
-          "end": 2.669
+          "start": 2.789,
+          "end": 2.909
         },
         {
           "word": "idea",
-          "start": 2.669,
-          "end": 3.058
+          "start": 2.909,
+          "end": 3.19
         },
         {
           "word": "that",
-          "start": 3.058,
-          "end": 3.251
+          "start": 3.19,
+          "end": 3.389
         },
         {
           "word": "feels",
-          "start": 3.251,
-          "end": 3.524
+          "start": 3.389,
+          "end": 3.63
         },
         {
           "word": "safest",
-          "start": 3.524,
-          "end": 3.774
+          "start": 3.63,
+          "end": 3.88
         }
       ],
-      "voice": "en-US-Brian:DragonHDLatestNeural"
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
     },
     {
       "id": "wingman.suri.01",
       "speaker": "Wingman",
       "text": "Quick one, Captain: those are GitHub Actions workflows. The Clock Tower’s Automations are something else, saved agent tasks, and you’ll learn those much later.",
-      "duration": 10.007,
+      "duration": 10.107,
       "files": {
         "webm": "wingman.suri.01.webm",
         "m4a": "wingman.suri.01.m4a"
       },
-      "hash": "a6bafbbcd21e7d80",
+      "hash": "3818521f407c0061",
       "words": [
         {
           "word": "Quick",
-          "start": 0.067,
-          "end": 0.3
+          "start": 0.11,
+          "end": 0.39
         },
         {
           "word": "one",
-          "start": 0.3,
-          "end": 0.572
+          "start": 0.39,
+          "end": 0.83
         },
         {
           "word": "Captain",
-          "start": 0.572,
-          "end": 1.271
+          "start": 0.83,
+          "end": 1.79
         },
         {
           "word": "those",
-          "start": 1.271,
-          "end": 1.621
+          "start": 1.79,
+          "end": 2.11
         },
         {
           "word": "are",
-          "start": 1.621,
-          "end": 1.815
+          "start": 2.11,
+          "end": 2.23
         },
         {
           "word": "GitHub",
-          "start": 1.815,
-          "end": 2.358
+          "start": 2.23,
+          "end": 2.51
         },
         {
           "word": "Actions",
-          "start": 2.358,
-          "end": 2.863
+          "start": 2.51,
+          "end": 2.949
         },
         {
           "word": "workflows",
-          "start": 2.863,
-          "end": 4.029
+          "start": 2.949,
+          "end": 4.19
         },
         {
           "word": "The",
-          "start": 4.029,
-          "end": 4.184
+          "start": 4.19,
+          "end": 4.35
         },
         {
           "word": "Clock",
-          "start": 4.184,
-          "end": 4.495
+          "start": 4.35,
+          "end": 4.63
         },
         {
           "word": "Tower’s",
-          "start": 4.495,
-          "end": 4.922
+          "start": 4.63,
+          "end": 4.99
         },
         {
           "word": "Automations",
-          "start": 4.922,
-          "end": 5.66
+          "start": 4.99,
+          "end": 5.67
         },
         {
           "word": "are",
-          "start": 5.66,
-          "end": 5.932
+          "start": 5.67,
+          "end": 5.79
         },
         {
           "word": "something",
-          "start": 5.932,
-          "end": 6.32
+          "start": 5.79,
+          "end": 6.15
         },
         {
           "word": "else",
-          "start": 6.32,
-          "end": 6.98
+          "start": 6.15,
+          "end": 6.71
         },
         {
           "word": "saved",
-          "start": 6.98,
-          "end": 7.485
+          "start": 6.71,
+          "end": 7.15
         },
         {
           "word": "agent",
-          "start": 7.485,
-          "end": 7.872
+          "start": 7.15,
+          "end": 7.55
         },
         {
           "word": "tasks",
-          "start": 7.872,
-          "end": 8.377
+          "start": 7.55,
+          "end": 8.35
         },
         {
           "word": "and",
-          "start": 8.377,
-          "end": 8.533
+          "start": 8.35,
+          "end": 8.549
         },
         {
           "word": "you’ll",
-          "start": 8.533,
-          "end": 8.766
+          "start": 8.549,
+          "end": 8.79
         },
         {
           "word": "learn",
-          "start": 8.766,
-          "end": 8.96
+          "start": 8.79,
+          "end": 8.99
         },
         {
           "word": "those",
-          "start": 8.96,
-          "end": 9.193
+          "start": 8.99,
+          "end": 9.229
         },
         {
           "word": "much",
-          "start": 9.193,
-          "end": 9.466
+          "start": 9.229,
+          "end": 9.469
         },
         {
           "word": "later",
-          "start": 9.466,
-          "end": 9.716
+          "start": 9.469,
+          "end": 9.719
         }
       ],
-      "voice": "en-US-Brian:DragonHDLatestNeural"
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
     },
     {
       "id": "suri.idle.dry",
@@ -8863,383 +8927,383 @@
       "id": "wingman.sail.01",
       "speaker": "Wingman",
       "text": "Right, a quick sailing lesson. The gangway’s down now, so walk up it to take the helm. W and S trim the sails, and A and D steer.",
-      "duration": 7.507,
+      "duration": 10.107,
       "files": {
         "webm": "wingman.sail.01.webm",
         "m4a": "wingman.sail.01.m4a"
       },
-      "hash": "a67ccbe4a63ccc73",
+      "hash": "8b522f3ee06e5d53",
       "words": [
         {
           "word": "Right",
-          "start": 0.067,
-          "end": 0.3
+          "start": 0.07,
+          "end": 0.79
         },
         {
           "word": "a",
-          "start": 0.3,
-          "end": 0.339
+          "start": 0.79,
+          "end": 0.95
         },
         {
           "word": "quick",
-          "start": 0.339,
-          "end": 0.572
+          "start": 0.95,
+          "end": 1.19
         },
         {
           "word": "sailing",
-          "start": 0.572,
-          "end": 0.961
+          "start": 1.19,
+          "end": 1.59
         },
         {
           "word": "lesson",
-          "start": 0.961,
-          "end": 1.466
+          "start": 1.59,
+          "end": 2.55
         },
         {
           "word": "The",
-          "start": 1.466,
-          "end": 1.582
+          "start": 2.55,
+          "end": 2.71
         },
         {
           "word": "gangway’s",
-          "start": 1.582,
-          "end": 2.009
+          "start": 2.71,
+          "end": 3.19
         },
         {
           "word": "down",
-          "start": 2.009,
-          "end": 2.28
+          "start": 3.19,
+          "end": 3.429
         },
         {
           "word": "now",
-          "start": 2.28,
-          "end": 2.514
+          "start": 3.429,
+          "end": 4.23
         },
         {
           "word": "so",
-          "start": 2.514,
-          "end": 2.631
+          "start": 4.23,
+          "end": 4.55
         },
         {
           "word": "walk",
-          "start": 2.631,
-          "end": 2.901
+          "start": 4.55,
+          "end": 4.83
         },
         {
           "word": "up",
-          "start": 2.901,
-          "end": 3.058
+          "start": 4.83,
+          "end": 4.95
         },
         {
           "word": "it",
-          "start": 3.058,
-          "end": 3.135
+          "start": 4.95,
+          "end": 5.07
         },
         {
           "word": "to",
-          "start": 3.135,
-          "end": 3.29
+          "start": 5.07,
+          "end": 5.15
         },
         {
           "word": "take",
-          "start": 3.29,
-          "end": 3.524
+          "start": 5.15,
+          "end": 5.39
         },
         {
           "word": "the",
-          "start": 3.524,
-          "end": 3.64
+          "start": 5.39,
+          "end": 5.51
         },
         {
           "word": "helm",
-          "start": 3.64,
-          "end": 4.533
+          "start": 5.51,
+          "end": 6.67
         },
         {
           "word": "W",
-          "start": 4.533,
-          "end": 4.766
+          "start": 6.67,
+          "end": 6.71
         },
         {
           "word": "and",
-          "start": 4.766,
-          "end": 4.961
+          "start": 6.71,
+          "end": 7.03
         },
         {
           "word": "S",
-          "start": 4.961,
-          "end": 5.077
+          "start": 7.03,
+          "end": 7.23
         },
         {
           "word": "trim",
-          "start": 5.077,
-          "end": 5.349
+          "start": 7.23,
+          "end": 7.47
         },
         {
           "word": "the",
-          "start": 5.349,
-          "end": 5.466
+          "start": 7.47,
+          "end": 7.59
         },
         {
           "word": "sails",
-          "start": 5.466,
-          "end": 5.932
+          "start": 7.59,
+          "end": 8.51
         },
         {
           "word": "and",
-          "start": 5.932,
-          "end": 6.165
+          "start": 8.51,
+          "end": 8.75
         },
         {
           "word": "A",
-          "start": 6.165,
-          "end": 6.203
+          "start": 8.75,
+          "end": 8.79
         },
         {
           "word": "and",
-          "start": 6.203,
-          "end": 6.669
+          "start": 8.79,
+          "end": 9.27
         },
         {
           "word": "D",
-          "start": 6.669,
-          "end": 6.941
+          "start": 9.27,
+          "end": 9.469
         },
         {
           "word": "steer",
-          "start": 6.941,
-          "end": 7.191
+          "start": 9.469,
+          "end": 9.719
         }
       ],
-      "voice": "en-US-Brian:DragonHDLatestNeural"
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
     },
     {
       "id": "wingman.sail.02",
       "speaker": "Wingman",
       "text": "The compass up top points back to the pier. Bring her alongside and press E, and I’ll help you dock.",
-      "duration": 6.107,
+      "duration": 5.707,
       "files": {
         "webm": "wingman.sail.02.webm",
         "m4a": "wingman.sail.02.m4a"
       },
-      "hash": "e112b2fe40afe9dc",
+      "hash": "9073ffeddda00889",
       "words": [
         {
           "word": "The",
-          "start": 0.067,
-          "end": 0.184
+          "start": 0.23,
+          "end": 0.39
         },
         {
           "word": "compass",
-          "start": 0.184,
-          "end": 0.495
+          "start": 0.39,
+          "end": 0.71
         },
         {
           "word": "up",
-          "start": 0.495,
-          "end": 0.65
+          "start": 0.71,
+          "end": 0.87
         },
         {
           "word": "top",
-          "start": 0.65,
-          "end": 0.883
+          "start": 0.87,
+          "end": 1.03
         },
         {
           "word": "points",
-          "start": 0.883,
-          "end": 1.349
+          "start": 1.03,
+          "end": 1.39
         },
         {
           "word": "back",
-          "start": 1.349,
-          "end": 1.621
+          "start": 1.39,
+          "end": 1.59
         },
         {
           "word": "to",
-          "start": 1.621,
-          "end": 1.737
+          "start": 1.59,
+          "end": 1.71
         },
         {
           "word": "the",
-          "start": 1.737,
-          "end": 1.854
+          "start": 1.71,
+          "end": 1.83
         },
         {
           "word": "pier",
-          "start": 1.854,
-          "end": 2.514
+          "start": 1.83,
+          "end": 2.75
         },
         {
           "word": "Bring",
-          "start": 2.514,
-          "end": 2.746
+          "start": 2.75,
+          "end": 2.989
         },
         {
           "word": "her",
-          "start": 2.746,
-          "end": 2.863
+          "start": 2.989,
+          "end": 3.15
         },
         {
           "word": "alongside",
-          "start": 2.863,
-          "end": 3.524
+          "start": 3.15,
+          "end": 3.71
         },
         {
           "word": "and",
-          "start": 3.524,
-          "end": 3.717
+          "start": 3.71,
+          "end": 3.829
         },
         {
           "word": "press",
-          "start": 3.717,
-          "end": 4.067
+          "start": 3.829,
+          "end": 4.11
         },
         {
           "word": "E",
-          "start": 4.067,
-          "end": 4.922
+          "start": 4.11,
+          "end": 4.63
         },
         {
           "word": "and",
-          "start": 4.922,
-          "end": 5.077
+          "start": 4.63,
+          "end": 4.79
         },
         {
           "word": "I’ll",
-          "start": 5.077,
-          "end": 5.271
+          "start": 4.79,
+          "end": 4.95
         },
         {
           "word": "help",
-          "start": 5.271,
-          "end": 5.504
+          "start": 4.95,
+          "end": 5.19
         },
         {
           "word": "you",
-          "start": 5.504,
-          "end": 5.621
+          "start": 5.19,
+          "end": 5.31
         },
         {
           "word": "dock",
-          "start": 5.621,
-          "end": 5.871
+          "start": 5.31,
+          "end": 5.56
         }
       ],
-      "voice": "en-US-Brian:DragonHDLatestNeural"
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
     },
     {
       "id": "wingman.sail.03",
       "speaker": "Wingman",
       "text": "Port Meridian’s east on the chart, but she’s not ready for visitors yet. Until she is, these waters are yours.",
-      "duration": 6.907,
+      "duration": 6.908,
       "files": {
         "webm": "wingman.sail.03.webm",
         "m4a": "wingman.sail.03.m4a"
       },
-      "hash": "5ceb8850b05eb22b",
+      "hash": "2aecbd9829e40eec",
       "words": [
         {
           "word": "Port",
-          "start": 0.067,
-          "end": 0.262
+          "start": 0.11,
+          "end": 0.35
         },
         {
           "word": "Meridian’s",
-          "start": 0.262,
-          "end": 0.766
+          "start": 0.35,
+          "end": 0.87
         },
         {
           "word": "east",
-          "start": 0.766,
-          "end": 1.349
+          "start": 0.87,
+          "end": 1.19
         },
         {
           "word": "on",
-          "start": 1.349,
-          "end": 1.543
+          "start": 1.19,
+          "end": 1.27
         },
         {
           "word": "the",
-          "start": 1.543,
-          "end": 1.66
+          "start": 1.27,
+          "end": 1.39
         },
         {
           "word": "chart",
-          "start": 1.66,
-          "end": 2.048
+          "start": 1.39,
+          "end": 1.99
         },
         {
           "word": "but",
-          "start": 2.048,
-          "end": 2.241
+          "start": 1.99,
+          "end": 2.23
         },
         {
           "word": "she’s",
-          "start": 2.241,
-          "end": 2.475
+          "start": 2.23,
+          "end": 2.429
         },
         {
           "word": "not",
-          "start": 2.475,
-          "end": 2.669
+          "start": 2.429,
+          "end": 2.59
         },
         {
           "word": "ready",
-          "start": 2.669,
-          "end": 2.941
+          "start": 2.59,
+          "end": 2.829
         },
         {
           "word": "for",
-          "start": 2.941,
-          "end": 3.097
+          "start": 2.829,
+          "end": 2.949
         },
         {
           "word": "visitors",
-          "start": 3.097,
-          "end": 3.524
+          "start": 2.949,
+          "end": 3.389
         },
         {
           "word": "yet",
-          "start": 3.524,
-          "end": 3.872
+          "start": 3.389,
+          "end": 4.31
         },
         {
           "word": "Until",
-          "start": 3.872,
-          "end": 4.3
+          "start": 4.31,
+          "end": 4.67
         },
         {
           "word": "she",
-          "start": 4.3,
-          "end": 4.611
+          "start": 4.67,
+          "end": 4.87
         },
         {
           "word": "is",
-          "start": 4.611,
-          "end": 5.466
+          "start": 4.87,
+          "end": 5.51
         },
         {
           "word": "these",
-          "start": 5.466,
-          "end": 5.737
+          "start": 5.51,
+          "end": 5.79
         },
         {
           "word": "waters",
-          "start": 5.737,
-          "end": 6.165
+          "start": 5.79,
+          "end": 6.19
         },
         {
           "word": "are",
-          "start": 6.165,
-          "end": 6.281
+          "start": 6.19,
+          "end": 6.31
         },
         {
           "word": "yours",
-          "start": 6.281,
-          "end": 6.531
+          "start": 6.31,
+          "end": 6.56
         }
       ],
-      "voice": "en-US-Brian:DragonHDLatestNeural"
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
     },
     {
       "id": "lyra.idle.01",

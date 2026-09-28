@@ -5,143 +5,143 @@
   "words": [
     {
       "word": "Right",
-      "start": 0.067,
-      "end": 0.3
+      "start": 0.07,
+      "end": 0.79
     },
     {
       "word": "a",
-      "start": 0.3,
-      "end": 0.339
+      "start": 0.79,
+      "end": 0.95
     },
     {
       "word": "quick",
-      "start": 0.339,
-      "end": 0.572
+      "start": 0.95,
+      "end": 1.19
     },
     {
       "word": "sailing",
-      "start": 0.572,
-      "end": 0.961
+      "start": 1.19,
+      "end": 1.59
     },
     {
       "word": "lesson",
-      "start": 0.961,
-      "end": 1.466
+      "start": 1.59,
+      "end": 2.55
     },
     {
       "word": "The",
-      "start": 1.466,
-      "end": 1.582
+      "start": 2.55,
+      "end": 2.71
     },
     {
       "word": "gangway’s",
-      "start": 1.582,
-      "end": 2.009
+      "start": 2.71,
+      "end": 3.19
     },
     {
       "word": "down",
-      "start": 2.009,
-      "end": 2.28
+      "start": 3.19,
+      "end": 3.429
     },
     {
       "word": "now",
-      "start": 2.28,
-      "end": 2.514
+      "start": 3.429,
+      "end": 4.23
     },
     {
       "word": "so",
-      "start": 2.514,
-      "end": 2.631
+      "start": 4.23,
+      "end": 4.55
     },
     {
       "word": "walk",
-      "start": 2.631,
-      "end": 2.901
+      "start": 4.55,
+      "end": 4.83
     },
     {
       "word": "up",
-      "start": 2.901,
-      "end": 3.058
+      "start": 4.83,
+      "end": 4.95
     },
     {
       "word": "it",
-      "start": 3.058,
-      "end": 3.135
+      "start": 4.95,
+      "end": 5.07
     },
     {
       "word": "to",
-      "start": 3.135,
-      "end": 3.29
+      "start": 5.07,
+      "end": 5.15
     },
     {
       "word": "take",
-      "start": 3.29,
-      "end": 3.524
+      "start": 5.15,
+      "end": 5.39
     },
     {
       "word": "the",
-      "start": 3.524,
-      "end": 3.64
+      "start": 5.39,
+      "end": 5.51
     },
     {
       "word": "helm",
-      "start": 3.64,
-      "end": 4.533
+      "start": 5.51,
+      "end": 6.67
     },
     {
       "word": "W",
-      "start": 4.533,
-      "end": 4.766
+      "start": 6.67,
+      "end": 6.71
     },
     {
       "word": "and",
-      "start": 4.766,
-      "end": 4.961
+      "start": 6.71,
+      "end": 7.03
     },
     {
       "word": "S",
-      "start": 4.961,
-      "end": 5.077
+      "start": 7.03,
+      "end": 7.23
     },
     {
       "word": "trim",
-      "start": 5.077,
-      "end": 5.349
+      "start": 7.23,
+      "end": 7.47
     },
     {
       "word": "the",
-      "start": 5.349,
-      "end": 5.466
+      "start": 7.47,
+      "end": 7.59
     },
     {
       "word": "sails",
-      "start": 5.466,
-      "end": 5.932
+      "start": 7.59,
+      "end": 8.51
     },
     {
       "word": "and",
-      "start": 5.932,
-      "end": 6.165
+      "start": 8.51,
+      "end": 8.75
     },
     {
       "word": "A",
-      "start": 6.165,
-      "end": 6.203
+      "start": 8.75,
+      "end": 8.79
     },
     {
       "word": "and",
-      "start": 6.203,
-      "end": 6.669
+      "start": 8.79,
+      "end": 9.27
     },
     {
       "word": "D",
-      "start": 6.669,
-      "end": 6.941
+      "start": 9.27,
+      "end": 9.469
     },
     {
       "word": "steer",
-      "start": 6.941,
-      "end": 7.191
+      "start": 9.469,
+      "end": 9.719
     }
   ]
 }
