@@ -28,4 +28,22 @@ describe('runScript', () => {
     expect(said).toEqual(['a', 'b']);
     expect(finished).toBe(true);
   });
+
+  it('carries on after a passed Trial and stops when it is left unfinished', async () => {
+    for (const passed of [true, false]) {
+      const said: string[] = [];
+      const learn = {
+        getState: () => ({ logbook: { open: false } }),
+        runTrial: async () => ({ passed, stars: passed ? 3 : 0 }),
+        hideImage: () => undefined,
+      } as unknown as LearnStore;
+      const dialogue = {
+        play: async (ids: readonly string[]) => void said.push(...ids),
+        say: async () => undefined,
+      } as unknown as Dialogue;
+      const ok = await runScript([{ trial: 'T0' }, { say: 'after' }], { dialogue, learn, speaker: 'Nell' });
+      expect(ok).toBe(passed);
+      expect(said).toEqual(passed ? ['after'] : []);
+    }
+  });
 });

@@ -1,77 +1,82 @@
 {
   "id": "bo.gear.brief.03",
   "speaker": "Bo",
-  "text": "Run the checks at my rack, Captain. Each one should print a version number.",
+  "text": "If one says command not found, install just that tool, then run the checks again.",
   "words": [
     {
-      "word": "Run",
+      "word": "If",
       "start": 0.07,
-      "end": 0.27
-    },
-    {
-      "word": "the",
-      "start": 0.27,
-      "end": 0.39
-    },
-    {
-      "word": "checks",
-      "start": 0.39,
-      "end": 0.67
-    },
-    {
-      "word": "at",
-      "start": 0.67,
-      "end": 0.79
-    },
-    {
-      "word": "my",
-      "start": 0.79,
-      "end": 1.03
-    },
-    {
-      "word": "rack",
-      "start": 1.03,
-      "end": 1.31
-    },
-    {
-      "word": "Captain",
-      "start": 1.31,
-      "end": 1.99
-    },
-    {
-      "word": "Each",
-      "start": 1.99,
-      "end": 2.309
+      "end": 0.23
     },
     {
       "word": "one",
-      "start": 2.309,
+      "start": 0.23,
+      "end": 0.47
+    },
+    {
+      "word": "says",
+      "start": 0.47,
+      "end": 0.67
+    },
+    {
+      "word": "command",
+      "start": 0.67,
+      "end": 1.15
+    },
+    {
+      "word": "not",
+      "start": 1.15,
+      "end": 1.43
+    },
+    {
+      "word": "found",
+      "start": 1.43,
+      "end": 1.95
+    },
+    {
+      "word": "install",
+      "start": 1.95,
       "end": 2.469
     },
     {
-      "word": "should",
+      "word": "just",
       "start": 2.469,
-      "end": 2.71
+      "end": 2.75
     },
     {
-      "word": "print",
-      "start": 2.71,
+      "word": "that",
+      "start": 2.75,
       "end": 2.949
     },
     {
-      "word": "a",
+      "word": "tool",
       "start": 2.949,
-      "end": 2.989
+      "end": 3.51
     },
     {
-      "word": "version",
-      "start": 2.989,
-      "end": 3.389
+      "word": "then",
+      "start": 3.51,
+      "end": 3.71
     },
     {
-      "word": "number",
-      "start": 3.389,
-      "end": 3.639
+      "word": "run",
+      "start": 3.71,
+      "end": 3.909
+    },
+    {
+      "word": "the",
+      "start": 3.909,
+      "end": 4.03
+    },
+    {
+      "word": "checks",
+      "start": 4.03,
+      "end": 4.31
+    },
+    {
+      "word": "again",
+      "start": 4.31,
+      "end": 4.56
     }
   ]
 }

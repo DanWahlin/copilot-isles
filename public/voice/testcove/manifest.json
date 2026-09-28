@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-28T07:46:41.499Z",
+  "generatedAt": "2026-09-28T17:38:48.312Z",
   "set": "testcove",
   "lines": [
     {
@@ -1016,6 +1016,75 @@
       "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
     },
     {
+      "id": "wingman.trial.01",
+      "speaker": "Wingman",
+      "text": "Eight questions, Captain. No answers from me in there, only nudges.",
+      "duration": 4.507,
+      "files": {
+        "webm": "wingman.trial.01.webm",
+        "m4a": "wingman.trial.01.m4a"
+      },
+      "hash": "05629f14f28fa7e2",
+      "words": [
+        {
+          "word": "Eight",
+          "start": 0.27,
+          "end": 0.47
+        },
+        {
+          "word": "questions",
+          "start": 0.47,
+          "end": 0.99
+        },
+        {
+          "word": "Captain",
+          "start": 0.99,
+          "end": 1.91
+        },
+        {
+          "word": "No",
+          "start": 1.91,
+          "end": 2.23
+        },
+        {
+          "word": "answers",
+          "start": 2.23,
+          "end": 2.51
+        },
+        {
+          "word": "from",
+          "start": 2.51,
+          "end": 2.67
+        },
+        {
+          "word": "me",
+          "start": 2.67,
+          "end": 2.829
+        },
+        {
+          "word": "in",
+          "start": 2.829,
+          "end": 2.949
+        },
+        {
+          "word": "there",
+          "start": 2.949,
+          "end": 3.309
+        },
+        {
+          "word": "only",
+          "start": 3.309,
+          "end": 3.63
+        },
+        {
+          "word": "nudges",
+          "start": 3.63,
+          "end": 3.88
+        }
+      ],
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
+    },
+    {
       "id": "wingman.suri.01",
       "speaker": "Wingman",
       "text": "Quick one, Captain: those are GitHub Actions workflows. The Clock Tower’s Automations are something else, saved agent tasks, and you’ll learn those much later.",
@@ -1152,68 +1221,78 @@
     {
       "id": "suri.idle.dry",
       "speaker": "Suri",
-      "text": "Mill’s dry today, Captain. Come back once Bo’s checked your gear.",
-      "duration": 3.708,
+      "text": "Mill's dry today, Captain. Come back once your fork has its practice items.",
+      "duration": 4.308,
       "files": {
         "webm": "suri.idle.dry.webm",
         "m4a": "suri.idle.dry.m4a"
       },
-      "hash": "356e38da2f4c35f4",
+      "hash": "613888c3136f212c",
       "words": [
         {
-          "word": "Mill’s",
+          "word": "Mill's",
           "start": 0.07,
-          "end": 0.35
+          "end": 0.39
         },
         {
           "word": "dry",
-          "start": 0.35,
-          "end": 0.59
+          "start": 0.39,
+          "end": 0.63
         },
         {
           "word": "today",
-          "start": 0.59,
+          "start": 0.63,
           "end": 0.91
         },
         {
           "word": "Captain",
           "start": 0.91,
-          "end": 1.63
+          "end": 1.67
         },
         {
           "word": "Come",
-          "start": 1.63,
+          "start": 1.67,
           "end": 1.91
         },
         {
           "word": "back",
           "start": 1.91,
-          "end": 2.11
+          "end": 2.15
         },
         {
           "word": "once",
-          "start": 2.11,
-          "end": 2.429
-        },
-        {
-          "word": "Bo’s",
-          "start": 2.429,
-          "end": 2.75
-        },
-        {
-          "word": "checked",
-          "start": 2.75,
-          "end": 3.07
+          "start": 2.15,
+          "end": 2.349
         },
         {
           "word": "your",
+          "start": 2.349,
+          "end": 2.51
+        },
+        {
+          "word": "fork",
+          "start": 2.51,
+          "end": 2.869
+        },
+        {
+          "word": "has",
+          "start": 2.869,
+          "end": 3.07
+        },
+        {
+          "word": "its",
           "start": 3.07,
           "end": 3.23
         },
         {
-          "word": "gear",
+          "word": "practice",
           "start": 3.23,
-          "end": 3.48
+          "end": 3.67
+        },
+        {
+          "word": "items",
+          "start": 3.67,
+          "end": 3.92
         }
       ],
       "voice": "en-US-Jenny:DragonHDLatestNeural"
@@ -1300,281 +1379,108 @@
     {
       "id": "suri.brief.02",
       "speaker": "Suri",
-      "text": "This part happens on GitHub.com, not in the app. Open your fork and go to the Actions tab.",
-      "duration": 6.108,
+      "text": "Pim and Pol had you turn on workflows in your fork's Actions tab. My mill shows what that does.",
+      "duration": 5.608,
       "files": {
         "webm": "suri.brief.02.webm",
         "m4a": "suri.brief.02.m4a"
       },
-      "hash": "d56c2340b4ba67a2",
+      "hash": "1596c596fa48d37c",
       "words": [
         {
-          "word": "This",
+          "word": "Pim",
           "start": 0.07,
-          "end": 0.27
-        },
-        {
-          "word": "part",
-          "start": 0.27,
-          "end": 0.47
-        },
-        {
-          "word": "happens",
-          "start": 0.47,
-          "end": 0.87
-        },
-        {
-          "word": "on",
-          "start": 0.87,
-          "end": 1.03
-        },
-        {
-          "word": "GitHub.com",
-          "start": 1.03,
-          "end": 2.27
-        },
-        {
-          "word": "not",
-          "start": 2.27,
-          "end": 2.63
-        },
-        {
-          "word": "in",
-          "start": 2.63,
-          "end": 2.71
-        },
-        {
-          "word": "the",
-          "start": 2.71,
-          "end": 2.869
-        },
-        {
-          "word": "app.",
-          "start": 2.869,
-          "end": 3.63
-        },
-        {
-          "word": "Open",
-          "start": 3.63,
-          "end": 3.909
-        },
-        {
-          "word": "your",
-          "start": 3.909,
-          "end": 4.11
-        },
-        {
-          "word": "fork",
-          "start": 4.11,
-          "end": 4.55
+          "end": 0.23
         },
         {
           "word": "and",
-          "start": 4.55,
-          "end": 4.67
+          "start": 0.23,
+          "end": 0.39
         },
         {
-          "word": "go",
-          "start": 4.67,
-          "end": 4.79
+          "word": "Pol",
+          "start": 0.39,
+          "end": 0.75
         },
         {
-          "word": "to",
-          "start": 4.79,
-          "end": 4.91
+          "word": "had",
+          "start": 0.75,
+          "end": 0.91
         },
         {
-          "word": "the",
-          "start": 4.91,
-          "end": 5.07
+          "word": "you",
+          "start": 0.91,
+          "end": 1.03
         },
         {
-          "word": "Actions",
-          "start": 5.07,
-          "end": 5.55
-        },
-        {
-          "word": "tab",
-          "start": 5.55,
-          "end": 5.8
-        }
-      ],
-      "voice": "en-US-Jenny:DragonHDLatestNeural"
-    },
-    {
-      "id": "suri.brief.03",
-      "speaker": "Suri",
-      "text": "You’ll see “Workflows aren’t being run on this forked repository.” New forks switch GitHub Actions off.",
-      "duration": 6.708,
-      "files": {
-        "webm": "suri.brief.03.webm",
-        "m4a": "suri.brief.03.m4a"
-      },
-      "hash": "6a4d541b8de3657f",
-      "words": [
-        {
-          "word": "You’ll",
-          "start": 0.07,
-          "end": 0.35
-        },
-        {
-          "word": "see",
-          "start": 0.35,
-          "end": 0.63
-        },
-        {
-          "word": "Workflows",
-          "start": 0.63,
-          "end": 1.31
-        },
-        {
-          "word": "aren’t",
-          "start": 1.31,
-          "end": 1.91
-        },
-        {
-          "word": "being",
-          "start": 1.91,
-          "end": 2.11
-        },
-        {
-          "word": "run",
-          "start": 2.11,
-          "end": 2.23
+          "word": "turn",
+          "start": 1.03,
+          "end": 1.23
         },
         {
           "word": "on",
-          "start": 2.23,
-          "end": 2.309
+          "start": 1.23,
+          "end": 1.39
         },
         {
-          "word": "this",
-          "start": 2.309,
-          "end": 2.59
+          "word": "workflows",
+          "start": 1.39,
+          "end": 1.99
         },
         {
-          "word": "forked",
-          "start": 2.59,
-          "end": 2.909
-        },
-        {
-          "word": "repository",
-          "start": 2.909,
-          "end": 4.03
-        },
-        {
-          "word": "New",
-          "start": 4.03,
-          "end": 4.39
-        },
-        {
-          "word": "forks",
-          "start": 4.39,
-          "end": 4.79
-        },
-        {
-          "word": "switch",
-          "start": 4.79,
-          "end": 5.27
-        },
-        {
-          "word": "GitHub",
-          "start": 5.27,
-          "end": 5.63
-        },
-        {
-          "word": "Actions",
-          "start": 5.63,
-          "end": 6.15
-        },
-        {
-          "word": "off",
-          "start": 6.15,
-          "end": 6.4
-        }
-      ],
-      "voice": "en-US-Jenny:DragonHDLatestNeural"
-    },
-    {
-      "id": "suri.brief.04",
-      "speaker": "Suri",
-      "text": "Turn them on, so GitHub can run the automated checks for your practice exercises.",
-      "duration": 4.608,
-      "files": {
-        "webm": "suri.brief.04.webm",
-        "m4a": "suri.brief.04.m4a"
-      },
-      "hash": "d96201f87464c3d7",
-      "words": [
-        {
-          "word": "Turn",
-          "start": 0.07,
-          "end": 0.27
-        },
-        {
-          "word": "them",
-          "start": 0.27,
-          "end": 0.43
-        },
-        {
-          "word": "on",
-          "start": 0.43,
-          "end": 0.83
-        },
-        {
-          "word": "so",
-          "start": 0.83,
-          "end": 1.07
-        },
-        {
-          "word": "GitHub",
-          "start": 1.07,
-          "end": 1.43
-        },
-        {
-          "word": "can",
-          "start": 1.43,
-          "end": 1.63
-        },
-        {
-          "word": "run",
-          "start": 1.63,
-          "end": 1.75
-        },
-        {
-          "word": "the",
-          "start": 1.75,
-          "end": 1.91
-        },
-        {
-          "word": "automated",
-          "start": 1.91,
-          "end": 2.429
-        },
-        {
-          "word": "checks",
-          "start": 2.429,
-          "end": 2.829
-        },
-        {
-          "word": "for",
-          "start": 2.829,
-          "end": 2.949
+          "word": "in",
+          "start": 1.99,
+          "end": 2.07
         },
         {
           "word": "your",
-          "start": 2.949,
-          "end": 3.15
+          "start": 2.07,
+          "end": 2.23
         },
         {
-          "word": "practice",
-          "start": 3.15,
-          "end": 3.55
+          "word": "fork's",
+          "start": 2.23,
+          "end": 2.63
         },
         {
-          "word": "exercises",
-          "start": 3.55,
-          "end": 3.8
+          "word": "Actions",
+          "start": 2.63,
+          "end": 3.19
+        },
+        {
+          "word": "tab",
+          "start": 3.19,
+          "end": 3.829
+        },
+        {
+          "word": "My",
+          "start": 3.829,
+          "end": 4.11
+        },
+        {
+          "word": "mill",
+          "start": 4.11,
+          "end": 4.35
+        },
+        {
+          "word": "shows",
+          "start": 4.35,
+          "end": 4.63
+        },
+        {
+          "word": "what",
+          "start": 4.63,
+          "end": 4.79
+        },
+        {
+          "word": "that",
+          "start": 4.79,
+          "end": 4.99
+        },
+        {
+          "word": "does",
+          "start": 4.99,
+          "end": 5.24
         }
       ],
       "voice": "en-US-Jenny:DragonHDLatestNeural"
@@ -1913,133 +1819,78 @@
     {
       "id": "suri.solved.02",
       "speaker": "Suri",
-      "text": "Last job before the Trial: Pim and Pol run the crane on the pier head. They'll add the course's practice items to your fork.",
-      "duration": 7.308,
+      "text": "Later chapters use those checks, so that's time well spent. Fair winds, Captain.",
+      "duration": 4.808,
       "files": {
         "webm": "suri.solved.02.webm",
         "m4a": "suri.solved.02.m4a"
       },
-      "hash": "368f10a0f39cf67c",
+      "hash": "b76001a989736f24",
       "words": [
         {
-          "word": "Last",
+          "word": "Later",
           "start": 0.07,
           "end": 0.39
         },
         {
-          "word": "job",
+          "word": "chapters",
           "start": 0.39,
-          "end": 0.63
+          "end": 0.87
         },
         {
-          "word": "before",
-          "start": 0.63,
-          "end": 0.99
+          "word": "use",
+          "start": 0.87,
+          "end": 1.07
         },
         {
-          "word": "the",
-          "start": 0.99,
-          "end": 1.15
+          "word": "those",
+          "start": 1.07,
+          "end": 1.31
         },
         {
-          "word": "Trial",
-          "start": 1.15,
-          "end": 1.87
+          "word": "checks",
+          "start": 1.31,
+          "end": 1.91
         },
         {
-          "word": "Pim",
-          "start": 1.87,
-          "end": 2.23
+          "word": "so",
+          "start": 1.91,
+          "end": 2.07
         },
         {
-          "word": "and",
-          "start": 2.23,
-          "end": 2.469
+          "word": "that's",
+          "start": 2.07,
+          "end": 2.349
         },
         {
-          "word": "Pol",
-          "start": 2.469,
-          "end": 2.869
+          "word": "time",
+          "start": 2.349,
+          "end": 2.59
         },
         {
-          "word": "run",
-          "start": 2.869,
-          "end": 3.07
+          "word": "well",
+          "start": 2.59,
+          "end": 2.789
         },
         {
-          "word": "the",
-          "start": 3.07,
-          "end": 3.19
-        },
-        {
-          "word": "crane",
-          "start": 3.19,
+          "word": "spent",
+          "start": 2.789,
           "end": 3.55
         },
         {
-          "word": "on",
+          "word": "Fair",
           "start": 3.55,
-          "end": 3.67
+          "end": 3.829
         },
         {
-          "word": "the",
-          "start": 3.67,
-          "end": 3.789
+          "word": "winds",
+          "start": 3.829,
+          "end": 4.15
         },
         {
-          "word": "pier",
-          "start": 3.789,
-          "end": 4.07
-        },
-        {
-          "word": "head",
-          "start": 4.07,
-          "end": 4.67
-        },
-        {
-          "word": "They'll",
-          "start": 4.67,
-          "end": 4.95
-        },
-        {
-          "word": "add",
-          "start": 4.95,
-          "end": 5.19
-        },
-        {
-          "word": "the",
-          "start": 5.19,
-          "end": 5.31
-        },
-        {
-          "word": "course's",
-          "start": 5.31,
-          "end": 5.75
-        },
-        {
-          "word": "practice",
-          "start": 5.75,
-          "end": 6.23
-        },
-        {
-          "word": "items",
-          "start": 6.23,
-          "end": 6.55
-        },
-        {
-          "word": "to",
-          "start": 6.55,
-          "end": 6.63
-        },
-        {
-          "word": "your",
-          "start": 6.63,
-          "end": 6.83
-        },
-        {
-          "word": "fork",
-          "start": 6.83,
-          "end": 7.08
+          "word": "Captain",
+          "start": 4.15,
+          "end": 4.4
         }
       ],
       "voice": "en-US-Jenny:DragonHDLatestNeural"
@@ -2091,13 +1942,13 @@
     {
       "id": "pol.idle.waiting",
       "speaker": "Pol",
-      "text": "Not yet, Captain. Our crane adds the course's practice items to your fork, and GitHub Actions has to be on first. Suri at the mill can help.",
-      "duration": 10.807,
+      "text": "Not yet, Captain. Our crane adds the course's practice items to your fork. Bo gets your session ready first, by the pier foot.",
+      "duration": 9.707,
       "files": {
         "webm": "pol.idle.waiting.webm",
         "m4a": "pol.idle.waiting.m4a"
       },
-      "hash": "c982b9410c154098",
+      "hash": "f1fa14f038e5de2a",
       "words": [
         {
           "word": "Not",
@@ -2122,117 +1973,97 @@
         {
           "word": "crane",
           "start": 2.594625,
-          "end": 2.996416
+          "end": 3.01875
         },
         {
           "word": "adds",
-          "start": 2.996416,
-          "end": 3.241958
+          "start": 3.01875,
+          "end": 3.264291
         },
         {
           "word": "the",
-          "start": 3.241958,
-          "end": 3.29775
+          "start": 3.264291,
+          "end": 3.320083
         },
         {
           "word": "course's",
-          "start": 3.29775,
-          "end": 3.710708
+          "start": 3.320083,
+          "end": 3.733041
         },
         {
           "word": "practice",
-          "start": 3.710708,
-          "end": 4.090166
+          "start": 3.733041,
+          "end": 4.1125
         },
         {
           "word": "items",
-          "start": 4.090166,
-          "end": 4.4585
+          "start": 4.1125,
+          "end": 4.503125
         },
         {
           "word": "to",
-          "start": 4.4585,
-          "end": 4.536625
+          "start": 4.503125,
+          "end": 4.58125
         },
         {
           "word": "your",
-          "start": 4.536625,
-          "end": 4.670541
+          "start": 4.58125,
+          "end": 4.748666
         },
         {
           "word": "fork",
-          "start": 4.670541,
-          "end": 5.462958
+          "start": 4.748666,
+          "end": 6.054458
         },
         {
-          "word": "and",
-          "start": 5.462958,
-          "end": 5.619208
+          "word": "Bo",
+          "start": 6.054458,
+          "end": 6.255375
         },
         {
-          "word": "GitHub",
-          "start": 5.619208,
-          "end": 5.954
+          "word": "gets",
+          "start": 6.255375,
+          "end": 6.512041
         },
         {
-          "word": "Actions",
-          "start": 5.954,
-          "end": 6.445083
-        },
-        {
-          "word": "has",
-          "start": 6.445083,
+          "word": "your",
+          "start": 6.512041,
           "end": 6.6125
         },
         {
-          "word": "to",
+          "word": "session",
           "start": 6.6125,
-          "end": 6.679458
+          "end": 7.025458
         },
         {
-          "word": "be",
-          "start": 6.679458,
-          "end": 6.858041
-        },
-        {
-          "word": "on",
-          "start": 6.858041,
-          "end": 7.003125
+          "word": "ready",
+          "start": 7.025458,
+          "end": 7.259833
         },
         {
           "word": "first",
-          "start": 7.003125,
-          "end": 8.329916
+          "start": 7.259833,
+          "end": 8.01875
         },
         {
-          "word": "Suri",
-          "start": 8.329916,
-          "end": 8.854458
-        },
-        {
-          "word": "at",
-          "start": 8.854458,
-          "end": 8.954916
+          "word": "by",
+          "start": 8.01875,
+          "end": 8.175
         },
         {
           "word": "the",
-          "start": 8.954916,
-          "end": 9.021875
+          "start": 8.175,
+          "end": 8.253125
         },
         {
-          "word": "mill",
-          "start": 9.021875,
-          "end": 9.334375
+          "word": "pier",
+          "start": 8.253125,
+          "end": 8.509833
         },
         {
-          "word": "can",
-          "start": 9.334375,
-          "end": 9.501791
-        },
-        {
-          "word": "help",
-          "start": 9.501791,
-          "end": 9.751791
+          "word": "foot",
+          "start": 8.509833,
+          "end": 8.759833
         }
       ],
       "voice": "en-IE-EmilyNeural"
@@ -2240,13 +2071,13 @@
     {
       "id": "pim.idle.waiting",
       "speaker": "Pim",
-      "text": "I'm Pim, and that's Pol. Once your fork's workflows are on, we'll load it with practice issues and pull requests.",
-      "duration": 7.307,
+      "text": "I'm Pim, and that's Pol. Once your session's ready, we'll load your fork with practice issues and pull requests.",
+      "duration": 7.107,
       "files": {
         "webm": "pim.idle.waiting.webm",
         "m4a": "pim.idle.waiting.m4a"
       },
-      "hash": "c42d5f7b729e1a5d",
+      "hash": "c26a1a441f78a541",
       "words": [
         {
           "word": "I'm",
@@ -2284,69 +2115,64 @@
           "end": 2.589291
         },
         {
-          "word": "fork's",
+          "word": "session's",
           "start": 2.589291,
-          "end": 2.912958
+          "end": 3.00225
         },
         {
-          "word": "workflows",
-          "start": 2.912958,
-          "end": 3.404
-        },
-        {
-          "word": "are",
-          "start": 3.404,
-          "end": 3.56025
-        },
-        {
-          "word": "on",
-          "start": 3.56025,
-          "end": 4.040166
+          "word": "ready",
+          "start": 3.00225,
+          "end": 3.582583
         },
         {
           "word": "we'll",
-          "start": 4.040166,
-          "end": 4.18525
+          "start": 3.582583,
+          "end": 3.7165
         },
         {
           "word": "load",
-          "start": 4.18525,
-          "end": 4.4085
+          "start": 3.7165,
+          "end": 3.950875
         },
         {
-          "word": "it",
-          "start": 4.4085,
-          "end": 4.508916
+          "word": "your",
+          "start": 3.950875,
+          "end": 4.073666
+        },
+        {
+          "word": "fork",
+          "start": 4.073666,
+          "end": 4.386166
         },
         {
           "word": "with",
-          "start": 4.508916,
-          "end": 4.665166
+          "start": 4.386166,
+          "end": 4.53125
         },
         {
           "word": "practice",
-          "start": 4.665166,
-          "end": 5.066958
+          "start": 4.53125,
+          "end": 4.921875
         },
         {
           "word": "issues",
-          "start": 5.066958,
-          "end": 5.491083
+          "start": 4.921875,
+          "end": 5.346
         },
         {
           "word": "and",
-          "start": 5.491083,
-          "end": 5.647333
+          "start": 5.346,
+          "end": 5.50225
         },
         {
           "word": "pull",
-          "start": 5.647333,
-          "end": 5.859375
+          "start": 5.50225,
+          "end": 5.714291
         },
         {
           "word": "requests",
-          "start": 5.859375,
-          "end": 6.109375
+          "start": 5.714291,
+          "end": 5.964291
         }
       ],
       "voice": "en-IE-ConnorNeural"
@@ -3132,135 +2958,358 @@
       "voice": "en-IE-ConnorNeural"
     },
     {
+      "id": "pol.brief.actions",
+      "speaker": "Pol",
+      "text": "First, a job on GitHub.com. Open your fork's Actions tab. New forks switch workflows off.",
+      "duration": 8.808,
+      "files": {
+        "webm": "pol.brief.actions.webm",
+        "m4a": "pol.brief.actions.m4a"
+      },
+      "hash": "6d4c888828506a51",
+      "words": [
+        {
+          "word": "First",
+          "start": 0.05,
+          "end": 0.86475
+        },
+        {
+          "word": "a",
+          "start": 0.86475,
+          "end": 0.965166
+        },
+        {
+          "word": "job",
+          "start": 0.965166,
+          "end": 1.322333
+        },
+        {
+          "word": "on",
+          "start": 1.322333,
+          "end": 1.500875
+        },
+        {
+          "word": "GitHub.com",
+          "start": 1.500875,
+          "end": 3.342416
+        },
+        {
+          "word": "Open",
+          "start": 3.342416,
+          "end": 3.733041
+        },
+        {
+          "word": "your",
+          "start": 3.733041,
+          "end": 3.92275
+        },
+        {
+          "word": "fork's",
+          "start": 3.92275,
+          "end": 4.346875
+        },
+        {
+          "word": "Actions",
+          "start": 4.346875,
+          "end": 4.826791
+        },
+        {
+          "word": "tab",
+          "start": 4.826791,
+          "end": 6.021
+        },
+        {
+          "word": "New",
+          "start": 6.021,
+          "end": 6.277666
+        },
+        {
+          "word": "forks",
+          "start": 6.277666,
+          "end": 6.746416
+        },
+        {
+          "word": "switch",
+          "start": 6.746416,
+          "end": 7.070083
+        },
+        {
+          "word": "workflows",
+          "start": 7.070083,
+          "end": 7.639291
+        },
+        {
+          "word": "off",
+          "start": 7.639291,
+          "end": 7.889291
+        }
+      ],
+      "voice": "en-IE-EmilyNeural"
+    },
+    {
+      "id": "pim.brief.actions",
+      "speaker": "Pim",
+      "text": "Select, I understand my workflows, go ahead and enable them. Then GitHub can run the practice checks.",
+      "duration": 6.807,
+      "files": {
+        "webm": "pim.brief.actions.webm",
+        "m4a": "pim.brief.actions.m4a"
+      },
+      "hash": "2694b0bd56762cd8",
+      "words": [
+        {
+          "word": "Select",
+          "start": 0.044625,
+          "end": 0.647333
+        },
+        {
+          "word": "I",
+          "start": 0.647333,
+          "end": 0.758916
+        },
+        {
+          "word": "understand",
+          "start": 0.758916,
+          "end": 1.261166
+        },
+        {
+          "word": "my",
+          "start": 1.261166,
+          "end": 1.428583
+        },
+        {
+          "word": "workflows",
+          "start": 1.428583,
+          "end": 2.176333
+        },
+        {
+          "word": "go",
+          "start": 2.176333,
+          "end": 2.332583
+        },
+        {
+          "word": "ahead",
+          "start": 2.332583,
+          "end": 2.723208
+        },
+        {
+          "word": "and",
+          "start": 2.723208,
+          "end": 2.834833
+        },
+        {
+          "word": "enable",
+          "start": 2.834833,
+          "end": 3.180791
+        },
+        {
+          "word": "them",
+          "start": 3.180791,
+          "end": 4.18525
+        },
+        {
+          "word": "Then",
+          "start": 4.18525,
+          "end": 4.397333
+        },
+        {
+          "word": "GitHub",
+          "start": 4.397333,
+          "end": 4.776791
+        },
+        {
+          "word": "can",
+          "start": 4.776791,
+          "end": 4.888375
+        },
+        {
+          "word": "run",
+          "start": 4.888375,
+          "end": 5.100458
+        },
+        {
+          "word": "the",
+          "start": 5.100458,
+          "end": 5.200875
+        },
+        {
+          "word": "practice",
+          "start": 5.200875,
+          "end": 5.580375
+        },
+        {
+          "word": "checks",
+          "start": 5.580375,
+          "end": 5.830375
+        }
+      ],
+      "voice": "en-IE-ConnorNeural"
+    },
+    {
       "id": "pol.brief.03",
       "speaker": "Pol",
-      "text": "Our crane works like the script. Turn the capstan to aim her, pull Dry-Run to preview, and read the Repository line on her sign.",
-      "duration": 8.807,
+      "text": "Then the script, in the app's Terminal. Our crane works the same way. Turn the capstan to aim her, pull Dry-Run to preview, and read the Repository line on her sign.",
+      "duration": 11.607,
       "files": {
         "webm": "pol.brief.03.webm",
         "m4a": "pol.brief.03.m4a"
       },
-      "hash": "8826da5bf2723ad2",
+      "hash": "a8bdcfe0f7ec903d",
       "words": [
         {
-          "word": "Our",
-          "start": 0.05,
-          "end": 0.284375
-        },
-        {
-          "word": "crane",
-          "start": 0.284375,
-          "end": 0.7085
-        },
-        {
-          "word": "works",
-          "start": 0.7085,
-          "end": 1.054458
-        },
-        {
-          "word": "like",
-          "start": 1.054458,
-          "end": 1.199541
+          "word": "Then",
+          "start": 0.0486659,
+          "end": 0.283041
         },
         {
           "word": "the",
-          "start": 1.199541,
-          "end": 1.2665
+          "start": 0.283041,
+          "end": 0.327666
         },
         {
           "word": "script",
-          "start": 1.2665,
-          "end": 2.616958
+          "start": 0.327666,
+          "end": 1.108916
+        },
+        {
+          "word": "in",
+          "start": 1.108916,
+          "end": 1.242875
+        },
+        {
+          "word": "the",
+          "start": 1.242875,
+          "end": 1.354458
+        },
+        {
+          "word": "app's",
+          "start": 1.354458,
+          "end": 1.678125
+        },
+        {
+          "word": "Terminal",
+          "start": 1.678125,
+          "end": 2.974125
+        },
+        {
+          "word": "Our",
+          "start": 2.974125,
+          "end": 3.186166
+        },
+        {
+          "word": "crane",
+          "start": 3.186166,
+          "end": 3.61025
+        },
+        {
+          "word": "works",
+          "start": 3.61025,
+          "end": 3.889291
+        },
+        {
+          "word": "the",
+          "start": 3.889291,
+          "end": 3.95625
+        },
+        {
+          "word": "same",
+          "start": 3.95625,
+          "end": 4.291083
+        },
+        {
+          "word": "way",
+          "start": 4.291083,
+          "end": 5.418291
         },
         {
           "word": "Turn",
-          "start": 2.616958,
-          "end": 2.940625
+          "start": 5.418291,
+          "end": 5.741958
         },
         {
           "word": "the",
-          "start": 2.940625,
-          "end": 2.98525
+          "start": 5.741958,
+          "end": 5.786625
         },
         {
           "word": "capstan",
-          "start": 2.98525,
-          "end": 3.442875
+          "start": 5.786625,
+          "end": 6.233041
         },
         {
           "word": "to",
-          "start": 3.442875,
-          "end": 3.565625
+          "start": 6.233041,
+          "end": 6.355791
         },
         {
           "word": "aim",
-          "start": 3.565625,
-          "end": 3.8
+          "start": 6.355791,
+          "end": 6.590166
         },
         {
           "word": "her",
-          "start": 3.8,
-          "end": 4.436166
+          "start": 6.590166,
+          "end": 7.226333
         },
         {
           "word": "pull",
-          "start": 4.436166,
-          "end": 4.681708
+          "start": 7.226333,
+          "end": 7.471875
         },
         {
           "word": "Dry-Run",
-          "start": 4.681708,
-          "end": 5.116958
+          "start": 7.471875,
+          "end": 7.907125
         },
         {
           "word": "to",
-          "start": 5.116958,
-          "end": 5.183916
+          "start": 7.907125,
+          "end": 7.974125
         },
         {
           "word": "preview",
-          "start": 5.183916,
-          "end": 5.976333
+          "start": 7.974125,
+          "end": 8.7665
         },
         {
           "word": "and",
-          "start": 5.976333,
-          "end": 6.14375
+          "start": 8.7665,
+          "end": 8.933916
         },
         {
           "word": "read",
-          "start": 6.14375,
-          "end": 6.3335
+          "start": 8.933916,
+          "end": 9.134833
         },
         {
           "word": "the",
-          "start": 6.3335,
-          "end": 6.411625
+          "start": 9.134833,
+          "end": 9.212958
         },
         {
           "word": "Repository",
-          "start": 6.411625,
-          "end": 6.969625
+          "start": 9.212958,
+          "end": 9.771
         },
         {
           "word": "line",
-          "start": 6.969625,
-          "end": 7.271
+          "start": 9.771,
+          "end": 10.072333
         },
         {
           "word": "on",
-          "start": 7.271,
-          "end": 7.42725
+          "start": 10.072333,
+          "end": 10.23975
         },
         {
           "word": "her",
-          "start": 7.42725,
-          "end": 7.527666
+          "start": 10.23975,
+          "end": 10.340166
         },
         {
           "word": "sign",
-          "start": 7.527666,
-          "end": 7.777666
+          "start": 10.340166,
+          "end": 10.590166
         }
       ],
       "voice": "en-IE-EmilyNeural"
@@ -3401,98 +3450,93 @@
     {
       "id": "pim.solved.01",
       "speaker": "Pim",
-      "text": "In the real course you run both commands in the app’s Terminal tab, from the repository root.",
-      "duration": 5.007,
+      "text": "In the app, you run both commands in that same Terminal tab, from the repository root.",
+      "duration": 4.907,
       "files": {
         "webm": "pim.solved.01.webm",
         "m4a": "pim.solved.01.m4a"
       },
-      "hash": "a4dff4b4e11b19a7",
+      "hash": "1b9421113be7e599",
       "words": [
         {
           "word": "In",
           "start": 0.044625,
-          "end": 0.167416
+          "end": 0.200875
         },
         {
           "word": "the",
-          "start": 0.167416,
-          "end": 0.256708
+          "start": 0.200875,
+          "end": 0.301333
         },
         {
-          "word": "real",
-          "start": 0.256708,
-          "end": 0.524541
-        },
-        {
-          "word": "course",
-          "start": 0.524541,
-          "end": 0.803583
+          "word": "app",
+          "start": 0.301333,
+          "end": 0.725458
         },
         {
           "word": "you",
-          "start": 0.803583,
-          "end": 0.926333
+          "start": 0.725458,
+          "end": 0.848208
         },
         {
           "word": "run",
-          "start": 0.926333,
-          "end": 1.138375
+          "start": 0.848208,
+          "end": 1.037958
         },
         {
           "word": "both",
-          "start": 1.138375,
-          "end": 1.361625
+          "start": 1.037958,
+          "end": 1.272333
         },
         {
           "word": "commands",
-          "start": 1.361625,
-          "end": 1.774541
+          "start": 1.272333,
+          "end": 1.674125
         },
         {
           "word": "in",
+          "start": 1.674125,
+          "end": 1.774541
+        },
+        {
+          "word": "that",
           "start": 1.774541,
-          "end": 1.863833
+          "end": 1.875
         },
         {
-          "word": "the",
-          "start": 1.863833,
-          "end": 1.964291
-        },
-        {
-          "word": "app’s",
-          "start": 1.964291,
-          "end": 2.165166
+          "word": "same",
+          "start": 1.875,
+          "end": 2.109375
         },
         {
           "word": "Terminal",
-          "start": 2.165166,
-          "end": 2.544625
+          "start": 2.109375,
+          "end": 2.4665
         },
         {
           "word": "tab",
-          "start": 2.544625,
-          "end": 3.0915
+          "start": 2.4665,
+          "end": 3.00225
         },
         {
           "word": "from",
-          "start": 3.0915,
-          "end": 3.225458
+          "start": 3.00225,
+          "end": 3.136166
         },
         {
           "word": "the",
-          "start": 3.225458,
-          "end": 3.28125
+          "start": 3.136166,
+          "end": 3.191958
         },
         {
           "word": "repository",
-          "start": 3.28125,
-          "end": 3.839291
+          "start": 3.191958,
+          "end": 3.738833
         },
         {
           "word": "root",
-          "start": 3.839291,
-          "end": 4.089290999999999
+          "start": 3.738833,
+          "end": 3.988833
         }
       ],
       "voice": "en-IE-ConnorNeural"
@@ -3595,70 +3639,6 @@
         }
       ],
       "voice": "en-IE-EmilyNeural"
-    },
-    {
-      "id": "pim.solved.02",
-      "speaker": "Pim",
-      "text": "The Harbormaster’s Trial waits at the lighthouse when you’re ready.",
-      "duration": 3.507,
-      "files": {
-        "webm": "pim.solved.02.webm",
-        "m4a": "pim.solved.02.m4a"
-      },
-      "hash": "57925797c22d3ea3",
-      "words": [
-        {
-          "word": "The",
-          "start": 0.044625,
-          "end": 0.145083
-        },
-        {
-          "word": "Harbormaster’s",
-          "start": 0.145083,
-          "end": 0.792416
-        },
-        {
-          "word": "Trial",
-          "start": 0.792416,
-          "end": 1.12725
-        },
-        {
-          "word": "waits",
-          "start": 1.12725,
-          "end": 1.43975
-        },
-        {
-          "word": "at",
-          "start": 1.43975,
-          "end": 1.551333
-        },
-        {
-          "word": "the",
-          "start": 1.551333,
-          "end": 1.640625
-        },
-        {
-          "word": "lighthouse",
-          "start": 1.640625,
-          "end": 2.087041
-        },
-        {
-          "word": "when",
-          "start": 2.087041,
-          "end": 2.254458
-        },
-        {
-          "word": "you’re",
-          "start": 2.254458,
-          "end": 2.37725
-        },
-        {
-          "word": "ready",
-          "start": 2.37725,
-          "end": 2.62725
-        }
-      ],
-      "voice": "en-IE-ConnorNeural"
     },
     {
       "id": "pol.refuse.guild.01",
@@ -4118,78 +4098,68 @@
     {
       "id": "nell.papers.03",
       "speaker": "Nell",
-      "text": "First things first: download and install the GitHub Copilot app for your system.",
-      "duration": 4.608,
+      "text": "Next, download and install the GitHub Copilot app for your system.",
+      "duration": 4.008,
       "files": {
         "webm": "nell.papers.03.webm",
         "m4a": "nell.papers.03.m4a"
       },
-      "hash": "69741cb2fadf8f06",
+      "hash": "489db1ea873583df",
       "words": [
         {
-          "word": "First",
+          "word": "Next",
           "start": 0.07,
-          "end": 0.27
-        },
-        {
-          "word": "things",
-          "start": 0.27,
-          "end": 0.55
-        },
-        {
-          "word": "first",
-          "start": 0.55,
-          "end": 1.35
+          "end": 0.63
         },
         {
           "word": "download",
-          "start": 1.35,
-          "end": 1.91
+          "start": 0.63,
+          "end": 1.11
         },
         {
           "word": "and",
-          "start": 1.91,
-          "end": 2.029
+          "start": 1.11,
+          "end": 1.27
         },
         {
           "word": "install",
-          "start": 2.029,
-          "end": 2.429
+          "start": 1.27,
+          "end": 1.63
         },
         {
           "word": "the",
-          "start": 2.429,
-          "end": 2.55
+          "start": 1.63,
+          "end": 1.79
         },
         {
           "word": "GitHub",
-          "start": 2.55,
-          "end": 2.949
+          "start": 1.79,
+          "end": 2.19
         },
         {
           "word": "Copilot",
-          "start": 2.949,
-          "end": 3.469
+          "start": 2.19,
+          "end": 2.75
         },
         {
           "word": "app",
-          "start": 3.469,
-          "end": 3.75
+          "start": 2.75,
+          "end": 3.03
         },
         {
           "word": "for",
-          "start": 3.75,
-          "end": 3.869
+          "start": 3.03,
+          "end": 3.19
         },
         {
           "word": "your",
-          "start": 3.869,
-          "end": 4.03
+          "start": 3.19,
+          "end": 3.349
         },
         {
           "word": "system",
-          "start": 4.03,
-          "end": 4.28
+          "start": 3.349,
+          "end": 3.599
         }
       ],
       "voice": "en-GB-Sonia:DragonHDLatestNeural"
@@ -4582,6 +4552,125 @@
       "voice": "en-GB-Sonia:DragonHDLatestNeural"
     },
     {
+      "id": "nell.papers.tools",
+      "speaker": "Nell",
+      "text": "You'll also need Git, Node.js, and GitHub CLI. The list's in my chest here, with where to get each one.",
+      "duration": 6.408,
+      "files": {
+        "webm": "nell.papers.tools.webm",
+        "m4a": "nell.papers.tools.m4a"
+      },
+      "hash": "52ae910d48978d8a",
+      "words": [
+        {
+          "word": "You'll",
+          "start": 0.07,
+          "end": 0.31
+        },
+        {
+          "word": "also",
+          "start": 0.31,
+          "end": 0.55
+        },
+        {
+          "word": "need",
+          "start": 0.55,
+          "end": 0.87
+        },
+        {
+          "word": "Git",
+          "start": 0.87,
+          "end": 1.31
+        },
+        {
+          "word": "Node",
+          "start": 1.31,
+          "end": 1.59
+        },
+        {
+          "word": "js",
+          "start": 1.59,
+          "end": 2.23
+        },
+        {
+          "word": "and",
+          "start": 2.23,
+          "end": 2.389
+        },
+        {
+          "word": "GitHub",
+          "start": 2.389,
+          "end": 2.829
+        },
+        {
+          "word": "CLI",
+          "start": 2.829,
+          "end": 3.71
+        },
+        {
+          "word": "The",
+          "start": 3.71,
+          "end": 3.909
+        },
+        {
+          "word": "list's",
+          "start": 3.909,
+          "end": 4.27
+        },
+        {
+          "word": "in",
+          "start": 4.27,
+          "end": 4.35
+        },
+        {
+          "word": "my",
+          "start": 4.35,
+          "end": 4.51
+        },
+        {
+          "word": "chest",
+          "start": 4.51,
+          "end": 4.87
+        },
+        {
+          "word": "here",
+          "start": 4.87,
+          "end": 5.11
+        },
+        {
+          "word": "with",
+          "start": 5.11,
+          "end": 5.27
+        },
+        {
+          "word": "where",
+          "start": 5.27,
+          "end": 5.47
+        },
+        {
+          "word": "to",
+          "start": 5.47,
+          "end": 5.55
+        },
+        {
+          "word": "get",
+          "start": 5.55,
+          "end": 5.71
+        },
+        {
+          "word": "each",
+          "start": 5.71,
+          "end": 5.91
+        },
+        {
+          "word": "one",
+          "start": 5.91,
+          "end": 6.16
+        }
+      ],
+      "voice": "en-GB-Sonia:DragonHDLatestNeural"
+    },
+    {
       "id": "nell.papers.05",
       "speaker": "Nell",
       "text": "At Connect your repositories, carry on without adding one. You’ll connect your fork shortly.",
@@ -4668,167 +4757,103 @@
     {
       "id": "nell.papers.06",
       "speaker": "Nell",
-      "text": "Then the app asks you to pick a theme. Here, you pick your sails. The palette stand’s right by my door.",
-      "duration": 7.008,
+      "text": "Then pick a theme and select Finish. Here, your theme's your sails. The palette stand's right beside me.",
+      "duration": 6.008,
       "files": {
         "webm": "nell.papers.06.webm",
         "m4a": "nell.papers.06.m4a"
       },
-      "hash": "24fa6f6c07465e96",
+      "hash": "adf6d12c8c22581a",
       "words": [
         {
           "word": "Then",
           "start": 0.07,
-          "end": 0.27
-        },
-        {
-          "word": "the",
-          "start": 0.27,
-          "end": 0.43
-        },
-        {
-          "word": "app",
-          "start": 0.43,
-          "end": 0.71
-        },
-        {
-          "word": "asks",
-          "start": 0.71,
-          "end": 1.15
-        },
-        {
-          "word": "you",
-          "start": 1.15,
-          "end": 1.27
-        },
-        {
-          "word": "to",
-          "start": 1.27,
-          "end": 1.39
+          "end": 0.23
         },
         {
           "word": "pick",
-          "start": 1.39,
-          "end": 1.59
+          "start": 0.23,
+          "end": 0.39
         },
         {
           "word": "a",
-          "start": 1.59,
-          "end": 1.63
+          "start": 0.39,
+          "end": 0.43
         },
         {
           "word": "theme",
-          "start": 1.63,
-          "end": 2.59
+          "start": 0.43,
+          "end": 0.79
+        },
+        {
+          "word": "and",
+          "start": 0.79,
+          "end": 0.95
+        },
+        {
+          "word": "select",
+          "start": 0.95,
+          "end": 1.31
+        },
+        {
+          "word": "Finish",
+          "start": 1.31,
+          "end": 1.75
         },
         {
           "word": "Here",
-          "start": 2.59,
-          "end": 3.27
-        },
-        {
-          "word": "you",
-          "start": 3.27,
-          "end": 3.429
-        },
-        {
-          "word": "pick",
-          "start": 3.429,
-          "end": 3.59
+          "start": 1.75,
+          "end": 2.789
         },
         {
           "word": "your",
-          "start": 3.59,
-          "end": 3.75
+          "start": 2.789,
+          "end": 2.989
+        },
+        {
+          "word": "theme's",
+          "start": 2.989,
+          "end": 3.389
+        },
+        {
+          "word": "your",
+          "start": 3.389,
+          "end": 3.55
         },
         {
           "word": "sails",
-          "start": 3.75,
-          "end": 4.83
+          "start": 3.55,
+          "end": 4.35
         },
         {
           "word": "The",
-          "start": 4.83,
-          "end": 5.07
+          "start": 4.35,
+          "end": 4.55
         },
         {
           "word": "palette",
-          "start": 5.07,
-          "end": 5.47
+          "start": 4.55,
+          "end": 4.87
         },
         {
-          "word": "stand’s",
-          "start": 5.47,
-          "end": 5.83
-        },
-        {
-          "word": "right",
-          "start": 5.83,
-          "end": 6.07
-        },
-        {
-          "word": "by",
-          "start": 6.07,
-          "end": 6.27
-        },
-        {
-          "word": "my",
-          "start": 6.27,
-          "end": 6.43
-        },
-        {
-          "word": "door",
-          "start": 6.43,
-          "end": 6.68
-        }
-      ],
-      "voice": "en-GB-Sonia:DragonHDLatestNeural"
-    },
-    {
-      "id": "nell.chest.01",
-      "speaker": "Nell",
-      "text": "The chest’s right beside my door, Captain.",
-      "duration": 1.958,
-      "files": {
-        "webm": "nell.chest.01.webm",
-        "m4a": "nell.chest.01.m4a"
-      },
-      "hash": "79a7d4254e657cba",
-      "words": [
-        {
-          "word": "The",
-          "start": 0.07,
-          "end": 0.19
-        },
-        {
-          "word": "chest’s",
-          "start": 0.19,
-          "end": 0.47
+          "word": "stand's",
+          "start": 4.87,
+          "end": 5.19
         },
         {
           "word": "right",
-          "start": 0.47,
-          "end": 0.71
+          "start": 5.19,
+          "end": 5.39
         },
         {
           "word": "beside",
-          "start": 0.71,
-          "end": 0.99
+          "start": 5.39,
+          "end": 5.75
         },
         {
-          "word": "my",
-          "start": 0.99,
-          "end": 1.15
-        },
-        {
-          "word": "door",
-          "start": 1.15,
-          "end": 1.35
-        },
-        {
-          "word": "Captain",
-          "start": 1.35,
-          "end": 1.6
+          "word": "me",
+          "start": 5.75,
+          "end": 6
         }
       ],
       "voice": "en-GB-Sonia:DragonHDLatestNeural"
@@ -5499,83 +5524,68 @@
     {
       "id": "ezra.fork.04",
       "speaker": "Ezra",
-      "text": "Bo, the quartermaster, will get your deck ready. You’ll find him at the storehouse.",
-      "duration": 4.708,
+      "text": "Next, your session. Bo's right beside me, at his gear rack.",
+      "duration": 4.008,
       "files": {
         "webm": "ezra.fork.04.webm",
         "m4a": "ezra.fork.04.m4a"
       },
-      "hash": "57c29dd84459b1c9",
+      "hash": "d24f067f187a628a",
       "words": [
         {
-          "word": "Bo",
+          "word": "Next",
           "start": 0.07,
-          "end": 0.27
-        },
-        {
-          "word": "the",
-          "start": 0.27,
-          "end": 0.47
-        },
-        {
-          "word": "quartermaster",
-          "start": 0.47,
-          "end": 1.35
-        },
-        {
-          "word": "will",
-          "start": 1.35,
-          "end": 1.59
-        },
-        {
-          "word": "get",
-          "start": 1.59,
-          "end": 1.71
+          "end": 0.43
         },
         {
           "word": "your",
-          "start": 1.71,
-          "end": 1.91
+          "start": 0.43,
+          "end": 0.63
         },
         {
-          "word": "deck",
-          "start": 1.91,
-          "end": 2.23
+          "word": "session",
+          "start": 0.63,
+          "end": 1.75
         },
         {
-          "word": "ready",
-          "start": 2.23,
-          "end": 3.11
+          "word": "Bo's",
+          "start": 1.75,
+          "end": 2.07
         },
         {
-          "word": "You’ll",
-          "start": 3.11,
-          "end": 3.429
+          "word": "right",
+          "start": 2.07,
+          "end": 2.309
         },
         {
-          "word": "find",
-          "start": 3.429,
-          "end": 3.63
+          "word": "beside",
+          "start": 2.309,
+          "end": 2.71
         },
         {
-          "word": "him",
-          "start": 3.63,
-          "end": 3.75
+          "word": "me",
+          "start": 2.71,
+          "end": 2.989
         },
         {
           "word": "at",
-          "start": 3.75,
-          "end": 3.829
+          "start": 2.989,
+          "end": 3.19
         },
         {
-          "word": "the",
-          "start": 3.829,
-          "end": 3.949
+          "word": "his",
+          "start": 3.19,
+          "end": 3.349
         },
         {
-          "word": "storehouse",
-          "start": 3.949,
-          "end": 4.199
+          "word": "gear",
+          "start": 3.349,
+          "end": 3.59
+        },
+        {
+          "word": "rack",
+          "start": 3.59,
+          "end": 3.84
         }
       ],
       "voice": "en-GB-Ollie:DragonHDLatestNeural"
@@ -5890,173 +5900,103 @@
     {
       "id": "bo.gear.brief.02",
       "speaker": "Bo",
-      "text": "Commands run there, and every tool gets a version check. My gear rack stands in for it: compass for Git, lantern for Node.js, rope for npm, and spyglass for GitHub CLI.",
-      "duration": 11.608,
+      "text": "Commands run there. Start with the four version checks on my rack. Each should print a version number.",
+      "duration": 6.408,
       "files": {
         "webm": "bo.gear.brief.02.webm",
         "m4a": "bo.gear.brief.02.m4a"
       },
-      "hash": "c56bc3f29c95a014",
+      "hash": "fa0f5892ce17884a",
       "words": [
         {
           "word": "Commands",
           "start": 0.07,
-          "end": 0.47
+          "end": 0.51
         },
         {
           "word": "run",
-          "start": 0.47,
-          "end": 0.67
+          "start": 0.51,
+          "end": 0.75
         },
         {
           "word": "there",
-          "start": 0.67,
-          "end": 0.99
+          "start": 0.75,
+          "end": 1.63
         },
         {
-          "word": "and",
-          "start": 0.99,
-          "end": 1.15
-        },
-        {
-          "word": "every",
-          "start": 1.15,
-          "end": 1.47
-        },
-        {
-          "word": "tool",
-          "start": 1.47,
-          "end": 1.79
-        },
-        {
-          "word": "gets",
-          "start": 1.79,
+          "word": "Start",
+          "start": 1.63,
           "end": 1.99
         },
         {
-          "word": "a",
+          "word": "with",
           "start": 1.99,
-          "end": 2.07
+          "end": 2.15
+        },
+        {
+          "word": "the",
+          "start": 2.15,
+          "end": 2.27
+        },
+        {
+          "word": "four",
+          "start": 2.27,
+          "end": 2.55
         },
         {
           "word": "version",
-          "start": 2.07,
-          "end": 2.469
+          "start": 2.55,
+          "end": 2.909
         },
         {
-          "word": "check",
-          "start": 2.469,
-          "end": 3.03
+          "word": "checks",
+          "start": 2.909,
+          "end": 3.27
         },
         {
-          "word": "My",
-          "start": 3.03,
-          "end": 3.309
+          "word": "on",
+          "start": 3.27,
+          "end": 3.429
         },
         {
-          "word": "gear",
-          "start": 3.309,
-          "end": 3.59
+          "word": "my",
+          "start": 3.429,
+          "end": 3.67
         },
         {
           "word": "rack",
-          "start": 3.59,
-          "end": 3.869
+          "start": 3.67,
+          "end": 4.51
         },
         {
-          "word": "stands",
-          "start": 3.869,
-          "end": 4.19
+          "word": "Each",
+          "start": 4.51,
+          "end": 4.79
         },
         {
-          "word": "in",
-          "start": 4.19,
-          "end": 4.35
+          "word": "should",
+          "start": 4.79,
+          "end": 5.03
         },
         {
-          "word": "for",
-          "start": 4.35,
-          "end": 4.59
+          "word": "print",
+          "start": 5.03,
+          "end": 5.31
         },
         {
-          "word": "it",
-          "start": 4.59,
-          "end": 4.91
+          "word": "a",
+          "start": 5.31,
+          "end": 5.35
         },
         {
-          "word": "compass",
-          "start": 4.91,
-          "end": 5.39
+          "word": "version",
+          "start": 5.35,
+          "end": 5.79
         },
         {
-          "word": "for",
-          "start": 5.39,
-          "end": 5.51
-        },
-        {
-          "word": "Git",
-          "start": 5.51,
-          "end": 5.99
-        },
-        {
-          "word": "lantern",
-          "start": 5.99,
-          "end": 6.51
-        },
-        {
-          "word": "for",
-          "start": 6.51,
-          "end": 6.67
-        },
-        {
-          "word": "Node",
-          "start": 6.67,
-          "end": 7.31
-        },
-        {
-          "word": "js",
-          "start": 7.31,
-          "end": 8.109
-        },
-        {
-          "word": "rope",
-          "start": 8.109,
-          "end": 8.51
-        },
-        {
-          "word": "for",
-          "start": 8.51,
-          "end": 8.709
-        },
-        {
-          "word": "npm",
-          "start": 8.709,
-          "end": 9.35
-        },
-        {
-          "word": "and",
-          "start": 9.35,
-          "end": 9.549
-        },
-        {
-          "word": "spyglass",
-          "start": 9.549,
-          "end": 10.229
-        },
-        {
-          "word": "for",
-          "start": 10.229,
-          "end": 10.35
-        },
-        {
-          "word": "GitHub",
-          "start": 10.35,
-          "end": 10.75
-        },
-        {
-          "word": "CLI",
-          "start": 10.75,
-          "end": 11
+          "word": "number",
+          "start": 5.79,
+          "end": 6.04
         }
       ],
       "voice": "en-GB-Ryan:DragonHDLatestNeural"
@@ -6064,468 +6004,88 @@
     {
       "id": "bo.gear.brief.03",
       "speaker": "Bo",
-      "text": "Run the checks at my rack, Captain. Each one should print a version number.",
-      "duration": 4.008,
+      "text": "If one says command not found, install just that tool, then run the checks again.",
+      "duration": 4.908,
       "files": {
         "webm": "bo.gear.brief.03.webm",
         "m4a": "bo.gear.brief.03.m4a"
       },
-      "hash": "253bf9011151a3a0",
+      "hash": "f816ec43e1335d08",
       "words": [
         {
-          "word": "Run",
+          "word": "If",
           "start": 0.07,
-          "end": 0.27
-        },
-        {
-          "word": "the",
-          "start": 0.27,
-          "end": 0.39
-        },
-        {
-          "word": "checks",
-          "start": 0.39,
-          "end": 0.67
-        },
-        {
-          "word": "at",
-          "start": 0.67,
-          "end": 0.79
-        },
-        {
-          "word": "my",
-          "start": 0.79,
-          "end": 1.03
-        },
-        {
-          "word": "rack",
-          "start": 1.03,
-          "end": 1.31
-        },
-        {
-          "word": "Captain",
-          "start": 1.31,
-          "end": 1.99
-        },
-        {
-          "word": "Each",
-          "start": 1.99,
-          "end": 2.309
+          "end": 0.23
         },
         {
           "word": "one",
-          "start": 2.309,
-          "end": 2.469
-        },
-        {
-          "word": "should",
-          "start": 2.469,
-          "end": 2.71
-        },
-        {
-          "word": "print",
-          "start": 2.71,
-          "end": 2.949
-        },
-        {
-          "word": "a",
-          "start": 2.949,
-          "end": 2.989
-        },
-        {
-          "word": "version",
-          "start": 2.989,
-          "end": 3.389
-        },
-        {
-          "word": "number",
-          "start": 3.389,
-          "end": 3.639
-        }
-      ],
-      "voice": "en-GB-Ryan:DragonHDLatestNeural"
-    },
-    {
-      "id": "bo.gear.reminder.01",
-      "speaker": "Bo",
-      "text": "Run the version checks at my rack, Captain. Each one should print a version number.",
-      "duration": 4.708,
-      "files": {
-        "webm": "bo.gear.reminder.01.webm",
-        "m4a": "bo.gear.reminder.01.m4a"
-      },
-      "hash": "be5eca229ce42943",
-      "words": [
-        {
-          "word": "Run",
-          "start": 0.07,
-          "end": 0.27
-        },
-        {
-          "word": "the",
-          "start": 0.27,
-          "end": 0.39
-        },
-        {
-          "word": "version",
-          "start": 0.39,
-          "end": 0.75
-        },
-        {
-          "word": "checks",
-          "start": 0.75,
-          "end": 1.07
-        },
-        {
-          "word": "at",
-          "start": 1.07,
-          "end": 1.19
-        },
-        {
-          "word": "my",
-          "start": 1.19,
-          "end": 1.47
-        },
-        {
-          "word": "rack",
-          "start": 1.47,
-          "end": 1.83
-        },
-        {
-          "word": "Captain",
-          "start": 1.83,
-          "end": 2.75
-        },
-        {
-          "word": "Each",
-          "start": 2.75,
-          "end": 3.03
-        },
-        {
-          "word": "one",
-          "start": 3.03,
-          "end": 3.19
-        },
-        {
-          "word": "should",
-          "start": 3.19,
-          "end": 3.429
-        },
-        {
-          "word": "print",
-          "start": 3.429,
-          "end": 3.67
-        },
-        {
-          "word": "a",
-          "start": 3.67,
-          "end": 3.71
-        },
-        {
-          "word": "version",
-          "start": 3.71,
-          "end": 4.11
-        },
-        {
-          "word": "number",
-          "start": 4.11,
-          "end": 4.36
-        }
-      ],
-      "voice": "en-GB-Ryan:DragonHDLatestNeural"
-    },
-    {
-      "id": "bo.ledger.reminder.01",
-      "speaker": "Bo",
-      "text": "Read my ledger there on the lectern. Whose signature is on it?",
-      "duration": 3.408,
-      "files": {
-        "webm": "bo.ledger.reminder.01.webm",
-        "m4a": "bo.ledger.reminder.01.m4a"
-      },
-      "hash": "8b28688d9b1c2709",
-      "words": [
-        {
-          "word": "Read",
-          "start": 0.07,
-          "end": 0.27
-        },
-        {
-          "word": "my",
-          "start": 0.27,
+          "start": 0.23,
           "end": 0.47
         },
         {
-          "word": "ledger",
+          "word": "says",
           "start": 0.47,
-          "end": 0.75
+          "end": 0.67
         },
         {
-          "word": "there",
-          "start": 0.75,
-          "end": 1.03
-        },
-        {
-          "word": "on",
-          "start": 1.03,
-          "end": 1.11
-        },
-        {
-          "word": "the",
-          "start": 1.11,
-          "end": 1.23
-        },
-        {
-          "word": "lectern",
-          "start": 1.23,
-          "end": 1.95
-        },
-        {
-          "word": "Whose",
-          "start": 1.95,
-          "end": 2.23
-        },
-        {
-          "word": "signature",
-          "start": 2.23,
-          "end": 2.75
-        },
-        {
-          "word": "is",
-          "start": 2.75,
-          "end": 2.869
-        },
-        {
-          "word": "on",
-          "start": 2.869,
-          "end": 2.989
-        },
-        {
-          "word": "it",
-          "start": 2.989,
-          "end": 3.239
-        }
-      ],
-      "voice": "en-GB-Ryan:DragonHDLatestNeural"
-    },
-    {
-      "id": "bo.gear.missing.01",
-      "speaker": "Bo",
-      "text": "“Command not found.” No lens, no GitHub CLI. That one’s missing.",
-      "duration": 5.408,
-      "files": {
-        "webm": "bo.gear.missing.01.webm",
-        "m4a": "bo.gear.missing.01.m4a"
-      },
-      "hash": "5b71b52bcfca16b3",
-      "words": [
-        {
-          "word": "Command",
-          "start": 0.07,
-          "end": 0.59
+          "word": "command",
+          "start": 0.67,
+          "end": 1.15
         },
         {
           "word": "not",
-          "start": 0.59,
-          "end": 0.87
+          "start": 1.15,
+          "end": 1.43
         },
         {
           "word": "found",
-          "start": 0.87,
-          "end": 1.67
+          "start": 1.43,
+          "end": 1.95
         },
         {
-          "word": "No",
-          "start": 1.67,
-          "end": 2.029
-        },
-        {
-          "word": "lens",
-          "start": 2.029,
+          "word": "install",
+          "start": 1.95,
           "end": 2.469
         },
         {
-          "word": "no",
+          "word": "just",
           "start": 2.469,
           "end": 2.75
         },
         {
-          "word": "GitHub",
+          "word": "that",
           "start": 2.75,
-          "end": 3.19
-        },
-        {
-          "word": "CLI",
-          "start": 3.19,
-          "end": 4.31
-        },
-        {
-          "word": "That",
-          "start": 4.31,
-          "end": 4.55
-        },
-        {
-          "word": "one’s",
-          "start": 4.55,
-          "end": 4.83
-        },
-        {
-          "word": "missing",
-          "start": 4.83,
-          "end": 5.08
-        }
-      ],
-      "voice": "en-GB-Ryan:DragonHDLatestNeural"
-    },
-    {
-      "id": "bo.gear.missing.02",
-      "speaker": "Bo",
-      "text": "Only install what’s missing, then check again. The chandler at the market stall keeps spare lenses.",
-      "duration": 5.808,
-      "files": {
-        "webm": "bo.gear.missing.02.webm",
-        "m4a": "bo.gear.missing.02.m4a"
-      },
-      "hash": "2c67a36df9e2d303",
-      "words": [
-        {
-          "word": "Only",
-          "start": 0.07,
-          "end": 0.31
-        },
-        {
-          "word": "install",
-          "start": 0.31,
-          "end": 0.79
-        },
-        {
-          "word": "what’s",
-          "start": 0.79,
-          "end": 1.07
-        },
-        {
-          "word": "missing",
-          "start": 1.07,
-          "end": 1.51
-        },
-        {
-          "word": "then",
-          "start": 1.51,
-          "end": 1.71
-        },
-        {
-          "word": "check",
-          "start": 1.71,
-          "end": 1.99
-        },
-        {
-          "word": "again",
-          "start": 1.99,
-          "end": 2.869
-        },
-        {
-          "word": "The",
-          "start": 2.869,
-          "end": 3.03
-        },
-        {
-          "word": "chandler",
-          "start": 3.03,
-          "end": 3.469
-        },
-        {
-          "word": "at",
-          "start": 3.469,
-          "end": 3.55
-        },
-        {
-          "word": "the",
-          "start": 3.55,
-          "end": 3.71
-        },
-        {
-          "word": "market",
-          "start": 3.71,
-          "end": 4.07
-        },
-        {
-          "word": "stall",
-          "start": 4.07,
-          "end": 4.51
-        },
-        {
-          "word": "keeps",
-          "start": 4.51,
-          "end": 4.75
-        },
-        {
-          "word": "spare",
-          "start": 4.75,
-          "end": 5.11
-        },
-        {
-          "word": "lenses",
-          "start": 5.11,
-          "end": 5.36
-        }
-      ],
-      "voice": "en-GB-Ryan:DragonHDLatestNeural"
-    },
-    {
-      "id": "bo.gear.checked.01",
-      "speaker": "Bo",
-      "text": "Four checks, four versions. That's a ship I'd sail.",
-      "duration": 3.808,
-      "files": {
-        "webm": "bo.gear.checked.01.webm",
-        "m4a": "bo.gear.checked.01.m4a"
-      },
-      "hash": "60861765a1168040",
-      "words": [
-        {
-          "word": "Four",
-          "start": 0.07,
-          "end": 0.31
-        },
-        {
-          "word": "checks",
-          "start": 0.31,
-          "end": 0.83
-        },
-        {
-          "word": "four",
-          "start": 0.83,
-          "end": 1.23
-        },
-        {
-          "word": "versions",
-          "start": 1.23,
-          "end": 2.27
-        },
-        {
-          "word": "That's",
-          "start": 2.27,
-          "end": 2.55
-        },
-        {
-          "word": "a",
-          "start": 2.55,
-          "end": 2.59
-        },
-        {
-          "word": "ship",
-          "start": 2.59,
           "end": 2.949
         },
         {
-          "word": "I'd",
+          "word": "tool",
           "start": 2.949,
-          "end": 3.19
+          "end": 3.51
         },
         {
-          "word": "sail",
-          "start": 3.19,
-          "end": 3.44
+          "word": "then",
+          "start": 3.51,
+          "end": 3.71
+        },
+        {
+          "word": "run",
+          "start": 3.71,
+          "end": 3.909
+        },
+        {
+          "word": "the",
+          "start": 3.909,
+          "end": 4.03
+        },
+        {
+          "word": "checks",
+          "start": 4.03,
+          "end": 4.31
+        },
+        {
+          "word": "again",
+          "start": 4.31,
+          "end": 4.56
         }
       ],
       "voice": "en-GB-Ryan:DragonHDLatestNeural"
@@ -6533,13 +6093,13 @@
     {
       "id": "bo.gear.checked.02",
       "speaker": "Bo",
-      "text": "One more thing. GitHub CLI has its own sign-in, separate from the app. Read my ledger, there on the lectern.",
-      "duration": 7.208,
+      "text": "One more thing. GitHub CLI has its own sign-in, separate from the app. Run gh auth status, and make sure it shows the account that owns your fork.",
+      "duration": 9.308,
       "files": {
         "webm": "bo.gear.checked.02.webm",
         "m4a": "bo.gear.checked.02.m4a"
       },
-      "hash": "d4187218a0a7aa54",
+      "hash": "888d52e90d8f3360",
       "words": [
         {
           "word": "One",
@@ -6549,235 +6109,142 @@
         {
           "word": "more",
           "start": 0.27,
-          "end": 0.47
+          "end": 0.43
         },
         {
           "word": "thing",
-          "start": 0.47,
-          "end": 0.75
+          "start": 0.43,
+          "end": 1.27
         },
         {
           "word": "GitHub",
-          "start": 0.75,
-          "end": 1.63
+          "start": 1.27,
+          "end": 1.71
         },
         {
           "word": "CLI",
-          "start": 1.63,
-          "end": 2.27
+          "start": 1.71,
+          "end": 2.309
         },
         {
           "word": "has",
-          "start": 2.27,
-          "end": 2.469
+          "start": 2.309,
+          "end": 2.51
         },
         {
           "word": "its",
-          "start": 2.469,
-          "end": 2.63
+          "start": 2.51,
+          "end": 2.67
         },
         {
           "word": "own",
-          "start": 2.63,
-          "end": 2.829
+          "start": 2.67,
+          "end": 2.869
         },
         {
           "word": "sign-in",
-          "start": 2.829,
-          "end": 3.469
+          "start": 2.869,
+          "end": 3.429
         },
         {
           "word": "separate",
-          "start": 3.469,
-          "end": 3.869
+          "start": 3.429,
+          "end": 3.829
         },
         {
           "word": "from",
-          "start": 3.869,
-          "end": 4.03
+          "start": 3.829,
+          "end": 3.989
         },
         {
           "word": "the",
-          "start": 4.03,
-          "end": 4.19
+          "start": 3.989,
+          "end": 4.15
         },
         {
           "word": "app.",
-          "start": 4.19,
-          "end": 4.91
+          "start": 4.15,
+          "end": 4.83
         },
         {
-          "word": "Read",
-          "start": 4.91,
-          "end": 5.23
+          "word": "Run",
+          "start": 4.83,
+          "end": 5.15
         },
         {
-          "word": "my",
-          "start": 5.23,
-          "end": 5.43
+          "word": "G",
+          "start": 5.15,
+          "end": 5.51
         },
         {
-          "word": "ledger",
-          "start": 5.43,
-          "end": 5.87
+          "word": "H",
+          "start": 5.51,
+          "end": 5.75
         },
         {
-          "word": "there",
-          "start": 5.87,
-          "end": 6.27
+          "word": "auth",
+          "start": 5.75,
+          "end": 6.03
         },
         {
-          "word": "on",
-          "start": 6.27,
-          "end": 6.43
-        },
-        {
-          "word": "the",
-          "start": 6.43,
+          "word": "status",
+          "start": 6.03,
           "end": 6.55
         },
         {
-          "word": "lectern",
-          "start": 6.55,
-          "end": 6.8
-        }
-      ],
-      "voice": "en-GB-Ryan:DragonHDLatestNeural"
-    },
-    {
-      "id": "bo.ledger.01",
-      "speaker": "Bo",
-      "text": "Logged in as someone-else? That’s not your signature, Captain.",
-      "duration": 3.408,
-      "files": {
-        "webm": "bo.ledger.01.webm",
-        "m4a": "bo.ledger.01.m4a"
-      },
-      "hash": "6857b917f75e929b",
-      "words": [
-        {
-          "word": "Logged",
-          "start": 0.07,
-          "end": 0.35
-        },
-        {
-          "word": "in",
-          "start": 0.35,
-          "end": 0.43
-        },
-        {
-          "word": "as",
-          "start": 0.43,
-          "end": 0.55
-        },
-        {
-          "word": "someone-else",
-          "start": 0.55,
-          "end": 1.59
-        },
-        {
-          "word": "That’s",
-          "start": 1.59,
-          "end": 1.87
-        },
-        {
-          "word": "not",
-          "start": 1.87,
-          "end": 2.07
-        },
-        {
-          "word": "your",
-          "start": 2.07,
-          "end": 2.27
-        },
-        {
-          "word": "signature",
-          "start": 2.27,
-          "end": 2.75
-        },
-        {
-          "word": "Captain",
-          "start": 2.75,
-          "end": 3
-        }
-      ],
-      "voice": "en-GB-Ryan:DragonHDLatestNeural"
-    },
-    {
-      "id": "bo.signed.01",
-      "speaker": "Bo",
-      "text": "Logged in as you. Deck’s ready, gear’s checked, and your signature’s your own.",
-      "duration": 4.408,
-      "files": {
-        "webm": "bo.signed.01.webm",
-        "m4a": "bo.signed.01.m4a"
-      },
-      "hash": "71a14381c379c19c",
-      "words": [
-        {
-          "word": "Logged",
-          "start": 0.07,
-          "end": 0.43
-        },
-        {
-          "word": "in",
-          "start": 0.43,
-          "end": 0.51
-        },
-        {
-          "word": "as",
-          "start": 0.51,
-          "end": 0.63
-        },
-        {
-          "word": "you",
-          "start": 0.63,
-          "end": 0.95
-        },
-        {
-          "word": "Deck’s",
-          "start": 0.95,
-          "end": 1.35
-        },
-        {
-          "word": "ready",
-          "start": 1.35,
-          "end": 1.83
-        },
-        {
-          "word": "gear’s",
-          "start": 1.83,
-          "end": 2.27
-        },
-        {
-          "word": "checked",
-          "start": 2.27,
-          "end": 2.789
-        },
-        {
           "word": "and",
-          "start": 2.789,
-          "end": 2.949
+          "start": 6.55,
+          "end": 6.75
+        },
+        {
+          "word": "make",
+          "start": 6.75,
+          "end": 6.91
+        },
+        {
+          "word": "sure",
+          "start": 6.91,
+          "end": 7.19
+        },
+        {
+          "word": "it",
+          "start": 7.19,
+          "end": 7.27
+        },
+        {
+          "word": "shows",
+          "start": 7.27,
+          "end": 7.55
+        },
+        {
+          "word": "the",
+          "start": 7.55,
+          "end": 7.71
+        },
+        {
+          "word": "account",
+          "start": 7.71,
+          "end": 8.029
+        },
+        {
+          "word": "that",
+          "start": 8.029,
+          "end": 8.229
+        },
+        {
+          "word": "owns",
+          "start": 8.229,
+          "end": 8.469
         },
         {
           "word": "your",
-          "start": 2.949,
-          "end": 3.15
+          "start": 8.469,
+          "end": 8.629
         },
         {
-          "word": "signature’s",
-          "start": 3.15,
-          "end": 3.71
-        },
-        {
-          "word": "your",
-          "start": 3.71,
-          "end": 4.19
-        },
-        {
-          "word": "own",
-          "start": 4.19,
-          "end": 4.408
+          "word": "fork",
+          "start": 8.629,
+          "end": 8.879
         }
       ],
       "voice": "en-GB-Ryan:DragonHDLatestNeural"
@@ -6785,133 +6252,133 @@
     {
       "id": "bo.signed.02",
       "speaker": "Bo",
-      "text": "One more job before the practice work: Suri Okoye at the mill race, past the storehouse. Her wheel’s been dry since your fork arrived.",
-      "duration": 8.008,
+      "text": "Deck's ready, and your gear checks out. Pim and Pol add the practice items next, at the crane at the end of the pier.",
+      "duration": 6.908,
       "files": {
         "webm": "bo.signed.02.webm",
         "m4a": "bo.signed.02.m4a"
       },
-      "hash": "989fb13c7c4458d3",
+      "hash": "62e7eff94e547c7e",
       "words": [
         {
-          "word": "One",
+          "word": "Deck's",
           "start": 0.07,
-          "end": 0.27
+          "end": 0.35
         },
         {
-          "word": "more",
-          "start": 0.27,
-          "end": 0.47
+          "word": "ready",
+          "start": 0.35,
+          "end": 0.75
         },
         {
-          "word": "job",
-          "start": 0.47,
-          "end": 0.67
-        },
-        {
-          "word": "before",
-          "start": 0.67,
-          "end": 1.03
-        },
-        {
-          "word": "the",
-          "start": 1.03,
-          "end": 1.15
-        },
-        {
-          "word": "practice",
-          "start": 1.15,
-          "end": 1.51
-        },
-        {
-          "word": "work",
-          "start": 1.51,
-          "end": 2.11
-        },
-        {
-          "word": "Suri",
-          "start": 2.11,
-          "end": 2.55
-        },
-        {
-          "word": "Okoye",
-          "start": 2.55,
-          "end": 2.989
-        },
-        {
-          "word": "at",
-          "start": 2.989,
-          "end": 3.23
-        },
-        {
-          "word": "the",
-          "start": 3.23,
-          "end": 3.349
-        },
-        {
-          "word": "mill",
-          "start": 3.349,
-          "end": 3.59
-        },
-        {
-          "word": "race",
-          "start": 3.59,
-          "end": 4.07
-        },
-        {
-          "word": "past",
-          "start": 4.07,
-          "end": 4.43
-        },
-        {
-          "word": "the",
-          "start": 4.43,
-          "end": 4.55
-        },
-        {
-          "word": "storehouse",
-          "start": 4.55,
-          "end": 5.51
-        },
-        {
-          "word": "Her",
-          "start": 5.51,
-          "end": 5.75
-        },
-        {
-          "word": "wheel’s",
-          "start": 5.75,
-          "end": 6.11
-        },
-        {
-          "word": "been",
-          "start": 6.11,
-          "end": 6.31
-        },
-        {
-          "word": "dry",
-          "start": 6.31,
-          "end": 6.51
-        },
-        {
-          "word": "since",
-          "start": 6.51,
-          "end": 6.91
+          "word": "and",
+          "start": 0.75,
+          "end": 0.91
         },
         {
           "word": "your",
-          "start": 6.91,
-          "end": 7.07
+          "start": 0.91,
+          "end": 1.15
         },
         {
-          "word": "fork",
-          "start": 7.07,
-          "end": 7.39
+          "word": "gear",
+          "start": 1.15,
+          "end": 1.43
         },
         {
-          "word": "arrived",
-          "start": 7.39,
-          "end": 7.64
+          "word": "checks",
+          "start": 1.43,
+          "end": 1.75
+        },
+        {
+          "word": "out",
+          "start": 1.75,
+          "end": 2.63
+        },
+        {
+          "word": "Pim",
+          "start": 2.63,
+          "end": 2.949
+        },
+        {
+          "word": "and",
+          "start": 2.949,
+          "end": 3.15
+        },
+        {
+          "word": "Pol",
+          "start": 3.15,
+          "end": 3.469
+        },
+        {
+          "word": "add",
+          "start": 3.469,
+          "end": 3.59
+        },
+        {
+          "word": "the",
+          "start": 3.59,
+          "end": 3.75
+        },
+        {
+          "word": "practice",
+          "start": 3.75,
+          "end": 4.15
+        },
+        {
+          "word": "items",
+          "start": 4.15,
+          "end": 4.51
+        },
+        {
+          "word": "next",
+          "start": 4.51,
+          "end": 5.07
+        },
+        {
+          "word": "at",
+          "start": 5.07,
+          "end": 5.19
+        },
+        {
+          "word": "the",
+          "start": 5.19,
+          "end": 5.31
+        },
+        {
+          "word": "crane",
+          "start": 5.31,
+          "end": 5.75
+        },
+        {
+          "word": "at",
+          "start": 5.75,
+          "end": 5.87
+        },
+        {
+          "word": "the",
+          "start": 5.87,
+          "end": 5.99
+        },
+        {
+          "word": "end",
+          "start": 5.99,
+          "end": 6.19
+        },
+        {
+          "word": "of",
+          "start": 6.19,
+          "end": 6.31
+        },
+        {
+          "word": "the",
+          "start": 6.31,
+          "end": 6.43
+        },
+        {
+          "word": "pier",
+          "start": 6.43,
+          "end": 6.68
         }
       ],
       "voice": "en-GB-Ryan:DragonHDLatestNeural"
@@ -7632,13 +7099,13 @@
     {
       "id": "juno.done.01",
       "speaker": "Juno",
-      "text": "The crew knows the ship now. The Harbormaster’s Trial waits at the lighthouse.",
-      "duration": 5.408,
+      "text": "The crew knows the ship now. Nell's waiting by your bow with the Harbormaster's Trial.",
+      "duration": 5.608,
       "files": {
         "webm": "juno.done.01.webm",
         "m4a": "juno.done.01.m4a"
       },
-      "hash": "1196c31e5a692c60",
+      "hash": "1caf6dfef1f8a9b9",
       "words": [
         {
           "word": "The",
@@ -7653,57 +7120,67 @@
         {
           "word": "knows",
           "start": 0.47,
-          "end": 0.83
+          "end": 0.87
         },
         {
           "word": "the",
-          "start": 0.83,
+          "start": 0.87,
           "end": 0.99
         },
         {
           "word": "ship",
           "start": 0.99,
-          "end": 1.31
+          "end": 1.27
         },
         {
           "word": "now",
-          "start": 1.31,
+          "start": 1.27,
           "end": 2.23
         },
         {
-          "word": "The",
+          "word": "Nell's",
           "start": 2.23,
-          "end": 2.429
+          "end": 2.789
         },
         {
-          "word": "Harbormaster’s",
-          "start": 2.429,
-          "end": 3.23
+          "word": "waiting",
+          "start": 2.789,
+          "end": 3.15
         },
         {
-          "word": "Trial",
-          "start": 3.23,
-          "end": 3.869
+          "word": "by",
+          "start": 3.15,
+          "end": 3.309
         },
         {
-          "word": "waits",
-          "start": 3.869,
-          "end": 4.31
+          "word": "your",
+          "start": 3.309,
+          "end": 3.469
         },
         {
-          "word": "at",
-          "start": 4.31,
-          "end": 4.43
+          "word": "bow",
+          "start": 3.469,
+          "end": 3.829
+        },
+        {
+          "word": "with",
+          "start": 3.829,
+          "end": 4.11
         },
         {
           "word": "the",
-          "start": 4.43,
-          "end": 4.55
+          "start": 4.11,
+          "end": 4.23
         },
         {
-          "word": "lighthouse",
-          "start": 4.55,
-          "end": 4.8
+          "word": "Harbormaster's",
+          "start": 4.23,
+          "end": 4.99
+        },
+        {
+          "word": "Trial",
+          "start": 4.99,
+          "end": 5.24
         }
       ],
       "voice": "en-GB-Ada:DragonHDLatestNeural"
@@ -7953,13 +7430,13 @@
     {
       "id": "juno.reply.03",
       "speaker": "Juno",
-      "text": "Commands go to the Terminal. Requests go to the agent, through the prompt box. That’s setup done, Captain. The Harbormaster’s Trial waits at the lighthouse.",
-      "duration": 11.208,
+      "text": "Commands go to the Terminal. Requests go to the agent, through the prompt box. That's setup done, Captain. Nell's waiting by your bow with the Harbormaster's Trial.",
+      "duration": 11.308,
       "files": {
         "webm": "juno.reply.03.webm",
         "m4a": "juno.reply.03.m4a"
       },
-      "hash": "e8e1601ee401fb3d",
+      "hash": "3e607aa98acbf2d5",
       "words": [
         {
           "word": "Commands",
@@ -7979,112 +7456,122 @@
         {
           "word": "the",
           "start": 0.99,
-          "end": 1.11
+          "end": 1.15
         },
         {
           "word": "Terminal",
-          "start": 1.11,
-          "end": 2.11
+          "start": 1.15,
+          "end": 2.23
         },
         {
           "word": "Requests",
-          "start": 2.11,
-          "end": 2.949
+          "start": 2.23,
+          "end": 3.03
         },
         {
           "word": "go",
-          "start": 2.949,
-          "end": 3.15
+          "start": 3.03,
+          "end": 3.23
         },
         {
           "word": "to",
-          "start": 3.15,
-          "end": 3.27
+          "start": 3.23,
+          "end": 3.349
         },
         {
           "word": "the",
-          "start": 3.27,
-          "end": 3.429
+          "start": 3.349,
+          "end": 3.51
         },
         {
           "word": "agent",
-          "start": 3.429,
-          "end": 3.869
+          "start": 3.51,
+          "end": 4.15
         },
         {
           "word": "through",
-          "start": 3.869,
-          "end": 4.39
+          "start": 4.15,
+          "end": 4.47
         },
         {
           "word": "the",
-          "start": 4.39,
-          "end": 4.51
+          "start": 4.47,
+          "end": 4.59
         },
         {
           "word": "prompt",
-          "start": 4.51,
-          "end": 4.83
+          "start": 4.59,
+          "end": 4.99
         },
         {
           "word": "box",
-          "start": 4.83,
-          "end": 6.07
+          "start": 4.99,
+          "end": 5.27
         },
         {
-          "word": "That’s",
-          "start": 6.07,
-          "end": 6.43
+          "word": "That's",
+          "start": 5.27,
+          "end": 6.39
         },
         {
           "word": "setup",
-          "start": 6.43,
-          "end": 6.83
+          "start": 6.39,
+          "end": 6.91
         },
         {
           "word": "done",
-          "start": 6.83,
-          "end": 7.19
+          "start": 6.91,
+          "end": 7.31
         },
         {
           "word": "Captain",
-          "start": 7.19,
-          "end": 8.029
+          "start": 7.31,
+          "end": 8.149
         },
         {
-          "word": "The",
-          "start": 8.029,
-          "end": 8.27
+          "word": "Nell's",
+          "start": 8.149,
+          "end": 8.67
         },
         {
-          "word": "Harbormaster’s",
-          "start": 8.27,
-          "end": 9.069
+          "word": "waiting",
+          "start": 8.67,
+          "end": 9.03
         },
         {
-          "word": "Trial",
-          "start": 9.069,
+          "word": "by",
+          "start": 9.03,
+          "end": 9.19
+        },
+        {
+          "word": "your",
+          "start": 9.19,
+          "end": 9.35
+        },
+        {
+          "word": "bow",
+          "start": 9.35,
           "end": 9.67
         },
         {
-          "word": "waits",
+          "word": "with",
           "start": 9.67,
-          "end": 10.11
-        },
-        {
-          "word": "at",
-          "start": 10.11,
-          "end": 10.229
+          "end": 9.83
         },
         {
           "word": "the",
-          "start": 10.229,
-          "end": 10.35
+          "start": 9.83,
+          "end": 9.95
         },
         {
-          "word": "lighthouse",
-          "start": 10.35,
-          "end": 10.6
+          "word": "Harbormaster's",
+          "start": 9.95,
+          "end": 10.67
+        },
+        {
+          "word": "Trial",
+          "start": 10.67,
+          "end": 10.92
         }
       ],
       "voice": "en-GB-Ada:DragonHDLatestNeural"
@@ -8374,202 +7861,108 @@
     {
       "id": "nell.palette.02",
       "speaker": "Nell",
-      "text": "Fine colours, Captain. Ezra the chartmaker’s expecting you.",
-      "duration": 4.408,
+      "text": "Fine colours, Captain. Next, your own copy of the course. Ezra's at his chart table, down by the pier.",
+      "duration": 5.908,
       "files": {
         "webm": "nell.palette.02.webm",
         "m4a": "nell.palette.02.m4a"
       },
-      "hash": "57f658455ccf6199",
+      "hash": "26cbaf22fc623cb3",
       "words": [
         {
           "word": "Fine",
-          "start": 0.15,
-          "end": 0.63
+          "start": 0.07,
+          "end": 0.47
         },
         {
           "word": "colours",
-          "start": 0.63,
-          "end": 0.99
+          "start": 0.47,
+          "end": 0.87
         },
         {
           "word": "Captain",
-          "start": 0.99,
-          "end": 2.11
+          "start": 0.87,
+          "end": 1.23
         },
         {
-          "word": "Ezra",
-          "start": 2.11,
-          "end": 2.469
+          "word": "Next",
+          "start": 1.23,
+          "end": 1.91
         },
         {
-          "word": "the",
-          "start": 2.469,
-          "end": 2.59
+          "word": "your",
+          "start": 1.91,
+          "end": 2.07
         },
         {
-          "word": "chartmaker’s",
-          "start": 2.59,
-          "end": 3.19
+          "word": "own",
+          "start": 2.07,
+          "end": 2.349
         },
         {
-          "word": "expecting",
-          "start": 3.19,
-          "end": 3.829
-        },
-        {
-          "word": "you",
-          "start": 3.829,
-          "end": 4.079000000000001
-        }
-      ],
-      "voice": "en-GB-Sonia:DragonHDLatestNeural"
-    },
-    {
-      "id": "nell.papers.07",
-      "speaker": "Nell",
-      "text": "There's a chest there too, with the list of tools you'll need: Git, Node.js, and GitHub CLI. Open it, then paint your sails and select Finish.",
-      "duration": 9.208,
-      "files": {
-        "webm": "nell.papers.07.webm",
-        "m4a": "nell.papers.07.m4a"
-      },
-      "hash": "6ea84f5f1214225a",
-      "words": [
-        {
-          "word": "There's",
-          "start": 0.07,
-          "end": 0.55
-        },
-        {
-          "word": "a",
-          "start": 0.55,
-          "end": 0.59
-        },
-        {
-          "word": "chest",
-          "start": 0.59,
-          "end": 0.79
-        },
-        {
-          "word": "there",
-          "start": 0.79,
-          "end": 1.35
-        },
-        {
-          "word": "too",
-          "start": 1.35,
-          "end": 1.47
-        },
-        {
-          "word": "with",
-          "start": 1.47,
-          "end": 1.63
-        },
-        {
-          "word": "the",
-          "start": 1.63,
-          "end": 1.79
-        },
-        {
-          "word": "list",
-          "start": 1.79,
+          "word": "copy",
+          "start": 2.349,
           "end": 2.63
         },
         {
           "word": "of",
           "start": 2.63,
-          "end": 2.789
+          "end": 2.71
         },
         {
-          "word": "tools",
-          "start": 2.789,
+          "word": "the",
+          "start": 2.71,
+          "end": 2.829
+        },
+        {
+          "word": "course",
+          "start": 2.829,
           "end": 3.469
         },
         {
-          "word": "you'll",
+          "word": "Ezra's",
           "start": 3.469,
-          "end": 3.789
+          "end": 3.909
         },
         {
-          "word": "need",
-          "start": 3.789,
-          "end": 3.949
+          "word": "at",
+          "start": 3.909,
+          "end": 4.03
         },
         {
-          "word": "Git",
-          "start": 3.949,
-          "end": 4.07
+          "word": "his",
+          "start": 4.03,
+          "end": 4.19
         },
         {
-          "word": "Node",
-          "start": 4.07,
-          "end": 4.23
-        },
-        {
-          "word": "js",
-          "start": 4.23,
+          "word": "chart",
+          "start": 4.19,
           "end": 4.51
         },
         {
-          "word": "and",
+          "word": "table",
           "start": 4.51,
-          "end": 4.71
+          "end": 4.87
         },
         {
-          "word": "GitHub",
-          "start": 4.71,
-          "end": 5.07
+          "word": "down",
+          "start": 4.87,
+          "end": 5.15
         },
         {
-          "word": "CLI",
-          "start": 5.07,
-          "end": 6.11
+          "word": "by",
+          "start": 5.15,
+          "end": 5.27
         },
         {
-          "word": "Open",
-          "start": 6.11,
-          "end": 6.59
+          "word": "the",
+          "start": 5.27,
+          "end": 5.39
         },
         {
-          "word": "it",
-          "start": 6.59,
-          "end": 7.03
-        },
-        {
-          "word": "then",
-          "start": 7.03,
-          "end": 7.31
-        },
-        {
-          "word": "paint",
-          "start": 7.31,
-          "end": 7.51
-        },
-        {
-          "word": "your",
-          "start": 7.51,
-          "end": 7.67
-        },
-        {
-          "word": "sails",
-          "start": 7.67,
-          "end": 8.109
-        },
-        {
-          "word": "and",
-          "start": 8.109,
-          "end": 8.229
-        },
-        {
-          "word": "select",
-          "start": 8.229,
-          "end": 8.59
-        },
-        {
-          "word": "Finish",
-          "start": 8.59,
-          "end": 8.84
+          "word": "pier",
+          "start": 5.39,
+          "end": 5.64
         }
       ],
       "voice": "en-GB-Sonia:DragonHDLatestNeural"
@@ -8680,103 +8073,88 @@
     {
       "id": "nell.christen.01",
       "speaker": "Nell",
-      "text": "There you are, Captain. No ship leaves Anchorage without a name, and yours has been waiting all morning.",
-      "duration": 5.608,
+      "text": "No ship leaves Anchorage without a name, Captain, and yours has been waiting all morning.",
+      "duration": 5.308,
       "files": {
         "webm": "nell.christen.01.webm",
         "m4a": "nell.christen.01.m4a"
       },
-      "hash": "e0a516b2f588c914",
+      "hash": "3d23460f036c4f34",
       "words": [
         {
-          "word": "There",
-          "start": 0.07,
-          "end": 0.27
-        },
-        {
-          "word": "you",
-          "start": 0.27,
-          "end": 0.39
-        },
-        {
-          "word": "are",
-          "start": 0.39,
-          "end": 0.51
-        },
-        {
-          "word": "Captain",
-          "start": 0.51,
-          "end": 1.43
-        },
-        {
           "word": "No",
-          "start": 1.43,
-          "end": 1.75
+          "start": 0.07,
+          "end": 0.35
         },
         {
           "word": "ship",
-          "start": 1.75,
-          "end": 2.029
+          "start": 0.35,
+          "end": 0.67
         },
         {
           "word": "leaves",
-          "start": 2.029,
-          "end": 2.27
+          "start": 0.67,
+          "end": 0.99
         },
         {
           "word": "Anchorage",
-          "start": 2.27,
-          "end": 2.71
+          "start": 0.99,
+          "end": 1.47
         },
         {
           "word": "without",
-          "start": 2.71,
-          "end": 2.989
+          "start": 1.47,
+          "end": 1.79
         },
         {
           "word": "a",
-          "start": 2.989,
-          "end": 3.07
+          "start": 1.79,
+          "end": 1.83
         },
         {
           "word": "name",
-          "start": 3.07,
-          "end": 3.71
+          "start": 1.83,
+          "end": 2.349
+        },
+        {
+          "word": "Captain",
+          "start": 2.349,
+          "end": 3.23
         },
         {
           "word": "and",
-          "start": 3.71,
-          "end": 3.869
+          "start": 3.23,
+          "end": 3.469
         },
         {
           "word": "yours",
-          "start": 3.869,
-          "end": 4.11
+          "start": 3.469,
+          "end": 3.75
         },
         {
           "word": "has",
-          "start": 4.11,
-          "end": 4.23
+          "start": 3.75,
+          "end": 3.869
         },
         {
           "word": "been",
-          "start": 4.23,
-          "end": 4.39
+          "start": 3.869,
+          "end": 4.03
         },
         {
           "word": "waiting",
-          "start": 4.39,
-          "end": 4.79
+          "start": 4.03,
+          "end": 4.43
         },
         {
           "word": "all",
-          "start": 4.79,
-          "end": 4.99
+          "start": 4.43,
+          "end": 4.71
         },
         {
           "word": "morning",
-          "start": 4.99,
-          "end": 5.24
+          "start": 4.71,
+          "end": 4.96
         }
       ],
       "voice": "en-GB-Sonia:DragonHDLatestNeural"
@@ -8890,6 +8268,189 @@
           "word": "winds",
           "start": 2.389,
           "end": 2.639
+        }
+      ],
+      "voice": "en-GB-Sonia:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.trial.01",
+      "speaker": "Nell",
+      "text": "Setup's done, Captain. Before your ship gets her name, there's the Harbormaster's Trial: eight questions on what you've set up.",
+      "duration": 6.908,
+      "files": {
+        "webm": "nell.trial.01.webm",
+        "m4a": "nell.trial.01.m4a"
+      },
+      "hash": "cdc3819d822cdaee",
+      "words": [
+        {
+          "word": "Setup's",
+          "start": 0.07,
+          "end": 0.51
+        },
+        {
+          "word": "done",
+          "start": 0.51,
+          "end": 0.75
+        },
+        {
+          "word": "Captain",
+          "start": 0.75,
+          "end": 1.63
+        },
+        {
+          "word": "Before",
+          "start": 1.63,
+          "end": 1.99
+        },
+        {
+          "word": "your",
+          "start": 1.99,
+          "end": 2.15
+        },
+        {
+          "word": "ship",
+          "start": 2.15,
+          "end": 2.349
+        },
+        {
+          "word": "gets",
+          "start": 2.349,
+          "end": 2.59
+        },
+        {
+          "word": "her",
+          "start": 2.59,
+          "end": 2.71
+        },
+        {
+          "word": "name",
+          "start": 2.71,
+          "end": 3.27
+        },
+        {
+          "word": "there's",
+          "start": 3.27,
+          "end": 3.55
+        },
+        {
+          "word": "the",
+          "start": 3.55,
+          "end": 3.67
+        },
+        {
+          "word": "Harbormaster's",
+          "start": 3.67,
+          "end": 4.39
+        },
+        {
+          "word": "Trial",
+          "start": 4.39,
+          "end": 5.11
+        },
+        {
+          "word": "eight",
+          "start": 5.11,
+          "end": 5.43
+        },
+        {
+          "word": "questions",
+          "start": 5.43,
+          "end": 6.03
+        },
+        {
+          "word": "on",
+          "start": 6.03,
+          "end": 6.11
+        },
+        {
+          "word": "what",
+          "start": 6.11,
+          "end": 6.27
+        },
+        {
+          "word": "you've",
+          "start": 6.27,
+          "end": 6.55
+        },
+        {
+          "word": "set",
+          "start": 6.55,
+          "end": 6.71
+        },
+        {
+          "word": "up",
+          "start": 6.71,
+          "end": 6.908
+        }
+      ],
+      "voice": "en-GB-Sonia:DragonHDLatestNeural"
+    },
+    {
+      "id": "nell.trial.02",
+      "speaker": "Nell",
+      "text": "The Seal of Anchorage, and well earned. Now, about that ship.",
+      "duration": 4.508,
+      "files": {
+        "webm": "nell.trial.02.webm",
+        "m4a": "nell.trial.02.m4a"
+      },
+      "hash": "5f254cf406d5c78b",
+      "words": [
+        {
+          "word": "The",
+          "start": 0.07,
+          "end": 0.19
+        },
+        {
+          "word": "Seal",
+          "start": 0.19,
+          "end": 0.51
+        },
+        {
+          "word": "of",
+          "start": 0.51,
+          "end": 0.63
+        },
+        {
+          "word": "Anchorage",
+          "start": 0.63,
+          "end": 1.83
+        },
+        {
+          "word": "and",
+          "start": 1.83,
+          "end": 2.029
+        },
+        {
+          "word": "well",
+          "start": 2.029,
+          "end": 2.309
+        },
+        {
+          "word": "earned",
+          "start": 2.309,
+          "end": 3.27
+        },
+        {
+          "word": "Now",
+          "start": 3.27,
+          "end": 3.55
+        },
+        {
+          "word": "about",
+          "start": 3.55,
+          "end": 3.829
+        },
+        {
+          "word": "that",
+          "start": 3.829,
+          "end": 3.989
+        },
+        {
+          "word": "ship",
+          "start": 3.989,
+          "end": 4.239
         }
       ],
       "voice": "en-GB-Sonia:DragonHDLatestNeural"

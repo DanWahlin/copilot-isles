@@ -1,62 +1,72 @@
 {
   "id": "suri.idle.dry",
   "speaker": "Suri",
-  "text": "Mill’s dry today, Captain. Come back once Bo’s checked your gear.",
+  "text": "Mill's dry today, Captain. Come back once your fork has its practice items.",
   "words": [
     {
-      "word": "Mill’s",
+      "word": "Mill's",
       "start": 0.07,
-      "end": 0.35
+      "end": 0.39
     },
     {
       "word": "dry",
-      "start": 0.35,
-      "end": 0.59
+      "start": 0.39,
+      "end": 0.63
     },
     {
       "word": "today",
-      "start": 0.59,
+      "start": 0.63,
       "end": 0.91
     },
     {
       "word": "Captain",
       "start": 0.91,
-      "end": 1.63
+      "end": 1.67
     },
     {
       "word": "Come",
-      "start": 1.63,
+      "start": 1.67,
       "end": 1.91
     },
     {
       "word": "back",
       "start": 1.91,
-      "end": 2.11
+      "end": 2.15
     },
     {
       "word": "once",
-      "start": 2.11,
-      "end": 2.429
-    },
-    {
-      "word": "Bo’s",
-      "start": 2.429,
-      "end": 2.75
-    },
-    {
-      "word": "checked",
-      "start": 2.75,
-      "end": 3.07
+      "start": 2.15,
+      "end": 2.349
     },
     {
       "word": "your",
+      "start": 2.349,
+      "end": 2.51
+    },
+    {
+      "word": "fork",
+      "start": 2.51,
+      "end": 2.869
+    },
+    {
+      "word": "has",
+      "start": 2.869,
+      "end": 3.07
+    },
+    {
+      "word": "its",
       "start": 3.07,
       "end": 3.23
     },
     {
-      "word": "gear",
+      "word": "practice",
       "start": 3.23,
-      "end": 3.48
+      "end": 3.67
+    },
+    {
+      "word": "items",
+      "start": 3.67,
+      "end": 3.92
     }
   ]
 }

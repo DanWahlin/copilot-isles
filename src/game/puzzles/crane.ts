@@ -76,9 +76,9 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     onInteract: () =>
       say(
         'Crane notice',
-        host.quests()['Q0.6'] === 'done'
+        host.quests()['Q0.4'] === 'done'
           ? 'This crane runs the course’s setup script. Talk to Pim and Pol to start.'
-          : 'This crane runs the course’s setup script, which adds practice items to your fork. It opens once Actions is on: see Suri at the mill.',
+          : 'This crane runs the course’s setup script, which adds practice items to your fork. It opens once your session’s ready: see Bo by the pier foot.',
         6,
       ),
   });

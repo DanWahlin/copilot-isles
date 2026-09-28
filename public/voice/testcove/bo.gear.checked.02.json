@@ -1,7 +1,7 @@
 {
   "id": "bo.gear.checked.02",
   "speaker": "Bo",
-  "text": "One more thing. GitHub CLI has its own sign-in, separate from the app. Read my ledger, there on the lectern.",
+  "text": "One more thing. GitHub CLI has its own sign-in, separate from the app. Run gh auth status, and make sure it shows the account that owns your fork.",
   "words": [
     {
       "word": "One",
@@ -11,97 +11,142 @@
     {
       "word": "more",
       "start": 0.27,
-      "end": 0.47
+      "end": 0.43
     },
     {
       "word": "thing",
-      "start": 0.47,
-      "end": 0.75
+      "start": 0.43,
+      "end": 1.27
     },
     {
       "word": "GitHub",
-      "start": 0.75,
-      "end": 1.63
+      "start": 1.27,
+      "end": 1.71
     },
     {
       "word": "CLI",
-      "start": 1.63,
-      "end": 2.27
+      "start": 1.71,
+      "end": 2.309
     },
     {
       "word": "has",
-      "start": 2.27,
-      "end": 2.469
+      "start": 2.309,
+      "end": 2.51
     },
     {
       "word": "its",
-      "start": 2.469,
-      "end": 2.63
+      "start": 2.51,
+      "end": 2.67
     },
     {
       "word": "own",
-      "start": 2.63,
-      "end": 2.829
+      "start": 2.67,
+      "end": 2.869
     },
     {
       "word": "sign-in",
-      "start": 2.829,
-      "end": 3.469
+      "start": 2.869,
+      "end": 3.429
     },
     {
       "word": "separate",
-      "start": 3.469,
-      "end": 3.869
+      "start": 3.429,
+      "end": 3.829
     },
     {
       "word": "from",
-      "start": 3.869,
-      "end": 4.03
+      "start": 3.829,
+      "end": 3.989
     },
     {
       "word": "the",
-      "start": 4.03,
-      "end": 4.19
+      "start": 3.989,
+      "end": 4.15
     },
     {
       "word": "app.",
-      "start": 4.19,
-      "end": 4.91
+      "start": 4.15,
+      "end": 4.83
     },
     {
-      "word": "Read",
-      "start": 4.91,
-      "end": 5.23
+      "word": "Run",
+      "start": 4.83,
+      "end": 5.15
     },
     {
-      "word": "my",
-      "start": 5.23,
-      "end": 5.43
+      "word": "G",
+      "start": 5.15,
+      "end": 5.51
     },
     {
-      "word": "ledger",
-      "start": 5.43,
-      "end": 5.87
+      "word": "H",
+      "start": 5.51,
+      "end": 5.75
     },
     {
-      "word": "there",
-      "start": 5.87,
-      "end": 6.27
+      "word": "auth",
+      "start": 5.75,
+      "end": 6.03
     },
     {
-      "word": "on",
-      "start": 6.27,
-      "end": 6.43
-    },
-    {
-      "word": "the",
-      "start": 6.43,
+      "word": "status",
+      "start": 6.03,
       "end": 6.55
     },
     {
-      "word": "lectern",
+      "word": "and",
       "start": 6.55,
-      "end": 6.8
+      "end": 6.75
+    },
+    {
+      "word": "make",
+      "start": 6.75,
+      "end": 6.91
+    },
+    {
+      "word": "sure",
+      "start": 6.91,
+      "end": 7.19
+    },
+    {
+      "word": "it",
+      "start": 7.19,
+      "end": 7.27
+    },
+    {
+      "word": "shows",
+      "start": 7.27,
+      "end": 7.55
+    },
+    {
+      "word": "the",
+      "start": 7.55,
+      "end": 7.71
+    },
+    {
+      "word": "account",
+      "start": 7.71,
+      "end": 8.029
+    },
+    {
+      "word": "that",
+      "start": 8.029,
+      "end": 8.229
+    },
+    {
+      "word": "owns",
+      "start": 8.229,
+      "end": 8.469
+    },
+    {
+      "word": "your",
+      "start": 8.469,
+      "end": 8.629
+    },
+    {
+      "word": "fork",
+      "start": 8.629,
+      "end": 8.879
     }
   ]
 }

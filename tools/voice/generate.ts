@@ -17,6 +17,8 @@ interface VoiceLineDefinition {
   readonly fallbackVoice?: string;
   readonly prosody?: Readonly<Record<string, string>>;
   readonly fx?: 'wingman-bright' | 'wingman-bird';
+  /** Whole words to say differently, e.g. `{ "gh": "G H" }` (an SSML `<sub>`; subtitles keep the word). */
+  readonly sub?: Readonly<Record<string, string>>;
 }
 
 interface LinesFile {
@@ -181,7 +183,7 @@ async function synthesize(
   const words: WordTiming[] = [];
   synthesizer.wordBoundary = (_sender, event) => {
     words.push({
-      word: event.text,
+      word: line.sub ? unmarkWord(event.text, Object.keys(line.sub)) : event.text,
       start: Number(event.audioOffset) / 10_000_000,
       end: Number(event.audioOffset) / 10_000_000,
     });
@@ -283,14 +285,37 @@ function ssml(line: VoiceLineDefinition, voice: string): string {
   const attrs = Object.entries(prosody)
     .map(([key, value]) => `${key}="${escapeXml(value)}"`)
     .join(' ');
-  const body = attrs ? `<prosody ${attrs}>${escapeXml(line.text)}</prosody>` : escapeXml(line.text);
+  let text = escapeXml(line.text);
+  for (const [word, alias] of Object.entries(line.sub ?? {})) {
+    const re = new RegExp(`(?<![\\w-])${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`, 'g');
+    text = text.replace(re, `<sub alias="${escapeXml(alias)}">${escapeXml(word)}</sub>`);
+  }
+  const body = attrs ? `<prosody ${attrs}>${text}</prosody>` : text;
   const lang = /^[a-z]{2}-[a-z]{2}/i.exec(voice)?.[0] ?? 'en-US';
   return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${lang}"><voice name="${escapeXml(voice)}">${body}</voice></speak>`;
 }
 
+/**
+ * Word boundaries after a `<sub>` can carry the SSML around it (`">gh auth`). Strips the markup and
+ * the substituted word itself, which the alias's own words ("G", "H") already stand for.
+ */
+function unmarkWord(text: string, subs: readonly string[]): string {
+  let word = text.replace(/^[^<>]*">/, '').replace(/<\/?sub[^>]*>?/g, '');
+  for (const sub of subs) if (word.startsWith(`${sub} `)) word = word.slice(sub.length + 1);
+  return word;
+}
+
 function hashLine(line: VoiceLineDefinition, voice: string): string {
   return createHash('sha256')
-    .update(JSON.stringify({ text: line.text, voice, prosody: line.prosody ?? {}, fx: line.fx ?? '' }))
+    .update(
+      JSON.stringify({
+        text: line.text,
+        voice,
+        prosody: line.prosody ?? {},
+        fx: line.fx ?? '',
+        ...(line.sub ? { sub: line.sub } : {}),
+      }),
+    )
     .digest('hex')
     .slice(0, 16);
 }

@@ -1,7 +1,7 @@
 {
   "id": "pol.idle.waiting",
   "speaker": "Pol",
-  "text": "Not yet, Captain. Our crane adds the course's practice items to your fork, and GitHub Actions has to be on first. Suri at the mill can help.",
+  "text": "Not yet, Captain. Our crane adds the course's practice items to your fork. Bo gets your session ready first, by the pier foot.",
   "words": [
     {
       "word": "Not",
@@ -26,117 +26,97 @@
     {
       "word": "crane",
       "start": 2.594625,
-      "end": 2.996416
+      "end": 3.01875
     },
     {
       "word": "adds",
-      "start": 2.996416,
-      "end": 3.241958
+      "start": 3.01875,
+      "end": 3.264291
     },
     {
       "word": "the",
-      "start": 3.241958,
-      "end": 3.29775
+      "start": 3.264291,
+      "end": 3.320083
     },
     {
       "word": "course's",
-      "start": 3.29775,
-      "end": 3.710708
+      "start": 3.320083,
+      "end": 3.733041
     },
     {
       "word": "practice",
-      "start": 3.710708,
-      "end": 4.090166
+      "start": 3.733041,
+      "end": 4.1125
     },
     {
       "word": "items",
-      "start": 4.090166,
-      "end": 4.4585
+      "start": 4.1125,
+      "end": 4.503125
     },
     {
       "word": "to",
-      "start": 4.4585,
-      "end": 4.536625
+      "start": 4.503125,
+      "end": 4.58125
     },
     {
       "word": "your",
-      "start": 4.536625,
-      "end": 4.670541
+      "start": 4.58125,
+      "end": 4.748666
     },
     {
       "word": "fork",
-      "start": 4.670541,
-      "end": 5.462958
+      "start": 4.748666,
+      "end": 6.054458
     },
     {
-      "word": "and",
-      "start": 5.462958,
-      "end": 5.619208
+      "word": "Bo",
+      "start": 6.054458,
+      "end": 6.255375
     },
     {
-      "word": "GitHub",
-      "start": 5.619208,
-      "end": 5.954
+      "word": "gets",
+      "start": 6.255375,
+      "end": 6.512041
     },
     {
-      "word": "Actions",
-      "start": 5.954,
-      "end": 6.445083
-    },
-    {
-      "word": "has",
-      "start": 6.445083,
+      "word": "your",
+      "start": 6.512041,
       "end": 6.6125
     },
     {
-      "word": "to",
+      "word": "session",
       "start": 6.6125,
-      "end": 6.679458
+      "end": 7.025458
     },
     {
-      "word": "be",
-      "start": 6.679458,
-      "end": 6.858041
-    },
-    {
-      "word": "on",
-      "start": 6.858041,
-      "end": 7.003125
+      "word": "ready",
+      "start": 7.025458,
+      "end": 7.259833
     },
     {
       "word": "first",
-      "start": 7.003125,
-      "end": 8.329916
+      "start": 7.259833,
+      "end": 8.01875
     },
     {
-      "word": "Suri",
-      "start": 8.329916,
-      "end": 8.854458
-    },
-    {
-      "word": "at",
-      "start": 8.854458,
-      "end": 8.954916
+      "word": "by",
+      "start": 8.01875,
+      "end": 8.175
     },
     {
       "word": "the",
-      "start": 8.954916,
-      "end": 9.021875
+      "start": 8.175,
+      "end": 8.253125
     },
     {
-      "word": "mill",
-      "start": 9.021875,
-      "end": 9.334375
+      "word": "pier",
+      "start": 8.253125,
+      "end": 8.509833
     },
     {
-      "word": "can",
-      "start": 9.334375,
-      "end": 9.501791
-    },
-    {
-      "word": "help",
-      "start": 9.501791,
-      "end": 9.751791
+      "word": "foot",
+      "start": 8.509833,
+      "end": 8.759833
     }
   ]
 }

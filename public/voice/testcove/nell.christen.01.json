@@ -1,97 +1,82 @@
 {
   "id": "nell.christen.01",
   "speaker": "Nell",
-  "text": "There you are, Captain. No ship leaves Anchorage without a name, and yours has been waiting all morning.",
+  "text": "No ship leaves Anchorage without a name, Captain, and yours has been waiting all morning.",
   "words": [
     {
-      "word": "There",
-      "start": 0.07,
-      "end": 0.27
-    },
-    {
-      "word": "you",
-      "start": 0.27,
-      "end": 0.39
-    },
-    {
-      "word": "are",
-      "start": 0.39,
-      "end": 0.51
-    },
-    {
-      "word": "Captain",
-      "start": 0.51,
-      "end": 1.43
-    },
-    {
       "word": "No",
-      "start": 1.43,
-      "end": 1.75
+      "start": 0.07,
+      "end": 0.35
     },
     {
       "word": "ship",
-      "start": 1.75,
-      "end": 2.029
+      "start": 0.35,
+      "end": 0.67
     },
     {
       "word": "leaves",
-      "start": 2.029,
-      "end": 2.27
+      "start": 0.67,
+      "end": 0.99
     },
     {
       "word": "Anchorage",
-      "start": 2.27,
-      "end": 2.71
+      "start": 0.99,
+      "end": 1.47
     },
     {
       "word": "without",
-      "start": 2.71,
-      "end": 2.989
+      "start": 1.47,
+      "end": 1.79
     },
     {
       "word": "a",
-      "start": 2.989,
-      "end": 3.07
+      "start": 1.79,
+      "end": 1.83
     },
     {
       "word": "name",
-      "start": 3.07,
-      "end": 3.71
+      "start": 1.83,
+      "end": 2.349
+    },
+    {
+      "word": "Captain",
+      "start": 2.349,
+      "end": 3.23
     },
     {
       "word": "and",
-      "start": 3.71,
-      "end": 3.869
+      "start": 3.23,
+      "end": 3.469
     },
     {
       "word": "yours",
-      "start": 3.869,
-      "end": 4.11
+      "start": 3.469,
+      "end": 3.75
     },
     {
       "word": "has",
-      "start": 4.11,
-      "end": 4.23
+      "start": 3.75,
+      "end": 3.869
     },
     {
       "word": "been",
-      "start": 4.23,
-      "end": 4.39
+      "start": 3.869,
+      "end": 4.03
     },
     {
       "word": "waiting",
-      "start": 4.39,
-      "end": 4.79
+      "start": 4.03,
+      "end": 4.43
     },
     {
       "word": "all",
-      "start": 4.79,
-      "end": 4.99
+      "start": 4.43,
+      "end": 4.71
     },
     {
       "word": "morning",
-      "start": 4.99,
-      "end": 5.24
+      "start": 4.71,
+      "end": 4.96
     }
   ]
 }

@@ -34,6 +34,12 @@ export const COVE = {
    * walk up to her. The bow stem is about 8 m off her port side, clear of the crane.
    */
   christening: { x: -107.0, y: 1.8, z: -116.6, heading: 0 },
+  /**
+   * Ezra's chart table (Q0.3) and Bo's gear rack (Q0.4) sit on the quay just west of the pier foot,
+   * so Anchorage's setup runs Nell → Ezra → Bo → down the pier without doubling back.
+   */
+  chartTable: { x: -115.4, z: -67.6 },
+  gearRack: { x: -119.6, z: -63.2, rot: -0.95 },
   /** Two small moored boats in the basin. */
   boats: [
     { x: -135, z: -118, heading: 0.4 },

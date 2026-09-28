@@ -28,14 +28,14 @@ Every course objective is **taught** (by an NPC or a Logbook page), **practiced*
 ### Chapter 00: Setup
 | Course objective / section | Taught | Practiced | Assessed |
 |---|---|---|---|
-| Prerequisites (GitHub account, Copilot plan *or* own model provider, Business/Enterprise **GitHub Copilot app** policy, Git, Node LTS, `gh`) | Nell (Q0.2), chest C0.1 → pg.prereqs | Gear Check (Q0.5) | T0 #6 |
+| Prerequisites (GitHub account, Copilot plan *or* own model provider, Business/Enterprise **GitHub Copilot app** policy, Git, Node LTS, `gh`) | Nell (Q0.2), chest C0.1 → pg.prereqs | Gear Check (Q0.4) | T0 #6 |
 | Download & install → **Sign in to GitHub** → continue past **Connect your repositories** → pick theme → **Finish** → **New** page | Nell (Q0.2), pg.install, C0.3 | Paint Your Sails | *(shown, not quizzed: one obvious button)* |
 | Fork = your own copy; pick **your fork**, not the original, in search | Ezra (Q0.3), pg.fork | Copy the Master Chart | S0.3, T0 #1 |
 | **+** next to **Projects** → **Add GitHub repository**; alternatives **Open folder** / **Clone repository** | Ezra (Q0.3), C0.4 | Moor Your Ship | H0.2, T0 #1 |
 | Start a project session with the **+ next to the project** (not the **Projects +**); workspace selector → **Local repository** (not **New worktree**) for setup | Bo (Q0.4), C0.6 | Your Own Deck | H0.4, T0 #1, #2, #7 |
-| **View → Toggle Review Panel** → **Terminal** tab (or **+ → Terminal**); version checks; install only what's missing | Bo (Q0.5), pg.terminal | Gear Rack | T0 #2 |
-| `gh auth status` / `gh auth login` (GitHub.com → Login with a web browser) | Bo (Q0.5), pg.terminal | Right Signature | S0.1, T0 #2 |
-| Enable workflows on the fork (GitHub.com → your fork → **Actions** tab) so GitHub Actions can run the practice checks | Suri (Q0.6), pg.workflows | P0.1 Sluice | T0 #4, #2 |
+| **View → Toggle Review Panel** → **Terminal** tab (or **+ → Terminal**); version checks; install only what's missing | Bo (Q0.4), pg.terminal | Gear Rack (scenery) | T0 #2 |
+| `gh auth status` / `gh auth login` (GitHub.com → Login with a web browser) | Bo (Q0.4), pg.terminal | | S0.1, T0 #2 |
+| Enable workflows on the fork (GitHub.com → your fork → **Actions** tab) so GitHub Actions can run the practice checks | Pim & Pol (Q0.7), pg.workflows; Suri (Q0.6, optional), pg.checks | P0.1 Sluice (optional) | T0 #4, #2 |
 | Setup script: labels, issues, practice branches, PRs; bugs stay off `main`; in **Terminal**, from the repo root, run `node .github/scripts/setup-training-scenarios.js --dry-run`, check the `Repository:` line, then `--yes`, and wait for `Setup complete.` | Pim & Pol (Q0.7), page P0.S | **P0.2 Dry-Run Crane** | T0 #1, #3, #5 |
 | First prompt goes to the **Copilot app** prompt box, *not* Terminal; model output varies | Juno (Q0.8), pg.first-prompt | Speaking Tube | S0.2, T0 #2 |
 | Troubleshooting (sign-in, app policy ≠ CLI policy, Git missing, can't see repo / chat can't explain it, org fork, Issues disabled, manual appendix) | Bottles B0.1-B0.3 | | T0 #8 |
@@ -248,33 +248,32 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 
 **Q0.1 · Landfall (tutorial, ~1 min).** You step onto the beach and learn movement, camera, and interaction. Wingman introduces himself: *"First mate's job is hints. Captain's job is decisions."* Nell waves you toward the pier.
 
+The stops run along the harbour in the chapter's order, so there's no doubling back: Nell's door → Ezra's chart table and Bo's gear rack at the pier foot → the crane, Juno, and Nell again at the pier head. Suri's mill and Lyra's hammock are optional detours.
+
 **Q0.2 · Captain's Papers** *(00 · Prerequisites, Installation)*
-- Nell starts with the basics: the GitHub account, a Copilot plan *or* your own model provider, and, for Business/Enterprise, the **GitHub Copilot app** policy. Then the spyglass shows the app (`github-copilot-app`) with the download link, and she grants **[P] "Get the Copilot app"** (pg.install).
+- Nell starts with the basics: the GitHub account, a Copilot plan *or* your own model provider, and, for Business/Enterprise, the **GitHub Copilot app** policy. Then the tools: she opens **[C0.1] her chest** while she talks (the `nell-chest` cue), which holds **[P] "What you need"** (pg.prereqs): the tool links, what each is for, and that you'll check them in the app's **Terminal** later.
+- The spyglass shows the app (`github-copilot-app`) with the download link, and she grants **[P] "Get the Copilot app"** (pg.install).
 - The spyglass shows `sign-in-to-app`. Signing in is one obvious button, so it's shown and told, not quizzed. She explains that at **Connect your repositories** you'll *continue without adding one*, because you'll connect your fork shortly.
-- **Paint Your Sails:** a palette stand mirrors the app's theme picker (`pick-a-theme`). Your choice recolors your sails and persists. Nell adds: *"Preferences can be changed anytime from settings."* Then you select **Finish** and get **[C0.3] "The New page"**.
-- **[C0.1] Nell's chest** holds **[P] "What you need"** (pg.prereqs): the tool links, what each is for, and that you'll check them in the app's **Terminal** later. You also get the key item *Captain's Papers*.
+- **Paint Your Sails:** a palette stand beside her mirrors the app's theme picker (`pick-a-theme`). Your choice recolors your sails and persists. Nell adds: *"Preferences can be changed anytime from settings."* Then you select **Finish** and get **[C0.3] "The New page"**.
 
 **Q0.3 · Copy the Master Chart** *(00 · Connect to your repository)*
-- Ezra explains that a **fork** is *your own copy* of the course repository on GitHub, and grants **[P] "Fork the course"** (pg.fork, with the fork URL). You hold E at the copy table and ink traces a fresh chart that has your name on the cartouche.
+- Ezra waits at his chart table on the quay by the pier foot. He explains that a **fork** is *your own copy* of the course repository on GitHub, and grants **[P] "Fork the course"** (pg.fork, with the fork URL).
 - **Moor Your Ship:** on the unopened New page, **H0.2** asks you to find the **+** next to **Projects**. Then the spyglass shows the menu it opens (`app-add-project`): **Add GitHub repository** is told, not quizzed, along with **Open folder** / **Clone repository**.
 - Ezra warns that search can show the original too. **S0.3:** `github/…` or `your-handle/…`? → **your fork**. The app clones it and adds the project to the sidebar. **[C0.4]**
 
-**Q0.4 · Your Own Deck** *(00 · Check your tools, steps 1-3)*
-- Bo confirms the project shows under **Projects**, then has you select **+ next to the project** (not the **Projects +**, which adds another project) to start a **project session**.
-- **H0.4** uses `local-repository-workspace-selector` with the callouts masked: "For this one-time setup, where should the session run?" → **Local repository**.
-- Explanations: the checkmark on **New worktree** is just the *default*, and setup changes it to **Local repository**. **New worktree** "creates a separate copy for this session" (*"you'll meet those on Thousand-Bough Isle"*), and **Cloud** "runs in a cloud sandbox." **[C0.6]**
+**Q0.4 · Your Own Deck** *(00 · Check your tools in Terminal)*
+- Bo stands at his gear rack beside Ezra. He confirms the project shows under **Projects**, then has you select **+ next to the project** (not the **Projects +**, which adds another project) to start a **project session**.
+- **H0.4** uses `local-repository-workspace-selector` with the callouts masked: "For this one-time setup, where should the session run?" → **Local repository**. The checkmark on **New worktree** is just the *default*; **New worktree** "creates a separate copy for this session" (*"you'll meet those on Thousand-Bough Isle"*), and **Cloud** "runs in a cloud sandbox." **[C0.6]**
+- The spyglass shows the review panel (`shared/app-review-panel`). Bo explains **View → Toggle Review Panel**, then the **Terminal** tab (if it isn't visible, **+ → Terminal**).
+- **Gear Rack (scenery):** four pieces over readable plaques (compass = Git `git --version`, lantern = Node.js `node -v`, rope coil = npm `npm -v`, spyglass = GitHub CLI `gh --version`) under a **Gear Check** header. Bo runs them (the `gear-checks` cue) and the terminal panel shows every version plus `gh auth status`. **Every check passes:** the game can't see your machine, so it never claims a tool is missing. *"If one says command not found, install just that tool, then run the checks again."* E at the rack reruns the readout any time.
+- GitHub CLI has its own sign-in. **S0.1:** `gh auth status` shows *someone-else*. What now? → `gh auth login` → **GitHub.com** → **Login with a web browser** → run `gh auth status` again and confirm. **[P] "Terminal in the app"** (pg.terminal) has the checks, `gh auth status`, and `gh auth login` as a code block.
 
-**Q0.5 · Gear Check & Right Signature** *(00 · Check your tools, steps 4-8)*
-- The spyglass shows the review panel (`shared/app-review-panel`, cropped from Ch03's workspace shot). Bo explains **View → Toggle Review Panel**, then the **Terminal** tab (if it isn't visible, **+ → Terminal**), and grants **[P] "Terminal in the app"** (pg.terminal) with the four checks and `gh auth status` as a code block.
-- The **Gear Rack** hangs four pieces: compass = `git --version`, lantern = `node -v`, rope coil = `npm -v`, spyglass = `gh --version`. One E runs all four checks (these are developers; fetching gear for `node -v` taught nothing).
-- `gh` comes back *command not found* and the spyglass has lost its lens. You find the lens nearby, fit it, and check again. Bo: *"Only install what's missing, then check again."*
-- **Right Signature:** the ledger shows `gh auth status` as *Logged in as someone-else*. **S0.1:** what now? → `gh auth login` → **GitHub.com** → **Login with a web browser** → run `gh auth status` again and confirm.
-
-**Q0.6 · Open the Sluice** *(00 · Add the course practice items, step 1)*. Suri explains: *"This part happens on GitHub.com, not in the app. Open your fork, go to the **Actions** tab, and you'll see 'Workflows aren't being run on this forked repository.' New forks switch GitHub Actions off. Turn it on so GitHub can run the automated checks for your practice exercises."* → **P0.1**. Afterwards, Wingman heads off a mix-up: *"These are GitHub Actions workflows. The Clock Tower's **Automations** are something else, saved agent tasks, and you'll learn those much later."*
+**Q0.6 · Open the Sluice (optional)**. Opens once the crane's done. Suri's mill shows what turning on workflows does → **P0.1**, then **[P] "The practice checks"** (pg.checks). Afterwards, Wingman heads off a mix-up: *"These are GitHub Actions workflows. The Clock Tower's **Automations** are something else, saved agent tasks, and you'll learn those much later."*
 
 **Q0.7 · The Dry-Run Crane** *(00 · Add the course practice items, steps 2-3)*
 - Pim & Pol explain that the script stocks your ship with **labels** (colored pennants), **issues** (bounty notices), **practice branches** (practice hulls, *"the bugs stay on those, never on `main`"*), and **pull requests** (sealed inspection requests: changes to review, a feedback comment, and an intentionally failing check).
-- *"They're training scenarios, not problems with your setup."* → **P0.2**.
+- *"They're training scenarios, not problems with your setup."*
+- **Actions first** *(the section's step 1)*: *"First, a job on GitHub.com. Open your fork's **Actions** tab. New forks switch workflows off."* Select **I understand my workflows, go ahead and enable them**, so GitHub can run the practice checks. **[P] "Turn on workflows"** (pg.workflows). → **P0.2**.
 - After the crane, Pol hands you a **[P0.S] "The setup commands"** page. It shows exactly what the crane stood for. You run both commands in the app's **Terminal** tab, from the repository root (the folder that contains `.github` and `samples`):
   ```bash
   node .github/scripts/setup-training-scenarios.js --dry-run   # preview; check the Repository: line
@@ -289,7 +288,7 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 - Lyra: *"Before you record anything, you get the studio ready: sign in, plug in your gear, load the song, and run a soundcheck. You just did the sailor's version."*
 - **[C0.5]** gives `studio-setup-soundcheck`, and the island theme unlocks in the Songbook.
 
-**Q0.10 · The Harbormaster's Trial** at the Point Lighthouse. → §4.7.
+**Q0.10 · The Harbormaster's Trial.** Once the first prompt's sent, Nell waits at the pier head by your bow, so there's no walk back. Passing goes straight on to **Q0.11 · the christening** in the same conversation. → §4.7.
 
 **Message bottles (optional):**
 - **B0.1** *I cannot sign in*: check the account and the plan or own model provider. For Business/Enterprise, the **GitHub Copilot app** policy must be enabled, and **that's separate from the Copilot CLI policy**. If your org uses `*.ghe.com`, choose **Sign in to GitHub Enterprise Cloud**.
@@ -327,7 +326,7 @@ Each step autosaves. **[C#]** marks a chest and **[P]** a Logbook page.
 | C0.6 | Hidden cove (optional) | `00-setup/assets/local-repository-workspace-selector.webp` | **Local repository** works in the clone already on your machine. |
 | P0.S | From Pol, after the crane | *(Logbook page: code block, no image)* | The two setup commands, run in **Terminal** from the repo root: `--dry-run` first, check `Repository:`, then `--yes`. |
 
-Pages granted in dialogue (not chests): **pg.install** (Nell), **pg.fork** (Ezra), **pg.terminal** (Bo: review-panel image, the Terminal tab, and the checks as a code block), **pg.workflows** (Suri), **pg.first-prompt** (Juno: the prompt as a code block, and a note that models word replies differently). The sign-in and theme screenshots appear in Nell's spyglass rather than as separate pages.
+Pages granted in dialogue (not chests): **pg.install** (Nell), **pg.fork** (Ezra), **pg.terminal** (Bo: review-panel image, the Terminal tab, and the checks as a code block), **pg.workflows** (Pim & Pol), **pg.checks** (Suri, optional), **pg.first-prompt** (Juno: the prompt as a code block, and a note that models word replies differently). The sign-in and theme screenshots appear in Nell's spyglass rather than as separate pages.
 
 ### 4.7 Quizzes
 Quizzes cover what's specific to the app or easy to get wrong. Obvious steps (the sign-in button, a menu item named after what you want, `node -v`) are shown and told instead; the old H0.1, H0.3, MC0.1 and M0.1 were cut for that reason.

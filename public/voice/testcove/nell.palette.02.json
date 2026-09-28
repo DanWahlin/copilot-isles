@@ -1,47 +1,102 @@
 {
   "id": "nell.palette.02",
   "speaker": "Nell",
-  "text": "Fine colours, Captain. Ezra the chartmaker’s expecting you.",
+  "text": "Fine colours, Captain. Next, your own copy of the course. Ezra's at his chart table, down by the pier.",
   "words": [
     {
       "word": "Fine",
-      "start": 0.15,
-      "end": 0.63
+      "start": 0.07,
+      "end": 0.47
     },
     {
       "word": "colours",
-      "start": 0.63,
-      "end": 0.99
+      "start": 0.47,
+      "end": 0.87
     },
     {
       "word": "Captain",
-      "start": 0.99,
-      "end": 2.11
+      "start": 0.87,
+      "end": 1.23
     },
     {
-      "word": "Ezra",
-      "start": 2.11,
-      "end": 2.469
+      "word": "Next",
+      "start": 1.23,
+      "end": 1.91
+    },
+    {
+      "word": "your",
+      "start": 1.91,
+      "end": 2.07
+    },
+    {
+      "word": "own",
+      "start": 2.07,
+      "end": 2.349
+    },
+    {
+      "word": "copy",
+      "start": 2.349,
+      "end": 2.63
+    },
+    {
+      "word": "of",
+      "start": 2.63,
+      "end": 2.71
     },
     {
       "word": "the",
-      "start": 2.469,
-      "end": 2.59
+      "start": 2.71,
+      "end": 2.829
     },
     {
-      "word": "chartmaker’s",
-      "start": 2.59,
-      "end": 3.19
+      "word": "course",
+      "start": 2.829,
+      "end": 3.469
     },
     {
-      "word": "expecting",
-      "start": 3.19,
-      "end": 3.829
+      "word": "Ezra's",
+      "start": 3.469,
+      "end": 3.909
     },
     {
-      "word": "you",
-      "start": 3.829,
-      "end": 4.079000000000001
+      "word": "at",
+      "start": 3.909,
+      "end": 4.03
+    },
+    {
+      "word": "his",
+      "start": 4.03,
+      "end": 4.19
+    },
+    {
+      "word": "chart",
+      "start": 4.19,
+      "end": 4.51
+    },
+    {
+      "word": "table",
+      "start": 4.51,
+      "end": 4.87
+    },
+    {
+      "word": "down",
+      "start": 4.87,
+      "end": 5.15
+    },
+    {
+      "word": "by",
+      "start": 5.15,
+      "end": 5.27
+    },
+    {
+      "word": "the",
+      "start": 5.27,
+      "end": 5.39
+    },
+    {
+      "word": "pier",
+      "start": 5.39,
+      "end": 5.64
     }
   ]
 }

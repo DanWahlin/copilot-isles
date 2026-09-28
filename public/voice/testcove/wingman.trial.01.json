@@ -1,0 +1,62 @@
+{
+  "id": "wingman.trial.01",
+  "speaker": "Wingman",
+  "text": "Eight questions, Captain. No answers from me in there, only nudges.",
+  "words": [
+    {
+      "word": "Eight",
+      "start": 0.27,
+      "end": 0.47
+    },
+    {
+      "word": "questions",
+      "start": 0.47,
+      "end": 0.99
+    },
+    {
+      "word": "Captain",
+      "start": 0.99,
+      "end": 1.91
+    },
+    {
+      "word": "No",
+      "start": 1.91,
+      "end": 2.23
+    },
+    {
+      "word": "answers",
+      "start": 2.23,
+      "end": 2.51
+    },
+    {
+      "word": "from",
+      "start": 2.51,
+      "end": 2.67
+    },
+    {
+      "word": "me",
+      "start": 2.67,
+      "end": 2.829
+    },
+    {
+      "word": "in",
+      "start": 2.829,
+      "end": 2.949
+    },
+    {
+      "word": "there",
+      "start": 2.949,
+      "end": 3.309
+    },
+    {
+      "word": "only",
+      "start": 3.309,
+      "end": 3.63
+    },
+    {
+      "word": "nudges",
+      "start": 3.63,
+      "end": 3.88
+    }
+  ]
+}
