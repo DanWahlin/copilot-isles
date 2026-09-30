@@ -271,14 +271,32 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(smoothstep(-864, -846, positionWorld.z))
     .mul(float(1).sub(smoothstep(-704, -686, positionWorld.z)))
     .mul(smoothstep(4, 16, y));
+  const bluffFractureA = abs(
+    sin(positionWorld.x.mul(0.34).add(positionWorld.z.mul(0.47)).add(noiseLow.r.mul(3.2))),
+  ).smoothstep(float(0.955), float(0.998));
+  const bluffFractureB = abs(
+    sin(positionWorld.x.mul(0.72).sub(positionWorld.z.mul(0.22)).add(noiseMid.b.mul(4.1))),
+  ).smoothstep(float(0.972), float(0.999));
+  const bluffFractures = bluffFractureA
+    .max(bluffFractureB.mul(0.75))
+    .mul(meridianBluffMask)
+    .mul(smoothstep(6, 38, y));
+  const bluffScrub = pow(
+    saturate(noiseLow.g.mul(0.4).add(noiseMid.a.mul(0.38)).add(noiseFine.g.mul(0.22)).sub(0.78).mul(4.2)),
+    2.0,
+  )
+    .mul(meridianBluffMask)
+    .mul(smoothstep(8, 34, y))
+    .mul(float(1).sub(bluffFractures.mul(0.8)));
   const meridianBluffCliff = mix(
-    color(0x6a675d),
-    color(0xb0a17d),
+    color(0x755f43),
+    rockTexel.mul(vec3(1.42, 1.25, 0.86)),
     broadNoise.mul(0.48).add(fineNoise.mul(0.28)).add(noiseLow.a.mul(0.18)),
   )
     .mul(float(0.86).add(noiseMid.g.mul(0.18)).add(noiseFine.b.mul(0.08)))
     .mul(float(1).sub(crevices.mul(0.28)))
-    .mul(float(1).sub(joints.mul(0.34)));
+    .mul(float(1).sub(joints.mul(0.34)))
+    .mul(float(1).sub(bluffFractures.mul(0.48)));
   base = mix(base, mix(cliffColor, meridianBluffCliff, meridianBluffMask), cliffInfluence);
   base = mix(base, reefRock, underwater.mul(rockMask.add(cliffMask).mul(0.7)));
   base = mix(base, seabed, underwater.mul(0.72));
@@ -446,6 +464,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(saturate(grassMask.add(rockMask.mul(0.38)).add(sandMask.mul(0.18))));
   const hilltopGreen = mix(color(0x6a6a31), color(0xb19955), noiseLow.g.mul(0.58).add(noiseMid.g.mul(0.42)));
   base = mix(base, hilltopGreen, hilltopMeadow.mul(midDetail));
+  base = mix(base, color(0x55633a), bluffScrub.mul(0.42));
   const sunnyHeadland = smoothstep(6, 18, y)
     .mul(float(1).sub(smoothstep(52, 88, detailDistance)))
     .mul(saturate(grassMask.mul(0.9).add(rockMask.mul(0.45))))
