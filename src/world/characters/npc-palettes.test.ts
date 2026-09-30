@@ -6,7 +6,21 @@ describe('NPC palettes', () => {
   const npcBodies = CHARACTER_BODIES.filter(
     (body): body is NpcId => !(PLAYER_BODIES as readonly string[]).includes(body),
   );
-  const meridianBodies = ['tobias', 'mina', 'anders', 'rhea', 'oren', 'pell', 'admiral'] as const;
+  const meridianBodies = [
+    'tobias',
+    'mina',
+    'anders',
+    'rhea',
+    'oren',
+    'pell',
+    'admiral',
+    'mer_fisher',
+    'mer_matron',
+    'mer_vendor',
+    'mer_kid_a',
+    'mer_kid_b',
+    'mer_guard',
+  ] as const;
 
   it('uses the dedicated atlas eye cell and no clothing slot for each family', () => {
     for (const [family, eye] of Object.entries(ATLAS_EYES)) {

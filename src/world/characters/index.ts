@@ -155,6 +155,34 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
     reads: true,
   },
   admiral: { source: 'anne_npc', scale: 1.08, radius: 0.34, height: 1.84, tint: 0xffffff },
+  // Port Meridian ambient townsfolk: non-teacher bodies for harbour life and plaza animation.
+  mer_fisher: {
+    source: 'henry_npc',
+    scale: 0.93,
+    radius: 0.32,
+    height: 1.62,
+    tint: 0xffffff,
+    hand: 'right',
+  },
+  mer_matron: {
+    source: 'anne_npc',
+    scale: 1,
+    radius: 0.32,
+    height: 1.7,
+    tint: 0xffffff,
+    hand: 'right',
+  },
+  mer_vendor: {
+    source: 'henry_npc',
+    scale: 0.99,
+    radius: 0.34,
+    height: 1.74,
+    tint: 0xffffff,
+    hand: 'left',
+  },
+  mer_kid_a: { source: 'henry_npc', scale: 0.68, radius: 0.22, height: 1.18, tint: 0xffffff },
+  mer_kid_b: { source: 'anne_npc', scale: 0.7, radius: 0.22, height: 1.2, tint: 0xffffff },
+  mer_guard: { source: 'henry_npc', scale: 1.05, radius: 0.35, height: 1.82, tint: 0xffffff },
 };
 
 const PLAYER_VARIANTS = [0xffffff, 0xe8f5ff, 0xffeee4, 0xebffe4] as const;

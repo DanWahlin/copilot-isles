@@ -133,6 +133,37 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
       addSash(root, 0x9f2630, 1);
       addMedals(root);
       break;
+    case 'mer_fisher':
+      addSunBleachedCap(root);
+      addBeard(root, 0xf0ead8);
+      addRolledSleeves(root, 0xe8d8b5);
+      addFishingNet(root, -1);
+      addTacklePouch(root, 0x8b5a2b, 1);
+      break;
+    case 'mer_matron':
+      addHeadscarf(root, 0xd28a22, 0x7a1f2d);
+      addApron(root, 0xe2c98f, 0x6d4a2e);
+      addMarketBasket(root, -1);
+      break;
+    case 'mer_vendor':
+      addStripedShirt(root, 0x1f8790);
+      addNeckerchief(root, 0xc64e3f);
+      addFruitTray(root, -1);
+      break;
+    case 'mer_kid_a':
+      addChildSailorCap(root, 0x2f6fa1, 0xd28a22);
+      addToyPinwheel(root, 1);
+      addSatchel(root, 0x8b4f24, -1);
+      break;
+    case 'mer_kid_b':
+      addHeadscarf(root, 0xc64e3f, 0xf0dfbd);
+      addToyHoop(root, -1);
+      addSash(root, 0xd28a22, 1);
+      break;
+    case 'mer_guard':
+      addGuardHelmet(root, 0x8d969c, 0xd6b35f);
+      addGuardLivery(root, 0x172d59, 0x7a1f2d, 0xd6b35f);
+      break;
     case 'lookout':
       addWatchCap(root, 0x24394a);
       addSpyglass(root, -1);
@@ -198,6 +229,18 @@ function addStrawHat(root: Group): void {
   addHead(root, crown);
 }
 
+function addSunBleachedCap(root: Group): void {
+  const cap = mesh(new SphereGeometry(0.25, 12, 6), mat(0xd9c88f), 'sun-bleached cap crown');
+  cap.position.set(0, 0.205, 0);
+  cap.scale.set(1.08, 0.26, 0.88);
+  addHead(root, cap);
+
+  const bill = mesh(new BoxGeometry(0.23, 0.02, 0.12), mat(0xc8aa67), 'sun-bleached cap bill');
+  bill.position.set(0, 0.19, 0.22);
+  bill.rotation.x = -0.08;
+  addHead(root, bill);
+}
+
 function addWideBrimFeltHat(root: Group, felt: ColorHex, band: ColorHex): void {
   const brim = mesh(new CylinderGeometry(0.43, 0.45, 0.036, 18), mat(felt), 'wide felt brim');
   brim.position.set(0, 0.215, 0.01);
@@ -240,6 +283,28 @@ function addSunHat(root: Group, straw: ColorHex, ribbon: ColorHex): void {
   addHead(root, bow);
 }
 
+function addHeadscarf(root: Group, cloth: ColorHex, trim: ColorHex): void {
+  const scarf = mesh(new SphereGeometry(0.29, 14, 7), mat(cloth), 'headscarf wrap');
+  scarf.position.set(0, 0.205, 0.0);
+  scarf.scale.set(1.02, 0.38, 0.88);
+  addHead(root, scarf);
+
+  const band = mesh(new CylinderGeometry(0.285, 0.292, 0.04, 16), mat(trim), 'headscarf band');
+  band.position.set(0, 0.155, 0.01);
+  band.scale.set(1, 0.45, 0.85);
+  addHead(root, band);
+
+  const knot = mesh(new SphereGeometry(0.06, 7, 5), mat(cloth), 'headscarf knot');
+  knot.position.set(-0.22, 0.14, -0.11);
+  knot.scale.set(1, 0.78, 0.65);
+  addHead(root, knot);
+
+  const tail = mesh(new BoxGeometry(0.08, 0.2, 0.02), mat(cloth), 'headscarf tail');
+  tail.position.set(-0.29, 0.035, -0.16);
+  tail.rotation.z = -0.3;
+  addHead(root, tail);
+}
+
 function addFlatCap(root: Group, wool: ColorHex): void {
   const crown = mesh(new SphereGeometry(0.29, 14, 6), mat(wool), 'flat cap crown');
   crown.position.set(0, 0.205, 0.0);
@@ -278,6 +343,35 @@ function addNavalTricorn(root: Group, felt: ColorHex, trim: ColorHex): void {
   cockade.position.set(0.18, 0.295, 0.23);
   cockade.scale.set(1, 0.55, 0.25);
   addHead(root, cockade);
+}
+
+function addChildSailorCap(root: Group, cloth: ColorHex, trim: ColorHex): void {
+  const cap = mesh(new CylinderGeometry(0.24, 0.25, 0.11, 14), mat(cloth), 'child sailor cap');
+  cap.position.set(0, 0.19, 0);
+  cap.scale.set(1.02, 0.62, 0.88);
+  addHead(root, cap);
+
+  const brim = mesh(new CylinderGeometry(0.27, 0.27, 0.026, 14), mat(trim), 'child sailor cap brim');
+  brim.position.set(0, 0.145, 0.01);
+  brim.scale.set(1, 0.35, 0.82);
+  addHead(root, brim);
+}
+
+function addGuardHelmet(root: Group, metal: ColorHex, trim: ColorHex): void {
+  const dome = mesh(new SphereGeometry(0.3, 14, 7), mat(metal), 'guard helmet dome');
+  dome.position.set(0, 0.225, 0);
+  dome.scale.set(1.12, 0.46, 0.94);
+  addHead(root, dome);
+
+  const brim = mesh(new CylinderGeometry(0.34, 0.34, 0.03, 16), mat(trim), 'guard helmet brim');
+  brim.position.set(0, 0.16, 0.015);
+  brim.scale.set(1.06, 0.3, 0.84);
+  addHead(root, brim);
+
+  const crest = mesh(new BoxGeometry(0.055, 0.18, 0.035), mat(0x7a1f2d), 'guard helmet crest');
+  crest.position.set(0, 0.35, 0.02);
+  crest.rotation.x = 0.1;
+  addHead(root, crest);
 }
 
 function addSoftStarCap(root: Group, cloth: ColorHex, stitch: ColorHex): void {
@@ -507,6 +601,18 @@ function addMoneyPouch(root: Group, leather: ColorHex, side: -1 | 1): void {
   addRoot(root, flap, 'Hips');
 }
 
+function addTacklePouch(root: Group, leather: ColorHex, side: -1 | 1): void {
+  const pouch = mesh(new BoxGeometry(0.12, 0.11, 0.075), mat(leather), 'tackle pouch');
+  pouch.position.set(side * 0.25, 0.36, 0.05);
+  pouch.rotation.z = side * 0.08;
+  addRoot(root, pouch, 'Hips');
+
+  const cork = mesh(new SphereGeometry(0.025, 6, 4), mat(0xd6b35f), 'fishing cork');
+  cork.position.set(side * 0.25, 0.43, 0.1);
+  cork.scale.set(1, 0.8, 0.55);
+  addRoot(root, cork, 'Hips');
+}
+
 function addLedger(root: Group, color: ColorHex, side: -1 | 1): void {
   // Held flat against the chest, as if hugged.
   const book = mesh(new BoxGeometry(0.2, 0.26, 0.035), mat(color), 'ledger');
@@ -529,6 +635,38 @@ function addLedgerInHand(root: Group, color: ColorHex, side: -1 | 1): void {
   page.position.set(side * 0.34, 0.34, 0.102);
   page.rotation.copy(book.rotation);
   addRoot(root, page, lowerArmName(side));
+}
+
+function addMarketBasket(root: Group, side: -1 | 1): void {
+  const basket = mesh(new CylinderGeometry(0.075, 0.105, 0.12, 10), mat(0x9d642e), 'market basket');
+  basket.position.set(side * 0.31, 0.36, 0.1);
+  basket.scale.set(1, 1, 0.72);
+  addRoot(root, basket, lowerArmName(side));
+
+  const handle = mesh(new TorusGeometry(0.075, 0.007, 5, 12), mat(0x6a3d1f), 'market basket handle');
+  handle.position.set(side * 0.31, 0.43, 0.1);
+  handle.rotation.x = Math.PI / 2;
+  handle.scale.set(0.9, 0.55, 1);
+  addRoot(root, handle, lowerArmName(side));
+
+  for (const [i, color] of [0xc64e3f, 0xd28a22, 0x8fbf4a].entries()) {
+    const fruit = mesh(new SphereGeometry(0.025, 6, 4), mat(color), 'basket fruit');
+    fruit.position.set(side * (0.28 + i * 0.03), 0.43, 0.1 + (i % 2) * 0.025);
+    addRoot(root, fruit, lowerArmName(side));
+  }
+}
+
+function addFruitTray(root: Group, side: -1 | 1): void {
+  const tray = mesh(new BoxGeometry(0.22, 0.035, 0.14), mat(0x8b5a2b), 'vendor produce tray');
+  tray.position.set(side * 0.31, 0.43, 0.12);
+  tray.rotation.z = side * 0.04;
+  addRoot(root, tray, lowerArmName(side));
+
+  for (const [i, color] of [0xd28a22, 0xc64e3f, 0x8fbf4a, 0xd9c88f].entries()) {
+    const fruit = mesh(new SphereGeometry(0.03, 6, 4), mat(color), 'vendor produce');
+    fruit.position.set(side * (0.235 + i * 0.045), 0.47, 0.105 + (i % 2) * 0.035);
+    addRoot(root, fruit, lowerArmName(side));
+  }
 }
 
 function addScroll(root: Group, side: -1 | 1): void {
@@ -602,6 +740,91 @@ function addTool(root: Group, metal: ColorHex, side: -1 | 1): void {
   const head = mesh(new BoxGeometry(0.05, 0.05, 0.14), mat(metal), 'tool head');
   head.position.set(side * 0.23, 0.49, -0.08);
   addRoot(root, head, 'Hips');
+}
+
+function addRolledSleeves(root: Group, color: ColorHex): void {
+  for (const side of [-1, 1] as const) {
+    const cuff = mesh(new CylinderGeometry(0.055, 0.055, 0.035, 8), mat(color), 'rolled sleeve cuff');
+    cuff.position.set(side * 0.25, 0.53, 0.03);
+    cuff.rotation.z = Math.PI / 2;
+    addRoot(root, cuff, lowerArmName(side));
+  }
+}
+
+function addFishingNet(root: Group, side: -1 | 1): void {
+  const ring = mesh(new TorusGeometry(0.11, 0.009, 5, 18), mat(0xd8c99a), 'coiled fishing net');
+  ring.position.set(side * 0.23, 0.45, -0.12);
+  ring.rotation.set(Math.PI / 2, 0, side * 0.15);
+  addRoot(root, ring, 'Hips');
+
+  for (let i = 0; i < 4; i += 1) {
+    const line = mesh(new BoxGeometry(0.006, 0.2, 0.006), mat(0xe7d9b5), 'fishing net line');
+    line.position.set(side * (0.18 + i * 0.035), 0.45, -0.045);
+    line.rotation.z = side * (0.45 - i * 0.25);
+    addRoot(root, line, 'Hips');
+  }
+}
+
+function addStripedShirt(root: Group, stripe: ColorHex): void {
+  for (let i = 0; i < 4; i += 1) {
+    const band = mesh(new BoxGeometry(0.29, 0.025, 0.018), mat(stripe), 'striped shirt band');
+    band.position.set(0, 0.68 - i * 0.07, 0.127);
+    addRoot(root, band, 'Torso');
+  }
+}
+
+function addNeckerchief(root: Group, color: ColorHex): void {
+  const knot = mesh(new SphereGeometry(0.045, 7, 5), mat(color), 'neckerchief knot');
+  knot.position.set(0, 0.71, 0.14);
+  knot.scale.set(1, 0.75, 0.45);
+  addRoot(root, knot, 'Torso');
+
+  const tail = mesh(new BoxGeometry(0.055, 0.16, 0.02), mat(color), 'neckerchief tail');
+  tail.position.set(0.025, 0.61, 0.14);
+  tail.rotation.z = -0.2;
+  addRoot(root, tail, 'Torso');
+}
+
+function addToyPinwheel(root: Group, side: -1 | 1): void {
+  const stick = mesh(new BoxGeometry(0.012, 0.28, 0.012), mat(0x7a4a2a), 'pinwheel stick');
+  stick.position.set(side * 0.3, 0.4, 0.14);
+  stick.rotation.z = side * 0.18;
+  addRoot(root, stick, lowerArmName(side));
+
+  for (const [i, color] of [0xc64e3f, 0xd28a22, 0x2f6fa1, 0x1f8790].entries()) {
+    const vane = mesh(new BoxGeometry(0.06, 0.018, 0.012), mat(color), 'pinwheel vane');
+    vane.position.set(side * 0.31, 0.54, 0.15);
+    vane.rotation.z = (Math.PI / 2) * i;
+    addRoot(root, vane, lowerArmName(side));
+  }
+}
+
+function addToyHoop(root: Group, side: -1 | 1): void {
+  const hoop = mesh(new TorusGeometry(0.1, 0.008, 5, 18), mat(0xd6b35f), 'toy hoop');
+  hoop.position.set(side * 0.3, 0.35, 0.12);
+  hoop.rotation.y = side * 0.25;
+  addRoot(root, hoop, lowerArmName(side));
+}
+
+function addGuardLivery(root: Group, navy: ColorHex, burgundy: ColorHex, brass: ColorHex): void {
+  const tabard = mesh(new BoxGeometry(0.3, 0.55, 0.032), mat(navy), 'guard tabard');
+  tabard.position.set(0, 0.5, 0.11);
+  addRoot(root, tabard, 'Torso');
+
+  const stripe = mesh(new BoxGeometry(0.065, 0.56, 0.018), mat(burgundy), 'guard burgundy stripe');
+  stripe.position.set(0, 0.5, 0.13);
+  addRoot(root, stripe, 'Torso');
+
+  const belt = mesh(new BoxGeometry(0.31, 0.05, 0.022), mat(brass), 'guard brass belt');
+  belt.position.set(0, 0.42, 0.13);
+  addRoot(root, belt, 'Hips');
+
+  for (const side of [-1, 1] as const) {
+    const shoulder = mesh(new SphereGeometry(0.055, 7, 5), mat(brass), 'guard shoulder boss');
+    shoulder.position.set(side * 0.17, 0.73, 0.06);
+    shoulder.scale.set(1.2, 0.45, 0.7);
+    addRoot(root, shoulder, 'Torso');
+  }
 }
 
 function addMerchantScales(root: Group, side: -1 | 1): void {
