@@ -57,7 +57,8 @@ export const ISLANDS: Readonly<Record<IslandId, IslandBerth>> = {
     berthLabel: 'Port Meridian',
     dockLabel: 'Dock at Port Meridian',
     mooring: MERIDIAN.harbor.berth,
-    landingHeading: Math.PI,
+    // Up the harbour toward the plaza: the terraces, the clock tower and the citadel in one frame.
+    landingHeading: -2.81,
     quay: MERIDIAN.harbor.landing,
     music: 'meridian',
     // Golden hour, the sun low in the south-west: it lights the town's face across the harbour.
