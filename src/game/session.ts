@@ -211,11 +211,21 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   };
   placePlank();
   const meridianQuay: WalkSurface = { heightAt: meridianQuayHeight, kind: 'stone' };
+  const meridianTownSurface: WalkSurface = {
+    heightAt: (x, z) => cove.meridian.town?.walkable(x, z) ?? null,
+    kind: 'stone',
+  };
   let gangwayDown = false;
   const world = new CollisionWorld({
     ground,
     waves: ocean.field,
-    surfaces: [villageSurface, sitesSurface, meridianQuay, plankSurface(plank, () => gangwayDown)],
+    surfaces: [
+      villageSurface,
+      sitesSurface,
+      meridianTownSurface,
+      meridianQuay,
+      plankSurface(plank, () => gangwayDown),
+    ],
     circles: [...village.colliders.circles, ...sites.colliders.circles],
     boxes: [...village.colliders.boxes, ...sites.colliders.boxes],
   });
@@ -336,6 +346,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   publishQuests();
   let scriptRunning = false;
   let disposed = false;
+  let meridianTownCollidersAdded = false;
+  const addMeridianTownColliders = (town: CoveScene['meridian']['town']) => {
+    if (!town || disposed || meridianTownCollidersAdded) return;
+    for (const c of town.colliders.circles) world.addCircle(c);
+    for (const b of town.colliders.boxes) world.addBox(b);
+    meridianTownCollidersAdded = true;
+  };
+  addMeridianTownColliders(cove.meridian.town);
+  void cove.meridian.townReady.then(addMeridianTownColliders);
   // World beats a script can wait on (`{ cue }` steps), registered by the puzzles below.
   const cues = new Map<string, () => Promise<void>>();
   const scriptExtras = {

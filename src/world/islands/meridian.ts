@@ -230,6 +230,17 @@ function townHeight(x: number, z: number, current: number): number {
   return mix(current, ramp, w);
 }
 
+function stairStreetTerrainHeight(x: number, z: number, current: number): number {
+  const x0 = MERIDIAN.pads.plaza.x;
+  const z0 = MERIDIAN.harbor.quay.z0 + 2;
+  const z1 = MERIDIAN.pads.plaza.z;
+  if (z > z0 || z < z1) return current;
+  const t = clamp01((z0 - z) / (z0 - z1));
+  const ramp = MERIDIAN.harbor.quay.height + (MERIDIAN.pads.plaza.height - MERIDIAN.harbor.quay.height) * t;
+  const mask = 1 - smoothstep(5.8, 10, Math.abs(x - x0));
+  return mix(current, ramp, mask);
+}
+
 /**
  * The citadel bluff: a sheer face over the east arm (where the cliff lift climbs) that runs back
  * into the hill toward the north-east instead of standing alone.
@@ -291,6 +302,7 @@ export function meridianHeight(x: number, z: number): number {
     h = padHeight(x, z, h, pad, 8);
   }
   h = citadelHeight(x, z, h);
+  h = stairStreetTerrainHeight(x, z, h);
   const basinCore = Math.hypot(
     (x - MERIDIAN.harbor.center.x) / MERIDIAN.harbor.radiusX,
     (z - MERIDIAN.harbor.center.z) / MERIDIAN.harbor.radiusZ,

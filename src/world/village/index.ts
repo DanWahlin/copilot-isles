@@ -112,7 +112,7 @@ export interface VillageKit {
   dispose(): void;
 }
 
-type MaterialKey =
+export type MaterialKey =
   | 'stone'
   | 'paving'
   | 'plaster'
@@ -671,7 +671,7 @@ export function walkable(x: number, z: number): number | null {
   return null;
 }
 
-function makeBuckets(): Record<MaterialKey, BufferGeometry[]> {
+export function makeBuckets(): Record<MaterialKey, BufferGeometry[]> {
   return {
     stone: [],
     paving: [],
@@ -1157,7 +1157,7 @@ function addBoardedWindowPatch(
   }
 }
 
-function addKitPlacement(
+export function addKitPlacement(
   buckets: Record<MaterialKey, BufferGeometry[]>,
   kit: VillageKit,
   placement: PiecePlacement,
@@ -1174,6 +1174,7 @@ function addKitPlacement(
 
 function kitPaintColour(materialKey: MaterialKey, tint?: number): number {
   if (materialKey === 'plaster') return tint ?? 0xffffff;
+  if (materialKey === 'roofTile') return tint ?? 0xffffff;
   if (materialKey === 'wood') return 0x9b7651;
   return 0xffffff;
 }
@@ -2760,7 +2761,7 @@ function addTorus(
   target.push(geometry);
 }
 
-function transform(
+export function transform(
   geometry: BufferGeometry,
   x: number,
   y: number,
@@ -2781,7 +2782,7 @@ function transform(
   return geometry;
 }
 
-function paint(geometry: BufferGeometry, colour: number): void {
+export function paint(geometry: BufferGeometry, colour: number): void {
   if (geometry.hasAttribute('tangent')) geometry.deleteAttribute('tangent');
   if (geometry.hasAttribute('uv1')) geometry.deleteAttribute('uv1');
   if (geometry.hasAttribute('uv2')) geometry.deleteAttribute('uv2');
@@ -2827,7 +2828,13 @@ function floatAttribute(attr: BufferAttribute): BufferAttribute {
   return new BufferAttribute(data, attr.itemSize);
 }
 
-function localToWorld(x: number, z: number, rot: number, lx: number, lz: number): { x: number; z: number } {
+export function localToWorld(
+  x: number,
+  z: number,
+  rot: number,
+  lx: number,
+  lz: number,
+): { x: number; z: number } {
   const c = Math.cos(rot);
   const s = Math.sin(rot);
   return { x: x + lx * c + lz * s, z: z - lx * s + lz * c };
