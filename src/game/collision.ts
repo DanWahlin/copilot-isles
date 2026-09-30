@@ -177,13 +177,10 @@ export class CollisionWorld {
     if (this.occludedAt(x, y, z, pad)) return true;
     const b = this.cellAt(x, z);
     if (!b) return false;
-    for (const c of b.circles)
-      if (
-        c.r >= 1.5 &&
-        Math.hypot(x - c.x, z - c.z) < c.r + pad &&
-        y < this.ground.heightAt(c.x, c.z) + (c.height ?? 12)
-      )
-        return true;
+    for (const c of b.circles) {
+      if (c.r < 1.5 || Math.hypot(x - c.x, z - c.z) >= c.r + pad) continue;
+      if (y < this.groundAt(c.x, c.z) + (c.height ?? 12)) return true;
+    }
     return false;
   }
 

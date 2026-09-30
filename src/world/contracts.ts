@@ -25,7 +25,7 @@ export interface CircleObstacle {
   x: number;
   z: number;
   r: number;
-  /** Top height above the ground, for camera sight lines (big circles default to tall). */
+  /** Top height above the ground, for camera sight lines (big circles default to tall); walking ignores it. */
   height?: number;
 }
 
