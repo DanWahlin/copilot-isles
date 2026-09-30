@@ -171,19 +171,18 @@ The **Open Sea** between islands has sailing, dolphins, gulls, whales, sea stack
 11. **Trial:** order the five key setup decisions, then a hotspot round and multiple choice. You earn the Seal, the lighthouse lights, and **Port Meridian** appears on the map.
 - *Side:* messages in bottles hold the troubleshooting tips (app policy is separate from the CLI policy, Git missing, org fork).
 
-### Island 01: Port Meridian (Tour the App), first-pass beats
-The town's districts mirror the app's sidebar:
-- **Voyage Office** on the harbor plaza is the **New** page. Sample project ideas hang as posters.
-- **Bounty Board** in the market square is **My work**. The practice issues and PRs you loaded on Anchorage Cay show up here, so the two islands connect.
-- **Clock Tower** is **Automations** (a teaser for island 07).
-- **Outfitter's Shop** is **Customize** (a teaser for islands 04-06).
-- **The Tavern** is where **Chat sessions** happen (no branch), and **The Shipyard** is where **Project sessions** happen (a new worktree).
-- The **Citadel's Hall of Records** holds **Settings**. Each banner or room is a section (General, Accounts, Sessions, Themes, Accessibility, Voice dictation, Customize, Model providers, Experimental).
-- **Scattered Evidence quest:** the course's four scattered places, played out. The plan is at the **tavern** (chat), the diff is at the **carpenter's workshop** (the editor), the tests are at a **terminal hatch**, and the PR is at the **post office** ("The Browser"). You feel the pain of running between them, and then the Command Deck brings it all together. This is Chapter 01's challenge/solution table. The carpenter also shows that "you still keep your editor."
-- **Three Helms (signature puzzle):** at the Naval Academy you match voyages to **Interactive / Plan / Autopilot**, then sail each one. Plan means drawing the route and approving it before you cast off.
-- **Navigator's Observatory:** pick a model and effort level for a task. Includes the trick question "Auto isn't Autopilot."
-- *Optional:* a whispering gallery for **Voice dictation**.
-- **Trial at the Citadel:** the Admiral's exam, which includes a hotspot quiz on the sidebar (`app-new-page`).
+### Island 01: Port Meridian (Tour the App), as built
+A walled harbour town at golden hour: an east arm where your ship berths, a paved plaza and tavern up the stair street, the shipyard at the west end of the quay, terraced houses climbing to a limestone citadel on a bluff, and a cliff lift up the bluff. Eight stops in the chapter's order, each one "what you'll do → where it is in the app → one check → a Logbook page → who's next" (`src/game/meridian-quests.ts`), with the compass pointing to the next one:
+1. **Tobias Crane** (plaza table): why use the app. The challenge/solution table is told rather than played (the Scattered Evidence quest was cut to keep stops few, the Chapter 00 lesson), and you keep your editor for deep coding.
+2. **Mina Solé** (plaza tour): the sidebar's work surfaces as landmarks, each framed by the camera with its screenshot: Voyage Office = **New**, Bounty Board = **My work** (your practice items from Anchorage), Clock Tower = **Automations**, Outfitter = **Customize**. Then a hotspot check on the sidebar.
+3. **Lyra** (tavern stage): the producer's control room (modes), then **Chats**: hover over Chats, select **+**, and pick **Chat** in the project picker. No branch or worktree.
+4. **Anders Holt** (shipyard): **Project sessions** on a **New worktree** by default. **P1.1 The Crate Yard:** push each job crate onto the right plates (chat work to the tavern plates, project work to the slipway); a wrong plate refuses and says why.
+5. **Captain Rhea Marlowe** (east arm): session modes. **P1.2 The Three Helms:** board your ship; Rhea comes aboard and takes each buoy's helm in turn. **Interactive** heaves to at every mark until you say go, **Plan** charts the whole route on the water and waits for your approval, and **Autopilot** sails home to your berth and moors with no stops. A session-style terminal shows your ask, her steps, and where she's waiting on you. Then a "which mode?" check.
+6. **Oren Vey** (observatory, up the cliff lift): the model and reasoning-effort controls below the prompt box. Auto picks a model, and it isn't Autopilot.
+7. **Pell Winthrop** (Hall of Records): **Settings** and its nine areas; app-wide instructions are under Sessions. Voice dictation and the chapter's troubleshooting are filed in the Logbook.
+8. **Admiral Vale** (her terrace): the exam (A1), including a hotspot round on the sidebar. Passing earns the Seal of Meridian, the lighthouse on the mole lights across the harbour, and a Chapter 02 page points on.
+
+Tests: `tools/meridiantest.mjs` plays the chapter end to end in the browser (the helms are sailed for real).
 
 ---
 
