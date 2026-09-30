@@ -25,6 +25,8 @@ export interface CircleObstacle {
   x: number;
   z: number;
   r: number;
+  /** Optional top height above ground for camera occlusion; movement collision ignores height. */
+  height?: number;
 }
 
 /** The shared wind field (CPU side; the GPU side is built from the same constants in wind.ts). */

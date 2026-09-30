@@ -2962,7 +2962,7 @@ function addFountain(
   addCylinderGeom(buckets.stone, x, y + 0.52, z, 0.56, 0.82, 1.65, 14, 0, LIMESTONE_LIGHT);
   addCone(buckets.stone, x, y + 2.05, z, 1.05, 1.1, 14, 0, LIMESTONE_LIGHT);
   addCylinderGeom(buckets.glow, x, y + 1.9, z, 0.38, 0.38, 0.03, 14, 0, 0x6dbad0);
-  void colliders;
+  colliders.circles.push({ x, z, r: 3.2, height: 2.6 });
   perches.push(new Vector3(x, y + 2.9, z));
 }
 

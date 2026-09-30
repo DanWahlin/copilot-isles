@@ -151,6 +151,16 @@ describe('createMeridianTown', () => {
     }
 
     const fountain = town.anchors.extraFountain!;
+    expect(
+      town.colliders.circles.some(
+        (c) =>
+          Math.abs(c.x - fountain.x) < 0.01 &&
+          Math.abs(c.z - fountain.z) < 0.01 &&
+          c.r > 3.1 &&
+          c.r < 3.3 &&
+          c.height === 2.6,
+      ),
+    ).toBe(true);
     for (let i = 0; i < 24; i += 1) {
       const a = (i / 24) * Math.PI * 2;
       const x = fountain.x + Math.sin(a) * 3.4;
@@ -159,10 +169,6 @@ describe('createMeridianTown', () => {
       expect(h, `fountain ring ${i}`).not.toBeNull();
       expect(h!, `fountain ring ${i}`).toBeGreaterThan(6.5);
       expect(h!, `fountain ring ${i}`).toBeLessThan(7.2);
-      expect(
-        town.colliders.circles.some((c) => circleHitsPoint(c, x, z, 0.3)),
-        `circle ring ${i}`,
-      ).toBe(false);
       expect(
         town.colliders.boxes.some((b) => boxHitsPoint(b, x, z, 0.3)),
         `box ring ${i}`,
