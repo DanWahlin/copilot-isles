@@ -114,7 +114,7 @@ export function createCrateYard(
     if (!r.ok) {
       if (r.crate < 0) return;
       site.wobble(r.crate);
-      host.audio?.sfx.oneShot('step_wood', at(r.crate), 0.8);
+      host.audio?.sfx.oneShot('crate_thud', at(r.crate), 0.8);
       if (r.reason === 'wrong-plate') host.hud.toast(layout.crates[r.crate]!.why, 5);
       return;
     }
