@@ -174,7 +174,10 @@ const HARBOUR_FRONT_ROW: TerraceRowSpec = {
   height: PLAZA.height,
   laneWidth: 4.2,
   seed: 520,
-  gaps: [{ x0: 638, x1: 682 }],
+  gaps: [
+    { x0: 607, x1: 631 },
+    { x0: 638, x1: 682 },
+  ],
 } as const;
 
 const TERRACE_ROWS: readonly TerraceRowSpec[] = [
@@ -339,7 +342,7 @@ export function createMeridianTown({
     };
   };
 
-  addHarbour(buckets, colliders, shipObstacles, perches, low);
+  addHarbour(buckets, colliders, shipObstacles, perches, low, anchor);
   addMoleAndLighthouse(buckets, colliders, shipObstacles, perches, kit, lighthouseGlow, anchor);
   addHarbourFront(buckets, colliders, stairSpans, perches, heightField, kit, low, anchor);
   addStairStreet(buckets, colliders);
@@ -354,6 +357,19 @@ export function createMeridianTown({
 
   anchor('rhea', { x: 761.4, z: -699.2, heading: -Math.PI / 2, tx: 755.2, ty: 3.8, tz: -704 });
   anchor('crateYard', { x: 594.2, z: -759.2, heading: Math.PI / 2, tx: 586, ty: 3, tz: -752 });
+  anchor('extraStall', { x: 768.4, z: -760.5, heading: Math.PI / 2, tx: 779, ty: 4.4, tz: -760.5 });
+  anchor('extraFountain', { x: 668, z: -797.2, heading: 0, tx: 668, ty: PLAZA.height + 1.5, tz: -797.2 });
+  anchor('extraQuayA', { x: 690, z: -762.6, heading: Math.PI / 2, tx: 704, ty: 3.2, tz: -758 });
+  anchor('extraQuayB', { x: 716, z: -762.6, heading: -Math.PI / 2, tx: 704, ty: 3.2, tz: -758 });
+  anchor('extraCitadel', {
+    x: 786.3,
+    y: CITADEL.height,
+    z: -803.3,
+    heading: 2.53,
+    tx: 784,
+    ty: CITADEL.height + 3,
+    tz: -800,
+  });
 
   group.add(lighthouseGlow, liftCar);
   setLiftCarPosition(liftCar, 0);
@@ -438,6 +454,7 @@ function addHarbour(
   shipObstacles: CircleObstacle[],
   perches: Vector3[],
   low: boolean,
+  anchor: (id: string, a: BasicAnchor) => void,
 ): void {
   const { quay, eastArm } = MERIDIAN.harbor;
   const deck = quay.height;
@@ -632,6 +649,17 @@ function addHarbour(
   for (const z of [-760, -742, -724, -666])
     addBollard(buckets, colliders, perches, eastArm.x1 - 3.3, deck, z);
 
+  const extraBenchY = addBenchSeat(buckets, 684.2, deck, -764.2, 0, 1.0);
+  anchor('extraBench', {
+    x: 684.2,
+    y: extraBenchY,
+    z: -764.2,
+    heading: 0,
+    tx: 684.2,
+    ty: deck + 1.2,
+    tz: -752,
+  });
+
   addLampPost(buckets, colliders, perches, 594, deck, -764, 0);
   addLampPost(buckets, colliders, perches, 734, deck, -764, 0);
   addLampPost(buckets, colliders, perches, 765, deck, -742, Math.PI / 2);
@@ -648,6 +676,7 @@ function addHarbour(
   addFishingBoat(buckets, colliders, shipObstacles, 686, -736.8, Math.PI + 0.12, 0.7);
   addFishingBoat(buckets, colliders, shipObstacles, 710, -739.3, Math.PI - 0.06, 0.82);
   if (!low) addDinghy(buckets, colliders, shipObstacles, 735.5, -716, Math.PI / 2, 0.7);
+  addEastArmArrivalDressing(buckets, colliders, shipObstacles, perches, low);
 
   for (let x = quay.x0 + 2; x <= quay.x1 - 2; x += 7.5) {
     if (x > 735 && x < 758) continue;
@@ -657,6 +686,163 @@ function addHarbour(
     if (z > -726 && z < -675) continue;
     shipObstacles.push({ x: eastArm.x1 + 1.2, z, r: 1.6 });
   }
+}
+
+function addEastArmArrivalDressing(
+  buckets: Buckets,
+  colliders: ColliderSet,
+  shipObstacles: CircleObstacle[],
+  perches: Vector3[],
+  low: boolean,
+): void {
+  const arm = MERIDIAN.harbor.eastArm;
+  const deck = MERIDIAN.harbor.quay.height;
+  const midZ = (arm.z0 + arm.z1) * 0.5;
+  addBox(
+    buckets,
+    'stone',
+    arm.x1 + 1.55,
+    deck - 0.15,
+    midZ,
+    2.7,
+    3.8,
+    arm.z0 - arm.z1 + 6,
+    0,
+    LIMESTONE_DARK,
+  );
+  addBox(
+    buckets,
+    'stone',
+    arm.x1 + 1.35,
+    deck + 3.45,
+    midZ,
+    3.2,
+    0.36,
+    arm.z0 - arm.z1 + 6.8,
+    0,
+    LIMESTONE_LIGHT,
+  );
+  addBox(buckets, 'paving', arm.x1 + 5.0, deck + 0.03, midZ, 7.8, 0.16, arm.z0 - arm.z1 + 4.0, 0, 0xf0d7aa);
+  addBox(buckets, 'paving', arm.x1 + 10.4, deck + 0.04, midZ, 13.8, 0.18, arm.z0 - arm.z1 + 3.2, 0, 0xd6bf8d);
+  addBox(buckets, 'stone', arm.x1 + 2.25, deck - 0.25, midZ, 2.2, 8.0, arm.z0 - arm.z1 + 4.6, 0, 0x917a58);
+  addBox(
+    buckets,
+    'stone',
+    arm.x1 + 2.0,
+    deck + 7.45,
+    midZ,
+    2.8,
+    0.36,
+    arm.z0 - arm.z1 + 5.2,
+    0,
+    LIMESTONE_LIGHT,
+  );
+  addBox(buckets, 'stone', arm.x1 + 8.6, deck - 0.25, -711, 1.8, 5.6, 114, 0, 0x8f7859);
+  addBox(buckets, 'stone', arm.x1 + 7.7, deck + 4.95, -711, 3.4, 0.34, 114, 0, LIMESTONE_LIGHT);
+  addBox(buckets, 'stone', arm.x1 + 4.1, deck - 0.18, -711, 4.8, 3.5, 114, 0, 0x9a8260);
+  addBox(buckets, 'stone', arm.x1 + 3.6, deck + 3.0, -711, 5.4, 0.28, 114, 0, LIMESTONE_LIGHT);
+
+  for (const z of [-762, -748, -734, -716, -696, -678, -660]) {
+    addBox(
+      buckets,
+      'stone',
+      (arm.x0 + arm.x1) * 0.5,
+      deck + 0.035,
+      z,
+      arm.x1 - arm.x0 - 2.1,
+      0.055,
+      0.34,
+      0,
+      0x70583b,
+    );
+  }
+  for (const x of [arm.x0 + 2.8, arm.x1 - 2.8]) {
+    addBox(buckets, 'stone', x, deck + 0.05, midZ, 0.28, 0.055, arm.z0 - arm.z1 - 4.0, 0, 0x70583b);
+  }
+  addBox(
+    buckets,
+    'stone',
+    arm.x0 + 0.5,
+    deck + 0.06,
+    midZ,
+    0.55,
+    0.24,
+    arm.z0 - arm.z1 + 1.0,
+    0,
+    LIMESTONE_LIGHT,
+  );
+  addBox(
+    buckets,
+    'stone',
+    arm.x1 - 0.5,
+    deck + 0.06,
+    midZ,
+    0.55,
+    0.24,
+    arm.z0 - arm.z1 + 1.0,
+    0,
+    LIMESTONE_LIGHT,
+  );
+
+  const mooring = [
+    { x: arm.x0 + 1.3, z: -687.8, sx: MERIDIAN.harbor.berth.x - 2.8, sz: -687.5 },
+    { x: arm.x0 + 1.2, z: -712.3, sx: MERIDIAN.harbor.berth.x - 2.8, sz: -712.4 },
+    { x: arm.x1 - 3.3, z: -688.7, sx: MERIDIAN.harbor.berth.x + 2.0, sz: -689.0 },
+    { x: arm.x1 - 3.4, z: -711.2, sx: MERIDIAN.harbor.berth.x + 2.0, sz: -711.1 },
+  ] as const;
+  for (const m of mooring) {
+    addBollard(buckets, colliders, perches, m.x, deck, m.z);
+    addSagRope(buckets, { x: m.x, y: deck + 0.8, z: m.z }, { x: m.sx, y: deck + 0.45, z: m.sz });
+  }
+  addRopeCoil(buckets, arm.x0 + 2.2, deck + 0.05, -704.6, 0.75);
+  addRopeCoil(buckets, arm.x1 - 3.8, deck + 0.05, -697.5, 0.62);
+  addRopeCoil(buckets, arm.x1 - 4.2, deck + 0.05, -727.6, 0.56);
+  addRopeCoil(buckets, arm.x0 + 2.2, deck + 0.05, -692.5, 0.64);
+
+  addFishStall(buckets, arm.x0 + 1.8, deck, -690.5, 0, CLOTH_GREEN);
+  addFishStall(buckets, arm.x1 - 2.2, deck, -704.5, Math.PI / 2, CLOTH_GREEN);
+  addLobsterPots(buckets, arm.x0 + 2.2, deck + 0.08, -695.5, 0.62);
+  for (const [x, z, rot, colour] of [
+    [arm.x0 + 2.1, -681.8, 0.08, 0x7b5636],
+    [arm.x0 + 2.8, -680.9, -0.06, 0x8a633d],
+    [arm.x0 + 2.0, -678.6, 0.12, 0x6e4b2b],
+  ] as const)
+    addBox(buckets, 'wood', x, deck + 0.06, z, 0.92, 0.78, 0.9, rot, colour);
+  addTube(
+    buckets.rope,
+    0.085,
+    { x: arm.x0 + 1.3, y: deck + 0.72, z: -687.8 },
+    { x: MERIDIAN.harbor.berth.x - 3.2, y: deck + 0.34, z: -687.5 },
+    0x8a6642,
+    8,
+  );
+  addTube(
+    buckets.rope,
+    0.085,
+    { x: arm.x0 + 1.2, y: deck + 0.72, z: -712.3 },
+    { x: MERIDIAN.harbor.berth.x - 3.2, y: deck + 0.34, z: -712.4 },
+    0x8a6642,
+    8,
+  );
+
+  addDryingNetRack(buckets, arm.x1 + 4.6, deck + 0.1, -716, Math.PI / 2, 1.2);
+  addDryingNetRack(buckets, arm.x1 + 5.8, deck + 0.1, -700, Math.PI / 2, 0.95);
+  addLobsterPots(buckets, arm.x1 + 4.0, deck + 0.08, -700.5, 0.9);
+  addLobsterPots(buckets, arm.x0 + 2.4, deck + 0.08, -728.5, 0.75);
+  addBarrelCluster(buckets, colliders, arm.x1 + 4.7, deck, -742.5, 0.72);
+  addBarrelCluster(buckets, colliders, arm.x1 + 5.2, deck, -690.5, 0.55);
+  addCargoGroup(buckets, colliders, arm.x0 + 2.6, deck, -756.5, 6 * DEG);
+  addCargoGroup(buckets, colliders, arm.x0 + 2.7, deck, -682.5, -8 * DEG);
+  addFishStall(buckets, arm.x1 + 5.4, deck, -760.5, Math.PI / 2, CLOTH_BLUE);
+  addFishStall(buckets, arm.x1 + 5.8, deck, -704.0, Math.PI / 2, CLOTH_GOLD);
+  if (!low) addFishStall(buckets, arm.x1 + 5.3, deck, -748.5, Math.PI / 2, CLOTH_RED);
+
+  addLampPost(buckets, colliders, perches, arm.x1 - 2.2, deck, -706.5, Math.PI / 2);
+  addLampPost(buckets, colliders, perches, arm.x0 + 2.2, deck, -732.5, -Math.PI / 2);
+
+  addDinghy(buckets, colliders, shipObstacles, arm.x0 - 8.5, -762.5, 0.04, 0.58);
+  addDinghy(buckets, colliders, shipObstacles, arm.x0 - 8.0, -739.5, -0.06, 0.62);
+  if (!low) addDinghy(buckets, colliders, shipObstacles, arm.x0 - 8.2, -724.0, 0.08, 0.55);
 }
 
 function addMoleAndLighthouse(
@@ -692,6 +878,21 @@ function addMoleAndLighthouse(
   );
   for (let t = 0.08; t <= 0.94; t += 0.1)
     shipObstacles.push({ x: m.start.x + dx * t, z: m.start.z + dz * t, r: m.width * 0.42 });
+
+  const invLen = 1 / Math.max(1e-6, len);
+  const edgeX = m.start.x + dx * 0.58 + dz * invLen * (m.width * 0.56);
+  const edgeZ = m.start.z + dz * 0.58 - dx * invLen * (m.width * 0.56);
+  const seaHeading = Math.atan2(dz * invLen, -dx * invLen);
+  const fisherSeatY = addBenchSeat(buckets, edgeX, m.height, edgeZ, seaHeading, 0.74);
+  anchor('extraFisher', {
+    x: edgeX,
+    y: fisherSeatY,
+    z: edgeZ,
+    heading: seaHeading,
+    tx: edgeX + Math.sin(seaHeading) * 10,
+    ty: m.height + 1.2,
+    tz: edgeZ + Math.cos(seaHeading) * 10,
+  });
 
   const l = m.lighthouse;
   addDiscPaving(buckets, l.x, m.height + 0.02, l.z, l.radius, 0xe8cf9a, 32);
@@ -2639,7 +2840,7 @@ function addFountain(
   addCylinderGeom(buckets.stone, x, y + 0.52, z, 0.56, 0.82, 1.65, 14, 0, LIMESTONE_LIGHT);
   addCone(buckets.stone, x, y + 2.05, z, 1.05, 1.1, 14, 0, LIMESTONE_LIGHT);
   addCylinderGeom(buckets.glow, x, y + 1.9, z, 0.38, 0.38, 0.03, 14, 0, 0x6dbad0);
-  colliders.circles.push({ x, z, r: 3.25 });
+  void colliders;
   perches.push(new Vector3(x, y + 2.9, z));
 }
 
@@ -3124,6 +3325,94 @@ function addNetPile(
   colliders.circles.push({ x, z, r: 0.82 * s });
 }
 
+function addRopeCoil(buckets: Buckets, x: number, y: number, z: number, s: number): void {
+  for (let i = 0; i < 3; i += 1)
+    addTorusGeom(
+      buckets.rope,
+      x + (i - 1) * 0.08 * s,
+      y + i * 0.035,
+      z + Math.sin(i) * 0.05 * s,
+      (0.42 - i * 0.08) * s,
+      0.045 * s,
+      16,
+      i % 2 ? 0x7a5b39 : 0x92704a,
+      Math.PI / 2,
+      0,
+      i * 0.35,
+    );
+}
+
+function addDryingNetRack(buckets: Buckets, x: number, y: number, z: number, rot: number, s: number): void {
+  for (const lx of [-1.6, 1.6]) {
+    const p = localToWorld(x, z, rot, lx * s, 0);
+    addCylinderGeom(buckets.wood, p.x, y, p.z, 0.07 * s, 0.09 * s, 2.7 * s, 6, 0, DARK_WOOD);
+  }
+  const a = localToWorld(x, z, rot, -1.75 * s, 0);
+  const b = localToWorld(x, z, rot, 1.75 * s, 0);
+  addTube(
+    buckets.wood,
+    0.055 * s,
+    { x: a.x, y: y + 2.5 * s, z: a.z },
+    { x: b.x, y: y + 2.5 * s, z: b.z },
+    DARK_WOOD,
+    6,
+  );
+  for (let i = 0; i <= 5; i += 1) {
+    const t = i / 5;
+    const px = a.x + (b.x - a.x) * t;
+    const pz = a.z + (b.z - a.z) * t;
+    addTube(
+      buckets.rope,
+      0.022 * s,
+      { x: px, y: y + 0.45 * s, z: pz },
+      { x: px, y: y + 2.3 * s, z: pz },
+      0x80613f,
+      4,
+    );
+  }
+  for (let j = 0; j < 4; j += 1) {
+    const yy = y + (0.75 + j * 0.42) * s;
+    addTube(buckets.rope, 0.018 * s, { x: a.x, y: yy, z: a.z }, { x: b.x, y: yy, z: b.z }, 0x8e7048, 4);
+  }
+}
+
+function addLobsterPots(buckets: Buckets, x: number, y: number, z: number, s: number): void {
+  for (const [dx, dz, rot] of [
+    [0, 0, 0],
+    [0.72, 0.28, 0.4],
+    [-0.58, 0.42, -0.25],
+  ] as const) {
+    addCylinderGeom(buckets.wood, x + dx * s, y, z + dz * s, 0.42 * s, 0.52 * s, 0.55 * s, 8, rot, 0x6f4a2f);
+    addTorusGeom(
+      buckets.rope,
+      x + dx * s,
+      y + 0.35 * s,
+      z + dz * s,
+      0.48 * s,
+      0.035 * s,
+      10,
+      0x92704a,
+      Math.PI / 2,
+      0,
+      rot,
+    );
+  }
+}
+
+function addFishStall(buckets: Buckets, x: number, y: number, z: number, rot: number, cloth: number): void {
+  addBox(buckets, 'wood', x, y + 0.62, z, 4.0, 0.2, 1.55, rot, 0x7a5232);
+  for (const lx of [-1.7, 1.7])
+    for (const lz of [-0.55, 0.55]) {
+      const p = localToWorld(x, z, rot, lx, lz);
+      addCylinderGeom(buckets.wood, p.x, y, p.z, 0.055, 0.07, 2.35, 6, 0, DARK_WOOD);
+    }
+  addAwning(buckets, x, y + 2.25, z, rot, 4.2, 1.9, cloth, LIMESTONE_LIGHT);
+  for (const lx of [-1.2, -0.35, 0.5, 1.25]) {
+    const p = localToWorld(x, z, rot, lx, -0.1);
+    addBox(buckets, 'metal', p.x, y + 0.78, p.z, 0.58, 0.06, 0.18, rot + 0.2, 0xa7c9c6);
+  }
+}
+
 function addAwningStall(
   buckets: Buckets,
   colliders: ColliderSet,
@@ -3265,6 +3554,29 @@ function addBench(
   colliders.boxes.push({ x, z, hx: 1.05, hz: 0.42, rot, height: 1.2 });
 }
 
+function addBenchSeat(buckets: Buckets, x: number, y: number, z: number, heading: number, s: number): number {
+  const seatY = y + 0.46 * s;
+  addBox(buckets, 'wood', x, seatY, z, 1.65 * s, 0.16 * s, 0.48 * s, heading, 0x7a5232);
+  addBox(
+    buckets,
+    'wood',
+    x - Math.sin(heading) * 0.28 * s,
+    seatY + 0.38 * s,
+    z - Math.cos(heading) * 0.28 * s,
+    1.6 * s,
+    0.48 * s,
+    0.12 * s,
+    heading,
+    0x6b4427,
+  );
+  for (const lx of [-0.62, 0.62])
+    for (const lz of [-0.14, 0.14]) {
+      const p = localToWorld(x, z, heading, lx * s, lz * s);
+      addBox(buckets, 'wood', p.x, y, p.z, 0.1 * s, 0.46 * s, 0.1 * s, heading, DARK_WOOD);
+    }
+  return seatY + 0.16 * s;
+}
+
 function addStringLanterns(
   buckets: Buckets,
   a: { x: number; y: number; z: number },
@@ -3322,10 +3634,10 @@ function addCypress(
   z: number,
   s: number,
 ): void {
-  addCylinderGeom(buckets.wood, x, y, z, 0.16 * s, 0.2 * s, 2.4 * s, 8, 0, 0x5a3924);
-  addCone(buckets.cloth, x, y + 1.35 * s, z, 1.0 * s, 4.4 * s, 12, 0, CYPRESS);
-  addCone(buckets.cloth, x, y + 3.0 * s, z, 0.78 * s, 3.6 * s, 12, 0, 0x0f341f);
-  addCone(buckets.cloth, x, y + 4.4 * s, z, 0.55 * s, 2.6 * s, 12, 0, 0x194b2b);
+  addCylinderGeom(buckets.wood, x, y, z, 0.16 * s, 0.2 * s, 2.4 * s, 6, 0, 0x5a3924);
+  addCone(buckets.cloth, x, y + 1.35 * s, z, 1.0 * s, 4.4 * s, 8, 0, CYPRESS);
+  addCone(buckets.cloth, x, y + 3.0 * s, z, 0.78 * s, 3.6 * s, 8, 0, 0x0f341f);
+  addCone(buckets.cloth, x, y + 4.4 * s, z, 0.55 * s, 2.6 * s, 8, 0, 0x194b2b);
   colliders.circles.push({ x, z, r: 0.42 * s });
 }
 
@@ -3337,7 +3649,7 @@ function addPottedCypress(
   z: number,
   s: number,
 ): void {
-  addCylinderGeom(buckets.stone, x, y, z, 0.55 * s, 0.72 * s, 0.72 * s, 12, 0, 0x8e6846);
+  addCylinderGeom(buckets.stone, x, y, z, 0.55 * s, 0.72 * s, 0.72 * s, 8, 0, 0x8e6846);
   addCypress(buckets, colliders, x, y + 0.7 * s, z, s * 0.66);
 }
 
@@ -3349,8 +3661,8 @@ function addOliveTree(
   z: number,
   s: number,
 ): void {
-  addCylinderGeom(buckets.wood, x, y, z, 0.22 * s, 0.33 * s, 2.2 * s, 9, 0.15, 0x5a3a25);
-  addSphere(buckets.cloth, x, y + 2.75 * s, z, 1.6 * s, 1.0 * s, 1.45 * s, OLIVE_SILVER, 9, 6);
+  addCylinderGeom(buckets.wood, x, y, z, 0.22 * s, 0.33 * s, 2.2 * s, 6, 0.15, 0x5a3a25);
+  addSphere(buckets.cloth, x, y + 2.75 * s, z, 1.6 * s, 1.0 * s, 1.45 * s, OLIVE_SILVER, 6, 4);
   addSphere(
     buckets.cloth,
     x - 0.92 * s,
@@ -3360,8 +3672,8 @@ function addOliveTree(
     0.78 * s,
     1.0 * s,
     OLIVE,
-    8,
-    5,
+    6,
+    4,
   );
   addSphere(
     buckets.cloth,
@@ -3372,8 +3684,8 @@ function addOliveTree(
     0.72 * s,
     1.15 * s,
     0x738753,
-    8,
-    5,
+    6,
+    4,
   );
   colliders.circles.push({ x, z, r: 0.62 * s });
 }
@@ -3604,7 +3916,7 @@ function addTorusGeom(
   ry: number,
   rz: number,
 ): void {
-  const g = new TorusGeometry(radius, tube, 8, segments);
+  const g = new TorusGeometry(radius, tube, 6, segments);
   transform(g, x, y, z, ry, rx, rz, 1, 1, 1);
   worldUv(g, 0.8);
   paint(g, colour);

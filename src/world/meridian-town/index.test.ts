@@ -107,6 +107,13 @@ describe('createMeridianTown', () => {
       'liftBottom',
       'liftTop',
       'lighthouse',
+      'extraFisher',
+      'extraBench',
+      'extraStall',
+      'extraFountain',
+      'extraQuayA',
+      'extraQuayB',
+      'extraCitadel',
     ];
 
     for (const id of required) {
@@ -123,6 +130,62 @@ describe('createMeridianTown', () => {
     expect(town.metrics.triangles).toBeLessThan(260_000);
     expect(town.metrics.buildingCount).toBeGreaterThanOrEqual(25);
     expect(town.colliders.boxes.length + town.colliders.circles.length).toBeGreaterThan(80);
+
+    town.dispose();
+    kit.dispose();
+  });
+
+  it('provides clear extra townsfolk anchors and patrol paths', () => {
+    const kit = testKit();
+    const town = createMeridianTown({ tier: tierSettings('high'), heightField, kit });
+    for (const id of ['extraFisher', 'extraBench', 'extraStall', 'extraCitadel'] as const) {
+      const a = town.anchors[id]!;
+      expect(
+        town.colliders.circles.some((c) => circleHitsPoint(c, a.x, a.z, 0.6)),
+        id,
+      ).toBe(false);
+      expect(
+        town.colliders.boxes.some((b) => boxHitsPoint(b, a.x, a.z, 0.6)),
+        id,
+      ).toBe(false);
+    }
+
+    const fountain = town.anchors.extraFountain!;
+    for (let i = 0; i < 24; i += 1) {
+      const a = (i / 24) * Math.PI * 2;
+      const x = fountain.x + Math.sin(a) * 3.4;
+      const z = fountain.z + Math.cos(a) * 3.4;
+      const h = town.walkable(x, z);
+      expect(h, `fountain ring ${i}`).not.toBeNull();
+      expect(h!, `fountain ring ${i}`).toBeGreaterThan(6.5);
+      expect(h!, `fountain ring ${i}`).toBeLessThan(7.2);
+      expect(
+        town.colliders.circles.some((c) => circleHitsPoint(c, x, z, 0.3)),
+        `circle ring ${i}`,
+      ).toBe(false);
+      expect(
+        town.colliders.boxes.some((b) => boxHitsPoint(b, x, z, 0.3)),
+        `box ring ${i}`,
+      ).toBe(false);
+    }
+
+    const qa = town.anchors.extraQuayA!;
+    const qb = town.anchors.extraQuayB!;
+    expect(Math.hypot(qa.x - qb.x, qa.z - qb.z)).toBeGreaterThan(20);
+    for (let i = 0; i <= 12; i += 1) {
+      const t = i / 12;
+      const x = qa.x + (qb.x - qa.x) * t;
+      const z = qa.z + (qb.z - qa.z) * t;
+      expect(town.walkable(x, z), `quay patrol ${i}`).toBeCloseTo(MERIDIAN.harbor.quay.height, 1);
+      expect(
+        town.colliders.circles.some((c) => circleHitsPoint(c, x, z, 0.5)),
+        `quay circle ${i}`,
+      ).toBe(false);
+      expect(
+        town.colliders.boxes.some((b) => boxHitsPoint(b, x, z, 0.5)),
+        `quay box ${i}`,
+      ).toBe(false);
+    }
 
     town.dispose();
     kit.dispose();
