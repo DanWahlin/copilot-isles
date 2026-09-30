@@ -67,6 +67,7 @@ export interface MeridianTownSystem {
   anchors: Record<string, MeridianAnchor>;
   metrics: MeridianTownMetrics;
   setLighthouseLit(on: boolean): void;
+  setMooringLines(on: boolean): void;
   setLiftCar(t: number): void;
   update(dt: number, t: number, camera: Camera): void;
   dispose(): void;
@@ -137,6 +138,7 @@ const TAVERN_LANE = {
 } as const;
 
 const SHIPYARD_APRON = { x0: 570, x1: 612, z0: -775, z1: -735, height: MERIDIAN.harbor.quay.height } as const;
+const MOLE_CONNECTOR = { x0: 572, x1: 592, z0: -735, z1: -706, height: MERIDIAN.mole.height } as const;
 const PLAZA = { x0: 638, x1: 698, z0: -819, z1: -780, height: MERIDIAN.pads.plaza.height } as const;
 const TAVERN_PAD = { x0: 607, x1: 637, z0: -813, z1: -779, height: MERIDIAN.pads.tavern.height } as const;
 const CITADEL = { x: MERIDIAN.pads.citadel.x, z: MERIDIAN.pads.citadel.z, r: 39, height: 40 } as const;
@@ -300,6 +302,7 @@ export function createMeridianTown({
   const lighthouseGlow = new Group();
   lighthouseGlow.name = 'meridian-lighthouse-glow';
   lighthouseGlow.visible = false;
+  const mooringLines = createMooringLines(kit.materials);
 
   const townWalkable = (x: number, z: number): number | null => {
     for (const span of stairSpans) {
@@ -317,6 +320,7 @@ export function createMeridianTown({
     const quay = meridianQuayHeight(x, z);
     if (quay !== null) return quay;
     if (inBox(x, z, SHIPYARD_APRON)) return SHIPYARD_APRON.height;
+    if (inBox(x, z, MOLE_CONNECTOR)) return MOLE_CONNECTOR.height;
     if (inBox(x, z, PLAZA)) return PLAZA.height;
     const tavernStage = tavernStageHeight(x, z);
     if (tavernStage !== null) return tavernStage;
@@ -371,7 +375,7 @@ export function createMeridianTown({
     tz: -800,
   });
 
-  group.add(lighthouseGlow, liftCar);
+  group.add(lighthouseGlow, liftCar, mooringLines);
   setLiftCarPosition(liftCar, 0);
 
   const staticMeshes: Mesh[] = [];
@@ -419,6 +423,9 @@ export function createMeridianTown({
     setLighthouseLit(on: boolean): void {
       lighthouseGlow.visible = on;
     },
+    setMooringLines(on: boolean): void {
+      mooringLines.visible = on;
+    },
     setLiftCar(t: number): void {
       setLiftCarPosition(liftCar, t);
     },
@@ -439,6 +446,7 @@ export function createMeridianTown({
       }
       disposeTree(lighthouseGlow);
       disposeTree(liftCar);
+      disposeTree(mooringLines);
       group.clear();
     },
   };
@@ -519,6 +527,71 @@ function addHarbour(
     0,
     0xf0d7aa,
   );
+  addBox(
+    buckets,
+    'stone',
+    (quay.x0 + quay.x1) / 2,
+    waterBase,
+    quay.z1 + 0.85,
+    quay.x1 - quay.x0 + 2,
+    PLAZA.height - waterBase + 0.15,
+    1.7,
+    0,
+    0x907855,
+  );
+  addBox(
+    buckets,
+    'stone',
+    (quay.x0 + quay.x1) / 2,
+    PLAZA.height - 0.04,
+    quay.z1 + 0.82,
+    quay.x1 - quay.x0 + 2.6,
+    0.36,
+    2.0,
+    0,
+    LIMESTONE_LIGHT,
+  );
+  for (let x = quay.x0 + 3; x <= quay.x1 - 3; x += 5.4) {
+    addBox(
+      buckets,
+      'stone',
+      x,
+      deck + 0.4,
+      quay.z1 + 1.72,
+      0.16,
+      PLAZA.height - deck - 0.6,
+      0.18,
+      0,
+      0x745a3b,
+    );
+  }
+  addBox(
+    buckets,
+    'stone',
+    (quay.x0 + quay.x1) / 2,
+    -1.15,
+    quay.z1 + 10.2,
+    quay.x1 - quay.x0 + 4,
+    6.8,
+    1.4,
+    0,
+    0x8d7656,
+  );
+  addBox(
+    buckets,
+    'stone',
+    (quay.x0 + quay.x1) / 2,
+    5.45,
+    quay.z1 + 10.2,
+    quay.x1 - quay.x0 + 4.8,
+    0.34,
+    1.75,
+    0,
+    LIMESTONE_LIGHT,
+  );
+  for (let x = quay.x0 + 4; x <= quay.x1 - 4; x += 4.8) {
+    addBox(buckets, 'stone', x, 1.0, quay.z1 + 10.95, 0.12, 4.8, 0.14, 0, 0x70583b);
+  }
   for (let x = quay.x0 + 6; x <= quay.x1 - 4; x += 8)
     addBox(
       buckets,
@@ -649,14 +722,29 @@ function addHarbour(
   for (const z of [-760, -742, -724, -666])
     addBollard(buckets, colliders, perches, eastArm.x1 - 3.3, deck, z);
 
-  const extraBenchY = addBenchSeat(buckets, 684.2, deck, -764.2, 0, 1.0);
+  const extraBenchFloor = 3.42;
+  addBox(
+    buckets,
+    'stone',
+    684.2,
+    deck - 0.05,
+    -764.2,
+    6.0,
+    extraBenchFloor - deck + 0.04,
+    4.0,
+    0,
+    LIMESTONE_DARK,
+  );
+  addBox(buckets, 'paving', 684.2, extraBenchFloor - 0.09, -764.2, 5.4, 0.18, 3.6, 0, 0xf0d7aa);
+  addBox(buckets, 'stone', 684.2, extraBenchFloor + 0.08, -762.4, 5.8, 0.28, 0.36, 0, LIMESTONE_LIGHT);
+  const extraBenchY = addBenchSeat(buckets, 684.2, extraBenchFloor, -764.2, 0, 1.0);
   anchor('extraBench', {
     x: 684.2,
     y: extraBenchY,
     z: -764.2,
     heading: 0,
     tx: 684.2,
-    ty: deck + 1.2,
+    ty: extraBenchFloor + 1.2,
     tz: -752,
   });
 
@@ -792,7 +880,6 @@ function addEastArmArrivalDressing(
   ] as const;
   for (const m of mooring) {
     addBollard(buckets, colliders, perches, m.x, deck, m.z);
-    addSagRope(buckets, { x: m.x, y: deck + 0.8, z: m.z }, { x: m.sx, y: deck + 0.45, z: m.sz });
   }
   addRopeCoil(buckets, arm.x0 + 2.2, deck + 0.05, -704.6, 0.75);
   addRopeCoil(buckets, arm.x1 - 3.8, deck + 0.05, -697.5, 0.62);
@@ -808,23 +895,6 @@ function addEastArmArrivalDressing(
     [arm.x0 + 2.0, -678.6, 0.12, 0x6e4b2b],
   ] as const)
     addBox(buckets, 'wood', x, deck + 0.06, z, 0.92, 0.78, 0.9, rot, colour);
-  addTube(
-    buckets.rope,
-    0.085,
-    { x: arm.x0 + 1.3, y: deck + 0.72, z: -687.8 },
-    { x: MERIDIAN.harbor.berth.x - 3.2, y: deck + 0.34, z: -687.5 },
-    0x8a6642,
-    8,
-  );
-  addTube(
-    buckets.rope,
-    0.085,
-    { x: arm.x0 + 1.2, y: deck + 0.72, z: -712.3 },
-    { x: MERIDIAN.harbor.berth.x - 3.2, y: deck + 0.34, z: -712.4 },
-    0x8a6642,
-    8,
-  );
-
   addDryingNetRack(buckets, arm.x1 + 4.6, deck + 0.1, -716, Math.PI / 2, 1.2);
   addDryingNetRack(buckets, arm.x1 + 5.8, deck + 0.1, -700, Math.PI / 2, 0.95);
   addLobsterPots(buckets, arm.x1 + 4.0, deck + 0.08, -700.5, 0.9);
@@ -845,6 +915,67 @@ function addEastArmArrivalDressing(
   if (!low) addDinghy(buckets, colliders, shipObstacles, arm.x0 - 8.2, -724.0, 0.08, 0.55);
 }
 
+function addMoleConnector(buckets: Buckets, colliders: ColliderSet, shipObstacles: CircleObstacle[]): void {
+  const c = MOLE_CONNECTOR;
+  const cx = (c.x0 + c.x1) * 0.5;
+  const cz = (c.z0 + c.z1) * 0.5;
+  const waterBase = -MERIDIAN.harbor.depth - 0.35;
+  addBox(
+    buckets,
+    'stone',
+    cx,
+    waterBase,
+    cz,
+    c.x1 - c.x0 + 1.2,
+    c.height - waterBase + 0.1,
+    c.z1 - c.z0,
+    0,
+    0x8f7859,
+  );
+  addBox(buckets, 'paving', cx, c.height - 0.08, cz, c.x1 - c.x0, 0.16, c.z1 - c.z0, 0, 0xf0d7aa);
+  for (let z = c.z0 + 2.4; z <= c.z1 - 1.2; z += 4.2)
+    addBox(buckets, 'stone', cx, c.height + 0.02, z, c.x1 - c.x0 - 1.0, 0.035, 0.13, 0, 0x8d6d49);
+  for (let x = c.x0 + 2; x <= c.x1 - 2; x += 4.6)
+    addBox(buckets, 'stone', x, c.height + 0.018, cz, 0.11, 0.032, c.z1 - c.z0 - 1.0, 0, 0x9f7d55);
+  for (const x of [c.x0 - 0.38, c.x1 + 0.38]) {
+    addBox(buckets, 'stone', x, c.height + 0.02, cz, 0.48, 0.55, c.z1 - c.z0 + 0.8, 0, LIMESTONE_DARK);
+    addBox(buckets, 'stone', x, c.height + 0.55, cz, 0.62, 0.18, c.z1 - c.z0 + 1.0, 0, LIMESTONE_LIGHT);
+    colliders.boxes.push({ x, z: cz, hx: 0.38, hz: (c.z1 - c.z0) * 0.5 + 0.45, rot: 0, height: 0.75 });
+  }
+  for (let z = c.z0 + 2; z <= c.z1 - 2; z += 6.5) shipObstacles.push({ x: c.x0 - 0.8, z, r: 1.4 });
+}
+
+function createMooringLines(materials: Record<MaterialKey, Material>): Group {
+  const group = new Group();
+  group.name = 'meridian-mooring-lines';
+  group.visible = false;
+  const deck = MERIDIAN.harbor.quay.height;
+  const railX = MERIDIAN.harbor.berth.x + 3.35;
+  const ropes = [
+    { bx: MERIDIAN.harbor.eastArm.x0 + 1.3, bz: -687.8, sx: railX, sz: -686.7 },
+    { bx: MERIDIAN.harbor.eastArm.x0 + 1.2, bz: -712.3, sx: railX, sz: -713.3 },
+    { bx: MERIDIAN.harbor.eastArm.x1 - 3.3, bz: -688.7, sx: railX, sz: -688.7 },
+    { bx: MERIDIAN.harbor.eastArm.x1 - 3.4, bz: -711.2, sx: railX, sz: -711.2 },
+  ] as const;
+  const parts: BufferGeometry[] = [];
+  for (const rope of ropes) {
+    const a = { x: rope.bx, y: deck + 0.82, z: rope.bz };
+    const b = { x: rope.sx, y: deck + 1.42, z: rope.sz };
+    const mid = {
+      x: (a.x + b.x) * 0.5,
+      y: (a.y + b.y) * 0.5 - Math.hypot(a.x - b.x, a.z - b.z) * 0.012,
+      z: (a.z + b.z) * 0.5,
+    };
+    parts.push(tubeBetween(0.075, a, mid, 0x8a6642, 8), tubeBetween(0.075, mid, b, 0x8a6642, 8));
+  }
+  const mesh = new Mesh(merge(parts), materials.rope);
+  mesh.name = 'meridian-mooring-lines-rope';
+  mesh.castShadow = false;
+  mesh.receiveShadow = false;
+  group.add(mesh);
+  return group;
+}
+
 function addMoleAndLighthouse(
   buckets: Buckets,
   colliders: ColliderSet,
@@ -856,6 +987,7 @@ function addMoleAndLighthouse(
 ): void {
   void kit;
   const m = MERIDIAN.mole;
+  addMoleConnector(buckets, colliders, shipObstacles);
   const dx = m.end.x - m.start.x;
   const dz = m.end.z - m.start.z;
   const len = Math.hypot(dx, dz);

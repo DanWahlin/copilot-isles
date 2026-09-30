@@ -208,6 +208,48 @@ describe('createMeridianTown', () => {
     kit.dispose();
   });
 
+  it('connects the shipyard apron to the mole, lighthouse, and fisher without blocking the lane', () => {
+    const kit = testKit();
+    const town = createMeridianTown({ tier: tierSettings('high'), heightField, kit });
+    const samples: { x: number; z: number }[] = [
+      { x: 586, z: -735 },
+      { x: 580, z: -730 },
+      { x: 590, z: -720 },
+      { x: MERIDIAN.mole.start.x, z: MERIDIAN.mole.start.z },
+    ];
+    for (let i = 0; i <= 20; i += 1) {
+      const t = i / 20;
+      samples.push({
+        x: MERIDIAN.mole.start.x + (MERIDIAN.mole.end.x - MERIDIAN.mole.start.x) * t,
+        z: MERIDIAN.mole.start.z + (MERIDIAN.mole.end.z - MERIDIAN.mole.start.z) * t,
+      });
+    }
+    samples.push({ x: MERIDIAN.mole.lighthouse.x - 6.2, z: MERIDIAN.mole.lighthouse.z - 2.7 });
+
+    let last: number | null = null;
+    for (const p of samples) {
+      const h = town.walkable(p.x, p.z);
+      expect(h, `walkable at ${p.x},${p.z}`).not.toBeNull();
+      if (last !== null) expect(Math.abs(h! - last), `step at ${p.x},${p.z}`).toBeLessThanOrEqual(0.6);
+      expect(
+        town.colliders.circles.some((c) => circleHitsPoint(c, p.x, p.z, 0.35)),
+        `circle at ${p.x},${p.z}`,
+      ).toBe(false);
+      expect(
+        town.colliders.boxes.some((b) => boxHitsPoint(b, p.x, p.z, 0.35)),
+        `box at ${p.x},${p.z}`,
+      ).toBe(false);
+      last = h!;
+    }
+    const fisher = town.anchors.extraFisher!;
+    expect(town.walkable(fisher.x, fisher.z)).not.toBeNull();
+    expect(town.colliders.circles.some((c) => circleHitsPoint(c, fisher.x, fisher.z, 0.6))).toBe(false);
+    expect(town.colliders.boxes.some((b) => boxHitsPoint(b, fisher.x, fisher.z, 0.6))).toBe(false);
+
+    town.dispose();
+    kit.dispose();
+  });
+
   it('keeps colliders off the berth, landing, promenade, stair route, and plaza stops', () => {
     const kit = testKit();
     const town = createMeridianTown({ tier: tierSettings('high'), heightField, kit });
