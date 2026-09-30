@@ -1,0 +1,102 @@
+{
+  "id": "mer.oren.03",
+  "speaker": "Oren",
+  "text": "Open it to find Model and Effort. If it says Auto, the app picks a model for your task.",
+  "words": [
+    {
+      "word": "Open",
+      "start": 0.055541,
+      "end": 0.388875
+    },
+    {
+      "word": "it",
+      "start": 0.388875,
+      "end": 0.513875
+    },
+    {
+      "word": "to",
+      "start": 0.513875,
+      "end": 0.625
+    },
+    {
+      "word": "find",
+      "start": 0.625,
+      "end": 1.041666
+    },
+    {
+      "word": "Model",
+      "start": 1.041666,
+      "end": 1.402791
+    },
+    {
+      "word": "and",
+      "start": 1.402791,
+      "end": 1.527791
+    },
+    {
+      "word": "Effort",
+      "start": 1.527791,
+      "end": 2.930541
+    },
+    {
+      "word": "If",
+      "start": 2.930541,
+      "end": 3.152791
+    },
+    {
+      "word": "it",
+      "start": 3.152791,
+      "end": 3.291666
+    },
+    {
+      "word": "says",
+      "start": 3.291666,
+      "end": 3.569458
+    },
+    {
+      "word": "Auto",
+      "start": 3.569458,
+      "end": 4.361125
+    },
+    {
+      "word": "the",
+      "start": 4.361125,
+      "end": 4.513875
+    },
+    {
+      "word": "app",
+      "start": 4.513875,
+      "end": 4.736125
+    },
+    {
+      "word": "picks",
+      "start": 4.736125,
+      "end": 4.986125
+    },
+    {
+      "word": "a",
+      "start": 4.986125,
+      "end": 5.055541
+    },
+    {
+      "word": "model",
+      "start": 5.055541,
+      "end": 5.416666
+    },
+    {
+      "word": "for",
+      "start": 5.416666,
+      "end": 5.555541
+    },
+    {
+      "word": "your",
+      "start": 5.555541,
+      "end": 5.819458
+    },
+    {
+      "word": "task",
+      "start": 5.819458,
+      "end": 6.069458
+    }
+  ]
+}

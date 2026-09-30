@@ -1,0 +1,87 @@
+{
+  "id": "mer.mina.new",
+  "speaker": "Mina",
+  "text": "The Voyage Office is New, the landing view. Every new chat or project session starts there.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.0471659,
+      "end": 0.188666
+    },
+    {
+      "word": "Voyage",
+      "start": 0.188666,
+      "end": 0.566041
+    },
+    {
+      "word": "Office",
+      "start": 0.566041,
+      "end": 0.908
+    },
+    {
+      "word": "is",
+      "start": 0.908,
+      "end": 1.061333
+    },
+    {
+      "word": "New",
+      "start": 1.061333,
+      "end": 1.603791
+    },
+    {
+      "word": "the",
+      "start": 1.603791,
+      "end": 1.721708
+    },
+    {
+      "word": "landing",
+      "start": 1.721708,
+      "end": 2.158
+    },
+    {
+      "word": "view",
+      "start": 2.158,
+      "end": 3.419791
+    },
+    {
+      "word": "Every",
+      "start": 3.419791,
+      "end": 3.75
+    },
+    {
+      "word": "new",
+      "start": 3.75,
+      "end": 3.974041
+    },
+    {
+      "word": "chat",
+      "start": 3.974041,
+      "end": 4.327833
+    },
+    {
+      "word": "or",
+      "start": 4.327833,
+      "end": 4.433958
+    },
+    {
+      "word": "project",
+      "start": 4.433958,
+      "end": 4.92925
+    },
+    {
+      "word": "session",
+      "start": 4.92925,
+      "end": 5.306583
+    },
+    {
+      "word": "starts",
+      "start": 5.306583,
+      "end": 5.683958
+    },
+    {
+      "word": "there",
+      "start": 5.683958,
+      "end": 5.933958
+    }
+  ]
+}

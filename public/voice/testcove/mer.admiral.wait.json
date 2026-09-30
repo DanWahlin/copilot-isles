@@ -1,0 +1,62 @@
+{
+  "id": "mer.admiral.wait",
+  "speaker": "Admiral",
+  "text": "You’ll have your exam, Captain, once you’ve been round the town.",
+  "words": [
+    {
+      "word": "You’ll",
+      "start": 0.052625,
+      "end": 0.289458
+    },
+    {
+      "word": "have",
+      "start": 0.289458,
+      "end": 0.513166
+    },
+    {
+      "word": "your",
+      "start": 0.513166,
+      "end": 0.671041
+    },
+    {
+      "word": "exam",
+      "start": 0.671041,
+      "end": 1.5
+    },
+    {
+      "word": "Captain",
+      "start": 1.5,
+      "end": 2.35525
+    },
+    {
+      "word": "once",
+      "start": 2.35525,
+      "end": 2.631583
+    },
+    {
+      "word": "you’ve",
+      "start": 2.631583,
+      "end": 2.802625
+    },
+    {
+      "word": "been",
+      "start": 2.802625,
+      "end": 2.986833
+    },
+    {
+      "word": "round",
+      "start": 2.986833,
+      "end": 3.328958
+    },
+    {
+      "word": "the",
+      "start": 3.328958,
+      "end": 3.434208
+    },
+    {
+      "word": "town",
+      "start": 3.434208,
+      "end": 3.684208
+    }
+  ]
+}

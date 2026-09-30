@@ -1,0 +1,92 @@
+{
+  "id": "mer.rhea.03",
+  "speaker": "Rhea",
+  "text": "They aren’t levels to unlock. You pick the one that suits the task. Let’s sail all three.",
+  "words": [
+    {
+      "word": "They",
+      "start": 0.0485409,
+      "end": 0.218458
+    },
+    {
+      "word": "aren’t",
+      "start": 0.218458,
+      "end": 0.473291
+    },
+    {
+      "word": "levels",
+      "start": 0.473291,
+      "end": 0.898041
+    },
+    {
+      "word": "to",
+      "start": 0.898041,
+      "end": 1.043708
+    },
+    {
+      "word": "unlock",
+      "start": 1.043708,
+      "end": 2.439333
+    },
+    {
+      "word": "You",
+      "start": 2.439333,
+      "end": 2.584958
+    },
+    {
+      "word": "pick",
+      "start": 2.584958,
+      "end": 2.803416
+    },
+    {
+      "word": "the",
+      "start": 2.803416,
+      "end": 2.912625
+    },
+    {
+      "word": "one",
+      "start": 2.912625,
+      "end": 3.179625
+    },
+    {
+      "word": "that",
+      "start": 3.179625,
+      "end": 3.361666
+    },
+    {
+      "word": "suits",
+      "start": 3.361666,
+      "end": 3.701458
+    },
+    {
+      "word": "the",
+      "start": 3.701458,
+      "end": 3.810666
+    },
+    {
+      "word": "task",
+      "start": 3.810666,
+      "end": 5.169916
+    },
+    {
+      "word": "Let’s",
+      "start": 5.169916,
+      "end": 5.461166
+    },
+    {
+      "word": "sail",
+      "start": 5.461166,
+      "end": 5.788833
+    },
+    {
+      "word": "all",
+      "start": 5.788833,
+      "end": 6.007291
+    },
+    {
+      "word": "three",
+      "start": 6.007291,
+      "end": 6.257291
+    }
+  ]
+}

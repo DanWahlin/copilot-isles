@@ -1,0 +1,62 @@
+{
+  "id": "mer.mina.logbook",
+  "speaker": "Mina",
+  "text": "I’ve filed all four in your Logbook. Press J any time.",
+  "words": [
+    {
+      "word": "I’ve",
+      "start": 0.0471659,
+      "end": 0.271208
+    },
+    {
+      "word": "filed",
+      "start": 0.271208,
+      "end": 0.672166
+    },
+    {
+      "word": "all",
+      "start": 0.672166,
+      "end": 0.931583
+    },
+    {
+      "word": "four",
+      "start": 0.931583,
+      "end": 1.155666
+    },
+    {
+      "word": "in",
+      "start": 1.155666,
+      "end": 1.261791
+    },
+    {
+      "word": "your",
+      "start": 1.261791,
+      "end": 1.379708
+    },
+    {
+      "word": "Logbook",
+      "start": 1.379708,
+      "end": 2.806583
+    },
+    {
+      "word": "Press",
+      "start": 2.806583,
+      "end": 3.125
+    },
+    {
+      "word": "J",
+      "start": 3.125,
+      "end": 3.372625
+    },
+    {
+      "word": "any",
+      "start": 3.372625,
+      "end": 3.620291
+    },
+    {
+      "word": "time",
+      "start": 3.620291,
+      "end": 3.870291
+    }
+  ]
+}

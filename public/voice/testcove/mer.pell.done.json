@@ -1,0 +1,62 @@
+{
+  "id": "mer.pell.done",
+  "speaker": "Pell",
+  "text": "Can’t find a setting? Look for the closest area. Versions vary.",
+  "words": [
+    {
+      "word": "Can’t",
+      "start": 0.048083,
+      "end": 0.336541
+    },
+    {
+      "word": "find",
+      "start": 0.336541,
+      "end": 0.637
+    },
+    {
+      "word": "a",
+      "start": 0.637,
+      "end": 0.709125
+    },
+    {
+      "word": "setting",
+      "start": 0.709125,
+      "end": 2.007208
+    },
+    {
+      "word": "Look",
+      "start": 2.007208,
+      "end": 2.259625
+    },
+    {
+      "word": "for",
+      "start": 2.259625,
+      "end": 2.367791
+    },
+    {
+      "word": "the",
+      "start": 2.367791,
+      "end": 2.488
+    },
+    {
+      "word": "closest",
+      "start": 2.488,
+      "end": 3.004791
+    },
+    {
+      "word": "area",
+      "start": 3.004791,
+      "end": 4.266833
+    },
+    {
+      "word": "Versions",
+      "start": 4.266833,
+      "end": 4.759625
+    },
+    {
+      "word": "vary",
+      "start": 4.759625,
+      "end": 5.009625
+    }
+  ]
+}

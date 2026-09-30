@@ -1,0 +1,67 @@
+{
+  "id": "mer.oren.done",
+  "speaker": "Oren",
+  "text": "Defaults for the simple things, Captain. More effort for the hard ones.",
+  "words": [
+    {
+      "word": "Defaults",
+      "start": 0.055541,
+      "end": 0.583333
+    },
+    {
+      "word": "for",
+      "start": 0.583333,
+      "end": 0.708333
+    },
+    {
+      "word": "the",
+      "start": 0.708333,
+      "end": 0.861125
+    },
+    {
+      "word": "simple",
+      "start": 0.861125,
+      "end": 1.305541
+    },
+    {
+      "word": "things",
+      "start": 1.305541,
+      "end": 1.916666
+    },
+    {
+      "word": "Captain",
+      "start": 1.916666,
+      "end": 3.458333
+    },
+    {
+      "word": "More",
+      "start": 3.458333,
+      "end": 3.75
+    },
+    {
+      "word": "effort",
+      "start": 3.75,
+      "end": 4.097208
+    },
+    {
+      "word": "for",
+      "start": 4.097208,
+      "end": 4.222208
+    },
+    {
+      "word": "the",
+      "start": 4.222208,
+      "end": 4.347208
+    },
+    {
+      "word": "hard",
+      "start": 4.347208,
+      "end": 4.722208
+    },
+    {
+      "word": "ones",
+      "start": 4.722208,
+      "end": 4.972208
+    }
+  ]
+}

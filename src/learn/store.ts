@@ -260,6 +260,14 @@ export class LearnStore {
     return new Promise((resolve) => (this.revealDone = resolve));
   };
 
+  /** Adds a page to the Logbook without a reveal card; returns false if it was already there. */
+  filePage = (pageId: string): boolean => {
+    if (!PAGES.has(pageId)) throw new Error(`unknown page ${pageId}`);
+    const fresh = this.progress.add('pages', pageId);
+    if (fresh) this.set({ pages: this.progress.data.pages.slice() });
+    return fresh;
+  };
+
   closeReveal = (): void => {
     const done = this.revealDone;
     this.revealDone = null;

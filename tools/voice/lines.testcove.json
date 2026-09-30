@@ -802,6 +802,743 @@
         "rate": "-5%"
       },
       "text": "Fair winds, Captain. Meridian’s plaza has the best acoustics in the isles."
+    },
+    {
+      "id": "wingman.meridian.01",
+      "speaker": "Wingman",
+      "text": "Port Meridian! This island’s Chapter 01, a tour of the Copilot app itself.",
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "fallbackVoice": "en-GB-NoahNeural",
+      "fx": "wingman-bird"
+    },
+    {
+      "id": "wingman.meridian.02",
+      "speaker": "Wingman",
+      "text": "Tobias trades in the plaza, up the stair street. Start with him, and follow the compass.",
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "fallbackVoice": "en-GB-NoahNeural",
+      "fx": "wingman-bird"
+    },
+    {
+      "id": "wingman.sail.meridian",
+      "speaker": "Wingman",
+      "text": "Port Meridian’s north-east, Captain. Follow the compass, and dock by the east arm.",
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "fallbackVoice": "en-GB-NoahNeural",
+      "fx": "wingman-bird"
+    },
+    {
+      "id": "mer.tobias.01",
+      "speaker": "Tobias",
+      "text": "Ah, a captain from Anchorage! You’ve got the app set up. So why use it at all?",
+      "voice": "en-GB-ThomasNeural",
+      "prosody": {
+        "rate": "-4%"
+      }
+    },
+    {
+      "id": "mer.tobias.02",
+      "speaker": "Tobias",
+      "text": "Copilot in your editor or terminal is grand, right next to the code you’ve got open.",
+      "voice": "en-GB-ThomasNeural",
+      "prosody": {
+        "rate": "-4%"
+      }
+    },
+    {
+      "id": "mer.tobias.03",
+      "speaker": "Tobias",
+      "text": "The hard part is supervising agent work from start to finish. Plans, edits, tests, previews, pull requests.",
+      "voice": "en-GB-ThomasNeural",
+      "prosody": {
+        "rate": "-4%"
+      }
+    },
+    {
+      "id": "mer.tobias.04",
+      "speaker": "Tobias",
+      "text": "See my table? Four headaches every captain knows. Match each one to what the app adds.",
+      "voice": "en-GB-ThomasNeural",
+      "prosody": {
+        "rate": "-4%"
+      }
+    },
+    {
+      "id": "mer.tobias.05",
+      "speaker": "Tobias",
+      "text": "Mind you, the app isn’t a replacement for your editor. Keep that for deep coding.",
+      "voice": "en-GB-ThomasNeural",
+      "prosody": {
+        "rate": "-4%"
+      }
+    },
+    {
+      "id": "mer.tobias.06",
+      "speaker": "Tobias",
+      "text": "When you want the full editor, the app opens the project in VS Code for you.",
+      "voice": "en-GB-ThomasNeural",
+      "prosody": {
+        "rate": "-4%"
+      }
+    },
+    {
+      "id": "mer.tobias.logbook",
+      "speaker": "Tobias",
+      "text": "I’ve put a note about your editor in your Logbook too.",
+      "voice": "en-GB-ThomasNeural",
+      "prosody": {
+        "rate": "-4%"
+      }
+    },
+    {
+      "id": "mer.tobias.next",
+      "speaker": "Tobias",
+      "text": "Now, Mina knows every corner of this town, and of the app. She’s by the fountain.",
+      "voice": "en-GB-ThomasNeural",
+      "prosody": {
+        "rate": "-4%"
+      }
+    },
+    {
+      "id": "mer.tobias.done",
+      "speaker": "Tobias",
+      "text": "Keep your editor close and the app closer, Captain.",
+      "voice": "en-GB-ThomasNeural",
+      "prosody": {
+        "rate": "-4%"
+      }
+    },
+    {
+      "id": "mer.mina.wait",
+      "speaker": "Mina",
+      "text": "Have a word with Tobias first. He’s at his table, just there.",
+      "voice": "en-GB-HollieNeural",
+      "prosody": {
+        "rate": "+6%"
+      }
+    },
+    {
+      "id": "mer.mina.01",
+      "speaker": "Mina",
+      "text": "Welcome to Meridian! This town’s laid out just like the app’s sidebar. Come and see.",
+      "voice": "en-GB-HollieNeural",
+      "prosody": {
+        "rate": "+6%"
+      }
+    },
+    {
+      "id": "mer.mina.new",
+      "speaker": "Mina",
+      "text": "The Voyage Office is New, the landing view. Every new chat or project session starts there.",
+      "voice": "en-GB-HollieNeural",
+      "prosody": {
+        "rate": "+6%"
+      }
+    },
+    {
+      "id": "mer.mina.mywork",
+      "speaker": "Mina",
+      "text": "The Bounty Board is My work, your GitHub inbox. Issues, pull requests and review requests.",
+      "voice": "en-GB-HollieNeural",
+      "prosody": {
+        "rate": "+6%"
+      }
+    },
+    {
+      "id": "mer.mina.mywork2",
+      "speaker": "Mina",
+      "text": "The practice items from your setup script are pinned up there, ready to work on.",
+      "voice": "en-GB-HollieNeural",
+      "prosody": {
+        "rate": "+6%"
+      }
+    },
+    {
+      "id": "mer.mina.automations",
+      "speaker": "Mina",
+      "text": "The Clock Tower is Automations. Agent tasks that run on demand, on a schedule, or when something happens on GitHub.",
+      "voice": "en-GB-HollieNeural",
+      "prosody": {
+        "rate": "+6%"
+      }
+    },
+    {
+      "id": "mer.mina.customize",
+      "speaker": "Mina",
+      "text": "And the Outfitter is Customize, for skills, MCP servers and plugins. You won’t need those until later chapters.",
+      "voice": "en-GB-HollieNeural",
+      "prosody": {
+        "rate": "+6%"
+      },
+      "sub": {
+        "MCP": "M C P"
+      }
+    },
+    {
+      "id": "mer.mina.projects",
+      "speaker": "Mina",
+      "text": "Below those, the sidebar keeps your Projects, with your chats and your project sessions.",
+      "voice": "en-GB-HollieNeural",
+      "prosody": {
+        "rate": "+6%"
+      }
+    },
+    {
+      "id": "mer.mina.logbook",
+      "speaker": "Mina",
+      "text": "I’ve filed all four in your Logbook. Press J any time.",
+      "voice": "en-GB-HollieNeural",
+      "prosody": {
+        "rate": "+6%"
+      }
+    },
+    {
+      "id": "mer.mina.next",
+      "speaker": "Mina",
+      "text": "Lyra’s playing at the tavern, just west of here. She’ll show you how a chat works.",
+      "voice": "en-GB-HollieNeural",
+      "prosody": {
+        "rate": "+6%"
+      }
+    },
+    {
+      "id": "mer.mina.done",
+      "speaker": "Mina",
+      "text": "New, My work, Automations, Customize. You know your way around now!",
+      "voice": "en-GB-HollieNeural",
+      "prosody": {
+        "rate": "+6%"
+      }
+    },
+    {
+      "id": "mer.lyra.wait",
+      "speaker": "Lyra",
+      "text": "I’m still tuning up, Captain. Come back once Mina’s shown you round.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.lyra.01",
+      "speaker": "Lyra",
+      "text": "Captain! I told you this plaza had the best acoustics.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.lyra.02",
+      "speaker": "Lyra",
+      "text": "A producer doesn’t run every take the same way. Some need close direction. Some need the arrangement charted first.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.lyra.03",
+      "speaker": "Lyra",
+      "text": "And some quick questions just need a fast answer. That’s a chat.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.lyra.04",
+      "speaker": "Lyra",
+      "text": "To start one, hover over Chats in the sidebar, and select the plus that appears.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.lyra.05",
+      "speaker": "Lyra",
+      "text": "There. The picker says Chat, so there’s no branch, no worktree, and no files change.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.lyra.06",
+      "speaker": "Lyra",
+      "text": "Try the prompt on that page in the app. It asks when to use a chat and when to use a project session.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.lyra.next",
+      "speaker": "Lyra",
+      "text": "Project sessions are Anders’s trade. He’s at the shipyard, at the west end of the quay.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.lyra.done",
+      "speaker": "Lyra",
+      "text": "Quick question? Start a chat. That’s the whole song.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.anders.wait",
+      "speaker": "Anders",
+      "text": "Hear Lyra out at the tavern first. Then come and see the shipyard.",
+      "voice": "en-GB-EthanNeural",
+      "prosody": {
+        "rate": "-6%"
+      }
+    },
+    {
+      "id": "mer.anders.01",
+      "speaker": "Anders",
+      "text": "Chats are for questions. When the agent needs your repository, you want a project session.",
+      "voice": "en-GB-EthanNeural",
+      "prosody": {
+        "rate": "-6%"
+      }
+    },
+    {
+      "id": "mer.anders.02",
+      "speaker": "Anders",
+      "text": "Changing code, running tests, making a pull request. That’s project work.",
+      "voice": "en-GB-EthanNeural",
+      "prosody": {
+        "rate": "-6%"
+      }
+    },
+    {
+      "id": "mer.anders.03",
+      "speaker": "Anders",
+      "text": "Each project session gets its own new worktree by default, like a hull on its own slipway.",
+      "voice": "en-GB-EthanNeural",
+      "prosody": {
+        "rate": "-6%"
+      }
+    },
+    {
+      "id": "mer.anders.04",
+      "speaker": "Anders",
+      "text": "Your Chapter 00 setup session was the exception. You picked Local repository for that one.",
+      "voice": "en-GB-EthanNeural",
+      "prosody": {
+        "rate": "-6%"
+      }
+    },
+    {
+      "id": "mer.anders.05",
+      "speaker": "Anders",
+      "text": "Go back to that session and send the prompt on this page. It tours the book app sample, file by file.",
+      "voice": "en-GB-EthanNeural",
+      "prosody": {
+        "rate": "-6%"
+      }
+    },
+    {
+      "id": "mer.anders.crates",
+      "speaker": "Anders",
+      "text": "Now, my crates are all muddled. Chat work goes to the tavern plate, project work to the slipway plate.",
+      "voice": "en-GB-EthanNeural",
+      "prosody": {
+        "rate": "-6%"
+      }
+    },
+    {
+      "id": "mer.anders.crates.wait",
+      "speaker": "Anders",
+      "text": "Push each crate onto its plate, Captain. Press R to start the yard over.",
+      "voice": "en-GB-EthanNeural",
+      "prosody": {
+        "rate": "-6%"
+      }
+    },
+    {
+      "id": "mer.anders.solved",
+      "speaker": "Anders",
+      "text": "Every crate in its place. You can tell a question from a job.",
+      "voice": "en-GB-EthanNeural",
+      "prosody": {
+        "rate": "-6%"
+      }
+    },
+    {
+      "id": "mer.anders.next",
+      "speaker": "Anders",
+      "text": "Rhea’s by your ship on the east arm. She’ll take you sailing.",
+      "voice": "en-GB-EthanNeural",
+      "prosody": {
+        "rate": "-6%"
+      }
+    },
+    {
+      "id": "mer.anders.done",
+      "speaker": "Anders",
+      "text": "Questions to a chat, jobs to a project session. Good work.",
+      "voice": "en-GB-EthanNeural",
+      "prosody": {
+        "rate": "-6%"
+      }
+    },
+    {
+      "id": "mer.rhea.wait",
+      "speaker": "Rhea",
+      "text": "Anders first, Captain. Then we’ll sail.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.rhea.01",
+      "speaker": "Rhea",
+      "text": "Captain! Welcome to the Academy. Today’s lesson is session modes.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.rhea.02",
+      "speaker": "Rhea",
+      "text": "The mode sets how independently the agent works. Interactive, Plan, and Autopilot.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.rhea.03",
+      "speaker": "Rhea",
+      "text": "They aren’t levels to unlock. You pick the one that suits the task. Let’s sail all three.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.rhea.helms",
+      "speaker": "Rhea",
+      "text": "Board your ship. Each buoy out in the bay is a helm to sail.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.rhea.helms.wait",
+      "speaker": "Rhea",
+      "text": "The three helms are out in the bay, Captain. Board your ship and sail them.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.rhea.solved",
+      "speaker": "Rhea",
+      "text": "You’ve sailed all three. Now, which mode suits which task?",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.rhea.next",
+      "speaker": "Rhea",
+      "text": "Oren’s up at the observatory. Take the lift at the top of the arm.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.rhea.done",
+      "speaker": "Rhea",
+      "text": "Match the mode to the job, Captain. Every time.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.oren.wait",
+      "speaker": "Oren",
+      "text": "The stars will keep, Captain. Sail with Rhea first.",
+      "voice": "en-GB-OliverNeural",
+      "prosody": {
+        "rate": "-10%",
+        "pitch": "-1st"
+      }
+    },
+    {
+      "id": "mer.oren.01",
+      "speaker": "Oren",
+      "text": "Ah, you came up. The mode sets how independently the agent works. The model decides how it thinks.",
+      "voice": "en-GB-OliverNeural",
+      "prosody": {
+        "rate": "-10%",
+        "pitch": "-1st"
+      }
+    },
+    {
+      "id": "mer.oren.02",
+      "speaker": "Oren",
+      "text": "The model control sits below the prompt box, right beside the mode selector.",
+      "voice": "en-GB-OliverNeural",
+      "prosody": {
+        "rate": "-10%",
+        "pitch": "-1st"
+      }
+    },
+    {
+      "id": "mer.oren.03",
+      "speaker": "Oren",
+      "text": "Open it to find Model and Effort. If it says Auto, the app picks a model for your task.",
+      "voice": "en-GB-OliverNeural",
+      "prosody": {
+        "rate": "-10%",
+        "pitch": "-1st"
+      }
+    },
+    {
+      "id": "mer.oren.04",
+      "speaker": "Oren",
+      "text": "Careful, though. Auto isn’t Autopilot. Autopilot is a mode. Auto is about the model.",
+      "voice": "en-GB-OliverNeural",
+      "prosody": {
+        "rate": "-10%",
+        "pitch": "-1st"
+      }
+    },
+    {
+      "id": "mer.oren.05",
+      "speaker": "Oren",
+      "text": "For a quick explanation, keep the defaults. For a hard bug across several files, try a stronger model and higher effort.",
+      "voice": "en-GB-OliverNeural",
+      "prosody": {
+        "rate": "-10%",
+        "pitch": "-1st"
+      }
+    },
+    {
+      "id": "mer.oren.06",
+      "speaker": "Oren",
+      "text": "Higher effort can help. It doesn’t guarantee the right answer.",
+      "voice": "en-GB-OliverNeural",
+      "prosody": {
+        "rate": "-10%",
+        "pitch": "-1st"
+      }
+    },
+    {
+      "id": "mer.oren.07",
+      "speaker": "Oren",
+      "text": "Try it with the prompt on this page. The answer should point to App.tsx in the book app.",
+      "voice": "en-GB-OliverNeural",
+      "prosody": {
+        "rate": "-10%",
+        "pitch": "-1st"
+      },
+      "sub": {
+        "App.tsx": "App dot T S X"
+      }
+    },
+    {
+      "id": "mer.oren.08",
+      "speaker": "Oren",
+      "text": "And you can change the model or effort mid-session, without changing the mode.",
+      "voice": "en-GB-OliverNeural",
+      "prosody": {
+        "rate": "-10%",
+        "pitch": "-1st"
+      }
+    },
+    {
+      "id": "mer.oren.next",
+      "speaker": "Oren",
+      "text": "Pell keeps the Hall of Records, across the courtyard. Ask about settings.",
+      "voice": "en-GB-OliverNeural",
+      "prosody": {
+        "rate": "-10%",
+        "pitch": "-1st"
+      }
+    },
+    {
+      "id": "mer.oren.done",
+      "speaker": "Oren",
+      "text": "Defaults for the simple things, Captain. More effort for the hard ones.",
+      "voice": "en-GB-OliverNeural",
+      "prosody": {
+        "rate": "-10%",
+        "pitch": "-1st"
+      }
+    },
+    {
+      "id": "mer.pell.wait",
+      "speaker": "Pell",
+      "text": "Records are kept in order, Captain. See Oren first.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.01",
+      "speaker": "Pell",
+      "text": "Settings! Nine areas, and I keep a record of every one.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.02",
+      "speaker": "Pell",
+      "text": "General has updates, storage and the theme. Accounts lets you add another GitHub account.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.03",
+      "speaker": "Pell",
+      "text": "Sessions is where you manage sessions and chats, the response style, and app-wide instructions.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.04",
+      "speaker": "Pell",
+      "text": "Model providers connects other providers with your own API keys. It doesn’t replace the model picker.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      },
+      "sub": {
+        "API": "A P I"
+      }
+    },
+    {
+      "id": "mer.pell.05",
+      "speaker": "Pell",
+      "text": "And Voice dictation turns speech into prompt text, if you’d like to try it. That part’s optional.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.logbook",
+      "speaker": "Pell",
+      "text": "I’ve filed the voice dictation steps in your Logbook as well.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.next",
+      "speaker": "Pell",
+      "text": "The Admiral’s waiting on her terrace. She’ll want to hear what you’ve learned.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.done",
+      "speaker": "Pell",
+      "text": "Can’t find a setting? Look for the closest area. Versions vary.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.admiral.wait",
+      "speaker": "Admiral",
+      "text": "You’ll have your exam, Captain, once you’ve been round the town.",
+      "voice": "en-GB-OliviaNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.admiral.01",
+      "speaker": "Admiral",
+      "text": "Captain. You’ve toured the whole app in one afternoon.",
+      "voice": "en-GB-OliviaNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.admiral.02",
+      "speaker": "Admiral",
+      "text": "Answer my questions, and the Seal of Meridian is yours.",
+      "voice": "en-GB-OliviaNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.admiral.retry",
+      "speaker": "Admiral",
+      "text": "Take your time, Captain. The exam’s here whenever you’re ready.",
+      "voice": "en-GB-OliviaNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.admiral.pass",
+      "speaker": "Admiral",
+      "text": "Well sailed! The Seal of Meridian. Now watch the lighthouse.",
+      "voice": "en-GB-OliviaNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.admiral.next",
+      "speaker": "Admiral",
+      "text": "Chapter 02 is sessions, worktrees and context. That island’s still being charted, but the course is ready when you are.",
+      "voice": "en-GB-OliviaNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "mer.admiral.done",
+      "speaker": "Admiral",
+      "text": "Fair winds, Captain. Meridian’s proud of you.",
+      "voice": "en-GB-OliviaNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
     }
   ]
 }

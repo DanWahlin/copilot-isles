@@ -1,0 +1,57 @@
+{
+  "id": "mer.admiral.02",
+  "speaker": "Admiral",
+  "text": "Answer my questions, and the Seal of Meridian is yours.",
+  "words": [
+    {
+      "word": "Answer",
+      "start": 0.0506659,
+      "end": 0.498041
+    },
+    {
+      "word": "my",
+      "start": 0.498041,
+      "end": 0.669083
+    },
+    {
+      "word": "questions",
+      "start": 0.669083,
+      "end": 1.68225
+    },
+    {
+      "word": "and",
+      "start": 1.68225,
+      "end": 1.813833
+    },
+    {
+      "word": "the",
+      "start": 1.813833,
+      "end": 1.93225
+    },
+    {
+      "word": "Seal",
+      "start": 1.93225,
+      "end": 2.248041
+    },
+    {
+      "word": "of",
+      "start": 2.248041,
+      "end": 2.366458
+    },
+    {
+      "word": "Meridian",
+      "start": 2.366458,
+      "end": 2.945375
+    },
+    {
+      "word": "is",
+      "start": 2.945375,
+      "end": 3.129625
+    },
+    {
+      "word": "yours",
+      "start": 3.129625,
+      "end": 3.379625
+    }
+  ]
+}

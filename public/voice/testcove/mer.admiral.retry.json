@@ -1,0 +1,57 @@
+{
+  "id": "mer.admiral.retry",
+  "speaker": "Admiral",
+  "text": "Take your time, Captain. The exam’s here whenever you’re ready.",
+  "words": [
+    {
+      "word": "Take",
+      "start": 0.0506659,
+      "end": 0.353291
+    },
+    {
+      "word": "your",
+      "start": 0.353291,
+      "end": 0.511166
+    },
+    {
+      "word": "time",
+      "start": 0.511166,
+      "end": 1.300666
+    },
+    {
+      "word": "Captain",
+      "start": 1.300666,
+      "end": 2.342125
+    },
+    {
+      "word": "The",
+      "start": 2.342125,
+      "end": 2.5
+    },
+    {
+      "word": "exam’s",
+      "start": 2.5,
+      "end": 3.026333
+    },
+    {
+      "word": "here",
+      "start": 3.026333,
+      "end": 3.342125
+    },
+    {
+      "word": "whenever",
+      "start": 3.342125,
+      "end": 3.815791
+    },
+    {
+      "word": "you’re",
+      "start": 3.815791,
+      "end": 3.973666
+    },
+    {
+      "word": "ready",
+      "start": 3.973666,
+      "end": 4.223666
+    }
+  ]
+}

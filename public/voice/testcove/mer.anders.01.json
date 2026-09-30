@@ -1,0 +1,82 @@
+{
+  "id": "mer.anders.01",
+  "speaker": "Anders",
+  "text": "Chats are for questions. When the agent needs your repository, you want a project session.",
+  "words": [
+    {
+      "word": "Chats",
+      "start": 0.053208,
+      "end": 0.478708
+    },
+    {
+      "word": "are",
+      "start": 0.478708,
+      "end": 0.625
+    },
+    {
+      "word": "for",
+      "start": 0.625,
+      "end": 0.771291
+    },
+    {
+      "word": "questions",
+      "start": 0.771291,
+      "end": 2.446791
+    },
+    {
+      "word": "When",
+      "start": 2.446791,
+      "end": 2.659583
+    },
+    {
+      "word": "the",
+      "start": 2.659583,
+      "end": 2.805833
+    },
+    {
+      "word": "agent",
+      "start": 2.805833,
+      "end": 3.151583
+    },
+    {
+      "word": "needs",
+      "start": 3.151583,
+      "end": 3.430833
+    },
+    {
+      "word": "your",
+      "start": 3.430833,
+      "end": 3.563833
+    },
+    {
+      "word": "repository",
+      "start": 3.563833,
+      "end": 4.481375
+    },
+    {
+      "word": "you",
+      "start": 4.481375,
+      "end": 4.58775
+    },
+    {
+      "word": "want",
+      "start": 4.58775,
+      "end": 4.840416
+    },
+    {
+      "word": "a",
+      "start": 4.840416,
+      "end": 4.906916
+    },
+    {
+      "word": "project",
+      "start": 4.906916,
+      "end": 5.332458
+    },
+    {
+      "word": "session",
+      "start": 5.332458,
+      "end": 5.582458
+    }
+  ]
+}

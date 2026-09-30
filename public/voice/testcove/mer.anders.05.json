@@ -1,0 +1,112 @@
+{
+  "id": "mer.anders.05",
+  "speaker": "Anders",
+  "text": "Go back to that session and send the prompt on this page. It tours the book app sample, file by file.",
+  "words": [
+    {
+      "word": "Go",
+      "start": 0.053208,
+      "end": 0.305833
+    },
+    {
+      "word": "back",
+      "start": 0.305833,
+      "end": 0.5585
+    },
+    {
+      "word": "to",
+      "start": 0.5585,
+      "end": 0.664875
+    },
+    {
+      "word": "that",
+      "start": 0.664875,
+      "end": 0.90425
+    },
+    {
+      "word": "session",
+      "start": 0.90425,
+      "end": 1.329791
+    },
+    {
+      "word": "and",
+      "start": 1.329791,
+      "end": 1.476083
+    },
+    {
+      "word": "send",
+      "start": 1.476083,
+      "end": 1.768625
+    },
+    {
+      "word": "the",
+      "start": 1.768625,
+      "end": 1.875
+    },
+    {
+      "word": "prompt",
+      "start": 1.875,
+      "end": 2.260625
+    },
+    {
+      "word": "on",
+      "start": 2.260625,
+      "end": 2.420208
+    },
+    {
+      "word": "this",
+      "start": 2.420208,
+      "end": 2.619666
+    },
+    {
+      "word": "page",
+      "start": 2.619666,
+      "end": 4.069166
+    },
+    {
+      "word": "It",
+      "start": 4.069166,
+      "end": 4.242041
+    },
+    {
+      "word": "tours",
+      "start": 4.242041,
+      "end": 4.454791
+    },
+    {
+      "word": "the",
+      "start": 4.454791,
+      "end": 4.574458
+    },
+    {
+      "word": "book",
+      "start": 4.574458,
+      "end": 4.813833
+    },
+    {
+      "word": "app",
+      "start": 4.813833,
+      "end": 4.986708
+    },
+    {
+      "word": "sample",
+      "start": 4.986708,
+      "end": 5.638291
+    },
+    {
+      "word": "file",
+      "start": 5.638291,
+      "end": 6.023916
+    },
+    {
+      "word": "by",
+      "start": 6.023916,
+      "end": 6.236708
+    },
+    {
+      "word": "file",
+      "start": 6.236708,
+      "end": 6.486708
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "id": "mer.mina.customize",
+  "speaker": "Mina",
+  "text": "And the Outfitter is Customize, for skills, MCP servers and plugins. You won’t need those until later chapters.",
+  "words": [
+    {
+      "word": "And",
+      "start": 0.0471659,
+      "end": 0.224041
+    },
+    {
+      "word": "the",
+      "start": 0.224041,
+      "end": 0.353791
+    },
+    {
+      "word": "Outfitter",
+      "start": 0.353791,
+      "end": 0.778291
+    },
+    {
+      "word": "is",
+      "start": 0.778291,
+      "end": 0.908
+    },
+    {
+      "word": "Customize",
+      "start": 0.908,
+      "end": 1.792458
+    },
+    {
+      "word": "for",
+      "start": 1.792458,
+      "end": 1.922166
+    },
+    {
+      "word": "skills",
+      "start": 1.922166,
+      "end": 2.629708
+    },
+    {
+      "word": "M",
+      "start": 2.629708,
+      "end": 2.806583
+    },
+    {
+      "word": "C",
+      "start": 2.806583,
+      "end": 3.077833
+    },
+    {
+      "word": "P",
+      "start": 3.077833,
+      "end": 3.301875
+    },
+    {
+      "word": "servers",
+      "start": 3.301875,
+      "end": 3.797166
+    },
+    {
+      "word": "and",
+      "start": 3.797166,
+      "end": 3.915083
+    },
+    {
+      "word": "plugins",
+      "start": 3.915083,
+      "end": 5.389166
+    },
+    {
+      "word": "You",
+      "start": 5.389166,
+      "end": 5.518875
+    },
+    {
+      "word": "won’t",
+      "start": 5.518875,
+      "end": 5.7665
+    },
+    {
+      "word": "need",
+      "start": 5.7665,
+      "end": 5.990583
+    },
+    {
+      "word": "those",
+      "start": 5.990583,
+      "end": 6.297166
+    },
+    {
+      "word": "until",
+      "start": 6.297166,
+      "end": 6.592
+    },
+    {
+      "word": "later",
+      "start": 6.592,
+      "end": 6.922166
+    },
+    {
+      "word": "chapters",
+      "start": 6.922166,
+      "end": 7.172166
+    }
+  ]
+}

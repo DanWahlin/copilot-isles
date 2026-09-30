@@ -1,0 +1,57 @@
+{
+  "id": "mer.rhea.solved",
+  "speaker": "Rhea",
+  "text": "You’ve sailed all three. Now, which mode suits which task?",
+  "words": [
+    {
+      "word": "You’ve",
+      "start": 0.0485409,
+      "end": 0.339791
+    },
+    {
+      "word": "sailed",
+      "start": 0.339791,
+      "end": 0.752416
+    },
+    {
+      "word": "all",
+      "start": 0.752416,
+      "end": 0.995125
+    },
+    {
+      "word": "three",
+      "start": 0.995125,
+      "end": 2.293708
+    },
+    {
+      "word": "Now",
+      "start": 2.293708,
+      "end": 2.997583
+    },
+    {
+      "word": "which",
+      "start": 2.997583,
+      "end": 3.228166
+    },
+    {
+      "word": "mode",
+      "start": 3.228166,
+      "end": 3.531541
+    },
+    {
+      "word": "suits",
+      "start": 3.531541,
+      "end": 3.8835
+    },
+    {
+      "word": "which",
+      "start": 3.8835,
+      "end": 4.114083
+    },
+    {
+      "word": "task",
+      "start": 4.114083,
+      "end": 4.364083
+    }
+  ]
+}

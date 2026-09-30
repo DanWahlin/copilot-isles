@@ -1,0 +1,102 @@
+{
+  "id": "mer.lyra.02",
+  "speaker": "Lyra",
+  "text": "A producer doesn’t run every take the same way. Some need close direction. Some need the arrangement charted first.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0.052625,
+      "end": 0.131583
+    },
+    {
+      "word": "producer",
+      "start": 0.131583,
+      "end": 0.75
+    },
+    {
+      "word": "doesn’t",
+      "start": 0.75,
+      "end": 1.131583
+    },
+    {
+      "word": "run",
+      "start": 1.131583,
+      "end": 1.64475
+    },
+    {
+      "word": "every",
+      "start": 1.64475,
+      "end": 1.986833
+    },
+    {
+      "word": "take",
+      "start": 1.986833,
+      "end": 2.25
+    },
+    {
+      "word": "the",
+      "start": 2.25,
+      "end": 2.368416
+    },
+    {
+      "word": "same",
+      "start": 2.368416,
+      "end": 2.697375
+    },
+    {
+      "word": "way",
+      "start": 2.697375,
+      "end": 4.131583
+    },
+    {
+      "word": "Some",
+      "start": 4.131583,
+      "end": 4.473666
+    },
+    {
+      "word": "need",
+      "start": 4.473666,
+      "end": 4.802625
+    },
+    {
+      "word": "close",
+      "start": 4.802625,
+      "end": 5.197375
+    },
+    {
+      "word": "direction",
+      "start": 5.197375,
+      "end": 6.960541
+    },
+    {
+      "word": "Some",
+      "start": 6.960541,
+      "end": 7.328958
+    },
+    {
+      "word": "need",
+      "start": 7.328958,
+      "end": 7.618416
+    },
+    {
+      "word": "the",
+      "start": 7.618416,
+      "end": 7.789458
+    },
+    {
+      "word": "arrangement",
+      "start": 7.789458,
+      "end": 8.434208
+    },
+    {
+      "word": "charted",
+      "start": 8.434208,
+      "end": 8.973666
+    },
+    {
+      "word": "first",
+      "start": 8.973666,
+      "end": 9.223666
+    }
+  ]
+}

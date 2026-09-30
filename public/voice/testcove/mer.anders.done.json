@@ -1,0 +1,62 @@
+{
+  "id": "mer.anders.done",
+  "speaker": "Anders",
+  "text": "Questions to a chat, jobs to a project session. Good work.",
+  "words": [
+    {
+      "word": "Questions",
+      "start": 0.053208,
+      "end": 0.585125
+    },
+    {
+      "word": "to",
+      "start": 0.585125,
+      "end": 0.731375
+    },
+    {
+      "word": "a",
+      "start": 0.731375,
+      "end": 0.811166
+    },
+    {
+      "word": "chat",
+      "start": 0.811166,
+      "end": 1.382958
+    },
+    {
+      "word": "jobs",
+      "start": 1.382958,
+      "end": 1.742041
+    },
+    {
+      "word": "to",
+      "start": 1.742041,
+      "end": 1.901583
+    },
+    {
+      "word": "a",
+      "start": 1.901583,
+      "end": 1.981375
+    },
+    {
+      "word": "project",
+      "start": 1.981375,
+      "end": 2.4335
+    },
+    {
+      "word": "session",
+      "start": 2.4335,
+      "end": 3.8165
+    },
+    {
+      "word": "Good",
+      "start": 3.8165,
+      "end": 4.055833
+    },
+    {
+      "word": "work",
+      "start": 4.055833,
+      "end": 4.305833
+    }
+  ]
+}

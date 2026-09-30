@@ -1,0 +1,87 @@
+{
+  "id": "mer.tobias.next",
+  "speaker": "Tobias",
+  "text": "Now, Mina knows every corner of this town, and of the app. She’s by the fountain.",
+  "words": [
+    {
+      "word": "Now",
+      "start": 0.052083,
+      "end": 0.572916
+    },
+    {
+      "word": "Mina",
+      "start": 0.572916,
+      "end": 0.885416
+    },
+    {
+      "word": "knows",
+      "start": 0.885416,
+      "end": 1.237
+    },
+    {
+      "word": "every",
+      "start": 1.237,
+      "end": 1.484375
+    },
+    {
+      "word": "corner",
+      "start": 1.484375,
+      "end": 1.862
+    },
+    {
+      "word": "of",
+      "start": 1.862,
+      "end": 1.966166
+    },
+    {
+      "word": "this",
+      "start": 1.966166,
+      "end": 2.1875
+    },
+    {
+      "word": "town",
+      "start": 2.1875,
+      "end": 2.786458
+    },
+    {
+      "word": "and",
+      "start": 2.786458,
+      "end": 2.877625
+    },
+    {
+      "word": "of",
+      "start": 2.877625,
+      "end": 2.96875
+    },
+    {
+      "word": "the",
+      "start": 2.96875,
+      "end": 3.112
+    },
+    {
+      "word": "app.",
+      "start": 3.112,
+      "end": 4.375
+    },
+    {
+      "word": "She’s",
+      "start": 4.375,
+      "end": 4.700541
+    },
+    {
+      "word": "by",
+      "start": 4.700541,
+      "end": 4.882833
+    },
+    {
+      "word": "the",
+      "start": 4.882833,
+      "end": 5
+    },
+    {
+      "word": "fountain",
+      "start": 5,
+      "end": 5.25
+    }
+  ]
+}

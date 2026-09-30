@@ -1,0 +1,92 @@
+{
+  "id": "mer.tobias.03",
+  "speaker": "Tobias",
+  "text": "The hard part is supervising agent work from start to finish. Plans, edits, tests, previews, pull requests.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.052083,
+      "end": 0.182291
+    },
+    {
+      "word": "hard",
+      "start": 0.182291,
+      "end": 0.546875
+    },
+    {
+      "word": "part",
+      "start": 0.546875,
+      "end": 0.846375
+    },
+    {
+      "word": "is",
+      "start": 0.846375,
+      "end": 0.989583
+    },
+    {
+      "word": "supervising",
+      "start": 0.989583,
+      "end": 1.71875
+    },
+    {
+      "word": "agent",
+      "start": 1.71875,
+      "end": 2.044291
+    },
+    {
+      "word": "work",
+      "start": 2.044291,
+      "end": 2.369791
+    },
+    {
+      "word": "from",
+      "start": 2.369791,
+      "end": 2.526041
+    },
+    {
+      "word": "start",
+      "start": 2.526041,
+      "end": 2.890625
+    },
+    {
+      "word": "to",
+      "start": 2.890625,
+      "end": 2.981791
+    },
+    {
+      "word": "finish",
+      "start": 2.981791,
+      "end": 4.414083
+    },
+    {
+      "word": "Plans",
+      "start": 4.414083,
+      "end": 5.130208
+    },
+    {
+      "word": "edits",
+      "start": 5.130208,
+      "end": 5.651041
+    },
+    {
+      "word": "tests",
+      "start": 5.651041,
+      "end": 6.39325
+    },
+    {
+      "word": "previews",
+      "start": 6.39325,
+      "end": 7.213541
+    },
+    {
+      "word": "pull",
+      "start": 7.213541,
+      "end": 7.447916
+    },
+    {
+      "word": "requests",
+      "start": 7.447916,
+      "end": 7.697916
+    }
+  ]
+}

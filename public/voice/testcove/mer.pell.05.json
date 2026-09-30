@@ -1,0 +1,92 @@
+{
+  "id": "mer.pell.05",
+  "speaker": "Pell",
+  "text": "And Voice dictation turns speech into prompt text, if you’d like to try it. That part’s optional.",
+  "words": [
+    {
+      "word": "And",
+      "start": 0.048083,
+      "end": 0.216333
+    },
+    {
+      "word": "Voice",
+      "start": 0.216333,
+      "end": 0.492791
+    },
+    {
+      "word": "dictation",
+      "start": 0.492791,
+      "end": 1.045666
+    },
+    {
+      "word": "turns",
+      "start": 1.045666,
+      "end": 1.370208
+    },
+    {
+      "word": "speech",
+      "start": 1.370208,
+      "end": 1.70675
+    },
+    {
+      "word": "into",
+      "start": 1.70675,
+      "end": 1.947125
+    },
+    {
+      "word": "prompt",
+      "start": 1.947125,
+      "end": 2.33175
+    },
+    {
+      "word": "text",
+      "start": 2.33175,
+      "end": 2.944708
+    },
+    {
+      "word": "if",
+      "start": 2.944708,
+      "end": 3.076916
+    },
+    {
+      "word": "you’d",
+      "start": 3.076916,
+      "end": 3.233166
+    },
+    {
+      "word": "like",
+      "start": 3.233166,
+      "end": 3.4375
+    },
+    {
+      "word": "to",
+      "start": 3.4375,
+      "end": 3.533666
+    },
+    {
+      "word": "try",
+      "start": 3.533666,
+      "end": 3.798083
+    },
+    {
+      "word": "it",
+      "start": 3.798083,
+      "end": 4.891833
+    },
+    {
+      "word": "That",
+      "start": 4.891833,
+      "end": 5.132208
+    },
+    {
+      "word": "part’s",
+      "start": 5.132208,
+      "end": 5.46875
+    },
+    {
+      "word": "optional",
+      "start": 5.46875,
+      "end": 5.71875
+    }
+  ]
+}

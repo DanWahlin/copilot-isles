@@ -1,0 +1,82 @@
+{
+  "id": "mer.mina.01",
+  "speaker": "Mina",
+  "text": "Welcome to Meridian! This town’s laid out just like the app’s sidebar. Come and see.",
+  "words": [
+    {
+      "word": "Welcome",
+      "start": 0.0471659,
+      "end": 0.55425
+    },
+    {
+      "word": "to",
+      "start": 0.55425,
+      "end": 0.683958
+    },
+    {
+      "word": "Meridian",
+      "start": 0.683958,
+      "end": 2.146208
+    },
+    {
+      "word": "This",
+      "start": 2.146208,
+      "end": 2.370291
+    },
+    {
+      "word": "town’s",
+      "start": 2.370291,
+      "end": 2.759416
+    },
+    {
+      "word": "laid",
+      "start": 2.759416,
+      "end": 3.05425
+    },
+    {
+      "word": "out",
+      "start": 3.05425,
+      "end": 3.349041
+    },
+    {
+      "word": "just",
+      "start": 3.349041,
+      "end": 3.667458
+    },
+    {
+      "word": "like",
+      "start": 3.667458,
+      "end": 3.8915
+    },
+    {
+      "word": "the",
+      "start": 3.8915,
+      "end": 4.009416
+    },
+    {
+      "word": "app’s",
+      "start": 4.009416,
+      "end": 4.245291
+    },
+    {
+      "word": "sidebar",
+      "start": 4.245291,
+      "end": 5.636791
+    },
+    {
+      "word": "Come",
+      "start": 5.636791,
+      "end": 5.860833
+    },
+    {
+      "word": "and",
+      "start": 5.860833,
+      "end": 5.990583
+    },
+    {
+      "word": "see",
+      "start": 5.990583,
+      "end": 6.240583
+    }
+  ]
+}

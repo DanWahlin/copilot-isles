@@ -1,0 +1,92 @@
+{
+  "id": "mer.anders.03",
+  "speaker": "Anders",
+  "text": "Each project session gets its own new worktree by default, like a hull on its own slipway.",
+  "words": [
+    {
+      "word": "Each",
+      "start": 0.053208,
+      "end": 0.305833
+    },
+    {
+      "word": "project",
+      "start": 0.305833,
+      "end": 0.771291
+    },
+    {
+      "word": "session",
+      "start": 0.771291,
+      "end": 1.143625
+    },
+    {
+      "word": "gets",
+      "start": 1.143625,
+      "end": 1.422875
+    },
+    {
+      "word": "its",
+      "start": 1.422875,
+      "end": 1.622333
+    },
+    {
+      "word": "own",
+      "start": 1.622333,
+      "end": 1.835125
+    },
+    {
+      "word": "new",
+      "start": 1.835125,
+      "end": 2.061166
+    },
+    {
+      "word": "worktree",
+      "start": 2.061166,
+      "end": 2.646291
+    },
+    {
+      "word": "by",
+      "start": 2.646291,
+      "end": 2.832458
+    },
+    {
+      "word": "default",
+      "start": 2.832458,
+      "end": 3.603708
+    },
+    {
+      "word": "like",
+      "start": 3.603708,
+      "end": 3.8165
+    },
+    {
+      "word": "a",
+      "start": 3.8165,
+      "end": 3.882958
+    },
+    {
+      "word": "hull",
+      "start": 3.882958,
+      "end": 4.175541
+    },
+    {
+      "word": "on",
+      "start": 4.175541,
+      "end": 4.295208
+    },
+    {
+      "word": "its",
+      "start": 4.295208,
+      "end": 4.481375
+    },
+    {
+      "word": "own",
+      "start": 4.481375,
+      "end": 4.707458
+    },
+    {
+      "word": "slipway",
+      "start": 4.707458,
+      "end": 4.957458
+    }
+  ]
+}

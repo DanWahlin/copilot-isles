@@ -1,0 +1,67 @@
+{
+  "id": "mer.oren.next",
+  "speaker": "Oren",
+  "text": "Pell keeps the Hall of Records, across the courtyard. Ask about settings.",
+  "words": [
+    {
+      "word": "Pell",
+      "start": 0.055541,
+      "end": 0.333333
+    },
+    {
+      "word": "keeps",
+      "start": 0.333333,
+      "end": 0.666666
+    },
+    {
+      "word": "the",
+      "start": 0.666666,
+      "end": 0.777791
+    },
+    {
+      "word": "Hall",
+      "start": 0.777791,
+      "end": 1.097208
+    },
+    {
+      "word": "of",
+      "start": 1.097208,
+      "end": 1.208333
+    },
+    {
+      "word": "Records",
+      "start": 1.208333,
+      "end": 2.027791
+    },
+    {
+      "word": "across",
+      "start": 2.027791,
+      "end": 2.416666
+    },
+    {
+      "word": "the",
+      "start": 2.416666,
+      "end": 2.527791
+    },
+    {
+      "word": "courtyard",
+      "start": 2.527791,
+      "end": 4.263875
+    },
+    {
+      "word": "Ask",
+      "start": 4.263875,
+      "end": 4.569458
+    },
+    {
+      "word": "about",
+      "start": 4.569458,
+      "end": 4.916666
+    },
+    {
+      "word": "settings",
+      "start": 4.916666,
+      "end": 5.166666
+    }
+  ]
+}

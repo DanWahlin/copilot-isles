@@ -1,0 +1,87 @@
+{
+  "id": "mer.mina.next",
+  "speaker": "Mina",
+  "text": "Lyra’s playing at the tavern, just west of here. She’ll show you how a chat works.",
+  "words": [
+    {
+      "word": "Lyra’s",
+      "start": 0.0471659,
+      "end": 0.495291
+    },
+    {
+      "word": "playing",
+      "start": 0.495291,
+      "end": 0.83725
+    },
+    {
+      "word": "at",
+      "start": 0.83725,
+      "end": 0.908
+    },
+    {
+      "word": "the",
+      "start": 0.908,
+      "end": 1.002375
+    },
+    {
+      "word": "tavern",
+      "start": 1.002375,
+      "end": 1.627375
+    },
+    {
+      "word": "just",
+      "start": 1.627375,
+      "end": 1.886791
+    },
+    {
+      "word": "west",
+      "start": 1.886791,
+      "end": 2.158
+    },
+    {
+      "word": "of",
+      "start": 2.158,
+      "end": 2.264166
+    },
+    {
+      "word": "here",
+      "start": 2.264166,
+      "end": 3.502375
+    },
+    {
+      "word": "She’ll",
+      "start": 3.502375,
+      "end": 3.773583
+    },
+    {
+      "word": "show",
+      "start": 3.773583,
+      "end": 4.009416
+    },
+    {
+      "word": "you",
+      "start": 4.009416,
+      "end": 4.174541
+    },
+    {
+      "word": "how",
+      "start": 4.174541,
+      "end": 4.339625
+    },
+    {
+      "word": "a",
+      "start": 4.339625,
+      "end": 4.433958
+    },
+    {
+      "word": "chat",
+      "start": 4.433958,
+      "end": 4.728791
+    },
+    {
+      "word": "works",
+      "start": 4.728791,
+      "end": 4.978791
+    }
+  ]
+}

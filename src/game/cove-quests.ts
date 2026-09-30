@@ -1,3 +1,4 @@
+import { meridianOpen } from './meridian-open';
 import type { ScriptStep } from './script';
 
 /**
@@ -398,7 +399,8 @@ const CHRISTENING: readonly ScriptStep[] = [
   { say: 'juno.christen.01' },
   { say: 'wingman.sail.01' },
   { say: 'wingman.sail.02' },
-  { say: 'wingman.sail.03' },
+  // Port Meridian's open (the dev build, for now): point the way. Otherwise these waters are yours.
+  { say: meridianOpen() ? 'wingman.sail.meridian' : 'wingman.sail.03' },
   { quest: 'Q0.11', step: 'sail' },
 ];
 

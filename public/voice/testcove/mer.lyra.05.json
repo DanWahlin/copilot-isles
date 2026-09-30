@@ -1,0 +1,82 @@
+{
+  "id": "mer.lyra.05",
+  "speaker": "Lyra",
+  "text": "There. The picker says Chat, so there’s no branch, no worktree, and no files change.",
+  "words": [
+    {
+      "word": "There",
+      "start": 0.052625,
+      "end": 1.35525
+    },
+    {
+      "word": "The",
+      "start": 1.35525,
+      "end": 1.434208
+    },
+    {
+      "word": "picker",
+      "start": 1.434208,
+      "end": 1.763166
+    },
+    {
+      "word": "says",
+      "start": 1.763166,
+      "end": 2.039458
+    },
+    {
+      "word": "Chat",
+      "start": 2.039458,
+      "end": 2.802625
+    },
+    {
+      "word": "so",
+      "start": 2.802625,
+      "end": 3.263166
+    },
+    {
+      "word": "there’s",
+      "start": 3.263166,
+      "end": 3.421041
+    },
+    {
+      "word": "no",
+      "start": 3.421041,
+      "end": 3.684208
+    },
+    {
+      "word": "branch",
+      "start": 3.684208,
+      "end": 4.381583
+    },
+    {
+      "word": "no",
+      "start": 4.381583,
+      "end": 4.697375
+    },
+    {
+      "word": "worktree",
+      "start": 4.697375,
+      "end": 5.618416
+    },
+    {
+      "word": "and",
+      "start": 5.618416,
+      "end": 5.802625
+    },
+    {
+      "word": "no",
+      "start": 5.802625,
+      "end": 6.078958
+    },
+    {
+      "word": "files",
+      "start": 6.078958,
+      "end": 6.513166
+    },
+    {
+      "word": "change",
+      "start": 6.513166,
+      "end": 6.763166
+    }
+  ]
+}

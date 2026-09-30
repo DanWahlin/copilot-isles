@@ -1,0 +1,62 @@
+{
+  "id": "mer.mina.done",
+  "speaker": "Mina",
+  "text": "New, My work, Automations, Customize. You know your way around now!",
+  "words": [
+    {
+      "word": "New",
+      "start": 0.0471659,
+      "end": 0.613208
+    },
+    {
+      "word": "My",
+      "start": 0.613208,
+      "end": 0.790083
+    },
+    {
+      "word": "work",
+      "start": 0.790083,
+      "end": 1.332541
+    },
+    {
+      "word": "Automations",
+      "start": 1.332541,
+      "end": 2.264166
+    },
+    {
+      "word": "Customize",
+      "start": 2.264166,
+      "end": 3.75
+    },
+    {
+      "word": "You",
+      "start": 3.75,
+      "end": 3.903291
+    },
+    {
+      "word": "know",
+      "start": 3.903291,
+      "end": 4.139166
+    },
+    {
+      "word": "your",
+      "start": 4.139166,
+      "end": 4.292458
+    },
+    {
+      "word": "way",
+      "start": 4.292458,
+      "end": 4.528291
+    },
+    {
+      "word": "around",
+      "start": 4.528291,
+      "end": 4.92925
+    },
+    {
+      "word": "now",
+      "start": 4.92925,
+      "end": 5.17925
+    }
+  ]
+}

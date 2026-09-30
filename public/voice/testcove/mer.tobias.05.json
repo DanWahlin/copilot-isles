@@ -1,0 +1,82 @@
+{
+  "id": "mer.tobias.05",
+  "speaker": "Tobias",
+  "text": "Mind you, the app isn’t a replacement for your editor. Keep that for deep coding.",
+  "words": [
+    {
+      "word": "Mind",
+      "start": 0.052083,
+      "end": 0.416666
+    },
+    {
+      "word": "you",
+      "start": 0.416666,
+      "end": 0.76825
+    },
+    {
+      "word": "the",
+      "start": 0.76825,
+      "end": 0.9245
+    },
+    {
+      "word": "app",
+      "start": 0.9245,
+      "end": 1.132833
+    },
+    {
+      "word": "isn’t",
+      "start": 1.132833,
+      "end": 1.380208
+    },
+    {
+      "word": "a",
+      "start": 1.380208,
+      "end": 1.432291
+    },
+    {
+      "word": "replacement",
+      "start": 1.432291,
+      "end": 2.070333
+    },
+    {
+      "word": "for",
+      "start": 2.070333,
+      "end": 2.1875
+    },
+    {
+      "word": "your",
+      "start": 2.1875,
+      "end": 2.447916
+    },
+    {
+      "word": "editor",
+      "start": 2.447916,
+      "end": 3.828125
+    },
+    {
+      "word": "Keep",
+      "start": 3.828125,
+      "end": 4.101583
+    },
+    {
+      "word": "that",
+      "start": 4.101583,
+      "end": 4.335958
+    },
+    {
+      "word": "for",
+      "start": 4.335958,
+      "end": 4.466166
+    },
+    {
+      "word": "deep",
+      "start": 4.466166,
+      "end": 4.765625
+    },
+    {
+      "word": "coding",
+      "start": 4.765625,
+      "end": 5.015625
+    }
+  ]
+}

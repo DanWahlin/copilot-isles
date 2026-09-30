@@ -1,0 +1,52 @@
+{
+  "id": "mer.oren.wait",
+  "speaker": "Oren",
+  "text": "The stars will keep, Captain. Sail with Rhea first.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.055541,
+      "end": 0.222208
+    },
+    {
+      "word": "stars",
+      "start": 0.222208,
+      "end": 0.680541
+    },
+    {
+      "word": "will",
+      "start": 0.680541,
+      "end": 0.861125
+    },
+    {
+      "word": "keep",
+      "start": 0.861125,
+      "end": 1.361125
+    },
+    {
+      "word": "Captain",
+      "start": 1.361125,
+      "end": 2.888875
+    },
+    {
+      "word": "Sail",
+      "start": 2.888875,
+      "end": 3.333333
+    },
+    {
+      "word": "with",
+      "start": 3.333333,
+      "end": 3.5
+    },
+    {
+      "word": "Rhea",
+      "start": 3.5,
+      "end": 3.791666
+    },
+    {
+      "word": "first",
+      "start": 3.791666,
+      "end": 4.041666
+    }
+  ]
+}

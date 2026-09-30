@@ -1,0 +1,77 @@
+{
+  "id": "mer.oren.04",
+  "speaker": "Oren",
+  "text": "Careful, though. Auto isn’t Autopilot. Autopilot is a mode. Auto is about the model.",
+  "words": [
+    {
+      "word": "Careful",
+      "start": 0.055541,
+      "end": 0.777791
+    },
+    {
+      "word": "though",
+      "start": 0.777791,
+      "end": 2.111125
+    },
+    {
+      "word": "Auto",
+      "start": 2.111125,
+      "end": 2.569458
+    },
+    {
+      "word": "isn’t",
+      "start": 2.569458,
+      "end": 2.916666
+    },
+    {
+      "word": "Autopilot",
+      "start": 2.916666,
+      "end": 4.791666
+    },
+    {
+      "word": "Autopilot",
+      "start": 4.791666,
+      "end": 5.569458
+    },
+    {
+      "word": "is",
+      "start": 5.569458,
+      "end": 5.708333
+    },
+    {
+      "word": "a",
+      "start": 5.708333,
+      "end": 5.791666
+    },
+    {
+      "word": "mode",
+      "start": 5.791666,
+      "end": 7.263875
+    },
+    {
+      "word": "Auto",
+      "start": 7.263875,
+      "end": 7.722208
+    },
+    {
+      "word": "is",
+      "start": 7.722208,
+      "end": 7.888875
+    },
+    {
+      "word": "about",
+      "start": 7.888875,
+      "end": 8.166666
+    },
+    {
+      "word": "the",
+      "start": 8.166666,
+      "end": 8.263875
+    },
+    {
+      "word": "model",
+      "start": 8.263875,
+      "end": 8.513875
+    }
+  ]
+}

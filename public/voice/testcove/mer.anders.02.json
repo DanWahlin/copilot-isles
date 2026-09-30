@@ -1,0 +1,62 @@
+{
+  "id": "mer.anders.02",
+  "speaker": "Anders",
+  "text": "Changing code, running tests, making a pull request. That’s project work.",
+  "words": [
+    {
+      "word": "Changing",
+      "start": 0.053208,
+      "end": 0.571791
+    },
+    {
+      "word": "code",
+      "start": 0.571791,
+      "end": 1.117041
+    },
+    {
+      "word": "running",
+      "start": 1.117041,
+      "end": 1.46275
+    },
+    {
+      "word": "tests",
+      "start": 1.46275,
+      "end": 2.207458
+    },
+    {
+      "word": "making",
+      "start": 2.207458,
+      "end": 2.5665
+    },
+    {
+      "word": "a",
+      "start": 2.5665,
+      "end": 2.646291
+    },
+    {
+      "word": "pull",
+      "start": 2.646291,
+      "end": 2.898916
+    },
+    {
+      "word": "request",
+      "start": 2.898916,
+      "end": 4.481375
+    },
+    {
+      "word": "That’s",
+      "start": 4.481375,
+      "end": 4.773916
+    },
+    {
+      "word": "project",
+      "start": 4.773916,
+      "end": 5.265958
+    },
+    {
+      "word": "work",
+      "start": 5.265958,
+      "end": 5.515958
+    }
+  ]
+}

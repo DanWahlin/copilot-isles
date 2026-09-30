@@ -1,0 +1,72 @@
+{
+  "id": "mer.oren.08",
+  "speaker": "Oren",
+  "text": "And you can change the model or effort mid-session, without changing the mode.",
+  "words": [
+    {
+      "word": "And",
+      "start": 0.055541,
+      "end": 0.194458
+    },
+    {
+      "word": "you",
+      "start": 0.194458,
+      "end": 0.319458
+    },
+    {
+      "word": "can",
+      "start": 0.319458,
+      "end": 0.5
+    },
+    {
+      "word": "change",
+      "start": 0.5,
+      "end": 0.833333
+    },
+    {
+      "word": "the",
+      "start": 0.833333,
+      "end": 0.930541
+    },
+    {
+      "word": "model",
+      "start": 0.930541,
+      "end": 1.333333
+    },
+    {
+      "word": "or",
+      "start": 1.333333,
+      "end": 1.541666
+    },
+    {
+      "word": "effort",
+      "start": 1.541666,
+      "end": 1.875
+    },
+    {
+      "word": "mid-session",
+      "start": 1.875,
+      "end": 2.708333
+    },
+    {
+      "word": "without",
+      "start": 2.708333,
+      "end": 3.083333
+    },
+    {
+      "word": "changing",
+      "start": 3.083333,
+      "end": 3.569458
+    },
+    {
+      "word": "the",
+      "start": 3.569458,
+      "end": 3.680541
+    },
+    {
+      "word": "mode",
+      "start": 3.680541,
+      "end": 3.930541
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "id": "mer.admiral.pass",
+  "speaker": "Admiral",
+  "text": "Well sailed! The Seal of Meridian. Now watch the lighthouse.",
+  "words": [
+    {
+      "word": "Well",
+      "start": 0.078958,
+      "end": 0.39475
+    },
+    {
+      "word": "sailed",
+      "start": 0.39475,
+      "end": 1.486833
+    },
+    {
+      "word": "The",
+      "start": 1.486833,
+      "end": 1.618416
+    },
+    {
+      "word": "Seal",
+      "start": 1.618416,
+      "end": 2.039458
+    },
+    {
+      "word": "of",
+      "start": 2.039458,
+      "end": 2.184208
+    },
+    {
+      "word": "Meridian",
+      "start": 2.184208,
+      "end": 3.261166
+    },
+    {
+      "word": "Now",
+      "start": 3.261166,
+      "end": 3.616458
+    },
+    {
+      "word": "watch",
+      "start": 3.616458,
+      "end": 3.971708
+    },
+    {
+      "word": "the",
+      "start": 3.971708,
+      "end": 4.090125
+    },
+    {
+      "word": "lighthouse",
+      "start": 4.090125,
+      "end": 4.340125
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "id": "mer.oren.05",
+  "speaker": "Oren",
+  "text": "For a quick explanation, keep the defaults. For a hard bug across several files, try a stronger model and higher effort.",
+  "words": [
+    {
+      "word": "For",
+      "start": 0.055541,
+      "end": 0.25
+    },
+    {
+      "word": "a",
+      "start": 0.25,
+      "end": 0.333333
+    },
+    {
+      "word": "quick",
+      "start": 0.333333,
+      "end": 0.625
+    },
+    {
+      "word": "explanation",
+      "start": 0.625,
+      "end": 1.583333
+    },
+    {
+      "word": "keep",
+      "start": 1.583333,
+      "end": 1.875
+    },
+    {
+      "word": "the",
+      "start": 1.875,
+      "end": 1.986125
+    },
+    {
+      "word": "defaults",
+      "start": 1.986125,
+      "end": 3.638875
+    },
+    {
+      "word": "For",
+      "start": 3.638875,
+      "end": 3.819458
+    },
+    {
+      "word": "a",
+      "start": 3.819458,
+      "end": 3.875
+    },
+    {
+      "word": "hard",
+      "start": 3.875,
+      "end": 4.277791
+    },
+    {
+      "word": "bug",
+      "start": 4.277791,
+      "end": 4.527791
+    },
+    {
+      "word": "across",
+      "start": 4.527791,
+      "end": 4.958333
+    },
+    {
+      "word": "several",
+      "start": 4.958333,
+      "end": 5.388875
+    },
+    {
+      "word": "files",
+      "start": 5.388875,
+      "end": 6.125
+    },
+    {
+      "word": "try",
+      "start": 6.125,
+      "end": 6.375
+    },
+    {
+      "word": "a",
+      "start": 6.375,
+      "end": 6.486125
+    },
+    {
+      "word": "stronger",
+      "start": 6.486125,
+      "end": 6.986125
+    },
+    {
+      "word": "model",
+      "start": 6.986125,
+      "end": 7.388875
+    },
+    {
+      "word": "and",
+      "start": 7.388875,
+      "end": 7.5
+    },
+    {
+      "word": "higher",
+      "start": 7.5,
+      "end": 7.861125
+    },
+    {
+      "word": "effort",
+      "start": 7.861125,
+      "end": 8.111125000000001
+    }
+  ]
+}

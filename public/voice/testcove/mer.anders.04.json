@@ -1,0 +1,77 @@
+{
+  "id": "mer.anders.04",
+  "speaker": "Anders",
+  "text": "Your Chapter 00 setup session was the exception. You picked Local repository for that one.",
+  "words": [
+    {
+      "word": "Your",
+      "start": 0.053208,
+      "end": 0.27925
+    },
+    {
+      "word": "Chapter 00",
+      "start": 0.27925,
+      "end": 1.542541
+    },
+    {
+      "word": "setup",
+      "start": 1.542541,
+      "end": 2.007958
+    },
+    {
+      "word": "session",
+      "start": 2.007958,
+      "end": 2.4335
+    },
+    {
+      "word": "was",
+      "start": 2.4335,
+      "end": 2.593083
+    },
+    {
+      "word": "the",
+      "start": 2.593083,
+      "end": 2.739375
+    },
+    {
+      "word": "exception",
+      "start": 2.739375,
+      "end": 4.321791
+    },
+    {
+      "word": "You",
+      "start": 4.321791,
+      "end": 4.494666
+    },
+    {
+      "word": "picked",
+      "start": 4.494666,
+      "end": 4.760625
+    },
+    {
+      "word": "Local",
+      "start": 4.760625,
+      "end": 5.119666
+    },
+    {
+      "word": "repository",
+      "start": 5.119666,
+      "end": 5.731375
+    },
+    {
+      "word": "for",
+      "start": 5.731375,
+      "end": 5.877666
+    },
+    {
+      "word": "that",
+      "start": 5.877666,
+      "end": 6.103708
+    },
+    {
+      "word": "one",
+      "start": 6.103708,
+      "end": 6.353708
+    }
+  ]
+}

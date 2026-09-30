@@ -1,0 +1,52 @@
+{
+  "id": "mer.pell.wait",
+  "speaker": "Pell",
+  "text": "Records are kept in order, Captain. See Oren first.",
+  "words": [
+    {
+      "word": "Records",
+      "start": 0.048083,
+      "end": 0.564916
+    },
+    {
+      "word": "are",
+      "start": 0.564916,
+      "end": 0.637
+    },
+    {
+      "word": "kept",
+      "start": 0.637,
+      "end": 0.9495
+    },
+    {
+      "word": "in",
+      "start": 0.9495,
+      "end": 1.057708
+    },
+    {
+      "word": "order",
+      "start": 1.057708,
+      "end": 1.454333
+    },
+    {
+      "word": "Captain",
+      "start": 1.454333,
+      "end": 2.788458
+    },
+    {
+      "word": "See",
+      "start": 2.788458,
+      "end": 3.052875
+    },
+    {
+      "word": "Oren",
+      "start": 3.052875,
+      "end": 3.401458
+    },
+    {
+      "word": "first",
+      "start": 3.401458,
+      "end": 3.651458
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "id": "mer.rhea.02",
+  "speaker": "Rhea",
+  "text": "The mode sets how independently the agent works. Interactive, Plan, and Autopilot.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.0485409,
+      "end": 0.182041
+    },
+    {
+      "word": "mode",
+      "start": 0.182041,
+      "end": 0.534
+    },
+    {
+      "word": "sets",
+      "start": 0.534,
+      "end": 0.82525
+    },
+    {
+      "word": "how",
+      "start": 0.82525,
+      "end": 1.067958
+    },
+    {
+      "word": "independently",
+      "start": 1.067958,
+      "end": 1.796125
+    },
+    {
+      "word": "the",
+      "start": 1.796125,
+      "end": 1.953875
+    },
+    {
+      "word": "agent",
+      "start": 1.953875,
+      "end": 2.330083
+    },
+    {
+      "word": "works",
+      "start": 2.330083,
+      "end": 3.713583
+    },
+    {
+      "word": "Interactive",
+      "start": 3.713583,
+      "end": 4.696583
+    },
+    {
+      "word": "Plan",
+      "start": 4.696583,
+      "end": 5.388333
+    },
+    {
+      "word": "and",
+      "start": 5.388333,
+      "end": 5.534
+    },
+    {
+      "word": "Autopilot",
+      "start": 5.534,
+      "end": 5.784
+    }
+  ]
+}

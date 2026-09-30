@@ -1,0 +1,67 @@
+{
+  "id": "mer.anders.next",
+  "speaker": "Anders",
+  "text": "Rhea’s by your ship on the east arm. She’ll take you sailing.",
+  "words": [
+    {
+      "word": "Rhea’s",
+      "start": 0.053208,
+      "end": 0.492041
+    },
+    {
+      "word": "by",
+      "start": 0.492041,
+      "end": 0.6915
+    },
+    {
+      "word": "your",
+      "start": 0.6915,
+      "end": 0.957458
+    },
+    {
+      "word": "ship",
+      "start": 0.957458,
+      "end": 1.263291
+    },
+    {
+      "word": "on",
+      "start": 1.263291,
+      "end": 1.396291
+    },
+    {
+      "word": "the",
+      "start": 1.396291,
+      "end": 1.502666
+    },
+    {
+      "word": "east",
+      "start": 1.502666,
+      "end": 1.821791
+    },
+    {
+      "word": "arm",
+      "start": 1.821791,
+      "end": 3.151583
+    },
+    {
+      "word": "She’ll",
+      "start": 3.151583,
+      "end": 3.444166
+    },
+    {
+      "word": "take",
+      "start": 3.444166,
+      "end": 3.696791
+    },
+    {
+      "word": "you",
+      "start": 3.696791,
+      "end": 3.856375
+    },
+    {
+      "word": "sailing",
+      "start": 3.856375,
+      "end": 4.106375
+    }
+  ]
+}
