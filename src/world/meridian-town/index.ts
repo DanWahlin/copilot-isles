@@ -138,6 +138,7 @@ const TAVERN_LANE = {
 } as const;
 
 const SHIPYARD_APRON = { x0: 570, x1: 612, z0: -775, z1: -735, height: MERIDIAN.harbor.quay.height } as const;
+const MOLE_CONNECTOR = { x0: 572, x1: 592, z0: -735, z1: -706, height: MERIDIAN.mole.height } as const;
 const PLAZA = { x0: 638, x1: 698, z0: -819, z1: -780, height: MERIDIAN.pads.plaza.height } as const;
 const TAVERN_PAD = { x0: 607, x1: 637, z0: -813, z1: -779, height: MERIDIAN.pads.tavern.height } as const;
 const CITADEL = { x: MERIDIAN.pads.citadel.x, z: MERIDIAN.pads.citadel.z, r: 39, height: 40 } as const;
@@ -319,6 +320,7 @@ export function createMeridianTown({
     const quay = meridianQuayHeight(x, z);
     if (quay !== null) return quay;
     if (inBox(x, z, SHIPYARD_APRON)) return SHIPYARD_APRON.height;
+    if (inBox(x, z, MOLE_CONNECTOR)) return MOLE_CONNECTOR.height;
     if (inBox(x, z, PLAZA)) return PLAZA.height;
     const tavernStage = tavernStageHeight(x, z);
     if (tavernStage !== null) return tavernStage;
@@ -913,6 +915,36 @@ function addEastArmArrivalDressing(
   if (!low) addDinghy(buckets, colliders, shipObstacles, arm.x0 - 8.2, -724.0, 0.08, 0.55);
 }
 
+function addMoleConnector(buckets: Buckets, colliders: ColliderSet, shipObstacles: CircleObstacle[]): void {
+  const c = MOLE_CONNECTOR;
+  const cx = (c.x0 + c.x1) * 0.5;
+  const cz = (c.z0 + c.z1) * 0.5;
+  const waterBase = -MERIDIAN.harbor.depth - 0.35;
+  addBox(
+    buckets,
+    'stone',
+    cx,
+    waterBase,
+    cz,
+    c.x1 - c.x0 + 1.2,
+    c.height - waterBase + 0.1,
+    c.z1 - c.z0,
+    0,
+    0x8f7859,
+  );
+  addBox(buckets, 'paving', cx, c.height - 0.08, cz, c.x1 - c.x0, 0.16, c.z1 - c.z0, 0, 0xf0d7aa);
+  for (let z = c.z0 + 2.4; z <= c.z1 - 1.2; z += 4.2)
+    addBox(buckets, 'stone', cx, c.height + 0.02, z, c.x1 - c.x0 - 1.0, 0.035, 0.13, 0, 0x8d6d49);
+  for (let x = c.x0 + 2; x <= c.x1 - 2; x += 4.6)
+    addBox(buckets, 'stone', x, c.height + 0.018, cz, 0.11, 0.032, c.z1 - c.z0 - 1.0, 0, 0x9f7d55);
+  for (const x of [c.x0 - 0.38, c.x1 + 0.38]) {
+    addBox(buckets, 'stone', x, c.height + 0.02, cz, 0.48, 0.55, c.z1 - c.z0 + 0.8, 0, LIMESTONE_DARK);
+    addBox(buckets, 'stone', x, c.height + 0.55, cz, 0.62, 0.18, c.z1 - c.z0 + 1.0, 0, LIMESTONE_LIGHT);
+    colliders.boxes.push({ x, z: cz, hx: 0.38, hz: (c.z1 - c.z0) * 0.5 + 0.45, rot: 0, height: 0.75 });
+  }
+  for (let z = c.z0 + 2; z <= c.z1 - 2; z += 6.5) shipObstacles.push({ x: c.x0 - 0.8, z, r: 1.4 });
+}
+
 function createMooringLines(materials: Record<MaterialKey, Material>): Group {
   const group = new Group();
   group.name = 'meridian-mooring-lines';
@@ -955,6 +987,7 @@ function addMoleAndLighthouse(
 ): void {
   void kit;
   const m = MERIDIAN.mole;
+  addMoleConnector(buckets, colliders, shipObstacles);
   const dx = m.end.x - m.start.x;
   const dz = m.end.z - m.start.z;
   const len = Math.hypot(dx, dz);
