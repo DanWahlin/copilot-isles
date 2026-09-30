@@ -49,6 +49,8 @@ interface SaveData {
   z: number;
   heading: number;
   savedAt: number;
+  /** The island's name for the title's Continue card (older saves: Anchorage Cay). */
+  place?: string;
 }
 
 export interface GameFlowOptions {
@@ -171,7 +173,7 @@ export class GameFlow implements GameBridge {
     this.set({
       screen: 'chart',
       returnTo: from === 'playing' ? 'playing' : from === 'paused' ? 'paused' : 'title',
-      chart: buildChart(anchors, this.session?.where() ?? null),
+      chart: buildChart(anchors, this.session?.where() ?? null, this.session?.island),
     });
   }
 
@@ -202,19 +204,23 @@ export class GameFlow implements GameBridge {
     this.set({ screen: to, returnTo: to === 'paused' ? 'playing' : 'title' });
   }
 
+  /** Fast travel to a point on Anchorage's chart, or to another island's quay (`island:<id>`). */
   travelTo(pointId: string): void {
     if (!this.session || !this.cove) return;
-    const p = coveTravelPoints({ ...this.cove.village.anchors, ...this.cove.sites.anchors }).find(
-      (q) => q.id === pointId,
-    );
-    if (!p) return;
     const session = this.session;
+    const to = pointId.startsWith('island:')
+      ? session.islandQuay(pointId.slice('island:'.length))
+      : coveTravelPoints({ ...this.cove.village.anchors, ...this.cove.sites.anchors }).find(
+          (q) => q.id === pointId,
+        );
+    if (!to) return;
+    const p = { x: 'wx' in to ? to.wx : to.x, z: 'wz' in to ? to.wz : to.z, heading: to.heading };
     void (async () => {
       await session.hud.fade(true, 260);
-      await session.travel(p.wx, p.wz, p.heading);
+      await session.travel(p.x, p.z, p.heading);
       this.resume();
       await session.hud.fade(false, 420);
-      session.hud.toast(p.label, 2.4);
+      session.hud.toast(to.label, 2.4);
     })();
   }
 
@@ -261,7 +267,7 @@ export class GameFlow implements GameBridge {
   private saveSummary(): UiState['save'] {
     const save = readJson<SaveData>(SAVE_KEY);
     if (!save) return null;
-    return { location: 'Anchorage Cay', questsDone: this.questsDoneCount() };
+    return { location: save.place ?? 'Anchorage Cay', questsDone: this.questsDoneCount() };
   }
 
   private learnSummary(): UiState['learn'] {
@@ -355,11 +361,12 @@ export class GameFlow implements GameBridge {
       const progress = (start: number, end: number, message: string) => (p: PackProgress) => {
         report(start + (end - start) * p.ratio, message);
       };
-      const [{ createCove }, { loadCharacterLibrary }, { createSession }] = await Promise.all([
-        import('../world/cove-scene'),
-        import('../world/characters'),
-        import('./session'),
-      ]);
+      const [{ createCove }, { loadCharacterLibrary }, { createSession, ISLANDS, islandAt }] =
+        await Promise.all([
+          import('../world/cove-scene'),
+          import('../world/characters'),
+          import('./session'),
+        ]);
       // Let the loading screen fade in over the title before the heavy work starts.
       await new Promise((r) => setTimeout(r, 450));
       this.title?.dispose();
@@ -380,6 +387,11 @@ export class GameFlow implements GameBridge {
       engine.camera.updateProjectionMatrix();
       engine.clock.set(16.2, 0);
       cove.sky.invalidate();
+      // A save on Port Meridian needs its terrain in before you're put ashore there.
+      if (save && islandAt(save.x, save.z) === 'meridian') {
+        report(0.78, 'Sighting Port Meridian');
+        await cove.meridian.loaded;
+      }
       report(0.8, 'Warming the harbor');
       await engine.renderer.compileAsync(cove.village.group, engine.camera);
       report(0.86, 'Waking the villagers');
@@ -398,7 +410,7 @@ export class GameFlow implements GameBridge {
         learn: this.learn,
       });
       if (this.audioReady) {
-        this.o.audio.music.setIsland('anchorage');
+        this.o.audio.music.setIsland(ISLANDS[this.session.island].music);
         this.o.audio.sfx.setBed('palms', AMBIENT_BEDS.palms);
         this.o.audio.sfx.setBed('birds_dawn', AMBIENT_BEDS.birds_dawn);
       }
@@ -444,6 +456,7 @@ export class GameFlow implements GameBridge {
       z: w.z,
       heading: w.heading,
       savedAt: Date.now(),
+      place: w.place,
     } satisfies SaveData);
   }
 

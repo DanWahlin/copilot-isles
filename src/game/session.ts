@@ -13,7 +13,11 @@ import { CollisionWorld, type SurfaceKind, type WalkSurface } from './collision'
 import { Dialogue } from './dialogue';
 import { FootstepPuffs } from './footstep-puffs';
 import { FollowCamera, SAIL_RIG, WALK_RIG, type CameraShot } from './follow-camera';
-import { ARRIVALS, arrivalKeys, type IslandArrival, type IslandId } from './arrivals';
+import { arrivalKeys, type IslandArrival, type IslandId } from './arrivals';
+import { ISLANDS, islandAt, openIslands, passageSky, type IslandBerth } from './islands';
+
+export { ISLANDS, islandAt } from './islands';
+import { meridianQuayHeight } from '../world/islands/meridian';
 import { FlyoverPath } from './flyover';
 import { world as worldUniforms } from '../world/uniforms';
 import { Helm } from './helm';
@@ -34,6 +38,7 @@ import {
   questTracker,
 } from './cove-quests';
 import { bearingOf, type CompassTarget } from './compass';
+import { meridianTracker } from './meridian-quests';
 import { plankProgress, plankSurface, type PlankSpan } from './gangway';
 import { runScript, type ScriptStep } from './script';
 import { defaultShipName } from '../learn/progress';
@@ -78,6 +83,8 @@ export interface GameSession {
   readonly world: CollisionWorld;
   readonly camera: FollowCamera;
   readonly npcs: NpcCrowd;
+  /** The island you're on, or whose berth the ship lies at while you sail. */
+  readonly island: IslandId;
   /** Freezes the player, helm, and HUD prompts while menus are open (the world keeps living). */
   setPaused(on: boolean): void;
   /** The game's on screen (the loading card has gone): a first landfall's flyover takes off. */
@@ -89,8 +96,10 @@ export interface GameSession {
   warmArrival(step: () => Promise<void>): Promise<void>;
   /** Fast travel: docks the ship if you're sailing, then puts you at (x, z). */
   travel(x: number, z: number, heading: number): Promise<void>;
-  /** Player or ship position for the chart. */
-  where(): { x: number; z: number; heading: number; onShip: boolean };
+  /** An open island's quay by the berth (the chart's "Travel here"), or null if it isn't open. */
+  islandQuay(id: string): { x: number; z: number; heading: number; label: string } | null;
+  /** Player or ship position for the chart and saves, and the island's name. */
+  where(): { x: number; z: number; heading: number; onShip: boolean; place: string };
   /** Dev/test hooks. */
   readonly debug: {
     teleport(x: number, z: number, heading?: number): void;
@@ -103,6 +112,8 @@ export interface GameSession {
     bottles(): { id: string; x: number; z: number; read: boolean }[];
     /** A puzzle's test hooks (state, solve, …) by id, e.g. 'P0.1'. */
     puzzle(id: string): Puzzle['debug'] | null;
+    /** Moves the ship while you're sailing (tests: skip the passage between islands). */
+    sailTo(x: number, z: number, heading: number): void;
     /** Sets a quest step, e.g. to lower the gangway without playing the island (tests). */
     quest(id: string, step: string): void;
     /** Whether the gangway's down, and its world-space foot and top (tests). */
@@ -134,7 +145,7 @@ const WALK_HELP =
   'hold <kbd>RMB</kbd> look · wheel zoom · <kbd>E</kbd> interact';
 const SAIL_HELP =
   '<kbd>W</kbd>/<kbd>S</kbd> raise / lower sails · <kbd>A</kbd>/<kbd>D</kbd> helm<br>' +
-  'hold <kbd>RMB</kbd> look · wheel zoom · <kbd>E</kbd> dock at the pier';
+  'hold <kbd>RMB</kbd> look · wheel zoom · <kbd>E</kbd> dock when you’re near a berth';
 
 /** The christening's shot of the port bow name board, in ship-local space (+x is the pier side). */
 const CHRISTEN_EYE = new Vector3(-7.2, 4.4, 4.6);
@@ -175,25 +186,36 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const villageSurface: WalkSurface = { heightAt: village.walkable, kind: pierKind };
   const sites = cove.sites;
   const sitesSurface: WalkSurface = { heightAt: sites.heightAt, kind: 'stone' };
-  // The gangplank: its foot rests on the pier where the calm-moored ship's plank would land, and its
+  // Which island you start on (a save can be on any), and so where the ship lies.
+  const start = o.start ?? COVE.spawn;
+  let island: IslandId = islandAt(start.x, start.z);
+  let berth: IslandBerth = ISLANDS[island];
+  // The gangplank: its foot rests on the quay where the calm-moored ship's plank would land, and its
   // top rides the rail each frame. Walkable only while it's down.
-  const mooring = COVE.mooring;
   const footLocal = ship.anchors.gangway;
   const plank: PlankSpan = {
     top: { x: 0, y: 0, z: 0 },
-    foot: {
-      x: mooring.x + Math.cos(mooring.heading) * footLocal.x + Math.sin(mooring.heading) * footLocal.z,
-      y: footLocal.y,
-      z: mooring.z - Math.sin(mooring.heading) * footLocal.x + Math.cos(mooring.heading) * footLocal.z,
-    },
+    foot: { x: 0, y: footLocal.y, z: 0 },
     halfWidth: 0.3,
     tread: 0.06,
   };
+  /** Ship-local (x, z) at a berth, in world space. Port (+x) faces the quay. */
+  const atBerth = (m: IslandBerth['mooring'], lx: number, lz: number) => ({
+    x: m.x + Math.cos(m.heading) * lx + Math.sin(m.heading) * lz,
+    z: m.z - Math.sin(m.heading) * lx + Math.cos(m.heading) * lz,
+  });
+  const placePlank = () => {
+    const f = atBerth(berth.mooring, footLocal.x, footLocal.z);
+    plank.foot.x = f.x;
+    plank.foot.z = f.z;
+  };
+  placePlank();
+  const meridianQuay: WalkSurface = { heightAt: meridianQuayHeight, kind: 'stone' };
   let gangwayDown = false;
   const world = new CollisionWorld({
     ground,
     waves: ocean.field,
-    surfaces: [villageSurface, sitesSurface, plankSurface(plank, () => gangwayDown)],
+    surfaces: [villageSurface, sitesSurface, meridianQuay, plankSurface(plank, () => gangwayDown)],
     circles: [...village.colliders.circles, ...sites.colliders.circles],
     boxes: [...village.colliders.boxes, ...sites.colliders.boxes],
   });
@@ -212,7 +234,6 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     hero.group.position.set(player.x, player.y, player.z);
     hero.group.rotation.y = player.heading;
   };
-  const start = o.start ?? COVE.spawn;
   placePlayer(start.x, start.z, start.heading);
   engine.scene.add(hero.group);
   // Wingman leaves the shoulder to introduce himself, so it's clear who's talking.
@@ -257,13 +278,38 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   cam.snapBehind(player.heading);
   const helm = new Helm();
   const dyn = ship.dynamics;
-  dyn.dockAssist(COVE.mooring);
+  if (island !== 'anchorage') dyn.reset(berth.mooring.x, berth.mooring.z, berth.mooring.heading);
+  dyn.dockAssist(berth.mooring);
 
   let mode: SessionMode = 'walk';
   let dockTime = 0;
   const interactions = new Interactions();
-  // The plank's foot sits on the pier deck, its axis half the plank's thickness up.
-  plank.foot.y = world.groundAt(plank.foot.x, plank.foot.z) + 0.035;
+  // The plank's foot sits on the quay deck, its axis half the plank's thickness up.
+  const seatPlank = () => (plank.foot.y = world.groundAt(plank.foot.x, plank.foot.z) + 0.035);
+  seatPlank();
+  /** Moves the session to an island's berth: the plank, its task list, and its time of day. */
+  const setIsland = (id: IslandId) => {
+    island = id;
+    berth = ISLANDS[id];
+    placePlank();
+    seatPlank();
+    publishQuests();
+    applySky(berth.sky);
+  };
+  const applySky = (sky: { hours: number; azimuth: number }) => {
+    if (
+      Math.abs(engine.clock.hours - sky.hours) < 0.002 &&
+      Math.abs(engine.clock.azimuth - sky.azimuth) < 0.05
+    )
+      return;
+    engine.clock.set(sky.hours, sky.azimuth);
+    o.cove.sky.invalidate();
+  };
+  // A save away from Anchorage wakes to that island's sky (Anchorage keeps the page's own time).
+  if (island !== 'anchorage') applySky(berth.sky);
+  const sailSky = { hours: 0, azimuth: 0 };
+  /** Anchorage's gangway stays up until the christening; elsewhere you can always board. */
+  const canBoard = () => (island === 'anchorage' ? boardingOpen(quests()) : true);
   const plankTop = new Vector3();
   const tmp = new Vector3();
 
@@ -276,7 +322,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     else localQuests[id] = step;
     publishQuests();
   };
-  const publishQuests = () => learn?.setQuests(questLog(quests()), questTracker(quests()));
+  const publishQuests = () => learn?.setQuests(questLog(quests()), trackerHere());
+  /** The task list for the island you're on (Anchorage's points on to Meridian once it's open). */
+  const trackerHere = () => {
+    if (island === 'meridian') return meridianTracker(quests());
+    const t = questTracker(quests());
+    return openIslands().some((b) => b.id === 'meridian')
+      ? { ...t, next: 'Port Meridian’s next. Board your ship and follow the compass north-east.' }
+      : t;
+  };
   if (!quests()['Q0.2']) setQuest('Q0.2', 'start');
   migrateQuests(quests(), setQuest);
   publishQuests();
@@ -365,7 +419,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     });
   }
 
-  const shipDocked = () => Math.hypot(dyn.pose.x - COVE.mooring.x, dyn.pose.z - COVE.mooring.z) < 1.5;
+  const shipDocked = () => Math.hypot(dyn.pose.x - berth.mooring.x, dyn.pose.z - berth.mooring.z) < 1.5;
   interactions.add({
     id: 'ship:board',
     label: () => 'Board your ship',
@@ -375,7 +429,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     radius: 2.4,
     enabled: () => mode === 'walk' && shipDocked(),
     onInteract: () => {
-      if (boardingOpen(quests())) return void board();
+      if (canBoard()) return void board();
       // Everything before the christening happens ashore, so say what's next instead.
       const next = currentQuest(quests());
       hud.toast(
@@ -542,7 +596,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     createSluice(puzzleHost, sites.mill),
     createCrane(puzzleHost, sites.crane),
     gearRack,
-    createFirstWords(puzzleHost, ship, () => shipDocked()),
+    createFirstWords(puzzleHost, ship, () => island === 'anchorage' && shipDocked()),
     ...(christening ? [christening] : []),
   ];
   const hintPresses = new Map<string, { key: string; n: number }>();
@@ -695,44 +749,81 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     audio?.music.setIsland('harbour');
   }
 
+  /** The open island whose berth is within docking range of the ship, if any. */
+  function berthInRange(): IslandBerth | null {
+    let best: IslandBerth | null = null;
+    let bestD = DOCK_RANGE;
+    for (const b of openIslands()) {
+      const d = Math.hypot(dyn.pose.x - b.mooring.x, dyn.pose.z - b.mooring.z);
+      if (d <= bestD) {
+        best = b;
+        bestD = d;
+      }
+    }
+    return best;
+  }
+  /** Where the compass sends you while sailing: the next island once this one's done, else home. */
+  function sailTarget(): IslandBerth {
+    if (meridianReachable() && !currentQuest(quests())) return ISLANDS.meridian;
+    return island === 'meridian' && meridianReachable() ? ISLANDS.meridian : ISLANDS.anchorage;
+  }
+  const meridianReachable = () => openIslands().some((b) => b.id === 'meridian');
+
   function dock(): void {
     if (mode !== 'sail') return;
-    const d = Math.hypot(dyn.pose.x - COVE.mooring.x, dyn.pose.z - COVE.mooring.z);
-    if (d > DOCK_RANGE) {
-      hud.toast('Sail back to the pier to go ashore.', 3);
+    const to = berthInRange();
+    if (!to) {
+      hud.toast(`Sail to ${sailTarget().berthLabel} to go ashore.`, 3);
       return;
     }
     mode = 'docking';
     dockTime = 0;
     helm.reset();
-    dyn.dockAssist(COVE.mooring);
+    dockTo = to;
+    dyn.dockAssist(to.mooring);
     hud.toast('Bringing her alongside…', 3);
   }
+  let dockTo: IslandBerth = berth;
 
-  /** Moors the ship bow-out at the berth (only while the screen is black) and puts the hero on the pier. */
-  async function disembark(): Promise<void> {
+  /**
+   * Moors the ship bow-out at the berth (only while the screen is black) and puts the hero on the
+   * quay beside the gangway. A first landfall there plays the island's arrival flyover.
+   */
+  async function disembark(to: IslandBerth = dockTo): Promise<void> {
     mode = 'transition';
     input.enabled = false;
     await hud.fade(true);
-    const m = COVE.mooring;
-    dyn.reset(m.x, m.z, m.heading);
-    dyn.dockAssist(m);
+    if (to.id !== island) setIsland(to.id);
+    moorShip();
     engine.scene.add(hero.group);
     hero.group.rotation.set(0, 0, 0);
     hero.setGrip(null);
     hero.play('idle');
-    const b = ship.anchors.boarding;
-    const boardZ = m.z - Math.sin(m.heading) * b.x + Math.cos(m.heading) * b.z;
-    placePlayer(pier.x + 0.9, boardZ, 0);
+    stepAshore();
     cam.setRig(WALK_RIG, true);
-    cam.snapBehind(0);
     hud.setSailing(false);
     hud.setHelp(WALK_HELP);
     mode = 'walk';
-    input.enabled = true;
+    const landfall = firstLandfall();
+    input.enabled = !landfall;
+    if (landfall) startArrival(berth.arrival, false);
+    audio?.music.setIsland(berth.music);
     await hud.fade(false);
-    audio?.music.setIsland('anchorage');
   }
+  const moorShip = () => {
+    const m = berth.mooring;
+    dyn.reset(m.x, m.z, m.heading);
+    dyn.dockAssist(m);
+  };
+  /** On the quay beside the gangway (level with the boarding point), facing the town. */
+  const stepAshore = () => {
+    const b = ship.anchors.boarding;
+    const at = atBerth(berth.mooring, footLocal.x + 0.7, b.z);
+    placePlayer(at.x, at.z, berth.landingHeading);
+    cam.snapBehind(berth.landingHeading);
+  };
+  /** The first time ashore on this island. */
+  const firstLandfall = () => !!learn && !learn.progress.has('arrivals', berth.id);
 
   /**
    * The compass, top centre: where the camera looks, and a gold marker on the current task ashore (the
@@ -749,7 +840,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     camera.getWorldDirection(compassDir);
     let target: CompassTarget | null = null;
     if (ashore) {
-      const goal = questTarget(quests());
+      const goal = island === 'anchorage' ? questTarget(quests()) : null;
       const it = goal ? interactions.nearest(goal.ids, player.x, player.z) : null;
       if (goal && it) {
         const dx = it.x - player.x;
@@ -757,11 +848,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         target = { bearing: bearingOf(dx, dz), label: goal.label, distance: Math.hypot(dx, dz) };
       }
     } else {
-      // Home to the pier once you're out past docking range (inside it, the dock prompt takes over).
-      const dx = mooring.x - dyn.pose.x;
-      const dz = mooring.z - dyn.pose.z;
+      // To the berth you're bound for once out past docking range (inside it, the dock prompt takes over).
+      const goal = sailTarget();
+      const dx = goal.mooring.x - dyn.pose.x;
+      const dz = goal.mooring.z - dyn.pose.z;
       const distance = Math.hypot(dx, dz);
-      if (distance > DOCK_RANGE) target = { bearing: bearingOf(dx, dz), label: 'Anchorage pier', distance };
+      if (distance > DOCK_RANGE) target = { bearing: bearingOf(dx, dz), label: goal.berthLabel, distance };
     }
     hud.setCompass(bearingOf(compassDir.x, compassDir.z), target);
   }
@@ -806,15 +898,17 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // A fresh voyage (Nell not met yet) gets Wingman's welcome and the first step; later sessions a
   // short welcome back.
   const welcomeLines = (): string[] =>
-    quests()['Q0.2'] === 'start'
-      ? [
-          'wingman.welcome.01',
-          'wingman.welcome.02',
-          'wingman.welcome.03',
-          'wingman.welcome.04',
-          'wingman.welcome.05',
-        ]
-      : ['wingman.welcome.back'];
+    island !== 'anchorage'
+      ? []
+      : quests()['Q0.2'] === 'start'
+        ? [
+            'wingman.welcome.01',
+            'wingman.welcome.02',
+            'wingman.welcome.03',
+            'wingman.welcome.04',
+            'wingman.welcome.05',
+          ]
+        : ['wingman.welcome.back'];
   /**
    * Wingman flies up in front of the captain to talk, and heads back to the shoulder on his last
    * line. The first time, the captain holds still and the camera frames him over their shoulder;
@@ -822,6 +916,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
    */
   async function welcome(): Promise<void> {
     const lines = welcomeLines();
+    if (!lines.length) return;
     const framed = !!wingman && mode === 'walk' && lines.length > 1;
     if (wingman) {
       hero.group.getWorldPosition(flightView.captain);
@@ -939,7 +1034,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     }
     if (how === 'skipped' && a.path) void hud.fade(false, 460);
     cam.frame(null);
-    void welcome();
+    if (welcomeLines().length) void welcome();
   }
   function updateArrival(
     dt: number,
@@ -975,8 +1070,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     cam.frame(flyShot);
     if (landed) void endArrival('landed');
   }
-  const arrivalPlan = ARRIVALS.anchorage;
-  if (!o.quiet && !learn?.progress.has('arrivals', arrivalPlan.id)) startArrival(arrivalPlan, true);
+  // A fresh voyage flies in; a Continue (quiet) is already ashore, so this island counts as seen.
+  if (o.quiet) learn?.progress.add('arrivals', berth.id);
+  else if (firstLandfall()) startArrival(berth.arrival, true);
 
   const listenerPos = { x: 0, y: 0, z: 0 };
   const listenerFwd = { x: 0, y: 0, z: -1 };
@@ -1030,7 +1126,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         if (introCut && s.stirring) introCut();
         if (s.hint && mode === 'walk' && !dialogue.active && !scriptRunning) hint();
 
-        gangwayDown = mode === 'walk' && shipDocked() && boardingOpen(quests());
+        gangwayDown = mode === 'walk' && shipDocked() && canBoard();
         ship.setGangway(gangwayDown ? plank.foot : null);
         if (gangwayDown) {
           ship.gangwayTopWorld(plankTop);
@@ -1086,8 +1182,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           if (mode === 'sail') helm.update(dt, s.moveX, s.moveY, dyn);
           else if (dyn.dockComplete || (dockTime += dt) > DOCK_ASSIST_MAX) void disembark();
           const pose = dyn.pose;
-          const near = Math.hypot(pose.x - COVE.mooring.x, pose.z - COVE.mooring.z) < DOCK_RANGE;
-          hud.setPrompt(mode === 'sail' && near ? 'Dock at the pier' : null);
+          const near = mode === 'sail' ? berthInRange() : null;
+          hud.setPrompt(near ? near.dockLabel : null);
           windAt(pose.x, pose.z, t, windHere);
           const bow = windOnBow(pose.heading, windHere[0], windHere[1]);
           hud.updateSail(helm.trim, helm.rudder, Math.abs(dyn.forwardSpeed), bow);
@@ -1103,6 +1199,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           }
           tmp.set(pose.x, ship.group.position.y, pose.z);
           cam.update(dt, camera, s, tmp, pose.heading, Math.abs(dyn.forwardSpeed) > 0.5, world, t);
+          // The light shifts with the passage (the sky only refreshes once the sun has really moved).
+          if (meridianReachable()) {
+            passageSky(pose.x, pose.z, sailSky);
+            if (
+              Math.abs(engine.clock.hours - sailSky.hours) > 0.01 ||
+              Math.abs(engine.clock.azimuth - sailSky.azimuth) > 0.3
+            )
+              engine.clock.set(sailSky.hours, sailSky.azimuth);
+          }
           if (Math.abs(dyn.forwardSpeed) > 0.8 && (slapIn -= dt) <= 0) {
             slapIn = 1.4 + Math.random() * 2.2;
             audio?.sfx.oneShot('hull_slap', tmp, Math.min(1, 0.35 + Math.abs(dyn.forwardSpeed) / 9));
@@ -1136,19 +1241,30 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     true,
   );
 
+  /** Fast travel: to another island, your ship comes too (moored at its berth). */
   async function travel(x: number, z: number, heading: number): Promise<void> {
     if (mode === 'transition') return;
     if (arrival && arrival.phase !== 'done') await endArrival('cut');
     dialogue.cancel();
     wingman?.landNow();
-    if (mode === 'sail' || mode === 'docking') await disembark();
+    const to = ISLANDS[islandAt(x, z)];
+    if (mode === 'sail' || mode === 'docking') await disembark(to);
+    if (to.id !== island) {
+      setIsland(to.id);
+      moorShip();
+      audio?.music.setIsland(berth.music);
+    }
     placePlayer(x, z, heading);
     cam.snapBehind(heading);
+    if (mode === 'walk' && firstLandfall()) startArrival(berth.arrival, false);
   }
 
   return {
     get mode() {
       return mode;
+    },
+    get island() {
+      return island;
     },
     setPaused(on) {
       paused = on;
@@ -1180,10 +1296,14 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       await step();
     },
     travel,
+    islandQuay(id) {
+      const b = openIslands().find((i) => i.id === id);
+      return b ? { ...b.quay, label: b.name } : null;
+    },
     where: () =>
       mode === 'walk' || mode === 'transition'
-        ? { x: player.x, z: player.z, heading: player.heading, onShip: false }
-        : { x: dyn.pose.x, z: dyn.pose.z, heading: dyn.pose.heading, onShip: true },
+        ? { x: player.x, z: player.z, heading: player.heading, onShip: false, place: berth.name }
+        : { x: dyn.pose.x, z: dyn.pose.z, heading: dyn.pose.heading, onShip: true, place: berth.name },
     player,
     hud,
     world,
@@ -1213,6 +1333,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         })),
       puzzle: (id: string) => puzzles.find((p) => p.id === id)?.debug ?? null,
       quest: (id: string, step: string) => setQuest(id, step),
+      sailTo(x, z, heading) {
+        if (mode === 'sail') dyn.reset(x, z, heading);
+      },
       gangway: () => ({ down: gangwayDown, foot: { ...plank.foot }, top: { ...plank.top } }),
       hint,
       welcome,
@@ -1238,9 +1361,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
               ),
             }
           : null,
-      flyover(island: IslandId = 'anchorage') {
+      flyover(id: IslandId = island) {
         if (mode !== 'walk') return;
-        startArrival(ARRIVALS[island], false);
+        startArrival(ISLANDS[id].arrival, false);
       },
       holdArrival(time: number | null) {
         arrivalHold = time;

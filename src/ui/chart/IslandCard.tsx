@@ -8,12 +8,15 @@ export function IslandCard({
   islands,
   seals = [],
   onOpen,
+  onTravel = null,
 }: {
   island: ChartIsland;
   islands: readonly ChartIsland[];
   /** Seals the captain has earned. */
   seals?: readonly string[];
   onOpen: () => void;
+  /** Fast travel to a charted island you're not on (null from the title, with no voyage yet). */
+  onTravel?: (() => void) | null;
 }) {
   const { num, title } = chapterParts(island.chapter);
   const index = islands.findIndex((i) => i.id === island.id);
@@ -50,9 +53,11 @@ export function IslandCard({
               ? `Finish Chapter ${prev} to set a course here.`
               : 'Not charted yet.'}
         </p>
-      ) : (
+      ) : island.status === 'visited' && onTravel ? (
+        <button onClick={onTravel}>Travel to {island.name}</button>
+      ) : island.id === 'anchorage' ? (
         <button onClick={onOpen}>Open island chart</button>
-      )}
+      ) : null}
     </aside>
   );
 }

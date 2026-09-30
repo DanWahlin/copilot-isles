@@ -258,6 +258,64 @@ await step('continue after reload', async () => {
   await shot('continued');
 });
 
+await step('travel to Port Meridian', async () => {
+  // The chart's archipelago: Port Meridian is open (dev), so its card offers travel there. The
+  // first landfall shows the island's card (reduced motion is still on), then play resumes.
+  await page.keyboard.press('KeyM');
+  await screenIs('chart', 5000);
+  await page
+    .getByRole('button', { name: /Port Meridian/ })
+    .first()
+    .click();
+  const go = page.getByRole('button', { name: 'Travel to Port Meridian' });
+  check('the chart offers travel to Port Meridian', (await go.count()) === 1);
+  await go.click();
+  await screenIs('playing', 10_000);
+  await page.waitForFunction(() => window.__flow.session.island === 'meridian', null, { timeout: 10_000 });
+  await page.waitForTimeout(900);
+  const card = await page.evaluate(() => document.querySelector('.hud-card.show')?.textContent ?? '');
+  await shot('meridian-card');
+  check('Port Meridian’s arrival card shows', card.includes('Port Meridian'), card.slice(0, 60));
+  await page.waitForFunction(() => window.__flow.session.debug.arrival()?.phase === 'done', null, {
+    timeout: 10_000,
+  });
+  const s = await page.evaluate(() => ({
+    st: window.__flow.session.debug.state(),
+    tracker: document.querySelector('.ci-tracker-eyebrow')?.textContent ?? null,
+    seen: JSON.parse(localStorage.getItem('copilot-isles.progress.v1') ?? '{}').arrivals ?? [],
+  }));
+  check(
+    'ashore on Meridian’s quay with its task list',
+    s.st.mode === 'walk' && s.st.y > 2 && s.st.y < 3.5 && !!s.tracker?.startsWith('Port Meridian'),
+    `${s.st.x}, ${s.st.y}, ${s.st.z} · ${s.tracker}`,
+  );
+  check('Meridian’s arrival is saved as seen', s.seen.includes('meridian'), s.seen.join(','));
+  await shot('meridian-ashore');
+});
+
+await step('continue on Port Meridian', async () => {
+  await page.keyboard.press('Escape');
+  await screenIs('paused', 5000);
+  await button('Quit to title').click();
+  await screenIs('title', 15_000);
+  const where = await page.evaluate(() => window.__flow.getState().save?.location ?? null);
+  check('the title’s Continue card says Port Meridian', where === 'Port Meridian', where);
+  await button('Continue').click();
+  await screenIs('playing', 90_000);
+  await page.waitForTimeout(1500);
+  const s = await page.evaluate(() => ({
+    island: window.__flow.session.island,
+    st: window.__flow.session.debug.state(),
+    arrival: window.__flow.session.debug.arrival()?.phase ?? null,
+  }));
+  check(
+    'Continue wakes on Port Meridian, standing on the quay, with no second flyover',
+    s.island === 'meridian' && s.st.y > 2 && s.st.y < 3.5 && s.arrival === null,
+    `${s.island} · ${s.st.x}, ${s.st.y}, ${s.st.z} · ${s.arrival}`,
+  );
+  await shot('meridian-continued');
+});
+
 await browser.close();
 const failed = results.filter((r) => r.ok === false).length;
 console.log(

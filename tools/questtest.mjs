@@ -485,6 +485,60 @@ await page.waitForTimeout(400);
 await shot('logbook-quests');
 
 const final = await learnState();
+// Port Meridian (Chapter 01): with Anchorage's gangway down, board, sail over (the passage is
+// skipped), dock at the east arm, and step ashore. The first landfall there flies in; E skips it.
+{
+  await page.evaluate(() => window.__dev.learn.closeLogbook());
+  await page.waitForTimeout(500);
+  if ((await page.evaluate(() => window.__dev.state().mode)) !== 'sail') {
+    await page.evaluate(() => window.__dev.session().debug.board());
+    await page.waitForTimeout(1500);
+  }
+  await page.evaluate(() => window.__dev.session().debug.sailTo(744, -672, Math.PI));
+  await page.waitForTimeout(1600);
+  const afloat = await page.evaluate(() => ({
+    prompt: document.querySelector('.hud-prompt.show')?.textContent ?? null,
+  }));
+  await shot('meridian-approach');
+  if (!afloat.prompt?.includes('Port Meridian'))
+    logs.push(`[questtest] no dock prompt off Port Meridian (${afloat.prompt})`);
+  await tap('KeyE');
+  await page.waitForFunction(
+    () => window.__dev.session().island === 'meridian' && window.__dev.state().mode === 'walk',
+    null,
+    {
+      timeout: 20000,
+    },
+  );
+  await page.waitForTimeout(3500);
+  const landed = await page.evaluate(() => ({
+    st: window.__dev.state(),
+    arrival: window.__dev.session().debug.arrival(),
+    gang: window.__dev.session().debug.gangway().down,
+    tracker: window.__dev.learn.getState().tracker?.island ?? null,
+  }));
+  await shot('meridian-flyover');
+  if (landed.arrival?.phase !== 'flying' || landed.arrival?.island !== 'meridian')
+    logs.push(`[questtest] Meridian's first landfall didn't fly in (${JSON.stringify(landed.arrival)})`);
+  await tap('KeyE');
+  await page.waitForTimeout(2600);
+  const ashore = await page.evaluate(() => ({
+    st: window.__dev.state(),
+    gang: window.__dev.session().debug.gangway().down,
+  }));
+  await shot('meridian-ashore');
+  if (
+    Math.abs(ashore.st.y - 2.4) > 0.3 ||
+    !ashore.st.ship.docked ||
+    !ashore.gang ||
+    landed.tracker !== 'Port Meridian'
+  )
+    logs.push(
+      `[questtest] not ashore at Meridian's berth (${JSON.stringify({ ...ashore, tracker: landed.tracker })})`,
+    );
+  results.meridian = { ...ashore.st };
+}
+
 await browser.close();
 console.log(
   JSON.stringify({ url, final, results: Object.keys(results), shots, logs: logs.slice(0, 20) }, null, 1),
