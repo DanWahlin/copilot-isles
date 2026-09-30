@@ -1,5 +1,5 @@
-/** Where you are, musically: the title screen and open sea, or ashore on Anchorage Cay. */
-export type IslandMusic = 'harbour' | 'anchorage';
+/** Where you are, musically: the title screen and open sea, or ashore on an island. */
+export type IslandMusic = 'harbour' | 'anchorage' | 'meridian';
 
 export interface MusicTrack {
   /** Base name in public/audio (the player picks `.ogg` or `.m4a`). */
@@ -14,12 +14,16 @@ export const MUSIC_TRACKS: Readonly<Record<IslandMusic, MusicTrack>> = {
   harbour: { file: 'music_bamboo_tide', lufs: -15.5 },
   // "Medieval: The Bard's Tale" by RandomMind (OpenGameArt, CC0).
   anchorage: { file: 'music_bards_tale', lufs: -17.6 },
+  // "Sunset Plains" by Yoiyami (OpenGameArt, CC0).
+  meridian: { file: 'music_sunset_plains', lufs: -16.1 },
 };
 
 /** Tracks Dan's keeping for islands still to come: not played yet, so not on the Credits screen. */
 export const SPARE_TRACKS = {
   // "Reggae" by Pro Sensory (OpenGameArt, CC0): Anchorage's first track.
   reggae: { file: 'music_reggae', lufs: -12.5 },
+  // "Salty Sway", made for the game by Dan with Suno: the next island after Port Meridian.
+  saltySway: { file: 'music_salty_sway', lufs: -15.3 },
 } as const satisfies Record<string, MusicTrack>;
 
 /**

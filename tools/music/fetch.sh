@@ -17,6 +17,8 @@ TRACKS=(
   "music_bards_tale|https://opengameart.org/sites/default/files/The_Bards_Tale.mp3|6e93e8e8215bea17a209c321c182111058e024c53e3ad775ce1481ca1d1fcfc2|2.0|153.0"
   "music_reggae|https://opengameart.org/sites/default/files/regea_0.mp3|e276b0afddff4eb483d4ae13e9b7f95a04cc46d03180ebf1c3d58084f415adfd|0.4|236.0"
   "music_bamboo_tide|suno:a6655ab9-f55b-4083-baca-8b20354c928f|9a848dd048caf6830321b4b61e011d28134cc5cdc8fd11bed52bbe7c7f55d51c|0.0|151.4"
+  "music_sunset_plains|https://opengameart.org/sites/default/files/sunset_plains.wav|f3750f8eda8bf42662b12f5726404675689b50f05ccaa968c5cb2e33d9172a62|0.8|329.4"
+  "music_salty_sway|suno:4411cff4-7e13-45d8-a90b-07e15ad9fd2e|bbb8a91c615de57cc5e0f9b051cc86bdb61c9edb669c5b6a16be207db761cf67|0.2|157.0"
 )
 
 ONLY="${1:-}"
