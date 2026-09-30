@@ -536,6 +536,53 @@ const final = await learnState();
     logs.push(
       `[questtest] not ashore at Meridian's berth (${JSON.stringify({ ...ashore, tracker: landed.tracker })})`,
     );
+
+  const route = [
+    ['landing', 755.2, -704, Math.PI],
+    ['arm-north', 763, -742, Math.PI],
+    ['promenade-east', 734, -762, -Math.PI / 2],
+    ['stair-foot', 668, -772, Math.PI],
+    ['stair-1', 668, -774, Math.PI],
+    ['stair-2', 668, -776, Math.PI],
+    ['stair-3', 668, -778, Math.PI],
+    ['stair-4', 668, -780, Math.PI],
+    ['stair-5', 668, -782, Math.PI],
+    ['stair-6', 668, -784, Math.PI],
+    ['stair-7', 668, -786, Math.PI],
+    ['stair-8', 668, -788, Math.PI],
+    ['stair-9', 668, -790, Math.PI],
+    ['stair-10', 668, -792, Math.PI],
+    ['plaza-shoulder', 664, -793, Math.PI],
+    ['plaza-edge', 660, -794, Math.PI],
+    ['plaza', 660, -796, Math.PI],
+  ];
+  const heights = [];
+  for (const [name, x, z, heading] of route) {
+    await page.evaluate(({ x, z, heading }) => window.__dev.session().debug.teleport(x, z, heading), {
+      x,
+      z,
+      heading,
+    });
+    await page.waitForTimeout(120);
+    const y = await page.evaluate(() => window.__dev.state().y);
+    heights.push({ name, y });
+  }
+  for (let i = 1; i < heights.length; i += 1) {
+    const rise = heights[i].y - heights[i - 1].y;
+    if (rise < -0.15 || rise > 0.66)
+      logs.push(
+        `[questtest] Meridian stair route has a bad step ${heights[i - 1].name}->${heights[i].name}: ${rise.toFixed(2)}m`,
+      );
+  }
+  const plazaY = heights[heights.length - 1].y;
+  if (Math.abs(plazaY - 7) > 0.35)
+    logs.push(`[questtest] Meridian plaza height is ${plazaY.toFixed(2)}, not ~7m`);
+  await page.evaluate(() =>
+    window.__dev.session().camera.frame({ x: 668, y: 18, z: -771, tx: 668, ty: 10, tz: -804 }),
+  );
+  await page.waitForTimeout(800);
+  await shot('meridian-plaza');
+  await page.evaluate(() => window.__dev.session().camera.frame(null));
   results.meridian = { ...ashore.st };
 }
 
