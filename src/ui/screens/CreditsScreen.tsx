@@ -38,8 +38,8 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
         <p>{assetCredits.join(' · ')}</p>
         <h3>Music and voice</h3>
         <p>
-          “Medieval: The Bard’s Tale” by RandomMind and “Reggae” by Pro Sensory, both CC0 on OpenGameArt.
-          Synthetic voices generated offline with Azure AI Speech.
+          “Bamboo Tide”, made for Copilot Isles with Suno. “Medieval: The Bard’s Tale” by RandomMind, CC0 on
+          OpenGameArt. Synthetic voices generated offline with Azure AI Speech.
         </p>
       </div>
     </OverlayShell>

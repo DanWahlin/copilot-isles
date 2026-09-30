@@ -2,6 +2,6 @@
 
 Every AI-generated asset (textures, portraits, illustrations, loader art), with the model, prompt, and date.
 
-| File         | Model | Prompt (summary) | Date | Notes |
-| ------------ | ----- | ---------------- | ---- | ----- |
-| _(none yet)_ |       |                  |      |       |
+| File                                                                       | Model                                                   | Prompt (summary)                                                                                                                                                   | Date       | Notes                                                                                                                                                                                 |
+| -------------------------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `public/audio/music_bamboo_tide.ogg`, `public/audio/music_bamboo_tide.m4a` | Suno (made by Dan Wahlin, Suno account chilledsamba358) | Instrumental "Bamboo Tide" (track id `a6655ab9-f55b-4083-baca-8b20354c928f`); source MP3 sha256 `9a848dd048caf6830321b4b61e011d28134cc5cdc8fd11bed52bbe7c7f55d51c` | 2026-09-30 | Title screen and open-sea music. Built by `tools/music/fetch.sh music_bamboo_tide` from the exported MP3 (cover art dropped, trimmed to 151.4 s, 20 ms fade-in, 0.8 s loop fade-out). |

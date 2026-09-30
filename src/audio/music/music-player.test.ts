@@ -90,7 +90,7 @@ describe('MusicPlayer', () => {
     expect(elements).toHaveLength(0);
     bind();
     expect(elements).toHaveLength(1);
-    expect(elements[0]!.src).toBe('/audio/music_bards_tale.ogg');
+    expect(elements[0]!.src).toBe('/audio/music_bamboo_tide.ogg');
     expect(elements[0]!.loop).toBe(true);
     expect(elements[0]!.paused).toBe(false);
     expect(ctx.gains[0]!.gain.target).toBeCloseTo(trackGain(MUSIC_TRACKS.harbour));
@@ -103,7 +103,7 @@ describe('MusicPlayer', () => {
     player.setIsland('anchorage');
     const [sea, island] = elements;
     const [seaGain, islandGain] = ctx.gains;
-    expect(island!.src).toBe('/audio/music_reggae.ogg');
+    expect(island!.src).toBe('/audio/music_bards_tale.ogg');
     expect(islandGain!.gain.target).toBeCloseTo(trackGain(MUSIC_TRACKS.anchorage));
     expect(seaGain!.gain.target).toBe(0);
     player.update();

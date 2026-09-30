@@ -65,8 +65,8 @@ for (const name of [
 const trackRoot = mustElement('tracks');
 const trackButtons = new Map<IslandMusic, HTMLButtonElement>();
 for (const [island, label] of [
-  ['harbour', "Title & sea: The Bard's Tale"],
-  ['anchorage', 'Island: Reggae'],
+  ['harbour', 'Title & sea: Bamboo Tide'],
+  ['anchorage', "Anchorage: The Bard's Tale"],
 ] as const satisfies readonly (readonly [IslandMusic, string])[]) {
   const trackButton = button(label, () => showTrack(island));
   trackButtons.set(island, trackButton);
