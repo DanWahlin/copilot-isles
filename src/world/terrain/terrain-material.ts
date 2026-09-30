@@ -311,6 +311,10 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   closeGrass = mix(closeGrass, color(0x183f23), deepPatch.mul(0.34));
   closeGrass = mix(closeGrass, color(0x68c45d), cloverPatch.mul(0.3));
   closeGrass = closeGrass.mul(float(0.82).add(meadowMacro.mul(0.34)).add(grassBladeC.mul(0.08)));
+  const closeDryGrass = mix(color(0x6d6b32), color(0xc3a862), grassCloseLum).mul(
+    float(0.9).add(meadowMacro.mul(0.22)),
+  );
+  closeGrass = mix(closeGrass, closeDryGrass, meridianDryMask);
   const closeEarth = mix(color(0x6d5937), color(0xc6ad79), pathCloseLum);
   const closeDrySand = mix(color(0xdcb06e), color(0xf4d79d), sandDetail);
   const closeWetSand = mix(color(0xa97845), color(0xd0a973), sandGrain.mul(0.46).add(rippleNoise.mul(0.34)));
@@ -436,7 +440,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(smoothstep(34, 46, y)))
     .mul(smoothstep(0.46, 0.94, normalWorld.y))
     .mul(saturate(grassMask.add(rockMask.mul(0.38)).add(sandMask.mul(0.18))));
-  const hilltopGreen = mix(color(0x4c6500), color(0x6f8800), noiseLow.g.mul(0.58).add(noiseMid.g.mul(0.42)));
+  const hilltopGreen = mix(color(0x6a6a31), color(0xb19955), noiseLow.g.mul(0.58).add(noiseMid.g.mul(0.42)));
   base = mix(base, hilltopGreen, hilltopMeadow.mul(midDetail));
   const sunnyHeadland = smoothstep(6, 18, y)
     .mul(float(1).sub(smoothstep(52, 88, detailDistance)))
@@ -444,6 +448,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(smoothstep(0.28, 0.88, normalWorld.y));
   const warmHeadland = mix(color(0x5c7136), color(0xa29569), noiseLow.a.mul(0.46).add(noiseMid.r.mul(0.54)));
   base = mix(base, warmHeadland, sunnyHeadland.mul(0.24));
+  base = mix(base, meridianBluffCliff, meridianBluffMask.mul(cliffInfluence).mul(0.96));
 
   const sunVis = mix(light.y, light.z, uSunBlend);
   const cloud = options.cloudShadowNode ?? float(1);

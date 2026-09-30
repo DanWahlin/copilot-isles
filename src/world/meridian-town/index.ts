@@ -88,9 +88,9 @@ type BasicAnchor = {
 };
 
 const DEG = Math.PI / 180;
-const TERRACOTTA = 0x9d3f22;
-const TERRACOTTA_DARK = 0x6c2e1e;
-const TERRACOTTA_WARM = 0xb6562c;
+const TERRACOTTA = 0xc4683c;
+const TERRACOTTA_DARK = 0xa4492d;
+const TERRACOTTA_WARM = 0xd07a4a;
 const LIMESTONE_LIGHT = 0xf0d7aa;
 const LIMESTONE_DARK = 0x91704c;
 const OCHRE = 0xc07b35;
@@ -136,6 +136,138 @@ const CITADEL = { x: MERIDIAN.pads.citadel.x, z: MERIDIAN.pads.citadel.z, r: 39,
 const LIFT_BOTTOM = { x: 770.3, z: -766.8, y: MERIDIAN.harbor.quay.height } as const;
 const LIFT_TOP = { x: 798.2, z: -779.2, y: 40.35 } as const;
 
+interface TerraceRowSpec {
+  id: string;
+  x0: number;
+  x1: number;
+  houseZ: number;
+  laneZ: number;
+  height: number;
+  laneWidth: number;
+  seed: number;
+  gaps?: readonly { x0: number; x1: number }[];
+}
+
+interface TerraceStairStreet {
+  x: number;
+  z0: number;
+  z1: number;
+  y0: number;
+  y1: number;
+  width: number;
+  steps: number;
+}
+
+const HARBOUR_FRONT_ROW: TerraceRowSpec = {
+  id: 'harbour-front',
+  x0: 594,
+  x1: 758,
+  houseZ: -786.2,
+  laneZ: -778.8,
+  height: PLAZA.height,
+  laneWidth: 4.2,
+  seed: 520,
+  gaps: [{ x0: 638, x1: 682 }],
+} as const;
+
+const TERRACE_ROWS: readonly TerraceRowSpec[] = [
+  {
+    id: 'plaza-upper',
+    x0: 586,
+    x1: 756,
+    houseZ: -848,
+    laneZ: -839.8,
+    height: 10.8,
+    laneWidth: 3.8,
+    seed: 620,
+    gaps: [
+      { x0: 640, x1: 699 },
+      { x0: 607, x1: 615 },
+      { x0: 727, x1: 735 },
+    ],
+  },
+  {
+    id: 'lower-ochre',
+    x0: 592,
+    x1: 780,
+    houseZ: -870,
+    laneZ: -861.8,
+    height: 14.2,
+    laneWidth: 3.7,
+    seed: 700,
+    gaps: [
+      { x0: 606, x1: 614 },
+      { x0: 664, x1: 672 },
+      { x0: 728, x1: 736 },
+    ],
+  },
+  {
+    id: 'middle-salmon',
+    x0: 604,
+    x1: 792,
+    houseZ: -892,
+    laneZ: -883.8,
+    height: 17.8,
+    laneWidth: 3.7,
+    seed: 780,
+    gaps: [
+      { x0: 606, x1: 614 },
+      { x0: 664, x1: 672 },
+      { x0: 728, x1: 736 },
+      { x0: 782, x1: 790 },
+    ],
+  },
+  {
+    id: 'upper-cream',
+    x0: 620,
+    x1: 804,
+    houseZ: -914,
+    laneZ: -905.8,
+    height: 21.4,
+    laneWidth: 3.8,
+    seed: 860,
+    gaps: [
+      { x0: 606, x1: 614 },
+      { x0: 664, x1: 672 },
+      { x0: 728, x1: 736 },
+      { x0: 782, x1: 790 },
+    ],
+  },
+  {
+    id: 'citadel-foot',
+    x0: 650,
+    x1: 812,
+    houseZ: -936,
+    laneZ: -927.8,
+    height: 25.0,
+    laneWidth: 3.6,
+    seed: 940,
+    gaps: [
+      { x0: 664, x1: 672 },
+      { x0: 728, x1: 736 },
+      { x0: 782, x1: 790 },
+    ],
+  },
+  {
+    id: 'top-whitewash',
+    x0: 700,
+    x1: 812,
+    houseZ: -956,
+    laneZ: -947.8,
+    height: 28.6,
+    laneWidth: 3.5,
+    seed: 1020,
+    gaps: [{ x0: 782, x1: 790 }],
+  },
+] as const;
+
+const TERRACE_STAIR_STREETS: readonly TerraceStairStreet[] = [
+  { x: 610, z0: -840, z1: -938, y0: 10.8, y1: 25.0, width: 4.4, steps: 25 },
+  { x: 668, z0: -851, z1: -938, y0: 10.8, y1: 25.0, width: 4.2, steps: 22 },
+  { x: 732, z0: -840, z1: -958, y0: 10.8, y1: 28.6, width: 4.4, steps: 30 },
+  { x: 786, z0: -852, z1: -958, y0: 10.8, y1: 28.6, width: 4.2, steps: 27 },
+] as const;
+
 export function createMeridianTown({
   tier,
   heightField,
@@ -166,6 +298,10 @@ export function createMeridianTown({
     }
     const stair = stairStreetHeight(x, z);
     if (stair !== null) return stair;
+    const terraceStair = terraceStairHeight(x, z);
+    if (terraceStair !== null) return terraceStair;
+    const terraceLane = terraceLaneHeight(x, z);
+    if (terraceLane !== null) return terraceLane;
     const lane = laneHeight(x, z);
     if (lane !== null) return lane;
     const quay = meridianQuayHeight(x, z);
@@ -546,6 +682,30 @@ function addMoleAndLighthouse(
 
   const l = m.lighthouse;
   addDiscPaving(buckets, l.x, m.height + 0.02, l.z, l.radius, 0xe8cf9a, 32);
+  addCylinderGeom(
+    buckets.stone,
+    l.x,
+    m.height - 0.82,
+    l.z,
+    l.radius * 0.96,
+    l.radius * 1.05,
+    0.9,
+    32,
+    0,
+    LIMESTONE_DARK,
+  );
+  addCylinderGeom(
+    buckets.stone,
+    l.x,
+    m.height + 0.04,
+    l.z,
+    l.radius * 0.98,
+    l.radius * 0.98,
+    0.28,
+    32,
+    0,
+    LIMESTONE_LIGHT,
+  );
   addTorusGeom(
     buckets.stone,
     l.x,
@@ -611,80 +771,16 @@ function addHarbourFront(
   low: boolean,
   anchor: (id: string, a: BasicAnchor) => void,
 ): void {
-  addTownHouse(buckets, colliders, stairSpans, perches, heightField, kit, {
-    id: 'north-quay-warehouse-west',
-    x: 606,
-    z: -781.7,
-    rotY: Math.PI,
-    footprint: { w: 6, d: 8 },
-    storeys: 3,
-    tint: CREAM,
-    roofTint: TERRACOTTA,
-    doorSide: 'front',
-    upper: 'plaster',
-    ground: 'plaster',
-    roof: 'gable',
-    balcony: true,
-    awning: 0xe0b343,
-    seed: 101,
+  addTerraceRetainingWall(buckets, HARBOUR_FRONT_ROW, MERIDIAN.harbor.quay.height);
+  addLanePaving(buckets, HARBOUR_FRONT_ROW);
+  addTerraceHouseRun(buckets, colliders, stairSpans, perches, heightField, kit, HARBOUR_FRONT_ROW, {
+    arcade: true,
   });
-  addTownHouse(buckets, colliders, stairSpans, perches, heightField, kit, {
-    id: 'north-quay-arcade',
-    x: 636,
-    z: -782.2,
-    rotY: Math.PI,
-    footprint: { w: 6, d: 8 },
-    storeys: 3,
-    tint: OCHRE,
-    roofTint: TERRACOTTA_WARM,
-    doorSide: 'front',
-    upper: 'plaster',
-    ground: 'plaster',
-    roof: 'gable',
-    balcony: false,
-    awning: CLOTH_BLUE,
-    seed: 102,
-  });
-  addArcade(buckets, 636, PLAZA.height, -775.2, Math.PI, 4);
-  addTownHouse(buckets, colliders, stairSpans, perches, heightField, kit, {
-    id: 'north-quay-customhouse',
-    x: 704,
-    z: -782,
-    rotY: Math.PI,
-    footprint: { w: 6, d: 8 },
-    storeys: 3,
-    tint: LIMESTONE_LIGHT,
-    roofTint: TERRACOTTA,
-    doorSide: 'front',
-    upper: 'plaster',
-    ground: 'plaster',
-    roof: 'tower',
-    balcony: true,
-    awning: CLOTH_RED,
-    seed: 103,
-  });
-  addTownHouse(buckets, colliders, stairSpans, perches, heightField, kit, {
-    id: 'north-quay-east-warehouse',
-    x: 740,
-    z: -781.4,
-    rotY: Math.PI,
-    footprint: { w: 6, d: 8 },
-    storeys: 3,
-    tint: 0xd19c55,
-    roofTint: 0xb14f27,
-    doorSide: 'front',
-    upper: 'plaster',
-    ground: 'plaster',
-    roof: 'gable',
-    balcony: true,
-    awning: CLOTH_GREEN,
-    seed: 104,
-  });
+  addQuayGateway(buckets, colliders, perches);
   if (!low) {
-    addHangingLaundry(buckets, 617, 9.9, -776, 637, 9.7, -776.5);
-    addHangingLaundry(buckets, 713, 10.2, -776.1, 741, 10.0, -776.1);
+    addHangingLaundry(buckets, 600, 11.1, -779.2, 630, 10.7, -779.2);
+    addHangingLaundry(buckets, 706, 11.0, -779.0, 752, 10.8, -779.1);
   }
-  addBox(buckets, 'paving', 668, 6.93, -779.0, 10.2, 0.16, 4.2, 0, 0xccaa78);
   anchor('promenade', { x: 666.8, y: 2.4, z: -762.5, heading: Math.PI, tx: 668, ty: 7.5, tz: -796 });
 }
 
@@ -812,6 +908,11 @@ function addPlaza(
       0,
       0xc8a06d,
     );
+  addBox(buckets, 'paving', 668, PLAZA.height - 0.075, -824.0, 94, 0.15, 11.2, 0, 0xf0d7aa);
+  for (let x = 623; x <= 713; x += 5.2)
+    addBox(buckets, 'stone', x, PLAZA.height + 0.02, -824.0, 0.07, 0.032, 10.2, 0, 0xb99562);
+  for (let z = -829; z <= -819.5; z += 1.55)
+    addBox(buckets, 'stone', 668, PLAZA.height + 0.018, z, 91, 0.03, 0.055, 0, 0xc8a06d);
   addCompassRose(buckets, 668, PLAZA.height + 0.035, -797.2);
 
   addFountain(buckets, colliders, perches, 668, PLAZA.height, -797.2);
@@ -1163,208 +1264,16 @@ function addTerraceHouses(
   low: boolean,
   high: boolean,
 ): void {
-  const specs: Array<{
-    x: number;
-    z: number;
-    rotY: number;
-    footprint: HouseFootprint;
-    storeys: 1 | 2 | 3;
-    tint: number;
-    roofTint: number;
-    seed: number;
-  }> = [
-    {
-      x: 602,
-      z: -831,
-      rotY: Math.PI,
-      footprint: { w: 6, d: 4 },
-      storeys: 2,
-      tint: CREAM,
-      roofTint: TERRACOTTA,
-      seed: 401,
-    },
-    {
-      x: 624,
-      z: -832,
-      rotY: Math.PI + 8 * DEG,
-      footprint: { w: 4, d: 6 },
-      storeys: 2,
-      tint: 0xd6a259,
-      roofTint: 0xa94d28,
-      seed: 402,
-    },
-    {
-      x: 646,
-      z: -833,
-      rotY: Math.PI - 7 * DEG,
-      footprint: { w: 6, d: 4 },
-      storeys: 3,
-      tint: LIMESTONE_LIGHT,
-      roofTint: TERRACOTTA_WARM,
-      seed: 403,
-    },
-    {
-      x: 672,
-      z: -833,
-      rotY: Math.PI,
-      footprint: { w: 4, d: 8 },
-      storeys: 2,
-      tint: 0xc77e59,
-      roofTint: TERRACOTTA,
-      seed: 404,
-    },
-    {
-      x: 700,
-      z: -833,
-      rotY: Math.PI + 9 * DEG,
-      footprint: { w: 6, d: 6 },
-      storeys: 2,
-      tint: 0xd8b165,
-      roofTint: 0x8f3a24,
-      seed: 405,
-    },
-    {
-      x: 731,
-      z: -834,
-      rotY: Math.PI - 8 * DEG,
-      footprint: { w: 6, d: 8 },
-      storeys: 3,
-      tint: 0xb96665,
-      roofTint: TERRACOTTA_WARM,
-      seed: 406,
-    },
-    {
-      x: 609,
-      z: -855,
-      rotY: Math.PI + 6 * DEG,
-      footprint: { w: 6, d: 4 },
-      storeys: 2,
-      tint: 0xe2bb75,
-      roofTint: TERRACOTTA,
-      seed: 407,
-    },
-    {
-      x: 634,
-      z: -856,
-      rotY: Math.PI - 10 * DEG,
-      footprint: { w: 4, d: 6 },
-      storeys: 2,
-      tint: 0xc28b58,
-      roofTint: 0xae4b29,
-      seed: 408,
-    },
-    {
-      x: 660,
-      z: -857,
-      rotY: Math.PI + 3 * DEG,
-      footprint: { w: 6, d: 6 },
-      storeys: 3,
-      tint: LIMESTONE_LIGHT,
-      roofTint: TERRACOTTA_WARM,
-      seed: 409,
-    },
-    {
-      x: 688,
-      z: -858,
-      rotY: Math.PI - 4 * DEG,
-      footprint: { w: 4, d: 8 },
-      storeys: 2,
-      tint: 0xd0a05d,
-      roofTint: TERRACOTTA,
-      seed: 410,
-    },
-    {
-      x: 721,
-      z: -859,
-      rotY: Math.PI + 11 * DEG,
-      footprint: { w: 6, d: 6 },
-      storeys: 3,
-      tint: 0xcc7765,
-      roofTint: 0xa44724,
-      seed: 411,
-    },
-    {
-      x: 750,
-      z: -859,
-      rotY: Math.PI - 8 * DEG,
-      footprint: { w: 6, d: 4 },
-      storeys: 2,
-      tint: 0xd8bc82,
-      roofTint: TERRACOTTA,
-      seed: 412,
-    },
-    {
-      x: 620,
-      z: -878,
-      rotY: Math.PI + 4 * DEG,
-      footprint: { w: 6, d: 4 },
-      storeys: 2,
-      tint: 0xc77758,
-      roofTint: 0xb24b27,
-      seed: 413,
-    },
-    {
-      x: 650,
-      z: -879,
-      rotY: Math.PI - 9 * DEG,
-      footprint: { w: 6, d: 8 },
-      storeys: 3,
-      tint: CREAM,
-      roofTint: TERRACOTTA_WARM,
-      seed: 414,
-    },
-    {
-      x: 684,
-      z: -880,
-      rotY: Math.PI + 6 * DEG,
-      footprint: { w: 6, d: 6 },
-      storeys: 2,
-      tint: 0xc78a5b,
-      roofTint: TERRACOTTA,
-      seed: 415,
-    },
-    {
-      x: 719,
-      z: -881,
-      rotY: Math.PI - 6 * DEG,
-      footprint: { w: 4, d: 8 },
-      storeys: 2,
-      tint: 0xd9a96d,
-      roofTint: 0xa04427,
-      seed: 416,
-    },
-    {
-      x: 758,
-      z: -882,
-      rotY: Math.PI + 8 * DEG,
-      footprint: { w: 6, d: 6 },
-      storeys: 3,
-      tint: ROSE,
-      roofTint: TERRACOTTA_WARM,
-      seed: 417,
-    },
-  ];
-  const list = low ? specs.filter((_s, i) => i % 2 === 0) : specs;
-  for (const s of list) {
-    addTownHouse(buckets, colliders, stairSpans, perches, heightField, kit, {
-      id: `terrace-house-${s.seed}`,
-      x: s.x,
-      z: s.z,
-      rotY: s.rotY,
-      footprint: s.footprint,
-      storeys: s.storeys,
-      tint: s.tint,
-      roofTint: s.roofTint,
-      doorSide: 'front',
-      upper: 'plaster',
-      ground: 'plaster',
-      roof: s.seed % 5 === 0 ? 'tower' : 'gable',
-      balcony: s.seed % 2 === 0,
-      seed: s.seed,
-    });
-    if (high && s.seed % 3 === 0)
-      addBougainvillea(buckets, s.x - 3.2, heightField.heightAt(s.x, s.z) + 2.0, s.z + 2.8, s.rotY, 0.9);
+  void low;
+  let previousHeight: number = PLAZA.height;
+  for (const row of TERRACE_ROWS) {
+    addTerraceRetainingWall(buckets, row, previousHeight);
+    addLanePaving(buckets, row);
+    addTerraceHouseRun(buckets, colliders, stairSpans, perches, heightField, kit, row, { arcade: false });
+    previousHeight = row.height;
   }
+  for (const stair of TERRACE_STAIR_STREETS) addTerraceStairStreet(buckets, colliders, stair);
+  addTerraceGardenPots(buckets, colliders, heightField, high);
 }
 
 const MEDITERRANEAN_TINTS = [
@@ -1389,74 +1298,261 @@ function addDenseHillsideTown(
   low: boolean,
   high: boolean,
 ): void {
-  const rows = [
-    { z: -820, x0: 584, x1: 760, step: 9.4, rot: Math.PI + 1 * DEG },
-    { z: -842, x0: 590, x1: 778, step: 8.7, rot: Math.PI - 4 * DEG },
-    { z: -864, x0: 598, x1: 790, step: 8.9, rot: Math.PI + 5 * DEG },
-    { z: -886, x0: 618, x1: 804, step: 9.2, rot: Math.PI - 2 * DEG },
-    { z: -908, x0: 660, x1: 810, step: 9.6, rot: Math.PI + 4 * DEG },
-  ];
-  let seed = 620;
-  for (const row of rows) {
-    const midX = (row.x0 + row.x1) * 0.5;
-    const rowY = heightField.heightAt(midX, row.z) + 0.02;
-    addBox(buckets, 'paving', midX, rowY, row.z, row.x1 - row.x0 + 14, 0.14, 15.5, row.rot, 0xffffff);
+  void colliders;
+  void stairSpans;
+  void perches;
+  void kit;
+  if (low) return;
+  for (const row of TERRACE_ROWS) {
+    const y = row.height + 4.5;
+    if (high && row.id !== 'top-whitewash') {
+      addStringLanterns(
+        buckets,
+        { x: row.x0 + 12, y, z: row.laneZ - 0.2 },
+        { x: Math.min(row.x1 - 10, row.x0 + 52), y: y - 0.25, z: row.laneZ + 0.4 },
+        7,
+      );
+    }
+    const leftY = heightField.heightAt(row.x0 + 6, row.houseZ) + 5.4;
+    const rightY = heightField.heightAt(row.x1 - 8, row.houseZ) + 5.1;
+    addHangingLaundry(
+      buckets,
+      row.x0 + 6,
+      leftY,
+      row.houseZ + 3.1,
+      row.x0 + 28,
+      leftY - 0.25,
+      row.houseZ + 3.0,
+    );
+    addHangingLaundry(
+      buckets,
+      row.x1 - 32,
+      rightY,
+      row.houseZ + 3.0,
+      row.x1 - 8,
+      rightY - 0.25,
+      row.houseZ + 3.1,
+    );
+  }
+}
+
+function addTerraceRetainingWall(buckets: Buckets, row: TerraceRowSpec, previousHeight: number): void {
+  const wallZ = row.laneZ + row.laneWidth * 0.5 + 0.36;
+  const bottom = Math.min(previousHeight, row.height) - 0.12;
+  const h = Math.max(0.8, row.height - previousHeight + 0.7);
+  let segmentStart = row.x0;
+  const gaps = [...(row.gaps ?? [])].sort((a, b) => a.x0 - b.x0);
+  for (const gap of gaps) {
+    addRetainingWallSegment(buckets, segmentStart, gap.x0, bottom, h, wallZ, row.height);
+    segmentStart = gap.x1;
+  }
+  addRetainingWallSegment(buckets, segmentStart, row.x1, bottom, h, wallZ, row.height);
+}
+
+function addRetainingWallSegment(
+  buckets: Buckets,
+  x0: number,
+  x1: number,
+  bottom: number,
+  h: number,
+  wallZ: number,
+  top: number,
+): void {
+  const length = x1 - x0;
+  if (length < 2.5) return;
+  const midX = (x0 + x1) * 0.5;
+  addBox(buckets, 'stone', midX, bottom, wallZ, length + 0.6, h, 0.72, 0, LIMESTONE_DARK);
+  addBox(buckets, 'stone', midX, top + 0.02, wallZ, length + 0.95, 0.24, 0.9, 0, LIMESTONE_LIGHT);
+  for (let x = x0 + 3; x <= x1 - 3; x += 5.4)
+    addBox(buckets, 'stone', x, top + 0.24, wallZ, 0.12, 0.12, 0.84, 0, 0x8f6f4d);
+}
+
+function addLanePaving(buckets: Buckets, row: TerraceRowSpec): void {
+  const midX = (row.x0 + row.x1) * 0.5;
+  const length = row.x1 - row.x0 + 1.6;
+  addBox(buckets, 'paving', midX, row.height - 0.08, row.laneZ, length, 0.16, row.laneWidth, 0, 0xf0d7aa);
+  for (let x = row.x0 + 2.5; x <= row.x1 - 2; x += 4.8)
     addBox(
       buckets,
       'stone',
-      midX,
-      rowY - 1.6,
-      row.z + 8.0,
-      row.x1 - row.x0 + 15,
-      1.7,
-      0.65,
-      row.rot,
+      x,
+      row.height + 0.02,
+      row.laneZ,
+      0.065,
+      0.035,
+      row.laneWidth - 0.35,
+      0,
+      0xb99562,
+    );
+  for (let z = row.laneZ - row.laneWidth * 0.38; z <= row.laneZ + row.laneWidth * 0.42; z += 1.35)
+    addBox(buckets, 'stone', midX, row.height + 0.018, z, length - 0.65, 0.032, 0.055, 0, 0xc8a06d);
+}
+
+function addTerraceHouseRun(
+  buckets: Buckets,
+  colliders: ColliderSet,
+  stairSpans: StairSpan[],
+  perches: Vector3[],
+  heightField: HeightField,
+  kit: VillageKit,
+  row: TerraceRowSpec,
+  options: { arcade: boolean },
+): void {
+  const widths: readonly (4 | 6 | 8)[] = [6, 4, 6, 8, 4, 6, 6, 8, 4, 6];
+  let x = row.x0;
+  let index = 0;
+  while (x < row.x1 - 3.8) {
+    const containing = rowGapContaining(row, x + 0.1);
+    if (containing) {
+      if (options.arcade) addArcadeBridge(buckets, containing.x0, containing.x1, row);
+      x = containing.x1;
+      continue;
+    }
+    const nextGap = nextRowGapStart(row, x);
+    const runEnd = Math.min(row.x1, nextGap ?? row.x1);
+    const available = runEnd - x;
+    const width = houseWidthForAvailable(widths[(row.seed + index) % widths.length]!, available);
+    if (width === null) {
+      x = runEnd + 0.01;
+      continue;
+    }
+    const seed = row.seed + index;
+    const depth: 6 | 8 = seed % 4 === 0 || width === 8 ? 8 : 6;
+    const centerX = x + width * 0.5;
+    const setback = ((seed % 4) - 1.5) * 0.12;
+    const storeys: 2 | 3 = seed % 5 === 0 || row.height < 12 ? 3 : 2;
+    const tint = MEDITERRANEAN_TINTS[seed % MEDITERRANEAN_TINTS.length]!;
+    addTownHouse(buckets, colliders, stairSpans, perches, heightField, kit, {
+      id: `${row.id}-house-${seed}`,
+      x: centerX,
+      z: row.houseZ + setback,
+      rotY: Math.PI,
+      footprint: { w: width, d: depth },
+      storeys,
+      tint,
+      roofTint: ROOF_TINTS[seed % ROOF_TINTS.length]!,
+      doorSide: 'front',
+      upper: 'plaster',
+      ground: 'plaster',
+      roof: seed % 6 === 0 ? 'flat' : 'gable',
+      balcony: seed % 2 === 0,
+      awning:
+        options.arcade || seed % 5 === 0
+          ? [CLOTH_BLUE, CLOTH_GREEN, CLOTH_GOLD, CLOTH_RED][seed % 4]
+          : undefined,
+      seed,
+    });
+    if (options.arcade) addArcadeBay(buckets, centerX, row.height, row.houseZ + depth * 0.5 + 0.12, width);
+    x += width + (seed % 3 === 0 ? 0.16 : 0.04);
+    index += 1;
+  }
+}
+
+function rowGapContaining(row: TerraceRowSpec, x: number): { x0: number; x1: number } | null {
+  return row.gaps?.find((gap) => x >= gap.x0 && x < gap.x1) ?? null;
+}
+
+function nextRowGapStart(row: TerraceRowSpec, x: number): number | null {
+  const next = row.gaps?.filter((gap) => gap.x0 > x).sort((a, b) => a.x0 - b.x0)[0];
+  return next?.x0 ?? null;
+}
+
+function houseWidthForAvailable(preferred: 4 | 6 | 8, available: number): 4 | 6 | 8 | null {
+  if (available >= preferred) return preferred;
+  if (available >= 8) return 8;
+  if (available >= 6) return 6;
+  if (available >= 4) return 4;
+  return null;
+}
+
+function addArcadeBay(buckets: Buckets, x: number, y: number, z: number, width: number): void {
+  const half = Math.min(width * 0.36, 2.2);
+  for (const dx of [-half, half])
+    addCylinderGeom(buckets.stone, x + dx, y, z, 0.18, 0.24, 3.05, 8, 0, LIMESTONE_LIGHT);
+  addTorusGeom(buckets.stone, x, y + 2.95, z, half, 0.13, 18, LIMESTONE_LIGHT, 0, Math.PI / 2, 0);
+  addBox(buckets, 'stone', x, y + 2.85, z + 0.08, width * 0.72, 0.28, 0.34, 0, LIMESTONE_LIGHT);
+}
+
+function addArcadeBridge(buckets: Buckets, x0: number, x1: number, row: TerraceRowSpec): void {
+  const mid = (x0 + x1) * 0.5;
+  const z = row.houseZ + 4.1;
+  addBox(buckets, 'stone', mid, row.height + 3.1, z, x1 - x0 + 1.2, 0.8, 0.72, 0, LIMESTONE_LIGHT);
+  addBox(buckets, 'plaster', mid, row.height + 3.9, z - 0.05, x1 - x0 - 2.2, 1.65, 0.5, 0, 0xe8cf9a);
+  addTorusGeom(
+    buckets.stone,
+    mid,
+    row.height + 2.7,
+    z,
+    Math.min(4.8, (x1 - x0) * 0.32),
+    0.2,
+    24,
+    LIMESTONE_LIGHT,
+    0,
+    Math.PI / 2,
+    0,
+  );
+}
+
+function addQuayGateway(buckets: Buckets, colliders: ColliderSet, perches: Vector3[]): void {
+  addArcadeBridge(buckets, 642, 682, HARBOUR_FRONT_ROW);
+  addArcade(buckets, 668, PLAZA.height, -781.6, Math.PI, 5);
+  for (const x of [641.2, 682.8]) {
+    addCylinderGeom(buckets.stone, x, PLAZA.height, -781.7, 0.42, 0.52, 4.4, 12, 0, LIMESTONE_LIGHT);
+    addCylinderGeom(buckets.stone, x, PLAZA.height + 4.35, -781.7, 0.55, 0.6, 0.42, 12, 0, LIMESTONE_DARK);
+    colliders.circles.push({ x, z: -781.7, r: 0.58 });
+    perches.push(new Vector3(x, PLAZA.height + 5.0, -781.7));
+  }
+}
+
+function addTerraceStairStreet(buckets: Buckets, colliders: ColliderSet, stair: TerraceStairStreet): void {
+  const dz = stair.z1 - stair.z0;
+  const tread = Math.abs(dz) / stair.steps;
+  const rise = (stair.y1 - stair.y0) / stair.steps;
+  for (let i = 0; i < stair.steps; i += 1) {
+    const z = stair.z0 - tread * (i + 0.5);
+    const h = stair.y0 + rise * (i + 1);
+    addBox(buckets, 'paving', stair.x, h + 0.018, z, stair.width, 0.14, tread + 0.04, 0, 0xf0d7aa);
+    addBox(
+      buckets,
+      'stone',
+      stair.x,
+      h - rise - 0.02,
+      z + tread * 0.5,
+      stair.width,
+      rise + 0.04,
+      0.14,
+      0,
       LIMESTONE_DARK,
     );
-    for (let x = row.x0; x <= row.x1; x += row.step) {
-      seed += 1;
-      if (low && seed % 3 !== 0) continue;
-      if (isReservedTownGap(x, row.z)) continue;
-      const footprint: HouseFootprint =
-        seed % 5 === 0 ? { w: 8, d: 6 } : seed % 3 === 0 ? { w: 6, d: 6 } : { w: 6, d: 4 };
-      const z = row.z + Math.sin(seed * 1.7) * 2.3;
-      const bx = x + Math.sin(seed * 2.1) * 1.1;
-      const tint = MEDITERRANEAN_TINTS[seed % MEDITERRANEAN_TINTS.length]!;
-      addTownHouse(buckets, colliders, stairSpans, perches, heightField, kit, {
-        id: `dense-meridian-${seed}`,
-        x: bx,
-        z,
-        rotY: row.rot + Math.sin(seed * 0.9) * 0.1,
-        footprint,
-        storeys: (2 + (seed % 3)) as 2 | 3 | 4,
-        tint,
-        roofTint: ROOF_TINTS[seed % ROOF_TINTS.length]!,
-        doorSide: 'front',
-        upper: 'plaster',
-        ground: 'plaster',
-        roof: seed % 4 === 0 ? 'flat' : seed % 9 === 0 ? 'tower' : 'gable',
-        balcony: seed % 3 === 0,
-        seed,
-      });
-      if (high && seed % 4 === 0) {
-        const y = heightField.heightAt(bx, z);
-        addStringLanterns(
-          buckets,
-          { x: bx - 3.0, y: y + 4.4, z: z + 3.4 },
-          { x: bx + 4.2, y: y + 4.1, z: z + 3.1 },
-          3,
-        );
-      }
+  }
+  for (const side of [-1, 1]) {
+    const x = stair.x + side * (stair.width * 0.5 + 0.38);
+    for (let i = 0; i < stair.steps; i += 2) {
+      const z = stair.z0 - tread * (i + 1);
+      const h = stair.y0 + rise * (i + 1);
+      addBox(buckets, 'stone', x, h + 0.02, z, 0.36, 0.72, tread * 2 + 0.08, 0, LIMESTONE_DARK);
+      addBox(buckets, 'stone', x, h + 0.76, z, 0.44, 0.16, tread * 2 + 0.12, 0, LIMESTONE_LIGHT);
+      colliders.boxes.push({ x, z, hx: 0.34, hz: tread + 0.08, rot: 0, height: 0.95 });
     }
   }
 }
 
-function isReservedTownGap(x: number, z: number): boolean {
-  if (Math.abs(x - STAIR_STREET.x) < STAIR_STREET.width * 0.78 && z > -834) return true;
-  if (x > PLAZA.x0 - 3 && x < PLAZA.x1 + 3 && z > PLAZA.z0 - 7 && z < PLAZA.z1 + 9) return true;
-  if (x > 570 && x < 610 && z > -780 && z < -746) return true;
-  if (Math.hypot(x - CITADEL.x, z - CITADEL.z) < 44) return true;
-  return false;
+function addTerraceGardenPots(
+  buckets: Buckets,
+  colliders: ColliderSet,
+  heightField: HeightField,
+  high: boolean,
+): void {
+  for (const row of TERRACE_ROWS.slice(0, high ? TERRACE_ROWS.length : 4)) {
+    for (const x of [row.x0 + 7, row.x1 - 9]) {
+      if (rowGapContaining(row, x)) continue;
+      addPottedCypress(buckets, colliders, x, row.height, row.laneZ - 0.25, 0.72);
+    }
+    const oliveX = (row.x0 + row.x1) * 0.5 + ((row.seed % 3) - 1) * 9;
+    if (!rowGapContaining(row, oliveX))
+      addOliveTree(buckets, colliders, oliveX, row.height, row.laneZ + 0.1, 0.48);
+  }
+  void heightField;
 }
 
 function addVegetation(
@@ -1468,31 +1564,27 @@ function addVegetation(
   high: boolean,
 ): void {
   const cypress = [
-    [590, -785, 1.18],
-    [612, -822, 1.05],
-    [743, -821, 1.12],
+    [574, -808, 1.05],
     [774, -778, 1.24],
     [791, -758, 1.1],
-    [650, -846, 0.95],
-    [737, -868, 1.0],
+    [820, -836, 1.08],
+    [844, -820, 0.95],
   ] as const;
   for (const [x, z, s] of low ? cypress.slice(0, 4) : cypress)
     addCypress(buckets, colliders, x, heightField.heightAt(x, z), z, s);
   const olives = [
-    [594, -815, 0.9],
-    [703, -813, 0.85],
-    [744, -844, 0.88],
-    [632, -870, 0.82],
-    [777, -834, 0.9],
+    [564, -830, 0.88],
+    [810, -846, 0.78],
+    [846, -785, 0.82],
   ] as const;
   for (const [x, z, s] of olives) addOliveTree(buckets, colliders, x, heightField.heightAt(x, z), z, s);
   if (high) {
     for (const [x, z] of [
-      [606, -831],
-      [647, -855],
-      [686, -879],
-      [731, -833],
-      [756, -881],
+      [606, -846],
+      [647, -868],
+      [686, -890],
+      [731, -846],
+      [756, -890],
     ] as const)
       addBougainvillea(buckets, x, heightField.heightAt(x, z) + 2.2, z + 2.8, Math.PI, 1.1);
   }
@@ -1564,9 +1656,11 @@ function addTownHouse(
       0xd7b77f,
     );
   }
+  const terraceRunHouse = spec.id.includes('-house-');
   addFacadeOpenings(buckets, spec, y + 0.55, wallH);
-  addFacadeOpenings(buckets, { ...spec, doorSide: 'back' }, y + 0.55, wallH, spec.seed + 13, true);
-  if (w >= 6 && d >= 6 && floors > 1) {
+  if (!terraceRunHouse)
+    addFacadeOpenings(buckets, { ...spec, doorSide: 'back' }, y + 0.55, wallH, spec.seed + 13, true);
+  if (!terraceRunHouse && w >= 6 && d >= 6 && floors > 1) {
     addFacadeOpenings(buckets, { ...spec, doorSide: 'left' }, y + 0.55, wallH, spec.seed + 31, true);
     addFacadeOpenings(buckets, { ...spec, doorSide: 'right' }, y + 0.55, wallH, spec.seed + 47, true);
   }
@@ -1709,7 +1803,7 @@ function addTerracottaRoof(
 ): void {
   const colour = roofTint || TERRACOTTA_WARM;
   addBox(buckets, 'roofTile', x, y + 0.06, z, w + 0.8, 0.18, d + 0.8, rot, colour);
-  if (tower || w === d)
+  if (tower)
     addCone(buckets.roofTile, x, y + 0.18, z, Math.max(w, d) * 0.78, 2.0, 4, Math.PI / 4 + rot, colour);
   else {
     addBox(buckets, 'roofTile', x, y + 0.25, z, w + 1.0, 0.34, d * 0.52, rot, colour, 0, 0.18);
@@ -2200,7 +2294,7 @@ function addHallOfRecords(
   void kit;
   void stairSpans;
   addBox(buckets, 'stone', x, y, z, 16.2, 0.45, 10.2, 0, LIMESTONE_LIGHT);
-  addBox(buckets, 'plaster', x, y + 0.45, z + 1.2, 14.2, 5.0, 7.2, 0, 0xe4c58e);
+  addBox(buckets, 'plaster', x, y + 0.45, z + 1.2, 14.2, 5.0, 7.2, 0, WHITEWASH);
   addBox(buckets, 'stone', x, y + 5.45, z + 1.2, 15.2, 0.55, 7.9, 0, LIMESTONE_DARK);
   addPediment(buckets, x, y + 6.0, z - 3.0, 8.4, 2.0, 0, LIMESTONE_LIGHT);
   for (let i = 0; i < 6; i += 1) {
@@ -3153,6 +3247,26 @@ function laneHeight(x: number, z: number): number | null {
   return MERIDIAN.harbor.quay.height + (TAVERN_PAD.height - MERIDIAN.harbor.quay.height) * t;
 }
 
+function terraceLaneHeight(x: number, z: number): number | null {
+  const rows = [HARBOUR_FRONT_ROW, ...TERRACE_ROWS] as const;
+  for (const row of rows) {
+    if (x < row.x0 - 0.5 || x > row.x1 + 0.5) continue;
+    if (Math.abs(z - row.laneZ) <= row.laneWidth * 0.5 + 0.25) return row.height;
+  }
+  return null;
+}
+
+function terraceStairHeight(x: number, z: number): number | null {
+  for (const stair of TERRACE_STAIR_STREETS) {
+    if (Math.abs(x - stair.x) > stair.width * 0.5) continue;
+    if (z > stair.z0 + 0.35 || z < stair.z1 - 0.35) continue;
+    const t = Math.max(0, Math.min(1, (stair.z0 - z) / (stair.z0 - stair.z1)));
+    const step = Math.min(stair.steps, Math.max(0, Math.ceil(t * stair.steps)));
+    return stair.y0 + ((stair.y1 - stair.y0) * step) / stair.steps;
+  }
+  return null;
+}
+
 function citadelWalkable(x: number, z: number): number | null {
   const dx = (x - CITADEL.x) / CITADEL.r;
   const dz = (z - CITADEL.z) / (CITADEL.r * 0.78);
@@ -3230,7 +3344,7 @@ function footprintMinY(
 }
 
 function countTownBuildings(): number {
-  return 86;
+  return 92;
 }
 
 function triangleCount(geometry: BufferGeometry): number {
