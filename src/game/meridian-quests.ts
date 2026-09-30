@@ -283,6 +283,14 @@ const ANDERS: readonly ScriptStep[] = [
   { quest: 'Q1.4', step: 'crates' },
 ];
 
+/** Anders's beat when the crate yard's solved (played at once by the puzzle, or when you talk to him). */
+export const ANDERS_SOLVED: readonly ScriptStep[] = [
+  { say: 'mer.anders.solved' },
+  { say: 'mer.anders.next' },
+  { quest: 'Q1.4', step: 'done' },
+  { quest: 'Q1.5', step: 'start' },
+];
+
 const RHEA: readonly ScriptStep[] = [
   { say: 'mer.rhea.01' },
   { say: 'mer.rhea.02' },
@@ -385,15 +393,7 @@ export function meridianNpcScript(npc: string, q: QuestState): { steps: readonly
       if (!done(q, 'Q1.3')) return line('mer.anders.wait');
       const step = q['Q1.4'];
       if (step === 'crates') return line('mer.anders.crates.wait');
-      if (step === 'solved')
-        return {
-          steps: [
-            { say: 'mer.anders.solved' },
-            { say: 'mer.anders.next' },
-            { quest: 'Q1.4', step: 'done' },
-            { quest: 'Q1.5', step: 'start' },
-          ],
-        };
+      if (step === 'solved') return { steps: ANDERS_SOLVED };
       return step === 'done' ? line('mer.anders.done') : { steps: ANDERS };
     }
     case 'rhea': {

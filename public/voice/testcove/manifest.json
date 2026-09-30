@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-30T05:22:42.448Z",
+  "generatedAt": "2026-09-30T05:28:42.856Z",
   "set": "testcove",
   "lines": [
     {
@@ -12875,13 +12875,13 @@
     {
       "id": "mer.anders.crates",
       "speaker": "Anders",
-      "text": "Now, my crates are all muddled. Chat work goes to the tavern plate, project work to the slipway plate.",
-      "duration": 7.807,
+      "text": "Now, my crates are all muddled. Chat work goes on the tavern plates, project work on the slipway plates.",
+      "duration": 8.107,
       "files": {
         "webm": "mer.anders.crates.webm",
         "m4a": "mer.anders.crates.m4a"
       },
-      "hash": "8597fdac9aa8928e",
+      "hash": "bbac2594e27d91fe",
       "words": [
         {
           "word": "Now",
@@ -12916,67 +12916,67 @@
         {
           "word": "Chat",
           "start": 2.978708,
-          "end": 3.297875
+          "end": 3.284583
         },
         {
           "word": "work",
-          "start": 3.297875,
-          "end": 3.550541
+          "start": 3.284583,
+          "end": 3.563833
         },
         {
           "word": "goes",
-          "start": 3.550541,
-          "end": 3.8165
+          "start": 3.563833,
+          "end": 3.896291
         },
         {
-          "word": "to",
-          "start": 3.8165,
-          "end": 3.922875
+          "word": "on",
+          "start": 3.896291,
+          "end": 4.015958
         },
         {
           "word": "the",
-          "start": 3.922875,
-          "end": 4.02925
+          "start": 4.015958,
+          "end": 4.122333
         },
         {
           "word": "tavern",
-          "start": 4.02925,
-          "end": 4.375
+          "start": 4.122333,
+          "end": 4.468083
         },
         {
-          "word": "plate",
-          "start": 4.375,
-          "end": 4.920208
+          "word": "plates",
+          "start": 4.468083,
+          "end": 5.093083
         },
         {
           "word": "project",
-          "start": 4.920208,
-          "end": 5.359041
+          "start": 5.093083,
+          "end": 5.545208
         },
         {
           "word": "work",
-          "start": 5.359041,
-          "end": 5.664875
+          "start": 5.545208,
+          "end": 5.864375
         },
         {
-          "word": "to",
-          "start": 5.664875,
-          "end": 5.757958
+          "word": "on",
+          "start": 5.864375,
+          "end": 5.997333
         },
         {
           "word": "the",
-          "start": 5.757958,
-          "end": 5.890958
+          "start": 5.997333,
+          "end": 6.117041
         },
         {
           "word": "slipway",
-          "start": 5.890958,
-          "end": 6.369666
+          "start": 6.117041,
+          "end": 6.582458
         },
         {
-          "word": "plate",
-          "start": 6.369666,
-          "end": 6.619666
+          "word": "plates",
+          "start": 6.582458,
+          "end": 6.832458
         }
       ],
       "voice": "en-GB-EthanNeural"
@@ -12984,13 +12984,13 @@
     {
       "id": "mer.anders.crates.wait",
       "speaker": "Anders",
-      "text": "Push each crate onto its plate, Captain. Press R to start the yard over.",
-      "duration": 6.207,
+      "text": "Push each crate onto its plate, Captain. The lever by the gate starts the yard over.",
+      "duration": 6.807,
       "files": {
         "webm": "mer.anders.crates.wait.webm",
         "m4a": "mer.anders.crates.wait.m4a"
       },
-      "hash": "12d32a12ac821453",
+      "hash": "606efa65dd4dcb50",
       "words": [
         {
           "word": "Push",
@@ -13028,39 +13028,49 @@
           "end": 3.390958
         },
         {
-          "word": "Press",
+          "word": "The",
           "start": 3.390958,
-          "end": 3.736708
+          "end": 3.53725
         },
         {
-          "word": "R",
-          "start": 3.736708,
-          "end": 3.869666
+          "word": "lever",
+          "start": 3.53725,
+          "end": 3.882958
         },
         {
-          "word": "to",
-          "start": 3.869666,
-          "end": 4.002666
-        },
-        {
-          "word": "start",
-          "start": 4.002666,
-          "end": 4.375
+          "word": "by",
+          "start": 3.882958,
+          "end": 4.055833
         },
         {
           "word": "the",
-          "start": 4.375,
-          "end": 4.454791
+          "start": 4.055833,
+          "end": 4.188833
         },
         {
-          "word": "yard",
-          "start": 4.454791,
+          "word": "gate",
+          "start": 4.188833,
+          "end": 4.468083
+        },
+        {
+          "word": "starts",
+          "start": 4.468083,
           "end": 4.880333
         },
         {
-          "word": "over",
+          "word": "the",
           "start": 4.880333,
-          "end": 5.130333
+          "end": 4.986708
+        },
+        {
+          "word": "yard",
+          "start": 4.986708,
+          "end": 5.385625
+        },
+        {
+          "word": "over",
+          "start": 5.385625,
+          "end": 5.635625
         }
       ],
       "voice": "en-GB-EthanNeural"

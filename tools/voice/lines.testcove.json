@@ -1148,7 +1148,7 @@
     {
       "id": "mer.anders.crates",
       "speaker": "Anders",
-      "text": "Now, my crates are all muddled. Chat work goes to the tavern plate, project work to the slipway plate.",
+      "text": "Now, my crates are all muddled. Chat work goes on the tavern plates, project work on the slipway plates.",
       "voice": "en-GB-EthanNeural",
       "prosody": {
         "rate": "-6%"
@@ -1157,7 +1157,7 @@
     {
       "id": "mer.anders.crates.wait",
       "speaker": "Anders",
-      "text": "Push each crate onto its plate, Captain. Press R to start the yard over.",
+      "text": "Push each crate onto its plate, Captain. The lever by the gate starts the yard over.",
       "voice": "en-GB-EthanNeural",
       "prosody": {
         "rate": "-6%"

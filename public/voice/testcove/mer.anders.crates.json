@@ -1,7 +1,7 @@
 {
   "id": "mer.anders.crates",
   "speaker": "Anders",
-  "text": "Now, my crates are all muddled. Chat work goes to the tavern plate, project work to the slipway plate.",
+  "text": "Now, my crates are all muddled. Chat work goes on the tavern plates, project work on the slipway plates.",
   "words": [
     {
       "word": "Now",
@@ -36,67 +36,67 @@
     {
       "word": "Chat",
       "start": 2.978708,
-      "end": 3.297875
+      "end": 3.284583
     },
     {
       "word": "work",
-      "start": 3.297875,
-      "end": 3.550541
+      "start": 3.284583,
+      "end": 3.563833
     },
     {
       "word": "goes",
-      "start": 3.550541,
-      "end": 3.8165
+      "start": 3.563833,
+      "end": 3.896291
     },
     {
-      "word": "to",
-      "start": 3.8165,
-      "end": 3.922875
+      "word": "on",
+      "start": 3.896291,
+      "end": 4.015958
     },
     {
       "word": "the",
-      "start": 3.922875,
-      "end": 4.02925
+      "start": 4.015958,
+      "end": 4.122333
     },
     {
       "word": "tavern",
-      "start": 4.02925,
-      "end": 4.375
+      "start": 4.122333,
+      "end": 4.468083
     },
     {
-      "word": "plate",
-      "start": 4.375,
-      "end": 4.920208
+      "word": "plates",
+      "start": 4.468083,
+      "end": 5.093083
     },
     {
       "word": "project",
-      "start": 4.920208,
-      "end": 5.359041
+      "start": 5.093083,
+      "end": 5.545208
     },
     {
       "word": "work",
-      "start": 5.359041,
-      "end": 5.664875
+      "start": 5.545208,
+      "end": 5.864375
     },
     {
-      "word": "to",
-      "start": 5.664875,
-      "end": 5.757958
+      "word": "on",
+      "start": 5.864375,
+      "end": 5.997333
     },
     {
       "word": "the",
-      "start": 5.757958,
-      "end": 5.890958
+      "start": 5.997333,
+      "end": 6.117041
     },
     {
       "word": "slipway",
-      "start": 5.890958,
-      "end": 6.369666
+      "start": 6.117041,
+      "end": 6.582458
     },
     {
-      "word": "plate",
-      "start": 6.369666,
-      "end": 6.619666
+      "word": "plates",
+      "start": 6.582458,
+      "end": 6.832458
     }
   ]
 }

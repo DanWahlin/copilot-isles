@@ -1,7 +1,7 @@
 {
   "id": "mer.anders.crates.wait",
   "speaker": "Anders",
-  "text": "Push each crate onto its plate, Captain. Press R to start the yard over.",
+  "text": "Push each crate onto its plate, Captain. The lever by the gate starts the yard over.",
   "words": [
     {
       "word": "Push",
@@ -39,39 +39,49 @@
       "end": 3.390958
     },
     {
-      "word": "Press",
+      "word": "The",
       "start": 3.390958,
-      "end": 3.736708
+      "end": 3.53725
     },
     {
-      "word": "R",
-      "start": 3.736708,
-      "end": 3.869666
+      "word": "lever",
+      "start": 3.53725,
+      "end": 3.882958
     },
     {
-      "word": "to",
-      "start": 3.869666,
-      "end": 4.002666
-    },
-    {
-      "word": "start",
-      "start": 4.002666,
-      "end": 4.375
+      "word": "by",
+      "start": 3.882958,
+      "end": 4.055833
     },
     {
       "word": "the",
-      "start": 4.375,
-      "end": 4.454791
+      "start": 4.055833,
+      "end": 4.188833
     },
     {
-      "word": "yard",
-      "start": 4.454791,
+      "word": "gate",
+      "start": 4.188833,
+      "end": 4.468083
+    },
+    {
+      "word": "starts",
+      "start": 4.468083,
       "end": 4.880333
     },
     {
-      "word": "over",
+      "word": "the",
       "start": 4.880333,
-      "end": 5.130333
+      "end": 4.986708
+    },
+    {
+      "word": "yard",
+      "start": 4.986708,
+      "end": 5.385625
+    },
+    {
+      "word": "over",
+      "start": 5.385625,
+      "end": 5.635625
     }
   ]
 }
