@@ -1,0 +1,47 @@
+{
+  "id": "mer.helm.interactive.check",
+  "speaker": "Rhea",
+  "text": "Mark reached. Shall we sail the next leg?",
+  "words": [
+    {
+      "word": "Mark",
+      "start": 0.0485409,
+      "end": 0.364083
+    },
+    {
+      "word": "reached",
+      "start": 0.364083,
+      "end": 1.723291
+    },
+    {
+      "word": "Shall",
+      "start": 1.723291,
+      "end": 1.978166
+    },
+    {
+      "word": "we",
+      "start": 1.978166,
+      "end": 2.111666
+    },
+    {
+      "word": "sail",
+      "start": 2.111666,
+      "end": 2.475708
+    },
+    {
+      "word": "the",
+      "start": 2.475708,
+      "end": 2.597083
+    },
+    {
+      "word": "next",
+      "start": 2.597083,
+      "end": 2.92475
+    },
+    {
+      "word": "leg",
+      "start": 2.92475,
+      "end": 3.17475
+    }
+  ]
+}

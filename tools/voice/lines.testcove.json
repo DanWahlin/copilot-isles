@@ -1539,6 +1539,96 @@
       "prosody": {
         "rate": "-5%"
       }
+    },
+    {
+      "id": "mer.helm.interactive.take",
+      "speaker": "Rhea",
+      "text": "Interactive helm. We’ll sail one leg at a time, and I’ll check with you at every mark.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.interactive.check",
+      "speaker": "Rhea",
+      "text": "Mark reached. Shall we sail the next leg?",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.interactive.done",
+      "speaker": "Rhea",
+      "text": "That’s Interactive. You were involved at every step.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.next.plan",
+      "speaker": "Rhea",
+      "text": "Next, the Plan buoy. Look for the orange flag.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.plan.take",
+      "speaker": "Rhea",
+      "text": "Plan helm. Here’s the route I’ve charted. Look it over, then approve it.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.plan.go",
+      "speaker": "Rhea",
+      "text": "Plan approved. Now she sails it straight through.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.plan.done",
+      "speaker": "Rhea",
+      "text": "That’s Plan. You saw the whole route before anything moved.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.next.autopilot",
+      "speaker": "Rhea",
+      "text": "Last one, the Autopilot buoy with the green flag.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.autopilot.take",
+      "speaker": "Rhea",
+      "text": "Autopilot helm. Give her the destination, your berth, and she’ll take it from here.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.autopilot.done",
+      "speaker": "Rhea",
+      "text": "Home, and not a single stop. That’s Autopilot, for a task that’s clearly defined.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
     }
   ]
 }

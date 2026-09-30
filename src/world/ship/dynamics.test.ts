@@ -145,6 +145,24 @@ describe('ShipDynamics', () => {
     expect(Math.hypot(ship.pose.x - last.x, ship.pose.z - last.z)).toBeLessThan(4.2);
   });
 
+  it('holds a set pace on a scripted run, even sailing straight into the wind', () => {
+    // The wind blows toward (0.8, -0.6); this course runs back up it, which would leave her in irons.
+    const points = [
+      { x: 0, z: 0 },
+      { x: -40, z: 30 },
+      { x: -80, z: 60 },
+    ];
+    const ship = new ShipDynamics(0, 0, Math.atan2(-0.8, 0.6));
+    ship.followSpline(points, 4);
+    let steps = 0;
+    for (; steps < 120 * 60 && !ship.autopilotComplete; steps++) {
+      ship.step(1 / 60, { trim: 0, rudder: 0 }, { waves: calm, ground: null, obstacles: [], t: steps / 60 });
+    }
+    expect(ship.autopilotComplete).toBe(true);
+    // 100 m at about 4 m/s, with a slow start and finish.
+    expect(steps / 60).toBeLessThan(45);
+  });
+
   it('dev-page buoy spline clears the new berth and completes from the mooring', () => {
     const points = [
       { x: COVE.mooring.x, z: COVE.mooring.z },

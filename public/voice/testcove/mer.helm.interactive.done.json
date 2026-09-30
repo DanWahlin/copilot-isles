@@ -1,0 +1,47 @@
+{
+  "id": "mer.helm.interactive.done",
+  "speaker": "Rhea",
+  "text": "That’s Interactive. You were involved at every step.",
+  "words": [
+    {
+      "word": "That’s",
+      "start": 0.0485409,
+      "end": 0.364083
+    },
+    {
+      "word": "Interactive",
+      "start": 0.364083,
+      "end": 2.050958
+    },
+    {
+      "word": "You",
+      "start": 2.050958,
+      "end": 2.20875
+    },
+    {
+      "word": "were",
+      "start": 2.20875,
+      "end": 2.390791
+    },
+    {
+      "word": "involved",
+      "start": 2.390791,
+      "end": 2.888333
+    },
+    {
+      "word": "at",
+      "start": 2.888333,
+      "end": 3.021833
+    },
+    {
+      "word": "every",
+      "start": 3.021833,
+      "end": 3.288833
+    },
+    {
+      "word": "step",
+      "start": 3.288833,
+      "end": 3.538833
+    }
+  ]
+}

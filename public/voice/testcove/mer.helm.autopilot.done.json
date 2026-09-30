@@ -1,0 +1,77 @@
+{
+  "id": "mer.helm.autopilot.done",
+  "speaker": "Rhea",
+  "text": "Home, and not a single stop. That’s Autopilot, for a task that’s clearly defined.",
+  "words": [
+    {
+      "word": "Home",
+      "start": 0.0485409,
+      "end": 0.69175
+    },
+    {
+      "word": "and",
+      "start": 0.69175,
+      "end": 0.82525
+    },
+    {
+      "word": "not",
+      "start": 0.82525,
+      "end": 1.080083
+    },
+    {
+      "word": "a",
+      "start": 1.080083,
+      "end": 1.152916
+    },
+    {
+      "word": "single",
+      "start": 1.152916,
+      "end": 1.529125
+    },
+    {
+      "word": "stop",
+      "start": 1.529125,
+      "end": 2.79125
+    },
+    {
+      "word": "That’s",
+      "start": 2.79125,
+      "end": 3.082541
+    },
+    {
+      "word": "Autopilot",
+      "start": 3.082541,
+      "end": 4.065541
+    },
+    {
+      "word": "for",
+      "start": 4.065541,
+      "end": 4.186875
+    },
+    {
+      "word": "a",
+      "start": 4.186875,
+      "end": 4.271833
+    },
+    {
+      "word": "task",
+      "start": 4.271833,
+      "end": 4.684458
+    },
+    {
+      "word": "that’s",
+      "start": 4.684458,
+      "end": 4.927166
+    },
+    {
+      "word": "clearly",
+      "start": 4.927166,
+      "end": 5.327666
+    },
+    {
+      "word": "defined",
+      "start": 5.327666,
+      "end": 5.577666
+    }
+  ]
+}

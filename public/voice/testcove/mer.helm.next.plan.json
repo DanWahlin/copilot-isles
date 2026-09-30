@@ -1,0 +1,52 @@
+{
+  "id": "mer.helm.next.plan",
+  "speaker": "Rhea",
+  "text": "Next, the Plan buoy. Look for the orange flag.",
+  "words": [
+    {
+      "word": "Next",
+      "start": 0.0485409,
+      "end": 0.740291
+    },
+    {
+      "word": "the",
+      "start": 0.740291,
+      "end": 0.873791
+    },
+    {
+      "word": "Plan",
+      "start": 0.873791,
+      "end": 1.225708
+    },
+    {
+      "word": "buoy",
+      "start": 1.225708,
+      "end": 2.427166
+    },
+    {
+      "word": "Look",
+      "start": 2.427166,
+      "end": 2.694166
+    },
+    {
+      "word": "for",
+      "start": 2.694166,
+      "end": 2.815541
+    },
+    {
+      "word": "the",
+      "start": 2.815541,
+      "end": 2.949041
+    },
+    {
+      "word": "orange",
+      "start": 2.949041,
+      "end": 3.300958
+    },
+    {
+      "word": "flag",
+      "start": 3.300958,
+      "end": 3.550958
+    }
+  ]
+}

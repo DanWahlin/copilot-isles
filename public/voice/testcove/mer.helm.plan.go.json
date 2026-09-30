@@ -1,0 +1,47 @@
+{
+  "id": "mer.helm.plan.go",
+  "speaker": "Rhea",
+  "text": "Plan approved. Now she sails it straight through.",
+  "words": [
+    {
+      "word": "Plan",
+      "start": 0.0485409,
+      "end": 0.364083
+    },
+    {
+      "word": "approved",
+      "start": 0.364083,
+      "end": 1.80825
+    },
+    {
+      "word": "Now",
+      "start": 1.80825,
+      "end": 2.07525
+    },
+    {
+      "word": "she",
+      "start": 2.07525,
+      "end": 2.257291
+    },
+    {
+      "word": "sails",
+      "start": 2.257291,
+      "end": 2.682041
+    },
+    {
+      "word": "it",
+      "start": 2.682041,
+      "end": 2.815541
+    },
+    {
+      "word": "straight",
+      "start": 2.815541,
+      "end": 3.19175
+    },
+    {
+      "word": "through",
+      "start": 3.19175,
+      "end": 3.44175
+    }
+  ]
+}

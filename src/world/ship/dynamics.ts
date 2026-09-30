@@ -186,6 +186,7 @@ export class ShipDynamics {
   };
   private dockTarget: DockTarget | null = null;
   private pathPoints = new Float32Array(0);
+  private autopilotSpeed = Number.NaN;
   private densePath = new Float32Array(0);
   private waypointPassed = new Uint8Array(0);
   private pathCursor = 0;
@@ -239,7 +240,13 @@ export class ShipDynamics {
     this.dockComplete = false;
   }
 
-  followSpline(points: readonly SplinePoint[]): void {
+  /**
+   * Sails the ship along a spline through `points`. With `speed` (m/s) the crew trims the sails to
+   * hold that pace whatever the wind (scripted runs such as the Three Helms); without it she sails
+   * on the wind like any other passage.
+   */
+  followSpline(points: readonly SplinePoint[], speed?: number): void {
+    this.autopilotSpeed = speed !== undefined && speed > 0 ? speed : Number.NaN;
     if (points.length < 2) {
       this.clearAutopilot();
       return;
@@ -554,6 +561,7 @@ export class ShipDynamics {
     const slowForEnd = smoothstep(24, 6, finalDist);
     cmd.trim = clamp(0.78 * (1 - slowForEnd * 0.55), 0.22, 0.86);
     cmd.rudder = clamp(err * 2.15, -1, 1);
+    if (finite(this.autopilotSpeed)) cmd.targetSpeedOverride = this.autopilotSpeed * (1 - slowForEnd * 0.6);
   }
 
   private depenetrate(env: ShipEnv, fwdX: number, fwdZ: number): void {

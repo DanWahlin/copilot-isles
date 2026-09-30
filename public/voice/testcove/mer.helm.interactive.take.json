@@ -1,0 +1,92 @@
+{
+  "id": "mer.helm.interactive.take",
+  "speaker": "Rhea",
+  "text": "Interactive helm. We’ll sail one leg at a time, and I’ll check with you at every mark.",
+  "words": [
+    {
+      "word": "Interactive",
+      "start": 0.0485409,
+      "end": 0.776708
+    },
+    {
+      "word": "helm",
+      "start": 0.776708,
+      "end": 2.07525
+    },
+    {
+      "word": "We’ll",
+      "start": 2.07525,
+      "end": 2.293708
+    },
+    {
+      "word": "sail",
+      "start": 2.293708,
+      "end": 2.621375
+    },
+    {
+      "word": "one",
+      "start": 2.621375,
+      "end": 2.864083
+    },
+    {
+      "word": "leg",
+      "start": 2.864083,
+      "end": 3.094666
+    },
+    {
+      "word": "at",
+      "start": 3.094666,
+      "end": 3.203875
+    },
+    {
+      "word": "a",
+      "start": 3.203875,
+      "end": 3.276708
+    },
+    {
+      "word": "time",
+      "start": 3.276708,
+      "end": 3.932041
+    },
+    {
+      "word": "and",
+      "start": 3.932041,
+      "end": 4.029125
+    },
+    {
+      "word": "I’ll",
+      "start": 4.029125,
+      "end": 4.17475
+    },
+    {
+      "word": "check",
+      "start": 4.17475,
+      "end": 4.478166
+    },
+    {
+      "word": "with",
+      "start": 4.478166,
+      "end": 4.635916
+    },
+    {
+      "word": "you",
+      "start": 4.635916,
+      "end": 4.781541
+    },
+    {
+      "word": "at",
+      "start": 4.781541,
+      "end": 4.927166
+    },
+    {
+      "word": "every",
+      "start": 4.927166,
+      "end": 5.169916
+    },
+    {
+      "word": "mark",
+      "start": 5.169916,
+      "end": 5.419916
+    }
+  ]
+}

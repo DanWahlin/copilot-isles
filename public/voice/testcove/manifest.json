@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-30T05:06:00.549Z",
+  "generatedAt": "2026-09-30T05:22:42.448Z",
   "set": "testcove",
   "lines": [
     {
@@ -16110,6 +16110,696 @@
         }
       ],
       "voice": "en-GB-OliviaNeural"
+    },
+    {
+      "id": "mer.helm.interactive.take",
+      "speaker": "Rhea",
+      "text": "Interactive helm. We’ll sail one leg at a time, and I’ll check with you at every mark.",
+      "duration": 6.507,
+      "files": {
+        "webm": "mer.helm.interactive.take.webm",
+        "m4a": "mer.helm.interactive.take.m4a"
+      },
+      "hash": "759b84b1af9e05bc",
+      "words": [
+        {
+          "word": "Interactive",
+          "start": 0.0485409,
+          "end": 0.776708
+        },
+        {
+          "word": "helm",
+          "start": 0.776708,
+          "end": 2.07525
+        },
+        {
+          "word": "We’ll",
+          "start": 2.07525,
+          "end": 2.293708
+        },
+        {
+          "word": "sail",
+          "start": 2.293708,
+          "end": 2.621375
+        },
+        {
+          "word": "one",
+          "start": 2.621375,
+          "end": 2.864083
+        },
+        {
+          "word": "leg",
+          "start": 2.864083,
+          "end": 3.094666
+        },
+        {
+          "word": "at",
+          "start": 3.094666,
+          "end": 3.203875
+        },
+        {
+          "word": "a",
+          "start": 3.203875,
+          "end": 3.276708
+        },
+        {
+          "word": "time",
+          "start": 3.276708,
+          "end": 3.932041
+        },
+        {
+          "word": "and",
+          "start": 3.932041,
+          "end": 4.029125
+        },
+        {
+          "word": "I’ll",
+          "start": 4.029125,
+          "end": 4.17475
+        },
+        {
+          "word": "check",
+          "start": 4.17475,
+          "end": 4.478166
+        },
+        {
+          "word": "with",
+          "start": 4.478166,
+          "end": 4.635916
+        },
+        {
+          "word": "you",
+          "start": 4.635916,
+          "end": 4.781541
+        },
+        {
+          "word": "at",
+          "start": 4.781541,
+          "end": 4.927166
+        },
+        {
+          "word": "every",
+          "start": 4.927166,
+          "end": 5.169916
+        },
+        {
+          "word": "mark",
+          "start": 5.169916,
+          "end": 5.419916
+        }
+      ],
+      "voice": "en-GB-AbbiNeural"
+    },
+    {
+      "id": "mer.helm.interactive.check",
+      "speaker": "Rhea",
+      "text": "Mark reached. Shall we sail the next leg?",
+      "duration": 4.107,
+      "files": {
+        "webm": "mer.helm.interactive.check.webm",
+        "m4a": "mer.helm.interactive.check.m4a"
+      },
+      "hash": "c9faa45623bda445",
+      "words": [
+        {
+          "word": "Mark",
+          "start": 0.0485409,
+          "end": 0.364083
+        },
+        {
+          "word": "reached",
+          "start": 0.364083,
+          "end": 1.723291
+        },
+        {
+          "word": "Shall",
+          "start": 1.723291,
+          "end": 1.978166
+        },
+        {
+          "word": "we",
+          "start": 1.978166,
+          "end": 2.111666
+        },
+        {
+          "word": "sail",
+          "start": 2.111666,
+          "end": 2.475708
+        },
+        {
+          "word": "the",
+          "start": 2.475708,
+          "end": 2.597083
+        },
+        {
+          "word": "next",
+          "start": 2.597083,
+          "end": 2.92475
+        },
+        {
+          "word": "leg",
+          "start": 2.92475,
+          "end": 3.17475
+        }
+      ],
+      "voice": "en-GB-AbbiNeural"
+    },
+    {
+      "id": "mer.helm.interactive.done",
+      "speaker": "Rhea",
+      "text": "That’s Interactive. You were involved at every step.",
+      "duration": 4.607,
+      "files": {
+        "webm": "mer.helm.interactive.done.webm",
+        "m4a": "mer.helm.interactive.done.m4a"
+      },
+      "hash": "469a2bee6203b0a9",
+      "words": [
+        {
+          "word": "That’s",
+          "start": 0.0485409,
+          "end": 0.364083
+        },
+        {
+          "word": "Interactive",
+          "start": 0.364083,
+          "end": 2.050958
+        },
+        {
+          "word": "You",
+          "start": 2.050958,
+          "end": 2.20875
+        },
+        {
+          "word": "were",
+          "start": 2.20875,
+          "end": 2.390791
+        },
+        {
+          "word": "involved",
+          "start": 2.390791,
+          "end": 2.888333
+        },
+        {
+          "word": "at",
+          "start": 2.888333,
+          "end": 3.021833
+        },
+        {
+          "word": "every",
+          "start": 3.021833,
+          "end": 3.288833
+        },
+        {
+          "word": "step",
+          "start": 3.288833,
+          "end": 3.538833
+        }
+      ],
+      "voice": "en-GB-AbbiNeural"
+    },
+    {
+      "id": "mer.helm.next.plan",
+      "speaker": "Rhea",
+      "text": "Next, the Plan buoy. Look for the orange flag.",
+      "duration": 4.607,
+      "files": {
+        "webm": "mer.helm.next.plan.webm",
+        "m4a": "mer.helm.next.plan.m4a"
+      },
+      "hash": "49cdece47dac43f8",
+      "words": [
+        {
+          "word": "Next",
+          "start": 0.0485409,
+          "end": 0.740291
+        },
+        {
+          "word": "the",
+          "start": 0.740291,
+          "end": 0.873791
+        },
+        {
+          "word": "Plan",
+          "start": 0.873791,
+          "end": 1.225708
+        },
+        {
+          "word": "buoy",
+          "start": 1.225708,
+          "end": 2.427166
+        },
+        {
+          "word": "Look",
+          "start": 2.427166,
+          "end": 2.694166
+        },
+        {
+          "word": "for",
+          "start": 2.694166,
+          "end": 2.815541
+        },
+        {
+          "word": "the",
+          "start": 2.815541,
+          "end": 2.949041
+        },
+        {
+          "word": "orange",
+          "start": 2.949041,
+          "end": 3.300958
+        },
+        {
+          "word": "flag",
+          "start": 3.300958,
+          "end": 3.550958
+        }
+      ],
+      "voice": "en-GB-AbbiNeural"
+    },
+    {
+      "id": "mer.helm.plan.take",
+      "speaker": "Rhea",
+      "text": "Plan helm. Here’s the route I’ve charted. Look it over, then approve it.",
+      "duration": 6.607,
+      "files": {
+        "webm": "mer.helm.plan.take.webm",
+        "m4a": "mer.helm.plan.take.m4a"
+      },
+      "hash": "1ecb86e5811182d0",
+      "words": [
+        {
+          "word": "Plan",
+          "start": 0.0485409,
+          "end": 0.388333
+        },
+        {
+          "word": "helm",
+          "start": 0.388333,
+          "end": 1.711166
+        },
+        {
+          "word": "Here’s",
+          "start": 1.711166,
+          "end": 2.038833
+        },
+        {
+          "word": "the",
+          "start": 2.038833,
+          "end": 2.160208
+        },
+        {
+          "word": "route",
+          "start": 2.160208,
+          "end": 2.475708
+        },
+        {
+          "word": "I’ve",
+          "start": 2.475708,
+          "end": 2.621375
+        },
+        {
+          "word": "charted",
+          "start": 2.621375,
+          "end": 4.004875
+        },
+        {
+          "word": "Look",
+          "start": 4.004875,
+          "end": 4.223291
+        },
+        {
+          "word": "it",
+          "start": 4.223291,
+          "end": 4.356791
+        },
+        {
+          "word": "over",
+          "start": 4.356791,
+          "end": 4.951458
+        },
+        {
+          "word": "then",
+          "start": 4.951458,
+          "end": 5.145625
+        },
+        {
+          "word": "approve",
+          "start": 5.145625,
+          "end": 5.521833
+        },
+        {
+          "word": "it",
+          "start": 5.521833,
+          "end": 5.771833
+        }
+      ],
+      "voice": "en-GB-AbbiNeural"
+    },
+    {
+      "id": "mer.helm.plan.go",
+      "speaker": "Rhea",
+      "text": "Plan approved. Now she sails it straight through.",
+      "duration": 4.407,
+      "files": {
+        "webm": "mer.helm.plan.go.webm",
+        "m4a": "mer.helm.plan.go.m4a"
+      },
+      "hash": "84f73d98df7d6775",
+      "words": [
+        {
+          "word": "Plan",
+          "start": 0.0485409,
+          "end": 0.364083
+        },
+        {
+          "word": "approved",
+          "start": 0.364083,
+          "end": 1.80825
+        },
+        {
+          "word": "Now",
+          "start": 1.80825,
+          "end": 2.07525
+        },
+        {
+          "word": "she",
+          "start": 2.07525,
+          "end": 2.257291
+        },
+        {
+          "word": "sails",
+          "start": 2.257291,
+          "end": 2.682041
+        },
+        {
+          "word": "it",
+          "start": 2.682041,
+          "end": 2.815541
+        },
+        {
+          "word": "straight",
+          "start": 2.815541,
+          "end": 3.19175
+        },
+        {
+          "word": "through",
+          "start": 3.19175,
+          "end": 3.44175
+        }
+      ],
+      "voice": "en-GB-AbbiNeural"
+    },
+    {
+      "id": "mer.helm.plan.done",
+      "speaker": "Rhea",
+      "text": "That’s Plan. You saw the whole route before anything moved.",
+      "duration": 5.007,
+      "files": {
+        "webm": "mer.helm.plan.done.webm",
+        "m4a": "mer.helm.plan.done.m4a"
+      },
+      "hash": "fd6bde6cb7d54759",
+      "words": [
+        {
+          "word": "That’s",
+          "start": 0.0485409,
+          "end": 0.327666
+        },
+        {
+          "word": "Plan",
+          "start": 0.327666,
+          "end": 1.6505
+        },
+        {
+          "word": "You",
+          "start": 1.6505,
+          "end": 1.844666
+        },
+        {
+          "word": "saw",
+          "start": 1.844666,
+          "end": 2.050958
+        },
+        {
+          "word": "the",
+          "start": 2.050958,
+          "end": 2.160208
+        },
+        {
+          "word": "whole",
+          "start": 2.160208,
+          "end": 2.5
+        },
+        {
+          "word": "route",
+          "start": 2.5,
+          "end": 2.79125
+        },
+        {
+          "word": "before",
+          "start": 2.79125,
+          "end": 3.143208
+        },
+        {
+          "word": "anything",
+          "start": 3.143208,
+          "end": 3.580083
+        },
+        {
+          "word": "moved",
+          "start": 3.580083,
+          "end": 3.830083
+        }
+      ],
+      "voice": "en-GB-AbbiNeural"
+    },
+    {
+      "id": "mer.helm.next.autopilot",
+      "speaker": "Rhea",
+      "text": "Last one, the Autopilot buoy with the green flag.",
+      "duration": 4.007,
+      "files": {
+        "webm": "mer.helm.next.autopilot.webm",
+        "m4a": "mer.helm.next.autopilot.m4a"
+      },
+      "hash": "09f5415be67aff65",
+      "words": [
+        {
+          "word": "Last",
+          "start": 0.0485409,
+          "end": 0.42475
+        },
+        {
+          "word": "one",
+          "start": 0.42475,
+          "end": 0.995125
+        },
+        {
+          "word": "the",
+          "start": 0.995125,
+          "end": 1.128625
+        },
+        {
+          "word": "Autopilot",
+          "start": 1.128625,
+          "end": 1.820375
+        },
+        {
+          "word": "buoy",
+          "start": 1.820375,
+          "end": 2.087375
+        },
+        {
+          "word": "with",
+          "start": 2.087375,
+          "end": 2.233
+        },
+        {
+          "word": "the",
+          "start": 2.233,
+          "end": 2.34225
+        },
+        {
+          "word": "green",
+          "start": 2.34225,
+          "end": 2.682041
+        },
+        {
+          "word": "flag",
+          "start": 2.682041,
+          "end": 2.932041
+        }
+      ],
+      "voice": "en-GB-AbbiNeural"
+    },
+    {
+      "id": "mer.helm.autopilot.take",
+      "speaker": "Rhea",
+      "text": "Autopilot helm. Give her the destination, your berth, and she’ll take it from here.",
+      "duration": 6.427,
+      "files": {
+        "webm": "mer.helm.autopilot.take.webm",
+        "m4a": "mer.helm.autopilot.take.m4a"
+      },
+      "hash": "3e30ce02d36af0da",
+      "words": [
+        {
+          "word": "Autopilot",
+          "start": 0.0485409,
+          "end": 0.740291
+        },
+        {
+          "word": "helm",
+          "start": 0.740291,
+          "end": 2.014583
+        },
+        {
+          "word": "Give",
+          "start": 2.014583,
+          "end": 2.196583
+        },
+        {
+          "word": "her",
+          "start": 2.196583,
+          "end": 2.34225
+        },
+        {
+          "word": "the",
+          "start": 2.34225,
+          "end": 2.463583
+        },
+        {
+          "word": "destination",
+          "start": 2.463583,
+          "end": 3.446583
+        },
+        {
+          "word": "your",
+          "start": 3.446583,
+          "end": 3.567958
+        },
+        {
+          "word": "berth",
+          "start": 3.567958,
+          "end": 4.296125
+        },
+        {
+          "word": "and",
+          "start": 4.296125,
+          "end": 4.417458
+        },
+        {
+          "word": "she’ll",
+          "start": 4.417458,
+          "end": 4.623791
+        },
+        {
+          "word": "take",
+          "start": 4.623791,
+          "end": 4.8665
+        },
+        {
+          "word": "it",
+          "start": 4.8665,
+          "end": 4.975708
+        },
+        {
+          "word": "from",
+          "start": 4.975708,
+          "end": 5.145625
+        },
+        {
+          "word": "here",
+          "start": 5.145625,
+          "end": 5.395625
+        }
+      ],
+      "voice": "en-GB-AbbiNeural"
+    },
+    {
+      "id": "mer.helm.autopilot.done",
+      "speaker": "Rhea",
+      "text": "Home, and not a single stop. That’s Autopilot, for a task that’s clearly defined.",
+      "duration": 6.807,
+      "files": {
+        "webm": "mer.helm.autopilot.done.webm",
+        "m4a": "mer.helm.autopilot.done.m4a"
+      },
+      "hash": "db25602934b10e42",
+      "words": [
+        {
+          "word": "Home",
+          "start": 0.0485409,
+          "end": 0.69175
+        },
+        {
+          "word": "and",
+          "start": 0.69175,
+          "end": 0.82525
+        },
+        {
+          "word": "not",
+          "start": 0.82525,
+          "end": 1.080083
+        },
+        {
+          "word": "a",
+          "start": 1.080083,
+          "end": 1.152916
+        },
+        {
+          "word": "single",
+          "start": 1.152916,
+          "end": 1.529125
+        },
+        {
+          "word": "stop",
+          "start": 1.529125,
+          "end": 2.79125
+        },
+        {
+          "word": "That’s",
+          "start": 2.79125,
+          "end": 3.082541
+        },
+        {
+          "word": "Autopilot",
+          "start": 3.082541,
+          "end": 4.065541
+        },
+        {
+          "word": "for",
+          "start": 4.065541,
+          "end": 4.186875
+        },
+        {
+          "word": "a",
+          "start": 4.186875,
+          "end": 4.271833
+        },
+        {
+          "word": "task",
+          "start": 4.271833,
+          "end": 4.684458
+        },
+        {
+          "word": "that’s",
+          "start": 4.684458,
+          "end": 4.927166
+        },
+        {
+          "word": "clearly",
+          "start": 4.927166,
+          "end": 5.327666
+        },
+        {
+          "word": "defined",
+          "start": 5.327666,
+          "end": 5.577666
+        }
+      ],
+      "voice": "en-GB-AbbiNeural"
     }
   ]
 }
