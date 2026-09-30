@@ -190,4 +190,5 @@ const key = (code: string, down: boolean) => {
   }),
   lighthouseLit: (on: boolean) => cove.meridian.town?.setLighthouseLit(on),
   liftCar: (t: number) => cove.meridian.town?.setLiftCar(t),
+  mooringLines: (on: boolean) => cove.meridian.town?.setMooringLines(on),
 };

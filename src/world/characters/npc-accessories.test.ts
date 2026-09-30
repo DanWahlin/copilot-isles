@@ -11,6 +11,12 @@ const MERIDIAN_MARKERS = {
   oren: ['star cap crown', 'spectacles', 'astronomer long robe', 'brass astrolabe'],
   pell: ['periwig cap', 'white cravat', 'ledger', 'quill shaft'],
   admiral: ['bicorne', 'white plume', 'naval coat tails', 'medal'],
+  mer_fisher: ['sun-bleached cap crown', 'coiled fishing net', 'rolled sleeve cuff'],
+  mer_matron: ['headscarf wrap', 'merchant apron bib', 'market basket'],
+  mer_vendor: ['striped shirt band', 'neckerchief knot', 'vendor produce tray'],
+  mer_kid_a: ['child sailor cap', 'pinwheel vane', 'satchel'],
+  mer_kid_b: ['headscarf wrap', 'toy hoop', 'sash'],
+  mer_guard: ['guard bicorne', 'guard uniform coat', 'guard brass belt'],
 } as const satisfies Partial<Record<CharacterBody, readonly string[]>>;
 
 describe('NPC accessories', () => {

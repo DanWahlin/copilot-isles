@@ -369,6 +369,7 @@ const PELL: readonly ScriptStep[] = [
 ];
 
 const EXAM_PASSED: readonly ScriptStep[] = [
+  { cue: 'celebrate' },
   { say: 'mer.admiral.pass' },
   { cue: 'lighthouse' },
   { say: 'mer.admiral.next' },

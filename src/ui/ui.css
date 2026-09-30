@@ -285,6 +285,15 @@
   pointer-events: auto;
 }
 
+.ci-loading-bound {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(79, 53, 27, 0.78);
+}
+
 .ci-loading h2 {
   margin: 0;
   font-family: var(--ci-display);

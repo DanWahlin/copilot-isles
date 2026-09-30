@@ -476,6 +476,7 @@
 }
 
 .hud-help {
+  transition: opacity 450ms ease;
   position: absolute;
   right: 1.6rem;
   bottom: 1.4rem;
@@ -651,4 +652,9 @@
 }
 .hud-fade.show {
   opacity: 1;
+}
+
+.hud.calm .hud-help,
+.hud.calm .hud-sail.show {
+  opacity: 0;
 }

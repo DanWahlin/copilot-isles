@@ -107,6 +107,13 @@ describe('createMeridianTown', () => {
       'liftBottom',
       'liftTop',
       'lighthouse',
+      'extraFisher',
+      'extraBench',
+      'extraStall',
+      'extraFountain',
+      'extraQuayA',
+      'extraQuayB',
+      'extraCitadel',
     ];
 
     for (const id of required) {
@@ -128,6 +135,68 @@ describe('createMeridianTown', () => {
     kit.dispose();
   });
 
+  it('provides clear extra townsfolk anchors and patrol paths', () => {
+    const kit = testKit();
+    const town = createMeridianTown({ tier: tierSettings('high'), heightField, kit });
+    for (const id of ['extraFisher', 'extraBench', 'extraStall', 'extraCitadel'] as const) {
+      const a = town.anchors[id]!;
+      expect(
+        town.colliders.circles.some((c) => circleHitsPoint(c, a.x, a.z, 0.6)),
+        id,
+      ).toBe(false);
+      expect(
+        town.colliders.boxes.some((b) => boxHitsPoint(b, a.x, a.z, 0.6)),
+        id,
+      ).toBe(false);
+    }
+
+    const fountain = town.anchors.extraFountain!;
+    expect(
+      town.colliders.circles.some(
+        (c) =>
+          Math.abs(c.x - fountain.x) < 0.01 &&
+          Math.abs(c.z - fountain.z) < 0.01 &&
+          c.r > 3.1 &&
+          c.r < 3.3 &&
+          c.height === 2.6,
+      ),
+    ).toBe(true);
+    for (let i = 0; i < 24; i += 1) {
+      const a = (i / 24) * Math.PI * 2;
+      const x = fountain.x + Math.sin(a) * 3.4;
+      const z = fountain.z + Math.cos(a) * 3.4;
+      const h = town.walkable(x, z);
+      expect(h, `fountain ring ${i}`).not.toBeNull();
+      expect(h!, `fountain ring ${i}`).toBeGreaterThan(6.5);
+      expect(h!, `fountain ring ${i}`).toBeLessThan(7.2);
+      expect(
+        town.colliders.boxes.some((b) => boxHitsPoint(b, x, z, 0.3)),
+        `box ring ${i}`,
+      ).toBe(false);
+    }
+
+    const qa = town.anchors.extraQuayA!;
+    const qb = town.anchors.extraQuayB!;
+    expect(Math.hypot(qa.x - qb.x, qa.z - qb.z)).toBeGreaterThan(20);
+    for (let i = 0; i <= 12; i += 1) {
+      const t = i / 12;
+      const x = qa.x + (qb.x - qa.x) * t;
+      const z = qa.z + (qb.z - qa.z) * t;
+      expect(town.walkable(x, z), `quay patrol ${i}`).toBeCloseTo(MERIDIAN.harbor.quay.height, 1);
+      expect(
+        town.colliders.circles.some((c) => circleHitsPoint(c, x, z, 0.5)),
+        `quay circle ${i}`,
+      ).toBe(false);
+      expect(
+        town.colliders.boxes.some((b) => boxHitsPoint(b, x, z, 0.5)),
+        `quay box ${i}`,
+      ).toBe(false);
+    }
+
+    town.dispose();
+    kit.dispose();
+  });
+
   it('makes the grand stair street walkable from quay to plaza with no tall step', () => {
     const kit = testKit();
     const town = createMeridianTown({ tier: tierSettings('low'), heightField, kit });
@@ -140,6 +209,49 @@ describe('createMeridianTown', () => {
     }
     expect(town.walkable(668, MERIDIAN.harbor.quay.z0)).toBeCloseTo(MERIDIAN.harbor.quay.height, 1);
     expect(town.walkable(668, MERIDIAN.pads.plaza.z)).toBeCloseTo(MERIDIAN.pads.plaza.height, 1);
+
+    town.dispose();
+    kit.dispose();
+  });
+
+  it('connects the shipyard apron to the mole, lighthouse, and fisher without blocking the lane', () => {
+    const kit = testKit();
+    const town = createMeridianTown({ tier: tierSettings('high'), heightField, kit });
+    const samples: { x: number; z: number }[] = [
+      { x: 586, z: -735 },
+      { x: 586, z: -752 },
+      { x: 580, z: -730 },
+      { x: 590, z: -720 },
+      { x: MERIDIAN.mole.start.x, z: MERIDIAN.mole.start.z },
+    ];
+    for (let i = 0; i <= 20; i += 1) {
+      const t = i / 20;
+      samples.push({
+        x: MERIDIAN.mole.start.x + (MERIDIAN.mole.end.x - MERIDIAN.mole.start.x) * t,
+        z: MERIDIAN.mole.start.z + (MERIDIAN.mole.end.z - MERIDIAN.mole.start.z) * t,
+      });
+    }
+    samples.push({ x: MERIDIAN.mole.lighthouse.x - 6.2, z: MERIDIAN.mole.lighthouse.z - 2.7 });
+
+    let last: number | null = null;
+    for (const p of samples) {
+      const h = town.walkable(p.x, p.z);
+      expect(h, `walkable at ${p.x},${p.z}`).not.toBeNull();
+      if (last !== null) expect(Math.abs(h! - last), `step at ${p.x},${p.z}`).toBeLessThanOrEqual(0.6);
+      expect(
+        town.colliders.circles.some((c) => circleHitsPoint(c, p.x, p.z, 0.35)),
+        `circle at ${p.x},${p.z}`,
+      ).toBe(false);
+      expect(
+        town.colliders.boxes.some((b) => boxHitsPoint(b, p.x, p.z, 0.35)),
+        `box at ${p.x},${p.z}`,
+      ).toBe(false);
+      last = h!;
+    }
+    const fisher = town.anchors.extraFisher!;
+    expect(town.walkable(fisher.x, fisher.z)).not.toBeNull();
+    expect(town.colliders.circles.some((c) => circleHitsPoint(c, fisher.x, fisher.z, 0.6))).toBe(false);
+    expect(town.colliders.boxes.some((b) => boxHitsPoint(b, fisher.x, fisher.z, 0.6))).toBe(false);
 
     town.dispose();
     kit.dispose();

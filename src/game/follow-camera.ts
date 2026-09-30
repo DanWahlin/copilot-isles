@@ -229,7 +229,7 @@ export class FollowCamera {
         const x = this.pivot.x - dx * s,
           y = this.pivot.y - dy * s,
           z = this.pivot.z - dz * s;
-        if (y < world.groundAt(x, z) + 0.45 || world.occludedAt(x, y, z)) {
+        if (y < world.groundAt(x, z) + 0.45 || world.sightBlockedAt(x, y, z, 0.25)) {
           allowed = Math.max(r.minDist * 0.5, s - this.wantDist / SAMPLES - 0.2);
           break;
         }

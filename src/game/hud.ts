@@ -212,6 +212,11 @@ export class Hud {
     this.root.classList.toggle('menu-open', on);
   }
 
+  /** Fades the controls help while a conversation or framed shot has the screen. */
+  setCalm(on: boolean): void {
+    this.root.classList.toggle('calm', on);
+  }
+
   /** Letterboxes the view and hides the rest of the HUD for a flyover. */
   setCinematic(on: boolean): void {
     this.root.classList.toggle('cinematic', on);

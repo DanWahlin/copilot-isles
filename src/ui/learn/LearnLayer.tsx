@@ -83,7 +83,7 @@ function LearnLayer({
         !s.logbook.open &&
         !s.palette &&
         !s.banner &&
-        !s.spyglass && <QuestTracker tracker={s.tracker} />}
+        !s.spyglass && <QuestTracker tracker={s.tracker} calm={s.calm} />}
       {s.spyglass && !s.spyglass.full && !s.quiz && !s.logbook.open && (
         <Spyglass store={store} spy={s.spyglass} />
       )}

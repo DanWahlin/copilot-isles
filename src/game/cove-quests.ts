@@ -417,6 +417,8 @@ const NELL_TRIAL: readonly ScriptStep[] = [
   { say: 'nell.trial.01' },
   { say: 'wingman.trial.01' },
   { trial: 'T0' },
+  // The harbour cheers the new Seal and Wingman takes a lap.
+  { cue: 'celebrate' },
   { quest: 'Q0.10', step: 'done' },
   { say: 'nell.trial.02' },
   { quest: 'Q0.11', step: 'start' },
