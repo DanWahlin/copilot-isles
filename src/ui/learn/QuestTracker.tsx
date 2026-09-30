@@ -13,9 +13,10 @@ function readCollapsed(): boolean {
 
 /**
  * The island's goal and key tasks, top left while playing: what's done, what's next, and what to
- * do right now. T (or the header button) collapses it to just the current task.
+ * do right now. T (or the header button) collapses it to just the current task. It fades out while
+ * a conversation or framed shot has the screen (`calm`).
  */
-export function QuestTracker({ tracker }: { tracker: Tracker }) {
+export function QuestTracker({ tracker, calm = false }: { tracker: Tracker; calm?: boolean }) {
   const [collapsed, setCollapsed] = useState(readCollapsed);
 
   useEffect(() => {
@@ -44,7 +45,11 @@ export function QuestTracker({ tracker }: { tracker: Tracker }) {
   const shown = collapsed ? tracker.tasks.filter((t) => t.status === 'active') : tracker.tasks;
 
   return (
-    <section className={`ci-tracker${collapsed ? ' collapsed' : ''}`} aria-label="Island tasks">
+    <section
+      className={`ci-tracker${collapsed ? ' collapsed' : ''}${calm ? ' calm' : ''}`}
+      aria-label="Island tasks"
+      aria-hidden={calm || undefined}
+    >
       <button
         type="button"
         className="ci-tracker-head"

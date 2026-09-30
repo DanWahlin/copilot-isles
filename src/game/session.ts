@@ -883,6 +883,21 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   cues.set('tour:end', async () => {
     if (talkShot) cam.frame(talkShot);
   });
+  // A Seal's won: everyone nearby waves to you, the crowd cheers, and Wingman takes a lap and comes
+  // back to your shoulder.
+  cues.set('celebrate', async () => {
+    audio?.sfx.oneShot('chime_solve', player, 0.9);
+    for (const n of [...npcs.list, ...(meridianNpcs?.list ?? [])])
+      if (!n.talking && Math.hypot(n.x - player.x, n.z - player.z) < 45) n.character.greet();
+    audio?.sfx.oneShot('crowd_cheer_small', player, 0.8);
+    if (wingman && wingman.phase === 'perched') {
+      hero.group.getWorldPosition(flightView.captain);
+      camera.getWorldPosition(flightView.eye);
+      wingman.takeOff(flightView as FlightView);
+      await new Promise((r) => setTimeout(r, 2400));
+      wingman.land();
+    } else await new Promise((r) => setTimeout(r, 1200));
+  });
   let lighthouseLit = false;
   /**
    * The Seal's shot of the lighthouse: out on the water beyond it and a little to one side, looking
@@ -915,13 +930,19 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     const lh = town?.anchors.lighthouse;
     const adm = town?.anchors.admiral;
     if (!town || !lh || !adm) return;
-    cam.frame(lighthouseShot(adm, lh));
-    await new Promise((r) => setTimeout(r, 1400));
+    // Cuts, not eases: the sea shot is across the harbour, and an ease would swoop through the bluff.
+    const shot = lighthouseShot(adm, lh);
+    await hud.fade(true, 260);
+    cam.cut(shot);
+    await hud.fade(false, 260);
+    await new Promise((r) => setTimeout(r, 1100));
     town.setLighthouseLit(true);
     lighthouseLit = true;
     audio?.sfx.oneShot('crowd_cheer_small', player, 0.8);
     await new Promise((r) => setTimeout(r, 2600));
-    if (talkShot) cam.frame(talkShot);
+    await hud.fade(true, 260);
+    if (talkShot) cam.cut(talkShot);
+    await hud.fade(false, 260);
   });
 
   const setupMeridian = async (town: CoveScene['meridian']['town']) => {
@@ -1067,17 +1088,39 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         world.groundAt(candidate.x, candidate.z) + 0.45,
       ),
     }));
-    return candidates.find((candidate) => validTalkShot(candidate, target)) ?? candidates[0]!;
+    const first = candidates.find((candidate) => validTalkShot(candidate, target));
+    if (first) return first;
+    // Boxed in (a stage, a fountain, a wall behind you): look for a clear two-shot all round them.
+    const toPlayer = Math.atan2(fx, fz);
+    for (const dist of [3.2, 4.4, 2.4])
+      for (const turn of [0.6, -0.6, 1.2, -1.2, 0, 1.9, -1.9, Math.PI]) {
+        const a = toPlayer + turn;
+        const x = n.x + Math.sin(a) * dist,
+          z = n.z + Math.cos(a) * dist;
+        const shot: CameraShot = {
+          x,
+          y: Math.max(n.y + eyeLift + 0.3, world.groundAt(x, z) + 1.4, world.waterAt(x, z, 0) + 0.8),
+          z,
+          tx: target.x,
+          ty: target.y,
+          tz: target.z,
+        };
+        if (validTalkShot(shot, target)) return shot;
+      }
+    return candidates[0]!;
   }
 
   function validTalkShot(shot: CameraShot, target: { x: number; y: number; z: number }): boolean {
     if (Math.hypot(shot.x - player.x, shot.y - (player.y + 1.5), shot.z - player.z) < 0.7) return false;
+    // The camera itself: not inside a wall, a tower, or the hillside.
+    if (world.sightBlockedAt(shot.x, shot.y, shot.z, 0.3) || shot.y < world.groundAt(shot.x, shot.z) + 0.4)
+      return false;
     for (let i = 1; i < 8; i += 1) {
       const t = i / 8;
       const x = shot.x + (target.x - shot.x) * t;
       const y = shot.y + (target.y - shot.y) * t;
       const z = shot.z + (target.z - shot.z) * t;
-      if (world.occludedAt(x, y, z, 0.08)) return false;
+      if (world.sightBlockedAt(x, y, z, 0.08)) return false;
     }
     return true;
   }
@@ -1291,6 +1334,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     );
   };
 
+  /** Seconds the HUD stays calm after the last busy frame. */
+  const CALM_HOLD = 0.6;
+  let calmFor = 0;
+  let calmShown = false;
   let anim: 'move' | 'wade' = 'move';
   let cooldown = 0;
   let paused = false;
@@ -1629,6 +1676,23 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         if (liftRide) updateLift(dt, s, t);
         for (const site of meridianSites) site.update(dt, t);
         updateCompass();
+        // The task list and controls help step aside while a conversation or framed shot has the
+        // screen, and come back a moment after (so they don't flicker between lines).
+        const busy =
+          mode === 'transition' ||
+          mode === 'docking' ||
+          !!liftRide ||
+          dialogue.active ||
+          scriptRunning ||
+          anyTalking() ||
+          cam.framing;
+        calmFor = busy ? CALM_HOLD : Math.max(0, calmFor - dt);
+        const calm = calmFor > 0;
+        if (calm !== calmShown) {
+          calmShown = calm;
+          hud.setCalm(calm);
+          learn?.setCalm(calm);
+        }
         hero.update(dt);
         if (rheaAboard?.group.parent) rheaAboard.update(dt);
         updateWingman(dt);

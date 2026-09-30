@@ -77,8 +77,10 @@ export const MERIDIAN_ARRIVAL: IslandArrival = {
     { x: 790, y: 34, z: -718, tx: M.harbor.landing.x, ty: 4, tz: M.harbor.landing.z, pace: 0.75 },
   ],
   seconds: 19,
-  cardAt: 2.2,
-  cardFor: 5,
+  // The card holds over the wide opening (the whole harbour, the town and the citadel behind),
+  // clear before the camera drops past the lighthouse.
+  cardAt: 0.6,
+  cardFor: 3.4,
 };
 
 export const ARRIVALS: Readonly<Record<IslandId, IslandArrival>> = {

@@ -25,6 +25,8 @@ export interface CircleObstacle {
   x: number;
   z: number;
   r: number;
+  /** Top height above the ground, for camera sight lines (big circles default to tall). */
+  height?: number;
 }
 
 /** The shared wind field (CPU side; the GPU side is built from the same constants in wind.ts). */

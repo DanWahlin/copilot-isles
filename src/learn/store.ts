@@ -61,6 +61,8 @@ export interface LearnState {
   palette: { selected: string } | null;
   /** An arrival flyover is playing: the purse and task list step aside for the view. */
   cinematic: boolean;
+  /** A conversation or framed shot is on: the task list fades so the scene has the screen. */
+  calm: boolean;
 }
 
 export interface QuizOutcome {
@@ -102,6 +104,7 @@ export class LearnStore {
       sails: progress.data.sails,
       palette: null,
       cinematic: false,
+      calm: false,
     };
   }
 
@@ -378,12 +381,17 @@ export class LearnStore {
       spyglass: null,
       logbook: { open: false, tab: 'pages', page: null },
       cinematic: false,
+      calm: false,
     });
   };
 
   /** Hides the purse and task list while an arrival flyover plays. */
   setCinematic = (on: boolean): void => {
     if (this.state.cinematic !== on) this.set({ cinematic: on });
+  };
+
+  setCalm = (on: boolean): void => {
+    if (this.state.calm !== on) this.set({ calm: on });
   };
 
   /** A fresh voyage: wipes progress. */

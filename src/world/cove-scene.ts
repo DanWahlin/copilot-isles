@@ -72,6 +72,8 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const params =
     typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
   const mirrorDisabled = params.has('nomirror');
+  // Meridian's gulls arrive with its town (the stream below).
+  let meridianBirds: BirdsSystem | null = null;
   const meridianDisabled = params.has('nomeridian');
   const mirror = tier.mirror ? new HarborMirror({ renderer, tier, disabled: mirrorDisabled }) : null;
   const ocean = createOcean({ tier, env: sky.env, mirror: mirror?.input });
@@ -138,6 +140,18 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         scene.add(town.group);
         await renderer.compileAsync(town.group, camera);
         shipObstacles.push(...town.shipObstacles);
+        // Gulls wheeling over Meridian's harbour and the mole, like Anchorage's.
+        if (o.birds !== false && tier.birds > 0 && !meridianBirds) {
+          meridianBirds = createBirds({
+            tier,
+            perches: [],
+            center: new Vector3(MERIDIAN.harbor.center.x + 30, 0, MERIDIAN.harbor.center.z - 40),
+            radius: 170,
+            seed: 0x3e51d,
+          });
+          meridianBirds.group.visible = false;
+          scene.add(meridianBirds.group);
+        }
         resolveMeridianTown(town);
       })
       .catch((error) => {
@@ -237,6 +251,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       vegetation?.update(camera);
       village.update(dt, t, camera);
       if (showMeridian) meridian.town?.update(dt, t, camera);
+      if (meridianBirds) {
+        meridianBirds.group.visible = showMeridian;
+        if (showMeridian) meridianBirds.update(dt, t, camera);
+      }
       sites.update(dt, t);
       birds?.update(dt, t, camera);
       leaps?.update(dt, t, camera);
@@ -257,6 +275,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         ship.group,
         vegetation?.group,
         birds?.group,
+        meridianBirds?.group,
         leaps?.group,
         flotsam.group,
       ]);
@@ -300,6 +319,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       if (meridian.town) scene.remove(meridian.town.group);
       if (vegetation) scene.remove(vegetation.group);
       if (birds) scene.remove(birds.group);
+      if (meridianBirds) scene.remove(meridianBirds.group);
       if (leaps) scene.remove(leaps.group);
       disposeTree(foam);
       disposeTree(ranges);
@@ -308,6 +328,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       if (meridian.foam) disposeTree(meridian.foam);
       meridian.town?.dispose();
       birds?.dispose();
+      meridianBirds?.dispose();
       leaps?.dispose();
       village.dispose();
       sites.dispose();

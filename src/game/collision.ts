@@ -154,15 +154,29 @@ export class CollisionWorld {
     return hit;
   }
 
+  /** Every static circle collider (tests and audits), deduplicated across grid cells. */
+  circles(): CircleObstacle[] {
+    const out = new Set<CircleObstacle>();
+    for (const b of this.grid.values()) for (const c of b.circles) out.add(c);
+    return [...out];
+  }
+
   /**
    * Whether a sight line through (x, y, z) is blocked: a box below its top, or a big round collider
-   * (a tower or tree trunk, 1.5 m or more across in radius, treated as tall). For scripted shots.
+   * (a tower, a fountain, a lighthouse: radius 1.5 m or more, up to its `height`, else 12 m). Used by
+   * the follow camera and scripted shots.
    */
   sightBlockedAt(x: number, y: number, z: number, pad = 0.2): boolean {
     if (this.occludedAt(x, y, z, pad)) return true;
     const b = this.cellAt(x, z);
     if (!b) return false;
-    for (const c of b.circles) if (c.r >= 1.5 && Math.hypot(x - c.x, z - c.z) < c.r + pad) return true;
+    for (const c of b.circles)
+      if (
+        c.r >= 1.5 &&
+        Math.hypot(x - c.x, z - c.z) < c.r + pad &&
+        y < this.ground.heightAt(c.x, c.z) + (c.height ?? 12)
+      )
+        return true;
     return false;
   }
 
