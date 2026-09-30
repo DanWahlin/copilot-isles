@@ -11,11 +11,13 @@ import {
   MeshStandardNodeMaterial,
   RedFormat,
   Texture,
+  Vector3,
   Vector4,
 } from 'three/webgpu';
 import {
   Fn,
   attribute,
+  cameraPosition,
   cameraViewMatrix,
   clamp,
   color,
@@ -155,7 +157,21 @@ export function createVegetationMaterial(
   return material;
 }
 
-export function createGrassMaterial(heightTexture: DataTexture, grid: HeightGrid): MeshStandardNodeMaterial {
+/**
+ * How far grass reaches (metres, already tier-scaled): full density out to `full`, thinning to
+ * `keep` of it by `far`, and shrinking away over the last stretch before `far`.
+ */
+export interface GrassReach {
+  full: number;
+  far: number;
+  keep: number;
+}
+
+export function createGrassMaterial(
+  heightTexture: DataTexture,
+  grid: HeightGrid,
+  reach: GrassReach,
+): MeshStandardNodeMaterial {
   const material = new MeshStandardNodeMaterial({
     side: DoubleSide,
     alphaTest: 0,
@@ -163,7 +179,9 @@ export function createGrassMaterial(heightTexture: DataTexture, grid: HeightGrid
     metalness: 0,
   });
   const tint = attribute('tint', 'vec3') as AnyNode;
-  const fade = attribute('fade', 'float') as AnyNode;
+  // Per clump: x is its thinning rank (below zero is never thinned), y its exclusion-edge weight.
+  const clumpShape = attribute('grassShape', 'vec2') as AnyNode;
+  const reachU = uniform(new Vector3(reach.full, reach.far, reach.keep)) as AnyNode;
   const shade = attribute('shade', 'float') as AnyNode;
   const part = attribute('vegPart', 'float') as AnyNode;
   const params = uniform(
@@ -177,7 +195,13 @@ export function createGrassMaterial(heightTexture: DataTexture, grid: HeightGrid
   );
   const terrainY = (texture(heightTexture, hUv) as AnyNode).r;
   const blade = (positionGeometry as AnyNode).y;
-  const sizeFade = fade;
+  // Distance fades are worked out here from the camera, not written per frame, and only at the far
+  // edge of the reach: clumps near the player are always full height, so nothing sprouts beside you.
+  const toCamera = (vec3 as AnyNode)(worldXZ.x, terrainY, worldXZ.y).distance(cameraPosition);
+  const outer = float(1).sub(smoothstep(reachU.y.mul(0.84), reachU.y, toCamera));
+  const keep = float(1).sub(smoothstep(reachU.x, reachU.y, toCamera).mul(float(1).sub(reachU.z)));
+  const thin = clamp(keep.sub(clumpShape.x).div(0.12), float(0), float(1));
+  const sizeFade = clumpShape.y.mul(outer).mul(thin);
   const bladeGate = smoothstep(float(0.02), float(1.0), blade).mul(sizeFade);
   const gust = gustNode(worldXZ) as AnyNode;
   const motion = float(1).sub(world.reducedMotion.mul(0.9));
