@@ -161,7 +161,7 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
       addSash(root, 0xd28a22, 1);
       break;
     case 'mer_guard':
-      addGuardHelmet(root, 0x8d969c, 0xd6b35f);
+      addGuardBicorne(root, 0x11131c, 0x7a1f2d, 0xd6b35f);
       addGuardLivery(root, 0x172d59, 0x7a1f2d, 0xd6b35f);
       break;
     case 'lookout':
@@ -357,21 +357,29 @@ function addChildSailorCap(root: Group, cloth: ColorHex, trim: ColorHex): void {
   addHead(root, brim);
 }
 
-function addGuardHelmet(root: Group, metal: ColorHex, trim: ColorHex): void {
-  const dome = mesh(new SphereGeometry(0.3, 14, 7), mat(metal), 'guard helmet dome');
-  dome.position.set(0, 0.225, 0);
-  dome.scale.set(1.12, 0.46, 0.94);
-  addHead(root, dome);
+function addGuardBicorne(root: Group, felt: ColorHex, cockadeColor: ColorHex, trim: ColorHex): void {
+  const hat = mesh(
+    createTricornGeometry(
+      { base: 0.17, rx: 0.25, front: 0.28, back: 0.31, crown: 0.19, brim: 0.24, tilt: 0.06 },
+      { felt: [0, 0], trim: [0, 0], band: [0, 0] },
+    ),
+    mat(felt),
+    'guard bicorne',
+  );
+  hat.rotation.y = Math.PI / 2;
+  hat.scale.set(0.92, 0.9, 1.12);
+  addHead(root, hat);
 
-  const brim = mesh(new CylinderGeometry(0.34, 0.34, 0.03, 16), mat(trim), 'guard helmet brim');
-  brim.position.set(0, 0.16, 0.015);
-  brim.scale.set(1.06, 0.3, 0.84);
-  addHead(root, brim);
+  const braid = mesh(new TorusGeometry(0.285, 0.007, 5, 24), mat(trim), 'guard bicorne braid');
+  braid.position.set(0, 0.225, 0.02);
+  braid.rotation.x = Math.PI / 2;
+  braid.scale.set(0.9, 0.82, 1);
+  addHead(root, braid);
 
-  const crest = mesh(new BoxGeometry(0.055, 0.18, 0.035), mat(0x7a1f2d), 'guard helmet crest');
-  crest.position.set(0, 0.35, 0.02);
-  crest.rotation.x = 0.1;
-  addHead(root, crest);
+  const cockade = mesh(new SphereGeometry(0.035, 7, 5), mat(cockadeColor), 'guard bicorne cockade');
+  cockade.position.set(0.02, 0.255, 0.25);
+  cockade.scale.set(1, 0.62, 0.28);
+  addHead(root, cockade);
 }
 
 function addSoftStarCap(root: Group, cloth: ColorHex, stitch: ColorHex): void {
@@ -807,13 +815,25 @@ function addToyHoop(root: Group, side: -1 | 1): void {
 }
 
 function addGuardLivery(root: Group, navy: ColorHex, burgundy: ColorHex, brass: ColorHex): void {
-  const tabard = mesh(new BoxGeometry(0.3, 0.55, 0.032), mat(navy), 'guard tabard');
-  tabard.position.set(0, 0.5, 0.11);
-  addRoot(root, tabard, 'Torso');
+  const coat = mesh(new BoxGeometry(0.31, 0.34, 0.032), mat(navy), 'guard uniform coat');
+  coat.position.set(0, 0.62, 0.108);
+  addRoot(root, coat, 'Torso');
 
-  const stripe = mesh(new BoxGeometry(0.065, 0.56, 0.018), mat(burgundy), 'guard burgundy stripe');
-  stripe.position.set(0, 0.5, 0.13);
-  addRoot(root, stripe, 'Torso');
+  const skirt = mesh(new BoxGeometry(0.32, 0.28, 0.032), mat(navy), 'guard coat skirt');
+  skirt.position.set(0, 0.4, 0.095);
+  addRoot(root, skirt, 'Hips');
+
+  for (const side of [-1, 1] as const) {
+    const lapel = mesh(new BoxGeometry(0.055, 0.32, 0.018), mat(burgundy), 'guard burgundy lapel');
+    lapel.position.set(side * 0.075, 0.64, 0.13);
+    lapel.rotation.z = side * 0.22;
+    addRoot(root, lapel, 'Torso');
+
+    const cuff = mesh(new CylinderGeometry(0.055, 0.055, 0.035, 8), mat(burgundy), 'guard burgundy cuff');
+    cuff.position.set(side * 0.25, 0.5, 0.03);
+    cuff.rotation.z = Math.PI / 2;
+    addRoot(root, cuff, lowerArmName(side));
+  }
 
   const belt = mesh(new BoxGeometry(0.31, 0.05, 0.022), mat(brass), 'guard brass belt');
   belt.position.set(0, 0.42, 0.13);
@@ -824,6 +844,13 @@ function addGuardLivery(root: Group, navy: ColorHex, burgundy: ColorHex, brass: 
     shoulder.position.set(side * 0.17, 0.73, 0.06);
     shoulder.scale.set(1.2, 0.45, 0.7);
     addRoot(root, shoulder, 'Torso');
+  }
+
+  for (let i = 0; i < 3; i += 1) {
+    const button = mesh(new SphereGeometry(0.015, 6, 4), mat(brass), 'guard brass button');
+    button.position.set(0, 0.7 - i * 0.075, 0.138);
+    button.scale.set(1, 1, 0.4);
+    addRoot(root, button, 'Torso');
   }
 }
 
