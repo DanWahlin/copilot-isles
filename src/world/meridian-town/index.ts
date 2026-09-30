@@ -174,7 +174,10 @@ const HARBOUR_FRONT_ROW: TerraceRowSpec = {
   height: PLAZA.height,
   laneWidth: 4.2,
   seed: 520,
-  gaps: [{ x0: 638, x1: 682 }],
+  gaps: [
+    { x0: 607, x1: 631 },
+    { x0: 638, x1: 682 },
+  ],
 } as const;
 
 const TERRACE_ROWS: readonly TerraceRowSpec[] = [
