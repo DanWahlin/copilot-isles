@@ -53,7 +53,7 @@ function LearnLayer({
         store.closeBanner();
         return;
       }
-      if (e.code !== 'KeyJ' || !playing.get()) return;
+      if (e.code !== 'KeyJ' || !playing.get() || st0.cinematic) return;
       const st = store.getState();
       if (!st.logbook.open && !store.busy) store.openLogbook();
     };
@@ -63,7 +63,7 @@ function LearnLayer({
 
   return (
     <>
-      {visible && (
+      {visible && !s.cinematic && (
         <div className="ci-purse">
           {sound !== NO_SOUND && <SoundButton muted={muted} onToggle={sound.toggle} className="in-purse" />}
           <span className="ci-coin" aria-label={`${s.doubloons} doubloons`}>
@@ -76,6 +76,7 @@ function LearnLayer({
         </div>
       )}
       {visible &&
+        !s.cinematic &&
         s.tracker &&
         !s.quiz &&
         !s.reveal &&

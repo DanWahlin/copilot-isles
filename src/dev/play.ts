@@ -79,6 +79,7 @@ async function begin(unlock: boolean): Promise<void> {
   for (const fn of playingListeners) fn();
   document.getElementById('start')!.classList.add('hide');
   canvas.focus();
+  session.begin();
 }
 
 const startBtn = document.getElementById('go') as HTMLButtonElement;

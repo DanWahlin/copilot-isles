@@ -115,6 +115,52 @@ const talk = async (npcId) => {
 
 const results = {};
 
+// First landfall (the ?quiet page skips it on load, so it's replayed here): the camera flies in with
+// the HUD letterboxed and the tasks hidden; E skips it, it's saved as seen, and Wingman takes over.
+// A replay run to its end lands behind the captain and hands straight to Wingman too.
+{
+  const arrival = () =>
+    page.evaluate(() => ({
+      a: window.__dev.session().debug.arrival(),
+      hud: document.querySelector('.hud')?.classList.contains('cinematic') ?? false,
+      tasks: !!document.querySelector('.ci-tracker'),
+      seen: window.__dev.learn.progress.data.arrivals.includes('anchorage'),
+      wingman: window.__dev.session().debug.wingman()?.phase ?? null,
+      dialogue: window.__dev.state().dialogue,
+    }));
+  const drain = async () => {
+    for (let i = 0; i < 40 && (await arrival()).dialogue; i++) {
+      await tap('KeyE');
+      await page.waitForTimeout(350);
+    }
+  };
+  await page.evaluate(() => window.__dev.session().debug.flyover('anchorage'));
+  await page.waitForTimeout(3200);
+  const mid = await arrival();
+  await shot('arrival-flying');
+  if (mid.a?.phase !== 'flying' || !mid.hud || mid.tasks || mid.a.eye < 40)
+    logs.push(`[questtest] arrival isn't flying letterboxed (${JSON.stringify(mid)})`);
+  await tap('KeyE');
+  await page.waitForTimeout(2400);
+  const skipped = await arrival();
+  if (skipped.a?.phase !== 'done' || skipped.hud || !skipped.tasks || !skipped.seen || skipped.a.eye > 12)
+    logs.push(`[questtest] E didn't skip the arrival cleanly (${JSON.stringify(skipped)})`);
+  if (!skipped.dialogue) logs.push("[questtest] Wingman didn't start his welcome after the skip");
+  await drain();
+  await page.evaluate(() => {
+    const d = window.__dev.session().debug;
+    d.flyover('anchorage');
+    d.holdArrival(30);
+  });
+  await page.waitForTimeout(2200);
+  const landed = await arrival();
+  await shot('arrival-landed');
+  if (landed.a?.phase !== 'done' || landed.hud || landed.a.eye > 12 || landed.wingman !== 'hover')
+    logs.push(`[questtest] the arrival didn't land on Wingman's welcome (${JSON.stringify(landed)})`);
+  await page.evaluate(() => window.__dev.session().debug.holdArrival(null));
+  await drain();
+}
+
 // Nell: Captain's Papers. She opens her chest of prerequisites while she talks (the `nell-chest` cue).
 await talk('nell');
 results.nell = await drive(

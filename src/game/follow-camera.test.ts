@@ -34,3 +34,46 @@ describe('FollowCamera.frame', () => {
     expect(three.position.distanceTo(follow)).toBeLessThan(0.01);
   });
 });
+
+describe('FollowCamera shot changes', () => {
+  it('eases from one held shot to the next instead of jumping', () => {
+    const cam = new FollowCamera();
+    const three = new PerspectiveCamera();
+    run(cam, three, 0.5);
+    cam.cut({ x: 30, y: 10, z: 0, tx: 0, ty: 0, tz: 0 });
+    run(cam, three, 1 / 60);
+    expect(three.position.x).toBeCloseTo(30, 5);
+
+    cam.frame({ x: -30, y: 10, z: 0, tx: 0, ty: 0, tz: 0 });
+    run(cam, three, 1 / 60);
+    expect(three.position.x).toBeGreaterThan(29);
+    run(cam, three, 0.5);
+    expect(three.position.x).toBeLessThan(29);
+    expect(three.position.x).toBeGreaterThan(-29);
+    run(cam, three, 1);
+    expect(three.position.x).toBeCloseTo(-30, 5);
+  });
+
+  it('follows a shot mutated in place exactly (a flyover)', () => {
+    const cam = new FollowCamera();
+    const three = new PerspectiveCamera();
+    const shot = { x: 0, y: 20, z: 40, tx: 0, ty: 0, tz: 0 };
+    cam.cut(shot);
+    for (let i = 0; i < 30; i++) {
+      shot.x = i;
+      cam.frame(shot);
+      run(cam, three, 1 / 60);
+      expect(three.position.x).toBeCloseTo(i, 5);
+    }
+  });
+
+  it('knows where it comes to rest behind a heading', () => {
+    const cam = new FollowCamera();
+    const three = new PerspectiveCamera();
+    run(cam, three, 3);
+    const rest = cam.restPose(target, 0, { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 });
+    expect(three.position.x).toBeCloseTo(rest.x, 3);
+    expect(three.position.y).toBeCloseTo(rest.y, 3);
+    expect(three.position.z).toBeCloseTo(rest.z, 3);
+  });
+});

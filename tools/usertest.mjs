@@ -142,6 +142,25 @@ await step('captain creator', async () => {
   await shot('playing');
 });
 
+await step('arrival', async () => {
+  // A first landfall: with Reduced motion on (set above) there's no flight, just the island's title
+  // card over a letterboxed view, then play.
+  const a = await page.evaluate(() => ({
+    phase: window.__flow.session.debug.arrival()?.phase,
+    card: document.querySelector('.hud-card')?.textContent ?? '',
+  }));
+  await shot('arrival-card');
+  check(
+    'arrival shows the island card (no flight with reduced motion)',
+    a.phase === 'card' || a.phase === 'done',
+    a.phase,
+  );
+  await page.waitForFunction(() => window.__flow.session.debug.arrival()?.phase === 'done', null, {
+    timeout: 10_000,
+  });
+  check('the card names Anchorage Cay', a.card.includes('Anchorage Cay'), a.card.slice(0, 60));
+});
+
 await step('HUD mute', async () => {
   const sound = page.locator('.ci-sound-btn.in-purse');
   await sound.click();

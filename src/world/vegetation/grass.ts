@@ -9,6 +9,8 @@ import {
   Object3D,
   Quaternion,
   Vector3,
+  Frustum,
+  Sphere,
   type DataTexture,
   type MeshStandardNodeMaterial,
   type PerspectiveCamera,
@@ -18,9 +20,9 @@ import type { HeightField } from '../contracts';
 import type { TierSettings } from '../../engine/quality';
 import type { GrassKind, HeightGrid } from './types';
 import { EXCLUSION_SOFT_MARGIN, exclusionWeight, type VegetationExclude } from './exclusions';
-import { clamp01, smoothstep } from '../../util/math';
+import { smoothstep } from '../../util/math';
 import { SeededRandom, hash2 } from './random';
-import { createGrassMaterial } from './materials';
+import { createGrassMaterial, type GrassReach } from './materials';
 
 interface GrassClump {
   x: number;
@@ -41,18 +43,34 @@ interface GrassCell {
 
 interface TierMesh {
   mesh: InstancedMesh;
-  fade: InstancedBufferAttribute;
+  shape: InstancedBufferAttribute;
   tint: InstancedBufferAttribute;
   capacity: number;
+  /** Blades: this detail draws out to here (the last band runs to the edge of the reach). */
   maxDistance: number;
-  minDistance: number;
   triangles: number;
   visible: number;
   kind: 'blade' | 'wildflower' | 'seedHead';
 }
 
 const CELL_SIZE = 8;
-const HIGH_DISTANCES = { near: 10.5, mid: 21 } as const;
+/**
+ * Blade detail by distance (metres, high tier; lower tiers scale them down): full tussocks up close,
+ * then fewer but wider blades that cover the same ground, so a swap is hard to see.
+ */
+const BLADE_BANDS = [
+  { blades: 184, twoTri: true, widen: 1, until: 9 },
+  { blades: 72, twoTri: false, widen: 2.4, until: 18 },
+  { blades: 20, twoTri: false, widen: 7.5, until: Infinity },
+] as const;
+/** Grass reach (high tier): full density to `full`, thinned to `keep` by `far`, gone past `far`. */
+const REACH = { full: 20, far: 40, keep: 0.35 } as const;
+/** Re-pick visible clumps after the camera moves this far (m) or turns past this (cos of ~3°). */
+const REPICK_MOVE = 1.5;
+const REPICK_TURN_COS = Math.cos((3 * Math.PI) / 180);
+/** Frustum padding (m) so a small turn between re-picks never shows an empty edge. */
+const FRUSTUM_PAD = 4;
+const UP = new Vector3(0, 1, 0);
 const tmpObject = new Object3D();
 const tmpQuat = new Quaternion();
 const tmpScale = new Vector3();
@@ -104,7 +122,8 @@ function pushTri(
   shade.push(uvA[1], uvB[1], uvC[1]);
 }
 
-function createGrassGeometry(blades: number, detail: 'near' | 'far'): BufferGeometry {
+/** A tussock of `blades` blades; `widen` thickens them so fewer blades cover the same ground. */
+function createGrassGeometry(blades: number, detail: 'near' | 'far', widen = 1): BufferGeometry {
   const positions: number[] = [];
   const normals: number[] = [];
   const uvs: number[] = [];
@@ -114,7 +133,7 @@ function createGrassGeometry(blades: number, detail: 'near' | 'far'): BufferGeom
     const angle = (i / blades) * Math.PI * 2 + (i % 2) * 0.41 + (i % 5) * 0.037;
     const filler = i >= Math.floor(blades * 0.72);
     const height = filler ? 0.1 + (i % 5) * 0.014 : 0.2 + (i % 10) * 0.027;
-    const width = filler ? 0.005 + (i % 3) * 0.0014 : 0.007 + (i % 5) * 0.0017;
+    const width = (filler ? 0.005 + (i % 3) * 0.0014 : 0.007 + (i % 5) * 0.0017) * widen;
     const spread = filler ? 0.48 : 0.33;
     const ox = Math.cos(angle * 1.9) * (spread + (i % 3) * 0.038);
     const oz = Math.sin(angle * 1.7) * (spread + (i % 4) * 0.03);
@@ -307,7 +326,7 @@ function colorFor(kind: GrassKind, jitter: number): Color {
 
 function setClumpMatrix(clump: GrassClump): void {
   tmpObject.position.set(clump.x, 0, clump.z);
-  tmpQuat.setFromAxisAngle(new Vector3(0, 1, 0), clump.rotation);
+  tmpQuat.setFromAxisAngle(UP, clump.rotation);
   const heightScale =
     clump.kind === 'seaOats'
       ? 1.35
@@ -326,16 +345,69 @@ function setClumpMatrix(clump: GrassClump): void {
   tmpMatrix.copy(tmpObject.matrix);
 }
 
+/**
+ * Clumps packed for copying into instance buffers: matrix, tint, and shape (thinning rank, edge
+ * weight) per clump, plus where each clump stands. Written once; nothing changes per frame.
+ */
+class Packed {
+  readonly mats: Float32Array;
+  readonly tints: Float32Array;
+  readonly shapes: Float32Array;
+  readonly pos: Float32Array;
+
+  constructor(clumps: readonly GrassClump[], heightField: HeightField, thinned: boolean) {
+    const n = clumps.length;
+    this.mats = new Float32Array(n * 16);
+    this.tints = new Float32Array(n * 3);
+    this.shapes = new Float32Array(n * 2);
+    this.pos = new Float32Array(n * 3);
+    clumps.forEach((c, i) => {
+      setClumpMatrix(c);
+      tmpMatrix.toArray(this.mats, i * 16);
+      this.tints[i * 3] = c.color.r;
+      this.tints[i * 3 + 1] = c.color.g;
+      this.tints[i * 3 + 2] = c.color.b;
+      this.shapes[i * 2] = thinned ? c.lod : -1;
+      this.shapes[i * 2 + 1] = c.edgeWeight;
+      this.pos[i * 3] = c.x;
+      this.pos[i * 3 + 1] = heightField.heightAt(c.x, c.z);
+      this.pos[i * 3 + 2] = c.z;
+    });
+  }
+}
+
+/** A cell's clumps as a range of the packed blades, with its centre and ground height for culling. */
+interface PackedCell {
+  x: number;
+  y: number;
+  z: number;
+  from: number;
+  to: number;
+}
+
 export class GrassField {
   readonly group = new Object3D();
   private readonly cells: GrassCell[] = [];
+  private readonly packedCells: PackedCell[] = [];
   private readonly meshes: TierMesh[] = [];
+  private readonly bladeMeshes: TierMesh[] = [];
   private readonly material: MeshStandardNodeMaterial;
   private readonly flowers: GrassClump[] = [];
   private readonly seedHeads: GrassClump[] = [];
   private readonly tierScale: number;
   private readonly densityScale: number;
+  private readonly reach: GrassReach;
+  private blades: Packed | null = null;
+  private flowerPack: Packed | null = null;
+  private seedPack: Packed | null = null;
   private visibleCells = 0;
+  private built = false;
+  private readonly lastEye = new Vector3();
+  private readonly lastLook = new Vector3();
+  private readonly look = new Vector3();
+  private readonly frustum = new Frustum();
+  private readonly viewProj = new Matrix4();
+  private readonly sphere = new Sphere();
 
   constructor(
     heightField: HeightField,
@@ -347,89 +419,143 @@ export class GrassField {
   ) {
     this.group.name = 'vegetation-grass';
     installGrassDebug(this.group);
-    this.material = createGrassMaterial(heightTexture, heightGrid);
     const webglScale = forcedWebGLBackend() ? 0.72 : 1;
     this.tierScale = Math.max(0.34, tier.grassDistance / 88) * webglScale;
     this.densityScale = forcedWebGLBackend() ? 0.56 : 1;
+    this.reach = {
+      full: REACH.full * this.tierScale,
+      far: REACH.far * this.tierScale,
+      keep: REACH.keep,
+    };
+    this.material = createGrassMaterial(heightTexture, heightGrid, this.reach);
     this.buildCells(heightField, tier, seed, exclude);
-    const maxClumps = Math.max(
-      1,
-      this.cells.reduce((sum, cell) => sum + cell.clumps.length, 0),
-    );
-    this.addTierMesh(createGrassGeometry(184, 'near'), 0, HIGH_DISTANCES.near * this.tierScale, maxClumps);
-    this.addTierMesh(
-      createGrassGeometry(6, 'far'),
-      HIGH_DISTANCES.near * this.tierScale,
-      HIGH_DISTANCES.mid * this.tierScale,
-      maxClumps,
-    );
-    this.addTierMesh(
-      createFlowerGeometry(),
-      0,
-      28 * this.tierScale,
-      Math.max(1, this.flowers.length),
-      'wildflower',
-    );
-    this.addTierMesh(
-      createSeedHeadGeometry(),
-      0,
-      30 * this.tierScale,
-      Math.max(1, this.seedHeads.length),
-      'seedHead',
-    );
-  }
 
-  update(camera: PerspectiveCamera): void {
-    this.visibleCells = 0;
-    for (const tierMesh of this.meshes) tierMesh.visible = 0;
-    const cx = camera.position.x;
-    const cz = camera.position.z;
-    const far2 = (HIGH_DISTANCES.mid * this.tierScale + CELL_SIZE) ** 2;
-
+    const all: GrassClump[] = [];
     for (const cell of this.cells) {
-      const cellDist2 = (cell.x - cx) ** 2 + (cell.z - cz) ** 2;
-      if (cellDist2 > far2) continue;
-      this.visibleCells += 1;
-      for (const clump of cell.clumps) this.writeClump(clump, cx, cz);
+      const from = all.length;
+      all.push(...cell.clumps);
+      const y = heightField.heightAt(cell.x, cell.z);
+      this.packedCells.push({ x: cell.x, y, z: cell.z, from, to: all.length });
     }
-    for (const flower of this.flowers) this.writeClump(flower, cx, cz);
-    for (const seedHead of this.seedHeads) this.writeClump(seedHead, cx, cz);
+    this.blades = new Packed(all, heightField, true);
+    this.flowerPack = new Packed(this.flowers, heightField, false);
+    this.seedPack = new Packed(this.seedHeads, heightField, false);
 
-    for (const tierMesh of this.meshes) {
-      tierMesh.mesh.count = tierMesh.visible;
-      tierMesh.mesh.instanceMatrix.needsUpdate = true;
-      tierMesh.tint.needsUpdate = true;
-      tierMesh.fade.needsUpdate = true;
-      tierMesh.mesh.frustumCulled = false;
+    const maxClumps = Math.max(1, all.length);
+    for (const band of BLADE_BANDS) {
+      this.addTierMesh(
+        createGrassGeometry(band.blades, band.twoTri ? 'near' : 'far', band.widen),
+        maxClumps,
+        'blade',
+        band.until * this.tierScale,
+      );
+    }
+    this.addTierMesh(createFlowerGeometry(), Math.max(1, this.flowers.length), 'wildflower');
+    this.addTierMesh(createSeedHeadGeometry(), Math.max(1, this.seedHeads.length), 'seedHead');
+  }
+
+  /**
+   * Re-picks which clumps draw, and at which detail, once the camera has moved or turned enough to
+   * matter. Heights and fades live in the shader, so between re-picks there's nothing to upload.
+   */
+  update(camera: PerspectiveCamera): void {
+    const eye = camera.position;
+    camera.getWorldDirection(this.look);
+    if (
+      this.built &&
+      eye.distanceToSquared(this.lastEye) < REPICK_MOVE * REPICK_MOVE &&
+      this.look.dot(this.lastLook) > REPICK_TURN_COS
+    ) {
+      return;
+    }
+    this.built = true;
+    this.lastEye.copy(eye);
+    this.lastLook.copy(this.look);
+    camera.updateMatrixWorld();
+    this.viewProj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    this.frustum.setFromProjectionMatrix(this.viewProj);
+
+    for (const m of this.meshes) m.visible = 0;
+    this.visibleCells = 0;
+    const far = this.reach.far + REPICK_MOVE;
+    const cellRadius = CELL_SIZE * 0.72 + 0.6;
+    const blades = this.blades!;
+    for (const cell of this.packedCells) {
+      const dx = cell.x - eye.x,
+        dy = cell.y - eye.y,
+        dz = cell.z - eye.z;
+      if (Math.sqrt(dx * dx + dy * dy + dz * dz) - cellRadius > far) continue;
+      this.sphere.center.set(cell.x, cell.y + 0.3, cell.z);
+      // Padded so a small turn between re-picks never shows an empty edge.
+      this.sphere.radius = cellRadius + FRUSTUM_PAD;
+      if (!this.frustum.intersectsSphere(this.sphere)) continue;
+      this.visibleCells += 1;
+      for (let i = cell.from; i < cell.to; i++) this.place(blades, i, eye, far, true);
+    }
+    const flowers = this.flowerPack!;
+    for (let i = 0; i < this.flowers.length; i++) this.place(flowers, i, eye, far, false, 'wildflower');
+    const seeds = this.seedPack!;
+    for (let i = 0; i < this.seedHeads.length; i++) this.place(seeds, i, eye, far, false, 'seedHead');
+
+    for (const m of this.meshes) {
+      m.mesh.count = m.visible;
+      if (m.visible === 0) continue;
+      m.mesh.instanceMatrix.clearUpdateRanges();
+      m.mesh.instanceMatrix.addUpdateRange(0, m.visible * 16);
+      m.mesh.instanceMatrix.needsUpdate = true;
+      m.tint.clearUpdateRanges();
+      m.tint.addUpdateRange(0, m.visible * 3);
+      m.tint.needsUpdate = true;
+      m.shape.clearUpdateRanges();
+      m.shape.addUpdateRange(0, m.visible * 2);
+      m.shape.needsUpdate = true;
     }
   }
 
-  private writeClump(clump: GrassClump, cx: number, cz: number): void {
-    const d = Math.hypot(clump.x - cx, clump.z - cz);
-    const kind = clump.kind === 'wildflower' || clump.kind === 'seedHead' ? clump.kind : 'blade';
-    const mesh = this.meshes.find((m) => m.kind === kind && d >= m.minDistance && d < m.maxDistance);
-    if (!mesh) return;
-    let densityFade = 1;
-    if (kind === 'blade') {
-      const full = 10 * this.tierScale;
-      const sparse = 20 * this.tierScale;
-      if (d > full) {
-        const keep = 1 - smoothstep(full, sparse, d) * 0.86;
-        densityFade = clamp01((keep - clump.lod) / 0.08);
-        if (densityFade <= 0) return;
-      }
+  private place(
+    pack: Packed,
+    i: number,
+    eye: Vector3,
+    far: number,
+    thinned: boolean,
+    kind: 'blade' | 'wildflower' | 'seedHead' = 'blade',
+  ): void {
+    const p = pack.pos;
+    const dx = p[i * 3]! - eye.x,
+      dy = p[i * 3 + 1]! - eye.y,
+      dz = p[i * 3 + 2]! - eye.z;
+    const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    if (d > far) return;
+    // Skip clumps the shader would thin away anywhere within a re-pick of here.
+    if (thinned) {
+      const near = Math.max(0, d - REPICK_MOVE);
+      const keep = 1 - smoothstep(this.reach.full, this.reach.far, near) * (1 - this.reach.keep);
+      if (pack.shapes[i * 2]! >= keep) return;
     }
-    const slot = mesh.visible;
-    if (slot >= mesh.capacity) return;
-    setClumpMatrix(clump);
-    mesh.mesh.setMatrixAt(slot, tmpMatrix);
-    mesh.tint.setXYZ(slot, clump.color.r, clump.color.g, clump.color.b);
-    const fadeIn =
-      mesh.minDistance <= 0 ? 1 : smoothstep(mesh.minDistance, mesh.minDistance + 5 * this.tierScale, d);
-    const fadeOut =
-      1 - smoothstep(mesh.maxDistance - (mesh.maxDistance - mesh.minDistance) * 0.2, mesh.maxDistance, d);
-    mesh.fade.setX(slot, clamp01(Math.min(fadeIn || 1, fadeOut) * clump.edgeWeight * densityFade));
-    mesh.visible += 1;
+    let mesh: TierMesh | undefined;
+    if (kind === 'blade') {
+      for (const m of this.bladeMeshes) {
+        if (d < m.maxDistance) {
+          mesh = m;
+          break;
+        }
+      }
+      mesh ??= this.bladeMeshes[this.bladeMeshes.length - 1];
+    } else {
+      mesh =
+        kind === 'wildflower' ? this.meshes[this.meshes.length - 2] : this.meshes[this.meshes.length - 1];
+    }
+    if (!mesh || mesh.visible >= mesh.capacity) return;
+    const slot = mesh.visible++;
+    const mats = mesh.mesh.instanceMatrix.array as Float32Array;
+    for (let k = 0; k < 16; k++) mats[slot * 16 + k] = pack.mats[i * 16 + k]!;
+    const tint = mesh.tint.array as Float32Array;
+    tint[slot * 3] = pack.tints[i * 3]!;
+    tint[slot * 3 + 1] = pack.tints[i * 3 + 1]!;
+    tint[slot * 3 + 2] = pack.tints[i * 3 + 2]!;
+    const shape = mesh.shape.array as Float32Array;
+    shape[slot * 2] = pack.shapes[i * 2]!;
+    shape[slot * 2 + 1] = pack.shapes[i * 2 + 1]!;
   }
 
   stats(): { visibleInstances: number; visibleCells: number; drawCalls: number; triangles: number } {
@@ -562,29 +688,29 @@ export class GrassField {
 
   private addTierMesh(
     geometry: BufferGeometry,
-    minDistance: number,
-    maxDistance: number,
     maxInstances: number,
-    kind: 'blade' | 'wildflower' | 'seedHead' = 'blade',
+    kind: 'blade' | 'wildflower' | 'seedHead',
+    maxDistance = Infinity,
   ): void {
-    const fade = new InstancedBufferAttribute(new Float32Array(maxInstances), 1);
+    const shape = new InstancedBufferAttribute(new Float32Array(maxInstances * 2), 2);
     const tint = new InstancedBufferAttribute(new Float32Array(maxInstances * 3), 3);
-    geometry.setAttribute('fade', fade);
+    geometry.setAttribute('grassShape', shape);
     geometry.setAttribute('tint', tint);
     const mesh = new InstancedMesh(geometry, this.material, maxInstances);
     mesh.count = 0;
     mesh.frustumCulled = false;
     this.group.add(mesh);
-    this.meshes.push({
+    const tierMesh: TierMesh = {
       mesh,
-      fade,
+      shape,
       tint,
       capacity: maxInstances,
-      minDistance,
       maxDistance,
       triangles: Math.floor((geometry.getAttribute('position')?.count ?? 0) / 3),
       visible: 0,
       kind,
-    });
+    };
+    this.meshes.push(tierMesh);
+    if (kind === 'blade') this.bladeMeshes.push(tierMesh);
   }
 }

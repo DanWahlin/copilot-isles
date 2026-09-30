@@ -88,14 +88,64 @@ export class FollowCamera {
   private shot: CameraShot | null = null;
   private held: CameraShot | null = null;
   private shotMix = 0;
+  /** A cut from one held shot to another eases from where the camera was (`switchFrom`). */
+  private readonly switchFrom: CameraShot = { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 };
+  private readonly switched: CameraShot = { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 };
+  private switchMix = 1;
+  private readonly lastLook = { x: 0, y: 0, z: 0 };
 
   /**
    * Holds a framed shot (the christening's look at the bow) until cleared with null, easing in and
-   * back out to the follow camera. Look input is ignored while a shot holds.
+   * back out to the follow camera. Look input is ignored while a shot holds. A new shot while one's
+   * on screen eases across from the current view; the same object mutated each frame (a flyover)
+   * is followed exactly.
    */
   frame(shot: CameraShot | null): void {
+    if (shot && this.held && shot !== this.held && this.shotMix > 0) {
+      this.switchFrom.x = this.last.x;
+      this.switchFrom.y = this.last.y;
+      this.switchFrom.z = this.last.z;
+      this.switchFrom.tx = this.lastLook.x;
+      this.switchFrom.ty = this.lastLook.y;
+      this.switchFrom.tz = this.lastLook.z;
+      this.switchMix = 0;
+    }
     this.shot = shot;
     if (shot) this.held = shot;
+  }
+
+  /** Jumps straight into a shot with no ease (the first frame of a flyover). */
+  cut(shot: CameraShot): void {
+    this.shot = shot;
+    this.held = shot;
+    this.shotMix = 1;
+    this.switchMix = 1;
+  }
+
+  /** Drops any held shot at once, back on the follow camera (behind a fade). */
+  release(): void {
+    this.shot = null;
+    this.held = null;
+    this.shotMix = 0;
+    this.switchMix = 1;
+  }
+
+  /**
+   * Where the follow camera comes to rest behind `target` facing `heading` (ignoring collision), so
+   * a flyover can land exactly on it.
+   */
+  restPose(target: { x: number; y: number; z: number }, heading: number, out: CameraShot): CameraShot {
+    const cp = Math.cos(this.pitch);
+    const dx = Math.sin(heading) * cp,
+      dy = -Math.sin(this.pitch),
+      dz = Math.cos(heading) * cp;
+    out.tx = target.x;
+    out.ty = target.y + this.rig.pivotY;
+    out.tz = target.z;
+    out.x = out.tx - dx * this.wantDist;
+    out.y = out.ty - dy * this.wantDist;
+    out.z = out.tz - dz * this.wantDist;
+    return out;
   }
 
   /** Whether a held shot is on screen (or still easing out). */
@@ -209,7 +259,20 @@ export class FollowCamera {
       lz = this.pivot.z;
     this.shotMix = Math.min(1, Math.max(0, this.shotMix + (this.shot ? dt : -dt) / SHOT_EASE));
     if (this.shotMix > 0 && this.held) {
-      const h = this.held;
+      let h = this.held;
+      if (this.switchMix < 1) {
+        this.switchMix = Math.min(1, this.switchMix + dt / SHOT_EASE);
+        const k = this.switchMix * this.switchMix * (3 - 2 * this.switchMix);
+        const f = this.switchFrom,
+          s = this.switched;
+        s.x = f.x + (h.x - f.x) * k;
+        s.y = f.y + (h.y - f.y) * k;
+        s.z = f.z + (h.z - f.z) * k;
+        s.tx = f.tx + (h.tx - f.tx) * k;
+        s.ty = f.ty + (h.ty - f.ty) * k;
+        s.tz = f.tz + (h.tz - f.tz) * k;
+        h = s;
+      }
       const e = this.shotMix * this.shotMix * (3 - 2 * this.shotMix);
       x += (h.x - x) * e;
       y += (h.y - y) * e;
@@ -222,6 +285,9 @@ export class FollowCamera {
     this.last.x = x;
     this.last.y = y;
     this.last.z = z;
+    this.lastLook.x = lx;
+    this.lastLook.y = ly;
+    this.lastLook.z = lz;
 
     cam.position.set(x, y, z);
     cam.lookAt(lx, ly, lz);

@@ -405,6 +405,9 @@ export class GameFlow implements GameBridge {
       report(0.92, 'Lighting the lanterns');
       await this.o.upgradePost?.();
       await engine.renderer.compileAsync(engine.scene, engine.camera);
+      report(0.96, 'Charting the approach');
+      const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+      await this.session.warmArrival(frame);
       engine.renderNow();
       engine.counters.hitches.length = 0;
       engine.counters.arm();
@@ -413,6 +416,7 @@ export class GameFlow implements GameBridge {
       await new Promise((r) => setTimeout(r, 300));
       this.set({ screen: 'playing', returnTo: 'playing', hasSave: true, save: this.saveSummary() });
       engine.renderer.domElement.focus();
+      this.session.begin();
     } catch (err) {
       console.error(err);
       this.set({ progress: { value: 1, message: 'The voyage hit a squall. Please reload.' } });
