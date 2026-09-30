@@ -154,6 +154,13 @@ export class CollisionWorld {
     return hit;
   }
 
+  /** Every static box collider (tests and audits), deduplicated across grid cells. */
+  boxes(): BoxCollider[] {
+    const out = new Set<BoxCollider>();
+    for (const b of this.grid.values()) for (const x of b.boxes) out.add(x);
+    return [...out];
+  }
+
   /** Every static circle collider (tests and audits), deduplicated across grid cells. */
   circles(): CircleObstacle[] {
     const out = new Set<CircleObstacle>();
