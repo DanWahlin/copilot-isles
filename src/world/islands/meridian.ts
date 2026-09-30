@@ -265,6 +265,28 @@ function citadelHeight(x: number, z: number, current: number): number {
   return mix(current, top, 1 - smoothstep(rim, rim + edge, d));
 }
 
+const LIFT_CLEARANCE = {
+  bottom: { x: 770.3, y: 2.4, z: -766.8 },
+  top: { x: 798.2, y: 40.35, z: -779.2 },
+  core: 4.25,
+  feather: 7.5,
+} as const;
+
+function liftClearanceHeight(x: number, z: number, current: number): number {
+  const dx = LIFT_CLEARANCE.top.x - LIFT_CLEARANCE.bottom.x;
+  const dz = LIFT_CLEARANCE.top.z - LIFT_CLEARANCE.bottom.z;
+  const len2 = dx * dx + dz * dz;
+  const t = clamp01(((x - LIFT_CLEARANCE.bottom.x) * dx + (z - LIFT_CLEARANCE.bottom.z) * dz) / len2);
+  const px = LIFT_CLEARANCE.bottom.x + dx * t;
+  const pz = LIFT_CLEARANCE.bottom.z + dz * t;
+  const lateral = Math.hypot(x - px, z - pz);
+  const cut = 1 - smoothstep(LIFT_CLEARANCE.core, LIFT_CLEARANCE.feather, lateral);
+  if (cut <= 0) return current;
+  const carY = mix(LIFT_CLEARANCE.bottom.y, LIFT_CLEARANCE.top.y, t);
+  const target = carY - 0.65 - smoothstep(0.12, 0.62, t) * 0.35;
+  return mix(current, Math.min(current, target), cut);
+}
+
 function ridgeHeight(x: number, z: number, current: number): number {
   const dx = (x - MERIDIAN.ridge.center.x) / MERIDIAN.ridge.halfX;
   const dz = (z - MERIDIAN.ridge.center.z) / MERIDIAN.ridge.halfZ;
@@ -327,6 +349,7 @@ export function meridianHeight(x: number, z: number): number {
   );
   const ridgeBlend = Math.max(smoothstep(-12, 22, coast.distance), smoothstep(0.08, 0.25, ridgeFoot));
   h = mix(h, ridgeHeight(x, z, h), ridgeBlend);
+  h = liftClearanceHeight(x, z, h);
   if (coast.radial > MERIDIAN.seabedRadius) h = Math.min(h, -MERIDIAN.deepDepth);
   return h;
 }
