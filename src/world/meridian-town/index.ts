@@ -1282,7 +1282,7 @@ function addCitadel(
   addDiscPaving(buckets, CITADEL.x, y - 0.08, CITADEL.z, CITADEL.r * 0.78, 0xe4c991, 40);
   addCurtainWall(buckets, colliders, perches, CITADEL.x, y, CITADEL.z, CITADEL.r);
   addRoundTower(buckets, colliders, perches, 788, y, -781, 4.5, 10.5, true);
-  addRoundTower(buckets, colliders, perches, 820, y, -752, 4.2, 9.6, true);
+  addRoundTower(buckets, colliders, perches, 821, y, -760, 4.2, 9.6, true);
   addRoundTower(buckets, colliders, perches, 842, y, -796, 4.8, 10.8, true);
   addCitadelGate(buckets, colliders, 784, y, -800, -35 * DEG);
 
@@ -1566,6 +1566,61 @@ function addArchVoussoirs(
 }
 
 function addHarbourPromenadeWall(buckets: Buckets, colliders: ColliderSet): void {
+  const fullMid = (MERIDIAN.harbor.quay.x0 + MERIDIAN.harbor.quay.x1) * 0.5;
+  const fullWidth = MERIDIAN.harbor.quay.x1 - MERIDIAN.harbor.quay.x0;
+  addBox(
+    buckets,
+    'stone',
+    fullMid,
+    MERIDIAN.harbor.quay.height - 0.2,
+    -765.9,
+    fullWidth + 2.0,
+    PLAZA.height - MERIDIAN.harbor.quay.height + 0.2,
+    1.25,
+    0,
+    LIMESTONE_DARK,
+  );
+  addBox(
+    buckets,
+    'stone',
+    fullMid,
+    PLAZA.height - 0.04,
+    -765.9,
+    fullWidth + 2.4,
+    0.28,
+    1.45,
+    0,
+    LIMESTONE_LIGHT,
+  );
+  addBox(
+    buckets,
+    'stone',
+    fullMid,
+    MERIDIAN.harbor.quay.height - 0.2,
+    -778.0,
+    fullWidth + 2.0,
+    PLAZA.height - MERIDIAN.harbor.quay.height + 0.45,
+    1.8,
+    0,
+    LIMESTONE_DARK,
+  );
+  addBox(
+    buckets,
+    'stone',
+    fullMid,
+    PLAZA.height - 0.04,
+    -778.0,
+    fullWidth + 2.6,
+    0.32,
+    2.05,
+    0,
+    LIMESTONE_LIGHT,
+  );
+  addBox(buckets, 'paving', fullMid, PLAZA.height - 0.09, -779.8, fullWidth, 0.18, 9.2, 0, 0xf0d7aa);
+  for (let x = MERIDIAN.harbor.quay.x0 + 3; x <= MERIDIAN.harbor.quay.x1 - 3; x += 4.6)
+    addBox(buckets, 'stone', x, PLAZA.height + 0.025, -779.8, 0.13, 0.038, 8.3, 0, 0x8e6f4a);
+  for (let z = -783.5; z <= -776; z += 1.35)
+    addBox(buckets, 'stone', fullMid, PLAZA.height + 0.022, z, fullWidth - 1.2, 0.036, 0.095, 0, 0x9f7d55);
   for (const [x0, x1] of [
     [MERIDIAN.harbor.quay.x0, STAIR_STREET.x - STAIR_STREET.width * 0.65],
     [STAIR_STREET.x + STAIR_STREET.width * 0.65, MERIDIAN.harbor.quay.x1],
@@ -1685,6 +1740,169 @@ function addTownEdgeInfill(
     { x: 840, z: -802, w: 14, d: 18, rot: 18 * DEG, y: 8.8 },
   ] as const;
   for (const g of gardens) addWalledGarden(buckets, colliders, g.x, g.y, g.z, g.w, g.d, g.rot, high);
+  addTownPavingPatch(buckets, 621, 7.05, -825.5, 62, 19, 0, 0xf0d7aa);
+  addTownPavingPatch(buckets, 715, 7.1, -825.5, 58, 19, 0, 0xf0d7aa);
+  addTownPavingPatch(buckets, 668, 8.6, -838.5, 78, 10.5, 0, 0xe6c894);
+  addTownPavingPatch(buckets, 568, 11.5, -862, 20, 58, 0, 0xd9bd87);
+  addTownPavingPatch(buckets, 824, 14.5, -874, 21, 66, 0, 0xd9bd87);
+  addDrapedPavingPatch(buckets, heightField, 668, -823, 148, 36, 10, 3, 0xf0d7aa);
+  addDrapedPavingPatch(buckets, heightField, 668, -806, 96, 24, 8, 3, 0xe8cf9a);
+  addDrapedPavingPatch(buckets, heightField, 560, -858, 36, 96, 4, 8, 0xdcc28e);
+  addDrapedPavingPatch(buckets, heightField, 828, -878, 38, 96, 4, 8, 0xdcc28e);
+  addOliveGrove(buckets, colliders, 564, 8.2, -804, 3, 2, 6.0, 5.2, 0.42);
+  addOliveGrove(buckets, colliders, 555, 12.8, -892, 2, 3, 6.5, 6.0, 0.46);
+  addOliveGrove(buckets, colliders, 832, 16.8, -846, 2, 3, 6.2, 6.4, 0.44);
+  addOliveGrove(buckets, colliders, 807, 24.0, -940, 1, 1, 5.6, 5.2, 0.4);
+  for (const house of [
+    [588, 7.2, -824, 5.8, 6.2, 2, Math.PI + 0.08, 0xd7a66f, TERRACOTTA],
+    [614, 7.25, -824, 6.2, 5.8, 2, Math.PI - 0.04, WHITEWASH, TERRACOTTA_WARM],
+    [724, 7.25, -824, 6.0, 6.0, 2, Math.PI + 0.03, APRICOT, TERRACOTTA_DARK],
+    [750, 7.25, -824, 5.4, 6.2, 2, Math.PI - 0.07, CREAM, TERRACOTTA],
+    [558, 8.0, -824, 5.2, 5.6, 2, Math.PI + 0.1, 0xd8bc82, TERRACOTTA_WARM],
+    [548, 12.0, -860, 5.8, 6.0, 2, Math.PI - 0.12, ROSE, TERRACOTTA],
+    [562, 16.0, -924, 5.4, 5.8, 2, Math.PI + 0.06, WHITEWASH, TERRACOTTA_DARK],
+    [828, 11.2, -826, 5.8, 5.8, 2, Math.PI - 0.08, CREAM, TERRACOTTA],
+    [842, 18.4, -886, 6.0, 6.0, 2, Math.PI + 0.05, OCHRE, TERRACOTTA_WARM],
+    [832, 23.5, -920, 5.6, 5.8, 2, Math.PI - 0.1, APRICOT, TERRACOTTA],
+  ] as const) {
+    const [x, y, z, w, d, floors, rot, tint, roofTint] = house;
+    addFillerHouse(buckets, colliders, x, y, z, w, d, floors, rot, tint, roofTint);
+  }
+}
+
+function addDrapedPavingPatch(
+  buckets: Buckets,
+  heightField: HeightField,
+  x: number,
+  z: number,
+  w: number,
+  d: number,
+  cols: number,
+  rows: number,
+  colour: number,
+): void {
+  const positions: number[] = [];
+  const indices: number[] = [];
+  for (let iz = 0; iz <= rows; iz += 1) {
+    const lz = -d * 0.5 + (iz / rows) * d;
+    for (let ix = 0; ix <= cols; ix += 1) {
+      const lx = -w * 0.5 + (ix / cols) * w;
+      const px = x + lx;
+      const pz = z + lz;
+      positions.push(px, heightField.heightAt(px, pz) + 0.075, pz);
+    }
+  }
+  const stride = cols + 1;
+  for (let iz = 0; iz < rows; iz += 1) {
+    for (let ix = 0; ix < cols; ix += 1) {
+      const a = iz * stride + ix;
+      const b = a + stride;
+      indices.push(a, b, a + 1, a + 1, b, b + 1);
+    }
+  }
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  worldUv(geometry, 2.6);
+  paint(geometry, colour);
+  buckets.paving.push(geometry);
+}
+
+function addFillerHouse(
+  buckets: Buckets,
+  colliders: ColliderSet,
+  x: number,
+  y: number,
+  z: number,
+  w: number,
+  d: number,
+  floors: number,
+  rot: number,
+  tint: number,
+  roofTint: number,
+): void {
+  const h = floors * 2.6;
+  addBox(buckets, 'stone', x, y - 0.15, z, w + 0.5, 0.45, d + 0.5, rot, 0xb79462);
+  addBox(buckets, 'plaster', x, y + 0.3, z, w, h, d, rot, tint);
+  addBox(buckets, 'roofTile', x, y + h + 0.4, z, w + 0.6, 0.28, d + 0.6, rot, roofTint, 0, 0.18);
+  addBox(buckets, 'roofTile', x, y + h + 0.65, z, w + 0.7, 0.32, d * 0.5, rot, roofTint, 0, -0.18);
+  for (const lx of [-w * 0.24, w * 0.24]) {
+    const p = localToWorld(x, z, rot, lx, -d * 0.5 - 0.05);
+    addBox(buckets, 'metal', p.x, y + 2.1, p.z, 0.58, 0.72, 0.06, rot, 0x15303a);
+    addBox(
+      buckets,
+      'cloth',
+      p.x - Math.cos(rot) * 0.42,
+      y + 2.1,
+      p.z + Math.sin(rot) * 0.42,
+      0.16,
+      0.82,
+      0.05,
+      rot,
+      DEEP_GREEN,
+    );
+    addBox(
+      buckets,
+      'cloth',
+      p.x + Math.cos(rot) * 0.42,
+      y + 2.1,
+      p.z - Math.sin(rot) * 0.42,
+      0.16,
+      0.82,
+      0.05,
+      rot,
+      DEEP_BLUE,
+    );
+  }
+  colliders.boxes.push({ x, z, hx: w * 0.5 + 0.25, hz: d * 0.5 + 0.25, rot, height: h + 1.1 });
+}
+
+function addTownPavingPatch(
+  buckets: Buckets,
+  x: number,
+  y: number,
+  z: number,
+  w: number,
+  d: number,
+  rot: number,
+  colour: number,
+): void {
+  addBox(buckets, 'paving', x, y - 0.07, z, w, 0.14, d, rot, colour);
+  for (let lx = -w * 0.5 + 2.2; lx <= w * 0.5 - 2; lx += 4.2) {
+    const p = localToWorld(x, z, rot, lx, 0);
+    addBox(buckets, 'stone', p.x, y + 0.02, p.z, 0.1, 0.032, d - 0.7, rot, 0x92724d);
+  }
+  for (let lz = -d * 0.5 + 1.6; lz <= d * 0.5 - 1.4; lz += 1.45) {
+    const p = localToWorld(x, z, rot, 0, lz);
+    addBox(buckets, 'stone', p.x, y + 0.018, p.z, w - 0.7, 0.03, 0.08, rot, 0x9f7d55);
+  }
+}
+
+function addOliveGrove(
+  buckets: Buckets,
+  colliders: ColliderSet,
+  x: number,
+  y: number,
+  z: number,
+  cols: number,
+  rows: number,
+  sx: number,
+  sz: number,
+  scale: number,
+): void {
+  for (let ix = 0; ix < cols; ix += 1) {
+    for (let iz = 0; iz < rows; iz += 1) {
+      addOliveTree(
+        buckets,
+        colliders,
+        x + (ix - (cols - 1) * 0.5) * sx + Math.sin((ix + 1) * (iz + 3)) * 0.35,
+        y,
+        z + (iz - (rows - 1) * 0.5) * sz + Math.cos((ix + 4) * (iz + 1)) * 0.35,
+        scale,
+      );
+    }
+  }
 }
 
 function addWalledGarden(
@@ -2275,18 +2493,24 @@ function addClockTower(
   z: number,
 ): void {
   addBox(buckets, 'stone', x, y, z, 8.8, 2.2, 8.8, 0, LIMESTONE_DARK);
-  addBox(buckets, 'plaster', x, y + 2.2, z, 6.0, 16.8, 6.0, 0, 0xe4bd7a);
-  for (let i = 0; i < 6; i += 1)
-    addBox(buckets, 'stone', x, y + 4.7 + i * 2.55, z, 6.35, 0.18, 6.35, 0, 0xd7b77f);
-  addBox(buckets, 'stone', x, y + 18.95, z, 7.0, 0.85, 7.0, 0, LIMESTONE_DARK);
-  addBox(buckets, 'stone', x, y + 19.8, z, 6.5, 4.6, 6.5, 0, LIMESTONE_LIGHT);
+  addBox(buckets, 'plaster', x, y + 2.2, z, 5.6, 16.2, 5.6, 0, 0xe4bd7a);
+  for (const [lx, lz] of [
+    [-2.95, -2.95],
+    [2.95, -2.95],
+    [-2.95, 2.95],
+    [2.95, 2.95],
+  ] as const)
+    addBox(buckets, 'stone', x + lx, y + 2.1, z + lz, 0.34, 16.3, 0.34, 0, 0xcba86e);
+  for (let i = 0; i < 7; i += 1)
+    addBox(buckets, 'stone', x, y + 4.1 + i * 2.25, z, 6.25, 0.24, 6.25, 0, i % 2 ? 0xd7b77f : 0xb99562);
+  addBox(buckets, 'stone', x, y + 18.45, z, 7.2, 0.95, 7.2, 0, LIMESTONE_DARK);
   for (const [lx, lz] of [
     [-2.55, -2.55],
     [2.55, -2.55],
     [-2.55, 2.55],
     [2.55, 2.55],
   ] as const) {
-    addCylinderGeom(buckets.stone, x + lx, y + 19.8, z + lz, 0.28, 0.34, 4.6, 12, 0, 0xf4dca4);
+    addBox(buckets, 'stone', x + lx, y + 19.0, z + lz, 0.62, 4.2, 0.62, 0, 0xf4dca4);
   }
   for (const [dx, dz, rot] of [
     [0, -3.28, 0],
@@ -2294,34 +2518,35 @@ function addClockTower(
     [0, 3.28, Math.PI],
     [-3.28, 0, -Math.PI / 2],
   ] as const) {
-    addArchVoussoirs(buckets, x + dx, y + 22.1, z + dz, 1.45, rot, LIMESTONE_DARK);
-    addBox(buckets, 'metal', x + dx * 0.98, y + 20.6, z + dz * 0.98, 1.2, 1.9, 0.08, rot, 0x223033);
+    addArchVoussoirs(buckets, x + dx, y + 21.55, z + dz, 1.55, rot, LIMESTONE_DARK);
+    addBox(buckets, 'metal', x + dx * 0.98, y + 20.25, z + dz * 0.98, 1.35, 2.05, 0.08, rot, 0x162226);
   }
-  addCylinderGeom(buckets.metal, x, y + 20.0, z, 0.55, 0.78, 1.25, 16, 0, 0x6c4a25);
-  addCone(buckets.metal, x, y + 20.95, z, 0.72, 1.3, 16, 0, 0x765229);
-  addBox(buckets, 'stone', x, y + 24.0, z, 7.2, 0.62, 7.2, 0, LIMESTONE_DARK);
-  addCone(buckets.roofTile, x, y + 24.6, z, 5.15, 4.3, 4, Math.PI / 4, TERRACOTTA_WARM);
+  addCylinderGeom(buckets.metal, x, y + 19.7, z, 0.62, 0.82, 1.35, 16, 0, 0x6c4a25);
+  addCone(buckets.metal, x, y + 20.72, z, 0.86, 1.45, 16, 0, 0x765229);
+  addBox(buckets, 'stone', x, y + 23.15, z, 7.4, 0.62, 7.4, 0, LIMESTONE_DARK);
+  addBox(buckets, 'stone', x, y + 23.65, z, 6.8, 0.42, 6.8, 0, LIMESTONE_LIGHT);
+  addCone(buckets.roofTile, x, y + 24.05, z, 5.15, 4.3, 4, Math.PI / 4, TERRACOTTA_WARM);
   for (const [dx, dz, rot] of [
     [0, -3.18, 0],
     [3.18, 0, Math.PI / 2],
     [0, 3.18, Math.PI],
     [-3.18, 0, -Math.PI / 2],
   ] as const)
-    addClockFace(buckets, x + dx, y + 14.2, z + dz, rot);
+    addClockFace(buckets, x + dx, y + 13.6, z + dz, rot);
   colliders.boxes.push({ x, z, hx: 4.8, hz: 4.8, rot: 0, height: 29 });
   perches.push(new Vector3(x, y + 29.4, z));
 }
 
 function addClockFace(buckets: Buckets, x: number, y: number, z: number, rot: number): void {
-  addDiscVertical(buckets, 'cloth', x, y, z, rot, 1.52, 0xf0dba9);
-  addTorusGeom(buckets.metal, x, y, z, 1.55, 0.045, 28, METAL, 0, rot, 0);
-  addBox(buckets, 'metal', x, y - 0.02, z - 0.07, 0.08, 0.82, 0.04, rot, METAL, 0, -0.48);
-  addBox(buckets, 'metal', x, y - 0.02, z - 0.08, 0.08, 0.58, 0.04, rot, METAL, 0, 0.82);
+  addDiscVertical(buckets, 'cloth', x, y, z, rot, 1.82, 0xf0dba9);
+  addTorusGeom(buckets.metal, x, y, z, 1.86, 0.055, 32, METAL, 0, rot, 0);
+  addBox(buckets, 'metal', x, y - 0.02, z - 0.07, 0.1, 1.08, 0.045, rot, METAL, 0, -0.48);
+  addBox(buckets, 'metal', x, y - 0.02, z - 0.08, 0.1, 0.72, 0.045, rot, METAL, 0, 0.82);
   for (let i = 0; i < 12; i += 1) {
     const a = (i / 12) * Math.PI * 2;
-    const px = x + Math.sin(a) * 1.0 * Math.cos(rot);
-    const py = y + Math.cos(a) * 1.0;
-    addBox(buckets, 'metal', px, py - 0.03, z - Math.cos(rot) * 0.12, 0.08, 0.18, 0.04, rot, METAL);
+    const px = x + Math.sin(a) * 1.45 * Math.cos(rot);
+    const py = y + Math.cos(a) * 1.45;
+    addBox(buckets, 'metal', px, py - 0.03, z - Math.cos(rot) * 0.12, 0.09, 0.22, 0.045, rot, METAL);
   }
 }
 
@@ -2484,8 +2709,7 @@ function addHallOfRecords(
   }
   addBox(buckets, 'cloth', x - 5.4, y + 0.8, z - 5.0, 0.52, 3.6, 0.06, 0, CLOTH_BLUE);
   addBox(buckets, 'cloth', x + 5.4, y + 0.8, z - 5.0, 0.52, 3.6, 0.06, 0, CLOTH_RED);
-  colliders.boxes.push({ x, z: z + 1.2, hx: 7.5, hz: 4.1, rot: 0, height: 6.8 });
-  colliders.boxes.push({ x, z: z - 5.2, hx: 7.8, hz: 1.65, rot: 0, height: 0.55 });
+  colliders.boxes.push({ x: x + 1.7, z: z + 1.7, hx: 5.4, hz: 3.4, rot: 0, height: 6.8 });
 }
 
 function addAdmiralTerrace(
@@ -2529,26 +2753,47 @@ function addCurtainWall(
   z: number,
   r: number,
 ): void {
-  const n = 23;
+  const rx = r * 0.78;
+  const rz = r * 0.68;
+  const thickness = 1.55;
+  const h = 3.15;
+  const n = 48;
+  const positions: number[] = [];
+  const indices: number[] = [];
   for (let i = 0; i < n; i += 1) {
-    const a0 = (-1.02 + (i / n) * 1.92) * Math.PI;
-    const a1 = (-1.02 + ((i + 1) / n) * 1.92) * Math.PI;
-    const am = (a0 + a1) * 0.5;
-    const px = x + Math.cos(am) * r;
-    const pz = z + Math.sin(am) * r * 0.78;
-    const len = Math.hypot(Math.cos(a1) * r - Math.cos(a0) * r, (Math.sin(a1) - Math.sin(a0)) * r * 0.78);
-    const rot = Math.atan2(Math.cos(am), -Math.sin(am));
-    const h = 3.2;
-    addBox(buckets, 'stone', px, y - 1.0, pz, len + 0.9, h + 1.1, 1.65, rot, 0xc2a476);
-    addBox(buckets, 'stone', px, y + h * 0.45, pz, len + 0.75, 0.1, 1.74, rot, 0xd7b77f);
-    const merlonCount = Math.max(1, Math.floor(len / 2.6));
-    for (let j = 0; j < merlonCount; j += 1) {
-      const lx = (j - (merlonCount - 1) / 2) * (len / merlonCount);
-      const p = localToWorld(px, pz, rot, lx, 0);
-      addBox(buckets, 'stone', p.x, y + h, p.z, 0.92, 0.7, 1.78, rot, LIMESTONE_LIGHT);
+    const a = (i / n) * Math.PI * 2;
+    for (const side of [-0.5, 0.5] as const) {
+      const px = x + Math.cos(a) * (rx + thickness * side);
+      const pz = z + Math.sin(a) * (rz + thickness * side);
+      positions.push(px, y - 0.75, pz, px, y + h, pz);
     }
-    colliders.boxes.push({ x: px, z: pz, hx: len * 0.5 + 0.5, hz: 0.95, rot, height: h + 0.9 });
-    if (i % 3 === 0) perches.push(new Vector3(px, y + h + 0.8, pz));
+  }
+  const stride = 4;
+  for (let i = 0; i < n; i += 1) {
+    const j = (i + 1) % n;
+    const a = i * stride;
+    const b = j * stride;
+    // Inner face, outer face and top face of the continuous ring.
+    indices.push(a, b, a + 1, a + 1, b, b + 1);
+    indices.push(a + 2, a + 3, b + 2, a + 3, b + 3, b + 2);
+    indices.push(a + 1, b + 1, a + 3, a + 3, b + 1, b + 3);
+  }
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  worldUv(geometry, 1.8);
+  paint(geometry, 0xc2a476);
+  buckets.stone.push(geometry);
+
+  for (let i = 0; i < 20; i += 1) {
+    const a = (i / 20) * Math.PI * 2;
+    const px = x + Math.cos(a) * rx;
+    const pz = z + Math.sin(a) * rz;
+    const rot = Math.atan2(Math.cos(a) * rx, -Math.sin(a) * rz);
+    addBox(buckets, 'stone', px, y + h, pz, 0.86, 0.72, 1.7, rot, LIMESTONE_LIGHT);
+    if (i % 3 === 0) colliders.boxes.push({ x: px, z: pz, hx: 1.4, hz: 0.95, rot, height: h + 0.9 });
+    if (i % 4 === 0) perches.push(new Vector3(px, y + h + 0.8, pz));
   }
 }
 
@@ -3105,7 +3350,7 @@ function addOliveTree(
   s: number,
 ): void {
   addCylinderGeom(buckets.wood, x, y, z, 0.22 * s, 0.33 * s, 2.2 * s, 9, 0.15, 0x5a3a25);
-  addSphere(buckets.cloth, x, y + 2.75 * s, z, 1.6 * s, 1.0 * s, 1.45 * s, OLIVE_SILVER, 12, 8);
+  addSphere(buckets.cloth, x, y + 2.75 * s, z, 1.6 * s, 1.0 * s, 1.45 * s, OLIVE_SILVER, 9, 6);
   addSphere(
     buckets.cloth,
     x - 0.92 * s,
@@ -3115,8 +3360,8 @@ function addOliveTree(
     0.78 * s,
     1.0 * s,
     OLIVE,
-    10,
-    6,
+    8,
+    5,
   );
   addSphere(
     buckets.cloth,
@@ -3127,8 +3372,8 @@ function addOliveTree(
     0.72 * s,
     1.15 * s,
     0x738753,
-    10,
-    6,
+    8,
+    5,
   );
   colliders.circles.push({ x, z, r: 0.62 * s });
 }
