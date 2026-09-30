@@ -104,7 +104,8 @@ export function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBri
                 islands={islands}
                 selected={selectedIsland}
                 onSelect={setSelectedIsland}
-                onOpen={() => setMode('island')}
+                // Only an island with a detail chart opens one; the others keep their card (and Travel).
+                onOpen={(island) => island.id === chart.island.id && setMode('island')}
               />
             ) : (
               <IslandSvg chart={chart} selectedPoint={selectedPoint} onSelectPoint={setSelectedPoint} />
@@ -118,6 +119,9 @@ export function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBri
               islands={islands}
               seals={state.learn.seals}
               onOpen={() => setMode('island')}
+              onTravel={
+                state.returnTo === 'title' ? null : () => bridge.travelTo(`island:${selectedIsland.id}`)
+              }
             />
           )}
           {mode === 'island' && (

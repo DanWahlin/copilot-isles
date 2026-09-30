@@ -12,12 +12,42 @@ describe('Port Meridian terrain', () => {
   it('has a dredged southwest harbor and a high northeastern ridge', () => {
     expect(meridianHeight(MERIDIAN.harbor.center.x, MERIDIAN.harbor.center.z)).toBeLessThan(-5);
     expect(meridianHeight(MERIDIAN.ridge.center.x, MERIDIAN.ridge.center.z)).toBeGreaterThan(120);
-    expect(meridianHeight(MERIDIAN.pads.citadel.x, MERIDIAN.pads.citadel.z)).toBeGreaterThan(55);
+    expect(meridianHeight(MERIDIAN.pads.citadel.x, MERIDIAN.pads.citadel.z)).toBeGreaterThan(38);
+  });
+
+  it('berths the ship in deep water alongside the east arm, with a dry landing beside it', () => {
+    const { berth, landing, eastArm } = MERIDIAN.harbor;
+    // The whole hull (24 m long, 6.6 m beam, 2.7 m draft) floats with room to spare.
+    for (const along of [-12, -6, 0, 6, 12])
+      for (const across of [-3.3, 0, 3.3])
+        expect(meridianHeight(berth.x + across, berth.z + along)).toBeLessThan(-4);
+    expect(meridianHeight(landing.x, landing.z)).toBeCloseTo(eastArm.height, 1);
+    expect(berth.x).toBeLessThan(eastArm.x0);
+  });
+
+  it('keeps the mouth and the way in from Anchorage open to a brigantine', () => {
+    const { lighthouse } = MERIDIAN.mole;
+    const arm = MERIDIAN.harbor.eastArm;
+    // Across the mouth, between the lighthouse and the arm's tip.
+    for (let t = 0.2; t <= 0.8; t += 0.1) {
+      const x = lighthouse.x + (arm.x0 - lighthouse.x) * t;
+      const z = lighthouse.z + (arm.z1 - lighthouse.z) * t;
+      expect(meridianHeight(x, z)).toBeLessThan(-3.5);
+    }
+    // From the berth out through the mouth and round the lighthouse to the south-west.
+    for (const [x, z] of [
+      [745, -675],
+      [735, -640],
+      [715, -600],
+      [680, -585],
+      [640, -575],
+    ])
+      expect(meridianHeight(x, z)).toBeLessThan(-3.5);
   });
 
   it('returns normalized material masks', () => {
     for (const [x, z] of [
-      [MERIDIAN.pads.harborPlaza.x, MERIDIAN.pads.harborPlaza.z],
+      [MERIDIAN.pads.plaza.x, MERIDIAN.pads.plaza.z],
       [MERIDIAN.ridge.center.x, MERIDIAN.ridge.center.z],
       [MERIDIAN.harbor.center.x, MERIDIAN.harbor.center.z],
     ]) {

@@ -1,5 +1,6 @@
 import type { ChartData, ChartPoint } from '../ui/bridge';
 import { ARCHIPELAGO } from '../ui/chart/archipelago';
+import { meridianOpen } from './meridian-open';
 import { COVE } from '../world/layout';
 import { extractShoreline } from '../world/terrain/bake';
 import { coveHeight } from '../world/terrain/cove-height';
@@ -124,17 +125,24 @@ function coveCoast(cell = 4): { coast: [number, number][][]; reef: [number, numb
 export function buildChart(
   anchors: Record<string, { x: number; z: number; heading: number }>,
   player: { x: number; z: number; heading: number; onShip: boolean } | null,
+  here: string = 'anchorage',
 ): ChartData {
   const { coast, reef } = coveCoast();
   const points = coveTravelPoints(anchors).map(({ id, label, kind, x, y }) => ({ id, label, kind, x, y }));
+  // The island you're on is current; the others you can reach are charted.
+  const open = new Set(['anchorage', ...(meridianOpen() ? ['meridian'] : [])]);
+  const islands = ARCHIPELAGO.map((i) =>
+    open.has(i.id) ? { ...i, status: i.id === here ? ('current' as const) : ('visited' as const) } : i,
+  );
   let p: ChartData['player'] = null;
-  if (player) {
+  // The island detail is Anchorage's chart, so only mark the player there.
+  if (player && here === 'anchorage') {
     const [x, y] = toChart(player.x, player.z);
     // World heading: forward = (sin h, cos h) with +z south, so clockwise-from-north = π − h.
     p = { x, y, heading: wrap(Math.PI - player.heading), onShip: player.onShip };
   }
   return {
-    islands: ARCHIPELAGO,
+    islands,
     island: { id: 'anchorage', name: 'Anchorage Cay', coast, reef, points },
     player: p,
   };

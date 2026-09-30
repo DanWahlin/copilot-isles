@@ -17,45 +17,51 @@ import { ROCK_ASSETS } from '../terrain/rock-assets';
 import { createRockMaterial } from '../terrain/terrain-material';
 import { clamp01, smoothstep } from '../../util/math';
 
+/**
+ * Port Meridian (Chapter 01), layout v2: a compact harbour town that faces south-west into the
+ * evening sun. A walled basin opens south-east past the lighthouse. The quay promenade runs along its
+ * north side with the plaza a step up behind it, the tavern and shipyard lie to the west, and your
+ * ship berths on the east arm, bow out toward the mouth. A cliff lift climbs from the arm to the
+ * citadel bluff, with the ridge rising behind. The walking loop runs berth → stair street → plaza
+ * → tavern → shipyard → promenade → berth → lift, with no doubling back.
+ */
 export const MERIDIAN = {
   center: { x: 850, z: -850 },
   bounds: { minX: 470, maxX: 1230, minZ: -1130, maxZ: -570, cell: 2 },
   island: { halfX: 350, halfZ: 225 },
   harbor: {
-    center: { x: 650, z: -690 },
-    radiusX: 108,
-    radiusZ: 82,
-    depth: 6,
-    quay: { x0: 600, x1: 755, z0: -748, z1: -700, height: 3.1 },
-    berth: { x: 618, z: -702, heading: -Math.PI * 0.25 },
+    center: { x: 668, z: -692 },
+    radiusX: 96,
+    radiusZ: 66,
+    depth: 6.5,
+    /** The north quay promenade; its face (the water's edge) runs along z1. */
+    quay: { x0: 586, x1: 772, z0: -772, z1: -752, height: 2.4 },
+    /** The east arm; its face (the water's edge) runs along x0. */
+    eastArm: { x0: 752, x1: 774, z0: -772, z1: -650, height: 2.4 },
+    /** Your ship alongside the east arm: port side to the quay, bow south toward the mouth. */
+    berth: { x: 747.35, z: -700, heading: 0 },
+    /** Where you step ashore beside the gangway, facing up the arm toward the town. */
+    landing: { x: 755.2, z: -704, heading: Math.PI },
   },
   mole: {
-    start: { x: 715, z: -668 },
-    end: { x: 548, z: -596 },
-    width: 11,
+    start: { x: 578, z: -708 },
+    end: { x: 690, z: -620 },
+    width: 9,
     height: 2.5,
-    lighthouse: { x: 535, z: -589, height: 5.5, radius: 12 },
+    lighthouse: { x: 697, z: -614, height: 5.5, radius: 10 },
   },
   pads: {
-    arrivalBerth: { x: 618, z: -702, height: 3.1, radius: 20 },
-    harborPlaza: { x: 690, z: -742, height: 8, radius: 24 },
-    marketSquare: { x: 748, z: -790, height: 18, radius: 28 },
-    clockTower: { x: 792, z: -820, height: 27, radius: 20 },
-    shipyard: { x: 636, z: -802, height: 14, radius: 26 },
-    navalAcademy: { x: 846, z: -886, height: 38, radius: 26 },
-    observatory: { x: 920, z: -968, height: 51, radius: 23 },
-    citadel: { x: 1008, z: -1004, height: 63, radius: 38 },
-    admiralTerrace: { x: 1078, z: -978, height: 58, radius: 22 },
-    tavern: { x: 790, z: -760, height: 18, radius: 24 },
-    voyageOffice: { x: 666, z: -725, height: 8, radius: 24 },
+    plaza: { x: 668, z: -796, height: 7, radius: 18 },
+    tavern: { x: 622, z: -796, height: 7, radius: 11 },
+    shipyard: { x: 586, z: -752, height: 2.4, radius: 11 },
+    citadel: { x: 816, z: -786, height: 40, radius: 30 },
   },
   ridge: { center: { x: 1090, z: -1075 }, halfX: 185, halfZ: 82, height: 148 },
+  /** House rows stepping up the hill behind the plaza. */
   terraces: [
-    { ax: 616, az: -734, bx: 724, bz: -709, height: 9, width: 15 },
-    { ax: 694, az: -792, bx: 818, bz: -763, height: 19, width: 17 },
-    { ax: 778, az: -855, bx: 906, bz: -824, height: 31, width: 16 },
-    { ax: 858, az: -916, bx: 976, bz: -884, height: 44, width: 14 },
-    { ax: 936, az: -980, bx: 1046, bz: -945, height: 57, width: 12 },
+    { ax: 596, az: -832, bx: 742, bz: -834, height: 13, width: 7 },
+    { ax: 602, az: -854, bx: 752, bz: -858, height: 16.7, width: 7 },
+    { ax: 612, az: -876, bx: 768, bz: -882, height: 20.4, width: 7 },
   ],
   seaCaves: [
     { x: 1130, z: -930, radius: 18 },
@@ -66,6 +72,17 @@ export const MERIDIAN = {
 } as const;
 
 const SEED = 0x1_01a_d1a;
+
+/**
+ * The quay promenade and east arm as a level stone deck (walkable right to the water's edge, where
+ * the terrain's own step is hidden behind the quay wall), or null off them.
+ */
+export function meridianQuayHeight(x: number, z: number): number | null {
+  const { quay, eastArm } = MERIDIAN.harbor;
+  const on = (b: { x0: number; x1: number; z0: number; z1: number }) =>
+    x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1;
+  return on(quay) || on(eastArm) ? quay.height : null;
+}
 
 function rand(seed: number): number {
   const v = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
@@ -119,21 +136,35 @@ function padHeight(
 }
 
 function roadMask(x: number, z: number): number {
-  const pads = MERIDIAN.pads;
+  const { pads, harbor } = MERIDIAN;
+  const armTop = { x: (harbor.eastArm.x0 + harbor.eastArm.x1) / 2, z: harbor.eastArm.z0 + 4 };
   const segments = [
-    [pads.arrivalBerth, pads.harborPlaza],
-    [pads.harborPlaza, pads.marketSquare],
-    [pads.marketSquare, pads.clockTower],
-    [pads.marketSquare, pads.shipyard],
-    [pads.clockTower, pads.navalAcademy],
-    [pads.navalAcademy, pads.observatory],
-    [pads.observatory, pads.citadel],
-    [pads.citadel, pads.admiralTerrace],
+    [armTop, pads.plaza],
+    [pads.plaza, pads.tavern],
+    [pads.tavern, pads.shipyard],
   ] as const;
   let mask = 0;
   for (const [a, b] of segments)
-    mask = Math.max(mask, 1 - smoothstep(5.5, 13, segmentDistance(x, z, a.x, a.z, b.x, b.z)));
+    mask = Math.max(mask, 1 - smoothstep(3.5, 8, segmentDistance(x, z, a.x, a.z, b.x, b.z)));
   return mask;
+}
+
+/**
+ * 1 on a block's deck, falling to 0 across `edge` metres just inside its edges, so a quay face
+ * drops straight into deep water (stone walls cover the step).
+ */
+function blockMask(
+  x: number,
+  z: number,
+  b: { x0: number; x1: number; z0: number; z1: number },
+  edge = 1.2,
+): number {
+  return (
+    smoothstep(b.x0, b.x0 + edge, x) *
+    (1 - smoothstep(b.x1 - edge, b.x1, x)) *
+    smoothstep(b.z0, b.z0 + edge, z) *
+    (1 - smoothstep(b.z1 - edge, b.z1, z))
+  );
 }
 
 function terraceHeight(x: number, z: number, current: number): number {
@@ -153,19 +184,21 @@ function harborHeight(x: number, z: number, current: number): number {
   const dx = (x - h.center.x) / h.radiusX;
   const dz = (z - h.center.z) / h.radiusZ;
   const basin = 1 - smoothstep(0.78, 1.08, Math.hypot(dx, dz));
-  let out = mix(current, -h.depth + fbm2(x * 0.05, z * 0.05, 3, SEED + 20) * 0.12, basin);
-  const q = h.quay;
-  const quay =
-    smoothstep(q.x0 - 14, q.x0 + 5, x) *
-    (1 - smoothstep(q.x1 - 5, q.x1 + 14, x)) *
-    smoothstep(q.z0 - 12, q.z0 + 5, z) *
-    (1 - smoothstep(q.z1 - 5, q.z1 + 14, z));
-  out = mix(out, q.height, quay);
+  const floor = -h.depth + fbm2(x * 0.05, z * 0.05, 3, SEED + 20) * 0.12;
+  let out = mix(current, floor, basin);
+  // Dredged berths along both quay faces, so ships can lie alongside at any point.
+  const q = h.quay,
+    arm = h.eastArm;
+  const alongQuay = blockMask(x, z, { x0: q.x0 + 6, x1: arm.x0 + 1, z0: q.z1 - 1, z1: q.z1 + 22 }, 8);
+  const alongArm = blockMask(x, z, { x0: arm.x0 - 22, x1: arm.x0 + 1, z0: q.z1 - 1, z1: arm.z1 + 8 }, 8);
+  out = mix(out, Math.min(out, floor), Math.max(alongQuay, alongArm));
+  out = mix(out, h.quay.height, blockMask(x, z, h.quay));
+  out = mix(out, h.eastArm.height, blockMask(x, z, h.eastArm));
   const mole =
     1 -
     smoothstep(
       MERIDIAN.mole.width - 1,
-      MERIDIAN.mole.width + 15,
+      MERIDIAN.mole.width + 9,
       segmentDistance(
         x,
         z,
@@ -176,8 +209,43 @@ function harborHeight(x: number, z: number, current: number): number {
       ),
     );
   out = mix(out, MERIDIAN.mole.height, mole);
-  out = padHeight(x, z, out, MERIDIAN.mole.lighthouse, 10);
+  out = padHeight(x, z, out, MERIDIAN.mole.lighthouse, 8);
   return out;
+}
+
+/**
+ * The town hillside: from the back of the quay the ground climbs steadily north (about 1 in 6)
+ * through the plaza and the house terraces, fading into the natural hill behind the town.
+ */
+function townHeight(x: number, z: number, current: number): number {
+  const q = MERIDIAN.harbor.quay;
+  const back = q.z0 - z;
+  if (back < -1) return current;
+  const ramp = q.height + Math.max(0, back) * 0.165 + fbm2(x * 0.04, z * 0.04, 3, SEED + 40) * 0.35;
+  const w =
+    smoothstep(q.x0 - 34, q.x0 - 6, x) *
+    (1 - smoothstep(q.x1 + 4, q.x1 + 20, x)) *
+    smoothstep(-1, 0.5, back) *
+    (1 - smoothstep(118, 160, back));
+  return mix(current, ramp, w);
+}
+
+/**
+ * The citadel bluff: a sheer face over the east arm (where the cliff lift climbs) that runs back
+ * into the hill toward the north-east instead of standing alone.
+ */
+function citadelHeight(x: number, z: number, current: number): number {
+  const c = MERIDIAN.pads.citadel;
+  const dx = x - c.x,
+    dz = z - c.z;
+  const d = Math.hypot(dx, dz);
+  const inland = d > 0 ? (dx * 0.707 - dz * 0.707) / d : 0;
+  const edge = 9 + 90 * smoothstep(0.05, 0.85, inland);
+  // A craggy outline rather than a drum: the rim wanders by a few metres around the bluff.
+  const a = Math.atan2(dz, dx);
+  const rim = c.radius + fbm2(Math.cos(a) * 1.6 + 3.1, Math.sin(a) * 1.6 - 2.2, 4, SEED + 50) * 9;
+  const top = c.height + fbm2(x * 0.05, z * 0.05, 3, SEED + 51) * 0.6;
+  return mix(current, top, 1 - smoothstep(rim, rim + edge, d));
 }
 
 function ridgeHeight(x: number, z: number, current: number): number {
@@ -186,7 +254,8 @@ function ridgeHeight(x: number, z: number, current: number): number {
   const ridge = Math.exp(-(dx * dx + dz * dz));
   const flutes = Math.abs(Math.sin((z + x * 0.35) * 0.055 + fbm2(x * 0.018, z * 0.018, 3, SEED + 30) * 2.8));
   const cliff = MERIDIAN.ridge.height * ridge + flutes * 13 * smoothstep(0.22, 0.72, ridge);
-  let out = Math.max(current, cliff);
+  // Only the ridge itself lifts the ground; far from it (the harbour) the sea floor stays put.
+  let out = mix(current, Math.max(current, cliff), smoothstep(0.004, 0.05, ridge));
   for (const cave of MERIDIAN.seaCaves) {
     const d = Math.hypot(x - cave.x, z - cave.z);
     const mouth =
@@ -215,20 +284,21 @@ export function meridianHeight(x: number, z: number): number {
   let h =
     coast.distance >= 0 ? mix(-0.25 + coast.distance * 0.07, land, smoothstep(18, 96, coast.distance)) : sea;
   h = harborHeight(x, z, h);
+  h = townHeight(x, z, h);
   h = terraceHeight(x, z, h);
-  const road = roadMask(x, z);
-  if (road > 0) h = mix(h, h - 0.65, road * smoothstep(4, 35, h));
   for (const pad of Object.values(MERIDIAN.pads)) {
-    const edge = pad === MERIDIAN.pads.citadel ? 22 : 14;
-    h = padHeight(x, z, h, pad, edge);
+    if (pad === MERIDIAN.pads.citadel) continue;
+    h = padHeight(x, z, h, pad, 8);
   }
+  h = citadelHeight(x, z, h);
   const basinCore = Math.hypot(
     (x - MERIDIAN.harbor.center.x) / MERIDIAN.harbor.radiusX,
     (z - MERIDIAN.harbor.center.z) / MERIDIAN.harbor.radiusZ,
   );
-  const onHarborPad = Object.values(MERIDIAN.pads).some(
-    (pad) => Math.hypot(x - pad.x, z - pad.z) < pad.radius + 5,
-  );
+  const onHarborPad =
+    Object.values(MERIDIAN.pads).some((pad) => Math.hypot(x - pad.x, z - pad.z) < pad.radius + 5) ||
+    blockMask(x, z, MERIDIAN.harbor.quay) > 0 ||
+    blockMask(x, z, MERIDIAN.harbor.eastArm) > 0;
   if (basinCore < 0.58 && !onHarborPad)
     h = Math.min(h, -MERIDIAN.harbor.depth + fbm2(x * 0.05, z * 0.05, 3, SEED + 20) * 0.12);
   const ridgeFoot = Math.exp(

@@ -1,8 +1,9 @@
+import { MERIDIAN } from '../world/islands/meridian';
 import { COVE } from '../world/layout';
 import type { CameraShot } from './follow-camera';
 import type { FlyKey } from './flyover';
 
-export type IslandId = 'anchorage';
+export type IslandId = 'anchorage' | 'meridian';
 
 /**
  * An island's first-landfall flyover: the camera comes in low over the sea, passes the ship, sweeps
@@ -43,7 +44,46 @@ export const ANCHORAGE_ARRIVAL: IslandArrival = {
   cardFor: 5,
 };
 
-export const ARRIVALS: Readonly<Record<IslandId, IslandArrival>> = { anchorage: ANCHORAGE_ARRIVAL };
+const M = MERIDIAN;
+
+/**
+ * Port Meridian: in from the south-west over open water, past the lighthouse and into the walled
+ * basin, over your ship on the east arm, up across the town to the citadel for the view over the
+ * bay, and round and down to the captain on the arm.
+ */
+export const MERIDIAN_ARRIVAL: IslandArrival = {
+  id: 'meridian',
+  card: {
+    eyebrow: 'Chapter 01 · Tour the App',
+    title: 'Port Meridian',
+    line: 'Find your way around the GitHub Copilot app',
+  },
+  keys: [
+    { x: 520, y: 9, z: -470, tx: 690, ty: 10, tz: -690, pace: 1.3 },
+    { x: 610, y: 16, z: -560, tx: 700, ty: 8, tz: -700, pace: 1.1 },
+    { x: 700, y: 30, z: -640, tx: M.harbor.berth.x, ty: 4, tz: M.harbor.berth.z, pace: 0.75 },
+    { x: 735, y: 42, z: -720, tx: 668, ty: 8, tz: -810, pace: 0.8 },
+    {
+      x: 700,
+      y: 58,
+      z: -800,
+      tx: M.pads.citadel.x,
+      ty: M.pads.citadel.height,
+      tz: M.pads.citadel.z,
+      pace: 1,
+    },
+    { x: 780, y: 72, z: -840, tx: 640, ty: 0, tz: -620, pace: 1 },
+    { x: 800, y: 50, z: -760, tx: M.harbor.berth.x, ty: 4, tz: M.harbor.berth.z - 10, pace: 0.85 },
+  ],
+  seconds: 19,
+  cardAt: 2.2,
+  cardFor: 5,
+};
+
+export const ARRIVALS: Readonly<Record<IslandId, IslandArrival>> = {
+  anchorage: ANCHORAGE_ARRIVAL,
+  meridian: MERIDIAN_ARRIVAL,
+};
 
 /**
  * The whole flight for a captain standing at `captain`: the island's keys, then a descent from

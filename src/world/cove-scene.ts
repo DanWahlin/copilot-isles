@@ -33,6 +33,8 @@ export interface CoveScene {
     terrain: CreatedTerrain | null;
     foam: Mesh | null;
     ready: boolean;
+    /** Resolves once the terrain has streamed in (or failed, so a start there never hangs). */
+    loaded: Promise<void>;
   };
   vegetation: VegetationSystem | null;
   ship: Brigantine;
@@ -87,9 +89,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     terrain: null as CreatedTerrain | null,
     foam: null as Mesh | null,
     ready: false,
+    loaded: Promise.resolve(),
   };
   if (!meridianDisabled)
-    void loadTerrainPack(`${o.packBase ?? '/packs'}/meridian/terrain`)
+    meridian.loaded = loadTerrainPack(`${o.packBase ?? '/packs'}/meridian/terrain`)
       .then((meridianData) => {
         const meridianTerrain = createTerrain({
           tier,
