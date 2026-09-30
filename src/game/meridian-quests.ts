@@ -107,7 +107,9 @@ export const MERIDIAN_QUESTS: readonly MeridianQuestDef[] = [
 ];
 
 /** Where the compass points on Meridian for each quest step (interaction ids; the nearest usable wins). */
-export const MERIDIAN_TARGETS: Readonly<Record<string, { ids: readonly string[]; label: string }>> = {
+export const MERIDIAN_TARGETS: Readonly<
+  Record<string, { ids: readonly string[]; label: string; labels?: Readonly<Record<string, string>> }>
+> = {
   'Q1.1:start': { ids: ['npc:tobias'], label: 'Tobias' },
   'Q1.2:start': { ids: ['npc:mina'], label: 'Mina' },
   'Q1.3:start': { ids: ['npc:lyra_meridian'], label: 'Lyra' },
@@ -118,7 +120,11 @@ export const MERIDIAN_TARGETS: Readonly<Record<string, { ids: readonly string[];
   'Q1.5:helms': { ids: ['ship:board', 'helm:*'], label: 'The Three Helms' },
   'Q1.5:solved': { ids: ['npc:rhea'], label: 'Rhea' },
   // The lift is only usable from the bottom, so up top the compass moves on to Oren.
-  'Q1.6:start': { ids: ['lift:bottom', 'npc:oren'], label: 'Oren · take the lift' },
+  'Q1.6:start': {
+    ids: ['lift:bottom', 'npc:oren'],
+    label: 'The lift to Oren',
+    labels: { 'npc:oren': 'Oren' },
+  },
   'Q1.7:start': { ids: ['npc:pell'], label: 'Pell' },
   'Q1.8:start': { ids: ['npc:admiral'], label: 'Admiral Vale' },
   'Q1.8:exam': { ids: ['npc:admiral'], label: 'Admiral Vale' },
@@ -132,7 +138,9 @@ export function meridianCurrent(q: QuestState): { id: string; task: string; step
   return d ? { id: d.id, task: d.task, step: q[d.id] ?? 'start' } : null;
 }
 
-export function meridianTarget(q: QuestState): { ids: readonly string[]; label: string } | null {
+export function meridianTarget(
+  q: QuestState,
+): { ids: readonly string[]; label: string; labels?: Readonly<Record<string, string>> } | null {
   const c = meridianCurrent(q);
   return c ? (MERIDIAN_TARGETS[`${c.id}:${c.step}`] ?? null) : null;
 }

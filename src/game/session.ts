@@ -126,6 +126,18 @@ export interface GameSession {
     bottles(): { id: string; x: number; z: number; read: boolean }[];
     /** A puzzle's test hooks (state, solve, …) by id, e.g. 'P0.1'. */
     puzzle(id: string): Puzzle['debug'] | null;
+    /** Port Meridian's cast where they stand (tests), empty until the town's up. */
+    cast(): { id: string; name: string; x: number; y: number; z: number; h: number; ground: number }[];
+    /** The lift's two landings (tests), null until the town's up. */
+    liftSpots(): {
+      bottom: { x: number; z: number; h: number };
+      top: { x: number; z: number; h: number };
+    } | null;
+    /** Interactions within `r` metres of (x, z) and whether each is usable now (tests). */
+    near(x: number, z: number, r: number): { id: string; y: number; d: number; on: boolean }[];
+    /** Whether Rhea's aboard for the Three Helms, and whether the lighthouse is lit (tests). */
+    rheaAboard(): boolean;
+    lighthouseLit(): boolean;
     /** Moves the ship while you're sailing (tests: skip the passage between islands). */
     sailTo(x: number, z: number, heading: number): void;
     /** Sets a quest step, e.g. to lower the gangway without playing the island (tests). */
@@ -461,7 +473,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       get z() {
         return n.z;
       },
-      radius: 2.6,
+      radius: n.spec.talkRadius ?? 2.6,
       enabled: () => mode === 'walk' && !n.talking,
       onInteract: () => void talkTo(n),
     });
@@ -706,7 +718,14 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const meridianSites: { update(dt: number, t: number): void; dispose(): void; group: Group }[] = [];
   /** Where the lift car is: 0 at the east arm, 1 on the citadel bluff. */
   let liftAt = 0;
-  let liftRide: { from: number; to: number; t: number; call: number } | null = null;
+  let liftRide: {
+    from: number;
+    to: number;
+    t: number;
+    call: number;
+    /** Which side the camera rides on (unit, horizontal), picked for a clear view the whole way. */
+    side: { x: number; z: number };
+  } | null = null;
   const liftShot: CameraShot = { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 };
   const liftCarAt = (k: number, out: { x: number; y: number; z: number }) => {
     const a = cove.meridian.town?.anchors;
@@ -720,10 +739,55 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     return out;
   };
   const liftPos = { x: 0, y: 0, z: 0 };
+  const LIFT_CAM = { out: 15, up: 3.5 };
+  /**
+   * The side of the lift the camera rides on: square to the car's travel, whichever way sees the car
+   * clearly (nothing solid on the line, not under the hillside) at most points up the ride.
+   */
+  function liftSide(): { x: number; z: number } {
+    const a = cove.meridian.town?.anchors;
+    const b = a?.liftBottom,
+      tp = a?.liftTop;
+    if (!b || !tp) return { x: 0, z: 1 };
+    const dx = tp.tx! - b.tx!,
+      dz = tp.tz! - b.tz!;
+    const len = Math.hypot(dx, dz) || 1;
+    const sides = [
+      { x: dz / len, z: -dx / len },
+      { x: -dz / len, z: dx / len },
+    ];
+    const car = { x: 0, y: 0, z: 0 };
+    let best = sides[0]!,
+      bestBad = Infinity;
+    for (const side of sides) {
+      let bad = 0;
+      for (let k = 0.05; k < 1; k += 0.15) {
+        liftCarAt(k, car);
+        const cx = car.x + side.x * LIFT_CAM.out,
+          cz = car.z + side.z * LIFT_CAM.out,
+          cy = car.y + LIFT_CAM.up;
+        if (world.groundAt(cx, cz) > cy - 1.5) bad += 2;
+        for (let i = 1; i < 10; i++) {
+          const t = i / 10;
+          if (
+            world.occludedAt(cx + (car.x - cx) * t, cy + (car.y + 1.2 - cy) * t, cz + (car.z - cz) * t, 0.1)
+          ) {
+            bad += 1;
+            break;
+          }
+        }
+      }
+      if (bad < bestBad) {
+        bestBad = bad;
+        best = side;
+      }
+    }
+    return best;
+  }
   function rideLift(up: boolean): void {
     if (liftRide || mode !== 'walk' || !cove.meridian.town) return;
     const to = up ? 1 : 0;
-    liftRide = { from: 1 - to, to, t: 0, call: liftAt === 1 - to ? 0 : 2.4 };
+    liftRide = { from: 1 - to, to, t: 0, call: liftAt === 1 - to ? 0 : 2.4, side: liftSide() };
     mode = 'transition';
     input.enabled = false;
     hero.setSpeed(0);
@@ -745,16 +809,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     const k = r.from + (r.to - r.from) * r.t;
     town.setLiftCar(k);
     liftCarAt(k, liftPos);
-    // Stand in the car, looking out over the harbour; the camera rides alongside on the harbour side.
-    const outX = -0.8,
-      outZ = 0.6;
+    // Stand in the car looking out, with the camera riding alongside on the clear side.
+    const side = r.side;
     hero.group.position.set(liftPos.x, liftPos.y + 0.2, liftPos.z);
-    hero.group.rotation.y = Math.atan2(outX, outZ);
-    liftShot.x = liftPos.x + outX * 15 + outZ * 4;
-    liftShot.y = liftPos.y + 5.5;
-    liftShot.z = liftPos.z + outZ * 15 - outX * 4;
+    hero.group.rotation.y = Math.atan2(side.x, side.z);
+    liftShot.x = liftPos.x + side.x * LIFT_CAM.out;
+    liftShot.z = liftPos.z + side.z * LIFT_CAM.out;
+    liftShot.y = Math.max(liftPos.y + LIFT_CAM.up, world.groundAt(liftShot.x, liftShot.z) + 2.5);
     liftShot.tx = liftPos.x;
-    liftShot.ty = liftPos.y + 1.4;
+    liftShot.ty = liftPos.y + 1.2;
     liftShot.tz = liftPos.z;
     cam.frame(liftShot);
     cam.update(dt, camera, look, liftPos, 0, false, world, t);
@@ -804,6 +867,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   cues.set('tour:end', async () => {
     if (talkShot) cam.frame(talkShot);
   });
+  let lighthouseLit = false;
   // The Seal: the lighthouse on the mole lights up across the harbour.
   cues.set('lighthouse', async () => {
     const town = cove.meridian.town;
@@ -813,6 +877,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     cam.frame({ x: adm.x, y: adm.y + 3.2, z: adm.z, tx: lh.x, ty: lh.y + 8, tz: lh.z });
     await new Promise((r) => setTimeout(r, 1400));
     town.setLighthouseLit(true);
+    lighthouseLit = true;
     audio?.sfx.oneShot('crowd_cheer_small', player, 0.8);
     await new Promise((r) => setTimeout(r, 2600));
     if (talkShot) cam.frame(talkShot);
@@ -831,7 +896,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       const n = meridianNpcs.list.find((v) => v.spec.id === c.npc);
       if (n) placeChest(c, n);
     }
-    if (quests()['Q1.8'] === 'done') town.setLighthouseLit(true);
+    if (quests()['Q1.8'] === 'done') {
+      town.setLighthouseLit(true);
+      lighthouseLit = true;
+    }
     // The lift, from the top of the east arm to the citadel bluff.
     for (const [id, up] of [
       ['liftBottom', true],
@@ -1133,7 +1201,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       if (goal && it) {
         const dx = it.x - player.x;
         const dz = it.z - player.z;
-        target = { bearing: bearingOf(dx, dz), label: goal.label, distance: Math.hypot(dx, dz) };
+        const labels = (goal as { labels?: Readonly<Record<string, string>> }).labels;
+        const label = labels?.[it.id] ?? goal.label;
+        target = { bearing: bearingOf(dx, dz), label, distance: Math.hypot(dx, dz) };
       }
     } else {
       // A puzzle out on the water first (the Three Helms' next buoy or mark), else the berth you're
@@ -1637,6 +1707,27 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           read: !!learn?.isChestOpen(id),
         })),
       puzzle: (id: string) => puzzles.find((p) => p.id === id)?.debug ?? null,
+      liftSpots: () => {
+        const a = cove.meridian.town?.anchors;
+        const b = a?.liftBottom,
+          t = a?.liftTop;
+        return b && t
+          ? { bottom: { x: b.x, z: b.z, h: b.heading }, top: { x: t.x, z: t.z, h: t.heading } }
+          : null;
+      },
+      near: (x, z, r) => interactions.within(x, z, r),
+      rheaAboard: () => !!rheaAboard?.group.parent,
+      lighthouseLit: () => lighthouseLit,
+      cast: () =>
+        (meridianNpcs?.list ?? []).map((n) => ({
+          id: n.spec.id,
+          name: n.spec.name,
+          x: n.x,
+          y: n.y,
+          z: n.z,
+          h: n.heading,
+          ground: world.groundAt(n.x, n.z),
+        })),
       quest: (id: string, step: string) => setQuest(id, step),
       sailTo(x, z, heading) {
         if (mode === 'sail') dyn.reset(x, z, heading);

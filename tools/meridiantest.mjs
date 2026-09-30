@@ -1,0 +1,293 @@
+#!/usr/bin/env node
+// End-to-end Chapter 01 run at Port Meridian, in the course's order: Tobias, Mina's tour, Lyra, Anders
+// and the Crate Yard (P1.1, solved by its hook), Rhea and the Three Helms (P1.2, sailed for real: each
+// buoy's helm, Interactive's marks, Plan's approval, Autopilot home to the berth), the lift up the
+// bluff to Oren, Pell, and the Admiral's Exam that lights the lighthouse. Screenshots at each beat.
+// node tools/meridiantest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/meridian]
+import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
+
+const opt = parseFlags();
+const base = opt.base || 'http://localhost:5301';
+const out = opt.out || '/tmp/shots/meridian';
+const tag = opt.webgl ? 'gl' : 'gpu';
+const url = `${base}/devpages/play.html?auto&quiet&meridian&shot${opt.webgl ? '&webgl' : ''}`;
+
+const browser = await launchChrome();
+const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
+const logs = collectLogs(page, { types: ['error'] });
+await page.goto(url, { waitUntil: 'load' });
+await page.waitForFunction(() => window.__dev?.ready === true && window.__dev.session(), null, {
+  timeout: 120000,
+});
+await page.waitForTimeout(1500);
+
+const shots = [];
+const shot = async (name) => {
+  const path = `${out}-${tag}-${name}.png`;
+  await page.screenshot({ path });
+  shots.push(path);
+};
+const S = (f, a) => page.evaluate(f, a);
+const tap = (code) => S((c) => window.__dev.tap(c), code);
+const learnState = () =>
+  S(() => {
+    const l = window.__dev.learn.getState();
+    const st = window.__dev.state();
+    return {
+      quiz: l.quiz
+        ? { id: l.quiz.quiz.id, type: l.quiz.quiz.type, correct: l.quiz.last?.correct ?? null }
+        : null,
+      reveal: l.reveal?.page.id ?? null,
+      banner: l.banner?.title ?? null,
+      dialogue: st.dialogue,
+      mode: st.mode,
+      quests: window.__dev.learn.progress.data.quests,
+      pages: l.pages.length,
+      doubloons: l.doubloons,
+    };
+  });
+
+async function clickHotspot() {
+  const box = await S(() => {
+    const quiz = window.__dev.learn.getState().quiz.quiz;
+    const t = quiz.targets.find((x) => x.correct);
+    const frame = document.querySelector('.ci-hotspot-frame').getBoundingClientRect();
+    return {
+      x: frame.left + frame.width * (t.rect[0] + t.rect[2] / 2),
+      y: frame.top + frame.height * (t.rect[1] + t.rect[3] / 2),
+    };
+  });
+  await page.mouse.click(box.x, box.y);
+}
+
+const seen = new Set();
+/** Drives dialogue, quizzes, and reveals until `done(state)` or the timeout; `every` runs each tick. */
+async function drive(label, done, ms = 150000, every = null) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    const s = await learnState();
+    if (done(s)) return s;
+    if (every) await every(s);
+    if (s.quiz) {
+      if (!seen.has(s.quiz.id)) {
+        seen.add(s.quiz.id);
+        await page.waitForTimeout(500);
+        await shot(`quiz-${s.quiz.id}`);
+      }
+      if (s.quiz.correct) await tap('KeyE');
+      else if (s.quiz.type === 'hotspot') await clickHotspot();
+      else await S(() => window.__dev.answer());
+    } else if (s.reveal || s.banner) {
+      const key = `reveal-${s.reveal ?? s.banner}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        await page.waitForTimeout(500);
+        await shot(key.replace(/[^\w.-]+/g, '_'));
+      }
+      await tap('KeyE');
+    } else if (s.dialogue) await tap('KeyE');
+    await page.waitForTimeout(350);
+  }
+  logs.push(`[meridiantest] ${label}: timed out`);
+  return learnState();
+}
+
+/**
+ * Walks up to a Meridian NPC from wherever there's room (in front first, then round them), on their
+ * level, checks the talk prompt, and presses E.
+ */
+const talk = async (id) => {
+  const n = await S(
+    (id) =>
+      window.__dev
+        .session()
+        .debug.cast()
+        .find((v) => v.id === id) ?? null,
+    id,
+  );
+  if (!n) {
+    logs.push(`[meridiantest] no NPC ${id}`);
+    return;
+  }
+  if (id !== 'lyra_meridian' && Math.abs(n.y - n.ground) > 0.12)
+    logs.push(`[meridiantest] ${id} stands ${(n.y - n.ground).toFixed(2)} m off the ground`);
+  const name = n.name;
+  let ok = false;
+  for (const reach of [2.2, 3.2]) {
+    for (const k of [0, 1, -1, 2, -2, 3, -3, 4]) {
+      const a = n.h + (k * Math.PI) / 4;
+      const at = await S(
+        ([x, z, h]) => {
+          const s = window.__dev.session();
+          s.debug.teleport(x, z, h);
+          return window.__dev.state();
+        },
+        [n.x + Math.sin(a) * reach, n.z + Math.cos(a) * reach, a + Math.PI],
+      );
+      await page.waitForTimeout(250);
+      const prompt = await S(() => document.querySelector('.hud-prompt.show')?.textContent ?? null);
+      if (Math.abs(at.y - n.y) < 1 && prompt?.includes('Talk to') && (!name || prompt.includes(name))) {
+        ok = true;
+        break;
+      }
+    }
+    if (ok) break;
+  }
+  if (!ok) logs.push(`[meridiantest] can't get a talk prompt at ${id} from any side`);
+  await S((a) => window.__dev.look(a, 0.16), n.h + Math.PI + 0.35);
+  await page.waitForTimeout(700);
+  await shot(`talk-${id}`);
+  await tap('KeyE');
+  await page.waitForTimeout(600);
+};
+const quest = (id, want) => (s) => s.quests[id] === want;
+
+// Ashore at Meridian (the chart's travel), past the flyover.
+const q = await S(() => window.__dev.session().islandQuay('meridian'));
+await S((q) => window.__dev.session().travel(q.x, q.z, q.heading), q);
+await page.waitForFunction(() => window.__dev.session().island === 'meridian', null, { timeout: 30000 });
+await page.waitForTimeout(4000);
+if ((await S(() => window.__dev.session().debug.arrival()?.phase)) === 'flying') await tap('KeyE');
+await page.waitForFunction(() => window.__dev.session().debug.cast().length > 0, null, { timeout: 60000 });
+// Wingman's welcome follows the flyover; let it start, then play it through.
+await page
+  .waitForFunction(() => window.__dev.state().dialogue, null, { timeout: 8000 })
+  .catch(() => logs.push('[meridiantest] no Meridian welcome'));
+await drive('welcome', (s) => !s.dialogue, 30000);
+await page.waitForTimeout(1200);
+await shot('ashore');
+
+// Q1.1 Tobias → Q1.2 Mina's tour (a shot at each landmark) → Q1.3 Lyra.
+await talk('tobias');
+await drive('Tobias', quest('Q1.1', 'done'));
+await talk('mina');
+let tourShots = 0;
+let lastTour = 0;
+await drive('Mina', quest('Q1.2', 'done'), 180000, async () => {
+  if (tourShots < 6 && Date.now() - lastTour > 2600) {
+    lastTour = Date.now();
+    await shot(`tour-${tourShots++}`);
+  }
+});
+await talk('lyra_meridian');
+await drive('Lyra', quest('Q1.3', 'done'));
+
+// Q1.4 Anders and the Crate Yard.
+await talk('anders');
+await drive('Anders', quest('Q1.4', 'crates'));
+const yard = await S(() => window.__dev.session().debug.puzzle('P1.1').spots());
+await S((y) => window.__dev.session().debug.teleport(y.lever.x + 1.5, y.lever.z + 1.5, Math.PI), yard);
+await page.waitForTimeout(1200);
+await shot('crate-yard');
+await S(() => window.__dev.session().debug.puzzle('P1.1').solve());
+await drive('crates solved', quest('Q1.4', 'done'));
+await shot('crate-yard-solved');
+
+// Q1.5 Rhea and the Three Helms, sailed for real.
+await talk('rhea');
+await drive('Rhea', quest('Q1.5', 'helms'));
+await S(() => window.__dev.session().debug.board());
+await page.waitForTimeout(1800);
+const aboard = await S(() => ({
+  rhea: window.__dev.session().debug.rheaAboard?.() ?? null,
+  compass: document.querySelector('.hud-compass-label')?.textContent ?? null,
+}));
+if (!aboard.compass?.includes('Interactive')) logs.push(`[meridiantest] compass at sea: ${aboard.compass}`);
+await S(() => window.__dev.session().debug.sailTo(686, -600, 0));
+await page.waitForTimeout(1500);
+const helmState = () => S(() => window.__dev.session().debug.puzzle('P1.2').state());
+const prompt = () => S(() => document.querySelector('.hud-prompt.show')?.textContent ?? null);
+const term = () => S(() => document.querySelector('.hud-term.show')?.textContent ?? null);
+let p = await prompt();
+if (!p?.includes('Take the Interactive helm')) logs.push(`[meridiantest] no helm prompt (${p})`);
+await shot('helm-interactive-prompt');
+const phasesSeen = new Set();
+const t0 = Date.now();
+while (Date.now() - t0 < 300000) {
+  const h = await helmState();
+  if (h.solved) break;
+  const s = await learnState();
+  const key = h.run ? `${h.run.mode}-${h.run.phase}-${h.run.leg}` : `free-${h.done.length}`;
+  if (!phasesSeen.has(key)) {
+    phasesSeen.add(key);
+    await page.waitForTimeout(h.run?.phase === 'review' ? 1600 : 400);
+    await shot(`helm-${key}`);
+  }
+  if (s.dialogue) await tap('KeyE');
+  else if (!h.run) {
+    // Between helms: bring her up to the next buoy (the crew does it on Wingman's third hint).
+    const next = ['interactive', 'plan', 'autopilot'][h.done.length];
+    p = await prompt();
+    if (p?.includes('Take the')) await tap('KeyE');
+    else if (next) {
+      logs.push(`[meridiantest] after ${h.done.join(',')}: not in reach of the ${next} buoy (${p})`);
+      break;
+    }
+  } else if (h.run.phase === 'hold' || h.run.phase === 'review') {
+    if (h.run.phase === 'review' && !(await term())?.includes('approve'))
+      logs.push('[meridiantest] Plan review terminal has no approval line');
+    await tap('KeyE');
+  }
+  await page.waitForTimeout(400);
+}
+const helms = await helmState();
+if (!helms.solved) logs.push(`[meridiantest] helms not solved: ${JSON.stringify(helms)}`);
+await drive('helms done', (s) => s.mode === 'walk' && !s.dialogue, 30000);
+await shot('helms-home');
+await talk('rhea');
+await drive('Rhea debrief', quest('Q1.5', 'done'));
+
+// Q1.6 the lift up the bluff, then Oren.
+const lift = await S(() => {
+  const s = window.__dev.session();
+  const a = s.debug.liftSpots?.();
+  if (a) s.debug.teleport(a.bottom.x, a.bottom.z, a.bottom.h);
+  return a;
+});
+if (!lift) logs.push('[meridiantest] no lift spots');
+await page.waitForTimeout(900);
+p = await prompt();
+if (!p?.includes('Ride the lift up')) logs.push(`[meridiantest] no lift prompt (${p})`);
+await tap('KeyE');
+await page.waitForTimeout(5500);
+await shot('lift-ride');
+await page.waitForFunction(() => window.__dev.state().mode === 'walk', null, { timeout: 20000 });
+await page.waitForTimeout(800);
+const top = await S(() => window.__dev.state());
+if (top.y < 38) logs.push(`[meridiantest] lift didn't reach the bluff (y ${top.y.toFixed(1)})`);
+await shot('lift-top');
+await talk('oren');
+await drive('Oren', quest('Q1.6', 'done'));
+
+// Q1.7 Pell → Q1.8 the Admiral's Exam and the lighthouse.
+await talk('pell');
+await drive('Pell', quest('Q1.7', 'done'));
+await talk('admiral');
+let lit = false;
+await drive('Admiral', quest('Q1.8', 'done'), 240000, async () => {
+  const on = await S(() => window.__dev.session().debug.lighthouseLit?.() ?? false);
+  if (on && !lit) {
+    lit = true;
+    await page.waitForTimeout(1500);
+    await shot('lighthouse-lit');
+  }
+});
+if (!lit) logs.push('[meridiantest] the lighthouse never lit');
+const final = await learnState();
+for (const id of ['Q1.1', 'Q1.2', 'Q1.3', 'Q1.4', 'Q1.5', 'Q1.6', 'Q1.7', 'Q1.8'])
+  if (final.quests[id] !== 'done') logs.push(`[meridiantest] ${id} is ${final.quests[id]}`);
+await shot('done');
+
+await browser.close();
+console.log(
+  JSON.stringify(
+    {
+      url,
+      final: { quests: final.quests, pages: final.pages, doubloons: final.doubloons },
+      shots: shots.length,
+      logs: logs.slice(0, 30),
+    },
+    null,
+    1,
+  ),
+);

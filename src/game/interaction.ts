@@ -75,6 +75,19 @@ export class Interactions {
     return best;
   }
 
+  /** Everything within `r` metres of (x, z), nearest first, and whether it's usable now (tests). */
+  within(x: number, z: number, r: number): { id: string; y: number; d: number; on: boolean }[] {
+    return this.items
+      .map((it) => ({
+        id: it.id,
+        y: it.y,
+        d: Math.hypot(it.x - x, it.z - z),
+        on: !it.enabled || it.enabled(),
+      }))
+      .filter((it) => it.d <= r)
+      .sort((a, b) => a.d - b.d);
+  }
+
   fire(): boolean {
     if (!this.current) return false;
     this.current.onInteract();

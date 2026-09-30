@@ -40,6 +40,8 @@ export interface NpcSpec {
   };
   /** Camera eye lift for generic talk framing. */
   talkEyeLift?: number;
+  /** How close you need to be to talk (default 2.6 m); wider for someone up on a stage. */
+  talkRadius?: number;
 }
 
 /** Test Cove folk (POC §4.3 cast, trimmed for the spike). Barks tease chapter-00 lessons. */
