@@ -1,10 +1,12 @@
 import {
+  AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
   Camera,
   CircleGeometry,
   ConeGeometry,
   Group,
+  MeshBasicNodeMaterial,
   Mesh,
   Object3D,
   SphereGeometry,
@@ -657,6 +659,7 @@ function addMoleAndLighthouse(
   lighthouseGlow: Group,
   anchor: (id: string, a: BasicAnchor) => void,
 ): void {
+  void kit;
   const m = MERIDIAN.mole;
   const dx = m.end.x - m.start.x;
   const dz = m.end.z - m.start.z;
@@ -725,7 +728,7 @@ function addMoleAndLighthouse(
   addCylinderGeom(buckets.stone, l.x, m.height + 14.38, l.z, 4.25, 3.75, 0.9, 24, 0, LIMESTONE_LIGHT);
   addCylinderGeom(buckets.stone, l.x, m.height + 14.95, l.z, 4.45, 4.45, 0.22, 24, 0, 0xb99562);
   addCylinderGeom(buckets.metal, l.x, m.height + 15.75, l.z, 3.0, 3.0, 2.3, 18, 0, 0x253238);
-  addCylinderGeom(buckets.glow, l.x, m.height + 16.0, l.z, 2.35, 2.35, 1.4, 18, 0, 0xffb04a);
+  addCylinderGeom(buckets.metal, l.x, m.height + 16.0, l.z, 2.35, 2.35, 1.4, 18, 0, 0x284046);
   addCone(buckets.metal, l.x, m.height + 17.95, l.z, 3.4, 3.4, 18, 0, 0x2f6d62);
   addTorusGeom(buckets.metal, l.x, m.height + 15.04, l.z, 4.65, 0.075, 24, METAL, Math.PI / 2, 0, 0);
   addTorusGeom(buckets.metal, l.x, m.height + 15.72, l.z, 3.18, 0.08, 20, METAL, Math.PI / 2, 0, 0);
@@ -759,14 +762,30 @@ function addMoleAndLighthouse(
   shipObstacles.push({ x: l.x, z: l.z, r: 10.4 });
   perches.push(new Vector3(l.x, m.height + 19.4, l.z));
 
+  const litMaterial = new MeshBasicNodeMaterial({
+    transparent: true,
+    opacity: 0.88,
+    vertexColors: true,
+    blending: AdditiveBlending,
+    depthWrite: false,
+  });
+  litMaterial.name = 'meridian-lighthouse-lit-material';
+  litMaterial.userData.meridianOwned = true;
   const glow = new Mesh(
-    merge([disc(2.15, { x: l.x, y: m.height + 16.8, z: l.z, rx: Math.PI / 2 }, 0xffcc66)]),
-    kit.materials.glow,
+    merge([
+      geoCylinder(2.45, 2.45, 1.55, { x: l.x, y: m.height + 15.9, z: l.z }, 0xfff1a6, 18),
+      disc(2.65, { x: l.x, y: m.height + 16.8, z: l.z, rx: Math.PI / 2 }, 0xffffcc),
+      sphereGeometry(l.x, m.height + 16.6, l.z, 2.4, 1.2, 2.4, 0xfff4b0, 16, 8),
+    ]),
+    litMaterial,
   );
   glow.name = 'meridian-lighthouse-lit-disc';
   const halo = new Mesh(
-    merge([sphereGeometry(l.x, m.height + 16.6, l.z, 4.5, 1.1, 4.5, 0xffb45d, 16, 8)]),
-    kit.materials.halo,
+    merge([
+      sphereGeometry(l.x, m.height + 16.6, l.z, 7.5, 2.2, 7.5, 0xffd27a, 18, 8),
+      sphereGeometry(l.x - 5.2, m.height + 16.3, l.z + 3.0, 8.5, 1.35, 4.2, 0xffcf72, 16, 6),
+    ]),
+    litMaterial,
   );
   halo.name = 'meridian-lighthouse-halo';
   lighthouseGlow.add(glow, halo);
@@ -3504,7 +3523,9 @@ function triangleCount(geometry: BufferGeometry): number {
 
 function disposeTree(root: Object3D): void {
   root.traverse((o) => {
-    const m = o as Object3D & { geometry?: { dispose(): void } };
+    const m = o as Object3D & { geometry?: { dispose(): void }; material?: Material | Material[] };
     m.geometry?.dispose();
+    const materials = Array.isArray(m.material) ? m.material : m.material ? [m.material] : [];
+    for (const material of materials) if (material.userData.meridianOwned) material.dispose();
   });
 }
