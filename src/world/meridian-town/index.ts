@@ -644,18 +644,8 @@ function addHarbour(
       0,
       0xb99562,
     );
-  addBox(
-    buckets,
-    'stone',
-    (quay.x0 + quay.x1) / 2,
-    deck,
-    quay.z1 - 0.15,
-    quay.x1 - quay.x0 + 0.8,
-    0.34,
-    0.8,
-    0,
-    LIMESTONE_LIGHT,
-  );
+  addQuayEdgeCoping(buckets, quay.x0, MOLE_CONNECTOR.x0 - 0.9, deck, quay.z1 - 0.15);
+  addQuayEdgeCoping(buckets, MOLE_CONNECTOR.x1 + 0.9, quay.x1, deck, quay.z1 - 0.15);
   addBox(
     buckets,
     'stone',
@@ -680,7 +670,8 @@ function addHarbour(
     0,
     LIMESTONE_LIGHT,
   );
-  addPlayerWall(colliders, (quay.x0 + quay.x1) / 2, quay.z1 - 0.2, (quay.x1 - quay.x0) / 2, 0.24, 0, 0.7);
+  addQuayEdgeWall(colliders, quay.x0, MOLE_CONNECTOR.x0 - 0.9, quay.z1 - 0.2);
+  addQuayEdgeWall(colliders, MOLE_CONNECTOR.x1 + 0.9, quay.x1, quay.z1 - 0.2);
   addPlayerWall(
     colliders,
     eastArm.x0 - 0.2,
@@ -1508,7 +1499,6 @@ function addShipyard(
     addNetPile(buckets, colliders, 574.5, y, -770.6, 0.72);
     addBarrelCluster(buckets, colliders, 606.8, y, -770.2, 0.9);
   }
-  colliders.boxes.push({ x: 579.4, z: -743.8, hx: 4.9, hz: 12.5, rot: -15 * DEG, height: 0.35 });
   shipObstacles.push({ x: 579.2, z: -739.5, r: 6.6 });
   anchor('anders', { x: 584.8, y, z: -766.0, heading: -0.82, tx: 579.5, ty: y + 2.2, tz: -762.2 });
 }
@@ -3923,6 +3913,18 @@ function addDiscVertical(
 
 function addCopingJoint(buckets: Buckets, x: number, y: number, z: number, rot: number): void {
   addBox(buckets, 'stone', x, y + 0.26, z, 0.12, 0.08, 0.76, rot, 0x826344);
+}
+
+function addQuayEdgeCoping(buckets: Buckets, x0: number, x1: number, y: number, z: number): void {
+  const w = x1 - x0;
+  if (w <= 0.1) return;
+  addBox(buckets, 'stone', (x0 + x1) * 0.5, y, z, w + 0.4, 0.34, 0.8, 0, LIMESTONE_LIGHT);
+}
+
+function addQuayEdgeWall(colliders: ColliderSet, x0: number, x1: number, z: number): void {
+  const w = x1 - x0;
+  if (w <= 0.1) return;
+  addPlayerWall(colliders, (x0 + x1) * 0.5, z, w * 0.5, 0.24, 0, 0.7);
 }
 
 function addPlayerWall(

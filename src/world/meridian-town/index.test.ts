@@ -213,6 +213,7 @@ describe('createMeridianTown', () => {
     const town = createMeridianTown({ tier: tierSettings('high'), heightField, kit });
     const samples: { x: number; z: number }[] = [
       { x: 586, z: -735 },
+      { x: 586, z: -752 },
       { x: 580, z: -730 },
       { x: 590, z: -720 },
       { x: MERIDIAN.mole.start.x, z: MERIDIAN.mole.start.z },
