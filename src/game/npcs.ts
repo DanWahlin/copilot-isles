@@ -23,6 +23,8 @@ export interface NpcSpec {
   /** Circles a point (anchor + orbitCenter) at this radius (the child round the well). */
   orbit?: number;
   orbitCenter?: [number, number];
+  /** Where on the circle they start (radians), so two can share one without bunching up. */
+  orbitPhase?: number;
   speed?: number;
   /** Voice line ids for a conversation; otherwise a random unvoiced bark. */
   voiced?: string[];
@@ -303,7 +305,7 @@ export class NpcCrowd {
           moving = true;
         }
       } else if (!n.talking && s.orbit) {
-        const a = this.t * ((s.speed ?? 2) / s.orbit);
+        const a = this.t * ((s.speed ?? 2) / s.orbit) + (s.orbitPhase ?? 0);
         const [ox, oz] = s.orbitCenter ?? [0, 0];
         n.x = n.home.x + ox + Math.cos(a) * s.orbit;
         n.z = n.home.z + oz + Math.sin(a) * s.orbit;

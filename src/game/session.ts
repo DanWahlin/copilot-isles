@@ -46,7 +46,7 @@ import {
   meridianTarget,
   meridianTracker,
 } from './meridian-quests';
-import { MERIDIAN_NPCS } from './meridian-npcs';
+import { MERIDIAN_NPCS, meridianExtras } from './meridian-npcs';
 import { createCrateYard } from './puzzles/crate-yard';
 import { createCrateYardSite } from '../world/sites/crate-yard';
 import { createThreeHelms, type HelmsHost } from './puzzles/three-helms';
@@ -947,7 +947,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
   const setupMeridian = async (town: CoveScene['meridian']['town']) => {
     if (!town || disposed || meridianNpcs) return;
-    meridianNpcs = new NpcCrowd(o.characters, MERIDIAN_NPCS, town.anchors, world, tier, camera, {
+    const cast = [...MERIDIAN_NPCS, ...meridianExtras(town.anchors)];
+    meridianNpcs = new NpcCrowd(o.characters, cast, town.anchors, world, tier, camera, {
       ...town.anchors.promenade!,
     });
     for (const n of meridianNpcs.list) {
