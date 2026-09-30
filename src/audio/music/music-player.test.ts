@@ -127,6 +127,20 @@ describe('MusicPlayer', () => {
     expect(elements[1]!.paused).toBe(true);
   });
 
+  it('sails on from Anchorage to Port Meridian with its own track', () => {
+    const { player, ctx, elements, bind } = setup();
+    bind();
+    player.setIsland('anchorage');
+    player.setIsland('meridian');
+    const [anchorage, meridian] = elements;
+    expect(meridian!.src).toBe('/audio/music_sunset_plains.ogg');
+    expect(ctx.gains[1]!.gain.target).toBeCloseTo(trackGain(MUSIC_TRACKS.meridian));
+    ctx.currentTime = ctx.gains[0]!.gain.endsAt;
+    player.update();
+    expect(anchorage!.paused).toBe(true);
+    expect(meridian!.paused).toBe(false);
+  });
+
   it('ignores a repeat request for the track that is already playing', () => {
     const { player, elements, bind } = setup();
     bind();
