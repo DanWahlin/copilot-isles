@@ -9,7 +9,7 @@ const MERIDIAN_MARKERS = {
   anders: ['flat cap crown', 'beard and moustache', 'shipwright mallet head', 'pencil behind ear'],
   rhea: ['naval tricorn', 'naval coat chest', 'handheld spyglass'],
   oren: ['star cap crown', 'spectacles', 'astronomer long robe', 'brass astrolabe'],
-  pell: ['spectacles', 'high collar', 'ledger', 'quill shaft'],
+  pell: ['periwig cap', 'white cravat', 'ledger', 'quill shaft'],
   admiral: ['bicorne', 'white plume', 'naval coat tails', 'medal'],
 } as const satisfies Partial<Record<CharacterBody, readonly string[]>>;
 
