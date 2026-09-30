@@ -720,14 +720,29 @@ function addHarbour(
   for (const z of [-760, -742, -724, -666])
     addBollard(buckets, colliders, perches, eastArm.x1 - 3.3, deck, z);
 
-  const extraBenchY = addBenchSeat(buckets, 684.2, deck, -764.2, 0, 1.0);
+  const extraBenchFloor = 3.42;
+  addBox(
+    buckets,
+    'stone',
+    684.2,
+    deck - 0.05,
+    -764.2,
+    6.0,
+    extraBenchFloor - deck + 0.04,
+    4.0,
+    0,
+    LIMESTONE_DARK,
+  );
+  addBox(buckets, 'paving', 684.2, extraBenchFloor - 0.09, -764.2, 5.4, 0.18, 3.6, 0, 0xf0d7aa);
+  addBox(buckets, 'stone', 684.2, extraBenchFloor + 0.08, -762.4, 5.8, 0.28, 0.36, 0, LIMESTONE_LIGHT);
+  const extraBenchY = addBenchSeat(buckets, 684.2, extraBenchFloor, -764.2, 0, 1.0);
   anchor('extraBench', {
     x: 684.2,
     y: extraBenchY,
     z: -764.2,
     heading: 0,
     tx: 684.2,
-    ty: deck + 1.2,
+    ty: extraBenchFloor + 1.2,
     tz: -752,
   });
 
