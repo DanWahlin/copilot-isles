@@ -5,15 +5,17 @@ import {
   Camera,
   CircleGeometry,
   ConeGeometry,
+  DoubleSide,
   Group,
-  MeshBasicNodeMaterial,
   Mesh,
+  MeshBasicNodeMaterial,
   Object3D,
   SphereGeometry,
   TorusGeometry,
   Vector3,
   type Material,
 } from 'three/webgpu';
+import { color, float, smoothstep, uv } from 'three/tsl';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle, HeightField } from '../contracts';
 import { box as geoBox, cylinder as geoCylinder, merge, tubeBetween, worldUv } from '../sites/geo';
@@ -88,6 +90,10 @@ type BasicAnchor = {
   ty?: number;
   tz?: number;
 };
+
+// TSL's fluent typings don't cover radial billboard math on MeshBasicNodeMaterial.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyNode = any;
 
 const DEG = Math.PI / 180;
 const TERRACOTTA = 0xffa040;
@@ -401,6 +407,9 @@ export function createMeridianTown({
       setLiftCarPosition(liftCar, t);
     },
     update(_dt: number, _t: number, camera: Camera): void {
+      for (const child of lighthouseGlow.children) {
+        if (child.userData.billboard) child.quaternion.copy(camera.quaternion);
+      }
       group.userData.lastCameraDistance = Math.hypot(
         camera.position.x - MERIDIAN.center.x,
         camera.position.z - MERIDIAN.center.z,
@@ -727,11 +736,10 @@ function addMoleAndLighthouse(
   addCylinderGeom(buckets.plaster, l.x, m.height + 1.15, l.z, 3.2, 4.35, 13.5, 24, 0, 0xe2c58c);
   addCylinderGeom(buckets.stone, l.x, m.height + 14.38, l.z, 4.25, 3.75, 0.9, 24, 0, LIMESTONE_LIGHT);
   addCylinderGeom(buckets.stone, l.x, m.height + 14.95, l.z, 4.45, 4.45, 0.22, 24, 0, 0xb99562);
-  addCylinderGeom(buckets.metal, l.x, m.height + 15.75, l.z, 3.0, 3.0, 2.3, 18, 0, 0x253238);
-  addCylinderGeom(buckets.metal, l.x, m.height + 16.0, l.z, 2.35, 2.35, 1.4, 18, 0, 0x284046);
   addCone(buckets.metal, l.x, m.height + 17.95, l.z, 3.4, 3.4, 18, 0, 0x2f6d62);
   addTorusGeom(buckets.metal, l.x, m.height + 15.04, l.z, 4.65, 0.075, 24, METAL, Math.PI / 2, 0, 0);
   addTorusGeom(buckets.metal, l.x, m.height + 15.72, l.z, 3.18, 0.08, 20, METAL, Math.PI / 2, 0, 0);
+  addTorusGeom(buckets.metal, l.x, m.height + 17.15, l.z, 2.72, 0.08, 20, METAL, Math.PI / 2, 0, 0);
   for (let i = 0; i < 12; i += 1) {
     const a = (i / 12) * Math.PI * 2;
     const galleryX = l.x + Math.cos(a) * 4.45;
@@ -774,20 +782,30 @@ function addMoleAndLighthouse(
   const glow = new Mesh(
     merge([
       geoCylinder(2.45, 2.45, 1.55, { x: l.x, y: m.height + 15.9, z: l.z }, 0xfff1a6, 18),
-      disc(2.65, { x: l.x, y: m.height + 16.8, z: l.z, rx: Math.PI / 2 }, 0xffffcc),
       sphereGeometry(l.x, m.height + 16.6, l.z, 2.4, 1.2, 2.4, 0xfff4b0, 16, 8),
     ]),
     litMaterial,
   );
   glow.name = 'meridian-lighthouse-lit-disc';
-  const halo = new Mesh(
-    merge([
-      sphereGeometry(l.x, m.height + 16.6, l.z, 7.5, 2.2, 7.5, 0xffd27a, 18, 8),
-      sphereGeometry(l.x - 5.2, m.height + 16.3, l.z + 3.0, 8.5, 1.35, 4.2, 0xffcf72, 16, 6),
-    ]),
-    litMaterial,
-  );
+  const haloMaterial = new MeshBasicNodeMaterial({
+    transparent: true,
+    opacity: 0.92,
+    blending: AdditiveBlending,
+    depthWrite: false,
+    depthTest: false,
+    side: DoubleSide,
+  });
+  haloMaterial.name = 'meridian-lighthouse-halo-billboard-material';
+  haloMaterial.userData.meridianOwned = true;
+  const coord = uv() as AnyNode;
+  const d = coord.sub(0.5).length();
+  const alpha = smoothstep(float(0.5), float(0.0), d);
+  haloMaterial.opacityNode = alpha.mul(0.72);
+  haloMaterial.colorNode = color(0xffefaa).mul(alpha.mul(0.65).add(0.35));
+  const halo = new Mesh(new CircleGeometry(2.65, 36), haloMaterial);
+  halo.position.set(l.x, m.height + 16.6, l.z);
   halo.name = 'meridian-lighthouse-halo';
+  halo.userData.billboard = true;
   lighthouseGlow.add(glow, halo);
 
   anchor('lighthouse', {
