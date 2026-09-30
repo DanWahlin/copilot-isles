@@ -22,7 +22,11 @@ export interface IslandArrival {
   cardFor: number;
 }
 
-/** Anchorage Cay: in from the north over open water, past the brigantine, over the village and the palm hills, and round to the quay. */
+/**
+ * Anchorage Cay: in from the north over open water and past the brigantine, then a slow circle round
+ * the harbour (the lighthouse, the quay and the village with the palm hills behind), and down to the
+ * captain on the quay.
+ */
 export const ANCHORAGE_ARRIVAL: IslandArrival = {
   id: 'anchorage',
   card: {
@@ -34,10 +38,10 @@ export const ANCHORAGE_ARRIVAL: IslandArrival = {
     { x: -15, y: 8, z: -400, tx: -95, ty: 10, tz: -105, pace: 1.3 },
     { x: -70, y: 17, z: -250, tx: -103, ty: 8, tz: -100, pace: 1.1 },
     { x: -90, y: 36, z: -155, tx: -106, ty: 5, tz: -85, pace: 0.7 },
-    { x: -100, y: 44, z: -85, tx: -80, ty: 8, tz: -10, pace: 0.8 },
-    { x: -72, y: 56, z: -15, tx: 10, ty: 12, tz: 40, pace: 1 },
-    { x: -118, y: 60, z: 20, tx: -240, ty: 0, tz: -50, pace: 1 },
-    { x: -132, y: 46, z: -18, tx: COVE.mooring.x, ty: 4, tz: COVE.mooring.z + 10, pace: 0.85 },
+    { x: -46, y: 30, z: -118, tx: -104, ty: 7, tz: -58, pace: 0.85 },
+    { x: -34, y: 34, z: -52, tx: -118, ty: 6, tz: -62, pace: 0.9 },
+    { x: -150, y: 34, z: -128, tx: -100, ty: 6, tz: -62, pace: 1 },
+    { x: -138, y: 40, z: -24, tx: COVE.mooring.x, ty: 4, tz: COVE.mooring.z + 10, pace: 0.85 },
   ],
   seconds: 19,
   cardAt: 2.2,

@@ -654,6 +654,7 @@
   opacity: 1;
 }
 
-.hud.calm .hud-help {
+.hud.calm .hud-help,
+.hud.calm .hud-sail.show {
   opacity: 0;
 }

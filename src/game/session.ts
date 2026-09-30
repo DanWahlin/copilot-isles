@@ -1681,6 +1681,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         const busy =
           mode === 'transition' ||
           mode === 'docking' ||
+          crewAtHelm ||
           !!liftRide ||
           dialogue.active ||
           scriptRunning ||
