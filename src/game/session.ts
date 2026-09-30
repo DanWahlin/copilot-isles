@@ -133,6 +133,8 @@ export interface GameSession {
       bottom: { x: number; z: number; h: number };
       top: { x: number; z: number; h: number };
     } | null;
+    /** Starts a conversation with an NPC wherever you're standing (tests: carry on past an unreachable one). */
+    talk(id: string): boolean;
     /** Interactions within `r` metres of (x, z) and whether each is usable now (tests). */
     near(x: number, z: number, r: number): { id: string; y: number; d: number; on: boolean }[];
     /** Whether Rhea's aboard for the Three Helms, and whether the lighthouse is lit (tests). */
@@ -868,13 +870,38 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     if (talkShot) cam.frame(talkShot);
   });
   let lighthouseLit = false;
+  /**
+   * The Seal's shot of the lighthouse: out on the water beyond it and a little to one side, looking
+   * back at the lamp with the town and the citadel behind it. Nothing stands between the sea and the
+   * mole's end, so it's always clear.
+   */
+  function lighthouseShot(
+    adm: { x: number; y: number; z: number },
+    lh: { x: number; y: number; z: number },
+  ): CameraShot {
+    let dx = lh.x - adm.x,
+      dz = lh.z - adm.z;
+    const len = Math.hypot(dx, dz) || 1;
+    dx /= len;
+    dz /= len;
+    const x = lh.x + dx * 30 + dz * 12,
+      z = lh.z + dz * 30 - dx * 12;
+    return {
+      x,
+      y: Math.max(lh.y + 7, world.waterAt(x, z, 0) + 3),
+      z,
+      tx: lh.x - dx * 6,
+      ty: lh.y + 9,
+      tz: lh.z - dz * 6,
+    };
+  }
   // The Seal: the lighthouse on the mole lights up across the harbour.
   cues.set('lighthouse', async () => {
     const town = cove.meridian.town;
     const lh = town?.anchors.lighthouse;
     const adm = town?.anchors.admiral;
     if (!town || !lh || !adm) return;
-    cam.frame({ x: adm.x, y: adm.y + 3.2, z: adm.z, tx: lh.x, ty: lh.y + 8, tz: lh.z });
+    cam.frame(lighthouseShot(adm, lh));
     await new Promise((r) => setTimeout(r, 1400));
     town.setLighthouseLit(true);
     lighthouseLit = true;
@@ -1716,6 +1743,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           : null;
       },
       near: (x, z, r) => interactions.within(x, z, r),
+      talk: (id) => {
+        const n = [...npcs.list, ...(meridianNpcs?.list ?? [])].find((v) => v.spec.id === id);
+        if (!n || mode !== 'walk') return false;
+        void talkTo(n);
+        return true;
+      },
       rheaAboard: () => !!rheaAboard?.group.parent,
       lighthouseLit: () => lighthouseLit,
       cast: () =>

@@ -3,7 +3,7 @@
 // and the Crate Yard (P1.1, solved by its hook), Rhea and the Three Helms (P1.2, sailed for real: each
 // buoy's helm, Interactive's marks, Plan's approval, Autopilot home to the berth), the lift up the
 // bluff to Oren, Pell, and the Admiral's Exam that lights the lighthouse. Screenshots at each beat.
-// node tools/meridiantest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/meridian]
+// node tools/meridiantest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/meridian] [--from=admiral]
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
 
 const opt = parseFlags();
@@ -133,11 +133,15 @@ const talk = async (id) => {
     }
     if (ok) break;
   }
-  if (!ok) logs.push(`[meridiantest] can't get a talk prompt at ${id} from any side`);
   await S((a) => window.__dev.look(a, 0.16), n.h + Math.PI + 0.35);
   await page.waitForTimeout(700);
   await shot(`talk-${id}`);
-  await tap('KeyE');
+  if (ok) await tap('KeyE');
+  else {
+    // Logged as a failure, then the conversation's started directly so the rest of the run still plays.
+    logs.push(`[meridiantest] can't get a talk prompt at ${id} from any side`);
+    await S((id) => window.__dev.session().debug.talk(id), id);
+  }
   await page.waitForTimeout(600);
 };
 const quest = (id, want) => (s) => s.quests[id] === want;
@@ -157,111 +161,119 @@ await drive('welcome', (s) => !s.dialogue, 30000);
 await page.waitForTimeout(1200);
 await shot('ashore');
 
-// Q1.1 Tobias → Q1.2 Mina's tour (a shot at each landmark) → Q1.3 Lyra.
-await talk('tobias');
-await drive('Tobias', quest('Q1.1', 'done'));
-await talk('mina');
-let tourShots = 0;
-let lastTour = 0;
-await drive('Mina', quest('Q1.2', 'done'), 180000, async () => {
-  if (tourShots < 6 && Date.now() - lastTour > 2600) {
-    lastTour = Date.now();
-    await shot(`tour-${tourShots++}`);
-  }
-});
-await talk('lyra_meridian');
-await drive('Lyra', quest('Q1.3', 'done'));
-
-// Q1.4 Anders and the Crate Yard.
-await talk('anders');
-await drive('Anders', quest('Q1.4', 'crates'));
-const yard = await S(() => window.__dev.session().debug.puzzle('P1.1').spots());
-await S((y) => window.__dev.session().debug.teleport(y.lever.x + 1.5, y.lever.z + 1.5, Math.PI), yard);
-await page.waitForTimeout(1200);
-await shot('crate-yard');
-await S(() => window.__dev.session().debug.puzzle('P1.1').solve());
-await drive('crates solved', quest('Q1.4', 'done'));
-await shot('crate-yard-solved');
-
-// Q1.5 Rhea and the Three Helms, sailed for real.
-await talk('rhea');
-await drive('Rhea', quest('Q1.5', 'helms'));
-await S(() => window.__dev.session().debug.board());
-await page.waitForTimeout(1800);
-const aboard = await S(() => ({
-  rhea: window.__dev.session().debug.rheaAboard?.() ?? null,
-  compass: document.querySelector('.hud-compass-label')?.textContent ?? null,
-}));
-if (!aboard.compass?.includes('Interactive')) logs.push(`[meridiantest] compass at sea: ${aboard.compass}`);
-await S(() => window.__dev.session().debug.sailTo(686, -600, 0));
-await page.waitForTimeout(1500);
-const helmState = () => S(() => window.__dev.session().debug.puzzle('P1.2').state());
-const prompt = () => S(() => document.querySelector('.hud-prompt.show')?.textContent ?? null);
-const term = () => S(() => document.querySelector('.hud-term.show')?.textContent ?? null);
-let p = await prompt();
-if (!p?.includes('Take the Interactive helm')) logs.push(`[meridiantest] no helm prompt (${p})`);
-await shot('helm-interactive-prompt');
-const phasesSeen = new Set();
-const t0 = Date.now();
-while (Date.now() - t0 < 300000) {
-  const h = await helmState();
-  if (h.solved) break;
-  const s = await learnState();
-  const key = h.run ? `${h.run.mode}-${h.run.phase}-${h.run.leg}` : `free-${h.done.length}`;
-  if (!phasesSeen.has(key)) {
-    phasesSeen.add(key);
-    await page.waitForTimeout(h.run?.phase === 'review' ? 1600 : 400);
-    await shot(`helm-${key}`);
-  }
-  if (s.dialogue) await tap('KeyE');
-  else if (!h.run) {
-    // Between helms: bring her up to the next buoy (the crew does it on Wingman's third hint).
-    const next = ['interactive', 'plan', 'autopilot'][h.done.length];
-    p = await prompt();
-    if (p?.includes('Take the')) await tap('KeyE');
-    else if (next) {
-      logs.push(`[meridiantest] after ${h.done.join(',')}: not in reach of the ${next} buoy (${p})`);
-      break;
+// --from=admiral skips to the exam with Chapter 01's other steps marked done.
+if (opt.from === 'admiral') {
+  await S(() => {
+    for (const id of ['Q1.1', 'Q1.2', 'Q1.3', 'Q1.4', 'Q1.5', 'Q1.6', 'Q1.7'])
+      window.__dev.session().debug.quest(id, 'done');
+  });
+} else {
+  // Q1.1 Tobias → Q1.2 Mina's tour (a shot at each landmark) → Q1.3 Lyra.
+  await talk('tobias');
+  await drive('Tobias', quest('Q1.1', 'done'));
+  await talk('mina');
+  let tourShots = 0;
+  let lastTour = 0;
+  await drive('Mina', quest('Q1.2', 'done'), 180000, async () => {
+    if (tourShots < 6 && Date.now() - lastTour > 2600) {
+      lastTour = Date.now();
+      await shot(`tour-${tourShots++}`);
     }
-  } else if (h.run.phase === 'hold' || h.run.phase === 'review') {
-    if (h.run.phase === 'review' && !(await term())?.includes('approve'))
-      logs.push('[meridiantest] Plan review terminal has no approval line');
-    await tap('KeyE');
+  });
+  await talk('lyra_meridian');
+  await drive('Lyra', quest('Q1.3', 'done'));
+
+  // Q1.4 Anders and the Crate Yard.
+  await talk('anders');
+  await drive('Anders', quest('Q1.4', 'crates'));
+  const yard = await S(() => window.__dev.session().debug.puzzle('P1.1').spots());
+  await S((y) => window.__dev.session().debug.teleport(y.lever.x + 1.5, y.lever.z + 1.5, Math.PI), yard);
+  await page.waitForTimeout(1200);
+  await shot('crate-yard');
+  await S(() => window.__dev.session().debug.puzzle('P1.1').solve());
+  await drive('crates solved', quest('Q1.4', 'done'));
+  await shot('crate-yard-solved');
+
+  // Q1.5 Rhea and the Three Helms, sailed for real.
+  await talk('rhea');
+  await drive('Rhea', quest('Q1.5', 'helms'));
+  await S(() => window.__dev.session().debug.board());
+  await page.waitForTimeout(1800);
+  const aboard = await S(() => ({
+    rhea: window.__dev.session().debug.rheaAboard?.() ?? null,
+    compass: document.querySelector('.hud-compass-label')?.textContent ?? null,
+  }));
+  if (!aboard.compass?.includes('Interactive')) logs.push(`[meridiantest] compass at sea: ${aboard.compass}`);
+  await S(() => window.__dev.session().debug.sailTo(686, -600, 0));
+  await page.waitForTimeout(1500);
+  const helmState = () => S(() => window.__dev.session().debug.puzzle('P1.2').state());
+  const prompt = () => S(() => document.querySelector('.hud-prompt.show')?.textContent ?? null);
+  const term = () => S(() => document.querySelector('.hud-term.show')?.textContent ?? null);
+  let p = await prompt();
+  if (!p?.includes('Take the Interactive helm')) logs.push(`[meridiantest] no helm prompt (${p})`);
+  await shot('helm-interactive-prompt');
+  const phasesSeen = new Set();
+  const t0 = Date.now();
+  while (Date.now() - t0 < 300000) {
+    const h = await helmState();
+    if (h.solved) break;
+    const s = await learnState();
+    const key = h.run ? `${h.run.mode}-${h.run.phase}-${h.run.leg}` : `free-${h.done.length}`;
+    if (!phasesSeen.has(key)) {
+      phasesSeen.add(key);
+      await page.waitForTimeout(h.run?.phase === 'review' ? 1600 : 400);
+      await shot(`helm-${key}`);
+    }
+    if (s.dialogue) await tap('KeyE');
+    else if (!h.run) {
+      // Between helms: bring her up to the next buoy (the crew does it on Wingman's third hint).
+      const next = ['interactive', 'plan', 'autopilot'][h.done.length];
+      p = await prompt();
+      if (p?.includes('Take the')) await tap('KeyE');
+      else if (next) {
+        logs.push(`[meridiantest] after ${h.done.join(',')}: not in reach of the ${next} buoy (${p})`);
+        break;
+      }
+    } else if (h.run.phase === 'hold' || h.run.phase === 'review') {
+      if (h.run.phase === 'review' && !(await term())?.includes('approve'))
+        logs.push('[meridiantest] Plan review terminal has no approval line');
+      await tap('KeyE');
+    }
+    await page.waitForTimeout(400);
   }
-  await page.waitForTimeout(400);
+  const helms = await helmState();
+  if (!helms.solved) logs.push(`[meridiantest] helms not solved: ${JSON.stringify(helms)}`);
+  await drive('helms done', (s) => s.mode === 'walk' && !s.dialogue, 30000);
+  await shot('helms-home');
+  await talk('rhea');
+  await drive('Rhea debrief', quest('Q1.5', 'done'));
+
+  // Q1.6 the lift up the bluff, then Oren.
+  const lift = await S(() => {
+    const s = window.__dev.session();
+    const a = s.debug.liftSpots?.();
+    if (a) s.debug.teleport(a.bottom.x, a.bottom.z, a.bottom.h);
+    return a;
+  });
+  if (!lift) logs.push('[meridiantest] no lift spots');
+  await page.waitForTimeout(900);
+  p = await prompt();
+  if (!p?.includes('Ride the lift up')) logs.push(`[meridiantest] no lift prompt (${p})`);
+  await tap('KeyE');
+  await page.waitForTimeout(5500);
+  await shot('lift-ride');
+  await page.waitForFunction(() => window.__dev.state().mode === 'walk', null, { timeout: 20000 });
+  await page.waitForTimeout(800);
+  const top = await S(() => window.__dev.state());
+  if (top.y < 38) logs.push(`[meridiantest] lift didn't reach the bluff (y ${top.y.toFixed(1)})`);
+  await shot('lift-top');
+  await talk('oren');
+  await drive('Oren', quest('Q1.6', 'done'));
+
+  // Q1.7 Pell → Q1.8 the Admiral's Exam and the lighthouse.
+  await talk('pell');
+  await drive('Pell', quest('Q1.7', 'done'));
 }
-const helms = await helmState();
-if (!helms.solved) logs.push(`[meridiantest] helms not solved: ${JSON.stringify(helms)}`);
-await drive('helms done', (s) => s.mode === 'walk' && !s.dialogue, 30000);
-await shot('helms-home');
-await talk('rhea');
-await drive('Rhea debrief', quest('Q1.5', 'done'));
-
-// Q1.6 the lift up the bluff, then Oren.
-const lift = await S(() => {
-  const s = window.__dev.session();
-  const a = s.debug.liftSpots?.();
-  if (a) s.debug.teleport(a.bottom.x, a.bottom.z, a.bottom.h);
-  return a;
-});
-if (!lift) logs.push('[meridiantest] no lift spots');
-await page.waitForTimeout(900);
-p = await prompt();
-if (!p?.includes('Ride the lift up')) logs.push(`[meridiantest] no lift prompt (${p})`);
-await tap('KeyE');
-await page.waitForTimeout(5500);
-await shot('lift-ride');
-await page.waitForFunction(() => window.__dev.state().mode === 'walk', null, { timeout: 20000 });
-await page.waitForTimeout(800);
-const top = await S(() => window.__dev.state());
-if (top.y < 38) logs.push(`[meridiantest] lift didn't reach the bluff (y ${top.y.toFixed(1)})`);
-await shot('lift-top');
-await talk('oren');
-await drive('Oren', quest('Q1.6', 'done'));
-
-// Q1.7 Pell → Q1.8 the Admiral's Exam and the lighthouse.
-await talk('pell');
-await drive('Pell', quest('Q1.7', 'done'));
 await talk('admiral');
 let lit = false;
 await drive('Admiral', quest('Q1.8', 'done'), 240000, async () => {
