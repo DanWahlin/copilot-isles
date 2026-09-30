@@ -17,7 +17,6 @@ import type { CircleObstacle, HeightField } from '../contracts';
 import { box as geoBox, cylinder as geoCylinder, merge, tubeBetween, worldUv } from '../sites/geo';
 import { MERIDIAN, meridianQuayHeight } from '../islands/meridian';
 import {
-  addKitPlacement,
   localToWorld,
   makeBuckets,
   paint,
@@ -27,15 +26,16 @@ import {
   type VillageBoxCollider,
   type VillageKit,
 } from '../village';
-import {
-  buildHouse,
-  houseDoorAnchor,
-  houseStairsSpan,
-  stairsHeightAt,
-  type HouseFootprint,
-  type HouseSpec,
-  type StairSpan,
-} from '../village/house-builder';
+
+type HouseSide = 'front' | 'back' | 'left' | 'right';
+type HouseRoof = 'gable' | 'tower' | 'flat';
+type HouseFootprint = { w: 4 | 6 | 8; d: 4 | 6 | 8 };
+interface StairSpan {
+  x: number;
+  y: number;
+  z: number;
+  heading: number;
+}
 
 export interface MeridianAnchor extends VillageAnchor {
   tx?: number;
@@ -90,11 +90,17 @@ type BasicAnchor = {
 const DEG = Math.PI / 180;
 const TERRACOTTA = 0x9d3f22;
 const TERRACOTTA_DARK = 0x6c2e1e;
+const TERRACOTTA_WARM = 0xb6562c;
 const LIMESTONE_LIGHT = 0xf0d7aa;
 const LIMESTONE_DARK = 0x91704c;
 const OCHRE = 0xc07b35;
 const CREAM = 0xe0bc7a;
 const ROSE = 0xc06a69;
+const APRICOT = 0xd99a5f;
+const WHITEWASH = 0xf3e4be;
+const SAFFRON = 0xd28a32;
+const DEEP_BLUE = 0x174b75;
+const DEEP_GREEN = 0x1f5c43;
 const CYPRESS = 0x173f26;
 const OLIVE = 0x6f814c;
 const OLIVE_SILVER = 0x9aa876;
@@ -198,6 +204,7 @@ export function createMeridianTown({
   addLift(buckets, colliders, kit, liftCar, anchor);
   addCitadel(buckets, colliders, stairSpans, perches, heightField, kit, low, high, anchor);
   addTerraceHouses(buckets, colliders, stairSpans, perches, heightField, kit, low, high);
+  addDenseHillsideTown(buckets, colliders, stairSpans, perches, heightField, kit, low, high);
   addVegetation(buckets, colliders, perches, heightField, low, high);
 
   anchor('rhea', { x: 761.4, z: -699.2, heading: -Math.PI / 2, tx: 755.2, ty: 3.8, tz: -704 });
@@ -347,6 +354,58 @@ function addHarbour(
     0,
     0xcda875,
   );
+  for (let x = quay.x0 + 6; x <= quay.x1 - 4; x += 8)
+    addBox(
+      buckets,
+      'stone',
+      x,
+      deck + 0.015,
+      (quay.z0 + quay.z1) / 2,
+      0.1,
+      0.035,
+      quay.z1 - quay.z0 - 1.0,
+      0,
+      0xa88457,
+    );
+  for (let z = quay.z0 + 4; z <= quay.z1 - 3; z += 4.5)
+    addBox(
+      buckets,
+      'stone',
+      (quay.x0 + quay.x1) / 2,
+      deck + 0.02,
+      z,
+      quay.x1 - quay.x0 - 1.0,
+      0.035,
+      0.1,
+      0,
+      0xb18e5f,
+    );
+  for (let z = eastArm.z1 + 7; z <= eastArm.z0 - 4; z += 8)
+    addBox(
+      buckets,
+      'stone',
+      (eastArm.x0 + eastArm.x1) / 2,
+      deck + 0.02,
+      z,
+      eastArm.x1 - eastArm.x0 - 1.0,
+      0.035,
+      0.1,
+      0,
+      0xb18e5f,
+    );
+  for (let x = eastArm.x0 + 4; x <= eastArm.x1 - 3; x += 4.5)
+    addBox(
+      buckets,
+      'stone',
+      x,
+      deck + 0.015,
+      (eastArm.z0 + eastArm.z1) / 2,
+      0.1,
+      0.035,
+      eastArm.z1 - eastArm.z0 - 1.0,
+      0,
+      0xa88457,
+    );
   addBox(
     buckets,
     'stone',
@@ -437,6 +496,8 @@ function addHarbour(
 
   addFishingBoat(buckets, colliders, shipObstacles, 622, -740.2, Math.PI, 0.92);
   addFishingBoat(buckets, colliders, shipObstacles, 657, -737.4, Math.PI + 0.08, 0.75);
+  addFishingBoat(buckets, colliders, shipObstacles, 596.5, -739.6, Math.PI - 0.05, 0.68);
+  addFishingBoat(buckets, colliders, shipObstacles, 686, -736.8, Math.PI + 0.12, 0.7);
   addFishingBoat(buckets, colliders, shipObstacles, 710, -739.3, Math.PI - 0.06, 0.82);
   if (!low) addDinghy(buckets, colliders, shipObstacles, 735.5, -716, Math.PI / 2, 0.7);
 
@@ -547,7 +608,7 @@ function addHarbourFront(
     roofTint: TERRACOTTA,
     doorSide: 'front',
     upper: 'plaster',
-    ground: 'unevenbrick',
+    ground: 'plaster',
     roof: 'gable',
     balcony: true,
     awning: 0xe0b343,
@@ -561,10 +622,10 @@ function addHarbourFront(
     footprint: { w: 6, d: 8 },
     storeys: 3,
     tint: OCHRE,
-    roofTint: TERRACOTTA_DARK,
+    roofTint: TERRACOTTA_WARM,
     doorSide: 'front',
-    upper: 'mixed',
-    ground: 'unevenbrick',
+    upper: 'plaster',
+    ground: 'plaster',
     roof: 'gable',
     balcony: false,
     awning: CLOTH_BLUE,
@@ -582,7 +643,7 @@ function addHarbourFront(
     roofTint: TERRACOTTA,
     doorSide: 'front',
     upper: 'plaster',
-    ground: 'unevenbrick',
+    ground: 'plaster',
     roof: 'tower',
     balcony: true,
     awning: CLOTH_RED,
@@ -598,8 +659,8 @@ function addHarbourFront(
     tint: 0xd19c55,
     roofTint: 0xb14f27,
     doorSide: 'front',
-    upper: 'mixed',
-    ground: 'unevenbrick',
+    upper: 'plaster',
+    ground: 'plaster',
     roof: 'gable',
     balcony: true,
     awning: CLOTH_GREEN,
@@ -711,6 +772,33 @@ function addPlaza(
     addBox(buckets, 'stone', x, PLAZA.height - 0.02, PLAZA.z0 + 0.8, 0.25, 0.12, 1.6, 0, LIMESTONE_DARK);
   for (let z = PLAZA.z0 + 4; z <= PLAZA.z1 - 4; z += 8)
     addBox(buckets, 'stone', PLAZA.x0 + 0.8, PLAZA.height - 0.02, z, 1.6, 0.12, 0.25, 0, LIMESTONE_DARK);
+  for (let x = PLAZA.x0 + 5; x <= PLAZA.x1 - 5; x += 5)
+    addBox(
+      buckets,
+      'stone',
+      x,
+      PLAZA.height + 0.015,
+      -799.4,
+      0.08,
+      0.035,
+      PLAZA.z1 - PLAZA.z0 - 1.6,
+      0,
+      0xa9895b,
+    );
+  for (let z = PLAZA.z0 + 4; z <= PLAZA.z1 - 4; z += 4.8)
+    addBox(
+      buckets,
+      'stone',
+      668,
+      PLAZA.height + 0.02,
+      z,
+      PLAZA.x1 - PLAZA.x0 - 1.8,
+      0.035,
+      0.08,
+      0,
+      0xb18e5f,
+    );
+  addCompassRose(buckets, 668, PLAZA.height + 0.035, -797.2);
 
   addFountain(buckets, colliders, perches, 668, PLAZA.height, -797.2);
   anchor('mina', {
@@ -853,10 +941,10 @@ function addTavern(
     footprint: { w: 8, d: 8 },
     storeys: 2,
     tint: 0xbf6c45,
-    roofTint: TERRACOTTA_DARK,
+    roofTint: TERRACOTTA_WARM,
     doorSide: 'back',
-    upper: 'woodgrid',
-    ground: 'unevenbrick',
+    upper: 'plaster',
+    ground: 'plaster',
     roof: 'gable',
     balcony: true,
     seed: 301,
@@ -1083,7 +1171,7 @@ function addTerraceHouses(
       footprint: { w: 6, d: 4 },
       storeys: 3,
       tint: LIMESTONE_LIGHT,
-      roofTint: TERRACOTTA_DARK,
+      roofTint: TERRACOTTA_WARM,
       seed: 403,
     },
     {
@@ -1113,7 +1201,7 @@ function addTerraceHouses(
       footprint: { w: 6, d: 8 },
       storeys: 3,
       tint: 0xb96665,
-      roofTint: TERRACOTTA_DARK,
+      roofTint: TERRACOTTA_WARM,
       seed: 406,
     },
     {
@@ -1143,7 +1231,7 @@ function addTerraceHouses(
       footprint: { w: 6, d: 6 },
       storeys: 3,
       tint: LIMESTONE_LIGHT,
-      roofTint: TERRACOTTA_DARK,
+      roofTint: TERRACOTTA_WARM,
       seed: 409,
     },
     {
@@ -1163,7 +1251,7 @@ function addTerraceHouses(
       footprint: { w: 6, d: 6 },
       storeys: 3,
       tint: 0xcc7765,
-      roofTint: 0x7e3323,
+      roofTint: 0xa44724,
       seed: 411,
     },
     {
@@ -1183,7 +1271,7 @@ function addTerraceHouses(
       footprint: { w: 6, d: 4 },
       storeys: 2,
       tint: 0xc77758,
-      roofTint: 0x984025,
+      roofTint: 0xb24b27,
       seed: 413,
     },
     {
@@ -1193,7 +1281,7 @@ function addTerraceHouses(
       footprint: { w: 6, d: 8 },
       storeys: 3,
       tint: CREAM,
-      roofTint: TERRACOTTA_DARK,
+      roofTint: TERRACOTTA_WARM,
       seed: 414,
     },
     {
@@ -1223,7 +1311,7 @@ function addTerraceHouses(
       footprint: { w: 6, d: 6 },
       storeys: 3,
       tint: ROSE,
-      roofTint: TERRACOTTA_DARK,
+      roofTint: TERRACOTTA_WARM,
       seed: 417,
     },
   ];
@@ -1239,8 +1327,8 @@ function addTerraceHouses(
       tint: s.tint,
       roofTint: s.roofTint,
       doorSide: 'front',
-      upper: s.storeys >= 3 ? 'mixed' : 'plaster',
-      ground: 'unevenbrick',
+      upper: 'plaster',
+      ground: 'plaster',
       roof: s.seed % 5 === 0 ? 'tower' : 'gable',
       balcony: s.seed % 2 === 0,
       seed: s.seed,
@@ -1248,6 +1336,83 @@ function addTerraceHouses(
     if (high && s.seed % 3 === 0)
       addBougainvillea(buckets, s.x - 3.2, heightField.heightAt(s.x, s.z) + 2.0, s.z + 2.8, s.rotY, 0.9);
   }
+}
+
+const MEDITERRANEAN_TINTS = [
+  WHITEWASH,
+  LIMESTONE_LIGHT,
+  CREAM,
+  OCHRE,
+  SAFFRON,
+  APRICOT,
+  ROSE,
+  0xd7a66f,
+] as const;
+const ROOF_TINTS = [TERRACOTTA_WARM, TERRACOTTA, 0xb65d31, 0x9f4b28, 0xc06a34] as const;
+
+function addDenseHillsideTown(
+  buckets: Buckets,
+  colliders: ColliderSet,
+  stairSpans: StairSpan[],
+  perches: Vector3[],
+  heightField: HeightField,
+  kit: VillageKit,
+  low: boolean,
+  high: boolean,
+): void {
+  const rows = [
+    { z: -820, x0: 584, x1: 760, step: 9.4, rot: Math.PI + 1 * DEG },
+    { z: -842, x0: 590, x1: 778, step: 8.7, rot: Math.PI - 4 * DEG },
+    { z: -864, x0: 598, x1: 790, step: 8.9, rot: Math.PI + 5 * DEG },
+    { z: -886, x0: 618, x1: 804, step: 9.2, rot: Math.PI - 2 * DEG },
+    { z: -908, x0: 660, x1: 810, step: 9.6, rot: Math.PI + 4 * DEG },
+  ];
+  let seed = 620;
+  for (const row of rows) {
+    for (let x = row.x0; x <= row.x1; x += row.step) {
+      seed += 1;
+      if (low && seed % 3 !== 0) continue;
+      if (isReservedTownGap(x, row.z)) continue;
+      const footprint: HouseFootprint =
+        seed % 5 === 0 ? { w: 8, d: 6 } : seed % 3 === 0 ? { w: 6, d: 6 } : { w: 6, d: 4 };
+      const z = row.z + Math.sin(seed * 1.7) * 2.3;
+      const bx = x + Math.sin(seed * 2.1) * 1.1;
+      const tint = MEDITERRANEAN_TINTS[seed % MEDITERRANEAN_TINTS.length]!;
+      addTownHouse(buckets, colliders, stairSpans, perches, heightField, kit, {
+        id: `dense-meridian-${seed}`,
+        x: bx,
+        z,
+        rotY: row.rot + Math.sin(seed * 0.9) * 0.1,
+        footprint,
+        storeys: (2 + (seed % 3)) as 2 | 3 | 4,
+        tint,
+        roofTint: ROOF_TINTS[seed % ROOF_TINTS.length]!,
+        doorSide: 'front',
+        upper: 'plaster',
+        ground: 'plaster',
+        roof: seed % 4 === 0 ? 'flat' : seed % 9 === 0 ? 'tower' : 'gable',
+        balcony: seed % 3 === 0,
+        seed,
+      });
+      if (high && seed % 4 === 0) {
+        const y = heightField.heightAt(bx, z);
+        addStringLanterns(
+          buckets,
+          { x: bx - 3.0, y: y + 4.4, z: z + 3.4 },
+          { x: bx + 4.2, y: y + 4.1, z: z + 3.1 },
+          3,
+        );
+      }
+    }
+  }
+}
+
+function isReservedTownGap(x: number, z: number): boolean {
+  if (Math.abs(x - STAIR_STREET.x) < STAIR_STREET.width * 0.78 && z > -834) return true;
+  if (x > PLAZA.x0 - 3 && x < PLAZA.x1 + 3 && z > PLAZA.z0 - 7 && z < PLAZA.z1 + 9) return true;
+  if (x > 570 && x < 610 && z > -780 && z < -746) return true;
+  if (Math.hypot(x - CITADEL.x, z - CITADEL.z) < 44) return true;
+  return false;
 }
 
 function addVegetation(
@@ -1296,13 +1461,13 @@ interface TownHouseSpec {
   z: number;
   rotY: number;
   footprint: HouseFootprint;
-  storeys: 1 | 2 | 3;
+  storeys: 1 | 2 | 3 | 4;
   tint: number;
   roofTint: number;
-  doorSide: HouseSpec['doorSide'];
-  upper: HouseSpec['upper'];
-  ground: HouseSpec['ground'];
-  roof: HouseSpec['roof'];
+  doorSide: HouseSide;
+  upper: 'plaster';
+  ground: 'plaster';
+  roof: HouseRoof;
   balcony: boolean;
   seed: number;
   awning?: number;
@@ -1317,33 +1482,14 @@ function addTownHouse(
   kit: VillageKit,
   spec: TownHouseSpec,
 ): void {
+  void stairSpans;
+  void kit;
   const y = houseBaseY(spec.x, spec.z, heightField);
-  const house: HouseSpec = {
-    id: spec.id,
-    footprint: spec.footprint,
-    storeys: spec.storeys,
-    ground: spec.ground,
-    upper: 'plaster',
-    doorSide: spec.doorSide,
-    windows: spec.storeys > 2 ? 'busy' : 'regular',
-    roof: spec.roof,
-    dormers: spec.roof === 'gable' && spec.storeys > 1 ? 1 + (spec.seed % 2) : false,
-    chimney: spec.seed % 3 !== 0,
-    balcony: spec.balcony,
-    overhang: true,
-    stairs: spec.seed % 2 === 0,
-    vines: spec.seed % 4 === 0 ? 1 : false,
-    seed: spec.seed,
-    origin: { x: spec.x, y, z: spec.z },
-    rotY: spec.rotY,
-    tint: spec.tint,
-    roofTint: spec.roofTint,
-  };
-  const placements = buildHouse(house);
-  for (const p of placements) addKitPlacement(buckets, kit, p);
-  const span = houseStairsSpan(house);
-  if (span) stairSpans.push(span);
-  for (const p of perchesFromHouse(house, placements)) perches.push(p);
+  const w = spec.footprint.w;
+  const d = spec.footprint.d;
+  const floors = spec.storeys;
+  const floorH = 2.72;
+  const wallH = floors * floorH;
   const min = footprintMinY(spec.x, spec.z, spec.rotY, spec.footprint, heightField);
   if (y - min > 0.16)
     addBox(
@@ -1358,18 +1504,293 @@ function addTownHouse(
       spec.rotY,
       LIMESTONE_DARK,
     );
+  addBox(buckets, 'stone', spec.x, y, spec.z, w + 0.25, 0.55, d + 0.25, spec.rotY, 0xb79462);
+  addBox(buckets, 'plaster', spec.x, y + 0.55, spec.z, w, wallH, d, spec.rotY, spec.tint);
+  for (let floor = 1; floor <= floors; floor += 1) {
+    addBox(
+      buckets,
+      'stone',
+      spec.x,
+      y + 0.55 + floor * floorH - 0.08,
+      spec.z,
+      w + 0.18,
+      0.14,
+      d + 0.18,
+      spec.rotY,
+      0xd7b77f,
+    );
+  }
+  addFacadeOpenings(buckets, spec, y + 0.55, wallH);
+  addFacadeOpenings(buckets, { ...spec, doorSide: 'back' }, y + 0.55, wallH, spec.seed + 13, true);
+  if (w >= 6 && d >= 6 && floors > 1) {
+    addFacadeOpenings(buckets, { ...spec, doorSide: 'left' }, y + 0.55, wallH, spec.seed + 31, true);
+    addFacadeOpenings(buckets, { ...spec, doorSide: 'right' }, y + 0.55, wallH, spec.seed + 47, true);
+  }
+  const top = y + 0.55 + wallH;
+  if (spec.roof === 'flat' || spec.seed % 4 === 0) {
+    addFlatRoofTerrace(buckets, spec.x, top, spec.z, w, d, spec.rotY, spec.roofTint, spec.seed);
+    if (spec.seed % 3 === 0) addPergola(buckets, spec.x, top + 0.52, spec.z, w, d, spec.rotY);
+  } else {
+    addTerracottaRoof(buckets, spec.x, top, spec.z, w, d, spec.rotY, spec.roofTint, spec.roof === 'tower');
+  }
+  if (spec.awning) {
+    const door = facadeWorldPoint(spec, spec.doorSide, 0, 0);
+    addAwning(
+      buckets,
+      door.x,
+      y + 2.45,
+      door.z,
+      sideYaw(spec.rotY, spec.doorSide),
+      Math.min(3.6, w * 0.55),
+      1.45,
+      spec.awning,
+      LIMESTONE_LIGHT,
+    );
+  }
+  if (spec.balcony && floors > 1) addBalconyRail(buckets, spec, y + 0.55 + floorH + 0.08);
+  if (spec.seed % 5 === 0) addBougainvilleaOnFacade(buckets, spec, y + 2.2);
+  perches.push(new Vector3(spec.x, top + 1.4, spec.z));
   colliders.boxes.push({
     x: spec.x,
     z: spec.z,
     hx: spec.footprint.w * 0.5 + 0.35,
     hz: spec.footprint.d * 0.5 + 0.35,
     rot: spec.rotY,
-    height: spec.storeys * 3.2 + 5,
+    height: wallH + 2.5,
   });
-  if (spec.awning) {
-    const d = houseDoorAnchor(house);
-    addAwning(buckets, d.x, d.y + 2.25, d.z, d.heading, 2.8, 1.35, spec.awning, LIMESTONE_LIGHT);
+}
+
+function addFacadeOpenings(
+  buckets: Buckets,
+  spec: TownHouseSpec,
+  baseY: number,
+  wallH: number,
+  seed = spec.seed,
+  secondary = false,
+): void {
+  const width = sideSpan(spec, spec.doorSide);
+  const floors = Math.max(1, Math.floor(wallH / 2.72));
+  const cols = width >= 7 ? 3 : width >= 5.5 ? 2 : 1;
+  const shutter = seed % 2 === 0 ? DEEP_BLUE : DEEP_GREEN;
+  for (let floor = 0; floor < floors; floor += 1) {
+    const y = baseY + floor * 2.72 + 1.25;
+    for (let col = 0; col < cols; col += 1) {
+      if (floor === 0 && col === Math.floor(cols / 2) && !secondary) continue;
+      const along = (col - (cols - 1) / 2) * (width / (cols + 0.55));
+      const tall = floor === floors - 1 && seed % 3 === 0;
+      addFacadeRect(buckets, spec, spec.doorSide, along, y, 0.72, tall ? 1.3 : 0.95, 'metal', 0x1b2528);
+      addFacadeRect(buckets, spec, spec.doorSide, along - 0.55, y + 0.05, 0.18, 1.05, 'cloth', shutter);
+      addFacadeRect(buckets, spec, spec.doorSide, along + 0.55, y + 0.05, 0.18, 1.05, 'cloth', shutter);
+      addFacadeRect(buckets, spec, spec.doorSide, along, y - 0.16, 0.94, 0.12, 'stone', LIMESTONE_LIGHT);
+      if (floor > 0 && (seed + floor + col) % 5 === 0) {
+        addFacadeRect(buckets, spec, spec.doorSide, along, y - 0.58, 0.9, 0.12, 'wood', DARK_WOOD);
+        addFlowerBox(
+          buckets,
+          facadeWorldPoint(spec, spec.doorSide, along, 0.1),
+          baseY + floor * 2.72 + 0.75,
+          sideYaw(spec.rotY, spec.doorSide),
+        );
+      }
+    }
   }
+  if (!secondary) {
+    addFacadeRect(buckets, spec, spec.doorSide, 0, baseY + 0.15, 1.2, 2.0, 'wood', 0x4d3020);
+    const arch = facadeWorldPoint(spec, spec.doorSide, 0, 0.13);
+    addDiscVertical(
+      buckets,
+      'wood',
+      arch.x,
+      baseY + 2.12,
+      arch.z,
+      sideYaw(spec.rotY, spec.doorSide),
+      0.62,
+      0x4d3020,
+    );
+    addFacadeRect(buckets, spec, spec.doorSide, 0, baseY + 2.0, 1.55, 0.16, 'stone', LIMESTONE_LIGHT);
+  }
+}
+
+function addFlatRoofTerrace(
+  buckets: Buckets,
+  x: number,
+  y: number,
+  z: number,
+  w: number,
+  d: number,
+  rot: number,
+  roofTint: number,
+  seed: number,
+): void {
+  addBox(buckets, 'paving', x, y, z, w + 0.35, 0.18, d + 0.35, rot, 0xd7bd86);
+  for (const [lx, lz, ww, dd] of [
+    [0, -d * 0.5, w + 0.55, 0.28],
+    [0, d * 0.5, w + 0.55, 0.28],
+    [-w * 0.5, 0, 0.28, d + 0.55],
+    [w * 0.5, 0, 0.28, d + 0.55],
+  ] as const) {
+    const p = localToWorld(x, z, rot, lx, lz);
+    addBox(buckets, 'stone', p.x, y + 0.16, p.z, ww, 0.62, dd, rot, 0xd9bd87);
+  }
+  if (seed % 2 === 0) {
+    const p = localToWorld(x, z, rot, w * 0.25, -d * 0.15);
+    addCylinderGeom(buckets.stone, p.x, y + 0.22, p.z, 0.42, 0.5, 0.6, 10, 0, 0x9a6c45);
+    addCypress(buckets, { circles: [], boxes: [] }, p.x, y + 0.78, p.z, 0.34);
+  } else {
+    const p = localToWorld(x, z, rot, -w * 0.18, d * 0.12);
+    addBox(
+      buckets,
+      'cloth',
+      p.x,
+      y + 0.22,
+      p.z,
+      Math.min(2.8, w * 0.55),
+      0.08,
+      1.4,
+      rot,
+      roofTint || TERRACOTTA_WARM,
+    );
+  }
+}
+
+function addTerracottaRoof(
+  buckets: Buckets,
+  x: number,
+  y: number,
+  z: number,
+  w: number,
+  d: number,
+  rot: number,
+  roofTint: number,
+  tower: boolean,
+): void {
+  const colour = roofTint || TERRACOTTA_WARM;
+  addBox(buckets, 'roofTile', x, y + 0.06, z, w + 0.8, 0.18, d + 0.8, rot, colour);
+  if (tower || w === d)
+    addCone(buckets.roofTile, x, y + 0.18, z, Math.max(w, d) * 0.78, 2.0, 4, Math.PI / 4 + rot, colour);
+  else {
+    addBox(buckets, 'roofTile', x, y + 0.25, z, w + 1.0, 0.34, d * 0.52, rot, colour, 0, 0.18);
+    addBox(buckets, 'roofTile', x, y + 0.25, z, w + 1.0, 0.34, d * 0.52, rot, colour, 0, -0.18);
+  }
+}
+
+function addPergola(
+  buckets: Buckets,
+  x: number,
+  y: number,
+  z: number,
+  w: number,
+  d: number,
+  rot: number,
+): void {
+  const halfW = Math.min(w * 0.35, 2.4);
+  const halfD = Math.min(d * 0.28, 1.8);
+  for (const lx of [-halfW, halfW])
+    for (const lz of [-halfD, halfD]) {
+      const p = localToWorld(x, z, rot, lx, lz);
+      addCylinderGeom(buckets.wood, p.x, y, p.z, 0.07, 0.08, 1.6, 6, 0, DARK_WOOD);
+    }
+  for (let i = 0; i < 4; i += 1) {
+    const a = localToWorld(x, z, rot, -halfW + (i / 3) * halfW * 2, -halfD);
+    const b = localToWorld(x, z, rot, -halfW + (i / 3) * halfW * 2, halfD);
+    addTube(
+      buckets.wood,
+      0.045,
+      { x: a.x, y: y + 1.55, z: a.z },
+      { x: b.x, y: y + 1.55, z: b.z },
+      DARK_WOOD,
+      6,
+    );
+  }
+}
+
+function addBalconyRail(buckets: Buckets, spec: TownHouseSpec, y: number): void {
+  const p = facadeWorldPoint(spec, spec.doorSide, 0, 0.62);
+  const rot = sideYaw(spec.rotY, spec.doorSide);
+  addBox(
+    buckets,
+    'stone',
+    p.x,
+    y - 0.18,
+    p.z,
+    Math.min(3.4, sideSpan(spec, spec.doorSide) * 0.7),
+    0.18,
+    0.78,
+    rot,
+    LIMESTONE_LIGHT,
+  );
+  addBox(
+    buckets,
+    'metal',
+    p.x,
+    y + 0.18,
+    p.z,
+    Math.min(3.2, sideSpan(spec, spec.doorSide) * 0.65),
+    0.45,
+    0.08,
+    rot,
+    METAL,
+  );
+}
+
+function addBougainvilleaOnFacade(buckets: Buckets, spec: TownHouseSpec, y: number): void {
+  const p = facadeWorldPoint(spec, spec.doorSide, -sideSpan(spec, spec.doorSide) * 0.36, 0.15);
+  addBougainvillea(buckets, p.x, y, p.z, sideYaw(spec.rotY, spec.doorSide), 0.85);
+}
+
+function addFlowerBox(buckets: Buckets, p: { x: number; z: number }, y: number, rot: number): void {
+  addBox(buckets, 'wood', p.x, y, p.z, 0.82, 0.16, 0.18, rot, DARK_WOOD);
+  for (let i = 0; i < 4; i += 1) {
+    addSphere(
+      buckets.cloth,
+      p.x + (i - 1.5) * 0.18 * Math.cos(rot),
+      y + 0.18,
+      p.z - (i - 1.5) * 0.18 * Math.sin(rot),
+      0.1,
+      0.08,
+      0.1,
+      i % 2 ? BOUGAINVILLEA : 0xe2b23a,
+      6,
+      4,
+    );
+  }
+}
+
+function addFacadeRect(
+  buckets: Buckets,
+  spec: TownHouseSpec,
+  side: HouseSide,
+  along: number,
+  y: number,
+  w: number,
+  h: number,
+  key: MaterialKey,
+  colour: number,
+): void {
+  const p = facadeWorldPoint(spec, side, along, 0.08);
+  addBox(buckets, key, p.x, y, p.z, w, h, 0.055, sideYaw(spec.rotY, side), colour);
+}
+
+function facadeWorldPoint(
+  spec: TownHouseSpec,
+  side: HouseSide,
+  along: number,
+  out = 0.08,
+): { x: number; z: number } {
+  const w = spec.footprint.w;
+  const d = spec.footprint.d;
+  if (side === 'front') return localToWorld(spec.x, spec.z, spec.rotY, along, -d * 0.5 - out);
+  if (side === 'back') return localToWorld(spec.x, spec.z, spec.rotY, -along, d * 0.5 + out);
+  if (side === 'right') return localToWorld(spec.x, spec.z, spec.rotY, w * 0.5 + out, along);
+  return localToWorld(spec.x, spec.z, spec.rotY, -w * 0.5 - out, -along);
+}
+
+function sideYaw(rot: number, side: HouseSide): number {
+  if (side === 'left' || side === 'right') return rot + Math.PI / 2;
+  return rot;
+}
+
+function sideSpan(spec: TownHouseSpec, side: HouseSide): number {
+  return side === 'front' || side === 'back' ? spec.footprint.w : spec.footprint.d;
 }
 
 function addLandmarkHouse(
@@ -1392,8 +1813,8 @@ function addLandmarkHouse(
   addTownHouse(buckets, colliders, [], [], heightField, kit, {
     ...spec,
     doorSide: 'front',
-    upper: 'mixed',
-    ground: 'unevenbrick',
+    upper: 'plaster',
+    ground: 'plaster',
     roof: 'gable',
     balcony: true,
   });
@@ -1539,22 +1960,42 @@ function addClockTower(
   y: number,
   z: number,
 ): void {
-  addBox(buckets, 'stone', x, y, z, 8.4, 2.1, 8.4, 0, LIMESTONE_DARK);
-  addBox(buckets, 'plaster', x, y + 2.1, z, 6.2, 17.2, 6.2, 0, 0xd9b476);
-  addBox(buckets, 'stone', x, y + 18.9, z, 7.1, 1.5, 7.1, 0, LIMESTONE_LIGHT);
-  addCone(buckets.roofTile, x, y + 20.4, z, 5.2, 5.8, 4, Math.PI / 4, TERRACOTTA_DARK);
+  addBox(buckets, 'stone', x, y, z, 8.8, 2.2, 8.8, 0, LIMESTONE_DARK);
+  addBox(buckets, 'plaster', x, y + 2.2, z, 6.0, 14.4, 6.0, 0, 0xe4bd7a);
+  for (let i = 0; i < 5; i += 1)
+    addBox(buckets, 'stone', x, y + 4.7 + i * 2.55, z, 6.35, 0.18, 6.35, 0, 0xd7b77f);
+  addBox(buckets, 'stone', x, y + 16.6, z, 7.0, 0.85, 7.0, 0, LIMESTONE_DARK);
+  addBox(buckets, 'stone', x, y + 17.45, z, 6.5, 4.1, 6.5, 0, LIMESTONE_LIGHT);
+  for (const [lx, lz] of [
+    [-2.55, -2.55],
+    [2.55, -2.55],
+    [-2.55, 2.55],
+    [2.55, 2.55],
+  ] as const) {
+    addCylinderGeom(buckets.stone, x + lx, y + 17.45, z + lz, 0.28, 0.34, 4.15, 12, 0, 0xf4dca4);
+  }
+  for (const [dx, dz, rot] of [
+    [0, -3.28, 0],
+    [3.28, 0, Math.PI / 2],
+    [0, 3.28, Math.PI],
+    [-3.28, 0, -Math.PI / 2],
+  ] as const) {
+    addTorusGeom(buckets.stone, x + dx, y + 19.65, z + dz, 1.55, 0.16, 20, LIMESTONE_DARK, 0, rot, 0);
+    addBox(buckets, 'metal', x + dx * 0.98, y + 18.25, z + dz * 0.98, 1.2, 1.8, 0.08, rot, 0x223033);
+  }
+  addCylinderGeom(buckets.metal, x, y + 17.6, z, 0.55, 0.78, 1.25, 16, 0, 0x6c4a25);
+  addCone(buckets.metal, x, y + 18.55, z, 0.72, 1.3, 16, 0, 0x765229);
+  addBox(buckets, 'stone', x, y + 21.55, z, 7.2, 0.62, 7.2, 0, LIMESTONE_DARK);
+  addCone(buckets.roofTile, x, y + 22.15, z, 5.15, 4.3, 4, Math.PI / 4, TERRACOTTA_WARM);
   for (const [dx, dz, rot] of [
     [0, -3.18, 0],
     [3.18, 0, Math.PI / 2],
     [0, 3.18, Math.PI],
     [-3.18, 0, -Math.PI / 2],
   ] as const)
-    addClockFace(buckets, x + dx, y + 14.3, z + dz, rot);
-  addCylinderGeom(buckets.metal, x, y + 18.9, z, 0.7, 0.7, 1.25, 12, 0, 0x4b3421);
-  addCone(buckets.metal, x, y + 17.7, z, 0.8, 1.2, 12, 0, 0x67451f);
-  addTorusGeom(buckets.metal, x, y + 18.7, z, 1.15, 0.06, 16, METAL, Math.PI / 2, 0, 0);
-  colliders.boxes.push({ x, z, hx: 4.5, hz: 4.5, rot: 0, height: 25 });
-  perches.push(new Vector3(x, y + 25.4, z));
+    addClockFace(buckets, x + dx, y + 13.2, z + dz, rot);
+  colliders.boxes.push({ x, z, hx: 4.8, hz: 4.8, rot: 0, height: 27 });
+  perches.push(new Vector3(x, y + 27.0, z));
 }
 
 function addClockFace(buckets: Buckets, x: number, y: number, z: number, rot: number): void {
@@ -1626,6 +2067,26 @@ function addMerchantTable(
   colliders.boxes.push({ x, z, hx: 2.35, hz: 0.9, rot, height: 1.1 });
 }
 
+function addCompassRose(buckets: Buckets, x: number, y: number, z: number): void {
+  addTorusGeom(buckets.stone, x, y, z, 4.4, 0.035, 40, 0x7e5b39, Math.PI / 2, 0, 0);
+  addTorusGeom(buckets.stone, x, y + 0.01, z, 2.25, 0.03, 32, 0xf0d7aa, Math.PI / 2, 0, 0);
+  for (let i = 0; i < 8; i += 1) {
+    const a = (i / 8) * Math.PI * 2;
+    addBox(
+      buckets,
+      i % 2 === 0 ? 'stone' : 'paving',
+      x + Math.sin(a) * 1.25,
+      y + 0.01,
+      z + Math.cos(a) * 1.25,
+      i % 2 === 0 ? 0.26 : 0.18,
+      0.035,
+      i % 2 === 0 ? 3.1 : 2.1,
+      a,
+      i % 2 === 0 ? 0x7e5b39 : 0xf0d7aa,
+    );
+  }
+}
+
 function addFountain(
   buckets: Buckets,
   colliders: ColliderSet,
@@ -1651,7 +2112,7 @@ function addCitadelGate(
   z: number,
   rot: number,
 ): void {
-  addBox(buckets, 'stone', x, y, z, 7.8, 6.0, 2.2, rot, LIMESTONE_DARK);
+  addBox(buckets, 'stone', x, y, z, 7.8, 6.0, 2.2, rot, 0xd1b078);
   addBox(buckets, 'wood', x, y, z - 0.15, 3.4, 4.0, 0.35, rot, DARK_WOOD);
   addCylinderGeom(buckets.metal, x - 1.2, y + 0.8, z - 0.42, 0.08, 0.08, 3.0, 6, 0, METAL);
   addCylinderGeom(buckets.metal, x + 1.2, y + 0.8, z - 0.42, 0.08, 0.08, 3.0, 6, 0, METAL);
@@ -1693,6 +2154,7 @@ function addHallOfRecords(
   stairSpans: StairSpan[],
 ): void {
   void kit;
+  void stairSpans;
   addBox(buckets, 'stone', x, y, z, 16.2, 0.45, 10.2, 0, LIMESTONE_LIGHT);
   addBox(buckets, 'plaster', x, y + 0.45, z + 1.2, 14.2, 5.0, 7.2, 0, 0xe4c58e);
   addBox(buckets, 'stone', x, y + 5.45, z + 1.2, 15.2, 0.55, 7.9, 0, LIMESTONE_DARK);
@@ -1707,19 +2169,6 @@ function addHallOfRecords(
   addBox(buckets, 'cloth', x + 5.4, y + 0.8, z - 5.0, 0.52, 3.6, 0.06, 0, CLOTH_RED);
   colliders.boxes.push({ x, z: z + 1.2, hx: 7.5, hz: 4.1, rot: 0, height: 6.8 });
   colliders.boxes.push({ x, z: z - 5.2, hx: 7.8, hz: 1.65, rot: 0, height: 0.55 });
-  const house: HouseSpec = {
-    footprint: { w: 4, d: 4 },
-    storeys: 1,
-    ground: 'plaster',
-    upper: 'plaster',
-    doorSide: 'front',
-    roof: 'gable',
-    stairs: true,
-    seed: 901,
-    origin: { x: -10000, y, z: -10000 },
-  };
-  const span = houseStairsSpan(house);
-  if (span) stairSpans.push({ x, y, z: z - 6.0, heading: Math.PI });
 }
 
 function addAdmiralTerrace(
@@ -1732,11 +2181,22 @@ function addAdmiralTerrace(
   high: boolean,
 ): void {
   addBox(buckets, 'paving', x, y + 0.12, z, 13.0, 0.28, 7.0, -20 * DEG, 0xd2b078);
-  for (let i = 0; i < 8; i += 1) {
-    const p = localToWorld(x, z, -20 * DEG, -5.6 + i * 1.6, 3.55);
-    addCylinderGeom(buckets.stone, p.x, y + 0.28, p.z, 0.18, 0.22, 1.25, 8, 0, LIMESTONE_LIGHT);
+  for (const lz of [-3.3, 3.3]) {
+    for (let i = 0; i < 8; i += 1) {
+      const p = localToWorld(x, z, -20 * DEG, -5.6 + i * 1.6, lz);
+      addCylinderGeom(buckets.stone, p.x, y + 0.28, p.z, 0.16, 0.2, 1.05, 8, 0, LIMESTONE_LIGHT);
+    }
   }
-  addBox(buckets, 'stone', x, y + 1.45, z + 3.25, 13.6, 0.28, 0.45, -20 * DEG, LIMESTONE_LIGHT);
+  for (const lx of [-6.1, 6.1]) {
+    for (let i = 0; i < 4; i += 1) {
+      const p = localToWorld(x, z, -20 * DEG, lx, -2.2 + i * 1.45);
+      addCylinderGeom(buckets.stone, p.x, y + 0.28, p.z, 0.16, 0.2, 1.05, 8, 0, LIMESTONE_LIGHT);
+    }
+  }
+  for (const lz of [-3.3, 3.3]) {
+    const p = localToWorld(x, z, -20 * DEG, 0, lz);
+    addBox(buckets, 'stone', p.x, y + 1.28, p.z, 12.6, 0.24, 0.28, -20 * DEG, LIMESTONE_LIGHT);
+  }
   addCylinderGeom(buckets.wood, x - 5.2, y + 0.28, z - 1.8, 0.13, 0.16, 6.3, 8, 0, DARK_WOOD);
   addBox(buckets, 'cloth', x - 4.2, y + 4.75, z - 1.8, 2.0, 1.1, 0.08, 0, CLOTH_RED, 0, 0.18);
   colliders.boxes.push({ x, z, hx: 6.8, hz: 3.8, rot: -20 * DEG, height: 0.5 });
@@ -1762,10 +2222,14 @@ function addCurtainWall(
     const pz = z + Math.sin(am) * r * 0.78;
     const len = Math.hypot(Math.cos(a1) * r - Math.cos(a0) * r, (Math.sin(a1) - Math.sin(a0)) * r * 0.78);
     const rot = Math.atan2(Math.cos(am), -Math.sin(am));
-    addBox(buckets, 'stone', px, y, pz, len + 0.9, 3.1, 1.6, rot, LIMESTONE_DARK);
-    if (i % 2 === 0) addBox(buckets, 'stone', px, y + 3.1, pz, len * 0.4, 0.65, 1.75, rot, LIMESTONE_LIGHT);
-    colliders.boxes.push({ x: px, z: pz, hx: len * 0.5 + 0.5, hz: 0.95, rot, height: 3.8 });
-    if (i % 3 === 0) perches.push(new Vector3(px, y + 4.1, pz));
+    const terraceGap = Math.hypot(px - 792.8, pz + 812.8) < 20;
+    const h = terraceGap ? 1.05 : 3.1;
+    addBox(buckets, 'stone', px, y, pz, len + 0.9, h, 1.6, rot, terraceGap ? LIMESTONE_LIGHT : 0xc2a476);
+    addBox(buckets, 'stone', px, y + h * 0.45, pz, len + 0.75, 0.08, 1.68, rot, 0xd7b77f);
+    if (!terraceGap && i % 2 === 0)
+      addBox(buckets, 'stone', px, y + 3.1, pz, len * 0.4, 0.65, 1.75, rot, LIMESTONE_LIGHT);
+    colliders.boxes.push({ x: px, z: pz, hx: len * 0.5 + 0.5, hz: 0.95, rot, height: h + 0.7 });
+    if (i % 3 === 0) perches.push(new Vector3(px, y + h + 0.8, pz));
   }
 }
 
@@ -1780,7 +2244,9 @@ function addRoundTower(
   h: number,
   roof: boolean,
 ): void {
-  addCylinderGeom(buckets.stone, x, y, z, r, r * 1.08, h, 22, 0, LIMESTONE_DARK);
+  addCylinderGeom(buckets.stone, x, y, z, r, r * 1.08, h, 22, 0, 0xd4b57f);
+  for (let band = 1.2; band < h; band += 2.1)
+    addCylinderGeom(buckets.stone, x, y + band, z, r + 0.05, r + 0.06, 0.12, 22, 0, 0xf0d7aa);
   for (let i = 0; i < 8; i += 1) {
     const a = (i / 8) * Math.PI * 2;
     addBox(
@@ -1796,7 +2262,7 @@ function addRoundTower(
       LIMESTONE_LIGHT,
     );
   }
-  if (roof) addCone(buckets.roofTile, x, y + h + 0.7, z, r * 1.2, 3.0, 22, 0, TERRACOTTA_DARK);
+  if (roof) addCone(buckets.roofTile, x, y + h + 0.7, z, r * 1.2, 3.0, 22, 0, TERRACOTTA_WARM);
   colliders.circles.push({ x, z, r: r + 0.4 });
   perches.push(new Vector3(x, y + h + 3.8, z));
 }
@@ -2619,6 +3085,13 @@ function disc(
   return g;
 }
 
+function stairsHeightAt(_span: StairSpan, _x: number, _z: number): number | null {
+  void _span;
+  void _x;
+  void _z;
+  return null;
+}
+
 function stairStreetHeight(x: number, z: number): number | null {
   if (Math.abs(x - STAIR_STREET.x) > STAIR_STREET.width * 0.5) return null;
   if (z > STAIR_STREET.z0 + 0.35 || z < STAIR_STREET.z1 - 0.35) return null;
@@ -2712,17 +3185,8 @@ function footprintMinY(
   return Math.min(min, houseBaseY(x, z, heightField));
 }
 
-function perchesFromHouse(_spec: HouseSpec, placements: ReturnType<typeof buildHouse>): Vector3[] {
-  const points: Vector3[] = [];
-  for (const p of placements) {
-    if (p.role === 'chimney' || p.role === 'roof')
-      points.push(new Vector3(p.position.x, p.position.y + 2.2, p.position.z));
-  }
-  return points.slice(0, 4);
-}
-
 function countTownBuildings(): number {
-  return 4 + 4 + 1 + 17 + 4;
+  return 86;
 }
 
 function triangleCount(geometry: BufferGeometry): number {

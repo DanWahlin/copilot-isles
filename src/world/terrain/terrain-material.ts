@@ -175,8 +175,8 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(smoothstep(1210, 1240, positionWorld.x)))
     .mul(smoothstep(-1130, -1080, positionWorld.z))
     .mul(float(1).sub(smoothstep(-620, -570, positionWorld.z)));
-  const dryGrass = mix(color(0x756b37), color(0xc49b55), broadNoise.mul(0.5).add(grassDetail.mul(0.22))).add(
-    color(0xd8bd70).mul(pow(saturate(grassFineB.sub(0.66).mul(2.2)), 2.0).mul(0.08)),
+  const dryGrass = mix(color(0x7f6530), color(0xd4a653), broadNoise.mul(0.5).add(grassDetail.mul(0.22))).add(
+    color(0xefcf79).mul(pow(saturate(grassFineB.sub(0.66).mul(2.2)), 2.0).mul(0.1)),
   );
   const grass = mix(lushGrass, dryGrass, meridianDryMask);
   const dirt = mix(color(0x68462a), color(0xa97945), fineNoise.mul(0.48).add(sandDetail.mul(0.16)));
