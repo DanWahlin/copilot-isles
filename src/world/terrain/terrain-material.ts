@@ -266,7 +266,16 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(algaeBase.mul(0.52)))
     .mul(float(1).sub(waterline.mul(0.05)))
     .mul(float(1).sub(cave.mul(0.72)));
-  base = mix(base, cliffColor, cliffInfluence);
+  const meridianBluffMask = smoothstep(748, 778, positionWorld.x)
+    .mul(float(1).sub(smoothstep(872, 900, positionWorld.x)))
+    .mul(smoothstep(-846, -826, positionWorld.z))
+    .mul(float(1).sub(smoothstep(-724, -704, positionWorld.z)))
+    .mul(smoothstep(12, 25, y));
+  const meridianBluffCliff = cliffBase
+    .mul(float(0.76).add(broadNoise.mul(0.18)).add(fineNoise.mul(0.08)))
+    .mul(float(1).sub(crevices.mul(0.28)))
+    .mul(float(1).sub(joints.mul(0.34)));
+  base = mix(base, mix(cliffColor, meridianBluffCliff, meridianBluffMask), cliffInfluence);
   base = mix(base, reefRock, underwater.mul(rockMask.add(cliffMask).mul(0.7)));
   base = mix(base, seabed, underwater.mul(0.72));
   base = mix(base, color(0x315545), seagrassPatch.mul(0.36));
