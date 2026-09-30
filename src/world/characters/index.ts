@@ -137,10 +137,10 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
     hand: 'right',
   },
   oren: {
-    source: 'captain_npc',
-    scale: 0.96,
+    source: 'henry_npc',
+    scale: 0.99,
     radius: 0.33,
-    height: 1.67,
+    height: 1.72,
     tint: 0xffffff,
     hand: 'left',
     reads: true,
