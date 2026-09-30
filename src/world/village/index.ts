@@ -399,6 +399,7 @@ function clonePavingMaterial(material: Material): Material {
   clone.vertexColors = true;
   clone.side = DoubleSide;
   const mapped = clone as Material & {
+    color?: Color;
     map?: Texture | null;
     roughness: number;
     metalness?: number;
@@ -407,6 +408,9 @@ function clonePavingMaterial(material: Material): Material {
   };
   mapped.roughness = 0.96;
   if (mapped.metalness !== undefined) mapped.metalness = 0;
+  // The kit's stone is a cool dark grey: warm it toward sun-baked cobbles so the quay and lanes
+  // don't read as a dark slab from the air (arrival flyovers) while keeping their texture.
+  mapped.color?.setRGB(1.55, 1.38, 1.12);
   if (mapped.map) {
     mapped.map = mapped.map.clone();
     mapped.map.wrapS = RepeatWrapping;

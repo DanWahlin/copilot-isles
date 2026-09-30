@@ -13,6 +13,9 @@ import { CollisionWorld, type SurfaceKind, type WalkSurface } from './collision'
 import { Dialogue } from './dialogue';
 import { FootstepPuffs } from './footstep-puffs';
 import { FollowCamera, SAIL_RIG, WALK_RIG, type CameraShot } from './follow-camera';
+import { ARRIVALS, arrivalKeys, type IslandArrival, type IslandId } from './arrivals';
+import { FlyoverPath } from './flyover';
+import { world as worldUniforms } from '../world/uniforms';
 import { Helm } from './helm';
 import { Hud } from './hud';
 import { Interactions } from './interaction';
@@ -44,6 +47,8 @@ import { createSluice } from './puzzles/sluice';
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal } from './puzzles/types';
 
 type SessionMode = 'walk' | 'sail' | 'docking' | 'transition';
+/** A first landfall: waiting for the game to show, flying in (or, with reduced motion, just the title card), then done. */
+type ArrivalPhase = 'waiting' | 'flying' | 'card' | 'done';
 
 export interface SessionOptions {
   engine: Engine;
@@ -75,6 +80,13 @@ export interface GameSession {
   readonly npcs: NpcCrowd;
   /** Freezes the player, helm, and HUD prompts while menus are open (the world keeps living). */
   setPaused(on: boolean): void;
+  /** The game's on screen (the loading card has gone): a first landfall's flyover takes off. */
+  begin(): void;
+  /**
+   * Loading: steps the camera along a pending flyover, calling `step` at each view (render a frame,
+   * compile), so everything it'll see is built behind the loading card rather than mid-flight.
+   */
+  warmArrival(step: () => Promise<void>): Promise<void>;
   /** Fast travel: docks the ship if you're sailing, then puts you at (x, z). */
   travel(x: number, z: number, heading: number): Promise<void>;
   /** Player or ship position for the chart. */
@@ -105,6 +117,14 @@ export interface GameSession {
     welcome(): Promise<void>;
     /** Wingman's flight phase and position (tests). */
     wingman(): { phase: string; x: number; y: number; z: number } | null;
+    /** The arrival flyover's phase and seconds in (tests). */
+    arrival(): { island: string; phase: ArrivalPhase; time: number; eye: number } | null;
+    /** Plays an island's arrival flyover again (tests, screenshots). */
+    flyover(island?: IslandId): void;
+    /** Holds the flyover at `time` seconds in (null lets it fly on). */
+    holdArrival(time: number | null): void;
+    /** Skips the arrival flyover, as E would. */
+    skipArrival(): void;
   };
   dispose(): void;
 }
@@ -122,6 +142,12 @@ const CHRISTEN_AT = new Vector3(-1.6, 2.4, 10.6);
 
 /** How long Wingman's framed welcome holds before moving can cut it short. */
 const INTRO_HOLD_MS = 1600;
+/** With reduced motion there's no flight: the title card holds over the captain this long. */
+const ARRIVAL_CARD_ONLY = 3.4;
+/** Seconds into a flyover before a key press can skip it (so a held key from the menu doesn't). */
+const ARRIVAL_SKIP_AFTER = 0.6;
+/** Seconds of flight between the views warmed up while loading. */
+const ARRIVAL_WARM_STEP = 0.5;
 
 const STEP_WALK = 0.78;
 const STEP_RUN = 1.15;
@@ -852,6 +878,106 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       tz: player.z + (hover.z - player.z) * 0.5,
     };
   }
+  // First landfall on an island: a flyover in from the sea, over the ship and the island, down to
+  // behind the captain, with the island's title card; then Wingman's welcome. Once per island.
+  const flyShot: CameraShot = { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 };
+  const restShot: CameraShot = { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 };
+  /** Tests: holds the flyover at a moment (seconds in) for screenshots. */
+  let arrivalHold: number | null = null;
+  let arrival: {
+    plan: IslandArrival;
+    path: FlyoverPath | null;
+    phase: ArrivalPhase;
+    time: number;
+    card: boolean;
+  } | null = null;
+  function startArrival(plan: IslandArrival, waitForBegin: boolean): void {
+    const reduced = worldUniforms.reducedMotion.value > 0.5;
+    let path: FlyoverPath | null = null;
+    if (!reduced) {
+      cam.restPose(player, player.heading, restShot);
+      path = new FlyoverPath(
+        arrivalKeys(plan, { x: player.x, y: player.y, z: player.z, heading: player.heading }, restShot),
+        plan.seconds,
+      );
+      path.sample(0, flyShot);
+      cam.cut(flyShot);
+    }
+    arrival = {
+      plan,
+      path,
+      phase: waitForBegin ? 'waiting' : path ? 'flying' : 'card',
+      time: 0,
+      card: false,
+    };
+    hintTimer = -1;
+    dialogue.cancel();
+    wingman?.landNow();
+    input.enabled = false;
+    hero.setSpeed(0);
+    hud.setCinematic(true);
+    learn?.setCinematic(true);
+  }
+  /** Ends the arrival: marks the island seen and hands over to Wingman (unless travel cut it short). */
+  async function endArrival(how: 'landed' | 'skipped' | 'cut'): Promise<void> {
+    const a = arrival;
+    if (!a || a.phase === 'done') return;
+    a.phase = 'done';
+    learn?.progress.add('arrivals', a.plan.id);
+    if (how === 'skipped' && a.path) {
+      await hud.fade(true, 240);
+      if (disposed) return;
+      cam.release();
+    }
+    hud.setCinematic(false);
+    learn?.setCinematic(false);
+    input.enabled = !paused;
+    if (how === 'cut') {
+      cam.release();
+      hintTimer = 0.8;
+      return;
+    }
+    if (how === 'skipped' && a.path) void hud.fade(false, 460);
+    cam.frame(null);
+    void welcome();
+  }
+  function updateArrival(
+    dt: number,
+    t: number,
+    s: { interact: boolean; stirring: boolean; jump: boolean; map: boolean },
+  ): void {
+    const a = arrival;
+    if (!a || a.phase === 'done' || a.phase === 'waiting') return;
+    a.time = arrivalHold ?? a.time + dt;
+    const plan = a.plan;
+    const cardAt = a.path ? plan.cardAt : 0.5;
+    const cardEnd = a.path ? plan.cardAt + plan.cardFor : ARRIVAL_CARD_ONLY - 0.4;
+    const showCard = a.time >= cardAt && a.time < cardEnd;
+    if (showCard !== a.card) {
+      a.card = showCard;
+      hud.showCard(showCard ? plan.card : null);
+    }
+    if (a.time > ARRIVAL_SKIP_AFTER && (s.interact || s.stirring || s.jump || s.map)) {
+      void endArrival('skipped');
+      return;
+    }
+    if (!a.path) {
+      if (a.time >= ARRIVAL_CARD_ONLY) void endArrival('landed');
+      return;
+    }
+    const landed = a.path.sample(a.time, flyShot);
+    // Never through the ground or the sea, whatever the keys say.
+    const floor = Math.max(
+      world.groundAt(flyShot.x, flyShot.z) + 2.2,
+      world.waterAt(flyShot.x, flyShot.z, t) + 1.8,
+    );
+    if (!landed && flyShot.y < floor) flyShot.y = floor;
+    cam.frame(flyShot);
+    if (landed) void endArrival('landed');
+  }
+  const arrivalPlan = ARRIVALS.anchorage;
+  if (!o.quiet && !learn?.progress.has('arrivals', arrivalPlan.id)) startArrival(arrivalPlan, true);
+
   const listenerPos = { x: 0, y: 0, z: 0 };
   const listenerFwd = { x: 0, y: 0, z: -1 };
 
@@ -882,16 +1008,19 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           resumedAt = performance.now();
           return;
         }
+        // An arrival flyover owns the keys (any of them skips it) until it lands.
+        const arriving = !!arrival && arrival.phase !== 'done';
+        if (arriving) updateArrival(dt, t, s);
         // Menu keys: ignore the edge from the same key press that closed the menu.
         if (performance.now() - resumedAt > 200) {
           if (s.menu && o.onMenu) return o.onMenu();
-          if (s.map && o.onChart) return o.onChart();
+          if (s.map && o.onChart && !arriving) return o.onChart();
         }
         // A short cooldown after a conversation ends so mashing E to skip doesn't restart it.
         if (dialogue.active) cooldown = 0.45;
         else cooldown = Math.max(0, cooldown - dt);
         // The E that closed a quiz or page mustn't also skip the next line or re-open a chat.
-        if (s.interact && performance.now() - resumedAt > 250) {
+        if (s.interact && !arriving && performance.now() - resumedAt > 250) {
           if (dialogue.active) dialogue.next();
           else if (cooldown <= 0 && mode === 'sail') dock();
           else if (cooldown <= 0 && mode === 'walk') interactions.fire();
@@ -1009,6 +1138,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
   async function travel(x: number, z: number, heading: number): Promise<void> {
     if (mode === 'transition') return;
+    if (arrival && arrival.phase !== 'done') await endArrival('cut');
     dialogue.cancel();
     wingman?.landNow();
     if (mode === 'sail' || mode === 'docking') await disembark();
@@ -1023,9 +1153,31 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     setPaused(on) {
       paused = on;
       hud.setMenuOpen(on);
-      input.enabled = !on && !dialogue.active;
+      input.enabled = !on && !dialogue.active && !(arrival && arrival.phase !== 'done');
       if (!on) resumedAt = performance.now();
       if (on) hero.setSpeed(0);
+    },
+    begin() {
+      if (arrival?.phase === 'waiting') arrival.phase = arrival.path ? 'flying' : 'card';
+    },
+    async warmArrival(step) {
+      const a = arrival;
+      if (!a?.path || a.phase !== 'waiting') return;
+      // The camera's placed here too, so the world streams for this view on the very next frame.
+      const view = (t: number) => {
+        a.path!.sample(t, flyShot);
+        cam.cut(flyShot);
+        camera.position.set(flyShot.x, flyShot.y, flyShot.z);
+        camera.lookAt(flyShot.tx, flyShot.ty, flyShot.tz);
+        camera.updateMatrixWorld();
+      };
+      for (let t = 0; t <= a.plan.seconds + 0.01; t += ARRIVAL_WARM_STEP) {
+        view(t);
+        await step();
+        if (disposed || a.phase !== 'waiting') return;
+      }
+      view(0);
+      await step();
     },
     travel,
     where: () =>
@@ -1073,6 +1225,29 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
               z: +wingman.root.position.z.toFixed(2),
             }
           : null,
+      arrival: () =>
+        arrival
+          ? {
+              island: arrival.plan.id,
+              phase: arrival.phase,
+              time: +arrival.time.toFixed(2),
+              eye: Math.hypot(
+                camera.position.x - player.x,
+                camera.position.y - player.y,
+                camera.position.z - player.z,
+              ),
+            }
+          : null,
+      flyover(island: IslandId = 'anchorage') {
+        if (mode !== 'walk') return;
+        startArrival(ARRIVALS[island], false);
+      },
+      holdArrival(time: number | null) {
+        arrivalHold = time;
+      },
+      skipArrival() {
+        if (arrival && arrival.phase !== 'done') void endArrival('skipped');
+      },
       state: () => ({
         mode,
         x: +player.x.toFixed(2),

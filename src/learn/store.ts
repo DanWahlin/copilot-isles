@@ -59,6 +59,8 @@ export interface LearnState {
   sails: string | null;
   /** The palette stand's theme picker while it's open; `selected` previews on the sails. */
   palette: { selected: string } | null;
+  /** An arrival flyover is playing: the purse and task list step aside for the view. */
+  cinematic: boolean;
 }
 
 export interface QuizOutcome {
@@ -99,6 +101,7 @@ export class LearnStore {
       tracker: null,
       sails: progress.data.sails,
       palette: null,
+      cinematic: false,
     };
   }
 
@@ -366,7 +369,13 @@ export class LearnStore {
       palette: null,
       spyglass: null,
       logbook: { open: false, tab: 'pages', page: null },
+      cinematic: false,
     });
+  };
+
+  /** Hides the purse and task list while an arrival flyover plays. */
+  setCinematic = (on: boolean): void => {
+    if (this.state.cinematic !== on) this.set({ cinematic: on });
   };
 
   /** A fresh voyage: wipes progress. */

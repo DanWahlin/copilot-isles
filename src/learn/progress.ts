@@ -39,6 +39,8 @@ export interface ProgressData {
   puzzles: Record<string, PuzzleSave>;
   /** Whether the player has opened the Logbook yet (until then, new pages say where they went). */
   logbookOpened: boolean;
+  /** Islands whose arrival flyover has played (it plays once per island). */
+  arrivals: string[];
 }
 
 function emptyProgress(now = Date.now()): ProgressData {
@@ -58,6 +60,7 @@ function emptyProgress(now = Date.now()): ProgressData {
     shipName: null,
     puzzles: {},
     logbookOpened: false,
+    arrivals: [],
   };
 }
 
@@ -102,6 +105,7 @@ export function parseProgress(raw: string | null): ProgressData {
       shipName: cleanName(d.shipName),
       puzzles: parsePuzzles(d.puzzles),
       logbookOpened: d.logbookOpened === true,
+      arrivals: strings(d.arrivals),
     };
   } catch {
     return emptyProgress();
@@ -147,6 +151,9 @@ export interface ProgressStorage {
   removeItem(key: string): void;
 }
 
+/** The id lists in progress: pages, chests, glossary terms, seals, and islands arrived at. */
+export type SetKind = 'pages' | 'chests' | 'glossary' | 'seals' | 'arrivals';
+
 export class Progress {
   data: ProgressData;
 
@@ -167,12 +174,12 @@ export class Progress {
     this.storage?.removeItem(PROGRESS_KEY);
   }
 
-  has(kind: 'pages' | 'chests' | 'glossary' | 'seals', id: string): boolean {
+  has(kind: SetKind, id: string): boolean {
     return this.data[kind].includes(id);
   }
 
   /** Adds an id to a set; returns false if it was already there. */
-  add(kind: 'pages' | 'chests' | 'glossary' | 'seals', id: string): boolean {
+  add(kind: SetKind, id: string): boolean {
     if (this.data[kind].includes(id)) return false;
     this.data[kind].push(id);
     this.save();

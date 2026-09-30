@@ -13,6 +13,10 @@
 .hud.menu-open > :not(.hud-fade) {
   visibility: hidden;
 }
+/* An arrival flyover: just the letterbox, the island's title card, and Skip. */
+.hud.cinematic > :not(.hud-fade):not(.hud-cine) {
+  visibility: hidden;
+}
 
 .hud-prompt {
   position: absolute;
@@ -494,10 +498,148 @@
   text-align: center;
 }
 
+/* ---- Arrival flyover: letterbox bars, the island title card, and Skip ---- */
+.hud-cine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.hud-bar-top,
+.hud-bar-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 10.5vh;
+  background: #03080c;
+  transform: scaleY(0);
+  transition: transform 0.9s cubic-bezier(0.22, 0.8, 0.24, 1);
+}
+.hud-bar-top {
+  top: 0;
+  transform-origin: top;
+}
+.hud-bar-bottom {
+  bottom: 0;
+  transform-origin: bottom;
+}
+.hud.cinematic .hud-bar-top,
+.hud.cinematic .hud-bar-bottom {
+  transform: scaleY(1);
+}
+.hud-card {
+  position: absolute;
+  left: 50%;
+  top: 21vh;
+  width: min(44rem, 88vw);
+  transform: translate(-50%, 10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  opacity: 0;
+  transition:
+    opacity 1.1s ease,
+    transform 1.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  text-shadow:
+    0 2px 18px rgba(3, 10, 16, 0.55),
+    0 1px 3px rgba(3, 10, 16, 0.6);
+}
+.hud-card.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+/* A soft pool of shade so the words hold up over bright sky or busy rooftops. */
+.hud-card::before {
+  content: '';
+  position: absolute;
+  inset: -3.5rem -6rem;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(3, 12, 20, 0.42), rgba(3, 12, 20, 0.18) 60%, transparent);
+}
+.hud-card-eyebrow {
+  font:
+    700 0.8rem/1.2 Manrope,
+    Inter,
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: #ffdf9e;
+}
+.hud-card-title {
+  margin: 0.28em 0 0.18em;
+  font:
+    400 clamp(2.8rem, 6.4vw, 5.4rem) / 1.02 Fraunces,
+    Georgia,
+    'Times New Roman',
+    serif;
+  letter-spacing: 0.015em;
+  color: #fff7e6;
+}
+.hud-card-rule {
+  display: block;
+  width: 9rem;
+  height: 1px;
+  margin: 0.5rem 0 0.85rem;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  transform: scaleX(0.2);
+  transition: transform 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.25s;
+}
+.hud-card.show .hud-card-rule {
+  transform: scaleX(1);
+}
+.hud-card-line {
+  margin: 0;
+  font:
+    600 clamp(1.05rem, 1.6vw, 1.3rem) / 1.4 Manrope,
+    Inter,
+    system-ui,
+    sans-serif;
+  color: rgba(255, 247, 230, 0.92);
+}
+.hud-skip {
+  position: absolute;
+  right: 2.4vw;
+  bottom: calc(5.25vh - 1.1rem);
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  min-height: 44px;
+  padding: 0 0.9em 0 0.5em;
+  border: 1px solid rgba(232, 200, 138, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(246, 236, 214, 0.86);
+  font:
+    600 0.9rem/1 Manrope,
+    Inter,
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease 0.6s;
+}
+.hud.cinematic .hud-skip {
+  opacity: 1;
+  pointer-events: auto;
+}
+.hud-skip:hover,
+.hud-skip:focus-visible {
+  border-color: var(--gold);
+  color: #fff7e6;
+  outline: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hud * {
     transition: none !important;
   }
+}
+:root.reduced-motion .hud-card,
+:root.reduced-motion .hud-card.show {
+  transform: translate(-50%, 0);
 }
 
 .hud-fade {

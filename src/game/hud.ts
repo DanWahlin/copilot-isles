@@ -85,6 +85,13 @@ export class Hud {
   private lastStripX = NaN;
   private lastMarker = '';
   private lastCompassLabel = '';
+  private readonly cine: HTMLDivElement;
+  private readonly card: HTMLDivElement;
+  private readonly cardEyebrow: HTMLSpanElement;
+  private readonly cardTitle: HTMLHeadingElement;
+  private readonly cardLine: HTMLParagraphElement;
+  /** Called when the cinematic's Skip button is pressed. */
+  onSkip: (() => void) | null = null;
 
   constructor(parent: HTMLElement) {
     this.root = el('div', 'hud');
@@ -154,6 +161,17 @@ export class Hud {
     this.compassDist = text('span', 'dist', '');
     label.append(this.compassName, this.compassDist);
     this.compass.append(window_, label);
+    this.cine = el('div', 'hud-cine');
+    this.card = el('div', 'hud-card');
+    this.cardEyebrow = text('span', 'hud-card-eyebrow', '');
+    this.cardTitle = text('h2', 'hud-card-title', '');
+    this.cardLine = text('p', 'hud-card-line', '');
+    this.card.append(this.cardEyebrow, this.cardTitle, el('i', 'hud-card-rule'), this.cardLine);
+    const skip = el('button', 'hud-skip');
+    skip.type = 'button';
+    skip.append(text('span', 'hud-key', 'E'), text('span', '', 'Skip'));
+    skip.addEventListener('click', () => this.onSkip?.());
+    this.cine.append(el('div', 'hud-bar-top'), el('div', 'hud-bar-bottom'), this.card, skip);
     this.root.append(
       this.prompt,
       this.subtitle,
@@ -162,6 +180,7 @@ export class Hud {
       this.toastEl,
       this.term,
       this.help,
+      this.cine,
       this.fadeEl,
     );
     parent.append(this.root);
@@ -191,6 +210,22 @@ export class Hud {
   /** Hides the prompt, subtitles, gauges, toasts, and help while a menu covers the game. */
   setMenuOpen(on: boolean): void {
     this.root.classList.toggle('menu-open', on);
+  }
+
+  /** Letterboxes the view and hides the rest of the HUD for a flyover. */
+  setCinematic(on: boolean): void {
+    this.root.classList.toggle('cinematic', on);
+    if (!on) this.showCard(null);
+  }
+
+  /** Shows (or with null, hides) the island title card over a flyover. */
+  showCard(card: { eyebrow: string; title: string; line: string } | null): void {
+    if (card) {
+      this.cardEyebrow.textContent = card.eyebrow;
+      this.cardTitle.textContent = card.title;
+      this.cardLine.textContent = card.line;
+    }
+    this.card.classList.toggle('show', !!card);
   }
 
   setHelp(html: string): void {

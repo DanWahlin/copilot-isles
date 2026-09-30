@@ -601,6 +601,7 @@ Nine items. Pass with all correct (retries allowed, hint tier 3 off). All six ke
 - [ ] All hotspot quizzes use masked images where callouts exist, no mask overlaps a target rect (checked by the Hotspot Editor), and each quiz has a keyboard alternative.
 - [ ] Voice plays for every scripted line, with synced subtitles and working lip sync or jaw fallback. The voice-off setting works.
 - [ ] Each place's music track plays and crossfades when you arrive, with ducking under voice.
+- [ ] **First landfall** on each island plays its flyover once (sea → ship → island → behind the captain) with a letterboxed title card, then Wingman's welcome. E, moving, or Skip skips it, and reduced motion shows only the card. It's warmed while loading, so the hitch guard stays empty in flight (`src/game/arrivals.ts`). Anchorage is done; Meridian adds its own keys.
 - [ ] The chart supports sail-to and fast travel. Free explore can enter Anchorage Cay and Port Meridian in either order, and 02-07 are visible but can't be entered.
 - [ ] Save/continue works across reloads, puzzles restore to their checkpoints, and export/import works.
 - [ ] Each tier holds its §12.1 target (**Low 30 fps on the emulated UHD 620 floor**, Medium 45-60 fps on emulated Iris Xe/M1, High 60 fps). The **Lite** preset holds 30 fps on the emulated Chromebook profile, and there are no frame spikes over 50 ms during streaming.
