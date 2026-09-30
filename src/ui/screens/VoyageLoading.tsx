@@ -16,6 +16,9 @@ export function VoyageLoading({ state }: { state: UiState }) {
   return (
     <main className="ci-loading" role="status" aria-label="Loading voyage">
       <ChartMedallion progress={shown} />
+      {state.progress.destination && (
+        <p className="ci-loading-bound">Bound for {state.progress.destination}</p>
+      )}
       <h2>{state.progress.message}</h2>
       <div className="ci-progress" aria-label={`Loading ${pct}%`}>
         <span style={{ transform: `scaleX(${shown})` }} />

@@ -355,9 +355,15 @@ export class GameFlow implements GameBridge {
     this.loading = true;
     void this.unlockAudio();
     const { engine } = this.o;
-    this.set({ screen: 'voyage-loading', captain, progress: { value: 0.02, message: 'Weighing anchor' } });
+    const destination = save?.place ?? 'Anchorage Cay';
+    this.set({
+      screen: 'voyage-loading',
+      captain,
+      progress: { value: 0.02, message: 'Weighing anchor', destination },
+    });
     try {
-      const report = (value: number, message: string) => this.set({ progress: { value, message } });
+      const report = (value: number, message: string) =>
+        this.set({ progress: { value, message, destination } });
       const progress = (start: number, end: number, message: string) => (p: PackProgress) => {
         report(start + (end - start) * p.ratio, message);
       };

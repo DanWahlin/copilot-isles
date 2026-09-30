@@ -97,6 +97,8 @@ export interface ChartData {
 interface VoyageProgress {
   value: number;
   message: string;
+  /** Where you're bound (the island's name), shown over the loading chart. */
+  destination?: string;
 }
 
 interface SaveSummary {
