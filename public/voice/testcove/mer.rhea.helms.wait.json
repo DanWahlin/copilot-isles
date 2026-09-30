@@ -1,0 +1,82 @@
+{
+  "id": "mer.rhea.helms.wait",
+  "speaker": "Rhea",
+  "text": "The three helms are out in the bay, Captain. Board your ship and sail them.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.0485409,
+      "end": 0.182041
+    },
+    {
+      "word": "three",
+      "start": 0.182041,
+      "end": 0.521833
+    },
+    {
+      "word": "helms",
+      "start": 0.521833,
+      "end": 0.898041
+    },
+    {
+      "word": "are",
+      "start": 0.898041,
+      "end": 1.007291
+    },
+    {
+      "word": "out",
+      "start": 1.007291,
+      "end": 1.225708
+    },
+    {
+      "word": "in",
+      "start": 1.225708,
+      "end": 1.322833
+    },
+    {
+      "word": "the",
+      "start": 1.322833,
+      "end": 1.40775
+    },
+    {
+      "word": "bay",
+      "start": 1.40775,
+      "end": 1.978166
+    },
+    {
+      "word": "Captain",
+      "start": 1.978166,
+      "end": 3.373791
+    },
+    {
+      "word": "Board",
+      "start": 3.373791,
+      "end": 3.640791
+    },
+    {
+      "word": "your",
+      "start": 3.640791,
+      "end": 3.774291
+    },
+    {
+      "word": "ship",
+      "start": 3.774291,
+      "end": 4.126208
+    },
+    {
+      "word": "and",
+      "start": 4.126208,
+      "end": 4.235416
+    },
+    {
+      "word": "sail",
+      "start": 4.235416,
+      "end": 4.623791
+    },
+    {
+      "word": "them",
+      "start": 4.623791,
+      "end": 4.873791
+    }
+  ]
+}

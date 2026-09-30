@@ -30,6 +30,12 @@ export interface PuzzleTerminal {
   lines: readonly TerminalLine[];
 }
 
+/** Something to do at sea with E, labelled for the prompt. */
+export interface SailAction {
+  label: string;
+  fire(): void;
+}
+
 export interface Puzzle {
   readonly id: string;
   /** True when you're at this puzzle and it's in progress, so Wingman's hint key talks about it. */
@@ -44,6 +50,10 @@ export interface Puzzle {
   update(dt: number, t: number): void;
   /** The terminal readout to show while you're at this puzzle (the session shows the first one). */
   terminal?(): PuzzleTerminal | null;
+  /** At sea: what E does here (taking a helm, the next leg), shown as the prompt. */
+  sailAction?(): SailAction | null;
+  /** At sea: where the compass points instead of the berth, if this puzzle has somewhere to be. */
+  sailTarget?(): { x: number; z: number; label: string } | null;
   readonly debug: Record<string, (...args: never[]) => unknown>;
   dispose(): void;
 }

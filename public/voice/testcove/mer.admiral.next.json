@@ -1,0 +1,102 @@
+{
+  "id": "mer.admiral.next",
+  "speaker": "Admiral",
+  "text": "Chapter 02 is sessions, worktrees and context. That island’s still being charted, but the course is ready when you are.",
+  "words": [
+    {
+      "word": "Chapter 02",
+      "start": 0.05,
+      "end": 1.313166
+    },
+    {
+      "word": "is",
+      "start": 1.313166,
+      "end": 1.523666
+    },
+    {
+      "word": "sessions",
+      "start": 1.523666,
+      "end": 2.44475
+    },
+    {
+      "word": "worktrees",
+      "start": 2.44475,
+      "end": 3.286833
+    },
+    {
+      "word": "and",
+      "start": 3.286833,
+      "end": 3.457875
+    },
+    {
+      "word": "context",
+      "start": 3.457875,
+      "end": 4.736833
+    },
+    {
+      "word": "That",
+      "start": 4.736833,
+      "end": 4.973666
+    },
+    {
+      "word": "island’s",
+      "start": 4.973666,
+      "end": 5.486833
+    },
+    {
+      "word": "still",
+      "start": 5.486833,
+      "end": 5.763166
+    },
+    {
+      "word": "being",
+      "start": 5.763166,
+      "end": 6.013166
+    },
+    {
+      "word": "charted",
+      "start": 6.013166,
+      "end": 6.934208
+    },
+    {
+      "word": "but",
+      "start": 6.934208,
+      "end": 7.10525
+    },
+    {
+      "word": "the",
+      "start": 7.10525,
+      "end": 7.223666
+    },
+    {
+      "word": "course",
+      "start": 7.223666,
+      "end": 7.592125
+    },
+    {
+      "word": "is",
+      "start": 7.592125,
+      "end": 7.736833
+    },
+    {
+      "word": "ready",
+      "start": 7.736833,
+      "end": 8.078958
+    },
+    {
+      "word": "when",
+      "start": 8.078958,
+      "end": 8.276333
+    },
+    {
+      "word": "you",
+      "start": 8.276333,
+      "end": 8.421041
+    },
+    {
+      "word": "are",
+      "start": 8.421041,
+      "end": 8.671041
+    }
+  ]
+}

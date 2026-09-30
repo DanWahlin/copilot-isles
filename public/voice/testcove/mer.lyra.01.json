@@ -1,0 +1,57 @@
+{
+  "id": "mer.lyra.01",
+  "speaker": "Lyra",
+  "text": "Captain! I told you this plaza had the best acoustics.",
+  "words": [
+    {
+      "word": "Captain",
+      "start": 0.052625,
+      "end": 1.631583
+    },
+    {
+      "word": "I",
+      "start": 1.631583,
+      "end": 1.763166
+    },
+    {
+      "word": "told",
+      "start": 1.763166,
+      "end": 2.092125
+    },
+    {
+      "word": "you",
+      "start": 2.092125,
+      "end": 2.236833
+    },
+    {
+      "word": "this",
+      "start": 2.236833,
+      "end": 2.381583
+    },
+    {
+      "word": "plaza",
+      "start": 2.381583,
+      "end": 2.947375
+    },
+    {
+      "word": "had",
+      "start": 2.947375,
+      "end": 3.263166
+    },
+    {
+      "word": "the",
+      "start": 3.263166,
+      "end": 3.39475
+    },
+    {
+      "word": "best",
+      "start": 3.39475,
+      "end": 3.710541
+    },
+    {
+      "word": "acoustics",
+      "start": 3.710541,
+      "end": 3.960541
+    }
+  ]
+}

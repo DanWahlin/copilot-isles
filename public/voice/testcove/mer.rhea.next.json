@@ -1,0 +1,77 @@
+{
+  "id": "mer.rhea.next",
+  "speaker": "Rhea",
+  "text": "Oren’s up at the observatory. Take the lift at the top of the arm.",
+  "words": [
+    {
+      "word": "Oren’s",
+      "start": 0.0485409,
+      "end": 0.485416
+    },
+    {
+      "word": "up",
+      "start": 0.485416,
+      "end": 0.679625
+    },
+    {
+      "word": "at",
+      "start": 0.679625,
+      "end": 0.776708
+    },
+    {
+      "word": "the",
+      "start": 0.776708,
+      "end": 0.885916
+    },
+    {
+      "word": "observatory",
+      "start": 0.885916,
+      "end": 2.451458
+    },
+    {
+      "word": "Take",
+      "start": 2.451458,
+      "end": 2.742708
+    },
+    {
+      "word": "the",
+      "start": 2.742708,
+      "end": 2.851958
+    },
+    {
+      "word": "lift",
+      "start": 2.851958,
+      "end": 3.143208
+    },
+    {
+      "word": "at",
+      "start": 3.143208,
+      "end": 3.228166
+    },
+    {
+      "word": "the",
+      "start": 3.228166,
+      "end": 3.337375
+    },
+    {
+      "word": "top",
+      "start": 3.337375,
+      "end": 3.6165
+    },
+    {
+      "word": "of",
+      "start": 3.6165,
+      "end": 3.737875
+    },
+    {
+      "word": "the",
+      "start": 3.737875,
+      "end": 3.859208
+    },
+    {
+      "word": "arm",
+      "start": 3.859208,
+      "end": 4.109208000000001
+    }
+  ]
+}

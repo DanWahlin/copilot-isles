@@ -25,6 +25,29 @@ describe('Port Meridian terrain', () => {
     expect(berth.x).toBeLessThan(eastArm.x0);
   });
 
+  it('keeps the cliff lift car path outside the bluff with lateral clearance', () => {
+    const bottom = { x: 770.3, y: 3.8, z: -766.8 };
+    const top = { x: 798.2, y: 41.75, z: -779.2 };
+    const dx = top.x - bottom.x;
+    const dz = top.z - bottom.z;
+    const len = Math.hypot(dx, dz);
+    const nx = -dz / len;
+    const nz = dx / len;
+    const ease = (k: number) => k * k * (3 - 2 * k);
+    for (let i = 0; i <= 20; i += 1) {
+      const k = i / 20;
+      const t = ease(k);
+      const x = bottom.x + dx * t;
+      const y = bottom.y + (top.y - bottom.y) * t - 1.4;
+      const z = bottom.z + dz * t;
+      for (const lateral of [-3.3, -1.65, 0, 1.65, 3.3]) {
+        const tx = x + nx * lateral;
+        const tz = z + nz * lateral;
+        expect(meridianHeight(tx, tz), `k=${k.toFixed(2)} lateral=${lateral}`).toBeLessThan(y - 0.3);
+      }
+    }
+  });
+
   it('keeps the mouth and the way in from Anchorage open to a brigantine', () => {
     const { lighthouse } = MERIDIAN.mole;
     const arm = MERIDIAN.harbor.eastArm;

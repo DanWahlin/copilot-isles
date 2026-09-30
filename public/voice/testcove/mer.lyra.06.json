@@ -1,0 +1,122 @@
+{
+  "id": "mer.lyra.06",
+  "speaker": "Lyra",
+  "text": "Try the prompt on that page in the app. It asks when to use a chat and when to use a project session.",
+  "words": [
+    {
+      "word": "Try",
+      "start": 0.052625,
+      "end": 0.381583
+    },
+    {
+      "word": "the",
+      "start": 0.381583,
+      "end": 0.473666
+    },
+    {
+      "word": "prompt",
+      "start": 0.473666,
+      "end": 0.881583
+    },
+    {
+      "word": "on",
+      "start": 0.881583,
+      "end": 1.026333
+    },
+    {
+      "word": "that",
+      "start": 1.026333,
+      "end": 1.236833
+    },
+    {
+      "word": "page",
+      "start": 1.236833,
+      "end": 1.657875
+    },
+    {
+      "word": "in",
+      "start": 1.657875,
+      "end": 1.776333
+    },
+    {
+      "word": "the",
+      "start": 1.776333,
+      "end": 1.947375
+    },
+    {
+      "word": "app.",
+      "start": 1.947375,
+      "end": 3.210541
+    },
+    {
+      "word": "It",
+      "start": 3.210541,
+      "end": 3.342125
+    },
+    {
+      "word": "asks",
+      "start": 3.342125,
+      "end": 3.828958
+    },
+    {
+      "word": "when",
+      "start": 3.828958,
+      "end": 4.026333
+    },
+    {
+      "word": "to",
+      "start": 4.026333,
+      "end": 4.157875
+    },
+    {
+      "word": "use",
+      "start": 4.157875,
+      "end": 4.421041
+    },
+    {
+      "word": "a",
+      "start": 4.421041,
+      "end": 4.513166
+    },
+    {
+      "word": "chat",
+      "start": 4.513166,
+      "end": 5.14475
+    },
+    {
+      "word": "and",
+      "start": 5.14475,
+      "end": 5.513166
+    },
+    {
+      "word": "when",
+      "start": 5.513166,
+      "end": 5.697375
+    },
+    {
+      "word": "to",
+      "start": 5.697375,
+      "end": 5.842125
+    },
+    {
+      "word": "use",
+      "start": 5.842125,
+      "end": 6.118416
+    },
+    {
+      "word": "a",
+      "start": 6.118416,
+      "end": 6.197375
+    },
+    {
+      "word": "project",
+      "start": 6.197375,
+      "end": 6.684208
+    },
+    {
+      "word": "session",
+      "start": 6.684208,
+      "end": 6.934208
+    }
+  ]
+}

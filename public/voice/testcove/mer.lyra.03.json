@@ -1,0 +1,67 @@
+{
+  "id": "mer.lyra.03",
+  "speaker": "Lyra",
+  "text": "And some quick questions just need a fast answer. That’s a chat.",
+  "words": [
+    {
+      "word": "And",
+      "start": 0.052625,
+      "end": 0.263166
+    },
+    {
+      "word": "some",
+      "start": 0.263166,
+      "end": 0.539458
+    },
+    {
+      "word": "quick",
+      "start": 0.539458,
+      "end": 0.842125
+    },
+    {
+      "word": "questions",
+      "start": 0.842125,
+      "end": 1.684208
+    },
+    {
+      "word": "just",
+      "start": 1.684208,
+      "end": 2.078958
+    },
+    {
+      "word": "need",
+      "start": 2.078958,
+      "end": 2.302625
+    },
+    {
+      "word": "a",
+      "start": 2.302625,
+      "end": 2.381583
+    },
+    {
+      "word": "fast",
+      "start": 2.381583,
+      "end": 2.842125
+    },
+    {
+      "word": "answer",
+      "start": 2.842125,
+      "end": 4.302625
+    },
+    {
+      "word": "That’s",
+      "start": 4.302625,
+      "end": 4.60525
+    },
+    {
+      "word": "a",
+      "start": 4.60525,
+      "end": 4.684208
+    },
+    {
+      "word": "chat",
+      "start": 4.684208,
+      "end": 4.934208
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "id": "mer.mina.automations",
+  "speaker": "Mina",
+  "text": "The Clock Tower is Automations. Agent tasks that run on demand, on a schedule, or when something happens on GitHub.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.0471659,
+      "end": 0.188666
+    },
+    {
+      "word": "Clock",
+      "start": 0.188666,
+      "end": 0.495291
+    },
+    {
+      "word": "Tower",
+      "start": 0.495291,
+      "end": 0.825458
+    },
+    {
+      "word": "is",
+      "start": 0.825458,
+      "end": 0.990583
+    },
+    {
+      "word": "Automations",
+      "start": 0.990583,
+      "end": 2.700458
+    },
+    {
+      "word": "Agent",
+      "start": 2.700458,
+      "end": 3.05425
+    },
+    {
+      "word": "tasks",
+      "start": 3.05425,
+      "end": 3.502375
+    },
+    {
+      "word": "that",
+      "start": 3.502375,
+      "end": 3.655666
+    },
+    {
+      "word": "run",
+      "start": 3.655666,
+      "end": 3.867916
+    },
+    {
+      "word": "on",
+      "start": 3.867916,
+      "end": 3.985833
+    },
+    {
+      "word": "demand",
+      "start": 3.985833,
+      "end": 4.658
+    },
+    {
+      "word": "on",
+      "start": 4.658,
+      "end": 4.78775
+    },
+    {
+      "word": "a",
+      "start": 4.78775,
+      "end": 4.846708
+    },
+    {
+      "word": "schedule",
+      "start": 4.846708,
+      "end": 5.601416
+    },
+    {
+      "word": "or",
+      "start": 5.601416,
+      "end": 5.613208
+    },
+    {
+      "word": "when",
+      "start": 5.613208,
+      "end": 5.83725
+    },
+    {
+      "word": "something",
+      "start": 5.83725,
+      "end": 6.214625
+    },
+    {
+      "word": "happens",
+      "start": 6.214625,
+      "end": 6.627375
+    },
+    {
+      "word": "on",
+      "start": 6.627375,
+      "end": 6.757083
+    },
+    {
+      "word": "GitHub",
+      "start": 6.757083,
+      "end": 7.007083
+    }
+  ]
+}

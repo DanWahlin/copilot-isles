@@ -29,6 +29,19 @@ describe('runScript', () => {
     expect(finished).toBe(true);
   });
 
+  it('files a page in the Logbook without stopping for a reveal card', async () => {
+    const learn = new LearnStore(new Progress(null));
+    const dialogue = { play: async () => undefined, say: async () => undefined } as unknown as Dialogue;
+    const ok = await runScript([{ file: 'pg1.editor' }, { file: 'pg1.voice' }], {
+      dialogue,
+      learn,
+      speaker: 'Tobias',
+    });
+    expect(ok).toBe(true);
+    expect(learn.getState().reveal).toBeNull();
+    expect(learn.getState().pages).toEqual(['pg1.editor', 'pg1.voice']);
+  });
+
   it('carries on after a passed Trial and stops when it is left unfinished', async () => {
     for (const passed of [true, false]) {
       const said: string[] = [];

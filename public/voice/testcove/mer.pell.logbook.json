@@ -1,0 +1,62 @@
+{
+  "id": "mer.pell.logbook",
+  "speaker": "Pell",
+  "text": "I’ve filed the voice dictation steps in your Logbook as well.",
+  "words": [
+    {
+      "word": "I’ve",
+      "start": 0.048083,
+      "end": 0.228375
+    },
+    {
+      "word": "filed",
+      "start": 0.228375,
+      "end": 0.540875
+    },
+    {
+      "word": "the",
+      "start": 0.540875,
+      "end": 0.625
+    },
+    {
+      "word": "voice",
+      "start": 0.625,
+      "end": 0.9255
+    },
+    {
+      "word": "dictation",
+      "start": 0.9255,
+      "end": 1.478375
+    },
+    {
+      "word": "steps",
+      "start": 1.478375,
+      "end": 1.850958
+    },
+    {
+      "word": "in",
+      "start": 1.850958,
+      "end": 1.935083
+    },
+    {
+      "word": "your",
+      "start": 1.935083,
+      "end": 2.079333
+    },
+    {
+      "word": "Logbook",
+      "start": 2.079333,
+      "end": 2.524041
+    },
+    {
+      "word": "as",
+      "start": 2.524041,
+      "end": 2.632208
+    },
+    {
+      "word": "well",
+      "start": 2.632208,
+      "end": 2.882208
+    }
+  ]
+}

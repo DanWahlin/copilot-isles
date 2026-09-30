@@ -1,0 +1,57 @@
+{
+  "id": "mer.oren.06",
+  "speaker": "Oren",
+  "text": "Higher effort can help. It doesn’t guarantee the right answer.",
+  "words": [
+    {
+      "word": "Higher",
+      "start": 0.055541,
+      "end": 0.472208
+    },
+    {
+      "word": "effort",
+      "start": 0.472208,
+      "end": 0.819458
+    },
+    {
+      "word": "can",
+      "start": 0.819458,
+      "end": 1
+    },
+    {
+      "word": "help",
+      "start": 1,
+      "end": 2.402791
+    },
+    {
+      "word": "It",
+      "start": 2.402791,
+      "end": 2.583333
+    },
+    {
+      "word": "doesn’t",
+      "start": 2.583333,
+      "end": 2.916666
+    },
+    {
+      "word": "guarantee",
+      "start": 2.916666,
+      "end": 3.472208
+    },
+    {
+      "word": "the",
+      "start": 3.472208,
+      "end": 3.597208
+    },
+    {
+      "word": "right",
+      "start": 3.597208,
+      "end": 3.930541
+    },
+    {
+      "word": "answer",
+      "start": 3.930541,
+      "end": 4.180541
+    }
+  ]
+}

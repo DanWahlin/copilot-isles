@@ -1,0 +1,62 @@
+{
+  "id": "mer.pell.01",
+  "speaker": "Pell",
+  "text": "Settings! Nine areas, and I keep a record of every one.",
+  "words": [
+    {
+      "word": "Settings",
+      "start": 0.048083,
+      "end": 1.658666
+    },
+    {
+      "word": "Nine",
+      "start": 1.658666,
+      "end": 2.01925
+    },
+    {
+      "word": "areas",
+      "start": 2.01925,
+      "end": 2.692291
+    },
+    {
+      "word": "and",
+      "start": 2.692291,
+      "end": 2.788458
+    },
+    {
+      "word": "I",
+      "start": 2.788458,
+      "end": 2.896625
+    },
+    {
+      "word": "keep",
+      "start": 2.896625,
+      "end": 3.137
+    },
+    {
+      "word": "a",
+      "start": 3.137,
+      "end": 3.197125
+    },
+    {
+      "word": "record",
+      "start": 3.197125,
+      "end": 3.60575
+    },
+    {
+      "word": "of",
+      "start": 3.60575,
+      "end": 3.713958
+    },
+    {
+      "word": "every",
+      "start": 3.713958,
+      "end": 3.954333
+    },
+    {
+      "word": "one",
+      "start": 3.954333,
+      "end": 4.204333
+    }
+  ]
+}

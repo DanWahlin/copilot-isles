@@ -168,9 +168,17 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     rippleNoise.mul(0.42).add(sandDetail.mul(0.18)),
   );
   const grassBase = mix(color(0x2d6934), color(0x79ad4d), broadNoise.mul(0.5).add(grassDetail.mul(0.28)));
-  const grass = grassBase
+  const lushGrass = grassBase
     .mul(float(0.9).add(grassFineA.mul(0.1)).add(grassFineB.mul(0.05)))
     .add(color(0xd0e08e).mul(pow(saturate(grassFineB.sub(0.62).mul(2.5)), 2.0).mul(0.055)));
+  const meridianDryMask = smoothstep(470, 620, positionWorld.x)
+    .mul(float(1).sub(smoothstep(1210, 1240, positionWorld.x)))
+    .mul(smoothstep(-1130, -1080, positionWorld.z))
+    .mul(float(1).sub(smoothstep(-620, -570, positionWorld.z)));
+  const dryGrass = mix(color(0x7f6530), color(0xd4a653), broadNoise.mul(0.5).add(grassDetail.mul(0.22))).add(
+    color(0xefcf79).mul(pow(saturate(grassFineB.sub(0.66).mul(2.2)), 2.0).mul(0.1)),
+  );
+  const grass = mix(lushGrass, dryGrass, meridianDryMask);
   const dirt = mix(color(0x68462a), color(0xa97945), fineNoise.mul(0.48).add(sandDetail.mul(0.16)));
   const rock = mix(color(0x5b5b55), color(0xa0937a), broadNoise.mul(0.24).add(rockDetail.mul(0.42)));
   const limestone = mix(color(0x5d5549), color(0x9b8965), broadNoise.mul(0.22).add(rockDetail.mul(0.38)));
@@ -258,7 +266,38 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(algaeBase.mul(0.52)))
     .mul(float(1).sub(waterline.mul(0.05)))
     .mul(float(1).sub(cave.mul(0.72)));
-  base = mix(base, cliffColor, cliffInfluence);
+  const meridianBluffMask = smoothstep(722, 752, positionWorld.x)
+    .mul(float(1).sub(smoothstep(884, 914, positionWorld.x)))
+    .mul(smoothstep(-864, -846, positionWorld.z))
+    .mul(float(1).sub(smoothstep(-704, -686, positionWorld.z)))
+    .mul(smoothstep(4, 16, y));
+  const bluffFractureA = abs(
+    sin(positionWorld.x.mul(0.34).add(positionWorld.z.mul(0.47)).add(noiseLow.r.mul(3.2))),
+  ).smoothstep(float(0.955), float(0.998));
+  const bluffFractureB = abs(
+    sin(positionWorld.x.mul(0.72).sub(positionWorld.z.mul(0.22)).add(noiseMid.b.mul(4.1))),
+  ).smoothstep(float(0.972), float(0.999));
+  const bluffFractures = bluffFractureA
+    .max(bluffFractureB.mul(0.75))
+    .mul(meridianBluffMask)
+    .mul(smoothstep(6, 38, y));
+  const bluffScrub = pow(
+    saturate(noiseLow.g.mul(0.4).add(noiseMid.a.mul(0.38)).add(noiseFine.g.mul(0.22)).sub(0.78).mul(4.2)),
+    2.0,
+  )
+    .mul(meridianBluffMask)
+    .mul(smoothstep(8, 34, y))
+    .mul(float(1).sub(bluffFractures.mul(0.8)));
+  const meridianBluffCliff = mix(
+    color(0x755f43),
+    rockTexel.mul(vec3(1.42, 1.25, 0.86)),
+    broadNoise.mul(0.48).add(fineNoise.mul(0.28)).add(noiseLow.a.mul(0.18)),
+  )
+    .mul(float(0.86).add(noiseMid.g.mul(0.18)).add(noiseFine.b.mul(0.08)))
+    .mul(float(1).sub(crevices.mul(0.28)))
+    .mul(float(1).sub(joints.mul(0.34)))
+    .mul(float(1).sub(bluffFractures.mul(0.48)));
+  base = mix(base, mix(cliffColor, meridianBluffCliff, meridianBluffMask), cliffInfluence);
   base = mix(base, reefRock, underwater.mul(rockMask.add(cliffMask).mul(0.7)));
   base = mix(base, seabed, underwater.mul(0.72));
   base = mix(base, color(0x315545), seagrassPatch.mul(0.36));
@@ -294,6 +333,10 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   closeGrass = mix(closeGrass, color(0x183f23), deepPatch.mul(0.34));
   closeGrass = mix(closeGrass, color(0x68c45d), cloverPatch.mul(0.3));
   closeGrass = closeGrass.mul(float(0.82).add(meadowMacro.mul(0.34)).add(grassBladeC.mul(0.08)));
+  const closeDryGrass = mix(color(0x6d6b32), color(0xc3a862), grassCloseLum).mul(
+    float(0.9).add(meadowMacro.mul(0.22)),
+  );
+  closeGrass = mix(closeGrass, closeDryGrass, meridianDryMask);
   const closeEarth = mix(color(0x6d5937), color(0xc6ad79), pathCloseLum);
   const closeDrySand = mix(color(0xdcb06e), color(0xf4d79d), sandDetail);
   const closeWetSand = mix(color(0xa97845), color(0xd0a973), sandGrain.mul(0.46).add(rippleNoise.mul(0.34)));
@@ -419,20 +462,24 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(smoothstep(34, 46, y)))
     .mul(smoothstep(0.46, 0.94, normalWorld.y))
     .mul(saturate(grassMask.add(rockMask.mul(0.38)).add(sandMask.mul(0.18))));
-  const hilltopGreen = mix(color(0x4c6500), color(0x6f8800), noiseLow.g.mul(0.58).add(noiseMid.g.mul(0.42)));
+  const hilltopGreen = mix(color(0x6a6a31), color(0xb19955), noiseLow.g.mul(0.58).add(noiseMid.g.mul(0.42)));
   base = mix(base, hilltopGreen, hilltopMeadow.mul(midDetail));
+  base = mix(base, color(0x55633a), bluffScrub.mul(0.42));
   const sunnyHeadland = smoothstep(6, 18, y)
     .mul(float(1).sub(smoothstep(52, 88, detailDistance)))
     .mul(saturate(grassMask.mul(0.9).add(rockMask.mul(0.45))))
     .mul(smoothstep(0.28, 0.88, normalWorld.y));
   const warmHeadland = mix(color(0x5c7136), color(0xa29569), noiseLow.a.mul(0.46).add(noiseMid.r.mul(0.54)));
   base = mix(base, warmHeadland, sunnyHeadland.mul(0.24));
+  base = mix(base, meridianBluffCliff, meridianBluffMask);
 
   const sunVis = mix(light.y, light.z, uSunBlend);
   const cloud = options.cloudShadowNode ?? float(1);
   const bakedLight = saturate(light.x.mul(0.64).add(sunVis.mul(cloud).mul(0.36))).mul(
     float(1).sub(world.night.mul(0.42)),
   );
+  const bluffLight = float(0.72).add(broadNoise.mul(0.12)).add(fineNoise.mul(0.08));
+  const terrainLight = mix(bakedLight, bluffLight, meridianBluffMask.mul(0.96));
   const causticLayerA = sin(
     positionWorld.x.mul(0.18).add(positionWorld.z.mul(0.26)).add(world.time.mul(1.35)),
   )
@@ -454,7 +501,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
           .mul(saturate(world.sunDir.y.mul(1.8)))
           .mul(float(1).sub(world.night));
   material.colorNode = base
-    .mul(float(0.62).add(bakedLight.mul(0.58)))
+    .mul(float(0.62).add(terrainLight.mul(0.58)))
     .add(vec3(0.65, 0.95, 1.0).mul(caustics.mul(0.08)));
   material.roughnessNode = saturate(
     float(0.84)

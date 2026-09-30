@@ -1,0 +1,52 @@
+{
+  "id": "mer.admiral.01",
+  "speaker": "Admiral",
+  "text": "Captain. You’ve toured the whole app in one afternoon.",
+  "words": [
+    {
+      "word": "Captain",
+      "start": 0.052625,
+      "end": 1.171041
+    },
+    {
+      "word": "You’ve",
+      "start": 1.171041,
+      "end": 1.407875
+    },
+    {
+      "word": "toured",
+      "start": 1.407875,
+      "end": 1.697375
+    },
+    {
+      "word": "the",
+      "start": 1.697375,
+      "end": 1.802625
+    },
+    {
+      "word": "whole",
+      "start": 1.802625,
+      "end": 2.210541
+    },
+    {
+      "word": "app",
+      "start": 2.210541,
+      "end": 2.486833
+    },
+    {
+      "word": "in",
+      "start": 2.486833,
+      "end": 2.631583
+    },
+    {
+      "word": "one",
+      "start": 2.631583,
+      "end": 2.868416
+    },
+    {
+      "word": "afternoon",
+      "start": 2.868416,
+      "end": 3.118416
+    }
+  ]
+}

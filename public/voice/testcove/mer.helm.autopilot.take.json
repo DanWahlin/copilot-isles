@@ -1,0 +1,77 @@
+{
+  "id": "mer.helm.autopilot.take",
+  "speaker": "Rhea",
+  "text": "Autopilot helm. Give her the destination, your berth, and she’ll take it from here.",
+  "words": [
+    {
+      "word": "Autopilot",
+      "start": 0.0485409,
+      "end": 0.740291
+    },
+    {
+      "word": "helm",
+      "start": 0.740291,
+      "end": 2.014583
+    },
+    {
+      "word": "Give",
+      "start": 2.014583,
+      "end": 2.196583
+    },
+    {
+      "word": "her",
+      "start": 2.196583,
+      "end": 2.34225
+    },
+    {
+      "word": "the",
+      "start": 2.34225,
+      "end": 2.463583
+    },
+    {
+      "word": "destination",
+      "start": 2.463583,
+      "end": 3.446583
+    },
+    {
+      "word": "your",
+      "start": 3.446583,
+      "end": 3.567958
+    },
+    {
+      "word": "berth",
+      "start": 3.567958,
+      "end": 4.296125
+    },
+    {
+      "word": "and",
+      "start": 4.296125,
+      "end": 4.417458
+    },
+    {
+      "word": "she’ll",
+      "start": 4.417458,
+      "end": 4.623791
+    },
+    {
+      "word": "take",
+      "start": 4.623791,
+      "end": 4.8665
+    },
+    {
+      "word": "it",
+      "start": 4.8665,
+      "end": 4.975708
+    },
+    {
+      "word": "from",
+      "start": 4.975708,
+      "end": 5.145625
+    },
+    {
+      "word": "here",
+      "start": 5.145625,
+      "end": 5.395625
+    }
+  ]
+}

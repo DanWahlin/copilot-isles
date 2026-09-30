@@ -1,0 +1,57 @@
+{
+  "id": "mer.helm.plan.done",
+  "speaker": "Rhea",
+  "text": "That’s Plan. You saw the whole route before anything moved.",
+  "words": [
+    {
+      "word": "That’s",
+      "start": 0.0485409,
+      "end": 0.327666
+    },
+    {
+      "word": "Plan",
+      "start": 0.327666,
+      "end": 1.6505
+    },
+    {
+      "word": "You",
+      "start": 1.6505,
+      "end": 1.844666
+    },
+    {
+      "word": "saw",
+      "start": 1.844666,
+      "end": 2.050958
+    },
+    {
+      "word": "the",
+      "start": 2.050958,
+      "end": 2.160208
+    },
+    {
+      "word": "whole",
+      "start": 2.160208,
+      "end": 2.5
+    },
+    {
+      "word": "route",
+      "start": 2.5,
+      "end": 2.79125
+    },
+    {
+      "word": "before",
+      "start": 2.79125,
+      "end": 3.143208
+    },
+    {
+      "word": "anything",
+      "start": 3.143208,
+      "end": 3.580083
+    },
+    {
+      "word": "moved",
+      "start": 3.580083,
+      "end": 3.830083
+    }
+  ]
+}

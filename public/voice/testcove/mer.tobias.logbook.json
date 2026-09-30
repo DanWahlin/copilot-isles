@@ -1,0 +1,62 @@
+{
+  "id": "mer.tobias.logbook",
+  "speaker": "Tobias",
+  "text": "I’ve put a note about your editor in your Logbook too.",
+  "words": [
+    {
+      "word": "I’ve",
+      "start": 0.052083,
+      "end": 0.247416
+    },
+    {
+      "word": "put",
+      "start": 0.247416,
+      "end": 0.416666
+    },
+    {
+      "word": "a",
+      "start": 0.416666,
+      "end": 0.494791
+    },
+    {
+      "word": "note",
+      "start": 0.494791,
+      "end": 0.716166
+    },
+    {
+      "word": "about",
+      "start": 0.716166,
+      "end": 1.028666
+    },
+    {
+      "word": "your",
+      "start": 1.028666,
+      "end": 1.197916
+    },
+    {
+      "word": "editor",
+      "start": 1.197916,
+      "end": 1.5625
+    },
+    {
+      "word": "in",
+      "start": 1.5625,
+      "end": 1.666666
+    },
+    {
+      "word": "your",
+      "start": 1.666666,
+      "end": 1.809916
+    },
+    {
+      "word": "Logbook",
+      "start": 1.809916,
+      "end": 2.278666
+    },
+    {
+      "word": "too",
+      "start": 2.278666,
+      "end": 2.528666
+    }
+  ]
+}

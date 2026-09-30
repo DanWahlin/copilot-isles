@@ -1,0 +1,42 @@
+{
+  "id": "mer.admiral.done",
+  "speaker": "Admiral",
+  "text": "Fair winds, Captain. Meridian’s proud of you.",
+  "words": [
+    {
+      "word": "Fair",
+      "start": 0.0506659,
+      "end": 0.419083
+    },
+    {
+      "word": "winds",
+      "start": 0.419083,
+      "end": 1.261166
+    },
+    {
+      "word": "Captain",
+      "start": 1.261166,
+      "end": 2.300666
+    },
+    {
+      "word": "Meridian’s",
+      "start": 2.300666,
+      "end": 3.129625
+    },
+    {
+      "word": "proud",
+      "start": 3.129625,
+      "end": 3.471708
+    },
+    {
+      "word": "of",
+      "start": 3.471708,
+      "end": 3.590125
+    },
+    {
+      "word": "you",
+      "start": 3.590125,
+      "end": 3.840125
+    }
+  ]
+}

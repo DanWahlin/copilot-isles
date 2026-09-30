@@ -1,4 +1,4 @@
-import { Vector3 } from 'three/webgpu';
+import { Vector3, type Group } from 'three/webgpu';
 import type { IslesAudio } from '../audio';
 import type { FootstepSurface } from '../audio/soundscape/soundscape';
 import type { Engine } from '../engine/engine';
@@ -29,6 +29,7 @@ import type { LearnStore } from '../learn/store';
 import { createChest, type TreasureChest } from './chest';
 import {
   COVE_CHESTS,
+  MERIDIAN_CHESTS,
   boardingOpen,
   currentQuest,
   migrateQuests,
@@ -38,7 +39,20 @@ import {
   questTracker,
 } from './cove-quests';
 import { bearingOf, type CompassTarget } from './compass';
-import { meridianTracker } from './meridian-quests';
+import {
+  MERIDIAN_WELCOME,
+  meridianLog,
+  meridianNpcScript,
+  meridianTarget,
+  meridianTracker,
+} from './meridian-quests';
+import { MERIDIAN_NPCS } from './meridian-npcs';
+import { createCrateYard } from './puzzles/crate-yard';
+import { createCrateYardSite } from '../world/sites/crate-yard';
+import { createThreeHelms, type HelmsHost } from './puzzles/three-helms';
+import { createHelmBuoys } from '../world/sites/helm-buoys';
+import { loadVillageKit } from '../world/village';
+import { MERIDIAN_YARD } from '../world/sites/crate-yard-logic';
 import { plankProgress, plankSurface, type PlankSpan } from './gangway';
 import { runScript, type ScriptStep } from './script';
 import { defaultShipName } from '../learn/progress';
@@ -49,7 +63,7 @@ import { createFirstWords } from './puzzles/first-words';
 import { createGearRack } from './puzzles/gear-rack';
 import { createPaintSails } from './puzzles/paint-sails';
 import { createSluice } from './puzzles/sluice';
-import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal } from './puzzles/types';
+import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal, SailAction } from './puzzles/types';
 
 type SessionMode = 'walk' | 'sail' | 'docking' | 'transition';
 /** A first landfall: waiting for the game to show, flying in (or, with reduced motion, just the title card), then done. */
@@ -112,6 +126,24 @@ export interface GameSession {
     bottles(): { id: string; x: number; z: number; read: boolean }[];
     /** A puzzle's test hooks (state, solve, …) by id, e.g. 'P0.1'. */
     puzzle(id: string): Puzzle['debug'] | null;
+    /** Port Meridian's cast where they stand (tests), empty until the town's up. */
+    cast(): { id: string; name: string; x: number; y: number; z: number; h: number; ground: number }[];
+    /** The lift's two landings (tests), null until the town's up. */
+    liftSpots(): {
+      bottom: { x: number; z: number; h: number };
+      top: { x: number; z: number; h: number };
+    } | null;
+    /** Starts a conversation with an NPC wherever you're standing (tests: carry on past an unreachable one). */
+    talk(id: string): boolean;
+    /** Interactions within `r` metres of (x, z) and whether each is usable now (tests). */
+    near(x: number, z: number, r: number): { id: string; y: number; d: number; on: boolean }[];
+    /** The lift's raw anchors (tests: tx/ty/tz are the car's ends). */
+    liftAnchors(): { liftBottom: unknown; liftTop: unknown };
+    /** The lift ride's camera spot and how many of its samples are blocked (tests). */
+    liftCamera(): { x: number; y: number; z: number; blocked: number } | null;
+    /** Whether Rhea's aboard for the Three Helms, and whether the lighthouse is lit (tests). */
+    rheaAboard(): boolean;
+    lighthouseLit(): boolean;
     /** Moves the ship while you're sailing (tests: skip the passage between islands). */
     sailTo(x: number, z: number, heading: number): void;
     /** Sets a quest step, e.g. to lower the gangway without playing the island (tests). */
@@ -211,11 +243,21 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   };
   placePlank();
   const meridianQuay: WalkSurface = { heightAt: meridianQuayHeight, kind: 'stone' };
+  const meridianTownSurface: WalkSurface = {
+    heightAt: (x, z) => cove.meridian.town?.walkable(x, z) ?? null,
+    kind: 'stone',
+  };
   let gangwayDown = false;
   const world = new CollisionWorld({
     ground,
     waves: ocean.field,
-    surfaces: [villageSurface, sitesSurface, meridianQuay, plankSurface(plank, () => gangwayDown)],
+    surfaces: [
+      villageSurface,
+      sitesSurface,
+      meridianTownSurface,
+      meridianQuay,
+      plankSurface(plank, () => gangwayDown),
+    ],
     circles: [...village.colliders.circles, ...sites.colliders.circles],
     boxes: [...village.colliders.boxes, ...sites.colliders.boxes],
   });
@@ -282,6 +324,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   dyn.dockAssist(berth.mooring);
 
   let mode: SessionMode = 'walk';
+  /** The crew has the wheel (the Three Helms): your helm input and the dock key are ignored. */
+  let crewAtHelm = false;
+  /** Resolves a scripted docking (Autopilot's) once you're on the quay. */
+  let afterDisembark: (() => void) | null = null;
   let dockTime = 0;
   const interactions = new Interactions();
   // The plank's foot sits on the quay deck, its axis half the plank's thickness up.
@@ -322,7 +368,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     else localQuests[id] = step;
     publishQuests();
   };
-  const publishQuests = () => learn?.setQuests(questLog(quests()), trackerHere());
+  const publishQuests = () =>
+    learn?.setQuests([...questLog(quests()), ...meridianLog(quests())], trackerHere());
   /** The task list for the island you're on (Anchorage's points on to Meridian once it's open). */
   const trackerHere = () => {
     if (island === 'meridian') return meridianTracker(quests());
@@ -336,6 +383,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   publishQuests();
   let scriptRunning = false;
   let disposed = false;
+  let meridianTownCollidersAdded = false;
+  const addMeridianTownColliders = (town: CoveScene['meridian']['town']) => {
+    if (!town || disposed || meridianTownCollidersAdded) return;
+    for (const c of town.colliders.circles) world.addCircle(c);
+    for (const b of town.colliders.boxes) world.addBox(b);
+    meridianTownCollidersAdded = true;
+  };
+  addMeridianTownColliders(cove.meridian.town);
+  void cove.meridian.townReady.then(addMeridianTownColliders);
   // World beats a script can wait on (`{ cue }` steps), registered by the puzzles below.
   const cues = new Map<string, () => Promise<void>>();
   const scriptExtras = {
@@ -358,11 +414,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     }
     const shot = npcTalkShot(n);
     const priorFaceTarget = n.faceTarget;
+    talkShot = shot;
     cam.frame(shot);
     if (n.spec.talkShot?.faceLocal) n.faceTarget = localNpcPoint(n, n.spec.talkShot.faceLocal);
     try {
       npcs.setTalking(n, true);
-      const beat = learn ? npcScript(n.spec.id, quests()) : null;
+      const beat = learn ? scriptFor(n) : null;
       if (beat) {
         scriptRunning = true;
         input.enabled = false;
@@ -399,8 +456,17 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       }
     }
   };
-  for (const n of npcs.list) {
-    if (!n.spec.voiced && !n.spec.barks && !npcScript(n.spec.id, quests())) continue;
+  const meridianIds = new Set(MERIDIAN_NPCS.map((m) => m.id));
+  /** The scripted beat an NPC offers now: Meridian's cast follow Chapter 01, everyone else Chapter 00. */
+  function scriptFor(n: Npc) {
+    return meridianIds.has(n.spec.id)
+      ? meridianNpcScript(n.spec.id, quests())
+      : npcScript(n.spec.id, quests());
+  }
+  /** The camera shot of the conversation that's on (so a tour can come back to it). */
+  let talkShot: CameraShot | null = null;
+  const addNpcTalk = (n: Npc) => {
+    if (!n.spec.voiced && !n.spec.barks && !scriptFor(n)) return;
     interactions.add({
       id: `npc:${n.spec.id}`,
       label: () => `Talk to ${n.spec.name}`,
@@ -413,11 +479,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       get z() {
         return n.z;
       },
-      radius: 2.6,
+      radius: n.spec.talkRadius ?? 2.6,
       enabled: () => mode === 'walk' && !n.talking,
       onInteract: () => void talkTo(n),
     });
-  }
+  };
+  for (const n of npcs.list) addNpcTalk(n);
 
   const shipDocked = () => Math.hypot(dyn.pose.x - berth.mooring.x, dyn.pose.z - berth.mooring.z) < 1.5;
   interactions.add({
@@ -443,9 +510,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
   // Treasure chests beside their NPCs; each grants a Logbook page once.
   const chests: { id: string; chest: TreasureChest; x: number; y: number; z: number }[] = [];
-  for (const c of COVE_CHESTS) {
-    const n = npcs.list.find((v) => v.spec.id === c.npc);
-    if (!n) continue;
+  const placeChest = (c: { id: string; side: number; back: number }, n: Npc) => {
     const s = Math.sin(n.heading);
     const co = Math.cos(n.heading);
     // NPC-right (for a character facing +heading) is (-cos, +sin) in xz.
@@ -469,6 +534,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       enabled: () => mode === 'walk' && !chest.opened && !scriptRunning,
       onInteract: () => void openChest(c.id, chest),
     });
+  };
+  for (const c of COVE_CHESTS) {
+    const n = npcs.list.find((v) => v.spec.id === c.npc);
+    if (n) placeChest(c, n);
   }
   async function openChest(id: string, chest: TreasureChest): Promise<void> {
     input.enabled = false;
@@ -552,6 +621,47 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       return ok;
     },
   };
+  // P1.2 The Three Helms: the crew takes the wheel for each mode, and Rhea comes aboard to teach it.
+  const helmsHost: HelmsHost = {
+    ...puzzleHost,
+    sailing: () => mode === 'sail' && !paused && !scriptRunning && !dialogue.active && !learn?.busy,
+    afloat: () => mode === 'sail' || mode === 'docking',
+    ship: dyn,
+    crewHelm: (on) => {
+      crewAtHelm = on;
+      helm.reset();
+      dyn.setInput({ trim: 0, rudder: 0 });
+      if (!on) dyn.clearAutopilot();
+    },
+    say: (ids) => dialogue.play(ids),
+    frame: (shot) => cam.frame(shot),
+    dockHome: () =>
+      new Promise<void>((resolve) => {
+        afterDisembark = resolve;
+        dockTo = ISLANDS[island];
+        mode = 'docking';
+        dockTime = 0;
+        dyn.dockAssist(dockTo.mooring);
+      }),
+  };
+  let rheaAboard: Character | null = null;
+  /** Rhea stands by the wheel for the Three Helms (and steps back onto the arm when you land). */
+  const setRheaAboard = (on: boolean) => {
+    if (on && !rheaAboard) {
+      rheaAboard = o.characters.create({ body: 'rhea', tier });
+      const a = ship.anchors.helm;
+      // Forward of the wheel on the starboard side, turned to face the captain.
+      rheaAboard.group.position.set(a.x + 1.35, a.y - 0.18, a.z + 1.2);
+      rheaAboard.group.rotation.y = Math.atan2(-1.35, -1.2);
+      rheaAboard.play('idle');
+    }
+    if (rheaAboard) {
+      if (on) ship.group.add(rheaAboard.group);
+      else rheaAboard.group.removeFromParent();
+    }
+    const onArm = meridianNpcs?.list.find((n) => n.spec.id === 'rhea');
+    if (onArm) onArm.character.group.visible = !on;
+  };
   const nell = npcs.list.find((n) => n.spec.id === 'nell');
   const bowXZ: number[] = [0, 0];
   const christening = nell
@@ -601,6 +711,284 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   ];
   const hintPresses = new Map<string, { key: string; n: number }>();
 
+  // ---- Port Meridian (Chapter 01): its cast, sites and set pieces arrive with the town ----
+  let meridianNpcs: NpcCrowd | null = null;
+  const FAR = { x: 1e6, y: 0, z: 1e6 };
+  const anyTalking = () =>
+    npcs.list.some((n) => n.talking) || (meridianNpcs?.list.some((n) => n.talking) ?? false);
+  const nearMeridian = () =>
+    Math.hypot(
+      camera.position.x - ISLANDS.meridian.mooring.x,
+      camera.position.z - ISLANDS.meridian.mooring.z,
+    ) < 700;
+  const meridianSites: { update(dt: number, t: number): void; dispose(): void; group: Group }[] = [];
+  /** Where the lift car is: 0 at the east arm, 1 on the citadel bluff. */
+  let liftAt = 0;
+  let liftRide: {
+    from: number;
+    to: number;
+    t: number;
+    call: number;
+    /** Which side the camera rides on (unit, horizontal), picked for a clear view the whole way. */
+    cam: LiftCam | null;
+  } | null = null;
+  const liftShot: CameraShot = { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 };
+  const liftCarAt = (k: number, out: { x: number; y: number; z: number }) => {
+    const a = cove.meridian.town?.anchors;
+    const b = a?.liftBottom,
+      tp = a?.liftTop;
+    if (!b || !tp) return out;
+    const e = k * k * (3 - 2 * k);
+    out.x = b.tx! + (tp.tx! - b.tx!) * e;
+    out.y = b.ty! - 1.4 + (tp.ty! - 1.4 - (b.ty! - 1.4)) * e;
+    out.z = b.tz! + (tp.tz! - b.tz!) * e;
+    return out;
+  };
+  const liftPos = { x: 0, y: 0, z: 0 };
+  type LiftCam = { x: number; y: number; z: number; blocked: number };
+  /**
+   * The lift ride's camera: one fixed spot out on the harbour side, looking up the notch in the bluff
+   * at the car as it climbs, with the citadel above. Picked at the start of each ride from spots
+   * along the notch's axis (and a little to either side) for the clearest line to the car over the
+   * whole ride; `blocked` is how many of its 21 samples aren't clear (tests want 0).
+   */
+  function liftCamera(): LiftCam | null {
+    const a = cove.meridian.town?.anchors;
+    const b = a?.liftBottom,
+      tp = a?.liftTop;
+    if (!b || !tp) return null;
+    let hx = b.tx! - tp.tx!,
+      hz = b.tz! - tp.tz!;
+    const hl = Math.hypot(hx, hz) || 1;
+    hx /= hl;
+    hz /= hl;
+    const car = { x: 0, y: 0, z: 0 };
+    const blocked = (c: { x: number; y: number; z: number }) => {
+      if (world.groundAt(c.x, c.z) > c.y - 1.2) return true;
+      const ty = car.y + 1.2;
+      const n = Math.ceil(Math.hypot(car.x - c.x, ty - c.y, car.z - c.z) / 0.75);
+      for (let i = 1; i < n - 2; i++) {
+        const t = i / n;
+        const x = c.x + (car.x - c.x) * t,
+          y = c.y + (ty - c.y) * t,
+          z = c.z + (car.z - c.z) * t;
+        if (y < world.groundAt(x, z) + 0.4 || world.sightBlockedAt(x, y, z, 0.15)) return true;
+      }
+      return false;
+    };
+    let best: LiftCam | null = null,
+      bestScore = Infinity;
+    for (const d of [22, 32, 45, 60])
+      for (const u of [3, 8, 14, 22])
+        for (const sd of [0, -8, 8]) {
+          const c = { x: b.tx! + hx * d + hz * sd, y: b.ty! + u, z: b.tz! + hz * d - hx * sd };
+          let bad = 0;
+          for (let i = 0; i <= 20; i++) {
+            liftCarAt(i / 20, car);
+            if (blocked(c)) bad += 1;
+          }
+          // Clear first, then close, low and square on (a steep or distant view loses the car).
+          const score = bad * 10 + d * 0.03 + u * 0.04 + Math.abs(sd) * 0.03;
+          if (score < bestScore) {
+            bestScore = score;
+            best = { ...c, blocked: bad };
+          }
+        }
+    return best;
+  }
+
+  function rideLift(up: boolean): void {
+    if (liftRide || mode !== 'walk' || !cove.meridian.town) return;
+    const to = up ? 1 : 0;
+    liftRide = { from: 1 - to, to, t: 0, call: liftAt === 1 - to ? 0 : 2.4, cam: liftCamera() };
+    mode = 'transition';
+    input.enabled = false;
+    hero.setSpeed(0);
+    hud.setPrompt(null);
+    audio?.sfx.oneShot('crane_ratchet', player, 0.8);
+  }
+  /** The lift: the car comes to you if it's at the other end, then carries you up (or down) the bluff. */
+  function updateLift(dt: number, look: ReturnType<Input['poll']>, t: number): void {
+    const r = liftRide;
+    const town = cove.meridian.town;
+    if (!r || !town) return;
+    if (r.call > 0) {
+      r.call -= dt;
+      town.setLiftCar(r.from + (r.to - r.from) * Math.max(0, r.call / 2.4));
+      cam.update(dt, camera, look, player, player.heading, false, world, t);
+      if (r.call > 0) return;
+    }
+    r.t = Math.min(1, r.t + dt / 8);
+    const k = r.from + (r.to - r.from) * r.t;
+    town.setLiftCar(k);
+    liftCarAt(k, liftPos);
+    const b0 = town.anchors.liftBottom!,
+      t0 = town.anchors.liftTop!;
+    // Stand in the car looking out over the harbour, toward the camera out on the quay.
+    const out = { x: b0.x - t0.x, z: b0.z - t0.z };
+    hero.group.position.set(liftPos.x, liftPos.y + 0.2, liftPos.z);
+    hero.group.rotation.y = Math.atan2(out.x, out.z);
+    liftShot.x = r.cam?.x ?? liftPos.x + out.x;
+    liftShot.y = r.cam?.y ?? liftPos.y + 6;
+    liftShot.z = r.cam?.z ?? liftPos.z + out.z;
+    liftShot.tx = liftPos.x;
+    liftShot.ty = liftPos.y + 1.2;
+    liftShot.tz = liftPos.z;
+    cam.frame(liftShot);
+    cam.update(dt, camera, look, liftPos, 0, false, world, t);
+    if (r.t < 1) return;
+    liftAt = r.to;
+    liftRide = null;
+    const a = town.anchors[r.to === 1 ? 'liftTop' : 'liftBottom']!;
+    // Step off the landing facing away from the lift: inland up top (the camera hangs over the notch
+    // with the harbour behind you), back down the arm at the bottom.
+    const b1 = town.anchors.liftBottom!,
+      t1 = town.anchors.liftTop!;
+    const heading = r.to === 1 ? Math.atan2(t1.x - b1.x, t1.z - b1.z) : Math.PI;
+    const step = r.to === 1 ? 1.6 : 0;
+    placePlayer(a.x + Math.sin(heading) * step, a.z + Math.cos(heading) * step, heading);
+    cam.snapBehind(heading);
+    cam.frame(null);
+    mode = 'walk';
+    input.enabled = !paused;
+    audio?.sfx.oneShot('gear_hang', player, 0.7);
+  }
+
+  /** A held shot of a landmark from in front of it (Mina's tour, the lighthouse). */
+  const landmarkShot = (id: string): CameraShot | null => {
+    const a = cove.meridian.town?.anchors[id];
+    if (!a || a.tx === undefined) return null;
+    const dx = a.tx - a.x,
+      dz = a.tz! - a.z;
+    const len = Math.hypot(dx, dz) || 1;
+    const h = Math.max(0, a.ty! - a.y);
+    const back = 5 + h * 0.45;
+    return {
+      x: a.x - (dx / len) * back + (dz / len) * 2.2,
+      y: a.y + 2.6 + h * 0.2,
+      z: a.z - (dz / len) * back - (dx / len) * 2.2,
+      tx: a.tx,
+      ty: a.ty!,
+      tz: a.tz!,
+    };
+  };
+  for (const id of ['voyageOffice', 'bountyBoard', 'clockTower', 'outfitter'])
+    cues.set(`tour:${id}`, async () => {
+      const shot = landmarkShot(id);
+      if (shot) cam.frame(shot);
+      if (id === 'clockTower')
+        audio?.sfx.oneShot('chime_solve', shot ? { x: shot.tx, y: shot.ty, z: shot.tz } : player, 0.9);
+      await new Promise((r) => setTimeout(r, 700));
+    });
+  cues.set('tour:end', async () => {
+    if (talkShot) cam.frame(talkShot);
+  });
+  let lighthouseLit = false;
+  /**
+   * The Seal's shot of the lighthouse: out on the water beyond it and a little to one side, looking
+   * back at the lamp with the town and the citadel behind it. Nothing stands between the sea and the
+   * mole's end, so it's always clear.
+   */
+  function lighthouseShot(
+    adm: { x: number; y: number; z: number },
+    lh: { x: number; y: number; z: number },
+  ): CameraShot {
+    let dx = lh.x - adm.x,
+      dz = lh.z - adm.z;
+    const len = Math.hypot(dx, dz) || 1;
+    dx /= len;
+    dz /= len;
+    const x = lh.x + dx * 30 + dz * 12,
+      z = lh.z + dz * 30 - dx * 12;
+    return {
+      x,
+      y: Math.max(lh.y + 7, world.waterAt(x, z, 0) + 3),
+      z,
+      tx: lh.x - dx * 6,
+      ty: lh.y + 9,
+      tz: lh.z - dz * 6,
+    };
+  }
+  // The Seal: the lighthouse on the mole lights up across the harbour.
+  cues.set('lighthouse', async () => {
+    const town = cove.meridian.town;
+    const lh = town?.anchors.lighthouse;
+    const adm = town?.anchors.admiral;
+    if (!town || !lh || !adm) return;
+    cam.frame(lighthouseShot(adm, lh));
+    await new Promise((r) => setTimeout(r, 1400));
+    town.setLighthouseLit(true);
+    lighthouseLit = true;
+    audio?.sfx.oneShot('crowd_cheer_small', player, 0.8);
+    await new Promise((r) => setTimeout(r, 2600));
+    if (talkShot) cam.frame(talkShot);
+  });
+
+  const setupMeridian = async (town: CoveScene['meridian']['town']) => {
+    if (!town || disposed || meridianNpcs) return;
+    meridianNpcs = new NpcCrowd(o.characters, MERIDIAN_NPCS, town.anchors, world, tier, camera, {
+      ...town.anchors.promenade!,
+    });
+    for (const n of meridianNpcs.list) {
+      engine.scene.add(n.character.group);
+      addNpcTalk(n);
+    }
+    for (const c of MERIDIAN_CHESTS) {
+      const n = meridianNpcs.list.find((v) => v.spec.id === c.npc);
+      if (n) placeChest(c, n);
+    }
+    if (quests()['Q1.8'] === 'done') {
+      town.setLighthouseLit(true);
+      lighthouseLit = true;
+    }
+    // The lift, from the top of the east arm to the citadel bluff.
+    for (const [id, up] of [
+      ['liftBottom', true],
+      ['liftTop', false],
+    ] as const) {
+      const a = town.anchors[id];
+      if (!a) continue;
+      interactions.add({
+        id: up ? 'lift:bottom' : 'lift:top',
+        label: () => (up ? 'Ride the lift up' : 'Ride the lift down'),
+        x: a.x,
+        y: a.y,
+        z: a.z,
+        radius: 2.6,
+        enabled: () => mode === 'walk' && !scriptRunning && !liftRide,
+        onInteract: () => rideLift(up),
+      });
+    }
+    // P1.1 The Crate Yard on the shipyard apron, and P1.2 The Three Helms out in the bay.
+    const kit = await loadVillageKit();
+    if (disposed) return;
+    const yardAt = town.anchors.crateYard;
+    if (yardAt) {
+      const site = createCrateYardSite({ tier, kit, origin: yardAt, layout: MERIDIAN_YARD });
+      engine.scene.add(site.group);
+      for (const c of site.colliders.circles) world.addCircle(c);
+      for (const b of site.colliders.boxes) world.addBox(b);
+      for (const c of site.crateCircles) world.addDynamic(c);
+      meridianSites.push(site);
+      puzzles.push(createCrateYard(puzzleHost, site));
+    }
+    const buoys = createHelmBuoys({ kit, waves: ocean.field });
+    engine.scene.add(buoys.group);
+    meridianSites.push(buoys);
+    puzzles.push(createThreeHelms(helmsHost, buoys));
+    await engine.renderer.compileAsync(engine.scene, camera);
+  };
+  void cove.meridian.townReady.then(setupMeridian);
+
+  /** What E does at sea right now, from whichever puzzle has something (taking a helm, the next leg). */
+  function sailAction(): SailAction | null {
+    for (const p of puzzles) {
+      const act = p.sailAction?.() ?? null;
+      if (act) return act;
+    }
+    return null;
+  }
+
   /** Wingman's hint key: the puzzle you're at, else a nudge toward the current quest. */
   function hint(): void {
     const p = puzzles.find((z) => z.engaged());
@@ -615,10 +1003,13 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       if (line) void dialogue.say('Wingman', line);
       return;
     }
-    const open = questLog(quests()).find((q) => !q.done);
+    const open =
+      island === 'meridian'
+        ? meridianTracker(quests()).tasks.find((t) => t.status === 'active')
+        : questLog(quests()).find((q) => !q.done);
     void dialogue.say(
       'Wingman',
-      open ? `Logbook says: ${open.detail}` : 'Nothing pressing, Captain. Enjoy the view.',
+      open?.detail ? `Logbook says: ${open.detail}` : 'Nothing pressing, Captain. Enjoy the view.',
     );
   }
 
@@ -746,6 +1137,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     ironsNudged = false;
     hud.toast('Raise the sails with W. Steer with A and D.', 4);
     if (quests()['Q0.11'] === 'sail') setQuest('Q0.11', 'done');
+    if (island === 'meridian' && quests()['Q1.5'] === 'helms') setRheaAboard(true);
     audio?.music.setIsland('harbour');
   }
 
@@ -770,7 +1162,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const meridianReachable = () => openIslands().some((b) => b.id === 'meridian');
 
   function dock(): void {
-    if (mode !== 'sail') return;
+    if (mode !== 'sail' || crewAtHelm) return;
     const to = berthInRange();
     if (!to) {
       hud.toast(`Sail to ${sailTarget().berthLabel} to go ashore.`, 3);
@@ -808,7 +1200,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     input.enabled = !landfall;
     if (landfall) startArrival(berth.arrival, false);
     audio?.music.setIsland(berth.music);
+    crewAtHelm = false;
+    setRheaAboard(false);
     await hud.fade(false);
+    const done = afterDisembark;
+    afterDisembark = null;
+    done?.();
   }
   const moorShip = () => {
     const m = berth.mooring;
@@ -833,27 +1230,33 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   function updateCompass(): void {
     const ashore = mode === 'walk';
     const afloat = mode === 'sail' || mode === 'docking';
-    if ((!ashore && !afloat) || dialogue.active || scriptRunning || npcs.list.some((n) => n.talking)) {
+    if ((!ashore && !afloat) || dialogue.active || scriptRunning || anyTalking()) {
       hud.setCompass(null);
       return;
     }
     camera.getWorldDirection(compassDir);
     let target: CompassTarget | null = null;
     if (ashore) {
-      const goal = island === 'anchorage' ? questTarget(quests()) : null;
+      const goal = island === 'anchorage' ? questTarget(quests()) : meridianTarget(quests());
       const it = goal ? interactions.nearest(goal.ids, player.x, player.z) : null;
       if (goal && it) {
         const dx = it.x - player.x;
         const dz = it.z - player.z;
-        target = { bearing: bearingOf(dx, dz), label: goal.label, distance: Math.hypot(dx, dz) };
+        const labels = (goal as { labels?: Readonly<Record<string, string>> }).labels;
+        const label = labels?.[it.id] ?? goal.label;
+        target = { bearing: bearingOf(dx, dz), label, distance: Math.hypot(dx, dz) };
       }
     } else {
-      // To the berth you're bound for once out past docking range (inside it, the dock prompt takes over).
+      // A puzzle out on the water first (the Three Helms' next buoy or mark), else the berth you're
+      // bound for once out past docking range (inside it, the dock prompt takes over).
+      const mark = puzzles.map((p) => p.sailTarget?.() ?? null).find((m) => m !== null) ?? null;
       const goal = sailTarget();
-      const dx = goal.mooring.x - dyn.pose.x;
-      const dz = goal.mooring.z - dyn.pose.z;
+      const to = mark ?? { x: goal.mooring.x, z: goal.mooring.z, label: goal.berthLabel };
+      const dx = to.x - dyn.pose.x;
+      const dz = to.z - dyn.pose.z;
       const distance = Math.hypot(dx, dz);
-      if (distance > DOCK_RANGE) target = { bearing: bearingOf(dx, dz), label: goal.berthLabel, distance };
+      if (mark || (!crewAtHelm && distance > DOCK_RANGE))
+        target = { bearing: bearingOf(dx, dz), label: to.label, distance };
     }
     hud.setCompass(bearingOf(compassDir.x, compassDir.z), target);
   }
@@ -898,17 +1301,21 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // A fresh voyage (Nell not met yet) gets Wingman's welcome and the first step; later sessions a
   // short welcome back.
   const welcomeLines = (): string[] =>
-    island !== 'anchorage'
-      ? []
-      : quests()['Q0.2'] === 'start'
-        ? [
-            'wingman.welcome.01',
-            'wingman.welcome.02',
-            'wingman.welcome.03',
-            'wingman.welcome.04',
-            'wingman.welcome.05',
-          ]
-        : ['wingman.welcome.back'];
+    island === 'meridian'
+      ? quests()['Q1.1'] === 'done'
+        ? []
+        : [...MERIDIAN_WELCOME]
+      : island !== 'anchorage'
+        ? []
+        : quests()['Q0.2'] === 'start'
+          ? [
+              'wingman.welcome.01',
+              'wingman.welcome.02',
+              'wingman.welcome.03',
+              'wingman.welcome.04',
+              'wingman.welcome.05',
+            ]
+          : ['wingman.welcome.back'];
   /**
    * Wingman flies up in front of the captain to talk, and heads back to the shoulder on his last
    * line. The first time, the captain holds still and the camera frames him over their shoulder;
@@ -1086,6 +1493,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           hero.update(dt);
           updateWingman(dt);
           npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
+          if (meridianNpcs && nearMeridian()) meridianNpcs.update(dt, mode === 'walk' ? player : FAR);
           audio?.update(dt);
           return;
         }
@@ -1099,6 +1507,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           hero.update(dt);
           updateWingman(dt);
           npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
+          if (meridianNpcs && nearMeridian()) meridianNpcs.update(dt, mode === 'walk' ? player : FAR);
           for (const c of chests) c.chest.update(dt, t);
           audio?.update(dt);
           resumedAt = performance.now();
@@ -1118,13 +1527,16 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         // The E that closed a quiz or page mustn't also skip the next line or re-open a chat.
         if (s.interact && !arriving && performance.now() - resumedAt > 250) {
           if (dialogue.active) dialogue.next();
-          else if (cooldown <= 0 && mode === 'sail') dock();
-          else if (cooldown <= 0 && mode === 'walk') interactions.fire();
+          else if (cooldown <= 0 && mode === 'sail') {
+            const act = sailAction();
+            if (act) act.fire();
+            else dock();
+          } else if (cooldown <= 0 && mode === 'walk') interactions.fire();
         }
 
         if (hintTimer > 0 && (hintTimer -= dt) <= 0 && !dialogue.active) void welcome();
         if (introCut && s.stirring) introCut();
-        if (s.hint && mode === 'walk' && !dialogue.active && !scriptRunning) hint();
+        if (s.hint && (mode === 'walk' || mode === 'sail') && !dialogue.active && !scriptRunning) hint();
 
         gangwayDown = mode === 'walk' && shipDocked() && canBoard();
         ship.setGangway(gangwayDown ? plank.foot : null);
@@ -1169,9 +1581,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           }
 
           const focus = interactions.update(player.x, player.y, player.z, player.heading);
-          hud.setPrompt(
-            dialogue.active || npcs.list.some((n) => n.talking) ? null : (focus?.label() ?? null),
-          );
+          hud.setPrompt(dialogue.active || anyTalking() ? null : (focus?.label() ?? null));
           cam.update(dt, camera, s, player, player.heading, sp > 0.3, world, t);
           // Up the plank to the rail, and she's yours: over the side to the helm.
           if (gangwayDown && !dialogue.active && !scriptRunning) {
@@ -1179,11 +1589,13 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
             if (along !== null && along > 0.8) void board();
           }
         } else if (mode === 'sail' || mode === 'docking') {
-          if (mode === 'sail') helm.update(dt, s.moveX, s.moveY, dyn);
-          else if (dyn.dockComplete || (dockTime += dt) > DOCK_ASSIST_MAX) void disembark();
+          if (mode === 'sail' && !crewAtHelm) helm.update(dt, s.moveX, s.moveY, dyn);
+          else if (mode === 'docking' && (dyn.dockComplete || (dockTime += dt) > DOCK_ASSIST_MAX))
+            void disembark();
           const pose = dyn.pose;
-          const near = mode === 'sail' ? berthInRange() : null;
-          hud.setPrompt(near ? near.dockLabel : null);
+          const near = mode === 'sail' && !crewAtHelm ? berthInRange() : null;
+          const act = mode === 'sail' && !dialogue.active ? sailAction() : null;
+          hud.setPrompt(act?.label ?? near?.dockLabel ?? null);
           windAt(pose.x, pose.z, t, windHere);
           const bow = windOnBow(pose.heading, windHere[0], windHere[1]);
           hud.updateSail(helm.trim, helm.rudder, Math.abs(dyn.forwardSpeed), bow);
@@ -1214,10 +1626,14 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           }
         }
 
+        if (liftRide) updateLift(dt, s, t);
+        for (const site of meridianSites) site.update(dt, t);
         updateCompass();
         hero.update(dt);
+        if (rheaAboard?.group.parent) rheaAboard.update(dt);
         updateWingman(dt);
         npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
+        if (meridianNpcs && nearMeridian()) meridianNpcs.update(dt, mode === 'walk' ? player : FAR);
         footstepPuffs.update(dt);
         for (const c of chests) c.chest.update(dt, t);
         for (const p of puzzles) p.update(dt, t);
@@ -1332,6 +1748,38 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           read: !!learn?.isChestOpen(id),
         })),
       puzzle: (id: string) => puzzles.find((p) => p.id === id)?.debug ?? null,
+      liftSpots: () => {
+        const a = cove.meridian.town?.anchors;
+        const b = a?.liftBottom,
+          t = a?.liftTop;
+        return b && t
+          ? { bottom: { x: b.x, z: b.z, h: b.heading }, top: { x: t.x, z: t.z, h: t.heading } }
+          : null;
+      },
+      near: (x, z, r) => interactions.within(x, z, r),
+      talk: (id) => {
+        const n = [...npcs.list, ...(meridianNpcs?.list ?? [])].find((v) => v.spec.id === id);
+        if (!n || mode !== 'walk') return false;
+        void talkTo(n);
+        return true;
+      },
+      liftAnchors: () => ({
+        liftBottom: cove.meridian.town?.anchors.liftBottom ?? null,
+        liftTop: cove.meridian.town?.anchors.liftTop ?? null,
+      }),
+      liftCamera: () => liftCamera(),
+      rheaAboard: () => !!rheaAboard?.group.parent,
+      lighthouseLit: () => lighthouseLit,
+      cast: () =>
+        (meridianNpcs?.list ?? []).map((n) => ({
+          id: n.spec.id,
+          name: n.spec.name,
+          x: n.x,
+          y: n.y,
+          z: n.z,
+          h: n.heading,
+          ground: world.groundAt(n.x, n.z),
+        })),
       quest: (id: string, step: string) => setQuest(id, step),
       sailTo(x, z, heading) {
         if (mode === 'sail') dyn.reset(x, z, heading);
@@ -1400,7 +1848,14 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       remove();
       dialogue.cancel();
       npcs.dispose();
+      meridianNpcs?.dispose();
+      for (const site of meridianSites) {
+        site.group.removeFromParent();
+        site.dispose();
+      }
       wingman?.dispose();
+      rheaAboard?.group.removeFromParent();
+      rheaAboard?.dispose();
       hero.group.removeFromParent();
       hero.dispose();
       footstepPuffs.dispose();

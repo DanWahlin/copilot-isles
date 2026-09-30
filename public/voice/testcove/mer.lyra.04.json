@@ -1,0 +1,82 @@
+{
+  "id": "mer.lyra.04",
+  "speaker": "Lyra",
+  "text": "To start one, hover over Chats in the sidebar, and select the plus that appears.",
+  "words": [
+    {
+      "word": "To",
+      "start": 0.052625,
+      "end": 0.157875
+    },
+    {
+      "word": "start",
+      "start": 0.157875,
+      "end": 0.539458
+    },
+    {
+      "word": "one",
+      "start": 0.539458,
+      "end": 1.039458
+    },
+    {
+      "word": "hover",
+      "start": 1.039458,
+      "end": 1.60525
+    },
+    {
+      "word": "over",
+      "start": 1.60525,
+      "end": 1.881583
+    },
+    {
+      "word": "Chats",
+      "start": 1.881583,
+      "end": 2.315791
+    },
+    {
+      "word": "in",
+      "start": 2.315791,
+      "end": 2.434208
+    },
+    {
+      "word": "the",
+      "start": 2.434208,
+      "end": 2.565791
+    },
+    {
+      "word": "sidebar",
+      "start": 2.565791,
+      "end": 3.315791
+    },
+    {
+      "word": "and",
+      "start": 3.315791,
+      "end": 3.671041
+    },
+    {
+      "word": "select",
+      "start": 3.671041,
+      "end": 4.065791
+    },
+    {
+      "word": "the",
+      "start": 4.065791,
+      "end": 4.157875
+    },
+    {
+      "word": "plus",
+      "start": 4.157875,
+      "end": 4.5
+    },
+    {
+      "word": "that",
+      "start": 4.5,
+      "end": 4.684208
+    },
+    {
+      "word": "appears",
+      "start": 4.684208,
+      "end": 4.934208
+    }
+  ]
+}

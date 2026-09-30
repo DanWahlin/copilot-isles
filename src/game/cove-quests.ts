@@ -1,3 +1,4 @@
+import { meridianOpen } from './meridian-open';
 import type { ScriptStep } from './script';
 
 /**
@@ -188,6 +189,11 @@ export function questTarget(q: QuestState): { ids: readonly string[]; label: str
   if (!c) return null;
   return QUEST_TARGETS[`${c.id}:${c.step ?? 'start'}`] ?? null;
 }
+
+/** Port Meridian's chest: Lyra's, on the tavern stage beside her (the control-room page). */
+export const MERIDIAN_CHESTS: readonly { id: string; npc: string; side: number; back: number }[] = [
+  { id: 'C1.1', npc: 'lyra_meridian', side: 1.7, back: 0.6 },
+];
 
 /** The chests placed in the cove: chest id → which NPC it sits beside (metres to their right). */
 export const COVE_CHESTS: readonly { id: string; npc: string; side: number; back: number }[] = [
@@ -398,7 +404,8 @@ const CHRISTENING: readonly ScriptStep[] = [
   { say: 'juno.christen.01' },
   { say: 'wingman.sail.01' },
   { say: 'wingman.sail.02' },
-  { say: 'wingman.sail.03' },
+  // Port Meridian's open (the dev build, for now): point the way. Otherwise these waters are yours.
+  { say: meridianOpen() ? 'wingman.sail.meridian' : 'wingman.sail.03' },
   { quest: 'Q0.11', step: 'sail' },
 ];
 

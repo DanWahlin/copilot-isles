@@ -1,0 +1,72 @@
+{
+  "id": "mer.helm.plan.take",
+  "speaker": "Rhea",
+  "text": "Plan helm. Here’s the route I’ve charted. Look it over, then approve it.",
+  "words": [
+    {
+      "word": "Plan",
+      "start": 0.0485409,
+      "end": 0.388333
+    },
+    {
+      "word": "helm",
+      "start": 0.388333,
+      "end": 1.711166
+    },
+    {
+      "word": "Here’s",
+      "start": 1.711166,
+      "end": 2.038833
+    },
+    {
+      "word": "the",
+      "start": 2.038833,
+      "end": 2.160208
+    },
+    {
+      "word": "route",
+      "start": 2.160208,
+      "end": 2.475708
+    },
+    {
+      "word": "I’ve",
+      "start": 2.475708,
+      "end": 2.621375
+    },
+    {
+      "word": "charted",
+      "start": 2.621375,
+      "end": 4.004875
+    },
+    {
+      "word": "Look",
+      "start": 4.004875,
+      "end": 4.223291
+    },
+    {
+      "word": "it",
+      "start": 4.223291,
+      "end": 4.356791
+    },
+    {
+      "word": "over",
+      "start": 4.356791,
+      "end": 4.951458
+    },
+    {
+      "word": "then",
+      "start": 4.951458,
+      "end": 5.145625
+    },
+    {
+      "word": "approve",
+      "start": 5.145625,
+      "end": 5.521833
+    },
+    {
+      "word": "it",
+      "start": 5.521833,
+      "end": 5.771833
+    }
+  ]
+}

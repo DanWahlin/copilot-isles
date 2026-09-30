@@ -188,4 +188,6 @@ const key = (code: string, down: boolean) => {
     buildMs,
     state: session?.debug.state() ?? null,
   }),
+  lighthouseLit: (on: boolean) => cove.meridian.town?.setLighthouseLit(on),
+  liftCar: (t: number) => cove.meridian.town?.setLiftCar(t),
 };

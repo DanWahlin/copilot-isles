@@ -1,0 +1,87 @@
+{
+  "id": "mer.tobias.06",
+  "speaker": "Tobias",
+  "text": "When you want the full editor, the app opens the project in VS Code for you.",
+  "words": [
+    {
+      "word": "When",
+      "start": 0.052083,
+      "end": 0.247416
+    },
+    {
+      "word": "you",
+      "start": 0.247416,
+      "end": 0.351583
+    },
+    {
+      "word": "want",
+      "start": 0.351583,
+      "end": 0.572916
+    },
+    {
+      "word": "the",
+      "start": 0.572916,
+      "end": 0.664083
+    },
+    {
+      "word": "full",
+      "start": 0.664083,
+      "end": 0.9375
+    },
+    {
+      "word": "editor",
+      "start": 0.9375,
+      "end": 1.588541
+    },
+    {
+      "word": "the",
+      "start": 1.588541,
+      "end": 1.731791
+    },
+    {
+      "word": "app",
+      "start": 1.731791,
+      "end": 1.940125
+    },
+    {
+      "word": "opens",
+      "start": 1.940125,
+      "end": 2.291666
+    },
+    {
+      "word": "the",
+      "start": 2.291666,
+      "end": 2.408875
+    },
+    {
+      "word": "project",
+      "start": 2.408875,
+      "end": 2.864583
+    },
+    {
+      "word": "in",
+      "start": 2.864583,
+      "end": 3.020833
+    },
+    {
+      "word": "VS",
+      "start": 3.020833,
+      "end": 3.4245
+    },
+    {
+      "word": "Code",
+      "start": 3.4245,
+      "end": 3.789083
+    },
+    {
+      "word": "for",
+      "start": 3.789083,
+      "end": 3.89325
+    },
+    {
+      "word": "you",
+      "start": 3.89325,
+      "end": 4.14325
+    }
+  ]
+}

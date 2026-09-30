@@ -1,0 +1,92 @@
+{
+  "id": "mer.tobias.01",
+  "speaker": "Tobias",
+  "text": "Ah, a captain from Anchorage! You’ve got the app set up. So why use it at all?",
+  "words": [
+    {
+      "word": "Ah",
+      "start": 0.052083,
+      "end": 0.572916
+    },
+    {
+      "word": "a",
+      "start": 0.572916,
+      "end": 0.690125
+    },
+    {
+      "word": "captain",
+      "start": 0.690125,
+      "end": 1.197916
+    },
+    {
+      "word": "from",
+      "start": 1.197916,
+      "end": 1.419291
+    },
+    {
+      "word": "Anchorage",
+      "start": 1.419291,
+      "end": 3.007833
+    },
+    {
+      "word": "You’ve",
+      "start": 3.007833,
+      "end": 3.190125
+    },
+    {
+      "word": "got",
+      "start": 3.190125,
+      "end": 3.411458
+    },
+    {
+      "word": "the",
+      "start": 3.411458,
+      "end": 3.554708
+    },
+    {
+      "word": "app",
+      "start": 3.554708,
+      "end": 3.763041
+    },
+    {
+      "word": "set",
+      "start": 3.763041,
+      "end": 4.036458
+    },
+    {
+      "word": "up",
+      "start": 4.036458,
+      "end": 5.208333
+    },
+    {
+      "word": "So",
+      "start": 5.208333,
+      "end": 5.403666
+    },
+    {
+      "word": "why",
+      "start": 5.403666,
+      "end": 5.651041
+    },
+    {
+      "word": "use",
+      "start": 5.651041,
+      "end": 5.911458
+    },
+    {
+      "word": "it",
+      "start": 5.911458,
+      "end": 6.041666
+    },
+    {
+      "word": "at",
+      "start": 6.041666,
+      "end": 6.197916
+    },
+    {
+      "word": "all",
+      "start": 6.197916,
+      "end": 6.447916
+    }
+  ]
+}

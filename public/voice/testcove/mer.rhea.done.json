@@ -1,0 +1,52 @@
+{
+  "id": "mer.rhea.done",
+  "speaker": "Rhea",
+  "text": "Match the mode to the job, Captain. Every time.",
+  "words": [
+    {
+      "word": "Match",
+      "start": 0.0485409,
+      "end": 0.376208
+    },
+    {
+      "word": "the",
+      "start": 0.376208,
+      "end": 0.497583
+    },
+    {
+      "word": "mode",
+      "start": 0.497583,
+      "end": 0.776708
+    },
+    {
+      "word": "to",
+      "start": 0.776708,
+      "end": 0.885916
+    },
+    {
+      "word": "the",
+      "start": 0.885916,
+      "end": 1.007291
+    },
+    {
+      "word": "job",
+      "start": 1.007291,
+      "end": 1.504875
+    },
+    {
+      "word": "Captain",
+      "start": 1.504875,
+      "end": 2.912625
+    },
+    {
+      "word": "Every",
+      "start": 2.912625,
+      "end": 3.228166
+    },
+    {
+      "word": "time",
+      "start": 3.228166,
+      "end": 3.478166
+    }
+  ]
+}

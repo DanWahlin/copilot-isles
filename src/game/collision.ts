@@ -154,6 +154,18 @@ export class CollisionWorld {
     return hit;
   }
 
+  /**
+   * Whether a sight line through (x, y, z) is blocked: a box below its top, or a big round collider
+   * (a tower or tree trunk, 1.5 m or more across in radius, treated as tall). For scripted shots.
+   */
+  sightBlockedAt(x: number, y: number, z: number, pad = 0.2): boolean {
+    if (this.occludedAt(x, y, z, pad)) return true;
+    const b = this.cellAt(x, z);
+    if (!b) return false;
+    for (const c of b.circles) if (c.r >= 1.5 && Math.hypot(x - c.x, z - c.z) < c.r + pad) return true;
+    return false;
+  }
+
   /** Whether (x, y, z) lies inside a box footprint below its top. Used by the camera. */
   occludedAt(x: number, y: number, z: number, pad = 0.25): boolean {
     const b = this.cellAt(x, z);

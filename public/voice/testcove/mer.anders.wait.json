@@ -1,0 +1,72 @@
+{
+  "id": "mer.anders.wait",
+  "speaker": "Anders",
+  "text": "Hear Lyra out at the tavern first. Then come and see the shipyard.",
+  "words": [
+    {
+      "word": "Hear",
+      "start": 0.053208,
+      "end": 0.292541
+    },
+    {
+      "word": "Lyra",
+      "start": 0.292541,
+      "end": 0.704791
+    },
+    {
+      "word": "out",
+      "start": 0.704791,
+      "end": 0.944166
+    },
+    {
+      "word": "at",
+      "start": 0.944166,
+      "end": 1.03725
+    },
+    {
+      "word": "the",
+      "start": 1.03725,
+      "end": 1.143625
+    },
+    {
+      "word": "tavern",
+      "start": 1.143625,
+      "end": 1.52925
+    },
+    {
+      "word": "first",
+      "start": 1.52925,
+      "end": 3.045208
+    },
+    {
+      "word": "Then",
+      "start": 3.045208,
+      "end": 3.284583
+    },
+    {
+      "word": "come",
+      "start": 3.284583,
+      "end": 3.53725
+    },
+    {
+      "word": "and",
+      "start": 3.53725,
+      "end": 3.656916
+    },
+    {
+      "word": "see",
+      "start": 3.656916,
+      "end": 3.922875
+    },
+    {
+      "word": "the",
+      "start": 3.922875,
+      "end": 4.055833
+    },
+    {
+      "word": "shipyard",
+      "start": 4.055833,
+      "end": 4.305833
+    }
+  ]
+}

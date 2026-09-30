@@ -1,0 +1,67 @@
+{
+  "id": "wingman.meridian.01",
+  "speaker": "Wingman",
+  "text": "Port Meridian! This island’s Chapter 01, a tour of the Copilot app itself.",
+  "words": [
+    {
+      "word": "Port",
+      "start": 0.35,
+      "end": 0.67
+    },
+    {
+      "word": "Meridian",
+      "start": 0.67,
+      "end": 1.67
+    },
+    {
+      "word": "This",
+      "start": 1.67,
+      "end": 1.95
+    },
+    {
+      "word": "island’s",
+      "start": 1.95,
+      "end": 2.309
+    },
+    {
+      "word": "Chapter 01",
+      "start": 2.309,
+      "end": 3.55
+    },
+    {
+      "word": "a",
+      "start": 3.55,
+      "end": 3.71
+    },
+    {
+      "word": "tour",
+      "start": 3.71,
+      "end": 3.949
+    },
+    {
+      "word": "of",
+      "start": 3.949,
+      "end": 4.03
+    },
+    {
+      "word": "the",
+      "start": 4.03,
+      "end": 4.15
+    },
+    {
+      "word": "Copilot",
+      "start": 4.15,
+      "end": 4.59
+    },
+    {
+      "word": "app",
+      "start": 4.59,
+      "end": 4.79
+    },
+    {
+      "word": "itself",
+      "start": 4.79,
+      "end": 5.04
+    }
+  ]
+}

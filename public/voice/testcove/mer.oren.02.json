@@ -1,0 +1,72 @@
+{
+  "id": "mer.oren.02",
+  "speaker": "Oren",
+  "text": "The model control sits below the prompt box, right beside the mode selector.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.055541,
+      "end": 0.208333
+    },
+    {
+      "word": "model",
+      "start": 0.208333,
+      "end": 0.541666
+    },
+    {
+      "word": "control",
+      "start": 0.541666,
+      "end": 1.069458
+    },
+    {
+      "word": "sits",
+      "start": 1.069458,
+      "end": 1.375
+    },
+    {
+      "word": "below",
+      "start": 1.375,
+      "end": 1.694458
+    },
+    {
+      "word": "the",
+      "start": 1.694458,
+      "end": 1.847208
+    },
+    {
+      "word": "prompt",
+      "start": 1.847208,
+      "end": 2.277791
+    },
+    {
+      "word": "box",
+      "start": 2.277791,
+      "end": 2.819458
+    },
+    {
+      "word": "right",
+      "start": 2.819458,
+      "end": 3.083333
+    },
+    {
+      "word": "beside",
+      "start": 3.083333,
+      "end": 3.513875
+    },
+    {
+      "word": "the",
+      "start": 3.513875,
+      "end": 3.611125
+    },
+    {
+      "word": "mode",
+      "start": 3.611125,
+      "end": 3.902791
+    },
+    {
+      "word": "selector",
+      "start": 3.902791,
+      "end": 4.152791000000001
+    }
+  ]
+}

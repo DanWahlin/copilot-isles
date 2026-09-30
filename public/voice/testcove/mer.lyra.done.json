@@ -1,0 +1,52 @@
+{
+  "id": "mer.lyra.done",
+  "speaker": "Lyra",
+  "text": "Quick question? Start a chat. That’s the whole song.",
+  "words": [
+    {
+      "word": "Quick",
+      "start": 0.052625,
+      "end": 0.342125
+    },
+    {
+      "word": "question",
+      "start": 0.342125,
+      "end": 1.973666
+    },
+    {
+      "word": "Start",
+      "start": 1.973666,
+      "end": 2.421041
+    },
+    {
+      "word": "a",
+      "start": 2.421041,
+      "end": 2.5
+    },
+    {
+      "word": "chat",
+      "start": 2.5,
+      "end": 3.973666
+    },
+    {
+      "word": "That’s",
+      "start": 3.973666,
+      "end": 4.276333
+    },
+    {
+      "word": "the",
+      "start": 4.276333,
+      "end": 4.407875
+    },
+    {
+      "word": "whole",
+      "start": 4.407875,
+      "end": 4.75
+    },
+    {
+      "word": "song",
+      "start": 4.75,
+      "end": 5
+    }
+  ]
+}

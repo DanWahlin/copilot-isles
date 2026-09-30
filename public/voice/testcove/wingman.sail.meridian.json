@@ -1,0 +1,72 @@
+{
+  "id": "wingman.sail.meridian",
+  "speaker": "Wingman",
+  "text": "Port Meridian’s north-east, Captain. Follow the compass, and dock by the east arm.",
+  "words": [
+    {
+      "word": "Port",
+      "start": 0.11,
+      "end": 0.35
+    },
+    {
+      "word": "Meridian’s",
+      "start": 0.35,
+      "end": 0.91
+    },
+    {
+      "word": "north-east",
+      "start": 0.91,
+      "end": 1.47
+    },
+    {
+      "word": "Captain",
+      "start": 1.47,
+      "end": 2.309
+    },
+    {
+      "word": "Follow",
+      "start": 2.309,
+      "end": 2.67
+    },
+    {
+      "word": "the",
+      "start": 2.67,
+      "end": 2.829
+    },
+    {
+      "word": "compass",
+      "start": 2.829,
+      "end": 3.469
+    },
+    {
+      "word": "and",
+      "start": 3.469,
+      "end": 3.67
+    },
+    {
+      "word": "dock",
+      "start": 3.67,
+      "end": 3.989
+    },
+    {
+      "word": "by",
+      "start": 3.989,
+      "end": 4.11
+    },
+    {
+      "word": "the",
+      "start": 4.11,
+      "end": 4.23
+    },
+    {
+      "word": "east",
+      "start": 4.23,
+      "end": 4.51
+    },
+    {
+      "word": "arm",
+      "start": 4.51,
+      "end": 4.76
+    }
+  ]
+}

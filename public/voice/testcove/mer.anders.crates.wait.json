@@ -1,0 +1,87 @@
+{
+  "id": "mer.anders.crates.wait",
+  "speaker": "Anders",
+  "text": "Push each crate onto its plate, Captain. The lever by the gate starts the yard over.",
+  "words": [
+    {
+      "word": "Push",
+      "start": 0.053208,
+      "end": 0.292541
+    },
+    {
+      "word": "each",
+      "start": 0.292541,
+      "end": 0.518625
+    },
+    {
+      "word": "crate",
+      "start": 0.518625,
+      "end": 0.877666
+    },
+    {
+      "word": "onto",
+      "start": 0.877666,
+      "end": 1.1835
+    },
+    {
+      "word": "its",
+      "start": 1.1835,
+      "end": 1.356375
+    },
+    {
+      "word": "plate",
+      "start": 1.356375,
+      "end": 1.9415
+    },
+    {
+      "word": "Captain",
+      "start": 1.9415,
+      "end": 3.390958
+    },
+    {
+      "word": "The",
+      "start": 3.390958,
+      "end": 3.53725
+    },
+    {
+      "word": "lever",
+      "start": 3.53725,
+      "end": 3.882958
+    },
+    {
+      "word": "by",
+      "start": 3.882958,
+      "end": 4.055833
+    },
+    {
+      "word": "the",
+      "start": 4.055833,
+      "end": 4.188833
+    },
+    {
+      "word": "gate",
+      "start": 4.188833,
+      "end": 4.468083
+    },
+    {
+      "word": "starts",
+      "start": 4.468083,
+      "end": 4.880333
+    },
+    {
+      "word": "the",
+      "start": 4.880333,
+      "end": 4.986708
+    },
+    {
+      "word": "yard",
+      "start": 4.986708,
+      "end": 5.385625
+    },
+    {
+      "word": "over",
+      "start": 5.385625,
+      "end": 5.635625
+    }
+  ]
+}

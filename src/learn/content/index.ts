@@ -10,8 +10,9 @@ import type {
   Trial,
 } from '../types';
 import { CH00 } from './ch00';
+import { CH01 } from './ch01';
 
-export const CHAPTERS: readonly ChapterContent[] = [CH00];
+export const CHAPTERS: readonly ChapterContent[] = [CH00, CH01];
 
 const index = <T extends { id: string }>(pick: (c: ChapterContent) => readonly T[]) => {
   const m = new Map<string, T>();

@@ -1,0 +1,87 @@
+{
+  "id": "mer.tobias.04",
+  "speaker": "Tobias",
+  "text": "See my table? Four headaches every captain knows. Match each one to what the app adds.",
+  "words": [
+    {
+      "word": "See",
+      "start": 0.052083,
+      "end": 0.286458
+    },
+    {
+      "word": "my",
+      "start": 0.286458,
+      "end": 0.481791
+    },
+    {
+      "word": "table",
+      "start": 0.481791,
+      "end": 1.862
+    },
+    {
+      "word": "Four",
+      "start": 1.862,
+      "end": 2.044291
+    },
+    {
+      "word": "headaches",
+      "start": 2.044291,
+      "end": 2.539083
+    },
+    {
+      "word": "every",
+      "start": 2.539083,
+      "end": 2.7995
+    },
+    {
+      "word": "captain",
+      "start": 2.7995,
+      "end": 3.26825
+    },
+    {
+      "word": "knows",
+      "start": 3.26825,
+      "end": 4.700541
+    },
+    {
+      "word": "Match",
+      "start": 4.700541,
+      "end": 5.039083
+    },
+    {
+      "word": "each",
+      "start": 5.039083,
+      "end": 5.260416
+    },
+    {
+      "word": "one",
+      "start": 5.260416,
+      "end": 5.572916
+    },
+    {
+      "word": "to",
+      "start": 5.572916,
+      "end": 5.690125
+    },
+    {
+      "word": "what",
+      "start": 5.690125,
+      "end": 5.911458
+    },
+    {
+      "word": "the",
+      "start": 5.911458,
+      "end": 6.041666
+    },
+    {
+      "word": "app",
+      "start": 6.041666,
+      "end": 6.237
+    },
+    {
+      "word": "adds",
+      "start": 6.237,
+      "end": 6.487
+    }
+  ]
+}

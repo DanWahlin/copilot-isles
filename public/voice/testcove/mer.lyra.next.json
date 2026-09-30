@@ -1,0 +1,87 @@
+{
+  "id": "mer.lyra.next",
+  "speaker": "Lyra",
+  "text": "Project sessions are Anders’s trade. He’s at the shipyard, at the west end of the quay.",
+  "words": [
+    {
+      "word": "Project",
+      "start": 0.052625,
+      "end": 0.539458
+    },
+    {
+      "word": "sessions",
+      "start": 0.539458,
+      "end": 1.10525
+    },
+    {
+      "word": "are",
+      "start": 1.10525,
+      "end": 1.342125
+    },
+    {
+      "word": "Anders’s",
+      "start": 1.342125,
+      "end": 1.921041
+    },
+    {
+      "word": "trade",
+      "start": 1.921041,
+      "end": 3.434208
+    },
+    {
+      "word": "He’s",
+      "start": 3.434208,
+      "end": 3.592125
+    },
+    {
+      "word": "at",
+      "start": 3.592125,
+      "end": 3.723666
+    },
+    {
+      "word": "the",
+      "start": 3.723666,
+      "end": 3.85525
+    },
+    {
+      "word": "shipyard",
+      "start": 3.85525,
+      "end": 4.671041
+    },
+    {
+      "word": "at",
+      "start": 4.671041,
+      "end": 4.842125
+    },
+    {
+      "word": "the",
+      "start": 4.842125,
+      "end": 4.960541
+    },
+    {
+      "word": "west",
+      "start": 4.960541,
+      "end": 5.289458
+    },
+    {
+      "word": "end",
+      "start": 5.289458,
+      "end": 5.565791
+    },
+    {
+      "word": "of",
+      "start": 5.565791,
+      "end": 5.618416
+    },
+    {
+      "word": "the",
+      "start": 5.618416,
+      "end": 5.736833
+    },
+    {
+      "word": "quay",
+      "start": 5.736833,
+      "end": 5.986833
+    }
+  ]
+}

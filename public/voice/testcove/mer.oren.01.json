@@ -1,0 +1,97 @@
+{
+  "id": "mer.oren.01",
+  "speaker": "Oren",
+  "text": "Ah, you came up. The mode sets how independently the agent works. The model decides how it thinks.",
+  "words": [
+    {
+      "word": "Ah",
+      "start": 0.055541,
+      "end": 0.652791
+    },
+    {
+      "word": "you",
+      "start": 0.652791,
+      "end": 0.791666
+    },
+    {
+      "word": "came",
+      "start": 0.791666,
+      "end": 1.097208
+    },
+    {
+      "word": "up",
+      "start": 1.097208,
+      "end": 2.347208
+    },
+    {
+      "word": "The",
+      "start": 2.347208,
+      "end": 2.5
+    },
+    {
+      "word": "mode",
+      "start": 2.5,
+      "end": 2.819458
+    },
+    {
+      "word": "sets",
+      "start": 2.819458,
+      "end": 3.152791
+    },
+    {
+      "word": "how",
+      "start": 3.152791,
+      "end": 3.402791
+    },
+    {
+      "word": "independently",
+      "start": 3.402791,
+      "end": 4.166666
+    },
+    {
+      "word": "the",
+      "start": 4.166666,
+      "end": 4.319458
+    },
+    {
+      "word": "agent",
+      "start": 4.319458,
+      "end": 4.708333
+    },
+    {
+      "word": "works",
+      "start": 4.708333,
+      "end": 6.25
+    },
+    {
+      "word": "The",
+      "start": 6.25,
+      "end": 6.402791
+    },
+    {
+      "word": "model",
+      "start": 6.402791,
+      "end": 6.736125
+    },
+    {
+      "word": "decides",
+      "start": 6.736125,
+      "end": 7.305541
+    },
+    {
+      "word": "how",
+      "start": 7.305541,
+      "end": 7.527791
+    },
+    {
+      "word": "it",
+      "start": 7.527791,
+      "end": 7.708333
+    },
+    {
+      "word": "thinks",
+      "start": 7.708333,
+      "end": 7.958333
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "id": "mer.rhea.01",
+  "speaker": "Rhea",
+  "text": "Captain! Welcome to the Academy. Today’s lesson is session modes.",
+  "words": [
+    {
+      "word": "Captain",
+      "start": 0.0485409,
+      "end": 1.517
+    },
+    {
+      "word": "Welcome",
+      "start": 1.517,
+      "end": 1.966
+    },
+    {
+      "word": "to",
+      "start": 1.966,
+      "end": 2.087375
+    },
+    {
+      "word": "the",
+      "start": 2.087375,
+      "end": 2.20875
+    },
+    {
+      "word": "Academy",
+      "start": 2.20875,
+      "end": 3.652916
+    },
+    {
+      "word": "Today’s",
+      "start": 3.652916,
+      "end": 4.101958
+    },
+    {
+      "word": "lesson",
+      "start": 4.101958,
+      "end": 4.526708
+    },
+    {
+      "word": "is",
+      "start": 4.526708,
+      "end": 4.70875
+    },
+    {
+      "word": "session",
+      "start": 4.70875,
+      "end": 5.084958
+    },
+    {
+      "word": "modes",
+      "start": 5.084958,
+      "end": 5.334958
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { describe, expect, it } from 'vitest';
+import { GLOSSARY, PAGES, QUIZZES, TRIALS } from '../learn/content/index';
+import {
+  MERIDIAN_QUESTS,
+  MERIDIAN_TARGETS,
+  MERIDIAN_WELCOME,
+  meridianCurrent,
+  meridianNpcScript,
+  meridianTarget,
+  meridianTracker,
+} from './meridian-quests';
+import type { ScriptStep } from './script';
+
+const NPCS = ['tobias', 'mina', 'lyra_meridian', 'anders', 'rhea', 'oren', 'pell', 'admiral'];
+const voiced = new Set(
+  (
+    JSON.parse(readFileSync(join(__dirname, '../../tools/voice/lines.testcove.json'), 'utf8')) as {
+      lines: { id: string }[];
+    }
+  ).lines.map((l) => l.id),
+);
+
+/** Plays a script's quest steps (and passes its quizzes and exam) into the state. */
+function play(steps: readonly ScriptStep[], q: Record<string, string>): void {
+  for (const s of steps) if ('quest' in s) q[s.quest] = s.step;
+}
+
+describe('Meridian quest line', () => {
+  it('references only voiced lines, known quizzes, pages, terms and trials', () => {
+    const states: Record<string, string>[] = [{}];
+    for (const d of MERIDIAN_QUESTS)
+      for (const step of Object.keys(d.steps))
+        states.push({ ...Object.fromEntries(MERIDIAN_QUESTS.map((x) => [x.id, 'done'])), [d.id]: step });
+    for (const q of states)
+      for (const npc of NPCS)
+        for (const s of meridianNpcScript(npc, q)?.steps ?? []) {
+          if ('say' in s) expect(voiced.has(s.say), s.say).toBe(true);
+          if ('quiz' in s) expect(QUIZZES.has(s.quiz), s.quiz).toBe(true);
+          if ('page' in s) expect(PAGES.has(s.page), s.page).toBe(true);
+          if ('file' in s) expect(PAGES.has(s.file), s.file).toBe(true);
+          if ('term' in s) expect(GLOSSARY.has(s.term), s.term).toBe(true);
+          if ('trial' in s) expect(TRIALS.has(s.trial), s.trial).toBe(true);
+          if ('show' in s) expect(s.show).toMatch(/^ch0[01]\//);
+        }
+    for (const id of MERIDIAN_WELCOME) expect(voiced.has(id), id).toBe(true);
+  });
+
+  it('runs in the course’s order, each talk handing on to the next', () => {
+    const q: Record<string, string> = {};
+    const order: string[] = [];
+    // Talking to anyone out of turn changes nothing.
+    play(meridianNpcScript('admiral', q)!.steps, q);
+    expect(q).toEqual({});
+    const talk = (npc: string) => {
+      order.push(npc);
+      play(meridianNpcScript(npc, q)!.steps, q);
+    };
+    talk('tobias');
+    talk('mina');
+    talk('lyra_meridian');
+    talk('anders');
+    expect(q['Q1.4']).toBe('crates');
+    q['Q1.4'] = 'solved'; // the crate yard
+    talk('anders');
+    talk('rhea');
+    expect(q['Q1.5']).toBe('helms');
+    q['Q1.5'] = 'solved'; // the Three Helms
+    talk('rhea');
+    talk('oren');
+    talk('pell');
+    talk('admiral');
+    expect(MERIDIAN_QUESTS.every((d) => q[d.id] === 'done')).toBe(true);
+    expect(meridianCurrent(q)).toBeNull();
+    expect(meridianTracker(q).tasks.every((t) => t.status === 'done')).toBe(true);
+  });
+
+  it('points the compass at every step, and the Admiral skips her introduction on a retry', () => {
+    for (const d of MERIDIAN_QUESTS)
+      for (const step of Object.keys(d.steps))
+        if (step !== 'done') expect(MERIDIAN_TARGETS[`${d.id}:${step}`], `${d.id}:${step}`).toBeTruthy();
+    expect(meridianTarget({})?.label).toBe('Tobias');
+    const retry = meridianNpcScript('admiral', { 'Q1.7': 'done', 'Q1.8': 'exam' })!.steps;
+    expect(retry[0]).toEqual({ say: 'mer.admiral.retry' });
+    expect(retry).toContainEqual({ trial: 'A1' });
+  });
+
+  it('shows the current step’s detail in the tracker', () => {
+    const t = meridianTracker({ 'Q1.1': 'done', 'Q1.2': 'done', 'Q1.3': 'done', 'Q1.4': 'crates' });
+    const active = t.tasks.find((x) => x.status === 'active')!;
+    expect(active.id).toBe('Q1.4');
+    expect(active.detail).toMatch(/crate/);
+  });
+});

@@ -13,11 +13,13 @@ import { COVE } from './layout';
 import { MERIDIAN, createMeridianRocks, createMeridianSilhouette } from './islands/meridian';
 import { createBrigantine, type Brigantine } from './ship';
 import { createVegetation, type VegetationSystem } from './vegetation';
-import { createVillage, type VillageSystem } from './village';
+import { createVillage, loadVillageKit, type VillageSystem } from './village';
+import { createMeridianTown, type MeridianTownSystem } from './meridian-town';
 import { createBirds, type BirdsSystem } from './life/birds';
 import type { LeapsSystem } from './life/leaps';
 import { villageExclusion } from './village-exclusion';
 import { BRIGANTINE_CARGO, createCoveSites, type CoveSites } from './sites';
+import type { CircleObstacle } from './contracts';
 
 export interface CoveScene {
   sky: SkySystem;
@@ -32,9 +34,12 @@ export interface CoveScene {
     silhouette: Group;
     terrain: CreatedTerrain | null;
     foam: Mesh | null;
+    town: MeridianTownSystem | null;
     ready: boolean;
     /** Resolves once the terrain has streamed in (or failed, so a start there never hangs). */
     loaded: Promise<void>;
+    /** Resolves once the town has streamed and compiled, or null if Meridian is disabled/failed. */
+    townReady: Promise<MeridianTownSystem | null>;
   };
   vegetation: VegetationSystem | null;
   ship: Brigantine;
@@ -84,16 +89,24 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const ranges = createDistantRanges();
   const meridianSilhouette = meridianDisabled ? new Group() : createMeridianSilhouette();
   scene.add(terrain.group, foam, ranges, meridianSilhouette);
+  let resolveMeridianTown: (town: MeridianTownSystem | null) => void = () => {};
+  const meridianTownReady = new Promise<MeridianTownSystem | null>((resolve) => {
+    resolveMeridianTown = resolve;
+  });
+  const shipObstacles: CircleObstacle[] = [];
   const meridian = {
     silhouette: meridianSilhouette,
     terrain: null as CreatedTerrain | null,
     foam: null as Mesh | null,
+    town: null as MeridianTownSystem | null,
     ready: false,
     loaded: Promise.resolve(),
+    townReady: meridianTownReady,
   };
+  if (meridianDisabled) resolveMeridianTown(null);
   if (!meridianDisabled)
     meridian.loaded = loadTerrainPack(`${o.packBase ?? '/packs'}/meridian/terrain`)
-      .then((meridianData) => {
+      .then(async (meridianData) => {
         const meridianTerrain = createTerrain({
           tier,
           data: meridianData,
@@ -118,11 +131,23 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         meridian.terrain = meridianTerrain;
         meridian.foam = meridianFoam;
         meridian.ready = true;
+        const townKit = await loadVillageKit();
+        const town = createMeridianTown({ tier, heightField: meridianTerrain.heightField, kit: townKit });
+        town.group.visible = false;
+        meridian.town = town;
+        scene.add(town.group);
+        await renderer.compileAsync(town.group, camera);
+        shipObstacles.push(...town.shipObstacles);
+        resolveMeridianTown(town);
       })
-      .catch((error) => console.warn('[meridian] terrain stream failed', error));
+      .catch((error) => {
+        console.warn('[meridian] terrain stream failed', error);
+        resolveMeridianTown(null);
+      });
 
   report(0.5, 'Building the harbor');
-  const village = await createVillage({ tier, heightField });
+  const villageKit = typeof window === 'undefined' ? undefined : await loadVillageKit();
+  const village = await createVillage({ tier, heightField, kit: villageKit });
   scene.add(village.group);
   const sites = await createCoveSites({
     tier,
@@ -150,10 +175,11 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const flotsam = new HarborFlotsam(tier);
   scene.add(ship.group, flotsam.group);
   sites.crane.setShip(ship.group, BRIGANTINE_CARGO);
+  shipObstacles.push(...village.shipObstacles, ...sites.shipObstacles);
   const shipEnv = {
     waves: ocean.field,
     ground: heightField,
-    obstacles: [...village.shipObstacles, ...sites.shipObstacles],
+    obstacles: shipObstacles,
     t: 0,
   };
   let birds: BirdsSystem | null = null;
@@ -204,11 +230,13 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       if (meridian.terrain && meridian.foam) {
         meridian.terrain.group.visible = showMeridian;
         meridian.foam.visible = showMeridian;
+        if (meridian.town) meridian.town.group.visible = showMeridian;
         if (showMeridian) meridian.terrain.update(camera);
       }
       meridian.silhouette.visible = !showMeridian;
       vegetation?.update(camera);
       village.update(dt, t, camera);
+      if (showMeridian) meridian.town?.update(dt, t, camera);
       sites.update(dt, t);
       birds?.update(dt, t, camera);
       leaps?.update(dt, t, camera);
@@ -222,6 +250,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         ranges,
         meridian.terrain?.group,
         meridian.foam,
+        meridian.town?.group,
         meridian.silhouette,
         village.group,
         sites.group,
@@ -268,6 +297,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       );
       if (meridian.terrain) scene.remove(meridian.terrain.group);
       if (meridian.foam) scene.remove(meridian.foam);
+      if (meridian.town) scene.remove(meridian.town.group);
       if (vegetation) scene.remove(vegetation.group);
       if (birds) scene.remove(birds.group);
       if (leaps) scene.remove(leaps.group);
@@ -276,6 +306,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       disposeTree(meridian.silhouette);
       meridian.terrain?.dispose();
       if (meridian.foam) disposeTree(meridian.foam);
+      meridian.town?.dispose();
       birds?.dispose();
       leaps?.dispose();
       village.dispose();

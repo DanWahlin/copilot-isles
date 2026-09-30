@@ -1,0 +1,72 @@
+{
+  "id": "mer.pell.next",
+  "speaker": "Pell",
+  "text": "The Admiral’s waiting on her terrace. She’ll want to hear what you’ve learned.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.048083,
+      "end": 0.192291
+    },
+    {
+      "word": "Admiral’s",
+      "start": 0.192291,
+      "end": 0.733166
+    },
+    {
+      "word": "waiting",
+      "start": 0.733166,
+      "end": 1.117791
+    },
+    {
+      "word": "on",
+      "start": 1.117791,
+      "end": 1.25
+    },
+    {
+      "word": "her",
+      "start": 1.25,
+      "end": 1.466333
+    },
+    {
+      "word": "terrace",
+      "start": 1.466333,
+      "end": 2.884625
+    },
+    {
+      "word": "She’ll",
+      "start": 2.884625,
+      "end": 3.149041
+    },
+    {
+      "word": "want",
+      "start": 3.149041,
+      "end": 3.305291
+    },
+    {
+      "word": "to",
+      "start": 3.305291,
+      "end": 3.389416
+    },
+    {
+      "word": "hear",
+      "start": 3.389416,
+      "end": 3.569708
+    },
+    {
+      "word": "what",
+      "start": 3.569708,
+      "end": 3.774041
+    },
+    {
+      "word": "you’ve",
+      "start": 3.774041,
+      "end": 3.966333
+    },
+    {
+      "word": "learned",
+      "start": 3.966333,
+      "end": 4.2163330000000006
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "id": "mer.mina.mywork2",
+  "speaker": "Mina",
+  "text": "The practice items from your setup script are pinned up there, ready to work on.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.047875,
+      "end": 0.177583
+    },
+    {
+      "word": "practice",
+      "start": 0.177583,
+      "end": 0.6375
+    },
+    {
+      "word": "items",
+      "start": 0.6375,
+      "end": 1.062041
+    },
+    {
+      "word": "from",
+      "start": 1.062041,
+      "end": 1.238916
+    },
+    {
+      "word": "your",
+      "start": 1.238916,
+      "end": 1.356833
+    },
+    {
+      "word": "setup",
+      "start": 1.356833,
+      "end": 1.757791
+    },
+    {
+      "word": "script",
+      "start": 1.757791,
+      "end": 2.182291
+    },
+    {
+      "word": "are",
+      "start": 2.182291,
+      "end": 2.276666
+    },
+    {
+      "word": "pinned",
+      "start": 2.276666,
+      "end": 2.571458
+    },
+    {
+      "word": "up",
+      "start": 2.571458,
+      "end": 2.736541
+    },
+    {
+      "word": "there",
+      "start": 2.736541,
+      "end": 3.231833
+    },
+    {
+      "word": "ready",
+      "start": 3.231833,
+      "end": 3.503083
+    },
+    {
+      "word": "to",
+      "start": 3.503083,
+      "end": 3.644583
+    },
+    {
+      "word": "work",
+      "start": 3.644583,
+      "end": 3.962958
+    },
+    {
+      "word": "on",
+      "start": 3.962958,
+      "end": 4.212958
+    }
+  ]
+}

@@ -51,7 +51,7 @@ export const MERIDIAN = {
     lighthouse: { x: 697, z: -614, height: 5.5, radius: 10 },
   },
   pads: {
-    plaza: { x: 668, z: -796, height: 7, radius: 18 },
+    plaza: { x: 668, z: -796, height: 7, radius: 30 },
     tavern: { x: 622, z: -796, height: 7, radius: 11 },
     shipyard: { x: 586, z: -752, height: 2.4, radius: 11 },
     citadel: { x: 816, z: -786, height: 40, radius: 30 },
@@ -59,9 +59,12 @@ export const MERIDIAN = {
   ridge: { center: { x: 1090, z: -1075 }, halfX: 185, halfZ: 82, height: 148 },
   /** House rows stepping up the hill behind the plaza. */
   terraces: [
-    { ax: 596, az: -832, bx: 742, bz: -834, height: 13, width: 7 },
-    { ax: 602, az: -854, bx: 752, bz: -858, height: 16.7, width: 7 },
-    { ax: 612, az: -876, bx: 768, bz: -882, height: 20.4, width: 7 },
+    { ax: 586, az: -840, bx: 758, bz: -840, height: 10.8, width: 8 },
+    { ax: 592, az: -862, bx: 780, bz: -862, height: 14.2, width: 8 },
+    { ax: 604, az: -884, bx: 792, bz: -884, height: 17.8, width: 8 },
+    { ax: 620, az: -906, bx: 804, bz: -906, height: 21.4, width: 8 },
+    { ax: 650, az: -928, bx: 812, bz: -928, height: 25.0, width: 8 },
+    { ax: 700, az: -948, bx: 812, bz: -948, height: 28.6, width: 7 },
   ],
   seaCaves: [
     { x: 1130, z: -930, radius: 18 },
@@ -173,8 +176,8 @@ function terraceHeight(x: number, z: number, current: number): number {
     const d = segmentDistance(x, z, terrace.ax, terrace.az, terrace.bx, terrace.bz);
     const shelf = 1 - smoothstep(terrace.width, terrace.width + 12, d);
     const shoulder = 1 - smoothstep(terrace.width + 12, terrace.width + 38, d);
-    out = mix(out, terrace.height, shelf * 0.62);
-    out = mix(out, Math.min(out, terrace.height + 8.5), shoulder * 0.1);
+    out = mix(out, terrace.height, shelf * 0.93);
+    out = mix(out, Math.min(out, terrace.height + 7.5), shoulder * 0.16);
   }
   return out;
 }
@@ -209,7 +212,7 @@ function harborHeight(x: number, z: number, current: number): number {
       ),
     );
   out = mix(out, MERIDIAN.mole.height, mole);
-  out = padHeight(x, z, out, MERIDIAN.mole.lighthouse, 8);
+  out = padHeight(x, z, out, { ...MERIDIAN.mole.lighthouse, height: MERIDIAN.mole.height }, 8);
   return out;
 }
 
@@ -224,10 +227,21 @@ function townHeight(x: number, z: number, current: number): number {
   const ramp = q.height + Math.max(0, back) * 0.165 + fbm2(x * 0.04, z * 0.04, 3, SEED + 40) * 0.35;
   const w =
     smoothstep(q.x0 - 34, q.x0 - 6, x) *
-    (1 - smoothstep(q.x1 + 4, q.x1 + 20, x)) *
+    (1 - smoothstep(q.x1 + 12, q.x1 + 34, x)) *
     smoothstep(-1, 0.5, back) *
-    (1 - smoothstep(118, 160, back));
+    (1 - smoothstep(176, 216, back));
   return mix(current, ramp, w);
+}
+
+function stairStreetTerrainHeight(x: number, z: number, current: number): number {
+  const x0 = MERIDIAN.pads.plaza.x;
+  const z0 = MERIDIAN.harbor.quay.z0 + 2;
+  const z1 = MERIDIAN.pads.plaza.z;
+  if (z > z0 || z < z1) return current;
+  const t = clamp01((z0 - z) / (z0 - z1));
+  const ramp = MERIDIAN.harbor.quay.height + (MERIDIAN.pads.plaza.height - MERIDIAN.harbor.quay.height) * t;
+  const mask = 1 - smoothstep(5.8, 10, Math.abs(x - x0));
+  return mix(current, ramp, mask);
 }
 
 /**
@@ -240,12 +254,37 @@ function citadelHeight(x: number, z: number, current: number): number {
     dz = z - c.z;
   const d = Math.hypot(dx, dz);
   const inland = d > 0 ? (dx * 0.707 - dz * 0.707) / d : 0;
-  const edge = 9 + 90 * smoothstep(0.05, 0.85, inland);
+  const edge = 7 + 105 * smoothstep(0.02, 0.88, inland);
   // A craggy outline rather than a drum: the rim wanders by a few metres around the bluff.
   const a = Math.atan2(dz, dx);
-  const rim = c.radius + fbm2(Math.cos(a) * 1.6 + 3.1, Math.sin(a) * 1.6 - 2.2, 4, SEED + 50) * 9;
+  const lobes = Math.sin(a * 3.0 + 0.7) * 4.2 + Math.sin(a * 5.0 - 1.1) * 2.8;
+  const buttress = Math.max(0, Math.cos(a + 0.34)) * 6.5 + Math.max(0, Math.cos(a - 2.25)) * 4.5;
+  const rim =
+    c.radius + lobes + buttress + fbm2(Math.cos(a) * 1.9 + 3.1, Math.sin(a) * 1.9 - 2.2, 4, SEED + 50) * 6.5;
   const top = c.height + fbm2(x * 0.05, z * 0.05, 3, SEED + 51) * 0.6;
   return mix(current, top, 1 - smoothstep(rim, rim + edge, d));
+}
+
+const LIFT_CLEARANCE = {
+  bottom: { x: 770.3, y: 2.4, z: -766.8 },
+  top: { x: 798.2, y: 40.35, z: -779.2 },
+  core: 4.25,
+  feather: 7.5,
+} as const;
+
+function liftClearanceHeight(x: number, z: number, current: number): number {
+  const dx = LIFT_CLEARANCE.top.x - LIFT_CLEARANCE.bottom.x;
+  const dz = LIFT_CLEARANCE.top.z - LIFT_CLEARANCE.bottom.z;
+  const len2 = dx * dx + dz * dz;
+  const t = clamp01(((x - LIFT_CLEARANCE.bottom.x) * dx + (z - LIFT_CLEARANCE.bottom.z) * dz) / len2);
+  const px = LIFT_CLEARANCE.bottom.x + dx * t;
+  const pz = LIFT_CLEARANCE.bottom.z + dz * t;
+  const lateral = Math.hypot(x - px, z - pz);
+  const cut = 1 - smoothstep(LIFT_CLEARANCE.core, LIFT_CLEARANCE.feather, lateral);
+  if (cut <= 0) return current;
+  const carY = mix(LIFT_CLEARANCE.bottom.y, LIFT_CLEARANCE.top.y, t);
+  const target = carY - 0.65 - smoothstep(0.12, 0.62, t) * 0.35;
+  return mix(current, Math.min(current, target), cut);
 }
 
 function ridgeHeight(x: number, z: number, current: number): number {
@@ -291,6 +330,7 @@ export function meridianHeight(x: number, z: number): number {
     h = padHeight(x, z, h, pad, 8);
   }
   h = citadelHeight(x, z, h);
+  h = stairStreetTerrainHeight(x, z, h);
   const basinCore = Math.hypot(
     (x - MERIDIAN.harbor.center.x) / MERIDIAN.harbor.radiusX,
     (z - MERIDIAN.harbor.center.z) / MERIDIAN.harbor.radiusZ,
@@ -309,6 +349,7 @@ export function meridianHeight(x: number, z: number): number {
   );
   const ridgeBlend = Math.max(smoothstep(-12, 22, coast.distance), smoothstep(0.08, 0.25, ridgeFoot));
   h = mix(h, ridgeHeight(x, z, h), ridgeBlend);
+  h = liftClearanceHeight(x, z, h);
   if (coast.radial > MERIDIAN.seabedRadius) h = Math.min(h, -MERIDIAN.deepDepth);
   return h;
 }
@@ -370,6 +411,23 @@ export function meridianMasks(
   let grass = smoothstep(2, 16, h) * (1 - smoothstep(0.24, 0.55, slope)) * (1 - roadMask(x, z) * 0.6);
   const terrace = smoothstep(6, 65, h) * (1 - smoothstep(95, 130, h)) * smoothstep(-18, 115, coast.distance);
   grass = Math.max(grass, terrace * 0.48);
+  const townFootprint =
+    smoothstep(560, 582, x) *
+    (1 - smoothstep(822, 842, x)) *
+    smoothstep(-978, -964, z) *
+    (1 - smoothstep(-762, -748, z)) *
+    smoothstep(1.2, 4.5, h);
+  const lighthousePlatform =
+    (1 -
+      smoothstep(
+        MERIDIAN.mole.lighthouse.radius + 1,
+        MERIDIAN.mole.lighthouse.radius + 7,
+        Math.hypot(x - MERIDIAN.mole.lighthouse.x, z - MERIDIAN.mole.lighthouse.z),
+      )) *
+    smoothstep(1.5, 3.2, h);
+  grass *= (1 - townFootprint * 0.98) * (1 - lighthousePlatform);
+  sand = Math.max(sand, townFootprint * 0.68, lighthousePlatform * 0.38);
+  rock = Math.max(rock, lighthousePlatform * 0.46);
   if (h < -8) rock = Math.max(rock, 0.16);
   cliff = clamp01(cliff);
   rock = clamp01(rock * (1 - cliff * 0.28));

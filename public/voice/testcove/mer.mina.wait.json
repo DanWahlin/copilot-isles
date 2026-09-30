@@ -1,0 +1,67 @@
+{
+  "id": "mer.mina.wait",
+  "speaker": "Mina",
+  "text": "Have a word with Tobias first. He’s at his table, just there.",
+  "words": [
+    {
+      "word": "Have",
+      "start": 0.0471659,
+      "end": 0.235833
+    },
+    {
+      "word": "a",
+      "start": 0.235833,
+      "end": 0.306583
+    },
+    {
+      "word": "word",
+      "start": 0.306583,
+      "end": 0.672166
+    },
+    {
+      "word": "with",
+      "start": 0.672166,
+      "end": 0.83725
+    },
+    {
+      "word": "Tobias",
+      "start": 0.83725,
+      "end": 1.32075
+    },
+    {
+      "word": "first",
+      "start": 1.32075,
+      "end": 2.653291
+    },
+    {
+      "word": "He’s",
+      "start": 2.653291,
+      "end": 2.877375
+    },
+    {
+      "word": "at",
+      "start": 2.877375,
+      "end": 2.995291
+    },
+    {
+      "word": "his",
+      "start": 2.995291,
+      "end": 3.160375
+    },
+    {
+      "word": "table",
+      "start": 3.160375,
+      "end": 3.879708
+    },
+    {
+      "word": "just",
+      "start": 3.879708,
+      "end": 4.174541
+    },
+    {
+      "word": "there",
+      "start": 4.174541,
+      "end": 4.424541
+    }
+  ]
+}

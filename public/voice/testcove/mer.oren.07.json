@@ -1,0 +1,117 @@
+{
+  "id": "mer.oren.07",
+  "speaker": "Oren",
+  "text": "Try it with the prompt on this page. The answer should point to App.tsx in the book app.",
+  "words": [
+    {
+      "word": "Try",
+      "start": 0.055541,
+      "end": 0.361125
+    },
+    {
+      "word": "it",
+      "start": 0.361125,
+      "end": 0.5
+    },
+    {
+      "word": "with",
+      "start": 0.5,
+      "end": 0.625
+    },
+    {
+      "word": "the",
+      "start": 0.625,
+      "end": 0.75
+    },
+    {
+      "word": "prompt",
+      "start": 0.75,
+      "end": 1.166666
+    },
+    {
+      "word": "on",
+      "start": 1.166666,
+      "end": 1.319458
+    },
+    {
+      "word": "this",
+      "start": 1.319458,
+      "end": 1.541666
+    },
+    {
+      "word": "page",
+      "start": 1.541666,
+      "end": 3.111125
+    },
+    {
+      "word": "The",
+      "start": 3.111125,
+      "end": 3.277791
+    },
+    {
+      "word": "answer",
+      "start": 3.277791,
+      "end": 3.638875
+    },
+    {
+      "word": "should",
+      "start": 3.638875,
+      "end": 3.847208
+    },
+    {
+      "word": "point",
+      "start": 3.847208,
+      "end": 4.152791
+    },
+    {
+      "word": "to",
+      "start": 4.152791,
+      "end": 4.263875
+    },
+    {
+      "word": "App",
+      "start": 4.263875,
+      "end": 4.5
+    },
+    {
+      "word": "dot",
+      "start": 4.5,
+      "end": 4.736125
+    },
+    {
+      "word": "T",
+      "start": 4.736125,
+      "end": 5.027791
+    },
+    {
+      "word": "S",
+      "start": 5.027791,
+      "end": 5.291666
+    },
+    {
+      "word": "X",
+      "start": 5.291666,
+      "end": 5.597208
+    },
+    {
+      "word": "in",
+      "start": 5.597208,
+      "end": 5.708333
+    },
+    {
+      "word": "the",
+      "start": 5.708333,
+      "end": 5.819458
+    },
+    {
+      "word": "book",
+      "start": 5.819458,
+      "end": 6.097208
+    },
+    {
+      "word": "app.",
+      "start": 6.097208,
+      "end": 6.347208
+    }
+  ]
+}

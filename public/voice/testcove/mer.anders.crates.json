@@ -1,0 +1,102 @@
+{
+  "id": "mer.anders.crates",
+  "speaker": "Anders",
+  "text": "Now, my crates are all muddled. Chat work goes on the tavern plates, project work on the slipway plates.",
+  "words": [
+    {
+      "word": "Now",
+      "start": 0.053208,
+      "end": 0.505333
+    },
+    {
+      "word": "my",
+      "start": 0.505333,
+      "end": 0.704791
+    },
+    {
+      "word": "crates",
+      "start": 0.704791,
+      "end": 1.156916
+    },
+    {
+      "word": "are",
+      "start": 1.156916,
+      "end": 1.289875
+    },
+    {
+      "word": "all",
+      "start": 1.289875,
+      "end": 1.52925
+    },
+    {
+      "word": "muddled",
+      "start": 1.52925,
+      "end": 2.978708
+    },
+    {
+      "word": "Chat",
+      "start": 2.978708,
+      "end": 3.284583
+    },
+    {
+      "word": "work",
+      "start": 3.284583,
+      "end": 3.563833
+    },
+    {
+      "word": "goes",
+      "start": 3.563833,
+      "end": 3.896291
+    },
+    {
+      "word": "on",
+      "start": 3.896291,
+      "end": 4.015958
+    },
+    {
+      "word": "the",
+      "start": 4.015958,
+      "end": 4.122333
+    },
+    {
+      "word": "tavern",
+      "start": 4.122333,
+      "end": 4.468083
+    },
+    {
+      "word": "plates",
+      "start": 4.468083,
+      "end": 5.093083
+    },
+    {
+      "word": "project",
+      "start": 5.093083,
+      "end": 5.545208
+    },
+    {
+      "word": "work",
+      "start": 5.545208,
+      "end": 5.864375
+    },
+    {
+      "word": "on",
+      "start": 5.864375,
+      "end": 5.997333
+    },
+    {
+      "word": "the",
+      "start": 5.997333,
+      "end": 6.117041
+    },
+    {
+      "word": "slipway",
+      "start": 6.117041,
+      "end": 6.582458
+    },
+    {
+      "word": "plates",
+      "start": 6.582458,
+      "end": 6.832458
+    }
+  ]
+}

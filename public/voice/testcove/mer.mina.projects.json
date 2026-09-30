@@ -1,0 +1,77 @@
+{
+  "id": "mer.mina.projects",
+  "speaker": "Mina",
+  "text": "Below those, the sidebar keeps your Projects, with your chats and your project sessions.",
+  "words": [
+    {
+      "word": "Below",
+      "start": 0.0471659,
+      "end": 0.389166
+    },
+    {
+      "word": "those",
+      "start": 0.389166,
+      "end": 0.943416
+    },
+    {
+      "word": "the",
+      "start": 0.943416,
+      "end": 1.061333
+    },
+    {
+      "word": "sidebar",
+      "start": 1.061333,
+      "end": 1.556583
+    },
+    {
+      "word": "keeps",
+      "start": 1.556583,
+      "end": 1.875
+    },
+    {
+      "word": "your",
+      "start": 1.875,
+      "end": 1.992916
+    },
+    {
+      "word": "Projects",
+      "start": 1.992916,
+      "end": 2.818416
+    },
+    {
+      "word": "with",
+      "start": 2.818416,
+      "end": 2.959916
+    },
+    {
+      "word": "your",
+      "start": 2.959916,
+      "end": 3.113208
+    },
+    {
+      "word": "chats",
+      "start": 3.113208,
+      "end": 3.502375
+    },
+    {
+      "word": "and",
+      "start": 3.502375,
+      "end": 3.596708
+    },
+    {
+      "word": "your",
+      "start": 3.596708,
+      "end": 3.714625
+    },
+    {
+      "word": "project",
+      "start": 3.714625,
+      "end": 4.16275
+    },
+    {
+      "word": "sessions",
+      "start": 4.16275,
+      "end": 4.41275
+    }
+  ]
+}

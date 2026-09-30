@@ -1,0 +1,37 @@
+{
+  "id": "mer.rhea.wait",
+  "speaker": "Rhea",
+  "text": "Anders first, Captain. Then we’ll sail.",
+  "words": [
+    {
+      "word": "Anders",
+      "start": 0.0485409,
+      "end": 0.485416
+    },
+    {
+      "word": "first",
+      "start": 0.485416,
+      "end": 1.201458
+    },
+    {
+      "word": "Captain",
+      "start": 1.201458,
+      "end": 2.609208
+    },
+    {
+      "word": "Then",
+      "start": 2.609208,
+      "end": 2.864083
+    },
+    {
+      "word": "we’ll",
+      "start": 2.864083,
+      "end": 3.070375
+    },
+    {
+      "word": "sail",
+      "start": 3.070375,
+      "end": 3.320375
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "id": "mer.pell.02",
+  "speaker": "Pell",
+  "text": "General has updates, storage and the theme. Accounts lets you add another GitHub account.",
+  "words": [
+    {
+      "word": "General",
+      "start": 0.048083,
+      "end": 0.492791
+    },
+    {
+      "word": "has",
+      "start": 0.492791,
+      "end": 0.649041
+    },
+    {
+      "word": "updates",
+      "start": 0.649041,
+      "end": 1.322125
+    },
+    {
+      "word": "storage",
+      "start": 1.322125,
+      "end": 1.887
+    },
+    {
+      "word": "and",
+      "start": 1.887,
+      "end": 1.995208
+    },
+    {
+      "word": "the",
+      "start": 1.995208,
+      "end": 2.103375
+    },
+    {
+      "word": "theme",
+      "start": 2.103375,
+      "end": 3.401458
+    },
+    {
+      "word": "Accounts",
+      "start": 3.401458,
+      "end": 3.846166
+    },
+    {
+      "word": "lets",
+      "start": 3.846166,
+      "end": 4.086541
+    },
+    {
+      "word": "you",
+      "start": 4.086541,
+      "end": 4.242791
+    },
+    {
+      "word": "add",
+      "start": 4.242791,
+      "end": 4.423083
+    },
+    {
+      "word": "another",
+      "start": 4.423083,
+      "end": 4.735583
+    },
+    {
+      "word": "GitHub",
+      "start": 4.735583,
+      "end": 5.108166
+    },
+    {
+      "word": "account",
+      "start": 5.108166,
+      "end": 5.358166
+    }
+  ]
+}

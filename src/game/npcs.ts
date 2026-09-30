@@ -7,7 +7,10 @@ import type { CollisionWorld } from './collision';
 import { wrapAngle } from '../util/math';
 
 export interface NpcSpec {
-  id: NpcId;
+  /** Who they are in scripts and interactions (`npc:<id>`). */
+  id: string;
+  /** Their character body, when it isn't their id (Lyra plays on two islands). */
+  body?: NpcId;
   name: string;
   anchor: string;
   /** Metres to step out along the anchor heading (doors face outward). */
@@ -37,6 +40,8 @@ export interface NpcSpec {
   };
   /** Camera eye lift for generic talk framing. */
   talkEyeLift?: number;
+  /** How close you need to be to talk (default 2.6 m); wider for someone up on a stage. */
+  talkRadius?: number;
 }
 
 /** Test Cove folk (POC §4.3 cast, trimmed for the spike). Barks tease chapter-00 lessons. */
@@ -239,7 +244,7 @@ export class NpcCrowd {
       const z = start ? start[1] : home.z + Math.cos(home.heading) * out;
       const y = spec.keepY ? home.y : world.groundAt(x, z);
       const heading = npcHeading(spec, home);
-      const character = lib.create({ body: spec.id, tier, updateTarget });
+      const character = lib.create({ body: spec.body ?? (spec.id as NpcId), tier, updateTarget });
       character.group.position.set(x, y, z);
       character.group.rotation.y = heading;
       character.play(spec.patrol || spec.orbit ? 'idle' : spec.clip);

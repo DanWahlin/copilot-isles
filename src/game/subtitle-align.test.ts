@@ -3,6 +3,24 @@ import { describe, expect, it } from 'vitest';
 import { alignSubtitle } from './subtitle-align';
 
 describe('subtitle alignment', () => {
+  it('splits a timing word that covers two written words, and skips the dot a file name says', () => {
+    const merged = alignSubtitle('Your Chapter 00 setup.', ['Your', 'Chapter 00', 'setup']);
+    expect(merged?.tokens).toEqual(['Your', 'Chapter', '00', 'setup.']);
+    expect(merged?.at).toEqual([0, 1, 1, 2]);
+    const file = alignSubtitle('Point to App.tsx in it.', [
+      'Point',
+      'to',
+      'App',
+      'dot',
+      'T',
+      'S',
+      'X',
+      'in',
+      'it',
+    ]);
+    expect(file?.at).toEqual([0, 1, 2, 7, 8]);
+  });
+
   it('keeps punctuation, lights a silent symbol with the word before it, and joins split words', () => {
     const a = alignSubtitle('No tab? Select + and then Node.js.', [
       'No',

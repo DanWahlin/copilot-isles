@@ -1,0 +1,52 @@
+{
+  "id": "mer.tobias.done",
+  "speaker": "Tobias",
+  "text": "Keep your editor close and the app closer, Captain.",
+  "words": [
+    {
+      "word": "Keep",
+      "start": 0.052083,
+      "end": 0.286458
+    },
+    {
+      "word": "your",
+      "start": 0.286458,
+      "end": 0.481791
+    },
+    {
+      "word": "editor",
+      "start": 0.481791,
+      "end": 0.794291
+    },
+    {
+      "word": "close",
+      "start": 0.794291,
+      "end": 1.171875
+    },
+    {
+      "word": "and",
+      "start": 1.171875,
+      "end": 1.25
+    },
+    {
+      "word": "the",
+      "start": 1.25,
+      "end": 1.380208
+    },
+    {
+      "word": "app",
+      "start": 1.380208,
+      "end": 1.588541
+    },
+    {
+      "word": "closer",
+      "start": 1.588541,
+      "end": 2.291666
+    },
+    {
+      "word": "Captain",
+      "start": 2.291666,
+      "end": 2.541666
+    }
+  ]
+}
