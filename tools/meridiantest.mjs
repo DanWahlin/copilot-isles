@@ -161,6 +161,102 @@ await drive('welcome', (s) => !s.dialogue, 30000);
 await page.waitForTimeout(1200);
 await shot('ashore');
 
+// Walkability: flood-fill the town on a 0.5 m grid (player radius 0.35 m, 0.66 m step-up, the lift
+// joining its landings) and check every NPC can be walked to from the landing, and the clifftop cast
+// is a short walk from the lift's top.
+{
+  const reach = await S((q) => {
+    const s = window.__dev.session();
+    const w = s.world;
+    const cell = 0.5;
+    const x0 = 560,
+      z0 = -840,
+      nx = 600,
+      nz = 380;
+    const idx = (i, j) => j * nx + i;
+    const toIJ = (x, z) => [Math.round((x - x0) / cell), Math.round((z - z0) / cell)];
+    const h = new Float32Array(nx * nz);
+    const ok = new Uint8Array(nx * nz);
+    const p = { x: 0, z: 0 };
+    for (let j = 0; j < nz; j++)
+      for (let i = 0; i < nx; i++) {
+        const x = x0 + i * cell,
+          z = z0 + j * cell;
+        p.x = x;
+        p.z = z;
+        w.pushOut(p, 0.35);
+        if (Math.hypot(p.x - x, p.z - z) > 0.12) continue;
+        const y = w.groundAt(x, z);
+        if (y < w.waterAt(x, z, 0) + 0.2) continue;
+        h[idx(i, j)] = y;
+        ok[idx(i, j)] = 1;
+      }
+    const bfs = (starts) => {
+      const d = new Float32Array(nx * nz).fill(Infinity);
+      const queue = [];
+      for (const [x, z] of starts) {
+        const [ci, cj] = toIJ(x, z);
+        for (let dj = -2; dj <= 2; dj++)
+          for (let di = -2; di <= 2; di++) {
+            const k = idx(ci + di, cj + dj);
+            if (ok[k] && d[k] === Infinity) {
+              d[k] = 0;
+              queue.push(k);
+            }
+          }
+      }
+      for (let n = 0; n < queue.length; n++) {
+        const k = queue[n];
+        const i = k % nx,
+          j = (k / nx) | 0;
+        for (const [di, dj] of [
+          [1, 0],
+          [-1, 0],
+          [0, 1],
+          [0, -1],
+        ]) {
+          const a = i + di,
+            b = j + dj;
+          if (a < 0 || b < 0 || a >= nx || b >= nz) continue;
+          const m = idx(a, b);
+          if (!ok[m] || d[m] !== Infinity) continue;
+          const dy = h[m] - h[k];
+          if (dy > 0.66 || dy < -1.2) continue;
+          d[m] = d[k] + cell;
+          queue.push(m);
+        }
+      }
+      return d;
+    };
+    const near = (d, x, z, r) => {
+      const [ci, cj] = toIJ(x, z);
+      const n = Math.ceil(r / cell);
+      let best = Infinity;
+      for (let dj = -n; dj <= n; dj++)
+        for (let di = -n; di <= n; di++)
+          if (Math.hypot(di, dj) * cell <= r) best = Math.min(best, d[idx(ci + di, cj + dj)] ?? Infinity);
+      return best;
+    };
+    const lift = s.debug.liftSpots();
+    const fromLanding = bfs([[q.x, q.z]]);
+    const liftUp = near(fromLanding, lift.bottom.x, lift.bottom.z, 2.4) < Infinity;
+    const fromTop = bfs([[lift.top.x, lift.top.z]]);
+    const out = { liftUp, npcs: {} };
+    for (const n of s.debug.cast()) {
+      const r = n.id === 'lyra_meridian' ? 4.4 : 2.4;
+      const walked = Math.min(near(fromLanding, n.x, n.z, r), liftUp ? near(fromTop, n.x, n.z, r) : Infinity);
+      out.npcs[n.id] = { reachable: walked < Infinity, fromTop: Math.round(near(fromTop, n.x, n.z, r)) };
+    }
+    return out;
+  }, q);
+  if (!reach.liftUp) logs.push('[meridiantest] the lift bottom can’t be walked to from the landing');
+  for (const [id, r] of Object.entries(reach.npcs))
+    if (!r.reachable) logs.push(`[meridiantest] ${id} can’t be walked to`);
+  for (const id of ['oren', 'pell', 'admiral'])
+    if (!(reach.npcs[id]?.fromTop <= 60))
+      logs.push(`[meridiantest] ${id} is a ${reach.npcs[id]?.fromTop} m walk from the lift top`);
+}
+
 // --from=admiral skips to the exam with Chapter 01's other steps marked done.
 if (opt.from === 'admiral') {
   await S(() => {

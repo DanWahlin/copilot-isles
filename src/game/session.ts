@@ -137,9 +137,11 @@ export interface GameSession {
     talk(id: string): boolean;
     /** Interactions within `r` metres of (x, z) and whether each is usable now (tests). */
     near(x: number, z: number, r: number): { id: string; y: number; d: number; on: boolean }[];
-    /** Whether Rhea's aboard for the Three Helms, and whether the lighthouse is lit (tests). */
     /** The lift's raw anchors (tests: tx/ty/tz are the car's ends). */
     liftAnchors(): { liftBottom: unknown; liftTop: unknown };
+    /** The lift ride's camera spot and how many of its samples are blocked (tests). */
+    liftCamera(): { x: number; y: number; z: number; blocked: number } | null;
+    /** Whether Rhea's aboard for the Three Helms, and whether the lighthouse is lit (tests). */
     rheaAboard(): boolean;
     lighthouseLit(): boolean;
     /** Moves the ship while you're sailing (tests: skip the passage between islands). */
@@ -728,7 +730,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     t: number;
     call: number;
     /** Which side the camera rides on (unit, horizontal), picked for a clear view the whole way. */
-    side: { x: number; z: number; out: number; up: number };
+    cam: LiftCam | null;
   } | null = null;
   const liftShot: CameraShot = { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 };
   const liftCarAt = (k: number, out: { x: number; y: number; z: number }) => {
@@ -743,76 +745,62 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     return out;
   };
   const liftPos = { x: 0, y: 0, z: 0 };
+  type LiftCam = { x: number; y: number; z: number; blocked: number };
   /**
-   * Where the camera rides during the lift: an offset from the car (horizontal direction, distance,
-   * height) that keeps the car in clear view the whole way. Picked at the start of each ride from 12
-   * directions, two distances and two heights: a view is rejected at any point up the ride where the
-   * camera sits in or near the hillside or the line to the car dips into the ground or a wall. Ties
-   * go to the view from the harbour side (away from the bluff).
+   * The lift ride's camera: one fixed spot out on the harbour side, looking up the notch in the bluff
+   * at the car as it climbs, with the citadel above. Picked at the start of each ride from spots
+   * along the notch's axis (and a little to either side) for the clearest line to the car over the
+   * whole ride; `blocked` is how many of its 21 samples aren't clear (tests want 0).
    */
-  function liftCamera(): { x: number; z: number; out: number; up: number } {
+  function liftCamera(): LiftCam | null {
     const a = cove.meridian.town?.anchors;
     const b = a?.liftBottom,
       tp = a?.liftTop;
-    const fallback = { x: 0, z: 1, out: 16, up: 5 };
-    if (!b || !tp) return fallback;
-    let hx = b.x - tp.x,
-      hz = b.z - tp.z;
+    if (!b || !tp) return null;
+    let hx = b.tx! - tp.tx!,
+      hz = b.tz! - tp.tz!;
     const hl = Math.hypot(hx, hz) || 1;
     hx /= hl;
     hz /= hl;
     const car = { x: 0, y: 0, z: 0 };
-    const blocked = (cx: number, cy: number, cz: number) => {
-      // The camera itself: clear of the hillside around it, not just under it.
-      for (const [ox, oz] of [
-        [0, 0],
-        [2, 0],
-        [-2, 0],
-        [0, 2],
-        [0, -2],
-      ] as const)
-        if (world.groundAt(cx + ox!, cz + oz!) > cy - 1.2) return true;
-      const tx = car.x,
-        ty = car.y + 1.2,
-        tz = car.z;
-      const n = Math.ceil(Math.hypot(tx - cx, tz - cz) / 1);
-      for (let i = 1; i < n; i++) {
+    const blocked = (c: { x: number; y: number; z: number }) => {
+      if (world.groundAt(c.x, c.z) > c.y - 1.2) return true;
+      const ty = car.y + 1.2;
+      const n = Math.ceil(Math.hypot(car.x - c.x, ty - c.y, car.z - c.z) / 0.75);
+      for (let i = 1; i < n - 2; i++) {
         const t = i / n;
-        const x = cx + (tx - cx) * t,
-          y = cy + (ty - cy) * t,
-          z = cz + (tz - cz) * t;
-        if (y < world.groundAt(x, z) + 0.4 || world.occludedAt(x, y, z, 0.15)) return true;
+        const x = c.x + (car.x - c.x) * t,
+          y = c.y + (ty - c.y) * t,
+          z = c.z + (car.z - c.z) * t;
+        if (y < world.groundAt(x, z) + 0.4 || world.sightBlockedAt(x, y, z, 0.15)) return true;
       }
       return false;
     };
-    let best = fallback,
+    let best: LiftCam | null = null,
       bestScore = Infinity;
-    for (let d = 0; d < 12; d++) {
-      const ang = (d / 12) * Math.PI * 2;
-      const x = Math.sin(ang),
-        z = Math.cos(ang);
-      for (const out of [14, 20])
-        for (const up of [4, 7]) {
+    for (const d of [22, 32, 45, 60])
+      for (const u of [3, 8, 14, 22])
+        for (const sd of [0, -8, 8]) {
+          const c = { x: b.tx! + hx * d + hz * sd, y: b.ty! + u, z: b.tz! + hz * d - hx * sd };
           let bad = 0;
-          for (let k = 0.02; k < 1; k += 0.12) {
-            liftCarAt(k, car);
-            if (blocked(car.x + x * out, car.y + up, car.z + z * out)) bad += 1;
+          for (let i = 0; i <= 20; i++) {
+            liftCarAt(i / 20, car);
+            if (blocked(c)) bad += 1;
           }
-          // Blocked samples dominate; then the harbour side, then closer and lower.
-          const score = bad * 10 - (x * hx + z * hz) * 2 + out * 0.05 + up * 0.05;
+          // Clear first, then close, low and square on (a steep or distant view loses the car).
+          const score = bad * 10 + d * 0.03 + u * 0.04 + Math.abs(sd) * 0.03;
           if (score < bestScore) {
             bestScore = score;
-            best = { x, z, out, up };
+            best = { ...c, blocked: bad };
           }
         }
-    }
     return best;
   }
 
   function rideLift(up: boolean): void {
     if (liftRide || mode !== 'walk' || !cove.meridian.town) return;
     const to = up ? 1 : 0;
-    liftRide = { from: 1 - to, to, t: 0, call: liftAt === 1 - to ? 0 : 2.4, side: liftCamera() };
+    liftRide = { from: 1 - to, to, t: 0, call: liftAt === 1 - to ? 0 : 2.4, cam: liftCamera() };
     mode = 'transition';
     input.enabled = false;
     hero.setSpeed(0);
@@ -834,13 +822,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     const k = r.from + (r.to - r.from) * r.t;
     town.setLiftCar(k);
     liftCarAt(k, liftPos);
-    // Stand in the car looking out toward the camera, which rides alongside on the clear side.
-    const side = r.side;
+    const b0 = town.anchors.liftBottom!,
+      t0 = town.anchors.liftTop!;
+    // Stand in the car looking out over the harbour, toward the camera out on the quay.
+    const out = { x: b0.x - t0.x, z: b0.z - t0.z };
     hero.group.position.set(liftPos.x, liftPos.y + 0.2, liftPos.z);
-    hero.group.rotation.y = Math.atan2(side.x, side.z);
-    liftShot.x = liftPos.x + side.x * side.out;
-    liftShot.z = liftPos.z + side.z * side.out;
-    liftShot.y = Math.max(liftPos.y + side.up, world.groundAt(liftShot.x, liftShot.z) + 2.5);
+    hero.group.rotation.y = Math.atan2(out.x, out.z);
+    liftShot.x = r.cam?.x ?? liftPos.x + out.x;
+    liftShot.y = r.cam?.y ?? liftPos.y + 6;
+    liftShot.z = r.cam?.z ?? liftPos.z + out.z;
     liftShot.tx = liftPos.x;
     liftShot.ty = liftPos.y + 1.2;
     liftShot.tz = liftPos.z;
@@ -850,12 +840,13 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     liftAt = r.to;
     liftRide = null;
     const a = town.anchors[r.to === 1 ? 'liftTop' : 'liftBottom']!;
-    // Step out facing onward: toward Oren up top, back down the arm at the bottom.
-    const heading =
-      r.to === 1
-        ? Math.atan2((town.anchors.oren?.x ?? a.x) - a.x, (town.anchors.oren?.z ?? a.z) - a.z)
-        : Math.PI;
-    placePlayer(a.x, a.z, heading);
+    // Step off the landing facing away from the lift: inland up top (the camera hangs over the notch
+    // with the harbour behind you), back down the arm at the bottom.
+    const b1 = town.anchors.liftBottom!,
+      t1 = town.anchors.liftTop!;
+    const heading = r.to === 1 ? Math.atan2(t1.x - b1.x, t1.z - b1.z) : Math.PI;
+    const step = r.to === 1 ? 1.6 : 0;
+    placePlayer(a.x + Math.sin(heading) * step, a.z + Math.cos(heading) * step, heading);
     cam.snapBehind(heading);
     cam.frame(null);
     mode = 'walk';
@@ -1776,6 +1767,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         liftBottom: cove.meridian.town?.anchors.liftBottom ?? null,
         liftTop: cove.meridian.town?.anchors.liftTop ?? null,
       }),
+      liftCamera: () => liftCamera(),
       rheaAboard: () => !!rheaAboard?.group.parent,
       lighthouseLit: () => lighthouseLit,
       cast: () =>
