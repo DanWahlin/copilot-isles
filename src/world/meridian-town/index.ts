@@ -342,7 +342,7 @@ export function createMeridianTown({
     };
   };
 
-  addHarbour(buckets, colliders, shipObstacles, perches, low);
+  addHarbour(buckets, colliders, shipObstacles, perches, low, anchor);
   addMoleAndLighthouse(buckets, colliders, shipObstacles, perches, kit, lighthouseGlow, anchor);
   addHarbourFront(buckets, colliders, stairSpans, perches, heightField, kit, low, anchor);
   addStairStreet(buckets, colliders);
@@ -357,6 +357,19 @@ export function createMeridianTown({
 
   anchor('rhea', { x: 761.4, z: -699.2, heading: -Math.PI / 2, tx: 755.2, ty: 3.8, tz: -704 });
   anchor('crateYard', { x: 594.2, z: -759.2, heading: Math.PI / 2, tx: 586, ty: 3, tz: -752 });
+  anchor('extraStall', { x: 768.4, z: -760.5, heading: Math.PI / 2, tx: 779, ty: 4.4, tz: -760.5 });
+  anchor('extraFountain', { x: 668, z: -797.2, heading: 0, tx: 668, ty: PLAZA.height + 1.5, tz: -797.2 });
+  anchor('extraQuayA', { x: 690, z: -762.6, heading: Math.PI / 2, tx: 704, ty: 3.2, tz: -758 });
+  anchor('extraQuayB', { x: 716, z: -762.6, heading: -Math.PI / 2, tx: 704, ty: 3.2, tz: -758 });
+  anchor('extraCitadel', {
+    x: 786.3,
+    y: CITADEL.height,
+    z: -803.3,
+    heading: 2.53,
+    tx: 784,
+    ty: CITADEL.height + 3,
+    tz: -800,
+  });
 
   group.add(lighthouseGlow, liftCar);
   setLiftCarPosition(liftCar, 0);
@@ -441,6 +454,7 @@ function addHarbour(
   shipObstacles: CircleObstacle[],
   perches: Vector3[],
   low: boolean,
+  anchor: (id: string, a: BasicAnchor) => void,
 ): void {
   const { quay, eastArm } = MERIDIAN.harbor;
   const deck = quay.height;
@@ -634,6 +648,17 @@ function addHarbour(
   }
   for (const z of [-760, -742, -724, -666])
     addBollard(buckets, colliders, perches, eastArm.x1 - 3.3, deck, z);
+
+  const extraBenchY = addBenchSeat(buckets, 684.2, deck, -764.2, 0, 1.0);
+  anchor('extraBench', {
+    x: 684.2,
+    y: extraBenchY,
+    z: -764.2,
+    heading: 0,
+    tx: 684.2,
+    ty: deck + 1.2,
+    tz: -752,
+  });
 
   addLampPost(buckets, colliders, perches, 594, deck, -764, 0);
   addLampPost(buckets, colliders, perches, 734, deck, -764, 0);
@@ -853,6 +878,21 @@ function addMoleAndLighthouse(
   );
   for (let t = 0.08; t <= 0.94; t += 0.1)
     shipObstacles.push({ x: m.start.x + dx * t, z: m.start.z + dz * t, r: m.width * 0.42 });
+
+  const invLen = 1 / Math.max(1e-6, len);
+  const edgeX = m.start.x + dx * 0.58 + dz * invLen * (m.width * 0.56);
+  const edgeZ = m.start.z + dz * 0.58 - dx * invLen * (m.width * 0.56);
+  const seaHeading = Math.atan2(dz * invLen, -dx * invLen);
+  const fisherSeatY = addBenchSeat(buckets, edgeX, m.height, edgeZ, seaHeading, 0.74);
+  anchor('extraFisher', {
+    x: edgeX,
+    y: fisherSeatY,
+    z: edgeZ,
+    heading: seaHeading,
+    tx: edgeX + Math.sin(seaHeading) * 10,
+    ty: m.height + 1.2,
+    tz: edgeZ + Math.cos(seaHeading) * 10,
+  });
 
   const l = m.lighthouse;
   addDiscPaving(buckets, l.x, m.height + 0.02, l.z, l.radius, 0xe8cf9a, 32);
@@ -2800,7 +2840,7 @@ function addFountain(
   addCylinderGeom(buckets.stone, x, y + 0.52, z, 0.56, 0.82, 1.65, 14, 0, LIMESTONE_LIGHT);
   addCone(buckets.stone, x, y + 2.05, z, 1.05, 1.1, 14, 0, LIMESTONE_LIGHT);
   addCylinderGeom(buckets.glow, x, y + 1.9, z, 0.38, 0.38, 0.03, 14, 0, 0x6dbad0);
-  colliders.circles.push({ x, z, r: 3.25 });
+  void colliders;
   perches.push(new Vector3(x, y + 2.9, z));
 }
 
@@ -3512,6 +3552,29 @@ function addBench(
       addBox(buckets, 'wood', p.x, y, p.z, 0.12, 0.55, 0.12, rot, DARK_WOOD);
     }
   colliders.boxes.push({ x, z, hx: 1.05, hz: 0.42, rot, height: 1.2 });
+}
+
+function addBenchSeat(buckets: Buckets, x: number, y: number, z: number, heading: number, s: number): number {
+  const seatY = y + 0.46 * s;
+  addBox(buckets, 'wood', x, seatY, z, 1.65 * s, 0.16 * s, 0.48 * s, heading, 0x7a5232);
+  addBox(
+    buckets,
+    'wood',
+    x - Math.sin(heading) * 0.28 * s,
+    seatY + 0.38 * s,
+    z - Math.cos(heading) * 0.28 * s,
+    1.6 * s,
+    0.48 * s,
+    0.12 * s,
+    heading,
+    0x6b4427,
+  );
+  for (const lx of [-0.62, 0.62])
+    for (const lz of [-0.14, 0.14]) {
+      const p = localToWorld(x, z, heading, lx * s, lz * s);
+      addBox(buckets, 'wood', p.x, y, p.z, 0.1 * s, 0.46 * s, 0.1 * s, heading, DARK_WOOD);
+    }
+  return seatY + 0.16 * s;
 }
 
 function addStringLanterns(
