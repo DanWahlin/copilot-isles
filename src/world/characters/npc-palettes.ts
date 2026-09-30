@@ -7,6 +7,7 @@ type Swatch = readonly [x: number, y: number];
 
 interface PaletteSlots {
   readonly skin: Hex;
+  readonly eyes: Hex;
   readonly hair: Hex;
   readonly shirt: Hex;
   readonly vest: Hex;
@@ -21,6 +22,7 @@ type AtlasFamily = 'captain' | 'anne' | 'henry';
 
 interface AtlasSwatches {
   readonly skin: readonly Swatch[];
+  readonly eyes: readonly Swatch[];
   readonly hair: readonly Swatch[];
   readonly shirt: readonly Swatch[];
   readonly vest: readonly Swatch[];
@@ -49,13 +51,15 @@ const SOURCE_FAMILY: Record<SourceKey, AtlasFamily> = {
  * - Anne body row 9: hair 5, skin 4, top 0, sleeve/vest 3/7, trousers/boots 2, belt/accent 1,
  *   eyes 8, lids 6.
  * - Henry body row 11: skin 4, hair 5, head cloth 2/9, shirt 3, vest 6, trousers 8, eyes 7.
- * The eye cells hold only the two eyeballs and keep the kit's near-black, so no palette paints them.
+ * The eye cells hold only the two eyeballs and are painted through the dedicated eyes slot, never
+ * by the clothing, hair or skin slots (issue #142).
  */
 export const ATLAS_EYES: Record<AtlasFamily, Swatch> = { captain: [6, 7], anne: [8, 9], henry: [7, 11] };
 
 export const ATLAS_SWATCHES: Record<AtlasFamily, AtlasSwatches> = {
   captain: {
     skin: [[0, 7]],
+    eyes: [ATLAS_EYES.captain],
     hair: [[5, 7]],
     shirt: [[4, 7]],
     vest: [
@@ -73,6 +77,7 @@ export const ATLAS_SWATCHES: Record<AtlasFamily, AtlasSwatches> = {
   },
   anne: {
     skin: [[4, 9]],
+    eyes: [ATLAS_EYES.anne],
     hair: [[5, 9]],
     shirt: [[0, 9]],
     vest: [
@@ -87,6 +92,7 @@ export const ATLAS_SWATCHES: Record<AtlasFamily, AtlasSwatches> = {
   },
   henry: {
     skin: [[4, 11]],
+    eyes: [ATLAS_EYES.henry],
     hair: [[5, 11]],
     shirt: [[3, 11]],
     vest: [[6, 11]],
@@ -120,6 +126,16 @@ const HAIR = {
   white: 0xe5dfcf,
 } as const;
 
+const EYES = {
+  warmBrown: 0x2f2115,
+  deepBrown: 0x17100c,
+  hazel: 0x2f3924,
+  olive: 0x26362a,
+  blue: 0x1f3f5f,
+  grey: 0x3f5154,
+  amber: 0x4d3517,
+} as const;
+
 const OUTFIT = {
   cream: 0xd4c1a0,
   sailcloth: 0xb7a281,
@@ -133,11 +149,17 @@ const OUTFIT = {
   brown: 0x644028,
   charcoal: 0x282923,
   plum: 0x5f426f,
+  bottle: 0x1f4a34,
+  terracotta: 0xb24a2e,
+  sky: 0x2f6fa1,
+  brass: 0xc4932d,
+  indigo: 0x17396a,
 } as const;
 
 export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
   nell: {
     skin: SKIN.fair,
+    eyes: EYES.hazel,
     hair: HAIR.auburn,
     shirt: OUTFIT.cream,
     vest: OUTFIT.navy,
@@ -146,6 +168,7 @@ export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
   },
   merchant: {
     skin: SKIN.fair,
+    eyes: EYES.blue,
     hair: HAIR.chestnut,
     shirt: OUTFIT.cream,
     vest: OUTFIT.blue,
@@ -156,6 +179,7 @@ export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
   },
   dockhand_a: {
     skin: SKIN.deep,
+    eyes: EYES.amber,
     hair: HAIR.black,
     shirt: OUTFIT.sailcloth,
     vest: OUTFIT.teal,
@@ -166,6 +190,7 @@ export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
   },
   dockhand_b: {
     skin: SKIN.weatheredMedium,
+    eyes: EYES.olive,
     hair: HAIR.darkBrown,
     shirt: OUTFIT.cream,
     vest: OUTFIT.oxblood,
@@ -176,6 +201,7 @@ export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
   },
   fisherman: {
     skin: SKIN.olive,
+    eyes: EYES.grey,
     hair: HAIR.grey,
     shirt: OUTFIT.sailcloth,
     vest: OUTFIT.brown,
@@ -186,6 +212,7 @@ export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
   },
   old_sailor: {
     skin: SKIN.fair,
+    eyes: EYES.blue,
     hair: HAIR.white,
     shirt: OUTFIT.sailcloth,
     vest: OUTFIT.charcoal,
@@ -195,6 +222,7 @@ export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
   },
   child: {
     skin: SKIN.lightMedium,
+    eyes: EYES.warmBrown,
     hair: HAIR.darkBrown,
     shirt: OUTFIT.cream,
     vest: OUTFIT.teal,
@@ -205,6 +233,7 @@ export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
   },
   suri: {
     skin: SKIN.deep,
+    eyes: EYES.hazel,
     hair: HAIR.black,
     shirt: OUTFIT.cream,
     vest: OUTFIT.green,
@@ -213,6 +242,7 @@ export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
   },
   pim: {
     skin: SKIN.lightMedium,
+    eyes: EYES.amber,
     hair: HAIR.chestnut,
     shirt: OUTFIT.cream,
     vest: OUTFIT.red,
@@ -223,6 +253,7 @@ export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
   },
   pol: {
     skin: SKIN.lightMedium,
+    eyes: EYES.olive,
     hair: HAIR.chestnut,
     shirt: OUTFIT.cream,
     vest: OUTFIT.green,
@@ -231,6 +262,7 @@ export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
   },
   juno: {
     skin: SKIN.medium,
+    eyes: EYES.grey,
     hair: HAIR.black,
     shirt: OUTFIT.cream,
     vest: OUTFIT.navy,
@@ -239,6 +271,7 @@ export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
   },
   lyra: {
     skin: SKIN.fair,
+    eyes: EYES.blue,
     hair: HAIR.blonde,
     shirt: OUTFIT.cream,
     vest: OUTFIT.plum,
@@ -247,11 +280,83 @@ export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
   },
   lookout: {
     skin: SKIN.olive,
+    eyes: EYES.warmBrown,
     hair: HAIR.darkBrown,
     shirt: OUTFIT.cream,
     vest: OUTFIT.blue,
     trousers: OUTFIT.teal,
     sash: OUTFIT.ochre,
+  },
+  tobias: {
+    skin: SKIN.weatheredMedium,
+    eyes: EYES.hazel,
+    hair: HAIR.grey,
+    shirt: OUTFIT.cream,
+    vest: OUTFIT.teal,
+    trousers: OUTFIT.charcoal,
+    sash: OUTFIT.brass,
+    bandana: HAIR.grey,
+    bandanaStripe: HAIR.grey,
+  },
+  mina: {
+    skin: SKIN.olive,
+    eyes: EYES.deepBrown,
+    hair: HAIR.black,
+    shirt: OUTFIT.cream,
+    vest: OUTFIT.sky,
+    trousers: OUTFIT.terracotta,
+    sash: OUTFIT.brass,
+  },
+  anders: {
+    skin: SKIN.lightMedium,
+    eyes: EYES.grey,
+    hair: HAIR.auburn,
+    shirt: OUTFIT.sailcloth,
+    vest: OUTFIT.brown,
+    trousers: OUTFIT.navy,
+    sash: OUTFIT.oxblood,
+    bandana: HAIR.auburn,
+    bandanaStripe: HAIR.auburn,
+  },
+  rhea: {
+    skin: SKIN.fair,
+    eyes: EYES.blue,
+    hair: HAIR.black,
+    shirt: OUTFIT.cream,
+    vest: OUTFIT.oxblood,
+    trousers: OUTFIT.charcoal,
+    sash: OUTFIT.brass,
+  },
+  oren: {
+    skin: SKIN.lightMedium,
+    eyes: EYES.grey,
+    hair: HAIR.white,
+    shirt: OUTFIT.sailcloth,
+    vest: OUTFIT.plum,
+    trousers: OUTFIT.charcoal,
+    sash: OUTFIT.brass,
+    bandana: OUTFIT.plum,
+    bandanaStripe: OUTFIT.brass,
+  },
+  pell: {
+    skin: SKIN.fair,
+    eyes: EYES.olive,
+    hair: HAIR.white,
+    shirt: OUTFIT.sailcloth,
+    vest: OUTFIT.bottle,
+    trousers: OUTFIT.charcoal,
+    sash: OUTFIT.blue,
+    bandana: HAIR.white,
+    bandanaStripe: HAIR.white,
+  },
+  admiral: {
+    skin: SKIN.medium,
+    eyes: EYES.hazel,
+    hair: HAIR.grey,
+    shirt: OUTFIT.cream,
+    vest: OUTFIT.navy,
+    trousers: OUTFIT.charcoal,
+    sash: OUTFIT.red,
   },
 };
 
@@ -291,6 +396,7 @@ function textureForNpc(
   const palette = NPC_PALETTES[body];
   const swatches = ATLAS_SWATCHES[family];
   paint(ctx, swatches.skin, palette.skin, cell);
+  paint(ctx, swatches.eyes, palette.eyes, cell);
   paint(ctx, swatches.hair, palette.hair, cell);
   paint(ctx, swatches.shirt, palette.shirt, cell);
   paint(ctx, swatches.vest, palette.vest, cell);

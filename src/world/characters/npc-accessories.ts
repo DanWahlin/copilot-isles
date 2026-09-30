@@ -89,6 +89,50 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
     case 'lyra':
       addLute(root);
       break;
+    case 'tobias':
+      addWideBrimFeltHat(root, 0x55341f, 0xc68b35);
+      addApron(root, 0xc18a4b, 0x4a2f1e);
+      addMoneyPouch(root, 0x8b5428, -1);
+      addMerchantScales(root, 1);
+      break;
+    case 'mina':
+      addSunHat(root, 0xdeb85a, 0x1f8a93);
+      addSatchel(root, 0x8b4f24, -1);
+      addRolledMapInHand(root, -1);
+      break;
+    case 'anders':
+      addFlatCap(root, 0x5d4a2f);
+      addBeard(root, 0x9b3f1f);
+      addApron(root, 0x5b351f, 0x2c1b12);
+      addMalletInHand(root, -1);
+      addPencilBehindEar(root, 1);
+      break;
+    case 'rhea':
+      addNavalTricorn(root, 0x11131c, 0xd7b15a);
+      addNavalCoat(root, 0x7a1f2d, 0xf0dfbd, false, 0xd6b35f);
+      addSpyglassInHand(root, 1);
+      break;
+    case 'oren':
+      addSoftStarCap(root, 0x4b255f, 0xd8bb62);
+      addSpectacles(root, SPECTACLES.oren, 0xd7c586);
+      addBeard(root, 0xe5dfcf);
+      addAstronomerRobe(root, 0x4b2e5f, 0xd8bb62);
+      addAstrolabeInHand(root, -1);
+      break;
+    case 'pell':
+      addPeriwig(root, 0xf0ead8, 0x2f3540);
+      addSpectacles(root, SPECTACLES.pell, 0xd9d0aa);
+      addArchivistCoat(root, 0x1f4a34, 0xe9dec8);
+      addLedgerInHand(root, 0x4b2e5f, 1);
+      addQuillBehindEar(root, -1);
+      break;
+    case 'admiral':
+      addBicorne(root, 0x121a2b, 0xf2ede0);
+      addPlume(root, 0xf2ede0);
+      addNavalCoat(root, 0x172d59, 0xe0bd63, true);
+      addSash(root, 0x9f2630, 1);
+      addMedals(root);
+      break;
     case 'lookout':
       addWatchCap(root, 0x24394a);
       addSpyglass(root, -1);
@@ -154,12 +198,134 @@ function addStrawHat(root: Group): void {
   addHead(root, crown);
 }
 
+function addWideBrimFeltHat(root: Group, felt: ColorHex, band: ColorHex): void {
+  const brim = mesh(new CylinderGeometry(0.43, 0.45, 0.036, 18), mat(felt), 'wide felt brim');
+  brim.position.set(0, 0.215, 0.01);
+  brim.scale.set(1.08, 0.34, 0.8);
+  addHead(root, brim);
+
+  const crown = mesh(new CylinderGeometry(0.22, 0.26, 0.2, 14), mat(felt), 'merchant hat crown');
+  crown.position.set(0, 0.31, 0);
+  crown.scale.set(1, 0.86, 0.88);
+  addHead(root, crown);
+
+  const hatband = mesh(new TorusGeometry(0.235, 0.012, 5, 18), mat(band), 'merchant hat band');
+  hatband.position.set(0, 0.255, 0.005);
+  hatband.rotation.x = Math.PI / 2;
+  hatband.scale.set(1, 0.84, 1);
+  addHead(root, hatband);
+}
+
+function addSunHat(root: Group, straw: ColorHex, ribbon: ColorHex): void {
+  const brim = mesh(new CylinderGeometry(0.48, 0.5, 0.028, 20), mat(straw), 'sun hat broad brim');
+  brim.position.set(0, 0.22, 0.018);
+  brim.scale.set(1.12, 0.28, 0.78);
+  brim.rotation.x = 0.05;
+  addHead(root, brim);
+
+  const crown = mesh(new CylinderGeometry(0.18, 0.24, 0.2, 14), mat(0xc8973f), 'sun hat crown');
+  crown.position.set(0, 0.315, 0.0);
+  crown.scale.set(1, 0.82, 0.86);
+  addHead(root, crown);
+
+  const band = mesh(new TorusGeometry(0.22, 0.012, 5, 18), mat(ribbon), 'sun hat ribbon');
+  band.position.set(0, 0.255, 0.005);
+  band.rotation.x = Math.PI / 2;
+  band.scale.set(1, 0.82, 1);
+  addHead(root, band);
+
+  const bow = mesh(new BoxGeometry(0.12, 0.045, 0.018), mat(ribbon), 'sun hat ribbon bow');
+  bow.position.set(-0.2, 0.255, 0.17);
+  bow.rotation.z = -0.35;
+  addHead(root, bow);
+}
+
+function addFlatCap(root: Group, wool: ColorHex): void {
+  const crown = mesh(new SphereGeometry(0.29, 14, 6), mat(wool), 'flat cap crown');
+  crown.position.set(0, 0.205, 0.0);
+  crown.scale.set(1.26, 0.2, 0.9);
+  addHead(root, crown);
+
+  const button = mesh(new SphereGeometry(0.026, 6, 4), mat(0x3e2f1f), 'flat cap button');
+  button.position.set(0, 0.26, 0.02);
+  button.scale.set(1, 0.3, 1);
+  addHead(root, button);
+
+  const bill = mesh(new BoxGeometry(0.24, 0.02, 0.12), mat(wool), 'flat cap bill');
+  bill.position.set(0, 0.19, 0.22);
+  bill.rotation.x = -0.08;
+  addHead(root, bill);
+}
+
+function addNavalTricorn(root: Group, felt: ColorHex, trim: ColorHex): void {
+  const hat = mesh(
+    createTricornGeometry(
+      { base: 0.205, rx: 0.29, front: 0.27, back: 0.31, crown: 0.24, brim: 0.25, tilt: 0.1 },
+      { felt: [0, 0], trim: [0, 0], band: [0, 0] },
+    ),
+    mat(felt),
+    'naval tricorn',
+  );
+  addHead(root, hat);
+
+  const braid = mesh(new TorusGeometry(0.31, 0.008, 5, 28), mat(trim), 'tricorn gold braid');
+  braid.position.set(0, 0.26, 0.02);
+  braid.rotation.x = Math.PI / 2;
+  braid.scale.set(1.05, 0.74, 1);
+  addHead(root, braid);
+
+  const cockade = mesh(new SphereGeometry(0.04, 8, 5), mat(trim), 'tricorn cockade');
+  cockade.position.set(0.18, 0.295, 0.23);
+  cockade.scale.set(1, 0.55, 0.25);
+  addHead(root, cockade);
+}
+
+function addSoftStarCap(root: Group, cloth: ColorHex, stitch: ColorHex): void {
+  const cap = mesh(new SphereGeometry(0.32, 16, 8), mat(cloth), 'star cap crown');
+  cap.position.set(0, 0.205, 0.005);
+  cap.scale.set(1.08, 0.36, 0.9);
+  addHead(root, cap);
+
+  const band = mesh(new TorusGeometry(0.285, 0.026, 6, 22), mat(cloth), 'star cap brim band');
+  band.position.set(0, 0.14, 0.0);
+  band.rotation.x = Math.PI / 2;
+  band.scale.set(1.05, 0.78, 1);
+  addHead(root, band);
+
+  for (const side of [-1, 1] as const) {
+    const tuck = mesh(new SphereGeometry(0.12, 8, 5), mat(cloth), 'star cap tucked tail cover');
+    tuck.position.set(side * 0.22, 0.12, -0.08);
+    tuck.scale.set(0.72, 0.8, 0.45);
+    addHead(root, tuck);
+  }
+
+  for (const [x, y, z] of [
+    [-0.13, 0.27, 0.26],
+    [0.04, 0.295, 0.27],
+    [0.15, 0.255, 0.23],
+  ] as const) {
+    const star = mesh(new SphereGeometry(0.026, 5, 4), mat(stitch), 'star cap embroidery');
+    star.position.set(x, y, z);
+    star.scale.set(1, 0.48, 0.26);
+    addHead(root, star);
+  }
+}
+
+function addPlume(root: Group, color: ColorHex): void {
+  for (let i = 0; i < 4; i += 1) {
+    const plume = mesh(new BoxGeometry(0.04, 0.28 - i * 0.035, 0.018), mat(color), 'white plume');
+    plume.position.set(0.12 + i * 0.018, 0.48 + i * 0.015, 0.12 - i * 0.012);
+    plume.rotation.set(0.2, -0.25, -0.35 - i * 0.12);
+    addHead(root, plume);
+  }
+}
+
 /**
  * Where a pair of spectacles sits on one face, in accessory units (the head bone's origin is at the
  * jaw). Measured from each rig's eye meshes and face depth, since the two rigs differ: Nell's eyes
  * sit lower and closer together, Ezra's are higher and wider, with a longer nose to bridge.
  */
-interface SpectacleFit {
+export interface SpectacleFit {
   /** Lens centre, over the pupil. */
   eyeX: number;
   eyeY: number;
@@ -174,7 +340,7 @@ interface SpectacleFit {
   ear: readonly [x: number, z: number];
 }
 
-const SPECTACLES: Record<'nell' | 'merchant', SpectacleFit> = {
+export const SPECTACLES: Record<'nell' | 'merchant' | 'oren' | 'pell', SpectacleFit> = {
   nell: {
     eyeX: 0.122,
     eyeY: 0.063,
@@ -195,13 +361,33 @@ const SPECTACLES: Record<'nell' | 'merchant', SpectacleFit> = {
     temple: [0.235, 0.13],
     ear: [0.268, 0.0],
   },
+  oren: {
+    eyeX: 0.136,
+    eyeY: 0.088,
+    radius: 0.056,
+    lensZ: 0.258,
+    bridgeY: 0.108,
+    bridgeZ: 0.292,
+    temple: [0.232, 0.135],
+    ear: [0.266, 0.006],
+  },
+  pell: {
+    eyeX: 0.125,
+    eyeY: 0.086,
+    radius: 0.047,
+    lensZ: 0.258,
+    bridgeY: 0.102,
+    bridgeZ: 0.292,
+    temple: [0.214, 0.14],
+    ear: [0.26, 0.012],
+  },
 };
 
 /** Lenses wrap back a touch at their outer edge to follow the face. */
 const LENS_WRAP = 0.18;
 
 /** Round wire spectacles over the eyes, bridged over the nose, with arms back to the ears. */
-function addSpectacles(root: Group, fit: SpectacleFit): void {
+function addSpectacles(root: Group, fit: SpectacleFit, color: ColorHex = 0xd9c38f): void {
   const parts: BufferGeometry[] = [];
   const wire = 0.0065;
   const cos = Math.cos(LENS_WRAP);
@@ -234,7 +420,7 @@ function addSpectacles(root: Group, fit: SpectacleFit): void {
   );
   const geometry = mergeGeometries(parts, false)!;
   for (const part of parts) part.dispose();
-  addHead(root, mesh(geometry, mat(0xd9c38f), 'spectacles'));
+  addHead(root, mesh(geometry, mat(color), 'spectacles'));
 }
 
 /** A thin square rod from `a` to `b`. */
@@ -293,6 +479,34 @@ function addSatchel(root: Group, color: ColorHex, side: -1 | 1): void {
   addRoot(root, bag, 'Hips');
 }
 
+function addApron(root: Group, leather: ColorHex, straps: ColorHex): void {
+  const bib = mesh(new BoxGeometry(0.24, 0.28, 0.025), mat(leather), 'merchant apron bib');
+  bib.position.set(0, 0.64, 0.115);
+  addRoot(root, bib, 'Torso');
+
+  const skirt = mesh(new BoxGeometry(0.3, 0.34, 0.026), mat(leather), 'merchant apron skirt');
+  skirt.position.set(0, 0.4, 0.105);
+  addRoot(root, skirt, 'Hips');
+
+  for (const side of [-1, 1] as const) {
+    const strap = mesh(new BoxGeometry(0.03, 0.36, 0.018), mat(straps), 'apron cross strap');
+    strap.position.set(side * 0.085, 0.72, 0.125);
+    strap.rotation.z = side * 0.34;
+    addRoot(root, strap, 'Torso');
+  }
+}
+
+function addMoneyPouch(root: Group, leather: ColorHex, side: -1 | 1): void {
+  const pouch = mesh(new SphereGeometry(0.075, 8, 5), mat(leather), 'money pouch');
+  pouch.position.set(side * 0.24, 0.42, 0.08);
+  pouch.scale.set(0.85, 0.95, 0.55);
+  addRoot(root, pouch, 'Hips');
+
+  const flap = mesh(new BoxGeometry(0.095, 0.035, 0.015), mat(0xc38b42), 'money pouch clasp');
+  flap.position.set(side * 0.24, 0.48, 0.125);
+  addRoot(root, flap, 'Hips');
+}
+
 function addLedger(root: Group, color: ColorHex, side: -1 | 1): void {
   // Held flat against the chest, as if hugged.
   const book = mesh(new BoxGeometry(0.2, 0.26, 0.035), mat(color), 'ledger');
@@ -303,6 +517,18 @@ function addLedger(root: Group, color: ColorHex, side: -1 | 1): void {
   page.position.set(side * 0.1, 0.52, 0.13);
   page.rotation.copy(book.rotation);
   addRoot(root, page, 'Torso');
+}
+
+function addLedgerInHand(root: Group, color: ColorHex, side: -1 | 1): void {
+  const book = mesh(new BoxGeometry(0.18, 0.24, 0.035), mat(color), 'ledger');
+  book.position.set(side * 0.34, 0.34, 0.08);
+  book.rotation.set(-0.18, side * 0.34, side * 0.04);
+  addRoot(root, book, lowerArmName(side));
+
+  const page = mesh(new BoxGeometry(0.15, 0.2, 0.008), mat(0xe8dcb8), 'ledger page');
+  page.position.set(side * 0.34, 0.34, 0.102);
+  page.rotation.copy(book.rotation);
+  addRoot(root, page, lowerArmName(side));
 }
 
 function addScroll(root: Group, side: -1 | 1): void {
@@ -376,6 +602,259 @@ function addTool(root: Group, metal: ColorHex, side: -1 | 1): void {
   const head = mesh(new BoxGeometry(0.05, 0.05, 0.14), mat(metal), 'tool head');
   head.position.set(side * 0.23, 0.49, -0.08);
   addRoot(root, head, 'Hips');
+}
+
+function addMerchantScales(root: Group, side: -1 | 1): void {
+  const x = side * 0.26;
+  const top = new Vector3(x, 0.62, 0.16);
+  const center = new Vector3(x, 0.52, 0.17);
+  const left = new Vector3(x - 0.1, 0.51, 0.17);
+  const right = new Vector3(x + 0.1, 0.51, 0.17);
+  const parts = [
+    rod(top, center, 0.008),
+    rod(left, right, 0.009),
+    rod(left, new Vector3(left.x, 0.43, 0.18), 0.005),
+    rod(right, new Vector3(right.x, 0.43, 0.18), 0.005),
+  ];
+  const geometry = mergeGeometries(parts, false)!;
+  for (const part of parts) part.dispose();
+  addRoot(root, mesh(geometry, mat(0xd0a14b), 'merchant scales'), lowerArmName(side));
+
+  for (const panX of [left.x, right.x]) {
+    const pan = mesh(new CylinderGeometry(0.045, 0.06, 0.012, 10), mat(0xc38b42), 'scale pan');
+    pan.position.set(panX, 0.42, 0.18);
+    addRoot(root, pan, lowerArmName(side));
+  }
+}
+
+function addRolledMapInHand(root: Group, side: -1 | 1): void {
+  const scroll = mesh(new CylinderGeometry(0.034, 0.034, 0.28, 10), mat(0xe2c98f), 'rolled map in hand');
+  scroll.position.set(side * 0.26, 0.49, 0.15);
+  scroll.rotation.set(0.2, 0.1 * side, Math.PI / 2 + side * 0.2);
+  addRoot(root, scroll, lowerArmName(side));
+
+  const band = mesh(new CylinderGeometry(0.037, 0.037, 0.032, 8), mat(0x1f8a93), 'map ribbon');
+  band.position.copy(scroll.position);
+  band.rotation.copy(scroll.rotation);
+  addRoot(root, band, lowerArmName(side));
+}
+
+function addMalletInHand(root: Group, side: -1 | 1): void {
+  const handle = mesh(new BoxGeometry(0.028, 0.34, 0.028), mat(0x5b351f), 'shipwright mallet handle');
+  handle.position.set(side * 0.27, 0.43, 0.13);
+  handle.rotation.set(0.1, 0, side * 0.12);
+  addRoot(root, handle, lowerArmName(side));
+
+  const head = mesh(new BoxGeometry(0.17, 0.065, 0.075), mat(0x3a2a1c), 'shipwright mallet head');
+  head.position.set(side * 0.27, 0.59, 0.14);
+  head.rotation.y = side * 0.08;
+  addRoot(root, head, lowerArmName(side));
+}
+
+function addSpyglassInHand(root: Group, side: -1 | 1): void {
+  const tube = mesh(new CylinderGeometry(0.032, 0.043, 0.28, 10), mat(0xb98533), 'handheld spyglass');
+  tube.position.set(side * 0.26, 0.54, 0.19);
+  tube.rotation.set(Math.PI / 2 + 0.08, side * 0.2, 0);
+  addRoot(root, tube, lowerArmName(side));
+
+  const rim = mesh(new CylinderGeometry(0.048, 0.048, 0.025, 10), mat(0xddbd65), 'handheld spyglass rim');
+  rim.position.set(side * 0.26, 0.54, 0.325);
+  rim.rotation.copy(tube.rotation);
+  addRoot(root, rim, lowerArmName(side));
+}
+
+function addAstrolabeInHand(root: Group, side: -1 | 1): void {
+  const ring = new TorusGeometry(0.07, 0.0055, 5, 20);
+  const parts = [
+    ring,
+    rod(new Vector3(-0.055, 0, 0), new Vector3(0.055, 0, 0), 0.006),
+    rod(new Vector3(0, -0.055, 0), new Vector3(0, 0.055, 0), 0.006),
+    rod(new Vector3(-0.03, -0.03, 0), new Vector3(0.04, 0.04, 0), 0.005),
+  ];
+  const geometry = mergeGeometries(parts, false)!;
+  for (const part of parts) part.dispose();
+  const astrolabe = mesh(geometry, mat(0xd3a34d), 'brass astrolabe');
+  astrolabe.position.set(side * 0.33, 0.45, 0.18);
+  astrolabe.rotation.set(0.08, side * 0.12, 0);
+  addRoot(root, astrolabe, lowerArmName(side));
+
+  const grip = mesh(new BoxGeometry(0.018, 0.1, 0.018), mat(0xd3a34d), 'astrolabe hand grip');
+  grip.position.set(side * 0.33, 0.39, 0.18);
+  grip.rotation.z = side * 0.08;
+  addRoot(root, grip, lowerArmName(side));
+}
+
+function addPencilBehindEar(root: Group, side: -1 | 1): void {
+  const pencil = mesh(new BoxGeometry(0.018, 0.22, 0.018), mat(0xd6b35a), 'pencil behind ear');
+  pencil.position.set(side * 0.24, 0.12, 0.02);
+  pencil.rotation.set(0.2, 0.2 * side, side * 0.88);
+  addHead(root, pencil);
+}
+
+function addQuillBehindEar(root: Group, side: -1 | 1): void {
+  const shaft = mesh(new BoxGeometry(0.01, 0.11, 0.01), mat(0xe7d9b5), 'quill shaft');
+  shaft.position.set(side * 0.22, 0.12, 0.04);
+  shaft.rotation.set(0.08, 0.18 * side, side * 0.48);
+  addHead(root, shaft);
+
+  const feather = mesh(new SphereGeometry(0.05, 7, 4), mat(0xf1ead2), 'quill feather');
+  feather.position.set(side * 0.255, 0.18, 0.035);
+  feather.scale.set(0.45, 1.05, 0.18);
+  feather.rotation.copy(shaft.rotation);
+  addHead(root, feather);
+}
+
+function addNavalCoat(
+  root: Group,
+  color: ColorHex,
+  trim: ColorHex,
+  long: boolean,
+  buttonColor: ColorHex = trim,
+): void {
+  const chest = mesh(new BoxGeometry(0.28, 0.34, 0.03), mat(color), 'naval coat chest');
+  chest.position.set(0, 0.62, 0.105);
+  addRoot(root, chest, 'Torso');
+
+  const skirt = mesh(
+    new BoxGeometry(long ? 0.32 : 0.28, long ? 0.48 : 0.26, 0.032),
+    mat(color),
+    'naval coat tails',
+  );
+  skirt.position.set(0, long ? 0.34 : 0.44, 0.095);
+  addRoot(root, skirt, 'Hips');
+
+  for (const side of [-1, 1] as const) {
+    const lapel = mesh(new BoxGeometry(0.052, 0.34, 0.018), mat(trim), 'gold coat lapel');
+    lapel.position.set(side * 0.08, 0.64, 0.126);
+    lapel.rotation.z = side * 0.24;
+    addRoot(root, lapel, 'Torso');
+
+    const epaulette = mesh(new CylinderGeometry(0.055, 0.072, 0.026, 10), mat(trim), 'gold epaulette');
+    epaulette.position.set(side * 0.17, 0.76, 0.04);
+    epaulette.scale.set(1.25, 0.55, 0.72);
+    addRoot(root, epaulette, 'Torso');
+  }
+
+  for (let i = 0; i < 4; i += 1) {
+    const button = mesh(new SphereGeometry(0.017, 6, 4), mat(buttonColor), 'brass coat button');
+    button.position.set(i % 2 === 0 ? -0.035 : 0.035, 0.71 - i * 0.075, 0.135);
+    button.scale.set(1, 1, 0.35);
+    addRoot(root, button, 'Torso');
+  }
+}
+
+function addAstronomerRobe(root: Group, cloth: ColorHex, trim: ColorHex): void {
+  const robe = mesh(new CylinderGeometry(0.2, 0.29, 0.62, 16), mat(cloth), 'astronomer long robe');
+  robe.position.set(0, 0.31, 0.0);
+  robe.scale.set(1, 1, 0.78);
+  addRoot(root, robe, 'Hips');
+
+  const mantle = mesh(new CylinderGeometry(0.25, 0.22, 0.16, 16), mat(cloth), 'astronomer shoulder mantle');
+  mantle.position.set(0, 0.66, 0.015);
+  mantle.scale.set(1.06, 1, 0.72);
+  addRoot(root, mantle, 'Torso');
+
+  const hem = mesh(new TorusGeometry(0.29, 0.012, 5, 24), mat(trim), 'robe gold hem');
+  hem.position.set(0, 0.01, 0);
+  hem.rotation.x = Math.PI / 2;
+  hem.scale.set(1, 0.78, 1);
+  addRoot(root, hem, 'Hips');
+
+  const collar = mesh(new BoxGeometry(0.28, 0.08, 0.028), mat(trim), 'robe brass collar');
+  collar.position.set(0, 0.75, 0.12);
+  addRoot(root, collar, 'Torso');
+
+  const star = mesh(new SphereGeometry(0.02, 5, 4), mat(trim), 'robe star clasp');
+  star.position.set(0, 0.68, 0.14);
+  star.scale.set(1, 0.55, 0.35);
+  addRoot(root, star, 'Torso');
+
+  for (const [x, y] of [
+    [-0.09, 0.5],
+    [0.1, 0.39],
+    [-0.04, 0.25],
+  ] as const) {
+    const embroidered = mesh(new SphereGeometry(0.018, 5, 4), mat(trim), 'robe gold star');
+    embroidered.position.set(x, y, 0.225);
+    embroidered.scale.set(1, 0.55, 0.25);
+    addRoot(root, embroidered, 'Hips');
+  }
+}
+
+function addPeriwig(root: Group, hair: ColorHex, ribbon: ColorHex): void {
+  const cap = mesh(new SphereGeometry(0.29, 14, 7), mat(hair), 'periwig cap');
+  cap.position.set(0, 0.185, 0.0);
+  cap.scale.set(1.08, 0.34, 0.9);
+  addHead(root, cap);
+
+  for (const x of [-0.12, 0, 0.12]) {
+    const roll = mesh(new SphereGeometry(0.075, 8, 5), mat(hair), 'periwig brow curl');
+    roll.position.set(x, 0.105, 0.235);
+    roll.scale.set(1, 0.58, 0.45);
+    addHead(root, roll);
+  }
+
+  for (const side of [-1, 1] as const) {
+    for (let i = 0; i < 3; i += 1) {
+      const curl = mesh(new SphereGeometry(0.065, 8, 5), mat(hair), 'periwig side curl');
+      curl.position.set(side * 0.255, 0.095 - i * 0.065, 0.05);
+      curl.scale.set(0.72, 0.82, 0.55);
+      addHead(root, curl);
+    }
+  }
+
+  const queue = mesh(new BoxGeometry(0.065, 0.24, 0.04), mat(hair), 'periwig queue');
+  queue.position.set(0, -0.02, -0.22);
+  queue.rotation.x = -0.12;
+  addHead(root, queue);
+
+  const bow = mesh(new BoxGeometry(0.16, 0.05, 0.026), mat(ribbon), 'periwig queue ribbon');
+  bow.position.set(0, 0.02, -0.245);
+  addHead(root, bow);
+}
+
+function addArchivistCoat(root: Group, coat: ColorHex, linen: ColorHex): void {
+  const chest = mesh(new BoxGeometry(0.28, 0.32, 0.03), mat(coat), 'archivist frock coat');
+  chest.position.set(0, 0.6, 0.105);
+  addRoot(root, chest, 'Torso');
+
+  for (const side of [-1, 1] as const) {
+    const lapel = mesh(new BoxGeometry(0.055, 0.27, 0.018), mat(0xd0b06a), 'archivist brass lapel');
+    lapel.position.set(side * 0.08, 0.62, 0.127);
+    lapel.rotation.z = side * 0.24;
+    addRoot(root, lapel, 'Torso');
+
+    const tail = mesh(new BoxGeometry(0.095, 0.34, 0.03), mat(coat), 'archivist coat tail');
+    tail.position.set(side * 0.095, 0.36, 0.08);
+    tail.rotation.z = side * 0.05;
+    addRoot(root, tail, 'Hips');
+  }
+
+  const cravat = mesh(new SphereGeometry(0.055, 8, 5), mat(linen), 'white cravat');
+  cravat.position.set(0, 0.72, 0.135);
+  cravat.scale.set(1, 0.7, 0.45);
+  addRoot(root, cravat, 'Torso');
+
+  const cravatTail = mesh(new BoxGeometry(0.045, 0.16, 0.016), mat(linen), 'cravat tail');
+  cravatTail.position.set(0, 0.62, 0.14);
+  addRoot(root, cravatTail, 'Torso');
+}
+
+function addMedals(root: Group): void {
+  for (let i = 0; i < 3; i += 1) {
+    const medal = mesh(
+      new CylinderGeometry(0.018, 0.018, 0.008, 8),
+      mat(i === 1 ? 0xc84a3a : 0xd9bb62),
+      'medal',
+    );
+    medal.position.set(-0.06 + i * 0.04, 0.66, 0.14);
+    medal.rotation.x = Math.PI / 2;
+    addRoot(root, medal, 'Torso');
+  }
+}
+
+function lowerArmName(side: -1 | 1): 'LowerArmL' | 'LowerArmR' {
+  return side === 1 ? 'LowerArmL' : 'LowerArmR';
 }
 
 function addHead(root: Group, child: Mesh): void {
