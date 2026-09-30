@@ -63,8 +63,9 @@ export const MERIDIAN_ARRIVAL: IslandArrival = {
     line: 'Find your way around the GitHub Copilot app',
   },
   keys: [
-    { x: 550, y: 8, z: -500, tx: M.mole.lighthouse.x, ty: 9, tz: M.mole.lighthouse.z, pace: 1.25 },
-    { x: 674, y: 14, z: -590, tx: M.harbor.berth.x, ty: 5, tz: M.harbor.berth.z, pace: 1.05 },
+    // A slow glide in over the wide view while the title card's up, then on past the lighthouse.
+    { x: 550, y: 8, z: -500, tx: M.mole.lighthouse.x, ty: 9, tz: M.mole.lighthouse.z, pace: 0.45 },
+    { x: 674, y: 14, z: -590, tx: M.harbor.berth.x, ty: 5, tz: M.harbor.berth.z, pace: 1.15 },
     { x: 746, y: 24, z: -668, tx: M.harbor.berth.x, ty: 4, tz: M.harbor.berth.z, pace: 0.7 },
     { x: 704, y: 34, z: -724, tx: 668, ty: 9, tz: -796, pace: 0.8 },
     { x: 615, y: 58, z: -680, tx: 720, ty: 22, tz: -842, pace: 0.85 },
