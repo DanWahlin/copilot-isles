@@ -248,6 +248,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     kind: 'stone',
   };
   let gangwayDown = false;
+  let mooredShown = false;
   const world = new CollisionWorld({
     ground,
     waves: ocean.field,
@@ -1587,6 +1588,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         if (s.hint && (mode === 'walk' || mode === 'sail') && !dialogue.active && !scriptRunning) hint();
 
         gangwayDown = mode === 'walk' && shipDocked() && canBoard();
+        // Meridian's mooring lines only run to the hull while she's tied up at the east arm.
+        const moored = island === 'meridian' && mode !== 'sail' && mode !== 'docking' && shipDocked();
+        if (moored !== mooredShown && cove.meridian.town) {
+          mooredShown = moored;
+          cove.meridian.town.setMooringLines(moored);
+        }
         ship.setGangway(gangwayDown ? plank.foot : null);
         if (gangwayDown) {
           ship.gangwayTopWorld(plankTop);
