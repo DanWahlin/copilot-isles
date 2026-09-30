@@ -266,13 +266,17 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(algaeBase.mul(0.52)))
     .mul(float(1).sub(waterline.mul(0.05)))
     .mul(float(1).sub(cave.mul(0.72)));
-  const meridianBluffMask = smoothstep(748, 778, positionWorld.x)
-    .mul(float(1).sub(smoothstep(872, 900, positionWorld.x)))
-    .mul(smoothstep(-846, -826, positionWorld.z))
-    .mul(float(1).sub(smoothstep(-724, -704, positionWorld.z)))
-    .mul(smoothstep(12, 25, y));
-  const meridianBluffCliff = cliffBase
-    .mul(float(0.76).add(broadNoise.mul(0.18)).add(fineNoise.mul(0.08)))
+  const meridianBluffMask = smoothstep(722, 752, positionWorld.x)
+    .mul(float(1).sub(smoothstep(884, 914, positionWorld.x)))
+    .mul(smoothstep(-864, -846, positionWorld.z))
+    .mul(float(1).sub(smoothstep(-704, -686, positionWorld.z)))
+    .mul(smoothstep(4, 16, y));
+  const meridianBluffCliff = mix(
+    color(0x6a675d),
+    color(0xb0a17d),
+    broadNoise.mul(0.48).add(fineNoise.mul(0.28)).add(noiseLow.a.mul(0.18)),
+  )
+    .mul(float(0.86).add(noiseMid.g.mul(0.18)).add(noiseFine.b.mul(0.08)))
     .mul(float(1).sub(crevices.mul(0.28)))
     .mul(float(1).sub(joints.mul(0.34)));
   base = mix(base, mix(cliffColor, meridianBluffCliff, meridianBluffMask), cliffInfluence);
@@ -448,13 +452,15 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(smoothstep(0.28, 0.88, normalWorld.y));
   const warmHeadland = mix(color(0x5c7136), color(0xa29569), noiseLow.a.mul(0.46).add(noiseMid.r.mul(0.54)));
   base = mix(base, warmHeadland, sunnyHeadland.mul(0.24));
-  base = mix(base, meridianBluffCliff, meridianBluffMask.mul(cliffInfluence).mul(0.96));
+  base = mix(base, meridianBluffCliff, meridianBluffMask);
 
   const sunVis = mix(light.y, light.z, uSunBlend);
   const cloud = options.cloudShadowNode ?? float(1);
   const bakedLight = saturate(light.x.mul(0.64).add(sunVis.mul(cloud).mul(0.36))).mul(
     float(1).sub(world.night.mul(0.42)),
   );
+  const bluffLight = float(0.72).add(broadNoise.mul(0.12)).add(fineNoise.mul(0.08));
+  const terrainLight = mix(bakedLight, bluffLight, meridianBluffMask.mul(0.96));
   const causticLayerA = sin(
     positionWorld.x.mul(0.18).add(positionWorld.z.mul(0.26)).add(world.time.mul(1.35)),
   )
@@ -476,7 +482,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
           .mul(saturate(world.sunDir.y.mul(1.8)))
           .mul(float(1).sub(world.night));
   material.colorNode = base
-    .mul(float(0.62).add(bakedLight.mul(0.58)))
+    .mul(float(0.62).add(terrainLight.mul(0.58)))
     .add(vec3(0.65, 0.95, 1.0).mul(caustics.mul(0.08)));
   material.roughnessNode = saturate(
     float(0.84)
