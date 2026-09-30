@@ -19,6 +19,13 @@ const NPC_IDS = [
   'pol',
   'juno',
   'lyra',
+  'tobias',
+  'mina',
+  'anders',
+  'rhea',
+  'oren',
+  'pell',
+  'admiral',
 ] as const;
 export const CHARACTER_BODIES = [...PLAYER_BODIES, ...NPC_IDS] as const;
 export const CHARACTER_CLIPS = [
