@@ -716,6 +716,13 @@ export const CH01: ChapterContent = {
       source: src('settings'),
     },
     {
+      id: 'pg1.next',
+      title: 'Next: Chapter 02',
+      caption:
+        'Chapter 02 solves the “shared working copy” challenge: isolated sessions with worktrees, plus focused context with `@`, `#` and `/`. [Continue to Chapter 02 ↗](https://github.com/github/copilot-app-for-beginners/blob/main/02-sessions-worktrees-context/README.md)',
+      source: src('whats-next'),
+    },
+    {
       id: 'B1.1',
       title: 'I can’t find a setting',
       caption:
@@ -739,14 +746,8 @@ export const CH01: ChapterContent = {
   ],
 
   chests: [
-    // Lyra's chest at the tavern: the control-room analogy.
+    // Lyra's chest on the tavern stage: the control-room analogy. (Pell files the troubleshooting.)
     { id: 'C1.1', page: 'pg1.control-room', doubloons: 10 },
-    // The chest in the Hall of Records: the settings reference.
-    { id: 'C1.2', page: 'pg1.settings', doubloons: 10 },
-    // Message bottles round the harbour: the chapter's troubleshooting.
-    { id: 'B1.1', page: 'B1.1', doubloons: 5, kind: 'bottle' },
-    { id: 'B1.2', page: 'B1.2', doubloons: 5, kind: 'bottle' },
-    { id: 'B1.3', page: 'B1.3', doubloons: 5, kind: 'bottle' },
   ],
 
   glossary: [

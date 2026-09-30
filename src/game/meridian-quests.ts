@@ -350,6 +350,10 @@ const PELL: readonly ScriptStep[] = [
   { say: 'mer.pell.05' },
   { page: 'pg1.settings', doubloons: 15 },
   { file: 'pg1.voice' },
+  // The chapter's troubleshooting, kept with the records.
+  { file: 'B1.1' },
+  { file: 'B1.2' },
+  { file: 'B1.3' },
   { say: 'mer.pell.logbook' },
   { say: 'mer.pell.next' },
   { quest: 'Q1.7', step: 'done' },
@@ -360,6 +364,7 @@ const EXAM_PASSED: readonly ScriptStep[] = [
   { say: 'mer.admiral.pass' },
   { cue: 'lighthouse' },
   { say: 'mer.admiral.next' },
+  { page: 'pg1.next' },
   { quest: 'Q1.8', step: 'done' },
 ];
 

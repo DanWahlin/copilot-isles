@@ -6,6 +6,7 @@ import {
   MERIDIAN_HELMS,
   helmCourse,
   nextHelm,
+  TAKE_RANGE,
   sampleCourse,
 } from './helms-logic';
 
@@ -36,15 +37,38 @@ describe('the Three Helms', () => {
     }
   });
 
-  it('chains the buoys: each run finishes near the next helm, and Autopilot ends at the berth approach', () => {
+  it('chains the buoys: each run finishes in reach of the next helm but clear of it, and Autopilot ends at the berth approach', () => {
     const { interactive, plan, autopilot } = MERIDIAN_HELMS;
     const end = (r: typeof interactive) => r.route[r.route.length - 1]!;
-    expect(Math.hypot(end(interactive).x - plan.buoy.x, end(interactive).z - plan.buoy.z)).toBeLessThan(20);
-    expect(Math.hypot(end(plan).x - autopilot.buoy.x, end(plan).z - autopilot.buoy.z)).toBeLessThan(20);
+    for (const [from, to] of [
+      [interactive, plan],
+      [plan, autopilot],
+    ] as const) {
+      const d = Math.hypot(end(from).x - to.buoy.x, end(from).z - to.buoy.z);
+      expect(d).toBeLessThan(TAKE_RANGE - 4);
+      expect(d).toBeGreaterThan(18);
+    }
     expect(end(autopilot)).toEqual({ x: BERTH_APPROACH.x, z: BERTH_APPROACH.z });
     // The approach lines up with the berth, clear of the arm's face.
     expect(Math.abs(BERTH_APPROACH.x - MERIDIAN.harbor.berth.x)).toBeLessThan(1);
     expect(plan.plan).toHaveLength(plan.route.length);
+  });
+
+  it('never sails a hull over a buoy', () => {
+    const { interactive, plan, autopilot } = MERIDIAN_HELMS;
+    const end = (r: typeof interactive) => r.route[r.route.length - 1]!;
+    const buoys = Object.values(MERIDIAN_HELMS).map((r) => r.buoy);
+    // Each run as she really sails it: Plan and Autopilot start where the last run stopped.
+    const runs = [
+      sampleCourse(helmCourse(interactive)).filter(
+        (p) => Math.hypot(p.x - interactive.buoy.x, p.z - interactive.buoy.z) > 20,
+      ),
+      sampleCourse([end(interactive), ...plan.route]),
+      sampleCourse([end(plan), ...autopilot.route]),
+    ];
+    for (const course of runs)
+      for (const p of course)
+        for (const b of buoys) expect(Math.hypot(p.x - b.x, p.z - b.z)).toBeGreaterThan(14);
   });
 
   it('keeps the buoys apart and outside the harbour mouth', () => {

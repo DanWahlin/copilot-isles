@@ -30,6 +30,9 @@ export interface HelmRun {
 
 export const HELM_ORDER: readonly HelmMode[] = ['interactive', 'plan', 'autopilot'];
 
+/** How close to a buoy you take its helm (each run stops about 28 m from the next buoy). */
+export const TAKE_RANGE = 34;
+
 /** Where the east-arm berth's approach begins (the Autopilot run hands over to docking there). */
 export const BERTH_APPROACH = { x: 747.4, z: -676 } as const;
 
@@ -41,7 +44,7 @@ export const MERIDIAN_HELMS: Readonly<Record<HelmMode, HelmRun>> = {
     route: [
       { x: 640, z: -532 },
       { x: 700, z: -500 },
-      { x: 736, z: -548 },
+      { x: 722, z: -540 },
     ],
     speed: 4.4,
   },
@@ -53,7 +56,7 @@ export const MERIDIAN_HELMS: Readonly<Record<HelmMode, HelmRun>> = {
       { x: 782, z: -510 },
       { x: 840, z: -502 },
       { x: 836, z: -554 },
-      { x: 804, z: -566 },
+      { x: 822, z: -584 },
     ],
     speed: 4.8,
     plan: [

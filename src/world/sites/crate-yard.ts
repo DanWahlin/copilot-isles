@@ -64,9 +64,11 @@ export function createCrateYardSite(o: {
   group.name = 'crate yard (P1.1)';
   const frame = poseFrame({ x: o.origin.x, z: o.origin.z, rot: o.origin.heading });
   const top = o.origin.y;
-  // Local cell centres: x across (0 = tavern side, on local −x), z from the far row (−z) to the gate.
+  // Local cell centres: x across (column 0, the chat plates, on local +x: the town side when the yard
+  // faces east), z from the far row (−z) to the gate.
+  const SX = -1;
   const local = (x: number, z: number) => ({
-    x: (x - (layout.cols - 1) / 2) * YARD_CELL,
+    x: SX * (x - (layout.cols - 1) / 2) * YARD_CELL,
     z: (z - (layout.rows - 1) / 2) * YARD_CELL,
   });
   const cellCenter = (x: number, z: number) => {
@@ -148,8 +150,8 @@ export function createCrateYardSite(o: {
     // The board faces into the yard.
     signQuads.plane(face, new Vector3(0, 0, side * 1.62), new Vector3(0, 0.6, 0), rect);
   };
-  sideSign(-1, atlas.rects.chatSign);
-  sideSign(1, atlas.rects.projectSign);
+  sideSign(-SX as -1 | 1, atlas.rects.chatSign);
+  sideSign(SX as -1 | 1, atlas.rects.projectSign);
   // The reset lever by the gate (local +z side, at the tavern end).
   const lever = { x: -w / 2 + 0.4, z: d / 2 + 1.1 };
   signParts.push(box(0.5, 0.5, 0.5, { x: lever.x, z: lever.z }, 0x5d4a38));
@@ -249,7 +251,7 @@ export function createCrateYardSite(o: {
     cellCenter,
     cellAt(x, z) {
       const l = toLocal(x, z);
-      const i = Math.round(l.x / YARD_CELL + (layout.cols - 1) / 2);
+      const i = Math.round((SX * l.x) / YARD_CELL + (layout.cols - 1) / 2);
       const j = Math.round(l.z / YARD_CELL + (layout.rows - 1) / 2);
       return i >= 0 && j >= 0 && i < layout.cols && j < layout.rows ? [i, j] : null;
     },
@@ -258,7 +260,7 @@ export function createCrateYardSite(o: {
       const a = heading - o.origin.heading;
       const fx = Math.sin(a),
         fz = Math.cos(a);
-      if (Math.abs(fx) > Math.abs(fz)) return fx > 0 ? 'e' : 'w';
+      if (Math.abs(fx) > Math.abs(fz)) return SX * fx > 0 ? 'e' : 'w';
       return fz > 0 ? 's' : 'n';
     },
     setCrate(i, cell, snap = false) {

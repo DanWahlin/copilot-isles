@@ -190,6 +190,11 @@ export function questTarget(q: QuestState): { ids: readonly string[]; label: str
   return QUEST_TARGETS[`${c.id}:${c.step ?? 'start'}`] ?? null;
 }
 
+/** Port Meridian's chest: Lyra's, on the tavern stage beside her (the control-room page). */
+export const MERIDIAN_CHESTS: readonly { id: string; npc: string; side: number; back: number }[] = [
+  { id: 'C1.1', npc: 'lyra_meridian', side: 1.7, back: 0.6 },
+];
+
 /** The chests placed in the cove: chest id → which NPC it sits beside (metres to their right). */
 export const COVE_CHESTS: readonly { id: string; npc: string; side: number; back: number }[] = [
   { id: 'C0.1', npc: 'nell', side: 2.1, back: 1.2 },
