@@ -1,27 +1,30 @@
 import { useEffect, useState } from 'react';
 import type { Tracker } from '../../learn/store';
 
-const COLLAPSED_KEY = 'copilot-isles.tracker.collapsed';
+// Set only while the player wants the whole list. The old `tracker.collapsed` key was written on
+// every mount, so reading it would keep the full list open for everyone who has played before.
+const FULL_LIST_KEY = 'copilot-isles.tracker.full';
 
 function readCollapsed(): boolean {
   try {
-    return localStorage.getItem(COLLAPSED_KEY) === '1';
+    return localStorage.getItem(FULL_LIST_KEY) !== '1';
   } catch {
-    return false;
+    return true;
   }
 }
 
 /**
- * The island's goal and key tasks, top left while playing: what's done, what's next, and what to
- * do right now. T (or the header button) collapses it to just the current task. It fades out while
- * a conversation or framed shot has the screen (`calm`).
+ * The island's goal and key tasks, top left while playing. It shows just the current task by
+ * default; T (or the header button) opens the whole list of what's done and what's next. It fades
+ * out while a conversation or framed shot has the screen (`calm`).
  */
 export function QuestTracker({ tracker, calm = false }: { tracker: Tracker; calm?: boolean }) {
   const [collapsed, setCollapsed] = useState(readCollapsed);
 
   useEffect(() => {
     try {
-      localStorage.setItem(COLLAPSED_KEY, collapsed ? '1' : '0');
+      if (collapsed) localStorage.removeItem(FULL_LIST_KEY);
+      else localStorage.setItem(FULL_LIST_KEY, '1');
     } catch {
       // Private mode: the choice just won't persist.
     }

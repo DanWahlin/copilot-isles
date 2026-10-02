@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Plays the menus the way a player does, with real clicks and keys only (no __flow commands; the
 // debug state is read just to check the result). Covers mute (title, HUD, and N), settings changes that
-// survive a reload, the captain creator's naming, pause-menu screens, quit, Continue, and resume after
-// a reload. node tools/usertest.mjs [--webgl] [--base=http://localhost:5301] [--out=/tmp/shots/user]
+// survive a reload, the captain creator's naming, the task list's T toggle, pause-menu screens, quit,
+// Continue, and resume after a reload.
+// node tools/usertest.mjs [--webgl] [--base=http://localhost:5301] [--out=/tmp/shots/user]
 import { collectLogs, launchChrome, parseFlags, waitForTitle } from './lib/browser.mjs';
 
 const opt = parseFlags();
@@ -193,6 +194,44 @@ await step('walk', async () => {
   check('W walks the captain', moved > 1.5, `${moved.toFixed(2)} m`);
   const bird = await page.evaluate(() => window.__flow.session.debug.wingman()?.phase);
   check('walking sends Wingman back to the shoulder', bird === 'landing' || bird === 'perched', bird);
+});
+
+await step('task list', async () => {
+  // A fresh profile shows just the current task. T opens the whole list, and T again closes it.
+  // Wingman's welcome still has the screen at first (the tracker fades out then), so wait it out.
+  await page
+    .waitForFunction(() => !!document.querySelector('.ci-tracker:not(.calm)'), null, { timeout: 40_000 })
+    .catch(() => {});
+  await page.waitForTimeout(600); // the tracker's 450 ms fade-in
+  const list = () =>
+    page.evaluate(() => ({
+      collapsed: !!document.querySelector('.ci-tracker.collapsed'),
+      shown: document.querySelectorAll('.ci-tracker-list li').length,
+      active: document.querySelectorAll('.ci-tracker-list li.active').length,
+    }));
+  const toggled = (collapsed) =>
+    page.waitForFunction((c) => !!document.querySelector('.ci-tracker.collapsed') === c, collapsed, {
+      timeout: 3000,
+    });
+  const current = await list();
+  await shot('tasks-current');
+  await page.keyboard.press('KeyT');
+  await toggled(false);
+  const all = await list();
+  await shot('tasks-all');
+  await page.keyboard.press('KeyT');
+  await toggled(true);
+  const back = await list();
+  check(
+    'the task list shows the current task, and T shows them all',
+    current.collapsed &&
+      current.shown >= 1 &&
+      current.shown === current.active &&
+      !all.collapsed &&
+      all.shown > current.shown &&
+      back.shown === current.shown,
+    `${current.shown} → ${all.shown} → ${back.shown}`,
+  );
 });
 
 await step('pause menu', async () => {
