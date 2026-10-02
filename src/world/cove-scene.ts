@@ -1,6 +1,5 @@
 import { Group, Vector3, type Mesh, type Object3D } from 'three/webgpu';
 import type { Engine } from '../engine/engine';
-import { HarborFlotsam } from './ocean/flotsam';
 import { HarborMirror } from './ocean/harbor-mirror';
 import { createOcean, type Ocean } from './ocean/ocean';
 import { createSky, type SkySystem } from './sky/sky-system';
@@ -25,7 +24,6 @@ export interface CoveScene {
   sky: SkySystem;
   ocean: Ocean;
   mirror: HarborMirror | null;
-  flotsam: HarborFlotsam;
   terrain: CreatedTerrain;
   heightField: CompositeHeightField;
   foam: Mesh;
@@ -186,8 +184,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   report(0.8, 'Rigging the brigantine');
   const ship = createBrigantine({ tier: tier.tier });
   ship.dynamics.reset(COVE.mooring.x, COVE.mooring.z, COVE.mooring.heading);
-  const flotsam = new HarborFlotsam(tier);
-  scene.add(ship.group, flotsam.group);
+  scene.add(ship.group);
   sites.crane.setShip(ship.group, BRIGANTINE_CARGO);
   shipObstacles.push(...village.shipObstacles, ...sites.shipObstacles);
   const shipEnv = {
@@ -258,7 +255,6 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       sites.update(dt, t);
       birds?.update(dt, t, camera);
       leaps?.update(dt, t, camera);
-      flotsam.update(dt, t, ocean.field, ship);
       focus.set(camera.position.x, 0, camera.position.z);
       sky.update(clock, focus);
       mirror?.update(renderer, scene, camera, [
@@ -277,7 +273,6 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         birds?.group,
         meridianBirds?.group,
         leaps?.group,
-        flotsam.group,
       ]);
       mirror?.finalizeFrame(engine.counters.last.drawCalls, engine.counters.last.triangles);
     },
@@ -288,7 +283,6 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     sky,
     ocean,
     mirror,
-    flotsam,
     terrain,
     heightField,
     foam,
@@ -304,16 +298,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       disposed = true;
       if (leapsTimer) window.clearTimeout(leapsTimer);
       removeSystem();
-      scene.remove(
-        ocean.mesh,
-        terrain.group,
-        foam,
-        ranges,
-        meridian.silhouette,
-        village.group,
-        ship.group,
-        flotsam.group,
-      );
+      scene.remove(ocean.mesh, terrain.group, foam, ranges, meridian.silhouette, village.group, ship.group);
       if (meridian.terrain) scene.remove(meridian.terrain.group);
       if (meridian.foam) scene.remove(meridian.foam);
       if (meridian.town) scene.remove(meridian.town.group);
@@ -333,7 +318,6 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       village.dispose();
       sites.dispose();
       ship.dispose();
-      flotsam.dispose();
       mirror?.dispose();
       vegetation?.dispose();
       terrain.dispose();

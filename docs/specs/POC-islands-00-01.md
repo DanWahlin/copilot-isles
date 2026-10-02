@@ -374,7 +374,7 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 - **Pacing rule:** the landmass stays large, but the **required stops are clustered** so neighboring required beats are about a **60-90 s walk** apart. The **citadel climb is the one deliberately long walk**, a scenic payoff before the Hall of Records and the Exam.
 - **Light:** late-afternoon **golden hour** with the sun at 18°, long shadows, and warm **shadow-map sun shafts** through the streets (High+).
 - **Water:** the walled inner basin is a calm zone (planar mirror on High/Ultra), so the terracotta town and **moored ships (swinging on their mooring springs)** reflect in it at golden hour. **Mullet** hop in the basin now and then.
-- **Cliffs:** the ridge behind the citadel and the headland below it are **fluted limestone cliffs** with strata ledges, a tidal notch, sea caves at the waterline, **gold rim light at golden hour**, and terraced slopes. The far ranges layer into the haze. Floating flotsam parts around your hull as you dock.
+- **Cliffs:** the ridge behind the citadel and the headland below it are **fluted limestone cliffs** with strata ledges, a tidal notch, sea caves at the waterline, **gold rim light at golden hour**, and terraced slopes. The far ranges layer into the haze.
 - **Palette:** terracotta `#C8643B`, limestone `#E9DCC3`, bougainvillea `#C2306B`, cypress `#2F4F3A`, sea teal `#2BB3B1`, banners in deep blue `#1F3A6B` and gold `#E8C88A`.
 - **Vegetation:** palms along the quay, cypress and olive on the terraces, bougainvillea on the walls.
 - **Ambient life:** market murmur, church-bell-style chimes on the quarter hour (from the Clock Tower), pigeons, a harbor cat, flags snapping.

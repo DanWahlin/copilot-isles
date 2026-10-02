@@ -30,6 +30,7 @@
 | Project folder | `~/Desktop/test/copilot-isles` |
 | Deadline | None |
 | Music & sound | **Recorded CC0 music** (changed 2026-09-25 from procedural, after Dan A/B'd both): one streamed track per place, crossfaded. **Ambience and SFX use real CC0 field recordings** (Tidewater's 31 Freesound CC0 files + more), spatialized with HRTF and **lazy-loaded per island** (~5 MB). See §7 |
+| Floating flotsam | **Cut** (2026-10-02): loose crates and barrels adrift in a harbour read as junk, not life. Harbours get boats bobbing at their moorings and proper buoys instead (the "more life" pass). |
 
 ---
 
@@ -256,7 +257,7 @@ Tests: `tools/meridiantest.mjs` plays the chapter end to end in the browser (the
   - **terns** patrol, **pelicans** fly in lines and plunge-forage, **frigatebirds** soar in high circles with almost no flapping, and **shorebirds** chase the swash
   - landings follow curved paths with the legs dropping, and there's one instanced draw for every species
   - **per-island casts:** parrots in Thousand-Bough's jungle, crows around Keelhaven, swifts around Guildcrest, and desert raptors at Sunspire
-- **Ambient life:** lagoon fish (schooling ecology), crabs that scuttle and burrow, butterflies, fireflies at dusk, chimney smoke, drifting leaves, floating flotsam, and **distant ships crossing the horizon**. All particles **wrap inside camera-following boxes**, so nothing is spawned or allocated per frame.
+- **Ambient life:** lagoon fish (schooling ecology), crabs that scuttle and burrow, butterflies, fireflies at dusk, chimney smoke, drifting leaves, boats bobbing at their moorings, and **distant ships crossing the horizon**. All particles **wrap inside camera-following boxes**, so nothing is spawned or allocated per frame.
 - **The "Leaps" director (jumping fish & dolphins):** a stager, not a random spawner. Every ~15-45 s, **in daylight with the camera above water**, it picks a spot ahead of the camera and **only commits if the *entire* leap stays on screen**. It also has to stay **clear of UI text** (title logo, menus, prompts) and away from the ship and the camera-to-ship line. **Leaps never start during dialogue, quizzes, puzzles, the Chart, the Logbook, or pause.** The **title screen is exempt** from that rule, since the text-box avoidance keeps leaps off the logo and menu. **Reduced motion disables Leaps and their splash sounds**, and **Lite** has none.
   - **Species:** **flying-fish schools** (taxi with tail-slaps → glide → re-entry) in the tropics and open sea, **mullet** hops in harbors, and **dolphin pods** at sea (nose and tail each splash as they cross the surface). Later islands can add a whale breach or leaping mantas.
   - **Physics:** trajectories are ballistic (g = 9.81), with pitch following velocity. Each leap is baked once at 60 Hz and interpolated.
@@ -289,7 +290,7 @@ Our water has to cover **open-ocean swell, surf, lagoons, harbors, and flowing w
 | **Seabed** | **Caustics** injected into the terrain material as *extra sunlight* (so shadows still hold), fading with depth and distance. **Underwater light attenuation** on anything below the waterline (so the shallows don't glow). Terrain uses a matte, wet look below the surface | Medium+ |
 | **Foam** | "Lace" foam (coverage eroding multi-octave cells, never solid sheets), depth-based **shoreline foam**, a **coast-foam ribbon extracted from the real shoreline contour at build time** (marching squares) with a surge travelling along the coast, **reef-break foam lines**, wave-crest foam from Gerstner steepness, and a **beach run-up (swash)** band with receding wet sand. Noise is **only evaluated where foam is possible** | All (**Low/Lite: one shoreline band + 1 lace octave**) |
 | **Boat ↔ water** | All **analytic in the water shader**, with no particles or simulation: **Kelvin wake arms + churned trail**, a **bow-wave crescent**, hull-hugging streaky whitewater, rings around the hull at rest, and a **hull cut-out** (water discarded inside the hull, using the *same* hull function as the CPU). The **boat's shadow on water** is ray-stepped against that hull function. The hull also gets a **waterline foam ring** that rides the Gerstner surface, a **wet band** that follows the real sea height, and **spray bursts when the bow slams** a wave (hull-point vs sea velocity) | All (**Low/Lite: one wake term**, no shadow march, no spray) |
-| **Other interaction** | Rings + foam around the player's legs when wading, rings where crates or oars touch water, and floating flotsam/leaves that **part around the hull and fan into the wake** | Medium+ |
+| **Other interaction** | Rings + foam around the player's legs when wading, and rings where crates or oars touch water | Medium+ |
 | **Night & weather (post-POC)** | Lantern glints smeared into columns by the ripples, rain-ring fields, and wetness | Medium+ |
 | **WebGPU compute layers** (adapted from Tidewater, §15) | **4-cascade FFT ocean** (JONSWAP/TMA, persistent Jacobian foam) replacing Gerstner offshore, **ShoreWaves** travel-time refraction around headlands (analytic, *all* tiers), **ShoreSim** swash/foam/wet-sand field, **breakers** synced to spray, **spectral WakeSim** for the brigantine, a **GPU spray pool**, and **SSR** in calm zones | FFT/sims/spray: WebGPU Medium+ (reduced) and High/Ultra (full). ShoreWaves: all |
 
@@ -441,7 +442,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 | Triangles (**summed across all scene passes, incl. the mirror**) | < 300k | < 500k | < 1M | < 2M | < 3.5M |
 | GPU texture memory | < 192 MB | < 256 MB | < 384 MB | < 512 MB | < 768 MB |
 | Shadows | Blob shadows only | **Static cached map 1024²** (refresh on movement) + blob shadows for characters | Static cache 2048² + dynamic character map 1024² | Static cache 4096² + dynamic 1024² | Static cache 4096² + dynamic 2048² |
-| Water | 3 Gerstner waves, PMREM reflection, absorption (no distortion), 1 foam band, 1 wake term, no hull reflection | Same as Lite + **hull smear**, 1 lace octave | + refraction offset, caustics, flotsam | + **planar mirror in calm zones** (half-res), boat shadow march | + wading/rain detail |
+| Water | 3 Gerstner waves, PMREM reflection, absorption (no distortion), 1 foam band, 1 wake term, no hull reflection | Same as Lite + **hull smear**, 1 lace octave | + refraction offset, caustics | + **planar mirror in calm zones** (half-res), boat shadow march | + wading/rain detail |
 | Post FX | Tone map + grade + dither | Tone map + grade + vignette + grain/dither | + bloom, screen-space radial shafts | + SSAO (half-res), **shadow-map sun shafts** | + DOF, full-res AO |
 | JS main thread per frame | < 7 ms | < 6 ms | < 5 ms | < 4 ms | < 4 ms |
 | Leaps (jumping fish) | Off | On, splash pool halved | On | On | On |
@@ -518,7 +519,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 
 ### 12.10 Measuring it
 - **Debug HUD** (`?debug`): FPS, frame ms (CPU/GPU), **whole-frame** draw calls and triangles (counters accumulated across all passes, not just the last render), textures, geometries, and JS heap, plus a lil-gui tuning panel.
-- **Debug API** (dev builds only, e.g. `window.__isles`): `info()`, `setRes()`, `setPreset()`/`setTime()`, and a deterministic **`shot(id)`** that places the camera, freezes time, and renders one frame. Playwright uses it for **visual-regression screenshots** and for the benchmark. A **`?seed=`** parameter makes ambient systems (Leaps, birds, flotsam) reproducible.
+- **Debug API** (dev builds only, e.g. `window.__isles`): `info()`, `setRes()`, `setPreset()`/`setTime()`, and a deterministic **`shot(id)`** that places the camera, freezes time, and renders one frame. Playwright uses it for **visual-regression screenshots** and for the benchmark. A **`?seed=`** parameter makes ambient systems (Leaps, birds) reproducible.
 - **Hitch guard (dev):** after warm-up, log every shader program, geometry, or texture created during play, with the game state and time. Any entry is a bug to fix (a missing precompile or preload).
 - A **benchmark flythrough** follows a fixed camera path across the ocean, into the town, and through a dialogue scene. It reports average FPS and 1% lows, and we run it before merging any visual change.
 - For deeper profiling we'll use Chrome Performance traces and Spector.js frame captures.
@@ -643,7 +644,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 | High-end | RTX 3060+, Apple M Pro/Max | Ultra | Everything at 60 fps |
 | Mainstream (2020+) | M2/M3 Air, RTX 3050 | High | 60 fps @1080p |
 | Mainstream (older) | Intel Iris Xe, M1 Air 8 GB, AMD 680M/780M, iPad A13+ | Medium | 45-60 fps with adaptive resolution |
-| **Floor** (2017-2020, common in schools and enterprise) | **Intel UHD 620/630** | **Low** | **30 fps** at render scale 0.6-0.75. No mirror, sun shafts, SSAO, caustics, or flotsam. Fewer foam octaves, sparser grass, shadows per **§12.1's Low row** (1024² cached map + blob character shadows), a 128² cloud-shadow map, and NPC animation at a reduced rate |
+| **Floor** (2017-2020, common in schools and enterprise) | **Intel UHD 620/630** | **Low** | **30 fps** at render scale 0.6-0.75. No mirror, sun shafts, SSAO, or caustics. Fewer foam octaves, sparser grass, shadows per **§12.1's Low row** (1024² cached map + blob character shadows), a 128² cloud-shadow map, and NPC animation at a reduced rate |
 | Chromebooks & very weak GPUs | Celeron/UHD 600, ARM Mali | **Lite** | 30 fps target: render scale ~0.55, no post except tone map + grade, PMREM water with no refraction, impostor-heavy vegetation, shadows off (blob only), and only one island zone resident |
 | Tablets | iPad A13+ (Medium), iPad M1+ (High), recent Android tablets (Low/Medium) | per GPU | Touch controls, larger UI, landscape |
 | Phones | iPhone 12+, mid-range Android | *later phase (2b)* | Needs a dedicated small-screen UX |
