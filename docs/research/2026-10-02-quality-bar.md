@@ -1,5 +1,9 @@
 # Raising the quality bar: Tidewater, revisited (2026-10-02)
 
+> **Superseded for the plan by [quality v2](2026-10-02-quality-v2.md)**, which adds measurements, the
+> one-version scaling design and the character bar. Its correction: Tidewater's three.js build
+> (`fd6cae6`, three.js 0.186) already had the full look, so its methods adapt to our TSL directly.
+
 **Question (Dan):** How do we make Copilot Isles look like Tidewater? Does Tidewater use real assets or
 generated ones? How do we lift everything, including the captains and the NPCs, to a level Walt Disney
 would approve?
