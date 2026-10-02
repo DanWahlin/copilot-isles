@@ -246,9 +246,15 @@ if (cs) {
     );
     await page.waitForTimeout(700);
   };
+  /** Waits out the crane job a tap just started. A slow frame can start it late, so it gets 1.5 s
+   * to begin; checking at once could read "not started" as "done" and pull --yes mid-preview. */
   const idle = async () => {
-    for (let k = 0; k < 60 && ((await crane())?.busy || (await crane())?.running); k++)
-      await page.waitForTimeout(250);
+    const working = async () => {
+      const c = await crane();
+      return !!(c?.busy || c?.running);
+    };
+    for (let k = 0; k < 6 && !(await working()); k++) await page.waitForTimeout(250);
+    for (let k = 0; k < 60 && (await working()); k++) await page.waitForTimeout(250);
   };
   const focus = () => page.evaluate(() => window.__dev.session().debug.state().focus);
 
@@ -470,7 +476,12 @@ if (await page.evaluate(() => !!window.__dev.session().debug.puzzle('Q0.11.chris
   await page
     .waitForFunction(() => window.__dev.state()?.mode === 'sail', null, { timeout: 8000 })
     .catch(() => logs.push('[questtest] walking up the gangway did not board'));
-  const boarded = await learnState();
+  // Q0.11 completes when the fade back in from boarding ends, 380 ms after the switch to sail.
+  let boarded = await learnState();
+  for (let k = 0; k < 8 && boarded?.quests?.['Q0.11'] !== 'done'; k++) {
+    await page.waitForTimeout(250);
+    boarded = await learnState();
+  }
   if (boarded?.quests?.['Q0.11'] !== 'done')
     logs.push(`[questtest] Q0.11 is ${boarded?.quests?.['Q0.11']} after boarding`);
   await page.waitForTimeout(1500);
