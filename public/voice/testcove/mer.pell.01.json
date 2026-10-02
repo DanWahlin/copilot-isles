@@ -1,7 +1,7 @@
 {
   "id": "mer.pell.01",
   "speaker": "Pell",
-  "text": "Settings! Nine areas, and I keep a record of every one.",
+  "text": "Settings! Select the gear at the bottom of the sidebar, and there they all are. I keep a record of every one.",
   "words": [
     {
       "word": "Settings",
@@ -9,54 +9,109 @@
       "end": 1.658666
     },
     {
-      "word": "Nine",
+      "word": "Select",
       "start": 1.658666,
       "end": 2.01925
     },
     {
-      "word": "areas",
+      "word": "the",
       "start": 2.01925,
-      "end": 2.692291
+      "end": 2.127416
     },
     {
-      "word": "and",
-      "start": 2.692291,
-      "end": 2.788458
+      "word": "gear",
+      "start": 2.127416,
+      "end": 2.391833
     },
     {
-      "word": "I",
-      "start": 2.788458,
-      "end": 2.896625
+      "word": "at",
+      "start": 2.391833,
+      "end": 2.5
     },
     {
-      "word": "keep",
-      "start": 2.896625,
-      "end": 3.137
+      "word": "the",
+      "start": 2.5,
+      "end": 2.608166
     },
     {
-      "word": "a",
-      "start": 3.137,
-      "end": 3.197125
-    },
-    {
-      "word": "record",
-      "start": 3.197125,
-      "end": 3.60575
+      "word": "bottom",
+      "start": 2.608166,
+      "end": 2.944708
     },
     {
       "word": "of",
-      "start": 3.60575,
-      "end": 3.713958
+      "start": 2.944708,
+      "end": 3.016833
+    },
+    {
+      "word": "the",
+      "start": 3.016833,
+      "end": 3.125
+    },
+    {
+      "word": "sidebar",
+      "start": 3.125,
+      "end": 3.942291
+    },
+    {
+      "word": "and",
+      "start": 3.942291,
+      "end": 4.0625
+    },
+    {
+      "word": "there",
+      "start": 4.0625,
+      "end": 4.242791
+    },
+    {
+      "word": "they",
+      "start": 4.242791,
+      "end": 4.435083
+    },
+    {
+      "word": "all",
+      "start": 4.435083,
+      "end": 4.711541
+    },
+    {
+      "word": "are",
+      "start": 4.711541,
+      "end": 5.78125
+    },
+    {
+      "word": "I",
+      "start": 5.78125,
+      "end": 5.901458
+    },
+    {
+      "word": "keep",
+      "start": 5.901458,
+      "end": 6.141833
+    },
+    {
+      "word": "a",
+      "start": 6.141833,
+      "end": 6.213958
+    },
+    {
+      "word": "record",
+      "start": 6.213958,
+      "end": 6.658666
+    },
+    {
+      "word": "of",
+      "start": 6.658666,
+      "end": 6.754791
     },
     {
       "word": "every",
-      "start": 3.713958,
-      "end": 3.954333
+      "start": 6.754791,
+      "end": 6.995208
     },
     {
       "word": "one",
-      "start": 3.954333,
-      "end": 4.204333
+      "start": 6.995208,
+      "end": 7.245208
     }
   ]
 }

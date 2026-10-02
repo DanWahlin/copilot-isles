@@ -161,7 +161,8 @@ const results = {};
   await drain();
 }
 
-// Nell: Captain's Papers. She opens her chest of prerequisites while she talks (the `nell-chest` cue).
+// Nell: Captain's Papers. She opens her chest of prerequisites while she talks (the `nell-chest` cue),
+// then shows the New view (C0.3) after sign-in, as the course does, before the palette stand.
 await talk('nell');
 results.nell = await drive(
   'nell',
@@ -170,9 +171,10 @@ results.nell = await drive(
 const chestOpen = await page.evaluate(() => window.__dev.session().debug.chests?.()[0]?.opened ?? null);
 if (!chestOpen) logs.push(`[questtest] Nell's chest isn't open after her talk (${chestOpen})`);
 if (!seen.has('reveal-pg.prereqs')) logs.push('[questtest] the prerequisites page never showed');
+if (!seen.has('reveal-C0.3')) logs.push('[questtest] the New view page (C0.3) never showed in Nell’s talk');
 
 // Paint Your Sails: E at the palette stand opens the theme picker; pick a card and select Finish
-// through the real UI, then the New page (C0.3) and Nell's lines.
+// through the real UI, then Nell sends you on to Ezra.
 const stand = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.2.palette')?.spot() ?? null);
 if (stand) {
   await page.evaluate((a) => {
@@ -207,7 +209,7 @@ if (stand) {
 await talk('merchant');
 results.ezra = await drive('ezra', (s) => s.quests['Q0.3'] === 'done' && !s.dialogue && !s.quiz && !s.reveal);
 
-// Bo: a Local repository session, Terminal, and the version checks at his rack (every one passes),
+// Bo: a Current checkout session, Terminal, and the version checks at his rack (every one passes),
 // then GitHub CLI's sign-in (S0.1).
 await talk('dockhand_b');
 results.bo = await drive('bo', (s) => s.quests['Q0.4'] === 'done' && !s.dialogue && !s.quiz && !s.reveal);
@@ -389,7 +391,7 @@ if (ps) {
   );
 } else logs.push('[questtest] no Q0.8 debug hook');
 
-// Message bottles (B0.1-B0.3): walk up to each one on its beach, open it with E, stow the page.
+// Message bottles (B0.1-B0.4): walk up to each one on its beach, open it with E, stow the page.
 const bottles = () => page.evaluate(() => window.__dev.session().debug.bottles?.() ?? null);
 const washedUp = await bottles();
 if (washedUp?.length) {

@@ -6,8 +6,8 @@ const COLS = 3;
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
 /**
- * Paint Your Sails (POC §4.4): the palette stand's picker, laid out like the GitHub Copilot app's
- * theme step (pick-a-theme.webp). Picking a card previews it on your sails; Finish keeps it.
+ * Paint Your Sails (POC §4.4): the palette stand's picker. In the app, the theme lives in Settings →
+ * Themes (Chapter 01 · Settings); here, it paints your sails. Picking a card previews it; Finish keeps it.
  */
 export function ThemePicker({ store, selected }: { store: LearnStore; selected: string }) {
   const [query, setQuery] = useState('');
@@ -53,16 +53,18 @@ export function ThemePicker({ store, selected }: { store: LearnStore; selected: 
         <div className="ci-palette-side">
           <p className="ci-page-kicker">Paint your sails</p>
           <h2 id="ci-palette-title">
-            Make the app yours. Pick a{' '}
+            Pick a{' '}
             <span className="ci-palette-glyph" aria-hidden>
               <SailGlyph palette={current} />
             </span>{' '}
-            <strong>theme</strong> and set your preferences.
+            <strong>theme</strong> for your sails.
           </h2>
-          <p className="ci-palette-note">Preferences can be changed anytime from settings.</p>
+          <p className="ci-palette-note">
+            In the app, select the gear at the bottom of the sidebar, then <strong>Themes</strong>.
+          </p>
           <p className="ci-palette-aside">
-            Here, the theme you pick paints your ship’s sails. You can change them later from{' '}
-            <strong>Settings</strong>, too.
+            Here, the theme you pick paints your ship’s sails. You can repaint them any time, here or from the
+            game’s <strong>Settings</strong>.
           </p>
           <div className="ci-palette-actions">
             <button type="button" className="ci-btn primary" onClick={store.finishPalette}>

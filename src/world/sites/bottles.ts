@@ -4,7 +4,7 @@ import { cylinder, merge } from './geo';
 import { createSparkleMaterial, shaftGeometry, starGeometry } from './sparkle';
 
 /**
- * Anchorage Cay's message bottles (POC §4.4, B0.1-B0.3): sea-green bottles washed up on the beaches,
+ * Anchorage Cay's message bottles (POC §4.4, B0.1-B0.4): sea-green bottles washed up on the beaches,
  * each with a rolled note inside and a soft glint so they're findable. They're optional, and each
  * holds one troubleshooting page. All the bottles merge into one mesh per material (4 draws), rebuilt
  * only when one's picked up.
@@ -24,6 +24,8 @@ const COVE_BOTTLES: readonly BottleSpot[] = [
   { id: 'B0.2', x: -116, z: 36, yaw: -0.6 },
   // The long lagoon beach on the south shore.
   { id: 'B0.3', x: 8, z: 88, yaw: 0.9 },
+  // The far east end of the south shore, past the lagoon: a reward for walking the whole beach.
+  { id: 'B0.4', x: 112, z: 98, yaw: 2.6 },
 ];
 
 export interface BottleSite {

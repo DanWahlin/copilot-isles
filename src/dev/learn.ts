@@ -27,7 +27,7 @@ for (const id of QUIZZES.keys()) if (!id.startsWith('T0.')) button(id, () => voi
 button('Trial T0', () => void store.runTrial('T0'));
 button('Chest C0.1', () => void store.openChest('C0.1'));
 button('Page P0.S', () => void store.grantPage('P0.S'));
-button('Spyglass', () => store.showImage('ch00/sign-in-to-app', 'Select **Sign in to GitHub**.'));
+button('Spyglass', () => store.showImage('ch00/app-sign-in', 'Select **Sign in to GitHub**.'));
 button('Hide spyglass', () => store.hideImage());
 button('Logbook', () => {
   for (const id of ['fork', 'worktree', 'dry-run']) store.learnTerm(id);

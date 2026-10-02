@@ -7,6 +7,11 @@ export interface Interactable {
   y: number;
   z: number;
   radius: number;
+  /**
+   * Metres added to this one's focus score. Townsfolk who only bark carry some, so a child running past
+   * doesn't take the E from the islander you're facing.
+   */
+  bias?: number;
   enabled?: () => boolean;
   onInteract(): void;
 }
@@ -44,7 +49,8 @@ export class Interactions {
       const facing = d > 0.01 ? (dx * fx + dz * fz) / d : 1;
       // Behind you counts as 2.5× farther. The current focus gets a fixed 0.15 m of stickiness so it
       // doesn't flicker; a percentage would grow with range and hold a neighbour you've walked past.
-      const score = d * (facing < -0.2 ? 2.5 : 1.25 - 0.25 * facing) - (it === this.current ? 0.15 : 0);
+      const score =
+        d * (facing < -0.2 ? 2.5 : 1.25 - 0.25 * facing) + (it.bias ?? 0) - (it === this.current ? 0.15 : 0);
       if (score < bestScore) {
         bestScore = score;
         best = it;

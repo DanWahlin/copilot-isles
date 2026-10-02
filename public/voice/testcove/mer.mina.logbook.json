@@ -1,62 +1,62 @@
 {
   "id": "mer.mina.logbook",
   "speaker": "Mina",
-  "text": "I’ve filed all four in your Logbook. Press J any time.",
+  "text": "I’ve filed every one in your Logbook. Press J any time.",
   "words": [
     {
       "word": "I’ve",
       "start": 0.0471659,
-      "end": 0.271208
+      "end": 0.259416
     },
     {
       "word": "filed",
-      "start": 0.271208,
-      "end": 0.672166
+      "start": 0.259416,
+      "end": 0.625
     },
     {
-      "word": "all",
-      "start": 0.672166,
-      "end": 0.931583
+      "word": "every",
+      "start": 0.625,
+      "end": 0.908
     },
     {
-      "word": "four",
-      "start": 0.931583,
-      "end": 1.155666
+      "word": "one",
+      "start": 0.908,
+      "end": 1.143875
     },
     {
       "word": "in",
-      "start": 1.155666,
-      "end": 1.261791
+      "start": 1.143875,
+      "end": 1.238208
     },
     {
       "word": "your",
-      "start": 1.261791,
-      "end": 1.379708
+      "start": 1.238208,
+      "end": 1.356125
     },
     {
       "word": "Logbook",
-      "start": 1.379708,
-      "end": 2.806583
+      "start": 1.356125,
+      "end": 2.783
     },
     {
       "word": "Press",
-      "start": 2.806583,
-      "end": 3.125
+      "start": 2.783,
+      "end": 3.101416
     },
     {
       "word": "J",
-      "start": 3.125,
-      "end": 3.372625
+      "start": 3.101416,
+      "end": 3.349041
     },
     {
       "word": "any",
-      "start": 3.372625,
-      "end": 3.620291
+      "start": 3.349041,
+      "end": 3.596708
     },
     {
       "word": "time",
-      "start": 3.620291,
-      "end": 3.870291
+      "start": 3.596708,
+      "end": 3.846708
     }
   ]
 }

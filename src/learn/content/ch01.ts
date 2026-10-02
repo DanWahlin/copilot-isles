@@ -9,17 +9,19 @@ const px = (x: number, y: number, w: number, h: number): Rect => [x / 1920, y / 
 // app-new-page (measured from the course image): the sidebar rows and the controls round the prompt box.
 const NEW = {
   new: px(10, 68, 330, 40),
-  myWork: px(10, 108, 330, 40),
-  automations: px(10, 148, 330, 40),
-  customize: px(10, 188, 330, 40),
-  projectsPlus: px(300, 250, 36, 34),
-  chats: px(10, 284, 280, 38),
-  project: px(10, 364, 330, 38),
-  promptPlus: px(666, 528, 32, 36),
-  mode: px(702, 530, 90, 32),
-  model: px(796, 530, 168, 32),
-  picker: px(664, 580, 86, 34),
-  mic: px(1525, 530, 32, 32),
+  pullRequests: px(10, 108, 330, 40),
+  issues: px(10, 148, 330, 40),
+  automations: px(10, 188, 330, 40),
+  customize: px(10, 228, 330, 40),
+  more: px(10, 268, 330, 40),
+  projectsPlus: px(300, 328, 34, 34),
+  project: px(10, 364, 330, 40),
+  promptPlus: px(670, 530, 32, 32),
+  mode: px(704, 530, 90, 32),
+  model: px(798, 530, 160, 32),
+  picker: px(672, 582, 216, 32),
+  checkout: px(906, 582, 200, 32),
+  mic: px(1522, 530, 32, 32),
 } as const;
 
 // app-settings: the Settings list on the left of the dialog.
@@ -59,49 +61,56 @@ export const CH01: ChapterContent = {
       src: 'course/ch01/app-new-page.webp',
       width: 1920,
       height: 1080,
-      alt: 'The New page: New, My work, Automations and Customize in the sidebar, Projects with Chats and the course project, and the prompt box with the mode, model and Chat controls',
+      alt: 'The New view: New, Pull requests, Issues, Automations, Customize and More in the sidebar, Projects with the course project, and the prompt box with the mode and model controls, the project picker and Current checkout',
     },
     {
-      id: 'ch01/app-my-work-page',
-      src: 'course/ch01/app-my-work-page.webp',
+      id: 'ch01/app-pull-requests-page',
+      src: 'course/ch01/app-pull-requests-page.webp',
       width: 1920,
       height: 1080,
-      alt: 'My work, listing the course’s practice issues and pull requests, one with a failed check',
+      alt: 'The Pull requests view on its Authored by me tab, listing the three practice pull requests. Failing stats check practice shows Failed',
+    },
+    {
+      id: 'ch01/app-issues-page',
+      src: 'course/ch01/app-issues-page.webp',
+      width: 1920,
+      height: 1080,
+      alt: 'The Issues view on its Assigned to me tab, listing the five practice issues, such as Make search case-insensitive',
     },
     {
       id: 'ch01/app-automations-page',
       src: 'course/ch01/app-automations-page.webp',
       width: 1920,
       height: 1080,
-      alt: 'The Automations page with daily, weekly and manual templates such as Issue triage and Changelog draft',
+      alt: 'The Automations view: Set up automations, templates such as Issue triage (Daily), Changelog draft (Weekly) and Repo audit (Manual), and the skills you can turn into automations',
     },
     {
       id: 'ch01/producer-control-room-modes',
       src: 'course/ch01/producer-control-room-modes.webp',
       width: 1536,
       height: 1024,
-      alt: 'A producer in a recording studio’s control room, directing takes in different ways',
+      alt: 'A producer’s control room with a Chat Session and Project Session switch, and Interactive, Plan and Autopilot sections on the mixing desk',
     },
     {
       id: 'ch01/app-quick-chat',
       src: 'course/ch01/app-quick-chat.webp',
       width: 1920,
       height: 1080,
-      alt: 'A new quick chat: callout 1 on the + beside Chats, callout 2 on the project picker below the prompt, open with Chat checked',
+      alt: 'The Projects menu open: callout 1 on the + next to Projects and callout 2 on Chat, with the project picker below the prompt showing Chat',
     },
     {
       id: 'ch01/session-mode-decision-ladder',
       src: 'course/ch01/session-mode-decision-ladder.webp',
-      width: 1248,
-      height: 832,
-      alt: 'Session modes Interactive, Plan and Autopilot side by side: pick one for the task',
+      width: 1536,
+      height: 1024,
+      alt: 'Session modes Interactive, Plan and Autopilot, with more autonomy from left to right: pick the mode that fits the task',
     },
     {
       id: 'ch01/app-settings',
       src: 'course/ch01/app-settings.webp',
       width: 1920,
       height: 1080,
-      alt: 'The Settings dialog: General, Accounts, Sessions, Themes, Accessibility, Voice dictation, Customize, Model providers and Experimental',
+      alt: 'The Settings dialog on General, with General, Accounts, Sessions, Themes, Accessibility, Voice dictation, Customize, Model providers, Experimental and Projects, and an arrow to the gear at the bottom of the sidebar',
     },
   ],
 
@@ -132,6 +141,10 @@ export const CH01: ChapterContent = {
           right: { id: 'chats', text: 'Chats for safe questions, project sessions for work in the repo' },
         },
         {
+          left: { id: 'buried', text: 'Plan steps, checks and notes scroll away in a long chat' },
+          right: { id: 'canvases', text: 'Canvases: a shared board in the side panel that you both update' },
+        },
+        {
           left: { id: 'repeat', text: 'Retyping the same prompt every week' },
           right: {
             id: 'automations',
@@ -141,16 +154,16 @@ export const CH01: ChapterContent = {
       ],
       explain: {
         correct:
-          'That’s it. The app doesn’t replace your editor. It gives agent work one place to run and be reviewed.',
+          'That’s it. The app doesn’t replace your editor. It gives you one control center to run and review agent work.',
         wrong:
-          'Think about what each problem needs: separation, one place for the evidence, a safe space, or repetition.',
+          'Think about what each problem needs: separation, one place for the evidence, a safe space, a shared board, or repetition.',
       },
       hints: [
         'Each challenge has one fix that answers it directly.',
         'Repeating yourself is a job for **Automations**. Mixing questions and changes is about **chats** versus **project sessions**.',
-        'Shared copy → project sessions · scattered → one app · explore → chats · repeat → Automations.',
+        'Shared copy → project sessions · scattered → one app · explore → chats · buried → canvases · repeat → Automations.',
       ],
-      source: src('the-solution'),
+      source: src('why-use-the-github-copilot-app'),
     },
     {
       id: 'H1.1',
@@ -158,9 +171,15 @@ export const CH01: ChapterContent = {
       image: 'ch01/app-new-page',
       mask: [],
       prompt:
-        'The setup script made practice issues and pull requests in your fork. Where do they show up in the app?',
+        'The setup script made practice issues in your fork and assigned them to you. Where do you find them in the app?',
       targets: [
-        { id: 'my-work', rect: NEW.myWork, label: 'My work', correct: true },
+        { id: 'issues', rect: NEW.issues, label: 'Issues', correct: true },
+        {
+          id: 'pull-requests',
+          rect: NEW.pullRequests,
+          label: 'Pull requests',
+          feedback: '**Pull requests** lists pull requests. Issues have their own view, just below it.',
+        },
         {
           id: 'new',
           rect: NEW.new,
@@ -171,36 +190,35 @@ export const CH01: ChapterContent = {
           id: 'automations',
           rect: NEW.automations,
           label: 'Automations',
-          feedback: '**Automations** holds recurring agent tasks, not your issues and pull requests.',
+          feedback: '**Automations** holds recurring agent tasks, not your issues.',
         },
         {
           id: 'project',
           rect: NEW.project,
           label: 'copilot-app-for-beginners',
-          feedback: 'That’s your project and its sessions. Issues and pull requests have their own page.',
+          feedback: 'That’s your project and its sessions. Issues have their own view.',
         },
       ],
       explain: {
         correct:
-          'Right! **My work** is your GitHub inbox: issues, pull requests and review requests. You can start work on one from there.',
-        wrong: 'Look for your GitHub inbox in the sidebar, near the top.',
+          'Right! **Issues** lists the GitHub issues that involve you. The practice issues are on its **Assigned to me** tab, and the practice pull requests are in **Pull requests**.',
+        wrong: 'Each kind of GitHub item has its own view near the top of the sidebar.',
       },
       hints: [
-        'It’s one of the four pages at the top of the sidebar.',
-        'Issues, pull requests and review requests are *your work*.',
-        'Select **My work**.',
+        'It’s one of the views at the top of the sidebar.',
+        'Pull requests and issues each have their own view.',
+        'Select **Issues**.',
       ],
-      source: src('my-work'),
+      source: src('issues'),
     },
     {
       id: 'H1.2',
       type: 'hotspot',
       image: 'ch01/app-new-page',
       mask: [],
-      prompt:
-        'You’ve started a quick chat. Before you send, where do you check it’s a chat and not a project session?',
+      prompt: 'Before you send, where do you check whether your prompt goes to a chat or to a project?',
       targets: [
-        { id: 'picker', rect: NEW.picker, label: 'The project picker (Chat)', correct: true },
+        { id: 'picker', rect: NEW.picker, label: 'The project picker', correct: true },
         {
           id: 'mode',
           rect: NEW.mode,
@@ -216,21 +234,22 @@ export const CH01: ChapterContent = {
             'That picks the model and effort. Where the prompt goes is set just below the prompt box.',
         },
         {
-          id: 'projects-plus',
-          rect: NEW.projectsPlus,
-          label: '+ by Projects',
-          feedback: 'That adds a project to the app. Check the picker below the prompt instead.',
+          id: 'checkout',
+          rect: NEW.checkout,
+          label: 'Current checkout',
+          feedback:
+            'That’s the workspace selector: where a project session runs. Chat or project is the picker beside it.',
         },
       ],
       explain: {
         correct:
-          'Right! The project picker below the prompt says **Chat**, so nothing touches your repository and no branch is made.',
+          'Right! The project picker below the prompt box shows **Chat** or a project. For a chat, it says **Chat**, so nothing touches your repository and no branch is made.',
         wrong: 'It’s below the prompt box, where it says where your prompt will go.',
       },
       hints: [
         'Look below the prompt box, not in it.',
-        'It shows a speech bubble and the word **Chat**.',
-        'Select **Chat**, below the prompt box.',
+        'Right now it shows the project’s name.',
+        'Select **copilot-app-for-beginners**, below the prompt box.',
       ],
       source: src('chat-sessions'),
     },
@@ -292,19 +311,19 @@ export const CH01: ChapterContent = {
         {
           id: 'picker',
           rect: NEW.picker,
-          label: 'Chat',
+          label: 'The project picker',
           feedback: 'That’s the project picker: chat or project. The model control is in the prompt box.',
         },
       ],
       explain: {
         correct:
-          'Right! Open the model control to find **Model** and **Effort**. It shows **Auto** or a model name. Some app versions show separate model and reasoning controls.',
+          'Right! Open the model control to find **Model**, **Effort** and **Context window**. It shows **Auto** or a model name. If the **Auto** switch is on, those settings are hidden, so turn it off to see them. Some app versions show separate model and reasoning controls.',
         wrong: 'It’s next to the mode selector and shows **Auto** or a model name.',
       },
       hints: [
         'It’s in the bottom row of the prompt box.',
         'It sits right beside the mode selector and shows a model’s name.',
-        'Select **GPT-5.6 Sol · Medium**.',
+        'Select **GPT-6.1 Sol · Medium**.',
       ],
       source: src('models-and-reasoning-effort'),
     },
@@ -327,7 +346,7 @@ export const CH01: ChapterContent = {
           rect: SETTINGS.customize,
           label: 'Customize',
           feedback:
-            '**Customize** manages the ways to extend the app. Instructions live with your session settings.',
+            '**Customize** points you to the **Customize** view, where you extend the app. Instructions live with your session settings.',
         },
         {
           id: 'providers',
@@ -391,7 +410,7 @@ export const CH01: ChapterContent = {
         },
         {
           id: 'switch',
-          text: 'Switch the session to Local repository first',
+          text: 'Switch the session to Current checkout first',
           feedback:
             'That’s a workspace choice for the session. You can open the project in VS Code any time.',
         },
@@ -401,7 +420,7 @@ export const CH01: ChapterContent = {
         correct: 'Right. You can jump to VS Code from the app whenever you want the full editor.',
         wrong: 'The app can open the project in VS Code for you, any time.',
       },
-      source: src('the-solution'),
+      source: src('why-use-the-github-copilot-app'),
     },
     {
       id: 'A1.3',
@@ -413,8 +432,12 @@ export const CH01: ChapterContent = {
           right: { id: 'new', text: 'New' },
         },
         {
-          left: { id: 'items', text: 'See your issues, pull requests and review requests' },
-          right: { id: 'my-work', text: 'My work' },
+          left: { id: 'checks', text: 'Read a pull request’s checks and comments' },
+          right: { id: 'pull-requests', text: 'Pull requests' },
+        },
+        {
+          left: { id: 'assigned', text: 'Find the issues assigned to you' },
+          right: { id: 'issues', text: 'Issues' },
         },
         {
           left: { id: 'weekly', text: 'Run a pull request summary every week' },
@@ -427,7 +450,7 @@ export const CH01: ChapterContent = {
       ],
       explain: {
         correct:
-          'Right. New, My work, Projects and chats, Automations and Customize are the app’s work surfaces.',
+          'Right. New, Pull requests, Issues, Automations and Customize, with Projects for your chats and sessions, are the app’s work surfaces.',
         wrong: 'Picture Mina’s tour: the Voyage Office, the Bounty Board, the Clock Tower and the Outfitter.',
       },
       source: src('tour-the-app'),
@@ -460,26 +483,26 @@ export const CH01: ChapterContent = {
     {
       id: 'A1.5',
       type: 'mc',
-      prompt: 'A new project session starts in which workspace by default?',
+      prompt: 'Which workspace should most project sessions use?',
       options: [
         { id: 'worktree', text: 'New worktree' },
         {
           id: 'local',
-          text: 'Local repository',
+          text: 'Current checkout',
           feedback:
-            'You picked **Local repository** for the one-time setup in Chapter 00. That was the exception.',
+            'You picked **Current checkout** for the one-time setup in Chapter 00. That was the exception, and you’ll switch back in Chapter 02.',
         },
         {
           id: 'cloud',
           text: 'Cloud',
-          feedback: 'Project sessions start on **New worktree** unless you choose otherwise.',
+          feedback: 'Most project sessions should use **New worktree**.',
         },
       ],
       answer: 'worktree',
       explain: {
         correct:
           'Right. Separate worktrees let agents work at the same time without changing the same working copy.',
-        wrong: 'The default keeps each session’s changes apart from the others.',
+        wrong: 'The right choice keeps each session’s changes apart from the others.',
       },
       source: src('project-sessions'),
     },
@@ -550,7 +573,7 @@ export const CH01: ChapterContent = {
         {
           id: 'picker',
           rect: NEW.picker,
-          label: 'Chat',
+          label: 'The project picker',
           feedback: 'That picks chat or project. The mode is chosen in the prompt box.',
         },
         {
@@ -604,60 +627,75 @@ export const CH01: ChapterContent = {
       title: 'Why use the Copilot app',
       image: 'ch01/editor-vs-app',
       caption:
-        'Copilot in your editor or terminal is great next to the code you have open. The hard part is supervising agent work end to end. The app adds a place for it: **project sessions** keep focused work separate, sessions, diffs, terminal output, previews and GitHub work sit in **one app**, **chats** are for safe questions, and **Automations** save a prompt you’d otherwise retype. It isn’t a replacement for your editor, and it isn’t “multi-project support” by itself.',
+        'Copilot in your editor or terminal is great next to the code you have open. The hard part is supervising agent work end to end. The app doesn’t replace your editor. It’s one desktop control center to run and review that work: **project sessions** keep focused work separate, sessions, diffs, terminal output, previews and GitHub work sit in **one app**, **chats** are for safe questions, **canvases** give you and the agent a shared board in the side panel, and **Automations** save a prompt you’d otherwise retype.',
       source: src('why-use-the-github-copilot-app'),
     },
     {
       id: 'pg1.editor',
       title: 'Keep your editor',
       caption:
-        'Stay in VS Code, JetBrains or your usual editor for deep editing. Open the app to run project sessions, pick a mode, review what changed, and move work through issues and pull requests. You can open the project in VS Code from the app any time.',
-      source: src('the-solution'),
+        'Keep VS Code, Visual Studio, JetBrains or your usual editor for deep editing. From the app, you can open the same project in VS Code any time you want a full editor.',
+      source: src('why-use-the-github-copilot-app'),
     },
     {
       id: 'pg1.new',
       title: 'New',
       image: 'ch01/app-new-page',
       caption:
-        'The landing view. Start a chat without a project, pick a connected project for a project session, choose a mode and model, or start from one of the sample project ideas.',
+        'The landing view. Start a chat without a project, pick a connected project for a project session, choose a mode and model, or start from one of the suggested prompts.',
       source: src('new'),
     },
     {
-      id: 'pg1.my-work',
-      title: 'My work',
-      image: 'ch01/app-my-work-page',
+      id: 'pg1.pull-requests',
+      title: 'Pull requests',
+      image: 'ch01/app-pull-requests-page',
       caption:
-        'Your GitHub inbox: issues, pull requests and review requests. You can start work on an item from here. The practice issues and pull requests from setup show up here.',
-      source: src('my-work'),
+        'Lists the GitHub pull requests that involve you. Tabs such as **Authored by me** and **Review requests** filter the list, and the **All repositories** picker narrows it to one repository. Open a pull request to read its checks and comments, or start a session to work on it. The practice pull requests from setup are on the **Authored by me** tab.',
+      source: src('pull-requests'),
+    },
+    {
+      id: 'pg1.issues',
+      title: 'Issues',
+      image: 'ch01/app-issues-page',
+      caption:
+        'The same idea for GitHub issues, with tabs such as **Assigned to me** and **Created by me**. Start a session from an issue, or select **New issue** to create one. The practice issues from setup are assigned to you, so they’re on the **Assigned to me** tab.',
+      source: src('issues'),
     },
     {
       id: 'pg1.automations',
       title: 'Automations',
       image: 'ch01/app-automations-page',
       caption:
-        'Recurring agent tasks. Templates run manually, daily or weekly, and automations can also be triggered by events. You choose local or cloud execution when you set one up. A later chapter goes deeper.',
+        'Recurring agent tasks. The view shows templates that run manually, daily or weekly, and automations can also be triggered by events. You choose local or cloud execution when you set one up. Chapter 07 covers automations.',
       source: src('automations'),
     },
     {
       id: 'pg1.customize',
       title: 'Customize',
       caption:
-        'Where you manage the ways to extend the app: skills, Model Context Protocol (MCP) servers, plugins and extensions. You don’t need any yet. Chapter 04 covers skills and custom agents, Chapter 05 MCP servers and plugins, and Chapter 06 canvases.',
+        'Where you manage the ways to extend the app: skills, Model Context Protocol (MCP) servers, plugins, extensions and canvases. You don’t need any yet. Chapter 04 covers skills and custom agents, Chapter 05 MCP servers and plugins, and Chapter 06 canvases.',
       source: src('customize'),
+    },
+    {
+      id: 'pg1.more',
+      title: 'More',
+      caption:
+        'Select **More**, then **Edit sidebar...** to choose which views appear in the sidebar. The course uses all of them, so keep them visible.',
+      source: src('more'),
     },
     {
       id: 'pg1.projects-chats',
       title: 'Chats and project sessions',
       caption:
-        'Under **Projects** the sidebar groups your **Chats** and project sessions. A **chat session** is for asking, brainstorming, summarizing and getting your bearings, and it doesn’t create a branch or worktree. A **project session** is for planning, inspecting, editing, testing or making PR-ready work, and usually creates one, depending on session settings.',
-      source: src('projects-and-chats'),
+        'The **Projects** area of the sidebar lists each connected project, and a **Chats** row appears there once you’ve started your first chat. A **chat session** is for asking, brainstorming, summarizing and getting your bearings, and it doesn’t create a branch or worktree. A **project session** is for planning, inspecting, editing, testing or making PR-ready work, and usually creates one, depending on session settings.',
+      source: src('chats-project-sessions-and-modes'),
     },
     {
       id: 'pg1.control-room',
       title: 'In the control room',
       image: 'ch01/producer-control-room-modes',
       caption:
-        'A producer doesn’t handle every song the same way. Some takes need close direction, some need the arrangement charted first, and some quick questions just need a fast answer. Sessions work the same way.',
+        'A producer doesn’t handle every song the same way. Some quick questions just need a fast answer, some takes need close direction, and some need the arrangement charted first. The app works the same way: first choose the kind of session, then a mode for how closely you direct the work.',
       source: src('from-the-studio-in-the-control-room'),
     },
     {
@@ -665,7 +703,7 @@ export const CH01: ChapterContent = {
       title: 'Start a chat',
       image: 'ch01/app-quick-chat',
       caption:
-        'Select the **+** next to **Chats** (it shows when you hover). Open the project picker below the prompt and check **Chat** is selected, then send the prompt. The reply should say chats suit general questions and project sessions bring repository context. No files change, and no branch or worktree is made.',
+        'Select **+** next to **Projects**, then **Chat**. Check that the project picker below the prompt box shows **Chat**, then send the prompt. The reply should say chats suit general questions and project sessions bring repository context. It shouldn’t change any files, and the app doesn’t create a branch or worktree for a chat.',
       code: 'In the GitHub Copilot app, explain when I should use a chat and when I should use a project session. Do not create or change files.',
       source: src('chat-sessions'),
     },
@@ -673,7 +711,7 @@ export const CH01: ChapterContent = {
       id: 'pg1.project',
       title: 'Tour the sample in a project session',
       caption:
-        'Use a project session when the agent needs your repository, changes code or makes something like a pull request. They start on **New worktree** by default. Chapter 00’s setup session on **Local repository** was the exception. Return to that session and send this. The reply should cover `samples/book-app-web`’s purpose, technologies, main files, data flow and tests, and change nothing.',
+        'Use a project session when the agent needs your repository, changes code or makes something like a pull request. Most project sessions should use a **New worktree**. Chapter 00’s setup session on **Current checkout** was the exception. The app remembers that choice for your next session, so you’ll switch back to **New worktree** in Chapter 02. Return to the setup session, listed under `copilot-app-for-beginners` in the sidebar, and send this. The reply should cover `samples/book-app-web`’s purpose, technologies, main files, data flow and tests, and change nothing.',
       code: "I'm learning the copilot-app-for-beginners course. Give me a beginner-friendly tour of the samples/book-app-web sample before I begin the hands-on exercises. Explain what the app does, the technologies it uses, how its main files are organized, how data flows through it and what the tests cover. Refer to specific file paths and finish with a suggested reading order. Do not change any files.",
       source: src('project-sessions'),
     },
@@ -682,21 +720,21 @@ export const CH01: ChapterContent = {
       title: 'Interactive, Plan and Autopilot',
       image: 'ch01/session-mode-decision-ladder',
       caption:
-        '**Interactive**: step-by-step collaboration, for when you want to be involved throughout. **Plan**: plan first, execute when ready, for when the approach and details matter. **Autopilot**: end-to-end execution without interruption, for well-defined tasks with clear outcomes. Pick one for the task.',
+        '**Interactive**: step-by-step collaboration, for when you want to be involved throughout. **Plan**: plan first, execute when ready, for when the approach and details matter. **Autopilot**: end-to-end execution without interruption, for well-defined tasks with clear outcomes. Pick the mode that fits the task. The mode menu also has **Tool permissions**: **Always ask** asks before each tool, **Approve all** runs tools without asking, and **Assisted** asks only when a tool request fails an AI safety check.',
       source: src('modes'),
     },
     {
       id: 'pg1.model',
       title: 'Model and reasoning effort',
       caption:
-        'The model control sits below the prompt box, next to the mode selector, and shows **Auto** or a model name. Open it for **Model** and **Effort**. With **Auto** the app picks a model, which isn’t the same as **Autopilot**. For a tour or a short explanation, keep the defaults. For a hard bug or a change across several files, consider a model suited to complex coding and higher effort. Higher effort doesn’t guarantee a correct answer.',
+        'The model control sits below the prompt box, next to the mode selector, and shows **Auto** or a model name. Open it for **Model**, **Effort** and **Context window**. If the **Auto** switch is on, they’re hidden, so turn it off to see them. With **Auto** the app picks a model, which isn’t the same as **Autopilot**. The context window is how much text the model can hold at once; a larger one can help long sessions or large codebases, but uses more AI credits. For a tour or a short explanation, keep the defaults. For a hard bug or a change across several files, consider a model suited to complex coding and higher effort. Higher effort doesn’t guarantee a correct answer.',
       source: src('models-and-reasoning-effort'),
     },
     {
       id: 'pg1.try-controls',
       title: 'Try the controls',
       caption:
-        'In your Chapter 00 project session, select **Interactive** mode. Open the model control, keep **Auto** or your current model and the default effort, and send this. The reply should say search matches titles and authors whatever the letter case, and point to `samples/book-app-web/src/App.tsx`. You can change the model and effort mid-session without changing the mode.',
+        'In your project session, select **Interactive** mode. Open the model control, keep **Auto** or your current model and the default effort, and send this. The reply should say search matches titles and authors whatever the letter case, and point to `samples/book-app-web/src/App.tsx`. You can change the model and effort mid-session without changing the mode.',
       code: 'In samples/book-app-web, explain how filterBooks searches book titles and authors. Does letter case affect the results? Refer to the relevant file. Do not change any files.',
       source: src('try-the-controls'),
     },
@@ -705,14 +743,14 @@ export const CH01: ChapterContent = {
       title: 'Settings',
       image: 'ch01/app-settings',
       caption:
-        '**General**: updates, where repositories are stored, the theme. **Accounts**: add another GitHub account. **Sessions**: manage sessions and chats, response style, app-wide instructions, branch naming. **Themes**. **Accessibility**: zoom, keyboard shortcuts, notifications. **Voice dictation**: microphone, shortcut, transcription models. **Customize**. **Model providers**: your own API keys (it doesn’t replace the model picker). **Experimental**: preview features.',
+        'Select the gear at the bottom of the sidebar to open **Settings**. **General**: updates, where repositories are stored, the theme. **Accounts**: add another GitHub account. **Sessions**: manage sessions and chats, response style, app-wide instructions, branch naming. **Themes**: pick and customize the app theme. **Accessibility**: zoom, keyboard shortcuts, notifications. **Voice dictation**: microphone, shortcut, transcription models. **Customize**: points you to the **Customize** view. **Model providers**: your own API keys (it doesn’t replace the model picker). **Experimental**: preview features. **Projects**: per-project settings, such as **Show in sidebar**, sandbox rules and the default branch.',
       source: src('settings'),
     },
     {
       id: 'pg1.voice',
       title: 'Voice dictation (optional)',
       caption:
-        'Voice dictation turns speech into editable prompt text. In **Settings**, select **Voice dictation**, allow the microphone in your operating system (**Microphone privacy** → **Open preferences**), select **Test mic**, and note the shortcut. Then create a new chat under **Chats** and try the shortcut.',
+        'Voice dictation turns speech into editable prompt text. In **Settings**, select **Voice dictation** and set up your input device. Under **Microphone privacy**, select **Open preferences** to allow the microphone in your operating system, then select **Test mic** and note the shortcut. Then start a new chat (**+** next to **Projects**, then **Chat**) and try the shortcut.',
       source: src('settings'),
     },
     {
@@ -757,9 +795,16 @@ export const CH01: ChapterContent = {
       definition: 'A session for questions and brainstorming. It doesn’t create a branch or worktree.',
     },
     {
-      id: 'my-work',
-      term: 'My work',
-      definition: 'The app’s GitHub inbox: your issues, pull requests and review requests.',
+      id: 'pull-requests',
+      term: 'Pull requests (view)',
+      definition:
+        'The sidebar view that lists the pull requests that involve you, with tabs such as Authored by me and Review requests.',
+    },
+    {
+      id: 'issues',
+      term: 'Issues (view)',
+      definition:
+        'The sidebar view that lists the issues that involve you, with tabs such as Assigned to me and Created by me.',
     },
     {
       id: 'automations',
@@ -769,13 +814,19 @@ export const CH01: ChapterContent = {
     {
       id: 'customize',
       term: 'Customize',
-      definition: 'Where you manage skills, MCP servers, plugins and extensions.',
+      definition: 'Where you manage skills, MCP servers, plugins, extensions and canvases.',
     },
     {
       id: 'session-modes',
       term: 'Session modes',
       definition:
         'Interactive (step by step), Plan (plan first, execute when ready) and Autopilot (end to end without interruption).',
+    },
+    {
+      id: 'tool-permissions',
+      term: 'Tool permissions',
+      definition:
+        'In the mode menu: whether the agent asks before it uses a tool. Always ask, Approve all, or Assisted (asks only when a request fails an AI safety check).',
     },
     {
       id: 'auto-model',
@@ -787,6 +838,12 @@ export const CH01: ChapterContent = {
       term: 'Reasoning effort',
       definition:
         'How much reasoning a supported model uses. Higher can help with complex problems but takes longer.',
+    },
+    {
+      id: 'context-window',
+      term: 'Context window',
+      definition:
+        'How much text the model can hold at once, including the conversation and the files it reads. Larger can help long sessions but uses more AI credits.',
     },
     {
       id: 'model-providers',

@@ -184,6 +184,7 @@ export function terminalLines(s: CraneState, event?: CraneEvent): string[] {
       'Default branch: main',
       `[dry-run] would create ${a}`,
       `[dry-run] ${b}`,
+      'Dry run complete. No changes were made.',
     ];
   return [SETUP_COMMAND, '', '(pull Dry-Run to preview)'];
 }
@@ -197,7 +198,7 @@ export function lineTone(line: string): LineTone | undefined {
   if (line.includes(YOUR_REPOSITORY) || line === yourOwner) return 'you';
   if (/^Repository: .+|^[\w-]+\/$/.test(line) || /^(Refusing|Setup failed|Run this)/.test(line))
     return 'other';
-  if (line === 'Setup complete.') return 'ok';
+  if (line === 'Setup complete.' || line.startsWith('Dry run complete.')) return 'ok';
   return undefined;
 }
 

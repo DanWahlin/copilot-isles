@@ -1,7 +1,7 @@
 {
   "id": "nell.papers.05",
   "speaker": "Nell",
-  "text": "At Connect your repositories, carry on without adding one. You’ll connect your fork shortly.",
+  "text": "At Connect your repositories, leave every repository unselected and select Continue. You’ll connect your fork shortly.",
   "words": [
     {
       "word": "At",
@@ -16,62 +16,72 @@
     {
       "word": "your",
       "start": 0.59,
-      "end": 0.79
+      "end": 0.75
     },
     {
       "word": "repositories",
-      "start": 0.79,
-      "end": 1.39
+      "start": 0.75,
+      "end": 1.35
     },
     {
-      "word": "carry",
-      "start": 1.39,
-      "end": 1.71
+      "word": "leave",
+      "start": 1.35,
+      "end": 1.55
     },
     {
-      "word": "on",
-      "start": 1.71,
+      "word": "every",
+      "start": 1.55,
       "end": 1.83
     },
     {
-      "word": "without",
+      "word": "repository",
       "start": 1.83,
-      "end": 2.11
+      "end": 2.429
     },
     {
-      "word": "adding",
-      "start": 2.11,
-      "end": 2.389
+      "word": "unselected",
+      "start": 2.429,
+      "end": 3.23
     },
     {
-      "word": "one",
-      "start": 2.389,
-      "end": 2.51
+      "word": "and",
+      "start": 3.23,
+      "end": 3.429
+    },
+    {
+      "word": "select",
+      "start": 3.429,
+      "end": 3.75
+    },
+    {
+      "word": "Continue",
+      "start": 3.75,
+      "end": 4.51
     },
     {
       "word": "You’ll",
-      "start": 2.51,
-      "end": 2.75
+      "start": 4.51,
+      "end": 4.75
     },
     {
       "word": "connect",
-      "start": 2.75,
-      "end": 3.03
+      "start": 4.75,
+      "end": 5.07
     },
     {
       "word": "your",
-      "start": 3.03,
-      "end": 3.19
+      "start": 5.07,
+      "end": 5.23
     },
     {
       "word": "fork",
-      "start": 3.19,
-      "end": 3.469
+      "start": 5.23,
+      "end": 5.51
     },
     {
       "word": "shortly",
-      "start": 3.469,
-      "end": 3.719
+      "start": 5.51,
+      "end": 5.76
     }
   ]
 }

@@ -1269,7 +1269,7 @@
   }
 }
 
-/* ---- Paint Your Sails: the palette stand's theme picker (mirrors pick-a-theme.webp) ---- */
+/* ---- Paint Your Sails: the palette stand's theme picker ---- */
 .ci-palette {
   display: grid;
   grid-template-columns: minmax(15rem, 0.8fr) minmax(0, 1.4fr);

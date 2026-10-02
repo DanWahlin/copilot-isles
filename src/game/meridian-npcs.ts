@@ -54,7 +54,7 @@ export function meridianExtras(anchors: Readonly<Record<string, { x: number; z: 
       keepY: true,
       seatDrop: 0.22,
       barks: [
-        'My grandson checks My work every morning. Issues, pull requests, all of it.',
+        'My grandson checks Pull requests and Issues every morning. Every last one.',
         'The Admiral’s up on her terrace. She doesn’t hand out Seals for nothing.',
       ],
     },

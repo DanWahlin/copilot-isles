@@ -1,7 +1,7 @@
 {
   "id": "bo.deck.01",
   "speaker": "Bo",
-  "text": "Your project shows under Projects? Good. Select the + next to it to start a project session.",
+  "text": "Your project shows under Projects? Good. Point to it, and select the + that appears next to it to start a project session.",
   "words": [
     {
       "word": "Your",
@@ -31,57 +31,87 @@
     {
       "word": "Good",
       "start": 2.27,
-      "end": 3.19
+      "end": 2.949
     },
     {
-      "word": "Select",
-      "start": 3.19,
-      "end": 3.55
-    },
-    {
-      "word": "the",
-      "start": 3.55,
-      "end": 3.989
-    },
-    {
-      "word": "next",
-      "start": 3.989,
-      "end": 4.23
+      "word": "Point",
+      "start": 2.949,
+      "end": 3.27
     },
     {
       "word": "to",
-      "start": 4.23,
-      "end": 4.39
+      "start": 3.27,
+      "end": 3.429
     },
     {
       "word": "it",
-      "start": 4.39,
-      "end": 4.47
+      "start": 3.429,
+      "end": 3.63
+    },
+    {
+      "word": "and",
+      "start": 3.63,
+      "end": 3.789
+    },
+    {
+      "word": "select",
+      "start": 3.789,
+      "end": 4.07
+    },
+    {
+      "word": "the",
+      "start": 4.07,
+      "end": 4.31
+    },
+    {
+      "word": "that",
+      "start": 4.31,
+      "end": 4.79
+    },
+    {
+      "word": "appears",
+      "start": 4.79,
+      "end": 5.15
+    },
+    {
+      "word": "next",
+      "start": 5.15,
+      "end": 5.47
     },
     {
       "word": "to",
-      "start": 4.47,
-      "end": 4.59
+      "start": 5.47,
+      "end": 5.63
+    },
+    {
+      "word": "it",
+      "start": 5.63,
+      "end": 5.91
+    },
+    {
+      "word": "to",
+      "start": 5.91,
+      "end": 6.07
     },
     {
       "word": "start",
-      "start": 4.59,
-      "end": 4.91
+      "start": 6.07,
+      "end": 6.43
     },
     {
       "word": "a",
-      "start": 4.91,
-      "end": 5.03
+      "start": 6.43,
+      "end": 6.51
     },
     {
       "word": "project",
-      "start": 5.03,
-      "end": 5.43
+      "start": 6.51,
+      "end": 7.03
     },
     {
       "word": "session",
-      "start": 5.43,
-      "end": 5.68
+      "start": 7.03,
+      "end": 7.28
     }
   ]
 }

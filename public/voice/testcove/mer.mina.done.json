@@ -1,62 +1,67 @@
 {
   "id": "mer.mina.done",
   "speaker": "Mina",
-  "text": "New, My work, Automations, Customize. You know your way around now!",
+  "text": "New, Pull requests, Issues, Automations, Customize. You know your way around now!",
   "words": [
     {
       "word": "New",
       "start": 0.0471659,
-      "end": 0.613208
+      "end": 0.636791
     },
     {
-      "word": "My",
-      "start": 0.613208,
-      "end": 0.790083
+      "word": "Pull",
+      "start": 0.636791,
+      "end": 0.872625
     },
     {
-      "word": "work",
-      "start": 0.790083,
-      "end": 1.332541
+      "word": "requests",
+      "start": 0.872625,
+      "end": 1.721708
+    },
+    {
+      "word": "Issues",
+      "start": 1.721708,
+      "end": 2.334916
     },
     {
       "word": "Automations",
-      "start": 1.332541,
-      "end": 2.264166
+      "start": 2.334916,
+      "end": 3.384416
     },
     {
       "word": "Customize",
-      "start": 2.264166,
-      "end": 3.75
+      "start": 3.384416,
+      "end": 4.905666
     },
     {
       "word": "You",
-      "start": 3.75,
-      "end": 3.903291
+      "start": 4.905666,
+      "end": 5.058958
     },
     {
       "word": "know",
-      "start": 3.903291,
-      "end": 4.139166
+      "start": 5.058958,
+      "end": 5.294791
     },
     {
       "word": "your",
-      "start": 4.139166,
-      "end": 4.292458
+      "start": 5.294791,
+      "end": 5.448125
     },
     {
       "word": "way",
-      "start": 4.292458,
-      "end": 4.528291
+      "start": 5.448125,
+      "end": 5.683958
     },
     {
       "word": "around",
-      "start": 4.528291,
-      "end": 4.92925
+      "start": 5.683958,
+      "end": 6.084916
     },
     {
       "word": "now",
-      "start": 4.92925,
-      "end": 5.17925
+      "start": 6.084916,
+      "end": 6.334916
     }
   ]
 }

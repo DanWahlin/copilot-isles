@@ -1,97 +1,142 @@
 {
   "id": "nell.papers.06",
   "speaker": "Nell",
-  "text": "Then pick a theme and select Finish. Here, your theme's your sails. The palette stand's right beside me.",
+  "text": "Want a different theme? Select the gear at the bottom of the sidebar, then Themes. Here, your theme’s your sails, and the palette stand’s right beside me.",
   "words": [
     {
-      "word": "Then",
+      "word": "Want",
       "start": 0.07,
       "end": 0.23
     },
     {
-      "word": "pick",
+      "word": "a",
       "start": 0.23,
-      "end": 0.39
+      "end": 0.27
     },
     {
-      "word": "a",
-      "start": 0.39,
-      "end": 0.43
+      "word": "different",
+      "start": 0.27,
+      "end": 0.63
     },
     {
       "word": "theme",
-      "start": 0.43,
-      "end": 0.79
+      "start": 0.63,
+      "end": 1.27
     },
     {
-      "word": "and",
-      "start": 0.79,
-      "end": 0.95
+      "word": "Select",
+      "start": 1.27,
+      "end": 1.67
     },
     {
-      "word": "select",
-      "start": 0.95,
-      "end": 1.31
+      "word": "the",
+      "start": 1.67,
+      "end": 1.79
     },
     {
-      "word": "Finish",
-      "start": 1.31,
-      "end": 1.75
+      "word": "gear",
+      "start": 1.79,
+      "end": 2.029
     },
     {
-      "word": "Here",
-      "start": 1.75,
+      "word": "at",
+      "start": 2.029,
+      "end": 2.11
+    },
+    {
+      "word": "the",
+      "start": 2.11,
+      "end": 2.23
+    },
+    {
+      "word": "bottom",
+      "start": 2.23,
+      "end": 2.55
+    },
+    {
+      "word": "of",
+      "start": 2.55,
+      "end": 2.67
+    },
+    {
+      "word": "the",
+      "start": 2.67,
       "end": 2.789
     },
     {
-      "word": "your",
+      "word": "sidebar",
       "start": 2.789,
-      "end": 2.989
+      "end": 3.51
     },
     {
-      "word": "theme's",
-      "start": 2.989,
-      "end": 3.389
+      "word": "then",
+      "start": 3.51,
+      "end": 3.869
+    },
+    {
+      "word": "Themes",
+      "start": 3.869,
+      "end": 4.79
+    },
+    {
+      "word": "Here",
+      "start": 4.79,
+      "end": 5.35
     },
     {
       "word": "your",
-      "start": 3.389,
-      "end": 3.55
+      "start": 5.35,
+      "end": 5.55
+    },
+    {
+      "word": "theme’s",
+      "start": 5.55,
+      "end": 5.87
+    },
+    {
+      "word": "your",
+      "start": 5.87,
+      "end": 6.03
     },
     {
       "word": "sails",
-      "start": 3.55,
-      "end": 4.35
+      "start": 6.03,
+      "end": 6.59
     },
     {
-      "word": "The",
-      "start": 4.35,
-      "end": 4.55
+      "word": "and",
+      "start": 6.59,
+      "end": 6.71
+    },
+    {
+      "word": "the",
+      "start": 6.71,
+      "end": 6.83
     },
     {
       "word": "palette",
-      "start": 4.55,
-      "end": 4.87
+      "start": 6.83,
+      "end": 7.19
     },
     {
-      "word": "stand's",
-      "start": 4.87,
-      "end": 5.19
+      "word": "stand’s",
+      "start": 7.19,
+      "end": 7.47
     },
     {
       "word": "right",
-      "start": 5.19,
-      "end": 5.39
+      "start": 7.47,
+      "end": 7.67
     },
     {
       "word": "beside",
-      "start": 5.39,
-      "end": 5.75
+      "start": 7.67,
+      "end": 8.069
     },
     {
       "word": "me",
-      "start": 5.75,
-      "end": 6
+      "start": 8.069,
+      "end": 8.319
     }
   ]
 }

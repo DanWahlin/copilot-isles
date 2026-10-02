@@ -41,7 +41,7 @@ export const MERIDIAN_QUESTS: readonly MeridianQuestDef[] = [
     task: 'Tour the app’s work surfaces',
     steps: {
       start: 'Mina Solé, the harbour guide, is by the fountain in the plaza.',
-      done: 'New, My work, Automations and Customize are the app’s work surfaces.',
+      done: 'New, Pull requests, Issues, Automations and Customize are the app’s work surfaces.',
     },
   },
   {
@@ -73,7 +73,7 @@ export const MERIDIAN_QUESTS: readonly MeridianQuestDef[] = [
       start: 'Captain Rhea Marlowe is by your ship on the east arm.',
       helms: 'Board your ship and sail the three helms out in the bay: Interactive, Plan and Autopilot.',
       solved: 'You’ve sailed all three helms. Talk to Rhea on the east arm.',
-      done: 'Interactive, Plan and Autopilot change the level of autonomy. Pick one for the task.',
+      done: 'Interactive, Plan and Autopilot change the level of autonomy. Pick the mode that fits the task.',
     },
   },
   {
@@ -91,7 +91,7 @@ export const MERIDIAN_QUESTS: readonly MeridianQuestDef[] = [
     task: 'Find your way round Settings',
     steps: {
       start: 'Pell Winthrop keeps the Hall of Records in the citadel.',
-      done: 'Settings has nine areas. App-wide instructions are under Sessions.',
+      done: 'Settings opens from the gear at the bottom of the sidebar. App-wide instructions are under Sessions.',
     },
   },
   {
@@ -197,7 +197,8 @@ const TOBIAS: readonly ScriptStep[] = [
 ];
 
 const MINA_TOUR: readonly ScriptStep[] = [
-  // The sidebar's work surfaces as a walk round the plaza: each landmark, then its screen.
+  // The sidebar's work surfaces as a walk round the plaza: each landmark, then its screen. The Bounty
+  // Board holds two views, Pull requests and Issues.
   { say: 'mer.mina.01' },
   { cue: 'tour:voyageOffice' },
   {
@@ -207,11 +208,16 @@ const MINA_TOUR: readonly ScriptStep[] = [
   { say: 'mer.mina.new' },
   { cue: 'tour:bountyBoard' },
   {
-    show: 'ch01/app-my-work-page',
-    caption: '**My work**: your issues, pull requests and review requests, including the practice items.',
+    show: 'ch01/app-pull-requests-page',
+    caption:
+      '**Pull requests**: the ones that involve you. The practice pull requests are on **Authored by me**.',
   },
-  { say: 'mer.mina.mywork' },
-  { say: 'mer.mina.mywork2' },
+  { say: 'mer.mina.board' },
+  {
+    show: 'ch01/app-issues-page',
+    caption: '**Issues**: the ones that involve you. The practice issues are on **Assigned to me**.',
+  },
+  { say: 'mer.mina.board2' },
   { cue: 'tour:clockTower' },
   {
     show: 'ch01/app-automations-page',
@@ -221,20 +227,28 @@ const MINA_TOUR: readonly ScriptStep[] = [
   { cue: 'tour:outfitter' },
   {
     show: 'ch01/app-new-page',
-    caption: '**Customize**: skills, MCP servers, plugins and extensions. You don’t need any yet.',
+    caption: '**Customize**: skills, MCP servers, plugins, extensions and canvases. You don’t need any yet.',
   },
   { say: 'mer.mina.customize' },
+  {
+    show: 'ch01/app-new-page',
+    caption: '**More** → **Edit sidebar...** chooses which views appear in the sidebar. Keep them all.',
+  },
+  { say: 'mer.mina.more' },
   { cue: 'tour:end' },
   { say: 'mer.mina.projects' },
   { hide: true },
   { quiz: 'H1.1' },
-  { term: 'my-work' },
+  { term: 'pull-requests' },
+  { term: 'issues' },
   { term: 'automations' },
   { term: 'customize' },
   { file: 'pg1.new' },
-  { file: 'pg1.my-work' },
+  { file: 'pg1.pull-requests' },
+  { file: 'pg1.issues' },
   { file: 'pg1.automations' },
   { file: 'pg1.customize' },
+  { file: 'pg1.more' },
   { say: 'mer.mina.logbook' },
   { say: 'mer.mina.next' },
   { quest: 'Q1.2', step: 'done' },
@@ -251,15 +265,15 @@ const LYRA: readonly ScriptStep[] = [
   { say: 'mer.lyra.02' },
   { say: 'mer.lyra.03' },
   {
-    show: 'ch01/app-new-page',
-    caption: 'Hover over **Chats** in the sidebar and select the **+** that appears.',
+    show: 'ch01/app-quick-chat',
+    caption: '① Select **+** next to **Projects** · ② then select **Chat**.',
   },
   { say: 'mer.lyra.04' },
   { hide: true },
   { quiz: 'H1.2' },
   {
     show: 'ch01/app-quick-chat',
-    caption: '① The **+** beside **Chats** · ② the project picker, with **Chat** selected.',
+    caption: 'Below the prompt box, the project picker shows **Chat**.',
   },
   { say: 'mer.lyra.05' },
   { hide: true },
@@ -273,13 +287,13 @@ const LYRA: readonly ScriptStep[] = [
 ];
 
 const ANDERS: readonly ScriptStep[] = [
-  // Project sessions, New worktree by default and the Chapter 00 exception, the sample tour prompt,
-  // then the crate yard as practice.
+  // Project sessions, New worktree for most of them and the Chapter 00 exception, the sample tour
+  // prompt, then the crate yard as practice.
   { say: 'mer.anders.01' },
   { say: 'mer.anders.02' },
   {
-    show: 'ch00/local-repository-workspace-selector',
-    caption: 'Project sessions start on **New worktree** by default.',
+    show: 'ch00/app-current-checkout-workspace-selector',
+    caption: 'Most project sessions should use **New worktree**.',
   },
   { say: 'mer.anders.03' },
   { say: 'mer.anders.04' },
@@ -304,7 +318,8 @@ const RHEA: readonly ScriptStep[] = [
   { say: 'mer.rhea.02' },
   {
     show: 'ch01/session-mode-decision-ladder',
-    caption: 'Interactive, Plan and Autopilot. Pick one for the task.',
+    caption:
+      'Interactive, Plan and Autopilot, with more autonomy from left to right. Pick the mode that fits the task.',
   },
   { say: 'mer.rhea.03' },
   { hide: true },
@@ -316,6 +331,9 @@ const RHEA: readonly ScriptStep[] = [
 const RHEA_DEBRIEF: readonly ScriptStep[] = [
   { say: 'mer.rhea.solved' },
   { quiz: 'M1.2' },
+  // The mode menu's Tool permissions, from the same section of the course.
+  { say: 'mer.rhea.tools' },
+  { term: 'tool-permissions' },
   { page: 'pg1.modes', doubloons: 15 },
   { say: 'mer.rhea.next' },
   { quest: 'Q1.5', step: 'done' },
@@ -332,11 +350,14 @@ const OREN: readonly ScriptStep[] = [
   { hide: true },
   { quiz: 'H1.3' },
   { say: 'mer.oren.03' },
+  { say: 'mer.oren.auto' },
   { say: 'mer.oren.04' },
   { term: 'auto-model' },
   { say: 'mer.oren.05' },
   { say: 'mer.oren.06' },
   { term: 'reasoning-effort' },
+  { say: 'mer.oren.context' },
+  { term: 'context-window' },
   { file: 'pg1.model' },
   { page: 'pg1.try-controls', doubloons: 15 },
   { say: 'mer.oren.07' },
@@ -348,7 +369,10 @@ const OREN: readonly ScriptStep[] = [
 
 const PELL: readonly ScriptStep[] = [
   { say: 'mer.pell.01' },
-  { show: 'ch01/app-settings', caption: '**Settings**: nine areas, from General to Experimental.' },
+  {
+    show: 'ch01/app-settings',
+    caption: 'Select the gear at the bottom of the sidebar to open **Settings**.',
+  },
   { say: 'mer.pell.02' },
   { say: 'mer.pell.03' },
   { hide: true },

@@ -24,7 +24,7 @@ export interface CoveSites {
   readonly gear: GearRackSite;
   readonly palette: PaletteStandSite;
   readonly hammock: HammockSite;
-  /** The message bottles on the beaches (B0.1-B0.3). */
+  /** The message bottles on the beaches (B0.1-B0.4). */
   readonly bottles: BottleSite;
   /** Extra obstacles for the brigantine (the moored sloops). */
   readonly shipObstacles: CircleObstacle[];

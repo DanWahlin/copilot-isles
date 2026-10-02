@@ -37,6 +37,17 @@ describe('Interactions focus', () => {
     set.add({ ...item('off', 0.5, 0), enabled: () => false });
     expect(set.update(0, 0, 0, Math.PI / 2)).toBeNull();
   });
+
+  it('keeps a bias-carrying neighbour from taking focus unless it is much closer', () => {
+    // Mina 2.2 m in front; a child with a bark-only bias runs past 1.2 m away, then right up close.
+    const set = new Interactions();
+    set.add(item('npc:mina', 2.2, 0));
+    set.add({ ...item('npc:kid', 1.2, 0.3), bias: 1.5 });
+    expect(set.update(0, 0, 0, Math.PI / 2)?.id).toBe('npc:mina');
+    set.remove('npc:kid');
+    set.add({ ...item('npc:kid', 0.3, 0), bias: 1.5 });
+    expect(set.update(0, 0, 0, Math.PI / 2)?.id).toBe('npc:kid');
+  });
 });
 
 describe('Interactions.nearest', () => {

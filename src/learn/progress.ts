@@ -81,6 +81,34 @@ export function defaultShipName(captain: string | null): string {
   return captain ? `${captain}’s Brigantine` : 'The Wayfinder';
 }
 
+/**
+ * Logbook ids the course renamed or split (app 1.1.26: Local repository became Current checkout, and
+ * My work became the Pull requests and Issues views). Old saves move to today's ids when they load.
+ */
+const RENAMED: Readonly<Record<string, readonly string[]>> = {
+  'local-repository': ['current-checkout'],
+  'my-work': ['pull-requests', 'issues'],
+  'pg1.my-work': ['pg1.pull-requests', 'pg1.issues', 'pg1.more'],
+};
+
+const renamed = (ids: string[]): string[] => [...new Set(ids.flatMap((s) => RENAMED[s] ?? [s]))];
+
+/**
+ * Glossary terms a finished quest teaches that older saves never got (the 2026-10-02 course sync added
+ * Tool permissions to Rhea's debrief and Context window to Oren's talk).
+ */
+const TAUGHT_BY: Readonly<Record<string, readonly string[]>> = {
+  'Q1.5': ['tool-permissions'],
+  'Q1.6': ['context-window'],
+};
+
+const withTaught = (glossary: string[], quests: Record<string, string>): string[] => [
+  ...new Set([
+    ...glossary,
+    ...Object.entries(TAUGHT_BY).flatMap(([q, terms]) => (quests[q] === 'done' ? terms : [])),
+  ]),
+];
+
 /** Parses a stored value, dropping anything malformed instead of throwing (old or hand-edited saves). */
 export function parseProgress(raw: string | null): ProgressData {
   if (!raw) return emptyProgress();
@@ -90,14 +118,15 @@ export function parseProgress(raw: string | null): ProgressData {
     const base = emptyProgress(typeof d.created === 'number' ? d.created : Date.now());
     const strings = (v: unknown) =>
       Array.isArray(v) ? v.filter((s): s is string => typeof s === 'string') : [];
+    const quests = d.quests && typeof d.quests === 'object' ? d.quests : {};
     return {
       ...base,
-      pages: strings(d.pages),
+      pages: renamed(strings(d.pages)),
       chests: strings(d.chests),
-      glossary: strings(d.glossary),
+      glossary: withTaught(renamed(strings(d.glossary)), quests),
       seals: strings(d.seals),
       quizzes: d.quizzes && typeof d.quizzes === 'object' ? d.quizzes : {},
-      quests: d.quests && typeof d.quests === 'object' ? d.quests : {},
+      quests,
       trials: d.trials && typeof d.trials === 'object' ? d.trials : {},
       doubloons: typeof d.doubloons === 'number' && d.doubloons >= 0 ? Math.floor(d.doubloons) : 0,
       sails: typeof d.sails === 'string' ? d.sails : null,

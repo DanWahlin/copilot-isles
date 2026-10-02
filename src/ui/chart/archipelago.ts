@@ -23,9 +23,9 @@ export const ARCHIPELAGO: readonly ChartIsland[] = [
     seal: 'Seal of Anchorage',
     topics: [
       'Install the app and sign in',
-      'Fork the course repository',
-      'Connect it to a project session',
-      'Send your first prompt',
+      'Add your fork and start a project session',
+      'Check your tools in Terminal',
+      'Add the course practice items',
     ],
   },
   {
@@ -55,7 +55,7 @@ export const ARCHIPELAGO: readonly ChartIsland[] = [
       'Worktree-backed sessions from a branch',
       'Why isolation protects your main branch',
       'Adding context with @, #, and /',
-      'Local repo, worktree, or cloud sandbox',
+      'Current checkout, worktree, or cloud sandbox',
     ],
   },
   {
@@ -69,7 +69,7 @@ export const ARCHIPELAGO: readonly ChartIsland[] = [
     topics: [
       'Review panel, tests, and browser preview',
       'Regression tests and the rubber duck agent',
-      'My work: from issue to pull request',
+      'Issues and Pull requests: from issue to pull request',
       'Fixing review comments and failing checks',
     ],
   },

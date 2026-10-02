@@ -1,0 +1,142 @@
+{
+  "id": "mer.oren.context",
+  "speaker": "Oren",
+  "text": "The context window is how much the model can hold at once. A bigger one helps long sessions and large codebases, but it uses more AI credits.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.055541,
+      "end": 0.194458
+    },
+    {
+      "word": "context",
+      "start": 0.194458,
+      "end": 0.763875
+    },
+    {
+      "word": "window",
+      "start": 0.763875,
+      "end": 1.152791
+    },
+    {
+      "word": "is",
+      "start": 1.152791,
+      "end": 1.319458
+    },
+    {
+      "word": "how",
+      "start": 1.319458,
+      "end": 1.541666
+    },
+    {
+      "word": "much",
+      "start": 1.541666,
+      "end": 1.819458
+    },
+    {
+      "word": "the",
+      "start": 1.819458,
+      "end": 1.930541
+    },
+    {
+      "word": "model",
+      "start": 1.930541,
+      "end": 2.263875
+    },
+    {
+      "word": "can",
+      "start": 2.263875,
+      "end": 2.430541
+    },
+    {
+      "word": "hold",
+      "start": 2.430541,
+      "end": 2.777791
+    },
+    {
+      "word": "at",
+      "start": 2.777791,
+      "end": 2.888875
+    },
+    {
+      "word": "once",
+      "start": 2.888875,
+      "end": 4.416666
+    },
+    {
+      "word": "A",
+      "start": 4.416666,
+      "end": 4.541666
+    },
+    {
+      "word": "bigger",
+      "start": 4.541666,
+      "end": 4.819458
+    },
+    {
+      "word": "one",
+      "start": 4.819458,
+      "end": 5.138875
+    },
+    {
+      "word": "helps",
+      "start": 5.138875,
+      "end": 5.513875
+    },
+    {
+      "word": "long",
+      "start": 5.513875,
+      "end": 5.805541
+    },
+    {
+      "word": "sessions",
+      "start": 5.805541,
+      "end": 6.319458
+    },
+    {
+      "word": "and",
+      "start": 6.319458,
+      "end": 6.458333
+    },
+    {
+      "word": "large",
+      "start": 6.458333,
+      "end": 6.805541
+    },
+    {
+      "word": "codebases",
+      "start": 6.805541,
+      "end": 7.805541
+    },
+    {
+      "word": "but",
+      "start": 7.805541,
+      "end": 7.958333
+    },
+    {
+      "word": "it",
+      "start": 7.958333,
+      "end": 8.097208
+    },
+    {
+      "word": "uses",
+      "start": 8.097208,
+      "end": 8.527791
+    },
+    {
+      "word": "more",
+      "start": 8.527791,
+      "end": 8.819458
+    },
+    {
+      "word": "AI",
+      "start": 8.819458,
+      "end": 9.138875
+    },
+    {
+      "word": "credits",
+      "start": 9.138875,
+      "end": 9.388875
+    }
+  ]
+}

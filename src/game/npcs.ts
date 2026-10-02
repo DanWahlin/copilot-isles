@@ -75,7 +75,7 @@ export const COVE_NPCS: NpcSpec[] = [
     anchor: 'boRack',
     clip: 'idle',
     barks: [
-      'For setup, choose Local repository, Captain. New worktrees come later.',
+      'For setup, choose Current checkout, Captain. New worktrees come later.',
       'Git, Node.js, npm, and GitHub CLI. Check them in Terminal, and install only what’s missing.',
     ],
   },

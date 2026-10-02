@@ -1,0 +1,112 @@
+{
+  "id": "mer.mina.board2",
+  "speaker": "Mina",
+  "text": "Your setup script’s practice items are up there too. Pull requests under Authored by me, and issues under Assigned to me.",
+  "words": [
+    {
+      "word": "Your",
+      "start": 0.0471659,
+      "end": 0.200458
+    },
+    {
+      "word": "setup",
+      "start": 0.200458,
+      "end": 0.589625
+    },
+    {
+      "word": "script’s",
+      "start": 0.589625,
+      "end": 1.049541
+    },
+    {
+      "word": "practice",
+      "start": 1.049541,
+      "end": 1.509416
+    },
+    {
+      "word": "items",
+      "start": 1.509416,
+      "end": 1.886791
+    },
+    {
+      "word": "are",
+      "start": 1.886791,
+      "end": 1.992916
+    },
+    {
+      "word": "up",
+      "start": 1.992916,
+      "end": 2.169791
+    },
+    {
+      "word": "there",
+      "start": 2.169791,
+      "end": 2.299541
+    },
+    {
+      "word": "too",
+      "start": 2.299541,
+      "end": 3.502375
+    },
+    {
+      "word": "Pull",
+      "start": 3.502375,
+      "end": 3.75
+    },
+    {
+      "word": "requests",
+      "start": 3.75,
+      "end": 4.351416
+    },
+    {
+      "word": "under",
+      "start": 4.351416,
+      "end": 4.622625
+    },
+    {
+      "word": "Authored",
+      "start": 4.622625,
+      "end": 4.988208
+    },
+    {
+      "word": "by",
+      "start": 4.988208,
+      "end": 5.129708
+    },
+    {
+      "word": "me",
+      "start": 5.129708,
+      "end": 5.672166
+    },
+    {
+      "word": "and",
+      "start": 5.672166,
+      "end": 5.83725
+    },
+    {
+      "word": "issues",
+      "start": 5.83725,
+      "end": 6.25
+    },
+    {
+      "word": "under",
+      "start": 6.25,
+      "end": 6.497625
+    },
+    {
+      "word": "Assigned",
+      "start": 6.497625,
+      "end": 6.910375
+    },
+    {
+      "word": "to",
+      "start": 6.910375,
+      "end": 7.028291
+    },
+    {
+      "word": "me",
+      "start": 7.028291,
+      "end": 7.278291
+    }
+  ]
+}

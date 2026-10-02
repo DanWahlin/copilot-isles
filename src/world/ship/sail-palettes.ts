@@ -1,7 +1,9 @@
 /**
- * Paint Your Sails (POC §4.4, Q0.2): the six palettes mirror the GitHub Copilot app's theme picker
- * (00-setup/assets/pick-a-theme.webp). `cloth` and `stripe` colour the brigantine's canvas; `card`
- * describes the app-style preview card in the picker (page, sidebar, accents, and the colour strip).
+ * Paint Your Sails (POC §4.4, Q0.2): six palettes named after GitHub Copilot app themes, as the
+ * course's first-run theme picker showed them. App 1.1.25 dropped that step, and the theme now lives in
+ * Settings → Themes (Chapter 01 · Settings); GitHub is still the default there. `cloth` and `stripe`
+ * colour the brigantine's canvas; `card` describes the app-style preview card in the picker (page,
+ * sidebar, accents, and the colour strip).
  */
 export interface SailPalette {
   id: string;

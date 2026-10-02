@@ -24,6 +24,9 @@ interface QuestDef {
 const APP_INSTALL_URL = 'https://github.com/features/ai/github-app';
 /** Chapter 00's "Fork the course repository on GitHub" link. */
 const FORK_URL = 'https://github.com/github/copilot-app-for-beginners/fork';
+/** The spyglass caption for the New view after Connect your repositories (Chapter 00 · Installation). */
+export const NEW_VIEW_CAPTION =
+  'Select **Continue**, and the app opens the **New** view. New work starts here.';
 
 const COVE_QUESTS: readonly QuestDef[] = [
   {
@@ -33,8 +36,9 @@ const COVE_QUESTS: readonly QuestDef[] = [
     link: { label: 'Download the Copilot app', url: APP_INSTALL_URL },
     steps: {
       start: 'Talk to Nell Tidewell by the harbourmaster’s door.',
-      palette: 'Pick a theme: paint your sails at the palette stand beside Nell, then select Finish.',
-      done: 'Signed in, theme picked, and the New page is open.',
+      palette:
+        'Paint your sails at the palette stand beside Nell. In the app, themes are in Settings → Themes.',
+      done: 'Signed in, the New view is open, and your sails are painted.',
     },
   },
   {
@@ -53,7 +57,7 @@ const COVE_QUESTS: readonly QuestDef[] = [
     task: 'Start a session and check your tools',
     steps: {
       start: 'Bo Marlin, the quartermaster, is at his gear rack beside Ezra.',
-      done: 'Your session runs on Local repository, and every tool checks out in Terminal.',
+      done: 'Your session runs on Current checkout, and every tool checks out in Terminal.',
     },
   },
   {
@@ -70,11 +74,11 @@ const COVE_QUESTS: readonly QuestDef[] = [
   {
     id: 'Q0.8',
     title: 'First Words',
-    task: 'Send your first prompt',
+    task: 'Ask the agent about the course',
     steps: {
       start: 'Find Juno, your first mate, on the pier beside your ship.',
-      pipes: 'Send the course’s first prompt to the agent. Which fitting on your ship’s rail carries it?',
-      done: 'Your first prompt went to the agent, and the crew answered.',
+      pipes: 'Send the course’s overview prompt to the agent. Which fitting on your ship’s rail carries it?',
+      done: 'Your request went to the agent, and the crew answered.',
     },
   },
   {
@@ -215,16 +219,17 @@ export function npcScript(
         return {
           steps: [
             // The course's order: prerequisites (the chest holds the list), what the app is, download,
-            // sign in, then the theme. Signing in is one obvious button, so it's shown and told.
+            // sign in, Continue to the New view, then where the theme lives (Settings → Themes) and the
+            // palette stand. Signing in is one obvious button, so it's shown and told.
             { say: 'nell.papers.01' },
             { say: 'nell.papers.02' },
             { say: 'nell.papers.04' },
             { say: 'nell.papers.tools' },
             { cue: 'nell-chest' },
-            { show: 'shared/github-copilot-app', caption: 'The **GitHub Copilot app**.' },
+            { show: 'shared/app-github-copilot-app', caption: 'The **GitHub Copilot app**.' },
             { say: 'nell.papers.app' },
             {
-              show: 'shared/github-copilot-app',
+              show: 'shared/app-github-copilot-app',
               caption: `Download and install it from [${APP_INSTALL_URL.replace('https://', '')}](${APP_INSTALL_URL}).`,
             },
             { say: 'nell.papers.03' },
@@ -232,10 +237,18 @@ export function npcScript(
             { hide: true },
             { page: 'pg.install' },
             { say: 'nell.papers.logbook' },
-            { show: 'ch00/sign-in-to-app', caption: 'Open the app and select **Sign in to GitHub**.' },
+            { show: 'ch00/app-sign-in', caption: 'Open the app and select **Sign in to GitHub**.' },
             { say: 'nell.papers.signin' },
             { say: 'nell.papers.05' },
-            { show: 'ch00/pick-a-theme', caption: 'Pick a theme and select **Finish**.' },
+            { show: 'shared/app-github-copilot-app', caption: NEW_VIEW_CAPTION },
+            { say: 'nell.settings.01' },
+            { hide: true },
+            { page: 'C0.3', doubloons: 20 },
+            {
+              show: 'ch01/app-settings',
+              caption:
+                'Select the gear at the bottom of the sidebar to open **Settings**. Your theme is under **Themes**.',
+            },
             { say: 'nell.papers.06' },
             { hide: true },
             { quest: 'Q0.2', step: 'palette' },
@@ -258,15 +271,15 @@ export function npcScript(
         return {
           steps: [
             // The course's order: fork on GitHub (the link stays in the Logbook and tracker), then
-            // add it from the New page: find the + (H0.2), see the menu it opens, and pick your fork
+            // add it from the New view: find the + (H0.2), see the menu it opens, and pick your fork
             // rather than the original (S0.3).
             { say: 'ezra.fork.01' },
             { term: 'fork' },
             { page: 'pg.fork' },
             { say: 'ezra.fork.link' },
             {
-              show: 'shared/github-copilot-app',
-              caption: 'Then add your fork to the app, starting from the **New** page.',
+              show: 'shared/app-github-copilot-app',
+              caption: 'Then add your fork to the app, starting from the **New** view.',
             },
             { say: 'ezra.fork.02' },
             { quiz: 'H0.2' },
@@ -291,16 +304,17 @@ export function npcScript(
       if (!done(q, 'Q0.3') || done(q, 'Q0.4')) return null;
       return {
         steps: [
-          // The course's "Check your tools in Terminal": a project session on Local repository, the
-          // Terminal tab, the version checks (Bo's rack runs them, and they all pass), then GitHub
-          // CLI's own sign-in.
+          // The course's "Check your tools in Terminal": a project session on Current checkout, a short
+          // prompt that creates it, the Terminal tab, the version checks (Bo's rack runs them, and they
+          // all pass), then GitHub CLI's own sign-in.
           { say: 'bo.deck.01' },
           { term: 'project-session' },
           { say: 'bo.deck.02' },
           { quiz: 'H0.4' },
-          { term: 'local-repository' },
+          { term: 'current-checkout' },
           { term: 'worktree' },
           { page: 'C0.6', doubloons: 10 },
+          { say: 'bo.deck.03' },
           {
             show: 'shared/app-review-panel',
             caption:

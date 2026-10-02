@@ -53,7 +53,7 @@
 - The **public repo `github/copilot-app-for-beginners` has 8 chapters (00-07)**. Local version can be found at /Users/danwahlin/Desktop/projects/copilot-app-for-beginners.
 - The course's recurring analogy is a **recording studio** (soundcheck, control room, booths, song charts, arrangement board, sequencer).
 - The course has **72 images** (~9 MB). About 40 are **real app UI screenshots at 1920×1080**, which is perfect for "click the right spot" hotspot quizzes. The rest are conceptual illustrations, which work well as chest rewards and logbook art.
-- Chapters include exact UI names (**New**, **My work**, **Automations**, **Customize**, **Local repository / New worktree / Cloud**, `@ # / &`, `/chronicle standup`, `/rubber-duck`, **Pick & Polish**, `/create-canvas`, **Create and run**…), so quiz content can be precise.
+- Chapters include exact UI names (**New**, **Pull requests**, **Issues**, **Automations**, **Customize**, **New worktree / Current checkout / Cloud**, `@ # / &`, `/chronicle standup`, `/rubber-duck`, **Pick & Polish**, `/create-canvas`, **Create and run**…), so quiz content can be precise.
 
 ### Arkenfall (what makes it look and feel so good)
 I reverse-read its production bundle:
@@ -127,7 +127,7 @@ The course frames the app as a "desktop cockpit" where **humans stay in control 
 | Model & reasoning effort | Which **navigator** you consult & **how long they study the charts** (and yes, "Auto" ≠ "Autopilot") |
 | Worktrees | **Treehouses on one great tree**. Each treehouse is its **own house (folder) on its own branch**, and they all share the trunk (the repository). A shared rope bridge shows that **ports can still collide**. The Bard keeps the course's recording-booth analogy |
 | Context `@` `#` `/` `&` | Four **signal flags**: cargo (files), bounty notices (issues/PRs), bosun's commands, another crew's log (sessions) |
-| My work | The **Bounty Board** |
+| Pull requests & Issues | The **Bounty Board** |
 | Diff / tests / build / preview | Hull before & after / **sea trials** / hull integrity / **test sail** |
 | PR, review, CI checks, merge | Harbormaster **inspection**, notes, **lock gates** that turn green, then **your own review as the final gate** before launch (the course's practice PRs are never launched/merged) |
 | Skills | **Shanty scrolls**: one shared chart so the whole crew works in rhythm. A scroll **doesn't change anyone's toolbelt** (a skill doesn't enforce permissions) |
@@ -159,10 +159,10 @@ The course frames the app as a "desktop cockpit" where **humans stay in control 
 The **Open Sea** between islands has sailing, dolphins, gulls, whales, sea stacks, shipwrecks to peek at, and far-off mountains.
 
 ### Island 00: Anchorage Cay (Setup), first-pass beats
-1. **Captain's Papers:** the Harbormaster covers sign-in (screenshot `sign-in-to-app`). You also choose your theme by painting your sails light or dark (`pick-a-theme`).
+1. **Captain's Papers:** the Harbormaster covers sign-in (screenshot `app-sign-in`) and the **New** view. The app's theme lives in **Settings → Themes** (app 1.1.25 dropped the first-run theme step), and here you choose it by painting your sails at the palette stand.
 2. **Copy the Master Chart:** the Chartmaker explains what a fork is (your own copy).
 3. **Moor Your Ship:** Connect the repo. A hotspot quiz on `app-add-project` asks you to find **+ next to Projects → Add GitHub repository**. Other ways in, **Open folder** and **Clone repository**, show up as alternate berths.
-4. **Your Own Deck:** choose **Local repository** rather than **New worktree** for setup. A hotspot quiz uses `local-repository-workspace-selector`. The islanders say "you'll learn about treehouses later."
+4. **Your Own Deck:** choose **Current checkout** rather than **New worktree** for setup, then send a short prompt to create the session. A hotspot quiz uses `app-current-checkout-workspace-selector`. The islanders say "you'll learn about treehouses later."
 5. **Gear Check:** find the compass (`git`), lantern (`node`), rope (`npm`), and spyglass (`gh`) around the village. Then check them in the **Terminal** tab. You'll learn **View → Toggle Review Panel** along the way.
 6. **Right Signature:** `gh auth status` means signing the ledger with the correct account.
 7. **Open the Sluice:** on GitHub.com, open your fork's **Actions** tab and enable workflows ("I understand my workflows…") so GitHub Actions can run the practice checks. Wingman makes clear that these aren't the app's **Automations**.
@@ -175,7 +175,7 @@ The **Open Sea** between islands has sailing, dolphins, gulls, whales, sea stack
 ### Island 01: Port Meridian (Tour the App), as built
 A walled harbour town at golden hour: an east arm where your ship berths, a paved plaza and tavern up the stair street, the shipyard at the west end of the quay, terraced houses climbing to a limestone citadel on a bluff, and a cliff lift up the bluff. Eight stops in the chapter's order, each one "what you'll do → where it is in the app → one check → a Logbook page → who's next" (`src/game/meridian-quests.ts`), with the compass pointing to the next one:
 1. **Tobias Crane** (plaza table): why use the app. The challenge/solution table is told rather than played (the Scattered Evidence quest was cut to keep stops few, the Chapter 00 lesson), and you keep your editor for deep coding.
-2. **Mina Solé** (plaza tour): the sidebar's work surfaces as landmarks, each framed by the camera with its screenshot: Voyage Office = **New**, Bounty Board = **My work** (your practice items from Anchorage), Clock Tower = **Automations**, Outfitter = **Customize**. Then a hotspot check on the sidebar.
+2. **Mina Solé** (plaza tour): the sidebar's work surfaces as landmarks, each framed by the camera with its screenshot: Voyage Office = **New**, Bounty Board = **Pull requests** and **Issues** (your practice items from Anchorage), Clock Tower = **Automations**, Outfitter = **Customize**. Then a hotspot check on the sidebar.
 3. **Lyra** (tavern stage): the producer's control room (modes), then **Chats**: hover over Chats, select **+**, and pick **Chat** in the project picker. No branch or worktree.
 4. **Anders Holt** (shipyard): **Project sessions** on a **New worktree** by default. **P1.1 The Crate Yard:** push each job crate onto the right plates (chat work to the tavern plates, project work to the slipway); a wrong plate refuses and says why.
 5. **Captain Rhea Marlowe** (east arm): session modes. **P1.2 The Three Helms:** board your ship; Rhea comes aboard and takes each buoy's helm in turn. **Interactive** heaves to at every mark until you say go, **Plan** charts the whole route on the water and waits for your approval, and **Autopilot** sails home to your berth and moors with no stops. A session-style terminal shows your ask, her steps, and where she's waiting on you. Then a "which mode?" check.

@@ -1,46 +1,44 @@
-import type { ChapterContent } from '../types';
+import type { ChapterContent, Rect } from '../types';
 
 const ch = '00-setup' as const;
 const src = (anchor: string) => ({ chapter: ch, anchor });
+
+/** A rect in the course's 1920 × 1080 app screenshots, in pixels → normalized. */
+const px = (x: number, y: number, w: number, h: number): Rect => [x / 1920, y / 1080, w / 1920, h / 1080];
+/** A rect in the 1000 × 480 workspace-selector crop, in pixels → normalized. */
+const sel = (x: number, y: number, w: number, h: number): Rect => [x / 1000, y / 480, w / 1000, h / 480];
 
 /** Island 00 · Anchorage Cay: Chapter 00 (Setup). POC §4.4-4.7. */
 export const CH00: ChapterContent = {
   chapter: ch,
   images: [
     {
-      id: 'ch00/sign-in-to-app',
-      src: 'course/ch00/sign-in-to-app.webp',
+      id: 'ch00/app-sign-in',
+      src: 'course/ch00/app-sign-in.webp',
       width: 1120,
       height: 490,
       alt: 'The Copilot app welcome screen with Sign in to GitHub and Sign in to GitHub Enterprise Cloud buttons',
     },
     {
-      id: 'ch00/pick-a-theme',
-      src: 'course/ch00/pick-a-theme.webp',
-      width: 2436,
-      height: 918,
-      alt: 'The theme picker with palette cards, and Accessibility, Finish, and Back buttons',
-    },
-    {
-      id: 'shared/github-copilot-app',
-      src: 'course/shared/github-copilot-app.webp',
+      id: 'shared/app-github-copilot-app',
+      src: 'course/shared/app-github-copilot-app.webp',
       width: 1920,
       height: 1080,
-      alt: 'The GitHub Copilot app New page',
+      alt: 'The GitHub Copilot app New view: New, Pull requests, Issues, Automations, Customize and More in the sidebar, Projects with Chats, and the prompt box',
     },
     {
       id: 'ch00/app-add-project',
       src: 'course/ch00/app-add-project.webp',
       width: 1920,
       height: 1080,
-      alt: 'The Projects + menu open, showing Chat, Add GitHub repository, Clone repository, and Open folder',
+      alt: 'The Projects menu open, with callouts on the + (1) and Add GitHub repository (2), above Chat, Clone repository, and Open folder',
     },
     {
-      id: 'ch00/local-repository-workspace-selector',
-      src: 'course/ch00/local-repository-workspace-selector.webp',
-      width: 2738,
-      height: 838,
-      alt: 'The workspace selector: New worktree (checked), Local repository, and Cloud',
+      id: 'ch00/app-current-checkout-workspace-selector',
+      src: 'course/ch00/app-current-checkout-workspace-selector.webp',
+      width: 1000,
+      height: 480,
+      alt: 'The Where to work menu below the prompt box: New worktree (checked), Current checkout (highlighted), Cloud, and Base branch, with callouts on the workspace selector and Current checkout',
     },
     {
       id: 'ch00/studio-setup-soundcheck',
@@ -50,12 +48,13 @@ export const CH00: ChapterContent = {
       alt: 'A recording studio being set up for a soundcheck',
     },
     {
-      // Chapter 03's review panel shot, cropped to the prompt box and the panel (no sidebar).
+      // Chapter 03's workspace-panel shot, cropped to the conversation and the review panel (no
+      // sidebar), with its "Worktree ready" status line painted out: setup runs on Current checkout.
       id: 'shared/app-review-panel',
       src: 'course/shared/app-review-panel.webp',
-      width: 1556,
+      width: 1570,
       height: 1080,
-      alt: 'A project session: the prompt box on the left, set to Local, and the review panel on the right with its Changes, Terminal, and + tabs',
+      alt: 'A project session: the conversation and prompt box on the left, and the review panel on the right with its Terminal tab and + highlighted',
     },
   ],
 
@@ -65,34 +64,34 @@ export const CH00: ChapterContent = {
     {
       id: 'H0.2',
       type: 'hotspot',
-      // The New page before anything's selected; Ezra then shows the menu the + opens.
-      image: 'shared/github-copilot-app',
+      // The New view before anything's selected; Ezra then shows the menu the + opens.
+      image: 'shared/app-github-copilot-app',
       mask: [],
       prompt: 'Where do you start adding your fork to the app?',
       targets: [
         {
           id: 'projects-plus',
-          rect: [0.216, 0.318, 0.029, 0.052],
+          rect: px(300, 328, 34, 34),
           label: '+ next to Projects',
           correct: true,
         },
         {
           id: 'prompt-plus',
-          rect: [0.291, 0.482, 0.028, 0.052],
+          rect: px(668, 528, 34, 36),
           label: '+ in the prompt box',
           feedback: 'That **+** belongs to the prompt box. Projects have their own **+** in the sidebar.',
         },
         {
           id: 'new',
-          rect: [0.008, 0.089, 0.24, 0.05],
+          rect: px(10, 68, 330, 40),
           label: 'New',
           feedback: '**New** starts new work. Adding a project happens under **Projects**.',
         },
         {
           id: 'customize',
-          rect: [0.008, 0.244, 0.24, 0.05],
+          rect: px(10, 228, 330, 40),
           label: 'Customize',
-          feedback: '**Customize** is for tailoring the app. Look beside the **Projects** heading.',
+          feedback: '**Customize** is where you extend the app. Look beside the **Projects** heading.',
         },
       ],
       explain: {
@@ -129,7 +128,8 @@ export const CH00: ChapterContent = {
       ],
       answer: 'fork',
       explain: {
-        correct: 'Right. Pick your fork. The app clones it and adds it under **Projects**.',
+        correct:
+          'Right. Pick your fork, the result that starts with your GitHub username. The app clones it and adds it under **Projects**.',
         wrong: 'Your practice work belongs in your own copy of the course.',
       },
       source: src('connect-to-your-repository'),
@@ -137,42 +137,47 @@ export const CH00: ChapterContent = {
     {
       id: 'H0.4',
       type: 'hotspot',
-      image: 'ch00/local-repository-workspace-selector',
+      image: 'ch00/app-current-checkout-workspace-selector',
+      // The two numbered callouts, and the blue outline round Current checkout (four thin strips).
       mask: [
-        [0.214, 0.76, 0.05, 0.16],
-        [0.402, 0.372, 0.05, 0.16],
+        sel(442, 129, 57, 57),
+        sel(562, 287, 57, 57),
+        sel(258, 281, 300, 7),
+        sel(258, 342, 300, 7),
+        sel(258, 281, 7, 69),
+        sel(551, 281, 7, 69),
       ],
       prompt: 'For this one-time setup, where should the session run?',
       targets: [
         {
-          id: 'local',
-          rect: [0.248, 0.401, 0.366, 0.198],
-          label: 'Local repository',
+          id: 'current',
+          rect: sel(263, 288, 290, 54),
+          label: 'Current checkout',
           correct: true,
         },
         {
           id: 'worktree',
-          rect: [0.248, 0.204, 0.366, 0.174],
+          rect: sel(262, 229, 292, 52),
           label: 'New worktree',
           feedback:
-            'The checkmark shows the default, **New worktree**, which creates a separate copy for the session. For setup, change it to **Local repository**.',
+            'The checkmark shows the default, **New worktree**, a separate directory for each session. For setup, change it to **Current checkout**.',
         },
         {
           id: 'cloud',
-          rect: [0.248, 0.609, 0.366, 0.178],
+          rect: sel(262, 350, 292, 52),
           label: 'Cloud',
           feedback: '**Cloud** runs in a cloud sandbox. Setup uses the clone that’s already on your machine.',
         },
       ],
       explain: {
         correct:
-          'Yes: **Local repository** works in the clone already on your machine. You’ll meet worktrees on Thousand-Bough Isle.',
+          'Yes: **Current checkout** works in the existing checkout, the clone already on your machine. You’ll meet the other options on Thousand-Bough Isle.',
         wrong: 'Setup should use the copy that’s already on your machine.',
       },
       hints: [
         'Don’t trust the checkmark. It just shows the default.',
-        'You want the option that uses the repository already on your machine.',
-        'Select **Local repository**.',
+        'You want the option that works in the clone already on your machine.',
+        'Select **Current checkout**.',
       ],
       source: src('check-your-tools-in-terminal'),
     },
@@ -232,7 +237,7 @@ export const CH00: ChapterContent = {
           'Yes! Requests go to the agent through the prompt box. It should summarize the course and point out `samples/book-app-web`.',
         wrong: 'Terminal is for commands. Who should answer this request?',
       },
-      source: src('your-first-prompt'),
+      source: src('learn-more-about-the-course-repository'),
     },
 
     // The Harbormaster's Trial (T0): 8 items, hints tier 3 off.
@@ -243,13 +248,13 @@ export const CH00: ChapterContent = {
       items: [
         { id: 'fork', text: 'Fork the course repository' },
         { id: 'add', text: 'Add your fork: **+** by **Projects** → **Add GitHub repository**' },
-        { id: 'local', text: 'Start a project session on **Local repository**' },
+        { id: 'local', text: 'Start a project session on **Current checkout**' },
         { id: 'dry', text: 'Run `--dry-run` and check the `Repository:` line' },
         { id: 'yes', text: 'Run `--yes` and wait for `Setup complete.`' },
       ],
       explain: {
         correct:
-          'That’s the whole voyage: fork, add it, a **Local repository** session, preview, then run it for real.',
+          'That’s the whole voyage: fork, add it, a **Current checkout** session, preview, then run it for real.',
         wrong: 'You can’t add a fork you haven’t made, and the preview always comes before `--yes`.',
       },
       source: src('connect-to-your-repository'),
@@ -264,7 +269,7 @@ export const CH00: ChapterContent = {
           right: { id: 'github', text: 'GitHub.com' },
         },
         {
-          left: { id: 'local', text: 'Switch the session to **Local repository**' },
+          left: { id: 'local', text: 'Switch the session to **Current checkout**' },
           right: { id: 'selector', text: 'Workspace selector' },
         },
         {
@@ -407,9 +412,9 @@ export const CH00: ChapterContent = {
     {
       id: 'pg.install',
       title: 'Get the Copilot app',
-      image: 'shared/github-copilot-app',
+      image: 'shared/app-github-copilot-app',
       caption:
-        'Download and install the **GitHub Copilot app** for your system from [github.com/features/ai/github-app](https://github.com/features/ai/github-app). Open it and select **Sign in to GitHub** (on `*.ghe.com`, **Sign in to GitHub Enterprise Cloud**). At **Connect your repositories**, continue without adding one.',
+        'Download and install the **GitHub Copilot app** for your system from [github.com/features/ai/github-app](https://github.com/features/ai/github-app). Open it and select **Sign in to GitHub** (on `*.ghe.com`, **Sign in to GitHub Enterprise Cloud**). At **Connect your repositories**, leave every repository unselected and select **Continue**.',
       source: src('installation'),
     },
     {
@@ -421,10 +426,10 @@ export const CH00: ChapterContent = {
     },
     {
       id: 'C0.3',
-      title: 'The New page',
-      image: 'shared/github-copilot-app',
+      title: 'The New view',
+      image: 'shared/app-github-copilot-app',
       caption:
-        'Pick a theme and select **Finish**, and the app opens the **New** page, where new work starts. You can change the theme any time in **Settings**.',
+        'Select **Continue**, and the app opens the **New** view, where new work starts. If it shows a short tip about a new feature, you can close the tip.',
       source: src('installation'),
     },
     {
@@ -444,10 +449,11 @@ export const CH00: ChapterContent = {
     },
     {
       id: 'C0.6',
-      title: 'A Local repository session',
-      image: 'ch00/local-repository-workspace-selector',
+      title: 'A Current checkout session',
+      image: 'ch00/app-current-checkout-workspace-selector',
       caption:
-        'Select **+** next to your project to start a project session. Sessions start on **New worktree** by default. For setup, pick **Local repository** in the workspace selector below the prompt box, so it runs in the clone already on your machine.',
+        'Point to your project in the sidebar and select the **+** that appears to start a project session. Sessions start on **New worktree** by default. For setup, pick **Current checkout** in the workspace selector below the prompt box, so it runs in the clone already on your machine. Then submit this short prompt to create the session.',
+      code: 'Name the top-level folders in this repository. Do not change any files.',
       source: src('check-your-tools-in-terminal'),
     },
     {
@@ -455,7 +461,7 @@ export const CH00: ChapterContent = {
       title: 'Terminal in the app',
       image: 'shared/app-review-panel',
       caption:
-        'Select **View → Toggle Review Panel**, then the **Terminal** tab. No tab? Select **+**, then **Terminal**. Commands run here: the version checks, `gh auth status`, and the setup script. Requests to the agent go in the prompt box.',
+        'Select **View → Toggle Review Panel**, then **Terminal**. No tab? Select **+**, then **Terminal**. Commands run here: the version checks, `gh auth status`, and the setup script. Requests to the agent go in the prompt box. On Windows, if PowerShell won’t run `npm`, use `npm.cmd` in its place.',
       code:
         'git --version\nnode -v\nnpm -v\ngh --version\n' +
         'gh auth status   # signed in as the account that owns your fork?\n' +
@@ -488,11 +494,11 @@ export const CH00: ChapterContent = {
     },
     {
       id: 'pg.first-prompt',
-      title: 'Your first prompt',
+      title: 'Learn about the course',
       caption:
-        'Send requests to the agent from the **prompt box**, not **Terminal**. The reply should sum up the course’s learning path and point out `samples/book-app-web`, the web sample for later chapters. Models vary, so yours will be worded differently.',
+        'Back in your project session, send this from the **prompt box**, not **Terminal**. The reply should sum up the course structure and point out `samples/book-app-web`, the web sample for later exercises. Models vary, so yours will be worded differently.',
       code: 'Give me an overview of the copilot-app-for-beginners course repository. Focus on the learning path and the samples/book-app-web folder.',
-      source: src('your-first-prompt'),
+      source: src('learn-more-about-the-course-repository'),
     },
     {
       id: 'C0.5',
@@ -523,6 +529,14 @@ export const CH00: ChapterContent = {
       code: 'node .github/scripts/setup-training-scenarios.js --yes --allow-shared-repository',
       source: src('the-script-stops-for-an-organization-fork'),
     },
+    {
+      id: 'B0.4',
+      title: 'The script stops with “Setup failed”',
+      caption:
+        'Read the message after `Setup failed`. Fix the problem it reports, then run the script with `--yes` again. It reuses the labels, issues, branches, and pull requests it already made, so you won’t get duplicates.',
+      code: 'node .github/scripts/setup-training-scenarios.js --yes',
+      source: src('the-script-stops-with-setup-failed'),
+    },
   ],
 
   chests: [
@@ -532,6 +546,7 @@ export const CH00: ChapterContent = {
     { id: 'B0.1', page: 'B0.1', doubloons: 5, kind: 'bottle' },
     { id: 'B0.2', page: 'B0.2', doubloons: 5, kind: 'bottle' },
     { id: 'B0.3', page: 'B0.3', doubloons: 5, kind: 'bottle' },
+    { id: 'B0.4', page: 'B0.4', doubloons: 5, kind: 'bottle' },
   ],
 
   glossary: [
@@ -542,9 +557,9 @@ export const CH00: ChapterContent = {
       definition: 'A session that works inside one of your projects (repositories).',
     },
     {
-      id: 'local-repository',
-      term: 'Local repository',
-      definition: 'Run a session in the clone that’s already on your machine.',
+      id: 'current-checkout',
+      term: 'Current checkout',
+      definition: 'Run a session in the existing checkout: the clone that’s already on your machine.',
     },
     {
       id: 'worktree',

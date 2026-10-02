@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { QUIZZES } from './content/index';
+import { GLOSSARY, PAGES, QUIZZES } from './content/index';
 import { grade, shuffled } from './grade';
 import {
   Progress,
@@ -28,18 +28,18 @@ describe('grade', () => {
   });
 
   it('grades hotspots by point, picking the target under the click', () => {
-    expect(grade(q('H0.2'), { type: 'hotspot', x: 0.23, y: 0.344 })).toMatchObject({
+    expect(grade(q('H0.2'), { type: 'hotspot', x: 0.165, y: 0.319 })).toMatchObject({
       correct: true,
       hit: 'projects-plus',
     });
-    const prompt = grade(q('H0.2'), { type: 'hotspot', x: 0.305, y: 0.508 });
+    const prompt = grade(q('H0.2'), { type: 'hotspot', x: 0.357, y: 0.506 });
     expect(prompt).toMatchObject({ correct: false, hit: 'prompt-plus' });
     expect(prompt.feedback).toContain('prompt box');
     expect(grade(q('H0.2'), { type: 'hotspot', x: 0.9, y: 0.9 })).toMatchObject({
       correct: false,
       hit: undefined,
     });
-    expect(grade(q('H0.4'), { type: 'hotspot-target', target: 'local' }).correct).toBe(true);
+    expect(grade(q('H0.4'), { type: 'hotspot-target', target: 'current' }).correct).toBe(true);
   });
 
   it('needs every multi-select option right', () => {
@@ -118,6 +118,21 @@ describe('progress', () => {
       pages: ['x'],
       doubloons: 0,
     });
+  });
+
+  it('moves saves from before the course sync to today’s Logbook ids', () => {
+    const old = parseProgress(
+      JSON.stringify({
+        v: 1,
+        pages: ['C0.6', 'pg1.my-work', 'pg1.new'],
+        glossary: ['local-repository', 'my-work', 'issues'],
+        quests: { 'Q1.5': 'done', 'Q1.6': 'start' },
+      }),
+    );
+    expect(old.pages).toEqual(['C0.6', 'pg1.pull-requests', 'pg1.issues', 'pg1.more', 'pg1.new']);
+    expect(old.glossary).toEqual(['current-checkout', 'pull-requests', 'issues', 'tool-permissions']);
+    for (const id of old.pages) expect(PAGES.has(id), id).toBe(true);
+    for (const id of old.glossary) expect(GLOSSARY.has(id), id).toBe(true);
   });
 
   it('round-trips an export code, including non-ASCII', () => {

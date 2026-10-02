@@ -112,6 +112,7 @@ describe('crane logic (P0.2)', () => {
       'Default branch: main',
       '[dry-run] would create 9 labels, 5 issues,',
       '[dry-run] 7 branches and 3 pull requests',
+      'Dry run complete. No changes were made.',
     ]);
     const refused = confirmYes(other.state);
     expect(terminalLines(refused.state, refused.event).slice(2)).toEqual([

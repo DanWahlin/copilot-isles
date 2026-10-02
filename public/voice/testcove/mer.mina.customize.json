@@ -1,7 +1,7 @@
 {
   "id": "mer.mina.customize",
   "speaker": "Mina",
-  "text": "And the Outfitter is Customize, for skills, MCP servers and plugins. You won’t need those until later chapters.",
+  "text": "And the Outfitter is Customize, for skills, MCP servers, plugins and canvases. You won’t need those until later chapters.",
   "words": [
     {
       "word": "And",
@@ -16,92 +16,97 @@
     {
       "word": "Outfitter",
       "start": 0.353791,
-      "end": 0.778291
+      "end": 0.790083
     },
     {
       "word": "is",
-      "start": 0.778291,
-      "end": 0.908
+      "start": 0.790083,
+      "end": 0.919791
     },
     {
       "word": "Customize",
-      "start": 0.908,
-      "end": 1.792458
+      "start": 0.919791,
+      "end": 1.80425
     },
     {
       "word": "for",
-      "start": 1.792458,
-      "end": 1.922166
+      "start": 1.80425,
+      "end": 1.94575
     },
     {
       "word": "skills",
-      "start": 1.922166,
-      "end": 2.629708
+      "start": 1.94575,
+      "end": 2.653291
     },
     {
       "word": "M",
-      "start": 2.629708,
-      "end": 2.806583
+      "start": 2.653291,
+      "end": 2.830208
     },
     {
       "word": "C",
-      "start": 2.806583,
-      "end": 3.077833
+      "start": 2.830208,
+      "end": 3.101416
     },
     {
       "word": "P",
-      "start": 3.077833,
-      "end": 3.301875
+      "start": 3.101416,
+      "end": 3.313666
     },
     {
       "word": "servers",
-      "start": 3.301875,
-      "end": 3.797166
-    },
-    {
-      "word": "and",
-      "start": 3.797166,
-      "end": 3.915083
+      "start": 3.313666,
+      "end": 3.974041
     },
     {
       "word": "plugins",
-      "start": 3.915083,
-      "end": 5.389166
+      "start": 3.974041,
+      "end": 4.658
+    },
+    {
+      "word": "and",
+      "start": 4.658,
+      "end": 4.834916
+    },
+    {
+      "word": "canvases",
+      "start": 4.834916,
+      "end": 6.3915
     },
     {
       "word": "You",
-      "start": 5.389166,
-      "end": 5.518875
+      "start": 6.3915,
+      "end": 6.521208
     },
     {
       "word": "won’t",
-      "start": 5.518875,
-      "end": 5.7665
+      "start": 6.521208,
+      "end": 6.768875
     },
     {
       "word": "need",
-      "start": 5.7665,
-      "end": 5.990583
+      "start": 6.768875,
+      "end": 6.992916
     },
     {
       "word": "those",
-      "start": 5.990583,
-      "end": 6.297166
+      "start": 6.992916,
+      "end": 7.299541
     },
     {
       "word": "until",
-      "start": 6.297166,
-      "end": 6.592
+      "start": 7.299541,
+      "end": 7.594333
     },
     {
       "word": "later",
-      "start": 6.592,
-      "end": 6.922166
+      "start": 7.594333,
+      "end": 7.924541
     },
     {
       "word": "chapters",
-      "start": 6.922166,
-      "end": 7.172166
+      "start": 7.924541,
+      "end": 8.174541
     }
   ]
 }

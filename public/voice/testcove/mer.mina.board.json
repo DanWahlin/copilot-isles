@@ -1,0 +1,97 @@
+{
+  "id": "mer.mina.board",
+  "speaker": "Mina",
+  "text": "The Bounty Board is two views, Pull requests and Issues. Each one lists the items that involve you.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.0471659,
+      "end": 0.200458
+    },
+    {
+      "word": "Bounty",
+      "start": 0.200458,
+      "end": 0.589625
+    },
+    {
+      "word": "Board",
+      "start": 0.589625,
+      "end": 0.872625
+    },
+    {
+      "word": "is",
+      "start": 0.872625,
+      "end": 1.025958
+    },
+    {
+      "word": "two",
+      "start": 1.025958,
+      "end": 1.273583
+    },
+    {
+      "word": "views",
+      "start": 1.273583,
+      "end": 1.827833
+    },
+    {
+      "word": "Pull",
+      "start": 1.827833,
+      "end": 2.063666
+    },
+    {
+      "word": "requests",
+      "start": 2.063666,
+      "end": 2.759416
+    },
+    {
+      "word": "and",
+      "start": 2.759416,
+      "end": 2.900958
+    },
+    {
+      "word": "Issues",
+      "start": 2.900958,
+      "end": 4.245291
+    },
+    {
+      "word": "Each",
+      "start": 4.245291,
+      "end": 4.504708
+    },
+    {
+      "word": "one",
+      "start": 4.504708,
+      "end": 4.752375
+    },
+    {
+      "word": "lists",
+      "start": 4.752375,
+      "end": 5.1415
+    },
+    {
+      "word": "the",
+      "start": 5.1415,
+      "end": 5.271208
+    },
+    {
+      "word": "items",
+      "start": 5.271208,
+      "end": 5.69575
+    },
+    {
+      "word": "that",
+      "start": 5.69575,
+      "end": 5.884416
+    },
+    {
+      "word": "involve",
+      "start": 5.884416,
+      "end": 6.273583
+    },
+    {
+      "word": "you",
+      "start": 6.273583,
+      "end": 6.523583
+    }
+  ]
+}

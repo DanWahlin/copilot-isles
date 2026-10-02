@@ -1,7 +1,7 @@
 {
   "id": "mer.tobias.04",
   "speaker": "Tobias",
-  "text": "See my table? Four headaches every captain knows. Match each one to what the app adds.",
+  "text": "See my table? Five headaches every captain knows. Match each one to what the app adds.",
   "words": [
     {
       "word": "See",
@@ -19,69 +19,69 @@
       "end": 1.862
     },
     {
-      "word": "Four",
+      "word": "Five",
       "start": 1.862,
-      "end": 2.044291
+      "end": 2.252625
     },
     {
       "word": "headaches",
-      "start": 2.044291,
-      "end": 2.539083
+      "start": 2.252625,
+      "end": 2.721375
     },
     {
       "word": "every",
-      "start": 2.539083,
-      "end": 2.7995
+      "start": 2.721375,
+      "end": 2.981791
     },
     {
       "word": "captain",
-      "start": 2.7995,
-      "end": 3.26825
+      "start": 2.981791,
+      "end": 3.450541
     },
     {
       "word": "knows",
-      "start": 3.26825,
-      "end": 4.700541
+      "start": 3.450541,
+      "end": 4.895833
     },
     {
       "word": "Match",
-      "start": 4.700541,
-      "end": 5.039083
+      "start": 4.895833,
+      "end": 5.234375
     },
     {
       "word": "each",
-      "start": 5.039083,
-      "end": 5.260416
+      "start": 5.234375,
+      "end": 5.45575
     },
     {
       "word": "one",
-      "start": 5.260416,
-      "end": 5.572916
+      "start": 5.45575,
+      "end": 5.76825
     },
     {
       "word": "to",
-      "start": 5.572916,
-      "end": 5.690125
+      "start": 5.76825,
+      "end": 5.885416
     },
     {
       "word": "what",
-      "start": 5.690125,
-      "end": 5.911458
+      "start": 5.885416,
+      "end": 6.106791
     },
     {
       "word": "the",
-      "start": 5.911458,
-      "end": 6.041666
-    },
-    {
-      "word": "app",
-      "start": 6.041666,
+      "start": 6.106791,
       "end": 6.237
     },
     {
-      "word": "adds",
+      "word": "app",
       "start": 6.237,
-      "end": 6.487
+      "end": 6.432291
+    },
+    {
+      "word": "adds",
+      "start": 6.432291,
+      "end": 6.682291
     }
   ]
 }

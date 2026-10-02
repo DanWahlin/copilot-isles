@@ -1,21 +1,21 @@
 {
   "id": "ezra.fork.careful",
   "speaker": "Ezra",
-  "text": "Mind the search, though. The original course can show up right beside your fork.",
+  "text": "Mind the search, though. The original course shows up too. Your fork’s the one that starts with your GitHub username.",
   "words": [
     {
       "word": "Mind",
       "start": 0.07,
-      "end": 0.39
+      "end": 0.31
     },
     {
       "word": "the",
-      "start": 0.39,
-      "end": 0.51
+      "start": 0.31,
+      "end": 0.43
     },
     {
       "word": "search",
-      "start": 0.51,
+      "start": 0.43,
       "end": 0.83
     },
     {
@@ -26,52 +26,82 @@
     {
       "word": "The",
       "start": 1.15,
-      "end": 1.91
+      "end": 1.27
     },
     {
       "word": "original",
-      "start": 1.91,
-      "end": 2.309
+      "start": 1.27,
+      "end": 2.19
     },
     {
       "word": "course",
-      "start": 2.309,
-      "end": 2.909
+      "start": 2.19,
+      "end": 2.55
     },
     {
-      "word": "can",
-      "start": 2.909,
-      "end": 3.15
-    },
-    {
-      "word": "show",
-      "start": 3.15,
-      "end": 3.349
+      "word": "shows",
+      "start": 2.55,
+      "end": 2.869
     },
     {
       "word": "up",
-      "start": 3.349,
-      "end": 3.429
+      "start": 2.869,
+      "end": 3.03
     },
     {
-      "word": "right",
-      "start": 3.429,
-      "end": 3.67
+      "word": "too",
+      "start": 3.03,
+      "end": 3.829
     },
     {
-      "word": "beside",
-      "start": 3.67,
-      "end": 4.03
+      "word": "Your",
+      "start": 3.829,
+      "end": 4.15
+    },
+    {
+      "word": "fork’s",
+      "start": 4.15,
+      "end": 4.55
+    },
+    {
+      "word": "the",
+      "start": 4.55,
+      "end": 4.67
+    },
+    {
+      "word": "one",
+      "start": 4.67,
+      "end": 4.83
+    },
+    {
+      "word": "that",
+      "start": 4.83,
+      "end": 4.99
+    },
+    {
+      "word": "starts",
+      "start": 4.99,
+      "end": 5.31
+    },
+    {
+      "word": "with",
+      "start": 5.31,
+      "end": 5.47
     },
     {
       "word": "your",
-      "start": 4.03,
-      "end": 4.19
+      "start": 5.47,
+      "end": 5.63
     },
     {
-      "word": "fork",
-      "start": 4.19,
-      "end": 4.44
+      "word": "GitHub",
+      "start": 5.63,
+      "end": 6.03
+    },
+    {
+      "word": "username",
+      "start": 6.03,
+      "end": 6.28
     }
   ]
 }

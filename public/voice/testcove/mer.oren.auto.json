@@ -1,0 +1,67 @@
+{
+  "id": "mer.oren.auto",
+  "speaker": "Oren",
+  "text": "When it says Auto, the app picks a model for your task.",
+  "words": [
+    {
+      "word": "When",
+      "start": 0.055541,
+      "end": 0.291666
+    },
+    {
+      "word": "it",
+      "start": 0.291666,
+      "end": 0.430541
+    },
+    {
+      "word": "says",
+      "start": 0.430541,
+      "end": 0.708333
+    },
+    {
+      "word": "Auto",
+      "start": 0.708333,
+      "end": 1.5
+    },
+    {
+      "word": "the",
+      "start": 1.5,
+      "end": 1.666666
+    },
+    {
+      "word": "app",
+      "start": 1.666666,
+      "end": 1.888875
+    },
+    {
+      "word": "picks",
+      "start": 1.888875,
+      "end": 2.166666
+    },
+    {
+      "word": "a",
+      "start": 2.166666,
+      "end": 2.236125
+    },
+    {
+      "word": "model",
+      "start": 2.236125,
+      "end": 2.597208
+    },
+    {
+      "word": "for",
+      "start": 2.597208,
+      "end": 2.736125
+    },
+    {
+      "word": "your",
+      "start": 2.736125,
+      "end": 2.986125
+    },
+    {
+      "word": "task",
+      "start": 2.986125,
+      "end": 3.236125
+    }
+  ]
+}

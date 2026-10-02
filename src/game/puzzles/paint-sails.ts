@@ -1,5 +1,6 @@
 import type { LearnState } from '../../learn/store';
 import { DEFAULT_SAIL_PALETTE } from '../../world/ship/sail-palettes';
+import { NEW_VIEW_CAPTION } from '../cove-quests';
 import type { ScriptStep } from '../script';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 
@@ -13,24 +14,28 @@ export interface PaintSailsStand {
   setHint(on: boolean): void;
 }
 
-/** Finish on the theme step: the New page in the spyglass and its Logbook page, then on to Ezra. */
+/** Finish on the stand the first time: Nell sends you on to Ezra. */
 const PALETTE_FINISHED: readonly ScriptStep[] = [
-  {
-    show: 'shared/github-copilot-app',
-    caption: 'Select **Finish**, and the **New** page opens. New work starts here.',
-  },
-  { say: 'nell.settings.01' },
-  { hide: true },
-  { page: 'C0.3', doubloons: 20 },
   { say: 'nell.palette.02' },
   { quest: QUEST, step: 'done' },
   { quest: 'Q0.3', step: 'start' },
 ];
 
 /**
- * Paint Your Sails (POC §4.4, Q0.2): the palette stand beside Nell's door mirrors the app's theme
- * step. Pick a palette (it previews on the stand's sample sail and on your ship), then select
- * Finish. The first time, during Q0.2, that shows the New page (C0.3). The stand
+ * Saves from before app 1.1.25 met the New view here, after the theme step; Nell shows it now if
+ * that page isn't in the Logbook yet.
+ */
+const NEW_VIEW_LATE: readonly ScriptStep[] = [
+  { show: 'shared/app-github-copilot-app', caption: NEW_VIEW_CAPTION },
+  { say: 'nell.settings.01' },
+  { hide: true },
+  { page: 'C0.3', doubloons: 20 },
+];
+
+/**
+ * Paint Your Sails (POC §4.4, Q0.2): the palette stand beside Nell's door. The app's theme lives in
+ * Settings → Themes; here, it's your sails. Pick a palette (it previews on the stand's sample sail and
+ * on your ship), then select Finish. The first time, during Q0.2, Nell sends you on to Ezra. The stand
  * stays open for repainting afterwards, and so does Settings → Your sails.
  */
 export function createPaintSails(
@@ -82,7 +87,8 @@ export function createPaintSails(
       host.audio?.sfx.oneShot('chime_solve', undefined, 0.6);
       if (first) {
         setHint(false);
-        await host.beat(PALETTE_FINISHED, 'Nell');
+        const late = !learn.getState().pages.includes('C0.3');
+        await host.beat(late ? [...NEW_VIEW_LATE, ...PALETTE_FINISHED] : PALETTE_FINISHED, 'Nell');
       } else host.hud.toast('Sails repainted.', 2.2);
     }
     running = false;

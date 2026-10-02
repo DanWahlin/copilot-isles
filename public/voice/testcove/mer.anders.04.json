@@ -1,7 +1,7 @@
 {
   "id": "mer.anders.04",
   "speaker": "Anders",
-  "text": "Your Chapter 00 setup session was the exception. You picked Local repository for that one.",
+  "text": "Your Chapter 00 setup session was the exception. You picked Current checkout for that one. The app remembers it, so you’ll switch back in Chapter 02.",
   "words": [
     {
       "word": "Your",
@@ -49,29 +49,79 @@
       "end": 4.760625
     },
     {
-      "word": "Local",
+      "word": "Current",
       "start": 4.760625,
-      "end": 5.119666
+      "end": 5.132958
     },
     {
-      "word": "repository",
-      "start": 5.119666,
-      "end": 5.731375
+      "word": "checkout",
+      "start": 5.132958,
+      "end": 5.571791
     },
     {
       "word": "for",
-      "start": 5.731375,
-      "end": 5.877666
+      "start": 5.571791,
+      "end": 5.6915
     },
     {
       "word": "that",
-      "start": 5.877666,
-      "end": 6.103708
+      "start": 5.6915,
+      "end": 5.930833
     },
     {
       "word": "one",
-      "start": 6.103708,
-      "end": 6.353708
+      "start": 5.930833,
+      "end": 7.22075
+    },
+    {
+      "word": "The",
+      "start": 7.22075,
+      "end": 7.393625
+    },
+    {
+      "word": "app",
+      "start": 7.393625,
+      "end": 7.593083
+    },
+    {
+      "word": "remembers",
+      "start": 7.593083,
+      "end": 8.071791
+    },
+    {
+      "word": "it",
+      "start": 8.071791,
+      "end": 8.457458
+    },
+    {
+      "word": "so",
+      "start": 8.457458,
+      "end": 8.656916
+    },
+    {
+      "word": "you’ll",
+      "start": 8.656916,
+      "end": 8.949458
+    },
+    {
+      "word": "switch",
+      "start": 8.949458,
+      "end": 9.281916
+    },
+    {
+      "word": "back",
+      "start": 9.281916,
+      "end": 9.534583
+    },
+    {
+      "word": "in",
+      "start": 9.534583,
+      "end": 9.680833
+    },
+    {
+      "word": "Chapter 02",
+      "start": 9.680833,
+      "end": 9.930833
     }
   ]
 }

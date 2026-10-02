@@ -1,77 +1,102 @@
 {
   "id": "mer.mina.projects",
   "speaker": "Mina",
-  "text": "Below those, the sidebar keeps your Projects, with your chats and your project sessions.",
+  "text": "Below those, Projects lists each connected project. Once you’ve started a chat, a Chats row shows up there too.",
   "words": [
     {
       "word": "Below",
       "start": 0.0471659,
-      "end": 0.389166
+      "end": 0.377375
     },
     {
       "word": "those",
-      "start": 0.389166,
-      "end": 0.943416
-    },
-    {
-      "word": "the",
-      "start": 0.943416,
-      "end": 1.061333
-    },
-    {
-      "word": "sidebar",
-      "start": 1.061333,
-      "end": 1.556583
-    },
-    {
-      "word": "keeps",
-      "start": 1.556583,
-      "end": 1.875
-    },
-    {
-      "word": "your",
-      "start": 1.875,
-      "end": 1.992916
+      "start": 0.377375,
+      "end": 0.978791
     },
     {
       "word": "Projects",
-      "start": 1.992916,
-      "end": 2.818416
+      "start": 0.978791,
+      "end": 1.474041
     },
     {
-      "word": "with",
-      "start": 2.818416,
-      "end": 2.959916
+      "word": "lists",
+      "start": 1.474041,
+      "end": 1.851416
     },
     {
-      "word": "your",
-      "start": 2.959916,
-      "end": 3.113208
+      "word": "each",
+      "start": 1.851416,
+      "end": 2.099041
     },
     {
-      "word": "chats",
-      "start": 3.113208,
-      "end": 3.502375
-    },
-    {
-      "word": "and",
-      "start": 3.502375,
-      "end": 3.596708
-    },
-    {
-      "word": "your",
-      "start": 3.596708,
-      "end": 3.714625
+      "word": "connected",
+      "start": 2.099041,
+      "end": 2.606125
     },
     {
       "word": "project",
-      "start": 3.714625,
-      "end": 4.16275
+      "start": 2.606125,
+      "end": 4.009416
     },
     {
-      "word": "sessions",
-      "start": 4.16275,
-      "end": 4.41275
+      "word": "Once",
+      "start": 4.009416,
+      "end": 4.316041
+    },
+    {
+      "word": "you’ve",
+      "start": 4.316041,
+      "end": 4.492916
+    },
+    {
+      "word": "started",
+      "start": 4.492916,
+      "end": 4.893875
+    },
+    {
+      "word": "a",
+      "start": 4.893875,
+      "end": 4.964625
+    },
+    {
+      "word": "chat",
+      "start": 4.964625,
+      "end": 5.589625
+    },
+    {
+      "word": "a",
+      "start": 5.589625,
+      "end": 5.660375
+    },
+    {
+      "word": "Chats",
+      "start": 5.660375,
+      "end": 5.990583
+    },
+    {
+      "word": "row",
+      "start": 5.990583,
+      "end": 6.202833
+    },
+    {
+      "word": "shows",
+      "start": 6.202833,
+      "end": 6.544791
+    },
+    {
+      "word": "up",
+      "start": 6.544791,
+      "end": 6.698125
+    },
+    {
+      "word": "there",
+      "start": 6.698125,
+      "end": 6.827833
+    },
+    {
+      "word": "too",
+      "start": 6.827833,
+      "end": 7.077833
     }
   ]
 }

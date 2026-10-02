@@ -20,7 +20,7 @@
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-SoniaNeural",
-      "text": "That's the New page, where new work starts. You can change your theme any time in Settings."
+      "text": "That opens the New view, where new work starts. If a tip about a new feature pops up, you can close it."
     },
     {
       "id": "wingman.hint.01",
@@ -429,14 +429,14 @@
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-SoniaNeural",
-      "text": "At Connect your repositories, carry on without adding one. You’ll connect your fork shortly."
+      "text": "At Connect your repositories, leave every repository unselected and select Continue. You’ll connect your fork shortly."
     },
     {
       "id": "nell.papers.06",
       "speaker": "Nell",
       "voice": "en-GB-Sonia:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-SoniaNeural",
-      "text": "Then pick a theme and select Finish. Here, your theme's your sails. The palette stand's right beside me."
+      "text": "Want a different theme? Select the gear at the bottom of the sidebar, then Themes. Here, your theme’s your sails, and the palette stand’s right beside me."
     },
     {
       "id": "nell.done.01",
@@ -485,7 +485,7 @@
       "speaker": "Ezra",
       "voiceEnv": "AZURE_SPEECH_MALE_VOICE_UK",
       "fallbackVoice": "en-GB-OllieMultilingualNeural",
-      "text": "Mind the search, though. The original course can show up right beside your fork."
+      "text": "Mind the search, though. The original course shows up too. Your fork’s the one that starts with your GitHub username."
     },
     {
       "id": "ezra.fork.04",
@@ -499,7 +499,7 @@
       "speaker": "Bo",
       "voice": "en-GB-Ryan:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-RyanNeural",
-      "text": "Your project shows under Projects? Good. Select the + next to it to start a project session."
+      "text": "Your project shows under Projects? Good. Point to it, and select the + that appears next to it to start a project session."
     },
     {
       "id": "bo.deck.02",
@@ -507,6 +507,13 @@
       "voice": "en-GB-Ryan:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-RyanNeural",
       "text": "Now, the workspace selector below the prompt box. Don’t trust the checkmark, it just shows the default."
+    },
+    {
+      "id": "bo.deck.03",
+      "speaker": "Bo",
+      "voice": "en-GB-Ryan:DragonHDLatestNeural",
+      "fallbackVoice": "en-GB-RyanNeural",
+      "text": "Then send a short prompt to create the session. It’s on the page I’ve just given you: name the top-level folders, and don’t change any files."
     },
     {
       "id": "bo.gear.brief.01",
@@ -857,7 +864,7 @@
     {
       "id": "mer.tobias.04",
       "speaker": "Tobias",
-      "text": "See my table? Four headaches every captain knows. Match each one to what the app adds.",
+      "text": "See my table? Five headaches every captain knows. Match each one to what the app adds.",
       "voice": "en-GB-ThomasNeural",
       "prosody": {
         "rate": "-4%"
@@ -936,18 +943,18 @@
       }
     },
     {
-      "id": "mer.mina.mywork",
+      "id": "mer.mina.board",
       "speaker": "Mina",
-      "text": "The Bounty Board is My work, your GitHub inbox. Issues, pull requests and review requests.",
+      "text": "The Bounty Board is two views, Pull requests and Issues. Each one lists the items that involve you.",
       "voice": "en-GB-HollieNeural",
       "prosody": {
         "rate": "+6%"
       }
     },
     {
-      "id": "mer.mina.mywork2",
+      "id": "mer.mina.board2",
       "speaker": "Mina",
-      "text": "The practice items from your setup script are pinned up there, ready to work on.",
+      "text": "Your setup script’s practice items are up there too. Pull requests under Authored by me, and issues under Assigned to me.",
       "voice": "en-GB-HollieNeural",
       "prosody": {
         "rate": "+6%"
@@ -965,7 +972,7 @@
     {
       "id": "mer.mina.customize",
       "speaker": "Mina",
-      "text": "And the Outfitter is Customize, for skills, MCP servers and plugins. You won’t need those until later chapters.",
+      "text": "And the Outfitter is Customize, for skills, MCP servers, plugins and canvases. You won’t need those until later chapters.",
       "voice": "en-GB-HollieNeural",
       "prosody": {
         "rate": "+6%"
@@ -975,9 +982,21 @@
       }
     },
     {
+      "id": "mer.mina.more",
+      "speaker": "Mina",
+      "voice": "en-GB-HollieNeural",
+      "prosody": {
+        "rate": "+6%"
+      },
+      "sub": {
+        "MCP": "M C P"
+      },
+      "text": "Then there’s More, where Edit sidebar chooses which views you see. Keep them all. The course uses every one."
+    },
+    {
       "id": "mer.mina.projects",
       "speaker": "Mina",
-      "text": "Below those, the sidebar keeps your Projects, with your chats and your project sessions.",
+      "text": "Below those, Projects lists each connected project. Once you’ve started a chat, a Chats row shows up there too.",
       "voice": "en-GB-HollieNeural",
       "prosody": {
         "rate": "+6%"
@@ -986,7 +1005,7 @@
     {
       "id": "mer.mina.logbook",
       "speaker": "Mina",
-      "text": "I’ve filed all four in your Logbook. Press J any time.",
+      "text": "I’ve filed every one in your Logbook. Press J any time.",
       "voice": "en-GB-HollieNeural",
       "prosody": {
         "rate": "+6%"
@@ -1004,7 +1023,7 @@
     {
       "id": "mer.mina.done",
       "speaker": "Mina",
-      "text": "New, My work, Automations, Customize. You know your way around now!",
+      "text": "New, Pull requests, Issues, Automations, Customize. You know your way around now!",
       "voice": "en-GB-HollieNeural",
       "prosody": {
         "rate": "+6%"
@@ -1049,7 +1068,7 @@
     {
       "id": "mer.lyra.04",
       "speaker": "Lyra",
-      "text": "To start one, hover over Chats in the sidebar, and select the plus that appears.",
+      "text": "To start one, select the + next to Projects, then Chat.",
       "voice": "en-GB-LibbyNeural",
       "prosody": {
         "rate": "-5%"
@@ -1121,7 +1140,7 @@
     {
       "id": "mer.anders.03",
       "speaker": "Anders",
-      "text": "Each project session gets its own new worktree by default, like a hull on its own slipway.",
+      "text": "Most project sessions should get their own new worktree, like a hull on its own slipway.",
       "voice": "en-GB-EthanNeural",
       "prosody": {
         "rate": "-6%"
@@ -1130,7 +1149,7 @@
     {
       "id": "mer.anders.04",
       "speaker": "Anders",
-      "text": "Your Chapter 00 setup session was the exception. You picked Local repository for that one.",
+      "text": "Your Chapter 00 setup session was the exception. You picked Current checkout for that one. The app remembers it, so you’ll switch back in Chapter 02.",
       "voice": "en-GB-EthanNeural",
       "prosody": {
         "rate": "-6%"
@@ -1254,6 +1273,15 @@
       }
     },
     {
+      "id": "mer.rhea.tools",
+      "speaker": "Rhea",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      },
+      "text": "One more thing in the mode menu: Tool permissions. Always ask checks with you before each tool. Approve all doesn’t ask. Assisted asks only when a tool request fails an AI safety check."
+    },
+    {
       "id": "mer.rhea.next",
       "speaker": "Rhea",
       "text": "Oren’s up at the observatory. Take the lift at the top of the arm.",
@@ -1304,12 +1332,22 @@
     {
       "id": "mer.oren.03",
       "speaker": "Oren",
-      "text": "Open it to find Model and Effort. If it says Auto, the app picks a model for your task.",
+      "text": "Open it to find Model, Effort, and Context window. If the Auto switch is on, they’re hidden. Turn it off to see them.",
       "voice": "en-GB-OliverNeural",
       "prosody": {
         "rate": "-10%",
         "pitch": "-1st"
       }
+    },
+    {
+      "id": "mer.oren.auto",
+      "speaker": "Oren",
+      "voice": "en-GB-OliverNeural",
+      "prosody": {
+        "rate": "-10%",
+        "pitch": "-1st"
+      },
+      "text": "When it says Auto, the app picks a model for your task."
     },
     {
       "id": "mer.oren.04",
@@ -1340,6 +1378,16 @@
         "rate": "-10%",
         "pitch": "-1st"
       }
+    },
+    {
+      "id": "mer.oren.context",
+      "speaker": "Oren",
+      "voice": "en-GB-OliverNeural",
+      "prosody": {
+        "rate": "-10%",
+        "pitch": "-1st"
+      },
+      "text": "The context window is how much the model can hold at once. A bigger one helps long sessions and large codebases, but it uses more AI credits."
     },
     {
       "id": "mer.oren.07",
@@ -1397,7 +1445,7 @@
     {
       "id": "mer.pell.01",
       "speaker": "Pell",
-      "text": "Settings! Nine areas, and I keep a record of every one.",
+      "text": "Settings! Select the gear at the bottom of the sidebar, and there they all are. I keep a record of every one.",
       "voice": "en-GB-ElliotNeural",
       "prosody": {
         "rate": "+4%",

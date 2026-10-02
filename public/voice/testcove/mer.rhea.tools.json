@@ -1,0 +1,172 @@
+{
+  "id": "mer.rhea.tools",
+  "speaker": "Rhea",
+  "text": "One more thing in the mode menu: Tool permissions. Always ask checks with you before each tool. Approve all doesn’t ask. Assisted asks only when a tool request fails an AI safety check.",
+  "words": [
+    {
+      "word": "One",
+      "start": 0.0485409,
+      "end": 0.327666
+    },
+    {
+      "word": "more",
+      "start": 0.327666,
+      "end": 0.521833
+    },
+    {
+      "word": "thing",
+      "start": 0.521833,
+      "end": 0.764583
+    },
+    {
+      "word": "in",
+      "start": 0.764583,
+      "end": 0.861666
+    },
+    {
+      "word": "the",
+      "start": 0.861666,
+      "end": 0.970875
+    },
+    {
+      "word": "mode",
+      "start": 0.970875,
+      "end": 1.298541
+    },
+    {
+      "word": "menu",
+      "start": 1.298541,
+      "end": 1.905333
+    },
+    {
+      "word": "Tool",
+      "start": 1.905333,
+      "end": 2.184458
+    },
+    {
+      "word": "permissions",
+      "start": 2.184458,
+      "end": 3.75
+    },
+    {
+      "word": "Always",
+      "start": 3.75,
+      "end": 4.162625
+    },
+    {
+      "word": "ask",
+      "start": 4.162625,
+      "end": 4.502416
+    },
+    {
+      "word": "checks",
+      "start": 4.502416,
+      "end": 4.878625
+    },
+    {
+      "word": "with",
+      "start": 4.878625,
+      "end": 5.012125
+    },
+    {
+      "word": "you",
+      "start": 5.012125,
+      "end": 5.145625
+    },
+    {
+      "word": "before",
+      "start": 5.145625,
+      "end": 5.485416
+    },
+    {
+      "word": "each",
+      "start": 5.485416,
+      "end": 5.776708
+    },
+    {
+      "word": "tool",
+      "start": 5.776708,
+      "end": 7.050958
+    },
+    {
+      "word": "Approve",
+      "start": 7.050958,
+      "end": 7.536416
+    },
+    {
+      "word": "all",
+      "start": 7.536416,
+      "end": 7.730583
+    },
+    {
+      "word": "doesn’t",
+      "start": 7.730583,
+      "end": 8.131083
+    },
+    {
+      "word": "ask",
+      "start": 8.131083,
+      "end": 9.453875
+    },
+    {
+      "word": "Assisted",
+      "start": 9.453875,
+      "end": 10.012125
+    },
+    {
+      "word": "asks",
+      "start": 10.012125,
+      "end": 10.412625
+    },
+    {
+      "word": "only",
+      "start": 10.412625,
+      "end": 10.69175
+    },
+    {
+      "word": "when",
+      "start": 10.69175,
+      "end": 10.885916
+    },
+    {
+      "word": "a",
+      "start": 10.885916,
+      "end": 10.95875
+    },
+    {
+      "word": "tool",
+      "start": 10.95875,
+      "end": 11.25
+    },
+    {
+      "word": "request",
+      "start": 11.25,
+      "end": 11.686875
+    },
+    {
+      "word": "fails",
+      "start": 11.686875,
+      "end": 12.0995
+    },
+    {
+      "word": "an",
+      "start": 12.0995,
+      "end": 12.257291
+    },
+    {
+      "word": "AI",
+      "start": 12.257291,
+      "end": 12.560666
+    },
+    {
+      "word": "safety",
+      "start": 12.560666,
+      "end": 13.021833
+    },
+    {
+      "word": "check",
+      "start": 13.021833,
+      "end": 13.271833
+    }
+  ]
+}

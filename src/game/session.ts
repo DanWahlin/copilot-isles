@@ -197,6 +197,8 @@ const STEP_RUN = 1.15;
 const DOCK_RANGE = 38;
 /** Seconds of visible assisted approach before the fade tidies the ship into the berth. */
 const DOCK_ASSIST_MAX = 6;
+/** Metres of focus handicap for townsfolk who only bark (see `Interactable.bias`). */
+const BARK_FOCUS_BIAS = 1.5;
 
 /**
  * The Test Cove play session (Phase 0 T11): the walker and follow camera on collision built from
@@ -481,6 +483,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         return n.z;
       },
       radius: n.spec.talkRadius ?? 2.6,
+      // Islanders with a part in the story keep the E over townsfolk who only bark (POC §4, #178).
+      bias: scriptFor(n) || n.spec.voiced ? 0 : BARK_FOCUS_BIAS,
       enabled: () => mode === 'walk' && !n.talking,
       onInteract: () => void talkTo(n),
     });
@@ -558,7 +562,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     await learn?.openChest('C0.1');
   });
 
-  // Message bottles on the beaches (B0.1-B0.3): optional troubleshooting pages.
+  // Message bottles on the beaches (B0.1-B0.4): optional troubleshooting pages.
   const bottleSpots = sites.bottles.spots();
   for (const [id, p] of Object.entries(bottleSpots)) {
     if (learn?.isChestOpen(id)) sites.bottles.setCollected(id, true);
