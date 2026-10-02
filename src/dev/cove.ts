@@ -113,6 +113,39 @@ const SHOTS: Record<string, { view?: string; time: number; camera?: [number[], n
       [158, 24, 0],
     ],
   },
+  // The Walt gate for the quality slice (docs/research/2026-10-02-quality-v2.md §6), at Anchorage's 16:20.
+  // W1 down the pier to the pier head and your ship.
+  W1: {
+    time: 16.33,
+    camera: [
+      [-110, 3.6, -92],
+      [-108, 2.6, -124],
+    ],
+  },
+  // W2 the quay from the pier foot: Nell's door, Ezra's chart table and Bo's gear rack.
+  W2: {
+    time: 16.33,
+    camera: [
+      [-104, 4.5, -82],
+      [-117, 3, -62],
+    ],
+  },
+  // W3 the south beach at standing height, looking east along the shore.
+  W3: {
+    time: 16.33,
+    camera: [
+      [-10, 2.4, 92],
+      [40, 1.2, 100],
+    ],
+  },
+  // W4 the harbour, village and hills from the water: sky, haze and depth.
+  W4: {
+    time: 16.33,
+    camera: [
+      [-20, 22, -175],
+      [-115, 6, -70],
+    ],
+  },
 };
 function shot(id: string) {
   const s = SHOTS[id];

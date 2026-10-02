@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-// Capture deterministic Phase 0 shots. Example:
+// Capture deterministic shots. Phase 0's floor and beauty shots plus the title at every tier:
 //   node tools/shots.mjs --base=http://127.0.0.1:5301 --out=tests/visual/baseline
+// The quality slice's Walt gate (W1-W4 on Ultra, High and Low, no titles):
+//   node tools/shots.mjs --set=walt --backend=webgpu --out=/tmp/shots/walt-before
 import { mkdir } from 'node:fs/promises';
 import { collectLogs, launchChrome, parseFlags, parseSize, waitForTitle } from './lib/browser.mjs';
 
@@ -10,12 +12,17 @@ const out = String(opt.out || 'tests/visual/baseline');
 const viewport = parseSize(String(opt.size || '1600x900'));
 const backends = opt.backend ? String(opt.backend).split(',') : ['webgpu', 'webgl'];
 const tiers = ['lite', 'low', 'medium', 'high', 'ultra'];
-const shots = [
-  { id: 'F1', tier: 'low', page: 'cove' },
-  { id: 'F2', tier: 'low', page: 'cove' },
-  { id: 'B1', tier: 'high', page: 'cove' },
-  { id: 'B2', tier: 'high', page: 'cove' },
-];
+const walt = opt.set === 'walt';
+const shots = walt
+  ? ['W1', 'W2', 'W3', 'W4'].flatMap((id) =>
+      ['ultra', 'high', 'low'].map((tier) => ({ id, tier, page: 'cove' })),
+    )
+  : [
+      { id: 'F1', tier: 'low', page: 'cove' },
+      { id: 'F2', tier: 'low', page: 'cove' },
+      { id: 'B1', tier: 'high', page: 'cove' },
+      { id: 'B2', tier: 'high', page: 'cove' },
+    ];
 
 async function captureCove(browser, backend, shot) {
   const page = await browser.newPage({ viewport });
@@ -52,8 +59,9 @@ const results = [];
 for (const backend of backends) {
   for (const shot of shots)
     results.push({ backend, id: shot.id, ...(await captureCove(browser, backend, shot)) });
-  for (const tier of tiers)
-    results.push({ backend, id: 'T1', tier, ...(await captureTitle(browser, backend, tier)) });
+  if (!walt)
+    for (const tier of tiers)
+      results.push({ backend, id: 'T1', tier, ...(await captureTitle(browser, backend, tier)) });
 }
 await browser.close();
 console.log(JSON.stringify({ out, results }, null, 2));
