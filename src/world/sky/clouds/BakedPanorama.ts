@@ -16,16 +16,25 @@ import {
   acos,
   atan,
   clamp,
+  dot,
+  float,
   fract,
+  fwidth,
+  max,
   mix,
   normalize,
   positionLocal,
+  pow,
+  sin,
+  smoothstep,
+  sqrt,
   texture,
   uniform,
   vec2,
   vec3,
 } from 'three/tsl';
 import { sunState, type SunState } from '../sun';
+import { world } from '../../uniforms';
 
 /**
  * The sky on WebGL2, Low and Lite: a picture of the WebGPU High sky (Tidewater's atmosphere and
@@ -69,7 +78,29 @@ export function createBakedTidewaterSky(radius: number): BakedSky {
       const v = clamp(acos(clamp(dir.y, -1, 1)).div(V_SPAN), 0, 1);
       // flipY is off, so v = 0 is the top row (the zenith).
       const sky = t ? texture(t, vec2(u, v)).rgb : placeholder;
-      return mix(nightTint, sky, day);
+      const md = dot(dir, normalize(world.moonDir));
+      const r = acos(clamp(md, -1, 1)).div(0.0077);
+      const edge = max(fwidth(r).mul(1.35), 0.025);
+      const mask = smoothstep(float(1).add(edge), float(1).sub(edge), r);
+      const mu = sqrt(max(float(1).sub(r.mul(r)), 0));
+      const limb = mix(0.62, 1.0, pow(mu, 0.42));
+      const maria = smoothstep(
+        0.48,
+        0.92,
+        sin(dir.x.mul(180).add(dir.z.mul(61)))
+          .mul(sin(dir.y.mul(145).sub(dir.z.mul(97))))
+          .mul(0.5)
+          .add(0.5),
+      ).mul(0.18);
+      const moon = sky
+        .mul(0.18)
+        .add(vec3(0.72, 0.78, 0.88).mul(0.035))
+        .mul(limb.mul(float(1).sub(maria.mul(mu))))
+        .mul(mask)
+        .mul(float(1).sub(world.night))
+        .mul(0.36)
+        .mul(smoothstep(-0.02, 0.02, dir.y));
+      return mix(nightTint, sky, day).add(moon);
     })();
   mat.colorNode = build(null);
 

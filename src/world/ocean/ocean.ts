@@ -19,6 +19,7 @@ import {
   perspectiveDepthToViewZ,
   pmremTexture,
   positionLocal,
+  positionPrevious,
   positionView,
   positionWorld,
   pow,
@@ -29,6 +30,7 @@ import {
   sin,
   smoothstep,
   texture,
+  uniform,
   varying,
   vec2,
   vec3,
@@ -60,7 +62,7 @@ export interface Ocean {
   /** CPU sampler matching the rendered surface (buoyancy, splashes, wading). */
   field: WaveField;
   /** Follow the camera and move the wave fade focus with it. */
-  update(camera: Camera): void;
+  update(camera: Camera, time?: number): void;
   dispose(): void;
 }
 
@@ -97,6 +99,8 @@ export function createOcean({
   const ripple = createRippleTexture(256);
   const floorTex = useTerrainDepth ? waterDepthTexture() : null;
   const sumA = waves.reduce((s, w) => s + w.a, 0);
+  const previousWaveTime = uniform(0);
+  let lastWaveTime = Number.NaN;
 
   const mat = new MeshBasicNodeMaterial({ transparent: true, depthWrite: true, fog: false });
   mat.blending = NoBlending;
@@ -104,20 +108,28 @@ export function createOcean({
   // --- Vertex: Gerstner displacement of the rest grid (exactly what WaveField inverts on the CPU).
   const rest = positionLocal.xz.add(modelPosition.xz);
   const fade = exp(rest.sub(world.focus).length().negate().div(FADE_DISTANCE));
-  let ox: Node<'float'> = float(0),
-    oy: Node<'float'> = float(0),
-    oz: Node<'float'> = float(0);
-  for (const W of waves) {
-    const th = dot(rest, vec2(W.dx, W.dz)).mul(W.k).sub(world.time.mul(W.w)).add(W.ph);
-    const c = cos(th);
-    ox = ox.add(c.mul(W.q * W.a * W.dx));
-    oz = oz.add(c.mul(W.q * W.a * W.dz));
-    oy = oy.add(sin(th).mul(W.a));
-  }
-  mat.positionNode = positionLocal.add(vec3(ox, oy, oz).mul(fade));
+  const waveOffset = (time: Node<'float'>) => {
+    let ox: Node<'float'> = float(0),
+      oy: Node<'float'> = float(0),
+      oz: Node<'float'> = float(0);
+    for (const W of waves) {
+      const th = dot(rest, vec2(W.dx, W.dz)).mul(W.k).sub(time.mul(W.w)).add(W.ph);
+      const c = cos(th);
+      ox = ox.add(c.mul(W.q * W.a * W.dx));
+      oz = oz.add(c.mul(W.q * W.a * W.dz));
+      oy = oy.add(sin(th).mul(W.a));
+    }
+    return vec3(ox, oy, oz);
+  };
+  const offset = waveOffset(world.time);
+  const previousOffset = waveOffset(previousWaveTime);
+  mat.positionNode = Fn(() => {
+    positionPrevious.assign(positionLocal.add(previousOffset.mul(fade)));
+    return positionLocal.add(offset.mul(fade));
+  })();
   const vRest = varying(rest, 'vRest');
   const vFade = varying(fade, 'vFade');
-  const vH = varying(oy.mul(fade), 'vH');
+  const vH = varying(offset.y.mul(fade), 'vH');
   const vSpan = varying(attribute('aSpan', 'float'), 'vSpan');
   let terrainDepthNode: Node<'float'> = float(58);
   if (floorTex) {
@@ -136,7 +148,7 @@ export function createOcean({
       .and(floorUvRaw.y.greaterThanEqual(0))
       .and(floorUvRaw.y.lessThanEqual(1));
     const floorY = select(floorOk, texture(floorTex, floorUv).r, float(-58));
-    terrainDepthNode = max(oy.mul(fade).sub(floorY), 0);
+    terrainDepthNode = max(offset.y.mul(fade).sub(floorY), 0);
   }
   const vTerrainDepth = varying(terrainDepthNode, 'vTerrainDepth');
 
@@ -406,7 +418,10 @@ export function createOcean({
   return {
     mesh,
     field,
-    update(camera) {
+    update(camera, time = world.time.value) {
+      if (!Number.isFinite(lastWaveTime)) lastWaveTime = time;
+      previousWaveTime.value = lastWaveTime;
+      lastWaveTime = time;
       mesh.position.set(camera.position.x, 0, camera.position.z);
       field.setFocus(camera.position.x, camera.position.z);
       world.focus.value.set(camera.position.x, camera.position.z);

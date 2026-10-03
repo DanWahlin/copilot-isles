@@ -63,7 +63,7 @@ export interface GameFlowOptions {
   /** Shows the post-load "ready" frame and hides the boot loader once the title is live. */
   onTitleReady?: () => void;
   /** Swaps the title's lean post stack for the richer island post after TTI or during voyage load. */
-  upgradePost?: () => Promise<void> | void;
+  upgradePost?: (cove?: CoveScene) => Promise<void> | void;
 }
 
 /**
@@ -421,7 +421,7 @@ export class GameFlow implements GameBridge {
         this.o.audio.sfx.setBed('birds_dawn', AMBIENT_BEDS.birds_dawn);
       }
       report(0.92, 'Lighting the lanterns');
-      await this.o.upgradePost?.();
+      await this.o.upgradePost?.(cove);
       await engine.renderer.compileAsync(engine.scene, engine.camera);
       report(0.96, 'Charting the approach');
       const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));

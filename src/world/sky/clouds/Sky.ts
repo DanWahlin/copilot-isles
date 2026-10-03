@@ -27,6 +27,7 @@ import {
   log2,
   select,
   saturate,
+  fwidth,
   If,
 } from 'three/tsl';
 import { G } from './Globals';
@@ -140,13 +141,34 @@ export class Sky {
   moon(dir) {
     const cosA = dot(dir, this.moonDir);
     const ang = acos(clamp(cosA, -1, 1));
-    const r = ang.div(0.0048);
-    const mask = smoothstep(1.0, 0.92, r);
-    return vec3(0.9, 0.92, 1.0)
+    const r = ang.div(0.0077);
+    const edge = max(fwidth(r).mul(1.35), 0.025);
+    const mask = smoothstep(float(1).add(edge), float(1).sub(edge), r);
+    const mu = sqrt(max(float(1).sub(r.mul(r)), 0));
+    const limb = mix(0.62, 1.0, pow(mu, 0.42));
+    const maria = smoothstep(
+      0.48,
+      0.92,
+      sin(dir.x.mul(180).add(dir.z.mul(61)))
+        .mul(sin(dir.y.mul(145).sub(dir.z.mul(97))))
+        .mul(0.5)
+        .add(0.5),
+    ).mul(0.32);
+    const full = clamp(float(0.5).sub(dot(this.moonDir, this.atmosphere.sunDir).mul(0.5)), 0, 1);
+    const night = saturate(this.starIntensity);
+    const day = float(1).sub(night);
+    const phase = mix(0.55, 1.0, full);
+    const surface = limb.mul(float(1).sub(maria.mul(mu))).mul(phase);
+    const dayTint = this.atmosphere
+      .skyLuminance(dir)
+      .mul(0.18)
+      .add(vec3(0.72, 0.78, 0.88).mul(0.035));
+    const nightTint = vec3(0.9, 0.92, 1.0).mul(0.9);
+    return mix(dayTint, nightTint, night)
+      .mul(surface)
       .mul(mask)
-      .mul(3.0)
-      .mul(this.starIntensity)
-      .mul(smoothstep(-0.02, 0.02, dir.y));
+      .mul(smoothstep(-0.02, 0.02, dir.y))
+      .mul(mix(0.2, 1.0, night.add(day.mul(0.2))));
   }
 
   // Faint blue-grey moonlit sky (a little brighter toward the horizon) and the moon's aureole.

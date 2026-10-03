@@ -100,13 +100,19 @@ async function boot(): Promise<void> {
     import('../ui/learn/LearnLayer'),
     import('../game/hud.css'),
   ]);
-  let post = createPost(renderer, engine.scene, engine.camera, tier, { lean: true });
+  let post = await createPost(renderer, engine.scene, engine.camera, tier, { lean: true });
   if (post) engine.renderFn = post.render;
   let richPostReady = false;
   const upgradePost = async () => {
     if (richPostReady) return;
-    const rich = createPost(renderer, engine.scene, engine.camera, tier);
-    if (!rich) return;
+    const rich = await createPost(renderer, engine.scene, engine.camera, tier);
+    if (!rich) {
+      post?.dispose();
+      post = null;
+      engine.renderFn = null;
+      richPostReady = true;
+      return;
+    }
     await renderer.compileAsync(engine.scene, engine.camera);
     const previous = post;
     post = rich;

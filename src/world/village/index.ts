@@ -1402,7 +1402,7 @@ function addWeatheredPierDeck(
     const y = pier.deck - 0.12 + organicNoise(index * 0.7, z * 0.2) * 0.006;
     if (missingEdge) {
       addPierPlank(
-        buckets.rope,
+        buckets.wood,
         pier.x - 0.36,
         y,
         z,
@@ -1414,7 +1414,7 @@ function addWeatheredPierDeck(
         usableWidth,
       );
     } else {
-      addPierPlank(buckets.rope, pier.x, y, z, usableWidth, 0.14, depth, tint, pier.x, usableWidth);
+      addPierPlank(buckets.wood, pier.x, y, z, usableWidth, 0.14, depth, tint, pier.x, usableWidth);
     }
     if (!low && index % 5 === 0) addPierNails(buckets, pier.x, y + 0.148, z, usableWidth);
     index += 1;
@@ -1642,7 +1642,28 @@ function addPierDressing(
     colliders.boxes.push({ x: rackX, z: -85.6, hx: 1.25, hz: 0.2, rot: Math.PI / 2, height: 1.8 });
     addPierPostLantern(buckets, colliders, pier.x - pier.width * 0.5 - 0.55, pier.deck, -89.5, -1);
     addPierPostLantern(buckets, colliders, pier.x + pier.width * 0.5 + 0.55, pier.deck, -107.5, 1);
+    addLifeBuoy(buckets, pier.x + pier.width * 0.5 + 0.62, pier.deck + 0.7, -88.1, Math.PI / 2);
+    addRopeCoil(buckets, pier.x + 1.15, pier.deck + 0.05, -110.4, -0.65, 0.62);
+    addCargoStack(buckets, pier.x + 1.15, pier.deck, -114.6, 0.18, 0x9b6f4d, false);
+    colliders.boxes.push({ x: pier.x + 1.15, z: -114.6, hx: 0.92, hz: 0.74, rot: 0.18, height: 1.35 });
   }
+}
+
+function addLifeBuoy(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  x: number,
+  y: number,
+  z: number,
+  rot: number,
+): void {
+  addTorus(buckets.cloth, x, y, z, 0.33, 0.045, 20, 0xf1eee1, Math.PI / 2, rot, 0);
+  for (const a of [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5]) {
+    const dx = Math.cos(a) * 0.31;
+    const dz = Math.sin(a) * 0.31;
+    addBox(buckets.cloth, x + dx, y, z + dz, 0.16, 0.06, 0.08, rot + a, 0xb94835);
+  }
+  addBox(buckets.rope, x, y - 0.01, z, 0.82, 0.025, 0.025, rot, 0xc8b17a);
+  addBox(buckets.rope, x, y - 0.01, z, 0.025, 0.025, 0.82, rot, 0xc8b17a);
 }
 
 function addRopeCoil(

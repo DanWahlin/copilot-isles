@@ -54,9 +54,9 @@ import { G } from './Globals';
 
 // Volumetric trade-wind cumulus (Schneider/Nubis density model, Hillaire multiple-scattering
 // approximation) under a thin cirrus veil.
-//   - view: ray marched in screen space, one pixel of every 4x4 block per frame (two while the camera
-//     turns), accumulated at 0.6x the render resolution with reprojection (camera motion and wind drift)
-//     and upsampled bicubically, like sky-pro-webgpu's High quality (about 1/44 of the display pixels
+//   - view: ray marched in screen space, two pixels of every 4x4 block per frame, accumulated at 0.6x the
+//     render resolution with reprojection (camera motion and wind drift)
+//     and upsampled bicubically, like sky-pro-webgpu's High quality (about 1/22 of the display pixels
 //     marched per frame). Empty space is skipped with a coverage dependent 3D distance field, so rays
 //     only take small (24 m) steps near clouds.
 //   - panorama: a cheaper low resolution version of the whole sky dome for water reflections,
@@ -244,6 +244,7 @@ export class Clouds {
     this._since = 0; // frames since the rebuild completed
     this._traces = 0;
     this._pp = 0; // history ping-pong
+    this.viewSlotsPerFrame = 2;
   }
 
   // ------------------------------------------------------------ noise volumes
@@ -1427,6 +1428,7 @@ export class Clouds {
         const uv = vec2(p).add(0.5).div(this.viewSize);
         const rd = viewDir(uv).toVar();
         If(rd.y.lessThan(-0.06), () => {
+          textureStore(dst, p, vec4(0, 0, 0, 1));
           Return();
         });
 
@@ -1459,6 +1461,8 @@ export class Clouds {
             return over(texture(this.traceTex, suv).level(0), texture(this.highTrace, suv).level(0));
           };
 
+          const current = upsampled().toVar();
+
           If(valid, () => {
             // reprojected history, clamped to the range of this frame's samples around it (with a
             // margin): real changes (lighting, motion the reprojection missed) can't leave ghosts,
@@ -1469,10 +1473,19 @@ export class Clouds {
             );
             const lo = textureLoad(this.boxMin, ivec2(tp)),
               hi = textureLoad(this.boxMax, ivec2(tp));
-            const pad = hi.sub(lo).mul(0.25).add(0.01);
-            out.assign(select(this.rebuildK.lessThan(0), clamp(h, lo.sub(pad), hi.add(pad)), h));
+            const pad = hi
+              .sub(lo)
+              .mul(0.18)
+              .add(vec4(0.006, 0.006, 0.006, 0.03));
+            const hc = clamp(h, lo.sub(pad), hi.add(pad));
+            const histEnergy = max(max(h.rgb.x, h.rgb.y), h.rgb.z);
+            const currentEnergy = max(max(current.rgb.x, current.rgb.y), current.rgb.z);
+            const blackHistory = h.a
+              .lessThan(0.03)
+              .and(histEnergy.lessThan(max(0.002, currentEnergy.mul(0.08))));
+            out.assign(select(this.rebuildK.lessThan(0), select(blackHistory, current, hc), h));
           }).Else(() => {
-            out.assign(upsampled());
+            out.assign(current);
           });
 
           If(fresh, () => {
@@ -1706,12 +1719,11 @@ export class Clouds {
       const n = 1 + Math.floor(this._since++ / 16);
       this.minAlpha.value = Math.max(0.12, 1 / (n + 1));
       this.rebuildK.value = -1;
-      this._trace(ORDER[this.frame % 16], [this.shadowKernel, this.panoKernel]);
-      // turning camera: a second slot per frame (every pixel refreshed in 8 frames instead of 16)
-      // keeps the reprojected history from softening
-      if (this._turned > 0.003) {
-        this._holdCamera();
-        this._trace(ORDER[(this.frame + 8) % 16]);
+      const slots = Math.max(1, this.viewSlotsPerFrame);
+      for (let k = 0; k < slots; k++) {
+        if (k > 0) this._holdCamera();
+        const offset = Math.floor((16 * k) / slots);
+        this._trace(ORDER[(this.frame + offset) % 16], k === 0 ? [this.shadowKernel, this.panoKernel] : []);
       }
     }
 

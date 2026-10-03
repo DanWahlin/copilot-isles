@@ -17,7 +17,6 @@ import {
   vec4,
   vibrance,
 } from 'three/tsl';
-import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import type { TierSettings } from './quality';
 
 export interface Post {
@@ -38,16 +37,20 @@ export interface PostOptions {
 }
 
 /** Scene pass → tone mapping/grade → local highlight lift → FXAA → dither. */
-export function createPost(
+export async function createPost(
   renderer: WebGPURenderer,
   scene: Scene,
   camera: Camera,
   tier: TierSettings,
   options: PostOptions = {},
-): Post | null {
+): Promise<Post | null> {
   const rich = !options.lean && (tier.tier === 'high' || tier.tier === 'ultra');
+  // #189/#190: TAAU, GTAO, contact shadows, and real bloom stay out until they can run without
+  // multiplying scene-material variants. The look contract grade/FXAA/dither remains on every tier.
+  const fxaaMod = await import('three/addons/tsl/display/FXAANode.js');
+
   const pipeline = new RenderPipeline(renderer);
-  const scenePass = pass(scene, camera);
+  const scenePass = pass(scene, camera, { type: renderer.getOutputBufferType() });
   const hdr = scenePass.getTextureNode('output');
   const ldr = renderOutput(hdr);
 
@@ -74,8 +77,8 @@ export function createPost(
     return vec4(c, 1);
   })();
 
-  // SMAA was tested but exceeded the High-tier post budget; FXAA keeps thin-rigging quality acceptable.
-  const aa = fxaa(graded) as unknown as Node<'vec4'>;
+  const fxaaNode = fxaaMod.fxaa(graded) as unknown as Node<'vec4'>;
+  const aa = fxaaNode;
   const grain = interleavedGradientNoise(screenCoordinate.xy).sub(0.5);
   pipeline.outputColorTransform = false;
   pipeline.outputNode = vec4(aa.rgb.add(grain.mul(0.012).add(grain.div(255))), 1);

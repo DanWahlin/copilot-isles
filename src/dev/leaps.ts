@@ -12,7 +12,7 @@ camera.updateMatrixWorld(true);
 await createCove(engine, { vegetation: false, birds: false });
 const demoLeaps = createLeaps({ tier, titleMode: true, seed: 0x1ea9 });
 scene.add(demoLeaps.group);
-const post = q.has('nopost') ? null : createPost(renderer, scene, camera, tier);
+const post = q.has('nopost') ? null : await createPost(renderer, scene, camera, tier);
 if (post) engine.renderFn = post.render;
 
 let forced = false;

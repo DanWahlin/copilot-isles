@@ -200,6 +200,18 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const wetSandBand = smoothstep(-0.12, 0.08, y)
     .mul(float(1).sub(smoothstep(0.28, 0.82, y)))
     .mul(beachSandMask);
+  const swashBand = smoothstep(-0.16, 0.18, y)
+    .mul(float(1).sub(smoothstep(1.15, 2.25, y)))
+    .mul(beachSandMask);
+  const ripplePhase = positionWorld.x
+    .mul(0.92)
+    .add(positionWorld.z.mul(0.16))
+    .add(noiseLow.r.mul(2.4))
+    .add(noiseMid.g.mul(0.8));
+  const fineRipplePhase = positionWorld.x.mul(1.86).sub(positionWorld.z.mul(0.28)).add(noiseFine.g.mul(1.8));
+  const rippleRidge = abs(sin(ripplePhase)).smoothstep(float(0.72), float(0.99));
+  const fineRippleRidge = abs(sin(fineRipplePhase)).smoothstep(float(0.82), float(0.997));
+  const beachRipples = rippleRidge.mul(0.52).add(fineRippleRidge.mul(0.28)).mul(swashBand);
   const underwater = smoothstep(0.04, 12.0, y.negate());
   const shallowUnderwater = smoothstep(0.02, 2.7, y.negate()).mul(
     float(1).sub(smoothstep(9.0, 20.0, y.negate())),
@@ -313,7 +325,11 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
       sandMask.add(grassMask.mul(smoothstep(0.28, 0.92, normalWorld.y))).add(lowGroundDetail.mul(0.92)),
     ),
   );
-  const sandHeightDetail = sandGrain.mul(0.6).add(rippleNoise.mul(0.28)).add(noiseMid.a.mul(0.12));
+  const sandHeightDetail = sandGrain
+    .mul(0.5)
+    .add(rippleNoise.mul(0.22))
+    .add(noiseMid.a.mul(0.1))
+    .add(beachRipples.mul(0.52));
   const detailHeight = grassCloseLum
     .mul(grassMask)
     .add(pathCloseLum.mul(pathSandMask))
@@ -408,6 +424,12 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   base = mix(base, closeSand, sandFinger.mul(0.62));
   base = mix(base, rootGreen, grassFinger.mul(0.5));
   base = mix(base, color(0xe7d39b), bardCampSand.mul(0.86));
+  base = mix(base, color(0xf4daa4), beachRipples.mul(0.13));
+  base = mix(
+    base,
+    color(0x8e623b),
+    swashBand.mul(float(1).sub(rippleRidge).mul(0.05)).mul(closeDetail.mul(0.7).add(0.18)),
+  );
   base = mix(base, color(0x3f382b), pebble);
   base = mix(base, color(0xf8e0aa), shellFlecks.mul(0.16));
   base = mix(base, color(0xad8050), sandPepper.mul(0.13));

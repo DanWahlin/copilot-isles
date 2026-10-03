@@ -28,7 +28,7 @@ const [cove, characters] = await Promise.all([
 ]);
 clock.set(Number(q.get('time') ?? 16.2), Number(q.get('az') ?? 0));
 cove.sky.invalidate();
-const post = q.has('nopost') ? null : createPost(renderer, scene, camera, tier);
+const post = q.has('nopost') ? null : await createPost(renderer, scene, camera, tier);
 if (post) engine.renderFn = post.render;
 const buildMs = performance.now() - t0;
 

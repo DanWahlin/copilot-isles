@@ -1,5 +1,17 @@
 import { AdditiveBlending, DoubleSide, MeshBasicNodeMaterial, MeshStandardNodeMaterial } from 'three/webgpu';
-import { abs, attribute, color, float, fract, mix, positionWorld, sin, smoothstep } from 'three/tsl';
+import {
+  abs,
+  attribute,
+  color,
+  float,
+  fract,
+  mix,
+  normalWorld,
+  positionWorld,
+  sin,
+  smoothstep,
+  uv,
+} from 'three/tsl';
 import { world } from '../uniforms';
 
 // three's fluent TSL node typings do not cover every scalar/vector mix used below.
@@ -131,16 +143,27 @@ export function createWoodMaterial(): MeshStandardNodeMaterial {
     side: DoubleSide,
   });
   const p = positionWorld as AnyNode;
+  const n = normalWorld as AnyNode;
+  const boardUv = uv() as AnyNode;
+  const topFace = smoothstep(float(0.42), float(0.78), n.y);
   const grain = sin(p.x.mul(13.0).add(p.z.mul(6.4)).add(p.y.mul(3.1)))
     .mul(0.5)
     .add(0.5);
+  const longGrain = sin(boardUv.y.mul(42).add(sin(boardUv.x.mul(7.5)).mul(2.2)))
+    .mul(0.5)
+    .add(0.5);
+  const boardAge = fract(p.z.mul(0.271).add(p.x.mul(0.037)));
+  const bleach = smoothstep(float(0.22), float(0.96), boardAge).mul(topFace);
+  const hairline = abs(sin(boardUv.x.mul(56).add(p.z.mul(0.23)))).smoothstep(float(0.975), float(0.999));
   const planks = abs(sin(p.x.mul(2.6).add(p.z.mul(2.2)))).smoothstep(float(0.93), float(0.995));
   const wet = float(1).sub(smoothstep(float(-0.12), float(1.35), p.y));
-  material.colorNode = tint()
+  const base = tint()
     .mul(float(0.82).add(grain.mul(0.14)))
-    .mul(float(1).sub(planks.mul(0.035)))
+    .mul(float(0.92).add(longGrain.mul(0.12)))
+    .mul(float(1).sub(planks.mul(0.035)).sub(hairline.mul(topFace).mul(0.055)))
     .add(color(0x254130).mul(wet.mul(0.18)));
-  material.roughnessNode = float(0.88).add(wet.mul(0.05));
+  material.colorNode = mix(base, color(0xd8c8ad), bleach.mul(0.24)) as AnyNode;
+  material.roughnessNode = float(0.88).add(wet.mul(0.05)).add(bleach.mul(0.06));
   material.aoNode = float(1).sub(lowWorldDirt(0.08));
   return material;
 }

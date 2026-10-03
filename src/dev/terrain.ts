@@ -94,7 +94,7 @@ const data = await loadTerrainPack('/packs/testcove/terrain');
 const terrain = createTerrain({ tier: TIERS.high, data });
 scene.add(terrain.group);
 scene.add(createCoastFoam(data, terrain.heightField));
-scene.add(createDistantRanges());
+scene.add(createDistantRanges(TIERS.high));
 
 const water = new Mesh(
   new PlaneGeometry(1800, 1800, 1, 1).rotateX(-Math.PI / 2),

@@ -20,6 +20,8 @@ export interface TierSettings {
   /** Planar mirror in calm zones (High/Ultra only). */
   mirror: boolean;
   shadowMap: 0 | 1024 | 2048 | 4096;
+  /** Cascaded sun shadows: 0 = single/no map, otherwise number of cascades. */
+  shadowCascades: 0 | 2 | 3;
   dynamicShadows: boolean;
   cloudShadowRes: 0 | 128 | 256;
   clouds: 'layer' | 'dome' | 'volumetric';
@@ -49,6 +51,7 @@ const base: Omit<TierSettings, 'tier'> = {
   sparkles: true,
   mirror: true,
   shadowMap: 4096,
+  shadowCascades: 0,
   dynamicShadows: true,
   cloudShadowRes: 256,
   clouds: 'dome',
@@ -78,6 +81,7 @@ export const TIERS: Record<Tier, TierSettings> = {
     sparkles: false,
     mirror: false,
     shadowMap: 0,
+    shadowCascades: 0,
     dynamicShadows: false,
     cloudShadowRes: 0,
     clouds: 'layer',
@@ -105,6 +109,7 @@ export const TIERS: Record<Tier, TierSettings> = {
     sparkles: false,
     mirror: false,
     shadowMap: 1024,
+    shadowCascades: 0,
     dynamicShadows: false,
     cloudShadowRes: 128,
     clouds: 'layer',
@@ -128,6 +133,7 @@ export const TIERS: Record<Tier, TierSettings> = {
     hullRays: 1,
     mirror: false,
     shadowMap: 2048,
+    shadowCascades: 0,
     ssao: false,
     sunShafts: 'radial',
     grassDensity: 0.7,

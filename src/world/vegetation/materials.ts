@@ -16,6 +16,7 @@ import {
 } from 'three/webgpu';
 import {
   Fn,
+  abs,
   attribute,
   cameraPosition,
   cameraViewMatrix,
@@ -109,6 +110,10 @@ export function createVegetationMaterial(
   const leafAo = smoothstep(float(0.18), float(1.0), shade);
   const leafColor = mix(leafDeep, leafSun, leafAo) as AnyNode;
   const leaf = (mix(sourceColor, leafColor, float(0.68)) as AnyNode).mul(tint.mul(0.14).add(0.72));
+  const trunkRings = abs(
+    sin((positionGeometry as AnyNode).y.mul(9.4).add((positionLocal as AnyNode).x.mul(1.7))),
+  ).smoothstep(float(0.78), float(0.99));
+  const ringShade = float(1).sub(trunkRings.mul(0.18));
 
   // Sun-through-leaf glow on backlit fronds only, capped at 15% of albedo; wood and rock stay lit.
   // Normal-dependent terms must be evaluated unconditionally: TSL assigns the shared `normalWorld`
@@ -128,9 +133,14 @@ export function createVegetationMaterial(
     // The authored frond swatch is a lime green that reads neon in full tropical sun; grade it
     // toward a deeper palm green and let the per-instance tint add grove variety.
     const frond = texel.mul(vec3(0.5, 0.47, 0.72)).mul(tint.mul(0.3).add(0.85));
-    albedo = select(isLeaf, frond, texel);
+    const trunkTexel = texel.mul(ringShade).mul(color(0xd2b48a));
+    albedo = select(isLeaf, frond, trunkTexel);
   } else {
-    albedo = select(isRock, rock, select(isDead, dead, select(isFruit, fruit, select(isLeaf, leaf, bark))));
+    albedo = select(
+      isRock,
+      rock,
+      select(isDead, dead.mul(ringShade), select(isFruit, fruit, select(isLeaf, leaf, bark.mul(ringShade)))),
+    );
   }
   material.colorNode = albedo;
   material.emissiveNode = albedo.mul(translucency).mul(leafWeight) as AnyNode;
@@ -153,7 +163,14 @@ export function createVegetationMaterial(
     flutter.mul(0.3),
     world.windDir.y.mul(bend),
   );
-  material.positionNode = (positionLocal as AnyNode).add(sway);
+  const woodyWeight = select(isLeaf, float(0), float(1)) as AnyNode;
+  const curveGate = smoothstep(float(0.45), float(8.5), (positionGeometry as AnyNode).y).mul(woodyWeight);
+  const trunkCurve = (vec3 as AnyNode)(
+    sin((positionGeometry as AnyNode).y.mul(0.5).add((positionLocal as AnyNode).z.mul(0.12))).mul(0.09),
+    0,
+    sin((positionGeometry as AnyNode).y.mul(0.36).add((positionLocal as AnyNode).x.mul(0.09))).mul(0.045),
+  ).mul(curveGate);
+  material.positionNode = (positionLocal as AnyNode).add(sway).add(trunkCurve);
   return material;
 }
 

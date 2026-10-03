@@ -21,8 +21,8 @@ export interface TitleBackdrop {
 
 /**
  * The title backdrop (PLAN §13.5, POC §3.1): open ocean, sky, and your brigantine at anchor,
- * swinging gently on its rope, with distant ranges in the haze and a slow golden-hour orbit.
- * No island mesh, so the title stays inside its budget; Anchorage Cay streams after New Voyage.
+ * swinging gently on its rope, with distant tropical islands in the haze and a slow golden-hour orbit.
+ * Anchorage Cay still streams after New Voyage; the horizon islands are one merged, lit mesh.
  * The ship sits right of centre so the menu column on the left stays clear. Dragging turns the view
  * round the ship (title-orbit.ts), and the wheel zooms.
  */
@@ -30,7 +30,7 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   const { renderer, scene, tier, camera, clock } = engine;
   const sky = createSky(renderer, scene, tier, engine.backend);
   const ocean = createOcean({ tier, env: sky.env });
-  const ranges = createDistantRanges();
+  const ranges = createDistantRanges(tier);
   const ship = createBrigantine({ tier: tier.tier });
   const anchor = { x: 0, z: 0, heading: 2.3 };
   let leaps: LeapsSystem | null = null;

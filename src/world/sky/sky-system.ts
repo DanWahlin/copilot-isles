@@ -4,9 +4,11 @@ import {
   HemisphereLight,
   Mesh,
   MeshBasicNodeMaterial,
+  PCFShadowMap,
   PMREMGenerator,
   Scene,
   SphereGeometry,
+  Vector2,
   Vector3,
   type Camera,
   type Node,
@@ -28,6 +30,7 @@ import {
   uniform,
   vec3,
 } from 'three/tsl';
+import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
 import type { TierSettings } from '../../engine/quality';
 import type { DayClock } from '../../engine/day-clock';
 import type { Backend } from '../contracts';
@@ -81,9 +84,9 @@ const KEYS: Key[] = [
   { el: -0.35, sun: [0.55, 0.65, 1.0], sunI: 0.45, sky: [0.08, 0.13, 0.28], ground: [0.02, 0.03, 0.05], hemiI: 0.38, haze: [0.05, 0.08, 0.14], exposure: 1.05, fog: 0.000035 },
   { el: -0.06, sun: [0.62, 0.66, 1.0], sunI: 0.4, sky: [0.18, 0.28, 0.52], ground: [0.05, 0.05, 0.07], hemiI: 0.4, haze: [0.28, 0.3, 0.42], exposure: 0.92, fog: 0.00004 },
   { el: 0.03, sun: [1.0, 0.47, 0.2], sunI: 2.8, sky: [0.27, 0.46, 0.78], ground: [0.18, 0.12, 0.09], hemiI: 0.42, haze: [0.86, 0.58, 0.38], exposure: 0.68, fog: 0.00005 },
-  { el: 0.16, sun: [1.0, 0.66, 0.34], sunI: 4.6, sky: [0.25, 0.48, 0.88], ground: [0.26, 0.18, 0.12], hemiI: 0.44, haze: [0.82, 0.7, 0.54], exposure: 0.58, fog: 0.000045 },
-  { el: 0.45, sun: [1.0, 0.9, 0.72], sunI: 4.2, sky: [0.2, 0.42, 0.9], ground: [0.3, 0.26, 0.2], hemiI: 0.4, haze: [0.58, 0.68, 0.84], exposure: 0.55, fog: 0.00004 },
-  { el: 1.0, sun: [1.0, 0.97, 0.9], sunI: 4.0, sky: [0.18, 0.38, 0.86], ground: [0.32, 0.29, 0.22], hemiI: 0.38, haze: [0.54, 0.66, 0.84], exposure: 0.54, fog: 0.000035 },
+  { el: 0.16, sun: [1.0, 0.66, 0.34], sunI: 4.6, sky: [0.25, 0.48, 0.88], ground: [0.26, 0.18, 0.12], hemiI: 0.44, haze: [0.46, 0.57, 0.78], exposure: 0.58, fog: 0.00003 },
+  { el: 0.45, sun: [1.0, 0.9, 0.72], sunI: 4.2, sky: [0.2, 0.42, 0.9], ground: [0.3, 0.26, 0.2], hemiI: 0.4, haze: [0.34, 0.52, 0.86], exposure: 0.55, fog: 0.000026 },
+  { el: 1.0, sun: [1.0, 0.97, 0.9], sunI: 4.0, sky: [0.18, 0.38, 0.86], ground: [0.32, 0.29, 0.22], hemiI: 0.38, haze: [0.32, 0.5, 0.84], exposure: 0.54, fog: 0.000024 },
 ];
 
 function lerpKey(el: number, out: Key): Key {
@@ -125,9 +128,19 @@ export interface SkySystem {
   dispose(): void;
 }
 
+type CSMShadowNodeLike = Node & {
+  camera: Camera | null;
+  fade: boolean;
+  updateFrustums(): void;
+  dispose(): void;
+};
+
 /**
  * Sky, sun/moon lighting, Hillaire-style aerial haze, and the progressively refreshed environment map.
  */
+/** Cloud drift speed (m/s at cloud height): about a body length a minute for a cumulus seen from the ground. */
+const CLOUD_DRIFT = 2.5;
+
 export function createSky(
   renderer: WebGPURenderer,
   scene: Scene,
@@ -157,8 +170,10 @@ export function createSky(
       tideClouds.viewQuality.lightDetail = 1;
       tideClouds.panoQuality.maxSteps = 40;
     }
+    // A slow, lazy drift (Tidewater's default is 12 m/s): the sky should feel calm, not wind-blown.
+    (tideClouds as unknown as { wind: { value: Vector2 } }).wind.value.setLength(CLOUD_DRIFT);
     tideSky.clouds = tideClouds;
-    tideSky.starIntensity.value = 1;
+    tideSky.starIntensity.value = 0;
   }
   const sky = createAtmosphereSky({ radius: R, sunDisc: !tideSky, clouds: !tideSky });
   const nightDome = createNightDome(R * 0.45, !tideSky);
@@ -189,21 +204,47 @@ export function createSky(
   const envRT = pmrem.fromScene(envScene, 0, 0.1, 2000, { size: envSize });
   scene.environment = envRT.texture;
 
+  const runtimeSunShadows = tier.shadowCascades > 0;
+  renderer.shadowMap.enabled = runtimeSunShadows;
+  renderer.shadowMap.type = PCFShadowMap;
+
   const sun = new DirectionalLight(0xffffff, 3);
-  sun.castShadow = tier.shadowMap > 0;
+  sun.castShadow = runtimeSunShadows;
+  let csmNode: CSMShadowNodeLike | null = null;
   if (sun.castShadow) {
-    sun.shadow.mapSize.set(tier.shadowMap, tier.shadowMap);
+    const csm = !actualWebGL && tier.shadowCascades > 0;
+    const mapSize = csm ? 2048 : tier.shadowMap;
+    sun.shadow.mapSize.set(mapSize, mapSize);
     const c = sun.shadow.camera;
     c.left = -140;
     c.right = 140;
     c.top = 140;
     c.bottom = -140;
-    c.near = 10;
-    c.far = 900;
+    c.near = 1;
+    c.far = csm ? 520 : 900;
     sun.shadow.bias = -0.0004;
-    sun.shadow.normalBias = 0.04;
+    sun.shadow.normalBias = csm ? 0.025 : 0.04;
+    sun.shadow.radius = csm ? 3 : 2;
+    sun.shadow.blurSamples = csm ? 12 : 8;
     // Low/Lite: throttled updates; High+: every frame (moving ship/characters). See issues.md.
     sun.shadow.autoUpdate = tier.dynamicShadows;
+    if (csm) {
+      const maxFar = tier.shadowCascades === 2 ? 180 : 400;
+      const node = new CSMShadowNode(sun, {
+        cascades: tier.shadowCascades,
+        maxFar,
+        mode: 'custom',
+        lightMargin: 45,
+        customSplitsCallback: (amount: number, _near: number, far: number, target: number[]) => {
+          target.length = 0;
+          const splits = amount === 2 ? [60, maxFar] : [10, 60, maxFar];
+          for (let i = 0; i < amount; i++) target.push(Math.min(splits[i]! / far, 1));
+        },
+      }) as CSMShadowNodeLike;
+      node.fade = true;
+      (sun.shadow as typeof sun.shadow & { shadowNode?: unknown }).shadowNode = node;
+      csmNode = node;
+    }
   }
   const hemi = new HemisphereLight(0xffffff, 0x222222, 0.3);
   scene.add(sun, sun.target, hemi);
@@ -218,12 +259,12 @@ export function createSky(
     const dist = v.length();
     const dir = v.div(max(dist, 0.001));
     const h = max(positionWorld.y, 0);
-    const dens = densityU.mul(exp(h.negate().div(180)));
-    const farDist = max(dist.sub(150), 0);
-    const f = clamp(float(1).sub(exp(farDist.mul(dens).negate())), 0, 0.65);
+    const dens = densityU.mul(exp(h.negate().div(260)));
+    const farDist = max(dist.sub(260), 0);
+    const f = clamp(float(1).sub(exp(farDist.mul(dens).negate())), 0, 0.42);
     const horizonDir = normalize(vec3(dir.x, max(dir.y, 0).mul(0.5).add(0.03), dir.z));
     const col = pmremTexture(envRT.texture, horizonDir, float(0.45)).rgb;
-    return fog(mix(world.hazeColor, col, 0.85), f);
+    return fog(mix(world.hazeColor, col, 0.55), f);
   })();
   scene.fogNode = hazeNode;
 
@@ -263,14 +304,17 @@ export function createSky(
       world.skyColor.value.setRGB(k.sky[0], k.sky[1], k.sky[2]);
       world.hazeColor.value.setRGB(k.haze[0], k.haze[1], k.haze[2]);
       densityU.value = k.fog;
-      syncTidewaterGlobals(dt);
+      syncTidewaterGlobals(dt, tideAtmo as unknown as Parameters<typeof syncTidewaterGlobals>[1]);
       if (tideAtmo)
         (tideAtmo as unknown as { sunDir: { value: Vector3 } }).sunDir.value.set(
           s.sun[0],
           s.sun[1],
           s.sun[2],
         );
-      if (tideSky) tideSky.moonDir.value.copy(world.moonDir.value);
+      if (tideSky) {
+        tideSky.starIntensity.value = s.night;
+        tideSky.moonDir.value.copy(world.moonDir.value);
+      }
 
       sky.haze.rayleigh.value.setRGB(k.sky[0] * 0.7, k.sky[1] * 0.9, Math.min(1.15, k.sky[2] * 1.25));
       sky.haze.mie.value.setRGB(k.haze[0], k.haze[1], k.haze[2]);
@@ -300,6 +344,8 @@ export function createSky(
       tideAtmo?.update(dt, camera?.position.y ?? 1);
       if (tideClouds && camera) tideClouds.update(dt, camera);
       if (tideMesh) tideMesh.position.copy(focus);
+
+      if (csmNode && csmNode.camera === camera) csmNode.updateFrustums();
 
       // Cached shadows (PLAN §12.4): refresh on sun moves, focus moves, or every few frames on Low.
       if (sun.castShadow && !sun.shadow.autoUpdate) {
@@ -331,6 +377,7 @@ export function createSky(
       if (tideMesh) scene.remove(tideMesh);
       if (scene.environment === envRT.texture) scene.environment = null;
       if (scene.fogNode === hazeNode) scene.fogNode = null;
+      csmNode?.dispose();
       sun.dispose();
       envRT.dispose();
       pmrem.dispose();
