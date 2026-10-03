@@ -1,6 +1,9 @@
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/world/vegetation/VegMaterials.js@d32799f
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/world/vegetation/VegNodes.js@d32799f
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/materials/LODFade.js@d32799f
+// Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/world/vegetation/VegMaterials.js@fd6cae6
+// Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/world/vegetation/VegNodes.js@fd6cae6
+// Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/world/vegetation/LeafTextures.js@fd6cae6
 import {
   ClampToEdgeWrapping,
   Color,
@@ -22,14 +25,22 @@ import {
   cameraViewMatrix,
   clamp,
   color,
+  dot,
   float,
+  floor,
+  fwidth,
   fract,
   greaterThan,
   materialColor,
+  max,
+  min,
   mix,
+  normalLocal,
   normalWorld,
   positionGeometry,
   positionLocal,
+  positionWorld,
+  pow,
   screenCoordinate,
   select,
   sin,
@@ -72,6 +83,142 @@ function interleavedGradientNoise(): AnyNode {
 function lodMask(): AnyNode {
   const fade = attribute('fade', 'float') as AnyNode;
   return greaterThan(fade, interleavedGradientNoise());
+}
+
+const hash12 = Fn(([p]: [AnyNode]) => {
+  const p3 = (fract((vec3 as AnyNode)(p.x, p.y, p.x).mul(0.1031)) as AnyNode).toVar();
+  p3.addAssign(dot(p3, p3.yzx.add(33.33)));
+  return fract(p3.x.add(p3.y).mul(p3.z));
+}) as unknown as (p: AnyNode) => AnyNode;
+
+/**
+ * Tidewater coconut-palm material: procedural ringed bark, leaflet cutouts, coconuts,
+ * backlit frond glow and the same world wind field used by the rest of the cove.
+ */
+export function createPalmMaterial(): MeshStandardNodeMaterial {
+  const material = new MeshStandardNodeMaterial({
+    side: DoubleSide,
+    alphaTest: 0.42,
+    roughness: 0.68,
+    metalness: 0,
+    vertexColors: true,
+  });
+  material.name = 'tidewater-palm';
+  const part = attribute('aMat', 'vec4') as AnyNode;
+  const partId = attribute('vegPart', 'float') as AnyNode;
+  const veg = attribute('aVeg', 'vec4') as AnyNode;
+  const tint = attribute('tint', 'vec3') as AnyNode;
+  const shade = attribute('shade', 'float') as AnyNode;
+  const frond = veg.y.greaterThan(float(0.001)).or(veg.z.greaterThan(float(0.001))) as AnyNode;
+  const stem = frond.not() as AnyNode;
+  const coconut = partId.greaterThan(float(4.5)) as AnyNode;
+  const st = uv() as AnyNode;
+  const age = part.y;
+  const leafletLength = max(part.z, float(0.001));
+  const frondSeed = part.w;
+  const trunkY = max((positionGeometry as AnyNode).y, float(0));
+
+  const ringPhase = trunkY
+    .mul(mix(float(6.2), float(8.2), hash12((vec2 as AnyNode)(frondSeed.mul(37.1), 1.7))))
+    .add(pow(max(veg.x, float(0)), float(2.2)).mul(22))
+    .add(sin(st.x.mul(12.566).add(trunkY.mul(1.1))).mul(0.7));
+  const ring = abs(fract(ringPhase).sub(0.5)).smoothstep(float(0.46), float(0.5));
+  const fissure = abs(sin(st.x.mul(144).add(trunkY.mul(1.6)).add(frondSeed.mul(50))));
+  const weather = hash12((vec2 as AnyNode)(floor(trunkY.mul(0.55)), floor(st.x.mul(18)).add(frondSeed)));
+  const barkBase = mix(color(0x7b705e), color(0xb8b09d), weather.mul(0.58).add(veg.x.mul(0.16))) as AnyNode;
+  const bark = barkBase
+    .mul(float(1).sub(ring.mul(0.34)))
+    .mul(float(1).sub(smoothstep(float(0.95), float(1.0), fissure).mul(0.22)))
+    .mul(mix(float(0.7), float(1), smoothstep(float(0.08), float(0.45), trunkY)));
+  const warmBark = mix(bark, color(0x8a6442), float(0.35)) as AnyNode;
+
+  const perLeaf = hash12((vec2 as AnyNode)(floor(st.x.mul(58)), frondSeed.mul(13.1)));
+  const palmGreen = mix(color(0x4e7220), color(0x6c8c2a), weather) as AnyNode;
+  const leafTip = mix(palmGreen, color(0x37561a), smoothstep(float(0.35), float(1), st.y).mul(0.6));
+  const leafBase = mix(leafTip, color(0x93a844), smoothstep(float(0.18), float(0), st.y).mul(0.5));
+  const young = mix(leafBase, color(0x9db24a), smoothstep(float(0.2), float(0), age).mul(0.35));
+  const dry = smoothstep(float(0.6), float(0.95), age);
+  const leaflet = (mix(young, mix(color(0x8a7148), color(0x6b5434), perLeaf), dry) as AnyNode)
+    .mul(perLeaf.mul(0.25).add(0.88))
+    .mul(tint.mul(0.18).add(0.88));
+  const rachisColor = mix(color(0xa29652), color(0x7d6a40), dry) as AnyNode;
+  const rachisColorMix = select(st.y.mul(leafletLength).lessThan(float(0.028)), rachisColor, leaflet);
+  const nutColor = mix(
+    mix(color(0x68762a), color(0x9c8a34), smoothstep(float(0.3), float(0.7), age)),
+    color(0x5c4122),
+    smoothstep(float(0.82), float(0.95), age),
+  ) as AnyNode;
+
+  material.colorNode = select(
+    coconut,
+    nutColor,
+    select(stem, warmBark, rachisColorMix.mul(shade.mul(0.18).add(0.88))),
+  ) as AnyNode;
+
+  const x = st.x.mul(58);
+  const k = floor(x);
+  const r1 = hash12((vec2 as AnyNode)(k, frondSeed.mul(91.7)));
+  const r2 = hash12((vec2 as AnyNode)(k.mul(1.37).add(3.1), frondSeed.mul(17.3)));
+  const fx = abs(fract(x).sub(0.5).sub(r1.sub(0.5).mul(0.3)));
+  const tEnd = mix(float(0.7), float(1), r2).mul(select(r1.lessThan(float(0.05)), float(0.4), float(1)));
+  const tt = st.y.div(tEnd);
+  const hw = pow(max(float(1).sub(tt), float(0)), float(0.55))
+    .mul(0.23)
+    .mul(smoothstep(float(0), float(0.12), tt).mul(0.45).add(0.55));
+  const hwEdge = max(
+    hw,
+    min(fwidth(st.x).mul(58 * 0.6), float(0.5)).mul(select(tt.lessThan(float(1)), float(1), float(0))),
+  );
+  const leafMask = fx
+    .lessThan(hwEdge)
+    .and(tt.lessThan(float(1)))
+    .and(st.x.greaterThan(float(0.06)));
+  const rachisMask = st.y.mul(leafletLength).lessThan(float(0.028));
+  const alphaMask = select(frond, leafMask.or(rachisMask), stem.or(coconut)) as AnyNode;
+  material.maskNode = alphaMask.and(lodMask()) as AnyNode;
+
+  const back = smoothstep(float(-0.35), float(0.82), (normalWorld as AnyNode).dot(world.sunDir).negate());
+  const viewForward = smoothstep(
+    float(0),
+    float(1),
+    world.sunDir.dot((cameraPosition as AnyNode).sub(positionWorld).normalize().negate()),
+  );
+  const leafGlow = (material.colorNode as AnyNode).mul(back).mul(viewForward.mul(0.7).add(0.3)).mul(0.4);
+  material.emissiveNode = select(
+    frond,
+    leafGlow,
+    select(stem, warmBark.mul(0.42), color(0x000000)),
+  ) as AnyNode;
+  material.roughnessNode = select(stem, float(0.92), select(coconut, float(0.62), float(0.6))) as AnyNode;
+  (material as MeshStandardNodeMaterial & { specularIntensity?: number }).specularIntensity = 0.7;
+
+  const windDamp = float(1).sub(world.reducedMotion.mul(0.82));
+  const gust = gustNode(
+    (vec2 as AnyNode)((positionLocal as AnyNode).x, (positionLocal as AnyNode).z),
+  ) as AnyNode;
+  const heightGate = smoothstep(float(0.3), float(11.5), trunkY);
+  const stemBend = veg.x.mul(veg.x).mul(world.windSpeed).mul(0.018).mul(gust).mul(windDamp);
+  const frondBend = veg.y.mul(veg.y).mul(world.windSpeed).mul(0.045).mul(gust).mul(windDamp);
+  const flutter = sin(
+    world.time
+      .mul(veg.w.mul(5).add(11))
+      .add(veg.w.mul(60))
+      .add(veg.y.mul(9))
+      .add((positionGeometry as AnyNode).x),
+  )
+    .mul(veg.z)
+    .mul(world.windSpeed.mul(0.012).add(0.01))
+    .mul(windDamp);
+  const sideFlutter = (normalLocal as AnyNode).mul(flutter);
+  const stream = (vec3 as AnyNode)(
+    world.windDir.x.mul(select(frond, frondBend, stemBend).mul(heightGate)),
+    select(frond, frondBend.mul(-0.16).add(flutter.mul(0.35)), float(0)),
+    world.windDir.y.mul(select(frond, frondBend, stemBend).mul(heightGate)),
+  );
+  material.positionNode = (positionLocal as AnyNode)
+    .add(stream)
+    .add(select(frond, sideFlutter, vec3(0, 0, 0))) as AnyNode;
+  return material;
 }
 
 export function createVegetationMaterial(

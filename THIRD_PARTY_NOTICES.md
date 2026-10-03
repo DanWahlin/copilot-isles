@@ -6,8 +6,8 @@ naming its origin (`Adapted from <project> © <holder>, <license>, <path>@<commi
 
 ## Tidewater
 
-- Source: https://github.com/dgreenheck/tidewater (reference commits `d32799f` for the birds, vegetation and
-  soundscape files, and `fd6cae6`, its three.js build, for the sky, clouds and water)
+- Source: https://github.com/dgreenheck/tidewater (reference commits `d32799f` for the birds, earlier vegetation and
+  soundscape files, and `fd6cae6`, its three.js build, for the sky, clouds, water and procedural palms)
 - License: MIT
 - Adapted at `fd6cae6`:
   - `src/world/sky/atmosphere.ts` from `src/sky/Atmosphere.js`
@@ -16,6 +16,8 @@ naming its origin (`Adapted from <project> © <holder>, <license>, <path>@<commi
   - `src/world/sky/clouds/Globals.ts` from `src/core/Globals.js`
   - `src/world/sky/clouds/Sky.ts` from `src/sky/Sky.js`
   - `src/world/ocean/ocean.ts` from `src/ocean/WaterMaterial.js`
+  - `src/world/vegetation/palms.ts` from `src/world/vegetation/PlantGeometry.js` and `src/world/vegetation/GeoBuilder.js`
+  - `src/world/vegetation/materials.ts` from `src/world/vegetation/VegMaterials.js`, `src/world/vegetation/VegNodes.js`, and `src/world/vegetation/LeafTextures.js`
 
 ```
 MIT License

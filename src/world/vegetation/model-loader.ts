@@ -16,7 +16,8 @@ import {
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { packs } from '../../engine/packs';
-import { createVegetationMaterial } from './materials';
+import { createPalmMaterial, createVegetationMaterial } from './materials';
+import { buildPalmFar, buildPalmNear, buildYoungPalm } from './palms';
 import type { PlantSpecies } from './types';
 
 const MODEL_BASE = '/packs/testcove/vegetation/models/';
@@ -32,17 +33,6 @@ const MODEL_BY_SPECIES: Partial<Record<PlantSpecies, string>> = {
 
 export type PalmVariant = 'a' | 'b';
 export type PalmLod = 'hero' | 'grove';
-
-const PALM_MODEL: Record<PalmVariant, Record<PalmLod, string>> = {
-  a: {
-    hero: 'palm_quaternius_a_hero.glb',
-    grove: 'palm_quaternius_a_grove.glb',
-  },
-  b: {
-    hero: 'palm_quaternius_b_hero.glb',
-    grove: 'palm_quaternius_b_grove.glb',
-  },
-};
 
 const TARGET_HEIGHT: Record<PlantSpecies, number> = {
   palmTall: 12.4,
@@ -78,13 +68,10 @@ type SourceMaterial = Material & {
   alphaMode?: string;
 };
 
-/** The one material every palm shares; both Quaternius palms paint from the same palette atlas. */
+/** The one Tidewater material every procedural palm shares. */
 export function palmMaterial(atlas?: Texture | null): Material {
-  sharedPalmMaterial ??= createVegetationMaterial({
-    map: atlas ?? null,
-    alphaTest: 0.05,
-    name: 'quaternius-palm',
-  });
+  void atlas;
+  sharedPalmMaterial ??= createPalmMaterial();
   return sharedPalmMaterial;
 }
 
@@ -270,35 +257,31 @@ function normalizeParts(parts: VegetationModelPart[], targetHeight: number): voi
   }
 }
 
-async function createPalmParts(
-  loader: GLTFLoader,
+function createPalmParts(
   species: PlantSpecies,
   variant: PalmVariant,
   lod: PalmLod,
   targetHeight = TARGET_HEIGHT[species],
-): Promise<VegetationModelPart[]> {
-  const gltf = await loader.loadAsync(packs.url(`${MODEL_BASE}${PALM_MODEL[variant][lod]}`));
-  gltf.scene.updateMatrixWorld(true);
-  const parts: VegetationModelPart[] = [];
-  gltf.scene.traverse((object: Object3D) => {
-    const mesh = object as Mesh;
-    if (!mesh.isMesh || !mesh.geometry) return;
-    const geometry = addInstanceAttributes(mesh.geometry, mesh, species);
-    geometry.applyMatrix4(mesh.matrixWorld);
-    const material = palmMaterial(sourceMaterial(mesh.material).map);
-    parts.push({ geometry, material, palmVariant: variant, palmLod: lod });
-  });
+): VegetationModelPart[] {
+  const seed =
+    (variant === 'a' ? 11 : 29) + (species === 'palmCluster' ? 100 : 0) + (species === 'palmYoung' ? 200 : 0);
+  const geometry =
+    species === 'palmYoung'
+      ? buildYoungPalm(seed)
+      : lod === 'hero'
+        ? buildPalmNear(seed)
+        : buildPalmFar(seed);
+  const parts: VegetationModelPart[] = [
+    { geometry, material: palmMaterial(), palmVariant: variant, palmLod: lod },
+  ];
   normalizeParts(parts, targetHeight);
   return parts;
 }
 
 export async function loadPalmObject(variant: PalmVariant, height: number): Promise<Group> {
-  await MeshoptDecoder.ready;
-  const loader = new GLTFLoader();
-  loader.setMeshoptDecoder(MeshoptDecoder);
-  const parts = await createPalmParts(loader, 'palmTall', variant, 'hero', height);
+  const parts = createPalmParts('palmTall', variant, 'hero', height);
   const group = new Group();
-  group.name = `quaternius-palm-${variant}`;
+  group.name = `tidewater-palm-${variant}`;
   for (const part of parts) {
     const mesh = new Mesh(part.geometry, part.material as Material);
     mesh.castShadow = true;
@@ -310,13 +293,9 @@ export async function loadPalmObject(variant: PalmVariant, height: number): Prom
 
 async function loadSpecies(loader: GLTFLoader, species: PlantSpecies): Promise<VegetationModelPart[]> {
   if (species.startsWith('palm')) {
-    return (
-      await Promise.all(
-        (['a', 'b'] as const).flatMap((variant) =>
-          (['hero', 'grove'] as const).map((lod) => createPalmParts(loader, species, variant, lod)),
-        ),
-      )
-    ).flat();
+    return (['a', 'b'] as const).flatMap((variant) =>
+      (['hero', 'grove'] as const).flatMap((lod) => createPalmParts(species, variant, lod)),
+    );
   }
   const model = MODEL_BY_SPECIES[species];
   if (!model) throw new Error(`No vegetation model mapped for ${species}`);
