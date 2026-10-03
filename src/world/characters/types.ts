@@ -1,4 +1,5 @@
 import type { Group, Object3D, Vector3 } from 'three/webgpu';
+import type { FacialLine } from './facial-animation';
 import type { TierSettings } from '../../engine/quality';
 import type { GestureHand } from './gestures';
 
@@ -95,6 +96,8 @@ export interface Character {
   lookAt(target: LookTarget): void;
   /** Layers conversational upper-body gestures over the active clip, so seated rigs stay seated. */
   setTalking(on: boolean): void;
+  /** Starts or clears the facial performance for a voiced line. */
+  speak(line: FacialLine | null): void;
   /** A one-off wave hello (standing NPCs, not mid-conversation). */
   greet(): void;
   update(dt: number): void;

@@ -4,7 +4,6 @@ import {
   float,
   interleavedGradientNoise,
   luminance,
-  mix,
   pass,
   renderOutput,
   saturation,
@@ -14,6 +13,7 @@ import {
   toneMappingExposure,
   uniform,
   vec2,
+  vec3,
   vec4,
   vibrance,
 } from 'three/tsl';
@@ -45,7 +45,6 @@ export function createPost(
   tier: TierSettings,
   options: PostOptions = {},
 ): Post | null {
-  if (tier.tier === 'lite') return null;
   const rich = !options.lean && (tier.tier === 'high' || tier.tier === 'ultra');
   const pipeline = new RenderPipeline(renderer);
   const scenePass = pass(scene, camera);
@@ -53,12 +52,13 @@ export function createPost(
   const ldr = renderOutput(hdr);
 
   const exposure = toneMappingExposure as unknown as Node<'float'>;
-  const uVibrance = uniform(0.2);
-  const uSaturation = uniform(1.04);
-  const uContrast = uniform(0.18);
-  const uVignette = uniform(0.2);
+  const uVibrance = uniform(0.16);
+  const uSaturation = uniform(1.1);
+  const uContrast = uniform(1.06);
+  const uVignette = uniform(0.24);
   const graded = Fn(() => {
     let c = ldr.rgb;
+    c = c.mul(vec3(1.02, 1.0, 0.985));
     c = vibrance(c, uVibrance);
     c = saturation(c, uSaturation);
     if (rich) {
@@ -68,8 +68,7 @@ export function createPost(
       const high = smoothstep(2.35, 3.6, luminance(exposed));
       c = c.add(exposed.mul(high).mul(0.045));
     }
-    const s = c.clamp(0, 1);
-    c = mix(c, s.mul(s).mul(float(3).sub(s.mul(2))), uContrast);
+    c = c.sub(0.18).mul(uContrast).add(0.18);
     const d = screenUV.sub(0.5).mul(vec2(1.0, 0.8)).length();
     c = c.mul(float(1).sub(smoothstep(0.4, 0.95, d).mul(uVignette)));
     return vec4(c, 1);
@@ -77,9 +76,9 @@ export function createPost(
 
   // SMAA was tested but exceeded the High-tier post budget; FXAA keeps thin-rigging quality acceptable.
   const aa = fxaa(graded) as unknown as Node<'vec4'>;
-  const dither = interleavedGradientNoise(screenCoordinate.xy).sub(0.5).div(255);
+  const grain = interleavedGradientNoise(screenCoordinate.xy).sub(0.5);
   pipeline.outputColorTransform = false;
-  pipeline.outputNode = vec4(aa.rgb.add(dither), 1);
+  pipeline.outputNode = vec4(aa.rgb.add(grain.mul(0.012).add(grain.div(255))), 1);
 
   return {
     render: () => pipeline.render(),

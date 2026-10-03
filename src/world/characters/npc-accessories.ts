@@ -187,9 +187,11 @@ function addBicorne(root: Group, felt: ColorHex, trim: ColorHex): void {
     mat(felt),
     'bicorne',
   );
+  hat.position.set(0, 0.085, -0.035);
+  hat.rotation.x = -0.08;
   addHead(root, hat);
   const cockade = mesh(new SphereGeometry(0.045, 6, 4), mat(trim), 'bicorne cockade');
-  cockade.position.set(0.18, 0.3, 0.22);
+  cockade.position.set(0.18, 0.37, 0.18);
   cockade.scale.set(1, 0.55, 0.25);
   addHead(root, cockade);
 }

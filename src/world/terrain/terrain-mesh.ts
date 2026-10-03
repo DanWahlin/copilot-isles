@@ -1,4 +1,13 @@
-import { BufferAttribute, BufferGeometry, Camera, Group, Mesh, Sphere, Vector3 } from 'three/webgpu';
+import {
+  BufferAttribute,
+  BufferGeometry,
+  Camera,
+  Group,
+  Mesh,
+  Sphere,
+  Vector3,
+  type Node,
+} from 'three/webgpu';
 import type { Tier, HeightField } from '../contracts';
 import { tierSettings, type TierSettings } from '../../engine/quality';
 import type { HeightGridData } from './cove-height';
@@ -35,6 +44,7 @@ export interface CreateTerrainOptions {
   data: TerrainBakeData;
   name?: string;
   createRocks?: ((heightField: HeightField, data: TerrainBakeData) => Group | null) | null;
+  cloudShadowNode?: Node<'float'> | null;
 }
 
 function resolveTier(tier: Tier | TierSettings): TierSettings {
@@ -279,7 +289,7 @@ export function createTerrain(options: CreateTerrainOptions): CreatedTerrain {
   const data = options.data;
   const group = new Group();
   group.name = options.name ?? 'test-cove-terrain';
-  const material = createTerrainMaterial({ tier: tier.tier });
+  const material = createTerrainMaterial({ tier: tier.tier, cloudShadowNode: options.cloudShadowNode });
   const chunks: TerrainChunk[] = [];
   const chunkSize = 256;
   const steps = stepsForTier(tier);

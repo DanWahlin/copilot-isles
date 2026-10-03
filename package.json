@@ -21,6 +21,8 @@
     "check:secrets": "node tools/check-secrets.mjs",
     "toolchain": "bash tools/setup-toolchain.sh",
     "toolchain:check": "node tools/check-toolchain.mjs",
+    "voice:lipsync": "tsx tools/voice/lipsync.ts",
+    "sky:bake": "node tools/sky/bake-sky.mjs",
     "bake": "tsx tools/bake/bake-terrain.ts",
     "prebuild": "npm run bake",
     "predev": "npm run bake",

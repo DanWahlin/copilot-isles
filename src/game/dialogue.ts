@@ -1,5 +1,7 @@
 import type { IslesAudio } from '../audio';
-import type { Hud } from './hud';
+import type { Hud, SubtitleLine } from './hud';
+
+type LineHook = (line: SubtitleLine | null) => void;
 
 /**
  * Plays a run of voiced lines with synced subtitles. The subtitle highlight runs on its own
@@ -15,6 +17,7 @@ export class Dialogue {
   constructor(
     private readonly hud: Hud,
     private readonly audio: IslesAudio | null,
+    private readonly onLine: LineHook | null = null,
   ) {}
 
   /** `onLine` hears each line as it starts (Wingman heads back to the shoulder on his last). */
@@ -26,6 +29,7 @@ export class Dialogue {
       const line = this.hud.line(id);
       if (!line) continue;
       onLine?.(id);
+      this.onLine?.(line);
       this.hud.showLine(id, -1);
       line.words.forEach((w, i) => {
         this.timers.push(window.setTimeout(() => this.hud.showSpoken(id, i), w.start * 1000));
@@ -36,6 +40,7 @@ export class Dialogue {
         this.timers.push(window.setTimeout(resolve, (line.duration + 0.55) * 1000));
       });
       this.clearTimers();
+      this.onLine?.(null);
       this.audio?.stopVoice();
     }
     if (token !== this.token) return;
@@ -59,6 +64,7 @@ export class Dialogue {
       this.timers.push(window.setTimeout(resolve, seconds * 1000));
     });
     this.clearTimers();
+    this.onLine?.(null);
     if (token !== this.token) return;
     this.active = false;
     this.hud.hideSubtitle();
@@ -69,6 +75,7 @@ export class Dialogue {
     const wake = this.wake;
     this.clearTimers();
     wake?.();
+    this.onLine?.(null);
     this.audio?.stopVoice();
     this.active = false;
     this.hud.hideSubtitle();

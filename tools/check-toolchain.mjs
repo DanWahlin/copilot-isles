@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const localKtx = join(root, '.tools/ktx/bin/ktx');
+const localRhubarb = join(root, '.tools/rhubarb/rhubarb');
 
 function version(cmd, args) {
   try {
@@ -35,6 +36,7 @@ const checks = [
     required: true,
     v: version(join(root, 'node_modules/.bin/gltf-transform'), ['--version']),
   },
+  { name: 'rhubarb', required: true, v: version(localRhubarb, ['--version']) },
   { name: 'ffmpeg', required: true, v: version('ffmpeg', ['-version']) },
   { name: 'blender', required: false, v: blender ? version(blender, ['-v']) : null },
 ];

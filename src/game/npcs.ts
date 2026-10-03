@@ -56,6 +56,12 @@ export const COVE_NPCS: NpcSpec[] = [
     out: 1.9,
     clip: 'idle',
     voiced: ['nell.papers.01', 'nell.papers.02', 'nell.settings.01'],
+    talkShot: {
+      shotLocal: [0.55, 1.08, 2.15],
+      targetLocal: [0, 1.08, 0.02],
+      faceLocal: [0.55, 2.15],
+      standLocal: [3.2, 2.2],
+    },
   },
   {
     id: 'merchant',

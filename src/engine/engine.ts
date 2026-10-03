@@ -1,4 +1,4 @@
-import { HalfFloatType, NeutralToneMapping, PerspectiveCamera, Scene, WebGPURenderer } from 'three/webgpu';
+import { ACESFilmicToneMapping, HalfFloatType, PerspectiveCamera, Scene, WebGPURenderer } from 'three/webgpu';
 import type { Backend } from '../world/contracts';
 import { world } from '../world/uniforms';
 import { AdaptiveResolution } from './adaptive-res';
@@ -70,9 +70,9 @@ export class Engine {
   /** Wraps an already-initialised renderer (boot owns creation + the WebGL2 retry). */
   static fromRenderer(renderer: WebGPURenderer, o: EngineOptions): Engine {
     const e = new Engine(renderer, o);
-    // Neutral keeps tropical colour saturated; AgX desaturated sand to grey (issues.md #3).
-    // The T12 grade adds contrast and vibrance on top.
-    renderer.toneMapping = NeutralToneMapping;
+    // ACES gives the quality-slice look: soft sun roll-off and warm highlights without AgX's
+    // heavy desaturation of the saturated sails and chibi character palettes.
+    renderer.toneMapping = ACESFilmicToneMapping;
     const backend = (renderer.backend as { trackTimestamp?: boolean }) ?? {};
     e.timestamps = backend.trackTimestamp === true;
     e.resize();

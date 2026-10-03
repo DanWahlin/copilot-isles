@@ -104,7 +104,7 @@ async function boot(): Promise<void> {
   if (post) engine.renderFn = post.render;
   let richPostReady = false;
   const upgradePost = async () => {
-    if (richPostReady || tier.tier === 'lite') return;
+    if (richPostReady) return;
     const rich = createPost(renderer, engine.scene, engine.camera, tier);
     if (!rich) return;
     await renderer.compileAsync(engine.scene, engine.camera);

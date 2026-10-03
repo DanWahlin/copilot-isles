@@ -25,7 +25,7 @@ const stats = document.getElementById('stats')!;
 const { scene, camera, clock } = engine;
 clock.set(Number(query.get('time') ?? 16.5), Number(query.get('az') ?? 0));
 
-const sky = createSky(renderer, scene, tier);
+const sky = createSky(renderer, scene, tier, backend);
 const ocean = createOcean({ tier, env: sky.env });
 scene.add(ocean.mesh);
 

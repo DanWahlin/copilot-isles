@@ -13,6 +13,7 @@ import {
   type Material,
 } from 'three/webgpu';
 import { smoothstep, wrapAngle } from '../../util/math';
+import { CharacterFace, type FacialLine } from './facial-animation';
 import { GesturePlanner, gestureArm, gestureLean, type ActiveGesture, type Side } from './gestures';
 import { LegIk } from './leg-ik';
 import { contactsOf, inContact, type FootContactMap } from './loco-pack';
@@ -107,6 +108,7 @@ export class RuntimeCharacter implements Character {
   private readonly proceduralRests: readonly BoneRest[];
   private readonly head: Bone | null;
   private readonly neck: Bone | null;
+  private readonly face: CharacterFace | null;
   private readonly targetWorld = new Vector3();
   private readonly lookWorld = new Vector3();
   private readonly footWorld = new Vector3();
@@ -197,6 +199,7 @@ export class RuntimeCharacter implements Character {
     this.footR = bone(group, 'FootR');
     this.head = bone(group, 'Head');
     this.neck = bone(group, 'Neck');
+    this.face = this.head && body === 'nell' ? new CharacterFace(this.head, body) : null;
     this.proceduralRests = proceduralBones([
       this.body,
       this.hips,
@@ -315,6 +318,10 @@ export class RuntimeCharacter implements Character {
     }
   }
 
+  speak(line: FacialLine | null): void {
+    this.face?.speak(line);
+  }
+
   greet(): void {
     if (this.talking || !this.npc) return;
     this.startOverlay('wave', 1);
@@ -331,11 +338,13 @@ export class RuntimeCharacter implements Character {
       this.applyProceduralPolish(step);
     }
     this.applyLookAt();
+    this.face?.update(dt, this.lookTarget);
     this.lastVerticalSpeed = this.verticalSpeed;
   }
 
   dispose(): void {
     this.mixer.stopAllAction();
+    this.face?.dispose();
     this.group.traverse((object) => {
       if (object instanceof Mesh) disposeOwnedMaterial(object.material);
       if (object instanceof Mesh && object.userData.ownedGeometry) object.geometry.dispose();

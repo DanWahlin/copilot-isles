@@ -1,3 +1,4 @@
+// Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/ocean/WaterMaterial.js@fd6cae6
 import { Mesh, MeshBasicNodeMaterial, NoBlending, type Camera, type Node, type Texture } from 'three/webgpu';
 import {
   Fn,
@@ -42,6 +43,7 @@ import { shipOcean } from './ship-interaction';
 import { matchedDepthTexture } from './depth-copy';
 import { createPolarGrid } from './polar-grid';
 import { createRippleTexture } from './ripple-texture';
+import { WATER_DEPTH_BOUNDS, waterDepthTexture } from './water-depth-texture';
 import { FADE_DISTANCE, WaveField, wavesForTier } from './waves';
 
 export interface OceanOptions {
@@ -49,6 +51,8 @@ export interface OceanOptions {
   /** PMREM environment (a stable texture object; see sky-system). */
   env: Texture;
   mirror?: HarborMirrorInput;
+  /** Use the cove/Meridian analytic seabed map for clear shallow-water colour. */
+  terrainDepth?: boolean;
 }
 
 export interface Ocean {
@@ -60,10 +64,14 @@ export interface Ocean {
   dispose(): void;
 }
 
-/** Tropical water optics (per metre). Red is absorbed fastest, which gives lagoons their turquoise. */
-const ABSORB = vec3(0.46, 0.085, 0.055);
-const DEEP = vec3(0.004, 0.055, 0.085);
-const SCATTER = vec3(0.05, 0.42, 0.4);
+/** Tidewater tropical water optics (per metre), tuned for clear Caribbean shallows. */
+const ABSORB = vec3(0.42, 0.075, 0.035);
+const WATER_SCATTER = vec3(0.012, 0.018, 0.024);
+const SHALLOW_TURQUOISE = vec3(0.08, 0.86, 0.78);
+const LAGOON_TEAL = vec3(0.0, 0.74, 0.7);
+const SAPPHIRE = vec3(0.005, 0.07, 0.18);
+const NAVY = vec3(0.002, 0.025, 0.075);
+const CREST_SCATTER = vec3(0.12, 0.55, 0.45);
 
 /**
  * The Phase 0a ocean (PLAN §6 Water system, S4): analytic Gerstner surface on a camera-centred polar
@@ -71,7 +79,12 @@ const SCATTER = vec3(0.05, 0.42, 0.4);
  * glints, screen-space refraction with Beer-Lambert absorption, crest scattering, and whitecap and
  * contact foam. Low/Lite follow the D1 cuts (3 waves, no distortion, 1 foam band).
  */
-export function createOcean({ tier, env, mirror }: OceanOptions): Ocean {
+export function createOcean({
+  tier,
+  env,
+  mirror,
+  terrainDepth: useTerrainDepth = false,
+}: OceanOptions): Ocean {
   const waves = wavesForTier(tier.waves);
   const field = new WaveField(waves);
   const low = tier.tier === 'lite' || tier.tier === 'low';
@@ -82,6 +95,7 @@ export function createOcean({ tier, env, mirror }: OceanOptions): Ocean {
     segments: low ? 192 : tier.tier === 'medium' ? 288 : 384,
   });
   const ripple = createRippleTexture(256);
+  const floorTex = useTerrainDepth ? waterDepthTexture() : null;
   const sumA = waves.reduce((s, w) => s + w.a, 0);
 
   const mat = new MeshBasicNodeMaterial({ transparent: true, depthWrite: true, fog: false });
@@ -105,6 +119,26 @@ export function createOcean({ tier, env, mirror }: OceanOptions): Ocean {
   const vFade = varying(fade, 'vFade');
   const vH = varying(oy.mul(fade), 'vH');
   const vSpan = varying(attribute('aSpan', 'float'), 'vSpan');
+  let terrainDepthNode: Node<'float'> = float(58);
+  if (floorTex) {
+    const floorUvRaw = rest
+      .sub(vec2(WATER_DEPTH_BOUNDS.minX, WATER_DEPTH_BOUNDS.minZ))
+      .div(
+        vec2(
+          WATER_DEPTH_BOUNDS.maxX - WATER_DEPTH_BOUNDS.minX,
+          WATER_DEPTH_BOUNDS.maxZ - WATER_DEPTH_BOUNDS.minZ,
+        ),
+      );
+    const floorUv = clamp(floorUvRaw, vec2(0.002), vec2(0.998));
+    const floorOk = floorUvRaw.x
+      .greaterThanEqual(0)
+      .and(floorUvRaw.x.lessThanEqual(1))
+      .and(floorUvRaw.y.greaterThanEqual(0))
+      .and(floorUvRaw.y.lessThanEqual(1));
+    const floorY = select(floorOk, texture(floorTex, floorUv).r, float(-58));
+    terrainDepthNode = max(oy.mul(fade).sub(floorY), 0);
+  }
+  const vTerrainDepth = varying(terrainDepthNode, 'vTerrainDepth');
 
   mat.colorNode = Fn(() => {
     const p = vRest;
@@ -138,8 +172,12 @@ export function createOcean({ tier, env, mirror }: OceanOptions): Ocean {
     const s2raw = r2.xy.mul(2).sub(1);
     const s2 = vec2(s2raw.x.mul(ca).add(s2raw.y.mul(sa)), s2raw.x.mul(sa).negate().add(s2raw.y.mul(ca)));
     const windK = clamp(world.windSpeed.div(6.5), 0.3, 2.0);
-    const ripK = windK.mul(exp(dist.negate().div(700))).mul(smoothstep(6.0, 1.2, vSpan).mul(0.35).add(0.65));
-    const rip = s1.mul(0.16).add(s2.mul(0.09)).mul(ripK);
+    const nearRipple = float(1).add(float(0.24).mul(float(1).sub(smoothstep(8, 58, dist))));
+    const ripK = windK
+      .mul(exp(dist.negate().div(700)))
+      .mul(smoothstep(6.0, 1.2, vSpan).mul(0.35).add(0.65))
+      .mul(nearRipple);
+    const rip = s1.mul(0.17).add(s2.mul(0.1)).mul(ripK);
     const N = normalize(
       vec3(sx.mul(vFade).add(rip.x).negate(), float(1).sub(sy.mul(vFade)), sz.mul(vFade).add(rip.y).negate()),
     );
@@ -179,6 +217,9 @@ export function createOcean({ tier, env, mirror }: OceanOptions): Ocean {
     const NdL = max(dot(N, L), 0.0);
     const spec = world.sunColor.mul(D.mul(NdL).mul(0.25).mul(F.add(0.02))).mul(smoothstep(-0.03, 0.05, L.y));
 
+    // Baked analytic seabed depth: keeps Lite/Low vivid even when screen-space refraction is off.
+    const terrainDepth = vTerrainDepth;
+
     // Refraction: depth-aware screen offset, rejecting samples that land on things above the water.
     const ambient = world.skyColor.mul(0.55).add(world.sunColor.mul(max(world.sunDir.y, 0).mul(0.22)));
     const fragZ = positionView.z;
@@ -203,19 +244,38 @@ export function createOcean({ tier, env, mirror }: OceanOptions): Ocean {
       ratio = select(ok, ratioD, ratio0);
     }
     const sceneCol = viewportSharedTexture(uvF).rgb;
-    const pathLen = dist.mul(max(ratio.sub(1), 0));
+    const pathLen = clamp(terrainDepth.div(max(V.y, 0.28)), 0, 400);
     const sceneY = cameraPosition.y.add(positionWorld.y.sub(cameraPosition.y).mul(ratio));
-    const vDepth = max(positionWorld.y.sub(sceneY), 0);
-    const T = exp(ABSORB.mul(pathLen).negate());
-    const under = sceneCol.mul(T).add(DEEP.mul(ambient).mul(vec3(1).sub(T)));
+    const screenDepth = max(positionWorld.y.sub(sceneY), 0);
+    const vDepth = terrainDepth;
+    const sigT = ABSORB.add(WATER_SCATTER);
+    const T = exp(sigT.mul(pathLen).negate());
+    const shallowK = smoothstep(1.2, 3.1, terrainDepth);
+    const deepK = smoothstep(8, 42, terrainDepth);
+    const waterPalette = mix(
+      mix(SHALLOW_TURQUOISE, LAGOON_TEAL, shallowK),
+      mix(SAPPHIRE, NAVY, deepK),
+      smoothstep(2.6, 7.2, terrainDepth),
+    );
+    const inScatter = waterPalette
+      .mul(
+        ambient
+          .mul(0.62)
+          .add(world.sunColor.mul(NdL.mul(0.1)))
+          .add(0.34),
+      )
+      .mul(vec3(1).sub(T))
+      .mul(mix(float(0.46), float(0.58), smoothstep(16, 84, dist)))
+      .add(WATER_SCATTER.mul(world.sunColor).mul(float(1).sub(exp(pathLen.mul(-0.045)))));
+    const under = sceneCol.mul(T).add(inScatter);
 
     // Crest scattering: light through wave tops when looking toward the key light.
     const crest = saturate(vH.div(sumA).mul(0.6).add(0.4));
     const towardL = pow(saturate(dot(V.negate(), L)), 4.0);
-    const sss = SCATTER.mul(world.sunColor)
+    const sss = CREST_SCATTER.mul(world.sunColor)
       .mul(towardL.mul(0.6).add(0.08))
       .mul(crest.mul(crest))
-      .mul(0.14)
+      .mul(0.08)
       .mul(float(1).sub(world.night.mul(0.8)));
 
     // Foam: sparse wind whitecaps, plus contact/shore bands from the water thickness.
@@ -227,6 +287,7 @@ export function createOcean({ tier, env, mirror }: OceanOptions): Ocean {
       .mul(capK)
       .mul(exp(dist.negate().div(900)));
     let shore = smoothstep(0.55, 0.0, vDepth).mul(smoothstep(0.1, 0.6, pattern.add(0.35)));
+    shore = max(shore, smoothstep(0.2, 0.0, screenDepth).mul(smoothstep(0.2, 0.68, pattern.add(0.28))));
     if (tier.foamOctaves >= 2) {
       const band = sin(vDepth.mul(4.2).sub(t.mul(1.1)).add(pattern.mul(2.0)))
         .mul(0.5)
@@ -317,16 +378,17 @@ export function createOcean({ tier, env, mirror }: OceanOptions): Ocean {
     );
 
     const foam = saturate(max(max(whitecap.mul(smoothstep(0.2, 0.75, pattern)), shore), shipFoam));
-    const baseFoamCol = vec3(0.92, 0.95, 0.96).mul(
+    const baseFoamCol = vec3(0.98, 0.99, 1.0).mul(
       ambient
-        .mul(0.45)
-        .add(world.sunColor.mul(NdL.mul(0.18).add(0.06)))
-        .add(0.62),
+        .mul(0.14)
+        .add(world.sunColor.mul(NdL.mul(0.12).add(0.04)))
+        .add(0.9),
     );
-    const foamCol = mix(baseFoamCol, vec3(0.98, 1.0, 0.98), shipFoam.mul(0.92));
+    const foamCol = mix(baseFoamCol, vec3(1.0, 1.0, 0.98), shipFoam.mul(0.92));
 
-    const body = under.add(sss.mul(float(1).sub(F)));
-    let col = mix(body, reflRgb, F).add(spec);
+    const waveShade = float(0.84).add(crest.mul(0.16)).add(pow(NdL, 2).mul(0.08));
+    const body = under.mul(waveShade).add(sss.mul(float(1).sub(F)));
+    let col = mix(body, reflRgb, saturate(F.mul(1.35))).add(spec);
     col = mix(col, foamCol, foam.mul(0.9));
 
     // Far-field: blend to the environment's horizon so the sea meets the sky without a seam.

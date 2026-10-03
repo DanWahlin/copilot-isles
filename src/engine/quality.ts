@@ -135,8 +135,16 @@ export const TIERS: Record<Tier, TierSettings> = {
     treeNear: 60,
     birds: 22,
   },
-  high: { ...base, tier: 'high' },
-  ultra: { ...base, tier: 'ultra', maxDpr: 2, grassDistance: 110, treeNear: 90, birds: 40 },
+  high: { ...base, tier: 'high', clouds: 'volumetric' },
+  ultra: {
+    ...base,
+    tier: 'ultra',
+    clouds: 'volumetric',
+    maxDpr: 2,
+    grassDistance: 110,
+    treeNear: 90,
+    birds: 40,
+  },
 };
 
 export function tierSettings(tier: Tier): TierSettings {

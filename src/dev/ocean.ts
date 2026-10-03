@@ -17,7 +17,7 @@ const h = await createDevHarness();
 const { q, backend, tier, canvas, renderer, engine } = h;
 const { scene, camera, clock } = engine;
 
-const sky = createSky(renderer, scene, tier);
+const sky = createSky(renderer, scene, tier, backend);
 const ocean = createOcean({ tier, env: sky.env });
 scene.add(ocean.mesh);
 if (q.has('nofog')) scene.fogNode = null;

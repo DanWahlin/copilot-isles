@@ -268,7 +268,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const hud = new Hud(o.hudParent);
   await hud.loadSubtitles(o.voiceManifest ?? '/voice/testcove/manifest.json');
   hud.setHelp(WALK_HELP);
-  const dialogue = new Dialogue(hud, audio);
+  let facialSpeaker: Character | null = null;
+  const dialogue = new Dialogue(hud, audio, (line) => facialSpeaker?.speak(line));
 
   // Player: stepUp covers the 0.6 m quay-to-pier lip.
   const player = new PlayerController({ stepUp: 0.66 });
@@ -422,6 +423,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     if (n.spec.talkShot?.faceLocal) n.faceTarget = localNpcPoint(n, n.spec.talkShot.faceLocal);
     try {
       npcs.setTalking(n, true);
+      facialSpeaker = n.character;
       const beat = learn ? scriptFor(n) : null;
       if (beat) {
         scriptRunning = true;
@@ -446,6 +448,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         await new Promise((r) => setTimeout(r, 2600));
       }
     } finally {
+      facialSpeaker?.speak(null);
+      facialSpeaker = null;
       n.faceTarget = priorFaceTarget;
       npcs.setTalking(n, false);
       cam.frame(null);

@@ -1,4 +1,4 @@
-import { Raycaster, Vector2 } from 'three/webgpu';
+import { NoToneMapping, Raycaster, Vector2 } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createPost } from '../engine/post';
 import { createCove } from '../world/cove-scene';
@@ -162,9 +162,11 @@ const setTime = bindSkyPanel({ q, clock, invalidate: () => cove.sky.invalidate()
 
 const stats = document.getElementById('stats')!;
 let n = 0;
+/** Sky-bake mode (skyBake): the bake steers the camera, so the orbit controls stay out of it. */
+let baking = false;
 engine.add({
   frame() {
-    controls.update();
+    if (!baking) controls.update();
     if (++n % 20 === 0) {
       const c = engine.counters.last;
       cove.mirror?.finalizeFrame(c.drawCalls, c.triangles);
@@ -178,12 +180,38 @@ engine.add({
 
 const compileMs = await compileAndStart(renderer, engine, scene, camera);
 
+/**
+ * Sky-bake mode for tools/sky/bake-sky.mjs (run with `nopost`): hides everything but the sky dome and
+ * turns tone mapping and haze off, so the frame holds the sky's own colours, then locks the render
+ * scale to 1 for full-resolution faces.
+ */
+function skyBake(fovDeg = 90) {
+  for (const o of scene.children) o.visible = o.renderOrder === -10;
+  engine.adaptive.lock(1);
+  renderer.toneMapping = NoToneMapping;
+  scene.fogNode = null;
+  camera.fov = fovDeg;
+  camera.updateProjectionMatrix();
+  controls.enabled = false;
+  baking = true;
+  return { hours: clock.hours };
+}
+/** Points the bake camera from `eye` along a direction (cube faces). */
+function skyLook(eye: number[], dir: number[], up: number[] = [0, 1, 0]) {
+  camera.position.set(eye[0]!, eye[1]!, eye[2]!);
+  camera.up.set(up[0]!, up[1]!, up[2]!);
+  camera.lookAt(eye[0]! + dir[0]!, eye[1]! + dir[1]!, eye[2]! + dir[2]!);
+  camera.updateMatrixWorld();
+}
+
 (window as unknown as { __dev: object }).__dev = {
   ready: true,
   setTime,
   setView,
   shot,
   setCam,
+  skyBake,
+  skyLook,
   /** Poses the P0.1 mill race: 'dry' (start tiles, gate shut), 'gate' (start tiles, gate open), or 'solved'. */
   mill: (mode: 'dry' | 'gate' | 'solved' = 'solved') => {
     const L = ANCHORAGE_SLUICE;

@@ -1,5 +1,6 @@
 import { formatDistance, relativeBearing, type CompassTarget } from './compass';
 import { alignSubtitle } from './subtitle-align';
+import type { FaceExpression, MouthCue } from '../world/characters/facial-animation';
 
 /**
  * In-game HUD (Phase 0): the interaction prompt, synced subtitles, the sailing gauge, the compass,
@@ -12,6 +13,8 @@ export interface SubtitleLine {
   text: string;
   duration: number;
   words: { word: string; start: number; end: number }[];
+  mouthCues?: MouthCue[];
+  expression?: FaceExpression;
 }
 
 /** A terminal panel line; `tone` picks the ink (command, your fork, someone else's, success). */
@@ -191,8 +194,28 @@ export class Hud {
       const res = await fetch(manifestUrl);
       const m = (await res.json()) as { lines: SubtitleLine[] };
       for (const l of m.lines) this.lines.set(l.id, l);
+      await this.loadLipSync(manifestUrl);
     } catch {
       // Subtitles are optional in dev.
+    }
+  }
+
+  private async loadLipSync(manifestUrl: string): Promise<void> {
+    try {
+      const res = await fetch(new URL('lipsync.json', new URL(manifestUrl, location.href)).toString());
+      if (!res.ok) return;
+      const m = (await res.json()) as {
+        lines?: Record<string, { mouthCues?: MouthCue[]; expression?: FaceExpression }>;
+      };
+      for (const [id, face] of Object.entries(m.lines ?? {})) {
+        const line = this.lines.get(id);
+        if (line) {
+          line.mouthCues = face.mouthCues;
+          line.expression = face.expression;
+        }
+      }
+    } catch {
+      // Lip sync is optional while voice assets are being regenerated.
     }
   }
 

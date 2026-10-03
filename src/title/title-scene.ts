@@ -28,7 +28,7 @@ export interface TitleBackdrop {
  */
 export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   const { renderer, scene, tier, camera, clock } = engine;
-  const sky = createSky(renderer, scene, tier);
+  const sky = createSky(renderer, scene, tier, engine.backend);
   const ocean = createOcean({ tier, env: sky.env });
   const ranges = createDistantRanges();
   const ship = createBrigantine({ tier: tier.tier });
@@ -95,7 +95,7 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
         updateTitleRects(leaps);
         leaps?.update(dt, t, camera);
         focus.set(camera.position.x, 0, camera.position.z);
-        sky.update(clock, focus);
+        sky.update(clock, focus, dt, camera);
       },
     },
     true,

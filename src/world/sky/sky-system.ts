@@ -1,5 +1,4 @@
 import {
-  AdditiveBlending,
   BackSide,
   DirectionalLight,
   HemisphereLight,
@@ -9,6 +8,8 @@ import {
   Scene,
   SphereGeometry,
   Vector3,
+  type Camera,
+  type Node,
   type Texture,
   type WebGPURenderer,
 } from 'three/webgpu';
@@ -16,30 +17,29 @@ import {
   Fn,
   cameraPosition,
   clamp,
-  dot,
   exp,
   float,
-  floor,
   fog,
-  fract,
   max,
   mix,
   normalize,
-  positionLocal,
   positionWorld,
   pmremTexture,
-  pow,
-  sin,
-  smoothstep,
   uniform,
   vec3,
 } from 'three/tsl';
-import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
 import type { TierSettings } from '../../engine/quality';
 import type { DayClock } from '../../engine/day-clock';
+import type { Backend } from '../contracts';
 import { world } from '../uniforms';
 import { smoothstep as ss } from '../../util/math';
 import { sunState, type SunState } from './sun';
+import { createAtmosphereSky, createNightDome } from './atmosphere';
+import { Atmosphere as TidewaterAtmosphere } from './clouds/Atmosphere';
+import { createBakedTidewaterSky } from './clouds/BakedPanorama';
+import { Clouds as TidewaterClouds } from './clouds/Clouds';
+import { Sky as TidewaterSky } from './clouds/Sky';
+import { syncTidewaterGlobals } from './clouds/Globals';
 
 /** Lighting keyframes keyed by sun elevation (PLAN §6), blended continuously. */
 interface Key {
@@ -51,19 +51,39 @@ interface Key {
   hemiI: number;
   haze: [number, number, number];
   exposure: number;
-  turbidity: number;
-  rayleigh: number;
   fog: number;
+}
+
+interface TidewaterCloudsPort {
+  resolutionScale: number;
+  viewQuality: {
+    maxSteps: number;
+    ds0: number;
+    dsMax: number;
+    lightSteps: number[];
+    lightDetail: number;
+  };
+  panoQuality: { maxSteps: number };
+  update(dt: number, camera: Camera): void;
+  invalidate(): void;
+  shadow(worldXZ: Node<'vec2'>): Node<'float'>;
+}
+
+interface TidewaterSkyPort {
+  clouds: TidewaterCloudsPort | null;
+  starIntensity: { value: number };
+  moonDir: { value: Vector3 };
+  backgroundNode(): Node<'vec4'>;
 }
 
 // prettier-ignore
 const KEYS: Key[] = [
-  { el: -0.35, sun: [0.55, 0.65, 1.0], sunI: 0.3, sky: [0.12, 0.17, 0.3], ground: [0.02, 0.03, 0.05], hemiI: 0.35, haze: [0.05, 0.08, 0.14], exposure: 1.9, turbidity: 2, rayleigh: 0.6, fog: 0.00022 },
-  { el: -0.06, sun: [0.6, 0.62, 0.9], sunI: 0.25, sky: [0.3, 0.3, 0.5], ground: [0.06, 0.05, 0.06], hemiI: 0.35, haze: [0.34, 0.3, 0.38], exposure: 1.5, turbidity: 2.2, rayleigh: 1.2, fog: 0.00028 },
-  { el: 0.03, sun: [1.0, 0.5, 0.24], sunI: 1.5, sky: [0.55, 0.5, 0.6], ground: [0.16, 0.1, 0.08], hemiI: 0.35, haze: [0.95, 0.66, 0.48], exposure: 1.05, turbidity: 3, rayleigh: 1.8, fog: 0.0003 },
-  { el: 0.16, sun: [1.0, 0.74, 0.48], sunI: 2.4, sky: [0.55, 0.66, 0.85], ground: [0.22, 0.17, 0.12], hemiI: 0.32, haze: [0.9, 0.8, 0.7], exposure: 0.66, turbidity: 3, rayleigh: 1.6, fog: 0.00024 },
-  { el: 0.45, sun: [1.0, 0.93, 0.82], sunI: 2.8, sky: [0.5, 0.68, 0.95], ground: [0.26, 0.24, 0.18], hemiI: 0.3, haze: [0.72, 0.8, 0.9], exposure: 0.55, turbidity: 2.4, rayleigh: 1.2, fog: 0.0002 },
-  { el: 1.0, sun: [1.0, 0.97, 0.92], sunI: 3.0, sky: [0.46, 0.66, 0.98], ground: [0.28, 0.26, 0.2], hemiI: 0.3, haze: [0.68, 0.78, 0.9], exposure: 0.52, turbidity: 2, rayleigh: 1, fog: 0.00018 },
+  { el: -0.35, sun: [0.55, 0.65, 1.0], sunI: 0.45, sky: [0.08, 0.13, 0.28], ground: [0.02, 0.03, 0.05], hemiI: 0.38, haze: [0.05, 0.08, 0.14], exposure: 1.05, fog: 0.000035 },
+  { el: -0.06, sun: [0.62, 0.66, 1.0], sunI: 0.4, sky: [0.18, 0.28, 0.52], ground: [0.05, 0.05, 0.07], hemiI: 0.4, haze: [0.28, 0.3, 0.42], exposure: 0.92, fog: 0.00004 },
+  { el: 0.03, sun: [1.0, 0.47, 0.2], sunI: 2.8, sky: [0.27, 0.46, 0.78], ground: [0.18, 0.12, 0.09], hemiI: 0.42, haze: [0.86, 0.58, 0.38], exposure: 0.68, fog: 0.00005 },
+  { el: 0.16, sun: [1.0, 0.66, 0.34], sunI: 4.6, sky: [0.25, 0.48, 0.88], ground: [0.26, 0.18, 0.12], hemiI: 0.44, haze: [0.82, 0.7, 0.54], exposure: 0.58, fog: 0.000045 },
+  { el: 0.45, sun: [1.0, 0.9, 0.72], sunI: 4.2, sky: [0.2, 0.42, 0.9], ground: [0.3, 0.26, 0.2], hemiI: 0.4, haze: [0.58, 0.68, 0.84], exposure: 0.55, fog: 0.00004 },
+  { el: 1.0, sun: [1.0, 0.97, 0.9], sunI: 4.0, sky: [0.18, 0.38, 0.86], ground: [0.32, 0.29, 0.22], hemiI: 0.38, haze: [0.54, 0.66, 0.84], exposure: 0.54, fog: 0.000035 },
 ];
 
 function lerpKey(el: number, out: Key): Key {
@@ -86,64 +106,8 @@ function lerpKey(el: number, out: Key): Key {
   out.sunI = l(a.sunI, b.sunI);
   out.hemiI = l(a.hemiI, b.hemiI);
   out.exposure = l(a.exposure, b.exposure);
-  out.turbidity = l(a.turbidity, b.turbidity);
-  out.rayleigh = l(a.rayleigh, b.rayleigh);
   out.fog = l(a.fog, b.fog);
   return out;
-}
-
-/**
- * Night sky on a back-side dome, additive, faded by the night factor: a moonlit gradient glow, the
- * moon halo, and (main view only) stars and the moon disc. The env capture gets the glow + halo so
- * night reflections and ambient aren't black.
- */
-function makeNightDome(radius: number, full: boolean): Mesh {
-  const mat = new MeshBasicNodeMaterial({
-    side: BackSide,
-    depthWrite: false,
-    transparent: true,
-    blending: AdditiveBlending,
-    fog: false,
-  });
-  mat.colorNode = Fn(() => {
-    const dir = normalize(positionLocal);
-    const up = max(dir.y, 0);
-    const md = dot(dir, world.moonDir);
-    const moonUp = smoothstep(-0.1, 0.25, world.moonDir.y);
-    const glow = mix(vec3(0.055, 0.085, 0.16), vec3(0.012, 0.022, 0.055), pow(up, 0.5))
-      .mul(moonUp.mul(0.6).add(0.4))
-      .add(vec3(0.25, 0.3, 0.42).mul(pow(max(md, 0), 8).mul(0.35).mul(moonUp)));
-    const halo = vec3(0.7, 0.78, 0.95).mul(pow(max(md, 0), 180).mul(0.3));
-    let col = glow.add(halo);
-    if (full) {
-      // Jittered star per cell of a direction grid; brightness varies and twinkles.
-      const cell = floor(dir.mul(180));
-      const h = fract(sin(dot(cell, vec3(12.9898, 78.233, 37.719))).mul(43758.5453));
-      const h2 = fract(h.mul(91.7));
-      const d = fract(dir.mul(180)).sub(0.5).length();
-      const star = smoothstep(0.18, 0.0, d)
-        .mul(smoothstep(0.985, 1.0, h))
-        .mul(h2.mul(1.6).add(0.4));
-      const twinkle = sin(world.time.mul(h2.mul(3).add(1)).add(h.mul(40)))
-        .mul(0.25)
-        .add(0.75);
-      const above = smoothstep(-0.02, 0.12, dir.y);
-      const disc = smoothstep(0.99955, 0.99975, md);
-      col = col.add(
-        star
-          .mul(twinkle)
-          .mul(above)
-          .mul(vec3(0.9, 0.95, 1.0))
-          .mul(1.6),
-      );
-      col = col.add(vec3(0.95, 0.96, 1.0).mul(disc.mul(3.0)));
-    }
-    return col.mul(world.night);
-  })();
-  const m = new Mesh(new SphereGeometry(radius, 48, 24), mat);
-  m.frustumCulled = false;
-  m.renderOrder = -9;
-  return m;
 }
 
 export interface SkySystem {
@@ -152,45 +116,73 @@ export interface SkySystem {
   /** Stable PMREM sky environment (also scene.environment). */
   env: Texture;
   state: SunState;
+  /** TSL cloud-shadow transmittance for terrain materials (1 = clear). */
+  cloudShadowNode?(worldXZ: Node<'vec2'>): Node<'float'>;
   /** Call once per frame. `focus` is the point shadows and the env capture centre on. */
-  update(clock: DayClock, focus: Vector3): void;
+  update(clock: DayClock, focus: Vector3, dt?: number, camera?: Camera): void;
   /** Force an environment + shadow refresh (e.g. after a time scrub). */
   invalidate(): void;
   dispose(): void;
 }
 
 /**
- * Sky, sun/moon lighting, haze fog, and the progressively refreshed environment map.
- * Uses three's TSL SkyMesh (Preetham scattering + clouds) as the Phase 0 sky; see issues.md
- * for the Hillaire LUT upgrade.
+ * Sky, sun/moon lighting, Hillaire-style aerial haze, and the progressively refreshed environment map.
  */
-export function createSky(renderer: WebGPURenderer, scene: Scene, tier: TierSettings): SkySystem {
+export function createSky(
+  renderer: WebGPURenderer,
+  scene: Scene,
+  tier: TierSettings,
+  backend: Backend = 'webgpu',
+): SkySystem {
   const R = 4800;
-  const sky = new SkyMesh();
-  sky.scale.setScalar(R);
-  sky.material.fog = false;
-  sky.renderOrder = -10;
-  sky.frustumCulled = false;
-  sky.cloudCoverage.value = 0.38;
-  sky.cloudDensity.value = 0.45;
-  sky.cloudElevation.value = 0.55;
-  sky.mieCoefficient.value = 0.004;
-  sky.mieDirectionalG.value = 0.82;
-  const nightDome = makeNightDome(R * 0.45, true);
-  scene.add(sky, nightDome);
+  const backendName =
+    (renderer.backend as { constructor?: { name?: string } } | undefined)?.constructor?.name ?? '';
+  const actualWebGL =
+    backend === 'webgl2' ||
+    (renderer.backend as { isWebGLBackend?: boolean } | undefined)?.isWebGLBackend === true ||
+    /webgl/i.test(backendName);
+  const useTidewater = !actualWebGL && tier.clouds === 'volumetric';
+  const tideAtmo = useTidewater ? new TidewaterAtmosphere(renderer) : null;
+  const tideSky = tideAtmo ? (new TidewaterSky(tideAtmo) as unknown as TidewaterSkyPort) : null;
+  const tideClouds = tideAtmo
+    ? (new TidewaterClouds(renderer, tideAtmo) as unknown as TidewaterCloudsPort)
+    : null;
+  if (tideSky && tideClouds) {
+    if (tier.tier === 'medium') {
+      tideClouds.resolutionScale = 0.5;
+      tideClouds.viewQuality.maxSteps = 128;
+      tideClouds.viewQuality.ds0 = 32;
+      tideClouds.viewQuality.dsMax = 160;
+      tideClouds.viewQuality.lightSteps = [30, 120, 450, 1000];
+      tideClouds.viewQuality.lightDetail = 1;
+      tideClouds.panoQuality.maxSteps = 40;
+    }
+    tideSky.clouds = tideClouds;
+    tideSky.starIntensity.value = 1;
+  }
+  const sky = createAtmosphereSky({ radius: R, sunDisc: !tideSky, clouds: !tideSky });
+  const nightDome = createNightDome(R * 0.45, !tideSky);
+  const bakedSky = !tideSky ? createBakedTidewaterSky(R) : null;
+  const tideMaterial = tideSky
+    ? new MeshBasicNodeMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false })
+    : null;
+  if (tideMaterial && tideSky) tideMaterial.colorNode = tideSky.backgroundNode().rgb;
+  const tideMesh = tideMaterial ? new Mesh(new SphereGeometry(R, 64, 32), tideMaterial) : null;
+  if (tideMesh) {
+    tideMesh.frustumCulled = false;
+    tideMesh.renderOrder = -10;
+  }
+  if (tideSky) {
+    scene.add(tideMesh!);
+  } else {
+    scene.add(bakedSky!.mesh, nightDome);
+  }
 
   // A separate sky-only scene for environment captures (never includes the world).
   const envScene = new Scene();
-  const envSky = new SkyMesh();
-  envSky.scale.setScalar(1000);
-  envSky.material.fog = false;
-  envSky.showSunDisc.value = 0;
-  envScene.add(envSky, makeNightDome(400, false));
-  envSky.cloudCoverage.value = sky.cloudCoverage.value;
-  envSky.cloudDensity.value = sky.cloudDensity.value;
-  envSky.cloudElevation.value = sky.cloudElevation.value;
-  envSky.mieCoefficient.value = sky.mieCoefficient.value;
-  envSky.mieDirectionalG.value = sky.mieDirectionalG.value;
+  const envSky = createAtmosphereSky({ radius: 1000, sunDisc: false, clouds: false });
+  const envNightDome = createNightDome(400, false);
+  envScene.add(envSky.mesh, envNightDome);
   const pmrem = new PMREMGenerator(renderer);
   const envSize = tier.tier === 'lite' || tier.tier === 'low' ? 64 : 128;
   // One stable render target: materials keep the same texture object, so refreshes never recompile.
@@ -216,7 +208,7 @@ export function createSky(renderer: WebGPURenderer, scene: Scene, tier: TierSett
   const hemi = new HemisphereLight(0xffffff, 0x222222, 0.3);
   scene.add(sun, sun.target, hemi);
   // The PMREM sky is the main ambient; the hemisphere light is only a ground-bounce fill.
-  scene.environmentIntensity = 0.8;
+  scene.environmentIntensity = 1.35;
 
   // Height- and sun-aware haze (PLAN §6 Atmosphere), coloured by the sky itself toward the view
   // direction's horizon so distant land and sea melt into the sky (warmer toward a low sun, for free).
@@ -226,8 +218,9 @@ export function createSky(renderer: WebGPURenderer, scene: Scene, tier: TierSett
     const dist = v.length();
     const dir = v.div(max(dist, 0.001));
     const h = max(positionWorld.y, 0);
-    const dens = densityU.mul(exp(h.negate().div(90)));
-    const f = clamp(float(1).sub(exp(dist.mul(dens).negate())), 0, 0.9);
+    const dens = densityU.mul(exp(h.negate().div(180)));
+    const farDist = max(dist.sub(150), 0);
+    const f = clamp(float(1).sub(exp(farDist.mul(dens).negate())), 0, 0.65);
     const horizonDir = normalize(vec3(dir.x, max(dir.y, 0).mul(0.5).add(0.03), dir.z));
     const col = pmremTexture(envRT.texture, horizonDir, float(0.45)).rgb;
     return fog(mix(world.hazeColor, col, 0.85), f);
@@ -244,9 +237,6 @@ export function createSky(renderer: WebGPURenderer, scene: Scene, tier: TierSett
   const state: SunState = sunState(16.5);
 
   const refreshEnv = () => {
-    envSky.sunPosition.value.copy(sky.sunPosition.value);
-    envSky.turbidity.value = sky.turbidity.value;
-    envSky.rayleigh.value = sky.rayleigh.value;
     pmrem.fromScene(envScene, 0, 0.1, 2000, { size: envSize, renderTarget: envRT });
     envAge = 0;
   };
@@ -256,7 +246,7 @@ export function createSky(renderer: WebGPURenderer, scene: Scene, tier: TierSett
     hemi,
     env: envRT.texture,
     state,
-    update(clock, focus) {
+    update(clock, focus, dt = 1 / 60, camera) {
       frame++;
       const s = sunState(clock.hours, clock.azimuth);
       Object.assign(state, s);
@@ -273,12 +263,26 @@ export function createSky(renderer: WebGPURenderer, scene: Scene, tier: TierSett
       world.skyColor.value.setRGB(k.sky[0], k.sky[1], k.sky[2]);
       world.hazeColor.value.setRGB(k.haze[0], k.haze[1], k.haze[2]);
       densityU.value = k.fog;
+      syncTidewaterGlobals(dt);
+      if (tideAtmo)
+        (tideAtmo as unknown as { sunDir: { value: Vector3 } }).sunDir.value.set(
+          s.sun[0],
+          s.sun[1],
+          s.sun[2],
+        );
+      if (tideSky) tideSky.moonDir.value.copy(world.moonDir.value);
 
-      sky.sunPosition.value.set(s.sun[0], s.sun[1], s.sun[2]).multiplyScalar(R);
-      sky.turbidity.value = k.turbidity;
-      sky.rayleigh.value = k.rayleigh;
-      sky.position.copy(focus);
-      nightDome.position.copy(focus);
+      sky.haze.rayleigh.value.setRGB(k.sky[0] * 0.7, k.sky[1] * 0.9, Math.min(1.15, k.sky[2] * 1.25));
+      sky.haze.mie.value.setRGB(k.haze[0], k.haze[1], k.haze[2]);
+      sky.haze.groundBounce.value.setRGB(k.ground[0], k.ground[1], k.ground[2]);
+      envSky.haze.rayleigh.value.copy(sky.haze.rayleigh.value);
+      envSky.haze.mie.value.copy(sky.haze.mie.value);
+      envSky.haze.groundBounce.value.copy(sky.haze.groundBounce.value);
+      if (!tideSky) {
+        bakedSky?.update(state);
+        bakedSky?.mesh.position.copy(focus);
+        nightDome.position.copy(focus);
+      }
 
       sun.color.setRGB(k.sun[0], k.sun[1], k.sun[2]);
       sun.intensity = I;
@@ -293,6 +297,9 @@ export function createSky(renderer: WebGPURenderer, scene: Scene, tier: TierSett
       hemi.groundColor.setRGB(k.ground[0], k.ground[1], k.ground[2]);
       hemi.intensity = k.hemiI;
       renderer.toneMappingExposure = k.exposure;
+      tideAtmo?.update(dt, camera?.position.y ?? 1);
+      if (tideClouds && camera) tideClouds.update(dt, camera);
+      if (tideMesh) tideMesh.position.copy(focus);
 
       // Cached shadows (PLAN §12.4): refresh on sun moves, focus moves, or every few frames on Low.
       if (sun.castShadow && !sun.shadow.autoUpdate) {
@@ -304,7 +311,7 @@ export function createSky(renderer: WebGPURenderer, scene: Scene, tier: TierSett
       }
 
       // Environment: refresh after a meaningful sun move, or every 3 s while time flows.
-      envAge += 1 / 60;
+      envAge += dt;
       const sunMoved = lastSun.distanceToSquared(world.sunDir.value) > 0.004 * 0.004;
       if (forced || (sunMoved && envAge > 0.5) || (clock.speed !== 0 && envAge > 180)) {
         refreshEnv();
@@ -314,18 +321,31 @@ export function createSky(renderer: WebGPURenderer, scene: Scene, tier: TierSett
     },
     invalidate() {
       forced = true;
+      tideAtmo?.invalidate();
+      tideClouds?.invalidate();
+      bakedSky?.invalidate();
     },
+    cloudShadowNode: tideClouds ? (worldXZ: Node<'vec2'>) => tideClouds.shadow(worldXZ) : undefined,
     dispose() {
-      scene.remove(sky, nightDome, sun, sun.target, hemi);
+      scene.remove(sky.mesh, bakedSky?.mesh ?? sky.mesh, nightDome, sun, sun.target, hemi);
+      if (tideMesh) scene.remove(tideMesh);
       if (scene.environment === envRT.texture) scene.environment = null;
       if (scene.fogNode === hazeNode) scene.fogNode = null;
       sun.dispose();
       envRT.dispose();
       pmrem.dispose();
-      sky.geometry.dispose();
-      sky.material.dispose();
+      sky.dispose();
+      envSky.dispose();
+      bakedSky?.dispose();
+      tideMesh?.geometry.dispose();
+      tideMaterial?.dispose();
       nightDome.geometry.dispose();
-      (nightDome.material as MeshBasicNodeMaterial).dispose();
+      if (nightDome.material instanceof Array) nightDome.material.forEach((material) => material.dispose());
+      else nightDome.material.dispose();
+      envNightDome.geometry.dispose();
+      if (envNightDome.material instanceof Array)
+        envNightDome.material.forEach((material) => material.dispose());
+      else envNightDome.material.dispose();
     },
   };
 }

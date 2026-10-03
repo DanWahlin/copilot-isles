@@ -1,4 +1,5 @@
 import { Group, Vector3, type Mesh, type Object3D } from 'three/webgpu';
+import { positionWorld } from 'three/tsl';
 import type { Engine } from '../engine/engine';
 import { HarborMirror } from './ocean/harbor-mirror';
 import { createOcean, type Ocean } from './ocean/ocean';
@@ -66,7 +67,8 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const { renderer, scene, tier, clock, camera } = engine;
   const report = o.onProgress ?? (() => {});
   report(0.1, 'Raising the sky');
-  const sky = createSky(renderer, scene, tier);
+  const sky = createSky(renderer, scene, tier, engine.backend);
+  const cloudShadowNode = sky.cloudShadowNode?.(positionWorld.xz);
   const params =
     typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
   const mirrorDisabled = params.has('nomirror');
@@ -74,12 +76,12 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   let meridianBirds: BirdsSystem | null = null;
   const meridianDisabled = params.has('nomeridian');
   const mirror = tier.mirror ? new HarborMirror({ renderer, tier, disabled: mirrorDisabled }) : null;
-  const ocean = createOcean({ tier, env: sky.env, mirror: mirror?.input });
+  const ocean = createOcean({ tier, env: sky.env, mirror: mirror?.input, terrainDepth: true });
   scene.add(ocean.mesh);
 
   report(0.3, 'Charting the cove');
   const data = await loadTerrainPack(`${o.packBase ?? '/packs'}/testcove/terrain`);
-  const terrain = createTerrain({ tier, data });
+  const terrain = createTerrain({ tier, data, cloudShadowNode });
   const heightField = new CompositeHeightField(-52);
   heightField.add(
     { minX: data.minX, maxX: data.maxX, minZ: data.minZ, maxZ: data.maxZ },
@@ -112,6 +114,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
           data: meridianData,
           name: 'port-meridian-terrain',
           createRocks: createMeridianRocks,
+          cloudShadowNode,
         });
         const meridianFoam = createCoastFoam(meridianData, meridianTerrain.heightField, {
           maxDistance: 1100,
@@ -256,7 +259,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       birds?.update(dt, t, camera);
       leaps?.update(dt, t, camera);
       focus.set(camera.position.x, 0, camera.position.z);
-      sky.update(clock, focus);
+      sky.update(clock, focus, dt, camera);
       mirror?.update(renderer, scene, camera, [
         ocean.mesh,
         terrain.group,

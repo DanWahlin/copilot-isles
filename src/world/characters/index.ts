@@ -360,7 +360,7 @@ function cloneMaterial(
     return material.map(
       (entry) => cloneMaterial(entry, body, source, characterPaletteCache, tint) as Material,
     );
-  const clone = material.clone();
+  let clone = material.clone();
   clone.userData.isCharacterCloneMaterial = true;
   applyCharacterPalette(clone, body, source, characterPaletteCache);
   if ('color' in clone && clone.color instanceof Color && tint !== 0xffffff && canTintMaterial(clone)) {
@@ -368,7 +368,15 @@ function cloneMaterial(
   }
   if ('roughness' in clone && typeof clone.roughness === 'number') clone.roughness = 0.72;
   if ('metalness' in clone && typeof clone.metalness === 'number') clone.metalness = 0.02;
+  clone = withCharacterRim(clone);
   return clone;
+}
+
+function withCharacterRim(material: Material): Material {
+  if ('emissive' in material && material.emissive instanceof Color) material.emissive.setHex(0x120c06);
+  if ('emissiveIntensity' in material && typeof material.emissiveIntensity === 'number')
+    material.emissiveIntensity = 0.16;
+  return material;
 }
 
 function canTintMaterial(material: Material): boolean {
