@@ -14,6 +14,7 @@ import {
 } from 'three/webgpu';
 import { smoothstep, wrapAngle } from '../../util/math';
 import { CharacterFace, type FacialLine } from './facial-animation';
+import { FACE_FITS, faceColors, faceFamily } from './face-fit';
 import { GesturePlanner, gestureArm, type ActiveGesture, type Side } from './gestures';
 import { LegIk } from './leg-ik';
 import { contactsOf, inContact, type FootContactMap } from './loco-pack';
@@ -201,7 +202,7 @@ export class RuntimeCharacter implements Character {
     this.footR = bone(group, 'FootR');
     this.head = bone(group, 'Head');
     this.neck = bone(group, 'Neck');
-    this.face = this.head && body === 'nell' ? new CharacterFace(this.head, body) : null;
+    this.face = this.npc ? createFace(this.head, group, body, config) : null;
     this.proceduralRests = proceduralBones([
       this.body,
       this.hips,
@@ -867,6 +868,18 @@ function fingerChains(lowerArm: Bone | null): Bone[][] {
     if (chain.length >= 2) chains.push(chain);
   }
   return chains;
+}
+
+/** Every NPC gets the painted face (issue #186); players keep the kit's eyes (seen from behind). */
+function createFace(
+  head: Bone | null,
+  group: Group,
+  body: CharacterBody,
+  config: BodyConfig,
+): CharacterFace | null {
+  const colors = faceColors(body);
+  if (!head || !colors) return null;
+  return new CharacterFace(head, group, body, FACE_FITS[faceFamily(config.source)], colors);
 }
 
 function firstChildBone(parent: Bone | null): Bone | null {
