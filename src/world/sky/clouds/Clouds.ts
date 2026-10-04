@@ -954,6 +954,7 @@ export class Clouds {
       .toVar();
     const ph3 = float(0.15 / (4 * PI)); // light diffused through the whole cloud (keeps thick bodies from going black)
     const sunE = light.E.toVar();
+    const sunN = mix(sunE, vec3(luminance(sunE)), 0.6).toVar();
     const amb = G.skyIrradiance.mul(q.ambient);
     // in-scatter probability (Schneider 2015 'powder', Nubis 2017): light scattered toward the viewer
     // builds up inside the cloud, so thin edges and the underside look darker; faded out looking
@@ -1066,7 +1067,10 @@ export class Clouds {
               // three orders from one exponential: extinction and energy halve each order
               const quarter = exp(tau.mul(-0.25));
               const halfT = quarter.mul(quarter);
-              const sun = dot(vec3(halfT.mul(halfT), halfT.mul(0.5), quarter.mul(0.25)), phase).add(
+              // single scattering keeps the sun's colour; the multiply scattered orders lean
+              // neutral (a warm tint on dim, deep light read as tan patches inside the body)
+              const sun1 = halfT.mul(halfT).mul(phase.x);
+              const sunMS = dot(vec2(halfT.mul(0.5), quarter.mul(0.25)), phase.yz).add(
                 ph3.mul(exp(tau.mul(-0.06))),
               );
               // skylight occlusion: two broad upward probes (125 m, 600 m) of the filtered density
@@ -1074,36 +1078,35 @@ export class Clouds {
                 pu2 = this._sheared(pr.add(vec3(0, 600, 0)));
               const skyTau = meanDensity(this._base(pu1, w))
                 .mul(250)
-                .add(meanDensity(this._base(pu2, this._weather(pu2.xz))).mul(700))
+                .add(meanDensity(this._base(pu2, this._weather(pu2.xz))).mul(350))
                 .add(dens.mul(25))
                 .mul(this.densityScale);
               // the floor keeps blue skylight in the deepest shade; at 0.2 the dim, warm sunlight
               // diffused through the cloud outweighed it and thick bases went brown
-              const skyVis = float(0.38).add(float(0.62).div(skyTau.mul(0.35).add(1)));
+              const skyVis = float(0.5).add(float(0.5).div(skyTau.mul(0.3).add(1)));
               // darker bases (their direct light is scattered away by the cloud above)
-              const baseShadow = mix(float(1), mix(float(0.68), float(1), smoothstep(-0.08, 0.5, b.y)), 0.24);
+              const baseShadow = mix(float(1), mix(float(0.8), float(1), smoothstep(-0.08, 0.5, b.y)), 0.24);
               const depthP = pow(dens, mix(0.5, 1.6, b.y))
                 .mul(0.95)
                 .add(0.05);
+              // softened: stacked with the base shadow, the full powder term turned flat bases
+              // into a dark slab under the cloud
               const vertP = pow(smoothstep(0.02, 0.2, b.y), 0.8)
-                .mul(0.85)
-                .add(0.15);
-              const powder = mix(float(1), depthP.mul(vertP), powderK.mul(0.52));
+                .mul(0.6)
+                .add(0.4);
+              const powder = mix(float(1), depthP.mul(vertP), powderK.mul(0.4));
               // ambient: the sky lights the tops; the bases only see the dark sea and the
               // horizon (darker, bluer), and crevices of the detail noise are occluded
               const up = saturate(b.y.mul(1.4));
-              const ambH = mix(vec3(0.72, 0.78, 0.9), vec3(1), sqrt(up))
+              const ambH = mix(vec3(0.8, 0.85, 0.95), vec3(1), sqrt(up))
                 .mul(skyVis)
                 .mul(er.y.mul(0.12).add(0.92));
               // after sunset the tops stay lit longest
               const alt = pr.y.add(dot(pr.xz, pr.xz).div(2 * EARTH_R));
+              const lit = powder.mul(baseShadow).mul(earthShadow(light, alt, pr.xz));
               const S = sunE
-                .mul(
-                  sun
-                    .mul(powder)
-                    .mul(baseShadow)
-                    .mul(earthShadow(light, alt, pr.xz)),
-                )
+                .mul(sun1.mul(lit))
+                .add(sunN.mul(sunMS.mul(lit)))
                 .add(amb.mul(ambH))
                 .add(bounce.mul(float(1).sub(up)));
               const Tstep = exp(sig.mul(ds).negate());
