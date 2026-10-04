@@ -28,6 +28,8 @@
 
 - **4: done.** Raiders build with `createBrigantine({ raider: true })`: a slate hull with oxblood and pewter trim, patched fog-grey sails, swallowtail colours of our own (a lantern in the fog), and a real one-mast gaff cutter rig (`setRig`). The struck colours come down the cutter's mast too. No new pipelines; a cutter draws less than a brigantine.
 
+- **Flotsam (Dan's note).** The rowing boat had no visible hull (it sat below the water line) and its oars floated free (the oar shader worked in world space). Now the boat floats with freeboard and has bottom boards, a wale, three rowers in different shirts and caps, a coxswain, and bladed oars that sweep from their oarlocks a little out of step. Stores have distinct shapes: lashed planks (timber), a barrel (powder), and broken planks (wreckage, not collectable), each with its own size, angle, roll and tone.
+
 Then the passage battle goes into the game (Anchorage → Port Meridian, required with a skip), and Dan reviews.
 
 ## Rules that apply throughout

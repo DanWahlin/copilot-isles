@@ -58,13 +58,13 @@ export interface FxBudget {
 export function fxBudget(tier: TierSettings): FxBudget {
   switch (tier.tier) {
     case 'lite':
-      return { balls: 32, splashes: 24, smoke: 0, splinters: 0, stores: 12, boats: 2 };
+      return { balls: 32, splashes: 24, smoke: 0, splinters: 0, stores: 16, boats: 2 };
     case 'low':
-      return { balls: 40, splashes: 32, smoke: 36, splinters: 32, stores: 16, boats: 3 };
+      return { balls: 40, splashes: 32, smoke: 36, splinters: 32, stores: 20, boats: 3 };
     case 'medium':
-      return { balls: 64, splashes: 48, smoke: 72, splinters: 64, stores: 24, boats: 4 };
+      return { balls: 64, splashes: 48, smoke: 72, splinters: 64, stores: 32, boats: 4 };
     default:
-      return { balls: 64, splashes: 64, smoke: 72, splinters: 96, stores: 24, boats: 4 };
+      return { balls: 64, splashes: 64, smoke: 72, splinters: 96, stores: 32, boats: 4 };
   }
 }
 
@@ -75,6 +75,7 @@ const tmpQ = new Quaternion();
 const tmpE = new Euler(0, 0, 0, 'YXZ');
 const tmpP = new Vector3();
 const tmpS = new Vector3();
+const tmpC = new Color();
 
 function pooled(mesh: InstancedMesh, name: string): InstancedMesh {
   mesh.name = name;
@@ -467,6 +468,11 @@ export class SplinterPool {
 }
 
 /** Ship's stores left by a wreck: barrels that bob on the swell until you sail through them. */
+/** What floats off a struck raider: kind 0 timber (repairs), 1 powder (faster reloads), 2 wreckage. */
+export const STORE_TIMBER = 0;
+export const STORE_POWDER = 1;
+export const STORE_WRECKAGE = 2;
+
 export class StorePool {
   readonly mesh: InstancedMesh;
   readonly x: Float32Array;
@@ -476,6 +482,10 @@ export class StorePool {
   /** 0 free, 1 afloat. */
   readonly live: Uint8Array;
   readonly size: number;
+  /** Per item: 0…1, picks its size, its angle on the water and its weathering. */
+  private readonly seed: Float32Array;
+  /** Per drawn item: which shape it shows (see createStoreGeometry). */
+  private readonly show: InstancedBufferAttribute;
 
   constructor(size: number) {
     this.size = Math.max(1, size);
@@ -485,10 +495,18 @@ export class StorePool {
     this.kind = new Uint8Array(n);
     this.expires = new Float32Array(n);
     this.live = new Uint8Array(n);
-    this.mesh = pooled(
-      new InstancedMesh(createBarrelGeometry(), createVertexColorMaterial(), n),
-      'battle-stores',
-    );
+    this.seed = new Float32Array(n);
+    const geometry = createStoreGeometry();
+    this.show = new InstancedBufferAttribute(new Float32Array(n), 1);
+    geometry.setAttribute('storeShow', this.show);
+    this.mesh = pooled(new InstancedMesh(geometry, createStoreMaterial(), n), 'battle-stores');
+    // Allocate the per-item tint once, here.
+    for (let i = 0; i < n; i++) this.mesh.setColorAt(i, tmpC.setRGB(1, 1, 1));
+  }
+
+  /** True for the stores you can collect (not the wreckage). */
+  collectable(i: number): boolean {
+    return this.live[i] === 1 && this.kind[i] !== STORE_WRECKAGE;
   }
 
   spawn(x: number, z: number, kind: number, expires: number): void {
@@ -499,6 +517,8 @@ export class StorePool {
       this.kind[i] = kind;
       this.expires[i] = expires;
       this.live[i] = 1;
+      const h = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453;
+      this.seed[i] = h - Math.floor(h);
       return;
     }
   }
@@ -511,17 +531,33 @@ export class StorePool {
         this.live[i] = 0;
         continue;
       }
+      const seed = this.seed[i]!;
+      const kind = this.kind[i]!;
       const y = waves.heightAt(this.x[i]!, this.z[i]!, t);
-      // Sinks out of sight over its last two seconds.
+      // Sinks out of sight over its last two seconds; wreckage rides lower, barrels higher.
       const sink = Math.max(0, 2 - (this.expires[i]! - t)) * 0.45;
-      tmpE.set(Math.PI / 2 + Math.sin(t * 1.3 + i) * 0.25, i * 1.7, Math.sin(t * 0.9 + i * 2) * 0.2, 'YXZ');
+      const ride = kind === STORE_POWDER ? 0.08 - seed * 0.12 : kind === STORE_TIMBER ? 0.02 : -0.03;
+      // Each item lolls at its own rate and lies at its own angle.
+      const rate = 0.7 + seed * 0.9;
+      tmpE.set(
+        Math.sin(t * rate + i) * 0.2 + (seed - 0.5) * 0.3,
+        seed * 6.283 + i * 1.7,
+        Math.sin(t * rate * 0.8 + i * 2) * 0.18,
+        'YXZ',
+      );
       tmpQ.setFromEuler(tmpE);
-      const s = this.kind[i] ? 1.15 : 1;
-      tmpM.compose(tmpP.set(this.x[i]!, y + 0.05 - sink, this.z[i]!), tmpQ, tmpS.set(s, s, s));
-      this.mesh.setMatrixAt(n++, tmpM);
+      const s = kind === STORE_WRECKAGE ? 0.7 + seed * 0.7 : 0.85 + seed * 0.3;
+      tmpM.compose(tmpP.set(this.x[i]!, y + ride - sink, this.z[i]!), tmpQ, tmpS.set(s, s, s));
+      this.mesh.setMatrixAt(n, tmpM);
+      const tone = 0.78 + ((seed * 7.3) % 1) * 0.32;
+      this.mesh.setColorAt(n, tmpC.setRGB(tone, tone * (0.96 + seed * 0.04), tone * (0.9 + seed * 0.08)));
+      this.show.setX(n, kind);
+      n++;
     }
     this.mesh.count = n;
     this.mesh.instanceMatrix.needsUpdate = true;
+    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+    this.show.needsUpdate = true;
   }
 
   clear(): void {
@@ -539,7 +575,7 @@ export class BoatPool {
   readonly start: Float32Array;
   readonly live: Uint8Array;
   readonly size: number;
-  /** Per drawn boat: oar sweep (rad, + forward), blade lift, and the rowers' lean. */
+  /** Per drawn boat: oar sweep (rad, + forward), blade lift, the rowers' lean, and the boat's heading. */
   private readonly row: InstancedBufferAttribute;
 
   constructor(size: number) {
@@ -551,7 +587,7 @@ export class BoatPool {
     this.start = new Float32Array(n);
     this.live = new Uint8Array(n);
     const geometry = createRowboatGeometry();
-    this.row = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
+    this.row = new InstancedBufferAttribute(new Float32Array(n * 4), 4);
     geometry.setAttribute('boatRow', this.row);
     this.mesh = pooled(new InstancedMesh(geometry, createBoatMaterial(), n), 'battle-boats');
   }
@@ -591,11 +627,12 @@ export class BoatPool {
       const pull = stroke < 0.35;
       const k = pull ? stroke / 0.35 : (stroke - 0.35) / 0.65;
       const e = k * k * (3 - 2 * k);
-      this.row.setXYZ(
+      this.row.setXYZW(
         n,
         pull ? 0.55 - 1.1 * e : -0.55 + 1.1 * e,
         pull ? 0 : Math.sin(k * Math.PI) * 0.22,
         pull ? e : 1 - e,
+        h,
       );
       this.mesh.setMatrixAt(n++, tmpM);
     }
@@ -635,8 +672,8 @@ function paint(geometry: BufferGeometry, hex: number): BufferGeometry {
   return g;
 }
 
-/** A barrel lying on its side (its axis along local y, turned flat by the instance). */
-function createBarrelGeometry(): BufferGeometry {
+/** A barrel (its axis along local y): the bulged staves and two iron hoops. */
+function createBarrelParts(): BufferGeometry[] {
   const body = new CylinderGeometry(0.42, 0.42, 1.0, 12, 4);
   const pos = body.getAttribute('position');
   for (let i = 0; i < pos.count; i++) {
@@ -648,28 +685,132 @@ function createBarrelGeometry(): BufferGeometry {
   body.computeVertexNormals();
   const hoopA = new CylinderGeometry(0.47, 0.47, 0.07, 12, 1, true).translate(0, 0.3, 0);
   const hoopB = new CylinderGeometry(0.47, 0.47, 0.07, 12, 1, true).translate(0, -0.3, 0);
-  return mergeGeometries([paint(body, 0x8b6038), paint(hoopA, 0x2c2a26), paint(hoopB, 0x2c2a26)])!;
+  return [paint(body, 0x8b6038), paint(hoopA, 0x2c2a26), paint(hoopB, 0x2c2a26)];
 }
 
-/** A ship's boat: a round-bilged hull, thwarts, three rowers and their oars. Bow toward +z. */
-function createRowboatGeometry(): BufferGeometry {
+/**
+ * Every store shape in one geometry, each tagged with its kind (`storePart`); the instance's
+ * `storeShow` picks one, so all of them draw in one call. Built lying on the water (local y up).
+ */
+function createStoreGeometry(): BufferGeometry {
   const part = (g: BufferGeometry, id: number) => {
     const n = g.getAttribute('position').count;
-    g.setAttribute('boatPart', new Float32BufferAttribute(new Float32Array(n).fill(id), 1));
+    g.setAttribute('storePart', new Float32BufferAttribute(new Float32Array(n).fill(id), 1));
     return g;
   };
-  const hull = new SphereGeometry(1, 14, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).scale(0.85, 0.5, 2.3);
-  const rim = new CylinderGeometry(1, 1, 0.08, 14, 1, true).scale(0.86, 1, 2.32).translate(0, 0.02, 0);
-  const parts = [part(paint(hull, 0x5b3a22), 0), part(paint(rim, 0xc9b48a), 0)];
-  for (const z of [-1.0, 0, 1.0]) {
-    parts.push(part(paint(new BoxGeometry(0.34, 0.5, 0.26).translate(0, 0.35, z), 0x2f3d4c), 1));
-    parts.push(part(paint(new SphereGeometry(0.13, 8, 6).translate(0, 0.72, z), 0xd2a57c), 1));
-    // An oar each side, pivoting at the gunwale (x = ±0.78).
+  const parts: BufferGeometry[] = [];
+  // Timber: three planks lashed together with two rope bands, one plank a little proud of the rest.
+  [-0.27, 0, 0.27].forEach((x, k) => {
+    const plank = new BoxGeometry(0.25, 0.09, 1.9 - k * 0.18).translate(
+      x,
+      0.05 + (k === 1 ? 0.03 : 0),
+      k * 0.06,
+    );
+    parts.push(part(paint(plank, [0xa77b4c, 0x8e6438, 0xb48a58][k]!), STORE_TIMBER));
+  });
+  for (const z of [-0.5, 0.55])
+    parts.push(part(paint(new BoxGeometry(0.86, 0.15, 0.07).translate(0, 0.06, z), 0xcbb48a), STORE_TIMBER));
+  // Powder: a barrel lying on its side.
+  for (const g of createBarrelParts())
+    parts.push(part(g.rotateX(Math.PI / 2).translate(0, 0.1, 0), STORE_POWDER));
+  // Wreckage: a broken plank with a splintered end and a short bit of rail.
+  const broken = new BoxGeometry(0.3, 0.08, 1.6);
+  const pos = broken.getAttribute('position');
+  for (let i = 0; i < pos.count; i++)
+    if (pos.getZ(i) > 0.7)
+      pos.setZ(i, pos.getZ(i) - (pos.getX(i) > 0 ? 0.35 : 0) - (pos.getY(i) > 0 ? 0.12 : 0));
+  broken.computeVertexNormals();
+  parts.push(part(paint(broken, 0x6e4b2c), STORE_WRECKAGE));
+  parts.push(
+    part(
+      paint(new BoxGeometry(0.12, 0.1, 0.9).rotateY(0.5).translate(0.35, 0.02, -0.4), 0x3d2a1a),
+      STORE_WRECKAGE,
+    ),
+  );
+  return mergeGeometries(parts)!;
+}
+
+/** The store shapes collapse to a point unless the instance shows their kind. */
+function createStoreMaterial(): MeshStandardNodeMaterial {
+  const mat = createVertexColorMaterial();
+  const p = positionLocal as AnyNode;
+  const mine = abs(attribute('storePart', 'float').sub(attribute('storeShow', 'float'))).lessThan(0.5);
+  mat.positionNode = select(mine, p, vec3(0, 0, 0));
+  return mat;
+}
+
+/** Shirt and cap colours for the rowers, seat by seat, so the crew doesn't look stamped out. */
+const CREW_SHIRTS = [0x2f3d4c, 0x7a2e26, 0xb9ad94, 0x4d5a3a] as const;
+const CREW_SKIN = [0xd2a57c, 0x9a6a46, 0xe2b896, 0x7d5236] as const;
+const CREW_CAPS = [0x8c2a22, -1, 0x2b3a4a, 0x3a2a1e] as const;
+/** The boat's gunwale above the water and the oarlocks on it (m). */
+const GUNWALE = 0.4;
+const OARLOCK_X = 0.8;
+
+/**
+ * A ship's boat: a round-bilged hull that floats with freeboard, bottom boards (so no sea shows inside
+ * it), an oxblood wale, three rowers with bladed oars and a coxswain at the stern. Bow toward +z.
+ */
+function createRowboatGeometry(): BufferGeometry {
+  const part = (g: BufferGeometry, id: number, seat = 0) => {
+    const n = g.getAttribute('position').count;
+    g.setAttribute('boatPart', new Float32BufferAttribute(new Float32Array(n).fill(id), 1));
+    g.setAttribute('boatSeat', new Float32BufferAttribute(new Float32Array(n).fill(seat), 1));
+    return g;
+  };
+  const hull = new SphereGeometry(1, 16, 7, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2)
+    .scale(0.86, 0.8, 2.3)
+    .translate(0, GUNWALE, 0);
+  const wale = new CylinderGeometry(1, 1, 0.07, 16, 1, true)
+    .scale(0.875, 1, 2.33)
+    .translate(0, GUNWALE - 0.1, 0);
+  const rim = new CylinderGeometry(1, 1, 0.05, 16, 1, true).scale(0.87, 1, 2.32).translate(0, GUNWALE, 0);
+  const boards = new CylinderGeometry(1, 1, 0.04, 16, 1).scale(0.62, 1, 1.85).translate(0, 0.13, 0);
+  const parts = [
+    part(paint(hull, 0x4e3420), 0),
+    part(paint(wale, 0x5a1f1a), 0),
+    part(paint(rim, 0xc9b48a), 0),
+    part(paint(boards, 0x7a5634), 0),
+  ];
+  const sitter = (z: number, k: number, bodyH: number) => {
+    parts.push(part(paint(new BoxGeometry(1.5, 0.05, 0.22).translate(0, 0.3, z), 0x6b4a2c), 0));
+    parts.push(
+      part(paint(new BoxGeometry(0.36, bodyH, 0.26).translate(0, 0.33 + bodyH / 2, z), CREW_SHIRTS[k]!), 1),
+    );
+    const headY = 0.38 + bodyH + 0.1;
+    parts.push(part(paint(new SphereGeometry(0.13, 8, 6).translate(0, headY, z), CREW_SKIN[k]!), 1));
+    const cap = CREW_CAPS[k]!;
+    if (cap >= 0)
+      parts.push(
+        part(
+          paint(
+            new SphereGeometry(0.14, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2).translate(0, headY + 0.03, z),
+            cap,
+          ),
+          1,
+        ),
+      );
+  };
+  [-0.95, 0.05, 1.05].forEach((z, k) => {
+    sitter(z, k, k === 1 ? 0.5 : 0.44);
+    // An oar each side, pivoting in its oarlock: the loom inboard, the shaft, and a flat blade.
     for (const side of [-1, 1]) {
-      const oar = new BoxGeometry(1.5, 0.04, 0.07).translate(side * 1.13, 0.3, z + 0.12);
-      parts.push(part(paint(oar, 0xb08a5a), 2));
+      const shaft = new BoxGeometry(1.75, 0.045, 0.06).translate(
+        side * (OARLOCK_X + 0.6),
+        GUNWALE + 0.04,
+        z + 0.1,
+      );
+      const blade = new BoxGeometry(0.46, 0.02, 0.17).translate(
+        side * (OARLOCK_X + 1.6),
+        GUNWALE + 0.04,
+        z + 0.1,
+      );
+      parts.push(part(paint(shaft, 0xb08a5a), 2, k - 1));
+      parts.push(part(paint(blade, 0x8f6c42), 2, k - 1));
     }
-  }
+  });
+  // The coxswain sits in the stern sheets, facing the rowers.
+  sitter(-1.85, 3, 0.4);
   return mergeGeometries(parts)!;
 }
 
@@ -679,24 +820,36 @@ function createRowboatGeometry(): BufferGeometry {
  */
 function createBoatMaterial(): MeshStandardNodeMaterial {
   const mat = createVertexColorMaterial();
+  const V = vec3 as AnyNode;
+  // positionLocal here already has the instance matrix applied (three runs instancing before
+  // positionNode), so the oar and rower motion is worked out from the raw local position and the
+  // resulting offset is turned by the boat's heading and added.
   const p = positionLocal as AnyNode;
+  const raw = attribute('position', 'vec3') as AnyNode;
   const kind = attribute('boatPart', 'float') as AnyNode;
-  const row = attribute('boatRow', 'vec3') as AnyNode;
+  const seat = attribute('boatSeat', 'float') as AnyNode;
+  const row = attribute('boatRow', 'vec4') as AnyNode;
   const isOar = kind.greaterThan(1.5);
   const isRower = kind.greaterThan(0.5).and(kind.lessThan(1.5));
-  const reach = abs(p.x).sub(0.78).max(0);
-  const sweep = row.x;
-  const oar = vec3(
-    p.x.sub(
-      sign(p.x)
-        .mul(reach)
-        .mul(float(1).sub(cos(sweep))),
-    ),
-    p.y.add(reach.mul(row.y)).sub(reach.mul(0.18)),
-    p.z.add(reach.mul(sin(sweep))),
+  const reach = abs(raw.x).sub(OARLOCK_X).max(0);
+  // Rowers keep stroke, but not to the hundredth: each seat is a touch behind the one aft of it.
+  const sweep = row.x.sub(seat.mul(0.07));
+  const oarOffset = V(
+    sign(raw.x)
+      .mul(reach)
+      .mul(float(1).sub(cos(sweep)))
+      .negate(),
+    // The blades dip into the water through the pull and lift clear on the recovery.
+    reach.mul(row.y).sub(reach.mul(seat.mul(0.015).add(0.27))),
+    reach.mul(sin(sweep)),
   );
-  const lean = smoothstep(float(0.15), float(0.8), p.y).mul(row.z.mul(0.16).sub(0.08));
-  const rower = vec3(p.x, p.y, p.z.sub(lean));
-  mat.positionNode = select(isOar, oar, select(isRower, rower, p));
+  const lean = smoothstep(float(0.5), float(1.0), raw.y).mul(row.z.mul(0.16).sub(0.08));
+  const rowerOffset = V(0, 0, lean.negate());
+  const local = select(isOar, oarOffset, select(isRower, rowerOffset, V(0, 0, 0))) as AnyNode;
+  const c = cos(row.w);
+  const s = sin(row.w);
+  mat.positionNode = p.add(
+    V(local.x.mul(c).add(local.z.mul(s)), local.y, local.z.mul(c).sub(local.x.mul(s))),
+  );
   return mat;
 }

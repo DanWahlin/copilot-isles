@@ -8,7 +8,18 @@ import { windAt } from '../wind';
 import { ARC_FIRING, ARC_WARNING, ArcSet } from './arcs';
 import { elevationFor, insideHull, leadPoint, MUZZLE_SPEED, muzzleLocal } from './ballistics';
 import { FogBank } from './fog';
-import { BallPool, BoatPool, fxBudget, SmokePool, SplashPool, SplinterPool, StorePool } from './fx';
+import {
+  BallPool,
+  BoatPool,
+  fxBudget,
+  SmokePool,
+  SplashPool,
+  SplinterPool,
+  STORE_POWDER,
+  STORE_TIMBER,
+  STORE_WRECKAGE,
+  StorePool,
+} from './fx';
 import { Battery, bearing, gunStations, PORT, STARBOARD, type Side } from './gunnery';
 import { RaiderBrain, type RaiderHelm, type RaiderView } from './raider-ai';
 
@@ -834,8 +845,20 @@ export class Battle {
       this.stores.spawn(
         p.x + Math.sin(a) * r,
         p.z + Math.cos(a) * r,
-        this.rand() < 0.6 ? 0 : 1,
+        this.rand() < 0.6 ? STORE_TIMBER : STORE_POWDER,
         t + STORE_LIFE,
+      );
+    }
+    // Wreckage: broken planks scattered along her side (not collectable), so the stores stand out.
+    const bits = 2 + Math.floor(this.rand() * 3);
+    for (let k = 0; k < bits; k++) {
+      const along = (this.rand() - 0.5) * 20 * c.scale;
+      const off = (this.rand() - 0.5) * 9;
+      this.stores.spawn(
+        p.x + Math.sin(p.heading) * along + Math.cos(p.heading) * off,
+        p.z + Math.cos(p.heading) * along - Math.sin(p.heading) * off,
+        STORE_WRECKAGE,
+        t + STORE_LIFE * (0.5 + this.rand() * 0.4),
       );
     }
   }
@@ -894,12 +917,12 @@ export class Battle {
     const p = this.player.ship.dynamics.pose;
     const s = this.stores;
     for (let i = 0; i < s.size; i++) {
-      if (!s.live[i]) continue;
+      if (!s.collectable(i)) continue;
       const dx = s.x[i]! - p.x;
       const dz = s.z[i]! - p.z;
       if (dx * dx + dz * dz > COLLECT_RADIUS * COLLECT_RADIUS) continue;
       s.live[i] = 0;
-      if (s.kind[i] === 0) {
+      if (s.kind[i] === STORE_TIMBER) {
         this.timber++;
         this.caption('Timber aboard: repairs between waves');
       } else {
@@ -934,7 +957,7 @@ export class Battle {
       }
     } else if (this.phase === 'lull') {
       let afloat = 0;
-      for (let i = 0; i < this.stores.size; i++) afloat += this.stores.live[i]!;
+      for (let i = 0; i < this.stores.size; i++) if (this.stores.collectable(i)) afloat++;
       if (t - this.phaseAt > LULL_SECONDS || (afloat === 0 && t - this.phaseAt > 4))
         this.setPhase('question', t);
     } else if (this.phase === 'breakoff' && t - this.phaseAt > 2.5) {
