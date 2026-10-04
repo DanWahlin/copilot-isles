@@ -49,6 +49,7 @@ import {
   mod,
   log2,
   exp2,
+  luminance,
 } from 'three/tsl';
 import { G } from './Globals';
 
@@ -664,8 +665,9 @@ export class Clouds {
     this.highTrace = make(1, 1, 'cloudHighTrace');
     this.motionTex = make(1, 1, 'cloudMotion', THREE.NearestFilter);
     // range of this frame's samples around each block (neighborhood clamp of the history)
-    this.boxMin = make(1, 1, 'cloudBoxMin', THREE.NearestFilter);
-    this.boxMax = make(1, 1, 'cloudBoxMax', THREE.NearestFilter);
+    // linear: the resolve reads the range smoothly, so the clamp can't cut edges into 4 px steps
+    this.boxMin = make(1, 1, 'cloudBoxMin');
+    this.boxMax = make(1, 1, 'cloudBoxMax');
     this.history = [make(4, 4, 'cloudViewA'), make(4, 4, 'cloudViewB')];
     this.viewTexNode = texture(this.history[0]);
     this._w = 0;
@@ -957,8 +959,11 @@ export class Clouds {
     // builds up inside the cloud, so thin edges and the underside look darker; faded out looking
     // toward the sun, where the forward peak makes the thin edges glow (silver lining)
     const powderK = saturate(cosT.mul(-0.5).add(0.6));
-    // warm light bounced by the sunlit sea onto the undersides (at low sun the sunlight is warm)
-    const bounce = G.sunColor.mul(max(sunDir.y, 0).mul(0.05).add(0.012));
+    // light bounced by the sunlit sea onto the undersides: the sea is blue, so the bounce is too
+    // (a sun-coloured bounce turned the shaded bases brown)
+    const bounce = vec3(0.55, 0.72, 1.0)
+      .mul(luminance(G.sunColor))
+      .mul(max(sunDir.y, 0).mul(0.05).add(0.012));
 
     const t = snapCoarse(t0, true).toVar();
     const bd = band(t).toVar();
@@ -1072,7 +1077,9 @@ export class Clouds {
                 .add(meanDensity(this._base(pu2, this._weather(pu2.xz))).mul(700))
                 .add(dens.mul(25))
                 .mul(this.densityScale);
-              const skyVis = float(0.2).add(float(0.8).div(skyTau.mul(0.35).add(1)));
+              // the floor keeps blue skylight in the deepest shade; at 0.2 the dim, warm sunlight
+              // diffused through the cloud outweighed it and thick bases went brown
+              const skyVis = float(0.38).add(float(0.62).div(skyTau.mul(0.35).add(1)));
               // darker bases (their direct light is scattered away by the cloud above)
               const baseShadow = mix(float(1), mix(float(0.68), float(1), smoothstep(-0.08, 0.5, b.y)), 0.24);
               const depthP = pow(dens, mix(0.5, 1.6, b.y))
@@ -1471,8 +1478,11 @@ export class Clouds {
               catmullRom((c) => texture(src, c).level(0), puv, this.viewSize),
               vec4(0),
             );
-            const lo = textureLoad(this.boxMin, ivec2(tp)),
-              hi = textureLoad(this.boxMax, ivec2(tp));
+            // read per block (nearest), the clamp range stepped every 4 px and moving cloud edges
+            // were clamped into a staircase; interpolated, the range follows the edge smoothly
+            const buv = vec2(p).add(0.5).div(4).div(this.traceSize);
+            const lo = texture(this.boxMin, buv).level(0),
+              hi = texture(this.boxMax, buv).level(0);
             const pad = hi.sub(lo).mul(0.55).add(0.015);
             const hc = clamp(h, lo.sub(pad), hi.add(pad));
             const histEnergy = max(max(h.rgb.x, h.rgb.y), h.rgb.z);
@@ -1498,8 +1508,12 @@ export class Clouds {
             const motion = length(puv.sub(uv).mul(this.viewSize));
             const a0 = this.minAlpha;
             const a = clamp(motion.mul(0.055).add(a0), a0, 0.22);
-            // rebuilding after a camera cut: each pixel takes its own first sample as is
-            out.assign(select(valid.and(this.rebuildK.lessThan(0)), mix(hist, cur, a), cur));
+            // rebuilding after a camera cut: each pixel takes its own first sample as is. Newly
+            // revealed sky (no history) keeps the smooth upsample: a lone sample there froze into
+            // a 4 px block that the slow history blend kept for seconds
+            out.assign(
+              select(valid.and(this.rebuildK.lessThan(0)), mix(hist, cur, a), select(valid, cur, current)),
+            );
           }).ElseIf(this.rebuildK.greaterThanEqual(0).and(valid), () => {
             // rebuilding: pixels without a sample of their own since the cut average the upsampled
             // samples of every slot traced so far (their refresh rank is the 4x4 Bayer index)

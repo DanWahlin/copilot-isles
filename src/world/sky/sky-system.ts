@@ -204,6 +204,11 @@ export function createSky(
     }
     // A slow, lazy drift (Tidewater's default is 12 m/s): the sky should feel calm, not wind-blown.
     (tideClouds as unknown as { wind: { value: Vector2 } }).wind.value.setLength(CLOUD_DRIFT);
+    // Fair-weather sky: scattered cumulus on clear blue, with only a trace of the high cirrus veil.
+    const cirrusQ =
+      typeof location !== 'undefined' ? new URLSearchParams(location.search).get('cirrus') : null;
+    (tideClouds as unknown as { cirrus: { value: number } }).cirrus.value =
+      cirrusQ !== null ? Number(cirrusQ) : 0.12;
     applyCloudDebugParams(tideClouds);
     tideSky.clouds = tideClouds;
     tideSky.starIntensity.value = 0;
@@ -257,7 +262,9 @@ export function createSky(
     c.far = csm ? 520 : 900;
     sun.shadow.bias = -0.0004;
     sun.shadow.normalBias = csm ? 0.025 : 0.04;
-    sun.shadow.radius = csm ? 3 : 2;
+    // three's PCF rotates its 5 taps by a fixed per-pixel noise; wider than ~1 texel, that noise
+    // showed as a stipple on skin, sails and stone wherever the light grazes (TRAA can't average it).
+    sun.shadow.radius = 1;
     sun.shadow.blurSamples = csm ? 12 : 8;
     // Low/Lite: throttled updates; High+: every frame (moving ship/characters). See issues.md.
     sun.shadow.autoUpdate = tier.dynamicShadows;

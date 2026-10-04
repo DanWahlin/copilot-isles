@@ -5,7 +5,7 @@ import { smoothstep } from '../../util/math';
  * a couple of seconds with small beats, rest, then pick a different one, so nobody loops the same
  * motion for a whole conversation.
  */
-export type GestureKind = 'explain' | 'present' | 'point' | 'open' | 'nod' | 'lean';
+export type GestureKind = 'explain' | 'present' | 'point' | 'open' | 'nod';
 
 /** Which hand an NPC talks with: the one that isn't holding something, or either. */
 export type GestureHand = 'left' | 'right' | 'either';
@@ -48,7 +48,6 @@ const GESTURES: Record<GestureKind, GestureDef> = {
   point: { weight: 1, dur: [1.6, 2.2] },
   open: { weight: 2, dur: [2.0, 2.6], bothHands: true },
   nod: { weight: 2, dur: [1.6, 1.6] },
-  lean: { weight: 1, dur: [2.0, 2.8] },
 };
 
 const GAP: readonly [number, number] = [0.7, 2.2];
@@ -71,11 +70,6 @@ export function gestureArm(kind: GestureKind, t: number, dur: number): ArmPose |
     default:
       return null;
   }
-}
-
-/** Forward lean of the torso for a gesture, in radians. */
-export function gestureLean(kind: GestureKind): number {
-  return kind === 'lean' ? 0.08 : kind === 'explain' || kind === 'open' ? 0.025 : 0;
 }
 
 /** Picks and times gestures for one talker. `random` is injectable for tests. */

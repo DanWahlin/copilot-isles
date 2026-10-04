@@ -90,8 +90,7 @@ describe('gestureArm', () => {
     expect(pose.flex + pose.elbow).toBeLessThan(Math.PI * 0.6);
   });
 
-  it('leaves nods and leans to the head and torso', () => {
+  it('leaves nods to the head', () => {
     expect(gestureArm('nod', 0, 1.6)).toBeNull();
-    expect(gestureArm('lean', 0, 2)).toBeNull();
   });
 });

@@ -14,7 +14,7 @@ import {
 } from 'three/webgpu';
 import { smoothstep, wrapAngle } from '../../util/math';
 import { CharacterFace, type FacialLine } from './facial-animation';
-import { GesturePlanner, gestureArm, gestureLean, type ActiveGesture, type Side } from './gestures';
+import { GesturePlanner, gestureArm, type ActiveGesture, type Side } from './gestures';
 import { LegIk } from './leg-ik';
 import { contactsOf, inContact, type FootContactMap } from './loco-pack';
 import {
@@ -139,6 +139,8 @@ export class RuntimeCharacter implements Character {
   private readonly reads: boolean;
   /** A one-shot clip (a wave hello, a nod) blended over a standing idle, then handed back. */
   private overlay: { clip: CharacterClip; t: number; dur: number; peak: number } | null = null;
+  /** Head-only nod (radians, down), set by the 'nod' gesture. */
+  private nodPitch = 0;
   private groundMode: CharacterGroundMode = 'ground';
   private airTime = 0;
   private verticalSpeed = 0;
@@ -332,12 +334,13 @@ export class RuntimeCharacter implements Character {
     if (step > 0) {
       this.restoreProceduralBones();
       this.gesture = this.gestures.update(step);
-      if (this.gesture?.started && this.gesture.kind === 'nod') this.startOverlay('nod', 0.8);
+      this.nodPitch = 0;
       this.updateOverlay(step);
       this.mixer.update(step);
       this.applyProceduralPolish(step);
     }
     this.applyLookAt();
+    this.applyLookNod();
     this.face?.update(dt, this.lookTarget);
     this.lastVerticalSpeed = this.verticalSpeed;
   }
@@ -413,6 +416,13 @@ export class RuntimeCharacter implements Character {
     if (this.head) this.head.lookAt(this.lookWorld);
   }
 
+  /** The nod on top of look-at, which re-aims the head and neck every frame. */
+  private applyLookNod(): void {
+    if (!this.lookTarget || !this.nodPitch) return;
+    this.neck?.rotateX(this.nodPitch * 0.35);
+    this.head?.rotateX(this.nodPitch * 0.65);
+  }
+
   private applyProceduralPolish(dt: number): void {
     const yaw = this.group.rotation.y;
     const turnRate = MathUtils.clamp(wrapAngle(yaw - this.lastHeading) / Math.max(0.001, dt), -8, 8);
@@ -486,11 +496,21 @@ export class RuntimeCharacter implements Character {
     }
   }
 
-  /** Poses the gesturing arm (and the other, for two-handed ones) and leans in, eased in and out. */
+  /**
+   * Poses the gesturing arm (and the other, for two-handed ones), eased in and out. The torso never
+   * pitches forward and back while talking: a repeated lean reads as an odd body thrust.
+   */
   private applyGesture(g: ActiveGesture): void {
     const w = g.weight;
-    const lean = gestureLean(g.kind) * w;
-    if (lean) this.rotateInRoot(this.torso, AXIS_X, lean);
+    if (g.kind === 'nod') {
+      // Two small dips of the head and neck only. The rig's Yes clip bows the whole upper body.
+      this.nodPitch = 0.16 * w * (0.5 - 0.5 * Math.cos((g.t / g.dur) * Math.PI * 4));
+      if (!this.lookTarget) {
+        this.rotateInRoot(this.neck, AXIS_X, this.nodPitch * 0.35);
+        this.rotateInRoot(this.head, AXIS_X, this.nodPitch * 0.65);
+      }
+      return;
+    }
     const arm = gestureArm(g.kind, g.t, g.dur);
     if (!arm) return;
     this.poseArm(g.side, arm.flex * w, arm.abduct * w, arm.elbow * w);
@@ -624,13 +644,11 @@ export class RuntimeCharacter implements Character {
     if (this.activeClip === 'talk' || this.talking) this.applyTalkBeat(npcScale);
   }
 
-  /** Conversational beat; seated rigs have no wave clip, so they lean in and gesture harder. */
+  /** Conversational beat; seated rigs have no wave clip, so they gesture harder (no forward rock). */
   private applyTalkBeat(npcScale: number): void {
     const seated = this.activeClip === 'sit';
     const gain = (seated ? 2.2 : 1) * npcScale;
     const beat = Math.sin(this.idleClock * 4.4);
-    const phrase = 0.5 + 0.5 * Math.sin(this.idleClock * 1.1);
-    if (seated) this.torso?.rotateX(0.05 * phrase);
     this.torso?.rotateY(beat * 0.028 * gain);
     this.shoulderL?.rotateZ(Math.max(0, beat) * 0.04 * gain);
     this.shoulderR?.rotateZ(Math.min(0, beat) * 0.04 * gain);

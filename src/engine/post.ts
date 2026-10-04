@@ -2,6 +2,7 @@ import { RenderPipeline, type Camera, type Node, type Scene, type WebGPURenderer
 import {
   Fn,
   cameraFar,
+  convertToTexture,
   cameraNear,
   float,
   interleavedGradientNoise,
@@ -66,11 +67,14 @@ export async function createPost(
     canUseTemporal &&
     ((!options.lean && ['medium', 'high', 'ultra'].includes(tier.tier)) ||
       (options.lean && (tier.tier === 'high' || tier.tier === 'ultra')));
-  const qualityPost = !options.lean && !actualWebGL && ['medium', 'high', 'ultra'].includes(tier.tier);
+  const dbg = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+  const qualityPost =
+    !dbg.has('noao') && !options.lean && !actualWebGL && ['medium', 'high', 'ultra'].includes(tier.tier);
   const fxaaMod = await import('three/addons/tsl/display/FXAANode.js');
   const gtaoMod = qualityPost ? await import('three/addons/tsl/display/GTAONode.js') : null;
   const temporalMod = temporalPost ? await import('three/addons/tsl/display/TRAANode.js') : null;
-  const sharpenMod = temporalPost ? await import('three/addons/tsl/display/SharpenNode.js') : null;
+  const sharpenMod =
+    temporalPost && !dbg.has('nosharp') ? await import('three/addons/tsl/display/SharpenNode.js') : null;
 
   const pipeline = new RenderPipeline(renderer);
   const scenePass = pass(scene, camera, { type: renderer.getOutputBufferType() });
@@ -78,28 +82,12 @@ export async function createPost(
     scenePass.setMRT(mrt({ output, velocity }));
   }
   const hdr = scenePass.getTextureNode('output');
-  const temporalNode = temporalMod?.traa(
-    hdr,
-    scenePass.getTextureNode('depth'),
-    scenePass.getTextureNode('velocity'),
-    camera,
-  ) as (Node<'vec4'> & { getTextureNode(): Node<'vec4'>; dispose(): void }) | undefined;
-  const sharpenNode = temporalNode
-    ? (sharpenMod!.sharpen(temporalNode.getTextureNode(), float(0.45)) as {
-        getTextureNode(): Node<'vec4'>;
-        dispose(): void;
-      })
-    : undefined;
-  const temporalResult = sharpenNode
-    ? (sharpenNode.getTextureNode() as Node<'vec4'>)
-    : temporalNode
-      ? (temporalNode.getTextureNode() as Node<'vec4'>)
-      : null;
-  const temporalHdr = temporalResult ?? hdr;
-  const ldr = renderOutput(temporalHdr);
-  const gtaoNode = gtaoMod?.ao(scenePass.getTextureNode('depth'), null as unknown as Node<'vec3'>, camera) as
+  const sceneDepth = scenePass.getTextureNode('depth');
+  const exposure = toneMappingExposure as unknown as Node<'float'>;
+  const gtaoNode = gtaoMod?.ao(sceneDepth, null as unknown as Node<'vec3'>, camera) as
     | (Node<'float'> & {
         resolutionScale: number;
+        useTemporalFiltering: boolean;
         radius: { value: number };
         thickness: { value: number };
         samples: { value: number };
@@ -111,9 +99,46 @@ export async function createPost(
     gtaoNode.radius.value = tier.tier === 'medium' ? 0.42 : 0.55;
     gtaoNode.thickness.value = 1.4;
     gtaoNode.samples.value = tier.tier === 'medium' ? 8 : 12;
+    // AO goes in before TRAA with per-frame noise, so TRAA averages its grain away. Applied after
+    // TRAA, its fixed noise stayed on screen as a dirty stipple on skin, stone and sails.
+    gtaoNode.useTemporalFiltering = Boolean(temporalPost);
   }
+  const aoHdr = gtaoNode
+    ? Fn(() => {
+        const c = hdr.rgb;
+        const sunlit = smoothstep(0.65, 1.65, luminance(c.mul(exposure)));
+        // AO grounds nearby props and characters. Far away it only finds the sea's wave relief, which it
+        // turned into a field of dark half-resolution speckles, so it fades out by 25-60 m.
+        const viewDist = perspectiveDepthToViewZ(
+          sceneDepth.sample(screenUV).r,
+          cameraNear,
+          cameraFar,
+        ).negate();
+        const near = float(1).sub(smoothstep(25, 60, viewDist));
+        const strength = float(tier.tier === 'medium' ? 0.26 : 0.34)
+          .mul(float(1).sub(sunlit.mul(0.65)))
+          .mul(near);
+        return vec4(c.mul(mix(float(1), gtaoNode, strength)), hdr.a);
+      })()
+    : hdr;
+  const beauty = gtaoNode && temporalPost ? convertToTexture(aoHdr) : hdr;
+  const temporalNode = temporalMod?.traa(beauty, sceneDepth, scenePass.getTextureNode('velocity'), camera) as
+    (Node<'vec4'> & { getTextureNode(): Node<'vec4'>; dispose(): void }) | undefined;
+  const sharpenNode =
+    temporalNode && sharpenMod
+      ? (sharpenMod!.sharpen(temporalNode.getTextureNode(), float(0.45)) as {
+          getTextureNode(): Node<'vec4'>;
+          dispose(): void;
+        })
+      : undefined;
+  const temporalResult = sharpenNode
+    ? (sharpenNode.getTextureNode() as Node<'vec4'>)
+    : temporalNode
+      ? (temporalNode.getTextureNode() as Node<'vec4'>)
+      : null;
+  const temporalHdr = temporalResult ?? aoHdr;
+  const ldr = renderOutput(temporalHdr);
 
-  const exposure = toneMappingExposure as unknown as Node<'float'>;
   const uVibrance = uniform(0.16);
   const uSaturation = uniform(1.1);
   const uContrast = uniform(1.06);
@@ -130,21 +155,6 @@ export async function createPost(
       const high = smoothstep(2.35, 3.6, luminance(exposed));
       c = c.add(exposed.mul(high).mul(0.045));
     }
-    if (gtaoNode) {
-      const sunlit = smoothstep(0.65, 1.65, luminance(hdr.rgb.mul(exposure)));
-      // AO grounds nearby props and characters. Far away it only finds the sea's wave relief, which it
-      // turned into a field of dark half-resolution speckles, so it fades out by 25-60 m.
-      const viewDist = perspectiveDepthToViewZ(
-        scenePass.getTextureNode('depth').sample(screenUV).r,
-        cameraNear,
-        cameraFar,
-      ).negate();
-      const near = float(1).sub(smoothstep(25, 60, viewDist));
-      const strength = float(tier.tier === 'medium' ? 0.26 : 0.34)
-        .mul(float(1).sub(sunlit.mul(0.65)))
-        .mul(near);
-      c = c.mul(mix(float(1), gtaoNode, strength));
-    }
     c = c.sub(0.18).mul(uContrast).add(0.18);
     const d = screenUV.sub(0.5).mul(vec2(1.0, 0.8)).length();
     c = c.mul(float(1).sub(smoothstep(0.4, 0.95, d).mul(uVignette)));
@@ -153,7 +163,9 @@ export async function createPost(
 
   const fxaaNode = temporalPost ? graded : (fxaaMod.fxaa(graded) as unknown as Node<'vec4'>);
   const aa = fxaaNode;
-  const grain = interleavedGradientNoise(screenCoordinate.xy).sub(0.5);
+  const grain = interleavedGradientNoise(screenCoordinate.xy)
+    .sub(0.5)
+    .mul(dbg.has('nograin') ? 0 : 1);
   pipeline.outputColorTransform = false;
   pipeline.outputNode = vec4(aa.rgb.add(grain.mul(0.012).add(grain.div(255))), 1);
 
@@ -166,6 +178,7 @@ export async function createPost(
     dispose() {
       scenePass.dispose();
       gtaoNode?.dispose();
+      if (beauty !== hdr) (beauty as unknown as { dispose(): void }).dispose();
       temporalNode?.dispose();
       sharpenNode?.dispose();
       pipeline.dispose();
