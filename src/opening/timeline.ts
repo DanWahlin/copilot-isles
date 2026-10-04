@@ -57,8 +57,8 @@ const VOYAGE: OpeningBeats = {
   meridian: 8.8,
   ship: 9.5,
   ready: 11.2,
-  dive: 3.4,
-  flashLead: 0.55,
+  dive: 3.6,
+  flashLead: 0.8,
 };
 
 /** Continue: the chart's already alive on the desk; a moment to take it in, then the dive. */
@@ -80,8 +80,8 @@ const CONTINUE: OpeningBeats = {
   meridian: 0,
   ship: 0,
   ready: 1.0,
-  dive: 3.0,
-  flashLead: 0.5,
+  dive: 3.2,
+  flashLead: 0.7,
 };
 
 export function openingBeats(kind: OpeningKind): OpeningBeats {

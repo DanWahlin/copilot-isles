@@ -7,7 +7,18 @@ import {
   Vector3,
   type BufferGeometry,
 } from 'three/webgpu';
-import { attribute, clamp, float, positionLocal, uniform, vec3 } from 'three/tsl';
+import {
+  attribute,
+  clamp,
+  float,
+  fract,
+  fwidth,
+  min,
+  positionLocal,
+  smoothstep,
+  uniform,
+  vec3,
+} from 'three/tsl';
 import type { IslesAudio } from '../audio';
 import type { Engine } from '../engine/engine';
 import type { Input } from '../engine/input';
@@ -16,6 +27,7 @@ import { createCabin, type Cabin } from './cabin';
 import { drawChartArt } from './chart-art';
 import { CHART_ISLANDS, chartIsland, worldToPaper, type ChartIslandId } from './chart-map';
 import { createChartPaper, rollRadius, type ChartPaper } from './chart-paper';
+import { createIslandProps, type IslandProps } from './chart-props';
 import { islandGeometry, runSliced, sampleIslandGrid, type IslandGrid } from './island-grid';
 import {
   easeInOutCubic,
@@ -48,6 +60,8 @@ export interface OpeningOptions {
   kind: OpeningKind;
   reduced: boolean;
   sails: string | null;
+  /** Engraved on the chest's nameplate. */
+  captainName: string;
   /** Told when the opening starts or stops holding on the living chart for the load. */
   onHold?: (holding: boolean) => void;
 }
@@ -104,11 +118,29 @@ export function createOpening(o: OpeningOptions): Opening {
   veilEl.className = 'ci-opening-veil';
   const flashEl = document.createElement('div');
   flashEl.className = 'ci-opening-flash';
-  document.body.append(veilEl, flashEl);
+  const sprayEl = document.createElement('div');
+  sprayEl.className = 'ci-opening-spray';
+  document.body.append(veilEl, flashEl, sprayEl);
+  /** Spray droplets bursting outward through the flash (CSS, started as the flash rises). */
+  function spray(): void {
+    sprayEl.replaceChildren();
+    for (let i = 0; i < 22; i++) {
+      const d = document.createElement('i');
+      const a = (i / 22) * Math.PI * 2 + Math.random() * 0.3;
+      const r = 38 + Math.random() * 34;
+      d.style.setProperty('--dx', `${Math.cos(a) * r}vmax`);
+      d.style.setProperty('--dy', `${Math.sin(a) * r * 0.8}vmax`);
+      d.style.setProperty('--s', `${0.6 + Math.random() * 1.6}`);
+      d.style.animationDelay = `${(beats.dive - beats.flashLead * 0.6 + Math.random() * 0.25).toFixed(2)}s`;
+      sprayEl.append(d);
+    }
+    sprayEl.classList.add('go');
+  }
 
   let cabin: Cabin | null = null;
   let paper: ChartPaper | null = null;
   let ship: Brigantine | null = null;
+  let props: IslandProps | null = null;
   const chartRoot = new Group();
   const rollPivot = new Group();
   const paperHolder = new Group();
@@ -142,8 +174,8 @@ export function createOpening(o: OpeningOptions): Opening {
 
   // ---- camera shots (cabin metres; the desk top is y ≈ 0.8, chest at z ≈ -0.43) ----
   const WIDE = pose(0.05, 1.62, 2.55, 0, 1.0, -0.7);
-  const CHEST = pose(0.1, 1.3, 0.95, 0, 0.98, -0.42);
-  const RISE = pose(0.0, 1.42, 1.15, 0, 1.15, -0.3);
+  const CHEST = pose(0.12, 1.36, 1.28, 0, 0.92, -0.42);
+  const RISE = pose(-0.05, 1.5, 1.35, 0, 1.12, -0.3);
   const OVER = pose(0.02, 1.68, 0.98, 0, 0.8, 0.1);
   const ALIVE = pose(-0.2, 1.36, 0.82, -0.14, 0.8, 0.15);
   const STILL = pose(0.0, 1.55, 1.25, 0, 0.84, -0.12);
@@ -192,6 +224,14 @@ export function createOpening(o: OpeningOptions): Opening {
     const lid = full ? 1 : lidOpen(time, beats);
     chest.hinge.rotation.x = -1.92 * lid;
     chest.hasp.rotation.x = (full ? 1 : latchOpen(time, beats)) * 1.25;
+    // A small squash as the latch snaps and as the lid's weight comes off it (follow-through).
+    const snap = full ? 0 : Math.max(0, 1 - Math.abs(time - beats.latch - 0.04) / 0.12);
+    const heave = full ? 0 : Math.max(0, 1 - Math.abs(time - beats.lid) / 0.25);
+    chest.group.scale.set(1 + snap * 0.012 + heave * 0.01, 1 - snap * 0.02 - heave * 0.018, 1 + snap * 0.012);
+    cabin.puff.value = full ? 1 : phase(time, beats.lid + 0.1, beats.lid + 1.6);
+    cabin.sparks.value = full
+      ? 0.5
+      : Math.min(1, Math.max(0, lid)) * (1 - 0.5 * phase(time, beats.riseEnd, beats.ready));
     chest.glow.value = full
       ? 0.35
       : Math.min(1, Math.max(0, lid)) * (0.35 + 0.65 * (1 - phase(time, beats.lidEnd, beats.ready)));
@@ -241,10 +281,15 @@ export function createOpening(o: OpeningOptions): Opening {
             );
     }
     for (const m of islandMeshes) m.visible = full || time > beats.anchorage - 0.05;
+    if (props) {
+      props.rise.value = full ? 1 : phase(time, beats.anchorage + 0.8, beats.meridian + 2.0);
+      props.lamp.value = full ? 1 : phase(time, beats.meridian + 1.6, beats.ready);
+      props.fog.value = full ? 1 : phase(time, beats.water + 0.6, beats.water + 1.6);
+    }
     if (ship) {
       const s = full ? 1 : popUp(time, beats.ship, 0.7);
-      ship.group.visible = s > 0.001;
-      ship.group.scale.setScalar(shipScale * Math.max(0.001, s));
+      // Always drawn (tiny until it pops up), so its late-loading figurehead uploads before warm-up ends.
+      ship.group.scale.setScalar(shipScale * Math.max(1e-4, s));
       ship.uniforms.trim.value = full ? 1 : easeOutCubic(phase(time, beats.ship + 0.5, beats.ship + 1.6));
     }
   }
@@ -289,6 +334,7 @@ export function createOpening(o: OpeningOptions): Opening {
       applyBeat(t);
       cues(t);
       paper.time.value += step;
+      props?.update(step, t);
       cabin.update(step, t, reduced);
       if (diving) {
         diving.time += step;
@@ -317,6 +363,8 @@ export function createOpening(o: OpeningOptions): Opening {
       camera.updateProjectionMatrix();
       camera.position.copy(cam.eye);
       camera.lookAt(cam.look);
+      camera.updateMatrixWorld();
+      cabin.setCamera(camera);
     },
   });
 
@@ -346,13 +394,24 @@ export function createOpening(o: OpeningOptions): Opening {
       if (disposed) return;
       await document.fonts?.ready;
       const art = drawChartArt(grids);
-      cabin = createCabin();
+      // Sun shadows only where the tier has them (the world's sky makes the same choice, so the
+      // renderer's shadow switch, and so every pipeline, stays as compiled).
+      const shadows = engine.tier.shadowCascades > 0;
+      if (shadows) engine.renderer.shadowMap.enabled = true;
+      const slices = { lite: 0, low: 8, medium: 14, high: 20, ultra: 24 }[engine.tier.tier];
+      cabin = createCabin({
+        shadowMap: shadows ? Math.min(2048, engine.tier.shadowMap || 1024) : 0,
+        shaftSlices: reduced ? Math.min(slices, 8) : slices,
+        captainName: o.captainName,
+      });
       scene.add(cabin.group);
       paper = createChartPaper(art);
       paperW = 1.0;
       rOut0 = rollRadius(0);
-      chartAt.set(0, cabin.deskY + 0.0015, 0.19);
+      chartAt.set(0, cabin.deskY + 0.0058, 0.17);
       paperHolder.position.set(paperW / 2, -rOut0, 0);
+      paper.mesh.castShadow = true;
+      paper.mesh.receiveShadow = true;
       paperHolder.add(paper.mesh);
       rollPivot.add(paperHolder);
       chartRoot.add(rollPivot);
@@ -370,18 +429,31 @@ export function createOpening(o: OpeningOptions): Opening {
           .add(float(2.6).mul(x.sub(1).pow(3)))
           .add(float(1.6).mul(x.sub(1).pow(2)));
         mat.positionNode = vec3(positionLocal.x, positionLocal.y.mul(back), positionLocal.z);
+        // Ink contour lines every 8 m, like the chart's own hand: the drawing rising into relief.
+        const hm = attribute('hm', 'float');
+        const v = hm.div(8);
+        const d = min(fract(v), float(1).sub(fract(v)));
+        const w = fwidth(v);
+        const line = float(1)
+          .sub(smoothstep(w.mul(0.6), w.mul(1.6), d))
+          .mul(smoothstep(1, 2.5, hm));
+        mat.colorNode = vec3(1).mul(float(1).sub(line.mul(0.55)));
         const m = new Mesh(geo, mat);
+        m.castShadow = true;
+        m.receiveShadow = true;
         m.name = `chart ${g.src.id}`;
         islandsGroup.add(m);
         islandMeshes.push(m);
         islandMat.push(mat);
       }
+      props = createIslandProps(grids, true);
+      islandsGroup.add(props.group);
       // The tiny brigantine, sailing in to Anchorage from the north (the real ship, scaled down).
       ship = createBrigantine({ tier: 'lite' });
       if (o.sails) ship.setSails(o.sails);
       const anchorage = chartIsland('anchorage');
       worldToPaper(anchorage, -55, 0, -265, shipAt);
-      shipScale = anchorage.scale * 3.2;
+      shipScale = anchorage.scale * 5;
       ship.group.position.set(shipAt.x, 0.0006, shipAt.z);
       ship.group.rotation.y = Math.PI * 0.94;
       islandsGroup.add(ship.group);
@@ -398,6 +470,8 @@ export function createOpening(o: OpeningOptions): Opening {
         }
       });
       await engine.renderer.compileAsync(scene, camera);
+      // A warm draw under the veil uploads every geometry and texture before the beat starts.
+      engine.renderer.render(scene, camera);
       for (const h of hidden) h.visible = false;
       applyBeat(kind === 'continue' || reduced ? 99 : 0);
     },
@@ -451,12 +525,20 @@ export function createOpening(o: OpeningOptions): Opening {
           return;
         }
         const from: Pose = { eye: cam.eye.clone(), look: cam.look.clone() };
-        // A swooping arc: out and up first, then down along the flyover's opening heading.
-        const dir = tmpA.copy(to.look).sub(to.eye).normalize();
-        const c1 = from.eye.clone().lerp(to.eye, 0.25);
-        c1.y += 0.12;
-        const c2 = to.eye.clone().addScaledVector(dir, -0.22);
-        c2.y += 0.06;
+        // Plunge into the chart's sea along the flyover's opening heading, pitched down through the
+        // surface (the spray flash hides the turn to the world's level view).
+        const heading = tmpA.copy(to.look).sub(to.eye).setY(0).normalize();
+        const surface = to.eye.clone().setY(chartAt.y + 0.0015);
+        to.eye
+          .copy(surface)
+          .addScaledVector(heading, -0.012)
+          .setY(chartAt.y + 0.012);
+        to.look.copy(surface).addScaledVector(heading, 0.03);
+        const c1 = from.eye.clone().lerp(to.eye, 0.3);
+        c1.y += 0.16;
+        const c2 = to.eye.clone().addScaledVector(heading, -0.18);
+        c2.y += 0.14;
+        spray();
         diving = { target, time: 0, from, to, c1, c2, resolve };
       });
     },
@@ -469,6 +551,7 @@ export function createOpening(o: OpeningOptions): Opening {
       flashEl.style.opacity = '0';
       if (!reduced) o.audio?.sfx.oneShot('big_splash', undefined, 0.45);
       window.setTimeout(() => flashEl.remove(), 1000);
+      window.setTimeout(() => sprayEl.remove(), 2000);
     },
     dispose() {
       if (disposed) return;
@@ -477,9 +560,11 @@ export function createOpening(o: OpeningOptions): Opening {
       removeSystem();
       if (engine.cutscene === cutscene) engine.cutscene = null;
       veilEl.remove();
+      if (!flashEl.style.opacity || flashEl.style.opacity === '0') sprayEl.remove();
       cabin?.dispose();
       paper?.dispose();
       ship?.dispose();
+      props?.dispose();
       for (const m of islandMeshes) m.geometry.dispose();
       for (const m of islandMat) m.dispose();
       scene.clear();

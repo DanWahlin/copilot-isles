@@ -154,7 +154,7 @@ export function drawChartArt(grids: readonly IslandGrid[], inkWidth = 2048): Cha
     }
     c.save();
     closedCurve(c, blobPts);
-    c.fillStyle = 'rgba(214, 190, 128, 0.35)';
+    c.fillStyle = 'rgba(214, 190, 128, 0.18)';
     c.fill();
     c.setLineDash([6 * unit, 5 * unit]);
     c.strokeStyle = INK_SOFT;
@@ -169,7 +169,7 @@ export function drawChartArt(grids: readonly IslandGrid[], inkWidth = 2048): Cha
       0,
       (isl.x * mW) | 0,
       (isl.y * mH) | 0,
-      (rx / W) * mW * 2.1,
+      (rx / W) * mW * 1.5,
     );
     fog.addColorStop(0, 'rgba(0, 0, 255, 1)');
     fog.addColorStop(0.55, 'rgba(0, 0, 255, 0.75)');

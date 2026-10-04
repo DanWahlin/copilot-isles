@@ -121,6 +121,7 @@ export function islandGeometry(grid: IslandGrid): BufferGeometry {
   g.setAttribute('position', new BufferAttribute(pos, 3));
   g.setAttribute('color', new BufferAttribute(colors.slice(), 3));
   g.setAttribute('spread', new BufferAttribute(spread, 1));
+  g.setAttribute('hm', new BufferAttribute(heights.slice(), 1));
   g.setIndex(index);
   g.computeVertexNormals();
   return g;

@@ -2,6 +2,10 @@ import {
   AdditiveBlending,
   BoxGeometry,
   BufferAttribute,
+  type Camera,
+  CanvasTexture,
+  CircleGeometry,
+  SRGBColorSpace,
   CylinderGeometry,
   DirectionalLight,
   Group,
@@ -18,20 +22,25 @@ import {
   TorusGeometry,
   Vector3,
   type BufferGeometry,
+  type Node,
 } from 'three/webgpu';
 import {
+  abs,
   color,
   float,
+  fract,
   mix,
   mx_noise_float,
   positionLocal,
   pow,
+  sin,
   smoothstep,
   uniform,
   uv,
   vec3,
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { billboardGeometry, billboardMesh, camRight, camUp } from './particles';
 
 /**
  * The captain's cabin (docs/specs/OPENING-living-chart.md): one small, lamp-lit room at golden hour,
@@ -50,7 +59,11 @@ export interface Cabin {
   lanternLight: PointLight;
   chestLight: PointLight;
   sun: DirectionalLight;
-  /** 0-1: the stern windows' sky glow (fades in with the scene). */
+  /** The dust puff as the lid opens (0 → 1), and the sparkles rising from the chest (0 → 1). */
+  puff: { value: number };
+  sparks: { value: number };
+  /** Keeps the particles facing the camera. */
+  setCamera(camera: Camera): void;
   update(dt: number, t: number, reduced: boolean): void;
   dispose(): void;
 }
@@ -72,10 +85,12 @@ export interface HeroChest {
 
 type RGB = readonly [number, number, number];
 
-const OAK: RGB = [0.36, 0.2, 0.1];
-const OAK_DARK: RGB = [0.22, 0.12, 0.06];
-const PLANK: RGB = [0.42, 0.26, 0.14];
-const PLANK_DARK: RGB = [0.27, 0.16, 0.08];
+const OAK: RGB = [0.3, 0.19, 0.11];
+const OAK_DARK: RGB = [0.17, 0.105, 0.06];
+const PLANK: RGB = [0.34, 0.24, 0.16];
+const PLANK_DARK: RGB = [0.2, 0.14, 0.09];
+const WALNUT: RGB = [0.2, 0.12, 0.07];
+const BLOTTER: RGB = [0.05, 0.15, 0.13];
 const IRON: RGB = [0.1, 0.095, 0.09];
 const BRASS: RGB = [0.78, 0.56, 0.24];
 const ROPE: RGB = [0.62, 0.5, 0.32];
@@ -166,7 +181,16 @@ function woodMaterial(): MeshStandardNodeMaterial {
   return m;
 }
 
-export function createCabin(): Cabin {
+export interface CabinOptions {
+  /** Sun shadow map size (0: no shadows, the tier has none). */
+  shadowMap: number;
+  /** Slices in the sunbeam volume (0 turns the shafts off). */
+  shaftSlices: number;
+  /** Engraved on the chest's nameplate. */
+  captainName: string;
+}
+
+export function createCabin(opts: CabinOptions): Cabin {
   const group = new Group();
   group.name = 'captains cabin';
   const parts = new Parts();
@@ -241,7 +265,11 @@ export function createCabin(): Cabin {
   const DESK_Y = 0.8;
   const DW = 2.1;
   const DD = 1.36;
-  parts.box(DW, 0.06, DD, OAK, 0, DESK_Y - 0.03, 0);
+  parts.box(DW, 0.06, DD, WALNUT, 0, DESK_Y - 0.03, 0);
+  // A green leather blotter under the chart, with brass corners (a cool note in the warm room).
+  parts.box(1.24, 0.004, 0.94, BLOTTER, 0, DESK_Y + 0.002, 0.17);
+  for (const sx of [-1, 1])
+    for (const sz of [-1, 1]) parts.box(0.06, 0.006, 0.06, BRASS, sx * 0.6, DESK_Y + 0.003, 0.17 + sz * 0.45);
   parts.box(DW + 0.06, 0.03, DD + 0.06, OAK_DARK, 0, DESK_Y - 0.075, 0);
   parts.box(DW - 0.1, 0.22, 0.04, OAK_DARK, 0, DESK_Y - 0.2, DD / 2 - 0.06);
   for (const dx of [-0.55, 0, 0.55]) {
@@ -334,9 +362,21 @@ export function createCabin(): Cabin {
   }
   parts.box(0.46, 0.5, 0.04, OAK, -1.4 - 0.2 * Math.sin(0.4), 0.74, -0.45 - 0.2 * Math.cos(0.4), 0.4, -0.08);
 
+  // A brass-rimmed porthole on the port side: the cool fill comes in through it.
+  parts.add(new TorusGeometry(0.2, 0.035, 8, 24), BRASS, X0 + 0.04, 1.5, 0.75, 0, Math.PI / 2);
+  parts.add(new TorusGeometry(0.25, 0.02, 6, 24), BRASS, X0 + 0.03, 1.5, 0.75, 0, Math.PI / 2);
+
   const room = new Mesh(parts.merge(), woodMaterial());
   room.name = 'cabin room and props';
+  room.castShadow = true;
+  room.receiveShadow = true;
   group.add(room);
+  const portMat = new MeshBasicNodeMaterial();
+  portMat.colorNode = mix(color(0x9cc4e8), color(0xdcecf6), uv().y).mul(1.4);
+  const port = new Mesh(new CircleGeometry(0.2, 24), portMat);
+  port.position.set(X0 + 0.03, 1.5, 0.75);
+  port.rotation.y = Math.PI / 2;
+  group.add(port);
 
   // ---- outside the stern windows: golden-hour sky and sea ----
   const skyMat = new MeshBasicNodeMaterial();
@@ -379,14 +419,14 @@ export function createCabin(): Cabin {
   group.add(outside);
 
   // ---- the hero chest ----
-  const chest = createHeroChest();
+  const chest = createHeroChest(opts.captainName);
   const chestAt = new Vector3(0, DESK_Y, -0.43);
   chest.group.position.copy(chestAt);
   group.add(chest.group);
 
   // ---- the lantern, hanging from the beam over the desk ----
   const lantern = new Group();
-  lantern.position.set(-0.62, H - 0.16, -0.1);
+  lantern.position.set(-0.78, H - 0.16, 0.25);
   const lp = new Parts();
   lp.cyl(0.006, 0.006, 0.42, IRON, 0, -0.21, 0, 4);
   lp.add(new TorusGeometry(0.03, 0.006, 6, 12), IRON, 0, -0.44, 0, 0, 0, Math.PI / 2);
@@ -416,21 +456,58 @@ export function createCabin(): Cabin {
   core.scale.set(1, 1.8, 1);
   core.position.y = -0.68;
   lantern.add(glass, core);
-  const lanternLight = new PointLight(0xffa860, 7, 7, 1.6);
+  const lanternLight = new PointLight(0xffa860, 4.5, 6, 1.6);
   lanternLight.position.y = -0.66;
   lantern.add(lanternLight);
+  lantern.scale.setScalar(0.8);
   group.add(lantern);
+  // The candle by the books: a small warm flame and its light on the chest's right side.
+  const candleFlameMat = new MeshBasicNodeMaterial();
+  candleFlameMat.colorNode = color(0xffd890).mul(flicker.mul(5));
+  const candleFlame = new Mesh(new SphereGeometry(0.009, 8, 6), candleFlameMat);
+  candleFlame.scale.set(1, 2.2, 1);
+  candleFlame.position.set(0.55, DESK_Y + 0.152, -0.48);
+  group.add(candleFlame);
+  const candleLight = new PointLight(0xffa458, 0.9, 1.8, 1.6);
+  candleLight.position.set(0.5, DESK_Y + 0.2, -0.3);
+  group.add(candleLight);
 
   // ---- light: warm sun through the stern windows (key/rim), lantern (key), cool fill ----
-  const sun = new DirectionalLight(0xffc27a, 2.6);
-  sun.position.set(0.6, 2.6, -4.2);
-  sun.target.position.set(0, DESK_Y, 0);
+  // The low sun pours in through the stern windows: mullion shadows on the desk and the floor.
+  const SUN_DIR = new Vector3(0.28, -0.42, 1).normalize();
+  const sun = new DirectionalLight(0xffb868, 4.2);
+  sun.target.position.set(0, DESK_Y, 0.1);
+  sun.position.copy(sun.target.position).addScaledVector(SUN_DIR, -6);
+  if (opts.shadowMap > 0) {
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(opts.shadowMap, opts.shadowMap);
+    const sc = sun.shadow.camera;
+    sc.left = -2.6;
+    sc.right = 2.6;
+    sc.top = 2.2;
+    sc.bottom = -2.2;
+    sc.near = 2;
+    sc.far = 10;
+    sun.shadow.bias = -0.0006;
+    sun.shadow.normalBias = 0.01;
+    sun.shadow.radius = 3;
+  }
   group.add(sun, sun.target);
-  const fill = new HemisphereLight(0x8fb2dc, 0x3a2414, 0.55);
+  // Cool fill: blue sky through the porthole and a soft bounce everywhere.
+  const fill = new HemisphereLight(0x9ab8e0, 0x2a1a10, 0.42);
   group.add(fill);
-  const chestLight = new PointLight(0xffc35a, 0, 2.2, 1.8);
+  const portLight = new PointLight(0x8fb4e6, 3.2, 4.5, 1.4);
+  portLight.position.set(X0 + 0.4, 1.45, 0.75);
+  group.add(portLight);
+  group.add(createSunShafts(SUN_DIR, Z0, WIN_W, WIN_Y0, WIN_Y1, opts.shaftSlices));
+  const motes = createDustMotes(SUN_DIR, Z0, WIN_W, WIN_Y0, WIN_Y1);
+  group.add(motes.mesh);
+  const chestLight = new PointLight(0xffd690, 0, 2.2, 1.8);
   chestLight.position.set(0, chest.height + 0.12, 0);
   chest.group.add(chestLight);
+  const puff = createDustPuff(chest);
+  const sparks = createSparkles(chest);
+  chest.group.add(puff.mesh, sparks.mesh);
 
   let sway = 0;
   return {
@@ -442,6 +519,12 @@ export function createCabin(): Cabin {
     lanternLight,
     chestLight,
     sun,
+    puff: puff.t,
+    sparks: sparks.t,
+    setCamera(cam) {
+      camRight.value.setFromMatrixColumn(cam.matrixWorld, 0);
+      camUp.value.setFromMatrixColumn(cam.matrixWorld, 1);
+    },
     update(dt, t, reduced) {
       // The lantern swings gently with the ship's roll; the flame flickers.
       sway = reduced ? 0 : Math.sin(t * 0.9) * 0.07 + Math.sin(t * 0.37) * 0.04;
@@ -451,7 +534,10 @@ export function createCabin(): Cabin {
         ? 1
         : 0.92 + Math.sin(t * 13) * 0.03 + Math.sin(t * 23.7) * 0.025 + Math.sin(t * 7.3) * 0.02;
       flicker.value = f;
-      lanternLight.intensity = 7 * f;
+      lanternLight.intensity = 4.5 * f;
+      candleLight.intensity = 0.9 * (0.94 + Math.sin(t * 17.3) * 0.04 + Math.sin(t * 9.1) * 0.03);
+      motes.time.value = t;
+      sparks.time.value = t;
       chestLight.intensity = chest.glow.value * 3.2 * f;
       void dt;
     },
@@ -467,65 +553,131 @@ export function createCabin(): Cabin {
       chestLight.dispose();
       sun.dispose();
       fill.dispose();
+      portLight.dispose();
+      candleLight.dispose();
     },
   };
 }
 
 /**
- * The Captain's Chest: a heavy oak sea chest with iron bands, brass corners, a domed lid on a hinge
- * and a hasp that swings up off its staple. Its inside glows when it opens.
+ * The Captain's Chest: a heavy planked oak sea chest with iron straps and rivets, brass corners and a
+ * lock plate, a domed planked lid on a hinge with a hasp that swings up off its staple, a red velvet
+ * lining, and a brass nameplate engraved with the captain's name. Its inside glows when it opens.
  */
-function createHeroChest(): HeroChest {
+function createHeroChest(captainName: string): HeroChest {
   const W = 0.86;
   const H = 0.4;
   const D = 0.46;
-  const LID = 0.12;
+  const LID = 0.13;
   const group = new Group();
   group.name = 'captains chest';
+  const rand = mulberry32(0xc4e57);
   const body = new Parts();
-  body.box(W, H, D, OAK, 0, H / 2, 0);
-  body.box(W - 0.06, 0.01, D - 0.06, [0.05, 0.03, 0.015], 0, H - 0.004, 0);
-  for (const y of [0.05, H - 0.05]) body.box(W + 0.012, 0.035, D + 0.012, IRON, 0, y, 0);
-  for (const x of [-W / 2 + 0.13, W / 2 - 0.13]) body.box(0.05, H + 0.008, D + 0.014, IRON, x, H / 2, 0);
+  // The carcass (dark, showing between the planks) and a heavier plinth.
+  body.box(W - 0.01, H - 0.01, D - 0.01, OAK_DARK, 0, H / 2, 0);
+  body.box(W + 0.03, 0.05, D + 0.03, OAK_DARK, 0, 0.025, 0);
+  // Planks: vertical on the front and back, horizontal on the ends, each a slightly different oak.
+  const PW = (W - 0.02) / 7;
+  for (let i = 0; i < 7; i++) {
+    const x = -W / 2 + 0.01 + PW * (i + 0.5);
+    for (const sz of [-1, 1])
+      body.box(PW - 0.006, H - 0.06, 0.022, jitter(OAK, 0.85 + rand() * 0.3), x, H / 2 + 0.02, sz * (D / 2));
+  }
+  for (const sx of [-1, 1])
+    for (let j = 0; j < 3; j++)
+      body.box(
+        0.022,
+        (H - 0.06) / 3 - 0.006,
+        D - 0.02,
+        jitter(OAK, 0.85 + rand() * 0.3),
+        sx * (W / 2),
+        0.05 + ((H - 0.06) / 3) * (j + 0.5),
+        0,
+      );
+  // Iron straps round the body, with rivets.
+  const strapX = [-W / 2 + 0.15, W / 2 - 0.15];
+  for (const x of strapX) {
+    body.box(0.05, H + 0.004, D + 0.05, IRON, x, H / 2 + 0.002, 0);
+    for (const sz of [-1, 1])
+      for (let k = 0; k < 4; k++)
+        body.add(new SphereGeometry(0.009, 6, 4), IRON, x, 0.07 + k * 0.09, sz * (D / 2 + 0.026));
+  }
+  body.box(W + 0.05, 0.035, D + 0.05, IRON, 0, H - 0.02, 0);
+  // Brass corner brackets (an L of thin plate round each vertical edge), studded.
   for (const sx of [-1, 1])
     for (const sz of [-1, 1])
-      body.box(0.07, H + 0.01, 0.07, BRASS, (sx * (W - 0.05)) / 2, H / 2, (sz * (D - 0.05)) / 2);
-  // The staple the hasp drops over, and the side handles.
-  body.box(0.07, 0.07, 0.03, BRASS, 0, H - 0.07, D / 2 + 0.012);
-  body.add(new TorusGeometry(0.045, 0.008, 6, 14), IRON, -W / 2 - 0.02, H * 0.6, 0, 0, Math.PI / 2);
-  body.add(new TorusGeometry(0.045, 0.008, 6, 14), IRON, W / 2 + 0.02, H * 0.6, 0, 0, Math.PI / 2);
+      for (const y of [0.075, H - 0.07]) {
+        const ex = (sx * W) / 2;
+        const ez = (sz * D) / 2;
+        body.box(0.06, 0.08, 0.006, BRASS, ex - sx * 0.026, y, ez + sz * 0.014);
+        body.box(0.006, 0.08, 0.06, BRASS, ex + sx * 0.014, y, ez - sz * 0.026);
+        body.add(new SphereGeometry(0.007, 6, 4), BRASS, ex - sx * 0.035, y, ez + sz * 0.018);
+      }
+  // The brass lock plate with its keyhole, and the staple the hasp drops over.
+  body.box(0.1, 0.12, 0.01, BRASS, 0, H - 0.11, D / 2 + 0.028);
+  body.box(0.012, 0.03, 0.004, [0.03, 0.02, 0.01], 0, H - 0.125, D / 2 + 0.034);
+  body.add(new SphereGeometry(0.009, 8, 6), [0.03, 0.02, 0.01], 0, H - 0.105, D / 2 + 0.032);
+  body.add(new TorusGeometry(0.018, 0.005, 6, 12), IRON, 0, H - 0.065, D / 2 + 0.04);
+  // Iron ring handles on the ends.
+  for (const sx of [-1, 1]) {
+    body.box(0.012, 0.07, 0.07, IRON, sx * (W / 2 + 0.03), H * 0.62, 0);
+    body.add(new TorusGeometry(0.05, 0.009, 6, 16), IRON, sx * (W / 2 + 0.04), H * 0.55, 0, 0, Math.PI / 2);
+  }
+  // Red velvet lining inside (seen when the lid's up).
+  body.box(W - 0.06, 0.012, D - 0.06, [0.09, 0.018, 0.024], 0, H - 0.02, 0);
   const mat = woodMaterial();
-  group.add(new Mesh(body.merge(), mat));
+  const bodyMesh = new Mesh(body.merge(), mat);
+  bodyMesh.castShadow = true;
+  bodyMesh.receiveShadow = true;
+  group.add(bodyMesh);
 
-  // The domed lid, hinged along the back top edge.
+  // The nameplate: the captain's name engraved on brass, on the body's front.
+  const plate = nameplate(captainName);
+  plate.position.set(0, 0.13, D / 2 + 0.024);
+  group.add(plate);
+
+  // The domed lid, planked along its length, hinged along the back top edge.
   const hinge = new Group();
   hinge.position.set(0, H, -D / 2);
   const lid = new Parts();
-  const dome = new CylinderGeometry(D / 2, D / 2, W, 20, 1, false, -Math.PI / 2, Math.PI);
-  dome.scale(1, 1, LID / (D / 2));
-  lid.add(dome, OAK, 0, 0, D / 2, 0, 0, Math.PI / 2);
-  for (const x of [-W / 2 + 0.13, W / 2 - 0.13]) {
-    const band = new CylinderGeometry(
-      D / 2 + 0.008,
-      D / 2 + 0.008,
-      0.05,
-      20,
-      1,
-      false,
-      -Math.PI / 2,
-      Math.PI,
-    );
-    band.scale(1, 1, (LID + 0.008) / (D / 2 + 0.008));
+  const SEG = 7;
+  for (let i = 0; i < SEG; i++) {
+    const a0 = -Math.PI / 2 + (Math.PI * i) / SEG;
+    const strip = new CylinderGeometry(D / 2, D / 2, W, 3, 1, false, a0 + 0.012, Math.PI / SEG - 0.024);
+    strip.scale(1, 1, LID / (D / 2));
+    lid.add(strip, jitter(OAK, 0.85 + rand() * 0.3), 0, 0, D / 2, 0, 0, Math.PI / 2);
+  }
+  const under = new CylinderGeometry(
+    D / 2 - 0.012,
+    D / 2 - 0.012,
+    W - 0.01,
+    14,
+    1,
+    false,
+    -Math.PI / 2,
+    Math.PI,
+  );
+  under.scale(1, 1, (LID - 0.012) / (D / 2 - 0.012));
+  lid.add(under, OAK_DARK, 0, 0, D / 2, 0, 0, Math.PI / 2);
+  for (const x of strapX) {
+    const band = new CylinderGeometry(D / 2 + 0.01, D / 2 + 0.01, 0.05, 20, 1, false, -Math.PI / 2, Math.PI);
+    band.scale(1, 1, (LID + 0.01) / (D / 2 + 0.01));
     lid.add(band, IRON, x, 0, D / 2, 0, 0, Math.PI / 2);
   }
-  lid.box(W, 0.02, D, OAK_DARK, 0, 0.01, D / 2);
-  hinge.add(new Mesh(lid.merge(), mat));
-  // The hasp: a brass plate hanging from the lid's front edge over the staple.
+  lid.box(W + 0.03, 0.03, 0.03, IRON, 0, 0.012, D - 0.002);
+  lid.box(W + 0.03, 0.03, 0.03, IRON, 0, 0.012, 0.002);
+  lid.box(W - 0.06, 0.008, D - 0.06, [0.08, 0.016, 0.022], 0, 0.006, D / 2);
+  const lidMesh = new Mesh(lid.merge(), mat);
+  lidMesh.castShadow = true;
+  lidMesh.receiveShadow = true;
+  hinge.add(lidMesh);
+  // The hasp: a shaped brass strap hanging from the lid's front edge over the staple.
   const hasp = new Group();
-  hasp.position.set(0, 0.02, D + 0.018);
+  hasp.position.set(0, 0.02, D + 0.03);
   const hp = new Parts();
-  hp.box(0.06, 0.13, 0.012, BRASS, 0, -0.06, 0);
-  hp.add(new TorusGeometry(0.018, 0.005, 6, 12), IRON, 0, -0.1, 0.008);
+  hp.box(0.05, 0.13, 0.01, BRASS, 0, -0.055, 0);
+  hp.box(0.07, 0.03, 0.012, BRASS, 0, -0.115, 0);
+  hp.cyl(0.01, 0.01, 0.07, BRASS, 0, 0, 0, 8, 0, Math.PI / 2);
   hasp.add(new Mesh(hp.merge(), mat));
   hinge.add(hasp);
   group.add(hinge);
@@ -538,23 +690,224 @@ function createHeroChest(): HeroChest {
     blending: AdditiveBlending,
   });
   const r = uv().sub(0.5).length().mul(2);
-  glowMat.colorNode = color(0xffb84a).mul(glow.mul(1.6));
+  glowMat.colorNode = color(0xffd690).mul(glow.mul(1.6));
   glowMat.opacityNode = float(1).sub(smoothstep(0.2, 1.0, r));
   const veil = new Mesh(new PlaneGeometry(W * 0.95, D * 0.95), glowMat);
   veil.rotation.x = -Math.PI / 2;
   veil.position.y = H + 0.004;
   group.add(veil);
 
-  return {
-    group,
-    hinge,
-    hasp,
-    inside: new Vector3(0, H * 0.5, 0),
-    glow,
-    width: W,
-    height: H,
-    depth: D,
-  };
+  return { group, hinge, hasp, inside: new Vector3(0, H * 0.5, 0), glow, width: W, height: H, depth: D };
+}
+
+/** A small brass plate engraved with the captain's name (Canvas 2D, made once). */
+function nameplate(name: string): Mesh {
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 128;
+  const g = c.getContext('2d')!;
+  const grad = g.createLinearGradient(0, 0, 0, 128);
+  grad.addColorStop(0, '#e6c06a');
+  grad.addColorStop(0.5, '#b88a34');
+  grad.addColorStop(1, '#8a6224');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 512, 128);
+  g.strokeStyle = '#5a3f15';
+  g.lineWidth = 6;
+  g.strokeRect(8, 8, 496, 112);
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  const text = name.trim() ? `Captain ${name.trim()}` : 'The Captain';
+  let size = 58;
+  g.font = `italic 600 ${size}px Fraunces, Georgia, serif`;
+  while (g.measureText(text).width > 440 && size > 24)
+    g.font = `italic 600 ${(size -= 2)}px Fraunces, Georgia, serif`;
+  g.fillStyle = 'rgba(255, 236, 180, 0.6)';
+  g.fillText(text, 256, 66);
+  g.fillStyle = '#3a2508';
+  g.fillText(text, 256, 63);
+  const tex = new CanvasTexture(c);
+  tex.colorSpace = SRGBColorSpace;
+  // Mostly diffuse: there's no environment map in the cabin, so a true metal would read black.
+  const m = new MeshStandardNodeMaterial({ map: tex, roughness: 0.42, metalness: 0.15 });
+  const mesh = new Mesh(new PlaneGeometry(0.26, 0.065), m);
+  mesh.name = 'nameplate';
+  return mesh;
+}
+
+/** A soft puff of dust from the lid's seam as it opens (0 → 1 over the puff). */
+function createDustPuff(chest: HeroChest) {
+  const t = uniform(0);
+  const N = 26;
+  const geo = billboardGeometry(N, (i, out) => {
+    const a = (i / N) * Math.PI * 2;
+    out.set(Math.cos(a) * chest.width * 0.48, chest.height + 0.01, Math.sin(a) * chest.depth * 0.48);
+  });
+  const mesh = billboardMesh(
+    geo,
+    (a, m) => {
+      const e = float(1).sub(pow(float(1).sub(t), 3));
+      const out = a.centre.mul(vec3(e.mul(0.6), 0, e.mul(0.6)));
+      const centre = a.centre.add(out).add(vec3(0, e.mul(a.seed.mul(0.12).add(0.04)), 0));
+      m.colorNode = color(0xd9c3a0);
+      m.opacityNode = a.round
+        .mul(a.round)
+        .mul(pow(float(1).sub(t), 2))
+        .mul(smoothstep(0, 0.05, t))
+        .mul(0.35);
+      return { centre, size: e.mul(0.05).add(0.02).mul(a.seed.mul(0.6).add(0.7)) };
+    },
+    false,
+  );
+  mesh.name = 'dust puff';
+  mesh.renderOrder = 5;
+  return { mesh, t };
+}
+
+/** Golden sparkles drifting up out of the open chest while it glows (strength 0 → 1). */
+function createSparkles(chest: HeroChest) {
+  const t = uniform(0);
+  const time = uniform(0);
+  const N = 70;
+  const rand = mulberry32(0x5a4c);
+  const geo = billboardGeometry(N, (_, out) => {
+    out.set((rand() - 0.5) * chest.width * 0.8, chest.height, (rand() - 0.5) * chest.depth * 0.7);
+  });
+  const mesh = billboardMesh(geo, (a, m) => {
+    const life = fract(time.mul(0.28).add(a.seed.mul(7.3)));
+    const centre = a.centre.add(
+      vec3(
+        sin(time.mul(1.1).add(a.seed.mul(40)))
+          .mul(0.05)
+          .mul(life),
+        life.mul(0.55),
+        sin(time.mul(0.9).add(a.seed.mul(23)))
+          .mul(0.04)
+          .mul(life),
+      ),
+    );
+    const tw = sin(time.mul(9).add(a.seed.mul(80)))
+      .mul(0.4)
+      .add(0.6);
+    m.colorNode = color(0xffd27a).mul(3.5);
+    m.opacityNode = a.round
+      .mul(a.round)
+      .mul(t)
+      .mul(tw)
+      .mul(smoothstep(0, 0.12, life))
+      .mul(float(1).sub(life));
+    return { centre, size: a.seed.mul(0.006).add(0.004) };
+  });
+  mesh.name = 'chest sparkles';
+  mesh.renderOrder = 6;
+  return { mesh, t, time };
+}
+
+/** How far a point is inside a stern window's sunbeam (0 outside → 1 in), traced back along the sun. */
+function windowBeam(
+  p: Node<'vec3'>,
+  dir: Vector3,
+  z0: number,
+  winW: number,
+  y0: number,
+  y1: number,
+): Node<'float'> {
+  const back = p.z.sub(z0).div(dir.z);
+  const hit = p.sub(vec3(dir.x, dir.y, dir.z).mul(back));
+  const cx = abs(fract(hit.x.add(0.95 / 2).div(0.95)).sub(0.5)).mul(0.95);
+  const inX = float(1)
+    .sub(smoothstep(winW / 2 - 0.08, winW / 2, cx))
+    .mul(float(1).sub(smoothstep(1.3, 1.4, abs(hit.x))));
+  const inY = smoothstep(y0, y0 + 0.06, hit.y).mul(float(1).sub(smoothstep(y1 - 0.06, y1, hit.y)));
+  // The mullions' cross (thin bars through each window's middle) cut the beam too.
+  const barX = smoothstep(0.008, 0.02, cx);
+  const barY = smoothstep(0.008, 0.02, abs(hit.y.sub((y0 + y1) / 2)));
+  return inX
+    .mul(inY)
+    .mul(barX)
+    .mul(barY)
+    .mul(smoothstep(0, 0.2, back));
+}
+
+/**
+ * Sunbeams as a stack of additive slices across the room: each slice glows only where the window's
+ * beam (frames and mullions included) passes through it, so together they read as soft volumetric
+ * shafts. The slice count scales with the tier (fill rate).
+ */
+function createSunShafts(
+  dir: Vector3,
+  z0: number,
+  winW: number,
+  y0: number,
+  y1: number,
+  slices: number,
+): Mesh {
+  const parts: BufferGeometry[] = [];
+  for (let i = 0; i < slices; i++) {
+    const g = new PlaneGeometry(4.6, 2.4);
+    g.translate(0, 1.2, z0 + 0.12 + (i + 0.5) * (3.0 / slices));
+    parts.push(g);
+  }
+  const g = mergeGeometries(parts)!;
+  for (const p of parts) p.dispose();
+  const m = new MeshBasicNodeMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    side: 2,
+  });
+  const beam = windowBeam(positionLocal, dir, z0, winW, y0, y1);
+  const depth = positionLocal.z.sub(z0).div(3.0);
+  const shimmer = mx_noise_float(positionLocal.mul(vec3(1.6, 1.6, 0.6)))
+    .mul(0.35)
+    .add(0.8);
+  m.colorNode = color(0xffc27a);
+  m.opacityNode = beam
+    .mul(pow(float(1).sub(depth), 1.4))
+    .mul(shimmer)
+    .mul(0.9 / slices);
+  const mesh = new Mesh(g, m);
+  mesh.name = 'sun shafts';
+  mesh.renderOrder = 3;
+  mesh.visible = slices > 0;
+  return mesh;
+}
+
+/** Dust drifting in the sunbeams: tiny billboards that only glow where the sun reaches them. */
+function createDustMotes(dir: Vector3, z0: number, winW: number, y0: number, y1: number) {
+  const N = 260;
+  const rand = mulberry32(0xd057);
+  const geo = billboardGeometry(N, (i, out) => {
+    const k = rand() * 2.8;
+    const wx = [-0.95, 0, 0.95][i % 3]!;
+    out.set(
+      wx + (rand() - 0.5) * winW + dir.x * k,
+      y0 + rand() * (y1 - y0) + dir.y * k,
+      z0 + 0.1 + dir.z * k,
+    );
+  });
+  const time = uniform(0);
+  const mesh = billboardMesh(geo, (a, m) => {
+    const sd = a.seed;
+    const drift = vec3(
+      sin(time.mul(0.11).add(sd.mul(40))).mul(0.12),
+      sin(time.mul(0.07).add(sd.mul(17)))
+        .mul(0.08)
+        .add(fract(time.mul(0.008).add(sd)).sub(0.5).mul(0.1)),
+      sin(time.mul(0.09).add(sd.mul(29))).mul(0.1),
+    );
+    const centre = a.centre.add(drift);
+    const beam = windowBeam(centre, dir, z0, winW, y0, y1);
+    const twinkle = sin(time.mul(1.3).add(sd.mul(60)))
+      .mul(0.3)
+      .add(0.7);
+    m.colorNode = color(0xffe2b0).mul(3);
+    m.opacityNode = beam.mul(a.round).mul(twinkle).mul(0.9);
+    return { centre, size: mix(float(0.0025), float(0.006), sd) };
+  });
+  mesh.name = 'dust motes';
+  mesh.renderOrder = 4;
+  return { mesh, time };
 }
 
 function mulberry32(seed: number): () => number {

@@ -163,13 +163,18 @@ export function createChartPaper(art: ChartArt): ChartPaper {
   const fogFlow = mx_noise_float(vec3(st.mul(vec2(9, 6)).add(vec2(t.mul(0.04), 0)), t.mul(0.05)))
     .mul(0.5)
     .add(0.5);
-  const fogged = mix(surface, color(0xe8e2d2), fog.mul(0.6).mul(mix(0.55, 1, fogFlow)));
+  // The fog over islands still to come: soft and torn at the edges, drifting.
+  // A faint mist round the islands still to come (their paper clouds stand over them).
+  const fogAmount = smoothstep(0.3, 0.95, fog.add(fogFlow.sub(0.5).mul(0.6))).mul(0.14);
+  const fogged = mix(surface, color(0xefece4), fogAmount);
   const back = paper.mul(0.82);
 
   const mat = new MeshStandardNodeMaterial({ side: DoubleSide, roughness: 0.9, metalness: 0 });
   mat.positionNode = vec3(rolledX, rolledY, positionGeometry.z);
   mat.colorNode = select(frontFacing, fogged, back);
-  mat.roughnessNode = select(frontFacing, mix(float(0.88), float(0.2), wet), float(0.92));
+  mat.roughnessNode = select(frontFacing, mix(float(0.88), float(0.34), wet), float(0.92));
+  // The living water glows faintly, as if lit from within (it's magic, and the cabin is dim).
+  mat.emissiveNode = select(frontFacing, sea.mul(wet).mul(0.22), vec3(0));
   const waveN = vec3(slope.x.negate(), 1, slope.y.negate())
     .mul(wet)
     .add(vec3(0, 1, 0).mul(float(1).sub(wet)));

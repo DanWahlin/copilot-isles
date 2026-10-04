@@ -112,6 +112,8 @@ export class GameFlow implements GameBridge {
       this.set({});
     });
     o.engine.add({ frame: (dt) => this.tick(dt) });
+    o.engine.counters.stage = () =>
+      this.opening ? `opening ${this.opening.time.toFixed(2)}` : this.state.screen;
     this.armAudioUnlock();
     // The UI passes bridge actions around as bare callbacks (onClick, useSyncExternalStore).
     for (const key of BRIDGE_METHODS) {
@@ -402,6 +404,7 @@ export class GameFlow implements GameBridge {
         kind: save ? 'continue' : 'voyage',
         reduced: this.state.settings.reducedMotion,
         sails: this.learn.getState().sails,
+        captainName: this.learn.progress.data.captainName ?? '',
         onHold: (holding) => this.set({ progress: { ...progressNow, holding } }),
       });
       this.opening = opening;
