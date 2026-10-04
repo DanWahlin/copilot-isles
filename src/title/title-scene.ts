@@ -3,7 +3,7 @@ import type { Engine } from '../engine/engine';
 import { createOcean } from '../world/ocean/ocean';
 import { createSky } from '../world/sky/sky-system';
 import { createDistantRanges } from '../world/terrain/distant-ranges';
-import { createBrigantine, type BrigantineEnv } from '../world/ship';
+import { createBrigantine, gullPerches, type BrigantineEnv } from '../world/ship';
 import type { LeapsSystem, ScreenRect } from '../world/life/leaps';
 import type { BirdsSystem } from '../world/life/birds';
 import { world } from '../world/uniforms';
@@ -39,7 +39,7 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   const anchor = { x: 0, z: 0, heading: 2.3 };
   let leaps: LeapsSystem | null = null;
   let birds: BirdsSystem | null = null;
-  const wordmarkGull = createTitleWordmarkGull();
+  const wordmarkGull = createTitleWordmarkGull(undefined, { object: ship.group, perches: gullPerches() });
   let disposed = false;
   let avoidRects = titleAvoidRects();
   const loadLeaps = async () => {

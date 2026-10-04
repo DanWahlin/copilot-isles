@@ -71,6 +71,19 @@ const YARDS: readonly YardSpec[] = [
 const MIZZEN_STAY_AFT: P3 = { x: 0, y: MIZZEN.lowerTop + 0.05, z: MIZZEN.z };
 const MIZZEN_STAY_FORE: P3 = { x: 0, y: MAIN.lowerTop + 0.05, z: MAIN.z };
 
+/**
+ * Ship-local spots a gull can stand on: the top of each yardarm (both ends) and each mast truck.
+ * Points are where the bird's feet go.
+ */
+export function gullPerches(): P3[] {
+  const out: P3[] = [];
+  for (const yard of YARDS)
+    for (const side of [-1, 1])
+      out.push(yardPoint(yard, side * yard.span * 0.93, yard.y + yard.radius * 0.9));
+  for (const mast of MASTS) out.push({ x: 0, y: mast.truck + 0.12, z: mast.z });
+  return out;
+}
+
 /** The point on the lower mizzen stay (mizzen top to main top) at local `z`, for things hung from it. */
 export function mizzenStayPoint(z: number): P3 {
   const t = (z - MIZZEN_STAY_AFT.z) / (MIZZEN_STAY_FORE.z - MIZZEN_STAY_AFT.z);

@@ -1,4 +1,4 @@
-import { Object3D, type Group, type PerspectiveCamera } from 'three/webgpu';
+import { Object3D, Vector3, type Group, type PerspectiveCamera } from 'three/webgpu';
 import { world } from '../world/uniforms';
 import { clamp } from '../util/math';
 
@@ -22,8 +22,17 @@ type GullPose = 'landing' | 'perched' | 'call' | 'landing-legs' | 'crouch' | 'de
 interface LandingTarget {
   x: number;
   y: number;
-  capHeight: number;
+  /** Sprite scale when perched. */
+  scale: number;
 }
+
+/** Ship-local spots the gull can stand on, and the ship they ride with. */
+export interface GullShipPerches {
+  object: Object3D;
+  perches: readonly { x: number; y: number; z: number }[];
+}
+
+type GullMode = 'wordmark' | 'ship';
 
 const FINAL_T_INDEX = 6;
 const LAND_SECONDS = 3.4;
@@ -33,6 +42,14 @@ const RANGE_TEXT_END = 7;
 const SPRITE_FRAME = 256;
 const PERCHED_FOOT_Y = 194;
 const MOTION_ANCHOR_Y = PERCHED_FOOT_Y;
+/** The standing gull's height in the sprite frame (px, feet to crown). */
+const STANDING_PX = 126;
+/** On the ship it reads as a big gull: about 1.1 m tall, but never under 26 px on screen. */
+const SHIP_GULL_METRES = 1.1;
+const SHIP_GULL_MIN_PX = 26;
+/** Share of visits that fly in from the left to a spot on the ship instead of the wordmark. */
+const SHIP_SHARE = 0.35;
+const tmpPerch = new Vector3();
 const FRAMES: Record<string, { x: number; y: number }> = {
   'flight-0': { x: 0, y: 0 },
   'flight-1': { x: -256, y: 0 },
@@ -105,11 +122,44 @@ function measureTarget(): LandingTarget | null {
   return {
     x: letter.left + letter.width * 0.5,
     y: capTop + 1,
-    capHeight: metrics.actualBoundingBoxAscent,
+    scale: clamp((metrics.actualBoundingBoxAscent * 0.95) / STANDING_PX, 0.42, 0.7),
   };
 }
 
-export function createTitleWordmarkGull(seed = 0xc0ffee): TitleWordmarkGull {
+/** Where ship perch `i` is on screen right now, and the sprite scale for its distance. */
+function projectPerch(ship: GullShipPerches, i: number, camera: PerspectiveCamera): LandingTarget | null {
+  const p = ship.perches[i];
+  if (!p || typeof document === 'undefined') return null;
+  ship.object.updateMatrixWorld();
+  camera.updateMatrixWorld();
+  tmpPerch.set(p.x, p.y, p.z);
+  ship.object.localToWorld(tmpPerch);
+  const d = tmpPerch.distanceTo(camera.position);
+  tmpPerch.project(camera);
+  if (tmpPerch.z < -1 || tmpPerch.z > 1) return null;
+  const rect = document.getElementById('gl')?.getBoundingClientRect();
+  const left = rect?.left ?? 0,
+    top = rect?.top ?? 0,
+    w = rect?.width ?? window.innerWidth,
+    h = rect?.height ?? window.innerHeight;
+  const pxPerMetre = h / (2 * d * Math.tan((camera.fov * Math.PI) / 360));
+  const px = Math.max(SHIP_GULL_MIN_PX, SHIP_GULL_METRES * pxPerMetre);
+  return {
+    x: left + (tmpPerch.x * 0.5 + 0.5) * w,
+    y: top + (0.5 - tmpPerch.y * 0.5) * h,
+    scale: clamp(px / STANDING_PX, 0.18, 0.7),
+  };
+}
+
+/** A perch that is on screen, right of the title column, and not under the bottom hint. */
+function inView(t: LandingTarget | null): t is LandingTarget {
+  if (!t) return false;
+  const W = window.innerWidth,
+    H = window.innerHeight;
+  return t.x > W * 0.42 && t.x < W - 70 && t.y > 90 && t.y < H * 0.72;
+}
+
+export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches): TitleWordmarkGull {
   const group = new Object3D() as Group;
   group.name = 'title-wordmark-gull-anchor';
   const rng = random(seed);
@@ -124,6 +174,14 @@ export function createTitleWordmarkGull(seed = 0xc0ffee): TitleWordmarkGull {
   let flap = 0;
   let nextAt = 8 + rng() * 7;
   let target: LandingTarget | null = null;
+  let mode: GullMode = 'wordmark';
+  let perchIndex = -1;
+  /** Direction of travel on screen: -1 flies right to left (in from the right), 1 left to right. */
+  let dir: 1 | -1 = -1;
+  let visits = 0;
+  // Debug: ?gull=ship sends every visit to the ship.
+  const forceShip =
+    typeof location !== 'undefined' && new URLSearchParams(location.search).get('gull') === 'ship';
   let visible = 0;
   let cpuMs = 0;
   const samples: { phase: string; t: number; dt: number; x: number; y: number }[] = [];
@@ -175,7 +233,7 @@ export function createTitleWordmarkGull(seed = 0xc0ffee): TitleWordmarkGull {
 
   return {
     group,
-    update(dt, t) {
+    update(dt, t, camera) {
       const started = typeof performance !== 'undefined' ? performance.now() : 0;
       if (!enabled || world.reducedMotion.value > 0.5 || reducedMotionQuery?.matches) {
         schedule(t);
@@ -184,11 +242,36 @@ export function createTitleWordmarkGull(seed = 0xc0ffee): TitleWordmarkGull {
       }
 
       if (phase === 'waiting' && t >= nextAt) {
-        target = measureTarget();
+        // The first visit is always the wordmark; after that, now and then one comes in from the
+        // left and settles on a yardarm or masthead instead.
+        mode = 'wordmark';
+        perchIndex = -1;
+        if (ship && ((visits > 0 && rng() < SHIP_SHARE) || forceShip)) {
+          const options: number[] = [];
+          for (let i = 0; i < ship.perches.length; i++)
+            if (inView(projectPerch(ship, i, camera))) options.push(i);
+          if (options.length) {
+            mode = 'ship';
+            perchIndex = options[Math.floor(rng() * options.length)]!;
+          }
+        }
+        target = mode === 'ship' ? projectPerch(ship!, perchIndex, camera) : measureTarget();
+        dir = mode === 'ship' ? 1 : -1;
         if (target) {
           phase = 'landing';
           phaseT = 0;
+          visits++;
         } else schedule(t);
+      }
+      // A ship perch rides the swell and the orbiting camera: follow it every frame.
+      if (mode === 'ship' && phase !== 'waiting' && ship) {
+        const now = projectPerch(ship, perchIndex, camera);
+        if (now) target = now;
+        // Dragged out of view while it stands there: it leaves.
+        if (phase === 'perched' && !inView(now)) {
+          phase = 'crouch';
+          phaseT = 0;
+        }
       }
 
       if (phase === 'waiting' || !target) {
@@ -198,17 +281,19 @@ export function createTitleWordmarkGull(seed = 0xc0ffee): TitleWordmarkGull {
         phaseT += dt;
         sampleDt = dt;
         visible = 1;
-        const sc = clamp((target.capHeight * 0.95) / 126, 0.42, 0.7);
+        const sc = target.scale;
         const W = window.innerWidth;
         const off = SPRITE_FRAME * sc;
         if (phase === 'landing') {
-          // One continuous curve in from off-screen right, high, easing out so it arrives slow
-          // (no stop-dead at the T). It glides in on short flapping bursts, then flares.
+          // One continuous curve in from off-screen (right for the wordmark, left for the ship),
+          // high, easing out so it arrives slow. It glides in on short flapping bursts, then flares.
+          // Bound for the ship, it starts nearer the camera and shrinks into the distance.
           const k = clamp(phaseT / LAND_SECONDS, 0, 1);
           const u = 1 - (1 - k) * (1 - k);
-          const x0 = W + off,
+          const size = mode === 'ship' ? sc * (1 + 0.9 * (1 - u)) : sc;
+          const x0 = dir < 0 ? W + SPRITE_FRAME * size : -SPRITE_FRAME * size,
             y0 = target.y - Math.min(260, target.y + 40);
-          const x = bez(x0, x0 - (x0 - target.x) * 0.45, target.x + 70 * sc, target.x, u);
+          const x = bez(x0, x0 + (target.x - x0) * 0.45, target.x - dir * 70 * sc, target.x, u);
           const y = bez(y0, y0 + 30 * sc, target.y - 110 * sc, target.y, u);
           const burst = phaseT < 1.2 || (phaseT > 1.8 && phaseT < 2.5);
           flap += dt * (burst ? 3.6 : 0.9);
@@ -216,10 +301,10 @@ export function createTitleWordmarkGull(seed = 0xc0ffee): TitleWordmarkGull {
           showOverlay(
             x,
             y,
-            sc,
+            size,
             flare ? 'landing-legs' : 'landing',
             -8 * (1 - u),
-            -1,
+            dir,
             flare ? 'flare' : flapFrameAt(flap),
           );
           if (k >= 1) {
@@ -245,7 +330,7 @@ export function createTitleWordmarkGull(seed = 0xc0ffee): TitleWordmarkGull {
             sc,
             call ? 'call' : 'perched',
             0,
-            -1,
+            dir,
             frameName,
             PERCHED_FOOT_Y,
           );
@@ -254,31 +339,31 @@ export function createTitleWordmarkGull(seed = 0xc0ffee): TitleWordmarkGull {
             phaseT = 0;
           }
         } else if (phase === 'crouch') {
-          showOverlay(target.x, target.y, sc, 'crouch', 0, -1, 'crouch', PERCHED_FOOT_Y);
+          showOverlay(target.x, target.y, sc, 'crouch', 0, dir, 'crouch', PERCHED_FOOT_Y);
           if (phaseT >= CROUCH_SECONDS) {
             phase = 'departing';
             phaseT = 0;
             flap = 0.25;
           }
         } else if (phase === 'departing') {
-          // Springs up with hard wing beats, then climbs away up and to the left (the way it
-          // faces) and leaves the top of the screen. No fade: it flies out of frame.
+          // Springs up with hard wing beats, then climbs away the way it faces and leaves the top
+          // of the screen. No fade: it flies out of frame.
           const k = clamp(phaseT / DEPART_SECONDS, 0, 1);
           const u = 0.35 * k + 0.65 * k * k;
           const x0 = target.x,
             y0 = target.y;
-          const x3 = target.x - Math.min(W * 0.4, 520);
+          const x3 = target.x + dir * Math.min(W * 0.4, 520);
           const y3 = -off - 40;
-          const x = bez(x0, x0 - 20 * sc, x0 + (x3 - x0) * 0.55, x3, u);
+          const x = bez(x0, x0 + dir * 20 * sc, x0 + (x3 - x0) * 0.55, x3, u);
           const y = bez(y0, y0 - 120 * sc, y3 + (y0 - y3) * 0.35, y3, u);
           flap += dt * (phaseT < 1 ? 4.2 : 3.0);
           showOverlay(
             x,
             y,
-            sc * (1 - 0.15 * k),
+            sc * (1 + (mode === 'ship' ? 0.5 : -0.15) * k),
             'departing',
             8 * Math.min(1, phaseT * 3),
-            -1,
+            dir,
             flapFrameAt(flap),
           );
           if (k >= 1) schedule(t);
