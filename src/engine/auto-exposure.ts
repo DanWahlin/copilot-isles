@@ -14,6 +14,7 @@ import {
   max,
   mix,
   select,
+  smoothstep,
   storage,
   texture,
   uniform,
@@ -43,8 +44,9 @@ export interface AutoExposure {
 
 /**
  * The mean exposed log2 luminance the keyed exposure gives the Walt-gate views W1-W4 at 16:20 (−3.35,
- * −3.93, −2.10, −2.41, measured with `__dev.exposure()`). Night aims lower, as the keyed exposure does
- * (the harbour at 22:00 meters about −4.9 to −5.8), so nights stay dark.
+ * −3.93, −2.10, −2.41, measured with `__dev.exposure()`). From a low sun to night it aims lower, as
+ * the keyed exposure does (W1-W4 meter −2.7 to −4.3 at 18:00 and −4.6 to −6.1 at 22:00), so dusk and
+ * night keep their mood.
  */
 const TARGET_LOG = -2.95;
 const NIGHT_LOG = -2.2;
@@ -108,7 +110,9 @@ export function createAutoExposure(renderer: WebGPURenderer, source: Texture): A
       const prev = state.element(0);
       const k = select(prev.z.greaterThan(0.5), float(1).sub(exp(dtU.negate().div(TAU))), float(1));
       const adapted = mix(prev.x, measured, k);
-      const gap = float(TARGET_LOG).add(world.night.mul(NIGHT_LOG)).sub(adapted.add(keyedLog));
+      // Low sun to night aims lower, as the keyed exposure does, so dusk and night keep their mood.
+      const twilight = smoothstep(0.15, -0.25, world.sunDir.y);
+      const gap = float(TARGET_LOG).add(twilight.mul(NIGHT_LOG)).sub(adapted.add(keyedLog));
       const beyond = max(gap.abs().sub(DEAD_ZONE), 0).mul(gap.sign());
       const scale = clamp(exp2(beyond.mul(STRENGTH)), MIN_SCALE, MAX_SCALE);
       state.element(0).assign(vec4(adapted, scale, 1, 0));

@@ -41,7 +41,7 @@ import {
 } from 'three/tsl';
 import type { TierSettings } from '../../engine/quality';
 import { COVE } from '../layout';
-import { world } from '../uniforms';
+import { foamLight, world } from '../uniforms';
 import type { HarborMirrorInput } from './harbor-mirror';
 import { shipOcean } from './ship-interaction';
 import { matchedDepthTexture } from './depth-copy';
@@ -437,7 +437,7 @@ export function createOcean({
         .add(world.sunColor.mul(NdL.mul(0.12).add(0.04)))
         .add(0.9),
     );
-    const foamCol = mix(baseFoamCol, vec3(1.0, 1.0, 0.98), shipFoam.mul(0.92));
+    const foamCol = mix(baseFoamCol, vec3(1.0, 1.0, 0.98), shipFoam.mul(0.92)).mul(foamLight);
 
     const waveShade = float(0.84).add(crest.mul(0.16)).add(pow(NdL, 2).mul(0.08));
     const body = under.mul(waveShade).add(sss.mul(float(1).sub(F)));
