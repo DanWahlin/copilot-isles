@@ -1,57 +1,40 @@
 import {
-  BackSide,
   ClampToEdgeWrapping,
   DataTexture,
   ImageBitmapLoader,
   LinearFilter,
   LinearMipmapLinearFilter,
-  Mesh,
-  MeshBasicNodeMaterial,
   RepeatWrapping,
-  SphereGeometry,
   SRGBColorSpace,
   Texture,
-  Vector3,
   type Node,
   type WebGPURenderer,
 } from 'three/webgpu';
 import {
-  Fn,
-  If,
   acos,
   atan,
   clamp,
+  float,
   fract,
   max,
-  min,
   mix,
-  normalize,
-  positionLocal,
   smoothstep,
   texture,
   uniform,
   vec2,
   vec3,
+  vec4,
 } from 'three/tsl';
 import { sunState, type SunState } from '../sun';
-import { Sky as TidewaterSky } from './Sky';
-
-/** The parts of Tidewater's Sky (Sky.ts) the baked dome draws at night. */
-interface NightSkyPort {
-  starIntensity: Node<'float'> & { value: number };
-  moonDir: { value: Vector3 };
-  stars(dir: Node<'vec3'>): Node<'vec3'>;
-  moon(dir: Node<'vec3'>): Node<'vec3'>;
-  moonSky(dir: Node<'vec3'>): Node<'vec3'>;
-}
 
 /**
- * The sky on WebGL2, Low, Lite and Medium: pictures of the WebGPU High sky (Tidewater's atmosphere
- * and volumetric clouds), baked by tools/sky/bake-sky.mjs into above-horizon equirect panoramas at a
- * few sun heights (SKY_KEYS). The dome blends the two keys either side of today's sun, so every tier
- * and backend shows the same sky for two texture fetches a pixel. The bakes hold the sky's own
- * colours (no tone mapping), so the runtime grade applies once, as it does to the live sky. At night
- * the dome draws the live sky's own stars, moon and moonlit glow (Sky.ts).
+ * The clouds on WebGL2, Low, Lite and Medium: the WebGPU High clouds (Tidewater's volumetric clouds and
+ * their aerial perspective), baked by tools/sky/bake-sky.mjs into above-horizon equirect layers at a
+ * few sun heights (SKY_KEYS). Each texel holds the clouds' light (rgb, the sky's own colours with no
+ * tone mapping) and their transmittance (alpha), so Sky.ts composites them over the live atmosphere,
+ * sun, moon and stars exactly as it does the live clouds: sky * alpha + light. The layer blends the two
+ * keys either side of today's sun for two texture fetches a pixel. At night the baked light fades and
+ * the clouds turn to dim moonlit shapes that hide the stars.
  *
  * Every key is baked from one page, with the clouds held still and the sun turned to one azimuth
  * (bakeAzimuthDeg), so all keys hold the same clouds and blend without ghosts.
@@ -59,12 +42,15 @@ interface NightSkyPort {
  * Layout (must match tools/sky/reproject.py): u = azimuth atan2(z, x) / 2π, v = zenith angle /
  * (π/2 + 2°), with row 0 at the zenith. Below the horizon the bake repeats the horizon row.
  */
-interface BakedSky {
-  mesh: Mesh<SphereGeometry, MeshBasicNodeMaterial>;
+export interface BakedClouds {
+  /** Tells Sky.ts the aerial perspective is in the bake. */
+  readonly baked: true;
+  /** vec4(light, transmittance) along a direction (Sky.ts's cloud contract). */
+  sampleView(dir: Node<'vec3'>): Node<'vec4'>;
+  sample(dir: Node<'vec3'>): Node<'vec4'>;
   update(state: SunState): void;
   /** Loads the keys these hours need and puts them on the GPU, so later changes don't hitch. */
   prefetch(hours: readonly number[]): Promise<void>;
-  invalidate(): void;
   dispose(): void;
 }
 
@@ -79,6 +65,13 @@ export const SKY_KEYS = [
   { name: 'afternoon', hours: 16.2 },
   { name: 'noon', hours: 12 },
 ] as const;
+
+/**
+ * The keys store the clouds' light over a flat sky of this colour (linear), light + transmittance ×
+ * CLOUD_PEDESTAL, so faint cirrus rides on a sky-bright base and compresses like a sky picture
+ * (tools/sky/reproject.py). The layer takes it off again.
+ */
+export const CLOUD_PEDESTAL = [0.1, 0.25, 0.6] as const;
 
 const V_SPAN = Math.PI / 2 + (2 * Math.PI) / 180;
 const TAU = Math.PI * 2;
@@ -118,11 +111,11 @@ function loadKey(i: number): Promise<Texture> {
     premultiplyAlpha: 'none',
   });
   const loader = bitmapLoader;
-  const url = `${import.meta.env.BASE_URL}sky/tidewater-${SKY_KEYS[i]!.name}.webp`;
+  const url = `${import.meta.env.BASE_URL}sky/clouds-${SKY_KEYS[i]!.name}.webp`;
   // Decoded off the main thread (ImageBitmap), so a key arriving mid-play doesn't stall a frame.
   const p = loader.loadAsync(url).then((bitmap: ImageBitmap) => {
     const t = new Texture(bitmap);
-    t.name = `baked-sky-${SKY_KEYS[i]!.name}`;
+    t.name = `baked-clouds-${SKY_KEYS[i]!.name}`;
     t.colorSpace = SRGBColorSpace;
     t.flipY = false;
     t.wrapS = RepeatWrapping;
@@ -135,58 +128,45 @@ function loadKey(i: number): Promise<Texture> {
     loadedKeys[i] = t;
     return t;
   });
+  // A failed load can be tried again later (the clouds stay clear meanwhile).
   p.catch(() => (keyTextures[i] = null));
   keyTextures[i] = p;
   return p;
 }
 
-export function createBakedTidewaterSky(radius: number, renderer: WebGPURenderer): BakedSky {
-  // Turns the panorama so its baked sun sits where today's sun is (islands and Settings set the azimuth).
+export function createBakedClouds(renderer: WebGPURenderer): BakedClouds {
+  // Turns the layer so its baked sun sits where today's sun is (islands and Settings set the azimuth).
   const turn = uniform(0);
-  // Dims the day sky toward the night as the sun goes down. A trace stays, so clouds read as faint
-  // moonlit shapes, as they do on the live sky.
-  const day = uniform(1);
-  const nightTint = vec3(0.5, 0.6, 0.85).mul(0.018);
-
-  // Two key slots, blended by `blend`; a flat placeholder sky until the first key arrives.
-  const placeholder = new DataTexture(new Uint8Array([105, 160, 225, 255]), 1, 1);
+  const night = uniform(0);
+  // Two key slots, blended by `blend`; clear sky (just the pedestal, full transmittance) until a key
+  // arrives.
+  const placeholder = new DataTexture(new Uint8Array([89, 137, 203, 255]), 1, 1);
   placeholder.colorSpace = SRGBColorSpace;
   placeholder.needsUpdate = true;
   const keyA = texture(placeholder);
   const keyB = texture(placeholder);
   const blend = uniform(0);
-  const mat = new MeshBasicNodeMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false });
-  // The live sky's own stars, moon and moonlit glow (Sky.ts), over the baked day sky.
-  const sunDir = uniform(new Vector3(0, 1, 0));
-  const bakedSky = (d: Node<'vec3'>) => {
-    const u = fract(atan(d.z, d.x).sub(turn).div(TAU).add(1));
-    const v = clamp(acos(clamp(d.y, -1, 1)).div(V_SPAN), 0, 1);
+  // Moonlit cloud: a dim blue-grey, like the live clouds under the moon.
+  const moonlit = vec3(0.018, 0.022, 0.032);
+  const pedestal = vec3(...CLOUD_PEDESTAL);
+
+  const sampleView = (dir: Node<'vec3'>) => {
+    const u = fract(atan(dir.z, dir.x).sub(turn).div(TAU).add(1));
+    const v = clamp(acos(clamp(dir.y, -1, 1)).div(V_SPAN), 0, 1);
     // flipY is off, so v = 0 is the top row (the zenith).
     const uv = vec2(u, v);
-    const sky = mix(keyA.sample(uv).rgb, keyB.sample(uv).rgb, blend);
-    return mix(sky.mul(nightTint), sky, day);
+    const c = mix(keyA.sample(uv), keyB.sample(uv), blend);
+    const cover = float(1).sub(c.a);
+    const day = max(c.rgb.sub(pedestal.mul(c.a)), 0);
+    const light = mix(day, moonlit.mul(cover), night);
+    // The bake can't see below the horizon: no clouds there.
+    const above = smoothstep(-0.03, 0.0, dir.y);
+    return vec4(light.mul(above), mix(float(1), c.a, above));
   };
-  const nightSky = new TidewaterSky({
-    sunDir,
-    skyLuminance: (dir: Node<'vec3'>) => bakedSky(dir),
-  }) as unknown as NightSkyPort;
-  mat.colorNode = Fn(() => {
-    const dir = normalize(positionLocal);
-    const sky = bakedSky(dir).toVar();
-    // Cloud cover from the bake: clouds are near-grey, clear sky is blue. Clouds hide the stars.
-    const lo = min(sky.r, min(sky.g, sky.b));
-    const hi = max(sky.r, max(sky.g, sky.b), 1e-5);
-    const clear = smoothstep(0.8, 0.6, lo.div(hi));
-    const night = vec3(0).toVar();
-    If(nightSky.starIntensity.greaterThan(0.001), () => {
-      night.assign(nightSky.moonSky(dir).add(nightSky.stars(dir).mul(clear)));
-    });
-    return sky.add(night).add(nightSky.moon(dir).mul(clear.mul(0.7).add(0.3)));
-  })();
 
   const want = { lo: -1, hi: -1, t: 0 };
   const toGpu = (t: Texture) => renderer.initTexture(t);
-  /** Puts the wanted keys in the slots; until one has loaded, the other (or the placeholder) stands in. */
+  /** Puts the wanted keys in the slots; until one has loaded, the other (or clear sky) stands in. */
   const applyKeys = () => {
     const a = loadedKeys[want.lo] ?? null;
     const b = loadedKeys[want.hi] ?? null;
@@ -201,7 +181,10 @@ export function createBakedTidewaterSky(radius: number, renderer: WebGPURenderer
     want.lo = k.lo;
     want.hi = k.hi;
     for (const i of k.t > 0 ? [k.lo, k.hi] : [k.lo]) {
-      if (!loadedKeys[i]) void loadKey(i).then((t) => (toGpu(t), applyKeys()));
+      if (!loadedKeys[i])
+        loadKey(i)
+          .then((t) => (toGpu(t), applyKeys()))
+          .catch(() => {});
     }
   };
   const keysFor = (hours: readonly number[]) => {
@@ -213,31 +196,23 @@ export function createBakedTidewaterSky(radius: number, renderer: WebGPURenderer
     }
     return [...keys];
   };
-  const prefetch = async (hours: readonly number[]) => {
-    const textures = await Promise.all(keysFor(hours).map(loadKey));
-    textures.forEach(toGpu);
-    applyKeys();
-  };
-  const mesh = new Mesh(new SphereGeometry(radius, 64, 32), mat);
-  mesh.frustumCulled = false;
-  mesh.renderOrder = -10;
 
   return {
-    mesh,
-    prefetch,
+    baked: true,
+    sampleView,
+    sample: sampleView,
+    async prefetch(hours) {
+      const textures = await Promise.all(keysFor(hours).map(loadKey));
+      textures.forEach(toGpu);
+      applyKeys();
+    },
     update(state) {
       need(state.sun[1]);
       applyKeys();
       turn.value = azimuth(state.sun) - BAKED_SUN_AZIMUTH;
-      day.value = 1 - state.night;
-      sunDir.value.set(state.sun[0], state.sun[1], state.sun[2]);
-      nightSky.moonDir.value.set(state.moon[0], state.moon[1], state.moon[2]);
-      nightSky.starIntensity.value = state.night;
+      night.value = state.night;
     },
-    invalidate() {},
     dispose() {
-      mesh.geometry.dispose();
-      mat.dispose();
       placeholder.dispose();
     },
   };

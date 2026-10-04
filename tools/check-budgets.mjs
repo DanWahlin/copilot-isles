@@ -56,7 +56,7 @@ const titleOk = title <= budgets.titleWireMaxKB * 1024;
 if (!titleOk) failed = true;
 rows.push(['title (wire, gz)', kb(title), `${budgets.titleWireMaxKB}`, titleOk ? 'ok' : 'OVER']);
 
-// The baked sky keys (BakedPanorama.ts) load at run time, one or two at a time: each stays small.
+// The baked cloud keys (BakedPanorama.ts) load at run time, one or two at a time: each stays small.
 const skyDir = join(dist, 'sky');
 const skyKeys = existsSync(skyDir) ? readdirSync(skyDir).filter((f) => f.endsWith('.webp')) : [];
 for (const f of skyKeys) {

@@ -59,6 +59,9 @@ export class Sky {
     this.sunDiskIntensity = uniform(1).setName('sunDiskI');
     this.moonDir = uniform(new THREE.Vector3(-0.3, 0.5, 0.8).normalize()).setName('moonDir');
     this.starIntensity = uniform(0).setName('starI');
+    // tools/sky/bake-sky.mjs: 0 draws the sky; 1 the cloud layer's light (clouds and their aerial
+    // perspective) and 2 its transmittance, which the baked cloud keys store (BakedPanorama.ts).
+    this.bakeLayer = uniform(0).setName('skyBakeLayer');
   }
 
   // Sun disk radiance along dir (already includes atmospheric transmittance).
@@ -226,7 +229,8 @@ export class Sky {
     return base.mul(c.a).add(c.rgb);
   }
 
-  _cloudAerialPerspective(dir, cloud, radiance) {
+  // How much the air between the eye and the clouds veils them, and the veil's colour.
+  _cloudHaze(dir, cloud) {
     const camH = max(cameraPosition.y, 0);
     const vy = max(dir.y, 0.02);
     const d = clamp(this.clouds.bottom.sub(cameraPosition.y).div(vy), 0, 60000);
@@ -243,7 +247,7 @@ export class Sky {
     const fog = this.atmosphere.skyLuminance(vh).add(this.moonSky(vh));
     const cloudOpacity = clamp(float(1).sub(cloud.a), 0, 1);
     const haze = clamp(float(1).sub(T).mul(cloudOpacity).mul(0.18), 0, 0.12);
-    return mix(radiance, fog, haze);
+    return { haze, fog };
   }
 
   // Main view background: full resolution clouds for the camera's view.
@@ -253,7 +257,17 @@ export class Sky {
       const base = this._background(dir).add(this.moon(dir)).add(this.sunDisk(dir));
       if (!this.clouds) return vec4(base, 1);
       const c = this.clouds.sampleView(dir);
-      return vec4(this._cloudAerialPerspective(dir, c, base.mul(c.a).add(c.rgb)), 1);
+      // A baked cloud layer already holds its aerial perspective.
+      if (this.clouds.baked) return vec4(base.mul(c.a).add(c.rgb), 1);
+      const { haze, fog } = this._cloudHaze(dir, c);
+      const sky = mix(base.mul(c.a).add(c.rgb), fog, haze);
+      // over any sky: sky * transmittance + light
+      const light = mix(c.rgb, fog, haze);
+      const transmittance = c.a.mul(float(1).sub(haze));
+      return vec4(
+        select(this.bakeLayer.equal(1), light, select(this.bakeLayer.equal(2), vec3(transmittance), sky)),
+        1,
+      );
     })();
   }
 }

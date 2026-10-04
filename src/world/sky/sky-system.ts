@@ -39,7 +39,7 @@ import { smoothstep as ss } from '../../util/math';
 import { sunState, type SunState } from './sun';
 import { createAtmosphereSky, createNightDome } from './atmosphere';
 import { Atmosphere as TidewaterAtmosphere } from './clouds/Atmosphere';
-import { createBakedTidewaterSky } from './clouds/BakedPanorama';
+import { createBakedClouds, type BakedClouds } from './clouds/BakedPanorama';
 import { Clouds as TidewaterClouds } from './clouds/Clouds';
 import { Sky as TidewaterSky } from './clouds/Sky';
 import { syncTidewaterGlobals } from './clouds/Globals';
@@ -74,7 +74,8 @@ interface TidewaterCloudsPort {
 }
 
 interface TidewaterSkyPort {
-  clouds: TidewaterCloudsPort | null;
+  clouds: TidewaterCloudsPort | BakedClouds | null;
+  bakeLayer: { value: number };
   starIntensity: { value: number };
   moonDir: { value: Vector3 };
   backgroundNode(): Node<'vec4'>;
@@ -131,6 +132,8 @@ export interface SkySystem {
    * Lite and Medium), so time changes later in play don't hitch. Resolves at once on the live sky.
    */
   prefetch(hours: readonly number[]): Promise<void>;
+  /** For tools/sky/bake-sky.mjs: 0 draws the sky, 1 the cloud layer's light, 2 its transmittance. */
+  bakeLayer(layer: 0 | 1 | 2): void;
   dispose(): void;
 }
 
@@ -187,13 +190,18 @@ export function createSky(
     backend === 'webgl2' ||
     (renderer.backend as { isWebGLBackend?: boolean } | undefined)?.isWebGLBackend === true ||
     /webgl/i.test(backendName);
-  const useTidewater = !actualWebGL && tier.clouds === 'volumetric';
-  const tideAtmo = useTidewater ? new TidewaterAtmosphere(renderer) : null;
-  const tideSky = tideAtmo ? (new TidewaterSky(tideAtmo) as unknown as TidewaterSkyPort) : null;
-  const tideClouds = tideAtmo
+  // One sky on every tier and backend: Tidewater's atmosphere LUTs (compute on WebGPU, fragment
+  // passes on WebGL2), sun, moon and stars. The clouds ray-march live on WebGPU High and Ultra, and
+  // are a baked layer of those clouds everywhere else.
+  const liveClouds = !actualWebGL && tier.clouds === 'volumetric';
+  const tideAtmo = new TidewaterAtmosphere(renderer, { compute: !actualWebGL, irradiance: liveClouds });
+  const tideSky = new TidewaterSky(tideAtmo) as unknown as TidewaterSkyPort;
+  const tideClouds = liveClouds
     ? (new TidewaterClouds(renderer, tideAtmo) as unknown as TidewaterCloudsPort)
     : null;
-  if (tideSky && tideClouds) {
+  const bakedClouds = liveClouds ? null : createBakedClouds(renderer);
+  tideSky.starIntensity.value = 0;
+  if (tideClouds) {
     if (tier.tier === 'medium') {
       tideClouds.resolutionScale = 0.5;
       tideClouds.viewQuality.maxSteps = 128;
@@ -215,25 +223,21 @@ export function createSky(
     (tideClouds as unknown as { cirrus: { value: number } }).cirrus.value =
       cirrusQ !== null ? Number(cirrusQ) : 0.12;
     applyCloudDebugParams(tideClouds);
-    tideSky.clouds = tideClouds;
-    tideSky.starIntensity.value = 0;
   }
-  const sky = createAtmosphereSky({ radius: R, sunDisc: !tideSky, clouds: !tideSky });
-  const bakedSky = !tideSky ? createBakedTidewaterSky(R, renderer) : null;
-  const tideMaterial = tideSky
-    ? new MeshBasicNodeMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false })
-    : null;
-  if (tideMaterial && tideSky) tideMaterial.colorNode = tideSky.backgroundNode().rgb;
-  const tideMesh = tideMaterial ? new Mesh(new SphereGeometry(R, 64, 32), tideMaterial) : null;
-  if (tideMesh) {
-    tideMesh.frustumCulled = false;
-    tideMesh.renderOrder = -10;
-  }
-  if (tideSky) {
-    scene.add(tideMesh!);
-  } else {
-    scene.add(bakedSky!.mesh);
-  }
+  tideSky.clouds = tideClouds ?? bakedClouds;
+  // Holds the keyed haze colours the environment capture's sky copies (it is never drawn).
+  const sky = createAtmosphereSky({ radius: R, sunDisc: false, clouds: false });
+  const tideMaterial = new MeshBasicNodeMaterial({
+    side: BackSide,
+    depthWrite: false,
+    depthTest: false,
+    fog: false,
+  });
+  tideMaterial.colorNode = tideSky.backgroundNode().rgb;
+  const tideMesh = new Mesh(new SphereGeometry(R, 64, 32), tideMaterial);
+  tideMesh.frustumCulled = false;
+  tideMesh.renderOrder = -10;
+  scene.add(tideMesh);
 
   // A separate sky-only scene for environment captures (never includes the world).
   const envScene = new Scene();
@@ -349,16 +353,10 @@ export function createSky(
       world.hazeColor.value.setRGB(k.haze[0], k.haze[1], k.haze[2]);
       densityU.value = k.fog;
       syncTidewaterGlobals(dt, tideAtmo as unknown as Parameters<typeof syncTidewaterGlobals>[1]);
-      if (tideAtmo)
-        (tideAtmo as unknown as { sunDir: { value: Vector3 } }).sunDir.value.set(
-          s.sun[0],
-          s.sun[1],
-          s.sun[2],
-        );
-      if (tideSky) {
-        tideSky.starIntensity.value = s.night;
-        tideSky.moonDir.value.copy(world.moonDir.value);
-      }
+      (tideAtmo as unknown as { sunDir: { value: Vector3 } }).sunDir.value.set(s.sun[0], s.sun[1], s.sun[2]);
+      tideSky.starIntensity.value = s.night;
+      tideSky.moonDir.value.copy(world.moonDir.value);
+      bakedClouds?.update(s);
 
       sky.haze.rayleigh.value.setRGB(k.sky[0] * 0.7, k.sky[1] * 0.9, Math.min(1.15, k.sky[2] * 1.25));
       sky.haze.mie.value.setRGB(k.haze[0], k.haze[1], k.haze[2]);
@@ -366,10 +364,6 @@ export function createSky(
       envSky.haze.rayleigh.value.copy(sky.haze.rayleigh.value);
       envSky.haze.mie.value.copy(sky.haze.mie.value);
       envSky.haze.groundBounce.value.copy(sky.haze.groundBounce.value);
-      if (!tideSky) {
-        bakedSky?.update(state);
-        bakedSky?.mesh.position.copy(focus);
-      }
 
       sun.color.setRGB(k.sun[0], k.sun[1], k.sun[2]);
       sun.intensity = I;
@@ -384,9 +378,9 @@ export function createSky(
       hemi.groundColor.setRGB(k.ground[0], k.ground[1], k.ground[2]);
       hemi.intensity = k.hemiI;
       renderer.toneMappingExposure = k.exposure;
-      tideAtmo?.update(dt, camera?.position.y ?? 1);
+      tideAtmo.update(dt, camera?.position.y ?? 1);
       if (tideClouds && camera) tideClouds.update(dt, camera);
-      if (tideMesh) tideMesh.position.copy(focus);
+      tideMesh.position.copy(focus);
 
       if (csmNode && csmNode.camera === camera) csmNode.updateFrustums();
 
@@ -408,20 +402,21 @@ export function createSky(
       }
       forced = false;
     },
-    prefetch: (hours) => bakedSky?.prefetch(hours).catch(() => {}) ?? Promise.resolve(),
+    bakeLayer(layer) {
+      tideSky.bakeLayer.value = layer;
+    },
+    prefetch: (hours) => bakedClouds?.prefetch(hours).catch(() => {}) ?? Promise.resolve(),
     invalidate() {
       forced = true;
-      tideAtmo?.invalidate();
+      tideAtmo.invalidate();
       tideClouds?.invalidate();
-      bakedSky?.invalidate();
     },
     cloudShadowNode:
       tideClouds && tier.cloudShadowRes > 0
         ? (worldXZ: Node<'vec2'>) => tideClouds.shadow(worldXZ)
         : undefined,
     dispose() {
-      scene.remove(sky.mesh, bakedSky?.mesh ?? sky.mesh, sun, sun.target, hemi);
-      if (tideMesh) scene.remove(tideMesh);
+      scene.remove(tideMesh, sun, sun.target, hemi);
       if (scene.environment === envRT.texture) scene.environment = null;
       if (scene.fogNode === hazeNode) scene.fogNode = null;
       csmNode?.dispose();
@@ -430,9 +425,10 @@ export function createSky(
       pmrem.dispose();
       sky.dispose();
       envSky.dispose();
-      bakedSky?.dispose();
-      tideMesh?.geometry.dispose();
-      tideMaterial?.dispose();
+      bakedClouds?.dispose();
+      tideAtmo.dispose();
+      tideMesh.geometry.dispose();
+      tideMaterial.dispose();
       envNightDome.geometry.dispose();
       if (envNightDome.material instanceof Array)
         envNightDome.material.forEach((material) => material.dispose());
