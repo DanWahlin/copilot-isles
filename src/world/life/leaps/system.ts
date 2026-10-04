@@ -55,6 +55,10 @@ interface Splash {
   start: number;
   duration: number;
   scale: number;
+  /** 0..1, shape and orientation variety. */
+  seed: number;
+  /** 0 breaking the surface, 1 diving back in (with a plume). */
+  kind: number;
 }
 
 const MAX_DOLPHINS = 12;
@@ -110,9 +114,18 @@ function velocityAt(agent: Agent, s: number, out: Vector3): Vector3 {
   return out;
 }
 
-function spawnSplash(splashes: Splash[], x: number, z: number, t: number, scale: number): void {
+function spawnSplash(splashes: Splash[], x: number, z: number, t: number, scale: number, kind = 0): void {
   if (splashes.length >= MAX_SPLASHES) splashes.shift();
-  splashes.push({ x, z, start: t, duration: 1.1, scale });
+  const seed = Math.random();
+  splashes.push({
+    x,
+    z,
+    start: t,
+    duration: kind ? 1.7 : 1.4,
+    scale: scale * (0.85 + seed * 0.3),
+    seed,
+    kind,
+  });
 }
 
 function addPod(agents: Agent[], splashes: Splash[], arc: LeapArc, now: number, rng: () => number): void {
@@ -167,12 +180,16 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
   const dolphinAmp = new InstancedBufferAttribute(new Float32Array(MAX_DOLPHINS), 1);
   const fishPhase = new InstancedBufferAttribute(new Float32Array(MAX_FISH), 1);
   const fishAmp = new InstancedBufferAttribute(new Float32Array(MAX_FISH), 1);
-  const splashAlpha = new InstancedBufferAttribute(new Float32Array(MAX_SPLASHES), 1);
+  const splashAge = new InstancedBufferAttribute(new Float32Array(MAX_SPLASHES), 1);
+  const splashSeed = new InstancedBufferAttribute(new Float32Array(MAX_SPLASHES), 1);
+  const splashKind = new InstancedBufferAttribute(new Float32Array(MAX_SPLASHES), 1);
   dolphinGeometry.setAttribute('leapPhase', dolphinPhase);
   dolphinGeometry.setAttribute('leapAmp', dolphinAmp);
   fishGeometry.setAttribute('leapPhase', fishPhase);
   fishGeometry.setAttribute('leapAmp', fishAmp);
-  splashGeometry.setAttribute('splashAlpha', splashAlpha);
+  splashGeometry.setAttribute('splashAge', splashAge);
+  splashGeometry.setAttribute('splashSeed', splashSeed);
+  splashGeometry.setAttribute('splashKind', splashKind);
 
   const dolphinMesh = new InstancedMesh(dolphinGeometry, createDolphinMaterial(), MAX_DOLPHINS);
   const fishMesh = new InstancedMesh(fishGeometry, createFlyingFishMaterial(), MAX_FISH);
@@ -267,6 +284,7 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
           a.end.z + a.offset.z,
           now,
           a.kind === 'dolphin' ? 2.8 * a.scale : 0.7,
+          1,
         );
         a.splashedEntry = true;
       }
@@ -311,17 +329,22 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
         continue;
       }
       if (s >= MAX_SPLASHES) continue;
-      const scale = splash.scale * (0.45 + age * 1.8);
-      tmpEuler.set(-Math.PI / 2, 0, 0, 'YXZ');
+      // Shape and growth over its life are in the shader; here only placement and a random turn.
+      const scale = splash.scale * 0.75;
+      tmpEuler.set(0, splash.seed * Math.PI * 2, 0, 'YXZ');
       tmpQuat.setFromEuler(tmpEuler);
-      tmpMatrix.compose(tmpPos.set(splash.x, 0.06, splash.z), tmpQuat, tmpScale.set(scale, scale, scale));
+      tmpMatrix.compose(tmpPos.set(splash.x, 0.04, splash.z), tmpQuat, tmpScale.set(scale, scale, scale));
       splashMesh.setMatrixAt(s, tmpMatrix);
-      splashAlpha.setX(s, (1 - age) * (0.75 + age * 0.25));
+      splashAge.setX(s, age);
+      splashSeed.setX(s, splash.seed);
+      splashKind.setX(s, splash.kind);
       s++;
     }
     splashMesh.count = s;
     splashMesh.instanceMatrix.needsUpdate = true;
-    splashAlpha.needsUpdate = true;
+    splashAge.needsUpdate = true;
+    splashSeed.needsUpdate = true;
+    splashKind.needsUpdate = true;
   }
 
   return {

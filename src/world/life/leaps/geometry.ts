@@ -79,30 +79,94 @@ export function createFlyingFishGeometry(): BufferGeometry {
   return finish(b);
 }
 
+/**
+ * A splash, y up, about 1 unit across: a ragged foam patch on the water (part 0), a crown of uneven
+ * sheets of water leaning outward (part 1) and a central plume of crossed spray cards (part 2, entry
+ * splashes only). The shader rises and collapses the sheets and breaks their tops into droplets.
+ * Attributes: `uv` (0..1 across and up each card; planar on the foam), `leapPart`, `sheetRand`.
+ */
 export function createSplashGeometry(): BufferGeometry {
-  const b = new Builder();
-  b.quad([-0.5, 0, -0.5], [0.5, 0, -0.5], [0.5, 0, 0.5], [-0.5, 0, 0.5], 0);
-  for (let i = 0; i < 14; i++) {
-    const a = (i / 14) * Math.PI * 2;
-    const r0 = 0.08 + (i % 4) * 0.035;
-    const r1 = 0.25 + (i % 5) * 0.055;
-    const w = 0.012 + (i % 3) * 0.006;
-    const x0 = Math.cos(a) * r0;
-    const z0 = Math.sin(a) * r0;
-    const x1 = Math.cos(a) * r1;
-    const z1 = Math.sin(a) * r1;
-    b.tri(
-      [x0 - Math.sin(a) * w, 0.03, z0 + Math.cos(a) * w],
-      [x0 + Math.sin(a) * w, 0.03, z0 - Math.cos(a) * w],
-      [x1, 0.22 + (i % 4) * 0.06, z1],
+  const pos: number[] = [];
+  const uvs: number[] = [];
+  const parts: number[] = [];
+  const rands: number[] = [];
+  let seed = 0x5eed;
+  const rnd = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  const vert = (p: number[], u: number, v: number, part: number, r: number) => {
+    pos.push(p[0]!, p[1]!, p[2]!);
+    uvs.push(u, v);
+    parts.push(part);
+    rands.push(r);
+  };
+  const card = (bl: number[], br: number[], tr: number[], tl: number[], part: number, r: number) => {
+    vert(bl, 0, 0, part, r);
+    vert(br, 1, 0, part, r);
+    vert(tr, 1, 1, part, r);
+    vert(bl, 0, 0, part, r);
+    vert(tr, 1, 1, part, r);
+    vert(tl, 0, 1, part, r);
+  };
+
+  // Foam: a flat disc just above the water; the shader gives it a ragged, lacy edge.
+  const FOAM_R = 0.85;
+  const SEG = 24;
+  for (let i = 0; i < SEG; i++) {
+    const a0 = (i / SEG) * Math.PI * 2,
+      a1 = ((i + 1) / SEG) * Math.PI * 2;
+    const p0 = [Math.cos(a0) * FOAM_R, 0.01, Math.sin(a0) * FOAM_R];
+    const p1 = [Math.cos(a1) * FOAM_R, 0.01, Math.sin(a1) * FOAM_R];
+    for (const p of [[0, 0.01, 0], p0, p1])
+      vert(p, p[0]! / (2 * FOAM_R) + 0.5, p[2]! / (2 * FOAM_R) + 0.5, 0, 0);
+  }
+
+  // Crown: uneven sheets around the hole, leaning out, with gaps.
+  const SHEETS = 11;
+  for (let i = 0; i < SHEETS; i++) {
+    const a = ((i + rnd() * 0.6) / SHEETS) * Math.PI * 2;
+    const r = 0.3 + rnd() * 0.16;
+    const w = 0.16 + rnd() * 0.16;
+    const h = 0.32 + rnd() * 0.42;
+    const lean = h * (0.35 + rnd() * 0.4);
+    const cx = Math.cos(a),
+      cz = Math.sin(a),
+      tx = -cz,
+      tz = cx;
+    const rt = r + lean;
+    const wt = w * (0.55 + rnd() * 0.35);
+    card(
+      [cx * r - tx * w * 0.5, 0, cz * r - tz * w * 0.5],
+      [cx * r + tx * w * 0.5, 0, cz * r + tz * w * 0.5],
+      [cx * rt + tx * wt * 0.5, h, cz * rt + tz * wt * 0.5],
+      [cx * rt - tx * wt * 0.5, h, cz * rt - tz * wt * 0.5],
       1,
+      rnd(),
     );
   }
-  const geometry = finish(b);
-  const uvData: number[] = [];
-  for (let i = 0; i < 6; i++)
-    uvData.push([0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1][i * 2], [0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1][i * 2 + 1]);
-  for (let i = 6; i < b.positions.length / 3; i++) uvData.push(0.5, 0.5);
-  geometry.setAttribute('uv', new Float32BufferAttribute(uvData, 2));
+
+  // Plume: three crossed cards, slightly tilted.
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI + rnd() * 0.3;
+    const dx = Math.cos(a) * 0.13,
+      dz = Math.sin(a) * 0.13;
+    const tilt = (rnd() - 0.5) * 0.12;
+    card(
+      [-dx, 0, -dz],
+      [dx, 0, dz],
+      [dx * 0.6 + tilt, 1, dz * 0.6],
+      [-dx * 0.6 + tilt, 1, -dz * 0.6],
+      2,
+      rnd(),
+    );
+  }
+
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+  geometry.setAttribute('leapPart', new Float32BufferAttribute(parts, 1));
+  geometry.setAttribute('sheetRand', new Float32BufferAttribute(rands, 1));
+  geometry.computeBoundingSphere();
   return geometry;
 }
