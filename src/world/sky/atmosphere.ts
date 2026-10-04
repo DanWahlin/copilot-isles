@@ -14,7 +14,6 @@ import {
   dot,
   exp,
   float,
-  fract,
   max,
   mix,
   normalize,
@@ -195,7 +194,8 @@ export function createCloudDome(radius: number): Mesh<SphereGeometry, MeshBasicN
   return mesh;
 }
 
-export function createNightDome(radius: number, full: boolean): Mesh {
+/** The moonlit glow and moon halo for the environment capture (the visible stars and moon are in Sky.ts). */
+export function createNightDome(radius: number): Mesh {
   const mat = new MeshBasicNodeMaterial({
     side: BackSide,
     depthWrite: false,
@@ -212,29 +212,7 @@ export function createNightDome(radius: number, full: boolean): Mesh {
       .mul(moonUp.mul(0.6).add(0.4))
       .add(vec3(0.25, 0.3, 0.42).mul(pow(max(md, 0), 8).mul(0.35).mul(moonUp)));
     const halo = vec3(0.7, 0.78, 0.95).mul(pow(max(md, 0), 180).mul(0.3));
-    let col = glow.add(halo);
-    if (full) {
-      const cell = dir.mul(180).floor();
-      const h = fract(sin(dot(cell, vec3(12.9898, 78.233, 37.719))).mul(43758.5453));
-      const h2 = fract(h.mul(91.7));
-      const d = fract(dir.mul(180)).sub(0.5).length();
-      const star = smoothstep(0.18, 0.0, d)
-        .mul(smoothstep(0.985, 1.0, h))
-        .mul(h2.mul(1.6).add(0.4));
-      const twinkle = sin(world.time.mul(h2.mul(3).add(1)).add(h.mul(40)))
-        .mul(0.25)
-        .add(0.75);
-      const above = smoothstep(-0.02, 0.12, dir.y);
-      const disc = smoothstep(0.99955, 0.99975, md);
-      col = col.add(
-        star
-          .mul(twinkle)
-          .mul(above)
-          .mul(vec3(0.9, 0.95, 1.0))
-          .mul(1.6),
-      );
-      col = col.add(vec3(0.95, 0.96, 1.0).mul(disc.mul(3.0)));
-    }
+    const col = glow.add(halo);
     return col.mul(world.night);
   })();
   const m = new Mesh(new SphereGeometry(radius, 48, 24), mat);

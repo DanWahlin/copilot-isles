@@ -214,7 +214,6 @@ export function createSky(
     tideSky.starIntensity.value = 0;
   }
   const sky = createAtmosphereSky({ radius: R, sunDisc: !tideSky, clouds: !tideSky });
-  const nightDome = createNightDome(R * 0.45, !tideSky);
   const bakedSky = !tideSky ? createBakedTidewaterSky(R) : null;
   const tideMaterial = tideSky
     ? new MeshBasicNodeMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false })
@@ -228,13 +227,13 @@ export function createSky(
   if (tideSky) {
     scene.add(tideMesh!);
   } else {
-    scene.add(bakedSky!.mesh, nightDome);
+    scene.add(bakedSky!.mesh);
   }
 
   // A separate sky-only scene for environment captures (never includes the world).
   const envScene = new Scene();
   const envSky = createAtmosphereSky({ radius: 1000, sunDisc: false, clouds: false });
-  const envNightDome = createNightDome(400, false);
+  const envNightDome = createNightDome(400);
   envScene.add(envSky.mesh, envNightDome);
   const pmrem = new PMREMGenerator(renderer);
   const envSize = tier.tier === 'lite' || tier.tier === 'low' ? 64 : 128;
@@ -365,7 +364,6 @@ export function createSky(
       if (!tideSky) {
         bakedSky?.update(state);
         bakedSky?.mesh.position.copy(focus);
-        nightDome.position.copy(focus);
       }
 
       sun.color.setRGB(k.sun[0], k.sun[1], k.sun[2]);
@@ -416,7 +414,7 @@ export function createSky(
         ? (worldXZ: Node<'vec2'>) => tideClouds.shadow(worldXZ)
         : undefined,
     dispose() {
-      scene.remove(sky.mesh, bakedSky?.mesh ?? sky.mesh, nightDome, sun, sun.target, hemi);
+      scene.remove(sky.mesh, bakedSky?.mesh ?? sky.mesh, sun, sun.target, hemi);
       if (tideMesh) scene.remove(tideMesh);
       if (scene.environment === envRT.texture) scene.environment = null;
       if (scene.fogNode === hazeNode) scene.fogNode = null;
@@ -429,9 +427,6 @@ export function createSky(
       bakedSky?.dispose();
       tideMesh?.geometry.dispose();
       tideMaterial?.dispose();
-      nightDome.geometry.dispose();
-      if (nightDome.material instanceof Array) nightDome.material.forEach((material) => material.dispose());
-      else nightDome.material.dispose();
       envNightDome.geometry.dispose();
       if (envNightDome.material instanceof Array)
         envNightDome.material.forEach((material) => material.dispose());
