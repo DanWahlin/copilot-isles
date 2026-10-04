@@ -2,6 +2,7 @@ import { NoToneMapping, Raycaster, Vector2 } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createPost } from '../engine/post';
 import { createCove } from '../world/cove-scene';
+import { SKY_KEYS, bakeAzimuthDeg } from '../world/sky/clouds/BakedPanorama';
 import { MERIDIAN } from '../world/islands/meridian';
 import { ANCHORAGE_SLUICE, flow, openings, solutionPath } from '../world/sites/sluice-logic';
 import {
@@ -220,6 +221,8 @@ function skyLook(eye: number[], dir: number[], up: number[] = [0, 1, 0]) {
   setCam,
   skyBake,
   skyLook,
+  /** The baked sky keys (BakedPanorama.ts), with the azimuth setting each is baked at. */
+  skyKeys: () => SKY_KEYS.map((k) => ({ ...k, az: bakeAzimuthDeg(k.hours) })),
   /** Poses the P0.1 mill race: 'dry' (start tiles, gate shut), 'gate' (start tiles, gate open), or 'solved'. */
   mill: (mode: 'dry' | 'gate' | 'solved' = 'solved') => {
     const L = ANCHORAGE_SLUICE;

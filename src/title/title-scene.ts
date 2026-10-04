@@ -19,8 +19,13 @@ export interface TitleBackdrop {
   setInteractive(on: boolean): void;
   /** Drag-to-look state, for tests. */
   readonly orbit: TitleOrbit;
+  /** Resolves once the sky's assets are loaded and on the GPU (the baked keys on the lower tiers). */
+  readonly ready: Promise<void>;
   dispose(): void;
 }
+
+/** The title's time of day: a low golden-hour sun. */
+const TITLE_HOURS = 17.1;
 
 /**
  * The title backdrop (PLAN §13.5, POC §3.1): open ocean, sky, and your brigantine at anchor,
@@ -97,8 +102,9 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
 
   const shipEnv: BrigantineEnv = { waves: ocean.field, ground: null, obstacles: [], t: 0 };
 
-  clock.set(17.1, -35);
+  clock.set(TITLE_HOURS, -35);
   sky.invalidate();
+  const ready = sky.prefetch([TITLE_HOURS]);
   camera.fov = 42;
   camera.updateProjectionMatrix();
 
@@ -167,6 +173,7 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
       renderer.domElement.style.cursor = on ? 'grab' : '';
     },
     orbit,
+    ready,
     dispose() {
       disposed = true;
       unbind();

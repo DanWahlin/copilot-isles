@@ -14,5 +14,6 @@
       "maxGzipKB": 70
     }
   },
-  "titleWireMaxKB": 4096
+  "titleWireMaxKB": 4096,
+  "skyKeyMaxKB": 96
 }

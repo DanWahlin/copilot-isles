@@ -126,6 +126,11 @@ export interface SkySystem {
   update(clock: DayClock, focus: Vector3, dt?: number, camera?: Camera): void;
   /** Force an environment + shadow refresh (e.g. after a time scrub). */
   invalidate(): void;
+  /**
+   * Loads what the sky needs at these hours and puts it on the GPU (the baked keys on WebGL2, Low,
+   * Lite and Medium), so time changes later in play don't hitch. Resolves at once on the live sky.
+   */
+  prefetch(hours: readonly number[]): Promise<void>;
   dispose(): void;
 }
 
@@ -214,7 +219,7 @@ export function createSky(
     tideSky.starIntensity.value = 0;
   }
   const sky = createAtmosphereSky({ radius: R, sunDisc: !tideSky, clouds: !tideSky });
-  const bakedSky = !tideSky ? createBakedTidewaterSky(R) : null;
+  const bakedSky = !tideSky ? createBakedTidewaterSky(R, renderer) : null;
   const tideMaterial = tideSky
     ? new MeshBasicNodeMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false })
     : null;
@@ -403,6 +408,7 @@ export function createSky(
       }
       forced = false;
     },
+    prefetch: (hours) => bakedSky?.prefetch(hours).catch(() => {}) ?? Promise.resolve(),
     invalidate() {
       forced = true;
       tideAtmo?.invalidate();
