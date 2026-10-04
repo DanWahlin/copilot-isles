@@ -1,0 +1,434 @@
+/* Battle HUD (docs/specs/BATTLES.md §5, #204): shown only in battle. */
+.bh {
+  --glass: rgba(10, 22, 32, 0.56);
+  --edge: rgba(232, 200, 138, 0.38);
+  --gold: #e8c88a;
+  --brass: #c99a4b;
+  --linen: #e7dcc2;
+  --amber: #f2a83a;
+  --warn: #ff5a2a;
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  color: #f6ecd6;
+  font-family: Georgia, 'Times New Roman', serif;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.bh.show {
+  opacity: 1;
+}
+.bh button {
+  font: inherit;
+  color: inherit;
+}
+
+/* ---- Top: hull planks, the wave, bonuses ---- */
+.bh-top {
+  position: absolute;
+  top: 1.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  padding: 0.6rem 1.1rem 0.55rem;
+  border-radius: 0.9rem;
+  background: var(--glass);
+  border: 1px solid var(--edge);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.bh-hull {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.bh-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.bh-planks {
+  display: flex;
+  gap: 3px;
+}
+.bh-plank {
+  width: 1.35rem;
+  height: 0.62rem;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #b78a55, #8a6136);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+  transition:
+    background 0.4s ease,
+    opacity 0.4s ease;
+}
+.bh-plank.lost {
+  background: linear-gradient(180deg, #3b2a1c, #24170e);
+  opacity: 0.55;
+}
+.bh.low-hull .bh-plank:not(.lost) {
+  background: linear-gradient(180deg, #d8834e, #9c4a26);
+}
+.bh-wave {
+  font-size: 0.92rem;
+}
+.bh-bonus {
+  font-size: 0.74rem;
+  color: var(--gold);
+  min-height: 0.9em;
+}
+
+.bh-skip {
+  position: absolute;
+  top: 1.4rem;
+  right: 1.4rem;
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: var(--glass);
+  pointer-events: auto;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.bh-skip:hover,
+.bh-skip:focus-visible {
+  border-color: var(--gold);
+}
+
+/* ---- Captions ---- */
+.bh-captions {
+  position: absolute;
+  left: 50%;
+  bottom: 11.5rem;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  width: min(36rem, 90vw);
+}
+.bh-caption {
+  padding: 0.22rem 0.8rem;
+  border-radius: 0.5rem;
+  background: rgba(8, 16, 24, 0.62);
+  font-size: 0.9rem;
+  animation: bh-in 0.25s ease both;
+}
+@keyframes bh-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* ---- Bottom: the two batteries and the Fire button ---- */
+.bh-guns {
+  position: absolute;
+  left: 50%;
+  bottom: 1.6rem;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 1.1rem;
+}
+.bh-side {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  min-width: 44px;
+  min-height: 64px;
+  padding: 0.55rem 0.8rem 0.7rem;
+  border-radius: 0.9rem;
+  border: 1px solid var(--edge);
+  background: var(--glass);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: auto;
+  cursor: pointer;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.bh-side-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.bh-key,
+.bh-fire kbd {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0;
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.3rem;
+  border: 1px solid rgba(232, 200, 138, 0.5);
+  color: #f6ecd6;
+}
+.bh-row {
+  display: flex;
+  gap: 0.42rem;
+  align-items: flex-end;
+}
+.bh-rail {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #6d5530, #a07c42, #6d5530);
+  transition:
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.bh-side.bears {
+  border-color: var(--gold);
+  box-shadow: 0 0 18px rgba(255, 210, 120, 0.25);
+}
+.bh-side.bears .bh-rail {
+  background: linear-gradient(90deg, #e8c88a, #fff0c4, #e8c88a);
+  box-shadow: 0 0 10px rgba(255, 214, 130, 0.85);
+}
+.bh-pennant {
+  position: absolute;
+  top: -1.45rem;
+  padding: 0.12rem 0.6rem 0.16rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #2a1a08;
+  background: linear-gradient(180deg, #f5d796, #d9ad5c);
+  clip-path: polygon(0 0, 100% 0, 92% 50%, 100% 100%, 0 100%, 8% 50%);
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+.bh-side.bears .bh-pennant {
+  opacity: 1;
+  transform: none;
+}
+
+/* A powder cartridge: a linen bag tied at the neck, with a brass cap; it fills with amber as the gun reloads. */
+.bh-cart {
+  display: grid;
+  justify-items: center;
+  width: 1.15rem;
+}
+.bh-cap {
+  width: 0.62rem;
+  height: 0.28rem;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(90deg, #8c6a32, #e2bb6e, #8c6a32);
+}
+.bh-bag {
+  position: relative;
+  width: 1.15rem;
+  height: 2.3rem;
+  border-radius: 0.32rem 0.32rem 0.5rem 0.5rem;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(0deg, rgba(120, 100, 70, 0.14) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(120, 100, 70, 0.12) 0 1px, transparent 1px 3px), var(--linen);
+  box-shadow:
+    inset 0 0 0 1px rgba(80, 60, 30, 0.45),
+    inset -3px 0 4px rgba(0, 0, 0, 0.18);
+  opacity: 0.85;
+}
+.bh-bag::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0.32rem;
+  height: 2px;
+  background: rgba(90, 60, 30, 0.55);
+}
+.bh-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 100%;
+  transform: scaleY(0);
+  background:
+    repeating-linear-gradient(0deg, rgba(90, 40, 0, 0.18) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #ffc964, var(--amber) 45%, #c4661a);
+  transition: transform 0.12s linear;
+}
+.bh-cart.full .bh-bag {
+  opacity: 1;
+  box-shadow:
+    inset 0 0 0 1px rgba(120, 70, 10, 0.6),
+    0 0 8px rgba(255, 170, 60, 0.55);
+}
+
+.bh-fire {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.15rem;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  border: 2px solid #8c6a32;
+  background: radial-gradient(circle at 35% 30%, #4a3a26, #1d150c 70%);
+  box-shadow: inset 0 0 0 3px rgba(226, 187, 110, 0.35);
+  pointer-events: auto;
+  cursor: pointer;
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+.bh-fire.ready {
+  border-color: var(--gold);
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 220, 150, 0.6),
+    0 0 22px rgba(255, 200, 110, 0.45);
+}
+.bh-fire.ready span {
+  color: #ffe6b0;
+}
+
+/* ---- The between-wave card, break-off, and the win ---- */
+.bh-veil {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 12, 18, 0.55);
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+.bh[data-phase='breakoff'] .bh-veil {
+  opacity: 1;
+}
+.bh-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(34rem, 92vw);
+  max-height: 80vh;
+  overflow: auto;
+  transform: translate(-50%, -46%);
+  padding: 1.3rem 1.5rem 1.2rem;
+  border-radius: 1.1rem;
+  background: rgba(12, 24, 34, 0.86);
+  border: 1px solid var(--edge);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: auto;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+.bh-card.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%);
+}
+.bh-card.slim {
+  top: 24%;
+  pointer-events: none;
+}
+.bh-card h2 {
+  margin: 0 0 0.5rem;
+  font-weight: normal;
+  font-size: 1.3rem;
+  color: var(--gold);
+}
+.bh-card p {
+  margin: 0.4rem 0;
+  line-height: 1.45;
+}
+.bh-card code {
+  font-size: 0.85em;
+  padding: 0 0.25em;
+  border-radius: 0.25em;
+  background: rgba(255, 255, 255, 0.08);
+}
+.bh-situation {
+  padding: 0.5rem 0.7rem;
+  border-left: 3px solid var(--brass);
+  background: rgba(255, 255, 255, 0.04);
+}
+.bh-options,
+.bh-picks {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+}
+.bh-choice {
+  display: grid;
+  gap: 0.15rem;
+  min-height: 44px;
+  padding: 0.55rem 0.9rem;
+  text-align: left;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(232, 200, 138, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+.bh-choice:hover:not(:disabled),
+.bh-choice:focus-visible {
+  border-color: var(--gold);
+  background: rgba(255, 255, 255, 0.09);
+}
+.bh-choice:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+.bh-choice.right {
+  opacity: 1;
+  border-color: #8fd18f;
+}
+.bh-choice.wrong {
+  opacity: 1;
+  border-color: #e39a7a;
+}
+.bh-options .bh-choice {
+  display: block;
+  line-height: 1.45;
+}
+.bh-choice i {
+  font-style: normal;
+  margin-right: 0.4em;
+}
+.bh-choice.pick span {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+.bh-pick-head {
+  color: var(--gold);
+}
+.bh-feedback:empty {
+  display: none;
+}
+.bh-source {
+  color: var(--gold);
+}
+.bh-link {
+  margin-top: 0.7rem;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  text-decoration: underline;
+  opacity: 0.75;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bh-caption {
+    animation: none;
+  }
+  .bh-fill {
+    transition: none;
+  }
+}

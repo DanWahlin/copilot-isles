@@ -46,9 +46,13 @@ export interface BrigantineUniforms {
 }
 
 let shipWoodTexture: Texture | null = null;
-let shipLabelTexture: Texture | null = null;
-let shipLabelCanvas: HTMLCanvasElement | null = null;
-let shipName = '';
+
+/** One ship's name boards and gallery plaques: its own canvas, so every hull can carry its own name. */
+export interface ShipLabel {
+  texture: Texture;
+  canvas: HTMLCanvasElement | null;
+  name: string;
+}
 
 export function fitShipNameFontSize(
   name: string,
@@ -82,34 +86,37 @@ function getShipWoodTexture(): Texture {
   return shipWoodTexture;
 }
 
-function getShipLabelTexture(): Texture {
-  if (shipLabelTexture) return shipLabelTexture;
+export function createShipLabel(): ShipLabel {
+  let texture: Texture;
+  let canvas: HTMLCanvasElement | null = null;
   if (typeof document === 'undefined') {
-    shipLabelTexture = new DataTexture(
+    texture = new DataTexture(
       new Uint8Array([205, 151, 64, 255, 24, 23, 22, 255]),
       2,
       1,
       RGBAFormat,
       UnsignedByteType,
     );
-    shipLabelTexture.needsUpdate = true;
+    texture.needsUpdate = true;
   } else {
-    const canvas = document.createElement('canvas');
+    canvas = document.createElement('canvas');
     canvas.width = 1024;
     canvas.height = 512;
-    shipLabelCanvas = canvas;
-    shipLabelTexture = new CanvasTexture(canvas);
-    repaintShipLabelCanvas();
+    texture = new CanvasTexture(canvas);
   }
-  shipLabelTexture.colorSpace = SRGBColorSpace;
-  shipLabelTexture.generateMipmaps = true;
-  shipLabelTexture.minFilter = LinearMipmapLinearFilter;
-  shipLabelTexture.magFilter = LinearFilter;
-  shipLabelTexture.anisotropy = 4;
-  return shipLabelTexture;
+  texture.colorSpace = SRGBColorSpace;
+  texture.generateMipmaps = true;
+  texture.minFilter = LinearMipmapLinearFilter;
+  texture.magFilter = LinearFilter;
+  texture.anisotropy = 4;
+  const label: ShipLabel = { texture, canvas, name: '' };
+  repaintShipLabelCanvas(label);
+  return label;
 }
 
-function repaintShipLabelCanvas(): void {
+function repaintShipLabelCanvas(label: ShipLabel): void {
+  const shipLabelCanvas = label.canvas;
+  const shipName = label.name;
   if (!shipLabelCanvas) return;
   const ctx = shipLabelCanvas.getContext('2d')!;
   ctx.clearRect(0, 0, shipLabelCanvas.width, shipLabelCanvas.height);
@@ -214,17 +221,16 @@ function repaintShipLabelCanvas(): void {
     ctx.fillText(shipName, 512, 374);
     ctx.shadowBlur = 0;
   }
-  shipLabelTexture!.needsUpdate = true;
+  label.texture.needsUpdate = true;
 }
 
-export function paintShipName(name: string | null): void {
-  shipName = (name ?? '').trim();
-  getShipLabelTexture();
-  repaintShipLabelCanvas();
-  if (shipLabelTexture) shipLabelTexture.needsUpdate = true;
+export function paintShipName(label: ShipLabel, name: string | null): void {
+  label.name = (name ?? '').trim();
+  repaintShipLabelCanvas(label);
+  label.texture.needsUpdate = true;
 }
 
-export function makeShipMaterial(): MeshStandardNodeMaterial {
+export function makeShipMaterial(label: ShipLabel): MeshStandardNodeMaterial {
   const m = new MeshStandardNodeMaterial({
     color: 0xffffff,
     roughness: 0.66,
@@ -288,7 +294,7 @@ export function makeShipMaterial(): MeshStandardNodeMaterial {
     .mul(weave)
     .sub(color(0x5b4328).mul(abs(sin(positionLocal.z.mul(4.5))).mul(0.04)));
   const glow = color(0xffb060).mul(world.night.smoothstep(0.08, 0.9).mul(2.8).add(0.2));
-  const label = texture(getShipLabelTexture(), attribute('uv', 'vec2')).rgb;
+  const labelColor = texture(label.texture, attribute('uv', 'vec2')).rgb;
 
   let outColor = hull;
   outColor = mix(outColor, deck, r1);
@@ -297,7 +303,7 @@ export function makeShipMaterial(): MeshStandardNodeMaterial {
   outColor = mix(outColor, iron, r4);
   outColor = mix(outColor, canvas, r5);
   outColor = mix(outColor, glow, r6);
-  outColor = mix(outColor, label, r7);
+  outColor = mix(outColor, labelColor, r7);
   const submerged = positionLocal.y.negate().smoothstep(0.05, 0.85).mul(r0).mul(0.92);
   outColor = mix(outColor, color(0x06242b), submerged);
   m.colorNode = outColor.mul(vc.mul(0.52).add(0.52));

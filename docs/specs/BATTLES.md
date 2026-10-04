@@ -36,7 +36,7 @@ Anchorage and Port Meridian's harbours stay calm. We'll adjust the later places 
 - **The lesson it echoes.** The Dry-Run Crane: *"Confirm that the `Repository:` line in the output shows
   your fork before you continue"* (00 §Add the Course Practice Items). Your guns fire only when the gold
   firing arc shows a raider in it, so you check what you're aimed at before you commit.
-- **The enemy.** Fog raiders: grey-patched sails, no skulls, name boards *Wrong Fork* and *Dry Powder* (wave
+- **The enemy.** Fog raiders: grey-patched sails, no skulls, name boards *Wrong Fork* and *Unchecked* (wave
   1), then *Stale Branch* (wave 2).
 - **Between the waves.** The bosun asks one Chapter 00 recap question (a `ChoiceQuiz` with its `SourceRef`):
   why you preview with `--dry-run` first, what the setup script creates (labels, issues, practice branches,

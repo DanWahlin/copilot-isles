@@ -50,6 +50,7 @@ import { FLAG_PHASE_PERIOD, createFlagGeometry, flagYaw, makeFlagMaterial } from
 import { windAt } from '../wind';
 import {
   makeCanvasMaterial,
+  createShipLabel,
   makeShipMaterial,
   paintShipName,
   type BrigantineUniforms,
@@ -62,6 +63,11 @@ export { fitShipNameFontSize } from './brigantine-materials';
 
 interface BrigantineOptions {
   tier: Tier;
+  /**
+   * Whether this ship drives the ocean's hull cut-out and wake (default true). The ocean follows one
+   * ship, so other ships (sea-battle raiders) turn it off.
+   */
+  oceanInteraction?: boolean;
 }
 
 export interface BrigantineEnv extends ShipEnv {
@@ -254,7 +260,7 @@ function shortestYaw(a: number, b: number, t: number): number {
   return a + (d - Math.PI) * t;
 }
 
-export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
+export function createBrigantine({ tier, oceanInteraction = true }: BrigantineOptions): Brigantine {
   const group = new Group();
   group.name = `brigantine-${tier}`;
   group.rotation.order = 'YXZ';
@@ -294,13 +300,14 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     return m;
   };
 
-  const shipMaterial = register(makeShipMaterial());
+  const shipLabel = createShipLabel();
+  const shipMaterial = register(makeShipMaterial(shipLabel));
   const riggingLineMaterial = register(
     new LineBasicMaterial({ color: 0x17110c, transparent: true, opacity: 0.78, linewidth: 1.6 }),
   );
   const pipeSystem = createShipPipes(shipMaterial);
   const christening = createChristeningSystem(shipMaterial);
-  paintShipName(null);
+  paintShipName(shipLabel, null);
   addMesh(group, createHullGeometry(tier), shipMaterial, 'rounded planked hull');
   addMesh(group, createDeckGeometry(tier), shipMaterial, 'deck planking rails and fittings', false);
   addMesh(group, createTrimGeometry(tier), shipMaterial, 'wales strakes gunports galleries anchors');
@@ -456,7 +463,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
       uniforms.sailStripe.value.setHex(p.stripe);
     },
     setName(name: string | null): void {
-      paintShipName(name);
+      paintShipName(shipLabel, name);
     },
     setGangway(foot: { x: number; y: number; z: number } | null): void {
       gangway.visible = !!foot;
@@ -544,17 +551,18 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
       flagEased = true;
       localToWorldXZ(dynamics.pose, 0, BOW_Z, oceanBow, 0);
       localToWorldXZ(dynamics.pose, 0, STERN_Z, oceanStern, 0);
-      updateShipOceanInteraction(
-        dynamics.pose.x,
-        dynamics.pose.z,
-        dynamics.pose.heading,
-        dynamics.forwardSpeed,
-        oceanBow[0]!,
-        oceanBow[1]!,
-        oceanStern[0]!,
-        oceanStern[1]!,
-        t,
-      );
+      if (oceanInteraction)
+        updateShipOceanInteraction(
+          dynamics.pose.x,
+          dynamics.pose.z,
+          dynamics.pose.heading,
+          dynamics.forwardSpeed,
+          oceanBow[0]!,
+          oceanBow[1]!,
+          oceanStern[0]!,
+          oceanStern[1]!,
+          t,
+        );
       updateSecondary(dt);
       pipeSystem.update(dt, t);
       christening.update(dt);
@@ -568,6 +576,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
       pipeSystem.dispose();
       christening.dispose();
       for (const material of materials) material.dispose();
+      shipLabel.texture.dispose();
     },
   };
   api.triangleCount = triangleCount(group);
