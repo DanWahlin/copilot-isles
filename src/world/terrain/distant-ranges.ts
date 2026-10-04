@@ -3,6 +3,7 @@ import { attribute, color, float, mix } from 'three/tsl';
 import type { TierSettings } from '../../engine/quality';
 import { clamp01, smoothstep } from '../../util/math';
 import { fbm2, ridged2 } from './cove-height';
+import { world } from '../uniforms';
 
 type QualityTier = TierSettings['tier'];
 
@@ -253,7 +254,10 @@ function createIslandMaterial(): MeshStandardNodeMaterial {
   const wet = attribute('islandWet', 'float') as AnyNode;
   const softened = mix(base, color(0x9fbcb0), haze.mul(0.24)) as AnyNode;
   material.colorNode = softened;
-  material.emissiveNode = mix(base, color(0xaec6b8), haze.mul(0.46)).mul(0.16) as AnyNode;
+  // Light scattered by the haze in front of far land: daylight only, so islands go dark at night.
+  material.emissiveNode = mix(base, color(0xaec6b8), haze.mul(0.46))
+    .mul(0.16)
+    .mul(float(1).sub(world.night.mul(0.9))) as AnyNode;
   material.roughnessNode = mix(float(0.96), float(0.66), wet) as AnyNode;
   return material;
 }
