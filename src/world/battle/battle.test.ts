@@ -22,6 +22,7 @@ import {
   gunStations,
   offBeam,
 } from './gunnery';
+import { haulDown } from './battle';
 import { RaiderBrain, type RaiderHelm, type RaiderView } from './raider-ai';
 
 /** Flies a ball with the same explicit step the battle uses and returns where it crosses height `y`. */
@@ -202,5 +203,41 @@ describe('raider helmsman', () => {
       expect(minDist).toBeGreaterThan(18);
       expect(bore / ((seconds - 60) * 60)).toBeGreaterThan(0.6);
     }
+  });
+});
+
+describe('animation beats', () => {
+  it('kicks a gun back with an overshoot, holds it, then runs it out before it is loaded', () => {
+    const b = new Battery(PORT, gunStations('high'), 7);
+    expect(b.recoil(0, 0)).toBe(0);
+    b.fire(10);
+    const noop = () => undefined;
+    let t = 10;
+    b.update(1 / 60, (t += 1 / 60), noop);
+    const fired = b.firedAt.findIndex((x) => x > 0);
+    expect(fired).toBeGreaterThanOrEqual(0);
+    let peak = 0;
+    const samples: number[] = [];
+    for (let i = 0; i < 60 * 9; i++) {
+      b.update(1 / 60, (t += 1 / 60), noop);
+      const r = b.recoil(fired, t);
+      peak = Math.max(peak, r);
+      samples.push(r);
+    }
+    expect(peak).toBeGreaterThan(0.8);
+    expect(peak).toBeLessThan(0.95);
+    // Back for a while, then out before the gun reads as loaded.
+    expect(samples[60]).toBeGreaterThan(0.75);
+    expect(b.readiness(fired)).toBe(1);
+    expect(samples[samples.length - 1]).toBe(0);
+  });
+
+  it('hauls the colours down with a small lift first and ends at the deck', () => {
+    expect(haulDown(0)).toBe(0);
+    expect(haulDown(0.2)).toBeLessThan(0);
+    expect(haulDown(1.5)).toBeGreaterThan(0);
+    expect(haulDown(1.5)).toBeLessThan(haulDown(3));
+    expect(haulDown(4)).toBe(1);
+    expect(haulDown(10)).toBe(1);
   });
 });

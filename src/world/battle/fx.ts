@@ -17,15 +17,22 @@ import {
   Vector3,
 } from 'three/webgpu';
 import {
+  abs,
   atan,
+  attribute,
   color,
+  cos,
   float,
   instancedDynamicBufferAttribute,
   mix,
+  positionLocal,
   pow,
+  select,
+  sign,
   sin,
   smoothstep,
   uv,
+  vec3,
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { TierSettings } from '../../engine/quality';
@@ -89,6 +96,8 @@ export class BallPool {
   /** Index of the combatant that fired it (−1 = free). */
   readonly owner: Int16Array;
   readonly damage: Float32Array;
+  /** 1 once the ball has whistled past the player's ship (so it sounds once). */
+  readonly whizzed: Uint8Array;
   readonly size: number;
 
   constructor(size: number) {
@@ -102,6 +111,7 @@ export class BallPool {
     this.age = new Float32Array(size);
     this.owner = new Int16Array(size).fill(-1);
     this.damage = new Float32Array(size);
+    this.whizzed = new Uint8Array(size);
     const mat = new MeshStandardNodeMaterial({ color: 0x1b1a19, roughness: 0.42, metalness: 0.65 });
     this.mesh = pooled(new InstancedMesh(new SphereGeometry(BALL_RADIUS, 10, 6), mat, size), 'battle-balls');
   }
@@ -127,6 +137,7 @@ export class BallPool {
       this.vz[i] = vz;
       this.age[i] = 0;
       this.damage[i] = damage;
+      this.whizzed[i] = 0;
       return i;
     }
     return -1;
@@ -528,6 +539,8 @@ export class BoatPool {
   readonly start: Float32Array;
   readonly live: Uint8Array;
   readonly size: number;
+  /** Per drawn boat: oar sweep (rad, + forward), blade lift, and the rowers' lean. */
+  private readonly row: InstancedBufferAttribute;
 
   constructor(size: number) {
     this.size = Math.max(1, size);
@@ -537,10 +550,10 @@ export class BoatPool {
     this.heading = new Float32Array(n);
     this.start = new Float32Array(n);
     this.live = new Uint8Array(n);
-    this.mesh = pooled(
-      new InstancedMesh(createRowboatGeometry(), createVertexColorMaterial(), n),
-      'battle-boats',
-    );
+    const geometry = createRowboatGeometry();
+    this.row = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
+    geometry.setAttribute('boatRow', this.row);
+    this.mesh = pooled(new InstancedMesh(geometry, createBoatMaterial(), n), 'battle-boats');
   }
 
   spawn(x: number, z: number, heading: number, t: number): void {
@@ -564,7 +577,8 @@ export class BoatPool {
         this.live[i] = 0;
         continue;
       }
-      // A stroke every 1.6 s: a surge, then a glide.
+      // A stroke every 1.6 s: the pull (blades in, sweeping aft) drives a surge, then the boat glides
+      // while the oars feather forward, clear of the water.
       const stroke = (age % 1.6) / 1.6;
       const speed = 0.6 + 1.8 * Math.exp(-stroke * 5);
       const h = this.heading[i]!;
@@ -574,8 +588,18 @@ export class BoatPool {
       tmpE.set(Math.sin(t * 1.7 + i) * 0.06 - (1 - stroke) * 0.04, h, Math.sin(t * 1.3 + i) * 0.07, 'YXZ');
       tmpQ.setFromEuler(tmpE);
       tmpM.compose(tmpP.set(this.x[i]!, y, this.z[i]!), tmpQ, tmpS.set(1, 1, 1));
+      const pull = stroke < 0.35;
+      const k = pull ? stroke / 0.35 : (stroke - 0.35) / 0.65;
+      const e = k * k * (3 - 2 * k);
+      this.row.setXYZ(
+        n,
+        pull ? 0.55 - 1.1 * e : -0.55 + 1.1 * e,
+        pull ? 0 : Math.sin(k * Math.PI) * 0.22,
+        pull ? e : 1 - e,
+      );
       this.mesh.setMatrixAt(n++, tmpM);
     }
+    this.row.needsUpdate = true;
     this.mesh.count = n;
     this.mesh.instanceMatrix.needsUpdate = true;
   }
@@ -627,16 +651,52 @@ function createBarrelGeometry(): BufferGeometry {
   return mergeGeometries([paint(body, 0x8b6038), paint(hoopA, 0x2c2a26), paint(hoopB, 0x2c2a26)])!;
 }
 
-/** A ship's boat: a round-bilged hull, thwarts, and three rowers. Bow toward +z. */
+/** A ship's boat: a round-bilged hull, thwarts, three rowers and their oars. Bow toward +z. */
 function createRowboatGeometry(): BufferGeometry {
+  const part = (g: BufferGeometry, id: number) => {
+    const n = g.getAttribute('position').count;
+    g.setAttribute('boatPart', new Float32BufferAttribute(new Float32Array(n).fill(id), 1));
+    return g;
+  };
   const hull = new SphereGeometry(1, 14, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).scale(0.85, 0.5, 2.3);
   const rim = new CylinderGeometry(1, 1, 0.08, 14, 1, true).scale(0.86, 1, 2.32).translate(0, 0.02, 0);
-  const parts = [paint(hull, 0x5b3a22), paint(rim, 0xc9b48a)];
+  const parts = [part(paint(hull, 0x5b3a22), 0), part(paint(rim, 0xc9b48a), 0)];
   for (const z of [-1.0, 0, 1.0]) {
-    parts.push(paint(new BoxGeometry(0.34, 0.5, 0.26).translate(0, 0.35, z), 0x2f3d4c));
-    parts.push(paint(new SphereGeometry(0.13, 8, 6).translate(0, 0.72, z), 0xd2a57c));
-    // Oars, splayed out to both sides.
-    parts.push(paint(new BoxGeometry(2.6, 0.04, 0.07).translate(0, 0.3, z + 0.12), 0xb08a5a));
+    parts.push(part(paint(new BoxGeometry(0.34, 0.5, 0.26).translate(0, 0.35, z), 0x2f3d4c), 1));
+    parts.push(part(paint(new SphereGeometry(0.13, 8, 6).translate(0, 0.72, z), 0xd2a57c), 1));
+    // An oar each side, pivoting at the gunwale (x = ±0.78).
+    for (const side of [-1, 1]) {
+      const oar = new BoxGeometry(1.5, 0.04, 0.07).translate(side * 1.13, 0.3, z + 0.12);
+      parts.push(part(paint(oar, 0xb08a5a), 2));
+    }
   }
   return mergeGeometries(parts)!;
+}
+
+/**
+ * The boat's oars sweep about their oarlocks (forward, then aft through the pull, blades lifted on
+ * the recovery) and the rowers lean back into each stroke, from the per-boat `boatRow` attribute.
+ */
+function createBoatMaterial(): MeshStandardNodeMaterial {
+  const mat = createVertexColorMaterial();
+  const p = positionLocal as AnyNode;
+  const kind = attribute('boatPart', 'float') as AnyNode;
+  const row = attribute('boatRow', 'vec3') as AnyNode;
+  const isOar = kind.greaterThan(1.5);
+  const isRower = kind.greaterThan(0.5).and(kind.lessThan(1.5));
+  const reach = abs(p.x).sub(0.78).max(0);
+  const sweep = row.x;
+  const oar = vec3(
+    p.x.sub(
+      sign(p.x)
+        .mul(reach)
+        .mul(float(1).sub(cos(sweep))),
+    ),
+    p.y.add(reach.mul(row.y)).sub(reach.mul(0.18)),
+    p.z.add(reach.mul(sin(sweep))),
+  );
+  const lean = smoothstep(float(0.15), float(0.8), p.y).mul(row.z.mul(0.16).sub(0.08));
+  const rower = vec3(p.x, p.y, p.z.sub(lean));
+  mat.positionNode = select(isOar, oar, select(isRower, rower, p));
+  return mat;
 }

@@ -24,6 +24,7 @@ import {
   positionLocal,
   sign,
   sin,
+  smoothstep,
   texture,
   uv,
   varying,
@@ -51,6 +52,8 @@ interface FlagBuilder {
 }
 
 const JOLLY = { z: -1.69, x0: 0.18, x1: 2.28, y0: 20.88, y1: 22.35 };
+/** How far the struck colours come down: from the masthead to just above the deck. */
+const HAUL_DOWN = 17.9;
 const FORE_Z = 5.25;
 const MIZZEN_Z = -7.8;
 /** The ripple phase wraps here; every wave term's frequency is a multiple of 1/2 so it stays seamless. */
@@ -296,6 +299,8 @@ export interface FlagUniforms {
   phase: UniformNode<'float', number>;
   /** 0 (a breath of air: the flag droops and lolls) to 1 (a stiff breeze: it streams and snaps). */
   strength: UniformNode<'float', number>;
+  /** 0 flying … 1 hauled down to the deck: the jolly roger slides down its halyard (a struck ship). */
+  lower?: UniformNode<'float', number>;
 }
 
 /**
@@ -345,7 +350,14 @@ export function makeFlagMaterial(u: FlagUniforms): MeshStandardNodeMaterial {
     const c = cos(u.yaw) as AnyNode;
     const s = sin(u.yaw) as AnyNode;
     n.assign((vec3 as AnyNode)(bent.x.mul(c).add(bent.z.mul(s)), bent.y, bent.z.mul(c).sub(bent.x.mul(s))));
-    return (vec3 as AnyNode)(dx.mul(c).add(dz.mul(s)), dy, pivot.add(dz.mul(c)).sub(dx.mul(s)));
+    // Struck colours: the painted flag slides down to the deck and is gathered in at the hoist.
+    const lower = (u.lower ?? float(0)) as AnyNode;
+    const painted = attribute('flagPainted', 'float') as AnyNode;
+    const down = lower.mul(painted).mul(HAUL_DOWN);
+    const gather = float(1).sub(smoothstep(float(0.88), float(1), lower).mul(painted).mul(0.92));
+    const gx = dx.sub(JOLLY.x0).mul(gather).add(JOLLY.x0);
+    const gz = dz.mul(gather);
+    return (vec3 as AnyNode)(gx.mul(c).add(gz.mul(s)), dy.sub(down), pivot.add(gz.mul(c)).sub(gx.mul(s)));
   })();
   const painted = attribute('flagPainted', 'float') as AnyNode;
   const cloth = attribute('color', 'vec3') as AnyNode;

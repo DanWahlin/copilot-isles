@@ -26,11 +26,11 @@ const HIGH_TIER_MESH_SIGNATURES: MeshSignature[] = [
   },
   {
     name: 'deck planking rails and fittings',
-    vertices: 19434,
-    indices: 98928,
-    position: '414c9ae1',
-    uv: 'a1910533',
-    color: 'a1ed7991',
+    vertices: 13986,
+    indices: 73296,
+    position: '66df62b5',
+    uv: 'cfbebd63',
+    color: '3ea0eee1',
   },
   {
     name: 'wales strakes gunports galleries anchors',
@@ -39,6 +39,15 @@ const HIGH_TIER_MESH_SIGNATURES: MeshSignature[] = [
     position: 'b326431e',
     uv: '0760d908',
     color: '70cb0d74',
+  },
+  // The deck guns were split out of the deck mesh (same vertices) so each can recoil.
+  {
+    name: 'deck guns',
+    vertices: 5448,
+    indices: 25632,
+    position: '6b14a189',
+    uv: 'db41ee55',
+    color: '8cc441f5',
   },
   {
     name: 'stern gallery windows and name board backing',

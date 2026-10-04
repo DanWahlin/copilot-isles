@@ -1,6 +1,8 @@
 import { MathUtils, Vector3 } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { createAudio } from '../audio';
 import { createPost } from '../engine/post';
+import { BATTLE_SOUNDS, createBattleAudio } from '../game/battle-audio';
 import { BattleHud } from '../game/battle-hud';
 import { Helm } from '../game/helm';
 import { QUIZZES } from '../learn/content';
@@ -38,12 +40,25 @@ const hud = new BattleHud(document.body, {
   answer: (pick) => battle.answer(pick),
   calm: (on) => battle.setCalm(on),
 });
+// Sound starts on the first key or click (browsers need a gesture).
+const audio = createAudio();
+const listener = { x: 0, y: 0, z: 0 };
+const listenerFwd = { x: 0, y: 0, z: -1 };
+let audioOn = false;
+const unlock = () => {
+  if (audioOn) return;
+  audioOn = true;
+  void audio.unlock().then(() => audio.sfx.preload(BATTLE_SOUNDS));
+};
+addEventListener('pointerdown', unlock);
+addEventListener('keydown', unlock);
 const battle = new Battle({
   tier,
   waves: ocean.field,
   player: ship,
   seed: Number(q.get('seed') ?? 0xba771e),
   onCaption: (text) => hud.caption(text),
+  onSound: createBattleAudio(audio, listener),
 });
 scene.add(battle.group);
 if (q.has('calm')) battle.setCalm(true);
@@ -70,6 +85,7 @@ addEventListener('keyup', (e) => keys.delete(e.code));
 const env = { waves: ocean.field, ground: null, obstacles: battle.playerObstacles, t: 0 };
 const follow = new Vector3();
 const camFocus = new Vector3();
+const lookDir = new Vector3();
 /** Where the camera looks, in the ship's frame (x to port, z to the bow), so shots can frame a raider. */
 const look = { x: 0, y: 3, z: 0 };
 const lastShip = new Vector3();
@@ -125,6 +141,15 @@ engine.add({
     lastShip.copy(follow);
     controls.update();
     ocean.update(camera);
+    listener.x = camera.position.x;
+    listener.y = camera.position.y;
+    listener.z = camera.position.z;
+    camera.getWorldDirection(lookDir);
+    listenerFwd.x = lookDir.x;
+    listenerFwd.y = lookDir.y;
+    listenerFwd.z = lookDir.z;
+    audio.sfx.setListener(listener, listenerFwd);
+    audio.update(dt);
     camFocus.set(camera.position.x, 0, camera.position.z);
     sky.update(clock, camFocus, dt, camera);
     if (t - hudAt > 0.1) {
@@ -151,6 +176,8 @@ dev.__battle = {
   snapshot: () => battle.snapshot(structuredClone(snap)),
   raiders: () => battle.raiders(),
   start: () => battle.start(clockT),
+  audio,
+  unlockAudio: unlock,
   fire: (which: 'bearing' | 'port' | 'starboard' = 'bearing') => battle.fire(which),
   stats: () => ({ ...engine.counters.last, fps: engine.fps, gpuMs: engine.gpuMs, backend, tier: tier.tier }),
   /** Holds the helm still (screenshots). */

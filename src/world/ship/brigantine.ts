@@ -9,8 +9,9 @@ import {
   Object3D,
   Vector3,
   type Material,
+  type UniformArrayNode,
 } from 'three/webgpu';
-import { uniform } from 'three/tsl';
+import { uniform, uniformArray } from 'three/tsl';
 import type { CircleObstacle, HeightField, Tier, WaveSampler } from '../contracts';
 import { updateShipOceanInteraction } from '../ocean/ship-interaction';
 import { ShipDynamics, type ShipEnv } from './dynamics';
@@ -31,6 +32,7 @@ import {
 import { MeshBuilder } from './mesh-builder';
 import {
   createDeckGeometry,
+  createDeckGunGeometry,
   createHullGeometry,
   createNameBoardGeometry,
   createSternGoldGeometry,
@@ -51,6 +53,7 @@ import { windAt } from '../wind';
 import {
   makeCanvasMaterial,
   createShipLabel,
+  makeGunMaterial,
   makeShipMaterial,
   paintShipName,
   type BrigantineUniforms,
@@ -92,6 +95,8 @@ export interface Brigantine {
   setSails(paletteId: string | null): void;
   /** Paints the christened ship name onto the stern and bow name boards. */
   setName(name: string | null): void;
+  /** Runs deck gun `index` (port 0…5, starboard 6…11, stern to bow) in by `metres` of recoil. */
+  setGunRecoil(index: number, metres: number): void;
   /**
    * Lowers the gangplank from the port rail to `foot` (world space, on the pier), or with null raises
    * it. The foot stays where it's put while the rail end rides the swell; call after the ship's pose
@@ -275,6 +280,7 @@ export function createBrigantine({ tier, oceanInteraction = true }: BrigantineOp
     flagYaw: uniform(0),
     flagPhase: uniform(0),
     flagStrength: uniform(0.6),
+    flagLower: uniform(0),
   };
   const helmY = deckHeightAt(QUARTERDECK_Z) + 0.18;
   const anchors: ShipAnchors = {
@@ -311,6 +317,9 @@ export function createBrigantine({ tier, oceanInteraction = true }: BrigantineOp
   addMesh(group, createHullGeometry(tier), shipMaterial, 'rounded planked hull');
   addMesh(group, createDeckGeometry(tier), shipMaterial, 'deck planking rails and fittings', false);
   addMesh(group, createTrimGeometry(tier), shipMaterial, 'wales strakes gunports galleries anchors');
+  const recoilNode = uniformArray(new Array<number>(12).fill(0), 'float') as UniformArrayNode<'float'>;
+  const gunGeometry = createDeckGunGeometry(tier);
+  if (gunGeometry) addMesh(group, gunGeometry, register(makeGunMaterial(shipLabel, recoilNode)), 'deck guns');
   addMesh(group, createWindowGeometry(), shipMaterial, 'stern gallery windows and name board backing', false);
   addMesh(group, createSternGoldGeometry(), shipMaterial, 'stern gallery trim and lantern bracket');
   addMesh(group, createNameBoardGeometry(), shipMaterial, 'christening ship name boards', false);
@@ -326,7 +335,12 @@ export function createBrigantine({ tier, oceanInteraction = true }: BrigantineOp
     group,
     createFlagGeometry(),
     register(
-      makeFlagMaterial({ yaw: uniforms.flagYaw, phase: uniforms.flagPhase, strength: uniforms.flagStrength }),
+      makeFlagMaterial({
+        yaw: uniforms.flagYaw,
+        phase: uniforms.flagPhase,
+        strength: uniforms.flagStrength,
+        lower: uniforms.flagLower,
+      }),
     ),
     'animated jolly roger and pennants',
     false,
@@ -464,6 +478,9 @@ export function createBrigantine({ tier, oceanInteraction = true }: BrigantineOp
     },
     setName(name: string | null): void {
       paintShipName(shipLabel, name);
+    },
+    setGunRecoil(index: number, metres: number): void {
+      if (index >= 0 && index < 12) (recoilNode.array as number[])[index] = metres;
     },
     setGangway(foot: { x: number; y: number; z: number } | null): void {
       gangway.visible = !!foot;

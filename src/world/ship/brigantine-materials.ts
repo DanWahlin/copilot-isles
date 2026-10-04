@@ -12,6 +12,7 @@ import {
   UnsignedByteType,
   type Color,
   type Texture,
+  type UniformArrayNode,
   type UniformNode,
 } from 'three/webgpu';
 import {
@@ -26,6 +27,7 @@ import {
   smoothstep,
   texture,
   vec2,
+  vec3,
 } from 'three/tsl';
 import { packs } from '../../engine/packs';
 import { world } from '../uniforms';
@@ -43,6 +45,8 @@ export interface BrigantineUniforms {
   /** Flag ripple phase and apparent-wind strength (see ship-flags `FlagUniforms`). */
   flagPhase: UniformNode<'float', number>;
   flagStrength: UniformNode<'float', number>;
+  /** 0 the colours flying … 1 hauled down to the deck (a struck ship; see ship-flags). */
+  flagLower: UniformNode<'float', number>;
 }
 
 let shipWoodTexture: Texture | null = null;
@@ -367,5 +371,22 @@ export function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNo
   m.emissiveNode = cloth
     .mul(color(0xffe2b0))
     .mul(backlit.mul(world.sunDir.y.smoothstep(0.02, 0.45)).mul(0.09));
+  return m;
+}
+
+/**
+ * The deck guns: the ship's own material, with each gun run in by its recoil (metres inboard, one value
+ * per `gunIndex`; see createDeckGunGeometry). Port guns (+x) run back toward −x and starboard guns
+ * toward +x.
+ */
+export function makeGunMaterial(
+  label: ShipLabel,
+  recoil: UniformArrayNode<'float'>,
+): MeshStandardNodeMaterial {
+  const m = makeShipMaterial(label);
+  const index = attribute('gunIndex', 'float');
+  const back = recoil.element(index.toInt());
+  const side = index.lessThan(5.5).select(float(1), float(-1));
+  m.positionNode = positionLocal.sub(vec3(side.mul(back), 0, 0));
   return m;
 }

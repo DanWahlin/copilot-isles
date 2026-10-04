@@ -225,6 +225,15 @@ export class ShipDynamics {
     this.control.rudder = clamp(input.rudder, -1, 1);
   }
 
+  /**
+   * A sudden push on the hull (rad/s added to the roll and pitch springs): a broadside's recoil or a
+   * ball striking home. Positive roll lifts the port (+x) side.
+   */
+  kick(roll: number, pitch = 0): void {
+    if (Number.isFinite(roll)) this.rollVelocity += roll;
+    if (Number.isFinite(pitch)) this.pitchVelocity += pitch;
+  }
+
   setCrewOffset(lateralMetres: number): void {
     this.crewOffset = clamp(lateralMetres, -BRIGANTINE_BEAM * 0.5, BRIGANTINE_BEAM * 0.5);
   }

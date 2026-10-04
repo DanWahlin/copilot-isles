@@ -1,0 +1,31 @@
+# Sea battles: polish plan
+
+> Context: the battle prototype (`devpages/battle.html`, docs/specs/BATTLES.md) works end to end. On
+> 2026-10-04 Dan asked if it would pass a Disney-level release bar. It doesn't yet: the loop works, but
+> the craft isn't there. This plan closes the gap, in order. Issues #203 and #204.
+
+## What already holds up
+
+- The powder-cartridge readiness HUD is clear and our own.
+- Ballistic arcs, gunsmoke, and splashes read well.
+- A raider strikes its colours, its crew rows away, and the hull settles. That beat is gentle.
+
+## The plan (in order)
+
+| # | Work | Done when |
+|---|---|---|
+| 1 | **Sound.** CC0 recordings for the near cannon (crack, boom, tail), the distant cannon, the ball whistling past, a timber hit and splinter crack, and the big splash (reused). Spatialized through the soundscape (HRTF, the air low-pass with distance). Ducked under dialogue. Logged in `public/audio/CREDITS.md` and `ASSETS.md`. | Every visual battle event has a matching sound, and a near broadside is the loudest one-shot in the game without clipping |
+| 2 | **Animation beats.** Gun recoil (each gun runs back and is run out again as it reloads), the hull heels away from its own broadside and shudders when hit, the struck colours come **down the halyard** (anticipation, then an ease), the wreck settles with a list, a bow-up moment, and a follow-through as she slips under, and the rowers pull their oars in rhythm | Each beat shows anticipation and follow-through and respects reduced motion |
+| 3 | **Staging and camera.** A battle intro (the lookout's call, sails rising out of a fog bank, the camera eases out to frame them), framing for broadsides and strikes, and clear wave transitions (a held beat, then the next wave's sails) | You can read every beat of a wave with the HUD hidden |
+| 4 | **Raider identity.** Their own flag (no skulls, no Octocat, no Copilot logo), patched grey sails with a stripe, and a real **cutter** (one mast, fore-and-aft rig) built from the brigantine kit, not a scaled brigantine | A raider reads as "the fog raiders" from 150 m |
+| 5 | **Visual cleanup.** Quieter warning chevrons, soft ends on the gold arcs, splinters as chips with a little spin and splash, barrels that sit in the water with a wet line, scorch decals and shot holes in sails | A frame strip looks finished at 1600×900 on High and on Low |
+| 6 | **Playtest pass.** Pacing (3–4 minutes for the passage), difficulty and the break-off feel, the full two waves and the win in the browser, gamepad and touch helm, reduced motion and captions audit, frame time on Low (UHD 620 floor) and the hitch guard clean | A scripted playtest (`tools/`) plays the battle end to end on WebGPU and WebGL2 |
+
+Then the passage battle goes into the game (Anchorage → Port Meridian, required with a skip), and Dan reviews.
+
+## Rules that apply throughout
+
+- TSL only, public three.js APIs, no allocations in hot loops (pools), hitch guard clean after warm-up.
+- Budgets: PLAN §12.1 tiers, §15.4 pipelines (island ≤ 150), `tools/budgets.json`.
+- Every new asset in `ASSETS.md` (CC0) or `ART_PROVENANCE.md` (AI-generated). Never model the Octocat or the Copilot logo.
+- Player copy uses friendly contractions. Teaching lines cite their chapter and section.

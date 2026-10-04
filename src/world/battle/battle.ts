@@ -1,4 +1,4 @@
-import { Group, Matrix4, Vector3, type Object3D } from 'three/webgpu';
+import { Group, Matrix4, Vector3 } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle, WaveSampler } from '../contracts';
 import { seededRandom } from '../life/leaps/director';
@@ -37,6 +37,12 @@ export const PASSAGE_WAVES: readonly WaveSpec[] = [
   },
 ];
 
+/**
+ * Battle sounds (battle-plan.md §1). The battle only says what happened and where; the game maps each
+ * kind to the soundscape (near or far cannon by the listener's distance, and so on).
+ */
+export type BattleSound = 'cannon' | 'whiz' | 'timber' | 'splash' | 'groan' | 'sink';
+
 export type BattlePhase = 'idle' | 'fight' | 'lull' | 'question' | 'breakoff' | 'won' | 'skipped';
 
 const PLAYER_HULL = 100;
@@ -49,7 +55,7 @@ const LAY_SECONDS_CALM = 2.5;
 const SPAWN_RANGE = 230;
 const LULL_SECONDS = 20;
 const STORE_LIFE = 45;
-const SINK_SECONDS = 14;
+const SINK_SECONDS = 17;
 const COLLECT_RADIUS = 9;
 const BASE_REPAIR = 25;
 const TIMBER_REPAIR = 10;
@@ -83,8 +89,8 @@ interface Combatant {
   readonly env: BrigantineEnv;
   readonly captions: { struck: string; bearing: [string, string] };
   readonly shots: ((gun: number) => void)[];
-  /** The colours: hauled down when she strikes. */
-  readonly flag: Object3D | null;
+  /** Which way a struck hull lists (+1 to port). */
+  listSign: number;
 }
 
 /** What the HUD reads (at 10 Hz) and the dev page's debug API returns. */
@@ -111,6 +117,8 @@ export interface BattleOptions {
   seed?: number;
   /** Called for captions ("Port battery fires", "Splash, short"); strings are prebuilt, not per frame. */
   onCaption?: (text: string) => void;
+  /** Called with a reused position object; copy it if you keep it. */
+  onSound?: (kind: BattleSound, pos: { x: number; y: number; z: number }, gain: number) => void;
 }
 
 const tmpLocal = new Vector3();
@@ -118,6 +126,9 @@ const tmpWorld = new Vector3();
 const muzzle = { x: 0, y: 0, z: 0 };
 const aimOut = new Float32Array(2);
 const wind = new Float32Array(2);
+const soundPos = { x: 0, y: 0, z: 0 };
+/** A raider's ball within this distance (m) of your ship whistles past. */
+const WHIZ_RADIUS = 16;
 const SIDE_OF: readonly Side[] = [PORT, STARBOARD];
 
 /**
@@ -149,6 +160,7 @@ export class Battle {
   private readonly arcs: ArcSet;
   private readonly rand: () => number;
   private readonly caption: (text: string) => void;
+  private readonly sound: NonNullable<BattleOptions['onSound']>;
   private readonly view: RaiderView = {
     x: 0,
     z: 0,
@@ -177,6 +189,7 @@ export class Battle {
     this.plan = o.plan ?? PASSAGE_WAVES;
     this.rand = seededRandom(o.seed ?? 0xba771e);
     this.caption = o.onCaption ?? (() => undefined);
+    this.sound = o.onSound ?? (() => undefined);
     this.group.name = 'battle';
     const budget = fxBudget(o.tier);
     this.balls = new BallPool(budget.balls);
@@ -242,7 +255,7 @@ export class Battle {
       env: { waves: this.waves, ground: null, obstacles, t: 0 },
       captions: { struck: '', bearing: ['', ''] },
       shots: [],
-      flag: ship.group.getObjectByName('animated jolly roger and pennants') ?? null,
+      listSign: 1,
     };
     // Each battery's shot callback is bound once, so firing allocates nothing.
     c.shots.push(
@@ -298,6 +311,13 @@ export class Battle {
     this.player.hull = Math.min(PLAYER_HULL, this.player.hull + points);
   }
 
+  private emit(kind: BattleSound, x: number, y: number, z: number, gain = 1): void {
+    soundPos.x = x;
+    soundPos.y = y;
+    soundPos.z = z;
+    this.sound(kind, soundPos, gain);
+  }
+
   private setPhase(phase: BattlePhase, t: number): void {
     this.phase = phase;
     this.phaseAt = t;
@@ -338,7 +358,8 @@ export class Battle {
       c.scale = SCALE[r.kind];
       c.ship.group.scale.setScalar(c.scale);
       c.ship.group.visible = true;
-      if (c.flag) c.flag.visible = true;
+      c.ship.uniforms.flagLower.value = 0;
+      c.ship.group.rotation.set(0, 0, 0);
       c.ship.group.position.set(x, 0, z);
       c.hull = c.maxHull = HULL[r.kind];
       c.state = 'afloat';
@@ -450,6 +471,7 @@ export class Battle {
     if (c.player && this.doubleShot) damage *= DOUBLE_SHOT;
     if (!c.player && this.calm) damage *= 0.5;
     this.balls.spawn(c.index, tmpWorld.x, tmpWorld.y, tmpWorld.z, vx, vy, vz, damage);
+    this.emit('cannon', tmpWorld.x, tmpWorld.y, tmpWorld.z, 0.85 + this.rand() * 0.3);
     // Smoke rolls out of the gunport and is carried along with the ship.
     const ux = Math.sin(yaw);
     const uz = Math.cos(yaw);
@@ -469,10 +491,9 @@ export class Battle {
       );
     }
     if (c.player && this.doubleShot && gun === 0) this.doubleShot = false;
-    c.ship.dynamics.pose.shake = Math.max(
-      c.ship.dynamics.pose.shake,
-      world.reducedMotion.value > 0.5 ? 0 : 0.05,
-    );
+    // The hull heels away from its own broadside: each gun's recoil lifts the firing side a touch.
+    const calmMotion = world.reducedMotion.value > 0.5 ? 0.5 : 1;
+    c.ship.dynamics.kick(SIDE_OF[sideIdx]! * 0.04 * (6 / b.count) * c.scale * calmMotion);
   }
 
   // ---- Frame ------------------------------------------------------------------------------------
@@ -507,6 +528,13 @@ export class Battle {
         if (c.state !== 'afloat') continue;
         c.batteries[0]!.update(dt, t, c.shots[0]!);
         c.batteries[1]!.update(dt, t, c.shots[1]!);
+      }
+    }
+    for (const c of this.combatants) {
+      if (c.state !== 'afloat') continue;
+      for (let s = 0; s < 2; s++) {
+        const b = c.batteries[s]!;
+        for (let g = 0; g < b.count; g++) c.ship.setGunRecoil(s * 6 + g, b.recoil(g, t));
       }
     }
 
@@ -652,6 +680,16 @@ export class Battle {
         balls.free(i);
         continue;
       }
+      // A raider's ball passing close by your ship whistles once.
+      if (owner !== 0 && !balls.whizzed[i]) {
+        const pp = this.player.ship.dynamics.pose;
+        const dx = x - pp.x;
+        const dz = z - pp.z;
+        if (dx * dx + dz * dz < WHIZ_RADIUS * WHIZ_RADIUS) {
+          balls.whizzed[i] = 1;
+          this.emit('whiz', x, y, z);
+        }
+      }
       let hit = false;
       for (let k = 0; k < this.combatants.length; k++) {
         const c = this.combatants[k]!;
@@ -674,6 +712,7 @@ export class Battle {
         const sea = this.waves.heightAt(x, z, t);
         if (y < sea) {
           this.splashes.spawn(x, sea, z, t, 2.4 + this.rand() * 0.8, 1, this.rand());
+          this.emit('splash', x, sea, z, 0.8 + this.rand() * 0.3);
           balls.free(i);
         }
       }
@@ -699,12 +738,13 @@ export class Battle {
     const nx = Math.cos(h) * localSide;
     const nz = -Math.sin(h) * localSide;
     this.splinters.burst(x, y, z, nx, nz, 4, this.rand);
+    this.emit('timber', x, y, z, c.player ? 1.15 : 0.9);
     this.splashes.spawn(x + nx * 0.8, this.waves.heightAt(x, z, t), z + nz * 0.8, t, 1.3, 0, this.rand());
+    // A ball striking home rocks the hull away from it, with a short shudder.
+    const rm = world.reducedMotion.value > 0.5;
+    c.ship.dynamics.kick(localSide * (rm ? 0.03 : 0.07), (this.rand() - 0.5) * (rm ? 0.02 : 0.05));
     if (c.player) {
-      c.ship.dynamics.pose.shake = Math.max(
-        c.ship.dynamics.pose.shake,
-        world.reducedMotion.value > 0.5 ? 0 : 0.35,
-      );
+      c.ship.dynamics.pose.shake = Math.max(c.ship.dynamics.pose.shake, rm ? 0 : 0.3);
       this.caption('Hit! Your hull takes a ball');
       if (c.hull <= BREAK_OFF_AT && this.phase === 'fight') this.breakOff(t);
       return;
@@ -717,7 +757,9 @@ export class Battle {
     c.state = 'struck';
     c.struckAt = t;
     c.lay.fill(-1);
-    if (c.flag) c.flag.visible = false;
+    c.listSign = this.rand() < 0.5 ? 1 : -1;
+    const sp = c.ship.dynamics.pose;
+    this.emit('groan', sp.x, 1.5, sp.z);
     if (this.token === c.index) this.token = -1;
     this.caption(c.captions.struck);
     const p = c.ship.dynamics.pose;
@@ -738,27 +780,49 @@ export class Battle {
     }
   }
 
-  /** A struck hull lists, settles by the stern and slips under, with bubbles at its waterline. */
+  /**
+   * A struck raider, staged one beat at a time (battle-plan.md §2): the colours come down the halyard
+   * (a small lift first, then hand over hand), the hull takes a list that overshoots and settles,
+   * the stern sinks until the bow lifts clear, and she slips under with a last gout of spray.
+   */
   private settle(c: Combatant, dt: number, t: number): void {
     const age = t - c.struckAt;
     const g = c.ship.group;
-    const k = Math.min(1, age / SINK_SECONDS);
-    const ease = k * k;
-    g.position.y = c.ship.dynamics.pose.heave - ease * 11 * c.scale;
-    g.rotation.z = c.ship.dynamics.pose.roll + Math.min(0.42, age * 0.06);
-    g.rotation.x = c.ship.dynamics.pose.pitch - ease * 0.22;
-    if (this.rand() < dt * 3 && k < 0.9) {
-      const p = c.ship.dynamics.pose;
-      const along = (this.rand() - 0.5) * 18 * c.scale;
+    const pose = c.ship.dynamics.pose;
+    c.ship.uniforms.flagLower.value = haulDown(age);
+    // She keeps riding the swell at first, so she doesn't freeze on the water.
+    const swell = this.waves.heightAt(pose.x, pose.z, t) * Math.max(0, 1 - age / 8);
+    const list = c.listSign * 0.26 * spring01(clamp01((age - 1.2) / 3.2));
+    const bowUp = -0.3 * smooth(clamp01((age - 5) / 6)) - 0.22 * smooth(clamp01((age - 11) / 4.5));
+    const sink =
+      1.1 * smooth(clamp01((age - 1.2) / 4)) +
+      3.6 * smooth(clamp01((age - 5) / 6)) +
+      9 * clamp01((age - 11) / 5) ** 2;
+    g.position.set(pose.x, swell - sink * c.scale, pose.z);
+    g.rotation.set(bowUp, pose.heading, list, 'YXZ');
+    // Air bubbling out along the waterline while she goes down.
+    if (age > 1.5 && age < 15.5 && this.rand() < dt * (age > 11 ? 6 : 2.5)) {
+      const along = (this.rand() - 0.6) * 18 * c.scale;
       this.splashes.spawn(
-        p.x + Math.sin(p.heading) * along,
-        this.waves.heightAt(p.x, p.z, t),
-        p.z + Math.cos(p.heading) * along,
+        pose.x + Math.sin(pose.heading) * along,
+        this.waves.heightAt(pose.x, pose.z, t),
+        pose.z + Math.cos(pose.heading) * along,
         t,
-        1.1,
+        0.9 + this.rand() * 0.6,
         0,
         this.rand(),
       );
+    }
+    // Follow-through: the bow slips under with a last gout of spray.
+    if (age >= 15.6 && age - dt < 15.6) {
+      const fx = Math.sin(pose.heading);
+      const fz = Math.cos(pose.heading);
+      const bx = pose.x + fx * 9 * c.scale;
+      const bz = pose.z + fz * 9 * c.scale;
+      const y = this.waves.heightAt(bx, bz, t);
+      this.splashes.spawn(bx, y, bz, t, 3.4, 1, this.rand());
+      this.emit('sink', bx, y, bz);
+      this.splashes.spawn(bx - fx * 4, y, bz - fz * 4, t, 2.2, 0, this.rand());
     }
     if (age > SINK_SECONDS) {
       c.state = 'gone';
@@ -910,6 +974,33 @@ export class Battle {
       }
     });
   }
+}
+
+function clamp01(x: number): number {
+  return x < 0 ? 0 : x > 1 ? 1 : x;
+}
+
+function smooth(x: number): number {
+  return x * x * (3 - 2 * x);
+}
+
+/** 0 → 1 with one overshoot and settle, like a hull taking a list. */
+function spring01(x: number): number {
+  if (x <= 0) return 0;
+  return 1 - Math.exp(-5 * x) * Math.cos(7 * x);
+}
+
+/**
+ * The struck colours (0 flying … 1 at the deck): a small lift as the halyard is cast off, then down
+ * hand over hand, slowing as it nears the deck.
+ */
+export function haulDown(age: number): number {
+  if (age <= 0) return 0;
+  if (age < 0.4) return -0.012 * Math.sin((age / 0.4) * Math.PI);
+  const k = clamp01((age - 0.4) / 3);
+  const eased = k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2;
+  const hands = Math.sin(k * Math.PI * 10) * 0.012 * (1 - k);
+  return clamp01(eased + hands);
 }
 
 function readyShare(b: Battery): number {

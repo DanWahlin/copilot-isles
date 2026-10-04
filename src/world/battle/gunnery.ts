@@ -57,6 +57,8 @@ export class Battery {
   readonly reload: Float32Array;
   /** When each gun's ripple shot goes off (world seconds), or −1. */
   readonly fireAt: Float32Array;
+  /** When each gun last fired (world seconds), for its recoil. */
+  readonly firedAt: Float32Array;
   reloadSeconds: number;
   /** Multiplies reload speed (powder stores make it > 1 for a while). */
   reloadBoost = 1;
@@ -67,6 +69,7 @@ export class Battery {
     this.reloadSeconds = reloadSeconds;
     this.reload = new Float32Array(stations.length);
     this.fireAt = new Float32Array(stations.length).fill(-1);
+    this.firedAt = new Float32Array(stations.length).fill(-1e9);
   }
 
   get count(): number {
@@ -105,6 +108,21 @@ export class Battery {
   loadAll(): void {
     this.reload.fill(0);
     this.fireAt.fill(-1);
+    this.firedAt.fill(-1e9);
+  }
+
+  /**
+   * How far gun `i` is run in (metres) at `now`: it kicks back hard with a little overshoot, sits back
+   * while the crew sponge and load, then is hauled out again before it's ready (§2 of battle-plan.md).
+   */
+  recoil(i: number, now: number, travel = 0.8): number {
+    const r = this.readiness(i);
+    if (r >= 1) return 0;
+    const x = Math.min(1, Math.max(0, (now - this.firedAt[i]!) / 0.1));
+    const kick = 1 + 2.70158 * (x - 1) ** 3 + 1.70158 * (x - 1) ** 2;
+    const out = r < 0.55 ? 0 : r > 0.88 ? 1 : (r - 0.55) / 0.33;
+    const runOut = out * out * (3 - 2 * out);
+    return travel * kick * (1 - runOut);
   }
 
   /** Advances reloads and calls `shot(i)` for each gun whose ripple time has come. */
@@ -114,6 +132,7 @@ export class Battery {
       const at = this.fireAt[i]!;
       if (at >= 0 && now >= at) {
         this.fireAt[i] = -1;
+        this.firedAt[i] = now;
         // Each gun's crew is a touch quicker or slower, so the cartridges refill one by one.
         this.reload[i] = this.reloadSeconds * (1 + 0.05 * ((i * 7) % 5));
         shot(i);

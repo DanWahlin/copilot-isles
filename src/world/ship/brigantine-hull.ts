@@ -1,4 +1,4 @@
-import { BufferGeometry } from 'three/webgpu';
+import { BufferAttribute, BufferGeometry } from 'three/webgpu';
 import type { Tier } from '../contracts';
 import { clamp01, lerp } from '../../util/math';
 import {
@@ -571,11 +571,6 @@ export function createDeckGeometry(tier: Tier): BufferGeometry {
       addCoiledLine(builder, x, z, 0.26, detail);
   }
   if (tier !== 'lite') {
-    const cannonZ = tier === 'low' ? [-5.8, -1.3, 3.25] : [-5.8, -3.55, -1.3, 1.0, 3.25, 5.55];
-    for (const z of cannonZ) {
-      addDeckCannon(builder, -1, z, detail, tier !== 'low');
-      addDeckCannon(builder, 1, z, detail, tier !== 'low');
-    }
     addLadder(builder, -1, -5.2, -7.35);
     addLadder(builder, 1, 6.9, 8.45);
   }
@@ -593,6 +588,35 @@ export function createDeckGeometry(tier: Tier): BufferGeometry {
     }
   }
   return builder.build();
+}
+
+/** Deck guns a side, stern to bow (the battle's batteries use the same stations; see battle/gunnery.ts). */
+export function deckGunStations(tier: Tier): readonly number[] {
+  if (tier === 'lite') return [];
+  return tier === 'low' ? [-5.8, -1.3, 3.25] : [-5.8, -3.55, -1.3, 1.0, 3.25, 5.55];
+}
+
+/**
+ * The deck guns as their own mesh, so each can recoil. `gunIndex` per vertex: port (+x) guns are
+ * 0…5 and starboard guns 6…11, stern to bow. Null on Lite, which carries none.
+ */
+export function createDeckGunGeometry(tier: Tier): BufferGeometry | null {
+  const stations = deckGunStations(tier);
+  if (stations.length === 0) return null;
+  const detail = detailForTier(tier);
+  const builder = new MeshBuilder();
+  const gunIndex: number[] = [];
+  for (const side of [1, -1] as const) {
+    stations.forEach((z, i) => {
+      const before = builder.positions.length / 3;
+      addDeckCannon(builder, side, z, detail, tier !== 'low');
+      const after = builder.positions.length / 3;
+      for (let v = before; v < after; v++) gunIndex.push((side === 1 ? 0 : 6) + i);
+    });
+  }
+  const geometry = builder.build();
+  geometry.setAttribute('gunIndex', new BufferAttribute(new Float32Array(gunIndex), 1));
+  return geometry;
 }
 
 export function createTrimGeometry(tier: Tier): BufferGeometry {
