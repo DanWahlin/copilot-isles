@@ -63,7 +63,8 @@ const LAY_SECONDS_CALM = 2.5;
 const SPAWN_RANGE = 230;
 /** The intro: the fog forms, the raiders show inside it at REVEAL, and the guns open at the end. */
 const INTRO_SECONDS = 5.5;
-const INTRO_REVEAL = 1.8;
+/** After the fog is fully thick (FogBank grows over 2.5 s), so no ghost of a hull shows through it. */
+const INTRO_REVEAL = 2.8;
 const LULL_SECONDS = 20;
 const STORE_LIFE = 45;
 const SINK_SECONDS = 17;
@@ -417,8 +418,8 @@ export class Battle {
       c.captions.bearing[1] = `${r.name} is bearing on you, starboard side`;
     }
     for (const b of this.player.batteries) b.loadAll();
-    // The fog bank forms just in front of them, so their sails rise out of it as they close.
-    this.fog.form(p.x, p.z, from, SPAWN_RANGE - 12, 0.9 + (n - 1) * 0.4, t, this.rand);
+    // The fog bank forms in front of them, with room for the way they make during the intro.
+    this.fog.form(p.x, p.z, from, SPAWN_RANGE - 35, 0.9 + (n - 1) * 0.4, t, this.rand);
     this.title = `Wave ${this.wave + 1} of ${this.plan.length}: ${joinNames(spec.raiders, n)}`;
     this.setPhase('intro', t);
     this.caption(lookoutCall(from - p.heading));

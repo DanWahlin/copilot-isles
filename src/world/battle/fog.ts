@@ -49,7 +49,7 @@ export class FogBank {
   }
 
   /**
-   * Forms a bank `range` m from (ox, oz), centred on `bearing` (radians, heading convention) and
+   * Forms a bank in front of `range` m from (ox, oz), centred on `bearing` (radians, heading convention) and
    * `span` radians wide. `rand` places the puffs.
    */
   form(
@@ -66,13 +66,15 @@ export class FogBank {
     for (let i = 0; i < this.count; i++) {
       const u = i / (this.count - 1) - 0.5;
       const a = bearing + u * span + (rand() - 0.5) * 0.08;
-      // Two rows: a dense front wall and a taller, looser back.
+      // Two rows: a dense front wall and a taller, looser back. Every puff stays nearer than `range`
+      // (the ships hidden in it), or a hull would block the puffs behind it and show as a dark outline.
       const back = i % 3 === 0;
-      const r = range + (back ? 25 : -5) + (rand() - 0.5) * 30;
+      const r = range - (back ? 6 : 22) - rand() * 12;
       this.bx[i] = ox + Math.sin(a) * r;
       this.bz[i] = oz + Math.cos(a) * r;
       this.size0[i] = (back ? 70 : 52) + rand() * 26;
-      this.by[i] = this.size0[i]! * (back ? 0.26 : 0.2);
+      // Low enough that each puff's foot is under the sea, so the bank is thickest at hull height.
+      this.by[i] = this.size0[i]! * (back ? 0.2 : 0.14);
       this.seed[i] = rand();
     }
     this.formedAt = t;
@@ -147,10 +149,11 @@ function createFogMaterial(
   const lumps = sin(p.x.mul(4.1).add(seed.mul(23)))
     .mul(sin(p.y.mul(3.3).sub(seed.mul(11))))
     .mul(0.12);
-  const body = smoothstep(float(1.0).add(lumps), float(0.2), r);
-  // Feather the bottom so the puff melts into the sea instead of cutting it with a hard line.
-  const foot = smoothstep(float(-0.95), float(-0.35), p.y);
-  mat.opacityNode = body.mul(foot).mul(data.y).mul(0.88);
+  // A dense core with a soft rim: where puffs overlap, the bank is close to opaque.
+  const body = smoothstep(float(1.0).add(lumps), float(0.5), r);
+  // Feather only the very bottom (it's under the water line) so a hull inside the bank stays hidden.
+  const foot = smoothstep(float(-0.98), float(-0.7), p.y);
+  mat.opacityNode = body.mul(foot).mul(data.y).mul(0.96);
   // A sea fog reads as a pale wall on the horizon: whiter than the haze, sunlit on top, grey-blue below.
   const top = smoothstep(float(-0.6), float(0.9), p.y);
   const pale = mix(world.hazeColor, color(0xf2f4f7), 0.6);

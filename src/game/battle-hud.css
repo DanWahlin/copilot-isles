@@ -305,6 +305,22 @@
   opacity: 0;
   transition: opacity 0.8s ease;
 }
+/* The battle is over: the guns and Skip step away (hidden also takes them out of the tab order). */
+.bh-guns,
+.bh-skip {
+  transition:
+    opacity 0.6s ease,
+    visibility 0s linear 0s;
+}
+.bh[data-phase='won'] .bh-guns,
+.bh[data-phase='won'] .bh-skip {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.6s ease,
+    visibility 0s linear 0.6s;
+}
 .bh[data-phase='breakoff'] .bh-veil {
   opacity: 1;
 }

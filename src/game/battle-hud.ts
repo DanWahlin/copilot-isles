@@ -188,7 +188,8 @@ export class BattleHud {
     if (s.stores.powder) bits.push('Dry powder');
     if (s.stores.timber) bits.push(`Timber ×${s.stores.timber}`);
     if (s.calm) bits.push('Calm seas');
-    this.bonus.textContent = bits.join(' · ');
+    // After the win there's nothing left to fire, so the bonuses go.
+    this.bonus.textContent = s.phase === 'won' ? '' : bits.join(' · ');
     if (s.phase !== this.lastPhase) this.enterPhase(s);
     if (s.phase === 'lull') this.card.querySelector('.bh-lull-time')!.textContent = `${Math.ceil(s.lull)} s`;
   }
