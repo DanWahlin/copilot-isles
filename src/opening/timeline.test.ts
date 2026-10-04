@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { CHART_D, CHART_ISLANDS, CHART_W, worldToPaper } from './chart-map';
+import { ARCHIPELAGO } from '../ui/chart/archipelago';
+import { CARTOUCHE, CHART_D, CHART_ISLANDS, CHART_W, sheetUV, worldToPaper } from './chart-map';
 import {
   flashIn,
   latchOpen,
@@ -76,6 +77,35 @@ describe('chart map', () => {
         expect(Math.abs(p.x)).toBeLessThan(CHART_W / 2);
         expect(Math.abs(p.z)).toBeLessThan(CHART_D / 2);
       }
+    }
+  });
+
+  it('keeps every island in open water, clear of the parchment border and the cartouche', () => {
+    // The border (3.6 cm) plus the furthest the swash pulls back (~2.1 cm), plus a margin of sea.
+    const dry = 0.036 + 0.012 + 0.009 * 1.35 + 0.02;
+    const p = { x: 0, y: 0, z: 0 };
+    const near = (x: number, z: number) => {
+      const edge = Math.min(x + CHART_W / 2, CHART_W / 2 - x, z + CHART_D / 2, CHART_D / 2 - z);
+      const cx = Math.abs(x - (CARTOUCHE.u - 0.5) * CHART_W) - CARTOUCHE.halfW;
+      const cz = Math.abs(z - (CARTOUCHE.v - 0.5) * CHART_D) - CARTOUCHE.halfD;
+      const cart = Math.hypot(Math.max(cx, 0), Math.max(cz, 0)) + Math.min(Math.max(cx, cz), 0) + 0.036;
+      return Math.min(edge, cart);
+    };
+    for (const isl of CHART_ISLANDS) {
+      // The land's own extent (sampled bounds include shallows, so this is a safe outer box).
+      for (const [x, z] of [
+        [isl.minX + 30, isl.cz],
+        [isl.maxX - 30, isl.cz],
+        [isl.cx, isl.minZ + 30],
+        [isl.cx, isl.maxZ - 30],
+      ] as const) {
+        worldToPaper(isl, x, 0, z, p);
+        expect(near(p.x, p.z)).toBeGreaterThan(dry);
+      }
+    }
+    for (const isl of ARCHIPELAGO) {
+      const q = sheetUV(isl.x, isl.y);
+      expect(near((q.u - 0.5) * CHART_W, (q.v - 0.5) * CHART_D)).toBeGreaterThan(dry + 0.04);
     }
   });
 });

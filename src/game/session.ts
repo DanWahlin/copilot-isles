@@ -13,7 +13,7 @@ import { CollisionWorld, type SurfaceKind, type WalkSurface } from './collision'
 import { Dialogue } from './dialogue';
 import { FootstepPuffs } from './footstep-puffs';
 import { FollowCamera, SAIL_RIG, WALK_RIG, type CameraShot } from './follow-camera';
-import { arrivalKeys, type IslandArrival, type IslandId } from './arrivals';
+import { arrivalFlight, arrivalKeys, type IslandArrival, type IslandId } from './arrivals';
 import { ISLANDS, islandAt, openIslands, passageSky, type IslandBerth } from './islands';
 
 export { ISLANDS, islandAt } from './islands';
@@ -81,6 +81,8 @@ export interface SessionOptions {
   voiceManifest?: string;
   /** Skips the opening Wingman hint (screenshots, tests). */
   quiet?: boolean;
+  /** A first landfall flies the short arrival that follows the opening's dive into the chart. */
+  fromChart?: boolean;
   /** Where to start (Continue); defaults to the quay spawn. */
   start?: { x: number; z: number; heading: number };
   /** Esc / Start and M / Back while playing. */
@@ -162,8 +164,8 @@ export interface GameSession {
     wingman(): { phase: string; x: number; y: number; z: number } | null;
     /** The arrival flyover's phase and seconds in (tests). */
     arrival(): { island: string; phase: ArrivalPhase; time: number; eye: number } | null;
-    /** Plays an island's arrival flyover again (tests, screenshots). */
-    flyover(island?: IslandId): void;
+    /** Plays an island's arrival flyover again (tests, screenshots); `fromChart`: the short one. */
+    flyover(island?: IslandId, fromChart?: boolean): void;
     /** Holds the flyover at `time` seconds in (null lets it fly on). */
     holdArrival(time: number | null): void;
     /** Skips the arrival flyover, as E would. */
@@ -1557,7 +1559,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   }
   // A fresh voyage flies in; a Continue (quiet) is already ashore, so this island counts as seen.
   if (o.quiet) learn?.progress.add('arrivals', berth.id);
-  else if (firstLandfall()) startArrival(berth.arrival, true);
+  else if (firstLandfall()) startArrival(arrivalFlight(berth.arrival, !!o.fromChart), true);
 
   const listenerPos = { x: 0, y: 0, z: 0 };
   const listenerFwd = { x: 0, y: 0, z: -1 };
@@ -1810,6 +1812,23 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         await step();
         if (disposed || a.phase !== 'waiting') return;
       }
+      // Then a look all round the landing spot from the follow camera's height, so the village and
+      // crew near the captain are drawn even if the flight never passed over them.
+      for (let i = 0; i < 8; i++) {
+        const yaw = (i / 8) * Math.PI * 2;
+        flyShot.x = player.x - Math.sin(yaw) * 6;
+        flyShot.y = player.y + 3;
+        flyShot.z = player.z - Math.cos(yaw) * 6;
+        flyShot.tx = player.x + Math.sin(yaw) * 20;
+        flyShot.ty = player.y + 1;
+        flyShot.tz = player.z + Math.cos(yaw) * 20;
+        cam.cut(flyShot);
+        camera.position.set(flyShot.x, flyShot.y, flyShot.z);
+        camera.lookAt(flyShot.tx, flyShot.ty, flyShot.tz);
+        camera.updateMatrixWorld();
+        await step();
+        if (disposed || a.phase !== 'waiting') return;
+      }
       view(0);
       await step();
     },
@@ -1911,9 +1930,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
               ),
             }
           : null,
-      flyover(id: IslandId = island) {
+      flyover(id: IslandId = island, fromChart = false) {
         if (mode !== 'walk') return;
-        startArrival(ISLANDS[id].arrival, false);
+        startArrival(arrivalFlight(ISLANDS[id].arrival, fromChart), false);
       },
       holdArrival(time: number | null) {
         arrivalHold = time;

@@ -1,5 +1,5 @@
 import { ARCHIPELAGO } from '../ui/chart/archipelago';
-import { CHART_D, CHART_W, worldToPaper } from './chart-map';
+import { CARTOUCHE, CHART_D, CHART_W, sheetUV, worldToPaper } from './chart-map';
 import { islandShoreline, type IslandGrid } from './island-grid';
 
 /**
@@ -16,7 +16,7 @@ export interface ChartArt {
 const INK = '#4a3218';
 const INK_SOFT = 'rgba(74, 50, 24, 0.5)';
 const SEA_INK = 'rgba(46, 92, 112, 0.28)';
-const COMPASS = { u: 585 / 1000, v: 365 / 700 };
+const COMPASS = sheetUV(585 / 1000, 365 / 700);
 
 export function drawChartArt(grids: readonly IslandGrid[], inkWidth = 2048): ChartArt {
   const W = inkWidth;
@@ -73,7 +73,10 @@ export function drawChartArt(grids: readonly IslandGrid[], inkWidth = 2048): Cha
   c.lineWidth = 2.2 * unit;
   c.lineCap = 'round';
   c.setLineDash([0.1, 9 * unit]);
-  const pts = ARCHIPELAGO.map((i) => [px(i.x), py(i.y)] as const);
+  const pts = ARCHIPELAGO.map((i) => {
+    const q = sheetUV(i.x, i.y);
+    return [px(q.u), py(q.v)] as const;
+  });
   c.beginPath();
   c.moveTo(pts[0]![0], pts[0]![1]);
   for (let i = 0; i < pts.length - 1; i++) {
@@ -116,7 +119,7 @@ export function drawChartArt(grids: readonly IslandGrid[], inkWidth = 2048): Cha
     m.save();
     m.globalCompositeOperation = 'lighter';
     m.shadowColor = 'rgb(0, 255, 0)';
-    m.shadowBlur = 10;
+    m.shadowBlur = 22;
     m.fillStyle = 'rgb(255, 0, 0)';
     path(m, mW, mH);
     m.fill();
@@ -144,13 +147,14 @@ export function drawChartArt(grids: readonly IslandGrid[], inkWidth = 2048): Cha
   for (const [n, isl] of ARCHIPELAGO.entries()) {
     if (real.has(isl.id)) continue;
     const r = mulberry32(0x5eed + n * 977);
+    const at = sheetUV(isl.x, isl.y);
     const rx = (38 + r() * 22) * unit;
     const ry = rx * (0.55 + r() * 0.25);
     const blobPts: [number, number][] = [];
     for (let i = 0; i < 14; i++) {
       const a = (i / 14) * Math.PI * 2 + (r() - 0.5) * 0.25;
       const k = 1 + (r() - 0.5) * 0.36;
-      blobPts.push([px(isl.x) + Math.cos(a) * rx * k, py(isl.y) + Math.sin(a) * ry * k]);
+      blobPts.push([px(at.u) + Math.cos(a) * rx * k, py(at.v) + Math.sin(a) * ry * k]);
     }
     c.save();
     closedCurve(c, blobPts);
@@ -164,11 +168,11 @@ export function drawChartArt(grids: readonly IslandGrid[], inkWidth = 2048): Cha
     m.save();
     m.globalCompositeOperation = 'lighter';
     const fog = m.createRadialGradient(
-      (isl.x * mW) | 0,
-      (isl.y * mH) | 0,
+      (at.u * mW) | 0,
+      (at.v * mH) | 0,
       0,
-      (isl.x * mW) | 0,
-      (isl.y * mH) | 0,
+      (at.u * mW) | 0,
+      (at.v * mH) | 0,
       (rx / W) * mW * 1.5,
     );
     fog.addColorStop(0, 'rgba(0, 0, 255, 1)');
@@ -186,21 +190,22 @@ export function drawChartArt(grids: readonly IslandGrid[], inkWidth = 2048): Cha
   c.textBaseline = 'middle';
   for (const isl of ARCHIPELAGO) {
     const isReal = real.has(isl.id);
+    const at = sheetUV(isl.x, isl.y);
     c.font = `${isReal ? 600 : 500} ${(isReal ? 19 : 15) * unit}px Fraunces, Georgia, serif`;
     c.lineWidth = 5 * unit;
     c.strokeStyle = 'rgba(236, 220, 176, 0.9)';
     c.fillStyle = isReal ? '#2a1d0e' : 'rgba(42, 29, 14, 0.55)';
-    const y = py(isl.y) + (isl.id === 'anchorage' ? 92 : isl.id === 'meridian' ? 98 : 62) * unit;
-    c.strokeText(isl.name, px(isl.x), y);
-    c.fillText(isl.name, px(isl.x), y);
+    const y = py(at.v) + (isl.id === 'anchorage' ? 92 : isl.id === 'meridian' ? 98 : 62) * unit;
+    c.strokeText(isl.name, px(at.u), y);
+    c.fillText(isl.name, px(at.u), y);
   }
   // The cartouche.
   c.font = `italic 600 ${30 * unit}px Fraunces, Georgia, serif`;
   c.fillStyle = '#3a2812';
-  c.fillText('The Copilot Isles', px(0.8), py(0.86));
+  c.fillText('The Copilot Isles', px(CARTOUCHE.u), py(CARTOUCHE.v) - 8 * unit);
   c.font = `${13 * unit}px Fraunces, Georgia, serif`;
   c.fillStyle = INK_SOFT;
-  c.fillText('A chart for the captain, drawn by hand', px(0.8), py(0.86) + 28 * unit);
+  c.fillText('A chart for the captain, drawn by hand', px(CARTOUCHE.u), py(CARTOUCHE.v) + 20 * unit);
 
   return { ink, mask };
 }

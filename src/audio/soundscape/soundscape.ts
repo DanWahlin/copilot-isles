@@ -7,7 +7,10 @@ import { clamp } from '../../util/math';
 
 export type SurfKind = 'crash' | 'wash' | 'backwash';
 export type FootstepSurface = 'sand' | 'wetsand' | 'wood' | 'rock' | 'grass' | 'water';
-export type BedName = Extract<LoopName, 'wind' | 'palms' | 'surf_far' | 'birds_dawn' | 'crickets'>;
+export type BedName = Extract<
+  LoopName,
+  'wind' | 'palms' | 'surf_far' | 'birds_dawn' | 'crickets' | 'opening_cabin'
+>;
 export type SoundLoopName = Extract<LoopName, 'stream' | 'waterfall_small' | 'wheel_creak'>;
 
 export interface Vec3Like {
@@ -46,7 +49,14 @@ interface ActiveLoop {
   stopped: boolean;
 }
 
-const BED_NAMES: readonly BedName[] = ['wind', 'palms', 'surf_far', 'birds_dawn', 'crickets'];
+const BED_NAMES: readonly BedName[] = [
+  'wind',
+  'palms',
+  'surf_far',
+  'birds_dawn',
+  'crickets',
+  'opening_cabin',
+];
 const FOOTSTEP_BANK: Readonly<Record<FootstepSurface, SliceName>> = {
   sand: 'step_sand',
   wetsand: 'step_wetsand',
@@ -71,6 +81,7 @@ const CAPS = {
   splash: 3,
   hull: 3,
   puzzle: 4,
+  opening: 5,
 } as const;
 const MIX = {
   step: -50,
@@ -86,6 +97,7 @@ const MIX = {
   puzzle: -24,
   chime: -20,
   thud: -24,
+  opening: -21,
 } as const;
 const MONO_TRIM = Math.pow(10, -3 / 20);
 const DEFAULT_FORWARD: Vec3Like = { x: 0, y: 0, z: -1 };
@@ -148,6 +160,7 @@ export class IslesSoundScape {
     surf_far: 0,
     birds_dawn: 0,
     crickets: 0,
+    opening_cabin: 0,
   };
   private readonly lastSlice: Partial<Record<SliceName, number>> = {};
   private baseUrl: string;
@@ -259,6 +272,11 @@ export class IslesSoundScape {
   setBed(name: BedName, gain: number): void {
     this.bedTargets[name] = clamp(gain, 0, 1);
     if (gain > 0) void this.want(name);
+  }
+
+  /** Starts loading sounds now, so their first play isn't dropped while they download. */
+  preload(names: readonly SoundName[]): void {
+    for (const name of names) void this.want(name);
   }
 
   setTimeOfDay(night: number): void {
@@ -481,6 +499,7 @@ export class IslesSoundScape {
     if (name === 'big_splash' || name === 'splash') return 'splash';
     if (name === 'hull_slap') return 'hull';
     if (isPuzzleOneShot(name)) return 'puzzle';
+    if (name.startsWith('opening_')) return 'opening';
     return name;
   }
 
@@ -494,6 +513,7 @@ export class IslesSoundScape {
     if (name === 'chime_solve') return MIX.chime;
     if (name === 'crate_thud') return MIX.thud;
     if (isPuzzleOneShot(name)) return MIX.puzzle;
+    if (name.startsWith('opening_')) return MIX.opening;
     if (name.startsWith('surf_')) return MIX.crash;
     return MIX.step;
   }

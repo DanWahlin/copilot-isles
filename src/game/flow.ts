@@ -20,7 +20,7 @@ import { buildChart, coveTravelPoints } from './chart';
 import type { GameSession } from './session';
 import { LearnStore } from '../learn/store';
 import type { Opening } from '../opening/opening';
-import { ANCHORAGE_ARRIVAL } from './arrivals';
+import { ANCHORAGE_ARRIVAL, arrivalFlight } from './arrivals';
 
 const SETTINGS_KEY = 'copilot-isles.settings.v1';
 const SAVE_KEY = 'copilot-isles.save.v1';
@@ -400,7 +400,7 @@ export class GameFlow implements GameBridge {
       opening = createOpening({
         engine,
         input: this.o.input,
-        audio: this.audioReady ? this.o.audio : null,
+        audio: () => (this.audioReady ? this.o.audio : null),
         kind: save ? 'continue' : 'voyage',
         reduced: this.state.settings.reducedMotion,
         sails: this.learn.getState().sails,
@@ -448,6 +448,7 @@ export class GameFlow implements GameBridge {
         audio: this.audioReady ? this.o.audio : null,
         body: captain,
         quiet: !!save,
+        fromChart: true,
         start: save ? { x: save.x, z: save.z, heading: save.heading } : undefined,
         onMenu: () => this.pause(),
         onChart: () => this.openChart(),
@@ -476,7 +477,7 @@ export class GameFlow implements GameBridge {
       const island = this.session.island;
       const c = engine.camera;
       const look = c.getWorldDirection(c.position.clone()).multiplyScalar(30).add(c.position);
-      const first = ANCHORAGE_ARRIVAL.keys[0]!;
+      const first = arrivalFlight(ANCHORAGE_ARRIVAL, true).keys[0]!;
       const target =
         !save && island === 'anchorage'
           ? {

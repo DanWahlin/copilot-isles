@@ -227,6 +227,20 @@ export const BANK = {
   coconut_crack: { file: 'coconut_crack', slices: [[0, 0.4265]], lufs: [-18] },
   crowd_cheer_small: { file: 'crowd_cheer_small', slices: [[0, 2.0565]], lufs: [-18] },
   lute_strum: { file: 'lute_strum', slices: [[0, 2.1665]], lufs: [-18] },
+  // The opening (tools/sfx/fetch.sh; CC0, logged in ASSETS.md). The latch is too short for an
+  // integrated reading, so its level is set by ear against the lid.
+  opening_cabin: { file: 'opening_cabin', loop: true, lufs: -24.1 },
+  opening_lantern: { file: 'opening_lantern', slices: [[0, 4.0065]], lufs: [-21.4] },
+  opening_latch: { file: 'opening_latch', slices: [[0, 0.2678]], lufs: [-16] },
+  opening_lid: { file: 'opening_lid', slices: [[0, 1.3512]], lufs: [-23] },
+  opening_magic: { file: 'opening_magic', slices: [[0, 2.1646]], lufs: [-18] },
+  opening_poof: { file: 'opening_poof', slices: [[0, 0.9251]], lufs: [-22.2] },
+  opening_paper: { file: 'opening_paper', slices: [[0, 1.8065]], lufs: [-29.7] },
+  opening_popup: { file: 'opening_popup', slices: [[0, 0.4369]], lufs: [-24.5] },
+  opening_water: { file: 'opening_water', slices: [[0, 2.6065]], lufs: [-22.4] },
+  opening_sail: { file: 'opening_sail', slices: [[0, 0.8894]], lufs: [-22.8] },
+  opening_whoosh: { file: 'opening_whoosh', slices: [[0, 2.1371]], lufs: [-18.6] },
+  opening_spray: { file: 'opening_spray', slices: [[0, 0.5529]], lufs: [-18.5] },
 } as const satisfies Record<string, BankEntry>;
 
 export type SoundName = keyof typeof BANK;

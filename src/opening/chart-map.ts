@@ -66,10 +66,27 @@ export function chartIsland(id: ChartIslandId): ChartIslandSource {
   return CHART_ISLANDS.find((i) => i.id === id)!;
 }
 
-/** The archipelago position (0-1 across and down the sheet) of a course island. */
+/**
+ * The 3D chart draws the archipelago's layout drawn in toward the middle, so the sea runs all the
+ * way round every island and the parchment shows as a border (the cartouche sits on it).
+ */
+export const SHEET_INSET = 0.8;
+
+/** A point on the archipelago chart (0-1 across and down) → where it sits on the 3D sheet (0-1). */
+export function sheetUV(x: number, y: number): { u: number; v: number } {
+  return { u: 0.5 + (x - 0.5) * SHEET_INSET, v: 0.5 + (y - 0.5) * SHEET_INSET };
+}
+
+/**
+ * The cartouche (the chart's title) in the bottom-right corner of the parchment border: its centre
+ * (0-1 on the sheet) and half-size in metres. The sea keeps clear of it.
+ */
+export const CARTOUCHE = { u: 0.79, v: 0.895, halfW: 0.15, halfD: 0.045 };
+
+/** The sheet position (0-1 across and down) of a course island. */
 export function artPoint(id: string): { u: number; v: number } {
   const i = ARCHIPELAGO.find((a) => a.id === id) ?? ARCHIPELAGO[0]!;
-  return { u: i.x, v: i.y };
+  return sheetUV(i.x, i.y);
 }
 
 /** Sheet position (0-1) → paper-local metres. */

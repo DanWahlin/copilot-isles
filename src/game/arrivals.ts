@@ -20,6 +20,16 @@ export interface IslandArrival {
   /** When the card comes up and how long it stays, in seconds into the flight. */
   cardAt: number;
   cardFor: number;
+  /**
+   * The shorter flight after the opening's dive into the chart (the chart already showed the whole
+   * island): in low over the sea, over the ship, and round to behind the captain.
+   */
+  fromChart?: { keys: readonly FlyKey[]; seconds: number; cardAt: number; cardFor: number };
+}
+
+/** The flight to fly: the island's own, or its shorter one after the opening's chart dive. */
+export function arrivalFlight(arrival: IslandArrival, fromChart: boolean): IslandArrival {
+  return fromChart && arrival.fromChart ? { ...arrival, ...arrival.fromChart } : arrival;
 }
 
 /**
@@ -46,6 +56,20 @@ export const ANCHORAGE_ARRIVAL: IslandArrival = {
   seconds: 19,
   cardAt: 2.2,
   cardFor: 5,
+  fromChart: {
+    keys: [
+      // Out of the chart's sea: low over the water north of the harbour, the ship ahead.
+      { x: -48, y: 9, z: -330, tx: COVE.mooring.x, ty: 7, tz: COVE.mooring.z, pace: 1.2 },
+      { x: -78, y: 18, z: -215, tx: COVE.mooring.x, ty: 6, tz: COVE.mooring.z, pace: 1 },
+      // Over the ship's masts…
+      { x: -112, y: 26, z: -150, tx: COVE.mooring.x, ty: 4, tz: COVE.mooring.z + 12, pace: 0.7 },
+      // …and swinging out west of the quay, so the camera arcs round behind the captain (not over).
+      { x: -152, y: 19, z: -96, tx: COVE.spawn.x, ty: 3, tz: COVE.spawn.z, pace: 0.8 },
+    ],
+    seconds: 12,
+    cardAt: 1.2,
+    cardFor: 4.2,
+  },
 };
 
 const M = MERIDIAN;

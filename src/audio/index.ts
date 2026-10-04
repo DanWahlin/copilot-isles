@@ -9,7 +9,7 @@ import {
   type SurfKind,
   type Vec3Like,
 } from './soundscape/soundscape';
-import type { SliceName } from './soundscape/bank';
+import type { SliceName, SoundName } from './soundscape/bank';
 import { VoicePlayer, type WordCallback } from './voice/player';
 import { MUSIC_TRIM } from './beds';
 
@@ -29,6 +29,8 @@ export interface IslesAudio {
     loop(name: SoundLoopName, pos: Vec3Like, gain?: number): SoundLoopHandle;
     setBed(name: BedName, gain: number): void;
     setTimeOfDay(night: number): void;
+    /** Starts loading sounds ahead of their first play. */
+    preload(names: readonly SoundName[]): void;
   };
   readonly volumes: VolumeControls;
   onWord: WordCallback | null;
@@ -157,6 +159,7 @@ class IslesAudioImpl implements IslesAudio {
     oneShot: (name: SliceName, pos?: Vec3Like, gain?: number) => this.soundscape.oneShot(name, pos, gain),
     loop: (name: SoundLoopName, pos: Vec3Like, gain?: number) => this.soundscape.loop(name, pos, gain),
     setBed: (name: BedName, gain: number) => this.soundscape.setBed(name, gain),
+    preload: (names: readonly SoundName[]) => this.soundscape.preload(names),
     setTimeOfDay: (night: number) => this.soundscape.setTimeOfDay(night),
   };
 

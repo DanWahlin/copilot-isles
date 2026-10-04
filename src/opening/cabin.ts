@@ -83,6 +83,9 @@ export interface HeroChest {
   depth: number;
 }
 
+/** The stern windows (cabin metres): the chart's water reflects them. */
+export const STERN_WINDOWS = { z: -1.95, xs: [-0.95, 0, 0.95], w: 0.66, y0: 1.0, y1: 1.78 } as const;
+
 type RGB = readonly [number, number, number];
 
 const OAK: RGB = [0.3, 0.19, 0.11];

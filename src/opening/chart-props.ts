@@ -18,7 +18,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MERIDIAN } from '../world/islands/meridian';
 import { COVE } from '../world/layout';
 import { ARCHIPELAGO } from '../ui/chart/archipelago';
-import { CHART_D, CHART_W, worldToPaper, type ChartIslandSource } from './chart-map';
+import { CHART_D, CHART_W, sheetUV, worldToPaper, type ChartIslandSource } from './chart-map';
 import type { IslandGrid } from './island-grid';
 
 /**
@@ -377,7 +377,8 @@ function createPaperClouds(): {
     g.add(card);
     const k = 1.15 + ((i * 37) % 10) / 22;
     g.scale.setScalar(k);
-    g.position.set((isl.x - 0.5) * CHART_W, 0, (isl.y - 0.5) * CHART_D);
+    const at = sheetUV(isl.x, isl.y);
+    g.position.set((at.u - 0.5) * CHART_W, 0, (at.v - 0.5) * CHART_D);
     g.rotation.y = ((i % 3) - 1) * 0.25;
     // Leaning back a little toward the viewer, like a pop-up card.
     card.rotation.x = -0.45;

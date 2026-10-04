@@ -20,6 +20,8 @@ import {
   vec3,
 } from 'three/tsl';
 import type { IslesAudio } from '../audio';
+import { AMBIENT_BEDS } from '../audio/beds';
+import type { SliceName } from '../audio/soundscape/bank';
 import type { Engine } from '../engine/engine';
 import type { Input } from '../engine/input';
 import { createBrigantine, type Brigantine } from '../world/ship';
@@ -56,7 +58,8 @@ export interface DiveTarget {
 export interface OpeningOptions {
   engine: Engine;
   input: Input;
-  audio: IslesAudio | null;
+  /** The audio engine once it's unlocked (null before the first gesture, or in tests). */
+  audio: () => IslesAudio | null;
   kind: OpeningKind;
   reduced: boolean;
   sails: string | null;
@@ -266,6 +269,8 @@ export function createOpening(o: OpeningOptions): Opening {
     }
     rollPivot.visible = full || time >= beats.rise - 0.05;
     paper.water.value = full ? 1 : waterReach(time, beats);
+    // The roll casts a shadow on the desk; once flat, the sheet mustn't shadow its own swell.
+    paper.mesh.castShadow = un < 0.999;
     for (const src of CHART_ISLANDS) {
       const r = islandRise.get(src.id);
       if (r)
@@ -280,7 +285,7 @@ export function createOpening(o: OpeningOptions): Opening {
               ),
             );
     }
-    for (const m of islandMeshes) m.visible = full || time > beats.anchorage - 0.05;
+    for (const m of islandMeshes) m.visible = full || time > beats.anchorage + 0.04;
     if (props) {
       props.rise.value = full ? 1 : phase(time, beats.anchorage + 0.8, beats.meridian + 2.0);
       props.lamp.value = full ? 1 : phase(time, beats.meridian + 1.6, beats.ready);
@@ -294,18 +299,32 @@ export function createOpening(o: OpeningOptions): Opening {
     }
   }
 
+  type Cue = readonly [at: number, name: SliceName, gain: number];
+  const CUES: readonly Cue[] =
+    kind === 'continue' || reduced
+      ? []
+      : [
+          [0.3, 'opening_lantern', 0.45],
+          [beats.latch - 0.02, 'opening_latch', 1],
+          [beats.lid - 0.12, 'opening_lid', 0.9],
+          [beats.lid + 0.12, 'opening_poof', 0.55],
+          [beats.lid + 0.3, 'opening_magic', 0.75],
+          [beats.rise + 0.1, 'opening_paper', 0.55],
+          [beats.unroll + 0.15, 'opening_paper', 0.9],
+          [beats.unrollEnd - 0.05, 'opening_popup', 0.4],
+          [beats.water, 'opening_water', 0.9],
+          [beats.anchorage + 0.05, 'opening_popup', 0.8],
+          [beats.meridian + 0.05, 'opening_popup', 0.7],
+          [beats.anchorage + 1.0, 'opening_popup', 0.45],
+          [beats.ship + 0.5, 'opening_sail', 0.8],
+        ];
+
   function cues(time: number): void {
-    if (!o.audio || kind === 'continue' || reduced) return;
-    const list: [number, Parameters<IslesAudio['sfx']['oneShot']>[0], number][] = [
-      [beats.latch, 'lever', 0.9],
-      [beats.lid, 'gate_lift', 0.6],
-      [beats.rise + 0.2, 'quill', 0.7],
-      [beats.unroll + 0.3, 'quill', 0.8],
-      [beats.water, 'chime_solve', 0.6],
-    ];
-    while (cueIndex < list.length && time >= list[cueIndex]![0]) {
-      const [, name, gain] = list[cueIndex]!;
-      o.audio.sfx.oneShot(name, undefined, gain);
+    const audio = o.audio();
+    if (!audio) return;
+    while (cueIndex < CUES.length && time >= CUES[cueIndex]![0]) {
+      const [, name, gain] = CUES[cueIndex]!;
+      audio.sfx.oneShot(name, undefined, gain);
       cueIndex++;
     }
   }
@@ -337,7 +356,11 @@ export function createOpening(o: OpeningOptions): Opening {
       props?.update(step, t);
       cabin.update(step, t, reduced);
       if (diving) {
+        const before = diving.time;
         diving.time += step;
+        const cueAt = Math.max(0, beats.dive - 2.05);
+        if (before < cueAt + 1e-6 && diving.time >= cueAt)
+          o.audio()?.sfx.oneShot('opening_whoosh', undefined, 0.9);
         const x = Math.min(1, diving.time / beats.dive);
         const e = x * x * (3 - 2 * x) * 0.35 + easeInOutCubic(x) * 0.65;
         cubic(diving.from.eye, diving.c1, diving.c2, diving.to.eye, e, cam.eye);
@@ -436,7 +459,8 @@ export function createOpening(o: OpeningOptions): Opening {
         const w = fwidth(v);
         const line = float(1)
           .sub(smoothstep(w.mul(0.6), w.mul(1.6), d))
-          .mul(smoothstep(1, 2.5, hm));
+          .mul(smoothstep(1, 2.5, hm))
+          .mul(smoothstep(0.35, 0.9, rise));
         mat.colorNode = vec3(1).mul(float(1).sub(line.mul(0.55)));
         const m = new Mesh(geo, mat);
         m.castShadow = true;
@@ -479,6 +503,15 @@ export function createOpening(o: OpeningOptions): Opening {
       if (disposed) return;
       engine.cutscene = cutscene;
       playing = true;
+      const audio = o.audio();
+      if (audio) {
+        const sfx = audio.sfx;
+        sfx.preload(['opening_whoosh', 'opening_spray', ...CUES.map((c) => c[1])]);
+        // Inside the cabin: timbers creak; the open sea outside is muffled.
+        sfx.setBed('opening_cabin', 0.55);
+        sfx.setBed('wind', AMBIENT_BEDS.wind * 0.25);
+        sfx.setBed('surf_far', AMBIENT_BEDS.surf_far * 0.4);
+      }
       void api.veil(false, beats.fadeIn * 1000);
     },
     skip() {
@@ -549,7 +582,11 @@ export function createOpening(o: OpeningOptions): Opening {
       api.dispose();
       flashEl.style.transitionDuration = reduced ? '600ms' : '900ms';
       flashEl.style.opacity = '0';
-      if (!reduced) o.audio?.sfx.oneShot('big_splash', undefined, 0.45);
+      const sfx = o.audio()?.sfx;
+      if (sfx && !reduced) {
+        sfx.oneShot('opening_spray', undefined, 1);
+        sfx.oneShot('big_splash', undefined, 0.25);
+      }
       window.setTimeout(() => flashEl.remove(), 1000);
       window.setTimeout(() => sprayEl.remove(), 2000);
     },
@@ -557,6 +594,13 @@ export function createOpening(o: OpeningOptions): Opening {
       if (disposed) return;
       disposed = true;
       playing = false;
+      // Out on the open sea again.
+      const beds = o.audio()?.sfx;
+      if (beds) {
+        beds.setBed('opening_cabin', 0);
+        beds.setBed('wind', AMBIENT_BEDS.wind);
+        beds.setBed('surf_far', AMBIENT_BEDS.surf_far);
+      }
       removeSystem();
       if (engine.cutscene === cutscene) engine.cutscene = null;
       veilEl.remove();
