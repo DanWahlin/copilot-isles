@@ -66,11 +66,6 @@ function random(seed: number): () => number {
   };
 }
 
-function smooth01(x: number): number {
-  const t = clamp(x, 0, 1);
-  return t * t * (3 - 2 * t);
-}
-
 function flapFrameAt(phase: number): string {
   return `flight-${Math.floor(phase * 8) % 8}`;
 }
@@ -259,8 +254,7 @@ export function createTitleWordmarkGull(seed = 0xc0ffee): TitleWordmarkGull {
             phaseT = 0;
           }
         } else if (phase === 'crouch') {
-          const c = smooth01(phaseT / CROUCH_SECONDS);
-          showOverlay(target.x, target.y + c * 3 * sc, sc, 'crouch', 0, -1, 'crouch');
+          showOverlay(target.x, target.y, sc, 'crouch', 0, -1, 'crouch', PERCHED_FOOT_Y);
           if (phaseT >= CROUCH_SECONDS) {
             phase = 'departing';
             phaseT = 0;
@@ -272,7 +266,7 @@ export function createTitleWordmarkGull(seed = 0xc0ffee): TitleWordmarkGull {
           const k = clamp(phaseT / DEPART_SECONDS, 0, 1);
           const u = 0.35 * k + 0.65 * k * k;
           const x0 = target.x,
-            y0 = target.y + 3 * sc;
+            y0 = target.y;
           const x3 = target.x - Math.min(W * 0.4, 520);
           const y3 = -off - 40;
           const x = bez(x0, x0 - 20 * sc, x0 + (x3 - x0) * 0.55, x3, u);

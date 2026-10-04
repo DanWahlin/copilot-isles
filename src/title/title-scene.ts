@@ -5,6 +5,7 @@ import { createSky } from '../world/sky/sky-system';
 import { createDistantRanges } from '../world/terrain/distant-ranges';
 import { createBrigantine, type BrigantineEnv } from '../world/ship';
 import type { LeapsSystem, ScreenRect } from '../world/life/leaps';
+import type { BirdsSystem } from '../world/life/birds';
 import { world } from '../world/uniforms';
 import { bindTitleDrag, TitleOrbit } from './title-orbit';
 import type { TierSettings } from '../engine/quality';
@@ -37,6 +38,7 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   const ship = createBrigantine({ tier: tier.tier });
   const anchor = { x: 0, z: 0, heading: 2.3 };
   let leaps: LeapsSystem | null = null;
+  let birds: BirdsSystem | null = null;
   const wordmarkGull = createTitleWordmarkGull();
   let disposed = false;
   let avoidRects = titleAvoidRects();
@@ -53,6 +55,33 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
     leaps = created;
     scene.add(created.group);
   };
+  // A few gulls wheeling far off over the sea (Tidewater's flock), loaded after first paint so the
+  // title's first frame and program budget stay as they were.
+  // The flock's centre rides ~180 m out in front of the orbiting camera (a little right, over the
+  // open sea beside the ship), so the gulls wheel in the distance whichever way the view turns.
+  const flockCenter = new Vector3();
+  const loadBirds = async () => {
+    if (disposed || backdropTier.birds <= 0) return;
+    const { createBirds } = await import('../world/life/birds');
+    if (disposed) return;
+    const created = createBirds({
+      tier: { ...backdropTier, birds: Math.min(backdropTier.birds, 2) },
+      perches: [],
+      center: flockCenter,
+      radius: 90,
+      altitude: [10, 32],
+      scale: 0.9,
+      seed: 0x6a11,
+    });
+    await renderer.compileAsync(created.group, camera);
+    if (disposed) {
+      created.dispose();
+      return;
+    }
+    birds = created;
+    scene.add(created.group);
+  };
+  const lazyBirdsTimer = typeof window !== 'undefined' ? window.setTimeout(() => void loadBirds(), 2500) : 0;
   const lazyLeapsTimer = typeof window !== 'undefined' ? window.setTimeout(() => void loadLeaps(), 4000) : 0;
   ship.dynamics.reset(anchor.x, anchor.z, anchor.heading);
   scene.add(ocean.mesh, ranges, ship.group);
@@ -60,7 +89,7 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   if (typeof window !== 'undefined') {
     (window as unknown as { __dev: object }).__dev = {
       ready: true,
-      stats: () => ({ wordmarkGull: wordmarkGull.stats() }),
+      stats: () => ({ wordmarkGull: wordmarkGull.stats(), birds: birds ? 1 : 0 }),
     };
   }
 
@@ -103,6 +132,17 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
         updateTitleRects(leaps);
         wordmarkGull.update(dt, t, camera);
         leaps?.update(dt, t, camera);
+        if (birds) {
+          const fx = look.x - camera.position.x,
+            fz = look.z - camera.position.z;
+          const fl = Math.hypot(fx, fz) || 1;
+          flockCenter.set(
+            camera.position.x + (fx / fl) * 180 - (fz / fl) * 30,
+            0,
+            camera.position.z + (fz / fl) * 180 + (fx / fl) * 30,
+          );
+          birds.update(dt, t, camera);
+        }
         focus.set(camera.position.x, 0, camera.position.z);
         sky.update(clock, focus, dt, camera);
       },
@@ -129,11 +169,14 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
       disposed = true;
       unbind();
       if (lazyLeapsTimer) window.clearTimeout(lazyLeapsTimer);
+      if (lazyBirdsTimer) window.clearTimeout(lazyBirdsTimer);
       remove();
       scene.remove(ocean.mesh, ranges, ship.group);
       scene.remove(wordmarkGull.group);
       if (leaps) scene.remove(leaps.group);
       leaps?.dispose();
+      if (birds) scene.remove(birds.group);
+      birds?.dispose();
       wordmarkGull.dispose();
       ship.dispose();
       ocean.dispose();

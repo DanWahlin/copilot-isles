@@ -123,6 +123,12 @@ window.__bakeWordmarkGull = async () => {
   scene.add(rim, new THREE.AmbientLight(0xffffff, 1.5));
   renderer.setScissorTest(true);
   const placements = {};
+  // The foot line is the idle pose's lowest point (see the perched branch below).
+  applyPose(perched, { model: 'perched', yaw: -0.32 });
+  perched.scale.multiplyScalar(0.82);
+  perched.updateMatrixWorld(true);
+  const footLine = new THREE.Box3().setFromObject(perched, true).min.y;
+  perched.scale.multiplyScalar(1 / 0.82);
   for (let i = 0; i < framesMeta.frames.length; i++) {
     const spec = framesMeta.frames[i];
     const col = i % framesMeta.cols;
@@ -135,6 +141,13 @@ window.__bakeWordmarkGull = async () => {
     poseCamera(camera, spec);
     const scale = spec.model === 'perched' ? 0.82 : 0.9;
     obj.scale.multiplyScalar(scale);
+    if (spec.model === 'perched') {
+      // Every perched pose stands on the same foot line: the crouch's pitch and drop (and the
+      // bob) move the body, never the feet, so the bird can't sink into the letter.
+      obj.updateMatrixWorld(true);
+      const lowest = new THREE.Box3().setFromObject(obj, true).min.y;
+      obj.position.y += footLine - lowest;
+    }
     renderer.setViewport(x, canvas.height - y - frame, frame, frame);
     renderer.setScissor(x, canvas.height - y - frame, frame, frame);
     renderer.setClearColor(0x000000, 0);

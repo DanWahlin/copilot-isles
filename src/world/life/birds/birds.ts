@@ -25,6 +25,10 @@ export interface CreateBirdsOptions {
   center: Vector3;
   radius: number;
   seed?: number;
+  /** Size multiplier for every bird; default 1. */
+  scale?: number;
+  /** Flight band above `center.y` (m); default 18-73 m. */
+  altitude?: readonly [min: number, max: number];
 }
 
 export interface BirdsSystem {
@@ -83,10 +87,22 @@ function angleDiff(a: number, b: number): number {
   return d;
 }
 
-function chooseTarget(agent: BirdAgent, center: Vector3, radius: number, rng: () => number): void {
+const DEFAULT_ALTITUDE: readonly [number, number] = [18, 73];
+
+function chooseTarget(
+  agent: BirdAgent,
+  center: Vector3,
+  radius: number,
+  rng: () => number,
+  alt: readonly [number, number] = DEFAULT_ALTITUDE,
+): void {
   const a = rng() * Math.PI * 2;
   const r = radius * (0.25 + rng() * 0.75);
-  agent.target.set(center.x + Math.cos(a) * r, center.y + 18 + rng() * 48, center.z + Math.sin(a) * r);
+  agent.target.set(
+    center.x + Math.cos(a) * r,
+    center.y + alt[0] + rng() * (alt[1] - alt[0]) * 0.87,
+    center.z + Math.sin(a) * r,
+  );
   agent.timer = 8 + rng() * 14;
   agent.circleDir = rng() < 0.5 ? -1 : 1;
 }
@@ -108,6 +124,7 @@ export function createBirds(options: CreateBirdsOptions): BirdsSystem {
   const count = Math.max(0, tier.birds);
   const rng = random(options.seed ?? 0xb17d5);
   const agents: BirdAgent[] = [];
+  const alt = options.altitude ?? DEFAULT_ALTITUDE;
   const perchCount = Math.min(options.perches.length, Math.ceil(count * 0.24));
   for (let i = 0; i < count; i += 1) {
     const perched = i < perchCount;
@@ -115,7 +132,7 @@ export function createBirds(options: CreateBirdsOptions): BirdsSystem {
       ? options.perches[i].clone()
       : new Vector3(
           options.center.x + (rng() - 0.5) * options.radius,
-          options.center.y + 18 + rng() * 55,
+          options.center.y + alt[0] + rng() * (alt[1] - alt[0]),
           options.center.z + (rng() - 0.5) * options.radius,
         );
     const agent: BirdAgent = {
@@ -126,7 +143,7 @@ export function createBirds(options: CreateBirdsOptions): BirdsSystem {
       bank: 0,
       pitch: 0,
       speed: 7.5 + rng() * 4,
-      scale: 1.6 + rng() * 0.35,
+      scale: (1.6 + rng() * 0.35) * (options.scale ?? 1),
       seed: rng(),
       flapPhase: rng() * Math.PI * 2,
       flapAmp: perched ? 0 : 0.25 + rng() * 0.45,
@@ -135,7 +152,7 @@ export function createBirds(options: CreateBirdsOptions): BirdsSystem {
       timer: perched ? 16 + rng() * 45 : 0,
       circleDir: rng() < 0.5 ? -1 : 1,
     };
-    chooseTarget(agent, options.center, options.radius, rng);
+    chooseTarget(agent, options.center, options.radius, rng, alt);
     agents.push(agent);
   }
 
@@ -187,7 +204,7 @@ export function createBirds(options: CreateBirdsOptions): BirdsSystem {
         agent.target.y += 6;
         agent.perch = p;
         agent.timer = 5 + rng() * 5;
-      } else chooseTarget(agent, options.center, options.radius, rng);
+      } else chooseTarget(agent, options.center, options.radius, rng, alt);
     }
 
     tmpSep.set(0, 0, 0);
@@ -207,7 +224,11 @@ export function createBirds(options: CreateBirdsOptions): BirdsSystem {
     agent.yaw += turn;
     agent.bank +=
       (clamp((turn / Math.max(dt, 0.001)) * 0.42, -0.85, 0.85) - agent.bank) * clamp(dt * 4, 0, 1);
-    const targetY = clamp(agent.target.y, options.center.y + 5, options.center.y + 90);
+    const targetY = clamp(
+      agent.target.y,
+      options.center.y + Math.min(5, alt[0]),
+      options.center.y + alt[1] + 17,
+    );
     const climb = clamp((targetY - agent.pos.y) * 0.55, -2.2, 2.8);
     agent.pitch += (clamp(climb / Math.max(agent.speed, 1), -0.32, 0.38) - agent.pitch) * clamp(dt * 3, 0, 1);
     const wind = world.windSpeed.value * 0.07;
@@ -222,7 +243,8 @@ export function createBirds(options: CreateBirdsOptions): BirdsSystem {
       clamp(dt * 2.4, 0, 1);
 
     const fromCenter = Math.hypot(agent.pos.x - options.center.x, agent.pos.z - options.center.z);
-    if (fromCenter > options.radius * 1.2) chooseTarget(agent, options.center, options.radius * 0.75, rng);
+    if (fromCenter > options.radius * 1.2)
+      chooseTarget(agent, options.center, options.radius * 0.75, rng, alt);
     if (agent.perch >= 0 && agent.state === 'fly') {
       const perch = options.perches[agent.perch];
       if (perch && agent.pos.distanceTo(perch) < 3.5 && Math.abs(agent.vel.y) < 1.5) {
