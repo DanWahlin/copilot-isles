@@ -33,7 +33,7 @@ engine.add({
   },
 });
 
-await compileAndStart(renderer, engine, scene, camera);
+await compileAndStart(renderer, engine, scene, camera, post ? () => post.compile() : undefined);
 
 const dev = window as unknown as { __dev: Record<string, unknown> };
 dev.__dev = {};

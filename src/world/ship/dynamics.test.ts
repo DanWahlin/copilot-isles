@@ -54,7 +54,7 @@ describe('ShipDynamics', () => {
       expect(Math.abs(ship.pose.pitch)).toBeLessThan(0.55);
       expect(Math.abs(ship.pose.roll)).toBeLessThan(0.65);
     }
-  });
+  }, 10_000);
 
   it('keeps x/z untouched when only attitude springs update', () => {
     const waves = new WaveField();

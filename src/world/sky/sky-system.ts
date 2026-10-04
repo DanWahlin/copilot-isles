@@ -371,7 +371,10 @@ export function createSky(
       tideClouds?.invalidate();
       bakedSky?.invalidate();
     },
-    cloudShadowNode: tideClouds ? (worldXZ: Node<'vec2'>) => tideClouds.shadow(worldXZ) : undefined,
+    cloudShadowNode:
+      tideClouds && tier.cloudShadowRes > 0
+        ? (worldXZ: Node<'vec2'>) => tideClouds.shadow(worldXZ)
+        : undefined,
     dispose() {
       scene.remove(sky.mesh, bakedSky?.mesh ?? sky.mesh, nightDome, sun, sun.target, hemi);
       if (tideMesh) scene.remove(tideMesh);

@@ -107,7 +107,7 @@ engine.add({
   },
 });
 
-await compileAndStart(renderer, engine, scene, camera);
+await compileAndStart(renderer, engine, scene, camera, post ? () => post.compile() : undefined);
 startBtn.disabled = false;
 startBtn.textContent = 'Set sail';
 if (q.has('auto')) await begin(false);

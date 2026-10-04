@@ -67,7 +67,7 @@ export function createHammock(o: {
 
   const woodMesh = new Mesh(buildWood(y, detail), o.kit.materials.wood);
   woodMesh.name = 'bard hammock wood props';
-  woodMesh.castShadow = true;
+  woodMesh.castShadow = false;
   woodMesh.receiveShadow = true;
 
   const palmL = o.palms?.left ?? new Group();
@@ -78,12 +78,12 @@ export function createHammock(o: {
   const cloth = buildCloth(y);
   const clothMesh = new Mesh(cloth.geometry, o.kit.materials.cloth);
   clothMesh.name = 'bard hammock animated cloth';
-  clothMesh.castShadow = true;
+  clothMesh.castShadow = false;
   clothMesh.receiveShadow = true;
 
   const stoneMesh = new Mesh(buildStone(y, detail), o.kit.materials.stone);
   stoneMesh.name = 'bard hammock cold firepit';
-  stoneMesh.castShadow = true;
+  stoneMesh.castShadow = false;
   stoneMesh.receiveShadow = true;
 
   group.add(palmL, palmR, woodMesh, clothMesh, stoneMesh);
@@ -162,7 +162,7 @@ function placePalmPost(
   palm.traverse((object) => {
     const mesh = object as Mesh;
     if (!mesh.isMesh) return;
-    mesh.castShadow = true;
+    mesh.castShadow = false;
     mesh.receiveShadow = true;
   });
 }

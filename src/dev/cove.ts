@@ -178,7 +178,13 @@ engine.add({
   },
 });
 
-const compileMs = await compileAndStart(renderer, engine, scene, camera);
+const compileMs = await compileAndStart(
+  renderer,
+  engine,
+  scene,
+  camera,
+  post ? () => post.compile() : undefined,
+);
 
 /**
  * Sky-bake mode for tools/sky/bake-sky.mjs (run with `nopost`): hides everything but the sky dome and

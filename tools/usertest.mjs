@@ -311,7 +311,16 @@ await step('travel to Port Meridian', async () => {
   await go.click();
   await screenIs('playing', 10_000);
   await page.waitForFunction(() => window.__flow.session.island === 'meridian', null, { timeout: 10_000 });
-  await page.waitForTimeout(900);
+  // The card comes up 0.5 s into the arrival, which can start a little after the island switches.
+  await page
+    .waitForFunction(
+      () => document.querySelector('.hud-card.show')?.textContent?.includes('Port Meridian'),
+      null,
+      {
+        timeout: 4000,
+      },
+    )
+    .catch(() => null);
   const card = await page.evaluate(() => document.querySelector('.hud-card.show')?.textContent ?? '');
   await shot('meridian-card');
   check('Port Meridian’s arrival card shows', card.includes('Port Meridian'), card.slice(0, 60));

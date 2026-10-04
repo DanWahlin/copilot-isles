@@ -1,4 +1,5 @@
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/sky/Sky.js@fd6cae6
+// Aerial-perspective cloud composite adapted from src/post/AirHaze.js@fd6cae6
 /* eslint-disable */
 // @ts-nocheck
 import * as THREE from 'three/webgpu';
@@ -29,6 +30,7 @@ import {
   saturate,
   fwidth,
   If,
+  cameraPosition,
 } from 'three/tsl';
 import { G } from './Globals';
 import { SUN_ANGULAR_RADIUS } from './Atmosphere';
@@ -46,6 +48,9 @@ const MW = new THREE.Vector3(0.3, 0.2, 1).normalize();
 const MILKY_WAY = vec3(MW.x, MW.y, MW.z); // pole of the Milky Way band
 // reflections spread point sources over rough water: only a trace of the stars survives
 const STAR_REFLECTION = 0.08;
+const MARINE = { sigma: 1.5e-4, H: 110 };
+const AEROSOL = { sigma: 3.2e-5, H: 1400 };
+const AIR_HAZE_DENSITY = 1.6;
 
 export class Sky {
   constructor(atmosphere) {
@@ -221,6 +226,26 @@ export class Sky {
     return base.mul(c.a).add(c.rgb);
   }
 
+  _cloudAerialPerspective(dir, cloud, radiance) {
+    const camH = max(cameraPosition.y, 0);
+    const vy = max(dir.y, 0.02);
+    const d = clamp(this.clouds.bottom.sub(cameraPosition.y).div(vy), 0, 60000);
+    const layerDepth = (layer) => {
+      const base = exp(camH.div(-layer.H)).mul(layer.sigma);
+      const f = float(layer.H)
+        .mul(float(1).sub(exp(vy.mul(d).div(-layer.H))))
+        .div(vy);
+      return base.mul(f);
+    };
+    const tau = layerDepth(MARINE).add(layerDepth(AEROSOL)).mul(AIR_HAZE_DENSITY);
+    const T = exp(tau.negate());
+    const vh = normalize(vec3(dir.x, max(dir.y, 0.02), dir.z));
+    const fog = this.atmosphere.skyLuminance(vh).add(this.moonSky(vh));
+    const cloudOpacity = clamp(float(1).sub(cloud.a), 0, 1);
+    const haze = clamp(float(1).sub(T).mul(cloudOpacity).mul(0.18), 0, 0.12);
+    return mix(radiance, fog, haze);
+  }
+
   // Main view background: full resolution clouds for the camera's view.
   backgroundNode() {
     return Fn(() => {
@@ -228,7 +253,7 @@ export class Sky {
       const base = this._background(dir).add(this.moon(dir)).add(this.sunDisk(dir));
       if (!this.clouds) return vec4(base, 1);
       const c = this.clouds.sampleView(dir);
-      return vec4(base.mul(c.a).add(c.rgb), 1);
+      return vec4(this._cloudAerialPerspective(dir, c, base.mul(c.a).add(c.rgb)), 1);
     })();
   }
 }

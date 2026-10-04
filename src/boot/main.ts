@@ -100,7 +100,10 @@ async function boot(): Promise<void> {
     import('../ui/learn/LearnLayer'),
     import('../game/hud.css'),
   ]);
-  let post = await createPost(renderer, engine.scene, engine.camera, tier, { lean: true });
+  let post = await createPost(renderer, engine.scene, engine.camera, tier, {
+    lean: true,
+    temporal: !q.has('notaa'),
+  });
   if (post) engine.renderFn = post.render;
   let richPostReady = false;
   const upgradePost = async () => {
@@ -113,10 +116,10 @@ async function boot(): Promise<void> {
       richPostReady = true;
       return;
     }
-    await renderer.compileAsync(engine.scene, engine.camera);
     const previous = post;
     post = rich;
     engine.renderFn = rich.render;
+    await rich.compile();
     engine.renderNow();
     previous?.dispose();
     richPostReady = true;
@@ -130,7 +133,10 @@ async function boot(): Promise<void> {
   flow.showTitle();
   registerServiceWorker();
   stage(0.75, 'Lighting the lighthouses');
-  await renderer.compileAsync(engine.scene, engine.camera);
+  const titleCompileT0 = performance.now();
+  if (post) await post.compile();
+  else await renderer.compileAsync(engine.scene, engine.camera);
+  (window as unknown as { __titleCompileMs?: number }).__titleCompileMs = performance.now() - titleCompileT0;
   engine.renderNow();
   await nextFrame();
 
@@ -167,6 +173,9 @@ async function boot(): Promise<void> {
     },
   );
   engine.start();
+  for (let i = 0; i < 12; i++) await nextFrame();
+  engine.counters.hitches.length = 0;
+  engine.counters.arm();
   stage(1, 'Ready');
 
   installDebug(

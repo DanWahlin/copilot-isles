@@ -7,6 +7,7 @@ import { createBrigantine, type BrigantineEnv } from '../world/ship';
 import type { LeapsSystem, ScreenRect } from '../world/life/leaps';
 import { world } from '../world/uniforms';
 import { bindTitleDrag, TitleOrbit } from './title-orbit';
+import type { TierSettings } from '../engine/quality';
 
 export interface TitleBackdrop {
   setAvoidRects(rects: ScreenRect[]): void;
@@ -28,19 +29,20 @@ export interface TitleBackdrop {
  */
 export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   const { renderer, scene, tier, camera, clock } = engine;
-  const sky = createSky(renderer, scene, tier, engine.backend);
-  const ocean = createOcean({ tier, env: sky.env });
-  const ranges = createDistantRanges(tier);
+  const backdropTier = titleBackdropTier(tier);
+  const sky = createSky(renderer, scene, backdropTier, engine.backend);
+  const ocean = createOcean({ tier: backdropTier, env: sky.env });
+  const ranges = createDistantRanges(backdropTier);
   const ship = createBrigantine({ tier: tier.tier });
   const anchor = { x: 0, z: 0, heading: 2.3 };
   let leaps: LeapsSystem | null = null;
   let disposed = false;
   let avoidRects = titleAvoidRects();
   const loadLeaps = async () => {
-    if (disposed || tier.leaps <= 0) return;
+    if (disposed || backdropTier.leaps <= 0) return;
     const { createLeaps } = await import('../world/life/leaps');
     if (disposed) return;
-    const created = createLeaps({ tier, titleMode: true, avoidRects });
+    const created = createLeaps({ tier: backdropTier, titleMode: true, avoidRects });
     await renderer.compileAsync(created.group, camera);
     if (disposed) {
       created.dispose();
@@ -137,6 +139,20 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
 
 function updateTitleRects(leaps: LeapsSystem | null): void {
   leaps?.setAvoidRects(titleAvoidRects());
+}
+
+function titleBackdropTier(tier: TierSettings): TierSettings {
+  if (tier.tier !== 'high' && tier.tier !== 'ultra') return { ...tier, leaps: 0 };
+  return {
+    ...tier,
+    shadowCascades: 0,
+    shadowMap: 0,
+    dynamicShadows: false,
+    cloudShadowRes: 0,
+    ssao: false,
+    bloom: false,
+    leaps: 0,
+  };
 }
 
 function titleAvoidRects(): ScreenRect[] {

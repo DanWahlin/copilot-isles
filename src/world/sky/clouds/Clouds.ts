@@ -129,8 +129,8 @@ const hash2 = (p) => fract(sin(dot(p, vec2(127.1, 311.7))).mul(43758.5453));
 
 // top of a cloud column (fraction of the layer) from the cell profile (0..1), the cell's top and
 // the turret noise: broad rounded domes, uneven
-const smallTop = (cs, top, lump) => top.mul(pow(cs, 0.6)).mul(lump.mul(0.8).add(0.65));
-const bigTop = (cb, lump) => pow(cb, 0.6).mul(lump.mul(0.35).add(0.7));
+const smallTop = (cs, top, lump) => top.mul(pow(cs, 0.6)).mul(lump.mul(0.35).add(0.58));
+const bigTop = (cb, lump) => pow(cb, 0.6).mul(lump.mul(0.18).add(0.5));
 
 // cubic B-spline filtered texture lookup in 4 bilinear taps (GPU Gems 2, ch. 20): magnified cirrus fibres
 // stay smooth instead of showing the bilinear texel grid (res: texels at mip 0)
@@ -1473,17 +1473,17 @@ export class Clouds {
             );
             const lo = textureLoad(this.boxMin, ivec2(tp)),
               hi = textureLoad(this.boxMax, ivec2(tp));
-            const pad = hi
-              .sub(lo)
-              .mul(0.18)
-              .add(vec4(0.006, 0.006, 0.006, 0.03));
+            const pad = hi.sub(lo).mul(0.25).add(0.01);
             const hc = clamp(h, lo.sub(pad), hi.add(pad));
             const histEnergy = max(max(h.rgb.x, h.rgb.y), h.rgb.z);
-            const currentEnergy = max(max(current.rgb.x, current.rgb.y), current.rgb.z);
-            const blackHistory = h.a
-              .lessThan(0.03)
-              .and(histEnergy.lessThan(max(0.002, currentEnergy.mul(0.08))));
-            out.assign(select(this.rebuildK.lessThan(0), select(blackHistory, current, hc), h));
+            const invalidHistory = h.a.lessThan(1e-4).and(histEnergy.lessThan(1e-5));
+            out.assign(
+              select(
+                this.rebuildK.lessThan(0),
+                select(invalidHistory, current, hc),
+                select(invalidHistory, current, h),
+              ),
+            );
           }).Else(() => {
             out.assign(current);
           });

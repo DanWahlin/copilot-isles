@@ -126,9 +126,11 @@ export async function compileAndStart(
   engine: Engine,
   scene: Object3D,
   camera: Camera,
+  precompile?: () => Promise<void>,
 ): Promise<number> {
   const t0 = performance.now();
-  await renderer.compileAsync(scene, camera);
+  if (precompile) await precompile();
+  else await renderer.compileAsync(scene, camera);
   engine.start();
   return performance.now() - t0;
 }

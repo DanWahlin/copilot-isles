@@ -14,7 +14,7 @@ naming its origin (`Adapted from <project> © <holder>, <license>, <path>@<commi
   - `src/world/sky/clouds/Atmosphere.ts` from `src/sky/Atmosphere.js`
   - `src/world/sky/clouds/Clouds.ts` from `src/sky/Clouds.js`
   - `src/world/sky/clouds/Globals.ts` from `src/core/Globals.js`
-  - `src/world/sky/clouds/Sky.ts` from `src/sky/Sky.js`
+  - `src/world/sky/clouds/Sky.ts` from `src/sky/Sky.js` and `src/post/AirHaze.js`
   - `src/world/ocean/ocean.ts` from `src/ocean/WaterMaterial.js`
   - `src/world/vegetation/palms.ts` from `src/world/vegetation/PlantGeometry.js` and `src/world/vegetation/GeoBuilder.js`
   - `src/world/vegetation/materials.ts` from `src/world/vegetation/VegMaterials.js`, `src/world/vegetation/VegNodes.js`, and `src/world/vegetation/LeafTextures.js`

@@ -29,7 +29,7 @@ const shot = async (name) => {
 };
 const flow = (js) => page.evaluate(`window.__flow.${js}`);
 const until = (screen, timeout = 90000) =>
-  page.waitForFunction((s) => window.__flow.getState().screen === s, screen, { timeout });
+  page.waitForFunction((s) => window.__flow?.getState?.().screen === s, screen, { timeout });
 
 await shot('title');
 await flow('chooseCaptain()');

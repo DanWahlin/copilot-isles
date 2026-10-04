@@ -296,7 +296,7 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
 
   const shipMaterial = register(makeShipMaterial());
   const riggingLineMaterial = register(
-    new LineBasicMaterial({ color: 0x17110c, transparent: true, opacity: 0.72 }),
+    new LineBasicMaterial({ color: 0x17110c, transparent: true, opacity: 0.78, linewidth: 1.6 }),
   );
   const pipeSystem = createShipPipes(shipMaterial);
   const christening = createChristeningSystem(shipMaterial);

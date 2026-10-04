@@ -23,13 +23,15 @@ export function parseSize(s, fallback = { width: 1600, height: 900 }) {
 
 /** Chrome flags for the real GPU: ANGLE on Metal, no blocklist, and WebGPU on. */
 export const GPU_ARGS = ['--use-angle=metal', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu'];
+export const UNCAPPED_GPU_ARGS = ['--disable-frame-rate-limit', '--disable-gpu-vsync'];
 
 /**
  * Launches the installed Chrome. `gpu` adds the real-GPU flags, and `autoplay` lets audio start without
  * a gesture (for flows that unlock sound).
  */
-export function launchChrome({ gpu = true, autoplay = false } = {}) {
+export function launchChrome({ gpu = true, autoplay = false, uncapped = false } = {}) {
   const args = gpu ? [...GPU_ARGS] : [];
+  if (gpu && uncapped) args.push(...UNCAPPED_GPU_ARGS);
   if (autoplay) args.push('--autoplay-policy=no-user-gesture-required');
   return chromium.launch({ channel: 'chrome', ...(args.length ? { args } : {}) });
 }

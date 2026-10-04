@@ -148,14 +148,18 @@ export class Engine {
     const dt = Math.min(raw, 0.1);
     if (raw > 0) this.fps += (1 / raw - this.fps) * 0.05;
 
-    this.step.advance(dt, (h) => {
+    const alpha = this.step.advance(dt, (h) => {
       if (!this.clock.paused) {
         for (const s of this.systems) s.fixed?.(h, this.clock.sim + h);
       }
       this.clock.advance(h);
     });
-    world.time.value = this.clock.sim;
-    for (const s of this.systems) s.frame?.(dt, this.clock.sim);
+    // Render time runs smoothly between fixed steps (PLAN §12.8): at 120 Hz the 60 Hz simulation
+    // clock only moves every other frame, which made everything driven by it judder. The fixed
+    // steps still run at 60 Hz; frame systems and shaders see sim time interpolated by `alpha`.
+    const renderTime = this.clock.paused ? this.clock.sim : this.clock.sim + alpha * this.step.step;
+    world.time.value = renderTime;
+    for (const s of this.systems) s.frame?.(dt, renderTime);
     this.renderNow();
     this.cpuMs = performance.now() - tickStart;
 

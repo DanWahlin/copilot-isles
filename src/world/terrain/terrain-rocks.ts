@@ -362,7 +362,7 @@ function createSeaStackCore(): Mesh {
   geometry.computeBoundingSphere();
   const mesh = new Mesh(geometry, createRockMaterial());
   mesh.name = 'terrain-rocks-sea-stack-core';
-  mesh.castShadow = true;
+  mesh.castShadow = false;
   mesh.receiveShadow = true;
   return mesh;
 }
@@ -401,7 +401,7 @@ export function createTerrainRocks(heightField: HeightField): Group {
     const asset = ROCK_ASSETS[assetIndex];
     const mesh = new InstancedMesh(rockGeometry(asset), material, list.length);
     mesh.name = `terrain-rocks-${asset.key}`;
-    mesh.castShadow = true;
+    mesh.castShadow = false;
     mesh.receiveShadow = true;
     mesh.frustumCulled = true;
     for (let i = 0; i < list.length; i++) {
