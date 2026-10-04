@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { GesturePlanner, gestureArm, type ActiveGesture, type GestureKind } from './gestures';
+import {
+  GESTURES,
+  GesturePlanner,
+  HIP_FIST,
+  newPose,
+  planAccents,
+  sampleGesture,
+  type GestureFrame,
+  type SpokenWord,
+} from './gestures';
 
 /** A small deterministic PRNG so the planner's choices are repeatable. */
 function seeded(seed: number): () => number {
@@ -10,87 +19,158 @@ function seeded(seed: number): () => number {
   };
 }
 
-function run(planner: GesturePlanner, seconds: number, dt = 1 / 30): ActiveGesture[] {
-  const started: ActiveGesture[] = [];
-  for (let t = 0; t < seconds; t += dt) {
-    const g = planner.update(dt);
-    if (g?.started) started.push({ ...g });
-  }
-  return started;
+function words(text: string, rate = 0.32): SpokenWord[] {
+  let t = 0.1;
+  return text
+    .replace(/[.,!?:]/g, '')
+    .split(/\s+/)
+    .map((word) => {
+      const w = { word, start: t, end: t + rate };
+      t += rate;
+      return w;
+    });
 }
 
-describe('GesturePlanner', () => {
-  it('stays still until started and after stopping', () => {
-    const p = new GesturePlanner('either', true, seeded(1));
-    expect(run(p, 5)).toHaveLength(0);
-    p.start();
-    expect(run(p, 5).length).toBeGreaterThan(0);
-    p.stop();
-    expect(run(p, 5)).toHaveLength(0);
-  });
+const busy = (f: GestureFrame) =>
+  Math.abs(f.left.flex) +
+  Math.abs(f.left.elbow) +
+  Math.abs(f.right.flex) +
+  Math.abs(f.right.elbow) +
+  Math.abs(f.nod);
 
-  it('never repeats the same gesture twice in a row', () => {
-    for (const seed of [1, 2, 3, 42, 99]) {
-      const p = new GesturePlanner('either', true, seeded(seed));
-      p.start();
-      const kinds = run(p, 90).map((g) => g.kind);
-      expect(kinds.length).toBeGreaterThan(15);
-      for (let i = 1; i < kinds.length; i++) expect(kinds[i]).not.toBe(kinds[i - 1]);
-      expect(new Set(kinds).size).toBeGreaterThanOrEqual(4);
+describe('authored gestures', () => {
+  it('start and end at rest, wind up before the stroke, and overshoot after it', () => {
+    for (const [kind, def] of Object.entries(GESTURES)) {
+      const first = def.keys[0]!;
+      const last = def.keys[def.keys.length - 1]!;
+      expect(
+        first.slice(1).every((v) => v === 0),
+        kind,
+      ).toBe(true);
+      expect(
+        last.slice(1).every((v) => v === 0),
+        kind,
+      ).toBe(true);
+      expect(first[0], kind).toBeLessThan(-0.3);
+      const stroke = def.keys.find((k) => k[0] === 0)!;
+      const windup = def.keys.find((k) => k[0] < 0 && k[0] > first[0])!;
+      // Anticipation: the elbow is more bent (or the arm more gathered) before the stroke.
+      expect(windup[3]! !== stroke[3]! || windup[1]! !== stroke[1]!, kind).toBe(true);
+      const over = def.keys.find((k) => k[0] > 0 && k[0] < 0.2)!;
+      expect(over, kind).toBeDefined();
     }
   });
 
-  it('rests between gestures', () => {
-    const p = new GesturePlanner('either', true, seeded(7));
-    p.start();
-    let idle = 0;
-    let wasActive = false;
-    let gaps = 0;
-    for (let t = 0; t < 30; t += 1 / 30) {
-      const g = p.update(1 / 30);
-      if (!g && wasActive) gaps++;
-      if (!g) idle++;
-      wasActive = g !== null;
+  // A fast palm flip is about 9 rad/s; a pop would be several times that.
+  it('samples smoothly (no jumps between frames)', () => {
+    const a = newPose();
+    const b = newPose();
+    for (const kind of Object.keys(GESTURES) as (keyof typeof GESTURES)[]) {
+      for (let t = -0.6; t < 2.2; t += 1 / 60) {
+        sampleGesture(kind, t, a);
+        sampleGesture(kind, t + 1 / 60, b);
+        for (const key of Object.keys(a) as (keyof typeof a)[])
+          expect(Math.abs(a[key] - b[key]), `${kind} ${key} at ${t.toFixed(2)}`).toBeLessThan(0.16);
+      }
     }
-    expect(gaps).toBeGreaterThan(3);
-    expect(idle).toBeGreaterThan(0);
   });
 
-  it('gestures with the free hand and skips two-handed or nodding gestures when it must', () => {
-    const p = new GesturePlanner('right', false, seeded(5));
-    p.start();
-    const started = run(p, 90);
-    expect(started.every((g) => g.side === -1)).toBe(true);
-    const kinds = new Set<GestureKind>(started.map((g) => g.kind));
-    expect(kinds.has('open')).toBe(false);
-    expect(kinds.has('nod')).toBe(false);
-  });
-
-  it('eases each gesture in and out', () => {
-    const p = new GesturePlanner('left', true, seeded(3));
-    p.start();
-    const weights: number[] = [];
-    let seen = false;
-    for (let t = 0; t < 20; t += 1 / 60) {
-      const g = p.update(1 / 60);
-      if (g) {
-        seen = true;
-        weights.push(g.weight);
-      } else if (seen) break;
-    }
-    expect(weights[0]).toBeLessThan(0.05);
-    expect(Math.max(...weights)).toBeGreaterThan(0.95);
-    expect(weights[weights.length - 1]).toBeLessThan(0.1);
+  it('closes the fist on the hip and points with the index straight', () => {
+    expect(HIP_FIST.curl).toBeGreaterThan(1.2);
+    const p = sampleGesture('point', 0.4, newPose());
+    expect(p.curl).toBeGreaterThan(1);
+    expect(p.index).toBeLessThan(0.1);
   });
 });
 
-describe('gestureArm', () => {
-  it('keeps an explaining hand below a wave (upper arm forward, forearm not upright)', () => {
-    const pose = gestureArm('explain', 0.3, 2.5)!;
-    expect(pose.flex + pose.elbow).toBeLessThan(Math.PI * 0.6);
+describe('planAccents', () => {
+  it('lands strokes on stressed words, spaced out, never the same twice running', () => {
+    const w = words(
+      'Select the gear at the bottom of the sidebar, and there they all are. I keep a record of every one.',
+    );
+    const accents = planAccents(w, 'Select the gear … every one.', w[w.length - 1]!.end, 'open');
+    expect(accents.length).toBeGreaterThanOrEqual(2);
+    for (let i = 1; i < accents.length; i++) {
+      expect(accents[i]!.t - accents[i - 1]!.t).toBeGreaterThanOrEqual(1.9);
+      expect(accents[i]!.kind).not.toBe(accents[i - 1]!.kind);
+    }
+    for (const a of accents) expect(w.some((x) => Math.abs(x.start + 0.04 - a.t) < 1e-6)).toBe(true);
   });
 
-  it('leaves nods to the head', () => {
-    expect(gestureArm('nod', 0, 1.6)).toBeNull();
+  it('points at "there" and lifts a finger for "first"', () => {
+    const w = words('First, a job on GitHub. Open your fork over there, the Actions tab.');
+    const kinds = planAccents(w, 'First, a job on GitHub. Open your fork over there.', 6, 'ledger').map(
+      (a) => a.kind,
+    );
+    expect(kinds).toContain('point');
+  });
+
+  it('keeps a short line to one stroke at most', () => {
+    const w = words('Crew’s aboard, Captain.');
+    expect(planAccents(w, 'Crew’s aboard, Captain.', 1.4, 'open').length).toBeLessThanOrEqual(1);
+  });
+});
+
+describe('GesturePlanner', () => {
+  it('stays still until started and after stopping', () => {
+    const p = new GesturePlanner('either', true, 'open', seeded(1));
+    let moved = 0;
+    for (let i = 0; i < 300; i++) moved += busy(p.update(1 / 60));
+    expect(moved).toBe(0);
+    p.start();
+    for (let i = 0; i < 600; i++) moved += busy(p.update(1 / 60));
+    expect(moved).toBeGreaterThan(0);
+    p.stop();
+    let after = 0;
+    for (let i = 0; i < 300; i++) after += busy(p.update(1 / 60));
+    expect(after).toBe(0);
+  });
+
+  it('gestures with the free hand only when the other holds something', () => {
+    const p = new GesturePlanner('right', false, 'ledger', seeded(5));
+    p.start();
+    for (let i = 0; i < 60 * 30; i++) {
+      const f = p.update(1 / 60);
+      expect(f.left.flex + f.left.elbow + f.left.abduct).toBe(0);
+    }
+  });
+
+  it('sets a commander’s other fist on the hip while talking, and lets it go after', () => {
+    const p = new GesturePlanner('right', true, 'commander', seeded(2));
+    p.start();
+    let f = p.update(1 / 60);
+    for (let i = 0; i < 120; i++) f = p.update(1 / 60);
+    expect(f.left.curl).toBeGreaterThan(1.2);
+    p.stop();
+    for (let i = 0; i < 180; i++) f = p.update(1 / 60);
+    expect(f.left.curl).toBeLessThan(0.05);
+  });
+
+  it('times a voiced line’s strokes from its words', () => {
+    const p = new GesturePlanner('either', true, 'open', seeded(3));
+    p.start();
+    const w = words(
+      'Now, the workspace selector below the prompt box. Don’t trust the checkmark, it just shows the default.',
+    );
+    p.plan(w, 'Now, the workspace selector below the prompt box.', 6);
+    const accents = planAccents(w, 'Now, the workspace selector below the prompt box.', 6, 'open');
+    let peakAt = -1;
+    let peak = 0;
+    for (let t = 0; t < accents[0]!.t + 0.3; t += 1 / 60) {
+      const f = p.update(1 / 60);
+      const v = Math.max(Math.abs(f.left.abduct), Math.abs(f.right.abduct));
+      if (v > peak) [peak, peakAt] = [v, t];
+    }
+    expect(Math.abs(peakAt - accents[0]!.t)).toBeLessThan(0.25);
+  });
+
+  it('never pitches the torso: the frame only turns the shoulders', () => {
+    const p = new GesturePlanner('either', true, 'open', seeded(9));
+    p.start();
+    for (let i = 0; i < 60 * 20; i++) {
+      const f = p.update(1 / 60);
+      expect(Math.abs(f.turn)).toBeLessThan(0.1);
+      expect(Math.abs(f.nod)).toBeLessThan(0.2);
+    }
   });
 });

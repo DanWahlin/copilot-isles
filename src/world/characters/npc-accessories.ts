@@ -1041,7 +1041,8 @@ function addPeriwig(root: Group, hair: ColorHex, ribbon: ColorHex): void {
 
   for (const x of [-0.12, 0, 0.12]) {
     const roll = mesh(new SphereGeometry(0.075, 8, 5), mat(hair), 'periwig brow curl');
-    roll.position.set(x, 0.105, 0.235);
+    // Above the eyes (their tops are at about 0.15), so the face shows (issue #186).
+    roll.position.set(x, 0.168, 0.214 - Math.abs(x) * 0.12);
     roll.scale.set(1, 0.58, 0.45);
     addHead(root, roll);
   }
