@@ -25,6 +25,7 @@ import {
   max,
   mix,
   normalize,
+  positionLocal,
   positionWorld,
   pmremTexture,
   uniform,
@@ -37,7 +38,7 @@ import type { Backend } from '../contracts';
 import { world } from '../uniforms';
 import { smoothstep as ss } from '../../util/math';
 import { sunState, type SunState } from './sun';
-import { createAtmosphereSky, createNightDome } from './atmosphere';
+import { createAnalyticSky } from './atmosphere';
 import { Atmosphere as TidewaterAtmosphere } from './clouds/Atmosphere';
 import { createBakedClouds, type BakedClouds } from './clouds/BakedPanorama';
 import { Clouds as TidewaterClouds } from './clouds/Clouds';
@@ -74,6 +75,7 @@ interface TidewaterCloudsPort {
 }
 
 interface TidewaterSkyPort {
+  reflectionRadiance(dir: Node<'vec3'>): Node<'vec3'>;
   clouds: TidewaterCloudsPort | BakedClouds | null;
   bakeLayer: { value: number };
   starIntensity: { value: number };
@@ -153,6 +155,10 @@ type CSMShadowNodeLike = Node & {
  */
 /** Cloud drift speed (m/s at cloud height): about a body length a minute for a cumulus seen from the ground. */
 const CLOUD_DRIFT = 2.5;
+/** Sun heights where the environment turns from the live LUT sky (below) to the day sky (above). */
+const ENV_LUT_FROM = 0.06;
+const SKY_BELOW = (5 * Math.PI) / 180;
+const ENV_DAY_FROM = 0.24;
 
 function applyCloudDebugParams(clouds: TidewaterCloudsPort): void {
   if (typeof window === 'undefined') return;
@@ -225,8 +231,6 @@ export function createSky(
     applyCloudDebugParams(tideClouds);
   }
   tideSky.clouds = tideClouds ?? bakedClouds;
-  // Holds the keyed haze colours the environment capture's sky copies (it is never drawn).
-  const sky = createAtmosphereSky({ radius: R, sunDisc: false, clouds: false });
   const tideMaterial = new MeshBasicNodeMaterial({
     side: BackSide,
     depthWrite: false,
@@ -234,16 +238,31 @@ export function createSky(
     fog: false,
   });
   tideMaterial.colorNode = tideSky.backgroundNode().rgb;
-  const tideMesh = new Mesh(new SphereGeometry(R, 64, 32), tideMaterial);
+  // Only the upper half (and 5° below the horizon, for the sea's far edge from a height): the sea
+  // covers the rest, so a full sphere ran the sky shader for half the screen for nothing.
+  const tideMesh = new Mesh(
+    new SphereGeometry(R, 64, 18, 0, Math.PI * 2, 0, Math.PI / 2 + SKY_BELOW),
+    tideMaterial,
+  );
   tideMesh.frustumCulled = false;
   tideMesh.renderOrder = -10;
   scene.add(tideMesh);
 
   // A separate sky-only scene for environment captures (never includes the world).
   const envScene = new Scene();
-  const envSky = createAtmosphereSky({ radius: 1000, sunDisc: false, clouds: false });
-  const envNightDome = createNightDome(400);
-  envScene.add(envSky.mesh, envNightDome);
+  // The environment (reflections, ambient light, haze colour): by day the analytic sky the approved
+  // looks are tuned on (bluer than the real sky near the horizon, so the sea stays saturated); from
+  // late golden hour through night the visible LUT sky itself (sunset glow, moonlit dark, clouds), so
+  // the sea reflects the sky you see.
+  const analytic = createAnalyticSky();
+  const envDay = uniform(1);
+  const envMaterial = new MeshBasicNodeMaterial({ side: BackSide, depthWrite: false, fog: false });
+  envMaterial.colorNode = Fn(() => {
+    const dir = normalize(positionLocal);
+    return mix(tideSky.reflectionRadiance(dir), analytic.color(dir), envDay);
+  })();
+  const envMesh = new Mesh(new SphereGeometry(1000, 48, 24), envMaterial);
+  envScene.add(envMesh);
   const pmrem = new PMREMGenerator(renderer);
   const envSize = tier.tier === 'lite' || tier.tier === 'low' ? 64 : 128;
   // One stable render target: materials keep the same texture object, so refreshes never recompile.
@@ -356,14 +375,12 @@ export function createSky(
       (tideAtmo as unknown as { sunDir: { value: Vector3 } }).sunDir.value.set(s.sun[0], s.sun[1], s.sun[2]);
       tideSky.starIntensity.value = s.night;
       tideSky.moonDir.value.copy(world.moonDir.value);
-      bakedClouds?.update(s);
+      bakedClouds?.update(s, dt);
 
-      sky.haze.rayleigh.value.setRGB(k.sky[0] * 0.7, k.sky[1] * 0.9, Math.min(1.15, k.sky[2] * 1.25));
-      sky.haze.mie.value.setRGB(k.haze[0], k.haze[1], k.haze[2]);
-      sky.haze.groundBounce.value.setRGB(k.ground[0], k.ground[1], k.ground[2]);
-      envSky.haze.rayleigh.value.copy(sky.haze.rayleigh.value);
-      envSky.haze.mie.value.copy(sky.haze.mie.value);
-      envSky.haze.groundBounce.value.copy(sky.haze.groundBounce.value);
+      analytic.haze.rayleigh.value.setRGB(k.sky[0] * 0.7, k.sky[1] * 0.9, Math.min(1.15, k.sky[2] * 1.25));
+      analytic.haze.mie.value.setRGB(k.haze[0], k.haze[1], k.haze[2]);
+      analytic.haze.groundBounce.value.setRGB(k.ground[0], k.ground[1], k.ground[2]);
+      envDay.value = ss(ENV_LUT_FROM, ENV_DAY_FROM, s.sun[1]);
 
       sun.color.setRGB(k.sun[0], k.sun[1], k.sun[2]);
       sun.intensity = I;
@@ -423,16 +440,12 @@ export function createSky(
       sun.dispose();
       envRT.dispose();
       pmrem.dispose();
-      sky.dispose();
-      envSky.dispose();
+      envMesh.geometry.dispose();
+      envMaterial.dispose();
       bakedClouds?.dispose();
       tideAtmo.dispose();
       tideMesh.geometry.dispose();
       tideMaterial.dispose();
-      envNightDome.geometry.dispose();
-      if (envNightDome.material instanceof Array)
-        envNightDome.material.forEach((material) => material.dispose());
-      else envNightDome.material.dispose();
     },
   };
 }
