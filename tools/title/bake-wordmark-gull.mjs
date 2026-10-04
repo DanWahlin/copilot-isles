@@ -7,6 +7,19 @@ import { extname, resolve } from 'node:path';
 const root = process.cwd();
 const perchedPath = resolve(root, 'tools/title/source/seagull-poly-google.glb');
 const flyingPath = resolve(root, 'tools/title/source/flying-seagull-poly-google.glb');
+// Poly by Google, CC-BY 3.0 (https://poly.pizza/m/0WRzrtCIIRp, https://poly.pizza/m/6Tpj_vcWP3f).
+// tools/*/source/ is git-ignored, so fetch the unmodified GLBs on first use.
+const SOURCES = [
+  [perchedPath, 'https://static.poly.pizza/76d4eea2-3700-43ae-b65c-7f6ea2dc5d23.glb'],
+  [flyingPath, 'https://static.poly.pizza/ee7ad6b3-ebdc-4494-ba1e-8b6190004df5.glb'],
+];
+await mkdir(resolve(root, 'tools/title/source'), { recursive: true });
+for (const [path, url] of SOURCES) {
+  if (existsSync(path)) continue;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`fetch ${url}: ${res.status}`);
+  await writeFile(path, Buffer.from(await res.arrayBuffer()));
+}
 const outDir = resolve(root, 'public/title');
 const frame = 256;
 const cols = 8;
