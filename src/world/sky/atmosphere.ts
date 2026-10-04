@@ -45,9 +45,10 @@ export interface AtmosphereSkyOptions {
 }
 
 /**
- * Hillaire-style atmospheric sky folded into one TSL dome shader for Phase 0.
- * Tidewater's full path builds transmittance / multi-scatter / sky-view LUTs; this keeps the
- * same contract and constants in an analytic fragment path so WebGPU and the WebGL2 backend match.
+ * A cheap analytic stand-in for the atmosphere, now drawn only into the environment capture (the
+ * islands' ambient light and the haze colour, which the approved looks are tuned on). The visible sky
+ * on every tier is Tidewater's LUT atmosphere (clouds/Atmosphere.ts), whose LUTs run as compute on
+ * WebGPU and as fragment passes on WebGL2.
  */
 export function createAtmosphereSky(options: AtmosphereSkyOptions): AtmosphereSky {
   const rayleighU = uniform(new Color(0.1, 0.34, 0.96));
