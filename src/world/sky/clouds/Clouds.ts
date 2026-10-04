@@ -954,7 +954,15 @@ export class Clouds {
       .toVar();
     const ph3 = float(0.15 / (4 * PI)); // light diffused through the whole cloud (keeps thick bodies from going black)
     const sunE = light.E.toVar();
-    const sunN = mix(sunE, vec3(luminance(sunE)), 0.6).toVar();
+    // Multiply scattered light leans neutral, and cool as the sun gets low, so shaded bases stay
+    // blue-grey under a sunset: only the single-scattered light (lit tops, silver edges) takes the
+    // sun's red (a warm multiple-scatter tint turned dusk bases mauve-brown).
+    const lowSun = smoothstep(0.3, 0.0, sunDir.y);
+    const sunN = mix(
+      sunE,
+      vec3(luminance(sunE)).mul(mix(vec3(1), vec3(0.8, 0.9, 1.08), lowSun)),
+      mix(0.6, 0.85, lowSun),
+    ).toVar();
     const amb = G.skyIrradiance.mul(q.ambient);
     // in-scatter probability (Schneider 2015 'powder', Nubis 2017): light scattered toward the viewer
     // builds up inside the cloud, so thin edges and the underside look darker; faded out looking

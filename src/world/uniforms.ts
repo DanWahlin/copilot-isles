@@ -1,5 +1,5 @@
 import { Color, Vector2, Vector3 } from 'three/webgpu';
-import { uniform } from 'three/tsl';
+import { mix, uniform, vec3 } from 'three/tsl';
 
 /**
  * Global world uniforms shared by every TSL material (sky, ocean, terrain, ship, vegetation, life).
@@ -30,3 +30,9 @@ export const world = {
   /** Reduced motion (0/1): materials damp decorative motion (cloud drift, sway amplitude). */
   reducedMotion: uniform(0),
 };
+
+/**
+ * Light on self-lit white water (sea and shore foam): full by day, a soft cool grey-blue by
+ * moonlight, so foam doesn't glow white at night.
+ */
+export const foamLight = mix(vec3(1), vec3(0.15, 0.17, 0.23), world.night);

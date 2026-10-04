@@ -269,7 +269,26 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   await hud.loadSubtitles(o.voiceManifest ?? '/voice/testcove/manifest.json');
   hud.setHelp(WALK_HELP);
   let facialSpeaker: Character | null = null;
-  const dialogue = new Dialogue(hud, audio, (line) => facialSpeaker?.speak(line));
+  let lineFace: Character | null = null;
+  // Each voiced line moves the face of whoever says it: Pim and Pol share scenes, and Rhea talks
+  // aboard. The nearest islander with that name wins (Lyra plays on two islands).
+  const speakerFace = (speaker: string): Character | null => {
+    let best: Character | null = null;
+    let bestD = Infinity;
+    for (const n of [...npcs.list, ...(meridianNpcs?.list ?? [])]) {
+      if (!n.spec.name.split(' ').includes(speaker)) continue;
+      const d = (n.x - player.x) ** 2 + (n.z - player.z) ** 2;
+      if (d < bestD) [best, bestD] = [n.character, d];
+    }
+    if (speaker === 'Rhea' && rheaAboard?.group.parent) return rheaAboard;
+    return best;
+  };
+  const dialogue = new Dialogue(hud, audio, (line) => {
+    const face = line ? (speakerFace(line.speaker) ?? facialSpeaker) : null;
+    if (lineFace && lineFace !== face) lineFace.speak(null);
+    lineFace = face;
+    face?.speak(line);
+  });
 
   // Player: stepUp covers the 0.6 m quay-to-pier lip.
   const player = new PlayerController({ stepUp: 0.66 });
@@ -450,6 +469,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     } finally {
       facialSpeaker?.speak(null);
       facialSpeaker = null;
+      lineFace?.speak(null);
+      lineFace = null;
       n.faceTarget = priorFaceTarget;
       npcs.setTalking(n, false);
       cam.frame(null);

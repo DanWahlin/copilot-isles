@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { BlinkScheduler, StableSpring, mouthShapeAt, type MouthCue } from './facial-animation';
+import {
+  BlinkScheduler,
+  StableSpring,
+  mouthShapeAt,
+  unpackMouthCues,
+  type MouthCue,
+} from './facial-animation';
 
 describe('mouth cue player', () => {
   const cues: MouthCue[] = [
@@ -13,6 +19,16 @@ describe('mouth cue player', () => {
     expect(mouthShapeAt(cues, 0.12)).toBe('B');
     expect(mouthShapeAt(cues, 0.32)).toBe('C');
     expect(mouthShapeAt(cues, 0.6)).toBe('X');
+  });
+});
+
+describe('packed lip sync', () => {
+  it('unpacks contiguous centisecond cues', () => {
+    expect(unpackMouthCues([7, 5, 23, 10], 'XBC')).toEqual([
+      { start: 0.07, end: 0.12, value: 'X' },
+      { start: 0.12, end: 0.35, value: 'B' },
+      { start: 0.35, end: 0.45, value: 'C' },
+    ]);
   });
 });
 

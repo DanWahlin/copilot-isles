@@ -82,7 +82,16 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
     reads: true,
   },
   dockhand_a: { source: 'henry_npc', scale: 1, radius: 0.33, height: 1.75, tint: 0xffffff },
-  dockhand_b: { source: 'henry_npc', scale: 1.02, radius: 0.34, height: 1.78, tint: 0xffffff },
+  // Bo and the Admiral set a fist on the hip and talk with the other hand.
+  dockhand_b: {
+    source: 'henry_npc',
+    scale: 1.02,
+    radius: 0.34,
+    height: 1.78,
+    tint: 0xffffff,
+    hand: 'right',
+    gestures: 'commander',
+  },
   fisherman: { source: 'henry_npc', scale: 0.98, radius: 0.34, height: 1.72, tint: 0xffffff },
   merchant: {
     source: 'henry_npc',
@@ -128,6 +137,7 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
     tint: 0xffffff,
     hand: 'left',
   },
+  // Rhea rests her spyglass hand on her hip.
   rhea: {
     source: 'anne_npc',
     scale: 1.02,
@@ -135,6 +145,7 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
     height: 1.74,
     tint: 0xffffff,
     hand: 'right',
+    gestures: 'commander',
   },
   oren: {
     source: 'henry_npc',
@@ -154,7 +165,15 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
     hand: 'right',
     reads: true,
   },
-  admiral: { source: 'anne_npc', scale: 1.08, radius: 0.34, height: 1.84, tint: 0xffffff },
+  admiral: {
+    source: 'anne_npc',
+    scale: 1.08,
+    radius: 0.34,
+    height: 1.84,
+    tint: 0xffffff,
+    hand: 'right',
+    gestures: 'commander',
+  },
   // Port Meridian ambient townsfolk: non-teacher bodies for harbour life and plaza animation.
   mer_fisher: {
     source: 'henry_npc',
