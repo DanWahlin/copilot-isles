@@ -15,7 +15,8 @@ import {
 import { smoothstep, wrapAngle } from '../../util/math';
 import { CharacterFace, type FacialLine } from './facial-animation';
 import { FACE_FITS, faceColors, faceFamily } from './face-fit';
-import { GesturePlanner, gestureArm, type ActiveGesture, type Side } from './gestures';
+import { GesturePlanner, type ArmPose, type GestureFrame, type Side } from './gestures';
+import { HandRig } from './hand-rig';
 import { LegIk } from './leg-ik';
 import { contactsOf, inContact, type FootContactMap } from './loco-pack';
 import {
@@ -136,7 +137,9 @@ export class RuntimeCharacter implements Character {
   private activeClip: CharacterClip = 'idle';
   private talking = false;
   private readonly gestures: GesturePlanner;
-  private gesture: ActiveGesture | null = null;
+  private gesture: GestureFrame | null = null;
+  private readonly handL: HandRig | null;
+  private readonly handR: HandRig | null;
   private readonly reads: boolean;
   /** A one-shot clip (a wave hello, a nod) blended over a standing idle, then handed back. */
   private overlay: { clip: CharacterClip; t: number; dur: number; peak: number } | null = null;
@@ -163,7 +166,11 @@ export class RuntimeCharacter implements Character {
     this.npc = !PLAYER_BODIES.includes(body as PlayerBody);
     this.npcAnimRate = Math.max(0.1, options.tier?.npcAnimRate ?? 1);
     this.updateTarget = options.updateTarget ?? null;
-    this.gestures = new GesturePlanner(config.hand ?? 'either', clips.has('nod'));
+    this.gestures = new GesturePlanner(
+      config.hand ?? 'either',
+      clips.has('nod'),
+      config.gestures ?? (config.reads ? 'ledger' : 'open'),
+    );
     this.reads = !!config.reads;
     this.capsule = { radius: config.radius * config.scale, height: config.height * config.scale };
     this.mixer = new AnimationMixer(group);
@@ -190,6 +197,9 @@ export class RuntimeCharacter implements Character {
     this.lowerArmR = bone(group, 'LowerArmR');
     this.wristL = firstChildBone(this.lowerArmL);
     this.wristR = firstChildBone(this.lowerArmR);
+    group.updateMatrixWorld(true);
+    this.handL = this.npc && this.lowerArmL ? HandRig.of(this.lowerArmL, 1) : null;
+    this.handR = this.npc && this.lowerArmR ? HandRig.of(this.lowerArmR, -1) : null;
     this.fingersL = this.npc ? [] : fingerChains(this.lowerArmL);
     this.fingersR = this.npc ? [] : fingerChains(this.lowerArmR);
     this.upperLegL = bone(group, 'UpperLegL');
@@ -224,6 +234,8 @@ export class RuntimeCharacter implements Character {
       this.footR,
       ...this.fingersL.flat(),
       ...this.fingersR.flat(),
+      ...(this.handL?.bones ?? []),
+      ...(this.handR?.bones ?? []),
     ]);
     this.baseScale = config.scale;
     this.lastHeading = group.rotation.y;
@@ -317,12 +329,15 @@ export class RuntimeCharacter implements Character {
       this.gestures.start();
     } else if (!on) {
       this.gestures.stop();
-      this.gesture = null;
     }
   }
 
+  /** Moves the face, and lands gestures on the line's stressed words (whoever's speaking it). */
   speak(line: FacialLine | null): void {
     this.face?.speak(line);
+    if (line && !this.gestures.active && this.standing()) this.gestures.start();
+    else if (!line && !this.talking) this.gestures.stop();
+    if (this.gestures.active) this.gestures.plan(line?.words ?? null, line?.text, line?.duration);
   }
 
   greet(): void {
@@ -334,7 +349,7 @@ export class RuntimeCharacter implements Character {
     const step = this.animationStep(dt);
     if (step > 0) {
       this.restoreProceduralBones();
-      this.gesture = this.gestures.update(step);
+      this.gesture = this.standing() ? this.gestures.update(step) : null;
       this.nodPitch = 0;
       this.updateOverlay(step);
       this.mixer.update(step);
@@ -491,39 +506,36 @@ export class RuntimeCharacter implements Character {
     this.applyArmMask(move, npcScale);
     this.applyFootPlant(move, dt);
     this.applyIdleLife(dt, move, npcScale);
-    if (this.talking) {
-      this.applyTalkBeat(npcScale);
-      if (this.gesture) this.applyGesture(this.gesture);
-    }
+    if (this.gesture?.active) this.applyGesture(this.gesture);
+    else if (this.talking) this.applyTalkBeat(npcScale);
   }
 
   /**
-   * Poses the gesturing arm (and the other, for two-handed ones), eased in and out. The torso never
-   * pitches forward and back while talking: a repeated lean reads as an odd body thrust.
+   * Poses both arms and hands from the gesture frame. The torso never pitches forward and back while
+   * talking (a repeated lean reads as an odd body thrust): the shoulders only turn, and nods are
+   * head-only.
    */
-  private applyGesture(g: ActiveGesture): void {
-    const w = g.weight;
-    if (g.kind === 'nod') {
-      // Two small dips of the head and neck only. The rig's Yes clip bows the whole upper body.
-      this.nodPitch = 0.16 * w * (0.5 - 0.5 * Math.cos((g.t / g.dur) * Math.PI * 4));
-      if (!this.lookTarget) {
-        this.rotateInRoot(this.neck, AXIS_X, this.nodPitch * 0.35);
-        this.rotateInRoot(this.head, AXIS_X, this.nodPitch * 0.65);
-      }
-      return;
+  private applyGesture(g: GestureFrame): void {
+    this.poseArm(1, g.left);
+    this.poseArm(-1, g.right);
+    if (g.turn) this.rotateInRoot(this.torso, AXIS_Y, g.turn);
+    if (g.tilt) this.rotateInRoot(this.head, AXIS_Z, -g.tilt);
+    this.nodPitch = g.nod;
+    if (g.nod && !this.lookTarget) {
+      this.rotateInRoot(this.neck, AXIS_X, g.nod * 0.35);
+      this.rotateInRoot(this.head, AXIS_X, g.nod * 0.65);
     }
-    const arm = gestureArm(g.kind, g.t, g.dur);
-    if (!arm) return;
-    this.poseArm(g.side, arm.flex * w, arm.abduct * w, arm.elbow * w);
-    if (g.kind === 'open') this.poseArm(-g.side as Side, arm.flex * w, arm.abduct * w, arm.elbow * w);
   }
 
-  private poseArm(side: Side, flex: number, abduct: number, elbow: number): void {
+  private poseArm(side: Side, pose: ArmPose): void {
     const upper = side === 1 ? this.upperArmL : this.upperArmR;
     const lower = side === 1 ? this.lowerArmL : this.lowerArmR;
-    this.rotateInRoot(upper, AXIS_Z, side * abduct);
-    this.rotateInRoot(upper, AXIS_X, -flex);
-    this.rotateInRoot(lower, AXIS_X, -elbow);
+    if (pose.abduct) this.rotateInRoot(upper, AXIS_Z, side * pose.abduct);
+    if (pose.flex) this.rotateInRoot(upper, AXIS_X, -pose.flex);
+    if (pose.elbow) this.rotateInRoot(lower, AXIS_X, -pose.elbow);
+    if (pose.inward) this.rotateInRoot(lower, AXIS_Z, -side * pose.inward);
+    const hand = side === 1 ? this.handL : this.handR;
+    hand?.apply(pose);
   }
 
   /**
@@ -821,6 +833,7 @@ export class RuntimeCharacter implements Character {
 }
 
 const AXIS_X = new Vector3(1, 0, 0);
+const AXIS_Y = new Vector3(0, 1, 0);
 const AXIS_Z = new Vector3(0, 0, 1);
 const ROOT_Q = new Quaternion();
 const PARENT_Q = new Quaternion();

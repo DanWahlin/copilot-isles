@@ -1,7 +1,7 @@
 import type { Group, Object3D, Vector3 } from 'three/webgpu';
 import type { FacialLine } from './facial-animation';
 import type { TierSettings } from '../../engine/quality';
-import type { GestureHand } from './gestures';
+import type { GestureHand, GestureStyle } from './gestures';
 
 /** Character bodies, clips, and the public character API (shared by the library and the runtime). */
 
@@ -125,4 +125,6 @@ export interface BodyConfig {
   readonly hand?: GestureHand;
   /** Glances down at what they're carrying now and then while idle (a ledger, a chart). */
   readonly reads?: boolean;
+  /** How they talk with their hands (default: `ledger` for readers, else `open`). */
+  readonly gestures?: GestureStyle;
 }
