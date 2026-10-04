@@ -1,0 +1,123 @@
+{
+  "frame": 256,
+  "cols": 8,
+  "rows": 2,
+  "frames": [
+    {
+      "name": "flight-0",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": -0.08,
+      "roll": 0,
+      "flap": 0
+    },
+    {
+      "name": "flight-1",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": -0.08,
+      "roll": 0.056568542494923796,
+      "flap": 1
+    },
+    {
+      "name": "flight-2",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": -0.08,
+      "roll": 0.08,
+      "flap": 2
+    },
+    {
+      "name": "flight-3",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": -0.08,
+      "roll": 0.05656854249492381,
+      "flap": 3
+    },
+    {
+      "name": "flight-4",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": -0.08,
+      "roll": 9.797174393178826e-18,
+      "flap": 4
+    },
+    {
+      "name": "flight-5",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": -0.08,
+      "roll": -0.056568542494923796,
+      "flap": 5
+    },
+    {
+      "name": "flight-6",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": -0.08,
+      "roll": -0.08,
+      "flap": 6
+    },
+    {
+      "name": "flight-7",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": -0.08,
+      "roll": -0.05656854249492382,
+      "flap": 7
+    },
+    {
+      "name": "flare",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": 0.18,
+      "roll": 0,
+      "flare": true
+    },
+    {
+      "name": "idle",
+      "model": "perched",
+      "yaw": -0.32,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "name": "head-left",
+      "model": "perched",
+      "yaw": -0.62,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "name": "head-right",
+      "model": "perched",
+      "yaw": 0.08,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "name": "call",
+      "model": "perched",
+      "yaw": -0.32,
+      "pitch": 0.05,
+      "roll": 0
+    },
+    {
+      "name": "crouch",
+      "model": "perched",
+      "yaw": -0.32,
+      "pitch": -0.24,
+      "roll": 0,
+      "crouch": true
+    },
+    {
+      "name": "idle-bob",
+      "model": "perched",
+      "yaw": -0.25,
+      "pitch": 0.04,
+      "roll": 0,
+      "bob": true
+    }
+  ]
+}

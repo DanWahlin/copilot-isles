@@ -7,6 +7,7 @@ export function TitleScreen({ state, bridge }: { state: UiState; bridge: GameBri
       <div className="ci-wordmark-block">
         <p className="ci-kicker">A pirate island adventure</p>
         <h1 id="title-wordmark">COPILOT ISLES</h1>
+        <div id="title-wordmark-gull" className="ci-title-gull" aria-hidden="true" />
         <p className="ci-subtitle">Learn the GitHub Copilot app, one island at a time</p>
       </div>
       <nav className="ci-menu-list" aria-label="Main menu">

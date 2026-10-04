@@ -58,6 +58,23 @@
   color: #fff4d8;
 }
 
+.ci-title-gull {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 4;
+  display: none;
+  width: 256px;
+  height: 256px;
+  pointer-events: none;
+  background-image: url('/title/wordmark-gull.webp');
+  background-repeat: no-repeat;
+  background-size: 2048px 512px;
+  background-position: var(--gull-frame-x, 0) var(--gull-frame-y, 0);
+  filter: drop-shadow(0 2px 5px rgba(5, 14, 22, 0.45));
+  transform-origin: 50% 100%;
+}
+
 .ci-kicker {
   margin: 0 0 0.9rem;
   color: var(--ci-gold);

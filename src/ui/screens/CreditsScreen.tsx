@@ -36,6 +36,11 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
         <p>Built with three.js, React, TypeScript, and Web Audio.</p>
         <h3>Assets and audio</h3>
         <p>{assetCredits.join(' · ')}</p>
+        <p>
+          Seagull and Flying seagull by Poly by Google (
+          <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>), via{' '}
+          <a href="https://poly.pizza/m/0WRzrtCIIRp">Poly Pizza</a>
+        </p>
         <h3>Music and voice</h3>
         <p>
           “Bamboo Tide”, made for Copilot Isles with Suno. “Medieval: The Bard’s Tale” by RandomMind and

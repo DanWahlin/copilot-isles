@@ -8,6 +8,7 @@ import type { LeapsSystem, ScreenRect } from '../world/life/leaps';
 import { world } from '../world/uniforms';
 import { bindTitleDrag, TitleOrbit } from './title-orbit';
 import type { TierSettings } from '../engine/quality';
+import { createTitleWordmarkGull } from './title-wordmark-gull';
 
 export interface TitleBackdrop {
   setAvoidRects(rects: ScreenRect[]): void;
@@ -36,6 +37,7 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   const ship = createBrigantine({ tier: tier.tier });
   const anchor = { x: 0, z: 0, heading: 2.3 };
   let leaps: LeapsSystem | null = null;
+  const wordmarkGull = createTitleWordmarkGull();
   let disposed = false;
   let avoidRects = titleAvoidRects();
   const loadLeaps = async () => {
@@ -54,8 +56,12 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   const lazyLeapsTimer = typeof window !== 'undefined' ? window.setTimeout(() => void loadLeaps(), 4000) : 0;
   ship.dynamics.reset(anchor.x, anchor.z, anchor.heading);
   scene.add(ocean.mesh, ranges, ship.group);
+  scene.add(wordmarkGull.group);
   if (typeof window !== 'undefined') {
-    (window as unknown as { __dev: object }).__dev = { ready: true, stats: () => null };
+    (window as unknown as { __dev: object }).__dev = {
+      ready: true,
+      stats: () => ({ wordmarkGull: wordmarkGull.stats() }),
+    };
   }
 
   const shipEnv: BrigantineEnv = { waves: ocean.field, ground: null, obstacles: [], t: 0 };
@@ -95,6 +101,7 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
 
         ocean.update(camera);
         updateTitleRects(leaps);
+        wordmarkGull.update(dt, t, camera);
         leaps?.update(dt, t, camera);
         focus.set(camera.position.x, 0, camera.position.z);
         sky.update(clock, focus, dt, camera);
@@ -113,6 +120,7 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
     },
     setInteractive(on: boolean) {
       interactive = on;
+      wordmarkGull.setEnabled(on);
       if (!on && orbit.dragging) orbit.up(performance.now() / 1000);
       renderer.domElement.style.cursor = on ? 'grab' : '';
     },
@@ -123,8 +131,10 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
       if (lazyLeapsTimer) window.clearTimeout(lazyLeapsTimer);
       remove();
       scene.remove(ocean.mesh, ranges, ship.group);
+      scene.remove(wordmarkGull.group);
       if (leaps) scene.remove(leaps.group);
       leaps?.dispose();
+      wordmarkGull.dispose();
       ship.dispose();
       ocean.dispose();
       sky.dispose();

@@ -106,6 +106,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## Poly by Google gull models
+
+- Source: https://poly.pizza/m/0WRzrtCIIRp (`76d4eea2-3700-43ae-b65c-7f6ea2dc5d23.glb`) and
+  https://poly.pizza/m/6Tpj_vcWP3f (`ee7ad6b3-ebdc-4494-ba1e-8b6190004df5.glb`)
+- Author: Poly by Google
+- License: Creative Commons Attribution 3.0 Unported (CC-BY 3.0), https://creativecommons.org/licenses/by/3.0/
+- Used for: baked title wordmark gull sprites in `public/title/wordmark-gull.webp`.
+
+```
+This work includes adapted sprite renders from "Seagull" and "Flying seagull" by Poly by Google,
+licensed under CC-BY 3.0.
+```
+
 ## GitHub Copilot app for Beginners
 
 - Source: https://github.com/github/copilot-app-for-beginners (reference commit `360fcb2`)
