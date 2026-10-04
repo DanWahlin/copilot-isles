@@ -49,6 +49,7 @@ function fallbackBridge(): GameBridge {
     quitToTitle: () => setState({ screen: 'title', returnTo: 'title' }),
     updateSettings: (patch) => setState({ settings: { ...state.settings, ...patch } }),
     setSails: (sails) => setState({ learn: { ...state.learn, sails } }),
+    skipOpening: () => setState({ screen: 'playing' }),
   };
 }
 

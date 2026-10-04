@@ -19,6 +19,8 @@ import { world } from '../world/uniforms';
 import { buildChart, coveTravelPoints } from './chart';
 import type { GameSession } from './session';
 import { LearnStore } from '../learn/store';
+import type { Opening } from '../opening/opening';
+import { ANCHORAGE_ARRIVAL } from './arrivals';
 
 const SETTINGS_KEY = 'copilot-isles.settings.v1';
 const SAVE_KEY = 'copilot-isles.save.v1';
@@ -41,6 +43,7 @@ const BRIDGE_METHODS = [
   'quitToTitle',
   'updateSettings',
   'setSails',
+  'skipOpening',
 ] as const satisfies readonly (keyof GameBridge)[];
 
 interface SaveData {
@@ -84,6 +87,8 @@ export class GameFlow implements GameBridge {
   private saveTimer = 0;
   private audioReady = false;
   private titlePrefetchStarted = false;
+  /** The opening (the Captain's Chest and the living chart) while it plays over the load. */
+  private opening: Opening | null = null;
 
   constructor(private readonly o: GameFlowOptions) {
     const settings = { ...DEFAULT_SETTINGS, ...readJson<Partial<Settings>>(SETTINGS_KEY) };
@@ -245,6 +250,10 @@ export class GameFlow implements GameBridge {
     this.learn.setSails(paletteId);
   }
 
+  skipOpening(): void {
+    this.opening?.skip();
+  }
+
   // ---- internals ----
   private menuReturn(): Screen {
     const s = this.state.screen;
@@ -356,27 +365,48 @@ export class GameFlow implements GameBridge {
     void this.unlockAudio();
     const { engine } = this.o;
     const destination = save?.place ?? 'Anchorage Cay';
-    this.set({
-      screen: 'voyage-loading',
-      captain,
-      progress: { value: 0.02, message: 'Weighing anchor', destination },
-    });
+    const progressNow = { value: 0.02, message: 'Weighing anchor', destination, cinematic: true };
+    this.set({ screen: 'voyage-loading', captain, progress: progressNow });
+    const report = (value: number, message: string) => {
+      progressNow.value = value;
+      progressNow.message = message;
+      this.set({ progress: { ...progressNow } });
+    };
+    let opening: Opening | null = null;
     try {
-      const report = (value: number, message: string) =>
-        this.set({ progress: { value, message, destination } });
       const progress = (start: number, end: number, message: string) => (p: PackProgress) => {
         report(start + (end - start) * p.ratio, message);
       };
-      const [{ createCove }, { loadCharacterLibrary }, { createSession, ISLANDS, islandAt }] =
-        await Promise.all([
-          import('../world/cove-scene'),
-          import('../world/characters'),
-          import('./session'),
-        ]);
-      // Let the loading screen fade in over the title before the heavy work starts.
-      await new Promise((r) => setTimeout(r, 450));
+      const [
+        { createOpening },
+        { createCove },
+        { loadCharacterLibrary },
+        { createSession, ISLANDS, islandAt },
+      ] = await Promise.all([
+        import('../opening/opening'),
+        import('../world/cove-scene'),
+        import('../world/characters'),
+        import('./session'),
+      ]);
+      // The opening (docs/specs/OPENING-living-chart.md): the title fades through warm dark into the
+      // captain's cabin, and the island streams in behind it.
+      opening = createOpening({
+        engine,
+        input: this.o.input,
+        audio: this.audioReady ? this.o.audio : null,
+        kind: save ? 'continue' : 'voyage',
+        reduced: this.state.settings.reducedMotion,
+        sails: this.learn.getState().sails,
+        onHold: (holding) => this.set({ progress: { ...progressNow, holding } }),
+      });
+      this.opening = opening;
+      document.documentElement.classList.add('ci-opening-active');
+      this.o.input.enabled = true;
+      await opening.veil(true, 450);
       this.title?.dispose();
       this.title = null;
+      await opening.prepare();
+      opening.play();
       const base = this.o.packBase ?? '/packs';
       await packs.loadManifest();
       report(0.06, 'Loading Test Cove essentials');
@@ -415,29 +445,54 @@ export class GameFlow implements GameBridge {
         onChart: () => this.openChart(),
         learn: this.learn,
       });
-      if (this.audioReady) {
-        this.o.audio.music.setIsland(ISLANDS[this.session.island].music);
-        this.o.audio.sfx.setBed('palms', AMBIENT_BEDS.palms);
-        this.o.audio.sfx.setBed('birds_dawn', AMBIENT_BEDS.birds_dawn);
-      }
       report(0.92, 'Lighting the lanterns');
       await this.o.upgradePost?.(cove);
       await engine.renderer.compileAsync(engine.scene, engine.camera);
       report(0.96, 'Charting the approach');
       const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+      // The world renders behind the cabin while it warms, so its first real frame doesn't hitch.
+      opening.setDrawWorld(true);
       await this.session.warmArrival(frame);
       engine.renderNow();
+      await frame();
+      opening.setDrawWorld(false);
       engine.counters.hitches.length = 0;
       engine.counters.arm();
       report(1, 'Landfall');
       this.save(captain);
-      await new Promise((r) => setTimeout(r, 300));
+      // The chart holds until it's alive, then the camera dives in: to the arrival flyover's first
+      // view on a new voyage, or to wherever the save's camera is on Continue.
+      await opening.ready();
+      const island = this.session.island;
+      const c = engine.camera;
+      const look = c.getWorldDirection(c.position.clone()).multiplyScalar(30).add(c.position);
+      const first = ANCHORAGE_ARRIVAL.keys[0]!;
+      const target =
+        !save && island === 'anchorage'
+          ? {
+              island,
+              eye: { x: first.x, y: first.y, z: first.z },
+              look: { x: first.tx, y: first.ty, z: first.tz },
+            }
+          : { island, eye: c.position.clone(), look };
+      await opening.dive(target);
+      if (this.audioReady) {
+        this.o.audio.music.setIsland(ISLANDS[island].music);
+        this.o.audio.sfx.setBed('palms', AMBIENT_BEDS.palms);
+        this.o.audio.sfx.setBed('birds_dawn', AMBIENT_BEDS.birds_dawn);
+      }
+      opening.finish();
+      this.opening = null;
+      document.documentElement.classList.remove('ci-opening-active');
       this.set({ screen: 'playing', returnTo: 'playing', hasSave: true, save: this.saveSummary() });
       engine.renderer.domElement.focus();
       this.session.begin();
     } catch (err) {
       console.error(err);
-      this.set({ progress: { value: 1, message: 'The voyage hit a squall. Please reload.' } });
+      opening?.dispose();
+      this.opening = null;
+      document.documentElement.classList.remove('ci-opening-active');
+      this.set({ progress: { value: 1, message: 'The voyage hit a squall. Please reload.', destination } });
     } finally {
       this.loading = false;
     }
@@ -475,6 +530,11 @@ export class GameFlow implements GameBridge {
       this.saveTimer = 0;
       this.save();
     }
+  }
+
+  /** Dev/test access: the opening while it plays. */
+  get debugOpening(): Opening | null {
+    return this.opening;
   }
 
   /** Dev/test access. */

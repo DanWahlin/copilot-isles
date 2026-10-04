@@ -1,7 +1,37 @@
 import { useEffect, useState } from 'react';
-import type { UiState } from '../bridge';
+import type { GameBridge, UiState } from '../bridge';
 
-export function VoyageLoading({ state }: { state: UiState }) {
+export function VoyageLoading({ state, bridge }: { state: UiState; bridge: GameBridge }) {
+  if (state.progress.cinematic) return <OpeningOverlay state={state} bridge={bridge} />;
+  return <LoadingCard state={state} />;
+}
+
+/**
+ * Over the opening (the cabin and the living chart): a Skip button for touch and mouse (E, Space, Esc
+ * and gamepad A skip too), and, only while it's holding for the island, a quiet line saying what's
+ * still loading. A click or tap anywhere skips as well.
+ */
+function OpeningOverlay({ state, bridge }: { state: UiState; bridge: GameBridge }) {
+  const pct = Math.round(state.progress.value * 100);
+  return (
+    <main
+      className="ci-opening"
+      aria-label={`Setting sail for ${state.progress.destination ?? 'the isles'}`}
+      onPointerDown={(e) => {
+        if (e.button === 0 && !(e.target instanceof HTMLButtonElement)) bridge.skipOpening();
+      }}
+    >
+      <p className={`ci-opening-hold${state.progress.holding ? ' show' : ''}`} role="status">
+        {state.progress.holding ? `${state.progress.message}… ${pct}%` : ''}
+      </p>
+      <button type="button" className="ci-opening-skip" onClick={() => bridge.skipOpening()}>
+        Skip <span aria-hidden="true">E · Space · Esc</span>
+      </button>
+    </main>
+  );
+}
+
+function LoadingCard({ state }: { state: UiState }) {
   const [shown, setShown] = useState(state.progress.value);
   useEffect(() => {
     const id = window.setInterval(() => {
