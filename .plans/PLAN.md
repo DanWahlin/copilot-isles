@@ -16,7 +16,7 @@
 | Course basis | Public `github/copilot-app-for-beginners`, **8 chapters → 8 islands** |
 | Framing | Captain & crew metaphor + a **Wandering Bard** who keeps the studio analogy |
 | Progression | **Hybrid**: sequential by default, plus a **"Free explore"** toggle in Settings that opens every island or the user can select an island from the map |
-| Combat | **None**. Puzzles, exploration, sailing |
+| Combat | **Gentle sea battles at a few places** (changed 2026-10-04, #203): the first is on the passage from Anchorage to Port Meridian, required with a skip button. Cannonballs, splashes, and ships that settle; nothing gory and **no fail state** (the crew breaks off and the wave restarts). Otherwise puzzles, exploration, sailing. See [docs/specs/BATTLES.md](../docs/specs/BATTLES.md) |
 | Character | Man/woman + name, skin tone, hair, outfit colors |
 | NPC voices | **Fully voiced, neural TTS** (Azure Speech, pre-generated). See §7a |
 | Art approach | **A. Hybrid stylized realism** |
@@ -40,7 +40,7 @@
 
 | Pillar | What it means |
 |---|---|
-| **Breathtaking but calm** | Golden-hour light, glittering water, drifting clouds, distant mountains. There's no combat and no fail state. |
+| **Breathtaking but calm** | Golden-hour light, glittering water, drifting clouds, distant mountains. There's no fail state, and the few sea battles are gentle (§0). |
 | **Learn by doing** | Every puzzle is a concept from the chapter. You don't just read "worktrees isolate work", you physically route water through separate channels, organize shapes into patterns, and manipulate objects to see the concepts in action. |
 | **Faithful to the course** | Every teaching line maps back to a chapter section. Real app screenshots show up in chests, dialogue, and quizzes. Links back to the relevant chapter sections are provided throughout the game. |
 | **Clean, refined UI** | Minimal frosted-glass panels, elegant serif and sans type, generous spacing, subtle motion. It should feel like a premium indie game. |
@@ -431,7 +431,7 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 
 ## 12. Efficiency (rendering & runtime)
 
-Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on reference hardware before we build content on top of it. The rules below are adapted from your list. We don't have projectiles. "Mobile" here means the **§14 device classes**: integrated laptop GPUs down to the **UHD 620 floor**, Chromebooks (Lite), and tablets. The same discipline applies.
+Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on reference hardware before we build content on top of it. The rules below are adapted from your list. Projectiles exist only in sea battles (pooled cannonballs, splashes, and smoke; docs/specs/BATTLES.md §9). "Mobile" here means the **§14 device classes**: integrated laptop GPUs down to the **UHD 620 floor**, Chromebooks (Lite), and tablets. The same discipline applies.
 
 ### 12.1 Budgets per quality tier
 | Budget | Lite (Chromebooks, weakest GPUs) | Low (**floor**: Intel UHD 620) | Medium (Iris Xe, M1 Air 8 GB, iPad A13+) | High (M2/M3 Air, RTX 3050, iPad M1+) | Ultra (M Pro/Max, RTX 3060+) |
