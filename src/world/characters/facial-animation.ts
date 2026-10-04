@@ -1,6 +1,8 @@
 import { Color, MathUtils, Mesh, Object3D, Vector3, type Bone } from 'three/webgpu';
+import { BROW_BONES } from './brow-rig';
 import type { FaceColors, FaceFit } from './face-fit';
 import { createFaceParams, faceGeometry, faceMaterial, type FaceParams } from './face-material';
+import { planAccents } from './gestures';
 
 export type MouthShape = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'X';
 export type FaceExpression = 'neutral' | 'happy' | 'concerned' | 'surprised';
@@ -43,6 +45,14 @@ const MOUTH_POSE: Record<MouthShape, readonly [number, number, number, number, n
 };
 
 /** [smile, brow tilt (+ worried), lower-lid lift, upper-lid openness] per expression. */
+/** Brows per expression: [raise (m), tilt (+ inner ends up, worried)]. */
+const BROWS: Record<FaceExpression, readonly [number, number]> = {
+  neutral: [0, 0],
+  happy: [0.005, -0.08],
+  concerned: [0.003, 0.32],
+  surprised: [0.018, 0.06],
+};
+
 const EXPRESSION: Record<FaceExpression, readonly [number, number, number, number]> = {
   neutral: [0.3, 0, 0.1, 1],
   happy: [0.7, -0.1, 0.38, 0.94],
@@ -52,6 +62,7 @@ const EXPRESSION: Record<FaceExpression, readonly [number, number, number, numbe
 
 const MOUTH_SET = new Set<MouthShape>(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'X']);
 const TMP_SCALE = new Vector3();
+const AXIS_Z = new Vector3(0, 0, 1);
 
 export function isMouthShape(value: string): value is MouthShape {
   return MOUTH_SET.has(value as MouthShape);
@@ -97,6 +108,11 @@ export class BlinkScheduler {
 
   constructor(private readonly random: () => number = Math.random) {
     this.schedule();
+  }
+
+  /** Blinks now (a head turn), unless a blink is already under way. */
+  trigger(): void {
+    if (!this.blinking) this.next = this.t;
   }
 
   update(dt: number): BlinkState {
@@ -187,6 +203,15 @@ export class CharacterFace {
   private openBase = 1;
   private readonly mouthNow = [0.9, 0, 0, 0, 0];
   private readonly target = new Vector3();
+  private readonly brows: { readonly bone: Bone; readonly rest: Vector3; readonly side: 1 | -1 }[] = [];
+  private browRaise = 0;
+  private browTilt = 0;
+  private accents: readonly number[] = [];
+  /** An idle one-brow raise now and then: which side, and seconds left. */
+  private quirkAt = 4 + Math.random() * 5;
+  private quirkT = 0;
+  private quirkSide: 1 | -1 = 1;
+  private readonly scalar: number;
 
   constructor(
     private readonly head: Bone,
@@ -213,7 +238,12 @@ export class CharacterFace {
     const charScale = character.getWorldScale(TMP_SCALE).x;
     const scalar = charScale / Math.max(1e-6, head.getWorldScale(TMP_SCALE).x);
     this.mesh.scale.setScalar(scalar);
+    this.scalar = scalar;
     head.add(this.mesh);
+    BROW_BONES.forEach((name, i) => {
+      const bone = head.getObjectByName(name) as Bone | undefined;
+      if (bone) this.brows.push({ bone, rest: bone.position.clone(), side: i === 0 ? 1 : -1 });
+    });
     this.collectSprings();
   }
 
@@ -227,6 +257,15 @@ export class CharacterFace {
     this.mouthCues = line?.mouthCues ?? [];
     this.expression = line?.expression ?? 'neutral';
     this.speechStarted = performance.now() / 1000;
+    // The brows flash up just ahead of the stressed words the hands land on.
+    this.accents = line?.words?.length
+      ? planAccents(line.words, line.text ?? '', line.duration, 'open').map((a) => a.t - 0.06)
+      : [];
+  }
+
+  /** Starts a blink now: the eyes close as the head swings to something new. */
+  blinkNow(): void {
+    this.blink.trigger();
   }
 
   update(dt: number, lookTarget: Object3D | Vector3 | null): void {
@@ -262,11 +301,44 @@ export class CharacterFace {
     p.skin.w = m[3]!;
     p.shape.w = m[4]!;
 
+    this.updateBrows(dt, time, blink);
     this.updateSprings(dt);
   }
 
   dispose(): void {
     this.mesh.removeFromParent();
+  }
+
+  private updateBrows(dt: number, time: number, blink: number): void {
+    if (!this.brows.length) return;
+    const [raise, tilt] = BROWS[this.expression];
+    let flash = 0;
+    for (const a of this.accents) {
+      const u = (time - a) / 0.2;
+      if (u > -3 && u < 3) flash = Math.max(flash, Math.exp(-u * u));
+    }
+    // Brows lift a little with an upward glance and dip as the lids close.
+    const target = raise + flash * 0.011 + (this.gazeY / this.fit.eyeRy) * 0.004 - (1 - blink) * 0.0025;
+    const k = 1 - Math.exp(-dt * 14);
+    this.browRaise += (target - this.browRaise) * k;
+    this.browTilt += (tilt - this.browTilt) * (1 - Math.exp(-dt * 8));
+    if (!this.speaking) {
+      this.quirkAt -= dt;
+      if (this.quirkAt <= 0) {
+        this.quirkAt = 5 + Math.random() * 7;
+        this.quirkT = 0.9;
+        this.quirkSide = Math.random() < 0.5 ? 1 : -1;
+      }
+    }
+    this.quirkT = Math.max(0, this.quirkT - dt);
+    const quirk = Math.sin((this.quirkT / 0.9) * Math.PI) * 0.007;
+    for (const b of this.brows) {
+      const lift = this.browRaise + (b.side === this.quirkSide ? quirk : 0);
+      b.bone.position.copy(b.rest);
+      b.bone.position.y += lift * this.scalar;
+      // Positive tilt lifts each brow's inner end (toward the nose).
+      b.bone.quaternion.setFromAxisAngle(AXIS_Z, b.side * this.browTilt);
+    }
   }
 
   private updateDarts(dt: number): void {

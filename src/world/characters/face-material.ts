@@ -88,8 +88,6 @@ export function faceMaterial(): MeshStandardNodeMaterial {
   const nx = px.div(rx);
   const e = length(vec2(nx, py.div(ry))) as AnyNode;
   const eAa = max(fwidth(e), float(0.0008)) as AnyNode;
-  const ring = float(1.13);
-  const eyeAlpha = float(1).sub(smoothstep(ring.sub(eAa), ring.add(eAa), e));
 
   // The upper lid: arched, a touch lower at the corners, tilted by the brow, shut by the blink.
   const open = eyeU.z as AnyNode;
@@ -140,18 +138,23 @@ export function faceMaterial(): MeshStandardNodeMaterial {
     .mul(float(1).sub(aboveLash)) as AnyNode;
   ball = mix(ball, color(0xffffff), catchMask);
 
-  // Outline round the eye: lashes along the top, a soft darker skin line below.
+  // Only the opening between the lids, the lash line and the lower crease are drawn. The lids are
+  // the kit's own eyeballs, painted in skin (npc-palettes), so they take the light like the face.
   const inBall = float(1).sub(smoothstep(float(1).sub(eAa), float(1).add(eAa), e)) as AnyNode;
-  const lowerLine = skin.mul(0.55);
-  const rim = mix(lowerLine, lash, smoothstep(ry.mul(-0.25), ry.mul(0.25), py)) as AnyNode;
-  let eyeCol = mix(rim, ball, inBall) as AnyNode;
-  eyeCol = mix(eyeCol, skin.mul(0.66), belowLowLine.mul(inBall));
-  eyeCol = mix(eyeCol, skin.mul(0.96), belowLow);
-  eyeCol = mix(eyeCol, lash, aboveLash.mul(inBall.max(aboveLash)));
-  // The lid: skin, a little darker toward its edge where it folds.
-  const lidCol = mix(skin.mul(0.84), skin.mul(0.98), smoothstep(float(0), ry.mul(0.35), py.sub(lidY)));
-  eyeCol = mix(eyeCol, lidCol, aboveLid);
-  const eyeRough = mix(float(0.18), float(0.7), max(aboveLid, belowLow));
+  const flick = float(1).add(smoothstep(0.55, 1.0, nx).mul(lashWeight).mul(0.07)) as AnyNode;
+  const inFlick = float(1).sub(smoothstep(flick.sub(eAa), flick.add(eAa), e)) as AnyNode;
+  const opening = inBall.mul(float(1).sub(aboveLid)).mul(float(1).sub(belowLow)) as AnyNode;
+  const lashTop = lidY.add(lashT.mul(0.35)) as AnyNode;
+  const lashBand = aboveLash
+    .mul(float(1).sub(smoothstep(lashTop.sub(pyAa), lashTop.add(pyAa), py)))
+    .mul(inFlick) as AnyNode;
+  const creaseBand = belowLowLine
+    .mul(smoothstep(lowY.sub(ry.mul(0.06)).sub(pyAa), lowY.sub(ry.mul(0.06)).add(pyAa), py))
+    .mul(inBall) as AnyNode;
+  let eyeCol = mix(skin.mul(0.6), ball, opening) as AnyNode;
+  eyeCol = mix(eyeCol, lash, lashBand);
+  const eyeAlpha = max(max(opening, lashBand), creaseBand) as AnyNode;
+  const eyeRough = mix(float(0.7), float(0.18), opening);
 
   // Mouth, in metres: an ellipse bent by the smile; teeth on top, tongue below, lips round it.
   const mx = local.x as AnyNode;
@@ -209,6 +212,8 @@ export function faceMaterial(): MeshStandardNodeMaterial {
 }
 
 const geometries = new Map<FaceFit, BufferGeometry>();
+/** How fast each eye sheet curves back above and below its centre (1/m). */
+const EYE_KY = 1.6;
 
 /**
  * Three curved sheets in one geometry (one draw per face): two eyes and a mouth. Each carries its own
@@ -230,40 +235,57 @@ export function faceGeometry(fit: FaceFit): BufferGeometry {
     hy: number,
     z0: number,
     k: number,
+    ky: number,
     pitch: number,
     side: number,
   ): void => {
     const cols = 6;
+    const rows = ky > 0 ? 4 : 1;
     const base = pos.length / 3;
-    for (let r = 0; r <= 1; r++) {
-      const ly = r === 0 ? -hy : hy;
+    for (let r = 0; r <= rows; r++) {
+      const ly = -hy + (2 * hy * r) / rows;
       for (let c = 0; c <= cols; c++) {
         const lx = -hx + (2 * hx * c) / cols;
         const x = cx + lx;
-        const z = z0 - k * x * x - Math.sin(pitch) * ly;
+        // Curved across (the head) and, for the eyes, up and down (lid and cheek), so the lid skin
+        // takes the light like the face round it.
+        const z = z0 - k * x * x - ky * ly * ly - Math.sin(pitch) * ly;
         const y = cy + ly * Math.cos(pitch);
         pos.push(x, y, z);
-        const slope = -2 * k * x;
-        const n = Math.hypot(slope, Math.sin(pitch), 1);
-        nor.push(-slope / n, Math.sin(pitch) / n, 1 / n);
+        const sx = 2 * k * x;
+        const sy = 2 * ky * ly + Math.sin(pitch);
+        const n = Math.hypot(sx, sy, 1);
+        nor.push(sx / n, sy / n, 1 / n);
         loc.push(lx, ly);
         sides.push(side);
       }
     }
-    for (let c = 0; c < cols; c++) {
-      const a = base + c;
-      const b = base + c + 1;
-      const d = base + cols + 1 + c;
-      const e = d + 1;
-      idx.push(a, b, e, a, e, d);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const a = base + r * (cols + 1) + c;
+        const b = a + 1;
+        const d = a + cols + 1;
+        const e = d + 1;
+        idx.push(a, b, e, a, e, d);
+      }
     }
   };
   const ex = fit.eyeRx * 1.13 + 0.004;
   const ey = fit.eyeRy * 1.13 + 0.004;
   const gap = 0.004;
-  sheet(fit.eyeX, fit.eyeY, ex, ey, fit.eyeZ0 + gap, fit.eyeK, 0, fit.lash);
-  sheet(-fit.eyeX, fit.eyeY, ex, ey, fit.eyeZ0 + gap, fit.eyeK, 0, -fit.lash);
-  sheet(0, fit.mouthY, fit.mouthW * 1.9, fit.mouthW * 1.25, fit.mouthZ0 + gap, fit.mouthK, fit.mouthPitch, 0);
+  sheet(fit.eyeX, fit.eyeY, ex, ey, fit.eyeZ0 + gap, fit.eyeK, EYE_KY, 0, fit.lash);
+  sheet(-fit.eyeX, fit.eyeY, ex, ey, fit.eyeZ0 + gap, fit.eyeK, EYE_KY, 0, -fit.lash);
+  sheet(
+    0,
+    fit.mouthY,
+    fit.mouthW * 1.9,
+    fit.mouthW * 1.25,
+    fit.mouthZ0 + gap,
+    fit.mouthK,
+    0,
+    fit.mouthPitch,
+    0,
+  );
   const g = new BufferGeometry();
   g.setAttribute('position', new Float32BufferAttribute(pos, 3));
   g.setAttribute('normal', new Float32BufferAttribute(nor, 3));

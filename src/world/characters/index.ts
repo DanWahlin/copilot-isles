@@ -10,6 +10,7 @@ import {
   disposeCharacterPaletteCache,
   type CharacterPaletteCache,
 } from './npc-palettes';
+import { rigBrows } from './brow-rig';
 import { addShoulderMacaw, createMacawGeometry } from './parrot';
 import { addTricorn, stowPlayerWeapon } from './props';
 import { RuntimeCharacter } from './runtime-character';
@@ -218,6 +219,8 @@ export async function loadCharacterLibrary(base = '/packs/testcove/characters'):
       const scene = gltf.scene;
       scene.name = `source_${key}`;
       prepareSourceScene(scene);
+      // NPCs get movable brows for their faces; the players' rigs stay as they are.
+      if (key.endsWith('_npc')) rigBrows(scene);
       return {
         key,
         file,

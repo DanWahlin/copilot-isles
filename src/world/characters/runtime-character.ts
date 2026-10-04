@@ -113,6 +113,13 @@ export class RuntimeCharacter implements Character {
   private readonly face: CharacterFace | null;
   private readonly targetWorld = new Vector3();
   private readonly lookWorld = new Vector3();
+  /** Where the head aims: it trails the look target on a spring, so the eyes get there first. */
+  private readonly aimWorld = new Vector3();
+  private readonly aimVelocity = new Vector3();
+  private aimReady = false;
+  /** How much the head follows the look target (eases in and out instead of snapping). */
+  private lookWeight = 0;
+  private blinkCooldown = 0;
   private readonly footWorld = new Vector3();
   private readonly footTargetWorld = new Vector3();
   private readonly armCarry = new Map<Bone, Quaternion>();
@@ -355,7 +362,7 @@ export class RuntimeCharacter implements Character {
       this.mixer.update(step);
       this.applyProceduralPolish(step);
     }
-    this.applyLookAt();
+    this.applyLookAt(dt);
     this.applyLookNod();
     this.face?.update(dt, this.lookTarget);
     this.lastVerticalSpeed = this.verticalSpeed;
@@ -424,12 +431,56 @@ export class RuntimeCharacter implements Character {
     }
   }
 
-  private applyLookAt(): void {
-    if (!this.lookTarget || (!this.head && !this.neck)) return;
-    if (this.lookTarget instanceof Object3D) this.lookTarget.getWorldPosition(this.lookWorld);
-    else this.lookWorld.copy(this.lookTarget);
-    if (this.neck) this.neck.lookAt(this.lookWorld);
-    if (this.head) this.head.lookAt(this.lookWorld);
+  /**
+   * The eyes lead and the head follows (the face aims the eyes at the true target): the head's aim
+   * point trails the target on a critically damped spring, look-at fades in and out instead of
+   * snapping, and a big swing to a new target starts with a blink.
+   */
+  private applyLookAt(dt: number): void {
+    if (!this.head && !this.neck) return;
+    const want = this.lookTarget ? 1 : 0;
+    this.lookWeight += (want - this.lookWeight) * (1 - Math.exp(-dt * 5));
+    if (this.lookTarget) {
+      if (this.lookTarget instanceof Object3D) this.lookTarget.getWorldPosition(this.lookWorld);
+      else this.lookWorld.copy(this.lookTarget);
+      if (!this.aimReady) {
+        this.aimWorld.copy(this.lookWorld);
+        this.aimVelocity.set(0, 0, 0);
+        this.aimReady = true;
+      }
+    }
+    if (!this.aimReady || this.lookWeight < 0.002) {
+      if (!this.lookTarget) this.aimReady = false;
+      return;
+    }
+    const step = Math.min(0.05, Math.max(0, dt));
+    if (this.lookTarget) {
+      const omega = 9;
+      // a = ω²(target − aim) − 2ω·v (critical damping), integrated semi-implicitly.
+      LOOK_D.subVectors(this.lookWorld, this.aimWorld).multiplyScalar(omega * omega);
+      LOOK_D.addScaledVector(this.aimVelocity, -2 * omega);
+      this.aimVelocity.addScaledVector(LOOK_D, step);
+      this.aimWorld.addScaledVector(this.aimVelocity, step);
+      this.blinkCooldown = Math.max(0, this.blinkCooldown - dt);
+      if (this.head && this.blinkCooldown <= 0) {
+        this.head.getWorldPosition(LOOK_H);
+        LOOK_A.subVectors(this.aimWorld, LOOK_H);
+        LOOK_B.subVectors(this.lookWorld, LOOK_H);
+        if (LOOK_A.angleTo(LOOK_B) > 0.45) {
+          this.face?.blinkNow();
+          this.blinkCooldown = 1.2;
+        }
+      }
+    }
+    this.aimBone(this.neck);
+    this.aimBone(this.head);
+  }
+
+  private aimBone(bone: Bone | null): void {
+    if (!bone) return;
+    LOOK_Q.copy(bone.quaternion);
+    bone.lookAt(this.aimWorld);
+    if (this.lookWeight < 0.999) bone.quaternion.slerpQuaternions(LOOK_Q, bone.quaternion, this.lookWeight);
   }
 
   /** The nod on top of look-at, which re-aims the head and neck every frame. */
@@ -833,6 +884,11 @@ export class RuntimeCharacter implements Character {
 }
 
 const AXIS_X = new Vector3(1, 0, 0);
+const LOOK_D = new Vector3();
+const LOOK_H = new Vector3();
+const LOOK_A = new Vector3();
+const LOOK_B = new Vector3();
+const LOOK_Q = new Quaternion();
 const AXIS_Y = new Vector3(0, 1, 0);
 const AXIS_Z = new Vector3(0, 0, 1);
 const ROOT_Q = new Quaternion();
