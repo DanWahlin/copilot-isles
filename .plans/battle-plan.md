@@ -21,6 +21,11 @@
 | 5 | **Visual cleanup.** Quieter warning chevrons, soft ends on the gold arcs, splinters as chips with a little spin and splash, barrels that sit in the water with a wet line, scorch decals and shot holes in sails | A frame strip looks finished at 1600×900 on High and on Low |
 | 6 | **Playtest pass.** Pacing (3–4 minutes for the passage), difficulty and the break-off feel, the full two waves and the win in the browser, gamepad and touch helm, reduced motion and captions audit, frame time on Low (UHD 620 floor) and the hitch guard clean | A scripted playtest (`tools/`) plays the battle end to end on WebGPU and WebGL2 |
 
+### Progress
+
+- **1 and 2: done** (8ee929f).
+- **3: done.** Each wave opens with an intro phase (5.5 s): a fog bank forms on the weather side (`src/world/battle/fog.ts`, one instanced sprite draw), the lookout calls where it lies ("Sails in the fog, off the starboard beam!"), a title band names the wave, the raiders show inside the fog and sail out as it thins, and their guns stay quiet until "Run out the guns!". The battle reports staging beats (`onBeat`: intro, broadside, incoming, strike, clear, won, breakoff) to a camera director (`src/game/battle-camera.ts`) that frames each one and then gives you your own view back. It stands off for 8 s when you drag or zoom, doesn't chase every broadside (9 s cooldown), and cuts instead of swooping with reduced motion. A small cheer marks a beaten wave and the win. Step 5 notes: hide the guns and Skip on the win card; the raiders' far sails still read faintly through the fog in the first seconds.
+
 Then the passage battle goes into the game (Anchorage → Port Meridian, required with a skip), and Dan reviews.
 
 ## Rules that apply throughout

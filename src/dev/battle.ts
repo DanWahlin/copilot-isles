@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createAudio } from '../audio';
 import { createPost } from '../engine/post';
 import { BATTLE_SOUNDS, createBattleAudio } from '../game/battle-audio';
+import { BattleCamera } from '../game/battle-camera';
 import { BattleHud } from '../game/battle-hud';
 import { Helm } from '../game/helm';
 import { QUIZZES } from '../learn/content';
@@ -17,7 +18,8 @@ import { compileAndStart, createDevHarness, engineStats } from './harness';
 /**
  * Sea-battle prototype (docs/specs/BATTLES.md §11): open water, your brigantine, one passage battle.
  * W/S trim, A/D steer, Space fires what bears, Z/C fire port/starboard, drag to look.
- * Flags: ?webgl, ?tier=, ?seed=, ?calm, ?shot (no stats panel), ?wait (don't start the battle).
+ * Flags: ?webgl, ?tier=, ?seed=, ?calm, ?shot (no stats panel), ?wait (don't start the battle),
+ * ?nodirector (no camera director).
  */
 const harness = await createDevHarness();
 const { q, backend, tier, canvas, renderer, engine } = harness;
@@ -52,6 +54,8 @@ const unlock = () => {
 };
 addEventListener('pointerdown', unlock);
 addEventListener('keydown', unlock);
+const director = new BattleCamera(() => world.reducedMotion.value > 0.5);
+if (q.has('nodirector')) director.enabled = false;
 const battle = new Battle({
   tier,
   waves: ocean.field,
@@ -59,6 +63,7 @@ const battle = new Battle({
   seed: Number(q.get('seed') ?? 0xba771e),
   onCaption: (text) => hud.caption(text),
   onSound: createBattleAudio(audio, listener),
+  onBeat: (beat, x, z) => director.beat(beat, x, z),
 });
 scene.add(battle.group);
 if (q.has('calm')) battle.setCalm(true);
@@ -68,7 +73,10 @@ const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.maxDistance = 260;
 controls.minDistance = 10;
-controls.maxPolarAngle = Math.PI * 0.47;
+// Low enough for the director's sea-level shots; it keeps the camera 3 m above the water.
+controls.maxPolarAngle = Math.PI * 0.495;
+// Drag or zoom and the director stands off.
+controls.addEventListener('start', () => director.yieldToUser());
 
 const helm = new Helm();
 helm.trim = 0.6;
@@ -83,12 +91,10 @@ addEventListener('keydown', (e) => {
 addEventListener('keyup', (e) => keys.delete(e.code));
 
 const env = { waves: ocean.field, ground: null, obstacles: battle.playerObstacles, t: 0 };
-const follow = new Vector3();
 const camFocus = new Vector3();
 const lookDir = new Vector3();
 /** Where the camera looks, in the ship's frame (x to port, z to the bow), so shots can frame a raider. */
 const look = { x: 0, y: 3, z: 0 };
-const lastShip = new Vector3();
 const snap: BattleSnapshot = {
   phase: 'idle',
   wave: 0,
@@ -102,17 +108,17 @@ const snap: BattleSnapshot = {
   doubleShot: false,
   stores: { timber: 0, powder: 0 },
   lull: 0,
+  title: '',
 };
 let clockT = 0;
 let hudAt = 0;
 let frozenHelm = false;
 const stats = document.getElementById('hud')!;
 
-// Start behind and above the ship, looking past it.
-camera.position.set(-38, 26, -34);
+// Start astern and a little above the ship, looking past it.
+camera.position.set(-24, 11, -27);
 controls.target.set(0, 3, 0);
 controls.update();
-lastShip.set(0, 0, 0);
 
 engine.add({
   frame(dt, t) {
@@ -131,14 +137,9 @@ engine.add({
     env.t = t;
     ship.update(dt, t, env);
     battle.update(dt, t);
-    // The camera rides along with the ship; you orbit it with the mouse.
-    follow.set(p.x, 0, p.z);
-    camera.position.x += follow.x - lastShip.x;
-    camera.position.z += follow.z - lastShip.z;
-    const sh = Math.sin(p.heading);
-    const ch = Math.cos(p.heading);
-    controls.target.set(p.x + look.x * ch + look.z * sh, look.y, p.z - look.x * sh + look.z * ch);
-    lastShip.copy(follow);
+    // The camera rides along with the ship and the director frames the battle's beats; you orbit it
+    // with the mouse.
+    director.update(dt, t, p.x, p.z, p.heading, look, camera.position, controls.target);
     controls.update();
     ocean.update(camera);
     listener.x = camera.position.x;
@@ -177,6 +178,7 @@ dev.__battle = {
   raiders: () => battle.raiders(),
   start: () => battle.start(clockT),
   audio,
+  director,
   unlockAudio: unlock,
   fire: (which: 'bearing' | 'port' | 'starboard' = 'bearing') => battle.fire(which),
   stats: () => ({ ...engine.counters.last, fps: engine.fps, gpuMs: engine.gpuMs, backend, tier: tier.tier }),
@@ -189,6 +191,7 @@ dev.__battle = {
   },
   /** Camera offset from the ship (world axes) and the look height. */
   setCam: (offset: number[], lookY = 3) => {
+    director.yieldToUser();
     const p = ship.dynamics.pose;
     look.x = look.z = 0;
     look.y = lookY;
@@ -198,6 +201,7 @@ dev.__battle = {
   },
   /** Camera offset in the ship's own frame: x to port, z toward the bow. */
   setShipCam: (offset: number[], lookY = 3, at: number[] = [0, 0]) => {
+    director.yieldToUser();
     const p = ship.dynamics.pose;
     const s = Math.sin(p.heading);
     const c = Math.cos(p.heading);

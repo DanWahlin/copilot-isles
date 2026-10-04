@@ -7,6 +7,7 @@ import { world } from '../uniforms';
 import { windAt } from '../wind';
 import { ARC_FIRING, ARC_WARNING, ArcSet } from './arcs';
 import { elevationFor, insideHull, leadPoint, MUZZLE_SPEED, muzzleLocal } from './ballistics';
+import { FogBank } from './fog';
 import { BallPool, BoatPool, fxBudget, SmokePool, SplashPool, SplinterPool, StorePool } from './fx';
 import { Battery, bearing, gunStations, PORT, STARBOARD, type Side } from './gunnery';
 import { RaiderBrain, type RaiderHelm, type RaiderView } from './raider-ai';
@@ -41,9 +42,16 @@ export const PASSAGE_WAVES: readonly WaveSpec[] = [
  * Battle sounds (battle-plan.md §1). The battle only says what happened and where; the game maps each
  * kind to the soundscape (near or far cannon by the listener's distance, and so on).
  */
-export type BattleSound = 'cannon' | 'whiz' | 'timber' | 'splash' | 'groan' | 'sink';
+export type BattleSound = 'cannon' | 'whiz' | 'timber' | 'splash' | 'groan' | 'sink' | 'cheer';
 
-export type BattlePhase = 'idle' | 'fight' | 'lull' | 'question' | 'breakoff' | 'won' | 'skipped';
+/**
+ * Staging beats (battle-plan.md §3) for the camera: `intro` (sails in the fog), `broadside` (your guns
+ * fire at a raider), `incoming` (a raider fires on you), `strike` (a raider strikes), `clear` (a wave
+ * is beaten), `won`, and `breakoff`. Each carries a world position.
+ */
+export type BattleBeat = 'intro' | 'broadside' | 'incoming' | 'strike' | 'clear' | 'won' | 'breakoff';
+
+export type BattlePhase = 'idle' | 'intro' | 'fight' | 'lull' | 'question' | 'breakoff' | 'won' | 'skipped';
 
 const PLAYER_HULL = 100;
 const BREAK_OFF_AT = 15;
@@ -53,6 +61,9 @@ const RAIDER_RELOAD = 9;
 const LAY_SECONDS = 1.5;
 const LAY_SECONDS_CALM = 2.5;
 const SPAWN_RANGE = 230;
+/** The intro: the fog forms, the raiders show inside it at REVEAL, and the guns open at the end. */
+const INTRO_SECONDS = 5.5;
+const INTRO_REVEAL = 1.8;
 const LULL_SECONDS = 20;
 const STORE_LIFE = 45;
 const SINK_SECONDS = 17;
@@ -107,6 +118,8 @@ export interface BattleSnapshot {
   doubleShot: boolean;
   stores: { timber: number; powder: number };
   lull: number;
+  /** The wave's banner, e.g. "Wave 1 of 2: Wrong Fork and Unchecked" (prebuilt per wave). */
+  title: string;
 }
 
 export interface BattleOptions {
@@ -119,7 +132,25 @@ export interface BattleOptions {
   onCaption?: (text: string) => void;
   /** Called with a reused position object; copy it if you keep it. */
   onSound?: (kind: BattleSound, pos: { x: number; y: number; z: number }, gain: number) => void;
+  /** Staging beats for the camera director (battle-plan.md §3). */
+  onBeat?: (beat: BattleBeat, x: number, z: number) => void;
 }
+
+/** The lookout's call, by where the fog lies from your bow (prebuilt, picked per wave). */
+const LOOKOUT = {
+  port: [
+    'Sails in the fog, off the port bow!',
+    'Sails in the fog, off the port beam!',
+    'Sails in the fog, off the port quarter!',
+  ],
+  starboard: [
+    'Sails in the fog, off the starboard bow!',
+    'Sails in the fog, off the starboard beam!',
+    'Sails in the fog, off the starboard quarter!',
+  ],
+  ahead: 'Sails in the fog, dead ahead!',
+  astern: 'Sails in the fog, right astern!',
+} as const;
 
 const tmpLocal = new Vector3();
 const tmpWorld = new Vector3();
@@ -158,9 +189,12 @@ export class Battle {
   private readonly stores: StorePool;
   private readonly boats: BoatPool;
   private readonly arcs: ArcSet;
+  private readonly fog: FogBank;
   private readonly rand: () => number;
   private readonly caption: (text: string) => void;
   private readonly sound: NonNullable<BattleOptions['onSound']>;
+  private readonly beat: NonNullable<BattleOptions['onBeat']>;
+  private title = '';
   private readonly view: RaiderView = {
     x: 0,
     z: 0,
@@ -190,6 +224,7 @@ export class Battle {
     this.rand = seededRandom(o.seed ?? 0xba771e);
     this.caption = o.onCaption ?? (() => undefined);
     this.sound = o.onSound ?? (() => undefined);
+    this.beat = o.onBeat ?? (() => undefined);
     this.group.name = 'battle';
     const budget = fxBudget(o.tier);
     this.balls = new BallPool(budget.balls);
@@ -199,7 +234,9 @@ export class Battle {
     this.stores = new StorePool(budget.stores);
     this.boats = new BoatPool(budget.boats);
     this.arcs = new ArcSet(o.tier, 8);
+    this.fog = new FogBank(o.tier);
     this.group.add(
+      this.fog.mesh,
       this.arcs.mesh,
       this.balls.mesh,
       this.splashes.mesh,
@@ -286,6 +323,7 @@ export class Battle {
 
   skip(t: number): void {
     this.clearRaiders();
+    this.fog.thin(t);
     this.setPhase('skipped', t);
   }
 
@@ -303,8 +341,12 @@ export class Battle {
     this.repair(BASE_REPAIR + this.timber * TIMBER_REPAIR);
     this.timber = 0;
     this.wave++;
-    if (this.wave >= this.plan.length) this.setPhase('won', this.now);
-    else this.spawnWave(this.now);
+    if (this.wave >= this.plan.length) {
+      this.setPhase('won', this.now);
+      const p = this.player.ship.dynamics.pose;
+      this.emit('cheer', p.x, 2, p.z);
+      this.beat('won', p.x, p.z);
+    } else this.spawnWave(this.now);
   }
 
   private repair(points: number): void {
@@ -348,7 +390,8 @@ export class Battle {
     for (let i = 0; i < n; i++) {
       const c = this.combatants[i + 1]!;
       const r = spec.raiders[i]!;
-      const spread = n === 1 ? 0 : (i / (n - 1) - 0.5) * 1.6;
+      // Close enough together that they come out of one fog bank.
+      const spread = n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.8;
       const a = from + spread + (this.rand() - 0.5) * 0.3;
       const x = p.x + Math.sin(a) * SPAWN_RANGE;
       const z = p.z + Math.cos(a) * SPAWN_RANGE;
@@ -357,7 +400,8 @@ export class Battle {
       c.name = r.name;
       c.scale = SCALE[r.kind];
       c.ship.group.scale.setScalar(c.scale);
-      c.ship.group.visible = true;
+      // Hidden until the fog is thick enough to hide her (INTRO_REVEAL).
+      c.ship.group.visible = false;
       c.ship.uniforms.flagLower.value = 0;
       c.ship.group.rotation.set(0, 0, 0);
       c.ship.group.position.set(x, 0, z);
@@ -373,12 +417,19 @@ export class Battle {
       c.captions.bearing[1] = `${r.name} is bearing on you, starboard side`;
     }
     for (const b of this.player.batteries) b.loadAll();
-    this.setPhase('fight', t);
+    // The fog bank forms just in front of them, so their sails rise out of it as they close.
+    this.fog.form(p.x, p.z, from, SPAWN_RANGE - 12, 0.9 + (n - 1) * 0.4, t, this.rand);
+    this.title = `Wave ${this.wave + 1} of ${this.plan.length}: ${joinNames(spec.raiders, n)}`;
+    this.setPhase('intro', t);
+    this.caption(lookoutCall(from - p.heading));
+    this.beat('intro', this.fog.centre.x, this.fog.centre.z);
   }
 
   private breakOff(t: number): void {
     this.breakOffs++;
     this.setPhase('breakoff', t);
+    const p = this.player.ship.dynamics.pose;
+    this.beat('breakoff', p.x, p.z);
     this.caption('Break off! The crew pulls back to make repairs.');
   }
 
@@ -426,7 +477,11 @@ export class Battle {
       const b = this.player.batteries[s]!;
       this.player.aim[s] = target;
       const n = b.fire(this.now);
-      if (n > 0) this.caption(s === 0 ? 'Port battery fires' : 'Starboard battery fires');
+      if (n > 0) {
+        this.caption(s === 0 ? 'Port battery fires' : 'Starboard battery fires');
+        const tp = this.combatants[target]!.ship.dynamics.pose;
+        this.beat('broadside', tp.x, tp.z);
+      }
       total += n;
     }
     if (total === 0 && which !== 'bearing') this.caption('Nothing bears on that side');
@@ -554,6 +609,7 @@ export class Battle {
     this.splinters.update(dt, t, this.waves);
     this.stores.update(t, this.waves);
     this.boats.update(dt, t, this.waves);
+    this.fog.update(dt, t, wind[0]!, wind[1]!);
     this.drawArcs();
   }
 
@@ -619,7 +675,7 @@ export class Battle {
       }
     }
     // Nothing to do while the player breaks off or between waves: heave to.
-    if (this.phase !== 'fight') {
+    if (this.phase !== 'fight' && this.phase !== 'intro') {
       c.helm.trim = 0.15;
       c.helm.rudder = 0;
     } else c.brain!.steer(dt, v, c.helm);
@@ -656,6 +712,7 @@ export class Battle {
           c.lay[s] = Math.min(1, c.lay[s]! + dt / layTime);
           if (c.lay[s]! >= 1) {
             b.fire(this.now);
+            this.beat('incoming', p.x, p.z);
             c.lay[s] = -1;
             this.tokenFree = this.now + 2.5;
           }
@@ -763,6 +820,7 @@ export class Battle {
     if (this.token === c.index) this.token = -1;
     this.caption(c.captions.struck);
     const p = c.ship.dynamics.pose;
+    this.beat('strike', p.x, p.z);
     const pp = this.player.ship.dynamics.pose;
     // The crew rows away from you, from the far side of the hull.
     const away = Math.atan2(p.x - pp.x, p.z - pp.z);
@@ -850,12 +908,27 @@ export class Battle {
   }
 
   private flow(t: number): void {
-    if (this.phase === 'fight') {
+    if (this.phase === 'intro') {
+      const age = t - this.phaseAt;
+      if (age >= INTRO_REVEAL)
+        for (let i = 1; i < this.combatants.length; i++) {
+          const c = this.combatants[i]!;
+          if (c.state === 'afloat') c.ship.group.visible = true;
+        }
+      if (age >= INTRO_SECONDS) {
+        this.fog.thin(t);
+        this.setPhase('fight', t);
+        this.caption('Run out the guns!');
+      }
+    } else if (this.phase === 'fight') {
       let left = 0;
       for (let i = 1; i < this.combatants.length; i++) if (this.combatants[i]!.state === 'afloat') left++;
       if (left === 0) {
         this.setPhase('lull', t);
         this.caption('The wave is beaten. Collect the stores before they sink.');
+        const p = this.player.ship.dynamics.pose;
+        this.emit('cheer', p.x, 2, p.z, 0.8);
+        this.beat('clear', p.x, p.z);
       }
     } else if (this.phase === 'lull') {
       let afloat = 0;
@@ -940,6 +1013,7 @@ export class Battle {
     out.stores.timber = this.timber;
     out.stores.powder = this.now < this.powderUntil ? 1 : 0;
     out.lull = this.phase === 'lull' ? Math.max(0, LULL_SECONDS - (this.now - this.phaseAt)) : 0;
+    out.title = this.title;
     return out;
   }
 
@@ -962,6 +1036,7 @@ export class Battle {
 
   dispose(): void {
     for (let i = 1; i < this.combatants.length; i++) this.combatants[i]!.ship.dispose();
+    this.fog.mesh.material.dispose();
     this.group.traverse((o) => {
       const m = o as unknown as {
         isInstancedMesh?: boolean;
@@ -974,6 +1049,23 @@ export class Battle {
       }
     });
   }
+}
+
+/** "Wrong Fork", "Wrong Fork and Unchecked", "A, B and C". */
+function joinNames(raiders: readonly RaiderSpec[], n: number): string {
+  let s = '';
+  for (let i = 0; i < n; i++) s += (i === 0 ? '' : i === n - 1 ? ' and ' : ', ') + raiders[i]!.name;
+  return s;
+}
+
+/** The lookout's call for fog lying `rel` radians off your bow (positive to port). */
+export function lookoutCall(rel: number): string {
+  const a = Math.atan2(Math.sin(rel), Math.cos(rel));
+  const off = Math.abs(a);
+  if (off < 0.2) return LOOKOUT.ahead;
+  if (off > Math.PI - 0.3) return LOOKOUT.astern;
+  const row = a > 0 ? LOOKOUT.port : LOOKOUT.starboard;
+  return row[off < 1.0 ? 0 : off < 2.2 ? 1 : 2];
 }
 
 function clamp01(x: number): number {

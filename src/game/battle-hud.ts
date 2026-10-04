@@ -198,7 +198,13 @@ export class BattleHud {
     this.root.dataset.phase = s.phase;
     this.card.textContent = '';
     this.card.className = 'bh-card';
-    if (s.phase === 'lull') {
+    if (s.phase === 'intro') {
+      // A title band, not a card: it fades by itself while the raiders come out of the fog.
+      this.card.classList.add('show', 'slim', 'banner');
+      const [wave, names] = s.title.split(': ');
+      el('h2', '', this.card).textContent = wave ?? '';
+      el('p', '', this.card).textContent = names ?? '';
+    } else if (s.phase === 'lull') {
       this.card.classList.add('show', 'slim');
       this.card.innerHTML =
         '<h2>Wave beaten</h2><p>Sail through the floating stores before they sink: timber for repairs, dry powder for faster reloads. <span class="bh-lull-time"></span></p>';

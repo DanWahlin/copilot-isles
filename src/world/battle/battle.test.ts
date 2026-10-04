@@ -22,7 +22,7 @@ import {
   gunStations,
   offBeam,
 } from './gunnery';
-import { haulDown } from './battle';
+import { haulDown, lookoutCall } from './battle';
 import { RaiderBrain, type RaiderHelm, type RaiderView } from './raider-ai';
 
 /** Flies a ball with the same explicit step the battle uses and returns where it crosses height `y`. */
@@ -239,5 +239,16 @@ describe('animation beats', () => {
     expect(haulDown(1.5)).toBeLessThan(haulDown(3));
     expect(haulDown(4)).toBe(1);
     expect(haulDown(10)).toBe(1);
+  });
+});
+
+describe('lookout', () => {
+  it('calls the fog by where it lies from your bow', () => {
+    expect(lookoutCall(0)).toBe('Sails in the fog, dead ahead!');
+    expect(lookoutCall(0.6)).toBe('Sails in the fog, off the port bow!');
+    expect(lookoutCall(-1.5)).toBe('Sails in the fog, off the starboard beam!');
+    expect(lookoutCall(2.5)).toBe('Sails in the fog, off the port quarter!');
+    expect(lookoutCall(Math.PI + 0.1)).toBe('Sails in the fog, right astern!');
+    expect(lookoutCall(Math.PI * 2 - 0.6)).toBe('Sails in the fog, off the starboard bow!');
   });
 });

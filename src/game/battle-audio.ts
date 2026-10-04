@@ -14,6 +14,7 @@ export const BATTLE_SOUNDS: readonly SliceName[] = [
   'timber_creak_groan',
   'splash',
   'big_splash',
+  'crowd_cheer_small',
 ];
 
 /**
@@ -50,6 +51,9 @@ export function createBattleAudio(
         break;
       case 'sink':
         audio.sfx.oneShot('big_splash', at, gain * 1.8);
+        break;
+      case 'cheer':
+        audio.sfx.oneShot('crowd_cheer_small', at, gain);
         break;
     }
   };
