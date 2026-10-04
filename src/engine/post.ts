@@ -26,11 +26,14 @@ import {
   vibrance,
 } from 'three/tsl';
 import type { TierSettings } from './quality';
+import { createAutoExposure } from './auto-exposure';
 
 export interface Post {
   render(): void;
   /** Warm the scene pass and full-screen post shaders without compiling default-framebuffer scene variants. */
   compile(): Promise<void>;
+  /** The metered exposure (WebGPU, not the lean title post): log2 luminance and scale, for probes. */
+  readExposure?(): Promise<{ logLum: number; scale: number }>;
   /** Live grade controls (per-island looks can tween these). */
   grade: {
     vibrance: { value: number };
@@ -83,7 +86,13 @@ export async function createPost(
   }
   const hdr = scenePass.getTextureNode('output');
   const sceneDepth = scenePass.getTextureNode('depth');
-  const exposure = toneMappingExposure as unknown as Node<'float'>;
+  // Metered exposure on top of the keyed one (WebGPU compute; WebGL2 and the lean title keep the key).
+  const meter =
+    !actualWebGL && !options.lean && !dbg.has('noautoexposure')
+      ? createAutoExposure(renderer, scenePass.getTexture('output'))
+      : null;
+  const keyed = toneMappingExposure as unknown as Node<'float'>;
+  const exposure = meter ? keyed.mul(meter.scale) : keyed;
   const gtaoNode = gtaoMod?.ao(sceneDepth, null as unknown as Node<'vec3'>, camera) as
     | (Node<'float'> & {
         resolutionScale: number;
@@ -137,7 +146,7 @@ export async function createPost(
       ? (temporalNode.getTextureNode() as Node<'vec4'>)
       : null;
   const temporalHdr = temporalResult ?? aoHdr;
-  const ldr = renderOutput(temporalHdr);
+  const ldr = renderOutput(meter ? vec4(temporalHdr.rgb.mul(meter.scale), temporalHdr.a) : temporalHdr);
 
   const uVibrance = uniform(0.16);
   const uSaturation = uniform(1.1);
@@ -169,11 +178,20 @@ export async function createPost(
   pipeline.outputColorTransform = false;
   pipeline.outputNode = vec4(aa.rgb.add(grain.mul(0.012).add(grain.div(255))), 1);
 
+  let last = 0;
+  const render = () => {
+    pipeline.render();
+    if (!meter) return;
+    const now = performance.now();
+    meter.update(last ? (now - last) / 1000 : 1 / 60, renderer.toneMappingExposure);
+    last = now;
+  };
   return {
-    render: () => pipeline.render(),
+    render,
     async compile() {
-      pipeline.render();
+      render();
     },
+    readExposure: meter ? () => meter.read() : undefined,
     grade: { vibrance: uVibrance, saturation: uSaturation, contrast: uContrast, vignette: uVignette },
     dispose() {
       scenePass.dispose();
@@ -182,6 +200,7 @@ export async function createPost(
       temporalNode?.dispose();
       sharpenNode?.dispose();
       pipeline.dispose();
+      meter?.dispose();
     },
   };
 }

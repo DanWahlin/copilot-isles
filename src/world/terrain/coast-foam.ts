@@ -13,7 +13,7 @@ import {
 } from 'three/tsl';
 import type { HeightField } from '../contracts';
 import { COVE } from '../layout';
-import { world } from '../uniforms';
+import { foamLight, world } from '../uniforms';
 import type { TerrainBakeData } from './bake';
 
 export interface CoastFoamOptions {
@@ -39,7 +39,7 @@ function createFoamMaterial(maxDistance: number): MeshBasicNodeMaterial {
   const distanceFade = float(1).sub(
     smoothstep(maxDistance * 0.45, maxDistance, cameraPosition.sub(positionWorld).length()),
   );
-  material.colorNode = mix(color(0xbfe9ef), color(0xffffff), pow(lace, 2.5));
+  material.colorNode = mix(color(0xbfe9ef), color(0xffffff), pow(lace, 2.5)).mul(foamLight);
   material.opacityNode = band
     .mul(distanceFade)
     .mul(float(0.075).add(surge.mul(0.22)).add(wash.mul(0.08)))

@@ -1,6 +1,6 @@
 import { formatDistance, relativeBearing, type CompassTarget } from './compass';
 import { alignSubtitle } from './subtitle-align';
-import type { FaceExpression, MouthCue } from '../world/characters/facial-animation';
+import { unpackMouthCues, type FaceExpression, type MouthCue } from '../world/characters/facial-animation';
 
 /**
  * In-game HUD (Phase 0): the interaction prompt, synced subtitles, the sailing gauge, the compass,
@@ -205,13 +205,13 @@ export class Hud {
       const res = await fetch(new URL('lipsync.json', new URL(manifestUrl, location.href)).toString());
       if (!res.ok) return;
       const m = (await res.json()) as {
-        lines?: Record<string, { mouthCues?: MouthCue[]; expression?: FaceExpression }>;
+        lines?: Record<string, { t: number[]; v: string; e?: FaceExpression }>;
       };
       for (const [id, face] of Object.entries(m.lines ?? {})) {
         const line = this.lines.get(id);
         if (line) {
-          line.mouthCues = face.mouthCues;
-          line.expression = face.expression;
+          line.mouthCues = unpackMouthCues(face.t, face.v);
+          line.expression = face.e;
         }
       }
     } catch {

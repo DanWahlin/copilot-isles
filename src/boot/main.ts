@@ -134,8 +134,10 @@ async function boot(): Promise<void> {
   registerServiceWorker();
   stage(0.75, 'Lighting the lighthouses');
   const titleCompileT0 = performance.now();
-  if (post) await post.compile();
-  else await renderer.compileAsync(engine.scene, engine.camera);
+  await Promise.all([
+    post ? post.compile() : renderer.compileAsync(engine.scene, engine.camera),
+    flow.titleReady(),
+  ]);
   (window as unknown as { __titleCompileMs?: number }).__titleCompileMs = performance.now() - titleCompileT0;
   engine.renderNow();
   await nextFrame();

@@ -130,6 +130,11 @@ export class GameFlow implements GameBridge {
     return () => this.listeners.delete(listener);
   }
 
+  /** Resolves once the title's sky is ready to show (the hitch guard arms after this). */
+  titleReady(): Promise<void> {
+    return this.title?.ready ?? Promise.resolve();
+  }
+
   showTitle(): void {
     this.title ??= createTitleBackdrop(this.o.engine);
     this.title.setSails(this.learn.getState().sails);
@@ -445,6 +450,8 @@ export class GameFlow implements GameBridge {
         onChart: () => this.openChart(),
         learn: this.learn,
       });
+      // Both islands' skies (and the passage between them) go on the GPU before the hitch guard arms.
+      await cove.sky.prefetch([ISLANDS.anchorage.sky.hours, ISLANDS.meridian.sky.hours]);
       report(0.92, 'Lighting the lanterns');
       await this.o.upgradePost?.(cove);
       await engine.renderer.compileAsync(engine.scene, engine.camera);

@@ -33,6 +33,7 @@ import {
   smoothstep,
   pow,
   instancedArray,
+  uv as quadUV,
 } from 'three/tsl';
 import { G } from './Globals';
 
@@ -63,12 +64,49 @@ function makeLUT(w, h, name) {
   return t;
 }
 
+// The LUT as a render target, for the fragment-pass path (WebGL2 has no compute).
+function makeTarget(w, h, name) {
+  const rt = new THREE.RenderTarget(w, h, {
+    type: THREE.HalfFloatType,
+    format: THREE.RGBAFormat,
+    magFilter: THREE.LinearFilter,
+    minFilter: THREE.LinearFilter,
+    wrapS: THREE.ClampToEdgeWrapping,
+    wrapT: THREE.ClampToEdgeWrapping,
+    generateMipmaps: false,
+    depthBuffer: false,
+  });
+  rt.texture.name = name;
+  return rt;
+}
+
+// Each LUT has one TSL body, uv (texel centre) -> vec4, run either as a compute kernel that stores
+// texels (WebGPU) or as a full-screen fragment pass into a render target (WebGL2, no compute). Both
+// paths build the same nodes, so there is no second copy of the atmosphere.
 export class Atmosphere {
-  constructor(renderer) {
+  /**
+   * @param renderer the WebGPURenderer
+   * @param options.compute build the LUTs in compute kernels (WebGPU), else in fragment passes
+   * @param options.irradiance integrate and read back the sky irradiance (the volumetric clouds' ambient)
+   */
+  constructor(renderer, { compute = true, irradiance = true } = {}) {
     this.renderer = renderer;
-    this.transmittanceLUT = makeLUT(T_W, T_H, 'atmoTransmittance');
-    this.multiScatLUT = makeLUT(MS_RES, MS_RES, 'atmoMultiScat');
-    this.skyViewLUT = makeLUT(SV_W, SV_H, 'atmoSkyView');
+    this.useCompute = compute;
+    this.useIrradiance = compute && irradiance;
+    if (compute) {
+      this.transmittanceLUT = makeLUT(T_W, T_H, 'atmoTransmittance');
+      this.multiScatLUT = makeLUT(MS_RES, MS_RES, 'atmoMultiScat');
+      this.skyViewLUT = makeLUT(SV_W, SV_H, 'atmoSkyView');
+    } else {
+      this.targets = {
+        transmittance: makeTarget(T_W, T_H, 'atmoTransmittance'),
+        multiScat: makeTarget(MS_RES, MS_RES, 'atmoMultiScat'),
+        skyView: makeTarget(SV_W, SV_H, 'atmoSkyView'),
+      };
+      this.transmittanceLUT = this.targets.transmittance.texture;
+      this.multiScatLUT = this.targets.multiScat.texture;
+      this.skyViewLUT = this.targets.skyView.texture;
+    }
     this.skyViewLUT.wrapS = THREE.ClampToEdgeWrapping;
 
     this.rayleighScale = uniform(1).setName('atmoRay');
@@ -85,7 +123,7 @@ export class Atmosphere {
     this.sunDir = uniform(new THREE.Vector3(0.3, 0.6, -0.7).normalize()).setName('atmoSunDir');
 
     // small buffer for sky irradiance readback
-    this.irrBuffer = instancedArray(4, 'vec4').setName('atmoIrr');
+    if (this.useIrradiance) this.irrBuffer = instancedArray(4, 'vec4').setName('atmoIrr');
 
     this._build();
     this.needsStatic = true;
@@ -163,9 +201,7 @@ export class Atmosphere {
     const self = this;
 
     // ----- transmittance LUT
-    this.transmittanceKernel = Fn(() => {
-      const px = globalId.xy;
-      const uv = vec2(px).add(0.5).div(vec2(T_W, T_H));
+    const transmittance = (uv) => {
       const xMu = uv.x.sub(0.5 / T_W).mul(T_W / (T_W - 1));
       const xR = uv.y.sub(0.5 / T_H).mul(T_H / (T_H - 1));
       const H = Math.sqrt(RT * RT - RG * RG);
@@ -201,19 +237,12 @@ export class Atmosphere {
         od.addAssign(self._medium(h).extinction.mul(dt));
       });
 
-      textureStore(this.transmittanceLUT, uvec2(px), vec4(exp(od.negate()), 1));
-    })()
-      .computeKernel([8, 8, 1])
-      .setName('Atmosphere Transmittance');
+      return vec4(exp(od.negate()), 1);
+    };
 
     // ----- multiple scattering LUT
-    this.multiScatKernel = Fn(() => {
-      const px = globalId.xy;
-      const uv = vec2(px)
-        .add(0.5)
-        .div(MS_RES)
-        .sub(0.5 / MS_RES)
-        .mul(MS_RES / (MS_RES - 1));
+    const multiScat = (uvTexel) => {
+      const uv = uvTexel.sub(0.5 / MS_RES).mul(MS_RES / (MS_RES - 1));
       const cosSun = uv.x.mul(2).sub(1);
       const r = float(RG)
         .add(clamp(uv.y, 0.001, 0.999).mul(RT - RG))
@@ -278,18 +307,14 @@ export class Atmosphere {
       const Lin = Lsum.mul(isoPhase);
       const fmsAvg = fmsSum.mul(isoPhase);
       const Lms = Lin.div(vec3(1).sub(fmsAvg));
-      textureStore(this.multiScatLUT, uvec2(px), vec4(Lms, 1));
-    })()
-      .computeKernel([8, 8, 1])
-      .setName('Atmosphere MultiScat');
+      return vec4(Lms, 1);
+    };
 
     // ----- sky view LUT (per frame)
     const sunE = this.sunIlluminance;
     const mieG = this.mieG;
 
-    this.skyViewKernel = Fn(() => {
-      const px = globalId.xy;
-      const uv = vec2(px).add(0.5).div(vec2(SV_W, SV_H));
+    const skyView = (uv) => {
       const u = uv.x.sub(0.5 / SV_W).mul(SV_W / (SV_W - 1));
       const v = uv.y.sub(0.5 / SV_H).mul(SV_H / (SV_H - 1));
 
@@ -372,10 +397,44 @@ export class Atmosphere {
         tPrev.assign(tb);
       });
 
-      textureStore(this.skyViewLUT, uvec2(px), vec4(L.mul(sunE), 1));
-    })()
-      .computeKernel([8, 8, 1])
-      .setName('Atmosphere SkyView');
+      return vec4(L.mul(sunE), 1);
+    };
+
+    if (this.useCompute) {
+      const kernel = (lut, w, h, body, name) =>
+        Fn(() => {
+          const px = globalId.xy;
+          textureStore(lut, uvec2(px), body(vec2(px).add(0.5).div(vec2(w, h))));
+        })()
+          .computeKernel([8, 8, 1])
+          .setName(name);
+      this.transmittanceKernel = kernel(
+        this.transmittanceLUT,
+        T_W,
+        T_H,
+        transmittance,
+        'Atmosphere Transmittance',
+      );
+      this.multiScatKernel = kernel(this.multiScatLUT, MS_RES, MS_RES, multiScat, 'Atmosphere MultiScat');
+      this.skyViewKernel = kernel(this.skyViewLUT, SV_W, SV_H, skyView, 'Atmosphere SkyView');
+    } else {
+      // The quad's uv is the texel centre, as (px + 0.5) / size is in the kernels.
+      const pass = (body, name) => {
+        const m = new THREE.NodeMaterial();
+        m.name = name;
+        m.fog = false;
+        m.depthTest = false;
+        m.depthWrite = false;
+        m.fragmentNode = Fn(() => body(quadUV()))();
+        return new THREE.QuadMesh(m);
+      };
+      this.passes = {
+        transmittance: pass(transmittance, 'Atmosphere Transmittance'),
+        multiScat: pass(multiScat, 'Atmosphere MultiScat'),
+        skyView: pass(skyView, 'Atmosphere SkyView'),
+      };
+    }
+    if (!this.useIrradiance) return;
 
     // ----- sky irradiance (cosine weighted hemisphere integral of sky view LUT)
     this.irradianceKernel = Fn(() => {
@@ -449,13 +508,33 @@ export class Atmosphere {
     const r = this.renderer;
     this.viewHeight.value = RG + Math.max(0.001, cameraY / 1000 + 0.0005);
 
-    if (this.needsStatic) {
+    const statics = this.needsStatic;
+    if (statics) {
       this.needsStatic = false;
-      r.compute(this.transmittanceKernel, [T_W / 8, T_H / 8, 1]);
-      r.compute(this.multiScatKernel, [MS_RES / 8, MS_RES / 8, 1]);
+      if (this.useCompute) {
+        r.compute(this.transmittanceKernel, [T_W / 8, T_H / 8, 1]);
+        r.compute(this.multiScatKernel, [MS_RES / 8, MS_RES / 8, 1]);
+      } else {
+        this._renderPass(this.passes.transmittance, this.targets.transmittance);
+        this._renderPass(this.passes.multiScat, this.targets.multiScat);
+      }
     }
 
-    r.compute(this.skyViewKernel, [SV_W / 8, Math.ceil(SV_H / 8), 1]);
+    // The sky view only changes with the sun and the eye height.
+    const sun = this.sunDir.value;
+    const last = (this._lastView ??= { x: 0, y: -2, z: 0, h: 0 });
+    const moved =
+      Math.abs(sun.x - last.x) + Math.abs(sun.y - last.y) + Math.abs(sun.z - last.z) > 1e-5 ||
+      Math.abs(this.viewHeight.value - last.h) > 1e-4;
+    if (statics || moved) {
+      last.x = sun.x;
+      last.y = sun.y;
+      last.z = sun.z;
+      last.h = this.viewHeight.value;
+      if (this.useCompute) r.compute(this.skyViewKernel, [SV_W / 8, Math.ceil(SV_H / 8), 1]);
+      else this._renderPass(this.passes.skyView, this.targets.skyView);
+    }
+    if (!this.useIrradiance) return;
 
     // periodically integrate irradiance and read it back for CPU-side uniforms/lights
     this._irrTimer -= dt;
@@ -478,7 +557,22 @@ export class Atmosphere {
     }
   }
 
+  _renderPass(quad, target) {
+    const r = this.renderer;
+    const prev = r.getRenderTarget();
+    r.setRenderTarget(target);
+    quad.render(r);
+    r.setRenderTarget(prev);
+  }
+
   invalidate() {
     this.needsStatic = true;
+  }
+
+  dispose() {
+    if (this.targets) for (const t of Object.values(this.targets)) t.dispose();
+    if (this.passes) for (const q of Object.values(this.passes)) q.material.dispose();
+    if (this.useCompute)
+      [this.transmittanceLUT, this.multiScatLUT, this.skyViewLUT].forEach((t) => t.dispose());
   }
 }
