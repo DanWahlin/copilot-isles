@@ -307,7 +307,8 @@ export function createOcean({
         ambient
           .mul(0.62)
           .add(world.sunColor.mul(NdL.mul(0.1)))
-          .add(0.34),
+          // a base light in the water: daylight's, dimming to moonlight's at night
+          .add(mix(float(0.34), float(0.05), world.night)),
       )
       .mul(vec3(1).sub(T))
       .mul(mix(float(0.46), float(0.58), smoothstep(16, 84, dist)))

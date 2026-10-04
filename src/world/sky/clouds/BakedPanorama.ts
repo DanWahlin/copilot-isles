@@ -7,6 +7,7 @@ import {
   RepeatWrapping,
   SRGBColorSpace,
   Texture,
+  Vector2,
   type Node,
   type WebGPURenderer,
 } from 'three/webgpu';
@@ -26,6 +27,7 @@ import {
   vec4,
 } from 'three/tsl';
 import { sunState, type SunState } from '../sun';
+import { world } from '../../uniforms';
 
 /**
  * The clouds on WebGL2, Low, Lite and Medium: the WebGPU High clouds (Tidewater's volumetric clouds and
@@ -48,7 +50,8 @@ export interface BakedClouds {
   /** vec4(light, transmittance) along a direction (Sky.ts's cloud contract). */
   sampleView(dir: Node<'vec3'>): Node<'vec4'>;
   sample(dir: Node<'vec3'>): Node<'vec4'>;
-  update(state: SunState): void;
+  /** `dt` (s) drives the drift; reduced motion holds it still. */
+  update(state: SunState, dt: number): void;
   /** Loads the keys these hours need and puts them on the GPU, so later changes don't hitch. */
   prefetch(hours: readonly number[]): Promise<void>;
   dispose(): void;
@@ -74,6 +77,15 @@ export const SKY_KEYS = [
 export const CLOUD_PEDESTAL = [0.1, 0.25, 0.6] as const;
 
 const V_SPAN = Math.PI / 2 + (2 * Math.PI) / 180;
+/**
+ * The baked layer drifts along the wind as a slow sway in the cloud plane (it has no clouds beyond
+ * its bake to bring in): overhead clouds move most and the horizon's barely, as on the live sky. A
+ * DRIFT_M sway over DRIFT_PERIOD_S peaks at about 2.5 m/s (sky-system.ts CLOUD_DRIFT).
+ */
+const DRIFT_M = 400;
+const DRIFT_PERIOD_S = 1000;
+/** Height of the baked cloud plane (m): the cumulus base is about 800 m, the tops about 2 km. */
+const CLOUD_PLANE_M = 1500;
 const TAU = Math.PI * 2;
 
 const azimuth = (d: readonly number[]) => Math.atan2(d[2]!, d[0]!);
@@ -138,6 +150,9 @@ export function createBakedClouds(renderer: WebGPURenderer): BakedClouds {
   // Turns the layer so its baked sun sits where today's sun is (islands and Settings set the azimuth).
   const turn = uniform(0);
   const night = uniform(0);
+  // cloud-plane shift over the plane height (x, z)
+  const drift = uniform(new Vector2());
+  let driftPhase = 0;
   // Two key slots, blended by `blend`; clear sky (just the pedestal, full transmittance) until a key
   // arrives.
   const placeholder = new DataTexture(new Uint8Array([89, 137, 203, 255]), 1, 1);
@@ -151,8 +166,10 @@ export function createBakedClouds(renderer: WebGPURenderer): BakedClouds {
   const pedestal = vec3(...CLOUD_PEDESTAL);
 
   const sampleView = (dir: Node<'vec3'>) => {
-    const u = fract(atan(dir.z, dir.x).sub(turn).div(TAU).add(1));
-    const v = clamp(acos(clamp(dir.y, -1, 1)).div(V_SPAN), 0, 1);
+    // the drift, as a shift of the cloud plane: zero at the horizon, largest overhead
+    const d = vec3(dir.x.sub(drift.x.mul(dir.y)), dir.y, dir.z.sub(drift.y.mul(dir.y)));
+    const u = fract(atan(d.z, d.x).sub(turn).div(TAU).add(1));
+    const v = clamp(acos(clamp(d.y.div(d.length()), -1, 1)).div(V_SPAN), 0, 1);
     // flipY is off, so v = 0 is the top row (the zenith).
     const uv = vec2(u, v);
     const c = mix(keyA.sample(uv), keyB.sample(uv), blend);
@@ -206,7 +223,12 @@ export function createBakedClouds(renderer: WebGPURenderer): BakedClouds {
       textures.forEach(toGpu);
       applyKeys();
     },
-    update(state) {
+    update(state, dt) {
+      if (world.reducedMotion.value < 0.5) driftPhase = (driftPhase + (dt * TAU) / DRIFT_PERIOD_S) % TAU;
+      const sway = (Math.sin(driftPhase) * DRIFT_M) / CLOUD_PLANE_M;
+      const w = world.windDir.value;
+      const wl = Math.hypot(w.x, w.y) || 1;
+      drift.value.set((w.x / wl) * sway, (w.y / wl) * sway);
       need(state.sun[1]);
       applyKeys();
       turn.value = azimuth(state.sun) - BAKED_SUN_AZIMUTH;
