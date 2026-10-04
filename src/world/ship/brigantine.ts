@@ -42,13 +42,25 @@ import {
   WHEEL,
 } from './brigantine-hull';
 import {
+  CUTTER_FLAG,
   createBundledCanvasGeometry,
+  createCutterRiggingGeometry,
+  createCutterSailGeometry,
+  createCutterSparGeometry,
   createRiggingGeometry,
   createSailGeometry,
   createSparGeometry,
   mizzenStayPoint,
 } from './brigantine-rig';
-import { FLAG_PHASE_PERIOD, createFlagGeometry, flagYaw, makeFlagMaterial } from './ship-flags';
+import {
+  BRIGANTINE_FLAGS,
+  FLAG_PHASE_PERIOD,
+  RAIDER_BRIGANTINE_FLAGS,
+  createFlagGeometry,
+  flagYaw,
+  makeFlagMaterial,
+  raiderCutterFlags,
+} from './ship-flags';
 import { windAt } from '../wind';
 import {
   makeCanvasMaterial,
@@ -71,7 +83,18 @@ interface BrigantineOptions {
    * ship, so other ships (sea-battle raiders) turn it off.
    */
   oceanInteraction?: boolean;
+  /**
+   * A fog raider (battle-plan.md §4): patched grey sails, the raiders' colours, and both rigs built so
+   * one hull can sail as a brigantine or a cutter (`setRig`).
+   */
+  raider?: boolean;
 }
+
+export type ShipRig = 'brigantine' | 'cutter';
+
+/** The raiders' sail cloth and band: fog grey (the canvas shader warms it, so it starts blue) with an oxblood stripe. */
+const RAIDER_CLOTH = 0x63768f;
+const RAIDER_STRIPE = 0x6f2a24;
 
 export interface BrigantineEnv extends ShipEnv {
   waves: WaveSampler;
@@ -95,6 +118,8 @@ export interface Brigantine {
   setSails(paletteId: string | null): void;
   /** Paints the christened ship name onto the stern and bow name boards. */
   setName(name: string | null): void;
+  /** Shows one rig (raiders only; your ship is always a brigantine). */
+  setRig(rig: ShipRig): void;
   /** Runs deck gun `index` (port 0…5, starboard 6…11, stern to bow) in by `metres` of recoil. */
   setGunRecoil(index: number, metres: number): void;
   /**
@@ -265,7 +290,11 @@ function shortestYaw(a: number, b: number, t: number): number {
   return a + (d - Math.PI) * t;
 }
 
-export function createBrigantine({ tier, oceanInteraction = true }: BrigantineOptions): Brigantine {
+export function createBrigantine({
+  tier,
+  oceanInteraction = true,
+  raider = false,
+}: BrigantineOptions): Brigantine {
   const group = new Group();
   group.name = `brigantine-${tier}`;
   group.rotation.order = 'YXZ';
@@ -275,8 +304,10 @@ export function createBrigantine({ tier, oceanInteraction = true }: BrigantineOp
   const uniforms: BrigantineUniforms = {
     trim: uniform(1),
     luff: uniform(0),
-    sailCloth: uniform(new Color(startSails.cloth)),
-    sailStripe: uniform(new Color(startSails.stripe)),
+    sailCloth: uniform(new Color(raider ? RAIDER_CLOTH : startSails.cloth)),
+    sailStripe: uniform(new Color(raider ? RAIDER_STRIPE : startSails.stripe)),
+    sailPatch: uniform(raider ? 1 : 0),
+    livery: uniform(raider ? 1 : 0),
     flagYaw: uniform(0),
     flagPhase: uniform(0),
     flagStrength: uniform(0.6),
@@ -307,7 +338,7 @@ export function createBrigantine({ tier, oceanInteraction = true }: BrigantineOp
   };
 
   const shipLabel = createShipLabel();
-  const shipMaterial = register(makeShipMaterial(shipLabel));
+  const shipMaterial = register(makeShipMaterial(shipLabel, uniforms.livery));
   const riggingLineMaterial = register(
     new LineBasicMaterial({ color: 0x17110c, transparent: true, opacity: 0.78, linewidth: 1.6 }),
   );
@@ -319,35 +350,61 @@ export function createBrigantine({ tier, oceanInteraction = true }: BrigantineOp
   addMesh(group, createTrimGeometry(tier), shipMaterial, 'wales strakes gunports galleries anchors');
   const recoilNode = uniformArray(new Array<number>(12).fill(0), 'float') as UniformArrayNode<'float'>;
   const gunGeometry = createDeckGunGeometry(tier);
-  if (gunGeometry) addMesh(group, gunGeometry, register(makeGunMaterial(shipLabel, recoilNode)), 'deck guns');
+  if (gunGeometry)
+    addMesh(
+      group,
+      gunGeometry,
+      register(makeGunMaterial(shipLabel, uniforms.livery, recoilNode)),
+      'deck guns',
+    );
   addMesh(group, createWindowGeometry(), shipMaterial, 'stern gallery windows and name board backing', false);
   addMesh(group, createSternGoldGeometry(), shipMaterial, 'stern gallery trim and lantern bracket');
   addMesh(group, createNameBoardGeometry(), shipMaterial, 'christening ship name boards', false);
-  addMesh(group, createSparGeometry(tier), shipMaterial, 'masts yards boom bowsprit jibboom', false);
-  addMesh(group, createBundledCanvasGeometry(tier), shipMaterial, 'furled canvas bundles', false);
-  addMesh(
-    group,
-    createSailGeometry(tier),
-    register(makeCanvasMaterial(uniforms)),
-    'billowed procedural sails',
-  );
-  addMesh(
-    group,
-    createFlagGeometry(),
-    register(
-      makeFlagMaterial({
+  const canvasMaterial = register(makeCanvasMaterial(uniforms));
+  const flagHaul = uniform(BRIGANTINE_FLAGS.haulDown);
+  const flagMaterial = register(
+    makeFlagMaterial(
+      {
         yaw: uniforms.flagYaw,
         phase: uniforms.flagPhase,
         strength: uniforms.flagStrength,
         lower: uniforms.flagLower,
-      }),
+        haul: flagHaul,
+      },
+      raider ? 'raider' : 'jolly',
     ),
-    'animated jolly roger and pennants',
+  );
+  const brigRig = new Group();
+  brigRig.name = 'brigantine rig';
+  group.add(brigRig);
+  addMesh(brigRig, createSparGeometry(tier), shipMaterial, 'masts yards boom bowsprit jibboom', false);
+  addMesh(brigRig, createBundledCanvasGeometry(tier), shipMaterial, 'furled canvas bundles', false);
+  addMesh(brigRig, createSailGeometry(tier), canvasMaterial, 'billowed procedural sails');
+  addMesh(
+    brigRig,
+    createFlagGeometry(raider ? RAIDER_BRIGANTINE_FLAGS : BRIGANTINE_FLAGS),
+    flagMaterial,
+    raider ? 'raider colours and pennants' : 'animated jolly roger and pennants',
     false,
   );
   const rigging = new LineSegments(createRiggingGeometry(tier), riggingLineMaterial);
   rigging.name = 'standing and running rigging lines';
-  group.add(rigging);
+  brigRig.add(rigging);
+  // The raiders' cutter rig: the same materials, so it adds no pipelines.
+  const cutterLayout = raiderCutterFlags(CUTTER_FLAG.z, CUTTER_FLAG.y0, CUTTER_FLAG.y1, CUTTER_FLAG.peak);
+  let cutterRig: Group | null = null;
+  if (raider) {
+    cutterRig = new Group();
+    cutterRig.name = 'cutter rig';
+    cutterRig.visible = false;
+    group.add(cutterRig);
+    addMesh(cutterRig, createCutterSparGeometry(tier), shipMaterial, 'cutter mast gaff boom bowsprit', false);
+    addMesh(cutterRig, createCutterSailGeometry(tier), canvasMaterial, 'cutter gaff sails and headsails');
+    addMesh(cutterRig, createFlagGeometry(cutterLayout), flagMaterial, 'cutter colours and pennant', false);
+    const cutterLines = new LineSegments(createCutterRiggingGeometry(tier), riggingLineMaterial);
+    cutterLines.name = 'cutter rigging lines';
+    cutterRig.add(cutterLines);
+  }
   group.add(pipeSystem.group);
   group.add(christening.group);
   const gangway = createGangway(shipMaterial);
@@ -471,6 +528,16 @@ export function createBrigantine({ tier, oceanInteraction = true }: BrigantineOp
     uniforms,
     anchors,
     pipes: pipeSystem,
+    setRig(rig: ShipRig): void {
+      if (!cutterRig) return;
+      const cutter = rig === 'cutter';
+      cutterRig.visible = cutter;
+      brigRig.visible = !cutter;
+      // The tackle block hangs from the brigantine's mizzen stay.
+      blockPivot.visible = !cutter;
+      flagHaul.value = cutter ? cutterLayout.haulDown : RAIDER_BRIGANTINE_FLAGS.haulDown;
+      api.drawCallCount = drawCallCount(group);
+    },
     setSails(paletteId: string | null): void {
       const p = sailPalette(paletteId);
       uniforms.sailCloth.value.setHex(p.cloth);

@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import type { BufferAttribute, Mesh, Object3D } from 'three/webgpu';
 import { createBrigantine, fitShipNameFontSize } from './brigantine';
 import { QUARTERDECK_Z, WHEEL } from './brigantine-hull';
-import { createRiggingGeometry } from './brigantine-rig';
+import { CUTTER_FLAG, createCutterSailGeometry, createRiggingGeometry } from './brigantine-rig';
 import { COVE } from '../layout';
-import { deckHeightAt } from './lines';
+import { BRIGANTINE_HALF_LENGTH, deckHeightAt } from './lines';
 
 interface MeshSignature {
   name: string;
@@ -295,5 +295,44 @@ describe('createBrigantine', () => {
     const wide = fitShipNameFontSize(long, 320, measure, 86, 20);
     expect(measure(wide, long)).toBeLessThanOrEqual(320);
     expect(wide).toBeGreaterThanOrEqual(20);
+  });
+
+  it('builds a raider that sails as a brigantine or a one-mast cutter', () => {
+    const ship = createBrigantine({ tier: 'high', raider: true });
+    const brig = ship.group.getObjectByName('brigantine rig')!;
+    const cutter = ship.group.getObjectByName('cutter rig')!;
+    expect(brig.visible).toBe(true);
+    expect(cutter.visible).toBe(false);
+    const brigDraws = ship.drawCallCount;
+    ship.setRig('cutter');
+    expect(brig.visible).toBe(false);
+    expect(cutter.visible).toBe(true);
+    expect(ship.drawCallCount).toBeLessThanOrEqual(brigDraws);
+    expect(ship.uniforms.sailPatch.value).toBe(1);
+    expect(ship.uniforms.livery.value).toBe(1);
+    ship.setRig('brigantine');
+    expect(brig.visible).toBe(true);
+    ship.dispose();
+  });
+
+  it("keeps your own ship's paint and rig", () => {
+    const ship = createBrigantine({ tier: 'low' });
+    expect(ship.group.getObjectByName('cutter rig')).toBeUndefined();
+    expect(ship.uniforms.sailPatch.value).toBe(0);
+    expect(ship.uniforms.livery.value).toBe(0);
+    ship.setRig('cutter');
+    expect(ship.group.getObjectByName('brigantine rig')!.visible).toBe(true);
+    ship.dispose();
+  });
+
+  it("keeps the cutter's canvas above the deck and over the hull and bowsprit", () => {
+    const pos = createCutterSailGeometry('medium').getAttribute('position') as BufferAttribute;
+    for (let i = 0; i < pos.count; i++) {
+      const z = pos.getZ(i);
+      expect(z).toBeGreaterThan(-BRIGANTINE_HALF_LENGTH - 0.5);
+      expect(z).toBeLessThan(22.5);
+      expect(pos.getY(i)).toBeGreaterThan(deckHeightAt(Math.max(-12, Math.min(12, z))) + 0.8);
+      expect(pos.getY(i)).toBeLessThan(CUTTER_FLAG.y0);
+    }
   });
 });

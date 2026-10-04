@@ -36,8 +36,9 @@ Anchorage and Port Meridian's harbours stay calm. We'll adjust the later places 
 - **The lesson it echoes.** The Dry-Run Crane: *"Confirm that the `Repository:` line in the output shows
   your fork before you continue"* (00 §Add the Course Practice Items). Your guns fire only when the gold
   firing arc shows a raider in it, so you check what you're aimed at before you commit.
-- **The enemy.** Fog raiders: grey-patched sails, no skulls, name boards *Wrong Fork* and *Unchecked* (wave
-  1), then *Stale Branch* (wave 2).
+- **The enemy.** Fog raiders: patched fog-grey sails with an oxblood band, weathered slate hulls with pewter
+  trim, and their own swallowtail colours (a lantern burning through three wisps of fog on slate: no skull, no
+  Octocat, no Copilot logo). Name boards *Wrong Fork* and *Unchecked* (wave 1), then *Stale Branch* (wave 2).
 - **Between the waves.** The bosun asks one Chapter 00 recap question (a `ChoiceQuiz` with its `SourceRef`):
   why you preview with `--dry-run` first, what the setup script creates (labels, issues, practice branches,
   pull requests; 00 §Add the Course Practice Items), why the intentional bugs are training scenarios, and
@@ -207,7 +208,7 @@ trim. Only one raider in a wave fires at a time (a 2.5 s token) so warnings neve
 
 | Piece | From |
 |---|---|
-| Raider ships | `createBrigantine` (grey-patched sails palette and their own name boards). The "cutter" is the same hull at 0.75 scale with the foremast hidden |
+| Raider ships | `createBrigantine({ raider: true })`: the raiders' livery, patched sails and colours, their own name boards, and both rigs. `setRig('cutter')` shows a one-mast gaff cutter (mainsail, gaff topsail, staysail, jib) on the hull at 0.78 scale; the same materials, so no new pipelines |
 | Physics | `ShipDynamics` + `BRIGANTINE_CAPSULES` for hits |
 | Water heights | `WaveSampler.heightAt` for ball impacts and bobbing stores |
 | Splashes | The Leaps splash geometry and material (`src/world/life/leaps`) in a battle-owned pool |

@@ -257,8 +257,8 @@ export class Battle {
       const ship = createBrigantine({
         tier: o.tier.tier === 'ultra' || o.tier.tier === 'high' ? 'medium' : o.tier.tier,
         oceanInteraction: false,
+        raider: true,
       });
-      ship.setSails('monochrome');
       ship.group.visible = false;
       this.group.add(ship.group);
       this.combatants.push(this.makeCombatant(i + 1, ship, false));
@@ -398,6 +398,7 @@ export class Battle {
       const z = p.z + Math.cos(a) * SPAWN_RANGE;
       c.ship.dynamics.reset(x, z, Math.atan2(p.x - x, p.z - z));
       c.ship.setName(r.name);
+      c.ship.setRig(r.kind);
       c.name = r.name;
       c.scale = SCALE[r.kind];
       c.ship.group.scale.setScalar(c.scale);

@@ -110,6 +110,8 @@ const snap: BattleSnapshot = {
   lull: 0,
   title: '',
 };
+/** A ship the camera rides with (dev shots): index (0 yours), offset in its frame (x port, z bow), look height. */
+const track = { i: -1, x: 0, y: 0, z: 0, lookY: 6 };
 let clockT = 0;
 let hudAt = 0;
 let frozenHelm = false;
@@ -140,6 +142,13 @@ engine.add({
     // The camera rides along with the ship and the director frames the battle's beats; you orbit it
     // with the mouse.
     director.update(dt, t, p.x, p.z, p.heading, look, camera.position, controls.target);
+    if (track.i >= 0) {
+      const tp = battle.ships()[track.i]!.dynamics.pose;
+      const s = Math.sin(tp.heading);
+      const c = Math.cos(tp.heading);
+      camera.position.set(tp.x + track.x * c + track.z * s, track.y, tp.z - track.x * s + track.z * c);
+      controls.target.set(tp.x, track.lookY, tp.z);
+    }
     controls.update();
     ocean.update(camera);
     listener.x = camera.position.x;
@@ -215,6 +224,15 @@ dev.__battle = {
     );
     controls.target.set(p.x + look.x * c + look.z * s, lookY, p.z - look.x * s + look.z * c);
     controls.update();
+  },
+  /** Rides the camera with ship `i` (0 yours, 1… raiders) at `offset` in its frame; `i` −1 stops. */
+  trackShip: (i: number, offset: number[] = [30, 8, 10], lookY = 6) => {
+    director.yieldToUser();
+    track.i = i;
+    track.x = offset[0]!;
+    track.y = offset[1]!;
+    track.z = offset[2]!;
+    track.lookY = lookY;
   },
   /** Moves raider `i` to `range` m off your `side` (1 port, −1 starboard), heading `rel` from yours. */
   placeRaider: (i: number, side: number, range: number, along = 0, rel = 0) => {

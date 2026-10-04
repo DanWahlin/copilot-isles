@@ -594,3 +594,162 @@ export function createRiggingGeometry(tier: Tier): BufferGeometry {
   geometry.computeBoundingSphere();
   return geometry;
 }
+
+// ---- The raiders' cutter (battle-plan.md §4) ------------------------------------------------------
+// One tall mast with a gaff mainsail, a gaff topsail, a staysail and a jib, on the brigantine's hull and
+// bowsprit: a fore-and-aft rig that reads as a different ship from far off.
+
+/** The cutter's mast: its z, the hounds (lower mast head), and the topmast truck. */
+export const CUTTER_MAST = { z: 2.2, hounds: 13.4, truck: 20.6, radius: 0.4 } as const;
+const CUTTER_GAFF_THROAT: P3 = { x: 0, y: 12.9, z: CUTTER_MAST.z - 0.35 };
+const CUTTER_GAFF_PEAK: P3 = { x: 0, y: 18.0, z: -9.0 };
+const CUTTER_BOOM_GOOSENECK: P3 = { x: 0, y: 3.45, z: CUTTER_MAST.z - 0.4 };
+/** High enough aft to clear the wheel and the stern lantern. */
+const CUTTER_BOOM_END: P3 = { x: 0, y: 5.7, z: -11.9 };
+const CUTTER_TOPMAST_HEAD: P3 = { x: 0, y: CUTTER_MAST.truck - 0.6, z: CUTTER_MAST.z };
+const BOWSPRIT_END: P3 = { x: 0, y: 3.04, z: 22.35 };
+const STEM_HEAD: P3 = { x: 0, y: 2.95, z: 11.7 };
+
+const CUTTER_FLAG_FOOT = 19.05;
+/** Where the cutter's masthead flag hoists (its top and its foot, ship-local y) and the gaff peak. */
+export const CUTTER_FLAG = {
+  z: CUTTER_MAST.z,
+  y0: CUTTER_FLAG_FOOT,
+  y1: 20.3,
+  peak: CUTTER_GAFF_PEAK,
+} as const;
+
+export function createCutterSparGeometry(tier: Tier): BufferGeometry {
+  const seg = detailForTier(tier).cyl;
+  const b = new MeshBuilder();
+  const m = CUTTER_MAST;
+  const base = deckHeightAt(m.z);
+  b.setRegion(1);
+  b.setColor(0x4b2b1b);
+  b.addCylinderBetween({ x: 0, y: base - 0.86, z: m.z }, { x: 0, y: m.hounds + 0.5, z: m.z }, m.radius, seg, {
+    endRadius: m.radius * 0.72,
+  });
+  b.addCylinderBetween(
+    { x: 0, y: m.hounds - 0.6, z: m.z },
+    { x: 0, y: m.truck, z: m.z },
+    m.radius * 0.5,
+    seg,
+    { endRadius: m.radius * 0.3 },
+  );
+  // Gaff and boom, with their jaws round the mast.
+  b.addCylinderBetween(CUTTER_GAFF_THROAT, CUTTER_GAFF_PEAK, 0.13, seg, { endRadius: 0.08 });
+  b.addCylinderBetween(CUTTER_BOOM_GOOSENECK, CUTTER_BOOM_END, 0.17, seg, { endRadius: 0.11 });
+  // The running bowsprit and jibboom, as on the brigantine.
+  b.addCylinderBetween({ x: 0, y: 2.35, z: 10.72 }, { x: 0, y: 3.05, z: 18.75 }, 0.2, seg, {
+    endRadius: 0.12,
+  });
+  b.addCylinderBetween({ x: 0, y: 2.92, z: 17.85 }, BOWSPRIT_END, 0.11, seg, { endRadius: 0.06 });
+  b.setRegion(4);
+  b.setColor(0x17110d);
+  for (const y of [base + 1.2, m.hounds - 0.5, m.hounds + 0.4]) {
+    b.addCylinderBetween({ x: 0, y: y - 0.05, z: m.z }, { x: 0, y: y + 0.05, z: m.z }, m.radius * 1.04, seg);
+  }
+  // Mast hoops along the luff of the mainsail.
+  for (let y = base + 2.4; y < CUTTER_GAFF_THROAT.y - 0.6; y += 1.25)
+    b.addCylinderBetween(
+      { x: 0, y: y - 0.03, z: m.z },
+      { x: 0, y: y + 0.03, z: m.z },
+      m.radius * (1.18 - (0.22 * (y - base)) / (m.hounds - base)),
+      seg,
+    );
+  b.addCylinderBetween({ x: 0, y: m.truck - 0.05, z: m.z }, { x: 0, y: m.truck + 0.35, z: m.z }, 0.04, seg);
+  b.setRegion(1);
+  b.setColor(0x4a2a1b);
+  b.addCylinderBetween({ x: -1.15, y: m.hounds, z: m.z }, { x: 1.15, y: m.hounds, z: m.z }, 0.055, seg);
+  b.addCylinderBetween({ x: 0, y: m.hounds, z: m.z - 0.5 }, { x: 0, y: m.hounds, z: m.z + 0.5 }, 0.045, seg);
+  // Pin rails across the deck, as on the brigantine.
+  b.setRegion(4);
+  b.setColor(0x1b1510);
+  for (const z of [-4.8, -0.9, 3.3, 7.4]) {
+    b.addCylinderBetween(
+      { x: -waterlineHalfBeamAt(z) * 0.82, y: deckHeightAt(z) + 0.2, z },
+      { x: waterlineHalfBeamAt(z) * 0.82, y: deckHeightAt(z) + 0.2, z },
+      0.045,
+      seg,
+    );
+  }
+  return b.build();
+}
+
+export function createCutterSailGeometry(tier: Tier): BufferGeometry {
+  const s = new SailBuilder();
+  const detail = detailForTier(tier).sail;
+  const mz = CUTTER_MAST.z - 0.45;
+  // Gaff mainsail: foot along the boom, luff up the mast, head along the gaff.
+  s.addQuad(
+    { x: 0, y: CUTTER_BOOM_END.y + 0.12, z: CUTTER_BOOM_END.z + 0.5 },
+    { x: 0, y: CUTTER_BOOM_GOOSENECK.y + 0.2, z: mz },
+    { x: 0, y: CUTTER_GAFF_PEAK.y - 0.2, z: CUTTER_GAFF_PEAK.z + 0.4 },
+    { x: 0, y: CUTTER_GAFF_THROAT.y - 0.15, z: mz },
+    { x: 1, y: 0, z: 0 },
+    detail,
+    detail,
+  );
+  // Gaff topsail between the gaff and the topmast.
+  s.addTriangle(
+    { x: 0, y: CUTTER_GAFF_PEAK.y + 0.1, z: CUTTER_GAFF_PEAK.z + 0.9 },
+    { x: 0, y: CUTTER_GAFF_THROAT.y + 0.35, z: mz },
+    // Its head stops short of the masthead colours.
+    { x: 0, y: CUTTER_FLAG_FOOT - 0.35, z: mz },
+    { x: 1, y: 0, z: 0 },
+    Math.max(6, detail - 4),
+  );
+  // Staysail on the forestay and the jib on the jibstay.
+  const forestay = (t: number) => lerpPoint({ x: 0, y: CUTTER_MAST.hounds, z: CUTTER_MAST.z }, STEM_HEAD, t);
+  const jibstay = (t: number) => lerpPoint(CUTTER_TOPMAST_HEAD, BOWSPRIT_END, t);
+  s.addTriangle(
+    lerpPoint(forestay(0.96), { x: 0, y: 3.0, z: 11.2 }, 0.05),
+    { x: 0, y: 3.15, z: 5.0 },
+    forestay(0.12),
+    { x: -1, y: 0, z: 0 },
+    detail,
+  );
+  s.addTriangle(jibstay(0.96), { x: 0, y: 3.35, z: 11.9 }, jibstay(0.12), { x: -1, y: 0, z: 0 }, detail);
+  return s.build();
+}
+
+export function createCutterRiggingGeometry(tier: Tier): BufferGeometry {
+  const positions: number[] = [];
+  const line = (a: P3, b: P3) => positions.push(a.x, a.y, a.z, b.x, b.y, b.z);
+  const ratlineStep = tier === 'lite' ? 1.18 : tier === 'low' ? 0.92 : tier === 'medium' ? 0.68 : 0.48;
+  const count = tier === 'lite' ? 3 : 4;
+  const m = CUTTER_MAST;
+  const mast: MastSpec = {
+    id: 'main',
+    z: m.z,
+    lowerTop: m.hounds,
+    topTop: m.truck - 0.4,
+    truck: m.truck,
+    radius: m.radius,
+    shroudSpread: 2.3,
+  };
+  for (const side of [-1, 1] as const) addShrouds(positions, mast, side, count, ratlineStep);
+  const hounds = { x: 0, y: m.hounds, z: m.z };
+  line(hounds, STEM_HEAD);
+  line(CUTTER_TOPMAST_HEAD, BOWSPRIT_END);
+  line({ x: 0, y: 0.62, z: 13.45 }, BOWSPRIT_END);
+  for (const side of [-1, 1] as const) {
+    // Running backstays and the topmast backstays.
+    line({ x: side * 2.9, y: deckHeightAt(-6.5) + 0.1, z: -6.5 }, { x: side * 0.1, y: m.hounds, z: m.z });
+    line({ x: side * 2.7, y: deckHeightAt(-10.2) + 0.1, z: -10.2 }, { x: 0, y: m.truck - 0.5, z: m.z });
+    // Jib and staysail sheets.
+    line({ x: 0, y: 3.35, z: 11.9 }, { x: side * 2.6, y: deckHeightAt(8.2) + 0.2, z: 8.2 });
+    line({ x: 0, y: 3.15, z: 5.0 }, { x: side * 2.4, y: deckHeightAt(2.6) + 0.2, z: 2.6 });
+  }
+  // Topping lift, peak and throat halyards, and the mainsheet.
+  line({ x: 0, y: m.hounds + 0.3, z: m.z }, CUTTER_BOOM_END);
+  for (const t of [0.35, 0.75])
+    line({ x: 0, y: m.hounds + 0.2, z: m.z }, lerpPoint(CUTTER_GAFF_THROAT, CUTTER_GAFF_PEAK, t));
+  line({ x: 0, y: m.hounds - 0.1, z: m.z }, CUTTER_GAFF_THROAT);
+  const sheet = lerpPoint(CUTTER_BOOM_GOOSENECK, CUTTER_BOOM_END, 0.9);
+  for (const side of [-1, 1] as const) line(sheet, { x: side * 1.4, y: deckHeightAt(-11) + 0.2, z: -11 });
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  geometry.computeBoundingSphere();
+  return geometry;
+}

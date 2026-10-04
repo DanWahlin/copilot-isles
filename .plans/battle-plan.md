@@ -26,6 +26,8 @@
 - **1 and 2: done** (8ee929f).
 - **3: done.** Each wave opens with an intro phase (5.5 s): a fog bank forms on the weather side (`src/world/battle/fog.ts`, one instanced sprite draw), the lookout calls where it lies ("Sails in the fog, off the starboard beam!"), a title band names the wave, the raiders show inside the fog and sail out as it thins, and their guns stay quiet until "Run out the guns!". The battle reports staging beats (`onBeat`: intro, broadside, incoming, strike, clear, won, breakoff) to a camera director (`src/game/battle-camera.ts`) that frames each one and then gives you your own view back. It stands off for 8 s when you drag or zoom, doesn't chase every broadside (9 s cooldown), and cuts instead of swooping with reduced motion. A small cheer marks a beaten wave and the win. Follow-ups fixed: the win card hides the guns, Skip and the bonus line. The faint ship outline in the fog was the AO pass: its distance fade read the post quad's near/far instead of the scene camera's, so AO never faded with distance (an engine-wide bug, now fixed in `src/engine/post.ts`). The fog bank now forms fully in front of the raiders, and they show only once it's thick.
 
+- **4: done.** Raiders build with `createBrigantine({ raider: true })`: a slate hull with oxblood and pewter trim, patched fog-grey sails, swallowtail colours of our own (a lantern in the fog), and a real one-mast gaff cutter rig (`setRig`). The struck colours come down the cutter's mast too. No new pipelines; a cutter draws less than a brigantine.
+
 Then the passage battle goes into the game (Anchorage → Port Meridian, required with a skip), and Dan reviews.
 
 ## Rules that apply throughout

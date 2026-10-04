@@ -20,6 +20,8 @@ import {
   attribute,
   color,
   float,
+  floor,
+  fract,
   mix,
   positionLocal,
   positionWorld,
@@ -40,6 +42,10 @@ export interface BrigantineUniforms {
   /** Sail cloth and the band across each sail (Paint Your Sails). */
   sailCloth: UniformNode<'color', Color>;
   sailStripe: UniformNode<'color', Color>;
+  /** 0 clean canvas … 1 the raiders' patched, weathered cloth. */
+  sailPatch: UniformNode<'float', number>;
+  /** 0 your ship's paint (black, red and gold) … 1 the raiders' (weathered slate, oxblood and pewter). */
+  livery: UniformNode<'float', number>;
   /** Swings the jolly roger and pennants downwind (see ship-flags `flagYaw`). */
   flagYaw: UniformNode<'float', number>;
   /** Flag ripple phase and apparent-wind strength (see ship-flags `FlagUniforms`). */
@@ -234,7 +240,10 @@ export function paintShipName(label: ShipLabel, name: string | null): void {
   label.texture.needsUpdate = true;
 }
 
-export function makeShipMaterial(label: ShipLabel): MeshStandardNodeMaterial {
+export function makeShipMaterial(
+  label: ShipLabel,
+  livery: UniformNode<'float', number>,
+): MeshStandardNodeMaterial {
   const m = new MeshStandardNodeMaterial({
     color: 0xffffff,
     roughness: 0.66,
@@ -281,8 +290,8 @@ export function makeShipMaterial(label: ShipLabel): MeshStandardNodeMaterial {
     .add(color(0x6f6f60).mul(hullWeather));
   const deck = deckWood.mul(mix(color(0xc08c55), color(0xffce87), 0.34)).sub(color(0x2a170c).mul(deckSeam));
   const paintGrain = hullWood.mul(0.28).add(0.72);
-  const red = paintGrain.mul(color(0x9c2418));
-  const gold = paintGrain.mul(color(0xd7a554));
+  const red = paintGrain.mul(mix(color(0x9c2418), color(0x4f1c18), livery));
+  const gold = paintGrain.mul(mix(color(0xd7a554), color(0x8d8f8c), livery));
   const iron = mix(
     color(0x171717),
     color(0x4a4840),
@@ -300,7 +309,12 @@ export function makeShipMaterial(label: ShipLabel): MeshStandardNodeMaterial {
   const glow = color(0xffb060).mul(world.night.smoothstep(0.08, 0.9).mul(2.8).add(0.2));
   const labelColor = texture(label.texture, attribute('uv', 'vec2')).rgb;
 
-  let outColor = hull;
+  // The raiders' hulls: the black paint weathered to a salt-streaked slate.
+  const slate = hullWood
+    .mul(mix(color(0x1c2328), color(0x56626a), plankNoise.mul(0.3).add(0.2)))
+    .sub(color(0x0d1114).mul(hullSeam.add(hullButts)))
+    .add(color(0x7b8080).mul(hullWeather.mul(1.6)));
+  let outColor = mix(hull, slate, livery);
   outColor = mix(outColor, deck, r1);
   outColor = mix(outColor, red, r2);
   outColor = mix(outColor, gold, r3);
@@ -315,7 +329,7 @@ export function makeShipMaterial(label: ShipLabel): MeshStandardNodeMaterial {
   m.roughnessNode = mix(mix(float(0.62), float(0.88), r5), float(0.34), r3)
     .add(r4.mul(0.1))
     .add(r7.mul(0.04));
-  m.metalnessNode = mix(float(0.02), float(0.46), r3);
+  m.metalnessNode = mix(float(0.02), mix(float(0.46), float(0.3), livery), r3);
   return m;
 }
 
@@ -360,7 +374,31 @@ export function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNo
     .smoothstep(0.05, 0.8);
   // The palette band sits just above the foot of each sail (v runs foot → head).
   const band = smoothstep(0.17, 0.19, sailUv.y).mul(float(1).sub(smoothstep(0.27, 0.29, sailUv.y)));
-  const cloth = mix(uniforms.sailCloth, uniforms.sailStripe, band);
+  // Patches: a few cloths in each sail sewn in a shade darker or lighter, with a stitched edge.
+  const cells = sailUv.mul(vec2(5, 4));
+  const cell = floor(cells);
+  const local = fract(cells);
+  const seed = fract(
+    sin(cell.x.mul(12.9898).add(cell.y.mul(78.233)).add(sailAnchor.y.mul(3.7))).mul(43758.5453),
+  );
+  const inX = smoothstep(0.1, 0.13, local.x).mul(float(1).sub(smoothstep(0.82, 0.85, local.x)));
+  const inY = smoothstep(0.14, 0.17, local.y).mul(float(1).sub(smoothstep(0.78, 0.81, local.y)));
+  const patch = inX
+    .mul(inY)
+    .mul(smoothstep(0.6, 0.62, seed))
+    .mul(uniforms.sailPatch);
+  const edgeX = smoothstep(0.08, 0.1, local.x).mul(float(1).sub(smoothstep(0.86, 0.88, local.x)));
+  const edgeY = smoothstep(0.12, 0.14, local.y).mul(float(1).sub(smoothstep(0.81, 0.83, local.y)));
+  const stitch = edgeX
+    .mul(edgeY)
+    .sub(inX.mul(inY))
+    .max(0)
+    .mul(smoothstep(0.6, 0.62, seed))
+    .mul(uniforms.sailPatch);
+  const patchTone = mix(float(0.74), float(1.16), smoothstep(0.8, 0.82, seed));
+  const cloth = mix(uniforms.sailCloth, uniforms.sailStripe, band)
+    .mul(mix(float(1), patchTone, patch))
+    .mul(float(1).sub(stitch.mul(0.35)));
   const reefBands = abs(sin(sailUv.y.mul(Math.PI * 7)))
     .smoothstep(0.965, 1.0)
     .mul(0.08);
@@ -381,9 +419,10 @@ export function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNo
  */
 export function makeGunMaterial(
   label: ShipLabel,
+  livery: UniformNode<'float', number>,
   recoil: UniformArrayNode<'float'>,
 ): MeshStandardNodeMaterial {
-  const m = makeShipMaterial(label);
+  const m = makeShipMaterial(label, livery);
   const index = attribute('gunIndex', 'float');
   const back = recoil.element(index.toInt());
   const side = index.lessThan(5.5).select(float(1), float(-1));
