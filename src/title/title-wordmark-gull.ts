@@ -29,7 +29,7 @@ interface LandingTarget {
 /** Ship-local spots the gull can stand on, and the ship they ride with. */
 export interface GullShipPerches {
   object: Object3D;
-  perches: readonly { x: number; y: number; z: number }[];
+  perches: readonly { x: number; y: number; z: number; weight?: number }[];
 }
 
 type GullMode = 'wordmark' | 'ship';
@@ -47,8 +47,11 @@ const STANDING_PX = 126;
 /** On the ship it reads as a big gull: about 1.1 m tall, but never under 26 px on screen. */
 const SHIP_GULL_METRES = 1.1;
 const SHIP_GULL_MIN_PX = 26;
-/** Share of visits that fly in from the left to a spot on the ship instead of the wordmark. */
-const SHIP_SHARE = 0.35;
+/** After its one wordmark visit, the gull comes back to the ship every 60-120 s. */
+const SHIP_GAP_MIN = 60;
+const SHIP_GAP_RANGE = 60;
+/** No perch in view when it's due (the view is dragged right round): look again shortly. */
+const SHIP_RETRY = 8;
 const tmpPerch = new Vector3();
 const FRAMES: Record<string, { x: number; y: number }> = {
   'flight-0': { x: 0, y: 0 },
@@ -179,9 +182,12 @@ export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches)
   /** Direction of travel on screen: -1 flies right to left (in from the right), 1 left to right. */
   let dir: 1 | -1 = -1;
   let visits = 0;
-  // Debug: ?gull=ship sends every visit to the ship.
-  const forceShip =
-    typeof location !== 'undefined' && new URLSearchParams(location.search).get('gull') === 'ship';
+  let lastPerch = -1;
+  // Debug: ?gull=ship sends every visit to the ship; ?gull=ship:N to perch N when it's in view.
+  const gullQ =
+    typeof location !== 'undefined' ? (new URLSearchParams(location.search).get('gull') ?? '') : '';
+  const forceShip = gullQ.startsWith('ship');
+  const forcePerch = gullQ.startsWith('ship:') ? Number(gullQ.slice(5)) : -1;
   let visible = 0;
   let cpuMs = 0;
   const samples: { phase: string; t: number; dt: number; x: number; y: number }[] = [];
@@ -222,12 +228,12 @@ export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches)
     if (samples.length > 360) samples.shift();
   }
 
-  function schedule(t: number): void {
+  function schedule(t: number, delay = SHIP_GAP_MIN + rng() * SHIP_GAP_RANGE): void {
     phase = 'waiting';
     phaseT = 0;
     target = null;
     visible = 0;
-    nextAt = t + 25 + rng() * 35;
+    nextAt = Math.max(nextAt, t + delay);
     hideOverlay();
   }
 
@@ -242,26 +248,51 @@ export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches)
       }
 
       if (phase === 'waiting' && t >= nextAt) {
-        // The first visit is always the wordmark; after that, now and then one comes in from the
-        // left and settles on a yardarm or masthead instead.
-        mode = 'wordmark';
+        // The gull lands on the wordmark once; every visit after that comes in from the left to a
+        // spot on the ship.
+        mode = visits === 0 && !forceShip ? 'wordmark' : 'ship';
         perchIndex = -1;
-        if (ship && ((visits > 0 && rng() < SHIP_SHARE) || forceShip)) {
+        if (mode === 'ship' && ship) {
           const options: number[] = [];
           for (let i = 0; i < ship.perches.length; i++)
             if (inView(projectPerch(ship, i, camera))) options.push(i);
           if (options.length) {
-            mode = 'ship';
-            perchIndex = options[Math.floor(rng() * options.length)]!;
+            // Weighted pick, never the same spot twice running.
+            const pool = options.includes(forcePerch)
+              ? [forcePerch]
+              : options.length > 1
+                ? options.filter((i) => i !== lastPerch)
+                : options;
+            let total = 0;
+            for (const i of pool) total += ship.perches[i]!.weight ?? 1;
+            let r = rng() * total;
+            perchIndex = pool[pool.length - 1]!;
+            for (const i of pool) {
+              r -= ship.perches[i]!.weight ?? 1;
+              if (r <= 0) {
+                perchIndex = i;
+                break;
+              }
+            }
+            lastPerch = perchIndex;
           }
         }
-        target = mode === 'ship' ? projectPerch(ship!, perchIndex, camera) : measureTarget();
+        target =
+          mode === 'wordmark'
+            ? measureTarget()
+            : ship && perchIndex >= 0
+              ? projectPerch(ship, perchIndex, camera)
+              : null;
         dir = mode === 'ship' ? 1 : -1;
         if (target) {
           phase = 'landing';
           phaseT = 0;
           visits++;
-        } else schedule(t);
+        } else if (mode === 'wordmark') {
+          // The wordmark can't be landed on (a narrow window hides it): skip to the ship visits.
+          visits++;
+          schedule(t, SHIP_RETRY);
+        } else schedule(t, SHIP_RETRY);
       }
       // A ship perch rides the swell and the orbiting camera: follow it every frame.
       if (mode === 'ship' && phase !== 'waiting' && ship) {

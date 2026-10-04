@@ -89,7 +89,9 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   if (typeof window !== 'undefined') {
     (window as unknown as { __dev: object }).__dev = {
       ready: true,
-      stats: () => ({ wordmarkGull: wordmarkGull.stats(), birds: birds ? 1 : 0 }),
+      stats: () => ({ wordmarkGull: wordmarkGull.stats(), birds: birds ? 1 : 0, leaps: leaps ? 1 : 0 }),
+      /** Starts a dolphin (or fish) leap now, for probes. */
+      leap: (kind?: 'dolphin' | 'fish') => leaps?.force(kind) ?? false,
     };
   }
 
@@ -195,7 +197,9 @@ function updateTitleRects(leaps: LeapsSystem | null): void {
 }
 
 function titleBackdropTier(tier: TierSettings): TierSettings {
-  if (tier.tier !== 'high' && tier.tier !== 'ultra') return { ...tier, leaps: 0 };
+  // Leaps (dolphins and fish) stay on every tier that has them: they load lazily and compile
+  // async after the title is interactive, so they never touch its first frame.
+  if (tier.tier !== 'high' && tier.tier !== 'ultra') return tier;
   return {
     ...tier,
     shadowCascades: 0,
@@ -204,7 +208,6 @@ function titleBackdropTier(tier: TierSettings): TierSettings {
     cloudShadowRes: 0,
     ssao: false,
     bloom: false,
-    leaps: 0,
   };
 }
 

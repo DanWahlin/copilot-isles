@@ -1,6 +1,6 @@
 import { BufferAttribute, BufferGeometry } from 'three/webgpu';
 import type { Tier } from '../contracts';
-import { deckHeightAt, halfBeamAt, waterlineHalfBeamAt } from './lines';
+import { deckHeightAt, halfBeamAt, sheerHeightAt, waterlineHalfBeamAt } from './lines';
 import { detailForTier, lerpPoint } from './brigantine-detail';
 import { MeshBuilder, type P3 } from './mesh-builder';
 
@@ -71,16 +71,39 @@ const YARDS: readonly YardSpec[] = [
 const MIZZEN_STAY_AFT: P3 = { x: 0, y: MIZZEN.lowerTop + 0.05, z: MIZZEN.z };
 const MIZZEN_STAY_FORE: P3 = { x: 0, y: MAIN.lowerTop + 0.05, z: MAIN.z };
 
+/** A ship-local spot a gull can stand on (where its feet go); `weight` is how often it's chosen. */
+export interface GullPerch extends P3 {
+  weight: number;
+}
+
 /**
- * Ship-local spots a gull can stand on: the top of each yardarm (both ends) and each mast truck.
- * Points are where the bird's feet go.
+ * Perches for the title gull. Spots that read as different places from the side (the jibboom,
+ * bowsprit, cap rail fore, mid and aft, the boom end, gaff end and stern lantern bracket) are
+ * favoured over the yardarms and mastheads, which all look like "up by a mast".
  */
-export function gullPerches(): P3[] {
-  const out: P3[] = [];
+export function gullPerches(): GullPerch[] {
+  const out: GullPerch[] = [];
+  const along = (a: P3, b: P3, z: number, r: number): GullPerch => {
+    const t = (z - a.z) / (b.z - a.z);
+    return { x: 0, y: a.y + (b.y - a.y) * t + r, z, weight: 3 };
+  };
+  out.push(along({ x: 0, y: 2.92, z: 17.85 }, { x: 0, y: 3.04, z: 22.45 }, 21.4, 0.08));
+  out.push(along({ x: 0, y: 2.35, z: 10.72 }, { x: 0, y: 3.05, z: 18.75 }, 15.6, 0.15));
+  out.push(along({ x: 0, y: 3.24, z: MIZZEN.z - 0.12 }, { x: 0, y: 3.04, z: -11.55 }, -11.3, 0.09));
+  out.push({
+    ...along({ x: 0, y: 8.1, z: MIZZEN.z - 0.06 }, { x: 0, y: 9.8, z: -10.85 }, -10.6, 0.07),
+    weight: 2,
+  });
+  out.push({ x: 0, y: 3.72, z: -12.05, weight: 2 });
+  for (const side of [-1, 1] as const)
+    for (const z of [-9.4, 1.5, 8.6]) {
+      const y = sheerHeightAt(z) + 0.18;
+      out.push({ x: side * (halfBeamAt(z, y) * 0.96 + 0.028), y: y + 0.07, z, weight: 3 });
+    }
   for (const yard of YARDS)
     for (const side of [-1, 1])
-      out.push(yardPoint(yard, side * yard.span * 0.93, yard.y + yard.radius * 0.9));
-  for (const mast of MASTS) out.push({ x: 0, y: mast.truck + 0.12, z: mast.z });
+      out.push({ ...yardPoint(yard, side * yard.span * 0.93, yard.y + yard.radius * 0.9), weight: 0.5 });
+  for (const mast of MASTS) out.push({ x: 0, y: mast.truck + 0.12, z: mast.z, weight: 1 });
   return out;
 }
 
