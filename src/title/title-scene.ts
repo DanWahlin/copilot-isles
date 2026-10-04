@@ -30,7 +30,7 @@ export interface TitleBackdrop {
 export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   const { renderer, scene, tier, camera, clock } = engine;
   const backdropTier = titleBackdropTier(tier);
-  const sky = createSky(renderer, scene, backdropTier, engine.backend);
+  const sky = createSky(renderer, scene, backdropTier, engine.backend, { title: true });
   const ocean = createOcean({ tier: backdropTier, env: sky.env });
   const ranges = createDistantRanges(backdropTier);
   const ship = createBrigantine({ tier: tier.tier });

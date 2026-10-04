@@ -80,8 +80,8 @@ const SHAPE_RES = 128,
   SHAPE_SIZE = 2048;
 const SHEAR = 0.12; // horizontal lean of the clouds per metre of height (downwind)
 const EDGE = 12; // density ramp of the raw shape value (softness of the cloud surface: crisp, the detail erosion shapes it)
-const ISLAND_NEAR = 2500,
-  ISLAND_FAR = 9000; // m: big clusters only a little away from the island
+const ISLAND_NEAR = 700,
+  ISLAND_FAR = 4200; // m: big clusters ease in near the camera instead of only sitting on the horizon
 const DETAIL_RES = 64,
   DETAIL_SIZE = 480;
 // detail erosion (after sky-pro-webgpu / Nubis): three worley fbm octaves per fetch (r: 4 - 16, g: 8 - 32,
@@ -91,10 +91,10 @@ const D_MEAN = 0.48;
 const D_S1 = DETAIL_SIZE / 4,
   D_NEAR = 3.7,
   D_S2 = D_S1 / D_NEAR; // m: coarsest features of the two fetches
-const creaseOf = (f) => smoothstep(0.4, 0.72, f);
+const creaseOf = (f) => smoothstep(0.54, 0.92, f);
 // erosion grows with the height in the cloud: flat, dense bases, billowy tops; the undersides use the
 // inverted field (wisps instead of lumps)
-const erosionAmount = (b) => mix(0.3, 1.0, smoothstep(0.0, 0.5, b.y));
+const erosionAmount = (b) => mix(0.12, 0.42, smoothstep(0.0, 0.62, b.y));
 const erosionField = (F, b) => mix(float(1).sub(F), F, smoothstep(0.02, 0.2, b.y));
 // density with every detail octave at its mean (reflections, shadows, deep light samples): the same
 // cloud as the detailed one, seen through a coarse filter
@@ -196,7 +196,7 @@ export class Clouds {
     this.atmosphere = atmosphere;
 
     this.coverage = uniform(0.45).setName('clCoverage');
-    this.densityScale = uniform(0.07).setName('clDensity'); // extinction (1/m) of the densest cloud
+    this.densityScale = uniform(0.055).setName('clDensity'); // extinction (1/m) of the densest cloud
     this.bottom = uniform(800).setName('clBottom');
     this.top = uniform(2000).setName('clTop');
     // m/s; clouds drift along it (by default with the surface wind, as trade winds do)
@@ -1074,20 +1074,20 @@ export class Clouds {
                 .mul(this.densityScale);
               const skyVis = float(0.2).add(float(0.8).div(skyTau.mul(0.35).add(1)));
               // darker bases (their direct light is scattered away by the cloud above)
-              const baseShadow = mix(float(1), mix(float(0.35), float(1), smoothstep(-0.1, 0.45, b.y)), 0.6);
+              const baseShadow = mix(float(1), mix(float(0.68), float(1), smoothstep(-0.08, 0.5, b.y)), 0.24);
               const depthP = pow(dens, mix(0.5, 1.6, b.y))
                 .mul(0.95)
                 .add(0.05);
               const vertP = pow(smoothstep(0.02, 0.2, b.y), 0.8)
                 .mul(0.85)
                 .add(0.15);
-              const powder = mix(float(1), depthP.mul(vertP), powderK);
+              const powder = mix(float(1), depthP.mul(vertP), powderK.mul(0.52));
               // ambient: the sky lights the tops; the bases only see the dark sea and the
               // horizon (darker, bluer), and crevices of the detail noise are occluded
               const up = saturate(b.y.mul(1.4));
-              const ambH = mix(vec3(0.38, 0.43, 0.52), vec3(1), sqrt(up))
+              const ambH = mix(vec3(0.72, 0.78, 0.9), vec3(1), sqrt(up))
                 .mul(skyVis)
-                .mul(er.y.mul(0.6).add(0.55));
+                .mul(er.y.mul(0.12).add(0.92));
               // after sunset the tops stay lit longest
               const alt = pr.y.add(dot(pr.xz, pr.xz).div(2 * EARTH_R));
               const S = sunE
@@ -1233,7 +1233,7 @@ export class Clouds {
     this.rebuildK = uniform(-1).setName('clRebuildK'); // >= 0: rebuilding after a camera cut (slots traced so far)
     // weight of a new sample for static pixels: a running average right after a cut, then an
     // exponential one over about 16 samples
-    this.minAlpha = uniform(0.12).setName('clMinAlpha');
+    this.minAlpha = uniform(0.06).setName('clMinAlpha');
 
     // march settings: steps of ds0 doubling in distance bands (up to dsMax), coarse search steps
     // `coarse` times longer; light samples at the given distances (the first `lightDetail`
@@ -1247,7 +1247,7 @@ export class Clouds {
       lightSteps: [12, 50, 140, 350, 900, 1800],
       lightDetail: 2,
       detail: true,
-      ambient: 1.2,
+      ambient: 1.9,
       pxAngle: this.cam.tan.y.mul(2).div(this.displayH),
     };
     // reflections / environment: no detail erosion (sub-texel there), short light march
@@ -1260,7 +1260,7 @@ export class Clouds {
       lightSteps: [120, 500],
       lightDetail: 0,
       detail: false,
-      ambient: 1.2,
+      ambient: 1.65,
       pxAngle: float((2 * PI) / PANO_W),
     };
 
@@ -1473,7 +1473,7 @@ export class Clouds {
             );
             const lo = textureLoad(this.boxMin, ivec2(tp)),
               hi = textureLoad(this.boxMax, ivec2(tp));
-            const pad = hi.sub(lo).mul(0.25).add(0.01);
+            const pad = hi.sub(lo).mul(0.55).add(0.015);
             const hc = clamp(h, lo.sub(pad), hi.add(pad));
             const histEnergy = max(max(h.rgb.x, h.rgb.y), h.rgb.z);
             const invalidHistory = h.a.lessThan(1e-4).and(histEnergy.lessThan(1e-5));
@@ -1497,7 +1497,7 @@ export class Clouds {
             const hist = out;
             const motion = length(puv.sub(uv).mul(this.viewSize));
             const a0 = this.minAlpha;
-            const a = clamp(motion.mul(0.1).add(a0), a0, 0.35);
+            const a = clamp(motion.mul(0.055).add(a0), a0, 0.22);
             // rebuilding after a camera cut: each pixel takes its own first sample as is
             out.assign(select(valid.and(this.rebuildK.lessThan(0)), mix(hist, cur, a), cur));
           }).ElseIf(this.rebuildK.greaterThanEqual(0).and(valid), () => {
@@ -1717,7 +1717,7 @@ export class Clouds {
     } else {
       // samples every pixel holds since the cut
       const n = 1 + Math.floor(this._since++ / 16);
-      this.minAlpha.value = Math.max(0.12, 1 / (n + 1));
+      this.minAlpha.value = Math.max(0.06, 1 / (n + 1));
       this.rebuildK.value = -1;
       const slots = Math.max(1, this.viewSlotsPerFrame);
       for (let k = 0; k < slots; k++) {
@@ -1833,7 +1833,17 @@ export class Clouds {
       const v = max(
         this._catmullRom((c) => this.viewTexNode.sample(c).level(0), uv, this.viewSize),
         vec4(0),
-      );
+      ).toVar();
+      const texel = vec2(1).div(this.viewSize);
+      const tap = (o) => max(this.viewTexNode.sample(uv.add(o.mul(texel))).level(0), vec4(0));
+      const smooth = v
+        .mul(0.42)
+        .add(tap(vec2(1, 0)).mul(0.145))
+        .add(tap(vec2(-1, 0)).mul(0.145))
+        .add(tap(vec2(0, 1)).mul(0.145))
+        .add(tap(vec2(0, -1)).mul(0.145));
+      const cloud = smoothstep(0.025, 0.22, float(1).sub(v.a));
+      v.assign(mix(v, smooth, cloud.mul(0.7)));
       const above = smoothstep(-0.05, -0.03, dir.y);
       s.assign(vec4(v.rgb.mul(above), mix(float(1), min(v.a, 1), above)));
     }).Else(() => {

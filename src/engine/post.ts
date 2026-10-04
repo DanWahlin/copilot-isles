@@ -1,6 +1,8 @@
 import { RenderPipeline, type Camera, type Node, type Scene, type WebGPURenderer } from 'three/webgpu';
 import {
   Fn,
+  cameraFar,
+  cameraNear,
   float,
   interleavedGradientNoise,
   luminance,
@@ -8,6 +10,7 @@ import {
   mrt,
   output,
   pass,
+  perspectiveDepthToViewZ,
   renderOutput,
   saturation,
   screenCoordinate,
@@ -92,10 +95,7 @@ export async function createPost(
     : temporalNode
       ? (temporalNode.getTextureNode() as Node<'vec4'>)
       : null;
-  const depthMask = temporalResult
-    ? float(1).sub(smoothstep(0.995, 1.0, scenePass.getTextureNode('depth').sample(screenUV).r))
-    : null;
-  const temporalHdr = temporalResult && depthMask ? mix(hdr, temporalResult, depthMask) : hdr;
+  const temporalHdr = temporalResult ?? hdr;
   const ldr = renderOutput(temporalHdr);
   const gtaoNode = gtaoMod?.ao(scenePass.getTextureNode('depth'), null as unknown as Node<'vec3'>, camera) as
     | (Node<'float'> & {
@@ -132,7 +132,17 @@ export async function createPost(
     }
     if (gtaoNode) {
       const sunlit = smoothstep(0.65, 1.65, luminance(hdr.rgb.mul(exposure)));
-      const strength = float(tier.tier === 'medium' ? 0.26 : 0.34).mul(float(1).sub(sunlit.mul(0.65)));
+      // AO grounds nearby props and characters. Far away it only finds the sea's wave relief, which it
+      // turned into a field of dark half-resolution speckles, so it fades out by 25-60 m.
+      const viewDist = perspectiveDepthToViewZ(
+        scenePass.getTextureNode('depth').sample(screenUV).r,
+        cameraNear,
+        cameraFar,
+      ).negate();
+      const near = float(1).sub(smoothstep(25, 60, viewDist));
+      const strength = float(tier.tier === 'medium' ? 0.26 : 0.34)
+        .mul(float(1).sub(sunlit.mul(0.65)))
+        .mul(near);
       c = c.mul(mix(float(1), gtaoNode, strength));
     }
     c = c.sub(0.18).mul(uContrast).add(0.18);

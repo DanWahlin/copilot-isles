@@ -21,7 +21,9 @@ const t0 = performance.now();
 const cove = await createCove(engine, { vegetation: !q.has('noveg') });
 const buildMs = performance.now() - t0;
 if (q.has('env')) scene.environmentIntensity = Number(q.get('env'));
-const post = q.has('nopost') ? null : await createPost(renderer, scene, camera, tier);
+const post = q.has('nopost')
+  ? null
+  : await createPost(renderer, scene, camera, tier, { temporal: !q.has('notaa') });
 if (post) engine.renderFn = post.render;
 
 const controls = new OrbitControls(camera, canvas);

@@ -59,6 +59,7 @@ interface Key {
 
 interface TidewaterCloudsPort {
   resolutionScale: number;
+  viewSlotsPerFrame: number;
   viewQuality: {
     maxSteps: number;
     ds0: number;
@@ -128,6 +129,10 @@ export interface SkySystem {
   dispose(): void;
 }
 
+interface SkyOptions {
+  title?: boolean;
+}
+
 type CSMShadowNodeLike = Node & {
   camera: Camera | null;
   fade: boolean;
@@ -141,11 +146,34 @@ type CSMShadowNodeLike = Node & {
 /** Cloud drift speed (m/s at cloud height): about a body length a minute for a cumulus seen from the ground. */
 const CLOUD_DRIFT = 2.5;
 
+function applyCloudDebugParams(clouds: TidewaterCloudsPort): void {
+  if (typeof window === 'undefined') return;
+  const q = new URLSearchParams(window.location.search);
+  const wind = q.get('cloudWind');
+  if (wind !== null) {
+    const value = Number(wind);
+    if (Number.isFinite(value) && value >= 0) {
+      (clouds as unknown as { wind: { value: Vector2 } }).wind.value.setLength(value);
+    }
+  }
+  const scale = q.get('cloudResolution');
+  if (scale !== null) {
+    const value = Number(scale);
+    if (Number.isFinite(value) && value > 0) clouds.resolutionScale = value;
+  }
+  const slots = q.get('cloudSlots');
+  if (slots !== null) {
+    const value = Number(slots);
+    if (Number.isFinite(value) && value >= 1) clouds.viewSlotsPerFrame = Math.floor(value);
+  }
+}
+
 export function createSky(
   renderer: WebGPURenderer,
   scene: Scene,
   tier: TierSettings,
   backend: Backend = 'webgpu',
+  options: SkyOptions = {},
 ): SkySystem {
   const R = 4800;
   const backendName =
@@ -170,8 +198,13 @@ export function createSky(
       tideClouds.viewQuality.lightDetail = 1;
       tideClouds.panoQuality.maxSteps = 40;
     }
+    if (tier.tier === 'high' || tier.tier === 'ultra') {
+      tideClouds.viewSlotsPerFrame = options.title ? 6 : 4;
+      if (options.title) tideClouds.resolutionScale = Math.max(tideClouds.resolutionScale, 1.1);
+    }
     // A slow, lazy drift (Tidewater's default is 12 m/s): the sky should feel calm, not wind-blown.
     (tideClouds as unknown as { wind: { value: Vector2 } }).wind.value.setLength(CLOUD_DRIFT);
+    applyCloudDebugParams(tideClouds);
     tideSky.clouds = tideClouds;
     tideSky.starIntensity.value = 0;
   }

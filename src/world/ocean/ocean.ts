@@ -1,4 +1,5 @@
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/ocean/WaterMaterial.js@fd6cae6
+// Adapted from NAGI © 2026 NAGI contributors, MIT, src/ocean.js@16c552b
 import { Mesh, MeshBasicNodeMaterial, NoBlending, type Camera, type Node, type Texture } from 'three/webgpu';
 import {
   Fn,
@@ -29,6 +30,7 @@ import {
   select,
   sin,
   smoothstep,
+  sqrt,
   texture,
   uniform,
   varying,
@@ -74,6 +76,7 @@ const LAGOON_TEAL = vec3(0.0, 0.74, 0.7);
 const SAPPHIRE = vec3(0.005, 0.07, 0.18);
 const NAVY = vec3(0.002, 0.025, 0.075);
 const CREST_SCATTER = vec3(0.12, 0.55, 0.45);
+const FOAM_PATTERN_MEAN = 0.32;
 
 /**
  * The Phase 0a ocean (PLAN §6 Water system, S4): analytic Gerstner surface on a camera-centred polar
@@ -102,12 +105,14 @@ export function createOcean({
   const previousWaveTime = uniform(0);
   let lastWaveTime = Number.NaN;
 
-  const mat = new MeshBasicNodeMaterial({ transparent: true, depthWrite: true, fog: false });
+  const mat = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false, fog: false });
   mat.blending = NoBlending;
 
   // --- Vertex: Gerstner displacement of the rest grid (exactly what WaveField inverts on the CPU).
   const rest = positionLocal.xz.add(modelPosition.xz);
-  const fade = exp(rest.sub(world.focus).length().negate().div(FADE_DISTANCE));
+  const spanAttr = attribute('aSpan', 'float');
+  const focusDist = rest.sub(world.focus).length();
+  const fade = exp(focusDist.negate().div(FADE_DISTANCE));
   const waveOffset = (time: Node<'float'>) => {
     let ox: Node<'float'> = float(0),
       oy: Node<'float'> = float(0),
@@ -115,9 +120,11 @@ export function createOcean({
     for (const W of waves) {
       const th = dot(rest, vec2(W.dx, W.dz)).mul(W.k).sub(time.mul(W.w)).add(W.ph);
       const c = cos(th);
-      ox = ox.add(c.mul(W.q * W.a * W.dx));
-      oz = oz.add(c.mul(W.q * W.a * W.dz));
-      oy = oy.add(sin(th).mul(W.a));
+      const wavelength = (Math.PI * 2) / W.k;
+      const lod = smoothstep(0.55, 1.35, float(wavelength).div(max(spanAttr, 0.001)));
+      ox = ox.add(c.mul(W.q * W.a * W.dx).mul(lod));
+      oz = oz.add(c.mul(W.q * W.a * W.dz).mul(lod));
+      oy = oy.add(sin(th).mul(W.a).mul(lod));
     }
     return vec3(ox, oy, oz);
   };
@@ -130,7 +137,7 @@ export function createOcean({
   const vRest = varying(rest, 'vRest');
   const vFade = varying(fade, 'vFade');
   const vH = varying(offset.y.mul(fade), 'vH');
-  const vSpan = varying(attribute('aSpan', 'float'), 'vSpan');
+  const vSpan = varying(spanAttr, 'vSpan');
   let terrainDepthNode: Node<'float'> = float(58);
   if (floorTex) {
     const floorUvRaw = rest
@@ -164,12 +171,19 @@ export function createOcean({
     let sx: Node<'float'> = float(0),
       sy: Node<'float'> = float(0),
       sz: Node<'float'> = float(0);
+    const waveFootprint = max(vSpan, fwidth(p).length());
     for (const W of waves) {
       const th = dot(p, vec2(W.dx, W.dz)).mul(W.k).sub(t.mul(W.w)).add(W.ph);
       const c = cos(th);
-      sx = sx.add(c.mul(W.dx * W.k * W.a));
-      sz = sz.add(c.mul(W.dz * W.k * W.a));
-      sy = sy.add(sin(th).mul(W.q * W.k * W.a));
+      const wavelength = (Math.PI * 2) / W.k;
+      const lod = smoothstep(0.55, 1.35, float(wavelength).div(max(waveFootprint, 0.001)));
+      sx = sx.add(c.mul(W.dx * W.k * W.a).mul(lod));
+      sz = sz.add(c.mul(W.dz * W.k * W.a).mul(lod));
+      sy = sy.add(
+        sin(th)
+          .mul(W.q * W.k * W.a)
+          .mul(lod),
+      );
     }
     // Procedural ripples: two tiles, rotated against each other, drifting with the wind.
     const wind = world.windDir.mul(world.windSpeed);
@@ -185,18 +199,35 @@ export function createOcean({
     const s2 = vec2(s2raw.x.mul(ca).add(s2raw.y.mul(sa)), s2raw.x.mul(sa).negate().add(s2raw.y.mul(ca)));
     const windK = clamp(world.windSpeed.div(6.5), 0.3, 2.0);
     const nearRipple = float(1).add(float(0.24).mul(float(1).sub(smoothstep(8, 58, dist))));
+    const rippleFootprint = max(fwidth(uv1).length(), fwidth(uv2).length());
+    const rippleFilter = smoothstep(0.018, 0.07, rippleFootprint);
+    const rippleDistanceFilter = smoothstep(110, 240, dist);
+    const rippleCull = max(rippleFilter.mul(0.92), rippleDistanceFilter);
     const ripK = windK
       .mul(exp(dist.negate().div(700)))
       .mul(smoothstep(6.0, 1.2, vSpan).mul(0.35).add(0.65))
       .mul(nearRipple);
-    const rip = s1.mul(0.17).add(s2.mul(0.1)).mul(ripK);
+    const rip = s1.mul(0.17).add(s2.mul(0.1)).mul(ripK).mul(float(1).sub(rippleCull));
     const N = normalize(
       vec3(sx.mul(vFade).add(rip.x).negate(), float(1).sub(sy.mul(vFade)), sz.mul(vFade).add(rip.y).negate()),
     );
 
-    // Specular AA: roughen where the normal varies faster than a pixel, and with distance.
+    // Specular AA: roughen where the normal varies faster than a pixel, with distance, and
+    // where grid spacing can no longer resolve the short Gerstner slopes.
     const nVar = fwidth(N).length();
-    const rough = clamp(float(0.03).add(nVar.mul(0.6)).add(dist.div(30000)), 0.03, 0.4);
+    let slopeVariance: Node<'float'> = float(0);
+    for (const W of waves) {
+      const wavelength = (Math.PI * 2) / W.k;
+      const lod = smoothstep(0.55, 1.35, float(wavelength).div(max(waveFootprint, 0.001)));
+      slopeVariance = slopeVariance.add(float(W.slopeVariance).mul(float(1).sub(lod.mul(lod))));
+    }
+    const waveRough = sqrt(float(1).add(slopeVariance)).sub(1).mul(0.8);
+    const spectralVar = smoothstep(0.018, 0.09, rippleFootprint).mul(ripK).mul(0.04);
+    const rough = clamp(
+      float(0.018).add(spectralVar.mul(0.8)).add(waveRough).add(nVar.mul(0.8)).add(dist.div(30000)),
+      0.03,
+      0.5,
+    );
 
     const NdV = max(dot(N, V), 0.0);
     const F = float(0.02).add(float(0.98).mul(pow(float(1).sub(NdV), 5)));
@@ -230,7 +261,9 @@ export function createOcean({
     const spec = world.sunColor.mul(D.mul(NdL).mul(0.25).mul(F.add(0.02))).mul(smoothstep(-0.03, 0.05, L.y));
 
     // Baked analytic seabed depth: keeps Lite/Low vivid even when screen-space refraction is off.
-    const terrainDepth = vTerrainDepth;
+    const deepWaterMask = smoothstep(10, 30, vTerrainDepth);
+    const deepTerrainStabilize = deepWaterMask.mul(smoothstep(130, 260, dist));
+    const terrainDepth = mix(vTerrainDepth, float(58), deepTerrainStabilize);
 
     // Refraction: depth-aware screen offset, rejecting samples that land on things above the water.
     const ambient = world.skyColor.mul(0.55).add(world.sunColor.mul(max(world.sunDir.y, 0).mul(0.22)));
@@ -283,17 +316,25 @@ export function createOcean({
 
     // Crest scattering: light through wave tops when looking toward the key light.
     const crest = saturate(vH.div(sumA).mul(0.6).add(0.4));
-    const towardL = pow(saturate(dot(V.negate(), L)), 4.0);
+    const backLightDir = normalize(L.add(N.mul(0.4))).negate();
+    const backLight = pow(saturate(dot(V, backLightDir)), 2.0);
+    const crestTransport = crest.mul(crest).mul(float(0.12).add(backLight.mul(0.6)));
     const sss = CREST_SCATTER.mul(world.sunColor)
-      .mul(towardL.mul(0.6).add(0.08))
-      .mul(crest.mul(crest))
-      .mul(0.08)
+      .mul(crestTransport)
+      .mul(0.09)
+      .mul(float(1).add(NdL.mul(0.18)))
       .mul(float(1).sub(world.night.mul(0.8)));
 
     // Foam: sparse wind whitecaps, plus contact/shore bands from the water thickness.
     const f1 = texture(ripple, p.div(5.2).add(wind.mul(t).mul(0.004))).z;
     const f2 = texture(ripple, pr.div(2.1).sub(wind.mul(t).mul(0.003))).z;
-    const pattern = f1.mul(0.65).add(f2.mul(0.5));
+    const patternRaw = f1.mul(0.65).add(f2.mul(0.5));
+    const foamFootprint = max(
+      fwidth(p.div(5.2).add(wind.mul(t).mul(0.004))).length(),
+      fwidth(pr.div(2.1).sub(wind.mul(t).mul(0.003))).length(),
+    );
+    const foamFilter = smoothstep(0.035, 0.16, foamFootprint);
+    const pattern = mix(patternRaw, float(FOAM_PATTERN_MEAN), foamFilter);
     const capK = smoothstep(4.0, 11.0, world.windSpeed).mul(0.7).add(0.3);
     const whitecap = smoothstep(0.62, 1.0, vH.div(sumA).add(pattern.sub(0.55).mul(0.4)))
       .mul(capK)

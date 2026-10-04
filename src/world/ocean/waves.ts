@@ -19,6 +19,8 @@ export interface Wave {
   q: number;
   /** Phase offset (rad). */
   ph: number;
+  /** Mean unresolved slope energy used by the ocean shader's specular AA. */
+  slopeVariance: number;
 }
 
 const G = 9.81;
@@ -36,7 +38,7 @@ const RAW: [number, number, number, number, number, number][] = [
 export const ALL_WAVES: readonly Wave[] = RAW.map(([dx, dz, L, a, q, ph]) => {
   const l = Math.hypot(dx, dz);
   const k = (2 * Math.PI) / L;
-  return { dx: dx / l, dz: dz / l, k, w: Math.sqrt(G * k), a, q, ph };
+  return { dx: dx / l, dz: dz / l, k, w: Math.sqrt(G * k), a, q, ph, slopeVariance: 0.5 * (q * a) ** 2 };
 });
 
 /** Wave amplitude fades with distance from the camera (identically on the GPU) to avoid aliasing far away. */
