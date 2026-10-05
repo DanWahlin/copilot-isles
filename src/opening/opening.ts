@@ -334,8 +334,8 @@ export function createOpening(o: OpeningOptions): Opening {
   const removeSystem = engine.add({
     frame(dt) {
       if (!playing || disposed || !cabin || !paper) return;
-      // Long loading frames slow the beat down instead of jumping it.
-      const step = Math.min(dt, 1 / 30);
+      // The beat keeps real time while the island loads (a long frame skips ahead a little, up to 0.1 s).
+      const step = Math.min(dt, 0.1);
       const s = o.input.poll();
       if ((s.interact || s.jump || s.menu) && t > 0.5) api.skip();
       if (!diving && !quickFlash) {
