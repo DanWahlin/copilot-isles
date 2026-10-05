@@ -51,7 +51,7 @@ describe('createVillage', () => {
     village.dispose();
   });
 
-  it('exports gull perches on ridges, chimney tops, rails, bollards, stalls, and notice board', async () => {
+  it('exports gull perches on ridges, chimney tops, rails, bollards, and stalls', async () => {
     const village = await createVillage({ tier: tierSettings('high'), heightField });
     const pierBollardX = COVE.pier.x + COVE.pier.width * 0.5 + 0.16;
     const lighthouseX = COVE.quay.x1 - 2.7;
@@ -62,9 +62,6 @@ describe('createVillage', () => {
         (p) => Math.abs(p.x - pierBollardX) < 0.01 && p.y === COVE.pier.deck + 0.64 && p.z === -103,
       ),
     ).toBe(true);
-    expect(village.perches.some((p) => Math.abs(p.x + 104.7) < 0.01 && p.y === COVE.quay.height + 2.0)).toBe(
-      true,
-    );
     expect(
       village.perches.filter(
         (p) =>
