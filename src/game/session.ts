@@ -146,6 +146,8 @@ export interface GameSession {
     /** Whether Rhea's aboard for the Three Helms, and whether the lighthouse is lit (tests). */
     rheaAboard(): boolean;
     lighthouseLit(): boolean;
+    /** Whether Anchorage's point lighthouse is lit (tests). */
+    anchorageLighthouseLit(): boolean;
     /** Moves the ship while you're sailing (tests: skip the passage between islands). */
     sailTo(x: number, z: number, heading: number): void;
     /** Sets a quest step, e.g. to lower the gangway without playing the island (tests). */
@@ -432,6 +434,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const setQuest = (id: string, step: string) => {
     if (learn) learn.progress.setQuest(id, step);
     else localQuests[id] = step;
+    // Anchorage's Seal lights the point lighthouse (the cue shows it; this covers skips and tests).
+    if (id === 'Q0.10' && step === 'done') village.setLighthouseLit(true);
     publishQuests();
   };
   const publishQuests = () =>
@@ -1025,6 +1029,34 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     if (talkShot) cam.cut(talkShot);
     await hud.fade(false, 260);
   });
+
+  // Anchorage's Seal (PLAN §4, Island 00 beat 11): the point lighthouse lights across the harbour.
+  cues.set('anchorage-lighthouse', async () => {
+    const L = COVE.lighthouse;
+    // Out on the harbour north-east of the point, looking back at the whole tower with the west
+    // beach behind it. Only water lies between, so the shot's always clear.
+    const x = L.x + 34,
+      z = L.z - 30;
+    const shot: CameraShot = {
+      x,
+      y: Math.max(L.top + 6, world.waterAt(x, z, 0) + 3),
+      z,
+      tx: L.x,
+      ty: L.top + 11,
+      tz: L.z,
+    };
+    await hud.fade(true, 260);
+    cam.cut(shot);
+    await hud.fade(false, 260);
+    await new Promise((r) => setTimeout(r, 1100));
+    village.setLighthouseLit(true);
+    audio?.sfx.oneShot('crowd_cheer_small', player, 0.8);
+    await new Promise((r) => setTimeout(r, 2600));
+    await hud.fade(true, 260);
+    if (talkShot) cam.cut(talkShot);
+    await hud.fade(false, 260);
+  });
+  if (quests()['Q0.10'] === 'done') village.setLighthouseLit(true);
 
   const setupMeridian = async (town: CoveScene['meridian']['town']) => {
     if (!town || disposed || meridianNpcs) return;
@@ -1985,6 +2017,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       liftCamera: () => liftCamera(),
       rheaAboard: () => !!rheaAboard?.group.parent,
       lighthouseLit: () => lighthouseLit,
+      anchorageLighthouseLit: () => village.lighthouseLit(),
       cast: () =>
         (meridianNpcs?.list ?? []).map((n) => ({
           id: n.spec.id,

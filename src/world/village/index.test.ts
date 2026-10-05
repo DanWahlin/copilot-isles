@@ -54,7 +54,6 @@ describe('createVillage', () => {
   it('exports gull perches on ridges, chimney tops, rails, bollards, and stalls', async () => {
     const village = await createVillage({ tier: tierSettings('high'), heightField });
     const pierBollardX = COVE.pier.x + COVE.pier.width * 0.5 + 0.16;
-    const lighthouseX = COVE.quay.x1 - 2.7;
 
     expect(village.perches.some((p) => p.y > 8 && p.x < -120 && p.z < -50)).toBe(true);
     expect(
@@ -62,13 +61,13 @@ describe('createVillage', () => {
         (p) => Math.abs(p.x - pierBollardX) < 0.01 && p.y === COVE.pier.deck + 0.64 && p.z === -103,
       ),
     ).toBe(true);
-    expect(
-      village.perches.filter(
-        (p) =>
-          Math.hypot(p.x - lighthouseX, p.z - (COVE.quay.z + 0.8)) > 1.8 &&
-          Math.abs(p.y - (COVE.quay.height + 7.8)) < 0.01,
-      ).length,
-    ).toBe(6);
+    // The point lighthouse's gallery railing (eight) and its dome finial, well above the knoll.
+    const lh = COVE.lighthouse;
+    const railing = village.perches.filter(
+      (p) => Math.abs(Math.hypot(p.x - lh.x, p.z - lh.z) - 2.68) < 0.01 && p.y > lh.top + 16,
+    );
+    expect(railing.length).toBe(8);
+    expect(village.perches.some((p) => p.x === lh.x && p.z === lh.z && p.y > lh.top + 20)).toBe(true);
     expect(
       village.perches.some(
         (p) => Math.abs(p.x + 122) < 0.01 && p.y > heightField.heightAt(-122, -43.4) + 1.8,
@@ -111,6 +110,32 @@ describe('createVillage', () => {
     for (const boat of COVE.boats) {
       expect(village.shipObstacles.some((c) => c.x === boat.x && c.z === boat.z && c.r >= 4)).toBe(true);
     }
+
+    village.dispose();
+  });
+
+  it('stands the point lighthouse on its knoll, clear of the berth, with its door down the path', async () => {
+    const village = await createVillage({ tier: tierSettings('high'), heightField });
+    const lh = COVE.lighthouse;
+    const door = village.anchors.lighthouseDoor!;
+
+    expect(Math.hypot(door.x - lh.x, door.z - lh.z)).toBeGreaterThan(3);
+    expect(door.y).toBe(lh.top);
+    // The door faces down the ridge path, toward the quay's west end.
+    const toNeck = Math.atan2(lh.neck.x - lh.x, lh.neck.z - lh.z);
+    expect(Math.abs(door.heading - toNeck)).toBeLessThan(1e-6);
+    expect(village.colliders.circles.some((c) => c.x === lh.x && c.z === lh.z && (c.height ?? 0) > 18)).toBe(
+      true,
+    );
+    expect(village.shipObstacles.some((c) => c.x === lh.x && c.z === lh.z && c.r >= 12)).toBe(true);
+    // The lookout keeps watch from the gallery.
+    expect(village.anchors.lookout!.y).toBeGreaterThan(lh.top + 15);
+    expect(village.lighthouseLit()).toBe(false);
+    village.setLighthouseLit(true);
+    expect(village.lighthouseLit()).toBe(true);
+    // The path is walkable from the door step to the quay.
+    const mid = { x: (lh.x + lh.neck.x) / 2, z: (lh.z + lh.neck.z) / 2 };
+    expect(walkable(mid.x, mid.z)).toBeCloseTo(heightField.heightAt(mid.x, mid.z) + 0.08, 5);
 
     village.dispose();
   });

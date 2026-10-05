@@ -226,6 +226,62 @@ function coveCoastRocks(out: RockInstance[]): void {
   }
 }
 
+/**
+ * Boulders round the point lighthouse's knoll and along its ridge path (COVE.lighthouse), so the
+ * point reads as rock from the sea. The landward side of the knoll and the path itself stay clear.
+ */
+/** Coast rocks that would land on the lighthouse knoll's top or its ridge path. */
+function onLighthousePoint(r: RockInstance): boolean {
+  const p = COVE.lighthouse;
+  const dx = p.neck.x - p.x;
+  const dz = p.neck.z - p.z;
+  const t = Math.max(0, Math.min(1, ((r.x - p.x) * dx + (r.z - p.z) * dz) / (dx * dx + dz * dz)));
+  const d = Math.hypot(r.x - (p.x + dx * t), r.z - (p.z + dz * t));
+  const reach = Math.max(r.sx, r.sz) * 0.5;
+  return d - reach < 3.4 || Math.hypot(r.x - p.x, r.z - p.z) - reach < p.radius + 1;
+}
+
+function lighthousePointRocks(out: RockInstance[]): void {
+  const p = COVE.lighthouse;
+  const pathA = Math.atan2(p.neck.z - p.z, p.neck.x - p.x);
+  for (let i = 0; i < 16; i++) {
+    const a = pathA + 0.75 + (i / 15) * (Math.PI * 2 - 1.5) + (rand(i + 1900) - 0.5) * 0.25;
+    const r = p.radius + 3.2 + rand(i + 1901) * 3.6;
+    const s = 1.6 + rand(i + 1902) * 2.6;
+    out.push({
+      asset: rockAsset(i + 1903),
+      x: p.x + Math.cos(a) * r,
+      z: p.z + Math.sin(a) * r,
+      sx: s * (1.1 + rand(i + 1904) * 0.7),
+      sy: s * (0.7 + rand(i + 1905) * 0.5),
+      sz: s * (0.9 + rand(i + 1906) * 0.6),
+      yaw: rand(i + 1907) * Math.PI * 2,
+      pitch: (rand(i + 1908) - 0.5) * 0.3,
+      roll: (rand(i + 1909) - 0.5) * 0.3,
+      yOffset: -0.2,
+    });
+  }
+  const dx = p.neck.x - p.x;
+  const dz = p.neck.z - p.z;
+  const len = Math.hypot(dx, dz);
+  for (let i = 0; i < 10; i++) {
+    const t = 0.32 + (i >> 1) * 0.13 + rand(i + 1950) * 0.05;
+    const side = i % 2 ? 1 : -1;
+    const off = side * (5.2 + rand(i + 1951) * 1.8);
+    const s = 1.3 + rand(i + 1952) * 1.6;
+    out.push({
+      asset: rockAsset(i + 1953),
+      x: p.x + dx * t + (-dz / len) * off,
+      z: p.z + dz * t + (dx / len) * off,
+      sx: s * (1.2 + rand(i + 1954) * 0.6),
+      sy: s * (0.55 + rand(i + 1955) * 0.4),
+      sz: s * (0.9 + rand(i + 1956) * 0.5),
+      yaw: rand(i + 1957) * Math.PI * 2,
+      yOffset: -0.3,
+    });
+  }
+}
+
 function allRockInstances(): RockInstance[] {
   const out: RockInstance[] = [];
   headlandBaseRocks(out);
@@ -233,7 +289,9 @@ function allRockInstances(): RockInstance[] {
   headlandTopRocks(out);
   shoreAndTalusRocks(out);
   coveCoastRocks(out);
-  return out.filter((instance) => !inBlockedPad(instance));
+  const kept = out.filter((instance) => !inBlockedPad(instance) && !onLighthousePoint(instance));
+  lighthousePointRocks(kept);
+  return kept;
 }
 
 function rockGeometry(asset: (typeof ROCK_ASSETS)[number]): BufferGeometry {

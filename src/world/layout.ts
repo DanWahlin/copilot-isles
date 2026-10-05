@@ -22,6 +22,12 @@ export const COVE = {
   pier: { x: -108, z0: -72, z1: -122, width: 4, deck: 1.8 },
   village: { center: { x: -115, z: -45 }, radius: 32, height: 3.2 },
   /**
+   * The point lighthouse on the harbour's west jaw: a rocky knoll (`x`, `z`, flat `top` out to
+   * `radius`) that a ridge path joins to the quay's west end at `neck`. It stands clear of the
+   * basin, so it reads from the sea, the harbour and the west beach, and the harbour mouth stays open.
+   */
+  lighthouse: { x: -167, z: -93, top: 4.4, radius: 6.5, neck: { x: -151.2, z: -69.6 } },
+  /**
    * Where the brigantine moors: alongside the pier's east face, bow north toward the harbor mouth,
    * clear of the boathouse (z −93…−100). At heading π the port rail (ship-local +x) faces the pier.
    * x keeps the widest hull ~0.15 m clear of the east fender piles and cross braces.
@@ -47,7 +53,7 @@ export const COVE = {
   ],
 
   /**
-   * Puzzle sites. P0.1's mill race sits on the low slope east of the lighthouse: the Actions spring
+   * Puzzle sites. P0.1's mill race sits on the low slope east of the quay's east end: the Actions spring
    * spouts from the foot of the hill to the south, a 3 × 4 grid of channel tiles (row 0 at the
    * spring) runs north, and the waterwheel turns in its tail pool by the shore. `x`, `z` is the grid
    * centre; keep x −71…−53, z −75…−51 clear of other props.
