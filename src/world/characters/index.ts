@@ -95,7 +95,8 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
     hand: 'right',
     gestures: 'commander',
   },
-  fisherman: { source: 'henry_npc', scale: 0.98, radius: 0.34, height: 1.72, tint: 0xffffff },
+  // The rod's in his right fist, so he gestures with his left.
+  fisherman: { source: 'henry_npc', scale: 0.98, radius: 0.34, height: 1.72, tint: 0xffffff, hand: 'left' },
   merchant: {
     source: 'henry_npc',
     scale: 0.98,

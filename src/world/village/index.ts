@@ -1719,28 +1719,48 @@ function addPierDressing(
     colliders.boxes.push({ x: rackX, z: -85.6, hx: 1.25, hz: 0.2, rot: Math.PI / 2, height: 1.8 });
     addPierPostLantern(buckets, colliders, pier.x - pier.width * 0.5 - 0.55, pier.deck, -89.5, -1);
     addPierPostLantern(buckets, colliders, pier.x + pier.width * 0.5 + 0.55, pier.deck, -107.5, 1);
-    addLifeBuoy(buckets, pier.x + pier.width * 0.5 + 0.62, pier.deck + 0.7, -88.1, Math.PI / 2);
+    addLifeBuoyPost(buckets, colliders, pier.x + pier.width * 0.5 - 0.22, pier.deck, -88.1);
     addRopeCoil(buckets, pier.x + 1.15, pier.deck + 0.05, -110.4, -0.65, 0.62);
     addCargoStack(buckets, pier.x + 1.15, pier.deck, -114.6, 0.18, 0x9b6f4d, false);
     colliders.boxes.push({ x: pier.x + 1.15, z: -114.6, hx: 0.92, hz: 0.74, rot: 0.18, height: 1.35 });
   }
 }
 
-function addLifeBuoy(
+/**
+ * A life ring hung on a short post at the pier's edge, facing the walkway: a post, a peg, and the ring
+ * hanging from it with its red bands and a coil of throwing line.
+ */
+function addLifeBuoyPost(
   buckets: Record<MaterialKey, BufferGeometry[]>,
+  colliders: { circles: CircleObstacle[] },
   x: number,
   y: number,
   z: number,
-  rot: number,
 ): void {
-  addTorus(buckets.cloth, x, y, z, 0.33, 0.045, 20, 0xf1eee1, Math.PI / 2, rot, 0);
-  for (const a of [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5]) {
-    const dx = Math.cos(a) * 0.31;
-    const dz = Math.sin(a) * 0.31;
-    addBox(buckets.cloth, x + dx, y, z + dz, 0.16, 0.06, 0.08, rot + a, 0xb94835);
+  addBox(buckets.wood, x, y, z, 0.12, 1.45, 0.12, 0, 0x6b4a2d);
+  addBox(buckets.wood, x, y + 1.42, z, 0.18, 0.06, 0.18, 0, 0x5c3f27);
+  // A peg out toward the walkway, and the ring hanging on it, upright, facing the walkway (−x).
+  addBox(buckets.metal, x - 0.09, y + 1.15, z, 0.12, 0.03, 0.03, 0, 0x4d463d);
+  const cx = x - 0.12;
+  const cy = y + 0.86;
+  addTorus(buckets.cloth, cx, cy, z, 0.3, 0.06, 20, 0xf1eee1, 0, Math.PI / 2, 0);
+  for (const a of [Math.PI * 0.25, Math.PI * 0.75, Math.PI * 1.25, Math.PI * 1.75]) {
+    // Red bands round the ring (the box's y is its base, so centre it on the ring's tube).
+    addBox(
+      buckets.cloth,
+      cx,
+      cy + Math.sin(a) * 0.3 - 0.07,
+      z + Math.cos(a) * 0.3,
+      0.14,
+      0.14,
+      0.09,
+      0,
+      0xb94835,
+      -a,
+    );
   }
-  addBox(buckets.rope, x, y - 0.01, z, 0.82, 0.025, 0.025, rot, 0xc8b17a);
-  addBox(buckets.rope, x, y - 0.01, z, 0.025, 0.025, 0.82, rot, 0xc8b17a);
+  addTorus(buckets.rope, x + 0.0, y + 0.32, z, 0.12, 0.022, 12, 0xc8b17a, 0, Math.PI / 2, 0);
+  colliders.circles.push({ x, z, r: 0.25 });
 }
 
 function addRopeCoil(
@@ -1769,6 +1789,11 @@ function addRopeCoil(
   addBox(buckets.rope, x, y + 0.085, z, 0.62 * scale, 0.04 * scale, 0.05 * scale, rot + 0.45, 0x8b744f);
 }
 
+/**
+ * Pier cargo: a big crate with a smaller one sitting squarely on it, under a canvas tarp that drapes
+ * over the top and down the sides, held by two ropes that run down to the deck. Everything rests on
+ * what's below it (no overlaps or floating parts).
+ */
 function addCargoStack(
   buckets: Record<MaterialKey, BufferGeometry[]>,
   x: number,
@@ -1778,12 +1803,34 @@ function addCargoStack(
   tarp: number,
   low: boolean,
 ): void {
-  addBox(buckets.wood, x - 0.25, y + 0.02, z, 1.45, 0.72, 0.95, rot, 0x8f6542);
-  addBox(buckets.wood, x + 0.42, y + 0.68, z + 0.15, 1.0, 0.58, 0.78, rot, 0x775236);
+  const at = (lx: number, lz: number) => localToWorld(x, z, rot, lx, lz);
+  // Bottom crate 1.4 × 0.7 × 0.95, then the top crate 0.95 × 0.55 × 0.75 resting on it, off-centre.
+  addBox(buckets.wood, x, y, z, 1.4, 0.7, 0.95, rot, 0x8f6542);
+  const top = at(-0.12, 0.04);
+  addBox(buckets.wood, top.x, y + 0.7, top.z, 0.95, 0.55, 0.75, rot, 0x775236);
   if (low) return;
-  addBox(buckets.cloth, x + 0.05, y + 1.2, z + 0.05, 1.75, 0.08, 1.05, rot, tarp);
-  addBox(buckets.rope, x + 0.05, y + 1.26, z + 0.05, 0.08, 0.075, 1.14, rot, 0xc5a873);
-  addBox(buckets.rope, x + 0.05, y + 1.27, z + 0.05, 1.84, 0.06, 0.075, rot, 0xc5a873);
+  // The tarp: thrown over the top crate, hanging a hand's width down each side (the wood shows below).
+  const tY = y + 1.25;
+  addBox(buckets.cloth, top.x, tY, top.z, 1.05, 0.04, 0.85, rot, tarp);
+  for (const side of [-1, 1] as const) {
+    const sk = at(-0.12, 0.04 + side * 0.415);
+    addBox(buckets.cloth, sk.x, tY - 0.2, sk.z, 1.05, 0.22, 0.03, rot, tarp);
+  }
+  for (const end of [-1, 1] as const) {
+    const fl = at(-0.12 + end * 0.515, 0.04);
+    addBox(buckets.cloth, fl.x, tY - 0.16, fl.z, 0.03, 0.18, 0.85, rot, tarp);
+  }
+  // Two lashings over the tarp, down the sides of both crates to the deck.
+  for (const lx of [-0.42, 0.18]) {
+    const over = at(lx, 0.04);
+    addBox(buckets.rope, over.x, tY + 0.025, over.z, 0.05, 0.03, 0.88, rot, 0xc5a873);
+    for (const side of [-1, 1] as const) {
+      const upper = at(lx, 0.04 + side * 0.44);
+      addBox(buckets.rope, upper.x, y + 0.7, upper.z, 0.05, 0.57, 0.03, rot, 0xc5a873);
+      const lower = at(lx, side * 0.49);
+      addBox(buckets.rope, lower.x, y, lower.z, 0.05, 0.7, 0.03, rot, 0xc5a873);
+    }
+  }
 }
 
 function addPierPostLantern(
@@ -1822,7 +1869,7 @@ function addBoathouse(
   addBox(buckets.wood, x, deck + 1.88, z, 0.18, 0.16, 5.0, rot, 0x6f4d31);
   addBox(buckets.wood, x - 0.62, deck + 1.9, z, 1.7, 0.18, 5.15, rot, 0x5f3f2b, 0, 0.56);
   addBox(buckets.wood, x + 0.62, deck + 1.9, z, 1.7, 0.18, 5.15, rot, 0x5f3f2b, 0, -0.56);
-  addBox(buckets.wood, x, deck + 0.38, z + 2.25, 2.45, 0.5, 0.16, rot, 0x7b5638);
+  // Open at the front (+z, toward the quay): the dock walks straight in under the roof.
   addBox(buckets.wood, x - 1.18, deck + 0.28, z, 0.14, 0.48, 3.5, rot, 0x725035);
   addNetRack(buckets, x + 1.62, z - 0.8, deck, 0.05);
   addRopeCoil(buckets, x - 0.72, deck + 0.05, z - 1.15, -0.2, 0.68);
@@ -3188,8 +3235,8 @@ function addLampBracket(
 ): void {
   const armY = y + 2.35;
   addBox(buckets.wood, x + side * 0.42, armY, z, 0.86, 0.1, 0.1, 0, 0x6b4a2d);
-  addBox(buckets.metal, x + side * 0.35, y + 2.06, z, 0.55, 0.055, 0.055, 0, 0x6c6258, 0, side * 0.72);
-  addTorus(buckets.metal, x + side * 0.72, y + 2.13, z, 0.17, 0.018, 12, 0x6c6258, Math.PI / 2, 0, 0);
+  // A diagonal brace from the post up to the underside of the arm (it meets both).
+  addBox(buckets.metal, x + side * 0.27, y + 2.03, z, 0.5, 0.05, 0.05, 0, 0x6c6258, 0, side * 0.62);
   addBox(buckets.metal, x + side * 0.88, armY - 0.18, z, 0.045, 0.24, 0.045, 0, 0x6c6258);
 }
 
@@ -3330,8 +3377,6 @@ function addInstancedProps(
   const crates = cut([
     inst(-134, -69, at(-134, -69), 0.2, 1.0, 1.3, 0.8, 1.0),
     inst(-130, -70, at(-130, -70), -0.4, 0.75, 1.0, 1.0, 1.0),
-    inst(-108, -75, at(-108, -75), 0.7, 0.75, 1.0, 0.85, 1.0),
-    inst(-108, -115, at(-108, -115), 0.2, 0.8, 1.1, 0.85, 0.9),
     inst(-122, -46, at(-122, -46), -0.3, 0.6, 1.0, 0.7, 0.8),
     inst(-84, -54, at(-84, -54), 0.5, 1.0, 1.15, 0.75, 1.15),
     inst(-109.55, -93.2, at(-109.55, -93.2), -0.15, 0.64, 1.0, 0.7, 0.88),

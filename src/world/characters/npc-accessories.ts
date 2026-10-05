@@ -758,13 +758,29 @@ function addLute(root: Group): void {
   }
 }
 
+/**
+ * Old Finn's rod, held in his right fist: a 2.2 m rod raised forward and out over the water, with a
+ * line hanging from the tip down to the surface. It rides the forearm, so it follows his hand.
+ */
 function addFishingRod(root: Group): void {
-  // Tucked under the right arm, raised forward over the water.
-  const rod = mesh(new CylinderGeometry(0.01, 0.014, 1.2, 8), mat(0x5d4027), 'fishing rod');
-  const tilt = 0.95;
-  rod.position.set(-0.27, 0.42 + Math.cos(tilt) * 0.5, -0.12 + Math.sin(tilt) * 0.5);
-  rod.rotation.x = tilt;
-  addRoot(root, rod, 'Torso');
+  const side = -1;
+  holds(root, side);
+  const grip = handGrip(root, side);
+  const palm = grip ? grip.palm.clone() : new Vector3(side * 0.34, 0.36, 0.1);
+  // Raised about 40° from horizontal, pointing forward (+z) and a little out to his right.
+  const dir = new Vector3(side * 0.18, 0.62, 0.76).normalize();
+  const L = 2.2;
+  const butt = palm.clone().addScaledVector(dir, -0.25);
+  const rod = mesh(new CylinderGeometry(0.008, 0.017, L, 8), mat(0x5d4027), 'fishing rod');
+  rod.position.copy(butt).addScaledVector(dir, L / 2);
+  rod.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), dir);
+  addRoot(root, rod, lowerArmName(side));
+  const tip = butt.clone().addScaledVector(dir, L);
+  // The line drops from the tip to about the waterline (the seat's on the pier deck, ~1.8 m up).
+  const drop = tip.y + 1.75;
+  const line = mesh(new CylinderGeometry(0.0025, 0.0025, drop, 4), mat(0xe8e2d0), 'fishing line');
+  line.position.set(tip.x, tip.y - drop / 2, tip.z);
+  addRoot(root, line, lowerArmName(side));
 }
 
 function addBucket(root: Group, color: ColorHex, side: -1 | 1): void {
