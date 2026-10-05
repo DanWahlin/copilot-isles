@@ -117,6 +117,8 @@ export interface Opening {
 
 /** Seconds for the camera to ease in to the chest, and how long the chest waits before it opens itself. */
 const APPROACH = 1.8;
+/** Seconds into the opening cue where it peaks (the dive's flash). */
+const CUE_PEAK = 13;
 const AUTO_OPEN = 12;
 
 const tmpA = new Vector3();
@@ -426,6 +428,20 @@ export function createOpening(o: OpeningOptions): Opening {
     nextCreak += 4.8;
   }
 
+  /**
+   * The cue ("The Treasure Chest Opens") starts with the latch: its rise lands as the sea comes alive
+   * (5.4 s in) and its peak as the dive breaks the surface (~13 s in). Before the latch the title
+   * music fades away and the cabin is quiet.
+   */
+  let cueStarted = false;
+  function startCue(at: number): void {
+    cueStarted = true;
+    o.audio()?.music.setIsland('opening', { at: Math.max(0, at), fade: at > 0.5 ? 1.2 : 0.15 });
+  }
+  function musicCue(): void {
+    if (!cueStarted && t >= beats.latch - 0.05) startCue(t - (beats.latch - 0.05));
+  }
+
   let paperW = 1;
   let shipScale = 1;
   const removeSystem = engine.add({
@@ -480,6 +496,7 @@ export function createOpening(o: OpeningOptions): Opening {
       props?.update(step, ambient);
       cabin.update(step, ambient, reduced);
       lanternCreaks();
+      if (kind === 'voyage' && !reduced) musicCue();
       if (diving) {
         const before = diving.time;
         diving.time += step;
@@ -692,6 +709,7 @@ export function createOpening(o: OpeningOptions): Opening {
       setPrompt(false);
       t = 0;
       cueIndex = 0;
+      cueStarted = false;
       ambient = 0;
       nextCreak = 0.3;
       cabin?.setCaptainName(details.captainName);
@@ -732,6 +750,11 @@ export function createOpening(o: OpeningOptions): Opening {
       if (audio) {
         const sfx = audio.sfx;
         sfx.preload(['opening_whoosh', 'opening_spray', ...CUES.map((c) => c[1])]);
+        // Quiet in the cabin before the chest opens (Continue and reduced motion start the cue now:
+        // Continue so its peak lands at the end of the short dive).
+        if (kind === 'continue') startCue(CUE_PEAK - (beats.ready + beats.dive));
+        else if (reduced) startCue(0);
+        else audio.music.setIsland(null, { fade: 2.5 });
         // Inside the cabin: timbers creak; the open sea outside is muffled.
         sfx.setBed('opening_cabin', 0.55);
         sfx.setBed('wind', AMBIENT_BEDS.wind * 0.25);
@@ -756,6 +779,7 @@ export function createOpening(o: OpeningOptions): Opening {
         void api.veil(true, 200).then(() => {
           t = to;
           cueIndex = 99;
+          if (kind === 'voyage' && !reduced) startCue(to - (beats.latch - 0.05));
           void api.veil(false, 380);
         });
       }

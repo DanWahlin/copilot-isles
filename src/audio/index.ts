@@ -18,8 +18,11 @@ export { AMBIENT_BEDS } from './beds';
 export interface IslesAudio {
   unlock(): Promise<boolean>;
   readonly music: {
-    /** Crossfades to the track for where you are (the title and open sea, or ashore). */
-    setIsland(island: IslandMusic): void;
+    /**
+     * Crossfades to the track for where you are (the title and open sea, ashore, or the opening's
+     * cue); null fades to silence. `at` starts it from that many seconds in; `fade` sets the fade.
+     */
+    setIsland(island: IslandMusic | null, opts?: { at?: number; fade?: number }): void;
   };
   readonly sfx: {
     setListener(pos: Vec3Like, forward?: Vec3Like): void;
@@ -149,7 +152,8 @@ class IslesAudioImpl implements IslesAudio {
   private unlocking: Promise<boolean> | null = null;
 
   readonly music = {
-    setIsland: (island: IslandMusic) => this.musicPlayer.setIsland(island),
+    setIsland: (island: IslandMusic | null, opts?: { at?: number; fade?: number }) =>
+      this.musicPlayer.setIsland(island, opts),
   };
 
   readonly sfx = {
