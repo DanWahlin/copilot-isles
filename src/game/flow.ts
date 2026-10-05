@@ -148,6 +148,8 @@ export class GameFlow implements GameBridge {
     this.set({ screen: 'title', returnTo: 'title', hasSave: !!readJson<SaveData>(SAVE_KEY) });
     this.o.onTitleReady?.();
     this.prefetchTitlePacks();
+    // The opening's cabin and chart start building now (a few ms a frame), so Set sail never waits.
+    window.setTimeout(() => void this.prepareOpening(), 1500);
   }
 
   chooseCaptain(): void {
@@ -427,20 +429,18 @@ export class GameFlow implements GameBridge {
       setSailVeil.style.opacity = '1';
       document.documentElement.classList.add('ci-opening-active');
       this.o.input.enabled = true;
-      const [
-        { opening: ready },
-        ,
-        { createCove },
-        { loadCharacterLibrary },
-        { createSession, ISLANDS, islandAt },
-      ] = await Promise.all([
-        prep.then(async (o) => (await o.prepare(), { opening: o })),
-        new Promise((r) => setTimeout(r, 620)).then(() =>
-          this.set({ screen: 'voyage-loading', captain, progress: progressNow }),
-        ),
+      // The island's code loads behind the cabin: the cabin only waits for itself and the fade.
+      const islandCode = Promise.all([
         import('../world/cove-scene'),
         import('../world/characters'),
         import('./session'),
+      ]);
+      islandCode.catch(() => undefined);
+      const [ready] = await Promise.all([
+        prep.then(async (o) => (await o.prepare(), o)),
+        new Promise((r) => setTimeout(r, 620)).then(() =>
+          this.set({ screen: 'voyage-loading', captain, progress: progressNow }),
+        ),
       ]);
       opening = ready;
       this.opening = opening;
@@ -456,6 +456,8 @@ export class GameFlow implements GameBridge {
       await opening.veil(true, 0);
       setSailVeil.remove();
       await opening.play();
+      const [{ createCove }, { loadCharacterLibrary }, { createSession, ISLANDS, islandAt }] =
+        await islandCode;
       const base = this.o.packBase ?? '/packs';
       await packs.loadManifest();
       report(0.06, 'Loading Test Cove essentials');

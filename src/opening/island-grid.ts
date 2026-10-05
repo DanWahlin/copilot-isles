@@ -60,11 +60,14 @@ export function* sampleIslandGrid(src: ChartIslandSource): Generator<void, Islan
   return { src, nx, nz, heights, colors };
 }
 
-/** Runs a sliced job a few milliseconds per frame until it returns. */
-export function runSliced<T>(job: Generator<void, T, void>, budgetMs = 3): Promise<T> {
+/**
+ * Runs a sliced job `budget.ms` milliseconds per frame until it returns. Raise `budget.ms` (to
+ * Infinity) to finish it on the next frame (e.g. under a veil, where frame rate doesn't matter).
+ */
+export function runSliced<T>(job: Generator<void, T, void>, budget: { ms: number } = { ms: 3 }): Promise<T> {
   return new Promise((resolve) => {
     const step = () => {
-      const end = performance.now() + budgetMs;
+      const end = performance.now() + budget.ms;
       for (;;) {
         const r = job.next();
         if (r.done) return resolve(r.value);

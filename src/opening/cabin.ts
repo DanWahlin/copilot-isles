@@ -98,6 +98,10 @@ export const STERN_WINDOWS = { z: -1.95, xs: [-0.95, 0, 0.95], w: 0.66, y0: 1.0,
 
 type RGB = readonly [number, number, number];
 
+/** The lantern's swing: angular rate (2.4 s period) and phase (an end of a swing at t = 0.5 s). */
+export const LANTERN_W = (Math.PI * 2) / 2.4;
+export const LANTERN_T0 = 0.5 - 0.6;
+
 const OAK: RGB = [0.3, 0.19, 0.11];
 const OAK_DARK: RGB = [0.17, 0.105, 0.06];
 const PLANK: RGB = [0.34, 0.24, 0.16];
@@ -545,9 +549,11 @@ export function createCabin(opts: CabinOptions): Cabin {
     },
     update(dt, t, reduced) {
       // The lantern swings gently with the ship's roll; the flame flickers.
-      sway = reduced ? 0 : Math.sin(t * 0.9) * 0.07 + Math.sin(t * 0.37) * 0.04;
+      // A pendulum on its chain with the ship's slow roll: about 9° each way, 2.4 s a swing (the
+      // creaks in its sound fall at the ends of each swing).
+      sway = reduced ? 0 : Math.sin((t - LANTERN_T0) * LANTERN_W) * 0.16;
       lantern.rotation.z = sway;
-      lantern.rotation.x = reduced ? 0 : Math.sin(t * 0.71 + 1) * 0.035;
+      lantern.rotation.x = reduced ? 0 : Math.sin((t - LANTERN_T0) * LANTERN_W * 0.5 + 1) * 0.05;
       const f = reduced
         ? 1
         : 0.92 + Math.sin(t * 13) * 0.03 + Math.sin(t * 23.7) * 0.025 + Math.sin(t * 7.3) * 0.02;
@@ -585,9 +591,10 @@ export function createCabin(opts: CabinOptions): Cabin {
  * lining, and a brass nameplate engraved with the captain's name. Its inside glows when it opens.
  */
 function createHeroChest(captainName: string): HeroChest {
-  const W = 0.86;
-  const H = 0.4;
-  const D = 0.46;
+  // Taller and narrower than a coffer: a captain's sea chest (the rolled chart, 70 cm, still fits).
+  const W = 0.78;
+  const H = 0.46;
+  const D = 0.47;
   const LID = 0.13;
   const group = new Group();
   group.name = 'captains chest';

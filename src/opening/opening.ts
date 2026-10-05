@@ -1,5 +1,6 @@
 import {
   Group,
+  RenderTarget,
   Mesh,
   MeshStandardNodeMaterial,
   PerspectiveCamera,
@@ -260,7 +261,7 @@ export function createOpening(o: OpeningOptions): Opening {
 
   // ---- camera shots (cabin metres; the desk top is y ≈ 0.8, chest at z ≈ -0.43) ----
   const WIDE = pose(0.05, 1.62, 2.55, 0, 1.0, -0.7);
-  const CHEST = pose(0.12, 1.36, 1.28, 0, 0.92, -0.42);
+  const CHEST = pose(0.12, 1.4, 1.48, 0, 0.95, -0.42);
   const RISE = pose(-0.05, 1.5, 1.35, 0, 1.12, -0.3);
   const OVER = pose(0.02, 1.68, 0.98, 0, 0.8, 0.1);
   const ALIVE = pose(-0.2, 1.36, 0.82, -0.14, 0.8, 0.15);
@@ -391,7 +392,6 @@ export function createOpening(o: OpeningOptions): Opening {
     kind === 'continue' || reduced
       ? []
       : [
-          [0.3, 'opening_lantern', 0.45],
           [beats.latch - 0.02, 'opening_latch', 1],
           [beats.lid - 0.12, 'opening_lid', 0.9],
           [beats.lid + 0.12, 'opening_poof', 0.55],
@@ -414,6 +414,16 @@ export function createOpening(o: OpeningOptions): Opening {
       audio.sfx.oneShot(name, undefined, gain);
       cueIndex++;
     }
+  }
+
+  /** Seconds the cabin has been on screen (the lantern, flames, dust and water run on it). */
+  let ambient = 0;
+  let nextCreak = 0.3;
+  /** The lantern creaks at the ends of its swing, every other swing, until the chart's out. */
+  function lanternCreaks(): void {
+    if (reduced || kind === 'continue' || ambient < nextCreak) return;
+    if (t < beats.unroll) o.audio()?.sfx.oneShot('opening_lantern', undefined, 0.4);
+    nextCreak += 4.8;
   }
 
   let paperW = 1;
@@ -465,8 +475,11 @@ export function createOpening(o: OpeningOptions): Opening {
       applyBeat(t);
       cues(t);
       paper.time.value += step;
-      props?.update(step, t);
-      cabin.update(step, t, reduced);
+      // The room lives on its own clock (the beat's stops while it waits for the build or a click).
+      ambient += step;
+      props?.update(step, ambient);
+      cabin.update(step, ambient, reduced);
+      lanternCreaks();
       if (diving) {
         const before = diving.time;
         diving.time += step;
@@ -514,7 +527,7 @@ export function createOpening(o: OpeningOptions): Opening {
   async function build(): Promise<void> {
     const grids: IslandGrid[] = [];
     // A few milliseconds a frame, so the title and captain screens keep their frame rate.
-    for (const src of CHART_ISLANDS) grids.push(await runSliced(sampleIslandGrid(src), 5));
+    for (const src of CHART_ISLANDS) grids.push(await runSliced(sampleIslandGrid(src), sliceBudget));
     if (disposed) return;
     await document.fonts?.ready;
     const art = drawChartArt(grids);
@@ -589,6 +602,11 @@ export function createOpening(o: OpeningOptions): Opening {
   }
 
   let preparing: Promise<void> | null = null;
+  /** Main-thread time per frame for the background build; Infinity once the Set sail veil is down. */
+  const sliceBudget = { ms: 8 };
+  /** Under the veil: whatever's left of the build and compile runs flat out. */
+  let flatOut = false;
+  const yieldNow = () => new Promise((r) => setTimeout(r, 0));
   let warming: Promise<void> | null = null;
   /**
    * Compiles the cabin's pipelines (asynchronously, with everything showing, so nothing compiles
@@ -604,7 +622,27 @@ export function createOpening(o: OpeningOptions): Opening {
         obj.visible = true;
       }
     });
-    await engine.renderer.compileAsync(scene, camera);
+    // One piece at a time with a short break between (not a whole frame), so the captain screen
+    // never freezes on one long compile, and it still finishes quickly.
+    const pieces: Mesh[] = [];
+    scene.traverse((obj) => {
+      if ((obj as Mesh).isMesh || (obj as { isLine?: boolean }).isLine) pieces.push(obj as Mesh);
+    });
+    for (const piece of pieces) {
+      if (disposed) break;
+      await engine.renderer.compileAsync(piece, camera, scene);
+      if (!flatOut) await yieldNow();
+    }
+    // One draw into a tiny offscreen target: the sun's shadow pass compiles and every texture
+    // (the chart's ink, the nameplate) uploads now, not under the Set sail veil.
+    if (!disposed && !flatOut) {
+      const rt = new RenderTarget(8, 8);
+      const before = engine.renderer.getRenderTarget();
+      engine.renderer.setRenderTarget(rt);
+      engine.renderer.render(scene, camera);
+      engine.renderer.setRenderTarget(before);
+      rt.dispose();
+    }
     for (const h of hidden) h.visible = false;
   }
   let prepared = false;
@@ -654,6 +692,8 @@ export function createOpening(o: OpeningOptions): Opening {
       setPrompt(false);
       t = 0;
       cueIndex = 0;
+      ambient = 0;
+      nextCreak = 0.3;
       cabin?.setCaptainName(details.captainName);
       ship?.setSails(details.sails);
       applyBeat(kind === 'continue' || reduced ? 99 : 0);
@@ -665,6 +705,9 @@ export function createOpening(o: OpeningOptions): Opening {
       camera.updateMatrixWorld();
     },
     async play() {
+      sliceBudget.ms = Infinity;
+      flatOut = true;
+      await api.prepare();
       if (disposed || !prepared) return;
       const t0 = performance.now();
       await api.warm();
