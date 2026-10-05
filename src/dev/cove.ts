@@ -245,6 +245,12 @@ function skyLook(eye: number[], dir: number[], up: number[] = [0, 1, 0]) {
     );
     return { solved: f.solved, path: solutionPath(L) };
   },
+  /** Shows or hides a scene object by name (A/B cost probes); returns false if there's no such object. */
+  setVisible: (name: string, visible: boolean) => {
+    const object = scene.getObjectByName(name);
+    if (object) object.visible = visible;
+    return !!object;
+  },
   gear: () => cove.sites.gear.spots(),
   gearVisible: (visible: boolean) => {
     cove.sites.gear.group.visible = visible;

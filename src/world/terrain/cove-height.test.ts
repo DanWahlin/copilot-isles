@@ -13,7 +13,10 @@ describe('coveHeight', () => {
       0,
     );
     expect(coveHeight(176, 0)).toBeGreaterThanOrEqual(30);
-    expect(coveHeight(COVE.seaStack.x, COVE.seaStack.z)).toBeGreaterThanOrEqual(29);
+    // The sea stack is a mesh; the height field only holds its plinth, hidden inside the waterline notch.
+    expect(coveHeight(COVE.seaStack.x, COVE.seaStack.z)).toBeGreaterThan(0);
+    expect(coveHeight(COVE.seaStack.x, COVE.seaStack.z)).toBeLessThan(1.5);
+    expect(coveHeight(COVE.seaStack.x + COVE.seaStack.radius * 1.6, COVE.seaStack.z)).toBeLessThan(-6);
     expect(coveHeight(COVE.seabedRadius, 0)).toBeCloseTo(-TERRAIN_DEEP_DEPTH, 0);
     expect(coveHeight(0, 295)).toBeLessThanOrEqual(-45);
   });
