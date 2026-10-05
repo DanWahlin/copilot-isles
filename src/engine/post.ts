@@ -58,7 +58,7 @@ export async function createPost(
   tier: TierSettings,
   options: PostOptions = {},
 ): Promise<Post | null> {
-  const rich = !options.lean && (tier.tier === 'high' || tier.tier === 'ultra');
+  const rich = !options.lean && tier.bloom;
   const backendName =
     (renderer.backend as { constructor?: { name?: string } } | undefined)?.constructor?.name ?? '';
   const actualWebGL =
@@ -70,8 +70,7 @@ export async function createPost(
     ((!options.lean && ['medium', 'high', 'ultra'].includes(tier.tier)) ||
       (options.lean && (tier.tier === 'high' || tier.tier === 'ultra')));
   const dbg = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-  const qualityPost =
-    !dbg.has('noao') && !options.lean && !actualWebGL && ['medium', 'high', 'ultra'].includes(tier.tier);
+  const qualityPost = !dbg.has('noao') && !options.lean && !actualWebGL && tier.ssao;
   const fxaaMod = await import('three/addons/tsl/display/FXAANode.js');
   const gtaoMod = qualityPost ? await import('three/addons/tsl/display/GTAONode.js') : null;
   const temporalMod = temporalPost ? await import('three/addons/tsl/display/TRAANode.js') : null;

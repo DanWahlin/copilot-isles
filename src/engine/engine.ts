@@ -44,6 +44,7 @@ export class Engine {
    */
   cutscene: { render(): void; drawWorld: boolean } | null = null;
 
+  private manualScale: number | null = null;
   private readonly systems: System[] = [];
   private readonly step = new FixedStep(1 / 60);
   private last = 0;
@@ -96,10 +97,39 @@ export class Engine {
     };
   }
 
-  /** Effective pixel ratio: device DPR capped per tier × tier base scale × adaptive scale. */
+  /**
+   * Effective pixel ratio: device DPR capped per tier × the render scale. The render scale is the
+   * player's manual choice, or else the tier's base scale × the adaptive scale.
+   */
   pixelRatio(): number {
     const dpr = Math.min(window.devicePixelRatio || 1, this.tier.maxDpr);
-    return dpr * this.tier.renderScale * this.adaptive.scale;
+    return dpr * this.renderScale();
+  }
+
+  /** The render scale in use, as a fraction of the tier's full resolution. */
+  renderScale(): number {
+    return this.manualScale ?? this.tier.renderScale * this.adaptive.scale;
+  }
+
+  /**
+   * Highest manual render scale: 125% on Ultra when that stays inside Ultra's DPR cap (screens up to
+   * 1.6× DPR). On a 2× screen it would render past the screen's own pixels for over twice the GPU time.
+   */
+  maxManualScale(): number {
+    const dpr = window.devicePixelRatio || 1;
+    return this.tier.tier === 'ultra' && dpr * 1.25 <= this.tier.maxDpr ? 1.25 : 1;
+  }
+
+  /**
+   * Sets a manual render scale (0.5 to maxManualScale) and stops adaptive resolution from changing
+   * it, or `null` for the automatic scale. Applies at once.
+   */
+  setRenderScale(scale: number | null): void {
+    const next = scale === null ? null : Math.min(this.maxManualScale(), Math.max(0.5, scale));
+    if (next === this.manualScale) return;
+    this.manualScale = next;
+    this.adaptive.lock(next === null ? null : this.adaptive.scale);
+    this.resize();
   }
 
   resize(): void {

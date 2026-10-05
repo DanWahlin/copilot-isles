@@ -8,11 +8,15 @@ import {
   DEFAULT_SETTINGS,
   type CaptainBody,
   type GameBridge,
+  type GraphicsInfo,
+  type QualityNotice,
+  type RenderResolution,
   type Screen,
   type Settings,
   type UiState,
   type VoyageNames,
 } from '../ui/bridge';
+import type { Tier } from '../world/contracts';
 import type { CharacterLibrary } from '../world/characters';
 import type { CoveScene } from '../world/cove-scene';
 import { world } from '../world/uniforms';
@@ -24,6 +28,8 @@ import { ANCHORAGE_ARRIVAL, arrivalFlight } from './arrivals';
 
 const SETTINGS_KEY = 'copilot-isles.settings.v1';
 const SAVE_KEY = 'copilot-isles.save.v1';
+/** Session storage: where Apply's reload should land (the title, or back in the game). */
+const RESUME_KEY = 'copilot-isles.apply-quality.v1';
 
 const BRIDGE_METHODS = [
   'getState',
@@ -42,6 +48,8 @@ const BRIDGE_METHODS = [
   'travelTo',
   'quitToTitle',
   'updateSettings',
+  'applyQuality',
+  'renderResolution',
   'setSails',
   'skipOpening',
   'pressOpening',
@@ -63,6 +71,7 @@ export interface GameFlowOptions {
   audio: IslesAudio;
   hudParent: HTMLElement;
   renderInfo: string;
+  graphics: GraphicsInfo;
   packBase?: string;
   /** Shows the post-load "ready" frame and hides the boot loader once the title is live. */
   onTitleReady?: () => void;
@@ -88,6 +97,8 @@ export class GameFlow implements GameBridge {
   private saveTimer = 0;
   private audioReady = false;
   private titlePrefetchStarted = false;
+  /** After Apply's reload into the game: reopen Graphics settings once you've landed. */
+  private settingsOnLand: QualityNotice = null;
   /** The opening (the Captain's Chest and the living chart) while it plays over the load. */
   private opening: Opening | null = null;
   /** The next opening, building in the background on the title and captain screens. */
@@ -95,7 +106,7 @@ export class GameFlow implements GameBridge {
   private openingHold: (holding: boolean) => void = () => undefined;
 
   constructor(private readonly o: GameFlowOptions) {
-    const settings = { ...DEFAULT_SETTINGS, ...readJson<Partial<Settings>>(SETTINGS_KEY) };
+    const settings = sanitizeSettings({ ...DEFAULT_SETTINGS, ...readJson<Partial<Settings>>(SETTINGS_KEY) });
     const save = readJson<SaveData>(SAVE_KEY);
     this.state = {
       screen: 'title',
@@ -109,6 +120,8 @@ export class GameFlow implements GameBridge {
       chart: null,
       renderInfo: o.renderInfo,
       bootQuality: settings.quality,
+      graphics: o.graphics,
+      qualityNotice: null,
     };
     this.applySettings(settings);
     this.learn.subscribe((s) => {
@@ -220,6 +233,8 @@ export class GameFlow implements GameBridge {
 
   back(): void {
     if (this.state.screen === 'playing' || this.state.screen === 'title') return;
+    if (this.state.qualityNotice?.kind === 'applying') return;
+    if (this.state.qualityNotice) this.state = { ...this.state, qualityNotice: null };
     const to = this.state.returnTo;
     if (to === 'playing') return this.resume();
     this.set({ screen: to, returnTo: to === 'paused' ? 'playing' : 'title' });
@@ -256,10 +271,55 @@ export class GameFlow implements GameBridge {
   }
 
   updateSettings(patch: Partial<Settings>): void {
-    const settings = { ...this.state.settings, ...patch };
+    const settings = sanitizeSettings({ ...this.state.settings, ...patch });
     writeJson(SETTINGS_KEY, settings);
     this.applySettings(settings);
-    this.set({ settings });
+    const qualityNotice = patch.quality !== undefined ? null : this.state.qualityNotice;
+    this.set({ settings, qualityNotice });
+  }
+
+  applyQuality(): void {
+    if (this.state.qualityNotice?.kind === 'applying') return;
+    const inGame = !!this.session;
+    if (inGame) this.save();
+    writeSession(RESUME_KEY, { to: inGame && readJson<SaveData>(SAVE_KEY) ? 'game' : 'title' });
+    this.set({ qualityNotice: { kind: 'applying' } });
+    // The setting decides the tier after the reload, so a ?tier= link override goes.
+    const url = new URL(location.href);
+    url.searchParams.delete('tier');
+    url.searchParams.delete('recovered');
+    // Let the status line paint before the page goes.
+    window.setTimeout(() => location.replace(url.toString()), 120);
+  }
+
+  renderResolution(): RenderResolution {
+    const { engine } = this.o;
+    const c = engine.renderer.domElement;
+    return { scale: engine.renderScale(), width: c.width, height: c.height };
+  }
+
+  /** The startup benchmark finished: Auto now picks `tier` on this device. */
+  setAutoTier(tier: Tier): void {
+    if (tier !== this.state.graphics.autoTier)
+      this.set({ graphics: { ...this.state.graphics, autoTier: tier } });
+  }
+
+  /**
+   * After Apply's reload: reopen Graphics settings on the title with the new tier, or continue the
+   * voyage and reopen them once you've landed. Call once the UI is mounted.
+   */
+  resumeAfterApply(): void {
+    const r = readSession<{ to: 'game' | 'title' }>(RESUME_KEY);
+    if (!r) return;
+    writeSession(RESUME_KEY, null);
+    const notice: QualityNotice = { kind: 'applied', tier: this.state.graphics.tier };
+    if (r.to === 'game' && readJson<SaveData>(SAVE_KEY)) {
+      this.settingsOnLand = notice;
+      this.continueVoyage();
+      return;
+    }
+    this.set({ qualityNotice: notice });
+    this.openSettings();
   }
 
   setSails(paletteId: string): void {
@@ -344,6 +404,7 @@ export class GameFlow implements GameBridge {
     document.documentElement.dataset.subtitles = s.subtitles ? s.subtitleSize : 'off';
     document.documentElement.classList.toggle('reduced-motion', s.reducedMotion);
     world.reducedMotion.value = s.reducedMotion ? 1 : 0;
+    this.o.engine.setRenderScale(s.renderScale === 'auto' ? null : s.renderScale);
   }
 
   private prefetchTitlePacks(): void {
@@ -456,6 +517,8 @@ export class GameFlow implements GameBridge {
       await opening.veil(true, 0);
       setSailVeil.remove();
       await opening.play();
+      // Back from Apply's reload: skip the cabin scene, straight to the chart and the dive.
+      if (this.settingsOnLand) opening.skip();
       const [{ createCove }, { loadCharacterLibrary }, { createSession, ISLANDS, islandAt }] =
         await islandCode;
       const base = this.o.packBase ?? '/packs';
@@ -545,6 +608,13 @@ export class GameFlow implements GameBridge {
       this.set({ screen: 'playing', returnTo: 'playing', hasSave: true, save: this.saveSummary() });
       engine.renderer.domElement.focus();
       this.session.begin();
+      if (this.settingsOnLand) {
+        const qualityNotice = this.settingsOnLand;
+        this.settingsOnLand = null;
+        this.pause();
+        this.set({ qualityNotice });
+        this.openSettings();
+      }
     } catch (err) {
       console.error(err);
       opening?.dispose();
@@ -599,6 +669,35 @@ export class GameFlow implements GameBridge {
   /** Dev/test access. */
   get debugSession(): GameSession | null {
     return this.session;
+  }
+}
+
+const QUALITIES = new Set(['auto', 'lite', 'low', 'medium', 'high', 'ultra']);
+
+/** Old or hand-edited settings fall back to the defaults field by field. */
+function sanitizeSettings(s: Settings): Settings {
+  const out = { ...s };
+  if (!QUALITIES.has(out.quality)) out.quality = DEFAULT_SETTINGS.quality;
+  if (out.renderScale !== 'auto' && !(typeof out.renderScale === 'number' && out.renderScale >= 0.5))
+    out.renderScale = DEFAULT_SETTINGS.renderScale;
+  return out;
+}
+
+function readSession<T>(key: string): T | null {
+  try {
+    const v = sessionStorage.getItem(key);
+    return v ? (JSON.parse(v) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSession(key: string, value: unknown): void {
+  try {
+    if (value === null) sessionStorage.removeItem(key);
+    else sessionStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Private mode: Apply still reloads, just onto the title.
   }
 }
 

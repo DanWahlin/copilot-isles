@@ -1,5 +1,6 @@
 import { DEFAULT_SAIL_PALETTE, SAIL_PALETTES } from '../../world/ship/sail-palettes';
-import type { GameBridge, QualitySetting, SubtitleSize, UiState } from '../bridge';
+import type { GameBridge, SubtitleSize, UiState } from '../bridge';
+import { ApplyQuality, QualityPicker, RenderScaleControl } from '../components/GraphicsSettings';
 import { OverlayShell } from '../components/OverlayShell';
 import { Select, SettingsGroup, Slider, Toggle } from '../components/SettingsControls';
 
@@ -8,7 +9,21 @@ export function SettingsScreen({ state, bridge }: { state: UiState; bridge: Game
   return (
     <OverlayShell title="Settings" eyebrow="Ship’s instruments" onBack={bridge.back} wide>
       <div className="ci-settings-grid">
-        <SettingsGroup title="Audio">
+        <SettingsGroup title="Graphics" wide>
+          <div className="ci-graphics">
+            <QualityPicker state={state} bridge={bridge} />
+            <div className="ci-graphics-side">
+              <ApplyQuality state={state} bridge={bridge} />
+              <RenderScaleControl state={state} bridge={bridge} />
+              <Toggle
+                label="Reduced motion"
+                checked={settings.reducedMotion}
+                onChange={(reducedMotion) => bridge.updateSettings({ reducedMotion })}
+              />
+            </div>
+          </div>
+        </SettingsGroup>
+        <SettingsGroup title="Audio" tall>
           <Toggle
             label="Mute all"
             checked={settings.muted}
@@ -34,25 +49,6 @@ export function SettingsScreen({ state, bridge }: { state: UiState; bridge: Game
             label="Voice"
             value={settings.voice}
             onChange={(voice) => bridge.updateSettings({ voice })}
-          />
-        </SettingsGroup>
-        <SettingsGroup title="Graphics">
-          <Select
-            label="Quality"
-            value={settings.quality}
-            options={['auto', 'lite', 'low', 'medium', 'high', 'ultra']}
-            names={QUALITY_NAMES}
-            onChange={(quality) => bridge.updateSettings({ quality: quality as QualitySetting })}
-          />
-          {settings.quality !== state.bootQuality && (
-            <p className="ci-setting-note" role="status">
-              Reload the page to switch quality. Your progress is saved.
-            </p>
-          )}
-          <Toggle
-            label="Reduced motion"
-            checked={settings.reducedMotion}
-            onChange={(reducedMotion) => bridge.updateSettings({ reducedMotion })}
           />
         </SettingsGroup>
         <SettingsGroup title="Controls">
@@ -127,14 +123,5 @@ function SailSwatches({ value, onChange }: { value: string; onChange: (id: strin
     </div>
   );
 }
-
-const QUALITY_NAMES = {
-  auto: 'Auto (recommended)',
-  lite: 'Lite',
-  low: 'Low',
-  medium: 'Medium',
-  high: 'High',
-  ultra: 'Ultra',
-} as const;
 
 const SUBTITLE_NAMES = { s: 'Small', m: 'Medium', l: 'Large' } as const;

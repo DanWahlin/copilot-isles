@@ -1,7 +1,13 @@
 import { WebGPURenderer } from 'three/webgpu';
 import { chooseBackend, detectWebGL2, detectWebGPU, type Backend } from './detect';
 import { showFallback } from './fallback';
-import { heuristicTier, isPhoneDevice, refineWithBenchmark } from '../engine/capability';
+import {
+  detectPlatform,
+  friendlyGpuName,
+  heuristicTier,
+  isPhoneDevice,
+  refineWithBenchmark,
+} from '../engine/capability';
 import {
   benchmarkStorageKey,
   readStartupBenchmark,
@@ -9,17 +15,11 @@ import {
   writeStartupBenchmark,
 } from '../engine/benchmark';
 import { installDebug } from '../engine/debug';
+import { TIER_NAMES, TIER_ORDER } from '../engine/tier-info';
 import type { Tier } from '../world/contracts';
 
 const stage = (p: number, msg: string) => window.__load?.(p, msg);
 const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
-const TIER_NAMES: Record<Tier, string> = {
-  lite: 'Lite',
-  low: 'Low',
-  medium: 'Medium',
-  high: 'High',
-  ultra: 'Ultra',
-};
 
 async function boot(): Promise<void> {
   stage(0.05, 'Charting the isles');
@@ -47,16 +47,19 @@ async function boot(): Promise<void> {
   const gpuName = backend === 'webgpu' ? `${webgpu.vendor} ${webgpu.architecture}` : webgl.renderer;
   const heuristic = heuristicTier({
     backend,
-    gpu: gpuName,
+    // WebGPU names only the vendor and architecture ("nvidia ampere"); the WebGL renderer string names
+    // the model ("RTX 3060", "M3 Max") on Windows, macOS, and Linux alike.
+    gpu: backend === 'webgpu' ? `${gpuName} ${webgl.renderer}` : gpuName,
     isPhone: phone,
     deviceMemory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory,
   });
   const benchmarkKey = benchmarkStorageKey(backend, gpuName);
   const cachedBenchmark = readStartupBenchmark(benchmarkKey);
   const autoTier = cachedBenchmark ? refineWithBenchmark(heuristic, cachedBenchmark.gpuMs, phone) : heuristic;
-  const hasTierOverride = q.has('tier') || (saved !== null && saved !== 'auto');
-  const tierName = (q.get('tier') as Tier) || (saved && saved !== 'auto' ? saved : autoTier);
-  const tier = TIERS[tierName] ?? TIERS.medium;
+  const urlTier = asTier(q.get('tier'));
+  const savedTier = asTier(saved);
+  const hasTierOverride = q.has('tier') || savedTier !== null;
+  const tier = TIERS[urlTier ?? savedTier ?? autoTier] ?? TIERS.medium;
 
   const hdr = backend === 'webgpu' && q.has('hdr') && matchMedia('(dynamic-range: high)').matches;
   const canvas = document.getElementById('gl') as HTMLCanvasElement;
@@ -127,7 +130,23 @@ async function boot(): Promise<void> {
   const input = new Input(canvas);
   const audio = createAudio();
   const renderInfo = `${backend === 'webgpu' ? 'WebGPU' : 'WebGL2'} · ${TIER_NAMES[tier.tier]}`;
-  const flow = new GameFlow({ engine, input, audio, hudParent: document.body, renderInfo, upgradePost });
+  const flow = new GameFlow({
+    engine,
+    input,
+    audio,
+    hudParent: document.body,
+    renderInfo,
+    upgradePost,
+    graphics: {
+      backend,
+      platform: detectPlatform(navigator),
+      gpu: friendlyGpuName(webgl.renderer, webgpu.vendor),
+      tier: tier.tier,
+      autoTier,
+      urlTier,
+      maxRenderScale: engine.maxManualScale(),
+    },
+  });
 
   stage(0.55, 'Rigging the brigantine');
   flow.showTitle();
@@ -152,6 +171,7 @@ async function boot(): Promise<void> {
         isPhone: phone,
       });
       writeStartupBenchmark(benchmarkKey, sample);
+      flow.setAutoTier(sample.refinedTier);
       if (sample.refinedTier !== tier.tier) {
         console.info(`Benchmark selected ${sample.refinedTier}; applying on next load.`);
       }
@@ -175,6 +195,7 @@ async function boot(): Promise<void> {
     },
   );
   engine.start();
+  flow.resumeAfterApply();
   for (let i = 0; i < 12; i++) await nextFrame();
   engine.counters.hitches.length = 0;
   engine.counters.arm();
@@ -209,6 +230,10 @@ function registerServiceWorker(): void {
       console.warn('Service worker registration failed', err);
     });
   }, 0);
+}
+
+function asTier(s: string | null): Tier | null {
+  return TIER_ORDER.includes(s as Tier) ? (s as Tier) : null;
 }
 
 function readQuality(): string | null {

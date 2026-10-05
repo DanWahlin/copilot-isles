@@ -73,6 +73,16 @@ class MockBridge implements GameBridge {
     },
     renderInfo: 'WebGPU · High · 60 fps target',
     bootQuality: 'auto',
+    graphics: {
+      backend: 'webgpu',
+      platform: 'mac',
+      gpu: 'Apple M3 Max',
+      tier: 'high',
+      autoTier: 'high',
+      urlTier: null,
+      maxRenderScale: 1,
+    },
+    qualityNotice: null,
   };
 
   getState = () => this.state;
@@ -96,6 +106,8 @@ class MockBridge implements GameBridge {
   travelTo = () => this.set({ screen: this.state.returnTo });
   quitToTitle = () => this.set({ screen: 'title', returnTo: 'title' });
   updateSettings = (patch: Partial<Settings>) => this.set({ settings: { ...this.state.settings, ...patch } });
+  applyQuality = () => this.set({ qualityNotice: { kind: 'applying' } });
+  renderResolution = () => ({ scale: 1, width: innerWidth, height: innerHeight });
   setSails = (sails: string) => this.set({ learn: { ...this.state.learn, sails } });
   skipOpening = () => this.set({ screen: 'playing' });
   pressOpening = () => this.set({ screen: 'playing' });

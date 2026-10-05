@@ -516,6 +516,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
   - It pauses while the tab is hidden, and it can be locked from the debug HUD. Thresholds scale with each tier's target.
   - FXAA + a light unsharp mask restore crispness when the scale is below 1.
 - On first launch, a **quick GPU benchmark** picks the starting preset. You can override it in Settings.
+- **Settings → Graphics** shows what Auto picked (tier, GPU name, and WebGL2 when on that backend) and one line per tier, built from the `TIERS` row (`src/engine/tier-info.ts`) with examples for the player's platform (Mac, PC, or phone/tablet). **Apply and reload** saves and reloads into the title or back into the game. **Render scale** is Auto (this adaptive resolution) or a fixed 50-100% (125% on Ultra only on screens up to 1.6× DPR); a fixed scale locks adaptive resolution and applies without a reload.
 
 ### 12.10 Measuring it
 - **Debug HUD** (`?debug`): FPS, frame ms (CPU/GPU), **whole-frame** draw calls and triangles (counters accumulated across all passes, not just the last render), textures, geometries, and JS heap, plus a lil-gui tuning panel.

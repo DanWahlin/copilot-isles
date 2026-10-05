@@ -1934,6 +1934,214 @@
   height: 1.1rem;
 }
 
+/* Graphics settings: the quality list (one line per tier), render scale, and Apply. */
+.ci-settings-group.tall {
+  grid-row: span 2;
+}
+
+.ci-graphics {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr);
+  gap: 1.6rem;
+  padding: 0.8rem 0 0.4rem;
+}
+
+.ci-quality-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ci-quality-label,
+.ci-scale-head span {
+  margin-bottom: 0.2rem;
+  color: rgba(255, 246, 225, 0.88);
+}
+
+.ci-quality-option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  min-height: 44px;
+  padding: 0.5rem 0.8rem 0.5rem 2.2rem;
+  position: relative;
+  border: 1px solid rgba(232, 200, 138, 0.16);
+  border-radius: 0.65rem;
+  background: rgba(4, 13, 20, 0.32);
+  color: var(--ci-cream);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.ci-quality-option::before {
+  content: '';
+  position: absolute;
+  left: 0.8rem;
+  top: 0.78rem;
+  width: 0.72rem;
+  height: 0.72rem;
+  border: 1.5px solid rgba(232, 200, 138, 0.6);
+  border-radius: 50%;
+}
+
+.ci-quality-option.on {
+  border-color: rgba(232, 200, 138, 0.62);
+  background: rgba(232, 200, 138, 0.1);
+}
+
+.ci-quality-option.on::before {
+  background: var(--ci-gold);
+  box-shadow: inset 0 0 0 2px rgba(4, 13, 20, 0.9);
+}
+
+.ci-quality-option:hover {
+  border-color: rgba(232, 200, 138, 0.42);
+}
+
+.ci-quality-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.95rem;
+}
+
+.ci-quality-for {
+  color: var(--ci-muted);
+  font-size: 0.8rem;
+}
+
+.ci-quality-pick {
+  color: var(--ci-gold);
+  font-weight: 600;
+}
+
+.ci-quality-option small {
+  color: var(--ci-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.ci-tag {
+  border-radius: 999px;
+  padding: 0.12rem 0.5rem;
+  background: rgba(232, 200, 138, 0.16);
+  color: var(--ci-gold);
+  font: 700 0.64rem/1.2 var(--ci-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ci-graphics-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ci-graphics-side .ci-setting-row {
+  grid-template-columns: 8.2rem 1fr auto;
+  margin: 0.5rem 0;
+}
+
+.ci-scale-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.8rem;
+}
+
+.ci-scale-head output {
+  color: var(--ci-gold);
+  font: 600 0.9rem/1 var(--ci-ui);
+  font-variant-numeric: tabular-nums;
+}
+
+.ci-scale-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 0.45rem;
+}
+
+.ci-scale-controls input[type='range'] {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  accent-color: var(--ci-gold);
+}
+
+.ci-chip {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid var(--ci-edge);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ci-cream);
+  font: 600 0.88rem/1 var(--ci-ui);
+  cursor: pointer;
+}
+
+.ci-chip[aria-pressed='true'] {
+  border-color: var(--ci-gold);
+  background: rgba(232, 200, 138, 0.2);
+  color: var(--ci-gold-strong);
+}
+
+.ci-scale-hint,
+.ci-apply-status {
+  margin: 0.25rem 0 0.4rem;
+  color: var(--ci-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.ci-apply {
+  margin: 1.55rem 0 0.6rem;
+  padding: 0.8rem 0.9rem 0.9rem;
+  border: 1px solid rgba(232, 200, 138, 0.18);
+  border-radius: 0.75rem;
+  background: rgba(4, 13, 20, 0.3);
+}
+
+.ci-apply-status {
+  min-height: 2.4em;
+}
+
+.ci-apply-status {
+  color: var(--ci-gold);
+  font-size: 0.86rem;
+}
+
+.ci-apply-button {
+  width: 100%;
+  margin-top: 0.3rem;
+  background: rgba(232, 200, 138, 0.18);
+}
+
+.ci-apply-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+html.reduced-motion .ci-quality-option {
+  transition: none;
+}
+
+@media (max-width: 840px) {
+  .ci-graphics {
+    grid-template-columns: 1fr;
+  }
+
+  .ci-settings-group.tall {
+    grid-row: auto;
+  }
+}
+
 /* The opening (docs/specs/OPENING-living-chart.md): the cabin and living chart play under this. */
 .ci-opening {
   position: absolute;
