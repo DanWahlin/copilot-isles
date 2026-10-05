@@ -2,7 +2,7 @@
 // "Title" = index.html + everything reachable from the entry through static and dynamic imports.
 // Phase 0 note: once game chunks exist (T3), the title set narrows to the title-critical chunks.
 import { gzipSync } from 'node:zlib';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -56,8 +56,18 @@ const titleOk = title <= budgets.titleWireMaxKB * 1024;
 if (!titleOk) failed = true;
 rows.push(['title (wire, gz)', kb(title), `${budgets.titleWireMaxKB}`, titleOk ? 'ok' : 'OVER']);
 
-console.log('budget                 KB gz    max KB   status');
-for (const [a, b, c, d] of rows) console.log(`${a.padEnd(22)} ${b.padStart(7)}  ${c.padStart(7)}   ${d}`);
+// The baked cloud keys (BakedPanorama.ts) load at run time, one or two at a time: each stays small.
+const skyDir = join(dist, 'sky');
+const skyKeys = existsSync(skyDir) ? readdirSync(skyDir).filter((f) => f.endsWith('.webp')) : [];
+for (const f of skyKeys) {
+  const size = statSync(join(skyDir, f)).size;
+  const ok = size <= budgets.skyKeyMaxKB * 1024;
+  if (!ok) failed = true;
+  rows.push([`sky/${f}`, kb(size), `${budgets.skyKeyMaxKB}`, ok ? 'ok' : 'OVER']);
+}
+
+console.log('budget                       KB gz    max KB   status');
+for (const [a, b, c, d] of rows) console.log(`${a.padEnd(28)} ${b.padStart(7)}  ${c.padStart(7)}   ${d}`);
 if (failed) {
   console.error('\nA size budget was exceeded (PLAN §13.5).');
   process.exit(1);

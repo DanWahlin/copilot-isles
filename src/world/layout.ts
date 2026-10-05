@@ -76,7 +76,12 @@ export const COVE = {
 
   /** Open-water sailing loop and landmarks. */
   sailLoop: { center: { x: 0, z: 0 }, radius: 430 },
-  seaStack: { x: 270, z: 210, radius: 14, height: 32 },
+  /**
+   * Limestone karst pillar off the south-east point (shape: terrain/sea-stack-shape.ts). `radius` is
+   * the upper body's mean radius (the waterline notch is about half of it), `height` the rim of its
+   * jungle-capped dome.
+   */
+  seaStack: { x: 270, z: 210, radius: 10.5, height: 40 },
   buoys: [
     { x: -60, z: -190 },
     { x: 120, z: -260 },

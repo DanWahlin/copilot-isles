@@ -5,15 +5,14 @@ import {
   Group,
   InstancedMesh,
   Matrix4,
-  Mesh,
   Quaternion,
   Vector3,
 } from 'three/webgpu';
-import type { HeightField } from '../contracts';
+import type { HeightField, Tier } from '../contracts';
 import { COVE } from '../layout';
-import { smoothstep } from '../../util/math';
 import { ROCK_ASSETS } from './rock-assets';
 import { createRockMaterial } from './terrain-material';
+import { createSeaStack } from './sea-stack';
 
 interface RockInstance {
   asset: number;
@@ -32,8 +31,6 @@ interface RockInstance {
 const ROCK_VARIANTS = Math.min(3, ROCK_ASSETS.length);
 const STOREHOUSE_EAST_PAD = { x0: -71, x1: -53, z0: -75, z1: -51 };
 const VILLAGE_MEADOW_PAD = { x0: -174, x1: -55, z0: -50, z1: 18 };
-const SEA_STACK_RADIAL_SEGMENTS = 44;
-const SEA_STACK_VERTICAL_SEGMENTS = 24;
 
 function fract(v: number): number {
   return v - Math.floor(v);
@@ -169,77 +166,6 @@ function headlandTopRocks(out: RockInstance[]): void {
   }
 }
 
-function seaStackPillarRocks(out: RockInstance[]): void {
-  const ledges = [
-    { angle: -2.85, y: 6.4, length: 14.0, scale: 5.3 },
-    { angle: 2.28, y: 13.6, length: 12.0, scale: 4.8 },
-    { angle: -0.42, y: 18.8, length: 9.5, scale: 4.1 },
-    { angle: 1.28, y: 24.6, length: 8.4, scale: 3.6 },
-  ] as const;
-  for (let i = 0; i < ledges.length; i++) {
-    const ledge = ledges[i];
-    const seed = 2300 + i * 103;
-    const a = ledge.angle + (rand(seed) - 0.5) * 0.24;
-    const r = stackRadius(ledge.y, a) * 0.96;
-    const pieces = i === 0 ? 2 : 1;
-    for (let p = 0; p < pieces; p++) {
-      const spread = (p - (pieces - 1) * 0.5) * 0.18;
-      const aa = a + spread;
-      const s = ledge.scale * (0.9 + rand(seed + p + 2) * 0.35);
-      out.push({
-        asset: rockAsset(seed + p + 3),
-        x: COVE.seaStack.x + Math.cos(aa) * r,
-        z: COVE.seaStack.z + Math.sin(aa) * r,
-        y: ledge.y + rand(seed + p + 4) * 0.7,
-        sx: ledge.length * (0.82 + rand(seed + p + 5) * 0.24),
-        sy: s * (0.3 + rand(seed + p + 6) * 0.16),
-        sz: s * (1.1 + rand(seed + p + 7) * 0.34),
-        yaw: aa + Math.PI * 0.5 + (rand(seed + p + 8) - 0.5) * 0.25,
-        pitch: -0.22 + (rand(seed + p + 9) - 0.5) * 0.16,
-        roll: (rand(seed + p + 10) - 0.5) * 0.22,
-      });
-    }
-  }
-
-  for (let i = 0; i < 5; i++) {
-    const seed = 3100 + i * 19;
-    const a = rand(seed) * Math.PI * 2;
-    const r = rand(seed + 1) * 6.2;
-    const s = 2.2 + rand(seed + 2) * 2.5;
-    out.push({
-      asset: rockAsset(seed + 3),
-      x: COVE.seaStack.x + Math.cos(a) * r,
-      z: COVE.seaStack.z + Math.sin(a) * r,
-      y: COVE.seaStack.height - 5.4 + rand(seed + 4) * 1.8,
-      sx: s * (1.1 + rand(seed + 5) * 0.8),
-      sy: s * (0.45 + rand(seed + 6) * 0.36),
-      sz: s * (0.9 + rand(seed + 7) * 0.8),
-      yaw: rand(seed + 8) * Math.PI * 2,
-      pitch: (rand(seed + 9) - 0.5) * 0.16,
-      roll: (rand(seed + 10) - 0.5) * 0.16,
-    });
-  }
-
-  for (let i = 0; i < 22; i++) {
-    const seed = 3400 + i * 23;
-    const a = rand(seed) * Math.PI * 2;
-    const r = COVE.seaStack.radius * 0.82 + rand(seed + 1) * 10;
-    const s = 2.8 + rand(seed + 2) * 4.8;
-    out.push({
-      asset: rockAsset(seed + 3),
-      x: COVE.seaStack.x + Math.cos(a) * r,
-      z: COVE.seaStack.z + Math.sin(a) * r,
-      sx: s * (1.5 + rand(seed + 4) * 1.3),
-      sy: s * (0.5 + rand(seed + 5) * 0.5),
-      sz: s * (0.9 + rand(seed + 6) * 0.8),
-      yaw: rand(seed + 7) * Math.PI * 2,
-      pitch: (rand(seed + 8) - 0.5) * 0.18,
-      roll: (rand(seed + 9) - 0.5) * 0.2,
-      yOffset: -3.0 - rand(seed + 10) * 0.9,
-    });
-  }
-}
-
 function shoreAndTalusRocks(out: RockInstance[]): void {
   for (let i = 0; i < 18; i++) {
     const x = -165 + rand(i + 300) * 330;
@@ -305,66 +231,9 @@ function allRockInstances(): RockInstance[] {
   headlandBaseRocks(out);
   headlandCliffFaceRocks(out);
   headlandTopRocks(out);
-  seaStackPillarRocks(out);
   shoreAndTalusRocks(out);
   coveCoastRocks(out);
   return out.filter((instance) => !inBlockedPad(instance));
-}
-
-function stackRadius(y: number, angle: number): number {
-  const t = (y + 6) / 39;
-  const taper = 1.18 - t * 0.47;
-  const asymmetry = Math.sin(angle * 2.2 - 0.55) * (0.9 + t * 0.35);
-  const flute = Math.sin(angle * 5.0 + t * 4.2) * 0.55 + Math.sin(angle * 9.0 - t * 3.6) * 0.32;
-  const bite = -Math.max(0, Math.sin(t * Math.PI * 3.7 + angle * 1.45)) * 0.34;
-  return Math.max(5.6, COVE.seaStack.radius * 0.82 * taper + asymmetry + flute + bite);
-}
-
-function createSeaStackCore(): Mesh {
-  const radialSegments = SEA_STACK_RADIAL_SEGMENTS;
-  const verticalSegments = SEA_STACK_VERTICAL_SEGMENTS;
-  const positions: number[] = [];
-  const normals: number[] = [];
-  const indices: number[] = [];
-  for (let j = 0; j <= verticalSegments; j++) {
-    const v = j / verticalSegments;
-    const baseY = -6 + v * 39;
-    for (let i = 0; i <= radialSegments; i++) {
-      const a = (i / radialSegments) * Math.PI * 2;
-      const topBreak = j === verticalSegments ? Math.sin(a * 3.2 + 0.7) * 0.85 + Math.sin(a * 7.0) * 0.32 : 0;
-      const y = baseY + topBreak * smoothstep(0.86, 1, v);
-      const r = stackRadius(y, a);
-      const rib = 0.96 + 0.045 * Math.sin(a * 4 + v * 7) + 0.02 * Math.sin(a * 9 - v * 5);
-      const x = COVE.seaStack.x + Math.cos(a) * r * rib;
-      const z = COVE.seaStack.z + Math.sin(a) * r * rib;
-      positions.push(x, y, z);
-      normals.push(Math.cos(a) * 0.92, 0.2, Math.sin(a) * 0.92);
-    }
-  }
-  const stride = radialSegments + 1;
-  for (let j = 0; j < verticalSegments; j++) {
-    for (let i = 0; i < radialSegments; i++) {
-      const a = j * stride + i;
-      const b = a + stride;
-      indices.push(a, b, a + 1, a + 1, b, b + 1);
-    }
-  }
-  const topCenter = positions.length / 3;
-  positions.push(COVE.seaStack.x - 1.4, COVE.seaStack.height + 2.9, COVE.seaStack.z + 0.6);
-  normals.push(0, 1, 0);
-  const topRow = verticalSegments * stride;
-  for (let i = 0; i < radialSegments; i++) indices.push(topCenter, topRow + i, topRow + i + 1);
-  const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
-  geometry.setAttribute('normal', new BufferAttribute(new Float32Array(normals), 3));
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-  geometry.computeBoundingSphere();
-  const mesh = new Mesh(geometry, createRockMaterial());
-  mesh.name = 'terrain-rocks-sea-stack-core';
-  mesh.castShadow = false;
-  mesh.receiveShadow = true;
-  return mesh;
 }
 
 function rockGeometry(asset: (typeof ROCK_ASSETS)[number]): BufferGeometry {
@@ -376,7 +245,7 @@ function rockGeometry(asset: (typeof ROCK_ASSETS)[number]): BufferGeometry {
   return geometry;
 }
 
-export function createTerrainRocks(heightField: HeightField): Group {
+export function createTerrainRocks(heightField: HeightField, _data?: unknown, tier: Tier = 'high'): Group {
   const group = new Group();
   group.name = 'terrain-rocks';
   const material = createRockMaterial();
@@ -395,7 +264,7 @@ export function createTerrainRocks(heightField: HeightField): Group {
   const position = new Vector3();
   const normal = new Float32Array(3);
 
-  group.add(createSeaStackCore());
+  group.add(createSeaStack(tier));
 
   for (const [assetIndex, list] of [...grouped.entries()].sort(([a], [b]) => a - b)) {
     const asset = ROCK_ASSETS[assetIndex];
