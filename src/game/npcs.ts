@@ -31,6 +31,8 @@ export interface NpcSpec {
   barks?: string[];
   /** Keeps the anchor's height instead of snapping to the ground (tower tops, benches). */
   keepY?: boolean;
+  /** Collision radius in place of the body's, for someone standing in a narrow spot (the gallery). */
+  obstacleR?: number;
   /** Visual drop from the anchor to put a seated rig's pelvis on the seat top. */
   seatDrop?: number;
   /** Optional anchor-local talk framing: +x is right of heading, +z is forward. */
@@ -196,6 +198,7 @@ export const COVE_NPCS: NpcSpec[] = [
     anchor: 'lookout',
     clip: 'idle',
     keepY: true,
+    obstacleR: 0.26,
     talkEyeLift: 2,
     barks: ['Clear skies to the horizon, Captain.'],
   },
@@ -258,7 +261,7 @@ export class NpcCrowd {
       character.group.position.set(x, y, z);
       character.group.rotation.y = heading;
       character.play(spec.patrol || spec.orbit ? 'idle' : spec.clip);
-      const obstacle: CircleObstacle = { x, z, r: character.capsule.radius + 0.1 };
+      const obstacle: CircleObstacle = { x, z, r: spec.obstacleR ?? character.capsule.radius + 0.1 };
       world.addDynamic(obstacle);
       this.list.push({
         spec,

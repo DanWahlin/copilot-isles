@@ -12,6 +12,7 @@ import { loadTerrainPack } from './terrain/bake';
 import { createTerrainAsync, type CreatedTerrain } from './terrain/terrain-mesh';
 import { CompositeHeightField } from './terrain/composite-height-field';
 import { COVE } from './layout';
+import { createStarfish, type StarfishSystem } from './starfish';
 import { MERIDIAN, createMeridianRocks, createMeridianSilhouette } from './islands/meridian';
 import { createBeachDebris, type BeachDebrisSystem } from './debris/beach-debris';
 import { createBrigantine, type Brigantine } from './ship';
@@ -54,6 +55,8 @@ export interface CoveScene {
   debris: BeachDebrisSystem;
   birds: BirdsSystem | null;
   leaps: LeapsSystem | null;
+  /** The starfish to collect on both islands (the session sets their ground and which are found). */
+  starfish: StarfishSystem;
   dispose(): void;
 }
 
@@ -274,6 +277,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     }
   }
 
+  // The starfish (one draw; +1 program), in the scene before the island compiles.
+  const starfish = createStarfish();
+  scene.add(starfish.mesh);
+
   let leaps: LeapsSystem | null = null;
   let disposed = false;
   let result: CoveScene | null = null;
@@ -325,6 +332,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       sites.update(dt, t);
       birds?.update(dt, t, camera);
       dockGull?.update(dt, t, camera);
+      starfish.update(dt, t, camera);
       leaps?.update(dt, t, camera);
       focus.set(camera.position.x, 0, camera.position.z);
       sky.update(clock, focus, dt, camera);
@@ -368,6 +376,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     debris,
     birds,
     leaps,
+    starfish,
     dispose() {
       disposed = true;
       if (leapsTimer) window.clearTimeout(leapsTimer);
@@ -398,6 +407,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       meridian.town?.dispose();
       birds?.dispose();
       dockGull?.dispose();
+      starfish.dispose();
       meridianBirds?.dispose();
       leaps?.dispose();
       village.dispose();

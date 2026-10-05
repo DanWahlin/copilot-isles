@@ -79,12 +79,13 @@ export class PlayerController {
     return Math.hypot(this.vx, this.vz);
   }
 
-  teleport(world: CollisionWorld, x: number, z: number, heading = this.heading): void {
+  /** Puts the walker at (x, z); `y` picks the level where surfaces stack (a stair's turns). */
+  teleport(world: CollisionWorld, x: number, z: number, heading = this.heading, y?: number): void {
     this.x = x;
     this.z = z;
     this.heading = heading;
     this.vx = this.vz = this.vy = 0;
-    this.y = world.groundAt(x, z);
+    this.y = world.groundAt(x, z, y);
     this.mode = 'ground';
   }
 
@@ -107,7 +108,7 @@ export class PlayerController {
     }
 
     this.waterY = world.waterAt(this.x, this.z, t);
-    this.depth = Math.max(0, this.waterY - world.groundAt(this.x, this.z));
+    this.depth = Math.max(0, this.waterY - world.groundAt(this.x, this.z, this.y));
     const wade = smoothstep(T.wadeStart, T.wadeMax, this.depth);
     const air = this.mode === 'air';
     const top = (intent.run ? T.runSpeed : T.walkSpeed) * (1 - 0.6 * wade) * (air ? 0.9 : 1);
@@ -143,7 +144,7 @@ export class PlayerController {
     }
 
     // Vertical.
-    const g = world.groundAt(this.x, this.z);
+    const g = world.groundAt(this.x, this.z, this.y);
     if (this.mode === 'air') {
       this.vy -= T.gravity * dt;
       this.y += this.vy * dt;
@@ -169,7 +170,7 @@ export class PlayerController {
     this.waterY = world.waterAt(this.x, this.z, t);
     this.depth = Math.max(0, this.waterY - g);
     if (this.mode !== 'air') this.mode = this.depth > T.wadeStart ? 'wade' : 'ground';
-    this.surface = world.surfaceAt(this.x, this.z, t);
+    this.surface = world.surfaceAt(this.x, this.z, t, this.y);
   }
 
   /** Moves to (nx, nz) if the destination is walkable; returns false when blocked. */
@@ -177,14 +178,14 @@ export class PlayerController {
     const T = this.tune;
     this.p.x = nx;
     this.p.z = nz;
-    world.pushOut(this.p, T.radius);
+    world.pushOut(this.p, T.radius, this.y);
     const gx = this.p.x,
       gz = this.p.z;
-    const g0 = world.groundAt(this.x, this.z);
-    const g1 = world.groundAt(gx, gz);
+    const g0 = world.groundAt(this.x, this.z, this.y);
+    const g1 = world.groundAt(gx, gz, this.y);
     const rise = g1 - Math.max(this.y, g0);
     if (this.mode !== 'air' && rise > T.stepUp) return false;
-    if (rise > 0.05 && world.slopeAt(gx, gz) < T.minSlopeY) return false;
+    if (rise > 0.05 && world.slopeAt(gx, gz, this.y) < T.minSlopeY) return false;
     const depth = world.waterAt(gx, gz, t) - g1;
     const curDepth = world.waterAt(this.x, this.z, t) - g0;
     // Too deep: allowed only if it gets shallower (so you can always walk back out).

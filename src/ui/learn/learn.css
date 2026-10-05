@@ -675,6 +675,87 @@
   }
 }
 
+/* ---- Starfish (the purse's count and the Logbook tab) ---- */
+.ci-starfish {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #ffb08a;
+  font-weight: 800;
+}
+.ci-starfish.done {
+  color: #ffd98a;
+}
+.ci-starfish-icon {
+  width: 1.05em;
+  height: 1.05em;
+  flex: none;
+  fill: #ff7a45;
+  stroke: #ffc24a;
+  stroke-width: 1.1;
+}
+.ci-starfish-icon circle {
+  fill: #ffc24a;
+  stroke: none;
+}
+.ci-starfish-icon.dim {
+  fill: rgba(255, 255, 255, 0.14);
+  stroke: rgba(255, 255, 255, 0.28);
+}
+.ci-starfish-icon.dim circle {
+  fill: rgba(255, 255, 255, 0.2);
+}
+.ci-starfish-log {
+  display: grid;
+  gap: 1rem;
+}
+.ci-starfish-intro {
+  margin: 0;
+  color: var(--ci-muted);
+}
+.ci-starfish-log h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+.ci-starfish-log h3 small {
+  color: var(--ci-muted);
+  font-weight: 600;
+}
+.ci-starfish-log ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ci-starfish-log li {
+  display: grid;
+  grid-template-columns: 1.6rem 1fr;
+  align-items: center;
+  column-gap: 0.6rem;
+  min-height: 44px;
+  padding: 0.55rem 0.8rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ci-muted);
+}
+.ci-starfish-log li .ci-starfish-icon {
+  grid-row: span 2;
+  width: 1.6rem;
+  height: 1.6rem;
+}
+.ci-starfish-log li.found {
+  color: inherit;
+}
+.ci-starfish-log li small {
+  color: var(--ci-muted);
+  font-size: 0.8rem;
+}
+
 /* ---- Task tracker (top left) ---- */
 .ci-tracker {
   position: absolute;

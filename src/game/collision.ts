@@ -9,13 +9,20 @@ export interface BoxCollider {
   rot: number;
   /** Top height above its base, used by the camera (defaults to "tall"). */
   height?: number;
+  /** World heights it spans; a walker whose feet are outside [y0, y1] passes it (see CircleObstacle). */
+  y0?: number;
+  y1?: number;
 }
 
 export type SurfaceKind = 'sand' | 'grass' | 'rock' | 'stone' | 'wood' | 'water';
 
-/** A man-made walkable surface (quay, pier, deck) that overrides the terrain where it returns a height. */
+/**
+ * A man-made walkable surface (quay, pier, deck) that overrides the terrain where it returns a height.
+ * `y` is the walker's feet, for surfaces stacked over each other (a spiral stair); without it a
+ * surface returns its lowest level there.
+ */
 export interface WalkSurface {
-  heightAt(x: number, z: number): number | null;
+  heightAt(x: number, z: number, y?: number): number | null;
   kind: SurfaceKind | ((x: number, z: number) => SurfaceKind);
 }
 
@@ -96,25 +103,28 @@ export class CollisionWorld {
     if (i >= 0) this.dynamic.splice(i, 1);
   }
 
-  /** The man-made surface height at (x, z), if one is at or above the terrain. */
-  surfaceHeightAt(x: number, z: number): number | null {
+  /**
+   * The man-made surface height at (x, z), if one is at or above the terrain. `y` (the walker's feet)
+   * picks the level of a stacked surface (see WalkSurface).
+   */
+  surfaceHeightAt(x: number, z: number, y?: number): number | null {
     const t = this.ground.heightAt(x, z);
     let best: number | null = null;
     for (const s of this.surfaces) {
-      const sh = s.heightAt(x, z);
+      const sh = s.heightAt(x, z, y);
       if (sh !== null && sh >= t - 0.05 && (best === null || sh > best)) best = sh;
     }
     return best;
   }
 
   /** Walkable height: the highest man-made surface, else the terrain. */
-  groundAt(x: number, z: number): number {
-    return this.surfaceHeightAt(x, z) ?? this.ground.heightAt(x, z);
+  groundAt(x: number, z: number, y?: number): number {
+    return this.surfaceHeightAt(x, z, y) ?? this.ground.heightAt(x, z);
   }
 
   /** Terrain normal y (1 = flat). Man-made surfaces count as flat. */
-  slopeAt(x: number, z: number): number {
-    if (this.surfaceHeightAt(x, z) !== null) return 1;
+  slopeAt(x: number, z: number, y?: number): number {
+    if (this.surfaceHeightAt(x, z, y) !== null) return 1;
     return this.ground.normalAt(x, z, this.normal)[1] ?? 1;
   }
 
@@ -122,10 +132,10 @@ export class CollisionWorld {
     return this.waves ? this.waves.heightAt(x, z, t) : 0;
   }
 
-  surfaceAt(x: number, z: number, t = 0): SurfaceKind {
+  surfaceAt(x: number, z: number, t = 0, y?: number): SurfaceKind {
     const g = this.ground.heightAt(x, z);
     for (const s of this.surfaces) {
-      const sh = s.heightAt(x, z);
+      const sh = s.heightAt(x, z, y);
       if (sh !== null && sh >= g - 0.05) return typeof s.kind === 'function' ? s.kind(x, z) : s.kind;
     }
     if (this.waterAt(x, z, t) - g > 0.12) return 'water';
@@ -136,16 +146,17 @@ export class CollisionWorld {
 
   /**
    * Pushes a circle (x, z, r) out of every obstacle it overlaps, writing the result into `p`.
-   * Returns true if anything was hit. Up to three passes settle corners between neighbours.
+   * Returns true if anything was hit. Up to three passes settle corners between neighbours. With
+   * the walker's feet `y`, colliders that span other heights (`y0`/`y1`) let it pass.
    */
-  pushOut(p: { x: number; z: number }, r: number): boolean {
+  pushOut(p: { x: number; z: number }, r: number, y?: number): boolean {
     let hit = false;
     for (let pass = 0; pass < 3; pass++) {
       const b = this.cellAt(p.x, p.z);
       let moved = false;
       if (b) {
-        for (const c of b.circles) moved = pushCircle(p, r, c) || moved;
-        for (const box of b.boxes) moved = pushBox(p, r, box) || moved;
+        for (const c of b.circles) if (spans(c, y)) moved = pushCircle(p, r, c) || moved;
+        for (const box of b.boxes) if (spans(box, y)) moved = pushBox(p, r, box) || moved;
       }
       for (const c of this.dynamic) moved = pushCircle(p, r, c) || moved;
       hit ||= moved;
@@ -191,10 +202,18 @@ export class CollisionWorld {
     for (const box of b.boxes) {
       const [lx, lz] = toLocal(box, x, z);
       if (Math.abs(lx) > box.hx + pad || Math.abs(lz) > box.hz + pad) continue;
-      if (y < this.ground.heightAt(box.x, box.z) + (box.height ?? 9)) return true;
+      if (box.y1 !== undefined) {
+        if (y >= (box.y0 ?? -Infinity) - pad && y <= box.y1 + pad) return true;
+      } else if (y < this.ground.heightAt(box.x, box.z) + (box.height ?? 9)) return true;
     }
     return false;
   }
+}
+
+/** Whether a collider spans the walker's feet `y` (always, without a span or a `y`). */
+function spans(c: { y0?: number; y1?: number }, y: number | undefined): boolean {
+  if (y === undefined || c.y1 === undefined) return true;
+  return y >= (c.y0 ?? -Infinity) && y <= c.y1;
 }
 
 const local: [number, number] = [0, 0];

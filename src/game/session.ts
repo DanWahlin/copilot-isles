@@ -53,6 +53,8 @@ import { createCrateYardSite } from '../world/sites/crate-yard';
 import { createThreeHelms, type HelmsHost } from './puzzles/three-helms';
 import { createHelmBuoys } from '../world/sites/helm-buoys';
 import { loadVillageKit } from '../world/village';
+import { insideLighthouse, lighthouseLevels } from '../world/village/lighthouse-stair';
+import { starfishCount } from '../world/starfish/spots';
 import { MERIDIAN_YARD } from '../world/sites/crate-yard-logic';
 import { plankProgress, plankSurface, type PlankSpan } from './gangway';
 import { runScript, type ScriptStep } from './script';
@@ -121,7 +123,10 @@ export interface GameSession {
   where(): { x: number; z: number; heading: number; onShip: boolean; place: string };
   /** Dev/test hooks. */
   readonly debug: {
-    teleport(x: number, z: number, heading?: number): void;
+    /** The starfish to collect (tests). */
+    starfish(): { id: string; island: string; x: number; z: number; y?: number }[];
+    /** `y` picks the level where walk surfaces stack (the lighthouse stair). */
+    teleport(x: number, z: number, heading?: number, y?: number): void;
     board(): Promise<void>;
     dock(): void;
     state(): Record<string, unknown>;
@@ -1702,6 +1707,96 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   if (o.quiet) learn?.progress.add('arrivals', berth.id);
   else if (firstLandfall()) startArrival(arrivalFlight(berth.arrival, !!o.fromChart), true);
 
+  // The lighthouse stair (Dan: walk up to the top): the follow camera can't fit in the shaft, so
+  // on the steps a guide shot looks down at you from a few steps up, and forward runs up the stair
+  // (W climbs, S goes down). On the ground floor and in the watch room the follow camera is back.
+  const stairShot: CameraShot = { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 };
+  const stairLevels = lighthouseLevels();
+  const guideStairCamera = (): void => {
+    const L = COVE.lighthouse;
+    const r = Math.hypot(player.x - L.x, player.z - L.z);
+    const onStair =
+      insideLighthouse(player.x, player.y, player.z) &&
+      player.y > stairLevels.floor + 0.1 &&
+      player.y < stairLevels.deck - 0.3;
+    const onGallery = r > 1.5 && r < 3.3 && player.y > stairLevels.deck - 0.3;
+    if ((!onStair && !onGallery) || (cam.framing && !cam.guided)) {
+      if (cam.guided) cam.guide(null);
+      return;
+    }
+    const a = Math.atan2(player.x - L.x, player.z - L.z);
+    if (onGallery) {
+      // On the gallery the camera rides outside the railing a little behind you, looking along the
+      // walk with the sea beyond; W and S walk you round the tower.
+      const ca = a - 0.85;
+      stairShot.x = L.x + Math.sin(ca) * 5.2;
+      stairShot.z = L.z + Math.cos(ca) * 5.2;
+      stairShot.y = player.y + 2.2;
+      stairShot.tx = L.x + Math.sin(a + 0.1) * 4.6;
+      stairShot.ty = player.y + 0.7;
+      stairShot.tz = L.z + Math.cos(a + 0.1) * 4.6;
+      cam.guide(stairShot);
+      cam.yaw = a + Math.PI / 2 - 0.12;
+      return;
+    }
+    // From a few steps up, across the stairwell (clear of the newel), looking down at you.
+    const ca = a + 2.4;
+    stairShot.x = L.x + Math.sin(ca) * 1.22;
+    stairShot.z = L.z + Math.cos(ca) * 1.22;
+    stairShot.y = player.y + 2.3;
+    stairShot.tx = player.x;
+    stairShot.ty = player.y + 0.9;
+    stairShot.tz = player.z;
+    cam.guide(stairShot);
+    // Up the stair is the tangent toward higher steps, leaning a little in toward the newel.
+    cam.yaw = a + Math.PI / 2 + 0.1;
+  };
+
+  // Starfish to collect (Dan: "like Mario's stars"): walk into one to pick it up. Each pays five
+  // doubloons, and an island's last pays twenty more; the purse counts the island you're on.
+  const starfish = cove.starfish;
+  const starfishAt = new Vector3();
+  let starfishTold = '';
+  let starfishWalk = 0;
+  starfish.setFound(learn?.progress.data.starfish ?? []);
+  const updateStarfish = (dt: number): void => {
+    // The island under your feet (a chart jump or a teleport can land you on either).
+    const here = islandAt(player.x, player.z);
+    const name = ISLANDS[here].name;
+    learn?.setStarfishIsland(mode === 'walk' ? { id: here, name } : null);
+    if (mode !== 'walk' || !learn) return;
+    const ready = here === 'anchorage' || !!cove.meridian.town;
+    for (let i = 0; i < starfish.spots.length; i += 1) {
+      const sp = starfish.spots[i]!;
+      if (sp.island !== here) continue;
+      if (!starfish.grounded(i)) {
+        if (ready) starfish.setGround(i, world.groundAt(sp.x, sp.z, sp.y));
+        continue;
+      }
+      starfish.centre(i, starfishAt);
+      if (Math.hypot(player.x - starfishAt.x, player.z - starfishAt.z) > 1.1) continue;
+      if (Math.abs(player.y + 0.6 - starfishAt.y) > 1.3) continue;
+      const got = learn.collectStarfish(sp.id, sp.island);
+      if (!got) continue;
+      starfish.setFound(learn.progress.data.starfish);
+      audio?.sfx.oneShot('chime_solve', starfishAt, 0.7);
+      hud.toast(
+        got.complete
+          ? `You found all ${got.total} starfish on ${name}! +${got.earned} doubloons`
+          : `Starfish! ${got.found} of ${got.total} on ${name}. +${got.earned} doubloons`,
+        4,
+      );
+    }
+    // Tells you once a visit, after a little walking, how many hide here (until you've found one).
+    if (starfishTold === here || dialogue.active || scriptRunning || cam.framing) return;
+    if ((starfishWalk += dt) < 20) return;
+    starfishTold = here;
+    starfishWalk = 0;
+    const { found, total } = starfishCount(here, learn.progress.data.starfish);
+    if (found === 0)
+      hud.toast(`${total} starfish hide on ${name}. Can you find them all? Your count's by the purse.`, 6);
+  };
+
   const listenerPos = { x: 0, y: 0, z: 0 };
   const listenerFwd = { x: 0, y: 0, z: -1 };
 
@@ -1809,6 +1904,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
           const focus = interactions.update(player.x, player.y, player.z, player.heading);
           hud.setPrompt(dialogue.active || anyTalking() ? null : (focus?.label() ?? null));
+          guideStairCamera();
+          updateStarfish(dt);
           cam.update(dt, camera, s, player, player.heading, sp > 0.3, world, t);
           // Up the plank to the rail, and she's yours: over the side to the helm.
           if (gangwayDown && !dialogue.active && !scriptRunning) {
@@ -1994,8 +2091,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     camera: cam,
     npcs,
     debug: {
-      teleport(x, z, heading = player.heading) {
-        player.teleport(world, x, z, heading);
+      starfish: () => starfish.spots.map((sp) => ({ ...sp })),
+      teleport(x, z, heading = player.heading, y) {
+        player.teleport(world, x, z, heading, y);
         cam.snapBehind(heading);
       },
       board,

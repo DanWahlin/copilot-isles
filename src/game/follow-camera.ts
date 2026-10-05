@@ -93,6 +93,7 @@ export class FollowCamera {
   private readonly switched: CameraShot = { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 };
   private switchMix = 1;
   private readonly lastLook = { x: 0, y: 0, z: 0 };
+  private guiding = false;
 
   /**
    * Holds a framed shot (the christening's look at the bow) until cleared with null, easing in and
@@ -101,6 +102,7 @@ export class FollowCamera {
    * is followed exactly.
    */
   frame(shot: CameraShot | null): void {
+    this.guiding = false;
     if (shot && this.held && shot !== this.held && this.shotMix > 0) {
       this.switchFrom.x = this.last.x;
       this.switchFrom.y = this.last.y;
@@ -148,9 +150,25 @@ export class FollowCamera {
     return out;
   }
 
-  /** Whether a held shot is on screen (or still easing out). */
+  /**
+   * A guide shot for tight spaces (the lighthouse stair): held like `frame`, but it isn't a story
+   * beat, so it doesn't count as `framing` (the HUD stays). Mutate the same shot each frame; null
+   * eases back to the follow camera. A `frame` call takes over.
+   */
+  guide(shot: CameraShot | null): void {
+    if (!shot && !this.guiding) return;
+    this.frame(shot);
+    this.guiding = true;
+  }
+
+  /** Whether a guide shot holds the camera. */
+  get guided(): boolean {
+    return this.guiding && this.shot !== null;
+  }
+
+  /** Whether a held story shot is on screen (or still easing out). Guide shots don't count. */
   get framing(): boolean {
-    return this.shotMix > 0;
+    return this.shotMix > 0 && !this.guiding;
   }
 
   setRig(rig: CameraRig, snap = false): void {
@@ -280,7 +298,10 @@ export class FollowCamera {
       lx += (h.tx - lx) * e;
       ly += (h.ty - ly) * e;
       lz += (h.tz - lz) * e;
-    } else if (!this.shot) this.held = null;
+    } else if (!this.shot) {
+      this.held = null;
+      this.guiding = false;
+    }
 
     this.last.x = x;
     this.last.y = y;

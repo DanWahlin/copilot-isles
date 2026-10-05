@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent, type WheelEvent } from 'react';
+import { STARFISH } from '../../world/starfish/spots';
+import { StarfishLog } from './Starfish';
 import { GLOSSARY, IMAGES, PAGES, courseUrl, imageUrl } from '../../learn/content/index';
 import type { LearnState, LearnStore, LogbookTab, RevealFrom } from '../../learn/store';
 import type { Page } from '../../learn/types';
@@ -183,6 +185,7 @@ const TABS: { id: LogbookTab; label: string }[] = [
   { id: 'pages', label: 'Pages' },
   { id: 'glossary', label: 'Glossary' },
   { id: 'quests', label: 'Quests' },
+  { id: 'starfish', label: 'Starfish' },
 ];
 
 export function Logbook({ store, state }: { store: LearnStore; state: LearnState }) {
@@ -233,6 +236,11 @@ export function Logbook({ store, state }: { store: LearnStore; state: LearnState
               {t.id === 'glossary' && (
                 <small>
                   {state.glossary.length}/{GLOSSARY.size}
+                </small>
+              )}
+              {t.id === 'starfish' && (
+                <small>
+                  {STARFISH.filter((f) => state.starfish.includes(f.id)).length}/{STARFISH.length}
                 </small>
               )}
             </button>
@@ -288,6 +296,9 @@ export function Logbook({ store, state }: { store: LearnStore; state: LearnState
                 ),
               )}
             </dl>
+          )}
+          {tab === 'starfish' && (
+            <StarfishLog found={state.starfish} here={state.starfishIsland?.id ?? null} />
           )}
           {tab === 'quests' && (
             <ul className="ci-quests">

@@ -1,9 +1,15 @@
 import { CHESTS, GLOSSARY, PAGES, QUIZZES, TRIALS } from './content/index';
 import { grade, type Answer, type Grade } from './grade';
 import { Progress } from './progress';
+import {
+  STARFISH_REWARD,
+  STARFISH_SET_REWARD,
+  starfishCount,
+  type StarfishIsland,
+} from '../world/starfish/spots';
 import type { Page, Quiz } from './types';
 
-export type LogbookTab = 'pages' | 'glossary' | 'quests';
+export type LogbookTab = 'pages' | 'glossary' | 'quests' | 'starfish';
 
 export interface Tracker {
   island: string;
@@ -55,6 +61,9 @@ export interface LearnState {
   quests: readonly { id: string; title: string; detail: string; done: boolean }[];
   /** The on-screen task tracker (island goal + key tasks), or null when there's no quest line. */
   tracker: Tracker | null;
+  /** Starfish found anywhere, and the island you're on (for the purse's counter), or null at sea. */
+  starfish: readonly string[];
+  starfishIsland: { id: StarfishIsland; name: string } | null;
   /** The saved sail palette (Paint Your Sails), or null for the default. */
   sails: string | null;
   /** The palette stand's theme picker while it's open; `selected` previews on the sails. */
@@ -101,6 +110,8 @@ export class LearnStore {
       glossary: progress.data.glossary.slice(),
       quests: [],
       tracker: null,
+      starfish: progress.data.starfish.slice(),
+      starfishIsland: null,
       sails: progress.data.sails,
       palette: null,
       cinematic: false,
@@ -338,6 +349,32 @@ export class LearnStore {
     this.set({ sails: id });
   };
 
+  // ---- Starfish ----
+
+  /** The island the purse counts starfish for (null hides the counter). */
+  setStarfishIsland = (island: { id: StarfishIsland; name: string } | null): void => {
+    const cur = this.state.starfishIsland;
+    if (cur?.id === island?.id) return;
+    this.set({ starfishIsland: island });
+  };
+
+  /**
+   * Picks up a starfish: saves it and pays its doubloons, plus a bonus for the island's last one.
+   * Returns the island's count after it, or null if it was already found.
+   */
+  collectStarfish = (
+    id: string,
+    island: StarfishIsland,
+  ): { found: number; total: number; earned: number; complete: boolean } | null => {
+    if (!this.progress.add('starfish', id)) return null;
+    const count = starfishCount(island, this.progress.data.starfish);
+    const complete = count.found === count.total;
+    const earned = STARFISH_REWARD + (complete ? STARFISH_SET_REWARD : 0);
+    this.progress.addDoubloons(earned);
+    this.set({ starfish: this.progress.data.starfish.slice(), doubloons: this.progress.data.doubloons });
+    return { ...count, earned, complete };
+  };
+
   // ---- Logbook ----
 
   openLogbook = (tab: LogbookTab = this.state.logbook.tab, page: string | null = null): void => {
@@ -404,6 +441,7 @@ export class LearnStore {
       glossary: [],
       quests: [],
       tracker: null,
+      starfish: [],
       sails: null,
       logbookOpened: false,
     });

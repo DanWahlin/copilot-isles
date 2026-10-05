@@ -3,6 +3,7 @@ import { tierSettings } from '../../engine/quality';
 import type { HeightField } from '../contracts';
 import { COVE } from '../layout';
 import { SQUARE, VILLAGE_BUILDING_COUNT, createVillage, walkable } from './index';
+import { LIGHTHOUSE } from './lighthouse-stair';
 
 const heightField: HeightField = {
   heightAt: (x, z) => 3.05 + (x + 150) * 0.006 + (z + 75) * 0.004,
@@ -64,10 +65,10 @@ describe('createVillage', () => {
     // The point lighthouse's gallery railing (eight) and its dome finial, well above the knoll.
     const lh = COVE.lighthouse;
     const railing = village.perches.filter(
-      (p) => Math.abs(Math.hypot(p.x - lh.x, p.z - lh.z) - 2.68) < 0.01 && p.y > lh.top + 16,
+      (p) => Math.abs(Math.hypot(p.x - lh.x, p.z - lh.z) - LIGHTHOUSE.railR) < 0.01 && p.y > lh.top + 16,
     );
     expect(railing.length).toBe(8);
-    expect(village.perches.some((p) => p.x === lh.x && p.z === lh.z && p.y > lh.top + 20)).toBe(true);
+    expect(village.perches.some((p) => p.x === lh.x && p.z === lh.z && p.y > lh.top + 22)).toBe(true);
     const stallR = SQUARE.radius + 2.2;
     const stallX = COVE.village.center.x + Math.cos(SQUARE.stallAngle) * stallR;
     const stallZ = COVE.village.center.z + Math.sin(SQUARE.stallAngle) * stallR;
@@ -127,9 +128,11 @@ describe('createVillage', () => {
     // The door faces down the ridge path, toward the quay's west end.
     const toNeck = Math.atan2(lh.neck.x - lh.x, lh.neck.z - lh.z);
     expect(Math.abs(door.heading - toNeck)).toBeLessThan(1e-6);
-    expect(village.colliders.circles.some((c) => c.x === lh.x && c.z === lh.z && (c.height ?? 0) > 18)).toBe(
-      true,
+    // Hollow: the walls are boxes that span the tower's heights (it's climbable, see lighthouse-stair).
+    const walls = village.colliders.boxes.filter(
+      (b) => Math.hypot(b.x - lh.x, b.z - lh.z) < LIGHTHOUSE.plinthR && (b.y1 ?? 0) > lh.top + 15,
     );
+    expect(walls.length).toBeGreaterThan(20);
     expect(village.shipObstacles.some((c) => c.x === lh.x && c.z === lh.z && c.r >= 12)).toBe(true);
     // The lookout keeps watch from the gallery.
     expect(village.anchors.lookout!.y).toBeGreaterThan(lh.top + 15);

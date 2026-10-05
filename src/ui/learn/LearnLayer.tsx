@@ -5,6 +5,7 @@ import { SoundButton } from '../SoundButton';
 import { Logbook, PageReveal, Spyglass } from './PageViews';
 import { QuestTracker } from './QuestTracker';
 import { QuizPanel } from './QuizPanel';
+import { StarfishCount } from './Starfish';
 import { ThemePicker } from './ThemePicker';
 import './learn.css';
 
@@ -69,6 +70,7 @@ function LearnLayer({
           <span className="ci-coin" aria-label={`${s.doubloons} doubloons`}>
             {s.doubloons}
           </span>
+          {s.starfishIsland && <StarfishCount island={s.starfishIsland} found={s.starfish} />}
           {/* Glows from the first page until the player has opened the Logbook once. */}
           <span className={`ci-purse-hint${!s.logbookOpened && s.pages.length > 0 ? ' nudge' : ''}`}>
             <kbd>J</kbd> Logbook

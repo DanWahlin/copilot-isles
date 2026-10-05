@@ -27,6 +27,12 @@ export interface CircleObstacle {
   r: number;
   /** Top height above the ground, for camera sight lines (big circles default to tall); walking ignores it. */
   height?: number;
+  /**
+   * World heights the collider spans (a tower's walls, a gallery railing). A walker whose feet are
+   * outside [y0, y1] passes it; without them the collider blocks at every height.
+   */
+  y0?: number;
+  y1?: number;
 }
 
 /** The shared wind field (CPU side; the GPU side is built from the same constants in wind.ts). */

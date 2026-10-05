@@ -151,8 +151,8 @@ function StartOver({ bridge }: { bridge: GameBridge }) {
   return (
     <div className="ci-start-over confirming" role="group" aria-labelledby="ci-start-over-q">
       <p id="ci-start-over-q" className="ci-start-over-q" role="alert">
-        Start over? This erases your voyage: quests, pages, doubloons, and your captain and ship names. Your
-        settings stay. You can't undo this.
+        Start over? This erases your voyage: quests, pages, doubloons, starfish, and your captain and ship
+        names. Your settings stay. You can't undo this.
       </p>
       <div className="ci-start-over-actions">
         <button

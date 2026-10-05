@@ -31,10 +31,25 @@ import { packs } from '../../engine/packs';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle, HeightField } from '../contracts';
 import { COVE } from '../layout';
+import { wrapAngle } from '../../util/math';
 import { createLighthouseHaloMaterial, createLighthouseLitMaterial } from '../lighthouse-lamp';
 import { coloredIndexedGeometry } from '../sites/geo';
 import { WaterStrips } from '../sites/water';
 import type { PlantInstance } from '../vegetation/types';
+import {
+  FLOOR_LANDING_FROM,
+  LIGHTHOUSE,
+  LIGHTHOUSE_DECK,
+  LIGHTHOUSE_DOOR_HEADING,
+  LIGHTHOUSE_GALLERY,
+  LIGHTHOUSE_LANTERN,
+  STAIR_START,
+  TREAD_ANGLE,
+  WATCH_DOOR_HEADING,
+  WATCH_FLOOR,
+  lighthouseWalkable,
+  treadTop,
+} from './lighthouse-stair';
 import {
   PALM_TRUNK_RADIUS,
   PLANTER,
@@ -79,6 +94,9 @@ export interface VillageBoxCollider {
   hz: number;
   rot: number;
   height?: number;
+  /** World heights it spans (the lighthouse's walls); a walker outside them passes. */
+  y0?: number;
+  y1?: number;
 }
 
 export interface VillageAnchor {
@@ -103,7 +121,7 @@ export interface VillageSystem {
   colliders: { circles: CircleObstacle[]; boxes: VillageBoxCollider[] };
   shipObstacles: CircleObstacle[];
   perches: Vector3[];
-  walkable: (x: number, z: number) => number | null;
+  walkable: (x: number, z: number, y?: number) => number | null;
   anchors: Record<string, VillageAnchor>;
   metrics: VillageMetrics;
   /** Hand-placed village palms and plants for the vegetation's instanced batches (`extraPlants`). */
@@ -691,7 +709,9 @@ export async function createVillage({
   };
 }
 
-export function walkable(x: number, z: number): number | null {
+export function walkable(x: number, z: number, y?: number): number | null {
+  const tower = lighthouseWalkable(x, z, y);
+  if (tower !== null) return tower;
   // Door stairs first: they stand on the quay and streets, so they're the higher surface there.
   for (const span of stairSpans) {
     const h = stairsHeightAt(span, x, z);
@@ -2909,24 +2929,20 @@ function boxClearance(x: number, z: number, b: VillageBoxCollider): number {
   return lx <= 0 && lz <= 0 ? Math.max(lx, lz) : Math.hypot(Math.max(0, lx), Math.max(0, lz));
 }
 
-/** Where the point lighthouse's door faces: down its ridge path toward the quay. */
-const LIGHTHOUSE_DOOR_HEADING = Math.atan2(
-  COVE.lighthouse.neck.x - COVE.lighthouse.x,
-  COVE.lighthouse.neck.z - COVE.lighthouse.z,
-);
-const LIGHTHOUSE_TOWER = { height: 15, rBottom: 2.45, rTop: 1.7, plinth: 0.84 } as const;
-/** Height of the gallery deck above the knoll top. */
-const LIGHTHOUSE_GALLERY = LIGHTHOUSE_TOWER.plinth + LIGHTHOUSE_TOWER.height;
 const LIGHTHOUSE_RED = 0xb3362b;
-/** The ridge path's slabs start this far from the tower's axis (just past the door step). */
-const LIGHTHOUSE_PATH_START = LIGHTHOUSE_TOWER.rBottom + 1.8;
+/** The ridge path's slabs start this far from the tower's axis (past the door step). */
+const LIGHTHOUSE_PATH_START = LIGHTHOUSE.plinthR + 1.0;
 const LIGHTHOUSE_WHITE = 0xf1ede2;
+/** The whitewash inside the tower. */
+const LIGHTHOUSE_LIMEWASH = 0xe6dfcd;
 
 /**
  * The point lighthouse (PLAN §4: Anchorage's "little point lighthouse") on the rocky knoll at the
- * harbour's west jaw: a tapered white tower with red bands, a railed gallery, a glazed lantern room
- * and a red dome, about 21 m tall. Everything merges into the village's material buckets, so it
- * adds no draws or shader programs. The lit lamp for the Seal is a separate hidden group.
+ * harbour's west jaw: a tapered white tower with red bands, a watch room with a door onto a railed
+ * gallery, a glazed lantern room and a red dome, about 23 m tall. It's hollow: the door opens on 76
+ * stone steps that wind up round an iron newel to the watch room (Dan: walk in and up to the top;
+ * see lighthouse-stair.ts). Everything merges into the village's material buckets, so it adds no
+ * draws or shader programs. The lit lamp for the Seal is a separate hidden group.
  */
 function addLighthouse(
   buckets: Record<MaterialKey, BufferGeometry[]>,
@@ -2938,17 +2954,34 @@ function addLighthouse(
   low: boolean,
 ): void {
   const L = COVE.lighthouse;
-  const T = LIGHTHOUSE_TOWER;
+  const T = LIGHTHOUSE;
   const { x, z } = L;
   const base = L.top;
   const hd = LIGHTHOUSE_DOOR_HEADING;
   const seg = low ? 16 : 24;
   const fx = Math.sin(hd);
   const fz = Math.cos(hd);
+  const floor = base + T.plinth;
+  const g = base + LIGHTHOUSE_GALLERY;
+  const deck = base + LIGHTHOUSE_DECK;
+  const lan = base + LIGHTHOUSE_LANTERN;
+  const doorH = 2.3;
+  const at = (a: number, r: number) => ({ x: x + Math.sin(a) * r, z: z + Math.cos(a) * r });
 
-  // Plinth and a ring of flagstones on the knoll top.
+  // Plinth and a ring of flagstones on the knoll top. The plinth's top is the ground floor.
   addCylinder(buckets.stone, x, base - 0.7, z, 3.0, 3.35, 1.4, 12, Math.PI / 12, 0x9a9180);
-  addCylinder(buckets.stone, x, base + 0.7, z, 3.08, 3.08, 0.14, 12, Math.PI / 12, 0xb9b09b);
+  addCylinder(
+    buckets.stone,
+    x,
+    base + 0.7,
+    z,
+    T.plinthR - 0.02,
+    T.plinthR - 0.02,
+    0.14,
+    12,
+    Math.PI / 12,
+    0xb9b09b,
+  );
   const flags = low ? 10 : 16;
   for (let i = 0; i < flags; i += 1) {
     const a = (i / flags) * Math.PI * 2 + 0.1;
@@ -2958,67 +2991,61 @@ function addLighthouse(
     addBox(buckets.paving, fxp, fy, fzp, 1.35, 0.16, 1.05, -a, i % 2 ? 0xb3a68a : 0xc2b597);
   }
 
-  // The tower: six tapered bands, white at the foot and red under the gallery.
+  // The tower: six tapered bands, white at the foot and red under the gallery, open inside. The foot
+  // band leaves the doorway open.
   const bands = [3.0, 2.4, 2.4, 2.4, 2.4, 2.4];
-  let y = base + T.plinth;
-  const radiusAt = (h: number) => T.rBottom + (T.rTop - T.rBottom) * ((h - base - T.plinth) / T.height);
+  let y = floor;
+  const radiusAt = (h: number) => T.rBottom + (T.rTop - T.rBottom) * ((h - floor) / T.height);
+  const doorGap = Math.asin((T.doorHalf + 0.02) / T.rBottom);
   bands.forEach((h, i) => {
-    addCylinder(
-      buckets.plaster,
-      x,
-      y,
-      z,
-      radiusAt(y + h),
-      radiusAt(y),
-      h,
-      seg,
-      0,
-      i % 2 ? LIGHTHOUSE_RED : LIGHTHOUSE_WHITE,
-    );
+    const tint = i % 2 ? LIGHTHOUSE_RED : LIGHTHOUSE_WHITE;
+    if (i === 0) {
+      addShell(buckets.plaster, x, y, z, radiusAt(y + doorH), radiusAt(y), doorH, seg, tint, hd, doorGap);
+      addShell(buckets.plaster, x, y + doorH, z, radiusAt(y + h), radiusAt(y + doorH), h - doorH, seg, tint);
+    } else addShell(buckets.plaster, x, y, z, radiusAt(y + h), radiusAt(y), h, seg, tint);
     y += h;
   });
-  // Door (facing the path), its stone frame and step.
-  const doorR = T.rBottom - 0.02;
+  // The limewashed shaft inside, open at the door.
+  const innerGap = Math.asin((T.doorHalf + 0.02) / T.inner);
+  const shaftR = T.inner + 0.02;
+  addShell(buckets.plaster, x, floor, z, shaftR, shaftR, doorH, seg, LIGHTHOUSE_LIMEWASH, hd, innerGap);
+  addShell(buckets.plaster, x, floor + doorH, z, shaftR, shaftR, g - floor - doorH, seg, LIGHTHOUSE_LIMEWASH);
+  // The doorway through the wall: its reveals, lintel, a stone frame, the door swung back against
+  // the tower, and a step down to the knoll.
+  const depth = T.rBottom - T.inner;
+  const mid = (T.rBottom + T.inner) * 0.5;
+  for (const side of [-1, 1]) {
+    const p = localToWorld(x, z, hd, side * (T.doorHalf + 0.06), mid);
+    addBox(buckets.plaster, p.x, floor, p.z, 0.12, doorH, depth + 0.06, hd, LIGHTHOUSE_LIMEWASH);
+    const f = localToWorld(x, z, hd, side * (T.doorHalf + 0.14), T.rBottom + 0.02);
+    addBox(buckets.stone, f.x, floor - 0.05, f.z, 0.24, doorH + 0.2, 0.22, hd, 0xc2b8a2);
+  }
+  const lintel = localToWorld(x, z, hd, 0, mid);
   addBox(
-    buckets.stone,
-    x + fx * (doorR - 0.08),
-    base + T.plinth - 0.05,
-    z + fz * (doorR - 0.08),
-    1.55,
-    2.55,
-    0.3,
+    buckets.plaster,
+    lintel.x,
+    floor + doorH - 0.02,
+    lintel.z,
+    T.doorHalf * 2 + 0.2,
+    0.14,
+    depth + 0.06,
     hd,
-    0xc2b8a2,
+    LIGHTHOUSE_LIMEWASH,
   );
-  addBox(
-    buckets.wood,
-    x + fx * (doorR + 0.02),
-    base + T.plinth,
-    z + fz * (doorR + 0.02),
-    1.05,
-    2.15,
-    0.22,
-    hd,
-    0x5b3920,
-  );
-  addBox(
-    buckets.stone,
-    x + fx * (T.rBottom + 0.95),
-    base + 0.62,
-    z + fz * (T.rBottom + 0.95),
-    1.8,
-    0.22,
-    1.1,
-    hd,
-    0xb0a792,
-  );
-  // Small deep-set windows up the stair.
+  const head = localToWorld(x, z, hd, 0, T.rBottom + 0.02);
+  addBox(buckets.stone, head.x, floor + doorH + 0.1, head.z, T.doorHalf * 2 + 0.52, 0.24, 0.24, hd, 0xc2b8a2);
+  const leaf = localToWorld(x, z, hd, T.doorHalf + 0.62, Math.sqrt(T.rBottom ** 2 - 1.2 ** 2) + 0.14);
+  addBox(buckets.wood, leaf.x, floor, leaf.z, 1.05, 2.15, 0.12, hd + 0.5, 0x5b3920);
+  const step = localToWorld(x, z, hd, 0, T.plinthR + 0.4);
+  addBox(buckets.stone, step.x, base - 0.3, step.z, T.doorHalf * 2 + 0.5, 0.72, 0.8, hd, 0xb0a792);
+
+  // Small deep-set windows up the stair, with a pale reveal inside.
   for (const [h, da] of [
     [5.2, 1.7],
     [8.9, -0.9],
     [12.3, 2.6],
   ] as const) {
-    const wy = base + T.plinth + h;
+    const wy = floor + h;
     const r = radiusAt(wy + 0.4) - 0.04;
     const a = hd + da;
     addBox(buckets.wood, x + Math.sin(a) * r, wy, z + Math.cos(a) * r, 0.5, 0.85, 0.2, a, 0x2a2522);
@@ -3033,22 +3060,75 @@ function addLighthouse(
       a,
       0xd8d1c0,
     );
+    const w = at(a, T.inner - 0.01);
+    addBox(buckets.plaster, w.x, wy, w.z, 0.46, 0.8, 0.06, a, 0xcfe0e8);
   }
 
-  // Gallery: a flared corbel, the deck and a two-rail railing.
-  const g = base + LIGHTHOUSE_GALLERY;
-  addCylinder(buckets.plaster, x, g - 0.6, z, 2.6, T.rTop, 0.6, seg, 0, LIGHTHOUSE_WHITE);
-  addCylinder(buckets.metal, x, g, z, 2.8, 2.8, 0.2, seg, 0, 0x2e2c2a);
-  addTorus(buckets.metal, x, g + 1.1, z, 2.68, 0.05, seg, 0x2b2e30, Math.PI / 2, 0, 0);
-  if (!low) addTorus(buckets.metal, x, g + 0.62, z, 2.68, 0.03, seg, 0x2b2e30, Math.PI / 2, 0, 0);
-  const posts = low ? 10 : 16;
+  // The stair: 76 stone steps round an iron newel. The first turn's low steps are solid to the floor;
+  // above that each is a slab let into the wall.
+  const stepSeg = low ? 2 : 3;
+  for (let n = 0; n < T.treads; n += 1) {
+    const a0 = STAIR_START + n * TREAD_ANGLE;
+    const top = treadTop(n);
+    const bottom = n < FLOOR_LANDING_FROM ? floor : top - 0.16;
+    buckets.stone.push(
+      wedgeGeometry(
+        x,
+        z,
+        a0,
+        a0 + TREAD_ANGLE * 1.02,
+        T.newel,
+        T.inner + 0.03,
+        bottom,
+        top,
+        stepSeg,
+        n % 2 ? 0xa59b86 : 0xb3a991,
+      ),
+    );
+  }
+  addCylinder(buckets.metal, x, floor, z, T.newel, T.newel + 0.04, deck - floor + 0.9, 10, 0, 0x34312d);
+  // The watch room's floor, over the turn below; the rest is the stairwell, railed along its edge.
+  const wf0 = STAIR_START + WATCH_FLOOR[0] * TREAD_ANGLE;
+  const wf1 = STAIR_START + WATCH_FLOOR[1] * TREAD_ANGLE;
+  buckets.wood.push(
+    wedgeGeometry(x, z, wf0, wf1, T.newel, T.inner + 0.03, deck - 0.14, deck, low ? 4 : 8, 0x7a5634),
+  );
+  const railA = wf1;
+  const rail = at(railA, (T.newel + T.inner) * 0.5);
+  addBox(buckets.metal, rail.x, deck + 0.95, rail.z, 0.05, 0.05, T.inner - T.newel, railA, 0x2b2e30);
+  const railPost = at(railA, T.inner - 0.1);
+  addBox(buckets.metal, railPost.x, deck, railPost.z, 0.05, 1.0, 0.05, railA, 0x2b2e30);
+  // Lanterns up the stair (they glow at night).
+  for (const h of [2.6, 7.4, 12.2]) {
+    const a = STAIR_START + ((h / T.rise - 1) / T.perTurn) * Math.PI * 2 + TREAD_ANGLE * 0.5;
+    const p = at(a, T.inner - 0.16);
+    addLanternFixture(buckets, p.x, floor + h + 1.7, p.z, a, 0.8);
+  }
+
+  // Gallery: a flared corbel, the deck (a ring, open over the stair) and a two-rail railing.
+  addRing(
+    buckets.plaster,
+    x,
+    g - 0.6,
+    z,
+    T.inner + 0.02,
+    T.rTop,
+    T.galleryR - 0.25,
+    0.6,
+    seg,
+    LIGHTHOUSE_WHITE,
+  );
+  addRing(buckets.metal, x, g, z, T.inner + 0.02, T.galleryR, T.galleryR, 0.2, seg, 0x2e2c2a);
+  addTorus(buckets.metal, x, deck + 0.9, z, T.railR, 0.05, seg + 8, 0x2b2e30, Math.PI / 2, 0, 0);
+  if (!low) addTorus(buckets.metal, x, deck + 0.42, z, T.railR, 0.03, seg + 8, 0x2b2e30, Math.PI / 2, 0, 0);
+  const posts = low ? 12 : 20;
   for (let i = 0; i < posts; i += 1) {
     const a = (i / posts) * Math.PI * 2;
     addCylinder(
       buckets.metal,
-      x + Math.cos(a) * 2.68,
-      g + 0.2,
-      z + Math.sin(a) * 2.68,
+      x + Math.cos(a) * T.railR,
+      deck,
+      z + Math.sin(a) * T.railR,
       0.04,
       0.04,
       0.92,
@@ -3058,15 +3138,73 @@ function addLighthouse(
     );
   }
 
+  // The watch room: a white drum on the deck with a door out to the gallery.
+  const watchGap = Math.asin((T.doorHalf + 0.02) / T.watchR);
+  const wd = WATCH_DOOR_HEADING;
+  const watchDoorH = 2.05;
+  addShell(buckets.plaster, x, deck, z, T.watchR, T.watchR, watchDoorH, seg, LIGHTHOUSE_WHITE, wd, watchGap);
+  addShell(
+    buckets.plaster,
+    x,
+    deck + watchDoorH,
+    z,
+    T.watchR,
+    T.watchR,
+    T.watchH - watchDoorH,
+    seg,
+    LIGHTHOUSE_WHITE,
+  );
+  addShell(
+    buckets.plaster,
+    x,
+    deck,
+    z,
+    T.inner + 0.02,
+    T.inner + 0.02,
+    watchDoorH,
+    seg,
+    LIGHTHOUSE_LIMEWASH,
+    wd,
+    innerGap,
+  );
+  addShell(
+    buckets.plaster,
+    x,
+    deck + watchDoorH,
+    z,
+    T.inner + 0.02,
+    T.inner + 0.02,
+    T.watchH - watchDoorH,
+    seg,
+    LIGHTHOUSE_LIMEWASH,
+  );
+  for (const side of [-1, 1]) {
+    const p = localToWorld(x, z, wd, side * (T.doorHalf + 0.05), (T.watchR + T.inner) * 0.5);
+    addBox(buckets.metal, p.x, deck, p.z, 0.1, watchDoorH, T.watchR - T.inner + 0.06, wd, 0x2b2e30);
+  }
+  const watchHead = localToWorld(x, z, wd, 0, (T.watchR + T.inner) * 0.5);
+  addBox(
+    buckets.metal,
+    watchHead.x,
+    deck + watchDoorH - 0.06,
+    watchHead.z,
+    T.doorHalf * 2 + 0.2,
+    0.12,
+    T.watchR - T.inner + 0.06,
+    wd,
+    0x2b2e30,
+  );
+  addCylinder(buckets.metal, x, lan - 0.18, z, T.watchR + 0.12, T.watchR + 0.12, 0.18, seg, 0, 0x2b2e30);
+
   // Lantern room: a red wall, the glazing (dark by day, warm at night), glazing bars, and the dome.
-  addCylinder(buckets.plaster, x, g + 0.2, z, 1.52, 1.58, 0.75, 16, 0, LIGHTHOUSE_RED);
-  addCylinder(buckets.glow, x, g + 0.95, z, 1.38, 1.38, 1.9, 16, 0, 0xffd28a);
+  addCylinder(buckets.plaster, x, lan, z, 1.52, 1.58, 0.75, 16, 0, LIGHTHOUSE_RED);
+  addCylinder(buckets.glow, x, lan + 0.75, z, 1.38, 1.38, 1.9, 16, 0, 0xffd28a);
   for (let i = 0; i < 8; i += 1) {
     const a = (i / 8) * Math.PI * 2 + Math.PI / 16;
     addBox(
       buckets.metal,
       x + Math.cos(a) * 1.41,
-      g + 0.95,
+      lan + 0.75,
       z + Math.sin(a) * 1.41,
       0.08,
       1.9,
@@ -3075,17 +3213,17 @@ function addLighthouse(
       0x23272a,
     );
   }
-  addCylinder(buckets.metal, x, g + 2.85, z, 1.64, 1.6, 0.18, 16, 0, 0x2b2e30);
+  addCylinder(buckets.metal, x, lan + 2.65, z, 1.64, 1.6, 0.18, 16, 0, 0x2b2e30);
   const dome = new SphereGeometry(1.62, 16, 6, 0, Math.PI * 2, 0, Math.PI / 2);
-  transform(dome, x, g + 3.0, z, 0, 0, 0, 1, 0.82, 1);
+  transform(dome, x, lan + 2.8, z, 0, 0, 0, 1, 0.82, 1);
   paint(dome, 0x9b2c22);
   buckets.metal.push(dome);
-  addCylinder(buckets.metal, x, g + 4.2, z, 0.2, 0.3, 0.42, 8, 0, 0x7f241c);
+  addCylinder(buckets.metal, x, lan + 4.0, z, 0.2, 0.3, 0.42, 8, 0, 0x7f241c);
   const ball = new SphereGeometry(0.2, 8, 6);
-  transform(ball, x, g + 4.82, z, 0, 0, 0, 1, 1, 1);
+  transform(ball, x, lan + 4.62, z, 0, 0, 0, 1, 1, 1);
   paint(ball, 0x2b2e30);
   buckets.metal.push(ball);
-  addCylinder(buckets.metal, x, g + 4.95, z, 0.025, 0.035, 0.9, 4, 0, 0x2b2e30);
+  addCylinder(buckets.metal, x, lan + 4.75, z, 0.025, 0.035, 0.9, 4, 0, 0x2b2e30);
 
   // The ridge path: stepping slabs from the quay's west end up to the door step.
   const ex = L.neck.x - x;
@@ -3112,26 +3250,111 @@ function addLighthouse(
     );
   }
 
-  colliders.circles.push({ x, z, r: 3.35, height: LIGHTHOUSE_GALLERY + 5.6 });
+  addLighthouseColliders(colliders, floor, deck, lan);
   shipObstacles.push({ x, z, r: 12.5 });
   for (const t of [0.3, 0.55, 0.8]) shipObstacles.push({ x: x + ex * t, z: z + ez * t, r: 6.5 });
 
   for (let i = 0; i < 8; i += 1) {
     const a = (i / 8) * Math.PI * 2 + 0.2;
-    perches.push(new Vector3(x + Math.cos(a) * 2.68, g + 1.16, z + Math.sin(a) * 2.68));
+    perches.push(new Vector3(x + Math.cos(a) * T.railR, deck + 0.96, z + Math.sin(a) * T.railR));
   }
-  perches.push(new Vector3(x, g + 5.05, z));
+  perches.push(new Vector3(x, lan + 4.85, z));
 
-  const doorOut = T.rBottom + 0.9;
+  const doorOut = T.plinthR + 1.1;
   anchors.lighthouseDoor = { x: x + fx * doorOut, y: base, z: z + fz * doorOut, heading: hd };
-  // The lookout keeps watch from the gallery, on the seaward side.
+  // The lookout keeps watch from the gallery, on the seaward side, with his back to the watch room
+  // so you can pass along the railing on your way round.
   const watch = -2.35;
-  anchors.lookout = {
-    x: x + Math.sin(watch) * 2.15,
-    y: g + 0.2,
-    z: z + Math.cos(watch) * 2.15,
-    heading: watch,
+  const look = T.watchR + 0.36;
+  anchors.lookout = { x: x + Math.sin(watch) * look, y: deck, z: z + Math.cos(watch) * look, heading: watch };
+}
+
+/**
+ * The tower's walls as colliders that span only their heights, so you can walk the gallery above
+ * the shaft walls and climb inside them: the shaft's wall out to the plinth's edge (open at the
+ * door), the watch room's wall (open at its door), the gallery railing, and a rail along the
+ * stairwell's edge in the watch room. The newel blocks at every height.
+ */
+function addLighthouseColliders(
+  colliders: { circles: CircleObstacle[]; boxes: VillageBoxCollider[] },
+  floor: number,
+  deck: number,
+  lan: number,
+): void {
+  const L = COVE.lighthouse;
+  const T = LIGHTHOUSE;
+  const ring = (
+    r0: number,
+    r1: number,
+    n: number,
+    y0: number,
+    y1: number,
+    door: number | null,
+    half: number,
+  ) => {
+    const rc = (r0 + r1) * 0.5;
+    const hz = r1 * Math.tan(Math.PI / n) + 0.02;
+    for (let i = 0; i < n; i += 1) {
+      const a = (i / n) * Math.PI * 2;
+      if (door !== null && Math.abs(wrapAngle(a - door)) < half) continue;
+      colliders.boxes.push({
+        x: L.x + Math.sin(a) * rc,
+        z: L.z + Math.cos(a) * rc,
+        hx: hz,
+        hz: (r1 - r0) * 0.5,
+        rot: a,
+        height: y1 - L.top,
+        y0,
+        y1,
+      });
+    }
   };
+  const segA = (Math.PI * 2) / 24;
+  // The shaft wall, from the knoll to just under the deck. Its door is a corridor between two jambs.
+  const doorA = Math.asin(T.doorHalf / T.inner) + segA * 0.5;
+  ring(T.inner, T.plinthR, 24, L.top - 3, deck - 0.4, LIGHTHOUSE_DOOR_HEADING, doorA);
+  const reach = T.plinthR * Math.sin(doorA + segA * 0.5) + 0.1;
+  for (const side of [-1, 1]) {
+    const lateral = (T.doorHalf + reach) * 0.5;
+    const axial0 = Math.sqrt(T.inner ** 2 - T.doorHalf ** 2);
+    const p = localToWorld(L.x, L.z, LIGHTHOUSE_DOOR_HEADING, side * lateral, (axial0 + T.plinthR) * 0.5);
+    colliders.boxes.push({
+      x: p.x,
+      z: p.z,
+      hx: (reach - T.doorHalf) * 0.5,
+      hz: (T.plinthR - axial0) * 0.5,
+      rot: LIGHTHOUSE_DOOR_HEADING,
+      height: deck - 0.4 - L.top,
+      y0: L.top - 3,
+      y1: deck - 0.4,
+    });
+  }
+  // The watch room's wall, with its door, from the deck up to the lantern.
+  ring(
+    T.inner,
+    T.watchR,
+    24,
+    deck - 0.4,
+    lan,
+    WATCH_DOOR_HEADING,
+    Math.asin(T.doorHalf / T.inner) + segA * 0.5,
+  );
+  // The gallery railing (up to its top rail, so the camera can swing out over it).
+  ring(T.railR - 0.06, T.railR + 0.14, 32, deck - 0.4, deck + 0.95, null, 0);
+  // The rail along the stairwell's edge in the watch room.
+  const railA = STAIR_START + WATCH_FLOOR[1] * TREAD_ANGLE;
+  const rm = (T.newel + T.inner) * 0.5;
+  colliders.boxes.push({
+    x: L.x + Math.sin(railA) * rm,
+    z: L.z + Math.cos(railA) * rm,
+    hx: 0.05,
+    hz: (T.inner - T.newel) * 0.5,
+    rot: railA,
+    height: deck + 1 - L.top,
+    y0: deck - 0.3,
+    y1: deck + 2,
+  });
+  colliders.circles.push({ x: L.x, z: L.z, r: T.newel + 0.02, y0: floor - 1, y1: deck + 2 });
 }
 
 /**
@@ -3142,7 +3365,8 @@ function addLighthouse(
  */
 function createLighthouseLamp(): Group {
   const L = COVE.lighthouse;
-  const g = L.top + LIGHTHOUSE_GALLERY;
+  // The old lamp heights were set from the deck; the lantern now stands on the watch room.
+  const g = L.top + LIGHTHOUSE_LANTERN - 0.2;
   const group = new Group();
   group.name = 'anchorage-lighthouse-lamp';
   group.visible = false;
@@ -3189,7 +3413,7 @@ function updateLighthouseLamp(lamp: Group, camera: Camera): void {
   if (!lamp.visible) return;
   const halo = lamp.children[1]!;
   const L = COVE.lighthouse;
-  const y = L.top + LIGHTHOUSE_GALLERY + 1.9;
+  const y = L.top + LIGHTHOUSE_LANTERN + 1.7;
   lampToCamera.set(camera.position.x - L.x, 0, camera.position.z - L.z);
   const d = lampToCamera.length() || 1;
   halo.position.set(L.x + (lampToCamera.x / d) * 1.9, y, L.z + (lampToCamera.z / d) * 1.9);
@@ -3578,6 +3802,167 @@ function addCylinder(
   transform(geometry, x, y + h * 0.5, z, ry, 0, 0, 1, 1, 1);
   paint(geometry, colour);
   target.push(geometry);
+}
+
+/**
+ * An open-ended tapered tube (a hollow tower's shell), seen from both sides. With `gapAt` it leaves
+ * an opening `gapHalf` either side of that heading (a doorway).
+ */
+function addShell(
+  target: BufferGeometry[],
+  x: number,
+  y: number,
+  z: number,
+  rTop: number,
+  rBottom: number,
+  h: number,
+  segments: number,
+  colour: number,
+  gapAt = 0,
+  gapHalf = 0,
+): void {
+  const geometry = new CylinderGeometry(
+    rTop,
+    rBottom,
+    h,
+    segments,
+    1,
+    true,
+    gapAt + gapHalf,
+    Math.PI * 2 - gapHalf * 2,
+  );
+  transform(geometry, x, y + h * 0.5, z, 0, 0, 0, 1, 1, 1);
+  paint(geometry, colour);
+  target.push(geometry);
+}
+
+/** A flat ring in the XY plane facing +z (RingGeometry's layout, without pulling it into vendor-three). */
+function flatRing(rInner: number, rOuter: number, segments: number): BufferGeometry {
+  const n = segments + 1;
+  const pos = new Float32Array(n * 2 * 3);
+  const normal = new Float32Array(n * 2 * 3);
+  const uv = new Float32Array(n * 2 * 2);
+  for (let i = 0; i < n; i += 1) {
+    const a = (i / segments) * Math.PI * 2;
+    const c = Math.cos(a);
+    const s = Math.sin(a);
+    for (let k = 0; k < 2; k += 1) {
+      const r = k === 0 ? rInner : rOuter;
+      const v = i * 2 + k;
+      pos.set([c * r, s * r, 0], v * 3);
+      normal[v * 3 + 2] = 1;
+      uv.set([(c * r) / rOuter / 2 + 0.5, (s * r) / rOuter / 2 + 0.5], v * 2);
+    }
+  }
+  const index: number[] = [];
+  for (let i = 0; i < segments; i += 1) {
+    const a = i * 2;
+    index.push(a, a + 1, a + 3, a, a + 3, a + 2);
+  }
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(pos, 3));
+  geometry.setAttribute('normal', new BufferAttribute(normal, 3));
+  geometry.setAttribute('uv', new BufferAttribute(uv, 2));
+  geometry.setIndex(index);
+  return geometry;
+}
+
+/** A flat ring with walls (a gallery deck, a corbel): `rInner` straight, the outside flaring from `rBottom` to `rTop`. */
+function addRing(
+  target: BufferGeometry[],
+  x: number,
+  y: number,
+  z: number,
+  rInner: number,
+  rBottom: number,
+  rTop: number,
+  h: number,
+  segments: number,
+  colour: number,
+): void {
+  const top = flatRing(rInner, rTop, segments);
+  transform(top, x, y + h, z, 0, -Math.PI / 2, 0, 1, 1, 1);
+  const bottom = flatRing(rInner, rBottom, segments);
+  transform(bottom, x, y, z, 0, Math.PI / 2, 0, 1, 1, 1);
+  for (const g of [top, bottom]) {
+    paint(g, colour);
+    target.push(g);
+  }
+  addShell(target, x, y, z, rTop, rBottom, h, segments, colour);
+  addShell(target, x, y, z, rInner, rInner, h, segments, colour);
+}
+
+/**
+ * A stair step: a wedge between headings `a0` and `a1` (radians, (sin a, cos a)) from radius `r0`
+ * to `r1`, its top at `yTop` and its underside at `yBottom`, with flat faces.
+ */
+function wedgeGeometry(
+  cx: number,
+  cz: number,
+  a0: number,
+  a1: number,
+  r0: number,
+  r1: number,
+  yBottom: number,
+  yTop: number,
+  arcs: number,
+  colour: number,
+): BufferGeometry {
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const colors: number[] = [];
+  const indices: number[] = [];
+  const tint = new Color(colour);
+  const vertex = (a: number, r: number, y: number): number => {
+    const px = cx + Math.sin(a) * r;
+    const pz = cz + Math.cos(a) * r;
+    positions.push(px, y, pz);
+    uvs.push(px * 0.5 + y * 0.3, pz * 0.5 + y * 0.3);
+    colors.push(tint.r, tint.g, tint.b);
+    return positions.length / 3 - 1;
+  };
+  // A quad strip face from two rows of points; `flip` picks the winding so it faces out.
+  const face = (rows: [number, number, number][][], flip: boolean) => {
+    const a = rows[0]!.map(([ang, r, y]) => vertex(ang, r, y));
+    const b = rows[1]!.map(([ang, r, y]) => vertex(ang, r, y));
+    for (let i = 0; i < a.length - 1; i += 1) {
+      if (flip) indices.push(a[i]!, a[i + 1]!, b[i]!, b[i]!, a[i + 1]!, b[i + 1]!);
+      else indices.push(a[i]!, b[i]!, a[i + 1]!, b[i]!, b[i + 1]!, a[i + 1]!);
+    }
+  };
+  const arc = (r: number, y: number): [number, number, number][] =>
+    Array.from({ length: arcs + 1 }, (_v, i) => [a0 + ((a1 - a0) * i) / arcs, r, y]);
+  face([arc(r0, yTop), arc(r1, yTop)], false);
+  face([arc(r0, yBottom), arc(r1, yBottom)], true);
+  face([arc(r1, yBottom), arc(r1, yTop)], false);
+  face([arc(r0, yBottom), arc(r0, yTop)], true);
+  face(
+    [
+      [
+        [a0, r0, yBottom],
+        [a0, r1, yBottom],
+      ],
+      [
+        [a0, r0, yTop],
+        [a0, r1, yTop],
+      ],
+    ],
+    false,
+  );
+  face(
+    [
+      [
+        [a1, r0, yBottom],
+        [a1, r1, yBottom],
+      ],
+      [
+        [a1, r0, yTop],
+        [a1, r1, yTop],
+      ],
+    ],
+    true,
+  );
+  return coloredIndexedGeometry(positions, uvs, colors, indices);
 }
 
 function addTorus(
