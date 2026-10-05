@@ -59,4 +59,17 @@ describe('AdaptiveResolution', () => {
     run(a, 0.1, 500);
     expect(a.scale).toBe(0.9);
   });
+
+  it('only lowers the scale while raises are held', () => {
+    const a = new AdaptiveResolution({ targetFps: 60, warmupFrames: 0, windowFrames: 10 });
+    a.holdRaises(true);
+    run(a, 0.05, 10);
+    const dropped = a.scale;
+    expect(dropped).toBeLessThan(1);
+    run(a, 0.005, 60 * 30);
+    expect(a.scale).toBe(dropped);
+    a.holdRaises(false);
+    run(a, 0.005, 60 * 30);
+    expect(a.scale).toBeGreaterThan(dropped);
+  });
 });

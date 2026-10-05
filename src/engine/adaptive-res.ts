@@ -29,6 +29,7 @@ export class AdaptiveResolution {
   private holdUntil = 0;
   private locked = false;
   private paused = false;
+  private noRaise = false;
   /** Scale we last raised from, and how many times raising from it failed (exponential backoff). */
   private triedFrom = -1;
   private triedAt = 0;
@@ -51,6 +52,14 @@ export class AdaptiveResolution {
     this.paused = p;
     this.acc = 0;
     this.n = 0;
+  }
+
+  /**
+   * While on, the scale can still drop but never rises (a cutscene: a raise that can't hold the
+   * target halves the frame rate under vsync, which reads as judder).
+   */
+  holdRaises(on: boolean): void {
+    this.noRaise = on;
   }
 
   lock(scale: number | null): void {
@@ -86,7 +95,7 @@ export class AdaptiveResolution {
     if (avg > 1.25 * this.T && this.scale > this.min) {
       this.scale = Math.max(this.min, this.scale * (avg > 2.5 * this.T ? 0.84 : 0.92));
       this.holdUntil = this.clock + this.dropCooldown;
-    } else if (avg < 0.85 * this.T && this.scale < this.max) {
+    } else if (!this.noRaise && avg < 0.85 * this.T && this.scale < this.max) {
       const key = Math.round(this.scale * 100);
       if ((this.barredUntil.get(key) ?? 0) > this.clock) return false;
       this.triedFrom = key;

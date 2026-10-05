@@ -112,15 +112,14 @@ export class Engine {
   }
 
   /**
-   * Holds the resolution steady for a cutscene: caps the pixel ratio at `cap` and stops adaptive
-   * resolution from changing it (a mid-scene raise that can't hold 60 fps halves to 30 under vsync,
-   * which reads as judder). `null` lets go: the cap lifts and adaptive resolution resumes.
+   * Holds the resolution steady for a cutscene: caps the pixel ratio at `cap`, and adaptive
+   * resolution may lower the scale but not raise it (a mid-scene raise that can't hold 60 fps
+   * halves to 30 under vsync, which reads as judder). `null` lets go: the cap lifts and adaptive
+   * resolution raises again as usual.
    */
   holdResolution(cap: number | null): void {
     this.pixelCap = cap;
-    this.adaptive.lock(
-      cap === null ? (this.manualScale === null ? null : this.adaptive.scale) : this.adaptive.scale,
-    );
+    this.adaptive.holdRaises(cap !== null);
     this.resize();
   }
 
