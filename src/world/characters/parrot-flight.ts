@@ -172,6 +172,8 @@ export class ParrotFlight {
     this.root.add(this.pose);
     this.root.name = 'wingman flight';
     this.root.visible = false;
+    // Hidden until he flies: shown to the world's warm-up so his wings don't upload mid-flight.
+    this.root.userData.prewarm = true;
     scene.add(this.root);
   }
 

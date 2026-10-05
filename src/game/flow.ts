@@ -27,7 +27,7 @@ import type { GameSession } from './session';
 import { LearnStore } from '../learn/store';
 import type { Opening } from '../opening/opening';
 import { ANCHORAGE_ARRIVAL, arrivalFlight } from './arrivals';
-import { compileProgressively, warmProgressively } from '../engine/warm';
+import { compileProgressively, revealPrewarm, warmProgressively } from '../engine/warm';
 import { buildSlice, installBuildSlicer } from '../engine/build-slice';
 
 const SETTINGS_KEY = 'copilot-isles.settings.v1';
@@ -93,7 +93,9 @@ export interface GameFlowOptions {
   upgradePost?: (
     cove?: CoveScene,
     opts?: { warm?: boolean },
-  ) => Promise<{ compileObject(object: Object3D): Promise<void> } | null | undefined | void> | void;
+  ) => Promise<
+    { compileObject(object: Object3D): Promise<void>; warmOutput?(): void } | null | undefined | void
+  > | void;
 }
 
 /**
@@ -617,23 +619,39 @@ export class GameFlow implements GameBridge {
       const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
       // The world's pipelines build off-thread (compiled for the post's scene pass, nothing drawn), a
       // few milliseconds of main-thread work a frame, while the cabin holds its establishing shot.
-      await compileProgressively(
-        engine.scene,
-        (o) =>
-          Promise.all([
-            post ? post.compileObject(o) : engine.renderer.compileAsync(o, engine.camera, engine.scene),
-            cove.mirror?.compileObject(engine.renderer, engine.scene, o),
-          ]).then(() => undefined),
-        frame,
-      );
-      // Then what only a real draw builds (shadow passes, the post chain), behind the cabin.
-      opening.setDrawWorld(true);
-      // Small batches: each new shadow or post pipeline is built synchronously on its first draw.
-      await warmProgressively(engine.scene, frame, {
-        targetMs: 12,
-        startBatch: 3,
-        frameCost: () => engine.cpuMs,
-      });
+      // Objects that appear later (marked userData.prewarm) are shown for the warm, then hidden.
+      const hidePrewarm = revealPrewarm(engine.scene);
+      try {
+        await compileProgressively(
+          engine.scene,
+          (o) =>
+            Promise.all([
+              post ? post.compileObject(o) : engine.renderer.compileAsync(o, engine.camera, engine.scene),
+              cove.mirror?.compileObject(engine.renderer, engine.scene, o),
+            ]).then(() => undefined),
+          frame,
+        );
+        // The post chain's own quad first, in a frame of its own, then what only a real draw builds
+        // (shadow passes, instanced meshes on the pass path), behind the cabin.
+        post?.warmOutput?.();
+        engine.renderNow();
+        await frame();
+        opening.setDrawWorld(true);
+        // Small batches: each new shadow or post pipeline is built synchronously on its first draw.
+        await warmProgressively(engine.scene, frame, {
+          targetMs: 12,
+          startBatch: 3,
+          frameCost: () => engine.cpuMs,
+          solo: (o) => {
+            const m = o as Object3D & { isInstancedMesh?: boolean; count?: number };
+            if (!m.isInstancedMesh || !m.count) return false;
+            for (let p: Object3D | null = o; p; p = p.parent) if (!p.visible) return false;
+            return true;
+          },
+        });
+      } finally {
+        hidePrewarm();
+      }
       // The world's ready to be drawn without stalls: now the camera can move in to the chest.
       opening.release();
       report(0.96, 'Charting the approach');

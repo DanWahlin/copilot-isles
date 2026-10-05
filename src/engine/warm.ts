@@ -27,6 +27,11 @@ export async function warmProgressively(
     startBatch?: number;
     /** The last frame's own work (ms), e.g. the engine's CPU time; defaults to the frame interval. */
     frameCost?: () => number;
+    /**
+     * Objects that warm in a frame of their own (e.g. instanced meshes, whose real draw always builds
+     * a new program: three names their instance buffer by node id, so no earlier compile matches).
+     */
+    solo?: (obj: Object3D) => boolean;
   } = {},
 ): Promise<void> {
   const target = opts.targetMs ?? 45;
@@ -49,8 +54,15 @@ export async function warmProgressively(
   try {
     while (next < staged.length || previous.length) {
       for (const s of previous) s.obj.frustumCulled = s.culled;
-      const current = staged.slice(next, next + batch);
-      next += current.length;
+      const current: Staged[] = [];
+      while (next < staged.length && current.length < batch) {
+        const s = staged[next]!;
+        const alone = opts.solo?.(s.obj) ?? false;
+        if (alone && current.length > 0) break;
+        current.push(s);
+        next++;
+        if (alone) break;
+      }
       for (const s of current) {
         s.obj.layers.mask = s.mask;
         s.obj.frustumCulled = false;
@@ -119,4 +131,22 @@ export async function compileProgressively(
   }
   await Promise.all(pending);
   return { objects: objects.length, frames, worstMs: worst };
+}
+
+/**
+ * Shows the hidden objects under `root` marked `userData.prewarm` (things that appear later, such
+ * as the parrot's flight rig) so a warm compiles and uploads them too. Returns the function that
+ * hides them again.
+ */
+export function revealPrewarm(root: Object3D): () => void {
+  const shown: Object3D[] = [];
+  root.traverse((obj) => {
+    if (obj.userData.prewarm === true && !obj.visible) {
+      obj.visible = true;
+      shown.push(obj);
+    }
+  });
+  return () => {
+    for (const obj of shown) obj.visible = false;
+  };
 }

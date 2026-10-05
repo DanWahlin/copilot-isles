@@ -946,7 +946,8 @@ function createSunShafts(
     g.translate(ox, (top + bottom) / 2, z0 + depth);
     parts.push(g);
   }
-  const g = mergeGeometries(parts)!;
+  // Lite has no shafts: an empty placeholder keeps the cabin's shape the same.
+  const g = parts.length > 0 ? mergeGeometries(parts)! : new PlaneGeometry(0.01, 0.01);
   for (const p of parts) p.dispose();
   const m = new MeshBasicNodeMaterial({
     transparent: true,
@@ -963,7 +964,7 @@ function createSunShafts(
   m.opacityNode = beam
     .mul(pow(float(1).sub(depth), 1.4))
     .mul(shimmer)
-    .mul(0.9 / slices);
+    .mul(0.9 / Math.max(1, slices));
   const mesh = new Mesh(g, m);
   mesh.name = 'sun shafts';
   mesh.renderOrder = 3;
