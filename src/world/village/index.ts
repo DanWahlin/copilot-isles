@@ -8,6 +8,7 @@ import {
   CylinderGeometry,
   DoubleSide,
   Euler,
+  FrontSide,
   Group,
   InstancedMesh,
   Matrix4,
@@ -15,6 +16,7 @@ import {
   Object3D,
   Quaternion,
   RepeatWrapping,
+  Sphere,
   SphereGeometry,
   TorusGeometry,
   Vector3,
@@ -30,6 +32,7 @@ import type { CircleObstacle, HeightField } from '../contracts';
 import { COVE } from '../layout';
 import { createLighthouseHaloMaterial, createLighthouseLitMaterial } from '../lighthouse-lamp';
 import { coloredIndexedGeometry } from '../sites/geo';
+import { WaterStrips } from '../sites/water';
 import type { PlantInstance } from '../vegetation/types';
 import {
   PALM_TRUNK_RADIUS,
@@ -581,7 +584,7 @@ export async function createVillage({
   addPier(buckets, colliders, shipObstacles, anchors, perches, villageKit, low);
   for (const building of BUILDINGS)
     addBuilding(building, heightField, buckets, colliders, anchors, perches, villageKit, low);
-  addPlaza(buckets, colliders, anchors, heightField, villageKit, low);
+  const fountainWater = addPlaza(buckets, colliders, anchors, heightField, villageKit, low);
   addMarketStalls(buckets, colliders, anchors, heightField, perches);
   if (!low) addVillageFestooning(buckets, colliders, heightField);
   addLighthouse(buckets, colliders, shipObstacles, anchors, perches, heightField, low);
@@ -624,6 +627,11 @@ export async function createVillage({
     triangles: staticTriangles + propTriangles,
     buildingCount: BUILDINGS.length,
   };
+  if (fountainWater) {
+    group.add(fountainWater.mesh);
+    metrics.drawCalls += 1;
+    metrics.triangles += fountainWater.mesh.geometry.drawRange.count / 3;
+  }
   group.userData.villageMetrics = metrics;
   const lighthouseLamp = createLighthouseLamp();
   group.add(lighthouseLamp);
@@ -657,6 +665,7 @@ export async function createVillage({
         mesh.dispose();
       }
       for (const material of Object.values(materials)) material.dispose();
+      fountainWater?.dispose();
       lighthouseLamp.traverse((o) => {
         const m = o as Mesh;
         if (!m.isMesh) return;
@@ -1806,45 +1815,343 @@ function addPlaza(
   heightField: HeightField,
   kit: VillageKit,
   low: boolean,
-): void {
+): WaterStrips | null {
   const cx = COVE.village.center.x;
   const cz = COVE.village.center.z;
   const y = heightField.heightAt(cx, cz);
-  const curbCount = low ? 12 : 22;
-  for (let i = 0; i < curbCount; i += 1) {
-    const a = (i / curbCount) * Math.PI * 2;
-    const x = cx + Math.cos(a) * 6.25;
-    const z = cz + Math.sin(a) * 6.25;
-    addBox(
-      buckets.stone,
-      x,
-      heightField.heightAt(x, z) - 0.03,
-      z,
-      1.25,
-      0.11,
-      0.34,
-      a,
-      i % 3 === 0 ? 0xb9ad8d : 0xc9bb99,
-    );
-  }
+  addRoundSquare(buckets, colliders, heightField, low);
   addStreetPaving(buckets, heightField, kit, low);
   if (!low) addSpawnPlantingBeds(buckets, heightField);
-  addCylinder(buckets.stone, cx, y, cz, 1.05, 1.15, 0.82, 16, 0, 0x908675);
-  addCylinder(buckets.stone, cx, y + 0.72, cz, 0.72, 0.78, 0.55, 16, 0, 0xa79c86);
-  addBox(buckets.wood, cx, y + 1.18, cz, 3.1, 0.16, 0.18, 0, 0x6d4b2e);
-  addBox(buckets.wood, cx, y + 1.18, cz, 0.18, 0.16, 3.1, 0, 0x6d4b2e);
-  colliders.circles.push({ x: cx, z: cz, r: 1.5 });
+  const water =
+    SQUARE.centrepiece === 'fountain'
+      ? addFountain(buckets, colliders, y + 0.13, low)
+      : (addRoofedWell(buckets, colliders, y + 0.13, low), null);
   anchors.plazaWell = { x: cx + 2.7, y, z: cz - 1.2, heading: -1.2 };
-  if (low) return;
+  if (low) return water;
   for (const [bx, bz, r] of [
     [-89, -65, 0.2],
-    [-116, -38, 0.7],
     [-143, -57, -0.25],
   ] as const) {
     const by = walkable(bx, bz) ?? heightField.heightAt(bx, bz);
     addBox(buckets.wood, bx, by + 0.05, bz, 2.6, 0.22, 0.72, r, 0x6f4d31);
     addBox(buckets.wood, bx, by + 0.55, bz + 0.27, 2.6, 0.72, 0.12, r, 0x5e4129);
   }
+  return water;
+}
+
+export type SquareCentrepiece = 'fountain' | 'well';
+
+/** The round town square at the village centre (Dan): its radius, and where its furniture stands. */
+export const SQUARE = {
+  radius: COVE.village.squareRadius,
+  /** The square's focal point (Dan): a tiered fountain, or a roofed well with a windlass. */
+  centrepiece: 'fountain' as SquareCentrepiece,
+  /** The fountain basin's outer radius (its collider adds the rim); Pip circles at 3.4 m. */
+  basin: 2.45,
+  /** Where the blue market stall stands, just outside the curb (radians, atan2(z, x)). */
+  stallAngle: 2.2,
+  /** Angles (radians, atan2(z, x) from the centre) of the benches, which face the well. */
+  benches: [0.7, 2.42, -1.02, -2.06],
+  /** Flower planters, between the benches and the streets. */
+  planters: [1.5, -0.55, -2.6],
+  /** Extra lamp posts on the square's rim (the plaza already has one at (−118, −49)). */
+  lamps: [0.25, 2.0],
+} as const;
+
+/**
+ * The square's fountain: a round stone basin with a rolled rim, a pedestal with two tiered bowls and
+ * a pineapple finial. Stone merges into the stone bucket; the water (still pools with rings running
+ * out, and sheets spilling from each bowl) is one mesh on the mill's water material (same program).
+ */
+function addFountain(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  colliders: { circles: CircleObstacle[] },
+  y0: number,
+  low: boolean,
+): WaterStrips {
+  const cx = COVE.village.center.x;
+  const cz = COVE.village.center.z;
+  const R = SQUARE.basin;
+  const seg = low ? 16 : 24;
+  const wallR = R - 0.16;
+  addCylinder(buckets.stone, cx, y0 - 0.02, cz, R - 0.06, R - 0.06, 0.14, seg + 8, 0, 0x5f766b);
+  for (let i = 0; i < seg; i += 1) {
+    const a = (i / seg) * Math.PI * 2;
+    const len = ((Math.PI * 2 * wallR) / seg) * 1.06;
+    const tint = i % 3 === 0 ? 0xa89c82 : 0xb8ac90;
+    addBox(buckets.stone, cx + Math.cos(a) * wallR, y0, cz + Math.sin(a) * wallR, 0.34, 0.6, len, -a, tint);
+  }
+  addTorus(buckets.stone, cx, y0 + 0.62, cz, wallR, 0.2, low ? 28 : 44, 0xd6cab0, Math.PI / 2, 0, 0);
+  addCylinder(buckets.stone, cx, y0 + 0.1, cz, 0.3, 0.46, 1.22, 12, 0, 0xb9ad92);
+  addCylinder(buckets.stone, cx, y0 + 1.3, cz, 1.2, 0.36, 0.32, seg, 0, 0xcdc2a6);
+  addTorus(buckets.stone, cx, y0 + 1.64, cz, 1.16, 0.08, low ? 20 : 32, 0xddd2b8, Math.PI / 2, 0, 0);
+  addCylinder(buckets.stone, cx, y0 + 1.6, cz, 0.15, 0.24, 0.74, 10, 0, 0xb9ad92);
+  addCylinder(buckets.stone, cx, y0 + 2.3, cz, 0.62, 0.2, 0.22, 16, 0, 0xcdc2a6);
+  addTorus(buckets.stone, cx, y0 + 2.54, cz, 0.6, 0.05, 20, 0xddd2b8, Math.PI / 2, 0, 0);
+  addCylinder(buckets.stone, cx, y0 + 2.5, cz, 0.11, 0.15, 0.24, 10, 0, 0xb3a68a);
+  addCylinder(buckets.stone, cx, y0 + 2.72, cz, 0.04, 0.15, 0.36, 10, 0, 0xc7b993);
+  colliders.circles.push({ x: cx, z: cz, r: R + 0.2 });
+
+  // One-sided, so the transparent water draws once (double-sided draws a back pass too): the pools
+  // face up and each stream is laid in both windings.
+  const water = new WaterStrips(low ? 120 : 220);
+  water.mesh.name = 'anchorage-fountain-water';
+  (water.mesh.material as Material).side = FrontSide;
+  water.begin();
+  // A still pool in rings, its ripples running out from where each sheet lands.
+  const pool = (y: number, radii: readonly number[], n: number, land: number, speed: number) => {
+    for (let r = 0; r < radii.length - 1; r += 1) {
+      const r0 = radii[r]!;
+      const r1 = radii[r + 1]!;
+      const foam = Math.max(0, 1 - Math.abs((r0 + r1) * 0.5 - land) / 0.45) * 0.45;
+      for (let i = 0; i < n; i += 1) {
+        const a0 = (i / n) * Math.PI * 2;
+        const a1 = ((i + 1) / n) * Math.PI * 2;
+        water.quad(
+          [cx + Math.cos(a1) * r0, y, cz + Math.sin(a1) * r0],
+          [cx + Math.cos(a0) * r0, y, cz + Math.sin(a0) * r0],
+          [cx + Math.cos(a1) * r1, y, cz + Math.sin(a1) * r1],
+          [cx + Math.cos(a0) * r1, y, cz + Math.sin(a0) * r1],
+          r0,
+          r1,
+          { fill: 0.92, speed, foam },
+          0.5,
+          0.5,
+        );
+      }
+    }
+  };
+  // Streams spilling from a bowl's lip (r0 at yTop), arcing out to r1 where they land at yBottom:
+  // two quads each (a short curl over the lip, then the drop), with gaps between them.
+  const streams = (yTop: number, yBottom: number, r0: number, r1: number, n: number, w: number) => {
+    const yMid = yTop - (yTop - yBottom) * 0.3;
+    const rMid = r0 + (r1 - r0) * 0.62;
+    for (let i = 0; i < n; i += 1) {
+      const a = ((i + 0.5) / n) * Math.PI * 2;
+      const c = Math.cos(a);
+      const sn = Math.sin(a);
+      const at = (r: number, y: number, side: number): number[] => {
+        const half = (w * 0.5 * r) / r0;
+        return [cx + c * r - sn * half * side, y, cz + sn * r + c * half * side];
+      };
+      const flow = { fill: 0.42, speed: 1.6, foam: 0.35 };
+      for (const s of [-1, 1]) {
+        water.quad(at(r0, yTop, s), at(r0, yTop, -s), at(rMid, yMid, s), at(rMid, yMid, -s), 0, 0.3, flow);
+        water.quad(
+          at(rMid, yMid, s),
+          at(rMid, yMid, -s),
+          at(r1, yBottom, s),
+          at(r1, yBottom, -s),
+          0.3,
+          yTop - yBottom,
+          flow,
+        );
+      }
+    }
+  };
+  pool(y0 + 0.5, low ? [0.46, 1.6, wallR - 0.12] : [0.46, 1.0, 1.4, 1.8, wallR - 0.12], seg, 1.6, 0.35);
+  pool(y0 + 1.66, [0.24, 0.7, 1.1], low ? 12 : 16, 0.92, 0.3);
+  pool(y0 + 2.56, [0.16, 0.56], 12, 0.56, 0.25);
+  streams(y0 + 1.68, y0 + 0.5, 1.22, 1.62, low ? 6 : 8, 0.3);
+  streams(y0 + 2.58, y0 + 1.66, 0.62, 0.92, 6, 0.2);
+  water.end();
+  water.mesh.geometry.boundingSphere = new Sphere(new Vector3(cx, y0 + 1.4, cz), R + 0.6);
+  water.mesh.frustumCulled = true;
+  return water;
+}
+
+/**
+ * The square's other centrepiece: the old well raised into a landmark, with a stone drum, two posts
+ * under a little tiled roof, a windlass with its crank and rope, and a bucket on the rim.
+ */
+function addRoofedWell(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  colliders: { circles: CircleObstacle[] },
+  y0: number,
+  low: boolean,
+): void {
+  const cx = COVE.village.center.x;
+  const cz = COVE.village.center.z;
+  addCylinder(buckets.stone, cx, y0, cz, 1.12, 1.24, 0.92, 20, 0, 0x948a77);
+  addTorus(buckets.stone, cx, y0 + 0.92, cz, 1.1, 0.12, 32, 0xc4b796, Math.PI / 2, 0, 0);
+  addCylinder(buckets.stone, cx, y0 + 0.9, cz, 0.92, 0.92, 0.03, 20, 0, 0x1d2622);
+  for (const side of [-1, 1]) {
+    addBox(buckets.wood, cx + side * 1.18, y0 + 0.2, cz, 0.2, 2.5, 0.2, 0, 0x5f4128);
+    addBox(buckets.wood, cx + side * 1.18, y0 + 1.86, cz, 0.12, 0.42, 0.12, 0, 0x6d4b2e, 0, side * 0.6);
+  }
+  addBox(buckets.wood, cx, y0 + 2.62, cz, 2.7, 0.16, 0.18, 0, 0x6d4b2e);
+  for (const side of [-1, 1]) {
+    const slope = 0.62;
+    const half = 0.92;
+    addBox(
+      buckets.roofTile,
+      cx,
+      y0 + 2.72 + Math.sin(slope) * half * 0.5 - 0.05,
+      cz + side * Math.cos(slope) * half * 0.5,
+      3.1,
+      0.1,
+      half + 0.25,
+      0,
+      0xb8442f,
+      side * slope,
+      0,
+    );
+  }
+  const axle = new CylinderGeometry(0.13, 0.13, 2.2, 10, 1);
+  transform(axle, cx, y0 + 1.66, cz, 0, 0, Math.PI / 2, 1, 1, 1);
+  paint(axle, 0x7a5636);
+  buckets.wood.push(axle);
+  addBox(buckets.wood, cx + 1.36, y0 + 1.4, cz, 0.08, 0.32, 0.08, 0, 0x4d3420);
+  addBox(buckets.wood, cx + 1.36, y0 + 1.36, cz + 0.16, 0.08, 0.08, 0.32, 0, 0x4d3420);
+  addBox(buckets.rope, cx + 0.3, y0 + 1.3, cz, 0.04, 0.34, 0.04, 0, 0x9b8a64);
+  if (!low) {
+    addCylinder(buckets.wood, cx + 0.3, y0 + 1.02, cz, 0.2, 0.16, 0.3, 10, 0, 0x6b4a2d);
+    addCylinder(buckets.wood, cx - 0.55, y0 + 0.98, cz + 0.72, 0.19, 0.15, 0.32, 10, 0.4, 0x6b4a2d);
+  }
+  colliders.circles.push({ x: cx, z: cz, r: 1.5 });
+}
+
+/** How far a point is inside the nearest street's paving (positive inside). */
+function streetRouteCover(x: number, z: number): number {
+  let cover = -Infinity;
+  for (const route of STREET_ROUTES) {
+    for (let i = 0; i < route.length - 1; i += 1)
+      cover = Math.max(cover, streetHalfWidth(x, z) - distanceToSegment(x, z, route[i]!, route[i + 1]!));
+  }
+  return cover;
+}
+
+/**
+ * The round town square round the well: a paved disc laid in concentric courses with an eight-point
+ * compass rose, a curb ring that opens where the streets come in, benches facing the well, flower
+ * planters and lamps. Everything merges into the paving, stone, wood and metal buckets.
+ */
+function addRoundSquare(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  colliders: { circles: CircleObstacle[]; boxes: VillageBoxCollider[] },
+  heightField: HeightField,
+  low: boolean,
+): void {
+  const cx = COVE.village.center.x;
+  const cz = COVE.village.center.z;
+  const R = SQUARE.radius;
+  buckets.paving.push(createSquarePavingGeometry(heightField, cx, cz, R, low));
+
+  // The curb: dressed stones on the rim, left out where a street meets the square.
+  const curbCount = low ? 30 : 48;
+  for (let i = 0; i < curbCount; i += 1) {
+    const a = (i / curbCount) * Math.PI * 2;
+    const x = cx + Math.cos(a) * (R + 0.18);
+    const z = cz + Math.sin(a) * (R + 0.18);
+    if (streetRouteCover(x, z) > -0.4) continue;
+    const len = ((Math.PI * 2 * (R + 0.18)) / curbCount) * 0.94;
+    addBox(
+      buckets.stone,
+      x,
+      heightField.heightAt(x, z) - 0.05,
+      z,
+      0.42,
+      0.26,
+      len,
+      -a,
+      i % 3 === 0 ? 0xb3a687 : 0xc4b796,
+    );
+  }
+
+  for (const a of SQUARE.benches) {
+    const r = R - 1.6;
+    const x = cx + Math.cos(a) * r;
+    const z = cz + Math.sin(a) * r;
+    const y = heightField.heightAt(x, z) + 0.13;
+    // The seat runs along the rim; the back is on the outside, so it faces the well.
+    const ry = -a + Math.PI / 2;
+    const bx = Math.cos(a) * 0.3;
+    const bz = Math.sin(a) * 0.3;
+    addBox(buckets.stone, x - Math.sin(a) * 0.9, y, z + Math.cos(a) * 0.9, 0.36, 0.42, 0.5, ry, 0xa89b80);
+    addBox(buckets.stone, x + Math.sin(a) * 0.9, y, z - Math.cos(a) * 0.9, 0.36, 0.42, 0.5, ry, 0xa89b80);
+    addBox(buckets.wood, x, y + 0.42, z, 2.4, 0.1, 0.62, ry, 0x7a5434);
+    if (!low) addBox(buckets.wood, x + bx, y + 0.78, z + bz, 2.4, 0.5, 0.09, ry, 0x6b4a2d);
+    colliders.boxes.push({ x, z, hx: 1.2, hz: 0.36, rot: ry, height: 0.9 });
+  }
+
+  for (const a of SQUARE.planters) {
+    const r = R - 1.3;
+    const x = cx + Math.cos(a) * r;
+    const z = cz + Math.sin(a) * r;
+    const y = heightField.heightAt(x, z) + 0.13;
+    addCylinder(buckets.stone, x, y - 0.05, z, 0.95, 1.02, 0.5, 16, 0, 0xc4b89f);
+    addCylinder(buckets.stone, x, y + 0.4, z, 1.0, 1.0, 0.1, 16, 0, 0xd8cfb9);
+    addCylinder(buckets.stone, x, y + 0.47, z, 0.84, 0.84, 0.04, 16, 0, 0x6e5538);
+    colliders.circles.push({ x, z, r: 1.05, height: 0.6 });
+  }
+
+  if (low) return;
+  for (const a of SQUARE.lamps) {
+    const x = cx + Math.cos(a) * (R - 0.5);
+    const z = cz + Math.sin(a) * (R - 0.5);
+    const y = heightField.heightAt(x, z) + 0.13;
+    const side = Math.cos(a) > 0 ? -1 : 1;
+    addBox(buckets.wood, x, y, z, 0.16, 2.6, 0.16, 0, 0x593b23);
+    addLampBracket(buckets, x, y, z, side);
+    addLanternFixture(buckets, x + side * 0.92, y + 1.68, z, 0, 1);
+    colliders.circles.push({ x, z, r: 0.38 });
+  }
+}
+
+/** The square's paving: concentric courses with a compass rose, each quad its own flat colour. */
+function createSquarePavingGeometry(
+  heightField: HeightField,
+  cx: number,
+  cz: number,
+  radius: number,
+  low: boolean,
+): BufferGeometry {
+  const rings = low ? 9 : 18;
+  const segments = low ? 48 : 96;
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const colors: number[] = [];
+  const indices: number[] = [];
+  const tint = new Color();
+  const course = [0xf2e6c8, 0xe2d4b2] as const;
+  const rose = 0x7d6a55;
+  const roseLight = 0xfff6dc;
+  const rim = 0xbfb094;
+  for (let ri = 0; ri < rings; ri += 1) {
+    const r0 = (ri / rings) * radius;
+    const r1 = ((ri + 1) / rings) * radius;
+    const rm = (r0 + r1) * 0.5;
+    for (let si = 0; si < segments; si += 1) {
+      const a0 = (si / segments) * Math.PI * 2;
+      const a1 = ((si + 1) / segments) * Math.PI * 2;
+      const am = (a0 + a1) * 0.5;
+      // Eight rose points, long on the cardinals and short between, each shaded dark and light along
+      // its axis like a chart's compass rose.
+      const n = Math.round(am / (Math.PI / 4));
+      const d = am / (Math.PI / 4) - n;
+      const len = n % 2 === 0 ? 6.6 : 4.4;
+      const across = rm * Math.sin(Math.abs(d) * (Math.PI / 4));
+      let colour: number = course[ri % 2]!;
+      if (rm > 1.4 && across < (n % 2 === 0 ? 1.5 : 1.0) * (1 - rm / len)) colour = d < 0 ? rose : roseLight;
+      if (ri === rings - 1) colour = rim;
+      tint.set(colour);
+      const base = positions.length / 3;
+      for (const [r, a] of [
+        [r0, a0],
+        [r0, a1],
+        [r1, a1],
+        [r1, a0],
+      ] as const) {
+        const x = cx + Math.cos(a) * r;
+        const z = cz + Math.sin(a) * r;
+        positions.push(x, heightField.heightAt(x, z) + 0.135, z);
+        uvs.push(x * 0.5, z * 0.5);
+        colors.push(tint.r, tint.g, tint.b);
+      }
+      indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+    }
+  }
+  return coloredIndexedGeometry(positions, uvs, colors, indices);
 }
 
 function addStreetPaving(
@@ -2070,8 +2377,9 @@ function sampleStreetRoute(
 
 function streetCoverage(x: number, z: number, shrink: number): number {
   if (isReservedPuzzleGround(x, z)) return -1;
+  // The round square, out to its curb; the lawn beyond it is ground, not paving.
   const plaza = Math.hypot(x - COVE.village.center.x, z - COVE.village.center.z);
-  let cover = 16.0 - shrink + organicNoise(x * 0.35, z * 0.35) * 0.75 - plaza;
+  let cover = SQUARE.radius + 0.4 - shrink - plaza;
   for (const route of STREET_ROUTES) {
     for (let i = 0; i < route.length - 1; i += 1) {
       const d = distanceToSegment(x, z, route[i]!, route[i + 1]!);
@@ -2130,8 +2438,18 @@ function addMarketStalls(
   perches: Vector3[],
 ): void {
   // The west stall (−136.5, −45.2) came out: nobody kept it, and it read as a low table under the
-  // laundry line, which now ends on its own post there.
-  const stalls = [{ x: -122.0, z: -43.4, rot: -12 * DEG, cloth: 0x4f9bc0 }];
+  // laundry line, which now ends on its own post there. The blue stall stands just off the square's
+  // south-west curb, its long side along the rim and its front to the fountain, out of the west
+  // street's view of the centrepiece; crates of fruit and fish on the counter say what it is.
+  const stallAngle = SQUARE.stallAngle;
+  const stallR = SQUARE.radius + 2.2;
+  const stall = {
+    x: COVE.village.center.x + Math.cos(stallAngle) * stallR,
+    z: COVE.village.center.z + Math.sin(stallAngle) * stallR,
+    rot: Math.PI / 2 - stallAngle,
+    cloth: 0x4f9bc0,
+  };
+  const stalls = [stall];
   for (const stall of stalls) {
     const y = heightField.heightAt(stall.x, stall.z);
     addBox(buckets.wood, stall.x, y + 0.72, stall.z, 4.1, 0.22, 1.15, stall.rot, 0x6e4729);
@@ -2142,6 +2460,16 @@ function addMarketStalls(
       }
     }
     addStripedMarketAwning(buckets, stall.x, y + 1.66, stall.z, stall.rot, stall.cloth);
+    for (const [lx, produce] of [
+      [-1.35, 0xe58a2b],
+      [-0.55, 0x8bbf3f],
+      [0.3, 0xe9c74a],
+      [1.2, 0x9fb7c4],
+    ] as const) {
+      const p = localToWorld(stall.x, stall.z, stall.rot, lx, -0.12);
+      addBox(buckets.wood, p.x, y + 0.94, p.z, 0.68, 0.2, 0.62, stall.rot, 0x8a6440);
+      addBox(buckets.cloth, p.x, y + 1.1, p.z, 0.58, 0.08, 0.52, stall.rot, produce);
+    }
     perches.push(new Vector3(stall.x, y + 1.88, stall.z));
     colliders.boxes.push({ x: stall.x, z: stall.z, hx: 2.1, hz: 0.75, rot: stall.rot, height: 1.9 });
   }
@@ -2149,12 +2477,12 @@ function addMarketStalls(
   // The harbourmaster's notice board that stood here was removed: it had no use and crowded the
   // quay beside Bo's rack and the palette stand. Its anchor (the quay dockhand's patrol) stays.
   colliders.boxes.push({ x: -149.7, z: -57.2, hx: 1.25, hz: 0.25, rot: 0.2, height: 1.8 });
-  const front = localToWorld(-122.0, -43.4, -12 * DEG, 0, -1.9);
+  const front = localToWorld(stall.x, stall.z, stall.rot, 0, -1.9);
   anchors.marketStall = {
     x: front.x,
     y: heightField.heightAt(front.x, front.z),
     z: front.z,
-    heading: -12 * DEG,
+    heading: stall.rot,
   };
 }
 
@@ -2431,7 +2759,9 @@ function villageShrubs(
   const clear = (x: number, z: number): boolean => {
     if (walkable(x, z) !== null || insideAnyBuilding(x, z)) return false;
     if (x > -74 && x < -51 && z > -77 && z < -42) return false;
-    if (Math.hypot(x - COVE.village.center.x, z - COVE.village.center.z) > 52) return false;
+    const fromCentre = Math.hypot(x - COVE.village.center.x, z - COVE.village.center.z);
+    // The lawn ring round the square (out to the old plaza's 16 m) stays open: people cross it.
+    if (fromCentre > 52 || fromCentre < 16) return false;
     if (heightField.heightAt(x, z) < 1.2) return false;
     for (const c of colliders.circles) if (Math.hypot(x - c.x, z - c.z) < c.r + 0.7) return false;
     for (const b of colliders.boxes) if (boxClearance(x, z, b) < 0.45) return false;
@@ -2477,7 +2807,26 @@ function villageShrubs(
       }
     }
   }
-  return pickVillageShrubs(candidates, tier.tier, (x, z) => heightField.heightAt(x, z));
+  const picked = pickVillageShrubs(candidates, tier.tier, (x, z) => heightField.heightAt(x, z));
+  // The square's planters each hold a flowering bush.
+  for (const [i, a] of SQUARE.planters.entries()) {
+    const x = COVE.village.center.x + Math.cos(a) * (SQUARE.radius - 1.3);
+    const z = COVE.village.center.z + Math.sin(a) * (SQUARE.radius - 1.3);
+    picked.push({
+      species: 'flowerBush',
+      x,
+      y: heightField.heightAt(x, z) + 0.55,
+      z,
+      scale: 1.55,
+      rotation: i * 2.1,
+      leanX: 0,
+      leanZ: 0,
+      colorSeed: (i * 0.37) % 1,
+      lodSeed: 0.3,
+      slopeDeg: 0,
+    });
+  }
+  return picked;
 }
 
 /** Distance from a point to a rotated box collider's edge (negative inside). */

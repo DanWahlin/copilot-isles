@@ -191,6 +191,47 @@ function pathMask(x: number, z: number): number {
   );
 }
 
+/**
+ * The village's lived-in ground: an ellipse over its lawns, above the shore (`y0`..`y1` fade in).
+ * The terrain shader reads the same shape, so sand inside it renders as packed earth, not beach.
+ * It stays inside the scatter's village exclusion (radius + 5), so the plant scatter can't change.
+ */
+export const VILLAGE_GROUND = { x: -117, z: -42, rx: 34, rz: 26, edge: 0.82, y0: 2.0, y1: 2.6 } as const;
+
+export function villageGroundWeight(x: number, z: number, h: number): number {
+  const g = VILLAGE_GROUND;
+  const r = Math.hypot((x - g.x) / g.rx, (z - g.z) / g.rz);
+  return (1 - smoothstep(g.edge, 1, r)) * smoothstep(g.y0, g.y1, h);
+}
+
+/** Desire lines worn into the lawns, [ax, az, bx, bz, half width]: from a street (a) to a door (b). */
+const VILLAGE_FOOTPATHS = [
+  [-116.4, -34.5, -104.8, -34.9, 0.9], // the south street to the sky-blue house
+  [-104.8, -34.9, -97.6, -26.3, 0.75], // on to the green leaning house
+  [-127.5, -43.4, -136.5, -34.1, 0.85], // the west street up to the lime cottage
+  [-150.2, -44.3, -154.5, -40.3, 0.8], // the west street's end to the cream rowhouse
+] as const;
+
+/**
+ * How worn the village ground is (0 lawn → 1 bare packed earth): a trampled ring round the square's
+ * curb, desire lines to the doors the streets miss, door aprons, and scattered bare patches.
+ */
+export function villageWear(x: number, z: number): number {
+  const c = COVE.village.center;
+  const n = fbm2(x * 0.42, z * 0.42, 2, SEED + 2203);
+  const rim = Math.hypot(x - c.x, z - c.z) - COVE.village.squareRadius;
+  const lobes = 0.75 + 0.25 * clamp01(fbm2(x * 0.16, z * 0.16, 2, SEED + 2207) * 1.6 + 0.5);
+  let wear = (1 - smoothstep(0.5, 2.6, rim + n * 1.4)) * lobes;
+  for (const [ax, az, bx, bz, hw] of VILLAGE_FOOTPATHS) {
+    const d = segmentDistance(x, z, ax, az, bx, bz) + n * 0.55;
+    wear = Math.max(wear, (1 - smoothstep(hw * 0.5, hw + 0.75, d)) * 0.92);
+    const door = Math.hypot(x - bx, z - bz) + n * 0.8;
+    wear = Math.max(wear, (1 - smoothstep(0.9, 2.5, door)) * 0.85);
+  }
+  const patch = smoothstep(0.3, 0.48, fbm2(x * 0.11 + 5.3, z * 0.11 - 2.1, 3, SEED + 2213));
+  return clamp01(Math.max(wear, patch * 0.62));
+}
+
 function lagoonAndReefHeight(x: number, z: number, current: number): number {
   const lx = x - COVE.lagoon.center.x;
   const lz = z - COVE.lagoon.center.z;
@@ -484,6 +525,16 @@ export function coveMasks(x: number, z: number): CoveMasks {
     (1 - path * 0.82);
   sand *= 1 - dryHarborMeadow * 0.94;
   grass = Math.max(grass, dryHarborMeadow * 0.92);
+
+  // The village lawns: no shore rock, worn earth (as sand) where people walk. Grass stays above
+  // zero so no score that multiplies by it changes sign.
+  const village = villageGroundWeight(x, z, h) * (1 - smoothstep(0.3, 0.6, slope));
+  if (village > 0) {
+    const wear = villageWear(x, z);
+    rock *= 1 - village;
+    sand = mix(sand, wear, village);
+    grass = mix(grass, 0.95 * (1 - wear * 0.9), village);
+  }
 
   if (h < -9) {
     sand *= 0.3;

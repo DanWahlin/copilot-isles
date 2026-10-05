@@ -32,6 +32,7 @@ import { packs } from '../../engine/packs';
 import { world } from '../uniforms';
 import type { Tier } from '../contracts';
 import { COVE } from '../layout';
+import { VILLAGE_GROUND } from './cove-height';
 import { terrainNoiseTexture } from './noise-texture';
 
 const uSunBlend = uniform(1);
@@ -78,6 +79,15 @@ function segmentMaskNode(
   const pa = p.sub(a);
   const t = saturate(pa.dot(ba).div((bx - ax) * (bx - ax) + (bz - az) * (bz - az)));
   return float(1).sub(smoothstep(inner, outer, pa.sub(ba.mul(t)).length()));
+}
+
+/** The village's lived-in ground (cove-height `villageGroundWeight`): its sand is worn earth. */
+function villageGroundNode(y: AnyNode): AnyNode {
+  const g = VILLAGE_GROUND;
+  const r = vec2(positionWorld.x.sub(g.x).div(g.rx), positionWorld.z.sub(g.z).div(g.rz)).length();
+  return float(1)
+    .sub(smoothstep(g.edge, 1, r))
+    .mul(smoothstep(g.y0, g.y1, y));
 }
 
 export interface TerrainMaterialOptions {
@@ -190,11 +200,14 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const grassMask = masks.y;
   const rockMask = masks.z;
   const cliffMask = masks.w;
+  const villageGround = villageGroundNode(y);
   const shaderPathMask = saturate(
     segmentMaskNode(COVE.village.center.x, COVE.village.center.z, -18, -10, 2.4, 7.2)
       .add(segmentMaskNode(-18, -10, -28, 103, 2.8, 8.6))
       .add(segmentMaskNode(-112, -64, COVE.village.center.x, COVE.village.center.z, 2.2, 6.5)),
-  ).mul(smoothstep(1.0, 6.5, y));
+  )
+    .mul(smoothstep(1.0, 6.5, y))
+    .max(villageGround);
   const pathSandMask = sandMask.mul(shaderPathMask);
   const beachSandMask = saturate(sandMask.sub(pathSandMask));
   const waterline = float(1).sub(smoothstep(0.015, 0.28, abs(y)));
@@ -462,10 +475,40 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     saturate(noiseFine.b.mul(0.42).add(noiseLow.r.mul(0.35)).add(noiseMid.g.mul(0.23)).sub(0.5).mul(2.1)),
     1.35,
   ).mul(lowGroundDetail);
-  base = mix(base, color(0x123518), meadowFleckDark.mul(0.58));
-  base = mix(base, color(0xc7e076), meadowFleckLight.mul(0.5));
-  base = mix(base, color(0x102f16), lowClump.mul(0.58));
-  base = mix(base, color(0xd6cf7a), lowDryTip.mul(0.42));
+  // Worn village ground: warm trodden soil where the lawn is worn (sand inside the village ground),
+  // its edge broken by fine noise so the grass frays into it. The meadow flecks stay on the grass.
+  const villageEarth = smoothstep(0.26, 0.66, sandMask.add(fineNoise.sub(0.5).mul(0.42))).mul(villageGround);
+  const fleckKeep = float(1).sub(villageEarth);
+  base = mix(base, color(0x123518), meadowFleckDark.mul(0.58).mul(fleckKeep));
+  base = mix(base, color(0xc7e076), meadowFleckLight.mul(0.5).mul(fleckKeep));
+  base = mix(base, color(0x102f16), lowClump.mul(0.58).mul(fleckKeep));
+  base = mix(base, color(0xd6cf7a), lowDryTip.mul(0.42).mul(fleckKeep));
+  if (detail >= 1) {
+    // Village lawns: a fine turf (clumps a hand or two across, light tips and dark roots) and a
+    // dry, trodden fringe where the lawn meets the worn earth.
+    const turfUv = vec2(
+      positionWorld.x.mul(1.13).add(positionWorld.z.mul(0.41)),
+      positionWorld.z.mul(1.13).sub(positionWorld.x.mul(0.41)),
+    );
+    const turfTexel = textureNode(noiseTexture, turfUv) as AnyNode;
+    // The fine noise (a 3.4 m period against the turf's 0.88 m) keeps the turf from tiling in a grid.
+    const turf = saturate(turfTexel.r.sub(turfTexel.b).mul(4.5).add(noiseFine.a.sub(0.5).mul(2.6)).add(0.5));
+    // Faded out by 26 m: farther off, the 0.9 m turf aliases into a grid.
+    const turfNear = float(1).sub(smoothstep(8, 26, detailDistance));
+    const lawn = villageGround.mul(grassMask).mul(fleckKeep).mul(turfNear);
+    const lawnColor = mix(color(0x23431a), color(0xa9c44c), turf).mul(float(0.85).add(meadowMacro.mul(0.3)));
+    base = mix(base, lawnColor, lawn.mul(0.66));
+    const daisies = smoothstep(0.7, 0.73, turfTexel.g.mul(0.7).add(fineNoise.mul(0.3)))
+      .mul(lawn)
+      .mul(closeDetail);
+    base = mix(base, color(0xeee8bf), daisies.mul(0.4));
+    const trodden = smoothstep(0.08, 0.4, sandMask.add(fineNoise.sub(0.5).mul(0.3)))
+      .mul(villageGround)
+      .mul(fleckKeep);
+    base = mix(base, color(0xa39a58), trodden.mul(0.45));
+  }
+  const villageSoil = mix(color(0x4a2f1c), color(0x92683c), pathCloseLum.mul(0.55).add(fineNoise.mul(0.45)));
+  base = mix(base, villageSoil, villageEarth.mul(0.9));
   base = mix(base, closeGrass, slopeGrass.mul(0.36));
   base = mix(
     base,

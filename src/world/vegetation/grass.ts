@@ -21,6 +21,7 @@ import type { TierSettings } from '../../engine/quality';
 import type { GrassKind, HeightGrid } from './types';
 import { EXCLUSION_SOFT_MARGIN, exclusionWeight, type VegetationExclude } from './exclusions';
 import { smoothstep } from '../../util/math';
+import { villageGroundWeight } from '../terrain/cove-height';
 import { SeededRandom, hash2 } from './random';
 import { createGrassMaterial, type GrassReach } from './materials';
 
@@ -303,6 +304,11 @@ function grassWeight(heightField: HeightField, x: number, z: number): { weight: 
   if (y < 0.2) return { weight: 0, kind: 'creeper' };
   const masks = heightField.masksAt(x, z);
   if (masks.rock > 0.55 || masks.cliff > 0.2) return { weight: 0, kind: 'creeper' };
+  // Village lawns: short meadow tufts that thin out where the ground is worn (sand there is earth).
+  if (villageGroundWeight(x, z, y) > 0.5) {
+    const lawn = masks.grass * (1 - smoothstep(0.15, 0.5, masks.sand));
+    return { weight: lawn * smoothstep(1, 8, y) * 1.25, kind: 'meadow' };
+  }
   const seaOats =
     masks.sand * smoothstep(0.38, 1.1, y) * (1 - smoothstep(3.6, 6.2, y)) * (0.72 + masks.grass * 0.42);
   if (seaOats > 0.16) return { weight: seaOats * 0.8, kind: 'seaOats' };
