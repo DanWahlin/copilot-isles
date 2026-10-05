@@ -10,6 +10,8 @@ export type OpeningKind = 'voyage' | 'continue';
 export interface OpeningBeats {
   /** Fade in from warm dark. */
   fadeIn: number;
+  /** Where the beat waits (the establishing shot) until the island's heavy build is done. */
+  gate: number;
   /** The latch lifts (anticipation), then snaps open at `latch`. */
   latchLift: number;
   latch: number;
@@ -41,6 +43,7 @@ export interface OpeningBeats {
 
 const VOYAGE: OpeningBeats = {
   fadeIn: 1.1,
+  gate: 1.2,
   latchLift: 1.5,
   latch: 1.78,
   lidDip: 2.15,
@@ -64,6 +67,7 @@ const VOYAGE: OpeningBeats = {
 /** Continue: the chart's already alive on the desk; a moment to take it in, then the dive. */
 const CONTINUE: OpeningBeats = {
   fadeIn: 0.8,
+  gate: 0,
   latchLift: 0,
   latch: 0,
   lidDip: 0,

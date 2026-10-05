@@ -458,6 +458,9 @@ export class GameFlow implements GameBridge {
       await cove.sky.prefetch([ISLANDS.anchorage.sky.hours, ISLANDS.meridian.sky.hours]);
       report(0.92, 'Lighting the lanterns');
       await this.o.upgradePost?.(cove);
+      // The heavy, blocking build is done (what's left compiles asynchronously): the chest can open
+      // now, and the rest of the beat plays smoothly.
+      opening.release();
       await engine.renderer.compileAsync(engine.scene, engine.camera);
       report(0.96, 'Charting the approach');
       const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));

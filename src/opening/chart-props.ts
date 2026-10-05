@@ -295,6 +295,7 @@ export function createIslandProps(grids: readonly IslandGrid[], hasFog: boolean)
   group.add(glow, beam);
 
   // Paper clouds over the islands still to come.
+  // (Paper clouds were tried over the islands still to come; the chart's own placeholders replaced them.)
   const clouds = hasFog ? createPaperClouds() : null;
   if (clouds) group.add(clouds.group);
 

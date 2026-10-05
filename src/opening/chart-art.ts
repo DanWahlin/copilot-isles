@@ -1,4 +1,4 @@
-import { ARCHIPELAGO } from '../ui/chart/archipelago';
+import { ARCHIPELAGO, chapterParts } from '../ui/chart/archipelago';
 import { CARTOUCHE, CHART_D, CHART_W, sheetUV, worldToPaper } from './chart-map';
 import { islandShoreline, type IslandGrid } from './island-grid';
 
@@ -143,44 +143,77 @@ export function drawChartArt(grids: readonly IslandGrid[], inkWidth = 2048): Cha
     c.restore();
   }
 
-  // The islands still to come: fogged ink sketches.
+  // The islands still to come: placeholders like the in-game chart's locked islands. A sketched
+  // parchment island (the water flows round it), a dashed coast, a pencilled contour, and the
+  // chapter's badge with a small lock.
+  const badges: { x: number; y: number; num: string }[] = [];
   for (const [n, isl] of ARCHIPELAGO.entries()) {
     if (real.has(isl.id)) continue;
     const r = mulberry32(0x5eed + n * 977);
     const at = sheetUV(isl.x, isl.y);
-    const rx = (38 + r() * 22) * unit;
-    const ry = rx * (0.55 + r() * 0.25);
+    const rx = (34 + r() * 16) * unit;
+    const ry = rx * (0.58 + r() * 0.2);
     const blobPts: [number, number][] = [];
     for (let i = 0; i < 14; i++) {
       const a = (i / 14) * Math.PI * 2 + (r() - 0.5) * 0.25;
-      const k = 1 + (r() - 0.5) * 0.36;
-      blobPts.push([px(at.u) + Math.cos(a) * rx * k, py(at.v) + Math.sin(a) * ry * k]);
+      const k = 1 + (r() - 0.5) * 0.32;
+      blobPts.push([Math.cos(a) * rx * k, Math.sin(a) * ry * k]);
     }
-    c.save();
-    closedCurve(c, blobPts);
-    c.fillStyle = 'rgba(214, 190, 128, 0.18)';
-    c.fill();
-    c.setLineDash([6 * unit, 5 * unit]);
-    c.strokeStyle = INK_SOFT;
-    c.lineWidth = 1.6 * unit;
-    c.stroke();
-    c.restore();
+    const at2 = (sx: number, sy: number, scale = 1): [number, number][] =>
+      blobPts.map(([x, y]) => [at.u * sx + (x / W) * sx * scale, at.v * sy + (y / H) * sy * scale]);
+    // Land in the mask, with a halo for its shallows.
     m.save();
     m.globalCompositeOperation = 'lighter';
-    const fog = m.createRadialGradient(
-      (at.u * mW) | 0,
-      (at.v * mH) | 0,
-      0,
-      (at.u * mW) | 0,
-      (at.v * mH) | 0,
-      (rx / W) * mW * 1.5,
-    );
-    fog.addColorStop(0, 'rgba(0, 0, 255, 1)');
-    fog.addColorStop(0.55, 'rgba(0, 0, 255, 0.75)');
-    fog.addColorStop(1, 'rgba(0, 0, 255, 0)');
-    m.fillStyle = fog;
-    m.fillRect(0, 0, mW, mH);
+    m.shadowColor = 'rgb(0, 255, 0)';
+    m.shadowBlur = 16;
+    m.fillStyle = 'rgb(255, 0, 0)';
+    closedCurve(m, at2(mW, mH));
+    m.fill();
     m.restore();
+    c.save();
+    closedCurve(c, at2(W, H, 1.18));
+    c.strokeStyle = 'rgba(46, 92, 112, 0.12)';
+    c.lineWidth = 7 * unit;
+    c.stroke();
+    closedCurve(c, at2(W, H));
+    c.fillStyle = 'rgba(226, 206, 156, 0.85)';
+    c.fill();
+    c.setLineDash([7 * unit, 5 * unit]);
+    c.strokeStyle = INK_SOFT;
+    c.lineWidth = 1.8 * unit;
+    c.stroke();
+    c.setLineDash([2 * unit, 6 * unit]);
+    c.lineWidth = 1.2 * unit;
+    closedCurve(c, at2(W, H, 0.55));
+    c.stroke();
+    c.restore();
+    badges.push({ x: px(at.u) - rx * 0.95, y: py(at.v) - ry * 0.9, num: chapterParts(isl.chapter).num });
+  }
+  for (const bdg of badges) {
+    const R = 15 * unit;
+    c.save();
+    c.translate(bdg.x, bdg.y);
+    c.beginPath();
+    c.arc(0, 0, R, 0, Math.PI * 2);
+    c.fillStyle = '#efe0b8';
+    c.fill();
+    c.strokeStyle = INK;
+    c.lineWidth = 1.6 * unit;
+    c.stroke();
+    c.font = `600 ${14 * unit}px Fraunces, Georgia, serif`;
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.fillStyle = INK;
+    c.fillText(bdg.num, 0, 0.5 * unit);
+    // The lock, hung off the badge's lower right.
+    c.translate(R * 0.8, R * 0.8);
+    c.fillStyle = INK;
+    c.fillRect(-4.2 * unit, -1 * unit, 8.4 * unit, 6.8 * unit);
+    c.beginPath();
+    c.arc(0, -1 * unit, 2.8 * unit, Math.PI, 0);
+    c.lineWidth = 1.4 * unit;
+    c.stroke();
+    c.restore();
   }
 
   compassRose(c, px(COMPASS.u), py(COMPASS.v), 64 * unit);
@@ -194,7 +227,7 @@ export function drawChartArt(grids: readonly IslandGrid[], inkWidth = 2048): Cha
     c.font = `${isReal ? 600 : 500} ${(isReal ? 19 : 15) * unit}px Fraunces, Georgia, serif`;
     c.lineWidth = 5 * unit;
     c.strokeStyle = 'rgba(236, 220, 176, 0.9)';
-    c.fillStyle = isReal ? '#2a1d0e' : 'rgba(42, 29, 14, 0.55)';
+    c.fillStyle = isReal ? '#2a1d0e' : 'rgba(42, 29, 14, 0.75)';
     const y = py(at.v) + (isl.id === 'anchorage' ? 92 : isl.id === 'meridian' ? 98 : 62) * unit;
     c.strokeText(isl.name, px(at.u), y);
     c.fillText(isl.name, px(at.u), y);

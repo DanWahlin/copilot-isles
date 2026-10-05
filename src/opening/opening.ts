@@ -74,6 +74,8 @@ export interface Opening {
   /** Seconds since the cabin came up (tests). */
   readonly time: number;
   readonly holding: boolean;
+  /** The island's heavy build is done: the chest beat can play on (smoothly) from here. */
+  release(): void;
   /** Fades the warm-dark veil down over the title (true) or up off the cabin (false). */
   veil(down: boolean, ms: number): Promise<void>;
   /** Builds the cabin, the chart and its islands, and compiles them (under the veil). */
@@ -174,6 +176,9 @@ export function createOpening(o: OpeningOptions): Opening {
   let cueIndex = 0;
   /** The player skipped: the dive, when it comes, is just the flash. */
   let hurry = false;
+  /** The beat holds at `beats.gate` (the establishing shot) until the flow says the build is done. */
+  let released = kind === 'continue';
+  let gated = 0;
 
   // ---- camera shots (cabin metres; the desk top is y ≈ 0.8, chest at z ≈ -0.43) ----
   const WIDE = pose(0.05, 1.62, 2.55, 0, 1.0, -0.7);
@@ -200,7 +205,7 @@ export function createOpening(o: OpeningOptions): Opening {
     if (kind === 'continue') {
       cam.eye.copy(ALIVE.eye);
       cam.look.copy(ALIVE.look);
-    } else if (time < beats.latch + 0.2) blend(WIDE, CHEST, phase(time, 0, beats.latch + 0.2));
+    } else if (time < beats.latch + 0.2) blend(WIDE, CHEST, phase(time, beats.gate, beats.latch + 0.2));
     else if (time < beats.rise + 0.4) blend(CHEST, RISE, phase(time, beats.latch + 0.2, beats.rise + 0.4));
     else if (time < beats.unroll + 0.6) {
       blend(RISE, OVER, phase(time, beats.rise + 0.4, beats.unroll + 0.6), 0.05);
@@ -339,12 +344,20 @@ export function createOpening(o: OpeningOptions): Opening {
       const s = o.input.poll();
       if ((s.interact || s.jump || s.menu) && t > 0.5) api.skip();
       if (!diving && !quickFlash) {
-        t += step;
+        // Waiting for the island's heavy build: hold the establishing shot (it hides frozen frames).
+        if (!released && t + step >= beats.gate) {
+          t = Math.max(t, beats.gate);
+          gated += step;
+        } else t += step;
+        cabin.chest.keyhole.value = released
+          ? Math.max(0, cabin.chest.keyhole.value - step * 1.5)
+          : keyholePulse(gated);
+        const waiting = !released && gated > 6;
         if (t >= beats.ready && !readyDone) {
           readyDone = true;
           readyResolve?.();
         }
-        const hold = t >= beats.ready && !diving;
+        const hold = (t >= beats.ready && !diving) || waiting;
         if (hold !== holding) {
           holding = hold;
           o.onHold?.(hold);
@@ -405,6 +418,9 @@ export function createOpening(o: OpeningOptions): Opening {
     },
     get holding() {
       return holding;
+    },
+    release() {
+      released = true;
     },
     veil(down, ms) {
       veilEl.style.transitionDuration = `${ms}ms`;
@@ -470,7 +486,7 @@ export function createOpening(o: OpeningOptions): Opening {
         islandMeshes.push(m);
         islandMat.push(mat);
       }
-      props = createIslandProps(grids, true);
+      props = createIslandProps(grids, false);
       islandsGroup.add(props.group);
       // The tiny brigantine, sailing in to Anchorage from the north (the real ship, scaled down).
       ship = createBrigantine({ tier: 'lite' });
@@ -615,6 +631,12 @@ export function createOpening(o: OpeningOptions): Opening {
     },
   };
   return api;
+}
+
+/** The keyhole's glow while the chest waits: a slow breath, brightening a little the longer it waits. */
+function keyholePulse(waited: number): number {
+  const breath = 0.5 - 0.5 * Math.cos(waited * 2.4);
+  return Math.min(1, waited / 1.5) * (0.35 + 0.65 * breath) * Math.min(1, 0.6 + waited * 0.04);
 }
 
 function cubic(p0: Vector3, p1: Vector3, p2: Vector3, p3: Vector3, x: number, out: Vector3): Vector3 {

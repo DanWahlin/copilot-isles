@@ -78,6 +78,8 @@ export interface HeroChest {
   inside: Vector3;
   /** The warm glow from inside (0-1). */
   glow: { value: number };
+  /** Light through the keyhole while the chest waits (0-1). */
+  keyhole: { value: number };
   width: number;
   height: number;
   depth: number;
@@ -508,6 +510,10 @@ export function createCabin(opts: CabinOptions): Cabin {
   const chestLight = new PointLight(0xffd690, 0, 2.2, 1.8);
   chestLight.position.set(0, chest.height + 0.12, 0);
   chest.group.add(chestLight);
+  // The keyhole's light spills warm on the desk in front of the chest while it waits.
+  const keyLight = new PointLight(0xffc35a, 0, 0.9, 2);
+  keyLight.position.set(0, chest.height - 0.12, chest.depth / 2 + 0.08);
+  chest.group.add(keyLight);
   const puff = createDustPuff(chest);
   const sparks = createSparkles(chest);
   chest.group.add(puff.mesh, sparks.mesh);
@@ -542,6 +548,7 @@ export function createCabin(opts: CabinOptions): Cabin {
       motes.time.value = t;
       sparks.time.value = t;
       chestLight.intensity = chest.glow.value * 3.2 * f;
+      keyLight.intensity = chest.keyhole.value * 0.5 * f;
       void dt;
     },
     dispose() {
@@ -554,6 +561,7 @@ export function createCabin(opts: CabinOptions): Cabin {
       });
       lanternLight.dispose();
       chestLight.dispose();
+      keyLight.dispose();
       sun.dispose();
       fill.dispose();
       portLight.dispose();
@@ -700,7 +708,32 @@ function createHeroChest(captainName: string): HeroChest {
   veil.position.y = H + 0.004;
   group.add(veil);
 
-  return { group, hinge, hasp, inside: new Vector3(0, H * 0.5, 0), glow, width: W, height: H, depth: D };
+  // Light through the keyhole (and a soft halo on the lock plate) while the chest waits to open.
+  const keyhole = uniform(0);
+  const khMat = new MeshBasicNodeMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+  });
+  const kr = uv().sub(0.5).length().mul(2);
+  khMat.colorNode = color(0xffc864).mul(keyhole.mul(2.4));
+  khMat.opacityNode = pow(float(1).sub(smoothstep(0.0, 1.0, kr)), 2.5);
+  const kh = new Mesh(new PlaneGeometry(0.11, 0.11), khMat);
+  kh.position.set(0, H - 0.118, D / 2 + 0.036);
+  kh.renderOrder = 6;
+  group.add(kh);
+
+  return {
+    group,
+    hinge,
+    hasp,
+    inside: new Vector3(0, H * 0.5, 0),
+    glow,
+    keyhole,
+    width: W,
+    height: H,
+    depth: D,
+  };
 }
 
 /** A small brass plate engraved with the captain's name (Canvas 2D, made once). */
