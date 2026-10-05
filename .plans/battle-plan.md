@@ -34,6 +34,8 @@
 
 - **Aiming (Dan's note: hard to steer, fire and move the mouse at once).** Dan picked: a follow camera, a turn hint, and a helm assist. Between beats the camera keeps your ship and the nearest raider in one frame (high and to one side, so your rigging doesn't hide her; capped turn rate; stands off for 8 s after a drag; `?nofollow` turns it off). A hint above the guns says what to do next ("◀ Turn to port: your starboard guns will bear", "Your starboard guns bear: fire!"). **Bring her round** (R, or the 44 px button) hands the helm to your helmsman, the raiders' broadside logic steering for you; any helm key takes it back. With only R and Space, wave 1 fell in 37–74 s. Step 6 to do: gamepad (a face button for R) and touch.
 
+- **Briefing (Dan's note: what are the lines on the water?).** A short card before each battle ("Before the fog lifts") with four drawn rows: gold arcs (where your guns reach), red chevrons (a raider is about to fire), cartridges (reloading, Space / Z / C), and Bring her round (R). Set sail (Enter, Space, Esc) or Skip closes it; "Don't show this again" is kept in localStorage. Keyboard focus starts on Set sail; all buttons are at least 44 px; it fits a 390 px phone. Dev flags `?brief` / `?nobrief`.
+
 Budget note (coordinator, 2026-10-04): vendor-three is at 249.5/250 KB gz. When the battle goes into the game, load it with a dynamic `import()` so it ships in its own chunk, and add no new eager three.js imports.
 
 Then the passage battle goes into the game (Anchorage → Port Meridian, required with a skip), and Dan reviews.

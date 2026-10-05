@@ -20,7 +20,8 @@ import { compileAndStart, createDevHarness, engineStats } from './harness';
  * W/S trim, A/D steer, Space fires what bears, Z/C fire port/starboard, R "Bring her round" (your
  * helmsman steers to the best broadside; any helm key takes it back), drag to look.
  * Flags: ?webgl, ?tier=, ?seed=, ?calm, ?shot (no stats panel), ?wait (don't start the battle),
- * ?nodirector (no camera director), ?nofollow (the camera doesn't follow the raiders).
+ * ?nodirector (no camera director), ?nofollow (the camera doesn't follow the raiders),
+ * ?brief / ?nobrief (always / never show the pre-battle briefing).
  */
 const harness = await createDevHarness();
 const { q, backend, tier, canvas, renderer, engine } = harness;
@@ -202,7 +203,19 @@ engine.add({
 const post = q.has('nopost') ? null : await createPost(renderer, scene, camera, tier);
 if (post) engine.renderFn = post.render;
 await compileAndStart(renderer, engine, scene, camera, post ? () => post.compile() : undefined);
-if (!q.has('wait')) battle.start(clockT);
+/** The briefing shows before every battle until you tick "Don't show this again" (?brief forces it). */
+const BRIEF_KEY = 'isles.battleBriefing.hidden';
+const startBattle = () => {
+  if (q.has('nobrief') || (!q.has('brief') && localStorage.getItem(BRIEF_KEY) === '1')) {
+    battle.start(clockT);
+    return;
+  }
+  hud.showBriefing((hide) => {
+    if (hide) localStorage.setItem(BRIEF_KEY, '1');
+    battle.start(clockT);
+  });
+};
+if (!q.has('wait')) startBattle();
 
 const dev = window as unknown as { __battle: Record<string, unknown>; __dev: Record<string, unknown> };
 dev.__battle = {
@@ -212,6 +225,8 @@ dev.__battle = {
   snapshot: () => battle.snapshot(structuredClone(snap)),
   raiders: () => battle.raiders(),
   start: () => battle.start(clockT),
+  /** Starts the battle through the briefing, as the game will. */
+  brief: () => startBattle(),
   audio,
   director,
   unlockAudio: unlock,

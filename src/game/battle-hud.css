@@ -19,6 +19,109 @@
 .bh.show {
   opacity: 1;
 }
+/* While the briefing is open, nothing else of the HUD shows. */
+.bh.briefing > :not(.bh-brief) {
+  visibility: hidden;
+}
+.bh-brief {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(36rem, 94vw);
+  max-height: 92vh;
+  overflow: auto;
+  padding: 1.2rem 1.4rem 1rem;
+  border-radius: 1.1rem;
+  background: rgba(12, 24, 34, 0.9);
+  border: 1px solid var(--edge);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: auto;
+  animation: bh-in 0.3s ease both;
+}
+.bh-brief h2 {
+  margin: 0 0 0.7rem;
+  font-weight: normal;
+  font-size: 1.35rem;
+  color: var(--gold);
+}
+.bh-brief-list {
+  display: grid;
+  gap: 0.7rem;
+}
+.bh-brief-row {
+  display: grid;
+  grid-template-columns: 3.6rem 1fr;
+  gap: 0.8rem;
+  align-items: center;
+}
+.bh-brief-art svg {
+  display: block;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 0.6rem;
+  background: rgba(30, 70, 100, 0.55);
+}
+.bh-brief-text {
+  display: grid;
+  gap: 0.1rem;
+  line-height: 1.35;
+}
+.bh-brief-text strong {
+  font-weight: normal;
+  color: var(--gold);
+}
+.bh-brief-text span {
+  font-size: 0.92rem;
+}
+.bh-brief-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+.bh-brief-hide {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.bh-brief-hide input {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+.bh-brief-skip,
+.bh-brief-go {
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: var(--glass);
+  cursor: pointer;
+}
+.bh-brief-go {
+  border-color: var(--gold);
+  background: rgba(120, 88, 34, 0.7);
+  color: #fff4dc;
+}
+.bh-brief-go kbd {
+  margin-left: 0.3rem;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.66rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.3rem;
+  border: 1px solid rgba(232, 200, 138, 0.5);
+}
+.bh-brief-skip:hover,
+.bh-brief-skip:focus-visible,
+.bh-brief-go:hover,
+.bh-brief-go:focus-visible {
+  border-color: #fff0c8;
+}
 .bh button {
   font: inherit;
   color: inherit;
