@@ -1,0 +1,92 @@
+{
+  "id": "juno.cabin.02",
+  "speaker": "Juno",
+  "text": "Each island teaches a chapter of the GitHub Copilot app. Finish its quests to earn its seal.",
+  "words": [
+    {
+      "word": "Each",
+      "start": 0.063,
+      "end": 0.354
+    },
+    {
+      "word": "island",
+      "start": 0.354,
+      "end": 0.9
+    },
+    {
+      "word": "teaches",
+      "start": 0.9,
+      "end": 1.3
+    },
+    {
+      "word": "a",
+      "start": 1.3,
+      "end": 1.409
+    },
+    {
+      "word": "chapter",
+      "start": 1.409,
+      "end": 1.918
+    },
+    {
+      "word": "of",
+      "start": 1.918,
+      "end": 1.99
+    },
+    {
+      "word": "the",
+      "start": 1.99,
+      "end": 2.099
+    },
+    {
+      "word": "GitHub",
+      "start": 2.099,
+      "end": 2.571
+    },
+    {
+      "word": "Copilot",
+      "start": 2.571,
+      "end": 3.227
+    },
+    {
+      "word": "app.",
+      "start": 3.227,
+      "end": 4.136
+    },
+    {
+      "word": "Finish",
+      "start": 4.136,
+      "end": 4.609
+    },
+    {
+      "word": "its",
+      "start": 4.609,
+      "end": 4.79
+    },
+    {
+      "word": "quests",
+      "start": 4.79,
+      "end": 5.409
+    },
+    {
+      "word": "to",
+      "start": 5.409,
+      "end": 5.627
+    },
+    {
+      "word": "earn",
+      "start": 5.627,
+      "end": 5.772
+    },
+    {
+      "word": "its",
+      "start": 5.772,
+      "end": 5.954
+    },
+    {
+      "word": "seal",
+      "start": 5.954,
+      "end": 6.204
+    }
+  ]
+}

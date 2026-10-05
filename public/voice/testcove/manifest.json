@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-02T19:57:21.163Z",
+  "generatedAt": "2026-10-05T22:49:53.542Z",
   "set": "testcove",
   "lines": [
     {
@@ -17780,6 +17780,346 @@
         }
       ],
       "voice": "en-GB-AbbiNeural"
+    },
+    {
+      "id": "juno.cabin.01",
+      "speaker": "Juno",
+      "text": "Welcome aboard, Captain! I’m Juno, your first mate.",
+      "duration": 3.708,
+      "files": {
+        "webm": "juno.cabin.01.webm",
+        "m4a": "juno.cabin.01.m4a"
+      },
+      "hash": "0a23601b6e0949ce",
+      "words": [
+        {
+          "word": "Welcome",
+          "start": 0.063,
+          "end": 0.427
+        },
+        {
+          "word": "aboard",
+          "start": 0.427,
+          "end": 0.863
+        },
+        {
+          "word": "Captain",
+          "start": 0.863,
+          "end": 1.7
+        },
+        {
+          "word": "I’m",
+          "start": 1.7,
+          "end": 1.99
+        },
+        {
+          "word": "Juno",
+          "start": 1.99,
+          "end": 2.608
+        },
+        {
+          "word": "your",
+          "start": 2.608,
+          "end": 2.827
+        },
+        {
+          "word": "first",
+          "start": 2.827,
+          "end": 3.19
+        },
+        {
+          "word": "mate",
+          "start": 3.19,
+          "end": 3.44
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.cabin.02",
+      "speaker": "Juno",
+      "text": "Each island teaches a chapter of the GitHub Copilot app. Finish its quests to earn its seal.",
+      "duration": 6.507,
+      "files": {
+        "webm": "juno.cabin.02.webm",
+        "m4a": "juno.cabin.02.m4a"
+      },
+      "hash": "2dde910789027ac2",
+      "words": [
+        {
+          "word": "Each",
+          "start": 0.063,
+          "end": 0.354
+        },
+        {
+          "word": "island",
+          "start": 0.354,
+          "end": 0.9
+        },
+        {
+          "word": "teaches",
+          "start": 0.9,
+          "end": 1.3
+        },
+        {
+          "word": "a",
+          "start": 1.3,
+          "end": 1.409
+        },
+        {
+          "word": "chapter",
+          "start": 1.409,
+          "end": 1.918
+        },
+        {
+          "word": "of",
+          "start": 1.918,
+          "end": 1.99
+        },
+        {
+          "word": "the",
+          "start": 1.99,
+          "end": 2.099
+        },
+        {
+          "word": "GitHub",
+          "start": 2.099,
+          "end": 2.571
+        },
+        {
+          "word": "Copilot",
+          "start": 2.571,
+          "end": 3.227
+        },
+        {
+          "word": "app.",
+          "start": 3.227,
+          "end": 4.136
+        },
+        {
+          "word": "Finish",
+          "start": 4.136,
+          "end": 4.609
+        },
+        {
+          "word": "its",
+          "start": 4.609,
+          "end": 4.79
+        },
+        {
+          "word": "quests",
+          "start": 4.79,
+          "end": 5.409
+        },
+        {
+          "word": "to",
+          "start": 5.409,
+          "end": 5.627
+        },
+        {
+          "word": "earn",
+          "start": 5.627,
+          "end": 5.772
+        },
+        {
+          "word": "its",
+          "start": 5.772,
+          "end": 5.954
+        },
+        {
+          "word": "seal",
+          "start": 5.954,
+          "end": 6.204
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.cabin.03",
+      "speaker": "Juno",
+      "text": "Quests fill your Logbook and your purse. Then we sail on!",
+      "duration": 4.308,
+      "files": {
+        "webm": "juno.cabin.03.webm",
+        "m4a": "juno.cabin.03.m4a"
+      },
+      "hash": "6b8a5f5c23007a5d",
+      "words": [
+        {
+          "word": "Quests",
+          "start": 0.063,
+          "end": 0.645
+        },
+        {
+          "word": "fill",
+          "start": 0.645,
+          "end": 0.9
+        },
+        {
+          "word": "your",
+          "start": 0.9,
+          "end": 1.045
+        },
+        {
+          "word": "Logbook",
+          "start": 1.045,
+          "end": 1.663
+        },
+        {
+          "word": "and",
+          "start": 1.663,
+          "end": 1.844
+        },
+        {
+          "word": "your",
+          "start": 1.844,
+          "end": 2.027
+        },
+        {
+          "word": "purse",
+          "start": 2.027,
+          "end": 2.972
+        },
+        {
+          "word": "Then",
+          "start": 2.972,
+          "end": 3.3
+        },
+        {
+          "word": "we",
+          "start": 3.3,
+          "end": 3.48
+        },
+        {
+          "word": "sail",
+          "start": 3.48,
+          "end": 3.809
+        },
+        {
+          "word": "on",
+          "start": 3.809,
+          "end": 4.059
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.cabin.04",
+      "speaker": "Juno",
+      "text": "And look out for starfish. They hide on every island.",
+      "duration": 3.907,
+      "files": {
+        "webm": "juno.cabin.04.webm",
+        "m4a": "juno.cabin.04.m4a"
+      },
+      "hash": "12102a10ccae1856",
+      "words": [
+        {
+          "word": "And",
+          "start": 0.063,
+          "end": 0.281
+        },
+        {
+          "word": "look",
+          "start": 0.281,
+          "end": 0.427
+        },
+        {
+          "word": "out",
+          "start": 0.427,
+          "end": 0.645
+        },
+        {
+          "word": "for",
+          "start": 0.645,
+          "end": 0.754
+        },
+        {
+          "word": "starfish",
+          "start": 0.754,
+          "end": 1.954
+        },
+        {
+          "word": "They",
+          "start": 1.954,
+          "end": 2.244
+        },
+        {
+          "word": "hide",
+          "start": 2.244,
+          "end": 2.608
+        },
+        {
+          "word": "on",
+          "start": 2.608,
+          "end": 2.79
+        },
+        {
+          "word": "every",
+          "start": 2.79,
+          "end": 3.19
+        },
+        {
+          "word": "island",
+          "start": 3.19,
+          "end": 3.44
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "juno.cabin.chest",
+      "speaker": "Juno",
+      "text": "Now, open the chest, Captain. Our chart’s inside.",
+      "duration": 3.408,
+      "files": {
+        "webm": "juno.cabin.chest.webm",
+        "m4a": "juno.cabin.chest.m4a"
+      },
+      "hash": "358a86966892806b",
+      "words": [
+        {
+          "word": "Now",
+          "start": 0.063,
+          "end": 0.572
+        },
+        {
+          "word": "open",
+          "start": 0.572,
+          "end": 0.936
+        },
+        {
+          "word": "the",
+          "start": 0.936,
+          "end": 1.045
+        },
+        {
+          "word": "chest",
+          "start": 1.045,
+          "end": 1.481
+        },
+        {
+          "word": "Captain",
+          "start": 1.481,
+          "end": 2.171
+        },
+        {
+          "word": "Our",
+          "start": 2.171,
+          "end": 2.354
+        },
+        {
+          "word": "chart’s",
+          "start": 2.354,
+          "end": 2.754
+        },
+        {
+          "word": "inside",
+          "start": 2.754,
+          "end": 3.004
+        }
+      ],
+      "voice": "en-GB-Ada:DragonHDLatestNeural"
     }
   ]
 }

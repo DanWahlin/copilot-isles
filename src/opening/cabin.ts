@@ -316,15 +316,15 @@ export function createCabin(opts: CabinOptions): Cabin {
       (rand() - 0.5) * 0.3,
     );
   }
-  // Inkwell and quill on the left.
-  parts.cyl(0.035, 0.045, 0.06, IRON, -0.82, DESK_Y + 0.03, -0.4, 12);
-  parts.cyl(0.02, 0.02, 0.012, BRASS, -0.82, DESK_Y + 0.066, -0.4, 10);
+  // Inkwell and quill on the left, forward of Juno so the quill stays below her face.
+  parts.cyl(0.035, 0.045, 0.06, IRON, -0.69, DESK_Y + 0.03, 0.06, 12);
+  parts.cyl(0.02, 0.02, 0.012, BRASS, -0.69, DESK_Y + 0.066, 0.06, 10);
   parts.add(
-    new CylinderGeometry(0.004, 0.002, 0.3, 5),
+    new CylinderGeometry(0.004, 0.002, 0.25, 5),
     [0.92, 0.9, 0.86],
-    -0.8,
-    DESK_Y + 0.17,
-    -0.4,
+    -0.67,
+    DESK_Y + 0.15,
+    0.06,
     0.25,
     0,
     -0.35,

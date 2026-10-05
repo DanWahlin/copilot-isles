@@ -25,8 +25,11 @@ import type { IslesAudio } from '../audio';
 import { AMBIENT_BEDS } from '../audio/beds';
 import type { SliceName } from '../audio/soundscape/bank';
 import type { Engine } from '../engine/engine';
+import { alignSubtitle } from '../game/subtitle-align';
+import type { Character, CharacterLibrary } from '../world/characters';
 import type { Input } from '../engine/input';
 import { createBrigantine, type Brigantine } from '../world/ship';
+import { BRIEFING_DELAY, BRIEFING_GIVE_UP, Briefing, loadBriefing, type BriefingLine } from './briefing';
 import { createCabin, type Cabin } from './cabin';
 import { drawChartArt } from './chart-art';
 import { CHART_ISLANDS, chartIsland, worldToPaper, type ChartIslandId } from './chart-map';
@@ -90,6 +93,13 @@ export interface Opening {
   readonly compileMs: number;
   /** The island's heavy build is done: the chest beat can play on (smoothly) from here. */
   release(): void;
+  /**
+   * Juno, your first mate, stands in the cabin and tells you what the voyage holds (a new voyage
+   * only). Call before `play`, so she compiles under the veil with the cabin.
+   */
+  setGuide(lib: CharacterLibrary): void;
+  /** Juno's welcome is over or was skipped (tests). */
+  readonly briefed: boolean;
   /** Fades the warm-dark veil down over the title (true) or up off the cabin (false). */
   veil(down: boolean, ms: number): Promise<void>;
   /**
@@ -128,6 +138,8 @@ const APPROACH = 1.8;
  */
 const CONTINUE_AT = 20;
 const AUTO_OPEN = 12;
+/** Where Juno stands: behind the desk's far left corner, clear of the chest, a window behind her. */
+const GUIDE_AT = { x: -1.04, z: -1.06 } as const;
 
 const canvasSize = new Vector2();
 
@@ -190,6 +202,12 @@ export function createOpening(o: OpeningOptions): Opening {
   });
   lockEl.addEventListener('pointerdown', (e) => e.stopPropagation());
   document.body.append(lockEl);
+  // Juno's words, lit as she says them (the island's HUD isn't up yet).
+  const captionEl = document.createElement('div');
+  captionEl.className = 'ci-opening-caption';
+  captionEl.setAttribute('role', 'status');
+  captionEl.setAttribute('aria-live', 'polite');
+  document.body.append(captionEl);
 
   function setPrompt(on: boolean): void {
     if (on === prompting) return;
@@ -235,6 +253,55 @@ export function createOpening(o: OpeningOptions): Opening {
   }
 
   let cabin: Cabin | null = null;
+  /** Juno, behind the desk to the left of the chest, facing the room (cabin metres). */
+  let guide: Character | null = null;
+  let greeted = false;
+  let briefing: Briefing | null = null;
+  let briefingSkipped = false;
+  /** The talk keeps wall-clock time (its voice does), not the beat's capped frame steps. */
+  let talkClock = -1;
+  /** The talk's over (or there isn't one): the chest may invite you, and the chart may hold. */
+  const briefed = (): boolean =>
+    kind !== 'voyage' || briefingSkipped || (briefing ? briefing.done : ambient >= BRIEFING_GIVE_UP);
+  const captionWords: HTMLElement[] = [];
+  function showCaption(line: BriefingLine | null): void {
+    captionWords.length = 0;
+    if (!line) {
+      captionEl.classList.remove('show');
+      return;
+    }
+    const speaker = document.createElement('span');
+    speaker.className = 'ci-opening-caption-speaker';
+    speaker.textContent = line.speaker;
+    const body = document.createElement('span');
+    body.className = 'ci-opening-caption-line';
+    const aligned = alignSubtitle(
+      line.text,
+      line.words.map((w) => w.word),
+    );
+    const tokens = aligned?.tokens ?? line.words.map((w) => w.word);
+    tokens.forEach((token, i) => {
+      const span = document.createElement('span');
+      span.textContent = token;
+      span.dataset.at = String(aligned?.at[i] ?? i);
+      captionWords.push(span);
+      body.append(span, ' ');
+    });
+    captionEl.replaceChildren(speaker, body);
+    captionEl.classList.add('show');
+  }
+  function lightCaption(word: number): void {
+    for (const span of captionWords) span.classList.toggle('spoken', Number(span.dataset.at) <= word);
+  }
+  function speakLine(line: BriefingLine | null): void {
+    showCaption(line);
+    guide?.speak(line);
+    guide?.setTalking(!!line);
+    guide?.setSpotlight(!!line);
+    const audio = o.audio();
+    if (line) void audio?.playVoice(line.id).catch(() => undefined);
+    else audio?.stopVoice();
+  }
   let paper: ChartPaper | null = null;
   let ship: Brigantine | null = null;
   let props: IslandProps | null = null;
@@ -481,8 +548,9 @@ export function createOpening(o: OpeningOptions): Opening {
           t = Math.max(t, beats.gate);
           gated += step;
         } else t += step;
-        const invite = !opened && approached && t <= beats.gate + 1e-4;
+        const invite = !opened && approached && t <= beats.gate + 1e-4 && briefed();
         if (invite) {
+          briefing?.chest();
           promptTime += step;
           if (promptTime >= AUTO_OPEN && !api.debugHold) open();
         }
@@ -496,8 +564,9 @@ export function createOpening(o: OpeningOptions): Opening {
             ? Math.max(0, cabin.chest.keyhole.value - step * 1.5)
             : keyholePulse(gated);
         if (prompting) placeLockButton();
-        const waiting = !released && gated > 6 && !opened;
-        if (t >= beats.ready && !readyDone) {
+        // No loading line under Juno's words; the living chart waits for her to finish.
+        const waiting = !released && gated > 6 && !opened && briefed();
+        if (t >= beats.ready && !readyDone && briefed()) {
           readyDone = true;
           readyResolve?.();
         }
@@ -512,6 +581,17 @@ export function createOpening(o: OpeningOptions): Opening {
       paper.time.value += step;
       // The room lives on its own clock (the beat's stops while it waits for the build or a click).
       ambient += step;
+      if (kind === 'voyage' && !briefingSkipped) {
+        if (!greeted && ambient >= 0.5) {
+          greeted = true;
+          guide?.greet();
+        }
+        if (briefing && !briefing.begun && ambient >= BRIEFING_DELAY) briefing.start();
+        const now = performance.now();
+        briefing?.update(talkClock < 0 ? 0 : Math.min(0.5, (now - talkClock) / 1000));
+        talkClock = now;
+      }
+      guide?.update(dt);
       props?.update(step, ambient);
       cabin.update(step, ambient, reduced);
       lanternCreaks();
@@ -566,6 +646,12 @@ export function createOpening(o: OpeningOptions): Opening {
     for (const src of CHART_ISLANDS) grids.push(await runSliced(sampleIslandGrid(src), sliceBudget));
     if (disposed) return;
     await document.fonts?.ready;
+    // Juno's lines load alongside (small: five word lists and the shared lip-sync cues).
+    void loadBriefing(new URL(`${import.meta.env.BASE_URL}voice/testcove/`, location.href).toString())
+      .then((lines) => {
+        if (!disposed) briefing = new Briefing(lines, { onLine: speakLine, onWord: lightCaption });
+      })
+      .catch(() => undefined);
     const art = drawChartArt(grids);
     // Sun shadows only where the tier has them (the world's sky makes the same choice, so the
     // renderer's shadow switch, and so every pipeline, stays as compiled).
@@ -706,6 +792,18 @@ export function createOpening(o: OpeningOptions): Opening {
     release() {
       released = true;
     },
+    setGuide(lib) {
+      if (guide || disposed) return;
+      guide = lib.create({ body: 'juno', tier: engine.tier, updateTarget: camera });
+      guide.group.position.set(GUIDE_AT.x, 0, GUIDE_AT.z);
+      guide.group.rotation.y = Math.atan2(WIDE.eye.x - GUIDE_AT.x, WIDE.eye.z - GUIDE_AT.z);
+      guide.play('idle');
+      guide.lookAt(camera);
+      scene.add(guide.group);
+    },
+    get briefed() {
+      return briefed();
+    },
     veil(down, ms) {
       veilEl.style.transitionDuration = `${ms}ms`;
       veilEl.style.opacity = down ? '1' : '0';
@@ -735,6 +833,8 @@ export function createOpening(o: OpeningOptions): Opening {
       cueStarted = false;
       ambient = 0;
       nextCreak = 0.3;
+      greeted = false;
+      briefingSkipped = false;
       cabin?.setCaptainName(details.captainName);
       ship?.setSails(details.sails);
       applyBeat(kind === 'continue' || reduced ? 99 : 0);
@@ -752,6 +852,8 @@ export function createOpening(o: OpeningOptions): Opening {
       if (disposed || !prepared) return;
       const t0 = performance.now();
       await api.warm();
+      // Juno joined after the cabin warmed (her library loads on the captain screen).
+      if (guide && !disposed) await engine.renderer.compileAsync(guide.group, camera, scene);
       compileMs = performance.now() - t0;
       if (disposed) return;
       // One draw with everything showing, under the veil: every geometry and texture uploads now.
@@ -788,6 +890,8 @@ export function createOpening(o: OpeningOptions): Opening {
     },
     press() {
       if (disposed || quickFlash) return;
+      // While Juno's talking, a press moves her on to her next line.
+      if (briefing?.speaking && !briefed()) return briefing.next();
       // The first press opens the chest (now, or as soon as it's ready); later ones skip ahead.
       if (!opened) return open();
       if (performance.now() - openedAt < 450) return;
@@ -795,6 +899,8 @@ export function createOpening(o: OpeningOptions): Opening {
     },
     skip() {
       if (quickFlash || disposed) return;
+      briefingSkipped = true;
+      briefing?.stop();
       opened = true;
       setPrompt(false);
       if (t < beats.ready) {
@@ -888,6 +994,10 @@ export function createOpening(o: OpeningOptions): Opening {
       if (engine.cutscene === cutscene) engine.cutscene = null;
       veilEl.remove();
       lockEl.remove();
+      briefing?.stop();
+      captionEl.remove();
+      guide?.dispose();
+      guide = null;
       if (!flashEl.style.opacity || flashEl.style.opacity === '0') sprayEl.remove();
       cabin?.dispose();
       paper?.dispose();

@@ -2196,6 +2196,54 @@ html.reduced-motion .ci-quality-option {
   opacity: 1;
 }
 
+/* Juno's words in the cabin, lit as she says them (like the island's subtitles, in cabin colours). */
+.ci-opening-caption {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(4.4rem, 11vh, 7rem);
+  z-index: 7;
+  max-width: min(44rem, 86vw);
+  padding: 0.75em 1.4em 0.85em;
+  border: 1px solid rgba(232, 200, 138, 0.28);
+  border-radius: 0.9em;
+  background: rgba(20, 12, 6, 0.58);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #f6ecd6;
+  font: 400 clamp(1rem, 1.55vw, 1.28rem) / 1.45 var(--ci-ui);
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 10px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+
+.ci-opening-caption.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.ci-opening-caption-speaker {
+  display: block;
+  margin-bottom: 0.2em;
+  color: #e8c88a;
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.ci-opening-caption-line span {
+  opacity: 0.55;
+  transition: opacity 0.12s linear;
+}
+
+.ci-opening-caption-line span.spoken {
+  opacity: 1;
+}
+
 .ci-opening-veil,
 .ci-opening-flash {
   position: fixed;

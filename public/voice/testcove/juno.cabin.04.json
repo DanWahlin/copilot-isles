@@ -1,0 +1,57 @@
+{
+  "id": "juno.cabin.04",
+  "speaker": "Juno",
+  "text": "And look out for starfish. They hide on every island.",
+  "words": [
+    {
+      "word": "And",
+      "start": 0.063,
+      "end": 0.281
+    },
+    {
+      "word": "look",
+      "start": 0.281,
+      "end": 0.427
+    },
+    {
+      "word": "out",
+      "start": 0.427,
+      "end": 0.645
+    },
+    {
+      "word": "for",
+      "start": 0.645,
+      "end": 0.754
+    },
+    {
+      "word": "starfish",
+      "start": 0.754,
+      "end": 1.954
+    },
+    {
+      "word": "They",
+      "start": 1.954,
+      "end": 2.244
+    },
+    {
+      "word": "hide",
+      "start": 2.244,
+      "end": 2.608
+    },
+    {
+      "word": "on",
+      "start": 2.608,
+      "end": 2.79
+    },
+    {
+      "word": "every",
+      "start": 2.79,
+      "end": 3.19
+    },
+    {
+      "word": "island",
+      "start": 3.19,
+      "end": 3.44
+    }
+  ]
+}

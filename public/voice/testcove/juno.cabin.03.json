@@ -1,0 +1,62 @@
+{
+  "id": "juno.cabin.03",
+  "speaker": "Juno",
+  "text": "Quests fill your Logbook and your purse. Then we sail on!",
+  "words": [
+    {
+      "word": "Quests",
+      "start": 0.063,
+      "end": 0.645
+    },
+    {
+      "word": "fill",
+      "start": 0.645,
+      "end": 0.9
+    },
+    {
+      "word": "your",
+      "start": 0.9,
+      "end": 1.045
+    },
+    {
+      "word": "Logbook",
+      "start": 1.045,
+      "end": 1.663
+    },
+    {
+      "word": "and",
+      "start": 1.663,
+      "end": 1.844
+    },
+    {
+      "word": "your",
+      "start": 1.844,
+      "end": 2.027
+    },
+    {
+      "word": "purse",
+      "start": 2.027,
+      "end": 2.972
+    },
+    {
+      "word": "Then",
+      "start": 2.972,
+      "end": 3.3
+    },
+    {
+      "word": "we",
+      "start": 3.3,
+      "end": 3.48
+    },
+    {
+      "word": "sail",
+      "start": 3.48,
+      "end": 3.809
+    },
+    {
+      "word": "on",
+      "start": 3.809,
+      "end": 4.059
+    }
+  ]
+}

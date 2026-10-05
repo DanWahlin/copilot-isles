@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-04T20:12:03.441Z",
+  "generatedAt": "2026-10-05T22:51:16.848Z",
   "generator": "Rhubarb Lip Sync 1.14.0",
   "scope": "Every voiced islander (not Wingman)",
   "lines": {
@@ -1488,6 +1488,44 @@
         14, 7, 28, 82
       ],
       "v": "XDBACBCBDCAXBEBCBCBABGEBCBEABGCBX"
+    },
+    "juno.cabin.01": {
+      "h": "0a23601b6e0949ce",
+      "e": "happy",
+      "t": [
+        0, 3, 5, 12, 7, 7, 7, 6, 22, 7, 21, 9, 5, 26, 35, 6, 6, 12, 18, 7, 19, 5, 20, 7, 6, 14, 7, 14, 8, 7,
+        27, 12
+      ],
+      "v": "XFCBACAEBCABCBCBABCDCBCFGCBACBX"
+    },
+    "juno.cabin.02": {
+      "h": "2dde910789027ac2",
+      "e": "neutral",
+      "t": [
+        0, 3, 24, 3, 14, 48, 19, 14, 7, 14, 7, 10, 6, 20, 7, 28, 14, 8, 21, 8, 19, 14, 21, 23, 40, 26, 7, 56,
+        7, 7, 41, 8, 4, 7, 14, 63, 12
+      ],
+      "v": "XBXDBCBCBCABEGBCAEACBCAXBGBFCBFEHCBX"
+    },
+    "juno.cabin.03": {
+      "h": "6b8a5f5c23007a5d",
+      "e": "happy",
+      "t": [
+        0, 7, 13, 38, 13, 14, 7, 28, 8, 16, 18, 13, 7, 7, 8, 34, 14, 31, 32, 21, 7, 21, 7, 7, 7, 14, 14, 14
+      ],
+      "v": "BCBGBCEAFBCBEACBXBCFBCBHDCX"
+    },
+    "juno.cabin.04": {
+      "h": "12102a10ccae1856",
+      "e": "neutral",
+      "t": [0, 3, 18, 7, 14, 42, 7, 14, 7, 28, 33, 43, 21, 7, 21, 23, 7, 21, 14, 35, 15],
+      "v": "XBHCBDBGBXBCBDCGBCBX"
+    },
+    "juno.cabin.chest": {
+      "h": "358a86966892806b",
+      "e": "neutral",
+      "t": [0, 3, 23, 7, 27, 8, 13, 32, 14, 7, 21, 8, 5, 25, 25, 6, 19, 14, 35, 14, 21, 12],
+      "v": "XCECEABCBCABCBDBDBDBX"
     }
   }
 }

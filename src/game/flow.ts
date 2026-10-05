@@ -109,6 +109,8 @@ export class GameFlow implements GameBridge {
   private title: TitleBackdrop | null = null;
   private cove: CoveScene | null = null;
   private characters: CharacterLibrary | null = null;
+  /** The characters' load, started on the captain screen so Juno can stand in the cabin. */
+  private characterLib: Promise<CharacterLibrary> | null = null;
   private session: GameSession | null = null;
   /** Quizzes, pages, chests, and the Logbook (rendered by src/ui/learn). */
   readonly learn = new LearnStore();
@@ -200,6 +202,8 @@ export class GameFlow implements GameBridge {
     // While the captain's named, the cabin and chart build and compile in the background (no dark
     // gap at Set sail); the menu covers the title, so the small extra frame time doesn't show.
     void this.prepareOpening().then((o) => o.warm());
+    // The characters too (Juno welcomes you in the cabin), a few milliseconds of parsing at a time.
+    void this.loadCharacters().catch(() => undefined);
     this.set({ screen: 'captain', returnTo: 'title' });
   }
 
@@ -533,11 +537,7 @@ export class GameFlow implements GameBridge {
       document.documentElement.classList.add('ci-opening-active');
       this.o.input.enabled = true;
       // The island's code loads behind the cabin: the cabin only waits for itself and the fade.
-      const islandCode = Promise.all([
-        import('../world/cove-scene'),
-        import('../world/characters'),
-        import('./session'),
-      ]);
+      const islandCode = Promise.all([import('../world/cove-scene'), import('./session')]);
       islandCode.catch(() => undefined);
       const [ready] = await Promise.all([
         prep.then(async (o) => (await o.prepare(), o)),
@@ -550,6 +550,15 @@ export class GameFlow implements GameBridge {
       this.openingHold = (holding) => this.set({ progress: { ...progressNow, holding } });
       this.title?.dispose();
       this.title = null;
+      // A new voyage opens with Juno in the cabin, if her library's in (it loads on the captain
+      // screen; a short wait under the veil, else the cabin plays with her voice alone).
+      if (!save) {
+        const lib = await Promise.race([
+          this.loadCharacters().catch(() => null),
+          new Promise<null>((r) => setTimeout(() => r(null), 3000)),
+        ]);
+        if (lib) opening.setGuide(lib);
+      }
       opening.start({
         kind: save ? 'continue' : 'voyage',
         reduced: this.state.settings.reducedMotion,
@@ -567,8 +576,7 @@ export class GameFlow implements GameBridge {
       await opening.play();
       // Back from Apply's reload: skip the cabin scene, straight to the chart and the dive.
       if (this.settingsOnLand) opening.skip();
-      const [{ createCove }, { loadCharacterLibrary }, { createSession, ISLANDS, islandAt }] =
-        await islandCode;
+      const [{ createCove }, { createSession, ISLANDS, islandAt }] = await islandCode;
       const base = this.o.packBase ?? '/packs';
       await packs.loadManifest();
       report(0.06, 'Loading Test Cove essentials');
@@ -582,7 +590,7 @@ export class GameFlow implements GameBridge {
           // A frame between build stages, so the cabin keeps moving while the island builds.
           breathe: buildSlice,
         }),
-        loadCharacterLibrary(`${base}/testcove/characters`),
+        this.loadCharacters(),
       ]);
       this.cove = cove;
       this.characters = characters;
@@ -749,6 +757,21 @@ export class GameFlow implements GameBridge {
     this.cove = null;
     this.characters?.dispose();
     this.characters = null;
+    this.characterLib = null;
+  }
+
+  /** Loads the characters once per voyage (a failed load is tried again next time). */
+  private loadCharacters(): Promise<CharacterLibrary> {
+    const lib = (this.characterLib ??= Promise.all([
+      import('../world/characters'),
+      packs.loadManifest(),
+    ]).then(([{ loadCharacterLibrary }]) =>
+      loadCharacterLibrary(`${this.o.packBase ?? '/packs'}/testcove/characters`),
+    ));
+    lib.catch(() => {
+      if (this.characterLib === lib) this.characterLib = null;
+    });
+    return lib;
   }
 
   private save(captain = this.state.captain): void {

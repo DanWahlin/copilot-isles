@@ -1677,6 +1677,46 @@
       "prosody": {
         "rate": "+3%"
       }
+    },
+    {
+      "id": "juno.cabin.01",
+      "speaker": "Juno",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "prosody": { "rate": "+10%" },
+      "text": "Welcome aboard, Captain! I’m Juno, your first mate."
+    },
+    {
+      "id": "juno.cabin.02",
+      "speaker": "Juno",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "prosody": { "rate": "+10%" },
+      "text": "Each island teaches a chapter of the GitHub Copilot app. Finish its quests to earn its seal."
+    },
+    {
+      "id": "juno.cabin.03",
+      "speaker": "Juno",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "prosody": { "rate": "+10%" },
+      "text": "Quests fill your Logbook and your purse. Then we sail on!"
+    },
+    {
+      "id": "juno.cabin.04",
+      "speaker": "Juno",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "prosody": { "rate": "+10%" },
+      "text": "And look out for starfish. They hide on every island."
+    },
+    {
+      "id": "juno.cabin.chest",
+      "speaker": "Juno",
+      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
+      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "prosody": { "rate": "+10%" },
+      "text": "Now, open the chest, Captain. Our chart’s inside."
     }
   ]
 }

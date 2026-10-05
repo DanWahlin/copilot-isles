@@ -1,0 +1,47 @@
+{
+  "id": "juno.cabin.01",
+  "speaker": "Juno",
+  "text": "Welcome aboard, Captain! I’m Juno, your first mate.",
+  "words": [
+    {
+      "word": "Welcome",
+      "start": 0.063,
+      "end": 0.427
+    },
+    {
+      "word": "aboard",
+      "start": 0.427,
+      "end": 0.863
+    },
+    {
+      "word": "Captain",
+      "start": 0.863,
+      "end": 1.7
+    },
+    {
+      "word": "I’m",
+      "start": 1.7,
+      "end": 1.99
+    },
+    {
+      "word": "Juno",
+      "start": 1.99,
+      "end": 2.608
+    },
+    {
+      "word": "your",
+      "start": 2.608,
+      "end": 2.827
+    },
+    {
+      "word": "first",
+      "start": 2.827,
+      "end": 3.19
+    },
+    {
+      "word": "mate",
+      "start": 3.19,
+      "end": 3.44
+    }
+  ]
+}
