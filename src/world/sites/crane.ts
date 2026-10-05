@@ -259,7 +259,7 @@ export function createCrane(o: CraneOptions): CraneSite {
     return { pivot: g, t: -1 };
   }
 
-  const board: PaintedSign = createSign(boardLines(0), BOARD.w, BOARD.h);
+  const board: PaintedSign = createSign(boardLines(0), BOARD.w, BOARD.h, { layout: 'list' });
   board.mesh.position.set(boardAt.x, DECK + 1.6, boardAt.z + 0.04);
   group.add(board.mesh);
 
