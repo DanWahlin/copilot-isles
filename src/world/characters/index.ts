@@ -272,6 +272,7 @@ class CharacterLibraryImpl implements CharacterLibrary {
     const clone = SkeletonUtils.clone(source.scene) as Group;
     clone.name = `character_${body}`;
     clone.scale.setScalar(config.scale);
+    shortenForearms(clone);
     clone.updateMatrixWorld(true);
     cloneCharacterMaterials(
       clone,
@@ -414,6 +415,20 @@ function dampTrack(clip: AnimationClip, names: readonly string[], keep: number):
       q.copy(mean.clone().slerp(q, keep));
       q.toArray(v, i * 4);
     }
+  }
+}
+
+/**
+ * The kit's arms reach almost to the knees, which reads as abnormally long (Dan). The forearm and hand
+ * are scaled down by a fifth from the elbow, before anything is attached to them, so props held in the
+ * hand and the IK (which measures the bones live) follow.
+ */
+const FOREARM_SCALE = 0.8;
+
+function shortenForearms(root: Group): void {
+  for (const name of ['LowerArmL', 'LowerArmR']) {
+    const bone = root.getObjectByName(name);
+    if (bone) bone.scale.multiplyScalar(FOREARM_SCALE);
   }
 }
 
