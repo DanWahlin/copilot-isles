@@ -9,20 +9,6 @@ export function SettingsScreen({ state, bridge }: { state: UiState; bridge: Game
   return (
     <OverlayShell title="Settings" eyebrow="Ship’s instruments" onBack={bridge.back} wide>
       <div className="ci-settings-grid">
-        <SettingsGroup title="Graphics" wide>
-          <div className="ci-graphics">
-            <QualityPicker state={state} bridge={bridge} />
-            <div className="ci-graphics-side">
-              <ApplyQuality state={state} bridge={bridge} />
-              <RenderScaleControl state={state} bridge={bridge} />
-              <Toggle
-                label="Reduced motion"
-                checked={settings.reducedMotion}
-                onChange={(reducedMotion) => bridge.updateSettings({ reducedMotion })}
-              />
-            </div>
-          </div>
-        </SettingsGroup>
         <SettingsGroup title="Audio" tall>
           <Toggle
             label="Mute all"
@@ -88,6 +74,20 @@ export function SettingsScreen({ state, bridge }: { state: UiState; bridge: Game
             />
           </SettingsGroup>
         )}
+        <SettingsGroup title="Graphics" wide>
+          <div className="ci-graphics">
+            <QualityPicker state={state} bridge={bridge} />
+            <div className="ci-graphics-side">
+              <ApplyQuality state={state} bridge={bridge} />
+              <RenderScaleControl state={state} bridge={bridge} />
+              <Toggle
+                label="Reduced motion"
+                checked={settings.reducedMotion}
+                onChange={(reducedMotion) => bridge.updateSettings({ reducedMotion })}
+              />
+            </div>
+          </div>
+        </SettingsGroup>
       </div>
       <footer className="ci-render-info">{state.renderInfo}</footer>
     </OverlayShell>

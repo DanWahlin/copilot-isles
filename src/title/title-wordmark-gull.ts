@@ -52,6 +52,8 @@ const SHIP_GAP_MIN = 60;
 const SHIP_GAP_RANGE = 60;
 /** No perch in view when it's due (the view is dragged right round): look again shortly. */
 const SHIP_RETRY = 8;
+/** Seconds after the title is first visible before the gull flies in to the wordmark. */
+const FIRST_VISIT = 5;
 const tmpPerch = new Vector3();
 const FRAMES: Record<string, { x: number; y: number }> = {
   'flight-0': { x: 0, y: 0 },
@@ -175,7 +177,8 @@ export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches)
   let perchFor = 6;
   // Wing-beat phase in beats: integrated, so changing the beat rate never jumps a frame.
   let flap = 0;
-  let nextAt = 8 + rng() * 7;
+  // The first landing (on the wordmark) comes FIRST_VISIT s after the title is first on screen.
+  let nextAt = Infinity;
   let target: LandingTarget | null = null;
   let mode: GullMode = 'wordmark';
   let perchIndex = -1;
@@ -233,7 +236,8 @@ export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches)
     phaseT = 0;
     target = null;
     visible = 0;
-    nextAt = Math.max(nextAt, t + delay);
+    // Before the first (wordmark) visit, nothing is scheduled: the clock starts once the title shows.
+    if (visits > 0) nextAt = nextAt === Infinity ? t + delay : Math.max(nextAt, t + delay);
     hideOverlay();
   }
 
@@ -242,10 +246,16 @@ export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches)
     update(dt, t, camera) {
       const started = typeof performance !== 'undefined' ? performance.now() : 0;
       if (!enabled || world.reducedMotion.value > 0.5 || reducedMotionQuery?.matches) {
+        // Hidden or reduced motion: the first visit waits for the title to show again (5 s fresh).
+        if (visits === 0) nextAt = Infinity;
         schedule(t);
         cpuMs = started > 0 ? performance.now() - started : 0;
         return;
       }
+
+      // Start the clock on the first frame the wordmark is actually showing (not behind the
+      // loading card).
+      if (nextAt === Infinity && visits === 0 && measureTarget()) nextAt = t + FIRST_VISIT;
 
       if (phase === 'waiting' && t >= nextAt) {
         // The gull lands on the wordmark once; every visit after that comes in from the left to a
