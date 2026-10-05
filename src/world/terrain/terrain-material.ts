@@ -557,7 +557,9 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(backlit)
     .mul(fresnelRim)
     .mul(float(1).sub(world.night))
-    .mul(float(1).sub(cliffMask.mul(0.75)));
+    .mul(float(1).sub(cliffMask.mul(0.75)))
+    // The headland's shoulders all stand over a big drop; only a faint glow there, or its whole top goes gold.
+    .mul(float(1).sub(headlandScrub.mul(0.85)));
   material.emissiveNode = vec3(world.sunColor.r, world.sunColor.g, world.sunColor.b)
     .mul(rim.mul(0.55))
     .add(vec3(0.65, 0.95, 1.0).mul(caustics.mul(0.18)));
