@@ -98,6 +98,8 @@ export interface Character {
   setTalking(on: boolean): void;
   /** Starts or clears the facial performance for a voiced line. */
   speak(line: FacialLine | null): void;
+  /** Lights them as the speaker in a talk shot: a soft key from the camera side and a stronger rim. */
+  setSpotlight(on: boolean): void;
   /** A one-off wave hello (standing NPCs, not mid-conversation). */
   greet(): void;
   update(dt: number): void;

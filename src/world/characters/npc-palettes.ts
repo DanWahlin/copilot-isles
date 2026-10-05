@@ -55,6 +55,7 @@ const SOURCE_FAMILY: Record<SourceKey, AtlasFamily> = {
  * by the clothing, hair or skin slots (issue #142).
  */
 export const ATLAS_EYES: Record<AtlasFamily, Swatch> = { captain: [6, 7], anne: [8, 9], henry: [7, 11] };
+const ANNE_LIDS: Swatch = [6, 9];
 
 export const ATLAS_SWATCHES: Record<AtlasFamily, AtlasSwatches> = {
   captain: {
@@ -446,6 +447,13 @@ export function disposeCharacterPaletteCache(cache: CharacterPaletteCache): void
   cache.clear();
 }
 
+function shade(hex: Hex, k: number): Hex {
+  const r = Math.round(((hex >> 16) & 255) * k);
+  const g = Math.round(((hex >> 8) & 255) * k);
+  const b = Math.round((hex & 255) * k);
+  return (r << 16) | (g << 8) | b;
+}
+
 function textureForNpc(
   body: NpcId,
   family: AtlasFamily,
@@ -462,7 +470,12 @@ function textureForNpc(
   const palette = NPC_PALETTES[body];
   const swatches = ATLAS_SWATCHES[family];
   paint(ctx, swatches.skin, palette.skin, cell);
-  paint(ctx, swatches.eyes, palette.eyes, cell);
+  // Every NPC wears the painted face (issue #186), so the kit's eyeballs become its eyelids: a
+  // shade under the skin, lit as the round lids they are. The palette's eye colour goes to the iris.
+  paint(ctx, swatches.eyes, shade(palette.skin, 0.9), cell);
+  // The Anne rig's dark lid strip above each eye would read as a second lash line over the painted
+  // one; it becomes the crease of the lid.
+  if (family === 'anne') paint(ctx, [ANNE_LIDS], shade(palette.skin, 0.8), cell);
   paint(ctx, swatches.hair, palette.hair, cell);
   paint(ctx, swatches.shirt, palette.shirt, cell);
   paint(ctx, swatches.vest, palette.vest, cell);
