@@ -35,6 +35,8 @@ import {
   PALM_TRUNK_RADIUS,
   PLANTER,
   VILLAGE_PALMS,
+  pickVillageShrubs,
+  type ShrubCandidate,
   villagePlantInstances,
   villagePlantRank,
 } from './plantings';
@@ -612,6 +614,7 @@ export async function createVillage({
 
   const propMeshes = addInstancedProps(group, heightField, materials, colliders, villageKit, low, mediumUp);
   const propTriangles = propMeshes.reduce((sum, mesh) => sum + triangleCount(mesh.geometry) * mesh.count, 0);
+  plantings.push(...villageShrubs(colliders, anchors, plantings, heightField, tier));
   const metrics: VillageMetrics = {
     staticDraws,
     propDraws: propMeshes.length,
@@ -2410,6 +2413,82 @@ function addVillagePlantings(
     perches.push(new Vector3(p.x + dx, p.y + h, p.z + dz));
   }
   return plants;
+}
+
+/**
+ * Shrubs and flowering bushes between the buildings (Dan): beds a metre out from each house wall and
+ * just off each street's paving, kept off paving, doors, colliders, palms, the mill and the beach.
+ * They render in the vegetation's existing shrub, flower, fern and banana batches, without colliders.
+ */
+function villageShrubs(
+  colliders: { circles: CircleObstacle[]; boxes: VillageBoxCollider[] },
+  anchors: Record<string, VillageAnchor>,
+  palms: readonly PlantInstance[],
+  heightField: HeightField,
+  tier: TierSettings,
+): PlantInstance[] {
+  const candidates: ShrubCandidate[] = [];
+  const clear = (x: number, z: number): boolean => {
+    if (walkable(x, z) !== null || insideAnyBuilding(x, z)) return false;
+    if (x > -74 && x < -51 && z > -77 && z < -42) return false;
+    if (Math.hypot(x - COVE.village.center.x, z - COVE.village.center.z) > 52) return false;
+    if (heightField.heightAt(x, z) < 1.2) return false;
+    for (const c of colliders.circles) if (Math.hypot(x - c.x, z - c.z) < c.r + 0.7) return false;
+    for (const b of colliders.boxes) if (boxClearance(x, z, b) < 0.45) return false;
+    for (const a of Object.values(anchors)) if (Math.hypot(x - a.x, z - a.z) < 2.6) return false;
+    for (const p of palms) if (Math.hypot(x - p.x, z - p.z) < 1.6) return false;
+    return true;
+  };
+  for (const b of BUILDINGS) {
+    const f = buildingFootprint(b);
+    const c = Math.cos(b.rot);
+    const s = Math.sin(b.rot);
+    const hx = f.w * 0.5 + 1.0;
+    const hz = f.d * 0.5 + 1.0;
+    for (let side = 0; side < 4; side += 1) {
+      const along = side % 2 === 0 ? hx : hz;
+      const steps = Math.max(2, Math.round((along * 2) / 2.4));
+      for (let i = 0; i <= steps; i += 1) {
+        const t = -along + (2 * along * i) / steps;
+        const lx = side === 0 ? t : side === 1 ? hx : side === 2 ? -t : -hx;
+        const lz = side === 0 ? hz : side === 1 ? t : side === 2 ? -hz : -t;
+        const x = b.x + lx * c + lz * s;
+        const z = b.z - lx * s + lz * c;
+        if (clear(x, z)) candidates.push({ x, z, wall: true });
+      }
+    }
+  }
+  for (const route of STREET_ROUTES) {
+    for (let i = 0; i < route.length - 1; i += 1) {
+      const a = route[i]!;
+      const b = route[i + 1]!;
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const nx = -(b[1] - a[1]) / len;
+      const nz = (b[0] - a[0]) / len;
+      for (let d = 1.5; d < len; d += 3.2) {
+        const px = a[0] + ((b[0] - a[0]) * d) / len;
+        const pz = a[1] + ((b[1] - a[1]) * d) / len;
+        const off = streetHalfWidth(px, pz) + 1.15;
+        for (const side of [-1, 1]) {
+          const x = px + nx * off * side;
+          const z = pz + nz * off * side;
+          if (clear(x, z)) candidates.push({ x, z, wall: false });
+        }
+      }
+    }
+  }
+  return pickVillageShrubs(candidates, tier.tier, (x, z) => heightField.heightAt(x, z));
+}
+
+/** Distance from a point to a rotated box collider's edge (negative inside). */
+function boxClearance(x: number, z: number, b: VillageBoxCollider): number {
+  const c = Math.cos(-b.rot);
+  const s = Math.sin(-b.rot);
+  const dx = x - b.x;
+  const dz = z - b.z;
+  const lx = Math.abs(dx * c + dz * s) - b.hx;
+  const lz = Math.abs(-dx * s + dz * c) - b.hz;
+  return lx <= 0 && lz <= 0 ? Math.max(lx, lz) : Math.hypot(Math.max(0, lx), Math.max(0, lz));
 }
 
 /** Where the point lighthouse's door faces: down its ridge path toward the quay. */

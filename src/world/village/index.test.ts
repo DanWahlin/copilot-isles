@@ -143,13 +143,13 @@ describe('createVillage', () => {
   it('plants village palms by tier, each with a collider, clear of anchors, the mill and the berth', async () => {
     const low = await createVillage({ tier: tierSettings('low'), heightField });
     const high = await createVillage({ tier: tierSettings('high'), heightField });
-    expect(low.plantings.length).toBeGreaterThanOrEqual(8);
-    expect(high.plantings.length).toBeGreaterThan(low.plantings.length);
-    expect(high.plantings.every((p) => p.species.startsWith('palm'))).toBe(true);
+    const palms = (v: typeof high) => v.plantings.filter((p) => p.species.startsWith('palm'));
+    expect(palms(low).length).toBeGreaterThanOrEqual(8);
+    expect(palms(high).length).toBeGreaterThan(palms(low).length);
     // One palm model (lodSeed < 0.6), so the village adds one instanced batch and one program.
-    expect(high.plantings.every((p) => p.lodSeed < 0.6)).toBe(true);
+    expect(palms(high).every((p) => p.lodSeed < 0.6)).toBe(true);
 
-    for (const p of high.plantings) {
+    for (const p of palms(high)) {
       expect(high.colliders.circles.some((c) => c.x === p.x && c.z === p.z)).toBe(true);
       for (const [name, a] of Object.entries(high.anchors))
         expect(Math.hypot(p.x - a.x, p.z - a.z), `${name} at (${p.x}, ${p.z})`).toBeGreaterThan(3);
@@ -158,6 +158,23 @@ describe('createVillage', () => {
       expect(overlapsBerth({ x: p.x, z: p.z, r: 1 })).toBe(false);
     }
 
+    low.dispose();
+    high.dispose();
+  });
+
+  it('plants shrubs and flowering bushes off the paving, doors and the mill, fewer on Low', async () => {
+    const low = await createVillage({ tier: tierSettings('low'), heightField });
+    const high = await createVillage({ tier: tierSettings('high'), heightField });
+    const shrubs = (v: typeof high) => v.plantings.filter((p) => !p.species.startsWith('palm'));
+    expect(shrubs(low).length).toBeGreaterThanOrEqual(10);
+    expect(shrubs(high).length).toBeGreaterThan(shrubs(low).length);
+    expect(shrubs(high).some((p) => p.species === 'flowerBush')).toBe(true);
+    for (const p of shrubs(high)) {
+      expect(walkable(p.x, p.z), `paved at (${p.x}, ${p.z})`).toBeNull();
+      expect(p.x > -74 && p.x < -51 && p.z > -77 && p.z < -42).toBe(false);
+      for (const a of Object.values(high.anchors))
+        expect(Math.hypot(p.x - a.x, p.z - a.z)).toBeGreaterThan(2.5);
+    }
     low.dispose();
     high.dispose();
   });
