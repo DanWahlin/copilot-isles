@@ -5,6 +5,7 @@ import { HarborMirror } from './ocean/harbor-mirror';
 import { createOcean, type Ocean } from './ocean/ocean';
 import { createSky, type SkySystem } from './sky/sky-system';
 import { createCoastFoam } from './terrain/coast-foam';
+import { seaStackShipObstacle } from './terrain/sea-stack-shape';
 import { createDistantRanges } from './terrain/distant-ranges';
 import { loadTerrainPack } from './terrain/bake';
 import { createTerrain, type CreatedTerrain } from './terrain/terrain-mesh';
@@ -204,7 +205,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   if (tier.shadowCascades > 0) disableReceiveShadows(ship.group);
   scene.add(ship.group);
   sites.crane.setShip(ship.group, BRIGANTINE_CARGO);
-  shipObstacles.push(...village.shipObstacles, ...sites.shipObstacles);
+  shipObstacles.push(...village.shipObstacles, ...sites.shipObstacles, seaStackShipObstacle());
   const shipEnv = {
     waves: ocean.field,
     ground: heightField,

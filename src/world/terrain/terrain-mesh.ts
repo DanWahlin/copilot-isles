@@ -43,7 +43,7 @@ export interface CreateTerrainOptions {
   tier: Tier | TierSettings;
   data: TerrainBakeData;
   name?: string;
-  createRocks?: ((heightField: HeightField, data: TerrainBakeData) => Group | null) | null;
+  createRocks?: ((heightField: HeightField, data: TerrainBakeData, tier: Tier) => Group | null) | null;
   cloudShadowNode?: Node<'float'> | null;
 }
 
@@ -322,7 +322,7 @@ export function createTerrain(options: CreateTerrainOptions): CreatedTerrain {
     cell: data.cell,
   };
   const heightField = new BakedTerrainHeightField(data);
-  const rocks = (options.createRocks ?? createTerrainRocks)(heightField, data);
+  const rocks = (options.createRocks ?? createTerrainRocks)(heightField, data, tier.tier);
   if (rocks) group.add(rocks);
 
   return {

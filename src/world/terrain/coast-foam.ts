@@ -15,6 +15,7 @@ import type { HeightField } from '../contracts';
 import { COVE } from '../layout';
 import { foamLight, world } from '../uniforms';
 import type { TerrainBakeData } from './bake';
+import { seaStackWaterlineRadius } from './sea-stack-shape';
 
 export interface CoastFoamOptions {
   width?: number;
@@ -107,17 +108,24 @@ export function createCoastFoam(
     COVE.seaStack.z >= data.minZ &&
     COVE.seaStack.z <= data.maxZ
   ) {
-    const segments = 72;
-    const radius = COVE.seaStack.radius + 8.2;
+    // Hug the stack's real waterline (the notch), not a circle: the same shape the mesh is built from.
+    const segments = 96;
+    let along = 0;
     let previousBase = -1;
     let previousOuter = -1;
+    let px = 0;
+    let pz = 0;
     for (let i = 0; i <= segments; i++) {
       const a = (i / segments) * Math.PI * 2;
       const sx = Math.cos(a);
       const sz = Math.sin(a);
-      const x = COVE.seaStack.x + sx * radius;
-      const z = COVE.seaStack.z + sz * radius;
-      const base = pushRibbonPair(x, z, sx, sz, i * ((Math.PI * 2 * radius) / segments), -0.25, 2.2);
+      const r = seaStackWaterlineRadius(a);
+      const x = COVE.seaStack.x + sx * r;
+      const z = COVE.seaStack.z + sz * r;
+      if (i > 0) along += Math.hypot(x - px, z - pz);
+      px = x;
+      pz = z;
+      const base = pushRibbonPair(x, z, sx, sz, along, -0.4, 2.6);
       if (previousBase >= 0) indices.push(previousBase, previousOuter, base, base, previousOuter, base + 1);
       previousBase = base;
       previousOuter = base + 1;

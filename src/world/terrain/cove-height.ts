@@ -1,6 +1,7 @@
 import type { HeightField } from '../contracts';
 import { COVE } from '../layout';
 import { clamp01, smoothstep } from '../../util/math';
+import { seaStackSeabed } from './sea-stack-shape';
 
 const SEED = 0x51e_c0de;
 const EPSILON = 1e-6;
@@ -278,23 +279,6 @@ function headlandHeight(x: number, z: number, current: number): number {
   return mix(current, Math.max(current, head), influence);
 }
 
-function seaStackHeight(x: number, z: number, current: number): number {
-  const d = Math.hypot(x - COVE.seaStack.x, z - COVE.seaStack.z);
-  if (d > COVE.seaStack.radius + 18) return current;
-  const a = Math.atan2(z - COVE.seaStack.z, x - COVE.seaStack.x);
-  const ribs =
-    Math.sin(a * 7 + fbm2(x * 0.035, z * 0.035, 3, SEED + 706) * 1.8) * 1.5 +
-    ridged2(x * 0.08, z * 0.08, 3, SEED + 707) * 1.7;
-  const radius = COVE.seaStack.radius * 0.58 + ribs * 0.7;
-  const side = 1 - smoothstep(radius - 1.8, radius + 3.8, d);
-  const cap =
-    COVE.seaStack.height -
-    3.2 * smoothstep(0, COVE.seaStack.radius + 2, d) +
-    ridged2(x * 0.11, z * 0.11, 3, SEED + 708) * 1.1;
-  const column = mix(-5.6, cap, side);
-  return Math.max(current, column);
-}
-
 export function coveHeight(x: number, z: number): number {
   const coast = noisyCoastDistance(x, z);
   const offshoreDistance = Math.max(0, coast.radial - coast.radius);
@@ -345,7 +329,7 @@ export function coveHeight(x: number, z: number): number {
   );
   h = quayPlatformHeight(x, z, h);
   h = headlandHeight(x, z, h);
-  h = seaStackHeight(x, z, h);
+  h = seaStackSeabed(x, z, h);
 
   if (coast.radial >= COVE.seabedRadius) {
     h = Math.min(h, -TERRAIN_DEEP_DEPTH);
