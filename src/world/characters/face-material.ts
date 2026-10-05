@@ -157,10 +157,11 @@ export function faceMaterial(): MeshStandardNodeMaterial {
   const eyeRough = mix(float(0.7), float(0.18), opening);
 
   // Mouth, in metres: an ellipse bent by the smile; teeth on top, tongue below, lips round it.
-  const mx = local.x as AnyNode;
-  const my = local.y as AnyNode;
   const hw = mouthU.x as AnyNode;
   const hhRaw = mouthU.y as AnyNode;
+  const mx = local.x as AnyNode;
+  // The upper lip stays with the skull; the opening grows downward with the jaw.
+  const my = local.y.add(hhRaw.mul(0.45)) as AnyNode;
   const round = mouthU.z as AnyNode;
   const smile = mouthU.w as AnyNode;
   const line = float(0.0032);

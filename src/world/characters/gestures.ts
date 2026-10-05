@@ -339,6 +339,10 @@ export class GesturePlanner {
   private clock = 0;
   private on = false;
   private planned = false;
+  /** Between their own lines: hands still, small nods, a head tilt held to one side. */
+  private listening = false;
+  private listenTilt = 0;
+  private tiltSide: Side = 1;
   private nextFree = 0;
   private last: GestureKind | null = null;
   private lastSide: Side = 1;
@@ -373,11 +377,28 @@ export class GesturePlanner {
   stop(): void {
     this.on = false;
     this.planned = false;
+    this.listening = false;
     this.count = 0;
+  }
+
+  /** Listens between their own lines (someone else speaking, a quiz, a puzzle): no hand talk. */
+  listen(): void {
+    if (this.listening) return;
+    this.listening = true;
+    this.planned = false;
+    this.count = 0;
+    this.clock = 0;
+    this.nextFree = 1.2 + this.random() * 1.4;
+    this.tiltSide = this.random() < 0.5 ? 1 : -1;
+  }
+
+  get isListening(): boolean {
+    return this.on && this.listening;
   }
 
   /** Lands strokes on a voiced line's stressed words (null drops back to free timing). */
   plan(words: readonly SpokenWord[] | null, text = '', duration = 0): void {
+    this.listening = false;
     this.count = 0;
     this.clock = 0;
     this.planned = !!words?.length;
@@ -407,10 +428,20 @@ export class GesturePlanner {
       return f;
     }
     this.clock += dt;
+    // A listener's head cocks a little to one side and stays there, changing side now and then.
+    this.listenTilt +=
+      ((this.listening ? this.tiltSide * 0.06 : 0) - this.listenTilt) * (1 - Math.exp(-dt * 2));
+    f.tilt = this.listenTilt;
     if (!this.planned && this.clock >= this.nextFree) {
-      const kind = this.pickFree();
-      this.push(this.clock + 0.5, kind);
-      this.nextFree = this.clock + 2.4 + this.random() * 1.8;
+      if (this.listening) {
+        if (this.canNod) this.push(this.clock + 0.15, 'nod');
+        this.nextFree = this.clock + 2.6 + this.random() * 2.8;
+        if (this.random() < 0.3) this.tiltSide = -this.tiltSide as Side;
+      } else {
+        const kind = this.pickFree();
+        this.push(this.clock + 0.5, kind);
+        this.nextFree = this.clock + 2.4 + this.random() * 1.8;
+      }
     }
     // Play the latest gesture whose window has opened, crossfading out of the one before it.
     let cur = -1;
@@ -440,8 +471,10 @@ export class GesturePlanner {
     const f = this.frame;
     if (s.kind === 'nod') {
       const u = Math.min(1, Math.max(0, (t + 0.15) / 1.3));
-      // Two small dips of the head only.
-      const nod = 0.13 * Math.sin(u * Math.PI) * (0.5 - 0.5 * Math.cos(u * Math.PI * 4));
+      // Two small dips of the head only; a listener's "mm-hm" is one softer dip.
+      const nod = this.listening
+        ? 0.07 * Math.sin(u * Math.PI) ** 2
+        : 0.13 * Math.sin(u * Math.PI) * (0.5 - 0.5 * Math.cos(u * Math.PI * 4));
       f.nod = f.nod * (1 - w) + nod * w;
       return;
     }
@@ -452,7 +485,7 @@ export class GesturePlanner {
     if (both) blendInto(s.side === 1 ? f.right : f.left, pose, w);
     // The head tips a touch toward the stroke and the shoulders turn into it (yaw only, no lean).
     const env = smoothstep(-0.3, 0, t) * (1 - smoothstep(0.6, 1.4, t));
-    f.tilt += (both ? 0 : s.side * 0.05 * env - f.tilt) * w;
+    f.tilt += ((both ? 0 : s.side * 0.05 * env) - f.tilt) * w;
     f.turn += ((both ? 0 : s.side * 0.07 * env) - f.turn) * w;
   }
 

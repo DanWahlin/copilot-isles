@@ -214,6 +214,8 @@ export interface Npc {
   lastBark: number;
   /** Faces this point instead of the player while set (Nell watching the coconut fly). */
   faceTarget: { x: number; z: number } | null;
+  /** Glances (head and eyes only) toward another islander while they speak in a shared scene. */
+  glance?: { x: number; y: number; z: number } | null;
   /** When they last waved hello, and whether you've wandered off since (so they'll wave again). */
   greetedAt: number;
   greetArmed: boolean;
@@ -330,11 +332,13 @@ export class NpcCrowd {
       g.rotation.y = n.heading;
       if (s.patrol || s.orbit) n.character.setSpeed(moving ? (s.speed ?? 1.2) : 0);
       n.character.lookAt(
-        n.faceTarget
-          ? tmp.set(n.faceTarget.x, n.y + 1.5, n.faceTarget.z)
-          : near || n.talking
-            ? tmp.set(player.x, player.y + 1.5, player.z)
-            : null,
+        n.glance
+          ? tmp.set(n.glance.x, n.glance.y, n.glance.z)
+          : n.faceTarget
+            ? tmp.set(n.faceTarget.x, n.y + 1.5, n.faceTarget.z)
+            : near || n.talking
+              ? tmp.set(player.x, player.y + 1.5, player.z)
+              : null,
       );
       n.character.update(dt);
     }

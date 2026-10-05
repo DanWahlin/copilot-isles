@@ -10,10 +10,12 @@ import {
   disposeCharacterPaletteCache,
   type CharacterPaletteCache,
 } from './npc-palettes';
-import { rigBrows } from './brow-rig';
+import { rigFace } from './face-rig';
+import { FACE_FITS, faceFamily } from './face-fit';
 import { addShoulderMacaw, createMacawGeometry } from './parrot';
 import { addTricorn, stowPlayerWeapon } from './props';
 import { RuntimeCharacter } from './runtime-character';
+import { stagedMaterial } from './stage-light';
 import {
   CHARACTER_BODIES,
   CHARACTER_CLIPS,
@@ -205,6 +207,9 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
   mer_guard: { source: 'henry_npc', scale: 1.05, radius: 0.35, height: 1.82, tint: 0xffffff },
 };
 
+/** Atlas columns the jaw carries: skin, plus the captain's beard (hair). */
+const JAW_COLUMNS = { anne: [4], henry: [4], captain: [0, 5] } as const;
+
 const PLAYER_VARIANTS = [0xffffff, 0xe8f5ff, 0xffeee4, 0xebffe4] as const;
 const TEMP_COLOR = new Color();
 
@@ -219,8 +224,11 @@ export async function loadCharacterLibrary(base = '/packs/testcove/characters'):
       const scene = gltf.scene;
       scene.name = `source_${key}`;
       prepareSourceScene(scene);
-      // NPCs get movable brows for their faces; the players' rigs stay as they are.
-      if (key.endsWith('_npc')) rigBrows(scene);
+      // NPCs get movable brows and a jaw for their faces; the players' rigs stay as they are.
+      if (key.endsWith('_npc')) {
+        const family = faceFamily(key);
+        rigFace(scene, { mouthY: FACE_FITS[family].mouthY, columns: JAW_COLUMNS[family] });
+      }
       return {
         key,
         file,
@@ -277,6 +285,13 @@ class CharacterLibraryImpl implements CharacterLibrary {
     }
     if (body === 'man' || body === 'woman') stowPlayerWeapon(clone, body);
     else dressNpcCharacter(clone, body);
+    // Every character's materials carry the staging light (key and rim in talk shots, issue #188).
+    clone.traverse((object) => {
+      if (!(object instanceof Mesh) || object.name === 'character-face') return;
+      object.material = Array.isArray(object.material)
+        ? object.material.map(stagedMaterial)
+        : stagedMaterial(object.material);
+    });
     return new RuntimeCharacter(clone, source.clips, body, config, options);
   }
 

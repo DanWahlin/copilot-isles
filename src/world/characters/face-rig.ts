@@ -3,26 +3,37 @@ import { Bone, Matrix4, Skeleton, SkinnedMesh, Vector3, type Object3D } from 'th
 /** The brow bones added under each NPC rig's Head (left is +x, the character's own left). */
 export const BROW_BONES = ['BrowL', 'BrowR'] as const;
 
+/** The jaw bone added under each NPC rig's Head; the chin (and any beard) hangs from it. */
+export const JAW_BONE = 'Jaw';
+
 /** The hair swatch column in the Pirate Kit atlas; the brows are painted from it (32 px cells). */
 const HAIR_COLUMN = 5;
 
+/** Where the jaw hinges and which atlas columns it carries (skin, and the captain's beard). */
+export interface JawFit {
+  readonly mouthY: number;
+  readonly columns: readonly number[];
+}
+
 /**
- * Gives a source rig movable brows (issue #186 follow-up). The Pirate Kit models carry each brow as
+ * Gives a source rig movable brows and a jaw (issues #186, #194). The Pirate Kit models carry each brow as
  * its own small island of hair-coloured faces, skinned wholly to the Head. This finds the two islands
  * above the eyes, adds a BrowL and a BrowR bone under the Head at their centres, and moves those
  * vertices onto the new bones. At rest each brow bone matches the Head exactly, so nothing changes
- * until the face moves them. Run once per source scene, before it's cloned (clones share geometry).
+ * until the face moves them. The jaw takes the face below the mouth with a soft falloff (none at the
+ * mouth line, all of it by the chin), so the chin drops with open vowels. Run once per source
+ * scene, before it's cloned (clones share geometry).
  */
-export function rigBrows(scene: Object3D): number {
+export function rigFace(scene: Object3D, jaw?: JawFit): number {
   scene.updateMatrixWorld(true);
   let rigged = 0;
   scene.traverse((object) => {
-    if (object instanceof SkinnedMesh && rigMesh(object, scene)) rigged++;
+    if (object instanceof SkinnedMesh && rigMesh(object, scene, jaw)) rigged++;
   });
   return rigged;
 }
 
-function rigMesh(mesh: SkinnedMesh, root: Object3D): boolean {
+function rigMesh(mesh: SkinnedMesh, root: Object3D, jaw?: JawFit): boolean {
   const skeleton = mesh.skeleton;
   const headIndex = skeleton.bones.findIndex((b) => b.name === 'Head');
   const head = skeleton.bones[headIndex];
@@ -101,10 +112,45 @@ function rigMesh(mesh: SkinnedMesh, root: Object3D): boolean {
     bones.push(bone);
     for (const i of list!) skinIndex.setX(i, bones.length - 1);
   });
+  if (jaw) addJaw(jaw);
   skinIndex.needsUpdate = true;
+  skinWeight.needsUpdate = true;
   mesh.bind(new Skeleton(bones, inverses), mesh.bindMatrix);
   head.updateMatrixWorld(true);
   return true;
+
+  function addJaw(fit: JawFit): void {
+    const bone = new Bone();
+    bone.name = JAW_BONE;
+    bone.position.set(0, fit.mouthY, 0.2).divideScalar(metres);
+    head!.add(bone);
+    bone.updateMatrix();
+    inverses.push(bone.matrix.clone().invert().multiply(skeleton.boneInverses[headIndex]!));
+    bones.push(bone);
+    const jawIndex = bones.length - 1;
+    for (let i = 0; i < n; i++) {
+      if (skinIndex.getX(i) !== headIndex || skinWeight.getX(i) < 0.99) continue;
+      const column = Math.floor(uv!.getX(i) * 32);
+      if (!fit.columns.includes(column)) continue;
+      const x = local[i * 3]!;
+      const y = local[i * 3 + 1]!;
+      const z = local[i * 3 + 2]!;
+      const w =
+        smooth(fit.mouthY + 0.004, fit.mouthY - 0.07, y) *
+        smooth(0.02, 0.14, z) *
+        (1 - smooth(0.13, 0.22, Math.abs(x)));
+      if (w < 0.01) continue;
+      skinIndex.setY(i, jawIndex);
+      skinWeight.setX(i, 1 - w);
+      skinWeight.setY(i, w);
+    }
+  }
+}
+
+/** Smoothstep that also runs downhill when `a > b`. */
+function smooth(a: number, b: number, x: number): number {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
 }
 
 function centre(local: Float32Array, list: readonly number[]): Vector3 {

@@ -270,24 +270,65 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   hud.setHelp(WALK_HELP);
   let facialSpeaker: Character | null = null;
   let lineFace: Character | null = null;
+  const glancers: Npc[] = [];
+  /** Who the open conversation is with, and whether its camera has widened to a two-shot. */
+  let partner: Npc | null = null;
+  let twoShot = false;
+  /** Everyone lit for the open conversation (the partner, and anyone else who speaks in it). */
+  const lit: Character[] = [];
+  const spotlight = (c: Character | null) => {
+    if (!c || lit.includes(c)) return;
+    c.setSpotlight(true);
+    lit.push(c);
+  };
   // Each voiced line moves the face of whoever says it: Pim and Pol share scenes, and Rhea talks
-  // aboard. The nearest islander with that name wins (Lyra plays on two islands).
-  const speakerFace = (speaker: string): Character | null => {
-    let best: Character | null = null;
+  // aboard. The nearest islander with that name wins (Lyra plays on two islands). Anyone else in the
+  // scene glances toward the speaker while they talk.
+  const speakerNpc = (speaker: string): Npc | null => {
+    let best: Npc | null = null;
     let bestD = Infinity;
     for (const n of [...npcs.list, ...(meridianNpcs?.list ?? [])]) {
       if (!n.spec.name.split(' ').includes(speaker)) continue;
       const d = (n.x - player.x) ** 2 + (n.z - player.z) ** 2;
-      if (d < bestD) [best, bestD] = [n.character, d];
+      if (d < bestD) [best, bestD] = [n, d];
     }
-    if (speaker === 'Rhea' && rheaAboard?.group.parent) return rheaAboard;
     return best;
   };
+  const clearGlances = () => {
+    for (const n of glancers) n.glance = null;
+    glancers.length = 0;
+  };
   const dialogue = new Dialogue(hud, audio, (line) => {
-    const face = line ? (speakerFace(line.speaker) ?? facialSpeaker) : null;
+    const npc = line ? speakerNpc(line.speaker) : null;
+    const aboard = line?.speaker === 'Rhea' && rheaAboard?.group.parent ? rheaAboard : null;
+    const face = line ? (aboard ?? npc?.character ?? facialSpeaker) : null;
     if (lineFace && lineFace !== face) lineFace.speak(null);
     lineFace = face;
     face?.speak(line);
+    if (partner) spotlight(face);
+    clearGlances();
+    if (!npc || aboard) return;
+    // Staging: when someone beside your partner speaks (Pim and Pol), widen once to frame them both.
+    if (partner && npc !== partner && !twoShot && talkShot) {
+      const shot = pairShot(partner, npc);
+      if (shot) {
+        twoShot = true;
+        talkShot = shot;
+        cam.frame(shot);
+      }
+    }
+    for (const other of [...npcs.list, ...(meridianNpcs?.list ?? [])]) {
+      // The one you're talking with, and anyone standing right beside the speaker (Pim and Pol).
+      const d2 = (other.x - npc.x) ** 2 + (other.z - npc.z) ** 2;
+      if (other === npc || d2 > (other.talking ? 36 : 9)) continue;
+      // Most of the way toward the speaker's face, a little toward you: a glance, not a stare.
+      other.glance = {
+        x: npc.x * 0.7 + player.x * 0.3,
+        y: npc.y + 1.25,
+        z: npc.z * 0.7 + player.z * 0.3,
+      };
+      glancers.push(other);
+    }
   });
 
   // Player: stepUp covers the 0.6 m quay-to-pier lip.
@@ -436,6 +477,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       input.enabled = false;
     }
     const shot = npcTalkShot(n);
+    partner = n;
+    twoShot = false;
+    spotlight(n.character);
     const priorFaceTarget = n.faceTarget;
     talkShot = shot;
     cam.frame(shot);
@@ -471,6 +515,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       facialSpeaker = null;
       lineFace?.speak(null);
       lineFace = null;
+      clearGlances();
+      partner = null;
+      twoShot = false;
+      for (const c of lit) c.setSpotlight(false);
+      lit.length = 0;
       n.faceTarget = priorFaceTarget;
       npcs.setTalking(n, false);
       cam.frame(null);
@@ -1139,6 +1188,51 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         if (validTalkShot(shot, target)) return shot;
       }
     return candidates[0]!;
+  }
+
+  /**
+   * A two-shot of two islanders side by side: square on to the pair from your side, pulled back to fit
+   * them both, and never with you standing in the way of either face.
+   */
+  function pairShot(a: Npc, b: Npc): CameraShot | null {
+    const sep = Math.hypot(a.x - b.x, a.z - b.z);
+    if (sep > 6 || sep < 0.3) return null;
+    const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 + 1.12, z: (a.z + b.z) / 2 };
+    // The pair's normal, on your side of them.
+    let nx = -(b.z - a.z) / sep;
+    let nz = (b.x - a.x) / sep;
+    if (nx * (player.x - mid.x) + nz * (player.z - mid.z) < 0) [nx, nz] = [-nx, -nz];
+    const base = Math.atan2(nx, nz);
+    const back = 2.3 + sep * 0.6;
+    for (const turn of [0, 0.3, -0.3, 0.55, -0.55]) {
+      const ang = base + turn;
+      const x = mid.x + Math.sin(ang) * back;
+      const z = mid.z + Math.cos(ang) * back;
+      const shot: CameraShot = {
+        x,
+        y: Math.max(mid.y + 0.42, world.groundAt(x, z) + 1.3, world.waterAt(x, z, 0) + 0.8),
+        z,
+        tx: mid.x,
+        ty: mid.y,
+        tz: mid.z,
+      };
+      if (!validTalkShot(shot, mid)) continue;
+      if (blocksView(shot, a) || blocksView(shot, b)) continue;
+      return shot;
+    }
+    return null;
+  }
+
+  /** Whether you stand between the camera and an islander's face. */
+  function blocksView(shot: CameraShot, n: Npc): boolean {
+    const fx = n.x - shot.x;
+    const fz = n.z - shot.z;
+    const len2 = fx * fx + fz * fz;
+    const t = ((player.x - shot.x) * fx + (player.z - shot.z) * fz) / Math.max(1e-6, len2);
+    if (t <= 0 || t >= 1) return false;
+    const px = shot.x + fx * t - player.x;
+    const pz = shot.z + fz * t - player.z;
+    return px * px + pz * pz < 0.55 * 0.55;
   }
 
   function validTalkShot(shot: CameraShot, target: { x: number; y: number; z: number }): boolean {

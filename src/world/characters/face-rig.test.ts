@@ -10,7 +10,7 @@ import {
   Uint16BufferAttribute,
   Vector3,
 } from 'three/webgpu';
-import { BROW_BONES, rigBrows } from './brow-rig';
+import { BROW_BONES, rigFace } from './face-rig';
 
 /** A head bone with three islands of hair-swatch quads: two brows and a fringe too big to be one. */
 function rig(): { root: Group; mesh: SkinnedMesh; head: Bone } {
@@ -56,11 +56,11 @@ function rig(): { root: Group; mesh: SkinnedMesh; head: Bone } {
   return { root, mesh, head };
 }
 
-describe('rigBrows', () => {
+describe('rigFace', () => {
   it('moves each brow island onto its own bone and leaves the rest pose unchanged', () => {
     const { root, mesh, head } = rig();
     const before = Array.from({ length: 12 }, (_, i) => mesh.getVertexPosition(i, new Vector3()));
-    expect(rigBrows(root)).toBe(1);
+    expect(rigFace(root)).toBe(1);
     for (const name of BROW_BONES) expect(head.getObjectByName(name)).toBeInstanceOf(Bone);
     const skin = mesh.geometry.getAttribute('skinIndex');
     expect(skin.getX(0)).toBe(1);
@@ -70,6 +70,6 @@ describe('rigBrows', () => {
     mesh.skeleton.update();
     for (let i = 0; i < 12; i++)
       expect(mesh.getVertexPosition(i, new Vector3()).distanceTo(before[i]!)).toBeLessThan(1e-6);
-    expect(rigBrows(root)).toBe(0);
+    expect(rigFace(root)).toBe(0);
   });
 });

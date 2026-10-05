@@ -1,5 +1,5 @@
 import { Color, MathUtils, Mesh, Object3D, Vector3, type Bone } from 'three/webgpu';
-import { BROW_BONES } from './brow-rig';
+import { BROW_BONES, JAW_BONE } from './face-rig';
 import type { FaceColors, FaceFit } from './face-fit';
 import { createFaceParams, faceGeometry, faceMaterial, type FaceParams } from './face-material';
 import { planAccents } from './gestures';
@@ -35,12 +35,12 @@ export interface BlinkState {
 const MOUTH_POSE: Record<MouthShape, readonly [number, number, number, number, number]> = {
   X: [0.9, 0, 0, 0, 0],
   A: [0.8, 0, 0, 0, 0],
-  B: [0.86, 0.17, 0, 1, 0],
+  B: [0.86, 0.24, 0, 1, 0],
   C: [0.92, 0.38, 0, 0.7, 0.25],
   D: [0.98, 0.62, 0, 0.55, 0.45],
   E: [0.66, 0.4, 0.45, 0.25, 0.3],
-  F: [0.5, 0.3, 1, 0, 0],
-  G: [0.82, 0.14, 0, 1, 0],
+  F: [0.55, 0.4, 1, 0, 0],
+  G: [0.82, 0.2, 0, 1, 0],
   H: [0.88, 0.34, 0, 0.5, 0.85],
 };
 
@@ -191,6 +191,7 @@ export class CharacterFace {
   private mouthCues: readonly MouthCue[] = [];
   private speechStarted = 0;
   private speaking = false;
+  private listening = false;
   private clock = Math.random() * 10;
   private dartAt = 0.45 + Math.random() * 1.4;
   private dartX = 0;
@@ -204,6 +205,7 @@ export class CharacterFace {
   private readonly mouthNow = [0.9, 0, 0, 0, 0];
   private readonly target = new Vector3();
   private readonly brows: { readonly bone: Bone; readonly rest: Vector3; readonly side: 1 | -1 }[] = [];
+  private readonly jaw: { readonly bone: Bone; readonly rest: Vector3 } | null;
   private browRaise = 0;
   private browTilt = 0;
   private accents: readonly number[] = [];
@@ -240,6 +242,8 @@ export class CharacterFace {
     this.mesh.scale.setScalar(scalar);
     this.scalar = scalar;
     head.add(this.mesh);
+    const jaw = head.getObjectByName(JAW_BONE) as Bone | undefined;
+    this.jaw = jaw ? { bone: jaw, rest: jaw.position.clone() } : null;
     BROW_BONES.forEach((name, i) => {
       const bone = head.getObjectByName(name) as Bone | undefined;
       if (bone) this.brows.push({ bone, rest: bone.position.clone(), side: i === 0 ? 1 : -1 });
@@ -254,6 +258,7 @@ export class CharacterFace {
 
   speak(line: FacialLine | null): void {
     this.speaking = !!line;
+    if (line) this.listening = false;
     this.mouthCues = line?.mouthCues ?? [];
     this.expression = line?.expression ?? 'neutral';
     this.speechStarted = performance.now() / 1000;
@@ -261,6 +266,11 @@ export class CharacterFace {
     this.accents = line?.words?.length
       ? planAccents(line.words, line.text ?? '', line.duration, 'open').map((a) => a.t - 0.06)
       : [];
+  }
+
+  /** Attentive while someone else talks: brows a touch up, a soft smile. */
+  listen(on: boolean): void {
+    this.listening = on;
   }
 
   /** Starts a blink now: the eyes close as the head swings to something new. */
@@ -273,7 +283,8 @@ export class CharacterFace {
     this.updateDarts(dt);
     this.updateGaze(lookTarget, dt);
 
-    const [smile, tilt, lower, open] = EXPRESSION[this.expression];
+    const [smile0, tilt, lower, open] = EXPRESSION[this.expression];
+    const smile = smile0 + (this.listening ? 0.12 : 0);
     const ke = 1 - Math.exp(-dt * 6);
     this.smile += (smile - this.smile) * ke;
     this.tilt += (tilt - this.tilt) * ke;
@@ -297,7 +308,14 @@ export class CharacterFace {
     for (let i = 0; i < 5; i++) m[i] = m[i]! + (pose[i]! - m[i]!) * km;
     const w = this.fit.mouthW;
     const surprised = this.expression === 'surprised' && this.speaking ? 0.06 : 0;
-    p.mouth.set(w * m[0]!, w * (m[1]! + surprised) * 0.85, m[2]!, this.smile * (1 - m[2]!));
+    const gape = w * (m[1]! + surprised);
+    p.mouth.set(w * m[0]!, gape, m[2]!, this.smile * (1 - m[2]!));
+    // The jaw carries the chin (and any beard) down with the opening, and a touch back.
+    if (this.jaw) {
+      this.jaw.bone.position.copy(this.jaw.rest);
+      this.jaw.bone.position.y -= gape * 1.1 * this.scalar;
+      this.jaw.bone.position.z -= gape * 0.25 * this.scalar;
+    }
     p.skin.w = m[3]!;
     p.shape.w = m[4]!;
 
@@ -318,7 +336,12 @@ export class CharacterFace {
       if (u > -3 && u < 3) flash = Math.max(flash, Math.exp(-u * u));
     }
     // Brows lift a little with an upward glance and dip as the lids close.
-    const target = raise + flash * 0.011 + (this.gazeY / this.fit.eyeRy) * 0.004 - (1 - blink) * 0.0025;
+    const target =
+      raise +
+      (this.listening ? 0.004 : 0) +
+      flash * 0.011 +
+      (this.gazeY / this.fit.eyeRy) * 0.004 -
+      (1 - blink) * 0.0025;
     const k = 1 - Math.exp(-dt * 14);
     this.browRaise += (target - this.browRaise) * k;
     this.browTilt += (tilt - this.browTilt) * (1 - Math.exp(-dt * 8));

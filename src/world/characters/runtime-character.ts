@@ -17,6 +17,7 @@ import { CharacterFace, type FacialLine } from './facial-animation';
 import { FACE_FITS, faceColors, faceFamily } from './face-fit';
 import { GesturePlanner, type ArmPose, type GestureFrame, type Side } from './gestures';
 import { HandRig } from './hand-rig';
+import { STAGE_REST, type StageLight } from './stage-light';
 import { LegIk } from './leg-ik';
 import { contactsOf, inContact, type FootContactMap } from './loco-pack';
 import {
@@ -120,6 +121,9 @@ export class RuntimeCharacter implements Character {
   /** How much the head follows the look target (eases in and out instead of snapping). */
   private lookWeight = 0;
   private blinkCooldown = 0;
+  /** This character's staging light, shared by all its meshes (read per object by the shader). */
+  private readonly stage: StageLight = { ...STAGE_REST };
+  private spotlit = false;
   private readonly footWorld = new Vector3();
   private readonly footTargetWorld = new Vector3();
   private readonly armCarry = new Map<Bone, Quaternion>();
@@ -220,6 +224,9 @@ export class RuntimeCharacter implements Character {
     this.head = bone(group, 'Head');
     this.neck = bone(group, 'Neck');
     this.face = this.npc ? createFace(this.head, group, body, config) : null;
+    group.traverse((object) => {
+      if (object instanceof Mesh) object.userData.stage = this.stage;
+    });
     this.proceduralRests = proceduralBones([
       this.body,
       this.hips,
@@ -336,6 +343,7 @@ export class RuntimeCharacter implements Character {
       this.gestures.start();
     } else if (!on) {
       this.gestures.stop();
+      this.face?.listen(false);
     }
   }
 
@@ -344,7 +352,15 @@ export class RuntimeCharacter implements Character {
     this.face?.speak(line);
     if (line && !this.gestures.active && this.standing()) this.gestures.start();
     else if (!line && !this.talking) this.gestures.stop();
-    if (this.gestures.active) this.gestures.plan(line?.words ?? null, line?.text, line?.duration);
+    if (!this.gestures.active) return;
+    // Between their own lines, someone in a conversation listens instead of talking with their hands.
+    if (line) this.gestures.plan(line.words ?? null, line.text, line.duration);
+    else this.gestures.listen();
+    this.face?.listen(!line && this.talking);
+  }
+
+  setSpotlight(on: boolean): void {
+    this.spotlit = on;
   }
 
   greet(): void {
@@ -365,6 +381,9 @@ export class RuntimeCharacter implements Character {
     this.applyLookAt(dt);
     this.applyLookNod();
     this.face?.update(dt, this.lookTarget);
+    const ks = 1 - Math.exp(-dt * 2.5);
+    this.stage.key += ((this.spotlit ? 0.18 : STAGE_REST.key) - this.stage.key) * ks;
+    this.stage.rim += ((this.spotlit ? 0.4 : STAGE_REST.rim) - this.stage.rim) * ks;
     this.lastVerticalSpeed = this.verticalSpeed;
   }
 
