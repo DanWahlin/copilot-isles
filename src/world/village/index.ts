@@ -30,6 +30,14 @@ import type { CircleObstacle, HeightField } from '../contracts';
 import { COVE } from '../layout';
 import { createLighthouseHaloMaterial, createLighthouseLitMaterial } from '../lighthouse-lamp';
 import { coloredIndexedGeometry } from '../sites/geo';
+import type { PlantInstance } from '../vegetation/types';
+import {
+  PALM_TRUNK_RADIUS,
+  PLANTER,
+  VILLAGE_PALMS,
+  villagePlantInstances,
+  villagePlantRank,
+} from './plantings';
 import {
   VILLAGE_HOUSE_PIECES,
   buildHouse,
@@ -92,6 +100,8 @@ export interface VillageSystem {
   walkable: (x: number, z: number) => number | null;
   anchors: Record<string, VillageAnchor>;
   metrics: VillageMetrics;
+  /** Hand-placed village palms and plants for the vegetation's instanced batches (`extraPlants`). */
+  plantings: readonly PlantInstance[];
   /** Lights the point lighthouse's lamp (Anchorage's Seal, PLAN §3). */
   setLighthouseLit(on: boolean): void;
   lighthouseLit(): boolean;
@@ -574,6 +584,7 @@ export async function createVillage({
   if (!low) addVillageFestooning(buckets, colliders, heightField);
   addLighthouse(buckets, colliders, shipObstacles, anchors, perches, heightField, low);
   addLanterns(buckets, colliders, heightField, low);
+  const plantings = addVillagePlantings(buckets, colliders, perches, heightField, tier);
   addMooredBoatShipObstacles(shipObstacles);
 
   const materials = villageKit.materials;
@@ -622,6 +633,7 @@ export async function createVillage({
     walkable,
     anchors,
     metrics,
+    plantings,
     setLighthouseLit(on: boolean): void {
       lighthouseLamp.visible = on;
     },
@@ -2354,6 +2366,50 @@ function addLaundryLine(
       i % 2 ? 0xd8c69c : 0xe7eadf,
     );
   }
+}
+
+/**
+ * The village's hand-placed palms (`./plantings`): their planters go into the stone bucket, their
+ * trunks get colliders, and the tallest crowns become bird perches. The plants themselves render in
+ * the vegetation's instanced batches.
+ */
+function addVillagePlantings(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  colliders: { circles: CircleObstacle[] },
+  perches: Vector3[],
+  heightField: HeightField,
+  tier: TierSettings,
+): PlantInstance[] {
+  const ground = (x: number, z: number): number => walkable(x, z) ?? heightField.heightAt(x, z);
+  const terrain = (x: number, z: number): number => heightField.heightAt(x, z);
+  const plants = villagePlantInstances(VILLAGE_PALMS, tier.tier, ground, terrain);
+  const maxRank = villagePlantRank(tier.tier);
+  for (const spot of VILLAGE_PALMS) {
+    if (spot.rank > maxRank) continue;
+    const y = ground(spot.x, spot.z);
+    if (spot.planter) {
+      // A low limestone ring with a paler coping and dark soil, in the stone bucket (no new draws).
+      const r = PLANTER.radius;
+      const h = PLANTER.height;
+      addCylinder(buckets.stone, spot.x, y - 0.05, spot.z, r, r + 0.06, h - 0.02, 14, 0, 0xc4b89f);
+      addCylinder(buckets.stone, spot.x, y + h - 0.08, spot.z, r + 0.05, r + 0.05, 0.1, 14, 0, 0xd8cfb9);
+      addCylinder(buckets.stone, spot.x, y + h - 0.02, spot.z, r - 0.12, r - 0.12, 0.05, 14, 0, 0x6e5538);
+    }
+    const r = spot.planter ? PLANTER.radius + 0.08 : PALM_TRUNK_RADIUS * spot.scale;
+    colliders.circles.push({ x: spot.x, z: spot.z, r, height: 11 * spot.scale });
+  }
+  // A few of the tallest crowns become perches (the birds' perch list stays within its cap).
+  let crowns = 0;
+  for (const p of plants) {
+    if (p.species !== 'palmTall' || p.scale < 1.02 || crowns >= 4) continue;
+    crowns += 1;
+    // The crown sits about 11.6 m up a 12.4 m palm, displaced by its lean.
+    const h = 11.6 * p.scale;
+    const dx = (p.leanX * Math.cos(p.rotation) + p.leanZ * Math.sin(p.rotation)) * h;
+    const dz = (-p.leanX * Math.sin(p.rotation) + p.leanZ * Math.cos(p.rotation)) * h;
+    perches.push(new Vector3(p.x + dx, p.y + h, p.z + dz));
+  }
+  return plants;
 }
 
 /** Where the point lighthouse's door faces: down its ridge path toward the quay. */

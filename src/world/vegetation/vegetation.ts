@@ -250,6 +250,7 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
     loadVegetationGeometries(),
   ]);
   appendSeaStackPlants(scatter.plants);
+  for (const plant of options.extraPlants ?? []) scatter.plants[plant.species].push(plant);
   const batches: PlantBatch[] = [];
   const palmInstances = collectPalmInstances(scatter.plants);
   if (palmInstances.length > 0) {

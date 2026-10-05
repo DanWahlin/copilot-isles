@@ -72,6 +72,8 @@ export interface CreateVegetationOptions {
   seed?: number;
   /** Optional dynamic exclusion mask (for village walkables, buildings, puzzle pads, etc.). */
   exclude?: VegetationExclude;
+  /** Hand-placed plants (e.g. the village's palms) added to the scatter's instanced batches. */
+  extraPlants?: readonly PlantInstance[];
 }
 
 export interface ScatterOptions {

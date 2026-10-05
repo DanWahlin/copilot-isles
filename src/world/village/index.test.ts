@@ -140,6 +140,28 @@ describe('createVillage', () => {
     village.dispose();
   });
 
+  it('plants village palms by tier, each with a collider, clear of anchors, the mill and the berth', async () => {
+    const low = await createVillage({ tier: tierSettings('low'), heightField });
+    const high = await createVillage({ tier: tierSettings('high'), heightField });
+    expect(low.plantings.length).toBeGreaterThanOrEqual(8);
+    expect(high.plantings.length).toBeGreaterThan(low.plantings.length);
+    expect(high.plantings.every((p) => p.species.startsWith('palm'))).toBe(true);
+    // One palm model (lodSeed < 0.6), so the village adds one instanced batch and one program.
+    expect(high.plantings.every((p) => p.lodSeed < 0.6)).toBe(true);
+
+    for (const p of high.plantings) {
+      expect(high.colliders.circles.some((c) => c.x === p.x && c.z === p.z)).toBe(true);
+      for (const [name, a] of Object.entries(high.anchors))
+        expect(Math.hypot(p.x - a.x, p.z - a.z), `${name} at (${p.x}, ${p.z})`).toBeGreaterThan(3);
+      // The mill race and its puzzle ground stay clear.
+      expect(p.x > -72 && p.x < -53 && p.z > -75 && p.z < -44).toBe(false);
+      expect(overlapsBerth({ x: p.x, z: p.z, r: 1 })).toBe(false);
+    }
+
+    low.dispose();
+    high.dispose();
+  });
+
   it('adds player-only mooring bollards on the pier east edge for the new berth', async () => {
     const village = await createVillage({ tier: tierSettings('high'), heightField });
     const x = COVE.pier.x + COVE.pier.width * 0.5 + 0.16;
