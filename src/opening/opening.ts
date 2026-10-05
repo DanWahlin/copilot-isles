@@ -62,6 +62,8 @@ export interface OpeningOptions {
   audio: () => IslesAudio | null;
   /** Told when the opening starts or stops holding on the living chart for the load. */
   onHold?: (holding: boolean) => void;
+  /** Told when the chest starts or stops waiting for the player to open it. */
+  onPrompt?: (prompting: boolean) => void;
 }
 
 /** What's only known at Set sail (or Continue): set with `start()` once the opening's prepared. */
@@ -95,8 +97,12 @@ export interface Opening {
   start(details: OpeningStart): void;
   /** Under the veil: compiles and uploads everything (one hidden draw), then lifts the veil off the cabin. */
   play(): Promise<void>;
-  /** Skips ahead (E, Space, Esc, a click, gamepad A). */
+  /** E, Space, a click or tap, gamepad A: opens the chest when it's waiting, otherwise skips ahead. */
+  press(): void;
+  /** Skips ahead (Esc, the Skip button). */
   skip(): void;
+  /** The chest is waiting to be opened (tests). */
+  readonly prompting: boolean;
   /** Resolves once the beat has reached the living chart (where it holds for the load). */
   ready(): Promise<void>;
   /** The dive into the chart; resolves at the spray flash's peak, when the world takes over. */
@@ -107,6 +113,10 @@ export interface Opening {
   finish(): void;
   dispose(): void;
 }
+
+/** Seconds for the camera to ease in to the chest, and how long the chest waits before it opens itself. */
+const APPROACH = 1.8;
+const AUTO_OPEN = 12;
 
 const tmpA = new Vector3();
 const tmpB = new Vector3();
@@ -140,6 +150,53 @@ export function createOpening(o: OpeningOptions): Opening {
   const sprayEl = document.createElement('div');
   sprayEl.className = 'ci-opening-spray';
   document.body.append(veilEl, flashEl, sprayEl);
+  // The on-screen invitation over the lock: a glowing ring (≥ 44 px) you can click or tap, with
+  // its words and keys below. E, Enter, Space and gamepad A press it too.
+  const lockEl = document.createElement('button');
+  lockEl.type = 'button';
+  lockEl.className = 'ci-opening-lock';
+  lockEl.setAttribute('aria-label', 'Open the chest');
+  lockEl.tabIndex = -1;
+  const lockLabel = document.createElement('span');
+  lockLabel.textContent = 'Open the chest';
+  const lockKeys = document.createElement('small');
+  lockKeys.textContent = 'E · Space · click';
+  lockLabel.append(lockKeys);
+  lockEl.append(lockLabel);
+  lockEl.addEventListener('click', (e) => {
+    e.stopPropagation();
+    open();
+  });
+  lockEl.addEventListener('pointerdown', (e) => e.stopPropagation());
+  document.body.append(lockEl);
+
+  function setPrompt(on: boolean): void {
+    if (on === prompting) return;
+    prompting = on;
+    lockEl.classList.toggle('show', on);
+    lockEl.tabIndex = on ? 0 : -1;
+    if (on) lockEl.focus({ preventScroll: true });
+    o.onPrompt?.(on);
+  }
+
+  function open(): void {
+    if (opened) return;
+    opened = true;
+    openedAt = performance.now();
+    setPrompt(false);
+  }
+
+  const lockScreen = new Vector3();
+  function placeLockButton(): void {
+    if (!cabin) return;
+    lockScreen.copy(cabin.chest.lockAt);
+    cabin.chest.group.localToWorld(lockScreen);
+    lockScreen.project(camera);
+    const r = engine.renderer.domElement.getBoundingClientRect();
+    lockEl.style.setProperty('--x', `${(r.left + (lockScreen.x * 0.5 + 0.5) * r.width).toFixed(1)}px`);
+    lockEl.style.setProperty('--y', `${(r.top + (-lockScreen.y * 0.5 + 0.5) * r.height).toFixed(1)}px`);
+  }
+
   /** Spray droplets bursting outward through the flash (CSS, started as the flash rises). */
   function spray(): void {
     sprayEl.replaceChildren();
@@ -193,6 +250,13 @@ export function createOpening(o: OpeningOptions): Opening {
   /** The beat holds at `beats.gate` (the establishing shot) until the flow says the build is done. */
   let released = false;
   let gated = 0;
+  /** The player has opened the chest (or it opened itself after a while); Continue and reduced motion start open. */
+  let opened = false;
+  /** Seconds since the build finished (the camera eases in to the chest), and since the prompt showed. */
+  let sinceRelease = -1;
+  let promptTime = 0;
+  let prompting = false;
+  let openedAt = -1;
 
   // ---- camera shots (cabin metres; the desk top is y ≈ 0.8, chest at z ≈ -0.43) ----
   const WIDE = pose(0.05, 1.62, 2.55, 0, 1.0, -0.7);
@@ -219,8 +283,11 @@ export function createOpening(o: OpeningOptions): Opening {
     if (kind === 'continue') {
       cam.eye.copy(ALIVE.eye);
       cam.look.copy(ALIVE.look);
-    } else if (time < beats.latch + 0.2) blend(WIDE, CHEST, phase(time, beats.gate, beats.latch + 0.2));
-    else if (time < beats.rise + 0.4) blend(CHEST, RISE, phase(time, beats.latch + 0.2, beats.rise + 0.4));
+    } else if (time < beats.latch + 0.2) {
+      // In to the chest once the island's built, then hold there while it waits to be opened.
+      blend(WIDE, CHEST, sinceRelease < 0 ? 0 : Math.min(1, sinceRelease / APPROACH));
+      cam.eye.y += Math.sin(gated * 0.5) * 0.004;
+    } else if (time < beats.rise + 0.4) blend(CHEST, RISE, phase(time, beats.latch + 0.2, beats.rise + 0.4));
     else if (time < beats.unroll + 0.6) {
       blend(RISE, OVER, phase(time, beats.rise + 0.4, beats.unroll + 0.6), 0.05);
       // Keep an eye on the flying roll.
@@ -357,17 +424,34 @@ export function createOpening(o: OpeningOptions): Opening {
       // The beat keeps real time while the island loads (a long frame skips ahead a little, up to 0.1 s).
       const step = Math.min(dt, 0.1);
       const s = o.input.poll();
-      if ((s.interact || s.jump || s.menu) && t > 0.5) api.skip();
+      if (s.menu && t > 0.5) api.skip();
+      else if ((s.interact || s.jump) && t > 0.5) api.press();
       if (!diving && !quickFlash) {
-        // Waiting for the island's heavy build: hold the establishing shot (it hides frozen frames).
-        if (!released && t + step >= beats.gate) {
+        // The beat waits at the gate: first on the wide shot for the island's heavy build (it hides
+        // frozen frames), then on the chest until the player opens it (or it opens by itself).
+        if (released && sinceRelease < 0) sinceRelease = 0;
+        if (sinceRelease >= 0) sinceRelease += step;
+        const approached = sinceRelease >= APPROACH;
+        if (!(released && opened && approached) && t + step >= beats.gate) {
           t = Math.max(t, beats.gate);
           gated += step;
         } else t += step;
-        cabin.chest.keyhole.value = released
-          ? Math.max(0, cabin.chest.keyhole.value - step * 1.5)
-          : keyholePulse(gated);
-        const waiting = !released && gated > 6;
+        const invite = !opened && approached && t <= beats.gate + 1e-4;
+        if (invite) {
+          promptTime += step;
+          if (promptTime >= AUTO_OPEN) open();
+        }
+        setPrompt(invite && !opened);
+        const breath = 0.5 - 0.5 * Math.cos(promptTime * 3.2);
+        const glowTo = prompting ? 0.55 + 0.45 * breath : 0;
+        cabin.chest.lockGlow.value += (glowTo - cabin.chest.lockGlow.value) * Math.min(1, step * 4);
+        cabin.chest.keyhole.value = prompting
+          ? 0.4 + 0.25 * breath
+          : released
+            ? Math.max(0, cabin.chest.keyhole.value - step * 1.5)
+            : keyholePulse(gated);
+        if (prompting) placeLockButton();
+        const waiting = !released && gated > 6 && !opened;
         if (t >= beats.ready && !readyDone) {
           readyDone = true;
           readyResolve?.();
@@ -535,6 +619,9 @@ export function createOpening(o: OpeningOptions): Opening {
     get holding() {
       return holding;
     },
+    get prompting() {
+      return prompting;
+    },
     get compileMs() {
       return compileMs;
     },
@@ -560,6 +647,11 @@ export function createOpening(o: OpeningOptions): Opening {
       beats = openingBeats(kind);
       CUES = buildCues();
       released = kind === 'continue';
+      opened = kind === 'continue' || reduced;
+      sinceRelease = -1;
+      promptTime = 0;
+      openedAt = -1;
+      setPrompt(false);
       t = 0;
       cueIndex = 0;
       cabin?.setCaptainName(details.captainName);
@@ -604,8 +696,17 @@ export function createOpening(o: OpeningOptions): Opening {
       }
       void api.veil(false, beats.fadeIn * 1000);
     },
+    press() {
+      if (disposed || quickFlash) return;
+      // The first press opens the chest (now, or as soon as it's ready); later ones skip ahead.
+      if (!opened) return open();
+      if (performance.now() - openedAt < 450) return;
+      api.skip();
+    },
     skip() {
       if (quickFlash || disposed) return;
+      opened = true;
+      setPrompt(false);
       if (t < beats.ready) {
         // Straight to the living chart (through a quick warm dip, not a hard cut).
         const to = beats.ready;
@@ -694,6 +795,7 @@ export function createOpening(o: OpeningOptions): Opening {
       removeSystem();
       if (engine.cutscene === cutscene) engine.cutscene = null;
       veilEl.remove();
+      lockEl.remove();
       if (!flashEl.style.opacity || flashEl.style.opacity === '0') sprayEl.remove();
       cabin?.dispose();
       paper?.dispose();

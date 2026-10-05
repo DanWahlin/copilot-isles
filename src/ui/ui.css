@@ -2065,3 +2065,75 @@
     transform: translate(var(--dx), var(--dy)) scale(var(--s));
   }
 }
+
+/* The chest's invitation: a breathing gold ring over the lock (positioned by the opening each frame). */
+.ci-opening-lock {
+  --x: 50vw;
+  --y: 50vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 8;
+  width: 92px;
+  height: 92px;
+  margin: -46px 0 0 -46px;
+  padding: 0;
+  border: 3px solid rgba(255, 226, 160, 0.95);
+  border-radius: 50%;
+  background: transparent;
+  /* A thin dark rim outside the gold, so the ring reads against the bright lock plate. */
+  box-shadow:
+    0 0 0 1.5px rgba(40, 20, 5, 0.55),
+    0 0 18px rgba(255, 190, 90, 0.55);
+  color: #f6ecd6;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(var(--x), var(--y));
+  transition: opacity 0.7s ease;
+  animation: ci-lock-breathe 1.9s ease-in-out infinite;
+}
+
+.ci-opening-lock.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ci-opening-lock:focus-visible {
+  outline: 2px solid rgba(255, 240, 200, 0.9);
+  outline-offset: 6px;
+}
+
+.ci-opening-lock span {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.35rem 0.9rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(20, 11, 4, 0.62);
+  white-space: nowrap;
+  font: italic 500 1.15rem var(--ci-display);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.ci-opening-lock small {
+  display: block;
+  margin-top: 3px;
+  font: 600 0.74rem var(--ci-ui);
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+}
+
+@keyframes ci-lock-breathe {
+  0%,
+  100% {
+    transform: translate(var(--x), var(--y)) scale(1);
+  }
+  50% {
+    transform: translate(var(--x), var(--y)) scale(1.09);
+    box-shadow:
+      0 0 0 1.5px rgba(40, 20, 5, 0.55),
+      0 0 30px rgba(255, 200, 100, 0.85);
+  }
+}

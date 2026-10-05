@@ -164,6 +164,8 @@ export interface GameBridge {
   updateSettings(patch: Partial<Settings>): void;
   /** Repaints the sails (the palette stand's choice, changed from Settings). */
   setSails(paletteId: string): void;
-  /** Skips ahead in the opening (the cabin and living chart). */
+  /** Skips ahead in the opening (the cabin and living chart): Esc and the Skip button. */
   skipOpening(): void;
+  /** A click or tap in the opening: opens the chest when it's waiting, otherwise skips ahead. */
+  pressOpening(): void;
 }

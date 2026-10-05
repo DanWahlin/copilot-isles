@@ -44,6 +44,7 @@ const BRIDGE_METHODS = [
   'updateSettings',
   'setSails',
   'skipOpening',
+  'pressOpening',
 ] as const satisfies readonly (keyof GameBridge)[];
 
 interface SaveData {
@@ -265,6 +266,10 @@ export class GameFlow implements GameBridge {
 
   skipOpening(): void {
     this.opening?.skip();
+  }
+
+  pressOpening(): void {
+    this.opening?.press();
   }
 
   // ---- internals ----

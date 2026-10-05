@@ -84,6 +84,10 @@ export interface HeroChest {
   glow: { value: number };
   /** Light through the keyhole while the chest waits (0-1). */
   keyhole: { value: number };
+  /** The gold glow round the lock that invites the player to open it (0-1). */
+  lockGlow: { value: number };
+  /** The keyhole's centre, in the chest group's space (for placing the on-screen prompt). */
+  lockAt: Vector3;
   width: number;
   height: number;
   depth: number;
@@ -553,7 +557,7 @@ export function createCabin(opts: CabinOptions): Cabin {
       motes.time.value = t;
       sparks.time.value = t;
       chestLight.intensity = chest.glow.value * 3.2 * f;
-      keyLight.intensity = chest.keyhole.value * 0.5 * f;
+      keyLight.intensity = (chest.keyhole.value * 0.5 + chest.lockGlow.value * 0.15) * f;
       void dt;
     },
     dispose() {
@@ -683,7 +687,12 @@ function createHeroChest(captainName: string): HeroChest {
   lid.box(W + 0.03, 0.03, 0.03, IRON, 0, 0.012, D - 0.002);
   lid.box(W + 0.03, 0.03, 0.03, IRON, 0, 0.012, 0.002);
   lid.box(W - 0.06, 0.008, D - 0.06, [0.08, 0.016, 0.022], 0, 0.006, D / 2);
-  const lidMesh = new Mesh(lid.merge(), mat);
+  // A real chest lid overhangs its body a little (past the end planks, brackets and top band).
+  const lidGeo = lid.merge();
+  lidGeo.translate(0, 0, -D / 2);
+  lidGeo.scale((W + 0.05) / W, 1, (D + 0.03) / D);
+  lidGeo.translate(0, 0, D / 2);
+  const lidMesh = new Mesh(lidGeo, mat);
   lidMesh.castShadow = true;
   lidMesh.receiveShadow = true;
   hinge.add(lidMesh);
@@ -728,7 +737,28 @@ function createHeroChest(captainName: string): HeroChest {
   kh.renderOrder = 6;
   group.add(kh);
 
+  // The invitation: a soft gold ring round the lock plate, breathing while the chest waits for you.
+  const lockGlow = uniform(0);
+  const ringMat = new MeshBasicNodeMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+  });
+  const rr = uv().sub(0.5).length().mul(2);
+  const ring = smoothstep(0.42, 0.62, rr).mul(float(1).sub(smoothstep(0.66, 0.95, rr)));
+  const inner = float(1)
+    .sub(smoothstep(0.0, 0.6, rr))
+    .mul(0.08);
+  ringMat.colorNode = color(0xffcf73).mul(lockGlow.mul(1.3));
+  ringMat.opacityNode = ring.add(inner);
+  const lockRing = new Mesh(new PlaneGeometry(0.3, 0.3), ringMat);
+  lockRing.position.set(0, H - 0.11, D / 2 + 0.04);
+  lockRing.renderOrder = 6;
+  group.add(lockRing);
+
   return {
+    lockGlow,
+    lockAt: new Vector3(0, H - 0.11, D / 2 + 0.04),
     group,
     setName: plate.set,
     hinge,

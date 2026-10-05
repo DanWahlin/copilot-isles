@@ -7,9 +7,10 @@ export function VoyageLoading({ state, bridge }: { state: UiState; bridge: GameB
 }
 
 /**
- * Over the opening (the cabin and the living chart): a Skip button for touch and mouse (E, Space, Esc
- * and gamepad A skip too), and, only while it's holding for the island, a quiet line saying what's
- * still loading. A click or tap anywhere skips as well.
+ * Over the opening (the cabin and the living chart): a Skip button (Esc skips too), and, only while
+ * it's holding for the island, a quiet line saying what's still loading. A click or tap anywhere
+ * opens the chest when it's waiting (the glowing ring over the lock is its own button), and
+ * otherwise skips ahead, like E, Space and gamepad A.
  */
 function OpeningOverlay({ state, bridge }: { state: UiState; bridge: GameBridge }) {
   const pct = Math.round(state.progress.value * 100);
@@ -18,14 +19,14 @@ function OpeningOverlay({ state, bridge }: { state: UiState; bridge: GameBridge 
       className="ci-opening"
       aria-label={`Setting sail for ${state.progress.destination ?? 'the isles'}`}
       onPointerDown={(e) => {
-        if (e.button === 0 && !(e.target instanceof HTMLButtonElement)) bridge.skipOpening();
+        if (e.button === 0 && !(e.target instanceof HTMLButtonElement)) bridge.pressOpening();
       }}
     >
       <p className={`ci-opening-hold${state.progress.holding ? ' show' : ''}`} role="status">
         {state.progress.holding ? `${state.progress.message}… ${pct}%` : ''}
       </p>
       <button type="button" className="ci-opening-skip" onClick={() => bridge.skipOpening()}>
-        Skip <span aria-hidden="true">E · Space · Esc</span>
+        Skip <span aria-hidden="true">Esc</span>
       </button>
     </main>
   );

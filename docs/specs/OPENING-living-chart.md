@@ -21,8 +21,11 @@
 1. **The cabin.** After Set sail, the title fades through warm dark into a lamp-lit captain's cabin at
    golden hour: a heavy oak sea chest on the desk, a lantern swaying gently, dust motes in a shaft of
    light through the stern windows, the creak of timbers and soft waves outside.
-2. **The chest.** The camera eases in. The latch snaps, the lid anticipates (a small dip) and swings
-   open with a puff of dust and a warm glow from inside.
+2. **The chest.** The cabin holds on the wide shot while the island's heavy build finishes (the
+   keyhole glows softly). Then the camera eases in to the chest, a gold ring breathes round the
+   lock, and **Open the chest** invites the player to click or tap it (or press E, Enter, Space or
+   gamepad A). If they don't, it opens by itself after about 12 s. The latch snaps, the lid
+   anticipates (a small dip) and swings open with a puff of dust and a warm glow from inside.
 3. **The chart.** The rolled Captain's Chart rises from the chest and unrolls across the desk (follow-
    through on the paper's curl and settle). It's the Captain's Chart in our ink-and-parchment style:
    Anchorage Cay, Port Meridian, fogged islands, a compass rose, the route line.
@@ -39,11 +42,12 @@ ink caption of the real loading stage. The dive starts as soon as it's ready.
 
 ## Skipping and accessibility
 
-- **Skippable any time:** E, Space, Esc, Enter, a click or tap, or gamepad A. A skip goes straight to
-  the dive's flash if the island is ready; if it isn't, it jumps to the living chart and holds there.
-- A visible **Skip** button (≥ 44 px) for touch, with the keys named beside it.
-- **Reduced motion:** no camera moves. The cabin fades in with the chest already open, it holds while
-  loading, then a short crossfade goes to the island card (the arrival's card-only mode).
+- **Opening the chest:** the glowing ring over the lock is a ≥ 44 px button; a click or tap anywhere,
+  E, Enter, Space or gamepad A open it too. After the chest is open, the same inputs skip ahead.
+- **Skippable any time:** Esc or the visible **Skip** button (≥ 44 px). A skip goes straight to the
+  dive's flash if the island is ready; if it isn't, it jumps to the living chart and holds there.
+- **Reduced motion:** no camera moves and no prompt. The cabin fades in with the chest already open,
+  it holds while loading, then a short crossfade goes to the island card (the arrival's card-only mode).
 - Keyboard, gamepad and touch do the same things.
 
 ## Rules
