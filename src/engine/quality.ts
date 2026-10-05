@@ -30,8 +30,10 @@ export interface TierSettings {
   sunShafts: 'none' | 'radial' | 'shadowmap';
   /** Leaps director: 0 off, 0.5 half splashes, 1 full. */
   leaps: 0 | 0.5 | 1;
-  /** Grass density multiplier and draw distance (m). */
+  /** Plant density multiplier (grass and scattered plants) and grass draw distance (m). */
   grassDensity: number;
+  /** Extra multiplier on the grass blades only (Lite has none, Low a sparse lawn). */
+  grassCover: number;
   grassDistance: number;
   /** Tree near-geometry distance before impostors (m). */
   treeNear: number;
@@ -60,6 +62,7 @@ const base: Omit<TierSettings, 'tier'> = {
   sunShafts: 'shadowmap',
   leaps: 1,
   grassDensity: 1,
+  grassCover: 1,
   grassDistance: 88,
   treeNear: 75,
   birds: 30,
@@ -90,6 +93,7 @@ export const TIERS: Record<Tier, TierSettings> = {
     sunShafts: 'none',
     leaps: 0,
     grassDensity: 0.25,
+    grassCover: 0,
     grassDistance: 30,
     treeNear: 30,
     birds: 8,
@@ -118,6 +122,7 @@ export const TIERS: Record<Tier, TierSettings> = {
     sunShafts: 'none',
     leaps: 0.5,
     grassDensity: 0.45,
+    grassCover: 0.28,
     grassDistance: 46,
     treeNear: 45,
     birds: 14,
@@ -134,7 +139,9 @@ export const TIERS: Record<Tier, TierSettings> = {
     mirror: false,
     shadowMap: 2048,
     shadowCascades: 2,
-    ssao: false,
+    // Quarter-res AO on WebGPU; the cheap highlight glow is High and Ultra only.
+    ssao: true,
+    bloom: false,
     sunShafts: 'radial',
     grassDensity: 0.7,
     grassDistance: 64,

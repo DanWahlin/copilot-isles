@@ -23,6 +23,36 @@ describe('heuristicTier', () => {
   });
 });
 
+describe('heuristicTier on WebGPU with the WebGL renderer string', () => {
+  const tier = (gpu: string) => heuristicTier({ backend: 'webgpu', gpu, isPhone: false });
+  it('reads the model on Windows, Linux, and macOS', () => {
+    expect(
+      tier(
+        'nvidia ampere ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 (0x00002503) Direct3D11 vs_5_0 ps_5_0, D3D11)',
+      ),
+    ).toBe('ultra');
+    expect(
+      tier(
+        'nvidia ampere ANGLE (NVIDIA, NVIDIA GeForce RTX 3050 Laptop GPU Direct3D11 vs_5_0 ps_5_0, D3D11)',
+      ),
+    ).toBe('high');
+    expect(
+      tier(
+        'intel gen-12lp ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11)',
+      ),
+    ).toBe('medium');
+    expect(tier('intel gen-9 ANGLE (Intel, Mesa Intel(R) UHD Graphics 620 (KBL GT2), OpenGL 4.6)')).toBe(
+      'low',
+    );
+    expect(tier('amd rdna-2 ANGLE (AMD, AMD Radeon RX 6700 XT Direct3D11 vs_5_0 ps_5_0, D3D11)')).toBe(
+      'high',
+    );
+    expect(tier('apple metal-3 ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)')).toBe(
+      'ultra',
+    );
+  });
+});
+
 describe('refineWithBenchmark', () => {
   it('lowers freely but raises at most one step', () => {
     expect(refineWithBenchmark('high', 30, false)).toBe('lite');

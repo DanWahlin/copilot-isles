@@ -365,6 +365,11 @@ function skyLook(eye: number[], dir: number[], up: number[] = [0, 1, 0]) {
         return `${h.distance.toFixed(1)} ${path.join('<')}`;
       });
   },
+  /** Holds the adaptive scale (e.g. 1 for per-tier GPU measurements), or `null` to release it. */
+  lockRes: (scale: number | null) => {
+    engine.adaptive.lock(scale);
+    engine.resize();
+  },
   stats: () => {
     cove.mirror?.finalizeFrame(engine.counters.last.drawCalls, engine.counters.last.triangles);
     return {

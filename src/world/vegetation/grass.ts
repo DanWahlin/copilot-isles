@@ -587,10 +587,7 @@ export class GrassField {
     exclude?: VegetationExclude,
   ): void {
     const rng = new SeededRandom(seed ^ 0x67a91f);
-    const density = Math.max(
-      0,
-      tier.grassDensity * (tier.tier === 'lite' ? 0 : tier.tier === 'low' ? 0.28 : 1) * this.densityScale,
-    );
+    const density = Math.max(0, tier.grassDensity * tier.grassCover * this.densityScale);
     for (let x = -COVE.island.halfX; x <= COVE.island.halfX; x += CELL_SIZE) {
       for (let z = -COVE.island.halfZ; z <= COVE.island.halfZ + 18; z += CELL_SIZE) {
         const cx = x + CELL_SIZE * 0.5;

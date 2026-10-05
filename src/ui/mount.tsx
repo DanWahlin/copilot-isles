@@ -1,7 +1,17 @@
 import { createRoot, type Root } from 'react-dom/client';
 import { TitleMenu } from './TitleMenu';
-import { DEFAULT_SETTINGS, type GameBridge, type UiState } from './bridge';
+import { DEFAULT_SETTINGS, type GameBridge, type GraphicsInfo, type UiState } from './bridge';
 import './ui.css';
+
+const PREVIEW_GRAPHICS: GraphicsInfo = {
+  backend: 'webgpu',
+  platform: 'other',
+  gpu: '',
+  tier: 'high',
+  autoTier: 'high',
+  urlTier: null,
+  maxRenderScale: 1,
+};
 
 function fallbackBridge(): GameBridge {
   let state: UiState = {
@@ -16,6 +26,8 @@ function fallbackBridge(): GameBridge {
     chart: null,
     renderInfo: 'Title preview',
     bootQuality: DEFAULT_SETTINGS.quality,
+    graphics: PREVIEW_GRAPHICS,
+    qualityNotice: null,
   };
   const listeners = new Set<(state: UiState) => void>();
   const setState = (patch: Partial<UiState>) => {
@@ -48,6 +60,8 @@ function fallbackBridge(): GameBridge {
     travelTo: () => setState({ screen: state.returnTo }),
     quitToTitle: () => setState({ screen: 'title', returnTo: 'title' }),
     updateSettings: (patch) => setState({ settings: { ...state.settings, ...patch } }),
+    applyQuality: () => setState({ qualityNotice: { kind: 'applying' } }),
+    renderResolution: () => ({ scale: 1, width: innerWidth, height: innerHeight }),
     setSails: (sails) => setState({ learn: { ...state.learn, sails } }),
     skipOpening: () => setState({ screen: 'playing' }),
     pressOpening: () => setState({ screen: 'playing' }),

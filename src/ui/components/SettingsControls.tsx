@@ -4,14 +4,21 @@ export function SettingsGroup({
   title,
   children,
   wide,
+  tall,
 }: {
   title: string;
   children: ReactNode;
   wide?: boolean;
+  /** Spans two rows (a long group beside two short ones). */
+  tall?: boolean;
 }) {
   const id = `settings-${title.toLowerCase().replace(/[^a-z]+/g, '-')}`;
   return (
-    <section className={`ci-settings-group${wide ? ' wide' : ''}`} role="group" aria-labelledby={id}>
+    <section
+      className={`ci-settings-group${wide ? ' wide' : ''}${tall ? ' tall' : ''}`}
+      role="group"
+      aria-labelledby={id}
+    >
       <h3 id={id} className="ci-settings-title">
         {title}
       </h3>

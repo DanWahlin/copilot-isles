@@ -58,3 +58,59 @@ export function isPhoneDevice(
   if (/Android/.test(ua) && /Mobile/.test(ua)) return true;
   return (nav.maxTouchPoints ?? 0) > 1 && screenMin < 600 && !/iPad|Macintosh/.test(ua);
 }
+
+/** Device family for the settings copy (which examples each tier names). */
+export type Platform = 'mac' | 'windows' | 'linux' | 'chromeos' | 'mobile' | 'other';
+
+export function detectPlatform(nav: {
+  userAgent: string;
+  platform?: string;
+  maxTouchPoints?: number;
+  userAgentData?: { platform?: string; mobile?: boolean };
+}): Platform {
+  const ua = nav.userAgent;
+  if (nav.userAgentData?.mobile || /iPhone|iPod|iPad|Android/.test(ua)) return 'mobile';
+  // iPadOS reports a Mac user agent; a touch screen gives it away.
+  if (/Macintosh/.test(ua) && (nav.maxTouchPoints ?? 0) > 1) return 'mobile';
+  // The user agent's OS token first (every browser keeps it); the platform hints only as a fallback.
+  if (/CrOS/.test(ua)) return 'chromeos';
+  if (/Windows/.test(ua)) return 'windows';
+  if (/Macintosh|Mac OS X/.test(ua)) return 'mac';
+  if (/Linux|X11/.test(ua)) return 'linux';
+  const p = `${nav.userAgentData?.platform ?? ''} ${nav.platform ?? ''}`.toLowerCase();
+  if (p.includes('chrome os')) return 'chromeos';
+  if (p.includes('win')) return 'windows';
+  if (p.includes('mac')) return 'mac';
+  if (p.includes('linux')) return 'linux';
+  return 'other';
+}
+
+/**
+ * A short GPU name for the settings screen, e.g. "Apple M3 Max" or "NVIDIA GeForce RTX 3060", from the
+ * WebGL renderer string (ANGLE on Windows, macOS, and Linux wraps it; Mesa and Vulkan add driver
+ * details) or, failing that, the WebGPU adapter's vendor. '' if unknown.
+ */
+export function friendlyGpuName(webglRenderer: string, webgpuVendor = ''): string {
+  let s = webglRenderer.trim();
+  const angle = /^ANGLE \((.*)\)$/.exec(s);
+  if (angle) {
+    const parts = angle[1]!.split(', ');
+    // "Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version" or "NVIDIA, NVIDIA GeForce …, D3D11".
+    s = (parts.length > 1 ? parts[1]! : parts[0]!).replace(/^ANGLE [\w ]+ Renderer: /, '');
+  }
+  // ANGLE on Vulkan: "Vulkan 1.3.242 (NVIDIA GeForce RTX 3060 (0x00002503))".
+  const vk = /^Vulkan [\d.]+ \((.*)\)$/.exec(s);
+  if (vk) s = vk[1]!;
+  s = s
+    .replace(/\((R|TM)\)/gi, '')
+    .replace(/^Mesa\s+/i, '')
+    .replace(/\/PCIe.*$/i, '')
+    .replace(/\s*\(0x[0-9a-f]+\)/gi, '')
+    .replace(/\s*\((radeonsi|[A-Z]{2,4} GT\d|LLVM)[^)]*\)/gi, '')
+    .replace(/\s+(Direct3D|vs_|ps_|OpenGL|Vulkan|Metal|D3D).*$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (s && !/^(webkit webgl|generic renderer|unknown|disabled)$/i.test(s)) return s.slice(0, 48);
+  const v = webgpuVendor.trim();
+  return v ? `${v.charAt(0).toUpperCase()}${v.slice(1)} GPU` : '';
+}

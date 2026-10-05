@@ -1,4 +1,5 @@
-import type { Tier } from '../world/contracts';
+import type { Platform } from '../engine/capability';
+import type { Backend, Tier } from '../world/contracts';
 
 /**
  * The contract between the React UI (menus, chart, settings) and the game (PLAN §5, POC §3.1).
@@ -18,6 +19,8 @@ export type Screen =
 
 export type CaptainBody = 'man' | 'woman';
 export type QualitySetting = 'auto' | Tier;
+/** 'auto' is adaptive resolution; a number is a fixed fraction of the tier's full resolution. */
+export type RenderScaleSetting = 'auto' | number;
 export type SubtitleSize = 's' | 'm' | 'l';
 
 export interface Settings {
@@ -29,6 +32,7 @@ export interface Settings {
   sfx: number;
   voice: number;
   quality: QualitySetting;
+  renderScale: RenderScaleSetting;
   mouseSensitivity: number;
   invertY: boolean;
   subtitles: boolean;
@@ -44,6 +48,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sfx: 0.85,
   voice: 1,
   quality: 'auto',
+  renderScale: 'auto',
   mouseSensitivity: 1,
   invertY: false,
   subtitles: true,
@@ -124,6 +129,34 @@ export interface VoyageNames {
   ship: string;
 }
 
+/** What the renderer was built with and what Auto would pick, for the Graphics settings. */
+export interface GraphicsInfo {
+  backend: Backend;
+  /** Device family, so each tier names examples the player will recognise. */
+  platform: Platform;
+  /** A short GPU name ("Apple M3 Max", "NVIDIA GeForce RTX 3060"), or '' when the browser hides it. */
+  gpu: string;
+  /** The tier the renderer is running. */
+  tier: Tier;
+  /** The tier Auto picks on this device (the startup benchmark can change it after boot). */
+  autoTier: Tier;
+  /** A `?tier=` link override, which wins over the setting until Apply clears it. */
+  urlTier: Tier | null;
+  /** Highest manual render scale on this tier (1, or 1.25 on Ultra). */
+  maxRenderScale: number;
+}
+
+/** The live render size for the settings readout. */
+export interface RenderResolution {
+  /** Fraction of the tier's full resolution. */
+  scale: number;
+  width: number;
+  height: number;
+}
+
+/** Shown in Graphics settings after Apply reloads the game. */
+export type QualityNotice = { kind: 'applied'; tier: Tier } | { kind: 'applying' } | null;
+
 export interface UiState {
   screen: Screen;
   /** The screen to return to when closing settings/controls/credits/chart. */
@@ -139,6 +172,8 @@ export interface UiState {
   renderInfo: string;
   /** The quality setting the renderer was built with; a different choice needs a reload. */
   bootQuality: QualitySetting;
+  graphics: GraphicsInfo;
+  qualityNotice: QualityNotice;
 }
 
 export interface GameBridge {
@@ -162,6 +197,10 @@ export interface GameBridge {
   travelTo(pointId: string): void;
   quitToTitle(): void;
   updateSettings(patch: Partial<Settings>): void;
+  /** Saves progress and reloads with the chosen quality, back into the same place. */
+  applyQuality(): void;
+  /** The live render scale and canvas size (polled by the settings readout). */
+  renderResolution(): RenderResolution;
   /** Repaints the sails (the palette stand's choice, changed from Settings). */
   setSails(paletteId: string): void;
   /** Skips ahead in the opening (the cabin and living chart): Esc and the Skip button. */
