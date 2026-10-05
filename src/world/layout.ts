@@ -14,7 +14,7 @@ export const COVE = {
 
   /** East: fluted limestone headland (~35 m cliffs) rising to a ridge, with a sea cave at its base. */
   headland: { x0: 110, x1: 205, z0: -70, z1: 55, cliffTop: 35, ridge: 46 },
-  seaCave: { x: 198, z: -5, width: 7, height: 5 },
+  seaCave: { x: 205, z: -5, width: 10, height: 7 },
 
   /** North-west: calm, dredged harbor basin with a stone quay (south edge) and a wooden pier. */
   harbor: { center: { x: -110, z: -115 }, radius: 55, depth: 6 },

@@ -53,6 +53,7 @@ const BRIDGE_METHODS = [
   'back',
   'travelTo',
   'quitToTitle',
+  'startOver',
   'updateSettings',
   'applyQuality',
   'renderResolution',
@@ -280,6 +281,19 @@ export class GameFlow implements GameBridge {
     this.o.audio.sfx.setBed('birds_dawn', 0);
     this.set({ hasSave: !!readJson<SaveData>(SAVE_KEY), save: this.saveSummary() });
     this.showTitle();
+  }
+
+  startOver(): void {
+    writeJson(SAVE_KEY, null);
+    this.learn.newGame();
+    if (this.session) {
+      this.endVoyage();
+      this.o.audio.sfx.setBed('palms', 0);
+      this.o.audio.sfx.setBed('birds_dawn', 0);
+    }
+    this.set({ hasSave: false, save: this.saveSummary() });
+    this.showTitle();
+    this.chooseCaptain();
   }
 
   updateSettings(patch: Partial<Settings>): void {

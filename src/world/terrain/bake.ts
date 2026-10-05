@@ -222,11 +222,9 @@ function rimFlag(
     const sample = sampleGrid(heights, nx, nz, minX, minZ, cell, x + dx * 24, z + dz * 24);
     drop = Math.max(drop, h - sample);
   }
-  const headlandBonus =
-    smoothstep(COVE.headland.x0, COVE.headland.x1, x) *
-    smoothstep(COVE.headland.z0 - 20, COVE.headland.z0 + 8, z) *
-    (1 - smoothstep(COVE.headland.z1 - 4, COVE.headland.z1 + 28, z));
-  return clamp01(smoothstep(6, 22, drop) * smoothstep(0.16, 0.6, slope) + headlandBonus * 0.45);
+  // Only real skyline edges glow (the headland used to get a flat bonus, which lit its whole grassy top
+  // gold whenever the sun was behind it).
+  return clamp01(smoothstep(6, 22, drop) * smoothstep(0.16, 0.6, slope));
 }
 
 function edgePoint(x0: number, z0: number, h0: number, x1: number, z1: number, h1: number): ShorelinePoint {

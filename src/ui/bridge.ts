@@ -196,6 +196,11 @@ export interface GameBridge {
   /** Fast travel to a chart point on the current island (docks the ship first if sailing). */
   travelTo(pointId: string): void;
   quitToTitle(): void;
+  /**
+   * Erases the voyage and its learning progress (quests, pages, doubloons, names, sails), keeps the
+   * settings, and goes to captain select so the whole opening plays again.
+   */
+  startOver(): void;
   updateSettings(patch: Partial<Settings>): void;
   /** Saves progress and reloads with the chosen quality, back into the same place. */
   applyQuality(): void;

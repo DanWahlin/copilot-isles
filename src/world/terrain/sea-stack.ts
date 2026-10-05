@@ -361,7 +361,7 @@ export function createSeaStackMaterial(tier: Tier): MeshStandardNodeMaterial {
   // Waterline: a dark wet band with a ragged top, the barnacle/algae line, green-brown weed below.
   const edge = streakB.g;
   const wet = float(1).sub(smoothstep(1.3, float(3.0).add(edge.mul(1.4)), y));
-  base = base.mul(float(1).sub(wet.mul(0.32)));
+  base = base.mul(float(1).sub(wet.mul(0.42)));
   const barnacle = smoothstep(-0.6, -0.05, y).mul(
     float(1).sub(smoothstep(float(0.75).add(edge.mul(0.5)), float(1.25).add(edge.mul(0.8)), y)),
   );
@@ -379,11 +379,15 @@ export function createSeaStackMaterial(tier: Tier): MeshStandardNodeMaterial {
     const relief = grain.mul(0.7).add(streakB.r.mul(0.3)).add(k.w.mul(-0.5));
     material.normalNode = bumpMap(relief, near.mul(1.4));
   }
-  // A faint cool fill after sunset, so the shaded side reads as pale stone, not a black cut-out.
+  // Skylight on the shaded faces by day (pale limestone in shade is still pale, not charcoal), and a
+  // faint cool fill after sunset, so the shaded side reads as stone, not a black cut-out.
   material.emissiveNode = base
-    .mul(vec3(0.05, 0.055, 0.07))
-    .mul(ao)
-    .mul(world.night.mul(0.8).add(0.2));
+    .mul(
+      vec3(world.skyColor.r, world.skyColor.g, world.skyColor.b)
+        .mul(float(0.3).mul(float(1).sub(world.night)))
+        .add(vec3(0.05, 0.055, 0.07).mul(world.night.mul(0.8).add(0.2))),
+    )
+    .mul(ao);
   return material;
 }
 
@@ -396,8 +400,10 @@ function stackMesh(geometry: BufferGeometry, material: MeshStandardNodeMaterial,
 }
 
 /** The sea stack: one draw (a near/far LOD on Medium and up, one coarse mesh on Low and Lite). */
-export function createSeaStack(tier: Tier): Object3D {
-  const material = createSeaStackMaterial(tier);
+export function createSeaStack(
+  tier: Tier,
+  material: MeshStandardNodeMaterial = createSeaStackMaterial(tier),
+): Object3D {
   const near = DETAIL[tier];
   if (tier === 'lite' || tier === 'low') {
     return stackMesh(buildSeaStackGeometry(near), material, 'terrain-rocks-sea-stack');

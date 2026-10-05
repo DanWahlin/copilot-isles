@@ -6,6 +6,7 @@ import { createOcean, type Ocean } from './ocean/ocean';
 import { createSky, type SkySystem } from './sky/sky-system';
 import { createCoastFoam } from './terrain/coast-foam';
 import { seaStackShipObstacle } from './terrain/sea-stack-shape';
+import { HEADLAND_CLIFF_AREA, headlandCaveShipObstacle } from './terrain/headland-cliff-shape';
 import { createDistantRanges } from './terrain/distant-ranges';
 import { loadTerrainPack } from './terrain/bake';
 import { createTerrain, createTerrainAsync, type CreatedTerrain } from './terrain/terrain-mesh';
@@ -93,7 +94,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
 
   report(0.3, 'Charting the cove');
   const data = await loadTerrainPack(`${o.packBase ?? '/packs'}/testcove/terrain`);
-  const terrain = await createTerrainAsync({ tier, data, cloudShadowNode }, breathe);
+  const terrain = await createTerrainAsync(
+    { tier, data, cloudShadowNode, recessSteep: HEADLAND_CLIFF_AREA },
+    breathe,
+  );
   await breathe();
   if (tier.shadowCascades > 0) disableReceiveShadows(terrain.group);
   const heightField = new CompositeHeightField(-52);
@@ -222,6 +226,8 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   scene.add(ship.group);
   sites.crane.setShip(ship.group, BRIGANTINE_CARGO);
   shipObstacles.push(...village.shipObstacles, ...sites.shipObstacles, seaStackShipObstacle());
+  const caveButtress = headlandCaveShipObstacle(terrain.heightField);
+  if (caveButtress) shipObstacles.push(caveButtress);
   const shipEnv = {
     waves: ocean.field,
     ground: heightField,
