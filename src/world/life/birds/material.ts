@@ -27,7 +27,11 @@ export function createBirdMaterial(): MeshStandardNodeMaterial {
   const side = attribute('wingSide', 'float') as AnyNode;
   const phase = attribute('flapPhase', 'float') as AnyNode;
   const amp = attribute('flapAmp', 'float') as AnyNode;
-  const tint = attribute('birdTint', 'vec3') as AnyNode;
+  // rgb tint; w: 1 perched (wings folded back along the body), 0 flying. Packed into one buffer
+  // because WebGPU allows only 8 vertex buffers per pipeline.
+  const tintFold = attribute('birdTint', 'vec4') as AnyNode;
+  const tint = tintFold.xyz;
+  const fold = tintFold.w;
   const isWing = greaterThan(part, float(0.5)).and(part.lessThan(float(1.5))) as AnyNode;
   const isTail = greaterThan(part, float(1.5)).and(part.lessThan(float(2.5))) as AnyNode;
   const isBill = greaterThan(part, float(2.5));
@@ -35,8 +39,18 @@ export function createBirdMaterial(): MeshStandardNodeMaterial {
   const wingGate = smoothstep(float(0.04), float(0.55), abs((positionGeometry as AnyNode).x));
   const flap = sin(world.time.mul(4.8).add(phase)).mul(amp).mul(wingGate).mul(abs(side));
   const reduced = float(1).sub(world.reducedMotion.mul(0.85));
-  material.positionNode = (positionLocal as AnyNode).add(
-    (vec3 as AnyNode)(0, flap.mul(reduced).mul(0.42), flap.mul(side).mul(-0.08)),
+  const p = positionLocal as AnyNode;
+  // Folded: each wing lies along the flank, its tip swept back over the tail, and a little raised.
+  const span = abs(p.x).sub(0.045).max(0);
+  const folded = (vec3 as AnyNode)(
+    side.mul(span.mul(0.06).add(0.055)),
+    p.y.add(span.mul(0.05)).add(0.01),
+    p.z.sub(span.mul(0.62)).add(0.02),
+  );
+  const wingFold = fold.mul(abs(side));
+  const rest = mix(p, folded, wingFold);
+  material.positionNode = rest.add(
+    (vec3 as AnyNode)(0, flap.mul(reduced).mul(0.42), flap.mul(side).mul(-0.08)).mul(float(1).sub(fold)),
   );
 
   const white = color(0xf1f1ea).mul(shade);

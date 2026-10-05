@@ -112,7 +112,8 @@ SOFTWARE.
   https://poly.pizza/m/6Tpj_vcWP3f (`ee7ad6b3-ebdc-4494-ba1e-8b6190004df5.glb`)
 - Author: Poly by Google
 - License: Creative Commons Attribution 3.0 Unported (CC-BY 3.0), https://creativecommons.org/licenses/by/3.0/
-- Used for: baked title wordmark gull sprites in `public/title/wordmark-gull.webp`.
+- Used for: baked title wordmark gull sprites in `public/title/wordmark-gull.webp`, and the dock gull
+  model `public/packs/testcove/life/dock-gull.glb` (unmodified).
 
 ```
 This work includes adapted sprite renders from "Seagull" and "Flying seagull" by Poly by Google,
