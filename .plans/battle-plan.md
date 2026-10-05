@@ -36,30 +36,34 @@
 
 - **Briefing (Dan's note: what are the lines on the water?).** A short card before each battle ("Before the fog lifts") with four drawn rows: gold arcs (where your guns reach), red chevrons (a raider is about to fire), cartridges (reloading, Space / Z / C), and Bring her round (R). Set sail (Enter, Space, Esc) or Skip closes it; "Don't show this again" is kept in localStorage. Keyboard focus starts on Set sail; all buttons are at least 44 px; it fits a 390 px phone. Dev flags `?brief` / `?nobrief`.
 
-## Teaching map (DRAFT for Dan's review; no code yet)
+## Teaching map (DRAFT v2 for Dan's review; no code yet)
 
-One pitfall per wave, from the chapter you just finished. The raider names, the lookout's call and the bosun's question all point at that pitfall. A wrong answer shows the right one and a link to the section; it never costs anything. Quotes are verbatim from the course clone (`00-setup/README.md`, `01-tour-the-app/README.md`). *Stale Branch* is dropped: no course text supports it.
+One habit per wave, from the chapter you just finished. The course states these as steps to do (and why), not as named "pitfalls", so each wave is framed as the habit. Every quote is a **full sentence, verbatim**, checked against `github/copilot-app-for-beginners` (main, 61a5da6) on 2026-10-04. The only teaching text in a wave is the bosun's question and its cited sentence; lookout calls stay plain ("Sails in the fog, off the starboard bow!") and teach nothing. A wrong answer shows the right one and the section link, and never costs anything. *Stale Branch* is dropped (no course text).
+
+v1 mistakes, fixed here: a cut fragment was presented as a pitfall; one quote was shortened with an ellipsis and one ended at a colon; the lookout lines were teaching lines with no source.
 
 ### Battle 1: the passage Anchorage → Port Meridian (recaps Chapter 00)
 
-| Wave | Pitfall (course quote) | Source | Raiders | Lookout's call | Bosun's question |
+| Wave | Habit | Course sentence (verbatim) | Section | Raiders | Bosun's question |
 |---|---|---|---|---|---|
-| 1 | Running setup before you preview it: "preview the setup without creating practice items" | 00 · Add the Course Practice Items | *Unchecked*, *No Dry Run* | "Sails in the fog, and nobody looked before they ran!" | **New:** "Before the setup script creates anything, what do you run first?" Preview with `--dry-run` ✓ / Run with `--yes` / Delete the fork and start again |
-| 2 | Pointing it at the wrong target: "Confirm that the `Repository:` line in the output shows your fork before you continue." Also "Confirm that it uses the account you used to create your fork." | 00 · Add the Course Practice Items; 00 · Check Your Tools in Terminal | *Wrong Fork*, *Wrong Account* | "Check her colours before you fire!" | **Existing T0.5:** the dry run shows someone else's repository. What now? (Stop and point it at your fork ✓) |
+| 1 | Preview before you run it | "The script creates items on GitHub in your fork, so you'll preview its target and planned changes before running it." | 00 · Add the Course Practice Items | *Unchecked*, *No Dry Run* | **New:** "The setup script creates items on GitHub in your fork. What do you run first?" `--dry-run` ✓ / `--yes` / `--allow-shared-repository` |
+| 2 | Check the target | "Wait for the preview to finish. It ends with `Dry run complete. No changes were made.` Confirm that the `Repository:` line in the output shows your fork before you continue." | 00 · Add the Course Practice Items | *Wrong Fork*, *Wrong Account* | **Existing T0.5** (source `00-setup#add-the-course-practice-items`): the dry run shows someone else's repository. What now? Stop and point it at your fork ✓ |
 
-Optional mechanic for wave 2 (habit as gameplay): a friendly merchant flying *your* colours comes out of the fog with the raiders. Your guns hold fire on her ("Check her colours first"), so the habit is "check the target before you act". No penalty.
+*Wrong Account* rests on: "The setup script uses the GitHub CLI, which has a separate sign-in. Confirm that it uses the account you used to create your fork:" (00 · Check Your Tools in Terminal; the sentence ends in a colon before `gh auth status`, so quote it with the command or not at all).
 
-### Battle 2 (later): the passage Port Meridian → the Chapter 02 island (recaps Chapter 01)
+Optional wave 2 mechanic: a friendly merchant flying your colours comes out of the fog with the raiders, and your guns hold fire on her. The only line: "Check her colours first." It's a game line, not a course claim.
 
-| Wave | Pitfall (course quote) | Source | Raiders | Bosun's question |
-|---|---|---|---|---|
-| 1 | Two sessions in one working copy: "Most project sessions should use a **New worktree**." / "Separate worktrees let agents work at the same time without changing the same working copy." | 01 · Project Sessions | *Shared Checkout*, *Tangled Copy* | **Existing A1.5:** Which workspace should most project sessions use? (New worktree ✓) |
-| 2 | Letting everything run unasked: "Always ask asks each time. Approve all runs tools without asking." / "Pick the mode that fits the task." | 01 · Modes | *Blind Approval*, *Wrong Mode* | **New:** "You want to see each tool before it runs. Which **Tool permissions** setting?" Always ask ✓ / Approve all / Switch to Autopilot |
-| 3 (optional) | Effort isn't a guarantee: "Higher effort does not guarantee a correct answer." | 01 · Models and Reasoning Effort | *Max Effort* | **New:** "Does higher reasoning effort guarantee a correct answer?" No: it can help with complex problems but can take longer ✓ / Yes / Only on Auto |
+### Battle 2 (later): Port Meridian → the Chapter 02 island (recaps Chapter 01)
 
-Helmsman tie (battle 2, wave 2 only): one lookout line after "Bring her round": "Hand over the helm when it fits, but you still choose when to fire." It echoes "Pick the mode that fits the task" without claiming more than the course says.
+| Wave | Habit | Course sentence (verbatim) | Section | Raiders | Bosun's question |
+|---|---|---|---|---|---|
+| 1 | One worktree per session | "Most project sessions should use a **New worktree**. Separate worktrees let agents work at the same time without changing the same working copy." | 01 · Project Sessions | *Shared Checkout*, *Tangled Copy* | **Existing A1.5** (`01-tour-the-app#project-sessions`) |
+| 2 | Know when the agent will ask | "**Always ask** asks each time. **Approve all** runs tools without asking. **Assisted** asks only when a tool request fails an AI safety check. Check this setting so you know when to expect approval requests." | 01 · Modes | *Blind Approval*, *Unasked* | **New:** "You want the agent to ask before every tool it uses. Which **Tool permissions** setting?" **Always ask** ✓ / **Approve all** / **Assisted** |
+| 3 (optional) | Effort isn't a guarantee | "Higher effort does not guarantee a correct answer." | 01 · Models and Reasoning Effort | *Max Effort* | **New:** "Does a higher **Reasoning effort** guarantee a correct answer?" No ✓ / Yes / Only with **Auto** |
 
-Open questions for Dan: keep wave 2's merchant mechanic? Add battle 2 now or after Chapter 02's island exists? Keep the new question wording?
+Dropped from v1: "Pick the mode that fits the task." It's image alt text in the course, not body text, so it can't carry a teaching line. The helmsman tie goes with it.
+
+Open questions for Dan: keep the wave 2 merchant? Build battle 2 now or after the Chapter 02 island? OK with the new question wording?
 
 Budget note (coordinator, 2026-10-04): vendor-three is at 249.5/250 KB gz. When the battle goes into the game, load it with a dynamic `import()` so it ships in its own chunk, and add no new eager three.js imports.
 
