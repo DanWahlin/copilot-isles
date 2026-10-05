@@ -2101,11 +2101,9 @@ function addMarketStalls(
     colliders.boxes.push({ x: stall.x, z: stall.z, hx: 2.1, hz: 0.75, rot: stall.rot, height: 1.9 });
   }
   addNetRack(buckets, -149.7, -57.2, heightField.heightAt(-149.7, -57.2), 0.2);
-  addNoticeBoard(buckets, -104.7, COVE.quay.height, COVE.quay.z + 5.3, Math.PI, perches);
-  colliders.boxes.push(
-    { x: -149.7, z: -57.2, hx: 1.25, hz: 0.25, rot: 0.2, height: 1.8 },
-    { x: -104.7, z: COVE.quay.z + 5.3, hx: 1.35, hz: 0.22, rot: Math.PI, height: 2.0 },
-  );
+  // The harbourmaster's notice board that stood here was removed: it had no use and crowded the
+  // quay beside Bo's rack and the palette stand. Its anchor (the quay dockhand's patrol) stays.
+  colliders.boxes.push({ x: -149.7, z: -57.2, hx: 1.25, hz: 0.25, rot: 0.2, height: 1.8 });
   const front = localToWorld(-122.0, -43.4, -12 * DEG, 0, -1.9);
   anchors.marketStall = {
     x: front.x,
@@ -2192,23 +2190,6 @@ function addNetRack(
     const p = at(-0.8 + i * 0.4, 0.07);
     addCylinder(buckets.wood, p.x, y + 1.3, p.z, 0.055, 0.055, 0.12, 8, rot, 0xd9c08a);
   }
-}
-
-function addNoticeBoard(
-  buckets: Record<MaterialKey, BufferGeometry[]>,
-  x: number,
-  y: number,
-  z: number,
-  rot: number,
-  perches: Vector3[],
-): void {
-  addBox(buckets.wood, x - 1.0, y, z, 0.14, 2.4, 0.14, rot, 0x5d3d25);
-  addBox(buckets.wood, x + 1.0, y, z, 0.14, 2.4, 0.14, rot, 0x5d3d25);
-  addBox(buckets.wood, x, y + 1.05, z, 2.45, 1.35, 0.16, rot, 0x7b522f);
-  addBox(buckets.cloth, x - 0.45, y + 1.24, z - 0.09, 0.56, 0.72, 0.04, rot, 0xe7d9ad);
-  addBox(buckets.cloth, x + 0.36, y + 1.1, z - 0.09, 0.62, 0.48, 0.04, rot, 0xd0bd8b);
-  addBox(buckets.roofTile, x, y + 1.82, z, 2.75, 0.18, 0.42, rot, 0xa64d32);
-  perches.push(new Vector3(x, y + 2.0, z));
 }
 
 function addVillageFestooning(
@@ -2557,7 +2538,6 @@ function addInstancedProps(
   const crates = cut([
     inst(-134, -69, at(-134, -69), 0.2, 1.0, 1.3, 0.8, 1.0),
     inst(-130, -70, at(-130, -70), -0.4, 0.75, 1.0, 1.0, 1.0),
-    inst(-98, -68, at(-98, -68), 0.1, 0.9, 1.2, 0.75, 0.9),
     inst(-108, -75, at(-108, -75), 0.7, 0.75, 1.0, 0.85, 1.0),
     inst(-108, -115, at(-108, -115), 0.2, 0.8, 1.1, 0.85, 0.9),
     inst(-122, -46, at(-122, -46), -0.3, 0.6, 1.0, 0.7, 0.8),

@@ -90,7 +90,7 @@ export const COVE_NPCS: NpcSpec[] = [
     name: 'Dockhand',
     anchor: 'noticeBoard',
     clip: 'walk',
-    // A loop along the quay, seaward of the cargo crates and the harbourmaster's notice board
+    // A loop along the quay, seaward of the cargo crates
     // (npcs.test.ts checks it against every village collider).
     patrol: [
       [-118, -69.0],
