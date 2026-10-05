@@ -32,6 +32,8 @@
 
 - **5: done.** Arcs are additive light on the water (no grey band), with metre-wide lines, soft ends, and thin, slower warning chevrons. Splinters are tapered chips in wood and paint tones that tumble, land with a small splash, float a few seconds and sink. Flotsam has a wet, glossy band below the water line. Hits leave shot holes (a dark hole in torn pale wood with a soot halo, eight per hull, patched on repairs), and sails show scorched holes as a hull takes damage. Shot marks and gun recoil for every ship share two uniform arrays (one block per ship), which cut the battle's shader programs from 84 to 81.
 
+Budget note (coordinator, 2026-10-04): vendor-three is at 249.5/250 KB gz. When the battle goes into the game, load it with a dynamic `import()` so it ships in its own chunk, and add no new eager three.js imports.
+
 Then the passage battle goes into the game (Anchorage → Port Meridian, required with a skip), and Dan reviews.
 
 ## Rules that apply throughout
