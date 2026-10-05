@@ -48,6 +48,7 @@ class FakeContext {
 
 class FakeElement {
   src = '';
+  currentTime = 0;
   loop = false;
   preload = '';
   paused = true;
@@ -185,5 +186,25 @@ describe('MusicPlayer', () => {
     player.dispose();
     expect(elements.every((element) => element.paused && element.src === '')).toBe(true);
     expect([...ctx.gains, ...ctx.sources].every((node) => !node.connected)).toBe(true);
+  });
+
+  it('fades to silence, then plays the opening cue once from where it is asked to start', () => {
+    const { player, ctx, elements, bind } = setup();
+    bind();
+    player.setIsland('harbour');
+    player.setIsland(null, { fade: 2.5 });
+    expect(ctx.gains[0]!.gain.target).toBe(0);
+    expect(ctx.gains[0]!.gain.endsAt).toBeCloseTo(ctx.currentTime + 2.5);
+    expect(elements).toHaveLength(1);
+    player.setIsland('opening', { at: 0, fade: 0.15 });
+    const cue = elements[1]!;
+    expect(cue.src).toBe('/audio/music_treasure_chest_opens.ogg');
+    expect(cue.loop).toBe(false);
+    expect(cue.paused).toBe(false);
+    // Asking for it again at another moment restarts it there (a skip), with no second element.
+    cue.currentTime = 4;
+    player.setIsland('opening', { at: 9.4 });
+    expect(elements).toHaveLength(2);
+    expect(cue.currentTime).toBe(9.4);
   });
 });

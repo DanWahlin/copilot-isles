@@ -341,7 +341,12 @@ export function createOcean({
       .mul(capK)
       .mul(exp(dist.negate().div(900)));
     let shore = smoothstep(0.55, 0.0, vDepth).mul(smoothstep(0.1, 0.6, pattern.add(0.35)));
-    shore = max(shore, smoothstep(0.2, 0.0, screenDepth).mul(smoothstep(0.2, 0.68, pattern.add(0.28))));
+    // Contact foam where the sea meets rock, hulls and piles: broken lace that gathers only where a crest
+    // runs in, not a solid white rim tracing every waterline.
+    shore = max(
+      shore,
+      smoothstep(0.3, 0.0, screenDepth).mul(smoothstep(0.55, 0.88, pattern.add(crest.mul(0.5)))),
+    );
     if (tier.foamOctaves >= 2) {
       const band = sin(vDepth.mul(4.2).sub(t.mul(1.1)).add(pattern.mul(2.0)))
         .mul(0.5)

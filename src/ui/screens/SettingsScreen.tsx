@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { DEFAULT_SAIL_PALETTE, SAIL_PALETTES } from '../../world/ship/sail-palettes';
 import type { GameBridge, SubtitleSize, UiState } from '../bridge';
 import { ApplyQuality, QualityPicker, RenderScaleControl } from '../components/GraphicsSettings';
@@ -9,20 +10,6 @@ export function SettingsScreen({ state, bridge }: { state: UiState; bridge: Game
   return (
     <OverlayShell title="Settings" eyebrow="Ship’s instruments" onBack={bridge.back} wide>
       <div className="ci-settings-grid">
-        <SettingsGroup title="Graphics" wide>
-          <div className="ci-graphics">
-            <QualityPicker state={state} bridge={bridge} />
-            <div className="ci-graphics-side">
-              <ApplyQuality state={state} bridge={bridge} />
-              <RenderScaleControl state={state} bridge={bridge} />
-              <Toggle
-                label="Reduced motion"
-                checked={settings.reducedMotion}
-                onChange={(reducedMotion) => bridge.updateSettings({ reducedMotion })}
-              />
-            </div>
-          </div>
-        </SettingsGroup>
         <SettingsGroup title="Audio" tall>
           <Toggle
             label="Mute all"
@@ -88,6 +75,25 @@ export function SettingsScreen({ state, bridge }: { state: UiState; bridge: Game
             />
           </SettingsGroup>
         )}
+        {(state.hasSave || state.returnTo === 'paused') && (
+          <SettingsGroup title="Your voyage" wide>
+            <StartOver bridge={bridge} />
+          </SettingsGroup>
+        )}
+        <SettingsGroup title="Graphics" wide>
+          <div className="ci-graphics">
+            <QualityPicker state={state} bridge={bridge} />
+            <div className="ci-graphics-side">
+              <ApplyQuality state={state} bridge={bridge} />
+              <RenderScaleControl state={state} bridge={bridge} />
+              <Toggle
+                label="Reduced motion"
+                checked={settings.reducedMotion}
+                onChange={(reducedMotion) => bridge.updateSettings({ reducedMotion })}
+              />
+            </div>
+          </div>
+        </SettingsGroup>
       </div>
       <footer className="ci-render-info">{state.renderInfo}</footer>
     </OverlayShell>
@@ -125,3 +131,42 @@ function SailSwatches({ value, onChange }: { value: string; onChange: (id: strin
 }
 
 const SUBTITLE_NAMES = { s: 'Small', m: 'Medium', l: 'Large' } as const;
+
+/** Start over, behind a confirm step: it can't be undone. */
+function StartOver({ bridge }: { bridge: GameBridge }) {
+  const [confirming, setConfirming] = useState(false);
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (confirming) confirmRef.current?.focus();
+  }, [confirming]);
+  if (!confirming)
+    return (
+      <div className="ci-start-over">
+        <p className="ci-setting-note">Begin again from the captain's cabin, with a fresh voyage.</p>
+        <button type="button" className="ci-chip" onClick={() => setConfirming(true)}>
+          Start over…
+        </button>
+      </div>
+    );
+  return (
+    <div className="ci-start-over confirming" role="group" aria-labelledby="ci-start-over-q">
+      <p id="ci-start-over-q" className="ci-start-over-q" role="alert">
+        Start over? This erases your voyage: quests, pages, doubloons, and your captain and ship names. Your
+        settings stay. You can't undo this.
+      </p>
+      <div className="ci-start-over-actions">
+        <button
+          ref={confirmRef}
+          type="button"
+          className="ci-chip ci-danger"
+          onClick={() => bridge.startOver()}
+        >
+          Yes, start over
+        </button>
+        <button type="button" className="ci-chip" onClick={() => setConfirming(false)}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}

@@ -12,7 +12,8 @@ import type { HeightField, Tier } from '../contracts';
 import { COVE } from '../layout';
 import { ROCK_ASSETS } from './rock-assets';
 import { createRockMaterial } from './terrain-material';
-import { createSeaStack } from './sea-stack';
+import { createSeaStack, createSeaStackMaterial } from './sea-stack';
+import { createHeadlandCliff } from './headland-cliff';
 
 interface RockInstance {
   asset: number;
@@ -55,115 +56,6 @@ function inBlockedPad(r: RockInstance): boolean {
       r.z >= VILLAGE_MEADOW_PAD.z0 &&
       r.z <= VILLAGE_MEADOW_PAD.z1)
   );
-}
-
-function headlandBaseRocks(out: RockInstance[]): void {
-  for (let i = 0; i < 26; i++) {
-    const t = i / 25;
-    const z =
-      COVE.headland.z0 - 10 + t * (COVE.headland.z1 - COVE.headland.z0 + 22) + (rand(i + 4) - 0.5) * 8;
-    const x = 203 + Math.sin(t * Math.PI * 2.5) * 2 + rand(i + 20) * 9;
-    const s = 3.8 + rand(i + 1) * 7.5;
-    out.push({
-      asset: rockAsset(i + 2),
-      x,
-      z,
-      sx: s * (1.45 + rand(i + 8) * 1.25),
-      sy: s * (0.7 + rand(i + 9) * 0.8),
-      sz: s * (1.0 + rand(i + 10) * 1.25),
-      yaw: rand(i + 11) * Math.PI * 2,
-      pitch: (rand(i + 12) - 0.5) * 0.2,
-      roll: (rand(i + 13) - 0.5) * 0.26,
-      yOffset: -1.9 - rand(i + 14) * 1.25,
-    });
-  }
-}
-
-function headlandCliffFaceRocks(out: RockInstance[]): void {
-  for (let col = 0; col < 8; col++) {
-    const zBase = COVE.headland.z0 - 4 + (col / 7) * (COVE.headland.z1 - COVE.headland.z0 + 8);
-    const columnLean = (rand(col + 130) - 0.5) * 5.5;
-    for (let layer = 0; layer < 5; layer++) {
-      const seed = 1000 + col * 31 + layer * 7;
-      const y = -2 + layer * 6.4 + rand(seed + 1) * 1.7;
-      const s = 7.5 + rand(seed + 2) * 5.5;
-      out.push({
-        asset: rockAsset(seed),
-        x: 197 + columnLean + rand(seed + 3) * 10,
-        z: zBase + (rand(seed + 4) - 0.5) * 9,
-        y,
-        sx: s * (1.45 + rand(seed + 5) * 0.9),
-        sy: s * (0.9 + rand(seed + 6) * 0.62),
-        sz: s * (0.78 + rand(seed + 7) * 0.62),
-        yaw: Math.PI * 0.46 + (rand(seed + 8) - 0.5) * 1.8,
-        pitch: -0.08 + (rand(seed + 9) - 0.5) * 0.32,
-        roll: (rand(seed + 10) - 0.5) * 0.36,
-      });
-    }
-  }
-
-  for (let col = 0; col < 8; col++) {
-    const xBase = 122 + (col / 7) * 82;
-    const zBase = COVE.headland.z1 + 1.5 + (rand(col + 1760) - 0.5) * 3;
-    for (let layer = 0; layer < 2; layer++) {
-      const seed = 1600 + col * 37 + layer * 11;
-      const y = -1.8 + layer * 6.5 + rand(seed + 1) * 1.1;
-      const s = 4.9 + rand(seed + 2) * 3.1;
-      out.push({
-        asset: rockAsset(seed),
-        x: xBase + (rand(seed + 3) - 0.5) * 8,
-        z: zBase + rand(seed + 4) * 3.5,
-        y,
-        sx: s * (1.1 + rand(seed + 5) * 0.55),
-        sy: s * (0.66 + rand(seed + 6) * 0.34),
-        sz: s * (0.62 + rand(seed + 7) * 0.36),
-        yaw: (rand(seed + 8) - 0.5) * 0.55,
-        pitch: -0.22 + (rand(seed + 9) - 0.5) * 0.24,
-        roll: (rand(seed + 10) - 0.5) * 0.42,
-      });
-    }
-  }
-
-  for (let i = 0; i < 28; i++) {
-    const t = i / 27;
-    const seed = 1800 + i * 17;
-    const x = 115 + t * 98 + (rand(seed) - 0.5) * 10;
-    const z = COVE.headland.z1 + 12 + Math.sin(t * Math.PI * 1.4) * 5 + rand(seed + 1) * 10;
-    const s = 3.0 + rand(seed + 2) * 5.8;
-    out.push({
-      asset: rockAsset(seed + 3),
-      x,
-      z,
-      sx: s * (1.5 + rand(seed + 4) * 1.2),
-      sy: s * (0.38 + rand(seed + 5) * 0.35),
-      sz: s * (0.85 + rand(seed + 6) * 0.7),
-      yaw: rand(seed + 7) * Math.PI * 2,
-      pitch: (rand(seed + 8) - 0.5) * 0.2,
-      roll: (rand(seed + 9) - 0.5) * 0.25,
-      yOffset: -2.1 - rand(seed + 10) * 1.2,
-    });
-  }
-}
-
-function headlandTopRocks(out: RockInstance[]): void {
-  for (let i = 0; i < 5; i++) {
-    const t = rand(i + 100);
-    const z = COVE.headland.z0 + 18 + t * (COVE.headland.z1 - COVE.headland.z0 - 35);
-    const x = 178 + rand(i + 101) * 18;
-    const s = 4.6 + rand(i + 102) * 5.8;
-    out.push({
-      asset: rockAsset(i + 103),
-      x,
-      z,
-      sx: s * (1.0 + rand(i + 104) * 0.65),
-      sy: s * (0.42 + rand(i + 105) * 0.3),
-      sz: s * (0.75 + rand(i + 106) * 0.55),
-      yaw: rand(i + 107) * Math.PI * 2,
-      pitch: -0.18 + (rand(i + 108) - 0.5) * 0.16,
-      roll: (rand(i + 109) - 0.5) * 0.14,
-      yOffset: -4.2,
-    });
-  }
 }
 
 function shoreAndTalusRocks(out: RockInstance[]): void {
@@ -284,9 +176,6 @@ function lighthousePointRocks(out: RockInstance[]): void {
 
 function allRockInstances(): RockInstance[] {
   const out: RockInstance[] = [];
-  headlandBaseRocks(out);
-  headlandCliffFaceRocks(out);
-  headlandTopRocks(out);
   shoreAndTalusRocks(out);
   coveCoastRocks(out);
   const kept = out.filter((instance) => !inBlockedPad(instance) && !onLighthousePoint(instance));
@@ -322,7 +211,11 @@ export function createTerrainRocks(heightField: HeightField, _data?: unknown, ti
   const position = new Vector3();
   const normal = new Float32Array(3);
 
-  group.add(createSeaStack(tier));
+  // The sea stack and the headland's cliff share one karst material (one pipeline for both).
+  const karst = createSeaStackMaterial(tier);
+  group.add(createSeaStack(tier, karst));
+  const cliff = createHeadlandCliff(heightField, tier, karst);
+  if (cliff) group.add(cliff);
 
   for (const [assetIndex, list] of [...grouped.entries()].sort(([a], [b]) => a - b)) {
     const asset = ROCK_ASSETS[assetIndex];

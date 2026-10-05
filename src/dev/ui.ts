@@ -105,6 +105,7 @@ class MockBridge implements GameBridge {
   back = () => this.set({ screen: this.state.returnTo });
   travelTo = () => this.set({ screen: this.state.returnTo });
   quitToTitle = () => this.set({ screen: 'title', returnTo: 'title' });
+  startOver = () => this.set({ screen: 'captain', returnTo: 'title', hasSave: false });
   updateSettings = (patch: Partial<Settings>) => this.set({ settings: { ...this.state.settings, ...patch } });
   applyQuality = () => this.set({ qualityNotice: { kind: 'applying' } });
   renderResolution = () => ({ scale: 1, width: innerWidth, height: innerHeight });

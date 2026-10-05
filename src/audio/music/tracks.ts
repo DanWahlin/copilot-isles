@@ -1,11 +1,13 @@
 /** Where you are, musically: the title screen and open sea, or ashore on an island. */
-export type IslandMusic = 'harbour' | 'anchorage' | 'meridian';
+export type IslandMusic = 'harbour' | 'anchorage' | 'meridian' | 'opening';
 
 export interface MusicTrack {
   /** Base name in public/audio (the player picks `.ogg` or `.m4a`). */
   readonly file: string;
   /** Integrated loudness of the encoded file, printed by tools/music/fetch.sh. */
   readonly lufs: number;
+  /** Plays once and stops (a cue), instead of looping. */
+  readonly once?: boolean;
 }
 
 /** The tracks Dan picked (logged in ASSETS.md and ART_PROVENANCE.md, credited on the Credits screen). */
@@ -16,6 +18,9 @@ export const MUSIC_TRACKS: Readonly<Record<IslandMusic, MusicTrack>> = {
   anchorage: { file: 'music_bards_tale', lufs: -17.6 },
   // "Sunset Plains" by Yoiyami (OpenGameArt, CC0).
   meridian: { file: 'music_sunset_plains', lufs: -16.1 },
+  // "The Treasure Chest Opens", made for the opening by Dan with Suno: starts with the latch, rises
+  // as the chart's sea comes alive, and peaks at the dive (docs/specs/OPENING-living-chart.md).
+  opening: { file: 'music_treasure_chest_opens', lufs: -18.1, once: true },
 };
 
 /** What the music player can play: an island's track, or the sea-battle track. */

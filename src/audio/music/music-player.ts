@@ -36,9 +36,13 @@ export class MusicPlayer {
     if (this.wanted) this.switchTo(this.wanted);
   }
 
-  setIsland(island: MusicCue): void {
+  /**
+   * Crossfades to `island`'s track (null fades to silence). `at` starts it from that many seconds
+   * in (instead of picking up where it left off), and `fade` overrides the fade length.
+   */
+  setIsland(island: MusicCue | null, opts: { at?: number; fade?: number } = {}): void {
     this.wanted = island;
-    if (this.ctx) this.switchTo(island);
+    if (this.ctx) this.switchTo(island, opts);
   }
 
   /** Retries playback on a later gesture if the browser refused to start the track earlier. */
@@ -71,25 +75,27 @@ export class MusicPlayer {
     this.playing = null;
   }
 
-  private switchTo(island: MusicCue): void {
-    if (island === this.playing || !this.ctx) return;
+  private switchTo(island: MusicCue | null, opts: { at?: number; fade?: number } = {}): void {
+    if (!this.ctx || (island === this.playing && opts.at === undefined)) return;
     const now = this.ctx.currentTime;
-    const previous = this.playing ? this.decks.get(this.playing) : undefined;
-    const fade = previous ? CROSSFADE_S : FADE_IN_S;
+    const previous = this.playing && this.playing !== island ? this.decks.get(this.playing) : undefined;
+    const fade = opts.fade ?? (previous ? CROSSFADE_S : FADE_IN_S);
     if (previous) {
       ramp(previous.gain.gain, 0, now, fade);
       previous.pauseAt = now + fade;
     }
+    this.playing = island;
+    if (!island) return;
     const deck = this.decks.get(island) ?? this.createDeck(island, this.ctx);
     deck.pauseAt = null;
+    if (opts.at !== undefined) deck.element.currentTime = opts.at;
     ramp(deck.gain.gain, trackGain(trackFor(island)), now, fade);
     void deck.element.play().catch(() => undefined);
-    this.playing = island;
   }
 
   private createDeck(island: MusicCue, ctx: AudioContext): Deck {
     const element = this.createElement();
-    element.loop = true;
+    element.loop = !trackFor(island).once;
     element.preload = 'auto';
     element.src = audioFileFor(`${this.baseUrl}${trackFor(island).file}`, element);
     const source = ctx.createMediaElementSource(element);
