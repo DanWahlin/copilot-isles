@@ -537,11 +537,6 @@ export const CH01: ChapterContent = {
           feedback:
             'You picked **Current checkout** for the one-time setup in Chapter 00. That was the exception, and you’ll switch back in Chapter 02.',
         },
-        {
-          id: 'cloud',
-          text: 'Cloud',
-          feedback: 'Most project sessions should use **New worktree**.',
-        },
       ],
       answer: 'worktree',
       explain: {
