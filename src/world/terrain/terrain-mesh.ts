@@ -45,6 +45,27 @@ export interface CreateTerrainOptions {
   name?: string;
   createRocks?: ((heightField: HeightField, data: TerrainBakeData, tier: Tier) => Group | null) | null;
   cloudShadowNode?: Node<'float'> | null;
+  /**
+   * Where a mesh covers the steep faces (the headland's cliff): there, the coarse LODs take the lowest
+   * height near each vertex on steep ground, so their long slanted triangles stay behind that mesh
+   * instead of poking through it. The height field itself (gameplay) is unchanged.
+   */
+  recessSteep?: { minX: number; maxX: number; minZ: number; maxZ: number } | null;
+}
+
+type RecessBox = NonNullable<CreateTerrainOptions['recessSteep']>;
+
+/** The lowest height within `r` of (x, z) if the ground there is steep, else `h`. */
+function recessedHeight(data: TerrainBakeData, x: number, z: number, h: number, r: number): number {
+  let lo = h;
+  let hi = h;
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    const s = sampleFloat(data.heights, data, x + Math.cos(a) * r, z + Math.sin(a) * r);
+    lo = Math.min(lo, s);
+    hi = Math.max(hi, s);
+  }
+  return hi - lo > r * 2.4 ? lo : h;
 }
 
 function resolveTier(tier: Tier | TierSettings): TierSettings {
@@ -191,9 +212,11 @@ function pushVertex(
   u: number,
   v: number,
   yOffset = 0,
+  recess = 0,
 ): number {
   const vertex = sampleVertex(data, x, z);
-  positions.push(x, vertex.h + yOffset, z);
+  const h = recess > 0 ? recessedHeight(data, x, z, vertex.h, recess) : vertex.h;
+  positions.push(x, h + yOffset, z);
   normals.push(vertex.normal[0], vertex.normal[1], vertex.normal[2]);
   masks.push(vertex.mask[0], vertex.mask[1], vertex.mask[2], vertex.mask[3]);
   lights.push(vertex.light[0], vertex.light[1], vertex.light[2], vertex.light[3]);
@@ -208,6 +231,7 @@ function buildChunkGeometry(
   minZ: number,
   maxZ: number,
   step: number,
+  recessBox: RecessBox | null = null,
 ): ChunkGeometrySet {
   const positions: number[] = [];
   const normals: number[] = [];
@@ -223,8 +247,30 @@ function buildChunkGeometry(
     const row: number[] = [];
     for (let ix = 0; ix < cols; ix++) {
       const x = ix === cols - 1 ? maxX : minX + ix * step;
+      const recess =
+        step > 1 &&
+        recessBox &&
+        x >= recessBox.minX &&
+        x <= recessBox.maxX &&
+        z >= recessBox.minZ &&
+        z <= recessBox.maxZ
+          ? step * 0.5 + 0.5
+          : 0;
       row.push(
-        pushVertex(positions, normals, masks, lights, uvs, data, x, z, (x - minX) / 32, (z - minZ) / 32),
+        pushVertex(
+          positions,
+          normals,
+          masks,
+          lights,
+          uvs,
+          data,
+          x,
+          z,
+          (x - minX) / 32,
+          (z - minZ) / 32,
+          0,
+          recess,
+        ),
       );
     }
     ids.push(row);
@@ -299,7 +345,9 @@ export function createTerrain(options: CreateTerrainOptions): CreatedTerrain {
     for (let x0 = data.minX; x0 < data.maxX - 0.1; x0 += chunkSize) {
       const x1 = Math.min(data.maxX, x0 + chunkSize);
       const z1 = Math.min(data.maxZ, z0 + chunkSize);
-      const geometries = steps.map((step) => buildChunkGeometry(data, x0, x1, z0, z1, step));
+      const geometries = steps.map((step) =>
+        buildChunkGeometry(data, x0, x1, z0, z1, step, options.recessSteep ?? null),
+      );
       const mesh = new Mesh(geometries[geometries.length - 1].geometry, material);
       mesh.name = `terrain-chunk-${Math.round(x0)}-${Math.round(z0)}`;
       mesh.frustumCulled = true;

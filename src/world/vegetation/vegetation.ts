@@ -25,6 +25,8 @@ import {
 } from './model-loader';
 import { scatterVegetation } from './scatter';
 import { seaStackPlantSpots } from '../terrain/sea-stack-shape';
+import { headlandCliffPlantSpots } from '../terrain/headland-cliff-shape';
+import type { HeightField } from '../contracts';
 import type {
   CreateVegetationOptions,
   PlantInstance,
@@ -229,6 +231,37 @@ function appendSeaStackPlants(plants: Record<PlantSpecies, PlantInstance[]>): vo
   }
 }
 
+/** Scrub, palms and trees on the headland's clifftop, shoulders and edge (thinned per tier). */
+const HEADLAND_PLANT_DENSITY: Record<Tier, number> = {
+  lite: 0.2,
+  low: 0.45,
+  medium: 0.75,
+  high: 1,
+  ultra: 1,
+};
+
+function appendHeadlandPlants(
+  plants: Record<PlantSpecies, PlantInstance[]>,
+  heightField: HeightField,
+  tier: Tier,
+): void {
+  for (const spot of headlandCliffPlantSpots(heightField, HEADLAND_PLANT_DENSITY[tier])) {
+    plants[spot.species].push({
+      species: spot.species,
+      x: spot.x,
+      y: spot.y,
+      z: spot.z,
+      scale: spot.scale,
+      rotation: spot.rotation,
+      leanX: spot.leanX,
+      leanZ: spot.leanZ,
+      colorSeed: spot.seed,
+      lodSeed: spot.seed,
+      slopeDeg: 0,
+    });
+  }
+}
+
 function collectTreeLike(scatter: Record<PlantSpecies, PlantInstance[]>): PlantInstance[] {
   const output: PlantInstance[] = [];
   for (const species of Object.keys(scatter) as PlantSpecies[]) {
@@ -251,6 +284,7 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
   ]);
   appendSeaStackPlants(scatter.plants);
   for (const plant of options.extraPlants ?? []) scatter.plants[plant.species].push(plant);
+  appendHeadlandPlants(scatter.plants, options.heightField, tier.tier);
   const batches: PlantBatch[] = [];
   const palmInstances = collectPalmInstances(scatter.plants);
   if (palmInstances.length > 0) {
