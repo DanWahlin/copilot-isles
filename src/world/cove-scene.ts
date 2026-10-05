@@ -16,7 +16,9 @@ import { MERIDIAN, createMeridianRocks, createMeridianSilhouette } from './islan
 import { createBeachDebris, type BeachDebrisSystem } from './debris/beach-debris';
 import { createBrigantine, type Brigantine } from './ship';
 import { createVegetation, type VegetationSystem } from './vegetation';
-import { createVillage, loadVillageKit, type VillageSystem } from './village';
+import { DOCK_GULL_SPOT, createVillage, loadVillageKit, type VillageSystem } from './village';
+import { createDockGull, type DockGull } from './life/dock-gull';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createMeridianTownAsync, type MeridianTownSystem } from './meridian-town';
 import { createBirds, type BirdsSystem } from './life/birds';
 import type { LeapsSystem } from './life/leaps';
@@ -253,6 +255,25 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     scene.add(birds.group);
   }
 
+  // The title's seagull lives on the pier-end bollard by the crane board (one draw; +1 program). It
+  // joins the scene before the island's pipelines are compiled, so its first draw doesn't stall.
+  let dockGull: DockGull | null = null;
+  if (o.birds !== false && tier.birds > 0) {
+    const gull = createDockGull({
+      loader: new GLTFLoader(),
+      url: '/packs/testcove/life/dock-gull.glb',
+      at: DOCK_GULL_SPOT,
+      heading: Math.PI / 2,
+    });
+    try {
+      await gull.ready;
+      scene.add(gull.group);
+      dockGull = gull;
+    } catch {
+      gull.dispose();
+    }
+  }
+
   let leaps: LeapsSystem | null = null;
   let disposed = false;
   let result: CoveScene | null = null;
@@ -303,6 +324,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       }
       sites.update(dt, t);
       birds?.update(dt, t, camera);
+      dockGull?.update(dt, t, camera);
       leaps?.update(dt, t, camera);
       focus.set(camera.position.x, 0, camera.position.z);
       sky.update(clock, focus, dt, camera);
@@ -321,6 +343,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         ship.group,
         vegetation?.group,
         birds?.group,
+        dockGull?.group,
         meridianBirds?.group,
         leaps?.group,
       ]);
@@ -364,6 +387,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       if (meridian.town) scene.remove(meridian.town.group);
       if (vegetation) scene.remove(vegetation.group);
       if (birds) scene.remove(birds.group);
+      if (dockGull) scene.remove(dockGull.group);
       if (meridianBirds) scene.remove(meridianBirds.group);
       if (leaps) scene.remove(leaps.group);
       disposeTree(foam);
@@ -373,6 +397,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       if (meridian.foam) disposeTree(meridian.foam);
       meridian.town?.dispose();
       birds?.dispose();
+      dockGull?.dispose();
       meridianBirds?.dispose();
       leaps?.dispose();
       village.dispose();

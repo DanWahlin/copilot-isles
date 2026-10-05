@@ -1678,6 +1678,14 @@ function addPierRootSteps(buckets: Record<MaterialKey, BufferGeometry[]>): void 
   }
 }
 
+/** The pier-end bollard by the crane board, where the dock gull stands (feet on its top). */
+const DOCK_GULL_Z = -121;
+export const DOCK_GULL_SPOT = {
+  x: COVE.pier.x + COVE.pier.width * 0.5 + 0.16,
+  y: COVE.pier.deck + 0.64,
+  z: DOCK_GULL_Z,
+} as const;
+
 function addMooringHardware(
   buckets: Record<MaterialKey, BufferGeometry[]>,
   colliders: { circles: CircleObstacle[] },
@@ -1685,12 +1693,13 @@ function addMooringHardware(
   pier: typeof COVE.pier,
 ): void {
   const x = pier.x + pier.width * 0.5 + 0.16;
-  for (const z of [-103, -121]) {
+  for (const z of [-103, DOCK_GULL_Z]) {
     addCylinder(buckets.metal, x, pier.deck, z, 0.24, 0.3, 0.64, 12, 0, 0x252320);
     addTorus(buckets.metal, x, pier.deck + 0.62, z, 0.28, 0.035, 12, 0x2f2c26, Math.PI / 2, 0, 0);
     addBox(buckets.rope, x + 0.95, pier.deck + 0.36, z - 0.28, 2.0, 0.06, 0.06, 0.22, 0xc4a576);
     colliders.circles.push({ x, z, r: 0.55 });
-    perches.push(new Vector3(x, pier.deck + 0.64, z));
+    // The pier-end bollard belongs to the dock gull (life/dock-gull.ts), so the flock keeps off it.
+    if (z !== DOCK_GULL_Z) perches.push(new Vector3(x, pier.deck + 0.64, z));
   }
 }
 

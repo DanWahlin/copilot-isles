@@ -51,6 +51,8 @@ interface BirdAgent {
   seed: number;
   flapPhase: number;
   flapAmp: number;
+  /** 1 perched (wings folded), 0 flying; eased between. */
+  fold: number;
   state: BirdState;
   perch: number;
   timer: number;
@@ -112,7 +114,8 @@ function setMatrix(agent: BirdAgent): Matrix4 {
   tmpEuler.set(agent.pitch, agent.yaw, -agent.bank, 'YXZ');
   tmpQuat.setFromEuler(tmpEuler);
   tmpObject.quaternion.copy(tmpQuat);
-  tmpScale.setScalar(agent.scale);
+  // Perched birds are seen up close: a real gull's size (the flock's size reads well only far off).
+  tmpScale.setScalar(agent.scale * (1 - 0.45 * agent.fold));
   tmpObject.scale.copy(tmpScale);
   tmpObject.updateMatrix();
   tmpMatrix.copy(tmpObject.matrix);
@@ -147,6 +150,7 @@ export function createBirds(options: CreateBirdsOptions): BirdsSystem {
       seed: rng(),
       flapPhase: rng() * Math.PI * 2,
       flapAmp: perched ? 0 : 0.25 + rng() * 0.45,
+      fold: perched ? 1 : 0,
       state: perched ? 'perched' : 'fly',
       perch: perched ? i : -1,
       timer: perched ? 16 + rng() * 45 : 0,
@@ -159,7 +163,8 @@ export function createBirds(options: CreateBirdsOptions): BirdsSystem {
   const geometry = createBirdGeometry();
   const flapPhase = new InstancedBufferAttribute(new Float32Array(Math.max(1, count)), 1);
   const flapAmp = new InstancedBufferAttribute(new Float32Array(Math.max(1, count)), 1);
-  const birdTint = new InstancedBufferAttribute(new Float32Array(Math.max(1, count) * 3), 3);
+  // rgb tint and, in w, the wing fold (one buffer: WebGPU allows 8 vertex buffers per pipeline).
+  const birdTint = new InstancedBufferAttribute(new Float32Array(Math.max(1, count) * 4), 4);
   geometry.setAttribute('flapPhase', flapPhase);
   geometry.setAttribute('flapAmp', flapAmp);
   geometry.setAttribute('birdTint', birdTint);
@@ -261,12 +266,14 @@ export function createBirds(options: CreateBirdsOptions): BirdsSystem {
       let visible = 0;
       for (const agent of agents) {
         updateAgent(agent, Math.min(0.05, dt));
+        agent.fold +=
+          ((agent.state === 'perched' ? 1 : 0) - agent.fold) * clamp(Math.min(0.05, dt) * 7, 0, 1);
         if (agent.pos.distanceTo(camera.position) > 1000) continue;
         mesh.setMatrixAt(visible, setMatrix(agent));
         flapPhase.setX(visible, agent.flapPhase + agent.seed * 8);
         flapAmp.setX(visible, agent.flapAmp);
         tmpColor.setHSL(0.58, 0.04, 0.82 + agent.seed * 0.08);
-        birdTint.setXYZ(visible, tmpColor.r, tmpColor.g, tmpColor.b);
+        birdTint.setXYZW(visible, tmpColor.r, tmpColor.g, tmpColor.b, agent.fold);
         visible += 1;
       }
       mesh.count = visible;

@@ -15,6 +15,11 @@ export interface SignStyle {
   look?: 'board' | 'cloth';
   /** Per-line colours (defaults to cream on board, ink on cloth). */
   colors?: readonly (string | undefined)[];
+  /**
+   * 'list': the first line is a centred title and the rest are a left-aligned list (bullets in one
+   * column), the block centred on the board. Default: every line centred.
+   */
+  layout?: 'centered' | 'list';
 }
 
 const FONT = (sz: number) => `600 ${sz}px Georgia, 'Times New Roman', serif`;
@@ -80,15 +85,20 @@ function paintSign(canvas: HTMLCanvasElement, lines: readonly string[], o: SignS
     size -= 2;
     ctx.font = FONT(size);
   }
-  ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const lh = size * 1.18;
   const y0 = ch / 2 - ((lines.length - 1) * lh) / 2;
+  const list = o.layout === 'list' && lines.length > 1;
+  // A list's items share one left edge: the widest item, centred on the board.
+  const itemsLeft = list ? (px - Math.max(...lines.slice(1).map((l) => ctx.measureText(l).width))) / 2 : 0;
   lines.forEach((line, k) => {
+    const left = list && k > 0;
+    ctx.textAlign = left ? 'left' : 'center';
+    const x = left ? itemsLeft : px / 2;
     ctx.fillStyle = cloth ? 'rgba(255, 250, 235, 0.5)' : 'rgba(255, 236, 200, 0.35)';
-    ctx.fillText(line, px / 2, y0 + k * lh + 3);
+    ctx.fillText(line, x, y0 + k * lh + 3);
     ctx.fillStyle = o.colors?.[k] ?? (cloth ? '#3b2616' : '#f3e3c2');
-    ctx.fillText(line, px / 2, y0 + k * lh);
+    ctx.fillText(line, x, y0 + k * lh);
   });
 }
 
