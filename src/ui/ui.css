@@ -2003,6 +2003,11 @@
   background: radial-gradient(circle at 50% 45%, #2b1a0c, #0b0603 75%);
 }
 
+/* At Set sail the veil also covers the captain panel (the UI layer) as it fades. */
+.ci-opening-veil-top {
+  z-index: 7;
+}
+
 .ci-opening-flash {
   background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f4fbff 45%, rgba(220, 238, 246, 0.96) 100%);
 }

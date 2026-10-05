@@ -60,13 +60,17 @@ export interface OpeningOptions {
   input: Input;
   /** The audio engine once it's unlocked (null before the first gesture, or in tests). */
   audio: () => IslesAudio | null;
-  kind: OpeningKind;
-  reduced: boolean;
-  sails: string | null;
-  /** Engraved on the chest's nameplate. */
-  captainName: string;
   /** Told when the opening starts or stops holding on the living chart for the load. */
   onHold?: (holding: boolean) => void;
+}
+
+/** What's only known at Set sail (or Continue): set with `start()` once the opening's prepared. */
+export interface OpeningStart {
+  kind: OpeningKind;
+  reduced: boolean;
+  /** Engraved on the chest's nameplate. */
+  captainName: string;
+  sails: string | null;
 }
 
 export interface Opening {
@@ -74,14 +78,23 @@ export interface Opening {
   /** Seconds since the cabin came up (tests). */
   readonly time: number;
   readonly holding: boolean;
+  /** How long the cabin's compile took under the Set sail veil (tests). */
+  readonly compileMs: number;
   /** The island's heavy build is done: the chest beat can play on (smoothly) from here. */
   release(): void;
   /** Fades the warm-dark veil down over the title (true) or up off the cabin (false). */
   veil(down: boolean, ms: number): Promise<void>;
-  /** Builds the cabin, the chart and its islands, and compiles them (under the veil). */
+  /**
+   * Builds the cabin, the chart and its islands (CPU work, a little each frame), so it can run in
+   * the background on the title and captain screens. Nothing touches the GPU until `play`.
+   */
   prepare(): Promise<void>;
-  /** Shows the cabin and starts the beat. */
-  play(): void;
+  /** Compiles the cabin's pipelines a piece per frame (captain screen); `play` waits for it. */
+  warm(): Promise<void>;
+  /** Sets the voyage's details and poses the first shot (after `prepare`). */
+  start(details: OpeningStart): void;
+  /** Under the veil: compiles and uploads everything (one hidden draw), then lifts the veil off the cabin. */
+  play(): Promise<void>;
   /** Skips ahead (E, Space, Esc, a click, gamepad A). */
   skip(): void;
   /** Resolves once the beat has reached the living chart (where it holds for the load). */
@@ -111,9 +124,10 @@ const pose = (ex: number, ey: number, ez: number, lx: number, ly: number, lz: nu
 });
 
 export function createOpening(o: OpeningOptions): Opening {
-  const { engine, kind } = o;
-  const beats: OpeningBeats = openingBeats(kind);
-  const reduced = o.reduced;
+  const { engine } = o;
+  let kind: OpeningKind = 'voyage';
+  let beats: OpeningBeats = openingBeats(kind);
+  let reduced = false;
   const scene = new Scene();
   scene.name = 'opening';
   const camera = new PerspectiveCamera(40, engine.camera.aspect, 0.0004, 40);
@@ -177,7 +191,7 @@ export function createOpening(o: OpeningOptions): Opening {
   /** The player skipped: the dive, when it comes, is just the flash. */
   let hurry = false;
   /** The beat holds at `beats.gate` (the establishing shot) until the flow says the build is done. */
-  let released = kind === 'continue';
+  let released = false;
   let gated = 0;
 
   // ---- camera shots (cabin metres; the desk top is y ≈ 0.8, chest at z ≈ -0.43) ----
@@ -305,7 +319,8 @@ export function createOpening(o: OpeningOptions): Opening {
   }
 
   type Cue = readonly [at: number, name: SliceName, gain: number];
-  const CUES: readonly Cue[] =
+  let CUES: readonly Cue[] = [];
+  const buildCues = (): readonly Cue[] =>
     kind === 'continue' || reduced
       ? []
       : [
@@ -411,13 +426,117 @@ export function createOpening(o: OpeningOptions): Opening {
     },
   };
 
+  /** Builds everything (see `prepare`); `disposed` checks stop it if the voyage is abandoned. */
+  async function build(): Promise<void> {
+    const grids: IslandGrid[] = [];
+    // A few milliseconds a frame, so the title and captain screens keep their frame rate.
+    for (const src of CHART_ISLANDS) grids.push(await runSliced(sampleIslandGrid(src), 5));
+    if (disposed) return;
+    await document.fonts?.ready;
+    const art = drawChartArt(grids);
+    // Sun shadows only where the tier has them (the world's sky makes the same choice, so the
+    // renderer's shadow switch, and so every pipeline, stays as compiled).
+    const shadows = engine.tier.shadowCascades > 0;
+    if (shadows) engine.renderer.shadowMap.enabled = true;
+    const slices = { lite: 0, low: 8, medium: 14, high: 20, ultra: 24 }[engine.tier.tier];
+    cabin = createCabin({
+      shadowMap: shadows ? Math.min(2048, engine.tier.shadowMap || 1024) : 0,
+      shaftSlices: slices,
+      captainName: '',
+    });
+    scene.add(cabin.group);
+    paper = createChartPaper(art);
+    paperW = 1.0;
+    rOut0 = rollRadius(0);
+    chartAt.set(0, cabin.deskY + 0.0058, 0.17);
+    paperHolder.position.set(paperW / 2, -rOut0, 0);
+    paper.mesh.castShadow = true;
+    paper.mesh.receiveShadow = true;
+    paperHolder.add(paper.mesh);
+    rollPivot.add(paperHolder);
+    chartRoot.add(rollPivot);
+    islandsGroup.position.copy(chartAt);
+    chartRoot.add(islandsGroup);
+    scene.add(chartRoot);
+    for (const g of grids) {
+      const rise = uniform(0);
+      islandRise.set(g.src.id, rise);
+      const geo: BufferGeometry = islandGeometry(g);
+      const mat = new MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.82, metalness: 0 });
+      // Pop-up: the middle stands first and the coast last, each part overshooting a touch.
+      const x = clamp(rise.sub(attribute('spread', 'float').mul(0.35)).div(0.65), 0, 1);
+      const back = float(1)
+        .add(float(2.6).mul(x.sub(1).pow(3)))
+        .add(float(1.6).mul(x.sub(1).pow(2)));
+      mat.positionNode = vec3(positionLocal.x, positionLocal.y.mul(back), positionLocal.z);
+      // Ink contour lines every 8 m, like the chart's own hand: the drawing rising into relief.
+      const hm = attribute('hm', 'float');
+      const v = hm.div(8);
+      const d = min(fract(v), float(1).sub(fract(v)));
+      const w = fwidth(v);
+      const line = float(1)
+        .sub(smoothstep(w.mul(0.6), w.mul(1.6), d))
+        .mul(smoothstep(1, 2.5, hm))
+        .mul(smoothstep(0.35, 0.9, rise));
+      mat.colorNode = vec3(1).mul(float(1).sub(line.mul(0.55)));
+      const m = new Mesh(geo, mat);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      m.name = `chart ${g.src.id}`;
+      islandsGroup.add(m);
+      islandMeshes.push(m);
+      islandMat.push(mat);
+    }
+    props = createIslandProps(grids, false);
+    islandsGroup.add(props.group);
+    // The tiny brigantine, sailing in to Anchorage from the north (the real ship, scaled down).
+    ship = createBrigantine({ tier: 'lite' });
+    const anchorage = chartIsland('anchorage');
+    worldToPaper(anchorage, -55, 0, -265, shipAt);
+    shipScale = anchorage.scale * 5;
+    ship.group.position.set(shipAt.x, 0.0006, shipAt.z);
+    ship.group.rotation.y = Math.PI * 0.94;
+    islandsGroup.add(ship.group);
+    applyBeat(kind === 'continue' || reduced ? 99 : 0);
+    shotAt(0);
+    camera.position.copy(cam.eye);
+    camera.lookAt(cam.look);
+    prepared = true;
+  }
+
+  let preparing: Promise<void> | null = null;
+  let warming: Promise<void> | null = null;
+  /**
+   * Compiles the cabin's pipelines (asynchronously, with everything showing, so nothing compiles
+   * mid-beat). Started on the captain screen, it's done well before Set sail.
+   */
+  async function warmUp(): Promise<void> {
+    await api.prepare();
+    if (disposed) return;
+    const hidden: { visible: boolean }[] = [];
+    scene.traverse((obj) => {
+      if (!obj.visible) {
+        hidden.push(obj);
+        obj.visible = true;
+      }
+    });
+    await engine.renderer.compileAsync(scene, camera);
+    for (const h of hidden) h.visible = false;
+  }
+  let prepared = false;
+  let compileMs = 0;
   const api: Opening = {
-    kind,
+    get kind() {
+      return kind;
+    },
     get time() {
       return t;
     },
     get holding() {
       return holding;
+    },
+    get compileMs() {
+      return compileMs;
     },
     release() {
       released = true;
@@ -427,81 +546,39 @@ export function createOpening(o: OpeningOptions): Opening {
       veilEl.style.opacity = down ? '1' : '0';
       return new Promise((r) => window.setTimeout(r, ms));
     },
-    async prepare() {
-      const grids: IslandGrid[] = [];
-      for (const src of CHART_ISLANDS) grids.push(await runSliced(sampleIslandGrid(src), 40));
-      if (disposed) return;
-      await document.fonts?.ready;
-      const art = drawChartArt(grids);
-      // Sun shadows only where the tier has them (the world's sky makes the same choice, so the
-      // renderer's shadow switch, and so every pipeline, stays as compiled).
-      const shadows = engine.tier.shadowCascades > 0;
-      if (shadows) engine.renderer.shadowMap.enabled = true;
-      const slices = { lite: 0, low: 8, medium: 14, high: 20, ultra: 24 }[engine.tier.tier];
-      cabin = createCabin({
-        shadowMap: shadows ? Math.min(2048, engine.tier.shadowMap || 1024) : 0,
-        shaftSlices: reduced ? Math.min(slices, 8) : slices,
-        captainName: o.captainName,
-      });
-      scene.add(cabin.group);
-      paper = createChartPaper(art);
-      paperW = 1.0;
-      rOut0 = rollRadius(0);
-      chartAt.set(0, cabin.deskY + 0.0058, 0.17);
-      paperHolder.position.set(paperW / 2, -rOut0, 0);
-      paper.mesh.castShadow = true;
-      paper.mesh.receiveShadow = true;
-      paperHolder.add(paper.mesh);
-      rollPivot.add(paperHolder);
-      chartRoot.add(rollPivot);
-      islandsGroup.position.copy(chartAt);
-      chartRoot.add(islandsGroup);
-      scene.add(chartRoot);
-      for (const g of grids) {
-        const rise = uniform(0);
-        islandRise.set(g.src.id, rise);
-        const geo: BufferGeometry = islandGeometry(g);
-        const mat = new MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.82, metalness: 0 });
-        // Pop-up: the middle stands first and the coast last, each part overshooting a touch.
-        const x = clamp(rise.sub(attribute('spread', 'float').mul(0.35)).div(0.65), 0, 1);
-        const back = float(1)
-          .add(float(2.6).mul(x.sub(1).pow(3)))
-          .add(float(1.6).mul(x.sub(1).pow(2)));
-        mat.positionNode = vec3(positionLocal.x, positionLocal.y.mul(back), positionLocal.z);
-        // Ink contour lines every 8 m, like the chart's own hand: the drawing rising into relief.
-        const hm = attribute('hm', 'float');
-        const v = hm.div(8);
-        const d = min(fract(v), float(1).sub(fract(v)));
-        const w = fwidth(v);
-        const line = float(1)
-          .sub(smoothstep(w.mul(0.6), w.mul(1.6), d))
-          .mul(smoothstep(1, 2.5, hm))
-          .mul(smoothstep(0.35, 0.9, rise));
-        mat.colorNode = vec3(1).mul(float(1).sub(line.mul(0.55)));
-        const m = new Mesh(geo, mat);
-        m.castShadow = true;
-        m.receiveShadow = true;
-        m.name = `chart ${g.src.id}`;
-        islandsGroup.add(m);
-        islandMeshes.push(m);
-        islandMat.push(mat);
-      }
-      props = createIslandProps(grids, false);
-      islandsGroup.add(props.group);
-      // The tiny brigantine, sailing in to Anchorage from the north (the real ship, scaled down).
-      ship = createBrigantine({ tier: 'lite' });
-      if (o.sails) ship.setSails(o.sails);
-      const anchorage = chartIsland('anchorage');
-      worldToPaper(anchorage, -55, 0, -265, shipAt);
-      shipScale = anchorage.scale * 5;
-      ship.group.position.set(shipAt.x, 0.0006, shipAt.z);
-      ship.group.rotation.y = Math.PI * 0.94;
-      islandsGroup.add(ship.group);
+    prepare() {
+      preparing ??= build();
+      return preparing;
+    },
+    warm() {
+      warming ??= warmUp();
+      return warming;
+    },
+    start(details) {
+      kind = details.kind;
+      reduced = details.reduced;
+      beats = openingBeats(kind);
+      CUES = buildCues();
+      released = kind === 'continue';
+      t = 0;
+      cueIndex = 0;
+      cabin?.setCaptainName(details.captainName);
+      ship?.setSails(details.sails);
       applyBeat(kind === 'continue' || reduced ? 99 : 0);
       shotAt(0);
+      camera.aspect = engine.camera.aspect;
+      camera.updateProjectionMatrix();
       camera.position.copy(cam.eye);
       camera.lookAt(cam.look);
-      // Compile with everything showing, so nothing compiles mid-beat.
+      camera.updateMatrixWorld();
+    },
+    async play() {
+      if (disposed || !prepared) return;
+      const t0 = performance.now();
+      await api.warm();
+      compileMs = performance.now() - t0;
+      if (disposed) return;
+      // One draw with everything showing, under the veil: every geometry and texture uploads now.
       const hidden: { visible: boolean }[] = [];
       scene.traverse((obj) => {
         if (!obj.visible) {
@@ -509,15 +586,12 @@ export function createOpening(o: OpeningOptions): Opening {
           obj.visible = true;
         }
       });
-      await engine.renderer.compileAsync(scene, camera);
-      // A warm draw under the veil uploads every geometry and texture before the beat starts.
       engine.renderer.render(scene, camera);
       for (const h of hidden) h.visible = false;
       applyBeat(kind === 'continue' || reduced ? 99 : 0);
-    },
-    play() {
-      if (disposed) return;
       engine.cutscene = cutscene;
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      if (disposed) return;
       playing = true;
       const audio = o.audio();
       if (audio) {

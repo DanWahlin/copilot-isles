@@ -62,6 +62,8 @@ export interface Cabin {
   /** The dust puff as the lid opens (0 → 1), and the sparkles rising from the chest (0 → 1). */
   puff: { value: number };
   sparks: { value: number };
+  /** Engraves the captain's name on the chest's nameplate. */
+  setCaptainName(name: string): void;
   /** Keeps the particles facing the camera. */
   setCamera(camera: Camera): void;
   update(dt: number, t: number, reduced: boolean): void;
@@ -70,6 +72,8 @@ export interface Cabin {
 
 export interface HeroChest {
   group: Group;
+  /** Re-engraves the nameplate. */
+  setName(name: string): void;
   /** The lid's hinge (rotate x, negative opens). */
   hinge: Object3D;
   /** The hasp's pivot on the lid's front (rotate x, positive swings it up and out). */
@@ -529,6 +533,7 @@ export function createCabin(opts: CabinOptions): Cabin {
     chestLight,
     sun,
     puff: puff.t,
+    setCaptainName: (name) => chest.setName(name),
     sparks: sparks.t,
     setCamera(cam) {
       camRight.value.setFromMatrixColumn(cam.matrixWorld, 0);
@@ -644,8 +649,8 @@ function createHeroChest(captainName: string): HeroChest {
 
   // The nameplate: the captain's name engraved on brass, on the body's front.
   const plate = nameplate(captainName);
-  plate.position.set(0, 0.13, D / 2 + 0.024);
-  group.add(plate);
+  plate.mesh.position.set(0, 0.13, D / 2 + 0.024);
+  group.add(plate.mesh);
 
   // The domed lid, planked along its length, hinged along the back top edge.
   const hinge = new Group();
@@ -725,6 +730,7 @@ function createHeroChest(captainName: string): HeroChest {
 
   return {
     group,
+    setName: plate.set,
     hinge,
     hasp,
     inside: new Vector3(0, H * 0.5, 0),
@@ -737,38 +743,47 @@ function createHeroChest(captainName: string): HeroChest {
 }
 
 /** A small brass plate engraved with the captain's name (Canvas 2D, made once). */
-function nameplate(name: string): Mesh {
+function nameplate(name: string): { mesh: Mesh; set(name: string): void } {
   const c = document.createElement('canvas');
   c.width = 512;
   c.height = 128;
   const g = c.getContext('2d')!;
-  const grad = g.createLinearGradient(0, 0, 0, 128);
-  grad.addColorStop(0, '#e6c06a');
-  grad.addColorStop(0.5, '#b88a34');
-  grad.addColorStop(1, '#8a6224');
-  g.fillStyle = grad;
-  g.fillRect(0, 0, 512, 128);
-  g.strokeStyle = '#5a3f15';
-  g.lineWidth = 6;
-  g.strokeRect(8, 8, 496, 112);
-  g.textAlign = 'center';
-  g.textBaseline = 'middle';
-  const text = name.trim() ? `Captain ${name.trim()}` : 'The Captain';
-  let size = 58;
-  g.font = `italic 600 ${size}px Fraunces, Georgia, serif`;
-  while (g.measureText(text).width > 440 && size > 24)
-    g.font = `italic 600 ${(size -= 2)}px Fraunces, Georgia, serif`;
-  g.fillStyle = 'rgba(255, 236, 180, 0.6)';
-  g.fillText(text, 256, 66);
-  g.fillStyle = '#3a2508';
-  g.fillText(text, 256, 63);
+  const draw = (who: string) => {
+    const grad = g.createLinearGradient(0, 0, 0, 128);
+    grad.addColorStop(0, '#e6c06a');
+    grad.addColorStop(0.5, '#b88a34');
+    grad.addColorStop(1, '#8a6224');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 512, 128);
+    g.strokeStyle = '#5a3f15';
+    g.lineWidth = 6;
+    g.strokeRect(8, 8, 496, 112);
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    const text = who.trim() ? `Captain ${who.trim()}` : 'The Captain';
+    let size = 58;
+    g.font = `italic 600 ${size}px Fraunces, Georgia, serif`;
+    while (g.measureText(text).width > 440 && size > 24)
+      g.font = `italic 600 ${(size -= 2)}px Fraunces, Georgia, serif`;
+    g.fillStyle = 'rgba(255, 236, 180, 0.6)';
+    g.fillText(text, 256, 66);
+    g.fillStyle = '#3a2508';
+    g.fillText(text, 256, 63);
+  };
+  draw(name);
   const tex = new CanvasTexture(c);
   tex.colorSpace = SRGBColorSpace;
   // Mostly diffuse: there's no environment map in the cabin, so a true metal would read black.
   const m = new MeshStandardNodeMaterial({ map: tex, roughness: 0.42, metalness: 0.15 });
   const mesh = new Mesh(new PlaneGeometry(0.26, 0.065), m);
   mesh.name = 'nameplate';
-  return mesh;
+  return {
+    mesh,
+    set(who) {
+      draw(who);
+      tex.needsUpdate = true;
+    },
+  };
 }
 
 /** A soft puff of dust from the lid's seam as it opens (0 → 1 over the puff). */
