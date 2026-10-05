@@ -1,4 +1,13 @@
-import { AnimationClip, BufferGeometry, Color, Group, Material, Mesh, SkinnedMesh } from 'three/webgpu';
+import {
+  AnimationClip,
+  BufferGeometry,
+  Color,
+  Group,
+  Material,
+  Mesh,
+  Quaternion,
+  SkinnedMesh,
+} from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
@@ -361,9 +370,51 @@ function normalizeClips(
     ['wade', find('|Walk|') ?? find('Walk') ?? motion('wade')],
   ];
   for (const [name, clip] of mapping) {
-    if (clip) byName.set(name, clip.clone());
+    if (!clip) continue;
+    const copy = clip.clone();
+    if (STANDING_CLIPS.has(name)) dampTrack(copy, TORSO_TRACKS, TORSO_SWAY_KEEP);
+    byName.set(name, copy);
   }
   return byName;
+}
+
+/** Clips built on the kit's Idle (every character stands, talks, sits and steers on it). */
+const STANDING_CLIPS: ReadonlySet<CharacterClip> = new Set(['idle', 'talk', 'sit', 'helm']);
+/** The chest bones whose idle sway is damped. */
+const TORSO_TRACKS = ['Torso.quaternion', 'Abdomen.quaternion', 'Chest.quaternion'];
+/**
+ * The kit's Idle pitches the chest about 6° forward and back on a loop, which reads as the chest
+ * thrusting in and out (Dan: odd, and on a woman it can read as inappropriate). Keep a fifth of it, so
+ * there's still a trace of breathing.
+ */
+const TORSO_SWAY_KEEP = 0.2;
+
+/** Pulls each key of the named quaternion tracks toward the track's mean pose, keeping `keep` of it. */
+function dampTrack(clip: AnimationClip, names: readonly string[], keep: number): void {
+  for (const track of clip.tracks) {
+    if (!names.includes(track.name)) continue;
+    const v = track.values;
+    const n = v.length / 4;
+    if (n < 2) continue;
+    // Mean pose: sign-aligned average of the keys, normalised.
+    const m = [0, 0, 0, 0];
+    for (let i = 0; i < n; i++) {
+      const sgn =
+        v[i * 4]! * v[0]! + v[i * 4 + 1]! * v[1]! + v[i * 4 + 2]! * v[2]! + v[i * 4 + 3]! * v[3]! < 0
+          ? -1
+          : 1;
+      for (let k = 0; k < 4; k++) m[k]! += sgn * v[i * 4 + k]!;
+    }
+    const len = Math.hypot(m[0]!, m[1]!, m[2]!, m[3]!) || 1;
+    for (let k = 0; k < 4; k++) m[k]! /= len;
+    const mean = new Quaternion(m[0], m[1], m[2], m[3]);
+    const q = new Quaternion();
+    for (let i = 0; i < n; i++) {
+      q.fromArray(v, i * 4);
+      q.copy(mean.clone().slerp(q, keep));
+      q.toArray(v, i * 4);
+    }
+  }
 }
 
 function tintFor(body: CharacterBody, config: BodyConfig, variant: number): number {
