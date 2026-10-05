@@ -47,6 +47,8 @@ export class Engine {
   cutscene: { render(): void; drawWorld: boolean } | null = null;
 
   private manualScale: number | null = null;
+  /** A cap on the pixel ratio while a cutscene holds the screen (see holdResolution). */
+  private pixelCap: number | null = null;
   private readonly systems: System[] = [];
   private readonly step = new FixedStep(1 / 60);
   private last = 0;
@@ -105,7 +107,21 @@ export class Engine {
    */
   pixelRatio(): number {
     const dpr = Math.min(window.devicePixelRatio || 1, this.tier.maxDpr);
-    return dpr * this.renderScale();
+    const ratio = dpr * this.renderScale();
+    return this.pixelCap === null ? ratio : Math.min(ratio, this.pixelCap);
+  }
+
+  /**
+   * Holds the resolution steady for a cutscene: caps the pixel ratio at `cap` and stops adaptive
+   * resolution from changing it (a mid-scene raise that can't hold 60 fps halves to 30 under vsync,
+   * which reads as judder). `null` lets go: the cap lifts and adaptive resolution resumes.
+   */
+  holdResolution(cap: number | null): void {
+    this.pixelCap = cap;
+    this.adaptive.lock(
+      cap === null ? (this.manualScale === null ? null : this.adaptive.scale) : this.adaptive.scale,
+    );
+    this.resize();
   }
 
   /** The render scale in use, as a fraction of the tier's full resolution. */

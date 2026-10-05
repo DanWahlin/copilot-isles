@@ -13,7 +13,7 @@ import { tierSettings, type TierSettings } from '../../engine/quality';
 import type { HeightGridData } from './cove-height';
 import type { TerrainBakeData } from './bake';
 import { createTerrainMaterial } from './terrain-material';
-import { createTerrainRocks } from './terrain-rocks';
+import { buildTerrainRocks } from './terrain-rocks';
 import { clamp, lerp } from '../../util/math';
 
 interface ChunkGeometrySet {
@@ -224,7 +224,8 @@ function pushVertex(
   return positions.length / 3 - 1;
 }
 
-function buildChunkGeometry(
+/** Builds one chunk's geometry, yielding every few rows (a slice point for the async build). */
+function* buildChunkGeometry(
   data: TerrainBakeData,
   minX: number,
   maxX: number,
@@ -232,7 +233,7 @@ function buildChunkGeometry(
   maxZ: number,
   step: number,
   recessBox: RecessBox | null = null,
-): ChunkGeometrySet {
+): Generator<void, ChunkGeometrySet, void> {
   const positions: number[] = [];
   const normals: number[] = [];
   const masks: number[] = [];
@@ -274,6 +275,7 @@ function buildChunkGeometry(
       );
     }
     ids.push(row);
+    if ((iz & 3) === 3) yield;
   }
   for (let iz = 0; iz < rows - 1; iz++) {
     for (let ix = 0; ix < cols - 1; ix++) {
@@ -370,9 +372,9 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     for (let x0 = data.minX; x0 < data.maxX - 0.1; x0 += chunkSize) {
       const x1 = Math.min(data.maxX, x0 + chunkSize);
       const z1 = Math.min(data.maxZ, z0 + chunkSize);
-      const geometries = steps.map((step) =>
-        buildChunkGeometry(data, x0, x1, z0, z1, step, options.recessSteep ?? null),
-      );
+      const geometries: ChunkGeometrySet[] = [];
+      for (const step of steps)
+        geometries.push(yield* buildChunkGeometry(data, x0, x1, z0, z1, step, options.recessSteep ?? null));
       const mesh = new Mesh(geometries[geometries.length - 1].geometry, material);
       mesh.name = `terrain-chunk-${Math.round(x0)}-${Math.round(z0)}`;
       mesh.frustumCulled = true;
@@ -383,7 +385,6 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
         geometries,
         current: geometries.length - 1,
       });
-      yield;
     }
   }
 
@@ -396,7 +397,10 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     cell: data.cell,
   };
   const heightField = new BakedTerrainHeightField(data);
-  const rocks = (options.createRocks ?? createTerrainRocks)(heightField, data, tier.tier);
+  yield;
+  const rocks = options.createRocks
+    ? options.createRocks(heightField, data, tier.tier)
+    : yield* buildTerrainRocks(heightField, tier.tier);
   if (rocks) group.add(rocks);
 
   return {

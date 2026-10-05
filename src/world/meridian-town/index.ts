@@ -273,11 +273,32 @@ const TERRACE_STAIR_STREETS: readonly TerraceStairStreet[] = [
   { x: 786, z0: -852, z1: -958, y0: 10.8, y1: 28.6, width: 4.2, steps: 27 },
 ] as const;
 
-export function createMeridianTown({
+export function createMeridianTown(options: CreateMeridianTownOptions): MeridianTownSystem {
+  const steps = buildMeridianTown(options);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+
+/** The same town, a district at a time: `breathe` runs between steps (keeps the frame moving). */
+export async function createMeridianTownAsync(
+  options: CreateMeridianTownOptions,
+  breathe: () => Promise<void>,
+): Promise<MeridianTownSystem> {
+  const steps = buildMeridianTown(options);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+    await breathe();
+  }
+}
+
+function* buildMeridianTown({
   tier,
   heightField,
   kit,
-}: CreateMeridianTownOptions): MeridianTownSystem {
+}: CreateMeridianTownOptions): Generator<void, MeridianTownSystem, void> {
   const group = new Group();
   group.name = 'port-meridian-town';
 
@@ -340,17 +361,26 @@ export function createMeridianTown({
   };
 
   addHarbour(buckets, colliders, shipObstacles, perches, low, anchor);
+  yield;
   addMoleAndLighthouse(buckets, colliders, shipObstacles, perches, kit, lighthouseGlow, anchor);
+  yield;
   addHarbourFront(buckets, colliders, stairSpans, perches, heightField, kit, low, anchor);
+  yield;
   addStairStreet(buckets, colliders);
   addPlaza(buckets, colliders, perches, heightField, kit, low, high, anchor);
+  yield;
   addTavern(buckets, colliders, stairSpans, perches, heightField, kit, low, high, anchor);
+  yield;
   addShipyard(buckets, colliders, shipObstacles, perches, heightField, low, mediumUp, anchor);
+  yield;
   addLift(buckets, colliders, kit, liftCar, anchor);
   addCitadel(buckets, colliders, stairSpans, perches, heightField, kit, low, high, anchor);
-  addTerraceHouses(buckets, colliders, stairSpans, perches, heightField, kit, low, high);
+  yield;
+  yield* addTerraceHouses(buckets, colliders, stairSpans, perches, heightField, kit, low, high);
   addDenseHillsideTown(buckets, colliders, stairSpans, perches, heightField, kit, low, high);
+  yield;
   addVegetation(buckets, colliders, perches, heightField, low, high);
+  yield;
 
   anchor('rhea', { x: 761.4, z: -699.2, heading: -Math.PI / 2, tx: 755.2, ty: 3.8, tz: -704 });
   anchor('crateYard', { x: 594.2, z: -759.2, heading: Math.PI / 2, tx: 586, ty: 3, tz: -752 });
@@ -388,6 +418,7 @@ export function createMeridianTown({
     staticMeshes.push(mesh);
     staticDraws += 1;
     staticTriangles += triangleCount(geometry);
+    yield;
   }
 
   const propMeshes: Mesh[] = [];
@@ -1607,7 +1638,7 @@ function addCitadel(
   }
 }
 
-function addTerraceHouses(
+function* addTerraceHouses(
   buckets: Buckets,
   colliders: ColliderSet,
   stairSpans: StairSpan[],
@@ -1616,20 +1647,23 @@ function addTerraceHouses(
   kit: VillageKit,
   low: boolean,
   high: boolean,
-): void {
+): Generator<void, void, void> {
   void low;
   let previousHeight: number = PLAZA.height;
   for (const row of TERRACE_ROWS) {
     addTerraceRetainingWall(buckets, row, previousHeight);
     addLanePaving(buckets, row);
     addTerraceHouseRun(buckets, colliders, stairSpans, perches, heightField, kit, row, { arcade: false });
+    yield;
     addTerraceHouseRun(buckets, colliders, stairSpans, perches, heightField, kit, row, {
       arcade: false,
       backRow: true,
     });
     previousHeight = row.height;
+    yield;
   }
   for (const stair of TERRACE_STAIR_STREETS) addTerraceStairStreet(buckets, colliders, stair);
+  yield;
   addTownEdgeInfill(buckets, colliders, stairSpans, perches, heightField, kit, low, high);
   addTerraceGardenPots(buckets, colliders, heightField, high);
 }

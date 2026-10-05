@@ -1,4 +1,11 @@
-import { RenderPipeline, type Camera, type Node, type Scene, type WebGPURenderer } from 'three/webgpu';
+import {
+  RenderPipeline,
+  type Camera,
+  type Node,
+  type Object3D,
+  type Scene,
+  type WebGPURenderer,
+} from 'three/webgpu';
 import {
   Fn,
   convertToTexture,
@@ -31,6 +38,11 @@ export interface Post {
   render(): void;
   /** Warm the scene pass and full-screen post shaders without compiling default-framebuffer scene variants. */
   compile(): Promise<void>;
+  /**
+   * Compiles one object's pipelines for the scene pass exactly as it renders (its target and MRT),
+   * asynchronously and without drawing. The node building runs now; the pipelines build off-thread.
+   */
+  compileObject(object: Object3D): Promise<void>;
   /** The metered exposure (WebGPU, not the lean title post): log2 luminance and scale, for probes. */
   readExposure?(): Promise<{ logLum: number; scale: number }>;
   /** Live grade controls (per-island looks can tween these). */
@@ -188,6 +200,18 @@ export async function createPost(
     render,
     async compile() {
       render();
+    },
+    compileObject(object) {
+      const target = renderer.getRenderTarget();
+      const currentMrt = renderer.getMRT();
+      renderer.setRenderTarget(scenePass.renderTarget);
+      renderer.setMRT(scenePass.getMRT());
+      // compileAsync's synchronous part (projection, node building, pipeline requests) runs before
+      // its first await, so the renderer's state is back as it was before any frame renders.
+      const done = renderer.compileAsync(object, camera, scene);
+      renderer.setRenderTarget(target);
+      renderer.setMRT(currentMrt);
+      return done;
     },
     readExposure: meter ? () => meter.read() : undefined,
     grade: { vibrance: uVibrance, saturation: uSaturation, contrast: uContrast, vignette: uVignette },

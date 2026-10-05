@@ -38,8 +38,10 @@ import {
   uniform,
   uv,
   vec3,
+  vec2,
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { noiseAt } from './noise';
 import { billboardGeometry, billboardMesh, camRight, camUp } from './particles';
 
 /**
@@ -188,12 +190,10 @@ function jitter(c: RGB, k: number): RGB {
 /** A wood material with a little grain from object-space noise, shared by the room and props. */
 function woodMaterial(): MeshStandardNodeMaterial {
   const m = new MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.78, metalness: 0 });
-  const grain = mx_noise_float(positionLocal.mul(vec3(3, 40, 3)))
-    .mul(0.5)
-    .add(0.5);
-  const fine = mx_noise_float(positionLocal.mul(vec3(90, 6, 90)))
-    .mul(0.5)
-    .add(0.5);
+  // Long grain streaks along the boards and a finer figure across them, from the shared noise.
+  const p = positionLocal;
+  const grain = noiseAt(vec2(p.x.add(p.z).mul(0.45), p.y.mul(6)));
+  const fine = noiseAt(vec2(p.x.add(p.z).mul(13), p.y.mul(0.9)));
   m.colorNode = vec3(1).mul(mix(float(0.82), float(1.08), grain.mul(0.7).add(fine.mul(0.3))));
   return m;
 }
@@ -930,10 +930,20 @@ function createSunShafts(
   y1: number,
   slices: number,
 ): Mesh {
+  // Each slice only covers where the windows' light actually passes at its depth (the beam's
+  // footprint slides along the sun's direction), not the whole room: about a fifth of the fill.
   const parts: BufferGeometry[] = [];
+  const halfX = Math.abs(STERN_WINDOWS.xs[0]) + winW / 2 + 0.03;
   for (let i = 0; i < slices; i++) {
-    const g = new PlaneGeometry(4.6, 2.4);
-    g.translate(0, 1.2, z0 + 0.12 + (i + 0.5) * (3.0 / slices));
+    const depth = 0.12 + (i + 0.5) * (3.0 / slices);
+    const along = depth / dir.z;
+    const ox = dir.x * along;
+    const oy = dir.y * along;
+    const top = y1 + oy + 0.03;
+    const bottom = Math.max(0, y0 + oy - 0.03);
+    if (top <= bottom) continue;
+    const g = new PlaneGeometry(halfX * 2, top - bottom);
+    g.translate(ox, (top + bottom) / 2, z0 + depth);
     parts.push(g);
   }
   const g = mergeGeometries(parts)!;
@@ -946,9 +956,9 @@ function createSunShafts(
   });
   const beam = windowBeam(positionLocal, dir, z0, winW, y0, y1);
   const depth = positionLocal.z.sub(z0).div(3.0);
-  const shimmer = mx_noise_float(positionLocal.mul(vec3(1.6, 1.6, 0.6)))
-    .mul(0.35)
-    .add(0.8);
+  const shimmer = noiseAt(positionLocal.xy.mul(0.9).add(positionLocal.z.mul(0.37)))
+    .mul(0.7)
+    .add(0.45);
   m.colorNode = color(0xffc27a);
   m.opacityNode = beam
     .mul(pow(float(1).sub(depth), 1.4))

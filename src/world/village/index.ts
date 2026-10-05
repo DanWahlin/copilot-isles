@@ -23,6 +23,7 @@ import {
   type Material,
   type Texture,
 } from 'three/webgpu';
+import { buildSlice } from '../../engine/build-slice';
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -580,17 +581,26 @@ export async function createVillage({
   streetHeightField = heightField;
   stairSpans.length = 0;
 
+  // buildSlice: the village builds a few ms per frame while the opening plays over it.
   addQuay(buckets, colliders, shipObstacles, anchors, perches);
+  await buildSlice();
   addPier(buckets, colliders, shipObstacles, anchors, perches, villageKit, low);
-  for (const building of BUILDINGS)
+  await buildSlice();
+  for (const building of BUILDINGS) {
     addBuilding(building, heightField, buckets, colliders, anchors, perches, villageKit, low);
+    await buildSlice();
+  }
   const fountainWater = addPlaza(buckets, colliders, anchors, heightField, villageKit, low);
+  await buildSlice();
   addMarketStalls(buckets, colliders, anchors, heightField, perches);
   if (!low) addVillageFestooning(buckets, colliders, heightField);
+  await buildSlice();
   addLighthouse(buckets, colliders, shipObstacles, anchors, perches, heightField, low);
   addLanterns(buckets, colliders, heightField, low);
+  await buildSlice();
   const plantings = addVillagePlantings(buckets, colliders, perches, heightField, tier);
   addMooredBoatShipObstacles(shipObstacles);
+  await buildSlice();
 
   const materials = villageKit.materials;
 
@@ -613,11 +623,14 @@ export async function createVillage({
     staticMeshes.push(mesh);
     staticDraws += 1;
     staticTriangles += triangleCount(merged);
+    await buildSlice();
   }
 
   const propMeshes = addInstancedProps(group, heightField, materials, colliders, villageKit, low, mediumUp);
   const propTriangles = propMeshes.reduce((sum, mesh) => sum + triangleCount(mesh.geometry) * mesh.count, 0);
+  await buildSlice();
   plantings.push(...villageShrubs(colliders, anchors, plantings, heightField, tier));
+  await buildSlice();
   const metrics: VillageMetrics = {
     staticDraws,
     propDraws: propMeshes.length,

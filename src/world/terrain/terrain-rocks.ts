@@ -193,6 +193,18 @@ function rockGeometry(asset: (typeof ROCK_ASSETS)[number]): BufferGeometry {
 }
 
 export function createTerrainRocks(heightField: HeightField, _data?: unknown, tier: Tier = 'high'): Group {
+  const steps = buildTerrainRocks(heightField, tier);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+
+/** The same rocks, yielding between the big pieces (the sea stack, the cliff, the boulders). */
+export function* buildTerrainRocks(
+  heightField: HeightField,
+  tier: Tier = 'high',
+): Generator<void, Group, void> {
   const group = new Group();
   group.name = 'terrain-rocks';
   const material = createRockMaterial();
@@ -214,8 +226,10 @@ export function createTerrainRocks(heightField: HeightField, _data?: unknown, ti
   // The sea stack and the headland's cliff share one karst material (one pipeline for both).
   const karst = createSeaStackMaterial(tier);
   group.add(createSeaStack(tier, karst));
+  yield;
   const cliff = createHeadlandCliff(heightField, tier, karst);
   if (cliff) group.add(cliff);
+  yield;
 
   for (const [assetIndex, list] of [...grouped.entries()].sort(([a], [b]) => a - b)) {
     const asset = ROCK_ASSETS[assetIndex];

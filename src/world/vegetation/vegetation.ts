@@ -11,6 +11,7 @@ import {
   type Material,
   type PerspectiveCamera,
 } from 'three/webgpu';
+import { buildSlice } from '../../engine/build-slice';
 import { tierSettings, type TierSettings } from '../../engine/quality';
 import type { Tier } from '../contracts';
 import { createHeightDataTexture } from './materials';
@@ -23,7 +24,7 @@ import {
   type PalmVariant,
   type VegetationModelPart,
 } from './model-loader';
-import { scatterVegetation } from './scatter';
+import { scatterVegetationAsync } from './scatter';
 import { seaStackPlantSpots } from '../terrain/sea-stack-shape';
 import { headlandCliffPlantSpots } from '../terrain/headland-cliff-shape';
 import type { HeightField } from '../contracts';
@@ -277,8 +278,9 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
   group.name = 'vegetation';
 
   const [scatter, geometries] = await Promise.all([
-    Promise.resolve(
-      scatterVegetation({ heightField: options.heightField, tier, seed, exclude: options.exclude }),
+    scatterVegetationAsync(
+      { heightField: options.heightField, tier, seed, exclude: options.exclude },
+      buildSlice,
     ),
     loadVegetationGeometries(),
   ]);
@@ -317,7 +319,9 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
     tier,
     seed,
     options.exclude,
+    true,
   );
+  await grass.build(buildSlice);
   group.add(grass.group);
 
   const impostorEntries = collectTreeLike(scatter.plants);

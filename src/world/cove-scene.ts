@@ -7,9 +7,9 @@ import { createSky, type SkySystem } from './sky/sky-system';
 import { createCoastFoam } from './terrain/coast-foam';
 import { seaStackShipObstacle } from './terrain/sea-stack-shape';
 import { HEADLAND_CLIFF_AREA, headlandCaveShipObstacle } from './terrain/headland-cliff-shape';
-import { createDistantRanges } from './terrain/distant-ranges';
+import { createDistantRangesAsync } from './terrain/distant-ranges';
 import { loadTerrainPack } from './terrain/bake';
-import { createTerrain, createTerrainAsync, type CreatedTerrain } from './terrain/terrain-mesh';
+import { createTerrainAsync, type CreatedTerrain } from './terrain/terrain-mesh';
 import { CompositeHeightField } from './terrain/composite-height-field';
 import { COVE } from './layout';
 import { MERIDIAN, createMeridianRocks, createMeridianSilhouette } from './islands/meridian';
@@ -17,10 +17,10 @@ import { createBeachDebris, type BeachDebrisSystem } from './debris/beach-debris
 import { createBrigantine, type Brigantine } from './ship';
 import { createVegetation, type VegetationSystem } from './vegetation';
 import { createVillage, loadVillageKit, type VillageSystem } from './village';
-import { createMeridianTown, type MeridianTownSystem } from './meridian-town';
+import { createMeridianTownAsync, type MeridianTownSystem } from './meridian-town';
 import { createBirds, type BirdsSystem } from './life/birds';
 import type { LeapsSystem } from './life/leaps';
-import { villageExclusion } from './village-exclusion';
+import { villageExclusionAsync } from './village-exclusion';
 import { BRIGANTINE_CARGO, createCoveSites, type CoveSites } from './sites';
 import type { CircleObstacle } from './contracts';
 
@@ -107,7 +107,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   );
   const foam = createCoastFoam(data, terrain.heightField);
   await breathe();
-  const ranges = createDistantRanges(tier);
+  const ranges = await createDistantRangesAsync(tier, breathe);
   await breathe();
   const meridianSilhouette = meridianDisabled ? new Group() : createMeridianSilhouette();
   scene.add(terrain.group, foam, ranges, meridianSilhouette);
@@ -129,13 +129,17 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   if (!meridianDisabled)
     meridian.loaded = loadTerrainPack(`${o.packBase ?? '/packs'}/meridian/terrain`)
       .then(async (meridianData) => {
-        const meridianTerrain = createTerrain({
-          tier,
-          data: meridianData,
-          name: 'port-meridian-terrain',
-          createRocks: createMeridianRocks,
-          cloudShadowNode,
-        });
+        const meridianTerrain = await createTerrainAsync(
+          {
+            tier,
+            data: meridianData,
+            name: 'port-meridian-terrain',
+            createRocks: createMeridianRocks,
+            cloudShadowNode,
+          },
+          breathe,
+        );
+        await breathe();
         if (tier.shadowCascades > 0) disableReceiveShadows(meridianTerrain.group);
         const meridianFoam = createCoastFoam(meridianData, meridianTerrain.heightField, {
           maxDistance: 1100,
@@ -156,7 +160,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         meridian.foam = meridianFoam;
         meridian.ready = true;
         const townKit = await loadVillageKit();
-        const town = createMeridianTown({ tier, heightField: meridianTerrain.heightField, kit: townKit });
+        const town = await createMeridianTownAsync(
+          { tier, heightField: meridianTerrain.heightField, kit: townKit },
+          breathe,
+        );
         town.group.visible = false;
         meridian.town = town;
         scene.add(town.group);
@@ -195,10 +202,11 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   if (tier.shadowCascades > 0) disableReceiveShadows(sites.group);
   scene.add(sites.group);
   await breathe();
+  const villageMask = excludeVillageAndSites(await villageExclusionAsync(village, breathe), sites);
   const debris = createBeachDebris({
     heightField: terrain.heightField,
     tier,
-    exclude: excludeVillageAndSites(villageExclusion(village), sites),
+    exclude: villageMask,
   });
   scene.add(debris.group);
 
@@ -210,7 +218,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       heightGrid: terrain.heightGrid,
       tier,
       renderer,
-      exclude: excludeVillageAndSites(villageExclusion(village), sites),
+      exclude: villageMask,
       extraPlants: village.plantings,
     });
     if (tier.shadowCascades > 0) disableReceiveShadows(vegetation.group);

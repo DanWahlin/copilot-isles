@@ -406,6 +406,27 @@ function emptyPlants(): Record<PlantSpecies, PlantInstance[]> {
 }
 
 export function scatterVegetation(options: ScatterOptions): ScatterSummary {
+  const steps = buildScatter(options);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+
+/** The same scatter, yielding every few hundred attempts: `breathe` runs between them. */
+export async function scatterVegetationAsync(
+  options: ScatterOptions,
+  breathe: () => Promise<void>,
+): Promise<ScatterSummary> {
+  const steps = buildScatter(options);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+    await breathe();
+  }
+}
+
+function* buildScatter(options: ScatterOptions): Generator<void, ScatterSummary, void> {
   const tier = resolveTier(options.tier);
   const rng = new SeededRandom(options.seed ?? DEFAULT_SEED);
   const plants = emptyPlants();
@@ -423,6 +444,7 @@ export function scatterVegetation(options: ScatterOptions): ScatterSummary {
 
     for (let i = 0; plants[species].length < target && i < maxAttempts; i += 1) {
       attempts += 1;
+      if ((attempts & 255) === 0) yield;
       const x = speciesRng.range(-COVE.island.halfX + 4, COVE.island.halfX - 4);
       const z = speciesRng.range(-COVE.island.halfZ + 2, COVE.island.halfZ + 18);
       const y = options.heightField.heightAt(x, z);

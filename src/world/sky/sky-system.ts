@@ -70,6 +70,7 @@ interface TidewaterCloudsPort {
   };
   panoQuality: { maxSteps: number };
   update(dt: number, camera: Camera): void;
+  compileAsync(): Promise<void>;
   invalidate(): void;
   shadow(worldXZ: Node<'vec2'>): Node<'float'>;
 }
@@ -422,7 +423,12 @@ export function createSky(
     bakeLayer(layer) {
       tideSky.bakeLayer.value = layer;
     },
-    prefetch: (hours) => bakedClouds?.prefetch(hours).catch(() => {}) ?? Promise.resolve(),
+    // The baked layers for those hours, or the live clouds' kernels (built off-thread, so their first
+    // frame doesn't stall).
+    prefetch: (hours) =>
+      bakedClouds?.prefetch(hours).catch(() => {}) ??
+      tideClouds?.compileAsync().catch(() => {}) ??
+      Promise.resolve(),
     invalidate() {
       forced = true;
       tideAtmo.invalidate();

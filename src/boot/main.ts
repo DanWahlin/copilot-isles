@@ -110,14 +110,14 @@ async function boot(): Promise<void> {
   if (post) engine.renderFn = post.render;
   let richPostReady = false;
   const upgradePost = async (_cove?: unknown, opts: { warm?: boolean } = {}) => {
-    if (richPostReady) return;
+    if (richPostReady) return post;
     const rich = await createPost(renderer, engine.scene, engine.camera, tier);
     if (!rich) {
       post?.dispose();
       post = null;
       engine.renderFn = null;
       richPostReady = true;
-      return;
+      return null;
     }
     const previous = post;
     post = rich;
@@ -130,6 +130,7 @@ async function boot(): Promise<void> {
     }
     previous?.dispose();
     richPostReady = true;
+    return rich;
   };
   const input = new Input(canvas);
   const audio = createAudio();

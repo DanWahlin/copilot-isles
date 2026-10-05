@@ -499,7 +499,23 @@ function erodeField(heights: Float32Array, flow: Float32Array, side: number, ite
   }
 }
 
+/**
+ * Island fields depend only on the spec and quality, so they're kept: the title's horizon builds
+ * them, and the world's horizon (after New Voyage) reuses them instead of eroding them again.
+ */
+const islandFields = new Map<string, IslandField>();
+
 function createIslandField(spec: IslandSpec, quality: IslandQuality): IslandField {
+  const key = `${spec.name}:${fieldSideForQuality(quality)}:${quality.segments}`;
+  let field = islandFields.get(key);
+  if (!field) {
+    field = buildIslandField(spec, quality);
+    islandFields.set(key, field);
+  }
+  return field;
+}
+
+function buildIslandField(spec: IslandSpec, quality: IslandQuality): IslandField {
   const side = fieldSideForQuality(quality);
   const heights = new Float32Array(side * side);
   const peak = new Float32Array(side * side);
@@ -690,6 +706,27 @@ function applyColorAttributes(geometry: BufferGeometry, buffers: IslandBuffers):
 }
 
 export function createDistantRanges(tier?: Pick<TierSettings, 'tier'>): Group {
+  const steps = buildDistantRanges(tier);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+
+/** The same horizon, an island at a time: `breathe` runs between islands. */
+export async function createDistantRangesAsync(
+  tier: Pick<TierSettings, 'tier'> | undefined,
+  breathe: () => Promise<void>,
+): Promise<Group> {
+  const steps = buildDistantRanges(tier);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+    await breathe();
+  }
+}
+
+function* buildDistantRanges(tier?: Pick<TierSettings, 'tier'>): Generator<void, Group, void> {
   const start = performance.now();
   const buffers: IslandBuffers = {
     positions: [],
@@ -706,14 +743,17 @@ export function createDistantRanges(tier?: Pick<TierSettings, 'tier'>): Group {
   };
   const group = new Group();
   group.name = 'distant-islands';
-  ISLANDS.forEach((island, index) =>
-    appendIsland(island, index, qualityForIsland(island, tier?.tier), buffers),
-  );
+  for (let index = 0; index < ISLANDS.length; index++) {
+    const island = ISLANDS[index]!;
+    appendIsland(island, index, qualityForIsland(island, tier?.tier), buffers);
+    yield;
+  }
 
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(new Float32Array(buffers.positions), 3));
   geometry.setIndex(buffers.indices);
   geometry.computeVertexNormals();
+  yield;
   applyColorAttributes(geometry, buffers);
   geometry.computeBoundingSphere();
 

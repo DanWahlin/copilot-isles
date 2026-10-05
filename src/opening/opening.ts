@@ -82,6 +82,10 @@ export interface Opening {
   /** Seconds since the cabin came up (tests). */
   readonly time: number;
   readonly holding: boolean;
+  /** Dev probes: keeps the chest waiting (no auto-open). */
+  debugHold: boolean;
+  /** The cabin's scene (dev probes). */
+  readonly debugScene: Scene;
   /** How long the cabin's compile took under the Set sail veil (tests). */
   readonly compileMs: number;
   /** The island's heavy build is done: the chest beat can play on (smoothly) from here. */
@@ -480,7 +484,7 @@ export function createOpening(o: OpeningOptions): Opening {
         const invite = !opened && approached && t <= beats.gate + 1e-4;
         if (invite) {
           promptTime += step;
-          if (promptTime >= AUTO_OPEN) open();
+          if (promptTime >= AUTO_OPEN && !api.debugHold) open();
         }
         setPrompt(invite && !opened);
         const breath = 0.5 - 0.5 * Math.cos(promptTime * 3.2);
@@ -567,7 +571,7 @@ export function createOpening(o: OpeningOptions): Opening {
     // renderer's shadow switch, and so every pipeline, stays as compiled).
     const shadows = engine.tier.shadowCascades > 0;
     if (shadows) engine.renderer.shadowMap.enabled = true;
-    const slices = { lite: 0, low: 8, medium: 14, high: 20, ultra: 24 }[engine.tier.tier];
+    const slices = { lite: 0, low: 6, medium: 10, high: 14, ultra: 16 }[engine.tier.tier];
     cabin = createCabin({
       shadowMap: shadows ? Math.min(2048, engine.tier.shadowMap || 1024) : 0,
       shaftSlices: slices,
@@ -691,6 +695,10 @@ export function createOpening(o: OpeningOptions): Opening {
     },
     get prompting() {
       return prompting;
+    },
+    debugHold: false,
+    get debugScene() {
+      return scene;
     },
     get compileMs() {
       return compileMs;

@@ -408,6 +408,7 @@ export class GrassField {
   private seedPack: Packed | null = null;
   private visibleCells = 0;
   private built = false;
+  private pending: { steps: Generator<void, void, void>; heightField: HeightField } | null = null;
   private readonly lastEye = new Vector3();
   private readonly lastLook = new Vector3();
   private readonly look = new Vector3();
@@ -422,6 +423,7 @@ export class GrassField {
     tier: TierSettings,
     seed: number,
     exclude?: VegetationExclude,
+    defer = false,
   ) {
     this.group.name = 'vegetation-grass';
     installGrassDebug(this.group);
@@ -434,8 +436,26 @@ export class GrassField {
       keep: REACH.keep,
     };
     this.material = createGrassMaterial(heightTexture, heightGrid, this.reach);
-    this.buildCells(heightField, tier, seed, exclude);
+    const steps = this.buildCells(heightField, tier, seed, exclude);
+    if (defer) {
+      this.pending = { steps, heightField };
+      return;
+    }
+    while (!steps.next().done);
+    this.finishBuild(heightField);
+  }
 
+  /** Finishes a deferred build (`defer`), a few cells at a time: `breathe` runs between them. */
+  async build(breathe: () => Promise<void>): Promise<void> {
+    const pending = this.pending;
+    if (!pending) return;
+    this.pending = null;
+    while (!pending.steps.next().done) await breathe();
+    await breathe();
+    this.finishBuild(pending.heightField);
+  }
+
+  private finishBuild(heightField: HeightField): void {
     const all: GrassClump[] = [];
     for (const cell of this.cells) {
       const from = all.length;
@@ -586,12 +606,12 @@ export class GrassField {
     this.material.dispose();
   }
 
-  private buildCells(
+  private *buildCells(
     heightField: HeightField,
     tier: TierSettings,
     seed: number,
     exclude?: VegetationExclude,
-  ): void {
+  ): Generator<void, void, void> {
     const rng = new SeededRandom(seed ^ 0x67a91f);
     const density = Math.max(0, tier.grassDensity * tier.grassCover * this.densityScale);
     // Out to the east headland's clifftop too (its cells come last, so the rest of the field is unchanged).
@@ -674,6 +694,7 @@ export class GrassField {
           }
         }
         if (clumps.length > 0) this.cells.push({ x: cx, z: cz, clumps });
+        yield;
       }
     }
   }

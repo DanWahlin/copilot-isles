@@ -15,6 +15,29 @@ import {
  * Uses separable sin/cos tables so a 256² tile with ~100 waves builds in a few ms.
  */
 export function createRippleTexture(size = 256, seed = 7): DataTexture {
+  // The pixels depend only on size and seed: the title's ocean builds them, the world's reuses them.
+  const key = `${size}:${seed}`;
+  let baked = rippleData.get(key);
+  if (!baked) {
+    baked = bakeRipples(size, seed);
+    rippleData.set(key, baked);
+  }
+  const tex = new DataTexture(baked.data, size, size, RGBAFormat, UnsignedByteType);
+  tex.wrapS = tex.wrapT = RepeatWrapping;
+  tex.minFilter = LinearMipmapLinearFilter;
+  tex.magFilter = LinearFilter;
+  tex.generateMipmaps = true;
+  tex.colorSpace = NoColorSpace;
+  tex.anisotropy = 8;
+  tex.needsUpdate = true;
+  /** Scale factor from the stored 0-1 slope back to slope-per-tile-unit. */
+  tex.userData.slopeScale = baked.slopeScale;
+  return tex;
+}
+
+const rippleData = new Map<string, { data: Uint8Array; slopeScale: number }>();
+
+function bakeRipples(size: number, seed: number): { data: Uint8Array; slopeScale: number } {
   const N = size;
   let s = seed >>> 0;
   const rand = () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
@@ -86,15 +109,5 @@ export function createRippleTexture(size = 256, seed = 7): DataTexture {
     data[p * 4 + 2] = Math.round(Math.min(1, 0.6 * blob * blob + 0.45 * r * r * r) * 255);
     data[p * 4 + 3] = Math.round((0.5 + (0.5 * h[p]) / maxH) * 255);
   }
-  const tex = new DataTexture(data, N, N, RGBAFormat, UnsignedByteType);
-  tex.wrapS = tex.wrapT = RepeatWrapping;
-  tex.minFilter = LinearMipmapLinearFilter;
-  tex.magFilter = LinearFilter;
-  tex.generateMipmaps = true;
-  tex.colorSpace = NoColorSpace;
-  tex.anisotropy = 8;
-  tex.needsUpdate = true;
-  /** Scale factor from the stored 0-1 slope back to slope-per-tile-unit. */
-  tex.userData.slopeScale = maxS;
-  return tex;
+  return { data, slopeScale: maxS };
 }

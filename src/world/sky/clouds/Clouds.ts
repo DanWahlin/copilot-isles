@@ -191,6 +191,8 @@ const shell = (camY, rd, H) => {
   return b.negate().add(sqrt(max(disc, 0)));
 };
 
+const NOISE_CACHE = new WeakMap();
+
 export class Clouds {
   constructor(renderer, atmosphere) {
     this.renderer = renderer;
@@ -252,6 +254,13 @@ export class Clouds {
 
   _makeNoise() {
     const r = this.renderer;
+    // The noise depends only on constants: a later Clouds on the same renderer (the world's, after
+    // the title's) reuses the textures instead of generating them again.
+    const shared = NOISE_CACHE.get(r);
+    if (shared) {
+      Object.assign(this, shared);
+      return;
+    }
     const make3D = (size, name) => {
       const t = new THREE.Storage3DTexture(size, size, size);
       t.format = THREE.RGBAFormat;
@@ -620,6 +629,14 @@ export class Clouds {
     r.compute(shapeKernel, [SHAPE_RES / 4, SHAPE_RES / 4, SHAPE_RES / 4]);
     r.compute(detailKernel, [DETAIL_RES / 4, DETAIL_RES / 4, DETAIL_RES / 4]);
     r.compute(weatherKernel, [WEATHER_RES / 8, WEATHER_RES / 8, 1]);
+    NOISE_CACHE.set(r, {
+      shapeTex: this.shapeTex,
+      detailTex: this.detailTex,
+      weatherTex: this.weatherTex,
+      synTex: this.synTex,
+      fibTex: this.fibTex,
+      auxTex: this.auxTex,
+    });
   }
 
   _makeTargets() {
@@ -1813,6 +1830,22 @@ export class Clouds {
     for (const k of [this.sdfOccKernel, this.sdfXKernel, this.sdfYKernel, this.sdfZKernel])
       k.dispatchSize = d;
     this.renderer.compute([this.sdfOccKernel, this.sdfXKernel, this.sdfYKernel, this.sdfZKernel]);
+  }
+
+  // builds every per-frame kernel's pipeline asynchronously (no stall on the first update)
+  compileAsync() {
+    return this.renderer.compileComputeAsync([
+      this.traceKernel,
+      this.highTraceKernel,
+      this.boxKernel,
+      ...this.resolveKernels,
+      this.panoKernel,
+      this.shadowKernel,
+      this.sdfOccKernel,
+      this.sdfXKernel,
+      this.sdfYKernel,
+      this.sdfZKernel,
+    ]);
   }
 
   // restart all accumulation (view, panorama)

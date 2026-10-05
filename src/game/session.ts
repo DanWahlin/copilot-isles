@@ -1,4 +1,5 @@
 import { Vector3, type Group } from 'three/webgpu';
+import { buildSlice } from '../engine/build-slice';
 import type { IslesAudio } from '../audio';
 import type { FootstepSurface } from '../audio/soundscape/soundscape';
 import type { Engine } from '../engine/engine';
@@ -1066,10 +1067,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     meridianNpcs = new NpcCrowd(o.characters, cast, town.anchors, world, tier, camera, {
       ...town.anchors.promenade!,
     });
+    await buildSlice();
     for (const n of meridianNpcs.list) {
       engine.scene.add(n.character.group);
       addNpcTalk(n);
     }
+    await buildSlice();
     for (const c of MERIDIAN_CHESTS) {
       const n = meridianNpcs.list.find((v) => v.spec.id === c.npc);
       if (n) placeChest(c, n);
@@ -1109,11 +1112,21 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       meridianSites.push(site);
       puzzles.push(createCrateYard(puzzleHost, site));
     }
+    await buildSlice();
+    if (disposed) return;
     const buoys = createHelmBuoys({ kit, waves: ocean.field });
     engine.scene.add(buoys.group);
     meridianSites.push(buoys);
     puzzles.push(createThreeHelms(helmsHost, buoys));
-    await engine.renderer.compileAsync(engine.scene, camera);
+    // Only what was just added (a whole-scene compile walks everything in one go).
+    for (const g of [
+      ...meridianNpcs.list.map((n) => n.character.group),
+      ...meridianSites.map((s) => s.group),
+    ]) {
+      await buildSlice();
+      if (disposed) return;
+      await engine.renderer.compileAsync(g, camera, engine.scene);
+    }
   };
   void cove.meridian.townReady.then(setupMeridian);
 

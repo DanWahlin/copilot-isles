@@ -87,6 +87,22 @@ export class HarborMirror {
     this.target.texture.name = 'harbor-planar-mirror';
   }
 
+  /**
+   * Builds `object`'s pipelines for the mirror's render target asynchronously (nothing drawn), so
+   * the mirror's first frame doesn't stall. The renderer's state is restored before it returns.
+   */
+  compileObject(renderer: WebGPURenderer, scene: Scene, object: Object3D): Promise<void> {
+    if (!this.enabled) return Promise.resolve();
+    const target = renderer.getRenderTarget();
+    const mrt = renderer.getMRT();
+    renderer.setRenderTarget(this.target);
+    renderer.setMRT(null);
+    const done = renderer.compileAsync(object, this.camera, scene);
+    renderer.setRenderTarget(target);
+    renderer.setMRT(mrt);
+    return done.then(() => undefined);
+  }
+
   update(
     renderer: WebGPURenderer,
     scene: Scene,
