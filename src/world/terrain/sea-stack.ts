@@ -396,8 +396,10 @@ function stackMesh(geometry: BufferGeometry, material: MeshStandardNodeMaterial,
 }
 
 /** The sea stack: one draw (a near/far LOD on Medium and up, one coarse mesh on Low and Lite). */
-export function createSeaStack(tier: Tier): Object3D {
-  const material = createSeaStackMaterial(tier);
+export function createSeaStack(
+  tier: Tier,
+  material: MeshStandardNodeMaterial = createSeaStackMaterial(tier),
+): Object3D {
   const near = DETAIL[tier];
   if (tier === 'lite' || tier === 'low') {
     return stackMesh(buildSeaStackGeometry(near), material, 'terrain-rocks-sea-stack');

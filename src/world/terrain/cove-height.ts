@@ -240,21 +240,58 @@ function ravineCut(
   return line * smoothstep(118, 178, x) * (1 - smoothstep(202, 224, x)) * depth;
 }
 
-function headlandHeight(x: number, z: number, current: number): number {
-  const inZ =
-    smoothstep(COVE.headland.z0 - 28, COVE.headland.z0 + 8, z) *
-    (1 - smoothstep(COVE.headland.z1 - 3, COVE.headland.z1 + 36, z));
-  const influence = smoothstep(COVE.headland.x0 - 24, COVE.headland.x0 + 10, x) * inZ;
-  if (influence <= 0) return current;
+/** Polynomial smooth minimum: rounds the corner where two cliff lines meet over about `k` metres. */
+function smin(a: number, b: number, k: number): number {
+  const h = Math.max(k - Math.abs(a - b), 0) / k;
+  return Math.min(a, b) - h * h * k * 0.25;
+}
 
-  const warp = fbm2(x * 0.026 + 13.2, z * 0.026 - 9.1, 4, SEED + 333) * 13;
-  const warpedZ = z + warp;
+/** Plan-view buttresses and flutes along a cliff line (metres, + = seaward), from the along-coast coordinate. */
+function cliffLineRelief(along: number, across: number, seed: number): number {
+  const warped = along + fbm2(across * 0.026 + 13.2, along * 0.026 - 9.1, 4, seed) * 13;
   const buttress =
-    (Math.abs(saw01(warpedZ / 28 + valueNoise2(x * 0.018, z * 0.018, SEED + 334) * 0.2) - 0.5) * 2 - 0.45) *
+    (Math.abs(saw01(warped / 28 + valueNoise2(across * 0.018, along * 0.018, seed + 1) * 0.2) - 0.5) * 2 -
+      0.45) *
     8;
-  const flutes = (Math.abs(saw01(warpedZ / 9.5 + x * 0.009) - 0.5) * 2 - 0.55) * 4.5;
-  const cliffEdge = COVE.headland.x1 - x + buttress + flutes + fbm2(x * 0.08, z * 0.08, 3, SEED + 335) * 2;
-  const face = smoothstep(-2, 24, cliffEdge);
+  const flutes = (Math.abs(saw01(warped / 9.5 + across * 0.009) - 0.5) * 2 - 0.55) * 4.5;
+  return buttress + flutes;
+}
+
+/**
+ * Signed distance (m, + = inland) to the headland's sea cliffs: the east face, and the north and south
+ * flanks, joined round the corners. The flanks soften to slopes toward the west, where the land comes
+ * down to the beach and the harbor shore.
+ */
+export function headlandCliffEdge(x: number, z: number): number {
+  // Each line only matters within ~40 m of it; far inland of it, it can't be the nearest (skip the noise).
+  const far = 1e3;
+  const nearEast = x > COVE.headland.x1 - 40;
+  const nearSouth = z > COVE.headland.z1 + 9 - 40;
+  const nearNorth = z < COVE.headland.z0 - 9 + 40;
+  if (!nearEast && !nearSouth && !nearNorth) return far;
+  const noise = fbm2(x * 0.08, z * 0.08, 3, SEED + 335) * 2;
+  const east = nearEast ? COVE.headland.x1 - x + cliffLineRelief(z, x, SEED + 333) + noise : far;
+  const south = nearSouth
+    ? (COVE.headland.z1 + 9 - z + cliffLineRelief(x, z, SEED + 343) * 0.8 + noise) *
+      mix(0.14, 1, smoothstep(120, 146, x))
+    : far;
+  const north = nearNorth
+    ? (z - (COVE.headland.z0 - 9) + cliffLineRelief(x + 57, z, SEED + 353) * 0.8 + noise) *
+      mix(0.14, 1, smoothstep(114, 140, x))
+    : far;
+  return smin(east, smin(south, north, 8), 10);
+}
+
+function headlandHeight(x: number, z: number, current: number): number {
+  if (x < COVE.headland.x0 - 24) return current;
+  const cliffEdge = headlandCliffEdge(x, z);
+  // West, the headland merges into the island; far offshore, the seabed is the island's own.
+  const influence =
+    smoothstep(COVE.headland.x0 - 24, COVE.headland.x0 + 10, x) * (1 - smoothstep(45, 75, -cliffEdge));
+  if (influence <= 0) return current;
+  // Sheer faces: the clifftop runs out to the edge and drops to the sea in about 4 m (the cliff mesh in
+  // headland-cliff.ts covers the faces, so the height field and the rock you see agree).
+  const face = smoothstep(-1.2, 2.8, cliffEdge);
   const ridge =
     8.5 * gaussian((x - 154) / 46, 1) * gaussian((z + 8) / 72, 1) +
     4.2 * ridged2(x * 0.035 + 1.7, z * 0.035 - 5.5, 3, SEED + 336);
@@ -267,15 +304,11 @@ function headlandHeight(x: number, z: number, current: number): number {
     COVE.headland.cliffTop * 0.68 * face + ridge * 1.2 * smoothstep(0.22, 0.9, face) - ravines + strataSteps;
   cliff += ridged2(x * 0.18, z * 0.18, 3, SEED + 337) * 1.3 * smoothstep(0.15, 0.95, face);
 
-  const caveDx = (x - COVE.seaCave.x) / (COVE.seaCave.width * 1.25);
-  const caveDz = (z - COVE.seaCave.z) / (COVE.seaCave.width * 0.7);
-  const caveMouth =
-    gaussian(caveDx, 1) * gaussian(caveDz, 1) * smoothstep(188, 199, x) * (1 - smoothstep(206, 213, x));
-  const caveFloor = -0.6 + Math.abs(z - COVE.seaCave.z) * 0.35;
-  cliff = mix(cliff, caveFloor, caveMouth * 0.96);
-
-  const offshore = -2 - smoothstep(0, 55, -cliffEdge) * 22;
-  const head = cliffEdge < -1 ? offshore : cliff;
+  // A rock shelf at the foot, shallower than the ship's draft (so it grounds before its rigging reaches
+  // the face), then
+  // the seabed falls away. The sea cave is part of the cliff mesh, not the height field.
+  const offshore = -2 - smoothstep(0, 45, -cliffEdge) * 22.5;
+  const head = mix(offshore, cliff, face);
   return mix(current, Math.max(current, head), influence);
 }
 
@@ -401,18 +434,19 @@ export function coveMasks(x: number, z: number): CoveMasks {
   );
   let cliff = Math.max(
     smoothstep(0.52, 1.15, slope),
-    headland * smoothstep(7, 26, h),
+    // The headland's faces, not its flat top (that's grass and scrub over rock).
+    headland * smoothstep(7, 26, h) * smoothstep(0.3, 0.7, slope),
     smoothstep(COVE.seaStack.radius + 8, COVE.seaStack.radius - 1, stackD),
   );
   let rock = Math.max(
     smoothstep(0.25, 0.72, slope),
-    headland * 0.75,
+    headland * 0.45,
     rockyShore * 0.72,
     smoothstep(8, 26, h) * 0.22,
     outcrop * 0.45,
   );
   let grass =
-    smoothstep(1.2, 4.5, h) * (1 - smoothstep(0.22, 0.52, slope)) * (1 - headland * 0.65) * (1 - path * 0.82);
+    smoothstep(1.2, 4.5, h) * (1 - smoothstep(0.22, 0.52, slope)) * (1 - headland * 0.35) * (1 - path * 0.82);
   sand *= 1 - dryHarborMeadow * 0.94;
   grass = Math.max(grass, dryHarborMeadow * 0.92);
 
