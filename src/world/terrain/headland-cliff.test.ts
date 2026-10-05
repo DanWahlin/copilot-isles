@@ -61,7 +61,7 @@ describe('headland cliff', { timeout: 30_000 }, () => {
   });
 
   it('builds one clean mesh per tier, in front of the height field and within its triangle budget', () => {
-    const budget = { lite: 5000, low: 12500, high: 42000 } as const;
+    const budget = { lite: 5000, low: 14000, high: 46000 } as const;
     for (const tier of ['lite', 'low', 'high'] as const) {
       const geometry = buildHeadlandCliffGeometry(field, HEADLAND_CLIFF_DETAIL[tier])!;
       const pos = geometry.getAttribute('position').array;
@@ -87,18 +87,21 @@ describe('headland cliff', { timeout: 30_000 }, () => {
       if (y < 1 || y > 20) continue;
       let near = Infinity;
       let k = 0;
+      let lip = 0;
       for (const st of frame.stations) {
         const d = Math.hypot(st.x - x, st.z - z);
         if (d < near) {
           near = d;
           k = st.strength;
+          lip = st.lipY;
         }
       }
-      if (k < 1) continue;
+      // Skip the roll over the clifftop edge (it tucks under the ground on purpose).
+      if (k < 1 || y > lip - 1) continue;
       checked++;
       if (field.heightAt(x, z) > y + 0.5) buried++;
     }
-    expect(checked).toBeGreaterThan(500);
+    expect(checked).toBeGreaterThan(300);
     expect(buried / checked).toBeLessThan(0.02);
   });
 

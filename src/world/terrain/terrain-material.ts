@@ -486,7 +486,18 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(smoothstep(0.46, 0.94, normalWorld.y))
     .mul(saturate(grassMask.add(rockMask.mul(0.38)).add(sandMask.mul(0.18))));
   const hilltopGreen = mix(color(0x6a6a31), color(0xb19955), noiseLow.g.mul(0.58).add(noiseMid.g.mul(0.42)));
-  base = mix(base, hilltopGreen, hilltopMeadow.mul(midDetail));
+  // The east headland's top and shoulders are green scrub, not the island's dry golden hilltops.
+  const headlandScrub = smoothstep(COVE.headland.x0 - 8, COVE.headland.x0 + 18, positionWorld.x)
+    .mul(smoothstep(6, 12, y))
+    .mul(float(1).sub(cliffMask))
+    .mul(float(1).sub(sandMask));
+  base = mix(base, hilltopGreen, hilltopMeadow.mul(midDetail).mul(float(1).sub(headlandScrub.mul(0.85))));
+  const scrubTone = mix(
+    mix(color(0x2f4a22), color(0x5d7a35), noiseLow.g.mul(0.6).add(noiseMid.a.mul(0.4))),
+    color(0x7a7456),
+    pow(saturate(noiseMid.b.mul(0.7).add(noiseFine.r.mul(0.3)).sub(0.55).mul(2.4)), 1.5),
+  );
+  base = mix(base, scrubTone, headlandScrub.mul(0.62));
   base = mix(base, color(0x55633a), bluffScrub.mul(0.42));
   const sunnyHeadland = smoothstep(6, 18, y)
     .mul(float(1).sub(smoothstep(52, 88, detailDistance)))

@@ -231,8 +231,14 @@ function appendSeaStackPlants(plants: Record<PlantSpecies, PlantInstance[]>): vo
   }
 }
 
-/** Scrub on the headland's clifftop edge, a few trees behind it, and ferns on its ledges (thinned per tier). */
-const HEADLAND_PLANT_DENSITY: Record<Tier, number> = { lite: 0, low: 0.45, medium: 0.75, high: 1, ultra: 1 };
+/** Scrub, palms and trees on the headland's clifftop, shoulders and edge (thinned per tier). */
+const HEADLAND_PLANT_DENSITY: Record<Tier, number> = {
+  lite: 0.2,
+  low: 0.45,
+  medium: 0.75,
+  high: 1,
+  ultra: 1,
+};
 
 function appendHeadlandPlants(
   plants: Record<PlantSpecies, PlantInstance[]>,

@@ -2,7 +2,7 @@ import type { HeightField } from '../contracts';
 import { COVE } from '../layout';
 import { clamp01, smoothstep } from '../../util/math';
 import { extractShoreline } from './bake';
-import { fbm2 } from './cove-height';
+import { fbm2, headlandCliffEdge } from './cove-height';
 
 /**
  * The east headland's sea cliff: one fluted limestone face in the same rock language as the sea stack
@@ -127,13 +127,13 @@ function readProfile(profile: Float32Array): { lipY: number; lipD: number; stren
   let lip = PROFILE_SAMPLES - 1;
   for (let i = toe + 1; i < PROFILE_SAMPLES - run; i++) {
     const slope = (profile[i + run]! - profile[i]!) / (run * PROFILE_STEP);
-    if (slope < 0.45 && profile[i]! > 2) {
+    if (slope < 1.4 && profile[i]! > 2) {
       lip = i;
       break;
     }
   }
   const lipY = profile[lip]!;
-  const strength = smoothstep(1.0, 2.2, maxSlope) * smoothstep(5, 11, lipY);
+  const strength = smoothstep(1.0, 2.2, maxSlope) * smoothstep(3, 7, lipY);
   // A softer measure for where the cliff gives way to a steep slope (the rock carries on as outcrops).
   const slope = smoothstep(0.45, 1.3, maxSlope) * smoothstep(4, 9, lipY);
   return { lipY, lipD: PROFILE_OUT - lip * PROFILE_STEP, strength, slope };
@@ -463,7 +463,7 @@ export function headlandCaveShipObstacle(heightField: Pick<HeightField, 'heightA
   return { x: st.x + st.nx * out, z: st.z + st.nz * out, r: BULGE_HALF_WIDTH * 0.75 };
 }
 
-export type HeadlandPlantSpecies = 'fern' | 'palmYoung' | 'broadleafTree';
+export type HeadlandPlantSpecies = 'fern' | 'banana' | 'shrub' | 'palmYoung' | 'palmTall' | 'broadleafTree';
 
 export interface HeadlandPlantSpot {
   species: HeadlandPlantSpecies;
@@ -478,7 +478,11 @@ export interface HeadlandPlantSpot {
   seed: number;
 }
 
-/** Ferns along the clifftop edge and a few trees set back from it. `density` thins them per tier (0 = none). */
+/**
+ * Scrub along the clifftop edge, woods on the slopes past the cliff's ends, and a scatter of scrub, palms
+ * and trees with clearings over the clifftop and its grassy shoulders. `density` thins them per tier
+ * (0 = none).
+ */
 export function headlandCliffPlantSpots(
   heightField: Pick<HeightField, 'heightAt'>,
   density = 1,
@@ -518,7 +522,8 @@ export function headlandCliffPlantSpots(
     if (r < 0.75 && !nearCave(st.s)) {
       const d = st.lipD - 0.8 - hash(k, 3, 4) * 2.2;
       const y = frame.heightAt(st.x + st.nx * d, st.z + st.nz * d);
-      push('fern', d, y - 0.12, 0.75 + hash(k, 4, 5) * 0.45, 0.1, k * 7 + 1);
+      const rim: HeadlandPlantSpecies = hash(k, 3, 9) < 0.6 ? 'banana' : 'fern';
+      push(rim, d, y - 0.12, 0.75 + hash(k, 4, 5) * 0.45, 0.1, k * 7 + 1);
     }
     // Where the cliff sinks into the slope at its ends, the slope is wooded.
     if (past) {
@@ -529,8 +534,9 @@ export function headlandCliffPlantSpots(
         const y = frame.heightAt(st.x + st.nx * d, st.z + st.nz * d);
         const pick = hash(k, 9 + p, 4);
         const species: HeadlandPlantSpecies =
-          pick < 0.3 ? 'broadleafTree' : pick < 0.55 ? 'palmYoung' : 'fern';
-        const scale = species === 'fern' ? 0.8 + pick * 0.5 : 0.6 + hash(k, 10 + p, 5) * 0.25;
+          pick < 0.3 ? 'broadleafTree' : pick < 0.55 ? 'palmYoung' : pick < 0.8 ? 'banana' : 'fern';
+        const scale =
+          species === 'fern' || species === 'banana' ? 0.8 + pick * 0.4 : 0.6 + hash(k, 10 + p, 5) * 0.25;
         push(species, d, y - 0.2, scale, 0.04, k * 13 + p);
       }
       continue;
@@ -548,6 +554,54 @@ export function headlandCliffPlantSpots(
         0.05,
         k * 7 + 2,
       );
+    }
+  }
+
+  // The clifftop and its shoulders: a jittered grid with clearings, off the sheer cliff.
+  const spacing = 7 / Math.sqrt(density);
+  st.nx = 0;
+  st.nz = 0;
+  for (let gz = 0, z0 = COVE.headland.z0 - 25; z0 < COVE.headland.z1 + 25; gz++, z0 += spacing) {
+    for (let gx = 0, x0 = COVE.headland.x0 - 4; x0 < COVE.headland.x1 + 10; gx++, x0 += spacing) {
+      if (hash(gx, gz, 61) < 0.22) continue;
+      const x = x0 + (hash(gx, gz, 62) - 0.5) * spacing;
+      const z = z0 + (hash(gx, gz, 63) - 0.5) * spacing;
+      if (headlandCliffEdge(x, z) < 6) continue;
+      const y = frame.heightAt(x, z);
+      if (y < 5) continue;
+      const slope =
+        Math.hypot(
+          frame.heightAt(x + 1, z) - frame.heightAt(x - 1, z),
+          frame.heightAt(x, z + 1) - frame.heightAt(x, z - 1),
+        ) * 0.5;
+      if (slope > 0.85) continue;
+      const pick = hash(gx, gz, 64);
+      const species: HeadlandPlantSpecies =
+        pick < 0.32
+          ? 'banana'
+          : pick < 0.54
+            ? 'fern'
+            : pick < 0.66
+              ? 'shrub'
+              : pick < 0.8
+                ? 'palmYoung'
+                : pick < 0.9
+                  ? 'broadleafTree'
+                  : slope < 0.4
+                    ? 'palmTall'
+                    : 'palmYoung';
+      const size = hash(gx, gz, 65);
+      const scale =
+        species === 'palmTall'
+          ? 0.85 + size * 0.3
+          : species === 'palmYoung'
+            ? 0.5 + size * 0.25
+            : species === 'broadleafTree'
+              ? 0.6 + size * 0.3
+              : 0.7 + size * 0.5;
+      st.x = x;
+      st.z = z;
+      push(species, 0, y - 0.15, scale, 0, gx * 977 + gz * 31 + 7);
     }
   }
   return out;

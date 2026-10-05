@@ -10,6 +10,8 @@ import {
 } from 'three/webgpu';
 import type { HeightField, Tier } from '../contracts';
 import { clamp01, smoothstep } from '../../util/math';
+import { COVE } from '../layout';
+import { headlandCliffEdge } from './cove-height';
 import { ROCK_ASSETS } from './rock-assets';
 import {
   HEADLAND_CAVE_BULGE,
@@ -32,14 +34,16 @@ export interface CliffDetail {
   rowStep: number;
   talus: number;
   fallen: number;
+  /** Limestone outcrops half-buried in the clifftop. */
+  outcrops: number;
 }
 
 export const HEADLAND_CLIFF_DETAIL: Record<Tier, CliffDetail> = {
-  lite: { spacing: 4, rowStep: 3, talus: 0, fallen: 3 },
-  low: { spacing: 2.6, rowStep: 2, talus: 6, fallen: 5 },
-  medium: { spacing: 2, rowStep: 1.5, talus: 24, fallen: 8 },
-  high: { spacing: 1.5, rowStep: 1.2, talus: 36, fallen: 10 },
-  ultra: { spacing: 1.2, rowStep: 1, talus: 44, fallen: 10 },
+  lite: { spacing: 4, rowStep: 3, talus: 0, fallen: 2, outcrops: 2 },
+  low: { spacing: 2.6, rowStep: 2, talus: 4, fallen: 4, outcrops: 5 },
+  medium: { spacing: 2, rowStep: 1.5, talus: 24, fallen: 8, outcrops: 14 },
+  high: { spacing: 1.5, rowStep: 1.2, talus: 36, fallen: 10, outcrops: 18 },
+  ultra: { spacing: 1.2, rowStep: 1, talus: 44, fallen: 10, outcrops: 18 },
 };
 
 /** Texture `u` per metre along the cliff: the sea stack's streak density (its girth is about 66 m). */
@@ -57,6 +61,66 @@ interface BlockPart {
   nrm: Float32Array;
   idx: ArrayLike<number>;
   s: number;
+  /** On the clifftop (moss on its top), not at the foot. */
+  top: boolean;
+}
+
+/** Bakes one rock asset into world space with the given pose. */
+function placeRock(
+  assetIndex: number,
+  position: Vector3,
+  rotation: Quaternion,
+  scale: Vector3,
+  s: number,
+  top: boolean,
+): BlockPart {
+  const m = new Matrix4().compose(position, rotation, scale);
+  const nm = new Matrix4().extractRotation(m);
+  const v = new Vector3();
+  const asset = ROCK_ASSETS[assetIndex % 3]!;
+  const n = asset.positions.length / 3;
+  const pos = new Float32Array(n * 3);
+  const nrm = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    v.fromArray(asset.positions, i * 3)
+      .applyMatrix4(m)
+      .toArray(pos, i * 3);
+    v.fromArray(asset.normals, i * 3)
+      .applyMatrix4(nm)
+      .normalize()
+      .toArray(nrm, i * 3);
+  }
+  return { pos, nrm, idx: asset.indices, s, top };
+}
+
+/** Limestone outcrops on the clifftop and shoulders, half-buried so they grow out of the ground. */
+function topOutcrops(frame: ReturnType<typeof headlandCliffFrame>, detail: CliffDetail): BlockPart[] {
+  const parts: BlockPart[] = [];
+  const p = new Vector3();
+  const q = new Quaternion();
+  const e = new Euler();
+  const sc = new Vector3();
+  for (let tries = 0; parts.length < detail.outcrops && tries < detail.outcrops * 30; tries++) {
+    const x = COVE.headland.x0 + hash(tries, 31) * (COVE.headland.x1 - COVE.headland.x0 + 5);
+    const z = COVE.headland.z0 - 15 + hash(tries, 32) * (COVE.headland.z1 - COVE.headland.z0 + 30);
+    if (headlandCliffEdge(x, z) < 5) continue;
+    const y = frame.heightAt(x, z);
+    if (y < 8) continue;
+    const slope =
+      Math.hypot(
+        frame.heightAt(x + 1.5, z) - frame.heightAt(x - 1.5, z),
+        frame.heightAt(x, z + 1.5) - frame.heightAt(x, z - 1.5),
+      ) / 3;
+    if (slope > 0.8) continue;
+    const size = 1.8 + hash(tries, 33) * 2.4;
+    const sy = size * (0.8 + hash(tries, 34) * 0.5);
+    p.set(x, y - sy * 0.65 * 0.5, z);
+    e.set((hash(tries, 35) - 0.5) * 0.3, hash(tries, 36) * Math.PI * 2, (hash(tries, 37) - 0.5) * 0.3, 'YXZ');
+    q.setFromEuler(e);
+    sc.set(size * (1 + hash(tries, 38) * 0.6), sy, size);
+    parts.push(placeRock(Math.floor(hash(tries, 39) * 3), p, q, sc, x + z, true));
+  }
+  return parts;
 }
 
 /**
@@ -69,13 +133,10 @@ function footBlocks(
 ): BlockPart[] {
   const parts: BlockPart[] = [];
   const st: CliffStation = { ...frame.stations[0]! };
-  const m = new Matrix4();
   const q = new Quaternion();
   const e = new Euler();
   const p = new Vector3();
   const sc = new Vector3();
-  const nm = new Matrix4();
-  const v = new Vector3();
   const total = detail.fallen + detail.talus;
   for (let b = 0, tries = 0; b < total && tries < total * 6; tries++) {
     const big = b < detail.fallen;
@@ -91,22 +152,7 @@ function footBlocks(
     e.set((hash(tries, 5) - 0.5) * 0.35, hash(tries, 6) * Math.PI * 2, (hash(tries, 7) - 0.5) * 0.4, 'YXZ');
     q.setFromEuler(e);
     sc.set(size * (1.1 + hash(tries, 8) * 0.4), size * (0.7 + hash(tries, 9) * 0.3), size);
-    m.compose(p, q, sc);
-    nm.extractRotation(m);
-    const asset = ROCK_ASSETS[Math.floor(hash(tries, 10) * 3) % 3]!;
-    const n = asset.positions.length / 3;
-    const pos = new Float32Array(n * 3);
-    const nrm = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) {
-      v.fromArray(asset.positions, i * 3)
-        .applyMatrix4(m)
-        .toArray(pos, i * 3);
-      v.fromArray(asset.normals, i * 3)
-        .applyMatrix4(nm)
-        .normalize()
-        .toArray(nrm, i * 3);
-    }
-    parts.push({ pos, nrm, idx: asset.indices, s });
+    parts.push(placeRock(Math.floor(hash(tries, 10) * 3), p, q, sc, s, false));
     b++;
   }
   return parts;
@@ -131,7 +177,7 @@ export function buildHeadlandCliffGeometry(
   const rows = faceRows + 3;
   const gridCount = (columns + 1) * rows;
   const profile = new Float32Array(PROFILE_SAMPLES);
-  const blocks = footBlocks(frame, detail, profile);
+  const blocks = [...footBlocks(frame, detail, profile), ...topOutcrops(frame, detail)];
   const blockCount = blocks.reduce((sum, b) => sum + b.pos.length / 3, 0);
   const vertexCount = gridCount + blockCount;
   const pos = new Float32Array(vertexCount * 3);
@@ -182,7 +228,8 @@ export function buildHeadlandCliffGeometry(
     }
 
     // Cavity AO and run-off: look up the column for overhangs (the visor, ledge lips, the cave roof).
-    let flow = 1;
+    // Run-off streaks are accents here (a cliff this long, streaked like the stack, reads charcoal).
+    let flow = 0.35;
     for (let j = faceRows; j >= 0; j--) {
       const v = base + j;
       const y = pos[v * 3 + 1]!;
@@ -205,7 +252,7 @@ export function buildHeadlandCliffGeometry(
         const e = (pos[w * 3]! - pos[v * 3]!) * st.nx + (pos[w * 3 + 2]! - pos[v * 3 + 2]!) * st.nz;
         ledge = smoothstep(0.4, 1.4, -e / Math.max(0.01, dy));
       }
-      flow = Math.max(flow * Math.exp(-dy / 10), smoothstep(0.2, 0.75, lip), ledge * 0.8);
+      flow = Math.max(flow * Math.exp(-dy / 8), smoothstep(0.2, 0.75, lip) * 0.7, ledge * 0.45);
       const groove = cliffGroove(s, y, st.lipY) * k;
       let ao = 1 - 0.62 * smoothstep(0.06, 0.95, occ);
       ao *= 1 - 0.3 * groove;
@@ -246,8 +293,10 @@ export function buildHeadlandCliffGeometry(
       const y = part.pos[i * 3 + 1]!;
       uvs[(offset + i) * 2] = part.s * U_PER_METRE + part.pos[i * 3]! * 0.01;
       uvs[(offset + i) * 2 + 1] = y;
-      karst[(offset + i) * 4] = 0.62 + 0.3 * smoothstep(-1.5, 1.5, y) * clamp01(part.nrm[i * 3 + 1]! + 0.6);
+      const ny = part.nrm[i * 3 + 1]!;
+      karst[(offset + i) * 4] = 0.62 + 0.3 * smoothstep(-1.5, 1.5, y) * clamp01(ny + 0.6);
       karst[(offset + i) * 4 + 1] = 0.15;
+      karst[(offset + i) * 4 + 2] = part.top ? smoothstep(0.35, 0.85, ny) * 0.75 : 0;
       karst[(offset + i) * 4 + 3] = 0.2;
     }
     for (let i = 0; i < part.idx.length; i++) indices.push(part.idx[i]! + offset);

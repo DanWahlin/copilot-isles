@@ -591,7 +591,9 @@ export class GrassField {
       0,
       tier.grassDensity * (tier.tier === 'lite' ? 0 : tier.tier === 'low' ? 0.28 : 1) * this.densityScale,
     );
-    for (let x = -COVE.island.halfX; x <= COVE.island.halfX; x += CELL_SIZE) {
+    // Out to the east headland's clifftop too (its cells come last, so the rest of the field is unchanged).
+    const maxX = Math.max(COVE.island.halfX, COVE.headland.x1);
+    for (let x = -COVE.island.halfX; x <= maxX; x += CELL_SIZE) {
       for (let z = -COVE.island.halfZ; z <= COVE.island.halfZ + 18; z += CELL_SIZE) {
         const cx = x + CELL_SIZE * 0.5;
         const cz = z + CELL_SIZE * 0.5;
