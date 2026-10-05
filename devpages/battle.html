@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copilot Isles · Battle Dev</title>
+    <link rel="icon" href="data:," />
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #081722;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      #hud {
+        position: fixed;
+        left: 16px;
+        top: 16px;
+        width: 280px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        color: white;
+        background: rgb(7 20 30 / 70%);
+        font:
+          12px/1.4 ui-monospace,
+          Menlo,
+          monospace;
+      }
+      body.shot #hud {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gl"></canvas>
+    <div id="hud">Loading battle…</div>
+    <script type="module" src="/src/dev/battle.ts"></script>
+  </body>
+</html>

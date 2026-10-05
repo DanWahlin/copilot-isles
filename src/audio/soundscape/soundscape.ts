@@ -80,6 +80,11 @@ const CAPS = {
   bird: 4,
   splash: 3,
   hull: 3,
+  cannon: 6,
+  cannon_far: 4,
+  whiz: 3,
+  timber: 4,
+  groan: 1,
   puzzle: 4,
   opening: 5,
 } as const;
@@ -94,6 +99,11 @@ const MIX = {
   dove: -34,
   splash: -30,
   hull: -24,
+  cannon: -17.5,
+  cannon_far: -24,
+  whiz: -26,
+  timber: -21,
+  groan: -24,
   puzzle: -24,
   chime: -20,
   thud: -24,
@@ -330,6 +340,11 @@ export class IslesSoundScape {
     return base;
   }
 
+  /** Loads one-shots ahead of time, so the first of each (say, a battle's opening broadside) isn't dropped. */
+  preload(names: readonly SoundName[]): Promise<void> {
+    return Promise.all(names.map((n) => this.want(n))).then(() => undefined);
+  }
+
   private async want(name: SoundName): Promise<AudioBuffer | null> {
     if (!this.ctx) return null;
     const ready = this.buffers.get(name);
@@ -498,6 +513,11 @@ export class IslesSoundScape {
     if (name.startsWith('bird_')) return 'bird';
     if (name === 'big_splash' || name === 'splash') return 'splash';
     if (name === 'hull_slap') return 'hull';
+    if (name === 'cannon_boom') return 'cannon';
+    if (name === 'cannon_far') return 'cannon_far';
+    if (name === 'ball_whiz') return 'whiz';
+    if (name === 'timber_hit') return 'timber';
+    if (name === 'timber_creak_groan') return 'groan';
     if (isPuzzleOneShot(name)) return 'puzzle';
     if (name.startsWith('opening_')) return 'opening';
     return name;
@@ -510,6 +530,11 @@ export class IslesSoundScape {
     if (name === 'bird_forest') return MIX.bird;
     if (name === 'big_splash' || name === 'splash') return MIX.splash;
     if (name === 'hull_slap') return MIX.hull;
+    if (name === 'cannon_boom') return MIX.cannon;
+    if (name === 'cannon_far') return MIX.cannon_far;
+    if (name === 'ball_whiz') return MIX.whiz;
+    if (name === 'timber_hit') return MIX.timber;
+    if (name === 'timber_creak_groan') return MIX.groan;
     if (name === 'chime_solve') return MIX.chime;
     if (name === 'crate_thud') return MIX.thud;
     if (isPuzzleOneShot(name)) return MIX.puzzle;

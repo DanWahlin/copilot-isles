@@ -10,26 +10,41 @@ import {
   SRGBColorSpace,
   TextureLoader,
   UnsignedByteType,
+  Vector4,
   type Color,
   type Texture,
+  type UniformArrayNode,
   type UniformNode,
 } from 'three/webgpu';
 import {
+  Fn,
+  If,
+  Loop,
   abs,
   attribute,
   color,
   float,
+  floor,
+  fract,
+  int,
+  max,
   mix,
   positionLocal,
   positionWorld,
   sin,
   smoothstep,
   texture,
+  uniformArray,
   vec2,
+  vec3,
 } from 'three/tsl';
 import { packs } from '../../engine/packs';
 import { world } from '../uniforms';
 import { gustNode } from '../wind-nodes';
+
+// TSL fluent typings do not cover this graph.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyNode = any;
 
 /** Owns the shared ship materials and the canvas texture used for labels/name boards. */
 export interface BrigantineUniforms {
@@ -38,17 +53,50 @@ export interface BrigantineUniforms {
   /** Sail cloth and the band across each sail (Paint Your Sails). */
   sailCloth: UniformNode<'color', Color>;
   sailStripe: UniformNode<'color', Color>;
+  /** 0 clean canvas … 1 the raiders' patched, weathered cloth. */
+  sailPatch: UniformNode<'float', number>;
+  /** 0 your ship's paint (black, red and gold) … 1 the raiders' (weathered slate, oxblood and pewter). */
+  livery: UniformNode<'float', number>;
+  /** 0 whole sails … about 0.35 shot through: how many holes the canvas shows. */
+  sailHoles: UniformNode<'float', number>;
   /** Swings the jolly roger and pennants downwind (see ship-flags `flagYaw`). */
   flagYaw: UniformNode<'float', number>;
   /** Flag ripple phase and apparent-wind strength (see ship-flags `FlagUniforms`). */
   flagPhase: UniformNode<'float', number>;
   flagStrength: UniformNode<'float', number>;
+  /** 0 the colours flying … 1 hauled down to the deck (a struck ship; see ship-flags). */
+  flagLower: UniformNode<'float', number>;
 }
 
+/** How many shot marks a hull keeps (a ring: the oldest is painted over). */
+export const SCORCH_SLOTS = 8;
+/** Deck guns per ship (port 0…5, starboard 6…11). */
+export const GUN_SLOTS = 12;
+/** Ships alive at once that keep their own shot marks and gun recoil (yours plus raiders, with room). */
+export const SHIP_SLOTS = 6;
+
+/**
+ * Shot marks and gun recoil for every ship live in two shared arrays, each ship reading its own block
+ * by its `slot` uniform. A uniform array per ship gave every ship its own shader program (+7 in a
+ * three-ship battle); a uniform value doesn't.
+ */
+export const shipScorch = uniformArray(
+  Array.from({ length: SHIP_SLOTS * SCORCH_SLOTS }, () => new Vector4(0, -100, 0, 0)),
+  'vec4',
+) as UniformArrayNode<'vec4'>;
+export const shipRecoil = uniformArray(
+  new Array<number>(SHIP_SLOTS * GUN_SLOTS).fill(0),
+  'float',
+) as UniformArrayNode<'float'>;
+
 let shipWoodTexture: Texture | null = null;
-let shipLabelTexture: Texture | null = null;
-let shipLabelCanvas: HTMLCanvasElement | null = null;
-let shipName = '';
+
+/** One ship's name boards and gallery plaques: its own canvas, so every hull can carry its own name. */
+export interface ShipLabel {
+  texture: Texture;
+  canvas: HTMLCanvasElement | null;
+  name: string;
+}
 
 export function fitShipNameFontSize(
   name: string,
@@ -82,34 +130,37 @@ function getShipWoodTexture(): Texture {
   return shipWoodTexture;
 }
 
-function getShipLabelTexture(): Texture {
-  if (shipLabelTexture) return shipLabelTexture;
+export function createShipLabel(): ShipLabel {
+  let texture: Texture;
+  let canvas: HTMLCanvasElement | null = null;
   if (typeof document === 'undefined') {
-    shipLabelTexture = new DataTexture(
+    texture = new DataTexture(
       new Uint8Array([205, 151, 64, 255, 24, 23, 22, 255]),
       2,
       1,
       RGBAFormat,
       UnsignedByteType,
     );
-    shipLabelTexture.needsUpdate = true;
+    texture.needsUpdate = true;
   } else {
-    const canvas = document.createElement('canvas');
+    canvas = document.createElement('canvas');
     canvas.width = 1024;
     canvas.height = 512;
-    shipLabelCanvas = canvas;
-    shipLabelTexture = new CanvasTexture(canvas);
-    repaintShipLabelCanvas();
+    texture = new CanvasTexture(canvas);
   }
-  shipLabelTexture.colorSpace = SRGBColorSpace;
-  shipLabelTexture.generateMipmaps = true;
-  shipLabelTexture.minFilter = LinearMipmapLinearFilter;
-  shipLabelTexture.magFilter = LinearFilter;
-  shipLabelTexture.anisotropy = 4;
-  return shipLabelTexture;
+  texture.colorSpace = SRGBColorSpace;
+  texture.generateMipmaps = true;
+  texture.minFilter = LinearMipmapLinearFilter;
+  texture.magFilter = LinearFilter;
+  texture.anisotropy = 4;
+  const label: ShipLabel = { texture, canvas, name: '' };
+  repaintShipLabelCanvas(label);
+  return label;
 }
 
-function repaintShipLabelCanvas(): void {
+function repaintShipLabelCanvas(label: ShipLabel): void {
+  const shipLabelCanvas = label.canvas;
+  const shipName = label.name;
   if (!shipLabelCanvas) return;
   const ctx = shipLabelCanvas.getContext('2d')!;
   ctx.clearRect(0, 0, shipLabelCanvas.width, shipLabelCanvas.height);
@@ -214,17 +265,21 @@ function repaintShipLabelCanvas(): void {
     ctx.fillText(shipName, 512, 374);
     ctx.shadowBlur = 0;
   }
-  shipLabelTexture!.needsUpdate = true;
+  label.texture.needsUpdate = true;
 }
 
-export function paintShipName(name: string | null): void {
-  shipName = (name ?? '').trim();
-  getShipLabelTexture();
-  repaintShipLabelCanvas();
-  if (shipLabelTexture) shipLabelTexture.needsUpdate = true;
+export function paintShipName(label: ShipLabel, name: string | null): void {
+  label.name = (name ?? '').trim();
+  repaintShipLabelCanvas(label);
+  label.texture.needsUpdate = true;
 }
 
-export function makeShipMaterial(): MeshStandardNodeMaterial {
+export function makeShipMaterial(
+  label: ShipLabel,
+  livery: UniformNode<'float', number>,
+  slot: UniformNode<'float', number>,
+  marks: UniformNode<'float', number>,
+): MeshStandardNodeMaterial {
   const m = new MeshStandardNodeMaterial({
     color: 0xffffff,
     roughness: 0.66,
@@ -271,8 +326,8 @@ export function makeShipMaterial(): MeshStandardNodeMaterial {
     .add(color(0x6f6f60).mul(hullWeather));
   const deck = deckWood.mul(mix(color(0xc08c55), color(0xffce87), 0.34)).sub(color(0x2a170c).mul(deckSeam));
   const paintGrain = hullWood.mul(0.28).add(0.72);
-  const red = paintGrain.mul(color(0x9c2418));
-  const gold = paintGrain.mul(color(0xd7a554));
+  const red = paintGrain.mul(mix(color(0x9c2418), color(0x4f1c18), livery));
+  const gold = paintGrain.mul(mix(color(0xd7a554), color(0x8d8f8c), livery));
   const iron = mix(
     color(0x171717),
     color(0x4a4840),
@@ -288,24 +343,57 @@ export function makeShipMaterial(): MeshStandardNodeMaterial {
     .mul(weave)
     .sub(color(0x5b4328).mul(abs(sin(positionLocal.z.mul(4.5))).mul(0.04)));
   const glow = color(0xffb060).mul(world.night.smoothstep(0.08, 0.9).mul(2.8).add(0.2));
-  const label = texture(getShipLabelTexture(), attribute('uv', 'vec2')).rgb;
+  const labelColor = texture(label.texture, attribute('uv', 'vec2')).rgb;
 
-  let outColor = hull;
+  // The raiders' hulls: the black paint weathered to a salt-streaked slate.
+  const slate = hullWood
+    .mul(mix(color(0x1c2328), color(0x56626a), plankNoise.mul(0.3).add(0.2)))
+    .sub(color(0x0d1114).mul(hullSeam.add(hullButts)))
+    .add(color(0x7b8080).mul(hullWeather.mul(1.6)));
+  let outColor = mix(hull, slate, livery);
   outColor = mix(outColor, deck, r1);
   outColor = mix(outColor, red, r2);
   outColor = mix(outColor, gold, r3);
   outColor = mix(outColor, iron, r4);
   outColor = mix(outColor, canvas, r5);
   outColor = mix(outColor, glow, r6);
-  outColor = mix(outColor, label, r7);
+  outColor = mix(outColor, labelColor, r7);
   const submerged = positionLocal.y.negate().smoothstep(0.05, 0.85).mul(r0).mul(0.92);
   outColor = mix(outColor, color(0x06242b), submerged);
+  // Shot marks (ship-local xyz and strength per slot): a dark hole ringed with torn, pale raw wood and a
+  // faint soot halo, on the outside of the hull and its paint only. Pale wood reads on any paint. The
+  // loop runs once per mark this ship carries (`marks`), so a ship with none pays nothing.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const shot: any = (Fn as any)(() => {
+    const acc = vec3(0, 0, 0).toVar();
+    const jag = sin(positionLocal.z.mul(29).add(positionLocal.y.mul(21)))
+      .mul(sin(positionLocal.y.mul(37)))
+      .mul(0.07);
+    Loop({ start: int(0), end: marks.toInt(), type: 'int', condition: '<' }, ({ i }: { i: AnyNode }) => {
+      const e = shipScorch.element(slot.toInt().mul(SCORCH_SLOTS).add(i));
+      const dj = positionLocal.sub(e.xyz).length().add(jag);
+      acc.assign(
+        max(
+          acc,
+          vec3(smoothstep(0.9, 0.3, dj), smoothstep(0.42, 0.3, dj), smoothstep(0.2, 0.15, dj)).mul(e.w),
+        ),
+      );
+    });
+    return acc;
+  })();
+  const soot = shot.x;
+  const raw = shot.y;
+  const hole = shot.z;
+  const outside = r0.add(r2).add(r3).min(1);
+  outColor = mix(outColor, color(0x15100c), soot.mul(0.5).mul(outside));
+  outColor = mix(outColor, hullWood.mul(color(0xd9ad78)), raw.mul(outside));
+  outColor = mix(outColor, color(0x030202), hole.mul(outside));
   m.colorNode = outColor.mul(vc.mul(0.52).add(0.52));
   m.emissiveNode = glow.mul(r6).mul(world.night.smoothstep(0.08, 0.9));
   m.roughnessNode = mix(mix(float(0.62), float(0.88), r5), float(0.34), r3)
     .add(r4.mul(0.1))
     .add(r7.mul(0.04));
-  m.metalnessNode = mix(float(0.02), float(0.46), r3);
+  m.metalnessNode = mix(float(0.02), mix(float(0.46), float(0.3), livery), r3);
   return m;
 }
 
@@ -350,16 +438,100 @@ export function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNo
     .smoothstep(0.05, 0.8);
   // The palette band sits just above the foot of each sail (v runs foot → head).
   const band = smoothstep(0.17, 0.19, sailUv.y).mul(float(1).sub(smoothstep(0.27, 0.29, sailUv.y)));
-  const cloth = mix(uniforms.sailCloth, uniforms.sailStripe, band);
+  // Patches: a few cloths in each sail sewn in a shade darker or lighter, with a stitched edge.
+  const cells = sailUv.mul(vec2(5, 4));
+  const cell = floor(cells);
+  const local = fract(cells);
+  // Seeds come from the cell and the sail's facing only: sailAnchor varies across a sail, which turned
+  // the hash into per-pixel noise.
+  const sailId = sailNormal.x.mul(1.7).add(sailNormal.z.mul(0.9));
+  const seed = fract(sin(cell.x.mul(12.9898).add(cell.y.mul(78.233)).add(sailId)).mul(43758.5453));
+  const inX = smoothstep(0.1, 0.13, local.x).mul(float(1).sub(smoothstep(0.82, 0.85, local.x)));
+  const inY = smoothstep(0.14, 0.17, local.y).mul(float(1).sub(smoothstep(0.78, 0.81, local.y)));
+  const patch = inX
+    .mul(inY)
+    .mul(smoothstep(0.6, 0.62, seed))
+    .mul(uniforms.sailPatch);
+  const edgeX = smoothstep(0.08, 0.1, local.x).mul(float(1).sub(smoothstep(0.86, 0.88, local.x)));
+  const edgeY = smoothstep(0.12, 0.14, local.y).mul(float(1).sub(smoothstep(0.81, 0.83, local.y)));
+  const stitch = edgeX
+    .mul(edgeY)
+    .sub(inX.mul(inY))
+    .max(0)
+    .mul(smoothstep(0.6, 0.62, seed))
+    .mul(uniforms.sailPatch);
+  const patchTone = mix(float(0.74), float(1.16), smoothstep(0.8, 0.82, seed));
+  const cloth = mix(uniforms.sailCloth, uniforms.sailStripe, band)
+    .mul(mix(float(1), patchTone, patch))
+    .mul(float(1).sub(stitch.mul(0.35)));
   const reefBands = abs(sin(sailUv.y.mul(Math.PI * 7)))
     .smoothstep(0.965, 1.0)
     .mul(0.08);
   const wear = float(1).sub(
     panelU.mul(0.18).add(reefBands).add(dirt).add(yardShadow).add(bellyOcclusion).mul(0.85),
   );
-  m.colorNode = cloth.mul(color(0xffe0a8)).mul(belly.mul(0.06).add(0.9)).mul(wear);
+  // Shot holes: a few ragged holes, scattered cell by cell, each with a scorched rim; more as the hull
+  // takes damage. They're shaded dark, not cut out: an alpha test added a shadow and depth variant of
+  // every sail (13 pipelines), and at battle range a dark hole reads the same.
+  // Only ships that have taken damage work them out (a uniform branch).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const holes: any = (Fn as any)(() => {
+    const out = vec2(0, 0).toVar();
+    If(uniforms.sailHoles.greaterThan(0), () => {
+      const holeCells = sailUv.mul(vec2(7, 6));
+      const holeCell = floor(holeCells);
+      const holeLocal = fract(holeCells);
+      const holeSeed = fract(
+        sin(holeCell.x.mul(41.31).add(holeCell.y.mul(17.17)).add(sailId)).mul(24634.6345),
+      );
+      const holeAt = vec2(fract(holeSeed.mul(7.3)), fract(holeSeed.mul(13.7)))
+        .mul(0.5)
+        .add(0.25);
+      const holeD = holeLocal
+        .sub(holeAt)
+        .length()
+        .add(sin(holeLocal.x.mul(40).add(holeLocal.y.mul(31))).mul(0.03));
+      const holeR = mix(float(0.09), float(0.16), fract(holeSeed.mul(3.1)));
+      const on = holeSeed.lessThan(uniforms.sailHoles).select(float(1), float(0));
+      out.assign(
+        vec2(
+          smoothstep(holeR.add(0.01), holeR.sub(0.01), holeD),
+          smoothstep(holeR.add(0.12), holeR, holeD),
+        ).mul(on),
+      );
+    });
+    return out;
+  })();
+  const torn = holes.x;
+  const charred = holes.y;
+  m.colorNode = cloth
+    .mul(color(0xffe0a8))
+    .mul(belly.mul(0.06).add(0.9))
+    .mul(wear)
+    .mul(float(1).sub(charred.mul(0.6)))
+    .mul(float(1).sub(torn.mul(0.92)));
   m.emissiveNode = cloth
     .mul(color(0xffe2b0))
-    .mul(backlit.mul(world.sunDir.y.smoothstep(0.02, 0.45)).mul(0.09));
+    .mul(backlit.mul(world.sunDir.y.smoothstep(0.02, 0.45)).mul(0.09))
+    .mul(float(1).sub(torn));
+  return m;
+}
+
+/**
+ * The deck guns: the ship's own material, with each gun run in by its recoil (metres inboard, one value
+ * per `gunIndex`; see createDeckGunGeometry). Port guns (+x) run back toward −x and starboard guns
+ * toward +x.
+ */
+export function makeGunMaterial(
+  label: ShipLabel,
+  livery: UniformNode<'float', number>,
+  slot: UniformNode<'float', number>,
+  marks: UniformNode<'float', number>,
+): MeshStandardNodeMaterial {
+  const m = makeShipMaterial(label, livery, slot, marks);
+  const index = attribute('gunIndex', 'float');
+  const back = shipRecoil.element(slot.mul(GUN_SLOTS).add(index).toInt());
+  const side = index.lessThan(5.5).select(float(1), float(-1));
+  m.positionNode = positionLocal.sub(vec3(side.mul(back), 0, 0));
   return m;
 }

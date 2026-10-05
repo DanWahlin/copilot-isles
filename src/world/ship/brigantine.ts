@@ -8,6 +8,7 @@ import {
   Mesh,
   Object3D,
   Vector3,
+  Vector4,
   type Material,
 } from 'three/webgpu';
 import { uniform } from 'three/tsl';
@@ -31,6 +32,7 @@ import {
 import { MeshBuilder } from './mesh-builder';
 import {
   createDeckGeometry,
+  createDeckGunGeometry,
   createHullGeometry,
   createNameBoardGeometry,
   createSternGoldGeometry,
@@ -40,18 +42,37 @@ import {
   WHEEL,
 } from './brigantine-hull';
 import {
+  CUTTER_FLAG,
   createBundledCanvasGeometry,
+  createCutterRiggingGeometry,
+  createCutterSailGeometry,
+  createCutterSparGeometry,
   createRiggingGeometry,
   createSailGeometry,
   createSparGeometry,
   mizzenStayPoint,
 } from './brigantine-rig';
-import { FLAG_PHASE_PERIOD, createFlagGeometry, flagYaw, makeFlagMaterial } from './ship-flags';
+import {
+  BRIGANTINE_FLAGS,
+  FLAG_PHASE_PERIOD,
+  RAIDER_BRIGANTINE_FLAGS,
+  createFlagGeometry,
+  flagYaw,
+  makeFlagMaterial,
+  raiderCutterFlags,
+} from './ship-flags';
 import { windAt } from '../wind';
 import {
   makeCanvasMaterial,
+  createShipLabel,
+  makeGunMaterial,
   makeShipMaterial,
   paintShipName,
+  GUN_SLOTS,
+  SCORCH_SLOTS,
+  SHIP_SLOTS,
+  shipRecoil,
+  shipScorch,
   type BrigantineUniforms,
 } from './brigantine-materials';
 import { createShipPipes, type ShipPipes } from './pipes';
@@ -62,7 +83,23 @@ export { fitShipNameFontSize } from './brigantine-materials';
 
 interface BrigantineOptions {
   tier: Tier;
+  /**
+   * Whether this ship drives the ocean's hull cut-out and wake (default true). The ocean follows one
+   * ship, so other ships (sea-battle raiders) turn it off.
+   */
+  oceanInteraction?: boolean;
+  /**
+   * A fog raider (battle-plan.md §4): patched grey sails, the raiders' colours, and both rigs built so
+   * one hull can sail as a brigantine or a cutter (`setRig`).
+   */
+  raider?: boolean;
 }
+
+export type ShipRig = 'brigantine' | 'cutter';
+
+/** The raiders' sail cloth and band: fog grey (the canvas shader warms it, so it starts blue) with an oxblood stripe. */
+const RAIDER_CLOTH = 0x63768f;
+const RAIDER_STRIPE = 0x6f2a24;
 
 export interface BrigantineEnv extends ShipEnv {
   waves: WaveSampler;
@@ -86,6 +123,14 @@ export interface Brigantine {
   setSails(paletteId: string | null): void;
   /** Paints the christened ship name onto the stern and bow name boards. */
   setName(name: string | null): void;
+  /** Shows one rig (raiders only; your ship is always a brigantine). */
+  setRig(rig: ShipRig): void;
+  /** Marks a shot hole at a ship-local point on the hull (the oldest of eight is painted over). */
+  addScorch(x: number, y: number, z: number): void;
+  /** Paints out every shot hole (repairs, or a fresh ship). */
+  clearScorch(): void;
+  /** Runs deck gun `index` (port 0…5, starboard 6…11, stern to bow) in by `metres` of recoil. */
+  setGunRecoil(index: number, metres: number): void;
   /**
    * Lowers the gangplank from the port rail to `foot` (world space, on the pier), or with null raises
    * it. The foot stays where it's put while the rail end rides the swell; call after the ship's pose
@@ -254,7 +299,36 @@ function shortestYaw(a: number, b: number, t: number): number {
   return a + (d - Math.PI) * t;
 }
 
-export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
+const slotsInUse = new Uint8Array(SHIP_SLOTS);
+
+/** A free block in the shared shot-mark and recoil arrays (slot 0 is shared if every one is taken). */
+function takeShipSlot(): number {
+  for (let i = 0; i < SHIP_SLOTS; i++)
+    if (!slotsInUse[i]) {
+      slotsInUse[i] = 1;
+      clearShipSlot(i);
+      return i;
+    }
+  return 0;
+}
+
+function releaseShipSlot(i: number): void {
+  clearShipSlot(i);
+  slotsInUse[i] = 0;
+}
+
+function clearShipSlot(i: number): void {
+  const marks = shipScorch.array as Vector4[];
+  for (let k = 0; k < SCORCH_SLOTS; k++) marks[i * SCORCH_SLOTS + k]!.set(0, -100, 0, 0);
+  const guns = shipRecoil.array as number[];
+  for (let k = 0; k < GUN_SLOTS; k++) guns[i * GUN_SLOTS + k] = 0;
+}
+
+export function createBrigantine({
+  tier,
+  oceanInteraction = true,
+  raider = false,
+}: BrigantineOptions): Brigantine {
   const group = new Group();
   group.name = `brigantine-${tier}`;
   group.rotation.order = 'YXZ';
@@ -264,11 +338,15 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
   const uniforms: BrigantineUniforms = {
     trim: uniform(1),
     luff: uniform(0),
-    sailCloth: uniform(new Color(startSails.cloth)),
-    sailStripe: uniform(new Color(startSails.stripe)),
+    sailCloth: uniform(new Color(raider ? RAIDER_CLOTH : startSails.cloth)),
+    sailStripe: uniform(new Color(raider ? RAIDER_STRIPE : startSails.stripe)),
+    sailPatch: uniform(raider ? 1 : 0),
+    livery: uniform(raider ? 1 : 0),
+    sailHoles: uniform(0),
     flagYaw: uniform(0),
     flagPhase: uniform(0),
     flagStrength: uniform(0.6),
+    flagLower: uniform(0),
   };
   const helmY = deckHeightAt(QUARTERDECK_Z) + 0.18;
   const anchors: ShipAnchors = {
@@ -294,39 +372,78 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     return m;
   };
 
-  const shipMaterial = register(makeShipMaterial());
+  const shipLabel = createShipLabel();
+  const slotIndex = takeShipSlot();
+  const slot = uniform(slotIndex);
+  /** How many shot marks this ship carries (0…SCORCH_SLOTS): the shader loops over only these. */
+  const marks = uniform(0);
+  let scorchNext = 0;
+  const shipMaterial = register(makeShipMaterial(shipLabel, uniforms.livery, slot, marks));
   const riggingLineMaterial = register(
     new LineBasicMaterial({ color: 0x17110c, transparent: true, opacity: 0.78, linewidth: 1.6 }),
   );
   const pipeSystem = createShipPipes(shipMaterial);
   const christening = createChristeningSystem(shipMaterial);
-  paintShipName(null);
+  paintShipName(shipLabel, null);
   addMesh(group, createHullGeometry(tier), shipMaterial, 'rounded planked hull');
   addMesh(group, createDeckGeometry(tier), shipMaterial, 'deck planking rails and fittings', false);
   addMesh(group, createTrimGeometry(tier), shipMaterial, 'wales strakes gunports galleries anchors');
+  const gunGeometry = createDeckGunGeometry(tier);
+  if (gunGeometry)
+    addMesh(
+      group,
+      gunGeometry,
+      register(makeGunMaterial(shipLabel, uniforms.livery, slot, marks)),
+      'deck guns',
+    );
   addMesh(group, createWindowGeometry(), shipMaterial, 'stern gallery windows and name board backing', false);
   addMesh(group, createSternGoldGeometry(), shipMaterial, 'stern gallery trim and lantern bracket');
   addMesh(group, createNameBoardGeometry(), shipMaterial, 'christening ship name boards', false);
-  addMesh(group, createSparGeometry(tier), shipMaterial, 'masts yards boom bowsprit jibboom', false);
-  addMesh(group, createBundledCanvasGeometry(tier), shipMaterial, 'furled canvas bundles', false);
-  addMesh(
-    group,
-    createSailGeometry(tier),
-    register(makeCanvasMaterial(uniforms)),
-    'billowed procedural sails',
-  );
-  addMesh(
-    group,
-    createFlagGeometry(),
-    register(
-      makeFlagMaterial({ yaw: uniforms.flagYaw, phase: uniforms.flagPhase, strength: uniforms.flagStrength }),
+  const canvasMaterial = register(makeCanvasMaterial(uniforms));
+  const flagHaul = uniform(BRIGANTINE_FLAGS.haulDown);
+  const flagMaterial = register(
+    makeFlagMaterial(
+      {
+        yaw: uniforms.flagYaw,
+        phase: uniforms.flagPhase,
+        strength: uniforms.flagStrength,
+        lower: uniforms.flagLower,
+        haul: flagHaul,
+      },
+      raider ? 'raider' : 'jolly',
     ),
-    'animated jolly roger and pennants',
+  );
+  const brigRig = new Group();
+  brigRig.name = 'brigantine rig';
+  group.add(brigRig);
+  addMesh(brigRig, createSparGeometry(tier), shipMaterial, 'masts yards boom bowsprit jibboom', false);
+  addMesh(brigRig, createBundledCanvasGeometry(tier), shipMaterial, 'furled canvas bundles', false);
+  addMesh(brigRig, createSailGeometry(tier), canvasMaterial, 'billowed procedural sails');
+  addMesh(
+    brigRig,
+    createFlagGeometry(raider ? RAIDER_BRIGANTINE_FLAGS : BRIGANTINE_FLAGS),
+    flagMaterial,
+    raider ? 'raider colours and pennants' : 'animated jolly roger and pennants',
     false,
   );
   const rigging = new LineSegments(createRiggingGeometry(tier), riggingLineMaterial);
   rigging.name = 'standing and running rigging lines';
-  group.add(rigging);
+  brigRig.add(rigging);
+  // The raiders' cutter rig: the same materials, so it adds no pipelines.
+  const cutterLayout = raiderCutterFlags(CUTTER_FLAG.z, CUTTER_FLAG.y0, CUTTER_FLAG.y1, CUTTER_FLAG.peak);
+  let cutterRig: Group | null = null;
+  if (raider) {
+    cutterRig = new Group();
+    cutterRig.name = 'cutter rig';
+    cutterRig.visible = false;
+    group.add(cutterRig);
+    addMesh(cutterRig, createCutterSparGeometry(tier), shipMaterial, 'cutter mast gaff boom bowsprit', false);
+    addMesh(cutterRig, createCutterSailGeometry(tier), canvasMaterial, 'cutter gaff sails and headsails');
+    addMesh(cutterRig, createFlagGeometry(cutterLayout), flagMaterial, 'cutter colours and pennant', false);
+    const cutterLines = new LineSegments(createCutterRiggingGeometry(tier), riggingLineMaterial);
+    cutterLines.name = 'cutter rigging lines';
+    cutterRig.add(cutterLines);
+  }
   group.add(pipeSystem.group);
   group.add(christening.group);
   const gangway = createGangway(shipMaterial);
@@ -450,13 +567,38 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
     uniforms,
     anchors,
     pipes: pipeSystem,
+    setRig(rig: ShipRig): void {
+      if (!cutterRig) return;
+      const cutter = rig === 'cutter';
+      cutterRig.visible = cutter;
+      brigRig.visible = !cutter;
+      // The tackle block hangs from the brigantine's mizzen stay.
+      blockPivot.visible = !cutter;
+      flagHaul.value = cutter ? cutterLayout.haulDown : RAIDER_BRIGANTINE_FLAGS.haulDown;
+      api.drawCallCount = drawCallCount(group);
+    },
     setSails(paletteId: string | null): void {
       const p = sailPalette(paletteId);
       uniforms.sailCloth.value.setHex(p.cloth);
       uniforms.sailStripe.value.setHex(p.stripe);
     },
     setName(name: string | null): void {
-      paintShipName(name);
+      paintShipName(shipLabel, name);
+    },
+    addScorch(x: number, y: number, z: number): void {
+      const v = (shipScorch.array as Vector4[])[slotIndex * SCORCH_SLOTS + scorchNext]!;
+      v.set(x, y, z, 0.8 + 0.2 * Math.abs(Math.sin(x * 7.1 + z * 3.3)));
+      scorchNext = (scorchNext + 1) % SCORCH_SLOTS;
+      marks.value = Math.min(SCORCH_SLOTS, marks.value + 1);
+    },
+    clearScorch(): void {
+      clearShipSlot(slotIndex);
+      scorchNext = 0;
+      marks.value = 0;
+    },
+    setGunRecoil(index: number, metres: number): void {
+      if (index >= 0 && index < GUN_SLOTS)
+        (shipRecoil.array as number[])[slotIndex * GUN_SLOTS + index] = metres;
     },
     setGangway(foot: { x: number; y: number; z: number } | null): void {
       gangway.visible = !!foot;
@@ -544,17 +686,18 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
       flagEased = true;
       localToWorldXZ(dynamics.pose, 0, BOW_Z, oceanBow, 0);
       localToWorldXZ(dynamics.pose, 0, STERN_Z, oceanStern, 0);
-      updateShipOceanInteraction(
-        dynamics.pose.x,
-        dynamics.pose.z,
-        dynamics.pose.heading,
-        dynamics.forwardSpeed,
-        oceanBow[0]!,
-        oceanBow[1]!,
-        oceanStern[0]!,
-        oceanStern[1]!,
-        t,
-      );
+      if (oceanInteraction)
+        updateShipOceanInteraction(
+          dynamics.pose.x,
+          dynamics.pose.z,
+          dynamics.pose.heading,
+          dynamics.forwardSpeed,
+          oceanBow[0]!,
+          oceanBow[1]!,
+          oceanStern[0]!,
+          oceanStern[1]!,
+          t,
+        );
       updateSecondary(dt);
       pipeSystem.update(dt, t);
       christening.update(dt);
@@ -568,6 +711,8 @@ export function createBrigantine({ tier }: BrigantineOptions): Brigantine {
       pipeSystem.dispose();
       christening.dispose();
       for (const material of materials) material.dispose();
+      shipLabel.texture.dispose();
+      releaseShipSlot(slotIndex);
     },
   };
   api.triangleCount = triangleCount(group);

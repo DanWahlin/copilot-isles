@@ -212,6 +212,52 @@ export const BANK = {
     ],
     lufs: [-15.6, -18.7],
   },
+  cannon_boom: {
+    file: 'cannon_boom',
+    slices: [
+      [0.08, 2.3],
+      [2.46, 2.25],
+      [4.79, 2.2],
+      [7.07, 2.35],
+    ],
+    lufs: [-18.6, -17.1, -22.4, -22.2],
+  },
+  cannon_far: {
+    file: 'cannon_far',
+    slices: [
+      [0.08, 3.96],
+      [4.12, 4.13],
+      [8.33, 3.94],
+    ],
+    lufs: [-20.5, -22.8, -23.9],
+  },
+  ball_whiz: {
+    file: 'ball_whiz',
+    slices: [
+      [0.08, 1.22],
+      [1.38, 1.24],
+      [2.7, 0.95],
+    ],
+    lufs: [-16.7, -13.7, -30.2],
+  },
+  timber_hit: {
+    file: 'timber_hit',
+    slices: [
+      [0.08, 1.15],
+      [1.31, 1.15],
+      [2.54, 1.2],
+      [3.82, 1.2],
+    ],
+    lufs: [-22.5, -22.9, -22.4, -19.1],
+  },
+  timber_creak_groan: {
+    file: 'timber_creak_groan',
+    slices: [
+      [0.08, 3.65],
+      [3.81, 3.85],
+    ],
+    lufs: [-18.2, -19.8],
+  },
   stone_turn: { file: 'stone_turn', slices: [[0, 0.4865]], lufs: [-18] },
   lever: { file: 'lever', slices: [[0, 0.5565]], lufs: [-18] },
   gate_lift: { file: 'gate_lift', slices: [[0, 1.1565]], lufs: [-18] },

@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import type { BufferAttribute, Mesh, Object3D } from 'three/webgpu';
 import { createBrigantine, fitShipNameFontSize } from './brigantine';
 import { QUARTERDECK_Z, WHEEL } from './brigantine-hull';
-import { createRiggingGeometry } from './brigantine-rig';
+import { GUN_SLOTS, SCORCH_SLOTS, shipRecoil, shipScorch } from './brigantine-materials';
+import { CUTTER_FLAG, createCutterSailGeometry, createRiggingGeometry } from './brigantine-rig';
 import { COVE } from '../layout';
-import { deckHeightAt } from './lines';
+import { BRIGANTINE_HALF_LENGTH, deckHeightAt } from './lines';
 
 interface MeshSignature {
   name: string;
@@ -26,11 +27,11 @@ const HIGH_TIER_MESH_SIGNATURES: MeshSignature[] = [
   },
   {
     name: 'deck planking rails and fittings',
-    vertices: 19434,
-    indices: 98928,
-    position: '414c9ae1',
-    uv: 'a1910533',
-    color: 'a1ed7991',
+    vertices: 13986,
+    indices: 73296,
+    position: '66df62b5',
+    uv: 'cfbebd63',
+    color: '3ea0eee1',
   },
   {
     name: 'wales strakes gunports galleries anchors',
@@ -39,6 +40,15 @@ const HIGH_TIER_MESH_SIGNATURES: MeshSignature[] = [
     position: 'b326431e',
     uv: '0760d908',
     color: '70cb0d74',
+  },
+  // The deck guns were split out of the deck mesh (same vertices) so each can recoil.
+  {
+    name: 'deck guns',
+    vertices: 5448,
+    indices: 25632,
+    position: '6b14a189',
+    uv: 'db41ee55',
+    color: '8cc441f5',
   },
   {
     name: 'stern gallery windows and name board backing',
@@ -286,5 +296,70 @@ describe('createBrigantine', () => {
     const wide = fitShipNameFontSize(long, 320, measure, 86, 20);
     expect(measure(wide, long)).toBeLessThanOrEqual(320);
     expect(wide).toBeGreaterThanOrEqual(20);
+  });
+
+  it('builds a raider that sails as a brigantine or a one-mast cutter', () => {
+    const ship = createBrigantine({ tier: 'high', raider: true });
+    const brig = ship.group.getObjectByName('brigantine rig')!;
+    const cutter = ship.group.getObjectByName('cutter rig')!;
+    expect(brig.visible).toBe(true);
+    expect(cutter.visible).toBe(false);
+    const brigDraws = ship.drawCallCount;
+    ship.setRig('cutter');
+    expect(brig.visible).toBe(false);
+    expect(cutter.visible).toBe(true);
+    expect(ship.drawCallCount).toBeLessThanOrEqual(brigDraws);
+    expect(ship.uniforms.sailPatch.value).toBe(1);
+    expect(ship.uniforms.livery.value).toBe(1);
+    ship.setRig('brigantine');
+    expect(brig.visible).toBe(true);
+    ship.dispose();
+  });
+
+  it("keeps your own ship's paint and rig", () => {
+    const ship = createBrigantine({ tier: 'low' });
+    expect(ship.group.getObjectByName('cutter rig')).toBeUndefined();
+    expect(ship.uniforms.sailPatch.value).toBe(0);
+    expect(ship.uniforms.livery.value).toBe(0);
+    ship.setRig('cutter');
+    expect(ship.group.getObjectByName('brigantine rig')!.visible).toBe(true);
+    ship.dispose();
+  });
+
+  it("keeps the cutter's canvas above the deck and over the hull and bowsprit", () => {
+    const pos = createCutterSailGeometry('medium').getAttribute('position') as BufferAttribute;
+    for (let i = 0; i < pos.count; i++) {
+      const z = pos.getZ(i);
+      expect(z).toBeGreaterThan(-BRIGANTINE_HALF_LENGTH - 0.5);
+      expect(z).toBeLessThan(22.5);
+      expect(pos.getY(i)).toBeGreaterThan(deckHeightAt(Math.max(-12, Math.min(12, z))) + 0.8);
+      expect(pos.getY(i)).toBeLessThan(CUTTER_FLAG.y0);
+    }
+  });
+
+  it("keeps each ship's shot marks and gun recoil in its own block of the shared arrays", () => {
+    const a = createBrigantine({ tier: 'low' });
+    const b = createBrigantine({ tier: 'low', raider: true });
+    const marks = shipScorch.array as { y: number; w: number }[];
+    const guns = shipRecoil.array as number[];
+    const markedBlocks = () => {
+      const out: number[] = [];
+      for (let i = 0; i < marks.length; i++) if (marks[i]!.w > 0) out.push(Math.floor(i / SCORCH_SLOTS));
+      return out;
+    };
+    a.addScorch(3, 1, 0);
+    b.addScorch(-3, 1, 2);
+    b.addScorch(-3, 1.4, -2);
+    const blocks = markedBlocks();
+    expect(new Set(blocks).size).toBe(2);
+    a.setGunRecoil(2, 0.5);
+    expect(guns.filter((g) => g === 0.5)).toHaveLength(1);
+    expect(guns.indexOf(0.5) % GUN_SLOTS).toBe(2);
+    b.clearScorch();
+    expect(new Set(markedBlocks()).size).toBe(1);
+    a.dispose();
+    b.dispose();
+    expect(markedBlocks()).toHaveLength(0);
+    expect(guns.every((g) => g === 0)).toBe(true);
   });
 });

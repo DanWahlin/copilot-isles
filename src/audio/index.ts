@@ -26,6 +26,8 @@ export interface IslesAudio {
     surf(pos: Vec3Like, kind: SurfKind, intensity: number): void;
     footstep(surface: FootstepSurface, pos: Vec3Like): void;
     oneShot(name: SliceName, pos?: Vec3Like, gain?: number): void;
+    /** Loads one-shots now, so the first play isn't dropped while it downloads. */
+    preload(names: readonly SliceName[]): Promise<void>;
     loop(name: SoundLoopName, pos: Vec3Like, gain?: number): SoundLoopHandle;
     setBed(name: BedName, gain: number): void;
     setTimeOfDay(night: number): void;
@@ -157,6 +159,7 @@ class IslesAudioImpl implements IslesAudio {
     surf: (pos: Vec3Like, kind: SurfKind, intensity: number) => this.soundscape.surf(pos, kind, intensity),
     footstep: (surface: FootstepSurface, pos: Vec3Like) => this.soundscape.footstep(surface, pos),
     oneShot: (name: SliceName, pos?: Vec3Like, gain?: number) => this.soundscape.oneShot(name, pos, gain),
+    preload: (names: readonly SliceName[]) => this.soundscape.preload(names),
     loop: (name: SoundLoopName, pos: Vec3Like, gain?: number) => this.soundscape.loop(name, pos, gain),
     setBed: (name: BedName, gain: number) => this.soundscape.setBed(name, gain),
     preload: (names: readonly SoundName[]) => this.soundscape.preload(names),

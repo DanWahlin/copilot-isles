@@ -24,6 +24,7 @@ import {
   positionLocal,
   sign,
   sin,
+  smoothstep,
   texture,
   uv,
   varying,
@@ -50,9 +51,75 @@ interface FlagBuilder {
   indices: number[];
 }
 
-const JOLLY = { z: -1.69, x0: 0.18, x1: 2.28, y0: 20.88, y1: 22.35 };
+interface FlagRect {
+  z: number;
+  x0: number;
+  x1: number;
+  y0: number;
+  y1: number;
+}
+
+interface PennantSpec {
+  z: number;
+  y: number;
+  length: number;
+  height: number;
+  color: number;
+}
+
+/** Where a ship's colours and pennants fly (ship-local), and how far the colours come down when struck. */
+export interface FlagLayout {
+  flag: FlagRect;
+  /** A swallowtail fly (the raiders') instead of a frayed straight one. */
+  swallowtail: boolean;
+  pennants: readonly PennantSpec[];
+  /** From the masthead to just above the deck. */
+  haulDown: number;
+}
+
+const JOLLY: FlagRect = { z: -1.69, x0: 0.18, x1: 2.28, y0: 20.88, y1: 22.35 };
 const FORE_Z = 5.25;
 const MIZZEN_Z = -7.8;
+
+/** Your brigantine: the jolly roger at the main truck and red pennants fore and aft. */
+export const BRIGANTINE_FLAGS: FlagLayout = {
+  flag: JOLLY,
+  swallowtail: false,
+  pennants: [
+    { z: FORE_Z, y: 20.36, length: 2.05, height: 0.16, color: 0x8f1712 },
+    { z: MIZZEN_Z, y: 17.88, length: 1.75, height: 0.14, color: 0xa01c14 },
+  ],
+  haulDown: 17.9,
+};
+
+/** A raider's brigantine rig: the same places, the raiders' swallowtail and fog-grey pennants. */
+export const RAIDER_BRIGANTINE_FLAGS: FlagLayout = {
+  flag: JOLLY,
+  swallowtail: true,
+  pennants: [
+    { z: FORE_Z, y: 20.36, length: 2.3, height: 0.16, color: 0x6f2a24 },
+    { z: MIZZEN_Z, y: 17.88, length: 2.0, height: 0.14, color: 0x9aa0a6 },
+  ],
+  haulDown: 17.9,
+};
+
+/**
+ * A raider cutter's colours at the masthead (`top` is the truck's ship-local y, `z` the mast) and a long
+ * pennant at the gaff peak.
+ */
+export function raiderCutterFlags(
+  z: number,
+  y0: number,
+  y1: number,
+  peak: { y: number; z: number },
+): FlagLayout {
+  return {
+    flag: { z, x0: 0.18, x1: 2.0, y0, y1 },
+    swallowtail: true,
+    pennants: [{ z: peak.z, y: peak.y + 0.05, length: 2.6, height: 0.15, color: 0x4a1814 }],
+    haulDown: y0 - 3.0,
+  };
+}
 /** The ripple phase wraps here; every wave term's frequency is a multiple of 1/2 so it stays seamless. */
 export const FLAG_PHASE_PERIOD = Math.PI * 4;
 
@@ -90,8 +157,22 @@ function addSheet(
   }
 }
 
-function addJollyRoger(b: FlagBuilder): void {
-  const { x0, x1, y0, y1, z } = JOLLY;
+function addColours(b: FlagBuilder, rect: FlagRect, swallowtail: boolean): void {
+  const { x0, x1, y0, y1, z } = rect;
+  if (swallowtail) {
+    // A notch cut deep into the fly, so the raiders' colours read by their shape alone.
+    addSheet(
+      b,
+      24,
+      14,
+      z,
+      0xffffff,
+      true,
+      (u, v) => [x0 + (x1 - x0 - 0.62 * (1 - Math.abs(v * 2 - 1))) * u, y0 + (y1 - y0) * v],
+      (x) => (x - x0) / (x1 - x0),
+    );
+    return;
+  }
   addSheet(
     b,
     24,
@@ -132,11 +213,10 @@ function addPennant(
   );
 }
 
-export function createFlagGeometry(): BufferGeometry {
+export function createFlagGeometry(layout: FlagLayout = BRIGANTINE_FLAGS): BufferGeometry {
   const b: FlagBuilder = { positions: [], uvs: [], colors: [], painted: [], pivots: [], indices: [] };
-  addJollyRoger(b);
-  addPennant(b, FORE_Z, 20.36, 2.05, 0.16, 0x8f1712);
-  addPennant(b, MIZZEN_Z, 17.88, 1.75, 0.14, 0xa01c14);
+  addColours(b, layout.flag, layout.swallowtail);
+  for (const p of layout.pennants) addPennant(b, p.z, p.y, p.length, p.height, p.color);
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(new Float32Array(b.positions), 3));
   geometry.setAttribute('uv', new BufferAttribute(new Float32Array(b.uvs), 2));
@@ -273,12 +353,85 @@ function paintJollyRoger(): HTMLCanvasElement {
   return canvas;
 }
 
-function makeJollyTexture(): Texture {
+/**
+ * The fog raiders' colours (512 × 360): our own design, no skull and no logo. A slate field, three pale
+ * wisps of fog blowing across it, and a ship's lantern burning amber through them. At range it reads
+ * as a grey swallowtail with a gold spark.
+ */
+function paintRaiderColours(): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 360;
+  const ctx = canvas.getContext('2d')!;
+  const rand = rng(2404);
+  const field = ctx.createLinearGradient(0, 0, 512, 360);
+  field.addColorStop(0, '#34414c');
+  field.addColorStop(1, '#4a5864');
+  ctx.fillStyle = field;
+  ctx.fillRect(0, 0, 512, 360);
+  ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  for (let y = 0; y < 360; y += 3) ctx.fillRect(0, y, 512, 1);
+  for (let x = 0; x < 512; x += 3) ctx.fillRect(x, 0, 1, 360);
+  for (let i = 0; i < 900; i++) {
+    ctx.fillStyle = `rgba(0,0,0,${0.03 + rand() * 0.06})`;
+    ctx.fillRect(rand() * 512, rand() * 360, 1 + rand() * 2, 1);
+  }
+  // The lantern: a warm glow, its body and cap, then the flame.
+  const lx = 150;
+  const ly = 150;
+  const glow = ctx.createRadialGradient(lx, ly, 6, lx, ly, 110);
+  glow.addColorStop(0, 'rgba(255,196,92,0.55)');
+  glow.addColorStop(1, 'rgba(255,196,92,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, 512, 360);
+  ctx.fillStyle = '#1d2329';
+  ctx.beginPath();
+  ctx.roundRect(lx - 34, ly - 52, 68, 104, 12);
+  ctx.fill();
+  ctx.fillRect(lx - 44, ly - 62, 88, 14);
+  ctx.fillRect(lx - 40, ly + 50, 80, 12);
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = '#1d2329';
+  ctx.beginPath();
+  ctx.arc(lx, ly - 70, 18, Math.PI, 0);
+  ctx.stroke();
+  ctx.fillStyle = '#f2b84b';
+  ctx.beginPath();
+  ctx.roundRect(lx - 24, ly - 40, 48, 82, 8);
+  ctx.fill();
+  ctx.fillStyle = '#fff1c4';
+  ctx.beginPath();
+  ctx.ellipse(lx, ly + 2, 10, 20, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Three wisps of fog, the lowest across the lantern's foot.
+  ctx.lineCap = 'round';
+  const wisps: [number, number, number][] = [
+    [96, 30, 0.75],
+    [214, 22, 0.85],
+    [292, 26, 0.7],
+  ];
+  for (const [y, w, a] of wisps) {
+    ctx.strokeStyle = `rgba(222,228,232,${a})`;
+    ctx.lineWidth = w;
+    ctx.beginPath();
+    for (let x = 30; x <= 500; x += 6) {
+      const yy = y + Math.sin(x * 0.022 + y) * 12;
+      if (x === 30) ctx.moveTo(x, yy);
+      else ctx.lineTo(x, yy);
+    }
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#2b2620';
+  ctx.fillRect(0, 0, 12, 360);
+  return canvas;
+}
+
+function makeColoursTexture(design: 'jolly' | 'raider'): Texture {
   let tex: Texture;
   if (typeof document === 'undefined') {
     tex = new DataTexture(new Uint8Array([15, 15, 17, 255]), 1, 1, RGBAFormat, UnsignedByteType);
   } else {
-    tex = new CanvasTexture(paintJollyRoger());
+    tex = new CanvasTexture(design === 'raider' ? paintRaiderColours() : paintJollyRoger());
     tex.generateMipmaps = true;
     tex.minFilter = LinearMipmapLinearFilter;
     tex.magFilter = LinearFilter;
@@ -296,6 +449,10 @@ export interface FlagUniforms {
   phase: UniformNode<'float', number>;
   /** 0 (a breath of air: the flag droops and lolls) to 1 (a stiff breeze: it streams and snaps). */
   strength: UniformNode<'float', number>;
+  /** 0 flying … 1 hauled down to the deck: the jolly roger slides down its halyard (a struck ship). */
+  lower?: UniformNode<'float', number>;
+  /** How far (m) the colours come down at `lower` 1 (FlagLayout.haulDown); one ship may switch rigs. */
+  haul?: UniformNode<'float', number>;
 }
 
 /**
@@ -303,9 +460,12 @@ export interface FlagUniforms {
  * the wind reads even in a still frame. Flags are built streaming along ship-local +x, then swung
  * about their own mast by `yaw`.
  */
-export function makeFlagMaterial(u: FlagUniforms): MeshStandardNodeMaterial {
+export function makeFlagMaterial(
+  u: FlagUniforms,
+  design: 'jolly' | 'raider' = 'jolly',
+): MeshStandardNodeMaterial {
   const material = new MeshStandardNodeMaterial({ side: DoubleSide, roughness: 0.74, metalness: 0 });
-  const jolly = makeJollyTexture();
+  const jolly = makeColoursTexture(design);
   material.addEventListener('dispose', () => jolly.dispose());
   const pivot = attribute('flagPivot', 'float') as AnyNode;
   const phase = u.phase as AnyNode;
@@ -345,7 +505,14 @@ export function makeFlagMaterial(u: FlagUniforms): MeshStandardNodeMaterial {
     const c = cos(u.yaw) as AnyNode;
     const s = sin(u.yaw) as AnyNode;
     n.assign((vec3 as AnyNode)(bent.x.mul(c).add(bent.z.mul(s)), bent.y, bent.z.mul(c).sub(bent.x.mul(s))));
-    return (vec3 as AnyNode)(dx.mul(c).add(dz.mul(s)), dy, pivot.add(dz.mul(c)).sub(dx.mul(s)));
+    // Struck colours: the painted flag slides down to the deck and is gathered in at the hoist.
+    const lower = (u.lower ?? float(0)) as AnyNode;
+    const painted = attribute('flagPainted', 'float') as AnyNode;
+    const down = lower.mul(painted).mul((u.haul ?? float(BRIGANTINE_FLAGS.haulDown)) as AnyNode);
+    const gather = float(1).sub(smoothstep(float(0.88), float(1), lower).mul(painted).mul(0.92));
+    const gx = dx.sub(JOLLY.x0).mul(gather).add(JOLLY.x0);
+    const gz = dz.mul(gather);
+    return (vec3 as AnyNode)(gx.mul(c).add(gz.mul(s)), dy.sub(down), pivot.add(gz.mul(c)).sub(gx.mul(s)));
   })();
   const painted = attribute('flagPainted', 'float') as AnyNode;
   const cloth = attribute('color', 'vec3') as AnyNode;

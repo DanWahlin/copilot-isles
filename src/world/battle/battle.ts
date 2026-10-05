@@ -1,0 +1,1142 @@
+import { Group, Matrix4, Vector3 } from 'three/webgpu';
+import type { TierSettings } from '../../engine/quality';
+import type { CircleObstacle, WaveSampler } from '../contracts';
+import { seededRandom } from '../life/leaps/director';
+import { createBrigantine, type Brigantine, type BrigantineEnv } from '../ship';
+import { world } from '../uniforms';
+import { windAt } from '../wind';
+import { ARC_FIRING, ARC_WARNING, ArcSet } from './arcs';
+import { elevationFor, insideHull, leadPoint, MUZZLE_SPEED, muzzleLocal } from './ballistics';
+import { FogBank } from './fog';
+import {
+  BallPool,
+  BoatPool,
+  fxBudget,
+  SmokePool,
+  SplashPool,
+  SplinterPool,
+  STORE_POWDER,
+  STORE_TIMBER,
+  STORE_WRECKAGE,
+  StorePool,
+} from './fx';
+import { Battery, bearing, gunStations, PORT, STARBOARD, type Side } from './gunnery';
+import { RaiderBrain, type RaiderHelm, type RaiderView } from './raider-ai';
+
+/** A raider in a wave: its name board and its size (docs/specs/BATTLES.md §4.1). */
+export interface RaiderSpec {
+  name: string;
+  kind: 'cutter' | 'brigantine';
+}
+
+export interface WaveSpec {
+  raiders: readonly RaiderSpec[];
+}
+
+/** The passage from Anchorage to Port Meridian (docs/specs/BATTLES.md §2.0). */
+export const PASSAGE_WAVES: readonly WaveSpec[] = [
+  {
+    raiders: [
+      { name: 'Wrong Fork', kind: 'cutter' },
+      { name: 'Unchecked', kind: 'cutter' },
+    ],
+  },
+  {
+    raiders: [
+      { name: 'Stale Branch', kind: 'brigantine' },
+      { name: 'Wrong Fork II', kind: 'cutter' },
+    ],
+  },
+];
+
+/**
+ * Battle sounds (battle-plan.md §1). The battle only says what happened and where; the game maps each
+ * kind to the soundscape (near or far cannon by the listener's distance, and so on).
+ */
+export type BattleSound = 'cannon' | 'whiz' | 'timber' | 'splash' | 'groan' | 'sink' | 'cheer';
+
+/**
+ * Staging beats (battle-plan.md §3) for the camera: `intro` (sails in the fog), `broadside` (your guns
+ * fire at a raider), `incoming` (a raider fires on you), `strike` (a raider strikes), `clear` (a wave
+ * is beaten), `won`, and `breakoff`. Each carries a world position.
+ */
+export type BattleBeat = 'intro' | 'broadside' | 'incoming' | 'strike' | 'clear' | 'won' | 'breakoff';
+
+export type BattlePhase = 'idle' | 'intro' | 'fight' | 'lull' | 'question' | 'breakoff' | 'won' | 'skipped';
+
+const PLAYER_HULL = 100;
+const BREAK_OFF_AT = 15;
+const HULL: Record<RaiderSpec['kind'], number> = { cutter: 45, brigantine: 80 };
+const SCALE: Record<RaiderSpec['kind'], number> = { cutter: 0.78, brigantine: 1 };
+const RAIDER_RELOAD = 9;
+const LAY_SECONDS = 1.5;
+const LAY_SECONDS_CALM = 2.5;
+const SPAWN_RANGE = 230;
+/** The intro: the fog forms, the raiders show inside it at REVEAL, and the guns open at the end. */
+const INTRO_SECONDS = 5.5;
+/** After the fog is fully thick (FogBank grows over 2.5 s), so no ghost of a hull shows through it. */
+const INTRO_REVEAL = 2.8;
+const LULL_SECONDS = 20;
+const STORE_LIFE = 45;
+const SINK_SECONDS = 17;
+const COLLECT_RADIUS = 9;
+const BASE_REPAIR = 25;
+const TIMBER_REPAIR = 10;
+const QUICK_REPAIR = 30;
+const DOUBLE_SHOT = 1.5;
+const SUBSTEP = 1 / 60;
+
+interface Combatant {
+  readonly index: number;
+  readonly player: boolean;
+  readonly ship: Brigantine;
+  name: string;
+  scale: number;
+  hull: number;
+  maxHull: number;
+  readonly batteries: [Battery, Battery];
+  /** Which raider each of your batteries is laid on (−1 none). */
+  readonly aim: Int8Array;
+  readonly brain: RaiderBrain | null;
+  readonly helm: RaiderHelm;
+  state: 'idle' | 'afloat' | 'struck' | 'gone';
+  struckAt: number;
+  /** Warning arcs: 0…1 while a raider's side lays its guns on you, −1 when not. */
+  readonly lay: Float32Array;
+  readonly inverse: Matrix4;
+  vx: number;
+  vz: number;
+  prevX: number;
+  prevZ: number;
+  readonly obstacles: CircleObstacle[];
+  readonly env: BrigantineEnv;
+  readonly captions: { struck: string; bearing: [string, string] };
+  readonly shots: ((gun: number) => void)[];
+  /** Which way a struck hull lists (+1 to port). */
+  listSign: number;
+}
+
+/** What the HUD reads (at 10 Hz) and the dev page's debug API returns. */
+export interface BattleSnapshot {
+  phase: BattlePhase;
+  wave: number;
+  waves: number;
+  hull: number;
+  raidersLeft: number;
+  raidersTotal: number;
+  bears: [boolean, boolean];
+  breakOffs: number;
+  calm: boolean;
+  doubleShot: boolean;
+  stores: { timber: number; powder: number };
+  lull: number;
+  /** The wave's banner, e.g. "Wave 1 of 2: Wrong Fork and Unchecked" (prebuilt per wave). */
+  title: string;
+}
+
+export interface BattleOptions {
+  tier: TierSettings;
+  waves: WaveSampler;
+  player: Brigantine;
+  plan?: readonly WaveSpec[];
+  seed?: number;
+  /** Called for captions ("Port battery fires", "Splash, short"); strings are prebuilt, not per frame. */
+  onCaption?: (text: string) => void;
+  /** Called with a reused position object; copy it if you keep it. */
+  onSound?: (kind: BattleSound, pos: { x: number; y: number; z: number }, gain: number) => void;
+  /** Staging beats for the camera director (battle-plan.md §3). */
+  onBeat?: (beat: BattleBeat, x: number, z: number) => void;
+}
+
+/** The lookout's call, by where the fog lies from your bow (prebuilt, picked per wave). */
+const LOOKOUT = {
+  port: [
+    'Sails in the fog, off the port bow!',
+    'Sails in the fog, off the port beam!',
+    'Sails in the fog, off the port quarter!',
+  ],
+  starboard: [
+    'Sails in the fog, off the starboard bow!',
+    'Sails in the fog, off the starboard beam!',
+    'Sails in the fog, off the starboard quarter!',
+  ],
+  ahead: 'Sails in the fog, dead ahead!',
+  astern: 'Sails in the fog, right astern!',
+} as const;
+
+const tmpLocal = new Vector3();
+const tmpWorld = new Vector3();
+const muzzle = { x: 0, y: 0, z: 0 };
+const aimOut = new Float32Array(2);
+const wind = new Float32Array(2);
+const soundPos = { x: 0, y: 0, z: 0 };
+/** A raider's ball within this distance (m) of your ship whistles past. */
+const WHIZ_RADIUS = 16;
+const SIDE_OF: readonly Side[] = [PORT, STARBOARD];
+
+/**
+ * A sea battle (docs/specs/BATTLES.md): waves of raiders, your broadsides and theirs, damage, struck
+ * colours and settling hulls, stores, the lull between waves, and the break-off that replaces losing.
+ * Everything visible is pooled at construction; `update` allocates nothing.
+ */
+export class Battle {
+  readonly group = new Group();
+  readonly plan: readonly WaveSpec[];
+  phase: BattlePhase = 'idle';
+  wave = 0;
+  calm = false;
+  doubleShot = false;
+  breakOffs = 0;
+  timber = 0;
+  powderUntil = -1;
+  phaseAt = 0;
+
+  private readonly tier: TierSettings;
+  private readonly waves: WaveSampler;
+  private readonly combatants: Combatant[] = [];
+  private readonly balls: BallPool;
+  private readonly splashes: SplashPool;
+  private readonly smoke: SmokePool;
+  private readonly splinters: SplinterPool;
+  private readonly stores: StorePool;
+  private readonly boats: BoatPool;
+  private readonly arcs: ArcSet;
+  private readonly fog: FogBank;
+  private readonly rand: () => number;
+  private readonly caption: (text: string) => void;
+  private readonly sound: NonNullable<BattleOptions['onSound']>;
+  private readonly beat: NonNullable<BattleOptions['onBeat']>;
+  private title = '';
+  private readonly view: RaiderView = {
+    x: 0,
+    z: 0,
+    heading: 0,
+    headingRate: 0,
+    targetX: 0,
+    targetZ: 0,
+    windX: 0,
+    windZ: 0,
+    loadedPort: 0,
+    loadedStarboard: 0,
+    hull: 1,
+    avoidX: 0,
+    avoidZ: 0,
+  };
+  /** Only one raider lays its guns at a time, so warnings never stack (§7). */
+  private token = -1;
+  private tokenFree = 0;
+  private waveStart = { x: 0, z: 0, heading: 0 };
+  private now = 0;
+  private accumulator = 0;
+
+  constructor(o: BattleOptions) {
+    this.tier = o.tier;
+    this.waves = o.waves;
+    this.plan = o.plan ?? PASSAGE_WAVES;
+    this.rand = seededRandom(o.seed ?? 0xba771e);
+    this.caption = o.onCaption ?? (() => undefined);
+    this.sound = o.onSound ?? (() => undefined);
+    this.beat = o.onBeat ?? (() => undefined);
+    this.group.name = 'battle';
+    const budget = fxBudget(o.tier);
+    this.balls = new BallPool(budget.balls);
+    this.splashes = new SplashPool(budget.splashes);
+    this.smoke = new SmokePool(budget.smoke);
+    this.splinters = new SplinterPool(budget.splinters, this.splashes);
+    this.stores = new StorePool(budget.stores);
+    this.boats = new BoatPool(budget.boats);
+    this.arcs = new ArcSet(o.tier, 8);
+    this.fog = new FogBank(o.tier);
+    this.group.add(
+      this.fog.mesh,
+      this.arcs.mesh,
+      this.balls.mesh,
+      this.splashes.mesh,
+      this.smoke.mesh,
+      this.splinters.mesh,
+      this.stores.mesh,
+      this.boats.mesh,
+    );
+    if (budget.smoke === 0) this.smoke.mesh.visible = false;
+    if (budget.splinters === 0) this.splinters.mesh.visible = false;
+
+    this.combatants.push(this.makeCombatant(0, o.player, true));
+    const most = Math.max(...this.plan.map((w) => w.raiders.length));
+    const cap = o.tier.tier === 'lite' || o.tier.tier === 'low' ? 2 : 3;
+    for (let i = 0; i < Math.min(most, cap); i++) {
+      // Raiders draw a little lighter than your ship and leave the ocean's hull cut-out to you.
+      const ship = createBrigantine({
+        tier: o.tier.tier === 'ultra' || o.tier.tier === 'high' ? 'medium' : o.tier.tier,
+        oceanInteraction: false,
+        raider: true,
+      });
+      ship.group.visible = false;
+      this.group.add(ship.group);
+      this.combatants.push(this.makeCombatant(i + 1, ship, false));
+    }
+  }
+
+  private makeCombatant(index: number, ship: Brigantine, player: boolean): Combatant {
+    const stations = gunStations(this.tier.tier);
+    const reload = player ? undefined : RAIDER_RELOAD;
+    const obstacles: CircleObstacle[] = [];
+    const c: Combatant = {
+      index,
+      player,
+      ship,
+      name: player ? 'You' : '',
+      scale: 1,
+      hull: player ? PLAYER_HULL : 0,
+      maxHull: player ? PLAYER_HULL : 1,
+      batteries: [new Battery(PORT, stations, reload), new Battery(STARBOARD, stations, reload)],
+      aim: new Int8Array([-1, -1]),
+      brain: player ? null : new RaiderBrain(58 + index * 9),
+      helm: { trim: 0, rudder: 0 },
+      state: player ? 'afloat' : 'idle',
+      struckAt: 0,
+      lay: new Float32Array([-1, -1]),
+      inverse: new Matrix4(),
+      vx: 0,
+      vz: 0,
+      prevX: 0,
+      prevZ: 0,
+      obstacles,
+      env: { waves: this.waves, ground: null, obstacles, t: 0 },
+      captions: { struck: '', bearing: ['', ''] },
+      shots: [],
+      listSign: 1,
+    };
+    // Each battery's shot callback is bound once, so firing allocates nothing.
+    c.shots.push(
+      (gun) => this.shoot(c, 0, gun),
+      (gun) => this.shoot(c, 1, gun),
+    );
+    return c;
+  }
+
+  get player(): Combatant {
+    return this.combatants[0]!;
+  }
+
+  /** Obstacles the player's ship must steer round (the raiders' hulls), updated in place each frame. */
+  get playerObstacles(): readonly CircleObstacle[] {
+    return this.player.obstacles;
+  }
+
+  // ---- Flow -------------------------------------------------------------------------------------
+
+  start(t: number): void {
+    this.wave = 0;
+    this.breakOffs = 0;
+    this.timber = 0;
+    this.player.hull = PLAYER_HULL;
+    this.refit(this.player);
+    this.spawnWave(t);
+  }
+
+  skip(t: number): void {
+    this.clearRaiders();
+    this.fog.thin(t);
+    this.setPhase('skipped', t);
+  }
+
+  setCalm(calm: boolean): void {
+    this.calm = calm;
+    for (let i = 1; i < this.combatants.length; i++)
+      for (const b of this.combatants[i]!.batteries) b.reloadSeconds = RAIDER_RELOAD * (calm ? 1.5 : 1);
+  }
+
+  /** Between waves: a right answer earns a pick (§2.0); `null` skips the question. */
+  answer(pick: 'double-shot' | 'repairs' | null): void {
+    if (this.phase !== 'question') return;
+    if (pick === 'double-shot') this.doubleShot = true;
+    if (pick === 'repairs') this.repair(QUICK_REPAIR);
+    this.repair(BASE_REPAIR + this.timber * TIMBER_REPAIR);
+    this.timber = 0;
+    this.wave++;
+    if (this.wave >= this.plan.length) {
+      this.setPhase('won', this.now);
+      const p = this.player.ship.dynamics.pose;
+      this.emit('cheer', p.x, 2, p.z);
+      this.beat('won', p.x, p.z);
+    } else this.spawnWave(this.now);
+  }
+
+  private repair(points: number): void {
+    this.player.hull = Math.min(PLAYER_HULL, this.player.hull + points);
+    this.refit(this.player);
+  }
+
+  /** Holes in the canvas grow with the damage a hull has taken. */
+  private shotThrough(c: Combatant): void {
+    c.ship.uniforms.sailHoles.value = 0.32 * (1 - c.hull / c.maxHull);
+  }
+
+  /** A repaired or fresh ship: the shot holes in her hull are patched and her sails match her hull. */
+  private refit(c: Combatant): void {
+    c.ship.clearScorch();
+    this.shotThrough(c);
+  }
+
+  private emit(kind: BattleSound, x: number, y: number, z: number, gain = 1): void {
+    soundPos.x = x;
+    soundPos.y = y;
+    soundPos.z = z;
+    this.sound(kind, soundPos, gain);
+  }
+
+  private setPhase(phase: BattlePhase, t: number): void {
+    this.phase = phase;
+    this.phaseAt = t;
+  }
+
+  private clearRaiders(): void {
+    for (let i = 1; i < this.combatants.length; i++) {
+      const c = this.combatants[i]!;
+      c.state = 'idle';
+      c.ship.group.visible = false;
+      c.lay.fill(-1);
+    }
+    this.token = -1;
+    this.balls.clear();
+  }
+
+  private spawnWave(t: number): void {
+    this.clearRaiders();
+    const p = this.player.ship.dynamics.pose;
+    this.waveStart.x = p.x;
+    this.waveStart.z = p.z;
+    this.waveStart.heading = p.heading;
+    windAt(p.x, p.z, t, wind);
+    // Raiders hold the weather gauge: they come from upwind and the wind's beams, out of the fog.
+    const from = Math.atan2(-wind[0]!, -wind[1]!);
+    const spec = this.plan[this.wave]!;
+    const n = Math.min(spec.raiders.length, this.combatants.length - 1);
+    for (let i = 0; i < n; i++) {
+      const c = this.combatants[i + 1]!;
+      const r = spec.raiders[i]!;
+      // Close enough together that they come out of one fog bank.
+      const spread = n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.8;
+      const a = from + spread + (this.rand() - 0.5) * 0.3;
+      const x = p.x + Math.sin(a) * SPAWN_RANGE;
+      const z = p.z + Math.cos(a) * SPAWN_RANGE;
+      c.ship.dynamics.reset(x, z, Math.atan2(p.x - x, p.z - z));
+      c.ship.setName(r.name);
+      c.ship.setRig(r.kind);
+      c.name = r.name;
+      c.scale = SCALE[r.kind];
+      c.ship.group.scale.setScalar(c.scale);
+      // Hidden until the fog is thick enough to hide her (INTRO_REVEAL).
+      c.ship.group.visible = false;
+      c.ship.uniforms.flagLower.value = 0;
+      c.ship.group.rotation.set(0, 0, 0);
+      c.ship.group.position.set(x, 0, z);
+      c.hull = c.maxHull = HULL[r.kind];
+      this.refit(c);
+      c.state = 'afloat';
+      c.prevX = x;
+      c.prevZ = z;
+      c.vx = c.vz = 0;
+      c.lay.fill(-1);
+      for (const b of c.batteries) b.loadAll();
+      c.captions.struck = `${r.name} strikes her colours`;
+      c.captions.bearing[0] = `${r.name} is bearing on you, port side`;
+      c.captions.bearing[1] = `${r.name} is bearing on you, starboard side`;
+    }
+    for (const b of this.player.batteries) b.loadAll();
+    // The fog bank forms in front of them, with room for the way they make during the intro.
+    this.fog.form(p.x, p.z, from, SPAWN_RANGE - 35, 0.9 + (n - 1) * 0.4, t, this.rand);
+    this.title = `Wave ${this.wave + 1} of ${this.plan.length}: ${joinNames(spec.raiders, n)}`;
+    this.setPhase('intro', t);
+    this.caption(lookoutCall(from - p.heading));
+    this.beat('intro', this.fog.centre.x, this.fog.centre.z);
+  }
+
+  private breakOff(t: number): void {
+    this.breakOffs++;
+    this.setPhase('breakoff', t);
+    const p = this.player.ship.dynamics.pose;
+    this.beat('breakoff', p.x, p.z);
+    this.caption('Break off! The crew pulls back to make repairs.');
+  }
+
+  // ---- Guns -------------------------------------------------------------------------------------
+
+  /** Best raider your `side` bears on (−1 none). */
+  private target(c: Combatant, sideIdx: number): number {
+    const p = c.ship.dynamics.pose;
+    let best = -1;
+    let bestScore = Infinity;
+    for (let i = 0; i < this.combatants.length; i++) {
+      const o = this.combatants[i]!;
+      if (o === c || o.state !== 'afloat' || o.player === c.player) continue;
+      const op = o.ship.dynamics.pose;
+      const dx = op.x - p.x;
+      const dz = op.z - p.z;
+      const off = bearing(p.heading, SIDE_OF[sideIdx]!, dx, dz, 12 * o.scale);
+      if (!Number.isFinite(off)) continue;
+      const score = off * 60 + Math.hypot(dx, dz) * 0.2;
+      if (score < bestScore) {
+        bestScore = score;
+        best = i;
+      }
+    }
+    return best;
+  }
+
+  /** True if your `side` bears on any raider right now. */
+  bears(sideIdx: number): boolean {
+    return this.phase === 'fight' && this.target(this.player, sideIdx) >= 0;
+  }
+
+  /**
+   * Fires your batteries: `which` 'bearing' fires every side that bears and is loaded (Space, A, Fire);
+   * 'port' and 'starboard' fire one side (Z/C, LB/RB). Returns how many guns went off.
+   */
+  fire(which: 'bearing' | 'port' | 'starboard'): number {
+    if (this.phase !== 'fight') return 0;
+    let total = 0;
+    for (let s = 0; s < 2; s++) {
+      if (which === 'port' && s !== 0) continue;
+      if (which === 'starboard' && s !== 1) continue;
+      const target = this.target(this.player, s);
+      if (target < 0) continue;
+      const b = this.player.batteries[s]!;
+      this.player.aim[s] = target;
+      const n = b.fire(this.now);
+      if (n > 0) {
+        this.caption(s === 0 ? 'Port battery fires' : 'Starboard battery fires');
+        const tp = this.combatants[target]!.ship.dynamics.pose;
+        this.beat('broadside', tp.x, tp.z);
+      }
+      total += n;
+    }
+    if (total === 0 && which !== 'bearing') this.caption('Nothing bears on that side');
+    return total;
+  }
+
+  private shoot(c: Combatant, sideIdx: number, gun: number): void {
+    const b = c.batteries[sideIdx]!;
+    const targetIdx = c.player ? c.aim[sideIdx]! : 0;
+    const target = this.combatants[targetIdx];
+    if (!target || target.state === 'gone') return;
+    muzzleLocal(SIDE_OF[sideIdx]!, b.stations[gun]!, muzzle);
+    c.ship.group.updateMatrixWorld();
+    tmpWorld.set(muzzle.x, muzzle.y, muzzle.z);
+    c.ship.group.localToWorld(tmpWorld);
+    const tp = target.ship.dynamics.pose;
+    const flight = leadPoint(
+      tmpWorld.x,
+      tmpWorld.y,
+      tmpWorld.z,
+      tp.x,
+      1.2 * target.scale,
+      tp.z,
+      target.vx,
+      target.vz,
+      aimOut,
+    );
+    const dx = aimOut[0]! - tmpWorld.x;
+    const dz = aimOut[1]! - tmpWorld.z;
+    const range = Math.hypot(dx, dz);
+    let elevation = Number.isFinite(flight) ? elevationFor(range, 1.2 * target.scale - tmpWorld.y) : 0.08;
+    // Your gunners are steadier than theirs (§4.2).
+    const spreadYaw = (c.player ? 0.03 : 0.1) * (this.rand() + this.rand() - 1);
+    const spreadElev = (c.player ? 0.01 : 0.03) * (this.rand() + this.rand() - 1);
+    elevation = (Number.isFinite(elevation) ? elevation : 0.08) + spreadElev;
+    const yaw = Math.atan2(dx, dz) + spreadYaw;
+    const horiz = MUZZLE_SPEED * Math.cos(elevation);
+    const vx = Math.sin(yaw) * horiz;
+    const vz = Math.cos(yaw) * horiz;
+    const vy = MUZZLE_SPEED * Math.sin(elevation);
+    let damage = (c.player ? 6 + this.rand() * 3 : 4 + this.rand() * 3) * (6 / b.count);
+    if (c.player && this.doubleShot) damage *= DOUBLE_SHOT;
+    if (!c.player && this.calm) damage *= 0.5;
+    this.balls.spawn(c.index, tmpWorld.x, tmpWorld.y, tmpWorld.z, vx, vy, vz, damage);
+    this.emit('cannon', tmpWorld.x, tmpWorld.y, tmpWorld.z, 0.85 + this.rand() * 0.3);
+    // Smoke rolls out of the gunport and is carried along with the ship.
+    const ux = Math.sin(yaw);
+    const uz = Math.cos(yaw);
+    const rm = world.reducedMotion.value > 0.5;
+    for (let k = 0; k < 3; k++) {
+      const s = 5 + k * 5;
+      this.smoke.spawn(
+        tmpWorld.x + ux * (0.5 + k * 1.2),
+        tmpWorld.y + k * 0.15,
+        tmpWorld.z + uz * (0.5 + k * 1.2),
+        ux * s + c.vx,
+        0.5 + k * 0.3,
+        uz * s + c.vz,
+        this.now,
+        rm ? 2.2 : 5 + k,
+        (rm ? 0.6 : 1) * (1.2 + k * 0.45),
+      );
+    }
+    if (c.player && this.doubleShot && gun === 0) this.doubleShot = false;
+    // The hull heels away from its own broadside: each gun's recoil lifts the firing side a touch.
+    const calmMotion = world.reducedMotion.value > 0.5 ? 0.5 : 1;
+    c.ship.dynamics.kick(SIDE_OF[sideIdx]! * 0.04 * (6 / b.count) * c.scale * calmMotion);
+  }
+
+  // ---- Frame ------------------------------------------------------------------------------------
+
+  update(dt: number, t: number): void {
+    this.now = t;
+    const player = this.player;
+    // Raiders' sailing and positions; the player's ship is stepped by its owner.
+    this.trackVelocity(player, dt);
+    this.updateObstacles();
+    for (let i = 1; i < this.combatants.length; i++) {
+      const c = this.combatants[i]!;
+      if (c.state === 'idle' || c.state === 'gone') continue;
+      if (c.state === 'afloat') this.steerRaider(c, dt, t);
+      if (c.state === 'struck') this.settle(c, dt, t);
+      else {
+        c.env.t = t;
+        c.ship.update(dt, t, c.env);
+      }
+      this.trackVelocity(c, dt);
+    }
+    for (const c of this.combatants) {
+      c.ship.group.updateMatrixWorld();
+      c.inverse.copy(c.ship.group.matrixWorld).invert();
+    }
+
+    if (this.phase === 'fight') this.raiderGunnery(dt);
+    if (this.phase === 'fight' || this.phase === 'lull') {
+      const boost = t < this.powderUntil ? 1.6 : 1;
+      for (const b of player.batteries) b.reloadBoost = boost;
+      for (const c of this.combatants) {
+        if (c.state !== 'afloat') continue;
+        c.batteries[0]!.update(dt, t, c.shots[0]!);
+        c.batteries[1]!.update(dt, t, c.shots[1]!);
+      }
+    }
+    for (const c of this.combatants) {
+      if (c.state !== 'afloat') continue;
+      for (let s = 0; s < 2; s++) {
+        const b = c.batteries[s]!;
+        for (let g = 0; g < b.count; g++) c.ship.setGunRecoil(s * 6 + g, b.recoil(g, t));
+      }
+    }
+
+    this.accumulator = Math.min(this.accumulator + dt, SUBSTEP * 6);
+    while (this.accumulator >= SUBSTEP) {
+      this.balls.step(SUBSTEP);
+      this.collide(t);
+      this.accumulator -= SUBSTEP;
+    }
+    this.collectStores(t);
+    this.flow(t);
+
+    windAt(player.ship.dynamics.pose.x, player.ship.dynamics.pose.z, t, wind);
+    this.balls.sync();
+    this.splashes.sync(t);
+    this.smoke.update(dt, t, wind[0]!, wind[1]!);
+    this.splinters.update(dt, t, this.waves);
+    this.stores.update(t, this.waves);
+    this.boats.update(dt, t, this.waves);
+    this.fog.update(dt, t, wind[0]!, wind[1]!);
+    this.drawArcs();
+  }
+
+  private trackVelocity(c: Combatant, dt: number): void {
+    const p = c.ship.dynamics.pose;
+    if (dt > 0) {
+      const k = Math.min(1, dt * 4);
+      c.vx += ((p.x - c.prevX) / dt - c.vx) * k;
+      c.vz += ((p.z - c.prevZ) / dt - c.vz) * k;
+    }
+    c.prevX = p.x;
+    c.prevZ = p.z;
+  }
+
+  private updateObstacles(): void {
+    // Two circles per hull (fore and aft) in every other ship's obstacle list; arrays are reused.
+    for (const c of this.combatants) {
+      let n = 0;
+      for (const o of this.combatants) {
+        if (o === c || (o.state !== 'afloat' && o.state !== 'struck')) continue;
+        const p = o.ship.dynamics.pose;
+        for (let k = -1; k <= 1; k += 2) {
+          let ob = c.obstacles[n];
+          if (!ob) c.obstacles.push((ob = { x: 0, z: 0, r: 0 }));
+          ob.x = p.x + Math.sin(p.heading) * 5.5 * k * o.scale;
+          ob.z = p.z + Math.cos(p.heading) * 5.5 * k * o.scale;
+          ob.r = 4.2 * o.scale;
+          n++;
+        }
+      }
+      c.obstacles.length = n;
+    }
+  }
+
+  private steerRaider(c: Combatant, dt: number, t: number): void {
+    const v = this.view;
+    const p = c.ship.dynamics.pose;
+    const pp = this.player.ship.dynamics.pose;
+    windAt(p.x, p.z, t, wind);
+    v.x = p.x;
+    v.z = p.z;
+    v.heading = p.heading;
+    v.headingRate = c.ship.dynamics.headingRate;
+    v.targetX = pp.x;
+    v.targetZ = pp.z;
+    v.windX = wind[0]!;
+    v.windZ = wind[1]!;
+    v.loadedPort = c.batteries[0]!.loadedCount();
+    v.loadedStarboard = c.batteries[1]!.loadedCount();
+    v.hull = c.hull / c.maxHull;
+    v.avoidX = 0;
+    v.avoidZ = 0;
+    for (let i = 1; i < this.combatants.length; i++) {
+      const o = this.combatants[i]!;
+      if (o === c || o.state !== 'afloat') continue;
+      const op = o.ship.dynamics.pose;
+      const dx = p.x - op.x;
+      const dz = p.z - op.z;
+      const d = Math.hypot(dx, dz);
+      if (d < 45 && d > 0.01) {
+        v.avoidX += (dx / d) * (45 - d);
+        v.avoidZ += (dz / d) * (45 - d);
+      }
+    }
+    // Nothing to do while the player breaks off or between waves: heave to.
+    if (this.phase !== 'fight' && this.phase !== 'intro') {
+      c.helm.trim = 0.15;
+      c.helm.rudder = 0;
+    } else c.brain!.steer(dt, v, c.helm);
+    c.ship.dynamics.setInput(c.helm);
+  }
+
+  private raiderGunnery(dt: number): void {
+    const pp = this.player.ship.dynamics.pose;
+    const layTime = this.calm ? LAY_SECONDS_CALM : LAY_SECONDS;
+    if (this.token >= 0 && this.now > this.tokenFree) {
+      const holder = this.combatants[this.token]!;
+      if (
+        holder.lay[0]! < 0 &&
+        holder.lay[1]! < 0 &&
+        !holder.batteries[0]!.firing() &&
+        !holder.batteries[1]!.firing()
+      )
+        this.token = -1;
+    }
+    for (let i = 1; i < this.combatants.length; i++) {
+      const c = this.combatants[i]!;
+      if (c.state !== 'afloat') continue;
+      const p = c.ship.dynamics.pose;
+      for (let s = 0; s < 2; s++) {
+        const b = c.batteries[s]!;
+        const bears = Number.isFinite(bearing(p.heading, SIDE_OF[s]!, pp.x - p.x, pp.z - p.z, 12));
+        const ready = b.loadedCount() >= Math.ceil(b.count / 2) && !b.firing();
+        if (c.lay[s]! >= 0) {
+          if (!bears) {
+            c.lay[s] = Math.max(-1, c.lay[s]! - dt * 1.5);
+            if (c.lay[s]! <= 0) c.lay[s] = -1;
+            continue;
+          }
+          c.lay[s] = Math.min(1, c.lay[s]! + dt / layTime);
+          if (c.lay[s]! >= 1) {
+            b.fire(this.now);
+            this.beat('incoming', p.x, p.z);
+            c.lay[s] = -1;
+            this.tokenFree = this.now + 2.5;
+          }
+        } else if (bears && ready && (this.token < 0 || this.token === i)) {
+          this.token = i;
+          c.lay[s] = 0;
+          this.caption(c.captions.bearing[s]!);
+        }
+      }
+    }
+  }
+
+  private collide(t: number): void {
+    const balls = this.balls;
+    for (let i = 0; i < balls.size; i++) {
+      const owner = balls.owner[i]!;
+      if (owner === -1) continue;
+      const x = balls.x[i]!;
+      const y = balls.y[i]!;
+      const z = balls.z[i]!;
+      if (balls.age[i]! > 8) {
+        balls.free(i);
+        continue;
+      }
+      // A raider's ball passing close by your ship whistles once.
+      if (owner !== 0 && !balls.whizzed[i]) {
+        const pp = this.player.ship.dynamics.pose;
+        const dx = x - pp.x;
+        const dz = z - pp.z;
+        if (dx * dx + dz * dz < WHIZ_RADIUS * WHIZ_RADIUS) {
+          balls.whizzed[i] = 1;
+          this.emit('whiz', x, y, z);
+        }
+      }
+      let hit = false;
+      for (let k = 0; k < this.combatants.length; k++) {
+        const c = this.combatants[k]!;
+        if (k === owner || (c.state !== 'afloat' && c.state !== 'struck')) continue;
+        const p = c.ship.dynamics.pose;
+        const dx = x - p.x;
+        const dz = z - p.z;
+        if (dx * dx + dz * dz > 196 * c.scale * c.scale) continue;
+        tmpLocal.set(x, y, z).applyMatrix4(c.inverse);
+        if (!insideHull(tmpLocal.x, tmpLocal.y, tmpLocal.z)) continue;
+        c.ship.addScorch(tmpLocal.x, tmpLocal.y, tmpLocal.z);
+        this.hit(c, balls.damage[i]!, x, y, z, tmpLocal.x >= 0 ? 1 : -1, t);
+        hit = true;
+        break;
+      }
+      if (hit) {
+        balls.free(i);
+        continue;
+      }
+      if (y < 1.5) {
+        const sea = this.waves.heightAt(x, z, t);
+        if (y < sea) {
+          this.splashes.spawn(x, sea, z, t, 2.4 + this.rand() * 0.8, 1, this.rand());
+          this.emit('splash', x, sea, z, 0.8 + this.rand() * 0.3);
+          balls.free(i);
+        }
+      }
+    }
+  }
+
+  private hit(
+    c: Combatant,
+    damage: number,
+    x: number,
+    y: number,
+    z: number,
+    localSide: number,
+    t: number,
+  ): void {
+    if (c.state !== 'afloat') {
+      this.splinters.burst(x, y, z, 0, 0, 3, this.rand);
+      return;
+    }
+    c.hull = Math.max(0, c.hull - damage);
+    this.shotThrough(c);
+    // Splinters fly off the struck side, outward.
+    const h = c.ship.dynamics.pose.heading;
+    const nx = Math.cos(h) * localSide;
+    const nz = -Math.sin(h) * localSide;
+    this.splinters.burst(x, y, z, nx, nz, 4, this.rand);
+    this.emit('timber', x, y, z, c.player ? 1.15 : 0.9);
+    this.splashes.spawn(x + nx * 0.8, this.waves.heightAt(x, z, t), z + nz * 0.8, t, 1.3, 0, this.rand());
+    // A ball striking home rocks the hull away from it, with a short shudder.
+    const rm = world.reducedMotion.value > 0.5;
+    c.ship.dynamics.kick(localSide * (rm ? 0.03 : 0.07), (this.rand() - 0.5) * (rm ? 0.02 : 0.05));
+    if (c.player) {
+      c.ship.dynamics.pose.shake = Math.max(c.ship.dynamics.pose.shake, rm ? 0 : 0.3);
+      this.caption('Hit! Your hull takes a ball');
+      if (c.hull <= BREAK_OFF_AT && this.phase === 'fight') this.breakOff(t);
+      return;
+    }
+    this.caption('Hit!');
+    if (c.hull <= 0) this.strike(c, t);
+  }
+
+  private strike(c: Combatant, t: number): void {
+    c.state = 'struck';
+    c.struckAt = t;
+    c.lay.fill(-1);
+    c.listSign = this.rand() < 0.5 ? 1 : -1;
+    const sp = c.ship.dynamics.pose;
+    this.emit('groan', sp.x, 1.5, sp.z);
+    if (this.token === c.index) this.token = -1;
+    this.caption(c.captions.struck);
+    const p = c.ship.dynamics.pose;
+    this.beat('strike', p.x, p.z);
+    const pp = this.player.ship.dynamics.pose;
+    // The crew rows away from you, from the far side of the hull.
+    const away = Math.atan2(p.x - pp.x, p.z - pp.z);
+    this.boats.spawn(p.x + Math.sin(away) * 8, p.z + Math.cos(away) * 8, away + 1.1, t);
+    const count = 3 + Math.floor(this.rand() * 3);
+    for (let k = 0; k < count; k++) {
+      const a = this.rand() * Math.PI * 2;
+      const r = 6 + this.rand() * 8;
+      this.stores.spawn(
+        p.x + Math.sin(a) * r,
+        p.z + Math.cos(a) * r,
+        this.rand() < 0.6 ? STORE_TIMBER : STORE_POWDER,
+        t + STORE_LIFE,
+      );
+    }
+    // Wreckage: broken planks scattered along her side (not collectable), so the stores stand out.
+    const bits = 2 + Math.floor(this.rand() * 3);
+    for (let k = 0; k < bits; k++) {
+      const along = (this.rand() - 0.5) * 20 * c.scale;
+      const off = (this.rand() - 0.5) * 9;
+      this.stores.spawn(
+        p.x + Math.sin(p.heading) * along + Math.cos(p.heading) * off,
+        p.z + Math.cos(p.heading) * along - Math.sin(p.heading) * off,
+        STORE_WRECKAGE,
+        t + STORE_LIFE * (0.5 + this.rand() * 0.4),
+      );
+    }
+  }
+
+  /**
+   * A struck raider, staged one beat at a time (battle-plan.md §2): the colours come down the halyard
+   * (a small lift first, then hand over hand), the hull takes a list that overshoots and settles,
+   * the stern sinks until the bow lifts clear, and she slips under with a last gout of spray.
+   */
+  private settle(c: Combatant, dt: number, t: number): void {
+    const age = t - c.struckAt;
+    const g = c.ship.group;
+    const pose = c.ship.dynamics.pose;
+    c.ship.uniforms.flagLower.value = haulDown(age);
+    // She keeps riding the swell at first, so she doesn't freeze on the water.
+    const swell = this.waves.heightAt(pose.x, pose.z, t) * Math.max(0, 1 - age / 8);
+    const list = c.listSign * 0.26 * spring01(clamp01((age - 1.2) / 3.2));
+    const bowUp = -0.3 * smooth(clamp01((age - 5) / 6)) - 0.22 * smooth(clamp01((age - 11) / 4.5));
+    const sink =
+      1.1 * smooth(clamp01((age - 1.2) / 4)) +
+      3.6 * smooth(clamp01((age - 5) / 6)) +
+      9 * clamp01((age - 11) / 5) ** 2;
+    g.position.set(pose.x, swell - sink * c.scale, pose.z);
+    g.rotation.set(bowUp, pose.heading, list, 'YXZ');
+    // Air bubbling out along the waterline while she goes down.
+    if (age > 1.5 && age < 15.5 && this.rand() < dt * (age > 11 ? 6 : 2.5)) {
+      const along = (this.rand() - 0.6) * 18 * c.scale;
+      this.splashes.spawn(
+        pose.x + Math.sin(pose.heading) * along,
+        this.waves.heightAt(pose.x, pose.z, t),
+        pose.z + Math.cos(pose.heading) * along,
+        t,
+        0.9 + this.rand() * 0.6,
+        0,
+        this.rand(),
+      );
+    }
+    // Follow-through: the bow slips under with a last gout of spray.
+    if (age >= 15.6 && age - dt < 15.6) {
+      const fx = Math.sin(pose.heading);
+      const fz = Math.cos(pose.heading);
+      const bx = pose.x + fx * 9 * c.scale;
+      const bz = pose.z + fz * 9 * c.scale;
+      const y = this.waves.heightAt(bx, bz, t);
+      this.splashes.spawn(bx, y, bz, t, 3.4, 1, this.rand());
+      this.emit('sink', bx, y, bz);
+      this.splashes.spawn(bx - fx * 4, y, bz - fz * 4, t, 2.2, 0, this.rand());
+    }
+    if (age > SINK_SECONDS) {
+      c.state = 'gone';
+      g.visible = false;
+    }
+  }
+
+  private collectStores(t: number): void {
+    const p = this.player.ship.dynamics.pose;
+    const s = this.stores;
+    for (let i = 0; i < s.size; i++) {
+      if (!s.collectable(i)) continue;
+      const dx = s.x[i]! - p.x;
+      const dz = s.z[i]! - p.z;
+      if (dx * dx + dz * dz > COLLECT_RADIUS * COLLECT_RADIUS) continue;
+      s.live[i] = 0;
+      if (s.kind[i] === STORE_TIMBER) {
+        this.timber++;
+        this.caption('Timber aboard: repairs between waves');
+      } else {
+        this.powderUntil = t + 20;
+        this.caption('Dry powder aboard: faster reloads');
+      }
+    }
+  }
+
+  private flow(t: number): void {
+    if (this.phase === 'intro') {
+      const age = t - this.phaseAt;
+      if (age >= INTRO_REVEAL)
+        for (let i = 1; i < this.combatants.length; i++) {
+          const c = this.combatants[i]!;
+          if (c.state === 'afloat') c.ship.group.visible = true;
+        }
+      if (age >= INTRO_SECONDS) {
+        this.fog.thin(t);
+        this.setPhase('fight', t);
+        this.caption('Run out the guns!');
+      }
+    } else if (this.phase === 'fight') {
+      let left = 0;
+      for (let i = 1; i < this.combatants.length; i++) if (this.combatants[i]!.state === 'afloat') left++;
+      if (left === 0) {
+        this.setPhase('lull', t);
+        this.caption('The wave is beaten. Collect the stores before they sink.');
+        const p = this.player.ship.dynamics.pose;
+        this.emit('cheer', p.x, 2, p.z, 0.8);
+        this.beat('clear', p.x, p.z);
+      }
+    } else if (this.phase === 'lull') {
+      let afloat = 0;
+      for (let i = 0; i < this.stores.size; i++) if (this.stores.collectable(i)) afloat++;
+      if (t - this.phaseAt > LULL_SECONDS || (afloat === 0 && t - this.phaseAt > 4))
+        this.setPhase('question', t);
+    } else if (this.phase === 'breakoff' && t - this.phaseAt > 2.5) {
+      // Back to the start of the same wave with a whole hull; cleared waves stay cleared.
+      this.player.hull = PLAYER_HULL;
+      this.refit(this.player);
+      const d = this.player.ship.dynamics;
+      d.reset(this.waveStart.x, this.waveStart.z, this.waveStart.heading);
+      this.player.prevX = this.waveStart.x;
+      this.player.prevZ = this.waveStart.z;
+      this.player.vx = this.player.vz = 0;
+      this.spawnWave(t);
+    }
+  }
+
+  private drawArcs(): void {
+    const arcs = this.arcs;
+    arcs.begin();
+    if (this.phase === 'fight' || this.phase === 'lull') {
+      const pl = this.player;
+      const p = pl.ship.dynamics.pose;
+      for (let s = 0; s < 2; s++) {
+        const glow = this.phase === 'fight' && this.target(pl, s) >= 0 ? 1 : 0;
+        arcs.add(
+          p.x,
+          p.z,
+          p.heading,
+          SIDE_OF[s]!,
+          ARC_FIRING,
+          1,
+          glow * (0.4 + 0.6 * readyShare(pl.batteries[s]!)),
+        );
+      }
+      for (let i = 1; i < this.combatants.length; i++) {
+        const c = this.combatants[i]!;
+        if (c.state !== 'afloat') continue;
+        const cp = c.ship.dynamics.pose;
+        for (let s = 0; s < 2; s++) {
+          const lay = c.lay[s]!;
+          if (lay < 0) continue;
+          arcs.add(cp.x, cp.z, cp.heading, SIDE_OF[s]!, ARC_WARNING, lay, 0);
+        }
+      }
+    }
+    arcs.end();
+  }
+
+  // ---- Read-outs --------------------------------------------------------------------------------
+
+  /** Readiness of your gun `i` on side 0 (port) or 1 (starboard): 0 empty … 1 loaded. */
+  readiness(sideIdx: number, gun: number): number {
+    return this.player.batteries[sideIdx]!.readiness(gun);
+  }
+
+  gunCount(): number {
+    return this.player.batteries[0]!.count;
+  }
+
+  snapshot(out: BattleSnapshot): BattleSnapshot {
+    out.phase = this.phase;
+    out.wave = this.wave;
+    out.waves = this.plan.length;
+    out.hull = this.player.hull / PLAYER_HULL;
+    let left = 0;
+    let total = 0;
+    for (let i = 1; i < this.combatants.length; i++) {
+      const c = this.combatants[i]!;
+      if (c.state === 'idle') continue;
+      total++;
+      if (c.state === 'afloat') left++;
+    }
+    out.raidersLeft = left;
+    out.raidersTotal = total;
+    out.bears[0] = this.bears(0);
+    out.bears[1] = this.bears(1);
+    out.breakOffs = this.breakOffs;
+    out.calm = this.calm;
+    out.doubleShot = this.doubleShot;
+    out.stores.timber = this.timber;
+    out.stores.powder = this.now < this.powderUntil ? 1 : 0;
+    out.lull = this.phase === 'lull' ? Math.max(0, LULL_SECONDS - (this.now - this.phaseAt)) : 0;
+    out.title = this.title;
+    return out;
+  }
+
+  /** Raider poses for tests and the debug API. */
+  raiders(): { name: string; x: number; z: number; heading: number; hull: number; state: string }[] {
+    return this.combatants.slice(1).map((c) => ({
+      name: c.name,
+      x: c.ship.dynamics.pose.x,
+      z: c.ship.dynamics.pose.z,
+      heading: c.ship.dynamics.pose.heading,
+      hull: c.hull,
+      state: c.state,
+    }));
+  }
+
+  /** Every ship (yours first) for draw-call accounting. */
+  ships(): Brigantine[] {
+    return this.combatants.map((c) => c.ship);
+  }
+
+  dispose(): void {
+    for (let i = 1; i < this.combatants.length; i++) this.combatants[i]!.ship.dispose();
+    this.fog.mesh.material.dispose();
+    this.group.traverse((o) => {
+      const m = o as unknown as {
+        isInstancedMesh?: boolean;
+        geometry?: { dispose(): void };
+        material?: { dispose(): void };
+      };
+      if (m.isInstancedMesh) {
+        m.geometry?.dispose();
+        m.material?.dispose();
+      }
+    });
+  }
+}
+
+/** "Wrong Fork", "Wrong Fork and Unchecked", "A, B and C". */
+function joinNames(raiders: readonly RaiderSpec[], n: number): string {
+  let s = '';
+  for (let i = 0; i < n; i++) s += (i === 0 ? '' : i === n - 1 ? ' and ' : ', ') + raiders[i]!.name;
+  return s;
+}
+
+/** The lookout's call for fog lying `rel` radians off your bow (positive to port). */
+export function lookoutCall(rel: number): string {
+  const a = Math.atan2(Math.sin(rel), Math.cos(rel));
+  const off = Math.abs(a);
+  if (off < 0.2) return LOOKOUT.ahead;
+  if (off > Math.PI - 0.3) return LOOKOUT.astern;
+  const row = a > 0 ? LOOKOUT.port : LOOKOUT.starboard;
+  return row[off < 1.0 ? 0 : off < 2.2 ? 1 : 2];
+}
+
+function clamp01(x: number): number {
+  return x < 0 ? 0 : x > 1 ? 1 : x;
+}
+
+function smooth(x: number): number {
+  return x * x * (3 - 2 * x);
+}
+
+/** 0 → 1 with one overshoot and settle, like a hull taking a list. */
+function spring01(x: number): number {
+  if (x <= 0) return 0;
+  return 1 - Math.exp(-5 * x) * Math.cos(7 * x);
+}
+
+/**
+ * The struck colours (0 flying … 1 at the deck): a small lift as the halyard is cast off, then down
+ * hand over hand, slowing as it nears the deck.
+ */
+export function haulDown(age: number): number {
+  if (age <= 0) return 0;
+  if (age < 0.4) return -0.012 * Math.sin((age / 0.4) * Math.PI);
+  const k = clamp01((age - 0.4) / 3);
+  const eased = k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2;
+  const hands = Math.sin(k * Math.PI * 10) * 0.012 * (1 - k);
+  return clamp01(eased + hands);
+}
+
+function readyShare(b: Battery): number {
+  return b.loadedCount() / b.count;
+}
