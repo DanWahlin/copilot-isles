@@ -36,7 +36,9 @@
 
 - **Briefing (Dan's note: what are the lines on the water?).** A short card before each battle ("Before the fog lifts") with four drawn rows: gold arcs (where your guns reach), red chevrons (a raider is about to fire), cartridges (reloading, Space / Z / C), and Bring her round (R). Set sail (Enter, Space, Esc) or Skip closes it; "Don't show this again" is kept in localStorage. Keyboard focus starts on Set sail; all buttons are at least 44 px; it fits a 390 px phone. Dev flags `?brief` / `?nobrief`.
 
-## Teaching map (DRAFT v2 for Dan's review; no code yet)
+## Teaching map (v2; built 2026-10-04: `BATTLE_PLANS` in `src/world/battle/battle.ts`, new quizzes N0.1, N1.1, N1.2)
+
+Each wave carries its own quiz id, so the bosun asks about the habit that wave stands for. Battle 2 plays on the dev page with `?battle=2`; in the game it follows the Seal of Meridian once Thousand-Bough Isle exists. Wave 3 is in (*Max Effort*, *Overthought*). The wave 2 merchant is not built yet (Dan to decide).
 
 One habit per wave, from the chapter you just finished. The course states these as steps to do (and why), not as named "pitfalls", so each wave is framed as the habit. Every quote is a **full sentence, verbatim**, checked against `github/copilot-app-for-beginners` (main, 61a5da6) on 2026-10-04. The only teaching text in a wave is the bosun's question and its cited sentence; lookout calls stay plain ("Sails in the fog, off the starboard bow!") and teach nothing. A wrong answer shows the right one and the section link, and never costs anything. *Stale Branch* is dropped (no course text).
 

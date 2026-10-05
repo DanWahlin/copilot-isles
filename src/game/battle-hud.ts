@@ -82,6 +82,7 @@ export class BattleHud {
   private readonly hintText: HTMLSpanElement;
   private readonly assistBtn: HTMLButtonElement;
   private lastHint = '';
+  private wonText = 'The raiders are back in the fog.';
   private briefing: HTMLDivElement | null = null;
   private lastAssist = false;
   private readonly fillCache: number[][] = [[], []];
@@ -240,6 +241,11 @@ export class BattleHud {
     go.focus();
   }
 
+  /** The win card's line for this battle (BattlePlan.won). */
+  setWonText(text: string): void {
+    this.wonText = text;
+  }
+
   setQuiz(quiz: ChoiceQuiz | null): void {
     this.quiz = quiz;
   }
@@ -344,8 +350,8 @@ export class BattleHud {
       }
     } else if (s.phase === 'won') {
       this.card.classList.add('show', 'slim');
-      this.card.innerHTML =
-        '<h2>The passage is clear</h2><p>The raiders are back in the fog. Port Meridian lies ahead.</p>';
+      this.card.innerHTML = '<h2>The passage is clear</h2><p></p>';
+      this.card.querySelector('p')!.textContent = this.wonText;
     }
   }
 

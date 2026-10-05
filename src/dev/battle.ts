@@ -8,7 +8,7 @@ import { BattleHud } from '../game/battle-hud';
 import { Helm } from '../game/helm';
 import { QUIZZES } from '../learn/content';
 import type { ChoiceQuiz } from '../learn/types';
-import { Battle, type BattleSnapshot } from '../world/battle/battle';
+import { BATTLE_PLANS, Battle, type BattleSnapshot } from '../world/battle/battle';
 import { createOcean } from '../world/ocean/ocean';
 import { createBrigantine } from '../world/ship';
 import { createSky } from '../world/sky/sky-system';
@@ -21,7 +21,7 @@ import { compileAndStart, createDevHarness, engineStats } from './harness';
  * helmsman steers to the best broadside; any helm key takes it back), drag to look.
  * Flags: ?webgl, ?tier=, ?seed=, ?calm, ?shot (no stats panel), ?wait (don't start the battle),
  * ?nodirector (no camera director), ?nofollow (the camera doesn't follow the raiders),
- * ?brief / ?nobrief (always / never show the pre-battle briefing).
+ * ?brief / ?nobrief (always / never show the pre-battle briefing), ?battle=2 (the Chapter 01 battle).
  */
 const harness = await createDevHarness();
 const { q, backend, tier, canvas, renderer, engine } = harness;
@@ -60,7 +60,13 @@ addEventListener('keydown', unlock);
 const director = new BattleCamera(() => world.reducedMotion.value > 0.5);
 if (q.has('nodirector')) director.enabled = false;
 if (q.has('nofollow')) director.follow = false;
+// ?battle=2 plays battle 2 (the Chapter 01 recap); battle 1 is the default.
+const plan = BATTLE_PLANS[Math.min(BATTLE_PLANS.length, Math.max(1, Number(q.get('battle') ?? 1))) - 1]!;
+const quizFor = (wave: number) =>
+  (QUIZZES.get(plan.waves[wave]?.quiz ?? '') as ChoiceQuiz | undefined) ?? null;
+let quizWave = -1;
 const battle = new Battle({
+  plan: plan.waves,
   tier,
   waves: ocean.field,
   player: ship,
@@ -71,7 +77,7 @@ const battle = new Battle({
 });
 scene.add(battle.group);
 if (q.has('calm')) battle.setCalm(true);
-hud.setQuiz((QUIZZES.get('T0.5') as ChoiceQuiz | undefined) ?? null);
+hud.setWonText(plan.won);
 
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
@@ -193,6 +199,11 @@ engine.add({
     if (t - hudAt > 0.1) {
       hudAt = t;
       battle.snapshot(snap);
+      // Each wave has its own question (the habit that wave stands for).
+      if (snap.wave !== quizWave) {
+        quizWave = snap.wave;
+        hud.setQuiz(quizFor(snap.wave));
+      }
       hud.show(snap.phase !== 'idle' && snap.phase !== 'skipped');
       hud.update(snap, battle);
       // "Brass of the Storm" from the briefing to the win; the open-sea track before and after.

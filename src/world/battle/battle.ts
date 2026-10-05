@@ -31,23 +31,89 @@ export interface RaiderSpec {
 
 export interface WaveSpec {
   raiders: readonly RaiderSpec[];
+  /**
+   * The bosun's question after this wave: a ChoiceQuiz id from src/learn, about the one habit this
+   * wave stands for (.plans/battle-plan.md "Teaching map"). The battle only carries the id.
+   */
+  quiz: string;
 }
 
-/** The passage from Anchorage to Port Meridian (docs/specs/BATTLES.md §2.0). */
-export const PASSAGE_WAVES: readonly WaveSpec[] = [
-  {
-    raiders: [
-      { name: 'Wrong Fork', kind: 'cutter' },
-      { name: 'Unchecked', kind: 'cutter' },
-    ],
-  },
-  {
-    raiders: [
-      { name: 'Stale Branch', kind: 'brigantine' },
-      { name: 'Wrong Fork II', kind: 'cutter' },
-    ],
-  },
-];
+/** A battle: where it's fought, its waves, and the line on the win card. */
+export interface BattlePlan {
+  id: string;
+  /** The course chapter it recaps. */
+  chapter: '00' | '01';
+  title: string;
+  waves: readonly WaveSpec[];
+  /** The win card's line (player copy). */
+  won: string;
+}
+
+/**
+ * Battle 1, the passage from Anchorage to Port Meridian, recaps Chapter 00: preview before you run
+ * (wave 1), then check the target (wave 2).
+ */
+export const PASSAGE_BATTLE: BattlePlan = {
+  id: 'passage-anchorage-meridian',
+  chapter: '00',
+  title: 'Anchorage → Port Meridian',
+  waves: [
+    {
+      raiders: [
+        { name: 'Unchecked', kind: 'cutter' },
+        { name: 'No Dry Run', kind: 'cutter' },
+      ],
+      quiz: 'N0.1',
+    },
+    {
+      raiders: [
+        { name: 'Wrong Fork', kind: 'brigantine' },
+        { name: 'Wrong Account', kind: 'cutter' },
+      ],
+      quiz: 'T0.5',
+    },
+  ],
+  won: 'The raiders are back in the fog. Port Meridian lies ahead.',
+};
+
+/**
+ * Battle 2, the passage from Port Meridian to Thousand-Bough Isle, recaps Chapter 01: a worktree for
+ * each session (wave 1), know when the agent will ask (wave 2), and effort isn't a guarantee (wave 3).
+ */
+export const MERIDIAN_BATTLE: BattlePlan = {
+  id: 'passage-meridian-thousand-bough',
+  chapter: '01',
+  title: 'Port Meridian → Thousand-Bough Isle',
+  waves: [
+    {
+      raiders: [
+        { name: 'Shared Checkout', kind: 'cutter' },
+        { name: 'Tangled Copy', kind: 'cutter' },
+      ],
+      quiz: 'A1.5',
+    },
+    {
+      raiders: [
+        { name: 'Blind Approval', kind: 'brigantine' },
+        { name: 'Unasked', kind: 'cutter' },
+      ],
+      quiz: 'N1.1',
+    },
+    {
+      raiders: [
+        { name: 'Max Effort', kind: 'brigantine' },
+        { name: 'Overthought', kind: 'cutter' },
+      ],
+      quiz: 'N1.2',
+    },
+  ],
+  won: 'The raiders are back in the fog. Thousand-Bough Isle lies ahead.',
+};
+
+export const BATTLE_PLANS: readonly BattlePlan[] = [PASSAGE_BATTLE, MERIDIAN_BATTLE];
+
+/** Battle 1's waves (kept for callers that only need the waves). */
+export const PASSAGE_WAVES: readonly WaveSpec[] = PASSAGE_BATTLE.waves;
 
 /**
  * Battle sounds (battle-plan.md §1). The battle only says what happened and where; the game maps each
