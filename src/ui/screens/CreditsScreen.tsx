@@ -47,9 +47,9 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
         </p>
         <h3>Music and voice</h3>
         <p>
-          “Bamboo Tide” and “The Treasure Chest Opens”, made for Copilot Isles with Suno. “Medieval: The
-          Bard’s Tale” by RandomMind and “Sunset Plains” by Yoiyami, both CC0 on OpenGameArt. Synthetic voices
-          generated offline with Azure AI Speech.
+          “Bamboo Tide” and “Island Reveal”, made for Copilot Isles with Suno. “Medieval: The Bard’s Tale” by
+          RandomMind and “Sunset Plains” by Yoiyami, both CC0 on OpenGameArt. Synthetic voices generated
+          offline with Azure AI Speech.
         </p>
       </div>
     </OverlayShell>

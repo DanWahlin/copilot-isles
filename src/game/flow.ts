@@ -1,6 +1,6 @@
 import type { IslesAudio } from '../audio';
 import { AMBIENT_BEDS } from '../audio/beds';
-import type { IslandMusic } from '../audio/music/tracks';
+import { MUSIC_TRACKS, type IslandMusic } from '../audio/music/tracks';
 import type { Engine } from '../engine/engine';
 import { packs, type PackProgress } from '../engine/packs';
 import type { Input } from '../engine/input';
@@ -29,7 +29,7 @@ import { ANCHORAGE_ARRIVAL, arrivalFlight } from './arrivals';
 import { warmProgressively } from '../engine/warm';
 
 const SETTINGS_KEY = 'copilot-isles.settings.v1';
-/** The opening song's closing fade (s): the island's theme crossfades in over it. */
+/** The crossfade (s) from the opening's song into the island's theme, at the song's phrase end. */
 const SONG_TAIL = 2.4;
 /** The island's theme comes in once the arrival is this close (s) to reaching the captain. */
 const ARRIVAL_NEAR = 2.5;
@@ -661,16 +661,17 @@ export class GameFlow implements GameBridge {
   }
 
   /**
-   * After the opening: once its song reaches its closing fade (and the arrival is within a couple of
-   * seconds of the captain, or there's no flight), the island's theme crossfades in under it.
+   * After the opening: once its song reaches the end of its phrase (MusicTrack.handoff) and the
+   * arrival is within a couple of seconds of the captain (or there's no flight), the island's theme
+   * crossfades in.
    */
   private handOverMusic(): void {
     const due = this.islandMusicDue;
     if (!due || !this.session || this.opening) return;
     if (!this.audioReady) return void (this.islandMusicDue = null);
-    const left = this.o.audio.music.remaining('opening');
-    const songDone = left === null || left <= SONG_TAIL;
-    if (songDone && this.session.arrivalLeft() <= ARRIVAL_NEAR) {
+    const at = this.o.audio.music.position('opening');
+    const phraseDone = at === null || at >= (MUSIC_TRACKS.opening.handoff ?? 0);
+    if (phraseDone && this.session.arrivalLeft() <= ARRIVAL_NEAR) {
       this.islandMusicDue = null;
       this.o.audio.music.setIsland(due, { fade: SONG_TAIL });
     }

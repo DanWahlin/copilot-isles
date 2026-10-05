@@ -8,6 +8,8 @@ export interface MusicTrack {
   readonly lufs: number;
   /** Plays once and stops (a cue), instead of looping. */
   readonly once?: boolean;
+  /** Seconds in where the next track may start crossfading in (the end of a phrase). */
+  readonly handoff?: number;
 }
 
 /** The tracks Dan picked (logged in ASSETS.md and ART_PROVENANCE.md, credited on the Credits screen). */
@@ -18,9 +20,9 @@ export const MUSIC_TRACKS: Readonly<Record<IslandMusic, MusicTrack>> = {
   anchorage: { file: 'music_bards_tale', lufs: -17.6 },
   // "Sunset Plains" by Yoiyami (OpenGameArt, CC0).
   meridian: { file: 'music_sunset_plains', lufs: -16.1 },
-  // "The Treasure Chest Opens", made for the opening by Dan with Suno: starts with the latch, rises
-  // as the chart's sea comes alive, and peaks at the dive (docs/specs/OPENING-living-chart.md).
-  opening: { file: 'music_treasure_chest_opens', lufs: -18.1, once: true },
+  // "Island Reveal", made for the opening by Dan with Suno. It starts with the chest's latch; its
+  // entrance (6.7 s) lands as the islands pop up, and the island's theme takes over at its phrase end.
+  opening: { file: 'music_island_reveal', lufs: -16.0, once: true, handoff: 27.6 },
 };
 
 /** Tracks Dan's keeping for islands still to come: not played yet, so not on the Credits screen. */

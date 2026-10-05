@@ -190,7 +190,7 @@ describe('MusicPlayer', () => {
     expect(elements).toHaveLength(1);
     player.setIsland('opening', { at: 0, fade: 0.15 });
     const cue = elements[1]!;
-    expect(cue.src).toBe('/audio/music_treasure_chest_opens.ogg');
+    expect(cue.src).toBe('/audio/music_island_reveal.ogg');
     expect(cue.loop).toBe(false);
     expect(cue.paused).toBe(false);
     // Asking for it again at another moment restarts it there (a skip), with no second element.

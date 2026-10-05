@@ -118,8 +118,11 @@ export interface Opening {
 
 /** Seconds for the camera to ease in to the chest, and how long the chest waits before it opens itself. */
 const APPROACH = 1.8;
-/** Seconds into the opening cue where it peaks (the dive's flash). */
-const CUE_PEAK = 13;
+/**
+ * Continue starts the song this far in, with its dive, so the handover to the island's theme comes a
+ * few seconds after the splash.
+ */
+const CONTINUE_AT = 20;
 const AUTO_OPEN = 12;
 
 const canvasSize = new Vector2();
@@ -440,9 +443,9 @@ export function createOpening(o: OpeningOptions): Opening {
   }
 
   /**
-   * The cue ("The Treasure Chest Opens") starts with the latch: its rise lands as the sea comes alive
-   * (5.4 s in) and its peak as the dive breaks the surface (~13 s in). Before the latch the title
-   * music fades away and the cabin is quiet.
+   * The song ("Island Reveal") starts with the latch: its soft intro carries the lid and the chart, and
+   * its entrance (6.7 s in) lands as the islands pop up. Before the latch the title music fades away
+   * and the cabin is quiet.
    */
   let cueStarted = false;
   function startCue(at: number): void {
@@ -812,7 +815,7 @@ export function createOpening(o: OpeningOptions): Opening {
       return new Promise((r) => (readyResolve = r));
     },
     dive(target) {
-      if (!cueStarted && !reduced) startCue(CUE_PEAK - beats.dive);
+      if (!cueStarted && !reduced) startCue(CONTINUE_AT);
       return new Promise((resolve) => {
         holding = false;
         o.onHold?.(false);

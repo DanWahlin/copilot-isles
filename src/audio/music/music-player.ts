@@ -45,12 +45,11 @@ export class MusicPlayer {
     if (this.ctx) this.switchTo(island, opts);
   }
 
-  /** Seconds left in `island`'s track while it's playing, or null (not playing, or not loaded yet). */
-  remaining(island: IslandMusic): number | null {
+  /** Seconds into `island`'s track while it's playing, or null (not playing, or it has ended). */
+  position(island: IslandMusic): number | null {
     const deck = this.decks.get(island);
     if (!deck || deck.element.paused || this.playing !== island) return null;
-    const d = deck.element.duration;
-    return Number.isFinite(d) ? Math.max(0, d - deck.element.currentTime) : null;
+    return deck.element.currentTime;
   }
 
   /** Retries playback on a later gesture if the browser refused to start the track earlier. */

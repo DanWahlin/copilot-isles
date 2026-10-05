@@ -19,7 +19,7 @@ TRACKS=(
   "music_bamboo_tide|suno:a6655ab9-f55b-4083-baca-8b20354c928f|9a848dd048caf6830321b4b61e011d28134cc5cdc8fd11bed52bbe7c7f55d51c|0.0|151.4"
   "music_sunset_plains|https://opengameart.org/sites/default/files/sunset_plains.wav|f3750f8eda8bf42662b12f5726404675689b50f05ccaa968c5cb2e33d9172a62|0.8|329.4"
   "music_salty_sway|suno:4411cff4-7e13-45d8-a90b-07e15ad9fd2e|bbb8a91c615de57cc5e0f9b051cc86bdb61c9edb669c5b6a16be207db761cf67|0.2|157.0"
-  "music_treasure_chest_opens|suno:84c60386-08ac-45c4-a820-4555a5c8e6c3|2c21f9d7e7a7de881d52a09a45c5560d16af605525d71b592d427261f0577d2a|0.0|28.7"
+  "music_island_reveal|suno:e9a16c98-4efe-40f7-a705-8c2ef91182a1|165ab83dd2411f1beae067cb45cd38f11e55cac735a19633089f7ef76a8ceb58|0.3|147.2"
 )
 
 ONLY="${1:-}"

@@ -68,7 +68,7 @@ for (const [island, label] of [
   ['harbour', 'Title & sea: Bamboo Tide'],
   ['anchorage', "Anchorage: The Bard's Tale"],
   ['meridian', 'Port Meridian: Sunset Plains'],
-  ['opening', 'Opening: The Treasure Chest Opens'],
+  ['opening', 'Opening: Island Reveal'],
 ] as const satisfies readonly (readonly [IslandMusic, string])[]) {
   const trackButton = button(label, () => showTrack(island));
   trackButtons.set(island, trackButton);
