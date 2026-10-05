@@ -426,9 +426,10 @@ export function createSky(
     // The baked layers for those hours, or the live clouds' kernels (built off-thread, so their first
     // frame doesn't stall).
     prefetch: (hours) =>
-      bakedClouds?.prefetch(hours).catch(() => {}) ??
-      tideClouds?.compileAsync().catch(() => {}) ??
-      Promise.resolve(),
+      Promise.all([
+        bakedClouds?.prefetch(hours).catch(() => {}) ?? tideClouds?.compileAsync().catch(() => {}),
+        (tideAtmo as unknown as { compileAsync(): Promise<unknown> }).compileAsync().catch(() => {}),
+      ]).then(() => undefined),
     invalidate() {
       forced = true;
       tideAtmo.invalidate();

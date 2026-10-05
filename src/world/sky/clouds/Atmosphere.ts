@@ -557,6 +557,20 @@ export class Atmosphere {
     }
   }
 
+  // builds the LUT passes' pipelines ahead of the first update: off-thread with compute (WebGPU);
+  // on WebGL a quad's compileAsync doesn't match its draw, so each pass draws once, a frame apart
+  // (one program link per frame), and the LUTs are redrawn on the next update
+  async compileAsync() {
+    const r = this.renderer;
+    if (this.useCompute)
+      return r.compileComputeAsync([this.transmittanceKernel, this.multiScatKernel, this.skyViewKernel]);
+    for (const key of ['transmittance', 'multiScat', 'skyView']) {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      this._renderPass(this.passes[key], this.targets[key]);
+    }
+    this.needsStatic = true;
+  }
+
   _renderPass(quad, target) {
     const r = this.renderer;
     const prev = r.getRenderTarget();

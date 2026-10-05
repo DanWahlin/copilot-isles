@@ -1,5 +1,7 @@
 import {
   RenderPipeline,
+  RenderTarget,
+  Vector2,
   type Camera,
   type Node,
   type Object3D,
@@ -30,6 +32,7 @@ import {
   vec3,
   vec4,
   vibrance,
+  texture,
 } from 'three/tsl';
 import type { TierSettings } from './quality';
 import { createAutoExposure } from './auto-exposure';
@@ -43,6 +46,12 @@ export interface Post {
    * asynchronously and without drawing. The node building runs now; the pipelines build off-thread.
    */
   compileObject(object: Object3D): Promise<void>;
+  /**
+   * Builds the post chain's own shaders (its output quad) without drawing the scene, so the first
+   * full frame only builds the scene's. It draws to the canvas (an offscreen target gets different
+   * shader code): draw the real frame over it in the same task. A no-op on the pass path.
+   */
+  warmOutput(): void;
   /** The metered exposure (WebGPU, not the lean title post): log2 luminance and scale, for probes. */
   readExposure?(): Promise<{ logLum: number; scale: number }>;
   /** Live grade controls (per-island looks can tween these). */
@@ -90,20 +99,29 @@ export async function createPost(
     temporalPost && !dbg.has('nosharp') ? await import('three/addons/tsl/display/SharpenNode.js') : null;
 
   const pipeline = new RenderPipeline(renderer);
-  const scenePass = pass(scene, camera, { type: renderer.getOutputBufferType() });
-  if (temporalPost) {
+  const metered = !actualWebGL && !options.lean && !dbg.has('noautoexposure');
+  // With no temporal AA, AO or meter (WebGL2, the lean title), the scene renders straight into a
+  // target before the post quad, at the renderer's top level. A pass node renders it from inside the
+  // quad's render, one call deeper, and three keys render contexts by that depth: compileAsync (top
+  // level) then never matched the real draw, so every material was built again on its first frame,
+  // and instanced meshes (instance buffers are named by node id) linked new programs synchronously.
+  const direct = !temporalPost && !qualityPost && !metered;
+  const sceneTarget = direct ? new RenderTarget(1, 1, { type: renderer.getOutputBufferType() }) : null;
+  if (sceneTarget) sceneTarget.texture.name = 'output';
+  const scenePass = direct ? null : pass(scene, camera, { type: renderer.getOutputBufferType() });
+  if (scenePass && temporalPost) {
     scenePass.setMRT(mrt({ output, velocity }));
   }
-  const hdr = scenePass.getTextureNode('output');
-  const sceneDepth = scenePass.getTextureNode('depth');
+  const hdr = (
+    sceneTarget ? texture(sceneTarget.texture) : scenePass!.getTextureNode('output')
+  ) as Node<'vec4'>;
+  // Only the pass path has these (AO and temporal AA need them).
+  const sceneDepth = scenePass?.getTextureNode('depth');
   // Metered exposure on top of the keyed one (WebGPU compute; WebGL2 and the lean title keep the key).
-  const meter =
-    !actualWebGL && !options.lean && !dbg.has('noautoexposure')
-      ? createAutoExposure(renderer, scenePass.getTexture('output'))
-      : null;
+  const meter = metered && scenePass ? createAutoExposure(renderer, scenePass.getTexture('output')) : null;
   const keyed = toneMappingExposure as unknown as Node<'float'>;
   const exposure = meter ? keyed.mul(meter.scale) : keyed;
-  const gtaoNode = gtaoMod?.ao(sceneDepth, null as unknown as Node<'vec3'>, camera) as
+  const gtaoNode = gtaoMod?.ao(sceneDepth!, null as unknown as Node<'vec3'>, camera) as
     | (Node<'float'> & {
         resolutionScale: number;
         useTemporalFiltering: boolean;
@@ -132,7 +150,11 @@ export async function createPost(
         // turned into a field of dark half-resolution speckles, so it fades out by 25-60 m.
         // The scene camera's near/far: inside the pipeline, cameraNear/cameraFar are the full-screen
         // quad's, which made viewDist about 0 everywhere and kept AO on at every distance.
-        const viewDist = perspectiveDepthToViewZ(sceneDepth.sample(screenUV).r, sceneNear, sceneFar).negate();
+        const viewDist = perspectiveDepthToViewZ(
+          sceneDepth!.sample(screenUV).r,
+          sceneNear,
+          sceneFar,
+        ).negate();
         const near = float(1).sub(smoothstep(25, 60, viewDist));
         const strength = float(tier.tier === 'medium' ? 0.26 : 0.34)
           .mul(float(1).sub(sunlit.mul(0.65)))
@@ -141,8 +163,12 @@ export async function createPost(
       })()
     : hdr;
   const beauty = gtaoNode && temporalPost ? convertToTexture(aoHdr) : hdr;
-  const temporalNode = temporalMod?.traa(beauty, sceneDepth, scenePass.getTextureNode('velocity'), camera) as
-    (Node<'vec4'> & { getTextureNode(): Node<'vec4'>; dispose(): void }) | undefined;
+  const temporalNode = temporalMod?.traa(
+    beauty,
+    sceneDepth!,
+    scenePass!.getTextureNode('velocity'),
+    camera,
+  ) as (Node<'vec4'> & { getTextureNode(): Node<'vec4'>; dispose(): void }) | undefined;
   const sharpenNode =
     temporalNode && sharpenMod
       ? (sharpenMod!.sharpen(temporalNode.getTextureNode(), float(0.45)) as {
@@ -189,7 +215,21 @@ export async function createPost(
   pipeline.outputNode = vec4(aa.rgb.add(grain.mul(0.012).add(grain.div(255))), 1);
 
   let last = 0;
+  const size = new Vector2();
+  const renderScene = () => {
+    if (!sceneTarget) return;
+    renderer.getDrawingBufferSize(size);
+    if (sceneTarget.width !== size.x || sceneTarget.height !== size.y) sceneTarget.setSize(size.x, size.y);
+    const target = renderer.getRenderTarget();
+    const currentMrt = renderer.getMRT();
+    renderer.setRenderTarget(sceneTarget);
+    renderer.setMRT(null);
+    renderer.render(scene, camera);
+    renderer.setRenderTarget(target);
+    renderer.setMRT(currentMrt);
+  };
   const render = () => {
+    renderScene();
     pipeline.render();
     if (!meter) return;
     const now = performance.now();
@@ -204,8 +244,8 @@ export async function createPost(
     compileObject(object) {
       const target = renderer.getRenderTarget();
       const currentMrt = renderer.getMRT();
-      renderer.setRenderTarget(scenePass.renderTarget);
-      renderer.setMRT(scenePass.getMRT());
+      renderer.setRenderTarget(sceneTarget ?? scenePass!.renderTarget);
+      renderer.setMRT(scenePass ? scenePass.getMRT() : null);
       // compileAsync's synchronous part (projection, node building, pipeline requests) runs before
       // its first await, so the renderer's state is back as it was before any frame renders.
       const done = renderer.compileAsync(object, camera, scene);
@@ -213,10 +253,18 @@ export async function createPost(
       renderer.setMRT(currentMrt);
       return done;
     },
+    warmOutput() {
+      if (!sceneTarget) return;
+      const target = renderer.getRenderTarget();
+      renderer.setRenderTarget(null);
+      pipeline.render();
+      renderer.setRenderTarget(target);
+    },
     readExposure: meter ? () => meter.read() : undefined,
     grade: { vibrance: uVibrance, saturation: uSaturation, contrast: uContrast, vignette: uVignette },
     dispose() {
-      scenePass.dispose();
+      scenePass?.dispose();
+      sceneTarget?.dispose();
       gtaoNode?.dispose();
       if (beauty !== hdr) (beauty as unknown as { dispose(): void }).dispose();
       temporalNode?.dispose();
