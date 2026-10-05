@@ -273,6 +273,10 @@ export class CharacterFace {
     this.listening = on;
   }
 
+  setVisible(on: boolean): void {
+    this.mesh.visible = on;
+  }
+
   /** Starts a blink now: the eyes close as the head swings to something new. */
   blinkNow(): void {
     this.blink.trigger();

@@ -15,7 +15,7 @@ import {
 import { smoothstep, wrapAngle } from '../../util/math';
 import { CharacterFace, type FacialLine } from './facial-animation';
 import { FACE_FITS, faceColors, faceFamily } from './face-fit';
-import { GesturePlanner, type ArmPose, type GestureFrame, type Side } from './gestures';
+import { GesturePlanner, newPose, type ArmPose, type GestureFrame, type Side } from './gestures';
 import { HandRig } from './hand-rig';
 import { STAGE_REST, type StageLight } from './stage-light';
 import { LegIk } from './leg-ik';
@@ -124,6 +124,8 @@ export class RuntimeCharacter implements Character {
   /** This character's staging light, shared by all its meshes (read per object by the shader). */
   private readonly stage: StageLight = { ...STAGE_REST };
   private spotlit = false;
+  /** Squared distance to the camera (or player), refreshed each frame for NPCs. */
+  private viewDistSq = 0;
   private readonly footWorld = new Vector3();
   private readonly footTargetWorld = new Vector3();
   private readonly armCarry = new Map<Bone, Quaternion>();
@@ -151,6 +153,9 @@ export class RuntimeCharacter implements Character {
   private gesture: GestureFrame | null = null;
   private readonly handL: HandRig | null;
   private readonly handR: HandRig | null;
+  /** This step's hand poses from the gesture (rest when there's none). */
+  private handPoseL: ArmPose = REST_POSE;
+  private handPoseR: ArmPose = REST_POSE;
   private readonly reads: boolean;
   /** A one-shot clip (a wave hello, a nod) blended over a standing idle, then handed back. */
   private overlay: { clip: CharacterClip; t: number; dur: number; peak: number } | null = null;
@@ -211,6 +216,10 @@ export class RuntimeCharacter implements Character {
     group.updateMatrixWorld(true);
     this.handL = this.npc && this.lowerArmL ? HandRig.of(this.lowerArmL, 1) : null;
     this.handR = this.npc && this.lowerArmR ? HandRig.of(this.lowerArmR, -1) : null;
+    // A hand that carries a prop (a ledger, a spyglass) keeps its fingers closed on it.
+    const holds = (group.userData.holds ?? []) as number[];
+    if (this.handL && holds.includes(1)) this.handL.grip = 1;
+    if (this.handR && holds.includes(-1)) this.handR.grip = 1;
     this.fingersL = this.npc ? [] : fingerChains(this.lowerArmL);
     this.fingersR = this.npc ? [] : fingerChains(this.lowerArmR);
     this.upperLegL = bone(group, 'UpperLegL');
@@ -248,8 +257,6 @@ export class RuntimeCharacter implements Character {
       this.footR,
       ...this.fingersL.flat(),
       ...this.fingersR.flat(),
-      ...(this.handL?.bones ?? []),
-      ...(this.handR?.bones ?? []),
     ]);
     this.baseScale = config.scale;
     this.lastHeading = group.rotation.y;
@@ -376,11 +383,13 @@ export class RuntimeCharacter implements Character {
       this.nodPitch = 0;
       this.updateOverlay(step);
       this.mixer.update(step);
+      this.handPoseL = this.handPoseR = REST_POSE;
       this.applyProceduralPolish(step);
+      this.applyHands();
     }
     this.applyLookAt(dt);
     this.applyLookNod();
-    this.face?.update(dt, this.lookTarget);
+    this.updateFace(dt, step);
     const ks = 1 - Math.exp(-dt * 2.5);
     this.stage.key += ((this.spotlit ? 0.18 : STAGE_REST.key) - this.stage.key) * ks;
     this.stage.rim += ((this.spotlit ? 0.4 : STAGE_REST.rim) - this.stage.rim) * ks;
@@ -394,6 +403,29 @@ export class RuntimeCharacter implements Character {
       if (object instanceof Mesh) disposeOwnedMaterial(object.material);
       if (object instanceof Mesh && object.userData.ownedGeometry) object.geometry.dispose();
     });
+  }
+
+  /** Poses the hands after the arms: gesture hand shapes, and the grip on anything carried. */
+  private applyHands(): void {
+    const l = this.handL;
+    const r = this.handR;
+    if (l && (l.grip || this.handPoseL !== REST_POSE)) l.apply(this.handPoseL);
+    if (r && (r.grip || this.handPoseR !== REST_POSE)) r.apply(this.handPoseR);
+  }
+
+  /**
+   * Faces cost a little CPU each: full rate up close, the throttled animation rate further out (blinks
+   * and gaze still run), and beyond ~55 m, where an eye is under a pixel, not drawn at all.
+   */
+  private updateFace(dt: number, step: number): void {
+    const face = this.face;
+    if (!face) return;
+    const visible = this.viewDistSq < FACE_DRAW_SQ;
+    face.setVisible(visible);
+    if (!visible) return;
+    // Low tiers throttle NPC animation (npcAnimRate < 1); the face follows that rate there.
+    if (this.viewDistSq < FACE_FULL_RATE_SQ && this.npcAnimRate >= 1) face.update(dt, this.lookTarget);
+    else if (step > 0) face.update(step, this.lookTarget);
   }
 
   /** Standing still on the idle clip, where overlays and gestures can play. */
@@ -437,6 +469,7 @@ export class RuntimeCharacter implements Character {
     if (!this.updateTarget) return interval;
     this.updateTarget.getWorldPosition(this.targetWorld);
     const distanceSq = this.group.position.distanceToSquared(this.targetWorld);
+    this.viewDistSq = distanceSq;
     if (distanceSq > 170 * 170) return Math.max(interval, 0.5);
     if (distanceSq > 95 * 95) interval = Math.max(interval, 1 / 10);
     else if (distanceSq > 55 * 55) interval = Math.max(interval, 1 / 20);
@@ -448,6 +481,8 @@ export class RuntimeCharacter implements Character {
       rest.bone.position.copy(rest.position);
       rest.bone.quaternion.copy(rest.quaternion);
     }
+    this.handL?.restore();
+    this.handR?.restore();
   }
 
   /**
@@ -604,8 +639,8 @@ export class RuntimeCharacter implements Character {
     if (pose.flex) this.rotateInRoot(upper, AXIS_X, -pose.flex);
     if (pose.elbow) this.rotateInRoot(lower, AXIS_X, -pose.elbow);
     if (pose.inward) this.rotateInRoot(lower, AXIS_Z, -side * pose.inward);
-    const hand = side === 1 ? this.handL : this.handR;
-    hand?.apply(pose);
+    if (side === 1) this.handPoseL = pose;
+    else this.handPoseR = pose;
   }
 
   /**
@@ -680,6 +715,22 @@ export class RuntimeCharacter implements Character {
    * poses read the same on both arms whatever each bone's local axes are.
    */
   private rotateInRoot(bone: Bone | null, axis: Vector3, angle: number): void {
+    const parent = bone?.parent;
+    if (!bone || !parent || Math.abs(angle) < 1e-4) return;
+    // The parent's rotation relative to the character, from the local quaternions on the way down
+    // (no world matrices): the axis in the parent's frame is that rotation's inverse applied to it.
+    let depth = 0;
+    for (let o: Object3D | null = parent; o && o !== this.group; o = o.parent) {
+      if (depth === CHAIN.length) return this.rotateInWorldFromRoot(bone, axis, angle);
+      CHAIN[depth++] = o;
+    }
+    REL_Q.identity();
+    for (let i = depth - 1; i >= 0; i--) REL_Q.multiply(CHAIN[i]!.quaternion);
+    WORLD_AXIS.copy(axis).applyQuaternion(REL_Q.invert());
+    bone.quaternion.premultiply(DELTA_Q.setFromAxisAngle(WORLD_AXIS, angle));
+  }
+
+  private rotateInWorldFromRoot(bone: Bone, axis: Vector3, angle: number): void {
     this.group.getWorldQuaternion(ROOT_Q);
     this.rotateInWorld(bone, WORLD_AXIS.copy(axis).applyQuaternion(ROOT_Q), angle);
   }
@@ -909,6 +960,12 @@ const LOOK_A = new Vector3();
 const LOOK_B = new Vector3();
 const LOOK_Q = new Quaternion();
 const AXIS_Y = new Vector3(0, 1, 0);
+const REST_POSE: Readonly<ArmPose> = Object.freeze(newPose());
+const CHAIN: Object3D[] = new Array(32);
+const REL_Q = new Quaternion();
+/** Faces update every frame inside 20 m and aren't drawn past 55 m. */
+const FACE_FULL_RATE_SQ = 20 * 20;
+const FACE_DRAW_SQ = 55 * 55;
 const AXIS_Z = new Vector3(0, 0, 1);
 const ROOT_Q = new Quaternion();
 const PARENT_Q = new Quaternion();

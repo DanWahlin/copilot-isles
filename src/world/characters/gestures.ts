@@ -513,12 +513,16 @@ export class GesturePlanner {
   }
 
   private pickFree(): GestureKind {
+    // Counts the options in place (no array per pick): the style's kinds, then a nod.
     const kinds = STYLE_KINDS[this.style];
-    const options = kinds.filter(
-      (k) => k !== this.last && (!GESTURES[k].bothHands || this.hand === 'either'),
-    ) as GestureKind[];
-    if (this.canNod && this.last !== 'nod') options.push('nod');
-    return options[Math.floor(this.random() * options.length) % options.length]!;
+    const ok = (k: GestureKind) =>
+      k !== this.last && (k === 'nod' ? this.canNod : !GESTURES[k].bothHands || this.hand === 'either');
+    let count = 0;
+    for (const k of kinds) if (ok(k)) count++;
+    if (ok('nod')) count++;
+    let pick = Math.floor(this.random() * count);
+    for (const k of kinds) if (ok(k) && pick-- === 0) return k;
+    return ok('nod') ? 'nod' : 'beat';
   }
 
   private pickSide(): Side {
