@@ -41,6 +41,17 @@ const RETURN_SECONDS = 2.5;
  */
 export class BattleCamera {
   enabled = true;
+  /**
+   * Between beats, keep your ship and the watched raider in frame (you don't need the mouse to find
+   * them). Off, the camera just rides along with your ship where you left it.
+   */
+  follow = true;
+  private hasFocus = false;
+  private focusX = 0;
+  private focusZ = 0;
+  /** The follow view's direction (heading convention), eased at a capped turn rate. */
+  private yaw = 0;
+  private following = false;
   private shot: BattleBeat | null = null;
   private shotAt = 0;
   private shotUntil = 0;
@@ -69,6 +80,8 @@ export class BattleCamera {
     const t = this.now;
     if (t < this.yieldUntil && kind !== 'won') return;
     const gun = kind === 'broadside' || kind === 'incoming';
+    // The follow view already frames both ships; cutting away on every broadside only disorients you.
+    if (gun && this.follow && t >= this.yieldUntil) return;
     if (gun && t - this.gunsAt < GUN_COOLDOWN) return;
     if (this.shot && t < this.shotUntil && PRIORITY[kind] < PRIORITY[this.shot]) return;
     if (gun) this.gunsAt = t;
@@ -80,6 +93,13 @@ export class BattleCamera {
     this.fz = z;
     this.cut = this.reducedMotion();
     this.sgn = 0;
+  }
+
+  /** The raider to keep in frame this frame (`has` false: none, so the camera looks ahead). */
+  setFocus(has: boolean, x: number, z: number): void {
+    this.hasFocus = has;
+    this.focusX = x;
+    this.focusZ = z;
   }
 
   /** Call when the player drags or zooms: drop the shot and stand off. */
@@ -120,9 +140,10 @@ export class BattleCamera {
     this.lastZ = sz;
     const rm = this.reducedMotion();
 
+    const followNow = this.enabled && this.follow && t >= this.yieldUntil;
     if (this.shot && t >= this.shotUntil) {
       this.shot = null;
-      if (rm) {
+      if (rm && !followNow) {
         cam.x = sx + this.saved.x;
         cam.y = this.saved.y;
         cam.z = sz + this.saved.z;
@@ -130,6 +151,7 @@ export class BattleCamera {
     }
 
     if (this.shot && this.enabled) {
+      this.following = false;
       if (this.sgn === 0) {
         // Keep your own view to come back to, and stay on the side of the line you're already on.
         if (this.fresh) {
@@ -151,7 +173,17 @@ export class BattleCamera {
       target.x += (aim.x - target.x) * k;
       target.y += (aim.y - target.y) * k;
       target.z += (aim.z - target.z) * k;
+    } else if (followNow) {
+      this.followFrame(dt, sx, sz, heading, rm, cam);
+      const k = 1 - Math.exp(-dt * 4);
+      cam.x += (want.x - cam.x) * k;
+      cam.y += (want.y - cam.y) * k;
+      cam.z += (want.z - cam.z) * k;
+      target.x += (aim.x - target.x) * k;
+      target.y += (aim.y - target.y) * k;
+      target.z += (aim.z - target.z) * k;
     } else {
+      this.following = false;
       const s = Math.sin(heading);
       const c = Math.cos(heading);
       const k = rm ? 1 : 1 - Math.exp(-dt * 4);
@@ -166,6 +198,35 @@ export class BattleCamera {
       }
     }
     if (cam.y < 3) cam.y = 3;
+  }
+
+  /**
+   * The follow view: astern of your ship on the line toward the watched raider (or ahead when there's
+   * none), a little to one side and above, so your ship sits low in the frame with the raider beyond.
+   * The view turns at a capped rate, so a raider crossing your stern doesn't whip it round.
+   */
+  private followFrame(dt: number, sx: number, sz: number, heading: number, rm: boolean, cam: Vec3): void {
+    const dx = this.focusX - sx;
+    const dz = this.focusZ - sz;
+    const range = this.hasFocus ? Math.hypot(dx, dz) : 60;
+    const goal = this.hasFocus && range > 1 ? Math.atan2(dx, dz) : heading;
+    if (!this.following) {
+      // Start from wherever the camera is now, looking at the ship.
+      this.following = true;
+      this.yaw = Math.atan2(sx - cam.x, sz - cam.z);
+    }
+    const turn = Math.atan2(Math.sin(goal - this.yaw), Math.cos(goal - this.yaw));
+    const rate = (rm ? 0.45 : 0.9) * dt;
+    this.yaw += Math.max(-rate, Math.min(rate, turn * (1 - Math.exp(-dt * 1.5))));
+    const ux = Math.sin(this.yaw);
+    const uz = Math.cos(this.yaw);
+    // High and well off to one side, so the line to the raider clears your own sails and rigging.
+    const back = Math.min(52, Math.max(34, 30 + range * 0.12));
+    const up = Math.min(30, Math.max(19, 16 + range * 0.07));
+    const side = 16;
+    set(want, sx - ux * back + uz * side, up, sz - uz * back - ux * side);
+    const ahead = Math.min(range * 0.6, 110);
+    set(aim, sx + ux * ahead, 2, sz + uz * ahead);
   }
 
   /** Where the current shot wants the camera (`want`) and the orbit target (`aim`). */

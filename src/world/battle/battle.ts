@@ -20,7 +20,7 @@ import {
   STORE_WRECKAGE,
   StorePool,
 } from './fx';
-import { Battery, bearing, gunStations, PORT, STARBOARD, type Side } from './gunnery';
+import { Battery, bearing, gunStations, MAX_RANGE, PORT, STARBOARD, type Side } from './gunnery';
 import { RaiderBrain, type RaiderHelm, type RaiderView } from './raider-ai';
 
 /** A raider in a wave: its name board and its size (docs/specs/BATTLES.md §4.1). */
@@ -110,7 +110,7 @@ interface Combatant {
   prevZ: number;
   readonly obstacles: CircleObstacle[];
   readonly env: BrigantineEnv;
-  readonly captions: { struck: string; bearing: [string, string] };
+  readonly captions: { struck: string; bearing: [string, string]; close: [string, string, string] };
   readonly shots: ((gun: number) => void)[];
   /** Which way a struck hull lists (+1 to port). */
   listSign: number;
@@ -132,6 +132,12 @@ export interface BattleSnapshot {
   lull: number;
   /** The wave's banner, e.g. "Wave 1 of 2: Wrong Fork and Unchecked" (prebuilt per wave). */
   title: string;
+  /** What to do next with the helm ("◀ Turn to port: your starboard guns will bear"); '' when none. */
+  hint: string;
+  /** Which way the hint turns: 1 port, −1 starboard, 0 hold. */
+  hintTurn: number;
+  /** True while your helmsman has the helm ("Bring her round"). */
+  assist: boolean;
 }
 
 export interface BattleOptions {
@@ -173,6 +179,20 @@ const soundPos = { x: 0, y: 0, z: 0 };
 /** A raider's ball within this distance (m) of your ship whistles past. */
 const WHIZ_RADIUS = 16;
 const SIDE_OF: readonly Side[] = [PORT, STARBOARD];
+/** The helm hints, prebuilt: [your battery][turn port, turn starboard, hold]. */
+const HINT_TURN: readonly (readonly string[])[] = [
+  [
+    '◀ Turn to port: your port guns will bear',
+    'Turn to starboard: your port guns will bear ▶',
+    'Hold her steady: your port guns are coming to bear',
+  ],
+  [
+    '◀ Turn to port: your starboard guns will bear',
+    'Turn to starboard: your starboard guns will bear ▶',
+    'Hold her steady: your starboard guns are coming to bear',
+  ],
+];
+const HINT_FIRE = ['Your port guns bear: fire!', 'Your starboard guns bear: fire!', 'Both sides bear: fire!'];
 
 /**
  * A sea battle (docs/specs/BATTLES.md): waves of raiders, your broadsides and theirs, damage, struck
@@ -224,6 +244,31 @@ export class Battle {
   };
   /** Only one raider lays its guns at a time, so warnings never stack (§7). */
   private token = -1;
+  /** The raider the camera and your helmsman are watching (−1 none), with hysteresis. */
+  private focusIdx = -1;
+  /** Your helmsman: the raiders' own broadside logic, steering for you (or just advising). */
+  private readonly helmsman = new RaiderBrain(78);
+  private readonly helmView: RaiderView = {
+    x: 0,
+    z: 0,
+    heading: 0,
+    headingRate: 0,
+    targetX: 0,
+    targetZ: 0,
+    windX: 0,
+    windZ: 0,
+    loadedPort: 0,
+    loadedStarboard: 0,
+    hull: 1,
+    avoidX: 0,
+    avoidZ: 0,
+  };
+  /** What your helmsman would do now; the ship's owner applies it while `assist` is on. */
+  readonly assistHelm: RaiderHelm = { trim: 0, rudder: 0 };
+  /** "Bring her round": your helmsman steers to the best broadside until you take the helm back. */
+  assist = false;
+  private hint = '';
+  private hintTurn = 0;
   private tokenFree = 0;
   private waveStart = { x: 0, z: 0, heading: 0 };
   private now = 0;
@@ -302,7 +347,7 @@ export class Battle {
       prevZ: 0,
       obstacles,
       env: { waves: this.waves, ground: null, obstacles, t: 0 },
-      captions: { struck: '', bearing: ['', ''] },
+      captions: { struck: '', bearing: ['', ''], close: ['', '', ''] },
       shots: [],
       listSign: 1,
     };
@@ -442,6 +487,9 @@ export class Battle {
       c.captions.struck = `${r.name} strikes her colours`;
       c.captions.bearing[0] = `${r.name} is bearing on you, port side`;
       c.captions.bearing[1] = `${r.name} is bearing on you, starboard side`;
+      c.captions.close[0] = `◀ Turn to port and close in on ${r.name}`;
+      c.captions.close[1] = `Turn to starboard and close in on ${r.name} ▶`;
+      c.captions.close[2] = `Hold your course and close in on ${r.name}`;
     }
     for (const b of this.player.batteries) b.loadAll();
     // The fog bank forms in front of them, with room for the way they make during the intro.
@@ -450,6 +498,94 @@ export class Battle {
     this.setPhase('intro', t);
     this.caption(lookoutCall(from - p.heading));
     this.beat('intro', this.fog.centre.x, this.fog.centre.z);
+  }
+
+  // ---- Your helm --------------------------------------------------------------------------------
+
+  /** Hands the helm to your helmsman ("Bring her round") or takes it back. */
+  setAssist(on: boolean): void {
+    if (on === this.assist) return;
+    if (on && this.phase !== 'fight' && this.phase !== 'intro') return;
+    this.assist = on;
+    this.caption(on ? 'The helmsman brings her round' : 'You have the helm');
+  }
+
+  /** Writes the watched raider's position; false when there's none. */
+  focus(out: { x: number; z: number }): boolean {
+    if (this.focusIdx < 0) return false;
+    const p = this.combatants[this.focusIdx]!.ship.dynamics.pose;
+    out.x = p.x;
+    out.z = p.z;
+    return true;
+  }
+
+  /** Picks the nearest raider, sticking with the one you're on unless another is clearly nearer. */
+  private pickFocus(): void {
+    const pp = this.player.ship.dynamics.pose;
+    let best = -1;
+    let bestD = Infinity;
+    let curD = Infinity;
+    for (let i = 1; i < this.combatants.length; i++) {
+      const c = this.combatants[i]!;
+      if (c.state !== 'afloat' || !c.ship.group.visible) continue;
+      const p = c.ship.dynamics.pose;
+      const d = Math.hypot(p.x - pp.x, p.z - pp.z);
+      if (i === this.focusIdx) curD = d;
+      if (d < bestD) {
+        bestD = d;
+        best = i;
+      }
+    }
+    if (curD === Infinity || bestD < curD * 0.75) this.focusIdx = best;
+  }
+
+  /**
+   * Your helmsman works out the best broadside on the watched raider every frame. That gives the hint
+   * ("◀ Turn to port: your starboard guns will bear") and, while `assist` is on, the helm itself.
+   */
+  private adviseHelm(dt: number, t: number): void {
+    const fighting = this.phase === 'fight';
+    if (fighting) this.pickFocus();
+    else if (this.phase !== 'intro') this.focusIdx = -1;
+    if (!fighting || this.focusIdx < 0) {
+      this.hint = '';
+      this.hintTurn = 0;
+      this.assistHelm.trim = this.player.ship.dynamics.control.trim;
+      this.assistHelm.rudder = 0;
+      return;
+    }
+    const pl = this.player;
+    const p = pl.ship.dynamics.pose;
+    const target = this.combatants[this.focusIdx]!;
+    const tp = target.ship.dynamics.pose;
+    windAt(p.x, p.z, t, wind);
+    const v = this.helmView;
+    v.x = p.x;
+    v.z = p.z;
+    v.heading = p.heading;
+    v.headingRate = pl.ship.dynamics.headingRate;
+    v.targetX = tp.x;
+    v.targetZ = tp.z;
+    v.windX = wind[0]!;
+    v.windZ = wind[1]!;
+    v.loadedPort = pl.batteries[0]!.loadedCount();
+    v.loadedStarboard = pl.batteries[1]!.loadedCount();
+    v.hull = pl.hull / PLAYER_HULL;
+    v.avoidX = v.avoidZ = 0;
+    this.helmsman.steer(dt, v, this.assistHelm);
+
+    const r = this.assistHelm.rudder;
+    const turn = r > 0.25 ? 1 : r < -0.25 ? -1 : 0;
+    this.hintTurn = turn;
+    const port = this.target(pl, 0) >= 0;
+    const starboard = this.target(pl, 1) >= 0;
+    const dist = Math.hypot(tp.x - p.x, tp.z - p.z);
+    const guns = this.helmsman.side === PORT ? 0 : 1;
+    if (port || starboard) {
+      this.hint = HINT_FIRE[port && starboard ? 2 : port ? 0 : 1]!;
+      this.hintTurn = 0;
+    } else if (dist > MAX_RANGE) this.hint = target.captions.close[turn === 1 ? 0 : turn === -1 ? 1 : 2]!;
+    else this.hint = HINT_TURN[guns]![turn === 1 ? 0 : turn === -1 ? 1 : 2]!;
   }
 
   private breakOff(t: number): void {
@@ -586,6 +722,7 @@ export class Battle {
     // Raiders' sailing and positions; the player's ship is stepped by its owner.
     this.trackVelocity(player, dt);
     this.updateObstacles();
+    this.adviseHelm(dt, t);
     for (let i = 1; i < this.combatants.length; i++) {
       const c = this.combatants[i]!;
       if (c.state === 'idle' || c.state === 'gone') continue;
@@ -966,6 +1103,7 @@ export class Battle {
       for (let i = 1; i < this.combatants.length; i++) if (this.combatants[i]!.state === 'afloat') left++;
       if (left === 0) {
         this.setPhase('lull', t);
+        if (this.assist) this.setAssist(false);
         this.caption('The wave is beaten. Collect the stores before they sink.');
         const p = this.player.ship.dynamics.pose;
         this.emit('cheer', p.x, 2, p.z, 0.8);
@@ -1056,6 +1194,9 @@ export class Battle {
     out.stores.powder = this.now < this.powderUntil ? 1 : 0;
     out.lull = this.phase === 'lull' ? Math.max(0, LULL_SECONDS - (this.now - this.phaseAt)) : 0;
     out.title = this.title;
+    out.hint = this.hint;
+    out.hintTurn = this.hintTurn;
+    out.assist = this.assist;
     return out;
   }
 

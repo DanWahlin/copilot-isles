@@ -8,6 +8,8 @@ export interface BattleHudActions {
   skip(): void;
   answer(pick: 'double-shot' | 'repairs' | null): void;
   calm(on: boolean): void;
+  /** "Bring her round": hand the helm to your helmsman, or take it back. */
+  assist(on: boolean): void;
 }
 
 /** What the HUD asks the battle for readiness (no arrays built per update). */
@@ -50,6 +52,11 @@ export class BattleHud {
   private readonly card: HTMLDivElement;
   private readonly fireBtn: HTMLButtonElement;
   private readonly bonus: HTMLDivElement;
+  private readonly helmBar: HTMLDivElement;
+  private readonly hintText: HTMLSpanElement;
+  private readonly assistBtn: HTMLButtonElement;
+  private lastHint = '';
+  private lastAssist = false;
   private readonly fillCache: number[][] = [[], []];
   private captionTimer = 0;
   private lastPhase = '';
@@ -80,6 +87,16 @@ export class BattleHud {
     this.captionBox = el('div', 'bh-captions', this.root);
     this.captionBox.setAttribute('role', 'status');
     this.captionBox.setAttribute('aria-live', 'polite');
+
+    // The helm bar: what to do with the helm next, and "Bring her round" (R) to let your helmsman steer.
+    this.helmBar = el('div', 'bh-helm', this.root);
+    this.hintText = el('span', 'bh-hint', this.helmBar);
+    this.hintText.setAttribute('aria-live', 'polite');
+    this.assistBtn = el('button', 'bh-assist', this.helmBar);
+    this.assistBtn.type = 'button';
+    this.assistBtn.setAttribute('aria-pressed', 'false');
+    this.assistBtn.innerHTML = '<span>Bring her round</span><kbd>R</kbd>';
+    this.assistBtn.onclick = () => this.actions.assist(!this.lastAssist);
 
     const guns = el('div', 'bh-guns', this.root);
     const makeRow = (sideIdx: number) => {
@@ -157,6 +174,18 @@ export class BattleHud {
 
   /** Reads the battle at ~10 Hz. Cartridge order runs from the Fire button outward, bow guns first. */
   update(s: BattleSnapshot, guns: ReadinessSource): void {
+    if (s.hint !== this.lastHint) {
+      this.lastHint = s.hint;
+      this.hintText.textContent = s.hint;
+      this.helmBar.classList.toggle('fire', s.hint.endsWith('fire!'));
+    }
+    this.helmBar.classList.toggle('show', s.phase === 'fight');
+    if (s.assist !== this.lastAssist) {
+      this.lastAssist = s.assist;
+      this.assistBtn.classList.toggle('on', s.assist);
+      this.assistBtn.setAttribute('aria-pressed', String(s.assist));
+      this.assistBtn.firstElementChild!.textContent = s.assist ? 'Helmsman steering' : 'Bring her round';
+    }
     const count = guns.gunCount();
     if (count !== this.gunCount) this.buildCartridges(count);
     for (let side = 0; side < 2; side++) {

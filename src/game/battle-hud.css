@@ -103,7 +103,7 @@
 .bh-captions {
   position: absolute;
   left: 50%;
-  bottom: 11.5rem;
+  bottom: 14.6rem;
   transform: translateX(-50%);
   display: grid;
   justify-items: center;
@@ -122,6 +122,60 @@
     opacity: 0;
     transform: translateY(6px);
   }
+}
+
+/* ---- The helm bar: the next helm move, and "Bring her round" ---- */
+.bh-helm {
+  position: absolute;
+  left: 50%;
+  bottom: 9.6rem;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+}
+.bh-helm.show {
+  opacity: 1;
+  visibility: visible;
+}
+.bh-hint {
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  background: var(--glass);
+  border: 1px solid var(--edge);
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+.bh-hint:empty {
+  display: none;
+}
+.bh-helm.fire .bh-hint {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.bh-assist {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: var(--glass);
+  pointer-events: auto;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.bh-assist:hover,
+.bh-assist:focus-visible {
+  border-color: var(--gold);
+}
+.bh-assist.on {
+  border-color: var(--gold);
+  background: rgba(120, 88, 34, 0.6);
 }
 
 /* ---- Bottom: the two batteries and the Fire button ---- */
@@ -163,7 +217,8 @@
   color: var(--gold);
 }
 .bh-key,
-.bh-fire kbd {
+.bh-fire kbd,
+.bh-assist kbd {
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 0.66rem;
   letter-spacing: 0;

@@ -183,6 +183,7 @@ HUD values update at 10 Hz through refs (PLAN §12.8), not per-frame React state
 | Action | Keyboard | Gamepad | Touch |
 |---|---|---|---|
 | Trim sails / steer | W/S, A/D (as now) | Left stick | On-screen helm (sailing touch controls) |
+| Bring her round (your helmsman steers to the best broadside; any helm key takes it back) | R | Y | A helm-bar button (≥ 44 px) |
 | Fire what bears | **Space** | **A** | **Fire** button |
 | Fire port / starboard | **Z** / **C** | **LB** / **RB** | Side buttons |
 | Look | Hold right mouse, arrows | Right stick | Drag |

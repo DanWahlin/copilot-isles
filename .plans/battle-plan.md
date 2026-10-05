@@ -32,6 +32,8 @@
 
 - **5: done.** Arcs are additive light on the water (no grey band), with metre-wide lines, soft ends, and thin, slower warning chevrons. Splinters are tapered chips in wood and paint tones that tumble, land with a small splash, float a few seconds and sink. Flotsam has a wet, glossy band below the water line. Hits leave shot holes (a dark hole in torn pale wood with a soot halo, eight per hull, patched on repairs), and sails show scorched holes as a hull takes damage. Shot marks and gun recoil for every ship share two uniform arrays (one block per ship), which cut the battle's shader programs from 84 to 81.
 
+- **Aiming (Dan's note: hard to steer, fire and move the mouse at once).** Dan picked: a follow camera, a turn hint, and a helm assist. Between beats the camera keeps your ship and the nearest raider in one frame (high and to one side, so your rigging doesn't hide her; capped turn rate; stands off for 8 s after a drag; `?nofollow` turns it off). A hint above the guns says what to do next ("◀ Turn to port: your starboard guns will bear", "Your starboard guns bear: fire!"). **Bring her round** (R, or the 44 px button) hands the helm to your helmsman, the raiders' broadside logic steering for you; any helm key takes it back. With only R and Space, wave 1 fell in 37–74 s. Step 6 to do: gamepad (a face button for R) and touch.
+
 Budget note (coordinator, 2026-10-04): vendor-three is at 249.5/250 KB gz. When the battle goes into the game, load it with a dynamic `import()` so it ships in its own chunk, and add no new eager three.js imports.
 
 Then the passage battle goes into the game (Anchorage → Port Meridian, required with a skip), and Dan reviews.

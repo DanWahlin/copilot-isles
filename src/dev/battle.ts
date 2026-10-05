@@ -17,9 +17,10 @@ import { compileAndStart, createDevHarness, engineStats } from './harness';
 
 /**
  * Sea-battle prototype (docs/specs/BATTLES.md §11): open water, your brigantine, one passage battle.
- * W/S trim, A/D steer, Space fires what bears, Z/C fire port/starboard, drag to look.
+ * W/S trim, A/D steer, Space fires what bears, Z/C fire port/starboard, R "Bring her round" (your
+ * helmsman steers to the best broadside; any helm key takes it back), drag to look.
  * Flags: ?webgl, ?tier=, ?seed=, ?calm, ?shot (no stats panel), ?wait (don't start the battle),
- * ?nodirector (no camera director).
+ * ?nodirector (no camera director), ?nofollow (the camera doesn't follow the raiders).
  */
 const harness = await createDevHarness();
 const { q, backend, tier, canvas, renderer, engine } = harness;
@@ -41,6 +42,7 @@ const hud = new BattleHud(document.body, {
   skip: () => battle.skip(clockT),
   answer: (pick) => battle.answer(pick),
   calm: (on) => battle.setCalm(on),
+  assist: (on) => battle.setAssist(on),
 });
 // Sound starts on the first key or click (browsers need a gesture).
 const audio = createAudio();
@@ -56,6 +58,7 @@ addEventListener('pointerdown', unlock);
 addEventListener('keydown', unlock);
 const director = new BattleCamera(() => world.reducedMotion.value > 0.5);
 if (q.has('nodirector')) director.enabled = false;
+if (q.has('nofollow')) director.follow = false;
 const battle = new Battle({
   tier,
   waves: ocean.field,
@@ -78,6 +81,17 @@ controls.maxPolarAngle = Math.PI * 0.495;
 // Drag or zoom and the director stands off.
 controls.addEventListener('start', () => director.yieldToUser());
 
+const HELM_KEYS = new Set([
+  'KeyW',
+  'KeyA',
+  'KeyS',
+  'KeyD',
+  'ArrowUp',
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+]);
+const focusAt = { x: 0, z: 0 };
 const helm = new Helm();
 helm.trim = 0.6;
 const keys = new Set<string>();
@@ -87,6 +101,9 @@ addEventListener('keydown', (e) => {
   if (e.code === 'Space') battle.fire('bearing');
   if (e.code === 'KeyZ') battle.fire('port');
   if (e.code === 'KeyC') battle.fire('starboard');
+  if (e.code === 'KeyR') battle.setAssist(!battle.assist);
+  // Any helm key takes the helm back from your helmsman.
+  if (battle.assist && HELM_KEYS.has(e.code)) battle.setAssist(false);
 });
 addEventListener('keyup', (e) => keys.delete(e.code));
 
@@ -109,6 +126,9 @@ const snap: BattleSnapshot = {
   stores: { timber: 0, powder: 0 },
   lull: 0,
   title: '',
+  hint: '',
+  hintTurn: 0,
+  assist: false,
 };
 /** A ship the camera rides with (dev shots): index (0 yours), offset in its frame (x port, z bow), look height. */
 const track = { i: -1, x: 0, y: 0, z: 0, lookY: 6 };
@@ -125,7 +145,12 @@ controls.update();
 engine.add({
   frame(dt, t) {
     clockT = t;
-    if (!frozenHelm) {
+    if (battle.assist && !frozenHelm) {
+      // Your helmsman has her: the helm follows, so taking it back doesn't jerk the rudder.
+      helm.trim = battle.assistHelm.trim;
+      helm.rudder = battle.assistHelm.rudder;
+      ship.dynamics.setInput(battle.assistHelm);
+    } else if (!frozenHelm) {
       const x =
         (keys.has('KeyD') || keys.has('ArrowRight') ? 1 : 0) -
         (keys.has('KeyA') || keys.has('ArrowLeft') ? 1 : 0);
@@ -141,6 +166,7 @@ engine.add({
     battle.update(dt, t);
     // The camera rides along with the ship and the director frames the battle's beats; you orbit it
     // with the mouse.
+    director.setFocus(battle.focus(focusAt), focusAt.x, focusAt.z);
     director.update(dt, t, p.x, p.z, p.heading, look, camera.position, controls.target);
     if (track.i >= 0) {
       const tp = battle.ships()[track.i]!.dynamics.pose;
