@@ -251,6 +251,10 @@ function skyLook(eye: number[], dir: number[], up: number[] = [0, 1, 0]) {
     if (object) object.visible = visible;
     return !!object;
   },
+  /** The live cove scene, for layout probes (colliders, anchors, plantings). */
+  cove,
+  /** Lights (or puts out) Anchorage's point lighthouse, as the Seal does. */
+  lighthouse: (on = true) => cove.village.setLighthouseLit(on),
   gear: () => cove.sites.gear.spots(),
   gearVisible: (visible: boolean) => {
     cove.sites.gear.group.visible = visible;

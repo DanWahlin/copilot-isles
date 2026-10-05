@@ -97,6 +97,8 @@ class MockBridge implements GameBridge {
   quitToTitle = () => this.set({ screen: 'title', returnTo: 'title' });
   updateSettings = (patch: Partial<Settings>) => this.set({ settings: { ...this.state.settings, ...patch } });
   setSails = (sails: string) => this.set({ learn: { ...this.state.learn, sails } });
+  skipOpening = () => this.set({ screen: 'playing' });
+  pressOpening = () => this.set({ screen: 'playing' });
 
   show(screen: Screen): void {
     this.set({ screen, returnTo: screen === 'paused' ? 'playing' : 'title' });

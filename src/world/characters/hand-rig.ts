@@ -4,39 +4,56 @@ import type { ArmPose, Side } from './gestures';
 /**
  * One NPC hand on the Pirate Kit rig: the palm bones (Index1, Middle1, Thumb1) hang straight off the
  * forearm, with the finger joints beyond them, so the forearm rolls the palm, the palm bones bend the
- * wrist, and the joints curl the fingers. Axes are found once from the rest pose, in the forearm's
- * own space, and mirrored by side, so one authored pose reads the same on either hand.
+ * wrist, and the joints curl the fingers. One authored pose reads the same on either hand.
+ *
+ * Every turn is about the knuckle line (or, for the roll, the forearm's length). Bending about the
+ * knuckle line leaves that line where it is, so each bone's axis, expressed in its parent's own
+ * frame, is fixed: it's found once from the rest pose, and posing is one quaternion multiply per bone
+ * with no world-matrix work. The hand is put back to rest before the next pose only if it moved.
  */
 export class HandRig {
-  private readonly palms: Bone[];
-  private readonly index: Bone[];
-  private readonly middle: Bone[];
-  private readonly thumb: Bone[];
-  /** Across the knuckles (index side), in forearm space. */
-  private readonly lateral = new Vector3();
-  /** Down the forearm toward the fingers, in forearm space. */
+  private readonly joints: {
+    bone: Bone;
+    axis: Vector3;
+    rest: Quaternion;
+    kind: 0 | 1 | 2 | 3;
+    gain: number;
+  }[] = [];
+  /** Down the forearm toward the fingers, in forearm space (the palm-up roll). */
   private readonly along = new Vector3();
+  private posed = false;
+  /** Closes the fingers round a carried prop (0 open, 1 holding); gestures can't open them past it. */
+  grip = 0;
 
   private constructor(
     private readonly forearm: Bone,
     private readonly side: Side,
     chains: Record<'Index' | 'Middle' | 'Thumb', Bone[]>,
   ) {
-    this.index = chains.Index.slice(1);
-    this.middle = chains.Middle.slice(1);
-    this.thumb = chains.Thumb.slice(1);
-    this.palms = [chains.Index[0]!, chains.Middle[0]!, chains.Thumb[0]!];
+    forearm.updateWorldMatrix(true, true);
     const knuckleI = chains.Index[1]!.getWorldPosition(new Vector3());
     const knuckleM = chains.Middle[1]!.getWorldPosition(new Vector3());
     const wrist = chains.Middle[0]!.getWorldPosition(new Vector3());
-    const inv = forearm.getWorldQuaternion(new Quaternion()).invert();
-    this.lateral.subVectors(knuckleI, knuckleM).applyQuaternion(inv).normalize();
+    const forearmQ = forearm.getWorldQuaternion(new Quaternion());
+    const inv = forearmQ.clone().invert();
+    const lateralWorld = new Vector3().subVectors(knuckleI, knuckleM).normalize();
     this.along.subVectors(knuckleM, wrist).applyQuaternion(inv).normalize();
-  }
-
-  /** Every bone the pose turns (restored to rest each frame by the character). */
-  get bones(): readonly Bone[] {
-    return [...this.palms, ...this.index, ...this.middle, ...this.thumb];
+    const add = (bone: Bone, kind: 0 | 1 | 2 | 3) => {
+      const parentQ = bone.parent!.getWorldQuaternion(new Quaternion()).invert();
+      this.joints.push({
+        bone,
+        axis: lateralWorld.clone().applyQuaternion(parentQ).normalize(),
+        rest: bone.quaternion.clone(),
+        kind,
+        // The first joint of each finger takes the full curl, the outer ones a little less.
+        gain: kind !== 0 && bone.parent !== forearm && bone.parent!.parent !== forearm ? 0.85 : 1,
+      });
+    };
+    // kind: 0 palm (wrist bend), 1 index, 2 middle, 3 thumb.
+    for (const palm of [chains.Index[0]!, chains.Middle[0]!, chains.Thumb[0]!]) add(palm, 0);
+    for (const b of chains.Index.slice(1)) add(b, 1);
+    for (const b of chains.Middle.slice(1)) add(b, 2);
+    for (const b of chains.Thumb.slice(1)) add(b, 3);
   }
 
   /** The hand under `forearm`, or null when it hasn't the full set of fingers (the captain's hook). */
@@ -56,42 +73,37 @@ export class HandRig {
     return new HandRig(forearm, side, chains);
   }
 
+  /** Puts the hand back to rest if the last pose moved it (call before the next pose). */
+  restore(): void {
+    if (!this.posed) return;
+    this.posed = false;
+    for (const j of this.joints) j.bone.quaternion.copy(j.rest);
+  }
+
   /** Rolls the forearm, bends the wrist, and curls the fingers by the pose's offsets. */
   apply(pose: ArmPose): void {
     const s = this.side;
     if (Math.abs(pose.twist) > 1e-3) {
-      this.forearm.getWorldQuaternion(Q);
-      rotate(this.forearm, AX.copy(this.along).applyQuaternion(Q), TWIST * s * pose.twist);
+      // About the forearm's own length: a turn in its own frame.
+      this.forearm.quaternion.multiply(DQ.setFromAxisAngle(this.along, TWIST * s * pose.twist));
     }
-    // Bending about the knuckle line leaves that line where it is, so one axis serves every joint.
-    this.forearm.getWorldQuaternion(Q);
-    AX.copy(this.lateral).applyQuaternion(Q);
-    if (Math.abs(pose.wrist) > 1e-3) for (const palm of this.palms) rotate(palm, AX, BEND * s * pose.wrist);
-    this.curl(this.index, pose.index, 1);
-    this.curl(this.middle, pose.curl, 1);
-    this.curl(this.thumb, pose.thumb, 0.6);
+    const amounts = AMOUNTS;
+    const g = this.grip;
+    amounts[0] = pose.wrist;
+    amounts[1] = Math.max(pose.index, g * 1.0);
+    amounts[2] = Math.max(pose.curl, g * 1.15);
+    amounts[3] = Math.max(pose.thumb, g * 0.8) * 0.6;
+    for (const j of this.joints) {
+      const amount = amounts[j.kind]!;
+      if (Math.abs(amount) < 1e-3) continue;
+      j.bone.quaternion.premultiply(DQ.setFromAxisAngle(j.axis, BEND * s * amount * j.gain));
+      this.posed = true;
+    }
   }
-
-  private curl(chain: readonly Bone[], amount: number, gain: number): void {
-    if (Math.abs(amount) < 1e-3) return;
-    for (let i = 0; i < chain.length; i++)
-      rotate(chain[i]!, AX, BEND * this.side * amount * gain * (i ? 0.85 : 1));
-  }
-}
-
-/** Turns a bone about a world axis at its own pivot. */
-function rotate(bone: Bone, axis: Vector3, angle: number): void {
-  bone.parent!.getWorldQuaternion(PQ);
-  DQ.setFromAxisAngle(axis, angle);
-  LQ.copy(PQ).invert().multiply(DQ).multiply(PQ);
-  bone.quaternion.premultiply(LQ);
 }
 
 /** Signs that make + roll the palm up, and + bend and curl toward the palm (from the rest pose). */
 const TWIST = -1;
 const BEND = -1;
-const Q = new Quaternion();
-const PQ = new Quaternion();
 const DQ = new Quaternion();
-const LQ = new Quaternion();
-const AX = new Vector3();
+const AMOUNTS = [0, 0, 0, 0];

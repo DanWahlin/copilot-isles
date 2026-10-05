@@ -27,6 +27,6 @@ describe('face fit', () => {
     expect(faceGeometry(FACE_FITS.anne)).toBe(g);
     const sides = new Set(Array.from(g.getAttribute('faceSide').array as Float32Array, Math.sign));
     expect([...sides].sort()).toEqual([-1, 0, 1]);
-    expect(g.index!.count).toBe(3 * 6 * 6);
+    expect(g.index!.count).toBe((2 * 4 + 1) * 6 * 6);
   });
 });

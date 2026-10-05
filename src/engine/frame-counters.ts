@@ -20,6 +20,8 @@ export interface Hitch {
   programs: number;
   geometries: number;
   textures: number;
+  /** What the game was doing (e.g. the screen), when the owner sets `stage`. */
+  stage?: string;
 }
 
 /** The subset of three's `Info` we read (it's the same object on the WebGPU and WebGL2 backends). */
@@ -49,6 +51,8 @@ export class FrameCounters {
     trackedMB: 0,
   };
   readonly hitches: Hitch[] = [];
+  /** Labels each hitch with what the game was doing (set by the game flow). */
+  stage: (() => string) | null = null;
   private armed = false;
   private base = { programs: 0, geometries: 0, textures: 0 };
   private readonly info: InfoLike;
@@ -87,6 +91,7 @@ export class FrameCounters {
         programs: programs - this.base.programs,
         geometries: memory.geometries - this.base.geometries,
         textures: memory.textures - this.base.textures,
+        ...(this.stage ? { stage: this.stage() } : {}),
       });
     }
     this.base = { programs, geometries: memory.geometries, textures: memory.textures };

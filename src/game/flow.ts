@@ -19,6 +19,8 @@ import { world } from '../world/uniforms';
 import { buildChart, coveTravelPoints } from './chart';
 import type { GameSession } from './session';
 import { LearnStore } from '../learn/store';
+import type { Opening } from '../opening/opening';
+import { ANCHORAGE_ARRIVAL, arrivalFlight } from './arrivals';
 
 const SETTINGS_KEY = 'copilot-isles.settings.v1';
 const SAVE_KEY = 'copilot-isles.save.v1';
@@ -41,6 +43,8 @@ const BRIDGE_METHODS = [
   'quitToTitle',
   'updateSettings',
   'setSails',
+  'skipOpening',
+  'pressOpening',
 ] as const satisfies readonly (keyof GameBridge)[];
 
 interface SaveData {
@@ -84,6 +88,11 @@ export class GameFlow implements GameBridge {
   private saveTimer = 0;
   private audioReady = false;
   private titlePrefetchStarted = false;
+  /** The opening (the Captain's Chest and the living chart) while it plays over the load. */
+  private opening: Opening | null = null;
+  /** The next opening, building in the background on the title and captain screens. */
+  private openingPrep: Promise<Opening> | null = null;
+  private openingHold: (holding: boolean) => void = () => undefined;
 
   constructor(private readonly o: GameFlowOptions) {
     const settings = { ...DEFAULT_SETTINGS, ...readJson<Partial<Settings>>(SETTINGS_KEY) };
@@ -107,6 +116,8 @@ export class GameFlow implements GameBridge {
       this.set({});
     });
     o.engine.add({ frame: (dt) => this.tick(dt) });
+    o.engine.counters.stage = () =>
+      this.opening ? `opening ${this.opening.time.toFixed(2)}` : this.state.screen;
     this.armAudioUnlock();
     // The UI passes bridge actions around as bare callbacks (onClick, useSyncExternalStore).
     for (const key of BRIDGE_METHODS) {
@@ -137,11 +148,16 @@ export class GameFlow implements GameBridge {
     this.set({ screen: 'title', returnTo: 'title', hasSave: !!readJson<SaveData>(SAVE_KEY) });
     this.o.onTitleReady?.();
     this.prefetchTitlePacks();
+    // The opening's cabin and chart start building now (a few ms a frame), so Set sail never waits.
+    window.setTimeout(() => void this.prepareOpening(), 1500);
   }
 
   chooseCaptain(): void {
     void this.unlockAudio();
     this.prefetchTitlePacks();
+    // While the captain's named, the cabin and chart build and compile in the background (no dark
+    // gap at Set sail); the menu covers the title, so the small extra frame time doesn't show.
+    void this.prepareOpening().then((o) => o.warm());
     this.set({ screen: 'captain', returnTo: 'title' });
   }
 
@@ -250,7 +266,30 @@ export class GameFlow implements GameBridge {
     this.learn.setSails(paletteId);
   }
 
+  skipOpening(): void {
+    this.opening?.skip();
+  }
+
+  pressOpening(): void {
+    this.opening?.press();
+  }
+
   // ---- internals ----
+  /** Creates the next opening and starts building it (a little each frame); once per voyage. */
+  private prepareOpening(): Promise<Opening> {
+    this.openingPrep ??= import('../opening/opening').then(({ createOpening }) => {
+      const opening = createOpening({
+        engine: this.o.engine,
+        input: this.o.input,
+        audio: () => (this.audioReady ? this.o.audio : null),
+        onHold: (holding) => this.openingHold(holding),
+      });
+      void opening.prepare();
+      return opening;
+    });
+    return this.openingPrep;
+  }
+
   private menuReturn(): Screen {
     const s = this.state.screen;
     if (s === 'playing') this.session?.setPaused(true);
@@ -315,6 +354,8 @@ export class GameFlow implements GameBridge {
         .loadManifest()
         .then(() => packs.prefetch('testcove/critical'))
         .catch(() => undefined);
+      // The opening builds quietly too, so Continue (and a quick Set sail) fade straight into it.
+      void this.prepareOpening();
     };
     const idle = (
       globalThis as { requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number }
@@ -361,27 +402,62 @@ export class GameFlow implements GameBridge {
     void this.unlockAudio();
     const { engine } = this.o;
     const destination = save?.place ?? 'Anchorage Cay';
-    this.set({
-      screen: 'voyage-loading',
-      captain,
-      progress: { value: 0.02, message: 'Weighing anchor', destination },
-    });
+    const progressNow = { value: 0.02, message: 'Weighing anchor', destination, cinematic: true };
+    const report = (value: number, message: string) => {
+      progressNow.value = value;
+      progressNow.message = message;
+      this.set({ progress: { ...progressNow } });
+    };
+    let opening: Opening | null = null;
     try {
-      const report = (value: number, message: string) =>
-        this.set({ progress: { value, message, destination } });
       const progress = (start: number, end: number, message: string) => (p: PackProgress) => {
         report(start + (end - start) * p.ratio, message);
       };
-      const [{ createCove }, { loadCharacterLibrary }, { createSession, ISLANDS, islandAt }] =
-        await Promise.all([
-          import('../world/cove-scene'),
-          import('../world/characters'),
-          import('./session'),
-        ]);
-      // Let the loading screen fade in over the title before the heavy work starts.
-      await new Promise((r) => setTimeout(r, 450));
+      // The opening (docs/specs/OPENING-living-chart.md): it's been building in the background on
+      // the title and captain screens. The title fades straight into warm dark while the island's
+      // code loads, and the cabin fades up out of it; the island streams in behind the cabin.
+      const prep = this.prepareOpening();
+      // Warm dark falls over the title and the captain panel the moment you set sail; the panel
+      // goes once it's covered (the opening's own veil takes over).
+      const setSailVeil = document.createElement('div');
+      setSailVeil.className = 'ci-opening-veil ci-opening-veil-top';
+      document.body.append(setSailVeil);
+      // Commit the transparent start now, so the fade runs on the compositor even while the island's
+      // code loads on the main thread.
+      void setSailVeil.offsetWidth;
+      setSailVeil.style.transitionDuration = '600ms';
+      setSailVeil.style.opacity = '1';
+      document.documentElement.classList.add('ci-opening-active');
+      this.o.input.enabled = true;
+      // The island's code loads behind the cabin: the cabin only waits for itself and the fade.
+      const islandCode = Promise.all([
+        import('../world/cove-scene'),
+        import('../world/characters'),
+        import('./session'),
+      ]);
+      islandCode.catch(() => undefined);
+      const [ready] = await Promise.all([
+        prep.then(async (o) => (await o.prepare(), o)),
+        new Promise((r) => setTimeout(r, 620)).then(() =>
+          this.set({ screen: 'voyage-loading', captain, progress: progressNow }),
+        ),
+      ]);
+      opening = ready;
+      this.opening = opening;
+      this.openingHold = (holding) => this.set({ progress: { ...progressNow, holding } });
       this.title?.dispose();
       this.title = null;
+      opening.start({
+        kind: save ? 'continue' : 'voyage',
+        reduced: this.state.settings.reducedMotion,
+        captainName: this.learn.progress.data.captainName ?? '',
+        sails: this.learn.getState().sails,
+      });
+      await opening.veil(true, 0);
+      setSailVeil.remove();
+      await opening.play();
+      const [{ createCove }, { loadCharacterLibrary }, { createSession, ISLANDS, islandAt }] =
+        await islandCode;
       const base = this.o.packBase ?? '/packs';
       await packs.loadManifest();
       report(0.06, 'Loading Test Cove essentials');
@@ -415,36 +491,67 @@ export class GameFlow implements GameBridge {
         audio: this.audioReady ? this.o.audio : null,
         body: captain,
         quiet: !!save,
+        fromChart: true,
         start: save ? { x: save.x, z: save.z, heading: save.heading } : undefined,
         onMenu: () => this.pause(),
         onChart: () => this.openChart(),
         learn: this.learn,
       });
-      if (this.audioReady) {
-        this.o.audio.music.setIsland(ISLANDS[this.session.island].music);
-        this.o.audio.sfx.setBed('palms', AMBIENT_BEDS.palms);
-        this.o.audio.sfx.setBed('birds_dawn', AMBIENT_BEDS.birds_dawn);
-      }
       // Both islands' skies (and the passage between them) go on the GPU before the hitch guard arms.
       await cove.sky.prefetch([ISLANDS.anchorage.sky.hours, ISLANDS.meridian.sky.hours]);
       report(0.92, 'Lighting the lanterns');
       await this.o.upgradePost?.(cove);
+      // The heavy, blocking build is done (what's left compiles asynchronously): the chest can open
+      // now, and the rest of the beat plays smoothly.
+      opening.release();
       await engine.renderer.compileAsync(engine.scene, engine.camera);
       report(0.96, 'Charting the approach');
       const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+      // The world renders behind the cabin while it warms, so its first real frame doesn't hitch.
+      opening.setDrawWorld(true);
       await this.session.warmArrival(frame);
       engine.renderNow();
+      await frame();
+      opening.setDrawWorld(false);
       engine.counters.hitches.length = 0;
       engine.counters.arm();
       report(1, 'Landfall');
       this.save(captain);
-      await new Promise((r) => setTimeout(r, 300));
+      // The chart holds until it's alive, then the camera dives in: to the arrival flyover's first
+      // view on a new voyage, or to wherever the save's camera is on Continue.
+      await opening.ready();
+      const island = this.session.island;
+      const c = engine.camera;
+      const look = c.getWorldDirection(c.position.clone()).multiplyScalar(30).add(c.position);
+      const first = arrivalFlight(ANCHORAGE_ARRIVAL, true).keys[0]!;
+      const target =
+        !save && island === 'anchorage'
+          ? {
+              island,
+              eye: { x: first.x, y: first.y, z: first.z },
+              look: { x: first.tx, y: first.ty, z: first.tz },
+            }
+          : { island, eye: c.position.clone(), look };
+      await opening.dive(target);
+      if (this.audioReady) {
+        this.o.audio.music.setIsland(ISLANDS[island].music);
+        this.o.audio.sfx.setBed('palms', AMBIENT_BEDS.palms);
+        this.o.audio.sfx.setBed('birds_dawn', AMBIENT_BEDS.birds_dawn);
+      }
+      opening.finish();
+      this.opening = null;
+      this.openingPrep = null;
+      document.documentElement.classList.remove('ci-opening-active');
       this.set({ screen: 'playing', returnTo: 'playing', hasSave: true, save: this.saveSummary() });
       engine.renderer.domElement.focus();
       this.session.begin();
     } catch (err) {
       console.error(err);
-      this.set({ progress: { value: 1, message: 'The voyage hit a squall. Please reload.' } });
+      opening?.dispose();
+      this.opening = null;
+      this.openingPrep = null;
+      document.documentElement.classList.remove('ci-opening-active');
+      this.set({ progress: { value: 1, message: 'The voyage hit a squall. Please reload.', destination } });
     } finally {
       this.loading = false;
     }
@@ -482,6 +589,11 @@ export class GameFlow implements GameBridge {
       this.saveTimer = 0;
       this.save();
     }
+  }
+
+  /** Dev/test access: the opening while it plays. */
+  get debugOpening(): Opening | null {
+    return this.opening;
   }
 
   /** Dev/test access. */

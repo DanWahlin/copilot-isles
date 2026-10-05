@@ -85,7 +85,9 @@ await step('board', async () => {
 
 await step('sail', async () => {
   await page.evaluate(() => window.__dev.hold(['KeyW'], 1300));
-  await page.waitForTimeout(5000);
+  // Short enough that the dock request below stays inside DOCK_RANGE (38 m) even when screenshots
+  // run slowly on a loaded machine (the ship keeps sailing while they're taken).
+  await page.waitForTimeout(4000);
 });
 await step('sail-turn', async () => {
   await page.evaluate(() => window.__dev.hold(['KeyA'], 1500));

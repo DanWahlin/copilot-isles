@@ -2,10 +2,12 @@ import {
   Bone,
   BoxGeometry,
   CylinderGeometry,
+  Euler,
   Group,
   Mesh,
   MeshStandardMaterial,
   Object3D,
+  Quaternion,
   SphereGeometry,
   TorusGeometry,
   Vector3,
@@ -42,13 +44,13 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
     case 'nell':
       addBicorne(root, 0x202a3a, 0xd8ad5a);
       addSpectacles(root, SPECTACLES.nell);
-      addLedger(root, 0x5a3925, 1);
+      addLedgerInHand(root, 0x5a3925, 1);
       break;
     case 'merchant':
       addWatchCap(root, 0x26384a);
       addSpectacles(root, SPECTACLES.merchant);
       addSatchel(root, 0x5c3b23, -1);
-      addLedger(root, 0x23445f, -1);
+      addLedgerInHand(root, 0x23445f, -1);
       addScroll(root, 1);
       break;
     case 'dockhand_b':
@@ -623,31 +625,61 @@ function addTacklePouch(root: Group, leather: ColorHex, side: -1 | 1): void {
   addRoot(root, cork, 'Hips');
 }
 
-function addLedger(root: Group, color: ColorHex, side: -1 | 1): void {
-  // Held flat against the chest, as if hugged.
-  const book = mesh(new BoxGeometry(0.2, 0.26, 0.035), mat(color), 'ledger');
-  book.position.set(side * 0.1, 0.52, 0.11);
-  book.rotation.set(-0.12, side * 0.18, side * 0.1);
-  addRoot(root, book, 'Torso');
-  const page = mesh(new BoxGeometry(0.17, 0.22, 0.008), mat(0xe8dcb8), 'ledger page');
-  page.position.set(side * 0.1, 0.52, 0.13);
-  page.rotation.copy(book.rotation);
-  addRoot(root, page, 'Torso');
-}
-
 function addLedgerInHand(root: Group, color: ColorHex, side: -1 | 1): void {
-  const book = mesh(new BoxGeometry(0.18, 0.24, 0.035), mat(color), 'ledger');
-  book.position.set(side * 0.34, 0.34, 0.08);
-  book.rotation.set(-0.18, side * 0.34, side * 0.04);
+  holds(root, side);
+  // Carried by its spine: the top edge sits in the closed fist and the book hangs along the fingers.
+  const grip = handGrip(root, side);
+  const W = 0.17;
+  const H = 0.23;
+  const book = mesh(new BoxGeometry(W, H, 0.035), mat(color), 'ledger');
+  const page = mesh(new BoxGeometry(W - 0.025, H - 0.035, 0.008), mat(0xe8dcb8), 'ledger page');
+  if (!grip) {
+    book.position.set(side * 0.34, 0.34, 0.08);
+    page.position.set(side * 0.34, 0.34, 0.102);
+  } else {
+    book.quaternion.copy(grip.quaternion);
+    book.position
+      .copy(grip.palm)
+      .addScaledVector(grip.up, -(H / 2 - 0.03))
+      .addScaledVector(grip.out, 0.01);
+    page.quaternion.copy(grip.quaternion);
+    // The page shows on the outside of the book, away from the leg.
+    page.position.copy(book.position).addScaledVector(grip.out, 0.022).addScaledVector(grip.up, -0.008);
+  }
   addRoot(root, book, lowerArmName(side));
-
-  const page = mesh(new BoxGeometry(0.15, 0.2, 0.008), mat(0xe8dcb8), 'ledger page');
-  page.position.set(side * 0.34, 0.34, 0.102);
-  page.rotation.copy(book.rotation);
   addRoot(root, page, lowerArmName(side));
 }
 
+/**
+ * Where a hand closes, in the character's own frame at bind pose (arms down): the fist's centre, and a
+ * frame for a book carried at the side, upright, its broad face against the leg (`out` points away
+ * from the body). A prop built in this frame and attached to the forearm stays in the fist.
+ */
+function handGrip(
+  root: Group,
+  side: -1 | 1,
+): { palm: Vector3; up: Vector3; out: Vector3; quaternion: Quaternion } | null {
+  const sfx = side === 1 ? 'L' : 'R';
+  const wrist = root.getObjectByName(`Middle1${sfx}`);
+  const knuckle = root.getObjectByName(`Middle2${sfx}`);
+  if (!wrist || !knuckle) return null;
+  root.updateMatrixWorld(true);
+  const w = root.worldToLocal(wrist.getWorldPosition(new Vector3()));
+  const k = root.worldToLocal(knuckle.getWorldPosition(new Vector3()));
+  const palm = w.clone().lerp(k, 0.75);
+  const up = new Vector3(0, 1, 0);
+  const out = new Vector3(side, 0, 0);
+  // Tipped a little forward and out at the bottom, as a book swings from a relaxed hand.
+  const quaternion = new Quaternion().setFromEuler(new Euler(0.12, 0, side * -0.08));
+  up.applyQuaternion(quaternion);
+  out.applyQuaternion(quaternion);
+  // Book width runs front to back, its height up and down, its thickness out from the leg.
+  quaternion.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI / 2));
+  return { palm, up, out, quaternion };
+}
+
 function addMarketBasket(root: Group, side: -1 | 1): void {
+  holds(root, side);
   const basket = mesh(new CylinderGeometry(0.075, 0.105, 0.12, 10), mat(0x9d642e), 'market basket');
   basket.position.set(side * 0.31, 0.36, 0.1);
   basket.scale.set(1, 1, 0.72);
@@ -667,6 +699,7 @@ function addMarketBasket(root: Group, side: -1 | 1): void {
 }
 
 function addFruitTray(root: Group, side: -1 | 1): void {
+  holds(root, side);
   const tray = mesh(new BoxGeometry(0.22, 0.035, 0.14), mat(0x8b5a2b), 'vendor produce tray');
   tray.position.set(side * 0.31, 0.43, 0.12);
   tray.rotation.z = side * 0.04;
@@ -796,6 +829,7 @@ function addNeckerchief(root: Group, color: ColorHex): void {
 }
 
 function addToyPinwheel(root: Group, side: -1 | 1): void {
+  holds(root, side);
   const stick = mesh(new BoxGeometry(0.012, 0.28, 0.012), mat(0x7a4a2a), 'pinwheel stick');
   stick.position.set(side * 0.3, 0.4, 0.14);
   stick.rotation.z = side * 0.18;
@@ -810,6 +844,7 @@ function addToyPinwheel(root: Group, side: -1 | 1): void {
 }
 
 function addToyHoop(root: Group, side: -1 | 1): void {
+  holds(root, side);
   const hoop = mesh(new TorusGeometry(0.1, 0.008, 5, 18), mat(0xd6b35f), 'toy hoop');
   hoop.position.set(side * 0.3, 0.35, 0.12);
   hoop.rotation.y = side * 0.25;
@@ -857,6 +892,7 @@ function addGuardLivery(root: Group, navy: ColorHex, burgundy: ColorHex, brass: 
 }
 
 function addMerchantScales(root: Group, side: -1 | 1): void {
+  holds(root, side);
   const x = side * 0.26;
   const top = new Vector3(x, 0.62, 0.16);
   const center = new Vector3(x, 0.52, 0.17);
@@ -880,6 +916,7 @@ function addMerchantScales(root: Group, side: -1 | 1): void {
 }
 
 function addRolledMapInHand(root: Group, side: -1 | 1): void {
+  holds(root, side);
   const scroll = mesh(new CylinderGeometry(0.034, 0.034, 0.28, 10), mat(0xe2c98f), 'rolled map in hand');
   scroll.position.set(side * 0.26, 0.49, 0.15);
   scroll.rotation.set(0.2, 0.1 * side, Math.PI / 2 + side * 0.2);
@@ -892,6 +929,7 @@ function addRolledMapInHand(root: Group, side: -1 | 1): void {
 }
 
 function addMalletInHand(root: Group, side: -1 | 1): void {
+  holds(root, side);
   const handle = mesh(new BoxGeometry(0.028, 0.34, 0.028), mat(0x5b351f), 'shipwright mallet handle');
   handle.position.set(side * 0.27, 0.43, 0.13);
   handle.rotation.set(0.1, 0, side * 0.12);
@@ -904,6 +942,7 @@ function addMalletInHand(root: Group, side: -1 | 1): void {
 }
 
 function addSpyglassInHand(root: Group, side: -1 | 1): void {
+  holds(root, side);
   const tube = mesh(new CylinderGeometry(0.032, 0.043, 0.28, 10), mat(0xb98533), 'handheld spyglass');
   tube.position.set(side * 0.26, 0.54, 0.19);
   tube.rotation.set(Math.PI / 2 + 0.08, side * 0.2, 0);
@@ -916,6 +955,7 @@ function addSpyglassInHand(root: Group, side: -1 | 1): void {
 }
 
 function addAstrolabeInHand(root: Group, side: -1 | 1): void {
+  holds(root, side);
   const ring = new TorusGeometry(0.07, 0.0055, 5, 20);
   const parts = [
     ring,
@@ -1121,6 +1161,12 @@ function addHead(root: Group, child: Mesh): void {
   child.position.multiplyScalar(scalar);
   child.scale.multiplyScalar(scalar);
   head.add(child);
+}
+
+/** Marks the hand that carries a prop, so its fingers close on it (runtime-character). */
+function holds(root: Group, side: -1 | 1): void {
+  const sides = (root.userData.holds ??= []) as number[];
+  if (!sides.includes(side)) sides.push(side);
 }
 
 function addRoot(root: Group, child: Object3D, boneName?: string): void {

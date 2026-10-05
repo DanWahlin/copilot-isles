@@ -1,25 +1,22 @@
 import {
-  AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
   Camera,
   CircleGeometry,
   ConeGeometry,
-  DoubleSide,
   Group,
   Mesh,
-  MeshBasicNodeMaterial,
   Object3D,
   SphereGeometry,
   TorusGeometry,
   Vector3,
   type Material,
 } from 'three/webgpu';
-import { color, float, smoothstep, uv } from 'three/tsl';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle, HeightField } from '../contracts';
 import { box as geoBox, cylinder as geoCylinder, merge, tubeBetween, worldUv } from '../sites/geo';
 import { MERIDIAN, meridianQuayHeight } from '../islands/meridian';
+import { createLighthouseHaloMaterial, createLighthouseLitMaterial } from '../lighthouse-lamp';
 import {
   localToWorld,
   makeBuckets,
@@ -91,10 +88,6 @@ type BasicAnchor = {
   ty?: number;
   tz?: number;
 };
-
-// TSL's fluent typings don't cover radial billboard math on MeshBasicNodeMaterial.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyNode = any;
 
 const DEG = Math.PI / 180;
 const TERRACOTTA = 0xffa040;
@@ -1094,14 +1087,7 @@ function addMoleAndLighthouse(
   shipObstacles.push({ x: l.x, z: l.z, r: 10.4 });
   perches.push(new Vector3(l.x, m.height + 19.4, l.z));
 
-  const litMaterial = new MeshBasicNodeMaterial({
-    transparent: true,
-    opacity: 0.88,
-    vertexColors: true,
-    blending: AdditiveBlending,
-    depthWrite: false,
-  });
-  litMaterial.name = 'meridian-lighthouse-lit-material';
+  const litMaterial = createLighthouseLitMaterial('meridian-lighthouse-lit-material');
   litMaterial.userData.meridianOwned = true;
   const glow = new Mesh(
     merge([
@@ -1111,21 +1097,8 @@ function addMoleAndLighthouse(
     litMaterial,
   );
   glow.name = 'meridian-lighthouse-lit-disc';
-  const haloMaterial = new MeshBasicNodeMaterial({
-    transparent: true,
-    opacity: 0.92,
-    blending: AdditiveBlending,
-    depthWrite: false,
-    depthTest: false,
-    side: DoubleSide,
-  });
-  haloMaterial.name = 'meridian-lighthouse-halo-billboard-material';
+  const haloMaterial = createLighthouseHaloMaterial('meridian-lighthouse-halo-billboard-material');
   haloMaterial.userData.meridianOwned = true;
-  const coord = uv() as AnyNode;
-  const d = coord.sub(0.5).length();
-  const alpha = smoothstep(float(0.5), float(0.0), d);
-  haloMaterial.opacityNode = alpha.mul(0.72);
-  haloMaterial.colorNode = color(0xffefaa).mul(alpha.mul(0.65).add(0.35));
   const halo = new Mesh(new CircleGeometry(2.65, 36), haloMaterial);
   halo.position.set(l.x, m.height + 16.6, l.z);
   halo.name = 'meridian-lighthouse-halo';

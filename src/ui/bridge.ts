@@ -99,6 +99,10 @@ interface VoyageProgress {
   message: string;
   /** Where you're bound (the island's name), shown over the loading chart. */
   destination?: string;
+  /** The opening plays over the load (the cabin and living chart), not the loading card. */
+  cinematic?: boolean;
+  /** The opening is holding on the living chart until the island is ready. */
+  holding?: boolean;
 }
 
 interface SaveSummary {
@@ -160,4 +164,8 @@ export interface GameBridge {
   updateSettings(patch: Partial<Settings>): void;
   /** Repaints the sails (the palette stand's choice, changed from Settings). */
   setSails(paletteId: string): void;
+  /** Skips ahead in the opening (the cabin and living chart): Esc and the Skip button. */
+  skipOpening(): void;
+  /** A click or tap in the opening: opens the chest when it's waiting, otherwise skips ahead. */
+  pressOpening(): void;
 }

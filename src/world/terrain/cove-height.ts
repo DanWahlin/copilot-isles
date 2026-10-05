@@ -180,11 +180,14 @@ function pathMask(x: number, z: number): number {
   const villageToHill = segmentDistance(x, z, COVE.village.center.x, COVE.village.center.z, -18, -10);
   const hillToBeach = segmentDistance(x, z, -18, -10, -28, 103);
   const quayToVillage = segmentDistance(x, z, -112, -64, COVE.village.center.x, COVE.village.center.z);
+  const p = COVE.lighthouse;
+  const toLighthouse = segmentDistance(x, z, p.neck.x, p.neck.z, p.x, p.z);
   return clamp01(
     1 -
       smoothstep(2.4, 7.2, villageToHill) +
       (1 - smoothstep(2.8, 8.6, hillToBeach)) +
-      (1 - smoothstep(2.2, 6.5, quayToVillage)),
+      (1 - smoothstep(2.2, 6.5, quayToVillage)) +
+      (1 - smoothstep(0.9, 2.6, toLighthouse)),
   );
 }
 
@@ -279,6 +282,29 @@ function headlandHeight(x: number, z: number, current: number): number {
   return mix(current, Math.max(current, head), influence);
 }
 
+function lighthousePointHeight(x: number, z: number, current: number): number {
+  const p = COVE.lighthouse;
+  if (Math.abs(x - p.x) > 60 || Math.abs(z - p.z) > 60) return current;
+  // The knoll: a flat grassy top that drops away in rough rocky flanks to the harbour floor.
+  const rough = fbm2(x * 0.22 + 31.7, z * 0.22 - 12.4, 3, SEED + 1701);
+  const d = Math.hypot(x - p.x, z - p.z) + rough * 1.6;
+  const flank = smoothstep(p.radius - 0.5, p.radius + 8.5, d);
+  const ledges = Math.floor(flank * 4) * 0.12 * (1 - flank);
+  // Past the flank foot it keeps falling, so the harbour floor and the seabed win again.
+  const knoll =
+    mix(p.top + rough * 0.06, -3.6, Math.pow(flank, 0.7)) -
+    ledges -
+    30 * smoothstep(p.radius + 8.5, p.radius + 16, d);
+  // The ridge path from the quay's west end out to the knoll: a 5 m crest with rocky shoulders.
+  const dx = p.neck.x - p.x;
+  const dz = p.neck.z - p.z;
+  const t = clamp01(((x - p.x) * dx + (z - p.z) * dz) / (dx * dx + dz * dz));
+  const s = Math.hypot(x - (p.x + dx * t), z - (p.z + dz * t)) + Math.max(0, rough) * 1.2;
+  const crest = mix(p.top, COVE.quay.height - 0.05, smoothstep(0.15, 1, t));
+  const ridge = mix(crest, -2.8, smoothstep(2.6, 9.5, s)) - 30 * smoothstep(9.5, 16, s);
+  return Math.max(current, knoll, ridge);
+}
+
 export function coveHeight(x: number, z: number): number {
   const coast = noisyCoastDistance(x, z);
   const offshoreDistance = Math.max(0, coast.radial - coast.radius);
@@ -328,6 +354,7 @@ export function coveHeight(x: number, z: number): number {
     7,
   );
   h = quayPlatformHeight(x, z, h);
+  h = lighthousePointHeight(x, z, h);
   h = headlandHeight(x, z, h);
   h = seaStackSeabed(x, z, h);
 

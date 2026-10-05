@@ -38,6 +38,11 @@ export class Engine {
   cpuMs = 0;
   /** Overrides the default scene render (e.g. the post-processing pipeline). */
   renderFn: (() => void) | null = null;
+  /**
+   * A cutscene drawn in place of the world (the opening's cabin, while the island streams in behind
+   * it). With `drawWorld` set, the world renders first too, so its uploads happen off screen.
+   */
+  cutscene: { render(): void; drawWorld: boolean } | null = null;
 
   private readonly systems: System[] = [];
   private readonly step = new FixedStep(1 / 60);
@@ -124,8 +129,12 @@ export class Engine {
   /** Render one frame immediately (warm-up, screenshots). */
   renderNow(): void {
     this.counters.beginFrame();
-    if (this.renderFn) this.renderFn();
-    else this.renderer.render(this.scene, this.camera);
+    const cut = this.cutscene;
+    if (!cut || cut.drawWorld) {
+      if (this.renderFn) this.renderFn();
+      else this.renderer.render(this.scene, this.camera);
+    }
+    cut?.render();
     this.counters.endFrame(this.clock.sim);
   }
 

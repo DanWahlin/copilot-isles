@@ -194,6 +194,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       tier,
       renderer,
       exclude: excludeVillageAndSites(villageExclusion(village), sites),
+      extraPlants: village.plantings,
     });
     if (tier.shadowCascades > 0) disableReceiveShadows(vegetation.group);
     scene.add(vegetation.group);

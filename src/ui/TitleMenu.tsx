@@ -75,7 +75,7 @@ export function TitleMenu({ bridge }: TitleMenuProps) {
       {state.screen === 'captain' && (
         <CaptainSelect bridge={bridge} current={state.captain} save={state.hasSave ? state.save : null} />
       )}
-      {state.screen === 'voyage-loading' && <VoyageLoading state={state} />}
+      {state.screen === 'voyage-loading' && <VoyageLoading state={state} bridge={bridge} />}
       {state.screen === 'paused' && <PausedScreen state={state} bridge={bridge} />}
       {state.screen === 'chart' && <ChartScreen state={state} bridge={bridge} />}
       {state.screen === 'settings' && <SettingsScreen state={state} bridge={bridge} />}

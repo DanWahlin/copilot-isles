@@ -13,7 +13,7 @@ import { CollisionWorld, type SurfaceKind, type WalkSurface } from './collision'
 import { Dialogue } from './dialogue';
 import { FootstepPuffs } from './footstep-puffs';
 import { FollowCamera, SAIL_RIG, WALK_RIG, type CameraShot } from './follow-camera';
-import { arrivalKeys, type IslandArrival, type IslandId } from './arrivals';
+import { arrivalFlight, arrivalKeys, type IslandArrival, type IslandId } from './arrivals';
 import { ISLANDS, islandAt, openIslands, passageSky, type IslandBerth } from './islands';
 
 export { ISLANDS, islandAt } from './islands';
@@ -81,6 +81,8 @@ export interface SessionOptions {
   voiceManifest?: string;
   /** Skips the opening Wingman hint (screenshots, tests). */
   quiet?: boolean;
+  /** A first landfall flies the short arrival that follows the opening's dive into the chart. */
+  fromChart?: boolean;
   /** Where to start (Continue); defaults to the quay spawn. */
   start?: { x: number; z: number; heading: number };
   /** Esc / Start and M / Back while playing. */
@@ -144,6 +146,8 @@ export interface GameSession {
     /** Whether Rhea's aboard for the Three Helms, and whether the lighthouse is lit (tests). */
     rheaAboard(): boolean;
     lighthouseLit(): boolean;
+    /** Whether Anchorage's point lighthouse is lit (tests). */
+    anchorageLighthouseLit(): boolean;
     /** Moves the ship while you're sailing (tests: skip the passage between islands). */
     sailTo(x: number, z: number, heading: number): void;
     /** Sets a quest step, e.g. to lower the gangway without playing the island (tests). */
@@ -162,8 +166,8 @@ export interface GameSession {
     wingman(): { phase: string; x: number; y: number; z: number } | null;
     /** The arrival flyover's phase and seconds in (tests). */
     arrival(): { island: string; phase: ArrivalPhase; time: number; eye: number } | null;
-    /** Plays an island's arrival flyover again (tests, screenshots). */
-    flyover(island?: IslandId): void;
+    /** Plays an island's arrival flyover again (tests, screenshots); `fromChart`: the short one. */
+    flyover(island?: IslandId, fromChart?: boolean): void;
     /** Holds the flyover at `time` seconds in (null lets it fly on). */
     holdArrival(time: number | null): void;
     /** Skips the arrival flyover, as E would. */
@@ -270,24 +274,65 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   hud.setHelp(WALK_HELP);
   let facialSpeaker: Character | null = null;
   let lineFace: Character | null = null;
+  const glancers: Npc[] = [];
+  /** Who the open conversation is with, and whether its camera has widened to a two-shot. */
+  let partner: Npc | null = null;
+  let twoShot = false;
+  /** Everyone lit for the open conversation (the partner, and anyone else who speaks in it). */
+  const lit: Character[] = [];
+  const spotlight = (c: Character | null) => {
+    if (!c || lit.includes(c)) return;
+    c.setSpotlight(true);
+    lit.push(c);
+  };
   // Each voiced line moves the face of whoever says it: Pim and Pol share scenes, and Rhea talks
-  // aboard. The nearest islander with that name wins (Lyra plays on two islands).
-  const speakerFace = (speaker: string): Character | null => {
-    let best: Character | null = null;
+  // aboard. The nearest islander with that name wins (Lyra plays on two islands). Anyone else in the
+  // scene glances toward the speaker while they talk.
+  const speakerNpc = (speaker: string): Npc | null => {
+    let best: Npc | null = null;
     let bestD = Infinity;
     for (const n of [...npcs.list, ...(meridianNpcs?.list ?? [])]) {
       if (!n.spec.name.split(' ').includes(speaker)) continue;
       const d = (n.x - player.x) ** 2 + (n.z - player.z) ** 2;
-      if (d < bestD) [best, bestD] = [n.character, d];
+      if (d < bestD) [best, bestD] = [n, d];
     }
-    if (speaker === 'Rhea' && rheaAboard?.group.parent) return rheaAboard;
     return best;
   };
+  const clearGlances = () => {
+    for (const n of glancers) n.glance = null;
+    glancers.length = 0;
+  };
   const dialogue = new Dialogue(hud, audio, (line) => {
-    const face = line ? (speakerFace(line.speaker) ?? facialSpeaker) : null;
+    const npc = line ? speakerNpc(line.speaker) : null;
+    const aboard = line?.speaker === 'Rhea' && rheaAboard?.group.parent ? rheaAboard : null;
+    const face = line ? (aboard ?? npc?.character ?? facialSpeaker) : null;
     if (lineFace && lineFace !== face) lineFace.speak(null);
     lineFace = face;
     face?.speak(line);
+    if (partner) spotlight(face);
+    clearGlances();
+    if (!npc || aboard) return;
+    // Staging: when someone beside your partner speaks (Pim and Pol), widen once to frame them both.
+    if (partner && npc !== partner && !twoShot && talkShot) {
+      const shot = pairShot(partner, npc);
+      if (shot) {
+        twoShot = true;
+        talkShot = shot;
+        cam.frame(shot);
+      }
+    }
+    for (const other of [...npcs.list, ...(meridianNpcs?.list ?? [])]) {
+      // The one you're talking with, and anyone standing right beside the speaker (Pim and Pol).
+      const d2 = (other.x - npc.x) ** 2 + (other.z - npc.z) ** 2;
+      if (other === npc || d2 > (other.talking ? 36 : 9)) continue;
+      // Most of the way toward the speaker's face, a little toward you: a glance, not a stare.
+      other.glance = {
+        x: npc.x * 0.7 + player.x * 0.3,
+        y: npc.y + 1.25,
+        z: npc.z * 0.7 + player.z * 0.3,
+      };
+      glancers.push(other);
+    }
   });
 
   // Player: stepUp covers the 0.6 m quay-to-pier lip.
@@ -389,6 +434,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const setQuest = (id: string, step: string) => {
     if (learn) learn.progress.setQuest(id, step);
     else localQuests[id] = step;
+    // Anchorage's Seal lights the point lighthouse (the cue shows it; this covers skips and tests).
+    if (id === 'Q0.10' && step === 'done') village.setLighthouseLit(true);
     publishQuests();
   };
   const publishQuests = () =>
@@ -436,6 +483,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       input.enabled = false;
     }
     const shot = npcTalkShot(n);
+    partner = n;
+    twoShot = false;
+    spotlight(n.character);
     const priorFaceTarget = n.faceTarget;
     talkShot = shot;
     cam.frame(shot);
@@ -471,6 +521,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       facialSpeaker = null;
       lineFace?.speak(null);
       lineFace = null;
+      clearGlances();
+      partner = null;
+      twoShot = false;
+      for (const c of lit) c.setSpotlight(false);
+      lit.length = 0;
       n.faceTarget = priorFaceTarget;
       npcs.setTalking(n, false);
       cam.frame(null);
@@ -975,6 +1030,34 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     await hud.fade(false, 260);
   });
 
+  // Anchorage's Seal (PLAN §4, Island 00 beat 11): the point lighthouse lights across the harbour.
+  cues.set('anchorage-lighthouse', async () => {
+    const L = COVE.lighthouse;
+    // Out on the harbour north-east of the point, looking back at the whole tower with the west
+    // beach behind it. Only water lies between, so the shot's always clear.
+    const x = L.x + 34,
+      z = L.z - 30;
+    const shot: CameraShot = {
+      x,
+      y: Math.max(L.top + 6, world.waterAt(x, z, 0) + 3),
+      z,
+      tx: L.x,
+      ty: L.top + 11,
+      tz: L.z,
+    };
+    await hud.fade(true, 260);
+    cam.cut(shot);
+    await hud.fade(false, 260);
+    await new Promise((r) => setTimeout(r, 1100));
+    village.setLighthouseLit(true);
+    audio?.sfx.oneShot('crowd_cheer_small', player, 0.8);
+    await new Promise((r) => setTimeout(r, 2600));
+    await hud.fade(true, 260);
+    if (talkShot) cam.cut(talkShot);
+    await hud.fade(false, 260);
+  });
+  if (quests()['Q0.10'] === 'done') village.setLighthouseLit(true);
+
   const setupMeridian = async (town: CoveScene['meridian']['town']) => {
     if (!town || disposed || meridianNpcs) return;
     const cast = [...MERIDIAN_NPCS, ...meridianExtras(town.anchors)];
@@ -1139,6 +1222,51 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         if (validTalkShot(shot, target)) return shot;
       }
     return candidates[0]!;
+  }
+
+  /**
+   * A two-shot of two islanders side by side: square on to the pair from your side, pulled back to fit
+   * them both, and never with you standing in the way of either face.
+   */
+  function pairShot(a: Npc, b: Npc): CameraShot | null {
+    const sep = Math.hypot(a.x - b.x, a.z - b.z);
+    if (sep > 6 || sep < 0.3) return null;
+    const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 + 1.12, z: (a.z + b.z) / 2 };
+    // The pair's normal, on your side of them.
+    let nx = -(b.z - a.z) / sep;
+    let nz = (b.x - a.x) / sep;
+    if (nx * (player.x - mid.x) + nz * (player.z - mid.z) < 0) [nx, nz] = [-nx, -nz];
+    const base = Math.atan2(nx, nz);
+    const back = 2.3 + sep * 0.6;
+    for (const turn of [0, 0.3, -0.3, 0.55, -0.55]) {
+      const ang = base + turn;
+      const x = mid.x + Math.sin(ang) * back;
+      const z = mid.z + Math.cos(ang) * back;
+      const shot: CameraShot = {
+        x,
+        y: Math.max(mid.y + 0.42, world.groundAt(x, z) + 1.3, world.waterAt(x, z, 0) + 0.8),
+        z,
+        tx: mid.x,
+        ty: mid.y,
+        tz: mid.z,
+      };
+      if (!validTalkShot(shot, mid)) continue;
+      if (blocksView(shot, a) || blocksView(shot, b)) continue;
+      return shot;
+    }
+    return null;
+  }
+
+  /** Whether you stand between the camera and an islander's face. */
+  function blocksView(shot: CameraShot, n: Npc): boolean {
+    const fx = n.x - shot.x;
+    const fz = n.z - shot.z;
+    const len2 = fx * fx + fz * fz;
+    const t = ((player.x - shot.x) * fx + (player.z - shot.z) * fz) / Math.max(1e-6, len2);
+    if (t <= 0 || t >= 1) return false;
+    const px = shot.x + fx * t - player.x;
+    const pz = shot.z + fz * t - player.z;
+    return px * px + pz * pz < 0.55 * 0.55;
   }
 
   function validTalkShot(shot: CameraShot, target: { x: number; y: number; z: number }): boolean {
@@ -1557,7 +1685,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   }
   // A fresh voyage flies in; a Continue (quiet) is already ashore, so this island counts as seen.
   if (o.quiet) learn?.progress.add('arrivals', berth.id);
-  else if (firstLandfall()) startArrival(berth.arrival, true);
+  else if (firstLandfall()) startArrival(arrivalFlight(berth.arrival, !!o.fromChart), true);
 
   const listenerPos = { x: 0, y: 0, z: 0 };
   const listenerFwd = { x: 0, y: 0, z: -1 };
@@ -1810,6 +1938,23 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         await step();
         if (disposed || a.phase !== 'waiting') return;
       }
+      // Then a look all round the landing spot from the follow camera's height, so the village and
+      // crew near the captain are drawn even if the flight never passed over them.
+      for (let i = 0; i < 8; i++) {
+        const yaw = (i / 8) * Math.PI * 2;
+        flyShot.x = player.x - Math.sin(yaw) * 6;
+        flyShot.y = player.y + 3;
+        flyShot.z = player.z - Math.cos(yaw) * 6;
+        flyShot.tx = player.x + Math.sin(yaw) * 20;
+        flyShot.ty = player.y + 1;
+        flyShot.tz = player.z + Math.cos(yaw) * 20;
+        cam.cut(flyShot);
+        camera.position.set(flyShot.x, flyShot.y, flyShot.z);
+        camera.lookAt(flyShot.tx, flyShot.ty, flyShot.tz);
+        camera.updateMatrixWorld();
+        await step();
+        if (disposed || a.phase !== 'waiting') return;
+      }
       view(0);
       await step();
     },
@@ -1872,6 +2017,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       liftCamera: () => liftCamera(),
       rheaAboard: () => !!rheaAboard?.group.parent,
       lighthouseLit: () => lighthouseLit,
+      anchorageLighthouseLit: () => village.lighthouseLit(),
       cast: () =>
         (meridianNpcs?.list ?? []).map((n) => ({
           id: n.spec.id,
@@ -1911,9 +2057,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
               ),
             }
           : null,
-      flyover(id: IslandId = island) {
+      flyover(id: IslandId = island, fromChart = false) {
         if (mode !== 'walk') return;
-        startArrival(ISLANDS[id].arrival, false);
+        startArrival(arrivalFlight(ISLANDS[id].arrival, fromChart), false);
       },
       holdArrival(time: number | null) {
         arrivalHold = time;

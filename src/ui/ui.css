@@ -1933,3 +1933,207 @@
   width: 1.1rem;
   height: 1.1rem;
 }
+
+/* The opening (docs/specs/OPENING-living-chart.md): the cabin and living chart play under this. */
+.ci-opening {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.ci-opening-skip {
+  position: absolute;
+  right: clamp(1rem, 3vw, 2.4rem);
+  bottom: clamp(1rem, 3vh, 2rem);
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid rgba(232, 200, 138, 0.45);
+  border-radius: 999px;
+  background: rgba(20, 12, 6, 0.42);
+  color: #f6ecd6;
+  font: 600 0.95rem var(--ci-ui);
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.ci-opening-skip span {
+  margin-left: 0.5rem;
+  font-weight: 500;
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+
+.ci-opening-skip:hover,
+.ci-opening-skip:focus-visible {
+  background: rgba(40, 24, 10, 0.62);
+  border-color: rgba(232, 200, 138, 0.8);
+}
+
+.ci-opening-hold {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1.2rem, 4vh, 2.6rem);
+  margin: 0;
+  transform: translateX(-50%);
+  font: italic 400 1.05rem var(--ci-display);
+  color: rgba(246, 236, 214, 0.85);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+.ci-opening-hold.show {
+  opacity: 1;
+}
+
+.ci-opening-veil,
+.ci-opening-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transition-property: opacity;
+  transition-timing-function: ease-in-out;
+}
+
+.ci-opening-veil {
+  background: radial-gradient(circle at 50% 45%, #2b1a0c, #0b0603 75%);
+}
+
+/* At Set sail the veil also covers the captain panel (the UI layer) as it fades. */
+.ci-opening-veil-top {
+  z-index: 7;
+}
+
+.ci-opening-flash {
+  background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f4fbff 45%, rgba(220, 238, 246, 0.96) 100%);
+}
+
+.ci-opening-flash.reduced {
+  background: #efe3c4;
+}
+
+/* The game's HUD stays hidden while the opening plays over the load. */
+.ci-opening-active .hud {
+  visibility: hidden;
+}
+
+/* Spray droplets through the dive's flash: soft white blobs bursting outward from the middle. */
+.ci-opening-spray {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ci-opening-spray i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6vmax;
+  height: 6vmax;
+  margin: -3vmax 0 0 -3vmax;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.95),
+    rgba(225, 242, 248, 0.5) 45%,
+    transparent 70%
+  );
+  opacity: 0;
+  transform: translate(0, 0) scale(0.2);
+}
+
+.ci-opening-spray.go i {
+  animation: ci-spray 1.1s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes ci-spray {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.2);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(var(--s));
+  }
+}
+
+/* The chest's invitation: a breathing gold ring over the lock (positioned by the opening each frame). */
+.ci-opening-lock {
+  --x: 50vw;
+  --y: 50vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 8;
+  width: 92px;
+  height: 92px;
+  margin: -46px 0 0 -46px;
+  padding: 0;
+  border: 3px solid rgba(255, 226, 160, 0.95);
+  border-radius: 50%;
+  background: transparent;
+  /* A thin dark rim outside the gold, so the ring reads against the bright lock plate. */
+  box-shadow:
+    0 0 0 1.5px rgba(40, 20, 5, 0.55),
+    0 0 18px rgba(255, 190, 90, 0.55);
+  color: #f6ecd6;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(var(--x), var(--y));
+  transition: opacity 0.7s ease;
+  animation: ci-lock-breathe 1.9s ease-in-out infinite;
+}
+
+.ci-opening-lock.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ci-opening-lock:focus-visible {
+  outline: 2px solid rgba(255, 240, 200, 0.9);
+  outline-offset: 6px;
+}
+
+.ci-opening-lock span {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.35rem 0.9rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(20, 11, 4, 0.62);
+  white-space: nowrap;
+  font: italic 500 1.15rem var(--ci-display);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.ci-opening-lock small {
+  display: block;
+  margin-top: 3px;
+  font: 600 0.74rem var(--ci-ui);
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+}
+
+@keyframes ci-lock-breathe {
+  0%,
+  100% {
+    transform: translate(var(--x), var(--y)) scale(1);
+  }
+  50% {
+    transform: translate(var(--x), var(--y)) scale(1.09);
+    box-shadow:
+      0 0 0 1.5px rgba(40, 20, 5, 0.55),
+      0 0 30px rgba(255, 200, 100, 0.85);
+  }
+}
