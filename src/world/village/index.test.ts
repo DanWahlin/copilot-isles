@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { tierSettings } from '../../engine/quality';
 import type { HeightField } from '../contracts';
 import { COVE } from '../layout';
-import { VILLAGE_BUILDING_COUNT, createVillage, walkable } from './index';
+import { SQUARE, VILLAGE_BUILDING_COUNT, createVillage, walkable } from './index';
 
 const heightField: HeightField = {
   heightAt: (x, z) => 3.05 + (x + 150) * 0.006 + (z + 75) * 0.004,
@@ -68,9 +68,12 @@ describe('createVillage', () => {
     );
     expect(railing.length).toBe(8);
     expect(village.perches.some((p) => p.x === lh.x && p.z === lh.z && p.y > lh.top + 20)).toBe(true);
+    const stallR = SQUARE.radius + 2.2;
+    const stallX = COVE.village.center.x + Math.cos(SQUARE.stallAngle) * stallR;
+    const stallZ = COVE.village.center.z + Math.sin(SQUARE.stallAngle) * stallR;
     expect(
       village.perches.some(
-        (p) => Math.abs(p.x + 122) < 0.01 && p.y > heightField.heightAt(-122, -43.4) + 1.8,
+        (p) => Math.abs(p.x - stallX) < 0.01 && p.y > heightField.heightAt(stallX, stallZ) + 1.8,
       ),
     ).toBe(true);
 
@@ -169,14 +172,46 @@ describe('createVillage', () => {
     expect(shrubs(low).length).toBeGreaterThanOrEqual(10);
     expect(shrubs(high).length).toBeGreaterThan(shrubs(low).length);
     expect(shrubs(high).some((p) => p.species === 'flowerBush')).toBe(true);
+    // The square's planters stand on its paving; every other bed is off the paving.
+    const inSquare = (p: { x: number; z: number }) =>
+      Math.hypot(p.x - COVE.village.center.x, p.z - COVE.village.center.z) < SQUARE.radius;
+    expect(shrubs(low).filter(inSquare).length).toBe(SQUARE.planters.length);
     for (const p of shrubs(high)) {
-      expect(walkable(p.x, p.z), `paved at (${p.x}, ${p.z})`).toBeNull();
+      if (!inSquare(p)) expect(walkable(p.x, p.z), `paved at (${p.x}, ${p.z})`).toBeNull();
       expect(p.x > -74 && p.x < -51 && p.z > -77 && p.z < -42).toBe(false);
       for (const a of Object.values(high.anchors))
         expect(Math.hypot(p.x - a.x, p.z - a.z)).toBeGreaterThan(2.5);
     }
     low.dispose();
     high.dispose();
+  });
+
+  it('puts a fountain at the square centre, clear of Pip, with the stall and lawns outside the curb', async () => {
+    const village = await createVillage({ tier: tierSettings('high'), heightField });
+    const c = COVE.village.center;
+    expect(SQUARE.centrepiece).toBe('fountain');
+    const fountain = village.colliders.circles.find((k) => k.x === c.x && k.z === c.z);
+    expect(fountain?.r).toBeCloseTo(SQUARE.basin + 0.2, 5);
+    // Pip circles the plaza-well anchor's orbit centre (the square centre) at 3.4 m.
+    const well = village.anchors.plazaWell!;
+    expect(Math.hypot(well.x - 2.7 - c.x, well.z + 1.2 - c.z)).toBeLessThan(0.01);
+    expect(3.4 - (fountain?.r ?? 0)).toBeGreaterThan(0.5);
+    // The fountain's water is one extra mesh (one draw) on the shared site-water material.
+    const water = village.group.getObjectByName('anchorage-fountain-water');
+    expect(water).toBeDefined();
+    // The market stall stands outside the curb, its front facing the fountain.
+    const stall = village.anchors.marketStall!;
+    expect(Math.hypot(stall.x - c.x, stall.z - c.z)).toBeGreaterThan(SQUARE.radius);
+    expect(Math.hypot(stall.x - c.x, stall.z - c.z)).toBeLessThan(SQUARE.radius + 2.2);
+    // Paving ends at the curb: the lawn ring round the square is ground, not street.
+    for (const a of [0.3, 1.2, 2.2, 3.6, 5.0]) {
+      const x = c.x + Math.cos(a) * (SQUARE.radius - 1);
+      const z = c.z + Math.sin(a) * (SQUARE.radius - 1);
+      expect(walkable(x, z)).not.toBeNull();
+    }
+    expect(walkable(-107.5, -37.5)).toBeNull();
+    expect(walkable(-125, -38)).toBeNull();
+    village.dispose();
   });
 
   it('adds player-only mooring bollards on the pier east edge for the new berth', async () => {

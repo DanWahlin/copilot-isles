@@ -20,7 +20,8 @@ export const COVE = {
   harbor: { center: { x: -110, z: -115 }, radius: 55, depth: 6 },
   quay: { x0: -150, x1: -70, z: -72, height: 2.4 },
   pier: { x: -108, z0: -72, z1: -122, width: 4, deck: 1.8 },
-  village: { center: { x: -115, z: -45 }, radius: 32, height: 3.2 },
+  /** The village; `squareRadius` is the round paved square at its centre, round the fountain. */
+  village: { center: { x: -115, z: -45 }, radius: 32, height: 3.2, squareRadius: 9 },
   /**
    * The point lighthouse on the harbour's west jaw: a rocky knoll (`x`, `z`, flat `top` out to
    * `radius`) that a ridge path joins to the quay's west end at `neck`. It stands clear of the

@@ -67,7 +67,8 @@ export class WaterStrips {
 
   /**
    * A quad from corners a (start, left), b (start, right), c (end, left), d (end, right), with the
-   * flow running from the start edge (`v0`) to the end edge (`v1`).
+   * flow running from the start edge (`v0`) to the end edge (`v1`). `u0`..`u1` is how far across the
+   * strip the left and right edges sit (the shader foams the strip's edges; 0.5..0.5 has none).
    */
   quad(
     a: readonly number[],
@@ -77,6 +78,8 @@ export class WaterStrips {
     v0: number,
     v1: number,
     f: StripFlow,
+    u0 = 0,
+    u1 = 1,
   ): void {
     if (this.quads >= this.maxQuads || f.fill <= 0.001) return;
     const i = this.quads++ * 4;
@@ -104,7 +107,7 @@ export class WaterStrips {
       const p = corners[k]!;
       this.pos.set([p[0]!, p[1]!, p[2]!], (i + k) * 3);
       this.nrm.set([nx, ny, nz], (i + k) * 3);
-      this.tex.set([k % 2, k < 2 ? v0 : v1], (i + k) * 2);
+      this.tex.set([k % 2 === 0 ? u0 : u1, k < 2 ? v0 : v1], (i + k) * 2);
       this.flw.set([f.fill, f.speed, f.foam ?? 0], (i + k) * 3);
     }
   }
