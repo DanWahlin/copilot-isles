@@ -59,6 +59,7 @@ function fallbackBridge(): GameBridge {
     back: () => setState({ screen: state.returnTo }),
     travelTo: () => setState({ screen: state.returnTo }),
     quitToTitle: () => setState({ screen: 'title', returnTo: 'title' }),
+    startOver: () => setState({ screen: 'captain', returnTo: 'title', hasSave: false }),
     updateSettings: (patch) => setState({ settings: { ...state.settings, ...patch } }),
     applyQuality: () => setState({ qualityNotice: { kind: 'applying' } }),
     renderResolution: () => ({ scale: 1, width: innerWidth, height: innerHeight }),

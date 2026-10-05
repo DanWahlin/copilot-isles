@@ -2345,3 +2345,43 @@ html.reduced-motion .ci-quality-option {
       0 0 30px rgba(255, 200, 100, 0.85);
   }
 }
+
+/* Settings → Your voyage → Start over (behind a confirm step). */
+.ci-start-over {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+}
+
+.ci-start-over .ci-setting-note {
+  margin: 0;
+}
+
+.ci-start-over.confirming {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0.8rem 0.9rem 0.9rem;
+  border: 1px solid rgba(214, 120, 96, 0.45);
+  border-radius: 0.75rem;
+  background: rgba(60, 18, 12, 0.32);
+}
+
+.ci-start-over-q {
+  margin: 0;
+  color: var(--ci-cream);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.ci-start-over-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.ci-chip.ci-danger {
+  border-color: rgba(214, 120, 96, 0.7);
+  background: rgba(176, 68, 48, 0.35);
+}
