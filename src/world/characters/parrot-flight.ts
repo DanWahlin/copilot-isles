@@ -83,6 +83,20 @@ const TMP_V = new Vector3();
 const TMP_V2 = new Vector3();
 const TMP_E = new Euler(0, 0, 0, 'YXZ');
 
+/**
+ * Wingbeats per second and their size for each part of the flight. They're slow and soft on
+ * purpose: at a real parrot's rate the wings flicker in the corner of a talking close-up.
+ */
+export const WINGBEAT = {
+  takeoff: { hz: 3.2, amp: 0.95 },
+  hover: { hz: 2.2, amp: 0.62 },
+  glide: { hz: 1.8, amp: 0.3 },
+  flare: { hz: 3.4, amp: 0.85 },
+} as const;
+
+/** How quickly the beat eases to a new rate and size (per second), so it never jumps. */
+const BEAT_EASE = 3;
+
 /** Wing angles for a flap phase (radians) and how open the wings are (0 folded, 1 spread). */
 export function wingPose(
   phase: number,
@@ -120,6 +134,8 @@ export class ParrotFlight {
   private state: FlightPhase = 'perched';
   private u = 0;
   private flapPhase = 0;
+  private beatHz: number = WINGBEAT.takeoff.hz;
+  private beatAmp: number = WINGBEAT.takeoff.amp;
   private time = 0;
   private side = 1;
   private yaw = 0;
@@ -196,6 +212,8 @@ export class ParrotFlight {
     this.roll = 0;
     this.u = 0;
     this.flapPhase = Math.PI;
+    this.beatHz = WINGBEAT.takeoff.hz;
+    this.beatAmp = WINGBEAT.takeoff.amp;
     this.state = 'takeoff';
     this.root.scale.copy(this.perchScale);
     this.place(0);
@@ -232,16 +250,14 @@ export class ParrotFlight {
     this.target.y += Math.sin(this.time * 1.9) * 0.05;
     const prev = TMP_V2.copy(this.pos);
     let open = 1;
-    let freq = 5.2;
-    let amp = 0.85;
+    let beat: { readonly hz: number; readonly amp: number } = WINGBEAT.hover;
     if (this.state === 'takeoff') {
       this.u = Math.min(1, this.u + dt / TAKEOFF_S);
       const e = easeInOut(this.u);
       TMP_V.copy(this.target).sub(this.from).multiplyScalar(0.25).add(this.from).addScaledVector(UP, 0.75);
       bezier(this.from, TMP_V, this.target, e, this.pos);
       open = MathUtils.smoothstep(this.u, 0, 0.28);
-      freq = 6.2;
-      amp = 1;
+      beat = WINGBEAT.takeoff;
       if (this.u >= 1) this.state = 'hover';
     } else if (this.state === 'hover') {
       this.pos.lerp(this.target, 1 - Math.exp(-3.5 * dt));
@@ -251,11 +267,12 @@ export class ParrotFlight {
       TMP_V.copy(this.from).add(this.perchPos).multiplyScalar(0.5).addScaledVector(UP, 0.45);
       bezier(this.from, TMP_V, this.perchPos, e, this.pos);
       open = 1 - MathUtils.smoothstep(this.u, 0.84, 1);
-      // Glide in, then flare with quick beats before touching down.
-      freq = this.u < 0.62 ? 3.4 : 7.2;
-      amp = this.u < 0.62 ? 0.35 : 0.95;
+      // Glide in, then flare with a few fuller beats before touching down.
+      beat = this.u < 0.62 ? WINGBEAT.glide : WINGBEAT.flare;
     }
-    this.flapPhase += Math.PI * 2 * freq * dt;
+    this.beatHz = MathUtils.damp(this.beatHz, beat.hz, BEAT_EASE, dt);
+    this.beatAmp = MathUtils.damp(this.beatAmp, beat.amp, BEAT_EASE, dt);
+    this.flapPhase += Math.PI * 2 * this.beatHz * dt;
 
     const vx = (this.pos.x - prev.x) / dt;
     const vy = (this.pos.y - prev.y) / dt;
@@ -284,7 +301,7 @@ export class ParrotFlight {
     else if (this.state === 'landing')
       this.root.quaternion.slerpQuaternions(this.flyQ, this.perchQ, MathUtils.smoothstep(this.u, 0.55, 1));
     else this.root.quaternion.copy(this.flyQ);
-    this.place(open, amp);
+    this.place(open, this.beatAmp);
 
     if (this.state === 'landing' && this.u >= 1) this.landNow();
   }
@@ -310,8 +327,8 @@ export class ParrotFlight {
     left.rotation.set(p.twist, -p.sweep, -p.flap, 'YZX');
     right.scale.setScalar(p.scale);
     left.scale.setScalar(p.scale);
-    // He rises a touch on each downstroke.
-    this.pose.position.y = -Math.sin(this.flapPhase) * 0.035 * open;
+    // He rises a touch on each downstroke, less on softer beats.
+    this.pose.position.y = -Math.sin(this.flapPhase) * 0.042 * amp * open;
   }
 }
 
