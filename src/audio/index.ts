@@ -23,6 +23,8 @@ export interface IslesAudio {
      * cue); null fades to silence. `at` starts it from that many seconds in; `fade` sets the fade.
      */
     setIsland(island: IslandMusic | null, opts?: { at?: number; fade?: number }): void;
+    /** Seconds left in `island`'s track while it's playing, or null. */
+    remaining(island: IslandMusic): number | null;
   };
   readonly sfx: {
     setListener(pos: Vec3Like, forward?: Vec3Like): void;
@@ -154,6 +156,7 @@ class IslesAudioImpl implements IslesAudio {
   readonly music = {
     setIsland: (island: IslandMusic | null, opts?: { at?: number; fade?: number }) =>
       this.musicPlayer.setIsland(island, opts),
+    remaining: (island: IslandMusic) => this.musicPlayer.remaining(island),
   };
 
   readonly sfx = {

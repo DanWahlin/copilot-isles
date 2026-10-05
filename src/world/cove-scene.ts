@@ -8,7 +8,7 @@ import { createCoastFoam } from './terrain/coast-foam';
 import { seaStackShipObstacle } from './terrain/sea-stack-shape';
 import { createDistantRanges } from './terrain/distant-ranges';
 import { loadTerrainPack } from './terrain/bake';
-import { createTerrain, type CreatedTerrain } from './terrain/terrain-mesh';
+import { createTerrain, createTerrainAsync, type CreatedTerrain } from './terrain/terrain-mesh';
 import { CompositeHeightField } from './terrain/composite-height-field';
 import { COVE } from './layout';
 import { MERIDIAN, createMeridianRocks, createMeridianSilhouette } from './islands/meridian';
@@ -60,6 +60,11 @@ export interface CoveOptions {
   vegetation?: boolean;
   birds?: boolean;
   onProgress?: (p: number, msg: string) => void;
+  /**
+   * Called between build stages; resolve it on the next frame to let the screen update while the
+   * island builds (the opening's cabin keeps animating). Defaults to no pause.
+   */
+  breathe?: () => Promise<void>;
 }
 
 /**
@@ -70,8 +75,10 @@ export interface CoveOptions {
 export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<CoveScene> {
   const { renderer, scene, tier, clock, camera } = engine;
   const report = o.onProgress ?? (() => {});
+  const breathe = o.breathe ?? (() => Promise.resolve());
   report(0.1, 'Raising the sky');
   const sky = createSky(renderer, scene, tier, engine.backend);
+  await breathe();
   const cloudShadowNode = sky.cloudShadowNode?.(positionWorld.xz);
   const params =
     typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
@@ -81,11 +88,13 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const meridianDisabled = params.has('nomeridian');
   const mirror = tier.mirror ? new HarborMirror({ renderer, tier, disabled: mirrorDisabled }) : null;
   const ocean = createOcean({ tier, env: sky.env, mirror: mirror?.input, terrainDepth: true });
+  await breathe();
   scene.add(ocean.mesh);
 
   report(0.3, 'Charting the cove');
   const data = await loadTerrainPack(`${o.packBase ?? '/packs'}/testcove/terrain`);
-  const terrain = createTerrain({ tier, data, cloudShadowNode });
+  const terrain = await createTerrainAsync({ tier, data, cloudShadowNode }, breathe);
+  await breathe();
   if (tier.shadowCascades > 0) disableReceiveShadows(terrain.group);
   const heightField = new CompositeHeightField(-52);
   heightField.add(
@@ -93,7 +102,9 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     terrain.heightField,
   );
   const foam = createCoastFoam(data, terrain.heightField);
+  await breathe();
   const ranges = createDistantRanges(tier);
+  await breathe();
   const meridianSilhouette = meridianDisabled ? new Group() : createMeridianSilhouette();
   scene.add(terrain.group, foam, ranges, meridianSilhouette);
   let resolveMeridianTown: (town: MeridianTownSystem | null) => void = () => {};
@@ -169,6 +180,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   report(0.5, 'Building the harbor');
   const villageKit = typeof window === 'undefined' ? undefined : await loadVillageKit();
   const village = await createVillage({ tier, heightField, kit: villageKit });
+  await breathe();
   if (tier.shadowCascades > 0) disableReceiveShadows(village.group);
   scene.add(village.group);
   const sites = await createCoveSites({
@@ -178,6 +190,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   });
   if (tier.shadowCascades > 0) disableReceiveShadows(sites.group);
   scene.add(sites.group);
+  await breathe();
   const debris = createBeachDebris({
     heightField: terrain.heightField,
     tier,
@@ -199,8 +212,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     if (tier.shadowCascades > 0) disableReceiveShadows(vegetation.group);
     scene.add(vegetation.group);
   }
+  await breathe();
 
   report(0.8, 'Rigging the brigantine');
+  await breathe();
   const ship = createBrigantine({ tier: tier.tier });
   ship.dynamics.reset(COVE.mooring.x, COVE.mooring.z, COVE.mooring.heading);
   if (tier.shadowCascades > 0) disableReceiveShadows(ship.group);

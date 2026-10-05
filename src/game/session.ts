@@ -105,6 +105,8 @@ export interface GameSession {
   setPaused(on: boolean): void;
   /** The game's on screen (the loading card has gone): a first landfall's flyover takes off. */
   begin(): void;
+  /** Seconds until the arrival flyover reaches the captain (0 when there's none, or it's done). */
+  arrivalLeft(): number;
   /**
    * Loading: steps the camera along a pending flyover, calling `step` at each view (render a frame,
    * compile), so everything it'll see is built behind the loading card rather than mid-flight.
@@ -1918,6 +1920,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       input.enabled = !on && !dialogue.active && !(arrival && arrival.phase !== 'done');
       if (!on) resumedAt = performance.now();
       if (on) hero.setSpeed(0);
+    },
+    arrivalLeft() {
+      const a = arrival;
+      if (!a || a.phase === 'done') return 0;
+      if (!a.path) return Math.max(0, ARRIVAL_CARD_ONLY - a.time);
+      return Math.max(0, a.plan.seconds - a.time);
     },
     begin() {
       if (arrival?.phase === 'waiting') arrival.phase = arrival.path ? 'flying' : 'card';

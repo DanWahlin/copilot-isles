@@ -109,7 +109,7 @@ async function boot(): Promise<void> {
   });
   if (post) engine.renderFn = post.render;
   let richPostReady = false;
-  const upgradePost = async () => {
+  const upgradePost = async (_cove?: unknown, opts: { warm?: boolean } = {}) => {
     if (richPostReady) return;
     const rich = await createPost(renderer, engine.scene, engine.camera, tier);
     if (!rich) {
@@ -122,8 +122,12 @@ async function boot(): Promise<void> {
     const previous = post;
     post = rich;
     engine.renderFn = rich.render;
-    await rich.compile();
-    engine.renderNow();
+    // The opening warms the world through this post a few objects a frame (warm: false); otherwise
+    // one render builds everything now.
+    if (opts.warm !== false) {
+      await rich.compile();
+      engine.renderNow();
+    }
     previous?.dispose();
     richPostReady = true;
   };

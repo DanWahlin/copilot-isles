@@ -29,7 +29,33 @@ function floorHeightAt(x: number, z: number): number {
 
 export function waterDepthTexture(): DataTexture {
   if (cached) return cached;
+  const steps = bakeSteps();
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
 
+/**
+ * Bakes the texture ahead of time, `budgetMs` of main-thread time per frame (e.g. on the title, so
+ * the island build later finds it ready). Resolves once it's cached.
+ */
+export function prewarmWaterDepthTexture(budgetMs = 4): Promise<void> {
+  if (cached) return Promise.resolve();
+  const steps = bakeSteps();
+  return new Promise((resolve) => {
+    const step = () => {
+      if (cached) return resolve();
+      const end = performance.now() + budgetMs;
+      while (performance.now() < end) if (steps.next().done) return resolve();
+      requestAnimationFrame(step);
+    };
+    step();
+  });
+}
+
+/** Fills the texture a row at a time (yielding after each); the first bake to finish is cached. */
+function* bakeSteps(): Generator<void, DataTexture, void> {
   const data = new Float32Array(SIZE * SIZE);
   const spanX = WATER_DEPTH_BOUNDS.maxX - WATER_DEPTH_BOUNDS.minX;
   const spanZ = WATER_DEPTH_BOUNDS.maxZ - WATER_DEPTH_BOUNDS.minZ;
@@ -39,8 +65,9 @@ export function waterDepthTexture(): DataTexture {
       const wx = WATER_DEPTH_BOUNDS.minX + (x / (SIZE - 1)) * spanX;
       data[z * SIZE + x] = floorHeightAt(wx, wz);
     }
+    yield;
   }
-
+  if (cached) return cached;
   cached = new DataTexture(data, SIZE, SIZE, RedFormat, FloatType);
   cached.magFilter = LinearFilter;
   cached.minFilter = LinearFilter;

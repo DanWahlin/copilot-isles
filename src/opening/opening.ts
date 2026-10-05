@@ -1,6 +1,7 @@
 import {
   Group,
   RenderTarget,
+  Vector2,
   Mesh,
   MeshStandardNodeMaterial,
   PerspectiveCamera,
@@ -121,6 +122,8 @@ const APPROACH = 1.8;
 const CUE_PEAK = 13;
 const AUTO_OPEN = 12;
 
+const canvasSize = new Vector2();
+
 const tmpA = new Vector3();
 const tmpB = new Vector3();
 const tmpC = new Vector3();
@@ -143,7 +146,15 @@ export function createOpening(o: OpeningOptions): Opening {
   let reduced = false;
   const scene = new Scene();
   scene.name = 'opening';
-  const camera = new PerspectiveCamera(40, engine.camera.aspect, 0.0004, 40);
+  /**
+   * The canvas's own aspect (not the main camera's: the post pipeline's temporal AA jitters that one
+   * with a view offset, and it can sit at 1 while the island's post compiles, which stretched the cabin).
+   */
+  const canvasAspect = () => {
+    engine.renderer.getSize(canvasSize);
+    return canvasSize.x / Math.max(1, canvasSize.y);
+  };
+  const camera = new PerspectiveCamera(40, canvasAspect(), 0.0004, 40);
 
   // ---- the DOM veils: warm dark (scene changes) and white spray (the dive) ----
   const veilEl = document.createElement('div');
@@ -445,6 +456,7 @@ export function createOpening(o: OpeningOptions): Opening {
   let paperW = 1;
   let shipScale = 1;
   const removeSystem = engine.add({
+    cutscene: true,
     frame(dt) {
       if (!playing || disposed || !cabin || !paper) return;
       // The beat keeps real time while the island loads (a long frame skips ahead a little, up to 0.1 s).
@@ -524,7 +536,7 @@ export function createOpening(o: OpeningOptions): Opening {
         }
         shotAt(t);
       } else shotAt(t);
-      camera.aspect = engine.camera.aspect;
+      camera.aspect = canvasAspect();
       camera.updateProjectionMatrix();
       camera.position.copy(cam.eye);
       camera.lookAt(cam.look);
@@ -716,7 +728,7 @@ export function createOpening(o: OpeningOptions): Opening {
       ship?.setSails(details.sails);
       applyBeat(kind === 'continue' || reduced ? 99 : 0);
       shotAt(0);
-      camera.aspect = engine.camera.aspect;
+      camera.aspect = canvasAspect();
       camera.updateProjectionMatrix();
       camera.position.copy(cam.eye);
       camera.lookAt(cam.look);
@@ -750,10 +762,11 @@ export function createOpening(o: OpeningOptions): Opening {
       if (audio) {
         const sfx = audio.sfx;
         sfx.preload(['opening_whoosh', 'opening_spray', ...CUES.map((c) => c[1])]);
-        // Quiet in the cabin before the chest opens (Continue and reduced motion start the cue now:
-        // Continue so its peak lands at the end of the short dive).
-        if (kind === 'continue') startCue(CUE_PEAK - (beats.ready + beats.dive));
-        else if (reduced) startCue(0);
+        // Quiet in the cabin before the chest opens (reduced motion starts the cue now).
+        // (Continue starts it with the dive, below, so its peak still lands at the splash however long
+        // the chart waits for the island.)
+        if (reduced) startCue(0);
+        else if (kind === 'continue') audio.music.setIsland(null, { fade: 2.5 });
         else audio.music.setIsland(null, { fade: 2.5 });
         // Inside the cabin: timbers creak; the open sea outside is muffled.
         sfx.setBed('opening_cabin', 0.55);
@@ -799,6 +812,7 @@ export function createOpening(o: OpeningOptions): Opening {
       return new Promise((r) => (readyResolve = r));
     },
     dive(target) {
+      if (!cueStarted && !reduced) startCue(CUE_PEAK - beats.dive);
       return new Promise((resolve) => {
         holding = false;
         o.onHold?.(false);

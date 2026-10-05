@@ -285,6 +285,31 @@ function buildChunkGeometry(
 }
 
 export function createTerrain(options: CreateTerrainOptions): CreatedTerrain {
+  const steps = buildTerrain(options);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+
+/**
+ * The same terrain, built a chunk at a time: `breathe` runs between chunks (resolve it on the next
+ * frame to keep the screen moving while the island builds).
+ */
+export async function createTerrainAsync(
+  options: CreateTerrainOptions,
+  breathe: () => Promise<void>,
+): Promise<CreatedTerrain> {
+  const steps = buildTerrain(options);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+    await breathe();
+  }
+}
+
+/** Builds the terrain, yielding after each chunk. */
+function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTerrain, void> {
   const tier = resolveTier(options.tier);
   const data = options.data;
   const group = new Group();
@@ -310,6 +335,7 @@ export function createTerrain(options: CreateTerrainOptions): CreatedTerrain {
         geometries,
         current: geometries.length - 1,
       });
+      yield;
     }
   }
 

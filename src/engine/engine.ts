@@ -11,6 +11,8 @@ import type { TierSettings } from './quality';
 export interface System {
   fixed?(h: number, t: number): void;
   frame?(dt: number, t: number): void;
+  /** Keeps ticking while a cutscene hides the world (the cutscene itself, menus, audio). */
+  cutscene?: boolean;
 }
 
 export interface EngineOptions {
@@ -156,6 +158,11 @@ export class Engine {
     document.removeEventListener('visibilitychange', this.onVisibility);
   }
 
+  /** A cutscene is on screen and the world isn't being drawn behind it (its systems rest). */
+  worldHidden(): boolean {
+    return !!this.cutscene && !this.cutscene.drawWorld;
+  }
+
   /** Render one frame immediately (warm-up, screenshots). */
   renderNow(): void {
     this.counters.beginFrame();
@@ -189,7 +196,8 @@ export class Engine {
 
     const alpha = this.step.advance(dt, (h) => {
       if (!this.clock.paused) {
-        for (const s of this.systems) s.fixed?.(h, this.clock.sim + h);
+        const hidden = this.worldHidden();
+        for (const s of this.systems) if (!hidden || s.cutscene) s.fixed?.(h, this.clock.sim + h);
       }
       this.clock.advance(h);
     });
@@ -198,7 +206,9 @@ export class Engine {
     // steps still run at 60 Hz; frame systems and shaders see sim time interpolated by `alpha`.
     const renderTime = this.clock.paused ? this.clock.sim : this.clock.sim + alpha * this.step.step;
     world.time.value = renderTime;
-    for (const s of this.systems) s.frame?.(dt, renderTime);
+    // While a cutscene hides the world, the world's systems rest (they'd only spend the frame).
+    const hidden = this.worldHidden();
+    for (const s of this.systems) if (!hidden || s.cutscene) s.frame?.(dt, renderTime);
     this.renderNow();
     this.cpuMs = performance.now() - tickStart;
 

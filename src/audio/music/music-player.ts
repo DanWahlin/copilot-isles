@@ -45,6 +45,14 @@ export class MusicPlayer {
     if (this.ctx) this.switchTo(island, opts);
   }
 
+  /** Seconds left in `island`'s track while it's playing, or null (not playing, or not loaded yet). */
+  remaining(island: IslandMusic): number | null {
+    const deck = this.decks.get(island);
+    if (!deck || deck.element.paused || this.playing !== island) return null;
+    const d = deck.element.duration;
+    return Number.isFinite(d) ? Math.max(0, d - deck.element.currentTime) : null;
+  }
+
   /** Retries playback on a later gesture if the browser refused to start the track earlier. */
   resume(): void {
     const deck = this.playing ? this.decks.get(this.playing) : undefined;

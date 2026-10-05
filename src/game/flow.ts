@@ -1,5 +1,6 @@
 import type { IslesAudio } from '../audio';
 import { AMBIENT_BEDS } from '../audio/beds';
+import type { IslandMusic } from '../audio/music/tracks';
 import type { Engine } from '../engine/engine';
 import { packs, type PackProgress } from '../engine/packs';
 import type { Input } from '../engine/input';
@@ -25,8 +26,13 @@ import type { GameSession } from './session';
 import { LearnStore } from '../learn/store';
 import type { Opening } from '../opening/opening';
 import { ANCHORAGE_ARRIVAL, arrivalFlight } from './arrivals';
+import { warmProgressively } from '../engine/warm';
 
 const SETTINGS_KEY = 'copilot-isles.settings.v1';
+/** The opening song's closing fade (s): the island's theme crossfades in over it. */
+const SONG_TAIL = 2.4;
+/** The island's theme comes in once the arrival is this close (s) to reaching the captain. */
+const ARRIVAL_NEAR = 2.5;
 const SAVE_KEY = 'copilot-isles.save.v1';
 /** Session storage: where Apply's reload should land (the title, or back in the game). */
 const RESUME_KEY = 'copilot-isles.apply-quality.v1';
@@ -76,7 +82,7 @@ export interface GameFlowOptions {
   /** Shows the post-load "ready" frame and hides the boot loader once the title is live. */
   onTitleReady?: () => void;
   /** Swaps the title's lean post stack for the richer island post after TTI or during voyage load. */
-  upgradePost?: (cove?: CoveScene) => Promise<void> | void;
+  upgradePost?: (cove?: CoveScene, opts?: { warm?: boolean }) => Promise<void> | void;
 }
 
 /**
@@ -104,6 +110,8 @@ export class GameFlow implements GameBridge {
   /** The next opening, building in the background on the title and captain screens. */
   private openingPrep: Promise<Opening> | null = null;
   private openingHold: (holding: boolean) => void = () => undefined;
+  /** The island's theme, waiting for the opening's song to finish and the arrival to near the captain. */
+  private islandMusicDue: IslandMusic | null = null;
 
   constructor(private readonly o: GameFlowOptions) {
     const settings = sanitizeSettings({ ...DEFAULT_SETTINGS, ...readJson<Partial<Settings>>(SETTINGS_KEY) });
@@ -128,7 +136,7 @@ export class GameFlow implements GameBridge {
       this.title?.setSails(s.sails);
       this.set({});
     });
-    o.engine.add({ frame: (dt) => this.tick(dt) });
+    o.engine.add({ frame: (dt) => this.tick(dt), cutscene: true });
     o.engine.counters.stage = () =>
       this.opening ? `opening ${this.opening.time.toFixed(2)}` : this.state.screen;
     this.armAudioUnlock();
@@ -162,7 +170,11 @@ export class GameFlow implements GameBridge {
     this.o.onTitleReady?.();
     this.prefetchTitlePacks();
     // The opening's cabin and chart start building now (a few ms a frame), so Set sail never waits.
-    window.setTimeout(() => void this.prepareOpening(), 1500);
+    window.setTimeout(() => {
+      void this.prepareOpening();
+      // The island's ocean-floor map bakes quietly too (it was a ~1 s freeze in the island build).
+      void import('../world/ocean/water-depth-texture').then((m) => m.prewarmWaterDepthTexture());
+    }, 1500);
   }
 
   chooseCaptain(): void {
@@ -528,7 +540,12 @@ export class GameFlow implements GameBridge {
       report(0.24, 'Streaming the harbor');
       await packs.streamZone('testcove/harbor', progress(0.24, 0.42, 'Streaming the harbor'));
       const [cove, characters] = await Promise.all([
-        createCove(engine, { packBase: base, onProgress: (p, m) => report(0.42 + p * 0.34, m) }),
+        createCove(engine, {
+          packBase: base,
+          onProgress: (p, m) => report(0.42 + p * 0.34, m),
+          // A frame between build stages, so the cabin keeps moving while the island builds.
+          breathe: () => new Promise<void>((r) => requestAnimationFrame(() => r())),
+        }),
         loadCharacterLibrary(`${base}/testcove/characters`),
       ]);
       this.cove = cove;
@@ -563,15 +580,15 @@ export class GameFlow implements GameBridge {
       // Both islands' skies (and the passage between them) go on the GPU before the hitch guard arms.
       await cove.sky.prefetch([ISLANDS.anchorage.sky.hours, ISLANDS.meridian.sky.hours]);
       report(0.92, 'Lighting the lanterns');
-      await this.o.upgradePost?.(cove);
-      // The heavy, blocking build is done (what's left compiles asynchronously): the chest can open
-      // now, and the rest of the beat plays smoothly.
+      await this.o.upgradePost?.(cove, { warm: false });
+      // The heavy, blocking build is done: the chest can open now while the world warms behind the
+      // cabin a few objects a frame (its first real frame mustn't hitch, and the cabin keeps moving).
       opening.release();
+      const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+      opening.setDrawWorld(true);
+      await warmProgressively(engine.scene, frame);
       await engine.renderer.compileAsync(engine.scene, engine.camera);
       report(0.96, 'Charting the approach');
-      const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
-      // The world renders behind the cabin while it warms, so its first real frame doesn't hitch.
-      opening.setDrawWorld(true);
       await this.session.warmArrival(frame);
       engine.renderNow();
       await frame();
@@ -596,8 +613,10 @@ export class GameFlow implements GameBridge {
             }
           : { island, eye: c.position.clone(), look };
       await opening.dive(target);
+      // The opening's song plays on to its end; the island's theme comes in as the arrival nears
+      // the captain (see tick).
+      this.islandMusicDue = ISLANDS[island].music;
       if (this.audioReady) {
-        this.o.audio.music.setIsland(ISLANDS[island].music);
         this.o.audio.sfx.setBed('palms', AMBIENT_BEDS.palms);
         this.o.audio.sfx.setBed('birds_dawn', AMBIENT_BEDS.birds_dawn);
       }
@@ -627,7 +646,24 @@ export class GameFlow implements GameBridge {
     }
   }
 
+  /**
+   * After the opening: once its song reaches its closing fade (and the arrival is within a couple of
+   * seconds of the captain, or there's no flight), the island's theme crossfades in under it.
+   */
+  private handOverMusic(): void {
+    const due = this.islandMusicDue;
+    if (!due || !this.session || this.opening) return;
+    if (!this.audioReady) return void (this.islandMusicDue = null);
+    const left = this.o.audio.music.remaining('opening');
+    const songDone = left === null || left <= SONG_TAIL;
+    if (songDone && this.session.arrivalLeft() <= ARRIVAL_NEAR) {
+      this.islandMusicDue = null;
+      this.o.audio.music.setIsland(due, { fade: SONG_TAIL });
+    }
+  }
+
   private endVoyage(): void {
+    this.islandMusicDue = null;
     this.session?.dispose();
     this.session = null;
     this.cove?.dispose();
@@ -651,8 +687,10 @@ export class GameFlow implements GameBridge {
   }
 
   private tick(dt: number): void {
-    // The session ticks the audio engine during a voyage; on the title and menus before one, we do.
-    if (!this.session && this.audioReady) this.o.audio.update(dt);
+    this.handOverMusic();
+    // The session ticks the audio engine during a voyage; on the title and menus before one (and
+    // while the opening hides the world, when the session rests), we do.
+    if ((!this.session || this.o.engine.worldHidden()) && this.audioReady) this.o.audio.update(dt);
     if (this.state.screen !== 'playing') return;
     this.saveTimer += dt;
     if (this.saveTimer > 5) {

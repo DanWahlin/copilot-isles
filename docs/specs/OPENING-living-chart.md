@@ -45,9 +45,10 @@ ink caption of the real loading stage. The dive starts as soon as it's ready.
 The cabin is quiet at first (the title music fades away; timbers creak and the lantern swings). The
 cue, **"The Treasure Chest Opens"** (Dan, made with Suno; D major, 28.7 s, plays once), starts with
 the latch: its rise lands as the chart's sea comes alive (5.4 s in) and its peak as the dive breaks
-the surface (~13 s in), where it crossfades into the island's theme. A skip starts it at the matching
-moment; Continue starts it 8.8 s in so the peak lands at the end of the short dive; reduced motion
-starts it as the cabin fades in.
+the surface (~13 s in). It then plays on to its end over the arrival flight; as its closing fade
+begins, and the flight is within a couple of seconds of the captain, the island's theme crossfades
+in. A skip starts it at the matching moment; Continue starts it with the dive (peak at the splash);
+reduced motion starts it as the cabin fades in.
 
 ## Skipping and accessibility
 
