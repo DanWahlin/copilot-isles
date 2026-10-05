@@ -403,11 +403,19 @@ export class SplinterPool {
   private readonly vy: Float32Array;
   private readonly vz: Float32Array;
   private readonly spin: Float32Array;
+  private readonly scale: Float32Array;
+  /** 0 free, 1 flying, 2 floating (until `until`). */
   private readonly live: Uint8Array;
+  private readonly until: Float32Array;
+  /** Each chip's own colour (rgb); copied into its draw slot every frame. */
+  private readonly rgb: Float32Array;
   private next = 0;
   readonly size: number;
 
-  constructor(size: number) {
+  constructor(
+    size: number,
+    private readonly splashes: SplashPool | null = null,
+  ) {
     this.size = Math.max(1, size);
     const n = this.size;
     this.x = new Float32Array(n);
@@ -417,9 +425,13 @@ export class SplinterPool {
     this.vy = new Float32Array(n);
     this.vz = new Float32Array(n);
     this.spin = new Float32Array(n);
+    this.scale = new Float32Array(n);
     this.live = new Uint8Array(n);
-    const mat = new MeshStandardNodeMaterial({ color: 0x8a6440, roughness: 0.9, metalness: 0 });
-    this.mesh = pooled(new InstancedMesh(new BoxGeometry(0.07, 0.04, 0.38), mat, n), 'battle-splinters');
+    this.until = new Float32Array(n);
+    this.rgb = new Float32Array(n * 3);
+    const mat = new MeshStandardNodeMaterial({ color: 0xffffff, roughness: 0.9, metalness: 0 });
+    this.mesh = pooled(new InstancedMesh(createChipGeometry(), mat, n), 'battle-splinters');
+    for (let i = 0; i < n; i++) this.mesh.setColorAt(i, tmpC.setRGB(1, 1, 1));
   }
 
   burst(x: number, y: number, z: number, nx: number, nz: number, count: number, rand: () => number): void {
@@ -434,37 +446,93 @@ export class SplinterPool {
       this.vx[i] = nx * s + (rand() - 0.5) * 5;
       this.vy[i] = 3 + rand() * 6;
       this.vz[i] = nz * s + (rand() - 0.5) * 5;
-      this.spin[i] = (rand() - 0.5) * 30;
+      this.spin[i] = (rand() - 0.5) * 24;
+      this.scale[i] = 0.55 + rand() * 0.9;
       this.live[i] = 1;
+      // Most chips are bare wood in a few shades; one in four still wears the hull's dark paint.
+      const tone = 0.75 + rand() * 0.45;
+      const painted = rand() < 0.25;
+      this.rgb[i * 3] = (painted ? 0.22 : 0.6) * tone;
+      this.rgb[i * 3 + 1] = (painted ? 0.2 : 0.43) * tone;
+      this.rgb[i * 3 + 2] = (painted ? 0.19 : 0.27) * tone;
     }
   }
 
   update(dt: number, t: number, waves: WaveSampler): void {
     let n = 0;
     for (let i = 0; i < this.size; i++) {
-      if (!this.live[i]) continue;
-      this.vy[i] -= GRAVITY * dt;
-      this.x[i] += this.vx[i]! * dt;
-      this.y[i] += this.vy[i]! * dt;
-      this.z[i] += this.vz[i]! * dt;
-      if (this.y[i]! < waves.heightAt(this.x[i]!, this.z[i]!, t) - 0.3) {
-        this.live[i] = 0;
-        continue;
+      const state = this.live[i]!;
+      if (!state) continue;
+      let pitch: number;
+      let roll: number;
+      if (state === 1) {
+        this.vy[i] -= GRAVITY * dt;
+        this.x[i] += this.vx[i]! * dt;
+        this.y[i] += this.vy[i]! * dt;
+        this.z[i] += this.vz[i]! * dt;
+        const sea = waves.heightAt(this.x[i]!, this.z[i]!, t);
+        if (this.y[i]! < sea) {
+          // It lands with a small splash and floats a while.
+          this.live[i] = 2;
+          this.until[i] = t + 4 + (i % 5);
+          this.splashes?.spawn(this.x[i]!, sea, this.z[i]!, t, 0.35 * this.scale[i]!, 0, (i * 0.618) % 1);
+        }
+        const a = t * this.spin[i]!;
+        pitch = a;
+        roll = a * 0.3;
+        tmpE.set(pitch, a * 0.7 + i, roll, 'YXZ');
+      } else {
+        const left = this.until[i]! - t;
+        if (left <= 0) {
+          this.live[i] = 0;
+          continue;
+        }
+        // Afloat: it lies on the swell, drifts and turns slowly, then sinks over its last second.
+        this.x[i] += this.vx[i]! * 0.04 * dt;
+        this.z[i] += this.vz[i]! * 0.04 * dt;
+        this.y[i] = waves.heightAt(this.x[i]!, this.z[i]!, t) - Math.max(0, 1 - left) * 0.3;
+        tmpE.set(
+          Math.sin(t * 1.4 + i) * 0.12,
+          i + t * this.spin[i]! * 0.02,
+          Math.sin(t * 1.1 + i) * 0.1,
+          'YXZ',
+        );
       }
-      const a = t * this.spin[i]!;
-      tmpE.set(a, a * 0.7 + i, a * 0.3, 'YXZ');
       tmpQ.setFromEuler(tmpE);
-      tmpM.compose(tmpP.set(this.x[i]!, this.y[i]!, this.z[i]!), tmpQ, tmpS.set(1, 1, 1));
-      this.mesh.setMatrixAt(n++, tmpM);
+      const sc = this.scale[i]!;
+      tmpM.compose(tmpP.set(this.x[i]!, this.y[i]!, this.z[i]!), tmpQ, tmpS.set(sc, sc, sc));
+      this.mesh.setMatrixAt(n, tmpM);
+      // instanceColor is indexed by draw slot, so each chip's colour goes with it.
+      const c = this.mesh.instanceColor!.array as Float32Array;
+      c[n * 3] = this.rgb[i * 3]!;
+      c[n * 3 + 1] = this.rgb[i * 3 + 1]!;
+      c[n * 3 + 2] = this.rgb[i * 3 + 2]!;
+      n++;
     }
     this.mesh.count = n;
     this.mesh.instanceMatrix.needsUpdate = true;
+    this.mesh.instanceColor!.needsUpdate = true;
   }
 
   clear(): void {
     this.live.fill(0);
     this.mesh.count = 0;
   }
+}
+
+/** A splinter: a thin plank chip, wide and square at one end and torn to a point at the other. */
+function createChipGeometry(): BufferGeometry {
+  const g = new BoxGeometry(0.09, 0.035, 0.42, 1, 1, 2);
+  const pos = g.getAttribute('position');
+  for (let i = 0; i < pos.count; i++) {
+    const z = pos.getZ(i);
+    if (z > 0.1) {
+      pos.setX(i, pos.getX(i) * 0.2 + 0.015);
+      pos.setY(i, pos.getY(i) * 0.5);
+    } else if (z > -0.1) pos.setX(i, pos.getX(i) * 0.75);
+  }
+  g.computeVertexNormals();
+  return g;
 }
 
 /** Ship's stores left by a wreck: barrels that bob on the swell until you sail through them. */
@@ -736,6 +804,12 @@ function createStoreMaterial(): MeshStandardNodeMaterial {
   const p = positionLocal as AnyNode;
   const mine = abs(attribute('storePart', 'float').sub(attribute('storeShow', 'float'))).lessThan(0.5);
   mat.positionNode = select(mine, p, vec3(0, 0, 0));
+  // Soaked below the water line: darker and glossier, so each piece sits in the sea, not on it.
+  const raw = attribute('position', 'vec3') as AnyNode;
+  const wet = smoothstep(float(0.07), float(-0.03), raw.y);
+  // The vertex and instance colours multiply in after this.
+  mat.colorNode = vec3(1, 1, 1).mul(float(1).sub(wet.mul(0.45)));
+  mat.roughnessNode = mix(float(0.82), float(0.35), wet);
   return mat;
 }
 

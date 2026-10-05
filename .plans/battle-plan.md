@@ -30,6 +30,8 @@
 
 - **Flotsam (Dan's note).** The rowing boat had no visible hull (it sat below the water line) and its oars floated free (the oar shader worked in world space). Now the boat floats with freeboard and has bottom boards, a wale, three rowers in different shirts and caps, a coxswain, and bladed oars that sweep from their oarlocks a little out of step. Stores have distinct shapes: lashed planks (timber), a barrel (powder), and broken planks (wreckage, not collectable), each with its own size, angle, roll and tone.
 
+- **5: done.** Arcs are additive light on the water (no grey band), with metre-wide lines, soft ends, and thin, slower warning chevrons. Splinters are tapered chips in wood and paint tones that tumble, land with a small splash, float a few seconds and sink. Flotsam has a wet, glossy band below the water line. Hits leave shot holes (a dark hole in torn pale wood with a soot halo, eight per hull, patched on repairs), and sails show scorched holes as a hull takes damage. Shot marks and gun recoil for every ship share two uniform arrays (one block per ship), which cut the battle's shader programs from 84 to 81.
+
 Then the passage battle goes into the game (Anchorage → Port Meridian, required with a skip), and Dan reviews.
 
 ## Rules that apply throughout

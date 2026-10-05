@@ -242,7 +242,7 @@ export class Battle {
     this.balls = new BallPool(budget.balls);
     this.splashes = new SplashPool(budget.splashes);
     this.smoke = new SmokePool(budget.smoke);
-    this.splinters = new SplinterPool(budget.splinters);
+    this.splinters = new SplinterPool(budget.splinters, this.splashes);
     this.stores = new StorePool(budget.stores);
     this.boats = new BoatPool(budget.boats);
     this.arcs = new ArcSet(o.tier, 8);
@@ -330,6 +330,7 @@ export class Battle {
     this.breakOffs = 0;
     this.timber = 0;
     this.player.hull = PLAYER_HULL;
+    this.refit(this.player);
     this.spawnWave(t);
   }
 
@@ -363,6 +364,18 @@ export class Battle {
 
   private repair(points: number): void {
     this.player.hull = Math.min(PLAYER_HULL, this.player.hull + points);
+    this.refit(this.player);
+  }
+
+  /** Holes in the canvas grow with the damage a hull has taken. */
+  private shotThrough(c: Combatant): void {
+    c.ship.uniforms.sailHoles.value = 0.32 * (1 - c.hull / c.maxHull);
+  }
+
+  /** A repaired or fresh ship: the shot holes in her hull are patched and her sails match her hull. */
+  private refit(c: Combatant): void {
+    c.ship.clearScorch();
+    this.shotThrough(c);
   }
 
   private emit(kind: BattleSound, x: number, y: number, z: number, gain = 1): void {
@@ -419,6 +432,7 @@ export class Battle {
       c.ship.group.rotation.set(0, 0, 0);
       c.ship.group.position.set(x, 0, z);
       c.hull = c.maxHull = HULL[r.kind];
+      this.refit(c);
       c.state = 'afloat';
       c.prevX = x;
       c.prevZ = z;
@@ -770,6 +784,7 @@ export class Battle {
         if (dx * dx + dz * dz > 196 * c.scale * c.scale) continue;
         tmpLocal.set(x, y, z).applyMatrix4(c.inverse);
         if (!insideHull(tmpLocal.x, tmpLocal.y, tmpLocal.z)) continue;
+        c.ship.addScorch(tmpLocal.x, tmpLocal.y, tmpLocal.z);
         this.hit(c, balls.damage[i]!, x, y, z, tmpLocal.x >= 0 ? 1 : -1, t);
         hit = true;
         break;
@@ -803,6 +818,7 @@ export class Battle {
       return;
     }
     c.hull = Math.max(0, c.hull - damage);
+    this.shotThrough(c);
     // Splinters fly off the struck side, outward.
     const h = c.ship.dynamics.pose.heading;
     const nx = Math.cos(h) * localSide;
@@ -963,6 +979,7 @@ export class Battle {
     } else if (this.phase === 'breakoff' && t - this.phaseAt > 2.5) {
       // Back to the start of the same wave with a whole hull; cleared waves stay cleared.
       this.player.hull = PLAYER_HULL;
+      this.refit(this.player);
       const d = this.player.ship.dynamics;
       d.reset(this.waveStart.x, this.waveStart.z, this.waveStart.heading);
       this.player.prevX = this.waveStart.x;

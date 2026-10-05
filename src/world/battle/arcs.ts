@@ -1,4 +1,5 @@
 import {
+  AdditiveBlending,
   BufferGeometry,
   DoubleSide,
   Float32BufferAttribute,
@@ -74,7 +75,14 @@ function createFanGeometry(radial = 18, angular = 22): BufferGeometry {
 }
 
 function createArcMaterial(tier: TierSettings): MeshBasicNodeMaterial {
-  const mat = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: DoubleSide });
+  // Additive: the arcs are light on the water, so at low strength they fade to nothing instead of
+  // greying the sea (a dark band read as a shadow).
+  const mat = new MeshBasicNodeMaterial({
+    transparent: true,
+    depthWrite: false,
+    side: DoubleSide,
+    blending: AdditiveBlending,
+  });
   const p = positionLocal as AnyNode;
   // Ride the swell: the rest height of the same wave table the ocean and the CPU use.
   const rest = p.xz;
@@ -91,45 +99,57 @@ function createArcMaterial(tier: TierSettings): MeshBasicNodeMaterial {
   const glow = attribute('arcGlow', 'float') as AnyNode;
   const still = float(1).sub(world.reducedMotion);
 
-  // Thin outline: the two edges, the inner rim and a fading outer rim (widths in metres-ish, not uv).
-  const side = smoothstep(float(0.975), float(0.997), abs(a));
-  const inner = smoothstep(float(0.02), float(0.0), r);
-  const outer = smoothstep(float(0.975), float(0.995), r).mul(0.5);
-  const line = max(max(side, inner), outer);
-  const farFade = smoothstep(float(1.0), float(0.5), r);
+  // Widths in metres, so a line is as thin at 20 m as at 140 m: `rm` is the range and `edge` the distance
+  // to the nearer side of the fan.
+  const rm = r.mul(MAX_RANGE - MIN_RANGE).add(MIN_RANGE);
+  const edge = float(1).sub(abs(a)).mul(rm).mul(ARC_HALF_ANGLE);
+  const side = smoothstep(float(0.9), float(0.2), edge);
+  const inner = smoothstep(float(0.9), float(0.2), rm.sub(MIN_RANGE));
+  // Soft ends: the side lines fade in from the inner rim and out toward the far range, and the far rim
+  // is only a hint.
+  const ends = smoothstep(float(0), float(0.12), r).mul(smoothstep(float(1), float(0.55), r));
+  const outer = smoothstep(float(1.6), float(0.3), float(MAX_RANGE).sub(rm)).mul(0.35);
+  const line = max(
+    side.mul(ends),
+    max(inner.mul(smoothstep(float(0.0), float(0.25), float(1).sub(abs(a)))), outer),
+  );
+  // The glow pools near the guns and thins out with range.
+  const pool = smoothstep(float(1), float(0), r).mul(
+    smoothstep(float(0.0), float(0.35), float(1).sub(abs(a))),
+  );
 
   // Firing arc: barely there until it bears, then a gold outline and a slow glow sweeping out.
   const sweep = fract(r.mul(2.2).sub(world.time.mul(0.45).mul(still)));
   const shimmer = smoothstep(float(0.0), float(0.12), sweep).mul(smoothstep(float(0.35), float(0.12), sweep));
   const firingA = line
-    .mul(mix(float(0.14), float(0.65), glow))
-    .add(glow.mul(0.025))
-    .add(shimmer.mul(glow).mul(0.1))
-    .mul(farFade);
+    .mul(mix(float(0.12), float(0.55), glow))
+    .add(glow.mul(pool).mul(0.022))
+    .add(shimmer.mul(glow).mul(pool).mul(0.05));
 
-  // Warning arc: thin red-orange chevrons pointing at you, filling outward from their side as they lay guns.
-  const chevron = fract(r.mul(26).sub(abs(a).mul(2.2)).sub(world.time.mul(1.5).mul(still)));
-  const stripes = smoothstep(float(0.0), float(0.08), chevron).mul(
-    smoothstep(float(0.3), float(0.2), chevron),
+  // Warning arc: thin chevrons pointing at you, every 9 m, filling outward from their side as they lay guns.
+  const chevron = fract(rm.div(9).sub(abs(a).mul(1.2)).sub(world.time.mul(1.2).mul(still)));
+  const stripes = smoothstep(float(0.0), float(0.025), chevron).mul(
+    smoothstep(float(0.08), float(0.05), chevron),
   );
   const reached = smoothstep(fill.add(0.015), fill.sub(0.015), r);
-  const band = smoothstep(float(0.8), float(0.45), abs(a));
-  const front = smoothstep(fill.sub(0.06), fill, r).mul(reached);
+  const band = smoothstep(float(0.75), float(0.35), abs(a));
+  const front = smoothstep(fill.sub(0.04), fill, r).mul(reached);
   const warningA = line
-    .mul(0.7)
-    .add(stripes.mul(band).mul(0.32))
-    .add(front.mul(0.35))
-    .add(0.025)
+    .mul(0.55)
+    .add(stripes.mul(band).mul(0.16))
+    .add(front.mul(band).mul(0.3))
     .mul(reached)
-    .mul(farFade.mul(0.5).add(0.5));
+    .mul(smoothstep(float(1), float(0.4), r).mul(0.6).add(0.4));
 
   const isWarning = kind.greaterThan(0.5);
-  mat.opacityNode = select(isWarning, warningA, firingA);
+  // Additive: the colour carries the strength; opacity stays 1.
+  const strength = select(isWarning, warningA, firingA);
   mat.colorNode = select(
     isWarning,
-    mix(color(0xff4d1f), color(0xffb36b), front),
-    mix(color(0xd9b16a), color(0xffe2a1), glow),
-  );
+    mix(color(0xff5a26), color(0xffc07a), front),
+    mix(color(0xe0b86e), color(0xffe6a8), glow),
+  ).mul(strength);
+  mat.opacityNode = float(1);
   return mat;
 }
 

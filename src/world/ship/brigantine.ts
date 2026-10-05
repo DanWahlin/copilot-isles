@@ -8,10 +8,10 @@ import {
   Mesh,
   Object3D,
   Vector3,
+  Vector4,
   type Material,
-  type UniformArrayNode,
 } from 'three/webgpu';
-import { uniform, uniformArray } from 'three/tsl';
+import { uniform } from 'three/tsl';
 import type { CircleObstacle, HeightField, Tier, WaveSampler } from '../contracts';
 import { updateShipOceanInteraction } from '../ocean/ship-interaction';
 import { ShipDynamics, type ShipEnv } from './dynamics';
@@ -68,6 +68,11 @@ import {
   makeGunMaterial,
   makeShipMaterial,
   paintShipName,
+  GUN_SLOTS,
+  SCORCH_SLOTS,
+  SHIP_SLOTS,
+  shipRecoil,
+  shipScorch,
   type BrigantineUniforms,
 } from './brigantine-materials';
 import { createShipPipes, type ShipPipes } from './pipes';
@@ -120,6 +125,10 @@ export interface Brigantine {
   setName(name: string | null): void;
   /** Shows one rig (raiders only; your ship is always a brigantine). */
   setRig(rig: ShipRig): void;
+  /** Marks a shot hole at a ship-local point on the hull (the oldest of eight is painted over). */
+  addScorch(x: number, y: number, z: number): void;
+  /** Paints out every shot hole (repairs, or a fresh ship). */
+  clearScorch(): void;
   /** Runs deck gun `index` (port 0…5, starboard 6…11, stern to bow) in by `metres` of recoil. */
   setGunRecoil(index: number, metres: number): void;
   /**
@@ -290,6 +299,31 @@ function shortestYaw(a: number, b: number, t: number): number {
   return a + (d - Math.PI) * t;
 }
 
+const slotsInUse = new Uint8Array(SHIP_SLOTS);
+
+/** A free block in the shared shot-mark and recoil arrays (slot 0 is shared if every one is taken). */
+function takeShipSlot(): number {
+  for (let i = 0; i < SHIP_SLOTS; i++)
+    if (!slotsInUse[i]) {
+      slotsInUse[i] = 1;
+      clearShipSlot(i);
+      return i;
+    }
+  return 0;
+}
+
+function releaseShipSlot(i: number): void {
+  clearShipSlot(i);
+  slotsInUse[i] = 0;
+}
+
+function clearShipSlot(i: number): void {
+  const marks = shipScorch.array as Vector4[];
+  for (let k = 0; k < SCORCH_SLOTS; k++) marks[i * SCORCH_SLOTS + k]!.set(0, -100, 0, 0);
+  const guns = shipRecoil.array as number[];
+  for (let k = 0; k < GUN_SLOTS; k++) guns[i * GUN_SLOTS + k] = 0;
+}
+
 export function createBrigantine({
   tier,
   oceanInteraction = true,
@@ -308,6 +342,7 @@ export function createBrigantine({
     sailStripe: uniform(new Color(raider ? RAIDER_STRIPE : startSails.stripe)),
     sailPatch: uniform(raider ? 1 : 0),
     livery: uniform(raider ? 1 : 0),
+    sailHoles: uniform(0),
     flagYaw: uniform(0),
     flagPhase: uniform(0),
     flagStrength: uniform(0.6),
@@ -338,7 +373,12 @@ export function createBrigantine({
   };
 
   const shipLabel = createShipLabel();
-  const shipMaterial = register(makeShipMaterial(shipLabel, uniforms.livery));
+  const slotIndex = takeShipSlot();
+  const slot = uniform(slotIndex);
+  /** How many shot marks this ship carries (0…SCORCH_SLOTS): the shader loops over only these. */
+  const marks = uniform(0);
+  let scorchNext = 0;
+  const shipMaterial = register(makeShipMaterial(shipLabel, uniforms.livery, slot, marks));
   const riggingLineMaterial = register(
     new LineBasicMaterial({ color: 0x17110c, transparent: true, opacity: 0.78, linewidth: 1.6 }),
   );
@@ -348,13 +388,12 @@ export function createBrigantine({
   addMesh(group, createHullGeometry(tier), shipMaterial, 'rounded planked hull');
   addMesh(group, createDeckGeometry(tier), shipMaterial, 'deck planking rails and fittings', false);
   addMesh(group, createTrimGeometry(tier), shipMaterial, 'wales strakes gunports galleries anchors');
-  const recoilNode = uniformArray(new Array<number>(12).fill(0), 'float') as UniformArrayNode<'float'>;
   const gunGeometry = createDeckGunGeometry(tier);
   if (gunGeometry)
     addMesh(
       group,
       gunGeometry,
-      register(makeGunMaterial(shipLabel, uniforms.livery, recoilNode)),
+      register(makeGunMaterial(shipLabel, uniforms.livery, slot, marks)),
       'deck guns',
     );
   addMesh(group, createWindowGeometry(), shipMaterial, 'stern gallery windows and name board backing', false);
@@ -546,8 +585,20 @@ export function createBrigantine({
     setName(name: string | null): void {
       paintShipName(shipLabel, name);
     },
+    addScorch(x: number, y: number, z: number): void {
+      const v = (shipScorch.array as Vector4[])[slotIndex * SCORCH_SLOTS + scorchNext]!;
+      v.set(x, y, z, 0.8 + 0.2 * Math.abs(Math.sin(x * 7.1 + z * 3.3)));
+      scorchNext = (scorchNext + 1) % SCORCH_SLOTS;
+      marks.value = Math.min(SCORCH_SLOTS, marks.value + 1);
+    },
+    clearScorch(): void {
+      clearShipSlot(slotIndex);
+      scorchNext = 0;
+      marks.value = 0;
+    },
     setGunRecoil(index: number, metres: number): void {
-      if (index >= 0 && index < 12) (recoilNode.array as number[])[index] = metres;
+      if (index >= 0 && index < GUN_SLOTS)
+        (shipRecoil.array as number[])[slotIndex * GUN_SLOTS + index] = metres;
     },
     setGangway(foot: { x: number; y: number; z: number } | null): void {
       gangway.visible = !!foot;
@@ -661,6 +712,7 @@ export function createBrigantine({
       christening.dispose();
       for (const material of materials) material.dispose();
       shipLabel.texture.dispose();
+      releaseShipSlot(slotIndex);
     },
   };
   api.triangleCount = triangleCount(group);

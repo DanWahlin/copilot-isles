@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { BufferAttribute, Mesh, Object3D } from 'three/webgpu';
 import { createBrigantine, fitShipNameFontSize } from './brigantine';
 import { QUARTERDECK_Z, WHEEL } from './brigantine-hull';
+import { GUN_SLOTS, SCORCH_SLOTS, shipRecoil, shipScorch } from './brigantine-materials';
 import { CUTTER_FLAG, createCutterSailGeometry, createRiggingGeometry } from './brigantine-rig';
 import { COVE } from '../layout';
 import { BRIGANTINE_HALF_LENGTH, deckHeightAt } from './lines';
@@ -334,5 +335,31 @@ describe('createBrigantine', () => {
       expect(pos.getY(i)).toBeGreaterThan(deckHeightAt(Math.max(-12, Math.min(12, z))) + 0.8);
       expect(pos.getY(i)).toBeLessThan(CUTTER_FLAG.y0);
     }
+  });
+
+  it("keeps each ship's shot marks and gun recoil in its own block of the shared arrays", () => {
+    const a = createBrigantine({ tier: 'low' });
+    const b = createBrigantine({ tier: 'low', raider: true });
+    const marks = shipScorch.array as { y: number; w: number }[];
+    const guns = shipRecoil.array as number[];
+    const markedBlocks = () => {
+      const out: number[] = [];
+      for (let i = 0; i < marks.length; i++) if (marks[i]!.w > 0) out.push(Math.floor(i / SCORCH_SLOTS));
+      return out;
+    };
+    a.addScorch(3, 1, 0);
+    b.addScorch(-3, 1, 2);
+    b.addScorch(-3, 1.4, -2);
+    const blocks = markedBlocks();
+    expect(new Set(blocks).size).toBe(2);
+    a.setGunRecoil(2, 0.5);
+    expect(guns.filter((g) => g === 0.5)).toHaveLength(1);
+    expect(guns.indexOf(0.5) % GUN_SLOTS).toBe(2);
+    b.clearScorch();
+    expect(new Set(markedBlocks()).size).toBe(1);
+    a.dispose();
+    b.dispose();
+    expect(markedBlocks()).toHaveLength(0);
+    expect(guns.every((g) => g === 0)).toBe(true);
   });
 });
