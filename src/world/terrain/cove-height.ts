@@ -281,12 +281,12 @@ export function headlandCliffEdge(x: number, z: number): number {
 function headlandTop(x: number, z: number): number {
   const ridge =
     (COVE.headland.ridge - 22) * gaussian((x - 154) / 50, 1) * gaussian((z + 8) / 68, 1) +
-    4 * ridged2(x * 0.035 + 1.7, z * 0.035 - 5.5, 3, SEED + 336);
+    2.5 * ridged2(x * 0.035 + 1.7, z * 0.035 - 5.5, 3, SEED + 336);
   const ravines =
     ravineCut(x, z, 122, -47, 0.28, 7.5, 15) +
     ravineCut(x, z, 128, 2, -0.2, 6.5, 11) +
     ravineCut(x, z, 135, 36, -0.35, 7, 9);
-  return 20 + ridge - ravines + ridged2(x * 0.18, z * 0.18, 3, SEED + 337) * 1.3;
+  return 21 + ridge - ravines + ridged2(x * 0.18, z * 0.18, 3, SEED + 337) * 0.4;
 }
 
 function headlandHeight(x: number, z: number, current: number): number {

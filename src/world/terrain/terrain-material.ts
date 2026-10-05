@@ -224,8 +224,16 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(underwater)
     .mul(float(1).sub(smoothstep(18, 38, y.negate())));
 
+  // The east headland and its inland slope: one smooth grassy hill, without the island's height bands
+  // and strata (on a big even slope they read as farm terraces).
+  const headlandHill = smoothstep(COVE.headland.x0 - 50, COVE.headland.x0 - 15, positionWorld.x)
+    .mul(smoothstep(COVE.headland.z0 - 40, COVE.headland.z0 - 10, positionWorld.z))
+    .mul(float(1).sub(smoothstep(COVE.headland.z1 + 10, COVE.headland.z1 + 40, positionWorld.z)));
   const steepSlope = smoothstep(0.68, 0.46, normalWorld.y);
-  const cliffInfluence = saturate(cliffMask.add(steepSlope.mul(0.72)));
+  // On that hill only the near-sheer faces (under the cliff mesh) take the cliff colouring.
+  const cliffInfluence = saturate(cliffMask.add(steepSlope.mul(0.72))).mul(
+    float(1).sub(headlandHill.mul(smoothstep(0.42, 0.55, normalWorld.y))),
+  );
   const steepFace = steepSlope.mul(saturate(cliffMask.add(rockMask)));
   const strataPhase = fract(y.div(7.8).add(noiseLow.b.sub(0.5).mul(0.6)));
   const strataWidth = strataPhase.fwidth().mul(1.5).add(0.009);
@@ -462,11 +470,12 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   base = mix(
     base,
     rockBandColor.mul(float(0.72).add(strata.mul(0.36)).add(fineStrata.mul(0.22))),
-    slopeOutcrop.mul(0.42).add(slopeScree.mul(0.28)),
+    slopeOutcrop.mul(0.42).add(slopeScree.mul(0.28)).mul(float(1).sub(headlandHill)),
   );
   const hillSlope = smoothstep(1.0, 0.82, normalWorld.y)
     .mul(smoothstep(2.5, 38, y))
-    .mul(midDetail);
+    .mul(midDetail)
+    .mul(float(1).sub(headlandHill));
   const hillBand = fract(y.div(6.4).add(noiseLow.b.sub(0.5).mul(0.54)).add(noiseMid.r.sub(0.5).mul(0.16)));
   const hillDark = pow(saturate(float(0.6).sub(hillBand).mul(2.0)), 1.2).mul(hillSlope);
   const hillLight = pow(saturate(hillBand.sub(0.43).mul(1.8)), 1.2).mul(hillSlope);
@@ -486,18 +495,23 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(smoothstep(0.46, 0.94, normalWorld.y))
     .mul(saturate(grassMask.add(rockMask.mul(0.38)).add(sandMask.mul(0.18))));
   const hilltopGreen = mix(color(0x6a6a31), color(0xb19955), noiseLow.g.mul(0.58).add(noiseMid.g.mul(0.42)));
-  // The east headland's top and shoulders are green scrub, not the island's dry golden hilltops.
-  const headlandScrub = smoothstep(COVE.headland.x0 - 8, COVE.headland.x0 + 18, positionWorld.x)
-    .mul(smoothstep(6, 12, y))
+  // The east headland is green grass with a few dirt patches, not the island's dry golden hilltops.
+  const headlandScrub = headlandHill
+    .mul(smoothstep(3, 8, y))
     .mul(float(1).sub(cliffMask))
     .mul(float(1).sub(sandMask));
   base = mix(base, hilltopGreen, hilltopMeadow.mul(midDetail).mul(float(1).sub(headlandScrub.mul(0.85))));
-  const scrubTone = mix(
-    mix(color(0x2f4a22), color(0x5d7a35), noiseLow.g.mul(0.6).add(noiseMid.a.mul(0.4))),
-    color(0x7a7456),
-    pow(saturate(noiseMid.b.mul(0.7).add(noiseFine.r.mul(0.3)).sub(0.55).mul(2.4)), 1.5),
+  const dirtSpots = smoothstep(
+    0.57,
+    0.65,
+    noiseLow.r.mul(0.55).add(noiseMid.b.mul(0.3)).add(noiseFine.g.mul(0.15)),
   );
-  base = mix(base, scrubTone, headlandScrub.mul(0.62));
+  const scrubTone = mix(
+    mix(color(0x35562a), color(0x5f8038), noiseLow.g.mul(0.6).add(noiseMid.a.mul(0.4))),
+    mix(color(0x7a5532), color(0x9a7448), noiseFine.r),
+    dirtSpots.mul(0.9),
+  );
+  base = mix(base, scrubTone, headlandScrub.mul(0.8));
   base = mix(base, color(0x55633a), bluffScrub.mul(0.42));
   const sunnyHeadland = smoothstep(6, 18, y)
     .mul(float(1).sub(smoothstep(52, 88, detailDistance)))
