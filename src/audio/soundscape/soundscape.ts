@@ -284,11 +284,6 @@ export class IslesSoundScape {
     if (gain > 0) void this.want(name);
   }
 
-  /** Starts loading sounds now, so their first play isn't dropped while they download. */
-  preload(names: readonly SoundName[]): void {
-    for (const name of names) void this.want(name);
-  }
-
   setTimeOfDay(night: number): void {
     this.night = clamp(night, 0, 1);
   }
@@ -340,7 +335,10 @@ export class IslesSoundScape {
     return base;
   }
 
-  /** Loads one-shots ahead of time, so the first of each (say, a battle's opening broadside) isn't dropped. */
+  /**
+   * Starts loading sounds now, so their first play isn't dropped while they download (the opening's
+   * cabin sounds, a battle's first broadside). Callers may ignore the promise.
+   */
   preload(names: readonly SoundName[]): Promise<void> {
     return Promise.all(names.map((n) => this.want(n))).then(() => undefined);
   }
