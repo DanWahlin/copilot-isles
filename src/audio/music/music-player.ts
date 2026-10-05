@@ -1,5 +1,5 @@
 import { audioFileFor } from '../soundscape/format';
-import { MUSIC_TRACKS, trackGain, type IslandMusic } from './tracks';
+import { trackFor, trackGain, type MusicCue } from './tracks';
 
 /** Fade-in when music starts from silence, and the crossfade between tracks. */
 const FADE_IN_S = 1.2;
@@ -21,9 +21,9 @@ interface Deck {
 export class MusicPlayer {
   private ctx: AudioContext | null = null;
   private bus: AudioNode | null = null;
-  private readonly decks = new Map<IslandMusic, Deck>();
-  private wanted: IslandMusic | null = null;
-  private playing: IslandMusic | null = null;
+  private readonly decks = new Map<MusicCue, Deck>();
+  private wanted: MusicCue | null = null;
+  private playing: MusicCue | null = null;
 
   constructor(
     private readonly baseUrl = `${import.meta.env.BASE_URL}audio/`,
@@ -36,7 +36,7 @@ export class MusicPlayer {
     if (this.wanted) this.switchTo(this.wanted);
   }
 
-  setIsland(island: IslandMusic): void {
+  setIsland(island: MusicCue): void {
     this.wanted = island;
     if (this.ctx) this.switchTo(island);
   }
@@ -71,7 +71,7 @@ export class MusicPlayer {
     this.playing = null;
   }
 
-  private switchTo(island: IslandMusic): void {
+  private switchTo(island: MusicCue): void {
     if (island === this.playing || !this.ctx) return;
     const now = this.ctx.currentTime;
     const previous = this.playing ? this.decks.get(this.playing) : undefined;
@@ -82,16 +82,16 @@ export class MusicPlayer {
     }
     const deck = this.decks.get(island) ?? this.createDeck(island, this.ctx);
     deck.pauseAt = null;
-    ramp(deck.gain.gain, trackGain(MUSIC_TRACKS[island]), now, fade);
+    ramp(deck.gain.gain, trackGain(trackFor(island)), now, fade);
     void deck.element.play().catch(() => undefined);
     this.playing = island;
   }
 
-  private createDeck(island: IslandMusic, ctx: AudioContext): Deck {
+  private createDeck(island: MusicCue, ctx: AudioContext): Deck {
     const element = this.createElement();
     element.loop = true;
     element.preload = 'auto';
-    element.src = audioFileFor(`${this.baseUrl}${MUSIC_TRACKS[island].file}`, element);
+    element.src = audioFileFor(`${this.baseUrl}${trackFor(island).file}`, element);
     const source = ctx.createMediaElementSource(element);
     const gain = ctx.createGain();
     gain.gain.value = 0;

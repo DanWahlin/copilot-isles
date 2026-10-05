@@ -19,6 +19,7 @@ TRACKS=(
   "music_bamboo_tide|suno:a6655ab9-f55b-4083-baca-8b20354c928f|9a848dd048caf6830321b4b61e011d28134cc5cdc8fd11bed52bbe7c7f55d51c|0.0|151.4"
   "music_sunset_plains|https://opengameart.org/sites/default/files/sunset_plains.wav|f3750f8eda8bf42662b12f5726404675689b50f05ccaa968c5cb2e33d9172a62|0.8|329.4"
   "music_salty_sway|suno:4411cff4-7e13-45d8-a90b-07e15ad9fd2e|bbb8a91c615de57cc5e0f9b051cc86bdb61c9edb669c5b6a16be207db761cf67|0.2|157.0"
+  "music_brass_of_the_storm|suno:c7937692-3831-4a79-b7f2-66401ecc9b68|85e9baef8964374bb43540c966781411c9608d8f82e0508b717a9f6bf8ed6113|0.0|146.7"
 )
 
 ONLY="${1:-}"

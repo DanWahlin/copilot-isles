@@ -134,6 +134,7 @@ const snap: BattleSnapshot = {
 /** A ship the camera rides with (dev shots): index (0 yours), offset in its frame (x port, z bow), look height. */
 const track = { i: -1, x: 0, y: 0, z: 0, lookY: 6 };
 let clockT = 0;
+let musicInBattle = false;
 let hudAt = 0;
 let frozenHelm = false;
 const stats = document.getElementById('hud')!;
@@ -194,6 +195,13 @@ engine.add({
       battle.snapshot(snap);
       hud.show(snap.phase !== 'idle' && snap.phase !== 'skipped');
       hud.update(snap, battle);
+      // "Brass of the Storm" from the briefing to the win; the open-sea track before and after.
+      const inBattle =
+        hud.briefingOpen || (snap.phase !== 'idle' && snap.phase !== 'won' && snap.phase !== 'skipped');
+      if (inBattle !== musicInBattle) {
+        musicInBattle = inBattle;
+        audio.music.setIsland(inBattle ? 'battle' : 'harbour');
+      }
       const [a, b] = engineStats(harness);
       stats.textContent = `${a}\n${b}\nspeed ${p.speed.toFixed(1)} · trim ${helm.trim.toFixed(2)}`;
     }

@@ -18,6 +18,20 @@ export const MUSIC_TRACKS: Readonly<Record<IslandMusic, MusicTrack>> = {
   meridian: { file: 'music_sunset_plains', lufs: -16.1 },
 };
 
+/** What the music player can play: an island's track, or the sea-battle track. */
+export type MusicCue = IslandMusic | 'battle';
+
+/**
+ * "Brass of the Storm", made for the game by Dan with Suno: the sea-battle track (docs/specs/BATTLES.md).
+ * It goes on the Credits screen when the battle ships in the game.
+ */
+export const BATTLE_TRACK: MusicTrack = { file: 'music_brass_of_the_storm', lufs: -15.8 };
+
+/** The track for a cue. */
+export function trackFor(cue: MusicCue): MusicTrack {
+  return cue === 'battle' ? BATTLE_TRACK : MUSIC_TRACKS[cue];
+}
+
 /** Tracks Dan's keeping for islands still to come: not played yet, so not on the Credits screen. */
 export const SPARE_TRACKS = {
   // "Reggae" by Pro Sensory (OpenGameArt, CC0): Anchorage's first track.

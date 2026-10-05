@@ -1,5 +1,5 @@
 import { MusicPlayer } from './music/music-player';
-import type { IslandMusic } from './music/tracks';
+import type { MusicCue } from './music/tracks';
 import {
   IslesSoundScape,
   type BedName,
@@ -19,7 +19,8 @@ export interface IslesAudio {
   unlock(): Promise<boolean>;
   readonly music: {
     /** Crossfades to the track for where you are (the title and open sea, or ashore). */
-    setIsland(island: IslandMusic): void;
+    /** Crossfades to an island's track, or to the sea-battle track ('battle'). */
+    setIsland(island: MusicCue): void;
   };
   readonly sfx: {
     setListener(pos: Vec3Like, forward?: Vec3Like): void;
@@ -149,7 +150,7 @@ class IslesAudioImpl implements IslesAudio {
   private unlocking: Promise<boolean> | null = null;
 
   readonly music = {
-    setIsland: (island: IslandMusic) => this.musicPlayer.setIsland(island),
+    setIsland: (island: MusicCue) => this.musicPlayer.setIsland(island),
   };
 
   readonly sfx = {
