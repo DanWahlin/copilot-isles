@@ -42,7 +42,8 @@ type AnyNode = any;
 
 const textureCache = new Map<string, Texture>();
 
-function terrainTexture(file: string): Texture {
+/** Shared, cached terrain texture (one GPU copy per file). */
+export function terrainTexture(file: string): Texture {
   const cached = textureCache.get(file);
   if (cached) return cached;
   const texture = new TextureLoader().load(packs.url(`/packs/testcove/terrain-textures/${file}`));

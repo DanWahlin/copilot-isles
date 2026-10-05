@@ -24,6 +24,7 @@ import {
   type VegetationModelPart,
 } from './model-loader';
 import { scatterVegetation } from './scatter';
+import { seaStackPlantSpots } from '../terrain/sea-stack-shape';
 import type {
   CreateVegetationOptions,
   PlantInstance,
@@ -209,6 +210,25 @@ function updateBatch(batch: PlantBatch, camera: PerspectiveCamera, tier: TierSet
   batch.fade.needsUpdate = true;
 }
 
+/** The jungle on the sea stack's dome and ledges (placed on its shape, not on the height field). */
+function appendSeaStackPlants(plants: Record<PlantSpecies, PlantInstance[]>): void {
+  for (const spot of seaStackPlantSpots()) {
+    plants[spot.species].push({
+      species: spot.species,
+      x: spot.x,
+      y: spot.y,
+      z: spot.z,
+      scale: spot.scale,
+      rotation: spot.rotation,
+      leanX: spot.leanX,
+      leanZ: spot.leanZ,
+      colorSeed: spot.seed,
+      lodSeed: spot.seed,
+      slopeDeg: 0,
+    });
+  }
+}
+
 function collectTreeLike(scatter: Record<PlantSpecies, PlantInstance[]>): PlantInstance[] {
   const output: PlantInstance[] = [];
   for (const species of Object.keys(scatter) as PlantSpecies[]) {
@@ -229,6 +249,7 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
     ),
     loadVegetationGeometries(),
   ]);
+  appendSeaStackPlants(scatter.plants);
   const batches: PlantBatch[] = [];
   const palmInstances = collectPalmInstances(scatter.plants);
   if (palmInstances.length > 0) {
