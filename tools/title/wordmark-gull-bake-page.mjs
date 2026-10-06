@@ -21,7 +21,10 @@ async function load(url) {
   const root = gltf.scene;
   // Keep each mesh's source positions so the flying gull's wings can be re-posed per frame.
   root.traverse((o) => {
-    if (o.isMesh) o.userData.rest = o.geometry.attributes.position.array.slice();
+    if (o.isMesh) {
+      o.userData.rest = o.geometry.attributes.position.array.slice();
+      o.userData.legs = legMask(o);
+    }
   });
   const box = new THREE.Box3().setFromObject(root);
   const size = new THREE.Vector3();
@@ -44,6 +47,51 @@ async function load(url) {
   return root;
 }
 
+// The flying gull's legs: vertices behind the hips whose texel is the legs' orange. They trail
+// under the tail in flight; the landing frames swing them down about the hips.
+const HIP = { x: -9, y: -5.7 };
+function legMask(mesh) {
+  const img = mesh.material?.map?.image;
+  const uv = mesh.geometry.attributes.uv;
+  const pos = mesh.geometry.attributes.position;
+  if (!img || !uv) return null;
+  const c = document.createElement('canvas');
+  c.width = img.width;
+  c.height = img.height;
+  const g = c.getContext('2d', { willReadFrequently: true });
+  g.drawImage(img, 0, 0);
+  const px = g.getImageData(0, 0, c.width, c.height).data;
+  const mask = new Uint8Array(pos.count);
+  const wrap = (v) => ((v % 1) + 1) % 1;
+  for (let i = 0; i < pos.count; i++) {
+    if (pos.getX(i) > HIP.x + 4) continue;
+    const tx = Math.min(c.width - 1, Math.floor(wrap(uv.getX(i)) * c.width));
+    const ty = Math.min(c.height - 1, Math.floor(wrap(uv.getY(i)) * c.height));
+    const o = (ty * c.width + tx) * 4;
+    if (px[o] > 150 && px[o + 2] < 120 && px[o] - px[o + 2] > 80) mask[i] = 1;
+  }
+  return mask;
+}
+
+/** Shoulder and wrist angles (radians) for a frame of the flying gull. */
+function wingAngles(spec) {
+  if (spec.glide) return { shoulder: -0.32, wrist: 0.04 };
+  if (spec.flareBeat !== undefined) {
+    // The landing flare: big, braking strokes from high over the back down to below the body.
+    const ph = spec.flareBeat / spec.flareOf;
+    const down = 0.5 - 0.5 * Math.cos(ph * Math.PI * 2);
+    return {
+      shoulder: 0.42 - 1.55 * down + 0.1,
+      wrist: -0.2 - 0.3 * down + 0.3 * Math.sin(ph * Math.PI * 2),
+    };
+  }
+  if (spec.flare) return { shoulder: 0.25, wrist: -0.1 };
+  // 0 = top of the upstroke (the model's pose), 0.5 = bottom of the downstroke
+  const ph = spec.flap / 8;
+  const down = 0.5 - 0.5 * Math.cos(ph * Math.PI * 2);
+  return { shoulder: -1.25 * down + 0.1, wrist: -0.45 * down + 0.25 * Math.sin(ph * Math.PI * 2) };
+}
+
 // The Poly "Flying seagull" is one rigid mesh, body along x, wings spread along ±z and held
 // up (+y). Each flap phase bends both wings about the body axis at the shoulder (|z| ≈ 6) with a
 // softer bend at the wrist, so the sheet holds a real downstroke and upstroke.
@@ -56,13 +104,23 @@ function flapWings(obj, spec) {
     const pos = o.geometry.attributes.position;
     const out = pos.array;
     out.set(rest);
-    if (spec.model === 'flying' && (spec.flap !== undefined || spec.flare)) {
-      // 0 = top of the upstroke (the model's pose), 0.5 = bottom of the downstroke
-      const ph = spec.flare ? 0.05 : spec.flap / 8;
-      const down = 0.5 - 0.5 * Math.cos(ph * Math.PI * 2);
-      const shoulder = (spec.flare ? 0.15 : -1.25 * down) + 0.1;
-      const wrist = spec.flare ? -0.1 : -0.45 * down + 0.25 * Math.sin(ph * Math.PI * 2);
+    const legs = o.userData.legs;
+    if (spec.model === 'flying' && legs && spec.legs) {
+      // Swing the legs down about the hips (about the body's side axis), feet reaching forward.
+      const c = Math.cos(spec.legs),
+        s = Math.sin(spec.legs);
       for (let i = 0; i < rest.length; i += 3) {
+        if (!legs[i / 3]) continue;
+        const dx = rest[i] - HIP.x,
+          dy = rest[i + 1] - HIP.y;
+        out[i] = HIP.x + dx * c - dy * s;
+        out[i + 1] = HIP.y + dx * s + dy * c;
+      }
+    }
+    if (spec.model === 'flying') {
+      const { shoulder, wrist } = wingAngles(spec);
+      for (let i = 0; i < rest.length; i += 3) {
+        if (legs?.[i / 3]) continue;
         const x = rest[i],
           y = rest[i + 1],
           z = rest[i + 2];

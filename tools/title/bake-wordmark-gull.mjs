@@ -23,7 +23,11 @@ for (const [path, url] of SOURCES) {
 const outDir = resolve(root, 'public/title');
 const frame = 256;
 const cols = 8;
-const rows = 2;
+const rows = 3;
+/** Landing-flare frames: a full braking wingbeat with the feet down. */
+const FLARE_FRAMES = 6;
+/** How far the feet swing down for landing (radians about the hips). */
+const LEGS_DOWN = 1.7;
 const frames = [
   ...Array.from({ length: 8 }, (_, i) => ({
     name: `flight-${i}`,
@@ -33,14 +37,32 @@ const frames = [
     roll: Math.sin((i / 8) * Math.PI * 2) * 0.08,
     flap: i,
   })),
-  { name: 'flare', model: 'flying', yaw: -0.28, pitch: 0.18, roll: 0, flare: true },
+  // Slot 8 is the flare's first frame (wings high over the back), so the sheet's old cells keep
+  // their places.
+  flareFrame(0, 'flare'),
   { name: 'idle', model: 'perched', yaw: -0.32, pitch: 0, roll: 0 },
   { name: 'head-left', model: 'perched', yaw: -0.62, pitch: 0, roll: 0 },
   { name: 'head-right', model: 'perched', yaw: 0.08, pitch: 0, roll: 0 },
   { name: 'call', model: 'perched', yaw: -0.32, pitch: 0.05, roll: 0 },
   { name: 'crouch', model: 'perched', yaw: -0.32, pitch: -0.24, roll: 0, crouch: true },
   { name: 'idle-bob', model: 'perched', yaw: -0.25, pitch: 0.04, roll: 0, bob: true },
+  { name: 'glide', model: 'flying', yaw: -0.28, pitch: -0.08, roll: 0, glide: true },
+  ...Array.from({ length: FLARE_FRAMES - 1 }, (_, i) => flareFrame(i + 1)),
 ];
+
+/** One frame of the landing flare. The body's pitch-up comes from the page, so it can ease in. */
+function flareFrame(i, name = `flare-${i}`) {
+  return {
+    name,
+    model: 'flying',
+    yaw: -0.28,
+    pitch: -0.08,
+    roll: 0,
+    flareBeat: i,
+    flareOf: FLARE_FRAMES,
+    legs: LEGS_DOWN,
+  };
+}
 
 const mime = (p) =>
   ({

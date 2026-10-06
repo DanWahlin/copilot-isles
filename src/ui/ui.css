@@ -69,7 +69,7 @@
   pointer-events: none;
   background-image: url('/title/wordmark-gull.webp');
   background-repeat: no-repeat;
-  background-size: 2048px 512px;
+  background-size: 2048px 768px;
   background-position: var(--gull-frame-x, 0) var(--gull-frame-y, 0);
   filter: drop-shadow(0 2px 5px rgba(5, 14, 22, 0.45));
   transform-origin: 50% 100%;

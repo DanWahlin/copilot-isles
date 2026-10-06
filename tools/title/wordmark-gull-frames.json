@@ -1,7 +1,7 @@
 {
   "frame": 256,
   "cols": 8,
-  "rows": 2,
+  "rows": 3,
   "frames": [
     {
       "name": "flight-0",
@@ -71,9 +71,11 @@
       "name": "flare",
       "model": "flying",
       "yaw": -0.28,
-      "pitch": 0.18,
+      "pitch": -0.08,
       "roll": 0,
-      "flare": true
+      "flareBeat": 0,
+      "flareOf": 6,
+      "legs": 1.7
     },
     {
       "name": "idle",
@@ -118,6 +120,64 @@
       "pitch": 0.04,
       "roll": 0,
       "bob": true
+    },
+    {
+      "name": "glide",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": -0.08,
+      "roll": 0,
+      "glide": true
+    },
+    {
+      "name": "flare-1",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": -0.08,
+      "roll": 0,
+      "flareBeat": 1,
+      "flareOf": 6,
+      "legs": 1.7
+    },
+    {
+      "name": "flare-2",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": -0.08,
+      "roll": 0,
+      "flareBeat": 2,
+      "flareOf": 6,
+      "legs": 1.7
+    },
+    {
+      "name": "flare-3",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": -0.08,
+      "roll": 0,
+      "flareBeat": 3,
+      "flareOf": 6,
+      "legs": 1.7
+    },
+    {
+      "name": "flare-4",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": -0.08,
+      "roll": 0,
+      "flareBeat": 4,
+      "flareOf": 6,
+      "legs": 1.7
+    },
+    {
+      "name": "flare-5",
+      "model": "flying",
+      "yaw": -0.28,
+      "pitch": -0.08,
+      "roll": 0,
+      "flareBeat": 5,
+      "flareOf": 6,
+      "legs": 1.7
     }
   ]
 }

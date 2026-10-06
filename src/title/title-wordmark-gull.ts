@@ -1,6 +1,6 @@
 import { Object3D, Vector3, type Group, type PerspectiveCamera } from 'three/webgpu';
 import { world } from '../world/uniforms';
-import { clamp } from '../util/math';
+import { clamp, lerp, smoothstep } from '../util/math';
 
 export interface TitleWordmarkGull {
   readonly group: Group;
@@ -55,22 +55,51 @@ const SHIP_RETRY = 8;
 /** Seconds after the title is first visible before the gull flies in to the wordmark. */
 const FIRST_VISIT = 5;
 const tmpPerch = new Vector3();
-const FRAMES: Record<string, { x: number; y: number }> = {
-  'flight-0': { x: 0, y: 0 },
-  'flight-1': { x: -256, y: 0 },
-  'flight-2': { x: -512, y: 0 },
-  'flight-3': { x: -768, y: 0 },
-  'flight-4': { x: -1024, y: 0 },
-  'flight-5': { x: -1280, y: 0 },
-  'flight-6': { x: -1536, y: 0 },
-  'flight-7': { x: -1792, y: 0 },
-  flare: { x: 0, y: -256 },
-  idle: { x: -256, y: -256 },
-  'head-left': { x: -512, y: -256 },
-  'head-right': { x: -768, y: -256 },
-  call: { x: -1024, y: -256 },
-  crouch: { x: -1280, y: -256 },
-  'idle-bob': { x: -1536, y: -256 },
+/** The sheet's cells in order, 8 to a row (tools/title/bake-wordmark-gull.mjs). */
+const SHEET = [
+  ...Array.from({ length: 8 }, (_, i) => `flight-${i}`),
+  'flare',
+  'idle',
+  'head-left',
+  'head-right',
+  'call',
+  'crouch',
+  'idle-bob',
+  'glide',
+  'flare-1',
+  'flare-2',
+  'flare-3',
+  'flare-4',
+  'flare-5',
+];
+const FRAMES: Record<string, { x: number; y: number }> = Object.fromEntries(
+  SHEET.map((name, i) => [name, { x: -(i % 8) * SPRITE_FRAME, y: -Math.floor(i / 8) * SPRITE_FRAME }]),
+);
+/** The landing flare: one braking wingbeat in 6 cells ('flare' is its wings-high first cell). */
+const FLARE_CELLS = ['flare', 'flare-1', 'flare-2', 'flare-3', 'flare-4', 'flare-5'];
+/** Where the flare cells' lowered feet are in the frame (px from the top), so they touch down. */
+const FLARE_FOOT_Y = 169;
+/** Where in a wingbeat (0-1) the flight cells pass the glide pose: wings out, level-ish. */
+const GLIDE_AT = 0.2;
+
+/**
+ * The landing's wing work, by seconds into the 3.4 s approach. A bird can't hold its wings still
+ * unless it's fast enough to glide, so: flap in, glide while there's speed, flap again as it
+ * slows, then flare with big braking beats (feet down) right to the touchdown.
+ */
+const APPROACH = {
+  /** Flapping in from off-screen (beats per second). */
+  cruiseHz: 3.2,
+  /** The glide, while it's still quick. */
+  glideFrom: 1.25,
+  glideTo: 2.1,
+  /** Flapping again as it slows. */
+  slowHz: 3.6,
+  /** The flare starts on the first wing-top after this, and its beats end at touchdown. */
+  flareFrom: 2.55,
+  flareHz: 3.6,
+  /** The body pitches nose-up through the flare, then levels as the feet land (degrees). */
+  flarePitch: 16,
 };
 
 /** Cubic Bezier, one axis. */
@@ -177,6 +206,10 @@ export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches)
   let perchFor = 6;
   // Wing-beat phase in beats: integrated, so changing the beat rate never jumps a frame.
   let flap = 0;
+  // The landing's wing state: flapping, holding a glide, or flaring (from flareT0, flareBeats long).
+  let wings: 'flap' | 'glide' | 'flare' = 'flap';
+  let flareT0 = 0;
+  let flareRate = APPROACH.flareHz;
   // The first landing (on the wordmark) comes FIRST_VISIT s after the title is first on screen.
   let nextAt = Infinity;
   let target: LandingTarget | null = null;
@@ -195,6 +228,44 @@ export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches)
   let cpuMs = 0;
   const samples: { phase: string; t: number; dt: number; x: number; y: number }[] = [];
   let sampleDt = 0;
+
+  /** The landing's sprite cell, foot anchor and nose-up pitch (degrees) at `t` s in. */
+  function landingWings(t: number, dt: number): { frame: string; anchor: number; pitch: number } {
+    const end = LAND_SECONDS;
+    if (wings === 'glide') {
+      if (t < APPROACH.glideTo) return { frame: 'glide', anchor: MOTION_ANCHOR_Y, pitch: 0 };
+      // Out of the glide from the same pose, straight into the next downstroke.
+      wings = 'flap';
+      flap = Math.floor(flap) + GLIDE_AT;
+    }
+    if (wings === 'flap') {
+      const rate = t < APPROACH.glideFrom ? APPROACH.cruiseHz : APPROACH.slowHz;
+      const before = flap;
+      flap += dt * rate;
+      const crossed = (at: number): boolean => Math.floor(before - at) !== Math.floor(flap - at);
+      if (t >= APPROACH.glideFrom && t < APPROACH.glideTo - 0.2 && crossed(GLIDE_AT)) {
+        wings = 'glide';
+        return { frame: 'glide', anchor: MOTION_ANCHOR_Y, pitch: 0 };
+      }
+      if (t >= APPROACH.flareFrom && crossed(0)) {
+        // Wings at the top: into the flare. Its beat is set so a whole number of beats ends
+        // exactly at touchdown, wings high again.
+        wings = 'flare';
+        flareT0 = t;
+        const beats = Math.max(1, Math.round((end - t) * APPROACH.flareHz));
+        flareRate = beats / Math.max(0.05, end - t);
+      } else {
+        return { frame: flapFrameAt(flap), anchor: MOTION_ANCHOR_Y, pitch: 0 };
+      }
+    }
+    const ft = t - flareT0;
+    const f = clamp(ft / Math.max(0.05, end - flareT0), 0, 1);
+    const beat = ft * flareRate;
+    const cell = f >= 1 ? 0 : Math.floor((beat % 1) * FLARE_CELLS.length) % FLARE_CELLS.length;
+    // Ease the foot anchor over to the lowered feet, so they (not the tucked ones) touch down.
+    const anchor = lerp(MOTION_ANCHOR_Y, FLARE_FOOT_Y, smoothstep(0, 0.25, ft));
+    return { frame: FLARE_CELLS[cell], anchor, pitch: APPROACH.flarePitch * Math.sin(Math.PI * f) };
+  }
 
   function overlay(): HTMLElement | null {
     return typeof document === 'undefined' ? null : document.getElementById('title-wordmark-gull');
@@ -297,6 +368,7 @@ export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches)
         if (target) {
           phase = 'landing';
           phaseT = 0;
+          wings = 'flap';
           visits++;
         } else if (mode === 'wordmark') {
           // The wordmark can't be landed on (a narrow window hides it): skip to the ship visits.
@@ -327,7 +399,8 @@ export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches)
         const off = SPRITE_FRAME * sc;
         if (phase === 'landing') {
           // One continuous curve in from off-screen (right for the wordmark, left for the ship),
-          // high, easing out so it arrives slow. It glides in on short flapping bursts, then flares.
+          // high, easing out so it arrives slow. It flaps in, glides while it's quick, flaps again as
+          // it slows, then flares with braking beats, feet down, right to the touchdown.
           // Bound for the ship, it starts nearer the camera and shrinks into the distance.
           const k = clamp(phaseT / LAND_SECONDS, 0, 1);
           const u = 1 - (1 - k) * (1 - k);
@@ -336,17 +409,16 @@ export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches)
             y0 = target.y - Math.min(260, target.y + 40);
           const x = bez(x0, x0 + (target.x - x0) * 0.45, target.x - dir * 70 * sc, target.x, u);
           const y = bez(y0, y0 + 30 * sc, target.y - 110 * sc, target.y, u);
-          const burst = phaseT < 1.2 || (phaseT > 1.8 && phaseT < 2.5);
-          flap += dt * (burst ? 3.6 : 0.9);
-          const flare = k > 0.84;
+          const { frame, anchor, pitch } = landingWings(phaseT, dt);
           showOverlay(
             x,
             y,
             size,
-            flare ? 'landing-legs' : 'landing',
-            -8 * (1 - u),
+            wings === 'flare' ? 'landing-legs' : 'landing',
+            -8 * (1 - u) - pitch,
             dir,
-            flare ? 'flare' : flapFrameAt(flap),
+            frame,
+            anchor,
           );
           if (k >= 1) {
             phase = 'perched';
