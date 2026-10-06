@@ -127,6 +127,9 @@ function tintFor(instance: PlantInstance): Color {
     case 'broadleafTree':
       color.setHSL(0.25 + instance.colorSeed * 0.05, 0.38, 0.36 + instance.colorSeed * 0.1);
       break;
+    case 'cypress':
+      color.setHSL(0.3 + instance.colorSeed * 0.04, 0.32, 0.22 + instance.colorSeed * 0.08);
+      break;
     case 'cactus':
     case 'brush':
       color.setHSL(0.2 + instance.colorSeed * 0.08, 0.3, 0.42 + instance.colorSeed * 0.14);
@@ -179,7 +182,9 @@ function createBatch(
         ? tier.grassDistance + 48
         : species === 'brush'
           ? tier.treeNear * 1.6
-          : tier.treeNear;
+          : species === 'cypress'
+            ? tier.treeNear * 3
+            : tier.treeNear;
   return {
     species,
     mesh,

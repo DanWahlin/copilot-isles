@@ -188,10 +188,16 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   // ground out to the island's far shore.
   const dryEast = options.miniature ? 1400 : 1240;
   const drySouth = options.miniature ? -1260 : -1080;
+  // Port Meridian's town: its gardens stay green (watered), not the hills' summer gold.
+  const meridianTown = smoothstep(548, 566, P.x)
+    .mul(float(1).sub(smoothstep(840, 858, P.x)))
+    .mul(smoothstep(-1000, -984, P.z))
+    .mul(float(1).sub(smoothstep(-748, -738, P.z)));
   const meridianDryMask = smoothstep(470, 620, P.x)
     .mul(float(1).sub(smoothstep(dryEast - 30, dryEast, P.x)))
     .mul(smoothstep(drySouth - 50, drySouth, P.z))
-    .mul(float(1).sub(smoothstep(-620, -570, P.z)));
+    .mul(float(1).sub(smoothstep(-620, -570, P.z)))
+    .mul(float(1).sub(meridianTown.mul(0.85)));
   const dryGrass = mix(color(0x7f6530), color(0xd4a653), broadNoise.mul(0.5).add(grassDetail.mul(0.22))).add(
     color(0xefcf79).mul(pow(saturate(grassFineB.sub(0.66).mul(2.2)), 2.0).mul(0.1)),
   );
@@ -563,6 +569,42 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const warmHeadland = mix(color(0x5c7136), color(0xa29569), noiseLow.a.mul(0.46).add(noiseMid.r.mul(0.54)));
   base = mix(base, warmHeadland, sunnyHeadland.mul(0.24));
   base = mix(base, meridianBluffCliff, meridianBluffMask);
+  // The town's bare ground: warm, trodden earth between the gardens, not pale beach sand.
+  const townEarth = mix(color(0x6b4a2e), color(0xa07848), fineNoise.mul(0.5).add(sandDetail.mul(0.3)));
+  base = mix(
+    base,
+    townEarth,
+    saturate(sandMask.add(rockMask.mul(0.6)))
+      .mul(meridianTown)
+      .mul(float(1).sub(underwater))
+      .mul(0.9),
+  );
+  // Port Meridian's ridge: pale, sunlit limestone with soft, broad bedding and dark-green maquis
+  // clinging to every ledge it can hold, instead of the generic cliff's tight dark bands.
+  const meridianRidge = smoothstep(880, 960, P.x)
+    .mul(float(1).sub(smoothstep(1290, 1330, P.x)))
+    .mul(float(1).sub(smoothstep(-990, -930, P.z)))
+    .mul(smoothstep(30, 60, y));
+  const ridgeBed = fract(y.div(16).add(noiseLow.b.sub(0.5).mul(1.1)).add(noiseMid.r.sub(0.5).mul(0.3)));
+  const ridgeBands = float(0.93).add(
+    smoothstep(0.0, 0.5, ridgeBed)
+      .mul(float(1).sub(smoothstep(0.5, 1.0, ridgeBed)))
+      .mul(0.1),
+  );
+  const limestoneTone = mix(
+    color(0x8a7b63),
+    color(0xd2c4a2),
+    noiseLow.a.mul(0.4).add(noiseMid.r.mul(0.35)).add(rockDetail.mul(0.25)),
+  )
+    .mul(ridgeBands)
+    .mul(float(0.8).add(smoothstep(0.15, 0.6, N.y).mul(0.2)));
+  const maquis = smoothstep(
+    0.5,
+    0.6,
+    noiseLow.g.mul(0.5).add(noiseMid.a.mul(0.32)).add(noiseFine.g.mul(0.18)).add(N.y.sub(0.5).mul(0.35)),
+  ).mul(smoothstep(0.3, 0.62, N.y));
+  const maquisTone = mix(color(0x2f4a25), color(0x5f773a), noiseFine.r.mul(0.6).add(noiseMid.g.mul(0.4)));
+  base = mix(base, mix(limestoneTone, maquisTone, maquis.mul(0.88)), meridianRidge);
 
   const sunVis = mix(light.y, light.z, uSunBlend);
   const cloud = options.cloudShadowNode ?? float(1);

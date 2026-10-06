@@ -19,6 +19,7 @@ import { createBrigantine, type Brigantine } from './ship';
 import { createVegetation, type VegetationSystem } from './vegetation';
 import type { PlantInstance } from './vegetation/types';
 import { meridianPlantsSliced } from './islands/meridian-plants';
+import { meridianTownPlants } from './meridian-town/plantings';
 import { createMeridianWaterMesh } from './islands/meridian-water-mesh';
 import type { WaterStrips } from './sites/water';
 import { DOCK_GULL_SPOT, createVillage, loadVillageKit, type VillageSystem } from './village';
@@ -233,7 +234,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       const steps = meridianPlantsSliced(tier.tier);
       for (let r = steps.next(); ; r = steps.next()) {
         if (r.done) {
-          meridianFlora.push(...r.value);
+          meridianFlora.push(...r.value, ...meridianTownPlants(tier.tier));
           break;
         }
         await breathe();

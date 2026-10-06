@@ -13,7 +13,7 @@ import {
   type Material,
 } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
-import type { CircleObstacle, HeightField } from '../contracts';
+import type { CircleObstacle, HeightField, Tier } from '../contracts';
 import { box as geoBox, cylinder as geoCylinder, merge, tubeBetween, worldUv } from '../sites/geo';
 import { MERIDIAN, meridianQuayHeight } from '../islands/meridian';
 import {
@@ -31,6 +31,7 @@ import {
   TERRACOTTA_WARM,
   WHITEWASH,
   rowGapContaining,
+  terraceHasBackRow,
   terraceRun,
   type TerraceRowSpec,
 } from './terraces';
@@ -115,6 +116,8 @@ const CYPRESS = 0x173f26;
 const OLIVE = 0x6f814c;
 const OLIVE_SILVER = 0x9aa876;
 const BOUGAINVILLEA = 0xb01377;
+/** The share of houses with bougainvillea over the door (set per tier as the town builds). */
+let vineShare = 0.2;
 const DARK_WOOD = 0x3c281a;
 const METAL = 0x2d302d;
 const CLOTH_BLUE = 0x185e83;
@@ -201,6 +204,7 @@ function* buildMeridianTown({
   const low = tier.tier === 'lite' || tier.tier === 'low';
   const mediumUp = tier.tier !== 'lite' && tier.tier !== 'low';
   const high = tier.tier === 'high' || tier.tier === 'ultra';
+  vineShare = high ? 0.38 : mediumUp ? 0.26 : 0.12;
   const liftCar = new Group();
   liftCar.name = 'meridian-lift-car';
   const lighthouseGlow = new Group();
@@ -266,7 +270,7 @@ function* buildMeridianTown({
   addLift(buckets, colliders, kit, liftCar, anchor);
   addCitadel(buckets, colliders, stairSpans, perches, heightField, kit, low, high, anchor);
   yield;
-  yield* addTerraceHouses(buckets, colliders, stairSpans, perches, heightField, kit, low, high);
+  yield* addTerraceHouses(tier.tier, buckets, colliders, stairSpans, perches, heightField, kit, low, high);
   addDenseHillsideTown(buckets, colliders, stairSpans, perches, heightField, kit, low, high);
   yield;
   addVegetation(buckets, colliders, perches, heightField, low, high);
@@ -1529,6 +1533,7 @@ function addCitadel(
 }
 
 function* addTerraceHouses(
+  tier: Tier,
   buckets: Buckets,
   colliders: ColliderSet,
   stairSpans: StairSpan[],
@@ -1545,10 +1550,11 @@ function* addTerraceHouses(
     addLanePaving(buckets, row);
     addTerraceHouseRun(buckets, colliders, stairSpans, perches, heightField, kit, row, { arcade: false });
     yield;
-    addTerraceHouseRun(buckets, colliders, stairSpans, perches, heightField, kit, row, {
-      arcade: false,
-      backRow: true,
-    });
+    if (terraceHasBackRow(row, tier))
+      addTerraceHouseRun(buckets, colliders, stairSpans, perches, heightField, kit, row, {
+        arcade: false,
+        backRow: true,
+      });
     previousHeight = row.height;
     yield;
   }
@@ -1640,7 +1646,7 @@ function addRetainingWallSegment(
 function addLanePaving(buckets: Buckets, row: TerraceRowSpec): void {
   const midX = (row.x0 + row.x1) * 0.5;
   const length = row.x1 - row.x0 + 1.6;
-  addBox(buckets, 'paving', midX, row.height - 0.08, row.laneZ, length, 0.16, row.laneWidth, 0, 0xf0d7aa);
+  addBox(buckets, 'paving', midX, row.height - 0.08, row.laneZ, length, 0.16, row.laneWidth, 0, 0xc9966a);
   for (let x = row.x0 + 2.5; x <= row.x1 - 2; x += 4.8)
     addBox(
       buckets,
@@ -1907,15 +1913,15 @@ function addTownEdgeInfill(
     { x: 840, z: -802, w: 14, d: 18, rot: 18 * DEG, y: 8.8 },
   ] as const;
   for (const g of gardens) addWalledGarden(buckets, colliders, g.x, g.y, g.z, g.w, g.d, g.rot, high);
-  addTownPavingPatch(buckets, 621, 7.05, -825.5, 62, 19, 0, 0xf0d7aa);
-  addTownPavingPatch(buckets, 715, 7.1, -825.5, 58, 19, 0, 0xf0d7aa);
-  addTownPavingPatch(buckets, 668, 8.6, -838.5, 78, 10.5, 0, 0xe6c894);
-  addTownPavingPatch(buckets, 568, 11.5, -862, 20, 58, 0, 0xd9bd87);
-  addTownPavingPatch(buckets, 824, 14.5, -874, 21, 66, 0, 0xd9bd87);
-  addDrapedPavingPatch(buckets, heightField, 668, -823, 148, 36, 10, 3, 0xf0d7aa);
-  addDrapedPavingPatch(buckets, heightField, 668, -806, 96, 24, 8, 3, 0xe8cf9a);
-  addDrapedPavingPatch(buckets, heightField, 560, -858, 36, 96, 4, 8, 0xdcc28e);
-  addDrapedPavingPatch(buckets, heightField, 828, -878, 38, 96, 4, 8, 0xdcc28e);
+  addTownPavingPatch(buckets, 621, 7.05, -825.5, 62, 19, 0, 0xd2a271);
+  addTownPavingPatch(buckets, 715, 7.1, -825.5, 58, 19, 0, 0xd2a271);
+  addTownPavingPatch(buckets, 668, 8.6, -838.5, 78, 10.5, 0, 0xc99868);
+  addTownPavingPatch(buckets, 568, 11.5, -862, 20, 58, 0, 0xc49564);
+  addTownPavingPatch(buckets, 824, 14.5, -874, 21, 66, 0, 0xc49564);
+  addDrapedPavingPatch(buckets, heightField, 668, -823, 148, 36, 10, 3, 0xcf9e6c);
+  addDrapedPavingPatch(buckets, heightField, 668, -806, 96, 24, 8, 3, 0xd6a874);
+  addDrapedPavingPatch(buckets, heightField, 560, -858, 36, 96, 4, 8, 0xc49564);
+  addDrapedPavingPatch(buckets, heightField, 828, -878, 38, 96, 4, 8, 0xc49564);
   addOliveGrove(buckets, colliders, 564, 8.2, -804, 3, 2, 6.0, 5.2, 0.42);
   addOliveGrove(buckets, colliders, 555, 12.8, -892, 2, 3, 6.5, 6.0, 0.46);
   addOliveGrove(buckets, colliders, 832, 16.8, -846, 2, 3, 6.2, 6.4, 0.44);
@@ -2244,7 +2250,8 @@ function addTownHouse(
     );
   }
   if (spec.balcony && floors > 1) addBalconyRail(buckets, spec, y + 0.55 + floorH + 0.08);
-  if (spec.seed % 5 === 0) addBougainvilleaOnFacade(buckets, spec, y + 2.2);
+  if (spec.seed % 5 === 0 || ((spec.seed * 7919) % 100) / 100 < vineShare)
+    addBougainvilleaOnFacade(buckets, spec, y + 2.2);
   perches.push(new Vector3(spec.x, top + 1.4, spec.z));
   colliders.boxes.push({
     x: spec.x,
@@ -3657,32 +3664,44 @@ function addOliveTree(
 }
 
 function addBougainvillea(buckets: Buckets, x: number, y: number, z: number, rot: number, s: number): void {
-  for (let i = 0; i < 12; i += 1) {
-    const lx = Math.sin(i * 3.1) * 1.6 * s;
-    const ly = Math.cos(i * 1.7) * 0.9 * s;
-    const lz = (i % 3) * 0.06;
-    const p = localToWorld(x, z, rot, lx, lz);
+  // A climbing vine: a woody stem from the ground, a mass of leaves over the door, and cascades of
+  // magenta, cerise and coral bracts spilling down one side.
+  const seed = Math.abs(Math.round(x * 13.1 + z * 7.7));
+  const r = (i: number) => {
+    const v = Math.sin(seed * 0.173 + i * 12.9898) * 43758.5453;
+    return v - Math.floor(v);
+  };
+  const bracts = [BOUGAINVILLEA, 0xd51c91, 0xe0337f, 0xc2187a, 0xee5a7a];
+  const ground = y - 2.2;
+  const stem = localToWorld(x, z, rot, -1.5 * s, 0.12);
+  addTube(
+    buckets.rope,
+    0.06 * s,
+    { x: stem.x, y: ground, z: stem.z },
+    { x: stem.x, y: y + 0.6 * s, z: stem.z },
+    0x4a3524,
+    4,
+  );
+  for (let i = 0; i < 16; i += 1) {
+    // Spread along the top of the door and down the stem side, thicker near the top.
+    const along = r(i) * 3.4 - 1.9;
+    const drop = Math.pow(r(i + 40), 1.6) * (along < -0.8 ? 2.4 : 0.9);
+    const p = localToWorld(x, z, rot, along * s, 0.1 + r(i + 80) * 0.22);
+    const leafy = i % 4 === 0;
+    const size = (leafy ? 0.46 : 0.34 + r(i + 120) * 0.22) * s;
     addSphere(
       buckets.cloth,
       p.x,
-      y + ly,
+      y + 0.5 * s - drop * s,
       p.z,
-      0.22 * s,
-      0.14 * s,
-      0.22 * s,
-      i % 2 ? BOUGAINVILLEA : 0xd51c91,
-      6,
-      4,
+      size,
+      size * 0.8,
+      size * 0.7,
+      leafy ? 0x2f5a2a : bracts[i % bracts.length]!,
+      5,
+      2,
     );
   }
-  addTube(
-    buckets.rope,
-    0.035 * s,
-    { x: x - Math.cos(rot) * 1.6 * s, y: y - 1.0 * s, z: z + Math.sin(rot) * 1.6 * s },
-    { x: x + Math.cos(rot) * 1.2 * s, y: y + 1.1 * s, z: z - Math.sin(rot) * 1.2 * s },
-    0x31502c,
-    5,
-  );
 }
 
 function addTelescope(

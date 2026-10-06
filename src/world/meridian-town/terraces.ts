@@ -1,3 +1,4 @@
+import type { Tier } from '../contracts';
 import { MERIDIAN } from '../islands/meridian';
 
 /**
@@ -167,6 +168,17 @@ function houseWidthForAvailable(preferred: 4 | 6 | 8, available: number): 4 | 6 
   if (available >= 6) return 6;
   if (available >= 4) return 4;
   return null;
+}
+
+/**
+ * Whether a terrace keeps its back row of houses (they face uphill, mostly hidden). Alternate
+ * terraces drop theirs for back gardens, which also saves triangles; Lite and Low keep only the
+ * skyline's top row.
+ */
+export function terraceHasBackRow(row: TerraceRowSpec, tier: Tier): boolean {
+  if (row === HARBOUR_FRONT_ROW) return false;
+  if (tier === 'lite' || tier === 'low') return row.id === 'top-whitewash';
+  return row.id === 'lower-ochre' || row.id === 'upper-cream' || row.id === 'top-whitewash';
 }
 
 export interface TerraceHouse {

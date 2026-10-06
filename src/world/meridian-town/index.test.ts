@@ -17,6 +17,7 @@ import {
 } from '../village/materials';
 import type { VillageBoxCollider, VillageKit } from '../village';
 import { createMeridianTown, meridianTownStairHeight } from './index';
+import { meridianTownPlants } from './plantings';
 
 const heightField: HeightField = {
   heightAt: meridianHeight,
@@ -303,6 +304,33 @@ describe('createMeridianTown', () => {
       town.shipObstacles.some((c) => circleHitsPoint(c, MERIDIAN.harbor.berth.x, MERIDIAN.harbor.berth.z, 6)),
     ).toBe(false);
 
+    town.dispose();
+    kit.dispose();
+  });
+});
+
+describe('Port Meridian town planting', () => {
+  it("keeps every plant out of walls, ways and the townsfolk's spots", () => {
+    const kit = testKit();
+    const town = createMeridianTown({ tier: tierSettings('high'), heightField, kit });
+    const plants = meridianTownPlants('high');
+    expect(plants.length).toBeGreaterThan(80);
+    const problems: string[] = [];
+    for (const p of plants) {
+      const r = p.species === 'flowerBush' || p.species === 'fern' ? 0.25 : 0.5;
+      const where = `${p.species} @ ${p.x.toFixed(1)}, ${p.z.toFixed(1)}`;
+      const box = town.colliders.boxes.find((b) => boxHitsPoint(b, p.x, p.z, r));
+      if (box) problems.push(`${where} in box ${box.x.toFixed(1)},${box.z.toFixed(1)} ${box.hx}x${box.hz}`);
+      const circle = town.colliders.circles.find((c) => circleHitsPoint(c, p.x, p.z, r));
+      if (circle)
+        problems.push(`${where} in circle ${circle.x.toFixed(1)},${circle.z.toFixed(1)} r${circle.r}`);
+      // The quay's palm row stands on the promenade, against its back wall (trunks have colliders).
+      const quayRow = p.species.startsWith('palm') && Math.abs(p.z - (MERIDIAN.harbor.quay.z0 + 1.6)) < 0.01;
+      if (!quayRow && town.walkable(p.x, p.z) !== null) problems.push(`${where} on a walkway`);
+      for (const [id, a] of Object.entries(town.anchors))
+        if (Math.hypot(a.x - p.x, a.z - p.z) < 3) problems.push(`${where} at anchor ${id}`);
+    }
+    expect(problems).toEqual([]);
     town.dispose();
     kit.dispose();
   });

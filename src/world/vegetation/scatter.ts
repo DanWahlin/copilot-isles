@@ -205,6 +205,8 @@ function baseRadius(species: PlantSpecies, scale: number): number {
       return 0.6 * scale;
     case 'brush':
       return 0.7 * scale;
+    case 'cypress':
+      return 0.6 * scale;
   }
 }
 
@@ -318,6 +320,14 @@ const RULES: RuleMap = {
     scale: () => 1,
     lean: () => ({ x: 0, z: 0 }),
   },
+  cypress: {
+    countHigh: 0,
+    minDistance: 3,
+    maxSlopeDeg: 30,
+    score: () => 0,
+    scale: () => 1,
+    lean: () => ({ x: 0, z: 0 }),
+  },
   brush: {
     countHigh: 0,
     minDistance: 3,
@@ -425,6 +435,7 @@ function emptyPlants(): Record<PlantSpecies, PlantInstance[]> {
     log: [],
     cactus: [],
     brush: [],
+    cypress: [],
   };
 }
 

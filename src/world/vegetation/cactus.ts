@@ -118,3 +118,32 @@ export function buildMaquisBush(seed = 3): BufferGeometry {
   for (const g of parts) g.dispose();
   return merged;
 }
+
+/**
+ * An Italian cypress, built in code: a short trunk and a tall, dense flame of dark foliage (stacked
+ * domes, widest a third of the way up, closing to a point). About seven metres; the loader scales it.
+ */
+export function buildCypress(seed = 5): BufferGeometry {
+  const rand = seeded(seed);
+  const parts: BufferGeometry[] = [];
+  const trunk = new SphereGeometry(1, 5, 3);
+  trunk.scale(0.12, 0.6, 0.12);
+  trunk.translate(0, 0.5, 0);
+  parts.push(tagged(trunk, [0.36, 0.26, 0.18], 0));
+  const layers = 11;
+  for (let i = 0; i < layers; i++) {
+    const t = i / (layers - 1);
+    const y = 0.9 + t * 5.9;
+    // Widest a third of the way up, then a long taper to the tip.
+    const r = 0.62 * Math.min(1, 0.55 + t * 1.6) * (1 - Math.pow(t, 1.6) * 0.82);
+    const g = new SphereGeometry(1, 7, 5);
+    g.scale(r * (0.92 + rand() * 0.16), 0.95, r * (0.92 + rand() * 0.16));
+    g.rotateY(rand() * Math.PI);
+    g.translate((rand() - 0.5) * 0.08, y, (rand() - 0.5) * 0.08);
+    const k = 0.75 + rand() * 0.25;
+    parts.push(tagged(g, [0.16 * k, 0.28 * k, 0.15 * k], 1));
+  }
+  const merged = mergeGeometries(parts, false)!;
+  for (const g of parts) g.dispose();
+  return merged;
+}

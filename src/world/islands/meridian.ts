@@ -179,6 +179,12 @@ function terraceHeight(x: number, z: number, current: number): number {
     const shoulder = 1 - smoothstep(terrace.width + 12, terrace.width + 38, d);
     out = mix(out, terrace.height, shelf * 0.93);
     out = mix(out, Math.min(out, terrace.height + 7.5), shoulder * 0.16);
+    // On the shelf itself the ground sits just under the lane's paving (none of the hill shows through).
+    out = mix(
+      out,
+      Math.min(out, terrace.height - 0.3),
+      1 - smoothstep(terrace.width, terrace.width + 2.5, d),
+    );
   }
   return out;
 }
@@ -447,8 +453,11 @@ export function meridianMasks(
     sand = Math.max(sand * (1 - bank), wet * 0.35);
     grass = Math.max(grass, bank * 0.9);
   }
-  grass *= (1 - townFootprint * 0.98) * (1 - lighthousePlatform);
-  sand = Math.max(sand, townFootprint * 0.68, lighthousePlatform * 0.38);
+  // The town's open ground: gardens and green verges, with trodden earth between.
+  const garden = smoothstep(0.42, 0.62, fbm2(x * 0.045, z * 0.045, 3, SEED + 60) * 0.5 + 0.5);
+  grass =
+    Math.max(grass * (1 - townFootprint * 0.98), townFootprint * garden * 0.85) * (1 - lighthousePlatform);
+  sand = Math.max(sand, townFootprint * 0.68 * (1 - garden * 0.85), lighthousePlatform * 0.38);
   rock = Math.max(rock, lighthousePlatform * 0.46);
   if (h < -8) rock = Math.max(rock, 0.16);
   cliff = clamp01(cliff);

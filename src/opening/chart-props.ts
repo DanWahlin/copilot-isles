@@ -30,8 +30,14 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Tier } from '../world/contracts';
 import { MERIDIAN, meridianWater } from '../world/islands/meridian';
 import { meridianPlants } from '../world/islands/meridian-plants';
+import { meridianTownPlants } from '../world/meridian-town/plantings';
 import { COVE } from '../world/layout';
-import { HARBOUR_FRONT_ROW, TERRACE_ROWS, terraceRun } from '../world/meridian-town/terraces';
+import {
+  HARBOUR_FRONT_ROW,
+  TERRACE_ROWS,
+  terraceHasBackRow,
+  terraceRun,
+} from '../world/meridian-town/terraces';
 import { buildHeadlandCliffGeometry, HEADLAND_CLIFF_DETAIL } from '../world/terrain/headland-cliff';
 import { headlandCliffPlantSpots } from '../world/terrain/headland-cliff-shape';
 import { buildSeaStackGeometry, createSeaStackMaterial } from '../world/terrain/sea-stack';
@@ -333,6 +339,13 @@ function plantShape(
       parts.add(g, rgb(hue, 0.85 + r() * 0.3), x, y, z, delay);
       return;
     }
+    case 'cypress': {
+      // A dark green flame.
+      const g = new ConeGeometry(0.7 * scale, 8 * scale, 6);
+      g.translate(0, 4.4 * scale, 0);
+      parts.add(g, rgb(0x2a4a2c, 0.85 + r() * 0.3), x, y, z, delay);
+      return;
+    }
     case 'cactus':
       // A prickly pear: a few upright pads.
       for (let i = 0; i < 3; i++) {
@@ -572,7 +585,7 @@ export async function createIslandProps(o: IslandPropsOptions): Promise<IslandPr
       // Port Meridian: the harbour front and the terraced streets, house by house as the town builds
       // them, the citadel's curtain wall on the hilltop, and the lighthouse on the mole.
       for (const row of [HARBOUR_FRONT_ROW, ...TERRACE_ROWS])
-        for (const back of row === HARBOUR_FRONT_ROW ? [false] : [false, true])
+        for (const back of terraceHasBackRow(row, tier) ? [false, true] : [false])
           for (const h of terraceRun(row, back).houses) {
             await breathe();
             house(
@@ -593,7 +606,7 @@ export async function createIslandProps(o: IslandPropsOptions): Promise<IslandPr
       citadel(parts, late + 0.2);
       chartWater(parts, late + 0.15);
       // The island's hills, planted as the game plants them (on the chart's own baked ground).
-      for (const p of meridianPlants(tier, hf)) {
+      for (const p of [...meridianPlants(tier, hf), ...meridianTownPlants(tier)]) {
         plant(parts, p.species, p.x, p.y, p.z, p.scale, late + delayAt(p.x, p.z) * 0.7, r);
         await breathe();
       }

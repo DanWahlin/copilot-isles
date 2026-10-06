@@ -23,7 +23,8 @@ export type PlantSpecies =
   | 'flowerBush'
   | 'log'
   | 'cactus'
-  | 'brush';
+  | 'brush'
+  | 'cypress';
 
 export type GrassKind = 'seaOats' | 'meadow' | 'creeper' | 'wildflower' | 'seedHead';
 
