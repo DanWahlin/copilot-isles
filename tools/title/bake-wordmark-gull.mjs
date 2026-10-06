@@ -23,11 +23,27 @@ for (const [path, url] of SOURCES) {
 const outDir = resolve(root, 'public/title');
 const frame = 256;
 const cols = 8;
-const rows = 3;
+const rows = 4;
+/** The row the standing gull's soles sit on (PERCHED_FOOT_Y in src/title/title-wordmark-gull.ts). */
+const PERCHED_FOOT_Y = 194;
 /** Landing-flare frames: a full braking wingbeat with the feet down. */
 const FLARE_FRAMES = 6;
 /** How far the feet swing down for landing (radians about the hips). */
 const LEGS_DOWN = 1.7;
+/**
+ * The touchdown cells. It lands side-on, as it flew in (yaw 1.29 turns the standing gull's +z
+ * beak to the flying frames' heading), wings still raised and legs bent under the weight, then
+ * folds its wings back along its body and turns to face out like the idle cell (yaw -0.32).
+ */
+const TOUCHDOWN = [
+  { yaw: 1.29, pitch: -0.22, crouch: true, roll: 0, sweep: 0.15, scale: 1 },
+  { yaw: 1.25, pitch: -0.16, crouch: true, roll: 0.45, sweep: 0.6, scale: 0.95 },
+  { yaw: 1.12, pitch: -0.1, crouch: false, roll: 0.95, sweep: 1.1, scale: 0.82 },
+  { yaw: 0.9, pitch: -0.05, crouch: false, roll: 1.3, sweep: 1.4, scale: 0.65 },
+  { yaw: 0.55, pitch: -0.02, crouch: false, roll: 1.45, sweep: 1.5, scale: 0.45 },
+  { yaw: 0.2, pitch: 0, crouch: false },
+  { yaw: -0.08, pitch: 0, crouch: false },
+];
 const frames = [
   ...Array.from({ length: 8 }, (_, i) => ({
     name: `flight-${i}`,
@@ -48,6 +64,17 @@ const frames = [
   { name: 'idle-bob', model: 'perched', yaw: -0.25, pitch: 0.04, roll: 0, bob: true },
   { name: 'glide', model: 'flying', yaw: -0.28, pitch: -0.08, roll: 0, glide: true },
   ...Array.from({ length: FLARE_FRAMES - 1 }, (_, i) => flareFrame(i + 1)),
+  // Touchdown: the standing gull lands with its wings still raised and its legs taking the weight
+  // (a crouch), then folds them back along its body as it straightens up.
+  ...TOUCHDOWN.map((t, i) => ({
+    name: `land-${i}`,
+    model: 'perched',
+    yaw: t.yaw,
+    pitch: t.pitch,
+    roll: 0,
+    crouch: t.crouch,
+    landWings: t.roll === undefined ? undefined : { roll: t.roll, sweep: t.sweep, scale: t.scale },
+  })),
 ];
 
 /** One frame of the landing flare. The body's pitch-up comes from the page, so it can ease in. */
@@ -101,7 +128,7 @@ function server() {
 await mkdir(outDir, { recursive: true });
 await writeFile(
   resolve(root, 'tools/title/wordmark-gull-frames.json'),
-  JSON.stringify({ frame, cols, rows, frames }, null, 2),
+  JSON.stringify({ frame, cols, rows, perchedFootY: PERCHED_FOOT_Y, frames }, null, 2),
 );
 
 const srv = server();

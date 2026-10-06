@@ -71,6 +71,7 @@ const SHEET = [
   'flare-3',
   'flare-4',
   'flare-5',
+  ...Array.from({ length: 7 }, (_, i) => `land-${i}`),
 ];
 const FRAMES: Record<string, { x: number; y: number }> = Object.fromEntries(
   SHEET.map((name, i) => [name, { x: -(i % 8) * SPRITE_FRAME, y: -Math.floor(i / 8) * SPRITE_FRAME }]),
@@ -79,6 +80,19 @@ const FRAMES: Record<string, { x: number; y: number }> = Object.fromEntries(
 const FLARE_CELLS = ['flare', 'flare-1', 'flare-2', 'flare-3', 'flare-4', 'flare-5'];
 /** Where the flare cells' lowered feet are in the frame (px from the top), so they touch down. */
 const FLARE_FOOT_Y = 169;
+/**
+ * The touchdown, cell by cell (seconds each): it lands side-on with its wings still up and its
+ * legs bent, folds the wings back along its body, then turns to face out (the idle cell).
+ */
+const TOUCHDOWN: readonly (readonly [cell: string, seconds: number])[] = [
+  ['land-0', 0.14],
+  ['land-1', 0.07],
+  ['land-2', 0.07],
+  ['land-3', 0.07],
+  ['land-4', 0.08],
+  ['land-5', 0.1],
+  ['land-6', 0.1],
+];
 /** Where in a wingbeat (0-1) the flight cells pass the glide pose: wings out, level-ish. */
 const GLIDE_AT = 0.2;
 
@@ -120,6 +134,16 @@ function random(seed: number): () => number {
     s ^= s + Math.imul(s ^ (s >>> 7), 61 | s);
     return ((s ^ (s >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+/** The touchdown cell `t` s after landing, or null once it's done. */
+function touchdownCell(t: number): string | null {
+  let end = 0;
+  for (const [cell, seconds] of TOUCHDOWN) {
+    end += seconds;
+    if (t < end) return cell;
+  }
+  return null;
 }
 
 function flapFrameAt(phase: number): string {
@@ -433,17 +457,19 @@ export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches)
             perchFor = 5 + rng() * 3;
           }
         } else if (phase === 'perched') {
-          // A small settle on touchdown, then a gentle idle bob.
-          const settle = phaseT < 0.35 ? Math.sin((phaseT / 0.35) * Math.PI) * 5 * sc : 0;
-          const bob = settle + Math.max(0, Math.sin(phaseT * 1.3)) * 1.5 * sc;
+          // The touchdown (its legs take the landing, so the feet stay put), then a gentle idle bob.
+          const landing = touchdownCell(phaseT);
+          const bob = landing ? 0 : Math.max(0, Math.sin(phaseT * 1.3)) * 1.5 * sc;
           const call = phaseT > 1.4 && phaseT < 2.0;
-          const frameName = call
-            ? 'call'
-            : phaseT > 2.8 && phaseT < 3.6
-              ? 'head-left'
-              : phaseT > 4.0 && phaseT < 4.8
-                ? 'head-right'
-                : 'idle';
+          const frameName =
+            landing ??
+            (call
+              ? 'call'
+              : phaseT > 2.8 && phaseT < 3.6
+                ? 'head-left'
+                : phaseT > 4.0 && phaseT < 4.8
+                  ? 'head-right'
+                  : 'idle');
           showOverlay(
             target.x,
             target.y + bob,

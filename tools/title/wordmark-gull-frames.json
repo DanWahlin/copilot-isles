@@ -1,7 +1,8 @@
 {
   "frame": 256,
   "cols": 8,
-  "rows": 3,
+  "rows": 4,
+  "perchedFootY": 194,
   "frames": [
     {
       "name": "flight-0",
@@ -178,6 +179,87 @@
       "flareBeat": 5,
       "flareOf": 6,
       "legs": 1.7
+    },
+    {
+      "name": "land-0",
+      "model": "perched",
+      "yaw": 1.29,
+      "pitch": -0.22,
+      "roll": 0,
+      "crouch": true,
+      "landWings": {
+        "roll": 0,
+        "sweep": 0.15,
+        "scale": 1
+      }
+    },
+    {
+      "name": "land-1",
+      "model": "perched",
+      "yaw": 1.25,
+      "pitch": -0.16,
+      "roll": 0,
+      "crouch": true,
+      "landWings": {
+        "roll": 0.45,
+        "sweep": 0.6,
+        "scale": 0.95
+      }
+    },
+    {
+      "name": "land-2",
+      "model": "perched",
+      "yaw": 1.12,
+      "pitch": -0.1,
+      "roll": 0,
+      "crouch": false,
+      "landWings": {
+        "roll": 0.95,
+        "sweep": 1.1,
+        "scale": 0.82
+      }
+    },
+    {
+      "name": "land-3",
+      "model": "perched",
+      "yaw": 0.9,
+      "pitch": -0.05,
+      "roll": 0,
+      "crouch": false,
+      "landWings": {
+        "roll": 1.3,
+        "sweep": 1.4,
+        "scale": 0.65
+      }
+    },
+    {
+      "name": "land-4",
+      "model": "perched",
+      "yaw": 0.55,
+      "pitch": -0.02,
+      "roll": 0,
+      "crouch": false,
+      "landWings": {
+        "roll": 1.45,
+        "sweep": 1.5,
+        "scale": 0.45
+      }
+    },
+    {
+      "name": "land-5",
+      "model": "perched",
+      "yaw": 0.2,
+      "pitch": 0,
+      "roll": 0,
+      "crouch": false
+    },
+    {
+      "name": "land-6",
+      "model": "perched",
+      "yaw": -0.08,
+      "pitch": 0,
+      "roll": 0,
+      "crouch": false
     }
   ]
 }
