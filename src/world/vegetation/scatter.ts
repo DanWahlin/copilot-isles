@@ -201,6 +201,10 @@ function baseRadius(species: PlantSpecies, scale: number): number {
       return 0.65 * scale;
     case 'fern':
       return 0.35 * scale;
+    case 'cactus':
+      return 0.6 * scale;
+    case 'brush':
+      return 0.7 * scale;
   }
 }
 
@@ -305,6 +309,23 @@ const RULES: RuleMap = {
     scale: (rng) => rng.range(1.1, 2.3),
     lean: (_x, _z, rng) => ({ x: rng.signed(0.01), z: rng.signed(0.01) }),
   },
+  // Port Meridian's prickly pears and brush are planted by its own layout (islands/meridian-plants.ts).
+  cactus: {
+    countHigh: 0,
+    minDistance: 4,
+    maxSlopeDeg: 30,
+    score: () => 0,
+    scale: () => 1,
+    lean: () => ({ x: 0, z: 0 }),
+  },
+  brush: {
+    countHigh: 0,
+    minDistance: 3,
+    maxSlopeDeg: 34,
+    score: () => 0,
+    scale: () => 1,
+    lean: () => ({ x: 0, z: 0 }),
+  },
 };
 
 const CURATED_PALMS: ReadonlyArray<{
@@ -402,6 +423,8 @@ function emptyPlants(): Record<PlantSpecies, PlantInstance[]> {
     broadleafTree: [],
     flowerBush: [],
     log: [],
+    cactus: [],
+    brush: [],
   };
 }
 

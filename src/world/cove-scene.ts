@@ -17,6 +17,8 @@ import { MERIDIAN, createMeridianRocks, createMeridianSilhouette } from './islan
 import { createBeachDebris, type BeachDebrisSystem } from './debris/beach-debris';
 import { createBrigantine, type Brigantine } from './ship';
 import { createVegetation, type VegetationSystem } from './vegetation';
+import type { PlantInstance } from './vegetation/types';
+import { meridianPlantsSliced } from './islands/meridian-plants';
 import { DOCK_GULL_SPOT, createVillage, loadVillageKit, type VillageSystem } from './village';
 import { createDockGull, type DockGull } from './life/dock-gull';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -218,13 +220,26 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   let vegetation: VegetationSystem | null = null;
   if (o.vegetation !== false) {
     report(0.6, 'Planting palms');
+    // Port Meridian's hills join the same batches (its terrain streams in later; the plants only
+    // need its height function).
+    const meridianFlora: PlantInstance[] = [];
+    if (!meridianDisabled) {
+      const steps = meridianPlantsSliced(tier.tier);
+      for (let r = steps.next(); ; r = steps.next()) {
+        if (r.done) {
+          meridianFlora.push(...r.value);
+          break;
+        }
+        await breathe();
+      }
+    }
     vegetation = await createVegetation({
       heightField,
       heightGrid: terrain.heightGrid,
       tier,
       renderer,
       exclude: villageMask,
-      extraPlants: village.plantings,
+      extraPlants: [...village.plantings, ...meridianFlora],
     });
     if (tier.shadowCascades > 0) disableReceiveShadows(vegetation.group);
     scene.add(vegetation.group);

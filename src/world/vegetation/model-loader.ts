@@ -17,6 +17,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { packs } from '../../engine/packs';
 import { createPalmMaterial, createVegetationMaterial } from './materials';
+import { buildMaquisBush, buildPricklyPear } from './cactus';
 import { buildPalmFar, buildPalmNear, buildYoungPalm } from './palms';
 import type { PlantSpecies } from './types';
 
@@ -44,6 +45,8 @@ const TARGET_HEIGHT: Record<PlantSpecies, number> = {
   broadleafTree: 9.4,
   flowerBush: 0.85,
   log: 0.9,
+  cactus: 2.1,
+  brush: 1.45,
 };
 
 const tmpBox = new Box3();
@@ -297,6 +300,25 @@ async function loadSpecies(loader: GLTFLoader, species: PlantSpecies): Promise<V
       (['hero', 'grove'] as const).flatMap((lod) => createPalmParts(species, variant, lod)),
     );
   }
+  if (species === 'cactus' || species === 'brush') {
+    // Built in code (no model in the kit): Port Meridian's prickly pears and maquis brush. Same
+    // material options, so both share one program.
+    const source = species === 'cactus' ? buildPricklyPear() : buildMaquisBush();
+    const geometry = addInstanceAttributes(source, new Mesh(source), species);
+    source.dispose();
+    const parts: VegetationModelPart[] = [
+      {
+        geometry,
+        material: createVegetationMaterial({
+          alphaTest: 0.12,
+          color: new Color(species === 'cactus' ? 0x93a85e : 0x8c9a58),
+          name: 'vegetation-procedural',
+        }),
+      },
+    ];
+    normalizeParts(parts, TARGET_HEIGHT[species]);
+    return parts;
+  }
   const model = MODEL_BY_SPECIES[species];
   if (!model) throw new Error(`No vegetation model mapped for ${species}`);
   const gltf = await loader.loadAsync(packs.url(`${MODEL_BASE}${model}`));
@@ -319,7 +341,12 @@ export async function loadVegetationGeometries(): Promise<VegetationGeometryCata
   await MeshoptDecoder.ready;
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
-  const speciesList = ['palmTall', ...(Object.keys(MODEL_BY_SPECIES) as PlantSpecies[])] as PlantSpecies[];
+  const speciesList = [
+    'palmTall',
+    ...(Object.keys(MODEL_BY_SPECIES) as PlantSpecies[]),
+    'cactus',
+    'brush',
+  ] as PlantSpecies[];
   const entries = await Promise.all(
     speciesList.map(async (species) => [species, await loadSpecies(loader, species)] as const),
   );

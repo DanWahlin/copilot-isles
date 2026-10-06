@@ -21,7 +21,9 @@ export type PlantSpecies =
   | 'shrub'
   | 'broadleafTree'
   | 'flowerBush'
-  | 'log';
+  | 'log'
+  | 'cactus'
+  | 'brush';
 
 export type GrassKind = 'seaOats' | 'meadow' | 'creeper' | 'wildflower' | 'seedHead';
 
