@@ -77,12 +77,12 @@ function legMask(mesh) {
 function wingAngles(spec) {
   if (spec.glide) return { shoulder: -0.32, wrist: 0.04 };
   if (spec.flareBeat !== undefined) {
-    // The landing flare: big, braking strokes from high over the back down to below the body.
+    // The landing flare: wide braking strokes from just over the back down to below the body.
     const ph = spec.flareBeat / spec.flareOf;
     const down = 0.5 - 0.5 * Math.cos(ph * Math.PI * 2);
     return {
-      shoulder: 0.42 - 1.55 * down + 0.1,
-      wrist: -0.2 - 0.3 * down + 0.3 * Math.sin(ph * Math.PI * 2),
+      shoulder: 0.2 - 1.15 * down,
+      wrist: -0.12 - 0.3 * down + 0.25 * Math.sin(ph * Math.PI * 2),
     };
   }
   if (spec.flare) return { shoulder: 0.25, wrist: -0.1 };

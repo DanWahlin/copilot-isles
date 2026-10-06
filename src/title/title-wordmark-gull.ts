@@ -96,10 +96,15 @@ const APPROACH = {
   /** Flapping again as it slows. */
   slowHz: 3.6,
   /** The flare starts on the first wing-top after this, and its beats end at touchdown. */
-  flareFrom: 2.55,
-  flareHz: 3.6,
+  flareFrom: 2.75,
+  flareHz: 4,
   /** The body pitches nose-up through the flare, then levels as the feet land (degrees). */
-  flarePitch: 16,
+  flarePitch: 9,
+  /**
+   * It hovers on its flare with its feet just clear of the letter, and only drops the last bit
+   * onto it in this many seconds before touchdown.
+   */
+  drop: 0.2,
 };
 
 /** Cubic Bezier, one axis. */
@@ -262,8 +267,8 @@ export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches)
     const f = clamp(ft / Math.max(0.05, end - flareT0), 0, 1);
     const beat = ft * flareRate;
     const cell = f >= 1 ? 0 : Math.floor((beat % 1) * FLARE_CELLS.length) % FLARE_CELLS.length;
-    // Ease the foot anchor over to the lowered feet, so they (not the tucked ones) touch down.
-    const anchor = lerp(MOTION_ANCHOR_Y, FLARE_FOOT_Y, smoothstep(0, 0.25, ft));
+    // The lowered feet hang a little above the perch line until the final drop puts them on it.
+    const anchor = lerp(MOTION_ANCHOR_Y, FLARE_FOOT_Y, smoothstep(end - APPROACH.drop, end, t));
     return { frame: FLARE_CELLS[cell], anchor, pitch: APPROACH.flarePitch * Math.sin(Math.PI * f) };
   }
 
@@ -290,14 +295,16 @@ export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches)
     if (!el) return;
     const frame = FRAMES[frameName] ?? FRAMES.idle;
     const host = document.querySelector('.ci-title-shell')?.getBoundingClientRect();
-    const anchoredY = y + (SPRITE_FRAME - anchorY) * scaleValue;
     const localX = host ? x - host.left : x;
-    const localY = host ? anchoredY - host.top : anchoredY;
+    const localY = host ? y - host.top : y;
     el.className = `ci-title-gull ci-title-gull--${state}`;
     el.style.display = 'block';
     el.style.setProperty('--gull-frame-x', `${frame.x}px`);
     el.style.setProperty('--gull-frame-y', `${frame.y}px`);
-    el.style.transform = `translate(-50%, -100%) translate3d(${localX.toFixed(1)}px, ${localY.toFixed(1)}px, 0) scale(${scaleValue.toFixed(3)}) scaleX(${facing}) rotate(${rotateDeg.toFixed(1)}deg)`;
+    // Scale, mirror and tilt about the anchor (the feet), and put the anchor on (x, y).
+    const ox = SPRITE_FRAME / 2;
+    el.style.transformOrigin = `${ox}px ${anchorY.toFixed(1)}px`;
+    el.style.transform = `translate3d(${(localX - ox).toFixed(1)}px, ${(localY - anchorY).toFixed(1)}px, 0) scale(${scaleValue.toFixed(3)}) scaleX(${facing}) rotate(${rotateDeg.toFixed(1)}deg)`;
     samples.push({ phase: state, t: phaseT, dt: sampleDt, x, y });
     if (samples.length > 360) samples.shift();
   }
