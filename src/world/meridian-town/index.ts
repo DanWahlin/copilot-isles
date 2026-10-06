@@ -16,6 +16,24 @@ import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle, HeightField } from '../contracts';
 import { box as geoBox, cylinder as geoCylinder, merge, tubeBetween, worldUv } from '../sites/geo';
 import { MERIDIAN, meridianQuayHeight } from '../islands/meridian';
+import {
+  APRICOT,
+  CREAM,
+  HARBOUR_FRONT_ROW,
+  LIMESTONE_LIGHT,
+  OCHRE,
+  MEDITERRANEAN_TINTS,
+  ROOF_TINTS,
+  ROSE,
+  TERRACE_ROWS,
+  TERRACOTTA,
+  TERRACOTTA_DARK,
+  TERRACOTTA_WARM,
+  WHITEWASH,
+  rowGapContaining,
+  terraceRun,
+  type TerraceRowSpec,
+} from './terraces';
 import { createLighthouseHaloMaterial, createLighthouseLitMaterial } from '../lighthouse-lamp';
 import {
   localToWorld,
@@ -90,17 +108,7 @@ type BasicAnchor = {
 };
 
 const DEG = Math.PI / 180;
-const TERRACOTTA = 0xffa040;
-const TERRACOTTA_DARK = 0xe58e42;
-const TERRACOTTA_WARM = 0xffad48;
-const LIMESTONE_LIGHT = 0xf0d7aa;
 const LIMESTONE_DARK = 0x91704c;
-const OCHRE = 0xc07b35;
-const CREAM = 0xe0bc7a;
-const ROSE = 0xc06a69;
-const APRICOT = 0xd99a5f;
-const WHITEWASH = 0xf3e4be;
-const SAFFRON = 0xd28a32;
 const DEEP_BLUE = 0x174b75;
 const DEEP_GREEN = 0x1f5c43;
 const CYPRESS = 0x173f26;
@@ -138,18 +146,6 @@ const CITADEL = { x: MERIDIAN.pads.citadel.x, z: MERIDIAN.pads.citadel.z, r: 39,
 const LIFT_BOTTOM = { x: 770.3, z: -766.8, y: MERIDIAN.harbor.quay.height } as const;
 const LIFT_TOP = { x: 798.2, z: -779.2, y: 40.35 } as const;
 
-interface TerraceRowSpec {
-  id: string;
-  x0: number;
-  x1: number;
-  houseZ: number;
-  laneZ: number;
-  height: number;
-  laneWidth: number;
-  seed: number;
-  gaps?: readonly { x0: number; x1: number }[];
-}
-
 interface TerraceStairStreet {
   x: number;
   z0: number;
@@ -159,112 +155,6 @@ interface TerraceStairStreet {
   width: number;
   steps: number;
 }
-
-const HARBOUR_FRONT_ROW: TerraceRowSpec = {
-  id: 'harbour-front',
-  x0: 594,
-  x1: 758,
-  houseZ: -786.2,
-  laneZ: -778.8,
-  height: PLAZA.height,
-  laneWidth: 4.2,
-  seed: 520,
-  gaps: [
-    { x0: 607, x1: 631 },
-    { x0: 638, x1: 682 },
-  ],
-} as const;
-
-const TERRACE_ROWS: readonly TerraceRowSpec[] = [
-  {
-    id: 'plaza-upper',
-    x0: 586,
-    x1: 756,
-    houseZ: -848,
-    laneZ: -839.8,
-    height: 10.8,
-    laneWidth: 3.8,
-    seed: 620,
-    gaps: [
-      { x0: 640, x1: 699 },
-      { x0: 607, x1: 615 },
-      { x0: 727, x1: 735 },
-    ],
-  },
-  {
-    id: 'lower-ochre',
-    x0: 592,
-    x1: 780,
-    houseZ: -870,
-    laneZ: -861.8,
-    height: 14.2,
-    laneWidth: 3.7,
-    seed: 700,
-    gaps: [
-      { x0: 606, x1: 614 },
-      { x0: 664, x1: 672 },
-      { x0: 728, x1: 736 },
-    ],
-  },
-  {
-    id: 'middle-salmon',
-    x0: 604,
-    x1: 792,
-    houseZ: -892,
-    laneZ: -883.8,
-    height: 17.8,
-    laneWidth: 3.7,
-    seed: 780,
-    gaps: [
-      { x0: 606, x1: 614 },
-      { x0: 664, x1: 672 },
-      { x0: 728, x1: 736 },
-      { x0: 782, x1: 790 },
-    ],
-  },
-  {
-    id: 'upper-cream',
-    x0: 620,
-    x1: 804,
-    houseZ: -914,
-    laneZ: -905.8,
-    height: 21.4,
-    laneWidth: 3.8,
-    seed: 860,
-    gaps: [
-      { x0: 606, x1: 614 },
-      { x0: 664, x1: 672 },
-      { x0: 728, x1: 736 },
-      { x0: 782, x1: 790 },
-    ],
-  },
-  {
-    id: 'citadel-foot',
-    x0: 650,
-    x1: 812,
-    houseZ: -936,
-    laneZ: -927.8,
-    height: 25.0,
-    laneWidth: 3.6,
-    seed: 940,
-    gaps: [
-      { x0: 664, x1: 672 },
-      { x0: 728, x1: 736 },
-      { x0: 782, x1: 790 },
-    ],
-  },
-  {
-    id: 'top-whitewash',
-    x0: 700,
-    x1: 812,
-    houseZ: -956,
-    laneZ: -947.8,
-    height: 28.6,
-    laneWidth: 3.5,
-    seed: 1020,
-    gaps: [{ x0: 782, x1: 790 }],
-  },
-] as const;
 
 const TERRACE_STAIR_STREETS: readonly TerraceStairStreet[] = [
   { x: 610, z0: -840, z1: -938, y0: 10.8, y1: 25.0, width: 4.4, steps: 25 },
@@ -1668,18 +1558,6 @@ function* addTerraceHouses(
   addTerraceGardenPots(buckets, colliders, heightField, high);
 }
 
-const MEDITERRANEAN_TINTS = [
-  WHITEWASH,
-  LIMESTONE_LIGHT,
-  CREAM,
-  OCHRE,
-  SAFFRON,
-  APRICOT,
-  ROSE,
-  0xd7a66f,
-] as const;
-const ROOF_TINTS = [TERRACOTTA_WARM, TERRACOTTA, TERRACOTTA_DARK, 0xf49a46, 0xffb24d, 0xef9650] as const;
-
 function addDenseHillsideTown(
   buckets: Buckets,
   colliders: ColliderSet,
@@ -1790,45 +1668,23 @@ function addTerraceHouseRun(
   row: TerraceRowSpec,
   options: { arcade: boolean; backRow?: boolean },
 ): void {
-  const widths: readonly (4 | 6 | 8)[] = [6, 4, 6, 8, 4, 6, 6, 8, 4, 6];
-  let x = row.x0 + (options.backRow ? 2.2 : 0);
-  let index = 0;
-  const stopX = row.x1 - (options.backRow ? 2.2 : 0);
-  while (x < stopX - 3.8) {
-    const containing = rowGapContaining(row, x + 0.1);
-    if (containing) {
-      if (options.arcade) addArcadeBridge(buckets, containing.x0, containing.x1, row);
-      x = containing.x1;
-      continue;
-    }
-    const nextGap = nextRowGapStart(row, x);
-    const runEnd = Math.min(stopX, nextGap ?? stopX);
-    const available = runEnd - x;
-    const width = houseWidthForAvailable(widths[(row.seed + index) % widths.length]!, available);
-    if (width === null) {
-      x = runEnd + 0.01;
-      continue;
-    }
-    const seed = row.seed + index;
-    const depth: 6 | 8 = seed % 4 === 0 || width === 8 ? 8 : 6;
-    const centerX = x + width * 0.5;
-    const setback = ((seed % 4) - 1.5) * 0.12;
-    const storeys: 2 | 3 = seed % 5 === 0 || row.height < 12 ? 3 : 2;
-    const tint = MEDITERRANEAN_TINTS[seed % MEDITERRANEAN_TINTS.length]!;
-    const centerZ = options.backRow ? row.houseZ - 7.1 - setback : row.houseZ + setback;
+  const run = terraceRun(row, !!options.backRow);
+  if (options.arcade) for (const gap of run.gaps) addArcadeBridge(buckets, gap.x0, gap.x1, row);
+  for (const h of run.houses) {
+    const seed = h.seed;
     addTownHouse(buckets, colliders, stairSpans, perches, heightField, kit, {
       id: `${row.id}-${options.backRow ? 'back-house' : 'house'}-${seed}`,
-      x: centerX,
-      z: centerZ,
-      rotY: options.backRow ? 0 : Math.PI,
-      footprint: { w: width, d: depth },
-      storeys,
-      tint,
-      roofTint: ROOF_TINTS[seed % ROOF_TINTS.length]!,
+      x: h.x,
+      z: h.z,
+      rotY: h.rotY,
+      footprint: { w: h.w, d: h.d },
+      storeys: h.storeys,
+      tint: h.tint,
+      roofTint: h.roofTint,
       doorSide: 'front',
       upper: 'plaster',
       ground: 'plaster',
-      roof: seed % 6 === 0 ? 'flat' : 'gable',
+      roof: h.roof,
       balcony: seed % 2 === 0,
       awning:
         options.arcade || seed % 5 === 0
@@ -1836,27 +1692,8 @@ function addTerraceHouseRun(
           : undefined,
       seed,
     });
-    if (options.arcade) addArcadeBay(buckets, centerX, row.height, row.houseZ + depth * 0.5 + 0.12, width);
-    x += width + (seed % 3 === 0 ? 0.16 : 0.04);
-    index += 1;
+    if (options.arcade) addArcadeBay(buckets, h.x, row.height, row.houseZ + h.d * 0.5 + 0.12, h.w);
   }
-}
-
-function rowGapContaining(row: TerraceRowSpec, x: number): { x0: number; x1: number } | null {
-  return row.gaps?.find((gap) => x >= gap.x0 && x < gap.x1) ?? null;
-}
-
-function nextRowGapStart(row: TerraceRowSpec, x: number): number | null {
-  const next = row.gaps?.filter((gap) => gap.x0 > x).sort((a, b) => a.x0 - b.x0)[0];
-  return next?.x0 ?? null;
-}
-
-function houseWidthForAvailable(preferred: 4 | 6 | 8, available: number): 4 | 6 | 8 | null {
-  if (available >= preferred) return preferred;
-  if (available >= 8) return 8;
-  if (available >= 6) return 6;
-  if (available >= 4) return 4;
-  return null;
 }
 
 function addArcadeBay(buckets: Buckets, x: number, y: number, z: number, width: number): void {

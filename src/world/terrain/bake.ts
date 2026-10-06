@@ -89,7 +89,8 @@ const AO_DIRECTIONS: readonly [number, number][] = [
   [0.5, -0.8660254038],
 ];
 
-const SUNS = [sunState(10).sun, sunState(16.5).sun] as const;
+/** The two baked suns (morning and golden hour), shared with the chart's miniatures. */
+export const SUNS = [sunState(10).sun, sunState(16.5).sun] as const;
 
 function gridIndex(nx: number, ix: number, iz: number): number {
   return iz * nx + ix;
@@ -121,7 +122,7 @@ function sampleGrid(
   return a + (b - a) * tz;
 }
 
-function normalFromGrid(
+export function normalFromGrid(
   heights: Float32Array,
   nx: number,
   nz: number,
@@ -147,7 +148,7 @@ function normalFromGrid(
   out[offset + 2] = sz / len;
 }
 
-function ambientOpenSky(
+export function ambientOpenSky(
   heights: Float32Array,
   nx: number,
   nz: number,
@@ -170,7 +171,7 @@ function ambientOpenSky(
   return clamp01(1 - (occlusion / AO_DIRECTIONS.length) * 0.72);
 }
 
-function sunVisibility(
+export function sunVisibility(
   heights: Float32Array,
   nx: number,
   nz: number,
@@ -199,7 +200,7 @@ function sunVisibility(
   return clamp01(visibility);
 }
 
-function rimFlag(
+export function rimFlag(
   heights: Float32Array,
   normals: Float32Array,
   nx: number,

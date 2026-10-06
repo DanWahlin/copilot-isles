@@ -1,63 +1,176 @@
 import { BufferAttribute, BufferGeometry } from 'three/webgpu';
-import { extractShoreline, type ShorelineChain } from '../world/terrain/bake';
+import {
+  ambientOpenSky,
+  extractShoreline,
+  normalFromGrid,
+  rimFlag,
+  sunVisibility,
+  SUNS,
+  type ShorelineChain,
+  type TerrainBakeData,
+} from '../world/terrain/bake';
+import type { HeightField } from '../world/contracts';
 import { worldToPaper, type ChartIslandSource } from './chart-map';
 
-/** A real island's heights and colours, sampled on a coarse grid for its chart miniature. */
+/**
+ * A real island sampled for its chart miniature: heights and terrain masks from the island's own
+ * functions, and the same bake the island's terrain gets (grid normals, open-sky AO, the morning and
+ * golden-hour suns, skyline rim), only coarser. The miniature then wears the island's own terrain
+ * material, so it reads as the real place, small.
+ */
 export interface IslandGrid {
   src: ChartIslandSource;
   nx: number;
   nz: number;
+  cell: number;
   heights: Float32Array;
-  colors: Float32Array;
+  /** Per vertex: world normal (3). */
+  normals: Float32Array;
+  /** Per vertex: sand, grass, rock, cliff (4, 0-1). */
+  masks: Float32Array;
+  /** Per vertex: AO, morning sun, golden sun, rim (4, 0-1), as the terrain's `terrainLight`. */
+  light: Float32Array;
 }
 
-const SAND = [0.86, 0.76, 0.52] as const;
-const WET_SAND = [0.62, 0.6, 0.44] as const;
-const GRASS = [0.33, 0.55, 0.25] as const;
-const GRASS_HIGH = [0.42, 0.6, 0.29] as const;
-const ROCK = [0.55, 0.5, 0.42] as const;
-const CLIFF = [0.66, 0.6, 0.48] as const;
+/** Chart sample spacing as a fraction of the island's base cell, by tier (finer where it's affordable). */
+export const CHART_CELL_SCALE = { lite: 1, low: 0.7, medium: 0.55, high: 0.45, ultra: 0.4 } as const;
+/** Without the baked pack, the island's functions are sampled this coarsely (they're slow). */
+export const FALLBACK_CELL_SCALE = 1.2;
 
 /**
- * Samples the island's own height and terrain-mask functions (one world: the same functions the game
- * builds its terrain from), a row per step, so the caller can spread the work over frames.
+ * Samples the island a row per step (heights and masks, then the bake), so the caller can spread the
+ * work over frames.
  */
-export function* sampleIslandGrid(src: ChartIslandSource): Generator<void, IslandGrid, void> {
-  const nx = Math.floor((src.maxX - src.minX) / src.cell) + 1;
-  const nz = Math.floor((src.maxZ - src.minZ) / src.cell) + 1;
-  const heights = new Float32Array(nx * nz);
-  const colors = new Float32Array(nx * nz * 3);
+export function* sampleIslandGrid(src: ChartIslandSource, cellScale = 1): Generator<void, IslandGrid, void> {
+  const cell = src.cell * cellScale;
+  const nx = Math.floor((src.maxX - src.minX) / cell) + 1;
+  const nz = Math.floor((src.maxZ - src.minZ) / cell) + 1;
+  const count = nx * nz;
+  const heights = new Float32Array(count);
+  const normals = new Float32Array(count * 3);
+  const masks = new Float32Array(count * 4);
+  const light = new Float32Array(count * 4);
   for (let iz = 0; iz < nz; iz++) {
-    const z = src.minZ + iz * src.cell;
+    const z = src.minZ + iz * cell;
     for (let ix = 0; ix < nx; ix++) {
-      const x = src.minX + ix * src.cell;
+      const x = src.minX + ix * cell;
       const i = iz * nx + ix;
-      const h = src.height(x, z);
-      heights[i] = h;
-      let r: number, g: number, b: number;
-      if (h < 0.4) {
-        const k = Math.min(1, Math.max(0, (h + 2.5) / 2.9));
-        r = WET_SAND[0] + (SAND[0] - WET_SAND[0]) * k;
-        g = WET_SAND[1] + (SAND[1] - WET_SAND[1]) * k;
-        b = WET_SAND[2] + (SAND[2] - WET_SAND[2]) * k;
-      } else {
-        const m = src.masks(x, z);
-        const hi = Math.min(1, h / 40);
-        const gr = GRASS[0] + (GRASS_HIGH[0] - GRASS[0]) * hi;
-        const gg = GRASS[1] + (GRASS_HIGH[1] - GRASS[1]) * hi;
-        const gb = GRASS[2] + (GRASS_HIGH[2] - GRASS[2]) * hi;
-        const sum = m.sand + m.grass + m.rock + m.cliff || 1;
-        r = (SAND[0] * m.sand + gr * m.grass + ROCK[0] * m.rock + CLIFF[0] * m.cliff) / sum;
-        g = (SAND[1] * m.sand + gg * m.grass + ROCK[1] * m.rock + CLIFF[1] * m.cliff) / sum;
-        b = (SAND[2] * m.sand + gb * m.grass + ROCK[2] * m.rock + CLIFF[2] * m.cliff) / sum;
-      }
-      colors[i * 3] = r;
-      colors[i * 3 + 1] = g;
-      colors[i * 3 + 2] = b;
+      heights[i] = src.height(x, z);
+      const m = src.masks(x, z);
+      masks[i * 4] = m.sand;
+      masks[i * 4 + 1] = m.grass;
+      masks[i * 4 + 2] = m.rock;
+      masks[i * 4 + 3] = m.cliff;
     }
     yield;
   }
-  return { src, nx, nz, heights, colors };
+  const { minX, minZ } = src;
+  for (let iz = 0; iz < nz; iz++) {
+    const z = minZ + iz * cell;
+    for (let ix = 0; ix < nx; ix++) {
+      const x = minX + ix * cell;
+      const i = iz * nx + ix;
+      const h = heights[i]!;
+      normalFromGrid(heights, nx, nz, minX, minZ, cell, ix, iz, normals, i * 3);
+      light[i * 4] = ambientOpenSky(heights, nx, nz, minX, minZ, cell, x, z, h);
+      light[i * 4 + 1] = sunVisibility(heights, nx, nz, minX, minZ, cell, x, z, h, SUNS[0]);
+      light[i * 4 + 2] = sunVisibility(heights, nx, nz, minX, minZ, cell, x, z, h, SUNS[1]);
+      light[i * 4 + 3] = rimFlag(heights, normals, nx, nz, minX, minZ, cell, ix, iz);
+    }
+    yield;
+  }
+  return { src, nx, nz, cell, heights, normals, masks, light };
+}
+
+/**
+ * The same grid, resampled from the island's own baked terrain pack (what the game builds its
+ * terrain from): exact heights, normals, masks and light, for a few milliseconds of work. Points
+ * outside the pack's box are open sea (the island's height function, sand, full light).
+ */
+export function* resampleIslandGrid(
+  src: ChartIslandSource,
+  data: TerrainBakeData,
+  cellScale = 1,
+): Generator<void, IslandGrid, void> {
+  const cell = src.cell * cellScale;
+  const nx = Math.floor((src.maxX - src.minX) / cell) + 1;
+  const nz = Math.floor((src.maxZ - src.minZ) / cell) + 1;
+  const count = nx * nz;
+  const heights = new Float32Array(count);
+  const normals = new Float32Array(count * 3);
+  const masks = new Float32Array(count * 4);
+  const light = new Float32Array(count * 4);
+  const outside: number[] = [];
+  for (let iz = 0; iz < nz; iz++) {
+    const z = src.minZ + iz * cell;
+    for (let ix = 0; ix < nx; ix++) {
+      const x = src.minX + ix * cell;
+      const i = iz * nx + ix;
+      const gx = (x - data.minX) / data.cell;
+      const gz = (z - data.minZ) / data.cell;
+      if (gx < 0 || gz < 0 || gx > data.nx - 1 || gz > data.nz - 1) {
+        // Past the pack's edge: the island's own functions, baked below once the heights are in.
+        heights[i] = src.height(x, z);
+        outside.push(i);
+        continue;
+      }
+      const ix0 = Math.min(data.nx - 2, Math.floor(gx));
+      const iz0 = Math.min(data.nz - 2, Math.floor(gz));
+      const tx = gx - ix0;
+      const tz = gz - iz0;
+      const i00 = iz0 * data.nx + ix0;
+      const i10 = i00 + 1;
+      const i01 = i00 + data.nx;
+      const i11 = i01 + 1;
+      const w00 = (1 - tx) * (1 - tz);
+      const w10 = tx * (1 - tz);
+      const w01 = (1 - tx) * tz;
+      const w11 = tx * tz;
+      const f = (v: ArrayLike<number>, c = 0, n = 1): number =>
+        v[i00 * n + c]! * w00 + v[i10 * n + c]! * w10 + v[i01 * n + c]! * w01 + v[i11 * n + c]! * w11;
+      heights[i] = f(data.heights);
+      const ax = f(data.normals, 0, 3);
+      const ay = f(data.normals, 1, 3);
+      const az = f(data.normals, 2, 3);
+      const len = Math.hypot(ax, ay, az) || 1;
+      normals[i * 3] = ax / len;
+      normals[i * 3 + 1] = ay / len;
+      normals[i * 3 + 2] = az / len;
+      for (let c = 0; c < 4; c++) masks[i * 4 + c] = f(data.masks, c, 4) / 255;
+      light[i * 4] = f(data.ao) / 255;
+      light[i * 4 + 1] = f(data.sunMorning) / 255;
+      light[i * 4 + 2] = f(data.sunGolden) / 255;
+      light[i * 4 + 3] = f(data.rim) / 255;
+    }
+    if ((iz & 7) === 7) yield;
+  }
+  // Ground past the pack's edge (Port Meridian's mountain runs on past its terrain's box) gets the
+  // same bake as `sampleIslandGrid`, so there's no seam where the two meet.
+  for (let k = 0; k < outside.length; k++) {
+    const i = outside[k]!;
+    const ix = i % nx;
+    const iz = (i - ix) / nx;
+    const x = src.minX + ix * cell;
+    const z = src.minZ + iz * cell;
+    const h = heights[i]!;
+    normalFromGrid(heights, nx, nz, src.minX, src.minZ, cell, ix, iz, normals, i * 3);
+    if (h < -1.5) {
+      masks[i * 4] = 1;
+      light.fill(1, i * 4, i * 4 + 3);
+      continue;
+    }
+    const m = src.masks(x, z);
+    masks[i * 4] = m.sand;
+    masks[i * 4 + 1] = m.grass;
+    masks[i * 4 + 2] = m.rock;
+    masks[i * 4 + 3] = m.cliff;
+    light[i * 4] = ambientOpenSky(heights, nx, nz, src.minX, src.minZ, cell, x, z, h);
+    light[i * 4 + 1] = sunVisibility(heights, nx, nz, src.minX, src.minZ, cell, x, z, h, SUNS[0]);
+    light[i * 4 + 2] = sunVisibility(heights, nx, nz, src.minX, src.minZ, cell, x, z, h, SUNS[1]);
+    light[i * 4 + 3] = rimFlag(heights, normals, nx, nz, src.minX, src.minZ, cell, ix, iz);
+    if ((k & 255) === 255) yield;
+  }
+  return { src, nx, nz, cell, heights, normals, masks, light };
 }
 
 /**
@@ -80,8 +193,8 @@ export function runSliced<T>(job: Generator<void, T, void>, budget: { ms: number
 }
 
 export function islandShoreline(grid: IslandGrid): ShorelineChain[] {
-  const { src, nx, nz, heights } = grid;
-  return extractShoreline(heights, nx, nz, src.minX, src.minZ, src.cell);
+  const { src, nx, nz, heights, cell } = grid;
+  return extractShoreline(heights, nx, nz, src.minX, src.minZ, cell);
 }
 
 /** Below this the miniature tucks under the paper (the chart's own water shows there). */
@@ -89,25 +202,31 @@ const SEA_FLOOR = -1.2;
 
 /**
  * The miniature's mesh in paper-local metres: its land and near shallows (quads wholly under the
- * sea are dropped), with each vertex's distance from the island's middle (0-1) for the pop-up.
+ * sea are dropped). It carries the ground's true world position and normal and its baked masks and
+ * light for the terrain material, and each vertex's distance from the island's middle (0-1) for
+ * the pop-up.
  */
 export function islandGeometry(grid: IslandGrid): BufferGeometry {
-  const { src, nx, nz, heights, colors } = grid;
+  const { src, nx, nz, heights, normals, masks, light, cell } = grid;
   const pos = new Float32Array(nx * nz * 3);
+  const world = new Float32Array(nx * nz * 3);
   const spread = new Float32Array(nx * nz);
   const p = { x: 0, y: 0, z: 0 };
   const half = Math.hypot(src.maxX - src.minX, src.maxZ - src.minZ) / 2;
   for (let iz = 0; iz < nz; iz++)
     for (let ix = 0; ix < nx; ix++) {
       const i = iz * nx + ix;
-      const x = src.minX + ix * src.cell;
-      const z = src.minZ + iz * src.cell;
+      const x = src.minX + ix * cell;
+      const z = src.minZ + iz * cell;
       const h = heights[i]!;
       worldToPaper(src, x, Math.max(0, h), z, p);
       pos[i * 3] = p.x;
       // Under the sea, sink just below the paper so the coast meets the chart's own water.
       pos[i * 3 + 1] = h > 0 ? p.y + 0.0004 : -0.0012 * Math.min(1, -h / 2);
       pos[i * 3 + 2] = p.z;
+      world[i * 3] = x;
+      world[i * 3 + 1] = h;
+      world[i * 3 + 2] = z;
       spread[i] = Math.min(1, Math.hypot(x - src.cx, z - src.cz) / half);
     }
   const index: number[] = [];
@@ -122,10 +241,55 @@ export function islandGeometry(grid: IslandGrid): BufferGeometry {
     }
   const g = new BufferGeometry();
   g.setAttribute('position', new BufferAttribute(pos, 3));
-  g.setAttribute('color', new BufferAttribute(colors.slice(), 3));
+  g.setAttribute('worldPos', new BufferAttribute(world, 3));
+  g.setAttribute('worldNormal', new BufferAttribute(normals.slice(), 3));
+  g.setAttribute('terrainMask', new BufferAttribute(masks.slice(), 4));
+  g.setAttribute('terrainLight', new BufferAttribute(light.slice(), 4));
   g.setAttribute('spread', new BufferAttribute(spread, 1));
   g.setAttribute('hm', new BufferAttribute(heights.slice(), 1));
   g.setIndex(index);
   g.computeVertexNormals();
   return g;
+}
+
+/**
+ * The grid as a height field (bilinear), so the island's own placement code (the vegetation scatter,
+ * the headland cliff) can run on it for the chart.
+ */
+export function gridHeightField(grid: IslandGrid): HeightField {
+  const { src, nx, nz, cell, heights, normals, masks } = grid;
+  const at = (x: number, z: number): [number, number, number, number, number, number, number] => {
+    const gx = Math.min(nx - 1.0001, Math.max(0, (x - src.minX) / cell));
+    const gz = Math.min(nz - 1.0001, Math.max(0, (z - src.minZ) / cell));
+    const ix = Math.floor(gx);
+    const iz = Math.floor(gz);
+    const tx = gx - ix;
+    const tz = gz - iz;
+    const i00 = iz * nx + ix;
+    return [i00, i00 + 1, i00 + nx, i00 + nx + 1, (1 - tx) * (1 - tz), tx * (1 - tz), (1 - tx) * tz];
+  };
+  const lerp = (v: Float32Array, n: number, c: number, x: number, z: number): number => {
+    const [a, b, d, e, w00, w10, w01] = at(x, z);
+    const w11 = 1 - w00 - w10 - w01;
+    return v[a * n + c]! * w00 + v[b * n + c]! * w10 + v[d * n + c]! * w01 + v[e * n + c]! * w11;
+  };
+  return {
+    heightAt: (x, z) => lerp(heights, 1, 0, x, z),
+    normalAt(x, z, out) {
+      const a = lerp(normals, 3, 0, x, z);
+      const b = lerp(normals, 3, 1, x, z);
+      const c = lerp(normals, 3, 2, x, z);
+      const len = Math.hypot(a, b, c) || 1;
+      out[0] = a / len;
+      out[1] = b / len;
+      out[2] = c / len;
+      return out;
+    },
+    masksAt: (x, z) => ({
+      sand: lerp(masks, 4, 0, x, z),
+      grass: lerp(masks, 4, 1, x, z),
+      rock: lerp(masks, 4, 2, x, z),
+      cliff: lerp(masks, 4, 3, x, z),
+    }),
+  };
 }

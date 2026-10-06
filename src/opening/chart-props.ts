@@ -1,31 +1,57 @@
 import {
   AdditiveBlending,
   BufferAttribute,
+  BoxGeometry,
+  Color,
   ConeGeometry,
   CylinderGeometry,
+  DoubleSide,
   Group,
-  Matrix4,
+  IcosahedronGeometry,
   Mesh,
   MeshBasicNodeMaterial,
   MeshStandardNodeMaterial,
-  Quaternion,
   SphereGeometry,
-  Vector3,
   BufferGeometry,
 } from 'three/webgpu';
-import { attribute, clamp, color, float, positionGeometry, pow, smoothstep, uniform, uv } from 'three/tsl';
+import {
+  attribute,
+  clamp,
+  color,
+  float,
+  positionGeometry,
+  pow,
+  smoothstep,
+  uniform,
+  uv,
+  vec3,
+} from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import type { Tier } from '../world/contracts';
 import { MERIDIAN } from '../world/islands/meridian';
+import { meridianPlants } from '../world/islands/meridian-plants';
 import { COVE } from '../world/layout';
+import { HARBOUR_FRONT_ROW, TERRACE_ROWS, terraceRun } from '../world/meridian-town/terraces';
+import { buildHeadlandCliffGeometry, HEADLAND_CLIFF_DETAIL } from '../world/terrain/headland-cliff';
+import { headlandCliffPlantSpots } from '../world/terrain/headland-cliff-shape';
+import { buildSeaStackGeometry, createSeaStackMaterial } from '../world/terrain/sea-stack';
+import { seaStackPlantSpots } from '../world/terrain/sea-stack-shape';
+import { LIGHTHOUSE } from '../world/village/lighthouse-stair';
+import { BUILDINGS, type BuildingSpec } from '../world/village/buildings';
+import { VILLAGE_PALMS, villagePlantInstances } from '../world/village/plantings';
+import { scatterVegetationAsync } from '../world/vegetation/scatter';
+import type { PlantSpecies } from '../world/vegetation/types';
 import { ARCHIPELAGO } from '../ui/chart/archipelago';
-import { CHART_D, CHART_W, sheetUV, worldToPaper, type ChartIslandSource } from './chart-map';
-import type { IslandGrid } from './island-grid';
+import { CHART_D, CHART_LIFT, CHART_W, sheetUV, worldToPaper, type ChartIslandId } from './chart-map';
+import { gridHeightField, type IslandGrid } from './island-grid';
 
 /**
- * The pop-up book's paper-craft on each real island (docs/specs/OPENING-living-chart.md): palms where
- * the island's own grass is, the village and town where they really stand, and the lighthouses with
- * their lamps lit. They stand up after the island itself, each from its own base, overshooting a
- * touch like a card unfolding. Sizes are exaggerated (true scale would be specks).
+ * Each real island's buildings, trees and rocks on its chart miniature
+ * (docs/specs/OPENING-living-chart.md): built where they really stand, at their true footprints, and
+ * raised with the chart's height lift so they keep their proportions against the hills. Houses take
+ * the village's and the town's own specs and colours, the trees come from the game's own vegetation
+ * scatter, and the headland cliff and sea stack are the game's own rock meshes. They stand up after
+ * the island, each from its own base, overshooting a touch like a card unfolding.
  */
 export interface IslandProps {
   group: Group;
@@ -39,214 +65,556 @@ export interface IslandProps {
   dispose(): void;
 }
 
-/** Props stand this much larger than true scale. */
-const EX = 2.6;
+export interface IslandPropsOptions {
+  grids: readonly IslandGrid[];
+  /** Called between pieces of the build; resolves when there's frame time for more (sliced building). */
+  breathe?: () => Promise<void>;
+  hasFog: boolean;
+  tier: Tier;
+  /** Each island's rise (0 → 1+): its rocks stand up with it. */
+  islandRise: ReadonlyMap<ChartIslandId, { value: number }>;
+}
 
-type RGB = readonly [number, number, number];
-const TRUNK: RGB = [0.45, 0.32, 0.2];
-const FROND: RGB = [0.24, 0.5, 0.2];
-const FROND_LIGHT: RGB = [0.36, 0.62, 0.26];
-const WALL: RGB = [0.93, 0.88, 0.76];
-const ROOF: RGB = [0.72, 0.28, 0.18];
-const TERRACOTTA: RGB = [0.8, 0.42, 0.26];
-const STONE: RGB = [0.78, 0.72, 0.6];
-const RED: RGB = [0.78, 0.18, 0.14];
+// three's fluent TSL typings don't cover a uniform passed in as plain `{ value }`.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyNode = any;
 
+const SRGB = new Color();
+/** A colour from an sRGB hex, jittered in brightness by `k` (1 = as is). */
+function rgb(hex: number, k = 1): [number, number, number] {
+  SRGB.setHex(hex);
+  return [SRGB.r * k, SRGB.g * k, SRGB.b * k];
+}
+
+const DECK = 0x8f6d48;
+const STONE_FOOT = 0x8b8270;
+const TRUNK = 0x7d6a52;
+const FROND_DARK = 0x3f6a26;
+const FROND_LIGHT = 0x6b9638;
+const LEAF_DARK = 0x2f5a25;
+const LEAF_LIGHT = 0x4f8133;
+const LIMESTONE = 0xe4c991;
+const LIGHTHOUSE_RED = 0xb3362b;
+const LIGHTHOUSE_WHITE = 0xf1ede2;
+
+/**
+ * Collects props built in world metres round an anchor on the island, maps every vertex onto the
+ * paper (with the chart's height lift), and merges them into one mesh.
+ */
 class PropParts {
   readonly list: BufferGeometry[] = [];
-  private readonly m = new Matrix4();
-  private readonly q = new Quaternion();
-  private readonly v = new Vector3();
-  private readonly one = new Vector3(1, 1, 1);
+  /**
+   * Widens what's added by this much round its foot. Plants take the chart's height lift across too,
+   * so a palm keeps a palm's shape; buildings keep their true footprints (they'd crowd each other).
+   */
+  wide = 1;
+  private readonly p = { x: 0, y: 0, z: 0 };
 
-  /** Adds `g` (built in metres at the origin) at a base point in paper space, scaled for the chart. */
-  add(g: BufferGeometry, c: RGB, base: Vector3, scale: number, delay: number, rotY = 0, tilt = 0): void {
+  constructor(private readonly grid: IslandGrid) {}
+
+  /**
+   * Adds `g` (metres, its foot at the origin) standing at world (x, y, z), turned `rotY` and sheared
+   * by `lean` (metres of lean per metre up), coloured `c`.
+   */
+  add(
+    g: BufferGeometry,
+    c: readonly [number, number, number],
+    x: number,
+    y: number,
+    z: number,
+    delay: number,
+    rotY = 0,
+    leanX = 0,
+    leanZ = 0,
+  ): void {
     const geo = g.index ? g.toNonIndexed() : g;
     if (geo !== g) g.dispose();
-    geo.deleteAttribute('uv');
-    const n = geo.getAttribute('position').count;
+    for (const name of Object.keys(geo.attributes)) if (name !== 'position') geo.deleteAttribute(name);
+    const pos = geo.getAttribute('position') as BufferAttribute;
+    const n = pos.count;
     const colors = new Float32Array(n * 3);
     const bases = new Float32Array(n * 3);
     const delays = new Float32Array(n);
+    const src = this.grid.src;
+    worldToPaper(src, x, y, z, this.p);
+    const bx = this.p.x;
+    const by = this.p.y;
+    const bz = this.p.z;
+    const cr = Math.cos(rotY);
+    const sr = Math.sin(rotY);
     for (let i = 0; i < n; i++) {
+      const lx = pos.getX(i) * this.wide;
+      const ly = pos.getY(i);
+      const lz = pos.getZ(i) * this.wide;
+      const wx = x + lx * cr + lz * sr + leanX * ly;
+      const wz = z - lx * sr + lz * cr + leanZ * ly;
+      worldToPaper(src, wx, y + ly, wz, this.p);
+      pos.setXYZ(i, this.p.x, this.p.y, this.p.z);
       colors.set(c, i * 3);
-      bases.set([base.x, base.y, base.z], i * 3);
+      bases.set([bx, by, bz], i * 3);
       delays[i] = delay;
     }
+    geo.computeVertexNormals();
     geo.setAttribute('color', new BufferAttribute(colors, 3));
     geo.setAttribute('base', new BufferAttribute(bases, 3));
     geo.setAttribute('delay', new BufferAttribute(delays, 1));
-    this.q.setFromAxisAngle(this.v.set(0, 1, 0), rotY);
-    if (tilt) this.q.multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), tilt));
-    this.m.compose(base, this.q, this.one.setScalar(scale));
-    geo.applyMatrix4(this.m);
     this.list.push(geo);
   }
 
   merge(): BufferGeometry | null {
     if (!this.list.length) return null;
-    const g = mergeGeometries(this.list)!;
+    const g = mergeGeometries(this.list, false);
     for (const p of this.list) p.dispose();
     this.list.length = 0;
     return g;
   }
 }
 
-function heightAt(grid: IslandGrid, x: number, z: number): number {
-  const { src, nx, nz, heights } = grid;
-  const fx = Math.min(nx - 1.001, Math.max(0, (x - src.minX) / src.cell));
-  const fz = Math.min(nz - 1.001, Math.max(0, (z - src.minZ) / src.cell));
-  const ix = Math.floor(fx);
-  const iz = Math.floor(fz);
-  const tx = fx - ix;
-  const tz = fz - iz;
-  const h = (i: number, j: number) => heights[j * nx + i]!;
-  return (
-    (h(ix, iz) * (1 - tx) + h(ix + 1, iz) * tx) * (1 - tz) +
-    (h(ix, iz + 1) * (1 - tx) + h(ix + 1, iz + 1) * tx) * tz
-  );
+function mulberry(seed: number): () => number {
+  let s = seed >>> 0;
+  return () => {
+    s = (s + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
-function palm(parts: PropParts, base: Vector3, s: number, delay: number, r: () => number): void {
-  const lean = (r() - 0.5) * 0.5;
+/** Build detail for the trees (set per build). */
+const detail = { light: false };
+
+/** A drooping blade (a palm frond, a banana leaf): a strip out along +x from the origin. */
+function blade(length: number, width: number, droop: number, segs = 4): BufferGeometry {
+  const pos: number[] = [];
+  const idx: number[] = [];
+  for (let i = 0; i <= segs; i++) {
+    const u = i / segs;
+    const w = width * Math.sin(Math.PI * Math.min(0.92, 0.12 + u)) * 0.5;
+    const x = length * u;
+    const y = length * 0.32 * Math.sin(u * Math.PI * 0.6) - droop * u * u;
+    pos.push(x, y, -w, x, y + w * 0.35, 0, x, y, w);
+    if (i > 0) {
+      const a = (i - 1) * 3;
+      const b = i * 3;
+      idx.push(a, b, a + 1, a + 1, b, b + 1, a + 1, b + 1, a + 2, a + 2, b + 1, b + 2);
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new BufferAttribute(new Float32Array(pos), 3));
+  g.setIndex(idx);
+  return g;
+}
+
+/** A palm: a slender curved trunk and a crown of drooping fronds (metres, foot at the origin). */
+function palm(
+  parts: PropParts,
+  x: number,
+  y: number,
+  z: number,
+  h: number,
+  delay: number,
+  r: () => number,
+): void {
   const rot = r() * Math.PI * 2;
-  const H = 8 + r() * 3;
-  parts.add(new CylinderGeometry(0.22, 0.38, H, 5), TRUNK, base, s, delay, rot, lean * 0.4);
-  // The crown: six fronds as folded paper blades drooping from the top.
-  for (let i = 0; i < 6; i++) {
-    const a = (i / 6) * Math.PI * 2 + r() * 0.4;
-    const blade = new ConeGeometry(0.9, 5.2, 3, 1);
-    blade.translate(0, 2.6, 0);
-    blade.rotateZ(-1.15 - r() * 0.35);
-    blade.rotateY(a);
-    blade.translate(0, H * 0.96, 0);
-    parts.add(blade, i % 2 ? FROND : FROND_LIGHT, base, s, delay + 0.08, rot, lean * 0.4);
+  const bend = (r() - 0.35) * 0.18;
+  const trunk = new CylinderGeometry(0.2, 0.34, h, 5, detail.light ? 1 : 3);
+  trunk.translate(0, h / 2, 0);
+  // Curve it: the top leans further than the foot.
+  const tp = trunk.getAttribute('position') as BufferAttribute;
+  for (let i = 0; i < tp.count; i++) {
+    const u = tp.getY(i) / h;
+    tp.setX(i, tp.getX(i) + bend * h * u * u);
+  }
+  parts.add(trunk, rgb(TRUNK, 0.9 + r() * 0.2), x, y, z, delay, rot);
+  const fronds = detail.light ? 6 : 9;
+  for (let i = 0; i < fronds; i++) {
+    const f = blade(h * 0.42, h * 0.11, h * 0.2 + r() * h * 0.08, detail.light ? 2 : 4);
+    f.rotateZ(0.25 - r() * 0.25);
+    f.rotateY((i / fronds) * Math.PI * 2 + r() * 0.4);
+    f.translate(bend * h, h * 0.98, 0);
+    parts.add(f, rgb(i % 2 ? FROND_DARK : FROND_LIGHT, 0.85 + r() * 0.3), x, y, z, delay + 0.06, rot);
   }
 }
 
-function house(
+/** A broadleaf tree: a short trunk under a few rounded masses of leaves. */
+function broadleaf(
   parts: PropParts,
-  base: Vector3,
+  x: number,
+  y: number,
+  z: number,
   s: number,
   delay: number,
-  rot: number,
-  roof: RGB,
-  w = 8,
-  d = 6,
-  h = 5,
+  r: () => number,
 ): void {
-  const body = new CylinderGeometry(1, 1, 1, 4, 1);
-  body.rotateY(Math.PI / 4);
-  body.scale(w / Math.SQRT2, h, d / Math.SQRT2);
-  body.translate(0, h / 2, 0);
-  parts.add(body, WALL, base, s, delay, rot);
-  const r = new CylinderGeometry(0.0001, 1, 1, 4, 1);
-  r.rotateY(Math.PI / 4);
-  r.scale((w + 1) / Math.SQRT2, 3, (d + 1) / Math.SQRT2);
-  r.translate(0, h + 1.5, 0);
-  parts.add(r, roof, base, s, delay + 0.05, rot);
-}
-
-function lighthouse(parts: PropParts, base: Vector3, s: number, delay: number): number {
-  const H = 15;
-  for (let i = 0; i < 5; i++) {
-    const y0 = (i / 5) * H;
-    const seg = new CylinderGeometry(2.6 - ((i + 1) / 5) * 0.9, 2.6 - (i / 5) * 0.9, H / 5, 10);
-    seg.translate(0, y0 + H / 10, 0);
-    parts.add(seg, i % 2 ? RED : WALL, base, s, delay);
+  const h = 4.2 * s;
+  const trunk = new CylinderGeometry(0.28 * s, 0.42 * s, h, 5);
+  trunk.translate(0, h / 2, 0);
+  parts.add(trunk, rgb(0x5a4632), x, y, z, delay);
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI * 2 + r();
+    const rr = (2.4 + r() * 1.1) * s;
+    const ball = new IcosahedronGeometry(rr, detail.light ? 0 : 1);
+    ball.scale(1, 0.78, 1);
+    ball.translate(Math.cos(a) * 1.3 * s, h + rr * 0.55 + (i === 0 ? 1.2 * s : 0), Math.sin(a) * 1.3 * s);
+    parts.add(ball, rgb(i % 2 ? LEAF_DARK : LEAF_LIGHT, 0.85 + r() * 0.3), x, y, z, delay + 0.05);
   }
-  const gallery = new CylinderGeometry(2.3, 2.3, 0.6, 10);
-  gallery.translate(0, H + 0.3, 0);
-  parts.add(gallery, [0.15, 0.13, 0.12], base, s, delay + 0.05);
-  const cap = new ConeGeometry(1.9, 2.2, 10);
-  cap.translate(0, H + 3.6, 0);
-  parts.add(cap, RED, base, s, delay + 0.05);
-  return (H + 1.6) * s;
 }
 
-export function createIslandProps(grids: readonly IslandGrid[], hasFog: boolean): IslandProps {
+/** A banana plant: a few broad leaves. */
+function banana(
+  parts: PropParts,
+  x: number,
+  y: number,
+  z: number,
+  s: number,
+  delay: number,
+  r: () => number,
+): void {
+  for (let i = 0; i < 5; i++) {
+    const f = blade(2.4 * s, 0.9 * s, 0.9 * s, 3);
+    f.rotateZ(0.5);
+    f.rotateY((i / 5) * Math.PI * 2 + r());
+    f.translate(0, 1.4 * s, 0);
+    parts.add(f, rgb(0x6aa23a, 0.85 + r() * 0.3), x, y, z, delay);
+  }
+}
+
+/** Any plant the island's scatter made, by species (the small ones are below a pixel on the chart). */
+function plant(
+  parts: PropParts,
+  species: PlantSpecies | string,
+  x: number,
+  y: number,
+  z: number,
+  scale: number,
+  delay: number,
+  r: () => number,
+): void {
+  parts.wide = CHART_LIFT;
+  plantShape(parts, species, x, y, z, scale, delay, r);
+  parts.wide = 1;
+}
+
+function plantShape(
+  parts: PropParts,
+  species: PlantSpecies | string,
+  x: number,
+  y: number,
+  z: number,
+  scale: number,
+  delay: number,
+  r: () => number,
+): void {
+  switch (species) {
+    case 'palmTall':
+      return palm(parts, x, y, z, 10 * scale, delay, r);
+    case 'palmCluster':
+      for (let i = 0; i < 3; i++) {
+        const a = (i / 3) * Math.PI * 2 + r();
+        const d = 1.4 * CHART_LIFT;
+        palm(parts, x + Math.cos(a) * d, y, z + Math.sin(a) * d, (6.5 + r() * 2.5) * scale, delay, r);
+      }
+      return;
+    case 'palmYoung':
+      return palm(parts, x, y, z, 3.6 * scale, delay, r);
+    case 'broadleafTree':
+      return broadleaf(parts, x, y, z, scale, delay, r);
+    case 'banana':
+      return banana(parts, x, y, z, scale, delay, r);
+    case 'shrub':
+    case 'brush':
+    case 'flowerBush': {
+      // A rounded clump of brush (red-leaved shrubs, grey-green maquis, or blossom).
+      const rr = (species === 'flowerBush' ? 0.8 : species === 'brush' ? 0.95 : 1.1) * scale;
+      const g = new IcosahedronGeometry(rr, 0);
+      g.scale(1.25, 0.8, 1.25);
+      g.translate(0, rr * 0.6, 0);
+      const hue = species === 'flowerBush' ? 0xb04a86 : species === 'shrub' ? 0x8a2a2e : 0x5a6e3a;
+      parts.add(g, rgb(hue, 0.85 + r() * 0.3), x, y, z, delay);
+      return;
+    }
+    case 'cactus':
+      // A prickly pear: a few upright pads.
+      for (let i = 0; i < 3; i++) {
+        const pad = new IcosahedronGeometry(0.55 * scale, 0);
+        pad.scale(0.8, 1.1, 0.3);
+        pad.rotateY(i * 1.9 + r());
+        pad.translate((i - 1) * 0.4 * scale, (0.6 + (i === 1 ? 0.7 : 0)) * scale, 0);
+        parts.add(pad, rgb(0x6f9a52, 0.85 + r() * 0.3), x, y, z, delay);
+      }
+      return;
+    default:
+      return;
+  }
+}
+
+/** A gable, hip or thatched roof over a w × d footprint, its eaves at `eave`. */
+function roof(kind: string, w: number, d: number, eave: number): BufferGeometry {
+  const o = 0.5;
+  if (kind === 'gable') {
+    // A prism: the ridge runs along the width.
+    const h = d * 0.42;
+    const hw = w / 2 + o;
+    const hd = d / 2 + o;
+    const pos = [
+      -hw,
+      0,
+      -hd,
+      hw,
+      0,
+      -hd,
+      hw,
+      h,
+      0,
+      -hw,
+      0,
+      -hd,
+      hw,
+      h,
+      0,
+      -hw,
+      h,
+      0,
+      -hw,
+      0,
+      hd,
+      -hw,
+      h,
+      0,
+      hw,
+      h,
+      0,
+      -hw,
+      0,
+      hd,
+      hw,
+      h,
+      0,
+      hw,
+      0,
+      hd,
+      -hw,
+      0,
+      -hd,
+      -hw,
+      h,
+      0,
+      -hw,
+      0,
+      hd,
+      hw,
+      0,
+      -hd,
+      hw,
+      0,
+      hd,
+      hw,
+      h,
+      0,
+    ];
+    const g = new BufferGeometry();
+    g.setAttribute('position', new BufferAttribute(new Float32Array(pos), 3));
+    g.translate(0, eave, 0);
+    return g;
+  }
+  const g = new CylinderGeometry(0.0001, 1, 1, 4, 1);
+  g.rotateY(Math.PI / 4);
+  g.scale((w + 2 * o) / Math.SQRT2, kind === 'thatch' ? d * 0.6 : d * 0.38, (d + 2 * o) / Math.SQRT2);
+  g.translate(0, eave + (kind === 'thatch' ? d * 0.3 : d * 0.19), 0);
+  return g;
+}
+
+/** A house: walls on a stone foot that reaches down the slope, under its roof. */
+function house(
+  parts: PropParts,
+  x: number,
+  y: number,
+  z: number,
+  rot: number,
+  w: number,
+  d: number,
+  wallH: number,
+  wall: number,
+  roofColour: number,
+  roofKind: string,
+  delay: number,
+): void {
+  const foot = new BoxGeometry(w, 2, d);
+  foot.translate(0, -1, 0);
+  parts.add(foot, rgb(STONE_FOOT), x, y, z, delay, rot);
+  const body = new BoxGeometry(w, wallH, d);
+  body.translate(0, wallH / 2, 0);
+  parts.add(body, rgb(wall), x, y, z, delay, rot);
+  if (roofKind === 'flat') {
+    const lid = new BoxGeometry(w + 0.3, 0.4, d + 0.3);
+    lid.translate(0, wallH + 0.2, 0);
+    parts.add(lid, rgb(roofColour), x, y, z, delay + 0.04, rot);
+  } else parts.add(roof(roofKind, w, d, wallH), rgb(roofColour), x, y, z, delay + 0.04, rot);
+}
+
+/** The point lighthouse as it stands: a stone plinth, a tapered banded tower, gallery, watch room, lantern and dome. */
+function pointLighthouse(parts: PropParts, x: number, y: number, z: number, delay: number): number {
+  const T = LIGHTHOUSE;
+  const plinth = new CylinderGeometry(T.plinthR, T.plinthR + 0.2, T.plinth + 1, 12);
+  plinth.translate(0, (T.plinth - 1) / 2, 0);
+  parts.add(plinth, rgb(STONE_FOOT), x, y, z, delay);
+  const bands = [3.0, 2.4, 2.4, 2.4, 2.4, 2.4];
+  let at = T.plinth;
+  bands.forEach((h, i) => {
+    const r0 = T.rBottom + ((T.rTop - T.rBottom) * (at - T.plinth)) / T.height;
+    const r1 = T.rBottom + ((T.rTop - T.rBottom) * (at + h - T.plinth)) / T.height;
+    const seg = new CylinderGeometry(r1, r0, h, 12);
+    seg.translate(0, at + h / 2, 0);
+    parts.add(seg, rgb(i % 2 ? LIGHTHOUSE_RED : LIGHTHOUSE_WHITE), x, y, z, delay);
+    at += h;
+  });
+  const deck = new CylinderGeometry(T.galleryR, T.galleryR - 0.3, 0.4, 12);
+  deck.translate(0, at + 0.2, 0);
+  parts.add(deck, rgb(0x2b2622), x, y, z, delay + 0.03);
+  const watch = new CylinderGeometry(T.watchR, T.watchR, T.watchH, 12);
+  watch.translate(0, at + 0.4 + T.watchH / 2, 0);
+  parts.add(watch, rgb(LIGHTHOUSE_WHITE), x, y, z, delay + 0.03);
+  const lanternY = at + 0.4 + T.watchH;
+  const lantern = new CylinderGeometry(1.25, 1.25, 2.2, 10);
+  lantern.translate(0, lanternY + 1.1, 0);
+  parts.add(lantern, rgb(0xe7c873), x, y, z, delay + 0.05);
+  const dome = new ConeGeometry(1.55, 1.6, 12);
+  dome.translate(0, lanternY + 2.2 + 0.8, 0);
+  parts.add(dome, rgb(LIGHTHOUSE_RED), x, y, z, delay + 0.05);
+  return lanternY + 1.1;
+}
+
+/** A flat timber deck (the quay, the pier) from `y0` (its foot) up to its top `y1`. */
+function deck(
+  parts: PropParts,
+  x0: number,
+  x1: number,
+  z0: number,
+  z1: number,
+  y0: number,
+  y1: number,
+  delay: number,
+): void {
+  const g = new BoxGeometry(x1 - x0, y1 - y0, z1 - z0);
+  g.translate(0, (y1 - y0) / 2, 0);
+  parts.add(g, rgb(DECK), (x0 + x1) / 2, y0, (z0 + z1) / 2, delay);
+}
+
+/** The cliff and stack meshes' detail on the chart (they're a few dozen pixels across there). */
+const ROCK_TIER: Record<Tier, Tier> = { lite: 'lite', low: 'lite', medium: 'low', high: 'low', ultra: 'low' };
+
+export async function createIslandProps(o: IslandPropsOptions): Promise<IslandProps> {
+  const { grids, hasFog, tier } = o;
+  const breathe = o.breathe ?? (() => Promise.resolve());
+  // Lite and Low get lighter trees (fewer fronds); the chart is a few hundred pixels across there.
+  detail.light = tier === 'lite' || tier === 'low';
   const group = new Group();
   group.name = 'chart pop-ups';
   const rise = uniform(0);
   const lamp = uniform(0);
   const fog = uniform(0);
   const time = uniform(0);
-  const parts = new PropParts();
-  const p = { x: 0, y: 0, z: 0 };
-  const at = (src: ChartIslandSource, grid: IslandGrid, x: number, z: number, out: Vector3) => {
-    worldToPaper(src, x, Math.max(0, heightAt(grid, x, z)), z, p);
-    return out.set(p.x, p.y, p.z);
-  };
-  const lamps: Vector3[] = [];
-  let seed = 0x7a1a;
-  const r = () => {
-    seed = (Math.imul(seed ^ (seed >>> 13), 0x5bd1e995) + 0x6d2b79f5) >>> 0;
-    return seed / 4294967296;
-  };
+  const list: BufferGeometry[] = [];
+  const lamps: { x: number; y: number; z: number }[] = [];
+  const disposables: { dispose(): void }[] = [];
 
   for (const grid of grids) {
     const src = grid.src;
-    const s = src.scale * EX;
-    const b = new Vector3();
+    const parts = new PropParts(grid);
+    const hf = gridHeightField(grid);
+    const r = mulberry(src.id === 'anchorage' ? 0x7a1a : 0x3e21);
     const span = Math.hypot(src.maxX - src.minX, src.maxZ - src.minZ) / 2;
-    // Port Meridian rises after Anchorage, so its paper-craft waits a little longer.
+    // Port Meridian rises after Anchorage, so its props wait a little longer.
     const late = src.id === 'anchorage' ? 0 : 0.35;
     const delayAt = (x: number, z: number) =>
       late + 0.6 * Math.min(1, Math.hypot(x - src.cx, z - src.cz) / span);
-    // Palms on the island's own grass, mostly on the low ground near the shore.
-    const want = src.id === 'anchorage' ? 48 : 30;
-    let placed = 0;
-    for (let tries = 0; tries < 4000 && placed < want; tries++) {
-      const x = src.minX + r() * (src.maxX - src.minX);
-      const z = src.minZ + r() * (src.maxZ - src.minZ);
-      const h = heightAt(grid, x, z);
-      if (h < 1.6 || h > (src.id === 'anchorage' ? 22 : 30)) continue;
-      const m = src.masks(x, z);
-      if (m.grass < 0.55 || m.cliff > 0.2) continue;
-      if (src.id === 'anchorage' && Math.hypot(x - COVE.village.center.x, z - COVE.village.center.z) < 34)
-        continue;
-      palm(parts, at(src, grid, x, z, b), s * (0.85 + r() * 0.3), delayAt(x, z), r);
-      placed++;
-    }
     if (src.id === 'anchorage') {
-      // The village round its plaza, and the point lighthouse on the quay.
-      const v = COVE.village.center;
-      for (let i = 0; i < 11; i++) {
-        // A loose cluster round the plaza (the middle stays open), streets roughly east-west.
-        const a = i * 2.39996;
-        const d = 13 + Math.sqrt(i / 11) * 18;
-        const x = v.x + Math.cos(a) * d;
-        const z = v.z + Math.sin(a) * d * 0.8;
-        house(parts, at(src, grid, x, z, b), s * (0.85 + r() * 0.3), 0.2 + i * 0.02, (r() - 0.5) * 0.5, ROOF);
-      }
-      const lx = COVE.quay.x1 - 2.7;
-      const lz = COVE.quay.z + 0.8;
-      const top = lighthouse(parts, at(src, grid, lx, lz, b), s * 1.2, 0.2);
-      lamps.push(b.clone().setY(b.y + top * 1.2));
-    } else {
-      // Port Meridian: terraced houses up the hill, the citadel, and the mole's lighthouse.
-      for (const t of MERIDIAN.terraces) {
-        const n = Math.round(Math.hypot(t.bx - t.ax, t.bz - t.az) / 18);
-        for (let i = 0; i <= n; i++) {
-          const x = t.ax + ((t.bx - t.ax) * i) / n;
-          const z = t.az + ((t.bz - t.az) * i) / n;
-          house(parts, at(src, grid, x, z, b), s, late + 0.15 + i * 0.01, 0, TERRACOTTA, 9, 7, 6);
+      // The village, house by house, from its own specs.
+      for (const b of BUILDINGS) buildingOnChart(parts, hf.heightAt(b.x, b.z), b, delayAt(b.x, b.z));
+      await breathe();
+      const q = COVE.quay;
+      deck(parts, q.x0, q.x1, q.z - 0.5, q.z + 5, -0.6, q.height, delayAt(-110, q.z));
+      const pier = COVE.pier;
+      deck(parts, pier.x - pier.width / 2, pier.x + pier.width / 2, pier.z1, pier.z0, -0.6, pier.deck, 0.25);
+      // The point lighthouse, where it really stands.
+      const L = COVE.lighthouse;
+      const ly = hf.heightAt(L.x, L.z);
+      const top = pointLighthouse(parts, L.x, ly, L.z, delayAt(L.x, L.z));
+      lamps.push(paperPoint(grid, L.x, ly + top, L.z));
+      // The island's own trees: the game's vegetation scatter on this terrain, the village's palms,
+      // and the plants on the headland's clifftop and the sea stack.
+      const exclude = (x: number, z: number): boolean =>
+        Math.hypot(x - COVE.village.center.x, z - COVE.village.center.z) < COVE.village.radius + 6 ||
+        (x > q.x0 - 2 && x < q.x1 + 2 && z > q.z - 3 && z < q.z + 7) ||
+        (Math.abs(x - pier.x) < pier.width && z < pier.z0 && z > pier.z1 - 2) ||
+        Math.hypot(x - L.x, z - L.z) < L.radius + 2 ||
+        Math.hypot(x - COVE.mill.x, z - COVE.mill.z) < 10;
+      const scatter = await scatterVegetationAsync({ heightField: hf, tier, exclude }, breathe);
+      for (const [species, list] of Object.entries(scatter.plants))
+        for (const p of list) {
+          plant(parts, species, p.x, p.y, p.z, p.scale, delayAt(p.x, p.z), r);
+          await breathe();
         }
+      for (const p of villagePlantInstances(VILLAGE_PALMS, tier, hf.heightAt, hf.heightAt))
+        plant(parts, p.species, p.x, p.y, p.z, p.scale, delayAt(p.x, p.z), r);
+      for (const p of headlandCliffPlantSpots(hf, tier === 'lite' ? 0.5 : 1))
+        plant(parts, p.species, p.x, p.y, p.z, p.scale, delayAt(p.x, p.z), r);
+      for (const p of seaStackPlantSpots())
+        plant(parts, p.species, p.x, p.y, p.z, p.scale, delayAt(p.x, p.z), r);
+      await breathe();
+      const rocks = chartRocks(grid, hf, tier, o.islandRise.get('anchorage'));
+      await breathe();
+      if (rocks) {
+        group.add(rocks.mesh);
+        disposables.push(rocks);
       }
-      const c = MERIDIAN.pads.citadel;
-      house(parts, at(src, grid, c.x, c.z, b), s, late + 0.1, 0.3, STONE, 30, 22, 14);
+    } else {
+      // Port Meridian: the harbour front and the terraced streets, house by house as the town builds
+      // them, the citadel's curtain wall on the hilltop, and the lighthouse on the mole.
+      for (const row of [HARBOUR_FRONT_ROW, ...TERRACE_ROWS])
+        for (const back of row === HARBOUR_FRONT_ROW ? [false] : [false, true])
+          for (const h of terraceRun(row, back).houses) {
+            await breathe();
+            house(
+              parts,
+              h.x,
+              row.height,
+              h.z,
+              h.rotY,
+              h.w,
+              h.d,
+              h.storeys * 3,
+              h.tint,
+              h.roofTint,
+              h.roof,
+              late + 0.12 + delayAt(h.x, h.z) * 0.3,
+            );
+          }
+      citadel(parts, late + 0.2);
+      // The island's hills, planted as the game plants them (on the chart's own baked ground).
+      for (const p of meridianPlants(tier, hf)) {
+        plant(parts, p.species, p.x, p.y, p.z, p.scale, late + delayAt(p.x, p.z) * 0.7, r);
+        await breathe();
+      }
       const ml = MERIDIAN.mole.lighthouse;
-      lighthouse(parts, at(src, grid, ml.x, ml.z, b), s * 1.1, late + 0.2);
+      const my = hf.heightAt(ml.x, ml.z);
+      moleLighthouse(parts, ml.x, my, ml.z, late + 0.25);
     }
+    await breathe();
+    const g = parts.merge();
+    if (g) list.push(g);
+    await breathe();
   }
 
-  const geo = parts.merge()!;
+  const geo = mergeGeometries(list, false);
+  for (const g of list) g.dispose();
   const mat = new MeshStandardNodeMaterial({
     vertexColors: true,
-    roughness: 0.85,
+    roughness: 0.82,
     metalness: 0,
-    flatShading: true,
+    side: DoubleSide,
   });
+  mat.name = 'chart props';
   const base = attribute('base', 'vec3');
   const delay = attribute('delay', 'float');
   const x = clamp(rise.sub(delay.mul(0.6)).div(0.4), 0, 1);
@@ -255,7 +623,7 @@ export function createIslandProps(grids: readonly IslandGrid[], hasFog: boolean)
     .add(float(1.8).mul(x.sub(1).pow(2)));
   mat.positionNode = base.add(positionGeometry.sub(base).mul(pop.max(0.0001)));
   const mesh = new Mesh(geo, mat);
-  mesh.name = 'chart paper-craft';
+  mesh.name = 'chart props';
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   group.add(mesh);
@@ -289,8 +657,8 @@ export function createIslandProps(grids: readonly IslandGrid[], hasFog: boolean)
   beamMesh.renderOrder = 7;
   beam.add(beamMesh);
   if (lampAt) {
-    glow.position.copy(lampAt);
-    beam.position.copy(lampAt);
+    glow.position.set(lampAt.x, lampAt.y, lampAt.z);
+    beam.position.set(lampAt.x, lampAt.y, lampAt.z);
   }
   group.add(glow, beam);
 
@@ -320,6 +688,126 @@ export function createIslandProps(grids: readonly IslandGrid[], hasFog: boolean)
       cone.dispose();
       beamMat.dispose();
       clouds?.dispose();
+      for (const d of disposables) d.dispose();
+    },
+  };
+}
+
+function paperPoint(grid: IslandGrid, x: number, y: number, z: number): { x: number; y: number; z: number } {
+  const p = { x: 0, y: 0, z: 0 };
+  worldToPaper(grid.src, x, y, z, p);
+  return p;
+}
+
+/** A village building from its spec: its footprint, storeys, walls and roof as the village builds it. */
+function buildingOnChart(parts: PropParts, ground: number, b: BuildingSpec, delay: number): void {
+  const y = b.quay ? Math.max(ground, COVE.quay.height) : ground;
+  house(parts, b.x, y, b.z, b.rot, b.w, b.d, b.floors * 3.1, b.colour, b.roofColour, b.roof, delay);
+}
+
+/** The citadel on Port Meridian's hilltop: its elliptical curtain wall and four round towers. */
+function citadel(parts: PropParts, delay: number): void {
+  const c = MERIDIAN.pads.citadel;
+  const rx = 39;
+  const rz = 39 * 0.78;
+  const y = 40;
+  const n = 28;
+  for (let i = 0; i < n; i++) {
+    const a0 = (i / n) * Math.PI * 2;
+    const a1 = ((i + 1) / n) * Math.PI * 2;
+    const x0 = c.x + Math.cos(a0) * rx;
+    const z0 = c.z + Math.sin(a0) * rz;
+    const x1 = c.x + Math.cos(a1) * rx;
+    const z1 = c.z + Math.sin(a1) * rz;
+    const len = Math.hypot(x1 - x0, z1 - z0);
+    const wall = new BoxGeometry(len + 0.4, 7, 1.8);
+    wall.translate(0, 1.5, 0);
+    parts.add(
+      wall,
+      rgb(LIMESTONE, 0.92),
+      (x0 + x1) / 2,
+      y - 2,
+      (z0 + z1) / 2,
+      delay,
+      -Math.atan2(z1 - z0, x1 - x0),
+    );
+  }
+  // The paved court inside the walls.
+  const court = new CylinderGeometry(1, 1, 1, 28);
+  court.scale(rx * 0.97, 1, rz * 0.97);
+  court.translate(0, -0.45, 0);
+  parts.add(court, rgb(LIMESTONE, 0.95), c.x, y, c.z, delay);
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
+    const t = new CylinderGeometry(3.4, 3.8, 11, 10);
+    t.translate(0, 3.5, 0);
+    parts.add(t, rgb(LIMESTONE), c.x + Math.cos(a) * rx, y - 2, c.z + Math.sin(a) * rz, delay + 0.04);
+  }
+}
+
+/** The harbour light at the end of Port Meridian's mole. */
+function moleLighthouse(parts: PropParts, x: number, y: number, z: number, delay: number): void {
+  const tower = new CylinderGeometry(1.7, 2.3, 11, 10);
+  tower.translate(0, 5.5, 0);
+  parts.add(tower, rgb(LIMESTONE), x, y, z, delay);
+  const lantern = new CylinderGeometry(1.1, 1.1, 1.8, 8);
+  lantern.translate(0, 11.9, 0);
+  parts.add(lantern, rgb(0xe7c873), x, y, z, delay + 0.04);
+  const dome = new ConeGeometry(1.4, 1.4, 10);
+  dome.translate(0, 13.5, 0);
+  parts.add(dome, rgb(0xc8703a), x, y, z, delay + 0.04);
+}
+
+/**
+ * Anchorage's headland cliff and sea stack: the game's own meshes (coarse), mapped onto the paper,
+ * wearing the game's limestone material fed their true heights. They rise with the island.
+ */
+function chartRocks(
+  grid: IslandGrid,
+  hf: ReturnType<typeof gridHeightField>,
+  tier: Tier,
+  islandRise: { value: number } | undefined,
+): { mesh: Mesh; dispose(): void } | null {
+  const rockTier = ROCK_TIER[tier];
+  const parts: BufferGeometry[] = [];
+  const cliff = buildHeadlandCliffGeometry(hf, HEADLAND_CLIFF_DETAIL[rockTier]);
+  if (cliff) parts.push(cliff);
+  parts.push(buildSeaStackGeometry({ columns: 48, rows: 30, rings: 3, blocks: 0 }));
+  for (const g of parts)
+    for (const name of Object.keys(g.attributes))
+      if (!['position', 'uv', 'karst'].includes(name)) g.deleteAttribute(name);
+  const geo = mergeGeometries(parts, false);
+  for (const g of parts) g.dispose();
+  if (!geo) return null;
+  const pos = geo.getAttribute('position') as BufferAttribute;
+  const world = new Float32Array(pos.array as Float32Array);
+  const p = { x: 0, y: 0, z: 0 };
+  for (let i = 0; i < pos.count; i++) {
+    worldToPaper(grid.src, pos.getX(i), pos.getY(i), pos.getZ(i), p);
+    // Under the sea, tuck just below the paper, like the island's own shallows.
+    pos.setXYZ(i, p.x, pos.getY(i) > 0 ? p.y + 0.0004 : -0.0012 * Math.min(1, -pos.getY(i) / 2), p.z);
+  }
+  geo.setAttribute('worldPos', new BufferAttribute(world, 3));
+  geo.computeVertexNormals();
+  const worldPos = attribute('worldPos', 'vec3');
+  const mat = createSeaStackMaterial(rockTier, { worldY: worldPos.y, miniature: true });
+  if (islandRise) {
+    // The island's own pop-up curve, as for ground about this far out from its middle.
+    const x = clamp((islandRise as unknown as AnyNode).sub(0.21).div(0.65), 0, 1);
+    const back = float(1)
+      .add(float(2.6).mul(x.sub(1).pow(3)))
+      .add(float(1.6).mul(x.sub(1).pow(2)));
+    mat.positionNode = vec3(positionGeometry.x, positionGeometry.y.mul(back), positionGeometry.z);
+  }
+  const mesh = new Mesh(geo, mat);
+  mesh.name = 'chart rocks';
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return {
+    mesh,
+    dispose() {
+      geo.dispose();
+      mat.dispose();
     },
   };
 }

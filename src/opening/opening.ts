@@ -7,7 +7,9 @@ import {
   PerspectiveCamera,
   Scene,
   Vector3,
+  FrontSide,
   type BufferGeometry,
+  type Node,
 } from 'three/webgpu';
 import {
   attribute,
@@ -35,7 +37,17 @@ import { drawChartArt } from './chart-art';
 import { CHART_ISLANDS, chartIsland, worldToPaper, type ChartIslandId } from './chart-map';
 import { createChartPaper, rollRadius, type ChartPaper } from './chart-paper';
 import { createIslandProps, type IslandProps } from './chart-props';
-import { islandGeometry, runSliced, sampleIslandGrid, type IslandGrid } from './island-grid';
+import {
+  CHART_CELL_SCALE,
+  FALLBACK_CELL_SCALE,
+  islandGeometry,
+  resampleIslandGrid,
+  runSliced,
+  sampleIslandGrid,
+  type IslandGrid,
+} from './island-grid';
+import { loadTerrainPack } from '../world/terrain/bake';
+import { createTerrainMaterial } from '../world/terrain/terrain-material';
 import {
   easeInOutCubic,
   easeOutBack,
@@ -65,6 +77,8 @@ export interface OpeningOptions {
   input: Input;
   /** The audio engine once it's unlocked (null before the first gesture, or in tests). */
   audio: () => IslesAudio | null;
+  /** Where the packs live (default `/packs`): the chart's islands resample their baked terrain. */
+  packBase?: string;
   /** Told when the opening starts or stops holding on the living chart for the load. */
   onHold?: (holding: boolean) => void;
   /** Told when the chest starts or stops waiting for the player to open it. */
@@ -643,7 +657,22 @@ export function createOpening(o: OpeningOptions): Opening {
   async function build(): Promise<void> {
     const grids: IslandGrid[] = [];
     // A few milliseconds a frame, so the title and captain screens keep their frame rate.
-    for (const src of CHART_ISLANDS) grids.push(await runSliced(sampleIslandGrid(src), sliceBudget));
+    const cellScale = CHART_CELL_SCALE[engine.tier.tier];
+    // Each island's own baked terrain (Anchorage's is already coming in for the title); if a pack
+    // can't be had, the island's functions are sampled instead (coarser, and slower).
+    const base = o.packBase ?? '/packs';
+    const baked = await Promise.all(
+      CHART_ISLANDS.map((src) => loadTerrainPack(`${base}/${src.pack}`).catch(() => null)),
+    );
+    for (const [i, src] of CHART_ISLANDS.entries()) {
+      const data = baked[i];
+      grids.push(
+        await runSliced(
+          data ? resampleIslandGrid(src, data, cellScale) : sampleIslandGrid(src, FALLBACK_CELL_SCALE),
+          sliceBudget,
+        ),
+      );
+    }
     if (disposed) return;
     await document.fonts?.ready;
     // Juno's lines load alongside (small: five word lists and the shared lip-sync cues).
@@ -681,14 +710,23 @@ export function createOpening(o: OpeningOptions): Opening {
       const rise = uniform(0);
       islandRise.set(g.src.id, rise);
       const geo: BufferGeometry = islandGeometry(g);
-      const mat = new MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.82, metalness: 0 });
+      // The island's own terrain material, fed the ground's true world position and normal: the
+      // miniature is the real place, seen from the air.
+      const mat = createTerrainMaterial({
+        tier: engine.tier.tier,
+        worldPosition: attribute('worldPos', 'vec3'),
+        worldNormal: attribute('worldNormal', 'vec3').normalize(),
+        miniature: true,
+      });
+      mat.side = FrontSide;
       // Pop-up: the middle stands first and the coast last, each part overshooting a touch.
       const x = clamp(rise.sub(attribute('spread', 'float').mul(0.35)).div(0.65), 0, 1);
       const back = float(1)
         .add(float(2.6).mul(x.sub(1).pow(3)))
         .add(float(1.6).mul(x.sub(1).pow(2)));
       mat.positionNode = vec3(positionLocal.x, positionLocal.y.mul(back), positionLocal.z);
-      // Ink contour lines every 8 m, like the chart's own hand: the drawing rising into relief.
+      // While it rises, the chart's ink contours (every 8 m) show on it, like the drawing lifting
+      // off the page; they fade as it stands, leaving the island as it really is.
       const hm = attribute('hm', 'float');
       const v = hm.div(8);
       const d = min(fract(v), float(1).sub(fract(v)));
@@ -696,8 +734,9 @@ export function createOpening(o: OpeningOptions): Opening {
       const line = float(1)
         .sub(smoothstep(w.mul(0.6), w.mul(1.6), d))
         .mul(smoothstep(1, 2.5, hm))
-        .mul(smoothstep(0.35, 0.9, rise));
-      mat.colorNode = vec3(1).mul(float(1).sub(line.mul(0.55)));
+        .mul(smoothstep(0.2, 0.6, rise))
+        .mul(float(1).sub(smoothstep(0.75, 1.0, rise)));
+      mat.colorNode = (mat.colorNode as Node<'vec3'>).mul(float(1).sub(line.mul(0.5)));
       const m = new Mesh(geo, mat);
       m.castShadow = true;
       m.receiveShadow = true;
@@ -706,7 +745,19 @@ export function createOpening(o: OpeningOptions): Opening {
       islandMeshes.push(m);
       islandMat.push(mat);
     }
-    props = createIslandProps(grids, false);
+    // The islands' buildings, trees and rocks, a few milliseconds a frame.
+    let sliceStart = performance.now();
+    const breathe = async (): Promise<void> => {
+      if (disposed || performance.now() - sliceStart < sliceBudget.ms) return;
+      await new Promise((r) => requestAnimationFrame(r));
+      sliceStart = performance.now();
+    };
+    props = await createIslandProps({ grids, hasFog: false, tier: engine.tier.tier, islandRise, breathe });
+    if (disposed) {
+      props.dispose();
+      props = null;
+      return;
+    }
     islandsGroup.add(props.group);
     // The tiny brigantine, sailing in to Anchorage from the north (the real ship, scaled down).
     ship = createBrigantine({ tier: 'lite' });

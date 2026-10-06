@@ -11,8 +11,11 @@ import { meridianHeight, meridianMasks } from '../world/islands/meridian';
  */
 export const CHART_W = 1.0;
 export const CHART_D = (CHART_W * ARCH_H) / ARCH_W;
-/** Pop-ups stand taller than true scale so the hills read from across the desk. */
-export const CHART_LIFT = 2.4;
+/**
+ * The miniatures stand a little taller than true scale (a relief model's usual exaggeration), so the
+ * hills read from across the desk without turning into spikes.
+ */
+export const CHART_LIFT = 1.6;
 
 export type ChartIslandId = 'anchorage' | 'meridian';
 
@@ -29,6 +32,8 @@ export interface ChartIslandSource {
   minZ: number;
   maxZ: number;
   cell: number;
+  /** The island's baked terrain pack (under the packs base), resampled for the miniature. */
+  pack: string;
   height(x: number, z: number): number;
   masks(x: number, z: number): { sand: number; grass: number; rock: number; cliff: number };
 }
@@ -44,6 +49,7 @@ export const CHART_ISLANDS: readonly ChartIslandSource[] = [
     minZ: -135,
     maxZ: 240,
     cell: 5,
+    pack: 'testcove/terrain',
     height: coveHeight,
     masks: coveMasks,
   },
@@ -57,6 +63,7 @@ export const CHART_ISLANDS: readonly ChartIslandSource[] = [
     minZ: -1200,
     maxZ: -585,
     cell: 8,
+    pack: 'meridian/terrain',
     height: meridianHeight,
     masks: meridianMasks,
   },

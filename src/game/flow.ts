@@ -387,6 +387,7 @@ export class GameFlow implements GameBridge {
       const opening = createOpening({
         engine: this.o.engine,
         input: this.o.input,
+        packBase: this.o.packBase,
         audio: () => (this.audioReady ? this.o.audio : null),
         onHold: (holding) => this.openingHold(holding),
       });

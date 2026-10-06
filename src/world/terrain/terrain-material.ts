@@ -56,11 +56,16 @@ export function terrainTexture(file: string): Texture {
   return texture;
 }
 
-function triplanarColor(texture: Texture, scale: number): AnyNode {
-  const n = normalWorld.abs() as AnyNode;
-  const wx = textureNode(texture, vec2(positionWorld.z, positionWorld.y).mul(scale)) as AnyNode;
-  const wy = textureNode(texture, vec2(positionWorld.x, positionWorld.z).mul(scale)) as AnyNode;
-  const wz = textureNode(texture, vec2(positionWorld.x, positionWorld.y).mul(scale)) as AnyNode;
+function triplanarColor(
+  texture: Texture,
+  scale: number,
+  p: AnyNode = positionWorld,
+  normal: AnyNode = normalWorld,
+): AnyNode {
+  const n = normal.abs() as AnyNode;
+  const wx = textureNode(texture, vec2(p.z, p.y).mul(scale)) as AnyNode;
+  const wy = textureNode(texture, vec2(p.x, p.z).mul(scale)) as AnyNode;
+  const wz = textureNode(texture, vec2(p.x, p.y).mul(scale)) as AnyNode;
   const sum = n.x.add(n.y).add(n.z).max(0.001);
   return wx.rgb.mul(n.x).add(wy.rgb.mul(n.y)).add(wz.rgb.mul(n.z)).div(sum);
 }
@@ -72,8 +77,9 @@ function segmentMaskNode(
   bz: number,
   inner: number,
   outer: number,
+  world: AnyNode = positionWorld,
 ): AnyNode {
-  const p = vec2(positionWorld.x, positionWorld.z);
+  const p = vec2(world.x, world.z);
   const a = vec2(ax, az);
   const ba = vec2(bx - ax, bz - az);
   const pa = p.sub(a);
@@ -82,9 +88,9 @@ function segmentMaskNode(
 }
 
 /** The village's lived-in ground (cove-height `villageGroundWeight`): its sand is worn earth. */
-function villageGroundNode(y: AnyNode): AnyNode {
+function villageGroundNode(y: AnyNode, p: AnyNode = positionWorld): AnyNode {
   const g = VILLAGE_GROUND;
-  const r = vec2(positionWorld.x.sub(g.x).div(g.rx), positionWorld.z.sub(g.z).div(g.rz)).length();
+  const r = vec2(p.x.sub(g.x).div(g.rx), p.z.sub(g.z).div(g.rz)).length();
   return float(1)
     .sub(smoothstep(g.edge, 1, r))
     .mul(smoothstep(g.y0, g.y1, y));
@@ -93,6 +99,12 @@ function villageGroundNode(y: AnyNode): AnyNode {
 export interface TerrainMaterialOptions {
   cloudShadowNode?: Node<'float'> | null;
   tier?: Tier;
+  /** The ground's world position, when the mesh isn't drawn there (default: `positionWorld`). */
+  worldPosition?: Node<'vec3'>;
+  /** The ground's world normal, when the mesh's own is exaggerated (default: `normalWorld`). */
+  worldNormal?: Node<'vec3'>;
+  /** Drawn small and seen from afar (the opening's chart): far detail only, no close bump. */
+  miniature?: boolean;
 }
 
 /**
@@ -106,38 +118,28 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     metalness: 0,
     side: DoubleSide,
   });
+  // Where the ground really is in the world, and which way it faces (the chart's miniature passes
+  // its true world position and normal, so it's shaded exactly like the island it stands for).
+  const P = (options.worldPosition ?? positionWorld) as AnyNode;
+  const N = (options.worldNormal ?? normalWorld) as AnyNode;
   const masks = attribute('terrainMask', 'vec4');
   const light = attribute('terrainLight', 'vec4');
-  const y = positionWorld.y;
+  const y = P.y;
   const detail = options.tier === 'lite' ? 0 : options.tier === 'low' ? 1 : 2;
   const rockTexture = terrainTexture('rocks.webp');
   const pathTexture = terrainTexture('path-rocks.webp');
   const noiseTexture = terrainNoiseTexture();
-  const flatUv = vec2(positionWorld.x, positionWorld.z);
-  const rockTexel = triplanarColor(rockTexture, 0.045);
+  const flatUv = vec2(P.x, P.z);
+  // Drawn small, the rock texture's minified pattern reads as a hatch, so the miniature takes its mean.
+  const rockTexel = options.miniature ? vec3(0.084, 0.104, 0.067) : triplanarColor(rockTexture, 0.045, P, N);
   const pathTexel = textureNode(pathTexture, flatUv.mul(0.036)) as AnyNode;
-  const closeUvA = vec2(
-    positionWorld.x.mul(0.54).add(positionWorld.z.mul(0.2)),
-    positionWorld.z.mul(0.54).sub(positionWorld.x.mul(0.2)),
-  );
-  const closeUvB = vec2(
-    positionWorld.x.mul(-0.43).add(positionWorld.z.mul(0.78)),
-    positionWorld.z.mul(0.43).add(positionWorld.x.mul(0.78)),
-  );
+  const closeUvA = vec2(P.x.mul(0.54).add(P.z.mul(0.2)), P.z.mul(0.54).sub(P.x.mul(0.2)));
+  const closeUvB = vec2(P.x.mul(-0.43).add(P.z.mul(0.78)), P.z.mul(0.43).add(P.x.mul(0.78)));
   const pathClose = textureNode(pathTexture, closeUvA.mul(1.16)) as AnyNode;
   const rockClose = textureNode(rockTexture, closeUvB.mul(1.02)) as AnyNode;
-  const noiseLowUv = vec2(
-    positionWorld.x.mul(0.00878).sub(positionWorld.z.mul(0.00662)),
-    positionWorld.x.mul(0.00662).add(positionWorld.z.mul(0.00878)),
-  );
-  const noiseMidUv = vec2(
-    positionWorld.x.mul(0.02052).sub(positionWorld.z.mul(0.05956)),
-    positionWorld.x.mul(0.05956).add(positionWorld.z.mul(0.02052)),
-  );
-  const noiseFineUv = vec2(
-    positionWorld.x.mul(0.2773).sub(positionWorld.z.mul(0.0848)),
-    positionWorld.x.mul(0.0848).add(positionWorld.z.mul(0.2773)),
-  );
+  const noiseLowUv = vec2(P.x.mul(0.00878).sub(P.z.mul(0.00662)), P.x.mul(0.00662).add(P.z.mul(0.00878)));
+  const noiseMidUv = vec2(P.x.mul(0.02052).sub(P.z.mul(0.05956)), P.x.mul(0.05956).add(P.z.mul(0.02052)));
+  const noiseFineUv = vec2(P.x.mul(0.2773).sub(P.z.mul(0.0848)), P.x.mul(0.0848).add(P.z.mul(0.2773)));
   const noiseLow = textureNode(noiseTexture, noiseLowUv) as AnyNode;
   const noiseMid = textureNode(noiseTexture, noiseMidUv) as AnyNode;
   const noiseFine = textureNode(noiseTexture, noiseFineUv) as AnyNode;
@@ -182,10 +184,14 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const lushGrass = grassBase
     .mul(float(0.9).add(grassFineA.mul(0.1)).add(grassFineB.mul(0.05)))
     .add(color(0xd0e08e).mul(pow(saturate(grassFineB.sub(0.62).mul(2.5)), 2.0).mul(0.055)));
-  const meridianDryMask = smoothstep(470, 620, positionWorld.x)
-    .mul(float(1).sub(smoothstep(1210, 1240, positionWorld.x)))
-    .mul(smoothstep(-1130, -1080, positionWorld.z))
-    .mul(float(1).sub(smoothstep(-620, -570, positionWorld.z)));
+  // The chart's miniature shows Port Meridian's mountain past its terrain's box, so it keeps the dry
+  // ground out to the island's far shore.
+  const dryEast = options.miniature ? 1400 : 1240;
+  const drySouth = options.miniature ? -1260 : -1080;
+  const meridianDryMask = smoothstep(470, 620, P.x)
+    .mul(float(1).sub(smoothstep(dryEast - 30, dryEast, P.x)))
+    .mul(smoothstep(drySouth - 50, drySouth, P.z))
+    .mul(float(1).sub(smoothstep(-620, -570, P.z)));
   const dryGrass = mix(color(0x7f6530), color(0xd4a653), broadNoise.mul(0.5).add(grassDetail.mul(0.22))).add(
     color(0xefcf79).mul(pow(saturate(grassFineB.sub(0.66).mul(2.2)), 2.0).mul(0.1)),
   );
@@ -200,11 +206,11 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const grassMask = masks.y;
   const rockMask = masks.z;
   const cliffMask = masks.w;
-  const villageGround = villageGroundNode(y);
+  const villageGround = villageGroundNode(y, P);
   const shaderPathMask = saturate(
-    segmentMaskNode(COVE.village.center.x, COVE.village.center.z, -18, -10, 2.4, 7.2)
-      .add(segmentMaskNode(-18, -10, -28, 103, 2.8, 8.6))
-      .add(segmentMaskNode(-112, -64, COVE.village.center.x, COVE.village.center.z, 2.2, 6.5)),
+    segmentMaskNode(COVE.village.center.x, COVE.village.center.z, -18, -10, 2.4, 7.2, P)
+      .add(segmentMaskNode(-18, -10, -28, 103, 2.8, 8.6, P))
+      .add(segmentMaskNode(-112, -64, COVE.village.center.x, COVE.village.center.z, 2.2, 6.5, P)),
   )
     .mul(smoothstep(1.0, 6.5, y))
     .max(villageGround);
@@ -217,15 +223,15 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const swashBand = smoothstep(-0.16, 0.18, y)
     .mul(float(1).sub(smoothstep(1.15, 2.25, y)))
     .mul(beachSandMask);
-  const ripplePhase = positionWorld.x
-    .mul(0.92)
-    .add(positionWorld.z.mul(0.16))
-    .add(noiseLow.r.mul(2.4))
-    .add(noiseMid.g.mul(0.8));
-  const fineRipplePhase = positionWorld.x.mul(1.86).sub(positionWorld.z.mul(0.28)).add(noiseFine.g.mul(1.8));
+  const ripplePhase = P.x.mul(0.92).add(P.z.mul(0.16)).add(noiseLow.r.mul(2.4)).add(noiseMid.g.mul(0.8));
+  const fineRipplePhase = P.x.mul(1.86).sub(P.z.mul(0.28)).add(noiseFine.g.mul(1.8));
   const rippleRidge = abs(sin(ripplePhase)).smoothstep(float(0.72), float(0.99));
   const fineRippleRidge = abs(sin(fineRipplePhase)).smoothstep(float(0.82), float(0.997));
-  const beachRipples = rippleRidge.mul(0.52).add(fineRippleRidge.mul(0.28)).mul(swashBand);
+  // Thin procedural lines (ripples, fractures) shimmer when the ground's drawn small, so the miniature
+  // gets their average instead.
+  const beachRipples = options.miniature
+    ? swashBand.mul(0.12)
+    : rippleRidge.mul(0.52).add(fineRippleRidge.mul(0.28)).mul(swashBand);
   const underwater = smoothstep(0.04, 12.0, y.negate());
   const shallowUnderwater = smoothstep(0.02, 2.7, y.negate()).mul(
     float(1).sub(smoothstep(9.0, 20.0, y.negate())),
@@ -239,30 +245,33 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
 
   // The east headland and its inland slope: one smooth grassy hill, without the island's height bands
   // and strata (on a big even slope they read as farm terraces).
-  const headlandHill = smoothstep(COVE.headland.x0 - 50, COVE.headland.x0 - 15, positionWorld.x)
-    .mul(smoothstep(COVE.headland.z0 - 40, COVE.headland.z0 - 10, positionWorld.z))
-    .mul(float(1).sub(smoothstep(COVE.headland.z1 + 10, COVE.headland.z1 + 40, positionWorld.z)));
-  const steepSlope = smoothstep(0.68, 0.46, normalWorld.y);
+  const headlandHill = smoothstep(COVE.headland.x0 - 50, COVE.headland.x0 - 15, P.x)
+    .mul(smoothstep(COVE.headland.z0 - 40, COVE.headland.z0 - 10, P.z))
+    .mul(float(1).sub(smoothstep(COVE.headland.z1 + 10, COVE.headland.z1 + 40, P.z)));
+  const steepSlope = smoothstep(0.68, 0.46, N.y);
   // On that hill only the near-sheer faces (under the cliff mesh) take the cliff colouring.
   const cliffInfluence = saturate(cliffMask.add(steepSlope.mul(0.72))).mul(
-    float(1).sub(headlandHill.mul(smoothstep(0.42, 0.55, normalWorld.y))),
+    float(1).sub(headlandHill.mul(smoothstep(0.42, 0.55, N.y))),
   );
   const steepFace = steepSlope.mul(saturate(cliffMask.add(rockMask)));
   const strataPhase = fract(y.div(7.8).add(noiseLow.b.sub(0.5).mul(0.6)));
   const strataWidth = strataPhase.fwidth().mul(1.5).add(0.009);
-  const strata = float(1).sub(
-    smoothstep(float(0.05).sub(strataWidth), float(0.05).add(strataWidth), strataPhase),
-  );
-  const ledges = float(1).sub(
-    smoothstep(float(0.18).sub(strataWidth), float(0.18).add(strataWidth), strataPhase),
-  );
+  // The strata are a few pixels apart on the miniature (they alias), so it takes their averages.
+  const strata = options.miniature
+    ? float(0.05)
+    : float(1).sub(smoothstep(float(0.05).sub(strataWidth), float(0.05).add(strataWidth), strataPhase));
+  const ledges = options.miniature
+    ? float(0.18)
+    : float(1).sub(smoothstep(float(0.18).sub(strataWidth), float(0.18).add(strataWidth), strataPhase));
   const fineStrataPhase = fract(
     y.div(2.35).add(noiseMid.r.sub(0.5).mul(0.38)).add(noiseFine.b.sub(0.5).mul(0.08)),
   );
   const fineStrataWidth = fineStrataPhase.fwidth().mul(1.7).add(0.012);
-  const fineStrata = float(1).sub(
-    smoothstep(float(0.1).sub(fineStrataWidth), float(0.1).add(fineStrataWidth), fineStrataPhase),
-  );
+  const fineStrata = options.miniature
+    ? float(0.1)
+    : float(1).sub(
+        smoothstep(float(0.1).sub(fineStrataWidth), float(0.1).add(fineStrataWidth), fineStrataPhase),
+      );
   const creviceSeed = noiseMid.b.mul(0.58).add(noiseFine.r.mul(0.28)).add(noiseLow.a.mul(0.14));
   const crevices = pow(saturate(creviceSeed.sub(0.58).mul(2.6)), 2.6)
     .mul(cliffMask)
@@ -275,7 +284,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(smoothstep(2.05, 2.35, y)))
     .mul(cliffMask);
   const cave = float(1)
-    .sub(smoothstep(0.0, 1.0, vec2(positionWorld.x.sub(198).div(11), positionWorld.z.add(5).div(7)).length()))
+    .sub(smoothstep(0.0, 1.0, vec2(P.x.sub(198).div(11), P.z.add(5).div(7)).length()))
     .mul(smoothstep(-1.2, 5.0, y))
     .mul(float(1).sub(smoothstep(8, 15, y)));
 
@@ -300,19 +309,20 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(algaeBase.mul(0.52)))
     .mul(float(1).sub(waterline.mul(0.05)))
     .mul(float(1).sub(cave.mul(0.72)));
-  const meridianBluffMask = smoothstep(722, 752, positionWorld.x)
-    .mul(float(1).sub(smoothstep(884, 914, positionWorld.x)))
-    .mul(smoothstep(-864, -846, positionWorld.z))
-    .mul(float(1).sub(smoothstep(-704, -686, positionWorld.z)))
+  const meridianBluffMask = smoothstep(722, 752, P.x)
+    .mul(float(1).sub(smoothstep(884, 914, P.x)))
+    .mul(smoothstep(-864, -846, P.z))
+    .mul(float(1).sub(smoothstep(-704, -686, P.z)))
     .mul(smoothstep(4, 16, y));
-  const bluffFractureA = abs(
-    sin(positionWorld.x.mul(0.34).add(positionWorld.z.mul(0.47)).add(noiseLow.r.mul(3.2))),
-  ).smoothstep(float(0.955), float(0.998));
-  const bluffFractureB = abs(
-    sin(positionWorld.x.mul(0.72).sub(positionWorld.z.mul(0.22)).add(noiseMid.b.mul(4.1))),
-  ).smoothstep(float(0.972), float(0.999));
-  const bluffFractures = bluffFractureA
-    .max(bluffFractureB.mul(0.75))
+  const bluffFractureA = abs(sin(P.x.mul(0.34).add(P.z.mul(0.47)).add(noiseLow.r.mul(3.2)))).smoothstep(
+    float(0.955),
+    float(0.998),
+  );
+  const bluffFractureB = abs(sin(P.x.mul(0.72).sub(P.z.mul(0.22)).add(noiseMid.b.mul(4.1)))).smoothstep(
+    float(0.972),
+    float(0.999),
+  );
+  const bluffFractures = (options.miniature ? float(0.04) : bluffFractureA.max(bluffFractureB.mul(0.75)))
     .mul(meridianBluffMask)
     .mul(smoothstep(6, 38, y));
   const bluffScrub = pow(
@@ -335,17 +345,16 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   base = mix(base, reefRock, underwater.mul(rockMask.add(cliffMask).mul(0.7)));
   base = mix(base, seabed, underwater.mul(0.72));
   base = mix(base, color(0x315545), seagrassPatch.mul(0.36));
-  const detailDistance = cameraPosition.sub(positionWorld).length();
+  // Seen from the air (the chart's miniature), only the far layers show.
+  const detailDistance = options.miniature ? float(400) : cameraPosition.sub(positionWorld).length();
   const closeDetail = float(1).sub(smoothstep(22, 86, detailDistance));
   const midDetail = float(1).sub(smoothstep(75, 155, detailDistance));
   const lowGroundDetail = closeDetail
     .mul(smoothstep(-0.4, 1.8, y))
     .mul(float(1).sub(smoothstep(5.5, 9.5, y)))
-    .mul(smoothstep(0.58, 0.95, normalWorld.y));
+    .mul(smoothstep(0.58, 0.95, N.y));
   const closeMeadowDetail = closeDetail.mul(
-    saturate(
-      sandMask.add(grassMask.mul(smoothstep(0.28, 0.92, normalWorld.y))).add(lowGroundDetail.mul(0.92)),
-    ),
+    saturate(sandMask.add(grassMask.mul(smoothstep(0.28, 0.92, N.y))).add(lowGroundDetail.mul(0.92))),
   );
   const sandHeightDetail = sandGrain
     .mul(0.5)
@@ -394,13 +403,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const sandFinger = pow(saturate(float(0.48).sub(fringeNoise).mul(2.8)), 1.35).mul(beachGrassFringe);
   const grassFinger = pow(saturate(fringeNoise.sub(0.38).mul(2.2)), 1.2).mul(beachGrassFringe);
   const bardCampSand = float(1)
-    .sub(
-      smoothstep(
-        4.2,
-        9.0,
-        (vec2 as AnyNode)(positionWorld.x.add(18).mul(1.05), positionWorld.z.sub(86.2).mul(0.82)).length(),
-      ),
-    )
+    .sub(smoothstep(4.2, 9.0, (vec2 as AnyNode)(P.x.add(18).mul(1.05), P.z.sub(86.2).mul(0.82)).length()))
     .mul(smoothstep(0.05, 2.8, y));
   const rootGreen = mix(color(0x5d7432), color(0x7d9a45), noiseLow.g.mul(0.62).add(noiseMid.g.mul(0.38)));
   let closeLayer = mix(closeEarth, closeGrass, grassMask);
@@ -430,7 +433,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(
       saturate(noiseMid.b.mul(0.5).add(noiseLow.a.mul(0.36)).add(fineStrata.mul(0.22)).sub(0.48).mul(2.1)),
     );
-  const slopeGrass = smoothstep(0.38, 0.82, normalWorld.y)
+  const slopeGrass = smoothstep(0.38, 0.82, N.y)
     .mul(smoothstep(5, 30, y))
     .mul(midDetail)
     .mul(grassMask.add(rockMask.mul(0.35)));
@@ -486,10 +489,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   if (detail >= 1) {
     // Village lawns: a fine turf (clumps a hand or two across, light tips and dark roots) and a
     // dry, trodden fringe where the lawn meets the worn earth.
-    const turfUv = vec2(
-      positionWorld.x.mul(1.13).add(positionWorld.z.mul(0.41)),
-      positionWorld.z.mul(1.13).sub(positionWorld.x.mul(0.41)),
-    );
+    const turfUv = vec2(P.x.mul(1.13).add(P.z.mul(0.41)), P.z.mul(1.13).sub(P.x.mul(0.41)));
     const turfTexel = textureNode(noiseTexture, turfUv) as AnyNode;
     // The fine noise (a 3.4 m period against the turf's 0.88 m) keeps the turf from tiling in a grid.
     const turf = saturate(turfTexel.r.sub(turfTexel.b).mul(4.5).add(noiseFine.a.sub(0.5).mul(2.6)).add(0.5));
@@ -515,7 +515,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     rockBandColor.mul(float(0.72).add(strata.mul(0.36)).add(fineStrata.mul(0.22))),
     slopeOutcrop.mul(0.42).add(slopeScree.mul(0.28)).mul(float(1).sub(headlandHill)),
   );
-  const hillSlope = smoothstep(1.0, 0.82, normalWorld.y)
+  const hillSlope = smoothstep(1.0, 0.82, N.y)
     .mul(smoothstep(2.5, 38, y))
     .mul(midDetail)
     .mul(float(1).sub(headlandHill));
@@ -530,12 +530,12 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   base = mix(base, rockBandColor, hillMottle.mul(0.56));
   const hillFootMeadow = smoothstep(1.0, 4.5, y)
     .mul(float(1).sub(smoothstep(18, 34, y)))
-    .mul(smoothstep(0.5, 0.94, normalWorld.y))
+    .mul(smoothstep(0.5, 0.94, N.y))
     .mul(saturate(grassMask.add(rockMask.mul(0.24))));
   base = mix(base, rootGreen, hillFootMeadow.mul(midDetail).mul(0.42));
   const hilltopMeadow = smoothstep(7, 12, y)
     .mul(float(1).sub(smoothstep(34, 46, y)))
-    .mul(smoothstep(0.46, 0.94, normalWorld.y))
+    .mul(smoothstep(0.46, 0.94, N.y))
     .mul(saturate(grassMask.add(rockMask.mul(0.38)).add(sandMask.mul(0.18))));
   const hilltopGreen = mix(color(0x6a6a31), color(0xb19955), noiseLow.g.mul(0.58).add(noiseMid.g.mul(0.42)));
   // The east headland is green grass with a few dirt patches, not the island's dry golden hilltops.
@@ -559,7 +559,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const sunnyHeadland = smoothstep(6, 18, y)
     .mul(float(1).sub(smoothstep(52, 88, detailDistance)))
     .mul(saturate(grassMask.mul(0.9).add(rockMask.mul(0.45))))
-    .mul(smoothstep(0.28, 0.88, normalWorld.y));
+    .mul(smoothstep(0.28, 0.88, N.y));
   const warmHeadland = mix(color(0x5c7136), color(0xa29569), noiseLow.a.mul(0.46).add(noiseMid.r.mul(0.54)));
   base = mix(base, warmHeadland, sunnyHeadland.mul(0.24));
   base = mix(base, meridianBluffCliff, meridianBluffMask);
@@ -571,15 +571,13 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   );
   const bluffLight = float(0.72).add(broadNoise.mul(0.12)).add(fineNoise.mul(0.08));
   const terrainLight = mix(bakedLight, bluffLight, meridianBluffMask.mul(0.96));
-  const causticLayerA = sin(
-    positionWorld.x.mul(0.18).add(positionWorld.z.mul(0.26)).add(world.time.mul(1.35)),
-  )
-    .mul(sin(positionWorld.x.mul(-0.23).add(positionWorld.z.mul(0.16)).sub(world.time.mul(1.1))))
+  const causticLayerA = sin(P.x.mul(0.18).add(P.z.mul(0.26)).add(world.time.mul(1.35)))
+    .mul(sin(P.x.mul(-0.23).add(P.z.mul(0.16)).sub(world.time.mul(1.1))))
     .mul(0.5)
     .add(0.5);
   const causticLayerB =
     detail >= 2
-      ? sin(positionWorld.x.mul(0.33).sub(positionWorld.z.mul(0.29)).add(world.time.mul(0.75)))
+      ? sin(P.x.mul(0.33).sub(P.z.mul(0.29)).add(world.time.mul(0.75)))
           .mul(0.5)
           .add(0.5)
       : float(0);
@@ -605,7 +603,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const bumpStrength = closeDetail
     .mul(grassMask.mul(0.22).add(pathSandMask.mul(0.13)).add(beachSandMask.mul(0.09)))
     .mul(float(1).sub(underwater.mul(0.85)));
-  material.normalNode = bumpMap(detailHeight, bumpStrength);
+  if (!options.miniature) material.normalNode = bumpMap(detailHeight, bumpStrength);
 
   const viewDir = cameraPosition.sub(positionWorld).normalize();
   const fresnelRim = pow(float(1).sub(saturate(dot(normalWorld, viewDir))), 2.2);

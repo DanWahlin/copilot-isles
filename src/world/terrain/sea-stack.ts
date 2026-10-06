@@ -318,7 +318,10 @@ function mergeBlocks(stack: BufferGeometry, count: number): BufferGeometry {
  * samples stretched along the pillar (u = around, y = up), so it costs about the same as the rock
  * material. Close detail (bump) is Medium and up only.
  */
-export function createSeaStackMaterial(tier: Tier): MeshStandardNodeMaterial {
+export function createSeaStackMaterial(
+  tier: Tier,
+  opts: { worldY?: AnyNode; miniature?: boolean } = {},
+): MeshStandardNodeMaterial {
   const detail = tier === 'lite' ? 0 : tier === 'low' ? 1 : 2;
   const material = new MeshStandardNodeMaterial({ color: 0xffffff, roughness: 0.9, metalness: 0 });
   material.name = 'sea-stack-karst';
@@ -327,7 +330,8 @@ export function createSeaStackMaterial(tier: Tier): MeshStandardNodeMaterial {
   const flow = k.y;
   const moss = k.z;
   const u = uv().x;
-  const y = positionWorld.y;
+  // The rock's true height (the opening chart's miniature passes it; the mesh there is tiny).
+  const y = (opts.worldY ?? positionWorld.y) as AnyNode;
   const noise = terrainNoiseTexture();
   const streakA = textureNode(noise, vec2(u.mul(13), y.mul(0.0085))) as AnyNode;
   const streakB = textureNode(noise, vec2(u.mul(31), y.mul(0.022).add(0.37))) as AnyNode;
@@ -374,7 +378,7 @@ export function createSeaStackMaterial(tier: Tier): MeshStandardNodeMaterial {
   material.colorNode = base;
   material.roughnessNode = float(0.93).sub(wet.mul(0.4)).sub(barnacle.mul(0.08));
   material.aoNode = ao;
-  if (detail >= 2) {
+  if (detail >= 2 && !opts.miniature) {
     const near = float(1).sub(smoothstep(40, 160, cameraPosition.sub(positionWorld).length()));
     const relief = grain.mul(0.7).add(streakB.r.mul(0.3)).add(k.w.mul(-0.5));
     material.normalNode = bumpMap(relief, near.mul(1.4));
