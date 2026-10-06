@@ -774,6 +774,43 @@
     opacity 450ms ease,
     transform 450ms ease;
 }
+/* Lit while Wingman points it out in his welcome: a soft gold glow that breathes. */
+.ci-tracker.spot,
+.ci-starfish.spot {
+  animation: ci-spot 1.4s ease-in-out infinite;
+}
+.ci-starfish.spot {
+  border-radius: 999px;
+}
+@keyframes ci-spot {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 214, 120, 0.55),
+      0 0 14px rgba(255, 196, 90, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(255, 220, 130, 0.95),
+      0 0 26px rgba(255, 200, 90, 0.7);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ci-tracker.spot,
+  .ci-starfish.spot {
+    animation: none;
+    box-shadow:
+      0 0 0 2px rgba(255, 220, 130, 0.95),
+      0 0 22px rgba(255, 200, 90, 0.6);
+  }
+}
+:root.reduced-motion .ci-tracker.spot,
+:root.reduced-motion .ci-starfish.spot {
+  animation: none;
+  box-shadow:
+    0 0 0 2px rgba(255, 220, 130, 0.95),
+    0 0 22px rgba(255, 200, 90, 0.6);
+}
 .ci-tracker.calm {
   opacity: 0;
   transform: translateX(-0.6rem);

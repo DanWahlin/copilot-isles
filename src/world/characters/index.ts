@@ -266,7 +266,9 @@ class CharacterLibraryImpl implements CharacterLibrary {
 
   create(options: CharacterCreateOptions): Character {
     const body = CHARACTER_BODIES.includes(options.body) ? options.body : 'man';
-    const config = BODY_CONFIG[body];
+    const base = BODY_CONFIG[body];
+    const k = options.scale ?? 1;
+    const config = k === 1 ? base : { ...base, scale: base.scale * k };
     const source = this.sources.get(config.source);
     if (!source) throw new Error(`Missing character source: ${config.source}`);
     const clone = SkeletonUtils.clone(source.scene) as Group;

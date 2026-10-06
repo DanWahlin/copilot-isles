@@ -255,6 +255,32 @@
     opacity 0.3s ease,
     transform 0.3s ease;
 }
+/* Lit while Wingman points it out in his welcome (a drop shadow: the window itself is masked). */
+.hud-compass.spot .hud-compass-window {
+  border-color: rgba(255, 220, 130, 0.95);
+}
+.hud-compass.spot {
+  animation: hud-spot 1.4s ease-in-out infinite;
+}
+@keyframes hud-spot {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px rgba(255, 200, 90, 0.45));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(255, 205, 100, 0.95));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-compass.spot {
+    animation: none;
+    filter: drop-shadow(0 0 9px rgba(255, 205, 100, 0.85));
+  }
+}
+:root.reduced-motion .hud-compass.spot {
+  animation: none;
+  filter: drop-shadow(0 0 9px rgba(255, 205, 100, 0.85));
+}
 .hud-compass.show {
   opacity: 1;
   transform: translate(-50%, 0);

@@ -72,6 +72,8 @@ export interface LearnState {
   cinematic: boolean;
   /** A conversation or framed shot is on: the task list fades so the scene has the screen. */
   calm: boolean;
+  /** What Wingman's pointing out right now (the task list, the starfish count), lit on screen. */
+  spotlight: { tracker: boolean; starfish: boolean };
 }
 
 export interface QuizOutcome {
@@ -86,6 +88,8 @@ export interface QuizOutcome {
  * state (src/ui/learn); game scripts call the promise-returning actions and await the player.
  * All public methods are arrow properties so the UI can pass them around unbound.
  */
+const NO_SPOTLIGHT = { tracker: false, starfish: false } as const;
+
 export class LearnStore {
   readonly progress: Progress;
   private state: LearnState;
@@ -116,6 +120,7 @@ export class LearnStore {
       palette: null,
       cinematic: false,
       calm: false,
+      spotlight: NO_SPOTLIGHT,
     };
   }
 
@@ -429,6 +434,12 @@ export class LearnStore {
 
   setCalm = (on: boolean): void => {
     if (this.state.calm !== on) this.set({ calm: on });
+  };
+
+  /** Lights the task list and/or the starfish count while Wingman points them out. */
+  setSpotlight = (tracker: boolean, starfish: boolean): void => {
+    const cur = this.state.spotlight;
+    if (cur.tracker !== tracker || cur.starfish !== starfish) this.set({ spotlight: { tracker, starfish } });
   };
 
   /** A fresh voyage: wipes progress. */

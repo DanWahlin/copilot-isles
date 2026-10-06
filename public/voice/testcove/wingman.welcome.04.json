@@ -1,102 +1,92 @@
 {
   "id": "wingman.welcome.04",
   "speaker": "Wingman",
-  "text": "Your tasks are in the top left. If you get stuck, press Q, and I'll give you a hint.",
+  "text": "Your tasks are in the top left, and the compass up top points to the next one.",
   "words": [
     {
       "word": "Your",
-      "start": 0.11,
-      "end": 0.35
+      "start": 0.19,
+      "end": 0.43
     },
     {
       "word": "tasks",
-      "start": 0.35,
-      "end": 0.75
+      "start": 0.43,
+      "end": 0.83
     },
     {
       "word": "are",
-      "start": 0.75,
-      "end": 0.87
-    },
-    {
-      "word": "in",
-      "start": 0.87,
+      "start": 0.83,
       "end": 0.95
     },
     {
-      "word": "the",
+      "word": "in",
       "start": 0.95,
-      "end": 1.07
+      "end": 1.03
+    },
+    {
+      "word": "the",
+      "start": 1.03,
+      "end": 1.15
     },
     {
       "word": "top",
-      "start": 1.07,
-      "end": 1.27
+      "start": 1.15,
+      "end": 1.35
     },
     {
       "word": "left",
-      "start": 1.27,
-      "end": 2.15
-    },
-    {
-      "word": "If",
-      "start": 2.15,
-      "end": 2.309
-    },
-    {
-      "word": "you",
-      "start": 2.309,
-      "end": 2.429
-    },
-    {
-      "word": "get",
-      "start": 2.429,
-      "end": 2.59
-    },
-    {
-      "word": "stuck",
-      "start": 2.59,
-      "end": 3.309
-    },
-    {
-      "word": "press",
-      "start": 3.309,
-      "end": 3.67
-    },
-    {
-      "word": "Q",
-      "start": 3.67,
-      "end": 4.23
+      "start": 1.35,
+      "end": 1.83
     },
     {
       "word": "and",
-      "start": 4.23,
-      "end": 4.39
+      "start": 1.83,
+      "end": 1.99
     },
     {
-      "word": "I'll",
-      "start": 4.39,
-      "end": 4.55
+      "word": "the",
+      "start": 1.99,
+      "end": 2.11
     },
     {
-      "word": "give",
-      "start": 4.55,
-      "end": 4.71
+      "word": "compass",
+      "start": 2.11,
+      "end": 2.469
     },
     {
-      "word": "you",
-      "start": 4.71,
-      "end": 4.87
+      "word": "up",
+      "start": 2.469,
+      "end": 2.63
     },
     {
-      "word": "a",
-      "start": 4.87,
-      "end": 4.91
+      "word": "top",
+      "start": 2.63,
+      "end": 2.829
     },
     {
-      "word": "hint",
-      "start": 4.91,
-      "end": 5.16
+      "word": "points",
+      "start": 2.829,
+      "end": 3.19
+    },
+    {
+      "word": "to",
+      "start": 3.19,
+      "end": 3.309
+    },
+    {
+      "word": "the",
+      "start": 3.309,
+      "end": 3.429
+    },
+    {
+      "word": "next",
+      "start": 3.429,
+      "end": 3.67
+    },
+    {
+      "word": "one",
+      "start": 3.67,
+      "end": 3.92
     }
   ]
 }

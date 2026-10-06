@@ -70,7 +70,9 @@ function LearnLayer({
           <span className="ci-coin" aria-label={`${s.doubloons} doubloons`}>
             {s.doubloons}
           </span>
-          {s.starfishIsland && <StarfishCount island={s.starfishIsland} found={s.starfish} />}
+          {s.starfishIsland && (
+            <StarfishCount island={s.starfishIsland} found={s.starfish} spot={s.spotlight.starfish} />
+          )}
           {/* Glows from the first page until the player has opened the Logbook once. */}
           <span className={`ci-purse-hint${!s.logbookOpened && s.pages.length > 0 ? ' nudge' : ''}`}>
             <kbd>J</kbd> Logbook
@@ -85,7 +87,7 @@ function LearnLayer({
         !s.logbook.open &&
         !s.palette &&
         !s.banner &&
-        !s.spyglass && <QuestTracker tracker={s.tracker} calm={s.calm} />}
+        !s.spyglass && <QuestTracker tracker={s.tracker} calm={s.calm} spot={s.spotlight.tracker} />}
       {s.spyglass && !s.spyglass.full && !s.quiz && !s.logbook.open && (
         <Spyglass store={store} spy={s.spyglass} />
       )}

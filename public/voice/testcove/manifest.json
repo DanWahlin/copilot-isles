@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-05T22:49:53.542Z",
+  "generatedAt": "2026-10-06T05:05:35.388Z",
   "set": "testcove",
   "lines": [
     {
@@ -631,194 +631,6 @@
           "word": "her",
           "start": 6.11,
           "end": 6.36
-        }
-      ],
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
-    },
-    {
-      "id": "wingman.welcome.04",
-      "speaker": "Wingman",
-      "text": "Your tasks are in the top left. If you get stuck, press Q, and I'll give you a hint.",
-      "duration": 5.527,
-      "files": {
-        "webm": "wingman.welcome.04.webm",
-        "m4a": "wingman.welcome.04.m4a"
-      },
-      "hash": "8a187868e25f214d",
-      "words": [
-        {
-          "word": "Your",
-          "start": 0.11,
-          "end": 0.35
-        },
-        {
-          "word": "tasks",
-          "start": 0.35,
-          "end": 0.75
-        },
-        {
-          "word": "are",
-          "start": 0.75,
-          "end": 0.87
-        },
-        {
-          "word": "in",
-          "start": 0.87,
-          "end": 0.95
-        },
-        {
-          "word": "the",
-          "start": 0.95,
-          "end": 1.07
-        },
-        {
-          "word": "top",
-          "start": 1.07,
-          "end": 1.27
-        },
-        {
-          "word": "left",
-          "start": 1.27,
-          "end": 2.15
-        },
-        {
-          "word": "If",
-          "start": 2.15,
-          "end": 2.309
-        },
-        {
-          "word": "you",
-          "start": 2.309,
-          "end": 2.429
-        },
-        {
-          "word": "get",
-          "start": 2.429,
-          "end": 2.59
-        },
-        {
-          "word": "stuck",
-          "start": 2.59,
-          "end": 3.309
-        },
-        {
-          "word": "press",
-          "start": 3.309,
-          "end": 3.67
-        },
-        {
-          "word": "Q",
-          "start": 3.67,
-          "end": 4.23
-        },
-        {
-          "word": "and",
-          "start": 4.23,
-          "end": 4.39
-        },
-        {
-          "word": "I'll",
-          "start": 4.39,
-          "end": 4.55
-        },
-        {
-          "word": "give",
-          "start": 4.55,
-          "end": 4.71
-        },
-        {
-          "word": "you",
-          "start": 4.71,
-          "end": 4.87
-        },
-        {
-          "word": "a",
-          "start": 4.87,
-          "end": 4.91
-        },
-        {
-          "word": "hint",
-          "start": 4.91,
-          "end": 5.16
-        }
-      ],
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
-    },
-    {
-      "id": "wingman.welcome.05",
-      "speaker": "Wingman",
-      "text": "Right, I'll ride on your shoulder. Hints are my job. Decisions are yours!",
-      "duration": 4.507,
-      "files": {
-        "webm": "wingman.welcome.05.webm",
-        "m4a": "wingman.welcome.05.m4a"
-      },
-      "hash": "f4f9253c4f9f235c",
-      "words": [
-        {
-          "word": "Right",
-          "start": 0.31,
-          "end": 0.87
-        },
-        {
-          "word": "I'll",
-          "start": 0.87,
-          "end": 1.03
-        },
-        {
-          "word": "ride",
-          "start": 1.03,
-          "end": 1.27
-        },
-        {
-          "word": "on",
-          "start": 1.27,
-          "end": 1.35
-        },
-        {
-          "word": "your",
-          "start": 1.35,
-          "end": 1.51
-        },
-        {
-          "word": "shoulder",
-          "start": 1.51,
-          "end": 2.23
-        },
-        {
-          "word": "Hints",
-          "start": 2.23,
-          "end": 2.55
-        },
-        {
-          "word": "are",
-          "start": 2.55,
-          "end": 2.67
-        },
-        {
-          "word": "my",
-          "start": 2.67,
-          "end": 2.75
-        },
-        {
-          "word": "job",
-          "start": 2.75,
-          "end": 3.27
-        },
-        {
-          "word": "Decisions",
-          "start": 3.27,
-          "end": 3.789
-        },
-        {
-          "word": "are",
-          "start": 3.789,
-          "end": 3.909
-        },
-        {
-          "word": "yours",
-          "start": 3.909,
-          "end": 4.159
         }
       ],
       "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
@@ -18120,6 +17932,476 @@
         }
       ],
       "voice": "en-GB-Ada:DragonHDLatestNeural"
+    },
+    {
+      "id": "wingman.welcome.04",
+      "speaker": "Wingman",
+      "text": "Your tasks are in the top left, and the compass up top points to the next one.",
+      "duration": 4.207,
+      "files": {
+        "webm": "wingman.welcome.04.webm",
+        "m4a": "wingman.welcome.04.m4a"
+      },
+      "hash": "3f76c33658a95d73",
+      "words": [
+        {
+          "word": "Your",
+          "start": 0.19,
+          "end": 0.43
+        },
+        {
+          "word": "tasks",
+          "start": 0.43,
+          "end": 0.83
+        },
+        {
+          "word": "are",
+          "start": 0.83,
+          "end": 0.95
+        },
+        {
+          "word": "in",
+          "start": 0.95,
+          "end": 1.03
+        },
+        {
+          "word": "the",
+          "start": 1.03,
+          "end": 1.15
+        },
+        {
+          "word": "top",
+          "start": 1.15,
+          "end": 1.35
+        },
+        {
+          "word": "left",
+          "start": 1.35,
+          "end": 1.83
+        },
+        {
+          "word": "and",
+          "start": 1.83,
+          "end": 1.99
+        },
+        {
+          "word": "the",
+          "start": 1.99,
+          "end": 2.11
+        },
+        {
+          "word": "compass",
+          "start": 2.11,
+          "end": 2.469
+        },
+        {
+          "word": "up",
+          "start": 2.469,
+          "end": 2.63
+        },
+        {
+          "word": "top",
+          "start": 2.63,
+          "end": 2.829
+        },
+        {
+          "word": "points",
+          "start": 2.829,
+          "end": 3.19
+        },
+        {
+          "word": "to",
+          "start": 3.19,
+          "end": 3.309
+        },
+        {
+          "word": "the",
+          "start": 3.309,
+          "end": 3.429
+        },
+        {
+          "word": "next",
+          "start": 3.429,
+          "end": 3.67
+        },
+        {
+          "word": "one",
+          "start": 3.67,
+          "end": 3.92
+        }
+      ],
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
+    },
+    {
+      "id": "wingman.starfish.anchorage",
+      "speaker": "Wingman",
+      "text": "And seven starfish are hidden around Anchorage Cay. Your count's in the top right.",
+      "duration": 4.707,
+      "files": {
+        "webm": "wingman.starfish.anchorage.webm",
+        "m4a": "wingman.starfish.anchorage.m4a"
+      },
+      "hash": "84f20e294f2b6016",
+      "words": [
+        {
+          "word": "And",
+          "start": 0.23,
+          "end": 0.43
+        },
+        {
+          "word": "seven",
+          "start": 0.43,
+          "end": 0.75
+        },
+        {
+          "word": "starfish",
+          "start": 0.75,
+          "end": 1.27
+        },
+        {
+          "word": "are",
+          "start": 1.27,
+          "end": 1.39
+        },
+        {
+          "word": "hidden",
+          "start": 1.39,
+          "end": 1.67
+        },
+        {
+          "word": "around",
+          "start": 1.67,
+          "end": 1.99
+        },
+        {
+          "word": "Anchorage",
+          "start": 1.99,
+          "end": 2.469
+        },
+        {
+          "word": "Cay",
+          "start": 2.469,
+          "end": 3.19
+        },
+        {
+          "word": "Your",
+          "start": 3.19,
+          "end": 3.429
+        },
+        {
+          "word": "count's",
+          "start": 3.429,
+          "end": 3.75
+        },
+        {
+          "word": "in",
+          "start": 3.75,
+          "end": 3.829
+        },
+        {
+          "word": "the",
+          "start": 3.829,
+          "end": 3.949
+        },
+        {
+          "word": "top",
+          "start": 3.949,
+          "end": 4.19
+        },
+        {
+          "word": "right",
+          "start": 4.19,
+          "end": 4.44
+        }
+      ],
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
+    },
+    {
+      "id": "wingman.welcome.05",
+      "speaker": "Wingman",
+      "text": "Stuck? Press Q for a hint. I'll ride on your shoulder. Hints are my job. Decisions are yours!",
+      "duration": 6.808,
+      "files": {
+        "webm": "wingman.welcome.05.webm",
+        "m4a": "wingman.welcome.05.m4a"
+      },
+      "hash": "7b456d986d701500",
+      "words": [
+        {
+          "word": "Stuck",
+          "start": 0.19,
+          "end": 1.11
+        },
+        {
+          "word": "Press",
+          "start": 1.11,
+          "end": 1.47
+        },
+        {
+          "word": "Q",
+          "start": 1.47,
+          "end": 1.67
+        },
+        {
+          "word": "for",
+          "start": 1.67,
+          "end": 1.87
+        },
+        {
+          "word": "a",
+          "start": 1.87,
+          "end": 1.91
+        },
+        {
+          "word": "hint",
+          "start": 1.91,
+          "end": 2.71
+        },
+        {
+          "word": "I'll",
+          "start": 2.71,
+          "end": 2.909
+        },
+        {
+          "word": "ride",
+          "start": 2.909,
+          "end": 3.15
+        },
+        {
+          "word": "on",
+          "start": 3.15,
+          "end": 3.23
+        },
+        {
+          "word": "your",
+          "start": 3.23,
+          "end": 3.389
+        },
+        {
+          "word": "shoulder",
+          "start": 3.389,
+          "end": 4.27
+        },
+        {
+          "word": "Hints",
+          "start": 4.27,
+          "end": 4.63
+        },
+        {
+          "word": "are",
+          "start": 4.63,
+          "end": 4.75
+        },
+        {
+          "word": "my",
+          "start": 4.75,
+          "end": 4.87
+        },
+        {
+          "word": "job",
+          "start": 4.87,
+          "end": 5.63
+        },
+        {
+          "word": "Decisions",
+          "start": 5.63,
+          "end": 6.19
+        },
+        {
+          "word": "are",
+          "start": 6.19,
+          "end": 6.31
+        },
+        {
+          "word": "yours",
+          "start": 6.31,
+          "end": 6.56
+        }
+      ],
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
+    },
+    {
+      "id": "wingman.meridian.03",
+      "speaker": "Wingman",
+      "text": "Your tasks are in the top left, as before, and the compass up top shows the way.",
+      "duration": 4.407,
+      "files": {
+        "webm": "wingman.meridian.03.webm",
+        "m4a": "wingman.meridian.03.m4a"
+      },
+      "hash": "3a7688c55fe97c61",
+      "words": [
+        {
+          "word": "Your",
+          "start": 0.11,
+          "end": 0.39
+        },
+        {
+          "word": "tasks",
+          "start": 0.39,
+          "end": 0.83
+        },
+        {
+          "word": "are",
+          "start": 0.83,
+          "end": 0.95
+        },
+        {
+          "word": "in",
+          "start": 0.95,
+          "end": 1.03
+        },
+        {
+          "word": "the",
+          "start": 1.03,
+          "end": 1.15
+        },
+        {
+          "word": "top",
+          "start": 1.15,
+          "end": 1.39
+        },
+        {
+          "word": "left",
+          "start": 1.39,
+          "end": 1.67
+        },
+        {
+          "word": "as",
+          "start": 1.67,
+          "end": 1.79
+        },
+        {
+          "word": "before",
+          "start": 1.79,
+          "end": 2.429
+        },
+        {
+          "word": "and",
+          "start": 2.429,
+          "end": 2.59
+        },
+        {
+          "word": "the",
+          "start": 2.59,
+          "end": 2.71
+        },
+        {
+          "word": "compass",
+          "start": 2.71,
+          "end": 3.07
+        },
+        {
+          "word": "up",
+          "start": 3.07,
+          "end": 3.23
+        },
+        {
+          "word": "top",
+          "start": 3.23,
+          "end": 3.469
+        },
+        {
+          "word": "shows",
+          "start": 3.469,
+          "end": 3.75
+        },
+        {
+          "word": "the",
+          "start": 3.75,
+          "end": 3.869
+        },
+        {
+          "word": "way",
+          "start": 3.869,
+          "end": 4.119
+        }
+      ],
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
+    },
+    {
+      "id": "wingman.starfish.meridian",
+      "speaker": "Wingman",
+      "text": "And five starfish are hidden around Port Meridian. Your count's in the top right.",
+      "duration": 4.707,
+      "files": {
+        "webm": "wingman.starfish.meridian.webm",
+        "m4a": "wingman.starfish.meridian.m4a"
+      },
+      "hash": "e1e325f978a8fa19",
+      "words": [
+        {
+          "word": "And",
+          "start": 0.31,
+          "end": 0.47
+        },
+        {
+          "word": "five",
+          "start": 0.47,
+          "end": 0.79
+        },
+        {
+          "word": "starfish",
+          "start": 0.79,
+          "end": 1.27
+        },
+        {
+          "word": "are",
+          "start": 1.27,
+          "end": 1.39
+        },
+        {
+          "word": "hidden",
+          "start": 1.39,
+          "end": 1.67
+        },
+        {
+          "word": "around",
+          "start": 1.67,
+          "end": 1.99
+        },
+        {
+          "word": "Port",
+          "start": 1.99,
+          "end": 2.23
+        },
+        {
+          "word": "Meridian",
+          "start": 2.23,
+          "end": 3.19
+        },
+        {
+          "word": "Your",
+          "start": 3.19,
+          "end": 3.389
+        },
+        {
+          "word": "count's",
+          "start": 3.389,
+          "end": 3.71
+        },
+        {
+          "word": "in",
+          "start": 3.71,
+          "end": 3.789
+        },
+        {
+          "word": "the",
+          "start": 3.789,
+          "end": 3.949
+        },
+        {
+          "word": "top",
+          "start": 3.949,
+          "end": 4.19
+        },
+        {
+          "word": "right",
+          "start": 4.19,
+          "end": 4.44
+        }
+      ],
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural"
     }
   ]
 }

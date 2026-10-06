@@ -22,16 +22,19 @@ export function StarfishIcon({ dim = false }: { dim?: boolean }) {
 export function StarfishCount({
   island,
   found,
+  spot = false,
 }: {
   island: { id: StarfishIsland; name: string };
   found: readonly string[];
+  /** Lit while Wingman points it out. */
+  spot?: boolean;
 }) {
   const all = starfishOn(island.id);
   const got = all.filter((s) => found.includes(s.id)).length;
   const done = got === all.length;
   return (
     <span
-      className={`ci-starfish${done ? ' done' : ''}`}
+      className={`ci-starfish${done ? ' done' : ''}${spot ? ' spot' : ''}`}
       title={`Starfish found on ${island.name}`}
       aria-label={`${got} of ${all.length} starfish found on ${island.name}`}
     >

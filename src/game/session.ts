@@ -49,6 +49,7 @@ import {
   meridianTracker,
 } from './meridian-quests';
 import { MERIDIAN_NPCS, meridianExtras } from './meridian-npcs';
+import { ISLAND_TIPS, TIP_SPOTS } from './island-tips';
 import { createCrateYard } from './puzzles/crate-yard';
 import { createCrateYardSite } from '../world/sites/crate-yard';
 import { createThreeHelms, type HelmsHost } from './puzzles/three-helms';
@@ -1459,7 +1460,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   function updateCompass(): void {
     const ashore = mode === 'walk';
     const afloat = mode === 'sail' || mode === 'docking';
-    if ((!ashore && !afloat) || dialogue.active || scriptRunning || anyTalking()) {
+    if ((!ashore && !afloat) || (dialogue.active && !welcoming) || scriptRunning || anyTalking()) {
       hud.setCompass(null);
       return;
     }
@@ -1533,11 +1534,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   let introCut: (() => void) | null = null;
   // A fresh voyage (Nell not met yet) gets Wingman's welcome and the first step; later sessions a
   // short welcome back.
+  // Every island's first welcome points out the task list, the compass and its starfish.
   const welcomeLines = (): string[] =>
     island === 'meridian'
       ? quests()['Q1.1'] === 'done'
         ? []
-        : [...MERIDIAN_WELCOME]
+        : [...MERIDIAN_WELCOME, ISLAND_TIPS.meridian.nav, ISLAND_TIPS.meridian.starfish]
       : island !== 'anchorage'
         ? []
         : quests()['Q0.2'] === 'start'
@@ -1545,10 +1547,18 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
               'wingman.welcome.01',
               'wingman.welcome.02',
               'wingman.welcome.03',
-              'wingman.welcome.04',
+              ISLAND_TIPS.anchorage.nav,
+              ISLAND_TIPS.anchorage.starfish,
               'wingman.welcome.05',
             ]
           : ['wingman.welcome.back'];
+  /** Wingman's welcome is on: the task list and compass stay up so he can point them out. */
+  let welcoming = false;
+  const spotlightTip = (id: string | null) => {
+    const spots = (id && TIP_SPOTS[id]) || [];
+    hud.setCompassSpot(spots.includes('compass'));
+    learn?.setSpotlight(spots.includes('tracker'), spots.includes('starfish'));
+  };
   /**
    * Wingman flies up in front of the captain to talk, and heads back to the shoulder on his last
    * line. The first time, the captain holds still and the camera frames him over their shoulder;
@@ -1583,14 +1593,18 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         release();
       };
     }
+    welcoming = true;
     await new Promise((r) => setTimeout(r, wingman ? 350 : 0));
     if (disposed) return;
     const last = lines.length > 1 ? lines[lines.length - 1] : null;
     await dialogue.play(lines, (id) => {
+      spotlightTip(id);
       if (id !== last) return;
       wingman?.land();
       release();
     });
+    welcoming = false;
+    spotlightTip(null);
     wingman?.land();
     release();
     flightView.ahead = null;
@@ -1962,15 +1976,17 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         updateCompass();
         // The task list and controls help step aside while a conversation or framed shot has the
         // screen, and come back a moment after (so they don't flicker between lines).
+        // (Not during Wingman's welcome: he points them out, so they're up as he flies in.)
         const busy =
-          mode === 'transition' ||
-          mode === 'docking' ||
-          crewAtHelm ||
-          !!liftRide ||
-          dialogue.active ||
-          scriptRunning ||
-          anyTalking() ||
-          cam.framing;
+          !welcoming &&
+          (mode === 'transition' ||
+            mode === 'docking' ||
+            crewAtHelm ||
+            !!liftRide ||
+            dialogue.active ||
+            scriptRunning ||
+            anyTalking() ||
+            cam.framing);
         calmFor = busy ? CALM_HOLD : Math.max(0, calmFor - dt);
         const calm = calmFor > 0;
         if (calm !== calmShown) {

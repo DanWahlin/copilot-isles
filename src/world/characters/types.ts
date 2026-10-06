@@ -74,6 +74,8 @@ export interface CharacterCreateOptions {
   tier?: Pick<TierSettings, 'npcAnimRate' | 'tier'>;
   /** Optional camera/player object for distance-based NPC mixer throttling. */
   updateTarget?: Object3D;
+  /** Scales the body's size for one staging (e.g. the opening's cabin); 1 keeps its normal size. */
+  scale?: number;
 }
 
 /**

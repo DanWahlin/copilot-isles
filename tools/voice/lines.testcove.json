@@ -59,13 +59,21 @@
       "speaker": "Wingman",
       "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
       "fallbackVoice": "en-GB-NoahNeural",
-      "text": "Your tasks are in the top left. If you get stuck, press Q, and I'll give you a hint.",
+      "text": "Your tasks are in the top left, and the compass up top points to the next one.",
+      "fx": "wingman-bird"
+    },
+    {
+      "id": "wingman.starfish.anchorage",
+      "speaker": "Wingman",
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "fallbackVoice": "en-GB-NoahNeural",
+      "text": "And seven starfish are hidden around Anchorage Cay. Your count's in the top right.",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.welcome.05",
       "speaker": "Wingman",
-      "text": "Right, I'll ride on your shoulder. Hints are my job. Decisions are yours!",
+      "text": "Stuck? Press Q for a hint. I'll ride on your shoulder. Hints are my job. Decisions are yours!",
       "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
       "fallbackVoice": "en-GB-NoahNeural",
       "fx": "wingman-bird"
@@ -824,6 +832,22 @@
       "text": "Tobias trades in the plaza, up the stair street. Start with him, and follow the compass.",
       "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
       "fallbackVoice": "en-GB-NoahNeural",
+      "fx": "wingman-bird"
+    },
+    {
+      "id": "wingman.meridian.03",
+      "speaker": "Wingman",
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "fallbackVoice": "en-GB-NoahNeural",
+      "text": "Your tasks are in the top left, as before, and the compass up top shows the way.",
+      "fx": "wingman-bird"
+    },
+    {
+      "id": "wingman.starfish.meridian",
+      "speaker": "Wingman",
+      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "fallbackVoice": "en-GB-NoahNeural",
+      "text": "And five starfish are hidden around Port Meridian. Your count's in the top right.",
       "fx": "wingman-bird"
     },
     {

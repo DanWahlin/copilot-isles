@@ -18,7 +18,16 @@ function readCollapsed(): boolean {
  * default; T (or the header button) opens the whole list of what's done and what's next. It fades
  * out while a conversation or framed shot has the screen (`calm`).
  */
-export function QuestTracker({ tracker, calm = false }: { tracker: Tracker; calm?: boolean }) {
+export function QuestTracker({
+  tracker,
+  calm = false,
+  spot = false,
+}: {
+  tracker: Tracker;
+  calm?: boolean;
+  /** Lit while Wingman points it out. */
+  spot?: boolean;
+}) {
   const [collapsed, setCollapsed] = useState(readCollapsed);
 
   useEffect(() => {
@@ -49,7 +58,7 @@ export function QuestTracker({ tracker, calm = false }: { tracker: Tracker; calm
 
   return (
     <section
-      className={`ci-tracker${collapsed ? ' collapsed' : ''}${calm ? ' calm' : ''}`}
+      className={`ci-tracker${collapsed ? ' collapsed' : ''}${calm ? ' calm' : ''}${spot ? ' spot' : ''}`}
       aria-label="Island tasks"
       aria-hidden={calm || undefined}
     >

@@ -153,7 +153,12 @@ const APPROACH = 1.8;
 const CONTINUE_AT = 20;
 const AUTO_OPEN = 12;
 /** Where Juno stands: behind the desk's far left corner, clear of the chest, a window behind her. */
-const GUIDE_AT = { x: -1.04, z: -1.06 } as const;
+const GUIDE_AT = { x: -1.06, z: -1.5 } as const;
+/**
+ * Juno's size in the cabin. Her stylised build (a big head on a short body) read as a child behind
+ * the 0.8 m desk at her world height, so the cabin shows her taller: head and shoulders well clear.
+ */
+const GUIDE_SCALE = 1.18;
 
 const canvasSize = new Vector2();
 
@@ -845,7 +850,7 @@ export function createOpening(o: OpeningOptions): Opening {
     },
     setGuide(lib) {
       if (guide || disposed) return;
-      guide = lib.create({ body: 'juno', tier: engine.tier, updateTarget: camera });
+      guide = lib.create({ body: 'juno', tier: engine.tier, updateTarget: camera, scale: GUIDE_SCALE });
       guide.group.position.set(GUIDE_AT.x, 0, GUIDE_AT.z);
       guide.group.rotation.y = Math.atan2(WIDE.eye.x - GUIDE_AT.x, WIDE.eye.z - GUIDE_AT.z);
       guide.play('idle');

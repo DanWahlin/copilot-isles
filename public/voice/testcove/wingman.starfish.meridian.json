@@ -1,0 +1,77 @@
+{
+  "id": "wingman.starfish.meridian",
+  "speaker": "Wingman",
+  "text": "And five starfish are hidden around Port Meridian. Your count's in the top right.",
+  "words": [
+    {
+      "word": "And",
+      "start": 0.31,
+      "end": 0.47
+    },
+    {
+      "word": "five",
+      "start": 0.47,
+      "end": 0.79
+    },
+    {
+      "word": "starfish",
+      "start": 0.79,
+      "end": 1.27
+    },
+    {
+      "word": "are",
+      "start": 1.27,
+      "end": 1.39
+    },
+    {
+      "word": "hidden",
+      "start": 1.39,
+      "end": 1.67
+    },
+    {
+      "word": "around",
+      "start": 1.67,
+      "end": 1.99
+    },
+    {
+      "word": "Port",
+      "start": 1.99,
+      "end": 2.23
+    },
+    {
+      "word": "Meridian",
+      "start": 2.23,
+      "end": 3.19
+    },
+    {
+      "word": "Your",
+      "start": 3.19,
+      "end": 3.389
+    },
+    {
+      "word": "count's",
+      "start": 3.389,
+      "end": 3.71
+    },
+    {
+      "word": "in",
+      "start": 3.71,
+      "end": 3.789
+    },
+    {
+      "word": "the",
+      "start": 3.789,
+      "end": 3.949
+    },
+    {
+      "word": "top",
+      "start": 3.949,
+      "end": 4.19
+    },
+    {
+      "word": "right",
+      "start": 4.19,
+      "end": 4.44
+    }
+  ]
+}

@@ -235,6 +235,11 @@ export class Hud {
     this.root.classList.toggle('menu-open', on);
   }
 
+  /** Lights the compass while Wingman points it out. */
+  setCompassSpot(on: boolean): void {
+    this.compass.classList.toggle('spot', on);
+  }
+
   /** Fades the controls help while a conversation or framed shot has the screen. */
   setCalm(on: boolean): void {
     this.root.classList.toggle('calm', on);
