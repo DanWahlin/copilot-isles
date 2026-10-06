@@ -15,7 +15,7 @@ import type { HeightField } from '../contracts';
 import { fbm2, ridged2 } from '../terrain/cove-height';
 import { ROCK_ASSETS } from '../terrain/rock-assets';
 import { createRockMaterial } from '../terrain/terrain-material';
-import { clamp01, smoothstep } from '../../util/math';
+import { clamp01, segmentDistance, smoothstep } from '../../util/math';
 import { createMeridianWater, type MeridianWater } from './meridian-water';
 
 /**
@@ -95,13 +95,6 @@ function rand(seed: number): number {
 
 function mix(a: number, b: number, t: number): number {
   return a + (b - a) * clamp01(t);
-}
-
-function segmentDistance(x: number, z: number, ax: number, az: number, bx: number, bz: number): number {
-  const dx = bx - ax;
-  const dz = bz - az;
-  const t = clamp01(((x - ax) * dx + (z - az) * dz) / Math.max(1e-6, dx * dx + dz * dz));
-  return Math.hypot(x - (ax + dx * t), z - (az + dz * t));
 }
 
 function ellipseDistance(

@@ -2,6 +2,7 @@ import type { HeightField, Tier } from '../contracts';
 import type { PlantInstance, PlantSpecies } from '../vegetation/types';
 import { fbm2 } from '../terrain/cove-height';
 import { MERIDIAN, meridianHeight, meridianMasks, meridianQuayHeight, meridianWater } from './meridian';
+import { segmentDistance, sinHash, smoothstep } from '../../util/math';
 
 /**
  * Port Meridian's hills planted (PLAN §4: "lush Mediterranean-Caribbean hills"): palms along the
@@ -18,23 +19,6 @@ const KEEP: Record<Tier, number> = { lite: 0.22, low: 0.42, medium: 0.68, high: 
 
 /** The town's footprint (houses, plaza, terraces, shipyard, lift), with a margin. */
 const TOWN = { x0: 552, x1: 852, z0: -992, z1: -738 } as const;
-
-function smooth(a: number, b: number, v: number): number {
-  const t = Math.min(1, Math.max(0, (v - a) / (b - a)));
-  return t * t * (3 - 2 * t);
-}
-
-function hash(x: number, z: number, salt: number): number {
-  const v = Math.sin(x * 127.1 + z * 311.7 + salt * 74.7) * 43758.5453;
-  return v - Math.floor(v);
-}
-
-function segmentDistance(x: number, z: number, ax: number, az: number, bx: number, bz: number): number {
-  const dx = bx - ax;
-  const dz = bz - az;
-  const t = Math.min(1, Math.max(0, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz)));
-  return Math.hypot(x - (ax + dx * t), z - (az + dz * t));
-}
 
 /** True where nothing should grow: the town, the citadel, the harbour works and the sea caves. */
 export function meridianPlantExcluded(x: number, z: number): boolean {
@@ -87,18 +71,18 @@ export function* meridianPlantsSliced(
     for (let cx = Math.ceil(minX / CELL); cx * CELL < maxX; cx++) {
       for (let k = 0; k < SPOTS; k++) {
         const s = k * 16;
-        const x = (cx + hash(cx, cz, s + 2)) * CELL;
-        const z = (cz + hash(cx, cz, s + 3)) * CELL;
+        const x = (cx + sinHash(cx, cz, s + 2)) * CELL;
+        const z = (cz + sinHash(cx, cz, s + 3)) * CELL;
         const grove = fbm2(x * 0.011, z * 0.011, 3, 0x6e41) * 0.5 + 0.5;
         const thicket = fbm2(x * 0.03 + 7.3, z * 0.03 - 2.1, 2, 0x51c7) * 0.5 + 0.5;
         // Groves and thickets fill in; the ground between them stays mostly open.
         // The banks of the lake and streams grow thick and green.
-        const bank = 1 - smooth(3, 18, meridianWater().shoreDistance(x, z, 18));
+        const bank = 1 - smoothstep(3, 18, meridianWater().shoreDistance(x, z, 18));
         const density = Math.min(
           1,
-          0.2 + smooth(0.5, 0.66, grove) * 0.75 + smooth(0.48, 0.7, thicket) * 0.45 + bank * 0.7,
+          0.2 + smoothstep(0.5, 0.66, grove) * 0.75 + smoothstep(0.48, 0.7, thicket) * 0.45 + bank * 0.7,
         );
-        if (hash(cx, cz, s + 1) > keep * density) continue;
+        if (sinHash(cx, cz, s + 1) > keep * density) continue;
         if (meridianPlantExcluded(x, z)) continue;
         const h = field.heightAt(x, z);
         if (h < 2.4) continue;
@@ -109,8 +93,8 @@ export function* meridianPlantsSliced(
         if (m.cliff > 0.4 || m.sand > 0.6) continue;
         const species =
           bank > 0.35 && slopeDeg < 26
-            ? bankSpecies(hash(cx, cz, s + 4))
-            : speciesFor(h, slopeDeg, m.rock, grove, thicket, hash(cx, cz, s + 4));
+            ? bankSpecies(sinHash(cx, cz, s + 4))
+            : speciesFor(h, slopeDeg, m.rock, grove, thicket, sinHash(cx, cz, s + 4));
         if (!species) continue;
         // Sit the base on the lowest ground under it, a little sunk, as the island's scatter does.
         let y = h;
@@ -124,12 +108,12 @@ export function* meridianPlantsSliced(
           x,
           y: y - 0.12,
           z,
-          scale: scaleFor(species, hash(cx, cz, s + 5)),
-          rotation: hash(cx, cz, s + 6) * Math.PI * 2,
-          leanX: palm ? (hash(cx, cz, s + 7) - 0.5) * 0.12 : 0,
-          leanZ: palm ? (hash(cx, cz, s + 8) - 0.5) * 0.12 : 0,
-          colorSeed: hash(cx, cz, s + 9),
-          lodSeed: hash(cx, cz, s + 10),
+          scale: scaleFor(species, sinHash(cx, cz, s + 5)),
+          rotation: sinHash(cx, cz, s + 6) * Math.PI * 2,
+          leanX: palm ? (sinHash(cx, cz, s + 7) - 0.5) * 0.12 : 0,
+          leanZ: palm ? (sinHash(cx, cz, s + 8) - 0.5) * 0.12 : 0,
+          colorSeed: sinHash(cx, cz, s + 9),
+          lodSeed: sinHash(cx, cz, s + 10),
           slopeDeg,
         });
       }

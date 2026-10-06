@@ -5,33 +5,33 @@
   "words": [
     {
       "word": "She",
-      "start": 0.07,
-      "end": 0.35
+      "start": 0,
+      "end": 0.293
     },
     {
       "word": "suits",
-      "start": 0.35,
-      "end": 0.71
+      "start": 0.293,
+      "end": 0.58
     },
     {
       "word": "you",
-      "start": 0.71,
-      "end": 0.83
+      "start": 0.58,
+      "end": 0.78
     },
     {
       "word": "Captain",
-      "start": 0.83,
-      "end": 1.95
+      "start": 0.78,
+      "end": 1.424
     },
     {
       "word": "Fair",
-      "start": 1.95,
-      "end": 2.389
+      "start": 1.424,
+      "end": 2.093
     },
     {
       "word": "winds",
-      "start": 2.389,
-      "end": 2.639
+      "start": 2.093,
+      "end": 2.343
     }
   ]
 }

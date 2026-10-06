@@ -50,6 +50,7 @@ import {
   uv,
   vec2,
   vec3,
+  vec4,
 } from 'three/tsl';
 import { world } from '../uniforms';
 import { gustNode } from '../wind-nodes';
@@ -400,6 +401,26 @@ export function createGrassMaterial(
   const maskMode = typeof location !== 'undefined' && new URLSearchParams(location.search).has('grassMask');
   material.colorNode = maskMode ? color(0xff00ff) : (select(isSeed, seedColor, grassColor) as AnyNode);
   material.emissiveNode = maskMode ? color(0xff00ff) : (color(0x6f6d24).mul(sheen.mul(0.006)) as AnyNode);
+  return material;
+}
+
+/**
+ * A leaf card whose authored colour is wrong for the island (the common bush's leaves are painted red):
+ * the map keeps its leaf shapes (alpha) and shading (red channel), recoloured into a sunny bush green.
+ * No per-instance attributes, so the impostor bake can draw it as is.
+ */
+export function createRecoloredLeafMaterial(map: Texture, name: string): MeshStandardNodeMaterial {
+  const material = new MeshStandardNodeMaterial({
+    name,
+    side: DoubleSide,
+    roughness: 0.82,
+    metalness: 0,
+    alphaTest: 0.5,
+    vertexColors: true,
+  });
+  const texel = texture(map, uv()) as AnyNode;
+  const shade = smoothstep(0.3, 1.0, texel.r);
+  material.colorNode = vec4(mix(color(0x2f6420), color(0x8bbb48), shade) as AnyNode, texel.a) as AnyNode;
   return material;
 }
 

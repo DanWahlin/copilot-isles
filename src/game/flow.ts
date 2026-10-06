@@ -21,6 +21,7 @@ import {
 import type { Tier } from '../world/contracts';
 import type { CharacterLibrary } from '../world/characters';
 import type { CoveScene } from '../world/cove-scene';
+import { prewarmWaterDepthTexture } from '../world/ocean/water-depth-texture';
 import { world } from '../world/uniforms';
 import { buildChart, coveTravelPoints } from './chart';
 import type { GameSession } from './session';
@@ -192,7 +193,8 @@ export class GameFlow implements GameBridge {
     window.setTimeout(() => {
       void this.prepareOpening();
       // The island's ocean-floor map bakes quietly too (it was a ~1 s freeze in the island build).
-      void import('../world/ocean/water-depth-texture').then((m) => m.prewarmWaterDepthTexture());
+      // Already in this chunk (the title's ocean imports it), so a plain import: a dynamic one can't split it.
+      void prewarmWaterDepthTexture();
     }, 1500);
   }
 

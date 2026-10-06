@@ -5,93 +5,93 @@
   "words": [
     {
       "word": "Stuck",
-      "start": 0.19,
-      "end": 1.11
+      "start": 0,
+      "end": 0.667
     },
     {
       "word": "Press",
-      "start": 1.11,
-      "end": 1.47
+      "start": 0.667,
+      "end": 1.44
     },
     {
       "word": "Q",
-      "start": 1.47,
-      "end": 1.67
+      "start": 1.44,
+      "end": 1.72
     },
     {
       "word": "for",
-      "start": 1.67,
-      "end": 1.87
+      "start": 1.72,
+      "end": 1.88
     },
     {
       "word": "a",
-      "start": 1.87,
-      "end": 1.91
+      "start": 1.88,
+      "end": 2
     },
     {
       "word": "hint",
-      "start": 1.91,
-      "end": 2.71
+      "start": 2,
+      "end": 2.72
     },
     {
       "word": "I'll",
-      "start": 2.71,
-      "end": 2.909
+      "start": 2.72,
+      "end": 3.008
     },
     {
       "word": "ride",
-      "start": 2.909,
-      "end": 3.15
+      "start": 3.008,
+      "end": 3.227
     },
     {
       "word": "on",
-      "start": 3.15,
-      "end": 3.23
+      "start": 3.227,
+      "end": 3.312
     },
     {
       "word": "your",
-      "start": 3.23,
-      "end": 3.389
+      "start": 3.312,
+      "end": 3.493
     },
     {
       "word": "shoulder",
-      "start": 3.389,
-      "end": 4.27
+      "start": 3.493,
+      "end": 4.16
     },
     {
       "word": "Hints",
-      "start": 4.27,
-      "end": 4.63
+      "start": 4.16,
+      "end": 4.58
     },
     {
       "word": "are",
-      "start": 4.63,
-      "end": 4.75
+      "start": 4.58,
+      "end": 4.72
     },
     {
       "word": "my",
-      "start": 4.75,
-      "end": 4.87
+      "start": 4.72,
+      "end": 4.96
     },
     {
       "word": "job",
-      "start": 4.87,
-      "end": 5.63
+      "start": 4.96,
+      "end": 5.54
     },
     {
       "word": "Decisions",
-      "start": 5.63,
-      "end": 6.19
+      "start": 5.54,
+      "end": 6.38
     },
     {
       "word": "are",
-      "start": 6.19,
-      "end": 6.31
+      "start": 6.38,
+      "end": 6.64
     },
     {
       "word": "yours",
-      "start": 6.31,
-      "end": 6.56
+      "start": 6.64,
+      "end": 6.89
     }
   ]
 }

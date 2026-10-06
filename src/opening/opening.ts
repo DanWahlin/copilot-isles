@@ -41,6 +41,7 @@ import {
   CHART_CELL_SCALE,
   FALLBACK_CELL_SCALE,
   islandGeometry,
+  popUpY,
   resampleIslandGrid,
   runSliced,
   sampleIslandGrid,
@@ -696,6 +697,7 @@ export function createOpening(o: OpeningOptions): Opening {
       shadowMap: shadows ? Math.min(2048, engine.tier.shadowMap || 1024) : 0,
       shaftSlices: slices,
       captainName: '',
+      guideAt: GUIDE_AT,
     });
     scene.add(cabin.group);
     paper = createChartPaper(art);
@@ -726,10 +728,7 @@ export function createOpening(o: OpeningOptions): Opening {
       mat.side = FrontSide;
       // Pop-up: the middle stands first and the coast last, each part overshooting a touch.
       const x = clamp(rise.sub(attribute('spread', 'float').mul(0.35)).div(0.65), 0, 1);
-      const back = float(1)
-        .add(float(2.6).mul(x.sub(1).pow(3)))
-        .add(float(1.6).mul(x.sub(1).pow(2)));
-      mat.positionNode = vec3(positionLocal.x, positionLocal.y.mul(back), positionLocal.z);
+      mat.positionNode = vec3(positionLocal.x, popUpY(positionLocal.y, x), positionLocal.z);
       // While it rises, the chart's ink contours (every 8 m) show on it, like the drawing lifting
       // off the page; they fade as it stands, leaving the island as it really is.
       const hm = attribute('hm', 'float');

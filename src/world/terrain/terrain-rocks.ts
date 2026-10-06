@@ -192,14 +192,6 @@ function rockGeometry(asset: (typeof ROCK_ASSETS)[number]): BufferGeometry {
   return geometry;
 }
 
-export function createTerrainRocks(heightField: HeightField, _data?: unknown, tier: Tier = 'high'): Group {
-  const steps = buildTerrainRocks(heightField, tier);
-  for (;;) {
-    const r = steps.next();
-    if (r.done) return r.value;
-  }
-}
-
 /** The same rocks, yielding between the big pieces (the sea stack, the cliff, the boulders). */
 export function* buildTerrainRocks(
   heightField: HeightField,

@@ -5,68 +5,68 @@
   "words": [
     {
       "word": "Port",
-      "start": 0.11,
-      "end": 0.35
+      "start": 0,
+      "end": 0.2
     },
     {
       "word": "Meridian’s",
-      "start": 0.35,
-      "end": 0.91
+      "start": 0.2,
+      "end": 0.76
     },
     {
       "word": "north-east",
-      "start": 0.91,
-      "end": 1.47
+      "start": 0.76,
+      "end": 1.34
     },
     {
       "word": "Captain",
-      "start": 1.47,
-      "end": 2.309
+      "start": 1.34,
+      "end": 1.943
     },
     {
       "word": "Follow",
-      "start": 2.309,
-      "end": 2.67
+      "start": 1.943,
+      "end": 2.58
     },
     {
       "word": "the",
-      "start": 2.67,
-      "end": 2.829
+      "start": 2.58,
+      "end": 2.71
     },
     {
       "word": "compass",
-      "start": 2.829,
-      "end": 3.469
+      "start": 2.71,
+      "end": 3.3
     },
     {
       "word": "and",
-      "start": 3.469,
-      "end": 3.67
+      "start": 3.3,
+      "end": 3.44
     },
     {
       "word": "dock",
-      "start": 3.67,
-      "end": 3.989
+      "start": 3.44,
+      "end": 3.813
     },
     {
       "word": "by",
-      "start": 3.989,
-      "end": 4.11
+      "start": 3.813,
+      "end": 3.94
     },
     {
       "word": "the",
-      "start": 4.11,
-      "end": 4.23
+      "start": 3.94,
+      "end": 4.064
     },
     {
       "word": "east",
-      "start": 4.23,
-      "end": 4.51
+      "start": 4.064,
+      "end": 4.42
     },
     {
       "word": "arm",
-      "start": 4.51,
-      "end": 4.76
+      "start": 4.42,
+      "end": 4.67
     }
   ]
 }

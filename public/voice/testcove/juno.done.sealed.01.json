@@ -5,63 +5,63 @@
   "words": [
     {
       "word": "The",
-      "start": 0.07,
-      "end": 0.19
+      "start": 0,
+      "end": 0.128
     },
     {
       "word": "crew’s",
-      "start": 0.19,
-      "end": 0.51
+      "start": 0.128,
+      "end": 0.52
     },
     {
       "word": "proud",
-      "start": 0.51,
-      "end": 0.83
+      "start": 0.52,
+      "end": 0.773
     },
     {
       "word": "of",
-      "start": 0.83,
-      "end": 0.95
+      "start": 0.773,
+      "end": 0.9
     },
     {
       "word": "you",
-      "start": 0.95,
-      "end": 1.15
+      "start": 0.9,
+      "end": 1.1
     },
     {
       "word": "Captain",
-      "start": 1.15,
-      "end": 2.11
+      "start": 1.1,
+      "end": 2.267
     },
     {
       "word": "Wherever",
-      "start": 2.11,
-      "end": 2.63
+      "start": 2.267,
+      "end": 2.92
     },
     {
       "word": "you",
-      "start": 2.63,
-      "end": 2.789
+      "start": 2.92,
+      "end": 3.104
     },
     {
       "word": "sail",
-      "start": 2.789,
-      "end": 3.11
+      "start": 3.104,
+      "end": 3.456
     },
     {
       "word": "next",
-      "start": 3.11,
-      "end": 3.829
+      "start": 3.456,
+      "end": 4.272
     },
     {
       "word": "they’re",
-      "start": 3.829,
-      "end": 4.15
+      "start": 4.272,
+      "end": 4.52
     },
     {
       "word": "listening",
-      "start": 4.15,
-      "end": 4.4
+      "start": 4.52,
+      "end": 4.77
     }
   ]
 }

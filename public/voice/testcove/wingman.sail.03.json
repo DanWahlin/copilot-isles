@@ -5,103 +5,103 @@
   "words": [
     {
       "word": "Port",
-      "start": 0.11,
-      "end": 0.35
+      "start": 0,
+      "end": 0.2
     },
     {
       "word": "Meridian’s",
-      "start": 0.35,
-      "end": 0.87
+      "start": 0.2,
+      "end": 0.768
     },
     {
       "word": "east",
-      "start": 0.87,
-      "end": 1.19
+      "start": 0.768,
+      "end": 1.013
     },
     {
       "word": "on",
-      "start": 1.19,
-      "end": 1.27
+      "start": 1.013,
+      "end": 1.14
     },
     {
       "word": "the",
-      "start": 1.27,
-      "end": 1.39
+      "start": 1.14,
+      "end": 1.267
     },
     {
       "word": "chart",
-      "start": 1.39,
-      "end": 1.99
+      "start": 1.267,
+      "end": 1.98
     },
     {
       "word": "but",
-      "start": 1.99,
-      "end": 2.23
+      "start": 1.98,
+      "end": 2.22
     },
     {
       "word": "she’s",
-      "start": 2.23,
-      "end": 2.429
+      "start": 2.22,
+      "end": 2.52
     },
     {
       "word": "not",
-      "start": 2.429,
-      "end": 2.59
+      "start": 2.52,
+      "end": 2.68
     },
     {
       "word": "ready",
-      "start": 2.59,
-      "end": 2.829
+      "start": 2.68,
+      "end": 2.92
     },
     {
       "word": "for",
-      "start": 2.829,
-      "end": 2.949
+      "start": 2.92,
+      "end": 3.093
     },
     {
       "word": "visitors",
-      "start": 2.949,
-      "end": 3.389
+      "start": 3.093,
+      "end": 3.6
     },
     {
       "word": "yet",
-      "start": 3.389,
-      "end": 4.31
+      "start": 3.6,
+      "end": 4.107
     },
     {
       "word": "Until",
-      "start": 4.31,
-      "end": 4.67
+      "start": 4.107,
+      "end": 5.08
     },
     {
       "word": "she",
-      "start": 4.67,
-      "end": 4.87
+      "start": 5.08,
+      "end": 5.307
     },
     {
       "word": "is",
-      "start": 4.87,
-      "end": 5.51
+      "start": 5.307,
+      "end": 5.8
     },
     {
       "word": "these",
-      "start": 5.51,
-      "end": 5.79
+      "start": 5.8,
+      "end": 6.046
     },
     {
       "word": "waters",
-      "start": 5.79,
-      "end": 6.19
+      "start": 6.046,
+      "end": 6.36
     },
     {
       "word": "are",
-      "start": 6.19,
-      "end": 6.31
+      "start": 6.36,
+      "end": 6.547
     },
     {
       "word": "yours",
-      "start": 6.31,
-      "end": 6.56
+      "start": 6.547,
+      "end": 6.797
     }
   ]
 }

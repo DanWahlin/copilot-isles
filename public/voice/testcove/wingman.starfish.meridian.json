@@ -5,73 +5,73 @@
   "words": [
     {
       "word": "And",
-      "start": 0.31,
-      "end": 0.47
+      "start": 0,
+      "end": 0.32
     },
     {
       "word": "five",
-      "start": 0.47,
-      "end": 0.79
+      "start": 0.32,
+      "end": 0.72
     },
     {
       "word": "starfish",
-      "start": 0.79,
-      "end": 1.27
+      "start": 0.72,
+      "end": 1.32
     },
     {
       "word": "are",
-      "start": 1.27,
-      "end": 1.39
+      "start": 1.32,
+      "end": 1.463
     },
     {
       "word": "hidden",
-      "start": 1.39,
-      "end": 1.67
+      "start": 1.463,
+      "end": 1.646
     },
     {
       "word": "around",
-      "start": 1.67,
-      "end": 1.99
+      "start": 1.646,
+      "end": 1.968
     },
     {
       "word": "Port",
-      "start": 1.99,
-      "end": 2.23
+      "start": 1.968,
+      "end": 2.22
     },
     {
       "word": "Meridian",
-      "start": 2.23,
-      "end": 3.19
+      "start": 2.22,
+      "end": 3.12
     },
     {
       "word": "Your",
-      "start": 3.19,
-      "end": 3.389
+      "start": 3.12,
+      "end": 3.493
     },
     {
       "word": "count's",
-      "start": 3.389,
-      "end": 3.71
+      "start": 3.493,
+      "end": 3.947
     },
     {
       "word": "in",
-      "start": 3.71,
-      "end": 3.789
+      "start": 3.947,
+      "end": 4.04
     },
     {
       "word": "the",
-      "start": 3.789,
-      "end": 3.949
+      "start": 4.04,
+      "end": 4.22
     },
     {
       "word": "top",
-      "start": 3.949,
-      "end": 4.19
+      "start": 4.22,
+      "end": 4.453
     },
     {
       "word": "right",
-      "start": 4.19,
-      "end": 4.44
+      "start": 4.453,
+      "end": 4.703
     }
   ]
 }

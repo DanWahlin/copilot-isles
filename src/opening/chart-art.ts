@@ -1,6 +1,7 @@
 import { ARCHIPELAGO, chapterParts } from '../ui/chart/archipelago';
 import { CARTOUCHE, CHART_D, CHART_W, sheetUV, worldToPaper } from './chart-map';
 import { islandShoreline, type IslandGrid } from './island-grid';
+import { mulberry32 } from '../util/math';
 
 /**
  * The Captain's Chart drawn in ink (Canvas 2D, once, at the start of the opening): the neatline,
@@ -304,15 +305,4 @@ function canvas(w: number, h: number): HTMLCanvasElement {
   el.width = w;
   el.height = h;
   return el;
-}
-
-function mulberry32(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
 }

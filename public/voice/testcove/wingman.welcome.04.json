@@ -5,88 +5,88 @@
   "words": [
     {
       "word": "Your",
-      "start": 0.19,
-      "end": 0.43
+      "start": 0,
+      "end": 0.227
     },
     {
       "word": "tasks",
-      "start": 0.43,
-      "end": 0.83
+      "start": 0.227,
+      "end": 0.6
     },
     {
       "word": "are",
-      "start": 0.83,
-      "end": 0.95
+      "start": 0.6,
+      "end": 0.747
     },
     {
       "word": "in",
-      "start": 0.95,
-      "end": 1.03
+      "start": 0.747,
+      "end": 0.82
     },
     {
       "word": "the",
-      "start": 1.03,
-      "end": 1.15
+      "start": 0.82,
+      "end": 0.96
     },
     {
       "word": "top",
-      "start": 1.15,
-      "end": 1.35
+      "start": 0.96,
+      "end": 1.28
     },
     {
       "word": "left",
-      "start": 1.35,
-      "end": 1.83
+      "start": 1.28,
+      "end": 1.94
     },
     {
       "word": "and",
-      "start": 1.83,
-      "end": 1.99
+      "start": 1.94,
+      "end": 2.04
     },
     {
       "word": "the",
-      "start": 1.99,
-      "end": 2.11
+      "start": 2.04,
+      "end": 2.22
     },
     {
       "word": "compass",
-      "start": 2.11,
-      "end": 2.469
+      "start": 2.22,
+      "end": 2.693
     },
     {
       "word": "up",
-      "start": 2.469,
-      "end": 2.63
+      "start": 2.693,
+      "end": 2.88
     },
     {
       "word": "top",
-      "start": 2.63,
-      "end": 2.829
+      "start": 2.88,
+      "end": 3.189
     },
     {
       "word": "points",
-      "start": 2.829,
-      "end": 3.19
+      "start": 3.189,
+      "end": 3.653
     },
     {
       "word": "to",
-      "start": 3.19,
-      "end": 3.309
+      "start": 3.653,
+      "end": 3.78
     },
     {
       "word": "the",
-      "start": 3.309,
-      "end": 3.429
+      "start": 3.78,
+      "end": 3.904
     },
     {
       "word": "next",
-      "start": 3.429,
-      "end": 3.67
+      "start": 3.904,
+      "end": 4.22
     },
     {
       "word": "one",
-      "start": 3.67,
-      "end": 3.92
+      "start": 4.22,
+      "end": 4.47
     }
   ]
 }

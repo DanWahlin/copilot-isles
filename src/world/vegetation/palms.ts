@@ -9,6 +9,7 @@ import {
   Uint32BufferAttribute,
   Vector3,
 } from 'three/webgpu';
+import { mulberry32, smoothstep } from '../../util/math';
 
 export const PALM_PART = { STEM: 0, FROND: 1, COCONUT: 5 } as const;
 
@@ -17,22 +18,6 @@ const v0 = new Vector3();
 const v1 = new Vector3();
 const v2 = new Vector3();
 const v3 = new Vector3();
-
-function smooth(a: number, b: number, x: number): number {
-  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
-}
-
-function mulberry32(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 class GeoBuilder {
   private readonly pos: number[] = [];
@@ -272,7 +257,7 @@ function addFrond(builder: GeoBuilder, options: FrondOptions): void {
         if (v3.lengthSq() < 1e-12) v3.copy(g.nup);
         v3.normalize();
         if (v3.dot(g.nup) < 0) v3.negate();
-        const fl = g.t * smooth(0.05, 0.3, g.s) * flutter;
+        const fl = g.t * smoothstep(0.05, 0.3, g.s) * flutter;
         row.push(builder.vertex(g.q, v3, g.s, g.t, [stemU, g.s, fl, phase], [part, age, g.Ll, seed]));
       }
       idx.push(row);
@@ -350,7 +335,7 @@ function palmRadius(u: number): number {
   const y = u * PALM_H;
   let radius = 0.155 + 0.045 * (1 - u) + 0.19 * Math.exp(-Math.max(y, 0) / 0.42);
   radius *= 1 + 0.05 * Math.sin(y * 1.7) * (1 - u);
-  radius += 0.07 * smooth(0.955, 0.99, u) - 0.1 * smooth(0.995, 1.02, u);
+  radius += 0.07 * smoothstep(0.955, 0.99, u) - 0.1 * smoothstep(0.995, 1.02, u);
   return radius;
 }
 
@@ -387,7 +372,7 @@ function palmFrondParams(rand: () => number, count: number): PalmFrondSpec[] {
   for (let i = 0; i < count; i += 1) {
     const a = count > 1 ? i / (count - 1) : 0.5;
     const dead = i === count - 1 && count > 10;
-    const length = (3.9 + 1.3 * smooth(0, 0.45, a)) * (0.9 + 0.2 * rand());
+    const length = (3.9 + 1.3 * smoothstep(0, 0.45, a)) * (0.9 + 0.2 * rand());
     list.push({
       a,
       dead,
@@ -424,7 +409,8 @@ function addPalmCrown(
       length,
       segs,
       cross,
-      leafLen: (s) => leafScale * 0.19 * length * (smooth(0.05, 0.27, s) * (1 - 0.62 * smooth(0.32, 1, s))),
+      leafLen: (s) =>
+        leafScale * 0.19 * length * (smoothstep(0.05, 0.27, s) * (1 - 0.62 * smoothstep(0.32, 1, s))),
       leafAngle: (s) => 1.05 - 0.45 * s,
       droop: (s) => (f.dead ? 1.25 : 0.48 + 0.5 * f.a) + 0.32 * s,
       curl: f.dead ? 0.1 : 0.22,
@@ -513,7 +499,7 @@ export function buildYoungPalm(seed = 5): BufferGeometry {
       length,
       segs: 5,
       cross: 1,
-      leafLen: (s) => 0.21 * length * (smooth(0.04, 0.25, s) * (1 - 0.6 * smooth(0.3, 1, s))),
+      leafLen: (s) => 0.21 * length * (smoothstep(0.04, 0.25, s) * (1 - 0.6 * smoothstep(0.3, 1, s))),
       leafAngle: (s) => 1.0 - 0.4 * s,
       droop: (s) => 0.25 + 0.4 * a + 0.2 * s,
       curl: 0.15,

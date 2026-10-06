@@ -5,58 +5,58 @@
   "words": [
     {
       "word": "Eight",
-      "start": 0.27,
-      "end": 0.47
+      "start": 0,
+      "end": 0.208
     },
     {
       "word": "questions",
-      "start": 0.47,
-      "end": 0.99
+      "start": 0.208,
+      "end": 0.77
     },
     {
       "word": "Captain",
-      "start": 0.99,
-      "end": 1.91
+      "start": 0.77,
+      "end": 1.413
     },
     {
       "word": "No",
-      "start": 1.91,
-      "end": 2.23
+      "start": 1.413,
+      "end": 1.88
     },
     {
       "word": "answers",
-      "start": 2.23,
-      "end": 2.51
+      "start": 1.88,
+      "end": 2.208
     },
     {
       "word": "from",
-      "start": 2.51,
-      "end": 2.67
+      "start": 2.208,
+      "end": 2.453
     },
     {
       "word": "me",
-      "start": 2.67,
-      "end": 2.829
+      "start": 2.453,
+      "end": 2.587
     },
     {
       "word": "in",
-      "start": 2.829,
-      "end": 2.949
+      "start": 2.587,
+      "end": 2.68
     },
     {
       "word": "there",
-      "start": 2.949,
-      "end": 3.309
+      "start": 2.68,
+      "end": 3.36
     },
     {
       "word": "only",
-      "start": 3.309,
-      "end": 3.63
+      "start": 3.36,
+      "end": 3.74
     },
     {
       "word": "nudges",
-      "start": 3.63,
-      "end": 3.88
+      "start": 3.74,
+      "end": 3.99
     }
   ]
 }

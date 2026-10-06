@@ -5,138 +5,138 @@
   "words": [
     {
       "word": "Commands",
-      "start": 0.07,
-      "end": 0.67
+      "start": 0,
+      "end": 0.453
     },
     {
       "word": "go",
-      "start": 0.67,
-      "end": 0.87
+      "start": 0.453,
+      "end": 0.613
     },
     {
       "word": "to",
-      "start": 0.87,
-      "end": 0.99
+      "start": 0.613,
+      "end": 0.74
     },
     {
       "word": "the",
-      "start": 0.99,
-      "end": 1.15
+      "start": 0.74,
+      "end": 0.853
     },
     {
       "word": "Terminal",
-      "start": 1.15,
-      "end": 2.23
+      "start": 0.853,
+      "end": 1.449
     },
     {
       "word": "Requests",
-      "start": 2.23,
-      "end": 3.03
+      "start": 1.449,
+      "end": 2.24
     },
     {
       "word": "go",
-      "start": 3.03,
-      "end": 3.23
+      "start": 2.24,
+      "end": 2.427
     },
     {
       "word": "to",
-      "start": 3.23,
-      "end": 3.349
+      "start": 2.427,
+      "end": 2.52
     },
     {
       "word": "the",
-      "start": 3.349,
-      "end": 3.51
+      "start": 2.52,
+      "end": 2.72
     },
     {
       "word": "agent",
-      "start": 3.51,
-      "end": 4.15
+      "start": 2.72,
+      "end": 3.26
     },
     {
       "word": "through",
-      "start": 4.15,
-      "end": 4.47
+      "start": 3.26,
+      "end": 3.7
     },
     {
       "word": "the",
-      "start": 4.47,
-      "end": 4.59
+      "start": 3.7,
+      "end": 3.794
     },
     {
       "word": "prompt",
-      "start": 4.59,
-      "end": 4.99
+      "start": 3.794,
+      "end": 4.1
     },
     {
       "word": "box",
-      "start": 4.99,
-      "end": 5.27
+      "start": 4.1,
+      "end": 4.864
     },
     {
       "word": "That's",
-      "start": 5.27,
-      "end": 6.39
+      "start": 4.864,
+      "end": 5.627
     },
     {
       "word": "setup",
-      "start": 6.39,
-      "end": 6.91
+      "start": 5.627,
+      "end": 5.808
     },
     {
       "word": "done",
-      "start": 6.91,
-      "end": 7.31
+      "start": 5.808,
+      "end": 6.27
     },
     {
       "word": "Captain",
-      "start": 7.31,
-      "end": 8.149
+      "start": 6.27,
+      "end": 6.8
     },
     {
       "word": "Nell's",
-      "start": 8.149,
-      "end": 8.67
+      "start": 6.8,
+      "end": 7.32
     },
     {
       "word": "waiting",
-      "start": 8.67,
-      "end": 9.03
+      "start": 7.32,
+      "end": 7.653
     },
     {
       "word": "by",
-      "start": 9.03,
-      "end": 9.19
+      "start": 7.653,
+      "end": 7.776
     },
     {
       "word": "your",
-      "start": 9.19,
-      "end": 9.35
+      "start": 7.776,
+      "end": 7.92
     },
     {
       "word": "bow",
-      "start": 9.35,
-      "end": 9.67
+      "start": 7.92,
+      "end": 8.192
     },
     {
       "word": "with",
-      "start": 9.67,
-      "end": 9.83
+      "start": 8.192,
+      "end": 8.34
     },
     {
       "word": "the",
-      "start": 9.83,
-      "end": 9.95
+      "start": 8.34,
+      "end": 8.44
     },
     {
       "word": "Harbormaster's",
-      "start": 9.95,
-      "end": 10.67
+      "start": 8.44,
+      "end": 9.267
     },
     {
       "word": "Trial",
-      "start": 10.67,
-      "end": 10.92
+      "start": 9.267,
+      "end": 9.517
     }
   ]
 }

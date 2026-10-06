@@ -5,98 +5,98 @@
   "words": [
     {
       "word": "Fine",
-      "start": 0.07,
-      "end": 0.47
+      "start": 0,
+      "end": 0.38
     },
     {
       "word": "colours",
-      "start": 0.47,
-      "end": 0.87
+      "start": 0.38,
+      "end": 1.16
     },
     {
       "word": "Captain",
-      "start": 0.87,
-      "end": 1.23
+      "start": 1.16,
+      "end": 1.84
     },
     {
       "word": "Next",
-      "start": 1.23,
-      "end": 1.91
+      "start": 1.84,
+      "end": 3.28
     },
     {
       "word": "your",
-      "start": 1.91,
-      "end": 2.07
+      "start": 3.28,
+      "end": 3.68
     },
     {
       "word": "own",
-      "start": 2.07,
-      "end": 2.349
+      "start": 3.68,
+      "end": 4
     },
     {
       "word": "copy",
-      "start": 2.349,
-      "end": 2.63
+      "start": 4,
+      "end": 4.373
     },
     {
       "word": "of",
-      "start": 2.63,
-      "end": 2.71
+      "start": 4.373,
+      "end": 4.5
     },
     {
       "word": "the",
-      "start": 2.71,
-      "end": 2.829
+      "start": 4.5,
+      "end": 4.64
     },
     {
       "word": "course",
-      "start": 2.829,
-      "end": 3.469
+      "start": 4.64,
+      "end": 5.424
     },
     {
       "word": "Ezra's",
-      "start": 3.469,
-      "end": 3.909
+      "start": 5.424,
+      "end": 6.107
     },
     {
       "word": "at",
-      "start": 3.909,
-      "end": 4.03
+      "start": 6.107,
+      "end": 6.2
     },
     {
       "word": "his",
-      "start": 4.03,
-      "end": 4.19
+      "start": 6.2,
+      "end": 6.36
     },
     {
       "word": "chart",
-      "start": 4.19,
-      "end": 4.51
+      "start": 6.36,
+      "end": 6.627
     },
     {
       "word": "table",
-      "start": 4.51,
-      "end": 4.87
+      "start": 6.627,
+      "end": 7.248
     },
     {
       "word": "down",
-      "start": 4.87,
-      "end": 5.15
+      "start": 7.248,
+      "end": 7.493
     },
     {
       "word": "by",
-      "start": 5.15,
-      "end": 5.27
+      "start": 7.493,
+      "end": 7.62
     },
     {
       "word": "the",
-      "start": 5.27,
-      "end": 5.39
+      "start": 7.62,
+      "end": 7.76
     },
     {
       "word": "pier",
-      "start": 5.39,
-      "end": 5.64
+      "start": 7.76,
+      "end": 8.01
     }
   ]
 }

@@ -5,118 +5,118 @@
   "words": [
     {
       "word": "Every",
-      "start": 0.31,
-      "end": 0.67
+      "start": 0,
+      "end": 0.297
     },
     {
       "word": "island",
-      "start": 0.67,
-      "end": 1.07
+      "start": 0.297,
+      "end": 0.7
     },
     {
       "word": "out",
-      "start": 1.07,
-      "end": 1.27
+      "start": 0.7,
+      "end": 0.912
     },
     {
       "word": "here",
-      "start": 1.27,
-      "end": 1.55
+      "start": 0.912,
+      "end": 1.1
     },
     {
       "word": "teaches",
-      "start": 1.55,
-      "end": 1.91
+      "start": 1.1,
+      "end": 1.6
     },
     {
       "word": "a",
-      "start": 1.91,
-      "end": 1.99
+      "start": 1.6,
+      "end": 1.73
     },
     {
       "word": "chapter",
-      "start": 1.99,
-      "end": 2.349
+      "start": 1.73,
+      "end": 2.133
     },
     {
       "word": "of",
-      "start": 2.349,
-      "end": 2.469
+      "start": 2.133,
+      "end": 2.26
     },
     {
       "word": "the",
-      "start": 2.469,
-      "end": 2.63
+      "start": 2.26,
+      "end": 2.377
     },
     {
       "word": "GitHub",
-      "start": 2.63,
-      "end": 2.989
+      "start": 2.377,
+      "end": 2.82
     },
     {
       "word": "Copilot",
-      "start": 2.989,
-      "end": 3.51
+      "start": 2.82,
+      "end": 3.5
     },
     {
       "word": "app",
-      "start": 3.51,
-      "end": 3.75
+      "start": 3.5,
+      "end": 3.72
     },
     {
       "word": "for",
-      "start": 3.75,
-      "end": 3.909
+      "start": 3.72,
+      "end": 3.896
     },
     {
       "word": "Beginners",
-      "start": 3.909,
-      "end": 4.31
+      "start": 3.896,
+      "end": 4.457
     },
     {
       "word": "course",
-      "start": 4.31,
-      "end": 4.95
+      "start": 4.457,
+      "end": 5.32
     },
     {
       "word": "and",
-      "start": 4.95,
-      "end": 5.19
+      "start": 5.32,
+      "end": 5.472
     },
     {
       "word": "each",
-      "start": 5.19,
-      "end": 5.47
+      "start": 5.472,
+      "end": 5.68
     },
     {
       "word": "one",
-      "start": 5.47,
-      "end": 5.71
+      "start": 5.68,
+      "end": 5.96
     },
     {
       "word": "has",
-      "start": 5.71,
-      "end": 5.87
+      "start": 5.96,
+      "end": 6.12
     },
     {
       "word": "a",
-      "start": 5.87,
-      "end": 5.95
+      "start": 6.12,
+      "end": 6.24
     },
     {
       "word": "Seal",
-      "start": 5.95,
-      "end": 6.23
+      "start": 6.24,
+      "end": 6.613
     },
     {
       "word": "to",
-      "start": 6.23,
-      "end": 6.47
+      "start": 6.613,
+      "end": 6.784
     },
     {
       "word": "earn",
-      "start": 6.47,
-      "end": 6.72
+      "start": 6.784,
+      "end": 7.034
     }
   ]
 }

@@ -3,7 +3,7 @@ import { COVE } from '../layout';
 import { tierSettings, type TierSettings } from '../../engine/quality';
 import type { Tier } from '../contracts';
 import type { PlantInstance, PlantSpecies, ScatterOptions, ScatterSummary } from './types';
-import { clamp01, smoothstep } from '../../util/math';
+import { clamp01, segmentDistance, smoothstep } from '../../util/math';
 import { SeededRandom, hash2 } from './random';
 import { excludedByMargin } from './exclusions';
 
@@ -43,17 +43,6 @@ function dist2(x: number, z: number, cx: number, cz: number): number {
   const dx = x - cx;
   const dz = z - cz;
   return dx * dx + dz * dz;
-}
-
-function pointSegmentDistance(x: number, z: number, ax: number, az: number, bx: number, bz: number): number {
-  const vx = bx - ax;
-  const vz = bz - az;
-  const wx = x - ax;
-  const wz = z - az;
-  const c = Math.max(0, Math.min(1, (wx * vx + wz * vz) / Math.max(0.0001, vx * vx + vz * vz)));
-  const px = ax + vx * c;
-  const pz = az + vz * c;
-  return Math.hypot(x - px, z - pz);
 }
 
 function nearRect(
@@ -104,7 +93,7 @@ export function isVegetationExcluded(
   ) {
     return true;
   }
-  if (pointSegmentDistance(x, z, PATH_A.x, PATH_A.z, PATH_B.x, PATH_B.z) < 4.8) return true;
+  if (segmentDistance(x, z, PATH_A.x, PATH_A.z, PATH_B.x, PATH_B.z) < 4.8) return true;
   if (
     dist2(x, z, COVE.harbor.center.x, COVE.harbor.center.z) < (COVE.harbor.radius + 8) ** 2 &&
     z < COVE.quay.z + 18
@@ -168,6 +157,26 @@ function hillScore(x: number, z: number, y: number, masks: Masks): number {
       Math.hypot(x - COVE.hill.center.x, z - COVE.hill.center.z),
     );
   return clamp01(hill * smoothstep(3.5, 15, y) * (masks.grass * 0.9 + masks.rock * 0.18));
+}
+
+/** Smooth value noise (0-1) on a `cell`-metre lattice. */
+function valueNoise(x: number, z: number, cell: number, seed: number): number {
+  const gx = x / cell;
+  const gz = z / cell;
+  const ix = Math.floor(gx);
+  const iz = Math.floor(gz);
+  const fx = smoothstep(0, 1, gx - ix);
+  const fz = smoothstep(0, 1, gz - iz);
+  const a = hash2(ix, iz, seed);
+  const b = hash2(ix + 1, iz, seed);
+  const c = hash2(ix, iz + 1, seed);
+  const d = hash2(ix + 1, iz + 1, seed);
+  return a + (b - a) * fx + (c - a) * fz + (a - b - c + d) * fx * fz;
+}
+
+/** Where the hill's trees gather into groves, with open meadow between them (0 meadow → 1 grove). */
+function groveScore(x: number, z: number): number {
+  return smoothstep(0.4, 0.72, valueNoise(x, z, 36, 0x6a0e5) * 0.7 + valueNoise(x, z, 14, 0x2b7f1) * 0.3);
 }
 
 function logScore(_x: number, z: number, y: number, masks: Masks): number {
@@ -276,16 +285,21 @@ const RULES: RuleMap = {
     countHigh: 118,
     minDistance: 4.2,
     maxSlopeDeg: 34,
-    score: (x, z, y, masks) => hillScore(x, z, y, masks) * (0.65 + masks.grass * 0.35),
+    score: (x, z, y, masks) =>
+      hillScore(x, z, y, masks) * (0.65 + masks.grass * 0.35) * (0.45 + groveScore(x, z) * 0.55),
     scale: (rng) => rng.range(0.72, 1.35),
     lean: (_x, _z, rng) => ({ x: rng.signed(0.03), z: rng.signed(0.03) }),
   },
   broadleafTree: {
-    countHigh: 22,
-    minDistance: 13,
-    maxSlopeDeg: 32,
+    // Groves of round broadleaf trees over the grassy hill, with meadow between (Dan: Disney hills).
+    countHigh: 64,
+    minDistance: 8.5,
+    maxSlopeDeg: 35,
     score: (x, z, y, masks) =>
-      hillScore(x, z, y, masks) * smoothstep(7, 17, y) * (1 - ridgePalmScore(x, z, y, masks) * 0.55),
+      hillScore(x, z, y, masks) *
+      smoothstep(5, 14, y) *
+      (0.2 + groveScore(x, z) * 0.8) *
+      (1 - ridgePalmScore(x, z, y, masks) * 0.55),
     scale: (rng) => rng.range(0.74, 1.12),
     lean: (_x, _z, rng) => ({ x: rng.signed(0.02), z: rng.signed(0.02) }),
   },

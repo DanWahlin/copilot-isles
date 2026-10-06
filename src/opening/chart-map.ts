@@ -96,12 +96,6 @@ export function artPoint(id: string): { u: number; v: number } {
   return sheetUV(i.x, i.y);
 }
 
-/** Sheet position (0-1) → paper-local metres. */
-export function sheetToPaper(u: number, v: number, out: { x: number; z: number }): void {
-  out.x = (u - 0.5) * CHART_W;
-  out.z = (v - 0.5) * CHART_D;
-}
-
 /** A world point on `island` → paper-local metres (y is height above the paper). */
 export function worldToPaper(
   island: ChartIslandSource,

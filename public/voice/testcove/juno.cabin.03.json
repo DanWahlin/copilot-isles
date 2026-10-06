@@ -5,58 +5,58 @@
   "words": [
     {
       "word": "Quests",
-      "start": 0.063,
-      "end": 0.645
+      "start": 0,
+      "end": 0.422
     },
     {
       "word": "fill",
-      "start": 0.645,
-      "end": 0.9
+      "start": 0.422,
+      "end": 0.684
     },
     {
       "word": "your",
-      "start": 0.9,
-      "end": 1.045
+      "start": 0.684,
+      "end": 0.873
     },
     {
       "word": "Logbook",
-      "start": 1.045,
-      "end": 1.663
+      "start": 0.873,
+      "end": 1.364
     },
     {
       "word": "and",
-      "start": 1.663,
-      "end": 1.844
+      "start": 1.364,
+      "end": 1.556
     },
     {
       "word": "your",
-      "start": 1.844,
-      "end": 2.027
+      "start": 1.556,
+      "end": 1.757
     },
     {
       "word": "purse",
-      "start": 2.027,
-      "end": 2.972
+      "start": 1.757,
+      "end": 2.487
     },
     {
       "word": "Then",
-      "start": 2.972,
-      "end": 3.3
+      "start": 2.487,
+      "end": 2.957
     },
     {
       "word": "we",
-      "start": 3.3,
-      "end": 3.48
+      "start": 2.957,
+      "end": 3.258
     },
     {
       "word": "sail",
-      "start": 3.48,
-      "end": 3.809
+      "start": 3.258,
+      "end": 3.588
     },
     {
       "word": "on",
-      "start": 3.809,
-      "end": 4.059
+      "start": 3.588,
+      "end": 3.838
     }
   ]
 }

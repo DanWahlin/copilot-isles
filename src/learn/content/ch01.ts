@@ -38,7 +38,7 @@ const SETTINGS = {
 } as const;
 
 /** The course's prompts for this chapter, word for word. */
-export const CH01_PROMPTS = {
+const CH01_PROMPTS = {
   chat: 'In the GitHub Copilot app, explain when I should use a chat and when I should use a project session. Do not create or change files.',
   tour: "I'm learning the copilot-app-for-beginners course. Give me a beginner-friendly tour of the samples/book-app-web sample before I begin the hands-on exercises. Explain what the app does, the technologies it uses, how its main files are organized, how data flows through it and what the tests cover. Refer to specific file paths and finish with a suggested reading order. Do not change any files.",
   filterBooks:
@@ -704,7 +704,7 @@ export const CH01: ChapterContent = {
       image: 'ch01/app-quick-chat',
       caption:
         'Select **+** next to **Projects**, then **Chat**. Check that the project picker below the prompt box shows **Chat**, then send the prompt. The reply should say chats suit general questions and project sessions bring repository context. It shouldn’t change any files, and the app doesn’t create a branch or worktree for a chat.',
-      code: 'In the GitHub Copilot app, explain when I should use a chat and when I should use a project session. Do not create or change files.',
+      code: CH01_PROMPTS.chat,
       source: src('chat-sessions'),
     },
     {
@@ -712,7 +712,7 @@ export const CH01: ChapterContent = {
       title: 'Tour the sample in a project session',
       caption:
         'Use a project session when the agent needs your repository, changes code or makes something like a pull request. Most project sessions should use a **New worktree**. Chapter 00’s setup session on **Current checkout** was the exception. The app remembers that choice for your next session, so you’ll switch back to **New worktree** in Chapter 02. Return to the setup session, listed under `copilot-app-for-beginners` in the sidebar, and send this. The reply should cover `samples/book-app-web`’s purpose, technologies, main files, data flow and tests, and change nothing.',
-      code: "I'm learning the copilot-app-for-beginners course. Give me a beginner-friendly tour of the samples/book-app-web sample before I begin the hands-on exercises. Explain what the app does, the technologies it uses, how its main files are organized, how data flows through it and what the tests cover. Refer to specific file paths and finish with a suggested reading order. Do not change any files.",
+      code: CH01_PROMPTS.tour,
       source: src('project-sessions'),
     },
     {
@@ -735,7 +735,7 @@ export const CH01: ChapterContent = {
       title: 'Try the controls',
       caption:
         'In your project session, select **Interactive** mode. Open the model control, keep **Auto** or your current model and the default effort, and send this. The reply should say search matches titles and authors whatever the letter case, and point to `samples/book-app-web/src/App.tsx`. You can change the model and effort mid-session without changing the mode.',
-      code: 'In samples/book-app-web, explain how filterBooks searches book titles and authors. Does letter case affect the results? Refer to the relevant file. Do not change any files.',
+      code: CH01_PROMPTS.filterBooks,
       source: src('try-the-controls'),
     },
     {

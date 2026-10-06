@@ -8,6 +8,7 @@ import {
   terraceRun,
   type TerraceRowSpec,
 } from './terraces';
+import { segmentDistance, sinHash } from '../../util/math';
 
 /**
  * Port Meridian's town planted like a Mediterranean harbour town: a row of palms along the quay,
@@ -87,18 +88,6 @@ const BUILT: readonly (readonly [number, number, number, number])[] = [
   [668, -824.8, 5, 5],
 ];
 
-function hash(x: number, z: number, salt: number): number {
-  const v = Math.sin(x * 127.1 + z * 311.7 + salt * 74.7) * 43758.5453;
-  return v - Math.floor(v);
-}
-
-function segmentDistance(x: number, z: number, ax: number, az: number, bx: number, bz: number): number {
-  const dx = bx - ax;
-  const dz = bz - az;
-  const t = Math.min(1, Math.max(0, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz)));
-  return Math.hypot(x - (ax + dx * t), z - (az + dz * t));
-}
-
 const ROWS: readonly TerraceRowSpec[] = [HARBOUR_FRONT_ROW, ...TERRACE_ROWS];
 
 /** Every terrace house's footprint (front and back runs) on the fullest tier. */
@@ -151,11 +140,11 @@ function plant(
     y,
     z,
     scale,
-    rotation: hash(seed, 1, 1) * Math.PI * 2,
-    leanX: palm ? (hash(seed, 2, 2) - 0.5) * 0.1 : 0,
-    leanZ: palm ? (hash(seed, 3, 3) - 0.5) * 0.1 : 0,
-    colorSeed: hash(seed, 4, 4),
-    lodSeed: hash(seed, 5, 5),
+    rotation: sinHash(seed, 1, 1) * Math.PI * 2,
+    leanX: palm ? (sinHash(seed, 2, 2) - 0.5) * 0.1 : 0,
+    leanZ: palm ? (sinHash(seed, 3, 3) - 0.5) * 0.1 : 0,
+    colorSeed: sinHash(seed, 4, 4),
+    lodSeed: sinHash(seed, 5, 5),
     slopeDeg: 0,
   };
 }
@@ -172,14 +161,14 @@ export function meridianTownPlants(tier: Tier): PlantInstance[] {
   // The quay: a palm row along the back of the promenade, the town's face from the sea.
   const quay = MERIDIAN.harbor.quay;
   for (let x = quay.x0 + 8, i = 0; x < quay.x1 - 4; x += 11, i++) {
-    if (hash(i, 7, 11) > Math.max(keep, 0.6)) continue;
+    if (sinHash(i, 7, 11) > Math.max(keep, 0.6)) continue;
     add(
       i % 3 === 1 ? 'palmCluster' : 'palmTall',
       x,
       quay.height,
       quay.z0 + 1.6,
       900 + i,
-      0.88 + hash(i, 1, 12) * 0.2,
+      0.88 + sinHash(i, 1, 12) * 0.2,
     );
   }
 
@@ -188,10 +177,10 @@ export function meridianTownPlants(tier: Tier): PlantInstance[] {
     if (row === HARBOUR_FRONT_ROW) continue;
     const front = terraceRun(row, false).houses;
     for (const h of front) {
-      if (hash(h.seed, 3, 21) > keep) continue;
+      if (sinHash(h.seed, 3, 21) > keep) continue;
       const bedZ = h.z + h.d / 2 + 0.85;
       if (bedZ > row.laneZ - row.laneWidth / 2 - 0.4) continue;
-      const pick = hash(h.seed, 4, 22);
+      const pick = sinHash(h.seed, 4, 22);
       const side = pick < 0.5 ? -1 : 1;
       const cx = h.x + side * (h.w / 2 - 0.7);
       const species: PlantSpecies =
@@ -205,10 +194,10 @@ export function meridianTownPlants(tier: Tier): PlantInstance[] {
         species === 'banana'
           ? 0.7
           : species === 'flowerBush'
-            ? 1.5 + hash(h.seed, 5, 23) * 0.5
-            : 0.9 + hash(h.seed, 5, 23) * 0.3,
+            ? 1.5 + sinHash(h.seed, 5, 23) * 0.5
+            : 0.9 + sinHash(h.seed, 5, 23) * 0.3,
       );
-      if (h.w >= 6 && hash(h.seed, 6, 24) < keep * 0.7)
+      if (h.w >= 6 && sinHash(h.seed, 6, 24) < keep * 0.7)
         add('flowerBush', h.x - side * (h.w / 2 - 0.6), row.height, bedZ, h.seed + 50, 1.6);
     }
   }
@@ -218,14 +207,14 @@ export function meridianTownPlants(tier: Tier): PlantInstance[] {
   // (Above the harbour front: the quay has its own palm row.)
   for (let cz = Math.ceil(-990 / CELL); cz * CELL < -792; cz++) {
     for (let cx = Math.ceil(552 / CELL); cx * CELL < 852; cx++) {
-      if (hash(cx, cz, 31) > keep * 0.85) continue;
-      const x = (cx + 0.15 + hash(cx, cz, 32) * 0.7) * CELL;
-      const z = (cz + 0.15 + hash(cx, cz, 33) * 0.7) * CELL;
+      if (sinHash(cx, cz, 31) > keep * 0.85) continue;
+      const x = (cx + 0.15 + sinHash(cx, cz, 32) * 0.7) * CELL;
+      const z = (cz + 0.15 + sinHash(cx, cz, 33) * 0.7) * CELL;
       // Only near the town: it's planted, not wild (the hills have their own planting).
       if (!nearTown(x, z)) continue;
       const y = groundAt(x, z);
       if (y < 3) continue;
-      const pick = hash(cx, cz, 34);
+      const pick = sinHash(cx, cz, 34);
       const species: PlantSpecies =
         pick < 0.2
           ? 'cypress'
@@ -242,12 +231,12 @@ export function meridianTownPlants(tier: Tier): PlantInstance[] {
                     : 'brush';
       const scale =
         species === 'broadleafTree'
-          ? 0.62 + hash(cx, cz, 35) * 0.3
+          ? 0.62 + sinHash(cx, cz, 35) * 0.3
           : species === 'cypress'
-            ? 0.8 + hash(cx, cz, 35) * 0.4
+            ? 0.8 + sinHash(cx, cz, 35) * 0.4
             : species === 'flowerBush'
-              ? 1.6 + hash(cx, cz, 35) * 0.7
-              : 0.85 + hash(cx, cz, 35) * 0.3;
+              ? 1.6 + sinHash(cx, cz, 35) * 0.7
+              : 0.85 + sinHash(cx, cz, 35) * 0.3;
       add(species, x, y - 0.1, z, cx * 1000 + cz, scale);
     }
   }

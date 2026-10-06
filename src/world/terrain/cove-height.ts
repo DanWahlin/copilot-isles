@@ -1,6 +1,6 @@
 import type { HeightField } from '../contracts';
 import { COVE } from '../layout';
-import { clamp01, smoothstep } from '../../util/math';
+import { clamp01, segmentDistance, smoothstep } from '../../util/math';
 import { seaStackSeabed } from './sea-stack-shape';
 
 const SEED = 0x51e_c0de;
@@ -167,13 +167,6 @@ function discPadHeight(
   const d = Math.hypot(x - cx, z - cz);
   const w = 1 - smoothstep(radius - edge, radius, d);
   return mix(current, target, w);
-}
-
-function segmentDistance(x: number, z: number, ax: number, az: number, bx: number, bz: number): number {
-  const dx = bx - ax;
-  const dz = bz - az;
-  const t = clamp01(((x - ax) * dx + (z - az) * dz) / Math.max(EPSILON, dx * dx + dz * dz));
-  return Math.hypot(x - (ax + dx * t), z - (az + dz * t));
 }
 
 function pathMask(x: number, z: number): number {
@@ -480,7 +473,9 @@ export function coveMasks(x: number, z: number): CoveMasks {
     smoothstep(COVE.beach.z0 - 18, COVE.beach.z0 + 8, z) *
     (1 - smoothstep(COVE.beach.z1 + 18, COVE.beach.z1 + 48, z)) *
     (1 - smoothstep(160, 210, Math.abs(x))) *
-    (1 - smoothstep(0.45, 0.9, slope));
+    (1 - smoothstep(0.45, 0.9, slope)) *
+    // The beach stops at the backshore; the hill's flank above it is grass, not a sand slope.
+    (1 - smoothstep(3.2, 6, h));
   const lagoonSand = smoothstep(COVE.lagoon.radius + 18, 18, lagoonD);
   const deliberateBeach = Math.max(beachSand, lagoonSand * 0.72);
   const harborBackMeadow =
@@ -507,21 +502,32 @@ export function coveMasks(x: number, z: number): CoveMasks {
     path * 0.85 * (1 - dryHarborMeadow),
   );
   // On the headland only the sheer sea cliff is cliff (its mesh covers it); the shoulders above it and
-  // the clifftop are grass and scrub over rock.
+  // the clifftop are grass and scrub over rock. The island's inland hills (clear of the shore) are
+  // rolling grass too, a little steeper still, with rock only on the steepest faces.
+  const inland = smoothstep(3.5, 8, h) * smoothstep(8, 22, coast.distance) * (1 - headland);
+  const hillside = Math.max(headland, inland);
   let cliff = Math.max(
-    mix(smoothstep(0.52, 1.15, slope), smoothstep(1.4, 1.9, slope), headland),
+    mix(
+      smoothstep(0.52, 1.15, slope),
+      smoothstep(mix(1.4, 1.6, inland), mix(1.9, 2.2, inland), slope),
+      hillside,
+    ),
     smoothstep(COVE.seaStack.radius + 8, COVE.seaStack.radius - 1, stackD),
   );
   let rock = Math.max(
-    smoothstep(0.25, 0.72, slope) * (1 - headland * 0.6),
+    mix(smoothstep(0.25, 0.72, slope) * (1 - headland * 0.6), smoothstep(1.1, 1.7, slope) * 0.6, inland),
     headland * 0.22,
     rockyShore * 0.72,
-    smoothstep(8, 26, h) * 0.22,
-    outcrop * 0.45,
+    smoothstep(8, 26, h) * 0.22 * (1 - inland),
+    outcrop * 0.45 * (1 - inland * 0.5),
   );
   let grass =
     smoothstep(1.2, 4.5, h) *
-    mix(1 - smoothstep(0.22, 0.52, slope), 1 - smoothstep(0.75, 1.35, slope), headland) *
+    mix(
+      1 - smoothstep(0.22, 0.52, slope),
+      1 - smoothstep(mix(0.75, 0.95, inland), mix(1.35, 1.6, inland), slope),
+      hillside,
+    ) *
     (1 - path * 0.82);
   sand *= 1 - dryHarborMeadow * 0.94;
   grass = Math.max(grass, dryHarborMeadow * 0.92);

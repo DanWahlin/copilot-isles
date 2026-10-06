@@ -5,78 +5,78 @@
   "words": [
     {
       "word": "Papers",
-      "start": 0.07,
-      "end": 0.47
+      "start": 0,
+      "end": 0.627
     },
     {
       "word": "means",
-      "start": 0.47,
-      "end": 0.79
+      "start": 0.627,
+      "end": 1
     },
     {
       "word": "a",
-      "start": 0.79,
-      "end": 0.99
+      "start": 1,
+      "end": 1.109
     },
     {
       "word": "GitHub",
-      "start": 0.99,
-      "end": 1.39
+      "start": 1.109,
+      "end": 1.58
     },
     {
       "word": "account",
-      "start": 1.39,
-      "end": 1.87
+      "start": 1.58,
+      "end": 2.6
     },
     {
       "word": "and",
-      "start": 1.87,
-      "end": 2.07
+      "start": 2.6,
+      "end": 3.017
     },
     {
       "word": "either",
-      "start": 2.07,
-      "end": 2.349
+      "start": 3.017,
+      "end": 3.4
     },
     {
       "word": "a",
-      "start": 2.349,
-      "end": 2.429
+      "start": 3.4,
+      "end": 3.54
     },
     {
       "word": "Copilot",
-      "start": 2.429,
-      "end": 2.989
+      "start": 3.54,
+      "end": 4.192
     },
     {
       "word": "plan",
-      "start": 2.989,
-      "end": 3.389
+      "start": 4.192,
+      "end": 4.8
     },
     {
       "word": "or",
-      "start": 3.389,
-      "end": 3.51
+      "start": 4.8,
+      "end": 5.168
     },
     {
       "word": "your",
-      "start": 3.51,
-      "end": 3.67
+      "start": 5.168,
+      "end": 5.42
     },
     {
       "word": "own",
-      "start": 3.67,
-      "end": 3.869
+      "start": 5.42,
+      "end": 5.653
     },
     {
       "word": "model",
-      "start": 3.869,
-      "end": 4.11
+      "start": 5.653,
+      "end": 5.973
     },
     {
       "word": "provider",
-      "start": 4.11,
-      "end": 4.36
+      "start": 5.973,
+      "end": 6.223
     }
   ]
 }

@@ -5,108 +5,103 @@
   "words": [
     {
       "word": "They’ve",
-      "start": 0.07,
-      "end": 0.35
+      "start": 0,
+      "end": 0.206
     },
     {
       "word": "summed",
-      "start": 0.35,
-      "end": 0.59
+      "start": 0.206,
+      "end": 0.507
     },
     {
       "word": "up",
-      "start": 0.59,
-      "end": 0.75
+      "start": 0.507,
+      "end": 0.6
     },
     {
       "word": "the",
-      "start": 0.75,
-      "end": 0.91
+      "start": 0.6,
+      "end": 0.766
     },
     {
       "word": "course",
-      "start": 0.91,
-      "end": 1.63
+      "start": 0.766,
+      "end": 1.16
     },
     {
       "word": "chapter",
-      "start": 1.63,
-      "end": 2.11
+      "start": 1.16,
+      "end": 1.493
     },
     {
       "word": "by",
-      "start": 2.11,
-      "end": 2.309
+      "start": 1.493,
+      "end": 1.66
     },
     {
       "word": "chapter",
-      "start": 2.309,
-      "end": 2.989
+      "start": 1.66,
+      "end": 2.44
     },
     {
       "word": "and",
-      "start": 2.989,
-      "end": 3.27
+      "start": 2.44,
+      "end": 2.62
     },
     {
       "word": "flagged",
-      "start": 3.27,
-      "end": 3.71
+      "start": 2.62,
+      "end": 3.11
     },
     {
-      "word": "samples",
-      "start": 3.71,
-      "end": 4.91
-    },
-    {
-      "word": "book-app-web",
-      "start": 4.91,
-      "end": 6.71
+      "word": "samples/book-app-web",
+      "start": 3.11,
+      "end": 5.792
     },
     {
       "word": "That’s",
-      "start": 6.71,
-      "end": 7.11
+      "start": 5.792,
+      "end": 6.34
     },
     {
       "word": "the",
-      "start": 7.11,
-      "end": 7.23
+      "start": 6.34,
+      "end": 6.46
     },
     {
       "word": "web",
-      "start": 7.23,
-      "end": 7.51
+      "start": 6.46,
+      "end": 6.697
     },
     {
       "word": "sample",
-      "start": 7.51,
-      "end": 7.95
+      "start": 6.697,
+      "end": 7.06
     },
     {
       "word": "you’ll",
-      "start": 7.95,
-      "end": 8.189
+      "start": 7.06,
+      "end": 7.28
     },
     {
       "word": "use",
-      "start": 8.189,
-      "end": 8.51
+      "start": 7.28,
+      "end": 7.547
     },
     {
       "word": "in",
-      "start": 8.51,
-      "end": 8.59
+      "start": 7.547,
+      "end": 7.653
     },
     {
       "word": "later",
-      "start": 8.59,
-      "end": 9.069
+      "start": 7.653,
+      "end": 7.992
     },
     {
       "word": "exercises",
-      "start": 9.069,
-      "end": 9.319
+      "start": 7.992,
+      "end": 8.242
     }
   ]
 }

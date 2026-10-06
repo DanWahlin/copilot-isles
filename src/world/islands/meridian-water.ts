@@ -9,6 +9,8 @@
  * doesn't import `meridian.ts`.
  */
 
+import { smoothstep } from '../../util/math';
+
 export interface WaterBasinSpec {
   readonly x: number;
   readonly z: number;
@@ -193,11 +195,6 @@ function rimPointOf(b: WaterBasinSpec, a: number, k = 1): [number, number] {
 
 function mix(a: number, b: number, t: number): number {
   return a + (b - a) * t;
-}
-
-function smoothstep(a: number, b: number, v: number): number {
-  const t = Math.min(1, Math.max(0, (v - a) / (b - a)));
-  return t * t * (3 - 2 * t);
 }
 
 /** Catmull-Rom through the control points, resampled every STEP metres. */
@@ -438,5 +435,3 @@ export function createMeridianWater(dry: (x: number, z: number) => number): Meri
 
   return { basins, streams, box, carve, levelAt, shoreDistance, rimPoint: rimPointOf };
 }
-
-export { basinRadius as meridianBasinRadius };

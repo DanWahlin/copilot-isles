@@ -5,43 +5,43 @@
   "words": [
     {
       "word": "Now",
-      "start": 0.063,
-      "end": 0.572
+      "start": 0,
+      "end": 0.305
     },
     {
       "word": "open",
-      "start": 0.572,
-      "end": 0.936
+      "start": 0.305,
+      "end": 0.673
     },
     {
       "word": "the",
-      "start": 0.936,
-      "end": 1.045
+      "start": 0.673,
+      "end": 0.788
     },
     {
       "word": "chest",
-      "start": 1.045,
-      "end": 1.481
+      "start": 0.788,
+      "end": 1.295
     },
     {
       "word": "Captain",
-      "start": 1.481,
-      "end": 2.171
+      "start": 1.295,
+      "end": 1.636
     },
     {
       "word": "Our",
-      "start": 2.171,
-      "end": 2.354
+      "start": 1.636,
+      "end": 2
     },
     {
       "word": "chart’s",
-      "start": 2.354,
-      "end": 2.754
+      "start": 2,
+      "end": 2.317
     },
     {
       "word": "inside",
-      "start": 2.754,
-      "end": 3.004
+      "start": 2.317,
+      "end": 2.567
     }
   ]
 }

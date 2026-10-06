@@ -5,88 +5,88 @@
   "words": [
     {
       "word": "You’ve",
-      "start": 0.07,
-      "end": 0.31
+      "start": 0,
+      "end": 0.192
     },
     {
       "word": "been",
-      "start": 0.31,
-      "end": 0.51
+      "start": 0.192,
+      "end": 0.36
     },
     {
       "word": "running",
-      "start": 0.51,
-      "end": 0.83
+      "start": 0.36,
+      "end": 0.693
     },
     {
       "word": "commands",
-      "start": 0.83,
-      "end": 1.35
+      "start": 0.693,
+      "end": 1.173
     },
     {
       "word": "in",
-      "start": 1.35,
-      "end": 1.51
+      "start": 1.173,
+      "end": 1.351
     },
     {
       "word": "Terminal",
-      "start": 1.51,
-      "end": 2.19
+      "start": 1.351,
+      "end": 1.98
     },
     {
       "word": "all",
-      "start": 2.19,
-      "end": 2.429
+      "start": 1.98,
+      "end": 2.23
     },
     {
       "word": "morning",
-      "start": 2.429,
-      "end": 3.51
+      "start": 2.23,
+      "end": 3.024
     },
     {
       "word": "This",
-      "start": 3.51,
-      "end": 3.909
+      "start": 3.024,
+      "end": 3.66
     },
     {
       "word": "one’s",
-      "start": 3.909,
-      "end": 4.23
+      "start": 3.66,
+      "end": 3.976
     },
     {
       "word": "different",
-      "start": 4.23,
-      "end": 5.27
+      "start": 3.976,
+      "end": 4.827
     },
     {
       "word": "It’s",
-      "start": 5.27,
-      "end": 5.63
+      "start": 4.827,
+      "end": 5.48
     },
     {
       "word": "a",
-      "start": 5.63,
-      "end": 5.67
+      "start": 5.48,
+      "end": 5.59
     },
     {
       "word": "request",
-      "start": 5.67,
-      "end": 6.23
+      "start": 5.59,
+      "end": 6.1
     },
     {
       "word": "for",
-      "start": 6.23,
-      "end": 6.35
+      "start": 6.1,
+      "end": 6.2
     },
     {
       "word": "the",
-      "start": 6.35,
-      "end": 6.55
+      "start": 6.2,
+      "end": 6.413
     },
     {
       "word": "agent",
-      "start": 6.55,
-      "end": 6.8
+      "start": 6.413,
+      "end": 6.663
     }
   ]
 }

@@ -22,6 +22,7 @@ import {
 } from './fx';
 import { Battery, bearing, gunStations, PORT, STARBOARD, type Side } from './gunnery';
 import { RaiderBrain, type RaiderHelm, type RaiderView } from './raider-ai';
+import { clamp01 } from '../../util/math';
 
 /** A raider in a wave: its name board and its size (docs/specs/BATTLES.md §4.1). */
 export interface RaiderSpec {
@@ -1108,10 +1109,6 @@ export function lookoutCall(rel: number): string {
   if (off > Math.PI - 0.3) return LOOKOUT.astern;
   const row = a > 0 ? LOOKOUT.port : LOOKOUT.starboard;
   return row[off < 1.0 ? 0 : off < 2.2 ? 1 : 2];
-}
-
-function clamp01(x: number): number {
-  return x < 0 ? 0 : x > 1 ? 1 : x;
 }
 
 function smooth(x: number): number {

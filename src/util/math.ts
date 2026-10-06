@@ -25,6 +25,39 @@ export function wrapAngle(a: number): number {
   return a - Math.PI;
 }
 
+/** Distance in the XZ plane from (x, z) to the segment a → b. */
+export function segmentDistance(
+  x: number,
+  z: number,
+  ax: number,
+  az: number,
+  bx: number,
+  bz: number,
+): number {
+  const dx = bx - ax;
+  const dz = bz - az;
+  const t = clamp01(((x - ax) * dx + (z - az) * dz) / Math.max(1e-6, dx * dx + dz * dz));
+  return Math.hypot(x - (ax + dx * t), z - (az + dz * t));
+}
+
+/** A small, fast seeded PRNG (Mulberry32): returns a function giving uniform values in [0, 1). */
+export function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** The classic `fract(sin(…) · 43758.5453)` hash of a 2D point and a salt, in [0, 1). */
+export function sinHash(x: number, z: number, salt: number): number {
+  const v = Math.sin(x * 127.1 + z * 311.7 + salt * 74.7) * 43758.5453;
+  return v - Math.floor(v);
+}
+
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

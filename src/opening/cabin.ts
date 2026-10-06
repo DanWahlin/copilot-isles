@@ -26,12 +26,16 @@ import {
 } from 'three/webgpu';
 import {
   abs,
+  cameraPosition,
   color,
   float,
   fract,
+  max,
+  min,
   mix,
   mx_noise_float,
   positionLocal,
+  positionWorld,
   pow,
   sin,
   smoothstep,
@@ -43,6 +47,7 @@ import {
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { noiseAt } from './noise';
 import { billboardGeometry, billboardMesh, camRight, camUp } from './particles';
+import { mulberry32 } from '../util/math';
 
 /**
  * The captain's cabin (docs/specs/OPENING-living-chart.md): one small, lamp-lit room at golden hour,
@@ -205,6 +210,8 @@ export interface CabinOptions {
   shaftSlices: number;
   /** Engraved on the chest's nameplate. */
   captainName: string;
+  /** Where the guide stands (cabin metres): the sunbeams clear in front of her so they don't haze her. */
+  guideAt?: { readonly x: number; readonly z: number };
 }
 
 export function createCabin(opts: CabinOptions): Cabin {
@@ -516,9 +523,7 @@ export function createCabin(opts: CabinOptions): Cabin {
   const portLight = new PointLight(0x8fb4e6, 3.2, 4.5, 1.4);
   portLight.position.set(X0 + 0.4, 1.45, 0.75);
   group.add(portLight);
-  group.add(createSunShafts(SUN_DIR, Z0, WIN_W, WIN_Y0, WIN_Y1, opts.shaftSlices));
-  const motes = createDustMotes(SUN_DIR, Z0, WIN_W, WIN_Y0, WIN_Y1);
-  group.add(motes.mesh);
+  group.add(createSunShafts(SUN_DIR, Z0, WIN_W, WIN_Y0, WIN_Y1, opts.shaftSlices, opts.guideAt));
   const chestLight = new PointLight(0xffd690, 0, 2.2, 1.8);
   chestLight.position.set(0, chest.height + 0.12, 0);
   chest.group.add(chestLight);
@@ -560,7 +565,6 @@ export function createCabin(opts: CabinOptions): Cabin {
       flicker.value = f;
       lanternLight.intensity = 4.5 * f;
       candleLight.intensity = 0.9 * (0.94 + Math.sin(t * 17.3) * 0.04 + Math.sin(t * 9.1) * 0.03);
-      motes.time.value = t;
       sparks.time.value = t;
       chestLight.intensity = chest.glow.value * 3.2 * f;
       keyLight.intensity = (chest.keyhole.value * 0.5 + chest.lockGlow.value * 0.15) * f;
@@ -929,6 +933,7 @@ function createSunShafts(
   y0: number,
   y1: number,
   slices: number,
+  guideAt?: { readonly x: number; readonly z: number },
 ): Mesh {
   // Each slice only covers where the windows' light actually passes at its depth (the beam's
   // footprint slides along the sun's direction), not the whole room: about a fifth of the fill.
@@ -964,7 +969,8 @@ function createSunShafts(
   m.opacityNode = beam
     .mul(pow(float(1).sub(depth), 1.4))
     .mul(shimmer)
-    .mul(0.9 / Math.max(1, slices));
+    .mul(0.9 / Math.max(1, slices))
+    .mul(guideAt ? guideClearance(guideAt) : float(1));
   const mesh = new Mesh(g, m);
   mesh.name = 'sun shafts';
   mesh.renderOrder = 3;
@@ -972,50 +978,17 @@ function createSunShafts(
   return mesh;
 }
 
-/** Dust drifting in the sunbeams: tiny billboards that only glow where the sun reaches them. */
-function createDustMotes(dir: Vector3, z0: number, winW: number, y0: number, y1: number) {
-  const N = 260;
-  const rand = mulberry32(0xd057);
-  const geo = billboardGeometry(N, (i, out) => {
-    const k = rand() * 2.8;
-    const wx = [-0.95, 0, 0.95][i % 3]!;
-    out.set(
-      wx + (rand() - 0.5) * winW + dir.x * k,
-      y0 + rand() * (y1 - y0) + dir.y * k,
-      z0 + 0.1 + dir.z * k,
-    );
-  });
-  const time = uniform(0);
-  const mesh = billboardMesh(geo, (a, m) => {
-    const sd = a.seed;
-    const drift = vec3(
-      sin(time.mul(0.11).add(sd.mul(40))).mul(0.12),
-      sin(time.mul(0.07).add(sd.mul(17)))
-        .mul(0.08)
-        .add(fract(time.mul(0.008).add(sd)).sub(0.5).mul(0.1)),
-      sin(time.mul(0.09).add(sd.mul(29))).mul(0.1),
-    );
-    const centre = a.centre.add(drift);
-    const beam = windowBeam(centre, dir, z0, winW, y0, y1);
-    const twinkle = sin(time.mul(1.3).add(sd.mul(60)))
-      .mul(0.3)
-      .add(0.7);
-    m.colorNode = color(0xffe2b0).mul(3);
-    m.opacityNode = beam.mul(a.round).mul(twinkle).mul(0.9);
-    return { centre, size: mix(float(0.0025), float(0.006), sd) };
-  });
-  mesh.name = 'dust motes';
-  mesh.renderOrder = 4;
-  return { mesh, time };
-}
-
-function mulberry32(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+/**
+ * 0 where a point lies between the camera and the guide's figure (head, hat and body), else 1: the
+ * additive beams in front of her otherwise wash her out like a haze. The eye's ray through the point
+ * is followed to her depth (the camera looks along −z at her) and tested against her outline there.
+ */
+function guideClearance(at: { readonly x: number; readonly z: number }) {
+  const toP = positionWorld.sub(cameraPosition);
+  const s = float(at.z).sub(cameraPosition.z).div(min(toP.z, -1e-4));
+  const hit = cameraPosition.add(toP.mul(s));
+  const inFront = smoothstep(1.0, 1.08, s);
+  const across = smoothstep(0.42, 0.6, abs(hit.x.sub(at.x)));
+  const outside = max(smoothstep(0.75, 0.62, hit.y), smoothstep(1.95, 2.08, hit.y));
+  return float(1).sub(inFront.mul(float(1).sub(max(across, outside))));
 }

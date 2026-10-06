@@ -5,98 +5,93 @@
   "words": [
     {
       "word": "Give",
-      "start": 0.076,
-      "end": 0.293
+      "start": 0.087,
+      "end": 0.232
     },
     {
       "word": "me",
-      "start": 0.293,
-      "end": 0.423
+      "start": 0.232,
+      "end": 0.405
     },
     {
       "word": "an",
-      "start": 0.423,
-      "end": 0.597
+      "start": 0.405,
+      "end": 0.579
     },
     {
       "word": "overview",
-      "start": 0.597,
-      "end": 1.206
+      "start": 0.579,
+      "end": 1.13
     },
     {
       "word": "of",
-      "start": 1.206,
-      "end": 1.336
+      "start": 1.13,
+      "end": 1.326
     },
     {
       "word": "the",
-      "start": 1.336,
-      "end": 1.467
+      "start": 1.326,
+      "end": 1.5
     },
     {
       "word": "copilot-app-for-beginners",
-      "start": 1.467,
-      "end": 3.118
+      "start": 1.5,
+      "end": 3.18
     },
     {
       "word": "course",
-      "start": 3.118,
-      "end": 3.554
+      "start": 3.18,
+      "end": 3.549
     },
     {
       "word": "repository",
-      "start": 3.554,
-      "end": 4.902
+      "start": 3.549,
+      "end": 5.014
     },
     {
       "word": "Focus",
-      "start": 4.902,
-      "end": 5.467
+      "start": 5.014,
+      "end": 5.334
     },
     {
       "word": "on",
-      "start": 5.467,
-      "end": 5.597
+      "start": 5.334,
+      "end": 5.435
     },
     {
       "word": "the",
-      "start": 5.597,
-      "end": 5.771
+      "start": 5.435,
+      "end": 5.604
     },
     {
       "word": "learning",
-      "start": 5.771,
-      "end": 6.25
+      "start": 5.604,
+      "end": 6
     },
     {
       "word": "path",
-      "start": 6.25,
-      "end": 6.771
+      "start": 6,
+      "end": 6.391
     },
     {
       "word": "and",
-      "start": 6.771,
-      "end": 6.989
+      "start": 6.391,
+      "end": 6.543
     },
     {
       "word": "the",
-      "start": 6.989,
-      "end": 7.119
+      "start": 6.543,
+      "end": 6.696
     },
     {
-      "word": "samples",
-      "start": 7.119,
-      "end": 8.38
-    },
-    {
-      "word": "book-app-web",
-      "start": 8.38,
-      "end": 9.423
+      "word": "samples/book-app-web",
+      "start": 6.696,
+      "end": 8.945
     },
     {
       "word": "folder",
-      "start": 9.423,
-      "end": 9.673
+      "start": 8.945,
+      "end": 9.195
     }
   ]
 }

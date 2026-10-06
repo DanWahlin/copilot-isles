@@ -106,10 +106,6 @@ export function easeOutCubic(x: number): number {
   return 1 - (1 - x) ** 3;
 }
 
-export function easeInCubic(x: number): number {
-  return x * x * x;
-}
-
 /** Overshoots past 1 and settles back (follow-through). `s` sets the overshoot (1.70158 ≈ 10 %). */
 export function easeOutBack(x: number, s = 1.70158): number {
   const c3 = s + 1;

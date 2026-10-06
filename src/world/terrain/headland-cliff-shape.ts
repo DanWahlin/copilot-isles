@@ -357,11 +357,6 @@ export function caveArch(frame: HeadlandCliffFrame, s: number, y: number): numbe
   );
 }
 
-/** Height of the bedding plane `k` (counting up) at distance `s` along the cliff. */
-export function beddingPlaneY(s: number, k: number): number {
-  return k * BED_HEIGHT - 0.9 * Math.sin(s * 0.045 + 1) - 0.5 * Math.sin(s * 0.11);
-}
-
 /** Top of the wave-cut notch (where the visor starts) at distance `s`. */
 export function notchTop(s: number): number {
   return 2.4 + 0.9 * Math.sin(s * 0.07 + 0.4) + 0.5 * Math.sin(s * 0.19 + 2.2);

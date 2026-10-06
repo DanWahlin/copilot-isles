@@ -5,73 +5,73 @@
   "words": [
     {
       "word": "Juno",
-      "start": 0.07,
-      "end": 0.75
+      "start": 0,
+      "end": 0.464
     },
     {
       "word": "your",
-      "start": 0.75,
-      "end": 1.03
+      "start": 0.464,
+      "end": 0.773
     },
     {
       "word": "first",
-      "start": 1.03,
-      "end": 1.39
+      "start": 0.773,
+      "end": 1.104
     },
     {
       "word": "mate",
-      "start": 1.39,
-      "end": 2.19
+      "start": 1.104,
+      "end": 1.587
     },
     {
       "word": "Setup’s",
-      "start": 2.19,
-      "end": 2.789
+      "start": 1.587,
+      "end": 2.448
     },
     {
       "word": "done",
-      "start": 2.789,
-      "end": 3.389
+      "start": 2.448,
+      "end": 2.933
     },
     {
       "word": "so",
-      "start": 3.389,
-      "end": 3.59
+      "start": 2.933,
+      "end": 3.06
     },
     {
       "word": "let’s",
-      "start": 3.59,
-      "end": 3.869
+      "start": 3.06,
+      "end": 3.296
     },
     {
       "word": "give",
-      "start": 3.869,
-      "end": 4.03
+      "start": 3.296,
+      "end": 3.4
     },
     {
       "word": "the",
-      "start": 4.03,
-      "end": 4.15
+      "start": 3.4,
+      "end": 3.568
     },
     {
       "word": "crew",
-      "start": 4.15,
-      "end": 4.43
+      "start": 3.568,
+      "end": 3.8
     },
     {
       "word": "their",
-      "start": 4.43,
-      "end": 4.67
+      "start": 3.8,
+      "end": 4.053
     },
     {
       "word": "first",
-      "start": 4.67,
-      "end": 5.03
+      "start": 4.053,
+      "end": 4.373
     },
     {
       "word": "order",
-      "start": 5.03,
-      "end": 5.28
+      "start": 4.373,
+      "end": 4.623
     }
   ]
 }

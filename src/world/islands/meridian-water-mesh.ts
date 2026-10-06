@@ -2,6 +2,7 @@ import { Sphere, Vector3 } from 'three/webgpu';
 import { WaterStrips, type StripFlow } from '../sites/water';
 import { meridianWater } from './meridian';
 import type { MeridianWater, WaterBasin } from './meridian-water';
+import { smoothstep } from '../../util/math';
 
 /** Segments round a basin's shore (the fan's rim). */
 const RIM = 40;
@@ -47,7 +48,7 @@ export function createMeridianWaterMesh(water: MeridianWater = meridianWater()):
         {
           fill: 1,
           speed: 0.8 + steep * 2.6,
-          foam: smooth(0.12, 0.8, slope) * 0.7,
+          foam: smoothstep(0.12, 0.8, slope) * 0.7,
           kind: steep > 0.6 ? -1 : 0,
         },
         0,
@@ -122,9 +123,4 @@ function tangent(xs: Float64Array, zs: Float64Array, n: number, i: number): [num
   TAN[0] = dx / len;
   TAN[1] = dz / len;
   return [TAN[0], TAN[1]];
-}
-
-function smooth(a: number, b: number, v: number): number {
-  const t = Math.min(1, Math.max(0, (v - a) / (b - a)));
-  return t * t * (3 - 2 * t);
 }

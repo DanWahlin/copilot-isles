@@ -5,58 +5,58 @@
   "words": [
     {
       "word": "Next",
-      "start": 0.07,
-      "end": 0.63
+      "start": 0,
+      "end": 0.764
     },
     {
       "word": "download",
-      "start": 0.63,
-      "end": 1.11
+      "start": 0.764,
+      "end": 1.16
     },
     {
       "word": "and",
-      "start": 1.11,
-      "end": 1.27
+      "start": 1.16,
+      "end": 1.35
     },
     {
       "word": "install",
-      "start": 1.27,
-      "end": 1.63
+      "start": 1.35,
+      "end": 1.88
     },
     {
       "word": "the",
-      "start": 1.63,
-      "end": 1.79
+      "start": 1.88,
+      "end": 2.069
     },
     {
       "word": "GitHub",
-      "start": 1.79,
-      "end": 2.19
+      "start": 2.069,
+      "end": 2.58
     },
     {
       "word": "Copilot",
-      "start": 2.19,
-      "end": 2.75
+      "start": 2.58,
+      "end": 3.22
     },
     {
       "word": "app",
-      "start": 2.75,
-      "end": 3.03
+      "start": 3.22,
+      "end": 3.56
     },
     {
       "word": "for",
-      "start": 3.03,
-      "end": 3.19
+      "start": 3.56,
+      "end": 3.712
     },
     {
       "word": "your",
-      "start": 3.19,
-      "end": 3.349
+      "start": 3.712,
+      "end": 3.931
     },
     {
       "word": "system",
-      "start": 3.349,
-      "end": 3.599
+      "start": 3.931,
+      "end": 4.181
     }
   ]
 }

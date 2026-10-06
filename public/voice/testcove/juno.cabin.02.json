@@ -5,88 +5,88 @@
   "words": [
     {
       "word": "Each",
-      "start": 0.063,
-      "end": 0.354
+      "start": 0,
+      "end": 0.281
     },
     {
       "word": "island",
-      "start": 0.354,
-      "end": 0.9
+      "start": 0.281,
+      "end": 0.7
     },
     {
       "word": "teaches",
-      "start": 0.9,
-      "end": 1.3
+      "start": 0.7,
+      "end": 1.091
     },
     {
       "word": "a",
-      "start": 1.3,
-      "end": 1.409
+      "start": 1.091,
+      "end": 1.227
     },
     {
       "word": "chapter",
-      "start": 1.409,
-      "end": 1.918
+      "start": 1.227,
+      "end": 1.745
     },
     {
       "word": "of",
-      "start": 1.918,
-      "end": 1.99
+      "start": 1.745,
+      "end": 1.909
     },
     {
       "word": "the",
-      "start": 1.99,
-      "end": 2.099
+      "start": 1.909,
+      "end": 2.015
     },
     {
       "word": "GitHub",
-      "start": 2.099,
-      "end": 2.571
+      "start": 2.015,
+      "end": 2.4
     },
     {
       "word": "Copilot",
-      "start": 2.571,
-      "end": 3.227
+      "start": 2.4,
+      "end": 3
     },
     {
-      "word": "app.",
-      "start": 3.227,
-      "end": 4.136
+      "word": "app",
+      "start": 3,
+      "end": 3.491
     },
     {
       "word": "Finish",
-      "start": 4.136,
-      "end": 4.609
+      "start": 3.491,
+      "end": 4.4
     },
     {
       "word": "its",
-      "start": 4.609,
-      "end": 4.79
+      "start": 4.4,
+      "end": 4.582
     },
     {
       "word": "quests",
-      "start": 4.79,
-      "end": 5.409
+      "start": 4.582,
+      "end": 5.115
     },
     {
       "word": "to",
-      "start": 5.409,
-      "end": 5.627
+      "start": 5.115,
+      "end": 5.367
     },
     {
       "word": "earn",
-      "start": 5.627,
-      "end": 5.772
+      "start": 5.367,
+      "end": 5.673
     },
     {
       "word": "its",
-      "start": 5.772,
-      "end": 5.954
+      "start": 5.673,
+      "end": 5.964
     },
     {
       "word": "seal",
-      "start": 5.954,
-      "end": 6.204
+      "start": 5.964,
+      "end": 6.214
     }
   ]
 }

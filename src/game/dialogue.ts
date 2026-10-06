@@ -71,12 +71,14 @@ export class Dialogue {
   }
 
   cancel(): void {
+    // The voice is shared (the opening's cabin talk uses it too), so only stop a line this started.
+    const speaking = this.active;
     this.token++;
     const wake = this.wake;
     this.clearTimers();
     wake?.();
     this.onLine?.(null);
-    this.audio?.stopVoice();
+    if (speaking) this.audio?.stopVoice();
     this.active = false;
     this.hud.hideSubtitle();
   }

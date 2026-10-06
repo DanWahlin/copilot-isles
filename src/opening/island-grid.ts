@@ -1,4 +1,5 @@
-import { BufferAttribute, BufferGeometry } from 'three/webgpu';
+import { BufferAttribute, BufferGeometry, type Node } from 'three/webgpu';
+import { float, min } from 'three/tsl';
 import {
   ambientOpenSky,
   extractShoreline,
@@ -199,6 +200,22 @@ export function islandShoreline(grid: IslandGrid): ShorelineChain[] {
 
 /** Below this the miniature tucks under the paper (the chart's own water shows there). */
 const SEA_FLOOR = -1.2;
+/**
+ * How far below the paper's face a miniature folded flat by its pop-up sinks (paper metres). The sheet
+ * is 1.6 mm thick, so a flat island or rock hides under it instead of z-fighting with the ink.
+ */
+export const PAPER_TUCK = 0.003;
+
+/**
+ * A miniature's height on the chart as it pops up (`x`: 0 flat → 1 standing): it stands with a little
+ * overshoot like a card unfolding, and while folded flat it sinks just under the paper.
+ */
+export function popUpY(y: Node<'float'>, x: Node<'float'>): Node<'float'> {
+  const back = float(1)
+    .add(float(2.6).mul(x.sub(1).pow(3)))
+    .add(float(1.6).mul(x.sub(1).pow(2)));
+  return y.mul(back).sub(float(1).sub(min(back, 1)).mul(PAPER_TUCK));
+}
 
 /**
  * The miniature's mesh in paper-local metres: its land and near shallows (quads wholly under the

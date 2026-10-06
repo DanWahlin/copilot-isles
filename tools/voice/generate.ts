@@ -1,17 +1,25 @@
 /* global process */
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile, copyFile, access } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, copyFile, access, rm } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { parseKeyValueEnv, redactSecretValues } from '../../src/audio/voice/env';
+import { rateFactor, wordsFromAlignment, type CharacterAlignment } from '../../src/audio/voice/alignment';
 
 interface VoiceLineDefinition {
   readonly id: string;
   readonly speaker: string;
   readonly text: string;
+  /**
+   * The speech service (default Azure). ElevenLabs lines take a voice ID in `voice` and call the
+   * `elevenlabs` CLI, which uses its own sign-in (`elevenlabs auth login`), so no key is read here.
+   */
+  readonly tts?: 'azure' | 'elevenlabs';
+  /** ElevenLabs model ID (default `eleven_v3`). */
+  readonly model?: string;
   readonly voice?: string;
   readonly voiceEnv?: string;
   readonly fallbackVoice?: string;
@@ -56,19 +64,49 @@ const cacheDir = join(root, '.tools', 'voice-cache');
 const outDir = join(root, 'public', 'voice', 'testcove');
 const linesPath = join(root, 'tools', 'voice', 'lines.testcove.json');
 const requiredEnv = ['AZURE_SPEECH_KEY', 'AZURE_SPEECH_REGION'] as const;
-/** Azure synthesizes Riff24Khz16BitMonoPcm. */
+/** Azure synthesizes Riff24Khz16BitMonoPcm, and ElevenLabs lines ask for pcm_24000. */
 const SAMPLE_RATE = 24000;
+const ELEVENLABS_MODEL = 'eleven_v3';
+/** Seconds of audio kept after an ElevenLabs line's last word. */
+const ELEVENLABS_TAIL = 0.45;
+
+interface ElevenLabsResponse {
+  readonly audio_base64?: string;
+  readonly alignment?: CharacterAlignment;
+  readonly error?: { readonly message?: string };
+}
+
+/**
+ * `--only Juno,Wingman` (speakers or line IDs) regenerates just those lines and keeps every other
+ * manifest entry as it is, so lines whose WAVs aren't cached on this machine aren't re-synthesized.
+ */
+function parseOnly(args: readonly string[]): ReadonlySet<string> | null {
+  const index = args.findIndex((arg) => arg === '--only' || arg.startsWith('--only='));
+  if (index < 0) return null;
+  const value = args[index]!.includes('=') ? args[index]!.split('=')[1] : args[index + 1];
+  const names = (value ?? '')
+    .split(',')
+    .map((name) => name.trim())
+    .filter(Boolean);
+  if (!names.length) throw new Error('--only needs speakers or line IDs, e.g. --only Juno,Wingman');
+  return new Set(names);
+}
 
 async function main(): Promise<void> {
+  const only = parseOnly(process.argv.slice(2));
   const env = await loadEnv();
   const secrets = [...env.values.values()];
   const data = JSON.parse(await readFile(linesPath, 'utf8')) as LinesFile;
+  const selected = only
+    ? data.lines.filter((line) => only.has(line.speaker) || only.has(line.id))
+    : data.lines;
+  if (only && !selected.length) throw new Error(`--only matched no lines: ${[...only].join(', ')}`);
   await mkdir(cacheDir, { recursive: true });
   await mkdir(outDir, { recursive: true });
   const lines: GeneratedLine[] = [];
   const fallbackSpeakers = new Set<string>();
 
-  for (const line of data.lines) {
+  for (const line of selected) {
     const result = await generateLine(line, env.values, secrets);
     lines.push(result);
     if (result.usedFallback) fallbackSpeakers.add(line.speaker);
@@ -77,21 +115,30 @@ async function main(): Promise<void> {
     );
   }
 
-  const manifest = {
+  const entries = lines.map((line) => ({
+    id: line.id,
+    speaker: line.speaker,
+    text: line.text,
+    duration: line.duration,
+    files: line.files,
+    hash: line.hash,
+    words: line.words,
+    voice: line.voice,
+  }));
+  const manifestPath = join(outDir, 'manifest.json');
+  let manifestLines: readonly { readonly id: string }[] = entries;
+  if (only) {
+    const previous = JSON.parse(await readFile(manifestPath, 'utf8')) as { lines: { id: string }[] };
+    const byId = new Map(entries.map((entry) => [entry.id, entry]));
+    const kept = previous.lines.map((entry) => byId.get(entry.id) ?? entry);
+    const added = entries.filter((entry) => !previous.lines.some((old) => old.id === entry.id));
+    manifestLines = [...kept, ...added];
+  }
+  await writeJson(manifestPath, {
     generatedAt: new Date().toISOString(),
     set: data.set,
-    lines: lines.map((line) => ({
-      id: line.id,
-      speaker: line.speaker,
-      text: line.text,
-      duration: line.duration,
-      files: line.files,
-      hash: line.hash,
-      words: line.words,
-      voice: line.voice,
-    })),
-  };
-  await writeJson(join(outDir, 'manifest.json'), manifest);
+    lines: manifestLines,
+  });
   if (fallbackSpeakers.size)
     console.log(`Primary voice failed for ${[...fallbackSpeakers].join(', ')}; used their fallback voices.`);
   console.log(`Generated ${lines.length} voice lines in public/voice/testcove.`);
@@ -109,7 +156,8 @@ async function generateLine(
   env: ReadonlyMap<string, string>,
   secrets: readonly string[],
 ): Promise<GeneratedLine> {
-  const requestedVoice = line.voiceEnv ? env.get(line.voiceEnv) : line.voice;
+  const elevenLabs = line.tts === 'elevenlabs';
+  const requestedVoice = !elevenLabs && line.voiceEnv ? env.get(line.voiceEnv) : line.voice;
   if (!requestedVoice)
     throw new Error(`Missing voice environment variable name: ${line.voiceEnv ?? 'voice'}`);
   const attempts =
@@ -126,7 +174,9 @@ async function generateLine(
     try {
       let cacheData: CacheData;
       if (!(await exists(wavPath)) || !(await exists(cacheJsonPath))) {
-        const synthesized = await synthesize(line, voice, env, secrets);
+        const synthesized = elevenLabs
+          ? await synthesizeElevenLabs(line, voice, hash)
+          : await synthesize(line, voice, env, secrets);
         await writeFile(wavPath, synthesized.wav);
         cacheData = { voice, words: synthesized.words, usedFallback: index > 0 };
         await writeJson(cacheJsonPath, cacheData);
@@ -160,8 +210,88 @@ async function generateLine(
   }
 
   throw new Error(
-    `Synthesis failed for ${line.id}. Check env variable names AZURE_SPEECH_KEY and AZURE_SPEECH_REGION. ${lastError}`,
+    elevenLabs
+      ? `Synthesis failed for ${line.id}. Check the ElevenLabs CLI sign-in (elevenlabs auth status). ${lastError}`
+      : `Synthesis failed for ${line.id}. Check env variable names AZURE_SPEECH_KEY and AZURE_SPEECH_REGION. ${lastError}`,
   );
+}
+
+/**
+ * ElevenLabs speech through the signed-in `elevenlabs` CLI, as 24 kHz PCM with character timings.
+ * A `prosody.rate` is applied afterwards with ffmpeg's atempo (word times scaled to match), so the
+ * cached WAV that Rhubarb reads already has the final timing.
+ */
+async function synthesizeElevenLabs(
+  line: VoiceLineDefinition,
+  voice: string,
+  hash: string,
+): Promise<{ readonly wav: Uint8Array; readonly words: readonly WordTiming[] }> {
+  const unsupported = Object.keys(line.prosody ?? {}).filter((key) => key !== 'rate');
+  if (unsupported.length || line.sub)
+    throw new Error(
+      `${line.id}: ElevenLabs lines support only prosody.rate (not ${[...unsupported, ...(line.sub ? ['sub'] : [])].join(', ')}).`,
+    );
+  const tempo = rateFactor(line.prosody?.rate);
+  const { stdout } = await exec(
+    'elevenlabs',
+    [
+      'text-to-speech',
+      'convert_with_timestamps',
+      '--voice-id',
+      voice,
+      '--model-id',
+      line.model ?? ELEVENLABS_MODEL,
+      '--output-format',
+      `pcm_${SAMPLE_RATE}`,
+      '--text',
+      line.text,
+      '--format',
+      'json',
+      '--via',
+      'copilot-isles-voice',
+    ],
+    { maxBuffer: 64 * 1024 * 1024 },
+  );
+  const response = JSON.parse(stdout) as ElevenLabsResponse;
+  if (!response.audio_base64 || !response.alignment)
+    throw new Error(response.error?.message ?? `ElevenLabs returned no audio: ${stdout.slice(0, 300)}`);
+
+  const pcmPath = join(cacheDir, `${hash}.pcm`);
+  const wavPath = join(cacheDir, `${hash}.elevenlabs.wav`);
+  const words = wordsFromAlignment(response.alignment, tempo);
+  // eleven_v3 can leave seconds of silence after the last word; keep a short tail and fade it out.
+  const end = (words.at(-1)?.end ?? 0) + ELEVENLABS_TAIL;
+  const filters = [
+    ...(tempo === 1 ? [] : [`atempo=${tempo.toFixed(4)}`]),
+    ...(words.length
+      ? [`atrim=end=${end.toFixed(3)}`, `afade=t=out:st=${(end - 0.08).toFixed(3)}:d=0.08`]
+      : []),
+  ];
+  await writeFile(pcmPath, Buffer.from(response.audio_base64, 'base64'));
+  try {
+    await exec('ffmpeg', [
+      '-hide_banner',
+      '-loglevel',
+      'error',
+      '-y',
+      '-f',
+      's16le',
+      '-ar',
+      String(SAMPLE_RATE),
+      '-ac',
+      '1',
+      '-i',
+      pcmPath,
+      ...(filters.length ? ['-af', filters.join(',')] : []),
+      '-c:a',
+      'pcm_s16le',
+      wavPath,
+    ]);
+    return { wav: new Uint8Array(await readFile(wavPath)), words };
+  } finally {
+    await rm(pcmPath, { force: true });
+    await rm(wavPath, { force: true });
+  }
 }
 
 async function synthesize(
@@ -314,6 +444,8 @@ function hashLine(line: VoiceLineDefinition, voice: string): string {
         prosody: line.prosody ?? {},
         fx: line.fx ?? '',
         ...(line.sub ? { sub: line.sub } : {}),
+        // Only ElevenLabs lines add these, so Azure lines keep their cached hashes.
+        ...(line.tts === 'elevenlabs' ? { tts: line.tts, model: line.model ?? ELEVENLABS_MODEL } : {}),
       }),
     )
     .digest('hex')

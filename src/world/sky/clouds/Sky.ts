@@ -271,14 +271,3 @@ export class Sky {
     })();
   }
 }
-
-// Simple solar position model. Returns direction toward the sun (world: +x east, -z north, +y up).
-export function sunDirectionFromTime(hours, latitudeDeg = 24, declinationDeg = 6, out = new THREE.Vector3()) {
-  const phi = THREE.MathUtils.degToRad(latitudeDeg);
-  const dec = THREE.MathUtils.degToRad(declinationDeg);
-  const H = THREE.MathUtils.degToRad((hours - 12) * 15);
-  const east = -Math.cos(dec) * Math.sin(H);
-  const north = Math.cos(phi) * Math.sin(dec) - Math.sin(phi) * Math.cos(dec) * Math.cos(H);
-  const up = Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H);
-  return out.set(east, up, -north).normalize();
-}

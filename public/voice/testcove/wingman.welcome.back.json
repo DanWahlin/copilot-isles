@@ -5,53 +5,53 @@
   "words": [
     {
       "word": "Welcome",
-      "start": 0.31,
-      "end": 0.67
+      "start": 0,
+      "end": 0.288
     },
     {
       "word": "back",
-      "start": 0.67,
-      "end": 0.91
+      "start": 0.288,
+      "end": 0.61
     },
     {
       "word": "Captain",
-      "start": 0.91,
-      "end": 1.55
+      "start": 0.61,
+      "end": 1.12
     },
     {
       "word": "Your",
-      "start": 1.55,
-      "end": 1.75
+      "start": 1.12,
+      "end": 1.504
     },
     {
       "word": "next",
-      "start": 1.75,
-      "end": 2.029
+      "start": 1.504,
+      "end": 1.84
     },
     {
       "word": "task's",
-      "start": 2.029,
-      "end": 2.389
+      "start": 1.84,
+      "end": 2.267
     },
     {
       "word": "in",
-      "start": 2.389,
-      "end": 2.469
+      "start": 2.267,
+      "end": 2.34
     },
     {
       "word": "the",
-      "start": 2.469,
-      "end": 2.59
+      "start": 2.34,
+      "end": 2.48
     },
     {
       "word": "top",
-      "start": 2.59,
-      "end": 2.789
+      "start": 2.48,
+      "end": 2.8
     },
     {
       "word": "left",
-      "start": 2.789,
-      "end": 3.039
+      "start": 2.8,
+      "end": 3.05
     }
   ]
 }

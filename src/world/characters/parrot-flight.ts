@@ -141,6 +141,8 @@ export class ParrotFlight {
   private yaw = 0;
   private pitch = 0;
   private roll = 0;
+  /** 0 → 1 while he hovers: how much of his slow talking sway (head turn and tilt) shows. */
+  private sway = 0;
   private readonly pos = new Vector3();
   private readonly from = new Vector3();
   private readonly fromQ = new Quaternion();
@@ -210,6 +212,7 @@ export class ParrotFlight {
     this.yaw = TMP_E.y;
     this.pitch = 0;
     this.roll = 0;
+    this.sway = 0;
     this.u = 0;
     this.flapPhase = Math.PI;
     this.beatHz = WINGBEAT.takeoff.hz;
@@ -280,7 +283,11 @@ export class ParrotFlight {
     const flat = Math.hypot(vx, vz);
     const faceYaw = Math.atan2(view.eye.x - this.pos.x, view.eye.z - this.pos.z);
     const travelYaw = flat > 0.25 ? Math.atan2(vx, vz) : this.yaw;
-    let yawTarget = faceYaw;
+    // While he talks he doesn't stare: a slow look a little left and right, and a curious tilt.
+    this.sway = MathUtils.damp(this.sway, this.state === 'hover' ? 1 : 0, 1.5, dt);
+    const swayYaw = (Math.sin(this.time * 0.9) * 0.15 + Math.sin(this.time * 1.7 + 1.3) * 0.05) * this.sway;
+    const swayRoll = Math.sin(this.time * 0.6 + 0.4) * 0.07 * this.sway;
+    let yawTarget = faceYaw + swayYaw;
     if (this.state === 'takeoff')
       yawTarget = lerpAngle(travelYaw, faceYaw, MathUtils.smoothstep(this.u, 0.45, 0.95));
     else if (this.state === 'landing') yawTarget = travelYaw;
@@ -291,7 +298,7 @@ export class ParrotFlight {
     const pitchTarget =
       this.state === 'hover' && flat < 1.4 ? -0.42 : -0.12 - MathUtils.clamp(vy * 0.22, -0.3, 0.35);
     this.pitch = MathUtils.damp(this.pitch, pitchTarget, 5, dt);
-    this.roll = MathUtils.damp(this.roll, -MathUtils.clamp(yawRate * 0.2, -0.5, 0.5), 5, dt);
+    this.roll = MathUtils.damp(this.roll, -MathUtils.clamp(yawRate * 0.2, -0.5, 0.5) + swayRoll, 5, dt);
     TMP_E.set(this.pitch, this.yaw, this.roll, 'YXZ');
     this.flyQ.setFromEuler(TMP_E);
 

@@ -233,6 +233,12 @@ export class Clouds {
     this._makeTargets();
     this._buildFunctions();
     this._buildKernels();
+    // The compute lists the trace dispatches each frame, built once (per history ping-pong side, with
+    // and without the shadow/panorama kernels) so the per-frame loop doesn't allocate.
+    this._traceLists = [0, 1].map((pp) => {
+      const base = [this.traceKernel, this.highTraceKernel, this.boxKernel, this.resolveKernels[pp]];
+      return [base, [...base, this.shadowKernel, this.panoKernel]];
+    });
 
     this.frame = 0;
     this.panoWarm = 1;
@@ -1765,7 +1771,7 @@ export class Clouds {
       for (let k = 0; k < slots; k++) {
         if (k > 0) this._holdCamera();
         const offset = Math.floor((16 * k) / slots);
-        this._trace(ORDER[(this.frame + offset) % 16], k === 0 ? [this.shadowKernel, this.panoKernel] : []);
+        this._trace(ORDER[(this.frame + offset) % 16], k === 0);
       }
     }
 
@@ -1773,7 +1779,7 @@ export class Clouds {
   }
 
   // trace one slot of every 4x4 block and resolve it into the history (plus extra kernels)
-  _trace(order, extra = []) {
+  _trace(order, withExtras = false) {
     this.slot.value.set(order % 4, Math.floor(order / 4));
     // R2 sequence over the traces (one offset per 16 frame cycle, so each pixel sees them all)
     const n = Math.floor(this._traces / 16) + 1;
@@ -1781,13 +1787,7 @@ export class Clouds {
       .set(((0.5 + n * 0.7548776662) % 1) - 0.5, ((0.5 + n * 0.569840291) % 1) - 0.5)
       .multiplyScalar(0.25);
     this.frameNoise.value = (this._traces++ % 64) * 5.588238;
-    this.renderer.compute([
-      this.traceKernel,
-      this.highTraceKernel,
-      this.boxKernel,
-      this.resolveKernels[this._pp],
-      ...extra,
-    ]);
+    this.renderer.compute(this._traceLists[this._pp][withExtras ? 1 : 0]);
     this.viewTexNode.value = this.history[this._pp];
     this._pp = 1 - this._pp;
     this.historyValid.value = 1;

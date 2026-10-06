@@ -5,43 +5,43 @@
   "words": [
     {
       "word": "Welcome",
-      "start": 0.063,
-      "end": 0.427
+      "start": 0,
+      "end": 0.343
     },
     {
       "word": "aboard",
-      "start": 0.427,
-      "end": 0.863
+      "start": 0.343,
+      "end": 0.9
     },
     {
       "word": "Captain",
-      "start": 0.863,
-      "end": 1.7
+      "start": 0.9,
+      "end": 1.6
     },
     {
       "word": "I’m",
-      "start": 1.7,
-      "end": 1.99
+      "start": 1.6,
+      "end": 1.818
     },
     {
       "word": "Juno",
-      "start": 1.99,
-      "end": 2.608
+      "start": 1.818,
+      "end": 2.444
     },
     {
       "word": "your",
-      "start": 2.608,
-      "end": 2.827
+      "start": 2.444,
+      "end": 2.666
     },
     {
       "word": "first",
-      "start": 2.827,
-      "end": 3.19
+      "start": 2.666,
+      "end": 2.982
     },
     {
       "word": "mate",
-      "start": 3.19,
-      "end": 3.44
+      "start": 2.982,
+      "end": 3.232
     }
   ]
 }

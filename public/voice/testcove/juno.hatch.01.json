@@ -5,63 +5,63 @@
   "words": [
     {
       "word": "That",
-      "start": 0.058,
-      "end": 0.224
+      "start": 0,
+      "end": 0.24
     },
     {
       "word": "went",
-      "start": 0.224,
-      "end": 0.391
+      "start": 0.24,
+      "end": 0.423
     },
     {
       "word": "to",
-      "start": 0.391,
-      "end": 0.491
+      "start": 0.423,
+      "end": 0.483
     },
     {
       "word": "the",
-      "start": 0.491,
-      "end": 0.591
+      "start": 0.483,
+      "end": 0.572
     },
     {
       "word": "engine",
-      "start": 0.591,
-      "end": 0.924
+      "start": 0.572,
+      "end": 0.84
     },
     {
       "word": "room",
-      "start": 0.924,
-      "end": 1.158
+      "start": 0.84,
+      "end": 1.225
     },
     {
       "word": "Captain",
-      "start": 1.158,
-      "end": 2.225
+      "start": 1.225,
+      "end": 1.844
     },
     {
       "word": "Terminal",
-      "start": 2.225,
-      "end": 2.691
+      "start": 1.844,
+      "end": 2.253
     },
     {
       "word": "runs",
-      "start": 2.691,
-      "end": 2.991
+      "start": 2.253,
+      "end": 2.533
     },
     {
       "word": "commands",
-      "start": 2.991,
-      "end": 3.624
+      "start": 2.533,
+      "end": 3.25
     },
     {
       "word": "not",
-      "start": 3.624,
-      "end": 3.824
+      "start": 3.25,
+      "end": 3.474
     },
     {
       "word": "requests",
-      "start": 3.824,
-      "end": 4.074
+      "start": 3.474,
+      "end": 3.724
     }
   ]
 }

@@ -5,53 +5,53 @@
   "words": [
     {
       "word": "And",
-      "start": 0.063,
-      "end": 0.281
+      "start": 0,
+      "end": 0.189
     },
     {
       "word": "look",
-      "start": 0.281,
-      "end": 0.427
+      "start": 0.189,
+      "end": 0.4
     },
     {
       "word": "out",
-      "start": 0.427,
-      "end": 0.645
+      "start": 0.4,
+      "end": 0.545
     },
     {
       "word": "for",
-      "start": 0.645,
-      "end": 0.754
+      "start": 0.545,
+      "end": 0.727
     },
     {
       "word": "starfish",
-      "start": 0.754,
-      "end": 1.954
+      "start": 0.727,
+      "end": 1.484
     },
     {
       "word": "They",
-      "start": 1.954,
-      "end": 2.244
+      "start": 1.484,
+      "end": 1.935
     },
     {
       "word": "hide",
-      "start": 2.244,
-      "end": 2.608
+      "start": 1.935,
+      "end": 2.157
     },
     {
       "word": "on",
-      "start": 2.608,
-      "end": 2.79
+      "start": 2.157,
+      "end": 2.327
     },
     {
       "word": "every",
-      "start": 2.79,
-      "end": 3.19
+      "start": 2.327,
+      "end": 2.764
     },
     {
       "word": "island",
-      "start": 3.19,
-      "end": 3.44
+      "start": 2.764,
+      "end": 3.014
     }
   ]
 }

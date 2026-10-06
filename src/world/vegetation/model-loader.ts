@@ -16,7 +16,7 @@ import {
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { packs } from '../../engine/packs';
-import { createPalmMaterial, createVegetationMaterial } from './materials';
+import { createPalmMaterial, createRecoloredLeafMaterial, createVegetationMaterial } from './materials';
 import { buildCypress, buildMaquisBush, buildPricklyPear } from './cactus';
 import { buildPalmFar, buildPalmNear, buildYoungPalm } from './palms';
 import type { PlantSpecies } from './types';
@@ -107,8 +107,14 @@ function materialArray(material: Material | Material[] | undefined): SourceMater
   return Array.isArray(material) ? (material as SourceMaterial[]) : [sourceMaterial(material)];
 }
 
-function toVegetationMaterials(material: Material | Material[] | undefined): Material | Material[] {
+function toVegetationMaterials(
+  material: Material | Material[] | undefined,
+  species: PlantSpecies,
+): Material | Material[] {
   const convert = (mat: SourceMaterial): Material => {
+    // The common bush's leaf map is painted red; on the island's hills that reads as red blotches.
+    if (mat.map && species === 'shrub')
+      return createRecoloredLeafMaterial(mat.map, `vegetation-${mat.name || 'shrub'}`);
     if (mat.map) {
       const out = new MeshStandardMaterial({
         name: `vegetation-${mat.name || 'mapped'}`,
@@ -332,7 +338,7 @@ async function loadSpecies(loader: GLTFLoader, species: PlantSpecies): Promise<V
     const geometry = addInstanceAttributes(mesh.geometry, mesh, species);
     geometry.applyMatrix4(mesh.matrixWorld);
     if (species === 'log') geometry.applyMatrix4(new Matrix4().makeRotationX(Math.PI / 2));
-    parts.push({ geometry, material: toVegetationMaterials(mesh.material) });
+    parts.push({ geometry, material: toVegetationMaterials(mesh.material, species) });
   });
   if (parts.length === 0) throw new Error(`Vegetation model has no meshes: ${species}`);
   normalizeParts(parts, TARGET_HEIGHT[species]);

@@ -326,6 +326,8 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     !immediateLeaps && typeof window !== 'undefined' ? window.setTimeout(() => void loadLeaps(), 90000) : 0;
 
   const focus = new Vector3();
+  // What the harbour mirror leaves out, refilled each frame (some systems arrive late) without a new array.
+  const mirrorHidden: (Object3D | null | undefined)[] = [];
   const removeSystem = engine.add({
     frame(dt, t) {
       ocean.update(camera, t);
@@ -358,25 +360,29 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       leaps?.update(dt, t, camera);
       focus.set(camera.position.x, 0, camera.position.z);
       sky.update(clock, focus, dt, camera);
-      mirror?.update(renderer, scene, camera, [
-        ocean.mesh,
-        terrain.group,
-        foam,
-        ranges,
-        meridian.terrain?.group,
-        meridian.foam,
-        meridian.town?.group,
-        meridian.silhouette,
-        village.group,
-        sites.group,
-        debris.group,
-        ship.group,
-        vegetation?.group,
-        birds?.group,
-        dockGull?.group,
-        meridianBirds?.group,
-        leaps?.group,
-      ]);
+      if (mirror) {
+        mirrorHidden.length = 0;
+        mirrorHidden.push(
+          ocean.mesh,
+          terrain.group,
+          foam,
+          ranges,
+          meridian.terrain?.group,
+          meridian.foam,
+          meridian.town?.group,
+          meridian.silhouette,
+          village.group,
+          sites.group,
+          debris.group,
+          ship.group,
+          vegetation?.group,
+          birds?.group,
+          dockGull?.group,
+          meridianBirds?.group,
+          leaps?.group,
+        );
+        mirror.update(renderer, scene, camera, mirrorHidden);
+      }
       mirror?.finalizeFrame(engine.counters.last.drawCalls, engine.counters.last.triangles);
     },
   });

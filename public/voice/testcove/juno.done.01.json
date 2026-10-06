@@ -5,78 +5,78 @@
   "words": [
     {
       "word": "The",
-      "start": 0.07,
-      "end": 0.19
+      "start": 0,
+      "end": 0.208
     },
     {
       "word": "crew",
-      "start": 0.19,
-      "end": 0.47
+      "start": 0.208,
+      "end": 0.44
     },
     {
       "word": "knows",
-      "start": 0.47,
-      "end": 0.87
+      "start": 0.44,
+      "end": 0.66
     },
     {
       "word": "the",
-      "start": 0.87,
-      "end": 0.99
+      "start": 0.66,
+      "end": 0.784
     },
     {
       "word": "ship",
-      "start": 0.99,
-      "end": 1.27
+      "start": 0.784,
+      "end": 1.1
     },
     {
       "word": "now",
-      "start": 1.27,
-      "end": 2.23
+      "start": 1.1,
+      "end": 1.64
     },
     {
       "word": "Nell's",
-      "start": 2.23,
-      "end": 2.789
+      "start": 1.64,
+      "end": 2.2
     },
     {
       "word": "waiting",
-      "start": 2.789,
-      "end": 3.15
+      "start": 2.2,
+      "end": 2.533
     },
     {
       "word": "by",
-      "start": 3.15,
-      "end": 3.309
+      "start": 2.533,
+      "end": 2.672
     },
     {
       "word": "your",
-      "start": 3.309,
-      "end": 3.469
+      "start": 2.672,
+      "end": 2.88
     },
     {
       "word": "bow",
-      "start": 3.469,
-      "end": 3.829
+      "start": 2.88,
+      "end": 3.136
     },
     {
       "word": "with",
-      "start": 3.829,
-      "end": 4.11
+      "start": 3.136,
+      "end": 3.24
     },
     {
       "word": "the",
-      "start": 4.11,
-      "end": 4.23
+      "start": 3.24,
+      "end": 3.4
     },
     {
       "word": "Harbormaster's",
-      "start": 4.23,
-      "end": 4.99
+      "start": 3.4,
+      "end": 4.24
     },
     {
       "word": "Trial",
-      "start": 4.99,
-      "end": 5.24
+      "start": 4.24,
+      "end": 4.49
     }
   ]
 }

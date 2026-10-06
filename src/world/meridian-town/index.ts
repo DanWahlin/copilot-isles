@@ -46,6 +46,7 @@ import {
   type VillageBoxCollider,
   type VillageKit,
 } from '../village';
+import { segmentDistance } from '../../util/math';
 
 type HouseSide = 'front' | 'back' | 'left' | 'right';
 type HouseRoof = 'gable' | 'tower' | 'flat';
@@ -4046,13 +4047,6 @@ function shipyardSlipHeight(x: number, z: number): number | null {
 
 function inBox(x: number, z: number, b: { x0: number; x1: number; z0: number; z1: number }): boolean {
   return x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1;
-}
-
-function segmentDistance(x: number, z: number, ax: number, az: number, bx: number, bz: number): number {
-  const dx = bx - ax;
-  const dz = bz - az;
-  const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / Math.max(1e-6, dx * dx + dz * dz)));
-  return Math.hypot(x - (ax + dx * t), z - (az + dz * t));
 }
 
 function toLocal(cx: number, cz: number, rot: number, x: number, z: number): [number, number] {

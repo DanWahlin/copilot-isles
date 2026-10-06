@@ -5,83 +5,83 @@
   "words": [
     {
       "word": "At",
-      "start": 0.07,
-      "end": 0.19
+      "start": 0,
+      "end": 0.23
     },
     {
       "word": "Connect",
-      "start": 0.19,
-      "end": 0.59
+      "start": 0.23,
+      "end": 0.752
     },
     {
       "word": "your",
-      "start": 0.59,
-      "end": 0.75
+      "start": 0.752,
+      "end": 0.972
     },
     {
       "word": "repositories",
-      "start": 0.75,
-      "end": 1.35
+      "start": 0.972,
+      "end": 2.48
     },
     {
       "word": "leave",
-      "start": 1.35,
-      "end": 1.55
+      "start": 2.48,
+      "end": 2.947
     },
     {
       "word": "every",
-      "start": 1.55,
-      "end": 1.83
+      "start": 2.947,
+      "end": 3.367
     },
     {
       "word": "repository",
-      "start": 1.83,
-      "end": 2.429
+      "start": 3.367,
+      "end": 4.427
     },
     {
       "word": "unselected",
-      "start": 2.429,
-      "end": 3.23
+      "start": 4.427,
+      "end": 5.56
     },
     {
       "word": "and",
-      "start": 3.23,
-      "end": 3.429
+      "start": 5.56,
+      "end": 6
     },
     {
       "word": "select",
-      "start": 3.429,
-      "end": 3.75
+      "start": 6,
+      "end": 6.587
     },
     {
       "word": "Continue",
-      "start": 3.75,
-      "end": 4.51
+      "start": 6.587,
+      "end": 7.94
     },
     {
       "word": "You’ll",
-      "start": 4.51,
-      "end": 4.75
+      "start": 7.94,
+      "end": 8.69
     },
     {
       "word": "connect",
-      "start": 4.75,
-      "end": 5.07
+      "start": 8.69,
+      "end": 9.056
     },
     {
       "word": "your",
-      "start": 5.07,
-      "end": 5.23
+      "start": 9.056,
+      "end": 9.2
     },
     {
       "word": "fork",
-      "start": 5.23,
-      "end": 5.51
+      "start": 9.2,
+      "end": 9.59
     },
     {
       "word": "shortly",
-      "start": 5.51,
-      "end": 5.76
+      "start": 9.59,
+      "end": 9.84
     }
   ]
 }

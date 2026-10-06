@@ -5,43 +5,43 @@
   "words": [
     {
       "word": "Hints",
-      "start": 0.19,
-      "end": 0.55
+      "start": 0,
+      "end": 0.34
     },
     {
       "word": "are",
-      "start": 0.55,
-      "end": 0.67
+      "start": 0.34,
+      "end": 0.48
     },
     {
       "word": "my",
-      "start": 0.67,
-      "end": 0.83
+      "start": 0.48,
+      "end": 0.7
     },
     {
       "word": "job",
-      "start": 0.83,
-      "end": 1.11
+      "start": 0.7,
+      "end": 1.15
     },
     {
       "word": "Captain",
-      "start": 1.11,
-      "end": 1.99
+      "start": 1.15,
+      "end": 1.62
     },
     {
       "word": "Decisions",
-      "start": 1.99,
-      "end": 2.51
+      "start": 1.62,
+      "end": 2.74
     },
     {
       "word": "are",
-      "start": 2.51,
-      "end": 2.63
+      "start": 2.74,
+      "end": 3.133
     },
     {
       "word": "yours",
-      "start": 2.63,
-      "end": 2.88
+      "start": 3.133,
+      "end": 3.383
     }
   ]
 }

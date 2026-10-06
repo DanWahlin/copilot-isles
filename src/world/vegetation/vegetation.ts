@@ -75,7 +75,7 @@ function palmGeometryDistance(tier: TierSettings): number {
 
 /** Distance where a species' live geometry dissolves into its impostor (shared by both sides). */
 function geometryHandoff(species: PlantSpecies, tier: TierSettings): number {
-  if (species === 'shrub') return Math.min(45, tier.treeNear * 0.62);
+  if (species === 'shrub' || species === 'flowerBush') return Math.min(45, tier.treeNear * 0.62);
   if (species.startsWith('palm')) return palmGeometryDistance(tier);
   return tier.treeNear;
 }
@@ -174,7 +174,9 @@ function createBatch(
   mesh.name = `vegetation-${species}`;
   mesh.count = 0;
   mesh.frustumCulled = false;
-  const nearOnly = TREE_LIKE.has(species);
+  // Flowering bushes hand off to the shrub impostor: drawn small, their alpha-tested leaves thin out
+  // and leave only the red blooms, which read as red blobs on the hills.
+  const nearOnly = TREE_LIKE.has(species) || species === 'flowerBush';
   const farDistance =
     species === 'fern'
       ? tier.grassDistance + 34
@@ -277,7 +279,8 @@ function appendHeadlandPlants(
 function collectTreeLike(scatter: Record<PlantSpecies, PlantInstance[]>): PlantInstance[] {
   const output: PlantInstance[] = [];
   for (const species of Object.keys(scatter) as PlantSpecies[]) {
-    if (TREE_LIKE.has(species) || species === 'shrub') output.push(...scatter[species]);
+    if (TREE_LIKE.has(species) || species === 'shrub' || species === 'flowerBush')
+      output.push(...scatter[species]);
   }
   return output;
 }

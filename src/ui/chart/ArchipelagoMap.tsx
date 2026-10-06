@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { ChartIsland } from '../bridge';
 import { ARCH_H, ARCH_W, chapterParts } from './archipelago';
+import { mulberry32 } from '../../util/math';
 
 /**
  * The archipelago page of the Captain's Chart: each chapter's island drawn with its own shape,
@@ -492,17 +493,6 @@ function gear(outer: number, inner: number, teeth: number): string {
 
 // ---------------------------------------------------------------------------------------------
 // Curves.
-
-function mulberry32(seed: number): () => number {
-  let s = seed >>> 0;
-  return () => {
-    s = (s + 0x6d2b79f5) >>> 0;
-    let t = s;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 /** A smooth, seeded, organic closed outline around (0, 0). */
 function blob(seed: number, rx: number, ry: number, wobble: number, n = 14): string {

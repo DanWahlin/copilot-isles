@@ -1,4 +1,5 @@
 import { Bone, Matrix4, Skeleton, SkinnedMesh, Vector3, type Object3D } from 'three/webgpu';
+import { smoothstep } from '../../util/math';
 
 /** The brow bones added under each NPC rig's Head (left is +x, the character's own left). */
 export const BROW_BONES = ['BrowL', 'BrowR'] as const;
@@ -136,21 +137,15 @@ function rigMesh(mesh: SkinnedMesh, root: Object3D, jaw?: JawFit): boolean {
       const y = local[i * 3 + 1]!;
       const z = local[i * 3 + 2]!;
       const w =
-        smooth(fit.mouthY + 0.004, fit.mouthY - 0.07, y) *
-        smooth(0.02, 0.14, z) *
-        (1 - smooth(0.13, 0.22, Math.abs(x)));
+        smoothstep(fit.mouthY + 0.004, fit.mouthY - 0.07, y) *
+        smoothstep(0.02, 0.14, z) *
+        (1 - smoothstep(0.13, 0.22, Math.abs(x)));
       if (w < 0.01) continue;
       skinIndex.setY(i, jawIndex);
       skinWeight.setX(i, 1 - w);
       skinWeight.setY(i, w);
     }
   }
-}
-
-/** Smoothstep that also runs downhill when `a > b`. */
-function smooth(a: number, b: number, x: number): number {
-  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
 }
 
 function centre(local: Float32Array, list: readonly number[]): Vector3 {

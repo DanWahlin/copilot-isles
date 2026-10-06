@@ -5,133 +5,133 @@
   "words": [
     {
       "word": "Once",
-      "start": 0.07,
-      "end": 0.31
+      "start": 0,
+      "end": 0.267
     },
     {
       "word": "it's",
-      "start": 0.31,
-      "end": 0.47
+      "start": 0.267,
+      "end": 0.456
     },
     {
       "word": "installed",
-      "start": 0.47,
-      "end": 1.15
+      "start": 0.456,
+      "end": 1.344
     },
     {
       "word": "open",
-      "start": 1.15,
-      "end": 1.55
+      "start": 1.344,
+      "end": 1.68
     },
     {
       "word": "it",
-      "start": 1.55,
-      "end": 1.71
+      "start": 1.68,
+      "end": 1.92
     },
     {
       "word": "and",
-      "start": 1.71,
-      "end": 1.91
+      "start": 1.92,
+      "end": 2.263
     },
     {
       "word": "select",
-      "start": 1.91,
-      "end": 2.309
+      "start": 2.263,
+      "end": 2.992
     },
     {
       "word": "Sign",
-      "start": 2.309,
-      "end": 2.71
+      "start": 2.992,
+      "end": 3.493
     },
     {
       "word": "in",
-      "start": 2.71,
-      "end": 2.869
+      "start": 3.493,
+      "end": 3.653
     },
     {
       "word": "to",
-      "start": 2.869,
-      "end": 3.349
+      "start": 3.653,
+      "end": 3.851
     },
     {
       "word": "GitHub",
-      "start": 3.349,
-      "end": 3.829
+      "start": 3.851,
+      "end": 4.88
     },
     {
       "word": "If",
-      "start": 3.829,
-      "end": 3.949
+      "start": 4.88,
+      "end": 5.712
     },
     {
       "word": "your",
-      "start": 3.949,
-      "end": 4.11
+      "start": 5.712,
+      "end": 5.89
     },
     {
       "word": "company's",
-      "start": 4.11,
-      "end": 4.51
+      "start": 5.89,
+      "end": 6.291
     },
     {
       "word": "account",
-      "start": 4.51,
-      "end": 4.87
+      "start": 6.291,
+      "end": 6.694
     },
     {
       "word": "lives",
-      "start": 4.87,
-      "end": 5.11
+      "start": 6.694,
+      "end": 7.041
     },
     {
       "word": "on",
-      "start": 5.11,
-      "end": 5.27
+      "start": 7.041,
+      "end": 7.321
     },
     {
       "word": "GHE.com",
-      "start": 5.27,
-      "end": 6.35
+      "start": 7.321,
+      "end": 9.064
     },
     {
       "word": "choose",
-      "start": 6.35,
-      "end": 6.75
+      "start": 9.064,
+      "end": 9.793
     },
     {
       "word": "Sign",
-      "start": 6.75,
-      "end": 7.07
+      "start": 9.793,
+      "end": 10.294
     },
     {
       "word": "in",
-      "start": 7.07,
-      "end": 7.23
+      "start": 10.294,
+      "end": 10.454
     },
     {
       "word": "to",
-      "start": 7.23,
-      "end": 7.35
+      "start": 10.454,
+      "end": 10.641
     },
     {
       "word": "GitHub",
-      "start": 7.35,
-      "end": 7.71
+      "start": 10.641,
+      "end": 11.179
     },
     {
       "word": "Enterprise",
-      "start": 7.71,
-      "end": 8.27
+      "start": 11.179,
+      "end": 11.841
     },
     {
       "word": "Cloud",
-      "start": 8.27,
-      "end": 8.549
+      "start": 11.841,
+      "end": 12.311
     },
     {
       "word": "instead",
-      "start": 8.549,
-      "end": 8.799
+      "start": 12.311,
+      "end": 12.561
     }
   ]
 }

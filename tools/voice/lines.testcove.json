@@ -4,118 +4,118 @@
     {
       "id": "nell.papers.01",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "Morning, Captain! Nobody sails from Anchorage without their papers."
     },
     {
       "id": "nell.papers.02",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "Papers means a GitHub account, and either a Copilot plan or your own model provider."
     },
     {
       "id": "nell.settings.01",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "That opens the New view, where new work starts. If a tip about a new feature pops up, you can close it."
     },
     {
       "id": "wingman.hint.01",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "Hints are my job, Captain. Decisions are yours.",
-      "fallbackVoice": "en-GB-NoahNeural",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.welcome.01",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
-      "fallbackVoice": "en-GB-NoahNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "Ahoy, Captain! Up here! I'm Wingman, your parrot and first mate.",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.welcome.02",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
-      "fallbackVoice": "en-GB-NoahNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "Every island out here teaches a chapter of the GitHub Copilot app for Beginners course, and each one has a Seal to earn.",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.welcome.03",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
-      "fallbackVoice": "en-GB-NoahNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "We're on Anchorage Cay, where you'll set up the app. Nell's by the harbourmaster's door, so start with her.",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.welcome.04",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
-      "fallbackVoice": "en-GB-NoahNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "Your tasks are in the top left, and the compass up top points to the next one.",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.starfish.anchorage",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
-      "fallbackVoice": "en-GB-NoahNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "And seven starfish are hidden around Anchorage Cay. Your count's in the top right.",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.welcome.05",
       "speaker": "Wingman",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "Stuck? Press Q for a hint. I'll ride on your shoulder. Hints are my job. Decisions are yours!",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
-      "fallbackVoice": "en-GB-NoahNeural",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.welcome.back",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
-      "fallbackVoice": "en-GB-NoahNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "Welcome back, Captain! Your next task's in the top left.",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.hint.02",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "If the sign doesn't name your fork, don't pull the yes lever yet.",
-      "fallbackVoice": "en-GB-NoahNeural",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.hint.03",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "You'll get unlimited retries here, so try the idea that feels safest.",
-      "fallbackVoice": "en-GB-NoahNeural",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.trial.01",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "Eight questions, Captain. No answers from me in there, only nudges.",
-      "fallbackVoice": "en-GB-NoahNeural",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.suri.01",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "Quick one, Captain: those are GitHub Actions workflows. The Clock Tower’s Automations are something else, saved agent tasks, and you’ll learn those much later.",
-      "fallbackVoice": "en-GB-NoahNeural",
       "fx": "wingman-bird"
     },
     {
@@ -393,64 +393,64 @@
     {
       "id": "nell.papers.app",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "This is the GitHub Copilot app. It's where you'll give Copilot's agents their orders and check their work."
     },
     {
       "id": "nell.papers.03",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "Next, download and install the GitHub Copilot app for your system."
     },
     {
       "id": "nell.papers.logbook",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "I've put that page in your Logbook, download link and all. Press J whenever you need it, and every page you find ends up there too."
     },
     {
       "id": "nell.papers.signin",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "Once it's installed, open it and select Sign in to GitHub. If your company's account lives on GHE.com, choose Sign in to GitHub Enterprise Cloud instead."
     },
     {
       "id": "nell.papers.04",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "On Copilot Business or Enterprise, your organization has to switch on the GitHub Copilot app policy first."
     },
     {
       "id": "nell.papers.tools",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "You'll also need Git, Node.js, and GitHub CLI. The list's in my chest here, with where to get each one."
     },
     {
       "id": "nell.papers.05",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "At Connect your repositories, leave every repository unselected and select Continue. You’ll connect your fork shortly."
     },
     {
       "id": "nell.papers.06",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "Want a different theme? Select the gear at the bottom of the sidebar, then Themes. Here, your theme’s your sails, and the palette stand’s right beside me."
     },
     {
       "id": "nell.done.01",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "Papers in order. Off you go!"
     },
     {
@@ -564,22 +564,22 @@
     {
       "id": "juno.brief.01",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "text": "Juno, your first mate. Setup’s done, so let’s give the crew their first order."
     },
     {
       "id": "juno.brief.02",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "text": "In the app, you’d send this to the agent from your project session:"
     },
     {
       "id": "juno.brief.03",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "prosody": {
         "rate": "-8%"
       },
@@ -588,71 +588,71 @@
     {
       "id": "juno.brief.04",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "text": "You’ve been running commands in Terminal all morning. This one’s different. It’s a request for the agent."
     },
     {
       "id": "juno.brief.05",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "text": "Two fittings on the rail, just behind me. The brass speaking tube goes up to the crew, and the iron hatch goes down to the engine room. Your call, Captain."
     },
     {
       "id": "juno.pipes.01",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "text": "It’s a request for the agent, not a command. Pick the fitting on the rail that carries it."
     },
     {
       "id": "juno.done.sealed.01",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "text": "The crew’s proud of you, Captain. Wherever you sail next, they’re listening."
     },
     {
       "id": "juno.done.01",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "text": "The crew knows the ship now. Nell's waiting by your bow with the Harbormaster's Trial."
     },
     {
       "id": "juno.reply.01",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "text": "Hear that? The crew’s answering."
     },
     {
       "id": "juno.reply.02",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "text": "They’ve summed up the course, chapter by chapter, and flagged samples/book-app-web. That’s the web sample you’ll use in later exercises."
     },
     {
       "id": "juno.reply.vary",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "text": "In the app, your reply will be worded differently. Models vary, and that's fine."
     },
     {
       "id": "juno.reply.03",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "text": "Commands go to the Terminal. Requests go to the agent, through the prompt box. That's setup done, Captain. Nell's waiting by your bow with the Harbormaster's Trial."
     },
     {
       "id": "juno.hatch.feedback.01",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "prosody": {
         "rate": "+35%"
       },
@@ -661,8 +661,8 @@
     {
       "id": "juno.hatch.01",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "prosody": {
         "rate": "+20%"
       },
@@ -680,88 +680,88 @@
     {
       "id": "nell.palette.02",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "Fine colours, Captain. Next, your own copy of the course. Ezra's at his chart table, down by the pier."
     },
     {
       "id": "nell.palette.01",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "Pick your sails at the palette stand, then select Finish."
     },
     {
       "id": "nell.done.02",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "A sealed captain! Fair winds."
     },
     {
       "id": "nell.christen.01",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "No ship leaves Anchorage without a name, Captain, and yours has been waiting all morning."
     },
     {
       "id": "nell.christen.02",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "Fair winds to her, and to all who sail in her!"
     },
     {
       "id": "nell.christen.03",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "She suits you, Captain. Fair winds."
     },
     {
       "id": "nell.trial.01",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "Setup's done, Captain. Before your ship gets her name, there's the Harbormaster's Trial: eight questions on what you've set up."
     },
     {
       "id": "nell.trial.02",
       "speaker": "Nell",
-      "voice": "en-GB-Sonia:DragonHDLatestNeural",
-      "fallbackVoice": "en-GB-SoniaNeural",
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n",
       "text": "The Seal of Anchorage, and well earned. Now, about that ship."
     },
     {
       "id": "juno.christen.01",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "text": "Crew’s aboard, Captain."
     },
     {
       "id": "wingman.sail.01",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "Right, a quick sailing lesson. The gangway’s down now, so walk up it to take the helm. W and S trim the sails, and A and D steer.",
-      "fallbackVoice": "en-GB-NoahNeural",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.sail.02",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "The compass up top points back to the pier. Bring her alongside and press E, and I’ll help you dock.",
-      "fallbackVoice": "en-GB-NoahNeural",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.sail.03",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "Port Meridian’s east on the chart, but she’s not ready for visitors yet. Until she is, these waters are yours.",
-      "fallbackVoice": "en-GB-NoahNeural",
       "fx": "wingman-bird"
     },
     {
@@ -821,41 +821,41 @@
     {
       "id": "wingman.meridian.01",
       "speaker": "Wingman",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "Port Meridian! This island’s Chapter 01, a tour of the Copilot app itself.",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
-      "fallbackVoice": "en-GB-NoahNeural",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.meridian.02",
       "speaker": "Wingman",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "Tobias trades in the plaza, up the stair street. Start with him, and follow the compass.",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
-      "fallbackVoice": "en-GB-NoahNeural",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.meridian.03",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
-      "fallbackVoice": "en-GB-NoahNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "Your tasks are in the top left, as before, and the compass up top shows the way.",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.starfish.meridian",
       "speaker": "Wingman",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
-      "fallbackVoice": "en-GB-NoahNeural",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "And five starfish are hidden around Port Meridian. Your count's in the top right.",
       "fx": "wingman-bird"
     },
     {
       "id": "wingman.sail.meridian",
       "speaker": "Wingman",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
       "text": "Port Meridian’s north-east, Captain. Follow the compass, and dock by the east arm.",
-      "voice": "en-GB-Noah:DragonHDOmniLatestNeural",
-      "fallbackVoice": "en-GB-NoahNeural",
       "fx": "wingman-bird"
     },
     {
@@ -1705,40 +1705,40 @@
     {
       "id": "juno.cabin.01",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "prosody": { "rate": "+10%" },
       "text": "Welcome aboard, Captain! I’m Juno, your first mate."
     },
     {
       "id": "juno.cabin.02",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "prosody": { "rate": "+10%" },
       "text": "Each island teaches a chapter of the GitHub Copilot app. Finish its quests to earn its seal."
     },
     {
       "id": "juno.cabin.03",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "prosody": { "rate": "+10%" },
       "text": "Quests fill your Logbook and your purse. Then we sail on!"
     },
     {
       "id": "juno.cabin.04",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "prosody": { "rate": "+10%" },
       "text": "And look out for starfish. They hide on every island."
     },
     {
       "id": "juno.cabin.chest",
       "speaker": "Juno",
-      "voiceEnv": "AZURE_SPEECH_FEMALE_VOICE_UK",
-      "fallbackVoice": "en-GB-AdaMultilingualNeural",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
       "prosody": { "rate": "+10%" },
       "text": "Now, open the chest, Captain. Our chart’s inside."
     }

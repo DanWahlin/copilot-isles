@@ -7,6 +7,7 @@ import {
   type Node,
 } from 'three/webgpu';
 import { texture } from 'three/tsl';
+import { mulberry32 } from '../util/math';
 
 /**
  * The opening's shared noise: one small tiling value-noise texture, read with a texture fetch (much
@@ -55,15 +56,4 @@ export function noiseTexture(): DataTexture {
 /** The shared noise (0-1) at a 2D coordinate (repeats every unit). */
 export function noiseAt(p: Node<'vec2'>): Node<'float'> {
   return texture(noiseTexture(), p).r;
-}
-
-function mulberry32(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
 }

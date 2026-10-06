@@ -49,7 +49,7 @@ import { scatterVegetationAsync } from '../world/vegetation/scatter';
 import type { PlantSpecies } from '../world/vegetation/types';
 import { ARCHIPELAGO } from '../ui/chart/archipelago';
 import { CHART_D, CHART_LIFT, CHART_W, sheetUV, worldToPaper, type ChartIslandId } from './chart-map';
-import { gridHeightField, type IslandGrid } from './island-grid';
+import { gridHeightField, popUpY, type IslandGrid } from './island-grid';
 
 /**
  * Each real island's buildings, trees and rocks on its chart miniature
@@ -867,10 +867,7 @@ function chartRocks(
   if (islandRise) {
     // The island's own pop-up curve, as for ground about this far out from its middle.
     const x = clamp((islandRise as unknown as AnyNode).sub(0.21).div(0.65), 0, 1);
-    const back = float(1)
-      .add(float(2.6).mul(x.sub(1).pow(3)))
-      .add(float(1.6).mul(x.sub(1).pow(2)));
-    mat.positionNode = vec3(positionGeometry.x, positionGeometry.y.mul(back), positionGeometry.z);
+    mat.positionNode = vec3(positionGeometry.x, popUpY(positionGeometry.y, x), positionGeometry.z);
   }
   const mesh = new Mesh(geo, mat);
   mesh.name = 'chart rocks';

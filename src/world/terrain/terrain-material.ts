@@ -255,9 +255,13 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(smoothstep(COVE.headland.z0 - 40, COVE.headland.z0 - 10, P.z))
     .mul(float(1).sub(smoothstep(COVE.headland.z1 + 10, COVE.headland.z1 + 40, P.z)));
   const steepSlope = smoothstep(0.68, 0.46, N.y);
-  // On that hill only the near-sheer faces (under the cliff mesh) take the cliff colouring.
+  // On that hill, and on any slope the masks call grass (the inland hills), only the near-sheer faces
+  // take the cliff colouring (Anchorage only: Port Meridian's dry bluffs keep theirs).
+  const grassyHill = headlandHill.max(
+    smoothstep(0.2, 0.6, grassMask).mul(float(1).sub(smoothstep(380, 460, P.x))),
+  );
   const cliffInfluence = saturate(cliffMask.add(steepSlope.mul(0.72))).mul(
-    float(1).sub(headlandHill.mul(smoothstep(0.42, 0.55, N.y))),
+    float(1).sub(grassyHill.mul(smoothstep(0.42, 0.55, N.y))),
   );
   const steepFace = steepSlope.mul(saturate(cliffMask.add(rockMask)));
   const strataPhase = fract(y.div(7.8).add(noiseLow.b.sub(0.5).mul(0.6)));

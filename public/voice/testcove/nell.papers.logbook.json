@@ -5,133 +5,133 @@
   "words": [
     {
       "word": "I've",
-      "start": 0.07,
-      "end": 0.23
+      "start": 0,
+      "end": 0.28
     },
     {
       "word": "put",
-      "start": 0.23,
-      "end": 0.39
+      "start": 0.28,
+      "end": 0.448
     },
     {
       "word": "that",
-      "start": 0.39,
-      "end": 0.55
+      "start": 0.448,
+      "end": 0.704
     },
     {
       "word": "page",
-      "start": 0.55,
-      "end": 0.83
+      "start": 0.704,
+      "end": 1.013
     },
     {
       "word": "in",
-      "start": 0.83,
-      "end": 0.91
+      "start": 1.013,
+      "end": 1.152
     },
     {
       "word": "your",
-      "start": 0.91,
-      "end": 1.07
+      "start": 1.152,
+      "end": 1.36
     },
     {
       "word": "Logbook",
-      "start": 1.07,
-      "end": 1.59
+      "start": 1.36,
+      "end": 2.018
     },
     {
       "word": "download",
-      "start": 1.59,
-      "end": 2.11
+      "start": 2.018,
+      "end": 2.848
     },
     {
       "word": "link",
-      "start": 2.11,
-      "end": 2.349
+      "start": 2.848,
+      "end": 3.1
     },
     {
       "word": "and",
-      "start": 2.349,
-      "end": 2.55
+      "start": 3.1,
+      "end": 3.38
     },
     {
       "word": "all",
-      "start": 2.55,
-      "end": 3.349
+      "start": 3.38,
+      "end": 3.947
     },
     {
       "word": "Press",
-      "start": 3.349,
-      "end": 3.75
+      "start": 3.947,
+      "end": 5.12
     },
     {
       "word": "J",
-      "start": 3.75,
-      "end": 3.869
+      "start": 5.12,
+      "end": 5.413
     },
     {
       "word": "whenever",
-      "start": 3.869,
-      "end": 4.19
+      "start": 5.413,
+      "end": 5.86
     },
     {
       "word": "you",
-      "start": 4.19,
-      "end": 4.31
+      "start": 5.86,
+      "end": 5.968
     },
     {
       "word": "need",
-      "start": 4.31,
-      "end": 4.55
+      "start": 5.968,
+      "end": 6.213
     },
     {
       "word": "it",
-      "start": 4.55,
-      "end": 4.83
+      "start": 6.213,
+      "end": 6.84
     },
     {
       "word": "and",
-      "start": 4.83,
-      "end": 5.07
+      "start": 6.84,
+      "end": 7.013
     },
     {
       "word": "every",
-      "start": 5.07,
-      "end": 5.39
+      "start": 7.013,
+      "end": 7.344
     },
     {
       "word": "page",
-      "start": 5.39,
-      "end": 5.67
+      "start": 7.344,
+      "end": 7.64
     },
     {
       "word": "you",
-      "start": 5.67,
-      "end": 5.79
+      "start": 7.64,
+      "end": 7.84
     },
     {
       "word": "find",
-      "start": 5.79,
-      "end": 6.19
+      "start": 7.84,
+      "end": 8.224
     },
     {
       "word": "ends",
-      "start": 6.19,
-      "end": 6.43
+      "start": 8.224,
+      "end": 8.533
     },
     {
       "word": "up",
-      "start": 6.43,
-      "end": 6.51
+      "start": 8.533,
+      "end": 8.68
     },
     {
       "word": "there",
-      "start": 6.51,
-      "end": 6.75
+      "start": 8.68,
+      "end": 8.98
     },
     {
       "word": "too",
-      "start": 6.75,
-      "end": 7
+      "start": 8.98,
+      "end": 9.23
     }
   ]
 }

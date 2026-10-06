@@ -5,28 +5,28 @@
   "words": [
     {
       "word": "Hear",
-      "start": 0.07,
-      "end": 0.95
+      "start": 0,
+      "end": 0.24
     },
     {
       "word": "that",
-      "start": 0.95,
-      "end": 1.11
+      "start": 0.24,
+      "end": 0.78
     },
     {
       "word": "The",
-      "start": 1.11,
-      "end": 1.23
+      "start": 0.78,
+      "end": 1.248
     },
     {
       "word": "crew’s",
-      "start": 1.23,
-      "end": 1.47
+      "start": 1.248,
+      "end": 1.568
     },
     {
       "word": "answering",
-      "start": 1.47,
-      "end": 1.72
+      "start": 1.568,
+      "end": 1.818
     }
   ]
 }

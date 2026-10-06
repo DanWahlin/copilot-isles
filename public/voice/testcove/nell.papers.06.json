@@ -5,138 +5,138 @@
   "words": [
     {
       "word": "Want",
-      "start": 0.07,
-      "end": 0.23
+      "start": 0,
+      "end": 0.34
     },
     {
       "word": "a",
-      "start": 0.23,
-      "end": 0.27
+      "start": 0.34,
+      "end": 0.46
     },
     {
       "word": "different",
-      "start": 0.27,
-      "end": 0.63
+      "start": 0.46,
+      "end": 0.733
     },
     {
       "word": "theme",
-      "start": 0.63,
-      "end": 1.27
+      "start": 0.733,
+      "end": 1.931
     },
     {
       "word": "Select",
-      "start": 1.27,
-      "end": 1.67
+      "start": 1.931,
+      "end": 2.5
     },
     {
       "word": "the",
-      "start": 1.67,
-      "end": 1.79
+      "start": 2.5,
+      "end": 2.656
     },
     {
       "word": "gear",
-      "start": 1.79,
-      "end": 2.029
+      "start": 2.656,
+      "end": 3.093
     },
     {
       "word": "at",
-      "start": 2.029,
-      "end": 2.11
+      "start": 3.093,
+      "end": 3.24
     },
     {
       "word": "the",
-      "start": 2.11,
-      "end": 2.23
+      "start": 3.24,
+      "end": 3.406
     },
     {
       "word": "bottom",
-      "start": 2.23,
-      "end": 2.55
+      "start": 3.406,
+      "end": 3.707
     },
     {
       "word": "of",
-      "start": 2.55,
-      "end": 2.67
+      "start": 3.707,
+      "end": 3.78
     },
     {
       "word": "the",
-      "start": 2.67,
-      "end": 2.789
+      "start": 3.78,
+      "end": 3.93
     },
     {
       "word": "sidebar",
-      "start": 2.789,
-      "end": 3.51
+      "start": 3.93,
+      "end": 5.088
     },
     {
       "word": "then",
-      "start": 3.51,
-      "end": 3.869
+      "start": 5.088,
+      "end": 5.383
     },
     {
       "word": "Themes",
-      "start": 3.869,
-      "end": 4.79
+      "start": 5.383,
+      "end": 6.592
     },
     {
       "word": "Here",
-      "start": 4.79,
-      "end": 5.35
+      "start": 6.592,
+      "end": 7.792
     },
     {
       "word": "your",
-      "start": 5.35,
-      "end": 5.55
+      "start": 7.792,
+      "end": 7.987
     },
     {
       "word": "theme’s",
-      "start": 5.55,
-      "end": 5.87
+      "start": 7.987,
+      "end": 8.496
     },
     {
       "word": "your",
-      "start": 5.87,
-      "end": 6.03
+      "start": 8.496,
+      "end": 8.68
     },
     {
       "word": "sails",
-      "start": 6.03,
-      "end": 6.59
+      "start": 8.68,
+      "end": 9.56
     },
     {
       "word": "and",
-      "start": 6.59,
-      "end": 6.71
+      "start": 9.56,
+      "end": 9.7
     },
     {
       "word": "the",
-      "start": 6.71,
-      "end": 6.83
+      "start": 9.7,
+      "end": 9.81
     },
     {
       "word": "palette",
-      "start": 6.83,
-      "end": 7.19
+      "start": 9.81,
+      "end": 10.227
     },
     {
       "word": "stand’s",
-      "start": 7.19,
-      "end": 7.47
+      "start": 10.227,
+      "end": 10.92
     },
     {
       "word": "right",
-      "start": 7.47,
-      "end": 7.67
+      "start": 10.92,
+      "end": 11.189
     },
     {
       "word": "beside",
-      "start": 7.67,
-      "end": 8.069
+      "start": 11.189,
+      "end": 11.707
     },
     {
       "word": "me",
-      "start": 8.069,
-      "end": 8.319
+      "start": 11.707,
+      "end": 11.957
     }
   ]
 }
