@@ -28,7 +28,7 @@ import {
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Tier } from '../world/contracts';
-import { MERIDIAN } from '../world/islands/meridian';
+import { MERIDIAN, meridianWater } from '../world/islands/meridian';
 import { meridianPlants } from '../world/islands/meridian-plants';
 import { COVE } from '../world/layout';
 import { HARBOUR_FRONT_ROW, TERRACE_ROWS, terraceRun } from '../world/meridian-town/terraces';
@@ -591,6 +591,7 @@ export async function createIslandProps(o: IslandPropsOptions): Promise<IslandPr
             );
           }
       citadel(parts, late + 0.2);
+      chartWater(parts, late + 0.15);
       // The island's hills, planted as the game plants them (on the chart's own baked ground).
       for (const p of meridianPlants(tier, hf)) {
         plant(parts, p.species, p.x, p.y, p.z, p.scale, late + delayAt(p.x, p.z) * 0.7, r);
@@ -746,6 +747,65 @@ function citadel(parts: PropParts, delay: number): void {
 }
 
 /** The harbour light at the end of Port Meridian's mole. */
+/** Meridian's tarn, cascade, brook, lake and outflow: flat water on the chart's ground, white where steep. */
+function chartWater(parts: PropParts, delay: number): void {
+  const water = meridianWater();
+  const wide = parts.wide;
+  parts.wide = 1;
+  const teal = rgb(0x2f8c94, 1);
+  for (const b of Object.values(water.basins)) {
+    const pos: number[] = [];
+    const n = 28;
+    for (let i = 0; i < n; i++) {
+      const [ax, az] = water.rimPoint(b, (i / n) * Math.PI * 2, 1.02);
+      const [bx, bz] = water.rimPoint(b, ((i + 1) / n) * Math.PI * 2, 1.02);
+      pos.push(0, 0, 0, bx - b.x, 0, bz - b.z, ax - b.x, 0, az - b.z);
+    }
+    const g = new BufferGeometry();
+    g.setAttribute('position', new BufferAttribute(new Float32Array(pos), 3));
+    parts.add(g, teal, b.x, b.level + 0.35, b.z, delay);
+  }
+  for (const s of water.streams) {
+    const x0 = s.x[0]!;
+    const z0 = s.z[0]!;
+    const y0 = s.surface[0]!;
+    const pos: number[] = [];
+    const col: number[] = [];
+    for (let i = 0; i < s.count - 1; i++) {
+      const w = s.spec.halfWidth * 1.3;
+      const quad: number[][] = [];
+      for (const j of [i, i + 1]) {
+        const a = Math.max(0, j - 1);
+        const c = Math.min(s.count - 1, j + 1);
+        const dx = s.x[c]! - s.x[a]!;
+        const dz = s.z[c]! - s.z[a]!;
+        const len = Math.hypot(dx, dz) || 1;
+        const y = s.surface[j]! + 0.35 - y0;
+        quad.push([s.x[j]! - x0 - (dz / len) * w, y, s.z[j]! - z0 + (dx / len) * w]);
+        quad.push([s.x[j]! - x0 + (dz / len) * w, y, s.z[j]! - z0 - (dx / len) * w]);
+      }
+      const [a, b, c, d] = quad as [number[], number[], number[], number[]];
+      pos.push(...a, ...c, ...b, ...b, ...c, ...d);
+      const steep = Math.min(1, (s.surface[i]! - s.surface[i + 1]!) / 1.6);
+      col.push(steep);
+    }
+    const g = new BufferGeometry();
+    g.setAttribute('position', new BufferAttribute(new Float32Array(pos), 3));
+    // The white of falling water can't ride on one colour per part, so steep runs go in their own part.
+    parts.add(g, teal, x0, y0, z0, delay);
+    const white: number[] = [];
+    for (let i = 0; i < col.length; i++)
+      if (col[i]! > 0.45)
+        white.push(...pos.slice(i * 18, i * 18 + 18).map((v, k) => (k % 3 === 1 ? v + 0.15 : v)));
+    if (white.length) {
+      const fall = new BufferGeometry();
+      fall.setAttribute('position', new BufferAttribute(new Float32Array(white), 3));
+      parts.add(fall, rgb(0xdfeeee, 1), x0, y0, z0, delay);
+    }
+  }
+  parts.wide = wide;
+}
+
 function moleLighthouse(parts: PropParts, x: number, y: number, z: number, delay: number): void {
   const tower = new CylinderGeometry(1.7, 2.3, 11, 10);
   tower.translate(0, 5.5, 0);

@@ -18,7 +18,7 @@ import { arrivalFlight, arrivalKeys, type IslandArrival, type IslandId } from '.
 import { ISLANDS, islandAt, openIslands, passageSky, type IslandBerth } from './islands';
 
 export { ISLANDS, islandAt } from './islands';
-import { meridianQuayHeight } from '../world/islands/meridian';
+import { meridianQuayHeight, meridianWater } from '../world/islands/meridian';
 import { FlyoverPath } from './flyover';
 import { world as worldUniforms } from '../world/uniforms';
 import { Helm } from './helm';
@@ -275,6 +275,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     ],
     circles: [...village.colliders.circles, ...sites.colliders.circles],
     boxes: [...village.colliders.boxes, ...sites.colliders.boxes],
+    // Port Meridian's lake and streams: wade the shallows, and the deep middle stops you.
+    inland: (x, z) => meridianWater().levelAt(x, z),
   });
 
   const hud = new Hud(o.hudParent);

@@ -19,6 +19,8 @@ import { createBrigantine, type Brigantine } from './ship';
 import { createVegetation, type VegetationSystem } from './vegetation';
 import type { PlantInstance } from './vegetation/types';
 import { meridianPlantsSliced } from './islands/meridian-plants';
+import { createMeridianWaterMesh } from './islands/meridian-water-mesh';
+import type { WaterStrips } from './sites/water';
 import { DOCK_GULL_SPOT, createVillage, loadVillageKit, type VillageSystem } from './village';
 import { createDockGull, type DockGull } from './life/dock-gull';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -94,6 +96,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   // Meridian's gulls arrive with its town (the stream below).
   let meridianBirds: BirdsSystem | null = null;
   const meridianDisabled = params.has('nomeridian');
+  let meridianWaterMesh: WaterStrips | null = null;
   const mirror = tier.mirror ? new HarborMirror({ renderer, tier, disabled: mirrorDisabled }) : null;
   const ocean = createOcean({ tier, env: sky.env, mirror: mirror?.input, terrainDepth: true });
   await breathe();
@@ -147,6 +150,9 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
           breathe,
         );
         await breathe();
+        // The tarn, cascade, brook, lake and outflow ride with the terrain (shown and hidden with it).
+        meridianWaterMesh = createMeridianWaterMesh();
+        meridianTerrain.group.add(meridianWaterMesh.mesh);
         if (tier.shadowCascades > 0) disableReceiveShadows(meridianTerrain.group);
         const meridianFoam = createCoastFoam(meridianData, meridianTerrain.heightField, {
           maxDistance: 1100,
@@ -417,6 +423,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       disposeTree(foam);
       disposeTree(ranges);
       disposeTree(meridian.silhouette);
+      meridianWaterMesh?.dispose();
       meridian.terrain?.dispose();
       if (meridian.foam) disposeTree(meridian.foam);
       meridian.town?.dispose();

@@ -32,6 +32,8 @@ export interface CollisionWorldOptions {
   surfaces?: WalkSurface[];
   circles?: readonly CircleObstacle[];
   boxes?: readonly BoxCollider[];
+  /** Fresh water above the sea (lakes, streams): its surface at (x, z), or null where there's none. */
+  inland?: (x: number, z: number) => number | null;
 }
 
 interface Bucket {
@@ -49,6 +51,7 @@ const CELL = 16;
 export class CollisionWorld {
   readonly ground: HeightField;
   readonly waves: WaveSampler | null;
+  private readonly inland: ((x: number, z: number) => number | null) | null;
   private readonly surfaces: WalkSurface[];
   private readonly grid = new Map<number, Bucket>();
   private readonly dynamic: CircleObstacle[] = [];
@@ -57,6 +60,7 @@ export class CollisionWorld {
   constructor(o: CollisionWorldOptions) {
     this.ground = o.ground;
     this.waves = o.waves ?? null;
+    this.inland = o.inland ?? null;
     this.surfaces = o.surfaces ?? [];
     for (const c of o.circles ?? []) this.addCircle(c);
     for (const b of o.boxes ?? []) this.addBox(b);
@@ -129,7 +133,9 @@ export class CollisionWorld {
   }
 
   waterAt(x: number, z: number, t: number): number {
-    return this.waves ? this.waves.heightAt(x, z, t) : 0;
+    const sea = this.waves ? this.waves.heightAt(x, z, t) : 0;
+    const fresh = this.inland?.(x, z) ?? null;
+    return fresh !== null && fresh > sea ? fresh : sea;
   }
 
   surfaceAt(x: number, z: number, t = 0, y?: number): SurfaceKind {

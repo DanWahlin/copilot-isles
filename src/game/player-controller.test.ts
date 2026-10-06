@@ -30,6 +30,13 @@ function walk(p: PlayerController, w: CollisionWorld, yaw: number, secs: number,
 }
 
 describe('CollisionWorld', () => {
+  it('takes fresh water above the sea (a hill lake) as the water there', () => {
+    const w = world({ inland: (x) => (x > 30 && x < 40 ? 3.6 : null) });
+    expect(w.waterAt(35, 0, 0)).toBeCloseTo(3.6, 5);
+    expect(w.surfaceAt(35, 0, 0)).toBe('water');
+    expect(w.waterAt(10, 0, 0)).toBe(0);
+  });
+
   it('pushes a circle out of a circle obstacle', () => {
     const w = world({ circles: [{ x: 0, z: 0, r: 1 }] });
     const p = { x: 0.5, z: 0 };

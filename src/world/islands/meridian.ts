@@ -16,6 +16,7 @@ import { fbm2, ridged2 } from '../terrain/cove-height';
 import { ROCK_ASSETS } from '../terrain/rock-assets';
 import { createRockMaterial } from '../terrain/terrain-material';
 import { clamp01, smoothstep } from '../../util/math';
+import { createMeridianWater, type MeridianWater } from './meridian-water';
 
 /**
  * Port Meridian (Chapter 01), layout v2: a compact harbour town that faces south-west into the
@@ -306,7 +307,8 @@ function ridgeHeight(x: number, z: number, current: number): number {
   return out;
 }
 
-export function meridianHeight(x: number, z: number): number {
+/** The island before its fresh water is carved in (the water's levels are taken from it). */
+export function meridianHeightDry(x: number, z: number): number {
   const coast = ellipseDistance(x, z);
   const offshore = Math.max(0, -coast.distance);
   const seaT = smoothstep(20, 145, offshore);
@@ -352,6 +354,17 @@ export function meridianHeight(x: number, z: number): number {
   h = liftClearanceHeight(x, z, h);
   if (coast.radial > MERIDIAN.seabedRadius) h = Math.min(h, -MERIDIAN.deepDepth);
   return h;
+}
+
+let water: MeridianWater | null = null;
+
+/** The tarn, cascade, brook, lake and outflow (built on first use from the dry island). */
+export function meridianWater(): MeridianWater {
+  return (water ??= createMeridianWater(meridianHeightDry));
+}
+
+export function meridianHeight(x: number, z: number): number {
+  return meridianWater().carve(x, z, meridianHeightDry(x, z));
 }
 
 function meridianNormalAt(
@@ -425,6 +438,15 @@ export function meridianMasks(
         Math.hypot(x - MERIDIAN.mole.lighthouse.x, z - MERIDIAN.mole.lighthouse.z),
       )) *
     smoothstep(1.5, 3.2, h);
+  // Fresh water: a pebbly bed and wet stone in the channels, green banks round them.
+  const shoreDist = meridianWater().shoreDistance(x, z, 12);
+  if (shoreDist < 12) {
+    const wet = 1 - smoothstep(0, 1.2, shoreDist);
+    const bank = (1 - smoothstep(1, 9, shoreDist)) * (1 - wet) * (1 - smoothstep(0.5, 1.2, slope));
+    rock = Math.max(rock, wet * 0.7);
+    sand = Math.max(sand * (1 - bank), wet * 0.35);
+    grass = Math.max(grass, bank * 0.9);
+  }
   grass *= (1 - townFootprint * 0.98) * (1 - lighthousePlatform);
   sand = Math.max(sand, townFootprint * 0.68, lighthousePlatform * 0.38);
   rock = Math.max(rock, lighthousePlatform * 0.46);
@@ -545,6 +567,8 @@ export function createMeridianRocks(heightField: HeightField): Group {
       euler.set((rand(seed + 7) - 0.5) * 0.2, yaw, (rand(seed + 8) - 0.5) * 0.24, 'YXZ');
       rotation.setFromEuler(euler);
       scale.set(s * (1.2 + rand(seed + 3)), s * (0.55 + rand(seed + 4) * 0.65), s * (0.9 + rand(seed + 5)));
+      // None in the fresh water (the cascade's gully, the brook, the lake).
+      if (meridianWater().shoreDistance(x, z, 30) < s * 1.4 + 2) scale.setScalar(0);
       position.set(
         x - normal[0] * s * 0.28,
         heightField.heightAt(x, z) - normal[1] * s * 0.28 - 1.1,

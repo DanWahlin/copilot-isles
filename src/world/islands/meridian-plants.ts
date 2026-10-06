@@ -1,7 +1,7 @@
 import type { HeightField, Tier } from '../contracts';
 import type { PlantInstance, PlantSpecies } from '../vegetation/types';
 import { fbm2 } from '../terrain/cove-height';
-import { MERIDIAN, meridianHeight, meridianMasks, meridianQuayHeight } from './meridian';
+import { MERIDIAN, meridianHeight, meridianMasks, meridianQuayHeight, meridianWater } from './meridian';
 
 /**
  * Port Meridian's hills planted (PLAN §4: "lush Mediterranean-Caribbean hills"): palms along the
@@ -49,6 +49,7 @@ export function meridianPlantExcluded(x: number, z: number): boolean {
   if (Math.hypot((x - h.center.x) / h.radiusX, (z - h.center.z) / h.radiusZ) < 1.18) return true;
   for (const cave of MERIDIAN.seaCaves)
     if (Math.hypot(x - cave.x, z - cave.z) < cave.radius * 1.8) return true;
+  if (meridianWater().shoreDistance(x, z, 3) < 2.2) return true;
   return false;
 }
 
@@ -91,9 +92,11 @@ export function* meridianPlantsSliced(
         const grove = fbm2(x * 0.011, z * 0.011, 3, 0x6e41) * 0.5 + 0.5;
         const thicket = fbm2(x * 0.03 + 7.3, z * 0.03 - 2.1, 2, 0x51c7) * 0.5 + 0.5;
         // Groves and thickets fill in; the ground between them stays mostly open.
+        // The banks of the lake and streams grow thick and green.
+        const bank = 1 - smooth(3, 18, meridianWater().shoreDistance(x, z, 18));
         const density = Math.min(
           1,
-          0.2 + smooth(0.5, 0.66, grove) * 0.75 + smooth(0.48, 0.7, thicket) * 0.45,
+          0.2 + smooth(0.5, 0.66, grove) * 0.75 + smooth(0.48, 0.7, thicket) * 0.45 + bank * 0.7,
         );
         if (hash(cx, cz, s + 1) > keep * density) continue;
         if (meridianPlantExcluded(x, z)) continue;
@@ -104,7 +107,10 @@ export function* meridianPlantsSliced(
         if (slopeDeg > 34) continue;
         const m = field.masksAt(x, z);
         if (m.cliff > 0.4 || m.sand > 0.6) continue;
-        const species = speciesFor(h, slopeDeg, m.rock, grove, thicket, hash(cx, cz, s + 4));
+        const species =
+          bank > 0.35 && slopeDeg < 26
+            ? bankSpecies(hash(cx, cz, s + 4))
+            : speciesFor(h, slopeDeg, m.rock, grove, thicket, hash(cx, cz, s + 4));
         if (!species) continue;
         // Sit the base on the lowest ground under it, a little sunk, as the island's scatter does.
         let y = h;
@@ -182,6 +188,16 @@ function speciesFor(
   if (pick < 0.78) return 'broadleafTree';
   if (pick < 0.8 && accent) return 'shrub';
   return null;
+}
+
+/** By fresh water: palms, bananas and ferns, a few shade trees, and brush. */
+function bankSpecies(pick: number): PlantSpecies {
+  if (pick < 0.26) return 'palmTall';
+  if (pick < 0.4) return 'palmYoung';
+  if (pick < 0.56) return 'banana';
+  if (pick < 0.72) return 'fern';
+  if (pick < 0.84) return 'broadleafTree';
+  return 'brush';
 }
 
 function scaleFor(species: PlantSpecies, r: number): number {
