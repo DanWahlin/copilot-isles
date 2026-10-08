@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { HeightField } from '../contracts';
 import { COVE } from '../layout';
+import { ANCHORAGE_VEGETATION, isVegetationExcluded } from '../islands/anchorage/vegetation-rules';
 import { exclusionWeight } from './exclusions';
-import { isVegetationExcluded, scatterVegetation, slopeDegFromNormal } from './scatter';
+import { scatterVegetation, slopeDegFromNormal } from './scatter';
 import type { PlantInstance } from './types';
 
 class TestHeightField implements HeightField {
@@ -40,8 +41,18 @@ function flatten(plants: Record<string, PlantInstance[]>): PlantInstance[] {
 
 describe('vegetation scatter', () => {
   it('is deterministic for the same seed and tier', () => {
-    const a = scatterVegetation({ heightField: new TestHeightField(), tier: 'high', seed: 1234 });
-    const b = scatterVegetation({ heightField: new TestHeightField(), tier: 'high', seed: 1234 });
+    const a = scatterVegetation({
+      heightField: new TestHeightField(),
+      tier: 'high',
+      island: ANCHORAGE_VEGETATION,
+      seed: 1234,
+    });
+    const b = scatterVegetation({
+      heightField: new TestHeightField(),
+      tier: 'high',
+      island: ANCHORAGE_VEGETATION,
+      seed: 1234,
+    });
     expect(a.plants).toEqual(b.plants);
     expect(a.attempts).toBe(b.attempts);
   });
@@ -63,7 +74,12 @@ describe('vegetation scatter', () => {
       true,
     );
 
-    const scatter = scatterVegetation({ heightField: hf, tier: 'high', seed: 99 });
+    const scatter = scatterVegetation({
+      heightField: hf,
+      tier: 'high',
+      island: ANCHORAGE_VEGETATION,
+      seed: 99,
+    });
     for (const instance of flatten(scatter.plants)) {
       const normal = new Float32Array(3);
       hf.normalAt(instance.x, instance.z, normal);
@@ -89,6 +105,7 @@ describe('vegetation scatter', () => {
     const scatter = scatterVegetation({
       heightField: new TestHeightField(),
       tier: 'high',
+      island: ANCHORAGE_VEGETATION,
       seed: 123,
       exclude,
     });
@@ -101,7 +118,12 @@ describe('vegetation scatter', () => {
   it('rejects steep slopes', () => {
     expect(slopeDegFromNormal(1)).toBeCloseTo(0);
     expect(slopeDegFromNormal(0.5)).toBeGreaterThan(50);
-    const scatter = scatterVegetation({ heightField: new TestHeightField(true), tier: 'high', seed: 5678 });
+    const scatter = scatterVegetation({
+      heightField: new TestHeightField(true),
+      tier: 'high',
+      island: ANCHORAGE_VEGETATION,
+      seed: 5678,
+    });
     for (const instance of flatten(scatter.plants)) {
       expect(instance.x).toBeLessThanOrEqual(0);
       expect(instance.slopeDeg).toBeLessThanOrEqual(35);

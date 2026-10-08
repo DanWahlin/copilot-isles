@@ -18,10 +18,10 @@ import type { CircleObstacle } from '../contracts';
 import { COVE } from '../layout';
 import { deckHeightAt } from '../ship/lines';
 import { world } from '../uniforms';
-import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village';
+import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
 import { CRANE_CARGO, CRANE_FACINGS, lineTone, type LineTone } from './crane-logic';
 import { box, cylinder, merge, paint, plank, TRIM } from './geo';
-import { createSign, paintedSign, type PaintedSign } from './sign';
+import { createSign, type PaintedSign } from './sign';
 import { createBerthFlag, createSloop, type Sloop } from './sloop';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -235,6 +235,7 @@ export function createCrane(o: CraneOptions): CraneSite {
   }
   group.add(baseWoodMesh, baseIronMesh);
 
+  const leverPlaques: PaintedSign[] = [];
   const leverArms: Record<'dry' | 'yes', { pivot: Group; t: number }> = {
     dry: makeLever(levers.dry),
     yes: makeLever(levers.yes),
@@ -253,9 +254,10 @@ export function createCrane(o: CraneOptions): CraneSite {
     g.add(arm);
     g.rotation.x = -0.45;
     group.add(g);
-    const plaque = paintedSign([l.label], 0.5, 0.2, { size: 0.16 });
-    plaque.position.set(l.x, DECK + 0.4, l.z + 0.176);
-    group.add(plaque);
+    const plaque = createSign([l.label], 0.5, 0.2, { size: 0.16 });
+    plaque.mesh.position.set(l.x, DECK + 0.4, l.z + 0.176);
+    leverPlaques.push(plaque);
+    group.add(plaque.mesh);
     return { pivot: g, t: -1 };
   }
 
@@ -669,6 +671,7 @@ export function createCrane(o: CraneOptions): CraneSite {
       sign.dispose();
       banner.dispose();
       board.dispose();
+      for (const plaque of leverPlaques) plaque.dispose();
       for (const g of crateGeos) g.dispose();
       ghostMat.dispose();
       hintMat.dispose();

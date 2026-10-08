@@ -1,3 +1,4 @@
+import { unreflected } from '../reflection';
 import {
   AnimationAction,
   AnimationClip,
@@ -179,6 +180,7 @@ export class RuntimeCharacter implements Character {
     options: CharacterCreateOptions,
   ) {
     this.characterBody = body;
+    unreflected.add(group);
     this.npc = !PLAYER_BODIES.includes(body as PlayerBody);
     this.npcAnimRate = Math.max(0.1, options.tier?.npcAnimRate ?? 1);
     this.updateTarget = options.updateTarget ?? null;
@@ -397,6 +399,7 @@ export class RuntimeCharacter implements Character {
   }
 
   dispose(): void {
+    unreflected.delete(this.group);
     this.mixer.stopAllAction();
     this.face?.dispose();
     this.group.traverse((object) => {

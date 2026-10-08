@@ -10,6 +10,7 @@ import {
   FrontSide,
   type BufferGeometry,
   type Node,
+  type Texture,
 } from 'three/webgpu';
 import {
   attribute,
@@ -65,6 +66,7 @@ import {
   type OpeningBeats,
   type OpeningKind,
 } from './timeline';
+import { disposeMaterialWithTextures, disposeRenderTarget } from '../util/dispose-three';
 
 /** Where the dive ends: a camera eye and look-at in the world, on one of the chart's islands. */
 export interface DiveTarget {
@@ -813,12 +815,12 @@ export function createOpening(o: OpeningOptions): Opening {
     // One draw into a tiny offscreen target: the sun's shadow pass compiles and every texture
     // (the chart's ink, the nameplate) uploads now, not under the Set sail veil.
     if (!disposed && !flatOut) {
-      const rt = new RenderTarget(8, 8);
+      const rt = new RenderTarget(8, 8, { depthBuffer: false });
       const before = engine.renderer.getRenderTarget();
       engine.renderer.setRenderTarget(rt);
       engine.renderer.render(scene, camera);
       engine.renderer.setRenderTarget(before);
-      rt.dispose();
+      disposeRenderTarget(rt);
     }
     for (const h of hidden) h.visible = false;
   }
@@ -1060,6 +1062,12 @@ export function createOpening(o: OpeningOptions): Opening {
       props?.dispose();
       for (const m of islandMeshes) m.geometry.dispose();
       for (const m of islandMat) m.dispose();
+      const disposedTextures = new Set<Texture>();
+      scene.traverse((object) => {
+        const mesh = object as Mesh;
+        if (!mesh.isMesh) return;
+        disposeMaterialWithTextures(mesh.material, disposedTextures);
+      });
       scene.clear();
     },
   };

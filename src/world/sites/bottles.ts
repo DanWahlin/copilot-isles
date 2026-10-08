@@ -1,5 +1,5 @@
 import { Group, Mesh, Vector3, type BufferGeometry, type Material } from 'three/webgpu';
-import type { VillageKit } from '../village';
+import type { VillageKit } from '../village/kit';
 import { cylinder, merge } from './geo';
 import { createSparkleMaterial, shaftGeometry, starGeometry } from './sparkle';
 

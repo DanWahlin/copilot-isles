@@ -35,6 +35,8 @@ export interface CreatedTerrain {
   group: Group;
   heightField: HeightField;
   update(camera: Camera): void;
+  /** Pins every chunk to one level of detail (0 = finest), or null to go back to distance (warm-ups). */
+  setLod(lod: number | null): void;
   dispose(): void;
   heightGrid: TerrainHeightGrid;
 }
@@ -397,6 +399,14 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     cell: data.cell,
   };
   const heightField = new BakedTerrainHeightField(data);
+  let pinned: number | null = null;
+  const showLod = (chunk: (typeof chunks)[number], lod: number) => {
+    const next = Math.min(chunk.geometries.length - 1, lod);
+    if (next === chunk.current) return;
+    chunk.current = next;
+    chunk.mesh.geometry = chunk.geometries[next]!.geometry;
+    chunk.mesh.geometry.boundingSphere ??= new Sphere(chunk.center, chunkSize);
+  };
   yield;
   const rocks = options.createRocks
     ? options.createRocks(heightField, data, tier.tier)
@@ -410,14 +420,13 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     update(camera: Camera) {
       for (const chunk of chunks) {
         const distance = camera.position.distanceTo(chunk.center);
-        const lod = distance < thresholds[0] ? 0 : distance < thresholds[1] ? 1 : 2;
-        const next = Math.min(chunk.geometries.length - 1, lod);
-        if (next !== chunk.current) {
-          chunk.current = next;
-          chunk.mesh.geometry = chunk.geometries[next].geometry;
-          chunk.mesh.geometry.boundingSphere ??= new Sphere(chunk.center, chunkSize);
-        }
+        const lod = pinned ?? (distance < thresholds[0] ? 0 : distance < thresholds[1] ? 1 : 2);
+        showLod(chunk, lod);
       }
+    },
+    setLod(lod: number | null) {
+      pinned = lod;
+      if (lod !== null) for (const chunk of chunks) showLod(chunk, lod);
     },
     dispose() {
       const seen = new Set<BufferGeometry>();

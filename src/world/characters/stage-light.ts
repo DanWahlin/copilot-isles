@@ -1,10 +1,19 @@
-import { Color, Material, MeshStandardMaterial, MeshStandardNodeMaterial, Vector3 } from 'three/webgpu';
+import {
+  Color,
+  Material,
+  MeshStandardMaterial,
+  MeshStandardNodeMaterial,
+  Vector3,
+  type NodeBuilder,
+  type Texture,
+} from 'three/webgpu';
 import {
   cameraViewMatrix,
   diffuseColor,
   dot,
   float,
   materialEmissive,
+  materialReference,
   max,
   normalView,
   positionViewDirection,
@@ -70,6 +79,32 @@ const TMP = new Vector3();
 const nodeCache = new WeakMap<Material, MeshStandardNodeMaterial>();
 
 /**
+ * A character's material, with its palette texture in `paletteMap` rather than `map`. Same look (the
+ * diffuse colour is colour × palette, as with `map`), but the shadow pass doesn't see a map: with one,
+ * three gives each material its own alpha node for shadows, so no two characters shared a shadow
+ * shader (each also names its bone buffer by node id). Without it, characters on the same rig share
+ * one, their palettes bound per material (issue 235).
+ */
+class CharacterNodeMaterial extends MeshStandardNodeMaterial {
+  paletteMap: Texture | null = null;
+
+  override setupDiffuseColor(builder: NodeBuilder): void {
+    super.setupDiffuseColor(builder);
+    if (this.paletteMap) {
+      (diffuseColor as AnyNode).assign(
+        (diffuseColor as AnyNode).mul(materialReference('paletteMap', 'texture') as AnyNode),
+      );
+    }
+  }
+
+  override copy(source: MeshStandardNodeMaterial): this {
+    super.copy(source);
+    if (source instanceof CharacterNodeMaterial) this.paletteMap = source.paletteMap;
+    return this;
+  }
+}
+
+/**
  * The node twin of a character's standard material, with the staging light in its emissive. Shared
  * per source material (accessory colours are shared), so programs don't multiply.
  */
@@ -77,8 +112,10 @@ export function stagedMaterial(source: Material): Material {
   if (!(source instanceof MeshStandardMaterial)) return source;
   const cached = nodeCache.get(source);
   if (cached) return cached;
-  const m = new MeshStandardNodeMaterial();
+  const m = new CharacterNodeMaterial();
   m.copy(source as unknown as MeshStandardNodeMaterial);
+  m.paletteMap = m.map;
+  m.map = null;
   m.userData = { ...source.userData };
   m.emissive = (source.emissive ?? new Color(0)).clone();
   m.emissiveNode = stageEmissive();

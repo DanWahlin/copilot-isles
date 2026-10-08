@@ -1,4 +1,5 @@
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/world/vegetation/GrassField.js@d32799f
+import { sharedInstancedMesh } from '../../engine/instancing';
 import {
   BufferGeometry,
   Color,
@@ -15,10 +16,9 @@ import {
   type MeshStandardNodeMaterial,
   type PerspectiveCamera,
 } from 'three/webgpu';
-import { COVE } from '../layout';
 import type { HeightField } from '../contracts';
 import type { TierSettings } from '../../engine/quality';
-import type { GrassKind, HeightGrid } from './types';
+import type { GrassKind, HeightGrid, ScatterBounds } from './types';
 import { EXCLUSION_SOFT_MARGIN, exclusionWeight, type VegetationExclude } from './exclusions';
 import { smoothstep } from '../../util/math';
 import { villageGroundWeight } from '../terrain/cove-height';
@@ -422,6 +422,7 @@ export class GrassField {
     heightTexture: DataTexture,
     tier: TierSettings,
     seed: number,
+    bounds: ScatterBounds,
     exclude?: VegetationExclude,
     defer = false,
   ) {
@@ -436,7 +437,7 @@ export class GrassField {
       keep: REACH.keep,
     };
     this.material = createGrassMaterial(heightTexture, heightGrid, this.reach);
-    const steps = this.buildCells(heightField, tier, seed, exclude);
+    const steps = this.buildCells(heightField, tier, seed, bounds, exclude);
     if (defer) {
       this.pending = { steps, heightField };
       return;
@@ -610,14 +611,13 @@ export class GrassField {
     heightField: HeightField,
     tier: TierSettings,
     seed: number,
+    bounds: ScatterBounds,
     exclude?: VegetationExclude,
   ): Generator<void, void, void> {
     const rng = new SeededRandom(seed ^ 0x67a91f);
     const density = Math.max(0, tier.grassDensity * tier.grassCover * this.densityScale);
-    // Out to the east headland's clifftop too (its cells come last, so the rest of the field is unchanged).
-    const maxX = Math.max(COVE.island.halfX, COVE.headland.x1);
-    for (let x = -COVE.island.halfX; x <= maxX; x += CELL_SIZE) {
-      for (let z = -COVE.island.halfZ; z <= COVE.island.halfZ + 18; z += CELL_SIZE) {
+    for (let x = bounds.minX; x <= bounds.maxX; x += CELL_SIZE) {
+      for (let z = bounds.minZ; z <= bounds.maxZ; z += CELL_SIZE) {
         const cx = x + CELL_SIZE * 0.5;
         const cz = z + CELL_SIZE * 0.5;
         const probe = grassWeight(heightField, cx, cz);
@@ -722,8 +722,7 @@ export class GrassField {
     const tint = new InstancedBufferAttribute(new Float32Array(maxInstances * 3), 3);
     geometry.setAttribute('grassShape', shape);
     geometry.setAttribute('tint', tint);
-    const mesh = new InstancedMesh(geometry, this.material, maxInstances);
-    mesh.count = 0;
+    const mesh = sharedInstancedMesh(geometry, this.material, maxInstances, { count: 0 });
     mesh.frustumCulled = false;
     this.group.add(mesh);
     const tierMesh: TierMesh = {

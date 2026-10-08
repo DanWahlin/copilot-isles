@@ -2,6 +2,7 @@ import type { PerspectiveCamera, Group, WebGPURenderer } from 'three/webgpu';
 import type { HeightField, Tier } from '../contracts';
 import type { TierSettings } from '../../engine/quality';
 import type { VegetationExclude } from './exclusions';
+import type { SeededRandom } from './random';
 
 export interface HeightGrid {
   heights: Float32Array;
@@ -27,6 +28,55 @@ export type PlantSpecies =
   | 'cypress';
 
 export type GrassKind = 'seaOats' | 'meadow' | 'creeper' | 'wildflower' | 'seedHead';
+
+export interface VegetationMasks {
+  sand: number;
+  grass: number;
+  rock: number;
+  cliff: number;
+}
+
+export interface ScatterBounds {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}
+
+export interface SpeciesRule {
+  countHigh: number;
+  minDistance: number;
+  maxSlopeDeg: number;
+  score(x: number, z: number, y: number, masks: VegetationMasks): number;
+  scale(rng: SeededRandom): number;
+  lean(x: number, z: number, rng: SeededRandom): { x: number; z: number };
+}
+
+export type SpeciesRuleMap = Record<PlantSpecies, SpeciesRule>;
+
+export interface CuratedPlant {
+  species: 'palmTall' | 'palmCluster' | 'palmYoung';
+  x: number;
+  z: number;
+  scale: number;
+  rotation: number;
+}
+
+export interface IslandVegetationRules {
+  bounds: ScatterBounds;
+  grassBounds: ScatterBounds;
+  rules: SpeciesRuleMap;
+  excluded(x: number, z: number, y: number, normalY: number, masks: VegetationMasks): boolean;
+  curatedPlants?: readonly CuratedPlant[];
+  curatedLean?(plant: CuratedPlant, rng: SeededRandom): { x: number; z: number };
+  heroPalmZones?: readonly { x: number; z: number; r: number }[];
+  appendExtraPlants?(
+    plants: Record<PlantSpecies, PlantInstance[]>,
+    heightField: HeightField,
+    tier: Tier,
+    phase: 'beforeExternal' | 'afterExternal',
+  ): void;
+}
 
 export interface PlantInstance {
   species: PlantSpecies;
@@ -60,9 +110,19 @@ export interface VegetationStats {
   meshBatchesVisible: number;
 }
 
+/** Plants added after the island's own (another island's), drawn only while `group` is visible. */
+export interface VegetationPatch {
+  group: Group;
+}
+
 export interface VegetationSystem {
   group: Group;
   update(camera: PerspectiveCamera): void;
+  /**
+   * Adds another island's plants as their own batches and impostors, under a hidden group (show it
+   * when that island's in view). Shares the loaded models and the impostor atlas; freed with the system.
+   */
+  addPlants(plants: readonly PlantInstance[], name: string): Promise<VegetationPatch>;
   dispose(): void;
   stats(): VegetationStats;
 }
@@ -72,6 +132,7 @@ export interface CreateVegetationOptions {
   heightGrid: HeightGrid;
   tier: Tier | TierSettings;
   renderer: WebGPURenderer;
+  island: IslandVegetationRules;
   seed?: number;
   /** Optional dynamic exclusion mask (for village walkables, buildings, puzzle pads, etc.). */
   exclude?: VegetationExclude;
@@ -82,6 +143,7 @@ export interface CreateVegetationOptions {
 export interface ScatterOptions {
   heightField: HeightField;
   tier: Tier | TierSettings;
+  island: IslandVegetationRules;
   seed?: number;
   exclude?: VegetationExclude;
 }

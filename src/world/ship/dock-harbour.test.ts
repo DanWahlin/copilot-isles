@@ -3,7 +3,7 @@ import { tierSettings } from '../../engine/quality';
 import type { WaveSampler } from '../contracts';
 import { COVE } from '../layout';
 import { CoveHeightField } from '../terrain/cove-height';
-import { createVillage } from '../village/index';
+import { createVillage } from '../islands/anchorage/village';
 import { ShipDynamics } from './dynamics';
 
 const calm: WaveSampler = {

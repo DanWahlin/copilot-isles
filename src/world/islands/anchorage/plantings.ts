@@ -1,5 +1,5 @@
-import type { Tier } from '../contracts';
-import type { PlantInstance, PlantSpecies } from '../vegetation/types';
+import type { Tier } from '../../contracts';
+import type { PlantInstance, PlantSpecies } from '../../vegetation/types';
 
 /**
  * Anchorage's hand-placed village planting (Dan: "place some palm trees in the village"). The

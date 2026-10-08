@@ -31,8 +31,8 @@ import {
 import { packs } from '../../engine/packs';
 import { world } from '../uniforms';
 import type { Tier } from '../contracts';
-import { COVE } from '../layout';
-import { VILLAGE_GROUND } from './cove-height';
+import { ISLAND_TERRAIN_REGIONS } from '../islands/terrain-regions';
+import { combineTerrainRegions, type TerrainRegions } from './terrain-regions';
 import { terrainNoiseTexture } from './noise-texture';
 
 const uSunBlend = uniform(1);
@@ -56,6 +56,14 @@ export function terrainTexture(file: string): Texture {
   return texture;
 }
 
+/**
+ * Frees the terrain textures' GPU copies when the world is torn down. The textures (and their loaded
+ * images) stay cached, so the next voyage re-uploads them without fetching them again.
+ */
+export function releaseTerrainTextures(): void {
+  for (const texture of textureCache.values()) texture.dispose();
+}
+
 function triplanarColor(
   texture: Texture,
   scale: number,
@@ -70,32 +78,6 @@ function triplanarColor(
   return wx.rgb.mul(n.x).add(wy.rgb.mul(n.y)).add(wz.rgb.mul(n.z)).div(sum);
 }
 
-function segmentMaskNode(
-  ax: number,
-  az: number,
-  bx: number,
-  bz: number,
-  inner: number,
-  outer: number,
-  world: AnyNode = positionWorld,
-): AnyNode {
-  const p = vec2(world.x, world.z);
-  const a = vec2(ax, az);
-  const ba = vec2(bx - ax, bz - az);
-  const pa = p.sub(a);
-  const t = saturate(pa.dot(ba).div((bx - ax) * (bx - ax) + (bz - az) * (bz - az)));
-  return float(1).sub(smoothstep(inner, outer, pa.sub(ba.mul(t)).length()));
-}
-
-/** The village's lived-in ground (cove-height `villageGroundWeight`): its sand is worn earth. */
-function villageGroundNode(y: AnyNode, p: AnyNode = positionWorld): AnyNode {
-  const g = VILLAGE_GROUND;
-  const r = vec2(p.x.sub(g.x).div(g.rx), p.z.sub(g.z).div(g.rz)).length();
-  return float(1)
-    .sub(smoothstep(g.edge, 1, r))
-    .mul(smoothstep(g.y0, g.y1, y));
-}
-
 export interface TerrainMaterialOptions {
   cloudShadowNode?: Node<'float'> | null;
   tier?: Tier;
@@ -105,6 +87,8 @@ export interface TerrainMaterialOptions {
   worldNormal?: Node<'vec3'>;
   /** Drawn small and seen from afar (the opening's chart): far detail only, no close bump. */
   miniature?: boolean;
+  /** The islands' own ground regions (default: every island's, `ISLAND_TERRAIN_REGIONS`). */
+  regions?: readonly TerrainRegions[];
 }
 
 /**
@@ -125,6 +109,13 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const masks = attribute('terrainMask', 'vec4');
   const light = attribute('terrainLight', 'vec4');
   const y = P.y;
+  // Where each island paints its ground differently (its village, hills, bluffs...): data, not code here.
+  const R = combineTerrainRegions(options.regions ?? ISLAND_TERRAIN_REGIONS, {
+    P,
+    y,
+    grassMask: masks.y,
+    miniature: !!options.miniature,
+  });
   const detail = options.tier === 'lite' ? 0 : options.tier === 'low' ? 1 : 2;
   const rockTexture = terrainTexture('rocks.webp');
   const pathTexture = terrainTexture('path-rocks.webp');
@@ -184,24 +175,10 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const lushGrass = grassBase
     .mul(float(0.9).add(grassFineA.mul(0.1)).add(grassFineB.mul(0.05)))
     .add(color(0xd0e08e).mul(pow(saturate(grassFineB.sub(0.62).mul(2.5)), 2.0).mul(0.055)));
-  // The chart's miniature shows Port Meridian's mountain past its terrain's box, so it keeps the dry
-  // ground out to the island's far shore.
-  const dryEast = options.miniature ? 1400 : 1240;
-  const drySouth = options.miniature ? -1260 : -1080;
-  // Port Meridian's town: its gardens stay green (watered), not the hills' summer gold.
-  const meridianTown = smoothstep(548, 566, P.x)
-    .mul(float(1).sub(smoothstep(840, 858, P.x)))
-    .mul(smoothstep(-1000, -984, P.z))
-    .mul(float(1).sub(smoothstep(-748, -738, P.z)));
-  const meridianDryMask = smoothstep(470, 620, P.x)
-    .mul(float(1).sub(smoothstep(dryEast - 30, dryEast, P.x)))
-    .mul(smoothstep(drySouth - 50, drySouth, P.z))
-    .mul(float(1).sub(smoothstep(-620, -570, P.z)))
-    .mul(float(1).sub(meridianTown.mul(0.85)));
   const dryGrass = mix(color(0x7f6530), color(0xd4a653), broadNoise.mul(0.5).add(grassDetail.mul(0.22))).add(
     color(0xefcf79).mul(pow(saturate(grassFineB.sub(0.66).mul(2.2)), 2.0).mul(0.1)),
   );
-  const grass = mix(lushGrass, dryGrass, meridianDryMask);
+  const grass = mix(lushGrass, dryGrass, R.dryGrass);
   const dirt = mix(color(0x68462a), color(0xa97945), fineNoise.mul(0.48).add(sandDetail.mul(0.16)));
   const rock = mix(color(0x5b5b55), color(0xa0937a), broadNoise.mul(0.24).add(rockDetail.mul(0.42)));
   const limestone = mix(color(0x5d5549), color(0x9b8965), broadNoise.mul(0.22).add(rockDetail.mul(0.38)));
@@ -212,14 +189,8 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const grassMask = masks.y;
   const rockMask = masks.z;
   const cliffMask = masks.w;
-  const villageGround = villageGroundNode(y, P);
-  const shaderPathMask = saturate(
-    segmentMaskNode(COVE.village.center.x, COVE.village.center.z, -18, -10, 2.4, 7.2, P)
-      .add(segmentMaskNode(-18, -10, -28, 103, 2.8, 8.6, P))
-      .add(segmentMaskNode(-112, -64, COVE.village.center.x, COVE.village.center.z, 2.2, 6.5, P)),
-  )
-    .mul(smoothstep(1.0, 6.5, y))
-    .max(villageGround);
+  const villageGround = R.villageGround;
+  const shaderPathMask = R.paths.max(villageGround);
   const pathSandMask = sandMask.mul(shaderPathMask);
   const beachSandMask = saturate(sandMask.sub(pathSandMask));
   const waterline = float(1).sub(smoothstep(0.015, 0.28, abs(y)));
@@ -249,17 +220,11 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(underwater)
     .mul(float(1).sub(smoothstep(18, 38, y.negate())));
 
-  // The east headland and its inland slope: one smooth grassy hill, without the island's height bands
-  // and strata (on a big even slope they read as farm terraces).
-  const headlandHill = smoothstep(COVE.headland.x0 - 50, COVE.headland.x0 - 15, P.x)
-    .mul(smoothstep(COVE.headland.z0 - 40, COVE.headland.z0 - 10, P.z))
-    .mul(float(1).sub(smoothstep(COVE.headland.z1 + 10, COVE.headland.z1 + 40, P.z)));
+  // Big smooth grassy hills (the islands' `grassHill` regions) skip the height bands and strata.
+  const headlandHill = R.grassHill;
   const steepSlope = smoothstep(0.68, 0.46, N.y);
-  // On that hill, and on any slope the masks call grass (the inland hills), only the near-sheer faces
-  // take the cliff colouring (Anchorage only: Port Meridian's dry bluffs keep theirs).
-  const grassyHill = headlandHill.max(
-    smoothstep(0.2, 0.6, grassMask).mul(float(1).sub(smoothstep(380, 460, P.x))),
-  );
+  // On those hills and the islands' other grassy slopes, only the near-sheer faces take the cliff colouring.
+  const grassyHill = headlandHill.max(R.grassySlopes);
   const cliffInfluence = saturate(cliffMask.add(steepSlope.mul(0.72))).mul(
     float(1).sub(grassyHill.mul(smoothstep(0.42, 0.55, N.y))),
   );
@@ -293,10 +258,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const notch = smoothstep(1.25, 1.45, y)
     .mul(float(1).sub(smoothstep(2.05, 2.35, y)))
     .mul(cliffMask);
-  const cave = float(1)
-    .sub(smoothstep(0.0, 1.0, vec2(P.x.sub(198).div(11), P.z.add(5).div(7)).length()))
-    .mul(smoothstep(-1.2, 5.0, y))
-    .mul(float(1).sub(smoothstep(8, 15, y)));
+  const cave = R.cave;
 
   const algaeBase = smoothstep(-0.25, 0.3, y)
     .mul(float(1).sub(smoothstep(2.9, 4.4, y)))
@@ -319,11 +281,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(algaeBase.mul(0.52)))
     .mul(float(1).sub(waterline.mul(0.05)))
     .mul(float(1).sub(cave.mul(0.72)));
-  const meridianBluffMask = smoothstep(722, 752, P.x)
-    .mul(float(1).sub(smoothstep(884, 914, P.x)))
-    .mul(smoothstep(-864, -846, P.z))
-    .mul(float(1).sub(smoothstep(-704, -686, P.z)))
-    .mul(smoothstep(4, 16, y));
+  const meridianBluffMask = R.bluff;
   const bluffFractureA = abs(sin(P.x.mul(0.34).add(P.z.mul(0.47)).add(noiseLow.r.mul(3.2)))).smoothstep(
     float(0.955),
     float(0.998),
@@ -393,7 +351,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const closeDryGrass = mix(color(0x6d6b32), color(0xc3a862), grassCloseLum).mul(
     float(0.9).add(meadowMacro.mul(0.22)),
   );
-  closeGrass = mix(closeGrass, closeDryGrass, meridianDryMask);
+  closeGrass = mix(closeGrass, closeDryGrass, R.dryGrass);
   const closeEarth = mix(color(0x6d5937), color(0xc6ad79), pathCloseLum);
   const closeDrySand = mix(color(0xdcb06e), color(0xf4d79d), sandDetail);
   const closeWetSand = mix(color(0xa97845), color(0xd0a973), sandGrain.mul(0.46).add(rippleNoise.mul(0.34)));
@@ -412,9 +370,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const fringeNoise = saturate(noiseFine.g.mul(0.46).add(noiseMid.a.mul(0.34)).add(noiseLow.g.mul(0.2)));
   const sandFinger = pow(saturate(float(0.48).sub(fringeNoise).mul(2.8)), 1.35).mul(beachGrassFringe);
   const grassFinger = pow(saturate(fringeNoise.sub(0.38).mul(2.2)), 1.2).mul(beachGrassFringe);
-  const bardCampSand = float(1)
-    .sub(smoothstep(4.2, 9.0, (vec2 as AnyNode)(P.x.add(18).mul(1.05), P.z.sub(86.2).mul(0.82)).length()))
-    .mul(smoothstep(0.05, 2.8, y));
+  const bardCampSand = R.campSand;
   const rootGreen = mix(color(0x5d7432), color(0x7d9a45), noiseLow.g.mul(0.62).add(noiseMid.g.mul(0.38)));
   let closeLayer = mix(closeEarth, closeGrass, grassMask);
   closeLayer = mix(closeLayer, closeRock, saturate(rockMask.add(cliffMask)));
@@ -579,16 +535,13 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     base,
     townEarth,
     saturate(sandMask.add(rockMask.mul(0.6)))
-      .mul(meridianTown)
+      .mul(R.town)
       .mul(float(1).sub(underwater))
       .mul(0.9),
   );
   // Port Meridian's ridge: pale, sunlit limestone with soft, broad bedding and dark-green maquis
   // clinging to every ledge it can hold, instead of the generic cliff's tight dark bands.
-  const meridianRidge = smoothstep(880, 960, P.x)
-    .mul(float(1).sub(smoothstep(1290, 1330, P.x)))
-    .mul(float(1).sub(smoothstep(-990, -930, P.z)))
-    .mul(smoothstep(30, 60, y));
+  const meridianRidge = R.limestoneRidge;
   const ridgeBed = fract(y.div(16).add(noiseLow.b.sub(0.5).mul(1.1)).add(noiseMid.r.sub(0.5).mul(0.3)));
   const ridgeBands = float(0.93).add(
     smoothstep(0.0, 0.5, ridgeBed)

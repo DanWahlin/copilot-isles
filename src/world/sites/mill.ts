@@ -1,9 +1,9 @@
+import { sharedInstancedMesh } from '../../engine/instancing';
 import {
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
   Group,
-  InstancedMesh,
   Matrix4,
   Mesh,
   MeshBasicNodeMaterial,
@@ -18,7 +18,7 @@ import { COVE } from '../layout';
 import { ROCK_ASSETS } from '../terrain/rock-assets';
 import { createRockMaterial } from '../terrain/terrain-material';
 import { world } from '../uniforms';
-import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village';
+import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
 import { box, cylinder, merge, plank, TRIM } from './geo';
 import { paintedSign } from './sign';
 import { WaterStrips } from './water';
@@ -481,7 +481,7 @@ export function createMill(o: MillOptions): MillSite {
     { x: cx - 2.6, z: springZ + 0.3, s: [2.4, 1.6, 2.2], yaw: 2.1 },
     { x: cx + 2.7, z: springZ - 0.2, s: [2.2, 1.5, 2.0], yaw: 4.0 },
   ];
-  const rocks = new InstancedMesh(rockGeo, rockMat, rockSpots.length);
+  const rocks = sharedInstancedMesh(rockGeo, rockMat, rockSpots.length);
   const mtx = new Matrix4();
   const quat = new Quaternion();
   rockSpots.forEach((r, k) => {

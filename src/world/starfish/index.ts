@@ -1,3 +1,4 @@
+import { markInstancesChanged, sharedInstancedMesh } from '../../engine/instancing';
 import {
   BufferAttribute,
   BufferGeometry,
@@ -49,7 +50,7 @@ export function createStarfish(): StarfishSystem {
   const spots = STARFISH;
   const geometry = starGeometry();
   const material = createStarfishMaterial();
-  const mesh = new InstancedMesh(geometry, material, spots.length);
+  const mesh = sharedInstancedMesh(geometry, material, spots.length);
   mesh.name = 'starfish';
   mesh.castShadow = false;
   mesh.receiveShadow = false;
@@ -93,7 +94,7 @@ export function createStarfish(): StarfishSystem {
         m.compose(p, q, s);
         mesh.setMatrixAt(i, m);
       }
-      mesh.instanceMatrix.needsUpdate = true;
+      markInstancesChanged(mesh);
     },
     dispose() {
       geometry.dispose();

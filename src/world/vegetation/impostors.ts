@@ -1,7 +1,9 @@
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/world/vegetation/Impostors.js@d32799f
+import { markInstancesChanged, sharedInstancedMesh } from '../../engine/instancing';
 import {
   Box3,
   Color,
+  DepthTexture,
   DoubleSide,
   InstancedBufferAttribute,
   InstancedMesh,
@@ -24,6 +26,7 @@ import type { PlantInstance, PlantSpecies } from './types';
 import type { PalmVariant, VegetationGeometryCatalog, VegetationModelPart } from './model-loader';
 import { createImpostorMaterial } from './materials';
 import { clamp01, smoothstep } from '../../util/math';
+import { disposeRenderTarget } from '../../util/dispose-three';
 
 const tmp = new Object3D();
 const matrix = new Matrix4();
@@ -100,6 +103,8 @@ export async function bakeImpostorAtlas(
   const started = performance.now();
   const target = new WebGLRenderTarget(GRID * TILE_PX, GRID * TILE_PX, { depthBuffer: true });
   target.texture.name = 'vegetation-impostor-atlas';
+  target.depthTexture = new DepthTexture(GRID * TILE_PX, GRID * TILE_PX);
+  target.depthTexture.name = 'vegetation-impostor-atlas-depth';
   const previousTarget = renderer.getRenderTarget();
   const scene = new Scene();
   scene.background = null;
@@ -186,6 +191,8 @@ export interface ImpostorOptions {
   handoff: (species: PlantSpecies) => number;
   palmVariant: (instance: PlantInstance) => PalmVariant;
   tint: (instance: PlantInstance) => Color;
+  /** The atlas belongs to another batch (it frees it), e.g. a later island's plants. */
+  sharedBake?: boolean;
 }
 
 export class ImpostorBatch {
@@ -214,9 +221,8 @@ export class ImpostorBatch {
     geometry.setAttribute('fade', this.fade);
     geometry.setAttribute('tint', this.tint);
     geometry.setAttribute('atlasUv', this.atlasUv);
-    this.mesh = new InstancedMesh(geometry, createImpostorMaterial(bake.texture), capacity);
+    this.mesh = sharedInstancedMesh(geometry, createImpostorMaterial(bake.texture), capacity, { count: 0 });
     this.mesh.name = 'vegetation-impostors';
-    this.mesh.count = 0;
     this.mesh.frustumCulled = false;
   }
 
@@ -249,7 +255,7 @@ export class ImpostorBatch {
       this.visible += 1;
     }
     this.mesh.count = this.visible;
-    this.mesh.instanceMatrix.needsUpdate = true;
+    markInstancesChanged(this.mesh);
     this.tint.needsUpdate = true;
     this.atlasUv.needsUpdate = true;
     this.fade.needsUpdate = true;
@@ -268,6 +274,6 @@ export class ImpostorBatch {
     if (Array.isArray(this.mesh.material)) for (const material of this.mesh.material) material.dispose();
     else this.mesh.material.dispose();
     this.mesh.dispose();
-    this.bake.target.dispose();
+    if (!this.options.sharedBake) disposeRenderTarget(this.bake.target);
   }
 }

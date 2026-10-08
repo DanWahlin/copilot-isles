@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { tierSettings } from '../engine/quality';
 import type { HeightField } from '../world/contracts';
-import { createVillage } from '../world/village/index';
+import { createVillage } from '../world/islands/anchorage/village';
 import { COVE_NPCS } from './npcs';
 
 const flat: HeightField = {

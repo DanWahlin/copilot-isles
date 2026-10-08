@@ -1,7 +1,7 @@
+import { markInstancesChanged, sharedInstancedMesh } from '../../../engine/instancing';
 import {
   Euler,
   InstancedBufferAttribute,
-  InstancedMesh,
   Matrix4,
   Object3D,
   Quaternion,
@@ -191,9 +191,11 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
   splashGeometry.setAttribute('splashSeed', splashSeed);
   splashGeometry.setAttribute('splashKind', splashKind);
 
-  const dolphinMesh = new InstancedMesh(dolphinGeometry, createDolphinMaterial(), MAX_DOLPHINS);
-  const fishMesh = new InstancedMesh(fishGeometry, createFlyingFishMaterial(), MAX_FISH);
-  const splashMesh = new InstancedMesh(splashGeometry, createSplashMaterial(), MAX_SPLASHES);
+  const dolphinMesh = sharedInstancedMesh(dolphinGeometry, createDolphinMaterial(), MAX_DOLPHINS, {
+    count: 0,
+  });
+  const fishMesh = sharedInstancedMesh(fishGeometry, createFlyingFishMaterial(), MAX_FISH, { count: 0 });
+  const splashMesh = sharedInstancedMesh(splashGeometry, createSplashMaterial(), MAX_SPLASHES, { count: 0 });
   dolphinMesh.name = 'leaps-dolphins';
   fishMesh.name = 'leaps-flying-fish';
   splashMesh.name = 'leaps-splashes';
@@ -313,8 +315,8 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
     }
     dolphinMesh.count = d;
     fishMesh.count = f;
-    dolphinMesh.instanceMatrix.needsUpdate = true;
-    fishMesh.instanceMatrix.needsUpdate = true;
+    markInstancesChanged(dolphinMesh);
+    markInstancesChanged(fishMesh);
     dolphinPhase.needsUpdate = true;
     dolphinAmp.needsUpdate = true;
     fishPhase.needsUpdate = true;
@@ -341,7 +343,7 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
       s++;
     }
     splashMesh.count = s;
-    splashMesh.instanceMatrix.needsUpdate = true;
+    markInstancesChanged(splashMesh);
     splashAge.needsUpdate = true;
     splashSeed.needsUpdate = true;
     splashKind.needsUpdate = true;

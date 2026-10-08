@@ -21,6 +21,7 @@ import {
 import type { Tier } from '../world/contracts';
 import type { CharacterLibrary } from '../world/characters';
 import type { CoveScene } from '../world/cove-scene';
+import type { CreatedTerrain } from '../world/terrain/terrain-mesh';
 import { prewarmWaterDepthTexture } from '../world/ocean/water-depth-texture';
 import { world } from '../world/uniforms';
 import { buildChart, coveTravelPoints } from './chart';
@@ -28,7 +29,7 @@ import type { GameSession } from './session';
 import { LearnStore } from '../learn/store';
 import type { Opening } from '../opening/opening';
 import { ANCHORAGE_ARRIVAL, arrivalFlight } from './arrivals';
-import { compileProgressively, revealPrewarm, warmProgressively } from '../engine/warm';
+import { compileProgressively, revealPrewarm, warmProgressively, warmTerrainLods } from '../engine/warm';
 import { buildSlice, installBuildSlicer } from '../engine/build-slice';
 
 const SETTINGS_KEY = 'copilot-isles.settings.v1';
@@ -132,6 +133,8 @@ export class GameFlow implements GameBridge {
   private resolutionHeld = false;
   /** Uninstalls the build slicer (the island builds a few ms per frame while the scene moves). */
   private unslice: (() => void) | null = null;
+  /** Port Meridian's late warm-up: resolves once it's streamed in and warmed (it waits for a trigger). */
+  private meridianWarm: Promise<void> = Promise.resolve();
 
   constructor(private readonly o: GameFlowOptions) {
     const settings = sanitizeSettings({ ...DEFAULT_SETTINGS, ...readJson<Partial<Settings>>(SETTINGS_KEY) });
@@ -237,6 +240,8 @@ export class GameFlow implements GameBridge {
 
   openChart(): void {
     const from = this.state.screen;
+    // A jump to Port Meridian may follow: start streaming it now.
+    void this.cove?.meridian.load();
     this.session?.setPaused(true);
     const anchors = this.cove ? { ...this.cove.village.anchors, ...this.cove.sites.anchors } : {};
     this.set({
@@ -288,11 +293,106 @@ export class GameFlow implements GameBridge {
     const p = { x: 'wx' in to ? to.wx : to.x, z: 'wz' in to ? to.wz : to.z, heading: to.heading };
     void (async () => {
       await session.hud.fade(true, 260);
+      // A jump to Port Meridian waits for it to stream in and warm (behind the fade).
+      if (pointId === 'island:meridian') await this.meridianWarm;
+      if (this.session !== session) return;
       await session.travel(p.x, p.z, p.heading);
       this.resume();
       await session.hud.fade(false, 420);
       session.hud.toast(to.label, 2.4);
     })();
+  }
+
+  /**
+   * Warms Port Meridian once it has streamed in (boarding, the chart, or coming within range starts
+   * that): its terrain, foam, plants, town and gulls, its cast, chests and puzzle sites. The frame
+   * loop leaves its visibility to the warm meanwhile, and it's hidden again afterwards (shown by
+   * distance).
+   */
+  private async warmMeridian(
+    cove: CoveScene,
+    session: GameSession,
+    post: { compileObject(object: Object3D): Promise<void> } | null,
+  ): Promise<void> {
+    const { roots: gs, reveal } = await session.meridianSetup;
+    // This runs straight after the setup (a microtask, before the next frame), so warmLate hides what
+    // it added before it's drawn.
+    const own = cove.meridian.roots();
+    if (this.cove !== cove || !own.length) return;
+    cove.meridian.hold(true);
+    try {
+      await this.warmLate(cove, [...own, ...gs], post, { keepHidden: own, terrain: cove.meridian.terrain });
+    } finally {
+      if (this.cove === cove) {
+        cove.meridian.hold(false);
+        reveal();
+      }
+    }
+  }
+
+  /**
+   * Warms objects that join the world after it's playing (another island, the leaping fish) like the
+   * island's own warm-up: pipelines precompiled for the post's scene pass off-thread, then a few
+   * objects a frame get one real draw (instanced and skinned meshes, uploads, shadow passes) unculled
+   * for that frame, then a terrain's finer levels of detail. Nothing under `roots` is drawn otherwise
+   * until it's done (hidden, or on a layer no camera sees), so no first draw builds a shader on the
+   * spot; uploads are excused from the hitch guard. Only frames that draw the world count. Roots end
+   * as they were, except `keepHidden` ones, which end hidden. Stops if the voyage ends.
+   */
+  private async warmLate(
+    cove: CoveScene,
+    roots: readonly Object3D[],
+    post: { compileObject(object: Object3D): Promise<void> } | null,
+    opts: { keepHidden?: readonly Object3D[]; terrain?: CreatedTerrain | null } = {},
+  ): Promise<void> {
+    if (!roots.length) return;
+    const wasVisible = roots.map((r) => r.visible);
+    const hideAll = () => {
+      for (const r of roots) r.visible = false;
+    };
+    hideAll();
+    const engine = this.o.engine;
+    const live = () => this.cove === cove;
+    const frame = async () => {
+      do await new Promise<void>((r) => requestAnimationFrame(() => r()));
+      while (engine.worldHidden() && live());
+      if (!live()) throw new Error('voyage ended');
+    };
+    const compile = (o: Object3D) =>
+      Promise.all([
+        post ? post.compileObject(o) : engine.renderer.compileAsync(o, engine.camera, engine.scene),
+        cove.mirror?.compileObject(engine.renderer, engine.scene, o),
+      ]).then(() => undefined);
+    const steady = { targetMs: 3, startBatch: 2, frameCost: () => engine.cpuMs };
+    await engine.counters
+      .excuse(
+        (async () => {
+          try {
+            // Each mesh compiles on its own (hidden parents don't matter); the root is only shown
+            // while compileProgressively gathers its meshes, synchronously.
+            for (const root of roots) {
+              root.visible = true;
+              const done = compileProgressively(root, compile, frame, 3);
+              root.visible = false;
+              await done;
+            }
+            for (const r of roots) r.visible = true;
+            await warmProgressively(roots, frame, {
+              ...steady,
+              solo: (o) => !!(o as Object3D & { isInstancedMesh?: boolean }).isInstancedMesh,
+            });
+            hideAll();
+            if (opts.terrain) {
+              opts.terrain.group.visible = true;
+              await warmTerrainLods(opts.terrain, frame, steady);
+            }
+          } finally {
+            if (live())
+              roots.forEach((r, i) => (r.visible = opts.keepHidden?.includes(r) ? false : wasVisible[i]!));
+          }
+        })(),
+      )
+      .catch(() => undefined);
   }
 
   quitToTitle(): void {
@@ -601,10 +701,12 @@ export class GameFlow implements GameBridge {
       engine.camera.updateProjectionMatrix();
       engine.clock.set(16.2, 0);
       cove.sky.invalidate();
-      // A save on Port Meridian needs its terrain in before you're put ashore there.
-      if (save && islandAt(save.x, save.z) === 'meridian') {
+      // Port Meridian streams in later, when something needs it (see warmMeridian), except for a save
+      // there: it's put in now and warmed with the island.
+      const meridianFirst = !!save && islandAt(save.x, save.z) === 'meridian';
+      if (meridianFirst) {
         report(0.78, 'Sighting Port Meridian');
-        await cove.meridian.loaded;
+        await cove.meridian.load();
       }
       report(0.8, 'Warming the harbor');
       report(0.86, 'Waking the villagers');
@@ -627,10 +729,16 @@ export class GameFlow implements GameBridge {
       await cove.sky.prefetch([ISLANDS.anchorage.sky.hours, ISLANDS.meridian.sky.hours]);
       report(0.92, 'Lighting the lanterns');
       const post = await this.o.upgradePost?.(cove, { warm: false });
+      cove.setLateWarm((roots) => this.warmLate(cove, roots, post ?? null));
       const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
       // The world's pipelines build off-thread (compiled for the post's scene pass, nothing drawn), a
       // few milliseconds of main-thread work a frame, while the cabin holds its establishing shot.
       // Objects that appear later (marked userData.prewarm) are shown for the warm, then hidden.
+      if (meridianFirst) {
+        (await this.session.meridianSetup).reveal();
+        cove.meridian.hold(true);
+        for (const r of cove.meridian.roots()) r.visible = true;
+      }
       const hidePrewarm = revealPrewarm(engine.scene);
       try {
         await compileProgressively(
@@ -660,8 +768,14 @@ export class GameFlow implements GameBridge {
             return true;
           },
         });
+        // The terrain's finer levels of detail (and Meridian's, for a save there).
+        for (const t of [cove.terrain, meridianFirst ? cove.meridian.terrain : null]) {
+          if (t)
+            await warmTerrainLods(t, frame, { targetMs: 12, startBatch: 3, frameCost: () => engine.cpuMs });
+        }
       } finally {
         hidePrewarm();
+        cove.meridian.hold(false);
       }
       // The world's ready to be drawn without stalls: now the camera can move in to the chest.
       opening.release();
@@ -704,6 +818,7 @@ export class GameFlow implements GameBridge {
       this.set({ screen: 'playing', returnTo: 'playing', hasSave: true, save: this.saveSummary() });
       engine.renderer.domElement.focus();
       this.session.begin();
+      if (!meridianFirst) this.meridianWarm = this.warmMeridian(cove, this.session, post ?? null);
       if (this.settingsOnLand) {
         const qualityNotice = this.settingsOnLand;
         this.settingsOnLand = null;

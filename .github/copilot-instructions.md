@@ -9,7 +9,7 @@ A browser 3D island adventure that teaches the **GitHub Copilot app for Beginner
 
 ## Stack
 
-TypeScript + Vite 8, **three.js pinned to 0.186.0**, React 19 for the DOM UI, Vitest, and Playwright. **TypeScript stays
+TypeScript + Vite 8, **three.js pinned to 0.186.1**, React 19 for the DOM UI, Vitest, and Playwright. **TypeScript stays
 on 6.0.x** until typescript-eslint supports 7.x.
 
 **Rendering is WebGPU-first** (PLAN §15): import from `three/webgpu` and `three/tsl`, and write shaders as **TSL nodes**

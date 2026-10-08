@@ -16,7 +16,7 @@ import {
 } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle } from '../contracts';
-import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village';
+import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
 import { UvQuadBuilder, box, cylinder, merge, paint, plank, poseFrame, TRIM, tubeBetween } from './geo';
 import { COVE } from '../layout';
 import { GEAR_IDS, gearDef, type GearId } from './gear-logic';

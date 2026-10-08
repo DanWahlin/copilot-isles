@@ -86,8 +86,15 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
     birds = created;
     scene.add(created.group);
   };
-  const lazyBirdsTimer = typeof window !== 'undefined' ? window.setTimeout(() => void loadBirds(), 2500) : 0;
-  const lazyLeapsTimer = typeof window !== 'undefined' ? window.setTimeout(() => void loadLeaps(), 4000) : 0;
+  // Both are precompiled off the frame, so the hitch guard excuses their late uploads.
+  const lazyBirdsTimer =
+    typeof window !== 'undefined'
+      ? window.setTimeout(() => void engine.counters.excuse(loadBirds()), 2500)
+      : 0;
+  const lazyLeapsTimer =
+    typeof window !== 'undefined'
+      ? window.setTimeout(() => void engine.counters.excuse(loadLeaps()), 4000)
+      : 0;
   ship.dynamics.reset(anchor.x, anchor.z, anchor.heading);
   scene.add(ocean.mesh, ranges, ship.group);
   scene.add(wordmarkGull.group);

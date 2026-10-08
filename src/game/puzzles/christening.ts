@@ -1,4 +1,4 @@
-import type { VillageAnchor } from '../../world/village';
+import type { VillageAnchor } from '../../world/village/kit';
 import type { CameraShot } from '../follow-camera';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 import { sleep } from '../../util/math';

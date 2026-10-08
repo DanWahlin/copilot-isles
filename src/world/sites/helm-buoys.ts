@@ -1,6 +1,6 @@
 import { Group, Mesh, type Material } from 'three/webgpu';
 import type { WaveSampler } from '../contracts';
-import type { VillageKit } from '../village';
+import type { VillageKit } from '../village/kit';
 import { box, cylinder, merge } from './geo';
 import { createSign, type PaintedSign } from './sign';
 import { HELM_ORDER, MERIDIAN_HELMS, type HelmMode } from './helms-logic';

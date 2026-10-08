@@ -12,7 +12,7 @@ import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle } from '../contracts';
 import { DEFAULT_SAIL_PALETTE, SAIL_PALETTES, sailPalette, type SailPalette } from '../ship/sail-palettes';
 import { world } from '../uniforms';
-import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village';
+import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
 import {
   MeshBuilder,
   UvQuadBuilder,

@@ -9,7 +9,7 @@ import {
 } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle } from '../contracts';
-import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village';
+import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
 import { palmMaterial } from '../vegetation/model-loader';
 import {
   MeshBuilder,

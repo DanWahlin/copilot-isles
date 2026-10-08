@@ -11,7 +11,7 @@ import {
 } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { world } from '../world/uniforms';
-import { loadVillageKit, type VillageKit } from '../world/village';
+import { loadVillageKit, type VillageKit } from '../world/village/kit';
 import { buildHouse, type HouseSpec } from '../world/village/house-builder';
 import { compileAndStart, createDevHarness } from './harness';
 

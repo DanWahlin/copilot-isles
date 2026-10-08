@@ -19,6 +19,7 @@ import { tierSettings } from '../engine/quality';
 import type { HeightField, Tier } from '../world/contracts';
 import { COVE } from '../world/layout';
 import { world } from '../world/uniforms';
+import { ANCHORAGE_VEGETATION } from '../world/islands/anchorage/vegetation-rules';
 import { createVegetation, type HeightGrid } from '../world/vegetation';
 import { clamp01, smoothstep } from '../util/math';
 
@@ -192,6 +193,7 @@ async function main(): Promise<void> {
     heightGrid,
     tier,
     renderer,
+    island: ANCHORAGE_VEGETATION,
     seed: 42,
   });
   scene.add(vegetation.group);

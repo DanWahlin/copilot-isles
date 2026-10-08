@@ -10,7 +10,7 @@ import {
 } from 'three/webgpu';
 import { TIERS } from '../../engine/quality';
 import type { HeightField } from '../contracts';
-import type { VillageKit } from '../village';
+import type { VillageKit } from '../village/kit';
 import { ANCHORAGE_SLUICE } from './sluice-logic';
 import { createBottles } from './bottles';
 import { createCrane } from './crane';

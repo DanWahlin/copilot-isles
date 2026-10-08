@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { tierSettings } from '../../engine/quality';
-import type { HeightField } from '../contracts';
-import { COVE } from '../layout';
-import { SQUARE, VILLAGE_BUILDING_COUNT, createVillage, walkable } from './index';
+import { tierSettings } from '../../../engine/quality';
+import type { HeightField } from '../../contracts';
+import { COVE } from '../../layout';
+import { SQUARE, VILLAGE_BUILDING_COUNT, createVillage, walkable } from './village';
 import { LIGHTHOUSE } from './lighthouse-stair';
 
 const heightField: HeightField = {

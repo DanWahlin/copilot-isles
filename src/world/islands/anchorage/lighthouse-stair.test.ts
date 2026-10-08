@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { tierSettings } from '../../engine/quality';
-import { CollisionWorld } from '../../game/collision';
-import { PlayerController } from '../../game/player-controller';
-import type { HeightField } from '../contracts';
-import { COVE } from '../layout';
-import { createVillage } from './index';
+import { tierSettings } from '../../../engine/quality';
+import { CollisionWorld } from '../../../game/collision';
+import { PlayerController } from '../../../game/player-controller';
+import type { HeightField } from '../../contracts';
+import { COVE } from '../../layout';
+import { createVillage } from './village';
 import {
   LIGHTHOUSE,
   LIGHTHOUSE_DOOR_HEADING,

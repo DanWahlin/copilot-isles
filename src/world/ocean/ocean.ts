@@ -44,7 +44,7 @@ import { COVE } from '../layout';
 import { foamLight, world } from '../uniforms';
 import type { HarborMirrorInput } from './harbor-mirror';
 import { shipOcean } from './ship-interaction';
-import { matchedDepthTexture } from './depth-copy';
+import { matchedDepthTexture, releaseMatchedDepthTextures } from './depth-copy';
 import { createPolarGrid } from './polar-grid';
 import { createRippleTexture } from './ripple-texture';
 import { WATER_DEPTH_BOUNDS, waterDepthTexture } from './water-depth-texture';
@@ -477,6 +477,7 @@ export function createOcean({
       geo.dispose();
       mat.dispose();
       ripple.dispose();
+      releaseMatchedDepthTextures();
     },
   };
 }

@@ -1,5 +1,7 @@
 import {
+  Matrix4,
   RenderPipeline,
+  FloatType,
   RenderTarget,
   Vector2,
   type Camera,
@@ -231,27 +233,57 @@ export async function createPost(
   const render = () => {
     renderScene();
     pipeline.render();
+    if (compiling > 0 && temporalNode) velocityNode.setProjectionMatrix(compileProjection);
     if (!meter) return;
     const now = performance.now();
     meter.update(last ? (now - last) / 1000 : 1 / 60, renderer.toneMappingExposure);
     last = now;
   };
+  // Precompiles only help if they build the exact pipeline the pass draws with; otherwise every
+  // material is built twice (once never drawn) and the real one is built synchronously on its first
+  // frame. Two things differ outside the pass's own render:
+  // - TRAA gives the velocity node its unjittered projection as a uniform while it renders, which
+  //   changes the shader. compileAsync builds nodes across several yields, so the uniform stays set
+  //   while any precompile is in flight (TRAA clears it after each frame, so it's put back then).
+  // - The pass switches its depth texture to float for a reversed depth buffer only when its node is
+  //   first set up, after the precompiles; set it now so they're keyed for the same depth format.
+  const velocityNode = velocity as unknown as { setProjectionMatrix(m: Matrix4 | null): void };
+  const compileProjection = new Matrix4();
+  let compiling = 0;
+  if (scenePass?.renderTarget.depthTexture && renderer.reversedDepthBuffer) {
+    scenePass.renderTarget.depthTexture.type = FloatType;
+  }
   return {
     render,
     async compile() {
       render();
     },
     compileObject(object) {
+      // The pass draws one render call deeper than compileAsync, so its render objects are new, and
+      // three's skinned meshes then get new bone buffers named by node id: a new shader, so a
+      // precompile is never used (characters' shared skinning names theirs by slot, issue 235).
+      // Instanced meshes are left to the warm's real draws too: precompiling them saved no shaders
+      // and built a second set of instance buffers (about 80 MB, mostly the grass; issue 237).
+      const o = object as Object3D & {
+        isSkinnedMesh?: boolean;
+        isInstancedMesh?: boolean;
+        isBatchedMesh?: boolean;
+      };
+      if (scenePass && (o.isSkinnedMesh || o.isInstancedMesh || o.isBatchedMesh)) return Promise.resolve();
       const target = renderer.getRenderTarget();
       const currentMrt = renderer.getMRT();
       renderer.setRenderTarget(sceneTarget ?? scenePass!.renderTarget);
       renderer.setMRT(scenePass ? scenePass.getMRT() : null);
-      // compileAsync's synchronous part (projection, node building, pipeline requests) runs before
-      // its first await, so the renderer's state is back as it was before any frame renders.
+      if (temporalNode && compiling++ === 0) velocityNode.setProjectionMatrix(compileProjection);
+      // compileAsync takes the render target and MRT before its first await (it builds the nodes and
+      // pipelines afterwards), so the renderer's state can go back as it was straight away.
       const done = renderer.compileAsync(object, camera, scene);
       renderer.setRenderTarget(target);
       renderer.setMRT(currentMrt);
-      return done;
+      if (!temporalNode) return done;
+      return done.finally(() => {
+        if (--compiling === 0) velocityNode.setProjectionMatrix(null);
+      });
     },
     warmOutput() {
       if (!sceneTarget) return;

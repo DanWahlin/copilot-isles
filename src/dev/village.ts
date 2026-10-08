@@ -1,6 +1,6 @@
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createCove } from '../world/cove-scene';
-import { createVillage } from '../world/village';
+import { createVillage } from '../world/islands/anchorage/village';
 import {
   bindSkyPanel,
   compileAndStart,

@@ -1,10 +1,10 @@
+import { sharedInstancedMesh } from '../../engine/instancing';
 import {
   BufferAttribute,
   BufferGeometry,
   DoubleSide,
   Euler,
   Group,
-  InstancedMesh,
   Matrix4,
   Mesh,
   MeshBasicNodeMaterial,
@@ -538,7 +538,7 @@ export function createMeridianRocks(heightField: HeightField): Group {
     geometry.setAttribute('position', new BufferAttribute(asset.positions, 3));
     geometry.setAttribute('normal', new BufferAttribute(asset.normals, 3));
     geometry.setIndex(new BufferAttribute(asset.indices, 1));
-    const mesh = new InstancedMesh(geometry, material, instances);
+    const mesh = sharedInstancedMesh(geometry, material, instances);
     mesh.name = `meridian-rocks-${asset.key}`;
     for (let i = 0; i < instances; i++) {
       const seed = 100 + assetIndex * 97 + i * 11;

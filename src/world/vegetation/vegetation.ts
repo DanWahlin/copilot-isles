@@ -10,8 +10,10 @@ import {
   type Group,
   type Material,
   type PerspectiveCamera,
+  type Texture,
 } from 'three/webgpu';
 import { buildSlice } from '../../engine/build-slice';
+import { markInstancesChanged, sharedInstancedMesh } from '../../engine/instancing';
 import { tierSettings, type TierSettings } from '../../engine/quality';
 import type { Tier } from '../contracts';
 import { createHeightDataTexture } from './materials';
@@ -25,17 +27,16 @@ import {
   type VegetationModelPart,
 } from './model-loader';
 import { scatterVegetationAsync } from './scatter';
-import { seaStackPlantSpots } from '../terrain/sea-stack-shape';
-import { headlandCliffPlantSpots } from '../terrain/headland-cliff-shape';
-import type { HeightField } from '../contracts';
 import type {
   CreateVegetationOptions,
+  IslandVegetationRules,
   PlantInstance,
   PlantSpecies,
   VegetationStats,
   VegetationSystem,
 } from './types';
 import { clamp01, smoothstep } from '../../util/math';
+import { disposeMaterialWithTextures } from '../../util/dispose-three';
 
 interface PlantBatch {
   species: PlantSpecies;
@@ -50,7 +51,6 @@ interface PlantBatch {
 }
 
 const TREE_LIKE = new Set<PlantSpecies>(['palmTall', 'palmCluster', 'palmYoung', 'broadleafTree']);
-const HERO_PALM_ZONES = [{ x: -110, z: -66, r: 54 }] as const;
 const tmpObject = new Object3D();
 const tmpQuat = new Quaternion();
 const tmpScale = new Vector3();
@@ -84,18 +84,22 @@ function palmVariant(instance: PlantInstance): PalmVariant {
   return instance.lodSeed < 0.6 ? 'a' : 'b';
 }
 
-function palmLod(instance: PlantInstance): PalmLod {
+function palmLod(instance: PlantInstance, island: IslandVegetationRules): PalmLod {
   if (!instance.species.startsWith('palm')) return 'grove';
-  for (const zone of HERO_PALM_ZONES) {
+  for (const zone of island.heroPalmZones ?? []) {
     if (Math.hypot(instance.x - zone.x, instance.z - zone.z) < zone.r) return 'hero';
   }
   return 'grove';
 }
 
-function instancesForPart(instances: PlantInstance[], part: VegetationModelPart): PlantInstance[] {
+function instancesForPart(
+  instances: PlantInstance[],
+  part: VegetationModelPart,
+  island: IslandVegetationRules,
+): PlantInstance[] {
   if (!instances[0]?.species.startsWith('palm')) return instances;
   return instances.filter(
-    (instance) => palmVariant(instance) === part.palmVariant && palmLod(instance) === part.palmLod,
+    (instance) => palmVariant(instance) === part.palmVariant && palmLod(instance, island) === part.palmLod,
   );
 }
 
@@ -170,9 +174,8 @@ function createBatch(
 ): PlantBatch {
   const geometry = part.geometry.clone();
   const { fade, tint } = attachInstanceAttributes(geometry, instances.length);
-  const mesh = new InstancedMesh(geometry, part.material as Material, Math.max(1, instances.length));
+  const mesh = sharedInstancedMesh(geometry, part.material as Material, instances.length, { count: 0 });
   mesh.name = `vegetation-${species}`;
-  mesh.count = 0;
   mesh.frustumCulled = false;
   // Flowering bushes hand off to the shrub impostor: drawn small, their alpha-tested leaves thin out
   // and leave only the red blooms, which read as red blobs on the hills.
@@ -221,59 +224,9 @@ function updateBatch(batch: PlantBatch, camera: PerspectiveCamera, tier: TierSet
     batch.visible += 1;
   }
   batch.mesh.count = batch.visible;
-  batch.mesh.instanceMatrix.needsUpdate = true;
+  markInstancesChanged(batch.mesh);
   batch.tint.needsUpdate = true;
   batch.fade.needsUpdate = true;
-}
-
-/** The jungle on the sea stack's dome and ledges (placed on its shape, not on the height field). */
-function appendSeaStackPlants(plants: Record<PlantSpecies, PlantInstance[]>): void {
-  for (const spot of seaStackPlantSpots()) {
-    plants[spot.species].push({
-      species: spot.species,
-      x: spot.x,
-      y: spot.y,
-      z: spot.z,
-      scale: spot.scale,
-      rotation: spot.rotation,
-      leanX: spot.leanX,
-      leanZ: spot.leanZ,
-      colorSeed: spot.seed,
-      lodSeed: spot.seed,
-      slopeDeg: 0,
-    });
-  }
-}
-
-/** Scrub, palms and trees on the headland's clifftop, shoulders and edge (thinned per tier). */
-const HEADLAND_PLANT_DENSITY: Record<Tier, number> = {
-  lite: 0.2,
-  low: 0.45,
-  medium: 0.75,
-  high: 1,
-  ultra: 1,
-};
-
-function appendHeadlandPlants(
-  plants: Record<PlantSpecies, PlantInstance[]>,
-  heightField: HeightField,
-  tier: Tier,
-): void {
-  for (const spot of headlandCliffPlantSpots(heightField, HEADLAND_PLANT_DENSITY[tier])) {
-    plants[spot.species].push({
-      species: spot.species,
-      x: spot.x,
-      y: spot.y,
-      z: spot.z,
-      scale: spot.scale,
-      rotation: spot.rotation,
-      leanX: spot.leanX,
-      leanZ: spot.leanZ,
-      colorSeed: spot.seed,
-      lodSeed: spot.seed,
-      slopeDeg: 0,
-    });
-  }
 }
 
 function collectTreeLike(scatter: Record<PlantSpecies, PlantInstance[]>): PlantInstance[] {
@@ -293,37 +246,38 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
 
   const [scatter, geometries] = await Promise.all([
     scatterVegetationAsync(
-      { heightField: options.heightField, tier, seed, exclude: options.exclude },
+      { heightField: options.heightField, tier, island: options.island, seed, exclude: options.exclude },
       buildSlice,
     ),
     loadVegetationGeometries(),
   ]);
-  appendSeaStackPlants(scatter.plants);
+  options.island.appendExtraPlants?.(scatter.plants, options.heightField, tier.tier, 'beforeExternal');
   for (const plant of options.extraPlants ?? []) scatter.plants[plant.species].push(plant);
-  appendHeadlandPlants(scatter.plants, options.heightField, tier.tier);
-  const batches: PlantBatch[] = [];
-  const palmInstances = collectPalmInstances(scatter.plants);
-  if (palmInstances.length > 0) {
-    for (const part of geometries.palmTall) {
-      const partInstances = instancesForPart(palmInstances, part);
-      if (partInstances.length === 0) continue;
-      const batch = createBatch('palmTall', partInstances, part, tier);
-      batches.push(batch);
-      group.add(batch.mesh);
+  options.island.appendExtraPlants?.(scatter.plants, options.heightField, tier.tier, 'afterExternal');
+  const buildBatches = (plants: Record<PlantSpecies, PlantInstance[]>, target: Object3D): PlantBatch[] => {
+    const out: PlantBatch[] = [];
+    const palmInstances = collectPalmInstances(plants);
+    if (palmInstances.length > 0) {
+      for (const part of geometries.palmTall) {
+        const partInstances = instancesForPart(palmInstances, part, options.island);
+        if (partInstances.length === 0) continue;
+        out.push(createBatch('palmTall', partInstances, part, tier));
+      }
     }
-  }
-  for (const species of Object.keys(scatter.plants) as PlantSpecies[]) {
-    if (species.startsWith('palm')) continue;
-    const instances = scatter.plants[species];
-    if (instances.length === 0) continue;
-    for (const part of geometries[species]) {
-      const partInstances = instancesForPart(instances, part);
-      if (partInstances.length === 0) continue;
-      const batch = createBatch(species, partInstances, part, tier);
-      batches.push(batch);
-      group.add(batch.mesh);
+    for (const species of Object.keys(plants) as PlantSpecies[]) {
+      if (species.startsWith('palm')) continue;
+      const instances = plants[species];
+      if (instances.length === 0) continue;
+      for (const part of geometries[species]) {
+        const partInstances = instancesForPart(instances, part, options.island);
+        if (partInstances.length === 0) continue;
+        out.push(createBatch(species, partInstances, part, tier));
+      }
     }
-  }
+    for (const batch of out) target.add(batch.mesh);
+    return out;
+  };
+  const batches = buildBatches(scatter.plants, group);
 
   const heightTexture = createHeightDataTexture(options.heightGrid);
   const grass = new GrassField(
@@ -332,23 +286,32 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
     heightTexture,
     tier,
     seed,
+    options.island.grassBounds,
     options.exclude,
     true,
   );
   await grass.build(buildSlice);
   group.add(grass.group);
 
+  const impostorOptions = {
+    handoff: (species: PlantSpecies) => geometryHandoff(species, tier),
+    palmVariant,
+    tint: tintFor,
+  };
   const impostorEntries = collectTreeLike(scatter.plants);
-  const impostorBake =
+  let impostorBake =
     impostorEntries.length > 0 ? await bakeImpostorAtlas(options.renderer, geometries) : null;
-  const impostors = impostorBake
-    ? new ImpostorBatch(impostorEntries, impostorBake, {
-        handoff: (species) => geometryHandoff(species, tier),
-        palmVariant,
-        tint: tintFor,
-      })
-    : null;
+  const impostors = impostorBake ? new ImpostorBatch(impostorEntries, impostorBake, impostorOptions) : null;
   if (impostors) group.add(impostors.mesh);
+  // Atlas for patches when the island itself had no tree-likes (the patch's batch then owns it).
+  let patchOwnsBake = false;
+
+  interface Patch {
+    group: Group;
+    batches: PlantBatch[];
+    impostors: ImpostorBatch | null;
+  }
+  const patches: Patch[] = [];
 
   let lastStats: VegetationStats = {
     totalInstances: batches.reduce((sum, batch) => sum + batch.instances.length, 0),
@@ -373,6 +336,26 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
       let drawCalls = grassStats.drawCalls + impostorStats.drawCalls;
       let triangles = grassStats.triangles + impostorStats.triangles;
       let meshBatchesVisible = 0;
+      // A patch's plants only update (and count) while it's shown.
+      for (const patch of patches) {
+        if (!patch.group.visible) continue;
+        for (const batch of patch.batches) updateBatch(batch, camera, tier);
+        patch.impostors?.update(camera);
+        const s = patch.impostors?.stats();
+        if (s) {
+          visibleInstances += s.visibleInstances;
+          drawCalls += s.drawCalls;
+          triangles += s.triangles;
+        }
+        for (const batch of patch.batches) {
+          visibleInstances += batch.visible;
+          if (batch.visible > 0) {
+            drawCalls += 1;
+            meshBatchesVisible += 1;
+            triangles += batch.visible * batch.trianglesPerInstance;
+          }
+        }
+      }
       for (const batch of batches) {
         visibleInstances += batch.visible;
         if (batch.visible > 0) {
@@ -399,15 +382,43 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
         meshBatchesVisible,
       };
     },
+    async addPlants(list, name) {
+      const plants = {} as Record<PlantSpecies, PlantInstance[]>;
+      for (const species of Object.keys(scatter.plants) as PlantSpecies[]) plants[species] = [];
+      for (const plant of list) plants[plant.species].push(plant);
+      const patchGroup = new Object3D() as Group;
+      patchGroup.name = name;
+      patchGroup.visible = false;
+      const patchBatches = buildBatches(plants, patchGroup);
+      await buildSlice();
+      const entries = collectTreeLike(plants);
+      if (entries.length > 0 && !impostorBake) {
+        impostorBake = await bakeImpostorAtlas(options.renderer, geometries);
+        patchOwnsBake = true;
+      }
+      const patchImpostors =
+        entries.length > 0 && impostorBake
+          ? new ImpostorBatch(entries, impostorBake, { ...impostorOptions, sharedBake: !patchOwnsBake })
+          : null;
+      // Only the first patch to bake the atlas owns it.
+      patchOwnsBake = false;
+      if (patchImpostors) patchGroup.add(patchImpostors.mesh);
+      patches.push({ group: patchGroup, batches: patchBatches, impostors: patchImpostors });
+      group.add(patchGroup);
+      return { group: patchGroup };
+    },
     dispose() {
-      for (const batch of batches) {
+      for (const batch of [...batches, ...patches.flatMap((p) => p.batches)]) {
         batch.mesh.geometry.dispose();
         batch.mesh.dispose();
       }
       grass.dispose();
+      // Patches first: one may share the island's atlas, which the island's batch frees.
+      for (const patch of patches) patch.impostors?.dispose();
       impostors?.dispose();
       heightTexture.dispose();
       const disposedMaterials = new Set<Material>();
+      const disposedTextures = new Set<Texture>();
       const sharedPalmMaterial = palmMaterial();
       for (const parts of Object.values(geometries)) {
         for (const part of parts) {
@@ -418,11 +429,11 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
               if (m === sharedPalmMaterial) continue;
               if (disposedMaterials.has(m)) continue;
               disposedMaterials.add(m);
-              m.dispose();
+              disposeMaterialWithTextures(m, disposedTextures);
             }
           } else if (material !== sharedPalmMaterial && !disposedMaterials.has(material)) {
             disposedMaterials.add(material);
-            material.dispose();
+            disposeMaterialWithTextures(material, disposedTextures);
           }
         }
       }

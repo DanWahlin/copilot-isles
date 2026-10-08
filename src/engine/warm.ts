@@ -20,7 +20,7 @@ interface Staged {
  * because the world's own LOD and streaming systems toggle visibility.
  */
 export async function warmProgressively(
-  root: Object3D,
+  root: Object3D | readonly Object3D[],
   nextFrame: () => Promise<void>,
   opts: {
     targetMs?: number;
@@ -36,17 +36,19 @@ export async function warmProgressively(
 ): Promise<void> {
   const target = opts.targetMs ?? 45;
   const staged: Staged[] = [];
-  root.traverse((obj) => {
-    const r = obj as Object3D & {
-      isMesh?: boolean;
-      isLine?: boolean;
-      isPoints?: boolean;
-      isSprite?: boolean;
-    };
-    if (!(r.isMesh || r.isLine || r.isPoints || r.isSprite)) return;
-    staged.push({ obj, mask: obj.layers.mask, culled: obj.frustumCulled });
-    obj.layers.set(STAGING_LAYER);
-  });
+  const roots: readonly Object3D[] = Array.isArray(root) ? root : [root as Object3D];
+  for (const r of roots)
+    r.traverse((obj) => {
+      const r = obj as Object3D & {
+        isMesh?: boolean;
+        isLine?: boolean;
+        isPoints?: boolean;
+        isSprite?: boolean;
+      };
+      if (!(r.isMesh || r.isLine || r.isPoints || r.isSprite)) return;
+      staged.push({ obj, mask: obj.layers.mask, culled: obj.frustumCulled });
+      obj.layers.set(STAGING_LAYER);
+    });
   let batch = Math.max(1, opts.startBatch ?? 6);
   let previous: Staged[] = [];
   let floor = Infinity;
@@ -87,6 +89,26 @@ export async function warmProgressively(
       s.obj.layers.mask = s.mask;
       s.obj.frustumCulled = s.culled;
     }
+  }
+}
+
+/**
+ * Draws each of a terrain's finer levels of detail once (they're only shown up close), so walking or
+ * sailing near a chunk later doesn't upload it mid-play. A precompile can't do this: the chunks'
+ * pipelines already exist, so it skips them and uploads nothing.
+ */
+export async function warmTerrainLods(
+  terrain: { group: Object3D; setLod(lod: number | null): void },
+  nextFrame: () => Promise<void>,
+  opts: Parameters<typeof warmProgressively>[2] = {},
+): Promise<void> {
+  try {
+    for (const lod of [0, 1]) {
+      terrain.setLod(lod);
+      await warmProgressively(terrain.group, nextFrame, opts);
+    }
+  } finally {
+    terrain.setLod(null);
   }
 }
 

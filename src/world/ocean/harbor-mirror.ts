@@ -1,5 +1,7 @@
+import { unreflected } from '../reflection';
 import {
   Color,
+  DepthTexture,
   Frustum,
   Matrix4,
   PerspectiveCamera,
@@ -17,6 +19,7 @@ import {
 import { uniform } from 'three/tsl';
 import type { TierSettings } from '../../engine/quality';
 import { COVE } from '../layout';
+import { disposeRenderTarget, disposeRenderTargetTextures } from '../../util/dispose-three';
 
 export interface HarborMirrorStats {
   enabled: boolean;
@@ -69,6 +72,9 @@ export class HarborMirror {
   };
 
   private readonly enabled: boolean;
+  private readonly hiddenList: Object3D[] = [];
+  private readonly wasVisible: boolean[] = [];
+  private hiddenRoots: () => readonly (Object3D | null | undefined)[] = () => [];
   private readonly size = new Vector2();
   private readonly dir = new Vector3();
   private readonly toHarbor = new Vector3();
@@ -85,14 +91,25 @@ export class HarborMirror {
   constructor({ tier, disabled = false }: HarborMirrorOptions) {
     this.enabled = (tier.tier === 'high' || tier.tier === 'ultra') && tier.mirror && !disabled;
     this.target.texture.name = 'harbor-planar-mirror';
+    this.target.depthTexture = new DepthTexture(1, 1);
+    this.target.depthTexture.name = 'harbor-planar-mirror-depth';
+  }
+
+  /** What `update` will hide (the same list), so `compileObject` doesn't build pipelines it never draws. */
+  setHidden(roots: () => readonly (Object3D | null | undefined)[]): void {
+    this.hiddenRoots = roots;
   }
 
   /**
    * Builds `object`'s pipelines for the mirror's render target asynchronously (nothing drawn), so
    * the mirror's first frame doesn't stall. The renderer's state is restored before it returns.
+   * Objects under a hidden root are skipped.
    */
   compileObject(renderer: WebGPURenderer, scene: Scene, object: Object3D): Promise<void> {
     if (!this.enabled) return Promise.resolve();
+    const hidden = this.hiddenRoots();
+    for (let o: Object3D | null = object; o; o = o.parent)
+      if (hidden.includes(o) || unreflected.has(o)) return Promise.resolve();
     const target = renderer.getRenderTarget();
     const mrt = renderer.getMRT();
     renderer.setRenderTarget(this.target);
@@ -157,7 +174,12 @@ export class HarborMirror {
     renderer.getDrawingBufferSize(this.size);
     const w = Math.max(64, Math.floor(this.size.x * 0.5));
     const h = Math.max(64, Math.floor(this.size.y * 0.5));
-    if (this.target.width !== w || this.target.height !== h) this.target.setSize(w, h);
+    if (this.target.width !== w || this.target.height !== h) {
+      disposeRenderTargetTextures(this.target);
+      this.target.setSize(w, h);
+      this.target.depthTexture = new DepthTexture(w, h);
+      this.target.depthTexture.name = 'harbor-planar-mirror-depth';
+    }
     this.stats.width = w;
     this.stats.height = h;
 
@@ -167,8 +189,17 @@ export class HarborMirror {
     renderer.getScissor(this.prevScissor);
     renderer.getClearColor(this.prevClear);
     const prevAlpha = renderer.getClearAlpha();
-    const hiddenStates = hiddenObjects.map((object) => ({ object, visible: object?.visible ?? false }));
-    for (const hState of hiddenStates) if (hState.object) hState.object.visible = false;
+    // Hidden for the mirror's render, then put back (reused arrays: this runs every frame).
+    const hiddenList = this.hiddenList;
+    const wasVisible = this.wasVisible;
+    hiddenList.length = 0;
+    wasVisible.length = 0;
+    for (const object of hiddenObjects) if (object) hiddenList.push(object);
+    for (const object of unreflected) hiddenList.push(object);
+    for (const object of hiddenList) {
+      wasVisible.push(object.visible);
+      object.visible = false;
+    }
 
     const info = renderer.info;
     const beforeDraws = info.render.drawCalls;
@@ -184,7 +215,7 @@ export class HarborMirror {
     this.stats.drawCalls = info.render.drawCalls - beforeDraws;
     this.stats.triangles = info.render.triangles - beforeTris;
 
-    for (const hState of hiddenStates) if (hState.object) hState.object.visible = hState.visible;
+    for (let i = 0; i < hiddenList.length; i++) hiddenList[i]!.visible = wasVisible[i]!;
     renderer.setRenderTarget(prevTarget);
     renderer.setViewport(this.prevViewport);
     renderer.setScissor(this.prevScissor);
@@ -204,7 +235,7 @@ export class HarborMirror {
   }
 
   dispose(): void {
-    this.target.dispose();
+    disposeRenderTarget(this.target);
   }
 
   private configureCamera(sourceCamera: Camera): void {

@@ -68,6 +68,8 @@ export function createDockGull(o: {
   const headPitchU = uniform(0);
   let mesh: Mesh | null = null;
   let material: MeshStandardNodeMaterial | null = null;
+  let map: Texture | null = null;
+  let disposed = false;
 
   const ready = o.loader.loadAsync(o.url).then((gltf) => {
     let src: Mesh | null = null;
@@ -89,7 +91,8 @@ export function createDockGull(o: {
     const srcMat = (Array.isArray(source.material) ? source.material[0] : source.material) as {
       map?: Texture | null;
     };
-    material = new MeshStandardNodeMaterial({ map: srcMat.map ?? null, roughness: 0.85, metalness: 0 });
+    map = srcMat.map ?? null;
+    material = new MeshStandardNodeMaterial({ map, roughness: 0.85, metalness: 0 });
     material.positionNode = Fn(() => {
       const p = positionLocal;
       const hw = attribute('headW', 'float');
@@ -116,6 +119,15 @@ export function createDockGull(o: {
     mesh.receiveShadow = true;
     body.add(mesh);
     (source.material as { dispose?: () => void }).dispose?.();
+    if (disposed) {
+      body.remove(mesh);
+      mesh.geometry.dispose();
+      material.dispose();
+      map?.dispose();
+      mesh = null;
+      material = null;
+      map = null;
+    }
   });
 
   const rng = rand(o.seed ?? 0x6011);
@@ -278,8 +290,13 @@ export function createDockGull(o: {
       body.position.z = offZ;
     },
     dispose() {
+      disposed = true;
       mesh?.geometry.dispose();
       material?.dispose();
+      map?.dispose();
+      mesh = null;
+      material = null;
+      map = null;
     },
   };
 }

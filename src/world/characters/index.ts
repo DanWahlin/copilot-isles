@@ -24,6 +24,7 @@ import { FACE_FITS, faceFamily } from './face-fit';
 import { addShoulderMacaw, createMacawGeometry } from './parrot';
 import { addTricorn, stowPlayerWeapon } from './props';
 import { RuntimeCharacter } from './runtime-character';
+import { shareSkinning } from './shared-skinning';
 import { stagedMaterial } from './stage-light';
 import {
   CHARACTER_BODIES,
@@ -305,6 +306,8 @@ class CharacterLibraryImpl implements CharacterLibrary {
         ? object.material.map(stagedMaterial)
         : stagedMaterial(object.material);
     });
+    // One skinning shader for every character (issue 235).
+    shareSkinning(clone);
     return new RuntimeCharacter(clone, source.clips, body, config, options);
   }
 

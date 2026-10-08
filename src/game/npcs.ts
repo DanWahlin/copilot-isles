@@ -2,7 +2,7 @@ import { Vector3 } from 'three/webgpu';
 import type { TierSettings } from '../engine/quality';
 import type { Character, CharacterClip, CharacterLibrary, NpcId } from '../world/characters';
 import type { CircleObstacle } from '../world/contracts';
-import type { VillageAnchor } from '../world/village';
+import type { VillageAnchor } from '../world/village/kit';
 import type { CollisionWorld } from './collision';
 import { wrapAngle } from '../util/math';
 

@@ -23,6 +23,7 @@ import {
   Vector3,
   type BufferGeometry,
   type Node,
+  type Texture,
 } from 'three/webgpu';
 import {
   abs,
@@ -45,9 +46,10 @@ import {
   vec2,
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { noiseAt } from './noise';
+import { noiseAt, releaseNoiseTexture } from './noise';
 import { billboardGeometry, billboardMesh, camRight, camUp } from './particles';
 import { mulberry32 } from '../util/math';
+import { disposeLightShadow, disposeMaterialWithTextures } from '../util/dispose-three';
 
 /**
  * The captain's cabin (docs/specs/OPENING-living-chart.md): one small, lamp-lit room at golden hour,
@@ -571,20 +573,23 @@ export function createCabin(opts: CabinOptions): Cabin {
       void dt;
     },
     dispose() {
+      const disposedTextures = new Set<Texture>();
       group.traverse((o) => {
         const m = o as Mesh;
         if (m.isMesh) {
           m.geometry.dispose();
-          (m.material as MeshStandardNodeMaterial).dispose();
+          disposeMaterialWithTextures(m.material as MeshStandardNodeMaterial, disposedTextures);
         }
       });
       lanternLight.dispose();
       chestLight.dispose();
       keyLight.dispose();
+      disposeLightShadow(sun.shadow);
       sun.dispose();
       fill.dispose();
       portLight.dispose();
       candleLight.dispose();
+      releaseNoiseTexture();
     },
   };
 }

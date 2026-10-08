@@ -42,9 +42,10 @@ import { buildHeadlandCliffGeometry, HEADLAND_CLIFF_DETAIL } from '../world/terr
 import { headlandCliffPlantSpots } from '../world/terrain/headland-cliff-shape';
 import { buildSeaStackGeometry, createSeaStackMaterial } from '../world/terrain/sea-stack';
 import { seaStackPlantSpots } from '../world/terrain/sea-stack-shape';
-import { LIGHTHOUSE } from '../world/village/lighthouse-stair';
-import { BUILDINGS, type BuildingSpec } from '../world/village/buildings';
-import { VILLAGE_PALMS, villagePlantInstances } from '../world/village/plantings';
+import { LIGHTHOUSE } from '../world/islands/anchorage/lighthouse-stair';
+import { BUILDINGS, type BuildingSpec } from '../world/islands/anchorage/buildings';
+import { VILLAGE_PALMS, villagePlantInstances } from '../world/islands/anchorage/plantings';
+import { ANCHORAGE_VEGETATION } from '../world/islands/anchorage/vegetation-rules';
 import { scatterVegetationAsync } from '../world/vegetation/scatter';
 import type { PlantSpecies } from '../world/vegetation/types';
 import { ARCHIPELAGO } from '../ui/chart/archipelago';
@@ -562,7 +563,10 @@ export async function createIslandProps(o: IslandPropsOptions): Promise<IslandPr
         (Math.abs(x - pier.x) < pier.width && z < pier.z0 && z > pier.z1 - 2) ||
         Math.hypot(x - L.x, z - L.z) < L.radius + 2 ||
         Math.hypot(x - COVE.mill.x, z - COVE.mill.z) < 10;
-      const scatter = await scatterVegetationAsync({ heightField: hf, tier, exclude }, breathe);
+      const scatter = await scatterVegetationAsync(
+        { heightField: hf, tier, island: ANCHORAGE_VEGETATION, exclude },
+        breathe,
+      );
       for (const [species, list] of Object.entries(scatter.plants))
         for (const p of list) {
           plant(parts, species, p.x, p.y, p.z, p.scale, delayAt(p.x, p.z), r);

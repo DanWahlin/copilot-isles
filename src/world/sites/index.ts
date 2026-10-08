@@ -1,7 +1,7 @@
 import { Group } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle, HeightField } from '../contracts';
-import { loadVillageKit, type VillageAnchor, type VillageBoxCollider } from '../village';
+import { loadVillageKit, type VillageAnchor, type VillageBoxCollider } from '../village/kit';
 import { loadPalmObject } from '../vegetation/model-loader';
 import { createBottles, type BottleSite } from './bottles';
 import { createCrane, type CraneSite } from './crane';

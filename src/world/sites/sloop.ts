@@ -13,7 +13,7 @@ import {
 } from 'three/webgpu';
 import { frontFacing, select, texture as sampleTexture, uv, vec2 } from 'three/tsl';
 import type { TierSettings } from '../../engine/quality';
-import type { VillageKit } from '../village';
+import type { VillageKit } from '../village/kit';
 import {
   box,
   coloredIndexedGeometry,

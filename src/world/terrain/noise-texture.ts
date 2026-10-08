@@ -86,3 +86,8 @@ export function terrainNoiseTexture(): Texture {
   cached.needsUpdate = true;
   return cached;
 }
+
+/** Frees the noise's GPU copy when the world is torn down (its data stays cached for the next upload). */
+export function releaseTerrainNoiseTexture(): void {
+  cached?.dispose();
+}

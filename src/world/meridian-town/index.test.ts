@@ -15,7 +15,7 @@ import {
   createThatchMaterial,
   createWoodMaterial,
 } from '../village/materials';
-import type { VillageBoxCollider, VillageKit } from '../village';
+import type { VillageBoxCollider, VillageKit } from '../village/kit';
 import { createMeridianTown, meridianTownStairHeight } from './index';
 import { meridianTownPlants } from './plantings';
 
@@ -210,6 +210,26 @@ describe('createMeridianTown', () => {
     }
     expect(town.walkable(668, MERIDIAN.harbor.quay.z0)).toBeCloseTo(MERIDIAN.harbor.quay.height, 1);
     expect(town.walkable(668, MERIDIAN.pads.plaza.z)).toBeCloseTo(MERIDIAN.pads.plaza.height, 1);
+
+    town.dispose();
+    kit.dispose();
+  });
+
+  it('puts you on top of the Hall of Records podium, a step up from the citadel floor', () => {
+    const kit = testKit();
+    const town = createMeridianTown({ tier: tierSettings('low'), heightField, kit });
+    const pell = town.anchors.pell!;
+    // From Pell, in front of the portico, walking in between the columns and on toward the doors.
+    let last = town.walkable(pell.x, pell.z)!;
+    expect(last).toBeCloseTo(40, 2);
+    for (let z = pell.z; z <= pell.z + 4.2; z += 0.25) {
+      const h = town.walkable(pell.x, z);
+      expect(h, `z=${z}`).not.toBeNull();
+      expect(Math.abs(h! - last), `step at z=${z}`).toBeLessThanOrEqual(0.66);
+      last = h!;
+    }
+    // The portico paving's top (the regression: you walked at 40, 0.6 m inside it).
+    expect(town.walkable(pell.x, pell.z + 2.2)).toBeCloseTo(40.6, 2);
 
     town.dispose();
     kit.dispose();

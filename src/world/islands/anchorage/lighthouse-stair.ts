@@ -1,4 +1,4 @@
-import { COVE } from '../layout';
+import { COVE } from '../../layout';
 
 /**
  * The point lighthouse's shape and its climb (Dan: walk in and up to the top). Pure numbers, shared

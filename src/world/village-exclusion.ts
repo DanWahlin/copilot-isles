@@ -1,5 +1,5 @@
 import type { CircleObstacle } from './contracts';
-import type { VillageBoxCollider } from './village';
+import type { VillageBoxCollider } from './village/kit';
 
 export interface ExclusionSource {
   walkable: (x: number, z: number) => number | null;

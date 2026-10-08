@@ -277,6 +277,7 @@ export function createVegetationMaterial(
   const leafWeight = select(isLeaf, float(1), float(0)) as AnyNode;
   let albedo: AnyNode;
   if (source.map) {
+    material.userData.disposeTextures = [source.map];
     const texel = (texture(source.map, uv()) as AnyNode).rgb;
     // The authored frond swatch is a lime green that reads neon in full tropical sun; grade it
     // toward a deeper palm green and let the per-instance tint add grove variety.
@@ -421,6 +422,7 @@ export function createRecoloredLeafMaterial(map: Texture, name: string): MeshSta
   const texel = texture(map, uv()) as AnyNode;
   const shade = smoothstep(0.3, 1.0, texel.r);
   material.colorNode = vec4(mix(color(0x2f6420), color(0x8bbb48), shade) as AnyNode, texel.a) as AnyNode;
+  material.userData.disposeTextures = [map];
   return material;
 }
 

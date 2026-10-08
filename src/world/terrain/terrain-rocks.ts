@@ -1,13 +1,5 @@
-import {
-  BufferAttribute,
-  BufferGeometry,
-  Euler,
-  Group,
-  InstancedMesh,
-  Matrix4,
-  Quaternion,
-  Vector3,
-} from 'three/webgpu';
+import { sharedInstancedMesh } from '../../engine/instancing';
+import { BufferAttribute, BufferGeometry, Euler, Group, Matrix4, Quaternion, Vector3 } from 'three/webgpu';
 import type { HeightField, Tier } from '../contracts';
 import { COVE } from '../layout';
 import { ROCK_ASSETS } from './rock-assets';
@@ -225,7 +217,7 @@ export function* buildTerrainRocks(
 
   for (const [assetIndex, list] of [...grouped.entries()].sort(([a], [b]) => a - b)) {
     const asset = ROCK_ASSETS[assetIndex];
-    const mesh = new InstancedMesh(rockGeometry(asset), material, list.length);
+    const mesh = sharedInstancedMesh(rockGeometry(asset), material, list.length);
     mesh.name = `terrain-rocks-${asset.key}`;
     mesh.castShadow = false;
     mesh.receiveShadow = true;

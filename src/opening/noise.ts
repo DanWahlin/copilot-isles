@@ -53,6 +53,11 @@ export function noiseTexture(): DataTexture {
   return noiseTex;
 }
 
+/** Frees the noise's GPU copy with the cabin (its data stays cached for the next opening). */
+export function releaseNoiseTexture(): void {
+  noiseTex?.dispose();
+}
+
 /** The shared noise (0-1) at a 2D coordinate (repeats every unit). */
 export function noiseAt(p: Node<'vec2'>): Node<'float'> {
   return texture(noiseTexture(), p).r;

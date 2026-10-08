@@ -52,4 +52,25 @@ describe('FrameCounters', () => {
     c.endFrame(2);
     expect(c.hitches).toEqual([{ t: 2, programs: 1, geometries: 0, textures: 0 }]);
   });
+
+  it('excuses a precompiled late addition while it loads and for a few frames after', async () => {
+    const info = stubInfo();
+    const c = new FrameCounters({ info });
+    c.arm();
+    let finish!: () => void;
+    const work = c.excuse(new Promise<void>((resolve) => (finish = resolve)), 2);
+    info.memory.programs = 7;
+    c.endFrame(1);
+    finish();
+    await work;
+    await Promise.resolve();
+    info.memory.textures += 1;
+    c.endFrame(2);
+    info.memory.geometries += 1;
+    c.endFrame(3);
+    expect(c.hitches).toEqual([]);
+    info.memory.programs = 8;
+    c.endFrame(4);
+    expect(c.hitches).toEqual([{ t: 4, programs: 1, geometries: 0, textures: 0 }]);
+  });
 });

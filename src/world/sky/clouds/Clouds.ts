@@ -1854,6 +1854,25 @@ export class Clouds {
     this.resetHistory();
   }
 
+  dispose() {
+    for (const texture of [
+      this.panorama,
+      this.shadowMap,
+      this.sdfA,
+      this.sdfB,
+      this.sdfTex,
+      this.traceTex,
+      this.traceDepth,
+      this.highTrace,
+      this.motionTex,
+      this.boxMin,
+      this.boxMax,
+      ...(this.history || []),
+    ]) {
+      texture?.dispose();
+    }
+  }
+
   // ------------------------------------------------------------ TSL sampling
 
   // vec4(rgb in-scattered radiance, a transmittance) for a view direction (panorama)

@@ -54,6 +54,9 @@ export class FrameCounters {
   /** Labels each hitch with what the game was doing (set by the game flow). */
   stage: (() => string) | null = null;
   private armed = false;
+  /** Excused late additions still loading, and frames left to let their first draw upload. */
+  private excused = 0;
+  private settle = 0;
   private base = { programs: 0, geometries: 0, textures: 0 };
   private readonly info: InfoLike;
 
@@ -81,6 +84,12 @@ export class FrameCounters {
     };
     // Hitch guard: after warm-up, any new pipeline/geometry/texture during play is a missing precompile.
     if (!this.armed) return;
+    // An excused, precompiled late addition: its pipelines and first uploads aren't hitches.
+    if (this.excused > 0 || this.settle > 0) {
+      if (this.excused === 0) this.settle--;
+      this.base = { programs, geometries: memory.geometries, textures: memory.textures };
+      return;
+    }
     const grew =
       programs > this.base.programs ||
       memory.geometries > this.base.geometries ||
@@ -95,6 +104,21 @@ export class FrameCounters {
       });
     }
     this.base = { programs, geometries: memory.geometries, textures: memory.textures };
+  }
+
+  /**
+   * A deliberate late addition that is precompiled off the frame (`renderer.compileAsync`, then added to
+   * the scene), like the title's distant gulls: its growth isn't a hitch while it loads and for
+   * `settleFrames` frames after (its first draw uploads its buffers and textures). Returns `work`.
+   */
+  excuse<T>(work: Promise<T>, settleFrames = 3): Promise<T> {
+    this.excused++;
+    const done = (): void => {
+      this.excused--;
+      this.settle = Math.max(this.settle, settleFrames);
+    };
+    work.then(done, done);
+    return work;
   }
 
   /** Call once warm-up is complete. */

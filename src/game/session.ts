@@ -1,4 +1,4 @@
-import { Vector3, type Group } from 'three/webgpu';
+import { Vector3, type Group, type Object3D } from 'three/webgpu';
 import { buildSlice } from '../engine/build-slice';
 import type { IslesAudio } from '../audio';
 import type { FootstepSurface } from '../audio/soundscape/soundscape';
@@ -54,8 +54,8 @@ import { createCrateYard } from './puzzles/crate-yard';
 import { createCrateYardSite } from '../world/sites/crate-yard';
 import { createThreeHelms, type HelmsHost } from './puzzles/three-helms';
 import { createHelmBuoys } from '../world/sites/helm-buoys';
-import { loadVillageKit } from '../world/village';
-import { insideLighthouse, lighthouseLevels } from '../world/village/lighthouse-stair';
+import { loadVillageKit } from '../world/village/kit';
+import { insideLighthouse, lighthouseLevels } from '../world/islands/anchorage/lighthouse-stair';
 import { starfishCount } from '../world/starfish/spots';
 import { MERIDIAN_YARD } from '../world/sites/crate-yard-logic';
 import { plankProgress, plankSurface, type PlankSpan } from './gangway';
@@ -117,6 +117,12 @@ export interface GameSession {
    * compile), so everything it'll see is built behind the loading card rather than mid-flight.
    */
   warmArrival(step: () => Promise<void>): Promise<void>;
+  /**
+   * Port Meridian's cast, chests and puzzle sites (their groups), once the town has streamed in and
+   * they've joined the scene: unwarmed and hidden, so nothing draws them before they're built. Whoever
+   * warms them calls `reveal` after (the flow, with the town). Empty if Meridian never loads.
+   */
+  readonly meridianSetup: Promise<{ roots: Object3D[]; reveal(): void }>;
   /** Fast travel: docks the ship if you're sailing, then puts you at (x, z). */
   travel(x: number, z: number, heading: number): Promise<void>;
   /** An open island's quay by the berth (the chart's "Travel here"), or null if it isn't open. */
@@ -1074,22 +1080,28 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   });
   if (quests()['Q0.10'] === 'done') village.setLighthouseLit(true);
 
-  const setupMeridian = async (town: CoveScene['meridian']['town']) => {
-    if (!town || disposed || meridianNpcs) return;
+  const noMeridian = { roots: [] as Object3D[], reveal() {} };
+  const setupMeridian = async (
+    town: CoveScene['meridian']['town'],
+  ): Promise<{ roots: Object3D[]; reveal(): void }> => {
+    if (!town || disposed || meridianNpcs) return noMeridian;
     const cast = [...MERIDIAN_NPCS, ...meridianExtras(town.anchors)];
     meridianNpcs = new NpcCrowd(o.characters, cast, town.anchors, world, tier, camera, {
       ...town.anchors.promenade!,
     });
     await buildSlice();
     for (const n of meridianNpcs.list) {
+      n.character.group.visible = false;
       engine.scene.add(n.character.group);
       addNpcTalk(n);
     }
     await buildSlice();
+    const chestsBefore = chests.length;
     for (const c of MERIDIAN_CHESTS) {
       const n = meridianNpcs.list.find((v) => v.spec.id === c.npc);
       if (n) placeChest(c, n);
     }
+    for (const c of chests.slice(chestsBefore)) c.chest.group.visible = false;
     if (quests()['Q1.8'] === 'done') {
       town.setLighthouseLit(true);
       lighthouseLit = true;
@@ -1114,10 +1126,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     }
     // P1.1 The Crate Yard on the shipyard apron, and P1.2 The Three Helms out in the bay.
     const kit = await loadVillageKit();
-    if (disposed) return;
+    if (disposed) return noMeridian;
     const yardAt = town.anchors.crateYard;
     if (yardAt) {
       const site = createCrateYardSite({ tier, kit, origin: yardAt, layout: MERIDIAN_YARD });
+      site.group.visible = false;
       engine.scene.add(site.group);
       for (const c of site.colliders.circles) world.addCircle(c);
       for (const b of site.colliders.boxes) world.addBox(b);
@@ -1126,22 +1139,28 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       puzzles.push(createCrateYard(puzzleHost, site));
     }
     await buildSlice();
-    if (disposed) return;
+    if (disposed) return noMeridian;
     const buoys = createHelmBuoys({ kit, waves: ocean.field });
+    buoys.group.visible = false;
     engine.scene.add(buoys.group);
     meridianSites.push(buoys);
     puzzles.push(createThreeHelms(helmsHost, buoys));
-    // Only what was just added (a whole-scene compile walks everything in one go).
-    for (const g of [
+    const roots = [
       ...meridianNpcs.list.map((n) => n.character.group),
+      ...chests.slice(chestsBefore).map((c) => c.chest.group),
       ...meridianSites.map((s) => s.group),
-    ]) {
-      await buildSlice();
-      if (disposed) return;
-      await engine.renderer.compileAsync(g, camera, engine.scene);
-    }
+    ];
+    return {
+      roots,
+      reveal() {
+        for (const r of roots) r.visible = true;
+        // Rhea on the quay stays hidden while she's aboard (setRheaAboard).
+        const onArm = meridianNpcs?.list.find((n) => n.spec.id === 'rhea');
+        if (onArm && rheaAboard?.group.parent) onArm.character.group.visible = false;
+      },
+    };
   };
-  void cove.meridian.townReady.then(setupMeridian);
+  const meridianSetup = cove.meridian.townReady.then(setupMeridian);
 
   /** What E does at sea right now, from whichever puzzle has something (taking a helm, the next leg). */
   function sailAction(): SailAction | null {
@@ -1342,6 +1361,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
   async function board(): Promise<void> {
     if (mode !== 'walk') return;
+    // Port Meridian streams in while you sail (it's not loaded while you're ashore on Anchorage).
+    void cove.meridian.load();
     mode = 'transition';
     input.enabled = false;
     hud.setPrompt(null);
@@ -2029,6 +2050,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     dialogue.cancel();
     wingman?.landNow();
     const to = ISLANDS[islandAt(x, z)];
+    if (to.id === 'meridian') await cove.meridian.load();
+    if (disposed) return;
     if (mode === 'sail' || mode === 'docking') await disembark(to);
     if (to.id !== island) {
       setIsland(to.id);
@@ -2099,6 +2122,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       view(0);
       await step();
     },
+    meridianSetup,
     travel,
     islandQuay(id) {
       const b = openIslands().find((i) => i.id === id);
@@ -2172,6 +2196,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         })),
       quest: (id: string, step: string) => setQuest(id, step),
       sailTo(x, z, heading) {
+        void cove.meridian.load();
         if (mode === 'sail') dyn.reset(x, z, heading);
       },
       gangway: () => ({ down: gangwayDown, foot: { ...plank.foot }, top: { ...plank.top } }),

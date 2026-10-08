@@ -1,3 +1,4 @@
+import { sharedInstancedMesh } from '../../engine/instancing';
 import {
   Color,
   ConeGeometry,
@@ -193,11 +194,13 @@ function makeMesh(
   material: Material,
   instances: DebrisInstance[],
 ): InstancedMesh {
-  const mesh = new InstancedMesh(geometry, material, Math.max(1, instances.length));
+  const mesh = sharedInstancedMesh(geometry, material, Math.max(1, instances.length), {
+    count: instances.length,
+    instanceColors: true,
+  });
   mesh.name = `beach-${name}`;
   mesh.castShadow = false;
   mesh.receiveShadow = false;
-  mesh.count = instances.length;
   instances.forEach((instance, i) => {
     mesh.setMatrixAt(i, instanceMatrix(instance));
     tmpColor.set(instance.color);

@@ -96,9 +96,11 @@ export function createChartPaper(art: ChartArt): ChartPaper {
   const geo = new PlaneGeometry(W, D, 260, 182);
   geo.rotateX(-Math.PI / 2);
   const inkTex = new CanvasTexture(art.ink);
+  inkTex.name = 'opening-chart-ink';
   inkTex.colorSpace = SRGBColorSpace;
   inkTex.anisotropy = 8;
   const maskTex = new CanvasTexture(art.mask);
+  maskTex.name = 'opening-chart-mask';
   maskTex.minFilter = LinearFilter;
   maskTex.generateMipmaps = false;
 
@@ -317,6 +319,7 @@ export function createChartPaper(art: ChartArt): ChartPaper {
   const back = paper.mul(0.82);
 
   const mat = new MeshStandardNodeMaterial({ side: DoubleSide, roughness: 0.9, metalness: 0 });
+  mat.userData.disposeTextures = [inkTex, maskTex];
   mat.positionNode = vec3(rolledX, rolledY, positionGeometry.z).add(disp);
   mat.colorNode = select(frontFacing, fogged, back);
   mat.roughnessNode = select(

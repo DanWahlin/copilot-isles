@@ -45,7 +45,7 @@ import {
   type VillageAnchor,
   type VillageBoxCollider,
   type VillageKit,
-} from '../village';
+} from '../village/kit';
 import { segmentDistance } from '../../util/math';
 
 type HouseSide = 'front' | 'back' | 'left' | 'right';
@@ -147,6 +147,8 @@ const MOLE_CONNECTOR = { x0: 572, x1: 592, z0: -735, z1: -706, height: MERIDIAN.
 const PLAZA = { x0: 638, x1: 698, z0: -819, z1: -780, height: MERIDIAN.pads.plaza.height } as const;
 const TAVERN_PAD = { x0: 607, x1: 637, z0: -813, z1: -779, height: MERIDIAN.pads.tavern.height } as const;
 const CITADEL = { x: MERIDIAN.pads.citadel.x, z: MERIDIAN.pads.citadel.z, r: 39, height: 40 } as const;
+/** The Hall of Records on the citadel, raised on a stone podium with a paved portico in front. */
+const HALL_OF_RECORDS = { x: 809.3, z: -778.0 } as const;
 const LIFT_BOTTOM = { x: 770.3, z: -766.8, y: MERIDIAN.harbor.quay.height } as const;
 const LIFT_TOP = { x: 798.2, z: -779.2, y: 40.35 } as const;
 
@@ -1511,7 +1513,7 @@ function addCitadel(
   addObservatory(buckets, colliders, perches, 826.5, y, -804.5);
   anchor('oren', { x: 821.4, y, z: -800.2, heading: 2.35, tx: 826.5, ty: y + 6.2, tz: -804.5 });
 
-  addHallOfRecords(buckets, colliders, perches, 809.3, y, -778.0, kit, stairSpans);
+  addHallOfRecords(buckets, colliders, perches, HALL_OF_RECORDS.x, y, HALL_OF_RECORDS.z, kit, stairSpans);
   anchor('pell', { x: 809.4, y: y + 0.25, z: -785.3, heading: 0, tx: 809.3, ty: y + 3.6, tz: -778.0 });
   anchor('recordsPortico', {
     x: 809.4,
@@ -2881,6 +2883,7 @@ function addHallOfRecords(
     const px = x - 6.1 + i * 2.45;
     addCylinderGeom(buckets.stone, px, y + 0.45, z - 4.25, 0.34, 0.38, 4.6, 14, 0, LIMESTONE_LIGHT);
     perches.push(new Vector3(px, y + 5.3, z - 4.25));
+    colliders.circles.push({ x: px, z: z - 4.25, r: 0.45 });
   }
   addBox(buckets, 'cloth', x - 5.4, y + 0.8, z - 5.0, 0.52, 3.6, 0.06, 0, CLOTH_BLUE);
   addBox(buckets, 'cloth', x + 5.4, y + 0.8, z - 5.0, 0.52, 3.6, 0.06, 0, CLOTH_RED);
@@ -4010,7 +4013,22 @@ function terraceStairHeight(x: number, z: number): number | null {
   return null;
 }
 
+/**
+ * The Hall of Records' podium (addHallOfRecords): the portico paving on top (40.6 at the citadel's
+ * 40) and the stone base behind it (40.45). Within one step up (0.66 m) of the citadel floor, so you
+ * walk straight up onto it; without this you walked through it at floor level, sunk to the knees.
+ */
+function hallPodiumHeight(x: number, z: number): number | null {
+  const dx = x - HALL_OF_RECORDS.x;
+  const dz = z - HALL_OF_RECORDS.z;
+  if (Math.abs(dx) <= 8.1 && dz >= -6.75 && dz <= -3.05) return CITADEL.height + 0.6;
+  if (Math.abs(dx) <= 8.5 && dz >= -5.65 && dz <= 5.15) return CITADEL.height + 0.45;
+  return null;
+}
+
 function citadelWalkable(x: number, z: number): number | null {
+  const podium = hallPodiumHeight(x, z);
+  if (podium !== null) return podium;
   const dx = (x - CITADEL.x) / CITADEL.r;
   const dz = (z - CITADEL.z) / (CITADEL.r * 0.78);
   if (dx * dx + dz * dz < 0.95) return CITADEL.height;

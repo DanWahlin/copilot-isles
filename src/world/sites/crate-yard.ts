@@ -10,7 +10,7 @@ import {
 } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle } from '../contracts';
-import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village';
+import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
 import { UvQuadBuilder, box, cylinder, merge, poseFrame, type UvRect } from './geo';
 import { plateAt, type YardLayout } from './crate-yard-logic';
 

@@ -76,6 +76,11 @@ async function begin(unlock: boolean): Promise<void> {
     quiet: q.has('quiet'),
     learn,
   });
+  // The game's flow warms Port Meridian once it streams in; here its cast and sites just precompile.
+  void session.meridianSetup.then(({ roots, reveal }) => {
+    reveal();
+    for (const g of roots) void renderer.compileAsync(g, camera, scene);
+  });
   for (const fn of playingListeners) fn();
   document.getElementById('start')!.classList.add('hide');
   canvas.focus();

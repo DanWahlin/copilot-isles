@@ -1,11 +1,17 @@
 import {
   BackSide,
+  CubeUVReflectionMapping,
   DirectionalLight,
   HemisphereLight,
+  HalfFloatType,
+  LinearFilter,
+  LinearSRGBColorSpace,
   Mesh,
   MeshBasicNodeMaterial,
   PCFShadowMap,
   PMREMGenerator,
+  RenderTarget,
+  RGBAFormat,
   Scene,
   SphereGeometry,
   Vector2,
@@ -44,6 +50,7 @@ import { createBakedClouds, type BakedClouds } from './clouds/BakedPanorama';
 import { Clouds as TidewaterClouds } from './clouds/Clouds';
 import { Sky as TidewaterSky } from './clouds/Sky';
 import { syncTidewaterGlobals } from './clouds/Globals';
+import { disposeLightShadow, disposeRenderTarget } from '../../util/dispose-three';
 
 /** Lighting keyframes keyed by sun elevation (PLAN §6), blended continuously. */
 interface Key {
@@ -73,6 +80,7 @@ interface TidewaterCloudsPort {
   compileAsync(): Promise<void>;
   invalidate(): void;
   shadow(worldXZ: Node<'vec2'>): Node<'float'>;
+  dispose(): void;
 }
 
 interface TidewaterSkyPort {
@@ -147,6 +155,7 @@ interface SkyOptions {
 type CSMShadowNodeLike = Node & {
   camera: Camera | null;
   fade: boolean;
+  lights: { shadow: Parameters<typeof disposeLightShadow>[0] }[];
   updateFrustums(): void;
   dispose(): void;
 };
@@ -160,6 +169,33 @@ const CLOUD_DRIFT = 2.5;
 const ENV_LUT_FROM = 0.06;
 const SKY_BELOW = (5 * Math.PI) / 180;
 const ENV_DAY_FROM = 0.24;
+const pmremByRenderer = new WeakMap<WebGPURenderer, PMREMGenerator>();
+
+function pmremFor(renderer: WebGPURenderer): PMREMGenerator {
+  let generator = pmremByRenderer.get(renderer);
+  if (!generator) {
+    generator = new PMREMGenerator(renderer);
+    pmremByRenderer.set(renderer, generator);
+  }
+  return generator;
+}
+
+function createPmremTarget(size: number): RenderTarget {
+  const target = new RenderTarget(3 * Math.max(size, 16 * 7), 4 * size, {
+    magFilter: LinearFilter,
+    minFilter: LinearFilter,
+    generateMipmaps: false,
+    type: HalfFloatType,
+    format: RGBAFormat,
+    colorSpace: LinearSRGBColorSpace,
+    depthBuffer: false,
+  });
+  target.texture.mapping = CubeUVReflectionMapping;
+  target.texture.name = 'PMREM.cubeUv';
+  (target.texture as Texture & { isPMREMTexture?: boolean }).isPMREMTexture = true;
+  target.scissorTest = true;
+  return target;
+}
 
 function applyCloudDebugParams(clouds: TidewaterCloudsPort): void {
   if (typeof window === 'undefined') return;
@@ -264,10 +300,11 @@ export function createSky(
   })();
   const envMesh = new Mesh(new SphereGeometry(1000, 48, 24), envMaterial);
   envScene.add(envMesh);
-  const pmrem = new PMREMGenerator(renderer);
+  const pmrem = pmremFor(renderer);
   const envSize = tier.tier === 'lite' || tier.tier === 'low' ? 64 : 128;
   // One stable render target: materials keep the same texture object, so refreshes never recompile.
-  const envRT = pmrem.fromScene(envScene, 0, 0.1, 2000, { size: envSize });
+  const envRT = createPmremTarget(envSize);
+  pmrem.fromScene(envScene, 0, 0.1, 2000, { size: envSize, renderTarget: envRT });
   scene.environment = envRT.texture;
 
   const runtimeSunShadows = tier.shadowCascades > 0;
@@ -443,13 +480,15 @@ export function createSky(
       scene.remove(tideMesh, sun, sun.target, hemi);
       if (scene.environment === envRT.texture) scene.environment = null;
       if (scene.fogNode === hazeNode) scene.fogNode = null;
+      for (const light of csmNode?.lights ?? []) disposeLightShadow(light.shadow);
       csmNode?.dispose();
+      disposeLightShadow(sun.shadow);
       sun.dispose();
-      envRT.dispose();
-      pmrem.dispose();
+      disposeRenderTarget(envRT);
       envMesh.geometry.dispose();
       envMaterial.dispose();
       bakedClouds?.dispose();
+      tideClouds?.dispose();
       tideAtmo.dispose();
       tideMesh.geometry.dispose();
       tideMaterial.dispose();

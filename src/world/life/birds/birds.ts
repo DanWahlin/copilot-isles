@@ -1,10 +1,10 @@
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/world/wildlife/Birds.js@d32799f
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/world/wildlife/Flight.js@d32799f
+import { markInstancesChanged, sharedInstancedMesh } from '../../../engine/instancing';
 import {
   Color,
   Euler,
   InstancedBufferAttribute,
-  InstancedMesh,
   Matrix4,
   Object3D,
   Quaternion,
@@ -168,9 +168,8 @@ export function createBirds(options: CreateBirdsOptions): BirdsSystem {
   geometry.setAttribute('flapPhase', flapPhase);
   geometry.setAttribute('flapAmp', flapAmp);
   geometry.setAttribute('birdTint', birdTint);
-  const mesh = new InstancedMesh(geometry, createBirdMaterial(), Math.max(1, count));
+  const mesh = sharedInstancedMesh(geometry, createBirdMaterial(), Math.max(1, count), { count: 0 });
   mesh.name = 'birds';
-  mesh.count = 0;
   mesh.frustumCulled = false;
   const group = new Object3D() as Group;
   group.name = 'birds';
@@ -277,7 +276,7 @@ export function createBirds(options: CreateBirdsOptions): BirdsSystem {
         visible += 1;
       }
       mesh.count = visible;
-      mesh.instanceMatrix.needsUpdate = true;
+      markInstancesChanged(mesh);
       flapPhase.needsUpdate = true;
       flapAmp.needsUpdate = true;
       birdTint.needsUpdate = true;
