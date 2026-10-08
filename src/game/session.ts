@@ -1,3 +1,4 @@
+import { spyglassSpeakerPan } from '../learn/spyglass-layout';
 import { Vector3, type Group, type Object3D } from 'three/webgpu';
 import { buildSlice } from '../engine/build-slice';
 import type { IslesAudio } from '../audio';
@@ -1846,6 +1847,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     {
       frame(dt, t) {
         const s = input.poll();
+        // A course picture on screen: the talk shot moves its speaker clear of it.
+        const spy = learn?.getState().spyglass;
+        if (spy && !spy.full) {
+          const pan = spyglassSpeakerPan(innerWidth, innerHeight);
+          cam.setScreenPan(pan.x, pan.y);
+        } else cam.setScreenPan(0, 0);
         if (paused) {
           hud.setPrompt(null);
           hero.update(dt);

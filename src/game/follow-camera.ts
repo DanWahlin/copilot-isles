@@ -94,6 +94,11 @@ export class FollowCamera {
   private switchMix = 1;
   private readonly lastLook = { x: 0, y: 0, z: 0 };
   private guiding = false;
+  /** Where a held shot's subject sits on screen (see `setScreenPan`), wanted and eased. */
+  private panWantX = 0;
+  private panWantY = 0;
+  private panX = 0;
+  private panY = 0;
 
   /**
    * Holds a framed shot (the christening's look at the bow) until cleared with null, easing in and
@@ -122,6 +127,17 @@ export class FollowCamera {
     this.held = shot;
     this.shotMix = 1;
     this.switchMix = 1;
+  }
+
+  /**
+   * Slides a held shot so its subject sits `nx` of the half-width right of centre and `ny` of the
+   * half-height below it (0, 0 is centred), moving eye and target together so the angle doesn't
+   * change. Room for a course picture (the spyglass): docked on the left, or across the top of a
+   * tall screen. Eases in and out; follow views ignore it.
+   */
+  setScreenPan(nx: number, ny = 0): void {
+    this.panWantX = nx;
+    this.panWantY = ny;
   }
 
   /** Drops any held shot at once, back on the follow camera (behind a fade). */
@@ -309,6 +325,41 @@ export class FollowCamera {
     this.lastLook.x = lx;
     this.lastLook.y = ly;
     this.lastLook.z = lz;
+
+    // The screen pan (after `last`, which shot switches ease from, so it stays continuous).
+    const ease = 1 - Math.exp(-4 * dt);
+    this.panX += (this.panWantX - this.panX) * ease;
+    this.panY += (this.panWantY - this.panY) * ease;
+    const held = this.shotMix * this.shotMix * (3 - 2 * this.shotMix);
+    if ((Math.abs(this.panX) > 1e-4 || Math.abs(this.panY) > 1e-4) && held > 0) {
+      const fx = lx - x,
+        fy = ly - y,
+        fz = lz - z;
+      const dist = Math.hypot(fx, fy, fz) || 1;
+      const flat = Math.hypot(fx, fz) || 1;
+      // The view's right, level; moving eye and target left puts the subject right of centre, and
+      // moving them up puts it lower.
+      const rx = -fz / flat,
+        rz = fx / flat;
+      const halfHeight = dist * Math.tan((cam.fov * Math.PI) / 360);
+      let side = -this.panX * halfHeight * cam.aspect * held;
+      let lift = this.panY * halfHeight * held;
+      // Less if a wall's in the way.
+      for (
+        let i = 0;
+        i < 3 && world && world.sightBlockedAt(x + rx * side, y + lift, z + rz * side, 0.25);
+        i++
+      ) {
+        side *= 0.5;
+        lift *= 0.5;
+      }
+      x += rx * side;
+      z += rz * side;
+      y += lift;
+      lx += rx * side;
+      lz += rz * side;
+      ly += lift;
+    }
 
     cam.position.set(x, y, z);
     cam.lookAt(lx, ly, lz);

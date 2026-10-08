@@ -1094,15 +1094,19 @@
   line-height: 1.45;
 }
 
-/* ---- Spyglass ---- */
+/* ---- Spyglass ----
+   A course picture during a talk. On a wide screen it docks on the left, large, and the talk camera
+   moves the speaker to the right; on a taller one it's shown large in front of the speaker. The
+   breakpoint matches SPYGLASS_DOCK_ASPECT in src/learn/spyglass-layout.ts. Positioned with
+   `translate` so ci-rise's transform doesn't fight it. */
 .ci-spyglass {
   position: absolute;
-  top: 1.2rem;
+  top: 1rem;
   left: 50%;
   display: grid;
-  width: min(34rem, 44vw);
+  width: min(60rem, 94vw);
   padding: 0.5rem 0.5rem 0.45rem;
-  transform: translateX(-50%);
+  translate: -50% 0;
   border: 1px solid rgba(232, 200, 138, 0.55);
   border-radius: 12px;
   background: linear-gradient(180deg, rgba(70, 52, 24, 0.85), rgba(26, 20, 12, 0.88));
@@ -1112,6 +1116,15 @@
     inset 0 0 0 3px rgba(0, 0, 0, 0.25);
   pointer-events: auto;
   animation: ci-rise 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@media (min-aspect-ratio: 6/5) {
+  /* Docked on the left, centred in the space above the dialogue box. */
+  .ci-spyglass {
+    top: calc((100vh - var(--ci-dialogue-clearance, 11rem)) / 2);
+    left: clamp(1rem, 2.5vw, 2.5rem);
+    width: min(56rem, 46vw);
+    translate: 0 -50%;
+  }
 }
 .ci-spyglass-open {
   display: block;
@@ -1125,7 +1138,7 @@
 .ci-spyglass img {
   display: block;
   width: 100%;
-  max-height: 34vh;
+  max-height: 56vh;
   object-fit: contain;
   border-radius: 7px;
   background: #fff;
@@ -1381,9 +1394,6 @@
 @media (max-width: 720px) {
   .ci-match {
     grid-template-columns: 1fr;
-  }
-  .ci-spyglass {
-    width: 80vw;
   }
 }
 
