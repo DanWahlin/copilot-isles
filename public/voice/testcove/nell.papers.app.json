@@ -1,97 +1,102 @@
 {
   "id": "nell.papers.app",
   "speaker": "Nell",
-  "text": "This is the GitHub Copilot app. It's where you'll give Copilot's agents their orders and check their work.",
+  "text": "This is the GitHub Copilot app, where you'll give Copilot's agents their orders. Download it from the link here.",
   "words": [
     {
       "word": "This",
       "start": 0,
-      "end": 0.293
+      "end": 0.373
     },
     {
       "word": "is",
-      "start": 0.293,
-      "end": 0.42
+      "start": 0.373,
+      "end": 0.5
     },
     {
       "word": "the",
-      "start": 0.42,
-      "end": 0.537
+      "start": 0.5,
+      "end": 0.617
     },
     {
       "word": "GitHub",
-      "start": 0.537,
-      "end": 0.96
+      "start": 0.617,
+      "end": 1.06
     },
     {
       "word": "Copilot",
-      "start": 0.96,
-      "end": 1.54
+      "start": 1.06,
+      "end": 1.68
     },
     {
       "word": "app",
-      "start": 1.54,
-      "end": 2.16
-    },
-    {
-      "word": "It's",
-      "start": 2.16,
-      "end": 2.62
+      "start": 1.68,
+      "end": 2.267
     },
     {
       "word": "where",
-      "start": 2.62,
-      "end": 2.74
+      "start": 2.267,
+      "end": 2.42
     },
     {
       "word": "you'll",
-      "start": 2.74,
-      "end": 2.912
+      "start": 2.42,
+      "end": 2.592
     },
     {
       "word": "give",
-      "start": 2.912,
-      "end": 3.14
+      "start": 2.592,
+      "end": 2.82
     },
     {
       "word": "Copilot's",
-      "start": 3.14,
-      "end": 3.829
+      "start": 2.82,
+      "end": 3.509
     },
     {
       "word": "agents",
-      "start": 3.829,
-      "end": 4.28
+      "start": 3.509,
+      "end": 3.947
     },
     {
       "word": "their",
-      "start": 4.28,
-      "end": 4.56
+      "start": 3.947,
+      "end": 4.16
     },
     {
       "word": "orders",
-      "start": 4.56,
-      "end": 5.14
+      "start": 4.16,
+      "end": 4.889
     },
     {
-      "word": "and",
-      "start": 5.14,
-      "end": 5.48
+      "word": "Download",
+      "start": 4.889,
+      "end": 5.627
     },
     {
-      "word": "check",
-      "start": 5.48,
-      "end": 5.707
+      "word": "it",
+      "start": 5.627,
+      "end": 5.712
     },
     {
-      "word": "their",
-      "start": 5.707,
-      "end": 5.904
+      "word": "from",
+      "start": 5.712,
+      "end": 5.86
     },
     {
-      "word": "work",
-      "start": 5.904,
-      "end": 6.154
+      "word": "the",
+      "start": 5.86,
+      "end": 5.984
+    },
+    {
+      "word": "link",
+      "start": 5.984,
+      "end": 6.32
+    },
+    {
+      "word": "here",
+      "start": 6.32,
+      "end": 6.57
     }
   ]
 }

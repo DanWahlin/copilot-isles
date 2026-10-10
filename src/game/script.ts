@@ -13,7 +13,7 @@ export type ScriptStep =
   | { quiz: string }
   | { page: string; doubloons?: number }
   /** Shelves a page in the Logbook without a reveal card (the NPC says it's there). */
-  | { file: string }
+  | { file: string; doubloons?: number }
   | { term: string }
   | { quest: string; step: string }
   /** Runs a Trial; failing or leaving it ends the script (the NPC offers it again). */
@@ -57,7 +57,7 @@ export async function runScript(steps: readonly ScriptStep[], ctx: ScriptContext
         const out = await learn.runTrial(s.trial);
         if (!out.passed) return false;
       } else if ('page' in s) await learn?.grantPage(s.page, s.doubloons ?? 0);
-      else if ('file' in s) learn?.filePage(s.file);
+      else if ('file' in s) learn?.filePage(s.file, s.doubloons ?? 0);
       else if ('term' in s) learn?.learnTerm(s.term);
       else if ('quest' in s) ctx.onQuest?.(s.quest, s.step);
       else if ('cue' in s) await ctx.onCue?.(s.cue);

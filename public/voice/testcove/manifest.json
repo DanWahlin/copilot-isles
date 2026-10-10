@@ -1,151 +1,122 @@
 {
-  "generatedAt": "2026-10-06T07:32:23.051Z",
+  "generatedAt": "2026-10-08T22:02:34.915Z",
   "set": "testcove",
   "lines": [
     {
       "id": "nell.papers.01",
       "speaker": "Nell",
-      "text": "Morning, Captain! Nobody sails from Anchorage without their papers.",
-      "duration": 4.608,
+      "text": "Morning, Captain! To sail from Anchorage, you need papers: a GitHub account, and a Copilot plan or your own model provider.",
+      "duration": 9.608,
       "files": {
         "webm": "nell.papers.01.webm",
         "m4a": "nell.papers.01.m4a"
       },
-      "hash": "df1990e1f30d21f8",
+      "hash": "e25ac6287b2034a6",
       "words": [
         {
           "word": "Morning",
           "start": 0,
-          "end": 0.48
+          "end": 0.38
         },
         {
           "word": "Captain",
-          "start": 0.48,
-          "end": 1.291
+          "start": 0.38,
+          "end": 1.2
         },
         {
-          "word": "Nobody",
-          "start": 1.291,
-          "end": 2.373
+          "word": "To",
+          "start": 1.2,
+          "end": 1.888
         },
         {
-          "word": "sails",
-          "start": 2.373,
-          "end": 2.672
+          "word": "sail",
+          "start": 1.888,
+          "end": 2.128
         },
         {
           "word": "from",
-          "start": 2.672,
-          "end": 2.848
+          "start": 2.128,
+          "end": 2.368
         },
         {
           "word": "Anchorage",
-          "start": 2.848,
-          "end": 3.24
+          "start": 2.368,
+          "end": 3.16
         },
         {
-          "word": "without",
-          "start": 3.24,
-          "end": 3.547
+          "word": "you",
+          "start": 3.16,
+          "end": 3.328
         },
         {
-          "word": "their",
-          "start": 3.547,
-          "end": 3.76
+          "word": "need",
+          "start": 3.328,
+          "end": 3.611
         },
         {
           "word": "papers",
-          "start": 3.76,
-          "end": 4.01
-        }
-      ],
-      "voice": "EIsgvJT3rwoPvRFG6c4n"
-    },
-    {
-      "id": "nell.papers.02",
-      "speaker": "Nell",
-      "text": "Papers means a GitHub account, and either a Copilot plan or your own model provider.",
-      "duration": 6.608,
-      "files": {
-        "webm": "nell.papers.02.webm",
-        "m4a": "nell.papers.02.m4a"
-      },
-      "hash": "2c69710b7cfe41bb",
-      "words": [
-        {
-          "word": "Papers",
-          "start": 0,
-          "end": 0.627
-        },
-        {
-          "word": "means",
-          "start": 0.627,
-          "end": 1
+          "start": 3.611,
+          "end": 4.76
         },
         {
           "word": "a",
-          "start": 1,
-          "end": 1.109
+          "start": 4.76,
+          "end": 4.857
         },
         {
           "word": "GitHub",
-          "start": 1.109,
-          "end": 1.58
+          "start": 4.857,
+          "end": 5.26
         },
         {
           "word": "account",
-          "start": 1.58,
-          "end": 2.6
+          "start": 5.26,
+          "end": 6.02
         },
         {
           "word": "and",
-          "start": 2.6,
-          "end": 3.017
-        },
-        {
-          "word": "either",
-          "start": 3.017,
-          "end": 3.4
+          "start": 6.02,
+          "end": 6.12
         },
         {
           "word": "a",
-          "start": 3.4,
-          "end": 3.54
+          "start": 6.12,
+          "end": 6.26
         },
         {
           "word": "Copilot",
-          "start": 3.54,
-          "end": 4.192
+          "start": 6.26,
+          "end": 6.928
         },
         {
           "word": "plan",
-          "start": 4.192,
-          "end": 4.8
+          "start": 6.928,
+          "end": 7.6
         },
         {
           "word": "or",
-          "start": 4.8,
-          "end": 5.168
+          "start": 7.6,
+          "end": 7.984
         },
         {
           "word": "your",
-          "start": 5.168,
-          "end": 5.42
+          "start": 7.984,
+          "end": 8.3
         },
         {
           "word": "own",
-          "start": 5.42,
-          "end": 5.653
+          "start": 8.3,
+          "end": 8.533
         },
         {
           "word": "model",
-          "start": 5.653,
-          "end": 5.973
+          "start": 8.533,
+          "end": 8.871
         },
         {
           "word": "provider",
-          "start": 5.973,
-          "end": 6.223
+          "start": 8.871,
+          "end": 9.121
         }
       ],
       "voice": "EIsgvJT3rwoPvRFG6c4n"
@@ -3831,316 +3802,108 @@
     {
       "id": "nell.papers.app",
       "speaker": "Nell",
-      "text": "This is the GitHub Copilot app. It's where you'll give Copilot's agents their orders and check their work.",
-      "duration": 6.408,
+      "text": "This is the GitHub Copilot app, where you'll give Copilot's agents their orders. Download it from the link here.",
+      "duration": 6.808,
       "files": {
         "webm": "nell.papers.app.webm",
         "m4a": "nell.papers.app.m4a"
       },
-      "hash": "d57377a6e19886ec",
+      "hash": "ff6ced76b6cd870a",
       "words": [
         {
           "word": "This",
           "start": 0,
-          "end": 0.293
+          "end": 0.373
         },
         {
           "word": "is",
-          "start": 0.293,
-          "end": 0.42
+          "start": 0.373,
+          "end": 0.5
         },
         {
           "word": "the",
-          "start": 0.42,
-          "end": 0.537
+          "start": 0.5,
+          "end": 0.617
         },
         {
           "word": "GitHub",
-          "start": 0.537,
-          "end": 0.96
+          "start": 0.617,
+          "end": 1.06
         },
         {
           "word": "Copilot",
-          "start": 0.96,
-          "end": 1.54
+          "start": 1.06,
+          "end": 1.68
         },
         {
           "word": "app",
-          "start": 1.54,
-          "end": 2.16
-        },
-        {
-          "word": "It's",
-          "start": 2.16,
-          "end": 2.62
+          "start": 1.68,
+          "end": 2.267
         },
         {
           "word": "where",
-          "start": 2.62,
-          "end": 2.74
+          "start": 2.267,
+          "end": 2.42
         },
         {
           "word": "you'll",
-          "start": 2.74,
-          "end": 2.912
+          "start": 2.42,
+          "end": 2.592
         },
         {
           "word": "give",
-          "start": 2.912,
-          "end": 3.14
+          "start": 2.592,
+          "end": 2.82
         },
         {
           "word": "Copilot's",
-          "start": 3.14,
-          "end": 3.829
+          "start": 2.82,
+          "end": 3.509
         },
         {
           "word": "agents",
-          "start": 3.829,
-          "end": 4.28
-        },
-        {
-          "word": "their",
-          "start": 4.28,
-          "end": 4.56
-        },
-        {
-          "word": "orders",
-          "start": 4.56,
-          "end": 5.14
-        },
-        {
-          "word": "and",
-          "start": 5.14,
-          "end": 5.48
-        },
-        {
-          "word": "check",
-          "start": 5.48,
-          "end": 5.707
-        },
-        {
-          "word": "their",
-          "start": 5.707,
-          "end": 5.904
-        },
-        {
-          "word": "work",
-          "start": 5.904,
-          "end": 6.154
-        }
-      ],
-      "voice": "EIsgvJT3rwoPvRFG6c4n"
-    },
-    {
-      "id": "nell.papers.03",
-      "speaker": "Nell",
-      "text": "Next, download and install the GitHub Copilot app for your system.",
-      "duration": 4.808,
-      "files": {
-        "webm": "nell.papers.03.webm",
-        "m4a": "nell.papers.03.m4a"
-      },
-      "hash": "67e0ddec24dcc8e9",
-      "words": [
-        {
-          "word": "Next",
-          "start": 0,
-          "end": 0.764
-        },
-        {
-          "word": "download",
-          "start": 0.764,
-          "end": 1.16
-        },
-        {
-          "word": "and",
-          "start": 1.16,
-          "end": 1.35
-        },
-        {
-          "word": "install",
-          "start": 1.35,
-          "end": 1.88
-        },
-        {
-          "word": "the",
-          "start": 1.88,
-          "end": 2.069
-        },
-        {
-          "word": "GitHub",
-          "start": 2.069,
-          "end": 2.58
-        },
-        {
-          "word": "Copilot",
-          "start": 2.58,
-          "end": 3.22
-        },
-        {
-          "word": "app",
-          "start": 3.22,
-          "end": 3.56
-        },
-        {
-          "word": "for",
-          "start": 3.56,
-          "end": 3.712
-        },
-        {
-          "word": "your",
-          "start": 3.712,
-          "end": 3.931
-        },
-        {
-          "word": "system",
-          "start": 3.931,
-          "end": 4.181
-        }
-      ],
-      "voice": "EIsgvJT3rwoPvRFG6c4n"
-    },
-    {
-      "id": "nell.papers.logbook",
-      "speaker": "Nell",
-      "text": "I've put that page in your Logbook, download link and all. Press J whenever you need it, and every page you find ends up there too.",
-      "duration": 9.508,
-      "files": {
-        "webm": "nell.papers.logbook.webm",
-        "m4a": "nell.papers.logbook.m4a"
-      },
-      "hash": "8a82194f93eb0d7a",
-      "words": [
-        {
-          "word": "I've",
-          "start": 0,
-          "end": 0.28
-        },
-        {
-          "word": "put",
-          "start": 0.28,
-          "end": 0.448
-        },
-        {
-          "word": "that",
-          "start": 0.448,
-          "end": 0.704
-        },
-        {
-          "word": "page",
-          "start": 0.704,
-          "end": 1.013
-        },
-        {
-          "word": "in",
-          "start": 1.013,
-          "end": 1.152
-        },
-        {
-          "word": "your",
-          "start": 1.152,
-          "end": 1.36
-        },
-        {
-          "word": "Logbook",
-          "start": 1.36,
-          "end": 2.018
-        },
-        {
-          "word": "download",
-          "start": 2.018,
-          "end": 2.848
-        },
-        {
-          "word": "link",
-          "start": 2.848,
-          "end": 3.1
-        },
-        {
-          "word": "and",
-          "start": 3.1,
-          "end": 3.38
-        },
-        {
-          "word": "all",
-          "start": 3.38,
+          "start": 3.509,
           "end": 3.947
         },
         {
-          "word": "Press",
+          "word": "their",
           "start": 3.947,
-          "end": 5.12
+          "end": 4.16
         },
         {
-          "word": "J",
-          "start": 5.12,
-          "end": 5.413
+          "word": "orders",
+          "start": 4.16,
+          "end": 4.889
         },
         {
-          "word": "whenever",
-          "start": 5.413,
-          "end": 5.86
-        },
-        {
-          "word": "you",
-          "start": 5.86,
-          "end": 5.968
-        },
-        {
-          "word": "need",
-          "start": 5.968,
-          "end": 6.213
+          "word": "Download",
+          "start": 4.889,
+          "end": 5.627
         },
         {
           "word": "it",
-          "start": 6.213,
-          "end": 6.84
+          "start": 5.627,
+          "end": 5.712
         },
         {
-          "word": "and",
-          "start": 6.84,
-          "end": 7.013
+          "word": "from",
+          "start": 5.712,
+          "end": 5.86
         },
         {
-          "word": "every",
-          "start": 7.013,
-          "end": 7.344
+          "word": "the",
+          "start": 5.86,
+          "end": 5.984
         },
         {
-          "word": "page",
-          "start": 7.344,
-          "end": 7.64
+          "word": "link",
+          "start": 5.984,
+          "end": 6.32
         },
         {
-          "word": "you",
-          "start": 7.64,
-          "end": 7.84
-        },
-        {
-          "word": "find",
-          "start": 7.84,
-          "end": 8.224
-        },
-        {
-          "word": "ends",
-          "start": 8.224,
-          "end": 8.533
-        },
-        {
-          "word": "up",
-          "start": 8.533,
-          "end": 8.68
-        },
-        {
-          "word": "there",
-          "start": 8.68,
-          "end": 8.98
-        },
-        {
-          "word": "too",
-          "start": 8.98,
-          "end": 9.23
+          "word": "here",
+          "start": 6.32,
+          "end": 6.57
         }
       ],
       "voice": "EIsgvJT3rwoPvRFG6c4n"
@@ -4148,242 +3911,58 @@
     {
       "id": "nell.papers.signin",
       "speaker": "Nell",
-      "text": "Once it's installed, open it and select Sign in to GitHub. If your company's account lives on GHE.com, choose Sign in to GitHub Enterprise Cloud instead.",
-      "duration": 13.108,
+      "text": "Then open it and select Sign in to GitHub.",
+      "duration": 3.308,
       "files": {
         "webm": "nell.papers.signin.webm",
         "m4a": "nell.papers.signin.m4a"
       },
-      "hash": "95b7d0e1b5047a29",
+      "hash": "7c7613138d50a707",
       "words": [
         {
-          "word": "Once",
-          "start": 0,
-          "end": 0.267
-        },
-        {
-          "word": "it's",
-          "start": 0.267,
-          "end": 0.456
-        },
-        {
-          "word": "installed",
-          "start": 0.456,
-          "end": 1.344
-        },
-        {
-          "word": "open",
-          "start": 1.344,
-          "end": 1.68
-        },
-        {
-          "word": "it",
-          "start": 1.68,
-          "end": 1.92
-        },
-        {
-          "word": "and",
-          "start": 1.92,
-          "end": 2.263
-        },
-        {
-          "word": "select",
-          "start": 2.263,
-          "end": 2.992
-        },
-        {
-          "word": "Sign",
-          "start": 2.992,
-          "end": 3.493
-        },
-        {
-          "word": "in",
-          "start": 3.493,
-          "end": 3.653
-        },
-        {
-          "word": "to",
-          "start": 3.653,
-          "end": 3.851
-        },
-        {
-          "word": "GitHub",
-          "start": 3.851,
-          "end": 4.88
-        },
-        {
-          "word": "If",
-          "start": 4.88,
-          "end": 5.712
-        },
-        {
-          "word": "your",
-          "start": 5.712,
-          "end": 5.89
-        },
-        {
-          "word": "company's",
-          "start": 5.89,
-          "end": 6.291
-        },
-        {
-          "word": "account",
-          "start": 6.291,
-          "end": 6.694
-        },
-        {
-          "word": "lives",
-          "start": 6.694,
-          "end": 7.041
-        },
-        {
-          "word": "on",
-          "start": 7.041,
-          "end": 7.321
-        },
-        {
-          "word": "GHE.com",
-          "start": 7.321,
-          "end": 9.064
-        },
-        {
-          "word": "choose",
-          "start": 9.064,
-          "end": 9.793
-        },
-        {
-          "word": "Sign",
-          "start": 9.793,
-          "end": 10.294
-        },
-        {
-          "word": "in",
-          "start": 10.294,
-          "end": 10.454
-        },
-        {
-          "word": "to",
-          "start": 10.454,
-          "end": 10.641
-        },
-        {
-          "word": "GitHub",
-          "start": 10.641,
-          "end": 11.179
-        },
-        {
-          "word": "Enterprise",
-          "start": 11.179,
-          "end": 11.841
-        },
-        {
-          "word": "Cloud",
-          "start": 11.841,
-          "end": 12.311
-        },
-        {
-          "word": "instead",
-          "start": 12.311,
-          "end": 12.561
-        }
-      ],
-      "voice": "EIsgvJT3rwoPvRFG6c4n"
-    },
-    {
-      "id": "nell.papers.04",
-      "speaker": "Nell",
-      "text": "On Copilot Business or Enterprise, your organization has to switch on the GitHub Copilot app policy first.",
-      "duration": 6.808,
-      "files": {
-        "webm": "nell.papers.04.webm",
-        "m4a": "nell.papers.04.m4a"
-      },
-      "hash": "5dd9b75a09d9d2cf",
-      "words": [
-        {
-          "word": "On",
+          "word": "Then",
           "start": 0,
           "end": 0.24
         },
         {
-          "word": "Copilot",
+          "word": "open",
           "start": 0.24,
-          "end": 0.773
+          "end": 0.64
         },
         {
-          "word": "Business",
-          "start": 0.773,
-          "end": 1.227
+          "word": "it",
+          "start": 0.64,
+          "end": 0.86
         },
         {
-          "word": "or",
-          "start": 1.227,
-          "end": 1.345
+          "word": "and",
+          "start": 0.86,
+          "end": 1.097
         },
         {
-          "word": "Enterprise",
-          "start": 1.345,
-          "end": 2.352
+          "word": "select",
+          "start": 1.097,
+          "end": 1.552
         },
         {
-          "word": "your",
-          "start": 2.352,
-          "end": 2.542
+          "word": "Sign",
+          "start": 1.552,
+          "end": 2.08
         },
         {
-          "word": "organization",
-          "start": 2.542,
-          "end": 3.34
-        },
-        {
-          "word": "has",
-          "start": 3.34,
-          "end": 3.573
+          "word": "in",
+          "start": 2.08,
+          "end": 2.293
         },
         {
           "word": "to",
-          "start": 3.573,
-          "end": 3.737
-        },
-        {
-          "word": "switch",
-          "start": 3.737,
-          "end": 4.133
-        },
-        {
-          "word": "on",
-          "start": 4.133,
-          "end": 4.28
-        },
-        {
-          "word": "the",
-          "start": 4.28,
-          "end": 4.457
+          "start": 2.293,
+          "end": 2.491
         },
         {
           "word": "GitHub",
-          "start": 4.457,
-          "end": 4.88
-        },
-        {
-          "word": "Copilot",
-          "start": 4.88,
-          "end": 5.42
-        },
-        {
-          "word": "app",
-          "start": 5.42,
-          "end": 5.669
-        },
-        {
-          "word": "policy",
-          "start": 5.669,
-          "end": 6.173
-        },
-        {
-          "word": "first",
-          "start": 6.173,
-          "end": 6.423
+          "start": 2.491,
+          "end": 2.741
         }
       ],
       "voice": "EIsgvJT3rwoPvRFG6c4n"
@@ -4391,113 +3970,68 @@
     {
       "id": "nell.papers.tools",
       "speaker": "Nell",
-      "text": "You'll also need Git, Node.js, and GitHub CLI. The list's in my chest here, with where to get each one.",
-      "duration": 10.508,
+      "text": "The rest of the list's in my chest, tools and all.",
+      "duration": 3.408,
       "files": {
         "webm": "nell.papers.tools.webm",
         "m4a": "nell.papers.tools.m4a"
       },
-      "hash": "11bc4f0263a76c69",
+      "hash": "63c7942a41f0c4ba",
       "words": [
         {
-          "word": "You'll",
-          "start": 0,
-          "end": 0.24
-        },
-        {
-          "word": "also",
-          "start": 0.24,
-          "end": 0.64
-        },
-        {
-          "word": "need",
-          "start": 0.64,
-          "end": 1.14
-        },
-        {
-          "word": "Git",
-          "start": 1.14,
-          "end": 2.416
-        },
-        {
-          "word": "Node.js",
-          "start": 2.416,
-          "end": 4.38
-        },
-        {
-          "word": "and",
-          "start": 4.38,
-          "end": 4.88
-        },
-        {
-          "word": "GitHub",
-          "start": 4.88,
-          "end": 5.52
-        },
-        {
-          "word": "CLI",
-          "start": 5.52,
-          "end": 6.56
-        },
-        {
           "word": "The",
-          "start": 6.56,
-          "end": 7.36
+          "start": 0,
+          "end": 0.128
+        },
+        {
+          "word": "rest",
+          "start": 0.128,
+          "end": 0.347
+        },
+        {
+          "word": "of",
+          "start": 0.347,
+          "end": 0.44
+        },
+        {
+          "word": "the",
+          "start": 0.44,
+          "end": 0.608
         },
         {
           "word": "list's",
-          "start": 7.36,
-          "end": 7.813
+          "start": 0.608,
+          "end": 0.907
         },
         {
           "word": "in",
-          "start": 7.813,
-          "end": 7.973
+          "start": 0.907,
+          "end": 1.04
         },
         {
           "word": "my",
-          "start": 7.973,
-          "end": 8.133
+          "start": 1.04,
+          "end": 1.28
         },
         {
           "word": "chest",
-          "start": 8.133,
-          "end": 8.48
+          "start": 1.28,
+          "end": 1.893
         },
         {
-          "word": "here",
-          "start": 8.48,
-          "end": 9.008
+          "word": "tools",
+          "start": 1.893,
+          "end": 2.62
         },
         {
-          "word": "with",
-          "start": 9.008,
-          "end": 9.227
+          "word": "and",
+          "start": 2.62,
+          "end": 2.92
         },
         {
-          "word": "where",
-          "start": 9.227,
-          "end": 9.413
-        },
-        {
-          "word": "to",
-          "start": 9.413,
-          "end": 9.56
-        },
-        {
-          "word": "get",
-          "start": 9.56,
-          "end": 9.744
-        },
-        {
-          "word": "each",
-          "start": 9.744,
-          "end": 10.1
-        },
-        {
-          "word": "one",
-          "start": 10.1,
-          "end": 10.35
+          "word": "all",
+          "start": 2.92,
+          "end": 3.17
         }
       ],
       "voice": "EIsgvJT3rwoPvRFG6c4n"
@@ -4505,93 +4039,83 @@
     {
       "id": "nell.papers.05",
       "speaker": "Nell",
-      "text": "At Connect your repositories, leave every repository unselected and select Continue. You’ll connect your fork shortly.",
-      "duration": 10.408,
+      "text": "Leave every repository unselected and select Continue. You'll connect your fork with Ezra next.",
+      "duration": 7.408,
       "files": {
         "webm": "nell.papers.05.webm",
         "m4a": "nell.papers.05.m4a"
       },
-      "hash": "7f972fd899fdcd0e",
+      "hash": "cb9c4c7b26eeaaa4",
       "words": [
         {
-          "word": "At",
+          "word": "Leave",
           "start": 0,
-          "end": 0.23
-        },
-        {
-          "word": "Connect",
-          "start": 0.23,
-          "end": 0.752
-        },
-        {
-          "word": "your",
-          "start": 0.752,
-          "end": 0.972
-        },
-        {
-          "word": "repositories",
-          "start": 0.972,
-          "end": 2.48
-        },
-        {
-          "word": "leave",
-          "start": 2.48,
-          "end": 2.947
+          "end": 0.32
         },
         {
           "word": "every",
-          "start": 2.947,
-          "end": 3.367
+          "start": 0.32,
+          "end": 0.8
         },
         {
           "word": "repository",
-          "start": 3.367,
-          "end": 4.427
+          "start": 0.8,
+          "end": 1.707
         },
         {
           "word": "unselected",
-          "start": 4.427,
-          "end": 5.56
+          "start": 1.707,
+          "end": 2.62
         },
         {
           "word": "and",
-          "start": 5.56,
-          "end": 6
+          "start": 2.62,
+          "end": 2.869
         },
         {
           "word": "select",
-          "start": 6,
-          "end": 6.587
+          "start": 2.869,
+          "end": 3.36
         },
         {
           "word": "Continue",
-          "start": 6.587,
-          "end": 7.94
+          "start": 3.36,
+          "end": 4.42
         },
         {
-          "word": "You’ll",
-          "start": 7.94,
-          "end": 8.69
+          "word": "You'll",
+          "start": 4.42,
+          "end": 5.08
         },
         {
           "word": "connect",
-          "start": 8.69,
-          "end": 9.056
+          "start": 5.08,
+          "end": 5.376
         },
         {
           "word": "your",
-          "start": 9.056,
-          "end": 9.2
+          "start": 5.376,
+          "end": 5.536
         },
         {
           "word": "fork",
-          "start": 9.2,
-          "end": 9.59
+          "start": 5.536,
+          "end": 5.952
         },
         {
-          "word": "shortly",
-          "start": 9.59,
-          "end": 9.84
+          "word": "with",
+          "start": 5.952,
+          "end": 6.16
+        },
+        {
+          "word": "Ezra",
+          "start": 6.16,
+          "end": 6.608
+        },
+        {
+          "word": "next",
+          "start": 6.608,
+          "end": 6.858
         }
       ],
       "voice": "EIsgvJT3rwoPvRFG6c4n"
@@ -4599,148 +4123,103 @@
     {
       "id": "nell.papers.06",
       "speaker": "Nell",
-      "text": "Want a different theme? Select the gear at the bottom of the sidebar, then Themes. Here, your theme’s your sails, and the palette stand’s right beside me.",
-      "duration": 12.308,
+      "text": "Want a new look? Settings, then Themes. Here, your theme's your sails. Try the palette stand beside me.",
+      "duration": 9.208,
       "files": {
         "webm": "nell.papers.06.webm",
         "m4a": "nell.papers.06.m4a"
       },
-      "hash": "59a3be18a469ce05",
+      "hash": "8d2d4f4a3f633f97",
       "words": [
         {
           "word": "Want",
           "start": 0,
-          "end": 0.34
+          "end": 0.2
         },
         {
           "word": "a",
-          "start": 0.34,
-          "end": 0.46
+          "start": 0.2,
+          "end": 0.26
         },
         {
-          "word": "different",
-          "start": 0.46,
-          "end": 0.733
+          "word": "new",
+          "start": 0.26,
+          "end": 0.4
         },
         {
-          "word": "theme",
-          "start": 0.733,
-          "end": 1.931
+          "word": "look",
+          "start": 0.4,
+          "end": 0.951
         },
         {
-          "word": "Select",
-          "start": 1.931,
-          "end": 2.5
-        },
-        {
-          "word": "the",
-          "start": 2.5,
-          "end": 2.656
-        },
-        {
-          "word": "gear",
-          "start": 2.656,
-          "end": 3.093
-        },
-        {
-          "word": "at",
-          "start": 3.093,
-          "end": 3.24
-        },
-        {
-          "word": "the",
-          "start": 3.24,
-          "end": 3.406
-        },
-        {
-          "word": "bottom",
-          "start": 3.406,
-          "end": 3.707
-        },
-        {
-          "word": "of",
-          "start": 3.707,
-          "end": 3.78
-        },
-        {
-          "word": "the",
-          "start": 3.78,
-          "end": 3.93
-        },
-        {
-          "word": "sidebar",
-          "start": 3.93,
-          "end": 5.088
+          "word": "Settings",
+          "start": 0.951,
+          "end": 2.576
         },
         {
           "word": "then",
-          "start": 5.088,
-          "end": 5.383
+          "start": 2.576,
+          "end": 3.051
         },
         {
           "word": "Themes",
-          "start": 5.383,
-          "end": 6.592
+          "start": 3.051,
+          "end": 3.904
         },
         {
           "word": "Here",
-          "start": 6.592,
-          "end": 7.792
+          "start": 3.904,
+          "end": 4.912
         },
         {
           "word": "your",
-          "start": 7.792,
-          "end": 7.987
+          "start": 4.912,
+          "end": 5.093
         },
         {
-          "word": "theme’s",
-          "start": 7.987,
-          "end": 8.496
+          "word": "theme's",
+          "start": 5.093,
+          "end": 5.472
         },
         {
           "word": "your",
-          "start": 8.496,
-          "end": 8.68
+          "start": 5.472,
+          "end": 5.707
         },
         {
           "word": "sails",
-          "start": 8.68,
-          "end": 9.56
+          "start": 5.707,
+          "end": 6.72
         },
         {
-          "word": "and",
-          "start": 9.56,
-          "end": 9.7
+          "word": "Try",
+          "start": 6.72,
+          "end": 7.22
         },
         {
           "word": "the",
-          "start": 9.7,
-          "end": 9.81
+          "start": 7.22,
+          "end": 7.34
         },
         {
           "word": "palette",
-          "start": 9.81,
-          "end": 10.227
+          "start": 7.34,
+          "end": 7.813
         },
         {
-          "word": "stand’s",
-          "start": 10.227,
-          "end": 10.92
-        },
-        {
-          "word": "right",
-          "start": 10.92,
-          "end": 11.189
+          "word": "stand",
+          "start": 7.813,
+          "end": 8.149
         },
         {
           "word": "beside",
-          "start": 11.189,
-          "end": 11.707
+          "start": 8.149,
+          "end": 8.667
         },
         {
           "word": "me",
-          "start": 11.707,
-          "end": 11.957
+          "start": 8.667,
+          "end": 8.917
         }
       ],
       "voice": "EIsgvJT3rwoPvRFG6c4n"

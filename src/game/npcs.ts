@@ -57,7 +57,7 @@ export const COVE_NPCS: NpcSpec[] = [
     // At the foot of her door stairs (they run 2.25 m out from the wall; the anchor's 0.9 out).
     out: 1.9,
     clip: 'idle',
-    voiced: ['nell.papers.01', 'nell.papers.02', 'nell.settings.01'],
+    voiced: ['nell.papers.01', 'nell.papers.05'],
     talkShot: {
       shotLocal: [0.55, 1.08, 2.15],
       targetLocal: [0, 1.08, 0.02],

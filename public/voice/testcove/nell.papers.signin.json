@@ -1,137 +1,52 @@
 {
   "id": "nell.papers.signin",
   "speaker": "Nell",
-  "text": "Once it's installed, open it and select Sign in to GitHub. If your company's account lives on GHE.com, choose Sign in to GitHub Enterprise Cloud instead.",
+  "text": "Then open it and select Sign in to GitHub.",
   "words": [
     {
-      "word": "Once",
+      "word": "Then",
       "start": 0,
-      "end": 0.267
-    },
-    {
-      "word": "it's",
-      "start": 0.267,
-      "end": 0.456
-    },
-    {
-      "word": "installed",
-      "start": 0.456,
-      "end": 1.344
+      "end": 0.24
     },
     {
       "word": "open",
-      "start": 1.344,
-      "end": 1.68
+      "start": 0.24,
+      "end": 0.64
     },
     {
       "word": "it",
-      "start": 1.68,
-      "end": 1.92
+      "start": 0.64,
+      "end": 0.86
     },
     {
       "word": "and",
-      "start": 1.92,
-      "end": 2.263
+      "start": 0.86,
+      "end": 1.097
     },
     {
       "word": "select",
-      "start": 2.263,
-      "end": 2.992
+      "start": 1.097,
+      "end": 1.552
     },
     {
       "word": "Sign",
-      "start": 2.992,
-      "end": 3.493
+      "start": 1.552,
+      "end": 2.08
     },
     {
       "word": "in",
-      "start": 3.493,
-      "end": 3.653
+      "start": 2.08,
+      "end": 2.293
     },
     {
       "word": "to",
-      "start": 3.653,
-      "end": 3.851
+      "start": 2.293,
+      "end": 2.491
     },
     {
       "word": "GitHub",
-      "start": 3.851,
-      "end": 4.88
-    },
-    {
-      "word": "If",
-      "start": 4.88,
-      "end": 5.712
-    },
-    {
-      "word": "your",
-      "start": 5.712,
-      "end": 5.89
-    },
-    {
-      "word": "company's",
-      "start": 5.89,
-      "end": 6.291
-    },
-    {
-      "word": "account",
-      "start": 6.291,
-      "end": 6.694
-    },
-    {
-      "word": "lives",
-      "start": 6.694,
-      "end": 7.041
-    },
-    {
-      "word": "on",
-      "start": 7.041,
-      "end": 7.321
-    },
-    {
-      "word": "GHE.com",
-      "start": 7.321,
-      "end": 9.064
-    },
-    {
-      "word": "choose",
-      "start": 9.064,
-      "end": 9.793
-    },
-    {
-      "word": "Sign",
-      "start": 9.793,
-      "end": 10.294
-    },
-    {
-      "word": "in",
-      "start": 10.294,
-      "end": 10.454
-    },
-    {
-      "word": "to",
-      "start": 10.454,
-      "end": 10.641
-    },
-    {
-      "word": "GitHub",
-      "start": 10.641,
-      "end": 11.179
-    },
-    {
-      "word": "Enterprise",
-      "start": 11.179,
-      "end": 11.841
-    },
-    {
-      "word": "Cloud",
-      "start": 11.841,
-      "end": 12.311
-    },
-    {
-      "word": "instead",
-      "start": 12.311,
-      "end": 12.561
+      "start": 2.491,
+      "end": 2.741
     }
   ]
 }

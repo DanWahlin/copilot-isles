@@ -17,7 +17,9 @@ export const ANCHORAGE_STARFISH: readonly StarfishSpot[] = [
     z: lh.z + Math.cos(galleryA) * galleryR,
     y: lighthouseLevels().deck,
   },
-  { id: 'sf.a.pier', island: 'anchorage', name: 'At the end of the pier', x: -107.2, z: -121.4 },
+  // In front of the crane's capstan: the very end is filled by the capstan, levers and boards
+  // (it stood among them, out of reach; tools/starfishtest.mjs checks every star can be walked to).
+  { id: 'sf.a.pier', island: 'anchorage', name: 'At the end of the pier', x: -107.2, z: -117.8 },
   { id: 'sf.a.boathouse', island: 'anchorage', name: 'Inside the boathouse', x: -105.1, z: -97.4 },
   { id: 'sf.a.garden', island: 'anchorage', name: 'Behind the lime cottage', x: -140, z: -27 },
   { id: 'sf.a.hill', island: 'anchorage', name: 'On the hilltop', x: -10, z: -20 },

@@ -1,17 +1,21 @@
 import {
   Bone,
   BoxGeometry,
+  BufferAttribute,
+  BufferGeometry,
   CylinderGeometry,
   Euler,
   Group,
+  Matrix4,
   Mesh,
   MeshStandardMaterial,
   Object3D,
   Quaternion,
+  Ray,
+  SkinnedMesh,
   SphereGeometry,
   TorusGeometry,
   Vector3,
-  type BufferGeometry,
   type Material,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -572,11 +576,187 @@ function addPipe(root: Group): void {
 // walk and idle instead of hanging in the air. Reference body: hips ≈ (0, 0.37, −0.16), chest
 // front z ≈ 0.08, back z ≈ −0.28, hip sides x ≈ ±0.22.
 
+/** Bones a worn strap rests on (the body and anything dressed over it), not the head or hands. */
+// Not the hips: a satchel or a coat's skirt there would pull the strap off the body.
+const TORSO_BONES = new Set(['Abdomen', 'Torso', 'Body']);
+const SASH_SAMPLES = 40;
+const SASH_TILT = 0.8;
+
+/**
+ * What a strap can rest on, posed as it is now, as triangles in the character root's space: each
+ * skinned body (skinned on the CPU) and anything worn on the torso (`worn`, so a coat panel standing
+ * off the chest still counts). Plain triangles, so fitting needs no Raycaster.
+ */
+function strapSurfaces(root: Group): { tris: Float32Array; worn: Uint8Array } {
+  const tris: number[] = [];
+  const worn: number[] = [];
+  const v = new Vector3();
+  const toRoot = new Matrix4();
+  root.updateMatrixWorld(true);
+  const rootInverse = new Matrix4().copy(root.matrixWorld).invert();
+  const add = (o: Mesh, skinned: boolean, isWorn: boolean) => {
+    const g = o.geometry;
+    const pos = g.getAttribute('position');
+    toRoot.multiplyMatrices(rootInverse, o.matrixWorld);
+    const corner = (i: number) => {
+      if (skinned) (o as SkinnedMesh).getVertexPosition(i, v);
+      else v.fromBufferAttribute(pos, i);
+      v.applyMatrix4(toRoot);
+      tris.push(v.x, v.y, v.z);
+    };
+    const count = g.index ? g.index.count : pos.count;
+    for (let i = 0; i + 2 < count; i += 3) {
+      for (let k = 0; k < 3; k++) corner(g.index ? g.index.getX(i + k) : i + k);
+      worn.push(isWorn ? 1 : 0);
+    }
+  };
+  root.traverse((o) => {
+    if (o instanceof SkinnedMesh) {
+      o.skeleton.update();
+      add(o, true, false);
+    } else if (o instanceof Mesh) {
+      for (let p: Object3D | null = o.parent; p && p !== root; p = p.parent) {
+        if (!(p instanceof Bone)) continue;
+        if (TORSO_BONES.has(p.name)) add(o, false, true);
+        return;
+      }
+    }
+  });
+  return { tris: new Float32Array(tris), worn: new Uint8Array(worn) };
+}
+
+const tA = new Vector3();
+const tB = new Vector3();
+const tC = new Vector3();
+const tHit = new Vector3();
+
+/** Distances along `ray` to every triangle it crosses (either face), nearest first. */
+function rayHits(ray: Ray, s: { tris: Float32Array; worn: Uint8Array }): { d: number; worn: boolean }[] {
+  const out: { d: number; worn: boolean }[] = [];
+  const t = s.tris;
+  for (let i = 0, f = 0; i < t.length; i += 9, f++) {
+    tA.set(t[i]!, t[i + 1]!, t[i + 2]!);
+    tB.set(t[i + 3]!, t[i + 4]!, t[i + 5]!);
+    tC.set(t[i + 6]!, t[i + 7]!, t[i + 8]!);
+    if (ray.intersectTriangle(tA, tB, tC, false, tHit))
+      out.push({ d: tHit.distanceTo(ray.origin), worn: s.worn[f] === 1 });
+  }
+  return out.sort((a, b) => a.d - b.d);
+}
+
+function boneLocal(root: Group, name: string, out: Vector3): Vector3 | null {
+  const bone = root.getObjectByName(name);
+  if (!(bone instanceof Bone)) return null;
+  bone.getWorldPosition(out);
+  return root.worldToLocal(out);
+}
+
+/**
+ * A sash worn as a real strap: a band over one shoulder (`side` 1: the character's right), across
+ * the chest to the opposite hip and round the back, fitted to the body (and any coat) by casting
+ * rays out from inside the chest, with a brass buckle at the front. It used to be a flat box stuck
+ * on the chest, standing off the body at its edges and ending in mid-air.
+ */
 function addSash(root: Group, color: ColorHex, side: -1 | 1): void {
-  const sash = mesh(new BoxGeometry(0.075, 0.46, 0.02), mat(color), 'sash');
-  sash.position.set(side * 0.01, 0.6, 0.09);
-  sash.rotation.z = side * 0.62;
-  addRoot(root, sash, 'Torso');
+  const halfWidth = 0.036;
+  const halfThick = 0.006;
+  // The loop's centre, inside the chest: between the abdomen and torso bones, a little forward.
+  const a = boneLocal(root, 'Abdomen', new Vector3());
+  const t = boneLocal(root, 'Torso', new Vector3());
+  const centre = a && t ? a.lerp(t, 0.7).add(new Vector3(0, 0, 0.04)) : new Vector3(0, 0.62, -0.12);
+  // The loop's plane holds the forward axis and `up`, tilted toward the character's right shoulder.
+  const up = new Vector3(-side * Math.sin(SASH_TILT), Math.cos(SASH_TILT), 0);
+  const forward = new Vector3(0, 0, 1);
+  const across = new Vector3().crossVectors(up, forward).normalize();
+
+  const surfaces = strapSurfaces(root);
+  const ray = new Ray();
+  const raw: number[] = [];
+  const dirs: Vector3[] = [];
+  for (let i = 0; i < SASH_SAMPLES; i++) {
+    const th = (i / SASH_SAMPLES) * Math.PI * 2;
+    const d = up.clone().multiplyScalar(Math.cos(th)).addScaledVector(forward, Math.sin(th));
+    dirs.push(d);
+    // The band lies on the highest of its centre line and its two edges.
+    let r = 0;
+    for (const e of [-0.8, 0, 0.8]) {
+      ray.origin.copy(centre).addScaledVector(across, e * halfWidth);
+      ray.direction.copy(d);
+      const hits = rayHits(ray, surfaces);
+      if (!hits.length) continue;
+      // The body's surface, or a coat panel worn over it (which can stand well off the chest); not
+      // an arm further out (part of the body mesh).
+      const first = hits[0]!.d;
+      let far = first;
+      for (const h of hits) {
+        const gap = h.d - first;
+        if (gap < 0.05 || (h.worn && gap < 0.16)) far = h.d;
+      }
+      r = Math.max(r, far);
+    }
+    raw.push(r);
+  }
+  for (let i = 0; i < raw.length; i++) if (!raw[i]) raw[i] = raw[(i + raw.length - 1) % raw.length] || 0.2;
+  // Smooth the low-poly body's facets out of it, never sinking below where the rays found the body.
+  const smooth = (r: number[]) =>
+    r.map((x, i) => 0.25 * r[(i + r.length - 1) % r.length]! + 0.5 * x + 0.25 * r[(i + 1) % r.length]!);
+  const lift = (r: number[]) => r.map((x, i) => Math.max(x, raw[i]!));
+  const radius = lift(smooth(lift(smooth(raw))));
+
+  // Four faces round the loop (out, in, two edges), each with its own vertices for crisp edges.
+  const n = SASH_SAMPLES;
+  const pos = new Float32Array(n * 4 * 2 * 3);
+  const nor = new Float32Array(n * 4 * 2 * 3);
+  const index: number[] = [];
+  const p = new Vector3();
+  const c = new Vector3();
+  const faces: [number, number, number, number][] = [
+    [1, 1, -1, 1],
+    [-1, -1, 1, -1],
+    [1, 1, 1, -1],
+    [-1, -1, -1, 1],
+  ];
+  for (let f = 0; f < 4; f++) {
+    const [o0, o1, a0, a1] = faces[f]!;
+    for (let i = 0; i < n; i++) {
+      const d = dirs[i]!;
+      c.copy(centre).addScaledVector(d, radius[i]! + halfThick + 0.006);
+      for (let k = 0; k < 2; k++) {
+        const out = k === 0 ? o0 : o1;
+        const wide = k === 0 ? a0 : a1;
+        p.copy(c)
+          .addScaledVector(d, out * halfThick)
+          .addScaledVector(across, wide * halfWidth);
+        const at = ((f * n + i) * 2 + k) * 3;
+        pos[at] = p.x;
+        pos[at + 1] = p.y;
+        pos[at + 2] = p.z;
+        const nx = f === 0 ? d.x : f === 1 ? -d.x : f === 2 ? across.x : -across.x;
+        const ny = f === 0 ? d.y : f === 1 ? -d.y : f === 2 ? across.y : -across.y;
+        const nz = f === 0 ? d.z : f === 1 ? -d.z : f === 2 ? across.z : -across.z;
+        nor[at] = nx;
+        nor[at + 1] = ny;
+        nor[at + 2] = nz;
+      }
+      const j = (i + 1) % n;
+      const a0i = (f * n + i) * 2;
+      const b0i = (f * n + j) * 2;
+      if (f === 1 || f === 3) index.push(a0i, a0i + 1, b0i, a0i + 1, b0i + 1, b0i);
+      else index.push(a0i, b0i, a0i + 1, a0i + 1, b0i, b0i + 1);
+    }
+  }
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(pos, 3));
+  geometry.setAttribute('normal', new BufferAttribute(nor, 3));
+  geometry.setIndex(index);
+  addRoot(root, mesh(geometry, mat(color), 'sash'), 'Torso');
+
+  // The buckle, at the front of the chest (the forward-most sample), along the strap.
+  const front = Math.round(n / 4);
+  const buckle = mesh(new BoxGeometry(halfWidth * 2 + 0.016, 0.05, 0.012), mat(0xd6b35f), 'sash buckle');
+  buckle.position.copy(centre).addScaledVector(dirs[front]!, radius[front]! + halfThick * 2 + 0.012);
+  buckle.quaternion.setFromRotationMatrix(new Matrix4().makeBasis(across, up, forward));
+  addRoot(root, buckle, 'Torso');
 }
 
 function addSatchel(root: Group, color: ColorHex, side: -1 | 1): void {

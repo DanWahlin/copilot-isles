@@ -162,7 +162,8 @@ const results = {};
 }
 
 // Nell: Captain's Papers. She opens her chest of prerequisites while she talks (the `nell-chest` cue),
-// then shows the New view (C0.3) after sign-in, as the course does, before the palette stand.
+// then shows the New view after sign-in, as the course does, before the palette stand. Its page (C0.3)
+// and the install page go straight into the Logbook (no cards), so the talk stays short.
 await talk('nell');
 results.nell = await drive(
   'nell',
@@ -171,7 +172,9 @@ results.nell = await drive(
 const chestOpen = await page.evaluate(() => window.__dev.session().debug.chests?.()[0]?.opened ?? null);
 if (!chestOpen) logs.push(`[questtest] Nell's chest isn't open after her talk (${chestOpen})`);
 if (!seen.has('reveal-pg.prereqs')) logs.push('[questtest] the prerequisites page never showed');
-if (!seen.has('reveal-C0.3')) logs.push('[questtest] the New view page (C0.3) never showed in Nell’s talk');
+const filed = await page.evaluate(() => window.__dev.learn.progress.data.pages);
+for (const id of ['C0.3', 'pg.install'])
+  if (!filed.includes(id)) logs.push(`[questtest] Nell's talk didn't put ${id} in the Logbook`);
 
 // Paint Your Sails: E at the palette stand opens the theme picker; pick a card and select Finish
 // through the real UI, then Nell sends you on to Ezra.

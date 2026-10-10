@@ -67,13 +67,9 @@ const shapeSet = new Set<string>(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'X']);
 /** Authored expressions; every other line falls back to `guessExpression`. */
 const EXPRESSIONS: Record<string, Expression> = {
   'nell.papers.01': 'happy',
-  'nell.papers.02': 'concerned',
-  'nell.papers.04': 'concerned',
   'nell.papers.tools': 'surprised',
   'nell.papers.app': 'happy',
-  'nell.papers.03': 'neutral',
-  'nell.papers.logbook': 'happy',
-  'nell.papers.signin': 'concerned',
+  'nell.papers.signin': 'neutral',
   'nell.papers.05': 'happy',
   'nell.settings.01': 'happy',
   'nell.papers.06': 'happy',

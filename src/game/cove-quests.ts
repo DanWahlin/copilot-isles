@@ -27,6 +27,9 @@ const FORK_URL = 'https://github.com/github/copilot-app-for-beginners/fork';
 /** The spyglass caption for the New view after Connect your repositories (Chapter 00 · Installation). */
 export const NEW_VIEW_CAPTION =
   'Select **Continue**, and the app opens the **New** view. New work starts here.';
+/** Connect your repositories (no screenshot in the course), then the New view it opens. */
+const CONNECT_CAPTION =
+  'At **Connect your repositories**, leave every repository unselected and select **Continue**. The app opens the **New** view, where new work starts.';
 
 const COVE_QUESTS: readonly QuestDef[] = [
   {
@@ -218,32 +221,29 @@ export function npcScript(
       if (!q['Q0.2'] || q['Q0.2'] === 'start') {
         return {
           steps: [
-            // The course's order: prerequisites (the chest holds the list), what the app is, download,
-            // sign in, Continue to the New view, then where the theme lives (Settings → Themes) and the
-            // palette stand. Signing in is one obvious button, so it's shown and told.
+            // The course's order (Chapter 00 · Prerequisites, Installation), kept short (about 30 s
+            // of voice and one card): papers, the chest with the full list (the Business/Enterprise
+            // policy and the tools Bo checks later), the app and its download link, Sign in, Connect
+            // your repositories → Continue → the New view, then Settings → Themes and the palette
+            // stand. The install and New view pages go straight into the Logbook (no cards).
             { say: 'nell.papers.01' },
-            { say: 'nell.papers.02' },
-            { say: 'nell.papers.04' },
             { say: 'nell.papers.tools' },
             { cue: 'nell-chest' },
-            { show: 'shared/app-github-copilot-app', caption: 'The **GitHub Copilot app**.' },
-            { say: 'nell.papers.app' },
             {
               show: 'shared/app-github-copilot-app',
-              caption: `Download and install it from [${APP_INSTALL_URL.replace('https://', '')}](${APP_INSTALL_URL}).`,
+              caption: `The **GitHub Copilot app**. Download and install it from [${APP_INSTALL_URL.replace('https://', '')}](${APP_INSTALL_URL}).`,
             },
-            { say: 'nell.papers.03' },
-            // The download link lives on in the Logbook (J) and the tracker once the spyglass closes.
-            { hide: true },
-            { page: 'pg.install' },
-            { say: 'nell.papers.logbook' },
-            { show: 'ch00/app-sign-in', caption: 'Open the app and select **Sign in to GitHub**.' },
+            { say: 'nell.papers.app' },
+            {
+              show: 'ch00/app-sign-in',
+              caption:
+                'Open the app and select **Sign in to GitHub** (on GHE.com, **Sign in to GitHub Enterprise Cloud**).',
+            },
             { say: 'nell.papers.signin' },
+            { show: 'shared/app-github-copilot-app', caption: CONNECT_CAPTION },
             { say: 'nell.papers.05' },
-            { show: 'shared/app-github-copilot-app', caption: NEW_VIEW_CAPTION },
-            { say: 'nell.settings.01' },
-            { hide: true },
-            { page: 'C0.3', doubloons: 20 },
+            { file: 'pg.install' },
+            { file: 'C0.3', doubloons: 20 },
             {
               show: 'ch01/app-settings',
               caption:

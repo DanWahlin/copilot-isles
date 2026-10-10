@@ -1,52 +1,112 @@
 {
   "id": "nell.papers.01",
   "speaker": "Nell",
-  "text": "Morning, Captain! Nobody sails from Anchorage without their papers.",
+  "text": "Morning, Captain! To sail from Anchorage, you need papers: a GitHub account, and a Copilot plan or your own model provider.",
   "words": [
     {
       "word": "Morning",
       "start": 0,
-      "end": 0.48
+      "end": 0.38
     },
     {
       "word": "Captain",
-      "start": 0.48,
-      "end": 1.291
+      "start": 0.38,
+      "end": 1.2
     },
     {
-      "word": "Nobody",
-      "start": 1.291,
-      "end": 2.373
+      "word": "To",
+      "start": 1.2,
+      "end": 1.888
     },
     {
-      "word": "sails",
-      "start": 2.373,
-      "end": 2.672
+      "word": "sail",
+      "start": 1.888,
+      "end": 2.128
     },
     {
       "word": "from",
-      "start": 2.672,
-      "end": 2.848
+      "start": 2.128,
+      "end": 2.368
     },
     {
       "word": "Anchorage",
-      "start": 2.848,
-      "end": 3.24
+      "start": 2.368,
+      "end": 3.16
     },
     {
-      "word": "without",
-      "start": 3.24,
-      "end": 3.547
+      "word": "you",
+      "start": 3.16,
+      "end": 3.328
     },
     {
-      "word": "their",
-      "start": 3.547,
-      "end": 3.76
+      "word": "need",
+      "start": 3.328,
+      "end": 3.611
     },
     {
       "word": "papers",
-      "start": 3.76,
-      "end": 4.01
+      "start": 3.611,
+      "end": 4.76
+    },
+    {
+      "word": "a",
+      "start": 4.76,
+      "end": 4.857
+    },
+    {
+      "word": "GitHub",
+      "start": 4.857,
+      "end": 5.26
+    },
+    {
+      "word": "account",
+      "start": 5.26,
+      "end": 6.02
+    },
+    {
+      "word": "and",
+      "start": 6.02,
+      "end": 6.12
+    },
+    {
+      "word": "a",
+      "start": 6.12,
+      "end": 6.26
+    },
+    {
+      "word": "Copilot",
+      "start": 6.26,
+      "end": 6.928
+    },
+    {
+      "word": "plan",
+      "start": 6.928,
+      "end": 7.6
+    },
+    {
+      "word": "or",
+      "start": 7.6,
+      "end": 7.984
+    },
+    {
+      "word": "your",
+      "start": 7.984,
+      "end": 8.3
+    },
+    {
+      "word": "own",
+      "start": 8.3,
+      "end": 8.533
+    },
+    {
+      "word": "model",
+      "start": 8.533,
+      "end": 8.871
+    },
+    {
+      "word": "provider",
+      "start": 8.871,
+      "end": 9.121
     }
   ]
 }

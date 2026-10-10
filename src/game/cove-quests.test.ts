@@ -37,10 +37,21 @@ describe('Anchorage guidance', () => {
   it('has Nell open her chest of prerequisites while she talks, before the app itself', () => {
     const steps = npcScript('nell', { 'Q0.2': 'start' })!.steps;
     const chest = steps.findIndex((s) => 'cue' in s && s.cue === 'nell-chest');
-    const install = steps.findIndex((s) => 'page' in s && s.page === 'pg.install');
+    const install = steps.findIndex((s) => 'file' in s && s.file === 'pg.install');
     expect(chest).toBeGreaterThan(0);
     expect(install).toBeGreaterThan(chest);
     expect(steps.at(-1)).toEqual({ quest: 'Q0.2', step: 'palette' });
+  });
+
+  it('keeps Nell short: a handful of lines, one card (her chest), and the key screens', () => {
+    const steps = npcScript('nell', { 'Q0.2': 'start' })!.steps;
+    expect(steps.filter((s) => 'say' in s).length).toBeLessThanOrEqual(6);
+    // The chest is her only reveal card; the install and New view pages go straight to the Logbook.
+    expect(steps.filter((s) => 'page' in s)).toEqual([]);
+    const shown = steps.flatMap((s) => ('show' in s ? [s.show] : []));
+    expect(shown).toEqual(
+      expect.arrayContaining(['shared/app-github-copilot-app', 'ch00/app-sign-in', 'ch01/app-settings']),
+    );
   });
 
   it('has Bo run the checks, which all pass, then GitHub CLI’s sign-in', () => {

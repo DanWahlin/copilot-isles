@@ -6,14 +6,7 @@
       "speaker": "Nell",
       "tts": "elevenlabs",
       "voice": "EIsgvJT3rwoPvRFG6c4n",
-      "text": "Morning, Captain! Nobody sails from Anchorage without their papers."
-    },
-    {
-      "id": "nell.papers.02",
-      "speaker": "Nell",
-      "tts": "elevenlabs",
-      "voice": "EIsgvJT3rwoPvRFG6c4n",
-      "text": "Papers means a GitHub account, and either a Copilot plan or your own model provider."
+      "text": "Morning, Captain! To sail from Anchorage, you need papers: a GitHub account, and a Copilot plan or your own model provider."
     },
     {
       "id": "nell.settings.01",
@@ -395,56 +388,35 @@
       "speaker": "Nell",
       "tts": "elevenlabs",
       "voice": "EIsgvJT3rwoPvRFG6c4n",
-      "text": "This is the GitHub Copilot app. It's where you'll give Copilot's agents their orders and check their work."
-    },
-    {
-      "id": "nell.papers.03",
-      "speaker": "Nell",
-      "tts": "elevenlabs",
-      "voice": "EIsgvJT3rwoPvRFG6c4n",
-      "text": "Next, download and install the GitHub Copilot app for your system."
-    },
-    {
-      "id": "nell.papers.logbook",
-      "speaker": "Nell",
-      "tts": "elevenlabs",
-      "voice": "EIsgvJT3rwoPvRFG6c4n",
-      "text": "I've put that page in your Logbook, download link and all. Press J whenever you need it, and every page you find ends up there too."
+      "text": "This is the GitHub Copilot app, where you'll give Copilot's agents their orders. Download it from the link here."
     },
     {
       "id": "nell.papers.signin",
       "speaker": "Nell",
       "tts": "elevenlabs",
       "voice": "EIsgvJT3rwoPvRFG6c4n",
-      "text": "Once it's installed, open it and select Sign in to GitHub. If your company's account lives on GHE.com, choose Sign in to GitHub Enterprise Cloud instead."
-    },
-    {
-      "id": "nell.papers.04",
-      "speaker": "Nell",
-      "tts": "elevenlabs",
-      "voice": "EIsgvJT3rwoPvRFG6c4n",
-      "text": "On Copilot Business or Enterprise, your organization has to switch on the GitHub Copilot app policy first."
+      "text": "Then open it and select Sign in to GitHub."
     },
     {
       "id": "nell.papers.tools",
       "speaker": "Nell",
       "tts": "elevenlabs",
       "voice": "EIsgvJT3rwoPvRFG6c4n",
-      "text": "You'll also need Git, Node.js, and GitHub CLI. The list's in my chest here, with where to get each one."
+      "text": "The rest of the list's in my chest, tools and all."
     },
     {
       "id": "nell.papers.05",
       "speaker": "Nell",
       "tts": "elevenlabs",
       "voice": "EIsgvJT3rwoPvRFG6c4n",
-      "text": "At Connect your repositories, leave every repository unselected and select Continue. You’ll connect your fork shortly."
+      "text": "Leave every repository unselected and select Continue. You'll connect your fork with Ezra next."
     },
     {
       "id": "nell.papers.06",
       "speaker": "Nell",
       "tts": "elevenlabs",
       "voice": "EIsgvJT3rwoPvRFG6c4n",
-      "text": "Want a different theme? Select the gear at the bottom of the sidebar, then Themes. Here, your theme’s your sails, and the palette stand’s right beside me."
+      "text": "Want a new look? Settings, then Themes. Here, your theme's your sails. Try the palette stand beside me."
     },
     {
       "id": "nell.done.01",

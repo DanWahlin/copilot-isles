@@ -279,11 +279,15 @@ export class LearnStore {
     return new Promise((resolve) => (this.revealDone = resolve));
   };
 
-  /** Adds a page to the Logbook without a reveal card; returns false if it was already there. */
-  filePage = (pageId: string): boolean => {
+  /**
+   * Adds a page to the Logbook without a reveal card, with its doubloons the first time; returns
+   * false if it was already there.
+   */
+  filePage = (pageId: string, doubloons = 0): boolean => {
     if (!PAGES.has(pageId)) throw new Error(`unknown page ${pageId}`);
     const fresh = this.progress.add('pages', pageId);
-    if (fresh) this.set({ pages: this.progress.data.pages.slice() });
+    if (fresh && doubloons) this.progress.addDoubloons(doubloons);
+    if (fresh) this.set({ pages: this.progress.data.pages.slice(), doubloons: this.progress.data.doubloons });
     return fresh;
   };
 

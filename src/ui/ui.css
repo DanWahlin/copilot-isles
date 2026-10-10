@@ -564,6 +564,13 @@
   color: var(--ci-gold-strong);
 }
 
+.ci-credits-author {
+  margin-top: 0;
+  color: var(--ci-gold);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
 .ci-pause .ci-panel {
   width: min(30rem, 90vw);
 }

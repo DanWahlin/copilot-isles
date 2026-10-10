@@ -130,7 +130,11 @@ async function main(): Promise<void> {
   if (only) {
     const previous = JSON.parse(await readFile(manifestPath, 'utf8')) as { lines: { id: string }[] };
     const byId = new Map(entries.map((entry) => [entry.id, entry]));
-    const kept = previous.lines.map((entry) => byId.get(entry.id) ?? entry);
+    // Lines removed from lines.testcove.json drop out of the manifest too.
+    const live = new Set(data.lines.map((line) => line.id));
+    const kept = previous.lines
+      .filter((entry) => live.has(entry.id))
+      .map((entry) => byId.get(entry.id) ?? entry);
     const added = entries.filter((entry) => !previous.lines.some((old) => old.id === entry.id));
     manifestLines = [...kept, ...added];
   }

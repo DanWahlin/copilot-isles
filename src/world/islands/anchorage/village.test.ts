@@ -241,6 +241,9 @@ describe('village walkable surfaces', () => {
       1,
     );
     expect(walkable(COVE.pier.x + 2.9, -96.5)).toBe(COVE.pier.deck);
+    // The boathouse deck ends at its edges (it used to reach a metre out over the water).
+    expect(walkable(COVE.pier.x + 2.9, -96.5 + 3)).toBeNull();
+    expect(walkable(COVE.pier.x + 2.9 + 1.9, -96.5)).toBeNull();
     expect(walkable(-128, COVE.quay.z - 4.2)).not.toBeNull();
     expect(walkable(COVE.village.center.x, COVE.village.center.z)).toBeNull();
     expect(walkable(COVE.pier.x + COVE.pier.width + 3, -100)).toBeNull();

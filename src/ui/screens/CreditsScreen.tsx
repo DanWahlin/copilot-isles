@@ -17,7 +17,10 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
         const names = Array.from(
           new Set([
             'Quaternius',
-            ...Array.from(text.matchAll(/by ([^,|()]+)(?:,|\)| Freesound)/g)).map((match) => match[1].trim()),
+            ...Array.from(text.matchAll(/by ([^,|()]+)(?:,|\(|\)| Freesound)/g))
+              .map((match) => match[1].trim())
+              // Names only: ASSETS.md's notes also say "modified by `tools/...`: sha256 …".
+              .filter((name) => name.length <= 40 && !/[`/:;]/.test(name)),
           ]),
         ).slice(0, 14);
         setAssetCredits(names);
@@ -30,6 +33,11 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
   return (
     <OverlayShell title="Credits" eyebrow="Made with care" onBack={bridge.back}>
       <div className="ci-credits">
+        <p className="ci-credits-author">
+          Created by Dan Wahlin
+          <br />
+          Copyright © 2026
+        </p>
         <p>
           <a href="https://github.com/github/copilot-app-for-beginners">GitHub Copilot app for Beginners</a>
         </p>

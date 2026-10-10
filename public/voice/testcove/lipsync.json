@@ -1,22 +1,16 @@
 {
-  "generatedAt": "2026-10-06T07:38:10.781Z",
+  "generatedAt": "2026-10-08T22:03:42.833Z",
   "generator": "Rhubarb Lip Sync 1.14.0",
   "scope": "Every voiced islander (not Wingman)",
   "lines": {
     "nell.papers.01": {
-      "h": "df1990e1f30d21f8",
+      "h": "e25ac6287b2034a6",
       "e": "happy",
-      "t": [0, 3, 8, 7, 20, 21, 11, 7, 34, 14, 69, 16, 8, 62, 8, 7, 49, 7, 14, 8, 13, 8, 26, 21, 15],
-      "v": "XAEBCABCBXCABACBCBACAEBX"
-    },
-    "nell.papers.02": {
-      "h": "2c69710b7cfe41bb",
-      "e": "concerned",
       "t": [
-        0, 1, 6, 10, 8, 25, 14, 8, 67, 7, 8, 33, 14, 7, 51, 34, 42, 35, 8, 20, 14, 8, 10, 52, 30, 28, 14, 14,
-        8, 7, 13, 11, 5, 12, 7, 21, 4
+        0, 1, 8, 4, 18, 21, 9, 7, 35, 69, 19, 14, 7, 7, 7, 7, 8, 10, 74, 10, 14, 8, 13, 8, 28, 105, 7, 8, 7,
+        27, 14, 34, 5, 5, 21, 8, 15, 14, 8, 14, 42, 25, 44, 21, 14, 14, 8, 7, 14, 10, 14, 7, 7, 7, 21, 7
       ],
-      "v": "XACAEBABCACECBCBEACBAHCEFEFADBABGBEX"
+      "v": "XAEBCABCXFBCBGBACBFBACAEBCACDEBCBEACBAHCBEFEFADBABGCBEX"
     },
     "nell.settings.01": {
       "h": "482d31a038d2978c",
@@ -291,76 +285,43 @@
       "v": "XBGFBXBCBCABGEBXBABFBCBADBEBEFBEFX"
     },
     "nell.papers.app": {
-      "h": "d57377a6e19886ec",
+      "h": "ff6ced76b6cd870a",
       "e": "happy",
       "t": [
-        0, 8, 64, 14, 8, 15, 8, 13, 21, 14, 36, 38, 21, 7, 7, 14, 28, 14, 8, 17, 7, 7, 7, 21, 14, 7, 21, 7,
-        21, 7, 28, 26, 21, 14, 7, 28, 14, 7, 21
+        0, 14, 46, 7, 14, 14, 8, 18, 8, 15, 21, 14, 49, 7, 7, 21, 21, 14, 8, 15, 7, 7, 7, 14, 14, 14, 21, 7,
+        49, 35, 22, 14, 7, 7, 7, 35, 8, 5, 4, 63, 4
       ],
-      "v": "XBCAEACBCAXBFCFBEACBHBCBCBCEBEBCBCBECB"
-    },
-    "nell.papers.03": {
-      "h": "67e0ddec24dcc8e9",
-      "e": "neutral",
-      "t": [0, 3, 23, 48, 21, 21, 42, 35, 35, 21, 8, 18, 8, 16, 14, 21, 25, 10, 7, 14, 28, 21, 28, 5],
-      "v": "XCBCEBEBCAEACBCAGEFBCAX"
-    },
-    "nell.papers.logbook": {
-      "h": "8a82194f93eb0d7a",
-      "e": "happy",
-      "t": [
-        0, 3, 10, 7, 8, 16, 21, 8, 21, 21, 14, 28, 8, 22, 21, 14, 15, 14, 7, 7, 7, 28, 28, 7, 21, 21, 36, 46,
-        13, 6, 13, 19, 21, 28, 7, 14, 7, 7, 7, 42, 49, 28, 7, 8, 23, 7, 21, 7, 14, 14, 28, 7, 7, 13, 6, 5, 7,
-        42, 8
-      ],
-      "v": "XCBAFBACBFEAFBXBCECEBCBEHXBABCBCBFCGBFBXCBACBFGDBCBCABCBFX"
+      "v": "XBCBCAEACBCAFCFBEACBHBCBCBCEBXBCECBABCBX"
     },
     "nell.papers.signin": {
-      "h": "95b7d0e1b5047a29",
-      "e": "concerned",
-      "t": [
-        0, 3, 10, 7, 42, 35, 36, 8, 8, 28, 34, 5, 18, 7, 14, 14, 65, 7, 21, 14, 28, 14, 7, 23, 57, 27, 34, 9,
-        7, 7, 14, 8, 28, 21, 7, 35, 21, 7, 21, 7, 42, 14, 7, 34, 8, 14, 48, 64, 24, 7, 28, 14, 21, 21, 14, 20,
-        7, 12, 10, 7, 7, 21, 7, 42, 21, 28, 4
-      ],
-      "v": "XFCBEBEACBCBCHCBCBFBDCAXBXBGFCABCEBDCBCBDBDCABFBCBFBCACEABCBHCBCBX"
-    },
-    "nell.papers.04": {
-      "h": "5dd9b75a09d9d2cf",
-      "e": "concerned",
-      "t": [
-        0, 9, 16, 14, 8, 13, 7, 7, 7, 8, 39, 7, 14, 7, 11, 6, 13, 49, 14, 21, 21, 14, 7, 14, 25, 7, 31, 21,
-        21, 7, 28, 7, 8, 16, 8, 18, 7, 7, 14, 16, 11, 14, 7, 14, 14, 21, 28, 4
-      ],
-      "v": "XDEACBHBABECEABDBFECBCBCEFBDCBCAEACHBCADHCBGEBX"
+      "h": "7c7613138d50a707",
+      "e": "neutral",
+      "t": [0, 4, 9, 21, 7, 9, 14, 21, 21, 14, 7, 7, 14, 45, 7, 70, 21, 18, 19],
+      "v": "XBCEACBCBCHCBCBCAX"
     },
     "nell.papers.tools": {
-      "h": "11bc4f0263a76c69",
+      "h": "63c7942a41f0c4ba",
       "e": "surprised",
-      "t": [
-        0, 3, 13, 28, 7, 7, 7, 70, 7, 56, 40, 21, 14, 21, 14, 35, 7, 7, 28, 82, 12, 28, 28, 12, 26, 14, 7, 28,
-        14, 94, 6, 5, 56, 8, 4, 18, 14, 55, 15, 21, 7, 28, 42, 28, 7, 4
-      ],
-      "v": "XFEBEFBCBXBEBDBCBCBCBCABCHDBXBCBACBCBFBFCBDCX"
+      "t": [0, 9, 12, 7, 28, 7, 42, 8, 6, 13, 21, 54, 18, 8, 28, 14, 7, 7, 14, 28, 5],
+      "v": "XBCBCBACBCBFEHBCBEHX"
     },
     "nell.papers.05": {
-      "h": "7f972fd899fdcd0e",
+      "h": "cb9c4c7b26eeaaa4",
       "e": "happy",
       "t": [
-        0, 3, 7, 27, 25, 7, 24, 7, 8, 21, 6, 25, 7, 119, 7, 21, 7, 21, 8, 25, 7, 7, 28, 35, 7, 21, 7, 7, 7,
-        14, 7, 14, 45, 11, 21, 7, 7, 14, 30, 17, 21, 42, 59, 32, 11, 5, 7, 32, 7, 24, 7, 14, 21, 7, 49, 6
+        0, 3, 23, 7, 28, 7, 21, 8, 24, 14, 14, 21, 14, 14, 14, 7, 7, 35, 21, 21, 7, 7, 7, 7, 28, 21, 28, 14,
+        72, 6, 24, 6, 25, 14, 21, 7, 28, 14, 7, 35, 49, 6
       ],
-      "v": "XCBCEFBADCBEBGCGBADBCEBFCBCHCBCBCBCHCBCBFXBFEHCEFGEBEBX"
+      "v": "XBGCGBADBEBCBCHCBCBCHCBCBFBXFCEFGECBCBCBX"
     },
     "nell.papers.06": {
-      "h": "59a3be18a469ce05",
+      "h": "8d2d4f4a3f633f97",
       "e": "happy",
       "t": [
-        0, 3, 13, 7, 28, 7, 42, 8, 36, 16, 63, 7, 7, 7, 91, 8, 8, 14, 8, 6, 5, 35, 8, 16, 4, 33, 25, 7, 28,
-        35, 22, 19, 75, 26, 35, 36, 13, 35, 9, 18, 14, 7, 7, 28, 46, 4, 11, 8, 17, 7, 21, 28, 21, 17, 18, 8,
-        20, 7, 14, 8, 50
+        0, 7, 5, 4, 7, 7, 35, 56, 24, 17, 7, 63, 45, 9, 14, 42, 11, 23, 66, 49, 21, 28, 8, 18, 14, 7, 49, 55,
+        25, 7, 7, 8, 25, 7, 21, 21, 8, 22, 7, 14, 8, 34, 15
       ],
-      "v": "XFDBGBABXBCHCBADBACGBADCBXBCBABXBEBFBAFBCBHBCBACHBCBXBABCBAB"
+      "v": "XFDBCFBXBCBXBCBABXBFBAFBCBXBCBACHBCABCBABX"
     },
     "nell.done.01": {
       "h": "d1f99f6c2ce6654c",

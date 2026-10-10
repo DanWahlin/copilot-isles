@@ -125,7 +125,8 @@ interface PropInstance {
 const tmpObject = new Object3D();
 
 export const VILLAGE_BUILDING_COUNT = 10;
-const BOATHOUSE = { x: COVE.pier.x + 2.9, z: -96.5, hx: 2.35, hz: 3.2 } as const;
+/** The boathouse beside the pier; `hx`/`hz` are its deck's half-size (2.7 × 4.8 m). */
+const BOATHOUSE = { x: COVE.pier.x + 2.9, z: -96.5, hx: 1.35, hz: 2.4 } as const;
 const QUAY_STEPS = { x: -128, zTop: COVE.quay.z - 2.1, width: 5.5, count: 6, tread: 0.72 } as const;
 const PIER_RAMP = {
   x: COVE.pier.x,
@@ -264,6 +265,13 @@ export async function createVillage({
   };
 }
 
+/** Whether (x, z) is on the pier's or the boathouse's planks (wood underfoot, not the stone quay). */
+export function onPierDeck(x: number, z: number): boolean {
+  const p = COVE.pier;
+  if (Math.abs(x - p.x) <= p.width * 0.5 + 0.4 && z <= Math.max(p.z0, p.z1) + 0.8) return true;
+  return Math.abs(x - BOATHOUSE.x) <= BOATHOUSE.hx && Math.abs(z - BOATHOUSE.z) <= BOATHOUSE.hz;
+}
+
 export function walkable(x: number, z: number, y?: number): number | null {
   const tower = lighthouseWalkable(x, z, y);
   if (tower !== null) return tower;
@@ -293,8 +301,8 @@ export function walkable(x: number, z: number, y?: number): number | null {
   const minZ = Math.min(p.z0, p.z1);
   const maxZ = Math.max(p.z0, p.z1);
   if (Math.abs(x - p.x) <= p.width * 0.5 + 0.35 && z >= minZ && z <= maxZ + 0.8) return p.deck;
-  if (Math.abs(x - BOATHOUSE.x) <= BOATHOUSE.hx + 0.25 && Math.abs(z - BOATHOUSE.z) <= BOATHOUSE.hz + 0.25)
-    return p.deck;
+  // Its deck only (it joins the pier's east edge), so you can't stand on the water past its ends.
+  if (Math.abs(x - BOATHOUSE.x) <= BOATHOUSE.hx && Math.abs(z - BOATHOUSE.z) <= BOATHOUSE.hz) return p.deck;
   const street = streetWalkable(x, z);
   if (street !== null) return street;
   return lighthousePathWalkable(x, z);
@@ -1417,22 +1425,31 @@ function addBoathouse(
   deck: number,
 ): void {
   const rot = 0;
-  addBox(buckets.wood, x, deck - 0.06, z, 2.7, 0.12, 4.8, rot, 0x745239);
+  addBox(buckets.wood, x, deck - 0.06, z, BOATHOUSE.hx * 2, 0.12, BOATHOUSE.hz * 2, rot, 0x745239);
+  // Roof slabs' centre height: the eaves sit about 2.4 m up, high enough to carry a barrel in.
+  const roof = deck + 2.85;
+  // The posts stop under the slabs (they used to poke up through a roof only 1.45 m up at the eaves).
+  const postTop = roof - 0.36 - deck;
   for (const lx of [-1.14, 1.14]) {
     for (const lz of [-2.05, 2.05]) {
       const p = localToWorld(x, z, rot, lx, lz);
-      addCylinder(buckets.wood, p.x, deck, p.z, 0.11, 0.14, 2.05, 8, rot, 0x67462c);
-      colliders.boxes.push({ x: p.x, z: p.z, hx: 0.18, hz: 0.18, rot, height: 2.15 });
+      addCylinder(buckets.wood, p.x, deck, p.z, 0.11, 0.14, postTop, 8, rot, 0x67462c);
+      colliders.boxes.push({ x: p.x, z: p.z, hx: 0.18, hz: 0.18, rot, height: postTop + 0.1 });
     }
+    // A plate along each side, the posts' tops to the roof.
+    addBox(buckets.wood, x + lx, deck + postTop, z, 0.16, 0.14, 4.4, rot, 0x6f4d31);
   }
-  addBox(buckets.wood, x, deck + 1.88, z, 0.18, 0.16, 5.0, rot, 0x6f4d31);
-  addBox(buckets.wood, x - 0.62, deck + 1.9, z, 1.7, 0.18, 5.15, rot, 0x5f3f2b, 0, 0.56);
-  addBox(buckets.wood, x + 0.62, deck + 1.9, z, 1.7, 0.18, 5.15, rot, 0x5f3f2b, 0, -0.56);
-  // Open at the front (+z, toward the quay): the dock walks straight in under the roof.
-  addBox(buckets.wood, x - 1.18, deck + 0.28, z, 0.14, 0.48, 3.5, rot, 0x725035);
+  addBox(buckets.wood, x, roof - 0.02, z, 0.18, 0.16, 5.0, rot, 0x6f4d31);
+  addBox(buckets.wood, x - 0.62, roof, z, 1.7, 0.18, 5.15, rot, 0x5f3f2b, 0, 0.56);
+  addBox(buckets.wood, x + 0.62, roof, z, 1.7, 0.18, 5.15, rot, 0x5f3f2b, 0, -0.56);
+  // Open on the pier side (−x): you walk straight in under the roof. A low wall along the water
+  // side keeps you on the deck (it used to stand on the pier side, with no collider: it looked like
+  // the way in was shut, and you walked through it).
+  addBox(buckets.wood, x + 1.18, deck + 0.28, z, 0.14, 0.48, 3.5, rot, 0x725035);
+  colliders.boxes.push({ x: x + 1.18, z, hx: 0.12, hz: 1.75, rot, height: 0.6 });
   addNetRack(buckets, x + 1.62, z - 0.8, deck, 0.05);
   addRopeCoil(buckets, x - 0.72, deck + 0.05, z - 1.15, -0.2, 0.68);
-  addLanternFixture(buckets, x - 0.9, deck + 1.28, z - 2.22, rot, 0.72);
+  addLanternFixture(buckets, x - 0.9, deck + 2.05, z - 2.22, rot, 0.72);
   addShipObstacle(shipObstacles, { x, z: z + 0.2, r: 2.35 });
 }
 

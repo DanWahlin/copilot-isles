@@ -1,107 +1,62 @@
 {
   "id": "nell.papers.tools",
   "speaker": "Nell",
-  "text": "You'll also need Git, Node.js, and GitHub CLI. The list's in my chest here, with where to get each one.",
+  "text": "The rest of the list's in my chest, tools and all.",
   "words": [
     {
-      "word": "You'll",
-      "start": 0,
-      "end": 0.24
-    },
-    {
-      "word": "also",
-      "start": 0.24,
-      "end": 0.64
-    },
-    {
-      "word": "need",
-      "start": 0.64,
-      "end": 1.14
-    },
-    {
-      "word": "Git",
-      "start": 1.14,
-      "end": 2.416
-    },
-    {
-      "word": "Node.js",
-      "start": 2.416,
-      "end": 4.38
-    },
-    {
-      "word": "and",
-      "start": 4.38,
-      "end": 4.88
-    },
-    {
-      "word": "GitHub",
-      "start": 4.88,
-      "end": 5.52
-    },
-    {
-      "word": "CLI",
-      "start": 5.52,
-      "end": 6.56
-    },
-    {
       "word": "The",
-      "start": 6.56,
-      "end": 7.36
+      "start": 0,
+      "end": 0.128
+    },
+    {
+      "word": "rest",
+      "start": 0.128,
+      "end": 0.347
+    },
+    {
+      "word": "of",
+      "start": 0.347,
+      "end": 0.44
+    },
+    {
+      "word": "the",
+      "start": 0.44,
+      "end": 0.608
     },
     {
       "word": "list's",
-      "start": 7.36,
-      "end": 7.813
+      "start": 0.608,
+      "end": 0.907
     },
     {
       "word": "in",
-      "start": 7.813,
-      "end": 7.973
+      "start": 0.907,
+      "end": 1.04
     },
     {
       "word": "my",
-      "start": 7.973,
-      "end": 8.133
+      "start": 1.04,
+      "end": 1.28
     },
     {
       "word": "chest",
-      "start": 8.133,
-      "end": 8.48
+      "start": 1.28,
+      "end": 1.893
     },
     {
-      "word": "here",
-      "start": 8.48,
-      "end": 9.008
+      "word": "tools",
+      "start": 1.893,
+      "end": 2.62
     },
     {
-      "word": "with",
-      "start": 9.008,
-      "end": 9.227
+      "word": "and",
+      "start": 2.62,
+      "end": 2.92
     },
     {
-      "word": "where",
-      "start": 9.227,
-      "end": 9.413
-    },
-    {
-      "word": "to",
-      "start": 9.413,
-      "end": 9.56
-    },
-    {
-      "word": "get",
-      "start": 9.56,
-      "end": 9.744
-    },
-    {
-      "word": "each",
-      "start": 9.744,
-      "end": 10.1
-    },
-    {
-      "word": "one",
-      "start": 10.1,
-      "end": 10.35
+      "word": "all",
+      "start": 2.92,
+      "end": 3.17
     }
   ]
 }

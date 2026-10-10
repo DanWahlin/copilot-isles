@@ -1,87 +1,77 @@
 {
   "id": "nell.papers.05",
   "speaker": "Nell",
-  "text": "At Connect your repositories, leave every repository unselected and select Continue. You’ll connect your fork shortly.",
+  "text": "Leave every repository unselected and select Continue. You'll connect your fork with Ezra next.",
   "words": [
     {
-      "word": "At",
+      "word": "Leave",
       "start": 0,
-      "end": 0.23
-    },
-    {
-      "word": "Connect",
-      "start": 0.23,
-      "end": 0.752
-    },
-    {
-      "word": "your",
-      "start": 0.752,
-      "end": 0.972
-    },
-    {
-      "word": "repositories",
-      "start": 0.972,
-      "end": 2.48
-    },
-    {
-      "word": "leave",
-      "start": 2.48,
-      "end": 2.947
+      "end": 0.32
     },
     {
       "word": "every",
-      "start": 2.947,
-      "end": 3.367
+      "start": 0.32,
+      "end": 0.8
     },
     {
       "word": "repository",
-      "start": 3.367,
-      "end": 4.427
+      "start": 0.8,
+      "end": 1.707
     },
     {
       "word": "unselected",
-      "start": 4.427,
-      "end": 5.56
+      "start": 1.707,
+      "end": 2.62
     },
     {
       "word": "and",
-      "start": 5.56,
-      "end": 6
+      "start": 2.62,
+      "end": 2.869
     },
     {
       "word": "select",
-      "start": 6,
-      "end": 6.587
+      "start": 2.869,
+      "end": 3.36
     },
     {
       "word": "Continue",
-      "start": 6.587,
-      "end": 7.94
+      "start": 3.36,
+      "end": 4.42
     },
     {
-      "word": "You’ll",
-      "start": 7.94,
-      "end": 8.69
+      "word": "You'll",
+      "start": 4.42,
+      "end": 5.08
     },
     {
       "word": "connect",
-      "start": 8.69,
-      "end": 9.056
+      "start": 5.08,
+      "end": 5.376
     },
     {
       "word": "your",
-      "start": 9.056,
-      "end": 9.2
+      "start": 5.376,
+      "end": 5.536
     },
     {
       "word": "fork",
-      "start": 9.2,
-      "end": 9.59
+      "start": 5.536,
+      "end": 5.952
     },
     {
-      "word": "shortly",
-      "start": 9.59,
-      "end": 9.84
+      "word": "with",
+      "start": 5.952,
+      "end": 6.16
+    },
+    {
+      "word": "Ezra",
+      "start": 6.16,
+      "end": 6.608
+    },
+    {
+      "word": "next",
+      "start": 6.608,
+      "end": 6.858
     }
   ]
 }

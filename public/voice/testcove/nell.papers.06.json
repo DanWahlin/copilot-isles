@@ -1,142 +1,97 @@
 {
   "id": "nell.papers.06",
   "speaker": "Nell",
-  "text": "Want a different theme? Select the gear at the bottom of the sidebar, then Themes. Here, your theme’s your sails, and the palette stand’s right beside me.",
+  "text": "Want a new look? Settings, then Themes. Here, your theme's your sails. Try the palette stand beside me.",
   "words": [
     {
       "word": "Want",
       "start": 0,
-      "end": 0.34
+      "end": 0.2
     },
     {
       "word": "a",
-      "start": 0.34,
-      "end": 0.46
+      "start": 0.2,
+      "end": 0.26
     },
     {
-      "word": "different",
-      "start": 0.46,
-      "end": 0.733
+      "word": "new",
+      "start": 0.26,
+      "end": 0.4
     },
     {
-      "word": "theme",
-      "start": 0.733,
-      "end": 1.931
+      "word": "look",
+      "start": 0.4,
+      "end": 0.951
     },
     {
-      "word": "Select",
-      "start": 1.931,
-      "end": 2.5
-    },
-    {
-      "word": "the",
-      "start": 2.5,
-      "end": 2.656
-    },
-    {
-      "word": "gear",
-      "start": 2.656,
-      "end": 3.093
-    },
-    {
-      "word": "at",
-      "start": 3.093,
-      "end": 3.24
-    },
-    {
-      "word": "the",
-      "start": 3.24,
-      "end": 3.406
-    },
-    {
-      "word": "bottom",
-      "start": 3.406,
-      "end": 3.707
-    },
-    {
-      "word": "of",
-      "start": 3.707,
-      "end": 3.78
-    },
-    {
-      "word": "the",
-      "start": 3.78,
-      "end": 3.93
-    },
-    {
-      "word": "sidebar",
-      "start": 3.93,
-      "end": 5.088
+      "word": "Settings",
+      "start": 0.951,
+      "end": 2.576
     },
     {
       "word": "then",
-      "start": 5.088,
-      "end": 5.383
+      "start": 2.576,
+      "end": 3.051
     },
     {
       "word": "Themes",
-      "start": 5.383,
-      "end": 6.592
+      "start": 3.051,
+      "end": 3.904
     },
     {
       "word": "Here",
-      "start": 6.592,
-      "end": 7.792
+      "start": 3.904,
+      "end": 4.912
     },
     {
       "word": "your",
-      "start": 7.792,
-      "end": 7.987
+      "start": 4.912,
+      "end": 5.093
     },
     {
-      "word": "theme’s",
-      "start": 7.987,
-      "end": 8.496
+      "word": "theme's",
+      "start": 5.093,
+      "end": 5.472
     },
     {
       "word": "your",
-      "start": 8.496,
-      "end": 8.68
+      "start": 5.472,
+      "end": 5.707
     },
     {
       "word": "sails",
-      "start": 8.68,
-      "end": 9.56
+      "start": 5.707,
+      "end": 6.72
     },
     {
-      "word": "and",
-      "start": 9.56,
-      "end": 9.7
+      "word": "Try",
+      "start": 6.72,
+      "end": 7.22
     },
     {
       "word": "the",
-      "start": 9.7,
-      "end": 9.81
+      "start": 7.22,
+      "end": 7.34
     },
     {
       "word": "palette",
-      "start": 9.81,
-      "end": 10.227
+      "start": 7.34,
+      "end": 7.813
     },
     {
-      "word": "stand’s",
-      "start": 10.227,
-      "end": 10.92
-    },
-    {
-      "word": "right",
-      "start": 10.92,
-      "end": 11.189
+      "word": "stand",
+      "start": 7.813,
+      "end": 8.149
     },
     {
       "word": "beside",
-      "start": 11.189,
-      "end": 11.707
+      "start": 8.149,
+      "end": 8.667
     },
     {
       "word": "me",
-      "start": 11.707,
-      "end": 11.957
+      "start": 8.667,
+      "end": 8.917
     }
   ]
 }

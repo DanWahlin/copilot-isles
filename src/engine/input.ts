@@ -71,6 +71,8 @@ export class Input {
   private look = [0, 0];
   private wheel = 0;
   private rmb = false;
+  /** A left-button drag on the game: look once it's moved past a few pixels (a click stays a click). */
+  private lmb: { x: number; y: number; looking: boolean } | null = null;
   private padEdges = new Map<number, boolean>();
   private readonly el: HTMLElement;
 
@@ -98,14 +100,24 @@ export class Input {
   private readonly onBlur = () => {
     this.held.clear();
     this.rmb = false;
+    this.lmb = null;
   };
+  // Mouse look: drag with either button on the game (left or right), like most third-person games.
   private readonly onPointer = (e: PointerEvent) => {
-    if (e.button !== 2) return;
-    this.rmb = e.type === 'pointerdown';
-    if (this.rmb) this.el.setPointerCapture?.(e.pointerId);
+    if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+    const down = e.type === 'pointerdown';
+    if (e.button === 2) {
+      this.rmb = down;
+      if (down) this.el.setPointerCapture?.(e.pointerId);
+    } else if (e.button === 0) {
+      this.lmb = down ? { x: e.clientX, y: e.clientY, looking: false } : null;
+      if (down) this.el.setPointerCapture?.(e.pointerId);
+    }
   };
   private readonly onMove = (e: PointerEvent) => {
-    if (!this.rmb && document.pointerLockElement !== this.el) return;
+    const l = this.lmb;
+    if (l && !l.looking && Math.hypot(e.clientX - l.x, e.clientY - l.y) > 5) l.looking = true;
+    if (!this.rmb && !l?.looking && document.pointerLockElement !== this.el) return;
     this.look[0] += e.movementX;
     this.look[1] += e.movementY;
   };

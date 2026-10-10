@@ -1,3 +1,4 @@
+import { onPierDeck } from '../world/islands/anchorage/village';
 import { spyglassSpeakerPan } from '../learn/spyglass-layout';
 import { Vector3, type Group, type Object3D } from 'three/webgpu';
 import { buildSlice } from '../engine/build-slice';
@@ -195,10 +196,10 @@ export interface GameSession {
 
 const WALK_HELP =
   '<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Shift</kbd> run · <kbd>Space</kbd> hop<br>' +
-  'hold <kbd>RMB</kbd> look · wheel zoom · <kbd>E</kbd> interact';
+  'drag <kbd>mouse</kbd> look · wheel zoom · <kbd>E</kbd> interact';
 const SAIL_HELP =
   '<kbd>W</kbd>/<kbd>S</kbd> raise / lower sails · <kbd>A</kbd>/<kbd>D</kbd> helm<br>' +
-  'hold <kbd>RMB</kbd> look · wheel zoom · <kbd>E</kbd> dock when you’re near a berth';
+  'drag <kbd>mouse</kbd> look · wheel zoom · <kbd>E</kbd> dock when you’re near a berth';
 
 /** The christening's shot of the port bow name board, in ship-local space (+x is the pier side). */
 const CHRISTEN_EYE = new Vector3(-7.2, 4.4, 4.6);
@@ -233,11 +234,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const { village, ship, terrain, ocean } = cove;
   const ground = cove.heightField ?? terrain.heightField;
 
-  const pier = COVE.pier;
-  const pierKind = (x: number, z: number): SurfaceKind =>
-    Math.abs(x - pier.x) <= pier.width * 0.5 + 0.4 && z <= Math.max(pier.z0, pier.z1) + 0.8
-      ? 'wood'
-      : 'stone';
+  const pierKind = (x: number, z: number): SurfaceKind => (onPierDeck(x, z) ? 'wood' : 'stone');
   const villageSurface: WalkSurface = { heightAt: village.walkable, kind: pierKind };
   const sites = cove.sites;
   const sitesSurface: WalkSurface = { heightAt: sites.heightAt, kind: 'stone' };

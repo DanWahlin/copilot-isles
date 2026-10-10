@@ -11,7 +11,7 @@ export function ControlsScreen({ bridge }: { bridge: GameBridge }) {
             [['W', 'A', 'S', 'D'], 'Walk'],
             [['Shift'], 'Run'],
             [['Space'], 'Hop'],
-            [['Hold RMB'], 'Look'],
+            [['Drag mouse'], 'Look around (either button)'],
             [['Mouse wheel'], 'Zoom'],
             [['E'], 'Interact'],
             [['Q'], 'Wingman’s hint'],

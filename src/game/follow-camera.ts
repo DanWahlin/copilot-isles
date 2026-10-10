@@ -68,7 +68,7 @@ export interface CameraShot {
 const SHOT_EASE = 1.1;
 
 /**
- * Third-person orbit camera (Phase 0 S6): hold-RMB/right-stick orbit, wheel zoom, a gentle
+ * Third-person orbit camera (Phase 0 S6): mouse-drag/right-stick orbit, wheel zoom, a gentle
  * recenter behind the target when you walk or sail without touching the camera, and collision
  * against terrain, buildings, and the water surface (pull in fast, ease out slowly).
  * Yaw uses the ship convention: the camera looks along (sin yaw, cos yaw).
