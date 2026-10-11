@@ -1717,7 +1717,8 @@ function addRoundSquare(
     addBox(buckets.stone, x + Math.sin(a) * 0.9, y, z - Math.cos(a) * 0.9, 0.36, 0.42, 0.5, ry, 0xa89b80);
     addBox(buckets.wood, x, y + 0.42, z, 2.4, 0.1, 0.62, ry, 0x7a5434);
     if (!low) addBox(buckets.wood, x + bx, y + 0.78, z + bz, 2.4, 0.5, 0.09, ry, 0x6b4a2d);
-    colliders.boxes.push({ x, z, hx: 1.2, hz: 0.36, rot: ry, height: 0.9 });
+    // The backrest's top is 1.28 m over the seat's base (y), itself 0.13 m over the ground.
+    colliders.boxes.push({ x, z, hx: 1.2, hz: 0.36, rot: ry, height: low ? 0.6 : 1.42 });
   }
 
   for (const a of SQUARE.planters) {

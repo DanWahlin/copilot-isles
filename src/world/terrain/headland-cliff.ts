@@ -27,6 +27,7 @@ import {
   stationProfile,
   type CliffStation,
 } from './headland-cliff-shape';
+import { meshCameraBlockers, type CameraBlockerBox } from './camera-blockers';
 
 /** Mesh density per tier: station spacing along the cliff and row spacing up it (m), and loose blocks. */
 export interface CliffDetail {
@@ -341,4 +342,68 @@ export function createHeadlandCliff(
   mesh.castShadow = false;
   mesh.receiveShadow = false;
   return mesh;
+}
+
+/** Column spacing and band height (m) of the cliff's camera blockers. */
+const BLOCKER_SPACING = 2;
+const BLOCKER_BAND = 1.6;
+const BLOCKER_SAMPLES = 5;
+
+/**
+ * Camera-only blockers for the cliff: the mesh stands 1-7 m out past the height field's face (ledges,
+ * the visor, the cave buttress, the roll over the edge), where the follow camera's ground test sees
+ * open air. One box per column and band of height, from inside the height field's face out to the
+ * mesh, plus a fitted stack for each fallen block and clifftop outcrop.
+ */
+export function headlandCliffCameraBlockers(
+  heightField: Pick<HeightField, 'heightAt'>,
+  out: CameraBlockerBox[],
+  tier: Tier = 'high',
+): void {
+  const frame = headlandCliffFrame(heightField);
+  if (frame.stations.length < 2) return;
+  const detail = HEADLAND_CLIFF_DETAIL[tier];
+  const columns = Math.max(2, Math.round(frame.length / BLOCKER_SPACING));
+  const half = frame.length / columns / 2 + 0.35;
+  const profile = new Float32Array(PROFILE_SAMPLES);
+  const st: CliffStation = { ...frame.stations[0]! };
+  for (let c = 0; c < columns; c++) {
+    const s = ((c + 0.5) / columns) * frame.length;
+    stationAt(frame, s, st);
+    stationProfile(frame.heightAt, st, profile);
+    const k = st.strength;
+    const top = profileCrossing(profile, st.lipY);
+    const rollD = top + (0.35 + caveBulge(frame, s) * HEADLAND_CAVE_BULGE) * k - 0.9 * (1 - k);
+    const rollY = st.lipY + 0.3 * k - 0.6 * (1 - k);
+    for (let y0 = -1.2; y0 < rollY; y0 += BLOCKER_BAND) {
+      const y1 = Math.min(y0 + BLOCKER_BAND, rollY);
+      let dIn = Infinity,
+        dOut = -Infinity;
+      for (let i = 0; i < BLOCKER_SAMPLES; i++) {
+        const y = Math.min(st.lipY, y0 + ((y1 - y0) * i) / (BLOCKER_SAMPLES - 1));
+        const d = profileCrossing(profile, y);
+        const mesh = d + cliffOffset(frame, s, y, st.lipY, k);
+        dIn = Math.min(dIn, d, mesh);
+        dOut = Math.max(dOut, mesh);
+      }
+      if (y1 > st.lipY - 0.4) dOut = Math.max(dOut, rollD);
+      // Into the rock behind the face, so a camera can't slip between the box and the height field.
+      dIn -= 1;
+      if (dOut - dIn < 1.2) continue;
+      const mid = (dIn + dOut) * 0.5;
+      out.push({
+        x: st.x + st.nx * mid,
+        z: st.z + st.nz * mid,
+        hx: half,
+        hz: (dOut - dIn) * 0.5,
+        // Local z along the station's seaward normal.
+        rot: Math.atan2(st.nx, st.nz),
+        y0,
+        y1,
+      });
+    }
+  }
+  const identity = new Matrix4();
+  for (const part of [...footBlocks(frame, detail, profile), ...topOutcrops(frame, detail)])
+    meshCameraBlockers(part.pos, identity, out, 2);
 }

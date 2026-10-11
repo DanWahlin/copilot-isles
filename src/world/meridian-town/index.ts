@@ -79,6 +79,11 @@ export interface MeridianTownMetrics {
 export interface MeridianTownSystem {
   group: Group;
   colliders: { circles: CircleObstacle[]; boxes: VillageBoxCollider[] };
+  /**
+   * Boxes only the follow camera keeps out of (wall tops, the lift house), each with a span: the
+   * player walks through or past them, so they aren't in `colliders`.
+   */
+  cameraBlockers: VillageBoxCollider[];
   shipObstacles: CircleObstacle[];
   walkable(x: number, z: number): number | null;
   anchors: Record<string, MeridianAnchor>;
@@ -97,7 +102,8 @@ export interface CreateMeridianTownOptions {
 }
 
 type Buckets = Record<MaterialKey, BufferGeometry[]>;
-type ColliderSet = { circles: CircleObstacle[]; boxes: VillageBoxCollider[] };
+/** `camera`: camera-only blockers (see MeridianTownSystem.cameraBlockers). */
+type ColliderSet = { circles: CircleObstacle[]; boxes: VillageBoxCollider[]; camera?: VillageBoxCollider[] };
 
 type BasicAnchor = {
   x: number;
@@ -199,7 +205,7 @@ function* buildMeridianTown({
   group.name = 'port-meridian-town';
 
   const buckets = makeBuckets();
-  const colliders: ColliderSet = { circles: [], boxes: [] };
+  const colliders: ColliderSet = { circles: [], boxes: [], camera: [] };
   const shipObstacles: CircleObstacle[] = [];
   const anchors: Record<string, MeridianAnchor> = {};
   const perches: Vector3[] = [];
@@ -336,7 +342,8 @@ function* buildMeridianTown({
 
   return {
     group,
-    colliders,
+    colliders: { circles: colliders.circles, boxes: colliders.boxes },
+    cameraBlockers: colliders.camera ?? [],
     shipObstacles,
     walkable: townWalkable,
     anchors,
@@ -853,6 +860,17 @@ function addMoleConnector(buckets: Buckets, colliders: ColliderSet, shipObstacle
     addBox(buckets, 'stone', x, c.height + 0.02, cz, 0.48, 0.55, c.z1 - c.z0 + 0.8, 0, LIMESTONE_DARK);
     addBox(buckets, 'stone', x, c.height + 0.55, cz, 0.62, 0.18, c.z1 - c.z0 + 1.0, 0, LIMESTONE_LIGHT);
     colliders.boxes.push({ x, z: cz, hx: 0.38, hz: (c.z1 - c.z0) * 0.5 + 0.45, rot: 0, height: 0.75 });
+    // The wall and the block's face under it, down to the harbour floor, for the camera.
+    const out = Math.sign(x - cx);
+    colliders.camera?.push({
+      x: x - out * 0.06,
+      z: cz,
+      hx: 0.38,
+      hz: (c.z1 - c.z0) * 0.5 + 0.5,
+      rot: 0,
+      y0: waterBase,
+      y1: c.height + 0.73,
+    });
   }
   for (let z = c.z0 + 2; z <= c.z1 - 2; z += 6.5) shipObstacles.push({ x: c.x0 - 0.8, z, r: 1.4 });
 }
@@ -1470,6 +1488,26 @@ function addLift(
   addBox(buckets, 'metal', tx - 5.0, LIFT_TOP.y - 14.8, tz + 1.2, 1.2, 3.2, 1.0, 0, 0x34312b);
   addLiftCarMeshes(liftCar, kit.materials);
   colliders.boxes.push({ x: bx, z: bz, hx: 2.0, hz: 1.65, rot: 0, height: 2.8 });
+  // The lift house's side walls and tilted roof, for the camera (the car rides up through the roof).
+  for (const sz of [-1, 1])
+    colliders.camera?.push({
+      x: bx,
+      z: bz + sz * 3.2,
+      hx: 4.15,
+      hz: 0.4,
+      rot: 0,
+      y0: LIFT_BOTTOM.y,
+      y1: LIFT_BOTTOM.y + 2.4,
+    });
+  colliders.camera?.push({
+    x: bx,
+    z: bz,
+    hx: 4.15,
+    hz: 3.15,
+    rot: 0,
+    y0: LIFT_BOTTOM.y + 2.6,
+    y1: LIFT_BOTTOM.y + 4.0,
+  });
   anchor('liftBottom', {
     x: 766.7,
     y: LIFT_BOTTOM.y,
@@ -1819,6 +1857,16 @@ function addHarbourPromenadeWall(buckets: Buckets, colliders: ColliderSet): void
     addBox(buckets, 'paving', mid, PLAZA.height - 0.08, -775.0, width, 0.16, 3.6, 0, 0xf0d7aa);
     addArcade(buckets, mid, PLAZA.height, -776.45, 0, Math.max(3, Math.floor(width / 12)));
     colliders.boxes.push({ x: mid, z: -773.7, hx: width * 0.5, hz: 0.6, rot: 0, height: 4.8 });
+    // The retaining wall's face over the quay, for the camera.
+    colliders.camera?.push({
+      x: mid,
+      z: -771.0,
+      hx: width * 0.5 + 0.3,
+      hz: 0.58,
+      rot: 0,
+      y0: MERIDIAN.harbor.quay.height - 0.15,
+      y1: PLAZA.height + 0.22,
+    });
   }
 }
 
@@ -1851,6 +1899,8 @@ function addTerraceStairStreet(buckets: Buckets, colliders: ColliderSet, stair: 
       addBox(buckets, 'stone', x, h + 0.02, z, 0.36, 0.72, tread * 2 + 0.08, 0, LIMESTONE_DARK);
       addBox(buckets, 'stone', x, h + 0.76, z, 0.44, 0.16, tread * 2 + 0.12, 0, LIMESTONE_LIGHT);
       colliders.boxes.push({ x, z, hx: 0.34, hz: tread + 0.08, rot: 0, height: 0.95 });
+      // The walking box sits on the lower step; the drawn wall's cap is higher.
+      colliders.camera?.push({ x, z, hx: 0.24, hz: tread + 0.06, rot: 0, y0: h - rise * 2, y1: h + 0.94 });
     }
   }
 }
@@ -2972,6 +3022,25 @@ function addCurtainWall(
     addBox(buckets, 'stone', px, y + h, pz, 0.86, 0.72, 1.7, rot, LIMESTONE_LIGHT);
     if (i % 3 === 0) colliders.boxes.push({ x: px, z: pz, hx: 1.4, hz: 0.95, rot, height: h + 0.9 });
     if (i % 4 === 0) perches.push(new Vector3(px, y + h + 0.8, pz));
+  }
+  // The whole ring, merlons included, for the camera: one chord box per segment of the wall.
+  for (let i = 0; i < n; i += 1) {
+    const a0 = (i / n) * Math.PI * 2,
+      a1 = ((i + 1) / n) * Math.PI * 2;
+    const x0 = x + Math.cos(a0) * rx,
+      z0 = z + Math.sin(a0) * rz;
+    const x1 = x + Math.cos(a1) * rx,
+      z1 = z + Math.sin(a1) * rz;
+    const len = Math.hypot(x1 - x0, z1 - z0);
+    colliders.camera?.push({
+      x: (x0 + x1) * 0.5,
+      z: (z0 + z1) * 0.5,
+      hx: len * 0.5 + 0.15,
+      hz: thickness * 0.5,
+      rot: Math.atan2(-(z1 - z0), x1 - x0),
+      y0: y - 0.75,
+      y1: y + h + 0.72,
+    });
   }
 }
 

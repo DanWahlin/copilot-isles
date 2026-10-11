@@ -57,6 +57,8 @@ export class CollisionWorld {
   private readonly inland: ((x: number, z: number) => number | null) | null;
   private readonly surfaces: WalkSurface[];
   private readonly grid = new Map<number, Bucket>();
+  /** Camera-only blockers (addCameraBox): walkers, sight lines and audits don't see them. */
+  private readonly cameraGrid = new Map<number, Bucket>();
   private readonly dynamic: CircleObstacle[] = [];
   private readonly normal = new Float32Array(3);
 
@@ -78,6 +80,16 @@ export class CollisionWorld {
   }
 
   private insert(x: number, z: number, r: number, add: (b: Bucket) => void): void {
+    this.insertInto(this.grid, x, z, r, add);
+  }
+
+  private insertInto(
+    grid: Map<number, Bucket>,
+    x: number,
+    z: number,
+    r: number,
+    add: (b: Bucket) => void,
+  ): void {
     const x0 = Math.floor((x - r) / CELL),
       x1 = Math.floor((x + r) / CELL);
     const z0 = Math.floor((z - r) / CELL),
@@ -85,8 +97,8 @@ export class CollisionWorld {
     for (let cx = x0; cx <= x1; cx++)
       for (let cz = z0; cz <= z1; cz++) {
         const k = this.key(cx, cz);
-        let b = this.grid.get(k);
-        if (!b) this.grid.set(k, (b = { circles: [], boxes: [] }));
+        let b = grid.get(k);
+        if (!b) grid.set(k, (b = { circles: [], boxes: [] }));
         add(b);
       }
   }
@@ -209,34 +221,58 @@ export class CollisionWorld {
    * `sightBlockedAt`, small round colliders count too (barrels, posts, crates: up to their `height`,
    * else 2 m), colliders with a span (`y0`/`y1`) use it, a box stands on the walkable height at its
    * centre (a shed on a pier, not the seabed under it), and a building's roof can rise over its top.
+   * Camera-only blockers (addCameraBox) count too, unless the pivot (px, py, pz) is in the same one.
    */
-  cameraBlockedAt(x: number, y: number, z: number, pad: number): boolean {
+  cameraBlockedAt(x: number, y: number, z: number, pad: number, px = NaN, py = NaN, pz = NaN): boolean {
     const b = this.cellAt(x, z);
-    if (!b) return false;
-    for (const box of b.boxes) {
-      const [lx, lz] = toLocal(box, x, z);
-      const ex = Math.abs(lx) - box.hx,
-        ez = Math.abs(lz) - box.hz;
-      if (ex > pad || ez > pad) continue;
-      if (box.y1 !== undefined) {
-        if (y >= (box.y0 ?? -Infinity) - pad && y <= box.y1 + pad) return true;
-        continue;
-      }
-      const h = box.height ?? 9;
-      // A roof rises ROOF_PITCH m per metre in from the eaves (which overhang the walls by `pad`).
-      const roof = h >= ROOF_MIN ? Math.max(0, pad - Math.max(ex, ez)) * ROOF_PITCH : 0;
-      if (y < this.groundAt(box.x, box.z) + h + pad + roof) return true;
+    if (b) {
+      for (const box of b.boxes) if (this.boxBlocksEye(box, x, y, z, pad)) return true;
+      for (const c of b.circles) if (this.circleBlocksEye(c, x, y, z, pad)) return true;
     }
-    for (const c of b.circles) {
-      const dx = x - c.x,
-        dz = z - c.z,
-        r = c.r + pad;
-      if (dx * dx + dz * dz >= r * r) continue;
-      if (c.y1 !== undefined) {
-        if (y >= (c.y0 ?? -Infinity) - pad && y <= c.y1 + pad) return true;
-      } else if (y < this.groundAt(c.x, c.z) + (c.height ?? (c.r >= 1.5 ? 12 : 2)) + pad) return true;
-    }
+    const k = this.cameraGrid.get(this.key(Math.floor(x / CELL), Math.floor(z / CELL)));
+    if (!k) return false;
+    // A camera-only blocker the pivot is in too (the player walks through a cliff's overhang or by
+    // a rock's rough box) doesn't count, or the camera would fold onto the player's head.
+    for (const box of k.boxes)
+      if (this.boxBlocksEye(box, x, y, z, pad) && !this.boxBlocksEye(box, px, py, pz, pad)) return true;
+    for (const c of k.circles)
+      if (this.circleBlocksEye(c, x, y, z, pad) && !this.circleBlocksEye(c, px, py, pz, pad)) return true;
     return false;
+  }
+
+  /**
+   * Adds a box the camera can't enter but walkers pass (a rock's or a cliff's rough shape, a wall
+   * top the player never stands beside). Give it a span (`y0`/`y1`).
+   */
+  addCameraBox(b: BoxCollider): void {
+    this.insertInto(this.cameraGrid, b.x, b.z, Math.hypot(b.hx, b.hz) + 1, (k) => k.boxes.push(b));
+  }
+
+  /** A round camera-only blocker (see addCameraBox). */
+  addCameraCircle(c: CircleObstacle): void {
+    this.insertInto(this.cameraGrid, c.x, c.z, c.r + 1, (k) => k.circles.push(c));
+  }
+
+  private boxBlocksEye(box: BoxCollider, x: number, y: number, z: number, pad: number): boolean {
+    const [lx, lz] = toLocal(box, x, z);
+    const ex = Math.abs(lx) - box.hx,
+      ez = Math.abs(lz) - box.hz;
+    // NaN (no pivot) fails this test, so a missing point is never inside.
+    if (!(ex <= pad && ez <= pad)) return false;
+    if (box.y1 !== undefined) return y >= (box.y0 ?? -Infinity) - pad && y <= box.y1 + pad;
+    const h = box.height ?? 9;
+    // A roof rises ROOF_PITCH m per metre in from the eaves (which overhang the walls by `pad`).
+    const roof = h >= ROOF_MIN ? Math.max(0, pad - Math.max(ex, ez)) * ROOF_PITCH : 0;
+    return y < this.groundAt(box.x, box.z) + h + pad + roof;
+  }
+
+  private circleBlocksEye(c: CircleObstacle, x: number, y: number, z: number, pad: number): boolean {
+    const dx = x - c.x,
+      dz = z - c.z,
+      r = c.r + pad;
+    if (!(dx * dx + dz * dz < r * r)) return false;
+    if (c.y1 !== undefined) return y >= (c.y0 ?? -Infinity) - pad && y <= c.y1 + pad;
+    return y < this.groundAt(c.x, c.z) + (c.height ?? (c.r >= 1.5 ? 12 : 2)) + pad;
   }
 
   /** Whether (x, y, z) lies inside a box footprint below its top. Used by the camera. */

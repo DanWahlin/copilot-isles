@@ -5,7 +5,8 @@ import { COVE } from '../layout';
 import { ROCK_ASSETS } from './rock-assets';
 import { createRockMaterial } from './terrain-material';
 import { createSeaStack, createSeaStackMaterial } from './sea-stack';
-import { createHeadlandCliff } from './headland-cliff';
+import { createHeadlandCliff, headlandCliffCameraBlockers } from './headland-cliff';
+import { meshCameraBlockers, type CameraBlockerBox } from './camera-blockers';
 
 interface RockInstance {
   asset: number;
@@ -184,6 +185,43 @@ function rockGeometry(asset: (typeof ROCK_ASSETS)[number]): BufferGeometry {
   return geometry;
 }
 
+const rotation = new Quaternion();
+const euler = new Euler();
+const scale = new Vector3();
+const position = new Vector3();
+const normal = new Float32Array(3);
+
+/** Where a rock instance sits: sunk into the slope along the terrain normal. */
+function rockMatrix(r: RockInstance, heightField: HeightField, matrix: Matrix4): Matrix4 {
+  heightField.normalAt(r.x, r.z, normal);
+  const terrainY = heightField.heightAt(r.x, r.z);
+  const sink = Math.min(r.sx, r.sy, r.sz) * (r.y === undefined ? 0.34 : 0.52);
+  const y = (r.y ?? terrainY) + (r.yOffset ?? 0);
+  euler.set(r.pitch ?? 0, r.yaw, r.roll ?? 0, 'YXZ');
+  rotation.setFromEuler(euler);
+  scale.set(r.sx, r.sy, r.sz);
+  return matrix.compose(
+    position.set(r.x - normal[0] * sink, y - normal[1] * sink, r.z - normal[2] * sink),
+    rotation,
+    scale,
+  );
+}
+
+/**
+ * Camera-only blockers for Anchorage Cay's boulders, the headland's cliff and the sea stack's foot
+ * (the follow camera keeps out of them; walkers don't see them).
+ */
+export function terrainRockCameraBlockers(heightField: HeightField, tier: Tier = 'high'): CameraBlockerBox[] {
+  const out: CameraBlockerBox[] = [];
+  const matrix = new Matrix4();
+  for (const r of allRockInstances()) {
+    if (Math.max(r.sx, r.sy, r.sz) < 0.9) continue;
+    meshCameraBlockers(ROCK_ASSETS[r.asset].positions, rockMatrix(r, heightField, matrix), out);
+  }
+  headlandCliffCameraBlockers(heightField, out, tier);
+  return out;
+}
+
 /** The same rocks, yielding between the big pieces (the sea stack, the cliff, the boulders). */
 export function* buildTerrainRocks(
   heightField: HeightField,
@@ -201,12 +239,6 @@ export function* buildTerrainRocks(
   }
 
   const matrix = new Matrix4();
-  const rotation = new Quaternion();
-  const euler = new Euler();
-  const scale = new Vector3();
-  const position = new Vector3();
-  const normal = new Float32Array(3);
-
   // The sea stack and the headland's cliff share one karst material (one pipeline for both).
   const karst = createSeaStackMaterial(tier);
   group.add(createSeaStack(tier, karst));
@@ -223,20 +255,7 @@ export function* buildTerrainRocks(
     mesh.receiveShadow = true;
     mesh.frustumCulled = true;
     for (let i = 0; i < list.length; i++) {
-      const r = list[i];
-      heightField.normalAt(r.x, r.z, normal);
-      const terrainY = heightField.heightAt(r.x, r.z);
-      const sink = Math.min(r.sx, r.sy, r.sz) * (r.y === undefined ? 0.34 : 0.52);
-      const y = (r.y ?? terrainY) + (r.yOffset ?? 0);
-      euler.set(r.pitch ?? 0, r.yaw, r.roll ?? 0, 'YXZ');
-      rotation.setFromEuler(euler);
-      scale.set(r.sx, r.sy, r.sz);
-      matrix.compose(
-        position.set(r.x - normal[0] * sink, y - normal[1] * sink, r.z - normal[2] * sink),
-        rotation,
-        scale,
-      );
-      mesh.setMatrixAt(i, matrix);
+      mesh.setMatrixAt(i, rockMatrix(list[i], heightField, matrix));
     }
     mesh.instanceMatrix.needsUpdate = true;
     mesh.computeBoundingSphere();

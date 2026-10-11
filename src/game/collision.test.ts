@@ -51,4 +51,22 @@ describe('CollisionWorld.cameraBlockedAt', () => {
     expect(w.cameraBlockedAt(5, 5, 0, 0.2)).toBe(true);
     expect(w.cameraBlockedAt(5, 2, 0, 0.2)).toBe(false);
   });
+
+  it('keeps camera-only blockers out of walking and sight lines, and skips them round the pivot', () => {
+    const w = new CollisionWorld({ ground: seabed });
+    w.addCameraBox({ x: 0, z: 0, hx: 2, hz: 1, rot: 0, y0: -3, y1: 4 });
+    w.addCameraCircle({ x: 10, z: 0, r: 1.5, y0: -3, y1: 1 });
+    const p = { x: 0, z: 0 };
+    expect(w.pushOut(p, 0.3)).toBe(false);
+    expect(w.sightBlockedAt(0, 0, 0)).toBe(false);
+    expect(w.occludedAt(0, 0, 0)).toBe(false);
+    expect(w.boxes()).toHaveLength(0);
+    expect(w.cameraBlockedAt(1.5, 2, 0, 0.2)).toBe(true);
+    expect(w.cameraBlockedAt(1.5, 4.5, 0, 0.2)).toBe(false);
+    expect(w.cameraBlockedAt(10, 0, 1, 0.2)).toBe(true);
+    // The pivot outside: blocked. The pivot in the same blocker (walking through it): not.
+    expect(w.cameraBlockedAt(1.5, 2, 0, 0.2, 6, 2, 0)).toBe(true);
+    expect(w.cameraBlockedAt(1.5, 2, 0, 0.2, -1, 1, 0)).toBe(false);
+    expect(w.cameraBlockedAt(10, 0, 1, 0.2, 10, 0.5, 0)).toBe(false);
+  });
 });

@@ -14,6 +14,7 @@ import {
 import type { HeightField } from '../contracts';
 import { fbm2, ridged2 } from '../terrain/cove-height';
 import { ROCK_ASSETS } from '../terrain/rock-assets';
+import { meshCameraBlockers, type CameraBlockerBox } from '../terrain/camera-blockers';
 import { createRockMaterial } from '../terrain/terrain-material';
 import { clamp01, segmentDistance, smoothstep } from '../../util/math';
 import { createMeridianWater, type MeridianWater } from './meridian-water';
@@ -189,11 +190,13 @@ function harborHeight(x: number, z: number, current: number): number {
   const basin = 1 - smoothstep(0.78, 1.08, Math.hypot(dx, dz));
   const floor = -h.depth + fbm2(x * 0.05, z * 0.05, 3, SEED + 20) * 0.12;
   let out = mix(current, floor, basin);
-  // Dredged berths along both quay faces, so ships can lie alongside at any point.
+  // Dredged berths along both quay faces, so ships can lie alongside at any point. The feather sits
+  // inside the decks (under the paving and the face walls), so the full depth reaches each face and
+  // no bank of the natural shore is left standing in the inner corner.
   const q = h.quay,
     arm = h.eastArm;
-  const alongQuay = blockMask(x, z, { x0: q.x0 + 6, x1: arm.x0 + 1, z0: q.z1 - 1, z1: q.z1 + 22 }, 8);
-  const alongArm = blockMask(x, z, { x0: arm.x0 - 22, x1: arm.x0 + 1, z0: q.z1 - 1, z1: arm.z1 + 8 }, 8);
+  const alongQuay = blockMask(x, z, { x0: q.x0 + 6, x1: arm.x0 + 8, z0: q.z1 - 8, z1: q.z1 + 22 }, 8);
+  const alongArm = blockMask(x, z, { x0: arm.x0 - 22, x1: arm.x0 + 8, z0: q.z1 - 8, z1: arm.z1 + 8 }, 8);
   out = mix(out, Math.min(out, floor), Math.max(alongQuay, alongArm));
   out = mix(out, h.quay.height, blockMask(x, z, h.quay));
   out = mix(out, h.eastArm.height, blockMask(x, z, h.eastArm));
@@ -234,13 +237,16 @@ function townHeight(x: number, z: number, current: number): number {
 }
 
 function stairStreetTerrainHeight(x: number, z: number, current: number): number {
-  const x0 = MERIDIAN.pads.plaza.x;
-  const z0 = MERIDIAN.harbor.quay.z0 + 2;
+  const dx = Math.abs(x - MERIDIAN.pads.plaza.x);
+  // Under the stair street the ramp starts at the quay's back edge, like the treads, so it stays
+  // under them and the quay paving. Beside the street it keeps its start 2 m further in, so the
+  // banks either side don't move.
+  const z0 = MERIDIAN.harbor.quay.z0 + 2 * smoothstep(4.8, 6, dx);
   const z1 = MERIDIAN.pads.plaza.z;
   if (z > z0 || z < z1) return current;
   const t = clamp01((z0 - z) / (z0 - z1));
   const ramp = MERIDIAN.harbor.quay.height + (MERIDIAN.pads.plaza.height - MERIDIAN.harbor.quay.height) * t;
-  const mask = 1 - smoothstep(5.8, 10, Math.abs(x - x0));
+  const mask = 1 - smoothstep(5.8, 10, dx);
   return mix(current, ramp, mask);
 }
 
@@ -351,6 +357,9 @@ export function meridianHeightDry(x: number, z: number): number {
   const ridgeBlend = Math.max(smoothstep(-12, 22, coast.distance), smoothstep(0.08, 0.25, ridgeFoot));
   h = mix(h, ridgeHeight(x, z, h), ridgeBlend);
   h = liftClearanceHeight(x, z, h);
+  // Last, the ground under the quay and east-arm paving (edges included) stays inside the slab:
+  // the plaza pad's feather, the town ramp and the hill behind would otherwise rise through it.
+  if (meridianQuayHeight(x, z) !== null) h = Math.min(h, MERIDIAN.harbor.quay.height);
   if (coast.radial > MERIDIAN.seabedRadius) h = Math.min(h, -MERIDIAN.deepDepth);
   return h;
 }
@@ -519,66 +528,93 @@ export function createMeridianSilhouette(): Group {
   return group;
 }
 
+const rockEuler = new Euler();
+const rockRotation = new Quaternion();
+const rockPosition = new Vector3();
+const rockScale = new Vector3();
+const rockNormal = new Float32Array(3);
+const ROCK_MOLE_COUNT = 14;
+const ROCK_COAST_COUNT = 20;
+
+/** Where coastal rock `i` of asset `assetIndex` sits (scaled to nothing where it would be in fresh water). */
+function meridianRockMatrix(
+  assetIndex: number,
+  i: number,
+  heightField: HeightField,
+  matrix: Matrix4,
+): Matrix4 {
+  const moleCount = ROCK_MOLE_COUNT;
+  const normal = rockNormal,
+    euler = rockEuler,
+    rotation = rockRotation,
+    scale = rockScale,
+    position = rockPosition;
+  const seed = 100 + assetIndex * 97 + i * 11;
+  let x: number;
+  let z: number;
+  let s: number;
+  if (i < moleCount) {
+    const t = (i + assetIndex / 3) / (moleCount - 1);
+    const dx = MERIDIAN.mole.end.x - MERIDIAN.mole.start.x;
+    const dz = MERIDIAN.mole.end.z - MERIDIAN.mole.start.z;
+    const len = Math.hypot(dx, dz) || 1;
+    const sx = dz / len;
+    const sz = -dx / len;
+    const offset = MERIDIAN.mole.width * 0.78 + rand(seed + 1) * 8;
+    x = MERIDIAN.mole.start.x + dx * t + sx * offset + (rand(seed + 2) - 0.5) * 3.5;
+    z = MERIDIAN.mole.start.z + dz * t + sz * offset + (rand(seed + 3) - 0.5) * 3.5;
+    s = 2.9 + rand(seed + 4) * 4.9;
+  } else {
+    const j = i - moleCount;
+    const a = -0.92 + rand(seed) * 1.25;
+    const r = 265 + rand(seed + 1) * 80;
+    x = MERIDIAN.center.x + Math.cos(a) * r;
+    z = MERIDIAN.center.z + Math.sin(a) * r;
+    s = 4 + rand(seed + j + 2) * 8;
+  }
+  heightField.normalAt(x, z, normal);
+  const yaw = rand(seed + 6) * Math.PI * 2;
+  euler.set((rand(seed + 7) - 0.5) * 0.2, yaw, (rand(seed + 8) - 0.5) * 0.24, 'YXZ');
+  rotation.setFromEuler(euler);
+  scale.set(s * (1.2 + rand(seed + 3)), s * (0.55 + rand(seed + 4) * 0.65), s * (0.9 + rand(seed + 5)));
+  // None in the fresh water (the cascade's gully, the brook, the lake).
+  if (meridianWater().shoreDistance(x, z, 30) < s * 1.4 + 2) scale.setScalar(0);
+  position.set(
+    x - normal[0] * s * 0.28,
+    heightField.heightAt(x, z) - normal[1] * s * 0.28 - 1.1,
+    z - normal[2] * s * 0.28,
+  );
+  return matrix.compose(position, rotation, scale);
+}
+
+/** Camera-only blockers for the coastal rocks (the follow camera keeps out of them; walkers don't see them). */
+export function meridianRockCameraBlockers(heightField: HeightField): CameraBlockerBox[] {
+  const out: CameraBlockerBox[] = [];
+  const matrix = new Matrix4();
+  for (let assetIndex = 0; assetIndex < 3; assetIndex++)
+    for (let i = 0; i < ROCK_MOLE_COUNT + ROCK_COAST_COUNT; i++) {
+      meridianRockMatrix(assetIndex, i, heightField, matrix);
+      if (rockScale.x > 0) meshCameraBlockers(ROCK_ASSETS[assetIndex].positions, matrix, out);
+    }
+  return out;
+}
+
 export function createMeridianRocks(heightField: HeightField): Group {
   const group = new Group();
   group.name = 'meridian-coastal-rocks';
   const material = createRockMaterial();
   const matrix = new Matrix4();
-  const euler = new Euler();
-  const rotation = new Quaternion();
-  const position = new Vector3();
-  const scale = new Vector3();
-  const normal = new Float32Array(3);
   for (let assetIndex = 0; assetIndex < 3; assetIndex++) {
     const asset = ROCK_ASSETS[assetIndex];
-    const moleCount = 14;
-    const coastCount = 20;
-    const instances = moleCount + coastCount;
+    const instances = ROCK_MOLE_COUNT + ROCK_COAST_COUNT;
     const geometry = new BufferGeometry();
     geometry.setAttribute('position', new BufferAttribute(asset.positions, 3));
     geometry.setAttribute('normal', new BufferAttribute(asset.normals, 3));
     geometry.setIndex(new BufferAttribute(asset.indices, 1));
     const mesh = sharedInstancedMesh(geometry, material, instances);
     mesh.name = `meridian-rocks-${asset.key}`;
-    for (let i = 0; i < instances; i++) {
-      const seed = 100 + assetIndex * 97 + i * 11;
-      let x: number;
-      let z: number;
-      let s: number;
-      if (i < moleCount) {
-        const t = (i + assetIndex / 3) / (moleCount - 1);
-        const dx = MERIDIAN.mole.end.x - MERIDIAN.mole.start.x;
-        const dz = MERIDIAN.mole.end.z - MERIDIAN.mole.start.z;
-        const len = Math.hypot(dx, dz) || 1;
-        const sx = dz / len;
-        const sz = -dx / len;
-        const offset = MERIDIAN.mole.width * 0.78 + rand(seed + 1) * 8;
-        x = MERIDIAN.mole.start.x + dx * t + sx * offset + (rand(seed + 2) - 0.5) * 3.5;
-        z = MERIDIAN.mole.start.z + dz * t + sz * offset + (rand(seed + 3) - 0.5) * 3.5;
-        s = 2.9 + rand(seed + 4) * 4.9;
-      } else {
-        const j = i - moleCount;
-        const a = -0.92 + rand(seed) * 1.25;
-        const r = 265 + rand(seed + 1) * 80;
-        x = MERIDIAN.center.x + Math.cos(a) * r;
-        z = MERIDIAN.center.z + Math.sin(a) * r;
-        s = 4 + rand(seed + j + 2) * 8;
-      }
-      heightField.normalAt(x, z, normal);
-      const yaw = rand(seed + 6) * Math.PI * 2;
-      euler.set((rand(seed + 7) - 0.5) * 0.2, yaw, (rand(seed + 8) - 0.5) * 0.24, 'YXZ');
-      rotation.setFromEuler(euler);
-      scale.set(s * (1.2 + rand(seed + 3)), s * (0.55 + rand(seed + 4) * 0.65), s * (0.9 + rand(seed + 5)));
-      // None in the fresh water (the cascade's gully, the brook, the lake).
-      if (meridianWater().shoreDistance(x, z, 30) < s * 1.4 + 2) scale.setScalar(0);
-      position.set(
-        x - normal[0] * s * 0.28,
-        heightField.heightAt(x, z) - normal[1] * s * 0.28 - 1.1,
-        z - normal[2] * s * 0.28,
-      );
-      matrix.compose(position, rotation, scale);
-      mesh.setMatrixAt(i, matrix);
-    }
+    for (let i = 0; i < instances; i++)
+      mesh.setMatrixAt(i, meridianRockMatrix(assetIndex, i, heightField, matrix));
     mesh.instanceMatrix.needsUpdate = true;
     mesh.computeBoundingSphere();
     group.add(mesh);

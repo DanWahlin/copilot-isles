@@ -20,7 +20,8 @@ import { arrivalFlight, arrivalKeys, type IslandArrival, type IslandId } from '.
 import { ISLANDS, islandAt, openIslands, passageSky, type IslandBerth } from './islands';
 
 export { ISLANDS, islandAt } from './islands';
-import { meridianQuayHeight, meridianWater } from '../world/islands/meridian';
+import { meridianQuayHeight, meridianRockCameraBlockers, meridianWater } from '../world/islands/meridian';
+import { terrainRockCameraBlockers } from '../world/terrain/terrain-rocks';
 import { meridianTownPlantColliders } from '../world/meridian-town/plantings';
 import { FlyoverPath } from './flyover';
 import { world as worldUniforms } from '../world/uniforms';
@@ -288,6 +289,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     // Port Meridian's lake and streams: wade the shallows, and the deep middle stops you.
     inland: (x, z) => meridianWater().levelAt(x, z),
   });
+  // Boulders and the headland cliff's overhang: only the follow camera keeps out of them.
+  for (const b of terrainRockCameraBlockers(terrain.heightField, tier.tier)) world.addCameraBox(b);
 
   const hud = new Hud(o.hudParent);
   await hud.loadSubtitles(o.voiceManifest ?? '/voice/testcove/manifest.json');
@@ -478,6 +481,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     if (!town || disposed || meridianTownCollidersAdded) return;
     for (const c of town.colliders.circles) world.addCircle(c);
     for (const b of town.colliders.boxes) world.addBox(b);
+    for (const b of town.cameraBlockers) world.addCameraBox(b);
+    const meridianGround = cove.meridian.terrain?.heightField;
+    if (meridianGround) for (const b of meridianRockCameraBlockers(meridianGround)) world.addCameraBox(b);
     meridianTownCollidersAdded = true;
   };
   addMeridianTownColliders(cove.meridian.town);

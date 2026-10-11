@@ -287,7 +287,9 @@ export class FollowCamera {
       const step = this.wantDist / n;
       for (let i = 1; i <= n; i++) {
         const s = step * i;
-        if (blocked(world, r, this.pivot.x - dx * s, this.pivot.y - dy * s, this.pivot.z - dz * s)) {
+        if (
+          blocked(world, r, this.pivot, this.pivot.x - dx * s, this.pivot.y - dy * s, this.pivot.z - dz * s)
+        ) {
           allowed = Math.max(NEAR_DIST, s - step);
           break;
         }
@@ -395,7 +397,14 @@ export class FollowCamera {
 }
 
 /** Whether the camera can't sit at (x, y, z): too near the ground, a cliff face, or a collider. */
-function blocked(world: CollisionWorld, r: CameraRig, x: number, y: number, z: number): boolean {
+function blocked(
+  world: CollisionWorld,
+  r: CameraRig,
+  pivot: { x: number; y: number; z: number },
+  x: number,
+  y: number,
+  z: number,
+): boolean {
   const g = world.groundAt(x, z);
   if (y < g + GROUND_CLEAR) return true;
   const k = r.ringRadius,
@@ -408,5 +417,6 @@ function blocked(world: CollisionWorld, r: CameraRig, x: number, y: number, z: n
       world.groundAt(x, z - k) > lift)
   )
     return true;
-  return world.cameraBlockedAt(x, y, z, PAD_LOW + (PAD_HIGH - PAD_LOW) * smoothstep(1.8, 3, y - g));
+  const pad = PAD_LOW + (PAD_HIGH - PAD_LOW) * smoothstep(1.8, 3, y - g);
+  return world.cameraBlockedAt(x, y, z, pad, pivot.x, pivot.y, pivot.z);
 }
