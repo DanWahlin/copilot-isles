@@ -23,6 +23,7 @@ import {
   referenceBuffer,
   tangentLocal,
 } from 'three/tsl';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 // three's TSL fluent node typings do not cover this matrix graph.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -231,5 +232,62 @@ export function shareSkinning(root: Object3D): void {
       source.parent = null;
     }
     mesh.updateMatrixWorld(true);
+  }
+}
+
+/**
+ * Merges the attached-bind skinned meshes under `root` that share a skeleton, a material and an
+ * attribute layout (a rig built of parts: arms, legs, body, head) into one, so the rig costs one draw
+ * per pass. Each part's vertices move into the first part's bind space, so they skin to the same
+ * place. The parts' geometries are disposed: use it on a rig that owns them, not a shared source.
+ */
+export function mergeSkinnedParts(root: Object3D): void {
+  const sets = new Map<string, SkinnedMesh[]>();
+  root.traverse((object) => {
+    if (!(object instanceof SkinnedMesh) || Array.isArray(object.material) || object.children.length) return;
+    const g = object.geometry;
+    if (!object.visible || object.bindMode !== AttachedBindMode || Object.keys(g.morphAttributes).length)
+      return;
+    const layout = Object.keys(g.attributes)
+      .map((name) => {
+        const a = g.getAttribute(name);
+        return `${name}:${a.itemSize}:${a.array.constructor.name}:${a.normalized}`;
+      })
+      .sort()
+      .join(',');
+    const key = `${object.skeleton.uuid}|${object.material.uuid}|${g.index ? 'i' : 'n'}|${layout}`;
+    const list = sets.get(key) ?? [];
+    list.push(object);
+    sets.set(key, list);
+  });
+  const toFirst = new Matrix4();
+  for (const parts of sets.values()) {
+    if (parts.length < 2) continue;
+    const first = parts[0]!;
+    const firstBindInverse = new Matrix4().copy(first.bindMatrix).invert();
+    const geometries = parts.map((part) => {
+      const g = part.geometry.clone();
+      toFirst.multiplyMatrices(firstBindInverse, part.bindMatrix);
+      g.applyMatrix4(toFirst);
+      return g;
+    });
+    const merged = mergeGeometries(geometries, false);
+    for (const g of geometries) g.dispose();
+    if (!merged) continue;
+    const out = new SkinnedMesh(merged, first.material);
+    out.name = parts.map((part) => part.name).join('+');
+    out.position.copy(first.position);
+    out.quaternion.copy(first.quaternion);
+    out.scale.copy(first.scale);
+    out.castShadow = first.castShadow;
+    out.receiveShadow = first.receiveShadow;
+    out.frustumCulled = first.frustumCulled;
+    out.bindMode = first.bindMode;
+    out.bind(first.skeleton, first.bindMatrix);
+    first.parent?.add(out);
+    for (const part of parts) {
+      part.removeFromParent();
+      part.geometry.dispose();
+    }
   }
 }

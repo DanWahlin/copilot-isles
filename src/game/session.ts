@@ -9,6 +9,7 @@ import type { Input } from '../engine/input';
 import type { Character, CharacterLibrary, PlayerBody } from '../world/characters';
 import { ParrotFlight, type FlightView } from '../world/characters/parrot-flight';
 import type { CoveScene } from '../world/cove-scene';
+import type { FarCull } from '../world/far-cull';
 import { COVE } from '../world/layout';
 import { windOnBow } from '../world/ship/dynamics';
 import { windAt } from '../world/wind';
@@ -406,7 +407,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       heading: 0,
     },
   );
-  for (const n of npcs.list) engine.scene.add(n.character.group);
+  for (const n of npcs.list) {
+    engine.scene.add(n.character.group);
+    cove.detail.anchorage.add(n.character.group);
+  }
 
   const cam = new FollowCamera();
   cam.snapBehind(player.heading);
@@ -622,7 +626,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
   // Treasure chests beside their NPCs; each grants a Logbook page once.
   const chests: { id: string; chest: TreasureChest; x: number; y: number; z: number }[] = [];
-  const placeChest = (c: { id: string; side: number; back: number }, n: Npc) => {
+  const placeChest = (c: { id: string; side: number; back: number }, n: Npc, detail: FarCull) => {
     const s = Math.sin(n.heading);
     const co = Math.cos(n.heading);
     // NPC-right (for a character facing +heading) is (-cos, +sin) in xz.
@@ -634,6 +638,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     chest.group.rotation.y = n.heading;
     if (learn?.isChestOpen(c.id)) chest.setOpen();
     engine.scene.add(chest.group);
+    detail.add(chest.group);
     world.addCircle({ x, z, r: 0.55 });
     chests.push({ id: c.id, chest, x, y, z });
     interactions.add({
@@ -649,7 +654,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   };
   for (const c of COVE_CHESTS) {
     const n = npcs.list.find((v) => v.spec.id === c.npc);
-    if (n) placeChest(c, n);
+    if (n) placeChest(c, n, cove.detail.anchorage);
   }
   async function openChest(id: string, chest: TreasureChest): Promise<void> {
     input.enabled = false;
@@ -1104,7 +1109,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     const chestsBefore = chests.length;
     for (const c of MERIDIAN_CHESTS) {
       const n = meridianNpcs.list.find((v) => v.spec.id === c.npc);
-      if (n) placeChest(c, n);
+      if (n) placeChest(c, n, cove.detail.meridian);
     }
     for (const c of chests.slice(chestsBefore)) c.chest.group.visible = false;
     if (quests()['Q1.8'] === 'done') {
@@ -1158,6 +1163,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       ...chests.slice(chestsBefore).map((c) => c.chest.group),
       ...meridianSites.map((s) => s.group),
     ];
+    for (const n of meridianNpcs.list) cove.detail.meridian.add(n.character.group);
+    for (const s of meridianSites) cove.detail.meridian.add(s.group);
     return {
       roots,
       reveal() {

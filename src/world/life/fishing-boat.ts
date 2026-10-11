@@ -7,7 +7,7 @@
  * The fishermen sit with their legs on one animation layer and their arms on another, so a wave or a
  * cast plays over the sitting pose without standing them up.
  */
-import { shareSkinning } from '../characters/shared-skinning';
+import { mergeSkinnedParts, shareSkinning } from '../characters/shared-skinning';
 import { unreflected } from '../reflection';
 import {
   AnimationMixer,
@@ -119,7 +119,6 @@ function makeFisher(gltf: GLTF, at: { x: number; seatY: number; z: number; yaw: 
     if (m.isMesh) {
       m.castShadow = true;
       m.receiveShadow = true;
-      m.frustumCulled = false;
     }
   });
   const root = new Group();
@@ -152,8 +151,19 @@ function makeFisher(gltf: GLTF, at: { x: number; seatY: number; z: number; yaw: 
   const hipsY = hips ? hips.getWorldPosition(_v).y : box.max.y * 0.3;
   root.position.set(at.x, at.seatY - hipsY, at.z);
   root.rotation.y = at.yaw;
-  // The characters' shared skinning shader (issue 235); like every character, not in the mirror.
+  // One skinned mesh per fisher (his parts share a rig and a texture), then the characters' shared
+  // skinning shader (issue 235); like every character, not in the mirror.
+  mergeSkinnedParts(model);
   shareSkinning(model);
+  // Frustum-cull him like the characters: his bind-pose bounds, padded for the sitting pose.
+  model.traverse((o) => {
+    const m = o as Mesh;
+    if (!m.isMesh) return;
+    m.frustumCulled = true;
+    if (!('sharedSkin' in m)) return;
+    m.geometry.computeBoundingSphere();
+    m.geometry.boundingSphere!.radius *= 1.3;
+  });
   unreflected.add(root);
   return {
     root,

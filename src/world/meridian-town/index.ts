@@ -395,13 +395,20 @@ function addHarbour(
   const { quay, eastArm } = MERIDIAN.harbor;
   const deck = quay.height;
   const waterBase = -MERIDIAN.harbor.depth - 0.35;
+  // The quay's water face (z1) ends at the arm's water face (x0), and the arm's starts at the quay's:
+  // past that corner the two decks are one, so a face, coping or wall there cuts across the walk.
+  const quayFaceX1 = eastArm.x0;
+  const armFaceZ0 = quay.z1;
+  // The gangway's foot (the ship's port side at the berth): the arm's west coping and wall open here.
+  const gangwayZ = MERIDIAN.harbor.berth.z - 0.15;
+  const gangwayGap = 1.2;
   addBox(
     buckets,
     'stone',
-    (quay.x0 + quay.x1) / 2,
+    (quay.x0 + quayFaceX1) / 2,
     waterBase,
     quay.z1 - 0.65,
-    quay.x1 - quay.x0,
+    quayFaceX1 - quay.x0,
     deck - waterBase + 0.2,
     1.3,
     0,
@@ -412,10 +419,10 @@ function addHarbour(
     'stone',
     eastArm.x0 - 0.65,
     waterBase,
-    (eastArm.z0 + eastArm.z1) / 2,
+    (armFaceZ0 - 1.3 + eastArm.z1) / 2,
     1.3,
     deck - waterBase + 0.2,
-    eastArm.z1 - eastArm.z0,
+    eastArm.z1 - armFaceZ0 + 1.3,
     0,
     LIMESTONE_DARK,
   );
@@ -507,56 +514,69 @@ function addHarbour(
       0,
       0xb99562,
     );
+  // The arm's south end had no face: from the sea it read as a slab on legs. Its top stays under the paving.
+  addBox(
+    buckets,
+    'stone',
+    (eastArm.x0 + eastArm.x1) / 2,
+    waterBase,
+    eastArm.z1 - 0.65,
+    eastArm.x1 - eastArm.x0,
+    deck - waterBase,
+    1.3,
+    0,
+    LIMESTONE_DARK,
+  );
   addQuayEdgeCoping(buckets, quay.x0, MOLE_CONNECTOR.x0 - 0.9, deck, quay.z1 - 0.15);
-  addQuayEdgeCoping(buckets, MOLE_CONNECTOR.x1 + 0.9, quay.x1, deck, quay.z1 - 0.15);
+  addQuayEdgeCoping(buckets, MOLE_CONNECTOR.x1 + 0.9, quayFaceX1 - 0.72, deck, quay.z1 - 0.15);
+  addArmCoping(buckets, eastArm.x0 - 0.12, deck, armFaceZ0 - 0.55, gangwayZ - gangwayGap);
+  addArmCoping(buckets, eastArm.x0 - 0.12, deck, gangwayZ + gangwayGap, eastArm.z1 + 0.4);
+  addArmCoping(buckets, eastArm.x1 + 0.12, deck, eastArm.z0 - 0.4, eastArm.z1 + 0.4);
   addBox(
     buckets,
     'stone',
-    eastArm.x0 - 0.12,
+    (eastArm.x0 + eastArm.x1) / 2,
     deck,
-    (eastArm.z0 + eastArm.z1) / 2,
-    0.8,
+    eastArm.z1 + 0.12,
+    eastArm.x1 - eastArm.x0 - 0.56,
     0.34,
-    eastArm.z1 - eastArm.z0 + 0.8,
+    0.8,
     0,
     LIMESTONE_LIGHT,
   );
-  addBox(
-    buckets,
-    'stone',
-    eastArm.x1 + 0.12,
-    deck,
-    (eastArm.z0 + eastArm.z1) / 2,
-    0.8,
-    0.34,
-    eastArm.z1 - eastArm.z0 + 0.8,
-    0,
-    LIMESTONE_LIGHT,
-  );
+  // Player walls along every water edge, open where the quay runs on onto the arm and at the gangway.
   addQuayEdgeWall(colliders, quay.x0, MOLE_CONNECTOR.x0 - 0.9, quay.z1 - 0.2);
-  addQuayEdgeWall(colliders, MOLE_CONNECTOR.x1 + 0.9, quay.x1, quay.z1 - 0.2);
-  addPlayerWall(
-    colliders,
-    eastArm.x0 - 0.2,
-    (eastArm.z0 + eastArm.z1) / 2,
-    0.24,
-    (eastArm.z0 - eastArm.z1) / 2,
-    0,
-    0.7,
-  );
-  addPlayerWall(
-    colliders,
-    eastArm.x1 + 0.2,
-    (eastArm.z0 + eastArm.z1) / 2,
-    0.24,
-    (eastArm.z0 - eastArm.z1) / 2,
-    0,
-    0.7,
-  );
+  addQuayEdgeWall(colliders, MOLE_CONNECTOR.x1 + 0.9, eastArm.x0 - 0.2, quay.z1 - 0.2);
+  addArmWall(colliders, eastArm.x0 - 0.2, armFaceZ0 - 0.44, gangwayZ - gangwayGap);
+  addArmWall(colliders, eastArm.x0 - 0.2, gangwayZ + gangwayGap, eastArm.z1 + 0.44);
+  addArmWall(colliders, eastArm.x1 + 0.2, eastArm.z0, eastArm.z1 + 0.44);
+  addQuayEdgeWall(colliders, eastArm.x0 - 0.44, eastArm.x1 + 0.44, eastArm.z1 + 0.2);
+  // For the camera: the arm's water faces and copings, the south end, and the gangway's gap in the
+  // west coping (the face under it runs on).
+  const armCamera = (x: number, hx: number, za: number, zb: number, y1: number): void => {
+    colliders.camera?.push({ x, z: (za + zb) * 0.5, hx, hz: (zb - za) * 0.5, rot: 0, y0: waterBase, y1 });
+  };
+  armCamera(eastArm.x0 - 0.66, 0.66, armFaceZ0 - 1.3, eastArm.z1, deck + 0.2);
+  armCamera(eastArm.x0 - 0.12, 0.42, armFaceZ0 - 0.55, gangwayZ - gangwayGap, deck + 0.35);
+  armCamera(eastArm.x0 - 0.12, 0.42, gangwayZ + gangwayGap, eastArm.z1 + 0.4, deck + 0.35);
+  armCamera(eastArm.x1 + 0.51, 0.81, eastArm.z0 - 0.4, eastArm.z1 + 0.4, deck + 0.35);
+  colliders.camera?.push({
+    x: (eastArm.x0 + eastArm.x1) / 2,
+    z: eastArm.z1 - 0.39,
+    hx: (eastArm.x1 - eastArm.x0) / 2 + 0.1,
+    hz: 0.92,
+    rot: 0,
+    y0: waterBase,
+    y1: deck + 0.35,
+  });
 
-  for (let x = quay.x0 + 6; x <= quay.x1 - 8; x += 6) addCopingJoint(buckets, x, deck, quay.z1 - 0.16, 0);
-  for (let z = eastArm.z1 + 6; z <= eastArm.z0 - 6; z += 6) {
-    addCopingJoint(buckets, eastArm.x0 - 0.16, deck, z, Math.PI / 2);
+  for (let x = quay.x0 + 6; x <= quayFaceX1 - 2; x += 6) {
+    if (x > MOLE_CONNECTOR.x0 - 1.5 && x < MOLE_CONNECTOR.x1 + 1.5) continue;
+    addCopingJoint(buckets, x, deck, quay.z1 - 0.16, 0);
+  }
+  for (let z = eastArm.z0 + 6; z <= eastArm.z1 - 6; z += 6) {
+    if (z > armFaceZ0 + 2 && Math.abs(z - gangwayZ) > gangwayGap + 0.5)
+      addCopingJoint(buckets, eastArm.x0 - 0.16, deck, z, Math.PI / 2);
     addCopingJoint(buckets, eastArm.x1 + 0.16, deck, z, Math.PI / 2);
   }
 
@@ -621,14 +641,32 @@ function addHarbour(
   if (!low) addDinghy(buckets, colliders, shipObstacles, 735.5, -716, Math.PI / 2, 0.7);
   addEastArmArrivalDressing(buckets, colliders, shipObstacles, perches, low);
 
-  for (let x = quay.x0 + 2; x <= quay.x1 - 2; x += 7.5) {
-    if (x > 735 && x < 758) continue;
+  let quayRowEnd: number = quay.x0;
+  for (let x = quay.x0 + 2; x < 735; x += 7.5) {
     shipObstacles.push({ x, z: quay.z1 - 1.2, r: 1.55 });
+    quayRowEnd = x;
   }
-  for (let z = eastArm.z1 + 6; z <= eastArm.z0 - 5; z += 8) {
-    if (z > -726 && z < -675) continue;
-    shipObstacles.push({ x: eastArm.x1 + 1.2, z, r: 1.6 });
-  }
+  // Ship-only circles inside the east arm's west, south and east faces (their edges on the face) keep
+  // the hull off the stone: grounding samples only each capsule's centre, so a hull could slide half
+  // a beam into the arm, or sail over its flat top from the south. z0 < z1 here (the old row ran
+  // z1 → z0, so it never ran). 3 m apart, even the bow can't nose far in between two of them.
+  const armR = 1.6;
+  // The same on the quay face from the row's end to the corner with the arm (the berth is far south).
+  const cornerX = eastArm.x0 - armR;
+  const cornerCount = Math.ceil((cornerX - quayRowEnd) / 3);
+  for (let i = 1; i <= cornerCount; i++)
+    shipObstacles.push({
+      x: quayRowEnd + ((cornerX - quayRowEnd) * i) / cornerCount,
+      z: quay.z1 - armR,
+      r: armR,
+    });
+  const armSouth = eastArm.z1 - armR;
+  for (let z = quay.z1 + armR; z < armSouth; z += 3)
+    shipObstacles.push({ x: eastArm.x0 + armR, z, r: armR }, { x: eastArm.x1 - armR, z, r: armR });
+  const southSpan = eastArm.x1 - eastArm.x0 - 2 * armR;
+  const southCount = Math.ceil(southSpan / 3);
+  for (let i = 0; i <= southCount; i++)
+    shipObstacles.push({ x: eastArm.x0 + armR + (southSpan * i) / southCount, z: armSouth, r: armR });
 }
 
 function addEastArmArrivalDressing(
@@ -654,6 +692,36 @@ function addEastArmArrivalDressing(
   addBox(buckets, 'stone', arm.x1 + 7.7, deck + 4.95, -711, 3.4, 0.34, 114, 0, LIMESTONE_LIGHT);
   addBox(buckets, 'stone', arm.x1 + 4.1, deck - 0.18, -711, 4.8, 3.5, 114, 0, 0x9a8260);
   addBox(buckets, 'stone', arm.x1 + 3.6, deck + 3.0, -711, 5.4, 0.28, 114, 0, LIMESTONE_LIGHT);
+  // The four stepped walls and their copings, for the camera.
+  for (const [x0, x1, y0, y1, z0, z1] of [
+    [
+      arm.x1 - 0.25,
+      arm.x1 + 2.95,
+      deck - 0.15,
+      deck + 3.81,
+      midZ - armLen * 0.5 + 3.0,
+      midZ + armLen * 0.5 - 3.0,
+    ],
+    [
+      arm.x1 + 0.6,
+      arm.x1 + 3.4,
+      deck - 0.25,
+      deck + 7.81,
+      midZ - armLen * 0.5 + 2.3,
+      midZ + armLen * 0.5 - 2.3,
+    ],
+    [arm.x1 + 0.9, arm.x1 + 6.5, deck - 0.18, deck + 3.32, -768, -654],
+    [arm.x1 + 6.0, arm.x1 + 9.5, deck - 0.25, deck + 5.35, -768, -654],
+  ] as const)
+    colliders.camera?.push({
+      x: (x0 + x1) * 0.5,
+      z: (z0 + z1) * 0.5,
+      hx: (x1 - x0) * 0.5,
+      hz: (z1 - z0) * 0.5,
+      rot: 0,
+      y0,
+      y1,
+    });
 
   for (const z of [-762, -748, -734, -716, -696, -678, -660]) {
     addBox(
@@ -1741,6 +1809,12 @@ function addHarbourPromenadeWall(buckets: Buckets, colliders: ColliderSet): void
     0,
     LIMESTONE_LIGHT,
   );
+  // The two full-width walls and their copings, for the camera.
+  for (const [z, hx, hz, y1] of [
+    [-765.9, fullWidth * 0.5 + 1.2, 0.73, PLAZA.height + 0.25],
+    [-778.0, fullWidth * 0.5 + 1.3, 1.03, PLAZA.height + 0.29],
+  ] as const)
+    colliders.camera?.push({ x: fullMid, z, hx, hz, rot: 0, y0: MERIDIAN.harbor.quay.height - 0.2, y1 });
   addBox(buckets, 'paving', fullMid, PLAZA.height - 0.09, -779.8, fullWidth, 0.18, 9.2, 0, 0xf0d7aa);
   for (let x = MERIDIAN.harbor.quay.x0 + 3; x <= MERIDIAN.harbor.quay.x1 - 3; x += 4.6)
     addBox(buckets, 'stone', x, PLAZA.height + 0.025, -779.8, 0.13, 0.038, 8.3, 0, 0x8e6f4a);
@@ -2859,6 +2933,8 @@ function addHallOfRecords(
   addBox(buckets, 'cloth', x - 5.4, y + 0.8, z - 5.0, 0.52, 3.6, 0.06, 0, CLOTH_BLUE);
   addBox(buckets, 'cloth', x + 5.4, y + 0.8, z - 5.0, 0.52, 3.6, 0.06, 0, CLOTH_RED);
   colliders.boxes.push({ x: x + 1.7, z: z + 1.7, hx: 5.4, hz: 3.4, rot: 0, height: 6.8 });
+  // The whole hall and its cornice, for the camera (the walk box above is smaller).
+  colliders.camera?.push({ x, z: z + 1.2, hx: 7.6, hz: 3.95, rot: 0, y0: y + 0.45, y1: y + 6.0 });
 }
 
 function addAdmiralTerrace(
@@ -3773,13 +3849,26 @@ function addDiscVertical(
 }
 
 function addCopingJoint(buckets: Buckets, x: number, y: number, z: number, rot: number): void {
-  addBox(buckets, 'stone', x, y + 0.26, z, 0.12, 0.08, 0.76, rot, 0x826344);
+  // 1.5 cm proud of the coping's top (y + 0.34): level with it, the two faces z-fight.
+  addBox(buckets, 'stone', x, y + 0.275, z, 0.12, 0.08, 0.76, rot, 0x826344);
 }
 
 function addQuayEdgeCoping(buckets: Buckets, x0: number, x1: number, y: number, z: number): void {
   const w = x1 - x0;
   if (w <= 0.1) return;
   addBox(buckets, 'stone', (x0 + x1) * 0.5, y, z, w + 0.4, 0.34, 0.8, 0, LIMESTONE_LIGHT);
+}
+
+/** A coping strip along the arm (x fixed) from za to zb (za < zb). */
+function addArmCoping(buckets: Buckets, x: number, y: number, za: number, zb: number): void {
+  if (zb - za <= 0.1) return;
+  addBox(buckets, 'stone', x, y, (za + zb) * 0.5, 0.8, 0.34, zb - za, 0, LIMESTONE_LIGHT);
+}
+
+/** A knee-high player wall along the arm (x fixed) from za to zb (za < zb). */
+function addArmWall(colliders: ColliderSet, x: number, za: number, zb: number): void {
+  if (zb - za <= 0.1) return;
+  addPlayerWall(colliders, x, (za + zb) * 0.5, 0.24, (zb - za) * 0.5, 0, 0.7);
 }
 
 function addQuayEdgeWall(colliders: ColliderSet, x0: number, x1: number, z: number): void {

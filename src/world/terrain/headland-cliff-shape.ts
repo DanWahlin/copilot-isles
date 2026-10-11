@@ -68,6 +68,7 @@ export interface HeadlandCliffFrame {
   /** Where the real cliff starts and ends along the frame (past them it sinks into the slope). */
   cliffStart: number;
   cliffEnd: number;
+  /** The ground the cliff is traced from: the height field's `shapeField` (before its recess). */
   heightAt(x: number, z: number): number;
 }
 
@@ -208,12 +209,17 @@ const frames = new WeakMap<object, HeadlandCliffFrame>();
 
 /**
  * Builds (once per height field) the stations along the headland's sea cliff: the smoothed cliff line,
- * its outward normals, and where each profile's clifftop edge is.
+ * its outward normals, and where each profile's clifftop edge is. It traces the field's `shapeField`
+ * when there is one: the terrain recesses its steep faces behind the cliff, and a cliff traced from the
+ * recessed ground would follow them inland.
  */
-export function headlandCliffFrame(heightField: Pick<HeightField, 'heightAt'>): HeadlandCliffFrame {
-  const cached = frames.get(heightField);
+export function headlandCliffFrame(
+  heightField: Pick<HeightField, 'heightAt' | 'shapeField'>,
+): HeadlandCliffFrame {
+  const shape = heightField.shapeField ?? heightField;
+  const cached = frames.get(shape);
   if (cached) return cached;
-  const heightAt = (x: number, z: number) => heightField.heightAt(x, z);
+  const heightAt = (x: number, z: number) => shape.heightAt(x, z);
   const base = cliffBaseline(heightAt);
   const frame: HeadlandCliffFrame = {
     stations: [],
@@ -223,7 +229,7 @@ export function headlandCliffFrame(heightField: Pick<HeightField, 'heightAt'>): 
     cliffEnd: 0,
     heightAt,
   };
-  frames.set(heightField, frame);
+  frames.set(shape, frame);
   if (!base) return frame;
   const n = base.x.length;
 
@@ -445,7 +451,7 @@ export function cliffOffset(
  * Ship obstacle: one circle round the cave buttress (it stands out past the height field's face, so the
  * height field alone wouldn't stop the hull).
  */
-export function headlandCaveShipObstacle(heightField: Pick<HeightField, 'heightAt'>): {
+export function headlandCaveShipObstacle(heightField: Pick<HeightField, 'heightAt' | 'shapeField'>): {
   x: number;
   z: number;
   r: number;
@@ -479,13 +485,15 @@ export interface HeadlandPlantSpot {
  * (0 = none).
  */
 export function headlandCliffPlantSpots(
-  heightField: Pick<HeightField, 'heightAt'>,
+  heightField: Pick<HeightField, 'heightAt' | 'shapeField'>,
   density = 1,
 ): HeadlandPlantSpot[] {
   const out: HeadlandPlantSpot[] = [];
   if (density <= 0) return out;
   const frame = headlandCliffFrame(heightField);
   if (frame.stations.length < 2) return out;
+  // Spots are traced on the cliff's ground (`frame.heightAt`) but stand on the drawn ground.
+  const ground = (x: number, z: number) => heightField.heightAt(x, z);
   const st = { ...frame.stations[0]! };
   const push = (
     species: HeadlandPlantSpecies,
@@ -516,7 +524,7 @@ export function headlandCliffPlantSpots(
     // Scrub right on the edge, leaning out over it.
     if (r < 0.75 && !nearCave(st.s)) {
       const d = st.lipD - 0.8 - hash(k, 3, 4) * 2.2;
-      const y = frame.heightAt(st.x + st.nx * d, st.z + st.nz * d);
+      const y = ground(st.x + st.nx * d, st.z + st.nz * d);
       const rim: HeadlandPlantSpecies = hash(k, 3, 9) < 0.6 ? 'banana' : 'fern';
       push(rim, d, y - 0.12, 0.75 + hash(k, 4, 5) * 0.45, 0.1, k * 7 + 1);
     }
@@ -526,7 +534,7 @@ export function headlandCliffPlantSpots(
       for (let p = 0; p < 3; p++) {
         const t = 0.2 + hash(k, 8 + p, 3) * 0.75;
         const d = toe + (st.lipD - toe) * t - 0.6;
-        const y = frame.heightAt(st.x + st.nx * d, st.z + st.nz * d);
+        const y = ground(st.x + st.nx * d, st.z + st.nz * d);
         const pick = hash(k, 9 + p, 4);
         const species: HeadlandPlantSpecies =
           pick < 0.3 ? 'broadleafTree' : pick < 0.55 ? 'palmYoung' : pick < 0.8 ? 'banana' : 'fern';
@@ -539,7 +547,7 @@ export function headlandCliffPlantSpots(
     // Now and then a tree a little way back.
     if (k % 5 === 2) {
       const d = st.lipD - 5 - hash(k, 5, 6) * 6;
-      const y = frame.heightAt(st.x + st.nx * d, st.z + st.nz * d);
+      const y = ground(st.x + st.nx * d, st.z + st.nz * d);
       const tree: HeadlandPlantSpecies = hash(k, 6, 7) < 0.55 ? 'palmYoung' : 'broadleafTree';
       push(
         tree,
@@ -562,8 +570,8 @@ export function headlandCliffPlantSpots(
       const x = x0 + (hash(gx, gz, 62) - 0.5) * spacing;
       const z = z0 + (hash(gx, gz, 63) - 0.5) * spacing;
       if (headlandCliffEdge(x, z) < 6) continue;
-      const y = frame.heightAt(x, z);
-      if (y < 5) continue;
+      if (frame.heightAt(x, z) < 5) continue;
+      const y = ground(x, z);
       const slope =
         Math.hypot(
           frame.heightAt(x + 1, z) - frame.heightAt(x - 1, z),

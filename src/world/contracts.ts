@@ -10,6 +10,12 @@ export interface HeightField {
   normalAt(x: number, z: number, out: Float32Array | number[]): Float32Array | number[];
   /** 0-1 masks used for placement: sand, grass, rock, cliff. */
   masksAt(x: number, z: number): { sand: number; grass: number; rock: number; cliff: number };
+  /**
+   * The ground before any recess that hides terrain behind a covering mesh (the headland's cliff).
+   * Meshes that cover the steep faces are traced from it; everything else uses the field itself, which
+   * matches the drawn ground. Absent when the field has no recess.
+   */
+  readonly shapeField?: HeightField;
 }
 
 /** Ocean surface queries (CPU), matching what the GPU renders. */

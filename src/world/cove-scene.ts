@@ -39,6 +39,7 @@ import type { LeapsSystem } from './life/leaps';
 import { villageExclusionAsync } from './village-exclusion';
 import { BRIGANTINE_CARGO, createCoveSites, type CoveSites } from './sites';
 import type { CircleObstacle } from './contracts';
+import { FarCull } from './far-cull';
 
 export interface CoveScene {
   sky: SkySystem;
@@ -87,8 +88,16 @@ export interface CoveScene {
   setLateWarm(warm: ((roots: Object3D[]) => Promise<void>) | null): void;
   /** The starfish to collect on both islands (the session sets their ground and which are found). */
   starfish: StarfishSystem;
+  /**
+   * Each island's small detail (people, puzzle sites, chests, props), culled while the camera is far
+   * from that island; the game adds what it places (`FarCull.add`).
+   */
+  detail: Record<'anchorage' | 'meridian', FarCull>;
   dispose(): void;
 }
+
+/** Beyond this distance (m) from an island's centre, its small detail is a pixel or two: it's culled. */
+const DETAIL_RANGE = { anchorage: 560, meridian: 620 };
 
 export interface CoveOptions {
   /** Base URL for packs (dev: '/packs', built: './packs'). */
@@ -403,6 +412,14 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       ? window.setTimeout(() => void engine.counters.excuse(loadLeaps()), 90000)
       : 0;
 
+  const detail = {
+    anchorage: new FarCull(COVE.island.center.x, COVE.island.center.z, DETAIL_RANGE.anchorage),
+    meridian: new FarCull(MERIDIAN.center.x, MERIDIAN.center.z, DETAIL_RANGE.meridian),
+  };
+  detail.anchorage.add(sites.group);
+  detail.anchorage.add(debris.group);
+  if (dockGull) detail.anchorage.add(dockGull.group);
+
   const focus = new Vector3();
   // What the harbour mirror leaves out, refilled each frame (some systems arrive late) without a new array.
   const mirrorHidden: (Object3D | null | undefined)[] = [];
@@ -436,6 +453,8 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       shipEnv.t = t;
       ship.update(dt, t, shipEnv);
       terrain.update(camera);
+      detail.anchorage.update(camera.position.x, camera.position.z);
+      detail.meridian.update(camera.position.x, camera.position.z);
       const toMeridian = Math.hypot(
         camera.position.x - MERIDIAN.center.x,
         camera.position.z - MERIDIAN.center.z,
@@ -491,6 +510,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     birds,
     leaps,
     starfish,
+    detail,
     setLateWarm(warm) {
       lateWarm = warm;
     },

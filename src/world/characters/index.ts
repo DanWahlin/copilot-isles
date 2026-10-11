@@ -13,7 +13,7 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { packs } from '../../engine/packs';
 import { cloneClipWithUserData, loadClipPack } from './loco-pack';
-import { dressNpcCharacter } from './npc-accessories';
+import { dressNpcCharacter, mergeNpcAccessories } from './npc-accessories';
 import {
   applyCharacterPalette,
   disposeCharacterPaletteCache,
@@ -298,7 +298,10 @@ class CharacterLibraryImpl implements CharacterLibrary {
       }
     }
     if (body === 'man' || body === 'woman') stowPlayerWeapon(clone, body);
-    else dressNpcCharacter(clone, body);
+    else {
+      dressNpcCharacter(clone, body);
+      mergeNpcAccessories(clone);
+    }
     // Every character's materials carry the staging light (key and rim in talk shots, issue #188).
     clone.traverse((object) => {
       if (!(object instanceof Mesh) || object.name === 'character-face') return;

@@ -243,7 +243,7 @@ export function* buildTerrainRocks(
   const karst = createSeaStackMaterial(tier);
   group.add(createSeaStack(tier, karst));
   yield;
-  const cliff = createHeadlandCliff(heightField, tier, karst);
+  const cliff = yield* createHeadlandCliff(heightField, tier, karst);
   if (cliff) group.add(cliff);
   yield;
 

@@ -159,16 +159,312 @@ function footBlocks(
   return parts;
 }
 
+/** Below this height (m) the sea hides the face's foot, so ground in front of it doesn't matter. */
+const COVER_MIN_Y = -0.3;
+/** The gap (m) the face keeps in front of the drawn ground. */
+const COVER_GAP = 0.15;
+/**
+ * Ground counts as poking through only if it's `COVER_DROP` m lower again this far out: not the
+ * beach or seabed the foot stands in.
+ */
+const COVER_OPEN = 4;
+const COVER_DROP = 0.5;
+/** Faces this faded or more are left alone: there the rock sinks into the slope on purpose. */
+const COVER_STRENGTH = 0.95;
+/** How far in front of the face (m) ground above it counts as poking through, and the scan step. */
+const COVER_NEAR = 2;
+const COVER_STEP = 0.25;
+/** Quad samples are at most this far apart (m) for the first look, and for the close look. */
+const COVER_SPACING = 0.5;
+const COVER_FINE = 0.2;
+/**
+ * A quad whose samples all have their ground at the face, halfway out and `COVER_NEAR` out this far
+ * (m) below the gap is clear. Any other quad gets the close look.
+ */
+const COVER_CLEAR = 1;
+/** The most times the pass pushes a quad out. */
+const COVER_PASSES = 6;
+/** The pass yields after this many ms of work, so the island's build keeps the screen moving. */
+const COVER_SLICE_MS = 4;
+
+/**
+ * How far (m) a face point at (x, y, z), facing out along (nx, nz), must move out so the drawn ground
+ * (`ground`) doesn't poke through in front of it, or 0. The cover pass and the camera blockers share it.
+ */
+function coverPush(
+  x: number,
+  y: number,
+  z: number,
+  nx: number,
+  nz: number,
+  ground: (x: number, z: number) => number,
+): number {
+  if (y < COVER_MIN_Y) return 0;
+  const top = y - COVER_GAP;
+  // Ground at or just in front of the face, above it, with open air further out.
+  let d = -1;
+  for (let e = COVER_NEAR; e >= 0; e -= COVER_STEP) {
+    if (ground(x + nx * e, z + nz * e) > top) {
+      d = e;
+      break;
+    }
+  }
+  if (d < 0 || ground(x + nx * COVER_OPEN, z + nz * COVER_OPEN) > top - COVER_DROP) return 0;
+  // Out past the last ground above it before the open air (a wavy slope can rise again).
+  for (let e = COVER_OPEN - COVER_STEP; e > d; e -= COVER_STEP) {
+    if (ground(x + nx * e, z + nz * e) > top) {
+      d = e;
+      break;
+    }
+  }
+  return d + COVER_STEP;
+}
+
+/**
+ * Pushes full-strength face quads out along their columns' normals wherever the drawn ground
+ * (`ground`, the terrain mesh's own height) comes in front of them, so no sliver of terrain shows on
+ * the rock. The profile keeps the face clear of the ground only along each column; between columns
+ * and rows the terrain's triangles can still bulge through. The roll over the lip moves with the top.
+ */
+function* coverGround(
+  pos: Float32Array,
+  columnNormal: Float32Array,
+  columnStrength: Float32Array,
+  columns: number,
+  rows: number,
+  faceRows: number,
+  ground: (x: number, z: number) => number,
+  blockers: CameraBlockerBox[],
+): Generator<void, void, void> {
+  let sliceEnd = performance.now() + COVER_SLICE_MS;
+  const need = new Float32Array((columns + 1) * rows);
+  const total = new Float32Array((columns + 1) * rows);
+  // After the first pass only quads with a corner that moved are checked again.
+  const moved = new Uint8Array((columns + 1) * rows).fill(1);
+  const moveVertex = (c: number, v: number, d: number): void => {
+    pos[v * 3] = pos[v * 3]! + columnNormal[c * 2]! * d;
+    pos[v * 3 + 2] = pos[v * 3 + 2]! + columnNormal[c * 2 + 1]! * d;
+  };
+  const edge = (v: number, w: number): number =>
+    Math.hypot(
+      pos[w * 3]! - pos[v * 3]!,
+      pos[w * 3 + 1]! - pos[v * 3 + 1]!,
+      pos[w * 3 + 2]! - pos[v * 3 + 2]!,
+    );
+  /**
+   * Samples quad (c, j) on a grid at most `spacing` apart. With `scan` false it returns 1 if any sample
+   * has ground near it (else 0); with `scan` true, how far (m) the quad must move out to clear it.
+   */
+  const sampleQuad = (c: number, j: number, spacing: number, scan: boolean): number => {
+    const v00 = c * rows + j;
+    const v10 = v00 + rows;
+    const na = Math.max(1, Math.ceil(Math.max(edge(v00, v10), edge(v00 + 1, v10 + 1)) / spacing));
+    const nb = Math.max(1, Math.ceil(Math.max(edge(v00, v00 + 1), edge(v10, v10 + 1)) / spacing));
+    let quad = 0;
+    for (let a = 0; a <= na; a++) {
+      const u = a / na;
+      let nx = columnNormal[c * 2]! * (1 - u) + columnNormal[c * 2 + 2]! * u;
+      let nz = columnNormal[c * 2 + 1]! * (1 - u) + columnNormal[c * 2 + 3]! * u;
+      const nl = Math.hypot(nx, nz) || 1;
+      nx /= nl;
+      nz /= nl;
+      for (let b = 0; b <= nb; b++) {
+        const t = b / nb;
+        const w00 = (1 - u) * (1 - t);
+        const w01 = (1 - u) * t;
+        const w10 = u * (1 - t);
+        const w11 = u * t;
+        const y =
+          pos[v00 * 3 + 1]! * w00 +
+          pos[v00 * 3 + 4]! * w01 +
+          pos[v10 * 3 + 1]! * w10 +
+          pos[v10 * 3 + 4]! * w11;
+        if (y < COVER_MIN_Y) continue;
+        const x =
+          pos[v00 * 3]! * w00 + pos[v00 * 3 + 3]! * w01 + pos[v10 * 3]! * w10 + pos[v10 * 3 + 3]! * w11;
+        const z =
+          pos[v00 * 3 + 2]! * w00 +
+          pos[v00 * 3 + 5]! * w01 +
+          pos[v10 * 3 + 2]! * w10 +
+          pos[v10 * 3 + 5]! * w11;
+        if (!scan) {
+          const clear = y - COVER_GAP - COVER_CLEAR;
+          const half = COVER_NEAR / 2;
+          if (
+            ground(x, z) >= clear ||
+            ground(x + nx * half, z + nz * half) >= clear ||
+            ground(x + nx * COVER_NEAR, z + nz * COVER_NEAR) >= clear
+          ) {
+            return 1;
+          }
+          continue;
+        }
+        quad = Math.max(quad, coverPush(x, y, z, nx, nz, ground));
+      }
+    }
+    return quad;
+  };
+  for (let pass = 0; pass < COVER_PASSES; pass++) {
+    need.fill(0);
+    let any = false;
+    for (let c = 0; c < columns; c++) {
+      if (Math.min(columnStrength[c]!, columnStrength[c + 1]!) < COVER_STRENGTH) continue;
+      for (let j = 0; j < faceRows; j++) {
+        const v00 = c * rows + j;
+        const v10 = v00 + rows;
+        if (!(moved[v00]! | moved[v00 + 1]! | moved[v10]! | moved[v10 + 1]!)) continue;
+        if (performance.now() > sliceEnd) {
+          yield;
+          sliceEnd = performance.now() + COVER_SLICE_MS;
+        }
+        if (sampleQuad(c, j, COVER_SPACING, false) === 0) continue;
+        const quad = sampleQuad(c, j, COVER_FINE, true);
+        if (quad <= 0) continue;
+        any = true;
+        need[v00] = Math.max(need[v00]!, quad);
+        need[v00 + 1] = Math.max(need[v00 + 1]!, quad);
+        need[v10] = Math.max(need[v10]!, quad);
+        need[v10 + 1] = Math.max(need[v10 + 1]!, quad);
+      }
+    }
+    if (!any) break;
+    moved.fill(0);
+    for (let c = 0; c <= columns; c++) {
+      for (let j = 0; j <= faceRows; j++) {
+        const v = c * rows + j;
+        if (need[v]! <= 0) continue;
+        moveVertex(c, v, need[v]!);
+        total[v] = total[v]! + need[v]!;
+        moved[v] = 1;
+      }
+    }
+  }
+  // The roll over the lip stays outside the top of the face.
+  for (let c = 0; c <= columns; c++) {
+    const top = c * rows + faceRows;
+    if (total[top]! > 0) {
+      moveVertex(c, top + 1, total[top]!);
+      total[top + 1] = total[top]!;
+    }
+  }
+  coverCameraBlockers(pos, columnNormal, total, columns, rows, faceRows, blockers);
+}
+
+/** Quads moved less than this (m) keep to the cliff's own camera blockers. */
+const COVER_BLOCKER_MIN = 0.05;
+/** The cover blockers' slice height (m): thin, so a sloping foot's boxes don't reach over the beach. */
+const COVER_BLOCKER_SLICE = 0.5;
+
+/**
+ * Camera-only blockers for the face quads the cover pass moved (the cliff's own blockers follow the
+ * height field's profile, so they don't know about it): each moved quad in slices up to
+ * `COVER_BLOCKER_SLICE` m tall, each box from 1 m behind where the face was out to where it is now.
+ */
+function coverCameraBlockers(
+  pos: Float32Array,
+  columnNormal: Float32Array,
+  total: Float32Array,
+  columns: number,
+  rows: number,
+  faceRows: number,
+  out: CameraBlockerBox[],
+): void {
+  for (let c = 0; c < columns; c++) {
+    let nx = columnNormal[c * 2]! + columnNormal[c * 2 + 2]!;
+    let nz = columnNormal[c * 2 + 1]! + columnNormal[c * 2 + 3]!;
+    const nl = Math.hypot(nx, nz) || 1;
+    nx /= nl;
+    nz /= nl;
+    // How far back each column's push is along this quad's normal.
+    const back0 = columnNormal[c * 2]! * nx + columnNormal[c * 2 + 1]! * nz;
+    const back1 = columnNormal[c * 2 + 2]! * nx + columnNormal[c * 2 + 3]! * nz;
+    // Rows 0..faceRows are the face's quads; quad faceRows is the roll over the lip.
+    for (let j = 0; j <= faceRows; j++) {
+      const a0 = c * rows + j;
+      const b0 = (c + 1) * rows + j;
+      if (Math.max(total[a0]!, total[a0 + 1]!, total[b0]!, total[b0 + 1]!) <= COVER_BLOCKER_MIN) continue;
+      const ox = pos[a0 * 3]!;
+      const oz = pos[a0 * 3 + 2]!;
+      let lx0 = 0,
+        lx1 = 0,
+        lz0 = 0,
+        lz1 = 0,
+        y0 = 0,
+        y1 = 0;
+      // A point `t` of the way up the edge from v to v + 1; local x along the face, z out (`rot`).
+      const take = (v: number, t: number, back: number, first: boolean): void => {
+        const x = pos[v * 3]! + (pos[v * 3 + 3]! - pos[v * 3]!) * t;
+        const y = pos[v * 3 + 1]! + (pos[v * 3 + 4]! - pos[v * 3 + 1]!) * t;
+        const z = pos[v * 3 + 2]! + (pos[v * 3 + 5]! - pos[v * 3 + 2]!) * t;
+        const lx = (x - ox) * nz - (z - oz) * nx;
+        const lz = (x - ox) * nx + (z - oz) * nz;
+        const was = lz - (total[v]! + (total[v + 1]! - total[v]!) * t) * back;
+        lx0 = first ? lx : Math.min(lx0, lx);
+        lx1 = first ? lx : Math.max(lx1, lx);
+        lz0 = first ? was : Math.min(lz0, was);
+        lz1 = first ? lz : Math.max(lz1, lz);
+        y0 = first ? y : Math.min(y0, y);
+        y1 = first ? y : Math.max(y1, y);
+      };
+      const rise = Math.max(
+        Math.abs(pos[a0 * 3 + 4]! - pos[a0 * 3 + 1]!),
+        Math.abs(pos[b0 * 3 + 4]! - pos[b0 * 3 + 1]!),
+      );
+      const slices = Math.max(1, Math.ceil(rise / COVER_BLOCKER_SLICE));
+      for (let k = 0; k < slices; k++) {
+        const t0 = k / slices;
+        const t1 = (k + 1) / slices;
+        take(a0, t0, back0, true);
+        take(a0, t1, back0, false);
+        take(b0, t0, back1, false);
+        take(b0, t1, back1, false);
+        // Into the rock behind where the face was, so a camera can't slip in behind the box.
+        const zIn = lz0 - 1;
+        const cx = (lx0 + lx1) * 0.5;
+        const cz = (zIn + lz1) * 0.5;
+        out.push({
+          x: ox + cx * nz + cz * nx,
+          z: oz - cx * nx + cz * nz,
+          hx: (lx1 - lx0) * 0.5 + 0.1,
+          hz: (lz1 - zIn) * 0.5,
+          rot: Math.atan2(nx, nz),
+          y0,
+          y1,
+        });
+      }
+    }
+  }
+}
+
 /**
  * Builds the cliff: a grid of stations along the cliff by rows up the face, from under the sea to the
  * clifftop edge, then two rows that roll back over the edge and tuck under the clifftop. Fallen blocks
  * are merged in, so it's one draw. Per-vertex `karst` = (cavity AO, run-off flow, moss, flute depth),
- * the same attribute the sea stack bakes, so both share one material.
+ * the same attribute the sea stack bakes, so both share one material. With `cover`, the face then moves
+ * out wherever the drawn ground (`heightAt`) would show in front of it.
  */
 export function buildHeadlandCliffGeometry(
-  heightField: Pick<HeightField, 'heightAt'>,
+  heightField: Pick<HeightField, 'heightAt' | 'shapeField'>,
   detail: CliffDetail,
+  cover = false,
 ): BufferGeometry | null {
+  const steps = headlandCliffGeometrySteps(heightField, detail, cover);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+
+/**
+ * The same cliff, yielding while it moves the face clear of the drawn ground (`cover`: the game's
+ * cliff; the chart's miniature skips it).
+ */
+function* headlandCliffGeometrySteps(
+  heightField: Pick<HeightField, 'heightAt' | 'shapeField'>,
+  detail: CliffDetail,
+  cover: boolean,
+  blockers: CameraBlockerBox[] = [],
+): Generator<void, BufferGeometry | null, void> {
   const frame = headlandCliffFrame(heightField);
   if (frame.stations.length < 2) return null;
   const columns = Math.max(2, Math.round(frame.length / detail.spacing));
@@ -188,10 +484,15 @@ export function buildHeadlandCliffGeometry(
   const ds = new Float32Array(faceRows + 1);
   const ys = new Float32Array(faceRows + 1);
   const st: CliffStation = { ...frame.stations[0]! };
+  const columnNormal = new Float32Array((columns + 1) * 2);
+  const columnStrength = new Float32Array(columns + 1);
 
   for (let c = 0; c <= columns; c++) {
     const s = (c / columns) * frame.length;
     stationAt(frame, s, st);
+    columnNormal[c * 2] = st.nx;
+    columnNormal[c * 2 + 1] = st.nz;
+    columnStrength[c] = st.strength;
     stationProfile(frame.heightAt, st, profile);
     for (let j = 0; j <= faceRows; j++) {
       ys[j] = HEADLAND_CLIFF_BASE_Y + (st.lipY - HEADLAND_CLIFF_BASE_Y) * (j / faceRows);
@@ -271,6 +572,20 @@ export function buildHeadlandCliffGeometry(
     }
   }
 
+  if (cover) {
+    yield;
+    yield* coverGround(
+      pos,
+      columnNormal,
+      columnStrength,
+      columns,
+      rows,
+      faceRows,
+      (x, z) => heightField.heightAt(x, z),
+      blockers,
+    );
+  }
+
   const indices: number[] = [];
   // Wind the faces seaward whichever way the stations run.
   const s0 = frame.stations[0]!;
@@ -329,14 +644,27 @@ export function buildHeadlandCliffGeometry(
   return geometry;
 }
 
-/** The headland's sea cliff: one draw, sharing the sea stack's karst material. */
-export function createHeadlandCliff(
-  heightField: Pick<HeightField, 'heightAt'>,
+/**
+ * Camera blockers for the face the game's cliff moved clear of the drawn ground, by the height field
+ * it was built on (`headlandCliffCameraBlockers` adds them).
+ */
+const coverBlockers = new WeakMap<object, CameraBlockerBox[]>();
+
+/** The headland's sea cliff: one draw, sharing the sea stack's karst material. Yields while it builds. */
+export function* createHeadlandCliff(
+  heightField: Pick<HeightField, 'heightAt' | 'shapeField'>,
   tier: Tier,
   material: MeshStandardNodeMaterial,
-): Mesh | null {
-  const geometry = buildHeadlandCliffGeometry(heightField, HEADLAND_CLIFF_DETAIL[tier]);
+): Generator<void, Mesh | null, void> {
+  const blockers: CameraBlockerBox[] = [];
+  const geometry = yield* headlandCliffGeometrySteps(
+    heightField,
+    HEADLAND_CLIFF_DETAIL[tier],
+    true,
+    blockers,
+  );
   if (!geometry) return null;
+  coverBlockers.set(heightField, blockers);
   const mesh = new Mesh(geometry, material);
   mesh.name = 'terrain-rocks-headland-cliff';
   mesh.castShadow = false;
@@ -356,7 +684,7 @@ const BLOCKER_SAMPLES = 5;
  * mesh, plus a fitted stack for each fallen block and clifftop outcrop.
  */
 export function headlandCliffCameraBlockers(
-  heightField: Pick<HeightField, 'heightAt'>,
+  heightField: Pick<HeightField, 'heightAt' | 'shapeField'>,
   out: CameraBlockerBox[],
   tier: Tier = 'high',
 ): void {
@@ -406,4 +734,7 @@ export function headlandCliffCameraBlockers(
   const identity = new Matrix4();
   for (const part of [...footBlocks(frame, detail, profile), ...topOutcrops(frame, detail)])
     meshCameraBlockers(part.pos, identity, out, 2);
+  // The game's cliff (built with the terrain, so before this) moved some of its face out further.
+  const covered = coverBlockers.get(heightField);
+  if (covered) for (const b of covered) out.push(b);
 }

@@ -196,6 +196,61 @@ describe('terrain height field matches the drawn triangles', () => {
     });
   }
 
+  for (const tier of ['lite', 'low', 'medium', 'high'] as const) {
+    it(`matches the finest level in the recess area, recessing only unwalkable ground: ${tier}`, () => {
+      const data = roughData({ minX: -20, maxX: 302, minZ: 10, maxZ: 53, cell: 1 }, 5);
+      const box = { minX: 60, maxX: 200, minZ: 14, maxZ: 50 };
+      const field = createTerrainHeightField(data, tier, box);
+      const shape = field.shapeField!;
+      const fine = buildTerrainLodGeometries(data, tier, 0, box);
+      const plain = buildTerrainLodGeometries(data, tier, 0);
+      const rand = mulberry32(17);
+      const normal: [number, number, number] = [0, 0, 0];
+      let maxError = 0;
+      let maxShapeError = 0;
+      let recessed = 0;
+      for (let i = 0; i < 1500; i++) {
+        // The box and a few metres around it (the cells that share its edge vertices).
+        const x = box.minX - 4 + rand() * (box.maxX - box.minX + 8);
+        const z = data.minZ + rand() * (data.maxZ - data.minZ);
+        const hit = castDown(fine, x, z);
+        expect(hit, `no triangle under (${x}, ${z})`).not.toBeNull();
+        const h = field.heightAt(x, z);
+        maxError = Math.max(maxError, Math.abs(h - hit!.y));
+        // The shape field is the finest level without the recess.
+        const plainY = castDown(plain, x, z)!.y;
+        maxShapeError = Math.max(maxShapeError, Math.abs(shape.heightAt(x, z) - plainY));
+        if (h < plainY - 1e-4) {
+          recessed++;
+          // Only ground too steep to walk on goes down.
+          expect(field.normalAt(x, z, normal)[1], `walkable ground recessed at (${x}, ${z})`).toBeLessThan(
+            0.74,
+          );
+        }
+      }
+      expect(maxError).toBeLessThan(1e-4);
+      expect(maxShapeError).toBeLessThan(1e-4);
+      expect(recessed).toBeGreaterThan(10);
+
+      // Some of the finest level's vertices are really lower, and the next level recesses too.
+      const lowered = (level: number): number => {
+        const a = level === 0 ? fine : buildTerrainLodGeometries(data, tier, level, box);
+        const b = level === 0 ? plain : buildTerrainLodGeometries(data, tier, level);
+        let n = 0;
+        for (let k = 0; k < a.length; k++) {
+          const pa = a[k]!.getAttribute('position').array;
+          const pb = b[k]!.getAttribute('position').array;
+          for (let i = 1; i < pa.length; i += 3) if (pa[i]! < pb[i]! - 0.5) n++;
+        }
+        if (level !== 0) for (const g of [...a, ...b]) g.dispose();
+        return n;
+      };
+      expect(lowered(0)).toBeGreaterThan(5);
+      expect(lowered(1)).toBeGreaterThan(20);
+      for (const g of [...fine, ...plain]) g.dispose();
+    });
+  }
+
   it('keeps the outside fallback', () => {
     const data = roughData({ minX: 0, maxX: 8, minZ: 0, maxZ: 8, cell: 1 });
     const field = createTerrainHeightField(data, 'high');

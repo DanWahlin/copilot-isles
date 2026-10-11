@@ -211,13 +211,13 @@ function createVillageKitFromGltf(gltf: GLTF): VillageKit {
       if (geometry.groups.length > 0) {
         for (const group of geometry.groups) {
           const material = materialList[group.materialIndex ?? 0] ?? materialList[0]!;
-          const part = subsetGeometry(geometry, group.start, group.count);
+          const part = dropZeroAreaTriangles(subsetGeometry(geometry, group.start, group.count));
           part.applyMatrix4(object.matrixWorld);
           parts.push({ geometry: part, materialKey: kitMaterialKey(material.name) });
         }
       } else {
         const material = materialList[0]!;
-        const part = cloneGeometryAsFloat(geometry);
+        const part = dropZeroAreaTriangles(cloneGeometryAsFloat(geometry));
         part.applyMatrix4(object.matrixWorld);
         parts.push({ geometry: part, materialKey: kitMaterialKey(material.name) });
       }
@@ -259,6 +259,34 @@ function cloneGeometryAsFloat(source: BufferGeometry): BufferGeometry {
     if (attr) result.setAttribute(name, floatAttribute(attr));
   }
   return result;
+}
+
+/**
+ * Removes triangles with collinear corners. The kit has a few (wood trim, a dormer). They draw
+ * nothing, but once placed and merged their winding is rounding noise, so they read as inside-out.
+ */
+export function dropZeroAreaTriangles(geometry: BufferGeometry): BufferGeometry {
+  const p = geometry.getAttribute('position');
+  const index = geometry.getIndex();
+  const count = index ? index.count : p.count;
+  const kept: number[] = [];
+  for (let t = 0; t + 2 < count; t += 3) {
+    const a = index ? index.getX(t) : t;
+    const b = index ? index.getX(t + 1) : t + 1;
+    const c = index ? index.getX(t + 2) : t + 2;
+    const e1x = p.getX(b) - p.getX(a);
+    const e1y = p.getY(b) - p.getY(a);
+    const e1z = p.getZ(b) - p.getZ(a);
+    const e2x = p.getX(c) - p.getX(a);
+    const e2y = p.getY(c) - p.getY(a);
+    const e2z = p.getZ(c) - p.getZ(a);
+    const cross = Math.hypot(e1y * e2z - e1z * e2y, e1z * e2x - e1x * e2z, e1x * e2y - e1y * e2x);
+    const longest = Math.max(e1x * e1x + e1y * e1y + e1z * e1z, e2x * e2x + e2y * e2y + e2z * e2z);
+    if (cross > 1e-6 * longest) kept.push(a, b, c);
+  }
+  if (kept.length === count) return geometry;
+  geometry.setIndex(kept);
+  return geometry;
 }
 
 function subsetGeometry(source: BufferGeometry, start: number, count: number): BufferGeometry {

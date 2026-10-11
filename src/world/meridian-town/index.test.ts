@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Mesh } from 'three/webgpu';
 import { tierSettings } from '../../engine/quality';
-import type { CircleObstacle, HeightField } from '../contracts';
+import type { CircleObstacle, HeightField, WaveSampler } from '../contracts';
 import { MERIDIAN, meridianHeight, meridianMasks } from '../islands/meridian';
 import {
   createClothMaterial,
@@ -18,7 +17,11 @@ import {
 } from '../village/materials';
 import type { VillageBoxCollider, VillageKit } from '../village/kit';
 import { createMeridianTown, meridianTownStairHeight } from './index';
+import { insideOutSummary } from '../village/inside-out';
 import { meridianTownPlants } from './plantings';
+import { ShipDynamics } from '../ship/dynamics';
+import { BRIGANTINE_CAPSULES } from '../ship/lines';
+import { BERTH_APPROACH } from '../sites/helms-logic';
 
 const heightField: HeightField = {
   heightAt: meridianHeight,
@@ -140,34 +143,45 @@ describe('createMeridianTown', () => {
   it('builds no inside-out faces (a negative box size reverses the winding; double-sided stone then shades it unlit)', () => {
     const kit = testKit();
     const town = createMeridianTown({ tier: tierSettings('high'), heightField, kit });
-    const reversed: string[] = [];
-    town.group.traverse((o) => {
-      const mesh = o as Mesh;
-      if (!mesh.isMesh || !mesh.name.startsWith('meridian-town-')) return;
-      const p = mesh.geometry.getAttribute('position');
-      const n = mesh.geometry.getAttribute('normal');
-      const index = mesh.geometry.index;
-      const count = index ? index.count : p.count;
-      let bad = 0;
-      for (let t = 0; t < count; t += 3) {
-        const [a, b, c] = [0, 1, 2].map((k) => (index ? index.getX(t + k) : t + k)) as [
-          number,
-          number,
-          number,
-        ];
-        const e1 = [p.getX(b) - p.getX(a), p.getY(b) - p.getY(a), p.getZ(b) - p.getZ(a)];
-        const e2 = [p.getX(c) - p.getX(a), p.getY(c) - p.getY(a), p.getZ(c) - p.getZ(a)];
-        const cx = e1[1]! * e2[2]! - e1[2]! * e2[1]!;
-        const cy = e1[2]! * e2[0]! - e1[0]! * e2[2]!;
-        const cz = e1[0]! * e2[1]! - e1[1]! * e2[0]!;
-        const nx = n.getX(a) + n.getX(b) + n.getX(c);
-        const ny = n.getY(a) + n.getY(b) + n.getY(c);
-        const nz = n.getZ(a) + n.getZ(b) + n.getZ(c);
-        if (Math.hypot(cx, cy, cz) > 1e-6 && cx * nx + cy * ny + cz * nz < 0) bad += 1;
-      }
-      if (bad) reversed.push(`${mesh.name}: ${bad}`);
-    });
-    expect(reversed).toEqual([]);
+    expect(insideOutSummary(town.group, (m) => m.name.startsWith('meridian-town-'))).toEqual([]);
+
+    town.dispose();
+    kit.dispose();
+  });
+
+  it('gives every player and camera box a positive half-size (a negative one never collides)', () => {
+    const kit = testKit();
+    const town = createMeridianTown({ tier: tierSettings('high'), heightField, kit });
+    const bad = [...town.colliders.boxes, ...town.cameraBlockers]
+      .filter((b) => !(b.hx > 0 && b.hz > 0))
+      .map((b) => `${b.x.toFixed(1)},${b.z.toFixed(1)} hx ${b.hx} hz ${b.hz}`);
+    expect(bad).toEqual([]);
+
+    town.dispose();
+    kit.dispose();
+  });
+
+  it('walls the east arm on all three sea sides, open only at the gangway and the quay', () => {
+    const kit = testKit();
+    const town = createMeridianTown({ tier: tierSettings('high'), heightField, kit });
+    const { eastArm: arm, quay, berth } = MERIDIAN.harbor;
+    const gangwayZ = berth.z - 0.15;
+    const r = 0.36;
+    const hit = (x: number, z: number) => town.colliders.boxes.some((b) => boxHitsPoint(b, x, z, r));
+    const open: string[] = [];
+    for (let z = quay.z1 + 0.5; z <= arm.z1; z += 0.5) {
+      if (Math.abs(z - gangwayZ) > 1.3 && !hit(arm.x0 - 0.2, z)) open.push(`west ${z}`);
+    }
+    for (let z = arm.z0 + 0.5; z <= arm.z1; z += 0.5) if (!hit(arm.x1 + 0.2, z)) open.push(`east ${z}`);
+    for (let x = arm.x0; x <= arm.x1; x += 0.5) if (!hit(x, arm.z1 + 0.2)) open.push(`south ${x}`);
+    expect(open).toEqual([]);
+
+    // The plank's foot and the walk between the quay and the arm stay clear.
+    for (const x of [arm.x0 - 0.6, arm.x0, arm.x0 + 0.4])
+      expect(hit(x, gangwayZ), `gangway ${x}`).toBe(false);
+    for (let x = arm.x0 + 0.6; x <= arm.x1 - 0.6; x += 0.5) {
+      expect(hit(x, quay.z1), `quay to arm at ${x}`).toBe(false);
+    }
 
     town.dispose();
     kit.dispose();
@@ -357,9 +371,14 @@ describe('createMeridianTown', () => {
     for (const [ax, az, bx, bz] of channel) {
       expect(town.shipObstacles.some((c) => obstacleHitsSegment(c, ax, az, bx, bz))).toBe(false);
     }
-    expect(
-      town.shipObstacles.some((c) => circleHitsPoint(c, MERIDIAN.harbor.berth.x, MERIDIAN.harbor.berth.z, 6)),
-    ).toBe(false);
+    // The berthed hull (each capsule at the berth) stays half a metre clear of every circle, including
+    // the east arm's row just inside its face.
+    const { berth } = MERIDIAN.harbor;
+    for (const cap of BRIGANTINE_CAPSULES) {
+      const x = berth.x + Math.sin(berth.heading) * cap.z;
+      const z = berth.z + Math.cos(berth.heading) * cap.z;
+      expect(town.shipObstacles.some((c) => circleHitsPoint(c, x, z, cap.radius + 0.5))).toBe(false);
+    }
 
     town.dispose();
     kit.dispose();
@@ -388,6 +407,148 @@ describe('Port Meridian town planting', () => {
         if (Math.hypot(a.x - p.x, a.z - p.z) < 3) problems.push(`${where} at anchor ${id}`);
     }
     expect(problems).toEqual([]);
+    town.dispose();
+    kit.dispose();
+  });
+});
+
+describe('Port Meridian east arm ship obstacles', () => {
+  const kit = testKit();
+  const town = createMeridianTown({ tier: tierSettings('low'), heightField, kit });
+  const arm = MERIDIAN.harbor.eastArm;
+  const quay = MERIDIAN.harbor.quay;
+  const berth = MERIDIAN.harbor.berth;
+  const widest = Math.max(...BRIGANTINE_CAPSULES.map((c) => c.radius));
+  const calm: WaveSampler = {
+    heightAt: () => 0,
+    velocityAt: (_x, _z, _t, out) => {
+      out[0] = 0;
+      out[1] = 0;
+      return out;
+    },
+  };
+  const env = { waves: calm, ground: heightField, obstacles: town.shipObstacles, t: 0 };
+  type Block = { x0: number; x1: number; z0: number; z1: number };
+  /** How far a hull circle (centre x, z, radius r) reaches into a block's footprint. */
+  const into = (b: Block, x: number, z: number, r: number) => {
+    const dx = Math.max(b.x0 - x, 0, x - b.x1);
+    const dz = Math.max(b.z0 - z, 0, z - b.z1);
+    if (dx === 0 && dz === 0) return r + Math.min(x - b.x0, b.x1 - x, z - b.z0, b.z1 - z);
+    return r - Math.hypot(dx, dz);
+  };
+  /** How far the hull reaches into the quay or the east arm. */
+  const deepestIntoStone = (ship: ShipDynamics) => {
+    const s = Math.sin(ship.pose.heading);
+    const c = Math.cos(ship.pose.heading);
+    let worst = -Infinity;
+    for (const cap of ship.capsules) {
+      const x = ship.pose.x + s * cap.z;
+      const z = ship.pose.z + c * cap.z;
+      worst = Math.max(worst, into(arm, x, z, cap.radius), into(quay, x, z, cap.radius));
+    }
+    return worst;
+  };
+  /** Steps the ship; returns its deepest reach into the stone and the seconds it ran. */
+  const run = (ship: ShipDynamics, seconds: number, trim: number, rudder = 0) => {
+    let worst = -Infinity;
+    let i = 0;
+    for (; i < seconds * 60 && !ship.dockComplete; i++) {
+      env.t += 1 / 60;
+      ship.step(1 / 60, { trim, rudder }, env);
+      worst = Math.max(worst, deepestIntoStone(ship));
+    }
+    return { worst, seconds: i / 60 };
+  };
+
+  it('builds only real circles', () => {
+    expect(town.shipObstacles.every((o) => o.r > 0 && Number.isFinite(o.x) && Number.isFinite(o.z))).toBe(
+      true,
+    );
+  });
+
+  it("stops the widest hull section at the arm's west, south and east faces, and the quay face by the arm", () => {
+    // Slide the widest capsule along each face (out = the face's outward normal) and find how far it
+    // must stay out to touch no circle: the hull may reach into the stone by at most half a metre.
+    const faces = [
+      {
+        name: 'west',
+        x: arm.x0,
+        z: MERIDIAN.harbor.quay.z1,
+        ax: 0,
+        az: 1,
+        len: arm.z1 - MERIDIAN.harbor.quay.z1,
+        ox: -1,
+        oz: 0,
+      },
+      { name: 'south', x: arm.x0, z: arm.z1, ax: 1, az: 0, len: arm.x1 - arm.x0, ox: 0, oz: 1 },
+      {
+        name: 'east',
+        x: arm.x1,
+        z: MERIDIAN.harbor.quay.z1,
+        ax: 0,
+        az: 1,
+        len: arm.z1 - MERIDIAN.harbor.quay.z1,
+        ox: 1,
+        oz: 0,
+      },
+      // The quay face from the dinghy moorings to the corner with the arm.
+      { name: 'quay', x: 731, z: quay.z1, ax: 1, az: 0, len: arm.x0 - 731, ox: 0, oz: 1 },
+    ];
+    const problems: string[] = [];
+    for (const f of faces)
+      for (let t = 0; t <= f.len; t += 0.5) {
+        const px = f.x + f.ax * t;
+        const pz = f.z + f.az * t;
+        let stayOut = -Infinity;
+        for (const o of town.shipObstacles) {
+          const along = (o.x - px) * f.ax + (o.z - pz) * f.az;
+          const out = (o.x - px) * f.ox + (o.z - pz) * f.oz;
+          const reach = widest + o.r;
+          if (Math.abs(along) < reach)
+            stayOut = Math.max(stayOut, out + Math.sqrt(reach * reach - along * along));
+        }
+        if (widest - stayOut > 0.5) problems.push(`${f.name} face at ${px.toFixed(1)}, ${pz.toFixed(1)}`);
+      }
+    expect(problems).toEqual([]);
+  });
+
+  // Each run went into the stone by a metre or more before the fix (through the whole arm from the south).
+  const runs: [string, number, number, number, number][] = [
+    ['into the west face, abeam the north end', 732, -731, Math.PI / 2, 12],
+    ['into the west face, south of the berth', 732, -668, Math.PI / 2, 12],
+    ['onto the south end from the basin mouth', 754, -622, Math.PI, 14],
+    ['across the south-west corner', 738, -628, Math.atan2(14, -24), 14],
+    ['over the shallows into the east side', 792, -664, -Math.PI / 2, 16],
+    ['into the quay face beside the arm', 737, -730, Math.PI, 12],
+    ['into the corner of the quay and the arm', 734, -734, Math.atan2(16, -24), 12],
+  ];
+  for (const [name, x, z, heading, seconds] of runs)
+    it(`keeps a ship under full sail out of the arm: ${name}`, () => {
+      // A pointed bow can nose about half a metre in between two circles; a broadside can't.
+      expect(run(new ShipDynamics(x, z, heading), seconds, 1).worst).toBeLessThan(0.75);
+    });
+
+  // The dock assist's last pivot swings the bow over the arm; the row only keeps the hull off the stone.
+  // Each case's last number is its dock time before the arm and corner rows (14.0, 2.7, 8.0 and 8.0 s),
+  // plus half a second: the rows must not slow the docking down.
+  const docks: [string, number, number, number, number][] = [
+    ["the Autopilot run's hand-over", BERTH_APPROACH.x, BERTH_APPROACH.z, Math.PI, 14.5],
+    ['a few metres off the berth', 741.5, -704, 0.1, 3.2],
+    ['overshot north, bow south', 746.5, -726, 0, 8.5],
+    ['abeam, in the basin', 735, -690, Math.PI, 8.5],
+  ];
+  for (const [name, x, z, heading, maxSeconds] of docks)
+    it(`docks at the Meridian berth from ${name}`, () => {
+      const ship = new ShipDynamics(x, z, heading);
+      ship.dockAssist(berth);
+      const { worst, seconds } = run(ship, 60, 0);
+      expect(worst).toBeLessThan(0.75);
+      expect(ship.dockComplete).toBe(true);
+      expect(seconds).toBeLessThan(maxSeconds);
+      expect(Math.hypot(ship.pose.x - berth.x, ship.pose.z - berth.z)).toBeLessThan(0.5);
+    });
+
+  it('frees the test kit', () => {
     town.dispose();
     kit.dispose();
   });

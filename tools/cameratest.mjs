@@ -16,7 +16,7 @@
 // Spots where the pivot is inside geometry, or where geometry comes within 0.45 m of it (the head
 // is already in it: a collider that's smaller than what's drawn), are skipped and counted.
 // Sail spots sweep the ship's rig over the water round each coast. Exits 1 on a page error or on
-// more bad frames than --max-bad (default 80: the count stood at 46-69, with a margin for
+// more bad frames than --max-bad (default 80: the count stood at 16-36, with a margin for
 // run-to-run spread; lower it as the colliders get closer to what's drawn).
 // Needs a dev server. A no-HMR one keeps edits elsewhere from reloading the page mid-run:
 //   npx vite --config tools/vite.nohmr.config.mjs --port 5322
@@ -404,6 +404,9 @@ const clusters = await page.evaluate(async (cfg) => {
       for (let z = b.min.z; z < b.max.z; z += 6) {
         const px = x + rand() * 6,
           pz = z + rand() * 6;
+        // The last cell can jitter past the island's height data, where the ground drops to the open
+        // sea's fallback depth in one step (at Meridian's east edge, from the ridge's 86 m to -52 m).
+        if (!inBox(px, pz)) continue;
         if (standable(px, pz) !== null) grid.push({ x: px, z: pz, kind: 'ground' });
         else if (world.waterAt(px, pz, 0) - world.groundAt(px, pz) > 4)
           sea.push({ x: px, z: pz, kind: 'sail' });

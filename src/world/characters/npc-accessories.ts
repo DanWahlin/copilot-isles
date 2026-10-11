@@ -1,4 +1,5 @@
 import {
+  AttachedBindMode,
   Bone,
   BoxGeometry,
   BufferAttribute,
@@ -1384,6 +1385,159 @@ function mesh(geometry: BufferGeometry, material: Material, name: string): Mesh 
   out.receiveShadow = true;
   out.userData.ownedGeometry = true;
   return out;
+}
+
+/** Every merged accessory mesh: one look (the per-colour materials' roughness and metalness), coloured per vertex. */
+const ACCESSORY_MATERIAL = new MeshStandardMaterial({
+  color: 0xffffff,
+  roughness: 0.82,
+  metalness: 0.02,
+  vertexColors: true,
+});
+
+/**
+ * The same look for the skinned merge. Its own material, because shared skinning gives it a skinning
+ * position node, which the rigid merges (parts on the character's root) mustn't get.
+ */
+const SKINNED_ACCESSORY_MATERIAL = ACCESSORY_MATERIAL.clone();
+
+/**
+ * Merges an NPC's rigid accessories (hats, coats, props: one mesh per part, one material per colour)
+ * into as few meshes as it can, coloured per vertex, so each NPC costs a draw or two in every pass
+ * rather than one per part. Parts on bones become one mesh skinned to the body's skeleton (each
+ * vertex rides its part's bone with full weight); parts on the root, or on a rig with no skinned
+ * body, become one mesh per anchor. The look is the same: same shading, same colours, same bones.
+ */
+export function mergeNpcAccessories(root: Group): void {
+  const owned = new Set<Material>(MATERIALS.values());
+  const byAnchor = new Map<Object3D, Mesh[]>();
+  const bodies: SkinnedMesh[] = [];
+  root.traverse((object) => {
+    if (object instanceof SkinnedMesh) {
+      bodies.push(object);
+      return;
+    }
+    if (!(object instanceof Mesh) || object.children.length) return;
+    if (!object.visible || !owned.has(object.material as Material)) return;
+    let anchor = object.parent;
+    while (anchor && anchor !== root && !(anchor instanceof Bone)) anchor = anchor.parent;
+    if (!anchor) return;
+    const list = byAnchor.get(anchor) ?? [];
+    list.push(object);
+    byAnchor.set(anchor, list);
+  });
+  root.updateMatrixWorld(true);
+  const size = (m: SkinnedMesh): number => m.geometry.getAttribute('position').count;
+  const body = bodies.reduce<SkinnedMesh | null>(
+    (best, m) => (!best || size(m) > size(best) ? m : best),
+    null,
+  );
+  const skinned = body?.parent ? skinAccessories(body, byAnchor) : null;
+  if (skinned) {
+    body!.parent!.add(skinned);
+    skinned.updateMatrixWorld(true);
+  }
+  const toAnchor = new Matrix4();
+  for (const [anchor, parts] of byAnchor) {
+    if (parts.length < 2) continue;
+    toAnchor.copy(anchor.matrixWorld).invert();
+    const geometries = parts.map((part) => accessoryGeometry(part, toAnchor));
+    const merged = mergeGeometries(geometries, false);
+    for (const g of geometries) g.dispose();
+    if (!merged) continue;
+    for (const part of parts) part.removeFromParent();
+    const out = mesh(merged, ACCESSORY_MATERIAL, `npc accessories (${anchor.name || 'root'})`);
+    out.userData.parts = parts.map((part) => part.name);
+    anchor.add(out);
+  }
+}
+
+/**
+ * One skinned mesh for every part that rides a bone of `body`'s skeleton (taken out of `byAnchor`), in
+ * `body`'s bind space: skinning a vertex with its bone at full weight puts it back where the part was.
+ */
+function skinAccessories(body: SkinnedMesh, byAnchor: Map<Object3D, Mesh[]>): SkinnedMesh | null {
+  const bones = body.skeleton.bones;
+  const geometries: BufferGeometry[] = [];
+  const names: string[] = [];
+  const toBind = new Matrix4();
+  const bindInverse = new Matrix4().copy(body.bindMatrix).invert();
+  // Where skinning puts a vertex: world space for an attached mesh, else bind space through the mesh.
+  const skinSpace = new Matrix4();
+  if (body.bindMode !== AttachedBindMode)
+    skinSpace.copy(body.matrixWorld).invert().premultiply(body.bindMatrix);
+  for (const [anchor, parts] of byAnchor) {
+    const bone = bones.indexOf(anchor as Bone);
+    if (bone < 0) continue;
+    // Skinned space to bind space: bind^-1 x boneInverse^-1 x boneWorld^-1.
+    toBind
+      .copy(body.skeleton.boneInverses[bone]!)
+      .invert()
+      .premultiply(bindInverse)
+      .multiply(boneSpace.copy(anchor.matrixWorld).invert())
+      .multiply(skinSpace);
+    for (const part of parts) {
+      const g = accessoryGeometry(part, toBind);
+      const count = g.getAttribute('position').count;
+      const index = new Uint16Array(count * 4);
+      const weight = new Float32Array(count * 4);
+      for (let i = 0; i < count; i++) {
+        index[i * 4] = bone;
+        weight[i * 4] = 1;
+      }
+      g.setAttribute('skinIndex', new BufferAttribute(index, 4));
+      g.setAttribute('skinWeight', new BufferAttribute(weight, 4));
+      geometries.push(g);
+      names.push(part.name);
+    }
+    byAnchor.delete(anchor);
+    for (const part of parts) part.removeFromParent();
+  }
+  if (!geometries.length) return null;
+  const merged = mergeGeometries(geometries, false);
+  for (const g of geometries) g.dispose();
+  if (!merged) return null;
+  const out = new SkinnedMesh(merged, SKINNED_ACCESSORY_MATERIAL);
+  out.name = 'npc accessories';
+  out.castShadow = true;
+  out.receiveShadow = true;
+  out.userData.ownedGeometry = true;
+  out.userData.parts = names;
+  out.position.copy(body.position);
+  out.quaternion.copy(body.quaternion);
+  out.scale.copy(body.scale);
+  out.bindMode = body.bindMode;
+  out.bind(body.skeleton, body.bindMatrix);
+  return out;
+}
+
+const boneSpace = new Matrix4();
+
+/** A part's geometry in its anchor's space, with its colour per vertex (position, normal, colour, indexed). */
+function accessoryGeometry(part: Mesh, toAnchor: Matrix4): BufferGeometry {
+  const source = part.geometry;
+  const g = new BufferGeometry();
+  g.setAttribute('position', source.getAttribute('position').clone());
+  if (source.getAttribute('normal')) g.setAttribute('normal', source.getAttribute('normal').clone());
+  else g.computeVertexNormals();
+  const count = g.getAttribute('position').count;
+  const index = source.index ? Array.from(source.index.array) : Array.from({ length: count }, (_, i) => i);
+  const matrix = new Matrix4().multiplyMatrices(toAnchor, part.matrixWorld);
+  // A mirrored part's faces would turn inside out once baked: wind them the other way.
+  if (matrix.determinant() < 0)
+    for (let i = 0; i + 2 < index.length; i += 3)
+      [index[i + 1], index[i + 2]] = [index[i + 2]!, index[i + 1]!];
+  g.setIndex(index);
+  g.applyMatrix4(matrix);
+  const color = (part.material as MeshStandardMaterial).color;
+  const colors = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    colors[i * 3] = color.r;
+    colors[i * 3 + 1] = color.g;
+    colors[i * 3 + 2] = color.b;
+  }
+  g.setAttribute('color', new BufferAttribute(colors, 3));
+  return g;
 }
 
 function mat(color: ColorHex): MeshStandardMaterial {

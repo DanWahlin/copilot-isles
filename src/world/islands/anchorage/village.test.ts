@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { tierSettings } from '../../../engine/quality';
 import type { HeightField } from '../../contracts';
 import { COVE } from '../../layout';
+import { insideOutSummary } from '../../village/inside-out';
 import { SQUARE, VILLAGE_BUILDING_COUNT, createVillage, walkable } from './village';
 import { LIGHTHOUSE } from './lighthouse-stair';
 
@@ -48,6 +49,19 @@ describe('createVillage', () => {
     expect(
       village.perches.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.z)),
     ).toBe(true);
+
+    village.dispose();
+  });
+
+  it('gives every collider a positive size and builds no inside-out faces', async () => {
+    const village = await createVillage({ tier: tierSettings('high'), heightField });
+    const bad = village.colliders.boxes
+      .filter((b) => !(b.hx > 0 && b.hz > 0))
+      .map((b) => `${b.x.toFixed(1)},${b.z.toFixed(1)} hx ${b.hx} hz ${b.hz}`);
+    expect(bad).toEqual([]);
+    expect(village.colliders.circles.every((c) => c.r > 0)).toBe(true);
+    // The fountain's streams are left out: each is laid in both windings with an up-facing normal.
+    expect(insideOutSummary(village.group, (m) => m.name.startsWith('village-'))).toEqual([]);
 
     village.dispose();
   });

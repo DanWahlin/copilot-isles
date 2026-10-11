@@ -14,11 +14,22 @@ interface Layer {
 
 export class CompositeHeightField implements HeightField {
   private readonly layers: Layer[] = [];
+  private shapes: CompositeHeightField | null = null;
 
   constructor(private readonly fallbackHeight = -52) {}
 
+  /** The layers' ground before their recesses (`HeightField.shapeField`), once any layer has one. */
+  get shapeField(): HeightField | undefined {
+    return this.shapes ?? undefined;
+  }
+
   add(bounds: HeightFieldBounds, field: HeightField): void {
     this.layers.push({ bounds, field });
+    if (!this.shapes && field.shapeField) {
+      this.shapes = new CompositeHeightField(this.fallbackHeight);
+      for (const layer of this.layers.slice(0, -1)) this.shapes.add(layer.bounds, layer.field);
+    }
+    this.shapes?.add(bounds, field.shapeField ?? field);
   }
 
   heightAt(x: number, z: number): number {
