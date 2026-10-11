@@ -118,6 +118,11 @@ the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _
 - Visual changes: screenshot with Playwright against `http://localhost:5301` (see `tools/flowtest.mjs`
   and `tools/lib/browser.mjs`), before and after, at the moment that matters. Use a fast JPEG burst
   for timed sequences (the opening chart lasts about 11 s).
+- Flicker or z-fighting (docks, decals, paths, roofs, stacked boxes):
+  `node tools/flickertest.mjs --views=pier,m-town --audit` freezes time, diffs still, sub-pixel
+  jittered and dollied frames, and flags `stacked` regions (two hits under 5 cm apart). It writes
+  diff images and `report.json`. Keep coplanar opaque faces at least 1 cm apart. Foliage shimmer
+  with AA off is aliasing, not a fight.
 - `tools/flowtest.mjs` runs title → voyage → chart → travel → settings → title with no console errors;
   `npm run test:e2e` runs the WebGPU and WebGL2 smoke tests (run them with `--repeat-each=4`
   when touching the title or warm-up: timing-dependent hitches only show some of the time).

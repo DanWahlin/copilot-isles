@@ -128,6 +128,10 @@ const key = (code: string, down: boolean) => {
 (window as unknown as { __dev: object }).__dev = {
   ready: true,
   session: () => session,
+  /** The scene, its camera, and the engine, for tools that ray-test what's drawn (tools/cameratest.mjs). */
+  scene,
+  camera,
+  engine,
   learn,
   /** Submits the right answer to the open quiz (tests); hotspots can also be clicked for real. */
   answer: () => {

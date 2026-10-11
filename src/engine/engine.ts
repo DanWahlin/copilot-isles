@@ -190,6 +190,17 @@ export class Engine {
     this.counters.endFrame(this.clock.sim);
   }
 
+  /**
+   * Draws one frame with time held (freeze-frame probes such as tools/flickertest.mjs, with the loop
+   * stopped and the clock paused): frame systems run at the current sim time with a negligible dt, so
+   * camera-dependent work (LOD, reflections, sky) follows the camera but nothing animates.
+   */
+  renderStill(): void {
+    world.time.value = this.clock.sim;
+    for (const s of this.systems) s.frame?.(1e-6, this.clock.sim);
+    this.renderNow();
+  }
+
   private readonly onVisibility = () => {
     // PLAN §12.8: nothing renders while hidden; resume without a time jump.
     if (document.hidden) {

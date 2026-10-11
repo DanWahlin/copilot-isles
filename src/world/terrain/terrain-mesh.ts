@@ -87,11 +87,15 @@ function thresholdsForTier(tier: TierSettings): readonly number[] {
   return [115, 320];
 }
 
-function bilinearIndices(
+/** Bilinear sample of a baked grid channel (no allocation). */
+function sampleGrid(
+  values: Float32Array | Uint8Array,
   data: TerrainBakeData,
   x: number,
   z: number,
-): [number, number, number, number, number, number] {
+  component: number,
+  stride: number,
+): number {
   const gx = clamp((x - data.minX) / data.cell, 0, data.nx - 1.001);
   const gz = clamp((z - data.minZ) / data.cell, 0, data.nz - 1.001);
   const ix = Math.floor(gx);
@@ -99,7 +103,10 @@ function bilinearIndices(
   const tx = gx - ix;
   const tz = gz - iz;
   const i00 = iz * data.nx + ix;
-  return [i00, i00 + 1, i00 + data.nx, i00 + data.nx + 1, tx, tz];
+  const i01 = i00 + data.nx;
+  const a = lerp(values[i00 * stride + component], values[(i00 + 1) * stride + component], tx);
+  const b = lerp(values[i01 * stride + component], values[(i01 + 1) * stride + component], tx);
+  return lerp(a, b, tz);
 }
 
 function sampleFloat(
@@ -110,10 +117,7 @@ function sampleFloat(
   component = 0,
   stride = 1,
 ): number {
-  const [i00, i10, i01, i11, tx, tz] = bilinearIndices(data, x, z);
-  const a = lerp(values[i00 * stride + component], values[i10 * stride + component], tx);
-  const b = lerp(values[i01 * stride + component], values[i11 * stride + component], tx);
-  return lerp(a, b, tz);
+  return sampleGrid(values, data, x, z, component, stride);
 }
 
 function sampleByte(
@@ -124,10 +128,151 @@ function sampleByte(
   component = 0,
   stride = 1,
 ): number {
-  const [i00, i10, i01, i11, tx, tz] = bilinearIndices(data, x, z);
-  const a = lerp(values[i00 * stride + component], values[i10 * stride + component], tx);
-  const b = lerp(values[i01 * stride + component], values[i11 * stride + component], tx);
-  return lerp(a, b, tz) / 255;
+  return sampleGrid(values, data, x, z, component, stride) / 255;
+}
+
+/** Side of a terrain chunk, in metres. Chunks start at the data's min corner. */
+const CHUNK_SIZE = 256;
+
+/**
+ * One axis of the mesh cell under a point: the cell's two vertex coordinates and the 0-1 position
+ * between them. It follows `buildTerrain`'s chunk layout and `buildChunkGeometry`'s vertex columns
+ * (a chunk's last column sits on the chunk edge, so that cell can be wider than `step`).
+ */
+class MeshAxis {
+  a = 0;
+  b = 0;
+  t = 0;
+
+  set(v: number, min: number, max: number, step: number): void {
+    let chunk = Math.max(0, Math.floor((v - min) / CHUNK_SIZE));
+    while (chunk > 0 && min + chunk * CHUNK_SIZE >= max - 0.1) chunk--;
+    const c0 = min + chunk * CHUNK_SIZE;
+    const c1 = Math.min(max, c0 + CHUNK_SIZE);
+    const cols = Math.max(2, Math.floor((c1 - c0) / step) + 1);
+    const i = clamp(Math.floor((v - c0) / step), 0, cols - 2);
+    this.a = c0 + i * step;
+    this.b = i + 1 === cols - 1 ? c1 : c0 + (i + 1) * step;
+    this.t = clamp((v - this.a) / (this.b - this.a), 0, 1);
+  }
+}
+
+/**
+ * The ground as the terrain mesh draws it. Each mesh cell is split into two triangles along the
+ * (x1, z0)–(x0, z1) diagonal (`indices.push(a, c, b, b, c, d)` in `buildChunkGeometry`), so a lookup
+ * finds the cell, picks the triangle, and interpolates its three vertices (barycentric). The vertices
+ * are the same bilinear samples of the baked grid that the mesh uses, so the result lies on the drawn
+ * triangle's plane, not on the bilinear patch (which bulges off it on slopes).
+ */
+class BakedTerrainHeightField implements HeightField {
+  private readonly ax = new MeshAxis();
+  private readonly az = new MeshAxis();
+  /** Barycentric weights of the cell's corners 00, 10, 01, 11 (one is always 0). */
+  private w00 = 0;
+  private w10 = 0;
+  private w01 = 0;
+  private w11 = 0;
+
+  constructor(
+    private readonly data: TerrainBakeData,
+    /** The mesh grid step to match (the finest level of detail). */
+    private readonly step: number,
+  ) {}
+
+  heightAt(x: number, z: number): number {
+    if (!this.contains(x, z)) return -52;
+    return this.triangleSample(this.data.heights, x, z, 0, 1);
+  }
+
+  /** The drawn shading normal: the triangle's vertex normals, blended like the GPU blends them. */
+  normalAt(x: number, z: number, out: Float32Array | number[]): Float32Array | number[] {
+    if (!this.contains(x, z)) {
+      out[0] = 0;
+      out[1] = 1;
+      out[2] = 0;
+      return out;
+    }
+    this.locate(x, z);
+    let nx = 0;
+    let ny = 0;
+    let nz = 0;
+    for (let k = 0; k < 4; k++) {
+      const w = k === 0 ? this.w00 : k === 1 ? this.w10 : k === 2 ? this.w01 : this.w11;
+      if (w <= 0) continue;
+      const vx = k & 1 ? this.ax.b : this.ax.a;
+      const vz = k & 2 ? this.az.b : this.az.a;
+      const a = sampleFloat(this.data.normals, this.data, vx, vz, 0, 3);
+      const b = sampleFloat(this.data.normals, this.data, vx, vz, 1, 3);
+      const c = sampleFloat(this.data.normals, this.data, vx, vz, 2, 3);
+      const s = w / (Math.hypot(a, b, c) || 1);
+      nx += a * s;
+      ny += b * s;
+      nz += c * s;
+    }
+    const len = Math.hypot(nx, ny, nz) || 1;
+    out[0] = nx / len;
+    out[1] = ny / len;
+    out[2] = nz / len;
+    return out;
+  }
+
+  masksAt(x: number, z: number): { sand: number; grass: number; rock: number; cliff: number } {
+    if (!this.contains(x, z)) return { sand: 0, grass: 0, rock: 1, cliff: 0 };
+    return {
+      sand: sampleByte(this.data.masks, this.data, x, z, 0, 4),
+      grass: sampleByte(this.data.masks, this.data, x, z, 1, 4),
+      rock: sampleByte(this.data.masks, this.data, x, z, 2, 4),
+      cliff: sampleByte(this.data.masks, this.data, x, z, 3, 4),
+    };
+  }
+
+  /** Finds the mesh cell and triangle under (x, z) and sets the corner weights. */
+  private locate(x: number, z: number): void {
+    const d = this.data;
+    this.ax.set(x, d.minX, d.maxX, this.step);
+    this.az.set(z, d.minZ, d.maxZ, this.step);
+    const tx = this.ax.t;
+    const tz = this.az.t;
+    if (tx + tz <= 1) {
+      this.w00 = 1 - tx - tz;
+      this.w10 = tx;
+      this.w01 = tz;
+      this.w11 = 0;
+    } else {
+      this.w00 = 0;
+      this.w10 = 1 - tz;
+      this.w01 = 1 - tx;
+      this.w11 = tx + tz - 1;
+    }
+  }
+
+  private triangleSample(
+    values: Float32Array,
+    x: number,
+    z: number,
+    component: number,
+    stride: number,
+  ): number {
+    this.locate(x, z);
+    const d = this.data;
+    const { a: x0, b: x1 } = this.ax;
+    const { a: z0, b: z1 } = this.az;
+    let h = 0;
+    if (this.w00 > 0) h += this.w00 * sampleFloat(values, d, x0, z0, component, stride);
+    if (this.w10 > 0) h += this.w10 * sampleFloat(values, d, x1, z0, component, stride);
+    if (this.w01 > 0) h += this.w01 * sampleFloat(values, d, x0, z1, component, stride);
+    if (this.w11 > 0) h += this.w11 * sampleFloat(values, d, x1, z1, component, stride);
+    return h;
+  }
+
+  private contains(x: number, z: number): boolean {
+    return x >= this.data.minX && x <= this.data.maxX && z >= this.data.minZ && z <= this.data.maxZ;
+  }
+}
+
+/** The gameplay height field for a terrain: it matches the tier's finest mesh triangles. */
+export function createTerrainHeightField(data: TerrainBakeData, tier: Tier | TierSettings): HeightField {
+  return new BakedTerrainHeightField(data, stepsForTier(resolveTier(tier))[0]!);
 }
 
 function sampleVertex(
@@ -160,46 +305,6 @@ function sampleVertex(
       sampleByte(data.masks, data, x, z, 3, 4),
     ],
   };
-}
-
-class BakedTerrainHeightField implements HeightField {
-  constructor(private readonly data: TerrainBakeData) {}
-
-  heightAt(x: number, z: number): number {
-    if (!this.contains(x, z)) return -52;
-    return sampleFloat(this.data.heights, this.data, x, z);
-  }
-
-  normalAt(x: number, z: number, out: Float32Array | number[]): Float32Array | number[] {
-    if (!this.contains(x, z)) {
-      out[0] = 0;
-      out[1] = 1;
-      out[2] = 0;
-      return out;
-    }
-    const nx = sampleFloat(this.data.normals, this.data, x, z, 0, 3);
-    const ny = sampleFloat(this.data.normals, this.data, x, z, 1, 3);
-    const nz = sampleFloat(this.data.normals, this.data, x, z, 2, 3);
-    const len = Math.hypot(nx, ny, nz) || 1;
-    out[0] = nx / len;
-    out[1] = ny / len;
-    out[2] = nz / len;
-    return out;
-  }
-
-  masksAt(x: number, z: number): { sand: number; grass: number; rock: number; cliff: number } {
-    if (!this.contains(x, z)) return { sand: 0, grass: 0, rock: 1, cliff: 0 };
-    return {
-      sand: sampleByte(this.data.masks, this.data, x, z, 0, 4),
-      grass: sampleByte(this.data.masks, this.data, x, z, 1, 4),
-      rock: sampleByte(this.data.masks, this.data, x, z, 2, 4),
-      cliff: sampleByte(this.data.masks, this.data, x, z, 3, 4),
-    };
-  }
-
-  private contains(x: number, z: number): boolean {
-    return x >= this.data.minX && x <= this.data.maxX && z >= this.data.minZ && z <= this.data.maxZ;
-  }
 }
 
 function pushVertex(
@@ -334,6 +439,36 @@ function* buildChunkGeometry(
   return { step, geometry, triangles: indices.length / 3 };
 }
 
+/** Every chunk's geometry for one level of detail, built at once (tests and tools; the caller disposes). */
+export function buildTerrainLodGeometries(
+  data: TerrainBakeData,
+  tier: Tier | TierSettings,
+  lod = 0,
+): BufferGeometry[] {
+  const step = stepsForTier(resolveTier(tier))[lod]!;
+  const out: BufferGeometry[] = [];
+  for (let z0 = data.minZ; z0 < data.maxZ - 0.1; z0 += CHUNK_SIZE) {
+    for (let x0 = data.minX; x0 < data.maxX - 0.1; x0 += CHUNK_SIZE) {
+      const build = buildChunkGeometry(
+        data,
+        x0,
+        Math.min(data.maxX, x0 + CHUNK_SIZE),
+        z0,
+        Math.min(data.maxZ, z0 + CHUNK_SIZE),
+        step,
+      );
+      for (;;) {
+        const r = build.next();
+        if (r.done) {
+          out.push(r.value.geometry);
+          break;
+        }
+      }
+    }
+  }
+  return out;
+}
+
 export function createTerrain(options: CreateTerrainOptions): CreatedTerrain {
   const steps = buildTerrain(options);
   for (;;) {
@@ -366,14 +501,13 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
   group.name = options.name ?? 'test-cove-terrain';
   const material = createTerrainMaterial({ tier: tier.tier, cloudShadowNode: options.cloudShadowNode });
   const chunks: TerrainChunk[] = [];
-  const chunkSize = 256;
   const steps = stepsForTier(tier);
   const thresholds = thresholdsForTier(tier);
 
-  for (let z0 = data.minZ; z0 < data.maxZ - 0.1; z0 += chunkSize) {
-    for (let x0 = data.minX; x0 < data.maxX - 0.1; x0 += chunkSize) {
-      const x1 = Math.min(data.maxX, x0 + chunkSize);
-      const z1 = Math.min(data.maxZ, z0 + chunkSize);
+  for (let z0 = data.minZ; z0 < data.maxZ - 0.1; z0 += CHUNK_SIZE) {
+    for (let x0 = data.minX; x0 < data.maxX - 0.1; x0 += CHUNK_SIZE) {
+      const x1 = Math.min(data.maxX, x0 + CHUNK_SIZE);
+      const z1 = Math.min(data.maxZ, z0 + CHUNK_SIZE);
       const geometries: ChunkGeometrySet[] = [];
       for (const step of steps)
         geometries.push(yield* buildChunkGeometry(data, x0, x1, z0, z1, step, options.recessSteep ?? null));
@@ -398,14 +532,14 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     minZ: data.minZ,
     cell: data.cell,
   };
-  const heightField = new BakedTerrainHeightField(data);
+  const heightField = new BakedTerrainHeightField(data, steps[0]!);
   let pinned: number | null = null;
   const showLod = (chunk: (typeof chunks)[number], lod: number) => {
     const next = Math.min(chunk.geometries.length - 1, lod);
     if (next === chunk.current) return;
     chunk.current = next;
     chunk.mesh.geometry = chunk.geometries[next]!.geometry;
-    chunk.mesh.geometry.boundingSphere ??= new Sphere(chunk.center, chunkSize);
+    chunk.mesh.geometry.boundingSphere ??= new Sphere(chunk.center, CHUNK_SIZE);
   };
   yield;
   const rocks = options.createRocks

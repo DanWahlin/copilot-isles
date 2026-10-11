@@ -1210,7 +1210,8 @@ function addPierSideStructure(
   const centerZ = (minZ + maxZ) * 0.5;
   for (const side of [-1, 1]) {
     const x = pier.x + side * (pier.width * 0.5 + 0.2);
-    addBox(buckets.rope, x, pier.deck - 0.36, centerZ, 0.18, 0.42, length - 1.2, 0, 0x806b56);
+    // Top 1 cm under the boathouse floor (deck + 0.06), which it runs beneath: flush, they z-fought.
+    addBox(buckets.rope, x, pier.deck - 0.36, centerZ, 0.18, 0.41, length - 1.2, 0, 0x806b56);
     addBox(buckets.rope, x, pier.deck - 0.18, centerZ, 0.14, 0.14, length - 1.0, 0, 0x927861);
   }
   for (const z of [-111.5, -95.5]) {

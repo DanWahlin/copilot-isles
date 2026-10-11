@@ -42,6 +42,9 @@ interface Bucket {
 }
 
 const CELL = 16;
+/** Boxes this tall (m) or more are buildings, whose roofs can rise over their `height` (see cameraBlockedAt). */
+const ROOF_MIN = 2.5;
+const ROOF_PITCH = 0.8;
 
 /**
  * Static collision for walking (Phase 0 S6): terrain + man-made surfaces for ground height, and
@@ -197,6 +200,41 @@ export class CollisionWorld {
     for (const c of b.circles) {
       if (c.r < 1.5 || Math.hypot(x - c.x, z - c.z) >= c.r + pad) continue;
       if (y < this.groundAt(c.x, c.z) + (c.height ?? 12)) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Whether the follow camera's eye at (x, y, z) is in or within `pad` of a collider. Unlike
+   * `sightBlockedAt`, small round colliders count too (barrels, posts, crates: up to their `height`,
+   * else 2 m), colliders with a span (`y0`/`y1`) use it, a box stands on the walkable height at its
+   * centre (a shed on a pier, not the seabed under it), and a building's roof can rise over its top.
+   */
+  cameraBlockedAt(x: number, y: number, z: number, pad: number): boolean {
+    const b = this.cellAt(x, z);
+    if (!b) return false;
+    for (const box of b.boxes) {
+      const [lx, lz] = toLocal(box, x, z);
+      const ex = Math.abs(lx) - box.hx,
+        ez = Math.abs(lz) - box.hz;
+      if (ex > pad || ez > pad) continue;
+      if (box.y1 !== undefined) {
+        if (y >= (box.y0 ?? -Infinity) - pad && y <= box.y1 + pad) return true;
+        continue;
+      }
+      const h = box.height ?? 9;
+      // A roof rises ROOF_PITCH m per metre in from the eaves (which overhang the walls by `pad`).
+      const roof = h >= ROOF_MIN ? Math.max(0, pad - Math.max(ex, ez)) * ROOF_PITCH : 0;
+      if (y < this.groundAt(box.x, box.z) + h + pad + roof) return true;
+    }
+    for (const c of b.circles) {
+      const dx = x - c.x,
+        dz = z - c.z,
+        r = c.r + pad;
+      if (dx * dx + dz * dz >= r * r) continue;
+      if (c.y1 !== undefined) {
+        if (y >= (c.y0 ?? -Infinity) - pad && y <= c.y1 + pad) return true;
+      } else if (y < this.groundAt(c.x, c.z) + (c.height ?? (c.r >= 1.5 ? 12 : 2)) + pad) return true;
     }
     return false;
   }

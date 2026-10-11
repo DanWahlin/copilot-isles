@@ -1,5 +1,7 @@
 import { PerspectiveCamera } from 'three/webgpu';
 import { describe, expect, it } from 'vitest';
+import type { HeightField } from '../world/contracts';
+import { CollisionWorld } from './collision';
 import { FollowCamera } from './follow-camera';
 
 const still = { lookX: 0, lookY: 0, zoom: 0 };
@@ -75,5 +77,56 @@ describe('FollowCamera shot changes', () => {
     expect(three.position.x).toBeCloseTo(rest.x, 3);
     expect(three.position.y).toBeCloseTo(rest.y, 3);
     expect(three.position.z).toBeCloseTo(rest.z, 3);
+  });
+});
+
+describe('FollowCamera clearance', () => {
+  const flat: HeightField = {
+    heightAt: () => 0,
+    normalAt: (_x, _z, out) => {
+      out[0] = 0;
+      out[1] = 1;
+      out[2] = 0;
+      return out;
+    },
+    masksAt: () => ({ sand: 0, grass: 1, rock: 0, cliff: 0 }),
+  };
+  const lowSea = { heightAt: () => -5, velocityAt: (_x: number, _z: number, _t: number, o: number[]) => o };
+  const world = (extra: Partial<ConstructorParameters<typeof CollisionWorld>[0]>) =>
+    new CollisionWorld({ ground: flat, waves: lowSea, ...extra });
+  const settle = (w: CollisionWorld) => {
+    const cam = new FollowCamera();
+    const three = new PerspectiveCamera();
+    for (let t = 0; t < 3; t += 1 / 60) cam.update(1 / 60, three, still, target, 0, false, w, t);
+    return three.position;
+  };
+
+  it('sits behind you with nothing in the way', () => {
+    const p = settle(world({}));
+    expect(p.z).toBeCloseTo(-6.2 * Math.cos(0.32), 1);
+  });
+
+  it('keeps out of a wall behind you, with room for the near plane', () => {
+    const p = settle(world({ boxes: [{ x: 0, z: -3, hx: 5, hz: 0.3, rot: 0, height: 9 }] }));
+    expect(p.z).toBeGreaterThan(-2.7 + 0.15);
+    expect(p.z).toBeLessThan(0);
+  });
+
+  it('keeps out of a wall right behind you (it comes in close, not through)', () => {
+    const p = settle(world({ boxes: [{ x: 0, z: -0.8, hx: 5, hz: 0.3, rot: 0, height: 9 }] }));
+    expect(p.z).toBeGreaterThan(-0.5);
+  });
+
+  it('keeps out of small round colliders (posts, barrels)', () => {
+    const p = settle(world({ circles: [{ x: 0, z: -2, r: 0.4, height: 3 }] }));
+    const clear = Math.hypot(p.x, p.z + 2) > 0.4 + 0.15 || p.y > 3.15;
+    expect(clear).toBe(true);
+  });
+
+  it('keeps above a cliff top behind you', () => {
+    const cliff = { ...flat, heightAt: (_x: number, z: number) => (z < -3 ? 4 : 0) };
+    const p = settle(new CollisionWorld({ ground: cliff, waves: lowSea }));
+    expect(p.z < -3 ? p.y > 4.3 : true).toBe(true);
+    expect(p.y - (p.z < -3 ? 4 : 0)).toBeGreaterThan(0.3);
   });
 });

@@ -1,4 +1,4 @@
-import { NoToneMapping, Raycaster, Vector2 } from 'three/webgpu';
+import { NoToneMapping, Raycaster, Vector2, Vector3 } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createPost } from '../engine/post';
 import { createCove } from '../world/cove-scene';
@@ -13,6 +13,7 @@ import {
   orbitViews,
   showSkyReadouts,
 } from './harness';
+import { auditCoplanar, type CoplanarAuditOptions } from './coplanar-audit';
 
 /** Test Cove dev page: every world module together under the shared sky (?webgl, ?tier=, ?tm=). */
 const h = await createDevHarness();
@@ -225,6 +226,8 @@ function skyLook(eye: number[], dir: number[], up: number[] = [0, 1, 0]) {
   camera.updateMatrixWorld();
 }
 
+const frozenAt = new Vector3();
+const frozenDir = new Vector3();
 (window as unknown as { __dev: object }).__dev = {
   ready: true,
   setTime,
@@ -374,7 +377,8 @@ function skyLook(eye: number[], dir: number[], up: number[] = [0, 1, 0]) {
       .map((h) => {
         const path: string[] = [];
         for (let o: typeof h.object | null = h.object; o; o = o.parent) path.push(o.name || o.type);
-        return `${h.distance.toFixed(1)} ${path.join('<')}`;
+        const at = `${h.point.x.toFixed(2)},${h.point.y.toFixed(2)},${h.point.z.toFixed(2)}`;
+        return `${h.distance.toFixed(1)} ${path.join('<')} @${at}`;
       });
   },
   /** Holds the adaptive scale (e.g. 1 for per-tier GPU measurements), or `null` to release it. */
@@ -382,6 +386,35 @@ function skyLook(eye: number[], dir: number[], up: number[] = [0, 1, 0]) {
     engine.adaptive.lock(scale);
     engine.resize();
   },
+  /**
+   * Freeze-frame mode for tools/flickertest.mjs: pauses the clock (waves, wind, foam, clouds, life),
+   * stops the frame loop, and draws at full render scale without orbit damping. `false` resumes.
+   */
+  freeze: (on = true) => {
+    clock.paused = on;
+    controls.enableDamping = !on;
+    engine.setRenderScale(on ? 1 : null);
+    camera.clearViewOffset();
+    if (on) {
+      engine.stop();
+      frozenAt.copy(camera.position);
+      camera.getWorldDirection(frozenDir);
+    } else engine.start();
+  },
+  /**
+   * Draws one frozen frame with the projection shifted by (jx, jy) drawing-buffer pixels (sub-pixel
+   * jitter), and the camera moved `dolly` metres forward from where it froze (depth-only change).
+   */
+  still: (jx = 0, jy = 0, dolly = 0) => {
+    const size = renderer.getDrawingBufferSize(new Vector2());
+    if (jx || jy) camera.setViewOffset(size.x, size.y, jx, jy, size.x, size.y);
+    else camera.clearViewOffset();
+    camera.position.copy(frozenAt).addScaledVector(frozenDir, dolly);
+    camera.updateMatrixWorld();
+    engine.renderStill();
+  },
+  /** Static z-fighting audit of what's visible now (coplanar-audit.ts). */
+  coplanar: (o: Omit<CoplanarAuditOptions, 'skip'> = {}) => auditCoplanar(scene, o),
   stats: () => {
     cove.mirror?.finalizeFrame(engine.counters.last.drawCalls, engine.counters.last.triangles);
     return {

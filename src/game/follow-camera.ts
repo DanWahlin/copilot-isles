@@ -1,6 +1,6 @@
 import type { PerspectiveCamera } from 'three/webgpu';
 import type { CollisionWorld } from './collision';
-import { wrapAngle } from '../util/math';
+import { smoothstep, wrapAngle } from '../util/math';
 
 export interface CameraRig {
   /** Distance limits and the default. */
@@ -17,6 +17,13 @@ export interface CameraRig {
   recenterDelay: number;
   recenterRate: number;
   fov: number;
+  /**
+   * Terrain clearance round the camera: the ground this far away in each of the four axis directions
+   * must stay at least `ringClear` below the camera, so it keeps off cliff faces and rock skirts that
+   * stand out past the height field.
+   */
+  ringRadius: number;
+  ringClear: number;
 }
 
 export const WALK_RIG: CameraRig = {
@@ -30,6 +37,8 @@ export const WALK_RIG: CameraRig = {
   recenterDelay: 1.6,
   recenterRate: 1.4,
   fov: 55,
+  ringRadius: 1,
+  ringClear: -0.3,
 };
 
 export const SAIL_RIG: CameraRig = {
@@ -43,6 +52,8 @@ export const SAIL_RIG: CameraRig = {
   recenterDelay: 2.5,
   recenterRate: 0.8,
   fov: 55,
+  ringRadius: 7,
+  ringClear: 0.45,
 };
 
 export interface CameraLook {
@@ -51,7 +62,20 @@ export interface CameraLook {
   zoom: number;
 }
 
-const SAMPLES = 14;
+/** Collision march: sample spacing (m) along the line from the pivot, and the most samples taken. */
+const STEP = 0.25;
+const MAX_SAMPLES = 160;
+/** How high the camera keeps above the ground under it. */
+const GROUND_CLEAR = 0.45;
+/**
+ * How far the camera keeps from colliders. Low down it's the near plane's half-diagonal (about
+ * 0.11 m at fov 55, 16:9) plus a margin, so you can still walk along a wall with the camera behind
+ * you; higher up it's more, for eaves, roofs, and balconies that stand past their footprints.
+ */
+const PAD_LOW = 0.25;
+const PAD_HIGH = 0.7;
+/** The closest the camera comes to the pivot when a wall is right behind you. */
+const NEAR_DIST = 0.15;
 const NO_LOOK: CameraLook = { lookX: 0, lookY: 0, zoom: 0 };
 
 /** A held camera shot for a story beat: where the camera sits and what it looks at (world space). */
@@ -255,16 +279,16 @@ export class FollowCamera {
       dy = -sp,
       dz = Math.cos(this.yaw) * cp;
 
-    // Collision: march from the pivot toward the wanted camera position.
+    // Collision: march from the pivot toward the wanted camera position and stop at the last clear
+    // sample. Close samples (not a fixed count) so a thin wall can't fall between two of them.
     let allowed = this.wantDist;
     if (world) {
-      for (let i = 1; i <= SAMPLES; i++) {
-        const s = (this.wantDist * i) / SAMPLES;
-        const x = this.pivot.x - dx * s,
-          y = this.pivot.y - dy * s,
-          z = this.pivot.z - dz * s;
-        if (y < world.groundAt(x, z) + 0.45 || world.sightBlockedAt(x, y, z, 0.25)) {
-          allowed = Math.max(r.minDist * 0.5, s - this.wantDist / SAMPLES - 0.2);
+      const n = Math.min(MAX_SAMPLES, Math.ceil(this.wantDist / STEP));
+      const step = this.wantDist / n;
+      for (let i = 1; i <= n; i++) {
+        const s = step * i;
+        if (blocked(world, r, this.pivot.x - dx * s, this.pivot.y - dy * s, this.pivot.z - dz * s)) {
+          allowed = Math.max(NEAR_DIST, s - step);
           break;
         }
       }
@@ -368,4 +392,21 @@ export class FollowCamera {
       cam.updateProjectionMatrix();
     }
   }
+}
+
+/** Whether the camera can't sit at (x, y, z): too near the ground, a cliff face, or a collider. */
+function blocked(world: CollisionWorld, r: CameraRig, x: number, y: number, z: number): boolean {
+  const g = world.groundAt(x, z);
+  if (y < g + GROUND_CLEAR) return true;
+  const k = r.ringRadius,
+    lift = y - r.ringClear;
+  if (
+    k > 0 &&
+    (world.groundAt(x + k, z) > lift ||
+      world.groundAt(x - k, z) > lift ||
+      world.groundAt(x, z + k) > lift ||
+      world.groundAt(x, z - k) > lift)
+  )
+    return true;
+  return world.cameraBlockedAt(x, y, z, PAD_LOW + (PAD_HIGH - PAD_LOW) * smoothstep(1.8, 3, y - g));
 }
