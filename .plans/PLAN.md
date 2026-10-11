@@ -14,6 +14,7 @@
 |---|---|
 | Title | **Copilot Isles** |
 | Course basis | Public `github/copilot-app-for-beginners`, **8 chapters → 8 islands** |
+| Course content | **Planned, not built yet:** retrieve the course text and screenshots live at runtime, with a bundled snapshot fallback, plus a **weekly refresh automation** for content, screenshots, and voices (Dan, 2026-09-26). Today the game uses bundled copies. See §8 |
 | Framing | Captain & crew metaphor + a **Wandering Bard** who keeps the studio analogy |
 | Progression | **Hybrid**: sequential by default, plus a **"Free explore"** toggle in Settings that opens every island or the user can select an island from the map |
 | Combat | **Gentle sea battles at a few places** (changed 2026-10-04, #203): the first is on the passage from Anchorage to Port Meridian, required with a skip button. Cannonballs, splashes, and ships that settle; nothing gory and **no fail state** (the crew breaks off and the wave restarts). Otherwise puzzles, exploration, sailing. See [docs/specs/BATTLES.md](../docs/specs/BATTLES.md) |
@@ -194,7 +195,7 @@ Tests: `tools/meridiantest.mjs` plays the chapter end to end in the browser (the
 | **Exploration** | Third-person camera with WASD. The default look is **hold right mouse** (no pointer lock), with arrow-key look, an optional pointer-lock "mouse-look" setting, sprint, and jump. Gamepad is supported. **POC:** wading only (deep water gently returns you to shore). **Swimming and ledge climbing are post-POC.** |
 | **Sailing** | Board at a dock into a pirate ship similar to what you'd see in Pirates of the Carribean. In practice that's a generic Golden Age **brigantine** (two masts, square-rigged, weathered hull, patched canvas), not a copy of any specific film ship's design. W/S trims the sails, A/D steers. There's a wind indicator and wake/spray FX, and the boat rocks on **analytic Gerstner buoyancy** that matches the wave shader. Docking is a gentle auto-assist when you're close. Islands stream in as you approach. |
 | **Dialogue** | Fully voiced lines with portrait, name, and synced subtitles. Screenshots appear inside the dialogue as framed **spyglass views** you can zoom into. Choices can branch. You can always replay lines in the Logbook. |
-| **Chests & Logbook** | Chests reveal **Logbook pages**: a screenshot or illustration plus a clear caption and a link to the course section. The Logbook works as your codex, glossary, and quest log. |
+| **Chests & Logbook** | Chests reveal **Logbook pages**: a screenshot or illustration plus a clear caption and a link to the course section. Once §8 is built, the image comes live from the course and the page adds a "From the course" excerpt. The Logbook works as your codex, glossary, and quest log. |
 | **Quizzes** | Multiple choice · **Hotspot** (click the right spot on a real screenshot, with a magnifier) · Ordering (drag steps into sequence) · Matching (`@`→files, `#`→issues) · Scenario ("which mode?"). Feedback explains the *why*, and retries are unlimited. |
 | **Puzzle toolkit** | Reusable grid pieces: push blocks, pressure plates, levers, sluice gates & water flow, rotating mirrors & beams, gears, timers. Each island combines them in new ways. |
 | **Progression** | Islands unlock in order by default. A **"Free explore"** setting opens them all. Each island has 3-5 teaching NPCs, 3-6 chests, 1-2 puzzles, and 1 Trial, which awards a **Seal** and lights the lighthouse. Doubloons buy cosmetics (sails, hats, figureheads, parrot hats). About **25-45 min per island**, since the voiced dialogue alone is a large share of that. Required stops on each island are clustered about a 60-90 s walk apart, with at most one deliberately long scenic walk. |
@@ -381,10 +382,77 @@ The upside is that the music is adaptive, tiny to download, and has no licensing
 
 ## 8. Content pipeline (course → game)
 
-- **Course source:** a configurable `COURSE_PATH`, which defaults to your local clone at `~/Desktop/projects/copilot-app-for-beginners` (tracking `github/` `main`). A sync script copies the referenced screenshots into the game and writes `content/course.lock.json` with the **course commit SHA and a hash for each image**. In CI (the GitHub Pages build), Actions checks out `github/copilot-app-for-beginners` at that pinned SHA.
-- Content is authored per island in YAML/TS: NPCs, dialogue, chests, quizzes, puzzles. Every teaching line is tagged with its **source chapter + section** and carries a "Read more in the course" link.
-- A dev-only **Hotspot Editor** lets you draw clickable regions on screenshots. CI flags any hotspot whose screenshot hash changed, so a course update can't silently break a quiz.
-- Anything a learner does "for real" in the app is optional **"Try it in the app"** side quests that link to the chapter. The game itself is self-contained.
+**Goal (Dan, 2026-09-26):** the course's text and screenshots are **retrieved dynamically** from [`github/copilot-app-for-beginners`](https://github.com/github/copilot-app-for-beginners), so the islands stay current as the course changes. Nobody should have to copy text or re-export screenshots by hand.
+
+> **Status (2026-10-10): planned, not built.** §8.1-8.4 describe the design. Today the course screenshots are bundled copies in `public/course/{ch00,ch01,shared}`, and all teaching content is authored in `src/learn/content/*.ts`. The only piece built so far is the README section parser, `src/learn/course/sections.ts` (with tests). `CourseSource`, `course.lock.json`, the snapshot fallback, the Service Worker rule, and `weekly-refresh.yml` don't exist yet.
+
+### 8.1 What's live and what's authored
+
+| Layer | What it covers | Source | How it updates |
+|---|---|---|---|
+| **Course-derived (live)** | Section text ("From the course" excerpts in Logbook pages, chest scrolls, spyglass captions), screenshots and illustrations, alt text, chapter titles, learning objectives, key takeaways, the glossary (`GLOSSARY.md`), and section links | **Fetched at runtime** from the course repo | Automatically, within minutes of a course commit |
+| **Game-authored** | Voiced NPC dialogue, quiz questions and answers, hotspot rects, puzzles, quests | Typed TS modules (`src/learn/content/*`). They point at the course **by chapter + heading anchor + image filename** and never copy course text | When we change it. The drift check (§8.4) tells us when the course moved underneath it |
+
+Two things can't be fully live, and that's why they stay authored:
+- **Voiced lines** are pre-generated with Azure TTS at build time (§7a), and the Speech key can't ship to the browser.
+- **Hotspot rects** are positions on one specific screenshot. If a button moves, a stale rect would mark the right answer wrong. §8.3 guards them.
+
+### 8.2 Runtime fetch
+
+- **Where from:** `https://raw.githubusercontent.com/github/copilot-app-for-beginners/<ref>/…`, meaning each chapter's `README.md`, `GLOSSARY.md`, and the `assets/*.webp` those files reference. Raw GitHub sends `Access-Control-Allow-Origin: *` and `max-age=300` (verified 2026-09-26). `<ref>` defaults to `main`, and `?course=<sha>` pins a commit for testing. We **never call the GitHub REST API**, since it only allows 60 unauthenticated requests per hour per IP.
+- **Parsing:** a small `CourseSource` module splits each README into sections `{anchor, title, markdown, images[]}`:
+  - Anchors use GitHub's heading-slug rules, so they match the "Open in the course ↗" links.
+  - It handles both `![alt](path)` and `<img src alt>`, resolved relative to the chapter folder (e.g. `../assets/github-copilot-app.webp`).
+  - Text renders through a sanitized, allow-listed markdown renderer: no raw HTML except `<img>`, and links open in a new tab.
+- **When:** a chapter's README is fetched along with its island's packs and prefetched during the sea passage (§13.4). Screenshots lazy-load per chest and NPC, same as today (§12.6).
+- **Caching:** the Service Worker caches course responses **stale-while-revalidate** (§13.6). Course content shows instantly from cache and refreshes in the background. A new version is picked up the next time a page or quiz opens, never swapped mid-dialogue.
+- **Fallback:** every build bundles a **snapshot** of the course (the text plus the images in `public/course/*`) and `content/course.lock.json`, which holds the snapshot's commit SHA and a hash for every section and image. If the fetch fails, the player is offline, or the parse breaks (e.g. a chapter folder gets renamed), the game quietly uses the snapshot. It never breaks just because GitHub is unreachable.
+
+### 8.3 Guarding authored content when the course changes
+
+Each authored quiz, hotspot, and voiced line records the hash of the section or image it was written against (from `course.lock.json`). At runtime:
+
+| What changed upstream | What the player sees |
+|---|---|
+| **Section text** | Logbook pages and excerpts show the new live text. Authored lines keep working, since they paraphrase rather than quote |
+| **A screenshot used by a hotspot quiz** | The quiz keeps using the **bundled snapshot image**, so its targets stay correct. The Logbook page for that image shows the new live screenshot |
+| **A screenshot used anywhere else** | The new live image, straight away |
+| **An anchor or image was renamed or removed** | That item falls back to the snapshot, and its course link falls back to the top of the chapter README |
+| **A whole new chapter** | The Chart shows it as an **uncharted island in the fog**, with a link to the chapter, until an island gets built for it |
+
+### 8.4 Weekly refresh automation (CI)
+
+One scheduled GitHub Actions workflow, **`weekly-refresh.yml`**, keeps everything the course feeds into the game up to date. It runs **Mondays at 6 AM Pacific** (`cron: '0 13 * * 1'`), and you can also start it by hand (`workflow_dispatch`) when you know the course just changed. If nothing changed upstream, it finishes in about a minute and doesn't open a PR.
+
+| Step | What it refreshes | How |
+|---|---|---|
+| **1 · Course check** | — | Compares upstream `main` against `course.lock.json`. If the SHA matches, it skips to step 6 |
+| **2 · Content** | Chapter text, section excerpts, learning objectives, key takeaways, the glossary, alt text, and the course's `LICENSE` notice in the credits | `tools/course/sync.mjs` pulls the READMEs and `GLOSSARY.md`, re-parses the sections, updates the snapshot, and recomputes every section hash |
+| **3 · Screenshots** | Every course image the game references, plus any new image a chapter we've built starts using | The script copies them byte-for-byte (today's `public/course/*` files are identical to upstream), then rehashes. Changed hotspot screenshots get before/after montages for the PR |
+| **4 · Drift report** | — | Lists every authored quiz, hotspot, voiced line, and puzzle whose source section or image changed. A **UI-term check** also pulls the bolded UI names from each section (**New**, **My work**, **Automations**…) and flags authored lines that still use a name the course dropped or renamed |
+| **5 · Drafted fixes** | Affected dialogue, quiz text, and hotspot rects | The **Copilot coding agent** gets the drift report as an issue. It drafts the edits in the same PR and runs the tests, and it never merges anything itself |
+| **6 · Voices** | Voice lines whose text or voice changed, including step 5's edits | `tools/voice/generate.ts` regenerates **only changed lines** (cached by hash, §7a) with `AZURE_SPEECH_KEY`/`AZURE_SPEECH_REGION` from Actions secrets. It also confirms every configured Azure voice still exists and flags any line that fell back to its backup voice |
+| **7 · Other sources** | CC0 music, ambience, and kit assets | Re-checks each source URL and sha256 (`tools/music/fetch.sh --check` and the `ASSETS.md` list) and flags anything that moved or changed |
+| **8 · Verify** | — | Typecheck, unit tests (including every `SourceRef` anchor and image resolving against the snapshot), a live-course parse, build, budgets, the secret scan, and the scripted suite (flow · play · quest · usertest) on the WebGL2 backend |
+| **9 · Deliver** | — | One PR: **"Weekly refresh: course @ `<sha>`"**, with a summary of what changed, the drift report, before/after images, the regenerated voice lines, and the TTS characters used |
+
+**Merge rules:**
+- **Nothing authored affected and every check green:** the PR auto-merges, then redeploys Pages (once public deploys are switched on, §10).
+- **Anything authored affected, or any check fails:** the PR gets a `needs-content-review` label and waits for you. The dev-only **Hotspot Editor** opens straight to the affected quizzes, and it rejects any mask that overlaps a target rect.
+
+**Cost:** a no-change week uses about 1 Actions minute. A week with changes uses roughly 15-25 minutes (mostly the scripted suite) and pennies of Azure TTS, since only changed lines are resynthesized. The coding agent only runs in weeks where authored content was affected.
+
+**Needs before it can run:**
+- `AZURE_SPEECH_KEY` and `AZURE_SPEECH_REGION` as repository Actions secrets. The generator reads environment variables first and falls back to `~/.env` locally.
+- The §8.2 `CourseSource` and snapshot/lock, since steps 2-4 depend on them. Steps 6-8 can ship first.
+
+### 8.5 Authoring rules
+
+- Content is authored per island in typed TS modules: NPCs, dialogue, chests, quizzes, puzzles. Every teaching line is tagged with its **source chapter + section** and carries an **"Open in the course ↗"** link.
+- Authored text paraphrases in the game's voice. Anything that should read *exactly* like the course comes from the live excerpt instead of being copied.
+- Anything a learner does "for real" in the app is an optional **"Try it in the app"** side quest that links to the chapter. The game itself is self-contained.
+- **Licensing and privacy:** the course's full MIT notice in the credits covers fetched content, just as it covers bundled content. Fetching from `raw.githubusercontent.com` means GitHub sees the player's IP (the same as clicking a course link), so the credits' privacy note says so. If we add a CSP, it has to allow `raw.githubusercontent.com` in `connect-src` and `img-src`.
+- **Roadmap:** Chapters 00 and 01 were authored before `CourseSource` existed. When it's built, migrate both chapters to it, and author later chapters against anchors from the start.
 
 ---
 
@@ -418,7 +486,8 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 | Pirate characters (m/f) need to look great | CC0 base bodies + modular outfits. We may need custom Blender work for hats and coats |
 | Procedural music sounds "synthy" | **Resolved 2026-09-25:** we A/B tested the generated score against CC0 recordings, and Dan picked the recordings (§7) |
 | Voice lines add a lot of files | Opus at ~32 kbps (AAC fallback, and each client downloads one format), loaded per island, cached by hash, regenerated only when a line changes |
-| Course UI and screenshots change | Pinned course SHA in `course.lock.json` + image hashes + CI hotspot check |
+| Course UI and screenshots change | Planned (§8): live content picks up changes automatically (§8.2). Hotspot quizzes keep their snapshot image when the live one changes (§8.3), and the weekly refresh opens a drift-report PR (§8.4) |
+| GitHub unreachable, or the course gets restructured | Planned (§8): a bundled snapshot plus `course.lock.json` fallback, per item (§8.2-8.3). The weekly refresh's live-course parse catches restructures early |
 | Trademarks & affiliation (Octocat, Copilot logo, product name) | The MIT license covers the course's copyright, not GitHub's trademarks. We include the **full MIT notice** in the credits, keep screenshots as screenshots, and **never model or generate the Octocat or Copilot logo**. An **affiliation line** (e.g. "Unofficial fan project…" vs official wording) is a **required decision before the first public deploy** |
 | Film likeness (the "Pirates of the Caribbean" ship brief) | Build a generic Golden Age brigantine. Don't replicate any specific film ship's distinctive design |
 | GitHub Pages bandwidth (~100 GB/month soft cap) | Keep the per-island downloads small, use Service Worker caching, and monitor. Move to a CDN if the game gets popular |
@@ -616,6 +685,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
   - precaches `boot` + `vendor-three` + title assets
   - **cache-first for content-hashed URLs**, which are immutable
   - **network-first for `manifest.json`**
+  - **planned:** **stale-while-revalidate for live course content** from `raw.githubusercontent.com` (§8.2). Today's `sw.js` skips cross-origin requests, so this needs an explicit allow-list
 - Heavy assets are already compressed formats (KTX2, meshopt, Opus), so the lack of Brotli only costs ~10-15% on JS.
 - **Safe updates:** a new manifest version downloads in the background. The SW **only activates the new version at the title screen** (never mid-session), and old packs are kept until the new ones verify. `navigator.storage.persist()` is requested when the player enables offline play.
 - Phase 0 verifies that Pages serves `.wasm` as `application/wasm`, which streaming compile needs. If it doesn't, we fall back to the compat build.
