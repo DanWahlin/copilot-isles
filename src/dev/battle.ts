@@ -8,7 +8,7 @@ import { BattleHud } from '../game/battle-hud';
 import { Helm } from '../game/helm';
 import { QUIZZES } from '../learn/content';
 import type { ChoiceQuiz } from '../learn/types';
-import { Battle, type BattleSnapshot } from '../world/battle/battle';
+import { BATTLE_PLANS, Battle, type BattleSnapshot } from '../world/battle/battle';
 import { createOcean } from '../world/ocean/ocean';
 import { createBrigantine } from '../world/ship';
 import { createSky } from '../world/sky/sky-system';
@@ -17,9 +17,11 @@ import { compileAndStart, createDevHarness, engineStats } from './harness';
 
 /**
  * Sea-battle prototype (docs/specs/BATTLES.md §11): open water, your brigantine, one passage battle.
- * W/S trim, A/D steer, Space fires what bears, Z/C fire port/starboard, drag to look.
+ * W/S trim, A/D steer, Space fires what bears, Z/C fire port/starboard, R "Bring her round" (your
+ * helmsman steers to the best broadside; any helm key takes it back), drag to look.
  * Flags: ?webgl, ?tier=, ?seed=, ?calm, ?shot (no stats panel), ?wait (don't start the battle),
- * ?nodirector (no camera director).
+ * ?nodirector (no camera director), ?nofollow (the camera doesn't follow the raiders),
+ * ?brief / ?nobrief (always / never show the pre-battle briefing), ?battle=2 (the Chapter 01 battle).
  */
 const harness = await createDevHarness();
 const { q, backend, tier, canvas, renderer, engine } = harness;
@@ -41,6 +43,7 @@ const hud = new BattleHud(document.body, {
   skip: () => battle.skip(clockT),
   answer: (pick) => battle.answer(pick),
   calm: (on) => battle.setCalm(on),
+  assist: (on) => battle.setAssist(on),
 });
 // Sound starts on the first key or click (browsers need a gesture).
 const audio = createAudio();
@@ -56,7 +59,14 @@ addEventListener('pointerdown', unlock);
 addEventListener('keydown', unlock);
 const director = new BattleCamera(() => world.reducedMotion.value > 0.5);
 if (q.has('nodirector')) director.enabled = false;
+if (q.has('nofollow')) director.follow = false;
+// ?battle=2 plays battle 2 (the Chapter 01 recap); battle 1 is the default.
+const plan = BATTLE_PLANS[Math.min(BATTLE_PLANS.length, Math.max(1, Number(q.get('battle') ?? 1))) - 1]!;
+const quizFor = (wave: number) =>
+  (QUIZZES.get(plan.waves[wave]?.quiz ?? '') as ChoiceQuiz | undefined) ?? null;
+let quizWave = -1;
 const battle = new Battle({
+  plan: plan.waves,
   tier,
   waves: ocean.field,
   player: ship,
@@ -67,7 +77,7 @@ const battle = new Battle({
 });
 scene.add(battle.group);
 if (q.has('calm')) battle.setCalm(true);
-hud.setQuiz((QUIZZES.get('T0.5') as ChoiceQuiz | undefined) ?? null);
+hud.setWonText(plan.won);
 
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
@@ -78,6 +88,17 @@ controls.maxPolarAngle = Math.PI * 0.495;
 // Drag or zoom and the director stands off.
 controls.addEventListener('start', () => director.yieldToUser());
 
+const HELM_KEYS = new Set([
+  'KeyW',
+  'KeyA',
+  'KeyS',
+  'KeyD',
+  'ArrowUp',
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+]);
+const focusAt = { x: 0, z: 0 };
 const helm = new Helm();
 helm.trim = 0.6;
 const keys = new Set<string>();
@@ -87,6 +108,9 @@ addEventListener('keydown', (e) => {
   if (e.code === 'Space') battle.fire('bearing');
   if (e.code === 'KeyZ') battle.fire('port');
   if (e.code === 'KeyC') battle.fire('starboard');
+  if (e.code === 'KeyR') battle.setAssist(!battle.assist);
+  // Any helm key takes the helm back from your helmsman.
+  if (battle.assist && HELM_KEYS.has(e.code)) battle.setAssist(false);
 });
 addEventListener('keyup', (e) => keys.delete(e.code));
 
@@ -109,10 +133,14 @@ const snap: BattleSnapshot = {
   stores: { timber: 0, powder: 0 },
   lull: 0,
   title: '',
+  hint: '',
+  hintTurn: 0,
+  assist: false,
 };
 /** A ship the camera rides with (dev shots): index (0 yours), offset in its frame (x port, z bow), look height. */
 const track = { i: -1, x: 0, y: 0, z: 0, lookY: 6 };
 let clockT = 0;
+let musicInBattle = false;
 let hudAt = 0;
 let frozenHelm = false;
 const stats = document.getElementById('hud')!;
@@ -125,7 +153,12 @@ controls.update();
 engine.add({
   frame(dt, t) {
     clockT = t;
-    if (!frozenHelm) {
+    if (battle.assist && !frozenHelm) {
+      // Your helmsman has her: the helm follows, so taking it back doesn't jerk the rudder.
+      helm.trim = battle.assistHelm.trim;
+      helm.rudder = battle.assistHelm.rudder;
+      ship.dynamics.setInput(battle.assistHelm);
+    } else if (!frozenHelm) {
       const x =
         (keys.has('KeyD') || keys.has('ArrowRight') ? 1 : 0) -
         (keys.has('KeyA') || keys.has('ArrowLeft') ? 1 : 0);
@@ -141,6 +174,7 @@ engine.add({
     battle.update(dt, t);
     // The camera rides along with the ship and the director frames the battle's beats; you orbit it
     // with the mouse.
+    director.setFocus(battle.focus(focusAt), focusAt.x, focusAt.z);
     director.update(dt, t, p.x, p.z, p.heading, look, camera.position, controls.target);
     if (track.i >= 0) {
       const tp = battle.ships()[track.i]!.dynamics.pose;
@@ -165,8 +199,20 @@ engine.add({
     if (t - hudAt > 0.1) {
       hudAt = t;
       battle.snapshot(snap);
+      // Each wave has its own question (the habit that wave stands for).
+      if (snap.wave !== quizWave) {
+        quizWave = snap.wave;
+        hud.setQuiz(quizFor(snap.wave));
+      }
       hud.show(snap.phase !== 'idle' && snap.phase !== 'skipped');
       hud.update(snap, battle);
+      // "Brass of the Storm" from the briefing to the win; the open-sea track before and after.
+      const inBattle =
+        hud.briefingOpen || (snap.phase !== 'idle' && snap.phase !== 'won' && snap.phase !== 'skipped');
+      if (inBattle !== musicInBattle) {
+        musicInBattle = inBattle;
+        audio.music.setIsland(inBattle ? 'battle' : 'harbour');
+      }
       const [a, b] = engineStats(harness);
       stats.textContent = `${a}\n${b}\nspeed ${p.speed.toFixed(1)} · trim ${helm.trim.toFixed(2)}`;
     }
@@ -176,7 +222,19 @@ engine.add({
 const post = q.has('nopost') ? null : await createPost(renderer, scene, camera, tier);
 if (post) engine.renderFn = post.render;
 await compileAndStart(renderer, engine, scene, camera, post ? () => post.compile() : undefined);
-if (!q.has('wait')) battle.start(clockT);
+/** The briefing shows before every battle until you tick "Don't show this again" (?brief forces it). */
+const BRIEF_KEY = 'isles.battleBriefing.hidden';
+const startBattle = () => {
+  if (q.has('nobrief') || (!q.has('brief') && localStorage.getItem(BRIEF_KEY) === '1')) {
+    battle.start(clockT);
+    return;
+  }
+  hud.showBriefing((hide) => {
+    if (hide) localStorage.setItem(BRIEF_KEY, '1');
+    battle.start(clockT);
+  });
+};
+if (!q.has('wait')) startBattle();
 
 const dev = window as unknown as { __battle: Record<string, unknown>; __dev: Record<string, unknown> };
 dev.__battle = {
@@ -186,6 +244,8 @@ dev.__battle = {
   snapshot: () => battle.snapshot(structuredClone(snap)),
   raiders: () => battle.raiders(),
   start: () => battle.start(clockT),
+  /** Starts the battle through the briefing, as the game will. */
+  brief: () => startBattle(),
   audio,
   director,
   unlockAudio: unlock,

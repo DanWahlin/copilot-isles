@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MusicPlayer } from './music-player';
-import { MUSIC_TRACKS, trackGain } from './tracks';
+import { BATTLE_TRACK, MUSIC_TRACKS, trackGain } from './tracks';
 
 class FakeParam {
   value = 0;
@@ -97,6 +97,14 @@ describe('MusicPlayer', () => {
     expect(ctx.gains[0]!.gain.target).toBeCloseTo(trackGain(MUSIC_TRACKS.harbour));
   });
 
+  it('plays the sea-battle track for the battle cue', () => {
+    const { player, ctx, elements, bind } = setup();
+    bind();
+    player.setIsland('battle');
+    expect(elements[0]!.src).toBe('/audio/music_brass_of_the_storm.ogg');
+    expect(ctx.gains[0]!.gain.target).toBeCloseTo(trackGain(BATTLE_TRACK));
+  });
+
   it('crossfades to the island track and pauses the sea track once it has faded out', () => {
     const { player, ctx, elements, bind } = setup();
     bind();
@@ -165,7 +173,7 @@ describe('MusicPlayer', () => {
   });
 
   it('brings both tracks to the same loudness', () => {
-    for (const track of Object.values(MUSIC_TRACKS)) {
+    for (const track of [...Object.values(MUSIC_TRACKS), BATTLE_TRACK]) {
       expect(track.lufs + 20 * Math.log10(trackGain(track))).toBeCloseTo(-13.7, 6);
     }
   });

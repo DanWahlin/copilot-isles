@@ -325,6 +325,33 @@ export const CH00: ChapterContent = {
       },
       source: src('add-the-course-practice-items'),
     },
+    // Sea battle 1, wave 1 (the bosun's question; .plans/battle-plan.md "Teaching map").
+    {
+      id: 'N0.1',
+      type: 'mc',
+      prompt: 'The setup script creates items on GitHub in your fork. What do you run first?',
+      options: [
+        { id: 'dry', text: '`--dry-run`, to preview its target and planned changes' },
+        {
+          id: 'yes',
+          text: '`--yes`, to run the setup',
+          feedback: '`--yes` runs the setup for real. Preview it with `--dry-run` first.',
+        },
+        {
+          id: 'shared',
+          text: '`--allow-shared-repository`',
+          feedback:
+            'That’s only for an organization fork you’re authorized to set up, after you’ve checked the `Repository:` line.',
+        },
+      ],
+      answer: 'dry',
+      explain: {
+        correct:
+          'Right. The script creates items on GitHub in your fork, so you’ll preview its target and planned changes before running it.',
+        wrong: 'Preview first: the script creates items on GitHub in your fork.',
+      },
+      source: src('add-the-course-practice-items'),
+    },
     {
       id: 'T0.5',
       type: 'scenario',

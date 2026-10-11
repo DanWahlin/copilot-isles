@@ -1,5 +1,5 @@
 import { MusicPlayer } from './music/music-player';
-import type { IslandMusic } from './music/tracks';
+import type { IslandMusic, MusicCue } from './music/tracks';
 import {
   IslesSoundScape,
   type BedName,
@@ -22,7 +22,7 @@ export interface IslesAudio {
      * Crossfades to the track for where you are (the title and open sea, ashore, or the opening's
      * cue); null fades to silence. `at` starts it from that many seconds in; `fade` sets the fade.
      */
-    setIsland(island: IslandMusic | null, opts?: { at?: number; fade?: number }): void;
+    setIsland(island: MusicCue | null, opts?: { at?: number; fade?: number }): void;
     /** Seconds into `island`'s track while it's playing, or null (not playing, or it has ended). */
     position(island: IslandMusic): number | null;
   };
@@ -154,7 +154,7 @@ class IslesAudioImpl implements IslesAudio {
   private unlocking: Promise<boolean> | null = null;
 
   readonly music = {
-    setIsland: (island: IslandMusic | null, opts?: { at?: number; fade?: number }) =>
+    setIsland: (island: MusicCue | null, opts?: { at?: number; fade?: number }) =>
       this.musicPlayer.setIsland(island, opts),
     position: (island: IslandMusic) => this.musicPlayer.position(island),
   };

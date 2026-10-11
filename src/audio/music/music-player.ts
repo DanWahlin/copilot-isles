@@ -1,5 +1,5 @@
 import { audioFileFor } from '../soundscape/format';
-import { MUSIC_TRACKS, trackGain, type IslandMusic } from './tracks';
+import { trackFor, trackGain, type IslandMusic, type MusicCue } from './tracks';
 
 /** Fade-in when music starts from silence, and the crossfade between tracks. */
 const FADE_IN_S = 1.2;
@@ -21,9 +21,9 @@ interface Deck {
 export class MusicPlayer {
   private ctx: AudioContext | null = null;
   private bus: AudioNode | null = null;
-  private readonly decks = new Map<IslandMusic, Deck>();
-  private wanted: IslandMusic | null = null;
-  private playing: IslandMusic | null = null;
+  private readonly decks = new Map<MusicCue, Deck>();
+  private wanted: MusicCue | null = null;
+  private playing: MusicCue | null = null;
 
   constructor(
     private readonly baseUrl = `${import.meta.env.BASE_URL}audio/`,
@@ -40,7 +40,7 @@ export class MusicPlayer {
    * Crossfades to `island`'s track (null fades to silence). `at` starts it from that many seconds
    * in (instead of picking up where it left off), and `fade` overrides the fade length.
    */
-  setIsland(island: IslandMusic | null, opts: { at?: number; fade?: number } = {}): void {
+  setIsland(island: MusicCue | null, opts: { at?: number; fade?: number } = {}): void {
     this.wanted = island;
     if (this.ctx) this.switchTo(island, opts);
   }
@@ -82,7 +82,7 @@ export class MusicPlayer {
     this.playing = null;
   }
 
-  private switchTo(island: IslandMusic | null, opts: { at?: number; fade?: number } = {}): void {
+  private switchTo(island: MusicCue | null, opts: { at?: number; fade?: number } = {}): void {
     if (!this.ctx || (island === this.playing && opts.at === undefined)) return;
     const now = this.ctx.currentTime;
     const previous = this.playing && this.playing !== island ? this.decks.get(this.playing) : undefined;
@@ -96,15 +96,15 @@ export class MusicPlayer {
     const deck = this.decks.get(island) ?? this.createDeck(island, this.ctx);
     deck.pauseAt = null;
     if (opts.at !== undefined) deck.element.currentTime = opts.at;
-    ramp(deck.gain.gain, trackGain(MUSIC_TRACKS[island]), now, fade);
+    ramp(deck.gain.gain, trackGain(trackFor(island)), now, fade);
     void deck.element.play().catch(() => undefined);
   }
 
-  private createDeck(island: IslandMusic, ctx: AudioContext): Deck {
+  private createDeck(island: MusicCue, ctx: AudioContext): Deck {
     const element = this.createElement();
-    element.loop = !MUSIC_TRACKS[island].once;
+    element.loop = !trackFor(island).once;
     element.preload = 'auto';
-    element.src = audioFileFor(`${this.baseUrl}${MUSIC_TRACKS[island].file}`, element);
+    element.src = audioFileFor(`${this.baseUrl}${trackFor(island).file}`, element);
     const source = ctx.createMediaElementSource(element);
     const gain = ctx.createGain();
     gain.gain.value = 0;

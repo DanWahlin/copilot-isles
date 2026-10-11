@@ -480,6 +480,51 @@ export const CH01: ChapterContent = {
       },
       source: src('projects-and-chats'),
     },
+    // Sea battle 2, waves 2 and 3 (the bosun's questions; .plans/battle-plan.md "Teaching map").
+    {
+      id: 'N1.1',
+      type: 'mc',
+      prompt:
+        'You want the agent to ask before every tool it uses. Which **Tool permissions** setting do you pick?',
+      options: [
+        { id: 'always', text: '**Always ask**' },
+        { id: 'approve', text: '**Approve all**', feedback: '**Approve all** runs tools without asking.' },
+        {
+          id: 'assisted',
+          text: '**Assisted**',
+          feedback: '**Assisted** asks only when a tool request fails an AI safety check.',
+        },
+      ],
+      answer: 'always',
+      explain: {
+        correct:
+          'Right. **Always ask** asks each time. Check this setting so you know when to expect approval requests.',
+        wrong: 'Pick the setting that asks each time.',
+      },
+      source: src('modes'),
+    },
+    {
+      id: 'N1.2',
+      type: 'mc',
+      prompt: 'Does a higher **Reasoning effort** guarantee a correct answer?',
+      options: [
+        { id: 'no', text: 'No. It can help with complex problems, but it can take longer.' },
+        { id: 'yes', text: 'Yes', feedback: 'Higher effort does not guarantee a correct answer.' },
+        {
+          id: 'auto',
+          text: 'Only when the model is set to **Auto**',
+          feedback:
+            'With **Auto**, the app chooses the model. Higher effort still doesn’t guarantee a correct answer.',
+        },
+      ],
+      answer: 'no',
+      explain: {
+        correct:
+          'Right. Higher effort can help with complex problems, but can take longer. Higher effort does not guarantee a correct answer.',
+        wrong: 'More effort isn’t a promise of a right answer.',
+      },
+      source: src('models-and-reasoning-effort'),
+    },
     {
       id: 'A1.5',
       type: 'mc',
@@ -491,11 +536,6 @@ export const CH01: ChapterContent = {
           text: 'Current checkout',
           feedback:
             'You picked **Current checkout** for the one-time setup in Chapter 00. That was the exception, and you’ll switch back in Chapter 02.',
-        },
-        {
-          id: 'cloud',
-          text: 'Cloud',
-          feedback: 'Most project sessions should use **New worktree**.',
         },
       ],
       answer: 'worktree',

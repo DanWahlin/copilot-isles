@@ -24,6 +24,7 @@ keep the second:
 | Where (chapter) | Battle | Why it fits |
 |---|---|---|
 | **The passage, Anchorage → Port Meridian** (Ch 00 recap) | **First battle, now.** Two gentle waves out of a fog bank | It's open water, clear of harbours and terrain, and you've just learned to sail. It's the first time you sail far, so it's a natural set piece. The questions recap Chapter 00 (the islands that would host later battles aren't built yet) |
+| **The passage, Port Meridian → Thousand-Bough Isle** (Ch 01 recap) | **Second battle, built.** Three waves | The next long passage after Chapter 01. Each wave recaps one Chapter 01 habit (see §2.0b) |
 | *Later:* **03 · Keelhaven** (Dev & GitHub Workflows) | Raiders off the shipwreck point | **"Trust the Evidence"**: *"A confident response from Copilot isn't the same as validated software"* (03 §Core Concept). You fire on evidence (your guns bear and are loaded), not a hunch |
 | *Later:* **07 · Tidewheel Caldera** (Automations) | Finale, bigger waves | Gun crews get **standing orders**: a trigger, a prompt, a tool set, and a review path (07 §Key Takeaways 1) |
 
@@ -38,17 +39,32 @@ Anchorage and Port Meridian's harbours stay calm. We'll adjust the later places 
   firing arc shows a raider in it, so you check what you're aimed at before you commit.
 - **The enemy.** Fog raiders: patched fog-grey sails with an oxblood band, weathered slate hulls with pewter
   trim, and their own swallowtail colours (a lantern burning through three wisps of fog on slate: no skull, no
-  Octocat, no Copilot logo). Name boards *Wrong Fork* and *Unchecked* (wave 1), then *Stale Branch* (wave 2).
-- **Between the waves.** The bosun asks one Chapter 00 recap question (a `ChoiceQuiz` with its `SourceRef`):
-  why you preview with `--dry-run` first, what the setup script creates (labels, issues, practice branches,
-  pull requests; 00 §Add the Course Practice Items), why the intentional bugs are training scenarios, and
-  the sample app path `samples/book-app-web` (00 §Key Takeaways 2).
+  Octocat, no Copilot logo).
+- **One habit per wave** (`PASSAGE_BATTLE` in `src/world/battle/battle.ts`; full map with verbatim
+  sentences in `.plans/battle-plan.md` "Teaching map"). Wave 1, *Unchecked* and *No Dry Run*: preview
+  before you run it, *"The script creates items on GitHub in your fork, so you'll preview its target and
+  planned changes before running it."* The bosun asks **N0.1**. Wave 2, *Wrong Fork* and *Wrong Account*:
+  check the target (the `Repository:` line quote above). The bosun asks **T0.5**. Both are cited to
+  00 §Add the Course Practice Items.
 - **The reward** is the same as everywhere (§2.1's last bullet): a right answer lets you **pick** a
   double-shotted volley or quick repairs. A wrong answer shows the "why" and the course link, and you still
   get the base repairs.
 - **When.** The first time you sail out of Anchorage toward Port Meridian with the Seal of Anchorage, the
   lookout calls sails in the fog about halfway across. It's **required**, with a **Skip battle** button on the
   HUD and in the pause menu (it marks the battle done and sails on). Fast travel and Free explore skip it too.
+
+### 2.0b The second passage: Port Meridian → Thousand-Bough Isle (Chapter 01)
+
+`MERIDIAN_BATTLE`: three waves, each with its own question, all cited to Chapter 01.
+
+| Wave | Raiders | Habit (verbatim course sentence) | Question |
+|---|---|---|---|
+| 1 | *Shared Checkout*, *Tangled Copy* | *"Most project sessions should use a **New worktree**. Separate worktrees let agents work at the same time without changing the same working copy."* (01 §Project Sessions) | A1.5 |
+| 2 | *Blind Approval*, *Unasked* | *"**Always ask** asks each time. **Approve all** runs tools without asking."* (01 §Modes) | N1.1 |
+| 3 | *Max Effort*, *Overthought* | *"Higher effort does not guarantee a correct answer."* (01 §Models and Reasoning Effort) | N1.2 |
+
+The win card says Thousand-Bough Isle lies ahead. It runs after the Seal of Meridian, once the
+Chapter 02 island exists; for now it's on the dev page (`?battle=2`).
 
 ### 2.1 Keelhaven (later): "Trust the Evidence"
 
@@ -183,6 +199,7 @@ HUD values update at 10 Hz through refs (PLAN §12.8), not per-frame React state
 | Action | Keyboard | Gamepad | Touch |
 |---|---|---|---|
 | Trim sails / steer | W/S, A/D (as now) | Left stick | On-screen helm (sailing touch controls) |
+| Bring her round (your helmsman steers to the best broadside; any helm key takes it back) | R | Y | A helm-bar button (≥ 44 px) |
 | Fire what bears | **Space** | **A** | **Fire** button |
 | Fire port / starboard | **Z** / **C** | **LB** / **RB** | Side buttons |
 | Look | Hold right mouse, arrows | Right stick | Drag |

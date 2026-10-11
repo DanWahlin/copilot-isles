@@ -8,6 +8,8 @@ export interface BattleHudActions {
   skip(): void;
   answer(pick: 'double-shot' | 'repairs' | null): void;
   calm(on: boolean): void;
+  /** "Bring her round": hand the helm to your helmsman, or take it back. */
+  assist(on: boolean): void;
 }
 
 /** What the HUD asks the battle for readiness (no arrays built per update). */
@@ -23,6 +25,32 @@ function md(text: string): string {
     .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
     .replace(/`(.+?)`/g, '<code>$1</code>');
 }
+
+/** The briefing rows: a small diagram, a title, and one line. Your ship points up in every diagram. */
+const SHIP =
+  '<path d="M30 14 L35 26 L35 44 L30 48 L25 44 L25 26 Z" fill="#2a1d14" stroke="#e8c88a" stroke-width="1.2"/>';
+const BRIEFING: readonly (readonly [string, string, string])[] = [
+  [
+    `<svg viewBox="0 0 60 60" aria-hidden="true"><path d="M35 31 L58 14 A30 30 0 0 1 58 48 Z" fill="rgba(255,224,150,0.22)" stroke="#f2d08a" stroke-width="1.6"/><path d="M25 31 L2 14 A30 30 0 0 0 2 48 Z" fill="rgba(255,224,150,0.08)" stroke="rgba(242,208,138,0.55)" stroke-width="1.2"/>${SHIP}</svg>`,
+    'Gold arcs: where your guns reach',
+    'Your guns fire out of the sides. Turn so a raider sits inside a gold arc; it glows when they bear. Then fire!',
+  ],
+  [
+    `<svg viewBox="0 0 60 60" aria-hidden="true"><path d="M44 30 L8 14 A40 40 0 0 0 8 46 Z" fill="rgba(255,90,40,0.16)" stroke="#ff6a36" stroke-width="1.3"/><path d="M30 24 l-6 6 l6 6 M21 24 l-6 6 l6 6" stroke="#ff9a6a" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M46 20 L51 26 L51 36 L46 40 L41 36 L41 26 Z" fill="#3b4a56" stroke="#9aa0a6" stroke-width="1.1"/><g transform="translate(-22 2) scale(0.9)">${SHIP}</g></svg>`,
+    'Red chevrons: a raider is about to fire',
+    'They point at you and fill up while her crew lays the guns. Turn away, or fire first.',
+  ],
+  [
+    '<svg viewBox="0 0 60 60" aria-hidden="true"><g fill="#e7dcc2" stroke="#8c6a32"><rect x="6" y="18" width="9" height="26" rx="3"/><rect x="18" y="18" width="9" height="26" rx="3"/><rect x="30" y="18" width="9" height="26" rx="3"/><rect x="42" y="18" width="9" height="26" rx="3"/></g><g fill="#f2a83a"><rect x="6" y="18" width="9" height="26" rx="3"/><rect x="18" y="18" width="9" height="26" rx="3"/><rect x="30" y="30" width="9" height="14" rx="3"/></g></svg>',
+    'Cartridges: your guns reloading',
+    'Each bag fills with powder as a gun reloads. Space fires every side that bears; Z and C fire one side.',
+  ],
+  [
+    '<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="17" fill="none" stroke="#e8c88a" stroke-width="2.4"/><circle cx="30" cy="30" r="4" fill="#e8c88a"/><g stroke="#e8c88a" stroke-width="2.4" stroke-linecap="round"><path d="M30 13 V4 M30 47 V56 M13 30 H4 M47 30 H56 M18 18 L12 12 M42 42 L48 48 M42 18 L48 12 M18 42 L12 48"/></g></svg>',
+    'Bring her round (R)',
+    'Too much to do at once? Your helmsman steers to the best broadside, and you just fire. Any helm key takes the helm back.',
+  ],
+];
 
 function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -50,6 +78,13 @@ export class BattleHud {
   private readonly card: HTMLDivElement;
   private readonly fireBtn: HTMLButtonElement;
   private readonly bonus: HTMLDivElement;
+  private readonly helmBar: HTMLDivElement;
+  private readonly hintText: HTMLSpanElement;
+  private readonly assistBtn: HTMLButtonElement;
+  private lastHint = '';
+  private wonText = 'The raiders are back in the fog.';
+  private briefing: HTMLDivElement | null = null;
+  private lastAssist = false;
   private readonly fillCache: number[][] = [[], []];
   private captionTimer = 0;
   private lastPhase = '';
@@ -80,6 +115,16 @@ export class BattleHud {
     this.captionBox = el('div', 'bh-captions', this.root);
     this.captionBox.setAttribute('role', 'status');
     this.captionBox.setAttribute('aria-live', 'polite');
+
+    // The helm bar: what to do with the helm next, and "Bring her round" (R) to let your helmsman steer.
+    this.helmBar = el('div', 'bh-helm', this.root);
+    this.hintText = el('span', 'bh-hint', this.helmBar);
+    this.hintText.setAttribute('aria-live', 'polite');
+    this.assistBtn = el('button', 'bh-assist', this.helmBar);
+    this.assistBtn.type = 'button';
+    this.assistBtn.setAttribute('aria-pressed', 'false');
+    this.assistBtn.innerHTML = '<span>Bring her round</span><kbd>R</kbd>';
+    this.assistBtn.onclick = () => this.actions.assist(!this.lastAssist);
 
     const guns = el('div', 'bh-guns', this.root);
     const makeRow = (sideIdx: number) => {
@@ -131,7 +176,74 @@ export class BattleHud {
   }
 
   show(on: boolean): void {
-    this.root.classList.toggle('show', on);
+    this.root.classList.toggle('show', on || this.briefing !== null);
+  }
+
+  /** True while the pre-battle briefing is open. */
+  get briefingOpen(): boolean {
+    return this.briefing !== null;
+  }
+
+  /**
+   * The pre-battle briefing (battle-plan.md §6): what the marks on the water mean, the cartridges, and
+   * "Bring her round", in one short card. "Set sail" (Enter, Space, Esc) or "Skip" both close it;
+   * `done(hide)` says whether you ticked "Don't show this again".
+   */
+  showBriefing(done: (hideNextTime: boolean) => void): void {
+    if (this.briefing) return;
+    const box = el('div', 'bh-brief', this.root);
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    box.setAttribute('aria-labelledby', 'bh-brief-title');
+    const h = el('h2', '', box);
+    h.id = 'bh-brief-title';
+    h.textContent = 'Before the fog lifts';
+    const list = el('div', 'bh-brief-list', box);
+    for (const [art, title, body] of BRIEFING) {
+      const row = el('div', 'bh-brief-row', list);
+      el('div', 'bh-brief-art', row).innerHTML = art;
+      const text = el('div', 'bh-brief-text', row);
+      el('strong', '', text).textContent = title;
+      el('span', '', text).textContent = body;
+    }
+    const foot = el('div', 'bh-brief-foot', box);
+    const label = el('label', 'bh-brief-hide', foot);
+    const check = el('input', '', label);
+    check.type = 'checkbox';
+    label.append(' Don’t show this again');
+    const skip = el('button', 'bh-brief-skip', foot);
+    skip.type = 'button';
+    skip.textContent = 'Skip';
+    const go = el('button', 'bh-brief-go', foot);
+    go.type = 'button';
+    go.innerHTML = 'Set sail <kbd>Enter</kbd>';
+    this.briefing = box;
+    this.root.classList.add('briefing', 'show');
+    const close = () => {
+      if (this.briefing !== box) return;
+      removeEventListener('keydown', onKey, true);
+      box.remove();
+      this.briefing = null;
+      this.root.classList.remove('briefing');
+      done(check.checked);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== 'Enter' && e.code !== 'Space' && e.code !== 'Escape' && e.code !== 'NumpadEnter') return;
+      // Leave Space to the checkbox when it has focus.
+      if (e.code === 'Space' && document.activeElement === check) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      close();
+    };
+    addEventListener('keydown', onKey, true);
+    go.onclick = close;
+    skip.onclick = close;
+    go.focus();
+  }
+
+  /** The win card's line for this battle (BattlePlan.won). */
+  setWonText(text: string): void {
+    this.wonText = text;
   }
 
   setQuiz(quiz: ChoiceQuiz | null): void {
@@ -157,6 +269,18 @@ export class BattleHud {
 
   /** Reads the battle at ~10 Hz. Cartridge order runs from the Fire button outward, bow guns first. */
   update(s: BattleSnapshot, guns: ReadinessSource): void {
+    if (s.hint !== this.lastHint) {
+      this.lastHint = s.hint;
+      this.hintText.textContent = s.hint;
+      this.helmBar.classList.toggle('fire', s.hint.endsWith('fire!'));
+    }
+    this.helmBar.classList.toggle('show', s.phase === 'fight');
+    if (s.assist !== this.lastAssist) {
+      this.lastAssist = s.assist;
+      this.assistBtn.classList.toggle('on', s.assist);
+      this.assistBtn.setAttribute('aria-pressed', String(s.assist));
+      this.assistBtn.firstElementChild!.textContent = s.assist ? 'Helmsman steering' : 'Bring her round';
+    }
     const count = guns.gunCount();
     if (count !== this.gunCount) this.buildCartridges(count);
     for (let side = 0; side < 2; side++) {
@@ -226,8 +350,8 @@ export class BattleHud {
       }
     } else if (s.phase === 'won') {
       this.card.classList.add('show', 'slim');
-      this.card.innerHTML =
-        '<h2>The passage is clear</h2><p>The raiders are back in the fog. Port Meridian lies ahead.</p>';
+      this.card.innerHTML = '<h2>The passage is clear</h2><p></p>';
+      this.card.querySelector('p')!.textContent = this.wonText;
     }
   }
 
