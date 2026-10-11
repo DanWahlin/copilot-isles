@@ -8,6 +8,7 @@ import type { Engine } from '../engine/engine';
 import type { Input } from '../engine/input';
 import type { Character, CharacterLibrary, PlayerBody } from '../world/characters';
 import { ParrotFlight, type FlightView } from '../world/characters/parrot-flight';
+import { clearCharacterLodView, setCharacterLodView } from '../world/characters/character-lod';
 import type { CoveScene } from '../world/cove-scene';
 import type { FarCull } from '../world/far-cull';
 import { COVE } from '../world/layout';
@@ -371,6 +372,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   };
   placePlayer(start.x, start.z, start.heading);
   engine.scene.add(hero.group);
+  // Character levels of detail go by this camera, and keep full detail near the player.
+  setCharacterLodView({ camera, focus: hero.group, tier: tier.tier });
   // Wingman leaves the shoulder to introduce himself, so it's clear who's talking.
   const wingman = ParrotFlight.attach(hero.group, engine.scene);
   const flightView: {
@@ -2294,6 +2297,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       rheaAboard?.dispose();
       hero.group.removeFromParent();
       hero.dispose();
+      clearCharacterLodView(hero.group);
       footstepPuffs.dispose();
       hud.dispose();
     },

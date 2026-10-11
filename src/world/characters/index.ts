@@ -21,6 +21,7 @@ import {
 } from './npc-palettes';
 import { rigFace } from './face-rig';
 import { FACE_FITS, faceFamily } from './face-fit';
+import { buildLods, buildLodsNow, loadLodSimplifier, type LodSimplifier } from './character-lod';
 import { addShoulderMacaw, createMacawGeometry } from './parrot';
 import { addTricorn, stowPlayerWeapon } from './props';
 import { RuntimeCharacter } from './runtime-character';
@@ -228,6 +229,7 @@ export async function loadCharacterLibrary(base = '/packs/testcove/characters'):
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
   const root = base.endsWith('/') ? base : `${base}/`;
+  const simplifier = loadLodSimplifier();
   const locomotion = await loadLocomotionPacks(root);
   const loaded = await Promise.all(
     SOURCES.map(async ({ key, file }) => {
@@ -251,7 +253,16 @@ export async function loadCharacterLibrary(base = '/packs/testcove/characters'):
   const captain = loaded.find((asset) => asset.key === 'captain')?.scene;
   const macaw = captain ? createMacawGeometry(captain) : null;
   const ernest = captain ? createMacawGeometry(captain, false) : null;
-  return new CharacterLibraryImpl(new Map(loaded.map((asset) => [asset.key, asset])), macaw, ernest);
+  // Levels of detail for the bodies (shared by every clone), after the face rigs and the macaws,
+  // which read the full meshes. One mesh per task, so the load makes no long frame.
+  const simplify = await simplifier;
+  if (simplify) for (const asset of loaded) await buildLods(asset.scene, simplify, true);
+  return new CharacterLibraryImpl(
+    new Map(loaded.map((asset) => [asset.key, asset])),
+    macaw,
+    ernest,
+    simplify,
+  );
 }
 
 class CharacterLibraryImpl implements CharacterLibrary {
@@ -263,6 +274,7 @@ class CharacterLibraryImpl implements CharacterLibrary {
     private readonly sources: ReadonlyMap<SourceKey, SourceAsset>,
     private readonly macaw: BufferGeometry | null,
     private readonly ernest: BufferGeometry | null,
+    private readonly simplifier: LodSimplifier | null = null,
   ) {}
 
   create(options: CharacterCreateOptions): Character {
@@ -301,6 +313,8 @@ class CharacterLibraryImpl implements CharacterLibrary {
     else {
       dressNpcCharacter(clone, body);
       mergeNpcAccessories(clone);
+      // The merged accessories are this NPC's own mesh: its levels of detail are made here.
+      buildLodsNow(clone, this.simplifier);
     }
     // Every character's materials carry the staging light (key and rim in talk shots, issue #188).
     clone.traverse((object) => {

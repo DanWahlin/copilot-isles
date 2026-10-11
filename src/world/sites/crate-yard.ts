@@ -8,11 +8,14 @@ import {
   Vector3,
   type Material,
 } from 'three/webgpu';
+import { sharedInstancedMesh } from '../../engine/instancing';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle } from '../contracts';
 import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
 import { UvQuadBuilder, box, cylinder, merge, poseFrame, type UvRect } from './geo';
 import { plateAt, type YardLayout } from './crate-yard-logic';
+import { InstanceProxies } from './proxies';
+import { mergeWithRigidParts } from './rigid-parts';
 
 /** Metres per yard cell (a crate is 1.1 m, so there's room to walk between them). */
 export const YARD_CELL = 1.5;
@@ -126,9 +129,6 @@ export function createCrateYardSite(o: {
   plates.name = 'crate yard plates';
   plates.receiveShadow = true;
   yard.add(plates);
-  const emblems = new Mesh(plateQuads.geometry(), atlas.material);
-  emblems.name = 'crate yard emblems';
-  yard.add(emblems);
   // One glow per plate, shown when its crate is home.
   const glowMat = atlas.glow;
   const glows = plateCells.map(({ cell }) => {
@@ -167,9 +167,6 @@ export function createCrateYardSite(o: {
   signs.name = 'crate yard signs';
   signs.castShadow = true;
   yard.add(signs);
-  const signFaces = new Mesh(signQuads.geometry(), atlas.material);
-  signFaces.name = 'crate yard sign faces';
-  yard.add(signFaces);
   const handle = new Group();
   handle.position.set(lever.x, 0.5, lever.z);
   const handleMesh = new Mesh(
@@ -210,15 +207,41 @@ export function createCrateYardSite(o: {
       ),
     ),
   ]);
-  const crates = layout.crates.map((_, i) => {
+  // Each crate is a placeholder group: the bodies draw as one instanced mesh, and the stencils join
+  // the emblems and sign faces in one mesh (a crate's stencils follow it as it slides or rocks).
+  const crates = layout.crates.map(() => {
     const g = new Group();
-    const body = new Mesh(crateBody, materials.wood);
-    body.castShadow = body.receiveShadow = true;
-    const label = new Mesh(crateQuads[i]!, atlas.material);
-    g.add(body, label);
     yard.add(g);
-    return { group: g, from: new Vector3(), to: new Vector3(), t: 1, wobble: 0 };
+    return { group: g, from: new Vector3(), to: new Vector3(), t: 1, wobble: 0, moved: true };
   });
+  const bodies = sharedInstancedMesh(crateBody, materials.wood, crates.length);
+  bodies.name = 'crate yard crates';
+  bodies.castShadow = bodies.receiveShadow = true;
+  yard.add(bodies);
+  const crateProxies = new InstanceProxies(
+    bodies,
+    crates.map((k) => k.group),
+  );
+  const lettering = mergeWithRigidParts([plateQuads.geometry(), signQuads.geometry()], crateQuads, {
+    bounds: true,
+  });
+  const letters = new Mesh(lettering.geometry, atlas.material);
+  letters.name = 'crate yard lettering';
+  yard.add(letters);
+  const placeCrates = () => {
+    let any = false;
+    crates.forEach((k, i) => {
+      if (!k.moved) return;
+      k.moved = false;
+      k.group.updateMatrix();
+      lettering.set(i, k.group.matrix);
+      any = true;
+    });
+    if (!any) return;
+    lettering.commit();
+    crateProxies.update();
+  };
+  placeCrates();
   const crateCircles: CircleObstacle[] = layout.crates.map(() => ({
     x: 0,
     z: 0,
@@ -274,7 +297,11 @@ export function createCrateYardSite(o: {
       k.from.copy(k.group.position);
       k.to.set(l.x, 0, l.z);
       k.t = snap ? 1 : 0;
-      if (snap) k.group.position.copy(k.to);
+      if (snap) {
+        k.group.position.copy(k.to);
+        k.moved = true;
+        placeCrates();
+      }
       setCircle(i);
       // The circle moves at once: the walker can't slip into the cell the crate's sliding to.
       const wpt = frame.toWorld(l.x, l.z);
@@ -315,24 +342,29 @@ export function createCrateYardSite(o: {
           k.t = Math.min(1, k.t + dt / 0.28);
           const e = k.t * k.t * (3 - 2 * k.t);
           k.group.position.lerpVectors(k.from, k.to, e);
+          k.moved = true;
         }
         if (k.wobble > 0) {
           k.wobble = Math.max(0, k.wobble - dt * 2.4);
           k.group.rotation.z = Math.sin(t * 38) * 0.06 * k.wobble;
-        } else k.group.rotation.z = 0;
+          k.moved = true;
+        } else if (k.group.rotation.z !== 0) {
+          k.group.rotation.z = 0;
+          k.moved = true;
+        }
       }
+      placeCrates();
       if (hint.visible) (atlas.hint as MeshStandardNodeMaterial).opacity = 0.35 + 0.25 * Math.sin(t * 4);
     },
     dispose() {
       floor.geometry.dispose();
       plates.geometry.dispose();
-      emblems.geometry.dispose();
       for (const g of glows) g.geometry.dispose();
       signs.geometry.dispose();
-      signFaces.geometry.dispose();
+      lettering.geometry.dispose();
+      bodies.dispose();
       handleMesh.geometry.dispose();
       crateBody.dispose();
-      for (const q of crateQuads) q.dispose();
       hint.geometry.dispose();
       atlas.dispose();
       group.clear();

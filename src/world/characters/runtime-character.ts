@@ -1,4 +1,5 @@
 import { unreflected } from '../reflection';
+import { CharacterLod, attachCharacterLod } from './character-lod';
 import {
   AnimationAction,
   AnimationClip,
@@ -125,6 +126,8 @@ export class RuntimeCharacter implements Character {
   /** This character's staging light, shared by all its meshes (read per object by the shader). */
   private readonly stage: StageLight = { ...STAGE_REST };
   private spotlit = false;
+  /** Level of detail, picked as each mesh is drawn (full while talking or spotlit). */
+  readonly lod: CharacterLod;
   /** Squared distance to the camera (or player), refreshed each frame for NPCs. */
   private viewDistSq = 0;
   private readonly footWorld = new Vector3();
@@ -266,6 +269,8 @@ export class RuntimeCharacter implements Character {
     this.rigMeters = 1 / Math.max(1, root?.getWorldScale(new Vector3()).x ?? 100);
     this.mixer.update(0.001);
     this.captureArmCarry();
+    this.lod = new CharacterLod(group, !this.npc);
+    attachCharacterLod(group, this.lod);
   }
 
   play(clip: CharacterClip, fade = 0.22): void {
@@ -346,6 +351,7 @@ export class RuntimeCharacter implements Character {
 
   setTalking(on: boolean): void {
     this.talking = on;
+    this.lod.forced = on || this.spotlit;
     // Seated rigs keep their upper-body beat; standing talkers gesture.
     if (on && this.standing()) {
       if (this.overlay?.clip === 'wave') this.overlay.dur = Math.min(this.overlay.dur, this.overlay.t + 0.3);
@@ -370,6 +376,7 @@ export class RuntimeCharacter implements Character {
 
   setSpotlight(on: boolean): void {
     this.spotlit = on;
+    this.lod.forced = on || this.talking;
   }
 
   greet(): void {

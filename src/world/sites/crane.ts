@@ -21,8 +21,8 @@ import { world } from '../uniforms';
 import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
 import { CRANE_CARGO, CRANE_FACINGS, lineTone, type LineTone } from './crane-logic';
 import { box, cylinder, merge, paint, plank, TRIM } from './geo';
-import { createSign, type PaintedSign } from './sign';
-import { createBerthFlag, createSloop, type Sloop } from './sloop';
+import { SignSet, type PaintedSign } from './sign';
+import { createBerthFlags, createSloop, type Sloop } from './sloop';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyNode = any;
@@ -68,6 +68,8 @@ export interface CraneSite {
 export interface CraneOptions {
   tier: TierSettings;
   kit: VillageKit;
+  /** The island's shared sign atlas (finalized and updated by its owner); else the crane keeps its own. */
+  signs?: SignSet;
 }
 
 const DECK = COVE.pier.deck;
@@ -148,16 +150,15 @@ export function createCrane(o: CraneOptions): CraneSite {
   const quayFacing = CRANE_FACINGS.findIndex((f) => !f.owner);
 
   const flags = [
-    { berth: 1 as const, kind: 'you' as const, x: C.x + 2.15, z: C.z + 1.8, ry: 0 },
-    { berth: 2 as const, kind: 'captain' as const, x: C.x - 2.15, z: C.z + 2.2, ry: 0 },
-    { berth: 3 as const, kind: 'guild' as const, x: C.x - 2.0, z: C.z - 1.7, ry: 0 },
-  ].map((f) => {
-    const flag = createBerthFlag({ kit, kind: f.kind, berth: f.berth });
-    flag.group.position.set(f.x, DECK, f.z);
-    flag.group.rotation.y = f.ry;
-    group.add(flag.group);
-    return { ...f, flag };
-  });
+    { berth: 1 as const, kind: 'you' as const, x: C.x + 2.15, y: DECK, z: C.z + 1.8, ry: 0 },
+    { berth: 2 as const, kind: 'captain' as const, x: C.x - 2.15, y: DECK, z: C.z + 2.2, ry: 0 },
+    { berth: 3 as const, kind: 'guild' as const, x: C.x - 2.0, y: DECK, z: C.z - 1.7, ry: 0 },
+  ];
+  // One flag mesh for all three; the poles and plaques join the base timber below.
+  const berthFlags = createBerthFlags(flags);
+  group.add(berthFlags.mesh);
+  const ownSigns = o.signs ? null : new SignSet('crane signs');
+  const signs = o.signs ?? ownSigns!;
 
   // Facing geometry: the jib heading and trolley reach that put the hook over each berth's cargo spot.
   const targetWorld = (i: number, out = new Vector3()): Vector3 => {
@@ -178,7 +179,7 @@ export function createCrane(o: CraneOptions): CraneSite {
   });
 
   // --- Fixed base on the pier deck -----------------------------------------------------------------
-  const baseWood: BufferGeometry[] = [];
+  const baseWood: BufferGeometry[] = [...berthFlags.poles];
   const baseIron: BufferGeometry[] = [];
   for (let k = 0; k < 5; k++) {
     baseWood.push(
@@ -235,7 +236,6 @@ export function createCrane(o: CraneOptions): CraneSite {
   }
   group.add(baseWoodMesh, baseIronMesh);
 
-  const leverPlaques: PaintedSign[] = [];
   const leverArms: Record<'dry' | 'yes', { pivot: Group; t: number }> = {
     dry: makeLever(levers.dry),
     yes: makeLever(levers.yes),
@@ -254,16 +254,15 @@ export function createCrane(o: CraneOptions): CraneSite {
     g.add(arm);
     g.rotation.x = -0.45;
     group.add(g);
-    const plaque = createSign([l.label], 0.5, 0.2, { size: 0.16 });
-    plaque.mesh.position.set(l.x, DECK + 0.4, l.z + 0.176);
-    leverPlaques.push(plaque);
-    group.add(plaque.mesh);
+    const plaque = signs.add([l.label], 0.5, 0.2, { size: 0.16 });
+    plaque.object.position.set(l.x, DECK + 0.4, l.z + 0.176);
+    group.add(plaque.object);
     return { pivot: g, t: -1 };
   }
 
-  const board: PaintedSign = createSign(boardLines(0), BOARD.w, BOARD.h, { layout: 'list' });
-  board.mesh.position.set(boardAt.x, DECK + 1.6, boardAt.z + 0.04);
-  group.add(board.mesh);
+  const board: PaintedSign = signs.add(boardLines(0), BOARD.w, BOARD.h, { layout: 'list' });
+  board.object.position.set(boardAt.x, DECK + 1.6, boardAt.z + 0.04);
+  group.add(board.object);
 
   // --- The slewing crane -----------------------------------------------------------------------------
   const slew = new Group();
@@ -302,6 +301,9 @@ export function createCrane(o: CraneOptions): CraneSite {
   // Tie rods from the post head to the jib tip and the counter-jib end.
   iron.push(rod(new Vector3(0, postTop - 0.1, 0.1), new Vector3(0, JIB_Y + 0.34, JIB_LEN - 0.2), 0.022));
   iron.push(rod(new Vector3(0, postTop - 0.1, -0.1), new Vector3(0, JIB_Y + 0.32, -2.3), 0.022));
+  // The sign's chains hang from the jib (they slew with it).
+  const SIGN = { w: 2.7, h: 1.0, top: JIB_Y - 1.7, z: 2.0 };
+  iron.push(cylinder(0.014, 0.014, JIB_Y - SIGN.top, { y: SIGN.top + 0.02, z: SIGN.z }, IRON, 4));
   // Sheave at the jib tip and a rail strip along the jib's underside.
   iron.push(
     paint(
@@ -357,15 +359,14 @@ export function createCrane(o: CraneOptions): CraneSite {
 
   // The Repository: sign hangs from a swivel under the jib and always turns to face the levers
   // (two-sided, so it reads from the pier head too). It swings a little as the crane slews.
-  const SIGN = { w: 2.7, h: 1.0, top: JIB_Y - 1.7, z: 2.0 };
   const signHang = new Group();
   signHang.position.set(0, SIGN.top, SIGN.z);
   slew.add(signHang);
-  const sign = createSign(jibLines(['Repository:', '(pull Dry-Run to preview)']), SIGN.w, SIGN.h, {
+  const sign = signs.add(jibLines(['Repository:', '(pull Dry-Run to preview)']), SIGN.w, SIGN.h, {
     twoSided: true,
+    offsetY: -SIGN.h / 2 - 0.34,
   });
-  sign.mesh.geometry.translate(0, -SIGN.h / 2 - 0.34, 0);
-  signHang.add(sign.mesh);
+  signHang.add(sign.object);
   const bridle = new Mesh(
     merge([
       rod(new Vector3(0, 0, 0), new Vector3(-SIGN.w * 0.42, -0.34, 0), 0.01),
@@ -375,19 +376,19 @@ export function createCrane(o: CraneOptions): CraneSite {
     kit.materials.metal,
   );
   signHang.add(bridle);
-  const chains = new Mesh(
-    merge([cylinder(0.014, 0.014, JIB_Y - SIGN.top, { y: SIGN.top + 0.02, z: SIGN.z }, IRON, 4)]),
-    kit.materials.metal,
-  );
-  slew.add(chains);
   let signYaw = 0;
   let lastSlew = 0;
-  const banner = createSign(['Setup complete.'], 3.0, 0.8, { look: 'cloth', twoSided: true, size: 0.13 });
-  banner.mesh.geometry.translate(0, -0.4, 0);
-  banner.mesh.position.set(0, JIB_Y - 0.04, 5.3);
-  banner.mesh.rotation.y = Math.PI / 2;
-  banner.mesh.visible = false;
-  slew.add(banner.mesh);
+  const banner = signs.add(['Setup complete.'], 3.0, 0.8, {
+    look: 'cloth',
+    twoSided: true,
+    size: 0.13,
+    offsetY: -0.4,
+  });
+  banner.object.position.set(0, JIB_Y - 0.04, 5.3);
+  banner.object.rotation.y = Math.PI / 2;
+  banner.object.visible = false;
+  slew.add(banner.object);
+  if (ownSigns) group.add(ownSigns.finalize());
 
   // Hint ring round the capstan bars.
   const hintMat = new MeshBasicNodeMaterial({
@@ -659,19 +660,17 @@ export function createCrane(o: CraneOptions): CraneSite {
       }
 
       bannerT += (bannerTarget - bannerT) * Math.min(1, dt * 1.6);
-      banner.mesh.visible = bannerT > 0.01;
-      banner.mesh.scale.y = Math.max(0.001, bannerT);
+      banner.object.visible = bannerT > 0.01;
+      banner.object.scale.y = Math.max(0.001, bannerT);
       if (hintOn) hintMat.opacity = 0.45 + 0.4 * (0.5 + 0.5 * Math.sin(t * 4));
       for (const s of sloops) s.update(dt, t);
-      for (const f of flags) f.flag.update(dt, t);
+      berthFlags.update(dt, t);
+      ownSigns?.update();
     },
     dispose() {
       for (const s of sloops) s.dispose();
-      for (const f of flags) f.flag.dispose();
-      sign.dispose();
-      banner.dispose();
-      board.dispose();
-      for (const plaque of leverPlaques) plaque.dispose();
+      berthFlags.dispose();
+      ownSigns?.dispose();
       for (const g of crateGeos) g.dispose();
       ghostMat.dispose();
       hintMat.dispose();

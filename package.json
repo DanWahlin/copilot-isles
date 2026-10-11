@@ -31,6 +31,7 @@
     "shots:compare": "node tools/visual-compare.mjs --base=tests/visual/baseline --candidate=test-results/visual"
   },
   "dependencies": {
+    "meshoptimizer": "~1.2.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "three": "0.186.1"

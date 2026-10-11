@@ -9,6 +9,7 @@ import { createGearRack, type GearRackSite } from './gear-rack';
 import { createHammock, type HammockSite } from './hammock';
 import { createMill, type MillSite } from './mill';
 import { createPaletteStand, type PaletteStandSite } from './palette-stand';
+import { SignSet } from './sign';
 import { ANCHORAGE_SLUICE } from './sluice-logic';
 
 export type { CraneSite } from './crane';
@@ -43,13 +44,16 @@ export async function createCoveSites(o: {
   ground: (x: number, z: number) => number;
 }): Promise<CoveSites> {
   const kit = await loadVillageKit();
+  // Every painted board on the island shares one atlas, one material, and one draw.
+  const signs = new SignSet('anchorage painted signs');
   const mill = createMill({
     tier: o.tier,
     heightField: o.heightField,
     kit,
     kinds: ANCHORAGE_SLUICE.tiles.map((t) => t.kind),
+    signs,
   });
-  const crane = createCrane({ tier: o.tier, kit });
+  const crane = createCrane({ tier: o.tier, kit, signs });
   const gear = createGearRack({ tier: o.tier, kit, ground: o.ground });
   const palette = createPaletteStand({ tier: o.tier, kit, ground: o.ground });
   const [hammockPalmA, hammockPalmB] = await Promise.all([
@@ -66,6 +70,7 @@ export async function createCoveSites(o: {
   const group = new Group();
   group.name = 'puzzle sites';
   group.add(mill.group, crane.group, gear.group, palette.group, hammock.group, bottles.group);
+  group.add(signs.finalize());
   return {
     group,
     mill,
@@ -106,6 +111,7 @@ export async function createCoveSites(o: {
       gear.update(dt, t);
       palette.update(dt, t);
       hammock.update(dt, t);
+      signs.update();
     },
     dispose() {
       mill.dispose();
@@ -114,6 +120,7 @@ export async function createCoveSites(o: {
       palette.dispose();
       hammock.dispose();
       bottles.dispose();
+      signs.dispose();
       group.removeFromParent();
     },
   };

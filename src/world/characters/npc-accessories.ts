@@ -605,8 +605,10 @@ function strapSurfaces(root: Group): { tris: Float32Array; worn: Uint8Array } {
       v.applyMatrix4(toRoot);
       tris.push(v.x, v.y, v.z);
     };
-    const count = g.index ? g.index.count : pos.count;
-    for (let i = 0; i + 2 < count; i += 3) {
+    // Only the draw range: a body's index also carries its coarser levels of detail after it.
+    const start = g.drawRange.start;
+    const count = Math.min(g.index ? g.index.count : pos.count, start + g.drawRange.count);
+    for (let i = start; i + 2 < count; i += 3) {
       for (let k = 0; k < 3; k++) corner(g.index ? g.index.getX(i + k) : i + k);
       worn.push(isWorn ? 1 : 0);
     }

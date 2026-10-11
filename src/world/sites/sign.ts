@@ -2,11 +2,14 @@ import {
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
+  Matrix4,
   Mesh,
   MeshStandardNodeMaterial,
-  PlaneGeometry,
+  Object3D,
   SRGBColorSpace,
 } from 'three/webgpu';
+import { shown } from './proxies';
+import { mergeWithRigidParts, type RigidParts } from './rigid-parts';
 
 export interface SignStyle {
   /** Letter height as a fraction of the canvas width (it shrinks until the lines fit). */
@@ -24,11 +27,14 @@ export interface SignStyle {
 
 const FONT = (sz: number) => `600 ${sz}px Georgia, 'Times New Roman', serif`;
 
-/** Paints `lines` onto `canvas` as a timber board or a canvas banner, with lettering that fits. */
-function paintSign(canvas: HTMLCanvasElement, lines: readonly string[], o: SignStyle = {}): void {
-  const ctx = canvas.getContext('2d')!;
-  const px = canvas.width;
-  const ch = canvas.height;
+/** Paints `lines` into a `px` × `ch` region at the context's origin as a timber board or a canvas banner, with lettering that fits. */
+function paintSign(
+  ctx: CanvasRenderingContext2D,
+  px: number,
+  ch: number,
+  lines: readonly string[],
+  o: SignStyle = {},
+): void {
   const cloth = o.look === 'cloth';
   const grad = ctx.createLinearGradient(0, 0, 0, ch);
   if (cloth) {
@@ -103,74 +109,235 @@ function paintSign(canvas: HTMLCanvasElement, lines: readonly string[], o: SignS
 }
 
 export interface PaintedSign {
-  readonly mesh: Mesh;
-  /** Repaints the board (cheap: one canvas upload). */
+  /** Position, turn, scale and show or hide the sign through this; its set draws it. */
+  readonly object: Object3D;
+  /** Repaints the board (its set uploads the atlas again). */
   redraw(lines: readonly string[], style?: SignStyle): void;
-  dispose(): void;
+}
+
+export interface SignOptions extends SignStyle {
+  /** The same lettering on the back, readable from both sides. */
+  twoSided?: boolean;
+  /** Moves the board down (negative) or up from `object`'s origin, in metres (a hanging sign). */
+  offsetY?: number;
+}
+
+/** Each board is painted at this width in pixels (its height keeps the board's aspect). */
+const SIGN_PX = 1024;
+/** Edge pixels repeat this far round each board, so filtering and the first mips don't bleed. */
+const GUTTER = 8;
+/** WebGPU's default `maxTextureDimension2D`. */
+const MAX_ATLAS = 8192;
+
+interface SignEntry {
+  readonly object: Object3D;
+  readonly w: number;
+  readonly h: number;
+  readonly offsetY: number;
+  readonly twoSided: boolean;
+  readonly pw: number;
+  readonly ph: number;
+  lines: readonly string[];
+  style: SignStyle;
+  /** Top-left of the board in the atlas, in pixels. */
+  x: number;
+  y: number;
+}
+
+const inverse = new Matrix4();
+const place = new Matrix4();
+const HIDDEN = new Matrix4().makeScale(0, 0, 0);
+
+/**
+ * Painted boards with carved-looking serif text that share one canvas atlas, one material, and one
+ * draw. Add the signs, place their `object`s, then call `finalize()` once and add the returned mesh
+ * to the scene; `update()` every frame copies each sign's place (and whether it's shown) into the
+ * mesh. Each board is a quad in one merged geometry with its atlas rectangle baked into its uvs
+ * (a two-sided board is two quads, back to back). A board that moves rewrites only its own four or
+ * eight vertices on the CPU, so the set uses the plain `map` material the separate signs used: no
+ * new shader or pipeline.
+ */
+export class SignSet {
+  private readonly entries: SignEntry[] = [];
+  private canvas: HTMLCanvasElement | null = null;
+  private atlas: CanvasTexture | null = null;
+  private material: MeshStandardNodeMaterial | null = null;
+  private merged: Mesh | null = null;
+  private parts: RigidParts | null = null;
+  /** The last place written for each board (16 floats each), so `update()` skips boards that didn't move. */
+  private placed: Float32Array | null = null;
+
+  constructor(private readonly name: string) {}
+
+  /** The merged mesh (null until `finalize()`). */
+  get mesh(): Mesh | null {
+    return this.merged;
+  }
+
+  get count(): number {
+    return this.entries.length;
+  }
+
+  add(lines: readonly string[], w: number, h: number, o: SignOptions = {}): PaintedSign {
+    if (this.merged) throw new Error(`SignSet ${this.name}: add() after finalize()`);
+    const { twoSided = false, offsetY = 0, ...style } = o;
+    const object = new Object3D();
+    object.name = `sign: ${lines[0]}`;
+    const entry: SignEntry = {
+      object,
+      w,
+      h,
+      offsetY,
+      twoSided,
+      pw: SIGN_PX,
+      ph: Math.round((SIGN_PX * h) / w),
+      lines,
+      style,
+      x: 0,
+      y: 0,
+    };
+    this.entries.push(entry);
+    return {
+      object,
+      redraw: (next, s) => {
+        if (s) entry.style = { ...entry.style, ...s };
+        entry.lines = next;
+        object.name = `sign: ${next[0]}`;
+        if (this.canvas && this.atlas) {
+          this.paint(entry);
+          this.atlas.needsUpdate = true;
+        }
+      },
+    };
+  }
+
+  /** Packs and paints the atlas and builds the one merged mesh. */
+  finalize(): Mesh {
+    if (this.merged) return this.merged;
+    const width = SIGN_PX + GUTTER * 2;
+    let height = 0;
+    for (const e of this.entries) {
+      e.x = GUTTER;
+      e.y = height + GUTTER;
+      height += e.ph + GUTTER * 2;
+    }
+    height = Math.max(height, 1);
+    if (height > MAX_ATLAS) throw new Error(`SignSet ${this.name}: atlas ${height} px is too tall`);
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    this.canvas = canvas;
+    for (const e of this.entries) this.paint(e);
+    const atlas = new CanvasTexture(canvas);
+    atlas.colorSpace = SRGBColorSpace;
+    atlas.anisotropy = 4;
+    this.atlas = atlas;
+
+    // Canvas textures are flipY: v = 1 is the canvas top.
+    const boards = this.entries.map((e) =>
+      boardGeometry(e, e.x / width, 1 - (e.y + e.ph) / height, e.pw / width, e.ph / height),
+    );
+    const parts = mergeWithRigidParts([], boards, { bounds: true });
+    this.parts = parts;
+    this.placed = new Float32Array(this.entries.length * 16).fill(Number.NaN);
+
+    const material = new MeshStandardNodeMaterial({ map: atlas, roughness: 0.85, metalness: 0 });
+    material.name = 'painted signs';
+    this.material = material;
+
+    const mesh = new Mesh(parts.geometry, material);
+    mesh.name = this.name;
+    mesh.castShadow = true;
+    mesh.receiveShadow = false;
+    this.merged = mesh;
+    this.update();
+    return mesh;
+  }
+
+  /** Copies each sign's place (and whether it's shown) into the mesh; uploads only on a change. */
+  update(): void {
+    const mesh = this.merged;
+    const parts = this.parts;
+    const placed = this.placed;
+    if (!mesh || !parts || !placed) return;
+    mesh.updateWorldMatrix(true, false);
+    inverse.copy(mesh.matrixWorld).invert();
+    for (let i = 0; i < this.entries.length; i++) {
+      const object = this.entries[i]!.object;
+      object.updateWorldMatrix(true, false);
+      place.multiplyMatrices(inverse, object.matrixWorld);
+      if (!shown(object, mesh.parent)) place.multiply(HIDDEN);
+      const m = place.elements;
+      const o = i * 16;
+      let moved = false;
+      for (let k = 0; k < 16; k++) {
+        const v = Math.fround(m[k]!);
+        if (placed[o + k] !== v) {
+          placed[o + k] = v;
+          moved = true;
+        }
+      }
+      if (moved) parts.set(i, place);
+    }
+    parts.commit();
+  }
+
+  dispose(): void {
+    this.merged?.removeFromParent();
+    this.parts?.geometry.dispose();
+    this.atlas?.dispose();
+    this.material?.dispose();
+  }
+
+  /** Paints one board into its atlas rectangle and repeats its edges into the gutter. */
+  private paint(e: SignEntry): void {
+    const canvas = this.canvas!;
+    const ctx = canvas.getContext('2d')!;
+    ctx.save();
+    ctx.translate(e.x, e.y);
+    ctx.beginPath();
+    ctx.rect(0, 0, e.pw, e.ph);
+    ctx.clip();
+    paintSign(ctx, e.pw, e.ph, e.lines, e.style);
+    ctx.restore();
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    const { x, y, pw, ph } = e;
+    const g = GUTTER;
+    ctx.drawImage(canvas, x, y, pw, 1, x, y - g, pw, g);
+    ctx.drawImage(canvas, x, y + ph - 1, pw, 1, x, y + ph, pw, g);
+    ctx.drawImage(canvas, x, y - g, 1, ph + g * 2, x - g, y - g, g, ph + g * 2);
+    ctx.drawImage(canvas, x + pw - 1, y - g, 1, ph + g * 2, x + pw, y - g, g, ph + g * 2);
+    ctx.restore();
+  }
 }
 
 /**
- * A painted board with carved-looking serif text (canvas texture). `twoSided` puts the same
- * lettering on the back, readable from both sides, in one draw.
+ * One board in its sign's frame: a `w` × `h` quad facing +z, 4 mm proud of the origin and moved by
+ * `offsetY`, mapped to its atlas rectangle. A two-sided board adds a back quad facing −z, mapped
+ * left to right as seen from behind.
  */
-export function createSign(
-  lines: readonly string[],
-  w: number,
-  h: number,
-  o: SignStyle & { twoSided?: boolean } = {},
-): PaintedSign {
-  const px = 1024;
-  const canvas = document.createElement('canvas');
-  canvas.width = px;
-  canvas.height = Math.round((px * h) / w);
-  let style: SignStyle = o;
-  paintSign(canvas, lines, style);
-  const tex = new CanvasTexture(canvas);
-  tex.colorSpace = SRGBColorSpace;
-  tex.anisotropy = 4;
-  const mat = new MeshStandardNodeMaterial({ map: tex, roughness: 0.85, metalness: 0 });
-  const geo = o.twoSided ? twoSidedPlane(w, h) : new PlaneGeometry(w, h);
-  const mesh = new Mesh(geo, mat);
-  mesh.castShadow = true;
-  mesh.name = `sign: ${lines[0]}`;
-  return {
-    mesh,
-    redraw(next, s) {
-      if (s) style = { ...style, ...s };
-      paintSign(canvas, next, style);
-      tex.needsUpdate = true;
-      mesh.name = `sign: ${next[0]}`;
-    },
-    dispose() {
-      geo.dispose();
-      tex.dispose();
-      mat.dispose();
-    },
-  };
-}
-
-/** A painted board (the mill's static signs). */
-export function paintedSign(lines: readonly string[], w: number, h: number, o: SignStyle = {}): Mesh {
-  return createSign(lines, w, h, o).mesh;
-}
-
-/** Two back-to-back quads (front faces +z, back faces −z), both mapped left-to-right. */
-function twoSidedPlane(w: number, h: number): BufferGeometry {
-  const x = w / 2,
-    y = h / 2,
-    e = 0.004;
-  // prettier-ignore
-  const pos = [
-    -x, -y, e,  x, -y, e,  x, y, e,  -x, y, e,
-    x, -y, -e,  -x, -y, -e,  -x, y, -e,  x, y, -e,
-  ];
-  // prettier-ignore
-  const nrm = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1];
-  const uv = [0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1];
+function boardGeometry(e: SignEntry, u0: number, v0: number, uw: number, vh: number): BufferGeometry {
+  const x = e.w / 2,
+    y0 = e.offsetY - e.h / 2,
+    y1 = e.offsetY + e.h / 2,
+    z = 0.004,
+    u1 = u0 + uw,
+    v1 = v0 + vh;
+  const pos = [-x, y0, z, x, y0, z, x, y1, z, -x, y1, z];
+  const nrm = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1];
+  const uvs = [u0, v0, u1, v0, u1, v1, u0, v1];
+  const index = [0, 1, 2, 0, 2, 3];
+  if (e.twoSided) {
+    pos.push(x, y0, -z, -x, y0, -z, -x, y1, -z, x, y1, -z);
+    nrm.push(0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1);
+    uvs.push(u0, v0, u1, v0, u1, v1, u0, v1);
+    index.push(4, 5, 6, 4, 6, 7);
+  }
   const g = new BufferGeometry();
   g.setAttribute('position', new BufferAttribute(new Float32Array(pos), 3));
   g.setAttribute('normal', new BufferAttribute(new Float32Array(nrm), 3));
-  g.setAttribute('uv', new BufferAttribute(new Float32Array(uv), 2));
-  g.setIndex([0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7]);
+  g.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
+  g.setIndex(index);
   return g;
 }

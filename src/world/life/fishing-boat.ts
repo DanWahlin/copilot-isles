@@ -7,6 +7,13 @@
  * The fishermen sit with their legs on one animation layer and their arms on another, so a wave or a
  * cast plays over the sitting pose without standing them up.
  */
+import {
+  CharacterLod,
+  attachCharacterLod,
+  buildLodsNow,
+  loadLodSimplifier,
+  type LodSimplifier,
+} from '../characters/character-lod';
 import { mergeSkinnedParts, shareSkinning } from '../characters/shared-skinning';
 import { unreflected } from '../reflection';
 import {
@@ -112,7 +119,11 @@ interface Fisher {
 }
 
 /** Sets a fisher sitting on a thwart: his hips at `seatY` in the boat, facing `yaw`. */
-function makeFisher(gltf: GLTF, at: { x: number; seatY: number; z: number; yaw: number }): Fisher {
+function makeFisher(
+  gltf: GLTF,
+  at: { x: number; seatY: number; z: number; yaw: number },
+  simplify: LodSimplifier | null,
+): Fisher {
   const model = gltf.scene;
   model.traverse((o) => {
     const m = o as Mesh;
@@ -155,6 +166,9 @@ function makeFisher(gltf: GLTF, at: { x: number; seatY: number; z: number; yaw: 
   // skinning shader (issue 235); like every character, not in the mirror.
   mergeSkinnedParts(model);
   shareSkinning(model);
+  // Levels of detail like the characters' (his merged mesh is his own), picked as he's drawn.
+  buildLodsNow(model, simplify);
+  attachCharacterLod(model, new CharacterLod(root));
   // Frustum-cull him like the characters: his bind-pose bounds, padded for the sitting pose.
   model.traverse((o) => {
     const m = o as Mesh;
@@ -242,7 +256,8 @@ export function createFishingBoat(o: {
     o.loader.loadAsync(`${o.base}rowboat.glb`),
     o.loader.loadAsync(`${o.base}fisher-hooded.glb`),
     o.loader.loadAsync(`${o.base}fisher-barbarian.glb`),
-  ]).then(([boatGltf, hoodedGltf, barbarianGltf]) => {
+    loadLodSimplifier(),
+  ]).then(([boatGltf, hoodedGltf, barbarianGltf, simplify]) => {
     loaded.push(boatGltf, hoodedGltf, barbarianGltf);
     if (disposed) return;
     // The boat: its wood colours baked into one vertex-coloured mesh, long axis along z, BOAT_LENGTH
@@ -293,8 +308,8 @@ export function createFishingBoat(o: {
 
     // The fisherman sits aft facing starboard, rod out over the side; his mate sits forward, facing him.
     const seatY = gunwale - 0.32;
-    fisher = makeFisher(hoodedGltf, { x: 0.05, seatY, z: -BOAT_LENGTH * 0.24, yaw: Math.PI / 2 });
-    waver = makeFisher(barbarianGltf, { x: 0, seatY, z: BOAT_LENGTH * 0.2, yaw: Math.PI });
+    fisher = makeFisher(hoodedGltf, { x: 0.05, seatY, z: -BOAT_LENGTH * 0.24, yaw: Math.PI / 2 }, simplify);
+    waver = makeFisher(barbarianGltf, { x: 0, seatY, z: BOAT_LENGTH * 0.2, yaw: Math.PI }, simplify);
     hull.add(fisher.root, waver.root);
 
     // The anchor rope runs from the bow down and forward into the water.

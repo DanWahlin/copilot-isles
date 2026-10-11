@@ -7,7 +7,6 @@ import {
   Matrix4,
   Mesh,
   MeshBasicNodeMaterial,
-  MeshStandardNodeMaterial,
   Quaternion,
   Vector3,
 } from 'three/webgpu';
@@ -20,7 +19,8 @@ import { createRockMaterial } from '../terrain/terrain-material';
 import { world } from '../uniforms';
 import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
 import { box, cylinder, merge, plank, TRIM } from './geo';
-import { paintedSign } from './sign';
+import { mergeWithRigidParts } from './rigid-parts';
+import { SignSet, type PaintedSign } from './sign';
 import { WaterStrips } from './water';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -74,6 +74,8 @@ export interface MillOptions {
   heightField: HeightField;
   kit: VillageKit;
   kinds: readonly MillTileKind[];
+  /** The island's shared sign atlas (finalized and updated by its owner); else the mill keeps its own. */
+  signs?: SignSet;
 }
 
 const DIRS = [
@@ -107,8 +109,8 @@ const sbox = (w: number, h: number, d: number, p: Parameters<typeof box>[3], hex
  * P0.1's set piece (POC §4.5): a low limestone terrace with a 3 × 4 grid of rotatable channel
  * tiles, the Actions spring spouting from rocks into a gated basin, an outlet flume feeding a
  * breastshot waterwheel in a tail pool, four lanterns, painted signs, and west stairs. Draws:
- * terrace, wood, iron, tiles (one per cell), wheel, gate, lever, lanterns, rocks, water, signs, and
- * two outline frames.
+ * terrace with the tiles and spout, wood, iron, wheel, gate, lever, lanterns, rocks, water, and two
+ * outline frames (the signs draw in the shared sign atlas).
  */
 export function createMill(o: MillOptions): MillSite {
   const { heightField: hf, kit } = o;
@@ -377,8 +379,37 @@ export function createMill(o: MillOptions): MillSite {
   const postY = hf.heightAt(post.x, post.z);
   wood.push(plank(0.14, 1.9, 0.14, { x: post.x, y: postY - 0.2, z: post.z }, WOOD_DARK, TRIM.dark));
 
-  const stoneMesh = new Mesh(merge(stone), kit.materials.stone);
-  stoneMesh.name = 'mill terrace';
+  // The carved spout lip that pokes out of the main rock over the basin.
+  const spoutY = top + 0.95;
+  const spout = { x: cx, z: basin.z1 - 0.1 };
+  stone.push(sbox(0.46, 0.18, 1.1, { x: spout.x, y: spoutY - 0.18, z: spout.z + 0.35 }, STONE));
+
+  // Channel tiles share the terrace's draw; a turn rewrites that tile's vertices (rare, short).
+  const kindGeo = new Map<MillTileKind, BufferGeometry>();
+  const tileGeo = (kind: MillTileKind) => {
+    let g = kindGeo.get(kind);
+    if (!g) kindGeo.set(kind, (g = buildTile(kind)));
+    return g;
+  };
+  const tileParts: BufferGeometry[] = [];
+  const tiles: { x: number; z: number; angle: number; target: number }[] = [];
+  for (let i = 0; i < rows * cols; i++) {
+    tileParts.push(tileGeo(o.kinds[i] ?? 'blank').clone());
+    tiles.push({ x: cellX(i % cols), z: cellZ(Math.floor(i / cols)), angle: 0, target: 0 });
+  }
+  for (const g of kindGeo.values()) g.dispose();
+  const tileVerts = mergeWithRigidParts(stone, tileParts);
+  const tileMatrix = new Matrix4();
+  const placeTile = (i: number, angle: number, y: number) => {
+    const tile = tiles[i]!;
+    tileMatrix.makeRotationY(angle).setPosition(tile.x, y, tile.z);
+    tileVerts.set(i, tileMatrix);
+  };
+  tiles.forEach((_, i) => placeTile(i, 0, top));
+  tileVerts.commit();
+
+  const stoneMesh = new Mesh(tileVerts.geometry, kit.materials.stone);
+  stoneMesh.name = 'mill terrace and tiles';
   const woodMesh = new Mesh(merge(wood), kit.materials.wood);
   woodMesh.name = 'mill timber';
   const ironMesh = new Mesh(merge(iron), kit.materials.metal);
@@ -403,25 +434,6 @@ export function createMill(o: MillOptions): MillSite {
   const glowMesh = new Mesh(merge(glowParts), glowMat);
   glowMesh.name = 'mill lanterns';
   group.add(glowMesh);
-
-  // Channel tiles: one mesh per cell, sharing one geometry per kind.
-  const kindGeo = new Map<MillTileKind, BufferGeometry>();
-  const tileGeo = (kind: MillTileKind) => {
-    let g = kindGeo.get(kind);
-    if (!g) kindGeo.set(kind, (g = buildTile(kind)));
-    return g;
-  };
-  const tiles: { mesh: Mesh; angle: number; target: number }[] = [];
-  for (let i = 0; i < rows * cols; i++) {
-    const kind = o.kinds[i] ?? 'blank';
-    const mesh = new Mesh(tileGeo(kind), kit.materials.stone);
-    mesh.name = `mill tile ${i} (${kind})`;
-    mesh.position.set(cellX(i % cols), top, cellZ(Math.floor(i / cols)));
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    group.add(mesh);
-    tiles.push({ mesh, angle: 0, target: 0 });
-  }
 
   // Outline frames: focus (soft white) and hint (gold pulse).
   const frameGeo = buildFrame(T - GAP + 0.04, 0.07);
@@ -494,33 +506,23 @@ export function createMill(o: MillOptions): MillSite {
   rocks.receiveShadow = true;
   rocks.name = 'mill spring rocks';
   group.add(rocks);
-  // The carved spout lip that pokes out of the main rock over the basin.
-  const spoutY = top + 0.95;
-  const spout = { x: cx, z: basin.z1 - 0.1 };
-  const spoutMesh = new Mesh(
-    sbox(0.46, 0.18, 1.1, { x: spout.x, y: spoutY - 0.18, z: spout.z + 0.35 }, STONE),
-    kit.materials.stone,
-  );
-  spoutMesh.castShadow = true;
-  group.add(spoutMesh);
-
-  // Painted signs.
-  const signs: Mesh[] = [];
-  const addSign = (mesh: Mesh, x: number, y: number, z: number, ry: number, tilt = 0) => {
-    mesh.position.set(x, y, z);
-    mesh.rotation.set(tilt, ry, 0, 'YXZ');
-    group.add(mesh);
-    signs.push(mesh);
+  // Painted signs (in the island's shared sign atlas, or a set of the mill's own).
+  const ownSigns = o.signs ? null : new SignSet('mill signs');
+  const signs = o.signs ?? ownSigns!;
+  const addSign = (sign: PaintedSign, x: number, y: number, z: number, ry: number, tilt = 0) => {
+    sign.object.position.set(x, y, z);
+    sign.object.rotation.set(tilt, ry, 0, 'YXZ');
+    group.add(sign.object);
   };
   addSign(
-    paintedSign(['Workflows aren’t being run', 'on this forked repository.'], 2.1, 0.62),
+    signs.add(['Workflows aren’t being run', 'on this forked repository.'], 2.1, 0.62),
     cx,
     gateY + 1.55,
     gz1 - 0.1,
     Math.PI,
   );
   addSign(
-    paintedSign(['I understand my workflows,', 'go ahead and enable them.'], 0.95, 0.5, { size: 0.19 }),
+    signs.add(['I understand my workflows,', 'go ahead and enable them.'], 0.95, 0.5, { size: 0.19 }),
     plaque.x,
     top + 1.08,
     plaque.z - 0.05,
@@ -528,19 +530,20 @@ export function createMill(o: MillOptions): MillSite {
     -0.5,
   );
   addSign(
-    paintedSign(['The Actions Spring', '· mill race ·'], 1.3, 0.52),
+    signs.add(['The Actions Spring', '· mill race ·'], 1.3, 0.52),
     post.x - 0.085,
     postY + 1.4,
     post.z,
     -Math.PI / 2,
   );
   addSign(
-    paintedSign(['The Actions Spring', '· mill race ·'], 1.3, 0.52),
+    signs.add(['The Actions Spring', '· mill race ·'], 1.3, 0.52),
     post.x + 0.085,
     postY + 1.4,
     post.z,
     Math.PI / 2,
   );
+  if (ownSigns) group.add(ownSigns.finalize());
 
   // Water.
   const water = new WaterStrips(320);
@@ -767,7 +770,7 @@ export function createMill(o: MillOptions): MillSite {
       tile.target = target;
       if (snap) {
         tile.angle = target;
-        tile.mesh.rotation.y = target;
+        placeTile(i, target, top);
       }
       // The water in a turning tile drains straight away.
       shown[i]!.fill = snap ? shown[i]!.fill : Math.min(shown[i]!.fill, 0.35);
@@ -795,18 +798,22 @@ export function createMill(o: MillOptions): MillSite {
     update(dt, t) {
       // Tiles turn with a heavy ease and a small settle.
       turning = 0;
-      for (const tile of tiles) {
+      for (let i = 0; i < tiles.length; i++) {
+        const tile = tiles[i]!;
         const d = tile.target - tile.angle;
         if (Math.abs(d) > 1e-4) {
           turning++;
           const step = Math.sign(d) * Math.min(Math.abs(d), dt * 5.2);
           tile.angle += step;
           if (Math.abs(tile.target - tile.angle) < 1e-4) tile.angle = tile.target;
-          tile.mesh.rotation.y = tile.angle;
-          tile.mesh.position.y =
-            top + Math.sin((Math.abs(tile.target - tile.angle) / (Math.PI / 2)) * Math.PI) * 0.035;
+          placeTile(
+            i,
+            tile.angle,
+            top + Math.sin((Math.abs(tile.target - tile.angle) / (Math.PI / 2)) * Math.PI) * 0.035,
+          );
         }
       }
+      tileVerts.commit();
       // Water: drain cells whose shape changed (or that are turning), then fill toward the target.
       let changed = dirty;
       for (let i = 0; i < shown.length; i++) {
@@ -871,24 +878,19 @@ export function createMill(o: MillOptions): MillSite {
       place(focusFrame, focusIdx === hintIdx ? -1 : focusIdx);
       place(hintFrame, hintIdx);
       hintMat.opacity = 0.45 + 0.4 * (0.5 + 0.5 * Math.sin(t * 5));
+      ownSigns?.update();
     },
     dispose() {
       group.removeFromParent();
-      for (const m of [stoneMesh, woodMesh, ironMesh, glowMesh, gateBoard, leverArm, wheelMesh, spoutMesh])
+      for (const m of [stoneMesh, woodMesh, ironMesh, glowMesh, gateBoard, leverArm, wheelMesh])
         m.geometry.dispose();
-      for (const g of kindGeo.values()) g.dispose();
       frameGeo.dispose();
       rockGeo.dispose();
       rockMat.dispose();
       glowMat.dispose();
       focusMat.dispose();
       hintMat.dispose();
-      for (const s of signs) {
-        s.geometry.dispose();
-        const mat = s.material as MeshStandardNodeMaterial;
-        mat.map?.dispose();
-        mat.dispose();
-      }
+      ownSigns?.dispose();
       water.dispose();
     },
   };

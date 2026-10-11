@@ -26,6 +26,7 @@ import {
   worldUv,
 } from './geo';
 import { lerp } from '../../util/math';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export type FlagKind = 'you' | 'captain' | 'guild';
 
@@ -182,35 +183,111 @@ export function createSloop(o: SloopOptions): Sloop {
   };
 }
 
-/** A berth marker for the pier edge: a 3 m pole with the flag, and a painted plaque with the berth number. Origin at its foot. */
-export function createBerthFlag(o: { kit: VillageKit; kind: FlagKind; berth: 1 | 2 | 3 }): {
-  group: Group;
+export interface BerthFlagSpot {
+  kind: FlagKind;
+  berth: 1 | 2 | 3;
+  /** Foot of the pole. */
+  x: number;
+  y: number;
+  z: number;
+  ry: number;
+}
+
+/**
+ * The pier's berth markers: each a 3 m pole with a flag and a painted plaque with the berth number.
+ * The poles and plaques come back as placed geometry for the caller's timber merge; the flags are
+ * one mesh with the three artworks in one texture (one draw for all of them).
+ */
+export function createBerthFlags(spots: readonly BerthFlagSpot[]): {
+  poles: BufferGeometry[];
+  mesh: Mesh;
   update(dt: number, t: number): void;
   dispose(): void;
 } {
-  const group = new Group();
-  group.name = `berth ${o.berth} flag`;
-  const wood: BufferGeometry[] = [
-    cylinder(0.055, 0.075, 3, { y: 0 }, 0xe8d4bb, 8),
-    plank(0.92, 0.44, 0.055, { y: 0.92, z: -0.08 }, 0xd7b985, TRIM.light, 0.8),
-  ];
-  addPlaqueNumber(wood, o.berth);
-  const pole = addMergedMesh(group, 'berth pole and plaque', wood, o.kit.materials.wood)!;
-  const flag = addFlag(group, o.kind, 6, { x: 0.08, y: 2.62, z: 0 }, o.berth * 19 + 5, 0.88, 0.44);
+  const poles: BufferGeometry[] = [];
+  const parts: BufferGeometry[] = [];
+  const cell = 256 + FLAG_ATLAS_GUTTER * 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = cell * spots.length;
+  const ctx = canvas.getContext('2d')!;
+  const waves: number[] = [];
+  const turns: number[] = [];
+  spots.forEach((f, k) => {
+    const place = (g: BufferGeometry) => g.rotateY(f.ry).translate(f.x, f.y, f.z);
+    const wood: BufferGeometry[] = [
+      cylinder(0.055, 0.075, 3, { y: 0 }, 0xe8d4bb, 8),
+      plank(0.92, 0.44, 0.055, { y: 0.92, z: -0.08 }, 0xd7b985, TRIM.light, 0.8),
+    ];
+    addPlaqueNumber(wood, f.berth);
+    for (const g of wood) poles.push(place(g));
+
+    const y0 = k * cell + FLAG_ATLAS_GUTTER;
+    const art = drawFlag(f.kind);
+    ctx.drawImage(art, 0, y0);
+    // Repeat the top and bottom rows into the gutters so filtering doesn't pick up a neighbour.
+    ctx.drawImage(art, 0, 0, 512, 1, 0, y0 - FLAG_ATLAS_GUTTER, 512, FLAG_ATLAS_GUTTER);
+    ctx.drawImage(art, 0, 255, 512, 1, 0, y0 + 256, 512, FLAG_ATLAS_GUTTER);
+    const g = flagGeometry(6, 0.88, 0.44).translate(0.08, 2.62, 0);
+    const uvs = g.getAttribute('uv') as BufferAttribute;
+    for (let i = 0; i < uvs.count; i++) uvs.setY(i, 1 - (y0 + (1 - uvs.getY(i)) * 256) / canvas.height);
+    parts.push(place(g));
+    for (let i = 0; i < uvs.count; i++) {
+      waves.push(seeded(f.berth * 19 + 5) * Math.PI * 2);
+      turns.push(f.ry);
+    }
+  });
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.needsUpdate = true;
+  const material = flagMaterial(texture);
+  // Flag u (0 at the pole, 1 at the fly) before the atlas remap of v; it scales the wave.
+  const us = new Float32Array(waves.length);
+  {
+    let i = 0;
+    for (const g of parts) {
+      const a = g.getAttribute('uv') as BufferAttribute;
+      for (let k = 0; k < a.count; k++) us[i++] = a.getX(k);
+    }
+  }
+  const geometry = mergeGeometries(parts, false)!;
+  for (const g of parts) g.dispose();
+  geometry.computeBoundingSphere();
+  const base = (geometry.getAttribute('position') as BufferAttribute).array.slice() as Float32Array;
+  const sinRy = Float32Array.from(turns, Math.sin);
+  const cosRy = Float32Array.from(turns, Math.cos);
+  const wave = Float32Array.from(waves);
+  const mesh = new Mesh(geometry, material);
+  mesh.name = 'berth flags';
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  const pos = geometry.getAttribute('position') as BufferAttribute;
   return {
-    group,
+    poles,
+    mesh,
     update(_dt, t) {
-      updateFlag(flag, t);
+      const arr = pos.array as Float32Array;
+      for (let i = 0; i < pos.count; i += 1) {
+        const u = us[i]!;
+        const w = wave[i]!;
+        const across = Math.sin(t * 4.2 + w + u * 7.2) * 0.045 * u;
+        arr[i * 3] = base[i * 3]! + sinRy[i]! * across;
+        arr[i * 3 + 1] = base[i * 3 + 1]! + Math.sin(t * 3.0 + w + u * 5.1) * 0.018 * u;
+        arr[i * 3 + 2] = base[i * 3 + 2]! + cosRy[i]! * across;
+      }
+      pos.needsUpdate = true;
+      geometry.computeVertexNormals();
     },
     dispose() {
-      pole.geometry.dispose();
-      flag.geometry.dispose();
-      flag.texture.dispose();
-      flag.material.dispose();
-      group.removeFromParent();
+      geometry.dispose();
+      texture.dispose();
+      material.dispose();
+      mesh.removeFromParent();
     },
   };
 }
+
+const FLAG_ATLAS_GUTTER = 8;
 
 function detailForTier(tier: TierSettings): Detail {
   if (tier.tier === 'lite') return { stations: 18, cyl: 6, flagCols: 4, ropeRadius: 0.016 };
@@ -672,6 +749,16 @@ function addFlag(
   const texture = new CanvasTexture(drawFlag(kind));
   texture.colorSpace = SRGBColorSpace;
   texture.needsUpdate = true;
+  const material = flagMaterial(texture);
+  const mesh = new Mesh(geometry, material);
+  mesh.name = `${kind} flag`;
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  group.add(mesh);
+  return { mesh, geometry, material, texture, base, wave: seeded(seed) * Math.PI * 2 };
+}
+
+function flagMaterial(texture: CanvasTexture): MeshStandardNodeMaterial {
   const material = new MeshStandardNodeMaterial({
     roughness: 0.78,
     metalness: 0,
@@ -685,12 +772,7 @@ function addFlag(
     texture,
     select(frontFacing, vec2(flagUv.x.oneMinus(), flagUv.y), flagUv),
   );
-  const mesh = new Mesh(geometry, material);
-  mesh.name = `${kind} flag`;
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  group.add(mesh);
-  return { mesh, geometry, material, texture, base, wave: seeded(seed) * Math.PI * 2 };
+  return material;
 }
 
 function flagGeometry(cols: number, width: number, height: number): BufferGeometry {

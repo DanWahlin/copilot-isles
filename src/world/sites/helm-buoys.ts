@@ -1,8 +1,10 @@
-import { Group, Mesh, type Material } from 'three/webgpu';
+import { Group, Mesh, Object3D, type Material } from 'three/webgpu';
+import { sharedInstancedMesh } from '../../engine/instancing';
 import type { WaveSampler } from '../contracts';
 import type { VillageKit } from '../village/kit';
 import { box, cylinder, merge } from './geo';
-import { createSign, type PaintedSign } from './sign';
+import { InstanceProxies } from './proxies';
+import { SignSet } from './sign';
 import { HELM_ORDER, MERIDIAN_HELMS, type HelmMode } from './helms-logic';
 
 /** Metres from the route point to its marker float. */
@@ -27,7 +29,7 @@ export interface HelmBuoysSite {
 /**
  * The Three Helms' buoys in the bay (P1.2): a big float for each mode with its colour flag and a
  * name board you can read from the helm, and small marker floats along each route. They ride the
- * waves.
+ * waves. The three float bodies draw as one instanced mesh and the name boards as one sign atlas.
  */
 export function createHelmBuoys(o: { kit: VillageKit; waves: WaveSampler }): HelmBuoysSite {
   const group = new Group();
@@ -38,7 +40,13 @@ export function createHelmBuoys(o: { kit: VillageKit; waves: WaveSampler }): Hel
     metal: o.kit.materials.metal,
   };
   const floats: { g: Group; x: number; z: number; phase: number }[] = [];
-  const signs: PaintedSign[] = [];
+  const signs = new SignSet('helm name boards');
+  const body = merge([
+    cylinder(1.25, 1.5, 1.4, { y: -0.6 }, 0xb8321f, 16),
+    cylinder(1.3, 1.3, 0.3, { y: 0.55 }, 0xf1e5c8, 16),
+    cylinder(0.12, 0.12, 4.6, { y: 0.8 }, 0x3b2b1c, 8),
+  ]);
+  const bodySpots: Object3D[] = [];
   const flags = new Map<HelmMode, Mesh>();
   const routes = new Map<HelmMode, Group[]>();
   const disposables: { dispose(): void }[] = [];
@@ -47,25 +55,19 @@ export function createHelmBuoys(o: { kit: VillageKit; waves: WaveSampler }): Hel
     const run = MERIDIAN_HELMS[mode];
     const g = new Group();
     g.name = `helm buoy: ${mode}`;
-    const body = merge([
-      cylinder(1.25, 1.5, 1.4, { y: -0.6 }, 0xb8321f, 16),
-      cylinder(1.3, 1.3, 0.3, { y: 0.55 }, 0xf1e5c8, 16),
-      cylinder(0.12, 0.12, 4.6, { y: 0.8 }, 0x3b2b1c, 8),
-    ]);
-    const bodyMesh = new Mesh(body, mats.wood);
-    bodyMesh.castShadow = true;
+    const bodySpot = new Object3D();
+    bodySpots.push(bodySpot);
     const flagGeo = merge([box(1.9, 1.1, 0.06, { x: 1.0, y: 4.1 }, run.colour, 3.25, true)]);
     const flag = new Mesh(flagGeo, mats.cloth);
     flag.castShadow = true;
     flags.set(mode, flag);
-    const sign = createSign([LABEL[mode]], 3.2, 0.9, { twoSided: true, size: 0.2 });
-    sign.mesh.position.set(0, 2.6, 0);
-    signs.push(sign);
-    g.add(bodyMesh, flag, sign.mesh);
+    const sign = signs.add([LABEL[mode]], 3.2, 0.9, { twoSided: true, size: 0.2 });
+    sign.object.position.set(0, 2.6, 0);
+    g.add(bodySpot, flag, sign.object);
     g.position.set(run.buoy.x, 0, run.buoy.z);
     group.add(g);
     floats.push({ g, x: run.buoy.x, z: run.buoy.z, phase: floats.length * 1.7 });
-    disposables.push(body, flagGeo);
+    disposables.push(flagGeo);
 
     const markerGeo = merge([
       cylinder(0.05, 0.55, 1.3, { y: -0.3 }, run.colour, 10),
@@ -93,6 +95,14 @@ export function createHelmBuoys(o: { kit: VillageKit; waves: WaveSampler }): Hel
     routes.set(mode, markers);
   }
 
+  const bodyMesh = sharedInstancedMesh(body, mats.wood, bodySpots.length);
+  bodyMesh.name = 'helm buoy floats';
+  bodyMesh.castShadow = true;
+  group.add(bodyMesh, signs.finalize());
+  const bodies = new InstanceProxies(bodyMesh, bodySpots);
+  bodies.update();
+  disposables.push(body, signs);
+
   let t0 = 0;
   return {
     group,
@@ -112,10 +122,11 @@ export function createHelmBuoys(o: { kit: VillageKit; waves: WaveSampler }): Hel
         f.g.rotation.z = Math.sin(t0 * 0.9 + f.phase) * 0.05;
         f.g.rotation.x = Math.cos(t0 * 0.7 + f.phase) * 0.04;
       }
+      bodies.update();
+      signs.update();
     },
     dispose() {
       for (const d of disposables) d.dispose();
-      for (const s of signs) s.dispose();
       group.clear();
     },
   };
