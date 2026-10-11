@@ -25,6 +25,11 @@ interface ChunkGeometrySet {
 interface TerrainChunk {
   mesh: Mesh;
   center: Vector3;
+  /** The chunk's ground rectangle (the level of detail is picked by the distance to it). */
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
   geometries: ChunkGeometrySet[];
   current: number;
 }
@@ -34,6 +39,7 @@ type TerrainHeightGrid = HeightGridData;
 export interface CreatedTerrain {
   group: Group;
   heightField: HeightField;
+  /** Picks each chunk's level of detail from the camera's distance to the chunk (see `terrainLodThresholds`). */
   update(camera: Camera): void;
   /** Pins every chunk to one level of detail (0 = finest), or null to go back to distance (warm-ups). */
   setLod(lod: number | null): void;
@@ -70,6 +76,24 @@ function recessedHeight(data: TerrainBakeData, x: number, z: number, h: number, 
   return hi - lo > r * 2.4 ? lo : h;
 }
 
+/** The lowest baked height at the grid points in a rectangle (clamped to the grid). */
+function lowestHeightIn(
+  data: TerrainBakeData,
+  minX: number,
+  maxX: number,
+  minZ: number,
+  maxZ: number,
+): number {
+  const ix0 = clamp(Math.floor((minX - data.minX) / data.cell), 0, data.nx - 1);
+  const ix1 = clamp(Math.ceil((maxX - data.minX) / data.cell), 0, data.nx - 1);
+  const iz0 = clamp(Math.floor((minZ - data.minZ) / data.cell), 0, data.nz - 1);
+  const iz1 = clamp(Math.ceil((maxZ - data.minZ) / data.cell), 0, data.nz - 1);
+  let lo = Infinity;
+  for (let iz = iz0; iz <= iz1; iz++)
+    for (let ix = ix0; ix <= ix1; ix++) lo = Math.min(lo, data.heights[iz * data.nx + ix]!);
+  return lo;
+}
+
 function resolveTier(tier: Tier | TierSettings): TierSettings {
   return typeof tier === 'string' ? tierSettings(tier) : tier;
 }
@@ -81,10 +105,54 @@ function stepsForTier(tier: TierSettings): readonly number[] {
   return [1, 2, 3];
 }
 
-function thresholdsForTier(tier: TierSettings): readonly number[] {
-  if (tier.tier === 'lite' || tier.tier === 'low') return [110, 285];
-  if (tier.tier === 'medium') return [190, 400];
-  return [115, 320];
+/**
+ * Level-of-detail distances in metres, measured from the camera to the nearest point of a chunk's
+ * ground rectangle (not its centre): closer than the first is the finest level, then the next.
+ * The first is well past the walking camera's reach (`WALK_RIG.maxDist`, 14 m), so the chunk under
+ * the player and every chunk near the player always draw the finest level, the one the gameplay
+ * height field matches.
+ */
+export function terrainLodThresholds(tier: Tier | TierSettings): readonly number[] {
+  const t = resolveTier(tier).tier;
+  if (t === 'lite' || t === 'low') return [40, 170];
+  if (t === 'medium') return [64, 270];
+  return [40, 200];
+}
+
+/** How far past a threshold (metres) a chunk must be before it goes coarser, so it doesn't flicker on the line. */
+export const TERRAIN_LOD_HYSTERESIS = 12;
+
+/** Horizontal distance from (x, z) to the nearest point of a chunk's rectangle (0 inside it). */
+export function chunkBoxDistance(
+  x: number,
+  z: number,
+  minX: number,
+  maxX: number,
+  minZ: number,
+  maxZ: number,
+): number {
+  const dx = x < minX ? minX - x : x > maxX ? x - maxX : 0;
+  const dz = z < minZ ? minZ - z : z > maxZ ? z - maxZ : 0;
+  return Math.hypot(dx, dz);
+}
+
+/**
+ * The level of detail for a chunk at `distance`, given the level it shows now: it goes finer as soon
+ * as it crosses a threshold, but coarser only `hysteresis` metres past it.
+ */
+export function pickTerrainLod(
+  distance: number,
+  current: number,
+  thresholds: readonly number[],
+  hysteresis = TERRAIN_LOD_HYSTERESIS,
+): number {
+  let fine = 0;
+  let coarse = 0;
+  for (const t of thresholds) {
+    if (distance >= t) fine++;
+    if (distance >= t + hysteresis) coarse++;
+  }
+  return Math.min(fine, Math.max(current, coarse));
 }
 
 /** Bilinear sample of a baked grid channel (no allocation). */
@@ -131,8 +199,11 @@ function sampleByte(
   return sampleGrid(values, data, x, z, component, stride) / 255;
 }
 
-/** Side of a terrain chunk, in metres. Chunks start at the data's min corner. */
-const CHUNK_SIZE = 256;
+/**
+ * Side of a terrain chunk, in metres. Chunks start at the data's min corner. Small enough that the
+ * finest level drawn round the player covers little more than it needs to.
+ */
+export const TERRAIN_CHUNK_SIZE = 128;
 
 /**
  * One axis of the mesh cell under a point: the cell's two vertex coordinates and the 0-1 position
@@ -145,10 +216,10 @@ class MeshAxis {
   t = 0;
 
   set(v: number, min: number, max: number, step: number): void {
-    let chunk = Math.max(0, Math.floor((v - min) / CHUNK_SIZE));
-    while (chunk > 0 && min + chunk * CHUNK_SIZE >= max - 0.1) chunk--;
-    const c0 = min + chunk * CHUNK_SIZE;
-    const c1 = Math.min(max, c0 + CHUNK_SIZE);
+    let chunk = Math.max(0, Math.floor((v - min) / TERRAIN_CHUNK_SIZE));
+    while (chunk > 0 && min + chunk * TERRAIN_CHUNK_SIZE >= max - 0.1) chunk--;
+    const c0 = min + chunk * TERRAIN_CHUNK_SIZE;
+    const c1 = Math.min(max, c0 + TERRAIN_CHUNK_SIZE);
     const cols = Math.max(2, Math.floor((c1 - c0) / step) + 1);
     const i = clamp(Math.floor((v - c0) / step), 0, cols - 2);
     this.a = c0 + i * step;
@@ -340,6 +411,7 @@ function* buildChunkGeometry(
   maxZ: number,
   step: number,
   recessBox: RecessBox | null = null,
+  coarsestStep = step,
 ): Generator<void, ChunkGeometrySet, void> {
   const positions: number[] = [];
   const normals: number[] = [];
@@ -395,7 +467,12 @@ function* buildChunkGeometry(
   }
 
   const skirtDepth = -Math.max(2.4, step * 0.45);
-  const addSkirt = (edge: number[]): void => {
+  // Between chunks, a neighbour can show another level of detail, so its edge runs above or below this
+  // one. An inner skirt hangs below the lowest ground any level's edge can reach there (each edge
+  // vertex is on the ground, or lower where the steep recess applies), so no crack shows at the seam.
+  const seamReach = coarsestStep + data.cell;
+  const seamBand = data.cell + (recessBox ? coarsestStep * 0.5 + 0.5 : 0);
+  const addSkirt = (edge: number[], inner: boolean): void => {
     for (let i = 0; i < edge.length - 1; i++) {
       const a = edge[i];
       const b = edge[i + 1];
@@ -406,7 +483,21 @@ function* buildChunkGeometry(
       const by = positions[b * 3 + 1];
       const bz = positions[b * 3 + 2];
       const va = positions.length / 3;
-      positions.push(ax, ay + skirtDepth, az, bx, by + skirtDepth, bz);
+      let floor = Infinity;
+      if (inner) {
+        const alongX = Math.abs(bx - ax) > Math.abs(bz - az);
+        const padX = alongX ? seamReach : seamBand;
+        const padZ = alongX ? seamBand : seamReach;
+        floor =
+          lowestHeightIn(
+            data,
+            Math.min(ax, bx) - padX,
+            Math.max(ax, bx) + padX,
+            Math.min(az, bz) - padZ,
+            Math.max(az, bz) + padZ,
+          ) - 0.3;
+      }
+      positions.push(ax, Math.min(ay + skirtDepth, floor), az, bx, Math.min(by + skirtDepth, floor), bz);
       normals.push(
         normals[a * 3],
         normals[a * 3 + 1],
@@ -422,10 +513,13 @@ function* buildChunkGeometry(
     }
   };
   const edgeEpsilon = data.cell * 0.5;
-  if (Math.abs(minZ - data.minZ) <= edgeEpsilon) addSkirt(ids[0]);
-  if (Math.abs(maxZ - data.maxZ) <= edgeEpsilon) addSkirt(ids[rows - 1].slice().reverse());
-  if (Math.abs(minX - data.minX) <= edgeEpsilon) addSkirt(ids.map((row) => row[0]).reverse());
-  if (Math.abs(maxX - data.maxX) <= edgeEpsilon) addSkirt(ids.map((row) => row[cols - 1]));
+  addSkirt(ids[0], Math.abs(minZ - data.minZ) > edgeEpsilon);
+  addSkirt(ids[rows - 1].slice().reverse(), Math.abs(maxZ - data.maxZ) > edgeEpsilon);
+  addSkirt(ids.map((row) => row[0]).reverse(), Math.abs(minX - data.minX) > edgeEpsilon);
+  addSkirt(
+    ids.map((row) => row[cols - 1]),
+    Math.abs(maxX - data.maxX) > edgeEpsilon,
+  );
 
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
@@ -445,17 +539,20 @@ export function buildTerrainLodGeometries(
   tier: Tier | TierSettings,
   lod = 0,
 ): BufferGeometry[] {
-  const step = stepsForTier(resolveTier(tier))[lod]!;
+  const steps = stepsForTier(resolveTier(tier));
+  const step = steps[lod]!;
   const out: BufferGeometry[] = [];
-  for (let z0 = data.minZ; z0 < data.maxZ - 0.1; z0 += CHUNK_SIZE) {
-    for (let x0 = data.minX; x0 < data.maxX - 0.1; x0 += CHUNK_SIZE) {
+  for (let z0 = data.minZ; z0 < data.maxZ - 0.1; z0 += TERRAIN_CHUNK_SIZE) {
+    for (let x0 = data.minX; x0 < data.maxX - 0.1; x0 += TERRAIN_CHUNK_SIZE) {
       const build = buildChunkGeometry(
         data,
         x0,
-        Math.min(data.maxX, x0 + CHUNK_SIZE),
+        Math.min(data.maxX, x0 + TERRAIN_CHUNK_SIZE),
         z0,
-        Math.min(data.maxZ, z0 + CHUNK_SIZE),
+        Math.min(data.maxZ, z0 + TERRAIN_CHUNK_SIZE),
         step,
+        null,
+        steps[steps.length - 1],
       );
       for (;;) {
         const r = build.next();
@@ -502,15 +599,18 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
   const material = createTerrainMaterial({ tier: tier.tier, cloudShadowNode: options.cloudShadowNode });
   const chunks: TerrainChunk[] = [];
   const steps = stepsForTier(tier);
-  const thresholds = thresholdsForTier(tier);
+  const thresholds = terrainLodThresholds(tier);
+  const coarsest = steps[steps.length - 1]!;
 
-  for (let z0 = data.minZ; z0 < data.maxZ - 0.1; z0 += CHUNK_SIZE) {
-    for (let x0 = data.minX; x0 < data.maxX - 0.1; x0 += CHUNK_SIZE) {
-      const x1 = Math.min(data.maxX, x0 + CHUNK_SIZE);
-      const z1 = Math.min(data.maxZ, z0 + CHUNK_SIZE);
+  for (let z0 = data.minZ; z0 < data.maxZ - 0.1; z0 += TERRAIN_CHUNK_SIZE) {
+    for (let x0 = data.minX; x0 < data.maxX - 0.1; x0 += TERRAIN_CHUNK_SIZE) {
+      const x1 = Math.min(data.maxX, x0 + TERRAIN_CHUNK_SIZE);
+      const z1 = Math.min(data.maxZ, z0 + TERRAIN_CHUNK_SIZE);
       const geometries: ChunkGeometrySet[] = [];
       for (const step of steps)
-        geometries.push(yield* buildChunkGeometry(data, x0, x1, z0, z1, step, options.recessSteep ?? null));
+        geometries.push(
+          yield* buildChunkGeometry(data, x0, x1, z0, z1, step, options.recessSteep ?? null, coarsest),
+        );
       const mesh = new Mesh(geometries[geometries.length - 1].geometry, material);
       mesh.name = `terrain-chunk-${Math.round(x0)}-${Math.round(z0)}`;
       mesh.frustumCulled = true;
@@ -518,6 +618,10 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
       chunks.push({
         mesh,
         center: new Vector3((x0 + x1) * 0.5, 8, (z0 + z1) * 0.5),
+        minX: x0,
+        maxX: x1,
+        minZ: z0,
+        maxZ: z1,
         geometries,
         current: geometries.length - 1,
       });
@@ -539,7 +643,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     if (next === chunk.current) return;
     chunk.current = next;
     chunk.mesh.geometry = chunk.geometries[next]!.geometry;
-    chunk.mesh.geometry.boundingSphere ??= new Sphere(chunk.center, CHUNK_SIZE);
+    chunk.mesh.geometry.boundingSphere ??= new Sphere(chunk.center, TERRAIN_CHUNK_SIZE);
   };
   yield;
   const rocks = options.createRocks
@@ -552,10 +656,10 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     heightField,
     heightGrid,
     update(camera: Camera) {
+      const { x, z } = camera.position;
       for (const chunk of chunks) {
-        const distance = camera.position.distanceTo(chunk.center);
-        const lod = pinned ?? (distance < thresholds[0] ? 0 : distance < thresholds[1] ? 1 : 2);
-        showLod(chunk, lod);
+        const distance = chunkBoxDistance(x, z, chunk.minX, chunk.maxX, chunk.minZ, chunk.maxZ);
+        showLod(chunk, pinned ?? pickTerrainLod(distance, chunk.current, thresholds));
       }
     },
     setLod(lod: number | null) {

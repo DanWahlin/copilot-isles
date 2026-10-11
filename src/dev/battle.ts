@@ -250,7 +250,14 @@ dev.__battle = {
   director,
   unlockAudio: unlock,
   fire: (which: 'bearing' | 'port' | 'starboard' = 'bearing') => battle.fire(which),
-  stats: () => ({ ...engine.counters.last, fps: engine.fps, gpuMs: engine.gpuMs, backend, tier: tier.tier }),
+  stats: () => ({
+    ...engine.counters.last,
+    fps: engine.fps,
+    gpuMs: engine.gpuMs,
+    gpuRawMs: engine.gpuRawMs,
+    backend,
+    tier: tier.tier,
+  }),
   /** Holds the helm still (screenshots). */
   freezeHelm: (trim = 0.5, rudder = 0) => {
     frozenHelm = true;

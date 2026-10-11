@@ -69,4 +69,23 @@ describe('CollisionWorld.cameraBlockedAt', () => {
     expect(w.cameraBlockedAt(1.5, 2, 0, 0.2, -1, 1, 0)).toBe(false);
     expect(w.cameraBlockedAt(10, 0, 1, 0.2, 10, 0.5, 0)).toBe(false);
   });
+
+  it('keeps a thin pad when the pivot is only in a blocker pad (beside a wall)', () => {
+    const w = new CollisionWorld({ ground: seabed });
+    w.addCameraBox({ x: 0, z: 0, hx: 2, hz: 0.5, rot: 0, y0: -3, y1: 4 });
+    // The pivot 0.5 m off the face, in the 0.7 m pad: the eye may come near the face, not onto it.
+    expect(w.cameraBlockedAt(0, 2, 1.0, 0.7, 0, 2, 1.0)).toBe(false);
+    expect(w.cameraBlockedAt(0, 2, 0.6, 0.7, 0, 2, 1.0)).toBe(true);
+  });
+
+  it('checks moving camera blockers (a pushed crate) where they are now', () => {
+    const w = new CollisionWorld({ ground: seabed });
+    const crate = { x: 0, z: 0, r: 0.7, height: 1.3 };
+    w.addCameraDynamic(crate);
+    expect(w.cameraBlockedAt(0, -2, 0.5, 0.2)).toBe(true);
+    expect(w.cameraBlockedAt(0, -1, 0.5, 0.2)).toBe(false);
+    crate.z = 20;
+    expect(w.cameraBlockedAt(0, -2, 0.5, 0.2)).toBe(false);
+    expect(w.cameraBlockedAt(0, -2, 20.5, 0.2)).toBe(true);
+  });
 });

@@ -83,6 +83,7 @@ const compileMs = await compileAndStart(renderer, engine, scene, camera);
     ...engine.counters.last,
     fps: engine.fps,
     gpuMs: engine.gpuMs,
+    gpuRawMs: engine.gpuRawMs,
     backend,
     tier: tier.tier,
     buildMs,

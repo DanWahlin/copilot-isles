@@ -219,7 +219,12 @@ export function createCrateYardSite(o: {
     yard.add(g);
     return { group: g, from: new Vector3(), to: new Vector3(), t: 1, wobble: 0 };
   });
-  const crateCircles: CircleObstacle[] = layout.crates.map(() => ({ x: 0, z: 0, r: 0.72 }));
+  const crateCircles: CircleObstacle[] = layout.crates.map(() => ({
+    x: 0,
+    z: 0,
+    r: 0.72,
+    height: CRATE + 0.2,
+  }));
   const hint = new Mesh(merge([box(1.3, 0.02, 1.3, {}, 0xffffff)]), atlas.hint);
   hint.visible = false;
   yard.add(hint);

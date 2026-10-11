@@ -1,6 +1,7 @@
 import type { Engine } from './engine';
 import type { Tier } from '../world/contracts';
 import { refineWithBenchmark } from './capability';
+import { limitGpuMs } from './frame-counters';
 
 export interface StartupBenchmarkSample {
   backend: 'webgpu' | 'webgl2';
@@ -92,7 +93,7 @@ export async function runTitleStartupBenchmark(
     if (useTimestamps) {
       try {
         const measured = await renderer.resolveTimestampsAsync('render');
-        if (typeof measured === 'number' && measured > 0) gpu = Math.min(measured, wall);
+        if (typeof measured === 'number' && measured > 0) gpu = limitGpuMs(measured, wall);
       } catch {
         gpu = wall;
       }

@@ -42,6 +42,9 @@ interface Bucket {
 }
 
 const CELL = 16;
+const NO_BUCKET: Bucket = { circles: [], boxes: [] };
+/** The share of the camera pad a camera-only blocker keeps when the pivot is in its pad. */
+const PIVOT_PAD = 0.35;
 /** Boxes this tall (m) or more are buildings, whose roofs can rise over their `height` (see cameraBlockedAt). */
 const ROOF_MIN = 2.5;
 const ROOF_PITCH = 0.8;
@@ -60,6 +63,8 @@ export class CollisionWorld {
   /** Camera-only blockers (addCameraBox): walkers, sight lines and audits don't see them. */
   private readonly cameraGrid = new Map<number, Bucket>();
   private readonly dynamic: CircleObstacle[] = [];
+  /** Moving camera-only blockers (addCameraDynamic): the crate yard's crates. */
+  private readonly cameraDynamic: CircleObstacle[] = [];
   private readonly normal = new Float32Array(3);
 
   constructor(o: CollisionWorldOptions) {
@@ -229,14 +234,21 @@ export class CollisionWorld {
       for (const box of b.boxes) if (this.boxBlocksEye(box, x, y, z, pad)) return true;
       for (const c of b.circles) if (this.circleBlocksEye(c, x, y, z, pad)) return true;
     }
-    const k = this.cameraGrid.get(this.key(Math.floor(x / CELL), Math.floor(z / CELL)));
-    if (!k) return false;
+    const k = this.cameraGrid.get(this.key(Math.floor(x / CELL), Math.floor(z / CELL))) ?? NO_BUCKET;
     // A camera-only blocker the pivot is in too (the player walks through a cliff's overhang or by
-    // a rock's rough box) doesn't count, or the camera would fold onto the player's head.
+    // a rock's rough box) doesn't count, or the camera would fold onto the player's head. A pivot only
+    // in its pad (the player beside a wall) keeps a thinner pad, so the eye can't slide into the face.
+    const thin = pad * PIVOT_PAD;
     for (const box of k.boxes)
-      if (this.boxBlocksEye(box, x, y, z, pad) && !this.boxBlocksEye(box, px, py, pz, pad)) return true;
-    for (const c of k.circles)
-      if (this.circleBlocksEye(c, x, y, z, pad) && !this.circleBlocksEye(c, px, py, pz, pad)) return true;
+      if (
+        this.boxBlocksEye(box, x, y, z, pad) &&
+        (!this.boxBlocksEye(box, px, py, pz, pad) ||
+          (this.boxBlocksEye(box, x, y, z, thin) && !this.boxBlocksEye(box, px, py, pz, thin)))
+      )
+        return true;
+    for (const c of k.circles) if (this.cameraCircleBlocks(c, x, y, z, pad, thin, px, py, pz)) return true;
+    for (const c of this.cameraDynamic)
+      if (this.cameraCircleBlocks(c, x, y, z, pad, thin, px, py, pz)) return true;
     return false;
   }
 
@@ -246,6 +258,11 @@ export class CollisionWorld {
    */
   addCameraBox(b: BoxCollider): void {
     this.insertInto(this.cameraGrid, b.x, b.z, Math.hypot(b.hx, b.hz) + 1, (k) => k.boxes.push(b));
+  }
+
+  /** A moving round camera-only blocker (a pushed crate); mutate it in place (see addCameraBox). */
+  addCameraDynamic(c: CircleObstacle): void {
+    this.cameraDynamic.push(c);
   }
 
   /** A round camera-only blocker (see addCameraBox). */
@@ -264,6 +281,22 @@ export class CollisionWorld {
     // A roof rises ROOF_PITCH m per metre in from the eaves (which overhang the walls by `pad`).
     const roof = h >= ROOF_MIN ? Math.max(0, pad - Math.max(ex, ez)) * ROOF_PITCH : 0;
     return y < this.groundAt(box.x, box.z) + h + pad + roof;
+  }
+
+  private cameraCircleBlocks(
+    c: CircleObstacle,
+    x: number,
+    y: number,
+    z: number,
+    pad: number,
+    thin: number,
+    px: number,
+    py: number,
+    pz: number,
+  ): boolean {
+    if (!this.circleBlocksEye(c, x, y, z, pad)) return false;
+    if (!this.circleBlocksEye(c, px, py, pz, pad)) return true;
+    return this.circleBlocksEye(c, x, y, z, thin) && !this.circleBlocksEye(c, px, py, pz, thin);
   }
 
   private circleBlocksEye(c: CircleObstacle, x: number, y: number, z: number, pad: number): boolean {

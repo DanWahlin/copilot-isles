@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FrameCounters, type InfoLike } from './frame-counters';
+import { FrameCounters, limitGpuMs, type InfoLike } from './frame-counters';
 
 /** Mimics three 0.186's Info: reset() clears per-frame metrics; `calls` (lifetime) is never read. */
 function stubInfo(): InfoLike & { draw(n: number, tris: number): void } {
@@ -72,5 +72,27 @@ describe('FrameCounters', () => {
     info.memory.programs = 8;
     c.endFrame(4);
     expect(c.hitches).toEqual([{ t: 4, programs: 1, geometries: 0, textures: 0 }]);
+  });
+});
+
+describe('limitGpuMs', () => {
+  it('limits an Apple-style pass-sum reading to the frame time', () => {
+    expect(limitGpuMs(10.3, 1.8)).toBe(1.8);
+    expect(limitGpuMs(143, 16.7)).toBe(16.7);
+  });
+
+  it('keeps a reading that is below the frame time', () => {
+    expect(limitGpuMs(6.6, 16.7)).toBe(6.6);
+    expect(limitGpuMs(16.7, 16.7)).toBe(16.7);
+  });
+
+  it('returns 0 when there is no reading', () => {
+    expect(limitGpuMs(0, 16.7)).toBe(0);
+    expect(limitGpuMs(-1, 16.7)).toBe(0);
+    expect(limitGpuMs(Number.NaN, 16.7)).toBe(0);
+  });
+
+  it('never returns a negative value for a bad frame time', () => {
+    expect(limitGpuMs(5, -2)).toBe(0);
   });
 });

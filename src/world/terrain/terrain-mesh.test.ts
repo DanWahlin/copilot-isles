@@ -2,7 +2,16 @@ import { describe, expect, it } from 'vitest';
 import type { BufferGeometry } from 'three/webgpu';
 import type { Tier } from '../contracts';
 import { normalFromGrid, type TerrainBakeData } from './bake';
-import { buildTerrainLodGeometries, createTerrainHeightField } from './terrain-mesh';
+import {
+  buildTerrainLodGeometries,
+  chunkBoxDistance,
+  createTerrainHeightField,
+  pickTerrainLod,
+  TERRAIN_CHUNK_SIZE,
+  TERRAIN_LOD_HYSTERESIS,
+  terrainLodThresholds,
+} from './terrain-mesh';
+import { WALK_RIG } from '../../game/follow-camera';
 import { mulberry32 } from '../../util/math';
 
 /** A rough, made-up baked grid (steep random relief, so the bilinear patch and the triangles differ). */
@@ -135,7 +144,8 @@ function samplePoints(data: TerrainBakeData, count: number, seed: number): [numb
   for (let i = 0; i < 20; i++) {
     const t = rand();
     points.push(
-      [data.minX + 256, data.minZ + t * d],
+      [data.minX + TERRAIN_CHUNK_SIZE, data.minZ + t * d],
+      [data.minX + 2 * TERRAIN_CHUNK_SIZE, data.minZ + t * d],
       [data.minX + t * w, data.maxZ - rand() * 6],
       [data.maxX - rand() * 6, data.minZ + t * d],
       [data.maxX, data.maxZ - t * 3],
@@ -165,7 +175,7 @@ describe('terrain height field matches the drawn triangles', () => {
   ];
   for (const c of cases) {
     it(`heightAt and normalAt agree with a ray cast on the finest mesh: ${c.name}`, () => {
-      // 322 m wide (two chunks, the second narrow) and 43 m deep (one short chunk).
+      // 322 m wide (three chunks, the last narrow) and 43 m deep (one short chunk).
       const data = roughData({ minX: -20, maxX: 302, minZ: 10, maxZ: 53, cell: c.cell }, 11);
       const geometries = buildTerrainLodGeometries(data, c.tier);
       const field = createTerrainHeightField(data, c.tier);
@@ -192,4 +202,129 @@ describe('terrain height field matches the drawn triangles', () => {
     expect(field.heightAt(-1, 4)).toBe(-52);
     expect(field.normalAt(4, 9, [0, 0, 0])).toEqual([0, 1, 0]);
   });
+});
+
+/** A chunk edge as drawn: the ground line along it and the bottom of each skirt segment hanging from it. */
+function seamProfile(g: BufferGeometry, axis: 'x' | 'z', at: number) {
+  const p = g.getAttribute('position').array as Float32Array;
+  const across = axis === 'x' ? 0 : 2;
+  const along = axis === 'x' ? 2 : 0;
+  const tops = new Map<number, number>();
+  const on: number[] = [];
+  for (let i = 0; i < p.length / 3; i++) {
+    if (Math.abs(p[i * 3 + across]! - at) > 1e-6) continue;
+    on.push(i);
+    const t = p[i * 3 + along]!;
+    tops.set(t, Math.max(tops.get(t) ?? -Infinity, p[i * 3 + 1]!));
+  }
+  const ts = [...tops.keys()].sort((a, b) => a - b);
+  const lerpAt = (t: number, xs: number[], ys: (x: number) => number) => {
+    let k = 0;
+    while (k < xs.length - 2 && xs[k + 1]! < t) k++;
+    const f = (t - xs[k]!) / (xs[k + 1]! - xs[k]!);
+    return ys(xs[k]!) + (ys(xs[k + 1]!) - ys(xs[k]!)) * f;
+  };
+  const top = (t: number) => lerpAt(t, ts, (x) => tops.get(x)!);
+  // Skirt vertices come in pairs (one segment each), below the ground line.
+  const below = new Set(on.filter((i) => p[i * 3 + 1]! < tops.get(p[i * 3 + along]!)! - 1e-6));
+  const segments: [number, number, number, number][] = [];
+  for (const i of below)
+    if (below.has(i + 1)) {
+      const t0 = p[i * 3 + along]!;
+      const t1 = p[(i + 1) * 3 + along]!;
+      if (Math.abs(t1 - t0) < 1e-9) continue; // the end of one segment and the start of the next
+      const [a, b] = t0 < t1 ? [i, i + 1] : [i + 1, i];
+      segments.push([p[a * 3 + along]!, p[a * 3 + 1]!, p[b * 3 + along]!, p[b * 3 + 1]!]);
+    }
+  const bottom = (t: number) => {
+    let lo = Infinity;
+    for (const [t0, y0, t1, y1] of segments)
+      if (t >= t0 - 1e-9 && t <= t1 + 1e-9) lo = Math.min(lo, y0 + ((y1 - y0) * (t - t0)) / (t1 - t0));
+    return lo;
+  };
+  return { top, bottom, from: ts[0]!, to: ts[ts.length - 1]! };
+}
+
+describe('terrain level of detail', () => {
+  it('measures to the nearest point of the chunk, not its centre', () => {
+    expect(chunkBoxDistance(10, 10, 0, 256, 0, 256)).toBe(0);
+    expect(chunkBoxDistance(-30, 100, 0, 256, 0, 256)).toBe(30);
+    expect(chunkBoxDistance(300, 100, 0, 256, 0, 256)).toBe(44);
+    expect(chunkBoxDistance(-3, 260, 0, 256, 0, 256)).toBeCloseTo(5, 9);
+  });
+
+  const tiers: Tier[] = ['lite', 'low', 'medium', 'high', 'ultra'];
+  for (const tier of tiers) {
+    it(`draws the finest level under and round the player: ${tier}`, () => {
+      const thresholds = terrainLodThresholds(tier);
+      const rand = mulberry32(5);
+      const reach = 24; // metres round the player that must be finest, whatever the camera does
+      const C = TERRAIN_CHUNK_SIZE;
+      const span = 4 * C;
+      for (let n = 0; n < 4000; n++) {
+        const px = rand() * span;
+        const pz = rand() * span;
+        const a = rand() * Math.PI * 2;
+        const r = rand() * WALK_RIG.maxDist;
+        const cx = px + Math.cos(a) * r;
+        const cz = pz + Math.sin(a) * r;
+        for (let z0 = 0; z0 < span; z0 += C)
+          for (let x0 = 0; x0 < span; x0 += C) {
+            if (chunkBoxDistance(px, pz, x0, x0 + C, z0, z0 + C) > reach) continue;
+            const camera = chunkBoxDistance(cx, cz, x0, x0 + C, z0, z0 + C);
+            expect(pickTerrainLod(camera, 2, thresholds)).toBe(0);
+          }
+      }
+    });
+  }
+
+  it('goes finer at once but coarser only past the hysteresis margin', () => {
+    const t = [40, 200];
+    const h = TERRAIN_LOD_HYSTERESIS;
+    expect(pickTerrainLod(39.9, 2, t)).toBe(0);
+    expect(pickTerrainLod(120, 2, t)).toBe(1);
+    expect(pickTerrainLod(40 + h - 0.1, 0, t)).toBe(0);
+    expect(pickTerrainLod(40 + h + 0.1, 0, t)).toBe(1);
+    expect(pickTerrainLod(200 + h + 0.1, 0, t)).toBe(2);
+    expect(pickTerrainLod(200 + h - 0.1, 1, t)).toBe(1);
+    expect(pickTerrainLod(199, 2, t)).toBe(1);
+    // A camera that wobbles on the line keeps one level.
+    let lod = pickTerrainLod(39, 1, t);
+    for (let i = 0; i < 50; i++) {
+      lod = pickTerrainLod(40 + Math.sin(i) * (h * 0.45), lod, t);
+      expect(lod).toBe(0);
+    }
+  });
+
+  for (const tier of ['lite', 'medium', 'high'] as Tier[]) {
+    it(`closes the seams between chunks at different levels: ${tier}`, () => {
+      // Four chunks (one seam across x and one across z) on rough ground.
+      const C = TERRAIN_CHUNK_SIZE;
+      const data = roughData({ minX: 0, maxX: C + 44, minZ: 0, maxZ: C + 44, cell: 2 }, 3);
+      const lods = [0, 1, 2].map((lod) => buildTerrainLodGeometries(data, tier, lod));
+      const seams: { a: number; b: number; axis: 'x' | 'z' }[] = [
+        { a: 0, b: 1, axis: 'x' },
+        { a: 2, b: 3, axis: 'x' },
+        { a: 0, b: 2, axis: 'z' },
+        { a: 1, b: 3, axis: 'z' },
+      ];
+      let worstGap = 0;
+      let worstStep = 0;
+      for (const seam of seams)
+        for (let i = 0; i < 3; i++)
+          for (let j = 0; j < 3; j++) {
+            if (i === j) continue;
+            const A = seamProfile(lods[i]![seam.a]!, seam.axis, C);
+            const B = seamProfile(lods[j]![seam.b]!, seam.axis, C);
+            for (let t = Math.max(A.from, B.from); t <= Math.min(A.to, B.to); t += 0.37) {
+              const [hi, lo] = A.top(t) >= B.top(t) ? [A, B] : [B, A];
+              worstStep = Math.max(worstStep, hi.top(t) - lo.top(t));
+              worstGap = Math.max(worstGap, hi.bottom(t) - lo.top(t));
+            }
+          }
+      for (const set of lods) for (const g of set) g.dispose();
+      expect(worstStep).toBeGreaterThan(0.5); // the levels really do differ here
+      expect(worstGap).toBeLessThanOrEqual(0);
+    });
+  }
 });

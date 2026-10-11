@@ -291,6 +291,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   });
   // Boulders and the headland cliff's overhang: only the follow camera keeps out of them.
   for (const b of terrainRockCameraBlockers(terrain.heightField, tier.tier)) world.addCameraBox(b);
+  for (const b of village.cameraBlockers) world.addCameraBox(b);
 
   const hud = new Hud(o.hudParent);
   await hud.loadSubtitles(o.voiceManifest ?? '/voice/testcove/manifest.json');
@@ -1138,7 +1139,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       engine.scene.add(site.group);
       for (const c of site.colliders.circles) world.addCircle(c);
       for (const b of site.colliders.boxes) world.addBox(b);
-      for (const c of site.crateCircles) world.addDynamic(c);
+      for (const c of site.crateCircles) {
+        world.addDynamic(c);
+        world.addCameraDynamic(c);
+      }
       meridianSites.push(site);
       puzzles.push(createCrateYard(puzzleHost, site));
     }

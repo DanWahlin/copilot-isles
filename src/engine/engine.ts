@@ -4,7 +4,7 @@ import { world } from '../world/uniforms';
 import { AdaptiveResolution } from './adaptive-res';
 import { DayClock } from './day-clock';
 import { FixedStep } from './fixed-step';
-import { FrameCounters } from './frame-counters';
+import { FrameCounters, limitGpuMs } from './frame-counters';
 import type { TierSettings } from './quality';
 
 /** Anything the engine ticks. `fixed` runs at 60 Hz (physics); `frame` once per rendered frame. */
@@ -36,7 +36,10 @@ export class Engine {
   readonly tier: TierSettings;
   backend: Backend;
   fps = 60;
+  /** GPU ms per frame, limited to the frame's wall time (`limitGpuMs`); 0 without timestamps. Show this one. */
   gpuMs = 0;
+  /** The raw timestamp reading (summed render passes); too high on Apple GPUs (issues.md #11). Debug only. */
+  gpuRawMs = 0;
   cpuMs = 0;
   /** Overrides the default scene render (e.g. the post-processing pipeline). */
   renderFn: (() => void) | null = null;
@@ -55,6 +58,8 @@ export class Engine {
   private running = false;
   private timestamps = false;
   private resolving = false;
+  /** The latest resolved timestamp reading; copied to `gpuRawMs` at the tick so it pairs with `gpuMs`. */
+  private gpuReading = 0;
   private resizeObs: ResizeObserver | null = null;
 
   private constructor(renderer: WebGPURenderer, o: EngineOptions) {
@@ -248,13 +253,15 @@ export class Engine {
         void this.renderer
           .resolveTimestampsAsync('render')
           .then((ms) => {
-            if (typeof ms === 'number' && ms > 0) this.gpuMs = ms;
+            if (typeof ms === 'number' && ms > 0) this.gpuReading = ms;
           })
           .finally(() => (this.resolving = false));
       }
       // A pipelined GPU can't sustain more work than the frame interval, so clamp implausible
       // readings (tile GPUs report pass wall time; issues.md #11) to the wall frame time.
-      if (this.gpuMs > 0) signal = Math.min(this.gpuMs / 1000, raw);
+      this.gpuRawMs = this.gpuReading;
+      this.gpuMs = limitGpuMs(this.gpuRawMs, raw * 1000);
+      if (this.gpuRawMs > 0) signal = this.gpuMs / 1000;
     } else {
       const T = 1 / this.tier.targetFps;
       if (Math.abs(raw - T) < T * 0.08) signal = raw * 0.8;

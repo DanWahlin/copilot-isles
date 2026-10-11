@@ -156,7 +156,14 @@ await compileAndStart(renderer, engine, scene, camera);
   setCam,
   playClip,
   setSpeed,
-  stats: () => ({ ...engine.counters.last, fps: engine.fps, gpuMs: engine.gpuMs, backend, tier: tier.tier }),
+  stats: () => ({
+    ...engine.counters.last,
+    fps: engine.fps,
+    gpuMs: engine.gpuMs,
+    gpuRawMs: engine.gpuRawMs,
+    backend,
+    tier: tier.tier,
+  }),
 };
 
 window.addEventListener('beforeunload', () => {

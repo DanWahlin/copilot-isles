@@ -8,7 +8,14 @@ export interface BackendInfo {
 }
 
 interface IslesDebug {
-  info(): FrameStats & { width: number; height: number; fps: number; cpuMs: number } & BackendInfo;
+  info(): FrameStats & {
+    width: number;
+    height: number;
+    fps: number;
+    cpuMs: number;
+    gpuMs: number;
+    gpuRawMs: number;
+  } & BackendInfo;
   shot?(id: string): void;
   hitches(): Hitch[];
   state(): string;
@@ -34,7 +41,14 @@ export function installDebug(
   getFps: () => number,
   getState: () => string,
   backend: BackendInfo,
-  options: { getCpuMs?: () => number; shot?: (id: string) => void } = {},
+  options: {
+    getCpuMs?: () => number;
+    /** GPU ms limited to the frame time (`Engine.gpuMs`). */
+    getGpuMs?: () => number;
+    /** The raw timestamp reading (`Engine.gpuRawMs`), for debugging only. */
+    getGpuRawMs?: () => number;
+    shot?: (id: string) => void;
+  } = {},
 ): void {
   if (!debugEnabled()) return;
   window.__isles = {
@@ -44,6 +58,8 @@ export function installDebug(
       height: canvas.height,
       fps: getFps(),
       cpuMs: options.getCpuMs?.() ?? 0,
+      gpuMs: options.getGpuMs?.() ?? 0,
+      gpuRawMs: options.getGpuRawMs?.() ?? 0,
       ...backend,
     }),
     hitches: () => [...counters.hitches],

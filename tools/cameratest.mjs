@@ -16,12 +16,12 @@
 // Spots where the pivot is inside geometry, or where geometry comes within 0.45 m of it (the head
 // is already in it: a collider that's smaller than what's drawn), are skipped and counted.
 // Sail spots sweep the ship's rig over the water round each coast. Exits 1 on a page error or on
-// more bad frames than --max-bad (default 180: the count stood at 137-161, with a margin for
+// more bad frames than --max-bad (default 80: the count stood at 46-69, with a margin for
 // run-to-run spread; lower it as the colliders get closer to what's drawn).
 // Needs a dev server. A no-HMR one keeps edits elsewhere from reloading the page mid-run:
 //   npx vite --config tools/vite.nohmr.config.mjs --port 5322
 // node tools/cameratest.mjs [--base=http://127.0.0.1:5322] [--samples=160] [--sail=30] (sail spots)
-//   [--seed=7] [--max-bad=180] [--list=25] (hits to print) [--explain] (with the collider nearest each)
+//   [--seed=7] [--max-bad=80] [--list=25] (hits to print) [--explain] (with the collider nearest each)
 //   [--camera=/<path>.ts] (another FollowCamera module under the repo, served by Vite, to compare)
 //   [--near=x,z,r] (only the clusters near a point) [--probe] (what the six axis rays from each
 //   listed hit meet first) [--out=<dir>] (screenshots of the first 8 hits from the camera pose, and
@@ -226,7 +226,13 @@ const clusters = await page.evaluate(async (cfg) => {
   };
 
   // Hits along a ray, nearest first: t, whether it went in through a front face, and the owner.
-  const H = { t: new Float64Array(4096), enter: new Uint8Array(4096), owner: new Int32Array(4096), n: 0 };
+  const H = {
+    t: new Float64Array(4096),
+    enter: new Uint8Array(4096),
+    owner: new Int32Array(4096),
+    tri: new Int32Array(4096),
+    n: 0,
+  };
   const order = [];
   const cast = (ax, ay, az, bx, by, bz, extra) => {
     let dx = bx - ax,
@@ -286,6 +292,7 @@ const clusters = await page.evaluate(async (cfg) => {
           H.t[H.n] = t;
           H.enter[H.n] = det > 0 ? 1 : 0;
           H.owner[H.n] = G.owner[ti];
+          H.tri[H.n] = ti;
           H.n++;
         }
       const next = Math.min(tx, tz);
@@ -498,6 +505,7 @@ const clusters = await page.evaluate(async (cfg) => {
     up = new Vector3(),
     right = new Vector3();
   const pts = [new Vector3(), new Vector3(), new Vector3(), new Vector3(), new Vector3()];
+  const hitAt = new Vector3();
   const frameKeys = new Set();
   const YAWS = 24;
   let clock = 0;
@@ -547,7 +555,7 @@ const clusters = await page.evaluate(async (cfg) => {
           pts[4].copy(c).addScaledVector(right, -hw).addScaledVector(up, hh);
           let bad = false;
           frameKeys.clear();
-          const flag = (kind, depth, path = '') => {
+          const flag = (kind, depth, path = '', at = pts[0], tri = -1) => {
             bad = true;
             const k = kind + path;
             frameKeys.add(k);
@@ -563,6 +571,8 @@ const clusters = await page.evaluate(async (cfg) => {
               dist: +eye.distanceTo(fc.pivot).toFixed(2),
               near: nearestCollider(eye.x, eye.y, eye.z),
               eye: [eye.x, eye.y, eye.z],
+              hit: [at.x, at.y, at.z],
+              tri: tri < 0 ? null : Array.from(G.tri.subarray(tri * 9, tri * 9 + 9), (v) => +v.toFixed(2)),
               fwd: [fwd.x * three.near, fwd.y * three.near, fwd.z * three.near],
               at: [fc.pivot.x, fc.pivot.y, fc.pivot.z],
             });
@@ -586,12 +596,29 @@ const clusters = await page.evaluate(async (cfg) => {
           for (let i = 1; i <= 4; i++) {
             const a = pts[i],
               b = pts[i === 4 ? 1 : i + 1];
-            cast(a.x, a.y, a.z, b.x, b.y, b.z, 0);
-            if (!H.n) cast(eye.x, eye.y, eye.z, a.x, a.y, a.z, 0);
+            let from = a,
+              to = b;
+            let len = cast(a.x, a.y, a.z, b.x, b.y, b.z, 0);
+            if (!H.n) {
+              from = eye;
+              to = a;
+              len = cast(eye.x, eye.y, eye.z, a.x, a.y, a.z, 0);
+            }
             if (H.n) {
               const ow = G.owners[H.owner[order[0]]];
               if (ow.foliage) rep.foliage++;
-              else flag('touch', 0.05, ow.path);
+              else
+                flag(
+                  'touch',
+                  0.05,
+                  ow.path,
+                  hitAt
+                    .copy(to)
+                    .sub(from)
+                    .multiplyScalar(H.t[order[0]] / len)
+                    .add(from),
+                  H.tri[order[0]],
+                );
             }
           }
           if (bad) rep.badFrames++;
@@ -692,7 +719,8 @@ for (const h of total.hits.slice(0, list))
   console.log(
     `${h.kind.padEnd(8)} ${h.island.padEnd(9)} ${h.spot.padEnd(6)} (${h.x}, ${h.z}) y ${h.y} frames ${h.frames} eye (${h.eye.map((v) => v.toFixed(1)).join(', ')}) ` +
       `yaw ${h.yaw} pitch ${h.pitch} dist ${h.dist}/${h.want} depth ${h.depth}${h.path ? ` ${h.path}` : ''}` +
-      (opt.explain ? `  [nearest: ${h.near}]` : ''),
+      ` at (${h.hit.map((v) => v.toFixed(2)).join(', ')})` +
+      (opt.explain ? `  [nearest: ${h.near}]${h.tri ? ` tri ${h.tri.join(',')}` : ''}` : ''),
   );
 
 if (opt.probe)
@@ -779,4 +807,4 @@ console.log(
   }),
 );
 await browser.close();
-process.exit(total.badFrames > Number(opt['max-bad'] ?? 180) || errors.length ? 1 : 0);
+process.exit(total.badFrames > Number(opt['max-bad'] ?? 80) || errors.length ? 1 : 0);

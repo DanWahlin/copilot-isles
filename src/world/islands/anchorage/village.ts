@@ -58,6 +58,7 @@ import {
   houseDoorSideSpot,
   housePerches,
   houseStairsSpan,
+  HOUSE_STOREY_HEIGHT,
   placementWorldMaxY,
   stairsHeightAt,
   type HouseFootprint,
@@ -91,6 +92,8 @@ interface VillageMetrics {
 export interface VillageSystem {
   group: Group;
   colliders: { circles: CircleObstacle[]; boxes: VillageBoxCollider[] };
+  /** Camera-only blockers (CollisionWorld.addCameraBox): eaves, awnings, façade trim the walker ignores. */
+  cameraBlockers: VillageBoxCollider[];
   shipObstacles: CircleObstacle[];
   perches: Vector3[];
   walkable: (x: number, z: number, y?: number) => number | null;
@@ -154,6 +157,7 @@ export async function createVillage({
   const mediumUp = tier.tier !== 'lite' && tier.tier !== 'low';
   streetHeightField = heightField;
   stairSpans.length = 0;
+  cameraBlockers.length = 0;
 
   // buildSlice: the village builds a few ms per frame while the opening plays over it.
   addQuay(buckets, colliders, shipObstacles, anchors, perches);
@@ -226,6 +230,7 @@ export async function createVillage({
   return {
     group,
     colliders,
+    cameraBlockers: [...cameraBlockers],
     shipObstacles,
     perches,
     walkable,
@@ -570,6 +575,29 @@ function addBuilding(
     rot: spec.rot,
     height: Math.max(3.2, maxY - baseY),
   });
+  cameraBlockers.push({
+    x: spec.x,
+    z: spec.z,
+    hx: footprint.w * 0.5 + FACADE_DEPTH,
+    hz: footprint.d * 0.5 + FACADE_DEPTH,
+    rot: spec.rot,
+    y0: baseY - 0.5,
+    y1: baseY + house.storeys * HOUSE_STOREY_HEIGHT,
+  });
+  if (house.balcony && house.storeys > 1) {
+    // The front balcony: its floor 2 m out from the wall, a storey up, and its railing.
+    const b = localToWorld(spec.x, spec.z, spec.rot, 0, -footprint.d * 0.5 - 1);
+    const floor = baseY + HOUSE_STOREY_HEIGHT;
+    cameraBlockers.push({
+      x: b.x,
+      z: b.z,
+      hx: footprint.w * 0.5,
+      hz: 1.05,
+      rot: spec.rot,
+      y0: floor - 0.15,
+      y1: floor + 1.3,
+    });
+  }
   if (spec.anchor) anchors[spec.anchor] = houseDoorAnchor(house);
   const stairs = houseStairsSpan(house);
   if (stairs) stairSpans.push(stairs);
@@ -635,8 +663,13 @@ function addColonialBuildingDetails(
   const lamp = houseDoorSideSpot(houseSpecForBuilding(spec, baseY, false));
   addDoorLantern(buckets, lamp, lamp.y + 1.5);
   if (spec.sign) addHangingShopSign(buckets, doorSign.x, baseY + 2.1, doorSign.z, spec.rot, spec.sign);
-  if (spec.awning)
+  if (spec.awning) {
     addDoorAwning(buckets, spec.x, baseY + 2.2, spec.z, spec.rot, footprint.w, frontZ, spec.awning);
+    // The awning reaches about 0.7 m past the façade blocker; keep the camera out of its cloth too.
+    const p = localToWorld(spec.x, spec.z, spec.rot, 0, frontZ - 0.3);
+    const hx = Math.min(footprint.w * 0.72, 3.55) * 0.5;
+    cameraBlockers.push({ x: p.x, z: p.z, hx, hz: 0.55, rot: spec.rot, y0: baseY + 2.05, y1: baseY + 2.5 });
+  }
   if (spec.id === 'tavern') addBoardedWindowPatch(buckets, spec, footprint, baseY);
 }
 
@@ -942,6 +975,16 @@ function addQuayFrontBand(buckets: Record<MaterialKey, BufferGeometry[]>): void 
     const w = x1 - x0;
     if (w <= 0) continue;
     addBox(buckets.paving, (x0 + x1) * 0.5, q.height - 0.08, q.z - 0.9, w, 0.32, 2.15, 0, 0x9a9078);
+    // Camera only: the quay's stone face below the band, which the sea-level ground doesn't cover.
+    cameraBlockers.push({
+      x: (x0 + x1) * 0.5,
+      z: q.z - 1.35,
+      hx: w * 0.5,
+      hz: 1.5,
+      rot: 0,
+      y0: -1,
+      y1: q.height + 0.26,
+    });
     addBox(buckets.paving, (x0 + x1) * 0.5, q.height + 0.14, q.z - 1.02, w, 0.12, 1.95, 0, 0xa59a80);
     for (let x = x0 + 2.0; x < x1 - 0.6; x += 3.2) {
       addBox(buckets.paving, x, q.height + 0.205, q.z - 1.02, 0.045, 0.014, 1.78, 0, 0x756e5d);
@@ -1443,6 +1486,8 @@ function addBoathouse(
   addBox(buckets.wood, x, roof - 0.02, z, 0.18, 0.16, 5.0, rot, 0x6f4d31);
   addBox(buckets.wood, x - 0.62, roof, z, 1.7, 0.18, 5.15, rot, 0x5f3f2b, 0, 0.56);
   addBox(buckets.wood, x + 0.62, roof, z, 1.7, 0.18, 5.15, rot, 0x5f3f2b, 0, -0.56);
+  // Camera only: the roof, from the eaves (about 2.4 m up) to the ridge.
+  cameraBlockers.push({ x, z, hx: 1.45, hz: 2.6, rot, y0: deck + 2.3, y1: deck + 3.55 });
   // Open on the pier side (−x): you walk straight in under the roof. A low wall along the water
   // side keeps you on the deck (it used to stand on the pier side, with no collider: it looked like
   // the way in was shut, and you walked through it).
@@ -1865,6 +1910,13 @@ function createTerrainPavingRect(
 let streetHeightField: HeightField | null = null;
 /** Every building's exterior door stairs, so you climb them instead of walking through them. */
 const stairSpans: StairSpan[] = [];
+/** Camera-only blockers gathered while the village builds (VillageSystem.cameraBlockers). */
+const cameraBlockers: VillageBoxCollider[] = [];
+/**
+ * How far shutters, signs and lanterns stand proud of a wall. The walker's own collider keeps your
+ * pivot farther out than this, so a façade blocker never holds the pivot (which would switch it off).
+ */
+const FACADE_DEPTH = 0.35;
 
 function isStreetPavedPoint(x: number, z: number): boolean {
   return streetCoverage(x, z, 0) > 0;
@@ -2525,6 +2577,8 @@ function addLighthouse(
   const lan = base + LIGHTHOUSE_LANTERN;
   const doorH = 2.3;
   const at = (a: number, r: number) => ({ x: x + Math.sin(a) * r, z: z + Math.cos(a) * r });
+  // The stair winding over the ground floor, for the camera (on the steps a guide shot takes over).
+  cameraBlockers.push({ x, z, hx: T.inner, hz: T.inner, rot: 0, y0: floor + 1.9, y1: deck });
 
   // Plinth and a ring of flagstones on the knoll top. The plinth's top is the ground floor.
   addCylinder(buckets.stone, x, base - 0.7, z, 3.0, 3.35, 1.4, 12, Math.PI / 12, 0x9a9180);

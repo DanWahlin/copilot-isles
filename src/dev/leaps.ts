@@ -42,6 +42,7 @@ dev.__dev.stats = () => ({
   ...engine.counters.last,
   fps: engine.fps,
   gpuMs: engine.gpuMs,
+  gpuRawMs: engine.gpuRawMs,
   backend,
   tier: tier.tier,
 });

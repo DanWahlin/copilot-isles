@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { Mesh } from 'three/webgpu';
 import { tierSettings } from '../../engine/quality';
 import type { CircleObstacle, HeightField } from '../contracts';
 import { MERIDIAN, meridianHeight, meridianMasks } from '../islands/meridian';
@@ -131,6 +132,42 @@ describe('createMeridianTown', () => {
     expect(town.metrics.triangles).toBeLessThan(260_000);
     expect(town.metrics.buildingCount).toBeGreaterThanOrEqual(25);
     expect(town.colliders.boxes.length + town.colliders.circles.length).toBeGreaterThan(80);
+
+    town.dispose();
+    kit.dispose();
+  });
+
+  it('builds no inside-out faces (a negative box size reverses the winding; double-sided stone then shades it unlit)', () => {
+    const kit = testKit();
+    const town = createMeridianTown({ tier: tierSettings('high'), heightField, kit });
+    const reversed: string[] = [];
+    town.group.traverse((o) => {
+      const mesh = o as Mesh;
+      if (!mesh.isMesh || !mesh.name.startsWith('meridian-town-')) return;
+      const p = mesh.geometry.getAttribute('position');
+      const n = mesh.geometry.getAttribute('normal');
+      const index = mesh.geometry.index;
+      const count = index ? index.count : p.count;
+      let bad = 0;
+      for (let t = 0; t < count; t += 3) {
+        const [a, b, c] = [0, 1, 2].map((k) => (index ? index.getX(t + k) : t + k)) as [
+          number,
+          number,
+          number,
+        ];
+        const e1 = [p.getX(b) - p.getX(a), p.getY(b) - p.getY(a), p.getZ(b) - p.getZ(a)];
+        const e2 = [p.getX(c) - p.getX(a), p.getY(c) - p.getY(a), p.getZ(c) - p.getZ(a)];
+        const cx = e1[1]! * e2[2]! - e1[2]! * e2[1]!;
+        const cy = e1[2]! * e2[0]! - e1[0]! * e2[2]!;
+        const cz = e1[0]! * e2[1]! - e1[1]! * e2[0]!;
+        const nx = n.getX(a) + n.getX(b) + n.getX(c);
+        const ny = n.getY(a) + n.getY(b) + n.getY(c);
+        const nz = n.getZ(a) + n.getZ(b) + n.getZ(c);
+        if (Math.hypot(cx, cy, cz) > 1e-6 && cx * nx + cy * ny + cz * nz < 0) bad += 1;
+      }
+      if (bad) reversed.push(`${mesh.name}: ${bad}`);
+    });
+    expect(reversed).toEqual([]);
 
     town.dispose();
     kit.dispose();

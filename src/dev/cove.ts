@@ -421,6 +421,7 @@ const frozenDir = new Vector3();
       ...engine.counters.last,
       fps: engine.fps,
       gpuMs: engine.gpuMs,
+      gpuRawMs: engine.gpuRawMs,
       cpuMs: engine.cpuMs,
       backend,
       tier: tier.tier,

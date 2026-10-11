@@ -123,6 +123,7 @@ async function runFlythrough(browser, backend, tier) {
   await page.close();
 
   const fpsSamples = data.samples.filter((s) => s.dt > 0).map((s) => 1000 / s.dt);
+  // `stats().gpuMs` is already limited to the frame time (limitGpuMs); limit it again to this rAF dt.
   const gpuSamples = data.samples.map((s) => (s.gpuMs && s.gpuMs > 0 ? Math.min(s.gpuMs, s.dt) : s.dt));
   const cpuSamples = data.samples.map((s) => s.cpuMs || 0).filter((v) => v > 0);
   const drawSamples = data.samples.map((s) => s.drawCalls || 0);

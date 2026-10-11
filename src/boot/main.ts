@@ -217,7 +217,7 @@ async function boot(): Promise<void> {
       hdr: hdr && backend === 'webgpu',
       features: webgpu.features,
     },
-    { getCpuMs: () => engine.cpuMs },
+    { getCpuMs: () => engine.cpuMs, getGpuMs: () => engine.gpuMs, getGpuRawMs: () => engine.gpuRawMs },
   );
   if (import.meta.env.DEV || q.has('debug')) (window as unknown as { __flow: unknown }).__flow = flow;
 

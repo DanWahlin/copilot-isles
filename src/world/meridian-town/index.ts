@@ -455,71 +455,6 @@ function addHarbour(
     0,
     0xf0d7aa,
   );
-  addBox(
-    buckets,
-    'stone',
-    (quay.x0 + quay.x1) / 2,
-    waterBase,
-    quay.z1 + 0.85,
-    quay.x1 - quay.x0 + 2,
-    PLAZA.height - waterBase + 0.15,
-    1.7,
-    0,
-    0x907855,
-  );
-  addBox(
-    buckets,
-    'stone',
-    (quay.x0 + quay.x1) / 2,
-    PLAZA.height - 0.04,
-    quay.z1 + 0.82,
-    quay.x1 - quay.x0 + 2.6,
-    0.36,
-    2.0,
-    0,
-    LIMESTONE_LIGHT,
-  );
-  for (let x = quay.x0 + 3; x <= quay.x1 - 3; x += 5.4) {
-    addBox(
-      buckets,
-      'stone',
-      x,
-      deck + 0.4,
-      quay.z1 + 1.72,
-      0.16,
-      PLAZA.height - deck - 0.6,
-      0.18,
-      0,
-      0x745a3b,
-    );
-  }
-  addBox(
-    buckets,
-    'stone',
-    (quay.x0 + quay.x1) / 2,
-    -1.15,
-    quay.z1 + 10.2,
-    quay.x1 - quay.x0 + 4,
-    6.8,
-    1.4,
-    0,
-    0x8d7656,
-  );
-  addBox(
-    buckets,
-    'stone',
-    (quay.x0 + quay.x1) / 2,
-    5.45,
-    quay.z1 + 10.2,
-    quay.x1 - quay.x0 + 4.8,
-    0.34,
-    1.75,
-    0,
-    LIMESTONE_LIGHT,
-  );
-  for (let x = quay.x0 + 4; x <= quay.x1 - 4; x += 4.8) {
-    addBox(buckets, 'stone', x, 1.0, quay.z1 + 10.95, 0.12, 4.8, 0.14, 0, 0x70583b);
-  }
   for (let x = quay.x0 + 6; x <= quay.x1 - 4; x += 8)
     addBox(
       buckets,
@@ -625,17 +560,18 @@ function addHarbour(
     addCopingJoint(buckets, eastArm.x1 + 0.16, deck, z, Math.PI / 2);
   }
 
+  // On the deck behind the coping (the face is at z1): out at z1 + 1.6 they hung over the water.
   const bollards = [602, 624, 646, 706, 728, 746];
   for (const x of bollards) {
-    addBollard(buckets, colliders, perches, x, deck, quay.z1 + 1.6);
+    addBollard(buckets, colliders, perches, x, deck, quay.z1 - 1.1);
   }
   for (let i = 0; i < bollards.length - 1; i += 1) {
     const a = bollards[i]!;
     const b = bollards[i + 1]!;
     addSagRope(
       buckets,
-      { x: a, y: deck + 0.92, z: quay.z1 + 1.62 },
-      { x: b, y: deck + 0.92, z: quay.z1 + 1.62 },
+      { x: a, y: deck + 0.92, z: quay.z1 - 1.08 },
+      { x: b, y: deck + 0.92, z: quay.z1 - 1.08 },
     );
   }
   for (const z of [-760, -742, -724, -666])
@@ -705,45 +641,15 @@ function addEastArmArrivalDressing(
   const arm = MERIDIAN.harbor.eastArm;
   const deck = MERIDIAN.harbor.quay.height;
   const midZ = (arm.z0 + arm.z1) * 0.5;
-  addBox(
-    buckets,
-    'stone',
-    arm.x1 + 1.55,
-    deck - 0.15,
-    midZ,
-    2.7,
-    3.8,
-    arm.z0 - arm.z1 + 6,
-    0,
-    LIMESTONE_DARK,
-  );
-  addBox(
-    buckets,
-    'stone',
-    arm.x1 + 1.35,
-    deck + 3.45,
-    midZ,
-    3.2,
-    0.36,
-    arm.z0 - arm.z1 + 6.8,
-    0,
-    LIMESTONE_LIGHT,
-  );
-  addBox(buckets, 'paving', arm.x1 + 5.0, deck + 0.03, midZ, 7.8, 0.16, arm.z0 - arm.z1 + 4.0, 0, 0xf0d7aa);
-  addBox(buckets, 'paving', arm.x1 + 10.4, deck + 0.04, midZ, 13.8, 0.18, arm.z0 - arm.z1 + 3.2, 0, 0xd6bf8d);
-  addBox(buckets, 'stone', arm.x1 + 2.25, deck - 0.25, midZ, 2.2, 8.0, arm.z0 - arm.z1 + 4.6, 0, 0x917a58);
-  addBox(
-    buckets,
-    'stone',
-    arm.x1 + 2.0,
-    deck + 7.45,
-    midZ,
-    2.8,
-    0.36,
-    arm.z0 - arm.z1 + 5.2,
-    0,
-    LIMESTONE_LIGHT,
-  );
+  // Box depths must be positive: z0 < z1, so z0 - z1 is negative, and a box built
+  // with a negative depth has inside-out faces that the double-sided stone shades as unlit.
+  const armLen = arm.z1 - arm.z0;
+  addBox(buckets, 'stone', arm.x1 + 1.55, deck - 0.15, midZ, 2.7, 3.8, armLen - 6, 0, LIMESTONE_DARK);
+  addBox(buckets, 'stone', arm.x1 + 1.35, deck + 3.45, midZ, 3.2, 0.36, armLen - 6.8, 0, LIMESTONE_LIGHT);
+  addBox(buckets, 'paving', arm.x1 + 5.0, deck + 0.03, midZ, 7.8, 0.16, armLen - 4.0, 0, 0xf0d7aa);
+  addBox(buckets, 'paving', arm.x1 + 10.4, deck + 0.04, midZ, 13.8, 0.18, armLen - 3.2, 0, 0xd6bf8d);
+  addBox(buckets, 'stone', arm.x1 + 2.25, deck - 0.25, midZ, 2.2, 8.0, armLen - 4.6, 0, 0x917a58);
+  addBox(buckets, 'stone', arm.x1 + 2.0, deck + 7.45, midZ, 2.8, 0.36, armLen - 5.2, 0, LIMESTONE_LIGHT);
   addBox(buckets, 'stone', arm.x1 + 8.6, deck - 0.25, -711, 1.8, 5.6, 114, 0, 0x8f7859);
   addBox(buckets, 'stone', arm.x1 + 7.7, deck + 4.95, -711, 3.4, 0.34, 114, 0, LIMESTONE_LIGHT);
   addBox(buckets, 'stone', arm.x1 + 4.1, deck - 0.18, -711, 4.8, 3.5, 114, 0, 0x9a8260);
@@ -764,32 +670,10 @@ function addEastArmArrivalDressing(
     );
   }
   for (const x of [arm.x0 + 2.8, arm.x1 - 2.8]) {
-    addBox(buckets, 'stone', x, deck + 0.05, midZ, 0.28, 0.055, arm.z0 - arm.z1 - 4.0, 0, 0x70583b);
+    addBox(buckets, 'stone', x, deck + 0.05, midZ, 0.28, 0.055, armLen - 4.0, 0, 0x70583b);
   }
-  addBox(
-    buckets,
-    'stone',
-    arm.x0 + 0.5,
-    deck + 0.06,
-    midZ,
-    0.55,
-    0.24,
-    arm.z0 - arm.z1 + 1.0,
-    0,
-    LIMESTONE_LIGHT,
-  );
-  addBox(
-    buckets,
-    'stone',
-    arm.x1 - 0.5,
-    deck + 0.06,
-    midZ,
-    0.55,
-    0.24,
-    arm.z0 - arm.z1 + 1.0,
-    0,
-    LIMESTONE_LIGHT,
-  );
+  addBox(buckets, 'stone', arm.x0 + 0.5, deck + 0.06, midZ, 0.55, 0.24, armLen - 1.0, 0, LIMESTONE_LIGHT);
+  addBox(buckets, 'stone', arm.x1 - 0.5, deck + 0.06, midZ, 0.55, 0.24, armLen - 1.0, 0, LIMESTONE_LIGHT);
 
   const mooring = [
     { x: arm.x0 + 1.3, z: -687.8, sx: MERIDIAN.harbor.berth.x - 2.8, sz: -687.5 },
@@ -1072,7 +956,7 @@ function addHarbourFront(
   low: boolean,
   anchor: (id: string, a: BasicAnchor) => void,
 ): void {
-  addTerraceRetainingWall(buckets, HARBOUR_FRONT_ROW, MERIDIAN.harbor.quay.height);
+  addTerraceRetainingWall(buckets, colliders, HARBOUR_FRONT_ROW, MERIDIAN.harbor.quay.height);
   addLanePaving(buckets, HARBOUR_FRONT_ROW);
   addTerraceHouseRun(buckets, colliders, stairSpans, perches, heightField, kit, HARBOUR_FRONT_ROW, {
     arcade: true,
@@ -1508,6 +1392,16 @@ function addLift(
     y0: LIFT_BOTTOM.y + 2.6,
     y1: LIFT_BOTTOM.y + 4.0,
   });
+  // The top station's back wall and its cap.
+  colliders.camera?.push({
+    x: tx,
+    z: tz + 3.8,
+    hx: 4.75,
+    hz: 0.85,
+    rot: 0,
+    y0: LIFT_TOP.y - 0.3,
+    y1: LIFT_TOP.y + 2.85,
+  });
   anchor('liftBottom', {
     x: 766.7,
     y: LIFT_BOTTOM.y,
@@ -1587,7 +1481,7 @@ function* addTerraceHouses(
   void low;
   let previousHeight: number = PLAZA.height;
   for (const row of TERRACE_ROWS) {
-    addTerraceRetainingWall(buckets, row, previousHeight);
+    addTerraceRetainingWall(buckets, colliders, row, previousHeight);
     addLanePaving(buckets, row);
     addTerraceHouseRun(buckets, colliders, stairSpans, perches, heightField, kit, row, { arcade: false });
     yield;
@@ -1653,21 +1547,27 @@ function addDenseHillsideTown(
   }
 }
 
-function addTerraceRetainingWall(buckets: Buckets, row: TerraceRowSpec, previousHeight: number): void {
+function addTerraceRetainingWall(
+  buckets: Buckets,
+  colliders: ColliderSet,
+  row: TerraceRowSpec,
+  previousHeight: number,
+): void {
   const wallZ = row.laneZ + row.laneWidth * 0.5 + 0.36;
   const bottom = Math.min(previousHeight, row.height) - 0.12;
   const h = Math.max(0.8, row.height - previousHeight + 0.7);
   let segmentStart = row.x0;
   const gaps = [...(row.gaps ?? [])].sort((a, b) => a.x0 - b.x0);
   for (const gap of gaps) {
-    addRetainingWallSegment(buckets, segmentStart, gap.x0, bottom, h, wallZ, row.height);
+    addRetainingWallSegment(buckets, colliders, segmentStart, gap.x0, bottom, h, wallZ, row.height);
     segmentStart = gap.x1;
   }
-  addRetainingWallSegment(buckets, segmentStart, row.x1, bottom, h, wallZ, row.height);
+  addRetainingWallSegment(buckets, colliders, segmentStart, row.x1, bottom, h, wallZ, row.height);
 }
 
 function addRetainingWallSegment(
   buckets: Buckets,
+  colliders: ColliderSet,
   x0: number,
   x1: number,
   bottom: number,
@@ -1680,6 +1580,17 @@ function addRetainingWallSegment(
   const midX = (x0 + x1) * 0.5;
   addBox(buckets, 'stone', midX, bottom, wallZ, length + 0.6, h, 0.72, 0, LIMESTONE_DARK);
   addBox(buckets, 'stone', midX, top + 0.02, wallZ, length + 0.95, 0.24, 0.9, 0, LIMESTONE_LIGHT);
+  // Camera only (the lanes' ground steps already stop the walker): the wall's face and its cap (the face
+  // can stand higher than the cap).
+  colliders.camera?.push({
+    x: midX,
+    z: wallZ,
+    hx: length * 0.5 + 0.48,
+    hz: 0.45,
+    rot: 0,
+    y0: bottom,
+    y1: Math.max(bottom + h, top + 0.26) + 0.01,
+  });
   for (let x = x0 + 3; x <= x1 - 3; x += 5.4)
     addBox(buckets, 'stone', x, top + 0.24, wallZ, 0.12, 0.12, 0.84, 0, 0x8f6f4d);
 }
@@ -1969,12 +1880,11 @@ function addTownEdgeInfill(
   addTownPavingPatch(buckets, 621, 7.05, -825.5, 62, 19, 0, 0xd2a271);
   addTownPavingPatch(buckets, 715, 7.1, -825.5, 58, 19, 0, 0xd2a271);
   addTownPavingPatch(buckets, 668, 8.6, -838.5, 78, 10.5, 0, 0xc99868);
-  addTownPavingPatch(buckets, 568, 11.5, -862, 20, 58, 0, 0xc49564);
-  addTownPavingPatch(buckets, 824, 14.5, -874, 21, 66, 0, 0xc49564);
-  addDrapedPavingPatch(buckets, heightField, 668, -823, 148, 36, 10, 3, 0xcf9e6c);
-  addDrapedPavingPatch(buckets, heightField, 668, -806, 96, 24, 8, 3, 0xd6a874);
-  addDrapedPavingPatch(buckets, heightField, 560, -858, 36, 96, 4, 8, 0xc49564);
-  addDrapedPavingPatch(buckets, heightField, 828, -878, 38, 96, 4, 8, 0xc49564);
+  // The hillside lanes are paved by the drapes below (flat slabs there stood clear of the slope).
+  addDrapedPavingPatch(buckets, heightField, 668, -823, 148, 36, 0xcf9e6c);
+  addDrapedPavingPatch(buckets, heightField, 668, -806, 96, 24, 0xd6a874);
+  addDrapedPavingPatch(buckets, heightField, 560, -858, 36, 96, 0xc49564);
+  addDrapedPavingPatch(buckets, heightField, 828, -878, 38, 96, 0xc49564);
   addOliveGrove(buckets, colliders, 564, 8.2, -804, 3, 2, 6.0, 5.2, 0.42);
   addOliveGrove(buckets, colliders, 555, 12.8, -892, 2, 3, 6.5, 6.0, 0.46);
   addOliveGrove(buckets, colliders, 832, 16.8, -846, 2, 3, 6.2, 6.4, 0.44);
@@ -2003,27 +1913,28 @@ function addDrapedPavingPatch(
   z: number,
   w: number,
   d: number,
-  cols: number,
-  rows: number,
   colour: number,
 ): void {
+  // One vertex on every terrain grid point, and each cell split on the terrain's own diagonal, so
+  // the paving lies on the ground instead of bridging dips (a coarse drape stood a metre clear).
+  const xs = gridLines(x - w * 0.5, x + w * 0.5, MERIDIAN.bounds.minX, MERIDIAN.bounds.cell);
+  const zs = gridLines(z - d * 0.5, z + d * 0.5, MERIDIAN.bounds.minZ, MERIDIAN.bounds.cell);
   const positions: number[] = [];
   const indices: number[] = [];
-  for (let iz = 0; iz <= rows; iz += 1) {
-    const lz = -d * 0.5 + (iz / rows) * d;
-    for (let ix = 0; ix <= cols; ix += 1) {
-      const lx = -w * 0.5 + (ix / cols) * w;
-      const px = x + lx;
-      const pz = z + lz;
-      positions.push(px, heightField.heightAt(px, pz) + 0.075, pz);
-    }
-  }
-  const stride = cols + 1;
-  for (let iz = 0; iz < rows; iz += 1) {
-    for (let ix = 0; ix < cols; ix += 1) {
+  for (const pz of zs) for (const px of xs) positions.push(px, heightField.heightAt(px, pz) + 0.075, pz);
+  const stride = xs.length;
+  for (let iz = 0; iz < zs.length - 1; iz += 1) {
+    for (let ix = 0; ix < xs.length - 1; ix += 1) {
       const a = iz * stride + ix;
       const b = a + stride;
-      indices.push(a, b, a + 1, a + 1, b, b + 1);
+      const ya = positions[a * 3 + 1]!;
+      const yb = positions[b * 3 + 1]!;
+      const yc = positions[(a + 1) * 3 + 1]!;
+      const yd = positions[(b + 1) * 3 + 1]!;
+      const mid = heightField.heightAt((xs[ix]! + xs[ix + 1]!) * 0.5, (zs[iz]! + zs[iz + 1]!) * 0.5) + 0.075;
+      if (Math.abs(mid - (yb + yc) * 0.5) <= Math.abs(mid - (ya + yd) * 0.5))
+        indices.push(a, b, a + 1, a + 1, b, b + 1);
+      else indices.push(a, b, b + 1, a, b + 1, a + 1);
     }
   }
   const geometry = new BufferGeometry();
@@ -2033,6 +1944,15 @@ function addDrapedPavingPatch(
   worldUv(geometry, 2.6);
   paint(geometry, colour);
   buckets.paving.push(geometry);
+}
+
+/** a, every grid line strictly between a and b (lines at origin + k·cell), then b. */
+function gridLines(a: number, b: number, origin: number, cell: number): number[] {
+  const out = [a];
+  for (let v = origin + (Math.floor((a - origin) / cell) + 1) * cell; v < b - 1e-6; v += cell)
+    if (v > a + 1e-6) out.push(v);
+  out.push(b);
+  return out;
 }
 
 function addFillerHouse(
@@ -2300,6 +2220,7 @@ function addTownHouse(
       1.45,
       spec.awning,
       LIMESTONE_LIGHT,
+      colliders.camera,
     );
   }
   if (spec.balcony && floors > 1) addBalconyRail(buckets, spec, y + 0.55 + floorH + 0.08);
@@ -2785,7 +2706,7 @@ function addOutfitterProps(
   z: number,
   rot: number,
 ): void {
-  addAwning(buckets, x, y + 2.4, z, rot, 4.2, 1.55, CLOTH_BLUE, LIMESTONE_LIGHT);
+  addAwning(buckets, x, y + 2.4, z, rot, 4.2, 1.55, CLOTH_BLUE, LIMESTONE_LIGHT, colliders.camera);
   for (let i = 0; i < 5; i += 1) {
     const p = localToWorld(x, z, rot, -1.6 + i * 0.8, -1.3);
     addBox(
@@ -3476,7 +3397,7 @@ function addAwningStall(
       const p = localToWorld(x, z, rot, lx, lz);
       addCylinderGeom(buckets.wood, p.x, y, p.z, 0.06, 0.07, 2.55, 6, 0, DARK_WOOD);
     }
-  addAwning(buckets, x, y + 2.35, z, rot, 4.1, 2.0, a, b);
+  addAwning(buckets, x, y + 2.35, z, rot, 4.1, 2.0, a, b, colliders.camera);
   colliders.boxes.push({ x, z, hx: 2.2, hz: 0.9, rot, height: 1.0 });
 }
 
@@ -3490,6 +3411,7 @@ function addAwning(
   d: number,
   a: number,
   b: number,
+  camera?: VillageBoxCollider[],
 ): void {
   const stripes = 6;
   for (let i = 0; i < stripes; i += 1) {
@@ -3497,6 +3419,9 @@ function addAwning(
     const p = localToWorld(x, z, rot, lx, -d * 0.25);
     addBox(buckets, 'cloth', p.x, y, p.z, w / stripes + 0.03, 0.08, d, rot, i % 2 ? a : b, -0.18);
   }
+  // Camera only: the sloping cloth and its front rail (you walk in under it).
+  const c = localToWorld(x, z, rot, 0, -d * 0.25);
+  camera?.push({ x: c.x, z: c.z, hx: w * 0.55 + 0.06, hz: d * 0.5, rot, y0: y - 0.2, y1: y + 0.3 });
   addTube(
     buckets.wood,
     0.055,

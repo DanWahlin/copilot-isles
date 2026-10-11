@@ -35,6 +35,17 @@ export interface InfoLike {
 const MB = 1048576;
 
 /**
+ * The GPU time we show and report (HUD, stats, `window.__isles`, the benchmark): the raw timestamp
+ * reading limited to the wall time of the frame. A pipelined GPU can't do more work per frame than the
+ * frame interval, but WebGPU pass timestamps on Apple GPUs (tile GPUs) read far higher: they sum each
+ * pass's wall time, which overlaps and includes other clients' GPU work (.plans/issues.md #11).
+ * Returns 0 when there's no reading.
+ */
+export function limitGpuMs(rawMs: number, frameMs: number): number {
+  return rawMs > 0 ? Math.min(rawMs, Math.max(0, frameMs)) : 0;
+}
+
+/**
  * Whole-frame renderer counters (PLAN §12.10). three.js resets per-frame metrics on every render()
  * call unless autoReset is off, so we reset once per frame to sum every pass. Note that
  * `render.calls` is a lifetime count in three's shared Info, which is why we read `drawCalls`.
