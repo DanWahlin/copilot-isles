@@ -218,6 +218,7 @@ function titleBackdropTier(tier: TierSettings): TierSettings {
     ...tier,
     shadowCascades: 0,
     shadowMap: 0,
+    shadowMoverMap: 0,
     dynamicShadows: false,
     cloudShadowRes: 0,
     ssao: false,

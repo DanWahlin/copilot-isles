@@ -40,6 +40,7 @@ import { villageExclusionAsync } from './village-exclusion';
 import { BRIGANTINE_CARGO, createCoveSites, type CoveSites } from './sites';
 import type { CircleObstacle } from './contracts';
 import { FarCull } from './far-cull';
+import { BLOB_RANGE, BlobShadows } from './blob-shadows';
 
 export interface CoveScene {
   sky: SkySystem;
@@ -384,6 +385,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const starfish = createStarfish();
   scene.add(starfish.mesh);
 
+  // Low and Lite have no shadow map for moving things: characters get blob shadows (one draw; +1 program).
+  const blobs = tier.tier === 'low' || tier.tier === 'lite' ? new BlobShadows(BLOB_RANGE[tier.tier]) : null;
+  if (blobs) scene.add(blobs.mesh);
+
   let leaps: LeapsSystem | null = null;
   let lateWarm: ((roots: Object3D[]) => Promise<void>) | null = null;
   let disposed = false;
@@ -550,6 +555,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         boat.dispose();
       }
       starfish.dispose();
+      blobs?.dispose();
       meridianBirds?.dispose();
       leaps?.dispose();
       village.dispose();

@@ -19,9 +19,12 @@ export interface TierSettings {
   sparkles: boolean;
   /** Planar mirror in calm zones (High/Ultra only). */
   mirror: boolean;
+  /** The sun's static (cached) shadow map size (PLAN §12.1, §12.4). */
   shadowMap: 0 | 1024 | 2048 | 4096;
-  /** Cascaded sun shadows: 0 = single/no map, otherwise number of cascades. */
+  /** Sun shadow reach: 0 = no runtime sun shadows, 2 = near (~60-90 m past the player), 3 = far (~170 m). */
   shadowCascades: 0 | 2 | 3;
+  /** The small every-frame shadow map for moving things (characters, ships, the crane); 0 = none. */
+  shadowMoverMap: 0 | 1024 | 2048;
   dynamicShadows: boolean;
   cloudShadowRes: 0 | 128 | 256;
   clouds: 'layer' | 'dome' | 'volumetric';
@@ -54,6 +57,7 @@ const base: Omit<TierSettings, 'tier'> = {
   mirror: true,
   shadowMap: 4096,
   shadowCascades: 0,
+  shadowMoverMap: 1024,
   dynamicShadows: true,
   cloudShadowRes: 256,
   clouds: 'dome',
@@ -85,6 +89,7 @@ export const TIERS: Record<Tier, TierSettings> = {
     mirror: false,
     shadowMap: 0,
     shadowCascades: 0,
+    shadowMoverMap: 0,
     dynamicShadows: false,
     cloudShadowRes: 0,
     clouds: 'layer',
@@ -114,6 +119,7 @@ export const TIERS: Record<Tier, TierSettings> = {
     mirror: false,
     shadowMap: 1024,
     shadowCascades: 0,
+    shadowMoverMap: 0,
     dynamicShadows: false,
     cloudShadowRes: 128,
     clouds: 'layer',
@@ -161,6 +167,7 @@ export const TIERS: Record<Tier, TierSettings> = {
     tier: 'ultra',
     clouds: 'volumetric',
     shadowCascades: 3,
+    shadowMoverMap: 2048,
     maxDpr: 2,
     grassDistance: 110,
     treeNear: 90,

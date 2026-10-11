@@ -11,6 +11,7 @@ import {
   Object3D,
   Quaternion,
   Vector3,
+  type EventDispatcher,
   type Group,
   type Material,
 } from 'three/webgpu';
@@ -412,6 +413,10 @@ export class RuntimeCharacter implements Character {
     this.group.traverse((object) => {
       if (object instanceof Mesh) disposeOwnedMaterial(object.material);
       if (object instanceof Mesh && object.userData.ownedGeometry) object.geometry.dispose();
+      // Frees the renderer's state for this mesh (as InstancedMesh.dispose() does), so its pipelines
+      // are released even though the shared materials it drew with stay alive for other characters.
+      if (object instanceof Mesh)
+        (object as unknown as EventDispatcher<{ dispose: object }>).dispatchEvent({ type: 'dispose' });
     });
   }
 

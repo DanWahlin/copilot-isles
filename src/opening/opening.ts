@@ -1053,6 +1053,9 @@ export function createOpening(o: OpeningOptions): Opening {
       lockEl.remove();
       briefing?.stop();
       captionEl.remove();
+      // Out of the scene first: the sweep below would dispose the library's shared character materials,
+      // which the island's NPCs also draw with (rebuilding their render objects mid-game).
+      if (guide) scene.remove(guide.group);
       guide?.dispose();
       guide = null;
       if (!flashEl.style.opacity || flashEl.style.opacity === '0') sprayEl.remove();

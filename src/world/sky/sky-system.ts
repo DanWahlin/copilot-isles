@@ -18,6 +18,7 @@ import {
   Vector3,
   type Camera,
   type Node,
+  type Object3D,
   type Texture,
   type WebGPURenderer,
 } from 'three/webgpu';
@@ -37,7 +38,6 @@ import {
   uniform,
   vec3,
 } from 'three/tsl';
-import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
 import type { TierSettings } from '../../engine/quality';
 import type { DayClock } from '../../engine/day-clock';
 import type { Backend } from '../contracts';
@@ -51,6 +51,9 @@ import { Clouds as TidewaterClouds } from './clouds/Clouds';
 import { Sky as TidewaterSky } from './clouds/Sky';
 import { syncTidewaterGlobals } from './clouds/Globals';
 import { disposeLightShadow, disposeRenderTarget } from '../../util/dispose-three';
+import { SHADOW_MASK } from '../shadow-casters';
+import { CachedSunShadowNode, type SunShadowMap } from './cached-sun-shadow';
+import { staticCoverage } from './shadow-cache';
 
 /** Lighting keyframes keyed by sun elevation (PLAN §6), blended continuously. */
 interface Key {
@@ -139,6 +142,12 @@ export interface SkySystem {
   /** Force an environment + shadow refresh (e.g. after a time scrub). */
   invalidate(): void;
   /**
+   * Starts a warm-up of `roots`: classifies their shadow casters now (before the warm-up moves them
+   * to its staging layer) and redraws the static shadow map every frame until the returned function
+   * is called, so every caster's shadow pipeline is built during the warm-up.
+   */
+  shadowWarm(roots: Object3D | readonly Object3D[]): () => void;
+  /**
    * Loads what the sky needs at these hours and puts it on the GPU (the baked keys on WebGL2, Low,
    * Lite and Medium), so time changes later in play don't hitch. Resolves at once on the live sky.
    */
@@ -151,14 +160,6 @@ export interface SkySystem {
 interface SkyOptions {
   title?: boolean;
 }
-
-type CSMShadowNodeLike = Node & {
-  camera: Camera | null;
-  fade: boolean;
-  lights: { shadow: Parameters<typeof disposeLightShadow>[0] }[];
-  updateFrustums(): void;
-  dispose(): void;
-};
 
 /**
  * Sky, sun/moon lighting, Hillaire-style aerial haze, and the progressively refreshed environment map.
@@ -313,43 +314,30 @@ export function createSky(
 
   const sun = new DirectionalLight(0xffffff, 3);
   sun.castShadow = runtimeSunShadows;
-  let csmNode: CSMShadowNodeLike | null = null;
+  // The sun's shadows (PLAN §12.1, §12.4): a cached static map that's redrawn only when the focus
+  // moves past 50 m, the sun turns, or a static caster changes, plus a small every-frame map for
+  // moving things. Caster rules (which meshes cast, and into which map) live in shadow-casters.ts.
+  let sunShadowNode: CachedSunShadowNode | null = null;
   if (sun.castShadow) {
-    const csm = !actualWebGL && tier.shadowCascades > 0;
-    const mapSize = csm ? 2048 : tier.shadowMap;
-    sun.shadow.mapSize.set(mapSize, mapSize);
-    const c = sun.shadow.camera;
-    c.left = -140;
-    c.right = 140;
-    c.top = 140;
-    c.bottom = -140;
-    c.near = 1;
-    c.far = csm ? 520 : 900;
     sun.shadow.bias = -0.0004;
-    sun.shadow.normalBias = csm ? 0.025 : 0.04;
     // three's PCF rotates its 5 taps by a fixed per-pixel noise; wider than ~1 texel, that noise
     // showed as a stipple on skin, sails and stone wherever the light grazes (TRAA can't average it).
     sun.shadow.radius = 1;
-    sun.shadow.blurSamples = csm ? 12 : 8;
-    // Low/Lite: throttled updates; High+: every frame (moving ship/characters). See issues.md.
-    sun.shadow.autoUpdate = tier.dynamicShadows;
-    if (csm) {
-      const maxFar = tier.shadowCascades === 2 ? 180 : 400;
-      const node = new CSMShadowNode(sun, {
-        cascades: tier.shadowCascades,
-        maxFar,
-        mode: 'custom',
-        lightMargin: 45,
-        customSplitsCallback: (amount: number, _near: number, far: number, target: number[]) => {
-          target.length = 0;
-          const splits = amount === 2 ? [60, maxFar] : [10, 60, maxFar];
-          for (let i = 0; i < amount; i++) target.push(Math.min(splits[i]! / far, 1));
-        },
-      }) as CSMShadowNodeLike;
-      node.fade = true;
-      (sun.shadow as typeof sun.shadow & { shadowNode?: unknown }).shadowNode = node;
-      csmNode = node;
-    }
+    sun.shadow.blurSamples = 8;
+    // How far past the focus static shadows reach; the map covers that plus the refresh threshold.
+    const reach = tier.shadowCascades === 3 ? 170 : tier.tier === 'medium' ? 60 : 90;
+    const staticMap: SunShadowMap = {
+      size: tier.shadowMap || 1024,
+      half: staticCoverage(reach),
+      biasMeters: 0.25,
+      normalBias: 0.03,
+      mask: SHADOW_MASK.static,
+    };
+    const moverMap: SunShadowMap | null = tier.shadowMoverMap
+      ? { size: tier.shadowMoverMap, half: 40, biasMeters: 0.2, normalBias: 0.025, mask: SHADOW_MASK.mover }
+      : null;
+    sunShadowNode = new CachedSunShadowNode(sun, staticMap, moverMap);
+    (sun.shadow as typeof sun.shadow & { shadowNode?: unknown }).shadowNode = sunShadowNode;
   }
   const hemi = new HemisphereLight(0xffffff, 0x222222, 0.3);
   scene.add(sun, sun.target, hemi);
@@ -375,7 +363,6 @@ export function createSky(
 
   const k = { ...KEYS[0], sun: [0, 0, 0], sky: [0, 0, 0], ground: [0, 0, 0], haze: [0, 0, 0] } as Key;
   const lastSun = new Vector3(0, -2, 0);
-  const lastFocus = new Vector3(1e9, 0, 0);
   let envAge = 1e9,
     frame = 0,
     forced = true;
@@ -437,15 +424,11 @@ export function createSky(
       if (tideClouds && camera) tideClouds.update(dt, camera);
       tideMesh.position.copy(focus);
 
-      if (csmNode && csmNode.camera === camera) csmNode.updateFrustums();
-
-      // Cached shadows (PLAN §12.4): refresh on sun moves, focus moves, or every few frames on Low.
-      if (sun.castShadow && !sun.shadow.autoUpdate) {
-        const moved = lastFocus.distanceToSquared(sun.target.position) > 40 * 40;
-        if (forced || moved || lastSun.distanceToSquared(world.sunDir.value) > 1e-5 || frame % 4 === 0) {
-          sun.shadow.needsUpdate = true;
-          lastFocus.copy(sun.target.position);
-        }
+      if (sunShadowNode) {
+        sunShadowNode.focus.copy(focus);
+        // Classify new casters and watch static ones twice a second (a change redraws the static map).
+        if (frame % 30 === 1) sunShadowNode.sweepCasters(scene);
+        if (forced) sunShadowNode.invalidate();
       }
 
       // Environment: refresh after a meaningful sun move, or every 3 s while time flows.
@@ -472,6 +455,19 @@ export function createSky(
       tideAtmo.invalidate();
       tideClouds?.invalidate();
     },
+    shadowWarm(roots) {
+      const node = sunShadowNode;
+      if (!node) return () => {};
+      for (const root of Array.isArray(roots) ? roots : [roots]) node.sweep.run(root as Object3D);
+      node.warming++;
+      let ended = false;
+      return () => {
+        if (ended) return;
+        ended = true;
+        node.warming--;
+        node.invalidate();
+      };
+    },
     cloudShadowNode:
       tideClouds && tier.cloudShadowRes > 0
         ? (worldXZ: Node<'vec2'>) => tideClouds.shadow(worldXZ)
@@ -480,8 +476,8 @@ export function createSky(
       scene.remove(tideMesh, sun, sun.target, hemi);
       if (scene.environment === envRT.texture) scene.environment = null;
       if (scene.fogNode === hazeNode) scene.fogNode = null;
-      for (const light of csmNode?.lights ?? []) disposeLightShadow(light.shadow);
-      csmNode?.dispose();
+      for (const shadow of sunShadowNode?.shadows ?? []) disposeLightShadow(shadow);
+      sunShadowNode?.dispose();
       disposeLightShadow(sun.shadow);
       sun.dispose();
       disposeRenderTarget(envRT);

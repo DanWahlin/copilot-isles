@@ -22,6 +22,7 @@ import { box, cylinder, merge, plank, TRIM } from './geo';
 import { mergeWithRigidParts } from './rigid-parts';
 import { SignSet, type PaintedSign } from './sign';
 import { WaterStrips } from './water';
+import { markShadowMover } from '../shadow-casters';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyNode = any;
@@ -457,6 +458,7 @@ export function createMill(o: MillOptions): MillSite {
   const wheelMesh = new Mesh(buildWheel(wheel.r, wheel.w), kit.materials.wood);
   wheelMesh.castShadow = true;
   wheelMesh.receiveShadow = true;
+  markShadowMover(wheelMesh);
   wheelGroup.add(wheelMesh);
   group.add(wheelGroup);
 

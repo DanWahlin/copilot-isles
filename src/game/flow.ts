@@ -377,10 +377,15 @@ export class GameFlow implements GameBridge {
               await done;
             }
             for (const r of roots) r.visible = true;
-            await warmProgressively(roots, frame, {
-              ...steady,
-              solo: (o) => !!(o as Object3D & { isInstancedMesh?: boolean }).isInstancedMesh,
-            });
+            const endShadowWarm = cove.sky.shadowWarm(roots);
+            try {
+              await warmProgressively(roots, frame, {
+                ...steady,
+                solo: (o) => !!(o as Object3D & { isInstancedMesh?: boolean }).isInstancedMesh,
+              });
+            } finally {
+              endShadowWarm();
+            }
             hideAll();
             if (opts.terrain) {
               opts.terrain.group.visible = true;
@@ -740,6 +745,7 @@ export class GameFlow implements GameBridge {
         for (const r of cove.meridian.roots()) r.visible = true;
       }
       const hidePrewarm = revealPrewarm(engine.scene);
+      let endShadowWarm: (() => void) | null = null;
       try {
         await compileProgressively(
           engine.scene,
@@ -757,6 +763,7 @@ export class GameFlow implements GameBridge {
         await frame();
         opening.setDrawWorld(true);
         // Small batches: each new shadow or post pipeline is built synchronously on its first draw.
+        endShadowWarm = cove.sky.shadowWarm(engine.scene);
         await warmProgressively(engine.scene, frame, {
           targetMs: 12,
           startBatch: 3,
@@ -774,13 +781,20 @@ export class GameFlow implements GameBridge {
             await warmTerrainLods(t, frame, { targetMs: 12, startBatch: 3, frameCost: () => engine.cpuMs });
         }
       } finally {
+        endShadowWarm?.();
         hidePrewarm();
         cove.meridian.hold(false);
       }
       // The world's ready to be drawn without stalls: now the camera can move in to the chest.
       opening.release();
       report(0.96, 'Charting the approach');
-      await this.session.warmArrival(frame);
+      // The static shadow map redraws on each warm view of the flight, so the casters it passes are built now.
+      const endArrivalShadowWarm = cove.sky.shadowWarm(engine.scene);
+      try {
+        await this.session.warmArrival(frame);
+      } finally {
+        endArrivalShadowWarm();
+      }
       engine.renderNow();
       await frame();
       opening.setDrawWorld(false);
