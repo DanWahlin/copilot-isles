@@ -8,7 +8,7 @@ Sail a sun-drenched archipelago and learn the **GitHub Copilot app**, one island
 ## Getting started
 
 ```bash
-nvm use            # Node 24
+nvm use            # Node LTS (.nvmrc: lts/*)
 npm install
 npm run dev
 ```
