@@ -19,7 +19,12 @@ import { releaseTerrainNoiseTexture } from './terrain/noise-texture';
 import { CompositeHeightField } from './terrain/composite-height-field';
 import { COVE } from './layout';
 import { createStarfish, type StarfishSystem } from './starfish';
-import { MERIDIAN, createMeridianRocks, createMeridianSilhouette } from './islands/meridian';
+import {
+  MERIDIAN,
+  createMeridianRocks,
+  createMeridianSilhouette,
+  meridianRockShipObstacles,
+} from './islands/meridian';
 import { createBeachDebris, type BeachDebrisSystem } from './debris/beach-debris';
 import { createBrigantine, type Brigantine } from './ship';
 import { createVegetation, type VegetationSystem } from './vegetation';
@@ -299,6 +304,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         meridian.town = town;
         scene.add(town.group);
         shipObstacles.push(...town.shipObstacles);
+        shipObstacles.push(...meridianRockShipObstacles(meridianTerrain.heightField));
         // Its plants (hills and town) as their own vegetation batches, shown with the island.
         if (vegetation) {
           const flora: PlantInstance[] = [];

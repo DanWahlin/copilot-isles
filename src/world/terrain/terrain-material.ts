@@ -109,13 +109,6 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const masks = attribute('terrainMask', 'vec4');
   const light = attribute('terrainLight', 'vec4');
   const y = P.y;
-  // Where each island paints its ground differently (its village, hills, bluffs...): data, not code here.
-  const R = combineTerrainRegions(options.regions ?? ISLAND_TERRAIN_REGIONS, {
-    P,
-    y,
-    grassMask: masks.y,
-    miniature: !!options.miniature,
-  });
   const detail = options.tier === 'lite' ? 0 : options.tier === 'low' ? 1 : 2;
   const rockTexture = terrainTexture('rocks.webp');
   const pathTexture = terrainTexture('path-rocks.webp');
@@ -135,6 +128,27 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const noiseMid = textureNode(noiseTexture, noiseMidUv) as AnyNode;
   const noiseFine = textureNode(noiseTexture, noiseFineUv) as AnyNode;
   const broadNoise = noiseLow.r.mul(0.56).add(noiseLow.g.mul(0.24)).add(noiseMid.b.mul(0.2));
+  // The same broad noise on steep faces too: the flat (x, z) sample only stretches down a cliff, so
+  // there it's blended with samples on the two upright planes (a triplanar noise).
+  const faceWeight = pow(N.abs(), vec3(4)) as AnyNode;
+  const faceNoiseX = textureNode(noiseTexture, vec2(P.z.mul(0.0123), P.y.mul(0.0151))) as AnyNode;
+  const faceNoiseZ = textureNode(noiseTexture, vec2(P.x.mul(0.0123), P.y.mul(0.0151).add(0.37))) as AnyNode;
+  const faceNoise = faceNoiseX.r
+    .mul(0.7)
+    .add(faceNoiseX.b.mul(0.3))
+    .mul(faceWeight.x)
+    .add(faceNoiseZ.r.mul(0.7).add(faceNoiseZ.b.mul(0.3)).mul(faceWeight.z))
+    .add(broadNoise.mul(faceWeight.y))
+    .div(faceWeight.x.add(faceWeight.y).add(faceWeight.z).max(0.001));
+  // Where each island paints its ground differently (its village, hills, bluffs...): data, not code here.
+  const R = combineTerrainRegions(options.regions ?? ISLAND_TERRAIN_REGIONS, {
+    P,
+    y,
+    grassMask: masks.y,
+    up: N.y,
+    noise: faceNoise,
+    miniature: !!options.miniature,
+  });
   const fineNoise = noiseMid.g.mul(0.48).add(noiseFine.r.mul(0.34)).add(noiseLow.b.mul(0.18));
   const rippleNoise = noiseMid.b.mul(0.66).add(noiseFine.g.mul(0.34));
   const sandGrain = noiseFine.b.mul(0.62).add(noiseFine.a.mul(0.38));
@@ -548,13 +562,33 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
       .mul(float(1).sub(smoothstep(0.5, 1.0, ridgeBed)))
       .mul(0.1),
   );
-  const limestoneTone = mix(
-    color(0x8a7b63),
-    color(0xd2c4a2),
-    noiseLow.a.mul(0.4).add(noiseMid.r.mul(0.35)).add(rockDetail.mul(0.25)),
-  )
+  const bedPhase = fract(y.div(5.5).add(faceNoise.mul(2.6)));
+  const bedWidth = bedPhase.fwidth().mul(1.5).add(0.05);
+  const cliffBeds = options.miniature
+    ? float(0.1)
+    : float(1)
+        .sub(smoothstep(float(0.1).sub(bedWidth), float(0.1).add(bedWidth), bedPhase))
+        .mul(
+          smoothstep(0.35, 0.6, faceNoiseX.g.mul(faceWeight.x).add(faceNoiseZ.g.mul(faceWeight.z)).add(0.3)),
+        );
+  // Its tone comes from the triplanar noise and texture, so a sea cliff's face doesn't streak.
+  const limestoneTone = mix(color(0x8a7b63), color(0xd2c4a2), faceNoise.mul(0.75).add(rockDetail.mul(0.25)))
     .mul(ridgeBands)
-    .mul(float(0.8).add(smoothstep(0.15, 0.6, N.y).mul(0.2)));
+    .mul(float(0.8).add(smoothstep(0.15, 0.6, N.y).mul(0.2)))
+    // Wet, weedy rock along the waterline, its top ragged.
+    .mul(float(1).sub(smoothstep(4.5, 0.6, y.add(faceNoise.sub(0.5).mul(3))).mul(0.42)))
+    // Steep faces show the (triplanar) rock texture's grain, broad patches of weathered stone, and
+    // bedding planes that wander and break (offset by the triplanar noise, so they don't run level).
+    .mul(
+      mix(
+        float(1),
+        float(0.5)
+          .add(rockDetail.mul(1.3))
+          .mul(float(1).sub(smoothstep(0.58, 0.74, faceNoise).mul(0.24)))
+          .mul(float(1).sub(cliffBeds.mul(0.32))),
+        smoothstep(0.82, 0.5, N.y),
+      ),
+    );
   const maquis = smoothstep(
     0.5,
     0.6,

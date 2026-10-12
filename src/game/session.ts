@@ -1837,6 +1837,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // doubloons, and an island's last pays twenty more; the purse counts the island you're on.
   const starfish = cove.starfish;
   const starfishAt = new Vector3();
+  const starfishCamera: ({ x: number; z: number; r: number; y0: number; y1: number } | undefined)[] = [];
   let starfishTold = '';
   let starfishWalk = 0;
   starfish.setFound(learn?.progress.data.starfish ?? []);
@@ -1851,7 +1852,22 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       const sp = starfish.spots[i]!;
       if (sp.island !== here) continue;
       if (!starfish.grounded(i)) {
-        if (ready) starfish.setGround(i, world.groundAt(sp.x, sp.z, sp.y));
+        if (!ready) continue;
+        starfish.setGround(i, world.groundAt(sp.x, sp.z, sp.y));
+        // Keeps the follow camera out of the floating star (a pickup in a tight spot, like the
+        // boathouse's, drew the camera through it); found stars drop theirs below.
+        if (!learn.progress.data.starfish.includes(sp.id)) {
+          starfish.centre(i, starfishAt);
+          const c = {
+            x: starfishAt.x,
+            z: starfishAt.z,
+            r: 0.5,
+            y0: starfishAt.y - 0.5,
+            y1: starfishAt.y + 0.5,
+          };
+          starfishCamera[i] = c;
+          world.addCameraCircle(c);
+        }
         continue;
       }
       starfish.centre(i, starfishAt);
@@ -1860,6 +1876,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       const got = learn.collectStarfish(sp.id, sp.island);
       if (!got) continue;
       starfish.setFound(learn.progress.data.starfish);
+      const blocker = starfishCamera[i];
+      if (blocker) blocker.y0 = blocker.y1 = Number.NEGATIVE_INFINITY;
       audio?.sfx.oneShot('chime_solve', starfishAt, 0.7);
       hud.toast(
         got.complete

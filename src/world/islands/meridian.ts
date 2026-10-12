@@ -11,7 +11,7 @@ import {
   Quaternion,
   Vector3,
 } from 'three/webgpu';
-import type { HeightField } from '../contracts';
+import type { CircleObstacle, HeightField } from '../contracts';
 import { fbm2, ridged2 } from '../terrain/cove-height';
 import { ROCK_ASSETS } from '../terrain/rock-assets';
 import { meshCameraBlockers, type CameraBlockerBox } from '../terrain/camera-blockers';
@@ -316,6 +316,70 @@ function ridgeHeight(x: number, z: number, current: number): number {
   return out;
 }
 
+/** How the ridge's seaward foot is shaped: tune here (see `ridgeFootBlend`). */
+const RIDGE_COAST = {
+  /** Bays and headlands: how far the foot draws back or reaches out (in ridge half-widths). */
+  bays: 0.36,
+  /** Coves: smaller bites into the foot. */
+  coves: 0.13,
+  maxBack: 0.24,
+  maxOut: 0.3,
+} as const;
+
+/**
+ * 1 off the island's own coast below the ridge (its north side and north-east end), 0 elsewhere:
+ * not the beach under its west end, the sea caves, or anywhere on the island's side.
+ */
+function ridgeSeaward(x: number, z: number, coastDistance: number): number {
+  const { ridge } = MERIDIAN;
+  return (
+    smoothstep(-10, -40, coastDistance) *
+    smoothstep(ridge.center.x - ridge.halfX * 1.3, ridge.center.x - ridge.halfX * 0.9, x) *
+    smoothstep(ridge.center.z + ridge.halfZ * 0.6, ridge.center.z + ridge.halfZ * 0.2, z)
+  );
+}
+
+/**
+ * How much of the ridge stands at (x, z), from its gaussian foot `ridgeFoot` (1 on the crest). On the
+ * island's side the ridge simply fades into the hills. Seaward, the foot is a rocky coast:
+ * low-frequency noise pushes it out into headlands and draws it back into bays and coves, and a
+ * second noise makes some stretches a tall cliff and others a steep rocky slope down to the water.
+ * Above the foot (ridgeFoot > 0.55) nothing changes.
+ */
+function ridgeFootBlend(x: number, z: number, ridgeFoot: number, seaward: number): number {
+  const inland = smoothstep(0.08, 0.25, ridgeFoot);
+  if (seaward <= 0) return inland;
+  const c = RIDGE_COAST;
+  const bays = fbm2(x * 0.0085 + 3.7, z * 0.0085 - 8.1, 3, SEED + 33);
+  const coves = fbm2(x * 0.034 - 1.9, z * 0.034 + 4.4, 2, SEED + 34);
+  // The shift is made in distance from the crest (not by scaling the foot), so the slope never folds
+  // into a sheer step; it fades out up the ridge, and the crest doesn't move.
+  const out = Math.sqrt(-Math.log(Math.max(ridgeFoot, 1e-9)));
+  const back = Math.min(c.maxBack, Math.max(-c.maxOut, bays * c.bays + coves * c.coves));
+  const shifted = out + back * seaward * smoothstep(0.25, 1.3, out);
+  const foot = Math.exp(-shifted * shifted);
+  // 1 on a cliff, 0 on a rocky slope.
+  const sheer = smoothstep(-0.25, 0.3, fbm2(x * 0.012 - 6.3, z * 0.012 + 2.8, 3, SEED + 35));
+  const lo = mix(0.07, 0.1, sheer);
+  const t = clamp01((foot - lo) / (mix(0.56, 0.5, sheer) - lo));
+  // A cliff rises straight from deep water; a slope drops steeply under water but comes down to the
+  // shore gently (a cove's beach of rock and shingle).
+  const outer = mix(1 - (1 - t) ** 2.6, t * t * (3 - 2 * t), sheer);
+  return mix(inland, outer, seaward);
+}
+
+/**
+ * Rock relief on the ridge's seaward side (`blend` from `ridgeFootBlend`): buttresses, gullies,
+ * ledges and knobs of rock from the water's edge to half way up, so the face isn't one smooth sheet.
+ */
+function ridgeCoastRelief(x: number, z: number, blend: number, ridgeFoot: number): number {
+  const band = smoothstep(0.03, 0.3, blend) * (1 - smoothstep(0.5, 0.8, ridgeFoot));
+  if (band <= 0) return 0;
+  const buttress = (ridged2(x * 0.035, z * 0.035, 3, SEED + 36) - 0.4) * 6;
+  const ledges = (ridged2(x * 0.09 + 5.1, z * 0.09 - 2.3, 2, SEED + 38) - 0.4) * 3;
+  return (buttress + ledges + fbm2(x * 0.2, z * 0.2, 2, SEED + 37) * 1.2) * band;
+}
+
 /** The island before its fresh water is carved in (the water's levels are taken from it). */
 export function meridianHeightDry(x: number, z: number): number {
   const coast = ellipseDistance(x, z);
@@ -358,21 +422,10 @@ export function meridianHeightDry(x: number, z: number): number {
       ((z - MERIDIAN.ridge.center.z) / MERIDIAN.ridge.halfZ) ** 2
     ),
   );
-  // Off the island's own coast, the ridge's seaward feet (its north side and north-east end; not the
-  // beach under its west end or the sea caves) slope on down into deep water, a sea cliff over a
-  // steep, broad foot, rather than dropping 90 m in a few metres.
-  const { ridge } = MERIDIAN;
-  const seawardFoot =
-    smoothstep(0.012, 0.25, ridgeFoot) *
-    smoothstep(-10, -40, coast.distance) *
-    smoothstep(ridge.center.x - ridge.halfX * 1.3, ridge.center.x - ridge.halfX * 0.9, x) *
-    smoothstep(ridge.center.z + ridge.halfZ * 0.6, ridge.center.z + ridge.halfZ * 0.2, z);
-  const ridgeBlend = Math.max(
-    smoothstep(-12, 22, coast.distance),
-    smoothstep(0.08, 0.25, ridgeFoot),
-    seawardFoot,
-  );
+  const seaward = ridgeSeaward(x, z, coast.distance);
+  const ridgeBlend = Math.max(smoothstep(-12, 22, coast.distance), ridgeFootBlend(x, z, ridgeFoot, seaward));
   h = mix(h, ridgeHeight(x, z, h), ridgeBlend);
+  if (seaward > 0) h += ridgeCoastRelief(x, z, ridgeBlend, ridgeFoot) * seaward;
   h = liftClearanceHeight(x, z, h);
   // Last, the ground under the quay and east-arm paving (edges included) stays inside the slab:
   // the plaza pad's feather, the town ramp and the hill behind would otherwise rise through it.
@@ -569,6 +622,29 @@ const rockScale = new Vector3();
 const rockNormal = new Float32Array(3);
 const ROCK_MOLE_COUNT = 14;
 const ROCK_COAST_COUNT = 20;
+/** Per rock asset, round the foot of the ridge's sea cliffs (`ridgeFootRock`). */
+const ROCK_FOOT_COUNT = 12;
+const ROCK_COUNT = ROCK_MOLE_COUNT + ROCK_COAST_COUNT + ROCK_FOOT_COUNT;
+const footRockAt = { x: 0, z: 0 };
+
+/**
+ * Where foot rock `j` of asset `assetIndex` sits: on the ridge's seaward shore (its north side and
+ * north-east end), found by walking out from the crest until the ground comes down to the water, so
+ * the rock lies half in the surf at the cliff's foot.
+ */
+function ridgeFootRock(assetIndex: number, j: number, heightField: HeightField): typeof footRockAt {
+  const { ridge } = MERIDIAN;
+  const seed = 700 + assetIndex * 131 + j * 17;
+  const a = -2.75 + ((j + assetIndex / 3 + (rand(seed) - 0.5) * 0.8) / ROCK_FOOT_COUNT) * 3.05;
+  const ux = Math.cos(a) * ridge.halfX;
+  const uz = Math.sin(a) * ridge.halfZ;
+  const step = 0.5 / Math.hypot(ux, uz);
+  let k = 0.7;
+  while (k < 2.2 && heightField.heightAt(ridge.center.x + ux * k, ridge.center.z + uz * k) > 0.8) k += step;
+  footRockAt.x = ridge.center.x + ux * k;
+  footRockAt.z = ridge.center.z + uz * k;
+  return footRockAt;
+}
 
 /** Where coastal rock `i` of asset `assetIndex` sits (scaled to nothing where it would be in fresh water). */
 function meridianRockMatrix(
@@ -598,6 +674,9 @@ function meridianRockMatrix(
     x = MERIDIAN.mole.start.x + dx * t + sx * offset + (rand(seed + 2) - 0.5) * 3.5;
     z = MERIDIAN.mole.start.z + dz * t + sz * offset + (rand(seed + 3) - 0.5) * 3.5;
     s = 2.9 + rand(seed + 4) * 4.9;
+  } else if (i >= moleCount + ROCK_COAST_COUNT) {
+    s = 3.5 + rand(seed + 4) * 4;
+    ({ x, z } = ridgeFootRock(assetIndex, i - moleCount - ROCK_COAST_COUNT, heightField));
   } else {
     const j = i - moleCount;
     const a = -0.92 + rand(seed) * 1.25;
@@ -626,10 +705,41 @@ export function meridianRockCameraBlockers(heightField: HeightField): CameraBloc
   const out: CameraBlockerBox[] = [];
   const matrix = new Matrix4();
   for (let assetIndex = 0; assetIndex < 3; assetIndex++)
-    for (let i = 0; i < ROCK_MOLE_COUNT + ROCK_COAST_COUNT; i++) {
+    for (let i = 0; i < ROCK_COUNT; i++) {
       meridianRockMatrix(assetIndex, i, heightField, matrix);
       if (rockScale.x > 0) meshCameraBlockers(ROCK_ASSETS[assetIndex].positions, matrix, out);
     }
+  return out;
+}
+
+/** From this far under the water (a brigantine's draft, with a margin) to this far above it. */
+const SHIP_ROCK_BAND = { below: -3.2, above: 0.8 } as const;
+const rockVertex = new Vector3();
+
+/**
+ * Ship obstacles for the rocks at the foot of the ridge's sea cliffs: one circle per rock, round its
+ * footprint at the waterline (every vertex from a hull's draft below the water to just above it),
+ * so a hull can't sail into them. A rock that doesn't reach that band (high on the shore) has none.
+ */
+export function meridianRockShipObstacles(heightField: HeightField): CircleObstacle[] {
+  const out: CircleObstacle[] = [];
+  const matrix = new Matrix4();
+  for (let assetIndex = 0; assetIndex < 3; assetIndex++) {
+    const positions = ROCK_ASSETS[assetIndex].positions;
+    for (let i = ROCK_MOLE_COUNT + ROCK_COAST_COUNT; i < ROCK_COUNT; i++) {
+      meridianRockMatrix(assetIndex, i, heightField, matrix);
+      if (rockScale.x <= 0) continue;
+      const cx = rockPosition.x;
+      const cz = rockPosition.z;
+      let r = 0;
+      for (let v = 0; v < positions.length; v += 3) {
+        rockVertex.set(positions[v]!, positions[v + 1]!, positions[v + 2]!).applyMatrix4(matrix);
+        if (rockVertex.y < SHIP_ROCK_BAND.below || rockVertex.y > SHIP_ROCK_BAND.above) continue;
+        r = Math.max(r, Math.hypot(rockVertex.x - cx, rockVertex.z - cz));
+      }
+      if (r > 0) out.push({ x: cx, z: cz, r });
+    }
+  }
   return out;
 }
 
@@ -640,7 +750,7 @@ export function createMeridianRocks(heightField: HeightField): Group {
   const matrix = new Matrix4();
   for (let assetIndex = 0; assetIndex < 3; assetIndex++) {
     const asset = ROCK_ASSETS[assetIndex];
-    const instances = ROCK_MOLE_COUNT + ROCK_COAST_COUNT;
+    const instances = ROCK_COUNT;
     const geometry = new BufferGeometry();
     geometry.setAttribute('position', new BufferAttribute(asset.positions, 3));
     geometry.setAttribute('normal', new BufferAttribute(asset.normals, 3));

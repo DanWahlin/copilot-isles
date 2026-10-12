@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { MERIDIAN, meridianHeight, meridianMasks } from './meridian';
+import type { CircleObstacle, WaveSampler } from '../contracts';
+import { ShipDynamics } from '../ship/dynamics';
+import { BERTH_APPROACH } from '../sites/helms-logic';
+import { MERIDIAN, meridianHeight, meridianMasks, meridianRockShipObstacles } from './meridian';
+import { MERIDIAN_HEIGHT_FIELD } from './meridian-plants';
 
 describe('Port Meridian terrain', () => {
   it('keeps named district pads flat enough for future town placement', () => {
@@ -81,6 +85,26 @@ describe('Port Meridian terrain', () => {
     for (let x = minX; x <= maxX; x += 4) expect(meridianHeight(x, minZ + 30)).toBeLessThan(-3);
   });
 
+  it("gives the ridge's seaward foot a varied, rocky coast (cliffs, slopes, headlands and bays)", () => {
+    // Walk round the ridge's north side and north-east end: where the ground meets the sea, and how
+    // high it stands 12 m back from the water. One smooth band would keep both nearly the same.
+    const { center, halfX, halfZ } = MERIDIAN.ridge;
+    const reach: number[] = [];
+    const cliff: number[] = [];
+    for (let a = -2.6; a <= 0.1; a += 0.1) {
+      const ux = Math.cos(a) * halfX;
+      const uz = Math.sin(a) * halfZ;
+      const len = Math.hypot(ux, uz);
+      let k = 0.6;
+      while (meridianHeight(center.x + ux * k, center.z + uz * k) > 0) k += 0.5 / len;
+      reach.push(k);
+      cliff.push(meridianHeight(center.x + ux * (k - 12 / len), center.z + uz * (k - 12 / len)));
+    }
+    expect(Math.max(...reach) - Math.min(...reach)).toBeGreaterThan(0.3);
+    expect(Math.min(...cliff)).toBeLessThan(20);
+    expect(Math.max(...cliff)).toBeGreaterThan(40);
+  });
+
   it('returns normalized material masks', () => {
     for (const [x, z] of [
       [MERIDIAN.pads.plaza.x, MERIDIAN.pads.plaza.z],
@@ -91,6 +115,95 @@ describe('Port Meridian terrain', () => {
       const sum = masks.sand + masks.grass + masks.rock + masks.cliff;
       expect(sum).toBeGreaterThan(0.99);
       expect(sum).toBeLessThan(1.01);
+    }
+  });
+});
+
+describe("Port Meridian's foot rocks as ship obstacles", () => {
+  const rocks = meridianRockShipObstacles(MERIDIAN_HEIGHT_FIELD);
+  const calm: WaveSampler = {
+    heightAt: () => 0,
+    velocityAt: (_x, _z, _t, out) => {
+      out[0] = 0;
+      out[1] = 0;
+      return out;
+    },
+  };
+  /** Steps the ship; returns how far its hull reached into `target` (or any rock) and the seconds. */
+  const run = (
+    ship: ShipDynamics,
+    obstacles: CircleObstacle[],
+    seconds: number,
+    trim: number,
+    target?: CircleObstacle,
+  ) => {
+    const env = { waves: calm, ground: MERIDIAN_HEIGHT_FIELD, obstacles, t: 0 };
+    let worst = -Infinity;
+    let i = 0;
+    for (; i < seconds * 60 && !ship.dockComplete; i++) {
+      env.t += 1 / 60;
+      ship.step(1 / 60, { trim, rudder: 0 }, env);
+      const s = Math.sin(ship.pose.heading);
+      const c = Math.cos(ship.pose.heading);
+      for (const cap of ship.capsules)
+        for (const o of target ? [target] : rocks) {
+          const d = Math.hypot(ship.pose.x + s * cap.z - o.x, ship.pose.z + c * cap.z - o.z);
+          worst = Math.max(worst, cap.radius + o.r - d);
+        }
+    }
+    return { worst, seconds: i / 60 };
+  };
+
+  it('gives every rock at the foot of the sea cliffs a waterline footprint', () => {
+    expect(rocks).toHaveLength(36);
+    for (const o of rocks) {
+      expect(o.r).toBeGreaterThan(2);
+      expect(o.r).toBeLessThan(10);
+    }
+  });
+
+  it('stops a ship under full sail at each rock, bow first from the open sea', () => {
+    const { center } = MERIDIAN.ridge;
+    const problems: string[] = [];
+    for (const rock of rocks) {
+      const dx = rock.x - center.x;
+      const dz = rock.z - center.z;
+      const len = Math.hypot(dx, dz);
+      const ship = new ShipDynamics(rock.x + (dx / len) * 45, rock.z + (dz / len) * 45, Math.atan2(-dx, -dz));
+      const { worst } = run(ship, rocks, 14, 1, rock);
+      // A pointed bow can nose about half a metre into a circle before it's pushed back out.
+      if (worst >= 0.75)
+        problems.push(`rock at ${rock.x.toFixed(1)}, ${rock.z.toFixed(1)}: ${worst.toFixed(2)} m`);
+    }
+    expect(problems).toEqual([]);
+  });
+
+  it('stays far from the harbour, its mouth and the way in, so docking is just the same', () => {
+    const { berth } = MERIDIAN.harbor;
+    const starts: [number, number, number][] = [
+      [BERTH_APPROACH.x, BERTH_APPROACH.z, Math.PI],
+      [741.5, -704, 0.1],
+      [746.5, -726, 0],
+      [735, -690, Math.PI],
+    ];
+    for (const o of rocks) {
+      for (const [x, z] of [
+        ...starts,
+        [berth.x, berth.z],
+        [MERIDIAN.mole.lighthouse.x, MERIDIAN.mole.lighthouse.z],
+      ])
+        expect(Math.hypot(o.x - x!, o.z - z!)).toBeGreaterThan(300);
+    }
+    // The dock assist from each of the town tests' four starts takes the same time with the rocks.
+    for (const [x, z, heading] of starts) {
+      const free = new ShipDynamics(x, z, heading);
+      free.dockAssist(berth);
+      const withRocks = new ShipDynamics(x, z, heading);
+      withRocks.dockAssist(berth);
+      const a = run(free, [], 60, 0);
+      const b = run(withRocks, rocks, 60, 0);
+      expect(withRocks.dockComplete).toBe(free.dockComplete);
+      expect(b.seconds).toBe(a.seconds);
     }
   });
 });

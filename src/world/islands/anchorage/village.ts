@@ -650,6 +650,19 @@ function addBuilding(
     });
   }
   if (spec.anchor) anchors[spec.anchor] = houseDoorAnchor(house);
+  if (spec.id === 'chandlery') {
+    // The kit's ledge and post at the front-left corner stand 0.5 m past the façade blocker.
+    const c = localToWorld(spec.x, spec.z, spec.rot, -footprint.w * 0.45, -footprint.d * 0.5 - 0.35);
+    cameraBlockers.push({
+      x: c.x,
+      z: c.z,
+      hx: 0.75,
+      hz: 0.42,
+      rot: spec.rot,
+      y0: baseY + 0.9,
+      y1: baseY + 1.9,
+    });
+  }
   const stairs = houseStairsSpan(house);
   if (stairs) stairSpans.push(stairs);
 }
@@ -1577,6 +1590,8 @@ function addPlaza(
     const by = walkable(bx, bz) ?? heightField.heightAt(bx, bz);
     addBox(buckets.wood, bx, by + 0.05, bz, 2.6, 0.22, 0.72, r, 0x6f4d31);
     addBox(buckets.wood, bx, by + 0.55, bz + 0.27, 2.6, 0.72, 0.12, r, 0x5e4129);
+    // Camera only (you walk past it): the seat and its back.
+    cameraBlockers.push({ x: bx, z: bz, hx: 1.33, hz: 0.4, rot: r, y0: by, y1: by + 1.3 });
   }
   return water;
 }
@@ -1838,6 +1853,7 @@ function addRoundSquare(
     addLampBracket(buckets, x, y, z, side);
     addLanternFixture(buckets, x + side * 0.92, y + 1.68, z, 0, 1);
     colliders.circles.push({ x, z, r: 0.38 });
+    addLampHeadBlocker(x, y, z, side);
   }
 }
 
@@ -3132,7 +3148,13 @@ function addLanterns(
     addLampBracket(buckets, x, y, z, side);
     addLanternFixture(buckets, x + side * 0.92, y + 1.68, z, 0, 1);
     colliders.circles.push({ x, z, r: 0.38 });
+    addLampHeadBlocker(x, y, z, side);
   }
+}
+
+/** The lamp's arm, brace and lantern, for the camera (the post's circle stops at the post). */
+function addLampHeadBlocker(x: number, y: number, z: number, side: -1 | 1): void {
+  cameraBlockers.push({ x: x + side * 0.55, z, hx: 0.6, hz: 0.22, rot: 0, y0: y + 1.65, y1: y + 2.5 });
 }
 
 function addLampBracket(

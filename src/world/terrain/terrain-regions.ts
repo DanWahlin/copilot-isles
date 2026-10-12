@@ -12,6 +12,10 @@ export interface TerrainRegionContext {
   readonly y: AnyNode;
   /** The baked grass mask (0-1). */
   readonly grassMask: AnyNode;
+  /** The ground normal's up component (1 flat, 0 sheer). */
+  readonly up: AnyNode;
+  /** A broad 0-1 noise (features tens of metres across) that doesn't stretch on steep faces. */
+  readonly noise: AnyNode;
   /** Drawn small on the opening's chart (masks may reach farther there). */
   readonly miniature: boolean;
 }

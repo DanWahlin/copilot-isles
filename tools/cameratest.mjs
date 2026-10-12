@@ -368,8 +368,10 @@ const clusters = await page.evaluate(async (cfg) => {
   // ---- Spots.
   const free = (x, z, y) => {
     const p = { x, z };
-    world.pushOut(p, T.radius, y);
-    return Math.hypot(p.x - x, p.z - z) < 0.03;
+    // Any hit rejects the spot: between two overlapping boxes, pushOut can bounce a point back
+    // to where it started, so "didn't move" alone accepts spots inside solid buildings.
+    const hit = world.pushOut(p, T.radius, y);
+    return !hit && Math.hypot(p.x - x, p.z - z) < 0.03;
   };
   const standable = (x, z) => {
     const g = world.groundAt(x, z);
