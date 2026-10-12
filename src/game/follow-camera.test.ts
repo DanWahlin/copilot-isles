@@ -123,6 +123,46 @@ describe('FollowCamera clearance', () => {
     expect(clear).toBe(true);
   });
 
+  it('ducks under a low span over your head instead of sitting in it (a lamp head)', () => {
+    // A lamp's arm and lantern just over the pivot (1.55 m), and a pitch looking steeply down.
+    for (const y0 of [1.65, 1.4]) {
+      const w = world({});
+      const lamp = { x: 0.55, z: 0, hx: 0.6, hz: 0.22, rot: 0, y0, y1: y0 + 0.85 };
+      w.addCameraBox(lamp);
+      const cam = new FollowCamera();
+      const three = new PerspectiveCamera();
+      cam.pitch = 1.25;
+      for (let t = 0; t < 3; t += 1 / 60) {
+        cam.update(1 / 60, three, still, target, 0, false, w, t);
+        const p = three.position;
+        const inside = Math.abs(p.x - lamp.x) <= lamp.hx && Math.abs(p.z) <= lamp.hz && p.y >= y0 - 0.1;
+        expect(inside).toBe(false);
+        expect(Number.isFinite(p.y)).toBe(true);
+      }
+      expect(three.position.y).toBeLessThan(y0 - 0.1);
+      expect(three.position.y).toBeGreaterThan(0.9);
+    }
+  });
+
+  it('rises back to the usual pivot once you walk out from under a span', () => {
+    const w = world({});
+    w.addCameraBox({ x: 0.55, z: 0, hx: 0.6, hz: 0.22, rot: 0, y0: 1.65, y1: 2.5 });
+    const cam = new FollowCamera();
+    const three = new PerspectiveCamera();
+    const away = { x: 10, y: 0, z: 0 };
+    for (let t = 0; t < 1; t += 1 / 60) cam.update(1 / 60, three, still, target, 0, false, w, t);
+    const ducked = three.position.y;
+    let last = ducked;
+    for (let t = 0; t < 4; t += 1 / 60) {
+      cam.update(1 / 60, three, still, away, 0, false, w, t);
+      // No jump up: the pivot eases back.
+      expect(three.position.y - last).toBeLessThan(0.12);
+      last = three.position.y;
+    }
+    expect(three.position.y).toBeCloseTo(1.55 + 6.2 * Math.sin(0.32), 1);
+    expect(three.position.y).toBeGreaterThan(ducked);
+  });
+
   it('keeps above a cliff top behind you', () => {
     const cliff = { ...flat, heightAt: (_x: number, z: number) => (z < -3 ? 4 : 0) };
     const p = settle(new CollisionWorld({ ground: cliff, waves: lowSea }));

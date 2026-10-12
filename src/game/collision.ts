@@ -48,6 +48,8 @@ const PIVOT_PAD = 0.35;
 /** Boxes this tall (m) or more are buildings, whose roofs can rise over their `height` (see cameraBlockedAt). */
 const ROOF_MIN = 2.5;
 const ROOF_PITCH = 0.8;
+/** How far under a span's pad `cameraCeilingAt` puts the pivot, so the pad tests see it outside. */
+const CEIL_GAP = 0.01;
 
 /**
  * Static collision for walking (Phase 0 S6): terrain + man-made surfaces for ground height, and
@@ -250,6 +252,63 @@ export class CollisionWorld {
     for (const c of this.cameraDynamic)
       if (this.cameraCircleBlocks(c, x, y, z, pad, thin, px, py, pz)) return true;
     return false;
+  }
+
+  /**
+   * How low the camera's pivot at (x, z) must sit, at most `y`, to keep `pad` under every collider
+   * with a span (`y0`/`y1`) over it: a lamp head, an awning, a balcony, a lintel. Colliders whose
+   * underside comes within `pad` of `floor` or lower (a rock or a cliff the player walks through)
+   * are left to `cameraBlockedAt`'s pivot rule.
+   */
+  cameraCeilingAt(x: number, y: number, z: number, pad: number, floor: number): number {
+    const b = this.cellAt(x, z) ?? NO_BUCKET;
+    const k = this.cameraGrid.get(this.key(Math.floor(x / CELL), Math.floor(z / CELL))) ?? NO_BUCKET;
+    let top = y;
+    // A few passes, for a lower span that the first drop reaches (a lantern under its arm).
+    for (let pass = 0; pass < 4; pass++) {
+      const was = top;
+      top = this.ceilingBoxes(b.boxes, x, top, z, pad, floor);
+      top = this.ceilingBoxes(k.boxes, x, top, z, pad, floor);
+      top = this.ceilingCircles(b.circles, x, top, z, pad, floor);
+      top = this.ceilingCircles(k.circles, x, top, z, pad, floor);
+      top = this.ceilingCircles(this.cameraDynamic, x, top, z, pad, floor);
+      if (top === was) break;
+    }
+    return top;
+  }
+
+  private ceilingBoxes(
+    list: BoxCollider[],
+    x: number,
+    y: number,
+    z: number,
+    pad: number,
+    floor: number,
+  ): number {
+    for (const box of list) {
+      if (box.y1 === undefined || box.y0 === undefined || box.y0 - pad <= floor) continue;
+      if (y < box.y0 - pad || y > box.y1 + pad) continue;
+      const [lx, lz] = toLocal(box, x, z);
+      if (Math.abs(lx) - box.hx <= pad && Math.abs(lz) - box.hz <= pad) y = box.y0 - pad - CEIL_GAP;
+    }
+    return y;
+  }
+
+  private ceilingCircles(
+    list: CircleObstacle[],
+    x: number,
+    y: number,
+    z: number,
+    pad: number,
+    floor: number,
+  ): number {
+    for (const c of list) {
+      if (c.y1 === undefined || c.y0 === undefined || c.y0 - pad <= floor) continue;
+      if (y < c.y0 - pad || y > c.y1 + pad) continue;
+      const r = c.r + pad;
+      if ((x - c.x) ** 2 + (z - c.z) ** 2 < r * r) y = c.y0 - pad - CEIL_GAP;
+    }
+    return y;
   }
 
   /**

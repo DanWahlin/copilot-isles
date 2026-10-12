@@ -27,7 +27,7 @@ import {
   stationProfile,
   type CliffStation,
 } from './headland-cliff-shape';
-import { meshCameraBlockers, type CameraBlockerBox } from './camera-blockers';
+import type { CameraBlockerBox } from './camera-blockers';
 
 /** Mesh density per tier: station spacing along the cliff and row spacing up it (m), and loose blocks. */
 export interface CliffDetail {
@@ -459,6 +459,47 @@ export function buildHeadlandCliffGeometry(
  * The same cliff, yielding while it moves the face clear of the drawn ground (`cover`: the game's
  * cliff; the chart's miniature skips it).
  */
+/** How many rows of quads the cliff's face has, from the seabed up to the highest lip. */
+function cliffFaceRows(frame: ReturnType<typeof headlandCliffFrame>, detail: CliffDetail): number {
+  let maxLip = 0;
+  for (const st of frame.stations) maxLip = Math.max(maxLip, st.lipY);
+  return Math.max(4, Math.ceil((maxLip - HEADLAND_CLIFF_BASE_Y) / detail.rowStep));
+}
+
+/**
+ * One column of the cliff mesh at station `st`: each row's height (`ys`) and distance out along the
+ * station's normal (`ds`). Rows 0..faceRows are the face, from the seabed up to the lip; the next row
+ * rolls back over the edge (out over the cave buttress, which has a flat, planted top) and the last
+ * tucks under the clifftop. The mesh and its camera blockers both build from this.
+ */
+function cliffColumn(
+  frame: ReturnType<typeof headlandCliffFrame>,
+  st: CliffStation,
+  profile: Float32Array,
+  faceRows: number,
+  ys: Float32Array,
+  ds: Float32Array,
+): void {
+  stationProfile(frame.heightAt, st, profile);
+  for (let j = 0; j <= faceRows; j++) {
+    ys[j] = HEADLAND_CLIFF_BASE_Y + (st.lipY - HEADLAND_CLIFF_BASE_Y) * (j / faceRows);
+    ds[j] = profileCrossing(profile, ys[j]!);
+  }
+  // Under the seabed the crossing runs off seaward; keep the foot steep instead.
+  for (let j = faceRows - 1; j >= 0; j--) {
+    ds[j] = Math.min(ds[j]!, ds[j + 1]! + (ys[j + 1]! - ys[j]!) * TOE_SPREAD);
+  }
+  const top = ds[faceRows]!;
+  for (let j = 0; j <= faceRows; j++) ds[j] = ds[j]! + cliffOffset(frame, st.s, ys[j]!, st.lipY, st.strength);
+  const k = st.strength;
+  const roll = faceRows + 1;
+  ds[roll] = top + (0.35 + caveBulge(frame, st.s) * HEADLAND_CAVE_BULGE) * k - 0.9 * (1 - k);
+  ys[roll] = st.lipY + 0.3 * k - 0.6 * (1 - k);
+  ds[roll + 1] = top - 3.5;
+  const inland = frame.heightAt(st.x + st.nx * ds[roll + 1]!, st.z + st.nz * ds[roll + 1]!);
+  ys[roll + 1] = Math.min(st.lipY, inland) - 0.8;
+}
+
 function* headlandCliffGeometrySteps(
   heightField: Pick<HeightField, 'heightAt' | 'shapeField'>,
   detail: CliffDetail,
@@ -468,9 +509,7 @@ function* headlandCliffGeometrySteps(
   const frame = headlandCliffFrame(heightField);
   if (frame.stations.length < 2) return null;
   const columns = Math.max(2, Math.round(frame.length / detail.spacing));
-  let maxLip = 0;
-  for (const st of frame.stations) maxLip = Math.max(maxLip, st.lipY);
-  const faceRows = Math.max(4, Math.ceil((maxLip - HEADLAND_CLIFF_BASE_Y) / detail.rowStep));
+  const faceRows = cliffFaceRows(frame, detail);
   const rows = faceRows + 3;
   const gridCount = (columns + 1) * rows;
   const profile = new Float32Array(PROFILE_SAMPLES);
@@ -481,8 +520,8 @@ function* headlandCliffGeometrySteps(
   const uvs = new Float32Array(vertexCount * 2);
   const karst = new Float32Array(vertexCount * 4);
   const shelf = new Float32Array(gridCount);
-  const ds = new Float32Array(faceRows + 1);
-  const ys = new Float32Array(faceRows + 1);
+  const ds = new Float32Array(rows);
+  const ys = new Float32Array(rows);
   const st: CliffStation = { ...frame.stations[0]! };
   const columnNormal = new Float32Array((columns + 1) * 2);
   const columnStrength = new Float32Array(columns + 1);
@@ -493,41 +532,18 @@ function* headlandCliffGeometrySteps(
     columnNormal[c * 2] = st.nx;
     columnNormal[c * 2 + 1] = st.nz;
     columnStrength[c] = st.strength;
-    stationProfile(frame.heightAt, st, profile);
-    for (let j = 0; j <= faceRows; j++) {
-      ys[j] = HEADLAND_CLIFF_BASE_Y + (st.lipY - HEADLAND_CLIFF_BASE_Y) * (j / faceRows);
-      ds[j] = profileCrossing(profile, ys[j]!);
-    }
-    // Under the seabed the crossing runs off seaward; keep the foot steep instead.
-    for (let j = faceRows - 1; j >= 0; j--) {
-      ds[j] = Math.min(ds[j]!, ds[j + 1]! + (ys[j + 1]! - ys[j]!) * TOE_SPREAD);
-    }
+    cliffColumn(frame, st, profile, faceRows, ys, ds);
     const base = c * rows;
     const u = s * U_PER_METRE;
-    for (let j = 0; j <= faceRows; j++) {
-      const d = ds[j]! + cliffOffset(frame, s, ys[j]!, st.lipY, st.strength);
+    for (let j = 0; j < rows; j++) {
       const v = base + j;
-      pos[v * 3] = st.x + st.nx * d;
+      pos[v * 3] = st.x + st.nx * ds[j]!;
       pos[v * 3 + 1] = ys[j]!;
-      pos[v * 3 + 2] = st.z + st.nz * d;
+      pos[v * 3 + 2] = st.z + st.nz * ds[j]!;
       uvs[v * 2] = u;
       uvs[v * 2 + 1] = ys[j]!;
     }
-    // Roll back over the edge (out over the cave buttress, which has a flat, planted top) and tuck under.
-    const top = ds[faceRows]!;
     const k = st.strength;
-    const bulge = caveBulge(frame, s) * HEADLAND_CAVE_BULGE;
-    const rollD = [top + (0.35 + bulge) * k - 0.9 * (1 - k), top - 3.5];
-    const inland = frame.heightAt(st.x + st.nx * rollD[1]!, st.z + st.nz * rollD[1]!);
-    const rollY = [st.lipY + 0.3 * k - 0.6 * (1 - k), Math.min(st.lipY, inland) - 0.8];
-    for (let r = 0; r < 2; r++) {
-      const v = base + faceRows + 1 + r;
-      pos[v * 3] = st.x + st.nx * rollD[r]!;
-      pos[v * 3 + 1] = rollY[r]!;
-      pos[v * 3 + 2] = st.z + st.nz * rollD[r]!;
-      uvs[v * 2] = u;
-      uvs[v * 2 + 1] = rollY[r]!;
-    }
 
     // Cavity AO and run-off: look up the column for overhangs (the visor, ledge lips, the cave roof).
     // Run-off streaks are accents here (a cliff this long, streaked like the stack, reads charcoal).
@@ -676,6 +692,176 @@ export function* createHeadlandCliff(
 const BLOCKER_SPACING = 2;
 const BLOCKER_BAND = 1.6;
 const BLOCKER_SAMPLES = 5;
+/** Slice height (m) of a fallen block's or an outcrop's stack of camera blockers. */
+const ROCK_BLOCKER_SLICE = 0.5;
+// Mesh points less than this (m) above the ground get no camera blocker: the camera's ground test holds them.
+const BLOCKER_CLEAR = 0.1;
+// Rock blockers: surface points about this far apart (m), strips this wide, and yaws tried per slice.
+const ROCK_SAMPLE = 0.3;
+const ROCK_STRIP = 0.5;
+const ROCK_FIT_ANGLES = 12;
+// The clifftop strip's triangles between two columns (0 = this column, 1 = the next) as (column, row)
+// pairs, rows 0 = roll and 1 = tuck; both diagonals of the quad.
+const STRIP_TRIANGLES: readonly (readonly [number, number, number, number, number, number])[] = [
+  [0, 0, 1, 0, 0, 1],
+  [1, 0, 1, 1, 0, 1],
+  [0, 0, 1, 0, 1, 1],
+  [0, 0, 1, 1, 0, 1],
+];
+const STRIP_GRID = 8;
+
+/**
+ * A rock's stack of camera blockers in `ROCK_BLOCKER_SLICE` m slices. Thin slices follow the rock's
+ * taper, so the stack stays off a player who stands beside a low outcrop: a box that holds the
+ * pivot too doesn't count. Where the mesh's edges cross a slice's top and bottom is added to the
+ * points, so a slice between two rings of vertices still holds the whole surface. Slices under the
+ * ground round the rock (or under -0.5 m) are left to the ground test.
+ */
+function rockCameraBlockers(
+  part: BlockPart,
+  heightAt: (x: number, z: number) => number,
+  out: CameraBlockerBox[],
+): void {
+  const pos = part.pos,
+    idx = part.idx;
+  let yMin = Infinity,
+    yMax = -Infinity,
+    ground = Infinity;
+  for (let i = 0; i < pos.length; i += 3) {
+    yMin = Math.min(yMin, pos[i + 1]!);
+    yMax = Math.max(yMax, pos[i + 1]!);
+    ground = Math.min(ground, heightAt(pos[i]!, pos[i + 2]!));
+  }
+  const bands = Math.max(2, Math.ceil((yMax - yMin) / ROCK_BLOCKER_SLICE));
+  const step = (yMax - yMin) / bands;
+  // Points on the whole surface about ROCK_SAMPLE apart: on each triangle, and along where it crosses
+  // each slice's planes, so every slice sees its own outline.
+  const pts: number[] = [];
+  for (let t = 0; t + 2 < idx.length; t += 3) {
+    const a = idx[t]! * 3,
+      b = idx[t + 1]! * 3,
+      c = idx[t + 2]! * 3;
+    const edge = Math.max(
+      Math.hypot(pos[b]! - pos[a]!, pos[b + 1]! - pos[a + 1]!, pos[b + 2]! - pos[a + 2]!),
+      Math.hypot(pos[c]! - pos[b]!, pos[c + 1]! - pos[b + 1]!, pos[c + 2]! - pos[b + 2]!),
+      Math.hypot(pos[a]! - pos[c]!, pos[a + 1]! - pos[c + 1]!, pos[a + 2]! - pos[c + 2]!),
+    );
+    const n = Math.min(16, Math.max(1, Math.ceil(edge / ROCK_SAMPLE)));
+    for (let u = 0; u <= n; u++)
+      for (let v = 0; u + v <= n; v++) {
+        const wb = u / n,
+          wc = v / n,
+          wa = 1 - wb - wc;
+        for (let k = 0; k < 3; k++) pts.push(wa * pos[a + k]! + wb * pos[b + k]! + wc * pos[c + k]!);
+      }
+    for (let k = 1; k < bands; k++) {
+      const y = yMin + step * k;
+      let found = 0,
+        x0 = 0,
+        z0 = 0;
+      for (let e = 0; e < 3; e++) {
+        const p = idx[t + e]! * 3,
+          q = idx[t + ((e + 1) % 3)]! * 3;
+        const yp = pos[p + 1]!,
+          yq = pos[q + 1]!;
+        if (yp < y === yq < y) continue;
+        const f = (y - yp) / (yq - yp);
+        const x = pos[p]! + (pos[q]! - pos[p]!) * f,
+          z = pos[p + 2]! + (pos[q + 2]! - pos[p + 2]!) * f;
+        if (found++ === 0) {
+          x0 = x;
+          z0 = z;
+          continue;
+        }
+        const m = Math.max(1, Math.ceil(Math.hypot(x - x0, z - z0) / ROCK_SAMPLE));
+        for (let j = 0; j <= m; j++) pts.push(x0 + ((x - x0) * j) / m, y, z0 + ((z - z0) * j) / m);
+      }
+    }
+  }
+  const minTop = Math.max(-0.5, ground - 0.05);
+  for (let band = 0; band < bands; band++) {
+    const y0 = yMin + step * band,
+      y1 = band === bands - 1 ? yMax : y0 + step;
+    if (y1 < minTop) continue;
+    // The smallest yawed rectangle round the slice's points.
+    let best = Infinity,
+      rot = 0,
+      lx0 = 0,
+      lx1 = 0,
+      lz0 = 0,
+      lz1 = 0;
+    for (let k = 0; k < ROCK_FIT_ANGLES; k++) {
+      const r = (k / ROCK_FIT_ANGLES) * (Math.PI / 2);
+      const c = Math.cos(r),
+        s = Math.sin(r);
+      let x0 = Infinity,
+        x1 = -Infinity,
+        z0 = Infinity,
+        z1 = -Infinity;
+      for (let i = 0; i < pts.length; i += 3) {
+        const y = pts[i + 1]!;
+        if (y < y0 - 1e-4 || y > y1 + 1e-4) continue;
+        // The collision world's toLocal: lx = x cos − z sin, lz = x sin + z cos.
+        const lx = pts[i]! * c - pts[i + 2]! * s,
+          lz = pts[i]! * s + pts[i + 2]! * c;
+        x0 = Math.min(x0, lx);
+        x1 = Math.max(x1, lx);
+        z0 = Math.min(z0, lz);
+        z1 = Math.max(z1, lz);
+      }
+      if (!(x1 >= x0)) break;
+      if ((x1 - x0) * (z1 - z0) >= best) continue;
+      best = (x1 - x0) * (z1 - z0);
+      rot = r;
+      lx0 = x0;
+      lx1 = x1;
+      lz0 = z0;
+      lz1 = z1;
+    }
+    if (best === Infinity) continue;
+    // Cut it into strips across its long side, each as wide as the rock is there: a round rock's slice
+    // isn't a rectangle, and a player standing by its corner mustn't be inside the box (the camera
+    // ignores a box that holds its pivot).
+    const c = Math.cos(rot),
+      s = Math.sin(rot);
+    const alongX = lx1 - lx0 >= lz1 - lz0;
+    const u0 = alongX ? lx0 : lz0,
+      u1 = alongX ? lx1 : lz1;
+    const strips = Math.max(1, Math.round((u1 - u0) / ROCK_STRIP));
+    const w = (u1 - u0) / strips;
+    for (let k = 0; k < strips; k++) {
+      const a = u0 + w * k,
+        b = a + w;
+      let v0 = Infinity,
+        v1 = -Infinity;
+      for (let i = 0; i < pts.length; i += 3) {
+        const y = pts[i + 1]!;
+        if (y < y0 - 1e-4 || y > y1 + 1e-4) continue;
+        const lx = pts[i]! * c - pts[i + 2]! * s,
+          lz = pts[i]! * s + pts[i + 2]! * c;
+        const u = alongX ? lx : lz;
+        if (u < a - ROCK_SAMPLE || u > b + ROCK_SAMPLE) continue;
+        const v = alongX ? lz : lx;
+        v0 = Math.min(v0, v);
+        v1 = Math.max(v1, v);
+      }
+      if (!(v1 >= v0)) continue;
+      const cu = (a + b) * 0.5,
+        cv = (v0 + v1) * 0.5;
+      const cx = alongX ? cu : cv,
+        cz = alongX ? cv : cu;
+      out.push({
+        x: cx * c + cz * s,
+        z: -cx * s + cz * c,
+        hx: alongX ? w * 0.5 : (v1 - v0) * 0.5,
+        hz: alongX ? (v1 - v0) * 0.5 : w * 0.5,
+        rot,
+        y0,
+        y1,
+      });
+    }
+  }
+}
 
 /**
  * Camera-only blockers for the cliff: the mesh stands 1-7 m out past the height field's face (ledges,
@@ -691,49 +877,203 @@ export function headlandCliffCameraBlockers(
   const frame = headlandCliffFrame(heightField);
   if (frame.stations.length < 2) return;
   const detail = HEADLAND_CLIFF_DETAIL[tier];
-  const columns = Math.max(2, Math.round(frame.length / BLOCKER_SPACING));
-  const half = frame.length / columns / 2 + 0.35;
+  // Whole quads of the tier's mesh per box (about BLOCKER_SPACING m of it), so every chord across
+  // a quad is in its box: a coarse mesh's flat quads cut well outside the curved cliff between columns.
+  const columns = Math.max(2, Math.round(frame.length / detail.spacing));
+  const group = Math.max(1, Math.round(BLOCKER_SPACING / detail.spacing));
+  const faceRows = cliffFaceRows(frame, detail);
+  const roll = faceRows + 1,
+    tuck = faceRows + 2;
   const profile = new Float32Array(PROFILE_SAMPLES);
   const st: CliffStation = { ...frame.stations[0]! };
-  for (let c = 0; c < columns; c++) {
-    const s = ((c + 0.5) / columns) * frame.length;
-    stationAt(frame, s, st);
-    stationProfile(frame.heightAt, st, profile);
-    const k = st.strength;
-    const top = profileCrossing(profile, st.lipY);
-    const rollD = top + (0.35 + caveBulge(frame, s) * HEADLAND_CAVE_BULGE) * k - 0.9 * (1 - k);
-    const rollY = st.lipY + 0.3 * k - 0.6 * (1 - k);
-    for (let y0 = -1.2; y0 < rollY; y0 += BLOCKER_BAND) {
-      const y1 = Math.min(y0 + BLOCKER_BAND, rollY);
-      let dIn = Infinity,
-        dOut = -Infinity;
-      for (let i = 0; i < BLOCKER_SAMPLES; i++) {
-        const y = Math.min(st.lipY, y0 + ((y1 - y0) * i) / (BLOCKER_SAMPLES - 1));
-        const d = profileCrossing(profile, y);
-        const mesh = d + cliffOffset(frame, s, y, st.lipY, k);
-        dIn = Math.min(dIn, d, mesh);
-        dOut = Math.max(dOut, mesh);
+  const cols = Array.from({ length: group + 1 }, () => ({
+    st: { ...frame.stations[0]! },
+    profile: new Float32Array(PROFILE_SAMPLES),
+    ys: new Float32Array(faceRows + 3),
+    ds: new Float32Array(faceRows + 3),
+  }));
+  // A world point in the box's frame: out along its normal (into dIn/dOut) and along the cliff (into
+  // lMin/lMax).
+  let dIn = 0,
+    dOut = 0,
+    lMin = 0,
+    lMax = 0;
+  const put = (x: number, z: number): void => {
+    const px = x - st.x,
+      pz = z - st.z;
+    const along = px * st.nz - pz * st.nx,
+      outward = px * st.nx + pz * st.nz;
+    lMin = Math.min(lMin, along);
+    lMax = Math.max(lMax, along);
+    dIn = Math.min(dIn, outward);
+    dOut = Math.max(dOut, outward);
+  };
+  // Points along the line where the triangle (row `ja` of column `a`, ...) crosses height y, that
+  // stand above the ground.
+  const levelLine = (
+    a: (typeof cols)[0],
+    ja: number,
+    b: (typeof cols)[0],
+    jb: number,
+    c: (typeof cols)[0],
+    jc: number,
+    y: number,
+  ): void => {
+    let found = 0,
+      x0 = 0,
+      z0 = 0;
+    for (let e = 0; e < 3; e++) {
+      const p = e === 0 ? a : e === 1 ? b : c,
+        q = e === 0 ? b : e === 1 ? c : a;
+      const jp = e === 0 ? ja : e === 1 ? jb : jc,
+        jq = e === 0 ? jb : e === 1 ? jc : ja;
+      const yp = p.ys[jp]!,
+        yq = q.ys[jq]!;
+      if (yp === yq || yp < y === yq < y) continue;
+      const f = (y - yp) / (yq - yp);
+      const px = p.st.x + p.st.nx * p.ds[jp]!,
+        pz = p.st.z + p.st.nz * p.ds[jp]!;
+      const x = px + (q.st.x + q.st.nx * q.ds[jq]! - px) * f,
+        z = pz + (q.st.z + q.st.nz * q.ds[jq]! - pz) * f;
+      if (found++ === 0) {
+        x0 = x;
+        z0 = z;
+        continue;
       }
-      if (y1 > st.lipY - 0.4) dOut = Math.max(dOut, rollD);
-      // Into the rock behind the face, so a camera can't slip between the box and the height field.
-      dIn -= 1;
-      if (dOut - dIn < 1.2) continue;
-      const mid = (dIn + dOut) * 0.5;
+      for (let k = 0; k <= STRIP_GRID; k++) {
+        const sx = x0 + ((x - x0) * k) / STRIP_GRID,
+          sz = z0 + ((z - z0) * k) / STRIP_GRID;
+        if (y > heightField.heightAt(sx, sz) + BLOCKER_CLEAR) put(sx, sz);
+      }
+      return;
+    }
+  };
+  // Points along the mesh edge from row `ja` of column `a` to row `jb` of column `b`, cut to [y0, y1],
+  // that stand above the ground (under it, the camera's own ground test stops it).
+  const edge = (
+    a: (typeof cols)[0],
+    ja: number,
+    b: (typeof cols)[0],
+    jb: number,
+    y0: number,
+    y1: number,
+  ): void => {
+    const ya = a.ys[ja]!,
+      yb = b.ys[jb]!;
+    const lo = Math.max(y0, Math.min(ya, yb)),
+      hi = Math.min(y1, Math.max(ya, yb));
+    if (lo > hi) return;
+    const f0 = ya === yb ? 0 : (lo - ya) / (yb - ya),
+      f1 = ya === yb ? 1 : (hi - ya) / (yb - ya);
+    const ax = a.st.x + a.st.nx * a.ds[ja]!,
+      az = a.st.z + a.st.nz * a.ds[ja]!;
+    const bx = b.st.x + b.st.nx * b.ds[jb]!,
+      bz = b.st.z + b.st.nz * b.ds[jb]!;
+    for (let e = 0; e < BLOCKER_SAMPLES; e++) {
+      const f = f0 + ((f1 - f0) * e) / (BLOCKER_SAMPLES - 1);
+      const x = ax + (bx - ax) * f,
+        z = az + (bz - az) * f;
+      if (ya + (yb - ya) * f > heightField.heightAt(x, z) + BLOCKER_CLEAR) put(x, z);
+    }
+  };
+  for (let c0 = 0; c0 < columns; c0 += group) {
+    const count = Math.min(group, columns - c0) + 1;
+    let top = -Infinity;
+    for (let i = 0; i < count; i++) {
+      const col = cols[i]!;
+      stationAt(frame, ((c0 + i) / columns) * frame.length, col.st);
+      cliffColumn(frame, col.st, col.profile, faceRows, col.ys, col.ds);
+      top = Math.max(top, col.ys[faceRows]!, col.ys[roll]!);
+    }
+    stationAt(frame, ((c0 + (count - 1) / 2) / columns) * frame.length, st);
+    for (let y0 = -1.2; y0 < top; y0 += BLOCKER_BAND) {
+      const y1 = Math.min(y0 + BLOCKER_BAND, top);
+      dIn = Infinity;
+      dOut = -Infinity;
+      lMin = Infinity;
+      lMax = -Infinity;
+      for (let i = 0; i < count; i++) {
+        const col = cols[i]!;
+        // The mesh's quads up the face and the roll over the lip: every edge of each (both diagonals),
+        // cut to the band.
+        const next = i + 1 < count ? cols[i + 1]! : null;
+        for (let j = 0; j < roll; j++) {
+          edge(col, j, col, j + 1, y0, y1);
+          if (!next) continue;
+          edge(col, j, next, j, y0, y1);
+          edge(col, j, next, j + 1, y0, y1);
+          edge(col, j + 1, next, j, y0, y1);
+        }
+        if (next) edge(col, roll, next, roll, y0, y1);
+      }
+      if (!(dOut > -Infinity)) continue;
+      // Into the rock behind the face, so a camera can't slip between the box and the height field, but
+      // not past the lip: the clifftop behind it can dip, and a player stands there.
+      let lip = Infinity;
+      for (let i = 0; i < count; i++) lip = Math.min(lip, cols[i]!.st.lipY);
+      const back = y1 <= lip ? 1 : 0.2;
+      dIn = Math.min(dIn - back, dOut - 0.2 - back);
+      const mid = (dIn + dOut) * 0.5,
+        along = (lMin + lMax) * 0.5;
       out.push({
-        x: st.x + st.nx * mid,
-        z: st.z + st.nz * mid,
-        hx: half,
+        x: st.x + st.nx * mid + st.nz * along,
+        z: st.z + st.nz * mid - st.nx * along,
+        hx: (lMax - lMin) * 0.5 + 0.2,
         hz: (dOut - dIn) * 0.5,
-        // Local z along the station's seaward normal.
+        // Local z along the box's middle normal.
+        rot: Math.atan2(st.nx, st.nz),
+        y0,
+        y1,
+      });
+    }
+    // The strip from the roll down to the tuck under the clifftop: thin slices of only the part above
+    // the ground, so a player standing on the clifftop is never inside one.
+    let low = Infinity,
+      high = -Infinity;
+    for (let i = 0; i < count; i++) {
+      low = Math.min(low, cols[i]!.ys[tuck]!);
+      high = Math.max(high, cols[i]!.ys[roll]!);
+    }
+    for (let y0 = low; y0 < high; y0 += ROCK_BLOCKER_SLICE) {
+      const y1 = Math.min(y0 + ROCK_BLOCKER_SLICE, high);
+      dIn = Infinity;
+      dOut = -Infinity;
+      lMin = Infinity;
+      lMax = -Infinity;
+      for (let i = 0; i + 1 < count; i++) {
+        const col = cols[i]!,
+          next = cols[i + 1]!;
+        edge(col, roll, col, tuck, y0, y1);
+        edge(next, roll, next, tuck, y0, y1);
+        edge(col, roll, next, tuck, y0, y1);
+        edge(col, tuck, next, roll, y0, y1);
+      }
+      // Level lines across the strip's triangles (both diagonals) at the slice's bottom, middle and
+      // top: the ground can dip under a triangle's middle while its edges stay under the ground.
+      for (let i = 0; i + 1 < count; i++)
+        for (const [a, ra, b, rb, c, rc] of STRIP_TRIANGLES) {
+          const pa = a === 0 ? cols[i]! : cols[i + 1]!,
+            pb = b === 0 ? cols[i]! : cols[i + 1]!,
+            pc = c === 0 ? cols[i]! : cols[i + 1]!;
+          for (let h = 0; h < 3; h++)
+            levelLine(pa, roll + ra, pb, roll + rb, pc, roll + rc, y0 + ((y1 - y0) * h) / 2);
+        }
+      if (!(dOut > -Infinity)) continue;
+      const mid = (dIn + dOut) * 0.5,
+        along = (lMin + lMax) * 0.5;
+      out.push({
+        x: st.x + st.nx * mid + st.nz * along,
+        z: st.z + st.nz * mid - st.nx * along,
+        hx: (lMax - lMin) * 0.5 + 0.2,
+        hz: (dOut - dIn) * 0.5 + 0.2,
         rot: Math.atan2(st.nx, st.nz),
         y0,
         y1,
       });
     }
   }
-  const identity = new Matrix4();
   for (const part of [...footBlocks(frame, detail, profile), ...topOutcrops(frame, detail)])
-    meshCameraBlockers(part.pos, identity, out, 2);
+    rockCameraBlockers(part, (x, z) => heightField.heightAt(x, z), out);
   // The game's cliff (built with the terrain, so before this) moved some of its face out further.
   const covered = coverBlockers.get(heightField);
   if (covered) for (const b of covered) out.push(b);

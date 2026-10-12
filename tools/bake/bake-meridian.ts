@@ -1,6 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bakeTerrainFrom } from '../../src/world/terrain/bake';
+import { smoothSteepLight } from './steep-light';
 import { writeTerrainPack } from './write-terrain-pack';
 import { MERIDIAN, meridianHeight, meridianMasks } from '../../src/world/islands/meridian';
 
@@ -14,6 +15,7 @@ export async function bakeMeridianTerrain(outBase = resolve(root, 'public/packs/
     heightAt: meridianHeight,
     masksAt: meridianMasks,
   });
+  smoothSteepLight(baked);
   const options = {
     seabedRadius: MERIDIAN.seabedRadius,
     deepDepth: MERIDIAN.deepDepth,

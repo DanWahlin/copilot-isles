@@ -593,27 +593,53 @@ export function createTerrainHeightField(
   return finestHeightField(data, stepsForTier(resolveTier(tier))[0]!, recessSteep);
 }
 
+/** Tent-filter taps (offset in footprints, weight) for a coarse level's vertex. */
+const FOOTPRINT_TAPS = [
+  [-1 / 3, 0.25],
+  [0, 0.5],
+  [1 / 3, 0.25],
+] as const;
+
+/**
+ * A vertex's normal, baked light and masks at (x, z). A coarser level's vertex stands for a
+ * `footprint`-wide patch of the 2 m bake, so its normal and light are the patch's (tent-filtered)
+ * mean, not the one grid point under it: point samples alias on steep faces, where every few metres
+ * of relief turns the normal and the sun's visibility, and the GPU then stretches whichever value a
+ * vertex caught down the face's tall triangles into streaks. The finest level (footprint 0) samples
+ * the point, like `BakedTerrainHeightField.normalAt`.
+ */
 function sampleVertex(
   data: TerrainBakeData,
   x: number,
   z: number,
+  footprint = 0,
 ): {
   normal: [number, number, number];
   light: [number, number, number, number];
   mask: [number, number, number, number];
 } {
-  const nx = sampleFloat(data.normals, data, x, z, 0, 3);
-  const ny = sampleFloat(data.normals, data, x, z, 1, 3);
-  const nz = sampleFloat(data.normals, data, x, z, 2, 3);
+  let nx = 0;
+  let ny = 0;
+  let nz = 0;
+  const light: [number, number, number, number] = [0, 0, 0, 0];
+  const taps = footprint > data.cell ? FOOTPRINT_TAPS : ([[0, 1]] as const);
+  for (const [oz, wz] of taps)
+    for (const [ox, wx] of taps) {
+      const sx = x + ox * footprint;
+      const sz = z + oz * footprint;
+      const w = wx * wz;
+      nx += sampleFloat(data.normals, data, sx, sz, 0, 3) * w;
+      ny += sampleFloat(data.normals, data, sx, sz, 1, 3) * w;
+      nz += sampleFloat(data.normals, data, sx, sz, 2, 3) * w;
+      light[0] += sampleByte(data.ao, data, sx, sz) * w;
+      light[1] += sampleByte(data.sunMorning, data, sx, sz) * w;
+      light[2] += sampleByte(data.sunGolden, data, sx, sz) * w;
+      light[3] += sampleByte(data.rim, data, sx, sz) * w;
+    }
   const normalLength = Math.hypot(nx, ny, nz) || 1;
   return {
     normal: [nx / normalLength, ny / normalLength, nz / normalLength],
-    light: [
-      sampleByte(data.ao, data, x, z),
-      sampleByte(data.sunMorning, data, x, z),
-      sampleByte(data.sunGolden, data, x, z),
-      sampleByte(data.rim, data, x, z),
-    ],
+    light,
     mask: [
       sampleByte(data.masks, data, x, z, 0, 4),
       sampleByte(data.masks, data, x, z, 1, 4),
@@ -637,8 +663,9 @@ function pushVertex(
   step: number,
   recessBox: RecessBox | null,
   finest: FinestRecess | null,
+  footprint: number,
 ): number {
-  const vertex = sampleVertex(data, x, z);
+  const vertex = sampleVertex(data, x, z, footprint);
   positions.push(x, meshVertexHeight(data, x, z, step, recessBox, finest), z);
   normals.push(vertex.normal[0], vertex.normal[1], vertex.normal[2]);
   masks.push(vertex.mask[0], vertex.mask[1], vertex.mask[2], vertex.mask[3]);
@@ -691,6 +718,7 @@ function* buildChunkGeometry(
           step,
           vertexRecess,
           finestRecess,
+          step > finestStep ? step : 0,
         ),
       );
     }

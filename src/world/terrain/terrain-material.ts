@@ -571,19 +571,27 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
         .mul(
           smoothstep(0.35, 0.6, faceNoiseX.g.mul(faceWeight.x).add(faceNoiseZ.g.mul(faceWeight.z)).add(0.3)),
         );
-  // Its tone comes from the triplanar noise and texture, so a sea cliff's face doesn't streak.
-  const limestoneTone = mix(color(0x8a7b63), color(0xd2c4a2), faceNoise.mul(0.75).add(rockDetail.mul(0.25)))
+  // The grain of a steep face, from the triplanar noise's finer channel (already sampled): the rock
+  // texture's smeared rays and tile seams read as vertical streaks when it's mapped on an upright
+  // plane, so it only shows on gentler ground.
+  const faceGrain = faceNoiseX.a
+    .mul(faceWeight.x)
+    .add(faceNoiseZ.a.mul(faceWeight.z))
+    .add(rockDetail.mul(faceWeight.y))
+    .div(faceWeight.x.add(faceWeight.y).add(faceWeight.z).max(0.001));
+  // Its tone comes from the triplanar noise and grain, so a sea cliff's face doesn't streak.
+  const limestoneTone = mix(color(0x8a7b63), color(0xd2c4a2), faceNoise.mul(0.75).add(faceGrain.mul(0.25)))
     .mul(ridgeBands)
     .mul(float(0.8).add(smoothstep(0.15, 0.6, N.y).mul(0.2)))
     // Wet, weedy rock along the waterline, its top ragged.
     .mul(float(1).sub(smoothstep(4.5, 0.6, y.add(faceNoise.sub(0.5).mul(3))).mul(0.42)))
-    // Steep faces show the (triplanar) rock texture's grain, broad patches of weathered stone, and
-    // bedding planes that wander and break (offset by the triplanar noise, so they don't run level).
+    // Steep faces show the grain, broad patches of weathered stone, and bedding planes that wander
+    // and break (offset by the triplanar noise, so they don't run level).
     .mul(
       mix(
         float(1),
-        float(0.5)
-          .add(rockDetail.mul(1.3))
+        float(0.66)
+          .add(faceGrain.sub(0.5).mul(0.5))
           .mul(float(1).sub(smoothstep(0.58, 0.74, faceNoise).mul(0.24)))
           .mul(float(1).sub(cliffBeds.mul(0.32))),
         smoothstep(0.82, 0.5, N.y),

@@ -76,6 +76,13 @@ const PAD_LOW = 0.25;
 const PAD_HIGH = 0.7;
 /** The closest the camera comes to the pivot when a wall is right behind you. */
 const NEAR_DIST = 0.15;
+/**
+ * Under a low span (a lamp head, an awning, a balcony, a lintel) the pivot ducks to keep this far
+ * under it, so the eye, which can come in to NEAR_DIST of the pivot, never ends up inside it. Spans
+ * lower than PIVOT_FLOOR over your feet (rocks, cliff overhangs you walk through) don't count.
+ */
+const PIVOT_CLEAR = PAD_LOW;
+const PIVOT_FLOOR = 0.9;
 const NO_LOOK: CameraLook = { lookX: 0, lookY: 0, zoom: 0 };
 
 /** A held camera shot for a story beat: where the camera sits and what it looks at (world space). */
@@ -105,6 +112,9 @@ export class FollowCamera {
   private curDist = WALK_RIG.dist;
   private idle = 0;
   private readonly pivot = { x: 0, y: 0, z: 0 };
+  /** The pivot the eye orbits and looks at: `pivot`, ducked `duck` m under a low span. */
+  private readonly aim = { x: 0, y: 0, z: 0 };
+  private duck = 0;
   private primed = false;
   private blend = 1;
   private readonly from = { x: 0, y: 0, z: 0 };
@@ -234,6 +244,7 @@ export class FollowCamera {
     this.yaw = heading;
     this.primed = false;
     this.curDist = this.wantDist;
+    this.duck = 0;
   }
 
   update(
@@ -280,6 +291,18 @@ export class FollowCamera {
       this.pivot.z += (tz - this.pivot.z) * kxz;
     }
 
+    // Duck under a low span at once; rise back slowly once you're out from under it.
+    let need = 0;
+    if (world)
+      need =
+        this.pivot.y -
+        world.cameraCeilingAt(this.pivot.x, this.pivot.y, this.pivot.z, PIVOT_CLEAR, target.y + PIVOT_FLOOR);
+    this.duck = need >= this.duck ? need : this.duck + (need - this.duck) * (1 - Math.exp(-2.5 * dt));
+    const aim = this.aim;
+    aim.x = this.pivot.x;
+    aim.y = this.pivot.y - this.duck;
+    aim.z = this.pivot.z;
+
     // Direction from the camera to the pivot.
     const cp = Math.cos(this.pitch),
       sp = Math.sin(this.pitch);
@@ -295,9 +318,7 @@ export class FollowCamera {
       const step = this.wantDist / n;
       for (let i = 1; i <= n; i++) {
         const s = step * i;
-        if (
-          blocked(world, r, this.pivot, this.pivot.x - dx * s, this.pivot.y - dy * s, this.pivot.z - dz * s)
-        ) {
+        if (blocked(world, r, aim, aim.x - dx * s, aim.y - dy * s, aim.z - dz * s)) {
           allowed = Math.max(NEAR_DIST, s - step);
           break;
         }
@@ -306,9 +327,9 @@ export class FollowCamera {
     this.curDist =
       allowed < this.curDist ? allowed : this.curDist + (allowed - this.curDist) * (1 - Math.exp(-2.5 * dt));
 
-    let x = this.pivot.x - dx * this.curDist,
-      y = this.pivot.y - dy * this.curDist,
-      z = this.pivot.z - dz * this.curDist;
+    let x = aim.x - dx * this.curDist,
+      y = aim.y - dy * this.curDist,
+      z = aim.z - dz * this.curDist;
     if (world) {
       const floor = Math.max(world.groundAt(x, z) + 0.4, world.waterAt(x, z, t) + 0.5);
       if (y < floor) y = floor;
@@ -322,9 +343,9 @@ export class FollowCamera {
       y = this.from.y + (y - this.from.y) * e;
       z = this.from.z + (z - this.from.z) * e;
     }
-    let lx = this.pivot.x,
-      ly = this.pivot.y,
-      lz = this.pivot.z;
+    let lx = aim.x,
+      ly = aim.y,
+      lz = aim.z;
     this.shotMix = Math.min(1, Math.max(0, this.shotMix + (this.shot ? dt : -dt) / SHOT_EASE));
     if (this.shotMix > 0 && this.held) {
       let h = this.held;

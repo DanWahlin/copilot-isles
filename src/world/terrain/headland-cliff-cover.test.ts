@@ -208,3 +208,193 @@ describe('the headland cliff camera blockers', { timeout: 60_000 }, () => {
     });
   }
 });
+
+/** The cliff line's station nearest to (x, z). */
+function nearestStation<T extends { x: number; z: number }>(stations: readonly T[], x: number, z: number): T {
+  let best = stations[0]!;
+  for (const st of stations)
+    if (Math.hypot(st.x - x, st.z - z) < Math.hypot(best.x - x, best.z - z)) best = st;
+  return best;
+}
+
+/** The distance (m) from a point to the nearest of the triangles. */
+function distanceToTriangles(
+  p: ArrayLike<number>,
+  idx: ArrayLike<number>,
+  x: number,
+  y: number,
+  z: number,
+): number {
+  let best = Infinity;
+  for (let t = 0; t < idx.length; t += 3) {
+    const a = idx[t]! * 3;
+    const b = idx[t + 1]! * 3;
+    const c = idx[t + 2]! * 3;
+    const ax = p[a]!;
+    const az = p[a + 2]!;
+    if (Math.abs(ax - x) > 8 || Math.abs(az - z) > 8) continue;
+    best = Math.min(
+      best,
+      pointTriangleDistance(
+        x,
+        y,
+        z,
+        ax,
+        p[a + 1]!,
+        az,
+        p[b]!,
+        p[b + 1]!,
+        p[b + 2]!,
+        p[c]!,
+        p[c + 1]!,
+        p[c + 2]!,
+      ),
+    );
+  }
+  return best;
+}
+
+/** The distance from P to triangle ABC (closest point by Voronoi regions). */
+function pointTriangleDistance(
+  px: number,
+  py: number,
+  pz: number,
+  ax: number,
+  ay: number,
+  az: number,
+  bx: number,
+  by: number,
+  bz: number,
+  cx: number,
+  cy: number,
+  cz: number,
+): number {
+  const abx = bx - ax,
+    aby = by - ay,
+    abz = bz - az;
+  const acx = cx - ax,
+    acy = cy - ay,
+    acz = cz - az;
+  const apx = px - ax,
+    apy = py - ay,
+    apz = pz - az;
+  const d1 = abx * apx + aby * apy + abz * apz;
+  const d2 = acx * apx + acy * apy + acz * apz;
+  const at = (u: number, v: number): number =>
+    Math.hypot(ax + abx * u + acx * v - px, ay + aby * u + acy * v - py, az + abz * u + acz * v - pz);
+  if (d1 <= 0 && d2 <= 0) return at(0, 0);
+  const bpx = px - bx,
+    bpy = py - by,
+    bpz = pz - bz;
+  const d3 = abx * bpx + aby * bpy + abz * bpz;
+  const d4 = acx * bpx + acy * bpy + acz * bpz;
+  if (d3 >= 0 && d4 <= d3) return at(1, 0);
+  const vc = d1 * d4 - d3 * d2;
+  if (vc <= 0 && d1 >= 0 && d3 <= 0) return at(d1 / (d1 - d3), 0);
+  const cpx = px - cx,
+    cpy = py - cy,
+    cpz = pz - cz;
+  const d5 = abx * cpx + aby * cpy + abz * cpz;
+  const d6 = acx * cpx + acy * cpy + acz * cpz;
+  if (d6 >= 0 && d5 <= d6) return at(0, 1);
+  const vb = d5 * d2 - d1 * d6;
+  if (vb <= 0 && d2 >= 0 && d6 <= 0) return at(0, d2 / (d2 - d6));
+  const va = d3 * d6 - d5 * d4;
+  if (va <= 0 && d4 - d3 >= 0 && d5 - d6 >= 0) {
+    const w = (d4 - d3) / (d4 - d3 + (d5 - d6));
+    return at(1 - w, w);
+  }
+  const denom = 1 / (va + vb + vc);
+  return at(vb * denom, vc * denom);
+}
+
+/** Barycentric weights: each triangle's corners, edge middles, centre and near-corner points. */
+const WEIGHTS = [
+  [1, 0, 0],
+  [0, 1, 0],
+  [0, 0, 1],
+  [0.5, 0.5, 0],
+  [0, 0.5, 0.5],
+  [0.5, 0, 0.5],
+  [1 / 3, 1 / 3, 1 / 3],
+  [0.7, 0.15, 0.15],
+  [0.15, 0.7, 0.15],
+  [0.15, 0.15, 0.7],
+] as const;
+
+describe('the headland cliff camera blockers hold the drawn cliff', { timeout: 120_000 }, () => {
+  for (const tier of ['lite', 'low', 'medium', 'high', 'ultra'] as const) {
+    it(`leave no drawn rock the camera can reach outside them: ${tier}`, () => {
+      const field: HeightField = createTerrainHeightField(data, tier, HEADLAND_CLIFF_AREA);
+      const steps = createHeadlandCliff(field, tier, {} as MeshStandardNodeMaterial);
+      let r = steps.next();
+      while (!r.done) r = steps.next();
+      const boxes: CameraBlockerBox[] = [];
+      headlandCliffCameraBlockers(field, boxes, tier);
+      const geometry = r.value!.geometry;
+      const p = geometry.getAttribute('position').array;
+      const idx = geometry.getIndex()!.array;
+      let samples = 0;
+      let worst = 0;
+      for (let t = 0; t < idx.length; t += 3) {
+        const a = idx[t]! * 3;
+        const b = idx[t + 1]! * 3;
+        const c = idx[t + 2]! * 3;
+        for (const [wa, wb, wc] of WEIGHTS) {
+          const x = wa * p[a]! + wb * p[b]! + wc * p[c]!;
+          const y = wa * p[a + 1]! + wb * p[b + 1]! + wc * p[c + 1]!;
+          const z = wa * p[a + 2]! + wb * p[b + 2]! + wc * p[c + 2]!;
+          // The camera never comes this close to the sea or the ground (its own tests stop it there).
+          if (y < 0.4 || y < field.heightAt(x, z) + 0.4) continue;
+          samples++;
+          worst = Math.max(worst, outsideBoxes(boxes, x, y, z));
+        }
+      }
+      geometry.dispose();
+      expect(samples).toBeGreaterThan(10_000);
+      expect(worst).toBeLessThan(0.3);
+    });
+  }
+
+  for (const tier of ['lite', 'high'] as const) {
+    it(`don't hold the pivot of a player standing clear of the rock: ${tier}`, () => {
+      // A box that holds the pivot doesn't count (the camera would fold onto the player's head), so
+      // a box that reaches well past the rock over walkable ground lets the camera into the rock.
+      const field: HeightField = createTerrainHeightField(data, tier, HEADLAND_CLIFF_AREA);
+      const steps = createHeadlandCliff(field, tier, {} as MeshStandardNodeMaterial);
+      let r = steps.next();
+      while (!r.done) r = steps.next();
+      const boxes: CameraBlockerBox[] = [];
+      headlandCliffCameraBlockers(field, boxes, tier);
+      const geometry = r.value!.geometry;
+      const p = geometry.getAttribute('position').array;
+      const idx = geometry.getIndex()!.array;
+      const rock = new TriangleSet([geometry], () => true);
+      const stations = headlandCliffFrame(field).stations;
+      let pivots = 0;
+      let held = 0;
+      for (let x = 120; x <= 230; x += 0.5)
+        for (let z = -90; z <= 70; z += 0.5) {
+          const ground = field.heightAt(x, z);
+          // Only walkable ground (under about 35 degrees).
+          const slope = Math.hypot(
+            field.heightAt(x + 0.25, z) - field.heightAt(x - 0.25, z),
+            field.heightAt(x, z + 0.25) - field.heightAt(x, z - 0.25),
+          );
+          if (ground < 1 || slope > 0.35) continue;
+          const y = ground + 1.55;
+          if (outsideBoxes(boxes, x, y, z) > 0) continue;
+          pivots++;
+          // Behind the cliff face (the player walks through the rock there) the pivot rule is meant to
+          // apply: a level ray out to sea hits the face.
+          const st = nearestStation(stations, x, z);
+          if (Number.isFinite(rock.cast(x, y, z, st.nx, st.nz))) continue;
+          // Within the camera's widest pad (0.7 m) of the rock is "by the rock": the rule is meant for it.
+          if (distanceToTriangles(p, idx, x, y, z) > 0.8) held++;
+        }
+      geometry.dispose();
+      expect(pivots).toBeGreaterThan(0);
+      expect(held).toBe(0);
+    });
+  }
+});
