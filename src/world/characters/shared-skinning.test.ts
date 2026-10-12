@@ -3,6 +3,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   Group,
+  Matrix4,
   MeshStandardMaterial,
   Skeleton,
   SkinnedMesh,
@@ -24,6 +25,20 @@ describe('mergeSkinnedParts', () => {
     const expected = skinnedVertices(plain.group);
     const actual = skinnedVertices(merged.group);
     expect(actual.length).toBe(expected.length);
+    expected.forEach((v, i) => expect(actual[i]!.distanceTo(v)).toBeLessThan(1e-5));
+  });
+
+  it('merges parts that each have their own skin over the same bones, offset (as a glTF loads them)', () => {
+    const plain = rig(false, true);
+    const merged = rig(false, true);
+    mergeSkinnedParts(merged.group);
+    expect(skinnedMeshes(merged.group)).toHaveLength(1);
+    for (const r of [plain, merged]) {
+      r.arm.rotation.set(-0.4, 0.5, 0.9);
+      r.group.updateMatrixWorld(true);
+    }
+    const expected = skinnedVertices(plain.group);
+    const actual = skinnedVertices(merged.group);
     expected.forEach((v, i) => expect(actual[i]!.distanceTo(v)).toBeLessThan(1e-5));
   });
 
@@ -57,7 +72,7 @@ function skinnedVertices(root: Group): Vector3[] {
 }
 
 /** Two parts (a body on the root bone, an arm on the arm bone), each with its own node offset and bind. */
-function rig(twoMaterials = false): { group: Group; arm: Bone } {
+function rig(twoMaterials = false, skeletonPerPart = false): { group: Group; arm: Bone } {
   const group = new Group();
   group.scale.setScalar(0.8);
   const rootBone = new Bone();
@@ -85,7 +100,13 @@ function rig(twoMaterials = false): { group: Group; arm: Bone } {
     mesh.scale.setScalar(scale);
     group.add(mesh);
     mesh.updateMatrixWorld(true);
-    mesh.bind(skeleton);
+    if (!skeletonPerPart) return mesh.bind(skeleton);
+    // Its own skin: the inverse binds carry where the part was modelled (a constant offset).
+    const own = new Skeleton([rootBone, arm]);
+    const at = new Matrix4().makeTranslation(0.05 * bone, -0.3, 0.2 * bone);
+    for (const inverse of own.boneInverses) inverse.multiply(at);
+    g.applyMatrix4(new Matrix4().copy(at).invert());
+    mesh.bind(own, mesh.matrixWorld);
   };
   part(0, new Vector3(0, 0.1, 0), 1, material);
   part(1, new Vector3(0.2, 1.1, -0.1), 1.4, twoMaterials ? new MeshStandardMaterial() : material);

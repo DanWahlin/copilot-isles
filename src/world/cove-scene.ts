@@ -1,6 +1,10 @@
-import { Group, Vector3, type Mesh, type Object3D } from 'three/webgpu';
+import { Group, Mesh, Vector3, type InstancedMesh, type Material, type Object3D } from 'three/webgpu';
 import { positionWorld } from 'three/tsl';
 import type { Engine } from '../engine/engine';
+import { bakeInstances } from '../engine/instancing';
+import type { TierSettings } from '../engine/quality';
+import { loadLodSimplifier } from './characters/character-lod';
+import { simplifyInPlace } from './village/chunks';
 import { HarborMirror } from './ocean/harbor-mirror';
 import { createOcean, type Ocean } from './ocean/ocean';
 import { createSky, type SkySystem } from './sky/sky-system';
@@ -99,6 +103,60 @@ export interface CoveScene {
 
 /** Beyond this distance (m) from an island's centre, its small detail is a pixel or two: it's culled. */
 const DETAIL_RANGE = { anchorage: 560, meridian: 620 };
+/** Lite's loose rocks: at most 2 cm off on the unscaled rock (about 6 cm placed), about half the triangles. */
+const LITE_ROCK_ERROR = 0.02;
+
+/**
+ * Lite (PLAN §12.1, the weakest GPUs): the islands' loose instanced rocks (not cliffs or sea stacks)
+ * draw a coarser copy of their shape, all baked into one draw (they never move). Done before the
+ * island warms, so nothing uploads twice.
+ */
+async function coarserRocksOnLite(root: Object3D, tier: TierSettings): Promise<void> {
+  if (tier.tier !== 'lite') return;
+  const simplify = await loadLodSimplifier();
+  const rocks: InstancedMesh[] = [];
+  root.traverse((o) => {
+    const mesh = o as InstancedMesh;
+    if (mesh.isInstancedMesh && /rocks-Rock_/.test(mesh.name)) rocks.push(mesh);
+  });
+  if (rocks.length === 0) return;
+  if (simplify) for (const mesh of rocks) simplifyInPlace(mesh.geometry, simplify, LITE_ROCK_ERROR);
+  const parent = rocks[0]!.parent;
+  const material = rocks[0]!.material;
+  const same = rocks.filter((mesh) => mesh.parent === parent && mesh.material === material);
+  const baked = parent ? bakeInstances(same) : null;
+  if (!parent || !baked) return;
+  const mesh = new Mesh(baked, material);
+  mesh.name = `${parent.name}-Rock_baked`;
+  mesh.castShadow = false;
+  mesh.receiveShadow = same[0]!.receiveShadow;
+  for (const rock of same) {
+    rock.removeFromParent();
+    rock.geometry.dispose();
+    rock.dispose();
+  }
+  parent.add(mesh);
+}
+
+/**
+ * Lite: the flowing water strips (mill race, fountain, Meridian's brooks) draw in one pass, not a back
+ * then a front pass (three's default for a two-sided transparent material). They're shallow strips
+ * seen from above, so the order of their two sides doesn't show.
+ */
+function singlePassWaterOnLite(root: Object3D, tier: TierSettings): void {
+  if (tier.tier !== 'lite') return;
+  root.traverse((o) => {
+    const mesh = o as Mesh;
+    if (mesh.isMesh && mesh.userData.waterStrips) (mesh.material as Material).forceSinglePass = true;
+  });
+}
+
+/**
+ * Past this distance (m) from Anchorage's centre the island draws as a neighbour (PLAN §12.3): its
+ * village's thin timber, ironwork, rope and cloth, its loose props and rocks drop out (they're at
+ * least ~575 m away, a pixel or less). Its terrain, walls, roofs and lights stay.
+ */
+const NEIGHBOUR_RANGE = { anchorage: 700 };
 
 export interface CoveOptions {
   /** Base URL for packs (dev: '/packs', built: './packs'). */
@@ -146,6 +204,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   );
   await breathe();
   if (tier.shadowCascades > 0) disableReceiveShadows(terrain.group);
+  await coarserRocksOnLite(terrain.group, tier);
   const heightField = new CompositeHeightField(-52);
   heightField.add(
     { minX: data.minX, maxX: data.maxX, minZ: data.minZ, maxZ: data.maxZ },
@@ -206,9 +265,11 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
           breathe,
         );
         await breathe();
+        await coarserRocksOnLite(meridianTerrain.group, tier);
         // The tarn, cascade, brook, lake and outflow ride with the terrain (shown and hidden with it).
         meridianWaterMesh = createMeridianWaterMesh();
         meridianTerrain.group.add(meridianWaterMesh.mesh);
+        singlePassWaterOnLite(meridianWaterMesh.mesh, tier);
         if (tier.shadowCascades > 0) disableReceiveShadows(meridianTerrain.group);
         const meridianFoam = createCoastFoam(meridianData, meridianTerrain.heightField, {
           maxDistance: 1100,
@@ -276,6 +337,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const village = await createVillage({ tier, heightField, kit: villageKit });
   await breathe();
   if (tier.shadowCascades > 0) disableReceiveShadows(village.group);
+  singlePassWaterOnLite(village.group, tier);
   scene.add(village.group);
   const sites = await createCoveSites({
     tier,
@@ -283,6 +345,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     ground: (x, z) => village.walkable(x, z) ?? terrain.heightField.heightAt(x, z),
   });
   if (tier.shadowCascades > 0) disableReceiveShadows(sites.group);
+  singlePassWaterOnLite(sites.group, tier);
   scene.add(sites.group);
   await breathe();
   const villageMask = excludeVillageAndSites(await villageExclusionAsync(village, breathe), sites);
@@ -418,9 +481,25 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       : 0;
 
   const detail = {
-    anchorage: new FarCull(COVE.island.center.x, COVE.island.center.z, DETAIL_RANGE.anchorage),
-    meridian: new FarCull(MERIDIAN.center.x, MERIDIAN.center.z, DETAIL_RANGE.meridian),
+    anchorage: new FarCull(
+      COVE.island.center.x,
+      COVE.island.center.z,
+      DETAIL_RANGE.anchorage,
+      tier.detailCullRatio,
+    ),
+    meridian: new FarCull(MERIDIAN.center.x, MERIDIAN.center.z, DETAIL_RANGE.meridian, tier.detailCullRatio),
   };
+  const neighbour = new FarCull(COVE.island.center.x, COVE.island.center.z, NEIGHBOUR_RANGE.anchorage);
+  for (const mesh of village.neighbourDetail) neighbour.add(mesh);
+  // The loose rocks only: the cliff and the sea stack are the island's shape.
+  for (const rocks of terrain.group.getObjectByName('terrain-rocks')?.children ?? [])
+    if (/Rock_/.test(rocks.name)) neighbour.add(rocks);
+  // The ships' small parts (lanterns, blocks, boards) by size alone, wherever they sail.
+  const shipDetail = new FarCull(0, 0, Infinity, tier.detailCullRatio);
+  if (tier.detailCullRatio > 0) {
+    shipDetail.add(ship.group);
+    for (const boat of fishingBoats) shipDetail.add(boat.group);
+  }
   detail.anchorage.add(sites.group);
   detail.anchorage.add(debris.group);
   if (dockGull) detail.anchorage.add(dockGull.group);
@@ -460,6 +539,8 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       terrain.update(camera);
       detail.anchorage.update(camera.position.x, camera.position.z);
       detail.meridian.update(camera.position.x, camera.position.z);
+      shipDetail.update(camera.position.x, camera.position.z);
+      neighbour.update(camera.position.x, camera.position.z);
       const toMeridian = Math.hypot(
         camera.position.x - MERIDIAN.center.x,
         camera.position.z - MERIDIAN.center.z,

@@ -1,4 +1,4 @@
-import { sharedInstancedMesh } from '../../engine/instancing';
+import { bakeInstances, sharedInstancedMesh } from '../../engine/instancing';
 import {
   Color,
   ConeGeometry,
@@ -8,6 +8,7 @@ import {
   Group,
   InstancedMesh,
   Matrix4,
+  Mesh,
   MeshStandardMaterial,
   Object3D,
   PlaneGeometry,
@@ -229,14 +230,30 @@ export function createBeachDebris(options: DebrisOptions): BeachDebrisSystem {
     driftwood: createMaterial(0xffffff, 0.96, 'driftwood'),
     seaweed: createMaterial(0xffffff, 0.88, 'seaweed'),
   };
-  const meshes = (Object.keys(instances) as DebrisKind[]).map((kind) =>
+  let meshes: Mesh[] = (Object.keys(instances) as DebrisKind[]).map((kind) =>
     makeMesh(kind, geometries[kind], materials[kind], instances[kind]),
   );
+  // Lite and Low: the four kinds baked into one draw with one look (two-sided for the seaweed).
+  const lowTier = options.tier.tier === 'lite' || options.tier.tier === 'low';
+  const baked = lowTier ? bakeInstances(meshes as InstancedMesh[]) : null;
+  const bakedMaterial = baked ? createMaterial(0xffffff, 0.9, 'baked') : null;
+  if (baked && bakedMaterial) {
+    for (const mesh of meshes) (mesh as InstancedMesh).dispose();
+    bakedMaterial.side = DoubleSide;
+    const mesh = new Mesh(baked, bakedMaterial);
+    mesh.name = 'beach-debris-baked';
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
+    meshes = [mesh];
+  }
   for (const mesh of meshes) group.add(mesh);
   const stats = {
     instances: Object.values(instances).reduce((sum, list) => sum + list.length, 0),
     drawCalls: meshes.length,
-    triangles: meshes.reduce((sum, mesh) => sum + triangles(mesh.geometry) * mesh.count, 0),
+    triangles: meshes.reduce(
+      (sum, mesh) => sum + triangles(mesh.geometry) * ((mesh as InstancedMesh).count ?? 1),
+      0,
+    ),
   };
   group.userData.beachDebrisStats = stats;
   return {
@@ -246,6 +263,8 @@ export function createBeachDebris(options: DebrisOptions): BeachDebrisSystem {
       for (const mesh of meshes) mesh.dispose();
       for (const geometry of Object.values(geometries)) geometry.dispose();
       for (const material of Object.values(materials)) material.dispose();
+      baked?.dispose();
+      bakedMaterial?.dispose();
       group.removeFromParent();
     },
   };

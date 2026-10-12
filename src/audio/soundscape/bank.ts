@@ -21,6 +21,7 @@ export const BANK = {
   palms: { file: 'palms', loop: true, lufs: -23.3 },
   crickets: { file: 'crickets', loop: true, lufs: -23 },
   birds_dawn: { file: 'birds_dawn', loop: true, lufs: -23.3 },
+  gulls_far: { file: 'gulls_far', loop: true, lufs: -23 },
   boat_lap: { file: 'boat_lap', loop: true, lufs: -32.2 },
   pier_lap: { file: 'pier_lap', loop: true, lufs: -30.7 },
   stream: { file: 'stream', loop: true, lufs: -23 },
@@ -221,6 +222,18 @@ export const BANK = {
       [7.07, 2.35],
     ],
     lufs: [-18.6, -17.1, -22.4, -22.2],
+  },
+  // Adobe Firefly shots (ART_PROVENANCE.md): a single shot, the two shots of a pair heard apart,
+  // and the pair with its roll. Near guns pick this or `cannon_boom` at random for variety.
+  cannon_fire: {
+    file: 'cannon_fire',
+    slices: [
+      [0.15, 3.6],
+      [3.9, 1.15],
+      [5.2, 2.45],
+      [7.8, 4.5],
+    ],
+    lufs: [-21.4, -19, -24.7, -22.8],
   },
   cannon_far: {
     file: 'cannon_far',

@@ -60,7 +60,16 @@ import { createCrateYardSite } from '../world/sites/crate-yard';
 import { createThreeHelms, type HelmsHost } from './puzzles/three-helms';
 import { createHelmBuoys } from '../world/sites/helm-buoys';
 import { loadVillageKit } from '../world/village/kit';
-import { insideLighthouse, lighthouseLevels } from '../world/islands/anchorage/lighthouse-stair';
+import {
+  GALLERY_CAMERA_COLUMN,
+  LIGHTHOUSE_STAIR_FOOT,
+  LIGHTHOUSE_STAIR_HEAD,
+  lighthouseArrival,
+  lighthouseFade,
+  lighthouseTransitAt,
+  onLighthouseGallery,
+  type LighthouseDirection,
+} from './lighthouse-transit';
 import { starfishCount } from '../world/starfish/spots';
 import { MERIDIAN_YARD } from '../world/sites/crate-yard-logic';
 import { plankProgress, plankSurface, type PlankSpan } from './gangway';
@@ -169,6 +178,8 @@ export interface GameSession {
     lighthouseLit(): boolean;
     /** Whether Anchorage's point lighthouse is lit (tests). */
     anchorageLighthouseLit(): boolean;
+    /** The lighthouse fast-forward under way ('up', 'down') or null (tests). */
+    lighthouseTransit(): LighthouseDirection | null;
     /** Moves the ship while you're sailing (tests: skip the passage between islands). */
     sailTo(x: number, z: number, heading: number): void;
     /** Sets a quest step, e.g. to lower the gangway without playing the island (tests). */
@@ -1767,50 +1778,60 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   if (o.quiet) learn?.progress.add('arrivals', berth.id);
   else if (firstLandfall()) startArrival(arrivalFlight(berth.arrival, !!o.fromChart), true);
 
-  // The lighthouse stair (Dan: walk up to the top): the follow camera can't fit in the shaft, so
-  // on the steps a guide shot looks down at you from a few steps up, and forward runs up the stair
-  // (W climbs, S goes down). On the ground floor and in the watch room the follow camera is back.
-  const stairShot: CameraShot = { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 };
-  const stairLevels = lighthouseLevels();
-  const guideStairCamera = (): void => {
-    const L = COVE.lighthouse;
-    const r = Math.hypot(player.x - L.x, player.z - L.z);
-    const onStair =
-      insideLighthouse(player.x, player.y, player.z) &&
-      player.y > stairLevels.floor + 0.1 &&
-      player.y < stairLevels.deck - 0.3;
-    const onGallery = r > 1.5 && r < 3.3 && player.y > stairLevels.deck - 0.3;
-    if ((!onStair && !onGallery) || (cam.framing && !cam.guided)) {
-      if (cam.guided) cam.guide(null);
-      return;
-    }
-    const a = Math.atan2(player.x - L.x, player.z - L.z);
-    if (onGallery) {
-      // On the gallery the camera rides outside the railing a little behind you, looking along the
-      // walk with the sea beyond; W and S walk you round the tower.
-      const ca = a - 0.85;
-      stairShot.x = L.x + Math.sin(ca) * 5.2;
-      stairShot.z = L.z + Math.cos(ca) * 5.2;
-      stairShot.y = player.y + 2.2;
-      stairShot.tx = L.x + Math.sin(a + 0.1) * 4.6;
-      stairShot.ty = player.y + 0.7;
-      stairShot.tz = L.z + Math.cos(a + 0.1) * 4.6;
-      cam.guide(stairShot);
-      cam.yaw = a + Math.PI / 2 - 0.12;
-      return;
-    }
-    // From a few steps up, across the stairwell (clear of the newel), looking down at you.
-    const ca = a + 2.4;
-    stairShot.x = L.x + Math.sin(ca) * 1.22;
-    stairShot.z = L.z + Math.cos(ca) * 1.22;
-    stairShot.y = player.y + 2.3;
-    stairShot.tx = player.x;
-    stairShot.ty = player.y + 0.9;
-    stairShot.tz = player.z;
-    cam.guide(stairShot);
-    // Up the stair is the tangent toward higher steps, leaning a little in toward the newel.
-    cam.yaw = a + Math.PI / 2 + 0.1;
+  // The lighthouse stair (Dan: the spiral climb and its camera were too hard): step onto the stair
+  // (or press E at its foot or head) and a short fade fast-forwards you to the other end, standing
+  // in the doorway facing out with the follow camera behind you. On the gallery the camera keeps out
+  // of the tower, so it stays behind you and W walks you on round.
+  let lighthouseTransit: LighthouseDirection | null = null;
+  async function runLighthouse(dir: LighthouseDirection): Promise<void> {
+    if (lighthouseTransit || mode !== 'walk') return;
+    lighthouseTransit = dir;
+    const fade = lighthouseFade(worldUniforms.reducedMotion.value > 0.5);
+    input.enabled = false;
+    hud.setPrompt(null);
+    hero.setSpeed(0);
+    await hud.fade(true, fade.out);
+    if (disposed) return;
+    const a = lighthouseArrival(dir);
+    player.teleport(world, a.x, a.z, a.heading, a.y);
+    hero.group.position.set(player.x, player.y, player.z);
+    hero.group.rotation.y = player.heading;
+    cam.release();
+    cam.keepOutside(dir === 'up' ? GALLERY_CAMERA_COLUMN : null);
+    cam.snapBehind(a.cameraYaw);
+    if (a.cameraPitch !== null) cam.pitch = a.cameraPitch;
+    // A quick patter of steps while it's dark: the run up (or down) the stair.
+    for (let i = 0; i < fade.steps; i++)
+      window.setTimeout(
+        () => audio?.sfx.footstep(footstep('stone'), player),
+        (i * fade.hold) / Math.max(1, fade.steps),
+      );
+    await new Promise((resolve) => window.setTimeout(resolve, fade.hold));
+    if (disposed) return;
+    lighthouseTransit = null;
+    input.enabled = !paused;
+    await hud.fade(false, fade.in);
+  }
+  const updateLighthouse = (): void => {
+    cam.keepOutside(onLighthouseGallery(player.x, player.y, player.z) ? GALLERY_CAMERA_COLUMN : null);
+    if (lighthouseTransit || scriptRunning || cam.framing) return;
+    const dir = lighthouseTransitAt(player.x, player.y, player.z, player.mode !== 'air');
+    if (dir) void runLighthouse(dir);
   };
+  interactions.add({
+    id: 'lighthouse:up',
+    label: () => 'Climb to the top',
+    ...LIGHTHOUSE_STAIR_FOOT,
+    enabled: () => mode === 'walk' && !lighthouseTransit && island === 'anchorage',
+    onInteract: () => void runLighthouse('up'),
+  });
+  interactions.add({
+    id: 'lighthouse:down',
+    label: () => 'Go back down',
+    ...LIGHTHOUSE_STAIR_HEAD,
+    enabled: () => mode === 'walk' && !lighthouseTransit && island === 'anchorage',
+    onInteract: () => void runLighthouse('down'),
+  });
 
   // Starfish to collect (Dan: "like Mario's stars"): walk into one to pick it up. Each pays five
   // doubloons, and an island's last pays twenty more; the purse counts the island you're on.
@@ -1970,7 +1991,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
           const focus = interactions.update(player.x, player.y, player.z, player.heading);
           hud.setPrompt(dialogue.active || anyTalking() ? null : (focus?.label() ?? null));
-          guideStairCamera();
+          updateLighthouse();
           updateStarfish(dt);
           cam.update(dt, camera, s, player, player.heading, sp > 0.3, world, t);
           // Up the plank to the rail, and she's yours: over the side to the helm.
@@ -2208,6 +2229,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       rheaAboard: () => !!rheaAboard?.group.parent,
       lighthouseLit: () => lighthouseLit,
       anchorageLighthouseLit: () => village.lighthouseLit(),
+      lighthouseTransit: () => lighthouseTransit,
       cast: () =>
         (meridianNpcs?.list ?? []).map((n) => ({
           id: n.spec.id,

@@ -212,6 +212,34 @@ describe('createBrigantine', () => {
     ship.dispose();
   });
 
+  it('draws the static hull parts and spars as one mesh each on Lite and Low, same triangles', () => {
+    const high = createBrigantine({ tier: 'high' });
+    expect(high.group.getObjectByName('hull deck trim and stern (merged)')).toBeUndefined();
+    high.dispose();
+    for (const tier of ['lite', 'low'] as const) {
+      const ship = createBrigantine({ tier });
+      const meshes = (root: Object3D) => {
+        let n = 0;
+        let triangles = 0;
+        root.traverse((o) => {
+          const m = o as Mesh;
+          if (!m.isMesh) return;
+          n++;
+          triangles += (m.geometry.index?.count ?? m.geometry.getAttribute('position').count) / 3;
+        });
+        return { n, triangles };
+      };
+      const merged = ship.group.getObjectByName('hull deck trim and stern (merged)') as Mesh;
+      const spars = ship.group.getObjectByName('spars and furled canvas (merged)') as Mesh;
+      expect(merged).toBeDefined();
+      expect(spars).toBeDefined();
+      expect(ship.group.getObjectByName('rounded planked hull')).toBeUndefined();
+      expect(ship.group.getObjectByName('furled canvas bundles')).toBeUndefined();
+      expect(meshes(ship.group).triangles).toBe(ship.triangleCount);
+      ship.dispose();
+    }
+  });
+
   it('keeps generated brigantine and pipe mesh geometry byte-identical', () => {
     const ship = createBrigantine({ tier: 'high' });
     expect(captureMeshSignatures(ship.group)).toEqual(HIGH_TIER_MESH_SIGNATURES);

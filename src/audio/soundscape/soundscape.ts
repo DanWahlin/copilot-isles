@@ -9,7 +9,7 @@ export type SurfKind = 'crash' | 'wash' | 'backwash';
 export type FootstepSurface = 'sand' | 'wetsand' | 'wood' | 'rock' | 'grass' | 'water';
 export type BedName = Extract<
   LoopName,
-  'wind' | 'palms' | 'surf_far' | 'birds_dawn' | 'crickets' | 'opening_cabin'
+  'wind' | 'palms' | 'surf_far' | 'birds_dawn' | 'gulls_far' | 'crickets' | 'opening_cabin'
 >;
 export type SoundLoopName = Extract<LoopName, 'stream' | 'waterfall_small' | 'wheel_creak'>;
 
@@ -54,6 +54,7 @@ const BED_NAMES: readonly BedName[] = [
   'palms',
   'surf_far',
   'birds_dawn',
+  'gulls_far',
   'crickets',
   'opening_cabin',
 ];
@@ -169,6 +170,7 @@ export class IslesSoundScape {
     palms: 0,
     surf_far: 0,
     birds_dawn: 0,
+    gulls_far: 0,
     crickets: 0,
     opening_cabin: 0,
   };
@@ -330,7 +332,7 @@ export class IslesSoundScape {
   }
 
   private dayNightBedGain(name: BedName, base: number): number {
-    if (name === 'birds_dawn') return base * (1 - this.night);
+    if (name === 'birds_dawn' || name === 'gulls_far') return base * (1 - this.night);
     if (name === 'crickets') return base * this.night;
     return base;
   }
@@ -511,7 +513,7 @@ export class IslesSoundScape {
     if (name.startsWith('bird_')) return 'bird';
     if (name === 'big_splash' || name === 'splash') return 'splash';
     if (name === 'hull_slap') return 'hull';
-    if (name === 'cannon_boom') return 'cannon';
+    if (name === 'cannon_boom' || name === 'cannon_fire') return 'cannon';
     if (name === 'cannon_far') return 'cannon_far';
     if (name === 'ball_whiz') return 'whiz';
     if (name === 'timber_hit') return 'timber';
@@ -528,7 +530,7 @@ export class IslesSoundScape {
     if (name === 'bird_forest') return MIX.bird;
     if (name === 'big_splash' || name === 'splash') return MIX.splash;
     if (name === 'hull_slap') return MIX.hull;
-    if (name === 'cannon_boom') return MIX.cannon;
+    if (name === 'cannon_boom' || name === 'cannon_fire') return MIX.cannon;
     if (name === 'cannon_far') return MIX.cannon_far;
     if (name === 'ball_whiz') return MIX.whiz;
     if (name === 'timber_hit') return MIX.timber;

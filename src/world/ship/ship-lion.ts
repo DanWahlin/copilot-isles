@@ -103,7 +103,9 @@ function loadAsset(tier: Tier): Promise<DecodedLionAsset> {
 
 export function loadLionHeadFigurehead(tier: Tier, material: Material): Promise<Mesh> {
   return loadAsset(tier).then(({ geometry }) => {
-    const mesh = new Mesh(geometry, material);
+    // Each ship owns its copy: the opening's ship frees its figurehead when the opening ends, and a
+    // shared geometry would then upload again for your ship mid-play (a hitch).
+    const mesh = new Mesh(geometry.clone(), material);
     mesh.name = 'gilded CC0 lion figurehead';
     mesh.castShadow = true;
     mesh.receiveShadow = true;

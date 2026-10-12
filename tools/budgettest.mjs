@@ -14,7 +14,9 @@
 //   [--islands=anchorage,meridian] [--spots=12] (seeded walkable spots per island, plus the named ones)
 //   [--yaws=4] [--frames=8] (frames read per view) [--top=10] (groups to print) [--json=<file>]
 //   [--views] (print every view) [--webgl]
-// Exits 1 when a tier's worst view is over budget, or on a page error.
+// npm run check:frame-budgets -- --base=http://127.0.0.1:5353 runs it as a gate (not part of the build).
+// It ends with one line per tier and island, and exits 0 only when every tier's worst view is within
+// budget; it exits 1 when any is over (there's no allowance for a known gap), or on a page error.
 import { writeFileSync } from 'node:fs';
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
 
@@ -275,4 +277,21 @@ for (const tier of tiers) {
 }
 await browser.close();
 if (opt.json) writeFileSync(String(opt.json), JSON.stringify(results, null, 1));
+// The gate: one line per tier and island, worst view against the budget. No allowances: any tier over
+// its budget (or a page error) fails the run.
+console.log('\nPLAN §12.1 frame budgets (worst view per tier and island):');
+console.log(
+  `  ${'tier'.padEnd(7)}${'island'.padEnd(10)}${'triangles'.padEnd(18)}${'draws'.padEnd(12)}result`,
+);
+for (const r of results) {
+  const tris = `${fmtK(r.trisMax)} / ${fmtK(r.trisBudget)}`;
+  const draws = `${r.drawsMax} / ${r.drawsBudget}`;
+  const over = [r.trisMax >= r.trisBudget && 'triangles', r.drawsMax >= r.drawsBudget && 'draws'].filter(
+    Boolean,
+  );
+  console.log(
+    `  ${r.tier.padEnd(7)}${r.island.padEnd(10)}${tris.padEnd(18)}${draws.padEnd(12)}${over.length ? `OVER (${over.join(', ')})` : 'ok'}`,
+  );
+}
+console.log(failed ? 'FAIL: over budget (or page errors above)' : 'PASS: every tier is within budget');
 process.exit(failed ? 1 : 0);

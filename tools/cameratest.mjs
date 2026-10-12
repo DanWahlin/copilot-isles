@@ -16,12 +16,12 @@
 // Spots where the pivot is inside geometry, or where geometry comes within 0.45 m of it (the head
 // is already in it: a collider that's smaller than what's drawn), are skipped and counted.
 // Sail spots sweep the ship's rig over the water round each coast. Exits 1 on a page error or on
-// more bad frames than --max-bad (default 80: the count stood at 16-36, with a margin for
-// run-to-run spread; lower it as the colliders get closer to what's drawn).
+// more bad frames than --max-bad (default 50: the count stands at 24-49 across seeds, so this
+// catches a real regression without failing on sample spread; lower it as colliders tighten).
 // Needs a dev server. A no-HMR one keeps edits elsewhere from reloading the page mid-run:
 //   npx vite --config tools/vite.nohmr.config.mjs --port 5322
 // node tools/cameratest.mjs [--base=http://127.0.0.1:5322] [--samples=160] [--sail=30] (sail spots)
-//   [--seed=7] [--max-bad=80] [--list=25] (hits to print) [--explain] (with the collider nearest each)
+//   [--seed=7] [--max-bad=50] [--list=25] (hits to print) [--explain] (with the collider nearest each)
 //   [--camera=/<path>.ts] (another FollowCamera module under the repo, served by Vite, to compare)
 //   [--near=x,z,r] (only the clusters near a point) [--probe] (what the six axis rays from each
 //   listed hit meet first) [--out=<dir>] (screenshots of the first 8 hits from the camera pose, and
@@ -131,14 +131,16 @@ const clusters = await page.evaluate(async (cfg) => {
   const addMesh = (geometry, e, ownerId, cx, cz, R) => {
     const pos = geometry.attributes.position;
     const idx = geometry.index;
-    const count = idx ? idx.count : pos.count;
+    // Only what's drawn: a mesh with levels of detail keeps its coarser lists after the full one.
+    const start = geometry.drawRange.start;
+    const count = Math.min(idx ? idx.count : pos.count, start + geometry.drawRange.count);
     const flip =
       e[0] * (e[5] * e[10] - e[6] * e[9]) -
         e[1] * (e[4] * e[10] - e[6] * e[8]) +
         e[2] * (e[4] * e[9] - e[5] * e[8]) <
       0;
     const v = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-    for (let i = 0; i + 2 < count; i += 3) {
+    for (let i = start; i + 2 < count; i += 3) {
       for (let k = 0; k < 3; k++) {
         const vi = idx ? idx.getX(i + (flip && k ? 3 - k : k)) : i + (flip && k ? 3 - k : k);
         const x = pos.getX(vi),
@@ -810,4 +812,4 @@ console.log(
   }),
 );
 await browser.close();
-process.exit(total.badFrames > Number(opt['max-bad'] ?? 80) || errors.length ? 1 : 0);
+process.exit(total.badFrames > Number(opt['max-bad'] ?? 50) || errors.length ? 1 : 0);

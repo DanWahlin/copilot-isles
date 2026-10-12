@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { Mesh } from 'three/webgpu';
 import { tierSettings } from '../../engine/quality';
 import type { CircleObstacle, HeightField, WaveSampler } from '../contracts';
 import { MERIDIAN, meridianHeight, meridianMasks } from '../islands/meridian';
@@ -130,13 +131,32 @@ describe('createMeridianTown', () => {
       expect(anchor!.y).toBeGreaterThanOrEqual(-1);
       expect(anchor!.y).toBeLessThanOrEqual(42);
     }
-    expect(town.metrics.staticDraws).toBeLessThanOrEqual(11);
-    expect(town.metrics.drawCalls).toBeLessThanOrEqual(16);
+    // Each material splits into spatial chunks of 24k triangles at most (frustum culling skips most).
+    expect(town.metrics.staticDraws).toBeLessThanOrEqual(20);
+    expect(town.metrics.drawCalls).toBeLessThanOrEqual(25);
+    const chunks = town.group.children.filter((o) => o.name.startsWith('meridian-town-')) as Mesh[];
+    expect(chunks.length).toBe(town.metrics.staticDraws);
+    const chunkTriangles = chunks.reduce((sum, m) => sum + (m.geometry.index?.count ?? 0) / 3, 0);
+    expect(chunkTriangles).toBe(town.metrics.staticTriangles);
+    for (const m of chunks) expect((m.geometry.index?.count ?? 0) / 3).toBeLessThanOrEqual(24_000 + 2_000);
     expect(town.metrics.triangles).toBeLessThan(260_000);
     expect(town.metrics.buildingCount).toBeGreaterThanOrEqual(25);
     expect(town.colliders.boxes.length + town.colliders.circles.length).toBeGreaterThan(80);
 
     town.dispose();
+    kit.dispose();
+  });
+
+  it('builds Lite cheaper (flat facade trim, fewer flower and tree segments) with the same colliders', () => {
+    const kit = testKit();
+    const lite = createMeridianTown({ tier: tierSettings('lite'), heightField, kit });
+    const low = createMeridianTown({ tier: tierSettings('low'), heightField, kit });
+    expect(lite.metrics.staticTriangles).toBeLessThan(low.metrics.staticTriangles - 30_000);
+    expect(lite.colliders.boxes.length).toBe(low.colliders.boxes.length);
+    expect(lite.colliders.circles.length).toBe(low.colliders.circles.length);
+    expect(insideOutSummary(lite.group, (m) => m.name.startsWith('meridian-town-'))).toEqual([]);
+    lite.dispose();
+    low.dispose();
     kit.dispose();
   });
 
@@ -466,7 +486,7 @@ describe('Port Meridian east arm ship obstacles', () => {
     );
   });
 
-  it("stops the widest hull section at the arm's west, south and east faces, and the quay face by the arm", () => {
+  it("stops the widest hull section at the arm's west, south and east faces, and the quay face", () => {
     // Slide the widest capsule along each face (out = the face's outward normal) and find how far it
     // must stay out to touch no circle: the hull may reach into the stone by at most half a metre.
     const faces = [
@@ -491,8 +511,8 @@ describe('Port Meridian east arm ship obstacles', () => {
         ox: 1,
         oz: 0,
       },
-      // The quay face from the dinghy moorings to the corner with the arm.
-      { name: 'quay', x: 731, z: quay.z1, ax: 1, az: 0, len: arm.x0 - 731, ox: 0, oz: 1 },
+      // The whole quay face, from the shipyard slip to the corner with the arm.
+      { name: 'quay', x: quay.x0 + 2, z: quay.z1, ax: 1, az: 0, len: arm.x0 - quay.x0 - 2, ox: 0, oz: 1 },
     ];
     const problems: string[] = [];
     for (const f of faces)
@@ -527,6 +547,24 @@ describe('Port Meridian east arm ship obstacles', () => {
       // A pointed bow can nose about half a metre in between two circles; a broadside can't.
       expect(run(new ShipDynamics(x, z, heading), seconds, 1).worst).toBeLessThan(0.75);
     });
+
+  it('keeps a ship under full sail out of the main quay face, between the fishing boats', () => {
+    // Bow first into the face, every 1.5 m along the lanes between the moored boats (the old row's
+    // circles were 7.5 m apart, so a bow went about 1.2 m into the stone between two of them).
+    const lanes: [number, number][] = [
+      [629, 650],
+      [664, 679],
+      [693, 703],
+      [717, 728],
+    ];
+    const problems: string[] = [];
+    for (const [x0, x1] of lanes)
+      for (let x = x0; x <= x1; x += 1.5) {
+        const { worst } = run(new ShipDynamics(x, -727, Math.PI), 10, 1);
+        if (worst >= 0.75) problems.push(`x ${x.toFixed(1)}: ${worst.toFixed(2)} m`);
+      }
+    expect(problems).toEqual([]);
+  });
 
   // The dock assist's last pivot swings the bow over the arm; the row only keeps the hull off the stone.
   // Each case's last number is its dock time before the arm and corner rows (14.0, 2.7, 8.0 and 8.0 s),

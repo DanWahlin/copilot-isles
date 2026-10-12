@@ -1,10 +1,12 @@
 import {
   Color,
+  Frustum,
   InstancedBufferAttribute,
   InstancedMesh,
   Matrix4,
   Object3D,
   Quaternion,
+  Sphere,
   Vector3,
   type BufferGeometry,
   type Group,
@@ -44,6 +46,10 @@ interface PlantBatch {
   fade: InstancedBufferAttribute;
   tint: InstancedBufferAttribute;
   instances: PlantInstance[];
+  /** Each instance's tint (r, g, b), worked out once. */
+  tints: Float32Array;
+  /** Unscaled bounding radius about the plant's root (m), for the per-instance frustum test. */
+  reach: number;
   trianglesPerInstance: number;
   nearOnly: boolean;
   farDistance: number;
@@ -56,6 +62,15 @@ const tmpQuat = new Quaternion();
 const tmpScale = new Vector3();
 const shear = new Matrix4();
 const tmpMatrix = new Matrix4();
+const UP = new Vector3(0, 1, 0);
+const viewProj = new Matrix4();
+const frustum = new Frustum();
+const plantSphere = new Sphere();
+/**
+ * Padding (m) on each plant's bounds in the per-instance frustum test. Plants don't cast sun shadows
+ * or show in the harbour mirror, so only the main camera needs them.
+ */
+const PLANT_FRUSTUM_PAD = 1.5;
 
 function resolveTier(tier: Tier | TierSettings): TierSettings {
   return typeof tier === 'string' ? tierSettings(tier) : tier;
@@ -144,7 +159,7 @@ function tintFor(instance: PlantInstance): Color {
 
 function setPlantMatrix(instance: PlantInstance): Matrix4 {
   tmpObject.position.set(instance.x, instance.y, instance.z);
-  tmpQuat.setFromAxisAngle(new Vector3(0, 1, 0), instance.rotation);
+  tmpQuat.setFromAxisAngle(UP, instance.rotation);
   tmpObject.quaternion.copy(tmpQuat);
   tmpScale.setScalar(instance.scale);
   tmpObject.scale.copy(tmpScale);
@@ -174,9 +189,16 @@ function createBatch(
 ): PlantBatch {
   const geometry = part.geometry.clone();
   const { fade, tint } = attachInstanceAttributes(geometry, instances.length);
+  if (!geometry.boundingSphere) geometry.computeBoundingSphere();
+  const bounds = geometry.boundingSphere!;
+  const tints = new Float32Array(instances.length * 3);
+  instances.forEach((instance, i) => tintFor(instance).toArray(tints, i * 3));
   const mesh = sharedInstancedMesh(geometry, part.material as Material, instances.length, { count: 0 });
   mesh.name = `vegetation-${species}`;
-  mesh.frustumCulled = false;
+  // The instances are culled on the CPU (`updateBatch`), so three's own test always passes. A warm-up
+  // clears `frustumCulled` to draw a mesh whatever the camera sees: then every plant in range draws.
+  mesh.frustumCulled = true;
+  mesh.intersectsFrustum = () => true;
   // Flowering bushes hand off to the shrub impostor: drawn small, their alpha-tested leaves thin out
   // and leave only the red blooms, which read as red blobs on the hills.
   const nearOnly = TREE_LIKE.has(species) || species === 'flowerBush';
@@ -196,6 +218,8 @@ function createBatch(
     fade,
     tint,
     instances,
+    tints,
+    reach: bounds.center.length() + bounds.radius,
     trianglesPerInstance: triangleCount(geometry),
     nearOnly,
     farDistance,
@@ -203,20 +227,32 @@ function createBatch(
   };
 }
 
+/** Sets the shared frustum from the camera (call before `updateBatch` each frame). */
+function setPlantFrustum(camera: PerspectiveCamera): void {
+  camera.updateMatrixWorld();
+  viewProj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  frustum.setFromProjectionMatrix(viewProj);
+}
+
+/** Fills the batch with the plants in range and in view (the frustum from `setPlantFrustum`). */
 function updateBatch(batch: PlantBatch, camera: PerspectiveCamera, tier: TierSettings): void {
   batch.visible = 0;
   const handoff = geometryHandoff(batch.species, tier);
-  for (const instance of batch.instances) {
+  const tints = batch.tints;
+  for (let i = 0; i < batch.instances.length; i++) {
+    const instance = batch.instances[i]!;
     const d = Math.hypot(instance.x - camera.position.x, instance.z - camera.position.z);
     const maxD = batch.nearOnly ? handoff + 10 : batch.farDistance;
     if (d > maxD) continue;
-    const slot = batch.visible;
-    if (slot >= batch.instances.length) continue;
-    batch.mesh.setMatrixAt(slot, setPlantMatrix(instance));
-    {
-      const tint = tintFor(instance);
-      batch.tint.setXYZ(slot, tint.r, tint.g, tint.b);
+    if (batch.mesh.frustumCulled) {
+      const lean = 1 + Math.abs(instance.leanX) + Math.abs(instance.leanZ);
+      plantSphere.center.set(instance.x, instance.y, instance.z);
+      plantSphere.radius = batch.reach * instance.scale * lean + PLANT_FRUSTUM_PAD;
+      if (!frustum.intersectsSphere(plantSphere)) continue;
     }
+    const slot = batch.visible;
+    batch.mesh.setMatrixAt(slot, setPlantMatrix(instance));
+    batch.tint.setXYZ(slot, tints[i * 3]!, tints[i * 3 + 1]!, tints[i * 3 + 2]!);
     const fadeNear = batch.nearOnly
       ? 1 - smoothstep(handoff - 10, handoff + 6, d)
       : 1 - smoothstep(maxD - 18, maxD, d);
@@ -327,6 +363,7 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
   return {
     group,
     update(camera) {
+      setPlantFrustum(camera);
       for (const batch of batches) updateBatch(batch, camera, tier);
       grass.update(camera);
       impostors?.update(camera);

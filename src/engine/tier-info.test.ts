@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { detectPlatform, friendlyGpuName } from './capability';
-import { TIERS } from './quality';
+import { TIERS, sunShadowReach } from './quality';
 import { TIER_ORDER, tierBlurbs, tierFeatures, tierFor } from './tier-info';
 
 describe('tier blurbs', () => {
@@ -25,6 +25,16 @@ describe('tier blurbs', () => {
     for (const p of ['mac', 'windows', 'linux', 'mobile'] as const)
       expect(tierFor(p).ultra).toMatch(/^Heavy/);
     expect(b.ultra).toMatch(/^Everything in High, plus /);
+  });
+
+  it('say how far the sun shadows reach (about 60 m, 90 m, 170 m)', () => {
+    expect(TIER_ORDER.map((t) => sunShadowReach(TIERS[t]))).toEqual([0, 0, 60, 90, 170]);
+    for (const backend of ['webgpu', 'webgl2'] as const) {
+      expect(tierFeatures(TIERS.medium, backend)).toContain('sun shadows near you');
+      expect(tierFeatures(TIERS.high, backend)).toContain('sun shadows farther out');
+      expect(tierFeatures(TIERS.ultra, backend)).toContain('sun shadows that reach farthest');
+    }
+    expect(Object.values(tierBlurbs('webgpu')).join(' ')).not.toMatch(/distant shadows/);
   });
 
   it('leave out WebGPU-only features on WebGL2', () => {

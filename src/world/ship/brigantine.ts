@@ -12,6 +12,7 @@ import {
   type Material,
 } from 'three/webgpu';
 import { uniform } from 'three/tsl';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { CircleObstacle, HeightField, Tier, WaveSampler } from '../contracts';
 import { updateShipOceanInteraction } from '../ocean/ship-interaction';
 import { ShipDynamics, type ShipEnv } from './dynamics';
@@ -230,6 +231,25 @@ function addMesh(
   return mesh;
 }
 
+/**
+ * Lite and Low: draws parts that never move apart and share a material as one mesh (PLAN §12.2). Those
+ * tiers have no sun shadows, so the parts' shadow flags don't matter. Parts whose attributes don't
+ * match stay as they are.
+ */
+function mergeStaticParts(parent: Group, parts: Mesh[], name: string): void {
+  const merged = mergeGeometries(
+    parts.map((part) => part.geometry),
+    false,
+  );
+  if (!merged) return;
+  const mesh = addMesh(parent, merged, parts[0]!.material as Material, name, false);
+  mesh.receiveShadow = parts.some((part) => part.receiveShadow);
+  for (const part of parts) {
+    part.removeFromParent();
+    part.geometry.dispose();
+  }
+}
+
 /** Where the gangplank hooks over the port rail, in ship-local space. */
 const GANGWAY_TOP = {
   x: halfBeamAt(BOARDING_Z, sheerHeightAt(BOARDING_Z)) - 0.04,
@@ -385,9 +405,11 @@ export function createBrigantine({
   const pipeSystem = createShipPipes(shipMaterial);
   const christening = createChristeningSystem(shipMaterial);
   paintShipName(shipLabel, null);
-  addMesh(group, createHullGeometry(tier), shipMaterial, 'rounded planked hull');
-  addMesh(group, createDeckGeometry(tier), shipMaterial, 'deck planking rails and fittings', false);
-  addMesh(group, createTrimGeometry(tier), shipMaterial, 'wales strakes gunports galleries anchors');
+  const hullParts = [
+    addMesh(group, createHullGeometry(tier), shipMaterial, 'rounded planked hull'),
+    addMesh(group, createDeckGeometry(tier), shipMaterial, 'deck planking rails and fittings', false),
+    addMesh(group, createTrimGeometry(tier), shipMaterial, 'wales strakes gunports galleries anchors'),
+  ];
   const gunGeometry = createDeckGunGeometry(tier);
   if (gunGeometry)
     addMesh(
@@ -396,9 +418,19 @@ export function createBrigantine({
       register(makeGunMaterial(shipLabel, uniforms.livery, slot, marks)),
       'deck guns',
     );
-  addMesh(group, createWindowGeometry(), shipMaterial, 'stern gallery windows and name board backing', false);
-  addMesh(group, createSternGoldGeometry(), shipMaterial, 'stern gallery trim and lantern bracket');
-  addMesh(group, createNameBoardGeometry(), shipMaterial, 'christening ship name boards', false);
+  hullParts.push(
+    addMesh(
+      group,
+      createWindowGeometry(),
+      shipMaterial,
+      'stern gallery windows and name board backing',
+      false,
+    ),
+    addMesh(group, createSternGoldGeometry(), shipMaterial, 'stern gallery trim and lantern bracket'),
+    addMesh(group, createNameBoardGeometry(), shipMaterial, 'christening ship name boards', false),
+  );
+  const lowTier = tier === 'lite' || tier === 'low';
+  if (lowTier) mergeStaticParts(group, hullParts, 'hull deck trim and stern (merged)');
   const canvasMaterial = register(makeCanvasMaterial(uniforms));
   const flagHaul = uniform(BRIGANTINE_FLAGS.haulDown);
   const flagMaterial = register(
@@ -416,8 +448,11 @@ export function createBrigantine({
   const brigRig = new Group();
   brigRig.name = 'brigantine rig';
   group.add(brigRig);
-  addMesh(brigRig, createSparGeometry(tier), shipMaterial, 'masts yards boom bowsprit jibboom', false);
-  addMesh(brigRig, createBundledCanvasGeometry(tier), shipMaterial, 'furled canvas bundles', false);
+  const spars = [
+    addMesh(brigRig, createSparGeometry(tier), shipMaterial, 'masts yards boom bowsprit jibboom', false),
+    addMesh(brigRig, createBundledCanvasGeometry(tier), shipMaterial, 'furled canvas bundles', false),
+  ];
+  if (lowTier) mergeStaticParts(brigRig, spars, 'spars and furled canvas (merged)');
   addMesh(brigRig, createSailGeometry(tier), canvasMaterial, 'billowed procedural sails');
   addMesh(
     brigRig,
@@ -464,7 +499,7 @@ export function createBrigantine({
     lanternRig.addCylinderBetween({ x, y: 0, z: 0 }, { x, y: -0.58, z: 0 }, 0.018, 6);
     lanternRig.addBox(x, -0.2, 0, 0.2, 0.04, 0.2);
   }
-  addMesh(lanternPivot, lanternRig.build(), shipMaterial, 'lantern hanger', false);
+  const lanternHanger = addMesh(lanternPivot, lanternRig.build(), shipMaterial, 'lantern hanger', false);
   const lanternGeo = new MeshBuilder();
   lanternGeo.setRegion(6);
   lanternGeo.setColor(0xffb060);
@@ -477,7 +512,9 @@ export function createBrigantine({
     lanternGeo.setRegion(6);
     lanternGeo.setColor(0xffb060);
   }
-  addMesh(lanternPivot, lanternGeo.build(), shipMaterial, 'stern lantern', false);
+  const lantern = addMesh(lanternPivot, lanternGeo.build(), shipMaterial, 'stern lantern', false);
+  // They swing together on one pivot.
+  if (lowTier) mergeStaticParts(lanternPivot, [lanternHanger, lantern], 'stern lantern and hanger (merged)');
   group.add(lanternPivot);
 
   // A tackle block dangling from the lower mizzen stay, swaying with the ship.

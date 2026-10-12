@@ -14,7 +14,24 @@ import {
 } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle, HeightField, Tier } from '../contracts';
-import { box as geoBox, cylinder as geoCylinder, merge, tubeBetween, worldUv } from '../sites/geo';
+import {
+  box as geoBox,
+  card as geoCard,
+  cylinder as geoCylinder,
+  merge,
+  tubeBetween,
+  withIndex,
+  worldUv,
+} from '../sites/geo';
+import {
+  ChunkLods,
+  buildChunkLodIndex,
+  chunkLodEdges,
+  chunkLodFloor,
+  chunkOptions,
+  mergeIntoChunks,
+} from '../village/chunks';
+import { loadLodSimplifier, type LodSimplifier } from '../characters/character-lod';
 import { MERIDIAN, meridianQuayHeight } from '../islands/meridian';
 import {
   APRICOT,
@@ -99,7 +116,16 @@ export interface CreateMeridianTownOptions {
   tier: TierSettings;
   heightField: HeightField;
   kit: VillageKit;
+  /** For the merged chunks' levels of detail (none: full detail only). */
+  simplify?: LodSimplifier | null;
 }
+
+/**
+ * Lite (PLAN §12.1, the weakest GPUs) builds the town's small dressing cheaper: window, shutter and
+ * sill trim as flat cards (no 5 cm edges), and flowers, vines and tree crowns with fewer segments.
+ * Set for each build (the build runs to the end before the next starts).
+ */
+let liteTown = false;
 
 type Buckets = Record<MaterialKey, BufferGeometry[]>;
 /** `camera`: camera-only blockers (see MeridianTownSystem.cameraBlockers). */
@@ -188,7 +214,13 @@ export async function createMeridianTownAsync(
   options: CreateMeridianTownOptions,
   breathe: () => Promise<void>,
 ): Promise<MeridianTownSystem> {
-  const steps = buildMeridianTown(options);
+  const simplify =
+    options.simplify !== undefined
+      ? options.simplify
+      : typeof window === 'undefined'
+        ? null
+        : await loadLodSimplifier();
+  const steps = buildMeridianTown({ ...options, simplify });
   for (;;) {
     const r = steps.next();
     if (r.done) return r.value;
@@ -200,7 +232,9 @@ function* buildMeridianTown({
   tier,
   heightField,
   kit,
+  simplify = null,
 }: CreateMeridianTownOptions): Generator<void, MeridianTownSystem, void> {
+  liteTown = tier.tier === 'lite';
   const group = new Group();
   group.name = 'port-meridian-town';
 
@@ -307,20 +341,29 @@ function* buildMeridianTown({
   const staticMeshes: Mesh[] = [];
   let staticDraws = 0;
   let staticTriangles = 0;
+  // Spatial chunks per material, so frustum culling works across the town, each with its own levels
+  // of detail (no new draws or pipelines).
+  const chunkLods = new ChunkLods(chunkLodEdges(tier), chunkLodFloor(tier));
   for (const key of Object.keys(buckets) as MaterialKey[]) {
     const parts = buckets[key];
     if (parts.length === 0) continue;
-    const geometry = merge(parts);
-    geometry.computeBoundingSphere();
-    geometry.computeBoundingBox();
-    const mesh = new Mesh(geometry, kit.materials[key]);
-    mesh.name = `meridian-town-${key}`;
-    mesh.castShadow = key !== 'glow' && key !== 'halo';
-    mesh.receiveShadow = key !== 'glow' && key !== 'halo';
-    group.add(mesh);
-    staticMeshes.push(mesh);
-    staticDraws += 1;
-    staticTriangles += triangleCount(geometry);
+    // Some three primitives are non-indexed after transforms; index them so they merge.
+    const indexed = parts.some((g) => g.index);
+    for (const chunk of mergeIntoChunks(
+      indexed ? parts.map((g) => (g.index ? g : withIndex(g))) : parts,
+      chunkOptions(tier),
+    )) {
+      if (simplify) buildChunkLodIndex(chunk.geometry, simplify);
+      const mesh = new Mesh(chunk.geometry, kit.materials[key]);
+      mesh.name = `meridian-town-${key}`;
+      mesh.castShadow = key !== 'glow' && key !== 'halo';
+      mesh.receiveShadow = key !== 'glow' && key !== 'halo';
+      chunkLods.attach(mesh);
+      group.add(mesh);
+      staticMeshes.push(mesh);
+      staticDraws += 1;
+      staticTriangles += chunk.triangles;
+    }
     yield;
   }
 
@@ -358,6 +401,7 @@ function* buildMeridianTown({
       setLiftCarPosition(liftCar, t);
     },
     update(_dt: number, _t: number, camera: Camera): void {
+      chunkLods.update(camera.position.x, camera.position.y, camera.position.z);
       for (const child of lighthouseGlow.children) {
         if (child.userData.billboard) child.quaternion.copy(camera.quaternion);
       }
@@ -641,25 +685,18 @@ function addHarbour(
   if (!low) addDinghy(buckets, colliders, shipObstacles, 735.5, -716, Math.PI / 2, 0.7);
   addEastArmArrivalDressing(buckets, colliders, shipObstacles, perches, low);
 
-  let quayRowEnd: number = quay.x0;
-  for (let x = quay.x0 + 2; x < 735; x += 7.5) {
-    shipObstacles.push({ x, z: quay.z1 - 1.2, r: 1.55 });
-    quayRowEnd = x;
-  }
-  // Ship-only circles inside the east arm's west, south and east faces (their edges on the face) keep
-  // the hull off the stone: grounding samples only each capsule's centre, so a hull could slide half
-  // a beam into the arm, or sail over its flat top from the south. z0 < z1 here (the old row ran
-  // z1 → z0, so it never ran). 3 m apart, even the bow can't nose far in between two of them.
+  // Ship-only circles inside the quay face and the east arm's west, south and east faces (their edges
+  // on the face) keep the hull off the stone: grounding samples only each capsule's centre, so a hull
+  // could slide half a beam into the arm, or sail over its flat top from the south. z0 < z1 here (the
+  // old row ran z1 → z0, so it never ran). 3 m apart, even the bow can't nose far in between two of
+  // them (7.5 m apart, it went about a metre into the quay).
   const armR = 1.6;
-  // The same on the quay face from the row's end to the corner with the arm (the berth is far south).
+  // The quay face from the shipyard slip to the corner with the arm (the berth is far south).
+  const quayX0 = quay.x0 + armR;
   const cornerX = eastArm.x0 - armR;
-  const cornerCount = Math.ceil((cornerX - quayRowEnd) / 3);
-  for (let i = 1; i <= cornerCount; i++)
-    shipObstacles.push({
-      x: quayRowEnd + ((cornerX - quayRowEnd) * i) / cornerCount,
-      z: quay.z1 - armR,
-      r: armR,
-    });
+  const quayCount = Math.ceil((cornerX - quayX0) / 3);
+  for (let i = 0; i <= quayCount; i++)
+    shipObstacles.push({ x: quayX0 + ((cornerX - quayX0) * i) / quayCount, z: quay.z1 - armR, r: armR });
   const armSouth = eastArm.z1 - armR;
   for (let z = quay.z1 + armR; z < armSouth; z += 3)
     shipObstacles.push({ x: eastArm.x0 + armR, z, r: armR }, { x: eastArm.x1 - armR, z, r: armR });
@@ -2500,8 +2537,8 @@ function addFlowerBox(buckets: Buckets, p: { x: number; z: number }, y: number, 
       0.08,
       0.1,
       i % 2 ? BOUGAINVILLEA : 0xe2b23a,
-      6,
-      4,
+      liteTown ? 4 : 6,
+      liteTown ? 3 : 4,
     );
   }
 }
@@ -2517,6 +2554,14 @@ function addFacadeRect(
   key: MaterialKey,
   colour: number,
 ): void {
+  if (liteTown) {
+    // The box's front face (its 5.5 cm depth centred 8 cm out), facing out from the wall.
+    const p = facadeWorldPoint(spec, side, along, 0.08 + 0.0275);
+    const q = facadeWorldPoint(spec, side, along, 1.08);
+    const ry = Math.atan2(q.x - p.x, q.z - p.z);
+    buckets[key].push(geoCard(w, h, { x: p.x, y, z: p.z, ry }, key === 'paving' ? 0xffffff : colour, 1.8));
+    return;
+  }
   const p = facadeWorldPoint(spec, side, along, 0.08);
   addBox(buckets, key, p.x, y, p.z, w, h, 0.055, sideYaw(spec.rotY, side), colour);
 }
@@ -3682,9 +3727,10 @@ function addCypress(
   s: number,
 ): void {
   addCylinderGeom(buckets.wood, x, y, z, 0.16 * s, 0.2 * s, 2.4 * s, 6, 0, 0x5a3924);
-  addCone(buckets.cloth, x, y + 1.35 * s, z, 1.0 * s, 4.4 * s, 8, 0, CYPRESS);
-  addCone(buckets.cloth, x, y + 3.0 * s, z, 0.78 * s, 3.6 * s, 8, 0, 0x0f341f);
-  addCone(buckets.cloth, x, y + 4.4 * s, z, 0.55 * s, 2.6 * s, 8, 0, 0x194b2b);
+  const sides = liteTown ? 6 : 8;
+  addCone(buckets.cloth, x, y + 1.35 * s, z, 1.0 * s, 4.4 * s, sides, 0, CYPRESS);
+  addCone(buckets.cloth, x, y + 3.0 * s, z, 0.78 * s, 3.6 * s, sides, 0, 0x0f341f);
+  addCone(buckets.cloth, x, y + 4.4 * s, z, 0.55 * s, 2.6 * s, sides, 0, 0x194b2b);
   colliders.circles.push({ x, z, r: 0.42 * s });
 }
 
@@ -3709,7 +3755,8 @@ function addOliveTree(
   s: number,
 ): void {
   addCylinderGeom(buckets.wood, x, y, z, 0.22 * s, 0.33 * s, 2.2 * s, 6, 0.15, 0x5a3a25);
-  addSphere(buckets.cloth, x, y + 2.75 * s, z, 1.6 * s, 1.0 * s, 1.45 * s, OLIVE_SILVER, 6, 4);
+  const crown = liteTown ? ([5, 3] as const) : ([6, 4] as const);
+  addSphere(buckets.cloth, x, y + 2.75 * s, z, 1.6 * s, 1.0 * s, 1.45 * s, OLIVE_SILVER, crown[0], crown[1]);
   addSphere(
     buckets.cloth,
     x - 0.92 * s,
@@ -3719,8 +3766,8 @@ function addOliveTree(
     0.78 * s,
     1.0 * s,
     OLIVE,
-    6,
-    4,
+    crown[0],
+    crown[1],
   );
   addSphere(
     buckets.cloth,
@@ -3731,8 +3778,8 @@ function addOliveTree(
     0.72 * s,
     1.15 * s,
     0x738753,
-    6,
-    4,
+    crown[0],
+    crown[1],
   );
   colliders.circles.push({ x, z, r: 0.62 * s });
 }
@@ -3772,7 +3819,7 @@ function addBougainvillea(buckets: Buckets, x: number, y: number, z: number, rot
       size * 0.8,
       size * 0.7,
       leafy ? 0x2f5a2a : bracts[i % bracts.length]!,
-      5,
+      liteTown ? 4 : 5,
       2,
     );
   }

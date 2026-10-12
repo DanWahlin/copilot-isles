@@ -1,0 +1,46 @@
+import { describe, expect, it } from 'vitest';
+import { BoxGeometry, Color, InstancedMesh, Matrix4, MeshStandardMaterial, Vector3 } from 'three/webgpu';
+import { bakeInstances } from './instancing';
+
+describe('bakeInstances', () => {
+  it('bakes every instance in place, with its colour, keeping the triangles', () => {
+    const material = new MeshStandardMaterial({ vertexColors: true });
+    const a = new InstancedMesh(new BoxGeometry(1, 1, 1), material, 3);
+    const b = new InstancedMesh(new BoxGeometry(2, 1, 1), material, 2);
+    a.position.set(0, 10, 0);
+    a.updateMatrix();
+    for (let i = 0; i < 3; i++) {
+      a.setMatrixAt(i, new Matrix4().makeTranslation(i * 5, 0, 0));
+      a.setColorAt(i, new Color(1, 0, 0));
+    }
+    for (let i = 0; i < 2; i++) b.setMatrixAt(i, new Matrix4().makeTranslation(0, 0, i * 5));
+    b.count = 1; // only the instances in use bake
+    const baked = bakeInstances([a, b])!;
+    expect(baked.index).toBeNull();
+    expect(baked.getAttribute('position').count / 3).toBe(3 * 12 + 12);
+    expect(Object.keys(baked.attributes).sort()).toEqual(['color', 'normal', 'position', 'uv']);
+    const p = new Vector3();
+    const box = { minX: Infinity, maxX: -Infinity, minY: Infinity };
+    const pos = baked.getAttribute('position');
+    for (let i = 0; i < pos.count; i++) {
+      p.fromBufferAttribute(pos, i);
+      box.minX = Math.min(box.minX, p.x);
+      box.maxX = Math.max(box.maxX, p.x);
+      box.minY = Math.min(box.minY, p.y);
+    }
+    // The first mesh's three boxes sit at x 0, 5, 10 (and y 10, its own position); the second's at 0.
+    expect(box.minX).toBeCloseTo(-1);
+    expect(box.maxX).toBeCloseTo(10.5);
+    expect(box.minY).toBeCloseTo(-0.5);
+    const color = baked.getAttribute('color');
+    expect([color.getX(0), color.getY(0), color.getZ(0)]).toEqual([1, 0, 0]);
+    // The uncoloured mesh bakes white.
+    expect([color.getX(pos.count - 1), color.getY(pos.count - 1)]).toEqual([1, 1]);
+  });
+
+  it('returns null with nothing to bake', () => {
+    const mesh = new InstancedMesh(new BoxGeometry(), new MeshStandardMaterial(), 1);
+    mesh.count = 0;
+    expect(bakeInstances([mesh])).toBeNull();
+  });
+});

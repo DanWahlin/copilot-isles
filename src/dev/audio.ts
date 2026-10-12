@@ -116,6 +116,7 @@ for (const bed of [
   'palms',
   'surf_far',
   'birds_dawn',
+  'gulls_far',
   'crickets',
 ] as const satisfies readonly BedName[]) {
   soundRoot.append(button(`Toggle bed ${bed}`, () => audio.sfx.setBed(bed, Math.random() > 0.5 ? 0.55 : 0)));

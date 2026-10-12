@@ -942,6 +942,7 @@ export function createOpening(o: OpeningOptions): Opening {
         sfx.setBed('opening_cabin', 0.55);
         sfx.setBed('wind', AMBIENT_BEDS.wind * 0.25);
         sfx.setBed('surf_far', AMBIENT_BEDS.surf_far * 0.4);
+        sfx.setBed('gulls_far', 0);
       }
       void api.veil(false, beats.fadeIn * 1000);
     },
@@ -1046,6 +1047,7 @@ export function createOpening(o: OpeningOptions): Opening {
         beds.setBed('opening_cabin', 0);
         beds.setBed('wind', AMBIENT_BEDS.wind);
         beds.setBed('surf_far', AMBIENT_BEDS.surf_far);
+        beds.setBed('gulls_far', AMBIENT_BEDS.gulls_far);
       }
       removeSystem();
       if (engine.cutscene === cutscene) engine.cutscene = null;

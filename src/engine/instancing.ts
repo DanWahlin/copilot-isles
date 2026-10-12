@@ -1,4 +1,12 @@
-import { InstancedMesh, type BufferGeometry, type Material } from 'three/webgpu';
+import {
+  BufferAttribute,
+  Color,
+  InstancedMesh,
+  Matrix4,
+  type BufferGeometry,
+  type Material,
+} from 'three/webgpu';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /**
  * three (r186) draws an InstancedMesh's matrices from a uniform buffer while they fit in one (64 KB,
@@ -68,4 +76,50 @@ export function markInstancesChanged(mesh: InstancedMesh, colors = false): void 
     mesh.instanceColor.addUpdateRange(0, n * 3);
     mesh.instanceColor.needsUpdate = true;
   }
+}
+
+/**
+ * Bakes static instanced meshes that share a look into one plain geometry in their parent's space:
+ * each instance's copy is moved by its matrix and painted its instance colour (white without one), so
+ * a material with `vertexColors` draws them as before, in one draw (PLAN §12.2, merge static decor).
+ * Only position, normal, uv and colour are kept. Returns null when there's nothing to bake.
+ */
+export function bakeInstances(meshes: readonly InstancedMesh[]): BufferGeometry | null {
+  const parts: BufferGeometry[] = [];
+  const matrix = new Matrix4();
+  const color = new Color();
+  for (const mesh of meshes) {
+    const local = new Matrix4().copy(mesh.matrix);
+    const source = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
+    for (const name of Object.keys(source.attributes))
+      if (!['position', 'normal', 'uv', 'color'].includes(name)) source.deleteAttribute(name);
+    if (!source.getAttribute('uv'))
+      source.setAttribute(
+        'uv',
+        new BufferAttribute(new Float32Array(source.getAttribute('position').count * 2), 2),
+      );
+    const tint = source.getAttribute('color');
+    for (let i = 0; i < mesh.count; i++) {
+      const g = source.clone();
+      mesh.getMatrixAt(i, matrix);
+      g.applyMatrix4(matrix.premultiply(local));
+      if (mesh.instanceColor) mesh.getColorAt(i, color);
+      else color.setRGB(1, 1, 1);
+      const n = g.getAttribute('position').count;
+      const colors = new Float32Array(n * 3);
+      for (let v = 0; v < n; v++) {
+        colors[v * 3] = color.r * (tint ? tint.getX(v) : 1);
+        colors[v * 3 + 1] = color.g * (tint ? tint.getY(v) : 1);
+        colors[v * 3 + 2] = color.b * (tint ? tint.getZ(v) : 1);
+      }
+      g.setAttribute('color', new BufferAttribute(colors, 3));
+      parts.push(g);
+    }
+    source.dispose();
+  }
+  if (parts.length === 0) return null;
+  const merged = mergeGeometries(parts, false);
+  for (const g of parts) g.dispose();
+  merged?.computeBoundingSphere();
+  return merged;
 }

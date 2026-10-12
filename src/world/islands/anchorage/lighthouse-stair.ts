@@ -21,9 +21,9 @@ export const LIGHTHOUSE = {
   newel: 0.24,
   /** The plinth's edge: the walls' colliders run out to here. */
   plinthR: 3.1,
-  /** The gallery deck's outer edge and its railing. */
-  galleryR: 3.2,
-  railR: 3.06,
+  /** The gallery deck's outer edge and its railing (Dan: wide enough to walk round the captain). */
+  galleryR: 4.0,
+  railR: 3.86,
   /** The watch room's wall (on the gallery deck, under the lantern) and its height. */
   watchR: 1.64,
   watchH: 2.4,
@@ -35,6 +35,10 @@ export const LIGHTHOUSE = {
   doorHalf: 0.6,
 } as const;
 
+/** How thick each step's slab is (the steps over the door landing leave headroom under them). */
+export const LIGHTHOUSE_TREAD_DEPTH = 0.16;
+/** The ground door's outer step above the knoll top. */
+export const LIGHTHOUSE_DOOR_STEP = 0.42;
 /** Height of the gallery deck's underside above the knoll top. */
 export const LIGHTHOUSE_GALLERY = LIGHTHOUSE.plinth + LIGHTHOUSE.height;
 /** The gallery deck's top (and the watch-room floor) above the knoll top. */
@@ -104,7 +108,8 @@ export function lighthouseWalkable(x: number, z: number, y?: number): number | n
   if (r > T.galleryR) {
     // The outer door step, off the knoll onto the plinth.
     const d = doorLateral(dx, dz, LIGHTHOUSE_DOOR_HEADING);
-    if (d.axial > 0 && d.axial <= T.plinthR + 0.8 && d.lateral <= T.doorHalf + 0.25) return L.top + 0.42;
+    if (d.axial > 0 && d.axial <= T.plinthR + 0.8 && d.lateral <= T.doorHalf + 0.25)
+      return L.top + LIGHTHOUSE_DOOR_STEP;
     return null;
   }
   const floor = L.top + T.plinth;
@@ -118,7 +123,8 @@ export function lighthouseWalkable(x: number, z: number, y?: number): number | n
       return d.axial > 0 && d.lateral <= T.doorHalf ? deck : null;
     }
     const d = doorLateral(dx, dz, LIGHTHOUSE_DOOR_HEADING);
-    if (d.axial > 0 && d.lateral <= T.doorHalf) return d.axial <= T.plinthR ? floor : L.top + 0.42;
+    if (d.axial > 0 && d.lateral <= T.doorHalf)
+      return d.axial <= T.plinthR ? floor : L.top + LIGHTHOUSE_DOOR_STEP;
     return null;
   }
   const n0 = Math.floor(angleFrom(a, STAIR_START) / TREAD_ANGLE);

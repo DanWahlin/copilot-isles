@@ -1,11 +1,13 @@
 import {
   AttachedBindMode,
+  BufferAttribute,
   Matrix4,
   Mesh,
   MeshStandardMaterial,
   MeshStandardNodeMaterial,
   NodeMaterial,
   SkinnedMesh,
+  type BufferGeometry,
   type Material,
   type Object3D,
   type Skeleton,
@@ -236,7 +238,38 @@ export function shareSkinning(root: Object3D): void {
 }
 
 /**
- * Merges the attached-bind skinned meshes under `root` that share a skeleton, a material and an
+ * The constant offset `C` with `part[j] = first[j] · C` for every bone's inverse bind matrix, or null
+ * when there's none. Parts of one glTF rig often each have their own skin over the same joints, with
+ * inverse binds that differ only by where the part was modelled; then the part's vertices move by `C`.
+ */
+function boneInverseOffset(first: Skeleton, part: Skeleton, out: Matrix4): Matrix4 | null {
+  if (first === part) return out.identity();
+  const a = first.boneInverses;
+  const b = part.boneInverses;
+  if (a.length !== b.length || a.length === 0) return null;
+  out.copy(a[0]!).invert().multiply(b[0]!);
+  for (let j = 0; j < a.length; j++) {
+    const expected = check.multiplyMatrices(a[j]!, out).elements;
+    const actual = b[j]!.elements;
+    for (let k = 0; k < 16; k++)
+      if (Math.abs(expected[k]! - actual[k]!) > 1e-4 * (1 + Math.abs(actual[k]!))) return null;
+  }
+  return out;
+}
+const check = new Matrix4();
+
+/** A float copy of a (possibly quantized) attribute, so a transform can't overflow it. */
+function floatCopy(g: BufferGeometry, name: string): void {
+  const a = g.getAttribute(name);
+  if (!a || a.array instanceof Float32Array) return;
+  const out = new Float32Array(a.count * a.itemSize);
+  for (let i = 0; i < a.count; i++)
+    for (let c = 0; c < a.itemSize; c++) out[i * a.itemSize + c] = a.getComponent(i, c);
+  g.setAttribute(name, new BufferAttribute(out, a.itemSize));
+}
+
+/**
+ * Merges the attached-bind skinned meshes under `root` that share bones, a material and an
  * attribute layout (a rig built of parts: arms, legs, body, head) into one, so the rig costs one draw
  * per pass. Each part's vertices move into the first part's bind space, so they skin to the same
  * place. The parts' geometries are disposed: use it on a rig that owns them, not a shared source.
@@ -255,19 +288,26 @@ export function mergeSkinnedParts(root: Object3D): void {
       })
       .sort()
       .join(',');
-    const key = `${object.skeleton.uuid}|${object.material.uuid}|${g.index ? 'i' : 'n'}|${layout}`;
+    // A glTF gives each skinned part its own Skeleton object over the same bones: group by the bones.
+    const bones = object.skeleton.bones.map((b) => b.uuid).join(',');
+    const key = `${bones}|${object.material.uuid}|${g.index ? 'i' : 'n'}|${layout}`;
     const list = sets.get(key) ?? [];
     list.push(object);
     sets.set(key, list);
   });
   const toFirst = new Matrix4();
-  for (const parts of sets.values()) {
+  const offset = new Matrix4();
+  for (const set of sets.values()) {
+    // Only parts whose inverse binds match the first's (up to one offset) skin alike on its skeleton.
+    const parts = set.filter((part) => boneInverseOffset(set[0]!.skeleton, part.skeleton, offset));
     if (parts.length < 2) continue;
     const first = parts[0]!;
     const firstBindInverse = new Matrix4().copy(first.bindMatrix).invert();
     const geometries = parts.map((part) => {
       const g = part.geometry.clone();
-      toFirst.multiplyMatrices(firstBindInverse, part.bindMatrix);
+      for (const name of ['position', 'normal', 'tangent']) floatCopy(g, name);
+      boneInverseOffset(first.skeleton, part.skeleton, offset);
+      toFirst.multiplyMatrices(firstBindInverse, offset).multiply(part.bindMatrix);
       g.applyMatrix4(toFirst);
       return g;
     });

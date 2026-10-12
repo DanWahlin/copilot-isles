@@ -29,7 +29,11 @@ import { createMeridianWater, type MeridianWater } from './meridian-water';
  */
 export const MERIDIAN = {
   center: { x: 850, z: -850 },
-  bounds: { minX: 470, maxX: 1230, minZ: -1130, maxZ: -570, cell: 2 },
+  /**
+   * The baked height data. It holds the whole island, the ridge's seaward feet too: the ground is
+   * the deep sea floor at every edge (`EDGE_APRON`), so no open terrain edge shows from the sea.
+   */
+  bounds: { minX: 440, maxX: 1370, minZ: -1230, maxZ: -540, cell: 2 },
   island: { halfX: 350, halfZ: 225 },
   harbor: {
     center: { x: 668, z: -692 },
@@ -354,14 +358,44 @@ export function meridianHeightDry(x: number, z: number): number {
       ((z - MERIDIAN.ridge.center.z) / MERIDIAN.ridge.halfZ) ** 2
     ),
   );
-  const ridgeBlend = Math.max(smoothstep(-12, 22, coast.distance), smoothstep(0.08, 0.25, ridgeFoot));
+  // Off the island's own coast, the ridge's seaward feet (its north side and north-east end; not the
+  // beach under its west end or the sea caves) slope on down into deep water, a sea cliff over a
+  // steep, broad foot, rather than dropping 90 m in a few metres.
+  const { ridge } = MERIDIAN;
+  const seawardFoot =
+    smoothstep(0.012, 0.25, ridgeFoot) *
+    smoothstep(-10, -40, coast.distance) *
+    smoothstep(ridge.center.x - ridge.halfX * 1.3, ridge.center.x - ridge.halfX * 0.9, x) *
+    smoothstep(ridge.center.z + ridge.halfZ * 0.6, ridge.center.z + ridge.halfZ * 0.2, z);
+  const ridgeBlend = Math.max(
+    smoothstep(-12, 22, coast.distance),
+    smoothstep(0.08, 0.25, ridgeFoot),
+    seawardFoot,
+  );
   h = mix(h, ridgeHeight(x, z, h), ridgeBlend);
   h = liftClearanceHeight(x, z, h);
   // Last, the ground under the quay and east-arm paving (edges included) stays inside the slab:
   // the plaza pad's feather, the town ramp and the hill behind would otherwise rise through it.
   if (meridianQuayHeight(x, z) !== null) h = Math.min(h, MERIDIAN.harbor.quay.height);
   if (coast.radial > MERIDIAN.seabedRadius) h = Math.min(h, -MERIDIAN.deepDepth);
-  return h;
+  return edgeApron(x, z, h);
+}
+
+/**
+ * Near the data's edges the sea floor slopes down to the deep floor, which it reaches at the edge
+ * itself (and stays at past it, where the ocean's depth is read). The slope starts below the
+ * natural shelf, so it only steepens the last of the sea bed off the ridge's feet.
+ */
+const EDGE_APRON = { slope: 1.8, blend: 8 } as const;
+
+function edgeApron(x: number, z: number, h: number): number {
+  const b = MERIDIAN.bounds;
+  const d = Math.min(x - b.minX, b.maxX - x, z - b.minZ, b.maxZ - z);
+  const cap = -MERIDIAN.deepDepth + Math.max(0, d) * EDGE_APRON.slope;
+  // A smooth minimum, so the slope meets the sea bed without a crease.
+  const k = EDGE_APRON.blend;
+  const t = Math.max(0, k - Math.abs(h - cap)) / k;
+  return Math.max(Math.min(h, cap) - t * t * k * 0.25, Math.min(h, -MERIDIAN.deepDepth));
 }
 
 let water: MeridianWater | null = null;

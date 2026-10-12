@@ -6,6 +6,7 @@ import {
   CylinderGeometry,
   Euler,
   Matrix4,
+  PlaneGeometry,
   Quaternion,
   Vector3,
 } from 'three/webgpu';
@@ -154,6 +155,18 @@ export function box(
   g.translate(0, h / 2, 0);
   place(g, p);
   if (!local) worldUv(g, uvScale);
+  return paint(g, hex);
+}
+
+/**
+ * A flat card whose bottom edge sits at `y`, facing along the yaw `ry` (+z turned by `ry`): the front
+ * of a thin box without its edges and back, for a cheap tier's far-from-grazing facade trim.
+ */
+export function card(w: number, h: number, p: Placement, hex: Rgb, uvScale = 3.25): BufferGeometry {
+  const g = new PlaneGeometry(w, h);
+  g.translate(0, h / 2, 0);
+  place(g, p);
+  worldUv(g, uvScale);
   return paint(g, hex);
 }
 
@@ -375,7 +388,8 @@ export function merge(parts: BufferGeometry[]): BufferGeometry {
   return out;
 }
 
-function withIndex(g: BufferGeometry): BufferGeometry {
+/** Gives a non-indexed geometry an index (0…n-1), so it merges with indexed ones. */
+export function withIndex(g: BufferGeometry): BufferGeometry {
   const n = g.getAttribute('position').count;
   const idx = new Uint32Array(n);
   for (let i = 0; i < n; i++) idx[i] = i;

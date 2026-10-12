@@ -18,6 +18,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "check:budgets": "node tools/check-budgets.mjs",
+    "check:frame-budgets": "node tools/budgettest.mjs",
     "check:secrets": "node tools/check-secrets.mjs",
     "toolchain": "bash tools/setup-toolchain.sh",
     "toolchain:check": "node tools/check-toolchain.mjs",

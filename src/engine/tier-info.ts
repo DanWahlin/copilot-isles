@@ -1,6 +1,6 @@
 import type { Backend, Tier } from '../world/contracts';
 import type { Platform } from './capability';
-import { TIERS, type TierSettings } from './quality';
+import { TIERS, sunShadowReach, type TierSettings } from './quality';
 
 /** Lowest to highest. */
 export const TIER_ORDER: readonly Tier[] = ['lite', 'low', 'medium', 'high', 'ultra'];
@@ -58,12 +58,16 @@ export function tierFeatures(t: TierSettings, backend: Backend = 'webgpu'): stri
   else if (t.renderScale < 1) out.push('slightly lower resolution');
   else if (t.maxDpr >= 2) out.push('sharper on high-res screens');
   else out.push('full resolution');
+  // The sun's shadows reach about 60 m (Medium), 90 m (High) or 170 m (Ultra) past you.
+  const reach = sunShadowReach(t);
   out.push(
-    t.shadowCascades === 0
+    reach === 0
       ? 'no sun shadows'
-      : t.shadowCascades >= 3 && webgpu
-        ? 'distant shadows'
-        : 'sun shadows',
+      : reach < 80
+        ? 'sun shadows near you'
+        : reach < 150
+          ? 'sun shadows farther out'
+          : 'sun shadows that reach farthest',
   );
   const grass = t.grassDensity * t.grassCover;
   if (grass <= 0) out.push('no grass');

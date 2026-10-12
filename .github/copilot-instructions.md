@@ -25,6 +25,7 @@ npm run dev              # local dev server
 npm run typecheck && npm run lint && npm test
 npm run build && npm run check:budgets && npm run check:secrets
 npm run test:e2e         # builds, serves on 127.0.0.1:4173, runs Playwright (local Chrome; Chromium in CI)
+npm run check:frame-budgets -- --base=http://127.0.0.1:5353  # PLAN §12.1 draws/triangles per tier (no-HMR server)
 npm run toolchain        # installs KTX-Software into .tools/, finds Blender, verifies gltf-transform + ffmpeg
 ```
 

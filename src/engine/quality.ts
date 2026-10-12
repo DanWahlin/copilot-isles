@@ -40,6 +40,11 @@ export interface TierSettings {
   grassDistance: number;
   /** Tree near-geometry distance before impostors (m). */
   treeNear: number;
+  /**
+   * Small-detail culling (PLAN §12.4): an island's people, props and site parts, and the ships' parts,
+   * drop out once the camera is more than this many times their bounding radius away; 0 = off.
+   */
+  detailCullRatio: number;
   birds: number;
   npcAnimRate: number;
 }
@@ -69,6 +74,7 @@ const base: Omit<TierSettings, 'tier'> = {
   grassCover: 1,
   grassDistance: 88,
   treeNear: 75,
+  detailCullRatio: 0,
   birds: 30,
   npcAnimRate: 1,
 };
@@ -100,7 +106,9 @@ export const TIERS: Record<Tier, TierSettings> = {
     grassDensity: 0.25,
     grassCover: 0,
     grassDistance: 30,
-    treeNear: 30,
+    // Impostor-heavy (PLAN §12.1): trees hand off to their cards sooner than on Low.
+    treeNear: 22,
+    detailCullRatio: 100,
     birds: 8,
     npcAnimRate: 0.5,
   },
@@ -131,6 +139,7 @@ export const TIERS: Record<Tier, TierSettings> = {
     grassCover: 0.28,
     grassDistance: 46,
     treeNear: 45,
+    detailCullRatio: 180,
     birds: 14,
     npcAnimRate: 0.5,
   },
@@ -174,6 +183,17 @@ export const TIERS: Record<Tier, TierSettings> = {
     birds: 40,
   },
 };
+
+/**
+ * How far past the player the sun's static (cached) shadows reach (m): 0 with no runtime sun shadows,
+ * about 60 m on Medium, 90 m on High and 170 m with the far reach (Ultra). The sky and the settings
+ * text both read it.
+ */
+export function sunShadowReach(t: TierSettings): number {
+  if (t.shadowCascades === 0) return 0;
+  if (t.shadowCascades === 3) return 170;
+  return t.tier === 'medium' ? 60 : 90;
+}
 
 export function tierSettings(tier: Tier): TierSettings {
   return TIERS[tier];

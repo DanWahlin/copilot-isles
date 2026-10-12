@@ -117,7 +117,7 @@ export class FollowCamera {
   private readonly switched: CameraShot = { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 };
   private switchMix = 1;
   private readonly lastLook = { x: 0, y: 0, z: 0 };
-  private guiding = false;
+  private column: { x: number; z: number; r: number } | null = null;
   /** Where a held shot's subject sits on screen (see `setScreenPan`), wanted and eased. */
   private panWantX = 0;
   private panWantY = 0;
@@ -131,7 +131,6 @@ export class FollowCamera {
    * is followed exactly.
    */
   frame(shot: CameraShot | null): void {
-    this.guiding = false;
     if (shot && this.held && shot !== this.held && this.shotMix > 0) {
       this.switchFrom.x = this.last.x;
       this.switchFrom.y = this.last.y;
@@ -191,24 +190,31 @@ export class FollowCamera {
   }
 
   /**
-   * A guide shot for tight spaces (the lighthouse stair): held like `frame`, but it isn't a story
-   * beat, so it doesn't count as `framing` (the HUD stays). Mutate the same shot each frame; null
-   * eases back to the follow camera. A `frame` call takes over.
+   * Keeps the camera out of a vertical column (the lighthouse's watch room, from its gallery): the
+   * yaw turns, never more than it must, so the line from you back to the camera passes outside the
+   * column's radius. Null lifts it. The yaw still recenters behind you as you walk round.
    */
-  guide(shot: CameraShot | null): void {
-    if (!shot && !this.guiding) return;
-    this.frame(shot);
-    this.guiding = true;
+  keepOutside(column: { x: number; z: number; r: number } | null): void {
+    this.column = column;
   }
 
-  /** Whether a guide shot holds the camera. */
-  get guided(): boolean {
-    return this.guiding && this.shot !== null;
-  }
-
-  /** Whether a held story shot is on screen (or still easing out). Guide shots don't count. */
+  /** Whether a held story shot is on screen (or still easing out). */
   get framing(): boolean {
-    return this.shotMix > 0 && !this.guiding;
+    return this.shotMix > 0;
+  }
+
+  /** Turns the yaw (eased) until the camera's side of `target` is clear of the column. */
+  private clearColumn(target: { x: number; z: number }, dt: number): void {
+    const c = this.column!;
+    const rp = Math.hypot(target.x - c.x, target.z - c.z);
+    if (rp < 1e-3) return;
+    // The back ray (pivot to camera) clears the column while its angle from "out" is under `limit`.
+    const limit = rp > c.r ? Math.acos(-Math.sqrt(1 - (c.r / rp) ** 2)) : Math.PI / 2;
+    const out = Math.atan2(target.x - c.x, target.z - c.z);
+    const back = wrapAngle(this.yaw + Math.PI - out);
+    if (Math.abs(back) <= limit) return;
+    const want = wrapAngle(out + (back >= 0 ? limit : -limit) - Math.PI);
+    this.yaw = wrapAngle(this.yaw + wrapAngle(want - this.yaw) * (1 - Math.exp(-6 * dt)));
   }
 
   setRig(rig: CameraRig, snap = false): void {
@@ -254,6 +260,8 @@ export class FollowCamera {
       const d = wrapAngle(heading - this.yaw);
       if (Math.abs(d) < 2.2) this.yaw = wrapAngle(this.yaw + d * (1 - Math.exp(-r.recenterRate * dt)));
     }
+
+    if (this.column && !this.shot) this.clearColumn(target, dt);
 
     // Pivot: follow xz tightly and y more softly so steps and wading don't bob the view.
     const tx = target.x,
@@ -342,7 +350,6 @@ export class FollowCamera {
       lz += (h.tz - lz) * e;
     } else if (!this.shot) {
       this.held = null;
-      this.guiding = false;
     }
 
     this.last.x = x;
@@ -405,7 +412,9 @@ function blocked(
   y: number,
   z: number,
 ): boolean {
-  const g = world.groundAt(x, z);
+  // The camera's own height picks the level where walk surfaces stack (the lighthouse gallery over
+  // its knoll), so the pad there is for the deck under it, not the ground far below.
+  const g = world.groundAt(x, z, y);
   if (y < g + GROUND_CLEAR) return true;
   const k = r.ringRadius,
     lift = y - r.ringClear;

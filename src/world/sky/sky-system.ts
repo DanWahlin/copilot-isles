@@ -38,7 +38,7 @@ import {
   uniform,
   vec3,
 } from 'three/tsl';
-import type { TierSettings } from '../../engine/quality';
+import { sunShadowReach, type TierSettings } from '../../engine/quality';
 import type { DayClock } from '../../engine/day-clock';
 import type { Backend } from '../contracts';
 import { world } from '../uniforms';
@@ -325,7 +325,7 @@ export function createSky(
     sun.shadow.radius = 1;
     sun.shadow.blurSamples = 8;
     // How far past the focus static shadows reach; the map covers that plus the refresh threshold.
-    const reach = tier.shadowCascades === 3 ? 170 : tier.tier === 'medium' ? 60 : 90;
+    const reach = sunShadowReach(tier);
     const staticMap: SunShadowMap = {
       size: tier.shadowMap || 1024,
       half: staticCoverage(reach),

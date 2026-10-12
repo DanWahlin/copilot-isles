@@ -8,6 +8,7 @@ const FAR_CANNON = 120;
 /** Every one-shot a battle can play: preload them when the battle is accepted (battle-plan.md §1). */
 export const BATTLE_SOUNDS: readonly SliceName[] = [
   'cannon_boom',
+  'cannon_fire',
   'cannon_far',
   'ball_whiz',
   'timber_hit',
@@ -34,7 +35,9 @@ export function createBattleAudio(
     switch (kind) {
       case 'cannon': {
         const d = Math.hypot(pos.x - listener.x, pos.z - listener.z);
-        audio.sfx.oneShot(d > FAR_CANNON ? 'cannon_far' : 'cannon_boom', at, gain);
+        // Near guns mix two banks (8 shots) so a broadside doesn't repeat itself.
+        const near = Math.random() < 0.5 ? 'cannon_boom' : 'cannon_fire';
+        audio.sfx.oneShot(d > FAR_CANNON ? 'cannon_far' : near, at, gain);
         break;
       }
       case 'whiz':

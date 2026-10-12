@@ -68,6 +68,19 @@ describe('Port Meridian terrain', () => {
       expect(meridianHeight(x, z)).toBeLessThan(-3.5);
   });
 
+  it('comes down to the deep sea floor at every edge of its height data', () => {
+    // Past the edges the ocean's fallback floor (-52 m) takes over: an edge above it would show an
+    // open terrain edge from the sea (the ridge used to stand 86 m tall at the east edge).
+    const { minX, maxX, minZ, maxZ } = MERIDIAN.bounds;
+    for (let x = minX; x <= maxX; x += 2)
+      for (const z of [minZ, maxZ]) expect(meridianHeight(x, z), `${x}, ${z}`).toBeLessThanOrEqual(-52);
+    for (let z = minZ; z <= maxZ; z += 2)
+      for (const x of [minX, maxX]) expect(meridianHeight(x, z), `${x}, ${z}`).toBeLessThanOrEqual(-52);
+    // The ridge reaches the water well inside them, and the sea bed between is deep enough to sail.
+    for (let z = minZ; z <= maxZ; z += 4) expect(meridianHeight(maxX - 30, z)).toBeLessThan(-3);
+    for (let x = minX; x <= maxX; x += 4) expect(meridianHeight(x, minZ + 30)).toBeLessThan(-3);
+  });
+
   it('returns normalized material masks', () => {
     for (const [x, z] of [
       [MERIDIAN.pads.plaza.x, MERIDIAN.pads.plaza.z],

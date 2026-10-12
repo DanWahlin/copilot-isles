@@ -609,6 +609,7 @@ export class GameFlow implements GameBridge {
     a.music.setIsland('harbour');
     a.sfx.setBed('wind', AMBIENT_BEDS.wind);
     a.sfx.setBed('surf_far', AMBIENT_BEDS.surf_far);
+    a.sfx.setBed('gulls_far', AMBIENT_BEDS.gulls_far);
   }
 
   private async voyage(captain: CaptainBody, save: SaveData | null): Promise<void> {

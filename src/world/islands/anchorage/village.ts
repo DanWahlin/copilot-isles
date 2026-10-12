@@ -1,4 +1,4 @@
-import { sharedInstancedMesh } from '../../../engine/instancing';
+import { bakeInstances, sharedInstancedMesh } from '../../../engine/instancing';
 import {
   BoxGeometry,
   BufferAttribute,
@@ -24,6 +24,15 @@ import type { TierSettings } from '../../../engine/quality';
 import type { CircleObstacle, HeightField } from '../../contracts';
 import { COVE } from '../../layout';
 import { BUILDINGS, type BuildingSpec } from './buildings';
+import {
+  ChunkLods,
+  buildChunkLodIndex,
+  chunkLodEdges,
+  chunkLodFloor,
+  chunkOptions,
+  mergeIntoChunks,
+} from '../../village/chunks';
+import { loadLodSimplifier } from '../../characters/character-lod';
 import { wrapAngle } from '../../../util/math';
 import { createLighthouseHaloMaterial, createLighthouseLitMaterial } from '../../lighthouse-lamp';
 import { coloredIndexedGeometry } from '../../sites/geo';
@@ -36,6 +45,7 @@ import {
   LIGHTHOUSE_DOOR_HEADING,
   LIGHTHOUSE_GALLERY,
   LIGHTHOUSE_LANTERN,
+  LIGHTHOUSE_TREAD_DEPTH,
   STAIR_START,
   TREAD_ANGLE,
   WATCH_DOOR_HEADING,
@@ -101,6 +111,12 @@ export interface VillageSystem {
   metrics: VillageMetrics;
   /** Hand-placed village palms and plants for the vegetation's instanced batches (`extraPlants`). */
   plantings: readonly PlantInstance[];
+  /**
+   * What a neighbouring island's view can drop (PLAN §12.3: neighbours draw at medium detail): the thin
+   * merged pieces (timber, ironwork, rope, cloth), the loose props and the fountain's water. The walls,
+   * roofs and lights stay, except on Lite.
+   */
+  neighbourDetail: readonly Mesh[];
   /** Lights the point lighthouse's lamp (Anchorage's Seal, PLAN §3). */
   setLighthouseLit(on: boolean): void;
   lighthouseLit(): boolean;
@@ -137,6 +153,8 @@ const PIER_RAMP = {
   z1: COVE.quay.z,
   width: COVE.pier.width + 0.8,
 } as const;
+/** Materials whose pieces are thin enough to drop from a neighbouring island (`neighbourDetail`). */
+const NEIGHBOUR_DETAIL = new Set<MaterialKey>(['wood', 'metal', 'rope', 'cloth']);
 const BRIGANTINE_BERTH = { minX: -105.5, maxX: -98.9, minZ: -124.5, maxZ: -100.5 } as const;
 export async function createVillage({
   tier,
@@ -185,26 +203,56 @@ export async function createVillage({
   let staticDraws = 0;
   let staticTriangles = 0;
   const staticMeshes: Mesh[] = [];
+  // Spatial chunks per material, so frustum culling works across the village, each with its own
+  // levels of detail (no new draws or pipelines; the simplifier is the characters' lazy chunk).
+  const neighbourDetail: Mesh[] = [];
+  const simplify = typeof window === 'undefined' ? null : await loadLodSimplifier();
+  const chunkLods = new ChunkLods(chunkLodEdges(tier), chunkLodFloor(tier));
   for (const key of Object.keys(buckets) as MaterialKey[]) {
     const geometries = buckets[key];
     if (geometries.length === 0) continue;
-    const merged = mergeGeometries(geometries, false);
-    for (const geometry of geometries) geometry.dispose();
-    if (!merged) continue;
-    merged.computeBoundingSphere();
-    merged.computeBoundingBox();
-    const mesh = new Mesh(merged, materials[key]);
-    mesh.name = `village-${key}`;
-    mesh.castShadow = key !== 'glow' && key !== 'halo';
-    mesh.receiveShadow = key !== 'glow' && key !== 'halo';
-    group.add(mesh);
-    staticMeshes.push(mesh);
-    staticDraws += 1;
-    staticTriangles += triangleCount(merged);
+    for (const chunk of mergeIntoChunks(geometries, chunkOptions(tier))) {
+      if (simplify) buildChunkLodIndex(chunk.geometry, simplify);
+      const mesh = new Mesh(chunk.geometry, materials[key]);
+      chunkLods.attach(mesh);
+      mesh.name = `village-${key}`;
+      mesh.castShadow = key !== 'glow' && key !== 'halo';
+      mesh.receiveShadow = key !== 'glow' && key !== 'halo';
+      // Lite drops the whole village from the other island (a few pixels there).
+      if (NEIGHBOUR_DETAIL.has(key) || tier.tier === 'lite') neighbourDetail.push(mesh);
+      group.add(mesh);
+      staticMeshes.push(mesh);
+      staticDraws += 1;
+      staticTriangles += chunk.triangles;
+    }
     await buildSlice();
   }
 
   const propMeshes = addInstancedProps(group, heightField, materials, colliders, villageKit, low, mediumUp);
+  // Lite and Low: the crates and barrels (the timber's material, never moved) baked into one draw.
+  if (low) {
+    const wooden = propMeshes.filter((mesh) => mesh.material === materials.wood);
+    const baked = bakeInstances(wooden);
+    if (baked) {
+      const mesh = new Mesh(baked, materials.wood);
+      mesh.name = 'village-crates-and-barrels';
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      group.add(mesh);
+      staticMeshes.push(mesh);
+      staticDraws += 1;
+      staticTriangles += triangleCount(baked);
+      for (const prop of wooden) {
+        propMeshes.splice(propMeshes.indexOf(prop), 1);
+        prop.removeFromParent();
+        prop.geometry.dispose();
+        prop.dispose();
+      }
+    }
+  }
+  // Loose props are a pixel at most from the other island (PLAN §12.3).
+  for (const mesh of group.children)
+    if (/^village-(crates|barrels|sacks|lobster)/.test(mesh.name)) neighbourDetail.push(mesh as Mesh);
   const propTriangles = propMeshes.reduce((sum, mesh) => sum + triangleCount(mesh.geometry) * mesh.count, 0);
   await buildSlice();
   plantings.push(...villageShrubs(colliders, anchors, plantings, heightField, tier));
@@ -220,6 +268,7 @@ export async function createVillage({
   };
   if (fountainWater) {
     group.add(fountainWater.mesh);
+    neighbourDetail.push(fountainWater.mesh);
     metrics.drawCalls += 1;
     metrics.triangles += fountainWater.mesh.geometry.drawRange.count / 3;
   }
@@ -237,12 +286,14 @@ export async function createVillage({
     anchors,
     metrics,
     plantings,
+    neighbourDetail,
     setLighthouseLit(on: boolean): void {
       lighthouseLamp.visible = on;
     },
     lighthouseLit: () => lighthouseLamp.visible,
     update(_dt: number, _t: number, camera: Camera): void {
       updateLighthouseLamp(lighthouseLamp, camera);
+      chunkLods.update(camera.position.x, camera.position.y, camera.position.z);
       group.userData.lastCameraDistance = Math.hypot(
         camera.position.x - COVE.village.center.x,
         camera.position.z - COVE.village.center.z,
@@ -2577,8 +2628,29 @@ function addLighthouse(
   const lan = base + LIGHTHOUSE_LANTERN;
   const doorH = 2.3;
   const at = (a: number, r: number) => ({ x: x + Math.sin(a) * r, z: z + Math.cos(a) * r });
-  // The stair winding over the ground floor, for the camera (on the steps a guide shot takes over).
-  cameraBlockers.push({ x, z, hx: T.inner, hz: T.inner, rot: 0, y0: floor + 1.9, y1: deck });
+  // The stair winding over the ground floor, for the camera: from the underside of the lowest step
+  // over the door landing up. Below that the follow camera fits behind you just inside the door
+  // (the steps under it keep it up through the walk surface, see follow-camera's `blocked`).
+  cameraBlockers.push({
+    x,
+    z,
+    hx: T.inner,
+    hz: T.inner,
+    rot: 0,
+    y0: treadTop(FLOOR_LANDING_FROM) - LIGHTHOUSE_TREAD_DEPTH,
+    y1: deck,
+  });
+  // The wall over the door (its passage has no collider above the lintel).
+  const doorMid = (T.inner + T.plinthR) * 0.5;
+  cameraBlockers.push({
+    x: x + fx * doorMid,
+    z: z + fz * doorMid,
+    hx: T.doorHalf,
+    hz: (T.plinthR - T.inner) * 0.5,
+    rot: hd,
+    y0: floor + doorH,
+    y1: deck - 0.4,
+  });
 
   // Plinth and a ring of flagstones on the knoll top. The plinth's top is the ground floor.
   addCylinder(buckets.stone, x, base - 0.7, z, 3.0, 3.35, 1.4, 12, Math.PI / 12, 0x9a9180);
@@ -2682,7 +2754,7 @@ function addLighthouse(
   for (let n = 0; n < T.treads; n += 1) {
     const a0 = STAIR_START + n * TREAD_ANGLE;
     const top = treadTop(n);
-    const bottom = n < FLOOR_LANDING_FROM ? floor : top - 0.16;
+    const bottom = n < FLOOR_LANDING_FROM ? floor : top - LIGHTHOUSE_TREAD_DEPTH;
     buckets.stone.push(
       wedgeGeometry(
         x,
@@ -2717,16 +2789,17 @@ function addLighthouse(
     addLanternFixture(buckets, p.x, floor + h + 1.7, p.z, a, 0.8);
   }
 
-  // Gallery: a flared corbel, the deck (a ring, open over the stair) and a two-rail railing.
+  // Gallery: a flared corbel (tall enough to carry the wide deck), the deck (a ring, open over the
+  // stair) and a two-rail railing.
   addRing(
     buckets.plaster,
     x,
-    g - 0.6,
+    g - 1.1,
     z,
     T.inner + 0.02,
     T.rTop,
     T.galleryR - 0.25,
-    0.6,
+    1.1,
     seg,
     LIGHTHOUSE_WHITE,
   );
@@ -2874,10 +2947,10 @@ function addLighthouse(
 
   const doorOut = T.plinthR + 1.1;
   anchors.lighthouseDoor = { x: x + fx * doorOut, y: base, z: z + fz * doorOut, heading: hd };
-  // The lookout keeps watch from the gallery, on the seaward side, with his back to the watch room
-  // so you can pass along the railing on your way round.
+  // The lookout keeps watch from the gallery, on the seaward side, at the railing looking out to
+  // sea, so you can pass between him and the watch room on your way round.
   const watch = -2.35;
-  const look = T.watchR + 0.36;
+  const look = T.railR - 0.4;
   anchors.lookout = { x: x + Math.sin(watch) * look, y: deck, z: z + Math.cos(watch) * look, heading: watch };
 }
 

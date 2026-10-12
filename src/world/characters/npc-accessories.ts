@@ -26,6 +26,11 @@ import type { CharacterBody, NpcId } from './types';
 type ColorHex = number;
 
 const TMP_SCALE = new Vector3();
+/**
+ * How big a character's accessories (hat, belt, bag…) count for small-detail culling (FarCull's size
+ * ratio, Lite and Low only): they drop out sooner than the character.
+ */
+const ACCESSORY_CULL_RADIUS = 0.4;
 const PERIOD_PROP_NAMES = ['Weapon_Cutlass', 'Weapon_DoubleAxe', 'Weapon_Lute', 'Pistol'];
 
 const HAT_FIT: TricornFit = {
@@ -1450,6 +1455,7 @@ export function mergeNpcAccessories(root: Group): void {
     for (const part of parts) part.removeFromParent();
     const out = mesh(merged, ACCESSORY_MATERIAL, `npc accessories (${anchor.name || 'root'})`);
     out.userData.parts = parts.map((part) => part.name);
+    out.userData.cullRadius = ACCESSORY_CULL_RADIUS;
     anchor.add(out);
   }
 }
@@ -1505,6 +1511,7 @@ function skinAccessories(body: SkinnedMesh, byAnchor: Map<Object3D, Mesh[]>): Sk
   out.receiveShadow = true;
   out.userData.ownedGeometry = true;
   out.userData.parts = names;
+  out.userData.cullRadius = ACCESSORY_CULL_RADIUS;
   out.position.copy(body.position);
   out.quaternion.copy(body.quaternion);
   out.scale.copy(body.scale);

@@ -62,6 +62,7 @@ export class WaterStrips {
     this.geo.setDrawRange(0, 0);
     this.mesh = new Mesh(this.geo, material);
     this.mesh.name = 'site water';
+    this.mesh.userData.waterStrips = true;
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = 1;
   }

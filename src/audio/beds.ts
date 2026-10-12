@@ -9,6 +9,9 @@ export const AMBIENT_BEDS = {
   surf_far: 0.1,
   palms: 0.22,
   birds_dawn: 0.2,
+  // Dan: gulls far off, very low, just a hint of the open air by the sea (0.05 was lost under the
+  // music and surf).
+  gulls_far: 0.12,
 } as const;
 
 /** Trim on the music bus, under the Music slider (Dan: music 25% quieter overall). */
