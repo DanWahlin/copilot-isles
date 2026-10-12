@@ -52,6 +52,7 @@ async function boot(): Promise<void> {
     gpu: backend === 'webgpu' ? `${gpuName} ${webgl.renderer}` : gpuName,
     isPhone: phone,
     deviceMemory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory,
+    software: (backend === 'webgpu' ? webgpu.kind : webgl.kind) === 'software',
   });
   const benchmarkKey = benchmarkStorageKey(backend, gpuName);
   const cachedBenchmark = readStartupBenchmark(benchmarkKey);

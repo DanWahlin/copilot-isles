@@ -11,6 +11,8 @@ export interface CapabilityInput {
   isPhone: boolean;
   /** navigator.deviceMemory (GB) when available. */
   deviceMemory?: number;
+  /** The chosen backend renders in software (SwiftShader, llvmpipe), which is only reachable through ?forceGpu. */
+  software?: boolean;
   /** Benchmark: GPU (or frame) ms for the title scene at render scale 1, 1080p-equivalent. */
   benchmarkMs?: number;
 }
@@ -31,6 +33,8 @@ export function heuristicTier(c: CapabilityInput): Tier {
   if (c.deviceMemory !== undefined && c.deviceMemory <= 4) t = minTier(t, 'low');
   // Consensus E7: phones cap at the Medium feature set until Phase 2b.
   if (c.isPhone) t = minTier(t, 'medium');
+  // PLAN §14.2: a CPU rasterizer is far below the UHD 620 floor, so it starts on the Lite feature set.
+  if (c.software) t = 'lite';
   return t;
 }
 

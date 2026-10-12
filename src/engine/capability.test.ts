@@ -16,6 +16,19 @@ describe('heuristicTier', () => {
       'medium',
     );
   });
+  it('starts software renderers on lite', () => {
+    expect(
+      heuristicTier({
+        backend: 'webgl2',
+        gpu: 'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)',
+        isPhone: false,
+        software: true,
+      }),
+    ).toBe('lite');
+    expect(heuristicTier({ backend: 'webgpu', gpu: 'Apple M3 Max', isPhone: false, software: false })).toBe(
+      'ultra',
+    );
+  });
   it('caps low-memory devices at low', () => {
     expect(heuristicTier({ backend: 'webgpu', gpu: 'apple M2', isPhone: false, deviceMemory: 4 })).toBe(
       'low',

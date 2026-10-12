@@ -4,6 +4,12 @@ import { expect, test, type Page } from '@playwright/test';
 // only the WebGL2 backend can be exercised. Locally (real Chrome + GPU) both backends run.
 const CI = Boolean(process.env.CI);
 const force = CI ? '&forceGpu' : '';
+// SwiftShader on a GitHub runner draws one title frame in about 1-1.5 s, so boot (compile, the
+// startup benchmark, 12 warm-up frames) took 35-47 s there and the loader fade about 5 s, right at
+// the old 45 s / 5 s limits. A 1-CPU container measures the same (34 s / 7 s on Medium, 24 s / 5 s on
+// Lite). These limits are about 2x the worst measured times; a real GPU finishes in a few seconds.
+const BOOT_MS = CI ? 90_000 : 45_000;
+const FADE_MS = CI ? 15_000 : 5_000;
 
 async function expectTitleRenders(page: Page, url: string) {
   const errors: string[] = [];
@@ -12,9 +18,9 @@ async function expectTitleRenders(page: Page, url: string) {
 
   await page.goto(url);
   await expect(page.locator('#loadTitle')).toHaveText('COPILOT ISLES');
-  await page.waitForFunction(() => Boolean(window.__isles), null, { timeout: 45_000 });
+  await page.waitForFunction(() => Boolean(window.__isles), null, { timeout: BOOT_MS });
   await expect(page.getByRole('heading', { name: 'COPILOT ISLES' })).toBeVisible();
-  await expect(page.locator('#loading')).toHaveCount(0, { timeout: 5_000 });
+  await expect(page.locator('#loading')).toHaveCount(0, { timeout: FADE_MS });
 
   const info = await page.evaluate(() => window.__isles!.info());
   expect(info.drawCalls).toBeGreaterThan(0);
@@ -34,6 +40,7 @@ test('WebGPU backend: title renders with no errors or hitches', async ({ page })
 });
 
 test('WebGL2 backend (fallback): the same TSL title renders', async ({ page }) => {
+  if (CI) test.setTimeout(150_000);
   const info = await expectTitleRenders(page, `/?debug&webgl${force}`);
   expect(info.backend).toBe('webgl2');
 });
