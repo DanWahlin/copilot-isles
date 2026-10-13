@@ -1,0 +1,57 @@
+{
+  "id": "tb.pip.next",
+  "speaker": "Pip",
+  "text": "The Elder's waiting at the Crown, Captain. Last flight up.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.12
+    },
+    {
+      "word": "Elder's",
+      "start": 0.12,
+      "end": 0.43
+    },
+    {
+      "word": "waiting",
+      "start": 0.43,
+      "end": 0.667
+    },
+    {
+      "word": "at",
+      "start": 0.667,
+      "end": 0.74
+    },
+    {
+      "word": "the",
+      "start": 0.74,
+      "end": 0.853
+    },
+    {
+      "word": "Crown",
+      "start": 0.853,
+      "end": 1.25
+    },
+    {
+      "word": "Captain",
+      "start": 1.25,
+      "end": 1.808
+    },
+    {
+      "word": "Last",
+      "start": 1.808,
+      "end": 2.366
+    },
+    {
+      "word": "flight",
+      "start": 2.366,
+      "end": 2.693
+    },
+    {
+      "word": "up",
+      "start": 2.693,
+      "end": 2.943
+    }
+  ]
+}

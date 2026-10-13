@@ -1,0 +1,52 @@
+{
+  "id": "tb.fen.deadend",
+  "speaker": "Fen",
+  "text": "It stops short. Follow it down from the gate.",
+  "words": [
+    {
+      "word": "It",
+      "start": 0,
+      "end": 0.147
+    },
+    {
+      "word": "stops",
+      "start": 0.147,
+      "end": 0.56
+    },
+    {
+      "word": "short",
+      "start": 0.56,
+      "end": 1.371
+    },
+    {
+      "word": "Follow",
+      "start": 1.371,
+      "end": 1.733
+    },
+    {
+      "word": "it",
+      "start": 1.733,
+      "end": 1.888
+    },
+    {
+      "word": "down",
+      "start": 1.888,
+      "end": 2.112
+    },
+    {
+      "word": "from",
+      "start": 2.112,
+      "end": 2.26
+    },
+    {
+      "word": "the",
+      "start": 2.26,
+      "end": 2.4
+    },
+    {
+      "word": "gate",
+      "start": 2.4,
+      "end": 2.65
+    }
+  ]
+}

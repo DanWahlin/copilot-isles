@@ -20,6 +20,8 @@ import { FootstepPuffs } from './footstep-puffs';
 import { FollowCamera, SAIL_RIG, WALK_RIG, type CameraShot } from './follow-camera';
 import { arrivalFlight, arrivalKeys, type IslandArrival, type IslandId } from './arrivals';
 import { ISLANDS, islandAt, openIslands, passageSky, type IslandBerth } from './islands';
+import { PassageBattles } from './passage-battles';
+import type { BattleRun } from './battle-run';
 
 export { ISLANDS, islandAt } from './islands';
 import { meridianQuayHeight, meridianRockCameraBlockers, meridianWater } from '../world/islands/meridian';
@@ -54,6 +56,15 @@ import {
   meridianTracker,
 } from './meridian-quests';
 import { MERIDIAN_NPCS, meridianExtras } from './meridian-npcs';
+import {
+  THOUSAND_BOUGH_WELCOME,
+  thousandBoughLog,
+  thousandBoughTarget,
+  thousandBoughTracker,
+} from './thousand-bough-quests';
+import { createThousandBoughContent, type ThousandBoughContent } from './thousand-bough-session';
+import { noteMeridianSeal } from './thousand-bough-open';
+import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
 import { ISLAND_TIPS, TIP_SPOTS } from './island-tips';
 import { createCrateYard } from './puzzles/crate-yard';
 import { createCrateYardSite } from '../world/sites/crate-yard';
@@ -109,6 +120,10 @@ export interface SessionOptions {
   onChart?: () => void;
   /** Quizzes, spyglass, chests, and the Logbook (the session freezes while one is open). */
   learn?: LearnStore | null;
+  /** Sea battles already fought or skipped (from the save). */
+  battles?: readonly string[];
+  /** A sea battle was won or skipped (save it now). */
+  onBattle?: (id: string, how: 'won' | 'skipped') => void;
 }
 
 export interface GameSession {
@@ -137,12 +152,20 @@ export interface GameSession {
    * warms them calls `reveal` after (the flow, with the town). Empty if Meridian never loads.
    */
   readonly meridianSetup: Promise<{ roots: Object3D[]; reveal(): void }>;
+  /** Thousand-Bough's cast, chests and set pieces, like `meridianSetup`, once its world's streamed. */
+  readonly thousandBoughSetup: Promise<{ roots: Object3D[]; reveal(): void }>;
   /** Fast travel: docks the ship if you're sailing, then puts you at (x, z). */
   travel(x: number, z: number, heading: number): Promise<void>;
   /** An open island's quay by the berth (the chart's "Travel here"), or null if it isn't open. */
   islandQuay(id: string): { x: number; z: number; heading: number; label: string } | null;
   /** Player or ship position for the chart and saves, and the island's name. */
   where(): { x: number; z: number; heading: number; onShip: boolean; place: string };
+  /** The passage's sea battle (docs/specs/BATTLES.md): whether one's on, Skip battle, and what's done. */
+  readonly battle: {
+    readonly active: boolean;
+    skip(): void;
+    done(): string[];
+  };
   /** Dev/test hooks. */
   readonly debug: {
     /** The starfish to collect (tests). */
@@ -190,6 +213,8 @@ export interface GameSession {
       foot: { x: number; y: number; z: number };
       top: { x: number; y: number; z: number };
     };
+    /** Thousand-Bough's set pieces (tests): the board, the hoist, the basket. */
+    thousandBough(): Record<string, (...args: never[]) => unknown> | null;
     /** Presses Wingman's hint key. */
     hint(): void;
     /** Plays Wingman's welcome (the flight and his lines). */
@@ -204,6 +229,8 @@ export interface GameSession {
     holdArrival(time: number | null): void;
     /** Skips the arrival flyover, as E would. */
     skipArrival(): void;
+    /** The passage battle's run once it's built (tests: its Battle, HUD and camera director). */
+    battleRun(): BattleRun | null;
   };
   dispose(): void;
 }
@@ -281,6 +308,17 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     heightAt: (x, z) => cove.meridian.town?.walkable(x, z) ?? null,
     kind: 'stone',
   };
+  // Thousand-Bough's content (decks, the stair, its pools), live once its world has streamed in.
+  let tb: ThousandBoughContent | null = null;
+  /** The Gate Board or the Flag Hoist has the keys and the camera. */
+  let tbModal = false;
+  const tbSurface: WalkSurface = {
+    heightAt: (x, z, y) => tb?.surface.heightAt(x, z, y) ?? null,
+    kind: (x, z) => {
+      const k = tb?.surface.kind ?? 'wood';
+      return typeof k === 'function' ? k(x, z) : k;
+    },
+  };
   let gangwayDown = false;
   let mooredShown = false;
   const world = new CollisionWorld({
@@ -291,6 +329,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       sitesSurface,
       meridianTownSurface,
       meridianQuay,
+      tbSurface,
       plankSurface(plank, () => gangwayDown),
     ],
     circles: [
@@ -300,7 +339,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     ],
     boxes: [...village.colliders.boxes, ...sites.colliders.boxes],
     // Port Meridian's lake and streams: wade the shallows, and the deep middle stops you.
-    inland: (x, z) => meridianWater().levelAt(x, z),
+    inland: (x, z) => meridianWater().levelAt(x, z) ?? tb?.inland(x, z) ?? null,
   });
   // Boulders and the headland cliff's overhang: only the follow camera keeps out of them.
   for (const b of terrainRockCameraBlockers(terrain.heightField, tier.tier)) world.addCameraBox(b);
@@ -329,7 +368,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const speakerNpc = (speaker: string): Npc | null => {
     let best: Npc | null = null;
     let bestD = Infinity;
-    for (const n of [...npcs.list, ...(meridianNpcs?.list ?? [])]) {
+    for (const n of [...npcs.list, ...(meridianNpcs?.list ?? []), ...(tb?.npcs ?? [])]) {
       if (!n.spec.name.split(' ').includes(speaker)) continue;
       const d = (n.x - player.x) ** 2 + (n.z - player.z) ** 2;
       if (d < bestD) [best, bestD] = [n, d];
@@ -359,7 +398,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         cam.frame(shot);
       }
     }
-    for (const other of [...npcs.list, ...(meridianNpcs?.list ?? [])]) {
+    for (const other of [...npcs.list, ...(meridianNpcs?.list ?? []), ...(tb?.npcs ?? [])]) {
       // The one you're talking with, and anyone standing right beside the speaker (Pim and Pol).
       const d2 = (other.x - npc.x) ** 2 + (other.z - npc.z) ** 2;
       if (other === npc || d2 > (other.talking ? 36 : 9)) continue;
@@ -479,21 +518,41 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     else localQuests[id] = step;
     // Anchorage's Seal lights the point lighthouse (the cue shows it; this covers skips and tests).
     if (id === 'Q0.10' && step === 'done') village.setLighthouseLit(true);
+    if (id === 'Q1.8') noteMeridianSeal(step === 'done');
     publishQuests();
   };
   const publishQuests = () =>
-    learn?.setQuests([...questLog(quests()), ...meridianLog(quests())], trackerHere());
+    learn?.setQuests(
+      [...questLog(quests()), ...meridianLog(quests()), ...thousandBoughLog(quests())],
+      trackerHere(),
+    );
   /** The task list for the island you're on (Anchorage's points on to Meridian once it's open). */
   const trackerHere = () => {
     if (island === 'meridian') return meridianTracker(quests());
+    if (island === 'thousand-bough') return thousandBoughTracker(quests());
     const t = questTracker(quests());
     return openIslands().some((b) => b.id === 'meridian')
       ? { ...t, next: 'Port Meridian’s next. Board your ship and follow the compass north-east.' }
       : t;
   };
+  noteMeridianSeal(quests()['Q1.8'] === 'done');
   if (!quests()['Q0.2']) setQuest('Q0.2', 'start');
   migrateQuests(quests(), setQuest);
   publishQuests();
+  // The passages' sea battles: built and warmed when you board with one waiting.
+  const battles = new PassageBattles({
+    engine,
+    cove,
+    audio,
+    hudParent: o.hudParent,
+    islands: ISLANDS,
+    done: o.battles ?? [],
+    quests,
+    open: (id) => openIslands().some((b) => b.id === id),
+    onDone: (id, how) => o.onBattle?.(id, how),
+    toast: (text, seconds) => hud.toast(text, seconds),
+  });
+  battles.prefetch(island);
   let scriptRunning = false;
   let disposed = false;
   let meridianTownCollidersAdded = false;
@@ -520,7 +579,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
   // Talk to NPCs: quest beats run as scripts; Nell's lines are voiced; everyone else offers a bark.
   const talkTo = async (n: Npc) => {
-    if (dialogue.active || scriptRunning) return;
+    // Not over Wingman's welcome either (it pauses between Juno's line and his while he takes off).
+    if (dialogue.active || scriptRunning || welcomeRunning) return;
     const originalPlayer = { x: player.x, z: player.z, heading: player.heading };
     const originalInputEnabled = input.enabled;
     if (n.spec.talkShot?.standLocal) {
@@ -588,6 +648,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const meridianIds = new Set(MERIDIAN_NPCS.map((m) => m.id));
   /** The scripted beat an NPC offers now: Meridian's cast follow Chapter 01, everyone else Chapter 00. */
   function scriptFor(n: Npc) {
+    if (tb?.ids.has(n.spec.id)) return tb.script(n.spec.id);
     return meridianIds.has(n.spec.id)
       ? meridianNpcScript(n.spec.id, quests())
       : npcScript(n.spec.id, quests());
@@ -648,9 +709,14 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     const x = n.home.x + s * (n.spec.out ?? 0) - co * c.side - s * c.back;
     const z = n.home.z + co * (n.spec.out ?? 0) + s * c.side - co * c.back;
     const y = world.surfaceHeightAt(x, z) ?? world.groundAt(x, z);
+    return placeChestAt(c.id, x, y, z, n.heading, detail);
+  };
+  /** A chest at a spot (Thousand-Bough's sit by the booths and behind the falls, not by an NPC). */
+  const placeChestAt = (id: string, x: number, y: number, z: number, heading: number, detail: FarCull) => {
+    const c = { id };
     const chest = createChest();
     chest.group.position.set(x, y, z);
-    chest.group.rotation.y = n.heading;
+    chest.group.rotation.y = heading;
     if (learn?.isChestOpen(c.id)) chest.setOpen();
     engine.scene.add(chest.group);
     detail.add(chest.group);
@@ -666,6 +732,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       enabled: () => mode === 'walk' && !chest.opened && !scriptRunning,
       onInteract: () => void openChest(c.id, chest),
     });
+    return chest.group;
   };
   for (const c of COVE_CHESTS) {
     const n = npcs.list.find((v) => v.spec.id === c.npc);
@@ -847,7 +914,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   let meridianNpcs: NpcCrowd | null = null;
   const FAR = { x: 1e6, y: 0, z: 1e6 };
   const anyTalking = () =>
-    npcs.list.some((n) => n.talking) || (meridianNpcs?.list.some((n) => n.talking) ?? false);
+    npcs.list.some((n) => n.talking) ||
+    (meridianNpcs?.list.some((n) => n.talking) ?? false) ||
+    (tb?.npcs.some((n) => n.talking) ?? false);
   const nearMeridian = () =>
     Math.hypot(
       camera.position.x - ISLANDS.meridian.mooring.x,
@@ -1019,7 +1088,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // back to your shoulder.
   cues.set('celebrate', async () => {
     audio?.sfx.oneShot('chime_solve', player, 0.9);
-    for (const n of [...npcs.list, ...(meridianNpcs?.list ?? [])])
+    for (const n of [...npcs.list, ...(meridianNpcs?.list ?? []), ...(tb?.npcs ?? [])])
       if (!n.talking && Math.hypot(n.x - player.x, n.z - player.z) < 45) n.character.greet();
     audio?.sfx.oneShot('crowd_cheer_small', player, 0.8);
     if (wingman && wingman.phase === 'perched') {
@@ -1192,6 +1261,60 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   };
   const meridianSetup = cove.meridian.townReady.then(setupMeridian);
 
+  // ---- Thousand-Bough Isle (Chapter 02): its cast and set pieces arrive with its world ----
+  /** The open conversation's camera shot, again (after a cutaway in a script). */
+  const backToTalk = () => cam.frame(talkShot);
+  tb = createThousandBoughContent({
+    characters: o.characters,
+    tier,
+    camera,
+    scene: engine.scene,
+    world,
+    detail: cove.detail['thousand-bough'],
+    learn,
+    audio,
+    interactions,
+    puzzleHost,
+    player,
+    walking: () => mode === 'walk',
+    say: (ids) => dialogue.play([...ids]),
+    text: (speaker, line) => dialogue.say(speaker, line),
+    frame: (shot) => cam.frame(shot),
+    cut: (shot) => cam.cut(shot),
+    fade: (on, ms) => hud.fade(on, ms),
+    backToTalk,
+    place: (x, z, heading, y) => {
+      player.teleport(world, x, z, heading, y);
+      hero.group.position.set(player.x, player.y, player.z);
+      hero.group.rotation.y = player.heading;
+      cam.snapBehind(heading);
+    },
+    setModal: (on) => {
+      tbModal = on;
+      input.enabled = !on && !paused && !scriptRunning;
+      if (on) {
+        hero.setSpeed(0);
+        hud.setPrompt(null);
+      }
+    },
+    reducedMotion: () => worldUniforms.reducedMotion.value > 0.5,
+    addNpcTalk: (n) => addNpcTalk(n),
+    placeChest: placeChestAt,
+    openChest: async (id) => {
+      const c = chests.find((v) => v.id === id);
+      if (c && !c.chest.opened) {
+        audio?.sfx.oneShot('step_wood', c.chest.group.position, 1);
+        await c.chest.open();
+      }
+      await learn?.openChest(id);
+    },
+    cues,
+    puzzles,
+  });
+  const thousandBoughSetup = cove.thousandBough.worldReady.then((sys) =>
+    sys && tb ? tb.setup(sys) : noMeridian,
+  );
+
   /** What E does at sea right now, from whichever puzzle has something (taking a helm, the next leg). */
   function sailAction(): SailAction | null {
     for (const p of puzzles) {
@@ -1218,7 +1341,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     const open =
       island === 'meridian'
         ? meridianTracker(quests()).tasks.find((t) => t.status === 'active')
-        : questLog(quests()).find((q) => !q.done);
+        : island === 'thousand-bough'
+          ? thousandBoughTracker(quests()).tasks.find((t) => t.status === 'active' && !t.optional)
+          : questLog(quests()).find((q) => !q.done);
     void dialogue.say(
       'Wingman',
       open?.detail ? `Logbook says: ${open.detail}` : 'Nothing pressing, Captain. Enjoy the view.',
@@ -1393,9 +1518,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     if (mode !== 'walk') return;
     // Port Meridian streams in while you sail (it's not loaded while you're ashore on Anchorage).
     void cove.meridian.load();
+    if (tbReachable()) void cove.thousandBough.load();
     mode = 'transition';
     input.enabled = false;
     hud.setPrompt(null);
+    // A battle waiting on this passage builds behind the fade and warms while you sail out.
+    void battles.prepare(island);
     await hud.fade(true);
     wingman?.landNow();
     const a = ship.anchors.helm;
@@ -1437,16 +1565,24 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   }
   /** Where the compass sends you while sailing: the next island once this one's done, else home. */
   function sailTarget(): IslandBerth {
+    // Once Meridian's Seal is won, the compass points on to Thousand-Bough (and home there after).
+    if (tbReachable() && (island === 'thousand-bough' || quests()['Q1.8'] === 'done'))
+      return ISLANDS['thousand-bough'];
     if (meridianReachable() && !currentQuest(quests())) return ISLANDS.meridian;
     return island === 'meridian' && meridianReachable() ? ISLANDS.meridian : ISLANDS.anchorage;
   }
   const meridianReachable = () => openIslands().some((b) => b.id === 'meridian');
+  const tbReachable = () => openIslands().some((b) => b.id === 'thousand-bough');
 
   function dock(): void {
     if (mode !== 'sail' || crewAtHelm) return;
     const to = berthInRange();
     if (!to) {
       hud.toast(`Sail to ${sailTarget().berthLabel} to go ashore.`, 3);
+      return;
+    }
+    if (battles.blocksDock(to.id)) {
+      hud.toast('Raiders are still out there! Finish the fight, or skip the battle from the pause menu.', 4);
       return;
     }
     mode = 'docking';
@@ -1466,6 +1602,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     mode = 'transition';
     input.enabled = false;
     await hud.fade(true);
+    battles.leftShip(cam);
     if (to.id !== island) setIsland(to.id);
     moorShip();
     engine.scene.add(hero.group);
@@ -1511,14 +1648,27 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   function updateCompass(): void {
     const ashore = mode === 'walk';
     const afloat = mode === 'sail' || mode === 'docking';
-    if ((!ashore && !afloat) || (dialogue.active && !welcoming) || scriptRunning || anyTalking()) {
+    // In a sea battle the battle's own HUD has the top of the screen.
+    if (
+      (!ashore && !afloat) ||
+      (dialogue.active && !welcoming) ||
+      scriptRunning ||
+      anyTalking() ||
+      battles.active ||
+      tbModal
+    ) {
       hud.setCompass(null);
       return;
     }
     camera.getWorldDirection(compassDir);
     let target: CompassTarget | null = null;
     if (ashore) {
-      const goal = island === 'anchorage' ? questTarget(quests()) : meridianTarget(quests());
+      const goal =
+        island === 'anchorage'
+          ? questTarget(quests())
+          : island === 'thousand-bough'
+            ? thousandBoughTarget(quests())
+            : meridianTarget(quests());
       const it = goal ? interactions.nearest(goal.ids, player.x, player.z) : null;
       if (goal && it) {
         const dx = it.x - player.x;
@@ -1587,22 +1737,30 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // short welcome back.
   // Every island's first welcome points out the task list, the compass and its starfish.
   const welcomeLines = (): string[] =>
-    island === 'meridian'
-      ? quests()['Q1.1'] === 'done'
+    island === 'thousand-bough'
+      ? quests()['Q2.1'] === 'done'
         ? []
-        : [...MERIDIAN_WELCOME, ISLAND_TIPS.meridian.nav, ISLAND_TIPS.meridian.starfish]
-      : island !== 'anchorage'
-        ? []
-        : quests()['Q0.2'] === 'start'
-          ? [
-              'wingman.welcome.01',
-              'wingman.welcome.02',
-              'wingman.welcome.03',
-              ISLAND_TIPS.anchorage.nav,
-              ISLAND_TIPS.anchorage.starfish,
-              'wingman.welcome.05',
-            ]
-          : ['wingman.welcome.back'];
+        : [
+            ...THOUSAND_BOUGH_WELCOME,
+            ISLAND_TIPS['thousand-bough'].nav,
+            ISLAND_TIPS['thousand-bough'].starfish,
+          ]
+      : island === 'meridian'
+        ? quests()['Q1.1'] === 'done'
+          ? []
+          : [...MERIDIAN_WELCOME, ISLAND_TIPS.meridian.nav, ISLAND_TIPS.meridian.starfish]
+        : island !== 'anchorage'
+          ? []
+          : quests()['Q0.2'] === 'start'
+            ? [
+                'wingman.welcome.01',
+                'wingman.welcome.02',
+                'wingman.welcome.03',
+                ISLAND_TIPS.anchorage.nav,
+                ISLAND_TIPS.anchorage.starfish,
+                'wingman.welcome.05',
+              ]
+            : ['wingman.welcome.back'];
   /** Wingman's welcome is on: the task list and compass stay up so he can point them out. */
   let welcoming = false;
   const spotlightTip = (id: string | null) => {
@@ -1617,7 +1775,29 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
    */
   async function welcome(): Promise<void> {
     const lines = welcomeLines();
-    if (!lines.length) return;
+    if (!lines.length || welcomeRunning) return;
+    welcomeRunning = true;
+    try {
+      await playWelcome(lines);
+    } finally {
+      welcomeRunning = false;
+    }
+  }
+  /** The whole welcome is on (Juno's look at the tree, the pause while Wingman takes off, his lines). */
+  let welcomeRunning = false;
+  async function playWelcome(lines: string[]): Promise<void> {
+    // Thousand-Bough: Juno's first look at the great tree plays over the tree, framed from over the
+    // captain's shoulder (the arrival's last hold), before Wingman flies up.
+    if (lines[0] === 'juno.tb.arrive' && mode === 'walk') {
+      input.enabled = false;
+      hero.setSpeed(0);
+      cam.frame(THOUSAND_BOUGH.harbor.landingShot);
+      await dialogue.play([lines[0]]);
+      cam.frame(null);
+      input.enabled = !paused;
+      if (disposed) return;
+      lines = lines.slice(1);
+    }
     const framed = !!wingman && mode === 'walk' && lines.length > 1;
     if (wingman) {
       hero.group.getWorldPosition(flightView.captain);
@@ -1859,7 +2039,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     const name = ISLANDS[here].name;
     learn?.setStarfishIsland(mode === 'walk' ? { id: here, name } : null);
     if (mode !== 'walk' || !learn) return;
-    const ready = here === 'anchorage' || !!cove.meridian.town;
+    const ready =
+      here === 'anchorage' || (here === 'meridian' ? !!cove.meridian.town : !!cove.thousandBough.system);
     for (let i = 0; i < starfish.spots.length; i += 1) {
       const sp = starfish.spots[i]!;
       if (sp.island !== here) continue;
@@ -1927,6 +2108,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           updateWingman(dt);
           npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
           if (meridianNpcs && nearMeridian()) meridianNpcs.update(dt, mode === 'walk' ? player : FAR);
+          tb?.updateNpcs(dt, mode === 'walk' ? player : FAR, camera.position);
           audio?.update(dt);
           return;
         }
@@ -1941,6 +2123,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           updateWingman(dt);
           npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
           if (meridianNpcs && nearMeridian()) meridianNpcs.update(dt, mode === 'walk' ? player : FAR);
+          tb?.updateNpcs(dt, mode === 'walk' ? player : FAR, camera.position);
           for (const c of chests) c.chest.update(dt, t);
           audio?.update(dt);
           resumedAt = performance.now();
@@ -1951,7 +2134,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         if (arriving) updateArrival(dt, t, s);
         // Menu keys: ignore the edge from the same key press that closed the menu.
         if (performance.now() - resumedAt > 200) {
-          if (s.menu && o.onMenu) return o.onMenu();
+          // The Gate Board and the Flag Hoist keep Esc and the pad for themselves.
+          if (s.menu && o.onMenu && !tbModal) return o.onMenu();
           if (s.map && o.onChart && !arriving) return o.onChart();
         }
         // A short cooldown after a conversation ends so mashing E to skip doesn't restart it.
@@ -1960,16 +2144,17 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         // The E that closed a quiz or page mustn't also skip the next line or re-open a chat.
         if (s.interact && !arriving && performance.now() - resumedAt > 250) {
           if (dialogue.active) dialogue.next();
-          else if (cooldown <= 0 && mode === 'sail') {
+          else if (cooldown <= 0 && mode === 'sail' && !battles.ownsKeys) {
             const act = sailAction();
             if (act) act.fire();
             else dock();
-          } else if (cooldown <= 0 && mode === 'walk') interactions.fire();
+          } else if (cooldown <= 0 && mode === 'walk' && !tbModal) interactions.fire();
         }
 
         if (hintTimer > 0 && (hintTimer -= dt) <= 0 && !dialogue.active) void welcome();
         if (introCut && s.stirring) introCut();
-        if (s.hint && (mode === 'walk' || mode === 'sail') && !dialogue.active && !scriptRunning) hint();
+        if (s.hint && (mode === 'walk' || mode === 'sail') && !dialogue.active && !scriptRunning && !tbModal)
+          hint();
 
         gangwayDown = mode === 'walk' && shipDocked() && canBoard();
         // Meridian's mooring lines only run to the hull while she's tied up at the east arm.
@@ -2020,7 +2205,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           }
 
           const focus = interactions.update(player.x, player.y, player.z, player.heading);
-          hud.setPrompt(dialogue.active || anyTalking() ? null : (focus?.label() ?? null));
+          hud.setPrompt(dialogue.active || anyTalking() || tbModal ? null : (focus?.label() ?? null));
           updateLighthouse();
           updateStarfish(dt);
           cam.update(dt, camera, s, player, player.heading, sp > 0.3, world, t);
@@ -2030,8 +2215,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
             if (along !== null && along > 0.8) void board();
           }
         } else if (mode === 'sail' || mode === 'docking') {
-          if (mode === 'sail' && !crewAtHelm) helm.update(dt, s.moveX, s.moveY, dyn);
-          else if (mode === 'docking' && (dyn.dockComplete || (dockTime += dt) > DOCK_ASSIST_MAX))
+          // A sea battle runs here (it may take the helm: your helmsman, or a question waiting).
+          const battleHelm = mode === 'sail' && battles.frame(dt, s, helm, dyn, cam, camera);
+          if (mode === 'sail' && !crewAtHelm) {
+            if (!battleHelm) helm.update(dt, s.moveX, s.moveY, dyn);
+          } else if (mode === 'docking' && (dyn.dockComplete || (dockTime += dt) > DOCK_ASSIST_MAX))
             void disembark();
           const pose = dyn.pose;
           const near = mode === 'sail' && !crewAtHelm ? berthInRange() : null;
@@ -2069,6 +2257,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
         if (liftRide) updateLift(dt, s, t);
         for (const site of meridianSites) site.update(dt, t);
+        tb?.update(dt, t);
         updateCompass();
         // The task list and controls help step aside while a conversation or framed shot has the
         // screen, and come back a moment after (so they don't flicker between lines).
@@ -2082,7 +2271,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
             dialogue.active ||
             scriptRunning ||
             anyTalking() ||
-            cam.framing);
+            cam.framing ||
+            tbModal);
         calmFor = busy ? CALM_HOLD : Math.max(0, calmFor - dt);
         const calm = calmFor > 0;
         if (calm !== calmShown) {
@@ -2095,6 +2285,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         updateWingman(dt);
         npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
         if (meridianNpcs && nearMeridian()) meridianNpcs.update(dt, mode === 'walk' ? player : FAR);
+        tb?.updateNpcs(dt, mode === 'walk' ? player : FAR, camera.position);
         footstepPuffs.update(dt);
         for (const c of chests) c.chest.update(dt, t);
         for (const p of puzzles) p.update(dt, t);
@@ -2125,7 +2316,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     dialogue.cancel();
     wingman?.landNow();
     const to = ISLANDS[islandAt(x, z)];
+    // Fast travel to a battle's destination skips it (and it counts as done).
+    battles.travel(island, to.id, cam);
     if (to.id === 'meridian') await cove.meridian.load();
+    if (to.id === 'thousand-bough') await cove.thousandBough.load();
     if (disposed) return;
     if (mode === 'sail' || mode === 'docking') await disembark(to);
     if (to.id !== island) {
@@ -2198,7 +2392,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       await step();
     },
     meridianSetup,
+    thousandBoughSetup,
     travel,
+    battle: {
+      get active() {
+        return battles.active;
+      },
+      skip: () => battles.skip(),
+      done: () => [...battles.done],
+    },
     islandQuay(id) {
       const b = openIslands().find((i) => i.id === id);
       return b ? { ...b.quay, label: b.name } : null;
@@ -2228,13 +2430,16 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           h: c.chest.group.rotation.y,
           opened: c.chest.opened,
         })),
-      bottles: () =>
-        Object.entries(bottleSpots).map(([id, p]) => ({
+      bottles: () => [
+        ...Object.entries(bottleSpots).map(([id, p]) => ({
           id,
           x: p.x,
           z: p.z,
           read: !!learn?.isChestOpen(id),
         })),
+        ...(tb?.bottles() ?? []),
+      ],
+      thousandBough: () => tb?.debug ?? null,
       puzzle: (id: string) => puzzles.find((p) => p.id === id)?.debug ?? null,
       liftSpots: () => {
         const a = cove.meridian.town?.anchors;
@@ -2246,7 +2451,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       },
       near: (x, z, r) => interactions.within(x, z, r),
       talk: (id) => {
-        const n = [...npcs.list, ...(meridianNpcs?.list ?? [])].find((v) => v.spec.id === id);
+        const n = [...npcs.list, ...(meridianNpcs?.list ?? []), ...(tb?.npcs ?? [])].find(
+          (v) => v.spec.id === id,
+        );
         if (!n || mode !== 'walk') return false;
         void talkTo(n);
         return true;
@@ -2261,7 +2468,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       anchorageLighthouseLit: () => village.lighthouseLit(),
       lighthouseTransit: () => lighthouseTransit,
       cast: () =>
-        (meridianNpcs?.list ?? []).map((n) => ({
+        [...(meridianNpcs?.list ?? []), ...(tb?.npcs ?? [])].map((n) => ({
           id: n.spec.id,
           name: n.spec.name,
           x: n.x,
@@ -2273,6 +2480,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       quest: (id: string, step: string) => setQuest(id, step),
       sailTo(x, z, heading) {
         void cove.meridian.load();
+        if (tbReachable()) void cove.thousandBough.load();
         if (mode === 'sail') dyn.reset(x, z, heading);
       },
       gangway: () => ({ down: gangwayDown, foot: { ...plank.foot }, top: { ...plank.top } }),
@@ -2310,6 +2518,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       skipArrival() {
         if (arrival && arrival.phase !== 'done') void endArrival('skipped');
       },
+      battleRun: () => battles.current,
       state: () => ({
         mode,
         x: +player.x.toFixed(2),
@@ -2321,6 +2530,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         depth: +player.depth.toFixed(2),
         focus: interactions.current?.id ?? null,
         dialogue: dialogue.active,
+        welcome: welcomeRunning,
         ship: {
           x: +dyn.pose.x.toFixed(2),
           z: +dyn.pose.z.toFixed(2),
@@ -2333,6 +2543,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     },
     dispose() {
       disposed = true;
+      battles.dispose(cam);
       learn?.reset();
       for (const p of puzzles) p.dispose();
       for (const c of chests) c.chest.dispose();
@@ -2340,6 +2551,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       dialogue.cancel();
       npcs.dispose();
       meridianNpcs?.dispose();
+      tb?.dispose();
       for (const site of meridianSites) {
         site.group.removeFromParent();
         site.dispose();

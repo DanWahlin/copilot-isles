@@ -1,0 +1,77 @@
+{
+  "id": "tb.lyra.01",
+  "speaker": "Lyra",
+  "text": "Captain! Three musicians, one song. You wouldn't crowd them round one microphone, would you?",
+  "words": [
+    {
+      "word": "Captain",
+      "start": 0.052625,
+      "end": 1.631583
+    },
+    {
+      "word": "Three",
+      "start": 1.631583,
+      "end": 1.960541
+    },
+    {
+      "word": "musicians",
+      "start": 1.960541,
+      "end": 2.868416
+    },
+    {
+      "word": "one",
+      "start": 2.868416,
+      "end": 3.25
+    },
+    {
+      "word": "song",
+      "start": 3.25,
+      "end": 4.657875
+    },
+    {
+      "word": "You",
+      "start": 4.657875,
+      "end": 4.815791
+    },
+    {
+      "word": "wouldn't",
+      "start": 4.815791,
+      "end": 5.131583
+    },
+    {
+      "word": "crowd",
+      "start": 5.131583,
+      "end": 5.513166
+    },
+    {
+      "word": "them",
+      "start": 5.513166,
+      "end": 5.697375
+    },
+    {
+      "word": "round",
+      "start": 5.697375,
+      "end": 6.065791
+    },
+    {
+      "word": "one",
+      "start": 6.065791,
+      "end": 6.35525
+    },
+    {
+      "word": "microphone",
+      "start": 6.35525,
+      "end": 7.236833
+    },
+    {
+      "word": "would",
+      "start": 7.236833,
+      "end": 7.473666
+    },
+    {
+      "word": "you",
+      "start": 7.473666,
+      "end": 7.723666
+    }
+  ]
+}

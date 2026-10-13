@@ -399,7 +399,7 @@ function stackMesh(geometry: BufferGeometry, material: MeshStandardNodeMaterial,
   const mesh = new Mesh(geometry, material);
   mesh.name = name;
   mesh.castShadow = false;
-  mesh.receiveShadow = false;
+  mesh.receiveShadow = true;
   return mesh;
 }
 

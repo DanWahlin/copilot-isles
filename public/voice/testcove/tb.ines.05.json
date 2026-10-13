@@ -1,0 +1,112 @@
+{
+  "id": "tb.ines.05",
+  "speaker": "Ines",
+  "text": "Got a file that isn't in the repository? Drag it from your computer onto a session or agent in the sidebar.",
+  "words": [
+    {
+      "word": "Got",
+      "start": 0,
+      "end": 0.2
+    },
+    {
+      "word": "a",
+      "start": 0.2,
+      "end": 0.288
+    },
+    {
+      "word": "file",
+      "start": 0.288,
+      "end": 0.512
+    },
+    {
+      "word": "that",
+      "start": 0.512,
+      "end": 0.7
+    },
+    {
+      "word": "isn't",
+      "start": 0.7,
+      "end": 0.987
+    },
+    {
+      "word": "in",
+      "start": 0.987,
+      "end": 1.06
+    },
+    {
+      "word": "the",
+      "start": 1.06,
+      "end": 1.193
+    },
+    {
+      "word": "repository",
+      "start": 1.193,
+      "end": 2.208
+    },
+    {
+      "word": "Drag",
+      "start": 2.208,
+      "end": 3.067
+    },
+    {
+      "word": "it",
+      "start": 3.067,
+      "end": 3.152
+    },
+    {
+      "word": "from",
+      "start": 3.152,
+      "end": 3.312
+    },
+    {
+      "word": "your",
+      "start": 3.312,
+      "end": 3.502
+    },
+    {
+      "word": "computer",
+      "start": 3.502,
+      "end": 4.064
+    },
+    {
+      "word": "onto",
+      "start": 4.064,
+      "end": 4.36
+    },
+    {
+      "word": "a",
+      "start": 4.36,
+      "end": 4.45
+    },
+    {
+      "word": "session",
+      "start": 4.45,
+      "end": 4.853
+    },
+    {
+      "word": "or",
+      "start": 4.853,
+      "end": 5.053
+    },
+    {
+      "word": "agent",
+      "start": 5.053,
+      "end": 5.573
+    },
+    {
+      "word": "in",
+      "start": 5.573,
+      "end": 5.7
+    },
+    {
+      "word": "the",
+      "start": 5.7,
+      "end": 5.84
+    },
+    {
+      "word": "sidebar",
+      "start": 5.84,
+      "end": 6.09
+    }
+  ]
+}

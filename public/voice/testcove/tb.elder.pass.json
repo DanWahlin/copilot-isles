@@ -1,0 +1,57 @@
+{
+  "id": "tb.elder.pass",
+  "speaker": "Maren",
+  "text": "The Seal of Thousand-Bough. Hold it to the Beacon, Captain.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.16
+    },
+    {
+      "word": "Seal",
+      "start": 0.16,
+      "end": 0.533
+    },
+    {
+      "word": "of",
+      "start": 0.533,
+      "end": 0.702
+    },
+    {
+      "word": "Thousand-Bough",
+      "start": 0.702,
+      "end": 1.984
+    },
+    {
+      "word": "Hold",
+      "start": 1.984,
+      "end": 2.933
+    },
+    {
+      "word": "it",
+      "start": 2.933,
+      "end": 3.067
+    },
+    {
+      "word": "to",
+      "start": 3.067,
+      "end": 3.14
+    },
+    {
+      "word": "the",
+      "start": 3.14,
+      "end": 3.257
+    },
+    {
+      "word": "Beacon",
+      "start": 3.257,
+      "end": 3.73
+    },
+    {
+      "word": "Captain",
+      "start": 3.73,
+      "end": 3.98
+    }
+  ]
+}

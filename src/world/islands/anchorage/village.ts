@@ -229,25 +229,29 @@ export async function createVillage({
   }
 
   const propMeshes = addInstancedProps(group, heightField, materials, colliders, villageKit, low, mediumUp);
-  // Lite and Low: the crates and barrels (the timber's material, never moved) baked into one draw.
-  if (low) {
-    const wooden = propMeshes.filter((mesh) => mesh.material === materials.wood);
-    const baked = bakeInstances(wooden);
-    if (baked) {
-      const mesh = new Mesh(baked, materials.wood);
-      mesh.name = 'village-crates-and-barrels';
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      group.add(mesh);
-      staticMeshes.push(mesh);
-      staticDraws += 1;
-      staticTriangles += triangleCount(baked);
-      for (const prop of wooden) {
-        propMeshes.splice(propMeshes.indexOf(prop), 1);
-        prop.removeFromParent();
-        prop.geometry.dispose();
-        prop.dispose();
-      }
+  // The loose props never move: baked into one draw per material (the timber's crates and casks, the
+  // cloth's sacks and pots). Instanced, each look cost an instanced shader of its own in every pass
+  // (6 programs; PLAN §15.4); baked, they share the village's.
+  for (const [material, name] of [
+    [materials.wood, 'village-crates-and-casks'],
+    [materials.cloth, 'village-sacks-and-lobster-pots'],
+  ] as const) {
+    const props = propMeshes.filter((mesh) => mesh.material === material);
+    const baked = bakeInstances(props);
+    if (!baked) continue;
+    const mesh = new Mesh(baked, material);
+    mesh.name = name;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    group.add(mesh);
+    staticMeshes.push(mesh);
+    staticDraws += 1;
+    staticTriangles += triangleCount(baked);
+    for (const prop of props) {
+      propMeshes.splice(propMeshes.indexOf(prop), 1);
+      prop.removeFromParent();
+      prop.geometry.dispose();
+      prop.dispose();
     }
   }
   // Loose props are a pixel at most from the other island (PLAN §12.3).
@@ -3372,7 +3376,8 @@ function addInstancedProps(
       group,
       'village-lobster-pots',
       new CylinderGeometry(0.48, 0.58, 0.72, 8),
-      materials.rope,
+      // The sacks' woven cloth: an instanced rope look of their own was one more shader.
+      materials.cloth,
       pots,
       0.36,
       0x927145,

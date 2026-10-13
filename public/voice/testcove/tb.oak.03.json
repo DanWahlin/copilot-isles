@@ -1,0 +1,92 @@
+{
+  "id": "tb.oak.03",
+  "speaker": "Oak",
+  "text": "New worktree gives the session its own folder and branch beside your clone. That's the safe default.",
+  "words": [
+    {
+      "word": "New",
+      "start": 0,
+      "end": 0.288
+    },
+    {
+      "word": "worktree",
+      "start": 0.288,
+      "end": 0.76
+    },
+    {
+      "word": "gives",
+      "start": 0.76,
+      "end": 0.98
+    },
+    {
+      "word": "the",
+      "start": 0.98,
+      "end": 1.09
+    },
+    {
+      "word": "session",
+      "start": 1.09,
+      "end": 1.48
+    },
+    {
+      "word": "its",
+      "start": 1.48,
+      "end": 1.66
+    },
+    {
+      "word": "own",
+      "start": 1.66,
+      "end": 1.909
+    },
+    {
+      "word": "folder",
+      "start": 1.909,
+      "end": 2.36
+    },
+    {
+      "word": "and",
+      "start": 2.36,
+      "end": 2.537
+    },
+    {
+      "word": "branch",
+      "start": 2.537,
+      "end": 2.937
+    },
+    {
+      "word": "beside",
+      "start": 2.937,
+      "end": 3.312
+    },
+    {
+      "word": "your",
+      "start": 3.312,
+      "end": 3.507
+    },
+    {
+      "word": "clone",
+      "start": 3.507,
+      "end": 4.08
+    },
+    {
+      "word": "That's",
+      "start": 4.08,
+      "end": 4.82
+    },
+    {
+      "word": "the",
+      "start": 4.82,
+      "end": 4.944
+    },
+    {
+      "word": "safe",
+      "start": 4.944,
+      "end": 5.27
+    },
+    {
+      "word": "default",
+      "start": 5.27,
+      "end": 5.52
+    }
+  ]
+}

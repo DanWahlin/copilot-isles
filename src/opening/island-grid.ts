@@ -102,6 +102,7 @@ export function* resampleIslandGrid(
   const masks = new Float32Array(count * 4);
   const light = new Float32Array(count * 4);
   const outside: number[] = [];
+  const raised: number[] = [];
   for (let iz = 0; iz < nz; iz++) {
     const z = src.minZ + iz * cell;
     for (let ix = 0; ix < nx; ix++) {
@@ -130,6 +131,11 @@ export function* resampleIslandGrid(
       const f = (v: ArrayLike<number>, c = 0, n = 1): number =>
         v[i00 * n + c]! * w00 + v[i10 * n + c]! * w10 + v[i01 * n + c]! * w01 + v[i11 * n + c]! * w11;
       heights[i] = f(data.heights);
+      const lift = src.relief?.(x, z) ?? 0;
+      if (lift > 0) {
+        heights[i] += lift;
+        raised.push(i);
+      }
       const ax = f(data.normals, 0, 3);
       const ay = f(data.normals, 1, 3);
       const az = f(data.normals, 2, 3);
@@ -144,6 +150,14 @@ export function* resampleIslandGrid(
       light[i * 4 + 3] = f(data.rim) / 255;
     }
     if ((iz & 7) === 7) yield;
+  }
+  // A landmark the terrain doesn't hold (Thousand-Bough's banyan): its own normals, green and lit.
+  for (const i of raised) {
+    const ix = i % nx;
+    normalFromGrid(heights, nx, nz, src.minX, src.minZ, cell, ix, (i - ix) / nx, normals, i * 3);
+    masks.fill(0, i * 4, i * 4 + 4);
+    masks[i * 4 + 1] = 1;
+    light[i * 4] = Math.max(light[i * 4]!, 0.85);
   }
   // Ground past the pack's edge (Port Meridian's mountain runs on past its terrain's box) gets the
   // same bake as `sampleIslandGrid`, so there's no seam where the two meet.

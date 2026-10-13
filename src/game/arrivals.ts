@@ -1,9 +1,10 @@
 import { MERIDIAN } from '../world/islands/meridian';
+import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
 import { COVE } from '../world/layout';
 import type { CameraShot } from './follow-camera';
 import type { FlyKey } from './flyover';
 
-export type IslandId = 'anchorage' | 'meridian';
+export type IslandId = 'anchorage' | 'meridian' | 'thousand-bough';
 
 /**
  * An island's first-landfall flyover: the camera comes in low over the sea, passes the ship, sweeps
@@ -25,6 +26,11 @@ export interface IslandArrival {
    * island): in low over the sea, over the ship, and round to behind the captain.
    */
   fromChart?: { keys: readonly FlyKey[]; seconds: number; cardAt: number; cardFor: number };
+  /**
+   * Where the flight lingers just before handing over (over the captain's shoulder on the island's
+   * landmark), instead of looking straight ahead; the flight then eases down to the follow camera.
+   */
+  landingShot?: CameraShot;
 }
 
 /** The flight to fly: the island's own, or its shorter one after the opening's chart dive. */
@@ -112,9 +118,40 @@ export const MERIDIAN_ARRIVAL: IslandArrival = {
   cardFor: 3.4,
 };
 
+const TB = THOUSAND_BOUGH;
+
+/**
+ * Thousand-Bough Isle (spec §9.5): the whole island from the south-west with the banyan in the
+ * ridge's saddle, into the cove mouth over the ship, up the Fern Walk, under the canopy, straight up
+ * through the Sky Window above the mist, out over the east canopy toward Great Falls, and down to the
+ * captain on the wharf.
+ */
+export const THOUSAND_BOUGH_ARRIVAL: IslandArrival = {
+  id: 'thousand-bough',
+  card: {
+    eyebrow: 'Chapter 02 · Sessions, Worktrees & Context',
+    title: 'Thousand-Bough Isle',
+    line: 'Give every task its own treehouse',
+  },
+  keys: [
+    { x: 1700, y: 12, z: -1020, tx: TB.tree.x, ty: 48, tz: TB.tree.z, pace: 0.45 },
+    { x: 1890, y: 16, z: -1215, tx: TB.harbor.berth.x, ty: 6, tz: TB.harbor.berth.z, pace: 1.1 },
+    { x: 1925, y: 26, z: -1345, tx: TB.rootGate.x, ty: 18, tz: TB.rootGate.z, pace: 0.75 },
+    { x: 2010, y: 24, z: -1536, tx: TB.tree.x, ty: 45, tz: TB.tree.z, pace: 0.7 },
+    { x: 2010, y: 64, z: -1534, tx: TB.harbor.berth.x, ty: 6, tz: TB.harbor.berth.z, pace: 0.6 },
+    { x: 2070, y: 58, z: -1500, tx: 2140, ty: 40, tz: -1640, pace: 0.8 },
+    { x: 1975, y: 22, z: -1330, tx: TB.harbor.landing.x, ty: 4, tz: TB.harbor.landing.z, pace: 0.75 },
+  ],
+  landingShot: TB.harbor.landingShot,
+  seconds: 28,
+  cardAt: 0.6,
+  cardFor: 3.6,
+};
+
 export const ARRIVALS: Readonly<Record<IslandId, IslandArrival>> = {
   anchorage: ANCHORAGE_ARRIVAL,
   meridian: MERIDIAN_ARRIVAL,
+  'thousand-bough': THOUSAND_BOUGH_ARRIVAL,
 };
 
 /**
@@ -130,6 +167,16 @@ export function arrivalKeys(
   const fx = Math.sin(captain.heading);
   const fz = Math.cos(captain.heading);
   const lookY = captain.y + 1.3;
+  const l = arrival.landingShot;
+  if (l)
+    return [
+      ...arrival.keys,
+      { ...l, x: l.x - fx * 6, y: l.y + 5, z: l.z - fz * 6, pace: 0.6 },
+      // A slow drift in toward the captain with the landmark held in frame (about three seconds).
+      { ...l, pace: 0.12 },
+      { ...l, x: l.x + fx * 1.2, y: l.y - 0.4, z: l.z + fz * 1.2, pace: 0.12 },
+      { ...rest, pace: 0.35 },
+    ];
   return [
     ...arrival.keys,
     {

@@ -1,0 +1,47 @@
+{
+  "id": "tb.elder.wait",
+  "speaker": "Maren",
+  "text": "The Crown can wait, Captain. Pip's ledger first.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.227
+    },
+    {
+      "word": "Crown",
+      "start": 0.227,
+      "end": 0.62
+    },
+    {
+      "word": "can",
+      "start": 0.62,
+      "end": 0.88
+    },
+    {
+      "word": "wait",
+      "start": 0.88,
+      "end": 1.34
+    },
+    {
+      "word": "Captain",
+      "start": 1.34,
+      "end": 2.04
+    },
+    {
+      "word": "Pip's",
+      "start": 2.04,
+      "end": 2.8
+    },
+    {
+      "word": "ledger",
+      "start": 2.8,
+      "end": 3.373
+    },
+    {
+      "word": "first",
+      "start": 3.373,
+      "end": 3.623
+    }
+  ]
+}

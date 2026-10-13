@@ -1,0 +1,77 @@
+{
+  "id": "wingman.starfish.thousand-bough",
+  "speaker": "Wingman",
+  "text": "And five starfish are hidden around Thousand-Bough Isle. Your count's in the top right.",
+  "words": [
+    {
+      "word": "And",
+      "start": 0,
+      "end": 0.16
+    },
+    {
+      "word": "five",
+      "start": 0.16,
+      "end": 0.56
+    },
+    {
+      "word": "starfish",
+      "start": 0.56,
+      "end": 1.14
+    },
+    {
+      "word": "are",
+      "start": 1.14,
+      "end": 1.234
+    },
+    {
+      "word": "hidden",
+      "start": 1.234,
+      "end": 1.474
+    },
+    {
+      "word": "around",
+      "start": 1.474,
+      "end": 1.724
+    },
+    {
+      "word": "Thousand-Bough",
+      "start": 1.724,
+      "end": 2.384
+    },
+    {
+      "word": "Isle",
+      "start": 2.384,
+      "end": 3.168
+    },
+    {
+      "word": "Your",
+      "start": 3.168,
+      "end": 3.4
+    },
+    {
+      "word": "count's",
+      "start": 3.4,
+      "end": 3.787
+    },
+    {
+      "word": "in",
+      "start": 3.787,
+      "end": 3.86
+    },
+    {
+      "word": "the",
+      "start": 3.86,
+      "end": 3.98
+    },
+    {
+      "word": "top",
+      "start": 3.98,
+      "end": 4.227
+    },
+    {
+      "word": "right",
+      "start": 4.227,
+      "end": 4.477
+    }
+  ]
+}

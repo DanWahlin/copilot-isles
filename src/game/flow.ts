@@ -31,7 +31,15 @@ import type { Opening } from '../opening/opening';
 import { ANCHORAGE_ARRIVAL, arrivalFlight } from './arrivals';
 import { compileProgressively, revealPrewarm, warmProgressively, warmTerrainLods } from '../engine/warm';
 import { skipSunShadowsWhereOff } from '../world/sky/cached-sun-shadow';
+import { releaseRemovedObjects } from '../util/dispose-three';
 import { buildSlice, installBuildSlicer } from '../engine/build-slice';
+import { savedBattles } from './battles';
+
+/** An island's cast and props from the session, to warm with the island and show after. */
+interface IslandSetup {
+  roots: Object3D[];
+  reveal(): void;
+}
 
 const SETTINGS_KEY = 'copilot-isles.settings.v1';
 /** The crossfade (s) from the opening's song into the island's theme, at the song's phrase end. */
@@ -69,6 +77,7 @@ const BRIDGE_METHODS = [
   'setSails',
   'skipOpening',
   'pressOpening',
+  'skipBattle',
 ] as const satisfies readonly (keyof GameBridge)[];
 
 interface SaveData {
@@ -79,6 +88,8 @@ interface SaveData {
   savedAt: number;
   /** The island's name for the title's Continue card (older saves: Anchorage Cay). */
   place?: string;
+  /** Sea battles fought or skipped (docs/specs/BATTLES.md), so none is repeated (older saves: none). */
+  battles?: string[];
 }
 
 export interface GameFlowOptions {
@@ -99,6 +110,8 @@ export interface GameFlowOptions {
   ) => Promise<
     { compileObject(object: Object3D): Promise<void>; warmOutput?(): void } | null | undefined | void
   > | void;
+  /** Puts the title's lean post stack back after a voyage (the title's programs match its first visit). */
+  restoreTitlePost?: () => Promise<unknown>;
 }
 
 /**
@@ -136,6 +149,8 @@ export class GameFlow implements GameBridge {
   private unslice: (() => void) | null = null;
   /** Port Meridian's late warm-up: resolves once it's streamed in and warmed (it waits for a trigger). */
   private meridianWarm: Promise<void> = Promise.resolve();
+  /** Thousand-Bough's late warm-up, like Meridian's. */
+  private thousandBoughWarm: Promise<void> = Promise.resolve();
 
   constructor(private readonly o: GameFlowOptions) {
     const settings = sanitizeSettings({ ...DEFAULT_SETTINGS, ...readJson<Partial<Settings>>(SETTINGS_KEY) });
@@ -236,7 +251,15 @@ export class GameFlow implements GameBridge {
     if (!this.session || this.state.screen !== 'playing') return;
     this.session.setPaused(true);
     this.save();
-    this.set({ screen: 'paused', returnTo: 'playing' });
+    this.set({ screen: 'paused', returnTo: 'playing', battle: this.session.battle.active });
+  }
+
+  /** The pause menu's Skip battle: the battle counts as done, and you're back at the helm. */
+  skipBattle(): void {
+    if (!this.session?.battle.active) return;
+    this.session.battle.skip();
+    this.set({ battle: false });
+    this.resume();
   }
 
   openChart(): void {
@@ -296,6 +319,10 @@ export class GameFlow implements GameBridge {
       await session.hud.fade(true, 260);
       // A jump to Port Meridian waits for it to stream in and warm (behind the fade).
       if (pointId === 'island:meridian') await this.meridianWarm;
+      if (pointId === 'island:thousand-bough') {
+        void this.cove?.thousandBough.load();
+        await this.thousandBoughWarm;
+      }
       if (this.session !== session) return;
       await session.travel(p.x, p.z, p.heading);
       this.resume();
@@ -332,6 +359,36 @@ export class GameFlow implements GameBridge {
   }
 
   /**
+   * Warms Thousand-Bough once it has streamed in (coming within range, a jump there, or boarding for
+   * it starts that), like Port Meridian: its terrain, foam, tree village, plants and birds, and the
+   * cast and props the session puts on it (`thousandBoughSetup`, when the session has one).
+   */
+  private async warmThousandBough(
+    cove: CoveScene,
+    session: GameSession,
+    post: { compileObject(object: Object3D): Promise<void> } | null,
+  ): Promise<void> {
+    const world = await cove.thousandBough.worldReady;
+    const setup = await (session as { thousandBoughSetup?: Promise<IslandSetup> }).thousandBoughSetup;
+    const own = cove.thousandBough.roots();
+    if (this.cove !== cove || !world || !own.length) return;
+    cove.thousandBough.hold(true);
+    try {
+      await this.warmLate(cove, [...own, ...(setup?.roots ?? [])], post, {
+        keepHidden: own,
+        terrain: cove.thousandBough.terrain,
+        // The harbour mirror only draws round Anchorage's harbour, a long way off.
+        reflected: false,
+      });
+    } finally {
+      if (this.cove === cove) {
+        cove.thousandBough.hold(false);
+        setup?.reveal();
+      }
+    }
+  }
+
+  /**
    * Warms objects that join the world after it's playing (another island, the leaping fish) like the
    * island's own warm-up: pipelines precompiled for the post's scene pass off-thread, then a few
    * objects a frame get one real draw (instanced and skinned meshes, uploads, shadow passes) unculled
@@ -344,7 +401,7 @@ export class GameFlow implements GameBridge {
     cove: CoveScene,
     roots: readonly Object3D[],
     post: { compileObject(object: Object3D): Promise<void> } | null,
-    opts: { keepHidden?: readonly Object3D[]; terrain?: CreatedTerrain | null } = {},
+    opts: { keepHidden?: readonly Object3D[]; terrain?: CreatedTerrain | null; reflected?: boolean } = {},
   ): Promise<void> {
     if (!roots.length) return;
     const wasVisible = roots.map((r) => r.visible);
@@ -362,7 +419,7 @@ export class GameFlow implements GameBridge {
     const compile = (o: Object3D) =>
       Promise.all([
         post ? post.compileObject(o) : engine.renderer.compileAsync(o, engine.camera, engine.scene),
-        cove.mirror?.compileObject(engine.renderer, engine.scene, o),
+        opts.reflected === false ? null : cove.mirror?.compileObject(engine.renderer, engine.scene, o),
       ]).then(() => undefined);
     const steady = { targetMs: 3, startBatch: 2, frameCost: () => engine.cpuMs };
     await engine.counters
@@ -717,6 +774,11 @@ export class GameFlow implements GameBridge {
       // Port Meridian streams in later, when something needs it (see warmMeridian), except for a save
       // there: it's put in now and warmed with the island.
       const meridianFirst = !!save && islandAt(save.x, save.z) === 'meridian';
+      const thousandBoughFirst = !!save && islandAt(save.x, save.z) === 'thousand-bough';
+      if (thousandBoughFirst) {
+        report(0.78, 'Sighting Thousand-Bough');
+        await cove.thousandBough.load();
+      }
       if (meridianFirst) {
         report(0.78, 'Sighting Port Meridian');
         await cove.meridian.load();
@@ -737,9 +799,16 @@ export class GameFlow implements GameBridge {
         onMenu: () => this.pause(),
         onChart: () => this.openChart(),
         learn: this.learn,
+        battles: savedBattles(save?.battles),
+        // Saved at once, even at sea, so a won or skipped battle is never fought again.
+        onBattle: () => this.save(),
       });
       // Both islands' skies (and the passage between them) go on the GPU before the hitch guard arms.
-      await cove.sky.prefetch([ISLANDS.anchorage.sky.hours, ISLANDS.meridian.sky.hours]);
+      await cove.sky.prefetch([
+        ISLANDS.anchorage.sky.hours,
+        ISLANDS.meridian.sky.hours,
+        ISLANDS['thousand-bough'].sky.hours,
+      ]);
       report(0.92, 'Lighting the lanterns');
       const post = await this.o.upgradePost?.(cove, { warm: false });
       cove.setLateWarm((roots) => this.warmLate(cove, roots, post ?? null));
@@ -747,6 +816,13 @@ export class GameFlow implements GameBridge {
       // The world's pipelines build off-thread (compiled for the post's scene pass, nothing drawn), a
       // few milliseconds of main-thread work a frame, while the cabin holds its establishing shot.
       // Objects that appear later (marked userData.prewarm) are shown for the warm, then hidden.
+      if (thousandBoughFirst) {
+        const setup = await (this.session as { thousandBoughSetup?: Promise<IslandSetup> })
+          .thousandBoughSetup;
+        setup?.reveal();
+        cove.thousandBough.hold(true);
+        for (const r of cove.thousandBough.roots()) r.visible = true;
+      }
       if (meridianFirst) {
         (await this.session.meridianSetup).reveal();
         cove.meridian.hold(true);
@@ -786,7 +862,11 @@ export class GameFlow implements GameBridge {
           },
         });
         // The terrain's finer levels of detail (and Meridian's, for a save there).
-        for (const t of [cove.terrain, meridianFirst ? cove.meridian.terrain : null]) {
+        for (const t of [
+          cove.terrain,
+          meridianFirst ? cove.meridian.terrain : null,
+          thousandBoughFirst ? cove.thousandBough.terrain : null,
+        ]) {
           if (t)
             await warmTerrainLods(t, frame, { targetMs: 12, startBatch: 3, frameCost: () => engine.cpuMs });
         }
@@ -794,6 +874,7 @@ export class GameFlow implements GameBridge {
         endShadowWarm?.();
         hidePrewarm();
         cove.meridian.hold(false);
+        cove.thousandBough.hold(false);
       }
       // The world's ready to be drawn without stalls: now the camera can move in to the chest.
       opening.release();
@@ -843,6 +924,8 @@ export class GameFlow implements GameBridge {
       engine.renderer.domElement.focus();
       this.session.begin();
       if (!meridianFirst) this.meridianWarm = this.warmMeridian(cove, this.session, post ?? null);
+      if (!thousandBoughFirst)
+        this.thousandBoughWarm = this.warmThousandBough(cove, this.session, post ?? null);
       if (this.settingsOnLand) {
         const qualityNotice = this.settingsOnLand;
         this.settingsOnLand = null;
@@ -893,6 +976,8 @@ export class GameFlow implements GameBridge {
       this.resolutionHeld = false;
       this.o.engine.holdResolution(null);
     }
+    const voyageObjects: Object3D[] = [];
+    this.o.engine.scene.traverse((o) => void voyageObjects.push(o));
     this.session?.dispose();
     this.session = null;
     this.cove?.dispose();
@@ -900,6 +985,8 @@ export class GameFlow implements GameBridge {
     this.characters?.dispose();
     this.characters = null;
     this.characterLib = null;
+    releaseRemovedObjects(voyageObjects, this.o.engine.scene);
+    void this.o.restoreTitlePost?.();
   }
 
   /** Loads the characters once per voyage (a failed load is tried again next time). */
@@ -919,7 +1006,14 @@ export class GameFlow implements GameBridge {
   private save(captain = this.state.captain): void {
     if (!this.session) return;
     const w = this.session.where();
-    if (w.onShip) return;
+    const battles = this.session.battle.done();
+    if (w.onShip) {
+      // At sea the save keeps where you last stood ashore, with the battles brought up to date.
+      const last = readJson<SaveData>(SAVE_KEY);
+      if (last && savedBattles(last.battles).length !== battles.length)
+        writeJson(SAVE_KEY, { ...last, battles } satisfies SaveData);
+      return;
+    }
     writeJson(SAVE_KEY, {
       captain,
       x: w.x,
@@ -927,6 +1021,7 @@ export class GameFlow implements GameBridge {
       heading: w.heading,
       savedAt: Date.now(),
       place: w.place,
+      battles,
     } satisfies SaveData);
   }
 

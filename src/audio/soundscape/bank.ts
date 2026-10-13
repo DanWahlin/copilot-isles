@@ -300,6 +300,17 @@ export const BANK = {
   opening_sail: { file: 'opening_sail', slices: [[0, 0.8894]], lufs: [-22.8] },
   opening_whoosh: { file: 'opening_whoosh', slices: [[0, 2.1371]], lufs: [-18.6] },
   opening_spray: { file: 'opening_spray', slices: [[0, 0.5529]], lufs: [-18.5] },
+  // Thousand-Bough Isle (tools/sfx/fetch.sh; CC0, logged in ASSETS.md). The loops are seamless.
+  waterfall_large: { file: 'waterfall_large', loop: true, lufs: -23 },
+  rain_canopy: { file: 'rain_canopy', loop: true, lufs: -32.3 },
+  frogs_dusk: { file: 'frogs_dusk', loop: true, lufs: -24 },
+  booth_kalimba: { file: 'booth_kalimba', loop: true, lufs: -22.2 },
+  booth_flute: { file: 'booth_flute', loop: true, lufs: -21 },
+  booth_rainstick: { file: 'booth_rainstick', loop: true, lufs: -22.1 },
+  parrot_call: { file: 'parrot_call', slices: [[0, 7.3065]], lufs: [-22.1] },
+  gondola_bell: { file: 'gondola_bell', slices: [[0, 1.9065]], lufs: [-17.9] },
+  rope_hoist: { file: 'rope_hoist', slices: [[0, 4.5065]], lufs: [-19] },
+  rock_tumble: { file: 'rock_tumble', slices: [[0, 4.2065]], lufs: [-17.7] },
 } as const satisfies Record<string, BankEntry>;
 
 export type SoundName = keyof typeof BANK;

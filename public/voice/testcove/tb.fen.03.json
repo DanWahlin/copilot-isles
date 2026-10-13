@@ -1,0 +1,82 @@
+{
+  "id": "tb.fen.03",
+  "speaker": "Fen",
+  "text": "So now each crew gets its own channel. Turn the tiles, then open the gates.",
+  "words": [
+    {
+      "word": "So",
+      "start": 0,
+      "end": 0.16
+    },
+    {
+      "word": "now",
+      "start": 0.16,
+      "end": 0.496
+    },
+    {
+      "word": "each",
+      "start": 0.496,
+      "end": 0.944
+    },
+    {
+      "word": "crew",
+      "start": 0.944,
+      "end": 1.28
+    },
+    {
+      "word": "gets",
+      "start": 1.28,
+      "end": 1.64
+    },
+    {
+      "word": "its",
+      "start": 1.64,
+      "end": 1.8
+    },
+    {
+      "word": "own",
+      "start": 1.8,
+      "end": 1.98
+    },
+    {
+      "word": "channel",
+      "start": 1.98,
+      "end": 2.784
+    },
+    {
+      "word": "Turn",
+      "start": 2.784,
+      "end": 3.06
+    },
+    {
+      "word": "the",
+      "start": 3.06,
+      "end": 3.213
+    },
+    {
+      "word": "tiles",
+      "start": 3.213,
+      "end": 4.032
+    },
+    {
+      "word": "then",
+      "start": 4.032,
+      "end": 4.208
+    },
+    {
+      "word": "open",
+      "start": 4.208,
+      "end": 4.42
+    },
+    {
+      "word": "the",
+      "start": 4.42,
+      "end": 4.56
+    },
+    {
+      "word": "gates",
+      "start": 4.56,
+      "end": 4.81
+    }
+  ]
+}

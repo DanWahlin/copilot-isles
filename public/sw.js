@@ -1,7 +1,10 @@
 const VERSION = 's12-v1';
 const STATIC_CACHE = `copilot-isles-static-${VERSION}`;
 const RUNTIME_CACHE = `copilot-isles-runtime-${VERSION}`;
+const COURSE_CACHE = `copilot-isles-course-${VERSION}`;
 const MANIFEST_RE = /\/packs\/manifest\.json$/;
+// Live course content (PLAN §8.2, §13.6): the course repo's files on raw.githubusercontent.com only.
+const COURSE_RE = /^https:\/\/raw\.githubusercontent\.com\/github\/copilot-app-for-beginners\//;
 
 self.addEventListener('install', () => {
   self.skipWaiting();
@@ -15,7 +18,11 @@ self.addEventListener('activate', (event) => {
         Promise.all(
           keys
             .filter(
-              (key) => key.startsWith('copilot-isles-') && key !== STATIC_CACHE && key !== RUNTIME_CACHE,
+              (key) =>
+                key.startsWith('copilot-isles-') &&
+                key !== STATIC_CACHE &&
+                key !== RUNTIME_CACHE &&
+                key !== COURSE_CACHE,
             )
             .map((key) => caches.delete(key)),
         ),
@@ -27,6 +34,10 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
+  if (COURSE_RE.test(request.url)) {
+    event.respondWith(staleWhileRevalidate(event, request));
+    return;
+  }
   if (url.origin !== location.origin) return;
 
   if (MANIFEST_RE.test(url.pathname) || request.mode === 'navigate' || url.pathname.endsWith('/index.html')) {
@@ -59,4 +70,23 @@ async function networkFirst(request) {
     if (cached) return cached;
     throw error;
   }
+}
+
+/**
+ * Course text and pictures: answer from the cache at once and refresh it in the background, so the
+ * next visit gets the new course version. The game keeps each document for the session, so nothing
+ * changes mid-conversation. Failures without a cached copy reject, and the game uses its snapshot.
+ */
+async function staleWhileRevalidate(event, request) {
+  const cache = await caches.open(COURSE_CACHE);
+  const cached = await cache.match(request);
+  const refresh = fetch(request).then(async (response) => {
+    if (response.ok) await cache.put(request, response.clone());
+    return response;
+  });
+  if (cached) {
+    event.waitUntil(refresh.catch(() => undefined));
+    return cached;
+  }
+  return refresh;
 }

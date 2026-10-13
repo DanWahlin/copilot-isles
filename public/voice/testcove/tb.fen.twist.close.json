@@ -1,0 +1,67 @@
+{
+  "id": "tb.fen.twist.close",
+  "speaker": "Fen",
+  "text": "That works too: stop one server. Or start the second on 5174.",
+  "words": [
+    {
+      "word": "That",
+      "start": 0,
+      "end": 0.213
+    },
+    {
+      "word": "works",
+      "start": 0.213,
+      "end": 0.54
+    },
+    {
+      "word": "too",
+      "start": 0.54,
+      "end": 0.928
+    },
+    {
+      "word": "stop",
+      "start": 0.928,
+      "end": 1.52
+    },
+    {
+      "word": "one",
+      "start": 1.52,
+      "end": 1.84
+    },
+    {
+      "word": "server",
+      "start": 1.84,
+      "end": 2.56
+    },
+    {
+      "word": "Or",
+      "start": 2.56,
+      "end": 2.973
+    },
+    {
+      "word": "start",
+      "start": 2.973,
+      "end": 3.46
+    },
+    {
+      "word": "the",
+      "start": 3.46,
+      "end": 3.6
+    },
+    {
+      "word": "second",
+      "start": 3.6,
+      "end": 4.16
+    },
+    {
+      "word": "on",
+      "start": 4.16,
+      "end": 4.4
+    },
+    {
+      "word": "5174",
+      "start": 4.4,
+      "end": 4.65
+    }
+  ]
+}

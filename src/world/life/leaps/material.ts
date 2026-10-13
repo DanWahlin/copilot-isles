@@ -17,6 +17,7 @@ import {
   smoothstep,
   sqrt,
   step,
+  uniform,
   uv,
   vec2,
   vec3,
@@ -28,8 +29,8 @@ import { world } from '../../uniforms';
 type AnyNode = any;
 const vec3Node = vec3 as unknown as (...args: AnyNode[]) => AnyNode;
 
-export function createDolphinMaterial(): MeshStandardNodeMaterial {
-  const material = new MeshStandardNodeMaterial({ roughness: 0.56, metalness: 0, color: 0xffffff });
+/** A dolphin's swimming bend and its countershaded colours (local space: nose toward −z). */
+function dolphinLook(): { position: AnyNode; color: AnyNode; roughness: AnyNode } {
   const phase = attribute('leapPhase', 'float') as AnyNode;
   const amp = attribute('leapAmp', 'float') as AnyNode;
   const bend = sin(
@@ -41,20 +42,16 @@ export function createDolphinMaterial(): MeshStandardNodeMaterial {
     .mul(amp)
     .mul(smoothstep(float(-0.2), float(-0.9), (positionLocal as AnyNode).z))
     .mul(float(1).sub(world.reducedMotion));
-  material.positionNode = (positionLocal as AnyNode).add(vec3Node(bend.mul(0.05), bend.abs().mul(0.025), 0));
   const belly = smoothstep(float(-0.07), float(-0.2), (positionLocal as AnyNode).y);
-  material.colorNode = mix(color(0x234657), color(0xd4d5c9), belly.mul(0.85));
-  material.roughnessNode = float(0.62);
-  return material;
+  return {
+    position: (positionLocal as AnyNode).add(vec3Node(bend.mul(0.05), bend.abs().mul(0.025), 0)),
+    color: mix(color(0x234657), color(0xd4d5c9), belly.mul(0.85)),
+    roughness: float(0.62),
+  };
 }
 
-export function createFlyingFishMaterial(): MeshStandardNodeMaterial {
-  const material = new MeshStandardNodeMaterial({
-    side: DoubleSide,
-    roughness: 0.5,
-    metalness: 0,
-    color: 0xffffff,
-  });
+/** A flying fish's flapping fins with their shimmer. */
+function flyingFishLook(): { position: AnyNode; color: AnyNode; roughness: AnyNode } {
   const part = attribute('leapPart', 'float') as AnyNode;
   const phase = attribute('leapPhase', 'float') as AnyNode;
   const amp = attribute('leapAmp', 'float') as AnyNode;
@@ -70,18 +67,47 @@ export function createFlyingFishMaterial(): MeshStandardNodeMaterial {
     .mul(0.5)
     .add(0.5);
   const flap = sin(world.time.mul(20).add(phase)).mul(amp).mul(wing).mul(float(1).sub(world.reducedMotion));
-  material.positionNode = (positionLocal as AnyNode).add(
-    vec3Node(0, flap.mul(abs((positionLocal as AnyNode).x)).mul(0.14), 0),
-  );
   const body = mix(
     color(0x5c8e9d),
     color(0xe8f4ea),
     smoothstep(float(-0.02), float(-0.08), (positionLocal as AnyNode).y),
   );
   const fin = mix(color(0x79c9d9), color(0xf3fff9), shimmer.mul(0.65));
-  material.colorNode = mix(body, fin, wing.mul(0.82));
-  material.roughnessNode = mix(float(0.55), float(0.28), wing.mul(shimmer));
+  return {
+    position: (positionLocal as AnyNode).add(
+      vec3Node(0, flap.mul(abs((positionLocal as AnyNode).x)).mul(0.14), 0),
+    ),
+    color: mix(body, fin, wing.mul(0.82)),
+    roughness: mix(float(0.55), float(0.28), wing.mul(shimmer)),
+  };
+}
+
+/**
+ * Dolphins and flying fish share one graph, and so one shader in each pass (PLAN §15.4): a uniform
+ * picks the creature. Double-sided for the fish's fins; the dolphin's closed body looks the same.
+ */
+function createLeapCreatureMaterial(fish: boolean): MeshStandardNodeMaterial {
+  const material = new MeshStandardNodeMaterial({
+    side: DoubleSide,
+    roughness: 0.5,
+    metalness: 0,
+    color: 0xffffff,
+  });
+  const isFish = (uniform(fish ? 1 : 0) as AnyNode).greaterThan(0.5);
+  const d = dolphinLook();
+  const f = flyingFishLook();
+  material.positionNode = select(isFish, f.position, d.position);
+  material.colorNode = select(isFish, f.color, d.color);
+  material.roughnessNode = select(isFish, f.roughness, d.roughness);
   return material;
+}
+
+export function createDolphinMaterial(): MeshStandardNodeMaterial {
+  return createLeapCreatureMaterial(false);
+}
+
+export function createFlyingFishMaterial(): MeshStandardNodeMaterial {
+  return createLeapCreatureMaterial(true);
 }
 
 /**

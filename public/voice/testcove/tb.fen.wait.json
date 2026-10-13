@@ -1,0 +1,57 @@
+{
+  "id": "tb.fen.wait",
+  "speaker": "Fen",
+  "text": "Oak sends the crews my way, Captain. See him first.",
+  "words": [
+    {
+      "word": "Oak",
+      "start": 0,
+      "end": 0.36
+    },
+    {
+      "word": "sends",
+      "start": 0.36,
+      "end": 0.58
+    },
+    {
+      "word": "the",
+      "start": 0.58,
+      "end": 0.707
+    },
+    {
+      "word": "crews",
+      "start": 0.707,
+      "end": 1.093
+    },
+    {
+      "word": "my",
+      "start": 1.093,
+      "end": 1.24
+    },
+    {
+      "word": "way",
+      "start": 1.24,
+      "end": 1.48
+    },
+    {
+      "word": "Captain",
+      "start": 1.48,
+      "end": 1.88
+    },
+    {
+      "word": "See",
+      "start": 1.88,
+      "end": 2.04
+    },
+    {
+      "word": "him",
+      "start": 2.04,
+      "end": 2.227
+    },
+    {
+      "word": "first",
+      "start": 2.227,
+      "end": 2.477
+    }
+  ]
+}

@@ -13,33 +13,28 @@ import {
   Quaternion,
   SphereGeometry,
   Sprite,
-  SpriteNodeMaterial,
   Vector3,
 } from 'three/webgpu';
 import {
   abs,
-  atan,
   attribute,
-  color,
   cos,
   float,
-  instancedDynamicBufferAttribute,
   mix,
   positionLocal,
-  pow,
   select,
   sign,
   sin,
   smoothstep,
-  uv,
   vec3,
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { markInstancesChanged, sharedInstancedMesh } from '../../engine/instancing';
 import type { TierSettings } from '../../engine/quality';
 import type { WaveSampler } from '../contracts';
 import { createSplashGeometry } from '../life/leaps/geometry';
 import { createSplashMaterial } from '../life/leaps/material';
-import { world } from '../uniforms';
+import { createPuffMaterial } from './fog';
 
 // TSL fluent typings do not cover this mixed scalar/vector graph.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,6 +79,47 @@ function pooled(mesh: InstancedMesh, name: string): InstancedMesh {
   return mesh;
 }
 
+/**
+ * The battle's solid props (cannonballs, splinters, stores, rowing boats) share one material and one
+ * vertex layout, so they're one shader for all four pools (PLAN §15.4): `propPart` says what a vertex
+ * belongs to (0–2 a store's shapes, 10–12 a boat's hull, rowers and oars, 20 a splinter, 30 a ball),
+ * `propSeat` a rower's seat, and the per-instance `propRow` a store's kind (x) or a boat's stroke.
+ */
+const PART_BOAT = 10;
+const PART_CHIP = 20;
+const PART_BALL = 30;
+let propMaterial: MeshStandardNodeMaterial | null = null;
+
+/** A pool's props as a shared instanced mesh: `geometry` already has `color` and `propPart`. */
+function propMesh(
+  geometry: BufferGeometry,
+  size: number,
+  name: string,
+): {
+  mesh: InstancedMesh;
+  row: InstancedBufferAttribute;
+} {
+  const n = geometry.getAttribute('position').count;
+  if (!geometry.getAttribute('propSeat'))
+    geometry.setAttribute('propSeat', new Float32BufferAttribute(new Float32Array(n), 1));
+  const row = new InstancedBufferAttribute(new Float32Array(size * 4), 4);
+  geometry.setAttribute('propRow', row);
+  propMaterial ??= createPropMaterial();
+  const mesh = pooled(
+    sharedInstancedMesh(geometry, propMaterial, size, { count: 0, instanceColors: true }),
+    name,
+  );
+  for (let i = 0; i < size; i++) mesh.setColorAt(i, tmpC.setRGB(1, 1, 1));
+  return { mesh, row };
+}
+
+/** Every vertex of `g` belongs to `part`. */
+function asPart(g: BufferGeometry, part: number): BufferGeometry {
+  const n = g.getAttribute('position').count;
+  g.setAttribute('propPart', new Float32BufferAttribute(new Float32Array(n).fill(part), 1));
+  return g;
+}
+
 /** Cannonballs in flight: struct-of-arrays, no objects per ball. */
 export class BallPool {
   readonly mesh: InstancedMesh;
@@ -113,8 +149,8 @@ export class BallPool {
     this.owner = new Int16Array(size).fill(-1);
     this.damage = new Float32Array(size);
     this.whizzed = new Uint8Array(size);
-    const mat = new MeshStandardNodeMaterial({ color: 0x1b1a19, roughness: 0.42, metalness: 0.65 });
-    this.mesh = pooled(new InstancedMesh(new SphereGeometry(BALL_RADIUS, 10, 6), mat, size), 'battle-balls');
+    const ball = asPart(paint(new SphereGeometry(BALL_RADIUS, 10, 6), 0x1b1a19), PART_BALL);
+    this.mesh = propMesh(ball, size, 'battle-balls').mesh;
   }
 
   spawn(
@@ -168,7 +204,7 @@ export class BallPool {
       this.mesh.setMatrixAt(n++, tmpM);
     }
     this.mesh.count = n;
-    this.mesh.instanceMatrix.needsUpdate = true;
+    markInstancesChanged(this.mesh);
   }
 
   clear(): void {
@@ -212,7 +248,11 @@ export class SplashPool {
     geometry.setAttribute('splashAge', this.ageAttr);
     geometry.setAttribute('splashSeed', this.seedAttr);
     geometry.setAttribute('splashKind', this.kindAttr);
-    this.mesh = pooled(new InstancedMesh(geometry, createSplashMaterial(), n), 'battle-splashes');
+    // Shared with the Leaps splashes: the same look and layout, so the same shader.
+    this.mesh = pooled(
+      sharedInstancedMesh(geometry, createSplashMaterial(), n, { count: 0 }),
+      'battle-splashes',
+    );
   }
 
   /** `kind` 1 adds the tall plume (a ball going in); 0 is a low crown (a near miss skipping). */
@@ -245,7 +285,7 @@ export class SplashPool {
       n++;
     }
     this.mesh.count = n;
-    this.mesh.instanceMatrix.needsUpdate = true;
+    markInstancesChanged(this.mesh);
     this.ageAttr.needsUpdate = true;
     this.seedAttr.needsUpdate = true;
     this.kindAttr.needsUpdate = true;
@@ -293,7 +333,7 @@ export class SmokePool {
     this.size0 = new Float32Array(n);
     this.posAttr = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
     this.dataAttr = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
-    this.mesh = new Sprite(createSmokeMaterial(this.posAttr, this.dataAttr));
+    this.mesh = new Sprite(createPuffMaterial(this.posAttr, this.dataAttr, false));
     this.mesh.name = 'battle-smoke';
     this.mesh.count = 0;
     this.mesh.frustumCulled = false;
@@ -358,41 +398,6 @@ export class SmokePool {
   }
 }
 
-function createSmokeMaterial(
-  posAttr: InstancedBufferAttribute,
-  dataAttr: InstancedBufferAttribute,
-): SpriteNodeMaterial {
-  const mat = new SpriteNodeMaterial({ transparent: true, depthWrite: false });
-  const pos = instancedDynamicBufferAttribute(posAttr, 'vec3') as AnyNode;
-  const data = instancedDynamicBufferAttribute(dataAttr, 'vec3') as AnyNode;
-  const age = data.x;
-  const seed = data.z;
-  mat.positionNode = pos;
-  mat.scaleNode = data.y;
-  mat.rotationNode = seed.mul(6.283);
-  const c = (uv() as AnyNode).sub(0.5).mul(2);
-  const r = c.length();
-  // A cauliflower edge: a few lobes plus finer noise, so a puff never reads as a disc.
-  const ang = atan(c.y, c.x);
-  const lobes = sin(ang.mul(5).add(seed.mul(31)))
-    .mul(0.09)
-    .add(sin(ang.mul(9).sub(seed.mul(17))).mul(0.05));
-  const body = smoothstep(float(0.95).add(lobes), float(0.25), r);
-  const grain = sin(c.x.mul(11).add(seed.mul(13)))
-    .mul(sin(c.y.mul(9).sub(seed.mul(7))))
-    .mul(0.12)
-    .add(0.88);
-  mat.opacityNode = body
-    .mul(grain)
-    .mul(pow(float(1).sub(age), float(1.5)))
-    .mul(0.55);
-  const shade = smoothstep(float(-0.9), float(0.8), c.y.negate());
-  const smokeColor = mix(color(0x9d978e), color(0xf2ece2), shade).mul(float(1).sub(world.night.mul(0.6)));
-  const flash = smoothstep(float(0.05), float(0), age).mul(float(1).sub(world.reducedMotion.mul(0.7)));
-  mat.colorNode = mix(smokeColor, color(0xffc070).mul(3), flash.mul(smoothstep(float(0.8), float(0), r)));
-  return mat;
-}
-
 /** Wood splinters thrown from a hit: tumbling chips on ballistic paths that drop into the sea. */
 export class SplinterPool {
   readonly mesh: InstancedMesh;
@@ -429,9 +434,11 @@ export class SplinterPool {
     this.live = new Uint8Array(n);
     this.until = new Float32Array(n);
     this.rgb = new Float32Array(n * 3);
-    const mat = new MeshStandardNodeMaterial({ color: 0xffffff, roughness: 0.9, metalness: 0 });
-    this.mesh = pooled(new InstancedMesh(createChipGeometry(), mat, n), 'battle-splinters');
-    for (let i = 0; i < n; i++) this.mesh.setColorAt(i, tmpC.setRGB(1, 1, 1));
+    this.mesh = propMesh(
+      asPart(paint(createChipGeometry(), 0xffffff), PART_CHIP),
+      n,
+      'battle-splinters',
+    ).mesh;
   }
 
   burst(x: number, y: number, z: number, nx: number, nz: number, count: number, rand: () => number): void {
@@ -510,8 +517,7 @@ export class SplinterPool {
       n++;
     }
     this.mesh.count = n;
-    this.mesh.instanceMatrix.needsUpdate = true;
-    this.mesh.instanceColor!.needsUpdate = true;
+    markInstancesChanged(this.mesh, true);
   }
 
   clear(): void {
@@ -552,7 +558,7 @@ export class StorePool {
   readonly size: number;
   /** Per item: 0…1, picks its size, its angle on the water and its weathering. */
   private readonly seed: Float32Array;
-  /** Per drawn item: which shape it shows (see createStoreGeometry). */
+  /** Per drawn item: which shape it shows in x (see createStoreGeometry). */
   private readonly show: InstancedBufferAttribute;
 
   constructor(size: number) {
@@ -564,12 +570,9 @@ export class StorePool {
     this.expires = new Float32Array(n);
     this.live = new Uint8Array(n);
     this.seed = new Float32Array(n);
-    const geometry = createStoreGeometry();
-    this.show = new InstancedBufferAttribute(new Float32Array(n), 1);
-    geometry.setAttribute('storeShow', this.show);
-    this.mesh = pooled(new InstancedMesh(geometry, createStoreMaterial(), n), 'battle-stores');
-    // Allocate the per-item tint once, here.
-    for (let i = 0; i < n; i++) this.mesh.setColorAt(i, tmpC.setRGB(1, 1, 1));
+    const { mesh, row } = propMesh(createStoreGeometry(), n, 'battle-stores');
+    this.mesh = mesh;
+    this.show = row;
   }
 
   /** True for the stores you can collect (not the wreckage). */
@@ -623,8 +626,7 @@ export class StorePool {
       n++;
     }
     this.mesh.count = n;
-    this.mesh.instanceMatrix.needsUpdate = true;
-    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+    markInstancesChanged(this.mesh, true);
     this.show.needsUpdate = true;
   }
 
@@ -654,10 +656,9 @@ export class BoatPool {
     this.heading = new Float32Array(n);
     this.start = new Float32Array(n);
     this.live = new Uint8Array(n);
-    const geometry = createRowboatGeometry();
-    this.row = new InstancedBufferAttribute(new Float32Array(n * 4), 4);
-    geometry.setAttribute('boatRow', this.row);
-    this.mesh = pooled(new InstancedMesh(geometry, createBoatMaterial(), n), 'battle-boats');
+    const { mesh, row } = propMesh(createRowboatGeometry(), n, 'battle-boats');
+    this.mesh = mesh;
+    this.row = row;
   }
 
   spawn(x: number, z: number, heading: number, t: number): void {
@@ -706,7 +707,7 @@ export class BoatPool {
     }
     this.row.needsUpdate = true;
     this.mesh.count = n;
-    this.mesh.instanceMatrix.needsUpdate = true;
+    markInstancesChanged(this.mesh);
   }
 
   clear(): void {
@@ -757,15 +758,11 @@ function createBarrelParts(): BufferGeometry[] {
 }
 
 /**
- * Every store shape in one geometry, each tagged with its kind (`storePart`); the instance's
- * `storeShow` picks one, so all of them draw in one call. Built lying on the water (local y up).
+ * Every store shape in one geometry, each tagged with its kind (`propPart`); the instance's
+ * `propRow.x` picks one, so all of them draw in one call. Built lying on the water (local y up).
  */
 function createStoreGeometry(): BufferGeometry {
-  const part = (g: BufferGeometry, id: number) => {
-    const n = g.getAttribute('position').count;
-    g.setAttribute('storePart', new Float32BufferAttribute(new Float32Array(n).fill(id), 1));
-    return g;
-  };
+  const part = asPart;
   const parts: BufferGeometry[] = [];
   // Timber: three planks lashed together with two rope bands, one plank a little proud of the rest.
   [-0.27, 0, 0.27].forEach((x, k) => {
@@ -798,21 +795,6 @@ function createStoreGeometry(): BufferGeometry {
   return mergeGeometries(parts)!;
 }
 
-/** The store shapes collapse to a point unless the instance shows their kind. */
-function createStoreMaterial(): MeshStandardNodeMaterial {
-  const mat = createVertexColorMaterial();
-  const p = positionLocal as AnyNode;
-  const mine = abs(attribute('storePart', 'float').sub(attribute('storeShow', 'float'))).lessThan(0.5);
-  mat.positionNode = select(mine, p, vec3(0, 0, 0));
-  // Soaked below the water line: darker and glossier, so each piece sits in the sea, not on it.
-  const raw = attribute('position', 'vec3') as AnyNode;
-  const wet = smoothstep(float(0.07), float(-0.03), raw.y);
-  // The vertex and instance colours multiply in after this.
-  mat.colorNode = vec3(1, 1, 1).mul(float(1).sub(wet.mul(0.45)));
-  mat.roughnessNode = mix(float(0.82), float(0.35), wet);
-  return mat;
-}
-
 /** Shirt and cap colours for the rowers, seat by seat, so the crew doesn't look stamped out. */
 const CREW_SHIRTS = [0x2f3d4c, 0x7a2e26, 0xb9ad94, 0x4d5a3a] as const;
 const CREW_SKIN = [0xd2a57c, 0x9a6a46, 0xe2b896, 0x7d5236] as const;
@@ -828,8 +810,8 @@ const OARLOCK_X = 0.8;
 function createRowboatGeometry(): BufferGeometry {
   const part = (g: BufferGeometry, id: number, seat = 0) => {
     const n = g.getAttribute('position').count;
-    g.setAttribute('boatPart', new Float32BufferAttribute(new Float32Array(n).fill(id), 1));
-    g.setAttribute('boatSeat', new Float32BufferAttribute(new Float32Array(n).fill(seat), 1));
+    asPart(g, PART_BOAT + id);
+    g.setAttribute('propSeat', new Float32BufferAttribute(new Float32Array(n).fill(seat), 1));
     return g;
   };
   const hull = new SphereGeometry(1, 16, 7, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2)
@@ -889,10 +871,12 @@ function createRowboatGeometry(): BufferGeometry {
 }
 
 /**
- * The boat's oars sweep about their oarlocks (forward, then aft through the pull, blades lifted on
- * the recovery) and the rowers lean back into each stroke, from the per-boat `boatRow` attribute.
+ * The props' one material. Stores: each shape collapses to a point unless the instance shows its kind,
+ * and soaks dark and glossy below the water line. Boats: the oars sweep about their oarlocks (forward,
+ * then aft through the pull, blades lifted on the recovery) and the rowers lean back into each stroke,
+ * from the per-boat `propRow`. Balls are dark iron; splinters take their instance colour.
  */
-function createBoatMaterial(): MeshStandardNodeMaterial {
+function createPropMaterial(): MeshStandardNodeMaterial {
   const mat = createVertexColorMaterial();
   const V = vec3 as AnyNode;
   // positionLocal here already has the instance matrix applied (three runs instancing before
@@ -900,9 +884,19 @@ function createBoatMaterial(): MeshStandardNodeMaterial {
   // resulting offset is turned by the boat's heading and added.
   const p = positionLocal as AnyNode;
   const raw = attribute('position', 'vec3') as AnyNode;
-  const kind = attribute('boatPart', 'float') as AnyNode;
-  const seat = attribute('boatSeat', 'float') as AnyNode;
-  const row = attribute('boatRow', 'vec4') as AnyNode;
+  const part = attribute('propPart', 'float') as AnyNode;
+  const seat = attribute('propSeat', 'float') as AnyNode;
+  const row = attribute('propRow', 'vec4') as AnyNode;
+  const isStore = part.lessThan(PART_BOAT - 0.5);
+  const isBoat = part.greaterThan(PART_BOAT - 0.5).and(part.lessThan(PART_CHIP - 0.5));
+  const isBall = part.greaterThan(PART_BALL - 0.5);
+
+  // Stores: only the shapes of the instance's kind.
+  const mine = abs(part.sub(row.x)).lessThan(0.5);
+  const storePos = select(mine, p, V(0, 0, 0));
+
+  // Boats.
+  const kind = part.sub(PART_BOAT);
   const isOar = kind.greaterThan(1.5);
   const isRower = kind.greaterThan(0.5).and(kind.lessThan(1.5));
   const reach = abs(raw.x).sub(OARLOCK_X).max(0);
@@ -922,8 +916,14 @@ function createBoatMaterial(): MeshStandardNodeMaterial {
   const local = select(isOar, oarOffset, select(isRower, rowerOffset, V(0, 0, 0))) as AnyNode;
   const c = cos(row.w);
   const s = sin(row.w);
-  mat.positionNode = p.add(
-    V(local.x.mul(c).add(local.z.mul(s)), local.y, local.z.mul(c).sub(local.x.mul(s))),
-  );
+  const boatPos = p.add(V(local.x.mul(c).add(local.z.mul(s)), local.y, local.z.mul(c).sub(local.x.mul(s))));
+  mat.positionNode = select(isStore, storePos, select(isBoat, boatPos, p));
+
+  // Soaked below the water line: darker and glossier, so each store sits in the sea, not on it.
+  const wet = smoothstep(float(0.07), float(-0.03), raw.y).mul(select(isStore, float(1), float(0)));
+  // The vertex and instance colours multiply in after this.
+  mat.colorNode = V(1, 1, 1).mul(float(1).sub(wet.mul(0.45)));
+  mat.roughnessNode = select(isBall, float(0.42), mix(float(0.82), float(0.35), wet));
+  mat.metalnessNode = select(isBall, float(0.65), float(0));
   return mat;
 }

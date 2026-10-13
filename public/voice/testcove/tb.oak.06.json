@@ -1,0 +1,97 @@
+{
+  "id": "tb.oak.06",
+  "speaker": "Oak",
+  "text": "Base branch sets the bough a new worktree grows from. And Create from always gets a new worktree.",
+  "words": [
+    {
+      "word": "Base",
+      "start": 0,
+      "end": 0.4
+    },
+    {
+      "word": "branch",
+      "start": 0.4,
+      "end": 0.96
+    },
+    {
+      "word": "sets",
+      "start": 0.96,
+      "end": 1.32
+    },
+    {
+      "word": "the",
+      "start": 1.32,
+      "end": 1.48
+    },
+    {
+      "word": "bough",
+      "start": 1.48,
+      "end": 1.84
+    },
+    {
+      "word": "a",
+      "start": 1.84,
+      "end": 1.98
+    },
+    {
+      "word": "new",
+      "start": 1.98,
+      "end": 2.224
+    },
+    {
+      "word": "worktree",
+      "start": 2.224,
+      "end": 2.707
+    },
+    {
+      "word": "grows",
+      "start": 2.707,
+      "end": 3.088
+    },
+    {
+      "word": "from",
+      "start": 3.088,
+      "end": 3.58
+    },
+    {
+      "word": "And",
+      "start": 3.58,
+      "end": 4.297
+    },
+    {
+      "word": "Create",
+      "start": 4.297,
+      "end": 4.688
+    },
+    {
+      "word": "from",
+      "start": 4.688,
+      "end": 4.971
+    },
+    {
+      "word": "always",
+      "start": 4.971,
+      "end": 5.568
+    },
+    {
+      "word": "gets",
+      "start": 5.568,
+      "end": 5.8
+    },
+    {
+      "word": "a",
+      "start": 5.8,
+      "end": 5.9
+    },
+    {
+      "word": "new",
+      "start": 5.9,
+      "end": 6.144
+    },
+    {
+      "word": "worktree",
+      "start": 6.144,
+      "end": 6.394
+    }
+  ]
+}

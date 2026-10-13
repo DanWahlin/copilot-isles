@@ -1,0 +1,72 @@
+{
+  "id": "tb.fen.twist.01",
+  "speaker": "Fen",
+  "text": "Now Feature and Docs both want to show their work at the Lookout.",
+  "words": [
+    {
+      "word": "Now",
+      "start": 0,
+      "end": 0.21
+    },
+    {
+      "word": "Feature",
+      "start": 0.21,
+      "end": 0.58
+    },
+    {
+      "word": "and",
+      "start": 0.58,
+      "end": 0.72
+    },
+    {
+      "word": "Docs",
+      "start": 0.72,
+      "end": 1.104
+    },
+    {
+      "word": "both",
+      "start": 1.104,
+      "end": 1.408
+    },
+    {
+      "word": "want",
+      "start": 1.408,
+      "end": 1.627
+    },
+    {
+      "word": "to",
+      "start": 1.627,
+      "end": 1.728
+    },
+    {
+      "word": "show",
+      "start": 1.728,
+      "end": 1.947
+    },
+    {
+      "word": "their",
+      "start": 1.947,
+      "end": 2.144
+    },
+    {
+      "word": "work",
+      "start": 2.144,
+      "end": 2.48
+    },
+    {
+      "word": "at",
+      "start": 2.48,
+      "end": 2.66
+    },
+    {
+      "word": "the",
+      "start": 2.66,
+      "end": 2.768
+    },
+    {
+      "word": "Lookout",
+      "start": 2.768,
+      "end": 3.018
+    }
+  ]
+}

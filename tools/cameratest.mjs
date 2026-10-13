@@ -66,6 +66,24 @@ for (
   await page.waitForTimeout(600);
 }
 
+// Thousand-Bough loads when you're near it: go there too (its colliders join the world and stay).
+const tbQuay = await page.evaluate(() => window.__dev.session().islandQuay('thousand-bough'));
+if (tbQuay) {
+  await page.evaluate((q) => window.__dev.session().travel(q.x, q.z, q.heading), tbQuay);
+  await page.waitForFunction(() => !!window.__dev.scene.getObjectByName('thousand-bough-village'), null, {
+    timeout: 120000,
+  });
+  await page.waitForTimeout(3000);
+  for (
+    let i = 0;
+    i < 10 && (await page.evaluate(() => window.__dev.session().debug.arrival()?.phase)) === 'flying';
+    i++
+  ) {
+    await page.keyboard.press('KeyE');
+    await page.waitForTimeout(600);
+  }
+}
+
 const t0 = Date.now();
 const clusters = await page.evaluate(async (cfg) => {
   const threeUrl = performance
@@ -393,6 +411,7 @@ const clusters = await page.evaluate(async (cfg) => {
   const islands = [
     { id: 'anchorage', box: islandBox('test-cove-terrain') },
     { id: 'meridian', box: islandBox('port-meridian-terrain') },
+    { id: 'thousand-bough', box: islandBox('thousand-bough-terrain') },
   ];
   const boxes = world.boxes();
   const circles = world.circles();
@@ -445,6 +464,38 @@ const clusters = await page.evaluate(async (cfg) => {
     const take = ring.slice(0, Math.floor(cfg.samples / 2));
     take.push(...grid.slice(0, cfg.samples - take.length));
     for (const p of take) spots.push({ ...p, island: isl.id, y: world.groundAt(p.x, p.z) });
+    // Thousand-Bough's tree village stands above the ground: spots on its stair, decks, bridges and
+    // lookouts too (feet on the walk surface under each).
+    if (isl.id === 'thousand-bough')
+      for (const [x, z, y] of [
+        [1994.2, -1574.6, 18.6],
+        [1990.8, -1563.4, 20.2],
+        [1994.4, -1544.0, 22.5],
+        [2004.6, -1537.4, 24.3],
+        [2037.5, -1554.5, 26.9],
+        [2024.8, -1587.2, 28.9],
+        [1991.3, -1540.6, 31.4],
+        [2022, -1531, 32.6],
+        [2030.5, -1543.5, 40.2],
+        [1985.6, -1558.8, 43.4],
+        [2010, -1546, 50.6],
+        [2004, -1566, 50.6],
+        [2018.6, -1561.3, 50.6],
+        [2066.5, -1597, 27.1],
+        [2008, -1596, 22.5],
+        [2120, -1606, 16.1],
+        [2146, -1645, 19.1],
+        [1947, -1434, 2.7],
+        [1939.2, -1376, 2.3],
+        [1939, -1400, 2.3],
+        // The Fern Walk under the Signal Deck at the Root Gate (the camera must stay under the deck).
+        [1988.5, -1534.6, 17.6],
+        [1990.6, -1537.4, 17.9],
+        [1993.4, -1540.4, 18.3],
+      ]) {
+        const g = world.groundAt(x, z, y + 0.3);
+        if (Math.abs(g - y) < 0.6 && free(x, z, g)) spots.push({ x, z, kind: 'deck', island: isl.id, y: g });
+      }
     const coast = shuffle(
       sea.filter((p) => {
         for (let a = 0; a < 8; a++)

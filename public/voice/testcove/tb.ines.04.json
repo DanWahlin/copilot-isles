@@ -1,0 +1,62 @@
+{
+  "id": "tb.ines.04",
+  "speaker": "Ines",
+  "text": "Bring the smallest amount of useful context. Less is often more.",
+  "words": [
+    {
+      "word": "Bring",
+      "start": 0,
+      "end": 0.18
+    },
+    {
+      "word": "the",
+      "start": 0.18,
+      "end": 0.311
+    },
+    {
+      "word": "smallest",
+      "start": 0.311,
+      "end": 0.937
+    },
+    {
+      "word": "amount",
+      "start": 0.937,
+      "end": 1.307
+    },
+    {
+      "word": "of",
+      "start": 1.307,
+      "end": 1.417
+    },
+    {
+      "word": "useful",
+      "start": 1.417,
+      "end": 1.85
+    },
+    {
+      "word": "context",
+      "start": 1.85,
+      "end": 2.752
+    },
+    {
+      "word": "Less",
+      "start": 2.752,
+      "end": 3.28
+    },
+    {
+      "word": "is",
+      "start": 3.28,
+      "end": 3.52
+    },
+    {
+      "word": "often",
+      "start": 3.52,
+      "end": 3.984
+    },
+    {
+      "word": "more",
+      "start": 3.984,
+      "end": 4.234
+    }
+  ]
+}

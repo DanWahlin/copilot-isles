@@ -109,6 +109,11 @@ export class BattleCamera {
     this.yieldUntil = this.now + YIELD_SECONDS;
   }
 
+  /** Whether the director has the camera (a shot or the follow view); otherwise it's yours. */
+  get directing(): boolean {
+    return this.enabled && (this.shot !== null || (this.follow && this.now >= this.yieldUntil));
+  }
+
   /** The shot playing now, for tests and the debug API. */
   get current(): BattleBeat | null {
     return this.shot;

@@ -1,0 +1,67 @@
+{
+  "id": "tb.ines.07",
+  "speaker": "Ines",
+  "text": "Today you need two: chronicle and context. Pip will show you both.",
+  "words": [
+    {
+      "word": "Today",
+      "start": 0,
+      "end": 0.52
+    },
+    {
+      "word": "you",
+      "start": 0.52,
+      "end": 0.704
+    },
+    {
+      "word": "need",
+      "start": 0.704,
+      "end": 1.08
+    },
+    {
+      "word": "two",
+      "start": 1.08,
+      "end": 1.667
+    },
+    {
+      "word": "chronicle",
+      "start": 1.667,
+      "end": 2.78
+    },
+    {
+      "word": "and",
+      "start": 2.78,
+      "end": 3.07
+    },
+    {
+      "word": "context",
+      "start": 3.07,
+      "end": 4.34
+    },
+    {
+      "word": "Pip",
+      "start": 4.34,
+      "end": 4.928
+    },
+    {
+      "word": "will",
+      "start": 4.928,
+      "end": 5.168
+    },
+    {
+      "word": "show",
+      "start": 5.168,
+      "end": 5.38
+    },
+    {
+      "word": "you",
+      "start": 5.38,
+      "end": 5.536
+    },
+    {
+      "word": "both",
+      "start": 5.536,
+      "end": 5.786
+    }
+  ]
+}

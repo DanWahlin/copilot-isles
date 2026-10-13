@@ -1,0 +1,32 @@
+{
+  "id": "tb.ines.order.2",
+  "speaker": "Ines",
+  "text": "Next: bring in issue twelve.",
+  "words": [
+    {
+      "word": "Next",
+      "start": 0,
+      "end": 0.627
+    },
+    {
+      "word": "bring",
+      "start": 0.627,
+      "end": 1.04
+    },
+    {
+      "word": "in",
+      "start": 1.04,
+      "end": 1.267
+    },
+    {
+      "word": "issue",
+      "start": 1.267,
+      "end": 1.691
+    },
+    {
+      "word": "twelve",
+      "start": 1.691,
+      "end": 1.941
+    }
+  ]
+}

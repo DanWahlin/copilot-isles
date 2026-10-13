@@ -14,6 +14,9 @@ export function PausedScreen({ state, bridge }: { state: UiState; bridge: GameBr
       </p>
       <nav className="ci-menu-list compact" aria-label="Pause menu">
         <MenuButton onClick={bridge.resume}>Resume</MenuButton>
+        {state.battle && bridge.skipBattle && (
+          <MenuButton onClick={bridge.skipBattle}>Skip battle</MenuButton>
+        )}
         <MenuButton onClick={bridge.openChart}>Chart</MenuButton>
         <MenuButton onClick={bridge.openLogbook}>Logbook</MenuButton>
         <MenuButton onClick={bridge.openSettings}>Settings</MenuButton>

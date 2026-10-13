@@ -37,6 +37,15 @@ const PACK_DEFS = [
       'packs/testcove/rocks/**',
     ],
   },
+  {
+    id: 'thousand-bough/critical',
+    include: [
+      'packs/thousand-bough/terrain.bin',
+      'packs/thousand-bough/terrain.json',
+      'packs/testcove/terrain-textures/**',
+      'packs/testcove/rocks/**',
+    ],
+  },
 ];
 
 function toPosix(path) {

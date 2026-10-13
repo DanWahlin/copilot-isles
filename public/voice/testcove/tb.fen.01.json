@@ -1,0 +1,87 @@
+{
+  "id": "tb.fen.01",
+  "speaker": "Fen",
+  "text": "Ah, a captain! We used to run every crew down the Great Hall trough. Watch this.",
+  "words": [
+    {
+      "word": "Ah",
+      "start": 0,
+      "end": 0.28
+    },
+    {
+      "word": "a",
+      "start": 0.28,
+      "end": 0.39
+    },
+    {
+      "word": "captain",
+      "start": 0.39,
+      "end": 1.147
+    },
+    {
+      "word": "We",
+      "start": 1.147,
+      "end": 1.552
+    },
+    {
+      "word": "used",
+      "start": 1.552,
+      "end": 1.707
+    },
+    {
+      "word": "to",
+      "start": 1.707,
+      "end": 1.82
+    },
+    {
+      "word": "run",
+      "start": 1.82,
+      "end": 2.04
+    },
+    {
+      "word": "every",
+      "start": 2.04,
+      "end": 2.304
+    },
+    {
+      "word": "crew",
+      "start": 2.304,
+      "end": 2.592
+    },
+    {
+      "word": "down",
+      "start": 2.592,
+      "end": 2.74
+    },
+    {
+      "word": "the",
+      "start": 2.74,
+      "end": 2.84
+    },
+    {
+      "word": "Great",
+      "start": 2.84,
+      "end": 3.088
+    },
+    {
+      "word": "Hall",
+      "start": 3.088,
+      "end": 3.349
+    },
+    {
+      "word": "trough",
+      "start": 3.349,
+      "end": 3.933
+    },
+    {
+      "word": "Watch",
+      "start": 3.933,
+      "end": 4.496
+    },
+    {
+      "word": "this",
+      "start": 4.496,
+      "end": 4.746
+    }
+  ]
+}

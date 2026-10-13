@@ -197,6 +197,15 @@ export function sunShadowReach(t: TierSettings): number {
   return t.tier === 'low' || t.tier === 'medium' ? 60 : 90;
 }
 
+/**
+ * Whether the islands (ground, beaches, towns, docks, plants and the ship) take the sun's runtime
+ * shadows: Medium and up. Low draws its cached map for Port Meridian's town only, and its
+ * characters keep their blob shadows.
+ */
+export function islandsTakeSunShadows(t: TierSettings): boolean {
+  return t.shadowCascades > 0 && t.tier !== 'low';
+}
+
 export function tierSettings(tier: Tier): TierSettings {
   return TIERS[tier];
 }

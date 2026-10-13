@@ -1,0 +1,97 @@
+{
+  "id": "wingman.tb.02",
+  "speaker": "Wingman",
+  "text": "Tamsin's at the end of the wharf, under the little banyan. Start with her, and follow the compass.",
+  "words": [
+    {
+      "word": "Tamsin's",
+      "start": 0,
+      "end": 0.507
+    },
+    {
+      "word": "at",
+      "start": 0.507,
+      "end": 0.58
+    },
+    {
+      "word": "the",
+      "start": 0.58,
+      "end": 0.7
+    },
+    {
+      "word": "end",
+      "start": 0.7,
+      "end": 0.907
+    },
+    {
+      "word": "of",
+      "start": 0.907,
+      "end": 0.98
+    },
+    {
+      "word": "the",
+      "start": 0.98,
+      "end": 1.067
+    },
+    {
+      "word": "wharf",
+      "start": 1.067,
+      "end": 1.72
+    },
+    {
+      "word": "under",
+      "start": 1.72,
+      "end": 1.94
+    },
+    {
+      "word": "the",
+      "start": 1.94,
+      "end": 2.034
+    },
+    {
+      "word": "little",
+      "start": 2.034,
+      "end": 2.28
+    },
+    {
+      "word": "banyan",
+      "start": 2.28,
+      "end": 3.013
+    },
+    {
+      "word": "Start",
+      "start": 3.013,
+      "end": 3.712
+    },
+    {
+      "word": "with",
+      "start": 3.712,
+      "end": 3.92
+    },
+    {
+      "word": "her",
+      "start": 3.92,
+      "end": 4.52
+    },
+    {
+      "word": "and",
+      "start": 4.52,
+      "end": 4.686
+    },
+    {
+      "word": "follow",
+      "start": 4.686,
+      "end": 4.98
+    },
+    {
+      "word": "the",
+      "start": 4.98,
+      "end": 5.11
+    },
+    {
+      "word": "compass",
+      "start": 5.11,
+      "end": 5.36
+    }
+  ]
+}

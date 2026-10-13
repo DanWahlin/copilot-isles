@@ -180,6 +180,73 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
       addWatchCap(root, 0x24394a);
       addSpyglass(root, -1);
       break;
+    // Thousand-Bough Isle (spec §4.2).
+    case 'tamsin':
+      addStrawHat(root);
+      addRolledSleeves(root, 0x2f7777);
+      addSatchel(root, 0x6b5a45, -1);
+      break;
+    case 'saffi':
+      addHeadscarf(root, 0x5e8c3a, 0x6b5a45);
+      addAstronomerRobe(root, 0x4f6e3a, 0x8c8573);
+      addScroll(root, 1);
+      break;
+    case 'oak':
+      addBandana(root, 0xd28a22, 0xc64e3f);
+      addRolledSleeves(root, 0xd4c1a0);
+      addSash(root, 0xc8b48a, 1);
+      break;
+    case 'fen':
+      addFlatCap(root, 0x4a4038);
+      addApron(root, 0x5b3a22, 0x2c1b12);
+      addTool(root, 0x9aa3a8, 1);
+      addRolledSleeves(root, 0xb7a281);
+      break;
+    case 'ines':
+      addNeckerchief(root, 0xe2552d);
+      addSash(root, 0x3b82f6, 1);
+      addSatchel(root, 0x8b4f24, -1);
+      break;
+    case 'rook':
+      addApron(root, 0x7d5a3a, 0x3e2c1a);
+      addMalletInHand(root, 1);
+      addPencilBehindEar(root, -1);
+      break;
+    case 'pip':
+      addSpectacles(root, SPECTACLES.pell, 0xd9d0aa);
+      addBeard(root, 0xe5dfcf);
+      addLedgerInHand(root, 0x6b2a1d, 1);
+      addQuillBehindEar(root, -1);
+      break;
+    case 'elder':
+      addAstronomerRobe(root, 0x2f6e48, 0xc9a86a);
+      addSash(root, 0xc9a86a, 1);
+      break;
+    case 'tb_kid_a':
+      addChildSailorCap(root, 0x3fa34d, 0xd28a22);
+      addToyPinwheel(root, 1);
+      break;
+    case 'tb_kid_b':
+      addHeadscarf(root, 0x1ea7a7, 0xf0dfbd);
+      addToyHoop(root, -1);
+      break;
+    case 'tb_weaver':
+      addHeadscarf(root, 0xc9a86a, 0x3e7a3a);
+      addMarketBasket(root, -1);
+      break;
+    case 'tb_operator':
+      addBandana(root, 0x3e7a3a, 0xc9a86a);
+      addRolledSleeves(root, 0xb7a281);
+      break;
+    case 'tb_fisher':
+      addSunBleachedCap(root);
+      addBeard(root, 0xf0ead8);
+      addFishingNet(root, -1);
+      break;
+    case 'tb_lookout':
+      addWatchCap(root, 0x1ea7a7);
+      addSpyglass(root, -1);
+      break;
   }
 }
 
@@ -975,7 +1042,9 @@ function addBucket(root: Group, color: ColorHex, side: -1 | 1): void {
   // On the ground by the feet (it stays put while its owner idles).
   const bucket = mesh(new CylinderGeometry(0.12, 0.1, 0.18, 8), mat(color), 'fish bucket');
   bucket.position.set(side * 0.36, 0.09, 0.02);
-  addRoot(root, bucket);
+  // On the rig's root bone (it doesn't animate), so it merges into the skinned accessories: alone
+  // on the character's root it kept a material, and a shader, of its own.
+  addRoot(root, bucket, 'Root');
 }
 
 function addTool(root: Group, metal: ColorHex, side: -1 | 1): void {

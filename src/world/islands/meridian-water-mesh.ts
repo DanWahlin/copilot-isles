@@ -1,7 +1,7 @@
 import { Sphere, Vector3 } from 'three/webgpu';
 import { WaterStrips, type StripFlow } from '../sites/water';
 import { meridianWater } from './meridian';
-import type { MeridianWater, WaterBasin } from './meridian-water';
+import type { FreshWater, WaterBasin } from './meridian-water';
 import { smoothstep } from '../../util/math';
 
 /** Segments round a basin's shore (the fan's rim). */
@@ -13,9 +13,12 @@ const RIM = 40;
  * strips down the cascade, the brook and the outflow. Steep stretches run fast and white; where the
  * cascade lands, a ring of churned foam. Built once; only the shader's time moves it.
  */
-export function createMeridianWaterMesh(water: MeridianWater = meridianWater()): WaterStrips {
-  const strips = new WaterStrips(1200);
-  strips.mesh.name = 'meridian fresh water';
+export function createMeridianWaterMesh(
+  water: FreshWater = meridianWater(),
+  opts: { name?: string; maxQuads?: number; extra?: (strips: WaterStrips) => void } = {},
+): WaterStrips {
+  const strips = new WaterStrips(opts.maxQuads ?? 1200);
+  strips.mesh.name = opts.name ?? 'meridian fresh water';
   strips.begin();
   for (const b of Object.values(water.basins))
     basin(strips, water, b, 1.05, b.level, { fill: 1, speed: 0.05, kind: 1 });
@@ -57,11 +60,12 @@ export function createMeridianWaterMesh(water: MeridianWater = meridianWater()):
       // Where a fall lands in a basin, churned foam round the foot.
       const next = i + 2 < n ? s.surface[i + 1]! - s.surface[i + 2]! : 0;
       if (slope > 0.5 && next < 0.2 && s.spec.to !== 'sea') {
-        const b = water.basins[s.spec.to];
+        const b = water.basins[s.spec.to]!;
         foamRing(strips, x1, z1, b.level + 0.03, s.spec.halfWidth * 2.2);
       }
     }
   }
+  opts.extra?.(strips);
   strips.end();
   // Static: a real bound lets the renderer cull it (the class's buffers are sized for the maximum).
   const { minX, maxX, minZ, maxZ } = water.box;
@@ -77,7 +81,7 @@ export function createMeridianWaterMesh(water: MeridianWater = meridianWater()):
 
 function basin(
   strips: WaterStrips,
-  water: MeridianWater,
+  water: FreshWater,
   b: WaterBasin,
   k: number,
   y: number,

@@ -507,14 +507,24 @@ export class Atmosphere {
   update(dt, cameraY) {
     const r = this.renderer;
     this.viewHeight.value = RG + Math.max(0.001, cameraY / 1000 + 0.0005);
+    // While the kernels' pipelines build (compileAsync), a dispatch would bind one that isn't
+    // there yet (a WebGPU validation error): the LUTs are drawn on the first update after.
+    if (this.useCompute && this._compiling) return;
 
     // The transmittance and multi-scattering LUTs depend only on constants: with compute they're
     // drawn once, and their kernels are freed on the next update (their shaders count against the
     // program budget, PLAN §15.4). A later invalidate then only redraws the sky view.
-    if (this._staticsDone && this.transmittanceKernel) {
+    // (Not while a precompile is pending: a pipeline built for a freed kernel would never be freed.)
+    if (this._staticsDone && this.transmittanceKernel && !this._compiling) {
       this.transmittanceKernel.dispose();
       this.multiScatKernel.dispose();
       this.transmittanceKernel = this.multiScatKernel = null;
+    }
+    // WebGL: the same for the two fragment passes (their materials free their programs).
+    if (this._staticsDone && this.passes?.transmittance) {
+      this.passes.transmittance.material.dispose();
+      this.passes.multiScat.material.dispose();
+      this.passes.transmittance = this.passes.multiScat = null;
     }
     const statics = this.needsStatic;
     if (statics) {
@@ -525,9 +535,10 @@ export class Atmosphere {
           r.compute(this.multiScatKernel, [MS_RES / 8, MS_RES / 8, 1]);
           this._staticsDone = true;
         }
-      } else {
+      } else if (!this._staticsDone && this._lutPassesWarm !== false) {
         this._renderPass(this.passes.transmittance, this.targets.transmittance);
         this._renderPass(this.passes.multiScat, this.targets.multiScat);
+        this._staticsDone = this._lutPassesWarm === true;
       }
     }
 
@@ -573,14 +584,27 @@ export class Atmosphere {
   // (one program link per frame), and the LUTs are redrawn on the next update
   async compileAsync() {
     const r = this.renderer;
-    if (this.useCompute)
-      return r.compileComputeAsync(
+    if (this.useCompute) {
+      const compiling = r.compileComputeAsync(
         [this.transmittanceKernel, this.multiScatKernel, this.skyViewKernel].filter(Boolean),
       );
+      this._compiling = compiling;
+      return compiling.finally(() => {
+        if (this._compiling === compiling) this._compiling = null;
+      });
+    }
+    if (this._staticsDone) {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      this._renderPass(this.passes.skyView, this.targets.skyView);
+      return;
+    }
+    // While the passes warm, the updates leave the static LUTs to them (they're drawn after).
+    this._lutPassesWarm = false;
     for (const key of ['transmittance', 'multiScat', 'skyView']) {
       await new Promise((resolve) => requestAnimationFrame(resolve));
       this._renderPass(this.passes[key], this.targets[key]);
     }
+    this._lutPassesWarm = true;
     this.needsStatic = true;
   }
 
@@ -596,9 +620,21 @@ export class Atmosphere {
     this.needsStatic = true;
   }
 
+  // the kernels' pipelines are still building (compileAsync): the tables aren't drawn yet
+  get compiling() {
+    return !!this._compiling;
+  }
+
   dispose() {
     if (this.targets) for (const t of Object.values(this.targets)) t.dispose();
-    if (this.passes) for (const q of Object.values(this.passes)) q.material.dispose();
+    if (this.passes) for (const q of Object.values(this.passes)) q?.material.dispose();
+    for (const k of [
+      this.transmittanceKernel,
+      this.multiScatKernel,
+      this.skyViewKernel,
+      this.irradianceKernel,
+    ])
+      k?.dispose();
     if (this.useCompute)
       [this.transmittanceLUT, this.multiScatLUT, this.skyViewLUT].forEach((t) => t.dispose());
   }

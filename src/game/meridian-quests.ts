@@ -12,7 +12,7 @@ export const MERIDIAN_ISLAND = {
   name: 'Port Meridian',
   chapter: 'Chapter 01 · Tour the App',
   goal: 'Tour the GitHub Copilot app and earn the Seal of Meridian',
-  next: 'Thousand-Bough Isle is next, and she’s still being charted. Until then these waters are yours.',
+  next: 'Thousand-Bough Isle is next. Board your ship and follow the compass north-east.',
 } as const;
 
 interface MeridianQuestDef {

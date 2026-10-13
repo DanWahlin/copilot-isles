@@ -1,0 +1,57 @@
+{
+  "id": "tb.ines.next",
+  "speaker": "Ines",
+  "text": "Rook's crew is across the Signal Bridge. Mind, it sways.",
+  "words": [
+    {
+      "word": "Rook's",
+      "start": 0,
+      "end": 0.288
+    },
+    {
+      "word": "crew",
+      "start": 0.288,
+      "end": 0.507
+    },
+    {
+      "word": "is",
+      "start": 0.507,
+      "end": 0.606
+    },
+    {
+      "word": "across",
+      "start": 0.606,
+      "end": 0.9
+    },
+    {
+      "word": "the",
+      "start": 0.9,
+      "end": 1.017
+    },
+    {
+      "word": "Signal",
+      "start": 1.017,
+      "end": 1.417
+    },
+    {
+      "word": "Bridge",
+      "start": 1.417,
+      "end": 2.048
+    },
+    {
+      "word": "Mind",
+      "start": 2.048,
+      "end": 3.333
+    },
+    {
+      "word": "it",
+      "start": 3.333,
+      "end": 3.52
+    },
+    {
+      "word": "sways",
+      "start": 3.52,
+      "end": 3.77
+    }
+  ]
+}

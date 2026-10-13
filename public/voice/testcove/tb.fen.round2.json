@@ -1,0 +1,82 @@
+{
+  "id": "tb.fen.round2",
+  "speaker": "Fen",
+  "text": "Three crews, three channels, one spring. That's one repository with a worktree for each session.",
+  "words": [
+    {
+      "word": "Three",
+      "start": 0,
+      "end": 0.24
+    },
+    {
+      "word": "crews",
+      "start": 0.24,
+      "end": 1
+    },
+    {
+      "word": "three",
+      "start": 1,
+      "end": 1.253
+    },
+    {
+      "word": "channels",
+      "start": 1.253,
+      "end": 2.06
+    },
+    {
+      "word": "one",
+      "start": 2.06,
+      "end": 2.331
+    },
+    {
+      "word": "spring",
+      "start": 2.331,
+      "end": 3.072
+    },
+    {
+      "word": "That's",
+      "start": 3.072,
+      "end": 3.66
+    },
+    {
+      "word": "one",
+      "start": 3.66,
+      "end": 3.898
+    },
+    {
+      "word": "repository",
+      "start": 3.898,
+      "end": 4.544
+    },
+    {
+      "word": "with",
+      "start": 4.544,
+      "end": 4.84
+    },
+    {
+      "word": "a",
+      "start": 4.84,
+      "end": 4.944
+    },
+    {
+      "word": "worktree",
+      "start": 4.944,
+      "end": 5.42
+    },
+    {
+      "word": "for",
+      "start": 5.42,
+      "end": 5.664
+    },
+    {
+      "word": "each",
+      "start": 5.664,
+      "end": 6.01
+    },
+    {
+      "word": "session",
+      "start": 6.01,
+      "end": 6.26
+    }
+  ]
+}

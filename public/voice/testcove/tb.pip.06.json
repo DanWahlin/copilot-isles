@@ -1,0 +1,72 @@
+{
+  "id": "tb.pip.06",
+  "speaker": "Pip",
+  "text": "Then ask Copilot to stop the session's development server. No pull request needed.",
+  "words": [
+    {
+      "word": "Then",
+      "start": 0,
+      "end": 0.42
+    },
+    {
+      "word": "ask",
+      "start": 0.42,
+      "end": 0.82
+    },
+    {
+      "word": "Copilot",
+      "start": 0.82,
+      "end": 1.413
+    },
+    {
+      "word": "to",
+      "start": 1.413,
+      "end": 1.568
+    },
+    {
+      "word": "stop",
+      "start": 1.568,
+      "end": 1.78
+    },
+    {
+      "word": "the",
+      "start": 1.78,
+      "end": 1.89
+    },
+    {
+      "word": "session's",
+      "start": 1.89,
+      "end": 2.367
+    },
+    {
+      "word": "development",
+      "start": 2.367,
+      "end": 2.937
+    },
+    {
+      "word": "server",
+      "start": 2.937,
+      "end": 3.76
+    },
+    {
+      "word": "No",
+      "start": 3.76,
+      "end": 4.144
+    },
+    {
+      "word": "pull",
+      "start": 4.144,
+      "end": 4.48
+    },
+    {
+      "word": "request",
+      "start": 4.48,
+      "end": 5.109
+    },
+    {
+      "word": "needed",
+      "start": 5.109,
+      "end": 5.359
+    }
+  ]
+}

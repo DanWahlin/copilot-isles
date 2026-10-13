@@ -37,14 +37,16 @@ export interface StreamSpec {
   readonly depth: number;
   /** The least fall per metre, so a stream through a rise still runs (never a level canal). */
   readonly minFall: number;
-  /** The basin it starts from (its level is the stream's start), or null for a fixed start. */
-  readonly from: 'tarn' | 'pool' | 'lake';
+  /** The basin it starts from (its level is the stream's start). */
+  readonly from: string;
   /** The basin it ends in (the water never drops below its level), or the sea. */
-  readonly to: 'pool' | 'lake' | 'sea';
+  readonly to: string;
   /** Holds the start basin's level out over its lip until the ground is this far below (a fall). */
   readonly lip?: number;
   /** How fast its berm falls away (per metre); steep down a cliff, so it never builds a wall. */
   readonly levee?: number;
+  /** How far its banks stand over the water at its edge (m; 0.1 by default, a stream in a real bed higher). */
+  readonly bank?: number;
 }
 
 export const MERIDIAN_WATER_SPEC = {
@@ -125,8 +127,14 @@ export const MERIDIAN_WATER_SPEC = {
 
 export type BasinName = keyof typeof MERIDIAN_WATER_SPEC.basins;
 
+/** An island's fresh water: named basins, and streams between them (or out to the sea). */
+export interface FreshWaterSpec<N extends string = string> {
+  readonly basins: Readonly<Record<N, WaterBasinSpec>>;
+  readonly streams: readonly StreamSpec[];
+}
+
 export interface WaterBasin extends WaterBasinSpec {
-  readonly name: BasinName;
+  readonly name: string;
   readonly level: number;
   /** Bounding radius of the shoreline (m). */
   readonly reach: number;
@@ -144,8 +152,8 @@ export interface WaterStream {
   readonly box: { minX: number; maxX: number; minZ: number; maxZ: number };
 }
 
-export interface MeridianWater {
-  readonly basins: Record<BasinName, WaterBasin>;
+export interface FreshWater<N extends string = string> {
+  readonly basins: Record<N, WaterBasin>;
   readonly streams: readonly WaterStream[];
   /** Box (with margin) outside which nothing here has any effect. */
   readonly box: { minX: number; maxX: number; minZ: number; maxZ: number };
@@ -264,10 +272,23 @@ function nearestOnStream(s: WaterStream, x: number, z: number, out: Nearest): Ne
   return out;
 }
 
+export type MeridianWater = FreshWater<BasinName>;
+
 export function createMeridianWater(dry: (x: number, z: number) => number): MeridianWater {
-  const specs = MERIDIAN_WATER_SPEC.basins;
-  const basins = {} as Record<BasinName, WaterBasin>;
-  for (const name of Object.keys(specs) as BasinName[]) {
+  return createFreshWater(MERIDIAN_WATER_SPEC, dry);
+}
+
+/**
+ * An island's fresh water from its spec, carved into its uncarved height `dry` (Meridian's, or any
+ * other island's: the spec names its own basins).
+ */
+export function createFreshWater<N extends string>(
+  spec: FreshWaterSpec<N>,
+  dry: (x: number, z: number) => number,
+): FreshWater<N> {
+  const specs = spec.basins;
+  const basins = {} as Record<N, WaterBasin>;
+  for (const name of Object.keys(specs) as N[]) {
     const b: WaterBasinSpec = specs[name];
     let level = b.level;
     if (level === undefined) {
@@ -283,7 +304,7 @@ export function createMeridianWater(dry: (x: number, z: number) => number): Meri
   }
 
   const meanRadius = (b: WaterBasin) => (b.rx + b.rz) * 0.5;
-  const basinList = Object.values(basins);
+  const basinList: WaterBasin[] = Object.values(basins);
 
   function basinAt(x: number, z: number): WaterBasin | null {
     for (const b of basinList) if (basinRadius(b, x, z) < 1) return b;
@@ -306,15 +327,16 @@ export function createMeridianWater(dry: (x: number, z: number) => number): Meri
     return h;
   }
 
-  const streams: WaterStream[] = MERIDIAN_WATER_SPEC.streams.map((spec: StreamSpec) => {
+  const basin = (name: string): WaterBasin => basins[name as N];
+  const streams: WaterStream[] = spec.streams.map((spec: StreamSpec) => {
     const pts = resample(spec.points);
     const n = pts.length;
     const x = new Float64Array(n);
     const z = new Float64Array(n);
     const surface = new Float64Array(n);
     const along = new Float64Array(n);
-    const from = basins[spec.from];
-    const to = spec.to === 'sea' ? null : basins[spec.to];
+    const from = basin(spec.from);
+    const to = spec.to === 'sea' ? null : basin(spec.to);
     const floor = to ? to.level : 0.15;
     let s = from.level;
     let held = spec.lip !== undefined;
@@ -364,7 +386,7 @@ export function createMeridianWater(dry: (x: number, z: number) => number): Meri
     box.minZ = Math.min(box.minZ, b.minZ);
     box.maxZ = Math.max(box.maxZ, b.maxZ);
   };
-  for (const b of Object.values(basins)) {
+  for (const b of basinList) {
     const r = b.reach + REACH * 1.5;
     grow({ minX: b.x - r, maxX: b.x + r, minZ: b.z - r, maxZ: b.z + r });
   }
@@ -386,14 +408,15 @@ export function createMeridianWater(dry: (x: number, z: number) => number): Meri
       const bed = w + BED_MARGIN;
       if (near.beyondEnd && near.dist > bed) continue;
       let c: number;
+      const bank = s.spec.bank ?? 0.1;
       if (near.dist < bed) {
-        c = near.surface + 0.1 - (s.spec.depth + 0.1) * (1 - smoothstep(w - 0.6, bed, near.dist));
+        c = near.surface + bank - (s.spec.depth + bank) * (1 - smoothstep(w - 0.6, bed, near.dist));
       } else {
         const out = near.dist - bed;
         if (out > REACH) continue;
-        const valley = near.surface + 0.1 + out * CUT;
+        const valley = near.surface + bank + out * CUT;
         // A berm keeps a flat crest before it falls away (also wide enough for the pack).
-        const levee = near.surface + 0.1 - Math.max(0, out - LEVEE_CREST) * (s.spec.levee ?? LEVEE);
+        const levee = near.surface + bank - Math.max(0, out - LEVEE_CREST) * (s.spec.levee ?? LEVEE);
         // The banks blend back into the natural ground before the reach ends (no seam there).
         c = mix(Math.min(Math.max(h, levee), valley), h, smoothstep(REACH * 0.55, REACH, out));
       }

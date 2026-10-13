@@ -605,6 +605,20 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   ).mul(smoothstep(0.3, 0.62, N.y));
   const maquisTone = mix(color(0x2f4a25), color(0x5f773a), noiseFine.r.mul(0.6).add(noiseMid.g.mul(0.4)));
   base = mix(base, mix(limestoneTone, maquisTone, maquis.mul(0.88)), meridianRidge);
+  // Thousand-Bough's basalt: dark grey-green stone with the triplanar grain and wandering bedding of
+  // the Meridian cliffs (no stretched texture), broad weathered patches, wet dark rock at the
+  // waterline, and moss on every ledge and cap the rock offers (the island's regions say where).
+  const basaltTone = mix(color(0x2a2f2c), color(0x68706a), faceNoise.mul(0.55).add(faceGrain.mul(0.45)))
+    .mul(float(1).sub(cliffBeds.mul(0.3)))
+    .mul(float(1).sub(smoothstep(0.6, 0.78, faceNoise).mul(0.22)))
+    .mul(float(1).sub(smoothstep(4.5, 0.6, y.add(faceNoise.sub(0.5).mul(3))).mul(0.45)));
+  const basaltMoss = smoothstep(
+    0.42,
+    0.62,
+    N.y.add(noiseLow.g.sub(0.5).mul(0.5)).add(noiseFine.r.sub(0.5).mul(0.25)),
+  );
+  const basaltMossTone = mix(color(0x34502a), color(0x6b8a3c), noiseFine.g.mul(0.6).add(noiseMid.r.mul(0.4)));
+  base = mix(base, mix(basaltTone, basaltMossTone, basaltMoss.mul(0.92)), R.basalt);
 
   const sunVis = mix(light.y, light.z, uSunBlend);
   const cloud = options.cloudShadowNode ?? float(1);
@@ -639,7 +653,9 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
       .sub(wetSandBand.mul(0.34))
       .sub(waterline.mul(0.16))
       .sub(underwater.mul(0.08))
-      .add(cliffMask.mul(0.12)),
+      .add(cliffMask.mul(0.12))
+      // A cave behind a fall is wet through: glossy rock round its mouth and on its floor.
+      .sub(R.cave.mul(0.62)),
   );
   material.aoNode = light.x;
   const bumpStrength = closeDetail
@@ -663,7 +679,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   return material;
 }
 
-export function createRockMaterial(): MeshStandardNodeMaterial {
+export function createRockMaterial(opts: { basalt?: boolean } = {}): MeshStandardNodeMaterial {
   const material = new MeshStandardNodeMaterial({
     color: 0xffffff,
     roughness: 0.92,
@@ -709,6 +725,15 @@ export function createRockMaterial(): MeshStandardNodeMaterial {
   let base = mix(color(0x5c5548), color(0xae9b78), triNoise.mul(0.3).add(texLum.mul(0.38)));
   base = base.mul(float(0.84).add(strata.mul(0.13))).mul(float(1).sub(joints.mul(0.28)));
   base = mix(base, color(0x3e5640), algae.mul(0.24));
+  // Wet basalt with moss on its caps (Thousand-Bough's rocks and Spire): a uniform, not an option, so
+  // every rock material keeps one shader.
+  const basalt = uniform(opts.basalt ? 1 : 0);
+  const basaltTone = mix(color(0x2c312e), color(0x5d655f), triNoise.mul(0.5).add(texLum.mul(0.3))).mul(
+    float(1).sub(joints.mul(0.3)),
+  );
+  const mossCap = smoothstep(0.55, 0.85, normalWorld.y.add(rockNoiseA.r.sub(0.5).mul(0.4)));
+  const mossTone = mix(color(0x3f5c2e), color(0x5e8c3a), triNoise);
+  base = mix(base, mix(basaltTone, mossTone, mossCap.mul(0.85)), basalt);
   material.colorNode = base;
   material.roughnessNode = float(0.93);
   material.aoNode = float(0.86);

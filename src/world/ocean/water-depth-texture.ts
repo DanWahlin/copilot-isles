@@ -36,6 +36,11 @@ export function waterDepthTexture(): DataTexture {
   }
 }
 
+/** Frees the cached texture's GPU copy (its data stays baked for the next voyage). */
+export function releaseWaterDepthTexture(): void {
+  cached?.dispose();
+}
+
 /**
  * Bakes the texture ahead of time, `budgetMs` of main-thread time per frame (e.g. on the title, so
  * the island build later finds it ready). Resolves once it's cached.

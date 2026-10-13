@@ -1,0 +1,92 @@
+{
+  "id": "tb.pip.01",
+  "speaker": "Pip",
+  "text": "Chronicle standup reports your work from the last day. It should list this session and its changes.",
+  "words": [
+    {
+      "word": "Chronicle",
+      "start": 0,
+      "end": 0.387
+    },
+    {
+      "word": "standup",
+      "start": 0.387,
+      "end": 0.86
+    },
+    {
+      "word": "reports",
+      "start": 0.86,
+      "end": 1.328
+    },
+    {
+      "word": "your",
+      "start": 1.328,
+      "end": 1.568
+    },
+    {
+      "word": "work",
+      "start": 1.568,
+      "end": 1.776
+    },
+    {
+      "word": "from",
+      "start": 1.776,
+      "end": 1.86
+    },
+    {
+      "word": "the",
+      "start": 1.86,
+      "end": 1.984
+    },
+    {
+      "word": "last",
+      "start": 1.984,
+      "end": 2.34
+    },
+    {
+      "word": "day",
+      "start": 2.34,
+      "end": 2.933
+    },
+    {
+      "word": "It",
+      "start": 2.933,
+      "end": 3.383
+    },
+    {
+      "word": "should",
+      "start": 3.383,
+      "end": 3.584
+    },
+    {
+      "word": "list",
+      "start": 3.584,
+      "end": 3.872
+    },
+    {
+      "word": "this",
+      "start": 3.872,
+      "end": 4.05
+    },
+    {
+      "word": "session",
+      "start": 4.05,
+      "end": 4.46
+    },
+    {
+      "word": "and",
+      "start": 4.46,
+      "end": 4.68
+    },
+    {
+      "word": "its",
+      "start": 4.68,
+      "end": 4.86
+    },
+    {
+      "word": "changes",
+      "start": 4.86,
+      "end": 5.11
+    }
+  ]
+}

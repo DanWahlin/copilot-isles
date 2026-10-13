@@ -1,0 +1,92 @@
+{
+  "id": "tb.ines.02",
+  "speaker": "Ines",
+  "text": "The at sign brings files or folders. The hash brings issues or pull requests, like number twelve.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.16
+    },
+    {
+      "word": "at",
+      "start": 0.16,
+      "end": 0.384
+    },
+    {
+      "word": "sign",
+      "start": 0.384,
+      "end": 0.686
+    },
+    {
+      "word": "brings",
+      "start": 0.686,
+      "end": 1.053
+    },
+    {
+      "word": "files",
+      "start": 1.053,
+      "end": 1.547
+    },
+    {
+      "word": "or",
+      "start": 1.547,
+      "end": 1.68
+    },
+    {
+      "word": "folders",
+      "start": 1.68,
+      "end": 2.78
+    },
+    {
+      "word": "The",
+      "start": 2.78,
+      "end": 3.024
+    },
+    {
+      "word": "hash",
+      "start": 3.024,
+      "end": 3.326
+    },
+    {
+      "word": "brings",
+      "start": 3.326,
+      "end": 3.68
+    },
+    {
+      "word": "issues",
+      "start": 3.68,
+      "end": 4.213
+    },
+    {
+      "word": "or",
+      "start": 4.213,
+      "end": 4.368
+    },
+    {
+      "word": "pull",
+      "start": 4.368,
+      "end": 4.631
+    },
+    {
+      "word": "requests",
+      "start": 4.631,
+      "end": 5.632
+    },
+    {
+      "word": "like",
+      "start": 5.632,
+      "end": 5.794
+    },
+    {
+      "word": "number",
+      "start": 5.794,
+      "end": 6.069
+    },
+    {
+      "word": "twelve",
+      "start": 6.069,
+      "end": 6.319
+    }
+  ]
+}

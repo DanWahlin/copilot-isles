@@ -1,0 +1,72 @@
+{
+  "id": "wingman.tb.ports",
+  "speaker": "Wingman",
+  "text": "And it's not just ports, Captain. Databases and background processes aren't separated either.",
+  "words": [
+    {
+      "word": "And",
+      "start": 0,
+      "end": 0.187
+    },
+    {
+      "word": "it's",
+      "start": 0.187,
+      "end": 0.36
+    },
+    {
+      "word": "not",
+      "start": 0.36,
+      "end": 0.512
+    },
+    {
+      "word": "just",
+      "start": 0.512,
+      "end": 0.72
+    },
+    {
+      "word": "ports",
+      "start": 0.72,
+      "end": 1.39
+    },
+    {
+      "word": "Captain",
+      "start": 1.39,
+      "end": 1.96
+    },
+    {
+      "word": "Databases",
+      "start": 1.96,
+      "end": 2.94
+    },
+    {
+      "word": "and",
+      "start": 2.94,
+      "end": 3.164
+    },
+    {
+      "word": "background",
+      "start": 3.164,
+      "end": 3.68
+    },
+    {
+      "word": "processes",
+      "start": 3.68,
+      "end": 4.448
+    },
+    {
+      "word": "aren't",
+      "start": 4.448,
+      "end": 4.784
+    },
+    {
+      "word": "separated",
+      "start": 4.784,
+      "end": 5.406
+    },
+    {
+      "word": "either",
+      "start": 5.406,
+      "end": 5.656
+    }
+  ]
+}

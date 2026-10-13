@@ -1,0 +1,52 @@
+{
+  "id": "tb.oak.wait",
+  "speaker": "Oak",
+  "text": "Saffi first, Captain! She's down in the Root Hall.",
+  "words": [
+    {
+      "word": "Saffi",
+      "start": 0,
+      "end": 0.373
+    },
+    {
+      "word": "first",
+      "start": 0.373,
+      "end": 0.91
+    },
+    {
+      "word": "Captain",
+      "start": 0.91,
+      "end": 1.28
+    },
+    {
+      "word": "She's",
+      "start": 1.28,
+      "end": 1.648
+    },
+    {
+      "word": "down",
+      "start": 1.648,
+      "end": 1.867
+    },
+    {
+      "word": "in",
+      "start": 1.867,
+      "end": 1.94
+    },
+    {
+      "word": "the",
+      "start": 1.94,
+      "end": 2.048
+    },
+    {
+      "word": "Root",
+      "start": 2.048,
+      "end": 2.304
+    },
+    {
+      "word": "Hall",
+      "start": 2.304,
+      "end": 2.554
+    }
+  ]
+}

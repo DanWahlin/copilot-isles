@@ -1,0 +1,57 @@
+{
+  "id": "tb.saffi.done",
+  "speaker": "Saffi",
+  "text": "Up the stair, dear. Oak's waiting at the Three Landings.",
+  "words": [
+    {
+      "word": "Up",
+      "start": 0,
+      "end": 0.18
+    },
+    {
+      "word": "the",
+      "start": 0.18,
+      "end": 0.307
+    },
+    {
+      "word": "stair",
+      "start": 0.307,
+      "end": 0.88
+    },
+    {
+      "word": "dear",
+      "start": 0.88,
+      "end": 1.42
+    },
+    {
+      "word": "Oak's",
+      "start": 1.42,
+      "end": 1.73
+    },
+    {
+      "word": "waiting",
+      "start": 1.73,
+      "end": 2.133
+    },
+    {
+      "word": "at",
+      "start": 2.133,
+      "end": 2.26
+    },
+    {
+      "word": "the",
+      "start": 2.26,
+      "end": 2.36
+    },
+    {
+      "word": "Three",
+      "start": 2.36,
+      "end": 2.64
+    },
+    {
+      "word": "Landings",
+      "start": 2.64,
+      "end": 2.89
+    }
+  ]
+}

@@ -28,6 +28,9 @@ export function ControlsScreen({ bridge }: { bridge: GameBridge }) {
             [['W', 'S'], 'Raise / lower sails'],
             [['A', 'D'], 'Helm'],
             [['E'], 'Dock at the pier'],
+            [['Space'], 'Sea battle: fire what bears'],
+            [['Z', 'C'], 'Fire port / starboard'],
+            [['R'], 'Bring her round'],
           ]}
         />
         <ControlColumn
@@ -38,7 +41,8 @@ export function ControlsScreen({ bridge }: { bridge: GameBridge }) {
             [['RT'], 'Run'],
             [['A'], 'Interact'],
             [['X'], 'Wingman’s hint'],
-            [['Y'], 'Hop'],
+            [['Y'], 'Hop / bring her round'],
+            [['A', 'LB', 'RB'], 'Sea battle: fire / port / starboard'],
             [['Back'], 'Chart'],
             [['Start'], 'Menu'],
           ]}

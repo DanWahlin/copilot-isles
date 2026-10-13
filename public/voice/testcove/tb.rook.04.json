@@ -1,0 +1,82 @@
+{
+  "id": "tb.rook.04",
+  "speaker": "Rook",
+  "text": "The plan opens in the Plan tab, and Review plan takes the prompt box's place.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.144
+    },
+    {
+      "word": "plan",
+      "start": 0.144,
+      "end": 0.48
+    },
+    {
+      "word": "opens",
+      "start": 0.48,
+      "end": 0.907
+    },
+    {
+      "word": "in",
+      "start": 0.907,
+      "end": 0.98
+    },
+    {
+      "word": "the",
+      "start": 0.98,
+      "end": 1.104
+    },
+    {
+      "word": "Plan",
+      "start": 1.104,
+      "end": 1.46
+    },
+    {
+      "word": "tab",
+      "start": 1.46,
+      "end": 2.18
+    },
+    {
+      "word": "and",
+      "start": 2.18,
+      "end": 2.286
+    },
+    {
+      "word": "Review",
+      "start": 2.286,
+      "end": 2.64
+    },
+    {
+      "word": "plan",
+      "start": 2.64,
+      "end": 3.013
+    },
+    {
+      "word": "takes",
+      "start": 3.013,
+      "end": 3.3
+    },
+    {
+      "word": "the",
+      "start": 3.3,
+      "end": 3.406
+    },
+    {
+      "word": "prompt",
+      "start": 3.406,
+      "end": 3.74
+    },
+    {
+      "word": "box's",
+      "start": 3.74,
+      "end": 4.147
+    },
+    {
+      "word": "place",
+      "start": 4.147,
+      "end": 4.397
+    }
+  ]
+}

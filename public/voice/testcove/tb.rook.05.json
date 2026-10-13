@@ -1,0 +1,117 @@
+{
+  "id": "tb.rook.05",
+  "speaker": "Rook",
+  "text": "Back in Interactive, run the Book App and open the preview. Search hobbit, then a made-up word, and note the empty state.",
+  "words": [
+    {
+      "word": "Back",
+      "start": 0,
+      "end": 0.187
+    },
+    {
+      "word": "in",
+      "start": 0.187,
+      "end": 0.3
+    },
+    {
+      "word": "Interactive",
+      "start": 0.3,
+      "end": 1.4
+    },
+    {
+      "word": "run",
+      "start": 1.4,
+      "end": 1.54
+    },
+    {
+      "word": "the",
+      "start": 1.54,
+      "end": 1.648
+    },
+    {
+      "word": "Book",
+      "start": 1.648,
+      "end": 1.92
+    },
+    {
+      "word": "App",
+      "start": 1.92,
+      "end": 2.22
+    },
+    {
+      "word": "and",
+      "start": 2.22,
+      "end": 2.464
+    },
+    {
+      "word": "open",
+      "start": 2.464,
+      "end": 2.74
+    },
+    {
+      "word": "the",
+      "start": 2.74,
+      "end": 2.86
+    },
+    {
+      "word": "preview",
+      "start": 2.86,
+      "end": 3.577
+    },
+    {
+      "word": "Search",
+      "start": 3.577,
+      "end": 4.92
+    },
+    {
+      "word": "hobbit",
+      "start": 4.92,
+      "end": 5.552
+    },
+    {
+      "word": "then",
+      "start": 5.552,
+      "end": 6.04
+    },
+    {
+      "word": "a",
+      "start": 6.04,
+      "end": 6.112
+    },
+    {
+      "word": "made-up",
+      "start": 6.112,
+      "end": 6.544
+    },
+    {
+      "word": "word",
+      "start": 6.544,
+      "end": 7.04
+    },
+    {
+      "word": "and",
+      "start": 7.04,
+      "end": 7.568
+    },
+    {
+      "word": "note",
+      "start": 7.568,
+      "end": 7.78
+    },
+    {
+      "word": "the",
+      "start": 7.78,
+      "end": 7.907
+    },
+    {
+      "word": "empty",
+      "start": 7.907,
+      "end": 8.307
+    },
+    {
+      "word": "state",
+      "start": 8.307,
+      "end": 8.557
+    }
+  ]
+}

@@ -1,3 +1,7 @@
+import type { ChapterId } from './course/chapters';
+
+export type { ChapterId };
+
 /**
  * Learning content (POC §3.4-3.6): course images, quizzes, Logbook pages, chests, glossary terms,
  * and Trials. Content lives in typed modules (src/learn/content/*) rather than YAML so the compiler
@@ -7,13 +11,23 @@
 /** Normalized image rect: x, y, width, height, all 0-1 of the image size. */
 export type Rect = readonly [x: number, y: number, w: number, h: number];
 
-type ChapterId = '00-setup' | '01-tour-the-app';
-
-/** A link back to the exact course section ("Open in the course ↗"). */
+/**
+ * Where an authored item comes from in the course (PLAN §8.3, §8.5): the chapter, the README heading
+ * anchor (its "Open in the course ↗" link), and the hash of that section in `content/course.lock.json`
+ * when the item was written. The drift report flags the item when the course section's hash moves
+ * on. Make them with `courseRefs(chapter)` from `src/learn/course/refs.ts`.
+ */
 export interface SourceRef {
   chapter: ChapterId;
   /** README heading anchor, e.g. "connect-to-your-repository". */
   anchor: string;
+  /** The section's lock hash (12 hex digits) when this item was written. */
+  hash: string;
+  /**
+   * A course screenshot the item depends on (hotspot quizzes), as its snapshot path, e.g.
+   * "course/ch01/app-new-page.webp", with the SHA-256 prefix of the bundled file it was measured on.
+   */
+  image?: { src: string; hash: string };
 }
 
 /** A screenshot or illustration from the course (MIT, github/copilot-app-for-beginners). */
@@ -24,6 +38,11 @@ export interface CourseImage {
   width: number;
   height: number;
   alt: string;
+  /**
+   * The bundled file's SHA-256 (first 12 hex digits) that the alt text, captions, and any hotspot
+   * rects were written against. Sync never overwrites it (it's pinned in the lock).
+   */
+  hash: string;
 }
 
 export interface Option {
@@ -128,4 +147,6 @@ export interface ChapterContent {
   chests: readonly Chest[];
   glossary: readonly GlossaryTerm[];
   trials: readonly Trial[];
+  /** The course section each voiced teaching line (tools/voice/lines.*.json id) paraphrases. */
+  voiced?: Readonly<Record<string, SourceRef>>;
 }

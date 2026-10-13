@@ -104,14 +104,14 @@ async function boot(): Promise<void> {
     import('../ui/learn/LearnLayer'),
     import('../game/hud.css'),
   ]);
-  let post = await createPost(renderer, engine.scene, engine.camera, tier, {
-    lean: true,
-    temporal: !q.has('notaa'),
-  });
+  const titlePostOptions = { lean: true, temporal: !q.has('notaa') };
+  let post = await createPost(renderer, engine.scene, engine.camera, tier, titlePostOptions);
   if (post) engine.renderFn = post.render;
   let richPostReady = false;
+  let postSwaps = 0;
   const upgradePost = async (_cove?: unknown, opts: { warm?: boolean } = {}) => {
     if (richPostReady) return post;
+    postSwaps++;
     const rich = await createPost(renderer, engine.scene, engine.camera, tier);
     if (!rich) {
       post?.dispose();
@@ -133,6 +133,19 @@ async function boot(): Promise<void> {
     richPostReady = true;
     return rich;
   };
+  // Back at the title after a voyage: the title's lean post again, and the island's freed.
+  const restoreTitlePost = async () => {
+    if (!richPostReady) return;
+    richPostReady = false;
+    const swap = ++postSwaps;
+    const lean = await createPost(renderer, engine.scene, engine.camera, tier, titlePostOptions);
+    // A voyage set sail meanwhile: it has the island's post.
+    if (swap !== postSwaps) return lean?.dispose();
+    const rich = post;
+    post = lean;
+    engine.renderFn = lean ? lean.render : null;
+    rich?.dispose();
+  };
   const input = new Input(canvas);
   const audio = createAudio();
   const renderInfo = `${backend === 'webgpu' ? 'WebGPU' : 'WebGL2'} · ${TIER_NAMES[tier.tier]}`;
@@ -143,6 +156,7 @@ async function boot(): Promise<void> {
     hudParent: document.body,
     renderInfo,
     upgradePost,
+    restoreTitlePost,
     graphics: {
       backend,
       platform: detectPlatform(navigator),

@@ -571,6 +571,29 @@
   font-weight: 600;
 }
 
+.ci-credits-privacy {
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.ci-credits-license summary {
+  min-height: 44px;
+  padding: 0.65rem 0;
+  box-sizing: border-box;
+  cursor: pointer;
+  color: var(--ci-gold-strong);
+}
+
+.ci-credits-license pre {
+  max-height: 14rem;
+  overflow: auto;
+  padding: 0.7rem 0.9rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+}
+
 .ci-pause .ci-panel {
   width: min(30rem, 90vw);
 }
@@ -1168,6 +1191,39 @@
   stroke: #b88422;
   stroke-dasharray: none;
   opacity: 0.9;
+}
+
+/* A course chapter with no island yet (PLAN §8.3): an uncharted island in the fog. */
+.ci-arch-fog .bank {
+  fill: rgba(250, 244, 228, 0.6);
+  stroke: rgba(122, 82, 38, 0.25);
+  stroke-dasharray: 3 5;
+}
+.ci-arch-fog .isle {
+  fill: rgba(122, 82, 38, 0.28);
+}
+.ci-arch-fog text {
+  text-anchor: middle;
+  paint-order: stroke fill;
+  stroke: rgba(236, 220, 176, 0.92);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.ci-arch-fog .head {
+  fill: #6b4a20;
+  font: 800 10.5px var(--ci-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.ci-arch-fog .link {
+  fill: #2a1d0e;
+  font: 600 13.5px var(--ci-display);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.ci-arch-fog a:focus-visible .link,
+.ci-arch-fog a:hover .link {
+  fill: #8a5a12;
 }
 
 .ci-compass .ring {

@@ -1,0 +1,946 @@
+{
+  "$comment": "Written by tools/course/sync.mjs (PLAN §8.2). Section hashes are the first 12 hex digits of the SHA-256 of normalizeForCompare(markdown); images keep the full SHA-256. Do not edit by hand.",
+  "repo": "github/copilot-app-for-beginners",
+  "ref": "main",
+  "sha": "86bb298c6429905c16378eb720c642c74128d1d0",
+  "syncedAt": "2026-10-13",
+  "catalog": [
+    {
+      "id": "00-setup",
+      "num": "00",
+      "title": "Setup"
+    },
+    {
+      "id": "01-tour-the-app",
+      "num": "01",
+      "title": "Tour the App"
+    },
+    {
+      "id": "02-sessions-worktrees-context",
+      "num": "02",
+      "title": "Sessions, Worktrees, and Context"
+    },
+    {
+      "id": "03-development-workflows",
+      "num": "03",
+      "title": "Development and GitHub Workflows"
+    },
+    {
+      "id": "04-skills-custom-agents",
+      "num": "04",
+      "title": "Skills and Custom Agents"
+    },
+    {
+      "id": "05-mcp-plugins",
+      "num": "05",
+      "title": "MCP Servers and Plugins"
+    },
+    {
+      "id": "06-canvases",
+      "num": "06",
+      "title": "Canvases"
+    },
+    {
+      "id": "07-automations",
+      "num": "07",
+      "title": "Automations"
+    }
+  ],
+  "chapters": {
+    "00-setup": {
+      "short": "ch00",
+      "title": "Setup",
+      "hash": "5528dd890455",
+      "sections": {
+        "learning-objectives": {
+          "title": "Learning Objectives",
+          "level": 2,
+          "hash": "4350d5f5c0ab",
+          "terms": ["Terminal", "Estimated Time"]
+        },
+        "prerequisites": {
+          "title": "Prerequisites",
+          "level": 2,
+          "hash": "8cf6b77a5305",
+          "terms": ["GitHub Copilot app", "Terminal"]
+        },
+        "the-course-theme-working-in-a-recording-studio": {
+          "title": "The Course Theme: Working in a Recording Studio",
+          "level": 2,
+          "hash": "5b84e8d01bdb",
+          "images": ["00-setup/assets/studio-setup-soundcheck.webp"]
+        },
+        "installation": {
+          "title": "Installation",
+          "level": 2,
+          "hash": "bf12cef33675",
+          "images": ["00-setup/assets/app-sign-in.webp"],
+          "terms": ["Sign in to GitHub", "Connect your repositories", "Continue", "New"]
+        },
+        "connect-to-your-repository": {
+          "title": "Connect to Your Repository",
+          "level": 2,
+          "hash": "365638d573db",
+          "images": ["00-setup/assets/app-add-project.webp"],
+          "terms": [
+            "+",
+            "Projects",
+            "Add GitHub repository",
+            "Open folder",
+            "Clone repository",
+            "Repository URL",
+            "Clone"
+          ]
+        },
+        "check-your-tools-in-terminal": {
+          "title": "Check Your Tools in Terminal",
+          "level": 2,
+          "hash": "6ff94698a3b3",
+          "images": ["00-setup/assets/app-current-checkout-workspace-selector.webp"],
+          "terms": [
+            "Terminal",
+            "Projects",
+            "+",
+            "Current checkout",
+            "View",
+            "Toggle Review Panel",
+            "GitHub.com",
+            "Login with a web browser"
+          ]
+        },
+        "add-the-course-practice-items": {
+          "title": "Add the Course Practice Items",
+          "level": 2,
+          "hash": "15d697dd1d02",
+          "terms": ["Labels", "Issues", "Practice branches", "Pull requests", "Actions", "Terminal"]
+        },
+        "checklist": {
+          "title": "Checklist",
+          "level": 3,
+          "hash": "301bbe35b7fa"
+        },
+        "learn-more-about-the-course-repository": {
+          "title": "Learn More About the Course Repository",
+          "level": 2,
+          "hash": "104572df79ac",
+          "terms": ["Expected Output:"]
+        },
+        "troubleshooting": {
+          "title": "Troubleshooting",
+          "level": 2,
+          "hash": "947f414abd0c",
+          "terms": [
+            "GitHub Copilot app",
+            "Sign in to GitHub Enterprise Cloud",
+            "Open folder",
+            "Settings",
+            "Features",
+            "Issues"
+          ]
+        },
+        "i-cannot-sign-in": {
+          "title": "I cannot sign in",
+          "level": 3,
+          "hash": "c88e34134796",
+          "terms": ["GitHub Copilot app", "Sign in to GitHub Enterprise Cloud"]
+        },
+        "i-cannot-see-the-repository": {
+          "title": "I cannot see the repository",
+          "level": 3,
+          "hash": "bad53698687c",
+          "terms": ["Open folder"]
+        },
+        "a-chat-cannot-explain-the-repository": {
+          "title": "A chat cannot explain the repository",
+          "level": 3,
+          "hash": "a31859f05301"
+        },
+        "the-script-stops-for-an-organization-fork": {
+          "title": "The script stops for an organization fork",
+          "level": 3,
+          "hash": "b65840384055"
+        },
+        "the-script-stops-with-setup-failed": {
+          "title": "The script stops with \"Setup failed\"",
+          "level": 3,
+          "hash": "3935f4325855"
+        },
+        "practice-items-were-not-created": {
+          "title": "Practice items were not created",
+          "level": 3,
+          "hash": "f70544845f12",
+          "terms": ["Settings", "Features", "Issues"]
+        },
+        "key-takeaways": {
+          "title": "Key Takeaways",
+          "level": 2,
+          "hash": "4da1d85cc5fe"
+        },
+        "whats-next": {
+          "title": "What's Next",
+          "level": 2,
+          "hash": "3763cb5b3b13",
+          "terms": ["[← Back to Course Home](../README.md)"]
+        }
+      }
+    },
+    "01-tour-the-app": {
+      "short": "ch01",
+      "title": "Tour the App",
+      "hash": "98dad4048f06",
+      "sections": {
+        "learning-objectives": {
+          "title": "Learning Objectives",
+          "level": 2,
+          "hash": "10570b2bca05",
+          "terms": ["Estimated Time"]
+        },
+        "prerequisites": {
+          "title": "Prerequisites",
+          "level": 2,
+          "hash": "e19c0e167b09"
+        },
+        "why-use-the-github-copilot-app": {
+          "title": "Why Use the GitHub Copilot app?",
+          "level": 2,
+          "hash": "e71d52ac5d1c",
+          "images": ["01-tour-the-app/assets/editor-vs-app.webp"]
+        },
+        "tour-the-app": {
+          "title": "Tour the App",
+          "level": 2,
+          "hash": "a583ed20b8e9",
+          "images": [
+            "01-tour-the-app/assets/app-new-page.webp",
+            "01-tour-the-app/assets/app-pull-requests-page.webp",
+            "01-tour-the-app/assets/app-issues-page.webp",
+            "01-tour-the-app/assets/app-automations-page.webp"
+          ],
+          "terms": [
+            "Authored by me",
+            "Review requests",
+            "All repositories",
+            "Assigned to me",
+            "Created by me",
+            "New issue",
+            "Automations",
+            "More",
+            "Edit sidebar...",
+            "Projects",
+            "Chats"
+          ]
+        },
+        "new": {
+          "title": "New",
+          "level": 3,
+          "hash": "2089b0a43f88",
+          "images": ["01-tour-the-app/assets/app-new-page.webp"]
+        },
+        "pull-requests": {
+          "title": "Pull requests",
+          "level": 3,
+          "hash": "b7a35175db25",
+          "images": ["01-tour-the-app/assets/app-pull-requests-page.webp"],
+          "terms": ["Authored by me", "Review requests", "All repositories"]
+        },
+        "issues": {
+          "title": "Issues",
+          "level": 3,
+          "hash": "dd5009d56d26",
+          "images": ["01-tour-the-app/assets/app-issues-page.webp"],
+          "terms": ["Assigned to me", "Created by me", "New issue"]
+        },
+        "automations": {
+          "title": "Automations",
+          "level": 3,
+          "hash": "6963992826ba",
+          "images": ["01-tour-the-app/assets/app-automations-page.webp"],
+          "terms": ["Automations"]
+        },
+        "customize": {
+          "title": "Customize",
+          "level": 3,
+          "hash": "40d6c4c7a5bf"
+        },
+        "more": {
+          "title": "More",
+          "level": 3,
+          "hash": "16538ba2b64e",
+          "terms": ["More", "Edit sidebar..."]
+        },
+        "projects-and-chats": {
+          "title": "Projects and Chats",
+          "level": 3,
+          "hash": "2e0d39688597",
+          "terms": ["Projects", "Chats"]
+        },
+        "chats-project-sessions-and-modes": {
+          "title": "Chats, Project Sessions, and Modes",
+          "level": 2,
+          "hash": "b86c511bd0da",
+          "images": [
+            "01-tour-the-app/assets/producer-control-room-modes.webp",
+            "01-tour-the-app/assets/app-quick-chat.webp",
+            "01-tour-the-app/assets/session-mode-decision-ladder.webp"
+          ],
+          "terms": [
+            "+",
+            "Projects",
+            "Chat",
+            "Expected Output:",
+            "New worktree",
+            "Current checkout",
+            "Interactive mode",
+            "Plan mode",
+            "Autopilot",
+            "Tool permissions",
+            "Always ask",
+            "Approve all",
+            "Assisted"
+          ]
+        },
+        "from-the-studio-in-the-control-room": {
+          "title": "From the Studio: In the Control Room",
+          "level": 3,
+          "hash": "7847b6fe96d3",
+          "images": ["01-tour-the-app/assets/producer-control-room-modes.webp"]
+        },
+        "chat-sessions": {
+          "title": "Chat Sessions",
+          "level": 3,
+          "hash": "98f6ea579753",
+          "images": ["01-tour-the-app/assets/app-quick-chat.webp"],
+          "terms": ["+", "Projects", "Chat", "Expected Output:"]
+        },
+        "project-sessions": {
+          "title": "Project Sessions",
+          "level": 3,
+          "hash": "b8e172159d21",
+          "terms": ["New worktree", "Current checkout", "+", "Expected Output:"]
+        },
+        "modes": {
+          "title": "Modes",
+          "level": 3,
+          "hash": "4a1370424345",
+          "images": ["01-tour-the-app/assets/session-mode-decision-ladder.webp"],
+          "terms": [
+            "Interactive mode",
+            "Plan mode",
+            "Autopilot",
+            "Tool permissions",
+            "Always ask",
+            "Approve all",
+            "Assisted"
+          ]
+        },
+        "models-and-reasoning-effort": {
+          "title": "Models and Reasoning Effort",
+          "level": 2,
+          "hash": "84d625491118",
+          "terms": [
+            "Model",
+            "Reasoning effort",
+            "Context window",
+            "Auto",
+            "Effort",
+            "Autopilot",
+            "Interactive",
+            "Expected Output:",
+            "Retry"
+          ]
+        },
+        "try-the-controls": {
+          "title": "Try the Controls",
+          "level": 3,
+          "hash": "1a9a4b2f69f1",
+          "terms": ["Interactive", "Model", "Auto", "Effort", "Expected Output:"]
+        },
+        "try-again-with-a-different-model": {
+          "title": "Try Again with a Different Model",
+          "level": 3,
+          "hash": "b0031ded9c4d",
+          "terms": ["Retry"]
+        },
+        "prompts-and-shortcuts": {
+          "title": "Prompts and Shortcuts",
+          "level": 2,
+          "hash": "06812f77c4eb",
+          "terms": ["Prompt history", "Ctrl+R", "Cmd+R", "Attach context"]
+        },
+        "settings": {
+          "title": "Settings",
+          "level": 2,
+          "hash": "5b95eb5b50e3",
+          "images": ["01-tour-the-app/assets/app-settings.webp"],
+          "terms": [
+            "Settings",
+            "Customize",
+            "Show in sidebar",
+            "Model providers",
+            "Voice dictation",
+            "Note:",
+            "Microphone privacy",
+            "Open preferences",
+            "Test mic",
+            "+",
+            "Projects",
+            "Chat"
+          ]
+        },
+        "troubleshooting": {
+          "title": "Troubleshooting",
+          "level": 2,
+          "hash": "e0734d078e38"
+        },
+        "i-cannot-find-a-setting-shown-in-the-chapter": {
+          "title": "I cannot find a setting shown in the chapter",
+          "level": 3,
+          "hash": "a78cb1a046e1"
+        },
+        "voice-dictation-does-not-work": {
+          "title": "Voice dictation does not work",
+          "level": 3,
+          "hash": "cd335d6b8206"
+        },
+        "a-mode-or-model-option-is-missing": {
+          "title": "A mode or model option is missing",
+          "level": 3,
+          "hash": "980596b3795d"
+        },
+        "key-takeaways": {
+          "title": "Key Takeaways",
+          "level": 2,
+          "hash": "c91fe4b46114",
+          "terms": ["Chat sessions", "Project sessions", "Automations", "Interactive", "Plan", "Autopilot"]
+        },
+        "whats-next": {
+          "title": "What's Next",
+          "level": 2,
+          "hash": "379b67eeb747",
+          "terms": ["[← Back to Chapter 00](../00-setup/README.md)"]
+        },
+        "source-references": {
+          "title": "Source References",
+          "level": 2,
+          "hash": "b35a71db2197"
+        }
+      }
+    },
+    "02-sessions-worktrees-context": {
+      "short": "ch02",
+      "title": "Sessions, Worktrees, and Context",
+      "hash": "ef39e6d0ca8c",
+      "sections": {
+        "learning-objectives": {
+          "title": "Learning Objectives",
+          "level": 2,
+          "hash": "69a77e05c88a",
+          "terms": ["Estimated Time"]
+        },
+        "prerequisites": {
+          "title": "Prerequisites",
+          "level": 2,
+          "hash": "b478bcb9788f"
+        },
+        "from-the-studio-one-studio-many-recording-booths": {
+          "title": "From the Studio: One Studio, Many Recording Booths",
+          "level": 2,
+          "hash": "a455b42bc23e",
+          "images": ["02-sessions-worktrees-context/assets/recording-booths-worktrees.webp"]
+        },
+        "core-concepts": {
+          "title": "Core Concepts",
+          "level": 2,
+          "hash": "e7adbe589a77",
+          "images": [
+            "02-sessions-worktrees-context/assets/one-repo-many-worktrees.webp",
+            "02-sessions-worktrees-context/assets/app-where-sessions-run.webp"
+          ],
+          "terms": [
+            "Git worktree",
+            "+",
+            "Base branch",
+            "Current checkout",
+            "New worktree",
+            "Create from",
+            "files and branches"
+          ]
+        },
+        "what-is-a-git-worktree": {
+          "title": "What Is a Git Worktree?",
+          "level": 3,
+          "hash": "4ccaddd0c3f4",
+          "terms": ["Git worktree"]
+        },
+        "why-the-github-copilot-app-uses-worktrees": {
+          "title": "Why the GitHub Copilot app Uses Worktrees",
+          "level": 3,
+          "hash": "b28050c33200",
+          "images": ["02-sessions-worktrees-context/assets/one-repo-many-worktrees.webp"]
+        },
+        "where-a-session-runs": {
+          "title": "Where a Session Runs",
+          "level": 3,
+          "hash": "a55a83c1ff55",
+          "images": ["02-sessions-worktrees-context/assets/app-where-sessions-run.webp"],
+          "terms": [
+            "+",
+            "Base branch",
+            "Current checkout",
+            "New worktree",
+            "Create from",
+            "files and branches"
+          ]
+        },
+        "context-syntax": {
+          "title": "Context Syntax",
+          "level": 3,
+          "hash": "e41d9116c6a3"
+        },
+        "attaching-files": {
+          "title": "Attaching Files",
+          "level": 3,
+          "hash": "0d9a0a736d27"
+        },
+        "slash-commands": {
+          "title": "Slash Commands",
+          "level": 3,
+          "hash": "f7db6b7416aa"
+        },
+        "exercise-start-a-session-from-a-branch-and-attach-an-issue": {
+          "title": "Exercise: Start a Session from a Branch and Attach an Issue",
+          "level": 2,
+          "hash": "6db80a8de549",
+          "images": [
+            "02-sessions-worktrees-context/assets/app-create-from-icon.webp",
+            "02-sessions-worktrees-context/assets/app-plan-from-issue.webp",
+            "02-sessions-worktrees-context/assets/app-book-app-empty-state-before.webp"
+          ],
+          "terms": [
+            "empty state",
+            "Create from",
+            "Branches",
+            "Mode",
+            "Plan",
+            "Improve the empty state copy",
+            "Review plan",
+            "Autopilot",
+            "Exit plan mode and I will prompt myself",
+            "Interactive",
+            "The Hobbit",
+            "Changes"
+          ]
+        },
+        "exercise-check-the-session-with-slash-commands": {
+          "title": "Exercise: Check the Session with Slash Commands",
+          "level": 2,
+          "hash": "0eb8259b8b60",
+          "images": [
+            "02-sessions-worktrees-context/assets/app-chronicle-standup-output.webp",
+            "02-sessions-worktrees-context/assets/app-context-information.webp"
+          ],
+          "terms": [
+            "Expected Output:",
+            "Context",
+            "Plan",
+            "Streamer Mode",
+            "Usage hidden",
+            "Session",
+            "Tokens",
+            "View usage and plan...",
+            "Remote control",
+            "Path",
+            "Project",
+            "Session name",
+            "Session ID"
+          ]
+        },
+        "troubleshooting": {
+          "title": "Troubleshooting",
+          "level": 2,
+          "hash": "4858dd6a01dc",
+          "terms": ["new worktree"]
+        },
+        "i-dont-see-the-practice-branches": {
+          "title": "I don't see the practice branches",
+          "level": 3,
+          "hash": "c9d42b831ad4"
+        },
+        "the-session-edited-the-wrong-folder": {
+          "title": "The session edited the wrong folder",
+          "level": 3,
+          "hash": "10e8716f1e87",
+          "terms": ["new worktree"]
+        },
+        "context-or-chronicle-is-missing": {
+          "title": "/context or /chronicle is missing",
+          "level": 3,
+          "hash": "606793a69536"
+        },
+        "two-previews-collided": {
+          "title": "Two previews collided",
+          "level": 3,
+          "hash": "5140d326c5b7"
+        },
+        "key-takeaways": {
+          "title": "Key Takeaways",
+          "level": 2,
+          "hash": "f1ddff6b1420"
+        },
+        "assignment": {
+          "title": "Assignment",
+          "level": 2,
+          "hash": "a6fd57783531",
+          "images": ["assets/assignment.webp"],
+          "terms": [
+            "Create from",
+            "Branches",
+            "Plan",
+            "Exit plan mode and I will prompt myself",
+            "Success Criteria:"
+          ]
+        },
+        "whats-next": {
+          "title": "What's Next",
+          "level": 2,
+          "hash": "6b31efae2fea"
+        },
+        "source-references": {
+          "title": "Source References",
+          "level": 2,
+          "hash": "a0eba5af4428"
+        }
+      }
+    }
+  },
+  "glossary": {
+    "hash": "2e7d03a29ea4",
+    "terms": {
+      "agent-merge": {
+        "title": "Agent Merge",
+        "level": 2,
+        "hash": "0c0f151f062d",
+        "terms": ["Ready to merge", "Merge pull request", "Agent merge"]
+      },
+      "automation": {
+        "title": "Automation",
+        "level": 2,
+        "hash": "1cb81ef754a5"
+      },
+      "autopilot": {
+        "title": "Autopilot",
+        "level": 2,
+        "hash": "d1832f474fa8"
+      },
+      "branch": {
+        "title": "Branch",
+        "level": 2,
+        "hash": "2e68faf3cb9b"
+      },
+      "canvas": {
+        "title": "Canvas",
+        "level": 2,
+        "hash": "0c84d76d214b"
+      },
+      "chat": {
+        "title": "Chat",
+        "level": 2,
+        "hash": "8a9ec04210af",
+        "terms": ["Chats"]
+      },
+      "ci-check": {
+        "title": "CI check",
+        "level": 2,
+        "hash": "1ea28215bfb0"
+      },
+      "cloud-sandbox": {
+        "title": "Cloud sandbox",
+        "level": 2,
+        "hash": "247c16700dd4"
+      },
+      "create-from": {
+        "title": "Create from",
+        "level": 2,
+        "hash": "e4fdd7998b29"
+      },
+      "custom-agent": {
+        "title": "Custom agent",
+        "level": 2,
+        "hash": "9dcdedeab606"
+      },
+      "diff": {
+        "title": "Diff",
+        "level": 2,
+        "hash": "85190d343f62"
+      },
+      "inner-loop": {
+        "title": "Inner loop",
+        "level": 2,
+        "hash": "ad6d6fdfb79b"
+      },
+      "interactive": {
+        "title": "Interactive",
+        "level": 2,
+        "hash": "e64632bc88dc"
+      },
+      "issues": {
+        "title": "Issues",
+        "level": 2,
+        "hash": "46554edc9916",
+        "terms": ["Assigned to me", "Created by me", "New issue"]
+      },
+      "model": {
+        "title": "Model",
+        "level": 2,
+        "hash": "485901790c5b",
+        "terms": ["Auto"]
+      },
+      "model-context-protocol-mcp-server": {
+        "title": "Model Context Protocol (MCP) server",
+        "level": 2,
+        "hash": "64e6852ae204",
+        "terms": ["Customize"]
+      },
+      "new": {
+        "title": "New",
+        "level": 2,
+        "hash": "4a95d1f28a13"
+      },
+      "outer-loop": {
+        "title": "Outer loop",
+        "level": 2,
+        "hash": "f012963768c2",
+        "terms": ["Issues", "Pull requests"]
+      },
+      "pick--polish": {
+        "title": "Pick & Polish",
+        "level": 2,
+        "hash": "82e356fb0a24",
+        "terms": ["Pick & Polish"]
+      },
+      "plan-mode": {
+        "title": "Plan mode",
+        "level": 2,
+        "hash": "28eeff2fcc56"
+      },
+      "plugin": {
+        "title": "Plugin",
+        "level": 2,
+        "hash": "a063e433c0f6",
+        "terms": ["Customize"]
+      },
+      "pr": {
+        "title": "PR",
+        "level": 2,
+        "hash": "3a0565cbf589"
+      },
+      "project-session": {
+        "title": "Project session",
+        "level": 2,
+        "hash": "976f2e2210b6"
+      },
+      "prompt-injection": {
+        "title": "Prompt injection",
+        "level": 2,
+        "hash": "6ad929447e6a"
+      },
+      "pull-requests": {
+        "title": "Pull requests",
+        "level": 2,
+        "hash": "05a4bb89c5a7",
+        "terms": ["Authored by me", "Review requests"]
+      },
+      "reasoning-effort": {
+        "title": "Reasoning effort",
+        "level": 2,
+        "hash": "d2c3b25e7bce"
+      },
+      "review-panel": {
+        "title": "Review panel",
+        "level": 2,
+        "hash": "7302e122a540",
+        "terms": ["Changes", "Terminal", "Browser", "View", "Toggle Review Panel"]
+      },
+      "rubber-duck": {
+        "title": "Rubber duck",
+        "level": 2,
+        "hash": "3cde54173207"
+      },
+      "session": {
+        "title": "Session",
+        "level": 2,
+        "hash": "d9df56efff83"
+      },
+      "skill": {
+        "title": "Skill",
+        "level": 2,
+        "hash": "4074ffaa6b17",
+        "terms": ["Customize → Skills"]
+      },
+      "worktree": {
+        "title": "Worktree",
+        "level": 2,
+        "hash": "ecafe5fec526"
+      }
+    }
+  },
+  "license": {
+    "hash": "d593b55e2197"
+  },
+  "images": {
+    "course/ch00/app-add-project.webp": {
+      "upstream": "00-setup/assets/app-add-project.webp",
+      "sha256": "faf03f246231fdd884fddafb11ac6a66d85621af3bf54898bda4d1731ab5a09c",
+      "bundled": "601fdc50c78f1c2d8bdfd10bdd35ba7a376c0f1788cce033220a58c6f6cc685b",
+      "pinned": true,
+      "bytes": 78352
+    },
+    "course/ch00/app-current-checkout-workspace-selector.webp": {
+      "upstream": "00-setup/assets/app-current-checkout-workspace-selector.webp",
+      "sha256": "9685f68887a95d19f3784b47df7885e4337f6da6b33a50ee3dcc442e0e67def5",
+      "pinned": true,
+      "bytes": 22838
+    },
+    "course/ch00/app-sign-in.webp": {
+      "upstream": "00-setup/assets/app-sign-in.webp",
+      "sha256": "484b7239d4ac73fc9f135af7f2d25dce75247de9b321e8252d26ef4cace000b5",
+      "pinned": true,
+      "bytes": 45788
+    },
+    "course/ch00/studio-setup-soundcheck.webp": {
+      "upstream": "00-setup/assets/studio-setup-soundcheck.webp",
+      "sha256": "91bb5ee7bf99776fa5cc9004a82ec1d91ac5894fa8ddf9a01fd924184e33a0a8",
+      "pinned": true,
+      "bytes": 140354
+    },
+    "course/ch01/app-automations-page.webp": {
+      "upstream": "01-tour-the-app/assets/app-automations-page.webp",
+      "sha256": "690be38e00a26bd80cd863799303b76397b72b644722979f8ca5c178c1824f91",
+      "bundled": "e50152cffcf1aceba1b2341232eb084c473152dbab431d4474387d5cc3a3cc0c",
+      "pinned": true,
+      "bytes": 131586
+    },
+    "course/ch01/app-issues-page.webp": {
+      "upstream": "01-tour-the-app/assets/app-issues-page.webp",
+      "sha256": "09e6cab47ef6f756dd322e396022a130cb80f3762d4b84531c1589d43641c773",
+      "bundled": "9b567bc4bd538583c3b1092267a7c498665c6c887b72c61c4a6cff99d0d2b18b",
+      "pinned": true,
+      "bytes": 124840
+    },
+    "course/ch01/app-new-page.webp": {
+      "upstream": "01-tour-the-app/assets/app-new-page.webp",
+      "sha256": "37be111c3c45d45c866fbbd5f739c5be906afa058d1a05f9a511b0754f3fd2b8",
+      "bundled": "8dc43babb590c3efd948186c7188f203d2ef402e5e4db515b9715358745c151a",
+      "pinned": true,
+      "bytes": 66968
+    },
+    "course/ch01/app-pull-requests-page.webp": {
+      "upstream": "01-tour-the-app/assets/app-pull-requests-page.webp",
+      "sha256": "ac5c638405ce3356265c81b474b88069c55def48e0347482c81827594e4b1959",
+      "bundled": "dfb60b2c8754ac33d5044060f124973eb733a126065a45d22ba536e862dd2243",
+      "pinned": true,
+      "bytes": 78214
+    },
+    "course/ch01/app-quick-chat.webp": {
+      "upstream": "01-tour-the-app/assets/app-quick-chat.webp",
+      "sha256": "0e15d445340be969f29a92d402b9501baddae328154fc13e5defe9af473c2adb",
+      "bundled": "e16123e337a498de99db7a97c0f14c55d924fb18a0711dac022757bf708c88c5",
+      "pinned": true,
+      "bytes": 84034
+    },
+    "course/ch01/app-settings.webp": {
+      "upstream": "01-tour-the-app/assets/app-settings.webp",
+      "sha256": "5bfe69fa74d53abca6e1d2a60871ef4fc6f68f5d34fad86a7cf1f1477428ba21",
+      "bundled": "22673bb4b5b246dd26054a21eb681fcf5d21a5f7a848a6e29bcca0b92123c352",
+      "pinned": true,
+      "bytes": 162782
+    },
+    "course/ch01/editor-vs-app.webp": {
+      "upstream": "01-tour-the-app/assets/editor-vs-app.webp",
+      "sha256": "e320e3aa4b6ede4a46f8ebf8af046c4dd704667bc16351033d0bf85ff31a57d4",
+      "pinned": true,
+      "bytes": 102224
+    },
+    "course/ch01/producer-control-room-modes.webp": {
+      "upstream": "01-tour-the-app/assets/producer-control-room-modes.webp",
+      "sha256": "e31f0eb3029b11cefb92e4f2bfb71bb6b1a80dfb5661bee7e4291a47406e016c",
+      "pinned": true,
+      "bytes": 193824
+    },
+    "course/ch01/session-mode-decision-ladder.webp": {
+      "upstream": "01-tour-the-app/assets/session-mode-decision-ladder.webp",
+      "sha256": "3ca6f6fbb217b5c57dd171c50ef49146ddc1e3001061d655b788ebd62c0299bc",
+      "pinned": true,
+      "bytes": 63518
+    },
+    "course/ch02/app-book-app-empty-state-before.webp": {
+      "upstream": "02-sessions-worktrees-context/assets/app-book-app-empty-state-before.webp",
+      "sha256": "d133ec59b0515e2efc614c51a6272bbf373d7a03ad93a144d46a18ddabab3863",
+      "pinned": true,
+      "bytes": 82696
+    },
+    "course/ch02/app-chronicle-standup-output.webp": {
+      "upstream": "02-sessions-worktrees-context/assets/app-chronicle-standup-output.webp",
+      "sha256": "acd45a749f06d4a73c4802fedfb54eded39c48dd00788bda8777eceab33d0e60",
+      "pinned": true,
+      "bytes": 91094
+    },
+    "course/ch02/app-context-information.webp": {
+      "upstream": "02-sessions-worktrees-context/assets/app-context-information.webp",
+      "sha256": "f4ba435ac73aded1d15f4a0bb3a82842b2328065f72b6a97f12102fc4b1c15d5",
+      "pinned": true,
+      "bytes": 210622
+    },
+    "course/ch02/app-create-from-icon.webp": {
+      "upstream": "02-sessions-worktrees-context/assets/app-create-from-icon.webp",
+      "sha256": "1fa97e5f817e6dbc98b67ea056f30dc1faf19494b5322cee5fa14a7d6004d779",
+      "pinned": true,
+      "bytes": 22886
+    },
+    "course/ch02/app-plan-from-issue.webp": {
+      "upstream": "02-sessions-worktrees-context/assets/app-plan-from-issue.webp",
+      "sha256": "2edcea70d18011166b849b94d0adce2ead40c6dc664c695238023fd5a1b11db2",
+      "pinned": true,
+      "bytes": 86962
+    },
+    "course/ch02/app-where-sessions-run.webp": {
+      "upstream": "02-sessions-worktrees-context/assets/app-where-sessions-run.webp",
+      "sha256": "d975962f610a3154d8da16073b0290b759177809e1146b84e901813d4a0e31bd",
+      "pinned": true,
+      "bytes": 22220
+    },
+    "course/ch02/one-repo-many-worktrees.webp": {
+      "upstream": "02-sessions-worktrees-context/assets/one-repo-many-worktrees.webp",
+      "sha256": "cec07bef34efea5bb283b6f1db21ec4550c140800063ae3ff913427236f27b53",
+      "pinned": true,
+      "bytes": 46926
+    },
+    "course/ch02/recording-booths-worktrees.webp": {
+      "upstream": "02-sessions-worktrees-context/assets/recording-booths-worktrees.webp",
+      "sha256": "f73d466f75aa9f7ea79747125e4cfe12ab5cf6400b12020e039a0c16348ae378",
+      "pinned": true,
+      "bytes": 139334
+    },
+    "course/shared/app-github-copilot-app.webp": {
+      "upstream": "assets/app-github-copilot-app.webp",
+      "sha256": "371d5ae374bc4afa89f2bf26258866c2e0f98cef09259cfac979520be7d0de58",
+      "bundled": "1a7ed51fbaa987404c78105dcfe231b6b1c21efabd4320d8fb6488866e9b91ce",
+      "pinned": true,
+      "bytes": 63262
+    },
+    "course/shared/assignment.webp": {
+      "upstream": "assets/assignment.webp",
+      "sha256": "daffcd6429257326164f055ae3dea90d64995baf6cddcb9f7d2e88e4a708704b",
+      "pinned": true,
+      "bytes": 184596
+    },
+    "course/shared/app-review-panel.webp": {
+      "upstream": null,
+      "derivedFrom": "03-development-workflows/assets/app-workspace-panel.webp",
+      "sha256": "625efb26cd5e6ac0ccbdfd91be37e81403402ccc192c4b9e9ee15cf697f1097e",
+      "bundled": "999a405eeb53b3e382988321ba88cd0e2cc543792cc59c50ad4717e3dac797be",
+      "pinned": true,
+      "bytes": 73976
+    }
+  }
+}

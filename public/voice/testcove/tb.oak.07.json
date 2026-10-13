@@ -1,0 +1,97 @@
+{
+  "id": "tb.oak.07",
+  "speaker": "Oak",
+  "text": "The app remembers your last choice. You picked Current checkout on Anchorage, so switch back to New worktree.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.22
+    },
+    {
+      "word": "app",
+      "start": 0.22,
+      "end": 0.44
+    },
+    {
+      "word": "remembers",
+      "start": 0.44,
+      "end": 0.832
+    },
+    {
+      "word": "your",
+      "start": 0.832,
+      "end": 1.024
+    },
+    {
+      "word": "last",
+      "start": 1.024,
+      "end": 1.36
+    },
+    {
+      "word": "choice",
+      "start": 1.36,
+      "end": 2.29
+    },
+    {
+      "word": "You",
+      "start": 2.29,
+      "end": 2.606
+    },
+    {
+      "word": "picked",
+      "start": 2.606,
+      "end": 2.93
+    },
+    {
+      "word": "Current",
+      "start": 2.93,
+      "end": 3.333
+    },
+    {
+      "word": "checkout",
+      "start": 3.333,
+      "end": 3.787
+    },
+    {
+      "word": "on",
+      "start": 3.787,
+      "end": 3.888
+    },
+    {
+      "word": "Anchorage",
+      "start": 3.888,
+      "end": 4.96
+    },
+    {
+      "word": "so",
+      "start": 4.96,
+      "end": 5.154
+    },
+    {
+      "word": "switch",
+      "start": 5.154,
+      "end": 5.424
+    },
+    {
+      "word": "back",
+      "start": 5.424,
+      "end": 5.707
+    },
+    {
+      "word": "to",
+      "start": 5.707,
+      "end": 5.84
+    },
+    {
+      "word": "New",
+      "start": 5.84,
+      "end": 6.16
+    },
+    {
+      "word": "worktree",
+      "start": 6.16,
+      "end": 6.41
+    }
+  ]
+}

@@ -33,6 +33,21 @@ const NPC_IDS = [
   'mer_kid_a',
   'mer_kid_b',
   'mer_guard',
+  // Thousand-Bough Isle (Chapter 02).
+  'tamsin',
+  'saffi',
+  'oak',
+  'fen',
+  'ines',
+  'rook',
+  'pip',
+  'elder',
+  'tb_kid_a',
+  'tb_kid_b',
+  'tb_weaver',
+  'tb_operator',
+  'tb_fisher',
+  'tb_lookout',
 ] as const;
 export const CHARACTER_BODIES = [...PLAYER_BODIES, ...NPC_IDS] as const;
 export const CHARACTER_CLIPS = [

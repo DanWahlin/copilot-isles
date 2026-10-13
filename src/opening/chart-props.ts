@@ -49,7 +49,15 @@ import { ANCHORAGE_VEGETATION } from '../world/islands/anchorage/vegetation-rule
 import { scatterVegetationAsync } from '../world/vegetation/scatter';
 import type { PlantSpecies } from '../world/vegetation/types';
 import { ARCHIPELAGO } from '../ui/chart/archipelago';
-import { CHART_D, CHART_LIFT, CHART_W, sheetUV, worldToPaper, type ChartIslandId } from './chart-map';
+import {
+  CHART_D,
+  CHART_ISLANDS,
+  CHART_LIFT,
+  CHART_W,
+  sheetUV,
+  worldToPaper,
+  type ChartIslandId,
+} from './chart-map';
 import { gridHeightField, popUpY, type IslandGrid } from './island-grid';
 
 /**
@@ -898,7 +906,7 @@ function createPaperClouds(): {
 } {
   const group = new Group();
   group.name = 'paper clouds';
-  const locked = ARCHIPELAGO.filter((i) => i.id !== 'anchorage' && i.id !== 'meridian');
+  const locked = ARCHIPELAGO.filter((i) => !CHART_ISLANDS.some((c) => c.id === i.id));
   const bumps = [
     [-0.03, 0, 0.012],
     [-0.016, 0.008, 0.016],

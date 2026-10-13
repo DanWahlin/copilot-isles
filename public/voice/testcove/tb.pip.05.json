@@ -1,0 +1,102 @@
+{
+  "id": "tb.pip.05",
+  "speaker": "Pip",
+  "text": "Select the session name at the top of the window for its branches, its Path and its Session ID.",
+  "words": [
+    {
+      "word": "Select",
+      "start": 0,
+      "end": 0.26
+    },
+    {
+      "word": "the",
+      "start": 0.26,
+      "end": 0.36
+    },
+    {
+      "word": "session",
+      "start": 0.36,
+      "end": 0.72
+    },
+    {
+      "word": "name",
+      "start": 0.72,
+      "end": 1.067
+    },
+    {
+      "word": "at",
+      "start": 1.067,
+      "end": 1.16
+    },
+    {
+      "word": "the",
+      "start": 1.16,
+      "end": 1.34
+    },
+    {
+      "word": "top",
+      "start": 1.34,
+      "end": 1.547
+    },
+    {
+      "word": "of",
+      "start": 1.547,
+      "end": 1.62
+    },
+    {
+      "word": "the",
+      "start": 1.62,
+      "end": 1.737
+    },
+    {
+      "word": "window",
+      "start": 1.737,
+      "end": 2.12
+    },
+    {
+      "word": "for",
+      "start": 2.12,
+      "end": 2.3
+    },
+    {
+      "word": "its",
+      "start": 2.3,
+      "end": 2.542
+    },
+    {
+      "word": "branches",
+      "start": 2.542,
+      "end": 3.34
+    },
+    {
+      "word": "its",
+      "start": 3.34,
+      "end": 3.632
+    },
+    {
+      "word": "Path",
+      "start": 3.632,
+      "end": 4.16
+    },
+    {
+      "word": "and",
+      "start": 4.16,
+      "end": 4.46
+    },
+    {
+      "word": "its",
+      "start": 4.46,
+      "end": 4.71
+    },
+    {
+      "word": "Session",
+      "start": 4.71,
+      "end": 5.36
+    },
+    {
+      "word": "ID",
+      "start": 5.36,
+      "end": 5.61
+    }
+  ]
+}

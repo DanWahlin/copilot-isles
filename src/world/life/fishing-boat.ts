@@ -15,7 +15,7 @@ import {
   type LodSimplifier,
 } from '../characters/character-lod';
 import { mergeSkinnedParts, shareSkinning } from '../characters/shared-skinning';
-import { palettedMaterial } from '../characters/stage-light';
+import { palettedMaterial, stagedMaterial } from '../characters/stage-light';
 import { unreflected } from '../reflection';
 import {
   AnimationMixer,
@@ -24,6 +24,7 @@ import {
   BufferGeometry,
   Color,
   CylinderGeometry,
+  FrontSide,
   Group,
   LoopOnce,
   Mesh,
@@ -166,11 +167,15 @@ function makeFisher(
   // One skinned mesh per fisher (his parts share a rig and a texture), then the characters' shared
   // skinning shader (issue 235); like every character, not in the mirror.
   mergeSkinnedParts(model);
-  // His texture as a palette, like the characters' (and his cape's and mug's, like the painted
-  // signs'), so his shadows share theirs (PLAN §15.4).
+  // His texture as a palette with the characters' staging light, so he shares their shader and their
+  // shadows (PLAN §15.4); his cape's and mug's as palettes, like the painted signs'.
   model.traverse((o) => {
     const m = o as Mesh;
-    if (m.isMesh && !Array.isArray(m.material)) m.material = palettedMaterial(m.material);
+    if (!m.isMesh || Array.isArray(m.material)) return;
+    const skinned = (m as Mesh & { isSkinnedMesh?: boolean }).isSkinnedMesh === true;
+    m.material = skinned ? stagedMaterial(m.material) : palettedMaterial(m.material);
+    // His body is closed: one-sided like the characters' (two-sided, its own fragment shader).
+    if (skinned) m.material.side = FrontSide;
   });
   shareSkinning(model);
   // Levels of detail like the characters' (his merged mesh is his own), picked as he's drawn.

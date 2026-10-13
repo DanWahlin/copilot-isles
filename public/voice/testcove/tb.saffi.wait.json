@@ -1,0 +1,77 @@
+{
+  "id": "tb.saffi.wait",
+  "speaker": "Saffi",
+  "text": "Lyra's by the pools, dear. Hear her song first, then come back to me.",
+  "words": [
+    {
+      "word": "Lyra's",
+      "start": 0,
+      "end": 0.453
+    },
+    {
+      "word": "by",
+      "start": 0.453,
+      "end": 0.6
+    },
+    {
+      "word": "the",
+      "start": 0.6,
+      "end": 0.813
+    },
+    {
+      "word": "pools",
+      "start": 0.813,
+      "end": 1.472
+    },
+    {
+      "word": "dear",
+      "start": 1.472,
+      "end": 1.904
+    },
+    {
+      "word": "Hear",
+      "start": 1.904,
+      "end": 2.52
+    },
+    {
+      "word": "her",
+      "start": 2.52,
+      "end": 2.72
+    },
+    {
+      "word": "song",
+      "start": 2.72,
+      "end": 3.12
+    },
+    {
+      "word": "first",
+      "start": 3.12,
+      "end": 3.792
+    },
+    {
+      "word": "then",
+      "start": 3.792,
+      "end": 3.984
+    },
+    {
+      "word": "come",
+      "start": 3.984,
+      "end": 4.288
+    },
+    {
+      "word": "back",
+      "start": 4.288,
+      "end": 4.533
+    },
+    {
+      "word": "to",
+      "start": 4.533,
+      "end": 4.72
+    },
+    {
+      "word": "me",
+      "start": 4.72,
+      "end": 4.97
+    }
+  ]
+}

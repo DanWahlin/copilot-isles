@@ -1,0 +1,82 @@
+{
+  "id": "tb.tamsin.02",
+  "speaker": "Tamsin",
+  "text": "On Port Meridian you saw two tasks blur together in one folder. Sessions fix that.",
+  "words": [
+    {
+      "word": "On",
+      "start": 0,
+      "end": 0.128
+    },
+    {
+      "word": "Port",
+      "start": 0.128,
+      "end": 0.36
+    },
+    {
+      "word": "Meridian",
+      "start": 0.36,
+      "end": 0.92
+    },
+    {
+      "word": "you",
+      "start": 0.92,
+      "end": 1.1
+    },
+    {
+      "word": "saw",
+      "start": 1.1,
+      "end": 1.34
+    },
+    {
+      "word": "two",
+      "start": 1.34,
+      "end": 1.613
+    },
+    {
+      "word": "tasks",
+      "start": 1.613,
+      "end": 2.144
+    },
+    {
+      "word": "blur",
+      "start": 2.144,
+      "end": 2.444
+    },
+    {
+      "word": "together",
+      "start": 2.444,
+      "end": 2.853
+    },
+    {
+      "word": "in",
+      "start": 2.853,
+      "end": 3.02
+    },
+    {
+      "word": "one",
+      "start": 3.02,
+      "end": 3.269
+    },
+    {
+      "word": "folder",
+      "start": 3.269,
+      "end": 3.938
+    },
+    {
+      "word": "Sessions",
+      "start": 3.938,
+      "end": 4.8
+    },
+    {
+      "word": "fix",
+      "start": 4.8,
+      "end": 5.12
+    },
+    {
+      "word": "that",
+      "start": 5.12,
+      "end": 5.37
+    }
+  ]
+}

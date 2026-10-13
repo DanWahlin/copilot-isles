@@ -1,0 +1,77 @@
+{
+  "id": "tb.fen.next",
+  "speaker": "Fen",
+  "text": "Ines wants a word about what you pack. The Signal Deck's up the stair.",
+  "words": [
+    {
+      "word": "Ines",
+      "start": 0,
+      "end": 0.36
+    },
+    {
+      "word": "wants",
+      "start": 0.36,
+      "end": 0.6
+    },
+    {
+      "word": "a",
+      "start": 0.6,
+      "end": 0.688
+    },
+    {
+      "word": "word",
+      "start": 0.688,
+      "end": 0.907
+    },
+    {
+      "word": "about",
+      "start": 0.907,
+      "end": 1.088
+    },
+    {
+      "word": "what",
+      "start": 1.088,
+      "end": 1.32
+    },
+    {
+      "word": "you",
+      "start": 1.32,
+      "end": 1.52
+    },
+    {
+      "word": "pack",
+      "start": 1.52,
+      "end": 2.04
+    },
+    {
+      "word": "The",
+      "start": 2.04,
+      "end": 2.457
+    },
+    {
+      "word": "Signal",
+      "start": 2.457,
+      "end": 2.864
+    },
+    {
+      "word": "Deck's",
+      "start": 2.864,
+      "end": 3.253
+    },
+    {
+      "word": "up",
+      "start": 3.253,
+      "end": 3.38
+    },
+    {
+      "word": "the",
+      "start": 3.38,
+      "end": 3.507
+    },
+    {
+      "word": "stair",
+      "start": 3.507,
+      "end": 3.757
+    }
+  ]
+}

@@ -502,7 +502,8 @@ await shot('logbook-quests');
 
 const final = await learnState();
 // Port Meridian (Chapter 01): with Anchorage's gangway down, board, sail over (the passage is
-// skipped), dock at the east arm, and step ashore. The first landfall there flies in; E skips it.
+// skipped, and so is its sea battle: tools/battletest.mjs plays it), dock at the east arm, and step
+// ashore. The first landfall there flies in; E skips it.
 {
   await page.evaluate(() => window.__dev.learn.closeLogbook());
   await page.waitForTimeout(500);
@@ -511,6 +512,8 @@ const final = await learnState();
     await page.waitForTimeout(1500);
   }
   await page.evaluate(() => window.__dev.session().debug.sailTo(744, -672, Math.PI));
+  // Skip battle, if the lookout called sails on the way (it can't start in Port Meridian's waters).
+  await page.evaluate(() => window.__dev.session().battle.active && window.__dev.session().battle.skip());
   await page.waitForTimeout(1600);
   const afloat = await page.evaluate(() => ({
     prompt: document.querySelector('.hud-prompt.show')?.textContent ?? null,

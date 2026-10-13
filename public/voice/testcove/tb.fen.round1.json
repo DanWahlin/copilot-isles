@@ -1,0 +1,67 @@
+{
+  "id": "tb.fen.round1",
+  "speaker": "Fen",
+  "text": "One crew, one channel. Lovely! Now the other two want their water.",
+  "words": [
+    {
+      "word": "One",
+      "start": 0,
+      "end": 0.24
+    },
+    {
+      "word": "crew",
+      "start": 0.24,
+      "end": 1.08
+    },
+    {
+      "word": "one",
+      "start": 1.08,
+      "end": 1.26
+    },
+    {
+      "word": "channel",
+      "start": 1.26,
+      "end": 2.091
+    },
+    {
+      "word": "Lovely",
+      "start": 2.091,
+      "end": 2.58
+    },
+    {
+      "word": "Now",
+      "start": 2.58,
+      "end": 2.92
+    },
+    {
+      "word": "the",
+      "start": 2.92,
+      "end": 3.067
+    },
+    {
+      "word": "other",
+      "start": 3.067,
+      "end": 3.28
+    },
+    {
+      "word": "two",
+      "start": 3.28,
+      "end": 3.616
+    },
+    {
+      "word": "want",
+      "start": 3.616,
+      "end": 4.027
+    },
+    {
+      "word": "their",
+      "start": 4.027,
+      "end": 4.227
+    },
+    {
+      "word": "water",
+      "start": 4.227,
+      "end": 4.477
+    }
+  ]
+}

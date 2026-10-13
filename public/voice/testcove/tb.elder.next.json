@@ -1,0 +1,97 @@
+{
+  "id": "tb.elder.next",
+  "speaker": "Maren",
+  "text": "Keelhaven's shipwrights put sessions to real work: review, debug, test and preview, then issues, pull requests and checks.",
+  "words": [
+    {
+      "word": "Keelhaven's",
+      "start": 0,
+      "end": 0.864
+    },
+    {
+      "word": "shipwrights",
+      "start": 0.864,
+      "end": 1.58
+    },
+    {
+      "word": "put",
+      "start": 1.58,
+      "end": 1.822
+    },
+    {
+      "word": "sessions",
+      "start": 1.822,
+      "end": 2.373
+    },
+    {
+      "word": "to",
+      "start": 2.373,
+      "end": 2.544
+    },
+    {
+      "word": "real",
+      "start": 2.544,
+      "end": 2.896
+    },
+    {
+      "word": "work",
+      "start": 2.896,
+      "end": 4
+    },
+    {
+      "word": "review",
+      "start": 4,
+      "end": 4.973
+    },
+    {
+      "word": "debug",
+      "start": 4.973,
+      "end": 5.92
+    },
+    {
+      "word": "test",
+      "start": 5.92,
+      "end": 6.3
+    },
+    {
+      "word": "and",
+      "start": 6.3,
+      "end": 6.54
+    },
+    {
+      "word": "preview",
+      "start": 6.54,
+      "end": 7.584
+    },
+    {
+      "word": "then",
+      "start": 7.584,
+      "end": 7.943
+    },
+    {
+      "word": "issues",
+      "start": 7.943,
+      "end": 8.848
+    },
+    {
+      "word": "pull",
+      "start": 8.848,
+      "end": 9.12
+    },
+    {
+      "word": "requests",
+      "start": 9.12,
+      "end": 9.84
+    },
+    {
+      "word": "and",
+      "start": 9.84,
+      "end": 10.16
+    },
+    {
+      "word": "checks",
+      "start": 10.16,
+      "end": 10.41
+    }
+  ]
+}

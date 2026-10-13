@@ -1,0 +1,92 @@
+{
+  "id": "tb.oak.08",
+  "speaker": "Oak",
+  "text": "When in doubt, a new worktree. It keeps main clean, and it still runs on your machine.",
+  "words": [
+    {
+      "word": "When",
+      "start": 0,
+      "end": 0.187
+    },
+    {
+      "word": "in",
+      "start": 0.187,
+      "end": 0.307
+    },
+    {
+      "word": "doubt",
+      "start": 0.307,
+      "end": 0.76
+    },
+    {
+      "word": "a",
+      "start": 0.76,
+      "end": 0.84
+    },
+    {
+      "word": "new",
+      "start": 0.84,
+      "end": 1.024
+    },
+    {
+      "word": "worktree",
+      "start": 1.024,
+      "end": 1.76
+    },
+    {
+      "word": "It",
+      "start": 1.76,
+      "end": 2.133
+    },
+    {
+      "word": "keeps",
+      "start": 2.133,
+      "end": 2.448
+    },
+    {
+      "word": "main",
+      "start": 2.448,
+      "end": 2.707
+    },
+    {
+      "word": "clean",
+      "start": 2.707,
+      "end": 3.22
+    },
+    {
+      "word": "and",
+      "start": 3.22,
+      "end": 3.307
+    },
+    {
+      "word": "it",
+      "start": 3.307,
+      "end": 3.4
+    },
+    {
+      "word": "still",
+      "start": 3.4,
+      "end": 3.664
+    },
+    {
+      "word": "runs",
+      "start": 3.664,
+      "end": 3.947
+    },
+    {
+      "word": "on",
+      "start": 3.947,
+      "end": 4.016
+    },
+    {
+      "word": "your",
+      "start": 4.016,
+      "end": 4.14
+    },
+    {
+      "word": "machine",
+      "start": 4.14,
+      "end": 4.39
+    }
+  ]
+}

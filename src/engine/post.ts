@@ -1,5 +1,8 @@
 import {
   Matrix4,
+  Mesh,
+  MeshStandardNodeMaterial,
+  PlaneGeometry,
   RenderPipeline,
   FloatType,
   RenderTarget,
@@ -253,37 +256,52 @@ export async function createPost(
   if (scenePass?.renderTarget.depthTexture && renderer.reversedDepthBuffer) {
     scenePass.renderTarget.depthTexture.type = FloatType;
   }
+  function compileNow(object: Object3D): Promise<void> {
+    // The pass draws one render call deeper than compileAsync, so its render objects are new, and
+    // three's skinned meshes then get new bone buffers named by node id: a new shader, so a
+    // precompile is never used (characters' shared skinning names theirs by slot, issue 235).
+    // Instanced meshes are left to the warm's real draws too: precompiling them saved no shaders
+    // and built a second set of instance buffers (about 80 MB, mostly the grass; issue 237).
+    const o = object as Object3D & {
+      isSkinnedMesh?: boolean;
+      isInstancedMesh?: boolean;
+      isBatchedMesh?: boolean;
+    };
+    if (scenePass && (o.isSkinnedMesh || o.isInstancedMesh || o.isBatchedMesh)) return Promise.resolve();
+    const target = renderer.getRenderTarget();
+    const currentMrt = renderer.getMRT();
+    renderer.setRenderTarget(sceneTarget ?? scenePass!.renderTarget);
+    renderer.setMRT(scenePass ? scenePass.getMRT() : null);
+    if (temporalNode && compiling++ === 0) velocityNode.setProjectionMatrix(compileProjection);
+    // compileAsync takes the render target and MRT before its first await (it builds the nodes and
+    // pipelines afterwards), so the renderer's state can go back as it was straight away.
+    const done = renderer.compileAsync(object, camera, scene);
+    renderer.setRenderTarget(target);
+    renderer.setMRT(currentMrt);
+    if (!temporalNode) return done;
+    return done.finally(() => {
+      if (--compiling === 0) velocityNode.setProjectionMatrix(null);
+    });
+  }
+  // The first scene-pass build comes out unlike every later one (seen as a second sky, ocean or
+  // terrain shader, whichever compiled first): a throwaway lit receiver takes that build, and its
+  // shaders go with it.
+  const primer = new Mesh(new PlaneGeometry(), new MeshStandardNodeMaterial());
+  primer.receiveShadow = true;
+  let primed: Promise<void> | null = null;
   return {
     render,
     async compile() {
       render();
     },
     compileObject(object) {
-      // The pass draws one render call deeper than compileAsync, so its render objects are new, and
-      // three's skinned meshes then get new bone buffers named by node id: a new shader, so a
-      // precompile is never used (characters' shared skinning names theirs by slot, issue 235).
-      // Instanced meshes are left to the warm's real draws too: precompiling them saved no shaders
-      // and built a second set of instance buffers (about 80 MB, mostly the grass; issue 237).
-      const o = object as Object3D & {
-        isSkinnedMesh?: boolean;
-        isInstancedMesh?: boolean;
-        isBatchedMesh?: boolean;
-      };
-      if (scenePass && (o.isSkinnedMesh || o.isInstancedMesh || o.isBatchedMesh)) return Promise.resolve();
-      const target = renderer.getRenderTarget();
-      const currentMrt = renderer.getMRT();
-      renderer.setRenderTarget(sceneTarget ?? scenePass!.renderTarget);
-      renderer.setMRT(scenePass ? scenePass.getMRT() : null);
-      if (temporalNode && compiling++ === 0) velocityNode.setProjectionMatrix(compileProjection);
-      // compileAsync takes the render target and MRT before its first await (it builds the nodes and
-      // pipelines afterwards), so the renderer's state can go back as it was straight away.
-      const done = renderer.compileAsync(object, camera, scene);
-      renderer.setRenderTarget(target);
-      renderer.setMRT(currentMrt);
-      if (!temporalNode) return done;
-      return done.finally(() => {
-        if (--compiling === 0) velocityNode.setProjectionMatrix(null);
+      // Issued first and now: the object's own compile must start in this call (callers uncull an
+      // object only while they call this).
+      primed ??= compileNow(primer).finally(() => {
+        primer.geometry.dispose();
+        primer.material.dispose();
       });
+      return compileNow(object);
     },
     warmOutput() {
       if (!sceneTarget) return;
@@ -298,11 +316,21 @@ export async function createPost(
       scenePass?.dispose();
       sceneTarget?.dispose();
       gtaoNode?.dispose();
-      if (beauty !== hdr) (beauty as unknown as { dispose(): void }).dispose();
+      if (beauty !== hdr) {
+        (beauty as unknown as { dispose(): void }).dispose();
+        rttTarget(beauty)?.dispose();
+      }
       temporalNode?.dispose();
       sharpenNode?.dispose();
       pipeline.dispose();
       meter?.dispose();
+      // FXAA reads the graded image from a render-to-texture target of its own.
+      if (!temporalPost) rttTarget((fxaaNode as unknown as { textureNode?: unknown }).textureNode)?.dispose();
     },
   };
+}
+
+/** A render-to-texture node's target (three's RTTNode doesn't free it when the node is disposed). */
+function rttTarget(node: unknown): { dispose(): void } | undefined {
+  return (node as { renderTarget?: { dispose(): void } } | undefined)?.renderTarget;
 }

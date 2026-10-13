@@ -6,7 +6,21 @@ import {
   Mesh,
   MeshStandardNodeMaterial,
 } from 'three/webgpu';
-import { abs, attribute, color, float, fract, max, mix, positionWorld, sin, smoothstep, uv } from 'three/tsl';
+import {
+  abs,
+  attribute,
+  cameraPosition,
+  color,
+  float,
+  floor,
+  fract,
+  max,
+  mix,
+  positionWorld,
+  sin,
+  smoothstep,
+  uv,
+} from 'three/tsl';
 import { world } from '../uniforms';
 
 // three's fluent TSL typings don't cover every scalar/vector mix used below.
@@ -256,11 +270,27 @@ function createFlowingWaterMaterial(): MeshStandardNodeMaterial {
   const striation = sin(across.mul(43.0).add(sin(along.mul(0.35).add(across.mul(9.0))).mul(1.6)))
     .mul(0.5)
     .add(0.5);
-  const rush = fract(along.mul(0.28).sub(time.mul(speed).mul(0.55)).add(across.mul(1.9)));
+  // Ribbons of white water racing down: each narrow column across the sheet at its own phase, so the
+  // pattern runs straight down the fall (no diagonal bands on a wide one).
+  const column = floor(across.mul(44));
+  const colPhase = fract(sin(column.mul(12.9898)).mul(43758.5453));
+  const rush = fract(
+    along
+      .mul(colPhase.mul(0.25).add(0.12))
+      .sub(time.mul(speed).mul(colPhase.mul(0.3).add(0.45)))
+      .add(colPhase),
+  );
+  // Each ribbon rounded across its width, so columns don't meet in hard seams.
+  const ribbon = sin(fract(across.mul(44)).mul(Math.PI))
+    .max(0)
+    .pow(0.6);
+  // A soft pulse (a triangle wave, no hard edge where it wraps) in each column.
+  const pulse = float(1).sub(abs(rush.mul(2).sub(1)));
   const sheet = smoothstep(float(0.25), float(0.75), striation)
-    .mul(0.5)
-    .add(smoothstep(float(0.55), float(1), rush).mul(0.5));
-  const fallColor = mix(color(0x9fc6cc), color(0xf6fcfc), sheet.mul(0.7).add(0.3));
+    .mul(0.55)
+    .add(smoothstep(float(0.35), float(1), pulse).mul(ribbon).mul(0.45));
+  // White foam where the sheet leaves the lip and where it lands (the strips' foam).
+  const fallColor = mix(color(0x9fc6cc), color(0xf6fcfc), sheet.mul(0.7).add(0.3).add(f.z.mul(0.5)).min(1));
   const edgeFade = smoothstep(float(0), float(0.16).add(ragged), across).mul(
     smoothstep(float(1), float(0.84).sub(ragged), across),
   );
@@ -268,9 +298,22 @@ function createFlowingWaterMaterial(): MeshStandardNodeMaterial {
   m.colorNode = mix(mix(channel, lakeColor, lake), fallColor, fall) as AnyNode;
   m.opacityNode = mix(
     mix(channelOpacity, f.x.mul(0.96), lake),
-    f.x.mul(edgeFade).mul(float(0.82).add(sheet.mul(0.16))),
+    // Thin between its ribbons (you see through a falling sheet), dense where the white water runs.
+    // Close up (from behind a fall, in its cave) the sheet thins between its ribbons, so you see the
+    // world through it; from a distance it reads as white water.
+    f.x
+      .mul(edgeFade)
+      .mul(
+        mix(
+          float(0.16),
+          float(0.5),
+          smoothstep(float(4), float(16), (positionWorld as AnyNode).distance(cameraPosition)),
+        ).add(sheet.mul(0.5)),
+      ),
     fall,
   ) as AnyNode;
   m.roughnessNode = mix(mix(channelRough, float(0.5), lake), float(0.55), fall) as AnyNode;
+  // A fall glows a little with the light it carries, so it reads bright from its shaded back too.
+  m.emissiveNode = fallColor.mul(fall.mul(sheet.mul(0.35).add(0.12))) as AnyNode;
   return m;
 }

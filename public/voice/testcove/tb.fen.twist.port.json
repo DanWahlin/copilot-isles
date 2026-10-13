@@ -1,0 +1,62 @@
+{
+  "id": "tb.fen.twist.port",
+  "speaker": "Fen",
+  "text": "That's it! Different ports for parallel previews. Docs takes Lookout 5174.",
+  "words": [
+    {
+      "word": "That's",
+      "start": 0,
+      "end": 0.24
+    },
+    {
+      "word": "it",
+      "start": 0.24,
+      "end": 0.552
+    },
+    {
+      "word": "Different",
+      "start": 0.552,
+      "end": 1.28
+    },
+    {
+      "word": "ports",
+      "start": 1.28,
+      "end": 1.76
+    },
+    {
+      "word": "for",
+      "start": 1.76,
+      "end": 2.08
+    },
+    {
+      "word": "parallel",
+      "start": 2.08,
+      "end": 2.809
+    },
+    {
+      "word": "previews",
+      "start": 2.809,
+      "end": 4.096
+    },
+    {
+      "word": "Docs",
+      "start": 4.096,
+      "end": 4.573
+    },
+    {
+      "word": "takes",
+      "start": 4.573,
+      "end": 5.088
+    },
+    {
+      "word": "Lookout",
+      "start": 5.088,
+      "end": 5.696
+    },
+    {
+      "word": "5174",
+      "start": 5.696,
+      "end": 5.946
+    }
+  ]
+}

@@ -87,9 +87,32 @@ the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _
   materials through `palettedMaterial` (characters/stage-light.ts). Don't set
   `receiveShadow = false` to keep a mesh out of the sun's shadows: it builds a second shader for the
   same look. Use `skipSunShadows` (sky/cached-sun-shadow.ts); the warms mark the rest
-  (`skipSunShadowsWhereOff`).
+  (`skipSunShadowsWhereOff`). The islands take the sun's shadows on Medium and up
+  (`islandsTakeSunShadows`); on Low `cove-scene` skips them for every island root it adds.
 - Count programs with a census, not by guess: per tier, landed on Anchorage and after
   `window.__flow.travelTo('island:meridian')`, on both backends (`renderer.info.memory.programs`).
+  Walk both islands first (teleport through a few spots): roaming Port Meridian adds about 6.
+- A precompile that builds a different shader from the draw only wastes programs. Find them in the
+  census as stages used only in the precompile context. The very first scene-pass build always came
+  out different (an unused varying, or render uniforms in another order) for whatever compiled first
+  (the sky dome, the ocean, the terrain): `post.compileObject` now compiles a throwaway lit receiver
+  first and frees it.
+- The WebGL2 backend names uniform buffers after node ids, even with `setName`. Make per-object
+  inputs (`reference`, `referenceBuffer`) once, outside the `Fn`: built inside, each build (each
+  shadow map) made new nodes and a new shader (the shared skinning gave 12 shadow vertex shaders).
+- Prefer one graph with a uniform switch over two near-identical materials (dolphins and flying
+  fish share `createLeapCreatureMaterial`); a double-sided colour graph can often be faces of its own
+  (the chest lid's inside is flipped, darker faces on the body's shader).
+- Late instanced additions on the title (gulls, leaps): don't precompile them (no precompile matches
+  an instanced draw). Add them and wait two frames inside `engine.counters.excuse`.
+- Every distinct look in the harbour mirror is a second set of shaders: keep small things out
+  (`unreflected`: chests, message bottles, characters). Static instanced props cost an instanced
+  shader per look: bake them per material (`bakeInstances`; Anchorage's crates, casks, sacks and pots).
+- Don't draw to the canvas outside the post stack: the renderer's own output pass (a canvas-sized
+  target and an output quad) then lives for the page. The opening draws through
+  `createCutsceneOutput`, which it frees.
+- Measure a sea battle too (`tools/battletest.mjs`; its world comes from a continued save, so warm
+  order differs from a new voyage). Keep the battle peak ≤ 140 so a new island has room.
 
 ## 4. GPU resources have an owner
 
@@ -99,9 +122,24 @@ the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _
   opening's `releaseNoiseTexture`). The world's owner (`cove-scene` dispose) calls them.
 - After a voyage ends, `renderer.info.memory` at the title should match the title before it. Trace
   leftovers by recording textures that get a `dispose` listener and never dispose (debug-only page
-  patch of `EventDispatcher`; see the session's `texleak.mjs` approach).
+  patch of `EventDispatcher`; see the session's `texleak.mjs` approach), or wrap the renderer's
+  `info.createTexture`/`destroyTexture` for an exact list.
+- three r186 keeps a drawn object's render object (and its shaders) until the **object or its
+  material** is disposed; disposing the geometry isn't enough. Meshes that share a cached material
+  (chests, palms, faces) kept theirs after a voyage: `GameFlow.endVoyage` sends `dispose` to every
+  object that left the scene (`releaseRemovedObjects`), and the opening does the same for its cabin.
+- Cached materials and geometries free their GPU side after a voyage (`releaseFaceResources`,
+  `releaseVillageKitTextures`, `releaseWaterDepthTexture`, the chests' last `dispose`).
+- three's `RTTNode` (`convertToTexture`, FXAA's input) doesn't free its target: the post's `dispose`
+  does. Its quad can't be freed through the public API.
+- A viewport depth node's `.sample(uv)` clones share their base's copies (three's own do); our
+  `MatchedDepthNode` once made a full-screen depth copy per clone (9 on the title).
 
 ## 5. Lessons learned (bugs we have hit)
+
+- **Palms go black in the sun's shadows:** the palm material (`createPalmMaterial`) renders its trunk
+  black (a NaN) with the normal-biased shadow lookup. Palms take `userData.sunShadow = false`; hero
+  palms still cast. Find the cause before you let palms receive.
 
 - **Z-fighting with paper or decals:** geometry that lies exactly on a surface flickers through it.
   Sink it below the surface while it is flat (the chart's `PAPER_TUCK`), or offset it; never rely on

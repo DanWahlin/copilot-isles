@@ -1,0 +1,97 @@
+{
+  "id": "tb.rook.03",
+  "speaker": "Rook",
+  "text": "Set Mode to Plan, type hash three, pick Improve the empty state copy, and ask for a plan.",
+  "words": [
+    {
+      "word": "Set",
+      "start": 0,
+      "end": 0.192
+    },
+    {
+      "word": "Mode",
+      "start": 0.192,
+      "end": 0.373
+    },
+    {
+      "word": "to",
+      "start": 0.373,
+      "end": 0.56
+    },
+    {
+      "word": "Plan",
+      "start": 0.56,
+      "end": 1.088
+    },
+    {
+      "word": "type",
+      "start": 1.088,
+      "end": 1.744
+    },
+    {
+      "word": "hash",
+      "start": 1.744,
+      "end": 2.4
+    },
+    {
+      "word": "three",
+      "start": 2.4,
+      "end": 3.088
+    },
+    {
+      "word": "pick",
+      "start": 3.088,
+      "end": 3.68
+    },
+    {
+      "word": "Improve",
+      "start": 3.68,
+      "end": 4.26
+    },
+    {
+      "word": "the",
+      "start": 4.26,
+      "end": 4.36
+    },
+    {
+      "word": "empty",
+      "start": 4.36,
+      "end": 4.6
+    },
+    {
+      "word": "state",
+      "start": 4.6,
+      "end": 4.88
+    },
+    {
+      "word": "copy",
+      "start": 4.88,
+      "end": 5.46
+    },
+    {
+      "word": "and",
+      "start": 5.46,
+      "end": 5.58
+    },
+    {
+      "word": "ask",
+      "start": 5.58,
+      "end": 5.78
+    },
+    {
+      "word": "for",
+      "start": 5.78,
+      "end": 5.88
+    },
+    {
+      "word": "a",
+      "start": 5.88,
+      "end": 5.984
+    },
+    {
+      "word": "plan",
+      "start": 5.984,
+      "end": 6.234
+    }
+  ]
+}

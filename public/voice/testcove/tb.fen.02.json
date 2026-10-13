@@ -1,0 +1,47 @@
+{
+  "id": "tb.fen.02",
+  "speaker": "Fen",
+  "text": "Three tasks, one folder. Their work blurs together.",
+  "words": [
+    {
+      "word": "Three",
+      "start": 0,
+      "end": 0.32
+    },
+    {
+      "word": "tasks",
+      "start": 0.32,
+      "end": 1.08
+    },
+    {
+      "word": "one",
+      "start": 1.08,
+      "end": 1.28
+    },
+    {
+      "word": "folder",
+      "start": 1.28,
+      "end": 1.933
+    },
+    {
+      "word": "Their",
+      "start": 1.933,
+      "end": 2.48
+    },
+    {
+      "word": "work",
+      "start": 2.48,
+      "end": 2.907
+    },
+    {
+      "word": "blurs",
+      "start": 2.907,
+      "end": 3.404
+    },
+    {
+      "word": "together",
+      "start": 3.404,
+      "end": 3.654
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "id": "tb.fen.twist.redig",
+  "speaker": "Fen",
+  "text": "Their channels are already apart. Worktrees separate files and branches, not ports.",
+  "words": [
+    {
+      "word": "Their",
+      "start": 0,
+      "end": 0.213
+    },
+    {
+      "word": "channels",
+      "start": 0.213,
+      "end": 0.74
+    },
+    {
+      "word": "are",
+      "start": 0.74,
+      "end": 1.11
+    },
+    {
+      "word": "already",
+      "start": 1.11,
+      "end": 1.72
+    },
+    {
+      "word": "apart",
+      "start": 1.72,
+      "end": 2.56
+    },
+    {
+      "word": "Worktrees",
+      "start": 2.56,
+      "end": 3.591
+    },
+    {
+      "word": "separate",
+      "start": 3.591,
+      "end": 4.253
+    },
+    {
+      "word": "files",
+      "start": 4.253,
+      "end": 4.76
+    },
+    {
+      "word": "and",
+      "start": 4.76,
+      "end": 4.951
+    },
+    {
+      "word": "branches",
+      "start": 4.951,
+      "end": 5.84
+    },
+    {
+      "word": "not",
+      "start": 5.84,
+      "end": 6.187
+    },
+    {
+      "word": "ports",
+      "start": 6.187,
+      "end": 6.437
+    }
+  ]
+}

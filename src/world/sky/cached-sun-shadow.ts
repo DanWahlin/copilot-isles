@@ -65,12 +65,13 @@ export function skipSunShadows(root: Object3D): void {
 
 /**
  * The same for every mesh under `root` with `receiveShadow` off. Run it before a mesh is first
- * compiled: changing `receiveShadow` later builds its shaders again.
+ * compiled: changing `receiveShadow` later builds its shaders again. A mesh whose look no other mesh
+ * shares can opt out (`userData.sunShadowNever`, the ocean) and keep its shadow-free shader.
  */
 export function skipSunShadowsWhereOff(root: Object3D): void {
   root.traverse((object) => {
     const mesh = object as Mesh;
-    if (!mesh.isMesh || mesh.receiveShadow) return;
+    if (!mesh.isMesh || mesh.receiveShadow || object.userData.sunShadowNever === true) return;
     mesh.receiveShadow = true;
     object.userData.sunShadow = false;
   });

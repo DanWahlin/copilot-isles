@@ -63,8 +63,9 @@ Anchorage and Port Meridian's harbours stay calm. We'll adjust the later places 
 | 2 | *Blind Approval*, *Unasked* | *"**Always ask** asks each time. **Approve all** runs tools without asking."* (01 §Modes) | N1.1 |
 | 3 | *Max Effort*, *Overthought* | *"Higher effort does not guarantee a correct answer."* (01 §Models and Reasoning Effort) | N1.2 |
 
-The win card says Thousand-Bough Isle lies ahead. It runs after the Seal of Meridian, once the
-Chapter 02 island exists; for now it's on the dev page (`?battle=2`).
+The win card says Thousand-Bough Isle lies ahead. It runs after the Seal of Meridian, on the passage
+from Port Meridian toward Thousand-Bough Isle, once that island is in the `ISLANDS` registry (§13);
+the dev page plays it with `?battle=2`.
 
 ### 2.1 Keelhaven (later): "Trust the Evidence"
 
@@ -268,7 +269,7 @@ High.
 `devpages/battle.html`: open water, your brigantine, **one wave of 2–3 raiders**, ballistic broadsides,
 hit and miss splashes, damage and settling, the powder-row HUD, the firing arcs, and the warning arcs.
 Flags: `?webgl`, `?tier=`, `?seed=`, `?calm`. Debug API `window.__battle` (state, force a wave, stats).
-It goes into the Anchorage → Port Meridian passage only after Dan likes it.
+It's now in the game too (§13).
 
 ## 12. Decisions (Dan, 2026-10-04)
 
@@ -278,3 +279,24 @@ It goes into the Anchorage → Port Meridian passage only after Dan likes it.
 3. **Readiness rows**: powder cartridges (linen bags that fill with amber).
 4. **Between-wave bonus**: the player picks a double-shotted volley or quick repairs.
 5. **Firing**: one Fire button (Space / A / touch) for every side that bears, plus Z/C (LB/RB) per side.
+
+## 13. In the game (2026-10-13)
+
+- **Where the code lives.** `src/game/battles.ts` (which passage holds which battle, when it starts, and
+  what the save keeps; pure, unit-tested), `src/game/passage-battles.ts` (the session's controller), and
+  `src/game/battle-run.ts` (the lazily loaded battle: ships, HUD, camera director, sounds, music).
+- **When.** Boarding at a battle's island with its Seal earned (`Q0.10` for battle 1, `Q1.8` for
+  battle 2) and the battle not done builds it behind the boarding fade and warms it while you sail out
+  (`cove.warmLate`, the game's late warm). The lookout calls sails once you're 450 m or more from the
+  berth you left, out of every island's waters with 80 m to spare all round (about halfway across).
+  Battle 2 waits until an island whose name matches Thousand-Bough is in `ISLANDS`.
+- **The zone.** Sailing within 220 m of any berth rests the battle (the raiders fall back into the fog,
+  the wave is kept); 300 m out again, the same wave comes back. The destination's berth stays shut
+  while the battle is on. Raiders come out of the fog on the bearing nearest the wind's that's open
+  water, and they run aground on islands like your ship does (the game's composite height field).
+- **Done is saved.** A win or a skip (the HUD's **Skip battle**, the pause menu's **Skip battle**, or
+  fast travel to the destination) adds the battle's id to the save's `battles` list at once, even at
+  sea. Older saves have no list and load as "none fought".
+- **Controls.** Space / A fires what bears, Z / LB and C / RB one side, R / Y brings her round. While
+  the bosun's question is up, the helm keys (W/S, arrows, left stick) move between the choices and
+  E / A picks one; Enter and clicks work too.

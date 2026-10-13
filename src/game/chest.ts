@@ -4,7 +4,6 @@ import {
   BufferAttribute,
   CanvasTexture,
   CylinderGeometry,
-  DoubleSide,
   Euler,
   Group,
   Mesh,
@@ -19,10 +18,8 @@ import {
   Vector3,
   type BufferGeometry,
 } from 'three/webgpu';
-import { float, frontFacing, select, vec3 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { unreflected } from '../world/reflection';
-import { plainShadowColor } from '../engine/shadow-color';
 
 const W = 0.92;
 const H = 0.46;
@@ -60,6 +57,28 @@ function box(
 }
 
 /** Half-cylinder shell along x (the curved chest lid), hinge at the back edge (z = -LID_R, y = 0). */
+/** How much darker the inside of the lid is than its outside. */
+const LID_INSIDE = 0.42;
+
+/** The back of `g` as faces of their own: winding and normals flipped, colours scaled by `shade`. */
+function insideFaces(g: BufferGeometry, shade: number): BufferGeometry {
+  const inside = g.clone();
+  const index = inside.index;
+  if (index) {
+    for (let i = 0; i < index.count; i += 3) {
+      const b = index.getX(i + 1);
+      index.setX(i + 1, index.getX(i + 2));
+      index.setX(i + 2, b);
+    }
+  }
+  const normal = inside.getAttribute('normal');
+  for (let i = 0; i < normal.count; i++) normal.setXYZ(i, -normal.getX(i), -normal.getY(i), -normal.getZ(i));
+  const color = inside.getAttribute('color');
+  for (let i = 0; i < color.count; i++)
+    color.setXYZ(i, color.getX(i) * shade, color.getY(i) * shade, color.getZ(i) * shade);
+  return inside;
+}
+
 function lidShell(r: number, len: number, x: number, c: readonly [number, number, number]) {
   const g = new CylinderGeometry(r, r, len, 18, 1, false, 0, Math.PI);
   g.rotateZ(Math.PI / 2);
@@ -168,6 +187,8 @@ let sharedCoinMaterial: MeshStandardNodeMaterial | null = null;
 /** The lid's shell is one surface: drawn from both sides, with the inside of the lid darker. */
 let sharedLidMaterial: MeshStandardNodeMaterial | null = null;
 let sharedGlow: CanvasTexture | null = null;
+/** Chests not yet disposed: the last one frees the shared GPU copies (kept for the next voyage). */
+let liveChests = 0;
 
 function glowTexture(): CanvasTexture {
   if (sharedGlow) return sharedGlow;
@@ -198,20 +219,17 @@ export interface TreasureChest {
 
 /**
  * A small iron-banded treasure chest heaped with gold coins, with a warm shimmer until it's opened.
- * Three draws (the body, the coins, and a double-sided lid); every chest shares the materials.
+ * Three draws (the body, the coins, and the lid); every chest shares the materials.
  */
 export function createChest(): TreasureChest {
   sharedMaterial ??= new MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.18 });
-  if (!sharedLidMaterial) {
-    sharedLidMaterial = new MeshStandardNodeMaterial({
-      vertexColors: true,
-      roughness: 0.66,
-      metalness: 0.12,
-      side: DoubleSide,
-    });
-    sharedLidMaterial.colorNode = vec3(select(frontFacing, float(1), float(0.42)));
-    plainShadowColor(sharedLidMaterial);
-  }
+  // The body's shader (only its roughness and metalness differ): the lid's inside is its own
+  // darker faces (insideFaces), not a double-sided colour graph with shaders of its own.
+  sharedLidMaterial ??= new MeshStandardNodeMaterial({
+    vertexColors: true,
+    roughness: 0.66,
+    metalness: 0.12,
+  });
   const group = new Group();
   group.name = 'treasure chest';
   // Not in the harbour mirror: what it stands on isn't reflected either, and each reflected look
@@ -251,8 +269,12 @@ export function createChest(): TreasureChest {
     lidShell(LID_R + 0.012, 0.06, W / 2 - 0.12, IRON),
     box(0.1, 0.08, 0.03, 0, 0.02, D + 0.01, GOLD),
   ];
-  const lidGeo = mergeGeometries(lidParts)!;
+  const shell = mergeGeometries(lidParts)!;
   for (const p of lidParts) p.dispose();
+  const inside = insideFaces(shell, LID_INSIDE);
+  const lidGeo = mergeGeometries([shell, inside])!;
+  shell.dispose();
+  inside.dispose();
   const lid = new Mesh(lidGeo, sharedLidMaterial);
   lid.castShadow = true;
   const hinge = new Group();
@@ -267,6 +289,7 @@ export function createChest(): TreasureChest {
     blending: AdditiveBlending,
   });
   const glow = new Sprite(glowMat);
+  liveChests++;
   glow.scale.setScalar(1.6);
   glow.position.set(0, H + 0.35, 0);
   glow.renderOrder = 2;
@@ -322,6 +345,11 @@ export function createChest(): TreasureChest {
       glowMat.dispose();
       unreflected.delete(group);
       group.removeFromParent();
+      if (--liveChests === 0) {
+        // Every sprite shares one geometry; the glow's canvas stays drawn for the next upload.
+        glow.geometry.dispose();
+        sharedGlow?.dispose();
+      }
     },
   };
 }

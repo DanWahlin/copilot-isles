@@ -1,0 +1,82 @@
+{
+  "id": "tb.elder.01",
+  "speaker": "Maren",
+  "text": "You've climbed above the mist, Captain. Down there, every crew works on its own bough.",
+  "words": [
+    {
+      "word": "You've",
+      "start": 0,
+      "end": 0.22
+    },
+    {
+      "word": "climbed",
+      "start": 0.22,
+      "end": 0.707
+    },
+    {
+      "word": "above",
+      "start": 0.707,
+      "end": 1.06
+    },
+    {
+      "word": "the",
+      "start": 1.06,
+      "end": 1.216
+    },
+    {
+      "word": "mist",
+      "start": 1.216,
+      "end": 1.74
+    },
+    {
+      "word": "Captain",
+      "start": 1.74,
+      "end": 2.496
+    },
+    {
+      "word": "Down",
+      "start": 2.496,
+      "end": 3.587
+    },
+    {
+      "word": "there",
+      "start": 3.587,
+      "end": 4.387
+    },
+    {
+      "word": "every",
+      "start": 4.387,
+      "end": 4.816
+    },
+    {
+      "word": "crew",
+      "start": 4.816,
+      "end": 5.28
+    },
+    {
+      "word": "works",
+      "start": 5.28,
+      "end": 5.707
+    },
+    {
+      "word": "on",
+      "start": 5.707,
+      "end": 5.82
+    },
+    {
+      "word": "its",
+      "start": 5.82,
+      "end": 6.08
+    },
+    {
+      "word": "own",
+      "start": 6.08,
+      "end": 6.4
+    },
+    {
+      "word": "bough",
+      "start": 6.4,
+      "end": 6.65
+    }
+  ]
+}

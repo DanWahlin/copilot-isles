@@ -1,0 +1,87 @@
+{
+  "id": "tb.saffi.03",
+  "speaker": "Saffi",
+  "text": "So you can work on several tasks without stashing changes or switching branches in one folder.",
+  "words": [
+    {
+      "word": "So",
+      "start": 0,
+      "end": 0.2
+    },
+    {
+      "word": "you",
+      "start": 0.2,
+      "end": 0.36
+    },
+    {
+      "word": "can",
+      "start": 0.36,
+      "end": 0.544
+    },
+    {
+      "word": "work",
+      "start": 0.544,
+      "end": 0.853
+    },
+    {
+      "word": "on",
+      "start": 0.853,
+      "end": 1.02
+    },
+    {
+      "word": "several",
+      "start": 1.02,
+      "end": 1.547
+    },
+    {
+      "word": "tasks",
+      "start": 1.547,
+      "end": 2.14
+    },
+    {
+      "word": "without",
+      "start": 2.14,
+      "end": 2.613
+    },
+    {
+      "word": "stashing",
+      "start": 2.613,
+      "end": 3.12
+    },
+    {
+      "word": "changes",
+      "start": 3.12,
+      "end": 3.707
+    },
+    {
+      "word": "or",
+      "start": 3.707,
+      "end": 3.808
+    },
+    {
+      "word": "switching",
+      "start": 3.808,
+      "end": 4.311
+    },
+    {
+      "word": "branches",
+      "start": 4.311,
+      "end": 4.933
+    },
+    {
+      "word": "in",
+      "start": 4.933,
+      "end": 5.12
+    },
+    {
+      "word": "one",
+      "start": 5.12,
+      "end": 5.451
+    },
+    {
+      "word": "folder",
+      "start": 5.451,
+      "end": 5.701
+    }
+  ]
+}

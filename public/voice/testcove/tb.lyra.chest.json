@@ -1,0 +1,77 @@
+{
+  "id": "tb.lyra.chest",
+  "speaker": "Lyra",
+  "text": "My notes are in the chest by the last booth. Take them, they're yours.",
+  "words": [
+    {
+      "word": "My",
+      "start": 0.052625,
+      "end": 0.263166
+    },
+    {
+      "word": "notes",
+      "start": 0.263166,
+      "end": 0.592125
+    },
+    {
+      "word": "are",
+      "start": 0.592125,
+      "end": 0.828958
+    },
+    {
+      "word": "in",
+      "start": 0.828958,
+      "end": 0.921041
+    },
+    {
+      "word": "the",
+      "start": 0.921041,
+      "end": 1.039458
+    },
+    {
+      "word": "chest",
+      "start": 1.039458,
+      "end": 1.592125
+    },
+    {
+      "word": "by",
+      "start": 1.592125,
+      "end": 1.776333
+    },
+    {
+      "word": "the",
+      "start": 1.776333,
+      "end": 1.881583
+    },
+    {
+      "word": "last",
+      "start": 1.881583,
+      "end": 2.315791
+    },
+    {
+      "word": "booth",
+      "start": 2.315791,
+      "end": 3.657875
+    },
+    {
+      "word": "Take",
+      "start": 3.657875,
+      "end": 3.934208
+    },
+    {
+      "word": "them",
+      "start": 3.934208,
+      "end": 4.342125
+    },
+    {
+      "word": "they're",
+      "start": 4.342125,
+      "end": 4.618416
+    },
+    {
+      "word": "yours",
+      "start": 4.618416,
+      "end": 4.868416
+    }
+  ]
+}

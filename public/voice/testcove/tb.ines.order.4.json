@@ -1,0 +1,42 @@
+{
+  "id": "tb.ines.order.4",
+  "speaker": "Ines",
+  "text": "Last one: point at another crew's session.",
+  "words": [
+    {
+      "word": "Last",
+      "start": 0,
+      "end": 0.4
+    },
+    {
+      "word": "one",
+      "start": 0.4,
+      "end": 1.247
+    },
+    {
+      "word": "point",
+      "start": 1.247,
+      "end": 1.733
+    },
+    {
+      "word": "at",
+      "start": 1.733,
+      "end": 1.87
+    },
+    {
+      "word": "another",
+      "start": 1.87,
+      "end": 2.144
+    },
+    {
+      "word": "crew's",
+      "start": 2.144,
+      "end": 2.53
+    },
+    {
+      "word": "session",
+      "start": 2.53,
+      "end": 2.78
+    }
+  ]
+}

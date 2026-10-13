@@ -11,7 +11,7 @@
 // Needs a no-HMR dev server (edits elsewhere would reload the page mid-run):
 //   npx vite --config tools/vite.nohmr.config.mjs --host 127.0.0.1 --port 5353 --strictPort
 // node tools/budgettest.mjs [--base=http://127.0.0.1:5353] [--tiers=lite,low,medium,high,ultra]
-//   [--islands=anchorage,meridian] [--spots=12] (seeded walkable spots per island, plus the named ones)
+//   [--islands=anchorage,meridian,thousand-bough] [--spots=12] (seeded walkable spots per island, plus the named ones)
 //   [--yaws=4] [--frames=8] (frames read per view) [--top=10] (groups to print) [--json=<file>]
 //   [--views] (print every view) [--webgl]
 // npm run check:frame-budgets -- --base=http://127.0.0.1:5353 runs it as a gate (not part of the build).
@@ -49,12 +49,26 @@ const ISLANDS = {
       ['fort', 800, -772],
     ],
   },
+  // Thousand-Bough Isle: the wharf, the Booth Pools, and the tree's decks (spots with a height stand
+  // on that deck; the stair and decks stack).
+  'thousand-bough': {
+    box: [1720, -1760, 2320, -1260],
+    named: [
+      ['wharf', 'quay'],
+      ['booths', 1934, -1488],
+      ['roothall', 1997, -1550, 18.5],
+      ['landings', 2037, -1560, 26.83],
+      ['flume', 2024, -1618, 26],
+      ['crown', 2010, -1546, 50.5],
+      ['spire', 2066, -1595, 27],
+    ],
+  },
 };
 
 const opt = parseFlags();
 const base = String(opt.base || 'http://127.0.0.1:5353');
 const tiers = String(opt.tiers || 'lite,low,medium,high,ultra').split(',');
-const islands = String(opt.islands || 'anchorage,meridian').split(',');
+const islands = String(opt.islands || 'anchorage,meridian,thousand-bough').split(',');
 const SPOTS = Number(opt.spots ?? 12);
 const YAWS = Number(opt.yaws ?? 4);
 const FRAMES = Number(opt.frames ?? 8);
@@ -182,6 +196,18 @@ for (const tier of tiers) {
   await page.waitForTimeout(2000);
   for (const island of islands) {
     const cfg = ISLANDS[island];
+    if (island === 'thousand-bough') {
+      await page.evaluate(() => window.__dev.learn?.progress.add('arrivals', 'thousand-bough'));
+      const q = await page.evaluate(() => window.__dev.session().islandQuay('thousand-bough'));
+      await page.evaluate((q) => window.__dev.session().travel(q.x, q.z, q.heading), q);
+      // Streamed in and wired: the Three Landings' deck is walkable.
+      await page.waitForFunction(
+        () => window.__dev.session().world.surfaceHeightAt(2037, -1560, 27) !== null,
+        null,
+        { timeout: 180000 },
+      );
+      await page.waitForTimeout(4000);
+    }
     if (island === 'meridian') {
       // Skip the first-landfall flyover: it holds the camera far from the player.
       await page.evaluate(() => window.__dev.learn?.progress.add('arrivals', 'meridian'));
@@ -193,8 +219,8 @@ for (const tier of tiers) {
       await page.waitForTimeout(2500);
     }
     const quay = await page.evaluate((id) => window.__dev.session().islandQuay(id), island);
-    const spots = cfg.named.map(([name, x, z]) =>
-      x === 'quay' ? { name, x: quay.x, z: quay.z } : { name, x, z },
+    const spots = cfg.named.map(([name, x, z, y]) =>
+      x === 'quay' ? { name, x: quay.x, z: quay.z } : { name, x, z, y },
     );
     const seeded = await page.evaluate(seedSpots, { box: cfg.box, n: SPOTS });
     seeded.forEach((p, i) => spots.push({ name: `s${i}`, ...p }));
@@ -202,10 +228,14 @@ for (const tier of tiers) {
     for (const sp of spots) {
       for (let k = 0; k < YAWS; k++) {
         const yaw = (k / YAWS) * Math.PI * 2;
-        await page.evaluate(({ x, z, yaw }) => window.__dev.bench.teleport(x, z, yaw, yaw, 0.2), {
-          ...sp,
-          yaw,
-        });
+        await page.evaluate(
+          ({ x, z, y, yaw }) => {
+            if (y === undefined) return window.__dev.bench.teleport(x, z, yaw, yaw, 0.2);
+            window.__dev.session().debug.teleport(x, z, yaw, y);
+            window.__dev.look(yaw, 0.2);
+          },
+          { ...sp, yaw },
+        );
         await page.waitForTimeout(k === 0 ? 900 : 450);
         const frames = await page.evaluate((n) => window.__budget.take(n), FRAMES);
         const worst = frames.reduce((a, f) => (f.tris > a.tris ? f : a));
@@ -244,7 +274,7 @@ for (const tier of tiers) {
       ok: !over,
     };
     console.log(
-      `${tier.padEnd(6)} ${island.padEnd(9)} tris avg ${fmtK(sum.trisAvg)} max ${fmtK(sum.trisMax)} / ${fmtK(b.tris)}` +
+      `${tier.padEnd(6)} ${island.padEnd(14)} tris avg ${fmtK(sum.trisAvg)} max ${fmtK(sum.trisMax)} / ${fmtK(b.tris)}` +
         `  draws avg ${sum.drawsAvg} max ${sum.drawsMax} / ${b.draws}  ${over ? 'OVER' : 'ok'}` +
         `  (worst tris ${sum.worstTris} (${maxT.x}, ${maxT.z}), draws ${sum.worstDraws} (${maxD.x}, ${maxD.z}))`,
     );
@@ -281,7 +311,7 @@ if (opt.json) writeFileSync(String(opt.json), JSON.stringify(results, null, 1));
 // its budget (or a page error) fails the run.
 console.log('\nPLAN §12.1 frame budgets (worst view per tier and island):');
 console.log(
-  `  ${'tier'.padEnd(7)}${'island'.padEnd(10)}${'triangles'.padEnd(18)}${'draws'.padEnd(12)}result`,
+  `  ${'tier'.padEnd(7)}${'island'.padEnd(16)}${'triangles'.padEnd(18)}${'draws'.padEnd(12)}result`,
 );
 for (const r of results) {
   const tris = `${fmtK(r.trisMax)} / ${fmtK(r.trisBudget)}`;
@@ -290,7 +320,7 @@ for (const r of results) {
     Boolean,
   );
   console.log(
-    `  ${r.tier.padEnd(7)}${r.island.padEnd(10)}${tris.padEnd(18)}${draws.padEnd(12)}${over.length ? `OVER (${over.join(', ')})` : 'ok'}`,
+    `  ${r.tier.padEnd(7)}${r.island.padEnd(16)}${tris.padEnd(18)}${draws.padEnd(12)}${over.length ? `OVER (${over.join(', ')})` : 'ok'}`,
   );
 }
 console.log(failed ? 'FAIL: over budget (or page errors above)' : 'PASS: every tier is within budget');

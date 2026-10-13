@@ -195,6 +195,10 @@ function createBatch(
   instances.forEach((instance, i) => tintFor(instance).toArray(tints, i * 3));
   const mesh = sharedInstancedMesh(geometry, part.material as Material, instances.length, { count: 0 });
   mesh.name = `vegetation-${species}`;
+  mesh.receiveShadow = true;
+  // The palm material went black where the trunk took the normal-biased shadow lookup: palms keep
+  // full sun (they're lit as before) and still cast where they do (hero palms).
+  if (species.startsWith('palm')) mesh.userData.sunShadow = false;
   // The instances are culled on the CPU (`updateBatch`), so three's own test always passes. A warm-up
   // clears `frustumCulled` to draw a mesh whatever the camera sees: then every plant in range draws.
   mesh.frustumCulled = true;

@@ -1,0 +1,102 @@
+{
+  "id": "tb.saffi.05",
+  "speaker": "Saffi",
+  "text": "Sessions can even run side by side without mixing changes. In this chapter, take them one at a time.",
+  "words": [
+    {
+      "word": "Sessions",
+      "start": 0,
+      "end": 0.44
+    },
+    {
+      "word": "can",
+      "start": 0.44,
+      "end": 0.624
+    },
+    {
+      "word": "even",
+      "start": 0.624,
+      "end": 0.96
+    },
+    {
+      "word": "run",
+      "start": 0.96,
+      "end": 1.264
+    },
+    {
+      "word": "side",
+      "start": 1.264,
+      "end": 1.573
+    },
+    {
+      "word": "by",
+      "start": 1.573,
+      "end": 1.776
+    },
+    {
+      "word": "side",
+      "start": 1.776,
+      "end": 2.22
+    },
+    {
+      "word": "without",
+      "start": 2.22,
+      "end": 2.709
+    },
+    {
+      "word": "mixing",
+      "start": 2.709,
+      "end": 3.22
+    },
+    {
+      "word": "changes",
+      "start": 3.22,
+      "end": 4.373
+    },
+    {
+      "word": "In",
+      "start": 4.373,
+      "end": 5.168
+    },
+    {
+      "word": "this",
+      "start": 5.168,
+      "end": 5.42
+    },
+    {
+      "word": "chapter",
+      "start": 5.42,
+      "end": 6.368
+    },
+    {
+      "word": "take",
+      "start": 6.368,
+      "end": 6.608
+    },
+    {
+      "word": "them",
+      "start": 6.608,
+      "end": 6.86
+    },
+    {
+      "word": "one",
+      "start": 6.86,
+      "end": 7.093
+    },
+    {
+      "word": "at",
+      "start": 7.093,
+      "end": 7.24
+    },
+    {
+      "word": "a",
+      "start": 7.24,
+      "end": 7.36
+    },
+    {
+      "word": "time",
+      "start": 7.36,
+      "end": 7.61
+    }
+  ]
+}

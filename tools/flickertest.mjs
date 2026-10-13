@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Flicker and z-fighting check. For fixed camera views on Anchorage Cay and Port Meridian (the Test
+// Flicker and z-fighting check. For fixed camera views on Anchorage Cay, Port Meridian and
+// Thousand-Bough Isle (the Test
 // Cove dev page), it freezes all motion and then:
 //   (a) still: draws the same frame several times and diffs them. With time held, any change is
 //       flicker (unstable shading, compute noise, something still animating).
@@ -54,6 +55,18 @@ const VIEWS = [
   ['m-fort', 'meridian', [786, 50, -760], [806, 41, -780], 'Meridian fort: walls, towers, roofs'],
   ['m-citadel', 'meridian', [890, 105, -855], [1028, 64, -1002], 'citadel walls'],
   ['m-ridge', 'meridian', [910, 118, -780], [1110, 92, -1078], 'ridge rocks, distant ranges'],
+  [
+    'tb-wharf',
+    'thousand-bough',
+    [1925, 8, -1395],
+    [1945, 2.4, -1430],
+    'Root Wharf, Bough Landing, boathouse',
+  ],
+  ['tb-roothall', 'thousand-bough', [1985, 24, -1600], [2010, 19, -1560], 'Root Hall, stair foot, plinth'],
+  ['tb-stair', 'thousand-bough', [1978, 31, -1578], [2008, 26, -1560], 'Great Stair, rails, decks'],
+  ['tb-bridge', 'thousand-bough', [1984, 38, -1522], [2016, 31, -1527], 'rope bridge R1 and decks'],
+  ['tb-flume', 'thousand-bough', [2010, 36, -1596], [2008, 21, -1626], 'Flume Terrace tiles and gates'],
+  ['tb-crown', 'thousand-bough', [2035, 58, -1530], [2010, 51, -1556], 'Crown Deck, beacon, rail'],
 ];
 
 const opt = parseFlags(process.argv.slice(2));
@@ -187,6 +200,7 @@ async function writeMap(path, base, still, noisy, solid, regions, w, h) {
 const results = [];
 const audits = {};
 let meridianLoaded = false;
+let thousandBoughLoaded = false;
 // Vite reloads the page when anyone edits a source file; a view measured across a reload is redone.
 let loads = 0;
 page.on('framenavigated', (frame) => {
@@ -217,6 +231,7 @@ for (const view of views) {
     await page.waitForFunction(() => window.__dev?.ready === true, null, { timeout: 180_000 });
     await page.waitForTimeout(3000);
     meridianLoaded = false;
+    thousandBoughLoaded = false;
   }
 }
 
@@ -231,9 +246,13 @@ async function measure([name, island, cam, target, what]) {
     await S(async () => void (await window.__dev.cove.meridian.load()));
     meridianLoaded = true;
   }
+  if (island === 'thousand-bough' && !thousandBoughLoaded) {
+    await S(async () => void (await window.__dev.cove.thousandBough.load()));
+    thousandBoughLoaded = true;
+  }
   await S(([c, t]) => window.__dev.setCam(c, t), [cam, target]);
   // Let streaming, LOD fades, impostors and the reflection settle at this view.
-  await page.waitForTimeout(island === 'meridian' ? 5000 : 2500);
+  await page.waitForTimeout(island === 'anchorage' ? 2500 : 5000);
   await S(() => window.__dev.freeze(true));
   // Progressive work (the clouds' 16-frame trace and 32-slot panorama) converges on a held frame.
   await S(async (n) => {

@@ -1,0 +1,97 @@
+{
+  "id": "tb.lyra.03",
+  "speaker": "Lyra",
+  "text": "A worktree's a booth: the same song, but its own folder and branch, so parallel work doesn't collide.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0.052625,
+      "end": 0.131583
+    },
+    {
+      "word": "worktree's",
+      "start": 0.131583,
+      "end": 0.697375
+    },
+    {
+      "word": "a",
+      "start": 0.697375,
+      "end": 0.776333
+    },
+    {
+      "word": "booth",
+      "start": 0.776333,
+      "end": 1.421041
+    },
+    {
+      "word": "the",
+      "start": 1.421041,
+      "end": 1.565791
+    },
+    {
+      "word": "same",
+      "start": 1.565791,
+      "end": 1.89475
+    },
+    {
+      "word": "song",
+      "start": 1.89475,
+      "end": 2.460541
+    },
+    {
+      "word": "but",
+      "start": 2.460541,
+      "end": 2.802625
+    },
+    {
+      "word": "its",
+      "start": 2.802625,
+      "end": 2.986833
+    },
+    {
+      "word": "own",
+      "start": 2.986833,
+      "end": 3.276333
+    },
+    {
+      "word": "folder",
+      "start": 3.276333,
+      "end": 3.736833
+    },
+    {
+      "word": "and",
+      "start": 3.736833,
+      "end": 3.947375
+    },
+    {
+      "word": "branch",
+      "start": 3.947375,
+      "end": 4.684208
+    },
+    {
+      "word": "so",
+      "start": 4.684208,
+      "end": 5.10525
+    },
+    {
+      "word": "parallel",
+      "start": 5.10525,
+      "end": 5.631583
+    },
+    {
+      "word": "work",
+      "start": 5.631583,
+      "end": 6.052625
+    },
+    {
+      "word": "doesn't",
+      "start": 6.052625,
+      "end": 6.407875
+    },
+    {
+      "word": "collide",
+      "start": 6.407875,
+      "end": 6.657875
+    }
+  ]
+}

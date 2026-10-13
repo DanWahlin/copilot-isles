@@ -1,10 +1,15 @@
 import { useEffect, useRef, useState, type PointerEvent, type WheelEvent } from 'react';
 import { STARFISH } from '../../world/starfish/spots';
 import { StarfishLog } from './Starfish';
-import { GLOSSARY, IMAGES, PAGES, courseUrl, imageUrl } from '../../learn/content/index';
+import { CHAPTERS, GLOSSARY, IMAGES, PAGES, courseUrl, imageUrl } from '../../learn/content/index';
+import { chapterUrl } from '../../learn/course/chapters';
 import type { LearnState, LearnStore, LogbookTab, RevealFrom } from '../../learn/store';
 import type { Page } from '../../learn/types';
+import { CourseGlossaryEntry, CourseImg, CourseLink, FromTheCourse, useCourseImage } from './CourseMarkdown';
 import { Rich } from './Rich';
+
+/** Chapters to look in for a course picture (the one whose folder holds it is tried first). */
+const CHAPTER_IDS = CHAPTERS.map((c) => c.chapter);
 
 function useKeys(handler: (e: KeyboardEvent) => void) {
   const ref = useRef(handler);
@@ -22,8 +27,13 @@ const KICKER: Record<RevealFrom, string> = {
   bottle: 'A message in a bottle',
 };
 
+/**
+ * A Logbook page: its picture (live from the course when it still shows it, PLAN §8.3), the
+ * authored caption, a live "From the course" excerpt of its section, and the course link.
+ */
 function PageBody({ page, onImage }: { page: Page; onImage?: (id: string) => void }) {
   const img = page.image ? IMAGES.get(page.image) : undefined;
+  const shown = useCourseImage(img, [page.source.chapter, ...CHAPTER_IDS]);
   return (
     <>
       {img && (
@@ -31,9 +41,9 @@ function PageBody({ page, onImage }: { page: Page; onImage?: (id: string) => voi
           type="button"
           className="ci-page-image"
           onClick={() => onImage?.(img.id)}
-          aria-label={`Enlarge: ${img.alt}`}
+          aria-label={`Enlarge: ${shown?.origin === 'live' && shown.alt ? shown.alt : img.alt}`}
         >
-          <img src={imageUrl(img.id)} alt={img.alt} />
+          <CourseImg img={img} resolved={shown} />
         </button>
       )}
       <p className="ci-page-caption">
@@ -44,10 +54,36 @@ function PageBody({ page, onImage }: { page: Page; onImage?: (id: string) => voi
           <code>{page.code}</code>
         </pre>
       )}
-      <a className="ci-course-link" href={courseUrl(page.source)} target="_blank" rel="noopener noreferrer">
+      <FromTheCourse source={page.source} />
+      <CourseLink source={page.source} fallback={courseUrl(page.source)} />
+    </>
+  );
+}
+
+/** The course's own words for a spyglass picture: its alt text and the section that shows it. */
+function SpyglassCourseNote({
+  alt,
+  chapter,
+  anchor,
+}: {
+  alt: string | null;
+  chapter: string;
+  anchor: string;
+}) {
+  return (
+    <span className="ci-spyglass-course">
+      <span className="ci-course-kicker">From the course</span>
+      {alt && <span> · {alt}</span>}{' '}
+      <a
+        className="ci-rich-link"
+        href={chapterUrl(chapter, anchor)}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Open in the course (opens in a new tab)"
+      >
         Open in the course ↗
       </a>
-    </>
+    </span>
   );
 }
 
@@ -98,6 +134,11 @@ export function PageReveal({
 /** The spyglass: a framed course image above the dialogue, or full screen with pan and zoom. */
 export function Spyglass({ store, spy }: { store: LearnStore; spy: NonNullable<LearnState['spyglass']> }) {
   const img = IMAGES.get(spy.image);
+  const shown = useCourseImage(img, CHAPTER_IDS);
+  const alt = shown?.origin === 'live' && shown.alt ? shown.alt : (img?.alt ?? '');
+  const note = shown?.chapter && shown.anchor && (
+    <SpyglassCourseNote alt={shown.alt} chapter={shown.chapter} anchor={shown.anchor} />
+  );
   const [view, setView] = useState({ s: 1, x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
   useEffect(() => setView({ s: 1, x: 0, y: 0 }), [spy.image, spy.full]);
@@ -117,15 +158,16 @@ export function Spyglass({ store, spy }: { store: LearnStore; spy: NonNullable<L
           type="button"
           className="ci-spyglass-open"
           onClick={() => store.expandImage()}
-          aria-label={`Enlarge: ${img.alt}`}
+          aria-label={`Enlarge: ${alt}`}
         >
-          <img src={imageUrl(img.id)} alt={img.alt} />
+          <CourseImg img={img} resolved={shown} />
         </button>
         {spy.caption && (
           <span className="ci-spyglass-caption">
             <Rich text={spy.caption} />
           </span>
         )}
+        {note}
         <span className="ci-spyglass-hint">Click the picture to enlarge</span>
       </div>
     );
@@ -157,15 +199,16 @@ export function Spyglass({ store, spy }: { store: LearnStore; spy: NonNullable<L
           onPointerUp={() => (drag.current = null)}
           onDoubleClick={() => setView({ s: 1, x: 0, y: 0 })}
         >
-          <img
-            src={imageUrl(img.id)}
-            alt={img.alt}
+          <CourseImg
+            img={img}
+            resolved={shown}
             draggable={false}
             style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.s})` }}
           />
         </div>
         <figcaption>
           {spy.caption && <Rich text={spy.caption} />}
+          {note}
           <span className="ci-spyglass-hint">Wheel to zoom · drag to pan · Esc to close</span>
         </figcaption>
         <button
@@ -287,6 +330,7 @@ export function Logbook({ store, state }: { store: LearnStore; state: LearnState
                   <div key={g.id}>
                     <dt>{g.term}</dt>
                     <dd>{g.definition}</dd>
+                    <CourseGlossaryEntry term={g.term} />
                   </div>
                 ) : (
                   <div key={g.id} className="locked">

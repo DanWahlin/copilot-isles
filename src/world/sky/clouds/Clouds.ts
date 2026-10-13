@@ -235,10 +235,7 @@ export class Clouds {
     this._buildKernels();
     // The compute lists the trace dispatches each frame, built once (per history ping-pong side, with
     // and without the shadow/panorama kernels) so the per-frame loop doesn't allocate.
-    this._traceLists = [0, 1].map((pp) => {
-      const base = [this.traceKernel, this.highTraceKernel, this.boxKernel, this.resolveKernels[pp]];
-      return [base, [...base, this.shadowKernel, this.panoKernel]];
-    });
+    this._buildTraceLists();
 
     this.frame = 0;
     this.panoWarm = 1;
@@ -1178,6 +1175,12 @@ export class Clouds {
     // ---- coverage dependent 3D distance field (Chebyshev, separable passes) of the dome footprint.
     // Built for a coverage a little above the current one, so small changes need no rebuild
     this.sdfCoverage = uniform(0).setName('clSdfCoverage');
+    this._makeSdfKernels();
+    // ---- view: one pixel of every 4x4 block per frame
+    this._buildViewKernels();
+  }
+
+  _makeSdfKernels() {
     // occupancy: a cell may hold cloud if the dome of any weather texel influencing it reaches
     // the cell's lowest altitude
     this.sdfOccKernel = Fn(() => {
@@ -1257,8 +1260,9 @@ export class Clouds {
     })()
       .computeKernel([8, 8, 1])
       .setName('Cloud SDF Z');
+  }
 
-    // ---- view: one pixel of every 4x4 block per frame
+  _buildViewKernels() {
     this.slot = uniform(new THREE.Vector2()).setName('clSlot');
     // camera basis (unit vectors) and frustum tangents, this frame and the previous one
     const cam = () => ({
@@ -1657,6 +1661,9 @@ export class Clouds {
   // ------------------------------------------------------------ per frame
 
   update(dt, camera) {
+    // Not while the kernels' pipelines build (compileAsync): a dispatch would bind one that isn't
+    // there yet. The clouds catch up on the first update after.
+    if (this._compiling) return;
     const r = this.renderer;
 
     // wind drift, kept bounded (every noise tiles within TILE)
@@ -1755,7 +1762,7 @@ export class Clouds {
     this._panoSlot(this.frame);
     if (G.cameraUnderwater.value > 0.5) {
       // the sky is only seen through Snell's window (panorama): no view clouds
-      r.compute([this.shadowKernel, this.panoKernel]);
+      r.compute(this._extras);
       this.resetHistory();
     } else if (this._rebuild < 16) {
       // after a cut: several slots per frame, until every pixel has a sample of its own
@@ -1765,7 +1772,7 @@ export class Clouds {
         this._trace(ORDER[this._rebuild++]);
       }
 
-      r.compute([this.shadowKernel, this.panoKernel]);
+      r.compute(this._extras);
     } else {
       // samples every pixel holds since the cut
       const n = 1 + Math.floor(this._since++ / 16);
@@ -1829,27 +1836,60 @@ export class Clouds {
     this.panoSlot.value.set((o % 4) * 2 + (Math.floor(k / 16) % 2), Math.floor(o / 4));
   }
 
+  _buildTraceLists() {
+    // The panorama, plus the cloud shadow while something samples it.
+    this._extras = this.shadowKernel ? [this.shadowKernel, this.panoKernel] : [this.panoKernel];
+    this._traceLists = [0, 1].map((pp) => {
+      const base = [this.traceKernel, this.highTraceKernel, this.boxKernel, this.resolveKernels[pp]];
+      return [base, [...base, ...this._extras]];
+    });
+  }
+
+  // Nothing samples the cloud shadow (no `shadow()` node, e.g. the title or a tier without cloud
+  // shadows): stop tracing it and free its kernel (one program less, PLAN §15.4).
+  disableShadow() {
+    if (!this.shadowKernel) return;
+    this.shadowKernel.dispose();
+    this.shadowKernel = null;
+    this._buildTraceLists();
+  }
+
   _buildSDF() {
+    if (!this.sdfOccKernel) this._makeSdfKernels();
     const d = [SDF_RES / 8, SDF_RES / 8, SDF_H];
-    for (const k of [this.sdfOccKernel, this.sdfXKernel, this.sdfYKernel, this.sdfZKernel])
-      k.dispatchSize = d;
-    this.renderer.compute([this.sdfOccKernel, this.sdfXKernel, this.sdfYKernel, this.sdfZKernel]);
+    const kernels = [this.sdfOccKernel, this.sdfXKernel, this.sdfYKernel, this.sdfZKernel];
+    for (const k of kernels) k.dispatchSize = d;
+    this.renderer.compute(kernels);
+    // The distance field only changes with the coverage (rarely, if ever): free the kernels' shaders
+    // once the GPU has the work, as the noise bakes do (PLAN §15.4), and build them again if needed.
+    // (After any pending precompile: a pipeline built for a freed kernel would never be freed.)
+    this.sdfOccKernel = this.sdfXKernel = this.sdfYKernel = this.sdfZKernel = null;
+    const free = () =>
+      requestAnimationFrame(() => requestAnimationFrame(() => kernels.forEach((k) => k.dispose())));
+    if (this._compiling) this._compiling.then(free, free);
+    else free();
   }
 
   // builds every per-frame kernel's pipeline asynchronously (no stall on the first update)
   compileAsync() {
-    return this.renderer.compileComputeAsync([
-      this.traceKernel,
-      this.highTraceKernel,
-      this.boxKernel,
-      ...this.resolveKernels,
-      this.panoKernel,
-      this.shadowKernel,
-      this.sdfOccKernel,
-      this.sdfXKernel,
-      this.sdfYKernel,
-      this.sdfZKernel,
-    ]);
+    const compiling = this.renderer.compileComputeAsync(
+      [
+        this.traceKernel,
+        this.highTraceKernel,
+        this.boxKernel,
+        ...this.resolveKernels,
+        this.panoKernel,
+        this.shadowKernel,
+        this.sdfOccKernel,
+        this.sdfXKernel,
+        this.sdfYKernel,
+        this.sdfZKernel,
+      ].filter(Boolean),
+    );
+    this._compiling = compiling;
+    return compiling.finally(() => {
+      if (this._compiling === compiling) this._compiling = null;
+    });
   }
 
   // restart all accumulation (view, panorama)
@@ -1859,6 +1899,19 @@ export class Clouds {
   }
 
   dispose() {
+    for (const kernel of [
+      this.traceKernel,
+      this.highTraceKernel,
+      this.boxKernel,
+      ...(this.resolveKernels || []),
+      this.panoKernel,
+      this.shadowKernel,
+      this.sdfOccKernel,
+      this.sdfXKernel,
+      this.sdfYKernel,
+      this.sdfZKernel,
+    ])
+      kernel?.dispose();
     for (const texture of [
       this.panorama,
       this.shadowMap,

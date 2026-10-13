@@ -1,0 +1,62 @@
+{
+  "id": "tb.pip.done",
+  "speaker": "Pip",
+  "text": "Every day goes in the ledger, Captain. Even the dull ones.",
+  "words": [
+    {
+      "word": "Every",
+      "start": 0,
+      "end": 0.3
+    },
+    {
+      "word": "day",
+      "start": 0.3,
+      "end": 0.544
+    },
+    {
+      "word": "goes",
+      "start": 0.544,
+      "end": 0.827
+    },
+    {
+      "word": "in",
+      "start": 0.827,
+      "end": 0.9
+    },
+    {
+      "word": "the",
+      "start": 0.9,
+      "end": 1.006
+    },
+    {
+      "word": "ledger",
+      "start": 1.006,
+      "end": 1.42
+    },
+    {
+      "word": "Captain",
+      "start": 1.42,
+      "end": 2.368
+    },
+    {
+      "word": "Even",
+      "start": 2.368,
+      "end": 2.74
+    },
+    {
+      "word": "the",
+      "start": 2.74,
+      "end": 2.848
+    },
+    {
+      "word": "dull",
+      "start": 2.848,
+      "end": 3.12
+    },
+    {
+      "word": "ones",
+      "start": 3.12,
+      "end": 3.37
+    }
+  ]
+}

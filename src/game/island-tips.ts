@@ -12,6 +12,7 @@ export type HudSpot = 'tracker' | 'compass' | 'starfish';
 export const ISLAND_TIPS: Readonly<Record<StarfishIsland, { nav: string; starfish: string }>> = {
   anchorage: { nav: 'wingman.welcome.04', starfish: 'wingman.starfish.anchorage' },
   meridian: { nav: 'wingman.meridian.03', starfish: 'wingman.starfish.meridian' },
+  'thousand-bough': { nav: 'wingman.tb.03', starfish: 'wingman.starfish.thousand-bough' },
 };
 
 /** The screen parts each tip line shows (lit while the line plays). */
@@ -20,4 +21,6 @@ export const TIP_SPOTS: Readonly<Record<string, readonly HudSpot[]>> = {
   'wingman.meridian.03': ['tracker', 'compass'],
   'wingman.starfish.anchorage': ['starfish'],
   'wingman.starfish.meridian': ['starfish'],
+  'wingman.tb.03': ['tracker', 'compass'],
+  'wingman.starfish.thousand-bough': ['starfish'],
 };

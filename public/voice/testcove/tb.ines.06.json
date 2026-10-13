@@ -1,0 +1,117 @@
+{
+  "id": "tb.ines.06",
+  "speaker": "Ines",
+  "text": "Not sure what commands you've got? Type a slash and read the palette. It changes with your app, plugins, skills and policy.",
+  "words": [
+    {
+      "word": "Not",
+      "start": 0,
+      "end": 0.208
+    },
+    {
+      "word": "sure",
+      "start": 0.208,
+      "end": 0.432
+    },
+    {
+      "word": "what",
+      "start": 0.432,
+      "end": 0.604
+    },
+    {
+      "word": "commands",
+      "start": 0.604,
+      "end": 0.98
+    },
+    {
+      "word": "you've",
+      "start": 0.98,
+      "end": 1.2
+    },
+    {
+      "word": "got",
+      "start": 1.2,
+      "end": 1.68
+    },
+    {
+      "word": "Type",
+      "start": 1.68,
+      "end": 2.36
+    },
+    {
+      "word": "a",
+      "start": 2.36,
+      "end": 2.48
+    },
+    {
+      "word": "slash",
+      "start": 2.48,
+      "end": 2.94
+    },
+    {
+      "word": "and",
+      "start": 2.94,
+      "end": 3.168
+    },
+    {
+      "word": "read",
+      "start": 3.168,
+      "end": 3.38
+    },
+    {
+      "word": "the",
+      "start": 3.38,
+      "end": 3.5
+    },
+    {
+      "word": "palette",
+      "start": 3.5,
+      "end": 4.267
+    },
+    {
+      "word": "It",
+      "start": 4.267,
+      "end": 4.69
+    },
+    {
+      "word": "changes",
+      "start": 4.69,
+      "end": 5.072
+    },
+    {
+      "word": "with",
+      "start": 5.072,
+      "end": 5.232
+    },
+    {
+      "word": "your",
+      "start": 5.232,
+      "end": 5.44
+    },
+    {
+      "word": "app",
+      "start": 5.44,
+      "end": 5.91
+    },
+    {
+      "word": "plugins",
+      "start": 5.91,
+      "end": 6.629
+    },
+    {
+      "word": "skills",
+      "start": 6.629,
+      "end": 7.08
+    },
+    {
+      "word": "and",
+      "start": 7.08,
+      "end": 7.291
+    },
+    {
+      "word": "policy",
+      "start": 7.291,
+      "end": 7.541
+    }
+  ]
+}

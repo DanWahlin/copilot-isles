@@ -1,0 +1,62 @@
+{
+  "id": "tb.saffi.01",
+  "speaker": "Saffi",
+  "text": "One trunk, Captain. That's your repository. Every bough grows from it.",
+  "words": [
+    {
+      "word": "One",
+      "start": 0,
+      "end": 0.227
+    },
+    {
+      "word": "trunk",
+      "start": 0.227,
+      "end": 0.71
+    },
+    {
+      "word": "Captain",
+      "start": 0.71,
+      "end": 1.424
+    },
+    {
+      "word": "That's",
+      "start": 1.424,
+      "end": 2.112
+    },
+    {
+      "word": "your",
+      "start": 2.112,
+      "end": 2.313
+    },
+    {
+      "word": "repository",
+      "start": 2.313,
+      "end": 3.4
+    },
+    {
+      "word": "Every",
+      "start": 3.4,
+      "end": 4.48
+    },
+    {
+      "word": "bough",
+      "start": 4.48,
+      "end": 4.947
+    },
+    {
+      "word": "grows",
+      "start": 4.947,
+      "end": 5.328
+    },
+    {
+      "word": "from",
+      "start": 5.328,
+      "end": 5.627
+    },
+    {
+      "word": "it",
+      "start": 5.627,
+      "end": 5.877
+    }
+  ]
+}

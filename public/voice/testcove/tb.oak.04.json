@@ -1,0 +1,82 @@
+{
+  "id": "tb.oak.04",
+  "speaker": "Oak",
+  "text": "Current checkout works right in your existing clone. Quick, but it touches your working folder.",
+  "words": [
+    {
+      "word": "Current",
+      "start": 0,
+      "end": 0.373
+    },
+    {
+      "word": "checkout",
+      "start": 0.373,
+      "end": 0.867
+    },
+    {
+      "word": "works",
+      "start": 0.867,
+      "end": 1.253
+    },
+    {
+      "word": "right",
+      "start": 1.253,
+      "end": 1.573
+    },
+    {
+      "word": "in",
+      "start": 1.573,
+      "end": 1.696
+    },
+    {
+      "word": "your",
+      "start": 1.696,
+      "end": 1.813
+    },
+    {
+      "word": "existing",
+      "start": 1.813,
+      "end": 2.32
+    },
+    {
+      "word": "clone",
+      "start": 2.32,
+      "end": 3.233
+    },
+    {
+      "word": "Quick",
+      "start": 3.233,
+      "end": 3.95
+    },
+    {
+      "word": "but",
+      "start": 3.95,
+      "end": 4.213
+    },
+    {
+      "word": "it",
+      "start": 4.213,
+      "end": 4.36
+    },
+    {
+      "word": "touches",
+      "start": 4.36,
+      "end": 4.672
+    },
+    {
+      "word": "your",
+      "start": 4.672,
+      "end": 4.84
+    },
+    {
+      "word": "working",
+      "start": 4.84,
+      "end": 5.189
+    },
+    {
+      "word": "folder",
+      "start": 5.189,
+      "end": 5.439
+    }
+  ]
+}

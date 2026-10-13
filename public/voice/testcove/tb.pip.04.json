@@ -1,0 +1,82 @@
+{
+  "id": "tb.pip.04",
+  "speaker": "Pip",
+  "text": "Select the Context bar for the breakdown. Check it before you pile on more files.",
+  "words": [
+    {
+      "word": "Select",
+      "start": 0,
+      "end": 0.26
+    },
+    {
+      "word": "the",
+      "start": 0.26,
+      "end": 0.4
+    },
+    {
+      "word": "Context",
+      "start": 0.4,
+      "end": 1.02
+    },
+    {
+      "word": "bar",
+      "start": 1.02,
+      "end": 1.24
+    },
+    {
+      "word": "for",
+      "start": 1.24,
+      "end": 1.38
+    },
+    {
+      "word": "the",
+      "start": 1.38,
+      "end": 1.504
+    },
+    {
+      "word": "breakdown",
+      "start": 1.504,
+      "end": 2.64
+    },
+    {
+      "word": "Check",
+      "start": 2.64,
+      "end": 3.093
+    },
+    {
+      "word": "it",
+      "start": 3.093,
+      "end": 3.291
+    },
+    {
+      "word": "before",
+      "start": 3.291,
+      "end": 3.86
+    },
+    {
+      "word": "you",
+      "start": 3.86,
+      "end": 4
+    },
+    {
+      "word": "pile",
+      "start": 4,
+      "end": 4.427
+    },
+    {
+      "word": "on",
+      "start": 4.427,
+      "end": 4.688
+    },
+    {
+      "word": "more",
+      "start": 4.688,
+      "end": 4.987
+    },
+    {
+      "word": "files",
+      "start": 4.987,
+      "end": 5.237
+    }
+  ]
+}

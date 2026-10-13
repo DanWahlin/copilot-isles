@@ -1,0 +1,72 @@
+{
+  "id": "tb.rook.next",
+  "speaker": "Rook",
+  "text": "Pip's got the day's log up in the Chronicle Loft. Up you go.",
+  "words": [
+    {
+      "word": "Pip's",
+      "start": 0,
+      "end": 0.26
+    },
+    {
+      "word": "got",
+      "start": 0.26,
+      "end": 0.34
+    },
+    {
+      "word": "the",
+      "start": 0.34,
+      "end": 0.46
+    },
+    {
+      "word": "day's",
+      "start": 0.46,
+      "end": 0.76
+    },
+    {
+      "word": "log",
+      "start": 0.76,
+      "end": 0.933
+    },
+    {
+      "word": "up",
+      "start": 0.933,
+      "end": 1.067
+    },
+    {
+      "word": "in",
+      "start": 1.067,
+      "end": 1.14
+    },
+    {
+      "word": "the",
+      "start": 1.14,
+      "end": 1.232
+    },
+    {
+      "word": "Chronicle",
+      "start": 1.232,
+      "end": 1.6
+    },
+    {
+      "word": "Loft",
+      "start": 1.6,
+      "end": 2.187
+    },
+    {
+      "word": "Up",
+      "start": 2.187,
+      "end": 2.34
+    },
+    {
+      "word": "you",
+      "start": 2.34,
+      "end": 2.48
+    },
+    {
+      "word": "go",
+      "start": 2.48,
+      "end": 2.728
+    }
+  ]
+}

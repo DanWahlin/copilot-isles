@@ -20,6 +20,7 @@ import {
   type CharacterPaletteCache,
 } from './npc-palettes';
 import { rigFace } from './face-rig';
+import { releaseFaceResources } from './face-material';
 import { FACE_FITS, faceFamily } from './face-fit';
 import { buildLods, buildLodsNow, loadLodSimplifier, type LodSimplifier } from './character-lod';
 import { addShoulderMacaw, createMacawGeometry } from './parrot';
@@ -217,6 +218,45 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
   mer_kid_a: { source: 'henry_npc', scale: 0.68, radius: 0.22, height: 1.18, tint: 0xffffff },
   mer_kid_b: { source: 'anne_npc', scale: 0.7, radius: 0.22, height: 1.2, tint: 0xffffff },
   mer_guard: { source: 'henry_npc', scale: 1.05, radius: 0.35, height: 1.82, tint: 0xffffff },
+  // Thousand-Bough Isle's cast (docs/specs/ISLAND-02-thousand-bough.md §4.2) and islanders.
+  tamsin: { source: 'anne_npc', scale: 1, radius: 0.32, height: 1.72, tint: 0xffffff, hand: 'right' },
+  saffi: { source: 'anne_npc', scale: 0.95, radius: 0.31, height: 1.64, tint: 0xffffff, hand: 'left' },
+  oak: {
+    source: 'henry_npc',
+    scale: 1.1,
+    radius: 0.37,
+    height: 1.86,
+    tint: 0xffffff,
+    hand: 'right',
+    gestures: 'commander',
+  },
+  fen: { source: 'henry_npc', scale: 0.96, radius: 0.32, height: 1.7, tint: 0xffffff, hand: 'left' },
+  ines: { source: 'anne_npc', scale: 0.96, radius: 0.3, height: 1.66, tint: 0xffffff, hand: 'right' },
+  rook: { source: 'henry_npc', scale: 1, radius: 0.33, height: 1.76, tint: 0xffffff, hand: 'right' },
+  pip: {
+    source: 'henry_npc',
+    scale: 0.92,
+    radius: 0.31,
+    height: 1.62,
+    tint: 0xffffff,
+    hand: 'left',
+    reads: true,
+  },
+  elder: {
+    source: 'anne_npc',
+    scale: 1.03,
+    radius: 0.33,
+    height: 1.76,
+    tint: 0xffffff,
+    hand: 'right',
+    gestures: 'commander',
+  },
+  tb_kid_a: { source: 'henry_npc', scale: 0.68, radius: 0.22, height: 1.18, tint: 0xffffff },
+  tb_kid_b: { source: 'anne_npc', scale: 0.7, radius: 0.22, height: 1.2, tint: 0xffffff },
+  tb_weaver: { source: 'anne_npc', scale: 0.97, radius: 0.32, height: 1.68, tint: 0xffffff, hand: 'right' },
+  tb_operator: { source: 'henry_npc', scale: 1, radius: 0.34, height: 1.74, tint: 0xffffff, hand: 'left' },
+  tb_fisher: { source: 'henry_npc', scale: 0.94, radius: 0.32, height: 1.64, tint: 0xffffff, hand: 'right' },
+  tb_lookout: { source: 'henry_npc', scale: 1, radius: 0.33, height: 1.75, tint: 0xffffff },
 };
 
 /** Atlas columns the jaw carries: skin, plus the captain's beard (hair). */
@@ -340,6 +380,7 @@ class CharacterLibraryImpl implements CharacterLibrary {
     this.macaw?.dispose();
     this.ernest?.dispose();
     disposeCharacterPaletteCache(this.characterPaletteCache);
+    releaseFaceResources();
   }
 }
 

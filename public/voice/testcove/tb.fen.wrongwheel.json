@@ -1,0 +1,77 @@
+{
+  "id": "tb.fen.wrongwheel",
+  "speaker": "Fen",
+  "text": "That water turned another crew's wheel. A session's diff should stay with that session.",
+  "words": [
+    {
+      "word": "That",
+      "start": 0,
+      "end": 0.24
+    },
+    {
+      "word": "water",
+      "start": 0.24,
+      "end": 0.731
+    },
+    {
+      "word": "turned",
+      "start": 0.731,
+      "end": 1.33
+    },
+    {
+      "word": "another",
+      "start": 1.33,
+      "end": 1.76
+    },
+    {
+      "word": "crew's",
+      "start": 1.76,
+      "end": 2.227
+    },
+    {
+      "word": "wheel",
+      "start": 2.227,
+      "end": 3.04
+    },
+    {
+      "word": "A",
+      "start": 3.04,
+      "end": 3.34
+    },
+    {
+      "word": "session's",
+      "start": 3.34,
+      "end": 3.936
+    },
+    {
+      "word": "diff",
+      "start": 3.936,
+      "end": 4.4
+    },
+    {
+      "word": "should",
+      "start": 4.4,
+      "end": 4.944
+    },
+    {
+      "word": "stay",
+      "start": 4.944,
+      "end": 5.248
+    },
+    {
+      "word": "with",
+      "start": 5.248,
+      "end": 5.472
+    },
+    {
+      "word": "that",
+      "start": 5.472,
+      "end": 5.67
+    },
+    {
+      "word": "session",
+      "start": 5.67,
+      "end": 5.92
+    }
+  ]
+}

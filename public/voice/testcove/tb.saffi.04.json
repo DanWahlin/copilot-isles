@@ -1,0 +1,97 @@
+{
+  "id": "tb.saffi.04",
+  "speaker": "Saffi",
+  "text": "Each task gets its own folder, its branch shows in the app, and its diff stays with it.",
+  "words": [
+    {
+      "word": "Each",
+      "start": 0,
+      "end": 0.32
+    },
+    {
+      "word": "task",
+      "start": 0.32,
+      "end": 0.688
+    },
+    {
+      "word": "gets",
+      "start": 0.688,
+      "end": 0.92
+    },
+    {
+      "word": "its",
+      "start": 0.92,
+      "end": 1.08
+    },
+    {
+      "word": "own",
+      "start": 1.08,
+      "end": 1.291
+    },
+    {
+      "word": "folder",
+      "start": 1.291,
+      "end": 2.36
+    },
+    {
+      "word": "its",
+      "start": 2.36,
+      "end": 2.56
+    },
+    {
+      "word": "branch",
+      "start": 2.56,
+      "end": 3.093
+    },
+    {
+      "word": "shows",
+      "start": 3.093,
+      "end": 3.413
+    },
+    {
+      "word": "in",
+      "start": 3.413,
+      "end": 3.54
+    },
+    {
+      "word": "the",
+      "start": 3.54,
+      "end": 3.7
+    },
+    {
+      "word": "app",
+      "start": 3.7,
+      "end": 4.28
+    },
+    {
+      "word": "and",
+      "start": 4.28,
+      "end": 4.44
+    },
+    {
+      "word": "its",
+      "start": 4.44,
+      "end": 4.624
+    },
+    {
+      "word": "diff",
+      "start": 4.624,
+      "end": 4.933
+    },
+    {
+      "word": "stays",
+      "start": 4.933,
+      "end": 5.248
+    },
+    {
+      "word": "with",
+      "start": 5.248,
+      "end": 5.52
+    },
+    {
+      "word": "it",
+      "start": 5.52,
+      "end": 5.77
+    }
+  ]
+}

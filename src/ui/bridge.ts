@@ -174,6 +174,8 @@ export interface UiState {
   bootQuality: QualitySetting;
   graphics: GraphicsInfo;
   qualityNotice: QualityNotice;
+  /** A sea battle is on (the pause menu offers Skip battle). */
+  battle?: boolean;
 }
 
 export interface GameBridge {
@@ -212,4 +214,6 @@ export interface GameBridge {
   skipOpening(): void;
   /** A click or tap in the opening: opens the chest when it's waiting, otherwise skips ahead. */
   pressOpening(): void;
+  /** Skip battle (the pause menu): the sea battle counts as done, and play resumes. */
+  skipBattle?(): void;
 }

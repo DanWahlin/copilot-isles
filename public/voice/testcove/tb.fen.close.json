@@ -1,0 +1,82 @@
+{
+  "id": "tb.fen.close",
+  "speaker": "Fen",
+  "text": "Worktrees separate files and branches, not everything. Dev servers, databases and ports can still collide.",
+  "words": [
+    {
+      "word": "Worktrees",
+      "start": 0,
+      "end": 0.729
+    },
+    {
+      "word": "separate",
+      "start": 0.729,
+      "end": 1.533
+    },
+    {
+      "word": "files",
+      "start": 1.533,
+      "end": 2.02
+    },
+    {
+      "word": "and",
+      "start": 2.02,
+      "end": 2.151
+    },
+    {
+      "word": "branches",
+      "start": 2.151,
+      "end": 3.1
+    },
+    {
+      "word": "not",
+      "start": 3.1,
+      "end": 3.324
+    },
+    {
+      "word": "everything",
+      "start": 3.324,
+      "end": 4.06
+    },
+    {
+      "word": "Dev",
+      "start": 4.06,
+      "end": 4.54
+    },
+    {
+      "word": "servers",
+      "start": 4.54,
+      "end": 5.144
+    },
+    {
+      "word": "databases",
+      "start": 5.144,
+      "end": 6.14
+    },
+    {
+      "word": "and",
+      "start": 6.14,
+      "end": 6.413
+    },
+    {
+      "word": "ports",
+      "start": 6.413,
+      "end": 7
+    },
+    {
+      "word": "can",
+      "start": 7,
+      "end": 7.413
+    },
+    {
+      "word": "still",
+      "start": 7.413,
+      "end": 7.76
+    },
+    {
+      "word": "collide",
+      "start": 7.76,
+      "end": 8.01
+    }
+  ]
+}

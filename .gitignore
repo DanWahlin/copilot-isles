@@ -14,6 +14,8 @@ public/packs/testcove/terrain.bin
 public/packs/testcove/terrain.json
 public/packs/meridian/terrain.bin
 public/packs/meridian/terrain.json
+public/packs/thousand-bough/terrain.bin
+public/packs/thousand-bough/terrain.json
 
 # Downloaded CC0 source kits (fetch scripts re-create them; sha256-pinned)
 tools/.cache/

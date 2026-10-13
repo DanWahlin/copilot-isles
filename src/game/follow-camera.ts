@@ -331,7 +331,9 @@ export class FollowCamera {
       y = aim.y - dy * this.curDist,
       z = aim.z - dz * this.curDist;
     if (world) {
-      const floor = Math.max(world.groundAt(x, z) + 0.4, world.waterAt(x, z, t) + 0.5);
+      // The ground under the camera: not a deck stacked high overhead (a surface's lowest level, or
+      // the one at the camera's own height, whichever is lower).
+      const floor = Math.max(groundUnder(world, x, z, y) + 0.4, world.waterAt(x, z, t) + 0.5);
       if (y < floor) y = floor;
     }
 
@@ -441,12 +443,20 @@ function blocked(
     lift = y - r.ringClear;
   if (
     k > 0 &&
-    (world.groundAt(x + k, z) > lift ||
-      world.groundAt(x - k, z) > lift ||
-      world.groundAt(x, z + k) > lift ||
-      world.groundAt(x, z - k) > lift)
+    (groundUnder(world, x + k, z, y) > lift ||
+      groundUnder(world, x - k, z, y) > lift ||
+      groundUnder(world, x, z + k, y) > lift ||
+      groundUnder(world, x, z - k, y) > lift)
   )
     return true;
   const pad = PAD_LOW + (PAD_HIGH - PAD_LOW) * smoothstep(1.8, 3, y - g);
   return world.cameraBlockedAt(x, y, z, pad, pivot.x, pivot.y, pivot.z);
+}
+
+/**
+ * The walkable height under a camera at height y: a stacked surface's lowest level (without y), or
+ * the level at the camera's height when that's lower (nothing but a deck far overhead there).
+ */
+function groundUnder(world: CollisionWorld, x: number, z: number, y: number): number {
+  return Math.min(world.groundAt(x, z), world.groundAt(x, z, y));
 }

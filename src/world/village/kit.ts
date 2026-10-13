@@ -17,6 +17,7 @@ import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { packs } from '../../engine/packs';
 import { palettedMaterial } from '../characters/stage-light';
+import { releaseMaterialTextures } from '../../util/dispose-three';
 import { VILLAGE_HOUSE_PIECES } from './house-builder';
 import {
   createClothMaterial,
@@ -97,6 +98,18 @@ let villageKitPromise: Promise<VillageKit> | null = null;
 export function loadVillageKit(base = '/packs/testcove/village/kit.glb'): Promise<VillageKit> {
   villageKitPromise ??= loadVillageKitInternal(base);
   return villageKitPromise;
+}
+
+/**
+ * Frees the cached kit's textures on the GPU after a voyage (the kit and its images stay cached, so
+ * the next voyage uploads them again without a refetch).
+ */
+export function releaseVillageKitTextures(): void {
+  void villageKitPromise
+    ?.then((kit) => {
+      for (const material of Object.values(kit.materials)) releaseMaterialTextures(material);
+    })
+    .catch(() => undefined);
 }
 
 export function createFallbackVillageKit(): VillageKit {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type DragEvent } from 'react';
 import { courseUrl } from '../../learn/content/index';
+import { CourseLink } from './CourseMarkdown';
 import { shuffled, type Answer } from '../../learn/grade';
 import type { ActiveQuiz, LearnStore } from '../../learn/store';
 import type { ChoiceQuiz, MatchingQuiz, MultiQuiz, Option, OrderingQuiz } from '../../learn/types';
@@ -124,14 +125,7 @@ export function QuizPanel({ store, active }: { store: LearnStore; active: Active
         )}
 
         <footer className="ci-quiz-foot">
-          <a
-            className="ci-course-link"
-            href={courseUrl(quiz.source)}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Open in the course ↗
-          </a>
+          <CourseLink source={quiz.source} fallback={courseUrl(quiz.source)} />
           <span className="ci-quiz-actions">
             {canHint && !last?.correct && (
               <button type="button" className="ci-btn ghost" onClick={store.hint}>

@@ -1,0 +1,107 @@
+{
+  "id": "tb.fen.mixed",
+  "speaker": "Fen",
+  "text": "Two crews in one race! Their changes blur together, like two tasks in one folder. Give each its own channel.",
+  "words": [
+    {
+      "word": "Two",
+      "start": 0,
+      "end": 0.253
+    },
+    {
+      "word": "crews",
+      "start": 0.253,
+      "end": 0.8
+    },
+    {
+      "word": "in",
+      "start": 0.8,
+      "end": 1
+    },
+    {
+      "word": "one",
+      "start": 1,
+      "end": 1.216
+    },
+    {
+      "word": "race",
+      "start": 1.216,
+      "end": 1.773
+    },
+    {
+      "word": "Their",
+      "start": 1.773,
+      "end": 2.32
+    },
+    {
+      "word": "changes",
+      "start": 2.32,
+      "end": 2.976
+    },
+    {
+      "word": "blur",
+      "start": 2.976,
+      "end": 3.413
+    },
+    {
+      "word": "together",
+      "start": 3.413,
+      "end": 4.208
+    },
+    {
+      "word": "like",
+      "start": 4.208,
+      "end": 4.44
+    },
+    {
+      "word": "two",
+      "start": 4.44,
+      "end": 4.653
+    },
+    {
+      "word": "tasks",
+      "start": 4.653,
+      "end": 5.173
+    },
+    {
+      "word": "in",
+      "start": 5.173,
+      "end": 5.32
+    },
+    {
+      "word": "one",
+      "start": 5.32,
+      "end": 5.509
+    },
+    {
+      "word": "folder",
+      "start": 5.509,
+      "end": 6.224
+    },
+    {
+      "word": "Give",
+      "start": 6.224,
+      "end": 6.88
+    },
+    {
+      "word": "each",
+      "start": 6.88,
+      "end": 7.28
+    },
+    {
+      "word": "its",
+      "start": 7.28,
+      "end": 7.6
+    },
+    {
+      "word": "own",
+      "start": 7.6,
+      "end": 7.91
+    },
+    {
+      "word": "channel",
+      "start": 7.91,
+      "end": 8.16
+    }
+  ]
+}

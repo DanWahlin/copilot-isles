@@ -1,0 +1,37 @@
+{
+  "id": "tb.ines.flag.ok",
+  "speaker": "Ines",
+  "text": "That's the one! Up she goes.",
+  "words": [
+    {
+      "word": "That's",
+      "start": 0,
+      "end": 0.28
+    },
+    {
+      "word": "the",
+      "start": 0.28,
+      "end": 0.48
+    },
+    {
+      "word": "one",
+      "start": 0.48,
+      "end": 1.147
+    },
+    {
+      "word": "Up",
+      "start": 1.147,
+      "end": 1.4
+    },
+    {
+      "word": "she",
+      "start": 1.4,
+      "end": 1.632
+    },
+    {
+      "word": "goes",
+      "start": 1.632,
+      "end": 1.882
+    }
+  ]
+}

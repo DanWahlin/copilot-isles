@@ -3,6 +3,7 @@ import type { ChartData, ChartIsland, ChartPoint, GameBridge, UiState } from '..
 import { ARCH_H, ARCH_W, ARCHIPELAGO } from '../chart/archipelago';
 import { ArchipelagoMap, CompassRose, Parchment } from '../chart/ArchipelagoMap';
 import { IslandCard } from '../chart/IslandCard';
+import { UnchartedFog, useUnchartedChapters } from '../chart/UnchartedFog';
 import { OverlayShell } from '../components/OverlayShell';
 
 type ChartMode = 'archipelago' | 'island';
@@ -57,6 +58,7 @@ export function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBri
   const chart = state.chart ?? FALLBACK_CHART;
   const islands = chart.islands.length ? chart.islands : ARCHIPELAGO;
   const [mode, setMode] = useState<ChartMode>('archipelago');
+  const uncharted = useUnchartedChapters();
   const [selectedPoint, setSelectedPoint] = useState<ChartPoint | null>(null);
   const [selectedIsland, setSelectedIsland] = useState<ChartIsland | null>(
     islands.find((island) => island.status === 'current') ?? islands[0] ?? null,
@@ -110,6 +112,7 @@ export function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBri
             ) : (
               <IslandSvg chart={chart} selectedPoint={selectedPoint} onSelectPoint={setSelectedPoint} />
             )}
+            {mode === 'archipelago' && <UnchartedFog chapters={uncharted} />}
           </svg>
         </div>
         <div className="ci-chart-side" aria-live="polite">

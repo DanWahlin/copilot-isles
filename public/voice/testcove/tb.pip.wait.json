@@ -1,0 +1,47 @@
+{
+  "id": "tb.pip.wait",
+  "speaker": "Pip",
+  "text": "The chronicle can wait, Captain. Rook's crew first.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.12
+    },
+    {
+      "word": "chronicle",
+      "start": 0.12,
+      "end": 0.6
+    },
+    {
+      "word": "can",
+      "start": 0.6,
+      "end": 0.768
+    },
+    {
+      "word": "wait",
+      "start": 0.768,
+      "end": 1.09
+    },
+    {
+      "word": "Captain",
+      "start": 1.09,
+      "end": 1.92
+    },
+    {
+      "word": "Rook's",
+      "start": 1.92,
+      "end": 2.576
+    },
+    {
+      "word": "crew",
+      "start": 2.576,
+      "end": 3.067
+    },
+    {
+      "word": "first",
+      "start": 3.067,
+      "end": 3.317
+    }
+  ]
+}

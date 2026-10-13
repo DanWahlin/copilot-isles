@@ -1,5 +1,16 @@
 import { InstancedBufferAttribute, Sprite, SpriteNodeMaterial } from 'three/webgpu';
-import { color, float, instancedDynamicBufferAttribute, mix, sin, smoothstep, uv } from 'three/tsl';
+import {
+  atan,
+  color,
+  float,
+  instancedDynamicBufferAttribute,
+  mix,
+  pow,
+  sin,
+  smoothstep,
+  uniform,
+  uv,
+} from 'three/tsl';
 import type { TierSettings } from '../../engine/quality';
 import { world } from '../uniforms';
 
@@ -15,7 +26,7 @@ type AnyNode = any;
 export class FogBank {
   readonly mesh: Sprite;
   private readonly posAttr: InstancedBufferAttribute;
-  /** size, alpha, seed. */
+  /** density, size, seed (the layout gun smoke shares; see createPuffMaterial). */
   private readonly dataAttr: InstancedBufferAttribute;
   private readonly bx: Float32Array;
   private readonly bz: Float32Array;
@@ -40,7 +51,7 @@ export class FogBank {
     this.seed = new Float32Array(n);
     this.posAttr = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
     this.dataAttr = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
-    this.mesh = new Sprite(createFogMaterial(this.posAttr, this.dataAttr));
+    this.mesh = new Sprite(createPuffMaterial(this.posAttr, this.dataAttr, true));
     this.mesh.name = 'battle-fog';
     this.mesh.count = 0;
     this.mesh.visible = false;
@@ -119,8 +130,8 @@ export class FogBank {
       pos[i * 3] = this.bx[i]! + this.driftX + roll;
       pos[i * 3 + 1] = this.by[i]! * (0.85 + 0.15 * d);
       pos[i * 3 + 2] = this.bz[i]! + this.driftZ;
-      data[i * 3] = this.size0[i]! * (0.8 + 0.2 * d) * (1 + 0.04 * Math.sin(t * 0.2 + s * 9));
-      data[i * 3 + 1] = d;
+      data[i * 3] = d;
+      data[i * 3 + 1] = this.size0[i]! * (0.8 + 0.2 * d) * (1 + 0.04 * Math.sin(t * 0.2 + s * 9));
       data[i * 3 + 2] = s;
     }
     this.mesh.count = this.count;
@@ -134,30 +145,63 @@ function smooth01(x: number): number {
   return k * k * (3 - 2 * k);
 }
 
-function createFogMaterial(
+/**
+ * Battle puffs: the fog bank's (`fog` true) and the gun smoke's. One graph with both looks, picked by
+ * a uniform, so the two sprite draws share one shader (PLAN §15.4). Per instance: `pos`, and `data`
+ * = (fog: density / smoke: age, size, seed).
+ */
+export function createPuffMaterial(
   posAttr: InstancedBufferAttribute,
   dataAttr: InstancedBufferAttribute,
+  fog: boolean,
 ): SpriteNodeMaterial {
   const mat = new SpriteNodeMaterial({ transparent: true, depthWrite: false, fog: false });
+  const isFog = uniform(fog ? 1 : 0);
   const pos = instancedDynamicBufferAttribute(posAttr, 'vec3') as AnyNode;
   const data = instancedDynamicBufferAttribute(dataAttr, 'vec3') as AnyNode;
   const seed = data.z;
   mat.positionNode = pos;
-  mat.scaleNode = data.x;
+  mat.scaleNode = data.y;
+  mat.rotationNode = seed.mul(6.283).mul(float(1).sub(isFog));
   const p = (uv() as AnyNode).sub(0.5).mul(2);
   const r = p.length();
+
+  // The fog bank: a dense core with a soft rim (where puffs overlap it's close to opaque), the very
+  // bottom feathered (it's under the water line) so a hull inside the bank stays hidden.
   const lumps = sin(p.x.mul(4.1).add(seed.mul(23)))
     .mul(sin(p.y.mul(3.3).sub(seed.mul(11))))
     .mul(0.12);
-  // A dense core with a soft rim: where puffs overlap, the bank is close to opaque.
-  const body = smoothstep(float(1.0).add(lumps), float(0.5), r);
-  // Feather only the very bottom (it's under the water line) so a hull inside the bank stays hidden.
+  const fogBody = smoothstep(float(1.0).add(lumps), float(0.5), r);
   const foot = smoothstep(float(-0.98), float(-0.7), p.y);
-  mat.opacityNode = body.mul(foot).mul(data.y).mul(0.96);
+  const fogOpacity = fogBody.mul(foot).mul(data.x).mul(0.96);
   // A sea fog reads as a pale wall on the horizon: whiter than the haze, sunlit on top, grey-blue below.
   const top = smoothstep(float(-0.6), float(0.9), p.y);
   const pale = mix(world.hazeColor, color(0xf2f4f7), 0.6);
   const haze = mix(pale.mul(0.8), pale.mul(1.04).add(world.sunColor.mul(0.14)), top);
-  mat.colorNode = mix(haze, color(0x8b98a6).mul(0.6), world.night.mul(0.7));
+  const fogColor = mix(haze, color(0x8b98a6).mul(0.6), world.night.mul(0.7));
+
+  // Gun smoke: a cauliflower edge (a few lobes plus finer noise, so a puff never reads as a disc).
+  // The first instant of each puff glows (the muzzle flash; dimmer and steady under reduced motion).
+  const age = data.x;
+  const ang = atan(p.y, p.x);
+  const lobes = sin(ang.mul(5).add(seed.mul(31)))
+    .mul(0.09)
+    .add(sin(ang.mul(9).sub(seed.mul(17))).mul(0.05));
+  const smokeBody = smoothstep(float(0.95).add(lobes), float(0.25), r);
+  const grain = sin(p.x.mul(11).add(seed.mul(13)))
+    .mul(sin(p.y.mul(9).sub(seed.mul(7))))
+    .mul(0.12)
+    .add(0.88);
+  const smokeOpacity = smokeBody
+    .mul(grain)
+    .mul(pow(float(1).sub(age.min(1)), float(1.5)))
+    .mul(0.55);
+  const shade = smoothstep(float(-0.9), float(0.8), p.y.negate());
+  const smokeShade = mix(color(0x9d978e), color(0xf2ece2), shade).mul(float(1).sub(world.night.mul(0.6)));
+  const flash = smoothstep(float(0.05), float(0), age).mul(float(1).sub(world.reducedMotion.mul(0.7)));
+  const smokeColor = mix(smokeShade, color(0xffc070).mul(3), flash.mul(smoothstep(float(0.8), float(0), r)));
+
+  mat.opacityNode = mix(smokeOpacity, fogOpacity, isFog);
+  mat.colorNode = mix(smokeColor, fogColor, isFog);
   return mat;
 }

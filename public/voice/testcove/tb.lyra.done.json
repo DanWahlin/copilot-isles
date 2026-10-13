@@ -1,0 +1,72 @@
+{
+  "id": "tb.lyra.done",
+  "speaker": "Lyra",
+  "text": "Step into a booth, Captain. Hear how each part sounds on its own.",
+  "words": [
+    {
+      "word": "Step",
+      "start": 0.052625,
+      "end": 0.447375
+    },
+    {
+      "word": "into",
+      "start": 0.447375,
+      "end": 0.828958
+    },
+    {
+      "word": "a",
+      "start": 0.828958,
+      "end": 0.868416
+    },
+    {
+      "word": "booth",
+      "start": 0.868416,
+      "end": 1.421041
+    },
+    {
+      "word": "Captain",
+      "start": 1.421041,
+      "end": 3.026333
+    },
+    {
+      "word": "Hear",
+      "start": 3.026333,
+      "end": 3.315791
+    },
+    {
+      "word": "how",
+      "start": 3.315791,
+      "end": 3.631583
+    },
+    {
+      "word": "each",
+      "start": 3.631583,
+      "end": 3.960541
+    },
+    {
+      "word": "part",
+      "start": 3.960541,
+      "end": 4.368416
+    },
+    {
+      "word": "sounds",
+      "start": 4.368416,
+      "end": 4.789458
+    },
+    {
+      "word": "on",
+      "start": 4.789458,
+      "end": 4.947375
+    },
+    {
+      "word": "its",
+      "start": 4.947375,
+      "end": 5.092125
+    },
+    {
+      "word": "own",
+      "start": 5.092125,
+      "end": 5.342125
+    }
+  ]
+}

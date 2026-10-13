@@ -601,7 +601,8 @@ export function createMeridianSilhouette(): Group {
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
   geometry.setIndex(indices);
-  geometry.computeVertexNormals();
+  // No normals: the unlit material doesn't read them, and without them it shares its shader with the
+  // other far-island silhouettes (Thousand-Bough's).
   geometry.computeBoundingSphere();
   const material = new MeshBasicNodeMaterial({
     color: 0x8ba5a4,

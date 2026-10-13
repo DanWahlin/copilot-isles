@@ -1,0 +1,92 @@
+{
+  "id": "tb.oak.02",
+  "speaker": "Oak",
+  "text": "Start a session with the plus, and the workspace selector below the prompt box picks the place.",
+  "words": [
+    {
+      "word": "Start",
+      "start": 0,
+      "end": 0.36
+    },
+    {
+      "word": "a",
+      "start": 0.36,
+      "end": 0.44
+    },
+    {
+      "word": "session",
+      "start": 0.44,
+      "end": 0.768
+    },
+    {
+      "word": "with",
+      "start": 0.768,
+      "end": 0.98
+    },
+    {
+      "word": "the",
+      "start": 0.98,
+      "end": 1.136
+    },
+    {
+      "word": "plus",
+      "start": 1.136,
+      "end": 1.97
+    },
+    {
+      "word": "and",
+      "start": 1.97,
+      "end": 2.26
+    },
+    {
+      "word": "the",
+      "start": 2.26,
+      "end": 2.376
+    },
+    {
+      "word": "workspace",
+      "start": 2.376,
+      "end": 2.933
+    },
+    {
+      "word": "selector",
+      "start": 2.933,
+      "end": 3.4
+    },
+    {
+      "word": "below",
+      "start": 3.4,
+      "end": 3.62
+    },
+    {
+      "word": "the",
+      "start": 3.62,
+      "end": 3.737
+    },
+    {
+      "word": "prompt",
+      "start": 3.737,
+      "end": 4.16
+    },
+    {
+      "word": "box",
+      "start": 4.16,
+      "end": 4.453
+    },
+    {
+      "word": "picks",
+      "start": 4.453,
+      "end": 4.74
+    },
+    {
+      "word": "the",
+      "start": 4.74,
+      "end": 4.88
+    },
+    {
+      "word": "place",
+      "start": 4.88,
+      "end": 5.13
+    }
+  ]
+}

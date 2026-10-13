@@ -45,6 +45,8 @@ export interface TerrainRegionMasks {
   bluff?: AnyNode;
   /** A pale limestone ridge with soft bedding and dark-green maquis on its ledges. */
   limestoneRidge?: AnyNode;
+  /** Wet, mossy basalt: dark columned faces with moss on every ledge (Thousand-Bough's cliffs). */
+  basalt?: AnyNode;
 }
 
 export type TerrainRegionKey = keyof TerrainRegionMasks;
@@ -63,6 +65,7 @@ const REGION_KEYS: readonly TerrainRegionKey[] = [
   'town',
   'bluff',
   'limestoneRidge',
+  'basalt',
 ];
 
 /**

@@ -1,0 +1,47 @@
+{
+  "id": "tb.fen.twist.share",
+  "speaker": "Fen",
+  "text": "Two previews on one port collide. Try again.",
+  "words": [
+    {
+      "word": "Two",
+      "start": 0,
+      "end": 0.231
+    },
+    {
+      "word": "previews",
+      "start": 0.231,
+      "end": 0.88
+    },
+    {
+      "word": "on",
+      "start": 0.88,
+      "end": 1.1
+    },
+    {
+      "word": "one",
+      "start": 1.1,
+      "end": 1.344
+    },
+    {
+      "word": "port",
+      "start": 1.344,
+      "end": 1.67
+    },
+    {
+      "word": "collide",
+      "start": 1.67,
+      "end": 2.54
+    },
+    {
+      "word": "Try",
+      "start": 2.54,
+      "end": 2.787
+    },
+    {
+      "word": "again",
+      "start": 2.787,
+      "end": 3.037
+    }
+  ]
+}

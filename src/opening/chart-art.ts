@@ -229,7 +229,8 @@ export function drawChartArt(grids: readonly IslandGrid[], inkWidth = 2048): Cha
     c.lineWidth = 5 * unit;
     c.strokeStyle = 'rgba(236, 220, 176, 0.9)';
     c.fillStyle = isReal ? '#2a1d0e' : 'rgba(42, 29, 14, 0.75)';
-    const y = py(at.v) + (isl.id === 'anchorage' ? 92 : isl.id === 'meridian' ? 98 : 62) * unit;
+    const y =
+      py(at.v) + (isl.id === 'meridian' ? 98 : isl.id === 'thousand-bough' ? -82 : isReal ? 92 : 62) * unit;
     c.strokeText(isl.name, px(at.u), y);
     c.fillText(isl.name, px(at.u), y);
   }

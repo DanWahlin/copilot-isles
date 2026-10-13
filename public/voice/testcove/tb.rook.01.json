@@ -1,0 +1,82 @@
+{
+  "id": "tb.rook.01",
+  "speaker": "Rook",
+  "text": "This bough's a branch: practice empty state copy. Its empty-state message got worse on purpose.",
+  "words": [
+    {
+      "word": "This",
+      "start": 0,
+      "end": 0.24
+    },
+    {
+      "word": "bough's",
+      "start": 0.24,
+      "end": 0.6
+    },
+    {
+      "word": "a",
+      "start": 0.6,
+      "end": 0.709
+    },
+    {
+      "word": "branch",
+      "start": 0.709,
+      "end": 1.333
+    },
+    {
+      "word": "practice",
+      "start": 1.333,
+      "end": 2.467
+    },
+    {
+      "word": "empty",
+      "start": 2.467,
+      "end": 2.853
+    },
+    {
+      "word": "state",
+      "start": 2.853,
+      "end": 3.2
+    },
+    {
+      "word": "copy",
+      "start": 3.2,
+      "end": 3.94
+    },
+    {
+      "word": "Its",
+      "start": 3.94,
+      "end": 5.013
+    },
+    {
+      "word": "empty-state",
+      "start": 5.013,
+      "end": 5.59
+    },
+    {
+      "word": "message",
+      "start": 5.59,
+      "end": 6.2
+    },
+    {
+      "word": "got",
+      "start": 6.2,
+      "end": 6.653
+    },
+    {
+      "word": "worse",
+      "start": 6.653,
+      "end": 7.227
+    },
+    {
+      "word": "on",
+      "start": 7.227,
+      "end": 7.52
+    },
+    {
+      "word": "purpose",
+      "start": 7.52,
+      "end": 7.77
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "id": "tb.fen.done",
+  "speaker": "Fen",
+  "text": "Listen to those wheels turning. Music, that is.",
+  "words": [
+    {
+      "word": "Listen",
+      "start": 0,
+      "end": 0.267
+    },
+    {
+      "word": "to",
+      "start": 0.267,
+      "end": 0.36
+    },
+    {
+      "word": "those",
+      "start": 0.36,
+      "end": 0.617
+    },
+    {
+      "word": "wheels",
+      "start": 0.617,
+      "end": 1.02
+    },
+    {
+      "word": "turning",
+      "start": 1.02,
+      "end": 1.767
+    },
+    {
+      "word": "Music",
+      "start": 1.767,
+      "end": 2.192
+    },
+    {
+      "word": "that",
+      "start": 2.192,
+      "end": 2.4
+    },
+    {
+      "word": "is",
+      "start": 2.4,
+      "end": 2.65
+    }
+  ]
+}

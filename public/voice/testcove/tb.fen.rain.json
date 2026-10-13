@@ -1,0 +1,87 @@
+{
+  "id": "tb.fen.rain",
+  "speaker": "Fen",
+  "text": "Och, the rain's brought a boulder down! New tiles, same rule: every crew its own channel.",
+  "words": [
+    {
+      "word": "Och",
+      "start": 0,
+      "end": 0.42
+    },
+    {
+      "word": "the",
+      "start": 0.42,
+      "end": 0.784
+    },
+    {
+      "word": "rain's",
+      "start": 0.784,
+      "end": 1.15
+    },
+    {
+      "word": "brought",
+      "start": 1.15,
+      "end": 1.4
+    },
+    {
+      "word": "a",
+      "start": 1.4,
+      "end": 1.48
+    },
+    {
+      "word": "boulder",
+      "start": 1.48,
+      "end": 1.904
+    },
+    {
+      "word": "down",
+      "start": 1.904,
+      "end": 2.44
+    },
+    {
+      "word": "New",
+      "start": 2.44,
+      "end": 3.133
+    },
+    {
+      "word": "tiles",
+      "start": 3.133,
+      "end": 3.824
+    },
+    {
+      "word": "same",
+      "start": 3.824,
+      "end": 4.144
+    },
+    {
+      "word": "rule",
+      "start": 4.144,
+      "end": 4.853
+    },
+    {
+      "word": "every",
+      "start": 4.853,
+      "end": 5.2
+    },
+    {
+      "word": "crew",
+      "start": 5.2,
+      "end": 5.62
+    },
+    {
+      "word": "its",
+      "start": 5.62,
+      "end": 6
+    },
+    {
+      "word": "own",
+      "start": 6,
+      "end": 6.32
+    },
+    {
+      "word": "channel",
+      "start": 6.32,
+      "end": 6.57
+    }
+  ]
+}

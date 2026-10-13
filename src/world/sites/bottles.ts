@@ -1,6 +1,7 @@
 import { Group, Mesh, Vector3, type BufferGeometry, type Material } from 'three/webgpu';
 import type { VillageKit } from '../village/kit';
 import { cylinder, merge } from './geo';
+import { unreflected } from '../reflection';
 import { createSparkleMaterial, shaftGeometry, starGeometry } from './sparkle';
 
 /**
@@ -52,6 +53,9 @@ export function createBottles(o: {
   const list = o.spots ?? COVE_BOTTLES;
   const group = new Group();
   group.name = 'message bottles';
+  // Not in the harbour mirror: small things on the sand, and each reflected look costs its own
+  // mirror shaders (8 for the bottles; PLAN §15.4).
+  unreflected.add(group);
   const collected = new Set<string>();
   const sparkle = createSparkleMaterial();
   const materials: Record<'glass' | 'note' | 'cork' | 'glint', Material> = {
@@ -111,6 +115,7 @@ export function createBottles(o: {
     dispose() {
       for (const m of meshes) m.geometry.dispose();
       sparkle.dispose();
+      unreflected.delete(group);
       group.removeFromParent();
     },
   };

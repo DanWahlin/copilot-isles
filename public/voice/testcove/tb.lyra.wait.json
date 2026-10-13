@@ -1,0 +1,72 @@
+{
+  "id": "tb.lyra.wait",
+  "speaker": "Lyra",
+  "text": "Tamsin's down at the wharf first, Captain. Then come and hear my song.",
+  "words": [
+    {
+      "word": "Tamsin's",
+      "start": 0.052625,
+      "end": 0.671041
+    },
+    {
+      "word": "down",
+      "start": 0.671041,
+      "end": 1.052625
+    },
+    {
+      "word": "at",
+      "start": 1.052625,
+      "end": 1.171041
+    },
+    {
+      "word": "the",
+      "start": 1.171041,
+      "end": 1.289458
+    },
+    {
+      "word": "wharf",
+      "start": 1.289458,
+      "end": 1.631583
+    },
+    {
+      "word": "first",
+      "start": 1.631583,
+      "end": 2.368416
+    },
+    {
+      "word": "Captain",
+      "start": 2.368416,
+      "end": 3.934208
+    },
+    {
+      "word": "Then",
+      "start": 3.934208,
+      "end": 4.236833
+    },
+    {
+      "word": "come",
+      "start": 4.236833,
+      "end": 4.618416
+    },
+    {
+      "word": "and",
+      "start": 4.618416,
+      "end": 4.815791
+    },
+    {
+      "word": "hear",
+      "start": 4.815791,
+      "end": 5.078958
+    },
+    {
+      "word": "my",
+      "start": 5.078958,
+      "end": 5.328958
+    },
+    {
+      "word": "song",
+      "start": 5.328958,
+      "end": 5.578958
+    }
+  ]
+}

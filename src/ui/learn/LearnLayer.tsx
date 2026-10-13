@@ -1,5 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
+import { CHAPTERS } from '../../learn/content/index';
+import { loadGlossary, prefetchChapter } from '../../learn/course/source';
 import type { LearnStore } from '../../learn/store';
 import { SoundButton } from '../SoundButton';
 import { Logbook, PageReveal, Spyglass } from './PageViews';
@@ -44,6 +46,16 @@ function LearnLayer({
   const s = useSyncExternalStore(store.subscribe, store.getState);
   const visible = useSyncExternalStore(playing.subscribe, playing.get);
   const muted = useSyncExternalStore(sound.subscribe, sound.muted);
+
+  // Fetch the course text once play starts (PLAN §8.2), so pages and excerpts open without a wait.
+  useEffect(() => {
+    if (!visible) return;
+    const id = setTimeout(() => {
+      for (const c of CHAPTERS) void prefetchChapter(c.chapter);
+      void loadGlossary().catch(() => undefined);
+    }, 1500);
+    return () => clearTimeout(id);
+  }, [visible]);
 
   useEffect(() => {
     const key = (e: KeyboardEvent) => {

@@ -81,6 +81,10 @@ async function begin(unlock: boolean): Promise<void> {
     reveal();
     for (const g of roots) void renderer.compileAsync(g, camera, scene);
   });
+  void session.thousandBoughSetup.then(({ roots, reveal }) => {
+    reveal();
+    for (const g of roots) void renderer.compileAsync(g, camera, scene);
+  });
   for (const fn of playingListeners) fn();
   document.getElementById('start')!.classList.add('hide');
   canvas.focus();

@@ -1,0 +1,52 @@
+{
+  "id": "tb.fen.twist.02",
+  "speaker": "Fen",
+  "text": "Their channels are separate. So why are they stuck?",
+  "words": [
+    {
+      "word": "Their",
+      "start": 0,
+      "end": 0.222
+    },
+    {
+      "word": "channels",
+      "start": 0.222,
+      "end": 0.82
+    },
+    {
+      "word": "are",
+      "start": 0.82,
+      "end": 1.173
+    },
+    {
+      "word": "separate",
+      "start": 1.173,
+      "end": 1.947
+    },
+    {
+      "word": "So",
+      "start": 1.947,
+      "end": 2.38
+    },
+    {
+      "word": "why",
+      "start": 2.38,
+      "end": 2.58
+    },
+    {
+      "word": "are",
+      "start": 2.58,
+      "end": 2.672
+    },
+    {
+      "word": "they",
+      "start": 2.672,
+      "end": 2.893
+    },
+    {
+      "word": "stuck",
+      "start": 2.893,
+      "end": 3.143
+    }
+  ]
+}

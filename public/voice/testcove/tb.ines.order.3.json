@@ -1,0 +1,27 @@
+{
+  "id": "tb.ines.order.3",
+  "speaker": "Ines",
+  "text": "Now: run chronicle standup.",
+  "words": [
+    {
+      "word": "Now",
+      "start": 0,
+      "end": 0.42
+    },
+    {
+      "word": "run",
+      "start": 0.42,
+      "end": 0.76
+    },
+    {
+      "word": "chronicle",
+      "start": 0.76,
+      "end": 1.2
+    },
+    {
+      "word": "standup",
+      "start": 1.2,
+      "end": 1.45
+    }
+  ]
+}

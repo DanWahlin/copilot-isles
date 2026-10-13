@@ -1,6 +1,8 @@
 import { ARCHIPELAGO, ARCH_H, ARCH_W } from '../ui/chart/archipelago';
 import { coveHeight, coveMasks } from '../world/terrain/cove-height';
 import { meridianHeight, meridianMasks } from '../world/islands/meridian';
+import { thousandBoughHeight, thousandBoughMasks } from '../world/islands/thousand-bough/height';
+import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
 
 /**
  * The living chart's map (docs/specs/OPENING-living-chart.md): the parchment's size on the desk, and
@@ -17,7 +19,7 @@ export const CHART_D = (CHART_W * ARCH_H) / ARCH_W;
  */
 export const CHART_LIFT = 1.6;
 
-export type ChartIslandId = 'anchorage' | 'meridian';
+export type ChartIslandId = 'anchorage' | 'meridian' | 'thousand-bough';
 
 export interface ChartIslandSource {
   id: ChartIslandId;
@@ -36,6 +38,8 @@ export interface ChartIslandSource {
   pack: string;
   height(x: number, z: number): number;
   masks(x: number, z: number): { sand: number; grass: number; rock: number; cliff: number };
+  /** Height added over the baked terrain for a landmark it doesn't hold (a raised canopy dome). */
+  relief?(x: number, z: number): number;
 }
 
 export const CHART_ISLANDS: readonly ChartIslandSource[] = [
@@ -66,6 +70,27 @@ export const CHART_ISLANDS: readonly ChartIslandSource[] = [
     pack: 'meridian/terrain',
     height: meridianHeight,
     masks: meridianMasks,
+  },
+  {
+    id: 'thousand-bough',
+    cx: 2050,
+    cz: -1510,
+    // A little smaller than true to its neighbours, so its outline stays clear of Port Meridian's.
+    scale: 1 / 6000,
+    minX: 1690,
+    maxX: 2410,
+    minZ: -1840,
+    maxZ: -1180,
+    cell: 8,
+    pack: 'thousand-bough/terrain',
+    height: thousandBoughHeight,
+    masks: thousandBoughMasks,
+    // The great banyan's crown, one raised dome over the valley (spec §2.6).
+    relief: (x, z) => {
+      const t = THOUSAND_BOUGH.tree;
+      const d = Math.hypot(x - t.x, z - t.z) / 58;
+      return d < 1 ? 46 * Math.sqrt(1 - d * d) : 0;
+    },
   },
 ];
 

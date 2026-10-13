@@ -1,0 +1,62 @@
+{
+  "id": "wingman.tb.01",
+  "speaker": "Wingman",
+  "text": "Lanterns! Mist! Thousand-Bough Isle is Chapter 02: sessions, worktrees and context.",
+  "words": [
+    {
+      "word": "Lanterns",
+      "start": 0,
+      "end": 0.944
+    },
+    {
+      "word": "Mist",
+      "start": 0.944,
+      "end": 1.716
+    },
+    {
+      "word": "Thousand-Bough",
+      "start": 1.716,
+      "end": 3.04
+    },
+    {
+      "word": "Isle",
+      "start": 3.04,
+      "end": 3.44
+    },
+    {
+      "word": "is",
+      "start": 3.44,
+      "end": 3.65
+    },
+    {
+      "word": "Chapter",
+      "start": 3.65,
+      "end": 4.1
+    },
+    {
+      "word": "02",
+      "start": 4.1,
+      "end": 4.622
+    },
+    {
+      "word": "sessions",
+      "start": 4.622,
+      "end": 6.24
+    },
+    {
+      "word": "worktrees",
+      "start": 6.24,
+      "end": 7.22
+    },
+    {
+      "word": "and",
+      "start": 7.22,
+      "end": 7.61
+    },
+    {
+      "word": "context",
+      "start": 7.61,
+      "end": 7.86
+    }
+  ]
+}

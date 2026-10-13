@@ -1,6 +1,6 @@
 import type { BattleSnapshot } from '../world/battle/battle';
 import { courseUrl } from '../learn/content';
-import type { ChoiceQuiz } from '../learn/types';
+import type { ChoiceQuiz, SourceRef } from '../learn/types';
 import './battle-hud.css';
 
 export interface BattleHudActions {
@@ -52,6 +52,18 @@ const BRIEFING: readonly (readonly [string, string, string])[] = [
   ],
 ];
 
+/** "Chapter 00 · Add the course practice items": where a question's answer is in the course. */
+export function sourceLabel(s: SourceRef): string {
+  const words = s.anchor.replace(/-/g, ' ');
+  return `Chapter ${s.chapter.slice(0, 2)} · ${words.charAt(0).toUpperCase()}${words.slice(1)}`;
+}
+
+/** Buttons you press with the mouse or a finger don't keep focus (Space would press them again). */
+function noFocus(b: HTMLButtonElement): HTMLButtonElement {
+  b.addEventListener('mousedown', (e) => e.preventDefault());
+  return b;
+}
+
 function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
   cls: string,
@@ -91,6 +103,10 @@ export class BattleHud {
   private quiz: ChoiceQuiz | null = null;
   private gunCount = 0;
   private readonly rowsReady: HTMLDivElement[];
+  /** When a button in the HUD was last clicked (Enter clicks the focused one and is also "interact"). */
+  private clickedAt = -1e9;
+  /** True while the question card waits for a choice. */
+  private asking = false;
 
   constructor(
     parent: HTMLElement,
@@ -98,6 +114,7 @@ export class BattleHud {
   ) {
     this.root = el('div', 'bh', parent);
     this.root.setAttribute('aria-label', 'Battle');
+    this.root.addEventListener('click', () => (this.clickedAt = performance.now()), true);
 
     const top = el('div', 'bh-top', this.root);
     const hull = el('div', 'bh-hull', top);
@@ -107,7 +124,7 @@ export class BattleHud {
     this.waveText = el('div', 'bh-wave', top);
     this.bonus = el('div', 'bh-bonus', top);
 
-    const skip = el('button', 'bh-skip', this.root);
+    const skip = noFocus(el('button', 'bh-skip', this.root));
     skip.type = 'button';
     skip.textContent = 'Skip battle';
     skip.onclick = () => this.actions.skip();
@@ -120,7 +137,7 @@ export class BattleHud {
     this.helmBar = el('div', 'bh-helm', this.root);
     this.hintText = el('span', 'bh-hint', this.helmBar);
     this.hintText.setAttribute('aria-live', 'polite');
-    this.assistBtn = el('button', 'bh-assist', this.helmBar);
+    this.assistBtn = noFocus(el('button', 'bh-assist', this.helmBar));
     this.assistBtn.type = 'button';
     this.assistBtn.setAttribute('aria-pressed', 'false');
     this.assistBtn.innerHTML = '<span>Bring her round</span><kbd>R</kbd>';
@@ -128,7 +145,7 @@ export class BattleHud {
 
     const guns = el('div', 'bh-guns', this.root);
     const makeRow = (sideIdx: number) => {
-      const side = el('button', `bh-side ${sideIdx === 0 ? 'port' : 'starboard'}`, guns);
+      const side = noFocus(el('button', `bh-side ${sideIdx === 0 ? 'port' : 'starboard'}`, guns));
       side.type = 'button';
       side.setAttribute('aria-label', sideIdx === 0 ? 'Fire port battery' : 'Fire starboard battery');
       const head = el('div', 'bh-side-head', side);
@@ -142,7 +159,7 @@ export class BattleHud {
       return row;
     };
     const portRow = makeRow(0);
-    this.fireBtn = el('button', 'bh-fire', guns);
+    this.fireBtn = noFocus(el('button', 'bh-fire', guns));
     this.fireBtn.type = 'button';
     this.fireBtn.innerHTML = '<span>Fire</span><kbd>Space</kbd>';
     this.fireBtn.setAttribute('aria-label', 'Fire every battery that bears');
@@ -182,6 +199,36 @@ export class BattleHud {
   /** True while the pre-battle briefing is open. */
   get briefingOpen(): boolean {
     return this.briefing !== null;
+  }
+
+  /** True while the briefing or the bosun's question waits for you (the helm keys move between its buttons). */
+  get choosing(): boolean {
+    return this.briefing !== null || this.asking;
+  }
+
+  /** The buttons you can choose between now (the briefing's, or the card's). */
+  private choices(): HTMLButtonElement[] {
+    const box = this.briefing ?? this.card;
+    return [...box.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')];
+  }
+
+  /** Gamepad and keyboard parity: moves the focus to the next (`dir` 1) or previous (−1) choice. */
+  nav(dir: number): void {
+    const list = this.choices();
+    if (!list.length) return;
+    const at = list.indexOf(document.activeElement as HTMLButtonElement);
+    const next = at < 0 ? 0 : (at + dir + list.length) % list.length;
+    list[next]!.focus({ preventScroll: true });
+  }
+
+  /** E or the gamepad's A: presses the focused choice (or focuses the first one). */
+  press(): void {
+    // Enter has already clicked the focused button by itself.
+    if (performance.now() - this.clickedAt < 300) return;
+    const list = this.choices();
+    const at = list.indexOf(document.activeElement as HTMLButtonElement);
+    if (at >= 0) list[at]!.click();
+    else list[0]?.focus({ preventScroll: true });
   }
 
   /**
@@ -321,6 +368,8 @@ export class BattleHud {
   private enterPhase(s: BattleSnapshot): void {
     this.lastPhase = s.phase;
     this.root.dataset.phase = s.phase;
+    this.asking = false;
+    if (this.card.contains(document.activeElement)) (document.activeElement as HTMLElement).blur();
     this.card.textContent = '';
     this.card.className = 'bh-card';
     if (s.phase === 'intro') {
@@ -358,11 +407,13 @@ export class BattleHud {
   private showQuestion(): void {
     const quiz = this.quiz;
     this.card.classList.add('show');
+    this.asking = true;
     el('h2', '', this.card).textContent = 'The bosun’s question';
     if (!quiz) {
       this.pickBonus(false);
       return;
     }
+    el('p', 'bh-cite', this.card).textContent = sourceLabel(quiz.source);
     if (quiz.situation) el('p', 'bh-situation', this.card).innerHTML = md(quiz.situation);
     el('p', 'bh-prompt', this.card).innerHTML = md(quiz.prompt);
     const list = el('div', 'bh-options', this.card);
@@ -392,6 +443,7 @@ export class BattleHud {
     skip.type = 'button';
     skip.textContent = 'Skip the question (base repairs only)';
     skip.onclick = () => this.actions.answer(null);
+    list.querySelector('button')?.focus({ preventScroll: true });
   }
 
   private pickBonus(right: boolean): void {
@@ -413,6 +465,7 @@ export class BattleHud {
       go.innerHTML = '<b>Make repairs and sail on</b><span>The crew patches the hull from the stores</span>';
       go.onclick = () => this.actions.answer(null);
     }
+    picks.querySelector('button')?.focus({ preventScroll: true });
   }
 
   dispose(): void {

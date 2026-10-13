@@ -1,0 +1,529 @@
+/* P2.1 Channel Routing's overlay. Tokens come from src/ui/ui.css (:root --ci-*). */
+.ci-cr-root {
+  position: fixed;
+  inset: 0;
+  /* Above the HUD (5), beside the learning overlay (6); menus never show with it. */
+  z-index: 6;
+  pointer-events: none;
+}
+.ci-cr {
+  position: absolute;
+  inset: 0;
+  color: var(--ci-cream, #fbefd6);
+  font-family: var(--ci-ui, Manrope, Inter, system-ui, sans-serif);
+}
+.ci-cr button {
+  pointer-events: auto;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.ci-cr button:disabled,
+.ci-cr button[aria-disabled='true'] {
+  cursor: default;
+}
+.ci-cr :focus-visible {
+  outline: 2px solid var(--ci-focus, #65e5ff);
+  outline-offset: 2px;
+}
+.ci-cr kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.4em;
+  height: 1.4em;
+  padding: 0 0.28em;
+  border: 1px solid rgba(232, 200, 138, 0.5);
+  border-radius: 5px;
+  background: rgba(232, 200, 138, 0.12);
+  color: var(--ci-gold, #e8c88a);
+  font: 700 0.7rem/1 var(--ci-ui);
+}
+
+/* Invisible hit areas over the 3D tiles: a highlight ring shows on hover and on the cursor. */
+.ci-cr-hits {
+  position: absolute;
+  inset: 0;
+}
+.ci-cr-hit {
+  position: absolute;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  transition: box-shadow 0.15s;
+}
+.ci-cr-hit:hover,
+.ci-cr-hit.is-selected {
+  box-shadow: inset 0 0 0 3px rgba(255, 217, 138, 0.85);
+}
+.ci-cr-hit.is-pulse {
+  animation: ci-cr-pulse 0.9s ease-in-out infinite;
+}
+
+.ci-cr-panel {
+  position: absolute;
+  top: 50%;
+  right: clamp(12px, 3vw, 40px);
+  transform: translateY(-50%);
+  width: min(420px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  padding: 18px 20px 14px;
+  border: 1px solid var(--ci-edge, rgba(232, 200, 138, 0.36));
+  border-radius: 22px;
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgba(232, 200, 138, 0.14), transparent 60%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.05), transparent 40%),
+    var(--ci-glass-strong, rgba(8, 18, 27, 0.82));
+  box-shadow: var(--ci-shadow, 0 24px 80px rgba(0, 0, 0, 0.42));
+  backdrop-filter: blur(10px) saturate(1.15);
+  pointer-events: auto;
+  animation: ci-cr-rise 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ci-cr-head {
+  margin-bottom: 10px;
+  text-align: center;
+}
+.ci-cr-eyebrow {
+  margin: 0;
+  color: var(--ci-gold, #e8c88a);
+  font: 800 0.72rem/1.2 var(--ci-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.ci-cr-head h2 {
+  margin: 4px 0 0;
+  font: 600 1.32rem/1.2 var(--ci-display, Fraunces, Georgia, serif);
+}
+
+.ci-cr-board {
+  --tile: clamp(52px, 13.5vw, 68px);
+  display: grid;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 16px;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0 2px, transparent 2px 22px),
+    linear-gradient(180deg, #5e4429, #3e2c1a);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 230, 180, 0.18),
+    inset 0 -8px 18px rgba(0, 0, 0, 0.35);
+}
+.ci-cr-gates,
+.ci-cr-wheels,
+.ci-cr-row {
+  display: grid;
+  grid-template-columns: repeat(5, var(--tile));
+  gap: 4px;
+}
+.ci-cr-gate,
+.ci-cr-wheel,
+.ci-cr-hall {
+  display: grid;
+  place-items: center;
+  gap: 1px;
+  min-height: 44px;
+  padding: 4px 2px;
+  border-radius: 10px;
+  font: 800 0.66rem/1.1 var(--ci-ui);
+  text-align: center;
+}
+.ci-cr-gate {
+  border: 2px solid var(--crew);
+  background: color-mix(in srgb, var(--crew) 30%, #1c140c);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--crew) 45%, transparent);
+}
+.ci-cr-gate b,
+.ci-cr-wheel b {
+  font-size: 1rem;
+  line-height: 1;
+}
+.ci-cr-gate.is-shut {
+  opacity: 0.42;
+  box-shadow: none;
+  filter: saturate(0.4);
+}
+.ci-cr-wheel {
+  position: relative;
+  border: 2px solid color-mix(in srgb, var(--crew) 70%, #000);
+  background: rgba(10, 8, 5, 0.45);
+}
+.ci-cr-wheel-icon {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: color-mix(in srgb, var(--crew) 55%, transparent);
+  font: normal 2.4rem/1 serif;
+  opacity: 0.35;
+}
+.ci-cr-wheel.is-turning {
+  background: color-mix(in srgb, var(--crew) 34%, #120d07);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--crew) 70%, transparent);
+}
+.ci-cr-wheel.is-turning .ci-cr-wheel-icon {
+  opacity: 0.7;
+  animation: ci-cr-spin 2.2s linear infinite;
+}
+.ci-cr-wheel.is-wrong {
+  border-color: #ff7a59;
+  animation: ci-cr-jolt 0.5s ease-out 2;
+}
+.ci-cr-hall {
+  border: 2px dashed rgba(232, 200, 138, 0.35);
+  color: var(--ci-muted, rgba(246, 236, 214, 0.72));
+}
+.ci-cr-hall small {
+  font-weight: 700;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+.ci-cr-hall.is-wet {
+  border-color: #ff7a59;
+  color: #ffd2c4;
+  background: rgba(255, 122, 89, 0.16);
+}
+
+.ci-cr-grid {
+  display: grid;
+  gap: 4px;
+}
+.ci-cr-tile {
+  position: relative;
+  width: var(--tile);
+  height: var(--tile);
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  transition: transform 0.12s;
+}
+.ci-cr-tile:hover:not(.is-rock) {
+  transform: translateY(-1px);
+}
+.ci-cr-tile.is-selected::after,
+.ci-cr-tile.is-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 12px;
+  box-shadow: 0 0 0 3px var(--ci-gold-strong, #ffd98a);
+  pointer-events: none;
+}
+.ci-cr-tile.is-pulse::after {
+  box-shadow: 0 0 0 3px #ff7a59;
+  animation: ci-cr-pulse 0.9s ease-in-out infinite;
+}
+.ci-cr-tile-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.ci-cr-plank {
+  fill: #a5784a;
+  stroke: #6f4c2b;
+  stroke-width: 0.03;
+}
+.ci-cr-trough {
+  fill: none;
+  stroke: #5b3d22;
+  stroke-width: 0.36;
+  stroke-linecap: square;
+}
+.ci-cr-channel {
+  fill: none;
+  stroke: #2b1d11;
+  stroke-width: 0.22;
+  stroke-linecap: square;
+}
+.ci-cr-water {
+  fill: none;
+  stroke-width: 0.17;
+  stroke-linecap: square;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  filter: drop-shadow(0 0 0.04px rgba(255, 255, 255, 0.6));
+  animation: ci-cr-flow 0.24s linear forwards;
+}
+.ci-cr-water.is-mixed {
+  stroke-dasharray: 0.12 0.06;
+  animation:
+    ci-cr-flow 0.24s linear forwards,
+    ci-cr-swirl 0.6s linear infinite;
+}
+.ci-cr-rock ellipse {
+  fill: #6c6f69;
+  stroke: #3a3f3c;
+  stroke-width: 0.03;
+}
+.ci-cr-rock .ci-cr-rock-hi {
+  fill: #8f948c;
+  stroke: none;
+}
+
+.ci-cr-message {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  min-height: 2.9em;
+  margin: 12px 2px 10px;
+  font: 600 0.92rem/1.42 var(--ci-ui);
+}
+.ci-cr-message.is-bad {
+  color: #ffd2c4;
+}
+.ci-cr-message.is-good {
+  color: #c9fff5;
+}
+.ci-cr-msg-icon {
+  font-size: 1.1rem;
+}
+
+.ci-cr-actions {
+  display: grid;
+  gap: 8px;
+}
+.ci-cr-go {
+  min-height: 64px;
+  border: 1px solid rgba(255, 217, 138, 0.8);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #2e9c8a, #1f6f62);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 8px 24px rgba(31, 163, 154, 0.35);
+  font: 800 1.08rem/1 var(--ci-ui) !important;
+  letter-spacing: 0.02em;
+}
+.ci-cr-go:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.ci-cr-go:disabled {
+  opacity: 0.5;
+  box-shadow: none;
+}
+.ci-cr-small {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ci-cr-small button {
+  flex: 1 1 auto;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0 10px;
+  border: 1px solid var(--ci-edge, rgba(232, 200, 138, 0.36));
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  font: 700 0.85rem/1 var(--ci-ui);
+}
+.ci-cr-small button:hover:not(:disabled) {
+  background: rgba(232, 200, 138, 0.16);
+}
+.ci-cr-small button:disabled {
+  opacity: 0.45;
+}
+.ci-cr-help {
+  margin: 10px 0 0;
+  color: var(--ci-muted, rgba(246, 236, 214, 0.72));
+  font: 600 0.72rem/1.6 var(--ci-ui);
+  text-align: center;
+}
+.ci-cr-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* The Spire twist. */
+.ci-cr-question {
+  margin: 4px 0 12px;
+  font: italic 1.08rem/1.45 var(--ci-display, Fraunces, Georgia, serif);
+  text-align: center;
+}
+.ci-cr-choices {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ci-cr-choices button {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 1px solid var(--ci-edge, rgba(232, 200, 138, 0.36));
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  font: 650 0.98rem/1.3 var(--ci-ui);
+  text-align: left;
+}
+.ci-cr-choices button.is-right {
+  border-color: #3fd0c9;
+  background: rgba(63, 208, 201, 0.16);
+}
+.ci-cr-choices button.is-wrong {
+  border-color: #ff7a59;
+  background: rgba(255, 122, 89, 0.14);
+}
+.ci-cr-choices button:hover:not(:disabled) {
+  border-color: var(--ci-gold-strong, #ffd98a);
+  background: rgba(232, 200, 138, 0.14);
+}
+
+@keyframes ci-cr-flow {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes ci-cr-swirl {
+  to {
+    stroke-dashoffset: -0.36;
+  }
+}
+@keyframes ci-cr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ci-cr-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+@keyframes ci-cr-jolt {
+  30% {
+    transform: translateY(-4px);
+  }
+}
+@keyframes ci-cr-rise {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-50% + 14px));
+  }
+}
+
+/* Small screens: a bottom sheet that leaves the terrace in view above it. */
+@media (max-width: 760px), (max-height: 560px) {
+  .ci-cr-panel {
+    top: auto;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    width: auto;
+    max-height: 62vh;
+    transform: none;
+    animation-name: ci-fade-only;
+  }
+}
+@keyframes ci-fade-only {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Reduced motion (PLAN §9): the water still runs (it's the information), nothing else moves. */
+@media (prefers-reduced-motion: reduce) {
+  .ci-cr-panel,
+  .ci-cr-wheel.is-turning .ci-cr-wheel-icon,
+  .ci-cr-wheel.is-wrong,
+  .ci-cr-water.is-mixed,
+  .ci-cr-tile.is-pulse::after {
+    animation-name: none;
+  }
+}
+.ci-cr.is-reduced .ci-cr-panel,
+.ci-cr.is-reduced .ci-cr-wheel.is-turning .ci-cr-wheel-icon,
+.ci-cr.is-reduced .ci-cr-wheel.is-wrong,
+.ci-cr.is-reduced .ci-cr-tile.is-pulse::after {
+  animation-name: none;
+}
+
+/* While a board's open, the subtitles sit in the space left of the panel. */
+@media (min-width: 761px) and (min-height: 561px) {
+  body.ci-cr-open .hud-subtitle {
+    left: calc((100vw - min(420px, 100vw - 24px) - clamp(12px, 3vw, 40px)) / 2);
+    max-width: min(40rem, calc(100vw - 500px));
+  }
+}
+
+/* P2.3 Flag Hoist (shares the panel). */
+.ci-fh-order {
+  font-size: 1.18rem !important;
+}
+.ci-fh-order code {
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+.ci-fh-order code,
+.ci-cr-message code {
+  padding: 0.06em 0.34em;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  font:
+    0.92em/1.3 ui-monospace,
+    'SF Mono',
+    Menlo,
+    Consolas,
+    monospace;
+}
+.ci-fh-flags {
+  display: grid;
+  gap: 8px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ci-fh-flags button {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 12px;
+  border: 1px solid var(--ci-edge, rgba(232, 200, 138, 0.36));
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  text-align: left;
+}
+.ci-fh-flags button:hover:not(:disabled),
+.ci-fh-flags button.is-focus {
+  border-color: var(--ci-gold-strong, #ffd98a);
+  background: rgba(232, 200, 138, 0.14);
+}
+.ci-fh-pennant {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 4px;
+  align-items: center;
+  min-width: 70px;
+  padding: 6px 16px 6px 10px;
+  clip-path: polygon(0 0, 100% 12%, 82% 50%, 100% 88%, 0 100%);
+  background: linear-gradient(180deg, #e2552d, #b33c1d);
+}
+.ci-fh-symbol {
+  font:
+    800 1.35rem/1 ui-monospace,
+    'SF Mono',
+    Menlo,
+    monospace;
+  color: #fff6de;
+}
+.ci-fh-text {
+  display: grid;
+  gap: 2px;
+}
+.ci-fh-text b {
+  font: 750 0.98rem/1.2 var(--ci-ui);
+}
+.ci-fh-text small {
+  color: var(--ci-muted, rgba(246, 236, 214, 0.72));
+  font: 600 0.8rem/1.2 var(--ci-ui);
+}

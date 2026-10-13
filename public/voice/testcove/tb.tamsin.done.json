@@ -1,0 +1,67 @@
+{
+  "id": "tb.tamsin.done",
+  "speaker": "Tamsin",
+  "text": "Up the Fern Walk, Captain. Follow the lanterns, and mind the roots.",
+  "words": [
+    {
+      "word": "Up",
+      "start": 0,
+      "end": 0.1
+    },
+    {
+      "word": "the",
+      "start": 0.1,
+      "end": 0.224
+    },
+    {
+      "word": "Fern",
+      "start": 0.224,
+      "end": 0.544
+    },
+    {
+      "word": "Walk",
+      "start": 0.544,
+      "end": 1.115
+    },
+    {
+      "word": "Captain",
+      "start": 1.115,
+      "end": 1.531
+    },
+    {
+      "word": "Follow",
+      "start": 1.531,
+      "end": 2.1
+    },
+    {
+      "word": "the",
+      "start": 2.1,
+      "end": 2.23
+    },
+    {
+      "word": "lanterns",
+      "start": 2.23,
+      "end": 3.03
+    },
+    {
+      "word": "and",
+      "start": 3.03,
+      "end": 3.168
+    },
+    {
+      "word": "mind",
+      "start": 3.168,
+      "end": 3.38
+    },
+    {
+      "word": "the",
+      "start": 3.38,
+      "end": 3.52
+    },
+    {
+      "word": "roots",
+      "start": 3.52,
+      "end": 3.77
+    }
+  ]
+}

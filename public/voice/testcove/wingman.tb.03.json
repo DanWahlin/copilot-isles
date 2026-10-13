@@ -1,0 +1,92 @@
+{
+  "id": "wingman.tb.03",
+  "speaker": "Wingman",
+  "text": "Your tasks are in the top left, as ever, and the compass up top shows the way.",
+  "words": [
+    {
+      "word": "Your",
+      "start": 0,
+      "end": 0.227
+    },
+    {
+      "word": "tasks",
+      "start": 0.227,
+      "end": 0.6
+    },
+    {
+      "word": "are",
+      "start": 0.6,
+      "end": 0.747
+    },
+    {
+      "word": "in",
+      "start": 0.747,
+      "end": 0.82
+    },
+    {
+      "word": "the",
+      "start": 0.82,
+      "end": 0.96
+    },
+    {
+      "word": "top",
+      "start": 0.96,
+      "end": 1.264
+    },
+    {
+      "word": "left",
+      "start": 1.264,
+      "end": 1.68
+    },
+    {
+      "word": "as",
+      "start": 1.68,
+      "end": 1.824
+    },
+    {
+      "word": "ever",
+      "start": 1.824,
+      "end": 2.5
+    },
+    {
+      "word": "and",
+      "start": 2.5,
+      "end": 2.82
+    },
+    {
+      "word": "the",
+      "start": 2.82,
+      "end": 2.93
+    },
+    {
+      "word": "compass",
+      "start": 2.93,
+      "end": 3.333
+    },
+    {
+      "word": "up",
+      "start": 3.333,
+      "end": 3.52
+    },
+    {
+      "word": "top",
+      "start": 3.52,
+      "end": 3.813
+    },
+    {
+      "word": "shows",
+      "start": 3.813,
+      "end": 4.1
+    },
+    {
+      "word": "the",
+      "start": 4.1,
+      "end": 4.24
+    },
+    {
+      "word": "way",
+      "start": 4.24,
+      "end": 4.49
+    }
+  ]
+}

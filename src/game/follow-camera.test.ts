@@ -1,7 +1,7 @@
 import { PerspectiveCamera } from 'three/webgpu';
 import { describe, expect, it } from 'vitest';
 import type { HeightField } from '../world/contracts';
-import { CollisionWorld } from './collision';
+import { CollisionWorld, type WalkSurface } from './collision';
 import { FollowCamera } from './follow-camera';
 
 const still = { lookX: 0, lookY: 0, zoom: 0 };
@@ -121,6 +121,18 @@ describe('FollowCamera clearance', () => {
     const p = settle(world({ circles: [{ x: 0, z: -2, r: 0.4, height: 3 }] }));
     const clear = Math.hypot(p.x, p.z + 2) > 0.4 + 0.15 || p.y > 3.15;
     expect(clear).toBe(true);
+  });
+
+  it('stays under a deck stacked high over the path, not up on its boards', () => {
+    // A walk surface 13 m up over the whole area (a tree deck over a path): its boards aren't the
+    // ground under the camera, so the camera keeps behind you instead of rising onto them.
+    const deck: WalkSurface = {
+      heightAt: (_x, _z, y) => (y === undefined || y + 0.6 >= 13 ? 13 : null),
+      kind: 'wood',
+    };
+    const p = settle(world({ surfaces: [deck] }));
+    expect(p.y).toBeLessThan(5);
+    expect(p.z).toBeLessThan(-4);
   });
 
   it('ducks under a low span over your head instead of sitting in it (a lamp head)', () => {

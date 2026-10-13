@@ -1,0 +1,57 @@
+{
+  "id": "tb.rook.wait",
+  "speaker": "Rook",
+  "text": "Ines first, Captain. She's on the Signal Deck, just there.",
+  "words": [
+    {
+      "word": "Ines",
+      "start": 0,
+      "end": 0.36
+    },
+    {
+      "word": "first",
+      "start": 0.36,
+      "end": 0.83
+    },
+    {
+      "word": "Captain",
+      "start": 0.83,
+      "end": 1.22
+    },
+    {
+      "word": "She's",
+      "start": 1.22,
+      "end": 1.627
+    },
+    {
+      "word": "on",
+      "start": 1.627,
+      "end": 1.7
+    },
+    {
+      "word": "the",
+      "start": 1.7,
+      "end": 1.806
+    },
+    {
+      "word": "Signal",
+      "start": 1.806,
+      "end": 2.128
+    },
+    {
+      "word": "Deck",
+      "start": 2.128,
+      "end": 2.608
+    },
+    {
+      "word": "just",
+      "start": 2.608,
+      "end": 2.84
+    },
+    {
+      "word": "there",
+      "start": 2.84,
+      "end": 3.09
+    }
+  ]
+}

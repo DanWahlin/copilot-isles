@@ -20,8 +20,24 @@ class MatchedDepthNode extends ViewportDepthTextureNode {
     let tex: DepthTexture;
     if (reference === null) tex = shared;
     else {
-      tex = this.cacheTextures.get(reference) ?? (shared.clone() as DepthTexture);
-      this.cacheTextures.set(reference, tex);
+      // Each `.sample(uv)` is a clone pointing at its base node: they share the base's copies (as
+      // three's own viewport textures do), not one full-screen depth copy each.
+      const cache = ((this as unknown as { referenceNode?: MatchedDepthNode }).referenceNode ?? this)
+        .cacheTextures;
+      const cached = cache.get(reference);
+      if (cached) tex = cached;
+      else {
+        const copy = (tex = shared.clone() as DepthTexture);
+        cache.set(reference, copy);
+        // A target that goes (an old post stack's pass) takes its copy with it.
+        const target = reference as unknown as DisposeSource;
+        const drop = () => {
+          target.removeEventListener('dispose', drop);
+          if (cache.get(reference) === copy) cache.delete(reference);
+          copy.dispose();
+        };
+        target.addEventListener('dispose', drop);
+      }
     }
     const src = (reference as RenderTarget | null)?.depthTexture;
     if (src && tex !== src && (tex.type !== src.type || tex.format !== src.format)) {
@@ -43,6 +59,11 @@ class MatchedDepthNode extends ViewportDepthTextureNode {
     nodes.add(node as MatchedDepthNode);
     return node;
   }
+}
+
+interface DisposeSource {
+  addEventListener(type: 'dispose', listener: () => void): void;
+  removeEventListener(type: 'dispose', listener: () => void): void;
 }
 
 let shared = new DepthTexture();

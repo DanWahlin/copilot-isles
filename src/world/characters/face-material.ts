@@ -58,6 +58,15 @@ function faceUniform(key: Key): AnyNode {
 
 let shared: MeshStandardNodeMaterial | null = null;
 
+/**
+ * Frees the GPU side of the shared face material and geometries (their shaders and buffers). They stay
+ * usable: the next draw builds and uploads them again.
+ */
+export function releaseFaceResources(): void {
+  shared?.dispose();
+  for (const geometry of geometries.values()) geometry.dispose();
+}
+
 /** The one face material: eyes with lids, lashes, irises and catchlights, and a lip-synced mouth. */
 export function faceMaterial(): MeshStandardNodeMaterial {
   if (shared) return shared;

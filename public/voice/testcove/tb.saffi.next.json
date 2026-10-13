@@ -1,0 +1,77 @@
+{
+  "id": "tb.saffi.next",
+  "speaker": "Saffi",
+  "text": "Oak sends the crews out from the Three Landings. Up the Great Stair, dear.",
+  "words": [
+    {
+      "word": "Oak",
+      "start": 0,
+      "end": 0.307
+    },
+    {
+      "word": "sends",
+      "start": 0.307,
+      "end": 0.66
+    },
+    {
+      "word": "the",
+      "start": 0.66,
+      "end": 0.787
+    },
+    {
+      "word": "crews",
+      "start": 0.787,
+      "end": 1.2
+    },
+    {
+      "word": "out",
+      "start": 1.2,
+      "end": 1.488
+    },
+    {
+      "word": "from",
+      "start": 1.488,
+      "end": 1.7
+    },
+    {
+      "word": "the",
+      "start": 1.7,
+      "end": 1.8
+    },
+    {
+      "word": "Three",
+      "start": 1.8,
+      "end": 2.096
+    },
+    {
+      "word": "Landings",
+      "start": 2.096,
+      "end": 3.52
+    },
+    {
+      "word": "Up",
+      "start": 3.52,
+      "end": 3.86
+    },
+    {
+      "word": "the",
+      "start": 3.86,
+      "end": 3.96
+    },
+    {
+      "word": "Great",
+      "start": 3.96,
+      "end": 4.24
+    },
+    {
+      "word": "Stair",
+      "start": 4.24,
+      "end": 4.832
+    },
+    {
+      "word": "dear",
+      "start": 4.832,
+      "end": 5.082
+    }
+  ]
+}

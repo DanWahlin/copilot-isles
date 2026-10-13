@@ -1,0 +1,62 @@
+{
+  "id": "tb.oak.gondola",
+  "speaker": "Oak",
+  "text": "Done somewhere else, and your own deck stayed untouched. That's Cloud.",
+  "words": [
+    {
+      "word": "Done",
+      "start": 0,
+      "end": 0.28
+    },
+    {
+      "word": "somewhere",
+      "start": 0.28,
+      "end": 0.72
+    },
+    {
+      "word": "else",
+      "start": 0.72,
+      "end": 1.16
+    },
+    {
+      "word": "and",
+      "start": 1.16,
+      "end": 1.312
+    },
+    {
+      "word": "your",
+      "start": 1.312,
+      "end": 1.5
+    },
+    {
+      "word": "own",
+      "start": 1.5,
+      "end": 1.728
+    },
+    {
+      "word": "deck",
+      "start": 1.728,
+      "end": 1.966
+    },
+    {
+      "word": "stayed",
+      "start": 1.966,
+      "end": 2.288
+    },
+    {
+      "word": "untouched",
+      "start": 2.288,
+      "end": 2.976
+    },
+    {
+      "word": "That's",
+      "start": 2.976,
+      "end": 3.84
+    },
+    {
+      "word": "Cloud",
+      "start": 3.84,
+      "end": 4.09
+    }
+  ]
+}

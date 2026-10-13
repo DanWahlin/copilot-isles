@@ -1,6 +1,6 @@
 import { Group, Matrix4, Vector3 } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
-import type { CircleObstacle, WaveSampler } from '../contracts';
+import type { CircleObstacle, HeightField, WaveSampler } from '../contracts';
 import { seededRandom } from '../life/leaps/director';
 import { createBrigantine, type Brigantine, type BrigantineEnv } from '../ship';
 import { world } from '../uniforms';
@@ -219,6 +219,13 @@ export interface BattleOptions {
   onSound?: (kind: BattleSound, pos: { x: number; y: number; z: number }, gain: number) => void;
   /** Staging beats for the camera director (battle-plan.md §3). */
   onBeat?: (beat: BattleBeat, x: number, z: number) => void;
+  /**
+   * Open water at (x, z)? Raiders come out of the fog only where it's clear of islands and harbours
+   * (§3): the spawn bearing turns away from the wind's until it is. Omitted, everywhere is open.
+   */
+  openWater?: (x: number, z: number) => boolean;
+  /** The ground the raiders sail over (they run aground on islands like your ship); none at sea. */
+  ground?: HeightField | null;
 }
 
 /** The lookout's call, by where the fog lies from your bow (prebuilt, picked per wave). */
@@ -293,6 +300,8 @@ export class Battle {
   private readonly caption: (text: string) => void;
   private readonly sound: NonNullable<BattleOptions['onSound']>;
   private readonly beat: NonNullable<BattleOptions['onBeat']>;
+  private readonly openWater: ((x: number, z: number) => boolean) | null;
+  private readonly ground: HeightField | null;
   private title = '';
   private readonly view: RaiderView = {
     x: 0,
@@ -349,6 +358,8 @@ export class Battle {
     this.caption = o.onCaption ?? (() => undefined);
     this.sound = o.onSound ?? (() => undefined);
     this.beat = o.onBeat ?? (() => undefined);
+    this.openWater = o.openWater ?? null;
+    this.ground = o.ground ?? null;
     this.group.name = 'battle';
     const budget = fxBudget(o.tier);
     this.balls = new BallPool(budget.balls);
@@ -413,7 +424,7 @@ export class Battle {
       prevX: 0,
       prevZ: 0,
       obstacles,
-      env: { waves: this.waves, ground: null, obstacles, t: 0 },
+      env: { waves: this.waves, ground: this.ground, obstacles, t: 0 },
       captions: { struck: '', bearing: ['', ''], close: ['', '', ''] },
       shots: [],
       listSign: 1,
@@ -449,7 +460,75 @@ export class Battle {
   skip(t: number): void {
     this.clearRaiders();
     this.fog.thin(t);
+    if (this.assist) this.setAssist(false);
     this.setPhase('skipped', t);
+  }
+
+  /**
+   * You sailed out of the battle zone (into an island's waters): the raiders fall back into the fog
+   * and the battle rests (phase 'idle'). The wave you were on is kept, with your hull as it is.
+   * Between waves (the lull and the question) nothing changes.
+   */
+  suspend(t: number): void {
+    // Between waves there's nobody left to fall back (and the question waits for you).
+    if (this.phase !== 'intro' && this.phase !== 'fight' && this.phase !== 'breakoff') return;
+    if (this.phase === 'breakoff') {
+      this.player.hull = PLAYER_HULL;
+      this.refit(this.player);
+    }
+    this.clearRaiders();
+    this.fog.thin(t);
+    if (this.assist) this.setAssist(false);
+    this.setPhase('idle', t);
+  }
+
+  /** Back out on open water after `suspend`: the wave you were on comes out of the fog again. */
+  resume(t: number): void {
+    if (this.phase !== 'idle') return;
+    if (this.wave >= this.plan.length) {
+      this.setPhase('won', t);
+      return;
+    }
+    this.spawnWave(t);
+  }
+
+  /**
+   * For the warm-up before a battle (the game's late warm): every raider (both rigs), the fog, the
+   * arcs and each pool drawn once, so the battle's first real frames build nothing. Returns the
+   * function that puts everything back as it was (hidden, empty).
+   */
+  stageWarm(): () => void {
+    const restore: (() => void)[] = [];
+    for (let i = 1; i < this.combatants.length; i++) {
+      const g = this.combatants[i]!.ship.group;
+      g.traverse((o) => {
+        if (o.visible) return;
+        o.visible = true;
+        restore.push(() => (o.visible = false));
+      });
+    }
+    for (const m of [this.fog.mesh, this.smoke.mesh, this.splinters.mesh]) {
+      const visible = m.visible;
+      m.visible = true;
+      restore.push(() => (m.visible = visible));
+    }
+    for (const m of [
+      this.fog.mesh,
+      this.arcs.mesh,
+      this.balls.mesh,
+      this.splashes.mesh,
+      this.smoke.mesh,
+      this.splinters.mesh,
+      this.stores.mesh,
+      this.boats.mesh,
+    ]) {
+      const count = m.count;
+      m.count = Math.max(1, count);
+      restore.push(() => (m.count = count));
+    }
+    return () => {
+      for (const r of restore) r();
+    };
   }
 
   setCalm(calm: boolean): void {
@@ -520,8 +599,9 @@ export class Battle {
     this.waveStart.z = p.z;
     this.waveStart.heading = p.heading;
     windAt(p.x, p.z, t, wind);
-    // Raiders hold the weather gauge: they come from upwind and the wind's beams, out of the fog.
-    const from = Math.atan2(-wind[0]!, -wind[1]!);
+    // Raiders hold the weather gauge: they come from upwind and the wind's beams, out of the fog,
+    // turned as little as it takes to keep them (and their fog) out on open water.
+    const from = this.openBearing(p.x, p.z, Math.atan2(-wind[0]!, -wind[1]!));
     const spec = this.plan[this.wave]!;
     const n = Math.min(spec.raiders.length, this.combatants.length - 1);
     for (let i = 0; i < n; i++) {
@@ -565,6 +645,25 @@ export class Battle {
     this.setPhase('intro', t);
     this.caption(lookoutCall(from - p.heading));
     this.beat('intro', this.fog.centre.x, this.fog.centre.z);
+  }
+
+  /** The bearing nearest `want` whose spawn ring (the raiders and the fog in front of them) is open water. */
+  private openBearing(x: number, z: number, want: number): number {
+    const clear = this.openWater;
+    if (!clear) return want;
+    for (let k = 0; k < 12; k++) {
+      // 0, +0.5, −0.5, +1, −1, … radians off the wind's bearing.
+      const a = want + (k % 2 === 1 ? 1 : -1) * Math.ceil(k / 2) * 0.5;
+      let open = true;
+      for (let j = -1; j <= 1 && open; j++) {
+        const b = a + j * 0.45;
+        open =
+          clear(x + Math.sin(b) * SPAWN_RANGE, z + Math.cos(b) * SPAWN_RANGE) &&
+          clear(x + Math.sin(b) * SPAWN_RANGE * 0.6, z + Math.cos(b) * SPAWN_RANGE * 0.6);
+      }
+      if (open) return a;
+    }
+    return want;
   }
 
   // ---- Your helm --------------------------------------------------------------------------------
@@ -1277,6 +1376,12 @@ export class Battle {
       hull: c.hull,
       state: c.state,
     }));
+  }
+
+  /** Tests and screenshots: brings raider `i`'s hull down to `hull` (a hit still has to strike her). */
+  debugHull(i: number, hull: number): void {
+    const c = this.combatants[i + 1];
+    if (c && c.state === 'afloat') c.hull = Math.max(1, Math.min(c.hull, hull));
   }
 
   /** Every ship (yours first) for draw-call accounting. */

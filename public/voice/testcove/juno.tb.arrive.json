@@ -1,0 +1,92 @@
+{
+  "id": "juno.tb.arrive",
+  "speaker": "Juno",
+  "text": "That's no ordinary tree, Captain. Folk say every crew up there has a house of its own.",
+  "words": [
+    {
+      "word": "That's",
+      "start": 0,
+      "end": 0.293
+    },
+    {
+      "word": "no",
+      "start": 0.293,
+      "end": 0.471
+    },
+    {
+      "word": "ordinary",
+      "start": 0.471,
+      "end": 1.104
+    },
+    {
+      "word": "tree",
+      "start": 1.104,
+      "end": 1.5
+    },
+    {
+      "word": "Captain",
+      "start": 1.5,
+      "end": 2.544
+    },
+    {
+      "word": "Folk",
+      "start": 2.544,
+      "end": 3.02
+    },
+    {
+      "word": "say",
+      "start": 3.02,
+      "end": 3.267
+    },
+    {
+      "word": "every",
+      "start": 3.267,
+      "end": 3.664
+    },
+    {
+      "word": "crew",
+      "start": 3.664,
+      "end": 3.973
+    },
+    {
+      "word": "up",
+      "start": 3.973,
+      "end": 4.12
+    },
+    {
+      "word": "there",
+      "start": 4.12,
+      "end": 4.36
+    },
+    {
+      "word": "has",
+      "start": 4.36,
+      "end": 4.52
+    },
+    {
+      "word": "a",
+      "start": 4.52,
+      "end": 4.627
+    },
+    {
+      "word": "house",
+      "start": 4.627,
+      "end": 5.013
+    },
+    {
+      "word": "of",
+      "start": 5.013,
+      "end": 5.16
+    },
+    {
+      "word": "its",
+      "start": 5.16,
+      "end": 5.36
+    },
+    {
+      "word": "own",
+      "start": 5.36,
+      "end": 5.61
+    }
+  ]
+}

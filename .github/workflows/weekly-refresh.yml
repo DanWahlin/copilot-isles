@@ -1,0 +1,207 @@
+# PLAN §8.4: keeps everything the course feeds into the game up to date.
+#
+#   1 Course check   compare upstream main with content/course.lock.json (no dependencies needed)
+#   2 Content        tools/course/sync.mjs: READMEs, GLOSSARY.md, LICENSE, sections, and hashes
+#   3 Screenshots    the same run copies referenced images byte-for-byte (pinned ones are kept) and
+#                    saves upstream copies of changed pinned images for before/after montages
+#   4 Drift report   tools/course/drift.ts, including the UI-term check
+#   5 Drafted fixes  not yet (follow-up: hand the drift report to the Copilot coding agent)
+#   6 Voices         only when voice lines changed AND the Azure Speech secrets exist; safe to skip
+#   7 Other sources  not yet (follow-up: tools/music/fetch.sh --check and the ASSETS.md list)
+#   8 Verify         typecheck, lint, unit tests (every SourceRef resolves against the snapshot),
+#                    build, budgets, secret scan, and the Playwright suite
+#   9 Deliver        one PR, "Weekly refresh: course @ <sha>", labelled needs-content-review when
+#                    authored content is affected or a check fails. Nothing auto-merges.
+#
+# Uses only GITHUB_TOKEN. Opening the PR needs the repository setting "Allow GitHub Actions to create
+# and approve pull requests". PRs opened with GITHUB_TOKEN don't start other workflows (CI), which is
+# why step 8 runs the checks here.
+name: Weekly refresh
+
+on:
+  schedule:
+    - cron: '0 13 * * 1' # Mondays, 6 AM Pacific (PDT)
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Refresh even if the course commit hasn't changed
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: weekly-refresh
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: 1 · Course check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.check.outputs.changed }}
+      sha: ${{ steps.check.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - id: check
+        run: node tools/course/sync.mjs --check
+
+  refresh:
+    name: 2-9 · Refresh, verify, and deliver
+    needs: check
+    if: needs.check.outputs.changed == 'true' || inputs.force
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write # push the refresh branch
+      pull-requests: write # open or update the PR
+      issues: write # create the needs-content-review label the first time
+    env:
+      SHA: ${{ needs.check.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: echo "DRIFT_DIR=$RUNNER_TEMP/course-drift" >> "$GITHUB_ENV"
+
+      - name: 2-3 · Content and screenshots
+        run: |
+          mkdir -p "$DRIFT_DIR"
+          git show HEAD:content/course.lock.json > "$DRIFT_DIR/previous-lock.json" || echo '{}' > "$DRIFT_DIR/previous-lock.json"
+          node tools/course/sync.mjs --ref="$SHA" --report="$DRIFT_DIR"
+
+      - name: 4 · Drift report
+        id: drift
+        run: npx tsx tools/course/drift.ts --previous="$DRIFT_DIR/previous-lock.json" --report="$DRIFT_DIR" --out="$DRIFT_DIR/report.md"
+
+      - name: 6 · Voices (only changed lines, only with secrets)
+        id: voices
+        continue-on-error: true
+        env:
+          AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+        run: |
+          # Step 5 (drafted fixes) doesn't exist yet, so voice lines only change when a person edits
+          # them on this branch. ElevenLabs lines need the ElevenLabs CLI sign-in and stay manual.
+          changed=$(node -e '
+            const fs = require("fs"); const { execSync } = require("child_process");
+            const now = JSON.parse(fs.readFileSync("tools/voice/lines.testcove.json", "utf8")).lines;
+            let before = [];
+            try { before = JSON.parse(execSync("git show HEAD:tools/voice/lines.testcove.json")).lines; } catch {}
+            const old = new Map(before.map((l) => [l.id, JSON.stringify(l)]));
+            console.log(now.filter((l) => old.get(l.id) !== JSON.stringify(l) && l.tts !== "elevenlabs").map((l) => l.id).join(","));
+          ')
+          if [ -z "$changed" ]; then
+            echo "No Azure voice lines changed; nothing to regenerate." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "summary=No voice lines changed, so no TTS characters were used." >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -z "$AZURE_SPEECH_KEY" ] || [ -z "$AZURE_SPEECH_REGION" ]; then
+            echo "Voice lines changed ($changed) but the Azure Speech secrets aren't set; skipped." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "summary=Voice lines changed ($changed) but weren't regenerated: the Azure Speech secrets aren't set." >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # tools/voice/generate.ts reads ~/.env; write it on the runner only, readable by this user only.
+          umask 077
+          printf 'AZURE_SPEECH_KEY=%s\nAZURE_SPEECH_REGION=%s\n' "$AZURE_SPEECH_KEY" "$AZURE_SPEECH_REGION" > "$HOME/.env"
+          npx tsx tools/voice/generate.ts --only="$changed"
+          rm -f "$HOME/.env"
+          echo "summary=Regenerated voice lines: $changed." >> "$GITHUB_OUTPUT"
+
+      - name: 8 · Verify
+        id: verify
+        env:
+          CI: 'true'
+        run: |
+          set +e
+          failed=""
+          run() {
+            local name=$1
+            shift
+            echo "::group::$name"
+            "$@" || failed="$failed $name"
+            echo "::endgroup::"
+          }
+          run typecheck npm run typecheck
+          run lint npm run lint
+          run format npm run format:check
+          run unit-tests npm test
+          run build npm run build
+          run budgets npm run check:budgets
+          run secrets npm run check:secrets
+          npx playwright install --with-deps chromium > /dev/null
+          run e2e npm run test:e2e
+          echo "failed=${failed# }" >> "$GITHUB_OUTPUT"
+          [ -z "$failed" ] && echo "ok=true" >> "$GITHUB_OUTPUT" || echo "ok=false" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: course-drift
+          path: ${{ runner.temp }}/course-drift
+          retention-days: 30
+
+      - name: 9 · Deliver
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AFFECTED: ${{ steps.drift.outputs.affected }}
+          VERIFY_OK: ${{ steps.verify.outputs.ok }}
+          VERIFY_FAILED: ${{ steps.verify.outputs.failed }}
+          VOICES: ${{ steps.voices.outputs.summary }}
+        run: |
+          if [ -z "$(git status --porcelain -- content public/course tools/voice public/voice)" ]; then
+            echo "The snapshot is already up to date; no PR." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          short=${SHA:0:7}
+          branch="course-refresh/$short"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$branch"
+          git add content public/course tools/voice public/voice
+          git commit -m "Weekly refresh: course @ $short"
+          git push --force origin "$branch"
+
+          {
+            echo "Refreshes the bundled course snapshot to [\`$short\`](https://github.com/github/copilot-app-for-beginners/commit/$SHA) (PLAN §8.4)."
+            echo
+            echo '```'
+            git diff --stat HEAD~1 HEAD
+            echo '```'
+            echo
+            cat "$DRIFT_DIR/report.md"
+            echo
+            echo "### Voices"
+            echo
+            echo "${VOICES:-Step 6 didn't run.}"
+            echo
+            echo "### Checks"
+            echo
+            if [ "$VERIFY_OK" = "true" ]; then echo "Typecheck, lint, format, unit tests, build, budgets, secret scan, and e2e all passed."; else echo "**Failed:** ${VERIFY_FAILED:-unknown}. See the workflow run."; fi
+            echo
+            echo "Before/after montages of changed screenshots: the \`course-drift\` artifact of [this run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)."
+            echo
+            echo "_Not automated yet: step 5 (drafted fixes by the coding agent) and step 7 (music and asset sources)._"
+          } > "$RUNNER_TEMP/pr-body.md"
+
+          labels=()
+          if [ "$AFFECTED" = "true" ] || [ "$VERIFY_OK" != "true" ]; then
+            gh label create needs-content-review --color D93F0B \
+              --description 'The course changed under authored content (PLAN §8.4)' 2> /dev/null || true
+            labels=(--label needs-content-review)
+          fi
+          title="Weekly refresh: course @ $short"
+          if gh pr view "$branch" --json state -q .state 2> /dev/null | grep -q OPEN; then
+            gh pr edit "$branch" --title "$title" --body-file "$RUNNER_TEMP/pr-body.md" "${labels[@]/--label/--add-label}"
+          else
+            gh pr create --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/pr-body.md" "${labels[@]}"
+          fi

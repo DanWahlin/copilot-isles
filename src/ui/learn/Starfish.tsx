@@ -3,6 +3,7 @@ import { STARFISH, starfishOn, type StarfishIsland } from '../../world/starfish/
 const ISLAND_NAMES: Record<StarfishIsland, string> = {
   anchorage: 'Anchorage Cay',
   meridian: 'Port Meridian',
+  'thousand-bough': 'Thousand-Bough Isle',
 };
 
 /** A small coral starfish, drawn (no image to load). */

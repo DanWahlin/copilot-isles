@@ -1,0 +1,47 @@
+{
+  "id": "tb.ines.done",
+  "speaker": "Ines",
+  "text": "Smallest useful context, Captain. Less is often more.",
+  "words": [
+    {
+      "word": "Smallest",
+      "start": 0,
+      "end": 0.537
+    },
+    {
+      "word": "useful",
+      "start": 0.537,
+      "end": 0.94
+    },
+    {
+      "word": "context",
+      "start": 0.94,
+      "end": 1.49
+    },
+    {
+      "word": "Captain",
+      "start": 1.49,
+      "end": 2.176
+    },
+    {
+      "word": "Less",
+      "start": 2.176,
+      "end": 2.96
+    },
+    {
+      "word": "is",
+      "start": 2.96,
+      "end": 3.187
+    },
+    {
+      "word": "often",
+      "start": 3.187,
+      "end": 3.6
+    },
+    {
+      "word": "more",
+      "start": 3.6,
+      "end": 3.85
+    }
+  ]
+}

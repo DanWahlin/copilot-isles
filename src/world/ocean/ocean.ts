@@ -467,6 +467,9 @@ export function createOcean({
   mesh.frustumCulled = false;
   mesh.renderOrder = -1;
   mesh.receiveShadow = false;
+  // Its look is its own (no other mesh shares it), so it keeps its shadow-free shader: as a skipped
+  // receiver it carried the shadow lookup for nothing, and changing the flag later built it again.
+  mesh.userData.sunShadowNever = true;
 
   return {
     mesh,

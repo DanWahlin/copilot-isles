@@ -27,6 +27,7 @@ import {
   vec2,
   vec3,
 } from 'three/tsl';
+import { markInstancesChanged, sharedInstancedMesh } from '../../engine/instancing';
 import type { TierSettings } from '../../engine/quality';
 import { FADE_DISTANCE, wavesForTier } from '../ocean/waves';
 import { world } from '../uniforms';
@@ -82,6 +83,8 @@ function createArcMaterial(tier: TierSettings): MeshBasicNodeMaterial {
     depthWrite: false,
     side: DoubleSide,
     blending: AdditiveBlending,
+    // Additive: one pass for both faces looks the same and needs one shader, not two (PLAN §15.4).
+    forceSinglePass: true,
   });
   const p = positionLocal as AnyNode;
   // Ride the swell: the rest height of the same wave table the ocean and the CPU use.
@@ -177,7 +180,8 @@ export class ArcSet {
     g.setAttribute('arcFill', this.fill);
     g.setAttribute('arcKind', this.kind);
     g.setAttribute('arcGlow', this.glow);
-    this.mesh = new InstancedMesh(g, createArcMaterial(tier), size);
+    // Its shader reads the matrices by slot, so the warm's precompile matches the real draw.
+    this.mesh = sharedInstancedMesh(g, createArcMaterial(tier), size, { count: 0 });
     this.mesh.name = 'battle-arcs';
     this.mesh.count = 0;
     this.mesh.frustumCulled = false;
@@ -202,7 +206,7 @@ export class ArcSet {
 
   end(): void {
     this.mesh.count = this.n;
-    this.mesh.instanceMatrix.needsUpdate = true;
+    markInstancesChanged(this.mesh);
     this.fill.needsUpdate = true;
     this.kind.needsUpdate = true;
     this.glow.needsUpdate = true;

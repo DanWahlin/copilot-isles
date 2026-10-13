@@ -30,6 +30,18 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
       cancelled = true;
     };
   }, []);
+  const [courseLicense, setCourseLicense] = useState('');
+  useEffect(() => {
+    let cancelled = false;
+    // The course's own LICENSE, bundled with the course snapshot by tools/course/sync.mjs.
+    fetch(`${import.meta.env.BASE_URL || '/'}course/LICENSE`)
+      .then((response) => (response.ok ? response.text() : ''))
+      .then((text) => !cancelled && setCourseLicense(text.trim()))
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   return (
     <OverlayShell title="Credits" eyebrow="Made with care" onBack={bridge.back}>
       <div className="ci-credits">
@@ -53,6 +65,24 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
           <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>), via{' '}
           <a href="https://poly.pizza/m/0WRzrtCIIRp">Poly Pizza</a>
         </p>
+        <h3>Course content</h3>
+        <p>
+          Course text and screenshots come from{' '}
+          <a href="https://github.com/github/copilot-app-for-beginners">GitHub Copilot app for Beginners</a>,
+          © GitHub, Inc., under the MIT License. The game reads them live from GitHub, so its pages keep up
+          with the course.
+        </p>
+        <p className="ci-credits-privacy">
+          Privacy: to read the course, your browser connects to raw.githubusercontent.com, so GitHub sees your
+          IP address, just like when you open a course link. If GitHub can’t be reached, the game uses the
+          copy that comes with it.
+        </p>
+        {courseLicense && (
+          <details className="ci-credits-license">
+            <summary>Course license (MIT)</summary>
+            <pre>{courseLicense}</pre>
+          </details>
+        )}
         <h3>Music and voice</h3>
         <p>
           “Bamboo Tide” and “Island Reveal”, made for Copilot Isles with Suno. “Medieval: The Bard’s Tale” by

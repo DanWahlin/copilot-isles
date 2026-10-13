@@ -1,0 +1,87 @@
+{
+  "id": "tb.tamsin.next",
+  "speaker": "Tamsin",
+  "text": "Lyra's playing by the pools up the Fern Walk. Saffi keeps the great tree past her.",
+  "words": [
+    {
+      "word": "Lyra's",
+      "start": 0,
+      "end": 0.44
+    },
+    {
+      "word": "playing",
+      "start": 0.44,
+      "end": 0.747
+    },
+    {
+      "word": "by",
+      "start": 0.747,
+      "end": 0.82
+    },
+    {
+      "word": "the",
+      "start": 0.82,
+      "end": 0.947
+    },
+    {
+      "word": "pools",
+      "start": 0.947,
+      "end": 1.333
+    },
+    {
+      "word": "up",
+      "start": 1.333,
+      "end": 1.46
+    },
+    {
+      "word": "the",
+      "start": 1.46,
+      "end": 1.584
+    },
+    {
+      "word": "Fern",
+      "start": 1.584,
+      "end": 1.92
+    },
+    {
+      "word": "Walk",
+      "start": 1.92,
+      "end": 2.64
+    },
+    {
+      "word": "Saffi",
+      "start": 2.64,
+      "end": 3.24
+    },
+    {
+      "word": "keeps",
+      "start": 3.24,
+      "end": 3.46
+    },
+    {
+      "word": "the",
+      "start": 3.46,
+      "end": 3.573
+    },
+    {
+      "word": "great",
+      "start": 3.573,
+      "end": 3.888
+    },
+    {
+      "word": "tree",
+      "start": 3.888,
+      "end": 4.176
+    },
+    {
+      "word": "past",
+      "start": 4.176,
+      "end": 4.62
+    },
+    {
+      "word": "her",
+      "start": 4.62,
+      "end": 4.87
+    }
+  ]
+}

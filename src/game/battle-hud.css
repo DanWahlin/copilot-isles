@@ -186,7 +186,8 @@
 
 .bh-skip {
   position: absolute;
-  top: 1.4rem;
+  /* Under the game's purse and Logbook button (top right). */
+  top: 4.9rem;
   right: 1.4rem;
   min-height: 44px;
   padding: 0 1rem;
@@ -609,6 +610,14 @@
 .bh-pick-head {
   color: var(--gold);
 }
+.bh-cite {
+  margin: -0.25rem 0 0.5rem !important;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--brass);
+  opacity: 0.85;
+}
 .bh-feedback:empty {
   display: none;
 }
@@ -632,4 +641,14 @@
   .bh-fill {
     transition: none;
   }
+}
+/* The game's Reduced motion setting (PLAN §9): no slides or pulses, fades only. */
+:root.reduced-motion .bh-caption,
+:root.reduced-motion .bh-brief {
+  animation: none;
+}
+:root.reduced-motion .bh-fill,
+:root.reduced-motion .bh-fire,
+:root.reduced-motion .bh-pennant {
+  transition: none;
 }

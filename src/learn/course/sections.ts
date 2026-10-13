@@ -1,7 +1,7 @@
 /**
- * Course README parsing (PLAN §8.2). These pure functions are for the planned weekly refresh tool
- * (PLAN §8.4) and runtime CourseSource (PLAN §8.2). Nothing uses them yet. Heading anchors follow GitHub's
- * slug rules so they match the "Open in the course ↗" links.
+ * Course README parsing (PLAN §8.2), shared by the runtime CourseSource (`source.ts`), the snapshot
+ * sync and drift tools (`tools/course/*`), and the tests. Heading anchors follow GitHub's slug
+ * rules so they match the "Open in the course ↗" links.
  */
 
 export interface CourseSection {
@@ -62,6 +62,21 @@ export function imagePaths(markdown: string): string[] {
   return found.sort((a, b) => a.at - b.at).map((f) => f.path);
 }
 
+/** Every image in a chunk of course markdown with its alt text, in order of appearance. */
+export function imageRefs(markdown: string): { path: string; alt: string }[] {
+  const found: { at: number; path: string; alt: string }[] = [];
+  for (const m of markdown.matchAll(MD_IMAGE)) {
+    const alt = /^!\[([^\]]*)\]/.exec(m[0])?.[1] ?? '';
+    found.push({ at: m.index, path: (m[1] ?? m[2])!, alt });
+  }
+  for (const m of markdown.matchAll(HTML_IMAGE)) {
+    const tag = markdown.slice(m.index, markdown.indexOf('>', m.index) + 1);
+    const alt = /\balt\s*=\s*(?:"([^"]*)"|'([^']*)')/i.exec(tag);
+    found.push({ at: m.index, path: m[1], alt: alt ? (alt[1] ?? alt[2]) : '' });
+  }
+  return found.sort((a, b) => a.at - b.at).map(({ path, alt }) => ({ path, alt }));
+}
+
 /** Bolded phrases, with inline code marks removed, deduplicated in order. */
 export function boldTerms(markdown: string): string[] {
   const terms = new Set<string>();
@@ -109,7 +124,11 @@ export function parseSections(markdown: string): CourseSection[] {
   });
 }
 
-/** Whitespace-insensitive form of a section, used for change detection. */
+/**
+ * Whitespace-insensitive form of a section, used for change detection. A section's hash (in
+ * `content/course.lock.json` and every authored `SourceRef`) is the first 12 hex digits of the
+ * SHA-256 of this string.
+ */
 export function normalizeForCompare(markdown: string): string {
   return markdown.replace(/\s+/g, ' ').trim();
 }

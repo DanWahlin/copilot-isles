@@ -1,0 +1,67 @@
+{
+  "id": "tb.oak.01",
+  "speaker": "Oak",
+  "text": "Every job asks one question first, Captain: where does the work happen?",
+  "words": [
+    {
+      "word": "Every",
+      "start": 0,
+      "end": 0.34
+    },
+    {
+      "word": "job",
+      "start": 0.34,
+      "end": 0.72
+    },
+    {
+      "word": "asks",
+      "start": 0.72,
+      "end": 1.1
+    },
+    {
+      "word": "one",
+      "start": 1.1,
+      "end": 1.333
+    },
+    {
+      "word": "question",
+      "start": 1.333,
+      "end": 1.813
+    },
+    {
+      "word": "first",
+      "start": 1.813,
+      "end": 2.22
+    },
+    {
+      "word": "Captain",
+      "start": 2.22,
+      "end": 3.507
+    },
+    {
+      "word": "where",
+      "start": 3.507,
+      "end": 3.888
+    },
+    {
+      "word": "does",
+      "start": 3.888,
+      "end": 4.12
+    },
+    {
+      "word": "the",
+      "start": 4.12,
+      "end": 4.32
+    },
+    {
+      "word": "work",
+      "start": 4.32,
+      "end": 4.731
+    },
+    {
+      "word": "happen",
+      "start": 4.731,
+      "end": 4.981
+    }
+  ]
+}

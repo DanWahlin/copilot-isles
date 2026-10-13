@@ -1,0 +1,62 @@
+{
+  "id": "tb.oak.done",
+  "speaker": "Oak",
+  "text": "Ring the gondola bell if you like, Captain. She's always running.",
+  "words": [
+    {
+      "word": "Ring",
+      "start": 0,
+      "end": 0.18
+    },
+    {
+      "word": "the",
+      "start": 0.18,
+      "end": 0.28
+    },
+    {
+      "word": "gondola",
+      "start": 0.28,
+      "end": 0.688
+    },
+    {
+      "word": "bell",
+      "start": 0.688,
+      "end": 0.907
+    },
+    {
+      "word": "if",
+      "start": 0.907,
+      "end": 0.98
+    },
+    {
+      "word": "you",
+      "start": 0.98,
+      "end": 1.088
+    },
+    {
+      "word": "like",
+      "start": 1.088,
+      "end": 1.42
+    },
+    {
+      "word": "Captain",
+      "start": 1.42,
+      "end": 2.12
+    },
+    {
+      "word": "She's",
+      "start": 2.12,
+      "end": 2.366
+    },
+    {
+      "word": "always",
+      "start": 2.366,
+      "end": 2.69
+    },
+    {
+      "word": "running",
+      "start": 2.69,
+      "end": 2.94
+    }
+  ]
+}

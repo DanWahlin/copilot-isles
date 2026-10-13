@@ -1,0 +1,57 @@
+{
+  "id": "tb.elder.done",
+  "speaker": "Maren",
+  "text": "Fair winds, Captain. The Sky Basket will take you down.",
+  "words": [
+    {
+      "word": "Fair",
+      "start": 0,
+      "end": 0.293
+    },
+    {
+      "word": "winds",
+      "start": 0.293,
+      "end": 0.7
+    },
+    {
+      "word": "Captain",
+      "start": 0.7,
+      "end": 1.34
+    },
+    {
+      "word": "The",
+      "start": 1.34,
+      "end": 1.86
+    },
+    {
+      "word": "Sky",
+      "start": 1.86,
+      "end": 2.251
+    },
+    {
+      "word": "Basket",
+      "start": 2.251,
+      "end": 2.832
+    },
+    {
+      "word": "will",
+      "start": 2.832,
+      "end": 3.024
+    },
+    {
+      "word": "take",
+      "start": 3.024,
+      "end": 3.3
+    },
+    {
+      "word": "you",
+      "start": 3.3,
+      "end": 3.456
+    },
+    {
+      "word": "down",
+      "start": 3.456,
+      "end": 3.706
+    }
+  ]
+}

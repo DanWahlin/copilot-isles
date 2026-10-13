@@ -24,6 +24,23 @@ const q = await S(() => window.__dev.session().islandQuay('meridian'));
 await S((q) => window.__dev.session().travel(q.x, q.z, q.heading), q);
 await page.waitForFunction(() => window.__dev.session().debug.cast().length > 0, null, { timeout: 90000 });
 await page.waitForTimeout(1500);
+// And Thousand-Bough's world (its decks and the stair) when it's open.
+const tb = await S(() => window.__dev.session().islandQuay('thousand-bough'));
+if (tb) {
+  await S((q) => window.__dev.session().travel(q.x, q.z, q.heading), tb);
+  await page.waitForFunction(
+    () =>
+      window.__dev
+        .session()
+        .debug.cast()
+        .some((n) => n.id === 'tamsin'),
+    null,
+    {
+      timeout: 120000,
+    },
+  );
+  await page.waitForTimeout(1500);
+}
 
 const results = await S(() => {
   const s = window.__dev.session();

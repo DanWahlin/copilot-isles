@@ -1,0 +1,102 @@
+{
+  "id": "tb.pip.02",
+  "speaker": "Pip",
+  "text": "Slash context opens the usage popup below the prompt box. So does the AI credits icon by the microphone.",
+  "words": [
+    {
+      "word": "Slash",
+      "start": 0,
+      "end": 0.42
+    },
+    {
+      "word": "context",
+      "start": 0.42,
+      "end": 1.187
+    },
+    {
+      "word": "opens",
+      "start": 1.187,
+      "end": 1.54
+    },
+    {
+      "word": "the",
+      "start": 1.54,
+      "end": 1.667
+    },
+    {
+      "word": "usage",
+      "start": 1.667,
+      "end": 2.093
+    },
+    {
+      "word": "popup",
+      "start": 2.093,
+      "end": 2.6
+    },
+    {
+      "word": "below",
+      "start": 2.6,
+      "end": 2.82
+    },
+    {
+      "word": "the",
+      "start": 2.82,
+      "end": 2.937
+    },
+    {
+      "word": "prompt",
+      "start": 2.937,
+      "end": 3.38
+    },
+    {
+      "word": "box",
+      "start": 3.38,
+      "end": 4.053
+    },
+    {
+      "word": "So",
+      "start": 4.053,
+      "end": 4.688
+    },
+    {
+      "word": "does",
+      "start": 4.688,
+      "end": 4.92
+    },
+    {
+      "word": "the",
+      "start": 4.92,
+      "end": 5.16
+    },
+    {
+      "word": "AI",
+      "start": 5.16,
+      "end": 5.5
+    },
+    {
+      "word": "credits",
+      "start": 5.5,
+      "end": 6.016
+    },
+    {
+      "word": "icon",
+      "start": 6.016,
+      "end": 6.453
+    },
+    {
+      "word": "by",
+      "start": 6.453,
+      "end": 6.64
+    },
+    {
+      "word": "the",
+      "start": 6.64,
+      "end": 6.909
+    },
+    {
+      "word": "microphone",
+      "start": 6.909,
+      "end": 7.159
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "id": "tb.fen.channels",
+  "speaker": "Fen",
+  "text": "The Gate Board's right here, Captain. Give every crew its own channel.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.128
+    },
+    {
+      "word": "Gate",
+      "start": 0.128,
+      "end": 0.373
+    },
+    {
+      "word": "Board's",
+      "start": 0.373,
+      "end": 0.76
+    },
+    {
+      "word": "right",
+      "start": 0.76,
+      "end": 1.008
+    },
+    {
+      "word": "here",
+      "start": 1.008,
+      "end": 1.34
+    },
+    {
+      "word": "Captain",
+      "start": 1.34,
+      "end": 1.92
+    },
+    {
+      "word": "Give",
+      "start": 1.92,
+      "end": 2.293
+    },
+    {
+      "word": "every",
+      "start": 2.293,
+      "end": 2.64
+    },
+    {
+      "word": "crew",
+      "start": 2.64,
+      "end": 3.02
+    },
+    {
+      "word": "its",
+      "start": 3.02,
+      "end": 3.26
+    },
+    {
+      "word": "own",
+      "start": 3.26,
+      "end": 3.5
+    },
+    {
+      "word": "channel",
+      "start": 3.5,
+      "end": 3.75
+    }
+  ]
+}

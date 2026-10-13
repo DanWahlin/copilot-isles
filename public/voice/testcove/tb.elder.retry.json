@@ -1,0 +1,47 @@
+{
+  "id": "tb.elder.retry",
+  "speaker": "Maren",
+  "text": "Back for the Trial? Take your time, Captain.",
+  "words": [
+    {
+      "word": "Back",
+      "start": 0,
+      "end": 0.2
+    },
+    {
+      "word": "for",
+      "start": 0.2,
+      "end": 0.34
+    },
+    {
+      "word": "the",
+      "start": 0.34,
+      "end": 0.48
+    },
+    {
+      "word": "Trial",
+      "start": 0.48,
+      "end": 1.136
+    },
+    {
+      "word": "Take",
+      "start": 1.136,
+      "end": 1.872
+    },
+    {
+      "word": "your",
+      "start": 1.872,
+      "end": 2.064
+    },
+    {
+      "word": "time",
+      "start": 2.064,
+      "end": 2.46
+    },
+    {
+      "word": "Captain",
+      "start": 2.46,
+      "end": 2.71
+    }
+  ]
+}

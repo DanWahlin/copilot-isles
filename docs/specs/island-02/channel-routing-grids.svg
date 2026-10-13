@@ -1,0 +1,318 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1400 560' width='1400' height='560'>
+<title>Channel Routing boards</title>
+<rect width='1400' height='560' fill='#F6F1E4'/>
+<text x='30.0' y='30.0' font-size='18' fill='#2B2A26' text-anchor='start' font-weight='bold' font-family='Georgia, serif'>Channel Routing (P2.1): boards, starts and the one solution of each</text>
+<text x='60.0' y='76.0' font-size='13' fill='#2B2A26' text-anchor='start' font-weight='bold' font-family='Georgia, serif'>Board A, start (Rounds 1–2)</text>
+<rect x='124.0' y='86' width='28' height='18' fill='#3B82F6' stroke='#1A1A1A'/>
+<text x='138.0' y='99.0' font-size='9' fill='#FFFFFF' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Feat</text>
+<rect x='176.0' y='86' width='28' height='18' fill='#3FA34D' stroke='#1A1A1A'/>
+<text x='190.0' y='99.0' font-size='9' fill='#FFFFFF' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Bug</text>
+<rect x='228.0' y='86' width='28' height='18' fill='#1EA7A7' stroke='#1A1A1A'/>
+<text x='242.0' y='99.0' font-size='9' fill='#FFFFFF' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Docs</text>
+<rect x='60' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='60.0,136.0 86.0,136.0 86.0,110.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='63.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>00</text>
+<rect x='112' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='138.0,110.0 138.0,136.0 164.0,136.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='115.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>01</text>
+<rect x='164' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='190.0,110.0 190.0,162.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='167.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>02</text>
+<rect x='216' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='216.0,136.0 242.0,136.0 242.0,110.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='219.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>03</text>
+<rect x='268' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='294.0,110.0 294.0,136.0 320.0,136.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='271.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>04</text>
+<rect x='60' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='112.0,188.0 60.0,188.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='63.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>10</text>
+<rect x='112' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<circle cx='138.0' cy='188.0' r='18.72' fill='#6B6A64' stroke='#3A3F3C'/>
+<text x='115.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>11</text>
+<rect x='164' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='190.0,162.0 190.0,214.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='167.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>12</text>
+<rect x='216' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<circle cx='242.0' cy='188.0' r='18.72' fill='#6B6A64' stroke='#3A3F3C'/>
+<text x='219.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>13</text>
+<rect x='268' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='320.0,188.0 268.0,188.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='271.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>14</text>
+<rect x='60' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='86.0,214.0 86.0,266.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='63.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>20</text>
+<rect x='112' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='138.0,214.0 138.0,240.0 164.0,240.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='115.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>21</text>
+<rect x='164' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='190.0,214.0 190.0,266.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='167.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>22</text>
+<rect x='216' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='216.0,240.0 242.0,240.0 242.0,214.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='219.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>23</text>
+<rect x='268' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='294.0,214.0 294.0,266.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='271.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>24</text>
+<rect x='60' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='86.0,266.0 86.0,318.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='63.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>30</text>
+<rect x='112' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='138.0,266.0 138.0,318.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='115.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>31</text>
+<rect x='164' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='190.0,266.0 190.0,318.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='167.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>32</text>
+<rect x='216' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='242.0,266.0 242.0,318.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='219.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>33</text>
+<rect x='268' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='294.0,266.0 294.0,318.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='271.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>34</text>
+<circle cx='86.0' cy='332' r='11' fill='none' stroke='#3B82F6' stroke-width='3'/>
+<text x='86.0' y='356.0' font-size='9' fill='#3B82F6' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Feature wheel</text>
+<circle cx='190.0' cy='332' r='11' fill='none' stroke='#3FA34D' stroke-width='3'/>
+<text x='190.0' y='356.0' font-size='9' fill='#3FA34D' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Bug Fix wheel</text>
+<circle cx='294.0' cy='332' r='11' fill='none' stroke='#1EA7A7' stroke-width='3'/>
+<text x='294.0' y='356.0' font-size='9' fill='#1EA7A7' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Docs wheel</text>
+<text x='138.0' y='336.0' font-size='9' fill='#8A4D12' text-anchor='middle' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='242.0' y='336.0' font-size='9' fill='#8A4D12' text-anchor='middle' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='54.0' y='214.0' font-size='9' fill='#8A4D12' text-anchor='end' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='326.0' y='214.0' font-size='9' fill='#8A4D12' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='400.0' y='76.0' font-size='13' fill='#2B2A26' text-anchor='start' font-weight='bold' font-family='Georgia, serif'>Board A, Round 2 solution (unique)</text>
+<rect x='464.0' y='86' width='28' height='18' fill='#3B82F6' stroke='#1A1A1A'/>
+<text x='478.0' y='99.0' font-size='9' fill='#FFFFFF' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Feat</text>
+<rect x='516.0' y='86' width='28' height='18' fill='#3FA34D' stroke='#1A1A1A'/>
+<text x='530.0' y='99.0' font-size='9' fill='#FFFFFF' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Bug</text>
+<rect x='568.0' y='86' width='28' height='18' fill='#1EA7A7' stroke='#1A1A1A'/>
+<text x='582.0' y='99.0' font-size='9' fill='#FFFFFF' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Docs</text>
+<rect x='400' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='452.0,136.0 426.0,136.0 426.0,162.0' stroke='#3B82F6' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='403.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>00</text>
+<rect x='452' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='452.0,136.0 478.0,136.0 478.0,110.0' stroke='#3B82F6' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='455.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>01</text>
+<rect x='504' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='530.0,110.0 530.0,162.0' stroke='#3FA34D' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='507.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>02</text>
+<rect x='556' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='582.0,110.0 582.0,136.0 608.0,136.0' stroke='#1EA7A7' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='559.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>03</text>
+<rect x='608' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='634.0,162.0 634.0,136.0 608.0,136.0' stroke='#1EA7A7' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='611.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>04</text>
+<rect x='400' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='426.0,162.0 426.0,214.0' stroke='#3B82F6' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='403.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>10</text>
+<rect x='452' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<circle cx='478.0' cy='188.0' r='18.72' fill='#6B6A64' stroke='#3A3F3C'/>
+<text x='455.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>11</text>
+<rect x='504' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='530.0,162.0 530.0,214.0' stroke='#3FA34D' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='507.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>12</text>
+<rect x='556' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<circle cx='582.0' cy='188.0' r='18.72' fill='#6B6A64' stroke='#3A3F3C'/>
+<text x='559.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>13</text>
+<rect x='608' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='634.0,162.0 634.0,214.0' stroke='#1EA7A7' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='611.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>14</text>
+<rect x='400' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='426.0,214.0 426.0,266.0' stroke='#3B82F6' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='403.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>20</text>
+<rect x='452' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='478.0,214.0 478.0,240.0 504.0,240.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='455.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>21</text>
+<rect x='504' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='530.0,214.0 530.0,266.0' stroke='#3FA34D' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='507.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>22</text>
+<rect x='556' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='556.0,240.0 582.0,240.0 582.0,214.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='559.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>23</text>
+<rect x='608' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='634.0,214.0 634.0,266.0' stroke='#1EA7A7' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='611.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>24</text>
+<rect x='400' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='426.0,266.0 426.0,318.0' stroke='#3B82F6' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='403.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>30</text>
+<rect x='452' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='478.0,266.0 478.0,318.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='455.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>31</text>
+<rect x='504' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='530.0,266.0 530.0,318.0' stroke='#3FA34D' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='507.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>32</text>
+<rect x='556' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='582.0,266.0 582.0,318.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='559.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>33</text>
+<rect x='608' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='634.0,266.0 634.0,318.0' stroke='#1EA7A7' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='611.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>34</text>
+<circle cx='426.0' cy='332' r='11' fill='none' stroke='#3B82F6' stroke-width='3'/>
+<text x='426.0' y='356.0' font-size='9' fill='#3B82F6' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Feature wheel</text>
+<circle cx='530.0' cy='332' r='11' fill='none' stroke='#3FA34D' stroke-width='3'/>
+<text x='530.0' y='356.0' font-size='9' fill='#3FA34D' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Bug Fix wheel</text>
+<circle cx='634.0' cy='332' r='11' fill='none' stroke='#1EA7A7' stroke-width='3'/>
+<text x='634.0' y='356.0' font-size='9' fill='#1EA7A7' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Docs wheel</text>
+<text x='478.0' y='336.0' font-size='9' fill='#8A4D12' text-anchor='middle' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='582.0' y='336.0' font-size='9' fill='#8A4D12' text-anchor='middle' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='394.0' y='214.0' font-size='9' fill='#8A4D12' text-anchor='end' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='666.0' y='214.0' font-size='9' fill='#8A4D12' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='740.0' y='76.0' font-size='13' fill='#2B2A26' text-anchor='start' font-weight='bold' font-family='Georgia, serif'>Board B, start: all rot 0 (Round 3)</text>
+<rect x='804.0' y='86' width='28' height='18' fill='#3B82F6' stroke='#1A1A1A'/>
+<text x='818.0' y='99.0' font-size='9' fill='#FFFFFF' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Feat</text>
+<rect x='856.0' y='86' width='28' height='18' fill='#3FA34D' stroke='#1A1A1A'/>
+<text x='870.0' y='99.0' font-size='9' fill='#FFFFFF' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Bug</text>
+<rect x='908.0' y='86' width='28' height='18' fill='#1EA7A7' stroke='#1A1A1A'/>
+<text x='922.0' y='99.0' font-size='9' fill='#FFFFFF' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Docs</text>
+<rect x='740' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='766.0,110.0 766.0,136.0 792.0,136.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='743.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>00</text>
+<rect x='792' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='818.0,110.0 818.0,136.0 844.0,136.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='795.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>01</text>
+<rect x='844' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='870.0,110.0 870.0,162.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='847.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>02</text>
+<rect x='896' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='922.0,110.0 922.0,136.0 948.0,136.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='899.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>03</text>
+<rect x='948' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='974.0,110.0 974.0,136.0 1000.0,136.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='951.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>04</text>
+<rect x='740' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='766.0,162.0 766.0,214.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='743.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>10</text>
+<rect x='792' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='818.0,162.0 818.0,188.0 844.0,188.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='795.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>11</text>
+<rect x='844' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='870.0,162.0 870.0,188.0 896.0,188.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='847.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>12</text>
+<rect x='896' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='922.0,162.0 922.0,188.0 948.0,188.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='899.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>13</text>
+<rect x='948' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='974.0,162.0 974.0,214.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='951.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>14</text>
+<rect x='740' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='766.0,214.0 766.0,266.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='743.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>20</text>
+<rect x='792' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='818.0,214.0 818.0,266.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='795.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>21</text>
+<rect x='844' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<circle cx='870.0' cy='240.0' r='18.72' fill='#6B6A64' stroke='#3A3F3C'/>
+<text x='847.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>22</text>
+<rect x='896' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='922.0,214.0 922.0,240.0 948.0,240.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='899.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>23</text>
+<rect x='948' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='974.0,214.0 974.0,240.0 1000.0,240.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='951.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>24</text>
+<rect x='740' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='766.0,266.0 766.0,318.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='743.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>30</text>
+<rect x='792' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='818.0,266.0 818.0,292.0 844.0,292.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='795.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>31</text>
+<rect x='844' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='870.0,266.0 870.0,292.0 896.0,292.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='847.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>32</text>
+<rect x='896' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='922.0,266.0 922.0,292.0 948.0,292.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='899.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>33</text>
+<rect x='948' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='974.0,266.0 974.0,292.0 1000.0,292.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='951.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>34</text>
+<circle cx='766.0' cy='332' r='11' fill='none' stroke='#3B82F6' stroke-width='3'/>
+<text x='766.0' y='356.0' font-size='9' fill='#3B82F6' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Feature wheel</text>
+<circle cx='870.0' cy='332' r='11' fill='none' stroke='#3FA34D' stroke-width='3'/>
+<text x='870.0' y='356.0' font-size='9' fill='#3FA34D' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Bug Fix wheel</text>
+<circle cx='974.0' cy='332' r='11' fill='none' stroke='#1EA7A7' stroke-width='3'/>
+<text x='974.0' y='356.0' font-size='9' fill='#1EA7A7' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Docs wheel</text>
+<text x='818.0' y='336.0' font-size='9' fill='#8A4D12' text-anchor='middle' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='922.0' y='336.0' font-size='9' fill='#8A4D12' text-anchor='middle' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='734.0' y='214.0' font-size='9' fill='#8A4D12' text-anchor='end' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='1006.0' y='214.0' font-size='9' fill='#8A4D12' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='1080.0' y='76.0' font-size='13' fill='#2B2A26' text-anchor='start' font-weight='bold' font-family='Georgia, serif'>Board B, Round 3 solution (unique)</text>
+<rect x='1144.0' y='86' width='28' height='18' fill='#3B82F6' stroke='#1A1A1A'/>
+<text x='1158.0' y='99.0' font-size='9' fill='#FFFFFF' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Feat</text>
+<rect x='1196.0' y='86' width='28' height='18' fill='#3FA34D' stroke='#1A1A1A'/>
+<text x='1210.0' y='99.0' font-size='9' fill='#FFFFFF' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Bug</text>
+<rect x='1248.0' y='86' width='28' height='18' fill='#1EA7A7' stroke='#1A1A1A'/>
+<text x='1262.0' y='99.0' font-size='9' fill='#FFFFFF' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Docs</text>
+<rect x='1080' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1132.0,136.0 1106.0,136.0 1106.0,162.0' stroke='#3B82F6' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1083.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>00</text>
+<rect x='1132' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1132.0,136.0 1158.0,136.0 1158.0,110.0' stroke='#3B82F6' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1135.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>01</text>
+<rect x='1184' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1210.0,110.0 1210.0,162.0' stroke='#3FA34D' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1187.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>02</text>
+<rect x='1236' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1262.0,110.0 1262.0,136.0 1288.0,136.0' stroke='#1EA7A7' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1239.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>03</text>
+<rect x='1288' y='110' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1314.0,162.0 1314.0,136.0 1288.0,136.0' stroke='#1EA7A7' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1291.0' y='120.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>04</text>
+<rect x='1080' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1106.0,162.0 1106.0,214.0' stroke='#3B82F6' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1083.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>10</text>
+<rect x='1132' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1184.0,188.0 1158.0,188.0 1158.0,214.0' stroke='#3FA34D' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1135.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>11</text>
+<rect x='1184' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1184.0,188.0 1210.0,188.0 1210.0,162.0' stroke='#3FA34D' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1187.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>12</text>
+<rect x='1236' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1262.0,162.0 1262.0,188.0 1288.0,188.0' stroke='#B7A27A' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1239.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>13</text>
+<rect x='1288' y='162' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1314.0,162.0 1314.0,214.0' stroke='#1EA7A7' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1291.0' y='172.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>14</text>
+<rect x='1080' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1106.0,214.0 1106.0,266.0' stroke='#3B82F6' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1083.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>20</text>
+<rect x='1132' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1158.0,214.0 1158.0,266.0' stroke='#3FA34D' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1135.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>21</text>
+<rect x='1184' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<circle cx='1210.0' cy='240.0' r='18.72' fill='#6B6A64' stroke='#3A3F3C'/>
+<text x='1187.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>22</text>
+<rect x='1236' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1288.0,240.0 1262.0,240.0 1262.0,266.0' stroke='#1EA7A7' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1239.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>23</text>
+<rect x='1288' y='214' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1288.0,240.0 1314.0,240.0 1314.0,214.0' stroke='#1EA7A7' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1291.0' y='224.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>24</text>
+<rect x='1080' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1106.0,266.0 1106.0,318.0' stroke='#3B82F6' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1083.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>30</text>
+<rect x='1132' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1158.0,266.0 1158.0,292.0 1184.0,292.0' stroke='#3FA34D' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1135.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>31</text>
+<rect x='1184' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1210.0,318.0 1210.0,292.0 1184.0,292.0' stroke='#3FA34D' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1187.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>32</text>
+<rect x='1236' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1262.0,266.0 1262.0,292.0 1288.0,292.0' stroke='#1EA7A7' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1239.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>33</text>
+<rect x='1288' y='266' width='52' height='52' fill='#E8D7B0' stroke='#7D5A3A'/>
+<polyline points='1314.0,318.0 1314.0,292.0 1288.0,292.0' stroke='#1EA7A7' fill='none' stroke-width='14.560000000000002' opacity='1.0' stroke-linejoin='round' stroke-linecap='round'/>
+<text x='1291.0' y='276.0' font-size='7.5' fill='#7D5A3A' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>34</text>
+<circle cx='1106.0' cy='332' r='11' fill='none' stroke='#3B82F6' stroke-width='3'/>
+<text x='1106.0' y='356.0' font-size='9' fill='#3B82F6' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Feature wheel</text>
+<circle cx='1210.0' cy='332' r='11' fill='none' stroke='#3FA34D' stroke-width='3'/>
+<text x='1210.0' y='356.0' font-size='9' fill='#3FA34D' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Bug Fix wheel</text>
+<circle cx='1314.0' cy='332' r='11' fill='none' stroke='#1EA7A7' stroke-width='3'/>
+<text x='1314.0' y='356.0' font-size='9' fill='#1EA7A7' text-anchor='middle' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Docs wheel</text>
+<text x='1158.0' y='336.0' font-size='9' fill='#8A4D12' text-anchor='middle' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='1262.0' y='336.0' font-size='9' fill='#8A4D12' text-anchor='middle' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='1074.0' y='214.0' font-size='9' fill='#8A4D12' text-anchor='end' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='1346.0' y='214.0' font-size='9' fill='#8A4D12' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>main</text>
+<text x='60.0' y='440.0' font-size='12' fill='#2B2A26' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>Rows run north (r0, the gates) to south (r3, the wheels). Gates: Feature c1, Bug Fix c2, Docs c3. Wheels: Feature c0, Bug Fix c2, Docs c4.</text>
+<text x='60.0' y='460.0' font-size='12' fill='#2B2A26' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>Outlets c1 and c3 and both side edges spill into the Great Hall's sluice: 'main', your main checkout.</text>
+<text x='60.0' y='480.0' font-size='12' fill='#2B2A26' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>Elbow rotation 0 = N–E, 1 = E–S, 2 = S–W, 3 = W–N (each press turns 90° clockwise). Straight 0 = N–S, 1 = E–W.</text>
+<text x='60.0' y='500.0' font-size='12' fill='#2B2A26' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>Round 1: only Feature's gate is live. Round 2: all three, same board. Round 3: a boulder falls into r2c2 and Bug Fix must detour west.</text>
+<text x='60.0' y='520.0' font-size='12' fill='#2B2A26' text-anchor='start' font-weight='normal' font-family='Helvetica, Arial, sans-serif'>Solver check (this script): Board A, three crews: 1 solution; Board B, three crews: 1 solution (unused tiles may point any way).</text>
+</svg>

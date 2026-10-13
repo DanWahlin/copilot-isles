@@ -1,0 +1,72 @@
+{
+  "id": "tb.elder.02",
+  "speaker": "Maren",
+  "text": "Pass my Trial, and the Crown Beacon is yours to light. Nine questions.",
+  "words": [
+    {
+      "word": "Pass",
+      "start": 0,
+      "end": 0.373
+    },
+    {
+      "word": "my",
+      "start": 0.373,
+      "end": 0.56
+    },
+    {
+      "word": "Trial",
+      "start": 0.56,
+      "end": 1.18
+    },
+    {
+      "word": "and",
+      "start": 1.18,
+      "end": 1.62
+    },
+    {
+      "word": "the",
+      "start": 1.62,
+      "end": 1.747
+    },
+    {
+      "word": "Crown",
+      "start": 1.747,
+      "end": 2.16
+    },
+    {
+      "word": "Beacon",
+      "start": 2.16,
+      "end": 2.747
+    },
+    {
+      "word": "is",
+      "start": 2.747,
+      "end": 3.053
+    },
+    {
+      "word": "yours",
+      "start": 3.053,
+      "end": 3.573
+    },
+    {
+      "word": "to",
+      "start": 3.573,
+      "end": 3.747
+    },
+    {
+      "word": "light",
+      "start": 3.747,
+      "end": 4.528
+    },
+    {
+      "word": "Nine",
+      "start": 4.528,
+      "end": 5.76
+    },
+    {
+      "word": "questions",
+      "start": 5.76,
+      "end": 6.01
+    }
+  ]
+}

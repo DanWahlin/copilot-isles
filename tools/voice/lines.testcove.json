@@ -1713,6 +1713,739 @@
       "voice": "XEQBC9sleaE3f5ff82UR",
       "prosody": { "rate": "+10%" },
       "text": "Now, open the chest, Captain. Our chart’s inside."
+    },
+    {
+      "id": "juno.tb.arrive",
+      "speaker": "Juno",
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR",
+      "text": "That's no ordinary tree, Captain. Folk say every crew up there has a house of its own."
+    },
+    {
+      "id": "wingman.tb.01",
+      "speaker": "Wingman",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
+      "fx": "wingman-bird",
+      "text": "Lanterns! Mist! Thousand-Bough Isle is Chapter 02: sessions, worktrees and context."
+    },
+    {
+      "id": "wingman.tb.02",
+      "speaker": "Wingman",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
+      "fx": "wingman-bird",
+      "text": "Tamsin's at the end of the wharf, under the little banyan. Start with her, and follow the compass."
+    },
+    {
+      "id": "wingman.tb.03",
+      "speaker": "Wingman",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
+      "fx": "wingman-bird",
+      "text": "Your tasks are in the top left, as ever, and the compass up top shows the way."
+    },
+    {
+      "id": "wingman.starfish.thousand-bough",
+      "speaker": "Wingman",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
+      "fx": "wingman-bird",
+      "text": "And five starfish are hidden around Thousand-Bough Isle. Your count's in the top right."
+    },
+    {
+      "id": "wingman.tb.ports",
+      "speaker": "Wingman",
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
+      "fx": "wingman-bird",
+      "text": "And it's not just ports, Captain. Databases and background processes aren't separated either."
+    },
+    {
+      "id": "tb.tamsin.01",
+      "speaker": "Tamsin",
+      "tts": "elevenlabs",
+      "voice": "L4so9SudEsIYzE9j4qlR",
+      "text": "Welcome to Thousand-Bough, Captain. Out here, every crew gets a treehouse of its own."
+    },
+    {
+      "id": "tb.tamsin.02",
+      "speaker": "Tamsin",
+      "tts": "elevenlabs",
+      "voice": "L4so9SudEsIYzE9j4qlR",
+      "text": "On Port Meridian you saw two tasks blur together in one folder. Sessions fix that."
+    },
+    {
+      "id": "tb.tamsin.03",
+      "speaker": "Tamsin",
+      "tts": "elevenlabs",
+      "voice": "L4so9SudEsIYzE9j4qlR",
+      "text": "A session can have its own branch, working folder, plan, diff, terminal output, browser preview and GitHub context."
+    },
+    {
+      "id": "tb.tamsin.next",
+      "speaker": "Tamsin",
+      "tts": "elevenlabs",
+      "voice": "L4so9SudEsIYzE9j4qlR",
+      "text": "Lyra's playing by the pools up the Fern Walk. Saffi keeps the great tree past her."
+    },
+    {
+      "id": "tb.tamsin.done",
+      "speaker": "Tamsin",
+      "tts": "elevenlabs",
+      "voice": "L4so9SudEsIYzE9j4qlR",
+      "text": "Up the Fern Walk, Captain. Follow the lanterns, and mind the roots."
+    },
+    {
+      "id": "tb.lyra.wait",
+      "speaker": "Lyra",
+      "text": "Tamsin's down at the wharf first, Captain. Then come and hear my song.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "tb.lyra.01",
+      "speaker": "Lyra",
+      "text": "Captain! Three musicians, one song. You wouldn't crowd them round one microphone, would you?",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "tb.lyra.02",
+      "speaker": "Lyra",
+      "text": "Each gets a soundproof booth. They record apart, or all at once, and the takes are mixed later.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "tb.lyra.03",
+      "speaker": "Lyra",
+      "text": "A worktree's a booth: the same song, but its own folder and branch, so parallel work doesn't collide.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "tb.lyra.chest",
+      "speaker": "Lyra",
+      "text": "My notes are in the chest by the last booth. Take them, they're yours.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "tb.lyra.next",
+      "speaker": "Lyra",
+      "text": "Saffi keeps the Root Hall, at the foot of the great tree. Follow the lanterns.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "tb.lyra.done",
+      "speaker": "Lyra",
+      "text": "Step into a booth, Captain. Hear how each part sounds on its own.",
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    {
+      "id": "tb.saffi.wait",
+      "speaker": "Saffi",
+      "tts": "elevenlabs",
+      "voice": "kkPJzQOWz2Oz9cUaEaQd",
+      "text": "Lyra's by the pools, dear. Hear her song first, then come back to me."
+    },
+    {
+      "id": "tb.saffi.01",
+      "speaker": "Saffi",
+      "tts": "elevenlabs",
+      "voice": "kkPJzQOWz2Oz9cUaEaQd",
+      "text": "One trunk, Captain. That's your repository. Every bough grows from it."
+    },
+    {
+      "id": "tb.saffi.02",
+      "speaker": "Saffi",
+      "tts": "elevenlabs",
+      "voice": "kkPJzQOWz2Oz9cUaEaQd",
+      "text": "A Git worktree is another working folder for the same repository, usually on its own branch."
+    },
+    {
+      "id": "tb.saffi.03",
+      "speaker": "Saffi",
+      "tts": "elevenlabs",
+      "voice": "kkPJzQOWz2Oz9cUaEaQd",
+      "text": "So you can work on several tasks without stashing changes or switching branches in one folder."
+    },
+    {
+      "id": "tb.saffi.04",
+      "speaker": "Saffi",
+      "tts": "elevenlabs",
+      "voice": "kkPJzQOWz2Oz9cUaEaQd",
+      "text": "Each task gets its own folder, its branch shows in the app, and its diff stays with it."
+    },
+    {
+      "id": "tb.saffi.05",
+      "speaker": "Saffi",
+      "tts": "elevenlabs",
+      "voice": "kkPJzQOWz2Oz9cUaEaQd",
+      "text": "Sessions can even run side by side without mixing changes. In this chapter, take them one at a time."
+    },
+    {
+      "id": "tb.saffi.next",
+      "speaker": "Saffi",
+      "tts": "elevenlabs",
+      "voice": "kkPJzQOWz2Oz9cUaEaQd",
+      "text": "Oak sends the crews out from the Three Landings. Up the Great Stair, dear."
+    },
+    {
+      "id": "tb.saffi.done",
+      "speaker": "Saffi",
+      "tts": "elevenlabs",
+      "voice": "kkPJzQOWz2Oz9cUaEaQd",
+      "text": "Up the stair, dear. Oak's waiting at the Three Landings."
+    },
+    {
+      "id": "tb.oak.wait",
+      "speaker": "Oak",
+      "tts": "elevenlabs",
+      "voice": "LEvd0YiWkwZ6hTZOmdVE",
+      "text": "Saffi first, Captain! She's down in the Root Hall."
+    },
+    {
+      "id": "tb.oak.01",
+      "speaker": "Oak",
+      "tts": "elevenlabs",
+      "voice": "LEvd0YiWkwZ6hTZOmdVE",
+      "text": "Every job asks one question first, Captain: where does the work happen?"
+    },
+    {
+      "id": "tb.oak.02",
+      "speaker": "Oak",
+      "tts": "elevenlabs",
+      "voice": "LEvd0YiWkwZ6hTZOmdVE",
+      "text": "Start a session with the plus, and the workspace selector below the prompt box picks the place."
+    },
+    {
+      "id": "tb.oak.03",
+      "speaker": "Oak",
+      "tts": "elevenlabs",
+      "voice": "LEvd0YiWkwZ6hTZOmdVE",
+      "text": "New worktree gives the session its own folder and branch beside your clone. That's the safe default."
+    },
+    {
+      "id": "tb.oak.04",
+      "speaker": "Oak",
+      "tts": "elevenlabs",
+      "voice": "LEvd0YiWkwZ6hTZOmdVE",
+      "text": "Current checkout works right in your existing clone. Quick, but it touches your working folder."
+    },
+    {
+      "id": "tb.oak.05",
+      "speaker": "Oak",
+      "tts": "elevenlabs",
+      "voice": "LEvd0YiWkwZ6hTZOmdVE",
+      "text": "Cloud runs it in a cloud sandbox on GitHub's hosted infrastructure. That one's in public preview."
+    },
+    {
+      "id": "tb.oak.06",
+      "speaker": "Oak",
+      "tts": "elevenlabs",
+      "voice": "LEvd0YiWkwZ6hTZOmdVE",
+      "text": "Base branch sets the bough a new worktree grows from. And Create from always gets a new worktree."
+    },
+    {
+      "id": "tb.oak.07",
+      "speaker": "Oak",
+      "tts": "elevenlabs",
+      "voice": "LEvd0YiWkwZ6hTZOmdVE",
+      "text": "The app remembers your last choice. You picked Current checkout on Anchorage, so switch back to New worktree."
+    },
+    {
+      "id": "tb.oak.08",
+      "speaker": "Oak",
+      "tts": "elevenlabs",
+      "voice": "LEvd0YiWkwZ6hTZOmdVE",
+      "text": "When in doubt, a new worktree. It keeps main clean, and it still runs on your machine."
+    },
+    {
+      "id": "tb.oak.gondola",
+      "speaker": "Oak",
+      "tts": "elevenlabs",
+      "voice": "LEvd0YiWkwZ6hTZOmdVE",
+      "text": "Done somewhere else, and your own deck stayed untouched. That's Cloud."
+    },
+    {
+      "id": "tb.oak.next",
+      "speaker": "Oak",
+      "tts": "elevenlabs",
+      "voice": "LEvd0YiWkwZ6hTZOmdVE",
+      "text": "Fen's got crews that won't stop tangling. His boardwalk's just behind me."
+    },
+    {
+      "id": "tb.oak.done",
+      "speaker": "Oak",
+      "tts": "elevenlabs",
+      "voice": "LEvd0YiWkwZ6hTZOmdVE",
+      "text": "Ring the gondola bell if you like, Captain. She's always running."
+    },
+    {
+      "id": "tb.fen.wait",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Oak sends the crews my way, Captain. See him first."
+    },
+    {
+      "id": "tb.fen.01",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Ah, a captain! We used to run every crew down the Great Hall trough. Watch this."
+    },
+    {
+      "id": "tb.fen.02",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Three tasks, one folder. Their work blurs together."
+    },
+    {
+      "id": "tb.fen.03",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "So now each crew gets its own channel. Turn the tiles, then open the gates."
+    },
+    {
+      "id": "tb.fen.channels",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "The Gate Board's right here, Captain. Give every crew its own channel."
+    },
+    {
+      "id": "tb.fen.mixed",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Two crews in one race! Their changes blur together, like two tasks in one folder. Give each its own channel."
+    },
+    {
+      "id": "tb.fen.mainhall",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "That ran into the Great Hall: your main checkout. A new worktree keeps a session's changes out of main."
+    },
+    {
+      "id": "tb.fen.wrongwheel",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "That water turned another crew's wheel. A session's diff should stay with that session."
+    },
+    {
+      "id": "tb.fen.deadend",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "It stops short. Follow it down from the gate."
+    },
+    {
+      "id": "tb.fen.round1",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "One crew, one channel. Lovely! Now the other two want their water."
+    },
+    {
+      "id": "tb.fen.round2",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Three crews, three channels, one spring. That's one repository with a worktree for each session."
+    },
+    {
+      "id": "tb.fen.rain",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Och, the rain's brought a boulder down! New tiles, same rule: every crew its own channel."
+    },
+    {
+      "id": "tb.fen.round3",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Nothing mixed, round a boulder and all. Sessions can run side by side without mixing their changes."
+    },
+    {
+      "id": "tb.fen.twist.01",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Now Feature and Docs both want to show their work at the Lookout."
+    },
+    {
+      "id": "tb.fen.twist.02",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Their channels are separate. So why are they stuck?"
+    },
+    {
+      "id": "tb.fen.twist.redig",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Their channels are already apart. Worktrees separate files and branches, not ports."
+    },
+    {
+      "id": "tb.fen.twist.port",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "That's it! Different ports for parallel previews. Docs takes Lookout 5174."
+    },
+    {
+      "id": "tb.fen.twist.close",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "That works too: stop one server. Or start the second on 5174."
+    },
+    {
+      "id": "tb.fen.twist.share",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Two previews on one port collide. Try again."
+    },
+    {
+      "id": "tb.fen.close",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Worktrees separate files and branches, not everything. Dev servers, databases and ports can still collide."
+    },
+    {
+      "id": "tb.fen.oneatatime",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Mind, the course has you work one session at a time in this chapter."
+    },
+    {
+      "id": "tb.fen.next",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Ines wants a word about what you pack. The Signal Deck's up the stair."
+    },
+    {
+      "id": "tb.fen.done",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "Listen to those wheels turning. Music, that is."
+    },
+    {
+      "id": "tb.ines.wait",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "Fen's flumes first, Captain! He's along the boardwalk."
+    },
+    {
+      "id": "tb.ines.01",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "Context goes in the prompt box with a few special characters. Each one's a flag."
+    },
+    {
+      "id": "tb.ines.02",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "The at sign brings files or folders. The hash brings issues or pull requests, like number twelve."
+    },
+    {
+      "id": "tb.ines.03",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "A slash runs a slash command. And the ampersand points to other sessions, when the prompt box offers it."
+    },
+    {
+      "id": "tb.ines.04",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "Bring the smallest amount of useful context. Less is often more."
+    },
+    {
+      "id": "tb.ines.order.1",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "First order: bring the folder samples, book app web, source."
+    },
+    {
+      "id": "tb.ines.order.2",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "Next: bring in issue twelve."
+    },
+    {
+      "id": "tb.ines.order.3",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "Now: run chronicle standup."
+    },
+    {
+      "id": "tb.ines.order.4",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "Last one: point at another crew's session."
+    },
+    {
+      "id": "tb.ines.flag.ok",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "That's the one! Up she goes."
+    },
+    {
+      "id": "tb.ines.05",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "Got a file that isn't in the repository? Drag it from your computer onto a session or agent in the sidebar."
+    },
+    {
+      "id": "tb.ines.06",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "Not sure what commands you've got? Type a slash and read the palette. It changes with your app, plugins, skills and policy."
+    },
+    {
+      "id": "tb.ines.07",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "Today you need two: chronicle and context. Pip will show you both."
+    },
+    {
+      "id": "tb.ines.next",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "Rook's crew is across the Signal Bridge. Mind, it sways."
+    },
+    {
+      "id": "tb.ines.done",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "Smallest useful context, Captain. Less is often more."
+    },
+    {
+      "id": "tb.rook.wait",
+      "speaker": "Rook",
+      "tts": "elevenlabs",
+      "voice": "j57KDF72L6gxbLk4sOo5",
+      "text": "Ines first, Captain. She's on the Signal Deck, just there."
+    },
+    {
+      "id": "tb.rook.01",
+      "speaker": "Rook",
+      "tts": "elevenlabs",
+      "voice": "j57KDF72L6gxbLk4sOo5",
+      "text": "This bough's a branch: practice empty state copy. Its empty-state message got worse on purpose."
+    },
+    {
+      "id": "tb.rook.02",
+      "speaker": "Rook",
+      "tts": "elevenlabs",
+      "voice": "j57KDF72L6gxbLk4sOo5",
+      "text": "Point to the project, select Create from, open Branches and pick our branch. New worktree, every time."
+    },
+    {
+      "id": "tb.rook.03",
+      "speaker": "Rook",
+      "tts": "elevenlabs",
+      "voice": "j57KDF72L6gxbLk4sOo5",
+      "text": "Set Mode to Plan, type hash three, pick Improve the empty state copy, and ask for a plan."
+    },
+    {
+      "id": "tb.rook.04",
+      "speaker": "Rook",
+      "tts": "elevenlabs",
+      "voice": "j57KDF72L6gxbLk4sOo5",
+      "text": "The plan opens in the Plan tab, and Review plan takes the prompt box's place."
+    },
+    {
+      "id": "tb.rook.05",
+      "speaker": "Rook",
+      "tts": "elevenlabs",
+      "voice": "j57KDF72L6gxbLk4sOo5",
+      "text": "Back in Interactive, run the Book App and open the preview. Search hobbit, then a made-up word, and note the empty state."
+    },
+    {
+      "id": "tb.rook.06",
+      "speaker": "Rook",
+      "tts": "elevenlabs",
+      "voice": "j57KDF72L6gxbLk4sOo5",
+      "text": "Then ask it to implement the plan, check the Changes tab or pill, reload, and compare."
+    },
+    {
+      "id": "tb.rook.next",
+      "speaker": "Rook",
+      "tts": "elevenlabs",
+      "voice": "j57KDF72L6gxbLk4sOo5",
+      "text": "Pip's got the day's log up in the Chronicle Loft. Up you go."
+    },
+    {
+      "id": "tb.rook.assignment",
+      "speaker": "Rook",
+      "tts": "elevenlabs",
+      "voice": "j57KDF72L6gxbLk4sOo5",
+      "text": "Your turn now: a light and dark theme for the Book App, in its own worktree."
+    },
+    {
+      "id": "tb.rook.done",
+      "speaker": "Rook",
+      "tts": "elevenlabs",
+      "voice": "j57KDF72L6gxbLk4sOo5",
+      "text": "Mind how you go on that bridge, Captain."
+    },
+    {
+      "id": "tb.pip.wait",
+      "speaker": "Pip",
+      "tts": "elevenlabs",
+      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "text": "The chronicle can wait, Captain. Rook's crew first."
+    },
+    {
+      "id": "tb.pip.01",
+      "speaker": "Pip",
+      "tts": "elevenlabs",
+      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "text": "Chronicle standup reports your work from the last day. It should list this session and its changes."
+    },
+    {
+      "id": "tb.pip.02",
+      "speaker": "Pip",
+      "tts": "elevenlabs",
+      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "text": "Slash context opens the usage popup below the prompt box. So does the AI credits icon by the microphone."
+    },
+    {
+      "id": "tb.pip.03",
+      "speaker": "Pip",
+      "tts": "elevenlabs",
+      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "text": "Session shows the AI credits it used. Tokens, what went to the model and back. Plan, your plan's use."
+    },
+    {
+      "id": "tb.pip.04",
+      "speaker": "Pip",
+      "tts": "elevenlabs",
+      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "text": "Select the Context bar for the breakdown. Check it before you pile on more files."
+    },
+    {
+      "id": "tb.pip.05",
+      "speaker": "Pip",
+      "tts": "elevenlabs",
+      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "text": "Select the session name at the top of the window for its branches, its Path and its Session ID."
+    },
+    {
+      "id": "tb.pip.06",
+      "speaker": "Pip",
+      "tts": "elevenlabs",
+      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "text": "Then ask Copilot to stop the session's development server. No pull request needed."
+    },
+    {
+      "id": "tb.pip.next",
+      "speaker": "Pip",
+      "tts": "elevenlabs",
+      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "text": "The Elder's waiting at the Crown, Captain. Last flight up."
+    },
+    {
+      "id": "tb.pip.done",
+      "speaker": "Pip",
+      "tts": "elevenlabs",
+      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "text": "Every day goes in the ledger, Captain. Even the dull ones."
+    },
+    {
+      "id": "tb.elder.wait",
+      "speaker": "Maren",
+      "tts": "elevenlabs",
+      "voice": "2qQJWjw5XdG80GreshqG",
+      "text": "The Crown can wait, Captain. Pip's ledger first."
+    },
+    {
+      "id": "tb.elder.01",
+      "speaker": "Maren",
+      "tts": "elevenlabs",
+      "voice": "2qQJWjw5XdG80GreshqG",
+      "text": "You've climbed above the mist, Captain. Down there, every crew works on its own bough."
+    },
+    {
+      "id": "tb.elder.02",
+      "speaker": "Maren",
+      "tts": "elevenlabs",
+      "voice": "2qQJWjw5XdG80GreshqG",
+      "text": "Pass my Trial, and the Crown Beacon is yours to light. Nine questions."
+    },
+    {
+      "id": "tb.elder.retry",
+      "speaker": "Maren",
+      "tts": "elevenlabs",
+      "voice": "2qQJWjw5XdG80GreshqG",
+      "text": "Back for the Trial? Take your time, Captain."
+    },
+    {
+      "id": "tb.elder.pass",
+      "speaker": "Maren",
+      "tts": "elevenlabs",
+      "voice": "2qQJWjw5XdG80GreshqG",
+      "text": "The Seal of Thousand-Bough. Hold it to the Beacon, Captain."
+    },
+    {
+      "id": "tb.elder.next",
+      "speaker": "Maren",
+      "tts": "elevenlabs",
+      "voice": "2qQJWjw5XdG80GreshqG",
+      "text": "Keelhaven's shipwrights put sessions to real work: review, debug, test and preview, then issues, pull requests and checks."
+    },
+    {
+      "id": "tb.elder.done",
+      "speaker": "Maren",
+      "tts": "elevenlabs",
+      "voice": "2qQJWjw5XdG80GreshqG",
+      "text": "Fair winds, Captain. The Sky Basket will take you down."
     }
   ]
 }

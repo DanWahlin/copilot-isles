@@ -1,0 +1,47 @@
+{
+  "id": "tb.ines.wait",
+  "speaker": "Ines",
+  "text": "Fen's flumes first, Captain! He's along the boardwalk.",
+  "words": [
+    {
+      "word": "Fen's",
+      "start": 0,
+      "end": 0.347
+    },
+    {
+      "word": "flumes",
+      "start": 0.347,
+      "end": 0.693
+    },
+    {
+      "word": "first",
+      "start": 0.693,
+      "end": 1.09
+    },
+    {
+      "word": "Captain",
+      "start": 1.09,
+      "end": 1.653
+    },
+    {
+      "word": "He's",
+      "start": 1.653,
+      "end": 2.04
+    },
+    {
+      "word": "along",
+      "start": 2.04,
+      "end": 2.26
+    },
+    {
+      "word": "the",
+      "start": 2.26,
+      "end": 2.373
+    },
+    {
+      "word": "boardwalk",
+      "start": 2.373,
+      "end": 2.623
+    }
+  ]
+}

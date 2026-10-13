@@ -1,0 +1,97 @@
+{
+  "id": "tb.lyra.02",
+  "speaker": "Lyra",
+  "text": "Each gets a soundproof booth. They record apart, or all at once, and the takes are mixed later.",
+  "words": [
+    {
+      "word": "Each",
+      "start": 0.052625,
+      "end": 0.381583
+    },
+    {
+      "word": "gets",
+      "start": 0.381583,
+      "end": 0.684208
+    },
+    {
+      "word": "a",
+      "start": 0.684208,
+      "end": 0.776333
+    },
+    {
+      "word": "soundproof",
+      "start": 0.776333,
+      "end": 1.473666
+    },
+    {
+      "word": "booth",
+      "start": 1.473666,
+      "end": 2.85525
+    },
+    {
+      "word": "They",
+      "start": 2.85525,
+      "end": 3.052625
+    },
+    {
+      "word": "record",
+      "start": 3.052625,
+      "end": 3.407875
+    },
+    {
+      "word": "apart",
+      "start": 3.407875,
+      "end": 4.171041
+    },
+    {
+      "word": "or",
+      "start": 4.171041,
+      "end": 4.552625
+    },
+    {
+      "word": "all",
+      "start": 4.552625,
+      "end": 4.85525
+    },
+    {
+      "word": "at",
+      "start": 4.85525,
+      "end": 5.013166
+    },
+    {
+      "word": "once",
+      "start": 5.013166,
+      "end": 5.64475
+    },
+    {
+      "word": "and",
+      "start": 5.64475,
+      "end": 5.89475
+    },
+    {
+      "word": "the",
+      "start": 5.89475,
+      "end": 6
+    },
+    {
+      "word": "takes",
+      "start": 6,
+      "end": 6.328958
+    },
+    {
+      "word": "are",
+      "start": 6.328958,
+      "end": 6.447375
+    },
+    {
+      "word": "mixed",
+      "start": 6.447375,
+      "end": 6.776333
+    },
+    {
+      "word": "later",
+      "start": 6.776333,
+      "end": 7.026333
+    }
+  ]
+}

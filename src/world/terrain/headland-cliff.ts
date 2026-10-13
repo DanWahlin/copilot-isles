@@ -684,7 +684,7 @@ export function* createHeadlandCliff(
   const mesh = new Mesh(geometry, material);
   mesh.name = 'terrain-rocks-headland-cliff';
   mesh.castShadow = false;
-  mesh.receiveShadow = false;
+  mesh.receiveShadow = true;
   return mesh;
 }
 

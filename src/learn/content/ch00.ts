@@ -1,7 +1,8 @@
+import { courseRefs } from '../course/refs';
 import type { ChapterContent, Rect } from '../types';
 
 const ch = '00-setup' as const;
-const src = (anchor: string) => ({ chapter: ch, anchor });
+const src = courseRefs(ch);
 
 /** A rect in the course's 1920 × 1080 app screenshots, in pixels → normalized. */
 const px = (x: number, y: number, w: number, h: number): Rect => [x / 1920, y / 1080, w / 1920, h / 1080];
@@ -15,6 +16,7 @@ export const CH00: ChapterContent = {
     {
       id: 'ch00/app-sign-in',
       src: 'course/ch00/app-sign-in.webp',
+      hash: '484b7239d4ac',
       width: 1120,
       height: 490,
       alt: 'The Copilot app welcome screen with Sign in to GitHub and Sign in to GitHub Enterprise Cloud buttons',
@@ -22,6 +24,7 @@ export const CH00: ChapterContent = {
     {
       id: 'shared/app-github-copilot-app',
       src: 'course/shared/app-github-copilot-app.webp',
+      hash: '1a7ed51fbaa9',
       width: 1920,
       height: 1080,
       alt: 'The GitHub Copilot app New view: New, Pull requests, Issues, Automations, Customize and More in the sidebar, Projects with Chats, and the prompt box',
@@ -29,6 +32,7 @@ export const CH00: ChapterContent = {
     {
       id: 'ch00/app-add-project',
       src: 'course/ch00/app-add-project.webp',
+      hash: '601fdc50c78f',
       width: 1920,
       height: 1080,
       alt: 'The Projects menu open, with callouts on the + (1) and Add GitHub repository (2), above Chat, Clone repository, and Open folder',
@@ -36,6 +40,7 @@ export const CH00: ChapterContent = {
     {
       id: 'ch00/app-current-checkout-workspace-selector',
       src: 'course/ch00/app-current-checkout-workspace-selector.webp',
+      hash: '9685f68887a9',
       width: 1000,
       height: 480,
       alt: 'The Where to work menu below the prompt box: New worktree (checked), Current checkout (highlighted), Cloud, and Base branch, with callouts on the workspace selector and Current checkout',
@@ -43,6 +48,7 @@ export const CH00: ChapterContent = {
     {
       id: 'ch00/studio-setup-soundcheck',
       src: 'course/ch00/studio-setup-soundcheck.webp',
+      hash: '91bb5ee7bf99',
       width: 1536,
       height: 1024,
       alt: 'A recording studio being set up for a soundcheck',
@@ -52,6 +58,7 @@ export const CH00: ChapterContent = {
       // sidebar), with its "Worktree ready" status line painted out: setup runs on Current checkout.
       id: 'shared/app-review-panel',
       src: 'course/shared/app-review-panel.webp',
+      hash: '999a405eeb53',
       width: 1570,
       height: 1080,
       alt: 'A project session: the conversation and prompt box on the left, and the review panel on the right with its Terminal tab and + highlighted',
@@ -103,7 +110,10 @@ export const CH00: ChapterContent = {
         'Find the **Projects** heading. There’s a small button beside it.',
         'Select the **+** to the right of **Projects**.',
       ],
-      source: src('connect-to-your-repository'),
+      source: src('connect-to-your-repository', '365638d573db', {
+        src: 'course/shared/app-github-copilot-app.webp',
+        hash: '1a7ed51fbaa9',
+      }),
     },
     {
       id: 'S0.3',
@@ -132,7 +142,7 @@ export const CH00: ChapterContent = {
           'Right. Pick your fork, the result that starts with your GitHub username. The app clones it and adds it under **Projects**.',
         wrong: 'Your practice work belongs in your own copy of the course.',
       },
-      source: src('connect-to-your-repository'),
+      source: src('connect-to-your-repository', '365638d573db'),
     },
     {
       id: 'H0.4',
@@ -179,7 +189,10 @@ export const CH00: ChapterContent = {
         'You want the option that works in the clone already on your machine.',
         'Select **Current checkout**.',
       ],
-      source: src('check-your-tools-in-terminal'),
+      source: src('check-your-tools-in-terminal', '6ff94698a3b3', {
+        src: 'course/ch00/app-current-checkout-workspace-selector.webp',
+        hash: '9685f68887a9',
+      }),
     },
     {
       id: 'S0.1',
@@ -214,7 +227,7 @@ export const CH00: ChapterContent = {
           'Right. Sign in with `gh auth login`, then confirm the active account with `gh auth status`.',
         wrong: 'The CLI’s account has to match your fork before you continue.',
       },
-      source: src('check-your-tools-in-terminal'),
+      source: src('check-your-tools-in-terminal', '6ff94698a3b3'),
     },
     {
       id: 'S0.2',
@@ -237,7 +250,7 @@ export const CH00: ChapterContent = {
           'Yes! Requests go to the agent through the prompt box. It should summarize the course and point out `samples/book-app-web`.',
         wrong: 'Terminal is for commands. Who should answer this request?',
       },
-      source: src('learn-more-about-the-course-repository'),
+      source: src('learn-more-about-the-course-repository', '104572df79ac'),
     },
 
     // The Harbormaster's Trial (T0): 8 items, hints tier 3 off.
@@ -257,7 +270,7 @@ export const CH00: ChapterContent = {
           'That’s the whole voyage: fork, add it, a **Current checkout** session, preview, then run it for real.',
         wrong: 'You can’t add a fork you haven’t made, and the preview always comes before `--yes`.',
       },
-      source: src('connect-to-your-repository'),
+      source: src('connect-to-your-repository', '365638d573db'),
     },
     {
       id: 'T0.9',
@@ -287,7 +300,7 @@ export const CH00: ChapterContent = {
         wrong:
           'Workflows are a GitHub.com setting. In the app, commands and requests go to different places.',
       },
-      source: src('check-your-tools-in-terminal'),
+      source: src('check-your-tools-in-terminal', '6ff94698a3b3'),
     },
     {
       id: 'T0.3',
@@ -306,7 +319,7 @@ export const CH00: ChapterContent = {
           'Yes: labels, issues, practice branches, and pull requests. The bugs stay on practice branches, never `main`.',
         wrong: 'Four of these are right. The intentional bugs stay off `main`.',
       },
-      source: src('add-the-course-practice-items'),
+      source: src('add-the-course-practice-items', '15d697dd1d02'),
     },
     {
       id: 'T0.4',
@@ -323,7 +336,7 @@ export const CH00: ChapterContent = {
         correct: 'Right. New forks switch GitHub Actions off, and the practice checks need them.',
         wrong: 'These are GitHub Actions workflows. The app’s Automations are something else.',
       },
-      source: src('add-the-course-practice-items'),
+      source: src('add-the-course-practice-items', '15d697dd1d02'),
     },
     // Sea battle 1, wave 1 (the bosun's question; .plans/battle-plan.md "Teaching map").
     {
@@ -350,7 +363,7 @@ export const CH00: ChapterContent = {
           'Right. The script creates items on GitHub in your fork, so you’ll preview its target and planned changes before running it.',
         wrong: 'Preview first: the script creates items on GitHub in your fork.',
       },
-      source: src('add-the-course-practice-items'),
+      source: src('add-the-course-practice-items', '15d697dd1d02'),
     },
     {
       id: 'T0.5',
@@ -368,7 +381,7 @@ export const CH00: ChapterContent = {
         wrong:
           'The preview exists so you catch exactly this. Don’t run it against someone else’s repository.',
       },
-      source: src('add-the-course-practice-items'),
+      source: src('add-the-course-practice-items', '15d697dd1d02'),
     },
     {
       id: 'T0.6',
@@ -387,7 +400,7 @@ export const CH00: ChapterContent = {
         correct: 'That’s the list. Your editor is welcome, but it isn’t required for setup.',
         wrong: 'Five of these are prerequisites. One is nice to have but not required.',
       },
-      source: src('prerequisites'),
+      source: src('prerequisites', '8cf6b77a5305'),
     },
     {
       id: 'T0.10',
@@ -411,7 +424,7 @@ export const CH00: ChapterContent = {
         correct: 'Right. The **+** beside the project starts a project session in it.',
         wrong: 'Look beside the project itself, not the **Projects** heading.',
       },
-      source: src('check-your-tools-in-terminal'),
+      source: src('check-your-tools-in-terminal', '6ff94698a3b3'),
     },
     {
       id: 'T0.8',
@@ -431,7 +444,7 @@ export const CH00: ChapterContent = {
         correct: 'Yes. Forks can have Issues turned off. Turn them on and rerun.',
         wrong: 'Nothing’s broken. A repository feature is just switched off.',
       },
-      source: src('practice-items-were-not-created'),
+      source: src('practice-items-were-not-created', 'f70544845f12'),
     },
   ],
 
@@ -442,14 +455,14 @@ export const CH00: ChapterContent = {
       image: 'shared/app-github-copilot-app',
       caption:
         'Download and install the **GitHub Copilot app** for your system from [github.com/features/ai/github-app](https://github.com/features/ai/github-app). Open it and select **Sign in to GitHub** (on `*.ghe.com`, **Sign in to GitHub Enterprise Cloud**). At **Connect your repositories**, leave every repository unselected and select **Continue**.',
-      source: src('installation'),
+      source: src('installation', 'bf12cef33675'),
     },
     {
       id: 'pg.prereqs',
       title: 'What you need',
       caption:
         'A GitHub account, and a Copilot plan **or** your own model provider. On Copilot Business or Enterprise, your organization has to enable the **GitHub Copilot app** policy. Install [Git](https://git-scm.com/install), [Node.js LTS](https://nodejs.org) (it runs the course’s sample app), and [GitHub CLI](https://cli.github.com) (`gh`, for the one-time setup script). You’ll check their versions in the app’s **Terminal** once your fork is connected.',
-      source: src('prerequisites'),
+      source: src('prerequisites', '8cf6b77a5305'),
     },
     {
       id: 'C0.3',
@@ -457,14 +470,14 @@ export const CH00: ChapterContent = {
       image: 'shared/app-github-copilot-app',
       caption:
         'Select **Continue**, and the app opens the **New** view, where new work starts. If it shows a short tip about a new feature, you can close the tip.',
-      source: src('installation'),
+      source: src('installation', 'bf12cef33675'),
     },
     {
       id: 'pg.fork',
       title: 'Fork the course',
       caption:
         'Fork the course repository on GitHub at [github.com/github/copilot-app-for-beginners/fork](https://github.com/github/copilot-app-for-beginners/fork). Your practice work, and the practice items the setup script adds, go in your fork, not the original.',
-      source: src('connect-to-your-repository'),
+      source: src('connect-to-your-repository', '365638d573db'),
     },
     {
       id: 'C0.4',
@@ -472,7 +485,7 @@ export const CH00: ChapterContent = {
       image: 'ch00/app-add-project',
       caption:
         '**+** next to **Projects** → **Add GitHub repository**, search for `copilot-app-for-beginners`, and pick your fork, not the original. Already have a local copy? **Open folder**. Have the URL? **Clone repository**. If the app says Git is missing, install Git and try again.',
-      source: src('connect-to-your-repository'),
+      source: src('connect-to-your-repository', '365638d573db'),
     },
     {
       id: 'C0.6',
@@ -481,7 +494,7 @@ export const CH00: ChapterContent = {
       caption:
         'Point to your project in the sidebar and select the **+** that appears to start a project session. Sessions start on **New worktree** by default. For setup, pick **Current checkout** in the workspace selector below the prompt box, so it runs in the clone already on your machine. Then submit this short prompt to create the session.',
       code: 'Name the top-level folders in this repository. Do not change any files.',
-      source: src('check-your-tools-in-terminal'),
+      source: src('check-your-tools-in-terminal', '6ff94698a3b3'),
     },
     {
       id: 'pg.terminal',
@@ -493,21 +506,21 @@ export const CH00: ChapterContent = {
         'git --version\nnode -v\nnpm -v\ngh --version\n' +
         'gh auth status   # signed in as the account that owns your fork?\n' +
         'gh auth login    # if not: GitHub.com → Login with a web browser',
-      source: src('check-your-tools-in-terminal'),
+      source: src('check-your-tools-in-terminal', '6ff94698a3b3'),
     },
     {
       id: 'pg.workflows',
       title: 'Turn on workflows',
       caption:
         'New forks start with GitHub Actions switched off. On GitHub.com, open your fork’s **Actions** tab and select **I understand my workflows, go ahead and enable them** so the practice checks can run.',
-      source: src('add-the-course-practice-items'),
+      source: src('add-the-course-practice-items', '15d697dd1d02'),
     },
     {
       id: 'pg.checks',
       title: 'The practice checks',
       caption:
         'With workflows on, GitHub runs automated checks on your fork’s pull requests. One of the practice pull requests has a check that fails on purpose, so you can fix it in a later chapter.',
-      source: src('add-the-course-practice-items'),
+      source: src('add-the-course-practice-items', '15d697dd1d02'),
     },
     {
       id: 'P0.S',
@@ -517,7 +530,7 @@ export const CH00: ChapterContent = {
       code:
         'node .github/scripts/setup-training-scenarios.js --dry-run   # preview; check Repository:\n' +
         'node .github/scripts/setup-training-scenarios.js --yes       # wait for "Setup complete."',
-      source: src('add-the-course-practice-items'),
+      source: src('add-the-course-practice-items', '15d697dd1d02'),
     },
     {
       id: 'pg.first-prompt',
@@ -525,28 +538,28 @@ export const CH00: ChapterContent = {
       caption:
         'Back in your project session, send this from the **prompt box**, not **Terminal**. The reply should sum up the course structure and point out `samples/book-app-web`, the web sample for later exercises. Models vary, so yours will be worded differently.',
       code: 'Give me an overview of the copilot-app-for-beginners course repository. Focus on the learning path and the samples/book-app-web folder.',
-      source: src('learn-more-about-the-course-repository'),
+      source: src('learn-more-about-the-course-repository', '104572df79ac'),
     },
     {
       id: 'C0.5',
       title: 'Soundcheck',
       image: 'ch00/studio-setup-soundcheck',
       caption: 'Setting up the app is like prepping a studio before the first take.',
-      source: src('the-course-theme-working-in-a-recording-studio'),
+      source: src('the-course-theme-working-in-a-recording-studio', '5b84e8d01bdb'),
     },
     {
       id: 'B0.1',
       title: 'I can’t sign in',
       caption:
         'Check you’re on the expected GitHub account, with a Copilot plan or your own model provider. Your organization has to leave the **GitHub Copilot app** policy on, and that’s separate from the Copilot CLI policy. On `*.ghe.com`? Select **Sign in to GitHub Enterprise Cloud**.',
-      source: src('i-cannot-sign-in'),
+      source: src('i-cannot-sign-in', 'c88e34134796'),
     },
     {
       id: 'B0.2',
       title: 'I can’t see the repository',
       caption:
         'Check you’ve got access to it on GitHub and that you picked the right account or organization. Already cloned it? Try **Open folder**. If the app says Git is missing, install Git and retry. A chat can’t explain the repository? Check the right one’s connected and your prompt names `copilot-app-for-beginners`.',
-      source: src('i-cannot-see-the-repository'),
+      source: src('i-cannot-see-the-repository', 'bad53698687c'),
     },
     {
       id: 'B0.3',
@@ -554,7 +567,7 @@ export const CH00: ChapterContent = {
       caption:
         'The setup script won’t change a repository an organization owns. Add `--allow-shared-repository` only if you’re authorized and the `Repository:` line shows the right target. Issues missing? On GitHub.com, open your fork’s **Settings** → **Features**, turn on **Issues**, and rerun. Can’t run the script at all? The course’s Training GitHub Scenarios appendix has the manual steps. Do them before Chapter 02.',
       code: 'node .github/scripts/setup-training-scenarios.js --yes --allow-shared-repository',
-      source: src('the-script-stops-for-an-organization-fork'),
+      source: src('the-script-stops-for-an-organization-fork', 'b65840384055'),
     },
     {
       id: 'B0.4',
@@ -562,7 +575,7 @@ export const CH00: ChapterContent = {
       caption:
         'Read the message after `Setup failed`. Fix the problem it reports, then run the script with `--yes` again. It reuses the labels, issues, branches, and pull requests it already made, so you won’t get duplicates.',
       code: 'node .github/scripts/setup-training-scenarios.js --yes',
-      source: src('the-script-stops-with-setup-failed'),
+      source: src('the-script-stops-with-setup-failed', '3935f4325855'),
     },
   ],
 
@@ -620,4 +633,42 @@ export const CH00: ChapterContent = {
       reward: { seal: 'Seal of Anchorage', doubloons: 50 },
     },
   ],
+
+  // The course section each voiced teaching line paraphrases (PLAN §8.3): the drift report flags
+  // a line when its section changes upstream. Banter and directions aren't listed.
+  voiced: {
+    'nell.papers.01': src('prerequisites', '8cf6b77a5305'),
+    'nell.papers.tools': src('prerequisites', '8cf6b77a5305'),
+    'nell.papers.app': src('installation', 'bf12cef33675'),
+    'nell.papers.signin': src('installation', 'bf12cef33675'),
+    'nell.papers.05': src('installation', 'bf12cef33675'),
+    'nell.papers.06': { chapter: '01-tour-the-app', anchor: 'settings', hash: 'b03fa006d333' },
+    'ezra.fork.01': src('connect-to-your-repository', '365638d573db'),
+    'ezra.fork.02': src('connect-to-your-repository', '365638d573db'),
+    'ezra.fork.03': src('connect-to-your-repository', '365638d573db'),
+    'ezra.fork.careful': src('connect-to-your-repository', '365638d573db'),
+    'bo.deck.01': src('connect-to-your-repository', '365638d573db'),
+    'bo.deck.02': src('check-your-tools-in-terminal', '6ff94698a3b3'),
+    'bo.deck.03': src('check-your-tools-in-terminal', '6ff94698a3b3'),
+    'bo.gear.brief.01': src('check-your-tools-in-terminal', '6ff94698a3b3'),
+    'bo.gear.brief.02': src('check-your-tools-in-terminal', '6ff94698a3b3'),
+    'bo.gear.brief.03': src('check-your-tools-in-terminal', '6ff94698a3b3'),
+    'bo.gear.checked.02': src('check-your-tools-in-terminal', '6ff94698a3b3'),
+    'pol.brief.01': src('add-the-course-practice-items', '15d697dd1d02'),
+    'pim.brief.02': src('add-the-course-practice-items', '15d697dd1d02'),
+    'pol.brief.02': src('add-the-course-practice-items', '15d697dd1d02'),
+    'pim.brief.03': src('add-the-course-practice-items', '15d697dd1d02'),
+    'pol.brief.actions': src('add-the-course-practice-items', '15d697dd1d02'),
+    'pim.brief.actions': src('add-the-course-practice-items', '15d697dd1d02'),
+    'pol.brief.03': src('add-the-course-practice-items', '15d697dd1d02'),
+    'pim.brief.04': src('add-the-course-practice-items', '15d697dd1d02'),
+    'pim.solved.01': src('add-the-course-practice-items', '15d697dd1d02'),
+    'suri.brief.02': src('add-the-course-practice-items', '15d697dd1d02'),
+    'wingman.suri.01': src('add-the-course-practice-items', '15d697dd1d02'),
+    'juno.brief.02': src('learn-more-about-the-course-repository', '104572df79ac'),
+    'juno.brief.03': src('learn-more-about-the-course-repository', '104572df79ac'),
+    'juno.brief.04': src('learn-more-about-the-course-repository', '104572df79ac'),
+    'lyra.soundcheck.01': src('the-course-theme-working-in-a-recording-studio', '5b84e8d01bdb'),
+    'lyra.soundcheck.02': src('the-course-theme-working-in-a-recording-studio', '5b84e8d01bdb'),
+  },
 };

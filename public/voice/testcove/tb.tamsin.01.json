@@ -1,0 +1,77 @@
+{
+  "id": "tb.tamsin.01",
+  "speaker": "Tamsin",
+  "text": "Welcome to Thousand-Bough, Captain. Out here, every crew gets a treehouse of its own.",
+  "words": [
+    {
+      "word": "Welcome",
+      "start": 0,
+      "end": 0.373
+    },
+    {
+      "word": "to",
+      "start": 0.373,
+      "end": 0.524
+    },
+    {
+      "word": "Thousand-Bough",
+      "start": 0.524,
+      "end": 1.39
+    },
+    {
+      "word": "Captain",
+      "start": 1.39,
+      "end": 2.12
+    },
+    {
+      "word": "Out",
+      "start": 2.12,
+      "end": 2.304
+    },
+    {
+      "word": "here",
+      "start": 2.304,
+      "end": 2.773
+    },
+    {
+      "word": "every",
+      "start": 2.773,
+      "end": 3.104
+    },
+    {
+      "word": "crew",
+      "start": 3.104,
+      "end": 3.392
+    },
+    {
+      "word": "gets",
+      "start": 3.392,
+      "end": 3.6
+    },
+    {
+      "word": "a",
+      "start": 3.6,
+      "end": 3.728
+    },
+    {
+      "word": "treehouse",
+      "start": 3.728,
+      "end": 4.107
+    },
+    {
+      "word": "of",
+      "start": 4.107,
+      "end": 4.22
+    },
+    {
+      "word": "its",
+      "start": 4.22,
+      "end": 4.48
+    },
+    {
+      "word": "own",
+      "start": 4.48,
+      "end": 4.73
+    }
+  ]
+}

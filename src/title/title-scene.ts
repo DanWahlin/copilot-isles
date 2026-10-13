@@ -47,18 +47,21 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   const wordmarkGull = createTitleWordmarkGull(undefined, { object: ship.group, perches: gullPerches() });
   let disposed = false;
   let avoidRects = titleAvoidRects();
+  // Two frames: the late addition's first real draw (its shaders and uploads) happens inside the excuse.
+  const firstDraw = () =>
+    new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
   const loadLeaps = async () => {
     if (disposed || backdropTier.leaps <= 0) return;
     const { createLeaps } = await import('../world/life/leaps');
     if (disposed) return;
     const created = createLeaps({ tier: backdropTier, titleMode: true, avoidRects });
-    await renderer.compileAsync(created.group, camera);
     if (disposed) {
       created.dispose();
       return;
     }
     leaps = created;
     scene.add(created.group);
+    await firstDraw();
   };
   // A few gulls wheeling far off over the sea (Tidewater's flock), loaded after first paint so the
   // title's first frame and program budget stay as they were.
@@ -78,15 +81,17 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
       scale: 0.9,
       seed: 0x6a11,
     });
-    await renderer.compileAsync(created.group, camera);
     if (disposed) {
       created.dispose();
       return;
     }
     birds = created;
     scene.add(created.group);
+    await firstDraw();
   };
-  // Both are precompiled off the frame, so the hitch guard excuses their late uploads.
+  // Both are instanced, so no precompile matches their real draw (it built a second, unused set of
+  // shaders: three names their instance buffers by node id). Their first real draws build them, and
+  // the hitch guard excuses those while they load.
   const lazyBirdsTimer =
     typeof window !== 'undefined'
       ? window.setTimeout(() => void engine.counters.excuse(loadBirds()), 2500)

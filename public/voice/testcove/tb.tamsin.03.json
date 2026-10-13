@@ -1,0 +1,97 @@
+{
+  "id": "tb.tamsin.03",
+  "speaker": "Tamsin",
+  "text": "A session can have its own branch, working folder, plan, diff, terminal output, browser preview and GitHub context.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0,
+      "end": 0.12
+    },
+    {
+      "word": "session",
+      "start": 0.12,
+      "end": 0.46
+    },
+    {
+      "word": "can",
+      "start": 0.46,
+      "end": 0.672
+    },
+    {
+      "word": "have",
+      "start": 0.672,
+      "end": 0.84
+    },
+    {
+      "word": "its",
+      "start": 0.84,
+      "end": 1
+    },
+    {
+      "word": "own",
+      "start": 1,
+      "end": 1.211
+    },
+    {
+      "word": "branch",
+      "start": 1.211,
+      "end": 2.21
+    },
+    {
+      "word": "working",
+      "start": 2.21,
+      "end": 2.629
+    },
+    {
+      "word": "folder",
+      "start": 2.629,
+      "end": 3.328
+    },
+    {
+      "word": "plan",
+      "start": 3.328,
+      "end": 4.176
+    },
+    {
+      "word": "diff",
+      "start": 4.176,
+      "end": 4.844
+    },
+    {
+      "word": "terminal",
+      "start": 4.844,
+      "end": 5.291
+    },
+    {
+      "word": "output",
+      "start": 5.291,
+      "end": 6.37
+    },
+    {
+      "word": "browser",
+      "start": 6.37,
+      "end": 6.79
+    },
+    {
+      "word": "preview",
+      "start": 6.79,
+      "end": 7.32
+    },
+    {
+      "word": "and",
+      "start": 7.32,
+      "end": 7.509
+    },
+    {
+      "word": "GitHub",
+      "start": 7.509,
+      "end": 8.02
+    },
+    {
+      "word": "context",
+      "start": 8.02,
+      "end": 8.27
+    }
+  ]
+}

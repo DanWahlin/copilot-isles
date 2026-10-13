@@ -115,7 +115,9 @@ export function createDockGull(o: {
     mesh.name = 'dock gull model';
     mesh.scale.setScalar(s);
     mesh.position.set(0, -FEET_Y * s, -FEET_Z * s);
-    mesh.castShadow = true;
+    // No sun shadow: a few pixels on the bollard, and its head-turn graph needed shadow shaders of
+    // its own (2 programs; PLAN §15.4).
+    mesh.castShadow = false;
     mesh.receiveShadow = true;
     body.add(mesh);
     (source.material as { dispose?: () => void }).dispose?.();

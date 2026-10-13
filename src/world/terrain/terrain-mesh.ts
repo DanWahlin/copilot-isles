@@ -903,6 +903,8 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
       const mesh = new Mesh(geometries[geometries.length - 1].geometry, material);
       mesh.name = `terrain-chunk-${Math.round(x0)}-${Math.round(z0)}`;
       mesh.frustumCulled = true;
+      // The ground takes the sun's shadows where the tier draws them (cove-scene skips them on Low).
+      mesh.receiveShadow = true;
       group.add(mesh);
       chunks.push({
         mesh,

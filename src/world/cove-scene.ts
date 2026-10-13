@@ -2,11 +2,12 @@ import { Group, Mesh, Vector3, type InstancedMesh, type Material, type Object3D 
 import { positionWorld } from 'three/tsl';
 import type { Engine } from '../engine/engine';
 import { bakeInstances } from '../engine/instancing';
-import type { TierSettings } from '../engine/quality';
+import { islandsTakeSunShadows, type TierSettings } from '../engine/quality';
 import { loadLodSimplifier } from './characters/character-lod';
 import { simplifyInPlace } from './village/chunks';
 import { HarborMirror } from './ocean/harbor-mirror';
 import { createOcean, type Ocean } from './ocean/ocean';
+import { releaseWaterDepthTexture } from './ocean/water-depth-texture';
 import { skipSunShadows } from './sky/cached-sun-shadow';
 import { createSky, type SkySystem } from './sky/sky-system';
 import { createCoastFoam } from './terrain/coast-foam';
@@ -34,7 +35,7 @@ import { meridianPlantsSliced } from './islands/meridian-plants';
 import { meridianTownPlants } from './meridian-town/plantings';
 import { createMeridianWaterMesh } from './islands/meridian-water-mesh';
 import type { WaterStrips } from './sites/water';
-import { loadVillageKit } from './village/kit';
+import { loadVillageKit, releaseVillageKitTextures } from './village/kit';
 import { DOCK_GULL_SPOT, createVillage, type VillageSystem } from './islands/anchorage/village';
 import { ANCHORAGE_VEGETATION } from './islands/anchorage/vegetation-rules';
 import { createDockGull, type DockGull } from './life/dock-gull';
@@ -50,6 +51,7 @@ import { villageExclusionAsync } from './village-exclusion';
 import { BRIGANTINE_CARGO, createCoveSites, type CoveSites } from './sites';
 import type { CircleObstacle } from './contracts';
 import { FarCull } from './far-cull';
+import { createThousandBoughStream, type ThousandBoughStream } from './islands/thousand-bough/stream';
 import { BLOB_RANGE, BlobShadows } from './blob-shadows';
 
 export interface CoveScene {
@@ -83,6 +85,8 @@ export interface CoveScene {
      */
     hold(on: boolean): void;
   };
+  /** Thousand-Bough Isle (Chapter 02), streamed in like Meridian when something needs it. */
+  thousandBough: ThousandBoughStream;
   vegetation: VegetationSystem | null;
   ship: Brigantine;
   village: VillageSystem;
@@ -97,13 +101,15 @@ export interface CoveScene {
    * matches the post's scene pass); without one they're precompiled with `compileAsync`.
    */
   setLateWarm(warm: ((roots: Object3D[]) => Promise<void>) | null): void;
+  /** Warms late arrivals (a sea battle's ships) through that warm, or `compileAsync` without one. */
+  warmLate(roots: Object3D[]): Promise<void>;
   /** The starfish to collect on both islands (the session sets their ground and which are found). */
   starfish: StarfishSystem;
   /**
    * Each island's small detail (people, puzzle sites, chests, props), culled while the camera is far
    * from that island; the game adds what it places (`FarCull.add`).
    */
-  detail: Record<'anchorage' | 'meridian', FarCull>;
+  detail: Record<'anchorage' | 'meridian' | 'thousand-bough', FarCull>;
   dispose(): void;
 }
 
@@ -184,6 +190,9 @@ export interface CoveOptions {
  */
 export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<CoveScene> {
   const { renderer, scene, tier, clock, camera } = engine;
+  // Where the tier has sun shadows but the islands don't take them (Low: blob shadows instead), the
+  // islands skip the shadow lookup without a second shader per look.
+  const skipIslandShadows = tier.shadowCascades > 0 && !islandsTakeSunShadows(tier);
   const report = o.onProgress ?? (() => {});
   const breathe = o.breathe ?? (() => Promise.resolve());
   report(0.1, 'Raising the sky');
@@ -209,7 +218,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     breathe,
   );
   await breathe();
-  if (tier.shadowCascades > 0) skipSunShadows(terrain.group);
+  if (skipIslandShadows) skipSunShadows(terrain.group);
   await coarserRocksOnLite(terrain.group, tier);
   const heightField = new CompositeHeightField(-52);
   heightField.add(
@@ -227,6 +236,20 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     resolveMeridianTown = resolve;
   });
   const shipObstacles: CircleObstacle[] = [];
+  const thousandBough = createThousandBoughStream({
+    scene,
+    tier,
+    packBase: o.packBase ?? '/packs',
+    cloudShadowNode,
+    breathe,
+    heightField,
+    shipObstacles,
+    vegetation: () => vegetation,
+    sky,
+    birds: o.birds !== false,
+    skipShadows: skipIslandShadows,
+    disabled: params.has('nothousandbough'),
+  });
   const meridian = {
     silhouette: meridianSilhouette,
     terrain: null as CreatedTerrain | null,
@@ -276,7 +299,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         meridianWaterMesh = createMeridianWaterMesh();
         meridianTerrain.group.add(meridianWaterMesh.mesh);
         singlePassWaterOnLite(meridianWaterMesh.mesh, tier);
-        if (tier.shadowCascades > 0) skipSunShadows(meridianTerrain.group);
+        if (skipIslandShadows) skipSunShadows(meridianTerrain.group);
         const meridianFoam = createCoastFoam(meridianData, meridianTerrain.heightField, {
           maxDistance: 1100,
         });
@@ -319,6 +342,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
           }
           if (disposed) return resolveMeridianTown(null);
           meridianPlants = (await vegetation.addPlants(flora, 'port-meridian-plants')).group;
+          if (skipIslandShadows) skipSunShadows(meridianPlants);
         }
         // Gulls wheeling over Meridian's harbour and the mole, like Anchorage's.
         if (o.birds !== false && tier.birds > 0 && !meridianBirds) {
@@ -343,7 +367,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const villageKit = typeof window === 'undefined' ? undefined : await loadVillageKit();
   const village = await createVillage({ tier, heightField, kit: villageKit });
   await breathe();
-  if (tier.shadowCascades > 0) skipSunShadows(village.group);
+  if (skipIslandShadows) skipSunShadows(village.group);
   singlePassWaterOnLite(village.group, tier);
   scene.add(village.group);
   const sites = await createCoveSites({
@@ -351,7 +375,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     heightField: terrain.heightField,
     ground: (x, z) => village.walkable(x, z) ?? terrain.heightField.heightAt(x, z),
   });
-  if (tier.shadowCascades > 0) skipSunShadows(sites.group);
+  if (skipIslandShadows) skipSunShadows(sites.group);
   singlePassWaterOnLite(sites.group, tier);
   scene.add(sites.group);
   await breathe();
@@ -375,7 +399,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       exclude: villageMask,
       extraPlants: village.plantings,
     });
-    if (tier.shadowCascades > 0) skipSunShadows(vegetation.group);
+    if (skipIslandShadows) skipSunShadows(vegetation.group);
     scene.add(vegetation.group);
   }
   await breathe();
@@ -384,7 +408,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   await breathe();
   const ship = createBrigantine({ tier: tier.tier });
   ship.dynamics.reset(COVE.mooring.x, COVE.mooring.z, COVE.mooring.heading);
-  if (tier.shadowCascades > 0) skipSunShadows(ship.group);
+  if (skipIslandShadows) skipSunShadows(ship.group);
   scene.add(ship.group);
   sites.crane.setShip(ship.group, BRIGANTINE_CARGO);
   shipObstacles.push(...village.shipObstacles, ...sites.shipObstacles, seaStackShipObstacle());
@@ -495,6 +519,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       tier.detailCullRatio,
     ),
     meridian: new FarCull(MERIDIAN.center.x, MERIDIAN.center.z, DETAIL_RANGE.meridian, tier.detailCullRatio),
+    'thousand-bough': thousandBough.detail,
   };
   const neighbour = new FarCull(COVE.island.center.x, COVE.island.center.z, NEIGHBOUR_RANGE.anchorage);
   for (const mesh of village.neighbourDetail) neighbour.add(mesh);
@@ -535,6 +560,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       meridianBirds?.group,
       leaps?.group,
     );
+    thousandBough.mirrorHidden(mirrorHidden);
     return mirrorHidden;
   };
   mirror?.setHidden(fillMirrorHidden);
@@ -563,6 +589,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         if (showMeridian) meridian.terrain.update(camera);
       }
       meridian.silhouette.visible = !nearMeridian;
+      thousandBough.update(camera, dt, t);
       vegetation?.update(camera);
       village.update(dt, t, camera);
       if (showMeridian) meridian.town?.update(dt, t, camera);
@@ -595,6 +622,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     foam,
     ranges,
     meridian,
+    thousandBough,
     vegetation,
     ship,
     village,
@@ -606,6 +634,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     detail,
     setLateWarm(warm) {
       lateWarm = warm;
+    },
+    async warmLate(roots) {
+      if (lateWarm) return lateWarm(roots);
+      for (const r of roots) await renderer.compileAsync(r, camera, scene);
     },
     dispose() {
       disposed = true;
@@ -632,6 +664,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       disposeTree(foam);
       disposeTree(ranges);
       disposeTree(meridian.silhouette);
+      thousandBough.dispose();
       meridianWaterMesh?.dispose();
       meridian.terrain?.dispose();
       if (meridian.foam) disposeTree(meridian.foam);
@@ -655,9 +688,12 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       terrain.dispose();
       ocean.dispose();
       sky.dispose();
-      // The shared terrain textures' GPU copies (their data stays cached for the next voyage).
+      // The shared terrain, kit and sea-floor textures' GPU copies (their data stays cached for the
+      // next voyage).
       releaseTerrainTextures();
       releaseTerrainNoiseTexture();
+      releaseVillageKitTextures();
+      releaseWaterDepthTexture();
     },
   };
   return result;

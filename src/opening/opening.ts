@@ -1,6 +1,5 @@
 import {
   Group,
-  RenderTarget,
   Vector2,
   Mesh,
   MeshStandardNodeMaterial,
@@ -34,6 +33,7 @@ import type { Input } from '../engine/input';
 import { createBrigantine, type Brigantine } from '../world/ship';
 import { BRIEFING_DELAY, BRIEFING_GIVE_UP, Briefing, loadBriefing, type BriefingLine } from './briefing';
 import { createCabin, type Cabin } from './cabin';
+import { createCutsceneOutput } from './cutscene-output';
 import { drawChartArt } from './chart-art';
 import { CHART_ISLANDS, chartIsland, worldToPaper, type ChartIslandId } from './chart-map';
 import { createChartPaper, rollRadius, type ChartPaper } from './chart-paper';
@@ -66,7 +66,7 @@ import {
   type OpeningBeats,
   type OpeningKind,
 } from './timeline';
-import { disposeMaterialWithTextures, disposeRenderTarget } from '../util/dispose-three';
+import { disposeMaterialWithTextures } from '../util/dispose-three';
 
 /** Where the dive ends: a camera eye and look-at in the world, on one of the chart's islands. */
 export interface DiveTarget {
@@ -654,10 +654,12 @@ export function createOpening(o: OpeningOptions): Opening {
     },
   });
 
+  // Its own target and output pass (cutscene-output.ts), freed with the opening.
+  const output = createCutsceneOutput(engine.renderer);
   const cutscene = {
     drawWorld: false,
     render() {
-      engine.renderer.render(scene, camera);
+      output.render(scene, camera);
     },
   };
 
@@ -812,19 +814,12 @@ export function createOpening(o: OpeningOptions): Opening {
     });
     for (const piece of pieces) {
       if (disposed) break;
-      await engine.renderer.compileAsync(piece, camera, scene);
+      await output.compile(piece, camera, scene);
       if (!flatOut) await yieldNow();
     }
-    // One draw into a tiny offscreen target: the sun's shadow pass compiles and every texture
-    // (the chart's ink, the nameplate) uploads now, not under the Set sail veil.
-    if (!disposed && !flatOut) {
-      const rt = new RenderTarget(8, 8, { depthBuffer: false });
-      const before = engine.renderer.getRenderTarget();
-      engine.renderer.setRenderTarget(rt);
-      engine.renderer.render(scene, camera);
-      engine.renderer.setRenderTarget(before);
-      disposeRenderTarget(rt);
-    }
+    // One draw offscreen: the sun's shadow pass compiles and every texture (the chart's ink, the
+    // nameplate) uploads now, not under the Set sail veil.
+    if (!disposed && !flatOut) output.renderOffscreen(scene, camera);
     for (const h of hidden) h.visible = false;
   }
   let prepared = false;
@@ -913,7 +908,7 @@ export function createOpening(o: OpeningOptions): Opening {
       const t0 = performance.now();
       await api.warm();
       // Juno joined after the cabin warmed (her library loads on the captain screen).
-      if (guide && !disposed) await engine.renderer.compileAsync(guide.group, camera, scene);
+      if (guide && !disposed) await output.compile(guide.group, camera, scene);
       compileMs = performance.now() - t0;
       if (disposed) return;
       // One draw with everything showing, under the veil: every geometry and texture uploads now.
@@ -924,7 +919,7 @@ export function createOpening(o: OpeningOptions): Opening {
           obj.visible = true;
         }
       });
-      engine.renderer.render(scene, camera);
+      output.render(scene, camera);
       for (const h of hidden) h.visible = false;
       applyBeat(kind === 'continue' || reduced ? 99 : 0);
       engine.cutscene = cutscene;
@@ -1060,7 +1055,11 @@ export function createOpening(o: OpeningOptions): Opening {
       captionEl.remove();
       // Out of the scene first: the sweep below would dispose the library's shared character materials,
       // which the island's NPCs also draw with (rebuilding their render objects mid-game).
-      if (guide) scene.remove(guide.group);
+      if (guide) {
+        scene.remove(guide.group);
+        // Its render objects go (they hold the cabin-lit shaders of the library's shared materials).
+        guide.group.traverse((object) => void object.dispatchEvent({ type: 'dispose' }));
+      }
       guide?.dispose();
       guide = null;
       if (!flashEl.style.opacity || flashEl.style.opacity === '0') sprayEl.remove();
@@ -1076,7 +1075,9 @@ export function createOpening(o: OpeningOptions): Opening {
         if (!mesh.isMesh) return;
         disposeMaterialWithTextures(mesh.material, disposedTextures);
       });
+      scene.traverse((object) => void object.dispatchEvent({ type: 'dispose' }));
       scene.clear();
+      output.dispose();
     },
   };
   return api;

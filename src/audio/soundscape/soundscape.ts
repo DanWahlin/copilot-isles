@@ -9,9 +9,26 @@ export type SurfKind = 'crash' | 'wash' | 'backwash';
 export type FootstepSurface = 'sand' | 'wetsand' | 'wood' | 'rock' | 'grass' | 'water';
 export type BedName = Extract<
   LoopName,
-  'wind' | 'palms' | 'surf_far' | 'birds_dawn' | 'gulls_far' | 'crickets' | 'opening_cabin'
+  | 'wind'
+  | 'palms'
+  | 'surf_far'
+  | 'birds_dawn'
+  | 'gulls_far'
+  | 'crickets'
+  | 'opening_cabin'
+  | 'rain_canopy'
+  | 'frogs_dusk'
 >;
-export type SoundLoopName = Extract<LoopName, 'stream' | 'waterfall_small' | 'wheel_creak'>;
+export type SoundLoopName = Extract<
+  LoopName,
+  | 'stream'
+  | 'waterfall_small'
+  | 'wheel_creak'
+  | 'waterfall_large'
+  | 'booth_kalimba'
+  | 'booth_flute'
+  | 'booth_rainstick'
+>;
 
 export interface Vec3Like {
   readonly x: number;
@@ -57,6 +74,8 @@ const BED_NAMES: readonly BedName[] = [
   'gulls_far',
   'crickets',
   'opening_cabin',
+  'rain_canopy',
+  'frogs_dusk',
 ];
 const FOOTSTEP_BANK: Readonly<Record<FootstepSurface, SliceName>> = {
   sand: 'step_sand',
@@ -153,7 +172,10 @@ function isPuzzleOneShot(name: SliceName): boolean {
     name === 'bottle_pop' ||
     name === 'coconut_crack' ||
     name === 'crowd_cheer_small' ||
-    name === 'lute_strum'
+    name === 'lute_strum' ||
+    name === 'gondola_bell' ||
+    name === 'rope_hoist' ||
+    name === 'rock_tumble'
   );
 }
 
@@ -173,6 +195,8 @@ export class IslesSoundScape {
     gulls_far: 0,
     crickets: 0,
     opening_cabin: 0,
+    rain_canopy: 0,
+    frogs_dusk: 0,
   };
   private readonly lastSlice: Partial<Record<SliceName, number>> = {};
   private baseUrl: string;
@@ -250,7 +274,7 @@ export class IslesSoundScape {
     const pan = ctx.createPanner();
     pan.panningModel = 'HRTF';
     pan.distanceModel = 'inverse';
-    pan.refDistance = name === 'waterfall_small' ? 6 : 4;
+    pan.refDistance = name === 'waterfall_large' ? 16 : name === 'waterfall_small' ? 6 : 4;
     pan.rolloffFactor = 1.15;
     pan.maxDistance = 220;
     setPannerPosition(pan, pos);
@@ -510,7 +534,7 @@ export class IslesSoundScape {
   private categoryFor(name: SliceName): string {
     if (name.startsWith('step_')) return 'step';
     if (name.startsWith('surf_')) return name.slice(5);
-    if (name.startsWith('bird_')) return 'bird';
+    if (name.startsWith('bird_') || name === 'parrot_call') return 'bird';
     if (name === 'big_splash' || name === 'splash') return 'splash';
     if (name === 'hull_slap') return 'hull';
     if (name === 'cannon_boom' || name === 'cannon_fire') return 'cannon';
@@ -527,7 +551,7 @@ export class IslesSoundScape {
     if (name === 'gull') return MIX.gull;
     if (name === 'tern') return MIX.tern;
     if (name === 'bird_dove') return MIX.dove;
-    if (name === 'bird_forest') return MIX.bird;
+    if (name === 'bird_forest' || name === 'parrot_call') return MIX.bird;
     if (name === 'big_splash' || name === 'splash') return MIX.splash;
     if (name === 'hull_slap') return MIX.hull;
     if (name === 'cannon_boom' || name === 'cannon_fire') return MIX.cannon;

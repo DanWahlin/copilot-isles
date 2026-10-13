@@ -167,21 +167,35 @@ function skinnedPosition(
  * material's `positionNode`, so the shadow pass (which copies it) skins the same way. Same maths as
  * three's `skinning`: position, last frame's position for motion vectors, normal and tangent.
  */
+/**
+ * The per-object inputs, made once: built inside the graph they'd be new nodes on every build, and
+ * the WebGL2 backend names a uniform buffer after its node's id, so each shadow map's build of one
+ * character got its own vertex shader.
+ */
+let inputs: { bind: AnyNode; bindInverse: AnyNode; bones: AnyNode; previous: AnyNode } | null = null;
+
+function skinInputs(): NonNullable<typeof inputs> {
+  inputs ??= {
+    bind: reference('sharedSkin.bindMatrix', 'mat4', PER_OBJECT),
+    bindInverse: reference('sharedSkin.bindMatrixInverse', 'mat4', PER_OBJECT),
+    bones: (referenceBuffer('sharedSkin.bones', 'mat4', SHARED_BONE_SLOTS, PER_OBJECT) as AnyNode).setName(
+      'sharedBones',
+    ),
+    previous: (
+      referenceBuffer('sharedSkin.previous', 'mat4', SHARED_BONE_SLOTS, PER_OBJECT) as AnyNode
+    ).setName('sharedBonesPrevious'),
+  };
+  return inputs;
+}
+
 const sharedSkinning = Fn((_: unknown, builder: AnyNode) => {
   const index = attribute('skinIndex', 'uvec4') as AnyNode;
   const weight = attribute('skinWeight', 'vec4') as AnyNode;
-  const bind = reference('sharedSkin.bindMatrix', 'mat4', PER_OBJECT) as AnyNode;
-  const bindInverse = reference('sharedSkin.bindMatrixInverse', 'mat4', PER_OBJECT) as AnyNode;
-  const bones = (
-    referenceBuffer('sharedSkin.bones', 'mat4', SHARED_BONE_SLOTS, PER_OBJECT) as AnyNode
-  ).setName('sharedBones');
+  const { bind, bindInverse, bones, previous } = skinInputs();
   OnObjectUpdate(({ object, frameId }) => {
     if (object) updateSkin(object, frameId);
   });
   if (builder.needsPreviousData()) {
-    const previous = (
-      referenceBuffer('sharedSkin.previous', 'mat4', SHARED_BONE_SLOTS, PER_OBJECT) as AnyNode
-    ).setName('sharedBonesPrevious');
     (positionPrevious as AnyNode).assign(
       skinnedPosition(previous, positionPrevious, bind, bindInverse, index, weight),
     );

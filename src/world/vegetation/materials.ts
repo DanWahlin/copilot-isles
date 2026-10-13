@@ -53,6 +53,7 @@ import {
   vec4,
 } from 'three/tsl';
 import { world } from '../uniforms';
+import { terrainNoiseTexture } from '../terrain/noise-texture';
 import { gustNode } from '../wind-nodes';
 import type { HeightGrid } from './types';
 
@@ -229,6 +230,8 @@ export function createVegetationMaterial(
     color?: Color;
     alphaTest?: number;
     name?: string;
+    /** A great tree's bark on the stone part (Thousand-Bough's banyan): set by a uniform, one shader. */
+    bark?: boolean;
   } = {},
 ): MeshStandardNodeMaterial {
   const material = new MeshStandardNodeMaterial({
@@ -254,7 +257,30 @@ export function createVegetationMaterial(
   const bark = sourceColor.mul(mix(color(0xa08f74), color(0xd2ac79), shade.mul(0.36)));
   const fruit = sourceColor.mul(mix(color(0x4a351d), color(0x8b6a37), shade.mul(0.5).add(0.28)));
   const dead = sourceColor.mul(mix(color(0x8a6334), color(0xd3ad67), shade));
-  const rock = sourceColor.mul(mix(color(0x8a8d86), color(0xc5bea7), shade.mul(0.4)));
+  const plainRock = sourceColor.mul(mix(color(0x8a8d86), color(0xc5bea7), shade.mul(0.4)));
+  // A great tree's bark: warm grey-brown in broad patches, dark crevices running up the grain (a
+  // triplanar sample of the shared noise, stretched along the height), moss on the upper sides. A
+  // uniform picks it, so every vegetation material keeps the same shader.
+  const barkOn = uniform(source.bark ? 1 : 0);
+  const barkNoise = terrainNoiseTexture();
+  const wp = positionWorld as AnyNode;
+  // The geometry's own normal (the shared normalWorld var mustn't be first read inside a part's
+  // select(), see below; the banyan isn't rotated, so local is world here).
+  const nl = normalLocal as AnyNode;
+  const an = nl.abs();
+  const grainX = texture(barkNoise, vec2(wp.z.mul(0.9), wp.y.mul(0.06))) as AnyNode;
+  const grainZ = texture(barkNoise, vec2(wp.x.mul(0.9), wp.y.mul(0.06))) as AnyNode;
+  const grainY = texture(barkNoise, vec2(wp.x.mul(0.09), wp.z.mul(0.09))) as AnyNode;
+  const aw = an.x.add(an.y).add(an.z).max(0.001);
+  const grain = grainX.r.mul(an.x).add(grainZ.r.mul(an.z)).add(grainY.g.mul(an.y)).div(aw);
+  const patch = grainX.b.mul(an.x).add(grainZ.b.mul(an.z)).add(grainY.a.mul(an.y)).div(aw);
+  const crevice = smoothstep(float(0.42), float(0.72), grain);
+  const barkTone = mix(color(0x5a4636), color(0xb0a48a), patch.mul(0.7).add(shade.mul(0.3)))
+    .mul(vertexColor.mul(0.5).add(0.6))
+    .mul(float(1).sub(crevice.mul(0.62)));
+  const barkMoss = smoothstep(float(0.38), float(0.72), nl.y.add(patch.sub(0.5).mul(0.7)));
+  const mossTone = mix(color(0x3d5a2a), color(0x6f9440), grainY.r);
+  const rock = mix(plainRock, mix(barkTone, mossTone, barkMoss.mul(0.85)), barkOn);
   const leafAo = smoothstep(float(0.18), float(1.0), shade);
   const leafColor = mix(leafDeep, leafSun, leafAo) as AnyNode;
   const leaf = (mix(sourceColor, leafColor, float(0.68)) as AnyNode).mul(tint.mul(0.14).add(0.72));

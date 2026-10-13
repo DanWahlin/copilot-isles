@@ -311,8 +311,13 @@ export function createShipPipes(material: Material): ShipPipesSystem {
   const group = new Group();
   group.name = 'ship first words pipes';
   group.add(mesh, sparkles.mesh);
+  // The sparkles are additive and dark until a hint or a reply: hidden meanwhile (the title's ship
+  // never shows them, so it doesn't build their shader). The island's warm shows them (prewarm).
+  sparkles.mesh.visible = false;
+  sparkles.mesh.userData.prewarm = true;
 
   let hint: PipeKind | null = null;
+  let sparksLit = true;
   let tubePlay = -1;
   let hatchPlay = -1;
   const setIndex = (index: number, x: number, y: number, z: number) => position.setXYZ(index, x, y, z);
@@ -413,6 +418,12 @@ export function createShipPipes(material: Material): ShipPipesSystem {
           transformSolid(part, 1, -u * 0.52);
         }
       }
+      const lit = hint !== null || tubePlay >= 0 || hatchPlay >= 0;
+      sparkles.mesh.visible = lit;
+      position.needsUpdate = true;
+      // Dark and already put out: nothing to move until the next hint or reply.
+      if (!lit && !sparksLit) return;
+      sparksLit = lit;
       const pulse = 0.65 + Math.sin(t * 5.5) * 0.35;
       for (const part of sparkles.parts) {
         if (part.kind === 'tubeRing') {
@@ -439,7 +450,6 @@ export function createShipPipes(material: Material): ShipPipesSystem {
           setSparkColorScale(part, k);
         }
       }
-      position.needsUpdate = true;
       sparkPosition.needsUpdate = true;
       sparkColor.needsUpdate = true;
     },

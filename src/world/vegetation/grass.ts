@@ -724,6 +724,7 @@ export class GrassField {
     geometry.setAttribute('tint', tint);
     const mesh = sharedInstancedMesh(geometry, this.material, maxInstances, { count: 0 });
     mesh.frustumCulled = false;
+    mesh.receiveShadow = true;
     this.group.add(mesh);
     const tierMesh: TierMesh = {
       mesh,

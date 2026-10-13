@@ -1,0 +1,82 @@
+{
+  "id": "tb.lyra.next",
+  "speaker": "Lyra",
+  "text": "Saffi keeps the Root Hall, at the foot of the great tree. Follow the lanterns.",
+  "words": [
+    {
+      "word": "Saffi",
+      "start": 0.052625,
+      "end": 0.526333
+    },
+    {
+      "word": "keeps",
+      "start": 0.526333,
+      "end": 0.85525
+    },
+    {
+      "word": "the",
+      "start": 0.85525,
+      "end": 0.986833
+    },
+    {
+      "word": "Root",
+      "start": 0.986833,
+      "end": 1.25
+    },
+    {
+      "word": "Hall",
+      "start": 1.25,
+      "end": 1.881583
+    },
+    {
+      "word": "at",
+      "start": 1.881583,
+      "end": 2.092125
+    },
+    {
+      "word": "the",
+      "start": 2.092125,
+      "end": 2.210541
+    },
+    {
+      "word": "foot",
+      "start": 2.210541,
+      "end": 2.460541
+    },
+    {
+      "word": "of",
+      "start": 2.460541,
+      "end": 2.552625
+    },
+    {
+      "word": "the",
+      "start": 2.552625,
+      "end": 2.671041
+    },
+    {
+      "word": "great",
+      "start": 2.671041,
+      "end": 2.986833
+    },
+    {
+      "word": "tree",
+      "start": 2.986833,
+      "end": 4.35525
+    },
+    {
+      "word": "Follow",
+      "start": 4.35525,
+      "end": 4.789458
+    },
+    {
+      "word": "the",
+      "start": 4.789458,
+      "end": 4.89475
+    },
+    {
+      "word": "lanterns",
+      "start": 4.89475,
+      "end": 5.14475
+    }
+  ]
+}

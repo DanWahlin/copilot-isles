@@ -1,0 +1,87 @@
+{
+  "id": "tb.rook.06",
+  "speaker": "Rook",
+  "text": "Then ask it to implement the plan, check the Changes tab or pill, reload, and compare.",
+  "words": [
+    {
+      "word": "Then",
+      "start": 0,
+      "end": 0.14
+    },
+    {
+      "word": "ask",
+      "start": 0.14,
+      "end": 0.347
+    },
+    {
+      "word": "it",
+      "start": 0.347,
+      "end": 0.427
+    },
+    {
+      "word": "to",
+      "start": 0.427,
+      "end": 0.52
+    },
+    {
+      "word": "implement",
+      "start": 0.52,
+      "end": 0.92
+    },
+    {
+      "word": "the",
+      "start": 0.92,
+      "end": 1.104
+    },
+    {
+      "word": "plan",
+      "start": 1.104,
+      "end": 1.96
+    },
+    {
+      "word": "check",
+      "start": 1.96,
+      "end": 2.18
+    },
+    {
+      "word": "the",
+      "start": 2.18,
+      "end": 2.29
+    },
+    {
+      "word": "Changes",
+      "start": 2.29,
+      "end": 2.72
+    },
+    {
+      "word": "tab",
+      "start": 2.72,
+      "end": 3.04
+    },
+    {
+      "word": "or",
+      "start": 3.04,
+      "end": 3.28
+    },
+    {
+      "word": "pill",
+      "start": 3.28,
+      "end": 3.92
+    },
+    {
+      "word": "reload",
+      "start": 3.92,
+      "end": 5.06
+    },
+    {
+      "word": "and",
+      "start": 5.06,
+      "end": 5.19
+    },
+    {
+      "word": "compare",
+      "start": 5.19,
+      "end": 5.44
+    }
+  ]
+}

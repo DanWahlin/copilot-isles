@@ -1,0 +1,67 @@
+{
+  "id": "tb.oak.next",
+  "speaker": "Oak",
+  "text": "Fen's got crews that won't stop tangling. His boardwalk's just behind me.",
+  "words": [
+    {
+      "word": "Fen's",
+      "start": 0,
+      "end": 0.28
+    },
+    {
+      "word": "got",
+      "start": 0.28,
+      "end": 0.467
+    },
+    {
+      "word": "crews",
+      "start": 0.467,
+      "end": 0.816
+    },
+    {
+      "word": "that",
+      "start": 0.816,
+      "end": 0.92
+    },
+    {
+      "word": "won't",
+      "start": 0.92,
+      "end": 1.168
+    },
+    {
+      "word": "stop",
+      "start": 1.168,
+      "end": 1.424
+    },
+    {
+      "word": "tangling",
+      "start": 1.424,
+      "end": 2.22
+    },
+    {
+      "word": "His",
+      "start": 2.22,
+      "end": 2.467
+    },
+    {
+      "word": "boardwalk's",
+      "start": 2.467,
+      "end": 3.072
+    },
+    {
+      "word": "just",
+      "start": 3.072,
+      "end": 3.257
+    },
+    {
+      "word": "behind",
+      "start": 3.257,
+      "end": 3.68
+    },
+    {
+      "word": "me",
+      "start": 3.68,
+      "end": 3.93
+    }
+  ]
+}

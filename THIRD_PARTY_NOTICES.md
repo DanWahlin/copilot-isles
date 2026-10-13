@@ -124,8 +124,10 @@ licensed under CC-BY 3.0.
 
 - Source: https://github.com/github/copilot-app-for-beginners (reference commit `360fcb2`)
 - License: MIT
-- Used for: the course screenshots in `public/course/` and the learning content the islands teach (quizzes, pages,
-  and glossary terms in `src/learn/content/` paraphrase and link back to the course chapters).
+- Used for: the course screenshots and the course snapshot in `public/course/` (chapter READMEs, `GLOSSARY.md`,
+  `LICENSE`, and images, synced by `tools/course/sync.mjs`; commit in `content/course.lock.json`), the course text and
+  pictures the game reads live from `raw.githubusercontent.com` (PLAN §8.2), and the learning content the islands
+  teach (quizzes, pages, and glossary terms in `src/learn/content/` paraphrase and link back to the course chapters).
 
 ```
 MIT License

@@ -19,6 +19,12 @@ export interface InputState {
   menu: boolean;
   /** Wingman's hint (Q / gamepad X). */
   hint: boolean;
+  /** Sea battles (docs/specs/BATTLES.md §6): fire what bears (Space / A), one side (Z / LB, C / RB). */
+  fire: boolean;
+  firePort: boolean;
+  fireStarboard: boolean;
+  /** "Bring her round": your helmsman steers to the best broadside (R / Y). */
+  assist: boolean;
   /** A move key or stick is held, even while input is disabled (to cut a cutscene short). */
   stirring: boolean;
   usingGamepad: boolean;
@@ -41,9 +47,24 @@ const KEYMAP: Record<string, keyof InputState | 'up' | 'down' | 'left' | 'right'
   KeyM: 'map',
   Escape: 'menu',
   KeyQ: 'hint',
+  KeyZ: 'firePort',
+  KeyC: 'fireStarboard',
+  KeyR: 'assist',
 };
+/** Keys with a second action: Space hops ashore and fires at sea. */
+const ALSO: Record<string, string> = { Space: 'fire' };
 
-const EDGE = new Set(['interact', 'jump', 'map', 'menu', 'hint']);
+const EDGE = new Set([
+  'interact',
+  'jump',
+  'map',
+  'menu',
+  'hint',
+  'fire',
+  'firePort',
+  'fireStarboard',
+  'assist',
+]);
 
 export class Input {
   readonly state: InputState = {
@@ -58,6 +79,10 @@ export class Input {
     map: false,
     menu: false,
     hint: false,
+    fire: false,
+    firePort: false,
+    fireStarboard: false,
+    assist: false,
     stirring: false,
     usingGamepad: false,
   };
@@ -94,6 +119,8 @@ export class Input {
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
     if (e.type === 'keydown') {
       if (!e.repeat && EDGE.has(a)) this.pressed.add(a);
+      const also = ALSO[e.code];
+      if (also && !e.repeat) this.pressed.add(also);
       this.held.add(a);
     } else this.held.delete(a);
   };
@@ -148,14 +175,19 @@ export class Input {
       lx += rx * 0.045;
       ly += ry * 0.035;
       run ||= !!pad.buttons[10]?.pressed || (pad.buttons[7]?.value ?? 0) > 0.5;
-      const btn = (i: number, action: string) => {
+      const btn = (i: number, action: string, also?: string) => {
         const down = !!pad.buttons[i]?.pressed;
-        if (down && !this.padEdges.get(i)) edges.add(action);
+        if (down && !this.padEdges.get(i)) {
+          edges.add(action);
+          if (also) edges.add(also);
+        }
         this.padEdges.set(i, down);
       };
-      btn(0, 'interact');
+      btn(0, 'interact', 'fire');
       btn(2, 'hint');
-      btn(3, 'jump');
+      btn(3, 'jump', 'assist');
+      btn(4, 'firePort');
+      btn(5, 'fireStarboard');
       btn(8, 'map');
       btn(9, 'menu');
     }
@@ -179,6 +211,10 @@ export class Input {
     s.map = edges.has('map');
     s.menu = edges.has('menu');
     s.hint = on && edges.has('hint');
+    s.fire = on && edges.has('fire');
+    s.firePort = on && edges.has('firePort');
+    s.fireStarboard = on && edges.has('fireStarboard');
+    s.assist = on && edges.has('assist');
 
     this.pressed.clear();
     this.look[0] = this.look[1] = 0;

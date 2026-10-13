@@ -19,7 +19,7 @@ import {
   type Camera,
   type Node,
   type Object3D,
-  type Texture,
+  Texture,
   type WebGPURenderer,
 } from 'three/webgpu';
 import {
@@ -83,6 +83,7 @@ interface TidewaterCloudsPort {
   compileAsync(): Promise<void>;
   invalidate(): void;
   shadow(worldXZ: Node<'vec2'>): Node<'float'>;
+  disableShadow(): void;
   dispose(): void;
 }
 
@@ -137,6 +138,12 @@ export interface SkySystem {
   state: SunState;
   /** TSL cloud-shadow transmittance for terrain materials (1 = clear). */
   cloudShadowNode?(worldXZ: Node<'vec2'>): Node<'float'>;
+  /**
+   * The island's mood (spec ISLAND-02 §2.4): `fogScale` multiplies the keyframe's haze density and
+   * `hazeTint` its colour, `fill` the sky light's strength and `exposure` the frame's. Identity
+   * (1, [1, 1, 1], 1, 1) on Anchorage and Meridian; set each frame by the island nearby.
+   */
+  readonly mood: { fogScale: number; hazeTint: [number, number, number]; fill: number; exposure: number };
   /** Call once per frame. `focus` is the point shadows and the env capture centre on. */
   update(clock: DayClock, focus: Vector3, dt?: number, camera?: Camera): void;
   /** Force an environment + shadow refresh (e.g. after a time scrub). */
@@ -267,6 +274,8 @@ export function createSky(
     (tideClouds as unknown as { cirrus: { value: number } }).cirrus.value =
       cirrusQ !== null ? Number(cirrusQ) : 0.12;
     applyCloudDebugParams(tideClouds);
+    // Only the terrain samples the cloud shadow (cloudShadowNode below): without it, don't trace it.
+    if (options.title || !(tier.cloudShadowRes > 0)) tideClouds.disableShadow();
   }
   tideSky.clouds = tideClouds ?? bakedClouds;
   const tideMaterial = new MeshBasicNodeMaterial({
@@ -294,13 +303,15 @@ export function createSky(
   // the sea reflects the sky you see.
   const analytic = createAnalyticSky();
   const envDay = uniform(1);
-  const envMaterial = new MeshBasicNodeMaterial({ side: BackSide, depthWrite: false, fog: false });
-  envMaterial.colorNode = Fn(() => {
+  const envNode = Fn(() => {
     const dir = normalize(positionLocal);
     return mix(tideSky.reflectionRadiance(dir), analytic.color(dir), envDay);
   })();
-  const envMesh = new Mesh(new SphereGeometry(1000, 48, 24), envMaterial);
-  envScene.add(envMesh);
+  // The capture's sky is the scene's background (three's skybox), not a sphere in the scene: with no
+  // background, PMREM first clears with a box of its own, one more shader for nothing (PLAN §15.4).
+  // (`background` only needs to be set and not a colour for PMREM to skip its box; the node wins.)
+  envScene.backgroundNode = envNode;
+  envScene.background = new Texture();
   const pmrem = pmremFor(renderer);
   const envSize = tier.tier === 'lite' || tier.tier === 'low' ? 64 : 128;
   // One stable render target: materials keep the same texture object, so refreshes never recompile.
@@ -369,16 +380,23 @@ export function createSky(
   const tmp = new Vector3();
   const state: SunState = sunState(16.5);
 
+  // The title's sun stands still, so its environment is captured on the first frames only: a few
+  // frames after a capture, the capture's shaders (6 programs) are freed for the title's budget
+  // (PLAN §15.4, ≤ 40). A later capture would build them again.
+  let releaseEnvIn = 0;
   const refreshEnv = () => {
     pmrem.fromScene(envScene, 0, 0.1, 2000, { size: envSize, renderTarget: envRT });
     envAge = 0;
+    if (options.title) releaseEnvIn = 3;
   };
 
+  const mood: SkySystem['mood'] = { fogScale: 1, hazeTint: [1, 1, 1], fill: 1, exposure: 1 };
   return {
     sun,
     hemi,
     env: envRT.texture,
     state,
+    mood,
     update(clock, focus, dt = 1 / 60, camera) {
       frame++;
       const s = sunState(clock.hours, clock.azimuth);
@@ -394,8 +412,9 @@ export function createSky(
       const I = s.key === 'sun' ? k.sunI * ss(-0.07, 0.02, s.sun[1]) + moonI : moonI;
       world.sunColor.value.setRGB(k.sun[0] * I, k.sun[1] * I, k.sun[2] * I);
       world.skyColor.value.setRGB(k.sky[0], k.sky[1], k.sky[2]);
-      world.hazeColor.value.setRGB(k.haze[0], k.haze[1], k.haze[2]);
-      densityU.value = k.fog;
+      const tint = mood.hazeTint;
+      world.hazeColor.value.setRGB(k.haze[0] * tint[0], k.haze[1] * tint[1], k.haze[2] * tint[2]);
+      densityU.value = k.fog * mood.fogScale;
       syncTidewaterGlobals(dt, tideAtmo as unknown as Parameters<typeof syncTidewaterGlobals>[1]);
       (tideAtmo as unknown as { sunDir: { value: Vector3 } }).sunDir.value.set(s.sun[0], s.sun[1], s.sun[2]);
       tideSky.starIntensity.value = s.night;
@@ -418,8 +437,12 @@ export function createSky(
       sun.target.updateMatrixWorld();
       hemi.color.setRGB(k.sky[0], k.sky[1], k.sky[2]);
       hemi.groundColor.setRGB(k.ground[0], k.ground[1], k.ground[2]);
-      hemi.intensity = k.hemiI;
-      renderer.toneMappingExposure = k.exposure;
+      // The mood's fill lifts the sky light in the shade (a jungle under a canopy), its exposure the frame.
+      // Half the fill and a little of the exposure by day, all of both once the sun is down (dusk and
+      // night stay readable).
+      const dark = ss(0.12, -0.08, s.sun[1]);
+      hemi.intensity = k.hemiI * (1 + (mood.fill - 1) * (0.5 + 0.5 * dark));
+      renderer.toneMappingExposure = k.exposure * (1 + (mood.exposure - 1) * (0.15 + 0.85 * dark));
       tideAtmo.update(dt, camera?.position.y ?? 1);
       if (tideClouds && camera) tideClouds.update(dt, camera);
       tideMesh.position.copy(focus);
@@ -431,12 +454,17 @@ export function createSky(
         if (forced) sunShadowNode.invalidate();
       }
 
-      // Environment: refresh after a meaningful sun move, or every 3 s while time flows.
+      // Environment: refresh after a meaningful sun move, or every 3 s while time flows. Not while
+      // the atmosphere's kernels still build (its tables aren't drawn yet): a forced refresh waits.
       envAge += dt;
+      if (tideAtmo.compiling) return;
       const sunMoved = lastSun.distanceToSquared(world.sunDir.value) > 0.004 * 0.004;
       if (forced || (sunMoved && envAge > 0.5) || (clock.speed !== 0 && envAge > 180)) {
         refreshEnv();
         lastSun.copy(world.sunDir.value);
+      } else if (releaseEnvIn > 0 && --releaseEnvIn === 0) {
+        pmrem.dispose();
+        envNode.dispose();
       }
       forced = false;
     },
@@ -481,8 +509,7 @@ export function createSky(
       disposeLightShadow(sun.shadow);
       sun.dispose();
       disposeRenderTarget(envRT);
-      envMesh.geometry.dispose();
-      envMaterial.dispose();
+      envNode.dispose();
       bakedClouds?.dispose();
       tideClouds?.dispose();
       tideAtmo.dispose();

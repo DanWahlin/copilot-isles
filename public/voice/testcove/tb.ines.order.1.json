@@ -1,0 +1,57 @@
+{
+  "id": "tb.ines.order.1",
+  "speaker": "Ines",
+  "text": "First order: bring the folder samples, book app web, source.",
+  "words": [
+    {
+      "word": "First",
+      "start": 0,
+      "end": 0.307
+    },
+    {
+      "word": "order",
+      "start": 0.307,
+      "end": 0.813
+    },
+    {
+      "word": "bring",
+      "start": 0.813,
+      "end": 1.3
+    },
+    {
+      "word": "the",
+      "start": 1.3,
+      "end": 1.429
+    },
+    {
+      "word": "folder",
+      "start": 1.429,
+      "end": 1.99
+    },
+    {
+      "word": "samples",
+      "start": 1.99,
+      "end": 3.28
+    },
+    {
+      "word": "book",
+      "start": 3.28,
+      "end": 3.52
+    },
+    {
+      "word": "app",
+      "start": 3.52,
+      "end": 3.84
+    },
+    {
+      "word": "web",
+      "start": 3.84,
+      "end": 4.286
+    },
+    {
+      "word": "source",
+      "start": 4.286,
+      "end": 4.536
+    }
+  ]
+}
