@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Mesh } from 'three/webgpu';
+import { Vector3, type Mesh } from 'three/webgpu';
 import { tierSettings } from '../../engine/quality';
 import type { CircleObstacle, HeightField, WaveSampler } from '../contracts';
 import { MERIDIAN, meridianHeight, meridianMasks } from '../islands/meridian';
@@ -230,7 +230,8 @@ describe('createMeridianTown', () => {
           Math.abs(c.z - fountain.z) < 0.01 &&
           c.r > 3.1 &&
           c.r < 3.3 &&
-          c.height === 2.6,
+          c.height! > 4.3 &&
+          c.height! < 4.6,
       ),
     ).toBe(true);
     for (let i = 0; i < 24; i += 1) {
@@ -281,6 +282,34 @@ describe('createMeridianTown', () => {
     }
     expect(town.walkable(668, MERIDIAN.harbor.quay.z0)).toBeCloseTo(MERIDIAN.harbor.quay.height, 1);
     expect(town.walkable(668, MERIDIAN.pads.plaza.z)).toBeCloseTo(MERIDIAN.pads.plaza.height, 1);
+
+    town.dispose();
+    kit.dispose();
+  });
+
+  it("keeps the stair street's rails, posts and steps under the paving where the lane and plaza cover it", () => {
+    const kit = testKit();
+    const town = createMeridianTown({ tier: tierSettings('high'), heightField, kit });
+    const paved = MERIDIAN.pads.plaza.height;
+    const v = new Vector3();
+    const proud: string[] = [];
+    town.group.updateMatrixWorld(true);
+    town.group.traverse((o) => {
+      const mesh = o as Mesh;
+      if (!mesh.isMesh || !/^meridian-town-(rope|metal|paving|stone)/.test(mesh.name)) return;
+      const position = mesh.geometry.getAttribute('position');
+      for (let i = 0; i < position.count; i++) {
+        v.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld);
+        // From the harbour-front lane to just past the fountain, up to rail height above the paving
+        // (the top step stood 10 cm proud of it), but not the fountain itself. The paving's own top
+        // (y = paved + 0.08) is allowed.
+        if (v.x < 662 || v.x > 674 || v.z > -777.5 || v.z < -797 || v.y <= paved + 0.085 || v.y > paved + 1.6)
+          continue;
+        if (Math.hypot(v.x - 668, v.z + 797.2) < 3.35) continue;
+        proud.push(`${mesh.name} ${v.x.toFixed(1)},${v.y.toFixed(2)},${v.z.toFixed(1)}`);
+      }
+    });
+    expect(proud.slice(0, 5)).toEqual([]);
 
     town.dispose();
     kit.dispose();

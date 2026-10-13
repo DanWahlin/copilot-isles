@@ -1,4 +1,5 @@
 import {
+  BufferAttribute,
   BufferGeometry,
   Color,
   Group,
@@ -66,13 +67,11 @@ import { windAt } from '../wind';
 import {
   makeCanvasMaterial,
   createShipLabel,
-  makeGunMaterial,
   makeShipMaterial,
   paintShipName,
   GUN_SLOTS,
   SCORCH_SLOTS,
   SHIP_SLOTS,
-  shipRecoil,
   shipScorch,
   type BrigantineUniforms,
 } from './brigantine-materials';
@@ -233,8 +232,8 @@ function addMesh(
 
 /**
  * Lite and Low: draws parts that never move apart and share a material as one mesh (PLAN §12.2). Those
- * tiers have no sun shadows, so the parts' shadow flags don't matter. Parts whose attributes don't
- * match stay as they are.
+ * tiers have no shadow map for moving things (Low's sun shadows are a static map), so the parts' cast
+ * flags don't matter. Parts whose attributes don't match stay as they are.
  */
 function mergeStaticParts(parent: Group, parts: Mesh[], name: string): void {
   const merged = mergeGeometries(
@@ -340,8 +339,46 @@ function releaseShipSlot(i: number): void {
 function clearShipSlot(i: number): void {
   const marks = shipScorch.array as Vector4[];
   for (let k = 0; k < SCORCH_SLOTS; k++) marks[i * SCORCH_SLOTS + k]!.set(0, -100, 0, 0);
-  const guns = shipRecoil.array as number[];
-  for (let k = 0; k < GUN_SLOTS; k++) guns[i * GUN_SLOTS + k] = 0;
+}
+
+/**
+ * Runs each deck gun in by its recoil (metres inboard; see createDeckGunGeometry: port guns 0…5 run
+ * toward −x, starboard guns 6…11 toward +x) by moving its vertices, and uploads only that gun's.
+ */
+class GunRecoil {
+  private readonly positions: BufferAttribute;
+  private readonly base: Float32Array;
+  private readonly start = new Int32Array(GUN_SLOTS).fill(-1);
+  private readonly end = new Int32Array(GUN_SLOTS);
+  private readonly now = new Float32Array(GUN_SLOTS);
+
+  constructor(geometry: BufferGeometry) {
+    this.positions = geometry.getAttribute('position') as BufferAttribute;
+    this.base = (this.positions.array as Float32Array).slice();
+    const index = geometry.getAttribute('gunIndex') as BufferAttribute;
+    for (let v = 0; v < index.count; v++) {
+      const g = index.getX(v);
+      if (this.start[g] === -1) this.start[g] = v;
+      this.end[g] = v + 1;
+    }
+    geometry.deleteAttribute('gunIndex');
+  }
+
+  set(gun: number, metres: number): void {
+    if (gun < 0 || gun >= GUN_SLOTS || this.start[gun] === -1 || this.now[gun] === metres) return;
+    this.now[gun] = metres;
+    const dx = gun < 5.5 ? -metres : metres;
+    const a = this.positions.array as Float32Array;
+    const from = this.start[gun]!,
+      to = this.end[gun]!;
+    for (let v = from; v < to; v++) a[v * 3] = this.base[v * 3]! + dx;
+    this.positions.addUpdateRange(from * 3, (to - from) * 3);
+    this.positions.needsUpdate = true;
+  }
+
+  reset(): void {
+    for (let g = 0; g < GUN_SLOTS; g++) this.set(g, 0);
+  }
 }
 
 export function createBrigantine({
@@ -410,14 +447,11 @@ export function createBrigantine({
     addMesh(group, createDeckGeometry(tier), shipMaterial, 'deck planking rails and fittings', false),
     addMesh(group, createTrimGeometry(tier), shipMaterial, 'wales strakes gunports galleries anchors'),
   ];
+  // The guns draw with the hull's material (one shader, PLAN §15.4); each gun's recoil moves its own
+  // vertices (setGunRecoil), only while a battle runs them out and back.
   const gunGeometry = createDeckGunGeometry(tier);
-  if (gunGeometry)
-    addMesh(
-      group,
-      gunGeometry,
-      register(makeGunMaterial(shipLabel, uniforms.livery, slot, marks)),
-      'deck guns',
-    );
+  const guns = gunGeometry ? new GunRecoil(gunGeometry) : null;
+  if (gunGeometry) addMesh(group, gunGeometry, shipMaterial, 'deck guns');
   hullParts.push(
     addMesh(
       group,
@@ -483,6 +517,8 @@ export function createBrigantine({
   group.add(christening.group);
   const gangway = createGangway(shipMaterial);
   gangway.visible = false;
+  // Your ship's plank comes down mid-play: the warm draws it once so it doesn't upload then.
+  if (!raider) gangway.userData.prewarm = true;
   group.add(gangway);
   const gangwayFoot = new Vector3();
   let disposed = false;
@@ -630,12 +666,12 @@ export function createBrigantine({
     },
     clearScorch(): void {
       clearShipSlot(slotIndex);
+      guns?.reset();
       scorchNext = 0;
       marks.value = 0;
     },
     setGunRecoil(index: number, metres: number): void {
-      if (index >= 0 && index < GUN_SLOTS)
-        (shipRecoil.array as number[])[slotIndex * GUN_SLOTS + index] = metres;
+      guns?.set(index, metres);
     },
     setGangway(foot: { x: number; y: number; z: number } | null): void {
       gangway.visible = !!foot;

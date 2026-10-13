@@ -10,6 +10,7 @@ import {
   Object3D,
   type BufferGeometry,
   type Material,
+  type Texture,
 } from 'three/webgpu';
 import { TIERS } from '../../engine/quality';
 import type { WaveSampler } from '../contracts';
@@ -77,7 +78,8 @@ describe('SignSet', () => {
     expect(set.count).toBe(3);
     const material = mesh.material as MeshStandardNodeMaterial;
     expect(material).toBeInstanceOf(MeshStandardNodeMaterial);
-    expect(material.map).toBeTruthy();
+    // The atlas is the material's palette (stage-light.ts palettedMaterial), so its shadow shares one shader.
+    expect((material as MeshStandardNodeMaterial & { paletteMap?: Texture }).paletteMap).toBeTruthy();
     // One-sided boards are one quad; a two-sided board adds a back quad.
     const geometry = mesh.geometry as BufferGeometry;
     expect(geometry.getAttribute('position').count).toBe(4 + 8 + 4);
@@ -126,7 +128,7 @@ describe('SignSet', () => {
     set.update();
     expect(pos[3]).toBeCloseTo(3 + 1);
 
-    const atlas = (mesh.material as MeshStandardNodeMaterial).map!;
+    const atlas = (mesh.material as MeshStandardNodeMaterial & { paletteMap: Texture }).paletteMap;
     const version = atlas.version;
     sign.redraw(['Moved']);
     expect(atlas.version).toBeGreaterThan(version);

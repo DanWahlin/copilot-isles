@@ -27,6 +27,7 @@ import {
   type UvRect,
 } from './geo';
 import { createSparkleMaterial, shaftGeometry, starGeometry } from './sparkle';
+import { palettedMaterial } from '../characters/stage-light';
 
 export interface PaletteStandSite {
   group: Group;
@@ -421,8 +422,11 @@ function createPaletteAtlas(): Atlas {
   const tex = new CanvasTexture(canvas);
   tex.colorSpace = SRGBColorSpace;
   tex.anisotropy = 4;
-  // Front-facing like the other painted signs, so it shares their program.
-  const material = new MeshStandardNodeMaterial({ map: tex, roughness: 0.85, metalness: 0 });
+  // Front-facing like the other painted signs, and the atlas as a palette like theirs, so it shares
+  // their programs (and one plain shadow shader).
+  const material = palettedMaterial(
+    new MeshStandardNodeMaterial({ map: tex, roughness: 0.85, metalness: 0 }),
+  );
   return {
     material,
     rects,

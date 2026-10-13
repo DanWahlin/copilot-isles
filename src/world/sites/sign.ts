@@ -10,6 +10,7 @@ import {
 } from 'three/webgpu';
 import { shown } from './proxies';
 import { mergeWithRigidParts, type RigidParts } from './rigid-parts';
+import { palettedMaterial } from '../characters/stage-light';
 
 export interface SignStyle {
   /** Letter height as a fraction of the canvas width (it shrinks until the lines fit). */
@@ -241,7 +242,10 @@ export class SignSet {
     this.parts = parts;
     this.placed = new Float32Array(this.entries.length * 16).fill(Number.NaN);
 
-    const material = new MeshStandardNodeMaterial({ map: atlas, roughness: 0.85, metalness: 0 });
+    // The atlas as a palette: the same look, and the shadow shares one plain shader (PLAN §15.4).
+    const material = palettedMaterial(
+      new MeshStandardNodeMaterial({ map: atlas, roughness: 0.85, metalness: 0 }),
+    );
     material.name = 'painted signs';
     this.material = material;
 

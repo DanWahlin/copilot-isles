@@ -25,9 +25,7 @@ class GeoBuilder {
   private readonly tex: number[] = [];
   private readonly veg: number[] = [];
   private readonly mat: number[] = [];
-  private readonly parts: number[] = [];
   private readonly shade: number[] = [];
-  private readonly color: number[] = [];
   private readonly idx: number[] = [];
 
   get count(): number {
@@ -40,9 +38,7 @@ class GeoBuilder {
     this.tex.push(u, v);
     this.veg.push(veg[0] ?? 0, veg[1] ?? 0, veg[2] ?? 0, veg[3] ?? 0);
     this.mat.push(mat[0] ?? 0, mat[1] ?? 0, mat[2] ?? 0, mat[3] ?? 0);
-    this.parts.push(mat[0] ?? 0);
     this.shade.push(Math.min(1, Math.max(0, 0.2 + v * 0.55 + (veg[0] ?? 0) * 0.25)));
-    this.color.push(1, 1, 1);
     return this.count - 1;
   }
 
@@ -61,10 +57,10 @@ class GeoBuilder {
       ['normal', this.nor, 3],
       ['uv', this.tex, 2],
       ['aVeg', this.veg, 4],
+      // aMat.x is the part id (stem, frond, coconut). No vertex colours: palms are white there, and
+      // fewer attributes leave room for instanced matrices as attributes (engine/instancing.ts).
       ['aMat', this.mat, 4],
-      ['vegPart', this.parts, 1],
       ['shade', this.shade, 1],
-      ['color', this.color, 3],
     ] as const;
     const stride = layout.reduce((sum, [, , size]) => sum + size, 0);
     const data = new Float32Array(this.count * stride);

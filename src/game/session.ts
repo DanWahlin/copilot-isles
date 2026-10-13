@@ -62,7 +62,7 @@ import { createHelmBuoys } from '../world/sites/helm-buoys';
 import { loadVillageKit } from '../world/village/kit';
 import {
   GALLERY_CAMERA_COLUMN,
-  LIGHTHOUSE_STAIR_FOOT,
+  LIGHTHOUSE_GROUND_DOOR,
   LIGHTHOUSE_STAIR_HEAD,
   lighthouseArrival,
   lighthouseFade,
@@ -305,6 +305,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // Boulders and the headland cliff's overhang: only the follow camera keeps out of them.
   for (const b of terrainRockCameraBlockers(terrain.heightField, tier.tier)) world.addCameraBox(b);
   for (const b of village.cameraBlockers) world.addCameraBox(b);
+  for (const b of sites.colliders.camera) world.addCameraBox(b);
 
   const hud = new Hud(o.hudParent);
   await hud.loadSubtitles(o.voiceManifest ?? '/voice/testcove/manifest.json');
@@ -1778,11 +1779,13 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   if (o.quiet) learn?.progress.add('arrivals', berth.id);
   else if (firstLandfall()) startArrival(arrivalFlight(berth.arrival, !!o.fromChart), true);
 
-  // The lighthouse stair (Dan: the spiral climb and its camera were too hard): step onto the stair
-  // (or press E at its foot or head) and a short fade fast-forwards you to the other end, standing
-  // in the doorway facing out with the follow camera behind you. On the gallery the camera keeps out
+  // The lighthouse stair (Dan: the spiral climb and its camera were too hard): walk in through the
+  // ground door, or in from the watch-room door to the stairwell (or press E at either), and a short
+  // fade fast-forwards you to the other end, standing in the doorway facing out with the follow
+  // camera behind you. On the gallery the camera keeps out
   // of the tower, so it stays behind you and W walks you on round.
   let lighthouseTransit: LighthouseDirection | null = null;
+  const lighthouseHold: CameraShot = { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 };
   async function runLighthouse(dir: LighthouseDirection): Promise<void> {
     if (lighthouseTransit || mode !== 'walk') return;
     lighthouseTransit = dir;
@@ -1790,6 +1793,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     input.enabled = false;
     hud.setPrompt(null);
     hero.setSpeed(0);
+    // The camera holds where it is while the screen darkens, so it doesn't close in on your head as
+    // you step on into the doorway (the fast-forward puts it behind you at the other end).
+    lighthouseHold.x = camera.position.x;
+    lighthouseHold.y = camera.position.y;
+    lighthouseHold.z = camera.position.z;
+    lighthouseHold.tx = player.x;
+    lighthouseHold.ty = player.y + cam.rig.pivotY;
+    lighthouseHold.tz = player.z;
+    cam.cut(lighthouseHold);
     await hud.fade(true, fade.out);
     if (disposed) return;
     const a = lighthouseArrival(dir);
@@ -1821,7 +1833,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   interactions.add({
     id: 'lighthouse:up',
     label: () => 'Climb to the top',
-    ...LIGHTHOUSE_STAIR_FOOT,
+    ...LIGHTHOUSE_GROUND_DOOR,
     enabled: () => mode === 'walk' && !lighthouseTransit && island === 'anchorage',
     onInteract: () => void runLighthouse('up'),
   });

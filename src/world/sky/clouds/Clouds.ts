@@ -635,6 +635,10 @@ export class Clouds {
     r.compute(shapeKernel, [SHAPE_RES / 4, SHAPE_RES / 4, SHAPE_RES / 4]);
     r.compute(detailKernel, [DETAIL_RES / 4, DETAIL_RES / 4, DETAIL_RES / 4]);
     r.compute(weatherKernel, [WEATHER_RES / 8, WEATHER_RES / 8, 1]);
+    // Baked once per renderer (NOISE_CACHE): free the bake kernels' shaders after the GPU has the
+    // work, so they don't count against the program budget in play (PLAN §15.4).
+    const bakes = [synKernel, auxKernel, fibKernel, shapeKernel, detailKernel, weatherKernel];
+    requestAnimationFrame(() => requestAnimationFrame(() => bakes.forEach((k) => k.dispose())));
     NOISE_CACHE.set(r, {
       shapeTex: this.shapeTex,
       detailTex: this.detailTex,

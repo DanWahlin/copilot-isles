@@ -7,6 +7,7 @@ import { loadLodSimplifier } from './characters/character-lod';
 import { simplifyInPlace } from './village/chunks';
 import { HarborMirror } from './ocean/harbor-mirror';
 import { createOcean, type Ocean } from './ocean/ocean';
+import { skipSunShadows } from './sky/cached-sun-shadow';
 import { createSky, type SkySystem } from './sky/sky-system';
 import { createCoastFoam } from './terrain/coast-foam';
 import { seaStackShipObstacle } from './terrain/sea-stack-shape';
@@ -208,7 +209,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     breathe,
   );
   await breathe();
-  if (tier.shadowCascades > 0) disableReceiveShadows(terrain.group);
+  if (tier.shadowCascades > 0) skipSunShadows(terrain.group);
   await coarserRocksOnLite(terrain.group, tier);
   const heightField = new CompositeHeightField(-52);
   heightField.add(
@@ -275,7 +276,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         meridianWaterMesh = createMeridianWaterMesh();
         meridianTerrain.group.add(meridianWaterMesh.mesh);
         singlePassWaterOnLite(meridianWaterMesh.mesh, tier);
-        if (tier.shadowCascades > 0) disableReceiveShadows(meridianTerrain.group);
+        if (tier.shadowCascades > 0) skipSunShadows(meridianTerrain.group);
         const meridianFoam = createCoastFoam(meridianData, meridianTerrain.heightField, {
           maxDistance: 1100,
         });
@@ -342,7 +343,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const villageKit = typeof window === 'undefined' ? undefined : await loadVillageKit();
   const village = await createVillage({ tier, heightField, kit: villageKit });
   await breathe();
-  if (tier.shadowCascades > 0) disableReceiveShadows(village.group);
+  if (tier.shadowCascades > 0) skipSunShadows(village.group);
   singlePassWaterOnLite(village.group, tier);
   scene.add(village.group);
   const sites = await createCoveSites({
@@ -350,7 +351,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     heightField: terrain.heightField,
     ground: (x, z) => village.walkable(x, z) ?? terrain.heightField.heightAt(x, z),
   });
-  if (tier.shadowCascades > 0) disableReceiveShadows(sites.group);
+  if (tier.shadowCascades > 0) skipSunShadows(sites.group);
   singlePassWaterOnLite(sites.group, tier);
   scene.add(sites.group);
   await breathe();
@@ -374,7 +375,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       exclude: villageMask,
       extraPlants: village.plantings,
     });
-    if (tier.shadowCascades > 0) disableReceiveShadows(vegetation.group);
+    if (tier.shadowCascades > 0) skipSunShadows(vegetation.group);
     scene.add(vegetation.group);
   }
   await breathe();
@@ -383,7 +384,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   await breathe();
   const ship = createBrigantine({ tier: tier.tier });
   ship.dynamics.reset(COVE.mooring.x, COVE.mooring.z, COVE.mooring.heading);
-  if (tier.shadowCascades > 0) disableReceiveShadows(ship.group);
+  if (tier.shadowCascades > 0) skipSunShadows(ship.group);
   scene.add(ship.group);
   sites.crane.setShip(ship.group, BRIGANTINE_CARGO);
   shipObstacles.push(...village.shipObstacles, ...sites.shipObstacles, seaStackShipObstacle());
@@ -674,11 +675,5 @@ function disposeTree(root: Object3D): void {
     const m = o as Object3D & { geometry?: { dispose(): void }; material?: { dispose(): void } };
     m.geometry?.dispose();
     m.material?.dispose();
-  });
-}
-
-function disableReceiveShadows(root: Object3D): void {
-  root.traverse((object) => {
-    object.receiveShadow = false;
   });
 }

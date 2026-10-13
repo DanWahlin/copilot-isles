@@ -30,6 +30,7 @@ import { LearnStore } from '../learn/store';
 import type { Opening } from '../opening/opening';
 import { ANCHORAGE_ARRIVAL, arrivalFlight } from './arrivals';
 import { compileProgressively, revealPrewarm, warmProgressively, warmTerrainLods } from '../engine/warm';
+import { skipSunShadowsWhereOff } from '../world/sky/cached-sun-shadow';
 import { buildSlice, installBuildSlicer } from '../engine/build-slice';
 
 const SETTINGS_KEY = 'copilot-isles.settings.v1';
@@ -367,6 +368,11 @@ export class GameFlow implements GameBridge {
     await engine.counters
       .excuse(
         (async () => {
+          // Parts that appear later (marked userData.prewarm, like Meridian's mooring lines) are shown
+          // for the warm too, so their first real showing doesn't upload or compile mid-play.
+          const hidePrewarm = roots.map((r) => revealPrewarm(r));
+          // One shader per look whether a mesh takes the sun's shadows or not (before any compile).
+          if (cove.sky.sun.castShadow) for (const r of roots) skipSunShadowsWhereOff(r);
           try {
             // Each mesh compiles on its own (hidden parents don't matter); the root is only shown
             // while compileProgressively gathers its meshes, synchronously.
@@ -392,6 +398,7 @@ export class GameFlow implements GameBridge {
               await warmTerrainLods(opts.terrain, frame, steady);
             }
           } finally {
+            for (const hide of hidePrewarm) hide();
             if (live())
               roots.forEach((r, i) => (r.visible = opts.keepHidden?.includes(r) ? false : wasVisible[i]!));
           }
@@ -746,6 +753,8 @@ export class GameFlow implements GameBridge {
         for (const r of cove.meridian.roots()) r.visible = true;
       }
       const hidePrewarm = revealPrewarm(engine.scene);
+      // One shader per look whether a mesh takes the sun's shadows or not (before any compile).
+      if (cove.sky.sun.castShadow) skipSunShadowsWhereOff(engine.scene);
       let endShadowWarm: (() => void) | null = null;
       try {
         await compileProgressively(

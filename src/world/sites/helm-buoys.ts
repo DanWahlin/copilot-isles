@@ -1,6 +1,7 @@
 import { Group, Mesh, Object3D, type Material } from 'three/webgpu';
 import { sharedInstancedMesh } from '../../engine/instancing';
 import type { WaveSampler } from '../contracts';
+import { unreflected } from '../reflection';
 import type { VillageKit } from '../village/kit';
 import { box, cylinder, merge } from './geo';
 import { InstanceProxies } from './proxies';
@@ -34,6 +35,9 @@ export interface HelmBuoysSite {
 export function createHelmBuoys(o: { kit: VillageKit; waves: WaveSampler }): HelmBuoysSite {
   const group = new Group();
   group.name = 'three helms (P1.2)';
+  // A Meridian site, so never in the Anchorage harbour mirror: leaving it out spares the mirror's
+  // copies of its shaders (PLAN §15.4).
+  unreflected.add(group);
   const mats: Record<'wood' | 'cloth' | 'metal', Material> = {
     wood: o.kit.materials.wood,
     cloth: o.kit.materials.cloth,
@@ -126,6 +130,7 @@ export function createHelmBuoys(o: { kit: VillageKit; waves: WaveSampler }): Hel
       signs.update();
     },
     dispose() {
+      unreflected.delete(group);
       for (const d of disposables) d.dispose();
       group.clear();
     },

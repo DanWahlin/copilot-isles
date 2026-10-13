@@ -95,6 +95,8 @@ export function createSplashMaterial(): MeshBasicNodeMaterial {
     transparent: true,
     depthWrite: false,
     side: DoubleSide,
+    // Additive: one pass for both faces looks the same and needs one shader, not two (PLAN §15.4).
+    forceSinglePass: true,
     color: 0xffffff,
   });
   material.blending = AdditiveBlending;

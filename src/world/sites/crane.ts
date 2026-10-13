@@ -34,7 +34,12 @@ export interface CraneSite {
   readonly sloops: readonly Sloop[];
   /** Walkable surfaces (none: the crane stands on the pier deck). */
   heightAt(x: number, z: number): number | null;
-  readonly colliders: { circles: CircleObstacle[]; boxes: VillageBoxCollider[] };
+  /** `camera`: camera-only blockers (CollisionWorld.addCameraBox). */
+  readonly colliders: {
+    circles: CircleObstacle[];
+    boxes: VillageBoxCollider[];
+    camera: VillageBoxCollider[];
+  };
   /** Keeps the brigantine off the moored sloops and their dolphins. */
   readonly shipObstacles: CircleObstacle[];
   readonly anchors: Record<string, VillageAnchor>;
@@ -512,7 +517,12 @@ export function createCrane(o: CraneOptions): CraneSite {
     group,
     sloops,
     heightAt: () => null,
-    colliders: { circles, boxes: [] },
+    // Camera only: the king post and the feet of its braces (they stay round the post as the jib slews).
+    colliders: {
+      circles,
+      boxes: [],
+      camera: [{ x: C.x, z: C.z, hx: 0.45, hz: 0.45, rot: 0, y0: DECK, y1: DECK + JIB_Y + 2.3 }],
+    },
     shipObstacles,
     anchors,
     excludes: () => false,

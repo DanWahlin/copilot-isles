@@ -11,6 +11,7 @@ import {
   type Material,
   type Object3D,
 } from 'three/webgpu';
+import { unreflected } from '../reflection';
 
 /**
  * Wingman's flight. The shoulder parrot is a static baked mesh, so for a flight the perched one
@@ -192,6 +193,8 @@ export class ParrotFlight {
     this.root.visible = false;
     // Hidden until he flies: shown to the world's warm-up so his wings don't upload mid-flight.
     this.root.userData.prewarm = true;
+    // Like the captain he rides with, not in the harbour mirror (issue 236).
+    unreflected.add(this.root);
     scene.add(this.root);
   }
 
@@ -315,6 +318,7 @@ export class ParrotFlight {
 
   dispose(): void {
     this.landNow();
+    unreflected.delete(this.root);
     this.root.removeFromParent();
     for (const w of this.wings) w.geometry.dispose();
   }

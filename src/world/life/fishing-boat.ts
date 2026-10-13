@@ -15,6 +15,7 @@ import {
   type LodSimplifier,
 } from '../characters/character-lod';
 import { mergeSkinnedParts, shareSkinning } from '../characters/shared-skinning';
+import { palettedMaterial } from '../characters/stage-light';
 import { unreflected } from '../reflection';
 import {
   AnimationMixer,
@@ -165,6 +166,12 @@ function makeFisher(
   // One skinned mesh per fisher (his parts share a rig and a texture), then the characters' shared
   // skinning shader (issue 235); like every character, not in the mirror.
   mergeSkinnedParts(model);
+  // His texture as a palette, like the characters' (and his cape's and mug's, like the painted
+  // signs'), so his shadows share theirs (PLAN §15.4).
+  model.traverse((o) => {
+    const m = o as Mesh;
+    if (m.isMesh && !Array.isArray(m.material)) m.material = palettedMaterial(m.material);
+  });
   shareSkinning(model);
   // Levels of detail like the characters' (his merged mesh is his own), picked as he's drawn.
   buildLodsNow(model, simplify);
@@ -210,6 +217,9 @@ export function createFishingBoat(o: {
   const group = new Group();
   group.name = 'fishing boat';
   group.position.set(o.at.x, 0, o.at.z);
+  // It rides outside the harbour basin, so the mirror wouldn't show it; leaving it out saves the
+  // mirror's copies of its shaders (PLAN §15.4).
+  unreflected.add(group);
   /** Swings on the anchor and rides the swell's height; `hull` pitches and rolls in it. */
   const swing = new Group();
   const hull = new Group();
@@ -421,6 +431,7 @@ export function createFishingBoat(o: {
     },
     dispose() {
       disposed = true;
+      unreflected.delete(group);
       for (const f of [fisher, waver]) {
         f?.mixer.stopAllAction();
         if (f) unreflected.delete(f.root);
@@ -432,8 +443,10 @@ export function createFishingBoat(o: {
           m.geometry.dispose();
           for (const mat of (Array.isArray(m.material) ? m.material : [m.material]) as (Material & {
             map?: Texture | null;
+            paletteMap?: Texture | null;
           })[]) {
             mat.map?.dispose();
+            mat.paletteMap?.dispose();
             mat.dispose();
           }
         });

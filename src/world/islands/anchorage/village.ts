@@ -1291,8 +1291,11 @@ function addPier(
       const x = p.x + side * (p.width * 0.5 + 0.55);
       addPierPile(buckets, x, z, p, low);
       colliders.circles.push({ x, z, r: 0.92 });
+      // Camera only: the walk circle has no height, so the camera counted it only near the seabed.
+      const bollard = z <= -109 && !low;
+      cameraBlockers.push({ x, z, hx: 0.42, hz: 0.42, rot: 0, y0: -3, y1: p.deck + (bollard ? 1.4 : 0.65) });
       addShipObstacle(shipObstacles, { x, z, r: 1.35 });
-      if (z > -109 || low) continue;
+      if (!bollard) continue;
       addCylinder(buckets.wood, x, p.deck + 0.06, z, 0.08, 0.1, 1.28, 8, 0, 0x6a4b31);
     }
   }
@@ -1521,6 +1524,8 @@ function addPierPostLantern(
   addBox(buckets.metal, x + side * 0.54, y + 1.86, z, 0.035, 0.34, 0.035, 0, 0x5f574f);
   addLanternFixture(buckets, x + side * 0.58, y + 1.42, z, 0, 0.6);
   colliders.circles.push({ x, z, r: 0.35 });
+  // Camera only: the post, its arm and the lantern out over the water.
+  cameraBlockers.push({ x: x + side * 0.3, z, hx: 0.5, hz: 0.22, rot: 0, y0: y, y1: y + 2.8 });
 }
 
 function addBoathouse(
@@ -2238,6 +2243,16 @@ function addMarketStalls(
     }
     perches.push(new Vector3(stall.x, y + 1.88, stall.z));
     colliders.boxes.push({ x: stall.x, z: stall.z, hx: 2.1, hz: 0.75, rot: stall.rot, height: 1.9 });
+    // Camera only: the awning's cloth and beams, which reach past the counter at both ends.
+    cameraBlockers.push({
+      x: stall.x,
+      z: stall.z,
+      hx: 2.55,
+      hz: 1.32,
+      rot: stall.rot,
+      y0: y + 1.38,
+      y1: y + 1.8,
+    });
   }
   addNetRack(buckets, -149.7, -57.2, heightField.heightAt(-149.7, -57.2), 0.2);
   // The harbourmaster's notice board that stood here was removed: it had no use and crowded the

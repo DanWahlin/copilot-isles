@@ -12,6 +12,7 @@ import {
   smoothstep,
   uv,
 } from 'three/tsl';
+import { plainShadowColor } from '../../engine/shadow-color';
 import { world } from '../uniforms';
 
 // three's fluent TSL node typings do not cover every scalar/vector mix used below.
@@ -49,7 +50,7 @@ export function createStoneMaterial(): MeshStandardNodeMaterial {
   );
   material.roughnessNode = float(0.96).add(algae.mul(0.02));
   material.aoNode = float(1).sub(lowWorldDirt(0.08));
-  return material;
+  return plainShadowColor(material);
 }
 
 export function createPavingMaterial(): MeshStandardNodeMaterial {
@@ -73,7 +74,7 @@ export function createPavingMaterial(): MeshStandardNodeMaterial {
     .sub(color(0x3f3628).mul(damp.mul(0.14)));
   material.roughnessNode = float(0.96).add(damp.mul(0.03));
   material.aoNode = float(1).sub(seams.mul(0.24)).sub(lowWorldDirt(0.05));
-  return material;
+  return plainShadowColor(material);
 }
 
 export function createPlasterMaterial(): MeshStandardNodeMaterial {
@@ -95,7 +96,7 @@ export function createPlasterMaterial(): MeshStandardNodeMaterial {
     .sub(color(0x5d4934).mul(peel.mul(0.11).add(grime.mul(0.55))));
   material.roughnessNode = float(0.84).add(peel.mul(0.08));
   material.aoNode = float(1).sub(grime.mul(0.55));
-  return material;
+  return plainShadowColor(material);
 }
 
 export function createRoofTileMaterial(): MeshStandardNodeMaterial {
@@ -118,7 +119,7 @@ export function createRoofTileMaterial(): MeshStandardNodeMaterial {
     .mul(float(1).sub(rows.mul(0.15)))
     .add(color(0x2f5a32).mul(moss.mul(0.16)));
   material.roughnessNode = float(0.78).add(rows.mul(0.08));
-  return material;
+  return plainShadowColor(material);
 }
 
 export function createThatchMaterial(): MeshStandardNodeMaterial {
@@ -132,7 +133,7 @@ export function createThatchMaterial(): MeshStandardNodeMaterial {
     .mul(float(0.78).add(straw.mul(0.28)))
     .mul(float(1).sub(bands.mul(0.12)));
   material.roughnessNode = float(0.95);
-  return material;
+  return plainShadowColor(material);
 }
 
 export function createWoodMaterial(): MeshStandardNodeMaterial {
@@ -165,7 +166,7 @@ export function createWoodMaterial(): MeshStandardNodeMaterial {
   material.colorNode = mix(base, color(0xd8c8ad), bleach.mul(0.24)) as AnyNode;
   material.roughnessNode = float(0.88).add(wet.mul(0.05)).add(bleach.mul(0.06));
   material.aoNode = float(1).sub(lowWorldDirt(0.08));
-  return material;
+  return plainShadowColor(material);
 }
 
 export function createClothMaterial(): MeshStandardNodeMaterial {
@@ -182,7 +183,7 @@ export function createClothMaterial(): MeshStandardNodeMaterial {
     .add(0.5);
   material.colorNode = tint().mul(float(0.78).add(weave.mul(0.22)));
   material.roughnessNode = float(0.93);
-  return material;
+  return plainShadowColor(material);
 }
 
 export function createMetalMaterial(): MeshStandardNodeMaterial {
@@ -193,7 +194,7 @@ export function createMetalMaterial(): MeshStandardNodeMaterial {
     .add(0.5);
   material.colorNode = tint().mul(float(0.84).add(tarnish.mul(0.2)));
   material.roughnessNode = float(0.7).add(tarnish.mul(0.12));
-  return material;
+  return plainShadowColor(material);
 }
 
 export function createRopeMaterial(): MeshStandardNodeMaterial {
@@ -202,7 +203,7 @@ export function createRopeMaterial(): MeshStandardNodeMaterial {
   const twist = abs(sin(p.x.mul(20).add(p.z.mul(20)).add(p.y.mul(16)))).mul(0.22);
   material.colorNode = tint().mul(float(0.78).add(twist));
   material.roughnessNode = float(0.94);
-  return material;
+  return plainShadowColor(material);
 }
 
 export function createGlowMaterial(): MeshBasicNodeMaterial {
@@ -212,7 +213,7 @@ export function createGlowMaterial(): MeshBasicNodeMaterial {
     .add(0.92);
   const night = world.night.mul(flicker);
   material.colorNode = mix(tint().mul(0.18), color(0xffb35c), night) as AnyNode;
-  return material;
+  return plainShadowColor(material);
 }
 
 export function createHaloMaterial(): MeshBasicNodeMaterial {
@@ -223,5 +224,5 @@ export function createHaloMaterial(): MeshBasicNodeMaterial {
     blending: AdditiveBlending,
   });
   material.colorNode = color(0xffb66a).mul(world.night.mul(0.8)) as AnyNode;
-  return material;
+  return plainShadowColor(material);
 }

@@ -1,5 +1,6 @@
 import {
   Bone,
+  Box3,
   BufferAttribute,
   BufferGeometry,
   Group,
@@ -11,7 +12,8 @@ import {
 } from 'three/webgpu';
 import { describe, expect, it } from 'vitest';
 import { dressNpcCharacter, mergeNpcAccessories, SPECTACLES } from './npc-accessories';
-import type { CharacterBody } from './types';
+import { shareSkinning } from './shared-skinning';
+import { CHARACTER_BODIES, PLAYER_BODIES, type CharacterBody } from './types';
 
 const MERIDIAN_MARKERS = {
   tobias: ['wide felt brim', 'merchant scales', 'money pouch'],
@@ -76,6 +78,42 @@ describe('NPC accessories', () => {
       expect(actual.count, `${body} vertices`).toBe(expected.count);
       for (const k of ['x', 'y', 'z'] as const)
         expect(actual.sum[k], `${body} ${k}`).toBeCloseTo(expected.sum[k], 3);
+    }
+  });
+
+  it("keeps every NPC's skinned accessories on its skeleton and beside it, as drawn", () => {
+    // The fishing rod's line hangs to the water by design.
+    const reach = (body: string): number => (body === 'fisherman' ? 4.2 : 0.6);
+    const npcs = CHARACTER_BODIES.filter((b) => !(PLAYER_BODIES as readonly string[]).includes(b));
+    for (const body of npcs) {
+      const rig = testRig(true);
+      rig.position.set(40, 3, -25);
+      dressNpcCharacter(rig, body);
+      mergeNpcAccessories(rig);
+      const merged = rig.getObjectByName('npc accessories') as SkinnedMesh | undefined;
+      if (!merged) continue;
+      const bones = merged.skeleton.bones.length;
+      const skinIndex = merged.geometry.getAttribute('skinIndex');
+      for (let i = 0; i < skinIndex.count; i++)
+        for (let c = 0; c < 4; c++) expect(skinIndex.getComponent(i, c), `${body} bone`).toBeLessThan(bones);
+      shareSkinning(rig);
+      rig.getObjectByName('UpperArmL')!.rotation.set(-1.1, 0.3, 0.5);
+      rig.getObjectByName('Torso')!.rotation.set(0.2, 0.5, -0.1);
+      rig.position.set(-12, 1, 60);
+      rig.updateMatrixWorld(true);
+      // Where the drawn accessories are (the shared skin, read on the CPU) against the bones.
+      const near = new Box3();
+      for (const bone of merged.skeleton.bones) near.expandByPoint(bone.getWorldPosition(new Vector3()));
+      near.expandByScalar(reach(body));
+      const shared = rig.getObjectByName('npc accessories') as Mesh;
+      const v = new Vector3();
+      const position = shared.geometry.getAttribute('position');
+      let outside = 0;
+      for (let i = 0; i < position.count; i++) {
+        shared.getVertexPosition(i, v).applyMatrix4(shared.matrixWorld);
+        if (!near.containsPoint(v)) outside++;
+      }
+      expect(outside, `${body} vertices away from the body`).toBe(0);
     }
   });
 

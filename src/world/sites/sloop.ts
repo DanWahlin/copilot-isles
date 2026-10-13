@@ -27,6 +27,7 @@ import {
 } from './geo';
 import { lerp } from '../../util/math';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { plainShadowColor } from '../../engine/shadow-color';
 
 export type FlagKind = 'you' | 'captain' | 'guild';
 
@@ -772,7 +773,7 @@ function flagMaterial(texture: CanvasTexture): MeshStandardNodeMaterial {
     texture,
     select(frontFacing, vec2(flagUv.x.oneMinus(), flagUv.y), flagUv),
   );
-  return material;
+  return plainShadowColor(material);
 }
 
 function flagGeometry(cols: number, width: number, height: number): BufferGeometry {

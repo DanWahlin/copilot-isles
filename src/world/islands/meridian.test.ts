@@ -176,7 +176,7 @@ describe("Port Meridian's foot rocks as ship obstacles", () => {
         problems.push(`rock at ${rock.x.toFixed(1)}, ${rock.z.toFixed(1)}: ${worst.toFixed(2)} m`);
     }
     expect(problems).toEqual([]);
-  });
+  }, 20_000); // 36 full-sail runs: ~2.3 s alone, ~5 s under full-suite load.
 
   it('stays far from the harbour, its mouth and the way in, so docking is just the same', () => {
     const { berth } = MERIDIAN.harbor;

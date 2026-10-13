@@ -34,6 +34,8 @@ export function createLighthouseHaloMaterial(name: string, depthTest = false): M
     depthWrite: false,
     depthTest,
     side: DoubleSide,
+    // Additive: one pass for both faces looks the same and needs one shader, not two (PLAN §15.4).
+    forceSinglePass: true,
   });
   material.name = name;
   const coord = uv() as AnyNode;

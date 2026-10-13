@@ -125,8 +125,10 @@ export const TIERS: Record<Tier, TierSettings> = {
     caustics: false,
     sparkles: false,
     mirror: false,
+    // PLAN §12.1: a cached 1024² static map (redrawn when you move on), near reach; no map for moving
+    // things, so characters keep their blob shadows.
     shadowMap: 1024,
-    shadowCascades: 0,
+    shadowCascades: 2,
     shadowMoverMap: 0,
     dynamicShadows: false,
     cloudShadowRes: 128,
@@ -186,13 +188,13 @@ export const TIERS: Record<Tier, TierSettings> = {
 
 /**
  * How far past the player the sun's static (cached) shadows reach (m): 0 with no runtime sun shadows,
- * about 60 m on Medium, 90 m on High and 170 m with the far reach (Ultra). The sky and the settings
- * text both read it.
+ * about 60 m on Low and Medium, 90 m on High and 170 m with the far reach (Ultra). The sky and the
+ * settings text both read it.
  */
 export function sunShadowReach(t: TierSettings): number {
   if (t.shadowCascades === 0) return 0;
   if (t.shadowCascades === 3) return 170;
-  return t.tier === 'medium' ? 60 : 90;
+  return t.tier === 'low' || t.tier === 'medium' ? 60 : 90;
 }
 
 export function tierSettings(tier: Tier): TierSettings {

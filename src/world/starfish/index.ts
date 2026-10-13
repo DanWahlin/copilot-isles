@@ -11,6 +11,7 @@ import {
   type Camera,
 } from 'three/webgpu';
 import { color, float, mix, positionLocal, sin, smoothstep } from 'three/tsl';
+import { unreflected } from '../reflection';
 import { world } from '../uniforms';
 import { STARFISH, type StarfishSpot } from './spots';
 
@@ -52,6 +53,9 @@ export function createStarfish(): StarfishSystem {
   const material = createStarfishMaterial();
   const mesh = sharedInstancedMesh(geometry, material, spots.length);
   mesh.name = 'starfish';
+  // Not in the harbour mirror: what it stands on isn't reflected either, and each reflected look
+  // needs its own mirror shaders (PLAN §15.4).
+  unreflected.add(mesh);
   mesh.castShadow = false;
   mesh.receiveShadow = false;
   // The instances span both islands; the whole set is a few thousand triangles, so it isn't culled.
@@ -100,6 +104,7 @@ export function createStarfish(): StarfishSystem {
       geometry.dispose();
       material.dispose();
       mesh.dispose();
+      unreflected.delete(mesh);
       mesh.removeFromParent();
     },
   };

@@ -9,6 +9,7 @@ import {
   pow,
   sin,
   smoothstep,
+  uniform,
   uv,
 } from 'three/tsl';
 import type { HeightField } from '../contracts';
@@ -23,7 +24,14 @@ export interface CoastFoamOptions {
 }
 
 function createFoamMaterial(maxDistance: number): MeshBasicNodeMaterial {
-  const material = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: DoubleSide });
+  // One pass for both faces: a flat ribbon gains nothing from three's back-then-front passes, which
+  // need a shader each (PLAN §15.4).
+  const material = new MeshBasicNodeMaterial({
+    transparent: true,
+    depthWrite: false,
+    side: DoubleSide,
+    forceSinglePass: true,
+  });
   const coord = uv();
   const along = attribute('foamAlong', 'float');
   const wash = sin(along.mul(0.035).sub(world.time.mul(0.7)))
@@ -37,8 +45,9 @@ function createFoamMaterial(maxDistance: number): MeshBasicNodeMaterial {
   const surge = sin(along.mul(0.055).sub(world.time.mul(1.25)))
     .mul(0.5)
     .add(0.5);
+  // Uniforms, not constants: each island's ribbon fades at its own distance with the same shader.
   const distanceFade = float(1).sub(
-    smoothstep(maxDistance * 0.45, maxDistance, cameraPosition.sub(positionWorld).length()),
+    smoothstep(uniform(maxDistance * 0.45), uniform(maxDistance), cameraPosition.sub(positionWorld).length()),
   );
   material.colorNode = mix(color(0xbfe9ef), color(0xffffff), pow(lace, 2.5)).mul(foamLight);
   material.opacityNode = band

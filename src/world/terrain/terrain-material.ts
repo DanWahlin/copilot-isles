@@ -29,6 +29,7 @@ import {
   vec3,
 } from 'three/tsl';
 import { packs } from '../../engine/packs';
+import { plainShadowColor } from '../../engine/shadow-color';
 import { world } from '../uniforms';
 import type { Tier } from '../contracts';
 import { ISLAND_TERRAIN_REGIONS } from '../islands/terrain-regions';
@@ -711,5 +712,5 @@ export function createRockMaterial(): MeshStandardNodeMaterial {
   material.colorNode = base;
   material.roughnessNode = float(0.93);
   material.aoNode = float(0.86);
-  return material;
+  return plainShadowColor(material);
 }

@@ -41,6 +41,13 @@ const levels = lighthouseLevels();
 const STAIR_MARGIN = 0.3;
 /** Within this of the tower's axis, on the ground floor or the watch-room floor, you're at the stair. */
 const TOWARD_STAIR = 0.8;
+/**
+ * Coming in at the ground door, the climb starts once you're through the door's outer face (the
+ * shaft is too narrow for the camera behind you, so you never stand about inside). The bottom
+ * arrival, in the door's frame facing out, is outside this, so walking out from it doesn't start a
+ * climb; turning round and walking back in does.
+ */
+export const DOOR_THRESHOLD = LIGHTHOUSE.rBottom - 0.15;
 
 /**
  * The column the gallery camera keeps out of: the watch room with room for the camera's pad, so the
@@ -97,11 +104,11 @@ export const LIGHTHOUSE_BOTTOM: LighthouseArrival = {
 };
 
 /**
- * Whether feet at (x, y, z) should fast-forward, and which way: on the stair's lower half (you came
- * in at the bottom) up, on its upper half (from the watch room) down. Walking on in toward the newel,
- * on the ground floor or the watch-room floor, counts too: that's only the way to the stair. Both
+ * Whether feet at (x, y, z) should fast-forward, and which way: up once you're through the ground
+ * door (on the ground floor, inside `DOOR_THRESHOLD`); down once you walk on in from the watch-room
+ * door toward the newel, or step into the stairwell; and on the stair itself, by its half. Both
  * arrival spots are clear of all of these, so a fast-forward never starts another. Mid-jump doesn't
- * count (a hop on the ground floor isn't a step up the stair).
+ * count.
  */
 export function lighthouseTransitAt(
   x: number,
@@ -111,12 +118,11 @@ export function lighthouseTransitAt(
 ): LighthouseDirection | null {
   if (!grounded) return null;
   const r = Math.hypot(x - L.x, z - L.z);
+  // The ground floor is only the shaft and the door's passage, so this is through the door.
+  if (r < DOOR_THRESHOLD && Math.abs(y - levels.floor) < STAIR_MARGIN) return 'up';
   if (r > LIGHTHOUSE.inner) return null;
   const half = (levels.floor + levels.deck) * 0.5;
-  if (r < TOWARD_STAIR) {
-    if (Math.abs(y - levels.floor) < STAIR_MARGIN) return 'up';
-    if (Math.abs(y - levels.deck) < STAIR_MARGIN) return 'down';
-  }
+  if (r < TOWARD_STAIR && Math.abs(y - levels.deck) < STAIR_MARGIN) return 'down';
   if (y < levels.floor + STAIR_MARGIN || y > levels.deck - STAIR_MARGIN) return null;
   return y < half ? 'up' : 'down';
 }
@@ -148,14 +154,14 @@ export function onLighthouseGallery(x: number, y: number, z: number): boolean {
 }
 
 /**
- * The interact prompts: one at the foot of the stair (from the ground floor) and one at the head of
- * the stairwell (from the watch room). Positions are feet height.
+ * The interact prompts: one at the ground door (seen as you come up the path; walking on in climbs
+ * too) and one at the head of the stairwell (from the watch room). Positions are feet height.
  */
-export const LIGHTHOUSE_STAIR_FOOT = {
-  x: L.x + Math.sin(LIGHTHOUSE_DOOR_HEADING) * 0.35,
+export const LIGHTHOUSE_GROUND_DOOR = {
+  x: L.x + Math.sin(LIGHTHOUSE_DOOR_HEADING) * LIGHTHOUSE.rBottom,
   y: levels.floor,
-  z: L.z + Math.cos(LIGHTHOUSE_DOOR_HEADING) * 0.35,
-  radius: 1.9,
+  z: L.z + Math.cos(LIGHTHOUSE_DOOR_HEADING) * LIGHTHOUSE.rBottom,
+  radius: 1.7,
 } as const;
 export const LIGHTHOUSE_STAIR_HEAD = {
   x: L.x + Math.sin(WATCH_DOOR_HEADING) * 0.4,

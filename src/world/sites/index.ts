@@ -31,7 +31,12 @@ export interface CoveSites {
   readonly shipObstacles: CircleObstacle[];
   /** Walkable decks and stairs (null elsewhere). */
   heightAt(x: number, z: number): number | null;
-  readonly colliders: { circles: CircleObstacle[]; boxes: VillageBoxCollider[] };
+  /** `camera`: camera-only blockers (CollisionWorld.addCameraBox). */
+  readonly colliders: {
+    circles: CircleObstacle[];
+    boxes: VillageBoxCollider[];
+    camera: VillageBoxCollider[];
+  };
   readonly anchors: Record<string, VillageAnchor>;
   excludes(x: number, z: number): boolean;
   update(dt: number, t: number): void;
@@ -96,6 +101,7 @@ export async function createCoveSites(o: {
         ...palette.colliders.boxes,
         ...hammock.colliders.boxes,
       ],
+      camera: [...mill.colliders.camera, ...crane.colliders.camera],
     },
     anchors: { ...mill.anchors, ...crane.anchors, ...gear.anchors, ...palette.anchors, ...hammock.anchors },
     excludes: (x, z) =>

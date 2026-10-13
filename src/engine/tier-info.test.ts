@@ -28,8 +28,9 @@ describe('tier blurbs', () => {
   });
 
   it('say how far the sun shadows reach (about 60 m, 90 m, 170 m)', () => {
-    expect(TIER_ORDER.map((t) => sunShadowReach(TIERS[t]))).toEqual([0, 0, 60, 90, 170]);
+    expect(TIER_ORDER.map((t) => sunShadowReach(TIERS[t]))).toEqual([0, 60, 60, 90, 170]);
     for (const backend of ['webgpu', 'webgl2'] as const) {
+      expect(tierFeatures(TIERS.low, backend)).toContain('sun shadows near you');
       expect(tierFeatures(TIERS.medium, backend)).toContain('sun shadows near you');
       expect(tierFeatures(TIERS.high, backend)).toContain('sun shadows farther out');
       expect(tierFeatures(TIERS.ultra, backend)).toContain('sun shadows that reach farthest');

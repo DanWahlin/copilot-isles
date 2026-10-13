@@ -113,7 +113,9 @@ function createMaterial(color: number, roughness: number, name: string): MeshSta
     metalness: 0,
     vertexColors: true,
   });
-  if (name === 'seaweed') material.side = DoubleSide;
+  // Two-sided for the seaweed's thin strands. The pebbles, shells and driftwood are closed, so their
+  // back faces never show: two-sided too, they share the seaweed's shader (PLAN §15.4).
+  material.side = DoubleSide;
   material.name = `beach-debris-${name}`;
   return material;
 }

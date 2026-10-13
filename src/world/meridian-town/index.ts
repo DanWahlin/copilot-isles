@@ -64,6 +64,7 @@ import {
   type VillageKit,
 } from '../village/kit';
 import { segmentDistance } from '../../util/math';
+import { MONUMENT_TOP, anchorMonument } from './anchor-monument';
 
 type HouseSide = 'front' | 'back' | 'left' | 'right';
 type HouseRoof = 'gable' | 'tower' | 'flat';
@@ -304,7 +305,7 @@ function* buildMeridianTown({
   addHarbourFront(buckets, colliders, stairSpans, perches, heightField, kit, low, anchor);
   yield;
   addStairStreet(buckets, colliders);
-  addPlaza(buckets, colliders, perches, heightField, kit, low, high, anchor);
+  addPlaza(buckets, colliders, perches, heightField, kit, high, anchor);
   yield;
   addTavern(buckets, colliders, stairSpans, perches, heightField, kit, low, high, anchor);
   yield;
@@ -322,7 +323,7 @@ function* buildMeridianTown({
   anchor('rhea', { x: 761.4, z: -699.2, heading: -Math.PI / 2, tx: 755.2, ty: 3.8, tz: -704 });
   anchor('crateYard', { x: 594.2, z: -759.2, heading: Math.PI / 2, tx: 586, ty: 3, tz: -752 });
   anchor('extraStall', { x: 768.4, z: -760.5, heading: Math.PI / 2, tx: 779, ty: 4.4, tz: -760.5 });
-  anchor('extraFountain', { x: 668, z: -797.2, heading: 0, tx: 668, ty: PLAZA.height + 1.5, tz: -797.2 });
+  anchor('extraFountain', { x: 668, z: -797.2, heading: 0, tx: 668, ty: PLAZA.height + 2.3, tz: -797.2 });
   anchor('extraQuayA', { x: 690, z: -762.6, heading: Math.PI / 2, tx: 704, ty: 3.2, tz: -758 });
   anchor('extraQuayB', { x: 716, z: -762.6, heading: -Math.PI / 2, tx: 704, ty: 3.2, tz: -758 });
   anchor('extraCitadel', {
@@ -749,6 +750,15 @@ function addEastArmArrivalDressing(
     ],
     [arm.x1 + 0.9, arm.x1 + 6.5, deck - 0.18, deck + 3.32, -768, -654],
     [arm.x1 + 6.0, arm.x1 + 9.5, deck - 0.25, deck + 5.35, -768, -654],
+    // The wide paving behind the walls stands a little proud of the ground, which a low camera grazed.
+    [
+      arm.x1 + 3.5,
+      arm.x1 + 17.3,
+      deck + 0.04,
+      deck + 0.22,
+      midZ - armLen * 0.5 + 1.6,
+      midZ + armLen * 0.5 - 1.6,
+    ],
   ] as const)
     colliders.camera?.push({
       x: (x0 + x1) * 0.5,
@@ -868,6 +878,8 @@ function createMooringLines(materials: Record<MaterialKey, Material>): Group {
   const group = new Group();
   group.name = 'meridian-mooring-lines';
   group.visible = false;
+  // Shown only once the ship ties up: Meridian's warm draws the lines once so they don't upload then.
+  group.userData.prewarm = true;
   const deck = MERIDIAN.harbor.quay.height;
   const railX = MERIDIAN.harbor.berth.x + 3.35;
   const ropes = [
@@ -914,7 +926,6 @@ function addMoleAndLighthouse(
   const cx = (m.start.x + m.end.x) / 2;
   const cz = (m.start.z + m.end.z) / 2;
   addBox(buckets, 'paving', cx, m.height - 0.08, cz, m.width * 1.45, 0.16, len, rot, 0xbfa06f);
-  addBox(buckets, 'stone', cx, m.height - 0.02, cz, 0.6, 0.58, len + 2.4, rot + Math.PI / 2, LIMESTONE_LIGHT);
   addBox(
     buckets,
     'stone',
@@ -1088,8 +1099,14 @@ function addStairStreet(buckets: Buckets, colliders: ColliderSet): void {
   const dz = STAIR_STREET.z1 - STAIR_STREET.z0;
   const tread = Math.abs(dz) / STAIR_STREET.steps;
   const rise = (PLAZA.height - MERIDIAN.harbor.quay.height) / STAIR_STREET.steps;
+  // The street is open only up to the harbour-front lane: from there the lane and the plaza are paved
+  // over it at plaza height. Its rails and posts stop there (run on to the plaza's middle, they rose
+  // out of the paving beside the fountain), and so do its steps: the top tread stood 10 cm proud of
+  // the plaza paving north of the fountain.
+  const openZ = HARBOUR_FRONT_ROW.laneZ + HARBOUR_FRONT_ROW.laneWidth * 0.5;
   for (let i = 0; i < STAIR_STREET.steps; i += 1) {
     const z = STAIR_STREET.z0 - tread * (i + 0.5);
+    if (z + tread * 0.5 < openZ) break;
     const h = MERIDIAN.harbor.quay.height + rise * (i + 1);
     addBox(
       buckets,
@@ -1140,16 +1157,18 @@ function addStairStreet(buckets: Buckets, colliders: ColliderSet): void {
     0,
     LIMESTONE_DARK,
   );
+  const railHeight = (z: number): number => (stairStreetHeight(STAIR_STREET.x, z) ?? 4) + 1.2;
   for (const side of [-1, 1]) {
-    for (let i = 0; i <= 5; i += 1) {
-      const z = STAIR_STREET.z0 - i * (Math.abs(dz) / 5);
+    const x = STAIR_STREET.x + side * (STAIR_STREET.width * 0.5 + 0.8);
+    for (const z of [STAIR_STREET.z0, (STAIR_STREET.z0 + openZ) * 0.5, openZ + 0.3]) {
       const y = stairStreetHeight(STAIR_STREET.x, z) ?? 4;
-      const x = STAIR_STREET.x + side * (STAIR_STREET.width * 0.5 + 0.8);
       addCylinderGeom(buckets.metal, x, y, z, 0.08, 0.1, 1.35, 6, 0, METAL);
     }
+    const ropeX = STAIR_STREET.x + side * 5;
+    const a = STAIR_STREET.z0 - 1;
+    const b = openZ + 0.3;
+    addSagRope(buckets, { x: ropeX, y: railHeight(a), z: a }, { x: ropeX, y: railHeight(b), z: b });
   }
-  addSagRope(buckets, { x: 663, y: 3.6, z: -773 }, { x: 663, y: 8.1, z: -796 });
-  addSagRope(buckets, { x: 673, y: 3.6, z: -773 }, { x: 673, y: 8.1, z: -796 });
   colliders.boxes.push(
     { x: 662.9, z: -784, hx: 0.45, hz: 12.7, rot: 0, height: 3.1 },
     { x: 673.1, z: -784, hx: 0.45, hz: 12.7, rot: 0, height: 3.1 },
@@ -1162,7 +1181,6 @@ function addPlaza(
   perches: Vector3[],
   heightField: HeightField,
   kit: VillageKit,
-  low: boolean,
   high: boolean,
   anchor: (id: string, a: BasicAnchor) => void,
 ): void {
@@ -1314,14 +1332,6 @@ function addPlaza(
   if (high) {
     addBougainvillea(buckets, 651.2, PLAZA.height + 2.1, -802.5, Math.PI / 2, 1.2, colliders.camera);
     addBougainvillea(buckets, 688.1, PLAZA.height + 2.0, -793.2, -Math.PI / 2, 1.1, colliders.camera);
-  }
-  if (!low) {
-    addStringLanterns(
-      buckets,
-      { x: 645.8, y: PLAZA.height + 4.6, z: -787.2 },
-      { x: 690.2, y: PLAZA.height + 4.3, z: -811.4 },
-      8,
-    );
   }
 }
 
@@ -1742,7 +1752,8 @@ function addTerraceHouseRun(
   options: { arcade: boolean; backRow?: boolean },
 ): void {
   const run = terraceRun(row, !!options.backRow);
-  if (options.arcade) for (const gap of run.gaps) addArcadeBridge(buckets, gap.x0, gap.x1, row);
+  if (options.arcade)
+    for (const gap of run.gaps) addArcadeBridge(buckets, gap.x0, gap.x1, row, colliders.camera);
   for (const h of run.houses) {
     const seed = h.seed;
     addTownHouse(buckets, colliders, stairSpans, perches, heightField, kit, {
@@ -1777,12 +1788,28 @@ function addArcadeBay(buckets: Buckets, x: number, y: number, z: number, width: 
   addBox(buckets, 'stone', x, y + 3.05, z + 0.08, width * 0.82, 0.42, 0.48, 0, LIMESTONE_LIGHT);
 }
 
-function addArcadeBridge(buckets: Buckets, x0: number, x1: number, row: TerraceRowSpec): void {
+function addArcadeBridge(
+  buckets: Buckets,
+  x0: number,
+  x1: number,
+  row: TerraceRowSpec,
+  camera?: VillageBoxCollider[],
+): void {
   const mid = (x0 + x1) * 0.5;
   const z = row.houseZ + 4.1;
+  const radius = Math.min(6.0, (x1 - x0) * 0.36);
+  // Camera only: the piers, the deck and parapet over the lane, and the two low end stones of the arch.
+  const y = row.height;
+  camera?.push(
+    { x: x0 + 0.45, z, hx: 0.5, hz: 0.45, rot: 0, y0: y, y1: y + 3.3 },
+    { x: x1 - 0.45, z, hx: 0.5, hz: 0.45, rot: 0, y0: y, y1: y + 3.3 },
+    { x: mid, z, hx: (x1 - x0) * 0.5 + 0.5, hz: 0.45, rot: 0, y0: y + 3.3, y1: y + 5.15 },
+    { x: mid - radius * 0.76, z, hx: radius * 0.15, hz: 0.32, rot: 0, y0: y + 2.68, y1: y + 3.3 },
+    { x: mid + radius * 0.76, z, hx: radius * 0.15, hz: 0.32, rot: 0, y0: y + 2.68, y1: y + 3.3 },
+  );
   addBox(buckets, 'stone', x0 + 0.45, row.height, z, 0.9, 3.2, 0.78, 0, LIMESTONE_LIGHT);
   addBox(buckets, 'stone', x1 - 0.45, row.height, z, 0.9, 3.2, 0.78, 0, LIMESTONE_LIGHT);
-  addArchVoussoirs(buckets, mid, row.height + 2.78, z, Math.min(6.0, (x1 - x0) * 0.36), 0, LIMESTONE_LIGHT);
+  addArchVoussoirs(buckets, mid, row.height + 2.78, z, radius, 0, LIMESTONE_LIGHT);
   addBox(buckets, 'stone', mid, row.height + 3.35, z, x1 - x0 + 1.0, 0.65, 0.82, 0, LIMESTONE_LIGHT);
   addBox(buckets, 'plaster', mid, row.height + 4.0, z - 0.05, x1 - x0 - 1.2, 1.1, 0.58, 0, 0xe8cf9a);
 }
@@ -2123,6 +2150,9 @@ function addFillerHouse(
     );
   }
   colliders.boxes.push({ x, z, hx: w * 0.5 + 0.25, hz: d * 0.5 + 0.25, rot, height: h + 1.1 });
+  // Camera only: the walking box stands on the ground, but the house is drawn at its own height,
+  // which can be above the ground on a slope.
+  colliders.camera?.push({ x, z, hx: w * 0.5 + 0.3, hz: d * 0.5 + 0.3, rot, y0: y - 0.4, y1: y + h + 0.9 });
 }
 
 function addTownPavingPatch(
@@ -2244,7 +2274,15 @@ function addVegetation(
       [748, -862],
       [792, -914],
     ] as const)
-      addBougainvillea(buckets, x, heightField.heightAt(x, z) + 2.0, z + 2.6, Math.PI, 0.72);
+      addBougainvillea(
+        buckets,
+        x,
+        heightField.heightAt(x, z) + 2.0,
+        z + 2.6,
+        Math.PI,
+        0.72,
+        colliders.camera,
+      );
   }
   perches.push(new Vector3(590, heightField.heightAt(590, -785) + 6.2, -785));
 }
@@ -2947,11 +2985,10 @@ function addFountain(
 ): void {
   addCylinderGeom(buckets.stone, x, y, z, 3.1, 3.3, 0.55, 28, 0, LIMESTONE_DARK);
   addCylinderGeom(buckets.glow, x, y + 0.56, z, 2.55, 2.55, 0.05, 28, 0, 0x4aa6b9);
-  addCylinderGeom(buckets.stone, x, y + 0.52, z, 0.56, 0.82, 1.65, 14, 0, LIMESTONE_LIGHT);
-  addCone(buckets.stone, x, y + 2.05, z, 1.05, 1.1, 14, 0, LIMESTONE_LIGHT);
-  addCylinderGeom(buckets.glow, x, y + 1.9, z, 0.38, 0.38, 0.03, 14, 0, 0x6dbad0);
-  colliders.circles.push({ x, z, r: 3.2, height: 2.6 });
-  perches.push(new Vector3(x, y + 2.9, z));
+  buckets.stone.push(...anchorMonument(x, y, z, liteTown));
+  // Tall enough that the follow camera keeps out of the anchor too.
+  colliders.circles.push({ x, z, r: 3.2, height: MONUMENT_TOP + 0.1 });
+  perches.push(new Vector3(x, y + MONUMENT_TOP, z));
 }
 
 function addCitadelGate(
@@ -3018,7 +3055,21 @@ function addHallOfRecords(
     addCylinderGeom(buckets.stone, px, y + 0.45, z - 4.25, 0.34, 0.38, 4.6, 14, 0, LIMESTONE_LIGHT);
     perches.push(new Vector3(px, y + 5.3, z - 4.25));
     colliders.circles.push({ x: px, z: z - 4.25, r: 0.45 });
+    // Camera only: the walk circle has no height, so the camera counted only the column's foot.
+    colliders.camera?.push({ x: px, z: z - 4.25, hx: 0.45, hz: 0.45, rot: 0, y0: y + 0.45, y1: y + 5.1 });
   }
+  // Camera only: the two banners and the pediment over the portico.
+  for (const side of [-1, 1])
+    colliders.camera?.push({
+      x: x + side * 5.4,
+      z: z - 5.0,
+      hx: 0.32,
+      hz: 0.12,
+      rot: 0,
+      y0: y + 0.75,
+      y1: y + 4.45,
+    });
+  colliders.camera?.push({ x, z: z - 3.0, hx: 4.35, hz: 0.75, rot: 0, y0: y + 5.4, y1: y + 8.05 });
   addBox(buckets, 'cloth', x - 5.4, y + 0.8, z - 5.0, 0.52, 3.6, 0.06, 0, CLOTH_BLUE);
   addBox(buckets, 'cloth', x + 5.4, y + 0.8, z - 5.0, 0.52, 3.6, 0.06, 0, CLOTH_RED);
   colliders.boxes.push({ x: x + 1.7, z: z + 1.7, hx: 5.4, hz: 3.4, rot: 0, height: 6.8 });
@@ -3842,16 +3893,20 @@ function addOliveTree(
   // A small tree's crown hangs at head height: keep walkers out from under it (`lowCrown`), or the
   // follow camera has nowhere clear to go.
   colliders.circles.push({ x, z, r: (lowCrown ? 1.45 : 0.62) * s });
-  // The crown's three lobes, for the camera.
-  colliders.camera?.push({
-    x: x - 0.06 * s,
-    z,
-    hx: 2.01 * s,
-    hz: 1.45 * s,
-    rot: 0,
-    y0: y + 1.67 * s,
-    y1: y + 3.75 * s,
-  });
+  // The crown's three lobes, for the camera, and the trunk under them (a planter can lift the trunk
+  // above the height the walk circle covers for the camera).
+  colliders.camera?.push(
+    {
+      x: x - 0.06 * s,
+      z,
+      hx: 2.01 * s,
+      hz: 1.45 * s,
+      rot: 0,
+      y0: y + 1.67 * s,
+      y1: y + 3.75 * s,
+    },
+    { x, z, hx: 0.3 * s, hz: 0.3 * s, rot: 0, y0: y - 0.1, y1: y + 1.67 * s },
+  );
 }
 
 function addBougainvillea(
@@ -3872,6 +3927,10 @@ function addBougainvillea(
   };
   const bracts = [BOUGAINVILLEA, 0xd51c91, 0xe0337f, 0xc2187a, 0xee5a7a];
   const ground = y - 2.2;
+  // The lowest leaf on the cascade side (local x under SPLIT) and on the door side, for the camera.
+  const SPLIT = -0.4 * s;
+  let lowCascade = Infinity,
+    lowDoor = Infinity;
   const stem = localToWorld(x, z, rot, -1.5 * s, 0.12);
   addTube(
     buckets.rope,
@@ -3888,6 +3947,9 @@ function addBougainvillea(
     const p = localToWorld(x, z, rot, along * s, 0.1 + r(i + 80) * 0.22);
     const leafy = i % 4 === 0;
     const size = (leafy ? 0.46 : 0.34 + r(i + 120) * 0.22) * s;
+    const bottom = y + 0.5 * s - drop * s - size * 0.8;
+    if (along * s - size < SPLIT) lowCascade = Math.min(lowCascade, bottom);
+    if (along * s + size > SPLIT) lowDoor = Math.min(lowDoor, bottom);
     addSphere(
       buckets.cloth,
       p.x,
@@ -3901,9 +3963,27 @@ function addBougainvillea(
       2,
     );
   }
-  // The leaves stand out from the wall further than a house's walking box; keep the camera out.
-  const c = localToWorld(x, z, rot, -0.2 * s, 0.33);
-  camera?.push({ x: c.x, z: c.z, hx: 2.3 * s, hz: 0.62, rot, y0: y - 2.5 * s, y1: y + 1.1 * s });
+  // The leaves stand out from the wall further than a house's walking box; keep the camera out. Each
+  // side's box starts at its own lowest leaf, so you can stand under the door side's leaves and the
+  // camera ducks under them (a box down to the ground would hold the pivot and be skipped).
+  if (!camera) return;
+  lowCascade = Math.min(lowCascade, y);
+  lowDoor = Math.min(lowDoor, y);
+  const cascade = localToWorld(x, z, rot, (-2.5 * s + SPLIT) * 0.5, 0.33);
+  const door = localToWorld(x, z, rot, (SPLIT + 2.1 * s) * 0.5, 0.33);
+  camera.push(
+    {
+      x: cascade.x,
+      z: cascade.z,
+      hx: (SPLIT + 2.5 * s) * 0.5,
+      hz: 0.62,
+      rot,
+      y0: lowCascade,
+      y1: y + 1.1 * s,
+    },
+    { x: door.x, z: door.z, hx: (2.1 * s - SPLIT) * 0.5, hz: 0.62, rot, y0: lowDoor, y1: y + 1.1 * s },
+    { x: stem.x, z: stem.z, hx: 0.14 * s, hz: 0.14 * s, rot, y0: ground, y1: y + 0.6 * s },
+  );
 }
 
 function addTelescope(

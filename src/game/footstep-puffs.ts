@@ -1,5 +1,6 @@
 import { BufferAttribute, BufferGeometry, DynamicDrawUsage, Mesh } from 'three/webgpu';
 import type { SurfaceKind } from './collision';
+import { unreflected } from '../world/reflection';
 import { createSparkleMaterial } from '../world/sites/sparkle';
 
 const MAX_PUFFS = 28;
@@ -35,6 +36,8 @@ export class FootstepPuffs {
     this.mesh = new Mesh(geometry, createSparkleMaterial());
     this.mesh.name = 'player-footstep-puffs';
     this.mesh.frustumCulled = false;
+    // Not in the harbour mirror: the ground under them isn't reflected (PLAN §15.4).
+    unreflected.add(this.mesh);
   }
 
   addTo(parent: { add(object: Mesh): void }): void {
@@ -79,6 +82,7 @@ export class FootstepPuffs {
   }
 
   dispose(): void {
+    unreflected.delete(this.mesh);
     this.mesh.removeFromParent();
     this.mesh.geometry.dispose();
     if (Array.isArray(this.mesh.material)) {

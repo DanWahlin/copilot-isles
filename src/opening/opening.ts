@@ -694,9 +694,12 @@ export function createOpening(o: OpeningOptions): Opening {
     // renderer's shadow switch, and so every pipeline, stays as compiled).
     const shadows = engine.tier.shadowCascades > 0;
     if (shadows) engine.renderer.shadowMap.enabled = true;
+    // The cabin's sun shadow map is drawn every frame (the captain and the chart move under it), so
+    // only tiers with a shadow map for moving things draw it; Low's cached map is the world's only.
+    const cabinShadows = shadows && engine.tier.shadowMoverMap > 0;
     const slices = { lite: 0, low: 6, medium: 10, high: 14, ultra: 16 }[engine.tier.tier];
     cabin = createCabin({
-      shadowMap: shadows ? Math.min(2048, engine.tier.shadowMap || 1024) : 0,
+      shadowMap: cabinShadows ? Math.min(2048, engine.tier.shadowMap || 1024) : 0,
       shaftSlices: slices,
       captainName: '',
       guideAt: GUIDE_AT,

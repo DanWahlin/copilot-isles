@@ -13,6 +13,7 @@ import { tierSettings, type TierSettings } from '../../engine/quality';
 import type { HeightGridData } from './cove-height';
 import type { TerrainBakeData } from './bake';
 import { createTerrainMaterial } from './terrain-material';
+import { plainShadowColor } from '../../engine/shadow-color';
 import { buildTerrainRocks } from './terrain-rocks';
 import { clamp, lerp } from '../../util/math';
 
@@ -869,7 +870,9 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
   const data = options.data;
   const group = new Group();
   group.name = options.name ?? 'test-cove-terrain';
-  const material = createTerrainMaterial({ tier: tier.tier, cloudShadowNode: options.cloudShadowNode });
+  const material = plainShadowColor(
+    createTerrainMaterial({ tier: tier.tier, cloudShadowNode: options.cloudShadowNode }),
+  );
   const chunks: TerrainChunk[] = [];
   const steps = stepsForTier(tier);
   const thresholds = terrainLodThresholds(tier);

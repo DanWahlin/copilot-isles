@@ -213,6 +213,9 @@ function updateTitleRects(leaps: LeapsSystem | null): void {
 function titleBackdropTier(tier: TierSettings): TierSettings {
   // Leaps (dolphins and fish) stay on every tier that has them: they load lazily and compile
   // async after the title is interactive, so they never touch its first frame.
+  // Low's cached sun shadow map is for the world: the title keeps Low's backdrop without it (fewer
+  // title programs, §7a), like High and Ultra below.
+  if (tier.tier === 'low') return { ...tier, shadowCascades: 0, shadowMap: 0 };
   if (tier.tier !== 'high' && tier.tier !== 'ultra') return tier;
   return {
     ...tier,

@@ -11,11 +11,13 @@ import {
 import { sharedInstancedMesh } from '../../engine/instancing';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle } from '../contracts';
+import { unreflected } from '../reflection';
 import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
 import { UvQuadBuilder, box, cylinder, merge, poseFrame, type UvRect } from './geo';
 import { plateAt, type YardLayout } from './crate-yard-logic';
 import { InstanceProxies } from './proxies';
 import { mergeWithRigidParts } from './rigid-parts';
+import { palettedMaterial } from '../characters/stage-light';
 
 /** Metres per yard cell (a crate is 1.1 m, so there's room to walk between them). */
 export const YARD_CELL = 1.5;
@@ -65,6 +67,9 @@ export function createCrateYardSite(o: {
   const { layout } = o;
   const group = new Group();
   group.name = 'crate yard (P1.1)';
+  // A Meridian site, so never in the Anchorage harbour mirror: leaving it out spares the mirror's
+  // copies of its shaders (PLAN §15.4).
+  unreflected.add(group);
   const frame = poseFrame({ x: o.origin.x, z: o.origin.z, rot: o.origin.heading });
   const top = o.origin.y;
   // Local cell centres: x across (column 0, the chat plates, on local +x: the town side when the yard
@@ -357,6 +362,7 @@ export function createCrateYardSite(o: {
       if (hint.visible) (atlas.hint as MeshStandardNodeMaterial).opacity = 0.35 + 0.25 * Math.sin(t * 4);
     },
     dispose() {
+      unreflected.delete(group);
       floor.geometry.dispose();
       plates.geometry.dispose();
       for (const g of glows) g.geometry.dispose();
@@ -418,12 +424,15 @@ function createYardAtlas(layout: YardLayout): YardAtlas {
     signBoard(ctx, rects.resetSign, 'RESET THE YARD', '', '#6d3a1f', null);
     tex.needsUpdate = true;
   }
-  const material = new MeshStandardNodeMaterial({
-    map: tex,
-    roughness: 0.82,
-    metalness: 0,
-    side: DoubleSide,
-  });
+  // The atlas as a palette, like the other painted signs: their shadows share one plain shader.
+  const material = palettedMaterial(
+    new MeshStandardNodeMaterial({
+      map: tex,
+      roughness: 0.82,
+      metalness: 0,
+      side: DoubleSide,
+    }),
+  );
   const glow = new MeshStandardNodeMaterial({
     color: 0xffd36b,
     emissive: 0xffb43a,

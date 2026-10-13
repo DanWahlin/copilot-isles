@@ -20,6 +20,7 @@ import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/k
 import { UvQuadBuilder, box, cylinder, merge, paint, plank, poseFrame, TRIM, tubeBetween } from './geo';
 import { COVE } from '../layout';
 import { GEAR_IDS, gearDef, type GearId } from './gear-logic';
+import { palettedMaterial } from '../characters/stage-light';
 
 export interface GearRackSite {
   readonly group: Group;
@@ -429,12 +430,15 @@ function createTextAtlas(): TextAtlas {
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   texture.anisotropy = 8;
-  const material = new MeshStandardNodeMaterial({
-    map: texture,
-    roughness: 0.86,
-    metalness: 0,
-    side: DoubleSide,
-  });
+  // The atlas as a palette, like the other painted signs: their shadows share one plain shader.
+  const material = palettedMaterial(
+    new MeshStandardNodeMaterial({
+      map: texture,
+      roughness: 0.86,
+      metalness: 0,
+      side: DoubleSide,
+    }),
+  );
   for (const id of GEAR_IDS) drawPlaque(ctx, rects[id], gearDef(id).tool, gearDef(id).command);
   drawHeader(ctx, rects.header);
   texture.needsUpdate = true;

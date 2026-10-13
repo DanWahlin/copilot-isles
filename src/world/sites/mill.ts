@@ -49,7 +49,12 @@ export interface MillSite {
   readonly cols: number;
   /** Walkable deck and stairs (null elsewhere). */
   heightAt(x: number, z: number): number | null;
-  readonly colliders: { circles: CircleObstacle[]; boxes: VillageBoxCollider[] };
+  /** `camera`: camera-only blockers (CollisionWorld.addCameraBox). */
+  readonly colliders: {
+    circles: CircleObstacle[];
+    boxes: VillageBoxCollider[];
+    camera: VillageBoxCollider[];
+  };
   readonly anchors: Record<string, VillageAnchor>;
   /** Everything vegetation should keep off (the terrace, stairs, pool, and spring rocks). */
   excludes(x: number, z: number): boolean;
@@ -607,6 +612,13 @@ export function createMill(o: MillOptions): MillSite {
     },
   ];
 
+  // Camera only: the gate frame and its sign over the basin mouth, and the signpost's two boards (the
+  // walk colliders have no height, so the camera counted them only near the ground).
+  const camera: VillageBoxCollider[] = [
+    { x: cx, z: gz1 + 0.05, hx: TROUGH / 2 + 0.38, hz: 0.17, rot: 0, y0: gateY - 0.1, y1: gateY + 1.95 },
+    { x: post.x, z: post.z, hx: 0.17, hz: 0.7, rot: 0, y0: postY - 0.2, y1: postY + 1.75 },
+  ];
+
   const anchors: Record<string, VillageAnchor> = {
     suri: { x: tx0 + 1.1, y: top, z: gz1 + 0.8, heading: -2.3 },
     millLever: { x: lever.x, y: top, z: lever.z, heading: Math.PI },
@@ -752,7 +764,7 @@ export function createMill(o: MillOptions): MillSite {
     rows,
     cols,
     heightAt,
-    colliders: { circles, boxes },
+    colliders: { circles, boxes, camera },
     anchors,
     excludes,
     cellCenter: (i) => ({ x: cellX(i % cols), z: cellZ(Math.floor(i / cols)) }),

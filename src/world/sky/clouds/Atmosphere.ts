@@ -508,12 +508,23 @@ export class Atmosphere {
     const r = this.renderer;
     this.viewHeight.value = RG + Math.max(0.001, cameraY / 1000 + 0.0005);
 
+    // The transmittance and multi-scattering LUTs depend only on constants: with compute they're
+    // drawn once, and their kernels are freed on the next update (their shaders count against the
+    // program budget, PLAN §15.4). A later invalidate then only redraws the sky view.
+    if (this._staticsDone && this.transmittanceKernel) {
+      this.transmittanceKernel.dispose();
+      this.multiScatKernel.dispose();
+      this.transmittanceKernel = this.multiScatKernel = null;
+    }
     const statics = this.needsStatic;
     if (statics) {
       this.needsStatic = false;
       if (this.useCompute) {
-        r.compute(this.transmittanceKernel, [T_W / 8, T_H / 8, 1]);
-        r.compute(this.multiScatKernel, [MS_RES / 8, MS_RES / 8, 1]);
+        if (!this._staticsDone) {
+          r.compute(this.transmittanceKernel, [T_W / 8, T_H / 8, 1]);
+          r.compute(this.multiScatKernel, [MS_RES / 8, MS_RES / 8, 1]);
+          this._staticsDone = true;
+        }
       } else {
         this._renderPass(this.passes.transmittance, this.targets.transmittance);
         this._renderPass(this.passes.multiScat, this.targets.multiScat);
@@ -563,7 +574,9 @@ export class Atmosphere {
   async compileAsync() {
     const r = this.renderer;
     if (this.useCompute)
-      return r.compileComputeAsync([this.transmittanceKernel, this.multiScatKernel, this.skyViewKernel]);
+      return r.compileComputeAsync(
+        [this.transmittanceKernel, this.multiScatKernel, this.skyViewKernel].filter(Boolean),
+      );
     for (const key of ['transmittance', 'multiScat', 'skyView']) {
       await new Promise((resolve) => requestAnimationFrame(resolve));
       this._renderPass(this.passes[key], this.targets[key]);

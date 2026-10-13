@@ -195,6 +195,9 @@ function addInstanceAttributes(geometry: BufferGeometry, mesh: Mesh, species: Pl
   const tagged = g.getAttribute('_part') as Float32BufferAttribute | undefined;
   if (tagged) {
     for (let i = 0; i < count; i += 1) parts[i] = tagged.getX(i);
+    // Copied into `vegPart`; dropping it leaves room for the instance matrices as attributes, so
+    // the plants share one shader (engine/instancing.ts, PLAN §15.4).
+    g.deleteAttribute('_part');
   } else if (g.groups.length > 0) {
     const index = g.index;
     const mats = materialArray(mesh.material);

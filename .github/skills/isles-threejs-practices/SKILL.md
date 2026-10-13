@@ -81,6 +81,15 @@ the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _
   pass (it doubles their instance buffers); the warm's real draws build them.
 - New characters (anything made by the character library) stay out of the harbour mirror through
   `unreflected`; other late roots that shouldn't reflect can register there too.
+- Shadow passes (PLAN §15.4): three builds each material's shadow shader from its `colorNode` alpha
+  and its `map`, so an opaque look got its own shadow shaders. Pass opaque `colorNode` materials
+  through `plainShadowColor` (engine/shadow-color.ts) once the graph is final, and opaque `map`
+  materials through `palettedMaterial` (characters/stage-light.ts). Don't set
+  `receiveShadow = false` to keep a mesh out of the sun's shadows: it builds a second shader for the
+  same look. Use `skipSunShadows` (sky/cached-sun-shadow.ts); the warms mark the rest
+  (`skipSunShadowsWhereOff`).
+- Count programs with a census, not by guess: per tier, landed on Anchorage and after
+  `window.__flow.travelTo('island:meridian')`, on both backends (`renderer.info.memory.programs`).
 
 ## 4. GPU resources have an owner
 

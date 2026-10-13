@@ -201,6 +201,8 @@ function createFlowingWaterMaterial(): MeshStandardNodeMaterial {
     transparent: true,
     depthWrite: false,
     side: DoubleSide,
+    // A flat sheet: one pass for both faces (one shader, not a back and a front one; PLAN §15.4).
+    forceSinglePass: true,
     roughness: 0.08,
     metalness: 0,
   });

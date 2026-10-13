@@ -21,6 +21,8 @@ import {
 } from 'three/webgpu';
 import { float, frontFacing, select, vec3 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { unreflected } from '../world/reflection';
+import { plainShadowColor } from '../engine/shadow-color';
 
 const W = 0.92;
 const H = 0.46;
@@ -208,9 +210,13 @@ export function createChest(): TreasureChest {
       side: DoubleSide,
     });
     sharedLidMaterial.colorNode = vec3(select(frontFacing, float(1), float(0.42)));
+    plainShadowColor(sharedLidMaterial);
   }
   const group = new Group();
   group.name = 'treasure chest';
+  // Not in the harbour mirror: what it stands on isn't reflected either, and each reflected look
+  // needs its own mirror shaders (PLAN §15.4).
+  unreflected.add(group);
 
   const parts: BufferGeometry[] = [
     box(W, H, D, 0, H / 2, 0, WOOD),
@@ -314,6 +320,7 @@ export function createChest(): TreasureChest {
       coinGeo.dispose();
       lidGeo.dispose();
       glowMat.dispose();
+      unreflected.delete(group);
       group.removeFromParent();
     },
   };

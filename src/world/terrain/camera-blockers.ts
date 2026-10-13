@@ -15,14 +15,20 @@ export interface CameraBlockerBox {
 }
 
 const FIT_ANGLES = 12;
+/**
+ * The tallest a slice may be. A tall rock's top slice used to reach out over the player at its foot
+ * (its box is as wide as the slice's widest point), so the pivot sat in it and it was skipped.
+ */
+const MAX_BAND = 0.8;
 const xs: number[] = [];
 const zs: number[] = [];
 const ys: number[] = [];
 
 /**
  * Fits camera blockers to a mesh's local `positions` placed by `matrix`: the mesh is cut into
- * `bands` slices of height and each slice gets the smallest of a few yawed boxes round its points,
- * so a round boulder is a stack of boxes, not one big one. Nothing under `minTop` (underwater) is kept.
+ * at least `bands` slices of height, none taller than MAX_BAND, and each slice gets the smallest of a
+ * few yawed boxes round its points, so a round boulder is a stack of boxes, not one big one. Nothing
+ * under `minTop` (underwater) is kept.
  */
 export function meshCameraBlockers(
   positions: ArrayLike<number>,
@@ -51,10 +57,11 @@ export function meshCameraBlockers(
     if (y > yMax) yMax = y;
   }
   if (!(yMax > minTop)) return;
-  const step = (yMax - yMin) / bands;
-  for (let b = 0; b < bands; b++) {
+  const count = Math.max(bands, Math.ceil((yMax - yMin) / MAX_BAND));
+  const step = (yMax - yMin) / count;
+  for (let b = 0; b < count; b++) {
     const y0 = yMin + step * b,
-      y1 = b === bands - 1 ? yMax : y0 + step;
+      y1 = b === count - 1 ? yMax : y0 + step;
     if (y1 < minTop) continue;
     const box = fitBand(y0 - 1e-4, y1 + 1e-4);
     if (box) out.push({ ...box, y0, y1 });

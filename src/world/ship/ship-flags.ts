@@ -32,6 +32,7 @@ import {
 } from 'three/tsl';
 import type { UniformNode } from 'three/webgpu';
 import { world } from '../uniforms';
+import { plainShadowColor } from '../../engine/shadow-color';
 
 // three's TSL fluent node typings do not cover this mixed scalar/vector graph.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -517,7 +518,7 @@ export function makeFlagMaterial(
   const painted = attribute('flagPainted', 'float') as AnyNode;
   const cloth = attribute('color', 'vec3') as AnyNode;
   material.colorNode = mix(cloth, (texture(jolly, uv()) as AnyNode).rgb, painted).mul(fold);
-  return material;
+  return plainShadowColor(material);
 }
 
 /**

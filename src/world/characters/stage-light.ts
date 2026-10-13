@@ -87,21 +87,51 @@ const nodeCache = new WeakMap<Material, MeshStandardNodeMaterial>();
  */
 class CharacterNodeMaterial extends MeshStandardNodeMaterial {
   paletteMap: Texture | null = null;
+  /**
+   * False: the palette tints the colour only, and the alpha stays as an opaque `map` leaves it (1).
+   * The characters' palettes keep multiplying the alpha too, as they always have.
+   */
+  paletteAlpha = true;
 
   override setupDiffuseColor(builder: NodeBuilder): void {
     super.setupDiffuseColor(builder);
     if (this.paletteMap) {
-      (diffuseColor as AnyNode).assign(
-        (diffuseColor as AnyNode).mul(materialReference('paletteMap', 'texture') as AnyNode),
-      );
+      const palette = materialReference('paletteMap', 'texture') as AnyNode;
+      const d = diffuseColor as AnyNode;
+      d.assign(this.paletteAlpha ? d.mul(palette) : vec4(d.rgb.mul(palette.rgb), d.a));
     }
   }
 
   override copy(source: MeshStandardNodeMaterial): this {
     super.copy(source);
-    if (source instanceof CharacterNodeMaterial) this.paletteMap = source.paletteMap;
+    if (source instanceof CharacterNodeMaterial) {
+      this.paletteMap = source.paletteMap;
+      this.paletteAlpha = source.paletteAlpha;
+    }
     return this;
   }
+}
+
+/**
+ * The node twin of a standard material with its `map` moved to `paletteMap` (CharacterNodeMaterial):
+ * the same look (the palette is sampled like a map, texture transform included), and the shadow pass
+ * shares one plain shadow shader instead of one per map (PLAN §15.4). For models outside the
+ * character library: the fishers and the village kit.
+ */
+export function palettedMaterial(source: MeshStandardNodeMaterial): MeshStandardNodeMaterial;
+export function palettedMaterial(source: Material): Material;
+export function palettedMaterial(source: Material): Material {
+  const standard = source instanceof MeshStandardMaterial || source instanceof MeshStandardNodeMaterial;
+  if (!standard || source instanceof CharacterNodeMaterial) return source;
+  const s = source as MeshStandardNodeMaterial;
+  if (!s.map || s.transparent || s.alphaTest > 0) return source;
+  const m = new CharacterNodeMaterial();
+  m.copy(source as unknown as MeshStandardNodeMaterial);
+  m.paletteMap = m.map;
+  m.map = null;
+  m.paletteAlpha = false;
+  m.userData = { ...source.userData };
+  return m;
 }
 
 /**

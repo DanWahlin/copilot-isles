@@ -1,4 +1,4 @@
-import { Matrix4, Object3D, ShadowBaseNode, Vector3 } from 'three/webgpu';
+import { Matrix4, Object3D, ShadowBaseNode, Vector3, type Mesh } from 'three/webgpu';
 import type {
   DirectionalLight,
   DirectionalLightShadow,
@@ -8,7 +8,19 @@ import type {
   NodeFrame,
   ShadowNode,
 } from 'three/webgpu';
-import { Fn, If, dot, float, length, min, shadow, shadowPositionWorld, smoothstep, uniform } from 'three/tsl';
+import {
+  Fn,
+  If,
+  dot,
+  float,
+  length,
+  min,
+  normalWorld,
+  shadow,
+  shadowPositionWorld,
+  smoothstep,
+  uniform,
+} from 'three/tsl';
 import { CasterSweep } from '../shadow-casters';
 import {
   StaticShadowState,
@@ -36,6 +48,36 @@ const LIGHT_DISTANCE = 400;
 const EDGE_FADE = 0.12;
 
 const vec3Uniform = (v: Vector3) => uniform(v);
+
+/**
+ * Leaves `root`'s meshes out of the sun's shadows (PLAN §15.4). They take `receiveShadow` and skip the
+ * shadow lookup instead (`userData.sunShadow = false`), so each look has one shader whether or not a
+ * mesh takes the shadows: `receiveShadow = false` built a second shader for the same look (the
+ * Anchorage village's kit pieces against Port Meridian's). They look and cost as before.
+ */
+export function skipSunShadows(root: Object3D): void {
+  root.traverse((object) => {
+    if (!(object as Mesh).isMesh) return;
+    (object as Mesh).receiveShadow = true;
+    object.userData.sunShadow = false;
+  });
+}
+
+/**
+ * The same for every mesh under `root` with `receiveShadow` off. Run it before a mesh is first
+ * compiled: changing `receiveShadow` later builds its shaders again.
+ */
+export function skipSunShadowsWhereOff(root: Object3D): void {
+  root.traverse((object) => {
+    const mesh = object as Mesh;
+    if (!mesh.isMesh || mesh.receiveShadow) return;
+    mesh.receiveShadow = true;
+    object.userData.sunShadow = false;
+  });
+}
+
+/** 0 while drawing a mesh marked by skipSunShadows, else 1 (read per object). */
+const receivesSun = uniform(1).onObjectUpdate(({ object }) => (object?.userData.sunShadow === false ? 0 : 1));
 type Vec3Uniform = ReturnType<typeof vec3Uniform>;
 
 const _up = new Vector3(0, 1, 0);
@@ -140,13 +182,17 @@ export class CachedSunShadowNode extends ShadowBaseNode {
     const position = shadowPositionWorld as Node<'vec3'>;
     return Fn(() => {
       this.setupShadowPosition(builder);
+      // Build the world normal out here: the maps below are looked up conditionally, and the material's
+      // own lighting reads the same normal later. Built first inside a branch, it was only set when the
+      // branch ran, so meshes outside the maps (or skipping them) lost their lighting normal.
+      (normalWorld as Node<'vec3'>).toVar('sunShadowNormal');
       const lit = float(1).toVar('sunShadow');
       for (let i = 0; i < nodes.length; i++) {
         const half = this.specs[i]!.half;
         // Distance from the map's centre across the light (its square's inscribed circle).
         const d = position.sub(this.centerU[i]!);
         const across = length(d.sub(this.dirU[i]!.mul(dot(d, this.dirU[i]!))));
-        If(across.lessThan(half), () => {
+        If(across.lessThan(half).and(receivesSun.greaterThan(0.5)), () => {
           const weight = float(1).sub(smoothstep(half * (1 - EDGE_FADE), half, across));
           lit.assign(min(lit, float(1).sub(nodes[i]!.oneMinus().mul(weight))));
         });

@@ -106,7 +106,7 @@ export function createPalmMaterial(): MeshStandardNodeMaterial {
   });
   material.name = 'tidewater-palm';
   const part = attribute('aMat', 'vec4') as AnyNode;
-  const partId = attribute('vegPart', 'float') as AnyNode;
+  const partId = part.x;
   const veg = attribute('aVeg', 'vec4') as AnyNode;
   const tint = attribute('tint', 'vec3') as AnyNode;
   const shade = attribute('shade', 'float') as AnyNode;

@@ -16,6 +16,7 @@ import { CollisionWorld } from './collision';
 import { FollowCamera } from './follow-camera';
 import {
   GALLERY_CAMERA_COLUMN,
+  DOOR_THRESHOLD,
   LIGHTHOUSE_BOTTOM,
   LIGHTHOUSE_STAIR_HEAD,
   LIGHTHOUSE_TOP,
@@ -116,6 +117,31 @@ describe('lighthouse fast-forward', () => {
     const down = new PlayerController();
     down.teleport(world, LIGHTHOUSE_TOP.x, LIGHTHOUSE_TOP.z, LIGHTHOUSE_TOP.heading + Math.PI, deck);
     expect(walkUntilTransit(down, world, [at(WATCH_DOOR_HEADING, 0.3)]).dir).toBe('down');
+    village.dispose();
+  });
+
+  it('starts the climb as you come through the ground door, before you stand inside', async () => {
+    const { village, world } = await lighthouseWorld();
+    const player = new PlayerController();
+    const outside = at(LIGHTHOUSE_DOOR_HEADING, LIGHTHOUSE.plinthR + 2);
+    player.teleport(world, outside.x, outside.z, LIGHTHOUSE_DOOR_HEADING + Math.PI);
+    expect(walkUntilTransit(player, world, [at(LIGHTHOUSE_DOOR_HEADING, 0.3)]).dir).toBe('up');
+    const r = Math.hypot(player.x - L.x, player.z - L.z);
+    expect(r).toBeLessThan(DOOR_THRESHOLD);
+    expect(r).toBeGreaterThan(LIGHTHOUSE.inner);
+    village.dispose();
+  });
+
+  it('climbs again if you turn round at the bottom arrival and walk back in', async () => {
+    const { village, world } = await lighthouseWorld();
+    const player = new PlayerController();
+    const a = LIGHTHOUSE_BOTTOM;
+    player.teleport(world, a.x, a.z, a.heading + Math.PI, a.y);
+    expect(lighthouseTransitAt(player.x, player.y, player.z, true)).toBeNull();
+    const { dir } = walkUntilTransit(player, world, [at(LIGHTHOUSE_DOOR_HEADING, 0.3)]);
+    expect(dir).toBe('up');
+    // Within a step or two of where you turned.
+    expect(Math.hypot(player.x - a.x, player.z - a.z)).toBeLessThan(0.6);
     village.dispose();
   });
 

@@ -39,6 +39,7 @@ import {
   vec3,
 } from 'three/tsl';
 import { packs } from '../../engine/packs';
+import { plainShadowColor } from '../../engine/shadow-color';
 import { world } from '../uniforms';
 import { gustNode } from '../wind-nodes';
 
@@ -72,22 +73,18 @@ export interface BrigantineUniforms {
 export const SCORCH_SLOTS = 8;
 /** Deck guns per ship (port 0…5, starboard 6…11). */
 export const GUN_SLOTS = 12;
-/** Ships alive at once that keep their own shot marks and gun recoil (yours plus raiders, with room). */
+/** Ships alive at once that keep their own shot marks (yours plus raiders, with room). */
 export const SHIP_SLOTS = 6;
 
 /**
- * Shot marks and gun recoil for every ship live in two shared arrays, each ship reading its own block
- * by its `slot` uniform. A uniform array per ship gave every ship its own shader program (+7 in a
- * three-ship battle); a uniform value doesn't.
+ * Shot marks for every ship live in one shared array, each ship reading its own block by its `slot`
+ * uniform. A uniform array per ship gave every ship its own shader program (+7 in a three-ship
+ * battle); a uniform value doesn't.
  */
 export const shipScorch = uniformArray(
   Array.from({ length: SHIP_SLOTS * SCORCH_SLOTS }, () => new Vector4(0, -100, 0, 0)),
   'vec4',
 ) as UniformArrayNode<'vec4'>;
-export const shipRecoil = uniformArray(
-  new Array<number>(SHIP_SLOTS * GUN_SLOTS).fill(0),
-  'float',
-) as UniformArrayNode<'float'>;
 
 let shipWoodTexture: Texture | null = null;
 
@@ -394,7 +391,7 @@ export function makeShipMaterial(
     .add(r4.mul(0.1))
     .add(r7.mul(0.04));
   m.metalnessNode = mix(float(0.02), mix(float(0.46), float(0.3), livery), r3);
-  return m;
+  return plainShadowColor(m);
 }
 
 export function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNodeMaterial {
@@ -514,24 +511,5 @@ export function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNo
     .mul(color(0xffe2b0))
     .mul(backlit.mul(world.sunDir.y.smoothstep(0.02, 0.45)).mul(0.09))
     .mul(float(1).sub(torn));
-  return m;
-}
-
-/**
- * The deck guns: the ship's own material, with each gun run in by its recoil (metres inboard, one value
- * per `gunIndex`; see createDeckGunGeometry). Port guns (+x) run back toward −x and starboard guns
- * toward +x.
- */
-export function makeGunMaterial(
-  label: ShipLabel,
-  livery: UniformNode<'float', number>,
-  slot: UniformNode<'float', number>,
-  marks: UniformNode<'float', number>,
-): MeshStandardNodeMaterial {
-  const m = makeShipMaterial(label, livery, slot, marks);
-  const index = attribute('gunIndex', 'float');
-  const back = shipRecoil.element(slot.mul(GUN_SLOTS).add(index).toInt());
-  const side = index.lessThan(5.5).select(float(1), float(-1));
-  m.positionNode = positionLocal.sub(vec3(side.mul(back), 0, 0));
-  return m;
+  return plainShadowColor(m);
 }

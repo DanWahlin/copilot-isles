@@ -16,6 +16,7 @@ import {
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { packs } from '../../engine/packs';
+import { palettedMaterial } from '../characters/stage-light';
 import { VILLAGE_HOUSE_PIECES } from './house-builder';
 import {
   createClothMaterial,
@@ -198,6 +199,9 @@ function createVillageKitFromGltf(gltf: GLTF): VillageKit {
     materials[key] ??= fallback.materials[key];
   }
   materials.paving = clonePavingMaterial(materials.stone!);
+  // Their textures as palettes: the same look, and their shadows share one plain shader (PLAN §15.4).
+  for (const key of Object.keys(materials) as MaterialKey[])
+    materials[key] = palettedMaterial(materials[key]!);
 
   for (const scene of gltf.scenes) {
     scene.updateWorldMatrix(true, true);

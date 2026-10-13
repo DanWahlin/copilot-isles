@@ -11,6 +11,7 @@ import {
 } from 'three/webgpu';
 import { tierSettings, type TierSettings } from '../../../engine/quality';
 import type { HeightField, Tier } from '../../contracts';
+import { unreflected } from '../../reflection';
 import { world } from '../../uniforms';
 import { LeapsDirector, seededRandom, type LeapArc, type LeapKind, type ScreenRect } from './director';
 import { createDolphinGeometry, createFlyingFishGeometry, createSplashGeometry } from './geometry';
@@ -172,6 +173,8 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
   });
   const group = new Object3D() as Group;
   group.name = 'leaps';
+  // Not in the harbour mirror (it would build mirror shaders for them in the warm; PLAN §15.4).
+  unreflected.add(group);
 
   const dolphinGeometry = createDolphinGeometry();
   const fishGeometry = createFlyingFishGeometry();
@@ -370,6 +373,7 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
       updateMeshes(t);
     },
     dispose() {
+      unreflected.delete(group);
       dolphinGeometry.dispose();
       fishGeometry.dispose();
       splashGeometry.dispose();

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { BufferAttribute, Mesh, Object3D } from 'three/webgpu';
 import { createBrigantine, fitShipNameFontSize } from './brigantine';
 import { QUARTERDECK_Z, WHEEL } from './brigantine-hull';
-import { GUN_SLOTS, SCORCH_SLOTS, shipRecoil, shipScorch } from './brigantine-materials';
+import { SCORCH_SLOTS, shipScorch } from './brigantine-materials';
 import { CUTTER_FLAG, createCutterSailGeometry, createRiggingGeometry } from './brigantine-rig';
 import { COVE } from '../layout';
 import { BRIGANTINE_HALF_LENGTH, deckHeightAt } from './lines';
@@ -365,11 +365,10 @@ describe('createBrigantine', () => {
     }
   });
 
-  it("keeps each ship's shot marks and gun recoil in its own block of the shared arrays", () => {
+  it("keeps each ship's shot marks in its own block of the shared array", () => {
     const a = createBrigantine({ tier: 'low' });
     const b = createBrigantine({ tier: 'low', raider: true });
     const marks = shipScorch.array as { y: number; w: number }[];
-    const guns = shipRecoil.array as number[];
     const markedBlocks = () => {
       const out: number[] = [];
       for (let i = 0; i < marks.length; i++) if (marks[i]!.w > 0) out.push(Math.floor(i / SCORCH_SLOTS));
@@ -380,14 +379,36 @@ describe('createBrigantine', () => {
     b.addScorch(-3, 1.4, -2);
     const blocks = markedBlocks();
     expect(new Set(blocks).size).toBe(2);
-    a.setGunRecoil(2, 0.5);
-    expect(guns.filter((g) => g === 0.5)).toHaveLength(1);
-    expect(guns.indexOf(0.5) % GUN_SLOTS).toBe(2);
     b.clearScorch();
     expect(new Set(markedBlocks()).size).toBe(1);
     a.dispose();
     b.dispose();
     expect(markedBlocks()).toHaveLength(0);
-    expect(guns.every((g) => g === 0)).toBe(true);
+  });
+
+  it('runs only the recoiling gun in, on its own side, and back out on clearScorch', () => {
+    const ship = createBrigantine({ tier: 'medium' });
+    const guns = ship.group.getObjectByName('deck guns') as Mesh;
+    expect(guns.material).toBe((ship.group.getObjectByName('rounded planked hull') as Mesh).material);
+    const pos = guns.geometry.getAttribute('position') as BufferAttribute;
+    const before = (pos.array as Float32Array).slice();
+    const moved = () => {
+      const out: number[] = [];
+      for (let v = 0; v < pos.count; v++)
+        if (pos.getX(v) !== before[v * 3]) out.push(pos.getX(v) - before[v * 3]!);
+      return out;
+    };
+    ship.setGunRecoil(2, 0.5);
+    const port = moved();
+    expect(port.length).toBeGreaterThan(0);
+    expect(port.every((dx) => Math.abs(dx + 0.5) < 1e-5)).toBe(true);
+    ship.setGunRecoil(2, 0);
+    ship.setGunRecoil(8, 0.25);
+    const starboard = moved();
+    expect(starboard.length).toBe(port.length);
+    expect(starboard.every((dx) => Math.abs(dx - 0.25) < 1e-5)).toBe(true);
+    ship.clearScorch();
+    expect(moved()).toHaveLength(0);
+    ship.dispose();
   });
 });

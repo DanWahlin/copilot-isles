@@ -8,9 +8,12 @@ import {
   NodeMaterial,
   SkinnedMesh,
   type BufferGeometry,
+  type Intersection,
   type Material,
   type Object3D,
+  type Raycaster,
   type Skeleton,
+  type Vector3,
 } from 'three/webgpu';
 import {
   Fn,
@@ -57,6 +60,57 @@ interface SharedSkin {
 }
 
 type SharedSkinMesh = Mesh & { sharedSkin: SharedSkin; skeleton: Skeleton };
+
+/**
+ * A character mesh skinned by the shared graph. To three it's a plain Mesh (so the renderer doesn't
+ * skin it a second time), but CPU queries see the drawn shape: `getVertexPosition` and `raycast` skin
+ * like SkinnedMesh's. A plain Mesh would test its bind pose, which lies metres from the character
+ * (a ray "hit" the kids' accessories across the plaza).
+ */
+class SharedSkinnedMesh extends Mesh {
+  declare sharedSkin: SharedSkin;
+  declare skeleton: Skeleton;
+
+  get bindMatrix(): Matrix4 {
+    return this.sharedSkin.bindMatrix;
+  }
+
+  get bindMatrixInverse(): Matrix4 {
+    return this.sharedSkin.bindMatrixInverse;
+  }
+
+  override updateMatrixWorld(force?: boolean): void {
+    super.updateMatrixWorld(force);
+    // As SkinnedMesh does, so CPU queries are right before the first draw (updateSkin does it then).
+    if (this.sharedSkin?.attached) this.sharedSkin.bindMatrixInverse.copy(this.matrixWorld).invert();
+  }
+
+  applyBoneTransform(index: number, target: Vector3): Vector3 {
+    SkinnedMesh.prototype.applyBoneTransform.call(this as unknown as SkinnedMesh, index, target);
+    return target;
+  }
+
+  override getVertexPosition(index: number, target: Vector3): Vector3 {
+    super.getVertexPosition(index, target);
+    return this.applyBoneTransform(index, target);
+  }
+
+  override raycast(raycaster: Raycaster, intersects: Intersection[]): void {
+    // SkinnedMesh's raycast, with bounds fitted to this pose. They're dropped afterwards: frustum
+    // culling would use an object's own bounding sphere, and this one goes stale as it animates.
+    const self = this as unknown as SkinnedMesh;
+    try {
+      self.boundingSphere = null as never;
+      self.boundingBox = null as never;
+      SkinnedMesh.prototype.computeBoundingSphere.call(self);
+      SkinnedMesh.prototype.computeBoundingBox.call(self);
+      SkinnedMesh.prototype.raycast.call(self, raycaster, intersects);
+    } finally {
+      delete (this as { boundingSphere?: unknown }).boundingSphere;
+      delete (this as { boundingBox?: unknown }).boundingBox;
+    }
+  }
+}
 
 const states = new WeakMap<Skeleton, SkeletonState>();
 
@@ -202,7 +256,7 @@ export function shareSkinning(root: Object3D): void {
   };
   for (const source of skinned) {
     const material = Array.isArray(source.material) ? source.material.map(convert) : convert(source.material);
-    const mesh = new Mesh(source.geometry, material) as SharedSkinMesh;
+    const mesh = new SharedSkinnedMesh(source.geometry, material) as SharedSkinMesh;
     mesh.name = source.name;
     mesh.position.copy(source.position);
     mesh.quaternion.copy(source.quaternion);

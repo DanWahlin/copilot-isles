@@ -2,6 +2,8 @@ import {
   BufferAttribute,
   Color,
   InstancedMesh,
+  InterleavedBuffer,
+  InterleavedBufferAttribute,
   Matrix4,
   type BufferGeometry,
   type Material,
@@ -23,6 +25,15 @@ export const SHARED_INSTANCE_CAPACITY = 1025;
 const MAX_VERTEX_BUFFERS = 8;
 const MAX_VERTEX_ATTRIBUTES = 16;
 
+/** The vertex buffers a geometry's attributes use (an interleaved buffer counts once). */
+function bufferCount(geometry: BufferGeometry): number {
+  const buffers = new Set<unknown>();
+  for (const a of Object.values(geometry.attributes)) {
+    buffers.add('isInterleavedBufferAttribute' in a && a.isInterleavedBufferAttribute ? a.data : a);
+  }
+  return buffers.size;
+}
+
 /**
  * The capacity to give an instanced mesh of `count` instances so it shares its shader: padded past
  * the uniform-buffer size, unless its geometry leaves no room for the matrix attributes (then
@@ -36,19 +47,50 @@ export function sharedInstanceCapacity(
   const n = Math.max(1, count);
   if (n >= SHARED_INSTANCE_CAPACITY) return n;
   const attributes = Object.keys(geometry.attributes).length + (instanceColors ? 1 : 0);
-  const buffers = new Set<unknown>();
-  for (const a of Object.values(geometry.attributes)) {
-    buffers.add('isInterleavedBufferAttribute' in a && a.isInterleavedBufferAttribute ? a.data : a);
-  }
   // Two matrix buffers (4 attributes each), plus the instance colours if any.
   if (attributes + 8 > MAX_VERTEX_ATTRIBUTES) return n;
-  if (buffers.size + 2 + (instanceColors ? 1 : 0) > MAX_VERTEX_BUFFERS) return n;
+  if (bufferCount(geometry) + 2 + (instanceColors ? 1 : 0) > MAX_VERTEX_BUFFERS) return n;
   return SHARED_INSTANCE_CAPACITY;
 }
 
 /**
+ * Packs a geometry's per-vertex attributes (not the per-instance ones) into one interleaved Float32
+ * buffer, in place, so they take one vertex buffer. The values and names don't change, so the
+ * shader doesn't either. Attributes already interleaved are left as they are.
+ */
+export function interleaveVertexAttributes(geometry: BufferGeometry): void {
+  const names = Object.keys(geometry.attributes).filter((name) => {
+    const a = geometry.attributes[name]!;
+    return (
+      !('isInterleavedBufferAttribute' in a && a.isInterleavedBufferAttribute) &&
+      !('isInstancedBufferAttribute' in a && a.isInstancedBufferAttribute)
+    );
+  });
+  if (names.length < 2) return;
+  const sources = names.map((name) => geometry.getAttribute(name) as BufferAttribute);
+  const count = sources[0]!.count;
+  if (sources.some((a) => a.count !== count)) return;
+  const stride = sources.reduce((s, a) => s + a.itemSize, 0);
+  const data = new Float32Array(count * stride);
+  let offset = 0;
+  for (const a of sources) {
+    for (let i = 0; i < count; i++)
+      for (let c = 0; c < a.itemSize; c++) data[i * stride + offset + c] = a.getComponent(i, c);
+    offset += a.itemSize;
+  }
+  const buffer = new InterleavedBuffer(data, stride);
+  offset = 0;
+  for (let k = 0; k < names.length; k++) {
+    const a = sources[k]!;
+    geometry.setAttribute(names[k]!, new InterleavedBufferAttribute(buffer, a.itemSize, offset));
+    offset += a.itemSize;
+  }
+}
+
+/**
  * An InstancedMesh that shares its shader with others of the same material (see above), drawing
- * `count` instances (all of them by default).
+ * `count` instances (all of them by default). A geometry with too many vertex buffers for that has
+ * its per-vertex attributes interleaved into one (`interleaveVertexAttributes`) first.
  */
 export function sharedInstancedMesh<G extends BufferGeometry, M extends Material | Material[]>(
   geometry: G,
@@ -56,6 +98,8 @@ export function sharedInstancedMesh<G extends BufferGeometry, M extends Material
   capacity: number,
   opts: { count?: number; instanceColors?: boolean } = {},
 ): InstancedMesh<G, M> {
+  if (sharedInstanceCapacity(geometry, capacity, opts.instanceColors) < SHARED_INSTANCE_CAPACITY)
+    interleaveVertexAttributes(geometry);
   const mesh = new InstancedMesh<G, M>(
     geometry,
     material,
