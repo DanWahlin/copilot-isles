@@ -20,10 +20,8 @@ export const MUSIC_TRACKS: Readonly<Record<IslandMusic, MusicTrack>> = {
   anchorage: { file: 'music_bards_tale', lufs: -17.6 },
   // "Sunset Plains" by Yoiyami (OpenGameArt, CC0).
   meridian: { file: 'music_sunset_plains', lufs: -16.1 },
-  // TODO(D7): a placeholder. "Salty Sway" is maritime folk and belongs to Keelhaven (Chapter 03);
-  // Thousand-Bough gets Dan's own Suno track ("Thousand Boughs", docs/specs/ISLAND-02-thousand-bough.md
-  // §8.1) as `music_thousand_boughs`. Acceptance item A-12 stays open until it's in.
-  'thousand-bough': { file: 'music_salty_sway', lufs: -15.3 },
+  // "Misty Jungle Dusk", made for Thousand-Bough Isle by Dan with Suno.
+  'thousand-bough': { file: 'music_thousand_boughs', lufs: -15.5 },
   // "Island Reveal", made for the opening by Dan with Suno. It starts with the chest's latch; its
   // entrance (6.7 s) lands as the islands pop up, and the island's theme takes over at its phrase end.
   opening: { file: 'music_island_reveal', lufs: -16.0, once: true, handoff: 27.6 },
@@ -47,7 +45,7 @@ export function trackFor(cue: MusicCue): MusicTrack {
 export const SPARE_TRACKS = {
   // "Reggae" by Pro Sensory (OpenGameArt, CC0): Anchorage's first track.
   reggae: { file: 'music_reggae', lufs: -12.5 },
-  // "Salty Sway", made for the game by Dan with Suno: the next island after Port Meridian.
+  // "Salty Sway", made for the game by Dan with Suno: maritime folk, kept for Keelhaven (Chapter 03).
   saltySway: { file: 'music_salty_sway', lufs: -15.3 },
 } as const satisfies Record<string, MusicTrack>;
 

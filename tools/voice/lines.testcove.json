@@ -1799,7 +1799,7 @@
     {
       "id": "tb.lyra.wait",
       "speaker": "Lyra",
-      "text": "Tamsin's down at the wharf first, Captain. Then come and hear my song.",
+      "text": "I’m still tuning up. Go and see Tamsin at the wharf first, then come back for my song.",
       "voice": "en-GB-LibbyNeural",
       "prosody": {
         "rate": "-5%"
@@ -1853,7 +1853,7 @@
     {
       "id": "tb.lyra.done",
       "speaker": "Lyra",
-      "text": "Step into a booth, Captain. Hear how each part sounds on its own.",
+      "text": "Step into any booth and hear how each part sounds on its own.",
       "voice": "en-GB-LibbyNeural",
       "prosody": {
         "rate": "-5%"
@@ -1955,7 +1955,7 @@
       "speaker": "Oak",
       "tts": "elevenlabs",
       "voice": "LEvd0YiWkwZ6hTZOmdVE",
-      "text": "Cloud runs it in a cloud sandbox on GitHub's hosted infrastructure. That one's in public preview."
+      "text": "Cloud runs it in a cloud sandbox on GitHub's hosted infrastructure."
     },
     {
       "id": "tb.oak.06",
@@ -2269,133 +2269,133 @@
       "id": "tb.rook.wait",
       "speaker": "Rook",
       "tts": "elevenlabs",
-      "voice": "j57KDF72L6gxbLk4sOo5",
+      "voice": "poHOO1m3tBNm4Ywmzcaq",
       "text": "Ines first, Captain. She's on the Signal Deck, just there."
     },
     {
       "id": "tb.rook.01",
       "speaker": "Rook",
       "tts": "elevenlabs",
-      "voice": "j57KDF72L6gxbLk4sOo5",
+      "voice": "poHOO1m3tBNm4Ywmzcaq",
       "text": "This bough's a branch: practice empty state copy. Its empty-state message got worse on purpose."
     },
     {
       "id": "tb.rook.02",
       "speaker": "Rook",
       "tts": "elevenlabs",
-      "voice": "j57KDF72L6gxbLk4sOo5",
+      "voice": "poHOO1m3tBNm4Ywmzcaq",
       "text": "Point to the project, select Create from, open Branches and pick our branch. New worktree, every time."
     },
     {
       "id": "tb.rook.03",
       "speaker": "Rook",
       "tts": "elevenlabs",
-      "voice": "j57KDF72L6gxbLk4sOo5",
+      "voice": "poHOO1m3tBNm4Ywmzcaq",
       "text": "Set Mode to Plan, type hash three, pick Improve the empty state copy, and ask for a plan."
     },
     {
       "id": "tb.rook.04",
       "speaker": "Rook",
       "tts": "elevenlabs",
-      "voice": "j57KDF72L6gxbLk4sOo5",
+      "voice": "poHOO1m3tBNm4Ywmzcaq",
       "text": "The plan opens in the Plan tab, and Review plan takes the prompt box's place."
     },
     {
       "id": "tb.rook.05",
       "speaker": "Rook",
       "tts": "elevenlabs",
-      "voice": "j57KDF72L6gxbLk4sOo5",
+      "voice": "poHOO1m3tBNm4Ywmzcaq",
       "text": "Back in Interactive, run the Book App and open the preview. Search hobbit, then a made-up word, and note the empty state."
     },
     {
       "id": "tb.rook.06",
       "speaker": "Rook",
       "tts": "elevenlabs",
-      "voice": "j57KDF72L6gxbLk4sOo5",
+      "voice": "poHOO1m3tBNm4Ywmzcaq",
       "text": "Then ask it to implement the plan, check the Changes tab or pill, reload, and compare."
     },
     {
       "id": "tb.rook.next",
       "speaker": "Rook",
       "tts": "elevenlabs",
-      "voice": "j57KDF72L6gxbLk4sOo5",
+      "voice": "poHOO1m3tBNm4Ywmzcaq",
       "text": "Pip's got the day's log up in the Chronicle Loft. Up you go."
     },
     {
       "id": "tb.rook.assignment",
       "speaker": "Rook",
       "tts": "elevenlabs",
-      "voice": "j57KDF72L6gxbLk4sOo5",
+      "voice": "poHOO1m3tBNm4Ywmzcaq",
       "text": "Your turn now: a light and dark theme for the Book App, in its own worktree."
     },
     {
       "id": "tb.rook.done",
       "speaker": "Rook",
       "tts": "elevenlabs",
-      "voice": "j57KDF72L6gxbLk4sOo5",
+      "voice": "poHOO1m3tBNm4Ywmzcaq",
       "text": "Mind how you go on that bridge, Captain."
     },
     {
       "id": "tb.pip.wait",
       "speaker": "Pip",
       "tts": "elevenlabs",
-      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "voice": "gwU7DXdLrTvWCiUTPZG8",
       "text": "The chronicle can wait, Captain. Rook's crew first."
     },
     {
       "id": "tb.pip.01",
       "speaker": "Pip",
       "tts": "elevenlabs",
-      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "voice": "gwU7DXdLrTvWCiUTPZG8",
       "text": "Chronicle standup reports your work from the last day. It should list this session and its changes."
     },
     {
       "id": "tb.pip.02",
       "speaker": "Pip",
       "tts": "elevenlabs",
-      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "voice": "gwU7DXdLrTvWCiUTPZG8",
       "text": "Slash context opens the usage popup below the prompt box. So does the AI credits icon by the microphone."
     },
     {
       "id": "tb.pip.03",
       "speaker": "Pip",
       "tts": "elevenlabs",
-      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "voice": "gwU7DXdLrTvWCiUTPZG8",
       "text": "Session shows the AI credits it used. Tokens, what went to the model and back. Plan, your plan's use."
     },
     {
       "id": "tb.pip.04",
       "speaker": "Pip",
       "tts": "elevenlabs",
-      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "voice": "gwU7DXdLrTvWCiUTPZG8",
       "text": "Select the Context bar for the breakdown. Check it before you pile on more files."
     },
     {
       "id": "tb.pip.05",
       "speaker": "Pip",
       "tts": "elevenlabs",
-      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "voice": "gwU7DXdLrTvWCiUTPZG8",
       "text": "Select the session name at the top of the window for its branches, its Path and its Session ID."
     },
     {
       "id": "tb.pip.06",
       "speaker": "Pip",
       "tts": "elevenlabs",
-      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "voice": "gwU7DXdLrTvWCiUTPZG8",
       "text": "Then ask Copilot to stop the session's development server. No pull request needed."
     },
     {
       "id": "tb.pip.next",
       "speaker": "Pip",
       "tts": "elevenlabs",
-      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "voice": "gwU7DXdLrTvWCiUTPZG8",
       "text": "The Elder's waiting at the Crown, Captain. Last flight up."
     },
     {
       "id": "tb.pip.done",
       "speaker": "Pip",
       "tts": "elevenlabs",
-      "voice": "L1aJrPa7pLJEyYlh3Ilq",
+      "voice": "gwU7DXdLrTvWCiUTPZG8",
       "text": "Every day goes in the ledger, Captain. Even the dull ones."
     },
     {

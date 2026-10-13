@@ -6,87 +6,87 @@
     {
       "word": "Point",
       "start": 0,
-      "end": 0.267
+      "end": 0.213
     },
     {
       "word": "to",
-      "start": 0.267,
+      "start": 0.213,
       "end": 0.34
     },
     {
       "word": "the",
       "start": 0.34,
-      "end": 0.47
+      "end": 0.46
     },
     {
       "word": "project",
-      "start": 0.47,
-      "end": 1.349
+      "start": 0.46,
+      "end": 1.337
     },
     {
       "word": "select",
-      "start": 1.349,
-      "end": 1.829
+      "start": 1.337,
+      "end": 1.771
     },
     {
       "word": "Create",
-      "start": 1.829,
-      "end": 2.32
+      "start": 1.771,
+      "end": 2.384
     },
     {
       "word": "from",
-      "start": 2.32,
-      "end": 3.824
+      "start": 2.384,
+      "end": 3.104
     },
     {
       "word": "open",
-      "start": 3.824,
-      "end": 4.137
+      "start": 3.104,
+      "end": 3.737
     },
     {
       "word": "Branches",
-      "start": 4.137,
-      "end": 4.88
+      "start": 3.737,
+      "end": 4.36
     },
     {
       "word": "and",
-      "start": 4.88,
-      "end": 5.168
+      "start": 4.36,
+      "end": 4.784
     },
     {
       "word": "pick",
-      "start": 5.168,
-      "end": 5.38
+      "start": 4.784,
+      "end": 5.12
     },
     {
       "word": "our",
-      "start": 5.38,
-      "end": 5.52
+      "start": 5.12,
+      "end": 5.429
     },
     {
       "word": "branch",
-      "start": 5.52,
-      "end": 6.52
+      "start": 5.429,
+      "end": 6.3
     },
     {
       "word": "New",
-      "start": 6.52,
-      "end": 7.664
+      "start": 6.3,
+      "end": 6.784
     },
     {
       "word": "worktree",
-      "start": 7.664,
-      "end": 8.68
+      "start": 6.784,
+      "end": 7.733
     },
     {
       "word": "every",
-      "start": 8.68,
-      "end": 8.96
+      "start": 7.733,
+      "end": 8.08
     },
     {
       "word": "time",
-      "start": 8.96,
-      "end": 9.21
+      "start": 8.08,
+      "end": 8.33
     }
   ]
 }

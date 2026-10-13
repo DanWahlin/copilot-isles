@@ -683,7 +683,7 @@ export const CH02: ChapterContent = {
       title: 'Where a session runs',
       image: 'ch02/app-where-sessions-run',
       caption:
-        'Start a session with **+**, and the workspace selector below the prompt box picks where it runs: **New worktree** (its own folder and branch, the safe default), **Current checkout** (your existing clone) or **Cloud** (a cloud sandbox, in public preview). **Base branch** sets where a new worktree starts. The app remembers your last choice, so switch back to **New worktree** now. A session started with **Create from** always gets a new worktree.',
+        'Start a session with **+**, and the workspace selector below the prompt box picks where it runs: **New worktree** (its own folder and branch, the safe default), **Current checkout** (your existing clone) or **Cloud** (a cloud sandbox on GitHub’s hosted infrastructure). **Base branch** sets where a new worktree starts. The app remembers your last choice, so switch back to **New worktree** now. A session started with **Create from** always gets a new worktree.',
       source: S.where,
     },
     {
@@ -844,8 +844,7 @@ export const CH02: ChapterContent = {
     {
       id: 'cloud-sandbox',
       term: 'Cloud',
-      definition:
-        'A session that runs in a cloud sandbox on GitHub’s hosted infrastructure (public preview).',
+      definition: 'A session that runs in a cloud sandbox on GitHub’s hosted infrastructure.',
     },
     {
       id: 'base-branch',

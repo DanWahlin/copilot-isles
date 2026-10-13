@@ -1,87 +1,62 @@
 {
   "id": "tb.oak.05",
   "speaker": "Oak",
-  "text": "Cloud runs it in a cloud sandbox on GitHub's hosted infrastructure. That one's in public preview.",
+  "text": "Cloud runs it in a cloud sandbox on GitHub's hosted infrastructure.",
   "words": [
     {
       "word": "Cloud",
       "start": 0,
-      "end": 0.368
+      "end": 0.4
     },
     {
       "word": "runs",
-      "start": 0.368,
-      "end": 0.587
+      "start": 0.4,
+      "end": 0.773
     },
     {
       "word": "it",
-      "start": 0.587,
-      "end": 0.693
+      "start": 0.773,
+      "end": 0.933
     },
     {
       "word": "in",
-      "start": 0.693,
-      "end": 0.9
+      "start": 0.933,
+      "end": 1.08
     },
     {
       "word": "a",
-      "start": 0.9,
-      "end": 1.033
+      "start": 1.08,
+      "end": 1.187
     },
     {
       "word": "cloud",
-      "start": 1.033,
-      "end": 1.29
+      "start": 1.187,
+      "end": 1.61
     },
     {
       "word": "sandbox",
-      "start": 1.29,
-      "end": 1.947
+      "start": 1.61,
+      "end": 2.32
     },
     {
       "word": "on",
-      "start": 1.947,
-      "end": 2.057
+      "start": 2.32,
+      "end": 2.549
     },
     {
       "word": "GitHub's",
-      "start": 2.057,
-      "end": 2.537
+      "start": 2.549,
+      "end": 3.097
     },
     {
       "word": "hosted",
-      "start": 2.537,
-      "end": 2.933
+      "start": 3.097,
+      "end": 3.493
     },
     {
       "word": "infrastructure",
-      "start": 2.933,
-      "end": 3.92
-    },
-    {
-      "word": "That",
-      "start": 3.92,
-      "end": 4.6
-    },
-    {
-      "word": "one's",
-      "start": 4.6,
-      "end": 4.827
-    },
-    {
-      "word": "in",
-      "start": 4.827,
-      "end": 4.926
-    },
-    {
-      "word": "public",
-      "start": 4.926,
-      "end": 5.26
-    },
-    {
-      "word": "preview",
-      "start": 5.26,
-      "end": 5.51
+      "start": 3.493,
+      "end": 3.743
     }
   ]
 }

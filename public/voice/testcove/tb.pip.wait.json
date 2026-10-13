@@ -6,42 +6,42 @@
     {
       "word": "The",
       "start": 0,
-      "end": 0.12
+      "end": 0.133
     },
     {
       "word": "chronicle",
-      "start": 0.12,
-      "end": 0.6
+      "start": 0.133,
+      "end": 0.62
     },
     {
       "word": "can",
-      "start": 0.6,
-      "end": 0.768
+      "start": 0.62,
+      "end": 0.848
     },
     {
       "word": "wait",
-      "start": 0.768,
-      "end": 1.09
+      "start": 0.848,
+      "end": 1.31
     },
     {
       "word": "Captain",
-      "start": 1.09,
-      "end": 1.92
+      "start": 1.31,
+      "end": 1.82
     },
     {
       "word": "Rook's",
-      "start": 1.92,
-      "end": 2.576
+      "start": 1.82,
+      "end": 2.224
     },
     {
       "word": "crew",
-      "start": 2.576,
-      "end": 3.067
+      "start": 2.224,
+      "end": 2.573
     },
     {
       "word": "first",
-      "start": 3.067,
-      "end": 3.317
+      "start": 2.573,
+      "end": 2.823
     }
   ]
 }

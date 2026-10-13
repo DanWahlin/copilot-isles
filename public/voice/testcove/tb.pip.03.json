@@ -6,97 +6,97 @@
     {
       "word": "Session",
       "start": 0,
-      "end": 0.467
+      "end": 0.56
     },
     {
       "word": "shows",
-      "start": 0.467,
-      "end": 0.82
+      "start": 0.56,
+      "end": 1
     },
     {
       "word": "the",
-      "start": 0.82,
-      "end": 0.96
+      "start": 1,
+      "end": 1.2
     },
     {
       "word": "AI",
-      "start": 0.96,
-      "end": 1.26
+      "start": 1.2,
+      "end": 1.7
     },
     {
       "word": "credits",
-      "start": 1.26,
-      "end": 1.733
+      "start": 1.7,
+      "end": 2.48
     },
     {
       "word": "it",
-      "start": 1.733,
-      "end": 1.936
+      "start": 2.48,
+      "end": 2.736
     },
     {
       "word": "used",
-      "start": 1.936,
-      "end": 2.869
+      "start": 2.736,
+      "end": 3.714
     },
     {
       "word": "Tokens",
-      "start": 2.869,
-      "end": 3.424
+      "start": 3.714,
+      "end": 4.448
     },
     {
       "word": "what",
-      "start": 3.424,
-      "end": 3.728
+      "start": 4.448,
+      "end": 4.704
     },
     {
       "word": "went",
-      "start": 3.728,
-      "end": 3.947
+      "start": 4.704,
+      "end": 4.987
     },
     {
       "word": "to",
-      "start": 3.947,
-      "end": 4.02
+      "start": 4.987,
+      "end": 5.08
     },
     {
       "word": "the",
-      "start": 4.02,
-      "end": 4.16
+      "start": 5.08,
+      "end": 5.253
     },
     {
       "word": "model",
-      "start": 4.16,
-      "end": 4.62
+      "start": 5.253,
+      "end": 5.56
     },
     {
       "word": "and",
-      "start": 4.62,
-      "end": 4.88
+      "start": 5.56,
+      "end": 5.776
     },
     {
       "word": "back",
-      "start": 4.88,
-      "end": 5.616
-    },
-    {
-      "word": "Plan",
-      "start": 5.616,
+      "start": 5.776,
       "end": 6.608
     },
     {
-      "word": "your",
+      "word": "Plan",
       "start": 6.608,
-      "end": 6.896
+      "end": 7.456
+    },
+    {
+      "word": "your",
+      "start": 7.456,
+      "end": 7.744
     },
     {
       "word": "plan's",
-      "start": 6.896,
-      "end": 7.46
+      "start": 7.744,
+      "end": 8.2
     },
     {
       "word": "use",
-      "start": 7.46,
-      "end": 7.71
+      "start": 8.2,
+      "end": 8.45
     }
   ]
 }

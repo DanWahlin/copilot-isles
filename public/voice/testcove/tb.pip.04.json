@@ -6,77 +6,77 @@
     {
       "word": "Select",
       "start": 0,
-      "end": 0.26
+      "end": 0.36
     },
     {
       "word": "the",
-      "start": 0.26,
-      "end": 0.4
+      "start": 0.36,
+      "end": 0.54
     },
     {
       "word": "Context",
-      "start": 0.4,
-      "end": 1.02
+      "start": 0.54,
+      "end": 1.04
     },
     {
       "word": "bar",
-      "start": 1.02,
-      "end": 1.24
+      "start": 1.04,
+      "end": 1.3
     },
     {
       "word": "for",
-      "start": 1.24,
+      "start": 1.3,
       "end": 1.38
     },
     {
       "word": "the",
       "start": 1.38,
-      "end": 1.504
+      "end": 1.496
     },
     {
       "word": "breakdown",
-      "start": 1.504,
-      "end": 2.64
+      "start": 1.496,
+      "end": 2.4
     },
     {
       "word": "Check",
-      "start": 2.64,
-      "end": 3.093
+      "start": 2.4,
+      "end": 2.853
     },
     {
       "word": "it",
-      "start": 3.093,
-      "end": 3.291
+      "start": 2.853,
+      "end": 2.994
     },
     {
       "word": "before",
-      "start": 3.291,
-      "end": 3.86
+      "start": 2.994,
+      "end": 3.26
     },
     {
       "word": "you",
-      "start": 3.86,
-      "end": 4
+      "start": 3.26,
+      "end": 3.504
     },
     {
       "word": "pile",
-      "start": 4,
-      "end": 4.427
+      "start": 3.504,
+      "end": 3.813
     },
     {
       "word": "on",
-      "start": 4.427,
-      "end": 4.688
+      "start": 3.813,
+      "end": 3.968
     },
     {
       "word": "more",
-      "start": 4.688,
-      "end": 4.987
+      "start": 3.968,
+      "end": 4.253
     },
     {
       "word": "files",
-      "start": 4.987,
-      "end": 5.237
+      "start": 4.253,
+      "end": 4.503
     }
   ]
 }

@@ -6,87 +6,87 @@
     {
       "word": "Chronicle",
       "start": 0,
-      "end": 0.387
+      "end": 0.48
     },
     {
       "word": "standup",
-      "start": 0.387,
-      "end": 0.86
+      "start": 0.48,
+      "end": 1.1
     },
     {
       "word": "reports",
-      "start": 0.86,
-      "end": 1.328
-    },
-    {
-      "word": "your",
-      "start": 1.328,
+      "start": 1.1,
       "end": 1.568
     },
     {
-      "word": "work",
+      "word": "your",
       "start": 1.568,
-      "end": 1.776
+      "end": 1.808
+    },
+    {
+      "word": "work",
+      "start": 1.808,
+      "end": 2.032
     },
     {
       "word": "from",
-      "start": 1.776,
-      "end": 1.86
+      "start": 2.032,
+      "end": 2.18
     },
     {
       "word": "the",
-      "start": 1.86,
-      "end": 1.984
+      "start": 2.18,
+      "end": 2.32
     },
     {
       "word": "last",
-      "start": 1.984,
-      "end": 2.34
+      "start": 2.32,
+      "end": 2.72
     },
     {
       "word": "day",
-      "start": 2.34,
-      "end": 2.933
+      "start": 2.72,
+      "end": 3.387
     },
     {
       "word": "It",
-      "start": 2.933,
-      "end": 3.383
+      "start": 3.387,
+      "end": 3.623
     },
     {
       "word": "should",
-      "start": 3.383,
-      "end": 3.584
+      "start": 3.623,
+      "end": 3.824
     },
     {
       "word": "list",
-      "start": 3.584,
-      "end": 3.872
+      "start": 3.824,
+      "end": 4.16
     },
     {
       "word": "this",
-      "start": 3.872,
-      "end": 4.05
+      "start": 4.16,
+      "end": 4.55
     },
     {
       "word": "session",
-      "start": 4.05,
-      "end": 4.46
+      "start": 4.55,
+      "end": 5.1
     },
     {
       "word": "and",
-      "start": 4.46,
-      "end": 4.68
+      "start": 5.1,
+      "end": 5.32
     },
     {
       "word": "its",
-      "start": 4.68,
-      "end": 4.86
+      "start": 5.32,
+      "end": 5.51
     },
     {
       "word": "changes",
-      "start": 4.86,
-      "end": 5.11
+      "start": 5.51,
+      "end": 5.76
     }
   ]
 }

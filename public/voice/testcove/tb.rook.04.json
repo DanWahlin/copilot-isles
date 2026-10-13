@@ -11,61 +11,61 @@
     {
       "word": "plan",
       "start": 0.144,
-      "end": 0.48
+      "end": 0.467
     },
     {
       "word": "opens",
-      "start": 0.48,
-      "end": 0.907
+      "start": 0.467,
+      "end": 0.827
     },
     {
       "word": "in",
-      "start": 0.907,
-      "end": 0.98
+      "start": 0.827,
+      "end": 0.92
     },
     {
       "word": "the",
-      "start": 0.98,
-      "end": 1.104
+      "start": 0.92,
+      "end": 1.12
     },
     {
       "word": "Plan",
-      "start": 1.104,
-      "end": 1.46
+      "start": 1.12,
+      "end": 1.52
     },
     {
       "word": "tab",
-      "start": 1.46,
-      "end": 2.18
+      "start": 1.52,
+      "end": 1.94
     },
     {
       "word": "and",
-      "start": 2.18,
-      "end": 2.286
+      "start": 1.94,
+      "end": 2.069
     },
     {
       "word": "Review",
-      "start": 2.286,
-      "end": 2.64
+      "start": 2.069,
+      "end": 2.56
     },
     {
       "word": "plan",
-      "start": 2.64,
-      "end": 3.013
+      "start": 2.56,
+      "end": 2.933
     },
     {
       "word": "takes",
-      "start": 3.013,
-      "end": 3.3
+      "start": 2.933,
+      "end": 3.22
     },
     {
       "word": "the",
-      "start": 3.3,
-      "end": 3.406
+      "start": 3.22,
+      "end": 3.337
     },
     {
       "word": "prompt",
-      "start": 3.406,
+      "start": 3.337,
       "end": 3.74
     },
     {

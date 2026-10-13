@@ -6,82 +6,82 @@
     {
       "word": "Then",
       "start": 0,
-      "end": 0.14
+      "end": 0.22
     },
     {
       "word": "ask",
-      "start": 0.14,
-      "end": 0.347
-    },
-    {
-      "word": "it",
-      "start": 0.347,
+      "start": 0.22,
       "end": 0.427
     },
     {
-      "word": "to",
+      "word": "it",
       "start": 0.427,
-      "end": 0.52
+      "end": 0.533
+    },
+    {
+      "word": "to",
+      "start": 0.533,
+      "end": 0.68
     },
     {
       "word": "implement",
-      "start": 0.52,
-      "end": 0.92
+      "start": 0.68,
+      "end": 1.06
     },
     {
       "word": "the",
-      "start": 0.92,
-      "end": 1.104
+      "start": 1.06,
+      "end": 1.184
     },
     {
       "word": "plan",
-      "start": 1.104,
-      "end": 1.96
+      "start": 1.184,
+      "end": 1.893
     },
     {
       "word": "check",
-      "start": 1.96,
+      "start": 1.893,
       "end": 2.18
     },
     {
       "word": "the",
       "start": 2.18,
-      "end": 2.29
+      "end": 2.3
     },
     {
       "word": "Changes",
-      "start": 2.29,
-      "end": 2.72
+      "start": 2.3,
+      "end": 2.82
     },
     {
       "word": "tab",
-      "start": 2.72,
-      "end": 3.04
+      "start": 2.82,
+      "end": 3.173
     },
     {
       "word": "or",
-      "start": 3.04,
-      "end": 3.28
+      "start": 3.173,
+      "end": 3.376
     },
     {
       "word": "pill",
-      "start": 3.28,
-      "end": 3.92
+      "start": 3.376,
+      "end": 4.309
     },
     {
       "word": "reload",
-      "start": 3.92,
-      "end": 5.06
+      "start": 4.309,
+      "end": 4.92
     },
     {
       "word": "and",
-      "start": 5.06,
-      "end": 5.19
+      "start": 4.92,
+      "end": 5.11
     },
     {
       "word": "compare",
-      "start": 5.19,
-      "end": 5.44
+      "start": 5.11,
+      "end": 5.36
     }
   ]
 }

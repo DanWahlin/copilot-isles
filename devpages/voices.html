@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Copilot Isles Voice Preview</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, system-ui, sans-serif;
+        background: #07131d;
+        color: #f4ead2;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 20% 10%, rgba(63, 208, 201, 0.2), transparent 28rem),
+          linear-gradient(145deg, #081926, #0d2230 48%, #13251f);
+      }
+      main {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 32px;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: Georgia, serif;
+        font-weight: 400;
+      }
+      h2 {
+        margin: 0 0 4px;
+      }
+      section {
+        margin: 18px 0;
+        padding: 18px;
+        border: 1px solid rgba(232, 200, 138, 0.32);
+        border-radius: 14px;
+        background: rgba(8, 15, 22, 0.55);
+      }
+      button {
+        min-height: 44px;
+        min-width: 44px;
+        border: 1px solid rgba(232, 200, 138, 0.5);
+        border-radius: 999px;
+        background: rgba(232, 200, 138, 0.1);
+        color: #f4ead2;
+        padding: 0 16px;
+        cursor: pointer;
+        font: inherit;
+      }
+      button:hover,
+      button:focus-visible {
+        background: rgba(232, 200, 138, 0.25);
+        outline: 2px solid #e8c88a;
+        outline-offset: 2px;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin: 8px 0 12px;
+      }
+      ol.lines {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      ol.lines li {
+        display: grid;
+        grid-template-columns: 52px 120px 1fr auto;
+        gap: 12px;
+        align-items: center;
+        padding: 8px 10px;
+        border-radius: 10px;
+      }
+      ol.lines li.playing {
+        background: rgba(63, 208, 201, 0.18);
+        box-shadow: inset 3px 0 0 #3fd0c9;
+      }
+      .speaker {
+        color: #e8c88a;
+        font-weight: 600;
+      }
+      .meta {
+        color: #b9c7cb;
+        font-size: 0.85rem;
+        white-space: nowrap;
+      }
+      .note {
+        color: #b9c7cb;
+      }
+      .cast {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 12px;
+      }
+      .cast article {
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.3);
+      }
+      .cast .picks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .cast .picks button.chosen {
+        background: #e8c88a;
+        color: #07131d;
+      }
+      code {
+        color: #9fd8d4;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Thousand-Bough Isle: voice preview</h1>
+      <p class="note">
+        Every new line for Chapter 02, grouped by conversation in the order you meet each stop. Select
+        <strong>Play all</strong> to hear a conversation as it plays in the game, or ▶ for one line. The
+        <strong>Cast</strong> section at the end compares each speaker's chosen voice with the two
+        alternatives from the auditions.
+      </p>
+      <div class="toolbar">
+        <button id="stop" type="button">■ Stop</button>
+        <span id="status" class="note" aria-live="polite">Loading the voice manifest…</span>
+      </div>
+      <div id="conversations"></div>
+      <section aria-labelledby="cast-title">
+        <h2 id="cast-title">Cast</h2>
+        <p class="note">
+          The gold button is the voice in the game. Each speaker reads the same audition line in all three
+          voices. Lyra keeps her Azure voice from Port Meridian.
+        </p>
+        <div id="cast" class="cast"></div>
+      </section>
+    </main>
+    <script type="module" src="/src/dev/voices.ts"></script>
+  </body>
+</html>

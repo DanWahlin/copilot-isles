@@ -6,97 +6,97 @@
     {
       "word": "Slash",
       "start": 0,
-      "end": 0.42
+      "end": 0.51
     },
     {
       "word": "context",
-      "start": 0.42,
-      "end": 1.187
+      "start": 0.51,
+      "end": 1.373
     },
     {
       "word": "opens",
-      "start": 1.187,
-      "end": 1.54
+      "start": 1.373,
+      "end": 1.88
     },
     {
       "word": "the",
-      "start": 1.54,
-      "end": 1.667
+      "start": 1.88,
+      "end": 2.067
     },
     {
       "word": "usage",
-      "start": 1.667,
-      "end": 2.093
+      "start": 2.067,
+      "end": 2.48
     },
     {
       "word": "popup",
-      "start": 2.093,
-      "end": 2.6
+      "start": 2.48,
+      "end": 2.947
     },
     {
       "word": "below",
-      "start": 2.6,
-      "end": 2.82
+      "start": 2.947,
+      "end": 3.32
     },
     {
       "word": "the",
-      "start": 2.82,
-      "end": 2.937
+      "start": 3.32,
+      "end": 3.497
     },
     {
       "word": "prompt",
-      "start": 2.937,
-      "end": 3.38
+      "start": 3.497,
+      "end": 3.94
     },
     {
       "word": "box",
-      "start": 3.38,
-      "end": 4.053
+      "start": 3.94,
+      "end": 4.533
     },
     {
       "word": "So",
-      "start": 4.053,
-      "end": 4.688
+      "start": 4.533,
+      "end": 5.008
     },
     {
       "word": "does",
-      "start": 4.688,
-      "end": 4.92
+      "start": 5.008,
+      "end": 5.22
     },
     {
       "word": "the",
-      "start": 4.92,
-      "end": 5.16
+      "start": 5.22,
+      "end": 5.4
     },
     {
       "word": "AI",
-      "start": 5.16,
-      "end": 5.5
+      "start": 5.4,
+      "end": 5.74
     },
     {
       "word": "credits",
-      "start": 5.5,
-      "end": 6.016
+      "start": 5.74,
+      "end": 6.24
     },
     {
       "word": "icon",
-      "start": 6.016,
-      "end": 6.453
+      "start": 6.24,
+      "end": 6.613
     },
     {
       "word": "by",
-      "start": 6.453,
-      "end": 6.64
+      "start": 6.613,
+      "end": 6.74
     },
     {
       "word": "the",
-      "start": 6.64,
-      "end": 6.909
+      "start": 6.74,
+      "end": 6.865
     },
     {
       "word": "microphone",
-      "start": 6.909,
-      "end": 7.159
+      "start": 6.865,
+      "end": 7.115
     }
   ]
 }

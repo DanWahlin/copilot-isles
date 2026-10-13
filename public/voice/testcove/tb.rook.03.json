@@ -6,92 +6,92 @@
     {
       "word": "Set",
       "start": 0,
-      "end": 0.192
+      "end": 0.288
     },
     {
       "word": "Mode",
-      "start": 0.192,
-      "end": 0.373
+      "start": 0.288,
+      "end": 0.507
     },
     {
       "word": "to",
-      "start": 0.373,
-      "end": 0.56
+      "start": 0.507,
+      "end": 0.656
     },
     {
       "word": "Plan",
-      "start": 0.56,
-      "end": 1.088
+      "start": 0.656,
+      "end": 1.36
     },
     {
       "word": "type",
-      "start": 1.088,
-      "end": 1.744
+      "start": 1.36,
+      "end": 2.384
     },
     {
       "word": "hash",
-      "start": 1.744,
-      "end": 2.4
+      "start": 2.384,
+      "end": 2.707
     },
     {
       "word": "three",
-      "start": 2.4,
-      "end": 3.088
+      "start": 2.707,
+      "end": 3.584
     },
     {
       "word": "pick",
-      "start": 3.088,
-      "end": 3.68
+      "start": 3.584,
+      "end": 4.57
     },
     {
       "word": "Improve",
-      "start": 3.68,
-      "end": 4.26
+      "start": 4.57,
+      "end": 5.22
     },
     {
       "word": "the",
-      "start": 4.26,
-      "end": 4.36
+      "start": 5.22,
+      "end": 5.347
     },
     {
       "word": "empty",
-      "start": 4.36,
-      "end": 4.6
+      "start": 5.347,
+      "end": 5.733
     },
     {
       "word": "state",
-      "start": 4.6,
-      "end": 4.88
+      "start": 5.733,
+      "end": 6.08
     },
     {
       "word": "copy",
-      "start": 4.88,
-      "end": 5.46
+      "start": 6.08,
+      "end": 6.7
     },
     {
       "word": "and",
-      "start": 5.46,
-      "end": 5.58
+      "start": 6.7,
+      "end": 6.94
     },
     {
       "word": "ask",
-      "start": 5.58,
-      "end": 5.78
+      "start": 6.94,
+      "end": 7.16
     },
     {
       "word": "for",
-      "start": 5.78,
-      "end": 5.88
+      "start": 7.16,
+      "end": 7.28
     },
     {
       "word": "a",
-      "start": 5.88,
-      "end": 5.984
+      "start": 7.28,
+      "end": 7.36
     },
     {
       "word": "plan",
-      "start": 5.984,
-      "end": 6.234
+      "start": 7.36,
+      "end": 7.61
     }
   ]
 }

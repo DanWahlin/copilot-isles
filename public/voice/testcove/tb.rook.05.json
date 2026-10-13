@@ -6,112 +6,112 @@
     {
       "word": "Back",
       "start": 0,
-      "end": 0.187
+      "end": 0.213
     },
     {
       "word": "in",
-      "start": 0.187,
-      "end": 0.3
+      "start": 0.213,
+      "end": 0.38
     },
     {
       "word": "Interactive",
-      "start": 0.3,
-      "end": 1.4
+      "start": 0.38,
+      "end": 1.36
     },
     {
       "word": "run",
-      "start": 1.4,
-      "end": 1.54
+      "start": 1.36,
+      "end": 1.62
     },
     {
       "word": "the",
-      "start": 1.54,
-      "end": 1.648
+      "start": 1.62,
+      "end": 1.744
     },
     {
       "word": "Book",
-      "start": 1.648,
-      "end": 1.92
+      "start": 1.744,
+      "end": 2.08
     },
     {
       "word": "App",
-      "start": 1.92,
-      "end": 2.22
+      "start": 2.08,
+      "end": 2.36
     },
     {
       "word": "and",
-      "start": 2.22,
-      "end": 2.464
+      "start": 2.36,
+      "end": 2.544
     },
     {
       "word": "open",
-      "start": 2.464,
-      "end": 2.74
+      "start": 2.544,
+      "end": 2.82
     },
     {
       "word": "the",
-      "start": 2.74,
-      "end": 2.86
+      "start": 2.82,
+      "end": 2.95
     },
     {
       "word": "preview",
-      "start": 2.86,
-      "end": 3.577
+      "start": 2.95,
+      "end": 3.84
     },
     {
       "word": "Search",
-      "start": 3.577,
-      "end": 4.92
+      "start": 3.84,
+      "end": 4.88
     },
     {
       "word": "hobbit",
-      "start": 4.92,
-      "end": 5.552
+      "start": 4.88,
+      "end": 5.536
     },
     {
       "word": "then",
-      "start": 5.552,
-      "end": 6.04
+      "start": 5.536,
+      "end": 5.96
     },
     {
       "word": "a",
-      "start": 6.04,
-      "end": 6.112
+      "start": 5.96,
+      "end": 6.048
     },
     {
       "word": "made-up",
-      "start": 6.112,
-      "end": 6.544
+      "start": 6.048,
+      "end": 6.48
     },
     {
       "word": "word",
-      "start": 6.544,
-      "end": 7.04
+      "start": 6.48,
+      "end": 7.1
     },
     {
       "word": "and",
-      "start": 7.04,
-      "end": 7.568
+      "start": 7.1,
+      "end": 7.36
     },
     {
       "word": "note",
-      "start": 7.568,
-      "end": 7.78
+      "start": 7.36,
+      "end": 7.7
     },
     {
       "word": "the",
-      "start": 7.78,
-      "end": 7.907
+      "start": 7.7,
+      "end": 7.827
     },
     {
       "word": "empty",
-      "start": 7.907,
-      "end": 8.307
+      "start": 7.827,
+      "end": 8.24
     },
     {
       "word": "state",
-      "start": 8.307,
-      "end": 8.557
+      "start": 8.24,
+      "end": 8.49
     }
   ]
 }

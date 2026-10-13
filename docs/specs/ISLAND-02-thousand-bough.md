@@ -21,7 +21,7 @@
 | D4 | **The metaphor (PLAN §3):** trunk = the repository, each crew's treehouse = its own folder on its own **bough** (branch), the Great Hall in the trunk = `main` / your main checkout, the gondola into the clouds = **Cloud**, the four signal flags = `@ # / &` | The course image `one-repo-many-worktrees` shows one repo with Feature, Bug Fix and Docs worktrees; the island builds exactly that |
 | D5 | **Signature puzzle Channel Routing** in three rounds on a 5 × 4 flume grid, then the **Spire Bridge** twist (ports) | Learn by doing (PLAN §1). Rounds 2 and 3 each have **exactly one** solution (checked by `draw.py`'s solver; B's tests repeat it) |
 | D6 | **Nine stops in the course's order**, one check each, max 30 s walk between neighbours | The Chapter 00 lesson: few stops, close together. A helical stair round the trunk gives one climb with stops on it, no doubling back |
-| D7 | **Music:** `music_salty_sway` **doesn't fit** (its Suno style is "Maritime folk"). Keep it for Keelhaven (Chapter 03, tavern/shipyard). Dan makes a new Suno track for this island (prompt in §8.1). Until then Salty Sway is a **marked placeholder**, and the Disney review (§12) fails while it's in | PLAN §7 asks for Lydian, dreamy, kalimba, pan flute, rain-drop percussion |
+| D7 | **Music:** `music_salty_sway` **doesn't fit** (its Suno style is "Maritime folk"). Keep it for Keelhaven (Chapter 03, tavern/shipyard). Dan made the island's Suno track, "Misty Jungle Dusk" (`music_thousand_boughs`, 2026-10-13), from the §8.1 prompt | PLAN §7 asks for Lydian, dreamy, kalimba, pan flute, rain-drop percussion |
 | D8 | **No falling rain.** "Soft rain" is in the music and in a light *after-the-shower* bed: drips, wet sheen, beads on the rails | Rain audio with no rain on screen breaks the illusion; real rain particles would hide the view |
 | D9 | **Reuse every shared material.** The tree's bark and leaves use the vegetation materials, the treehouses the village kit materials, water the Meridian water-strip material. At most **4 new shader modules** for the island (mist/shaft cards, fireflies, and up to two more if a census proves the need) | PLAN §15.4: island ≤ 150 modules, and Meridian already reads 147–149 on Ultra |
 | D10 | **No new chapter id in `CourseSource` until it lands.** Content cites `{ chapter: '02-sessions-worktrees-context', anchor }` plus image filenames; B adds the id to `ChapterId` after rebasing on the live-course work | Avoids a merge fight in `src/learn/types.ts` |
@@ -917,8 +917,7 @@ Workspace selector · Context · Context syntax (`@ # / &`) · Slash command · 
   > marimba, rain-drop percussion and light hand drums, warm string pad, misty jungle at dusk, magical and
   > calm, seamless loop, no vocals, 2:30*
 - **Wiring (B):** `IslandMusic` gains `'thousand-bough'`; `MUSIC_TRACKS['thousand-bough']` points at
-  `music_thousand_boughs`. Until the file exists it points at `SPARE_TRACKS.saltySway` with a `TODO(D7)`
-  comment, and acceptance item A-12 stays open. The Bard (Q2.2) unlocks it in the Songbook.
+  `music_thousand_boughs`. Done: it points at `music_thousand_boughs` ("Misty Jungle Dusk"), so acceptance item A-12 is met. The Bard (Q2.2) unlocks it in the Songbook.
 - **Stingers:** reuse `chime_solve` for each solved round; the Seal uses the same Seal sound as Meridian.
 
 ### 8.2 Ambience and SFX (lazy-loaded per island, ≤ 5 MB, PLAN §7)

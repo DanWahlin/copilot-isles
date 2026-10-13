@@ -1,72 +1,72 @@
 {
   "id": "tb.lyra.done",
   "speaker": "Lyra",
-  "text": "Step into a booth, Captain. Hear how each part sounds on its own.",
+  "text": "Step into any booth and hear how each part sounds on its own.",
   "words": [
     {
       "word": "Step",
       "start": 0.052625,
-      "end": 0.447375
+      "end": 0.434208
     },
     {
       "word": "into",
-      "start": 0.447375,
-      "end": 0.828958
+      "start": 0.434208,
+      "end": 0.802625
     },
     {
-      "word": "a",
-      "start": 0.828958,
-      "end": 0.868416
+      "word": "any",
+      "start": 0.802625,
+      "end": 1.052625
     },
     {
       "word": "booth",
-      "start": 0.868416,
+      "start": 1.052625,
       "end": 1.421041
     },
     {
-      "word": "Captain",
+      "word": "and",
       "start": 1.421041,
-      "end": 3.026333
+      "end": 1.618416
     },
     {
-      "word": "Hear",
-      "start": 3.026333,
-      "end": 3.315791
+      "word": "hear",
+      "start": 1.618416,
+      "end": 1.907875
     },
     {
       "word": "how",
-      "start": 3.315791,
-      "end": 3.631583
+      "start": 1.907875,
+      "end": 2.236833
     },
     {
       "word": "each",
-      "start": 3.631583,
-      "end": 3.960541
+      "start": 2.236833,
+      "end": 2.552625
     },
     {
       "word": "part",
-      "start": 3.960541,
-      "end": 4.368416
+      "start": 2.552625,
+      "end": 2.960541
     },
     {
       "word": "sounds",
-      "start": 4.368416,
-      "end": 4.789458
+      "start": 2.960541,
+      "end": 3.35525
     },
     {
       "word": "on",
-      "start": 4.789458,
-      "end": 4.947375
+      "start": 3.35525,
+      "end": 3.539458
     },
     {
       "word": "its",
-      "start": 4.947375,
-      "end": 5.092125
+      "start": 3.539458,
+      "end": 3.697375
     },
     {
       "word": "own",
-      "start": 5.092125,
-      "end": 5.342125
+      "start": 3.697375,
+      "end": 3.947375
     }
   ]
 }

@@ -16,72 +16,72 @@
     {
       "word": "now",
       "start": 0.46,
-      "end": 1.16
+      "end": 1
     },
     {
       "word": "a",
-      "start": 1.16,
-      "end": 1.573
+      "start": 1,
+      "end": 1.267
     },
     {
       "word": "light",
-      "start": 1.573,
-      "end": 1.88
+      "start": 1.267,
+      "end": 1.66
     },
     {
       "word": "and",
-      "start": 1.88,
-      "end": 2.08
+      "start": 1.66,
+      "end": 1.92
     },
     {
       "word": "dark",
-      "start": 2.08,
-      "end": 2.453
+      "start": 1.92,
+      "end": 2.307
     },
     {
       "word": "theme",
-      "start": 2.453,
-      "end": 2.74
+      "start": 2.307,
+      "end": 2.7
     },
     {
       "word": "for",
-      "start": 2.74,
-      "end": 2.82
+      "start": 2.7,
+      "end": 2.9
     },
     {
       "word": "the",
-      "start": 2.82,
-      "end": 2.944
+      "start": 2.9,
+      "end": 3.04
     },
     {
       "word": "Book",
-      "start": 2.944,
-      "end": 3.26
+      "start": 3.04,
+      "end": 3.46
     },
     {
       "word": "App",
-      "start": 3.26,
-      "end": 3.893
+      "start": 3.46,
+      "end": 3.92
     },
     {
       "word": "in",
-      "start": 3.893,
-      "end": 4.04
+      "start": 3.92,
+      "end": 4.14
     },
     {
       "word": "its",
-      "start": 4.04,
-      "end": 4.24
+      "start": 4.14,
+      "end": 4.38
     },
     {
       "word": "own",
-      "start": 4.24,
-      "end": 4.56
+      "start": 4.38,
+      "end": 4.64
     },
     {
       "word": "worktree",
-      "start": 4.56,
-      "end": 4.81
+      "start": 4.64,
+      "end": 4.89
     }
   ]
 }

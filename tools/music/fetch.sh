@@ -21,6 +21,7 @@ TRACKS=(
   "music_salty_sway|suno:4411cff4-7e13-45d8-a90b-07e15ad9fd2e|bbb8a91c615de57cc5e0f9b051cc86bdb61c9edb669c5b6a16be207db761cf67|0.2|157.0"
   "music_island_reveal|suno:e9a16c98-4efe-40f7-a705-8c2ef91182a1|165ab83dd2411f1beae067cb45cd38f11e55cac735a19633089f7ef76a8ceb58|0.3|147.2"
   "music_brass_of_the_storm|suno:c7937692-3831-4a79-b7f2-66401ecc9b68|85e9baef8964374bb43540c966781411c9608d8f82e0508b717a9f6bf8ed6113|0.0|146.7"
+  "music_thousand_boughs|suno:99af60c4-84c5-4b2b-8908-7b80468b66c6|b2d08fd5e03d6d7011e7dc4b40688401bd5ef76e71cee93d74e221688df66780|0.0|148.6"
 )
 
 ONLY="${1:-}"

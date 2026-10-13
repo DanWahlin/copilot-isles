@@ -6,42 +6,42 @@
     {
       "word": "Mind",
       "start": 0,
-      "end": 0.18
+      "end": 0.2
     },
     {
       "word": "how",
-      "start": 0.18,
-      "end": 0.26
+      "start": 0.2,
+      "end": 0.34
     },
     {
       "word": "you",
-      "start": 0.26,
-      "end": 0.373
+      "start": 0.34,
+      "end": 0.453
     },
     {
       "word": "go",
-      "start": 0.373,
-      "end": 0.507
+      "start": 0.453,
+      "end": 0.587
     },
     {
       "word": "on",
-      "start": 0.507,
-      "end": 0.592
+      "start": 0.587,
+      "end": 0.672
     },
     {
       "word": "that",
-      "start": 0.592,
-      "end": 0.766
+      "start": 0.672,
+      "end": 0.834
     },
     {
       "word": "bridge",
-      "start": 0.766,
-      "end": 1.18
+      "start": 0.834,
+      "end": 1.16
     },
     {
       "word": "Captain",
-      "start": 1.18,
-      "end": 1.43
+      "start": 1.16,
+      "end": 1.41
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-13T10:10:01.177Z",
+  "generatedAt": "2026-10-13T21:05:19.219Z",
   "set": "testcove",
   "lines": [
     {
@@ -18854,78 +18854,103 @@
     {
       "id": "tb.lyra.wait",
       "speaker": "Lyra",
-      "text": "Tamsin's down at the wharf first, Captain. Then come and hear my song.",
-      "duration": 6.707,
+      "text": "I’m still tuning up. Go and see Tamsin at the wharf first, then come back for my song.",
+      "duration": 7.627,
       "files": {
         "webm": "tb.lyra.wait.webm",
         "m4a": "tb.lyra.wait.m4a"
       },
-      "hash": "2a4971ab82cf6abb",
+      "hash": "7c4de7e7170e36f8",
       "words": [
         {
-          "word": "Tamsin's",
+          "word": "I’m",
           "start": 0.052625,
-          "end": 0.671041
+          "end": 0.276333
         },
         {
-          "word": "down",
-          "start": 0.671041,
-          "end": 1.052625
+          "word": "still",
+          "start": 0.276333,
+          "end": 0.60525
         },
         {
-          "word": "at",
-          "start": 1.052625,
-          "end": 1.171041
+          "word": "tuning",
+          "start": 0.60525,
+          "end": 1.092125
         },
         {
-          "word": "the",
-          "start": 1.171041,
-          "end": 1.289458
+          "word": "up",
+          "start": 1.092125,
+          "end": 2.328958
         },
         {
-          "word": "wharf",
-          "start": 1.289458,
-          "end": 1.631583
-        },
-        {
-          "word": "first",
-          "start": 1.631583,
-          "end": 2.368416
-        },
-        {
-          "word": "Captain",
-          "start": 2.368416,
-          "end": 3.934208
-        },
-        {
-          "word": "Then",
-          "start": 3.934208,
-          "end": 4.236833
-        },
-        {
-          "word": "come",
-          "start": 4.236833,
-          "end": 4.618416
+          "word": "Go",
+          "start": 2.328958,
+          "end": 2.60525
         },
         {
           "word": "and",
-          "start": 4.618416,
-          "end": 4.815791
+          "start": 2.60525,
+          "end": 2.736833
         },
         {
-          "word": "hear",
-          "start": 4.815791,
-          "end": 5.078958
+          "word": "see",
+          "start": 2.736833,
+          "end": 2.973666
+        },
+        {
+          "word": "Tamsin",
+          "start": 2.973666,
+          "end": 3.552625
+        },
+        {
+          "word": "at",
+          "start": 3.552625,
+          "end": 3.671041
+        },
+        {
+          "word": "the",
+          "start": 3.671041,
+          "end": 3.789458
+        },
+        {
+          "word": "wharf",
+          "start": 3.789458,
+          "end": 4.131583
+        },
+        {
+          "word": "first",
+          "start": 4.131583,
+          "end": 5.052625
+        },
+        {
+          "word": "then",
+          "start": 5.052625,
+          "end": 5.342125
+        },
+        {
+          "word": "come",
+          "start": 5.342125,
+          "end": 5.631583
+        },
+        {
+          "word": "back",
+          "start": 5.631583,
+          "end": 5.934208
+        },
+        {
+          "word": "for",
+          "start": 5.934208,
+          "end": 6.052625
         },
         {
           "word": "my",
-          "start": 5.078958,
-          "end": 5.328958
+          "start": 6.052625,
+          "end": 6.263166
         },
         {
           "word": "song",
-          "start": 5.328958,
-          "end": 5.578958
+          "start": 6.263166,
+          "end": 6.513166
         }
       ],
       "voice": "en-GB-LibbyNeural"
@@ -19398,78 +19423,78 @@
     {
       "id": "tb.lyra.done",
       "speaker": "Lyra",
-      "text": "Step into a booth, Captain. Hear how each part sounds on its own.",
-      "duration": 6.507,
+      "text": "Step into any booth and hear how each part sounds on its own.",
+      "duration": 5.107,
       "files": {
         "webm": "tb.lyra.done.webm",
         "m4a": "tb.lyra.done.m4a"
       },
-      "hash": "fecdcdb1bd2bd332",
+      "hash": "54282f39734e83d8",
       "words": [
         {
           "word": "Step",
           "start": 0.052625,
-          "end": 0.447375
+          "end": 0.434208
         },
         {
           "word": "into",
-          "start": 0.447375,
-          "end": 0.828958
+          "start": 0.434208,
+          "end": 0.802625
         },
         {
-          "word": "a",
-          "start": 0.828958,
-          "end": 0.868416
+          "word": "any",
+          "start": 0.802625,
+          "end": 1.052625
         },
         {
           "word": "booth",
-          "start": 0.868416,
+          "start": 1.052625,
           "end": 1.421041
         },
         {
-          "word": "Captain",
+          "word": "and",
           "start": 1.421041,
-          "end": 3.026333
+          "end": 1.618416
         },
         {
-          "word": "Hear",
-          "start": 3.026333,
-          "end": 3.315791
+          "word": "hear",
+          "start": 1.618416,
+          "end": 1.907875
         },
         {
           "word": "how",
-          "start": 3.315791,
-          "end": 3.631583
+          "start": 1.907875,
+          "end": 2.236833
         },
         {
           "word": "each",
-          "start": 3.631583,
-          "end": 3.960541
+          "start": 2.236833,
+          "end": 2.552625
         },
         {
           "word": "part",
-          "start": 3.960541,
-          "end": 4.368416
+          "start": 2.552625,
+          "end": 2.960541
         },
         {
           "word": "sounds",
-          "start": 4.368416,
-          "end": 4.789458
+          "start": 2.960541,
+          "end": 3.35525
         },
         {
           "word": "on",
-          "start": 4.789458,
-          "end": 4.947375
+          "start": 3.35525,
+          "end": 3.539458
         },
         {
           "word": "its",
-          "start": 4.947375,
-          "end": 5.092125
+          "start": 3.539458,
+          "end": 3.697375
         },
         {
           "word": "own",
-          "start": 5.092125,
-          "end": 5.342125
+          "start": 3.697375,
+          "end": 3.947375
         }
       ],
       "voice": "en-GB-LibbyNeural"
@@ -20599,93 +20624,68 @@
     {
       "id": "tb.oak.05",
       "speaker": "Oak",
-      "text": "Cloud runs it in a cloud sandbox on GitHub's hosted infrastructure. That one's in public preview.",
-      "duration": 6.208,
+      "text": "Cloud runs it in a cloud sandbox on GitHub's hosted infrastructure.",
+      "duration": 4.408,
       "files": {
         "webm": "tb.oak.05.webm",
         "m4a": "tb.oak.05.m4a"
       },
-      "hash": "1d5b058867eee45d",
+      "hash": "c0708a3c360ddeaf",
       "words": [
         {
           "word": "Cloud",
           "start": 0,
-          "end": 0.368
+          "end": 0.4
         },
         {
           "word": "runs",
-          "start": 0.368,
-          "end": 0.587
+          "start": 0.4,
+          "end": 0.773
         },
         {
           "word": "it",
-          "start": 0.587,
-          "end": 0.693
+          "start": 0.773,
+          "end": 0.933
         },
         {
           "word": "in",
-          "start": 0.693,
-          "end": 0.9
+          "start": 0.933,
+          "end": 1.08
         },
         {
           "word": "a",
-          "start": 0.9,
-          "end": 1.033
+          "start": 1.08,
+          "end": 1.187
         },
         {
           "word": "cloud",
-          "start": 1.033,
-          "end": 1.29
+          "start": 1.187,
+          "end": 1.61
         },
         {
           "word": "sandbox",
-          "start": 1.29,
-          "end": 1.947
+          "start": 1.61,
+          "end": 2.32
         },
         {
           "word": "on",
-          "start": 1.947,
-          "end": 2.057
+          "start": 2.32,
+          "end": 2.549
         },
         {
           "word": "GitHub's",
-          "start": 2.057,
-          "end": 2.537
+          "start": 2.549,
+          "end": 3.097
         },
         {
           "word": "hosted",
-          "start": 2.537,
-          "end": 2.933
+          "start": 3.097,
+          "end": 3.493
         },
         {
           "word": "infrastructure",
-          "start": 2.933,
-          "end": 3.92
-        },
-        {
-          "word": "That",
-          "start": 3.92,
-          "end": 4.6
-        },
-        {
-          "word": "one's",
-          "start": 4.6,
-          "end": 4.827
-        },
-        {
-          "word": "in",
-          "start": 4.827,
-          "end": 4.926
-        },
-        {
-          "word": "public",
-          "start": 4.926,
-          "end": 5.26
-        },
-        {
-          "word": "preview",
-          "start": 5.26,
-          "end": 5.51
+          "start": 3.493,
+          "end": 3.743
         }
       ],
       "voice": "LEvd0YiWkwZ6hTZOmdVE"
@@ -24120,7 +24120,7 @@
         "webm": "tb.rook.wait.webm",
         "m4a": "tb.rook.wait.m4a"
       },
-      "hash": "0d1dbbefe266b888",
+      "hash": "13300e2131af5d19",
       "words": [
         {
           "word": "Ines",
@@ -24130,61 +24130,61 @@
         {
           "word": "first",
           "start": 0.36,
-          "end": 0.83
+          "end": 0.69
         },
         {
           "word": "Captain",
-          "start": 0.83,
-          "end": 1.22
+          "start": 0.69,
+          "end": 1.2
         },
         {
           "word": "She's",
-          "start": 1.22,
-          "end": 1.627
+          "start": 1.2,
+          "end": 1.547
         },
         {
           "word": "on",
-          "start": 1.627,
-          "end": 1.7
+          "start": 1.547,
+          "end": 1.62
         },
         {
           "word": "the",
-          "start": 1.7,
-          "end": 1.806
+          "start": 1.62,
+          "end": 1.726
         },
         {
           "word": "Signal",
-          "start": 1.806,
-          "end": 2.128
+          "start": 1.726,
+          "end": 2.048
         },
         {
           "word": "Deck",
-          "start": 2.128,
-          "end": 2.608
+          "start": 2.048,
+          "end": 2.368
         },
         {
           "word": "just",
-          "start": 2.608,
-          "end": 2.84
+          "start": 2.368,
+          "end": 2.6
         },
         {
           "word": "there",
-          "start": 2.84,
-          "end": 3.09
+          "start": 2.6,
+          "end": 2.85
         }
       ],
-      "voice": "j57KDF72L6gxbLk4sOo5"
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
     },
     {
       "id": "tb.rook.01",
       "speaker": "Rook",
       "text": "This bough's a branch: practice empty state copy. Its empty-state message got worse on purpose.",
-      "duration": 8.208,
+      "duration": 7.008,
       "files": {
         "webm": "tb.rook.01.webm",
         "m4a": "tb.rook.01.m4a"
       },
-      "hash": "0a35ea518b9a3f40",
+      "hash": "5c853faa6d20cb4e",
       "words": [
         {
           "word": "This",
@@ -24194,289 +24194,289 @@
         {
           "word": "bough's",
           "start": 0.24,
-          "end": 0.6
+          "end": 0.7
         },
         {
           "word": "a",
-          "start": 0.6,
-          "end": 0.709
+          "start": 0.7,
+          "end": 0.88
         },
         {
           "word": "branch",
-          "start": 0.709,
-          "end": 1.333
+          "start": 0.88,
+          "end": 1.662
         },
         {
           "word": "practice",
-          "start": 1.333,
-          "end": 2.467
+          "start": 1.662,
+          "end": 2.227
         },
         {
           "word": "empty",
-          "start": 2.467,
-          "end": 2.853
+          "start": 2.227,
+          "end": 2.627
         },
         {
           "word": "state",
-          "start": 2.853,
-          "end": 3.2
+          "start": 2.627,
+          "end": 3.04
         },
         {
           "word": "copy",
-          "start": 3.2,
-          "end": 3.94
+          "start": 3.04,
+          "end": 3.86
         },
         {
           "word": "Its",
-          "start": 3.94,
-          "end": 5.013
+          "start": 3.86,
+          "end": 4.44
         },
         {
           "word": "empty-state",
-          "start": 5.013,
-          "end": 5.59
+          "start": 4.44,
+          "end": 5.01
         },
         {
           "word": "message",
-          "start": 5.59,
-          "end": 6.2
+          "start": 5.01,
+          "end": 5.4
         },
         {
           "word": "got",
-          "start": 6.2,
-          "end": 6.653
+          "start": 5.4,
+          "end": 5.6
         },
         {
           "word": "worse",
-          "start": 6.653,
-          "end": 7.227
+          "start": 5.6,
+          "end": 6.027
         },
         {
           "word": "on",
-          "start": 7.227,
-          "end": 7.52
+          "start": 6.027,
+          "end": 6.16
         },
         {
           "word": "purpose",
-          "start": 7.52,
-          "end": 7.77
+          "start": 6.16,
+          "end": 6.41
         }
       ],
-      "voice": "j57KDF72L6gxbLk4sOo5"
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
     },
     {
       "id": "tb.rook.02",
       "speaker": "Rook",
       "text": "Point to the project, select Create from, open Branches and pick our branch. New worktree, every time.",
-      "duration": 9.408,
+      "duration": 8.708,
       "files": {
         "webm": "tb.rook.02.webm",
         "m4a": "tb.rook.02.m4a"
       },
-      "hash": "3b0112387b34a8c3",
+      "hash": "cf088e60c68c0e31",
       "words": [
         {
           "word": "Point",
           "start": 0,
-          "end": 0.267
+          "end": 0.213
         },
         {
           "word": "to",
-          "start": 0.267,
+          "start": 0.213,
           "end": 0.34
         },
         {
           "word": "the",
           "start": 0.34,
-          "end": 0.47
+          "end": 0.46
         },
         {
           "word": "project",
-          "start": 0.47,
-          "end": 1.349
+          "start": 0.46,
+          "end": 1.337
         },
         {
           "word": "select",
-          "start": 1.349,
-          "end": 1.829
+          "start": 1.337,
+          "end": 1.771
         },
         {
           "word": "Create",
-          "start": 1.829,
-          "end": 2.32
+          "start": 1.771,
+          "end": 2.384
         },
         {
           "word": "from",
-          "start": 2.32,
-          "end": 3.824
+          "start": 2.384,
+          "end": 3.104
         },
         {
           "word": "open",
-          "start": 3.824,
-          "end": 4.137
+          "start": 3.104,
+          "end": 3.737
         },
         {
           "word": "Branches",
-          "start": 4.137,
-          "end": 4.88
+          "start": 3.737,
+          "end": 4.36
         },
         {
           "word": "and",
-          "start": 4.88,
-          "end": 5.168
+          "start": 4.36,
+          "end": 4.784
         },
         {
           "word": "pick",
-          "start": 5.168,
-          "end": 5.38
+          "start": 4.784,
+          "end": 5.12
         },
         {
           "word": "our",
-          "start": 5.38,
-          "end": 5.52
+          "start": 5.12,
+          "end": 5.429
         },
         {
           "word": "branch",
-          "start": 5.52,
-          "end": 6.52
+          "start": 5.429,
+          "end": 6.3
         },
         {
           "word": "New",
-          "start": 6.52,
-          "end": 7.664
+          "start": 6.3,
+          "end": 6.784
         },
         {
           "word": "worktree",
-          "start": 7.664,
-          "end": 8.68
+          "start": 6.784,
+          "end": 7.733
         },
         {
           "word": "every",
-          "start": 8.68,
-          "end": 8.96
+          "start": 7.733,
+          "end": 8.08
         },
         {
           "word": "time",
-          "start": 8.96,
-          "end": 9.21
+          "start": 8.08,
+          "end": 8.33
         }
       ],
-      "voice": "j57KDF72L6gxbLk4sOo5"
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
     },
     {
       "id": "tb.rook.03",
       "speaker": "Rook",
       "text": "Set Mode to Plan, type hash three, pick Improve the empty state copy, and ask for a plan.",
-      "duration": 6.408,
+      "duration": 8.008,
       "files": {
         "webm": "tb.rook.03.webm",
         "m4a": "tb.rook.03.m4a"
       },
-      "hash": "9ea634a0be9111e0",
+      "hash": "48043184b9e02f07",
       "words": [
         {
           "word": "Set",
           "start": 0,
-          "end": 0.192
+          "end": 0.288
         },
         {
           "word": "Mode",
-          "start": 0.192,
-          "end": 0.373
+          "start": 0.288,
+          "end": 0.507
         },
         {
           "word": "to",
-          "start": 0.373,
-          "end": 0.56
+          "start": 0.507,
+          "end": 0.656
         },
         {
           "word": "Plan",
-          "start": 0.56,
-          "end": 1.088
+          "start": 0.656,
+          "end": 1.36
         },
         {
           "word": "type",
-          "start": 1.088,
-          "end": 1.744
+          "start": 1.36,
+          "end": 2.384
         },
         {
           "word": "hash",
-          "start": 1.744,
-          "end": 2.4
+          "start": 2.384,
+          "end": 2.707
         },
         {
           "word": "three",
-          "start": 2.4,
-          "end": 3.088
+          "start": 2.707,
+          "end": 3.584
         },
         {
           "word": "pick",
-          "start": 3.088,
-          "end": 3.68
+          "start": 3.584,
+          "end": 4.57
         },
         {
           "word": "Improve",
-          "start": 3.68,
-          "end": 4.26
+          "start": 4.57,
+          "end": 5.22
         },
         {
           "word": "the",
-          "start": 4.26,
-          "end": 4.36
+          "start": 5.22,
+          "end": 5.347
         },
         {
           "word": "empty",
-          "start": 4.36,
-          "end": 4.6
+          "start": 5.347,
+          "end": 5.733
         },
         {
           "word": "state",
-          "start": 4.6,
-          "end": 4.88
+          "start": 5.733,
+          "end": 6.08
         },
         {
           "word": "copy",
-          "start": 4.88,
-          "end": 5.46
+          "start": 6.08,
+          "end": 6.7
         },
         {
           "word": "and",
-          "start": 5.46,
-          "end": 5.58
+          "start": 6.7,
+          "end": 6.94
         },
         {
           "word": "ask",
-          "start": 5.58,
-          "end": 5.78
+          "start": 6.94,
+          "end": 7.16
         },
         {
           "word": "for",
-          "start": 5.78,
-          "end": 5.88
+          "start": 7.16,
+          "end": 7.28
         },
         {
           "word": "a",
-          "start": 5.88,
-          "end": 5.984
+          "start": 7.28,
+          "end": 7.36
         },
         {
           "word": "plan",
-          "start": 5.984,
-          "end": 6.234
+          "start": 7.36,
+          "end": 7.61
         }
       ],
-      "voice": "j57KDF72L6gxbLk4sOo5"
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
     },
     {
       "id": "tb.rook.04",
       "speaker": "Rook",
       "text": "The plan opens in the Plan tab, and Review plan takes the prompt box's place.",
-      "duration": 4.708,
+      "duration": 4.808,
       "files": {
         "webm": "tb.rook.04.webm",
         "m4a": "tb.rook.04.m4a"
       },
-      "hash": "939fa7f4b188fccc",
+      "hash": "fce0bad7695aeaca",
       "words": [
         {
           "word": "The",
@@ -24486,61 +24486,61 @@
         {
           "word": "plan",
           "start": 0.144,
-          "end": 0.48
+          "end": 0.467
         },
         {
           "word": "opens",
-          "start": 0.48,
-          "end": 0.907
+          "start": 0.467,
+          "end": 0.827
         },
         {
           "word": "in",
-          "start": 0.907,
-          "end": 0.98
+          "start": 0.827,
+          "end": 0.92
         },
         {
           "word": "the",
-          "start": 0.98,
-          "end": 1.104
+          "start": 0.92,
+          "end": 1.12
         },
         {
           "word": "Plan",
-          "start": 1.104,
-          "end": 1.46
+          "start": 1.12,
+          "end": 1.52
         },
         {
           "word": "tab",
-          "start": 1.46,
-          "end": 2.18
+          "start": 1.52,
+          "end": 1.94
         },
         {
           "word": "and",
-          "start": 2.18,
-          "end": 2.286
+          "start": 1.94,
+          "end": 2.069
         },
         {
           "word": "Review",
-          "start": 2.286,
-          "end": 2.64
+          "start": 2.069,
+          "end": 2.56
         },
         {
           "word": "plan",
-          "start": 2.64,
-          "end": 3.013
+          "start": 2.56,
+          "end": 2.933
         },
         {
           "word": "takes",
-          "start": 3.013,
-          "end": 3.3
+          "start": 2.933,
+          "end": 3.22
         },
         {
           "word": "the",
-          "start": 3.3,
-          "end": 3.406
+          "start": 3.22,
+          "end": 3.337
         },
         {
           "word": "prompt",
-          "start": 3.406,
+          "start": 3.337,
           "end": 3.74
         },
         {
@@ -24554,225 +24554,225 @@
           "end": 4.397
         }
       ],
-      "voice": "j57KDF72L6gxbLk4sOo5"
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
     },
     {
       "id": "tb.rook.05",
       "speaker": "Rook",
       "text": "Back in Interactive, run the Book App and open the preview. Search hobbit, then a made-up word, and note the empty state.",
-      "duration": 8.808,
+      "duration": 8.908,
       "files": {
         "webm": "tb.rook.05.webm",
         "m4a": "tb.rook.05.m4a"
       },
-      "hash": "6af7960196d63d22",
+      "hash": "fdf7f23451cc39c1",
       "words": [
         {
           "word": "Back",
           "start": 0,
-          "end": 0.187
+          "end": 0.213
         },
         {
           "word": "in",
-          "start": 0.187,
-          "end": 0.3
+          "start": 0.213,
+          "end": 0.38
         },
         {
           "word": "Interactive",
-          "start": 0.3,
-          "end": 1.4
+          "start": 0.38,
+          "end": 1.36
         },
         {
           "word": "run",
-          "start": 1.4,
-          "end": 1.54
+          "start": 1.36,
+          "end": 1.62
         },
         {
           "word": "the",
-          "start": 1.54,
-          "end": 1.648
+          "start": 1.62,
+          "end": 1.744
         },
         {
           "word": "Book",
-          "start": 1.648,
-          "end": 1.92
+          "start": 1.744,
+          "end": 2.08
         },
         {
           "word": "App",
-          "start": 1.92,
-          "end": 2.22
+          "start": 2.08,
+          "end": 2.36
         },
         {
           "word": "and",
-          "start": 2.22,
-          "end": 2.464
+          "start": 2.36,
+          "end": 2.544
         },
         {
           "word": "open",
-          "start": 2.464,
-          "end": 2.74
+          "start": 2.544,
+          "end": 2.82
         },
         {
           "word": "the",
-          "start": 2.74,
-          "end": 2.86
+          "start": 2.82,
+          "end": 2.95
         },
         {
           "word": "preview",
-          "start": 2.86,
-          "end": 3.577
+          "start": 2.95,
+          "end": 3.84
         },
         {
           "word": "Search",
-          "start": 3.577,
-          "end": 4.92
+          "start": 3.84,
+          "end": 4.88
         },
         {
           "word": "hobbit",
-          "start": 4.92,
-          "end": 5.552
+          "start": 4.88,
+          "end": 5.536
         },
         {
           "word": "then",
-          "start": 5.552,
-          "end": 6.04
+          "start": 5.536,
+          "end": 5.96
         },
         {
           "word": "a",
-          "start": 6.04,
-          "end": 6.112
+          "start": 5.96,
+          "end": 6.048
         },
         {
           "word": "made-up",
-          "start": 6.112,
-          "end": 6.544
+          "start": 6.048,
+          "end": 6.48
         },
         {
           "word": "word",
-          "start": 6.544,
-          "end": 7.04
+          "start": 6.48,
+          "end": 7.1
         },
         {
           "word": "and",
-          "start": 7.04,
-          "end": 7.568
+          "start": 7.1,
+          "end": 7.36
         },
         {
           "word": "note",
-          "start": 7.568,
-          "end": 7.78
+          "start": 7.36,
+          "end": 7.7
         },
         {
           "word": "the",
-          "start": 7.78,
-          "end": 7.907
+          "start": 7.7,
+          "end": 7.827
         },
         {
           "word": "empty",
-          "start": 7.907,
-          "end": 8.307
+          "start": 7.827,
+          "end": 8.24
         },
         {
           "word": "state",
-          "start": 8.307,
-          "end": 8.557
+          "start": 8.24,
+          "end": 8.49
         }
       ],
-      "voice": "j57KDF72L6gxbLk4sOo5"
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
     },
     {
       "id": "tb.rook.06",
       "speaker": "Rook",
       "text": "Then ask it to implement the plan, check the Changes tab or pill, reload, and compare.",
-      "duration": 6.208,
+      "duration": 6.008,
       "files": {
         "webm": "tb.rook.06.webm",
         "m4a": "tb.rook.06.m4a"
       },
-      "hash": "6d471669b7c62cb3",
+      "hash": "e93c649e06b281bf",
       "words": [
         {
           "word": "Then",
           "start": 0,
-          "end": 0.14
+          "end": 0.22
         },
         {
           "word": "ask",
-          "start": 0.14,
-          "end": 0.347
-        },
-        {
-          "word": "it",
-          "start": 0.347,
+          "start": 0.22,
           "end": 0.427
         },
         {
-          "word": "to",
+          "word": "it",
           "start": 0.427,
-          "end": 0.52
+          "end": 0.533
+        },
+        {
+          "word": "to",
+          "start": 0.533,
+          "end": 0.68
         },
         {
           "word": "implement",
-          "start": 0.52,
-          "end": 0.92
+          "start": 0.68,
+          "end": 1.06
         },
         {
           "word": "the",
-          "start": 0.92,
-          "end": 1.104
+          "start": 1.06,
+          "end": 1.184
         },
         {
           "word": "plan",
-          "start": 1.104,
-          "end": 1.96
+          "start": 1.184,
+          "end": 1.893
         },
         {
           "word": "check",
-          "start": 1.96,
+          "start": 1.893,
           "end": 2.18
         },
         {
           "word": "the",
           "start": 2.18,
-          "end": 2.29
+          "end": 2.3
         },
         {
           "word": "Changes",
-          "start": 2.29,
-          "end": 2.72
+          "start": 2.3,
+          "end": 2.82
         },
         {
           "word": "tab",
-          "start": 2.72,
-          "end": 3.04
+          "start": 2.82,
+          "end": 3.173
         },
         {
           "word": "or",
-          "start": 3.04,
-          "end": 3.28
+          "start": 3.173,
+          "end": 3.376
         },
         {
           "word": "pill",
-          "start": 3.28,
-          "end": 3.92
+          "start": 3.376,
+          "end": 4.309
         },
         {
           "word": "reload",
-          "start": 3.92,
-          "end": 5.06
+          "start": 4.309,
+          "end": 4.92
         },
         {
           "word": "and",
-          "start": 5.06,
-          "end": 5.19
+          "start": 4.92,
+          "end": 5.11
         },
         {
           "word": "compare",
-          "start": 5.19,
-          "end": 5.44
+          "start": 5.11,
+          "end": 5.36
         }
       ],
-      "voice": "j57KDF72L6gxbLk4sOo5"
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
     },
     {
       "id": "tb.rook.next",
@@ -24783,7 +24783,7 @@
         "webm": "tb.rook.next.webm",
         "m4a": "tb.rook.next.m4a"
       },
-      "hash": "30ce1fec51a896f6",
+      "hash": "f50128ba2dad2182",
       "words": [
         {
           "word": "Pip's",
@@ -24818,16 +24818,16 @@
         {
           "word": "in",
           "start": 1.067,
-          "end": 1.14
+          "end": 1.17
         },
         {
           "word": "the",
-          "start": 1.14,
-          "end": 1.232
+          "start": 1.17,
+          "end": 1.34
         },
         {
           "word": "Chronicle",
-          "start": 1.232,
+          "start": 1.34,
           "end": 1.6
         },
         {
@@ -24851,18 +24851,18 @@
           "end": 2.728
         }
       ],
-      "voice": "j57KDF72L6gxbLk4sOo5"
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
     },
     {
       "id": "tb.rook.assignment",
       "speaker": "Rook",
       "text": "Your turn now: a light and dark theme for the Book App, in its own worktree.",
-      "duration": 5.208,
+      "duration": 5.408,
       "files": {
         "webm": "tb.rook.assignment.webm",
         "m4a": "tb.rook.assignment.m4a"
       },
-      "hash": "f998c6e3c138f927",
+      "hash": "61140b1bab2d318f",
       "words": [
         {
           "word": "Your",
@@ -24877,788 +24877,788 @@
         {
           "word": "now",
           "start": 0.46,
-          "end": 1.16
+          "end": 1
         },
         {
           "word": "a",
-          "start": 1.16,
-          "end": 1.573
+          "start": 1,
+          "end": 1.267
         },
         {
           "word": "light",
-          "start": 1.573,
-          "end": 1.88
+          "start": 1.267,
+          "end": 1.66
         },
         {
           "word": "and",
-          "start": 1.88,
-          "end": 2.08
+          "start": 1.66,
+          "end": 1.92
         },
         {
           "word": "dark",
-          "start": 2.08,
-          "end": 2.453
+          "start": 1.92,
+          "end": 2.307
         },
         {
           "word": "theme",
-          "start": 2.453,
-          "end": 2.74
+          "start": 2.307,
+          "end": 2.7
         },
         {
           "word": "for",
-          "start": 2.74,
-          "end": 2.82
+          "start": 2.7,
+          "end": 2.9
         },
         {
           "word": "the",
-          "start": 2.82,
-          "end": 2.944
+          "start": 2.9,
+          "end": 3.04
         },
         {
           "word": "Book",
-          "start": 2.944,
-          "end": 3.26
+          "start": 3.04,
+          "end": 3.46
         },
         {
           "word": "App",
-          "start": 3.26,
-          "end": 3.893
+          "start": 3.46,
+          "end": 3.92
         },
         {
           "word": "in",
-          "start": 3.893,
-          "end": 4.04
+          "start": 3.92,
+          "end": 4.14
         },
         {
           "word": "its",
-          "start": 4.04,
-          "end": 4.24
+          "start": 4.14,
+          "end": 4.38
         },
         {
           "word": "own",
-          "start": 4.24,
-          "end": 4.56
+          "start": 4.38,
+          "end": 4.64
         },
         {
           "word": "worktree",
-          "start": 4.56,
-          "end": 4.81
+          "start": 4.64,
+          "end": 4.89
         }
       ],
-      "voice": "j57KDF72L6gxbLk4sOo5"
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
     },
     {
       "id": "tb.rook.done",
       "speaker": "Rook",
       "text": "Mind how you go on that bridge, Captain.",
-      "duration": 1.768,
+      "duration": 1.608,
       "files": {
         "webm": "tb.rook.done.webm",
         "m4a": "tb.rook.done.m4a"
       },
-      "hash": "83f355f38ff58645",
+      "hash": "27f3b5f7ed0c9bde",
       "words": [
         {
           "word": "Mind",
           "start": 0,
-          "end": 0.18
+          "end": 0.2
         },
         {
           "word": "how",
-          "start": 0.18,
-          "end": 0.26
+          "start": 0.2,
+          "end": 0.34
         },
         {
           "word": "you",
-          "start": 0.26,
-          "end": 0.373
+          "start": 0.34,
+          "end": 0.453
         },
         {
           "word": "go",
-          "start": 0.373,
-          "end": 0.507
+          "start": 0.453,
+          "end": 0.587
         },
         {
           "word": "on",
-          "start": 0.507,
-          "end": 0.592
+          "start": 0.587,
+          "end": 0.672
         },
         {
           "word": "that",
-          "start": 0.592,
-          "end": 0.766
+          "start": 0.672,
+          "end": 0.834
         },
         {
           "word": "bridge",
-          "start": 0.766,
-          "end": 1.18
+          "start": 0.834,
+          "end": 1.16
         },
         {
           "word": "Captain",
-          "start": 1.18,
-          "end": 1.43
+          "start": 1.16,
+          "end": 1.41
         }
       ],
-      "voice": "j57KDF72L6gxbLk4sOo5"
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
     },
     {
       "id": "tb.pip.wait",
       "speaker": "Pip",
       "text": "The chronicle can wait, Captain. Rook's crew first.",
-      "duration": 4.008,
+      "duration": 3.208,
       "files": {
         "webm": "tb.pip.wait.webm",
         "m4a": "tb.pip.wait.m4a"
       },
-      "hash": "b9cdb5ff8a1d1441",
+      "hash": "5c86ddc12445dd26",
       "words": [
         {
           "word": "The",
           "start": 0,
-          "end": 0.12
+          "end": 0.133
         },
         {
           "word": "chronicle",
-          "start": 0.12,
-          "end": 0.6
+          "start": 0.133,
+          "end": 0.62
         },
         {
           "word": "can",
-          "start": 0.6,
-          "end": 0.768
+          "start": 0.62,
+          "end": 0.848
         },
         {
           "word": "wait",
-          "start": 0.768,
-          "end": 1.09
+          "start": 0.848,
+          "end": 1.31
         },
         {
           "word": "Captain",
-          "start": 1.09,
-          "end": 1.92
+          "start": 1.31,
+          "end": 1.82
         },
         {
           "word": "Rook's",
-          "start": 1.92,
-          "end": 2.576
+          "start": 1.82,
+          "end": 2.224
         },
         {
           "word": "crew",
-          "start": 2.576,
-          "end": 3.067
+          "start": 2.224,
+          "end": 2.573
         },
         {
           "word": "first",
-          "start": 3.067,
-          "end": 3.317
+          "start": 2.573,
+          "end": 2.823
         }
       ],
-      "voice": "L1aJrPa7pLJEyYlh3Ilq"
+      "voice": "gwU7DXdLrTvWCiUTPZG8"
     },
     {
       "id": "tb.pip.01",
       "speaker": "Pip",
       "text": "Chronicle standup reports your work from the last day. It should list this session and its changes.",
-      "duration": 5.508,
+      "duration": 6.408,
       "files": {
         "webm": "tb.pip.01.webm",
         "m4a": "tb.pip.01.m4a"
       },
-      "hash": "a149a90c8f8a3cac",
+      "hash": "e29468c327cadf2f",
       "words": [
         {
           "word": "Chronicle",
           "start": 0,
-          "end": 0.387
+          "end": 0.48
         },
         {
           "word": "standup",
-          "start": 0.387,
-          "end": 0.86
+          "start": 0.48,
+          "end": 1.1
         },
         {
           "word": "reports",
-          "start": 0.86,
-          "end": 1.328
-        },
-        {
-          "word": "your",
-          "start": 1.328,
+          "start": 1.1,
           "end": 1.568
         },
         {
-          "word": "work",
+          "word": "your",
           "start": 1.568,
-          "end": 1.776
+          "end": 1.808
+        },
+        {
+          "word": "work",
+          "start": 1.808,
+          "end": 2.032
         },
         {
           "word": "from",
-          "start": 1.776,
-          "end": 1.86
+          "start": 2.032,
+          "end": 2.18
         },
         {
           "word": "the",
-          "start": 1.86,
-          "end": 1.984
+          "start": 2.18,
+          "end": 2.32
         },
         {
           "word": "last",
-          "start": 1.984,
-          "end": 2.34
+          "start": 2.32,
+          "end": 2.72
         },
         {
           "word": "day",
-          "start": 2.34,
-          "end": 2.933
+          "start": 2.72,
+          "end": 3.387
         },
         {
           "word": "It",
-          "start": 2.933,
-          "end": 3.383
+          "start": 3.387,
+          "end": 3.623
         },
         {
           "word": "should",
-          "start": 3.383,
-          "end": 3.584
+          "start": 3.623,
+          "end": 3.824
         },
         {
           "word": "list",
-          "start": 3.584,
-          "end": 3.872
+          "start": 3.824,
+          "end": 4.16
         },
         {
           "word": "this",
-          "start": 3.872,
-          "end": 4.05
+          "start": 4.16,
+          "end": 4.55
         },
         {
           "word": "session",
-          "start": 4.05,
-          "end": 4.46
+          "start": 4.55,
+          "end": 5.1
         },
         {
           "word": "and",
-          "start": 4.46,
-          "end": 4.68
+          "start": 5.1,
+          "end": 5.32
         },
         {
           "word": "its",
-          "start": 4.68,
-          "end": 4.86
+          "start": 5.32,
+          "end": 5.51
         },
         {
           "word": "changes",
-          "start": 4.86,
-          "end": 5.11
+          "start": 5.51,
+          "end": 5.76
         }
       ],
-      "voice": "L1aJrPa7pLJEyYlh3Ilq"
+      "voice": "gwU7DXdLrTvWCiUTPZG8"
     },
     {
       "id": "tb.pip.02",
       "speaker": "Pip",
       "text": "Slash context opens the usage popup below the prompt box. So does the AI credits icon by the microphone.",
-      "duration": 7.408,
+      "duration": 7.908,
       "files": {
         "webm": "tb.pip.02.webm",
         "m4a": "tb.pip.02.m4a"
       },
-      "hash": "640ccabac29d48b8",
+      "hash": "a842bb40c6ca04d6",
       "words": [
         {
           "word": "Slash",
           "start": 0,
-          "end": 0.42
+          "end": 0.51
         },
         {
           "word": "context",
-          "start": 0.42,
-          "end": 1.187
+          "start": 0.51,
+          "end": 1.373
         },
         {
           "word": "opens",
-          "start": 1.187,
-          "end": 1.54
+          "start": 1.373,
+          "end": 1.88
         },
         {
           "word": "the",
-          "start": 1.54,
-          "end": 1.667
+          "start": 1.88,
+          "end": 2.067
         },
         {
           "word": "usage",
-          "start": 1.667,
-          "end": 2.093
+          "start": 2.067,
+          "end": 2.48
         },
         {
           "word": "popup",
-          "start": 2.093,
-          "end": 2.6
+          "start": 2.48,
+          "end": 2.947
         },
         {
           "word": "below",
-          "start": 2.6,
-          "end": 2.82
+          "start": 2.947,
+          "end": 3.32
         },
         {
           "word": "the",
-          "start": 2.82,
-          "end": 2.937
+          "start": 3.32,
+          "end": 3.497
         },
         {
           "word": "prompt",
-          "start": 2.937,
-          "end": 3.38
+          "start": 3.497,
+          "end": 3.94
         },
         {
           "word": "box",
-          "start": 3.38,
-          "end": 4.053
+          "start": 3.94,
+          "end": 4.533
         },
         {
           "word": "So",
-          "start": 4.053,
-          "end": 4.688
+          "start": 4.533,
+          "end": 5.008
         },
         {
           "word": "does",
-          "start": 4.688,
-          "end": 4.92
+          "start": 5.008,
+          "end": 5.22
         },
         {
           "word": "the",
-          "start": 4.92,
-          "end": 5.16
+          "start": 5.22,
+          "end": 5.4
         },
         {
           "word": "AI",
-          "start": 5.16,
-          "end": 5.5
+          "start": 5.4,
+          "end": 5.74
         },
         {
           "word": "credits",
-          "start": 5.5,
-          "end": 6.016
+          "start": 5.74,
+          "end": 6.24
         },
         {
           "word": "icon",
-          "start": 6.016,
-          "end": 6.453
+          "start": 6.24,
+          "end": 6.613
         },
         {
           "word": "by",
-          "start": 6.453,
-          "end": 6.64
+          "start": 6.613,
+          "end": 6.74
         },
         {
           "word": "the",
-          "start": 6.64,
-          "end": 6.909
+          "start": 6.74,
+          "end": 6.865
         },
         {
           "word": "microphone",
-          "start": 6.909,
-          "end": 7.159
+          "start": 6.865,
+          "end": 7.115
         }
       ],
-      "voice": "L1aJrPa7pLJEyYlh3Ilq"
+      "voice": "gwU7DXdLrTvWCiUTPZG8"
     },
     {
       "id": "tb.pip.03",
       "speaker": "Pip",
       "text": "Session shows the AI credits it used. Tokens, what went to the model and back. Plan, your plan's use.",
-      "duration": 8.108,
+      "duration": 8.908,
       "files": {
         "webm": "tb.pip.03.webm",
         "m4a": "tb.pip.03.m4a"
       },
-      "hash": "99bef68924b9d1ba",
+      "hash": "76941b4ac13b39ed",
       "words": [
         {
           "word": "Session",
           "start": 0,
-          "end": 0.467
+          "end": 0.56
         },
         {
           "word": "shows",
-          "start": 0.467,
-          "end": 0.82
+          "start": 0.56,
+          "end": 1
         },
         {
           "word": "the",
-          "start": 0.82,
-          "end": 0.96
+          "start": 1,
+          "end": 1.2
         },
         {
           "word": "AI",
-          "start": 0.96,
-          "end": 1.26
+          "start": 1.2,
+          "end": 1.7
         },
         {
           "word": "credits",
-          "start": 1.26,
-          "end": 1.733
+          "start": 1.7,
+          "end": 2.48
         },
         {
           "word": "it",
-          "start": 1.733,
-          "end": 1.936
+          "start": 2.48,
+          "end": 2.736
         },
         {
           "word": "used",
-          "start": 1.936,
-          "end": 2.869
+          "start": 2.736,
+          "end": 3.714
         },
         {
           "word": "Tokens",
-          "start": 2.869,
-          "end": 3.424
+          "start": 3.714,
+          "end": 4.448
         },
         {
           "word": "what",
-          "start": 3.424,
-          "end": 3.728
+          "start": 4.448,
+          "end": 4.704
         },
         {
           "word": "went",
-          "start": 3.728,
-          "end": 3.947
+          "start": 4.704,
+          "end": 4.987
         },
         {
           "word": "to",
-          "start": 3.947,
-          "end": 4.02
+          "start": 4.987,
+          "end": 5.08
         },
         {
           "word": "the",
-          "start": 4.02,
-          "end": 4.16
+          "start": 5.08,
+          "end": 5.253
         },
         {
           "word": "model",
-          "start": 4.16,
-          "end": 4.62
+          "start": 5.253,
+          "end": 5.56
         },
         {
           "word": "and",
-          "start": 4.62,
-          "end": 4.88
+          "start": 5.56,
+          "end": 5.776
         },
         {
           "word": "back",
-          "start": 4.88,
-          "end": 5.616
-        },
-        {
-          "word": "Plan",
-          "start": 5.616,
+          "start": 5.776,
           "end": 6.608
         },
         {
-          "word": "your",
+          "word": "Plan",
           "start": 6.608,
-          "end": 6.896
+          "end": 7.456
+        },
+        {
+          "word": "your",
+          "start": 7.456,
+          "end": 7.744
         },
         {
           "word": "plan's",
-          "start": 6.896,
-          "end": 7.46
+          "start": 7.744,
+          "end": 8.2
         },
         {
           "word": "use",
-          "start": 7.46,
-          "end": 7.71
+          "start": 8.2,
+          "end": 8.45
         }
       ],
-      "voice": "L1aJrPa7pLJEyYlh3Ilq"
+      "voice": "gwU7DXdLrTvWCiUTPZG8"
     },
     {
       "id": "tb.pip.04",
       "speaker": "Pip",
       "text": "Select the Context bar for the breakdown. Check it before you pile on more files.",
-      "duration": 5.808,
+      "duration": 5.108,
       "files": {
         "webm": "tb.pip.04.webm",
         "m4a": "tb.pip.04.m4a"
       },
-      "hash": "e979da4da32ddb53",
+      "hash": "9cb731c050023414",
       "words": [
         {
           "word": "Select",
           "start": 0,
-          "end": 0.26
+          "end": 0.36
         },
         {
           "word": "the",
-          "start": 0.26,
-          "end": 0.4
+          "start": 0.36,
+          "end": 0.54
         },
         {
           "word": "Context",
-          "start": 0.4,
-          "end": 1.02
+          "start": 0.54,
+          "end": 1.04
         },
         {
           "word": "bar",
-          "start": 1.02,
-          "end": 1.24
+          "start": 1.04,
+          "end": 1.3
         },
         {
           "word": "for",
-          "start": 1.24,
+          "start": 1.3,
           "end": 1.38
         },
         {
           "word": "the",
           "start": 1.38,
-          "end": 1.504
+          "end": 1.496
         },
         {
           "word": "breakdown",
-          "start": 1.504,
-          "end": 2.64
+          "start": 1.496,
+          "end": 2.4
         },
         {
           "word": "Check",
-          "start": 2.64,
-          "end": 3.093
+          "start": 2.4,
+          "end": 2.853
         },
         {
           "word": "it",
-          "start": 3.093,
-          "end": 3.291
+          "start": 2.853,
+          "end": 2.994
         },
         {
           "word": "before",
-          "start": 3.291,
-          "end": 3.86
+          "start": 2.994,
+          "end": 3.26
         },
         {
           "word": "you",
-          "start": 3.86,
-          "end": 4
+          "start": 3.26,
+          "end": 3.504
         },
         {
           "word": "pile",
-          "start": 4,
-          "end": 4.427
+          "start": 3.504,
+          "end": 3.813
         },
         {
           "word": "on",
-          "start": 4.427,
-          "end": 4.688
+          "start": 3.813,
+          "end": 3.968
         },
         {
           "word": "more",
-          "start": 4.688,
-          "end": 4.987
+          "start": 3.968,
+          "end": 4.253
         },
         {
           "word": "files",
-          "start": 4.987,
-          "end": 5.237
+          "start": 4.253,
+          "end": 4.503
         }
       ],
-      "voice": "L1aJrPa7pLJEyYlh3Ilq"
+      "voice": "gwU7DXdLrTvWCiUTPZG8"
     },
     {
       "id": "tb.pip.05",
       "speaker": "Pip",
       "text": "Select the session name at the top of the window for its branches, its Path and its Session ID.",
-      "duration": 6.208,
+      "duration": 6.408,
       "files": {
         "webm": "tb.pip.05.webm",
         "m4a": "tb.pip.05.m4a"
       },
-      "hash": "c1d58abd4d497dee",
+      "hash": "f1ce614a1aa9e15f",
       "words": [
         {
           "word": "Select",
           "start": 0,
-          "end": 0.26
-        },
-        {
-          "word": "the",
-          "start": 0.26,
           "end": 0.36
         },
         {
-          "word": "session",
+          "word": "the",
           "start": 0.36,
-          "end": 0.72
+          "end": 0.53
+        },
+        {
+          "word": "session",
+          "start": 0.53,
+          "end": 0.96
         },
         {
           "word": "name",
-          "start": 0.72,
-          "end": 1.067
+          "start": 0.96,
+          "end": 1.307
         },
         {
           "word": "at",
-          "start": 1.067,
-          "end": 1.16
+          "start": 1.307,
+          "end": 1.4
         },
         {
           "word": "the",
-          "start": 1.16,
-          "end": 1.34
+          "start": 1.4,
+          "end": 1.58
         },
         {
           "word": "top",
-          "start": 1.34,
-          "end": 1.547
+          "start": 1.58,
+          "end": 1.813
         },
         {
           "word": "of",
-          "start": 1.547,
-          "end": 1.62
+          "start": 1.813,
+          "end": 1.94
         },
         {
           "word": "the",
-          "start": 1.62,
-          "end": 1.737
+          "start": 1.94,
+          "end": 2.046
         },
         {
           "word": "window",
-          "start": 1.737,
-          "end": 2.12
+          "start": 2.046,
+          "end": 2.38
         },
         {
           "word": "for",
-          "start": 2.12,
-          "end": 2.3
+          "start": 2.38,
+          "end": 2.6
         },
         {
           "word": "its",
-          "start": 2.3,
-          "end": 2.542
+          "start": 2.6,
+          "end": 2.8
         },
         {
           "word": "branches",
-          "start": 2.542,
-          "end": 3.34
+          "start": 2.8,
+          "end": 3.88
         },
         {
           "word": "its",
-          "start": 3.34,
-          "end": 3.632
+          "start": 3.88,
+          "end": 4.112
         },
         {
           "word": "Path",
-          "start": 3.632,
-          "end": 4.16
+          "start": 4.112,
+          "end": 4.68
         },
         {
           "word": "and",
-          "start": 4.16,
-          "end": 4.46
+          "start": 4.68,
+          "end": 5.08
         },
         {
           "word": "its",
-          "start": 4.46,
-          "end": 4.71
+          "start": 5.08,
+          "end": 5.25
         },
         {
           "word": "Session",
-          "start": 4.71,
-          "end": 5.36
+          "start": 5.25,
+          "end": 5.72
         },
         {
           "word": "ID",
-          "start": 5.36,
-          "end": 5.61
+          "start": 5.72,
+          "end": 5.97
         }
       ],
-      "voice": "L1aJrPa7pLJEyYlh3Ilq"
+      "voice": "gwU7DXdLrTvWCiUTPZG8"
     },
     {
       "id": "tb.pip.06",
       "speaker": "Pip",
       "text": "Then ask Copilot to stop the session's development server. No pull request needed.",
-      "duration": 5.808,
+      "duration": 5.608,
       "files": {
         "webm": "tb.pip.06.webm",
         "m4a": "tb.pip.06.m4a"
       },
-      "hash": "0ad805b85b2d6938",
+      "hash": "d3bcc1779315e2bf",
       "words": [
         {
           "word": "Then",
           "start": 0,
-          "end": 0.42
+          "end": 0.36
         },
         {
           "word": "ask",
-          "start": 0.42,
-          "end": 0.82
+          "start": 0.36,
+          "end": 0.8
         },
         {
           "word": "Copilot",
-          "start": 0.82,
-          "end": 1.413
+          "start": 0.8,
+          "end": 1.333
         },
         {
           "word": "to",
-          "start": 1.413,
-          "end": 1.568
+          "start": 1.333,
+          "end": 1.536
         },
         {
           "word": "stop",
-          "start": 1.568,
-          "end": 1.78
+          "start": 1.536,
+          "end": 1.94
         },
         {
           "word": "the",
-          "start": 1.78,
-          "end": 1.89
+          "start": 1.94,
+          "end": 2.06
         },
         {
           "word": "session's",
-          "start": 1.89,
-          "end": 2.367
+          "start": 2.06,
+          "end": 2.607
         },
         {
           "word": "development",
-          "start": 2.367,
-          "end": 2.937
+          "start": 2.607,
+          "end": 3.177
         },
         {
           "word": "server",
-          "start": 2.937,
-          "end": 3.76
+          "start": 3.177,
+          "end": 3.947
         },
         {
           "word": "No",
-          "start": 3.76,
-          "end": 4.144
+          "start": 3.947,
+          "end": 4.208
         },
         {
           "word": "pull",
-          "start": 4.144,
-          "end": 4.48
+          "start": 4.208,
+          "end": 4.45
         },
         {
           "word": "request",
-          "start": 4.48,
-          "end": 5.109
+          "start": 4.45,
+          "end": 4.869
         },
         {
           "word": "needed",
-          "start": 5.109,
-          "end": 5.359
+          "start": 4.869,
+          "end": 5.119
         }
       ],
-      "voice": "L1aJrPa7pLJEyYlh3Ilq"
+      "voice": "gwU7DXdLrTvWCiUTPZG8"
     },
     {
       "id": "tb.pip.next",
       "speaker": "Pip",
       "text": "The Elder's waiting at the Crown, Captain. Last flight up.",
-      "duration": 2.968,
+      "duration": 3.208,
       "files": {
         "webm": "tb.pip.next.webm",
         "m4a": "tb.pip.next.m4a"
       },
-      "hash": "b61d27421c103dde",
+      "hash": "4678a4dd3b91a2e1",
       "words": [
         {
           "word": "The",
@@ -25683,35 +25683,35 @@
         {
           "word": "the",
           "start": 0.74,
-          "end": 0.853
+          "end": 0.867
         },
         {
           "word": "Crown",
-          "start": 0.853,
-          "end": 1.25
+          "start": 0.867,
+          "end": 1.33
         },
         {
           "word": "Captain",
-          "start": 1.25,
-          "end": 1.808
+          "start": 1.33,
+          "end": 1.792
         },
         {
           "word": "Last",
-          "start": 1.808,
-          "end": 2.366
+          "start": 1.792,
+          "end": 2.286
         },
         {
           "word": "flight",
-          "start": 2.366,
-          "end": 2.693
+          "start": 2.286,
+          "end": 2.64
         },
         {
           "word": "up",
-          "start": 2.693,
-          "end": 2.943
+          "start": 2.64,
+          "end": 2.89
         }
       ],
-      "voice": "L1aJrPa7pLJEyYlh3Ilq"
+      "voice": "gwU7DXdLrTvWCiUTPZG8"
     },
     {
       "id": "tb.pip.done",
@@ -25722,7 +25722,7 @@
         "webm": "tb.pip.done.webm",
         "m4a": "tb.pip.done.m4a"
       },
-      "hash": "079cd3e5422f5dbf",
+      "hash": "3d9418743ee12d1b",
       "words": [
         {
           "word": "Every",
@@ -25732,55 +25732,55 @@
         {
           "word": "day",
           "start": 0.3,
-          "end": 0.544
+          "end": 0.512
         },
         {
           "word": "goes",
-          "start": 0.544,
-          "end": 0.827
+          "start": 0.512,
+          "end": 0.667
         },
         {
           "word": "in",
-          "start": 0.827,
-          "end": 0.9
+          "start": 0.667,
+          "end": 0.74
         },
         {
           "word": "the",
-          "start": 0.9,
-          "end": 1.006
+          "start": 0.74,
+          "end": 0.857
         },
         {
           "word": "ledger",
-          "start": 1.006,
-          "end": 1.42
+          "start": 0.857,
+          "end": 1.34
         },
         {
           "word": "Captain",
-          "start": 1.42,
-          "end": 2.368
+          "start": 1.34,
+          "end": 2.144
         },
         {
           "word": "Even",
-          "start": 2.368,
-          "end": 2.74
+          "start": 2.144,
+          "end": 2.42
         },
         {
           "word": "the",
-          "start": 2.74,
-          "end": 2.848
+          "start": 2.42,
+          "end": 2.528
         },
         {
           "word": "dull",
-          "start": 2.848,
-          "end": 3.12
+          "start": 2.528,
+          "end": 2.8
         },
         {
           "word": "ones",
-          "start": 3.12,
-          "end": 3.37
+          "start": 2.8,
+          "end": 3.05
         }
       ],
-      "voice": "L1aJrPa7pLJEyYlh3Ilq"
+      "voice": "gwU7DXdLrTvWCiUTPZG8"
     },
     {
       "id": "tb.elder.wait",

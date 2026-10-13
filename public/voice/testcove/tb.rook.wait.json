@@ -11,47 +11,47 @@
     {
       "word": "first",
       "start": 0.36,
-      "end": 0.83
+      "end": 0.69
     },
     {
       "word": "Captain",
-      "start": 0.83,
-      "end": 1.22
+      "start": 0.69,
+      "end": 1.2
     },
     {
       "word": "She's",
-      "start": 1.22,
-      "end": 1.627
+      "start": 1.2,
+      "end": 1.547
     },
     {
       "word": "on",
-      "start": 1.627,
-      "end": 1.7
+      "start": 1.547,
+      "end": 1.62
     },
     {
       "word": "the",
-      "start": 1.7,
-      "end": 1.806
+      "start": 1.62,
+      "end": 1.726
     },
     {
       "word": "Signal",
-      "start": 1.806,
-      "end": 2.128
+      "start": 1.726,
+      "end": 2.048
     },
     {
       "word": "Deck",
-      "start": 2.128,
-      "end": 2.608
+      "start": 2.048,
+      "end": 2.368
     },
     {
       "word": "just",
-      "start": 2.608,
-      "end": 2.84
+      "start": 2.368,
+      "end": 2.6
     },
     {
       "word": "there",
-      "start": 2.84,
-      "end": 3.09
+      "start": 2.6,
+      "end": 2.85
     }
   ]
 }
