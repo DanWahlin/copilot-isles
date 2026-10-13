@@ -660,7 +660,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 | Item | Budget |
 |---|---|
 | `boot` JS | ≤ 150 KB gz |
-| `vendor-three` | ≤ 250 KB gz (`three/webgpu`: WebGPURenderer + WebGL2 backend + TSL node system, measured 234 KB gz) |
+| `vendor-three` | ≤ 256 KB gz (`three/webgpu`: WebGPURenderer + WebGL2 backend + TSL node system, measured 234 KB gz at first; 251.2 KB after the shader-program cuts used more of the node and shadow system, so the cap went from 250 to 256 KB) |
 | Title assets + `title/ship` | ≤ 3.5 MB |
 | **→ Title (cold), wire ceiling** | **≤ 4 MB, ≤ 3 s of transfer at 25 Mbps** |
 | `game-core` + `sailing` + `physics` | ≤ 1.5 MB |

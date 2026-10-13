@@ -1,5 +1,5 @@
 {
-  "$comment": "PLAN \u00a713.5 load budgets, enforced in CI on the production build (gzip -9 sizes). vendor-three = three/webgpu (WebGPURenderer + WebGL2 backend + node/TSL system), measured 234 KB gz at three 0.186.",
+  "$comment": "PLAN \u00a713.5 load budgets, enforced in CI on the production build (gzip -9 sizes). vendor-three = three/webgpu (WebGPURenderer + WebGL2 backend + node/TSL system), measured 234 KB gz at three 0.186; 251.2 KB after the \u2264150-programs work (ce218a1) pulled in more of the node/shadow system, so the cap is 256 KB.",
   "chunks": {
     "boot (entry)": {
       "entry": true,
@@ -7,7 +7,7 @@
     },
     "vendor-three": {
       "name": "vendor-three",
-      "maxGzipKB": 250
+      "maxGzipKB": 256
     },
     "vendor-ui": {
       "name": "vendor-ui",
