@@ -17,6 +17,7 @@ import type { Interactions } from './interaction';
 import { NpcCrowd, type Npc } from './npcs';
 import { createChannelRouting } from './puzzles/channel-routing/puzzle';
 import { FlagHoist, FLAGS, type FlagSymbol } from './puzzles/flag-hoist';
+import { createPracticeSession } from './puzzles/practice-session';
 import type { Puzzle, PuzzleHost } from './puzzles/types';
 import type { ScriptStep } from './script';
 import { THOUSAND_BOUGH_NPCS, thousandBoughExtras } from './thousand-bough-npcs';
@@ -157,6 +158,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
   let crowd: NpcCrowd | null = null;
   let bottleSite: BottleSite | null = null;
   let disposed = false;
+  let unwatchBranch: (() => void) | null = null;
   const ids = new Set(THOUSAND_BOUGH_NPCS.map((n) => n.id));
   const q = () => host.puzzleHost.quests();
   const done = (id: string) => q()[id] === 'done';
@@ -320,6 +322,9 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
   host.cues.set('tb-flume-demo', async () => {
     await routing?.demo();
   });
+  host.cues.set('tb-flume-clear', async () => {
+    await routing?.demoClear();
+  });
   host.cues.set('tb-flume-open', async () => {
     openBoardSoon = true;
   });
@@ -350,6 +355,11 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
     const none = { roots: [] as Object3D[], reveal() {} };
     if (disposed || sys) return none;
     sys = s;
+    // The Practice Bough's sign shows the player's practice branch (Your setup): painted now, before
+    // the island's warm-up uploads its atlas, and again when they change it (behind the setup form).
+    const branch = () => host.learn?.getState().setup.branch ?? null;
+    s.setPracticeBranch(branch());
+    unwatchBranch = host.learn?.subscribe(() => sys?.setPracticeBranch(branch())) ?? null;
     for (const b of s.colliders()) host.world.addBox(b);
     for (const c of s.circles()) host.world.addCircle(c);
     for (const b of s.cameraBoxes()) host.world.addCameraBox(b);
@@ -425,11 +435,21 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
         project: (x, y, z) => project(x, y, z),
         setModal,
         reducedMotion: host.reducedMotion,
+        fade: host.fade,
         closing: FEN_SOLVED,
       },
       s,
     );
     host.puzzles.push(routing);
+    // Rook's practice session, with the player's own branch and issue number (Your setup).
+    host.puzzles.push(
+      createPracticeSession({
+        rook: A.rook,
+        player: host.player,
+        setup: () => host.learn?.getState().setup ?? null,
+        started: () => !!q()['Q2.7'],
+      }),
+    );
     host.interactions.add({
       id: 'gondola:bell',
       label: () => 'Ring the gondola bell',
@@ -589,6 +609,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
     },
     dispose() {
       disposed = true;
+      unwatchBranch?.();
       setHearing(false);
       crowd?.dispose();
       unmountHoist?.();

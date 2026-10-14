@@ -76,7 +76,10 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
           Privacy: to read the course, your browser connects to raw.githubusercontent.com, so GitHub sees your
           IP address, just like when you open a course link. If GitHub can’t be reached, the game uses the
           copy that comes with it. If you tell the game your fork’s address, it stays in your save on this
-          device, and the game never looks it up on GitHub.
+          device, and the game never looks it up on GitHub. The same goes for the rest of Your setup: your
+          computer (the game asks your browser which system it’s on, to show the right shortcut keys), your
+          practice issue’s number, your session’s branch, and the model you picked. None of it is sent
+          anywhere, and you can change or forget it in the Logbook.
         </p>
         {courseLicense && (
           <details className="ci-credits-license">

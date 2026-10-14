@@ -7,35 +7,36 @@ const src = courseRefs(ch);
 /** A rect in the course's 1920 × 1080 app screenshots, in pixels → normalized. */
 const px = (x: number, y: number, w: number, h: number): Rect => [x / 1920, y / 1080, w / 1920, h / 1080];
 
-// app-new-page (measured from the course image): the sidebar rows and the controls round the prompt box.
+// app-new-page (measured on the course's app 1.1.27-1.1.28 screenshot): the sidebar rows and the
+// controls round the prompt box.
 const NEW = {
-  new: px(10, 68, 330, 40),
-  pullRequests: px(10, 108, 330, 40),
-  issues: px(10, 148, 330, 40),
-  automations: px(10, 188, 330, 40),
-  customize: px(10, 228, 330, 40),
-  more: px(10, 268, 330, 40),
-  projectsPlus: px(300, 328, 34, 34),
-  project: px(10, 364, 330, 40),
-  promptPlus: px(670, 530, 32, 32),
-  mode: px(704, 530, 90, 32),
-  model: px(798, 530, 160, 32),
-  picker: px(672, 582, 216, 32),
-  checkout: px(906, 582, 200, 32),
-  mic: px(1522, 530, 32, 32),
+  new: px(10, 76, 368, 42),
+  pullRequests: px(10, 120, 368, 42),
+  issues: px(10, 164, 368, 42),
+  automations: px(10, 209, 368, 42),
+  customize: px(10, 253, 368, 42),
+  more: px(10, 297, 368, 42),
+  projectsPlus: px(336, 368, 34, 34),
+  project: px(10, 405, 368, 40),
+  promptPlus: px(638, 531, 32, 32),
+  mode: px(678, 531, 94, 32),
+  model: px(778, 531, 180, 32),
+  picker: px(638, 588, 244, 32),
+  checkout: px(894, 588, 230, 32),
+  mic: px(1589, 529, 32, 32),
 } as const;
 
 // app-settings: the Settings list on the left of the dialog.
 const SETTINGS = {
-  general: px(400, 198, 270, 36),
-  accounts: px(400, 238, 270, 36),
-  sessions: px(400, 278, 270, 36),
-  themes: px(400, 318, 270, 36),
-  accessibility: px(400, 358, 270, 36),
-  voice: px(400, 398, 270, 36),
-  customize: px(400, 458, 270, 36),
-  providers: px(400, 498, 270, 36),
-  experimental: px(400, 558, 270, 36),
+  general: px(340, 193, 296, 40),
+  accounts: px(340, 238, 296, 40),
+  sessions: px(340, 282, 296, 40),
+  themes: px(340, 327, 296, 40),
+  accessibility: px(340, 371, 296, 40),
+  voice: px(340, 415, 296, 40),
+  customize: px(340, 482, 296, 40),
+  providers: px(340, 527, 296, 40),
+  experimental: px(340, 593, 296, 40),
 } as const;
 
 /** The course's prompts for this chapter, word for word. */
@@ -61,7 +62,7 @@ export const CH01: ChapterContent = {
     {
       id: 'ch01/app-new-page',
       src: 'course/ch01/app-new-page.webp',
-      hash: '8dc43babb590',
+      hash: '37be111c3c45',
       width: 1920,
       height: 1080,
       alt: 'The New view: New, Pull requests, Issues, Automations, Customize and More in the sidebar, Projects with the course project, and the prompt box with the mode and model controls, the project picker and Current checkout',
@@ -69,7 +70,7 @@ export const CH01: ChapterContent = {
     {
       id: 'ch01/app-pull-requests-page',
       src: 'course/ch01/app-pull-requests-page.webp',
-      hash: 'dfb60b2c8754',
+      hash: 'ac5c638405ce',
       width: 1920,
       height: 1080,
       alt: 'The Pull requests view on its Authored by me tab, listing the three practice pull requests. Failing stats check practice shows Failed',
@@ -77,7 +78,7 @@ export const CH01: ChapterContent = {
     {
       id: 'ch01/app-issues-page',
       src: 'course/ch01/app-issues-page.webp',
-      hash: '9b567bc4bd53',
+      hash: '09e6cab47ef6',
       width: 1920,
       height: 1080,
       alt: 'The Issues view on its Assigned to me tab, listing the five practice issues, such as Make search case-insensitive',
@@ -85,7 +86,7 @@ export const CH01: ChapterContent = {
     {
       id: 'ch01/app-automations-page',
       src: 'course/ch01/app-automations-page.webp',
-      hash: 'e50152cffcf1',
+      hash: '690be38e00a2',
       width: 1920,
       height: 1080,
       alt: 'The Automations view: Set up automations, templates such as Issue triage (Daily), Changelog draft (Weekly) and Repo audit (Manual), and the skills you can turn into automations',
@@ -101,10 +102,10 @@ export const CH01: ChapterContent = {
     {
       id: 'ch01/app-quick-chat',
       src: 'course/ch01/app-quick-chat.webp',
-      hash: 'e16123e337a4',
+      hash: '0e15d445340b',
       width: 1920,
       height: 1080,
-      alt: 'The Projects menu open: callout 1 on the + next to Projects and callout 2 on Chat, with the project picker below the prompt showing Chat',
+      alt: 'The Projects menu open: callout 1 on the + next to Projects and callout 2 on Chat, above the course project, Add GitHub repository, Clone repository and Open folder',
     },
     {
       id: 'ch01/session-mode-decision-ladder',
@@ -117,7 +118,7 @@ export const CH01: ChapterContent = {
     {
       id: 'ch01/app-settings',
       src: 'course/ch01/app-settings.webp',
-      hash: '22673bb4b5b2',
+      hash: '5bfe69fa74d5',
       width: 1920,
       height: 1080,
       alt: 'The Settings dialog on General, with General, Accounts, Sessions, Themes, Accessibility, Voice dictation, Customize, Model providers, Experimental and Projects, and an arrow to the gear at the bottom of the sidebar',
@@ -219,7 +220,7 @@ export const CH01: ChapterContent = {
         'Pull requests and issues each have their own view.',
         'Select **Issues**.',
       ],
-      source: src('issues', 'dd5009d56d26', { src: 'course/ch01/app-new-page.webp', hash: '8dc43babb590' }),
+      source: src('issues', 'dd5009d56d26', { src: 'course/ch01/app-new-page.webp', hash: '37be111c3c45' }),
     },
     {
       id: 'H1.2',
@@ -263,7 +264,7 @@ export const CH01: ChapterContent = {
       ],
       source: src('chat-sessions', '98f6ea579753', {
         src: 'course/ch01/app-new-page.webp',
-        hash: '8dc43babb590',
+        hash: '37be111c3c45',
       }),
     },
     {
@@ -338,9 +339,9 @@ export const CH01: ChapterContent = {
         'It sits right beside the mode selector and shows a model’s name.',
         'Select **GPT-6.1 Sol · Medium**.',
       ],
-      source: src('models-and-reasoning-effort', 'fa067b6725ad', {
+      source: src('models-and-reasoning-effort', '84d625491118', {
         src: 'course/ch01/app-new-page.webp',
-        hash: '8dc43babb590',
+        hash: '37be111c3c45',
       }),
     },
     {
@@ -382,7 +383,7 @@ export const CH01: ChapterContent = {
         'The area is named after what it configures.',
         'Select **Sessions**.',
       ],
-      source: src('settings', 'b03fa006d333', { src: 'course/ch01/app-settings.webp', hash: '22673bb4b5b2' }),
+      source: src('settings', '5b95eb5b50e3', { src: 'course/ch01/app-settings.webp', hash: '5bfe69fa74d5' }),
     },
 
     // ---- The Admiral's Exam (A1): the chapter's six key takeaways ----
@@ -539,7 +540,93 @@ export const CH01: ChapterContent = {
           'Right. Higher effort can help with complex problems, but can take longer. Higher effort does not guarantee a correct answer.',
         wrong: 'More effort isn’t a promise of a right answer.',
       },
-      source: src('models-and-reasoning-effort', 'fa067b6725ad'),
+      source: src('models-and-reasoning-effort', '84d625491118'),
+    },
+    // Your setup: one of N1.3 and N1.4, for what the player says they kept in the model control.
+    {
+      id: 'N1.3',
+      type: 'mc',
+      prompt: 'You kept **Auto** in the model control. Where does the app tell you which model it chose?',
+      options: [
+        { id: 'conversation', text: 'In the conversation, with a short reason for its choice' },
+        {
+          id: 'settings',
+          text: 'In **Settings**',
+          feedback: 'With **Auto**, the app says which model it picked right in the conversation.',
+        },
+        {
+          id: 'hidden',
+          text: 'Nowhere: **Auto** hides the model',
+          feedback:
+            'The **Auto** switch hides **Model**, **Effort** and **Context window**, but the conversation still shows which model the app picked.',
+        },
+      ],
+      answer: 'conversation',
+      explain: {
+        correct:
+          'Right. With **Auto**, the app chooses a model for your task and shows which one it picked in the conversation, with a short reason why.',
+        wrong: 'Look where the app answers you.',
+      },
+      hints: [
+        'It’s where the reply appears.',
+        'Not a menu: the conversation itself.',
+        'In the conversation.',
+      ],
+      source: src('models-and-reasoning-effort', '84d625491118'),
+    },
+    {
+      id: 'N1.4',
+      type: 'mc',
+      prompt:
+        'Your model control shows {model}. Partway through the session, you want a different model or effort. What do you do?',
+      options: [
+        { id: 'change', text: 'Change it in the model control. The session keeps its mode.' },
+        {
+          id: 'new',
+          text: 'Start a new session',
+          feedback: 'You don’t need a new session. You can change the model and effort mid-session.',
+        },
+        {
+          id: 'mode',
+          text: 'Switch the mode to **Autopilot** first',
+          feedback: '**Autopilot** is a mode. Changing the model or effort doesn’t change the mode.',
+        },
+      ],
+      answer: 'change',
+      explain: {
+        correct:
+          'Right. You can change the model and reasoning effort during a session without changing its mode.',
+        wrong: 'Oren said you can change them mid-session.',
+      },
+      hints: [
+        'You don’t have to start again.',
+        'The mode stays as it is.',
+        'Change it in the model control.',
+      ],
+      source: src('try-the-controls', '1a9a4b2f69f1'),
+    },
+    // The course's one shortcut, in the player's computer's keys (Your setup).
+    {
+      id: 'N1.5',
+      type: 'mc',
+      prompt: 'Where do you find the prompts you sent before, across all your sessions?',
+      options: [
+        { id: 'history', text: 'Press **{key:mod+R}** for your prompt history' },
+        {
+          id: 'hash',
+          text: 'Type `#` in the prompt box',
+          feedback: '`#` attaches issues and pull requests.',
+        },
+        { id: 'slash', text: 'Type `/` in the prompt box', feedback: '`/` runs commands.' },
+      ],
+      answer: 'history',
+      explain: {
+        correct:
+          'Right. **{key:mod+R}** opens your prompt history, across all sessions. Search it, and select a prompt to reuse it.',
+        wrong: 'It’s a keyboard shortcut, not a character you type.',
+      },
+      hints: ['It’s a keyboard shortcut.', 'Hold one key and press R.', 'Press {key:mod+R}.'],
+      source: src('prompts-and-shortcuts', '06812f77c4eb'),
     },
     {
       id: 'A1.5',
@@ -610,7 +697,7 @@ export const CH01: ChapterContent = {
           'Right. With **Auto**, the app picks the model. **Autopilot** is different: it controls how independently the agent works.',
         wrong: 'Auto and Autopilot sound alike but control different things.',
       },
-      source: src('models-and-reasoning-effort', 'fa067b6725ad'),
+      source: src('models-and-reasoning-effort', '84d625491118'),
     },
     {
       id: 'A1.8',
@@ -643,7 +730,7 @@ export const CH01: ChapterContent = {
         correct: 'Right. Open the mode selector (it says **Interactive** now) and pick **Plan**.',
         wrong: 'Modes are chosen below the prompt, where it says **Interactive**.',
       },
-      source: src('modes', '4a1370424345', { src: 'course/ch01/app-new-page.webp', hash: '8dc43babb590' }),
+      source: src('modes', '4a1370424345', { src: 'course/ch01/app-new-page.webp', hash: '37be111c3c45' }),
     },
     {
       id: 'A1.9',
@@ -673,7 +760,7 @@ export const CH01: ChapterContent = {
         wrong:
           'Two are true. Higher effort helps but guarantees nothing, and Model providers adds providers.',
       },
-      source: src('models-and-reasoning-effort', 'fa067b6725ad'),
+      source: src('models-and-reasoning-effort', '84d625491118'),
     },
   ],
 
@@ -783,8 +870,8 @@ export const CH01: ChapterContent = {
       id: 'pg1.model',
       title: 'Model and reasoning effort',
       caption:
-        'The model control sits below the prompt box, next to the mode selector, and shows **Auto** or a model name. Open it for **Model**, **Effort** and **Context window**. If the **Auto** switch is on, they’re hidden, so turn it off to see them. With **Auto** the app picks a model, which isn’t the same as **Autopilot**. The context window is how much text the model can hold at once; a larger one can help long sessions or large codebases, but uses more AI credits. For a tour or a short explanation, keep the defaults. For a hard bug or a change across several files, consider a model suited to complex coding and higher effort. Higher effort doesn’t guarantee a correct answer.',
-      source: src('models-and-reasoning-effort', 'fa067b6725ad'),
+        'The model control sits below the prompt box, next to the mode selector, and shows **Auto** or a model name. Open it for **Model**, **Effort** and **Context window**. If the **Auto** switch is on, they’re hidden, so turn it off to see them. With **Auto** the app picks a model, then tells you in the conversation which one it chose and why. That isn’t the same as **Autopilot**. The context window is how much text the model can hold at once; a larger one can help long sessions or large codebases, but uses more AI credits. For a tour or a short explanation, keep the defaults. For a hard bug or a change across several files, consider a model suited to complex coding and higher effort. Higher effort doesn’t guarantee a correct answer. If a response doesn’t work for you, select **Retry** below it to try again with a different model, effort or context window, without retyping your prompt.',
+      source: src('models-and-reasoning-effort', '84d625491118'),
     },
     {
       id: 'pg1.try-controls',
@@ -792,7 +879,16 @@ export const CH01: ChapterContent = {
       caption:
         'In your project session, select **Interactive** mode. Open the model control, keep **Auto** or your current model and the default effort, and send this. The reply should say search matches titles and authors whatever the letter case, and point to `samples/book-app-web/src/App.tsx`. You can change the model and effort mid-session without changing the mode.',
       code: CH01_PROMPTS.filterBooks,
+      setup: ['model'],
       source: src('try-the-controls', '1a9a4b2f69f1'),
+    },
+    {
+      id: 'pg1.prompts',
+      title: 'Prompts and shortcuts',
+      caption:
+        'You’ll type most prompts in the composer box below the session. Press **{key:mod+R}** to see your recent prompts across all sessions: search them, and select one to reuse it. Type `@` to attach files and folders, `#` for issues and pull requests, and `/` to run commands.',
+      setup: ['os'],
+      source: src('prompts-and-shortcuts', '06812f77c4eb'),
     },
     {
       id: 'pg1.settings',
@@ -800,14 +896,14 @@ export const CH01: ChapterContent = {
       image: 'ch01/app-settings',
       caption:
         'Select the gear at the bottom of the sidebar to open **Settings**. **General**: updates, where repositories are stored, the theme. **Accounts**: add another GitHub account. **Sessions**: manage sessions and chats, response style, app-wide instructions, branch naming. **Themes**: pick and customize the app theme. **Accessibility**: zoom, keyboard shortcuts, notifications. **Voice dictation**: microphone, shortcut, transcription models. **Customize**: points you to the **Customize** view. **Model providers**: your own API keys (it doesn’t replace the model picker). **Experimental**: preview features. **Projects**: per-project settings, such as **Show in sidebar**, sandbox rules and the default branch.',
-      source: src('settings', 'b03fa006d333'),
+      source: src('settings', '5b95eb5b50e3'),
     },
     {
       id: 'pg1.voice',
       title: 'Voice dictation (optional)',
       caption:
-        'Voice dictation turns speech into editable prompt text. In **Settings**, select **Voice dictation** and set up your input device. Under **Microphone privacy**, select **Open preferences** to allow the microphone in your operating system, then select **Test mic** and note the shortcut. Then start a new chat (**+** next to **Projects**, then **Chat**) and try the shortcut.',
-      source: src('settings', 'b03fa006d333'),
+        'Voice dictation turns speech into editable prompt text, and it’s on by default. In **Settings**, select **Voice dictation** to set up your input device, and change the microphone or transcription model if you need to. Under **Microphone privacy**, select **Open preferences** to allow the microphone in your operating system, then select **Test mic** and note the shortcut. Then start a new chat (**+** next to **Projects**, then **Chat**) and try the shortcut.',
+      source: src('settings', '5b95eb5b50e3'),
     },
     {
       id: 'pg1.next',
@@ -947,21 +1043,21 @@ export const CH01: ChapterContent = {
     'mer.rhea.02': src('modes', '4a1370424345'),
     'mer.rhea.03': src('modes', '4a1370424345'),
     'mer.rhea.tools': src('modes', '4a1370424345'),
-    'mer.oren.01': src('models-and-reasoning-effort', 'fa067b6725ad'),
-    'mer.oren.02': src('models-and-reasoning-effort', 'fa067b6725ad'),
-    'mer.oren.03': src('models-and-reasoning-effort', 'fa067b6725ad'),
-    'mer.oren.auto': src('models-and-reasoning-effort', 'fa067b6725ad'),
-    'mer.oren.04': src('models-and-reasoning-effort', 'fa067b6725ad'),
-    'mer.oren.05': src('models-and-reasoning-effort', 'fa067b6725ad'),
-    'mer.oren.06': src('models-and-reasoning-effort', 'fa067b6725ad'),
-    'mer.oren.context': src('models-and-reasoning-effort', 'fa067b6725ad'),
+    'mer.oren.01': src('models-and-reasoning-effort', '84d625491118'),
+    'mer.oren.02': src('models-and-reasoning-effort', '84d625491118'),
+    'mer.oren.03': src('models-and-reasoning-effort', '84d625491118'),
+    'mer.oren.auto': src('models-and-reasoning-effort', '84d625491118'),
+    'mer.oren.04': src('models-and-reasoning-effort', '84d625491118'),
+    'mer.oren.05': src('models-and-reasoning-effort', '84d625491118'),
+    'mer.oren.06': src('models-and-reasoning-effort', '84d625491118'),
+    'mer.oren.context': src('models-and-reasoning-effort', '84d625491118'),
     'mer.oren.07': src('try-the-controls', '1a9a4b2f69f1'),
     'mer.oren.08': src('try-the-controls', '1a9a4b2f69f1'),
-    'mer.pell.01': src('settings', 'b03fa006d333'),
-    'mer.pell.02': src('settings', 'b03fa006d333'),
-    'mer.pell.03': src('settings', 'b03fa006d333'),
-    'mer.pell.04': src('settings', 'b03fa006d333'),
-    'mer.pell.05': src('settings', 'b03fa006d333'),
+    'mer.pell.01': src('settings', '5b95eb5b50e3'),
+    'mer.pell.02': src('settings', '5b95eb5b50e3'),
+    'mer.pell.03': src('settings', '5b95eb5b50e3'),
+    'mer.pell.04': src('settings', '5b95eb5b50e3'),
+    'mer.pell.05': src('settings', '5b95eb5b50e3'),
     'mer.admiral.next': src('whats-next', '379b67eeb747'),
   },
 };

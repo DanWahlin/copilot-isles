@@ -7,6 +7,7 @@
 // are clicked; other types use __dev.answer()), with screenshots at each beat.
 // node tools/questtest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/quest]
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
+import { answerSetupForm } from './lib/setup-forms.mjs';
 
 const opt = parseFlags();
 const base = opt.base || 'http://localhost:5301';
@@ -305,7 +306,41 @@ results.pim = await drive('pim', (s) => s.quests['Q0.7'] === 'crane' && !s.dialo
   const card = await page.evaluate(() => document.querySelector('.ci-fork-card')?.textContent ?? '');
   if (!card.includes(FORK)) logs.push(`[questtest] fork: the Logbook card reads ${JSON.stringify(card)}`);
   await shot('fork-logbook');
-  await page.evaluate(() => window.__dev.learn.closeLogbook());
+  // Your setup, next to the fork: change the computer (entered), skip the practice issue (Cancel), and
+  // add a branch, then forget it. Each opens from its row's button, like a player would.
+  const setupFail = (m) => logs.push(`[questtest] ${m}`);
+  const row = (kind) => `.ci-setup-row[data-kind="${kind}"] button`;
+  const detected = await page.evaluate(() => window.__dev.learn.getState().osDetected);
+  const pickOs = detected === 'windows' ? 'mac' : 'windows';
+  await page.click(row('os'));
+  await answerSetupForm(page, { kind: 'os' }, { os: pickOs }, { shot, fail: setupFail });
+  const keys = pickOs === 'mac' ? 'Cmd+R' : 'Ctrl+R';
+  const osCard = await page.evaluate(
+    () => document.querySelector('.ci-setup-row[data-kind="os"]')?.textContent ?? '',
+  );
+  if (!osCard.includes(pickOs === 'mac' ? 'macOS' : 'Windows'))
+    setupFail(`setup: the computer row reads ${JSON.stringify(osCard)}`);
+  await page.click(row('issue'));
+  await answerSetupForm(page, { kind: 'issue' }, { issue: 'skip' }, { shot, fail: setupFail });
+  await page.click(row('branch'));
+  await answerSetupForm(page, { kind: 'branch' }, { branch: 'my-session-branch' }, { shot, fail: setupFail });
+  await shot('setup-logbook');
+  await page.click(row('branch'));
+  await page.waitForSelector('.ci-setup[data-kind="branch"]');
+  await page.click('.ci-setup .ci-fork-actions button:last-child');
+  await page.waitForTimeout(300);
+  const setup = await page.evaluate(() => window.__dev.learn.getState().setup);
+  if (setup.os !== pickOs || setup.issue !== null || setup.branch !== null)
+    setupFail(`setup: after the Logbook it's ${JSON.stringify(setup)}`);
+  // A page with a shortcut now uses the picked computer's keys.
+  await page.evaluate(() => window.__dev.learn.openLogbook('pages', 'pg1.prompts'));
+  await page.waitForTimeout(300);
+  const prompts = await page.evaluate(() => document.querySelector('.ci-logbook-body')?.textContent ?? '');
+  if (!prompts.includes(keys)) setupFail(`setup: pg1.prompts doesn't say ${keys}`);
+  await page.evaluate(() => {
+    window.__dev.learn.saveSetup({ os: null });
+    window.__dev.learn.closeLogbook();
+  });
   await page.waitForTimeout(300);
 }
 const crane = () => page.evaluate(() => window.__dev.session().debug.puzzle('P0.2')?.state() ?? null);

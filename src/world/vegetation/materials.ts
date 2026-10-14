@@ -120,7 +120,10 @@ export function createPalmMaterial(): MeshStandardNodeMaterial {
   const age = part.y;
   const leafletLength = max(part.z, float(0.001));
   const frondSeed = part.w;
-  const trunkY = max((positionGeometry as AnyNode).y, float(0));
+  const trunkHeight = max((positionGeometry as AnyNode).y, float(0));
+  // Read from a varying in the colour graph: a shared value there is set where it's first built, and
+  // that was inside the trunk's branch, so the fronds read zero (see `withVars`).
+  const trunkY = trunkHeight.toVarying() as AnyNode;
 
   const ringPhase = trunkY
     .mul(mix(float(6.2), float(8.2), hash12((vec2 as AnyNode)(frondSeed.mul(37.1), 1.7))))
@@ -135,6 +138,9 @@ export function createPalmMaterial(): MeshStandardNodeMaterial {
     .mul(float(1).sub(smoothstep(float(0.95), float(1.0), fissure).mul(0.22)))
     .mul(mix(float(0.7), float(1), smoothstep(float(0.08), float(0.45), trunkY)));
   const warmBark = mix(bark, color(0x8a6442), float(0.35)) as AnyNode;
+  // The trunk's albedo: lit by the sun and sky since its normal was fixed (issue 247), the bark alone
+  // read pale grey, so it's browner and darker, with a little glow, close to the look it had unlit.
+  const trunkBark = mix(bark, color(0x6b4423), float(0.8)) as AnyNode;
 
   const perLeaf = hash12((vec2 as AnyNode)(floor(st.x.mul(58)), frondSeed.mul(13.1)));
   const palmGreen = mix(color(0x4e7220), color(0x6c8c2a), weather) as AnyNode;
@@ -156,7 +162,7 @@ export function createPalmMaterial(): MeshStandardNodeMaterial {
   material.colorNode = select(
     coconut,
     nutColor,
-    select(stem, warmBark, rachisColorMix.mul(shade.mul(0.18).add(0.88))),
+    select(stem, trunkBark, rachisColorMix.mul(shade.mul(0.18).add(0.88))),
   ) as AnyNode;
 
   const x = st.x.mul(58);
@@ -181,18 +187,16 @@ export function createPalmMaterial(): MeshStandardNodeMaterial {
   const alphaMask = select(frond, leafMask.or(rachisMask), stem.or(coconut)) as AnyNode;
   material.maskNode = alphaMask.and(lodMask()) as AnyNode;
 
-  const back = smoothstep(float(-0.35), float(0.82), (normalWorld as AnyNode).dot(world.sunDir).negate());
   const viewForward = smoothstep(
     float(0),
     float(1),
     world.sunDir.dot((cameraPosition as AnyNode).sub(positionWorld).normalize().negate()),
   );
-  const leafGlow = (material.colorNode as AnyNode).mul(back).mul(viewForward.mul(0.7).add(0.3)).mul(0.4);
-  material.emissiveNode = select(
-    frond,
-    leafGlow,
-    select(stem, warmBark.mul(0.42), color(0x000000)),
-  ) as AnyNode;
+  material.emissiveNode = withVars([normalWorld], (normal) => {
+    const back = smoothstep(float(-0.35), float(0.82), normal.dot(world.sunDir).negate());
+    const leafGlow = (material.colorNode as AnyNode).mul(back).mul(viewForward.mul(0.7).add(0.3)).mul(0.4);
+    return select(frond, leafGlow, select(stem, warmBark.mul(0.18), color(0x000000)));
+  });
   material.roughnessNode = select(stem, float(0.92), select(coconut, float(0.62), float(0.6))) as AnyNode;
   (material as MeshStandardNodeMaterial & { specularIntensity?: number }).specularIntensity = 0.7;
 
@@ -200,7 +204,7 @@ export function createPalmMaterial(): MeshStandardNodeMaterial {
   const gust = gustNode(
     (vec2 as AnyNode)((positionLocal as AnyNode).x, (positionLocal as AnyNode).z),
   ) as AnyNode;
-  const heightGate = smoothstep(float(0.3), float(11.5), trunkY);
+  const heightGate = smoothstep(float(0.3), float(11.5), trunkHeight);
   const stemBend = veg.x.mul(veg.x).mul(world.windSpeed).mul(0.018).mul(gust).mul(windDamp);
   const frondBend = veg.y.mul(veg.y).mul(world.windSpeed).mul(0.045).mul(gust).mul(windDamp);
   const flutter = sin(
@@ -213,16 +217,30 @@ export function createPalmMaterial(): MeshStandardNodeMaterial {
     .mul(veg.z)
     .mul(world.windSpeed.mul(0.012).add(0.01))
     .mul(windDamp);
-  const sideFlutter = (normalLocal as AnyNode).mul(flutter);
   const stream = (vec3 as AnyNode)(
     world.windDir.x.mul(select(frond, frondBend, stemBend).mul(heightGate)),
     select(frond, frondBend.mul(-0.16).add(flutter.mul(0.35)), float(0)),
     world.windDir.y.mul(select(frond, frondBend, stemBend).mul(heightGate)),
   );
   material.positionNode = trackedPosition(
-    (positionLocal as AnyNode).add(stream).add(select(frond, sideFlutter, vec3(0, 0, 0))),
+    withVars([normalLocal], (normal) =>
+      (positionLocal as AnyNode).add(stream).add(select(frond, normal.mul(flutter), vec3(0, 0, 0))),
+    ),
   );
   return material;
+}
+
+/**
+ * Builds a graph from variables set to `shared`, outside any branch. three writes a `select` as an
+ * `if`/`else`, and sets a node the graph uses in several places where it's first built: built first
+ * inside one branch, it's only set when that branch runs, and every other read gets zero (or garbage on
+ * WebGL). The palm's trunk lost its normal that way (`normalLocal` and `normalView` were first built
+ * in the fronds' branches), so its normalised normal was a NaN and the sun's normal-biased shadow
+ * lookup turned the whole trunk black (issue 247). `palm-material.test.ts` checks the built shaders.
+ * The graph must read the variables: three drops a variable nothing reads.
+ */
+function withVars(shared: AnyNode[], build: (...vars: AnyNode[]) => AnyNode): AnyNode {
+  return Fn(() => build(...shared.map((s) => s.toVar())))();
 }
 
 export function createVegetationMaterial(
@@ -343,7 +361,9 @@ export function createVegetationMaterial(
     float(0.82),
     (normalWorld as AnyNode).dot(world.sunDir).negate(),
   )
-    .mul(smoothstep(float(0.02), float(0.24), world.sunDir.value.y))
+    // The uniform's node, not its value now: a value is baked into the shader as a constant, so
+    // every vegetation material built at another sun height got its own program.
+    .mul(smoothstep(float(0.02), float(0.24), (world.sunDir as AnyNode).y))
     .mul(0.15);
   const leafWeight = select(isLeaf, float(1), float(0)) as AnyNode;
   let albedo: AnyNode;
@@ -363,7 +383,9 @@ export function createVegetationMaterial(
     );
   }
   material.colorNode = albedo;
-  material.emissiveNode = albedo.mul(translucency).mul(leafWeight) as AnyNode;
+  const shadeLight = barkShadeLight(barkOn.mul(select(isRock, float(1), float(0))), albedo);
+  material.aoNode = shadeLight.ao;
+  material.emissiveNode = albedo.mul(translucency).mul(leafWeight).add(shadeLight.bounce) as AnyNode;
   material.roughnessNode = select(isRock, float(0.86), select(isLeaf, float(0.6), float(0.9))) as AnyNode;
   material.maskNode = lodMask().and(isCard.not().or(cardLeaves));
 
@@ -407,6 +429,25 @@ export function createVegetationMaterial(
   material.positionNode = trackedPosition((positionLocal as AnyNode).add(sway).add(trunkCurve));
   return material;
 }
+
+/**
+ * A great tree's bark in the shade. The shade is lit by the sky alone (the environment and the
+ * hemisphere fill, both indirect), and at Thousand-Bough's dusk that light is a deep blue: the warm
+ * grey-brown bark read blue-grey. Under a canopy most of that sky is leaves, and the light that comes
+ * in has bounced off warm wood and earth. So the bark keeps less than half of the sky's light (`aoNode`
+ * scales the indirect light only) and gets as much back as a warm bounce that follows the sky's
+ * strength (dark at night). The sun's direct light isn't touched: lit bark keeps its look.
+ */
+function barkShadeLight(isBark: AnyNode, albedo: AnyNode): { ao: AnyNode; bounce: AnyNode } {
+  const skyLevel = dot(world.skyColor as AnyNode, vec3(0.2126, 0.7152, 0.0722));
+  return {
+    ao: mix(float(1), float(0.45), isBark),
+    bounce: albedo.mul(color(0xf0dcc4)).mul(skyLevel.mul(BARK_BOUNCE)).mul(isBark),
+  };
+}
+
+/** The bark's warm bounce, per unit of the sky light's luminance. */
+const BARK_BOUNCE = 0.55;
 
 /**
  * How far grass reaches (metres, already tier-scaled): full density out to `full`, thinning to

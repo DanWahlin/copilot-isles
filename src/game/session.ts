@@ -24,7 +24,7 @@ import { PassageBattles } from './passage-battles';
 import type { BattleRun } from './battle-run';
 
 export { ISLANDS, islandAt } from './islands';
-import { meridianQuayHeight, meridianRockCameraBlockers, meridianWater } from '../world/islands/meridian';
+import { meridianQuayHeight, meridianWater } from '../world/islands/meridian';
 import { terrainRockCameraBlockers } from '../world/terrain/terrain-rocks';
 import { meridianTownPlantColliders } from '../world/meridian-town/plantings';
 import { FlyoverPath } from './flyover';
@@ -86,6 +86,7 @@ import { MERIDIAN_YARD } from '../world/sites/crate-yard-logic';
 import { plankProgress, plankSurface, type PlankSpan } from './gangway';
 import { runScript, type ScriptStep } from './script';
 import { defaultShipName } from '../learn/progress';
+import { fillSetup } from '../learn/setup';
 import { createBard } from './puzzles/bard';
 import { createChristening } from './puzzles/christening';
 import { createCrane } from './puzzles/crane';
@@ -344,6 +345,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // Boulders and the headland cliff's overhang: only the follow camera keeps out of them.
   for (const b of terrainRockCameraBlockers(terrain.heightField, tier.tier)) world.addCameraBox(b);
   for (const b of village.cameraBlockers) world.addCameraBox(b);
+  for (const b of cove.wreck.cameraBlockers) world.addCameraBox(b);
   for (const b of sites.colliders.camera) world.addCameraBox(b);
 
   const hud = new Hud(o.hudParent);
@@ -561,8 +563,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     for (const c of town.colliders.circles) world.addCircle(c);
     for (const b of town.colliders.boxes) world.addBox(b);
     for (const b of town.cameraBlockers) world.addCameraBox(b);
-    const meridianGround = cove.meridian.terrain?.heightField;
-    if (meridianGround) for (const b of meridianRockCameraBlockers(meridianGround)) world.addCameraBox(b);
+    for (const b of cove.meridian.rockCameraBlockers) world.addCameraBox(b);
     meridianTownCollidersAdded = true;
   };
   addMeridianTownColliders(cove.meridian.town);
@@ -571,10 +572,13 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const cues = new Map<string, () => Promise<void>>();
   const scriptExtras = {
     onCue: (cue: string) => cues.get(cue)?.(),
-    format: (text: string) =>
-      text
+    format: (text: string) => {
+      const named = text
         .replaceAll('{ship}', learn?.progress.shipName ?? defaultShipName(null))
-        .replaceAll('{captain}', learn?.progress.data.captainName ?? 'Captain'),
+        .replaceAll('{captain}', learn?.progress.data.captainName ?? 'Captain');
+      const l = learn?.getState();
+      return l ? fillSetup(named, l.setup, l.osDetected) : named;
+    },
   };
 
   // Talk to NPCs: quest beats run as scripts; Nell's lines are voiced; everyone else offers a bark.
@@ -1350,6 +1354,28 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     );
   }
 
+  // Metres: keep the captain's head clear of the lens and the shoulder at the frame edge.
+  const TALK_CAMERA_PULLBACK_M = 2.55;
+  const TALK_CAMERA_SIDE_M = 1.4;
+  const TALK_CAMERA_SHORT_PULLBACK_M = 2.15;
+  const TALK_CAMERA_EYE_LIFT_M = 2.4;
+  const TALK_CAMERA_SEATED_EYE_LIFT_M = 2.1;
+  const TALK_CAMERA_HEAD_CLEARANCE_M = 1.2;
+
+  const talkShotAt = (
+    x: number,
+    z: number,
+    y: number,
+    target: { x: number; y: number; z: number },
+  ): CameraShot => ({
+    x,
+    y: Math.max(y, world.waterAt(x, z, 0) + 0.7, world.groundAt(x, z) + 0.45),
+    z,
+    tx: target.x,
+    ty: target.y,
+    tz: target.z,
+  });
+
   function npcTalkShot(n: Npc) {
     if (n.spec.talkShot) return localNpcShot(n, n.spec.talkShot.shotLocal, n.spec.talkShot.targetLocal);
     const dx = player.x - n.x;
@@ -1360,51 +1386,50 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     const rightX = fz;
     const rightZ = -fx;
     const seated = n.spec.clip === 'sit';
-    const targetY = n.y + (seated ? 0.82 : 1.18);
-    const eyeLift = n.spec.talkEyeLift ?? (seated ? 1.25 : 1.45);
+    const targetY = n.y + (seated ? 0.98 : 1.52);
+    const eyeLift = n.spec.talkEyeLift ?? (seated ? TALK_CAMERA_SEATED_EYE_LIFT_M : TALK_CAMERA_EYE_LIFT_M);
     const target = { x: n.x, y: targetY, z: n.z };
     const candidates: CameraShot[] = [
-      {
-        x: player.x + fx * 0.72 + rightX * 1.65,
-        y: Math.max(player.y + eyeLift, targetY + 0.18),
-        z: player.z + fz * 0.72 + rightZ * 1.65,
-        tx: target.x,
-        ty: target.y,
-        tz: target.z,
-      },
-      {
-        x: player.x + fx * 0.72 - rightX * 1.65,
-        y: Math.max(player.y + eyeLift, targetY + 0.18),
-        z: player.z + fz * 0.72 - rightZ * 1.65,
-        tx: target.x,
-        ty: target.y,
-        tz: target.z,
-      },
-      {
-        x: n.x + fx * 2.75 + rightX * 1.35,
-        y: Math.max(n.y + eyeLift, targetY + 0.28),
-        z: n.z + fz * 2.75 + rightZ * 1.35,
-        tx: target.x,
-        ty: target.y,
-        tz: target.z,
-      },
-      {
-        x: n.x + fx * 2.75 - rightX * 1.35,
-        y: Math.max(n.y + eyeLift, targetY + 0.28),
-        z: n.z + fz * 2.75 - rightZ * 1.35,
-        tx: target.x,
-        ty: target.y,
-        tz: target.z,
-      },
-    ].map((candidate) => ({
-      ...candidate,
-      y: Math.max(
-        candidate.y,
-        world.waterAt(candidate.x, candidate.z, 0) + 0.7,
-        world.groundAt(candidate.x, candidate.z) + 0.45,
+      talkShotAt(
+        player.x + fx * TALK_CAMERA_PULLBACK_M + rightX * TALK_CAMERA_SIDE_M,
+        player.z + fz * TALK_CAMERA_PULLBACK_M + rightZ * TALK_CAMERA_SIDE_M,
+        Math.max(player.y + eyeLift, targetY + 0.18),
+        target,
       ),
-    }));
-    const first = candidates.find((candidate) => validTalkShot(candidate, target));
+      talkShotAt(
+        player.x + fx * TALK_CAMERA_PULLBACK_M - rightX * TALK_CAMERA_SIDE_M,
+        player.z + fz * TALK_CAMERA_PULLBACK_M - rightZ * TALK_CAMERA_SIDE_M,
+        Math.max(player.y + eyeLift, targetY + 0.18),
+        target,
+      ),
+      talkShotAt(
+        player.x + fx * TALK_CAMERA_SHORT_PULLBACK_M + rightX * TALK_CAMERA_SIDE_M,
+        player.z + fz * TALK_CAMERA_SHORT_PULLBACK_M + rightZ * TALK_CAMERA_SIDE_M,
+        Math.max(player.y + eyeLift, targetY + 0.18),
+        target,
+      ),
+      talkShotAt(
+        player.x + fx * TALK_CAMERA_SHORT_PULLBACK_M - rightX * TALK_CAMERA_SIDE_M,
+        player.z + fz * TALK_CAMERA_SHORT_PULLBACK_M - rightZ * TALK_CAMERA_SIDE_M,
+        Math.max(player.y + eyeLift, targetY + 0.18),
+        target,
+      ),
+      talkShotAt(
+        n.x + fx * 2.75 + rightX * 1.35,
+        n.z + fz * 2.75 + rightZ * 1.35,
+        Math.max(n.y + eyeLift, targetY + 0.28),
+        target,
+      ),
+      talkShotAt(
+        n.x + fx * 2.75 - rightX * 1.35,
+        n.z + fz * 2.75 - rightZ * 1.35,
+        Math.max(n.y + eyeLift, targetY + 0.28),
+        target,
+      ),
+    ];
+    const first = candidates.find(
+      (candidate) => validTalkShot(candidate, target) && !blocksView(candidate, n),
+    );
     if (first) return first;
     // Boxed in (a stage, a fountain, a wall behind you): look for a clear two-shot all round them.
     const toPlayer = Math.atan2(fx, fz);
@@ -1413,15 +1438,13 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         const a = toPlayer + turn;
         const x = n.x + Math.sin(a) * dist,
           z = n.z + Math.cos(a) * dist;
-        const shot: CameraShot = {
+        const shot = talkShotAt(
           x,
-          y: Math.max(n.y + eyeLift + 0.3, world.groundAt(x, z) + 1.4, world.waterAt(x, z, 0) + 0.8),
           z,
-          tx: target.x,
-          ty: target.y,
-          tz: target.z,
-        };
-        if (validTalkShot(shot, target)) return shot;
+          Math.max(n.y + eyeLift + 0.3, world.groundAt(x, z) + 1.4, world.waterAt(x, z, 0) + 0.8),
+          target,
+        );
+        if (validTalkShot(shot, target) && !blocksView(shot, n)) return shot;
       }
     return candidates[0]!;
   }
@@ -1438,20 +1461,41 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     let nx = -(b.z - a.z) / sep;
     let nz = (b.x - a.x) / sep;
     if (nx * (player.x - mid.x) + nz * (player.z - mid.z) < 0) [nx, nz] = [-nx, -nz];
+    const playerLen = Math.hypot(player.x - mid.x, player.z - mid.z) || 1;
+    const fx = (player.x - mid.x) / playerLen;
+    const fz = (player.z - mid.z) / playerLen;
+    const rightX = fz;
+    const rightZ = -fx;
+    const eyeLift =
+      a.spec.clip === 'sit' && b.spec.clip === 'sit' ? TALK_CAMERA_SEATED_EYE_LIFT_M : TALK_CAMERA_EYE_LIFT_M;
+    const eyeY = Math.max(player.y + eyeLift, mid.y + eyeLift - 1.12);
+    for (const [back, side] of [
+      [TALK_CAMERA_PULLBACK_M, TALK_CAMERA_SIDE_M],
+      [TALK_CAMERA_PULLBACK_M, -TALK_CAMERA_SIDE_M],
+      [TALK_CAMERA_SHORT_PULLBACK_M, TALK_CAMERA_SIDE_M],
+      [TALK_CAMERA_SHORT_PULLBACK_M, -TALK_CAMERA_SIDE_M],
+    ]) {
+      const shot = talkShotAt(
+        player.x + fx * back + rightX * side,
+        player.z + fz * back + rightZ * side,
+        eyeY,
+        mid,
+      );
+      if (!validTalkShot(shot, mid) || blocksView(shot, a) || blocksView(shot, b)) continue;
+      return shot;
+    }
     const base = Math.atan2(nx, nz);
     const back = 2.3 + sep * 0.6;
     for (const turn of [0, 0.3, -0.3, 0.55, -0.55]) {
       const ang = base + turn;
       const x = mid.x + Math.sin(ang) * back;
       const z = mid.z + Math.cos(ang) * back;
-      const shot: CameraShot = {
+      const shot = talkShotAt(
         x,
-        y: Math.max(mid.y + 0.42, world.groundAt(x, z) + 1.3, world.waterAt(x, z, 0) + 0.8),
         z,
-        tx: mid.x,
-        ty: mid.y,
-        tz: mid.z,
-      };
+        Math.max(eyeY, world.groundAt(x, z) + 1.3, world.waterAt(x, z, 0) + 0.8),
+        mid,
+      );
       if (!validTalkShot(shot, mid)) continue;
       if (blocksView(shot, a) || blocksView(shot, b)) continue;
       return shot;
@@ -1472,7 +1516,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   }
 
   function validTalkShot(shot: CameraShot, target: { x: number; y: number; z: number }): boolean {
-    if (Math.hypot(shot.x - player.x, shot.y - (player.y + 1.5), shot.z - player.z) < 0.7) return false;
+    if (
+      Math.hypot(shot.x - player.x, shot.y - (player.y + 1.5), shot.z - player.z) <
+      TALK_CAMERA_HEAD_CLEARANCE_M
+    )
+      return false;
     // The camera itself: not inside a wall, a tower, or the hillside.
     if (world.sightBlockedAt(shot.x, shot.y, shot.z, 0.3) || shot.y < world.groundAt(shot.x, shot.z) + 0.4)
       return false;

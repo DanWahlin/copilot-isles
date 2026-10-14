@@ -1,5 +1,6 @@
 import type { Platform } from '../engine/capability';
 import type { Backend, Tier } from '../world/contracts';
+import type { OsId } from '../learn/setup';
 
 /**
  * The contract between the React UI (menus, chart, settings) and the game (PLAN §5, POC §3.1).
@@ -122,6 +123,10 @@ interface LearnSummary {
   sails: string | null;
   captainName: string | null;
   shipName: string | null;
+  /** The computer the player picked for the course's shortcuts (null: the browser's guess). */
+  os?: OsId | null;
+  /** The browser's guess. */
+  osDetected?: OsId;
 }
 
 export interface VoyageNames {
@@ -210,6 +215,8 @@ export interface GameBridge {
   renderResolution(): RenderResolution;
   /** Repaints the sails (the palette stand's choice, changed from Settings). */
   setSails(paletteId: string): void;
+  /** Sets the computer whose keys the game shows for the course's shortcuts (null: the browser's guess). */
+  setOs?(os: OsId | null): void;
   /** Skips ahead in the opening (the cabin and living chart): Esc and the Skip button. */
   skipOpening(): void;
   /** A click or tap in the opening: opens the chest when it's waiting, otherwise skips ahead. */

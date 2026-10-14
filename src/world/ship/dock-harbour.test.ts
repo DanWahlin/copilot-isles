@@ -4,6 +4,7 @@ import type { WaveSampler } from '../contracts';
 import { COVE } from '../layout';
 import { CoveHeightField } from '../terrain/cove-height';
 import { createVillage } from '../islands/anchorage/village';
+import { wreckShipObstacles } from '../islands/anchorage/wreck-pose';
 import { ShipDynamics } from './dynamics';
 
 const calm: WaveSampler = {
@@ -22,11 +23,11 @@ function headingErr(a: number, b: number): number {
   return Math.abs(d);
 }
 
-/** Docking inside the real harbour: pier piles, quay edge, boats and the analytic terrain as ground. */
+/** Docking inside the real harbour: pier piles, quay edge, boats, the wreck and the analytic terrain as ground. */
 describe('dock assist in the Test Cove harbour', async () => {
   const ground = new CoveHeightField();
   const village = await createVillage({ tier: tierSettings('low'), heightField: ground });
-  const env = { waves: calm, ground, obstacles: village.shipObstacles, t: 0 };
+  const env = { waves: calm, ground, obstacles: [...village.shipObstacles, ...wreckShipObstacles()], t: 0 };
 
   const run = (ship: ShipDynamics, seconds: number, trim = 0, rudder = 0) => {
     for (let i = 0; i < seconds * 60 && !ship.dockComplete; i++) {

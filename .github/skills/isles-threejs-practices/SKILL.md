@@ -20,6 +20,7 @@ Every island is a package; shared systems never import an island's coordinates.
 | Vegetation                 | `src/world/vegetation/scatter.ts`, `grass.ts`, `vegetation.ts` (`IslandVegetationRules` in `vegetation/types.ts`: bounds, grass bounds, species rules, exclusions, curated/extra plants, hero palm zones) | `src/world/islands/anchorage/vegetation-rules.ts` (`ANCHORAGE_VEGETATION`)                                                                         |
 | Starfish                   | `src/world/starfish/spots.ts` (`StarfishSpot`, `STARFISH`)                                                                                                                                                | `src/world/islands/anchorage/starfish.ts`, `src/world/islands/meridian-starfish.ts`                                                                |
 | Towns                      | `src/world/village/kit.ts` (kit loader, buckets, `transform`/`paint`/`localToWorld`, colliders, anchors), `house-builder.ts`, `materials.ts`                                                              | `src/world/islands/anchorage/village.ts` (+ `buildings.ts`, `plantings.ts`, `lighthouse-stair.ts`), `src/world/meridian-town/`                     |
+| Shore batteries            | `src/world/village/shore-battery.ts` (decks, stairs, fences, guns into the town buckets; walk surfaces, colliders), `shore-cannon.ts` (the gun model and its levels)                                      | `src/world/islands/anchorage/batteries.ts`, `src/world/islands/meridian-batteries.ts` (+ the citadel's embrasures)                                 |
 | Island layout data         | none                                                                                                                                                                                                      | `src/world/layout.ts` (`COVE`, Anchorage), `src/world/islands/meridian.ts` (`MERIDIAN`)                                                            |
 
 Adding an island: create its package, add one line to each registry, done. If you find yourself
@@ -103,6 +104,11 @@ the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _
 - Prefer one graph with a uniform switch over two near-identical materials (dolphins and flying
   fish share `createLeapCreatureMaterial`); a double-sided colour graph can often be faces of its own
   (the chest lid's inside is flipped, darker faces on the body's shader).
+- Use a uniform's node in a graph, never its `.value`: `world.sunDir.value.y` went into the
+  vegetation shader as a constant, so each vegetation material built at another sun height (the
+  banyan, the brush) was its own program, and the glow didn't follow the sun.
+- A dev page precompiles like the game (`post.compileObject` through `compileProgressively`), or its
+  census counts shaders the game never builds (play.html's bare `compileAsync` added about 12).
 - Late instanced additions on the title (gulls, leaps): don't precompile them (no precompile matches
   an instanced draw). Add them and wait two frames inside `engine.counters.excuse`.
 - Every distinct look in the harbour mirror is a second set of shaders: keep small things out
@@ -130,16 +136,37 @@ the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _
   object that left the scene (`releaseRemovedObjects`), and the opening does the same for its cabin.
 - Cached materials and geometries free their GPU side after a voyage (`releaseFaceResources`,
   `releaseVillageKitTextures`, `releaseWaterDepthTexture`, the chests' last `dispose`).
-- three's `RTTNode` (`convertToTexture`, FXAA's input) doesn't free its target: the post's `dispose`
-  does. Its quad can't be freed through the public API.
+- three's `RTTNode` (`convertToTexture`, FXAA's input `fxaaNode.textureNode`): call the node's own
+  `dispose()`. It frees its target and its quad's material, and with them the quad's shaders.
+- three's `TRAANode` draws with a 1x1 depth stand-in until its first depth copy and never frees it:
+  the post uses our copy (`engine/traa-node.js`, MIT, three r186), whose `dispose()` frees it.
 - A viewport depth node's `.sample(uv)` clones share their base's copies (three's own do); our
-  `MatchedDepthNode` once made a full-screen depth copy per clone (9 on the title).
+  `MatchedDepthNode` once made a full-screen depth copy per clone (9 on the title). Each ocean owns
+  its depth copies (`MatchedDepth`): one shared set, freed by whichever ocean went first, left 1×1
+  depth textures behind.
+- Never dispose a geometry with **interleaved** attributes that something will draw again: three r186's
+  WebGPU backend keeps the destroyed buffer and the next draw submits it ("used in submit while
+  destroyed", issue 251). three's `Sprite` quad is interleaved and shared by every sprite: our sprites
+  draw `useSpriteQuad` (engine/sprite-quad.ts, plain attributes, counted), never three's. A one-shot
+  geometry (merged, never drawn again) is fine. `tools/revoyagetest.mjs` plays three voyages in a
+  row and fails on any WebGPU validation error.
+- Shared texture caches count their users: the baked cloud keys free their GPU copy with the last
+  dome that used them (the voyage's dawn and dusk keys stayed at the title).
+- Nothing new may draw through the island's post: back at the title, nothing's drawn until the
+  title's post is ready (`restoreTitlePost`). One frame of the title through the island's TRAA scene
+  pass built a second set of the title's shaders on Medium.
+- Measure with `info.memory` at the first title, after one voyage and after two (a leftover that
+  grows each voyage shows on the second), per tier, on both backends.
 
 ## 5. Lessons learned (bugs we have hit)
 
-- **Palms go black in the sun's shadows:** the palm material (`createPalmMaterial`) renders its trunk
-  black (a NaN) with the normal-biased shadow lookup. Palms take `userData.sunShadow = false`; hero
-  palms still cast. Find the cause before you let palms receive.
+- **A value first built inside a `select` branch (palms went black):** three writes `select` as an
+  `if`/`else` and sets a node shared by the graph where it's first built. The palm's `normalLocal`
+  (the fronds' flutter) and `normalView` (the fronds' glow) were first built in the fronds' branches,
+  so the trunk's normal was zero: a NaN once normalised, which turned the trunk black in the sun's
+  normal-biased shadow lookup (and left it unlit before). Build shared values outside the branches
+  (`withVars` in vegetation/materials.ts), and check the built shader: `palm-material.test.ts` builds
+  WGSL with three's node builder and flags a variable read on a path that never set it.
 
 - **Z-fighting with paper or decals:** geometry that lies exactly on a surface flickers through it.
   Sink it below the surface while it is flat (the chart's `PAPER_TUCK`), or offset it; never rely on
@@ -169,6 +196,15 @@ the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _
   motion behind them (`writesMotionVectors` opts one in, like the ocean). Wrap displacing
   `positionNode`s in `trackedPosition`, or set `positionPrevious` yourself (ocean, shared skinning).
   Check with a still camera and paused clock: a burst of screenshots should not move.
+- **Frozen waterfalls (animation finer than a pixel):** the falls behind Fen's deck looked like ice.
+  Their only motion was 44 ribbon columns across the sheet, each under a pixel wide at 120–140 m.
+  That changes too fast for TRAA's history, which averages it towards a flat mean (and the video's
+  encoder smears what is left), so only the still striation showed. The motion-vector fix wasn't
+  the cause: the sheet's mesh is still, so its motion is zero with or without `sceneVelocity`, and
+  with `?notaa` the ribbons only shimmer, they don't flow. Animated detail must be
+  readable at the distance it's seen: the shared water material fades sub-pixel ribbons by
+  `fwidth` and carries the motion in broad surges down the sheet. Measure the change per frame on
+  the effect against a still patch, with TAA on and off.
 - **Props stuck through an arm:** Rhea's spyglass sat on her forearm, placed for the bind pose, and
   her commander's hip fist went on the spyglass hand, so it stuck out through her arm in talk. Now a
   carried prop goes in the fist (`holdInFist`/`inFist` in npc-accessories: on the palm bone, its
@@ -176,6 +212,10 @@ the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _
   and holders nod hello (the wave swings the prop through the head). Belt and back props sit where
   the arms and legs don't reach. `prop-audit.test.ts` plays every NPC's clips on the real rigs and
   measures each prop's depth in the skinned body (and a held one's in the coats): keep it under 1 cm.
+- **vendor-three over its cap:** the shore cannon's `ExtrudeGeometry`/`LatheGeometry` (with
+  `Shape`, its curves and earcut) added 6 KB gz to vendor-three, which is at its 256 KB cap. Build
+  extrusions and lathes by hand (`extrudeX`/`lathe` in shore-cannon.ts, the starfish's fan). Before
+  you import a new three class, check `npm run check:budgets` exits 0.
 
 ## 6. Verify like this
 

@@ -6,10 +6,13 @@
 // one), Ines's Flag Hoist (a wrong flag, then all four), Rook, Pip, and the Elder's Canopy Trial with the
 // Seal's Thousand Lanterns. Then the Sky Basket, the chest behind the falls, the bottles and the starfish.
 // Fails on any page error, a missing beat, or a hitch after warm-up. Screenshots at every beat.
+// Rook asks for the session's branch and the practice issue's number (Your setup): by default the run
+// enters them and checks the captions, Logbook pages, terminal and Trial use them; `--setup=skip` skips.
 //   node tools/thousandboughtest.mjs [--base=http://127.0.0.1:5386] [--out=<dir>] [--tier=high] [--webgl]
-//                                    [--reduced] [--from=elder]
+//                                    [--reduced] [--from=elder|rook] [--setup=enter|skip]
 import { mkdirSync } from 'node:fs';
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
+import { answerSetupForm, logbookPage, setupPlan } from './lib/setup-forms.mjs';
 
 const opt = parseFlags();
 const base = opt.base || 'http://localhost:5301';
@@ -62,6 +65,9 @@ const learnState = () =>
         : null,
       reveal: l.reveal?.page.id ?? null,
       banner: l.banner?.title ?? null,
+      setupForm: l.setupForm,
+      caption: document.querySelector('.ci-spyglass-caption')?.textContent ?? '',
+      terminal: document.querySelector('.hud-term.show')?.textContent ?? '',
       dialogue: st.dialogue,
       welcome: st.welcome,
       mode: st.mode,
@@ -86,6 +92,9 @@ async function clickHotspot() {
   await page.mouse.click(box.x, box.y);
 }
 
+const plan = setupPlan(opt.setup);
+const captions = new Set();
+const terminals = new Set();
 const seen = new Set();
 /** Drives dialogue, quizzes and reveals until `done(state)`; `every` runs each tick. */
 async function drive(label, done, ms = 180000, every = null) {
@@ -98,7 +107,16 @@ async function drive(label, done, ms = 180000, every = null) {
       await page.waitForTimeout(250);
       continue;
     }
-    if (s.quiz) {
+    if (s.caption && !captions.has(s.caption)) {
+      captions.add(s.caption);
+      if (/#\d|empty-state|copilot\//.test(s.caption)) {
+        await page.waitForTimeout(500);
+        await shot(`caption-${captions.size}`);
+      }
+    }
+    if (s.terminal) terminals.add(s.terminal);
+    if (s.setupForm) await answerSetupForm(page, s.setupForm, plan, { shot, fail });
+    else if (s.quiz) {
       if (!seen.has(s.quiz.id)) {
         seen.add(s.quiz.id);
         await page.waitForTimeout(600);
@@ -324,12 +342,53 @@ async function playRound(round, opts) {
   if (!/wheel/.test(msg)) fail(`round ${round} didn't solve: "${msg}"`);
 }
 
+/** Rook's branch and issue questions (Your setup), then everywhere the answers show. */
+async function checkRookSetup() {
+  const setup = await S(() => window.__dev.learn.getState().setup);
+  const issue = plan.issue === 'skip' ? 3 : plan.issue;
+  const branch = plan.branch === 'skip' ? 'practice-empty-state-copy' : plan.branch;
+  if (plan.issue !== 'skip' && setup.issue !== plan.issue) fail(`issue not saved: ${setup.issue}`);
+  if (plan.issue === 'skip' && setup.issue !== null) fail('a skipped issue was saved');
+  if (plan.branch !== 'skip' && setup.branch !== plan.branch) fail(`branch not saved: ${setup.branch}`);
+  if (plan.branch === 'skip' && setup.branch !== null) fail('a skipped branch was saved');
+  const all = [...captions].join('\n');
+  if (!all.includes(`Type #${issue} and pick`))
+    fail(`no caption with #${issue}: ${JSON.stringify([...captions])}`);
+  if (!all.includes(`this session on ${branch}`)) fail(`Pip's caption doesn't name ${branch}`);
+  const plan2 = await logbookPage(page, 'pg2.plan', shot);
+  if (!plan2.includes(`type #${issue} and pick`)) fail(`pg2.plan doesn't say #${issue}`);
+  if (plan.issue !== 'skip' && !plan2.includes(`Your practice issue #${issue}`))
+    fail('pg2.plan has no Your practice issue note');
+  const details = await logbookPage(page, 'pg2.details', shot);
+  if (plan.branch !== 'skip' && !details.includes(branch)) fail(`pg2.details doesn't note ${branch}`);
+  if (plan.branch === 'skip' && details.includes('Your session’s branch'))
+    fail('pg2.details notes a skipped branch');
+  const chronicle = await logbookPage(page, 'pg2.chronicle', shot);
+  if (!chronicle.includes(branch)) fail(`pg2.chronicle doesn't name ${branch}`);
+  // The Practice Bough's session terminal, seen by Rook.
+  const term = [...terminals].reverse().find((t) => t.includes('Working branch'));
+  if (!term?.includes(`Working branch: ${branch}`) || !term.includes(`Attached: #${issue}`))
+    fail(`the session terminal doesn't show ${branch} and #${issue}: ${JSON.stringify(term)}`);
+}
+
 if (opt.from === 'elder') {
   await S(() => {
     for (const id of ['Q2.1', 'Q2.2', 'Q2.3', 'Q2.4', 'Q2.5', 'Q2.6', 'Q2.7', 'Q2.8'])
       window.__dev.session().debug.quest(id, 'done');
     window.__dev.session().debug.quest('Q2.9', 'start');
   });
+} else if (opt.from === 'rook') {
+  await S(() => {
+    for (const id of ['Q2.1', 'Q2.2', 'Q2.3', 'Q2.4', 'Q2.5', 'Q2.6'])
+      window.__dev.session().debug.quest(id, 'done');
+    window.__dev.session().debug.quest('Q2.7', 'start');
+  });
+  await talk('rook');
+  await drive('Rook', quest('Q2.7', 'done'));
+  await shot('rook-session-terminal');
+  await talk('pip');
+  await drive('Pip', quest('Q2.8', 'done'));
+  await checkRookSetup();
 } else {
   // Q2.1 Tamsin → Q2.2 Lyra (and her chest) → Q2.3 Saffi → Q2.4 Oak.
   await talk('tamsin');
@@ -418,8 +477,10 @@ if (opt.from === 'elder') {
   // Q2.7 Rook → Q2.8 Pip.
   await talk('rook');
   await drive('Rook', quest('Q2.7', 'done'));
+  await shot('rook-session-terminal');
   await talk('pip');
   await drive('Pip', quest('Q2.8', 'done'));
+  await checkRookSetup();
 }
 
 // Q2.9 the Elder's Canopy Trial and the Thousand Lanterns.
@@ -433,6 +494,13 @@ await drive('Elder', quest('Q2.9', 'done'), 300000, async (s) => {
     await page.waitForTimeout(1500);
     await shot('above-the-mist');
     return 'handled';
+  }
+  if (s.quiz?.id === 'T2.6' && !seen.has('T2.6-issue')) {
+    seen.add('T2.6-issue');
+    const want = `#${plan.issue === 'skip' || opt.from === 'elder' ? 3 : plan.issue}`;
+    await page.waitForTimeout(400);
+    const text = await S(() => document.querySelector('.ci-quiz-backdrop')?.textContent ?? '');
+    if (!text.includes(`Type ${want} and pick the issue`)) fail(`T2.6 doesn't say ${want}`);
   }
   if (!trialShot && s.quiz?.id === 'T2.1') {
     trialShot = true;

@@ -14,7 +14,7 @@ import {
 import type { CircleObstacle, HeightField } from '../contracts';
 import { fbm2, ridged2 } from '../terrain/cove-height';
 import { ROCK_ASSETS } from '../terrain/rock-assets';
-import { meshCameraBlockers, type CameraBlockerBox } from '../terrain/camera-blockers';
+import { meshSurfaceCameraBlockers, type CameraBlockerBox } from '../terrain/camera-blockers';
 import { createRockMaterial } from '../terrain/terrain-material';
 import { clamp01, segmentDistance, smoothstep } from '../../util/math';
 import { createMeridianWater, type MeridianWater } from './meridian-water';
@@ -626,6 +626,7 @@ const ROCK_COAST_COUNT = 20;
 /** Per rock asset, round the foot of the ridge's sea cliffs (`ridgeFootRock`). */
 const ROCK_FOOT_COUNT = 12;
 const ROCK_COUNT = ROCK_MOLE_COUNT + ROCK_COAST_COUNT + ROCK_FOOT_COUNT;
+export const MERIDIAN_ROCK_COUNT = ROCK_COUNT;
 const footRockAt = { x: 0, z: 0 };
 
 /**
@@ -648,7 +649,7 @@ function ridgeFootRock(assetIndex: number, j: number, heightField: HeightField):
 }
 
 /** Where coastal rock `i` of asset `assetIndex` sits (scaled to nothing where it would be in fresh water). */
-function meridianRockMatrix(
+export function meridianRockMatrix(
   assetIndex: number,
   i: number,
   heightField: HeightField,
@@ -701,16 +702,41 @@ function meridianRockMatrix(
   return matrix.compose(position, rotation, scale);
 }
 
-/** Camera-only blockers for the coastal rocks (the follow camera keeps out of them; walkers don't see them). */
-export function meridianRockCameraBlockers(heightField: HeightField): CameraBlockerBox[] {
+/**
+ * Camera-only blockers for the coastal rocks (the follow camera keeps out of them; walkers don't see
+ * them), fitted to each rock's surface. A generator that yields after each rock, so Meridian's stream
+ * builds them in slices (`breathe()` between rocks); returns the blockers.
+ */
+export function* meridianRockCameraBlockersSliced(
+  heightField: HeightField,
+): Generator<void, CameraBlockerBox[]> {
   const out: CameraBlockerBox[] = [];
   const matrix = new Matrix4();
   for (let assetIndex = 0; assetIndex < 3; assetIndex++)
     for (let i = 0; i < ROCK_COUNT; i++) {
       meridianRockMatrix(assetIndex, i, heightField, matrix);
-      if (rockScale.x > 0) meshCameraBlockers(ROCK_ASSETS[assetIndex].positions, matrix, out);
+      if (rockScale.x <= 0) continue;
+      meshSurfaceCameraBlockers(
+        ROCK_ASSETS[assetIndex].positions,
+        ROCK_ASSETS[assetIndex].indices,
+        matrix,
+        out,
+        3,
+        -0.5,
+        heightField.heightAt(rockPosition.x, rockPosition.z) - 0.5,
+      );
+      yield;
     }
   return out;
+}
+
+/** All of `meridianRockCameraBlockersSliced` at once (tests and tools). */
+export function meridianRockCameraBlockers(heightField: HeightField): CameraBlockerBox[] {
+  const steps = meridianRockCameraBlockersSliced(heightField);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
 }
 
 /** From this far under the water (a brigantine's draft, with a margin) to this far above it. */

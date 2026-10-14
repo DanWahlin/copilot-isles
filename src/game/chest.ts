@@ -20,6 +20,7 @@ import {
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { unreflected } from '../world/reflection';
+import { releaseSpriteQuad, useSpriteQuad } from '../engine/sprite-quad';
 
 const W = 0.92;
 const H = 0.46;
@@ -288,7 +289,7 @@ export function createChest(): TreasureChest {
     depthWrite: false,
     blending: AdditiveBlending,
   });
-  const glow = new Sprite(glowMat);
+  const glow = useSpriteQuad(new Sprite(glowMat));
   liveChests++;
   glow.scale.setScalar(1.6);
   glow.position.set(0, H + 0.35, 0);
@@ -345,11 +346,9 @@ export function createChest(): TreasureChest {
       glowMat.dispose();
       unreflected.delete(group);
       group.removeFromParent();
-      if (--liveChests === 0) {
-        // Every sprite shares one geometry; the glow's canvas stays drawn for the next upload.
-        glow.geometry.dispose();
-        sharedGlow?.dispose();
-      }
+      releaseSpriteQuad(glow);
+      // The glow's canvas stays drawn for the next upload.
+      if (--liveChests === 0) sharedGlow?.dispose();
     },
   };
 }

@@ -138,6 +138,10 @@ async function boot(): Promise<void> {
     if (!richPostReady) return;
     richPostReady = false;
     const swap = ++postSwaps;
+    // Nothing's drawn until the title's post is ready: the title, built meanwhile, drew once through
+    // the island's post, and on Medium its scene pass (with TRAA's velocity output) built a second set
+    // of the title's shaders that stayed for the page (issue 248).
+    engine.renderFn = () => {};
     const lean = await createPost(renderer, engine.scene, engine.camera, tier, titlePostOptions);
     // A voyage set sail meanwhile: it has the island's post.
     if (swap !== postSwaps) return lean?.dispose();

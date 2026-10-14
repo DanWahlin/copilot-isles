@@ -25,8 +25,10 @@ import {
   MERIDIAN,
   createMeridianRocks,
   createMeridianSilhouette,
+  meridianRockCameraBlockersSliced,
   meridianRockShipObstacles,
 } from './islands/meridian';
+import type { CameraBlockerBox } from './terrain/camera-blockers';
 import { createBeachDebris, type BeachDebrisSystem } from './debris/beach-debris';
 import { createBrigantine, type Brigantine } from './ship';
 import { createVegetation, type VegetationSystem } from './vegetation';
@@ -38,6 +40,7 @@ import type { WaterStrips } from './sites/water';
 import { loadVillageKit, releaseVillageKitTextures } from './village/kit';
 import { DOCK_GULL_SPOT, createVillage, type VillageSystem } from './islands/anchorage/village';
 import { ANCHORAGE_VEGETATION } from './islands/anchorage/vegetation-rules';
+import { createWreck, wreckWaterline, type WreckSystem } from './islands/anchorage/wreck';
 import { createDockGull, type DockGull } from './life/dock-gull';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
@@ -68,6 +71,8 @@ export interface CoveScene {
     terrain: CreatedTerrain | null;
     foam: Mesh | null;
     town: MeridianTownSystem | null;
+    /** Camera-only blockers for its coastal rocks, built in slices before `town` is set. */
+    rockCameraBlockers: CameraBlockerBox[];
     ready: boolean;
     /**
      * Starts streaming Port Meridian (once; later calls return the same promise). Nothing of it loads
@@ -91,6 +96,8 @@ export interface CoveScene {
   vegetation: VegetationSystem | null;
   ship: Brigantine;
   village: VillageSystem;
+  /** The wreck on the sand bar between the lighthouse point and the pier (one draw). */
+  wreck: WreckSystem;
   /** Puzzle set pieces (the P0.1 mill race). */
   sites: CoveSites;
   /** Shells, pebbles, driftwood, and seaweed along hero beaches. */
@@ -228,7 +235,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     { minX: data.minX, maxX: data.maxX, minZ: data.minZ, maxZ: data.maxZ },
     terrain.heightField,
   );
-  const foam = createCoastFoam(data, terrain.heightField);
+  const foam = createCoastFoam(data, terrain.heightField, { rings: [wreckWaterline()] });
   await breathe();
   const ranges = await createDistantRangesAsync(tier, breathe);
   await breathe();
@@ -258,6 +265,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     terrain: null as CreatedTerrain | null,
     foam: null as Mesh | null,
     town: null as MeridianTownSystem | null,
+    rockCameraBlockers: [] as CameraBlockerBox[],
     ready: false,
     load(): Promise<MeridianTownSystem | null> {
       if (!meridianDisabled && !meridianStream) meridianStream = streamMeridian();
@@ -321,6 +329,14 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         meridian.terrain = meridianTerrain;
         meridian.foam = meridianFoam;
         meridian.ready = true;
+        const rockBlockers = meridianRockCameraBlockersSliced(meridianTerrain.heightField);
+        for (let r = rockBlockers.next(); ; r = rockBlockers.next()) {
+          if (r.done) {
+            meridian.rockCameraBlockers = r.value;
+            break;
+          }
+          await breathe();
+        }
         const townKit = await loadVillageKit();
         if (disposed) return resolveMeridianTown(null);
         const town = await createMeridianTownAsync(
@@ -414,7 +430,17 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   if (skipIslandShadows) skipSunShadows(ship.group);
   scene.add(ship.group);
   sites.crane.setShip(ship.group, BRIGANTINE_CARGO);
-  shipObstacles.push(...village.shipObstacles, ...sites.shipObstacles, seaStackShipObstacle());
+  // The wreck draws with the ship's material, so it joins the scene before the island compiles.
+  const wreck = createWreck(tier.tier);
+  if (skipIslandShadows) skipSunShadows(wreck.mesh);
+  // ?nowreck leaves her out of the scene (a census without her); her obstacles stay.
+  if (!params.has('nowreck')) scene.add(wreck.mesh);
+  shipObstacles.push(
+    ...village.shipObstacles,
+    ...sites.shipObstacles,
+    ...wreck.shipObstacles,
+    seaStackShipObstacle(),
+  );
   const caveButtress = headlandCaveShipObstacle(terrain.heightField);
   if (caveButtress) shipObstacles.push(caveButtress);
   const shipEnv = {
@@ -427,7 +453,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   if (o.birds !== false && tier.birds > 0) {
     birds = createBirds({
       tier,
-      perches: village.perches,
+      perches: [...village.perches, ...wreck.perches],
       center: new Vector3(COVE.harbor.center.x, 0, COVE.harbor.center.z + 40),
       radius: 220,
     });
@@ -538,6 +564,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   }
   detail.anchorage.add(sites.group);
   detail.anchorage.add(debris.group);
+  detail.anchorage.add(wreck.mesh);
   if (dockGull) detail.anchorage.add(dockGull.group);
 
   const focus = new Vector3();
@@ -558,6 +585,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       sites.group,
       debris.group,
       ship.group,
+      wreck.mesh,
       vegetation?.group,
       birds?.group,
       dockGull?.group,
@@ -630,6 +658,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     vegetation,
     ship,
     village,
+    wreck,
     sites,
     debris,
     birds,
@@ -657,6 +686,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         village.group,
         debris.group,
         ship.group,
+        wreck.mesh,
       );
       if (meridian.terrain) scene.remove(meridian.terrain.group);
       if (meridian.foam) scene.remove(meridian.foam);
@@ -685,6 +715,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       meridianBirds?.dispose();
       leaps?.dispose();
       village.dispose();
+      wreck.dispose();
       sites.dispose();
       debris.dispose();
       ship.dispose();

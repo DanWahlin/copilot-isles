@@ -102,6 +102,10 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
       : 0;
   ship.dynamics.reset(anchor.x, anchor.z, anchor.heading);
   scene.add(ocean.mesh, ranges, ship.group);
+  // The ship's shadow shaders build with the title (a warm-up draws it into the shadow map twice), not
+  // when a zoom first brings it into the map. The first title built them by chance (its first frame
+  // put the map on the ship), the ones after a voyage didn't (issue 248).
+  const endShadowWarm = sky.shadowWarm(ship.group, 2);
   scene.add(wordmarkGull.group);
   if (typeof window !== 'undefined') {
     (window as unknown as { __dev: object }).__dev = {
@@ -188,6 +192,7 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
     ready,
     dispose() {
       disposed = true;
+      endShadowWarm();
       unbind();
       if (lazyLeapsTimer) window.clearTimeout(lazyLeapsTimer);
       if (lazyBirdsTimer) window.clearTimeout(lazyBirdsTimer);

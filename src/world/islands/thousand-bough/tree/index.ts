@@ -34,8 +34,8 @@ const TIER_TREE: Record<
   TierSettings['tier'],
   { clusters: number; roots: number; near: BanyanDetail; vines: number; ground: number }
 > = {
-  lite: { clusters: 340, roots: 12, near: BANYAN_DETAIL.lite, vines: 0, ground: 8 },
-  low: { clusters: 480, roots: 24, near: { ...BANYAN_DETAIL.lite, cards: 6 }, vines: 30, ground: 22 },
+  lite: { clusters: 250, roots: 12, near: BANYAN_DETAIL.lite, vines: 0, ground: 8 },
+  low: { clusters: 480, roots: 24, near: { ...BANYAN_DETAIL.lite, cards: 10 }, vines: 30, ground: 22 },
   medium: {
     clusters: 900,
     roots: 36,
@@ -164,7 +164,7 @@ export function createBanyan(tier: TierSettings, clearance: WalkClearance): Bany
   );
   const sister = make(
     buildBanyan(
-      { ...BANYAN_DETAIL.far, lobes: 1, cards: fine ? 5 : 3, twigs: true, fine },
+      { ...BANYAN_DETAIL.far, lobes: 1, cards: fine ? 5 : 3, twigs: true, fine, lean: t.near.lean },
       sisterClusters,
       [],
     ),

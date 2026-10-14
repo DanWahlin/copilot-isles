@@ -26,6 +26,8 @@ export interface ChannelRoutingHost extends PuzzleHost {
   reducedMotion(): boolean;
   /** Fen's closing beat (FEN_SOLVED), run once the twist's answered. */
   closing: readonly ScriptStep[];
+  /** Fades the screen to black (true) and back, for the demo's cut to the board. */
+  fade?(on: boolean, ms?: number): Promise<void>;
   /** Mounts the overlay (tests pass a stand-in; the game loads src/ui/puzzles/ChannelRouting.tsx). */
   mountUi?: (store: ChannelRoutingStore) => () => void;
 }
@@ -35,6 +37,18 @@ const ID = 'P2.1';
 const SAVE = 'P2.1';
 const TWIST_QUESTION =
   'Feature and Docs both want to show their work at Lookout 5173. Their channels are separate. So why are they stuck?';
+
+/** The title cards over Fen's demo (spec §5.3, the cold open). */
+const OLD_WAY = {
+  kicker: 'The old way',
+  title: 'One shared trough',
+  text: 'Every crew’s water runs down the same trough, so it all mixes into mud.',
+};
+const NEW_WAY = {
+  kicker: 'The new way',
+  title: 'One channel per crew',
+  text: 'Each crew’s water stays in its own channel, all the way to its own wheel.',
+};
 
 const crewName = (c: Crew) => CREW_LOOK[c].name;
 /** “Feature’s”, “Docs’”. */
@@ -72,7 +86,12 @@ export function describeRun(run: RunResult, round: 1 | 2 | 3): string {
 export function createChannelRouting(
   host: ChannelRoutingHost,
   sys: ThousandBoughSystem,
-): Puzzle & { open(): Promise<void>; demo(): Promise<void>; readonly isOpen: boolean } {
+): Puzzle & {
+  open(): Promise<void>;
+  demo(): Promise<void>;
+  demoClear(): Promise<void>;
+  readonly isOpen: boolean;
+} {
   const saved = host.quests()[SAVE];
   const startRound = (saved === 'r3' ? 3 : saved === 'r2' ? 2 : 1) as 1 | 2 | 3;
   const model = new ChannelRoutingModel(startRound);
@@ -96,6 +115,7 @@ export function createChannelRouting(
     busy: false,
     twist: null,
     announce: '',
+    card: null,
     hits: null,
   });
   const sync = (patch: Partial<ChannelRoutingView> = {}) => {
@@ -124,6 +144,9 @@ export function createChannelRouting(
 
   const sfx = (id: SliceName, gain: number) => host.audio?.sfx.oneShot(id, at, gain);
 
+  // Before Fen's demo the old shared trough still stands over the board.
+  if (!step() || step() === 'start') sys.flume.showSharedTrough(true);
+
   async function mount(): Promise<void> {
     if (unmount) return;
     mounting ??= host.mountUi
@@ -149,6 +172,7 @@ export function createChannelRouting(
     sys.flume.setBoard(model.state.board, false);
     sync({
       open: true,
+      card: null,
       message: null,
       announce: `Round ${model.state.round} of 3. ${liveCrews()} Use the arrow keys to pick a tile and E to turn it.`,
     });
@@ -161,7 +185,7 @@ export function createChannelRouting(
 
   function close(): void {
     if (!view.get().open) return;
-    view.set({ open: false, busy: false, twist: null, hits: null, pulse: null });
+    view.set({ open: false, busy: false, twist: null, hits: null, pulse: null, card: null });
     sys.flume.setCursor(null);
     host.frame(null);
     host.setModal(false);
@@ -436,18 +460,40 @@ export function createChannelRouting(
       return view.get().open;
     },
     open,
-    /** Fen's cold open: the shared trough (spec §5.3). */
+    /**
+     * Fen's cold open, the old way (spec §5.3): the three gates pour into one shared trough and it
+     * all runs to mud, under a title card. Resolves once the mud's in every chute (it keeps running).
+     */
     async demo() {
       host.frame(camShot('puzzleCam'));
+      await mount();
+      view.set({ card: OLD_WAY });
       sfx('gate_lift', 0.7);
       await sys.flume.demoSharedTrough();
-      await wait(host.reducedMotion() ? 300 : 1200);
+    },
+    /** Then the gates shut, the trough drains, and a fade cuts to the board without it: the new way. */
+    async demoClear() {
+      sfx('lever', 0.4);
+      await sys.flume.drainSharedTrough();
+      const ms = host.reducedMotion() ? 240 : 380;
+      await host.fade?.(true, ms);
+      sys.flume.clearSharedTrough();
+      sys.flume.setBoard(model.state.board, false);
+      view.set({ card: NEW_WAY });
+      await host.fade?.(false, ms);
     },
     engaged: () => view.get().open,
     hint,
     hintKey: () => `${model.state.round}:${model.version}:${view.get().twist ? 't' : ''}`,
     update(dt) {
-      if (!view.get().open) return;
+      if (!view.get().open) {
+        // Fen's beat ended without opening the board (it was cut short): no card left over, no water running.
+        if (view.get().card && host.canAct()) {
+          view.set({ card: null });
+          void sys.flume.drainSharedTrough();
+        }
+        return;
+      }
       pollPad(dt);
       if (view.get().pulse && pulseUntil && performance.now() > pulseUntil) {
         pulseUntil = 0;

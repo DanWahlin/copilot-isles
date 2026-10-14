@@ -65,6 +65,8 @@ import {
 } from '../village/kit';
 import { segmentDistance } from '../../util/math';
 import { MONUMENT_TOP, anchorMonument } from './anchor-monument';
+import { CITADEL_EMBRASURES, MERIDIAN_BATTERIES, type Embrasure } from '../islands/meridian-batteries';
+import { addShoreBatteries, cannonDetail, shoreBatteryWalkable } from '../village/shore-battery';
 
 type HouseSide = 'front' | 'back' | 'left' | 'right';
 type HouseRoof = 'gable' | 'tower' | 'flat';
@@ -257,6 +259,8 @@ function* buildMeridianTown({
   const mooringLines = createMooringLines(kit.materials);
 
   const townWalkable = (x: number, z: number): number | null => {
+    const battery = shoreBatteryWalkable(MERIDIAN_BATTERIES, x, z);
+    if (battery !== null) return battery;
     for (const span of stairSpans) {
       const h = stairsHeightAt(span, x, z);
       if (h !== null) return h;
@@ -314,6 +318,20 @@ function* buildMeridianTown({
   addLift(buckets, colliders, kit, liftCar, anchor);
   addCitadel(buckets, colliders, stairSpans, perches, heightField, kit, low, high, anchor);
   yield;
+  // The harbour's guns: the citadel's rampart, the mole head and the east arm's head (no new shader),
+  // a battery a slice.
+  for (const b of MERIDIAN_BATTERIES) {
+    const battery = addShoreBatteries(
+      buckets,
+      [b],
+      (x, z) => townWalkable(x, z) ?? heightField.heightAt(x, z),
+      cannonDetail(tier.tier),
+    );
+    colliders.boxes.push(...battery.boxes);
+    colliders.circles.push(...battery.circles);
+    colliders.camera?.push(...battery.camera);
+    yield;
+  }
   yield* addTerraceHouses(tier.tier, buckets, colliders, stairSpans, perches, heightField, kit, low, high);
   addDenseHillsideTown(buckets, colliders, stairSpans, perches, heightField, kit, low, high);
   yield;
@@ -1561,7 +1579,7 @@ function addCitadel(
   void heightField;
   const y = CITADEL.height;
   addDiscPaving(buckets, CITADEL.x, y - 0.08, CITADEL.z, CITADEL.r * 0.78, 0xe4c991, 40);
-  addCurtainWall(buckets, colliders, perches, CITADEL.x, y, CITADEL.z, CITADEL.r);
+  addCurtainWall(buckets, colliders, perches, CITADEL.x, y, CITADEL.z, CITADEL.r, CITADEL_EMBRASURES);
   addRoundTower(buckets, colliders, perches, 788, y, -781, 4.5, 10.5, true);
   addRoundTower(buckets, colliders, perches, 821, y, -760, 4.2, 9.6, true);
   addRoundTower(buckets, colliders, perches, 842, y, -796, 4.8, 10.8, true);
@@ -3115,6 +3133,77 @@ function addAdmiralTerrace(
   perches.push(new Vector3(x - 5.2, y + 6.8, z - 1.8));
 }
 
+/**
+ * An embrasure's own faces (flat shaded, so its edges stay crisp): the two cheeks, splayed from the
+ * narrow throat on the inner face to the wide mouth on the outer one, and the sill block under the
+ * gap, its top sloping down toward the sea.
+ */
+function addEmbrasure(
+  x: number,
+  y: number,
+  z: number,
+  rx: number,
+  rz: number,
+  thickness: number,
+  h: number,
+  e: Embrasure,
+): BufferGeometry {
+  const at = (a: number, side: number, top: number): [number, number, number] => [
+    x + Math.cos(a) * (rx + thickness * side),
+    y + top,
+    z + Math.sin(a) * (rz + thickness * side),
+  ];
+  const foot = -0.75;
+  const inL = e.angle - e.halfIn,
+    inR = e.angle + e.halfIn,
+    outL = e.angle - e.halfOut,
+    outR = e.angle + e.halfOut;
+  const centre = at(e.angle, 0, (e.sillIn + h) / 2);
+  const out = [Math.cos(e.angle) / rx, 0, Math.sin(e.angle) / rz];
+  const positions: number[] = [];
+  // A quad, wound so its face points along `want` (the stone is double-sided, so a flipped face
+  // would shade as if unlit).
+  const quad = (q: [number, number, number][], want: number[]) => {
+    const [p0, p1, p2] = q as [[number, number, number], [number, number, number], [number, number, number]];
+    const u = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]];
+    const v = [p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]];
+    const nrm = [u[1]! * v[2]! - u[2]! * v[1]!, u[2]! * v[0]! - u[0]! * v[2]!, u[0]! * v[1]! - u[1]! * v[0]!];
+    const flip = nrm[0]! * want[0]! + nrm[1]! * want[1]! + nrm[2]! * want[2]! < 0;
+    const order = flip ? [0, 2, 1, 0, 3, 2] : [0, 1, 2, 0, 2, 3];
+    for (const k of order) positions.push(...q[k]!);
+  };
+  const towardGap = (p: [number, number, number]) => [centre[0] - p[0], 0, centre[2] - p[2]];
+  // The cheeks, full height (their foot is inside the sill block).
+  for (const [ai, ao] of [
+    [inL, outL],
+    [inR, outR],
+  ] as const) {
+    const q: [number, number, number][] = [
+      at(ai, -0.5, foot),
+      at(ai, -0.5, h),
+      at(ao, 0.5, h),
+      at(ao, 0.5, foot),
+    ];
+    quad(q, towardGap(q[0]!));
+  }
+  // The sill: its sloping top, and its faces to the courtyard and to the sea.
+  quad(
+    [at(inL, -0.5, e.sillIn), at(inR, -0.5, e.sillIn), at(outR, 0.5, e.sillOut), at(outL, 0.5, e.sillOut)],
+    [0, 1, 0],
+  );
+  quad(
+    [at(inL, -0.5, foot), at(inR, -0.5, foot), at(inR, -0.5, e.sillIn), at(inL, -0.5, e.sillIn)],
+    [-out[0]!, 0, -out[2]!],
+  );
+  quad([at(outL, 0.5, foot), at(outR, 0.5, foot), at(outR, 0.5, e.sillOut), at(outL, 0.5, e.sillOut)], out);
+  const g = new BufferGeometry();
+  g.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  g.computeVertexNormals();
+  worldUv(g, 1.8);
+  paint(g, 0xc2a476);
+  return g;
+}
+
 function addCurtainWall(
   buckets: Buckets,
   colliders: ColliderSet,
@@ -3123,17 +3212,41 @@ function addCurtainWall(
   y: number,
   z: number,
   r: number,
+  embrasures: readonly Embrasure[] = [],
 ): void {
   const rx = r * 0.78;
   const rz = r * 0.68;
   const thickness = 1.55;
   const h = 3.15;
-  const n = 48;
+  // The ring's samples: 48 even steps, and each embrasure's two cheeks (narrow on the inner face,
+  // splayed wide on the outer one). The ring leaves the gap between a pair open; the embrasure's own
+  // faces close it (`addEmbrasure`).
+  const TAU = Math.PI * 2;
+  const wrap = (a: number) => ((a % TAU) + TAU) % TAU;
+  const ring: { inner: number; outer: number; opens?: boolean }[] = [];
+  const steps = 48;
+  for (let i = 0; i < steps; i += 1) {
+    const a = (i / steps) * TAU;
+    const near = embrasures.some(
+      (e) => Math.abs(Math.atan2(Math.sin(a - e.angle), Math.cos(a - e.angle))) <= e.halfOut + 0.01,
+    );
+    if (!near) ring.push({ inner: a, outer: a });
+  }
+  for (const e of embrasures) {
+    ring.push({ inner: wrap(e.angle - e.halfIn), outer: wrap(e.angle - e.halfOut), opens: true });
+    ring.push({ inner: wrap(e.angle + e.halfIn), outer: wrap(e.angle + e.halfOut) });
+  }
+  const mid = (p: { inner: number; outer: number }) =>
+    wrap(p.inner + Math.atan2(Math.sin(p.outer - p.inner), Math.cos(p.outer - p.inner)) / 2);
+  ring.sort((p, q) => mid(p) - mid(q));
+  const n = ring.length;
   const positions: number[] = [];
   const indices: number[] = [];
-  for (let i = 0; i < n; i += 1) {
-    const a = (i / n) * Math.PI * 2;
-    for (const side of [-0.5, 0.5] as const) {
+  for (const p of ring) {
+    for (const [side, a] of [
+      [-0.5, p.inner],
+      [0.5, p.outer],
+    ] as const) {
       const px = x + Math.cos(a) * (rx + thickness * side);
       const pz = z + Math.sin(a) * (rz + thickness * side);
       positions.push(px, y - 0.75, pz, px, y + h, pz);
@@ -3141,6 +3254,7 @@ function addCurtainWall(
   }
   const stride = 4;
   for (let i = 0; i < n; i += 1) {
+    if (ring[i]!.opens) continue;
     const j = (i + 1) % n;
     const a = i * stride;
     const b = j * stride;
@@ -3156,6 +3270,7 @@ function addCurtainWall(
   worldUv(geometry, 1.8);
   paint(geometry, 0xc2a476);
   buckets.stone.push(geometry);
+  for (const e of embrasures) buckets.stone.push(addEmbrasure(x, y, z, rx, rz, thickness, h, e));
 
   for (let i = 0; i < 20; i += 1) {
     const a = (i / 20) * Math.PI * 2;
@@ -3167,9 +3282,9 @@ function addCurtainWall(
     if (i % 4 === 0) perches.push(new Vector3(px, y + h + 0.8, pz));
   }
   // The whole ring, merlons included, for the camera: one chord box per segment of the wall.
-  for (let i = 0; i < n; i += 1) {
-    const a0 = (i / n) * Math.PI * 2,
-      a1 = ((i + 1) / n) * Math.PI * 2;
+  for (let i = 0; i < steps; i += 1) {
+    const a0 = (i / steps) * Math.PI * 2,
+      a1 = ((i + 1) / steps) * Math.PI * 2;
     const x0 = x + Math.cos(a0) * rx,
       z0 = z + Math.sin(a0) * rz;
     const x1 = x + Math.cos(a1) * rx,

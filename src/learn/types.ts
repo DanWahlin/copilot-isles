@@ -1,5 +1,6 @@
 import type { ChapterId } from './course/chapters';
 import type { ForkPlace } from './fork';
+import type { SetupKind } from './setup';
 
 export type { ChapterId };
 
@@ -120,6 +121,8 @@ export interface Page {
    * sends them (its Actions tab, Issues, Settings…).
    */
   fork?: readonly ForkPlace[];
+  /** The player's own values this page notes under its caption, once they've given them (Your setup). */
+  setup?: readonly SetupKind[];
   source: SourceRef;
 }
 

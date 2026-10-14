@@ -513,10 +513,13 @@ function leafPart(card: boolean, weight: number): number {
   return (card ? 5 : 1) + 0.4 * Math.min(1, Math.max(0, weight));
 }
 
-/** How far a leaf's normal leans to the canopy's (0.55 facing out of it, none facing into it). */
-function layerLean(x: number, y: number, z: number, c: Cluster): number {
+/**
+ * How far a leaf's normal leans to the canopy's (`most` facing out of it, none facing into it, or a
+ * `floor` of it everywhere).
+ */
+function layerLean(x: number, y: number, z: number, c: Cluster, most: number, floor: number): number {
   const d = (x * c.nx + y * c.ny + z * c.nz) / (Math.hypot(x, y, z) || 1);
-  return 0.55 * Math.min(1, Math.max(0, (d + 0.2) / 0.7));
+  return Math.max(floor, most * Math.min(1, Math.max(0, (d + 0.2) / 0.7)));
 }
 
 /**
@@ -540,10 +543,20 @@ function clump(g: VegGeometry, c: Cluster, d: BanyanDetail): void {
   // The leaf pattern's offset (each clump its own leaves).
   const uo = Math.floor(rand() * 40);
   const vo = Math.floor(rand() * 40);
-  const tone = (h: number) => Math.max(0, Math.min(1, h * 0.95 + c.up * 0.35 + fresh - 0.12));
+  // The coarse levels' clumps shade as the canopy's one soft volume (their few big faces read as
+  // facets otherwise), and the underside of the canopy stays in its own shade.
+  const leanMost = d.lean ?? 0.55;
+  const leanFloor = d.lean ? d.lean * 0.6 : 0;
+  const under = d.lean ? (1 - c.up) * 0.45 : 0;
+  // A core under a full fringe of cards is the clump's shaded inside: smaller and darker than its leaves.
+  const coreK = d.core ?? 0.78;
+  const coreDim = d.core ? 0.6 : 1;
+  const cardOut = 0.9 * Math.min(1, (coreK + 0.15) / 0.78);
+  const tone = (h: number) =>
+    Math.max(0, Math.min(1, (h * 0.95 + c.up * 0.35 + fresh - 0.12) * (1 - under) + under * h * 0.3));
   for (let l = 0; l < d.lobes; l++) {
     const shape = l === 0 && (d.lobes >= 3 || d.fine) ? ICO2 : ICO;
-    const lr = c.r * (l === 0 ? (d.cards ? 0.78 : 0.95) + rand() * 0.3 : 0.4 + rand() * 0.35);
+    const lr = c.r * (l === 0 ? (d.cards ? coreK : 0.95) + rand() * 0.3 : 0.4 + rand() * 0.35);
     const ox = l === 0 ? 0 : (rand() - 0.5) * c.r * 1.5;
     const oy = l === 0 ? 0 : (rand() - 0.25) * c.r * 0.5;
     const oz = l === 0 ? 0 : (rand() - 0.5) * c.r * 1.5;
@@ -565,11 +578,11 @@ function clump(g: VegGeometry, c: Cluster, d: BanyanDetail): void {
       const y = c.y + oy + vy! * lr * j * 0.62;
       const z = c.z + oz + vz! * lr * j;
       // Deep in the shade underneath, bright where the sun catches the top.
-      const t = tone((vy! + 1) / 2);
+      const t = tone((vy! + 1) / 2) * coreDim;
       const colour = t < 0.5 ? mixC(LEAF_DEEP, LEAF_MID, t * 2) : mixC(LEAF_MID, LEAF_RIM, (t - 0.5) * 2);
       // Normals lean to the canopy's own on the side that faces out of it (one soft, leafy mass); the
       // side turned into the canopy keeps its own, so an upper clump's underside stays in shade.
-      const lean = layerLean(vx!, vy!, vz!, c);
+      const lean = layerLean(vx!, vy!, vz!, c, leanMost, leanFloor);
       const nx = vx! * (1 - lean) + c.nx * lean;
       const ny = vy! * (1 - lean) + c.ny * lean;
       const nz = vz! * (1 - lean) + c.nz * lean;
@@ -606,9 +619,9 @@ function clump(g: VegGeometry, c: Cluster, d: BanyanDetail): void {
     const dz = Math.sin(az) * ce;
     const s = c.r * (1.0 + rand() * 0.35);
     // Its middle just inside the core: the leaves grow out of the mass, never float off it.
-    const cx = c.x + dx * rh * 0.9;
+    const cx = c.x + dx * rh * cardOut;
     const cy = c.y + el * rv * 0.78;
-    const cz = c.z + dz * rh * 0.9;
+    const cz = c.z + dz * rh * cardOut;
     // Square to the core's surface there, tipped a little.
     let nx = dx * rv + (rand() - 0.5) * 0.5;
     let ny = el * rh * 1.2 + (rand() - 0.5) * 0.4;
@@ -639,13 +652,15 @@ function clump(g: VegGeometry, c: Cluster, d: BanyanDetail): void {
     const vz = bz * cr - azz * sr;
     const t = tone((el + 1) / 2);
     const colour = t < 0.5 ? mixC(LEAF_DEEP, LEAF_MID, t * 2) : mixC(LEAF_MID, LEAF_RIM, (t - 0.5) * 2);
-    const cl = layerLean(nx, ny, nz, c);
+    const cl = layerLean(nx, ny, nz, c, leanMost, leanFloor);
     const vnx = nx * (1 - cl) + c.nx * cl;
     const vny = ny * (1 - cl) + c.ny * cl;
     const vnz = nz * (1 - cl) + c.nz * cl;
     const vl = Math.hypot(vnx, vny, vnz) || 1;
     const cu = Math.floor(rand() * 40);
     const cv = Math.floor(rand() * 40);
+    // A big card holds a few sprays (the material cuts one per unit of uv), so its leaves stay leaf-sized.
+    const span = d.cardSpan ? Math.max(1, Math.round(s / d.cardSpan)) : 1;
     const base = g.count;
     for (const [su, sv] of [
       [-1, -1],
@@ -663,8 +678,8 @@ function clump(g: VegGeometry, c: Cluster, d: BanyanDetail): void {
         vnx / vl,
         vny / vl,
         vnz / vl,
-        cu + (su + 1) / 2,
-        cv + (sv + 1) / 2,
+        cu + ((su + 1) / 2) * span,
+        cv + ((sv + 1) / 2) * span,
         colour,
         leafPart(true, weight(x, y, z)),
         0.04 + t * 0.96,
@@ -691,11 +706,30 @@ export interface BanyanDetail {
   twigs: boolean;
   /** Every lobe on the split, ragged shape (the near tree on the finer tiers). */
   fine?: boolean;
+  /** How far the leaves' normals lean to the canopy's (default 0.55, facing out of it only). */
+  lean?: number;
+  /** A leaf card's size (m) per spray of leaves: bigger cards hold more sprays (default one each). */
+  cardSpan?: number;
+  /** The core's radius (of the clump's) under its cards; a set one is darker too (default 0.78). */
+  core?: number;
 }
 
 export const BANYAN_DETAIL: Record<'near' | 'far' | 'lite', BanyanDetail> = {
   near: { coreSeg: 64, limbSeg: 12, rootSeg: 7, step: 1.6, lobes: 2, cards: 8, twigs: true, fine: true },
-  lite: { coreSeg: 40, limbSeg: 8, rootSeg: 5, step: 2.8, lobes: 1, cards: 4, twigs: true },
+  // Fewer, bigger clumps than the finer tiers: a small core under a fringe of leaf cards (so the outline
+  // is leaves, not its facets), shaded as one soft canopy.
+  lite: {
+    coreSeg: 28,
+    limbSeg: 7,
+    rootSeg: 5,
+    step: 2.8,
+    lobes: 1,
+    cards: 12,
+    twigs: true,
+    lean: 0.85,
+    cardSpan: 3,
+    core: 0.6,
+  },
   far: { coreSeg: 28, limbSeg: 6, rootSeg: 4, step: 4, lobes: 2, cards: 0, twigs: false },
 };
 

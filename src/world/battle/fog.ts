@@ -12,6 +12,7 @@ import {
   uv,
 } from 'three/tsl';
 import type { TierSettings } from '../../engine/quality';
+import { useSpriteQuad } from '../../engine/sprite-quad';
 import { world } from '../uniforms';
 
 // TSL fluent typings do not cover this mixed scalar/vector graph.
@@ -51,7 +52,7 @@ export class FogBank {
     this.seed = new Float32Array(n);
     this.posAttr = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
     this.dataAttr = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
-    this.mesh = new Sprite(createPuffMaterial(this.posAttr, this.dataAttr, true));
+    this.mesh = useSpriteQuad(new Sprite(createPuffMaterial(this.posAttr, this.dataAttr, true)));
     this.mesh.name = 'battle-fog';
     this.mesh.count = 0;
     this.mesh.visible = false;

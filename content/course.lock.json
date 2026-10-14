@@ -3,7 +3,7 @@
   "repo": "github/copilot-app-for-beginners",
   "ref": "main",
   "sha": "86bb298c6429905c16378eb720c642c74128d1d0",
-  "syncedAt": "2026-10-13",
+  "syncedAt": "2026-10-14",
   "catalog": [
     {
       "id": "00-setup",
@@ -791,7 +791,6 @@
     "course/ch00/app-add-project.webp": {
       "upstream": "00-setup/assets/app-add-project.webp",
       "sha256": "faf03f246231fdd884fddafb11ac6a66d85621af3bf54898bda4d1731ab5a09c",
-      "bundled": "601fdc50c78f1c2d8bdfd10bdd35ba7a376c0f1788cce033220a58c6f6cc685b",
       "pinned": true,
       "bytes": 78352
     },
@@ -816,42 +815,36 @@
     "course/ch01/app-automations-page.webp": {
       "upstream": "01-tour-the-app/assets/app-automations-page.webp",
       "sha256": "690be38e00a26bd80cd863799303b76397b72b644722979f8ca5c178c1824f91",
-      "bundled": "e50152cffcf1aceba1b2341232eb084c473152dbab431d4474387d5cc3a3cc0c",
       "pinned": true,
       "bytes": 131586
     },
     "course/ch01/app-issues-page.webp": {
       "upstream": "01-tour-the-app/assets/app-issues-page.webp",
       "sha256": "09e6cab47ef6f756dd322e396022a130cb80f3762d4b84531c1589d43641c773",
-      "bundled": "9b567bc4bd538583c3b1092267a7c498665c6c887b72c61c4a6cff99d0d2b18b",
       "pinned": true,
       "bytes": 124840
     },
     "course/ch01/app-new-page.webp": {
       "upstream": "01-tour-the-app/assets/app-new-page.webp",
       "sha256": "37be111c3c45d45c866fbbd5f739c5be906afa058d1a05f9a511b0754f3fd2b8",
-      "bundled": "8dc43babb590c3efd948186c7188f203d2ef402e5e4db515b9715358745c151a",
       "pinned": true,
       "bytes": 66968
     },
     "course/ch01/app-pull-requests-page.webp": {
       "upstream": "01-tour-the-app/assets/app-pull-requests-page.webp",
       "sha256": "ac5c638405ce3356265c81b474b88069c55def48e0347482c81827594e4b1959",
-      "bundled": "dfb60b2c8754ac33d5044060f124973eb733a126065a45d22ba536e862dd2243",
       "pinned": true,
       "bytes": 78214
     },
     "course/ch01/app-quick-chat.webp": {
       "upstream": "01-tour-the-app/assets/app-quick-chat.webp",
       "sha256": "0e15d445340be969f29a92d402b9501baddae328154fc13e5defe9af473c2adb",
-      "bundled": "e16123e337a498de99db7a97c0f14c55d924fb18a0711dac022757bf708c88c5",
       "pinned": true,
       "bytes": 84034
     },
     "course/ch01/app-settings.webp": {
       "upstream": "01-tour-the-app/assets/app-settings.webp",
       "sha256": "5bfe69fa74d53abca6e1d2a60871ef4fc6f68f5d34fad86a7cf1f1477428ba21",
-      "bundled": "22673bb4b5b246dd26054a21eb681fcf5d21a5f7a848a6e29bcca0b92123c352",
       "pinned": true,
       "bytes": 162782
     },
@@ -924,7 +917,6 @@
     "course/shared/app-github-copilot-app.webp": {
       "upstream": "assets/app-github-copilot-app.webp",
       "sha256": "371d5ae374bc4afa89f2bf26258866c2e0f98cef09259cfac979520be7d0de58",
-      "bundled": "1a7ed51fbaa987404c78105dcfe231b6b1c21efabd4320d8fb6488866e9b91ce",
       "pinned": true,
       "bytes": 63262
     },

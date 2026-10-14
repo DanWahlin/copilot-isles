@@ -12,6 +12,10 @@ import { GPU_ARGS } from '../lib/browser.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const FPS = 30;
 export const SIZE = { width: 1280, height: 720 };
+export const QUALITY_PRESETS = Object.freeze({
+  review: Object.freeze({ preset: 'slow', videoBitrate: '1200k', tune: 'animation', audioBitrate: '128k' }),
+  high: Object.freeze({ preset: 'medium', crf: '19', tune: null, audioBitrate: '160k' }),
+});
 /**
  * What a change in the page takes to reach a screencast frame (the next rendered frame, then the
  * compositor) while the audio tap hears a sound in the same JS turn. Measured with sync-check.mjs
@@ -74,7 +78,14 @@ export class Recorder {
       'ffmpeg',
       [
         ...['-y', '-loglevel', 'error', '-f', 'image2pipe', '-c:v', 'mjpeg', '-framerate', String(FPS)],
-        ...['-i', '-', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '14', '-pix_fmt', 'yuv420p'],
+        '-i',
+        '-',
+        // Fit every frame to SIZE (frames can arrive smaller, e.g. 1280×633) so libx264 always gets
+        // even dimensions and the clip keeps one frame size.
+        '-vf',
+        `scale=${SIZE.width}:${SIZE.height}:force_original_aspect_ratio=decrease,` +
+          `pad=${SIZE.width}:${SIZE.height}:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1`,
+        ...['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '14', '-pix_fmt', 'yuv420p'],
         this.raw,
       ],
       { stdio: ['pipe', 'inherit', 'inherit'] },
@@ -654,7 +665,9 @@ export async function renderTitle(browser, meta, bgJpg, outPng) {
  * Builds the final MP4: the title card (3 s), then the clip with its cuts removed (each join
  * faded through black), the audio lined up by the recorder's clocks, at 30 fps H.264 + AAC.
  */
-export async function finalize({ take, title, out, audio = true, titleSeconds = 3 }) {
+export async function finalize({ take, title, out, audio = true, titleSeconds = 3, quality = 'review' }) {
+  const encoding = QUALITY_PRESETS[quality];
+  if (!encoding) throw new Error(`unknown output quality "${quality}"`);
   const fade = 0.35;
   const dur = take.duration;
   // Keep-segments on the clip's timeline (seconds from its first frame).
@@ -688,9 +701,13 @@ export async function finalize({ take, title, out, audio = true, titleSeconds = 
       ? `adelay=${Math.round(off * 1000)}:all=1`
       : `atrim=start=${(-off).toFixed(4)},asetpts=PTS-STARTPTS`;
   f.push(`[1:a]aresample=48000,${lineUp},apad=whole_dur=${dur.toFixed(3)}[aclip]`);
-  // The screencast's JPEGs decode as full-range YUV; players expect limited range.
+  // The screencast's JPEGs decode as full-range YUV; players expect limited range. Frames can come in
+  // smaller than the viewport (a 1280×633 frame when the page's visual viewport shrinks), and an odd
+  // height stops libx264, so every frame is fitted and padded to SIZE first.
   f.push(
-    `[0:v]scale=out_range=tv,format=yuv420p,split=${keep.length}${keep.map((_, i) => `[vs${i}]`).join('')}`,
+    `[0:v]scale=${SIZE.width}:${SIZE.height}:force_original_aspect_ratio=decrease,` +
+      `pad=${SIZE.width}:${SIZE.height}:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1,` +
+      `scale=out_range=tv,format=yuv420p,split=${keep.length}${keep.map((_, i) => `[vs${i}]`).join('')}`,
   );
   f.push(`[aclip]asplit=${keep.length}${keep.map((_, i) => `[as${i}]`).join('')}`);
   const parts = [];
@@ -716,13 +733,75 @@ export async function finalize({ take, title, out, audio = true, titleSeconds = 
     parts.push(`[v${i}][a${i}]`);
   });
   f.push(`${parts.join('')}concat=n=${parts.length}:v=1:a=1[v][a]`);
-  args.push('-filter_complex', f.join(';'), '-map', '[v]', '-map', '[a]');
-  args.push(
-    ...['-r', String(FPS), '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p'],
-    ...['-color_range', 'tv', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709'],
-    ...['-c:a', 'aac', '-b:a', '160k', '-ar', '48000', '-movflags', '+faststart', out],
-  );
-  await run('ffmpeg', args);
+  const commonArgs = [...args, '-filter_complex', f.join(';'), '-map', '[v]', '-map', '[a]'];
+  const tune = encoding.tune ? ['-tune', encoding.tune] : [];
+  const rate = encoding.videoBitrate ? ['-b:v', encoding.videoBitrate] : ['-crf', encoding.crf];
+  const videoArgs = [
+    '-r',
+    String(FPS),
+    '-c:v',
+    'libx264',
+    '-preset',
+    encoding.preset,
+    ...tune,
+    ...rate,
+    '-pix_fmt',
+    'yuv420p',
+  ];
+  const colorArgs = [
+    '-color_range',
+    'tv',
+    '-colorspace',
+    'bt709',
+    '-color_primaries',
+    'bt709',
+    '-color_trc',
+    'bt709',
+  ];
+  const audioArgs = ['-c:a', 'aac', '-b:a', encoding.audioBitrate, '-ar', '48000'];
+  if (encoding.videoBitrate) {
+    const passLogfile = path.join(path.dirname(take.raw), `review-${process.pid}-${Date.now()}`);
+    try {
+      await run('ffmpeg', [
+        ...commonArgs,
+        ...videoArgs,
+        '-pass',
+        '1',
+        '-passlogfile',
+        passLogfile,
+        ...colorArgs,
+        ...audioArgs,
+        '-f',
+        'null',
+        '-',
+      ]);
+      await run('ffmpeg', [
+        ...commonArgs,
+        ...videoArgs,
+        '-pass',
+        '2',
+        '-passlogfile',
+        passLogfile,
+        ...colorArgs,
+        ...audioArgs,
+        '-movflags',
+        '+faststart',
+        out,
+      ]);
+    } finally {
+      for (const suffix of ['-0.log', '-0.log.mbtree']) fs.rmSync(`${passLogfile}${suffix}`, { force: true });
+    }
+  } else {
+    await run('ffmpeg', [
+      ...commonArgs,
+      ...videoArgs,
+      ...colorArgs,
+      ...audioArgs,
+      '-movflags',
+      '+faststart',
+      out,
+    ]);
+  }
   return { keep, cuts, offset: off, duration: await probeDuration(out) };
 }
 

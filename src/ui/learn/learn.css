@@ -1822,3 +1822,95 @@
   display: inline;
   color: var(--ci-gold, #e8c88a);
 }
+
+/* ---- Your setup: the small forms (computer, practice issue, branch, model) and the Logbook card ---- */
+.ci-setup-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.ci-setup-choices legend {
+  width: 100%;
+  margin-bottom: 0.45rem;
+  padding: 0;
+}
+.ci-setup-choice {
+  display: inline-flex;
+  flex: 1 1 8.5rem;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
+  position: relative;
+  min-height: 44px;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ci-cream, #fbefd6);
+  cursor: pointer;
+}
+.ci-setup-choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.ci-setup-choice span {
+  font: 700 1rem/1.2 var(--ci-ui);
+}
+.ci-setup-choice small {
+  color: var(--ci-muted, rgba(246, 236, 214, 0.72));
+  font-size: 0.78rem;
+}
+.ci-setup-choice.on {
+  border-color: #e8c88a;
+  background: rgba(232, 200, 138, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(232, 200, 138, 0.6);
+}
+.ci-setup-choice.on span::before {
+  content: '✓ ';
+  color: var(--good);
+}
+.ci-setup-choice:has(input:focus-visible) {
+  outline: 2px solid var(--ci-focus, #65e5ff);
+  outline-offset: 2px;
+}
+.ci-setup-short {
+  max-width: 12rem;
+}
+.ci-setup-notes {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.6rem 0;
+  padding: 0.5rem 0.8rem;
+  border-left: 2px solid var(--good);
+  border-radius: 0 8px 8px 0;
+  background: rgba(63, 208, 201, 0.08);
+  list-style: none;
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+.ci-setup-notes .ci-course-kicker {
+  display: inline;
+  margin-right: 0.3rem;
+  color: var(--ci-gold, #e8c88a);
+}
+.ci-setup-card {
+  margin: 0 0 1rem;
+}
+.ci-setup-card h3 {
+  margin: 0 0 0.2rem;
+  color: #fff6de;
+  font: 600 1.1rem/1.3 var(--ci-display, Georgia, serif);
+}
+.ci-setup-card-note {
+  margin: 0 0 0.6rem;
+  color: var(--ci-muted, rgba(246, 236, 214, 0.72));
+  font-size: 0.85rem;
+}
+.ci-setup-card .ci-fork-card {
+  margin: 0 0 0.4rem;
+  padding: 0.35rem 0.9rem;
+}

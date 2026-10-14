@@ -18,6 +18,7 @@ import { mulberry32 } from '../../../util/math';
 import { thousandBoughHeight } from './height';
 import { WalkClearance } from './village/clearance';
 import { createTreeVillage } from './village';
+import { branchSignLines } from './village/branch-sign';
 import { wharfShipObstacles } from './village/structure';
 import { LATE_BRIDGES, villageWalkable, type WalkHit } from './village/surfaces';
 
@@ -55,13 +56,17 @@ export function createThousandBoughStub(): ThousandBoughSystem {
         const f = THOUSAND_BOUGH.flume;
         return out.set(f.cols[col] ?? f.center.x, f.rowY[row] ?? 22, f.rows[row] ?? f.center.z);
       },
+      showSharedTrough: none,
       demoSharedTrough: done,
+      drainSharedTrough: done,
+      clearSharedTrough: none,
       runFlows: done,
       resetWater: none,
     },
     spire: { playJam: done, openSecondBridge: done, preview: none },
     mast: { hoist: done, lowerAll: none },
     fx: { sealCascade: done, gondolaSend: done, lanternHouse: none, skyBasketEnabled: none },
+    setPracticeBranch: none,
     update: none,
     dispose: none,
   };
@@ -169,7 +174,9 @@ export interface ThousandBoughOptions {
   heightField: HeightField;
   kit: VillageKit;
   /** The island's boulders and the Spire (built with the terrain): their fences and camera blockers. */
-  rocks?: Pick<ThousandBoughRocks, 'circles' | 'cameraBoxes'> | null;
+  rocks?:
+    | (Pick<ThousandBoughRocks, 'circles' | 'cameraBoxes'> & Partial<Pick<ThousandBoughRocks, 'flumeStones'>>)
+    | null;
 }
 
 /**
@@ -202,6 +209,8 @@ export async function createThousandBoughAsync(
   // Dim until the Seal's cascade lights them from the Beacon (64 m) down to the wharf.
   glows?.setHalos(HALO_REST, 0, BEACON_Y + 1, BEACON_Y + 1);
   const rocks = o.rocks ?? { circles: [], cameraBoxes: [] };
+  // The flume creates separate rock meshes that share the island's geometry and material.
+  if (o.rocks?.flumeStones) village.flume.useStones(o.rocks.flumeStones);
   const closed = new Set<string>(LATE_BRIDGES);
   const hit: WalkHit = { id: '', kind: 'wood' };
   const camBoxes: CameraBlockerBox[] = [
@@ -210,6 +219,7 @@ export async function createThousandBoughAsync(
     ...branchCameraBoxes(banyan.sprays),
   ];
   const circles = [...village.out.circles, ...rocks.circles];
+  let practiceSignShows = branchSignLines(null).join('\n');
   return {
     ...base,
     walkable: (x, z, y) => villageWalkable(x, z, y, undefined, closed),
@@ -256,6 +266,13 @@ export async function createThousandBoughAsync(
       skyBasketEnabled: (on) => village.pieces.skyBasketEnabled(on),
     },
     skyBasketCar: (t) => village.pieces.skyBasketCar(t),
+    setPracticeBranch(name) {
+      const lines = branchSignLines(name);
+      const key = lines.join('\n');
+      if (key === practiceSignShows) return;
+      practiceSignShows = key;
+      village.practiceSign.redraw(lines);
+    },
     update(dt, t) {
       village.flume.update(dt);
       village.pieces.update(dt, t);

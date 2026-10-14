@@ -1,6 +1,6 @@
 import type { BoxCollider } from '../../../../game/collision';
 import type { CameraBlockerBox } from '../../../terrain/camera-blockers';
-import type { SignSet } from '../../../sites/sign';
+import type { PaintedSign, SignSet } from '../../../sites/sign';
 import { THOUSAND_BOUGH as TB, TREE, atBearing } from '../layout';
 import { thousandBoughHeight, thousandBoughWater } from '../height';
 
@@ -20,6 +20,7 @@ import {
   type Rect,
 } from './surfaces';
 import type { StructureOut } from './structure';
+import { branchSignLines } from './branch-sign';
 
 /**
  * The tree village's houses and set pieces: the three crews' round treehouses (each its own: Feature's
@@ -367,7 +368,7 @@ function crewHut(
 }
 
 /** A rectangular cottage on a deck's outer end (the Practice Bough's, the Chronicle Loft). */
-function deckHouse(buckets: Buckets, signs: SignSet, out: StructureOut, id: 'L2S' | 'L3SE'): void {
+function deckHouse(buckets: Buckets, signs: SignSet, out: StructureOut, id: 'L2S' | 'L3SE'): PaintedSign {
   const d = DECKS[id];
   const r = d.rect;
   const spec = DECK_HOUSES[id];
@@ -520,18 +521,19 @@ function deckHouse(buckets: Buckets, signs: SignSet, out: StructureOut, id: 'L2S
     g.scale(hd / Math.max(hd, hw), 1, hw / Math.max(hd, hw));
     g.rotateY(yaw);
   });
-  // The course's branch name on two lines (broken after a hyphen), so all of it fits over the door.
+  // The practice session's branch (the course's until the player gives theirs), on two lines broken
+  // after a hyphen, so all of it fits over the door.
   const sign = signs.add(
-    id === 'L2S' ? ['practice-empty-', 'state-copy'] : ['Chronicle Loft'],
+    id === 'L2S' ? branchSignLines(null) : ['Chronicle Loft'],
     id === 'L2S' ? 2.3 : 2.0,
-    id === 'L2S' ? 0.66 : 0.42,
+    id === 'L2S' ? 0.6 : 0.42,
     {
       twoSided: false,
       colors: ['#f6e7c8'],
     },
   );
   const sp = rectWorld(r, u - hd - 0.12, 0);
-  sign.object.position.set(sp.x, y + (id === 'L2S' ? 2.5 : 2.45), sp.z);
+  sign.object.position.set(sp.x, y + 2.45, sp.z);
   sign.object.rotation.y = yaw + Math.PI;
   addBox(out, c.x, c.z, Math.max(hd, hw) + 0.1, -yaw + Math.PI / 2, y - 0.4, y + H + 3);
   out.cameraBoxes.push({
@@ -543,9 +545,10 @@ function deckHouse(buckets: Buckets, signs: SignSet, out: StructureOut, id: 'L2S
     y0: y + H - 0.1,
     y1: y + H + 1.5,
   });
-  // A lantern either side of the door.
+  // A lantern either side of the door (the Practice Bough's clear of its sign's ends: a long branch
+  // name fills the board).
   for (const s of [-1, 1]) {
-    const p = rectWorld(r, u - hd - 0.3, s * 0.9);
+    const p = rectWorld(r, u - hd - 0.3, s * (id === 'L2S' ? 1.45 : 0.9));
     out.lanterns.push({ x: p.x, y: y + 2.2, z: p.z, hang: true });
   }
   // A string of pennants along each long eave, the crews' three colours in turn.
@@ -569,6 +572,7 @@ function deckHouse(buckets: Buckets, signs: SignSet, out: StructureOut, id: 'L2S
       });
     }
   }
+  return sign;
 }
 
 /** The Three Landings' scaffold on its fresh bough: a timber frame, signed "Base branch: main". */
@@ -910,20 +914,20 @@ function fernWalkLanterns(
 
 /**
  * Builds the houses and set pieces; returns the wheels' axles (the flume view turns them) and the
- * spots where the sign set's boards stand.
+ * Practice Bough house's branch sign.
  */
 export function buildHouses(
   buckets: Buckets,
   signs: SignSet,
   out: StructureOut,
-): { wheels: ReturnType<typeof wheelFrames> } {
+): { wheels: ReturnType<typeof wheelFrames>; practiceSign: PaintedSign } {
   const styles: Record<string, HutStyle> = {
     feature: { crew: 'feature', trim: PAINT.feature, sides: 10 },
     bugfix: { crew: 'bugfix', trim: PAINT.bugfix, sides: 8 },
     docs: { crew: 'docs', trim: PAINT.docs, sides: 12 },
   };
   for (const h of CREW_HOUSES) crewHut(buckets, signs, out, h, styles[h.crew]!);
-  deckHouse(buckets, signs, out, 'L2S');
+  const practiceSign = deckHouse(buckets, signs, out, 'L2S');
   deckHouse(buckets, signs, out, 'L3SE');
   scaffold(buckets, signs, out);
   boathouse(buckets, out);
@@ -935,7 +939,7 @@ export function buildHouses(
   // The Mirror Pool path's lanterns lead on round the pool to the ledge's pair at the falls.
   fernWalkLanterns(buckets, out, TB.sidePaths.mirror, 2.4, 14);
   const wheels = wheelFrames(buckets, out);
-  return { wheels };
+  return { wheels, practiceSign };
 }
 
 export type { Rect };

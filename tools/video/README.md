@@ -19,6 +19,8 @@ Then:
 node tools/video/record.mjs --list
 node tools/video/record.mjs --scenario=sluice,crane --out=<dir>
 node tools/video/record.mjs --scenario=battle1 --base=http://127.0.0.1:5395 --tier=high
+node tools/video/record.mjs --scenario=battle1 --quality=high
+node tools/video/record.mjs --recompress --out=<dir>
 ```
 
 | Flag                      | Default                  | What it does                                                                 |
@@ -28,14 +30,25 @@ node tools/video/record.mjs --scenario=battle1 --base=http://127.0.0.1:5395 --ti
 | `--base=<url>`            | `http://127.0.0.1:5395`  | The dev server.                                                              |
 | `--tier=<tier>`           | `high`                   | Render tier (`lite`, `low`, `medium`, `high`, `ultra`).                      |
 | `--out=<dir>`             | `~/Movies/copilot-isles` | Where the videos go. Don't put them in the repo.                             |
+| `--quality=<quality>`     | `review`                 | Final encode quality (`review` or `high`).                                   |
 | `--no-audio`              |                          | Video only (silent track).                                                   |
 | `--no-title`              |                          | No title card.                                                               |
 | `--keep`                  |                          | Keeps `<out>/.work/<id>/` (raw clip, PCM audio, `take.json`, title PNG).     |
 | `--refinish`              |                          | Rebuilds the MP4, sheet and index from a `--keep` run without filming again. |
+| `--recompress`            |                          | Re-encodes every `<out>/*.mp4` to review quality in place; requires `--out`. |
 
-Output per scenario: `<id>.mp4` (1280×720, 30 fps H.264 yuv420p, AAC 160k, `+faststart`),
-`<id>.png` (six frames in a 3×2 sheet), `<id>.jpg` (poster), `<id>.json` (titles, duration, marks,
-notes), and the shared `index.html`.
+## Output
+
+Each scenario writes `<id>.mp4`, `<id>.png` (six frames in a 3×2 sheet), `<id>.jpg` (poster),
+`<id>.json` (titles, duration, marks, notes), and the shared `index.html`. The default `review`
+encode is 1280×720, 30 fps H.264 yuv420p (two-pass `-preset slow -b:v 1200k -tune animation`),
+AAC 128k, and `+faststart`. It keeps HUD text and subtitles readable and targets about 8–20 MB per
+two minutes.
+`--quality=high` keeps the previous final encode settings: H.264 `-preset medium -crf 19` and AAC
+160k. The raw intermediate stays at high quality. With `--keep`, it remains in `<out>/.work/<id>/`.
+`--recompress --out=<dir>` applies review quality to every root-level MP4 in that folder. It writes
+each candidate in `<out>/.work/`, checks its duration and audio/video streams with ffprobe, and
+replaces the original only after validation.
 
 `node tools/video/sync-check.mjs [--out=<dir>]` measures audio/video sync (see below).
 
@@ -54,13 +67,14 @@ export default {
   subtitle: 'What it teaches, in one or two sentences.',
   chapter: 'Course Chapter 00 · Add the course practice items', // cite the course section
   flags: [], // extra dev-page query flags, e.g. ['meridian'], ['thousandbough']
+  time: 17.6, // optional hour of day (default 16; 17.6 is golden hour)
   titleFrame: 2, // seconds into the clip for the title card's blurred background
   async setup(page, api) {}, // off camera: quests, teleports, skipping ahead
   async play(page, api) {}, // filmed: everything the player does, by real input
 };
 ```
 
-`record.mjs` opens `devpages/play.html?shot&quiet&time=16&tier=…`, presses **Set sail** (so the
+`record.mjs` opens `devpages/play.html?shot&quiet&time=16&tier=…` (the scenario's `time` if it sets one), presses **Set sail** (so the
 AudioContext unlocks as it does for a player), runs `setup`, starts recording, runs `play`, and
 stops. `this` in both is the scenario object, so `setup` can pass spots to `play`.
 

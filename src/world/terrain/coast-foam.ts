@@ -21,6 +21,11 @@ import { seaStackWaterlineRadius } from './sea-stack-shape';
 export interface CoastFoamOptions {
   width?: number;
   maxDistance?: number;
+  /**
+   * Closed waterlines of things standing in the sea that the terrain doesn't know about (an island's
+   * wreck): each gets a wash ribbon round it in the same mesh, so it costs no draw.
+   */
+  rings?: readonly (readonly { x: number; z: number }[])[];
 }
 
 function createFoamMaterial(maxDistance: number): MeshBasicNodeMaterial {
@@ -139,6 +144,43 @@ export function createCoastFoam(
       previousBase = base;
       previousOuter = base + 1;
     }
+  }
+
+  for (const ring of options.rings ?? []) {
+    const n = ring.length;
+    if (n < 3) continue;
+    let cx = 0,
+      cz = 0;
+    for (const p of ring) {
+      cx += p.x / n;
+      cz += p.z / n;
+    }
+    let along = 0;
+    let previousBase = -1;
+    let previousOuter = -1;
+    let firstBase = -1;
+    for (let i = 0; i < n; i++) {
+      const p = ring[i]!;
+      const a = ring[(i + n - 1) % n]!;
+      const b = ring[(i + 1) % n]!;
+      // Outward: across the loop's tangent, on the side away from its centre.
+      let sx = b.z - a.z;
+      let sz = -(b.x - a.x);
+      const len = Math.hypot(sx, sz) || 1;
+      sx /= len;
+      sz /= len;
+      if (sx * (p.x - cx) + sz * (p.z - cz) < 0) {
+        sx = -sx;
+        sz = -sz;
+      }
+      if (i > 0) along += Math.hypot(p.x - a.x, p.z - a.z);
+      const base = pushRibbonPair(p.x, p.z, sx, sz, along, -0.3, width * 0.62);
+      if (previousBase >= 0) indices.push(previousBase, previousOuter, base, base, previousOuter, base + 1);
+      else firstBase = base;
+      previousBase = base;
+      previousOuter = base + 1;
+    }
+    indices.push(previousBase, previousOuter, firstBase, firstBase, previousOuter, firstBase + 1);
   }
 
   const geometry = new BufferGeometry();

@@ -60,8 +60,14 @@ function TileSvg({ tile, water }: { tile: Tile; water: CellWater | undefined }) 
       <rect x="0.04" y="0.04" width="0.92" height="0.92" rx="0.1" className="ci-cr-plank" />
       {tile.kind === 'rock' ? (
         <g className="ci-cr-rock">
-          <ellipse cx="0.5" cy="0.56" rx="0.34" ry="0.28" />
-          <ellipse cx="0.42" cy="0.46" rx="0.15" ry="0.09" className="ci-cr-rock-hi" />
+          <ellipse cx="0.5" cy="0.8" rx="0.36" ry="0.07" className="ci-cr-rock-shadow" />
+          <path d="M0.14 0.78 L0.2 0.48 L0.36 0.27 L0.6 0.22 L0.8 0.36 L0.88 0.6 L0.82 0.8 Z" />
+          <path
+            d="M0.2 0.48 L0.36 0.27 L0.6 0.22 L0.8 0.36 L0.62 0.42 L0.38 0.44 Z"
+            className="ci-cr-rock-moss"
+          />
+          <path d="M0.62 0.42 L0.8 0.36 L0.88 0.6 L0.82 0.8 L0.66 0.8 Z" className="ci-cr-rock-dark" />
+          <path d="M0.3 0.56 L0.42 0.52 M0.52 0.64 L0.6 0.58" className="ci-cr-rock-crack" />
         </g>
       ) : (
         d && (
@@ -80,6 +86,19 @@ function TileSvg({ tile, water }: { tile: Tile; water: CellWater | undefined }) 
         )
       )}
     </svg>
+  );
+}
+
+/** The title card over Fen's demo: the old way, then the new way. */
+function DemoCard({ card }: { card: NonNullable<ChannelRoutingView['card']> }) {
+  return (
+    <div className="ci-cr">
+      <div className="ci-cr-card" key={card.title} role="status" aria-live="polite">
+        <p className="ci-cr-card-kicker">{card.kicker}</p>
+        <p className="ci-cr-card-title">{card.title}</p>
+        <p className="ci-cr-card-text">{card.text}</p>
+      </div>
+    </div>
   );
 }
 
@@ -163,7 +182,7 @@ function ChannelRouting({ store }: { store: ChannelRoutingStore }) {
     document.body.classList.toggle('ci-cr-open', v.open);
     return () => document.body.classList.remove('ci-cr-open');
   }, [v.open]);
-  if (!v.open) return null;
+  if (!v.open) return v.card ? <DemoCard card={v.card} /> : null;
   const water = waterMap(v.flows);
   const reached = new Set(v.flows.filter((f) => f.end === 'wheel').map((f) => f.crew));
   const wrongWheel = new Set(v.flows.filter((f) => f.end === 'wrongWheel').map((f) => f.wheel));

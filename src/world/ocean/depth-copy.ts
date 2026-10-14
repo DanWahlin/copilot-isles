@@ -16,7 +16,16 @@ import type { Node } from 'three/webgpu';
 class MatchedDepthNode extends ViewportDepthTextureNode {
   private readonly cacheTextures = new Map<RenderTarget | CanvasTarget, DepthTexture>();
 
+  constructor(
+    uv: ConstructorParameters<typeof ViewportDepthTextureNode>[0],
+    level: ConstructorParameters<typeof ViewportDepthTextureNode>[1],
+    private readonly owner: MatchedDepth,
+  ) {
+    super(uv, level, owner.placeholder);
+  }
+
   override getTextureForReference(reference: RenderTarget | CanvasTarget | null = null): Texture {
+    const shared = this.owner.placeholder;
     let tex: DepthTexture;
     if (reference === null) tex = shared;
     else {
@@ -54,9 +63,9 @@ class MatchedDepthNode extends ViewportDepthTextureNode {
   }
 
   override clone(): this {
-    const node = new MatchedDepthNode(this.uvNode ?? screenUV, this.levelNode ?? undefined, shared) as this;
+    const node = new MatchedDepthNode(this.uvNode ?? screenUV, this.levelNode ?? null, this.owner) as this;
     node.generateMipmaps = this.generateMipmaps;
-    nodes.add(node as MatchedDepthNode);
+    this.owner.nodes.add(node as MatchedDepthNode);
     return node;
   }
 }
@@ -66,19 +75,26 @@ interface DisposeSource {
   removeEventListener(type: 'dispose', listener: () => void): void;
 }
 
-let shared = new DepthTexture();
-const nodes = new Set<MatchedDepthNode>();
+/**
+ * One owner's depth copies (an ocean's): the nodes its material builds, their per-target copies, and
+ * the placeholder they're bound to before the first copy. Each owner frees only its own: one shared
+ * set, freed by whichever ocean went first, left the other ocean's nodes holding textures nobody freed
+ * (a 1×1 depth texture more at the title after each voyage, issue 248).
+ */
+export class MatchedDepth {
+  readonly placeholder = Object.assign(new DepthTexture(), { name: 'ocean depth copy' });
+  readonly nodes = new Set<MatchedDepthNode>();
 
-/** One depth copy per frame; sample it at any uv with `.sample(uv)`. */
-export function matchedDepthTexture(uv: Node<'vec2'> = screenUV): ViewportDepthTextureNode {
-  const node = new MatchedDepthNode(uv, null, shared);
-  nodes.add(node);
-  return nodeObject(node) as unknown as ViewportDepthTextureNode;
-}
+  /** One depth copy per frame; sample it at any uv with `.sample(uv)`. */
+  node(uv: Node<'vec2'> = screenUV): ViewportDepthTextureNode {
+    const node = new MatchedDepthNode(uv, null, this);
+    this.nodes.add(node);
+    return nodeObject(node) as unknown as ViewportDepthTextureNode;
+  }
 
-export function releaseMatchedDepthTextures(): void {
-  for (const node of nodes) node.disposeDepthCopies();
-  nodes.clear();
-  shared.dispose();
-  shared = new DepthTexture();
+  dispose(): void {
+    for (const node of this.nodes) node.disposeDepthCopies();
+    this.nodes.clear();
+    this.placeholder.dispose();
+  }
 }

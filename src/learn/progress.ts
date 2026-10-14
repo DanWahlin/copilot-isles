@@ -1,4 +1,5 @@
 import { cleanFork, type ForkRef } from './fork';
+import { cleanSetup, EMPTY_SETUP, type SetupData } from './setup';
 
 /**
  * Learning progress (POC §3.9 subset): pages, chests, glossary, quiz attempts, quests, trials, seals,
@@ -42,6 +43,11 @@ export interface ProgressData {
    * they skipped). Local only: the game never looks it up on GitHub.
    */
   fork: ForkRef | null;
+  /**
+   * Your setup (src/learn/setup.ts): the computer, practice issue number, session branch, and model the
+   * player told the game about. Each is null until given (or if skipped). Local only.
+   */
+  setup: SetupData;
   /** Puzzle id → saved state. */
   puzzles: Record<string, PuzzleSave>;
   /** Whether the player has opened the Logbook yet (until then, new pages say where they went). */
@@ -68,6 +74,7 @@ function emptyProgress(now = Date.now()): ProgressData {
     captainName: null,
     shipName: null,
     fork: null,
+    setup: { ...EMPTY_SETUP },
     puzzles: {},
     logbookOpened: false,
     arrivals: [],
@@ -144,6 +151,7 @@ export function parseProgress(raw: string | null): ProgressData {
       captainName: cleanName(d.captainName),
       shipName: cleanName(d.shipName),
       fork: cleanFork(d.fork),
+      setup: cleanSetup(d.setup),
       puzzles: parsePuzzles(d.puzzles),
       logbookOpened: d.logbookOpened === true,
       arrivals: strings(d.arrivals),
@@ -267,6 +275,12 @@ export class Progress {
 
   setFork(fork: ForkRef | null): void {
     this.data.fork = fork ? cleanFork(fork) : null;
+    this.save();
+  }
+
+  /** Saves some of the player's setup (a null forgets that value). */
+  setSetup(patch: Partial<SetupData>): void {
+    this.data.setup = cleanSetup({ ...this.data.setup, ...patch });
     this.save();
   }
 

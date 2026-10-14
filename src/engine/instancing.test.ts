@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { BoxGeometry, Color, InstancedMesh, Matrix4, MeshStandardMaterial, Vector3 } from 'three/webgpu';
-import { bakeInstances } from './instancing';
+import {
+  BoxGeometry,
+  BufferGeometry,
+  Color,
+  InstancedMesh,
+  Matrix4,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  Vector3,
+} from 'three/webgpu';
+import { bakeInstances, markInstancesChanged, sharedInstancedMesh } from './instancing';
 
 describe('bakeInstances', () => {
   it('bakes every instance in place, with its colour, keeping the triangles', () => {
@@ -42,5 +51,27 @@ describe('bakeInstances', () => {
     const mesh = new InstancedMesh(new BoxGeometry(), new MeshStandardMaterial(), 1);
     mesh.count = 0;
     expect(bakeInstances([mesh])).toBeNull();
+  });
+});
+
+describe('markInstancesChanged', () => {
+  it('reuses the matrix update range as instances move', () => {
+    const geometry = new BufferGeometry();
+    const material = new MeshBasicMaterial();
+    const mesh = sharedInstancedMesh(geometry, material, 4, { count: 3 });
+
+    markInstancesChanged(mesh);
+    const range = mesh.instanceMatrix.updateRanges[0]!;
+    expect(range).toEqual({ start: 0, count: 48 });
+
+    const version = mesh.instanceMatrix.version;
+    mesh.count = 2;
+    markInstancesChanged(mesh);
+    expect(mesh.instanceMatrix.updateRanges).toEqual([{ start: 0, count: 32 }]);
+    expect(mesh.instanceMatrix.updateRanges[0]).toBe(range);
+    expect(mesh.instanceMatrix.version).toBe(version + 1);
+
+    geometry.dispose();
+    material.dispose();
   });
 });

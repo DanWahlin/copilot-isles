@@ -27,6 +27,7 @@ import { world } from '../world/uniforms';
 import { buildChart, coveTravelPoints } from './chart';
 import type { GameSession } from './session';
 import { LearnStore } from '../learn/store';
+import type { OsId } from '../learn/setup';
 import type { Opening } from '../opening/opening';
 import { ANCHORAGE_ARRIVAL, arrivalFlight } from './arrivals';
 import { compileProgressively, revealPrewarm, warmProgressively, warmTerrainLods } from '../engine/warm';
@@ -75,6 +76,7 @@ const BRIDGE_METHODS = [
   'applyQuality',
   'renderResolution',
   'setSails',
+  'setOs',
   'skipOpening',
   'pressOpening',
   'skipBattle',
@@ -543,6 +545,10 @@ export class GameFlow implements GameBridge {
     this.learn.setSails(paletteId);
   }
 
+  setOs(os: OsId | null): void {
+    this.learn.saveSetup({ os });
+  }
+
   skipOpening(): void {
     this.opening?.skip();
   }
@@ -598,6 +604,8 @@ export class GameFlow implements GameBridge {
       seals: this.learn.progress.data.seals.slice(),
       sails: this.learn.progress.data.sails,
       captainName: this.learn.progress.data.captainName,
+      os: this.learn.progress.data.setup.os,
+      osDetected: this.learn.getState().osDetected,
       shipName:
         this.learn.progress.data.captainName || this.learn.progress.data.shipName
           ? this.learn.progress.shipName

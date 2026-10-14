@@ -44,7 +44,7 @@ import { COVE } from '../layout';
 import { foamLight, world } from '../uniforms';
 import type { HarborMirrorInput } from './harbor-mirror';
 import { shipOcean } from './ship-interaction';
-import { matchedDepthTexture, releaseMatchedDepthTextures } from './depth-copy';
+import { MatchedDepth } from './depth-copy';
 import { createPolarGrid, type PolarGridOptions } from './polar-grid';
 import { createRippleTexture } from './ripple-texture';
 import { WATER_DEPTH_BOUNDS, waterDepthTexture } from './water-depth-texture';
@@ -108,6 +108,8 @@ export function createOcean({
   const geo = createPolarGrid(oceanGrid(tier));
   const ripple = createRippleTexture(256);
   const floorTex = useTerrainDepth ? waterDepthTexture() : null;
+  // The colour graph is built once per pass that draws the sea; each build's depth node is this ocean's.
+  const depthCopies = new MatchedDepth();
   const sumA = waves.reduce((s, w) => s + w.a, 0);
   const previousWaveTime = uniform(0);
   let lastWaveTime = Number.NaN;
@@ -277,7 +279,7 @@ export function createOcean({
     // Refraction: depth-aware screen offset, rejecting samples that land on things above the water.
     const ambient = world.skyColor.mul(0.55).add(world.sunColor.mul(max(world.sunDir.y, 0).mul(0.22)));
     const fragZ = positionView.z;
-    const depthTex = matchedDepthTexture();
+    const depthTex = depthCopies.node();
     const ratioAt = (uv: Node<'vec2'>) =>
       perspectiveDepthToViewZ(depthTex.sample(uv).x, cameraNear, cameraFar).div(fragZ);
     const uv0 = screenUV;
@@ -489,7 +491,7 @@ export function createOcean({
       geo.dispose();
       mat.dispose();
       ripple.dispose();
-      releaseMatchedDepthTextures();
+      depthCopies.dispose();
     },
   };
 }

@@ -12,6 +12,7 @@ import {
   uv,
   vec3,
 } from 'three/tsl';
+import { releaseSpriteQuad, useSpriteQuad } from '../../engine/sprite-quad';
 import { world } from '../uniforms';
 
 // three's fluent TSL typings don't cover every scalar/vector mix used below.
@@ -121,7 +122,7 @@ export function createGlows(points: readonly Glow[], name: string): Glows {
       .mul(mix(float(1.8), float(0.85), params.z)),
   );
   material.fog = true;
-  const sprite = new Sprite(material);
+  const sprite = useSpriteQuad(new Sprite(material));
   sprite.count = points.length;
   sprite.name = name;
   sprite.frustumCulled = false;
@@ -143,6 +144,7 @@ export function createGlows(points: readonly Glow[], name: string): Glows {
     },
     dispose() {
       material.dispose();
+      releaseSpriteQuad(sprite);
     },
   };
 }

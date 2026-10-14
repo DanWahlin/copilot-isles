@@ -252,7 +252,7 @@ describe('Thousand-Bough layout', () => {
       const parent = BRANCHES.find((k) => k.id === b.parent)!;
       expect(fromWood(b.points[0]!, parent), b.id).toBeLessThan(0.03);
     }
-    for (const count of [340, 480, 900, 1500]) {
+    for (const count of [250, 480, 900, 1500]) {
       const clusters = canopyClusters(count, clearance);
       expect(clusters.length, `${count}`).toBeGreaterThan(count * 0.7);
       for (const c of clusters) {

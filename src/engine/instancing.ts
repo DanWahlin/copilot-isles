@@ -109,17 +109,27 @@ export function sharedInstancedMesh<G extends BufferGeometry, M extends Material
   return mesh;
 }
 
+const changedRanges = new WeakMap<BufferAttribute, { start: number; count: number }>();
+
+function markAttributeChanged(attribute: BufferAttribute, count: number): void {
+  let range = changedRanges.get(attribute);
+  if (!range) {
+    range = { start: 0, count };
+    changedRanges.set(attribute, range);
+  } else {
+    range.start = 0;
+    range.count = count;
+  }
+  attribute.updateRanges.length = 0;
+  attribute.updateRanges.push(range);
+  attribute.needsUpdate = true;
+}
+
 /** Marks the instances in use (`mesh.count`) for upload, rather than the whole padded buffer. */
 export function markInstancesChanged(mesh: InstancedMesh, colors = false): void {
   const n = Math.max(1, mesh.count);
-  mesh.instanceMatrix.clearUpdateRanges();
-  mesh.instanceMatrix.addUpdateRange(0, n * 16);
-  mesh.instanceMatrix.needsUpdate = true;
-  if (colors && mesh.instanceColor) {
-    mesh.instanceColor.clearUpdateRanges();
-    mesh.instanceColor.addUpdateRange(0, n * 3);
-    mesh.instanceColor.needsUpdate = true;
-  }
+  markAttributeChanged(mesh.instanceMatrix, n * 16);
+  if (colors && mesh.instanceColor) markAttributeChanged(mesh.instanceColor, n * 3);
 }
 
 /**

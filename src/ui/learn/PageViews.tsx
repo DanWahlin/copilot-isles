@@ -1,13 +1,29 @@
-import { useContext, useEffect, useRef, useState, type PointerEvent, type WheelEvent } from 'react';
+import {
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent,
+  type ReactNode,
+  type WheelEvent,
+} from 'react';
 import { STARFISH } from '../../world/starfish/spots';
 import { StarfishLog } from './Starfish';
 import { CHAPTERS, GLOSSARY, IMAGES, PAGES, courseUrl, imageUrl } from '../../learn/content/index';
 import { chapterUrl } from '../../learn/course/chapters';
 import { forkName, forkUrl, PLACE_LABEL, type ForkPlace } from '../../learn/fork';
+import {
+  COURSE_BRANCH,
+  COURSE_ISSUE,
+  COURSE_ISSUE_TITLE,
+  modelLabel,
+  OS_NAMES,
+  type SetupKind,
+} from '../../learn/setup';
 import type { LearnState, LearnStore, LogbookTab, RevealFrom } from '../../learn/store';
 import type { Page } from '../../learn/types';
 import { CourseGlossaryEntry, CourseImg, CourseLink, FromTheCourse, useCourseImage } from './CourseMarkdown';
-import { ForkContext, Rich } from './Rich';
+import { ForkContext, Rich, SetupContext, useSetupText } from './Rich';
 
 /** Chapters to look in for a course picture (the one whose folder holds it is tried first). */
 const CHAPTER_IDS = CHAPTERS.map((c) => c.chapter);
@@ -56,6 +72,7 @@ function PageBody({ page, onImage }: { page: Page; onImage?: (id: string) => voi
         </pre>
       )}
       <ForkLinks places={page.fork} />
+      <SetupNotes kinds={page.setup} />
       <FromTheCourse source={page.source} />
       <CourseLink source={page.source} fallback={courseUrl(page.source)} />
     </>
@@ -83,6 +100,101 @@ function ForkLinks({ places }: { places?: readonly ForkPlace[] }) {
         </a>
       ))}
     </p>
+  );
+}
+
+/** The player's own values a page notes under its caption (only the ones they've given). */
+function SetupNotes({ kinds }: { kinds?: readonly SetupKind[] }) {
+  const { setup, detected } = useContext(SetupContext);
+  const notes = (kinds ?? []).flatMap((k): { k: SetupKind; label: string; value: ReactNode }[] => {
+    if (k === 'os') return [{ k, label: 'Your computer', value: OS_NAMES[setup.os ?? detected] }];
+    if (k === 'issue' && setup.issue !== null)
+      return [{ k, label: 'Your practice issue', value: `#${setup.issue} ${COURSE_ISSUE_TITLE}` }];
+    if (k === 'branch' && setup.branch !== null)
+      return [{ k, label: 'Your session’s branch', value: <code>{setup.branch}</code> }];
+    if (k === 'model' && setup.model !== null)
+      return [{ k, label: 'Your model', value: modelLabel(setup.model) }];
+    return [];
+  });
+  if (!notes.length) return null;
+  return (
+    <ul className="ci-setup-notes">
+      {notes.map((n) => (
+        <li key={n.k}>
+          <span className="ci-course-kicker">{n.label}</span> {n.value}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * The Logbook's Your setup card: the player's fork, computer, practice issue, session branch, and
+ * model, each with a way to add or change it. The one place to change them all later.
+ */
+function SetupCard({ store }: { store: LearnStore }) {
+  const { setup, detected } = useContext(SetupContext);
+  const rows: { kind: SetupKind; label: string; value: ReactNode; has: boolean }[] = [
+    {
+      kind: 'os',
+      label: 'Computer',
+      value: setup.os ? OS_NAMES[setup.os] : `${OS_NAMES[detected]} (your browser’s guess)`,
+      has: true,
+    },
+    {
+      kind: 'issue',
+      label: 'Practice issue',
+      value:
+        setup.issue !== null ? (
+          `#${setup.issue} ${COURSE_ISSUE_TITLE}`
+        ) : (
+          <>Not added yet. The game uses the course’s #{COURSE_ISSUE} issue by default.</>
+        ),
+      has: setup.issue !== null,
+    },
+    {
+      kind: 'branch',
+      label: 'Session branch',
+      value:
+        setup.branch !== null ? (
+          <code>{setup.branch}</code>
+        ) : (
+          <>
+            Not added yet. The game uses <code>{COURSE_BRANCH}</code> by default.
+          </>
+        ),
+      has: setup.branch !== null,
+    },
+    {
+      kind: 'model',
+      label: 'Model',
+      value: setup.model ? modelLabel(setup.model) : 'Not added yet.',
+      has: setup.model !== null,
+    },
+  ];
+  return (
+    <section className="ci-setup-card" aria-labelledby="ci-setup-card-title">
+      <h3 id="ci-setup-card-title">Your setup</h3>
+      <p className="ci-setup-card-note">
+        All optional. It stays on this device, in your save, and you can change it here any time.
+      </p>
+      <ForkCard store={store} />
+      {rows.map((r) => (
+        <div key={r.kind} className="ci-fork-card ci-setup-row" data-kind={r.kind}>
+          <p>
+            <span className="ci-course-kicker">{r.label}</span> {r.value}
+          </p>
+          <button
+            type="button"
+            className="ci-btn ghost"
+            aria-label={`${r.has ? 'Change' : 'Add'} your ${r.label.toLowerCase()}`}
+            onClick={() => void store.askSetup(r.kind, 'logbook')}
+          >
+            {r.has ? 'Change' : 'Add'}
+          </button>
+        </div>
+      ))}
+    </section>
   );
 }
 
@@ -292,8 +404,9 @@ export function Logbook({ store, state }: { store: LearnStore; state: LearnState
   const { tab, page } = state.logbook;
   const allPages = [...PAGES.values()];
   const open = page ? PAGES.get(page) : undefined;
+  const fill = useSetupText();
   useKeys((e) => {
-    if (e.repeat || state.spyglass?.full || store.getState().forkForm) return;
+    if (e.repeat || state.spyglass?.full || store.getState().forkForm || store.getState().setupForm) return;
     if (e.key === 'Escape' || e.code === 'KeyJ') {
       e.preventDefault();
       if (open) store.openLogbook(tab, null);
@@ -401,7 +514,7 @@ export function Logbook({ store, state }: { store: LearnStore; state: LearnState
           {tab === 'starfish' && (
             <StarfishLog found={state.starfish} here={state.starfishIsland?.id ?? null} />
           )}
-          {tab === 'quests' && <ForkCard store={store} />}
+          {tab === 'quests' && <SetupCard store={store} />}
           {tab === 'quests' && (
             <ul className="ci-quests">
               {state.quests.length === 0 && (
@@ -412,7 +525,7 @@ export function Logbook({ store, state }: { store: LearnStore; state: LearnState
                   <b>{q.done ? '✓' : '◆'}</b>
                   <span>
                     <strong>{q.title}</strong>
-                    <small>{q.detail}</small>
+                    <small>{fill(q.detail)}</small>
                   </span>
                 </li>
               ))}

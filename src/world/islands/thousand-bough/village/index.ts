@@ -1,6 +1,6 @@
 import { Group, Mesh, type BufferGeometry, type Material } from 'three/webgpu';
 import type { TierSettings } from '../../../../engine/quality';
-import { SignSet } from '../../../sites/sign';
+import { SignSet, type PaintedSign } from '../../../sites/sign';
 import { mergeIntoChunks, chunkOptions } from '../../../village/chunks';
 import type { MaterialKey, VillageKit } from '../../../village/kit';
 import { makeBuckets, PAINT, box, cone, lanternPaint, rod, type Buckets } from './pieces';
@@ -17,6 +17,8 @@ export interface TreeVillage {
   out: StructureOut;
   signs: SignSet;
   wheels: ReturnType<typeof buildHouses>['wheels'];
+  /** The Practice Bough house's sign (the practice session's branch). */
+  practiceSign: PaintedSign;
   flume: FlumeTerrace;
   pieces: SetPieces;
   dispose(): void;
@@ -99,8 +101,8 @@ export async function createTreeVillage(
   const out = buildStructure(buckets, late, clear, wharf);
   await breathe();
   const signs = new SignSet('thousand-bough-signs');
-  const { wheels } = buildHouses(buckets, signs, out);
-  const flume = createFlumeTerrace(o.kit, buckets, wheels);
+  const { wheels, practiceSign } = buildHouses(buckets, signs, out);
+  const flume = createFlumeTerrace(o.kit, buckets, wheels, signs);
   const pieces = createSetPieces(o.kit, buckets, signs);
   group.add(pieces.group);
   out.colliders.push(...flume.colliders);
@@ -126,6 +128,7 @@ export async function createTreeVillage(
     out,
     signs,
     wheels,
+    practiceSign,
     flume,
     pieces,
     dispose() {

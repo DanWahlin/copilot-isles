@@ -1,5 +1,7 @@
+import type { Object3D } from 'three/webgpu';
 import { AMBIENT_BEDS, createAudio } from '../audio';
 import { Input } from '../engine/input';
+import { compileProgressively } from '../engine/warm';
 import { createPost } from '../engine/post';
 import { createSession, type GameSession } from '../game/session';
 import '../game/hud.css';
@@ -28,7 +30,9 @@ const [cove, characters] = await Promise.all([
 ]);
 clock.set(Number(q.get('time') ?? 16.2), Number(q.get('az') ?? 0));
 cove.sky.invalidate();
-const post = q.has('nopost') ? null : await createPost(renderer, scene, camera, tier);
+const post = q.has('nopost')
+  ? null
+  : await createPost(renderer, scene, camera, tier, { temporal: !q.has('notaa') });
 if (post) engine.renderFn = post.render;
 const buildMs = performance.now() - t0;
 
@@ -76,14 +80,20 @@ async function begin(unlock: boolean): Promise<void> {
     quiet: q.has('quiet'),
     learn,
   });
-  // The game's flow warms Port Meridian once it streams in; here its cast and sites just precompile.
+  // The game's flow warms Port Meridian once it streams in; here its cast and sites just precompile,
+  // for the post's scene pass like the game's warm (a bare precompile builds shaders no draw uses).
+  const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+  const precompile = (g: Object3D) =>
+    void (post
+      ? compileProgressively(g, (o) => post.compileObject(o), nextFrame)
+      : renderer.compileAsync(g, camera, scene));
   void session.meridianSetup.then(({ roots, reveal }) => {
     reveal();
-    for (const g of roots) void renderer.compileAsync(g, camera, scene);
+    roots.forEach(precompile);
   });
   void session.thousandBoughSetup.then(({ roots, reveal }) => {
     reveal();
-    for (const g of roots) void renderer.compileAsync(g, camera, scene);
+    roots.forEach(precompile);
   });
   for (const fn of playingListeners) fn();
   document.getElementById('start')!.classList.add('hide');

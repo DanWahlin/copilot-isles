@@ -30,6 +30,7 @@ import {
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { markInstancesChanged, sharedInstancedMesh } from '../../engine/instancing';
+import { useSpriteQuad } from '../../engine/sprite-quad';
 import type { TierSettings } from '../../engine/quality';
 import type { WaveSampler } from '../contracts';
 import { createSplashGeometry } from '../life/leaps/geometry';
@@ -375,7 +376,7 @@ export class SmokePool {
     this.size0 = new Float32Array(n);
     this.posAttr = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
     this.dataAttr = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
-    this.mesh = new Sprite(createPuffMaterial(this.posAttr, this.dataAttr, false));
+    this.mesh = useSpriteQuad(new Sprite(createPuffMaterial(this.posAttr, this.dataAttr, false)));
     this.mesh.name = 'battle-smoke';
     this.mesh.count = 0;
     this.mesh.frustumCulled = false;

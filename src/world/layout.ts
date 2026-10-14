@@ -75,6 +75,22 @@ export const COVE = {
     ],
   },
 
+  /**
+   * A fog raider's brigantine, wrecked on a sand bar off the lighthouse knoll's north skirt, between
+   * the point and the pier (islands/anchorage/wreck.ts). `x`, `z` is her waterline origin, `heading`
+   * her bow's bearing (as the ship's: the bow points along sin, cos), `heel` her roll (+ lifts the
+   * port side, so the masts lean out to sea), `pitch` her trim (− is bow up) and `y` how far her
+   * waterline sits below the sea. The sand bar under her follows her keel (terrain/cove-height.ts).
+   */
+  wreck: {
+    x: -152,
+    z: -124,
+    heading: -0.45,
+    heel: 0.42,
+    pitch: -0.2,
+    y: -0.6,
+  },
+
   /** Central hill. */
   hill: { center: { x: -10, z: -20 }, radius: 110, height: 24 },
 

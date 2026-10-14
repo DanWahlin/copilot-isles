@@ -362,6 +362,18 @@ const OREN: readonly ScriptStep[] = [
   { page: 'pg1.try-controls', doubloons: 15 },
   { say: 'mer.oren.07' },
   { say: 'mer.oren.08' },
+  // What the player kept in their own model control (Your setup), and one question that fits it.
+  { askSetup: 'model' },
+  { quiz: 'N1.3', when: 'model:auto' },
+  { quiz: 'N1.4', when: 'model:picked' },
+  // Prompts and Shortcuts: the first course shortcut, in the player's computer's keys.
+  { askSetup: 'os' },
+  {
+    text: 'One more for the prompt box: press {key:mod+R} to see your recent prompts, across all your sessions.',
+    speaker: 'Oren',
+  },
+  { quiz: 'N1.5' },
+  { file: 'pg1.prompts' },
   { say: 'mer.oren.next' },
   { quest: 'Q1.6', step: 'done' },
   { quest: 'Q1.7', step: 'start' },

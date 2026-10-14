@@ -27,6 +27,8 @@ export interface ChannelRoutingView {
   } | null;
   /** Read out by screen readers (aria-live). */
   announce: string;
+  /** A title card over Fen's demo (the old way, then the new way), while the board's closed. */
+  card: { kicker: string; title: string; text: string } | null;
   /** Screen-space hit areas over the 3D tiles (CSS px), when the puzzle camera shows them. */
   hits: readonly ({ x: number; y: number; size: number } | null)[] | null;
 }

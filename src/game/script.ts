@@ -1,3 +1,4 @@
+import type { SetupKind, SetupWhen } from '../learn/setup';
 import type { ForkFrom, LearnStore } from '../learn/store';
 import type { Dialogue } from './dialogue';
 
@@ -10,7 +11,8 @@ export type ScriptStep =
   | { text: string; speaker?: string }
   | { show: string; caption?: string }
   | { hide: true }
-  | { quiz: string }
+  /** A quiz; with `when`, only for players whose setup fits (a model quiz for those who kept Auto). */
+  | { quiz: string; when?: SetupWhen }
   | { page: string; doubloons?: number }
   /** Shelves a page in the Logbook without a reveal card (the NPC says it's there). */
   | { file: string; doubloons?: number }
@@ -24,7 +26,12 @@ export type ScriptStep =
    * Asks for the player's fork (the form always offers Skip for now), only if they haven't given it
    * yet. `line` is a voiced line played first, only when the form opens.
    */
-  | { askFork: Exclude<ForkFrom, 'logbook'>; line?: string };
+  | { askFork: Exclude<ForkFrom, 'logbook'>; line?: string }
+  /**
+   * Asks for one of the player's setup values (src/learn/setup.ts), with Skip for now, only if they
+   * haven't given it yet. `line` is a voiced line played first, only when the form opens.
+   */
+  | { askSetup: SetupKind; line?: string };
 
 export interface ScriptContext {
   dialogue: Dialogue;
@@ -37,7 +44,7 @@ export interface ScriptContext {
   cancelled?(): boolean;
   /** Plays a `cue` step; the script waits for it. */
   onCue?(cue: string): Promise<void> | void;
-  /** Fills `{captain}` and `{ship}` in unvoiced lines. */
+  /** Fills `{captain}`, `{ship}`, and the player's setup (`{key:mod+R}`, `{issue}`…) in unvoiced lines. */
   format?(text: string): string;
 }
 
@@ -54,7 +61,7 @@ export async function runScript(steps: readonly ScriptStep[], ctx: ScriptContext
       else if ('show' in s) learn?.showImage(s.show, s.caption ?? null);
       else if ('hide' in s) learn?.hideImage();
       else if ('quiz' in s) {
-        if (!learn) continue;
+        if (!learn || (s.when && !learn.setupIs(s.when))) continue;
         const out = await learn.ask(s.quiz);
         if (!out.completed) return false;
       } else if ('trial' in s) {
@@ -71,6 +78,11 @@ export async function runScript(steps: readonly ScriptStep[], ctx: ScriptContext
         if (s.line) await dialogue.play([s.line]);
         if (ctx.cancelled?.()) return false;
         await learn.askFork(s.askFork);
+      } else if ('askSetup' in s) {
+        if (!learn || learn.getState().setup[s.askSetup] !== null) continue;
+        if (s.line) await dialogue.play([s.line]);
+        if (ctx.cancelled?.()) return false;
+        await learn.askSetup(s.askSetup, 'script');
       }
     }
     return true;

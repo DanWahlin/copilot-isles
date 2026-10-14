@@ -1,9 +1,91 @@
 import { describe, expect, it } from 'vitest';
+import { Matrix4 } from 'three/webgpu';
 import type { CircleObstacle, WaveSampler } from '../contracts';
 import { ShipDynamics } from '../ship/dynamics';
 import { BERTH_APPROACH } from '../sites/helms-logic';
-import { MERIDIAN, meridianHeight, meridianMasks, meridianRockShipObstacles } from './meridian';
+import type { CameraBlockerBox } from '../terrain/camera-blockers';
+import { ROCK_ASSETS } from '../terrain/rock-assets';
+import {
+  MERIDIAN,
+  MERIDIAN_ROCK_COUNT,
+  meridianHeight,
+  meridianRockMatrix,
+  meridianMasks,
+  meridianRockCameraBlockers,
+  meridianRockShipObstacles,
+} from './meridian';
 import { MERIDIAN_HEIGHT_FIELD } from './meridian-plants';
+
+describe("Port Meridian's coastal rock camera blockers", () => {
+  it('cover every drawn rock surface within 0.3 m', () => {
+    const blockers = meridianRockCameraBlockers(MERIDIAN_HEIGHT_FIELD);
+    const cells = new Map<number, CameraBlockerBox[]>();
+    const cell = (x: number, z: number) => (x + 4096) * 8192 + z + 4096;
+    for (const blocker of blockers) {
+      const r = Math.hypot(blocker.hx, blocker.hz) + 1;
+      for (let x = Math.floor((blocker.x - r) / 16); x <= Math.floor((blocker.x + r) / 16); x++)
+        for (let z = Math.floor((blocker.z - r) / 16); z <= Math.floor((blocker.z + r) / 16); z++) {
+          const key = cell(x, z);
+          const bucket = cells.get(key);
+          if (bucket) bucket.push(blocker);
+          else cells.set(key, [blocker]);
+        }
+    }
+
+    const divisions = 4;
+    const tolerance = 0.3;
+    const matrix = new Matrix4();
+    const uncovered: string[] = [];
+    let testedRocks = 0;
+    for (let assetIndex = 0; assetIndex < 3; assetIndex++) {
+      const asset = ROCK_ASSETS[assetIndex]!;
+      for (let instance = 0; instance < MERIDIAN_ROCK_COUNT; instance++) {
+        meridianRockMatrix(assetIndex, instance, MERIDIAN_HEIGHT_FIELD, matrix);
+        const e = matrix.elements;
+        if (Math.hypot(e[0]!, e[1]!, e[2]!) === 0) continue;
+        testedRocks++;
+        for (let tri = 0; tri + 2 < asset.indices.length; tri += 3) {
+          const a = asset.indices[tri]! * 3;
+          const b = asset.indices[tri + 1]! * 3;
+          const c = asset.indices[tri + 2]! * 3;
+          for (let u = 0; u <= divisions; u++)
+            for (let v = 0; u + v <= divisions; v++) {
+              const wa = u / divisions,
+                wb = v / divisions,
+                wc = 1 - wa - wb;
+              const lx = asset.positions[a]! * wa + asset.positions[b]! * wb + asset.positions[c]! * wc;
+              const ly =
+                asset.positions[a + 1]! * wa + asset.positions[b + 1]! * wb + asset.positions[c + 1]! * wc;
+              const lz =
+                asset.positions[a + 2]! * wa + asset.positions[b + 2]! * wb + asset.positions[c + 2]! * wc;
+              const x = e[0]! * lx + e[4]! * ly + e[8]! * lz + e[12]!;
+              const y = e[1]! * lx + e[5]! * ly + e[9]! * lz + e[13]!;
+              const z = e[2]! * lx + e[6]! * ly + e[10]! * lz + e[14]!;
+              if (y < -0.5) continue;
+              const candidates = cells.get(cell(Math.floor(x / 16), Math.floor(z / 16))) ?? [];
+              const covered = candidates.some((blocker) => {
+                if (y < blocker.y0 - tolerance || y > blocker.y1 + tolerance) return false;
+                const dx = x - blocker.x,
+                  dz = z - blocker.z;
+                const c = Math.cos(blocker.rot),
+                  s = Math.sin(blocker.rot);
+                return (
+                  Math.abs(dx * c - dz * s) <= blocker.hx + tolerance &&
+                  Math.abs(dx * s + dz * c) <= blocker.hz + tolerance
+                );
+              });
+              if (!covered && uncovered.length < 20)
+                uncovered.push(
+                  `${asset.key} instance ${instance}, triangle ${tri / 3} at ${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)}`,
+                );
+            }
+        }
+      }
+    }
+    expect(testedRocks).toBeGreaterThan(0);
+    expect(uncovered).toEqual([]);
+  });
+});
 
 describe('Port Meridian terrain', () => {
   it('keeps named district pads flat enough for future town placement', () => {

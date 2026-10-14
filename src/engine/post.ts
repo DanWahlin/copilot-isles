@@ -100,7 +100,8 @@ export async function createPost(
   const qualityPost = !dbg.has('noao') && !options.lean && !actualWebGL && tier.ssao;
   const fxaaMod = await import('three/addons/tsl/display/FXAANode.js');
   const gtaoMod = qualityPost ? await import('three/addons/tsl/display/GTAONode.js') : null;
-  const temporalMod = temporalPost ? await import('three/addons/tsl/display/TRAANode.js') : null;
+  // three's TRAA but for one fix: it frees its 1x1 depth stand-in on dispose (issue 248).
+  const temporalMod = temporalPost ? await import('./traa-node.js') : null;
   const sharpenMod =
     temporalPost && !dbg.has('nosharp') ? await import('three/addons/tsl/display/SharpenNode.js') : null;
 
@@ -317,21 +318,15 @@ export async function createPost(
       scenePass?.dispose();
       sceneTarget?.dispose();
       gtaoNode?.dispose();
-      if (beauty !== hdr) {
-        (beauty as unknown as { dispose(): void }).dispose();
-        rttTarget(beauty)?.dispose();
-      }
+      // A render-to-texture node's dispose frees its target and its quad's material (and with it
+      // the quad's shaders).
+      if (beauty !== hdr) (beauty as unknown as { dispose(): void }).dispose();
       temporalNode?.dispose();
       sharpenNode?.dispose();
       pipeline.dispose();
       meter?.dispose();
-      // FXAA reads the graded image from a render-to-texture target of its own.
-      if (!temporalPost) rttTarget((fxaaNode as unknown as { textureNode?: unknown }).textureNode)?.dispose();
+      // FXAA reads the graded image through a render-to-texture node of its own.
+      if (!temporalPost) (fxaaNode as unknown as { textureNode: { dispose(): void } }).textureNode.dispose();
     },
   };
-}
-
-/** A render-to-texture node's target (three's RTTNode doesn't free it when the node is disposed). */
-function rttTarget(node: unknown): { dispose(): void } | undefined {
-  return (node as { renderTarget?: { dispose(): void } } | undefined)?.renderTarget;
 }

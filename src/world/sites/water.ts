@@ -14,6 +14,7 @@ import {
   float,
   floor,
   fract,
+  fwidth,
   max,
   mix,
   positionWorld,
@@ -286,13 +287,49 @@ function createFlowingWaterMaterial(): MeshStandardNodeMaterial {
     .pow(0.6);
   // A soft pulse (a triangle wave, no hard edge where it wraps) in each column.
   const pulse = float(1).sub(abs(rush.mul(2).sub(1)));
+  // Where a column is narrower than a few pixels (a fall seen from afar), its ribbons are sub-pixel
+  // noise: temporal AA averages them to a flat mean and only the still striation stays (the falls
+  // looked frozen). There they fade to their mean and the surges below carry the motion.
+  const sharp = float(1).sub(smoothstep(float(0.25), float(0.6), fwidth(across).mul(44)));
+  const ribbons = mix(float(0.24), smoothstep(float(0.35), float(1), pulse).mul(ribbon), sharp);
+  // Surges: clumps of white water falling down the whole sheet, a bright front with a fading tail.
+  // Their fronts only wave gently across it, so they stay one band at any distance (a pattern a pixel
+  // wide changes too fast for temporal AA to keep).
+  const sway = sin(across.mul(5.0).add(along.mul(0.13)))
+    .mul(0.16)
+    .add(sin(across.mul(13.0).sub(along.mul(0.31))).mul(0.05));
+  const surges = (perMetre: number, rate: number): AnyNode => {
+    const phase = along.mul(perMetre).sub(time.mul(speed).mul(rate)).add(sway);
+    const band = fract(phase);
+    // Each surge carries its own amount of white water, so they don't fall like a regular stair.
+    const size = fract(sin(floor(phase).mul(78.233)).mul(43758.5453))
+      .mul(0.55)
+      .add(0.45);
+    return smoothstep(float(0.05), float(0.42), band)
+      .mul(float(1).sub(smoothstep(float(0.42), float(0.52), band)))
+      .mul(size);
+  };
+  // Long surges for a tall fall seen from afar; short ones where a metre of the fall is many pixels
+  // (a small fall, the mill's spouts, or a big one close up), so a short drop still shows a few.
+  const short = float(1).sub(smoothstep(float(0.02), float(0.045), fwidth(along).mul(0.9)));
+  const surge = mix(surges(0.19, 0.62), surges(0.9, 1.8), short);
   const sheet = smoothstep(float(0.25), float(0.75), striation)
-    .mul(0.55)
-    .add(smoothstep(float(0.35), float(1), pulse).mul(ribbon).mul(0.45));
-  // White foam where the sheet leaves the lip and where it lands (the strips' foam).
-  const fallColor = mix(color(0x9fc6cc), color(0xf6fcfc), sheet.mul(0.7).add(0.3).add(f.z.mul(0.5)).min(1));
-  const edgeFade = smoothstep(float(0), float(0.16).add(ragged), across).mul(
-    smoothstep(float(1), float(0.84).sub(ragged), across),
+    .mul(mix(float(0.15), float(0.3), sharp))
+    .add(ribbons.mul(0.3))
+    .add(surge.mul(mix(float(0.6), float(0.4), sharp)));
+  // White foam where the sheet leaves the lip and where it lands (the strips' foam). Foam lifts the
+  // whole sheet towards white without flattening it, so the surges still show on a foamy cascade.
+  const fallColor = mix(
+    color(0x9fc6cc),
+    color(0xf6fcfc),
+    mix(sheet.mul(0.7).add(0.3).min(1), float(1), f.z.mul(0.7).min(0.75)),
+  );
+  // A fall only a few dozen pixels across (a spout, or one far off) keeps its body: it thinned to a
+  // ghost with the close-up thinning and the wide ragged edges.
+  const narrow = smoothstep(float(0.006), float(0.03), fwidth(across));
+  const edgeWidth = mix(float(0.16), float(0.08), narrow).add(ragged);
+  const edgeFade = smoothstep(float(0), edgeWidth, across).mul(
+    smoothstep(float(1), float(1).sub(edgeWidth), across),
   );
 
   m.colorNode = mix(mix(channel, lakeColor, lake), fallColor, fall) as AnyNode;
@@ -300,14 +337,18 @@ function createFlowingWaterMaterial(): MeshStandardNodeMaterial {
     mix(channelOpacity, f.x.mul(0.96), lake),
     // Thin between its ribbons (you see through a falling sheet), dense where the white water runs.
     // Close up (from behind a fall, in its cave) the sheet thins between its ribbons, so you see the
-    // world through it; from a distance it reads as white water.
+    // world through it; from a distance it reads as white water, and so does a narrow one.
     f.x
       .mul(edgeFade)
       .mul(
         mix(
-          float(0.16),
-          float(0.5),
-          smoothstep(float(4), float(16), (positionWorld as AnyNode).distance(cameraPosition)),
+          mix(
+            float(0.16),
+            float(0.5),
+            smoothstep(float(4), float(16), (positionWorld as AnyNode).distance(cameraPosition)),
+          ),
+          float(0.62),
+          narrow,
         ).add(sheet.mul(0.5)),
       ),
     fall,

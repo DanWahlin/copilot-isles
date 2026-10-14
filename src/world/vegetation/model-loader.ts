@@ -299,8 +299,6 @@ export async function loadPalmObject(variant: PalmVariant, height: number): Prom
     const mesh = new Mesh(part.geometry, part.material as Material);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
-    // Out of the sun's shadow lookup, like the scattered palms (vegetation.ts).
-    mesh.userData.sunShadow = false;
     group.add(mesh);
   }
   return group;

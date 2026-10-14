@@ -70,12 +70,29 @@ export default {
     await api.pause(500);
     const cs = await api.S(() => window.__dev.session().debug.puzzle('P0.2').spots());
 
-    /** Walks to a lever or the capstan and faces it (they're all on the quay's north side). */
+    /** Presses a control only when its prompt is the one we expect. */
+    const interactPrompt = async (label) => {
+      const prompt = await api.prompt();
+      if (!prompt?.includes(label))
+        throw new Error(`Expected "${label}" prompt, saw ${JSON.stringify(prompt)}`);
+      if (!(await api.interact(label))) throw new Error(`Could not interact with "${label}"`);
+    };
+
+    /** Walks to a lever or the capstan, faces it, and checks the prompt before pressing E. */
     const goTo = async (p, label) => {
       await api.walkTo(p.x, p.z, { tol: 0.35 });
       await api.face(p.x, p.z - 3);
       await api.easeLook(Math.PI + 0.35, 0.3, 700);
-      return api.interact(label);
+      await interactPrompt(label);
+    };
+
+    /** The pier obstacle blocks a straight walk. Approach the yes lever from its west side. */
+    const goToYes = async () => {
+      await api.walkTo(cs.yes.x - 1.6, cs.yes.z - 0.2, { tol: 0.45 });
+      await api.walkTo(cs.yes.x - 0.75, cs.yes.z - 0.2, { tol: 0.5 });
+      await api.face(cs.yes.x, cs.yes.z);
+      await api.easeLook(Math.PI + 0.35, 0.3, 700);
+      await interactPrompt('Pull --yes');
     };
 
     // Dry-Run on the berth the crane already faces: the ghosts land on the captain's berth.
@@ -83,10 +100,21 @@ export default {
     await idle(api);
     await api.pause(2600);
     // --yes anyway: the script refuses a repository you don't own.
-    await goTo(cs.yes, 'Pull --yes');
+    await goToYes();
     await api.pause(800);
     await api.converse({ idle: 1200 });
     await idle(api);
+    const refusalShown = await api.waitFor(
+      () =>
+        (document.querySelector('.hud-term.show')?.textContent ?? '').includes(
+          'Refusing to change shared or',
+        ),
+      null,
+      8000,
+    );
+    if (!refusalShown) throw new Error('The wrong-fork --yes refusal did not appear in the terminal');
+    api.mark('wrong-fork --yes refused');
+    api.log('Wrong-fork --yes refusal confirmed in the terminal.');
     await api.pause(600);
 
     // Turn the capstan round to your own berth.
@@ -94,7 +122,7 @@ export default {
     await idle(api);
     for (let k = 0; k < 4 && (await crane(api)).facing !== cs.yours; k++) {
       await api.pause(500);
-      await api.interact('Turn the capstan');
+      await interactPrompt('Turn the capstan');
       await idle(api);
     }
     await api.pause(800);
@@ -103,12 +131,20 @@ export default {
     await goTo(cs.dry, 'Pull Dry-Run');
     await idle(api);
     await api.pause(2800);
-    await goTo(cs.yes, 'Pull --yes');
+    await goToYes();
     await api.pause(1200);
     await api.converse({
       until: (s) => s.quests['Q0.7'] === 'done' && !s.dialogue && !s.reveal && !s.banner,
       timeout: 120_000,
     });
+    const complete = await api.S(() => ({
+      quest: window.__dev.learn.progress.data.quests['Q0.7'],
+      crane: window.__dev.session().debug.puzzle('P0.2').state(),
+    }));
+    if (complete.quest !== 'done' || !complete.crane.complete)
+      throw new Error('The own-fork --yes run did not complete');
+    api.mark('own-fork --yes completed');
+    api.log('Own-fork --yes run completed and stocked the ship.');
     await api.pause(2500);
   },
 };

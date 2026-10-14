@@ -2,6 +2,14 @@ import type { HeightField } from '../contracts';
 import { COVE } from '../layout';
 import { clamp01, segmentDistance, smoothstep } from '../../util/math';
 import { seaStackSeabed } from './sea-stack-shape';
+import {
+  WRECK_BAR_CREST,
+  WRECK_BAR_TOP,
+  WRECK_BURY,
+  WRECK_FOREFOOT_TOP,
+  wreckKeelAt,
+  wreckPlan,
+} from '../islands/anchorage/wreck-pose';
 
 const SEED = 0x51e_c0de;
 const EPSILON = 1e-6;
@@ -378,6 +386,50 @@ function lighthousePointHeight(x: number, z: number, current: number): number {
   return Math.max(current, knoll, ridge);
 }
 
+const wreckPlanAt = { a: 0, c: 0 };
+const wreckKeel = { zl: 0, y: 0, c: 0 };
+
+/**
+ * The sand bar the wreck lies on (COVE.wreck): it follows her keel, bedded WRECK_BURY deep, rises to
+ * a crest just awash off her bow, then drops away before the knoll's flank, so you can't wade out
+ * to her. It slopes off into the harbour floor.
+ */
+function wreckBarHeight(x: number, z: number, current: number): number {
+  const w = COVE.wreck;
+  if (Math.abs(x - w.x) > 40 || Math.abs(z - w.z) > 40) return current;
+  const h = current;
+  const { a, c } = wreckPlan(x, z, wreckPlanAt);
+  if (a < -26 || a > 24) return h;
+  const keel = wreckKeelAt(a, wreckKeel);
+  const zl = keel.zl;
+  const half = 12;
+  let top: number;
+  if (zl > half) {
+    const t = zl - half;
+    // The keel's height where it ends at the stem (past it, the keel line would keep on rising).
+    const bow = keel.y + t * Math.sin(w.pitch) + WRECK_BURY;
+    top = mix(bow, WRECK_BAR_CREST, smoothstep(0, 3, t)) - Math.max(0, t - 3.5) * 0.6;
+  } else if (zl < -half) {
+    top = keel.y + WRECK_BURY - (-half - zl) * 0.3;
+  } else top = keel.y + WRECK_BURY;
+  const ripple = fbm2(x * 0.18 - 3.3, z * 0.18 + 6.1, 3, SEED + 2403);
+  const width = 6.5 + ripple * 2.5;
+  const across = Math.abs(c - keel.c);
+  // Heeled to starboard she lies on that bilge: the sand banks up against it.
+  const starboard = keel.c - c;
+  const berm = 0.9 * smoothstep(1, 4, starboard) * (1 - smoothstep(5.5, 9, starboard));
+  top += ripple * 0.18 - (across / width) * (across / width) * 1.1 + berm;
+  const along = smoothstep(-26, -16, a) * (1 - smoothstep(18, 24, a));
+  const weight = along * (1 - smoothstep(width, width * 2.3, across));
+  // The bar stays under water; only under her forefoot does it rise to meet her.
+  const forefoot =
+    (1 - smoothstep(1.4, 3.2 + ripple * 1.5, across)) *
+    smoothstep(9.5, 11.5, zl) *
+    (1 - smoothstep(13.5, 16 + ripple * 2, zl));
+  const cap = WRECK_BAR_TOP + (WRECK_FOREFOOT_TOP - WRECK_BAR_TOP) * forefoot;
+  return mix(h, Math.max(h, Math.min(top, cap)), weight);
+}
+
 export function coveHeight(x: number, z: number): number {
   const coast = noisyCoastDistance(x, z);
   const offshoreDistance = Math.max(0, coast.radial - coast.radius);
@@ -428,6 +480,7 @@ export function coveHeight(x: number, z: number): number {
   );
   h = quayPlatformHeight(x, z, h);
   h = lighthousePointHeight(x, z, h);
+  h = wreckBarHeight(x, z, h);
   h = headlandHeight(x, z, h);
   h = seaStackSeabed(x, z, h);
 

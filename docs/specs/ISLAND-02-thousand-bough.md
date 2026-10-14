@@ -668,10 +668,16 @@ See [channel-routing-grids.svg](island-02/channel-routing-grids.svg).
 
 Notation: rows north → south, `S` straight, `L` elbow, `R` rock. Rotations as above.
 
-**Cold open: the shared trough (demo, ~20 s, not a round).** Fen: "We used to run every crew down the
-Great Hall trough. Watch." All three gates open into one wide trough: the colours mud, the floats tangle,
-the three wheels stall. "Three tasks, one folder. Their work blurs together." `[§why-…]` Then the trough's
-boards come up and the grid is revealed.
+**Cold open: the shared trough (demo, ~20 s, not a round).** Until Fen's demo, the old shared trough
+stands over the board (one wide channel, nothing dividing it); the three gates carry painted boards with
+each crew's name and icon (as on the Gate Board). Fen: "We used to run every crew down the Great Hall
+trough. Watch this." A title card reads **The old way · One shared trough**. All three gates open: three
+coloured tongues of water (with their floats) spread, meet in brown seams, and turn to mud by the foot;
+the mud spills into the sluice and down all three crews' chutes. "Three tasks, one folder. Their work
+blurs together." `[§why-…]` The gates shut and the trough drains, then a short fade cuts to the board
+with the trough taken apart (its boards stacked beside the terrace) and the card **The new way · One
+channel per crew**, under "So now each crew gets its own channel." Nothing floats up; reduced motion
+keeps the same fade.
 
 **Round 1: One crew, one channel.** Board A, only **Feature**'s gate is live.
 
@@ -690,7 +696,7 @@ column (a dead end in Round 1, a mix in Round 2), so pressing **Open the gates**
 Docs needs r0c3 → N–E, r0c4 → S–W, r1c4 → N–S. Bug Fix runs straight down c2. **Exactly one solution**
 (the solver in `draw.py` confirms it; B's test repeats it).
 
-**Round 3: After the rain.** A boulder rolls into r2c2 (camera beat, `rock_tumble` sound), and Fen swaps
+**Round 3: After the rain.** A boulder (one of the island's mossy basalt rocks, filling one tile) rolls out of the jungle on the slope above, bounds over the header west of Feature's gate, splashes down and hops into r2c2, knocking a few chips loose (camera beat, `rock_tumble` sound), and Fen swaps
 in new tiles: Board B. All gates live. Start: every tile at rot 0.
 
 ```

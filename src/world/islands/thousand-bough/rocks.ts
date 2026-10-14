@@ -1,4 +1,12 @@
-import { BufferAttribute, BufferGeometry, Group, Matrix4, Quaternion, Vector3 } from 'three/webgpu';
+import {
+  BufferAttribute,
+  BufferGeometry,
+  Group,
+  Matrix4,
+  Quaternion,
+  Vector3,
+  type Material,
+} from 'three/webgpu';
 import { sharedInstancedMesh } from '../../../engine/instancing';
 import type { CircleObstacle, HeightField } from '../../contracts';
 import { ROCK_ASSETS } from '../../terrain/rock-assets';
@@ -245,10 +253,31 @@ export function spireGeometry(): BufferGeometry {
   return g;
 }
 
+/** Maximum flume stones of one asset shown at a time. */
+const FLUME_STONE_SLOTS = 4;
+
+/**
+ * The Flume Terrace's stones (its rock tiles, Round 3's boulder and the chips it knocks loose). The
+ * flume creates and owns its own meshes, using these shared island geometries and material.
+ */
+export interface FlumeStones {
+  /** One geometry per rock asset (`ROCK_ASSETS` order). */
+  geometries: BufferGeometry[];
+  /** The same rock material used by the island batches. */
+  readonly material: Material;
+  /** Instance capacity of each flume mesh. */
+  readonly slots: number;
+  /** Lite: the boulder takes the cheapest rock and knocks no chips loose. */
+  readonly cheap: boolean;
+  /** Whether the island's rock batches cast the sun's shadow on this tier. */
+  readonly shadows: boolean;
+}
+
 export interface ThousandBoughRocks {
   group: Group;
   circles: CircleObstacle[];
   cameraBoxes: CameraBlockerBox[];
+  flumeStones: FlumeStones;
 }
 
 /** The rocks and the Spire, instanced in the shared rock material. */
@@ -274,6 +303,13 @@ export function createThousandBoughRocks(
   });
   const circles: CircleObstacle[] = [];
   const cameraBoxes: CameraBlockerBox[] = [];
+  const flumeStones: FlumeStones = {
+    geometries: [],
+    material,
+    slots: FLUME_STONE_SLOTS,
+    cheap: smallKept < 0.25,
+    shadows,
+  };
   for (let a = 0; a < 3; a++) {
     const asset = ROCK_ASSETS[a]!;
     const mine = spots.filter((s) => s.asset === a);
@@ -283,6 +319,7 @@ export function createThousandBoughRocks(
     geometry.setAttribute('position', new BufferAttribute(asset.positions, 3));
     geometry.setAttribute('normal', new BufferAttribute(asset.normals, 3));
     geometry.setIndex(new BufferAttribute(asset.indices, 1));
+    flumeStones.geometries.push(geometry);
     const mesh = sharedInstancedMesh(geometry, material, mine.length + roof);
     mesh.name = `thousand-bough-rocks-${asset.key}`;
     mine.forEach((s, i) => {
@@ -351,5 +388,5 @@ export function createThousandBoughRocks(
       y0: y,
       y1: Math.min(TB.spire.top - 0.2, y + 3),
     });
-  return { group, circles, cameraBoxes };
+  return { group, circles, cameraBoxes, flumeStones };
 }

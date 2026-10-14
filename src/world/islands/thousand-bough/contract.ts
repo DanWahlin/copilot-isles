@@ -95,7 +95,18 @@ export interface FlumeTerraceView {
   setCursor(cell: readonly [number, number] | null): void;
   /** A tile's centre in the world (for touch hit areas), written to `out`. */
   tileCenter(row: number, col: number, out: Vector3): Vector3;
+  /** The old shared trough stands over the board (before Fen's demo) or is stacked beside it. */
+  showSharedTrough(on: boolean): void;
+  /**
+   * Fen's demo, the old way: the three gates open into one shared trough over the board and their
+   * water mixes into mud on the way down. Resolves once the mud pours into every crew's chute; the
+   * water keeps running until `drainSharedTrough`.
+   */
   demoSharedTrough(): Promise<void>;
+  /** The gates shut and the trough's water runs out over its lip. */
+  drainSharedTrough(): Promise<void>;
+  /** At once (behind a fade): the trough's taken apart and stacked beside the terrace, the board shows. */
+  clearSharedTrough(): void;
   /** Animates water, mud, floats, wheels and lifts. */
   runFlows(flows: readonly Flow[]): Promise<void>;
   resetWater(): void;
@@ -135,6 +146,12 @@ export interface ThousandBoughSystem {
   spire: SpireView;
   mast: SignalMastView;
   fx: TreeVillageFx;
+  /**
+   * The Practice Bough house's sign shows this branch (the player's practice session, from Your
+   * setup), or the course's `practice-empty-state-copy` for null. It repaints the sign atlas only when
+   * the name changes: call it when the island streams in and when the player changes the branch.
+   */
+  setPracticeBranch(name: string | null): void;
   /** No allocation. */
   update(dt: number, t: number): void;
   dispose(): void;

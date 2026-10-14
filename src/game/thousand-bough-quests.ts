@@ -93,7 +93,7 @@ export const THOUSAND_BOUGH_QUESTS: readonly TbQuestDef[] = [
     task: 'Start a session from a branch',
     steps: {
       start: 'Cross the Signal Bridge to Rook on the Practice Bough.',
-      done: 'Create from, Branches, Plan, attach #3, then review the plan and the diff.',
+      done: 'Create from, Branches, Plan, attach {issue}, then review the plan and the diff.',
     },
   },
   {
@@ -272,11 +272,15 @@ const OAK: readonly ScriptStep[] = [
   { quest: 'Q2.5', step: 'start' },
 ];
 
-/** Fen's welcome: the shared trough (Without isolation), then the Gate Board opens. */
+/**
+ * Fen's welcome: the shared trough (Without isolation): the crews' water mixes while he says why,
+ * then the trough comes down and the Gate Board opens.
+ */
 const FEN: readonly ScriptStep[] = [
   { say: 'tb.fen.01' },
   { cue: 'tb-flume-demo' },
   { say: 'tb.fen.02' },
+  { cue: 'tb-flume-clear' },
   { say: 'tb.fen.03' },
   { quest: 'Q2.5', step: 'channels' },
   { cue: 'tb-flume-open' },
@@ -321,10 +325,15 @@ const ROOK: readonly ScriptStep[] = [
     caption: 'Point to the project, then select the **Create from** icon next to it.',
   },
   { say: 'tb.rook.02' },
+  // The player's own session: the working branch the app gave it, then their practice issue's number
+  // (Rook's recorded line says "hash three", the course's number; the captions use theirs).
+  { askSetup: 'branch' },
   { say: 'tb.rook.03' },
+  { askSetup: 'issue' },
   {
     show: 'ch02/app-plan-from-issue',
-    caption: 'The plan opens in the **Plan** tab, and **Review plan** replaces the prompt box.',
+    caption:
+      'Type `{issue}` and pick **Improve the empty state copy**. The plan opens in the **Plan** tab, and **Review plan** replaces the prompt box.',
   },
   { say: 'tb.rook.04' },
   { hide: true },
@@ -349,7 +358,7 @@ const PIP: readonly ScriptStep[] = [
   { say: 'tb.pip.01' },
   {
     show: 'ch02/app-chronicle-standup-output',
-    caption: '`/chronicle standup`: your work from the last day, this session included.',
+    caption: '`/chronicle standup`: your work from the last day, with this session on `{branch}`.',
   },
   { say: 'tb.pip.02' },
   {

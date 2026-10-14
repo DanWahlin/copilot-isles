@@ -1,5 +1,6 @@
 import { Group, Matrix4, Vector3 } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
+import { releaseSpriteQuad } from '../../engine/sprite-quad';
 import type { CircleObstacle, HeightField, WaveSampler } from '../contracts';
 import { seededRandom } from '../life/leaps/director';
 import { createBrigantine, type Brigantine, type BrigantineEnv } from '../ship';
@@ -1441,6 +1442,8 @@ export class Battle {
   dispose(): void {
     for (let i = 1; i < this.combatants.length; i++) this.combatants[i]!.ship.dispose();
     this.fog.mesh.material.dispose();
+    releaseSpriteQuad(this.fog.mesh);
+    releaseSpriteQuad(this.smoke.mesh);
     this.group.traverse((o) => {
       const m = o as unknown as {
         isInstancedMesh?: boolean;

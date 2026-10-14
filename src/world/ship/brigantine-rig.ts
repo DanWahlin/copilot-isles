@@ -4,7 +4,7 @@ import { deckHeightAt, halfBeamAt, sheerHeightAt, waterlineHalfBeamAt } from './
 import { detailForTier, lerpPoint } from './brigantine-detail';
 import { MeshBuilder, type P3 } from './mesh-builder';
 
-interface MastSpec {
+export interface MastSpec {
   id: 'fore' | 'main' | 'mizzen';
   z: number;
   lowerTop: number;
@@ -55,6 +55,8 @@ const MIZZEN: MastSpec = {
   shroudSpread: 1.75,
 };
 const MASTS: readonly MastSpec[] = [FORE, MAIN, MIZZEN];
+/** The masts' stations and heights, for builders that rig a hull of their own (the Anchorage wreck). */
+export const BRIGANTINE_MASTS = { fore: FORE, main: MAIN, mizzen: MIZZEN } as const;
 const YARD_BRACE = 0.18;
 
 const YARDS: readonly YardSpec[] = [
@@ -237,7 +239,7 @@ class SailBuilder {
   }
 }
 
-function addFightingTop(
+export function addFightingTop(
   builder: MeshBuilder,
   mast: MastSpec,
   y: number,
@@ -275,7 +277,7 @@ function addFightingTop(
   }
 }
 
-function addCrosstrees(
+export function addCrosstrees(
   builder: MeshBuilder,
   mast: MastSpec,
   y: number,

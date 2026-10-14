@@ -24,6 +24,8 @@ import type { TierSettings } from '../../../engine/quality';
 import type { CircleObstacle, HeightField } from '../../contracts';
 import { COVE } from '../../layout';
 import { BUILDINGS, type BuildingSpec } from './buildings';
+import { ANCHORAGE_BATTERIES } from './batteries';
+import { addShoreBatteries, cannonDetail, shoreBatteryWalkable } from '../../village/shore-battery';
 import {
   ChunkLods,
   buildChunkLodIndex,
@@ -194,6 +196,17 @@ export async function createVillage({
   addLighthouse(buckets, colliders, shipObstacles, anchors, perches, heightField, low);
   addLanterns(buckets, colliders, heightField, low);
   await buildSlice();
+  // The point battery on the lighthouse ridge (its pieces merge into the kit's chunks: no new shader).
+  const battery = addShoreBatteries(
+    buckets,
+    ANCHORAGE_BATTERIES,
+    (x, z) => heightField.heightAt(x, z),
+    cannonDetail(tier.tier),
+  );
+  colliders.boxes.push(...battery.boxes);
+  colliders.circles.push(...battery.circles);
+  cameraBlockers.push(...battery.camera);
+  await buildSlice();
   const plantings = addVillagePlantings(buckets, colliders, perches, heightField, tier);
   addMooredBoatShipObstacles(shipObstacles);
   await buildSlice();
@@ -335,6 +348,8 @@ export function onPierDeck(x: number, z: number): boolean {
 export function walkable(x: number, z: number, y?: number): number | null {
   const tower = lighthouseWalkable(x, z, y);
   if (tower !== null) return tower;
+  const battery = shoreBatteryWalkable(ANCHORAGE_BATTERIES, x, z);
+  if (battery !== null) return battery;
   // Door stairs first: they stand on the quay and streets, so they're the higher surface there.
   for (const span of stairSpans) {
     const h = stairsHeightAt(span, x, z);

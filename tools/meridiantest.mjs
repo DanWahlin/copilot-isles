@@ -3,8 +3,12 @@
 // and the Crate Yard (P1.1, solved by its hook), Rhea and the Three Helms (P1.2, sailed for real: each
 // buoy's helm, Interactive's marks, Plan's approval, Autopilot home to the berth), the lift up the
 // bluff to Oren, Pell, and the Admiral's Exam that lights the lighthouse. Screenshots at each beat.
-// node tools/meridiantest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/meridian] [--from=admiral]
+// Oren asks which model the player kept and which computer they're on (Your setup): `--setup=skip`
+// skips both forms; by default the run enters them and checks the shortcut, quiz and Logbook use them.
+// node tools/meridiantest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/meridian]
+//                             [--from=admiral|oren] [--setup=enter|skip]
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
+import { answerSetupForm, logbookPage, setupPlan } from './lib/setup-forms.mjs';
 
 const opt = parseFlags();
 const base = opt.base || 'http://localhost:5301';
@@ -39,6 +43,8 @@ const learnState = () =>
         : null,
       reveal: l.reveal?.page.id ?? null,
       banner: l.banner?.title ?? null,
+      setupForm: l.setupForm,
+      subtitle: document.querySelector('.hud-subtitle')?.textContent ?? '',
       dialogue: st.dialogue,
       mode: st.mode,
       quests: window.__dev.learn.progress.data.quests,
@@ -60,6 +66,8 @@ async function clickHotspot() {
   await page.mouse.click(box.x, box.y);
 }
 
+const plan = setupPlan(opt.setup);
+const subtitles = new Set();
 const seen = new Set();
 /** Drives dialogue, quizzes, and reveals until `done(state)` or the timeout; `every` runs each tick. */
 async function drive(label, done, ms = 150000, every = null) {
@@ -68,7 +76,18 @@ async function drive(label, done, ms = 150000, every = null) {
     const s = await learnState();
     if (done(s)) return s;
     if (every) await every(s);
-    if (s.quiz) {
+    if (s.subtitle) subtitles.add(s.subtitle);
+    if (s.subtitle.includes('prompt box: press') && !seen.has('subtitle-shortcut')) {
+      seen.add('subtitle-shortcut');
+      await page.waitForTimeout(400);
+      await shot('subtitle-shortcut');
+    }
+    if (s.setupForm)
+      await answerSetupForm(page, s.setupForm, plan, {
+        shot,
+        fail: (m) => logs.push(`[meridiantest] ${m}`),
+      });
+    else if (s.quiz) {
       if (!seen.has(s.quiz.id)) {
         seen.add(s.quiz.id);
         await page.waitForTimeout(500);
@@ -257,12 +276,58 @@ await shot('ashore');
       logs.push(`[meridiantest] ${id} is a ${reach.npcs[id]?.fromTop} m walk from the lift top`);
 }
 
-// --from=admiral skips to the exam with Chapter 01's other steps marked done.
+/** Oren's model and computer questions (Your setup), then where the answers show. */
+async function checkOrenSetup() {
+  const setup = await S(() => window.__dev.learn.getState().setup);
+  const detected = await S(() => window.__dev.learn.getState().osDetected);
+  const os = setup.os ?? detected;
+  const keys = os === 'mac' ? 'Cmd+R' : 'Ctrl+R';
+  const other = os === 'mac' ? 'Ctrl+R' : 'Cmd+R';
+  const line = [...subtitles].find((t) => t.includes('prompt box: press'));
+  if (!line?.includes(keys) || line.includes(other))
+    logs.push(`[meridiantest] Oren's shortcut line should say ${keys}: ${JSON.stringify(line)}`);
+  if (plan.os !== 'skip' && setup.os !== plan.os) logs.push(`[meridiantest] computer not saved: ${setup.os}`);
+  if (plan.os === 'skip' && setup.os !== null) logs.push(`[meridiantest] a skipped computer was saved`);
+  const prompts = await logbookPage(page, 'pg1.prompts', shot);
+  if (!prompts.includes(keys) || prompts.includes(`Press ${other}`))
+    logs.push(`[meridiantest] pg1.prompts doesn't use ${keys}`);
+  const quizzes = await S(() => window.__dev.learn.progress.data.quizzes);
+  if (!quizzes['N1.5']?.passed) logs.push('[meridiantest] the prompt history quiz N1.5 wasn’t asked');
+  const tryPage = await logbookPage(page, 'pg1.try-controls', shot);
+  if (plan.model === 'skip') {
+    if (setup.model !== null) logs.push('[meridiantest] a skipped model was saved');
+    if (quizzes['N1.3'] || quizzes['N1.4']) logs.push('[meridiantest] a model quiz was asked after Skip');
+    if (tryPage.includes('Your model')) logs.push('[meridiantest] pg1.try-controls notes a skipped model');
+  } else {
+    const quiz = plan.model.pick === 'auto' ? 'N1.3' : 'N1.4';
+    if (!quizzes[quiz]?.passed) logs.push(`[meridiantest] the model quiz ${quiz} wasn’t asked`);
+    if (plan.model.name && !tryPage.includes(plan.model.name))
+      logs.push(`[meridiantest] pg1.try-controls doesn't note ${plan.model.name}`);
+  }
+  // The Logbook's Your setup card, where each can be changed.
+  await S(() => window.__dev.learn.openLogbook('quests'));
+  await page.waitForTimeout(500);
+  await shot('logbook-your-setup');
+  await S(() => window.__dev.learn.closeLogbook());
+  await page.waitForTimeout(200);
+}
+
+// --from=admiral skips to the exam with Chapter 01's other steps marked done; --from=oren to Oren.
 if (opt.from === 'admiral') {
   await S(() => {
     for (const id of ['Q1.1', 'Q1.2', 'Q1.3', 'Q1.4', 'Q1.5', 'Q1.6', 'Q1.7'])
       window.__dev.session().debug.quest(id, 'done');
   });
+} else if (opt.from === 'oren') {
+  await S(() => {
+    for (const id of ['Q1.1', 'Q1.2', 'Q1.3', 'Q1.4', 'Q1.5']) window.__dev.session().debug.quest(id, 'done');
+    window.__dev.session().debug.quest('Q1.6', 'start');
+  });
+  await talk('oren');
+  await drive('Oren', quest('Q1.6', 'done'));
+  await checkOrenSetup();
+  await talk('pell');
+  await drive('Pell', quest('Q1.7', 'done'));
 } else {
   // Q1.1 Tobias → Q1.2 Mina's tour (a shot at each landmark) → Q1.3 Lyra.
   await talk('tobias');
@@ -365,6 +430,7 @@ if (opt.from === 'admiral') {
   await shot('lift-top');
   await talk('oren');
   await drive('Oren', quest('Q1.6', 'done'));
+  await checkOrenSetup();
 
   // Q1.7 Pell → Q1.8 the Admiral's Exam and the lighthouse.
   await talk('pell');

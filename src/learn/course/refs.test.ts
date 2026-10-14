@@ -106,6 +106,14 @@ describe('SourceRefs', () => {
     }
   });
 
+  it('every course image has the size its content says, so pixel-measured hotspot rects land on it', async () => {
+    const sharp = (await import('sharp')).default;
+    for (const img of IMAGES.values()) {
+      const meta = await sharp(join(PUBLIC, img.src)).metadata();
+      expect([meta.width, meta.height], img.id).toEqual([img.width, img.height]);
+    }
+  });
+
   it('voiced refs name real voice lines', () => {
     const lines = JSON.parse(readFileSync(join(ROOT, 'tools/voice/lines.testcove.json'), 'utf8')) as {
       lines: { id: string }[];

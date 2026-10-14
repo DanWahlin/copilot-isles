@@ -3,6 +3,15 @@ import type { ForkRef } from './fork';
 import { grade, type Answer, type Grade } from './grade';
 import { Progress } from './progress';
 import {
+  detectOs,
+  EMPTY_SETUP,
+  setupMatches,
+  type OsId,
+  type SetupData,
+  type SetupKind,
+  type SetupWhen,
+} from './setup';
+import {
   STARFISH_REWARD,
   STARFISH_SET_REWARD,
   starfishCount,
@@ -31,6 +40,8 @@ export interface Tracker {
 export type RevealFrom = 'page' | 'chest' | 'bottle';
 /** Who's asking for the player's fork: Ezra's register, the crane's sign, or the Logbook. */
 export type ForkFrom = 'ezra' | 'crane' | 'logbook';
+/** Who's asking for a setup value: a quest beat, or the Logbook's Your setup card (to change it). */
+export type SetupFrom = 'script' | 'logbook';
 
 export interface ActiveQuiz {
   quiz: Quiz;
@@ -75,6 +86,12 @@ export interface LearnState {
   fork: ForkRef | null;
   /** The fork form while it's open. */
   forkForm: { from: ForkFrom } | null;
+  /** Your setup: the computer, practice issue, session branch, and model (each null until given). */
+  setup: SetupData;
+  /** The browser's system, used for shortcuts until the player picks one. */
+  osDetected: OsId;
+  /** A setup form while it's open. */
+  setupForm: { kind: SetupKind; from: SetupFrom } | null;
   /** An arrival flyover is playing: the purse and task list step aside for the view. */
   cinematic: boolean;
   /** A conversation or framed shot is on: the task list fades so the scene has the screen. */
@@ -106,6 +123,7 @@ export class LearnStore {
   private bannerDone: (() => void) | null = null;
   private paletteDone: ((id: string | null) => void) | null = null;
   private forkDone: ((fork: ForkRef | null) => void) | null = null;
+  private setupDone: ((saved: boolean) => void) | null = null;
   private seed = 1;
 
   constructor(progress = new Progress()) {
@@ -128,6 +146,9 @@ export class LearnStore {
       palette: null,
       fork: progress.data.fork,
       forkForm: null,
+      setup: progress.data.setup,
+      osDetected: detectOs(),
+      setupForm: null,
       cinematic: false,
       calm: false,
       spotlight: NO_SPOTLIGHT,
@@ -150,6 +171,7 @@ export class LearnStore {
       s.banner ||
       s.palette ||
       s.forkForm ||
+      s.setupForm ||
       s.logbook.open ||
       s.spyglass?.full
     );
@@ -407,6 +429,44 @@ export class LearnStore {
     done?.(null);
   };
 
+  // ---- Your setup ----
+
+  /** The computer whose shortcuts the game shows: the player's pick, or the browser's. */
+  get os(): OsId {
+    return this.state.setup.os ?? this.state.osDetected;
+  }
+
+  /** Whether a step or quiz meant for some answers fits this player's (`model:auto`…). */
+  setupIs = (when: SetupWhen): boolean => setupMatches(this.state.setup, when);
+
+  /**
+   * Opens a setup form. Resolves true once the player saves, or false if they skip (nothing changes:
+   * the game keeps showing the course's own example).
+   */
+  askSetup = (kind: SetupKind, from: SetupFrom): Promise<boolean> => {
+    this.setupDone?.(false);
+    this.set({ setupForm: { kind, from } });
+    return new Promise((resolve) => (this.setupDone = resolve));
+  };
+
+  /** Saves setup values (a null forgets one) and closes the form if one's open. */
+  saveSetup = (patch: Partial<SetupData>): void => {
+    this.progress.setSetup(patch);
+    const done = this.setupDone;
+    this.setupDone = null;
+    this.set({ setup: this.progress.data.setup, setupForm: null });
+    done?.(true);
+  };
+
+  /** Skip for now: closes the form and changes nothing. */
+  skipSetup = (): void => {
+    if (!this.state.setupForm) return;
+    const done = this.setupDone;
+    this.setupDone = null;
+    this.set({ setupForm: null });
+    done?.(false);
+  };
+
   // ---- Starfish ----
 
   /** The island the purse counts starfish for (null hides the counter). */
@@ -468,13 +528,16 @@ export class LearnStore {
     this.bannerDone?.();
     this.paletteDone?.(null);
     this.forkDone?.(null);
+    this.setupDone?.(false);
     this.quizDone = this.revealDone = this.bannerDone = this.paletteDone = this.forkDone = null;
+    this.setupDone = null;
     this.set({
       quiz: null,
       reveal: null,
       banner: null,
       palette: null,
       forkForm: null,
+      setupForm: null,
       spyglass: null,
       logbook: { open: false, tab: 'pages', page: null },
       cinematic: false,
@@ -510,6 +573,7 @@ export class LearnStore {
       starfish: [],
       sails: null,
       fork: null,
+      setup: { ...EMPTY_SETUP },
       logbookOpened: false,
     });
   };

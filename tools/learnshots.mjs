@@ -28,10 +28,12 @@ for (const id of ['H0.2', 'H0.4']) {
   await shot(`${id}`);
 }
 await open('q=H0.2');
-await frameClick(0.1, 0.11);
+// The New row (10,76,368,42 on the 1920×1080 image): a wrong target.
+await frameClick(0.101, 0.09);
 await shot('H0.2-wrong');
 await page.keyboard.press('KeyE');
-await frameClick(0.23, 0.345);
+// The + next to Projects (336,368,34,34): the right target.
+await frameClick(0.184, 0.357);
 await shot('H0.2-right');
 
 await open('q=H0.4');

@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useSyncExternalStore } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { CHAPTERS } from '../../learn/content/index';
 import { loadGlossary, prefetchChapter } from '../../learn/course/source';
@@ -8,7 +8,8 @@ import { ForkForm } from './ForkForm';
 import { Logbook, PageReveal, Spyglass } from './PageViews';
 import { QuestTracker } from './QuestTracker';
 import { QuizPanel } from './QuizPanel';
-import { ForkContext } from './Rich';
+import { ForkContext, SetupContext } from './Rich';
+import { SetupForm } from './SetupForm';
 import { StarfishCount } from './Starfish';
 import { ThemePicker } from './ThemePicker';
 import './learn.css';
@@ -48,6 +49,7 @@ function LearnLayer({
   const s = useSyncExternalStore(store.subscribe, store.getState);
   const visible = useSyncExternalStore(playing.subscribe, playing.get);
   const muted = useSyncExternalStore(sound.subscribe, sound.muted);
+  const setup = useMemo(() => ({ setup: s.setup, detected: s.osDetected }), [s.setup, s.osDetected]);
 
   // Fetch the course text once play starts (PLAN §8.2), so pages and excerpts open without a wait.
   useEffect(() => {
@@ -78,54 +80,69 @@ function LearnLayer({
 
   return (
     <ForkContext.Provider value={s.fork}>
-      {visible && !s.cinematic && (
-        <div className="ci-purse">
-          {sound !== NO_SOUND && <SoundButton muted={muted} onToggle={sound.toggle} className="in-purse" />}
-          <span className="ci-coin" aria-label={`${s.doubloons} doubloons`}>
-            {s.doubloons}
-          </span>
-          {s.starfishIsland && (
-            <StarfishCount island={s.starfishIsland} found={s.starfish} spot={s.spotlight.starfish} />
-          )}
-          {/* Glows from the first page until the player has opened the Logbook once. */}
-          <span className={`ci-purse-hint${!s.logbookOpened && s.pages.length > 0 ? ' nudge' : ''}`}>
-            <kbd>J</kbd> Logbook
-          </span>
-        </div>
-      )}
-      {visible &&
-        !s.cinematic &&
-        s.tracker &&
-        !s.quiz &&
-        !s.reveal &&
-        !s.logbook.open &&
-        !s.palette &&
-        !s.forkForm &&
-        !s.banner &&
-        !s.spyglass && <QuestTracker tracker={s.tracker} calm={s.calm} spot={s.spotlight.tracker} />}
-      {s.spyglass && !s.spyglass.full && !s.quiz && !s.logbook.open && (
-        <Spyglass store={store} spy={s.spyglass} />
-      )}
-      {s.quiz && <QuizPanel key={`${s.quiz.quiz.id}:${s.quiz.seed}`} store={store} active={s.quiz} />}
-      {s.palette && !s.quiz && !s.reveal && <ThemePicker store={store} selected={s.palette.selected} />}
-      {s.reveal && !s.quiz && <PageReveal store={store} reveal={s.reveal} firstTime={!s.logbookOpened} />}
-      {s.logbook.open && !s.quiz && !s.reveal && <Logbook store={store} state={s} />}
-      {s.banner && !s.quiz && (
-        <div className="ci-learn-backdrop">
-          <div className="ci-seal" role="dialog" aria-modal="true" aria-labelledby="ci-seal-title">
-            <div className="ci-seal-medal" aria-hidden>
-              ⚓
-            </div>
-            <h2 id="ci-seal-title">{s.banner.title}</h2>
-            <p>{s.banner.body}</p>
-            <button type="button" className="ci-btn primary" onClick={store.closeBanner} autoFocus>
-              <kbd>E</kbd> Onward
-            </button>
+      <SetupContext.Provider value={setup}>
+        {visible && !s.cinematic && (
+          <div className="ci-purse">
+            {sound !== NO_SOUND && <SoundButton muted={muted} onToggle={sound.toggle} className="in-purse" />}
+            <span className="ci-coin" aria-label={`${s.doubloons} doubloons`}>
+              {s.doubloons}
+            </span>
+            {s.starfishIsland && (
+              <StarfishCount island={s.starfishIsland} found={s.starfish} spot={s.spotlight.starfish} />
+            )}
+            {/* Glows from the first page until the player has opened the Logbook once. */}
+            <span className={`ci-purse-hint${!s.logbookOpened && s.pages.length > 0 ? ' nudge' : ''}`}>
+              <kbd>J</kbd> Logbook
+            </span>
           </div>
-        </div>
-      )}
-      {s.forkForm && !s.quiz && !s.reveal && <ForkForm store={store} from={s.forkForm.from} fork={s.fork} />}
-      {s.spyglass?.full && <Spyglass store={store} spy={s.spyglass} />}
+        )}
+        {visible &&
+          !s.cinematic &&
+          s.tracker &&
+          !s.quiz &&
+          !s.reveal &&
+          !s.logbook.open &&
+          !s.palette &&
+          !s.forkForm &&
+          !s.setupForm &&
+          !s.banner &&
+          !s.spyglass && <QuestTracker tracker={s.tracker} calm={s.calm} spot={s.spotlight.tracker} />}
+        {s.spyglass && !s.spyglass.full && !s.quiz && !s.logbook.open && (
+          <Spyglass store={store} spy={s.spyglass} />
+        )}
+        {s.quiz && <QuizPanel key={`${s.quiz.quiz.id}:${s.quiz.seed}`} store={store} active={s.quiz} />}
+        {s.palette && !s.quiz && !s.reveal && <ThemePicker store={store} selected={s.palette.selected} />}
+        {s.reveal && !s.quiz && <PageReveal store={store} reveal={s.reveal} firstTime={!s.logbookOpened} />}
+        {s.logbook.open && !s.quiz && !s.reveal && <Logbook store={store} state={s} />}
+        {s.banner && !s.quiz && (
+          <div className="ci-learn-backdrop">
+            <div className="ci-seal" role="dialog" aria-modal="true" aria-labelledby="ci-seal-title">
+              <div className="ci-seal-medal" aria-hidden>
+                ⚓
+              </div>
+              <h2 id="ci-seal-title">{s.banner.title}</h2>
+              <p>{s.banner.body}</p>
+              <button type="button" className="ci-btn primary" onClick={store.closeBanner} autoFocus>
+                <kbd>E</kbd> Onward
+              </button>
+            </div>
+          </div>
+        )}
+        {s.forkForm && !s.quiz && !s.reveal && (
+          <ForkForm store={store} from={s.forkForm.from} fork={s.fork} />
+        )}
+        {s.setupForm && !s.quiz && !s.reveal && (
+          <SetupForm
+            key={`${s.setupForm.kind}:${s.setupForm.from}`}
+            store={store}
+            kind={s.setupForm.kind}
+            from={s.setupForm.from}
+            setup={s.setup}
+            detected={s.osDetected}
+          />
+        )}
+        {s.spyglass?.full && <Spyglass store={store} spy={s.spyglass} />}
+      </SetupContext.Provider>
     </ForkContext.Provider>
   );
 }

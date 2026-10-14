@@ -5,14 +5,17 @@
 //
 //   node tools/video/record.mjs --list
 //   node tools/video/record.mjs --scenario=<id>[,<id>…] [--base=http://127.0.0.1:5395] [--tier=high]
-//        [--out=<dir>] [--no-audio] [--no-title] [--keep]
+//        [--out=<dir>] [--quality=review|high] [--no-audio] [--no-title] [--keep]
 //   node tools/video/record.mjs --scenario=<id> --refinish   (rebuilds the MP4 from a --keep run)
+//   node tools/video/record.mjs --recompress --out=<dir>    (re-encodes existing MP4s to review quality)
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseFlags } from '../lib/browser.mjs';
 import {
+  FPS,
+  QUALITY_PRESETS,
   Recorder,
   contactSheet,
   finalize,
@@ -28,7 +31,191 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const opt = parseFlags();
 const base = opt.base || 'http://127.0.0.1:5395';
 const tier = opt.tier || 'high';
+if (opt.recompress && (typeof opt.out !== 'string' || !opt.out.trim())) {
+  console.error('--recompress requires --out=<dir>');
+  process.exit(2);
+}
 const out = path.resolve(opt.out || path.join(os.homedir(), 'Movies', 'copilot-isles'));
+
+function formatBytes(bytes) {
+  return `${(bytes / 1_000_000).toFixed(1)} MB`;
+}
+
+async function probeMedia(file) {
+  const result = JSON.parse(
+    await run('ffprobe', [
+      '-v',
+      'error',
+      '-show_entries',
+      'format=duration:stream=codec_type',
+      '-of',
+      'json',
+      file,
+    ]),
+  );
+  return {
+    duration: Number(result.format?.duration),
+    streams: new Set((result.streams ?? []).map((stream) => stream.codec_type)),
+  };
+}
+
+async function recompress(dir) {
+  if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
+    console.error(`Output directory does not exist: ${dir}`);
+    return 1;
+  }
+  const files = fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith('.mp4'))
+    .map((entry) => entry.name)
+    .sort();
+  if (!files.length) {
+    console.error(`No MP4 files found in ${dir}`);
+    return 1;
+  }
+
+  const workDir = path.join(dir, '.work');
+  fs.mkdirSync(workDir, { recursive: true });
+  const encoding = QUALITY_PRESETS.review;
+  const results = [];
+  for (const name of files) {
+    const input = path.join(dir, name);
+    const id = path.parse(name).name;
+    const temp = path.join(workDir, `${id}.review.tmp.mp4`);
+    const passLogfile = path.join(workDir, `${id}.review-${process.pid}-${Date.now()}`);
+    const beforeBytes = fs.statSync(input).size;
+    console.log(`[video] recompressing ${name} (${formatBytes(beforeBytes)})`);
+    try {
+      const before = await probeMedia(input);
+      if (!Number.isFinite(before.duration)) throw new Error('input duration is not available');
+      if (!before.streams.has('video') || !before.streams.has('audio'))
+        throw new Error('input must have audio and video streams');
+      const commonArgs = [
+        '-y',
+        '-loglevel',
+        'error',
+        '-i',
+        input,
+        '-map',
+        '0:v:0',
+        '-map',
+        '0:a:0',
+        '-map_metadata',
+        '0',
+      ];
+      const tune = encoding.tune ? ['-tune', encoding.tune] : [];
+      const rate = encoding.videoBitrate ? ['-b:v', encoding.videoBitrate] : ['-crf', encoding.crf];
+      const videoArgs = [
+        '-r',
+        String(FPS),
+        '-c:v',
+        'libx264',
+        '-preset',
+        encoding.preset,
+        ...tune,
+        ...rate,
+        '-pix_fmt',
+        'yuv420p',
+      ];
+      const colorArgs = [
+        '-color_range',
+        'tv',
+        '-colorspace',
+        'bt709',
+        '-color_primaries',
+        'bt709',
+        '-color_trc',
+        'bt709',
+      ];
+      const audioArgs = ['-c:a', 'aac', '-b:a', encoding.audioBitrate, '-ar', '48000'];
+      try {
+        await run('ffmpeg', [
+          ...commonArgs,
+          ...videoArgs,
+          '-pass',
+          '1',
+          '-passlogfile',
+          passLogfile,
+          ...colorArgs,
+          ...audioArgs,
+          '-f',
+          'null',
+          '-',
+        ]);
+        await run('ffmpeg', [
+          ...commonArgs,
+          ...videoArgs,
+          '-pass',
+          '2',
+          '-passlogfile',
+          passLogfile,
+          ...colorArgs,
+          ...audioArgs,
+          '-movflags',
+          '+faststart',
+          temp,
+        ]);
+      } finally {
+        for (const suffix of ['-0.log', '-0.log.mbtree'])
+          fs.rmSync(`${passLogfile}${suffix}`, { force: true });
+      }
+      const after = await probeMedia(temp);
+      if (!after.streams.has('video') || !after.streams.has('audio'))
+        throw new Error('encoded file does not have audio and video streams');
+      const drift = Math.abs(after.duration - before.duration);
+      if (!Number.isFinite(after.duration) || drift > 0.1)
+        throw new Error(`duration changed by ${drift.toFixed(3)} s`);
+      const afterBytes = fs.statSync(temp).size;
+      fs.renameSync(temp, input);
+      results.push({ name, beforeBytes, afterBytes, error: null });
+    } catch (error) {
+      fs.rmSync(temp, { force: true });
+      results.push({ name, beforeBytes, afterBytes: fs.statSync(input).size, error: error.message });
+    }
+  }
+
+  const widths = [18, 12, 12, 12, 8];
+  const row = (values) =>
+    values
+      .map((value, i) =>
+        i === 0 || i === 4 ? String(value).padEnd(widths[i]) : String(value).padStart(widths[i]),
+      )
+      .join(' ');
+  console.log('\nReview-quality size summary');
+  console.log(row(['Video', 'Before', 'After', 'Saved', 'Status']));
+  for (const result of results) {
+    console.log(
+      row([
+        result.name,
+        formatBytes(result.beforeBytes),
+        formatBytes(result.afterBytes),
+        formatBytes(result.beforeBytes - result.afterBytes),
+        result.error ? 'FAILED' : 'OK',
+      ]),
+    );
+    if (result.error) console.error(`  ${result.name}: ${result.error}`);
+  }
+  const beforeTotal = results.reduce((sum, result) => sum + result.beforeBytes, 0);
+  const afterTotal = results.reduce((sum, result) => sum + result.afterBytes, 0);
+  console.log(
+    row([
+      'TOTAL',
+      formatBytes(beforeTotal),
+      formatBytes(afterTotal),
+      formatBytes(beforeTotal - afterTotal),
+      '',
+    ]),
+  );
+  return results.some((result) => result.error) ? 1 : 0;
+}
+
+if (opt.recompress) process.exit(await recompress(out));
+
+const quality = opt.quality || 'review';
+if (!Object.hasOwn(QUALITY_PRESETS, quality)) {
+  console.error(`Unknown quality "${quality}". Use --quality=review or --quality=high.`);
+  process.exit(1);
+}
 
 const scenarios = new Map();
 for (const f of fs.readdirSync(path.join(HERE, 'scenarios')).sort()) {
@@ -86,7 +273,7 @@ for (const id of ids) {
       });
       const film = async () => {
         log(`loading (${tier})`);
-        await openDevPage(page, { base, tier, flags: sc.flags ?? [] });
+        await openDevPage(page, { base, tier, time: sc.time ?? 16, flags: sc.flags ?? [] });
         const setupApi = makeApi(page, null, { log });
         await sc.setup?.(page, setupApi);
         rec = new Recorder(page, work);
@@ -124,6 +311,7 @@ for (const id of ids) {
       title: opt['no-title'] ? null : titlePng,
       out: mp4,
       audio: !opt['no-audio'],
+      quality,
     });
     await contactSheet(mp4, path.join(out, `${id}.png`), opt['no-title'] ? 0 : 3);
     await run('ffmpeg', [

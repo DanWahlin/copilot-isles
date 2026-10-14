@@ -1,4 +1,5 @@
 import {
+  BufferAttribute,
   BufferGeometry,
   Group,
   Matrix4,
@@ -6,12 +7,18 @@ import {
   Quaternion,
   Sphere,
   Vector3,
+  type InstancedMesh,
   type Material,
 } from 'three/webgpu';
+import { markInstancesChanged, sharedInstancedMesh } from '../../../engine/instancing';
 import type { VillageKit } from '../../village/kit';
 import { mergeWithRigidParts, type RigidParts } from '../../sites/rigid-parts';
-import { mulberry32 } from '../../../util/math';
+import type { SignSet } from '../../sites/sign';
+import { ROCK_ASSETS } from '../../terrain/rock-assets';
+import { mulberry32, smoothstep } from '../../../util/math';
+import { CREW_LOOK } from '../../../game/puzzles/channel-routing/boards';
 import type { ChannelRoutingState, Crew, Flow, FlumeTerraceView } from './contract';
+import type { FlumeStones } from './rocks';
 import { THOUSAND_BOUGH as TB } from './layout';
 import { thousandBoughHeight } from './height';
 import {
@@ -105,9 +112,9 @@ function elbowPiece(b: Buckets): void {
   }
 }
 
-function rockPiece(b: Buckets): void {
-  box(b, 'stone', 0, 0.55, 0, 2.4, 1.3, 2.3, 0.4, PAINT.basalt);
-  box(b, 'stone', 0.3, 1.2, -0.2, 1.5, 0.8, 1.4, 1.1, PAINT.basalt);
+/** A rock's bed: the tile's floor, with no walls (the rock sits in it). */
+function bedPiece(b: Buckets): void {
+  box(b, 'wood', 0, FLOOR / 2, 0, TILE - 0.08, FLOOR, TILE - 0.08, 0, PAINT.teak);
 }
 
 /** The water in a channel, as a dyed slab (rot 0 shapes). */
@@ -142,10 +149,10 @@ function tintGlow(g: BufferGeometry, dye: number, strength = 4.6): void {
 }
 
 /**
- * Fen's shared trough (the demo): one wide, plank-floored channel laid over the board (its tiles put
- * away under it), falling with the rows, with ribs across it at the tiles' seams, posts and a rail
- * down its sides on stone piers, and a lip at its foot. Built level about its centre; it's pitched
- * down the slope where it's placed.
+ * Fen's shared trough (the demo, the old way): one wide, plank-floored channel laid over the whole
+ * board (its tiles put away under it), falling with the rows, with posts and a rail down its sides
+ * on stone piers and a low lip at its foot. Nothing divides it: the three gates pour into the same
+ * water. Built level about its centre; it's pitched down the slope where it's placed.
  */
 const TROUGH_W = COLS * TILE + 0.4;
 const TROUGH_L = ROWS * TILE + 0.4;
@@ -153,19 +160,38 @@ const TROUGH_L = ROWS * TILE + 0.4;
 const TROUGH_PITCH = Math.atan2(0.5, TILE);
 /** Its floor's underside at the board's centre: just over each row's tiles' floor (they're put away under it). */
 const TROUGH_Y = F.rowY[0]! - FLOOR + 0.02 - Math.tan(TROUGH_PITCH) * TILE;
+/** Trough-local heights (its floor's top is at 0.12): the water's surface, the lip's top. */
+const TROUGH_WATER = 0.32;
+const TROUGH_LIP = 0.27;
+/** The water's run, from just under the gates to the lip (its distance down the trough). */
+const WATER_FROM = 0.1;
+const WATER_RUN = TROUGH_L - 0.2;
+const WATER_HALF = TROUGH_W / 2 - 0.08;
+/** Each crew's gate across the trough. */
+const GATE_X = CREWS.map((c) => F.cols[F.gates[c]]! - F.center.x);
 
 function troughWood(b: Buckets): void {
-  const paints = [PAINT.teak, PAINT.weathered, PAINT.plank, PAINT.teak, PAINT.weathered];
-  const n = Math.floor(TROUGH_W / 0.46);
-  for (let i = 0; i < n; i++) {
-    const x = -TROUGH_W / 2 + (i + 0.5) * (TROUGH_W / n);
-    box(b, 'wood', x, 0.06, 0, TROUGH_W / n - 0.04, 0.12, TROUGH_L, 0, paints[i % paints.length]!);
-  }
+  // Boards across the trough: no seam runs down it, so nothing reads as lanes.
+  const paints = [PAINT.teak, PAINT.weathered, PAINT.plank];
+  const n = Math.round(TROUGH_L / 0.55);
+  const d = TROUGH_L / n;
+  for (let i = 0; i < n; i++)
+    box(
+      b,
+      'wood',
+      0,
+      0.06,
+      -TROUGH_L / 2 + (i + 0.5) * d,
+      TROUGH_W - 0.02,
+      0.12,
+      d - 0.03,
+      0,
+      paints[i % 3]!,
+    );
   for (let k = 0; k <= ROWS; k++) {
     const z = -TROUGH_L / 2 + 0.2 + k * TILE;
-    // A rib across the floor at each seam, its sleeper under it, a post and a pier each side.
-    box(b, 'wood', 0, 0.23, z, TROUGH_W - 0.1, 0.22, 0.16, 0, PAINT.teakDark);
-    box(b, 'wood', 0, 0.05, z, TROUGH_W + 0.5, 0.1, 0.24, 0, PAINT.teakDark);
+    // A sleeper under the floor at each pier, a post each side.
+    box(b, 'wood', 0, -0.05, z, TROUGH_W + 0.5, 0.1, 0.24, 0, PAINT.teakDark);
     for (const s of [-1, 1])
       box(b, 'wood', s * (TROUGH_W / 2 + 0.24), 0.59, z, 0.22, 1.22, 0.22, 0, PAINT.weathered);
   }
@@ -173,8 +199,8 @@ function troughWood(b: Buckets): void {
     box(b, 'wood', s * (TROUGH_W / 2 + 0.1), 0.39, 0, 0.18, 0.82, TROUGH_L, 0, PAINT.teakDark);
     box(b, 'wood', s * (TROUGH_W / 2 + 0.2), 1.05, 0, 0.14, 0.12, TROUGH_L + 0.3, 0, PAINT.weathered);
   }
-  // The lip at its foot, where it all spills into the sluice.
-  box(b, 'wood', 0, 0.2, TROUGH_L / 2 + 0.06, TROUGH_W + 0.4, 0.44, 0.14, 0, PAINT.teakDark);
+  // The low lip at its foot: the water runs over it into the Great Hall's sluice.
+  box(b, 'wood', 0, TROUGH_LIP / 2, TROUGH_L / 2 + 0.06, TROUGH_W + 0.4, TROUGH_LIP, 0.14, 0, PAINT.teakDark);
 }
 
 /** The trough's stone piers: on the terrace's side walls, one a row each side (level, not pitched). */
@@ -200,83 +226,350 @@ function troughPiers(b: Buckets): void {
   }
 }
 
-/** A reach of the trough's water (between two ribs): bands of the crews' dyes blurring into mud downstream. */
-function troughWater(b: Buckets, row: number): void {
-  const n = 12;
-  const w = (TROUGH_W - 0.6) / n;
-  const z = -TROUGH_L / 2 + 0.2 + (row + 0.5) * TILE;
-  const spread = 2.2 + row * 1.4;
-  const mud = 0.05 + row * row * 0.45;
-  const rand = mulberry32(0x7a0 + row);
-  for (let i = 0; i < n; i++) {
-    const x = -TROUGH_W / 2 + 0.3 + (i + 0.5) * w;
-    let r = ((DYE.mixed >> 16) & 255) * mud;
-    let g = ((DYE.mixed >> 8) & 255) * mud;
-    let bl = (DYE.mixed & 255) * mud;
-    let sum = mud;
-    for (const crew of CREWS) {
-      const d = x - (F.cols[F.gates[crew]]! - F.center.x);
-      const k = Math.exp(-((d / spread) ** 2));
-      r += ((DYE[crew] >> 16) & 255) * k;
-      g += ((DYE[crew] >> 8) & 255) * k;
-      bl += (DYE[crew] & 255) * k;
-      sum += k;
-    }
-    const dye = (Math.round(r / sum) << 16) | (Math.round(g / sum) << 8) | Math.round(bl / sum);
-    sheet(b, x, 0.31, z, w, TILE - 0.22, dye, 1.9);
-    // Streaks of light on the current (the water's moving, it isn't paint).
-    for (let k = 0; k < 2; k++) {
-      if (rand() < 0.35) continue;
-      const len = 0.4 + rand() * 1.1;
-      const sz = z + (rand() - 0.5) * (TILE - 0.6 - len);
-      sheet(b, x + (rand() - 0.5) * w * 0.8, 0.322, sz, 0.05, len, dye, 2.4 + rand() * 0.6);
-    }
-  }
-  // Foam where the water piles up against the rib below.
-  sheet(b, 0, 0.334, z + TILE / 2 - 0.2, TROUGH_W - 0.7, 0.1, PAINT.cream, 1.5);
+/** Where each crew's water runs down the trough (its middle across it), `d` metres down. */
+function plumeCentre(c: number, d: number): number {
+  const u = d / WATER_RUN;
+  // They drift together and meander as they go.
+  return (
+    GATE_X[c]! * (1 - 0.6 * smoothstep(0.1, 0.9, u)) +
+    Math.sin(d * 0.9 + c * 2.2) * 0.8 * smoothstep(0.05, 0.5, u)
+  );
 }
 
-/** A flat, glowing quad facing up (water, a streak, foam): two triangles where a box takes twelve. */
-function sheet(
-  b: Buckets,
-  x: number,
-  y: number,
-  z: number,
-  w: number,
-  d: number,
+/** How wide a crew's water has spread `d` metres down. */
+const plumeWidth = (d: number) => 0.7 + d * 0.45;
+
+const MUD = 0x64492a;
+const RGB = (hex: number) => [((hex >> 16) & 255) / 255, ((hex >> 8) & 255) / 255, (hex & 255) / 255];
+const CREW_RGB = CREWS.map((c) => RGB(DYE[c]));
+const MUD_RGB = RGB(MUD);
+
+/**
+ * The shared water at (x, d): each gate's dye in its own tongue at the top, spreading as it runs;
+ * where two meet they turn brown, and by the foot it's all mud. Writes its colour (glow paint) and
+ * returns how wet it is (under 0.5 the surface dips under the floor: dry boards show).
+ */
+function troughField(x: number, d: number, rgb: number[]): number {
+  const u = d / WATER_RUN;
+  let k1 = 0;
+  let k2 = 0;
+  let sum = 0;
+  rgb[0] = rgb[1] = rgb[2] = 0;
+  for (let c = 0; c < 3; c++) {
+    const t = (x - plumeCentre(c, d)) / plumeWidth(d);
+    const k = Math.exp(-t * t);
+    if (k > k1) {
+      k2 = k1;
+      k1 = k;
+    } else if (k > k2) k2 = k;
+    const w = k * k;
+    sum += w;
+    for (let i = 0; i < 3; i++) rgb[i]! += CREW_RGB[c]![i]! * w;
+  }
+  const wet = k1 + k2 * 0.5 + smoothstep(0.55, 0.85, u);
+  const mixT = smoothstep(0.22, 0.8, u);
+  // A brown seam where two dyes meet, long before the foot.
+  const seam = smoothstep(0.3, 0.85, k2 / Math.max(k1, 1e-3)) * smoothstep(0.02, 0.14, u) * 0.85;
+  const m = Math.min(1, Math.max(mixT, seam));
+  // Swirls in the mud (it's moving water, not paint).
+  const marble = 0.84 + 0.16 * Math.sin(x * 1.7 + Math.sin(d * 0.8) * 2.4 + d * 0.6);
+  for (let i = 0; i < 3; i++) {
+    const crew = sum > 1e-6 ? rgb[i]! / sum : MUD_RGB[i]!;
+    const v = crew + (MUD_RGB[i]! - crew) * m;
+    rgb[i] = v * (1 + (marble - 1) * m) * (2.6 - 0.4 * m);
+  }
+  return wet;
+}
+
+/** The shared water, a reach at a time (it's revealed as it runs, and drains the same way). */
+const WATER_REACHES = 12;
+const REACH = WATER_RUN / WATER_REACHES;
+
+function troughWaterReach(reach: number): BufferGeometry {
+  const rows = 3;
+  const cols = 30;
+  const n = rows * cols;
+  const pos = new Float32Array(n * 3);
+  const col = new Float32Array(n * 3);
+  const nrm = new Float32Array(n * 3);
+  const rgb = [0, 0, 0];
+  for (let r = 0; r < rows; r++) {
+    const dz = (r / (rows - 1)) * REACH;
+    const d = reach * REACH + dz;
+    for (let c = 0; c < cols; c++) {
+      const i = r * cols + c;
+      const x = -WATER_HALF + (c / (cols - 1)) * WATER_HALF * 2;
+      const wet = troughField(x, d, rgb);
+      pos[i * 3] = x;
+      pos[i * 3 + 1] = TROUGH_WATER - Math.max(0, 0.5 - wet) * 1.3;
+      pos[i * 3 + 2] = dz;
+      col.set(rgb, i * 3);
+      nrm[i * 3 + 1] = 1;
+    }
+  }
+  const idx: number[] = [];
+  for (let r = 0; r < rows - 1; r++)
+    for (let c = 0; c < cols - 1; c++) {
+      const a = r * cols + c;
+      idx.push(a, a + cols, a + 1, a + 1, a + cols, a + cols + 1);
+    }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new BufferAttribute(pos, 3));
+  g.setAttribute('normal', new BufferAttribute(nrm, 3));
+  g.setAttribute('uv', new BufferAttribute(new Float32Array(n * 2), 2));
+  g.setAttribute('color', new BufferAttribute(col, 3));
+  g.setIndex(idx);
+  return g;
+}
+
+/** A flat glowing shape facing up (x, z in metres), as a fan round its first point. */
+function flatShape(
+  points: readonly (readonly [number, number])[],
   dye: number,
   strength: number,
-): void {
-  const g = gridSurface(
-    b,
-    'glow',
-    [
-      { x: x - w / 2, y, z: z - d / 2 },
-      { x: x + w / 2, y, z: z - d / 2 },
-      { x: x - w / 2, y, z: z + d / 2 },
-      { x: x + w / 2, y, z: z + d / 2 },
-    ],
-    2,
-    2,
-    0xffffff,
-  );
-  g.computeVertexNormals();
+): BufferGeometry {
+  const tris = points.length - 2;
+  const pos = new Float32Array(tris * 9);
+  for (let t = 0; t < tris; t++) {
+    const p0 = points[0]!;
+    let p1 = points[t + 1]!;
+    let p2 = points[t + 2]!;
+    // Face up (+y): the cross product's y is az·bx − ax·bz.
+    if ((p1[1] - p0[1]) * (p2[0] - p0[0]) - (p1[0] - p0[0]) * (p2[1] - p0[1]) < 0) [p1, p2] = [p2, p1];
+    for (const [k, p] of [p0, p1, p2].entries()) {
+      pos[t * 9 + k * 3] = p[0];
+      pos[t * 9 + k * 3 + 2] = p[1];
+    }
+  }
+  const n = tris * 3;
+  const nrm = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) nrm[i * 3 + 1] = 1;
+  const g = new BufferGeometry();
+  g.setAttribute('position', new BufferAttribute(pos, 3));
+  g.setAttribute('normal', new BufferAttribute(nrm, 3));
+  g.setAttribute('uv', new BufferAttribute(new Float32Array(n * 2), 2));
+  g.setAttribute('color', new BufferAttribute(new Float32Array(n * 3), 3));
   tintGlow(g, dye, strength);
+  return g;
+}
+
+/** What each crew's water carries (spec §5.2): blue blossoms, leaves, paper boats. */
+function floatShape(crew: Crew): BufferGeometry {
+  if (crew === 'feature') {
+    const pts: [number, number][] = [[0, 0]];
+    for (let k = 0; k <= 10; k++) {
+      const a = (k / 10) * Math.PI * 2;
+      const r = k % 2 ? 0.13 : 0.3;
+      pts.push([Math.sin(a) * r, Math.cos(a) * r]);
+    }
+    return flatShape(pts, 0xa8ccff, 3.4);
+  }
+  if (crew === 'bugfix')
+    return flatShape(
+      [
+        [0, -0.3],
+        [0.13, -0.08],
+        [0.1, 0.12],
+        [0, 0.3],
+        [-0.1, 0.12],
+        [-0.13, -0.08],
+      ],
+      0xa6e486,
+      3.2,
+    );
+  return flatShape(
+    [
+      [0, -0.3],
+      [0.17, -0.12],
+      [0.17, 0.2],
+      [0, 0.3],
+      [-0.17, 0.2],
+      [-0.17, -0.12],
+    ],
+    0xfff4dc,
+    3.4,
+  );
+}
+
+/** A glowing ribbon of water from its origin along +z (`len` long), revealed by scaling along it. */
+function ribbon(len: number, width: number, dye: number, strength: number): BufferGeometry {
+  const b = makeBuckets();
+  const g = box(b, 'glow', 0, 0, len / 2, width, 0.04, len, 0, 0xffffff);
+  tintGlow(g, dye, strength);
+  return g;
+}
+
+/** A pebble of foam or grit (a splash, a dust puff): a little glowing diamond. */
+function fleck(): BufferGeometry {
+  return flatShape(
+    [
+      [0, -0.14],
+      [0.14, 0],
+      [0, 0.14],
+      [-0.14, 0],
+    ],
+    0xf6efe2,
+    3.4,
+  );
+}
+
+/**
+ * A stand-in for one of the island's rocks (unit size, base at 0, as tall as the rock asset) when
+ * there are no rock batches to borrow: two basalt blocks with a mossy top, a few triangles.
+ */
+function standInRock(asset: number): BufferGeometry {
+  const h = rockHeight(asset);
+  const b = makeBuckets();
+  box(b, 'stone', 0, h * 0.4, 0, 0.95, h * 0.8, 0.9, 0.4, PAINT.basalt);
+  box(b, 'stone', 0.06, h * 0.86, -0.04, 0.62, h * 0.28, 0.58, 1.1, PAINT.moss);
+  return mergeParts(b.stone);
+}
+
+/** The dismantled trough's boards, stacked on the ground down each side of the terrace (built in place). */
+function troughStacks(b: Buckets): void {
+  const x0 = F.cols[0]! - TILE / 2;
+  const x1 = F.cols[COLS - 1]! + TILE / 2;
+  const len = TROUGH_W / 2 - 0.02;
+  for (const [x, s] of [
+    [x0 - 1.8, -1],
+    [x1 + 1.8, 1],
+  ] as const) {
+    const z = F.center.z + 1.2;
+    const gN = thousandBoughHeight(x, z - len / 2);
+    const gS = thousandBoughHeight(x, z + len / 2);
+    const pitch = Math.atan2(gN - gS, len);
+    const y = (gN + gS) / 2;
+    // Sleepers on the ground, two courses of boards, the posts across the top.
+    for (const k of [-1, 0, 1])
+      box(b, 'wood', x, y + 0.04 - k * Math.sin(pitch) * 3.2, z + k * 3.2, 1.5, 0.12, 0.2, 0, PAINT.teakDark);
+    for (let layer = 0; layer < 3; layer++)
+      for (let k = 0; k < 2; k++)
+        box(
+          b,
+          'wood',
+          x + (k - 0.5) * 0.56 + s * layer * 0.04,
+          y + 0.16 + layer * 0.13,
+          z,
+          0.52,
+          0.12,
+          len - layer * 0.3,
+          0.01 * s * layer,
+          (layer + k) % 2 ? PAINT.weathered : PAINT.teak,
+          pitch,
+        );
+    for (const k of [-1, 1])
+      box(
+        b,
+        'wood',
+        x,
+        y + 0.6 - k * Math.sin(pitch) * 2.2,
+        z + k * 2.2,
+        1.3,
+        0.2,
+        0.2,
+        0.06 * k,
+        PAINT.weathered,
+      );
+  }
 }
 
 const TMP = new Matrix4();
+const TMP2 = new Matrix4();
 const Q = new Quaternion();
+const Q2 = new Quaternion();
 const V = new Vector3();
+const V2 = new Vector3();
 const ONE = new Vector3(1, 1, 1);
 const ZERO = new Matrix4().makeScale(0, 0, 0);
+const IDENT = new Matrix4();
 const UPV = new Vector3(0, 1, 0);
 const XV = new Vector3(1, 0, 0);
-const Q2 = new Quaternion();
+const ZV = new Vector3(0, 0, 1);
+/** The shared trough where it stands, pitched down the slope; its piers stand level. */
+const TROUGH_M = new Matrix4().compose(
+  new Vector3(F.center.x, TROUGH_Y, F.center.z),
+  new Quaternion().setFromAxisAngle(XV, TROUGH_PITCH),
+  ONE,
+);
+const PIERS_M = new Matrix4().makeTranslation(F.center.x, 0, F.center.z);
+/** A borrowed rock slot waits hidden on the terrace (scale 0, so it doesn't stretch its batch's bounds). */
+const STONE_HIDDEN = new Matrix4().makeScale(0, 0, 0).setPosition(F.center.x, F.rowY[1]!, F.center.z);
 
 function tileMatrix(row: number, col: number, rot: number, out: Matrix4, lift = 0): Matrix4 {
   Q.setFromAxisAngle(UPV, -rot * (Math.PI / 2));
   return out.compose(V.set(F.cols[col]!, F.rowY[row]! - FLOOR + lift, F.rows[row]!), Q, ONE);
 }
+
+// Fen's demo, in seconds from the gates opening.
+/** The water leaves the gates, and runs down the trough at this speed (m/s). */
+const FLOW_START = 0.35;
+const FLOW_SPEED = 3.6;
+/** When the front reaches the lip. */
+const AT_LIP = FLOW_START + WATER_RUN / FLOW_SPEED;
+/** The mud runs along the sluice and down the chutes at this speed (m/s). */
+const CHUTE_SPEED = 9;
+/** Once the gates shut, the water's tail runs down and out at this speed (m/s). */
+const DRAIN_SPEED = 8;
+/** Floats on each crew's water, and how far one runs before it comes round again (over the lip). */
+const FLOATS = 4;
+const FLOAT_LOOP = WATER_RUN + 1.2;
+
+// Round 3's boulder (spec §5.3): it rolls out of the jungle on the slope above, bounds over the
+// header box west of Feature's gate, lands short with a splash and hops into row 3, column 3.
+const BOULDER_ASSET = 2;
+function rockHeight(asset: number): number {
+  const p = ROCK_ASSETS[asset]!.positions;
+  let top = 0;
+  for (let i = 1; i < p.length; i += 3) top = Math.max(top, p[i]!);
+  return top;
+}
+const PEBBLE_ASSET = 1;
+const TILE_ROCK_ASSET = 0;
+const boulderScale = (asset: number) => new Vector3(2.4, 1.8 / rockHeight(asset), 2.25);
+const BOULDER_C = 0.9;
+const TILE_ROCK_SCALE = new Vector3(2.2, 1.65 / rockHeight(TILE_ROCK_ASSET), 2.05);
+/** Its keys: rolling on the ground (A to B), the bound over the header (B to C), the hop home (C to D). */
+const BOULDER_KEYS = (() => {
+  const ground = (x: number, z: number) => thousandBoughHeight(x, z) + BOULDER_C;
+  const a = { x: 1993.4, z: -1642.6 };
+  const b = { x: 1997.6, z: -1634.6 };
+  const c = { x: F.cols[2]! - 0.9, z: F.rows[2]! - 1.3 };
+  const d = { x: F.cols[2]!, z: F.rows[2]! };
+  return {
+    a: { ...a, y: ground(a.x, a.z) },
+    b: { ...b, y: ground(b.x, b.z) },
+    c: { ...c, y: F.rowY[2]! + BOULDER_C - 0.05 },
+    d: { ...d, y: F.rowY[2]! + BOULDER_C - 0.12 },
+  };
+})();
+const BT = { roll: 0.55, land: 1.25, home: 1.6, still: 2.05 };
+const BOULDER_LEN = (() => {
+  const k = BOULDER_KEYS;
+  const h = (p: { x: number; z: number }, q: { x: number; z: number }) => Math.hypot(q.x - p.x, q.z - p.z);
+  return [h(k.a, k.b), h(k.b, k.c), h(k.c, k.d)];
+})();
+/** It rolls two whole turns, so it comes to rest the right way up. */
+const BOULDER_AXIS = new Vector3(
+  BOULDER_KEYS.d.z - BOULDER_KEYS.a.z,
+  0,
+  -(BOULDER_KEYS.d.x - BOULDER_KEYS.a.x),
+).normalize();
+const BOULDER_YAW = 0.7;
+/** The chips it knocks loose: where each comes to rest round it in the tile (angle, distance, size). */
+const PEBBLES = [
+  [0.7, 1.32, 0.46],
+  [2.3, 1.38, 0.34],
+  [3.7, 1.3, 0.52],
+  [5.2, 1.42, 0.3],
+] as const;
+const PEBBLE_FLIGHT = 0.5;
+/** The splash at each touchdown: flecks out and up, gone in `FLECK_LIFE`. */
+const SPLASH = [
+  { at: BT.land, n: 14, speed: 3.4, up: 3.8 },
+  { at: BT.home, n: 8, speed: 2.4, up: 2.4 },
+];
+const FLECK_LIFE = 0.75;
+const SPLASH_END = BT.home + FLECK_LIFE + 0.05;
 
 interface Run {
   flows: readonly Flow[];
@@ -290,64 +583,73 @@ export interface FlumeTerrace extends FlumeTerraceView {
   group: Group;
   /** Static structure for the village's merged meshes was added to its buckets. */
   colliders: BoxCollider[];
+  /** Adds separate flume meshes that share the island rock geometry and material. */
+  useStones(stones: FlumeStones): void;
   update(dt: number): void;
   dispose(): void;
 }
 
 /**
- * Builds the terrace. Static pieces (header, chutes, trestles, sluice, banners) go into `statics`
- * (the village's buckets); the moving parts are its own meshes.
+ * Builds the terrace. Static pieces (header, chutes, trestles, sluice, gate posts) go into `statics`
+ * (the village's buckets) and the crews' gate boards into `signs`; the moving parts are its own meshes.
  */
 export function createFlumeTerrace(
   kit: VillageKit,
   statics: Buckets,
   wheelAxles: readonly { x: number; y: number; z: number; yaw: number; crew: string }[],
+  signs?: SignSet,
 ): FlumeTerrace {
   const group = new Group();
   group.name = 'thousand-bough-flume';
   const colliders: BoxCollider[] = [];
-  buildStatics(statics, colliders);
+  buildStatics(statics, colliders, signs);
 
-  // Rigid parts: wood (straight and elbow per cell, the gates, the demo trough), stone (rocks, the
-  // boulder), glow (water per cell, kind and dye; the cursor and pulse frames; the crews' lights).
+  // Rigid parts: wood (straight, elbow and a rock's bed per cell, the gates, the wheels, the demo
+  // trough and its stacked boards), stone (the trough's piers; painted rocks if there are no rock
+  // batches to borrow), glow (water per cell, kind and dye; the cursor and pulse frames; the demo's
+  // water, floats, spill and chutes; the boulder's splash).
   const wood: BufferGeometry[] = [];
   const stone: BufferGeometry[] = [];
   const glow: BufferGeometry[] = [];
   const take = (fn: (b: Buckets) => void, key: 'wood' | 'stone' | 'glow', into: BufferGeometry[]) => {
     const b = makeBuckets();
     fn(b);
-    const parts = b[key];
-    const merged = mergeParts(parts);
-    into.push(merged);
+    into.push(mergeParts(b[key]));
+    return into.length - 1;
   };
-  const woodIndex = { straight: [] as number[], elbow: [] as number[], gates: [] as number[], trough: -1 };
+  const woodIndex = {
+    straight: [] as number[],
+    elbow: [] as number[],
+    bed: [] as number[],
+    gates: [] as number[],
+    trough: -1,
+    stacks: -1,
+  };
   for (let i = 0; i < ROWS * COLS; i++) {
-    woodIndex.straight.push(wood.length);
-    take(straightPiece, 'wood', wood);
-    woodIndex.elbow.push(wood.length);
-    take(elbowPiece, 'wood', wood);
+    woodIndex.straight.push(take(straightPiece, 'wood', wood));
+    woodIndex.elbow.push(take(elbowPiece, 'wood', wood));
+    woodIndex.bed.push(take(bedPiece, 'wood', wood));
   }
-  for (let g = 0; g < 3; g++) {
-    woodIndex.gates.push(wood.length);
-    take((b) => box(b, 'wood', 0, 0.45, 0, CHANNEL * 2 + 0.3, 0.9, 0.1, 0, PAINT.teakDark), 'wood', wood);
-  }
+  for (let g = 0; g < 3; g++)
+    woodIndex.gates.push(
+      take((b) => box(b, 'wood', 0, 0.45, 0, CHANNEL * 2 + 0.3, 0.9, 0.1, 0, PAINT.teakDark), 'wood', wood),
+    );
   // The three wheels, as wood parts too (they turn by rewriting their own vertices).
   const wheelPart: number[] = [];
   for (let k = 0; k < wheelAxles.length; k++) {
     wheelPart.push(wood.length);
     wood.push(wheelGeometry());
   }
-  woodIndex.trough = wood.length;
-  take(troughWood, 'wood', wood);
-  const stoneIndex = { rocks: [] as number[], boulder: -1, piers: -1 };
-  stoneIndex.piers = stone.length;
-  take(troughPiers, 'stone', stone);
-  for (let i = 0; i < ROWS * COLS; i++) {
+  woodIndex.trough = take(troughWood, 'wood', wood);
+  woodIndex.stacks = take(troughStacks, 'wood', wood);
+  const stoneIndex = { piers: take(troughPiers, 'stone', stone), rocks: [] as number[], boulder: -1 };
+  // Stand-ins for the borrowed rocks: the island's rock shapes, painted.
+  for (let k = 0; k < 4; k++) {
     stoneIndex.rocks.push(stone.length);
-    take(rockPiece, 'stone', stone);
+    stone.push(standInRock(TILE_ROCK_ASSET));
   }
   stoneIndex.boulder = stone.length;
-  take((b) => box(b, 'stone', 0, 0.8, 0, 1.9, 1.6, 1.8, 0.7, PAINT.basalt), 'stone', stone);
+  stone.push(standInRock(BOULDER_ASSET));
   const glowIndex: Record<Dye, { straight: number[]; elbow: number[] }> = {
     feature: { straight: [], elbow: [] },
     bugfix: { straight: [], elbow: [] },
@@ -356,10 +658,8 @@ export function createFlumeTerrace(
   };
   for (const dye of DYES)
     for (let i = 0; i < ROWS * COLS; i++) {
-      glowIndex[dye].straight.push(glow.length);
-      take((b) => straightWater(b, DYE[dye]), 'glow', glow);
-      glowIndex[dye].elbow.push(glow.length);
-      take((b) => elbowWater(b, DYE[dye]), 'glow', glow);
+      glowIndex[dye].straight.push(take((b) => straightWater(b, DYE[dye]), 'glow', glow));
+      glowIndex[dye].elbow.push(take((b) => elbowWater(b, DYE[dye]), 'glow', glow));
     }
   const frame = (colour: number) => (b: Buckets) => {
     for (const [x, z, w, d] of [
@@ -372,23 +672,107 @@ export function createFlumeTerrace(
       tintGlow(g, colour);
     }
   };
-  const cursorPart = glow.length;
-  take(frame(0xffe08a), 'glow', glow);
-  const pulsePart = glow.length;
-  take(frame(0xff5a3a), 'glow', glow);
-  // The demo's shared trough's water, a reach between each pair of ribs: the three crews' dyes run
-  // in at their gates and blur into mud on the way down.
-  const demoWater: number[] = [];
-  for (let r = 0; r < ROWS; r++) {
-    demoWater.push(glow.length);
-    take((b) => troughWater(b, r), 'glow', glow);
+  const cursorPart = take(frame(0xffe08a), 'glow', glow);
+  const pulsePart = take(frame(0xff5a3a), 'glow', glow);
+
+  // The demo's shared water, a reach at a time; the crews' floats on it.
+  const reachPart: number[] = [];
+  for (let r = 0; r < WATER_REACHES; r++) {
+    reachPart.push(glow.length);
+    glow.push(troughWaterReach(r));
   }
+  const rand = mulberry32(0xf10a7);
+  const floats: { part: number; crew: number; phase: number; side: number; spin: number }[] = [];
+  for (let c = 0; c < 3; c++)
+    for (let k = 0; k < FLOATS; k++) {
+      floats.push({
+        part: glow.length,
+        crew: c,
+        phase: (k + rand() * 0.6) / FLOATS,
+        side: rand() * 2 - 1,
+        spin: rand() * 6.3,
+      });
+      glow.push(floatShape(CREWS[c]!));
+    }
+  // Over the lip into the sluice, along the sluice both ways, and down every crew's chute: the same mud.
+  const ribbons: {
+    part: number;
+    base: Matrix4;
+    len: number;
+    delay: number;
+    speed: number;
+    wheel: Crew | null;
+  }[] = [];
+  const addRibbon = (
+    from: Vector3,
+    to: Vector3,
+    width: number,
+    delay: number,
+    speed: number,
+    wheel: Crew | null,
+  ) => {
+    const len = from.distanceTo(to);
+    const base = new Matrix4().compose(
+      from,
+      new Quaternion().setFromUnitVectors(ZV, to.clone().sub(from).normalize()),
+      ONE,
+    );
+    ribbons.push({ part: glow.length, base, len, delay, speed, wheel });
+    glow.push(ribbon(len, width, MUD, 2.3));
+  };
+  const x0 = F.cols[0]! - TILE / 2;
+  const x1 = F.cols[COLS - 1]! + TILE / 2;
+  const zS = F.rows[ROWS - 1]! + TILE / 2;
+  const sluiceMud = SLUICE_Y + 0.42;
+  addRibbon(
+    new Vector3(0, TROUGH_WATER - 0.02, TROUGH_L / 2 + 0.1).applyMatrix4(TROUGH_M),
+    new Vector3(F.center.x, sluiceMud + 0.02, zS + 0.75),
+    TROUGH_W - 0.4,
+    0,
+    3,
+    null,
+  );
+  for (const x of [x0 - 0.5, x1 + 0.5])
+    addRibbon(
+      new Vector3(F.center.x, sluiceMud, zS + 0.9),
+      new Vector3(x, sluiceMud, zS + 0.9),
+      1.4,
+      0.12,
+      CHUTE_SPEED,
+      null,
+    );
+  for (const w of TB.water.wheels) {
+    const { start, end } = chuteEnds(w);
+    const along = Math.abs(start.x - F.center.x) / CHUTE_SPEED;
+    addRibbon(
+      new Vector3(start.x, start.y + 0.11, start.z - 0.3),
+      new Vector3(end.x, end.y + 0.11, end.z),
+      1.0,
+      0.25 + along,
+      CHUTE_SPEED,
+      w.crew as Crew,
+    );
+  }
+  // The boulder's splash: flecks of foam and grit.
+  const flecks: { part: number; splash: number; angle: number; speed: number; up: number }[] = [];
+  SPLASH.forEach((s, i) => {
+    for (let k = 0; k < s.n; k++) {
+      flecks.push({
+        part: glow.length,
+        splash: i,
+        angle: (k / s.n) * Math.PI * 2 + rand() * 0.5,
+        speed: s.speed * (0.7 + rand() * 0.5),
+        up: s.up * (0.7 + rand() * 0.5),
+      });
+      glow.push(fleck());
+    }
+  });
 
   const woodParts = mergeWithRigidParts([], wood);
   const stoneParts = mergeWithRigidParts([], stone);
   const glowParts = mergeWithRigidParts([], glow);
-  // The parts are built at the origin and placed on the terrace: a fixed bound round the terrace (and
-  // the boulder's run in from the north) lets the renderer cull them.
+  // The parts are built at the origin and placed on the terrace: a fixed bound round the terrace,
+  // its chutes and the stacks beside it lets the renderer cull them.
   for (const p of [woodParts, stoneParts, glowParts])
     p.geometry.boundingSphere = new Sphere(new Vector3(F.center.x + 2, F.rowY[1]! - 2, F.center.z + 14), 40);
   const mesh = (p: RigidParts, key: 'wood' | 'stone' | 'glow') => {
@@ -425,16 +809,155 @@ export function createFlumeTerrace(
   let run: Run | null = null;
   let pulse: readonly [number, number] | null = null;
   let pulseT = 0;
-  let demo: { t: number; done: () => void } | null = null;
+  /** The shared trough stands over the board (until it's cleared and stacked beside it). */
+  let trough = false;
+  /** Seconds since the demo's gates opened, and since they shut (−1: not yet). */
+  let pour = -1;
+  let drain = -1;
+  let poured: (() => void) | null = null;
+  let drained: (() => void) | null = null;
   let boulder: { t: number; done: () => void } | null = null;
+  /** Seconds since the boulder set off, for its splash (−1: none). */
+  let splash = -1;
   let round = 1;
-  let time = 0;
   /** What water each cell shows: its dye index (−1 none) and since when. */
   const water = new Int8Array(ROWS * COLS).fill(-1);
 
+  // The flume's separate rock meshes and the last matrix written to each, so only moves upload.
+  let stones: FlumeStones | null = null;
+  let stoneMeshes: InstancedMesh[] | null = null;
+  let stoneLast: Float32Array | null = null;
+  /** Which slots show a stone: a batch draws only up to its last one in use. */
+  let stoneOn: Uint8Array | null = null;
+  const stoneDirty = [false, false, false];
+  /** Lite's boulder is the cheapest rock (and it knocks no chips loose). */
+  let boulderAsset = BOULDER_ASSET;
+  let boulderSize = boulderScale(BOULDER_ASSET);
+  const putStone = (asset: number, slot: number, m: Matrix4) => {
+    if (!stones) {
+      // The stand-ins: the tile rocks and the boulder (no chips).
+      const part =
+        asset === TILE_ROCK_ASSET
+          ? stoneIndex.rocks[slot]
+          : asset === BOULDER_ASSET && slot === 0
+            ? stoneIndex.boulder
+            : -1;
+      if (part !== undefined && part >= 0) stoneParts.set(part, m === STONE_HIDDEN ? ZERO : m);
+      return;
+    }
+    const on = m === STONE_HIDDEN ? 0 : 1;
+    if (stoneOn![asset * stones.slots + slot] !== on) {
+      stoneOn![asset * stones.slots + slot] = on;
+      stoneDirty[asset] = true;
+    }
+    const last = stoneLast!;
+    const o = (asset * stones.slots + slot) * 16;
+    const e = m.elements;
+    let moved = false;
+    for (let k = 0; k < 16; k++) {
+      const v = Math.fround(e[k]!);
+      if (last[o + k] !== v) {
+        last[o + k] = v;
+        moved = true;
+      }
+    }
+    if (!moved) return;
+    stoneMeshes![asset]!.setMatrixAt(slot, m);
+    stoneDirty[asset] = true;
+  };
+
+  /** The boulder's pose `t` seconds into its arrival (resting once it's still), into `out`. */
+  const boulderPose = (t: number, out: Matrix4) => {
+    const k = BOULDER_KEYS;
+    type Key = { x: number; y: number; z: number };
+    let from: Key = k.d;
+    let to: Key = k.d;
+    let s = 1;
+    let hop = 0;
+    let travelled = BOULDER_LEN[0]! + BOULDER_LEN[1]! + BOULDER_LEN[2]!;
+    if (t < BT.roll) {
+      // Gathering speed down the slope, on the ground.
+      s = (t / BT.roll) ** 1.6;
+      from = k.a;
+      to = k.b;
+      travelled = BOULDER_LEN[0]! * s;
+    } else if (t < BT.land) {
+      s = (t - BT.roll) / (BT.land - BT.roll);
+      from = k.b;
+      to = k.c;
+      hop = 3.3;
+      travelled = BOULDER_LEN[0]! + BOULDER_LEN[1]! * s;
+    } else if (t < BT.home) {
+      s = (t - BT.land) / (BT.home - BT.land);
+      from = k.c;
+      to = k.d;
+      hop = 0.45;
+      travelled = BOULDER_LEN[0]! + BOULDER_LEN[1]! + BOULDER_LEN[2]! * s;
+    }
+    const x = from.x + (to.x - from.x) * s;
+    const z = from.z + (to.z - from.z) * s;
+    let y = from.y + (to.y - from.y) * s + 4 * hop * s * (1 - s);
+    if (t < BT.roll) y = thousandBoughHeight(x, z) + BOULDER_C;
+    const total = BOULDER_LEN[0]! + BOULDER_LEN[1]! + BOULDER_LEN[2]!;
+    let angle = (travelled / total) * Math.PI * 4;
+    // A rock that's stopped rocks back and forth once or twice.
+    if (t > BT.home && t < BT.still) {
+      const u = (t - BT.home) / (BT.still - BT.home);
+      angle += Math.sin(u * Math.PI * 3) * 0.12 * (1 - u);
+    }
+    Q.setFromAxisAngle(BOULDER_AXIS, angle);
+    Q2.setFromAxisAngle(UPV, BOULDER_YAW);
+    Q.multiply(Q2);
+    out.compose(V.set(x, y, z), Q, boulderSize);
+    // The rock's origin is its base: turn it about its middle.
+    return out.multiply(TMP2.makeTranslation(0, -BOULDER_C / boulderSize.y, 0));
+  };
+
+  const placeRocks = () => {
+    const covered = trough;
+    let slot = 0;
+    for (let i = 0; i < ROWS * COLS; i++) {
+      const r = Math.floor(i / COLS);
+      const c = i % COLS;
+      if (board[i]!.kind !== 'rock' || covered || (round === 3 && r === 2 && c === 2) || slot >= 4) continue;
+      Q.setFromAxisAngle(UPV, 0.9 + i * 2.39);
+      TMP.compose(V.set(F.cols[c]!, F.rowY[r]! - 0.08, F.rows[r]!), Q, TILE_ROCK_SCALE);
+      putStone(TILE_ROCK_ASSET, slot++, TMP);
+    }
+    for (; slot < 4; slot++) putStone(TILE_ROCK_ASSET, slot, STONE_HIDDEN);
+    const showBoulder = round === 3 && !covered;
+    putStone(boulderAsset, 0, showBoulder ? boulderPose(boulder ? boulder.t : BT.still, TMP) : STONE_HIDDEN);
+    if (stones?.cheap) return;
+    // The chips fly from where it first lands and settle round it.
+    const bt = boulder ? boulder.t : BT.still;
+    const k = BOULDER_KEYS;
+    for (let p = 0; p < PEBBLES.length; p++) {
+      const pebble = PEBBLES[p]!;
+      const a = pebble[0];
+      const dist = pebble[1];
+      const size = pebble[2];
+      if (!showBoulder || bt < BT.land) {
+        putStone(PEBBLE_ASSET, p, STONE_HIDDEN);
+        continue;
+      }
+      const u = Math.min(1, (bt - BT.land) / (PEBBLE_FLIGHT + p * 0.05));
+      const ex = k.d.x + Math.cos(a) * dist;
+      const ez = k.d.z + Math.sin(a) * dist;
+      const ey = F.rowY[2]! - 0.04;
+      const sy = F.rowY[2]! + 0.1;
+      V.set(k.c.x + (ex - k.c.x) * u, sy + (ey - sy) * u + 4 * 0.9 * u * (1 - u), k.c.z + (ez - k.c.z) * u);
+      Q.setFromAxisAngle(UPV, a * 3 + u * 5);
+      Q2.setFromAxisAngle(XV, (1 - u) * 6);
+      Q.multiply(Q2);
+      TMP.compose(V, Q, V2.set(size, size * 0.9, size));
+      putStone(PEBBLE_ASSET, p, TMP);
+    }
+    if (stones) for (let p = PEBBLES.length; p < stones.slots; p++) putStone(PEBBLE_ASSET, p, STONE_HIDDEN);
+  };
+
   const placeTiles = () => {
-    // The tiles are put away under the demo's trough until its boards come up.
-    const covered = !!demo && demo.t < 14;
+    // The tiles are put away under the shared trough while it stands.
+    const covered = trough;
     for (let i = 0; i < ROWS * COLS; i++) {
       const r = Math.floor(i / COLS);
       const c = i % COLS;
@@ -445,11 +968,10 @@ export function createFlumeTerrace(
         t.kind === 'straight' && !covered ? tileMatrix(r, c, rot, TMP) : ZERO,
       );
       woodParts.set(woodIndex.elbow[i]!, t.kind === 'elbow' && !covered ? tileMatrix(r, c, rot, TMP) : ZERO);
-      const rockShown = t.kind === 'rock' && !covered && !(round === 3 && r === 2 && c === 2 && boulder);
-      stoneParts.set(stoneIndex.rocks[i]!, rockShown ? tileMatrix(r, c, 0, TMP) : ZERO);
+      woodParts.set(woodIndex.bed[i]!, t.kind === 'rock' && !covered ? tileMatrix(r, c, 0, TMP) : ZERO);
       for (const dye of DYES) {
         const d = DYES.indexOf(dye);
-        const on = water[i] === d;
+        const on = water[i] === d && !covered;
         glowParts.set(
           glowIndex[dye].straight[i]!,
           on && t.kind === 'straight' ? tileMatrix(r, c, t.rot, TMP) : ZERO,
@@ -460,16 +982,21 @@ export function createFlumeTerrace(
         );
       }
     }
-    glowParts.set(cursorPart, cursor ? tileMatrix(cursor[0], cursor[1], 0, TMP) : ZERO);
+    glowParts.set(cursorPart, cursor && !covered ? tileMatrix(cursor[0], cursor[1], 0, TMP) : ZERO);
     const blink = pulse && Math.sin(pulseT * 9) > -0.2;
-    glowParts.set(pulsePart, pulse && blink ? tileMatrix(pulse[0], pulse[1], 0, TMP, 0.03) : ZERO);
+    glowParts.set(
+      pulsePart,
+      pulse && blink && !covered ? tileMatrix(pulse[0], pulse[1], 0, TMP, 0.03) : ZERO,
+    );
+    placeRocks();
   };
 
   const placeGates = () => {
+    const demoOpen = pour < 0 ? 0 : drain >= 0 ? Math.max(0, 1 - drain * 2.5) : Math.min(1, pour * 2);
     for (let g = 0; g < 3; g++) {
       const crew = CREWS[g]!;
       const col = F.gates[crew];
-      const open = run && run.flows.some((f) => f.crew === crew) ? Math.min(1, run.t * 2) : 0;
+      const open = run && run.flows.some((f) => f.crew === crew) ? Math.min(1, run.t * 2) : demoOpen;
       Q.identity();
       TMP.compose(V.set(F.cols[col]!, F.rowY[0]! + 0.55 + open * 0.75, F.rows[0]! - TILE / 2 - 0.25), Q, ONE);
       woodParts.set(woodIndex.gates[g]!, TMP);
@@ -477,27 +1004,82 @@ export function createFlumeTerrace(
   };
 
   const placeDemo = () => {
-    const lift = demo ? Math.max(0, demo.t - 14) * 1.2 : 0;
-    const shown = !!demo && demo.t < 17;
-    Q.setFromAxisAngle(XV, TROUGH_PITCH);
-    TMP.compose(V.set(F.center.x, TROUGH_Y + lift, F.center.z), Q, ONE);
-    woodParts.set(woodIndex.trough, shown ? TMP : ZERO);
-    // The water runs down the trough a reach at a time.
-    for (let r = 0; r < ROWS; r++) glowParts.set(demoWater[r]!, shown && demo!.t > 2 + r * 0.6 ? TMP : ZERO);
-    Q.identity();
-    TMP.compose(V.set(F.center.x, lift, F.center.z), Q, ONE);
-    stoneParts.set(stoneIndex.piers, shown ? TMP : ZERO);
-    if (boulder || round === 3) {
-      const t = boulder ? Math.min(1, boulder.t / 1.6) : 1;
-      const r2 = tileCentre(2, 2, V);
-      const startZ = F.rows[0]! - 9;
-      const x = r2.x;
-      const z = startZ + (r2.z - startZ) * t;
-      const y = r2.y + 0.2 + Math.abs(Math.sin(t * Math.PI * 2.5)) * (1 - t) * 1.6 + (1 - t) * 1.5;
-      Q.setFromAxisAngle(V.set(1, 0, 0), t * 9);
-      TMP.compose(V.set(x, y, z), Q, ONE);
-      stoneParts.set(stoneIndex.boulder, TMP);
-    } else stoneParts.set(stoneIndex.boulder, ZERO);
+    woodParts.set(woodIndex.trough, trough ? TROUGH_M : ZERO);
+    stoneParts.set(stoneIndex.piers, trough ? PIERS_M : ZERO);
+    woodParts.set(woodIndex.stacks, trough ? ZERO : IDENT);
+    const wet = trough && pour >= 0;
+    const front = wet ? Math.min(WATER_RUN, Math.max(0, (pour - FLOW_START) * FLOW_SPEED)) : 0;
+    const tail = wet && drain >= 0 ? Math.max(0, (drain - 0.15) * DRAIN_SPEED) : 0;
+    // The water runs down the trough a reach at a time (and drains the same way).
+    for (let r = 0; r < WATER_REACHES; r++) {
+      const s0 = r * REACH;
+      const a = Math.min(REACH, Math.max(0, tail - s0));
+      const b = Math.min(REACH, Math.max(0, front - s0));
+      if (b - a < 0.01) {
+        glowParts.set(reachPart[r]!, ZERO);
+        continue;
+      }
+      TMP2.makeScale(1, 1, (b - a) / REACH).setPosition(0, 0, -TROUGH_L / 2 + WATER_FROM + s0 + a);
+      glowParts.set(reachPart[r]!, TMP.multiplyMatrices(TROUGH_M, TMP2));
+    }
+    // The crews' floats ride the water from their gates, drift into each other and go over the lip.
+    for (const f of floats) {
+      const launch = FLOW_START + (f.phase * FLOAT_LOOP) / FLOW_SPEED;
+      const d = wet && pour >= launch ? ((pour - launch) * FLOW_SPEED) % FLOAT_LOOP : -1;
+      let s = d < 0 ? 0 : smoothstep(0, 0.5, d) * (1 - smoothstep(WATER_RUN - 0.7, WATER_RUN - 0.1, d));
+      if (d >= 0 && d > front) s = 0;
+      if (s > 0 && drain >= 0) s *= smoothstep(tail, tail + 0.5, d);
+      if (s <= 0.001) {
+        glowParts.set(f.part, ZERO);
+        continue;
+      }
+      const u = d / WATER_RUN;
+      let x =
+        plumeCentre(f.crew, d) + f.side * plumeWidth(d) * 0.4 + Math.sin(d * 1.3 + f.phase * 6.28) * 0.5 * u;
+      x = Math.max(-WATER_HALF + 0.4, Math.min(WATER_HALF - 0.4, x));
+      const yaw =
+        f.crew === 0
+          ? pour * 1.3 * (f.side > 0 ? 1 : -1) + f.spin
+          : Math.sin(pour * 1.7 + f.spin) * 0.7 + f.spin * 0.2;
+      Q.setFromAxisAngle(UPV, yaw);
+      TMP2.compose(V.set(x, TROUGH_WATER + 0.03, -TROUGH_L / 2 + WATER_FROM + d), Q, V2.set(s, s, s));
+      glowParts.set(f.part, TMP.multiplyMatrices(TROUGH_M, TMP2));
+    }
+    // Over the lip, along the sluice and down all three chutes: everyone gets the same mud.
+    const atLip = wet ? pour - AT_LIP : -1;
+    for (const rb of ribbons) {
+      const reach = atLip > rb.delay ? Math.min(1, ((atLip - rb.delay) * rb.speed) / rb.len) : 0;
+      if (reach <= 0.001) {
+        glowParts.set(rb.part, ZERO);
+        continue;
+      }
+      TMP2.makeScale(1, 1, reach);
+      glowParts.set(rb.part, TMP.multiplyMatrices(rb.base, TMP2));
+      if (rb.wheel && reach >= 1)
+        for (const w of wheels) if (w.crew === rb.wheel && drain < 0) w.target = 0.3;
+    }
+    if (poured && atLip >= 0.9) {
+      const done = poured;
+      poured = null;
+      done();
+    }
+    if (drained && drain >= 1.3) {
+      const done = drained;
+      drained = null;
+      done();
+    }
+  };
+
+  /** The trough's put away for good (its boards stacked beside the terrace); any demo stops. */
+  const clearTrough = () => {
+    trough = false;
+    pour = -1;
+    drain = -1;
+    for (const w of wheels) w.target = 0;
+    poured?.();
+    poured = null;
+    drained?.();
+    drained = null;
   };
 
   const dyeOf = (f: Flow, cellIndex: number): number => {
@@ -511,16 +1093,50 @@ export function createFlumeTerrace(
     return CREWS.indexOf(f.crew);
   };
 
+  const placeAll = () => {
+    placeTiles();
+    placeGates();
+    placeDemo();
+  };
+
   const view: FlumeTerrace = {
     group,
     colliders,
+    useStones(s) {
+      // Hide the painted stand-ins; these meshes share the island's real rock assets.
+      for (const p of stoneIndex.rocks) stoneParts.set(p, ZERO);
+      stoneParts.set(stoneIndex.boulder, ZERO);
+      stones = s;
+      stoneMeshes = s.geometries.map((geometry, asset) => {
+        const mesh = sharedInstancedMesh(geometry, s.material, s.slots, { count: 0 });
+        mesh.name = `thousand-bough-flume-rocks-${ROCK_ASSETS[asset]!.key}`;
+        mesh.castShadow = false;
+        mesh.receiveShadow = true;
+        mesh.visible = false;
+        mesh.computeBoundingSphere();
+        markInstancesChanged(mesh);
+        group.add(mesh);
+        return mesh;
+      });
+      stoneLast = new Float32Array(3 * s.slots * 16).fill(Number.NaN);
+      stoneOn = new Uint8Array(3 * s.slots);
+      if (s.cheap) {
+        boulderAsset = PEBBLE_ASSET;
+        boulderSize = boulderScale(PEBBLE_ASSET);
+      }
+      placeRocks();
+    },
     async setRound(r) {
+      if (trough) clearTrough();
+      const was = round;
       round = r;
-      if (r === 3) {
+      if (r === 3 && was !== 3) {
+        splash = 0;
         await new Promise<void>((done) => {
           boulder = { t: 0, done };
         });
       }
+      placeAll();
     },
     setBoard(b: ChannelRoutingState['board'], animate) {
       for (let r = 0; r < ROWS; r++)
@@ -549,11 +1165,35 @@ export function createFlumeTerrace(
       placeTiles();
     },
     tileCenter: (row, col, out) => tileCentre(row, col, out),
+    showSharedTrough(on) {
+      if (on === trough) return;
+      if (on) trough = true;
+      else clearTrough();
+      placeAll();
+    },
     demoSharedTrough() {
+      trough = true;
+      pour = 0;
+      drain = -1;
+      for (const w of wheels) w.target = 0;
+      placeAll();
       return new Promise<void>((done) => {
-        demo = { t: 0, done };
-        for (const w of wheels) w.target = 0;
+        poured?.();
+        poured = done;
       });
+    },
+    drainSharedTrough() {
+      if (!trough || pour < 0) return Promise.resolve();
+      if (drain < 0) drain = 0;
+      for (const w of wheels) w.target = 0;
+      return new Promise<void>((done) => {
+        drained?.();
+        drained = done;
+      });
+    },
+    clearSharedTrough() {
+      clearTrough();
+      placeAll();
     },
     runFlows(flows) {
       water.fill(-1);
@@ -574,7 +1214,6 @@ export function createFlumeTerrace(
       placeGates();
     },
     update(dt) {
-      time += dt;
       let moved = false;
       for (const t of board)
         if (t.shown < 1) {
@@ -608,29 +1247,26 @@ export function createFlumeTerrace(
         pulseT += dt;
         moved = true;
       }
-      if (demo) {
-        demo.t += dt;
-        moved = true;
-        if (demo.t > 18) {
-          const d = demo;
-          demo = null;
-          d.done();
+      if (pour >= 0) {
+        pour += dt;
+        if (drain >= 0) drain += dt;
+        // Drained dry: the trough stands empty again.
+        if (drain >= 0 && (drain - 0.15) * DRAIN_SPEED > WATER_RUN + 2) {
+          pour = -1;
+          drain = -1;
         }
+        moved = true;
       }
       if (boulder) {
         boulder.t += dt;
         moved = true;
-        if (boulder.t > 1.8) {
+        if (boulder.t > BT.still) {
           const b = boulder;
           boulder = null;
           b.done();
         }
       }
-      if (moved) {
-        placeTiles();
-        placeGates();
-        placeDemo();
-      }
+      if (moved) placeAll();
       for (const w of wheels) {
         w.speed += (w.target - w.speed) * Math.min(1, dt * 1.5);
         if (w.speed > 0.001) {
@@ -638,21 +1274,65 @@ export function createFlumeTerrace(
           placeWheel(w);
         }
       }
+      // The boulder's splash (it outlasts the boulder's own beat a little).
+      if (splash >= 0) {
+        splash += dt;
+        const over = splash > SPLASH_END;
+        for (const f of flecks) {
+          const s = SPLASH[f.splash]!;
+          const age = splash - s.at;
+          const at = f.splash === 0 ? BOULDER_KEYS.c : BOULDER_KEYS.d;
+          const y = F.rowY[2]! + 0.25 + f.up * age - 4.9 * age * age;
+          if (over || age < 0 || age > FLECK_LIFE || y < F.rowY[2]! + 0.03) {
+            glowParts.set(f.part, ZERO);
+            continue;
+          }
+          const r = f.speed * age;
+          const k = 1.6 * (1 - (age / FLECK_LIFE) ** 2);
+          Q.setFromAxisAngle(UPV, f.angle);
+          TMP.compose(
+            V.set(at.x + Math.cos(f.angle) * r, y, at.z + Math.sin(f.angle) * r),
+            Q,
+            V2.set(k, k, k),
+          );
+          glowParts.set(f.part, TMP);
+        }
+        if (over) splash = -1;
+      }
       woodParts.commit();
       stoneParts.commit();
       glowParts.commit();
-      void time;
+      if (stones && stoneMeshes)
+        for (let a = 0; a < 3; a++)
+          if (stoneDirty[a]) {
+            stoneDirty[a] = false;
+            const mesh = stoneMeshes[a]!;
+            let used = 0;
+            for (let k = 0; k < stones.slots; k++) if (stoneOn![a * stones.slots + k]) used = k + 1;
+            mesh.count = used;
+            mesh.visible = used > 0;
+            mesh.castShadow = used > 0 && stones.shadows;
+            if (used > 0) {
+              markInstancesChanged(mesh);
+              mesh.computeBoundingSphere();
+            }
+          }
     },
     dispose() {
+      for (const mesh of stoneMeshes ?? []) {
+        group.remove(mesh);
+        mesh.dispose();
+      }
+      stoneMeshes = null;
+      stones = null;
       woodParts.geometry.dispose();
       stoneParts.geometry.dispose();
       glowParts.geometry.dispose();
     },
   };
-  placeTiles();
-  placeGates();
-  placeDemo();
+  placeAll();
   for (const w of wheels) placeWheel(w);
+  for (const f of flecks) glowParts.set(f.part, ZERO);
   woodParts.commit();
   stoneParts.commit();
   glowParts.commit();
@@ -735,8 +1415,32 @@ export function flumeColliders(): BoxCollider[] {
   return out;
 }
 
-/** The header box over the north edge, the chutes to the wheels, the trestles, the catch sluice, the banners. */
-function buildStatics(b: Buckets, colliders: BoxCollider[]): void {
+/** The catch sluice's floor (its middle) under the south edge. */
+const SLUICE_Y = F.rowY[ROWS - 1]! - FLOOR - 0.35;
+
+/** A wheel's chute: from its outlet under the south edge down to just short of its wheel. */
+function chuteEnds(w: (typeof TB.water.wheels)[number]): {
+  start: { x: number; y: number; z: number };
+  end: { x: number; y: number; z: number };
+} {
+  const zS = F.rows[ROWS - 1]! + TILE / 2;
+  const col = F.outlets[w.crew as Crew];
+  const a = (w.bearing * Math.PI) / 180;
+  const wx = TB.tree.x + Math.sin(a) * w.r;
+  const wz = TB.tree.z - Math.cos(a) * w.r;
+  const ground = thousandBoughHeight(wx, wz);
+  const startY = F.rowY[ROWS - 1]! - FLOOR - 0.05;
+  const start = { x: F.cols[col]!, y: startY, z: zS + 1.9 };
+  const dl = Math.hypot(wx - start.x, wz - start.z);
+  const end = { x: wx - ((wx - start.x) / dl) * 2.3, y: ground + 2.9, z: wz - ((wz - start.z) / dl) * 2.3 };
+  return { start, end };
+}
+
+/**
+ * The header box over the north edge, the chutes to the wheels, the trestles, the catch sluice, and
+ * the crews' gates with their painted boards (name and icon, like the Gate Board's) in `signs`.
+ */
+function buildStatics(b: Buckets, colliders: BoxCollider[], signs?: SignSet): void {
   const x0 = F.cols[0]! - TILE / 2;
   const x1 = F.cols[COLS - 1]! + TILE / 2;
   const zN = F.rows[0]! - TILE / 2;
@@ -779,7 +1483,9 @@ function buildStatics(b: Buckets, colliders: BoxCollider[]): void {
     if (y - ground > 0.3)
       rod(b, 'wood', { x, y: ground - 0.3, z }, { x, y: y - 0.1, z }, 0.12, 5, PAINT.weathered);
   }
-  // The crews' gate posts, banners and dye buckets.
+  // The crews' gate posts, painted boards and dye buckets.
+  const postX = TILE / 2 - 0.18;
+  const top = hy + 3.4;
   for (const crew of CREWS) {
     const col = F.gates[crew];
     const x = F.cols[col]!;
@@ -787,8 +1493,8 @@ function buildStatics(b: Buckets, colliders: BoxCollider[]): void {
       rod(
         b,
         'wood',
-        { x: x + s * (CHANNEL + 0.3), y: hy - 0.1, z: zN - 0.25 },
-        { x: x + s * (CHANNEL + 0.3), y: hy + 2.6, z: zN - 0.25 },
+        { x: x + s * postX, y: hy - 0.1, z: zN - 0.25 },
+        { x: x + s * postX, y: top, z: zN - 0.25 },
         0.09,
         6,
         PAINT.teakDark,
@@ -796,25 +1502,32 @@ function buildStatics(b: Buckets, colliders: BoxCollider[]): void {
     beam(
       b,
       'wood',
-      { x: x - CHANNEL - 0.4, y: hy + 2.6, z: zN - 0.25 },
-      { x: x + CHANNEL + 0.4, y: hy + 2.6, z: zN - 0.25 },
+      { x: x - postX - 0.12, y: top, z: zN - 0.25 },
+      { x: x + postX + 0.12, y: top, z: zN - 0.25 },
       0.12,
       0.14,
       PAINT.teakDark,
     );
-    gridSurface(
-      b,
-      'cloth',
-      [
-        { x: x - CHANNEL - 0.25, y: hy + 2.5, z: zN - 0.3 },
-        { x: x + CHANNEL + 0.25, y: hy + 2.5, z: zN - 0.3 },
-        { x: x - CHANNEL - 0.25, y: hy + 1.25, z: zN - 0.3 },
-        { x: x + CHANNEL + 0.25, y: hy + 1.25, z: zN - 0.3 },
-      ],
-      2,
-      2,
-      DYE[crew],
-    );
+    // Hung from the beam on two ropes, in front of the posts (the gate lifts behind it).
+    const look = CREW_LOOK[crew];
+    for (const s of [-1, 1])
+      rod(
+        b,
+        'rope',
+        { x: x + s * 1.0, y: top - 0.05, z: zN - 0.14 },
+        { x: x + s * 1.0, y: hy + 3.22, z: zN - 0.14 },
+        0.025,
+        4,
+        PAINT.rope,
+      );
+    const board = signs?.add([look.icon, look.name], 2.7, 1.45, {
+      fill: look.colour,
+      size: 0.24,
+      scales: [1.5, 1],
+      colors: [undefined, '#fff6e2'],
+      twoSided: true,
+    });
+    board?.object.position.set(x, hy + 2.5, zN - 0.13);
     // The dye bucket beside the gate.
     rod(
       b,
@@ -830,7 +1543,7 @@ function buildStatics(b: Buckets, colliders: BoxCollider[]): void {
     tintGlow(dye, DYE[crew]);
   }
   // The catch sluice under the south edge (the Great Hall's "main" spillway) and its side gutters.
-  const sy = F.rowY[ROWS - 1]! - FLOOR - 0.35;
+  const sy = SLUICE_Y;
   box(b, 'stone', (x0 + x1) / 2, sy, zS + 0.9, x1 - x0 + 1.4, 0.3, 1.8, 0, PAINT.stone);
   for (const s of [-1, 1])
     box(b, 'stone', (x0 + x1) / 2, sy + 0.4, zS + 0.9 + s * 0.85, x1 - x0 + 1.4, 0.6, 0.18, 0, PAINT.stone);
@@ -851,15 +1564,7 @@ function buildStatics(b: Buckets, colliders: BoxCollider[]): void {
   }
   // Chutes from the wheel outlets (c0, c2, c4) down to the wheels at the trunk's foot.
   for (const w of TB.water.wheels) {
-    const col = F.outlets[w.crew as Crew];
-    const a = (w.bearing * Math.PI) / 180;
-    const wx = TB.tree.x + Math.sin(a) * w.r;
-    const wz = TB.tree.z - Math.cos(a) * w.r;
-    const ground = thousandBoughHeight(wx, wz);
-    const startY = F.rowY[ROWS - 1]! - FLOOR - 0.05;
-    const start = { x: F.cols[col]!, y: startY, z: zS + 1.9 };
-    const dl = Math.hypot(wx - start.x, wz - start.z);
-    const end = { x: wx - ((wx - start.x) / dl) * 2.3, y: ground + 2.9, z: wz - ((wz - start.z) / dl) * 2.3 };
+    const { start, end } = chuteEnds(w);
     beam(b, 'wood', start, end, 1.3, 0.14, PAINT.teak);
     for (const s of [-1, 1]) {
       const off = 0.62 * s;

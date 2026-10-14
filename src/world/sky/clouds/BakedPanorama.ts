@@ -110,9 +110,12 @@ export function keyBlend(elevation: number): { lo: number; hi: number; t: number
   return { lo: i, hi: i + 1, t };
 }
 
-// Keys are shared by every dome (the title's and the islands') and kept once loaded.
+// Keys are shared by every dome (the title's and the islands') and kept once loaded. Their GPU copies
+// go with the last dome that used them (a voyage's dawn and dusk keys stayed on the GPU at the title,
+// issue 248); the decoded image stays, so a later dome uploads it again without a fetch.
 const keyTextures: (Promise<Texture> | null)[] = SKY_KEYS.map(() => null);
 const loadedKeys: (Texture | null)[] = SKY_KEYS.map(() => null);
+const keyDomes: number[] = SKY_KEYS.map(() => 0);
 let bitmapLoader: ImageBitmapLoader | null = null;
 
 function loadKey(i: number): Promise<Texture> {
@@ -182,7 +185,18 @@ export function createBakedClouds(renderer: WebGPURenderer): BakedClouds {
   };
 
   const want = { lo: -1, hi: -1, t: 0 };
-  const toGpu = (t: Texture) => renderer.initTexture(t);
+  const onGpu = new Set<number>();
+  let disposed = false;
+  const toGpu = (i: number) => {
+    const t = loadedKeys[i];
+    // A load can land after the dome's gone.
+    if (!t || disposed) return;
+    if (!onGpu.has(i)) {
+      onGpu.add(i);
+      keyDomes[i]!++;
+    }
+    renderer.initTexture(t);
+  };
   /** Puts the wanted keys in the slots; until one has loaded, the other (or clear sky) stands in. */
   const applyKeys = () => {
     const a = loadedKeys[want.lo] ?? null;
@@ -198,9 +212,10 @@ export function createBakedClouds(renderer: WebGPURenderer): BakedClouds {
     want.lo = k.lo;
     want.hi = k.hi;
     for (const i of k.t > 0 ? [k.lo, k.hi] : [k.lo]) {
-      if (!loadedKeys[i])
+      if (loadedKeys[i]) toGpu(i);
+      else
         loadKey(i)
-          .then((t) => (toGpu(t), applyKeys()))
+          .then(() => (toGpu(i), applyKeys()))
           .catch(() => {});
     }
   };
@@ -219,8 +234,9 @@ export function createBakedClouds(renderer: WebGPURenderer): BakedClouds {
     sampleView,
     sample: sampleView,
     async prefetch(hours) {
-      const textures = await Promise.all(keysFor(hours).map(loadKey));
-      textures.forEach(toGpu);
+      const keys = keysFor(hours);
+      await Promise.all(keys.map(loadKey));
+      keys.forEach(toGpu);
       applyKeys();
     },
     update(state, dt) {
@@ -235,7 +251,10 @@ export function createBakedClouds(renderer: WebGPURenderer): BakedClouds {
       night.value = state.night;
     },
     dispose() {
+      disposed = true;
       placeholder.dispose();
+      for (const i of onGpu) if (--keyDomes[i]! === 0) loadedKeys[i]?.dispose();
+      onGpu.clear();
     },
   };
 }

@@ -59,9 +59,10 @@ export const COVE_NPCS: NpcSpec[] = [
     clip: 'idle',
     voiced: ['nell.papers.01', 'nell.papers.05'],
     talkShot: {
-      shotLocal: [0.55, 1.08, 2.15],
-      targetLocal: [0, 1.08, 0.02],
-      faceLocal: [0.55, 2.15],
+      // Keep the door-stair view, but leave room behind the captain's shoulder.
+      shotLocal: [4.5, 2.4, 4.8],
+      targetLocal: [0, 1.52, 0.02],
+      faceLocal: [4.5, 4.8],
       standLocal: [3.2, 2.2],
     },
   },
@@ -199,7 +200,7 @@ export const COVE_NPCS: NpcSpec[] = [
     clip: 'idle',
     keepY: true,
     obstacleR: 0.26,
-    talkEyeLift: 2,
+    talkEyeLift: 2.4,
     barks: ['Clear skies to the horizon, Captain.'],
   },
 ];

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { DEFAULT_SAIL_PALETTE, SAIL_PALETTES } from '../../world/ship/sail-palettes';
+import { detectOs, formatKeys, OS_IDS, OS_NAMES, type OsId } from '../../learn/setup';
 import type { GameBridge, SubtitleSize, UiState } from '../bridge';
 import { ApplyQuality, QualityPicker, RenderScaleControl } from '../components/GraphicsSettings';
 import { OverlayShell } from '../components/OverlayShell';
@@ -67,6 +68,7 @@ export function SettingsScreen({ state, bridge }: { state: UiState; bridge: Game
             onChange={(subtitleSize) => bridge.updateSettings({ subtitleSize: subtitleSize as SubtitleSize })}
           />
         </SettingsGroup>
+        {bridge.setOs && <YourComputer state={state} setOs={bridge.setOs} />}
         {(state.hasSave || state.returnTo === 'paused') && (
           <SettingsGroup title="Your sails" wide>
             <SailSwatches
@@ -131,6 +133,31 @@ function SailSwatches({ value, onChange }: { value: string; onChange: (id: strin
 }
 
 const SUBTITLE_NAMES = { s: 'Small', m: 'Medium', l: 'Large' } as const;
+
+/**
+ * The computer whose keys the game shows for the course's shortcuts (Chapter 01 · Prompts and
+ * Shortcuts: Ctrl+R, or Cmd+R on macOS). The Logbook's Your setup card changes it too.
+ */
+function YourComputer({ state, setOs }: { state: UiState; setOs: (os: OsId | null) => void }) {
+  const detected = state.learn.osDetected ?? detectOs();
+  const os = state.learn.os ?? null;
+  const names: Record<string, string> = { auto: `Auto (${OS_NAMES[detected]})`, ...OS_NAMES };
+  return (
+    <SettingsGroup title="Your computer">
+      <Select
+        label="Shortcuts for"
+        value={os ?? 'auto'}
+        options={['auto', ...OS_IDS]}
+        names={names}
+        onChange={(v) => setOs(v === 'auto' ? null : (v as OsId))}
+      />
+      <p className="ci-setting-note">
+        Prompt history is <strong>{formatKeys('mod+R', os ?? detected)}</strong> on {OS_NAMES[os ?? detected]}
+        . It stays on this device.
+      </p>
+    </SettingsGroup>
+  );
+}
 
 /** Start over, behind a confirm step: it can't be undone. */
 function StartOver({ bridge }: { bridge: GameBridge }) {

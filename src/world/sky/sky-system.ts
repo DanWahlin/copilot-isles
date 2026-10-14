@@ -151,9 +151,10 @@ export interface SkySystem {
   /**
    * Starts a warm-up of `roots`: classifies their shadow casters now (before the warm-up moves them
    * to its staging layer) and redraws the static shadow map every frame until the returned function
-   * is called, so every caster's shadow pipeline is built during the warm-up.
+   * is called, so every caster's shadow pipeline is built during the warm-up. With `refreshes`, it
+   * also ends by itself once the static map has been drawn that many times.
    */
-  shadowWarm(roots: Object3D | readonly Object3D[]): () => void;
+  shadowWarm(roots: Object3D | readonly Object3D[], refreshes?: number): () => void;
   /**
    * Loads what the sky needs at these hours and puts it on the GPU (the baked keys on WebGL2, Low,
    * Lite and Medium), so time changes later in play don't hitch. Resolves at once on the live sky.
@@ -391,6 +392,9 @@ export function createSky(
   };
 
   const mood: SkySystem['mood'] = { fogScale: 1, hazeTint: [1, 1, 1], fill: 1, exposure: 1 };
+  // A warm-up that ends by itself after some static map draws (`shadowWarm`'s `refreshes`).
+  let warmEnd: (() => void) | null = null;
+  let warmEndAt = 0;
   return {
     sun,
     hemi,
@@ -448,6 +452,11 @@ export function createSky(
       tideMesh.position.copy(focus);
 
       if (sunShadowNode) {
+        if (warmEnd && sunShadowNode.refreshes >= warmEndAt) {
+          const end = warmEnd;
+          warmEnd = null;
+          end();
+        }
         sunShadowNode.focus.copy(focus);
         // Classify new casters and watch static ones twice a second (a change redraws the static map).
         if (frame % 30 === 1) sunShadowNode.sweepCasters(scene);
@@ -483,18 +492,25 @@ export function createSky(
       tideAtmo.invalidate();
       tideClouds?.invalidate();
     },
-    shadowWarm(roots) {
+    shadowWarm(roots, refreshes = 0) {
       const node = sunShadowNode;
       if (!node) return () => {};
       for (const root of Array.isArray(roots) ? roots : [roots]) node.sweep.run(root as Object3D);
       node.warming++;
       let ended = false;
-      return () => {
+      const end = () => {
         if (ended) return;
         ended = true;
         node.warming--;
         node.invalidate();
+        if (warmEnd === end) warmEnd = null;
       };
+      if (refreshes > 0) {
+        warmEnd?.();
+        warmEnd = end;
+        warmEndAt = node.refreshes + refreshes;
+      }
+      return end;
     },
     cloudShadowNode:
       tideClouds && tier.cloudShadowRes > 0

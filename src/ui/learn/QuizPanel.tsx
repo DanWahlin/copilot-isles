@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type DragEvent } from 'react';
 import { courseUrl } from '../../learn/content/index';
 import { CourseLink } from './CourseMarkdown';
+import { plainSetupText } from '../../learn/setup';
 import { shuffled, type Answer } from '../../learn/grade';
 import type { ActiveQuiz, LearnStore } from '../../learn/store';
 import type { ChoiceQuiz, MatchingQuiz, MultiQuiz, Option, OrderingQuiz } from '../../learn/types';
 import { Hotspot } from './Hotspot';
-import { Rich } from './Rich';
+import { Rich, useSetupText } from './Rich';
 
 const TYPE_LABEL = {
   mc: 'Choose one',
@@ -254,6 +255,7 @@ function OrderingBody({
   const initial = useMemo(() => shuffled(quiz.items, active.seed), [quiz.items, active.seed]);
   const [order, setOrder] = useState<Option[]>(initial);
   const [drag, setDrag] = useState<number | null>(null);
+  const fillSetupText = useSetupText();
   useEffect(() => setOrder(initial), [initial]);
   useEffect(() => onChange({ type: 'ordering', order: order.map((o) => o.id) }), [order, onChange]);
   const marks = active.last?.marks;
@@ -268,6 +270,7 @@ function OrderingBody({
     <ol className="ci-order">
       {order.map((o, i) => {
         const mark = marks ? (marks[o.id] ? 'good' : 'bad') : '';
+        const labelText = plainSetupText(fillSetupText(o.text));
         return (
           <li
             key={o.id}
@@ -297,7 +300,7 @@ function OrderingBody({
             <span className="ci-order-btns">
               <button
                 type="button"
-                aria-label={`Move “${o.text}” up`}
+                aria-label={`Move “${labelText}” up`}
                 disabled={!!active.last || i === 0}
                 onClick={() => move(i, i - 1)}
               >
@@ -305,7 +308,7 @@ function OrderingBody({
               </button>
               <button
                 type="button"
-                aria-label={`Move “${o.text}” down`}
+                aria-label={`Move “${labelText}” down`}
                 disabled={!!active.last || i === order.length - 1}
                 onClick={() => move(i, i + 1)}
               >

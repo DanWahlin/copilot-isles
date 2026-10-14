@@ -111,6 +111,30 @@ Rules:
 - **Teaching accuracy still applies:** paraphrase, keep the course's UI names exactly (**New**,
   **Current checkout**…), and don't invent app UI names.
 
+## Your setup: the player's own values
+
+The player can tell the game their computer, their practice issue's number, their session's branch,
+and the model they picked (`src/learn/setup.ts`). Everything is optional, local to the save, and
+changeable in the Logbook's **Your setup** card. In authored text (captions, pages, quizzes, unvoiced
+lines, task list lines), write these tokens instead of the course's fixed example:
+
+| Token | Shows | Until the player gives it |
+| --- | --- | --- |
+| `{key:mod+R}` | A course shortcut with their computer's keys (`Cmd+R`, `Ctrl+R`) | The browser's system |
+| `{os}` | macOS, Windows, or Linux | The browser's system |
+| `{issue}` | Their practice issue, like `#7` | The course's `#3` |
+| `{branch}` | Their session's working branch | `practice-empty-state-copy` |
+| `{model}` | What they picked in the model control | "the model you chose" |
+| `{fork}` | Their fork's `owner/repo` | `your-handle/copilot-app-for-beginners` |
+
+- Write each shortcut once, as `mod`, `alt`, `ctrl`, `shift`, `meta` plus the key, never `Cmd+R` or
+  `Ctrl+R` by hand. Keep the course's examples that aren't the player's (Ines's `#12`).
+- Add `setup: ['branch']` (or `'issue'`, `'model'`, `'os'`) to a page to note the player's value under
+  its caption once they've given it.
+- A script asks with `{ askSetup: 'issue' }` (only if it isn't known yet), and `{ quiz, when }` asks a
+  quiz only for some answers (`when: 'model:auto'`). Voiced lines can't change: Rook still says "hash
+  three", and the captions around him use `{issue}`.
+
 ## 4. When the course changes
 
 The weekly refresh (`.github/workflows/weekly-refresh.yml`) runs `tools/course/sync.mjs` and

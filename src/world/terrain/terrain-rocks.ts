@@ -7,6 +7,7 @@ import { createRockMaterial } from './terrain-material';
 import { createSeaStack, createSeaStackMaterial } from './sea-stack';
 import { createHeadlandCliff, headlandCliffCameraBlockers } from './headland-cliff';
 import { meshCameraBlockers, type CameraBlockerBox } from './camera-blockers';
+import { wreckToWorld } from '../islands/anchorage/wreck-pose';
 
 interface RockInstance {
   asset: number;
@@ -167,12 +168,48 @@ function lighthousePointRocks(out: RockInstance[]): void {
   }
 }
 
+/**
+ * Rocks on the wreck's sand bar (COVE.wreck): round her forefoot where she struck, along her low
+ * starboard side, and out on the bar ahead, some breaking the water, so she reads as aground.
+ * Ship-local spots (x across, z along her), clear of her hull.
+ */
+const WRECK_ROCKS = [
+  [2.6, 13.2, 1.5],
+  [-2.4, 14.6, 2.1],
+  [0.8, 17.4, 1.7],
+  [-5.4, 9.6, 2.3],
+  [-6.2, 2.5, 1.8],
+  [4.9, 9.4, 1.3],
+  [-3.4, 19.5, 1.4],
+  [5.6, -4.5, 1.6],
+] as const;
+
+function wreckBarRocks(out: RockInstance[]): void {
+  const p = { x: 0, y: 0, z: 0 };
+  WRECK_ROCKS.forEach(([x, z, s], i) => {
+    wreckToWorld(x, 0, z, p);
+    out.push({
+      asset: rockAsset(i + 2101),
+      x: p.x,
+      z: p.z,
+      sx: s * (1.1 + rand(i + 2102) * 0.5),
+      sy: s * (0.75 + rand(i + 2103) * 0.35),
+      sz: s * (0.9 + rand(i + 2104) * 0.5),
+      yaw: rand(i + 2105) * Math.PI * 2,
+      pitch: (rand(i + 2106) - 0.5) * 0.4,
+      roll: (rand(i + 2107) - 0.5) * 0.4,
+      yOffset: -0.15,
+    });
+  });
+}
+
 function allRockInstances(): RockInstance[] {
   const out: RockInstance[] = [];
   shoreAndTalusRocks(out);
   coveCoastRocks(out);
   const kept = out.filter((instance) => !inBlockedPad(instance) && !onLighthousePoint(instance));
   lighthousePointRocks(kept);
+  wreckBarRocks(kept);
   return kept;
 }
 

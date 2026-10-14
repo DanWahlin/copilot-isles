@@ -24,6 +24,10 @@ export interface SignStyle {
    * column), the block centred on the board. Default: every line centred.
    */
   layout?: 'centered' | 'list';
+  /** Paints the board's face this colour (a crew's painted board) instead of bare timber or cream canvas. */
+  fill?: string;
+  /** Per-line letter size (× `size`), e.g. a big icon over a name. */
+  scales?: readonly (number | undefined)[];
 }
 
 const FONT = (sz: number) => `600 ${sz}px Georgia, 'Times New Roman', serif`;
@@ -47,6 +51,16 @@ function paintSign(
   }
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, px, ch);
+  if (o.fill) {
+    // Paint over the timber or canvas, a little darker toward the foot.
+    ctx.fillStyle = o.fill;
+    ctx.fillRect(0, 0, px, ch);
+    const shade = ctx.createLinearGradient(0, 0, 0, ch);
+    shade.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
+    shade.addColorStop(1, 'rgba(0, 0, 0, 0.22)');
+    ctx.fillStyle = shade;
+    ctx.fillRect(0, 0, px, ch);
+  }
   if (cloth) {
     // Weave and a hemmed border.
     ctx.strokeStyle = 'rgba(120, 90, 50, 0.08)';
@@ -86,26 +100,35 @@ function paintSign(
   }
   // Shrink the lettering until the longest line fits inside the frame (and the lines fit the height).
   let size = Math.round(px * (o.size ?? 0.085));
+  const scale = (k: number) => o.scales?.[k] ?? 1;
+  const font = (k: number) => FONT(Math.round(size * scale(k)));
+  const widest = () =>
+    Math.max(
+      ...lines.map((l, k) => {
+        ctx.font = font(k);
+        return ctx.measureText(l).width;
+      }),
+    );
+  const tall = () => lines.reduce((h, _, k) => h + size * scale(k) * 1.18, 0);
+  while (size > 10 && (widest() > px * 0.88 || tall() > ch * 0.84)) size -= 2;
   ctx.font = FONT(size);
-  const widest = () => Math.max(...lines.map((l) => ctx.measureText(l).width));
-  while (size > 10 && (widest() > px * 0.88 || lines.length * size * 1.18 > ch * 0.84)) {
-    size -= 2;
-    ctx.font = FONT(size);
-  }
   ctx.textBaseline = 'middle';
-  const lh = size * 1.18;
-  const y0 = ch / 2 - ((lines.length - 1) * lh) / 2;
   const list = o.layout === 'list' && lines.length > 1;
   // A list's items share one left edge: the widest item, centred on the board.
   const itemsLeft = list ? (px - Math.max(...lines.slice(1).map((l) => ctx.measureText(l).width))) / 2 : 0;
+  let y = ch / 2 - tall() / 2;
   lines.forEach((line, k) => {
+    const lh = size * scale(k) * 1.18;
+    const mid = y + lh / 2;
+    y += lh;
+    ctx.font = font(k);
     const left = list && k > 0;
     ctx.textAlign = left ? 'left' : 'center';
     const x = left ? itemsLeft : px / 2;
     ctx.fillStyle = cloth ? 'rgba(255, 250, 235, 0.5)' : 'rgba(255, 236, 200, 0.35)';
-    ctx.fillText(line, x, y0 + k * lh + 3);
+    ctx.fillText(line, x, mid + 3);
     ctx.fillStyle = o.colors?.[k] ?? (cloth ? '#3b2616' : '#f3e3c2');
-    ctx.fillText(line, x, y0 + k * lh);
+    ctx.fillText(line, x, mid);
   });
 }
 
@@ -215,15 +238,25 @@ export class SignSet {
   /** Packs and paints the atlas and builds the one merged mesh. */
   finalize(): Mesh {
     if (this.merged) return this.merged;
-    const width = SIGN_PX + GUTTER * 2;
-    let height = 0;
+    // Boards stack down a column; a set too tall for one starts another beside it.
+    const column = SIGN_PX + GUTTER * 2;
+    let columns = 1;
+    let y = 0;
+    let height = 1;
     for (const e of this.entries) {
-      e.x = GUTTER;
-      e.y = height + GUTTER;
-      height += e.ph + GUTTER * 2;
+      const h = e.ph + GUTTER * 2;
+      if (y > 0 && y + h > MAX_ATLAS) {
+        columns++;
+        y = 0;
+      }
+      e.x = (columns - 1) * column + GUTTER;
+      e.y = y + GUTTER;
+      y += h;
+      height = Math.max(height, y);
     }
-    height = Math.max(height, 1);
-    if (height > MAX_ATLAS) throw new Error(`SignSet ${this.name}: atlas ${height} px is too tall`);
+    const width = columns * column;
+    if (height > MAX_ATLAS || width > MAX_ATLAS)
+      throw new Error(`SignSet ${this.name}: atlas ${width} × ${height} px is too big`);
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;

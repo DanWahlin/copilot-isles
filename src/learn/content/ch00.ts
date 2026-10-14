@@ -24,18 +24,18 @@ export const CH00: ChapterContent = {
     {
       id: 'shared/app-github-copilot-app',
       src: 'course/shared/app-github-copilot-app.webp',
-      hash: '1a7ed51fbaa9',
+      hash: '371d5ae374bc',
       width: 1920,
       height: 1080,
-      alt: 'The GitHub Copilot app New view: New, Pull requests, Issues, Automations, Customize and More in the sidebar, Projects with Chats, and the prompt box',
+      alt: 'The GitHub Copilot app New view: New, Pull requests, Issues, Automations, Customize and More in the sidebar, an empty Projects list, and the prompt box with Chat below it',
     },
     {
       id: 'ch00/app-add-project',
       src: 'course/ch00/app-add-project.webp',
-      hash: '601fdc50c78f',
+      hash: 'faf03f246231',
       width: 1920,
       height: 1080,
-      alt: 'The Projects menu open, with callouts on the + (1) and Add GitHub repository (2), above Chat, Clone repository, and Open folder',
+      alt: 'The Projects menu open, with callouts on the + (1) and Add GitHub repository (2), between Chat above and Clone repository and Open folder below',
     },
     {
       id: 'ch00/app-current-checkout-workspace-selector',
@@ -78,25 +78,25 @@ export const CH00: ChapterContent = {
       targets: [
         {
           id: 'projects-plus',
-          rect: px(300, 328, 34, 34),
+          rect: px(336, 368, 34, 34),
           label: '+ next to Projects',
           correct: true,
         },
         {
           id: 'prompt-plus',
-          rect: px(668, 528, 34, 36),
+          rect: px(638, 531, 32, 32),
           label: '+ in the prompt box',
           feedback: 'That **+** belongs to the prompt box. Projects have their own **+** in the sidebar.',
         },
         {
           id: 'new',
-          rect: px(10, 68, 330, 40),
+          rect: px(10, 76, 368, 42),
           label: 'New',
           feedback: '**New** starts new work. Adding a project happens under **Projects**.',
         },
         {
           id: 'customize',
-          rect: px(10, 228, 330, 40),
+          rect: px(10, 253, 368, 42),
           label: 'Customize',
           feedback: '**Customize** is where you extend the app. Look beside the **Projects** heading.',
         },
@@ -112,7 +112,7 @@ export const CH00: ChapterContent = {
       ],
       source: src('connect-to-your-repository', '365638d573db', {
         src: 'course/shared/app-github-copilot-app.webp',
-        hash: '1a7ed51fbaa9',
+        hash: '371d5ae374bc',
       }),
     },
     {
@@ -647,7 +647,7 @@ export const CH00: ChapterContent = {
     'nell.papers.app': src('installation', 'bf12cef33675'),
     'nell.papers.signin': src('installation', 'bf12cef33675'),
     'nell.papers.05': src('installation', 'bf12cef33675'),
-    'nell.papers.06': { chapter: '01-tour-the-app', anchor: 'settings', hash: 'b03fa006d333' },
+    'nell.papers.06': { chapter: '01-tour-the-app', anchor: 'settings', hash: '5b95eb5b50e3' },
     'ezra.fork.01': src('connect-to-your-repository', '365638d573db'),
     'ezra.fork.02': src('connect-to-your-repository', '365638d573db'),
     'ezra.fork.03': src('connect-to-your-repository', '365638d573db'),

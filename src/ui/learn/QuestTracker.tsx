@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Tracker } from '../../learn/store';
+import { useSetupText } from './Rich';
 
 // Set only while the player wants the whole list. The old `tracker.collapsed` key was written on
 // every mount, so reading it would keep the full list open for everyone who has played before.
@@ -29,6 +30,7 @@ export function QuestTracker({
   spot?: boolean;
 }) {
   const [collapsed, setCollapsed] = useState(readCollapsed);
+  const fill = useSetupText();
 
   useEffect(() => {
     try {
@@ -97,7 +99,7 @@ export function QuestTracker({
                   {t.task}
                   {t.optional && <span className="optional">optional</span>}
                 </span>
-                {t.status === 'active' && t.detail && <span className="detail">{t.detail}</span>}
+                {t.status === 'active' && t.detail && <span className="detail">{fill(t.detail)}</span>}
                 {t.link && (
                   <a className="link" href={t.link.url} target="_blank" rel="noopener noreferrer">
                     {t.link.label} ↗

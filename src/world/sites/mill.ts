@@ -686,6 +686,7 @@ export function createMill(o: MillOptions): MillSite {
       fill: 1,
       speed: 3.2,
       foam: 0.45,
+      kind: -1,
     });
     const basinFlow = gate ? 0.6 : 0.05;
     water.strip(cx, basin.z1, cx, basin.z0 + 0.05, top - 0.14, basin.x1 - basin.x0 - 0.02, 0, {
@@ -742,6 +743,7 @@ export function createMill(o: MillOptions): MillSite {
         fill: outletFill,
         speed: 3,
         foam: 0.4,
+        kind: -1,
       });
     }
     const churn = 0.04 + wheelSpeed * 0.25;

@@ -1,4 +1,5 @@
 import {
+  BufferGeometry,
   Color,
   Frustum,
   InstancedBufferAttribute,
@@ -8,7 +9,6 @@ import {
   Quaternion,
   Sphere,
   Vector3,
-  type BufferGeometry,
   type Group,
   type Material,
   type PerspectiveCamera,
@@ -16,7 +16,8 @@ import {
 } from 'three/webgpu';
 import { buildSlice } from '../../engine/build-slice';
 import { markInstancesChanged, sharedInstancedMesh } from '../../engine/instancing';
-import { tierSettings, type TierSettings } from '../../engine/quality';
+import { islandsTakeSunShadows, tierSettings, type TierSettings } from '../../engine/quality';
+import { assignCaster } from '../shadow-casters';
 import type { Tier } from '../contracts';
 import { createHeightDataTexture } from './materials';
 import { GrassField } from './grass';
@@ -67,8 +68,9 @@ const viewProj = new Matrix4();
 const frustum = new Frustum();
 const plantSphere = new Sphere();
 /**
- * Padding (m) on each plant's bounds in the per-instance frustum test. Plants don't cast sun shadows
- * or show in the harbour mirror, so only the main camera needs them.
+ * Padding (m) on each plant's bounds in the per-instance frustum test. The batches don't cast sun
+ * shadows (palms cast through their own casters, `createPalmCaster`) or show in the harbour mirror,
+ * so only the main camera needs them.
  */
 const PLANT_FRUSTUM_PAD = 1.5;
 
@@ -196,9 +198,6 @@ function createBatch(
   const mesh = sharedInstancedMesh(geometry, part.material as Material, instances.length, { count: 0 });
   mesh.name = `vegetation-${species}`;
   mesh.receiveShadow = true;
-  // The palm material went black where the trunk took the normal-biased shadow lookup: palms keep
-  // full sun (they're lit as before) and still cast where they do (hero palms).
-  if (species.startsWith('palm')) mesh.userData.sunShadow = false;
   // The instances are culled on the CPU (`updateBatch`), so three's own test always passes. A warm-up
   // clears `frustumCulled` to draw a mesh whatever the camera sees: then every plant in range draws.
   mesh.frustumCulled = true;
@@ -229,6 +228,32 @@ function createBatch(
     farDistance,
     visible: 0,
   };
+}
+
+/**
+ * Every palm of a batch, for the sun's cached (static) shadow map: the batch itself only holds the
+ * palms the camera sees, and the cached map outlives a turn of the camera. It shares the batch's
+ * vertex buffers and material, and no camera draws it (layer 0 off); `assignCaster` puts it on the
+ * static map's layers now, so the warm-ups' static map draws build its shadow shader.
+ */
+function createPalmCaster(batch: PlantBatch): InstancedMesh {
+  const source = batch.mesh.geometry;
+  const geometry = new BufferGeometry();
+  geometry.setIndex(source.index);
+  for (const [name, attribute] of Object.entries(source.attributes)) {
+    if (name !== 'fade' && name !== 'tint') geometry.setAttribute(name, attribute);
+  }
+  const count = batch.instances.length;
+  geometry.setAttribute('fade', new InstancedBufferAttribute(new Float32Array(count).fill(1), 1));
+  geometry.setAttribute('tint', new InstancedBufferAttribute(batch.tints, 3));
+  const mesh = sharedInstancedMesh(geometry, batch.mesh.material, count);
+  mesh.name = `${batch.mesh.name} shadow`;
+  for (let i = 0; i < count; i++) mesh.setMatrixAt(i, setPlantMatrix(batch.instances[i]!));
+  markInstancesChanged(mesh);
+  mesh.castShadow = true;
+  mesh.layers.mask = 0;
+  assignCaster(mesh);
+  return mesh;
 }
 
 /** Sets the shared frustum from the camera (call before `updateBatch` each frame). */
@@ -294,6 +319,7 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
   options.island.appendExtraPlants?.(scatter.plants, options.heightField, tier.tier, 'beforeExternal');
   for (const plant of options.extraPlants ?? []) scatter.plants[plant.species].push(plant);
   options.island.appendExtraPlants?.(scatter.plants, options.heightField, tier.tier, 'afterExternal');
+  const casters: InstancedMesh[] = [];
   const buildBatches = (plants: Record<PlantSpecies, PlantInstance[]>, target: Object3D): PlantBatch[] => {
     const out: PlantBatch[] = [];
     const palmInstances = collectPalmInstances(plants);
@@ -315,6 +341,14 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
       }
     }
     for (const batch of out) target.add(batch.mesh);
+    if (islandsTakeSunShadows(tier)) {
+      for (const batch of out) {
+        if (!batch.species.startsWith('palm')) continue;
+        const caster = createPalmCaster(batch);
+        casters.push(caster);
+        target.add(caster);
+      }
+    }
     return out;
   };
   const batches = buildBatches(scatter.plants, group);
@@ -452,6 +486,10 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
       for (const batch of [...batches, ...patches.flatMap((p) => p.batches)]) {
         batch.mesh.geometry.dispose();
         batch.mesh.dispose();
+      }
+      for (const caster of casters) {
+        caster.geometry.dispose();
+        caster.dispose();
       }
       grass.dispose();
       // Patches first: one may share the island's atlas, which the island's batch frees.

@@ -16,6 +16,43 @@ const KICKER: Record<ForkFrom, string> = {
 };
 
 /**
+ * Keys for the game's small forms: Esc skips; on a gamepad, A saves and B skips. Buttons already held
+ * when the form opens (the A that finished the line before it) don't count until they're let go.
+ */
+export function useFormKeys(save: () => void, skip: () => void): void {
+  const saveRef = useRef(save);
+  const skipRef = useRef(skip);
+  saveRef.current = save;
+  skipRef.current = skip;
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      skipRef.current();
+    };
+    window.addEventListener('keydown', key, true);
+    let held: boolean[] | null = null;
+    let raf = 0;
+    const poll = () => {
+      raf = requestAnimationFrame(poll);
+      const pad = navigator.getGamepads?.().find((p) => p && p.connected && p.mapping === 'standard');
+      if (!pad) return;
+      const now = pad.buttons.map((b) => b.pressed);
+      const was = held ?? now;
+      held = now;
+      if (now[0] && !was[0]) saveRef.current();
+      else if (now[1] && !was[1]) skipRef.current();
+    };
+    raf = requestAnimationFrame(poll);
+    return () => {
+      window.removeEventListener('keydown', key, true);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+}
+
+/**
  * Asks for the player's fork (Chapter 00 · Connect to Your Repository has them fork the course), so the
  * crane's `Repository:` sign, Bo's rack, and links into the fork use their real `owner/repo`. Parsed on
  * the device only: nothing is sent to GitHub. "Skip for now" is always there, and the game works
@@ -42,38 +79,7 @@ export function ForkForm({ store, from, fork }: { store: LearnStore; from: ForkF
     else input.current?.focus();
   };
   const skip = () => store.skipFork();
-
-  useEffect(() => {
-    const key = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      store.skipFork();
-    };
-    window.addEventListener('keydown', key, true);
-    return () => window.removeEventListener('keydown', key, true);
-  }, [store]);
-
-  // Gamepad: A saves (once the address reads as a fork), B skips. Buttons already held when the form
-  // opens (the A that finished the line before it) don't count until they're let go.
-  const saveRef = useRef(save);
-  saveRef.current = save;
-  useEffect(() => {
-    let held: boolean[] | null = null;
-    let raf = 0;
-    const poll = () => {
-      raf = requestAnimationFrame(poll);
-      const pad = navigator.getGamepads?.().find((p) => p && p.connected && p.mapping === 'standard');
-      if (!pad) return;
-      const now = pad.buttons.map((b) => b.pressed);
-      const was = held ?? now;
-      held = now;
-      if (now[0] && !was[0]) saveRef.current();
-      else if (now[1] && !was[1]) store.skipFork();
-    };
-    raf = requestAnimationFrame(poll);
-    return () => cancelAnimationFrame(raf);
-  }, [store]);
+  useFormKeys(save, skip);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();

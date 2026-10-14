@@ -16,6 +16,7 @@ import {
   vec3,
 } from 'three/tsl';
 import type { TierSettings } from '../../../engine/quality';
+import { releaseSpriteQuad, useSpriteQuad } from '../../../engine/sprite-quad';
 import { mulberry32 } from '../../../util/math';
 import { world } from '../../uniforms';
 import { terrainNoiseTexture } from '../../terrain/noise-texture';
@@ -207,7 +208,7 @@ export function createMist(tier: TierSettings, clearance: WalkClearance): Mist |
   );
   material.opacityNode = puff.mul(near).mul(height).mul(0.22).mul(densityU);
   material.fog = true;
-  const sprite = new Sprite(material);
+  const sprite = useSpriteQuad(new Sprite(material));
   sprite.count = cards.length;
   sprite.name = 'thousand-bough-mist';
   sprite.frustumCulled = false;
@@ -221,6 +222,7 @@ export function createMist(tier: TierSettings, clearance: WalkClearance): Mist |
     },
     dispose() {
       material.dispose();
+      releaseSpriteQuad(sprite);
     },
   };
 }

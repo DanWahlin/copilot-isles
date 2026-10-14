@@ -545,7 +545,7 @@ export const CH02: ChapterContent = {
         { id: 'create-from', text: 'Point to the project and select **Create from**' },
         { id: 'branches', text: 'Open **Branches** and pick `practice-empty-state-copy`' },
         { id: 'mode', text: 'Set **Mode** to **Plan**' },
-        { id: 'issue', text: 'Type `#3` and pick the issue' },
+        { id: 'issue', text: 'Type `{issue}` and pick the issue' },
         { id: 'send', text: 'Send the prompt' },
         { id: 'review', text: 'Review the plan' },
       ],
@@ -735,6 +735,7 @@ export const CH02: ChapterContent = {
       image: 'ch02/app-create-from-icon',
       caption:
         'Point to the project in the sidebar and select the **Create from** icon. On the **Branches** tab, pick `practice-empty-state-copy`: the session starts from that branch in a new worktree.',
+      setup: ['branch'],
       source: S.exStart,
     },
     {
@@ -742,7 +743,8 @@ export const CH02: ChapterContent = {
       title: 'Review the plan',
       image: 'ch02/app-plan-from-issue',
       caption:
-        'Set **Mode** to **Plan**, type `#3` and pick **Improve the empty state copy**, and ask for a plan. It opens in the **Plan** tab, and the **Review plan** box replaces the prompt box. Pick **Exit plan mode and I will prompt myself** to return to **Interactive**.',
+        'Set **Mode** to **Plan**, type `{issue}` and pick **Improve the empty state copy**, and ask for a plan. It opens in the **Plan** tab, and the **Review plan** box replaces the prompt box. Pick **Exit plan mode and I will prompt myself** to return to **Interactive**.',
+      setup: ['issue'],
       source: S.exStart,
     },
     {
@@ -758,7 +760,8 @@ export const CH02: ChapterContent = {
       title: '/chronicle standup',
       image: 'ch02/app-chronicle-standup-output',
       caption:
-        'A recap of your work from the last day. It should list this session and the changes you made in it.',
+        'A recap of your work from the last day. It should list this session, on `{branch}`, and the changes you made in it.',
+      setup: ['branch'],
       source: S.exCheck,
     },
     {
@@ -774,6 +777,7 @@ export const CH02: ChapterContent = {
       title: 'Session details',
       caption:
         'Select the session name at the top of the window for its working branch, base branch, **Remote control**, **Path**, **Project**, **Session name** and **Session ID**. Then ask Copilot to stop the session’s development server. No pull request needed.',
+      setup: ['branch'],
       source: S.exCheck,
     },
     {
@@ -811,6 +815,7 @@ export const CH02: ChapterContent = {
       title: 'Wrong folder?',
       caption:
         'Open the session details and check the worktree path and branch name. Prefer a **New worktree** for course exercises.',
+      setup: ['branch'],
       source: S.wrongFolder,
     },
     {
