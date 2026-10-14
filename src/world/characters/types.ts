@@ -117,7 +117,7 @@ export interface Character {
   speak(line: FacialLine | null): void;
   /** Lights them as the speaker in a talk shot: a soft key from the camera side and a stronger rim. */
   setSpotlight(on: boolean): void;
-  /** A one-off wave hello (standing NPCs, not mid-conversation). */
+  /** A one-off wave hello (standing NPCs, not mid-conversation); a nod when a hand carries a prop. */
   greet(): void;
   update(dt: number): void;
   readonly capsule: { readonly radius: number; readonly height: number };
@@ -140,7 +140,10 @@ export interface BodyConfig {
   readonly radius: number;
   readonly height: number;
   readonly tint: number;
-  /** The hand an NPC talks with (the other one's holding something); default either. */
+  /**
+   * The hand an NPC talks with; default either. A hand that carries a prop (npc-accessories `holds`)
+   * never gestures, whatever this says: the other hand talks.
+   */
   readonly hand?: GestureHand;
   /** Glances down at what they're carrying now and then while idle (a ledger, a chart). */
   readonly reads?: boolean;

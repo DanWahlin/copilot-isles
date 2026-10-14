@@ -1,4 +1,4 @@
-import { mulberry32, segmentDistance } from '../../../../util/math';
+import { lerp, mulberry32, segmentDistance, smoothstep } from '../../../../util/math';
 import { HELIX, THOUSAND_BOUGH as TB, TREE, atBearing, bearingOf } from '../layout';
 import { fernWalkAt, thousandBoughHeight } from '../height';
 import {
@@ -8,16 +8,19 @@ import {
   DECKS,
   GALLERY_RECT,
   PILLARS,
+  TOP_LANDING,
   inRect,
   type Rect,
 } from '../village/surfaces';
-import type { WalkClearance } from '../village/clearance';
+import { WalkClearance } from '../village/clearance';
+import { THOUSAND_BOUGH_ARRIVAL } from '../../../../game/arrivals';
 
 /**
  * The great banyan's shape as numbers (spec §3.5): the fluted core, its 7 fused pillars, the limbs and
  * the crew houses' boughs (each crossing the stair band per the clearance rule), the two leaders to
- * the high crown, the prop roots, and the canopy's pads and leaf clusters. The tree's meshes, the
- * colliders and the layout tests all read these.
+ * the high crown, the canopy's sprays reaching out from them, the prop roots, and the leaf clusters
+ * (each on its own twig off that wood). The tree's meshes, the colliders and the layout tests all
+ * read these.
  */
 
 export interface P3 {
@@ -30,8 +33,10 @@ export interface P3 {
 export interface Branch {
   id: string;
   points: (P3 & { r: number })[];
-  /** Whether it's a limb that carries canopy (pads hang off its outer end). */
+  /** Whether it's a limb that carries canopy (its sprays and leaves reach out from its outer half). */
   canopy: boolean;
+  /** The branch it forks off (a canopy spray's). */
+  parent?: string;
 }
 
 /** The core's radius at height y (its fused flutes are added by the mesh). */
@@ -324,96 +329,13 @@ export const CAMERA_SPOTS: readonly P3[] = [
   { x: 1980, y: 16.5, z: -1532 },
 ];
 
-/** Whether a branch segment (radius r) comes up into a deck's or a landing's boards or the walk over them. */
-function throughDeck(a: P3, b: P3, r: number): boolean {
-  const walks = [
-    ...Object.values(DECKS).map((d) => ({ rect: d.rect, y: d.y })),
-    { rect: GALLERY_RECT, y: TB.gallery.y },
-  ];
-  for (let k = 0; k <= 8; k++) {
-    const t = k / 8;
-    const x = a.x + (b.x - a.x) * t;
-    const y = a.y + (b.y - a.y) * t;
-    const z = a.z + (b.z - a.z) * t;
-    for (const w of walks)
-      if (inRect(w.rect, x, z, r * 1.3 + 0.6) && y + r * 1.3 > w.y - 0.8 && y - r * 1.3 < w.y + 4.5)
-        return true;
-  }
-  return false;
-}
-
-function segmentDistance3(p: P3, a: P3, b: P3): number {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const dz = b.z - a.z;
-  const t = Math.max(
-    0,
-    Math.min(
-      1,
-      ((p.x - a.x) * dx + (p.y - a.y) * dy + (p.z - a.z) * dz) / (dx * dx + dy * dy + dz * dz || 1),
-    ),
-  );
-  return Math.hypot(p.x - a.x - dx * t, p.y - a.y - dy * t, p.z - a.z - dz * t);
-}
-
-/**
- * Twigs: forks off each canopy limb's outer half rising into its pad, and off the leaders into the
- * high crown, so the leaves hang from wood, not from nothing.
- */
-function twigBranches(limbs: readonly Branch[]): Branch[] {
-  const rand = mulberry32(0x7719);
-  const out: Branch[] = [];
-  for (const limb of limbs) {
-    const pts = limb.points;
-    for (let k = 0; k < 5; k++) {
-      const t = 0.45 + (k / 5) * 0.5 + rand() * 0.06;
-      const f = t * (pts.length - 1);
-      const i = Math.min(pts.length - 2, Math.floor(f));
-      const a = pts[i]!;
-      const b = pts[i + 1]!;
-      const u = f - i;
-      const p = { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u, z: a.z + (b.z - a.z) * u };
-      const r0 = (a.r + (b.r - a.r) * u) * 0.55;
-      const ang = rand() * Math.PI * 2;
-      const reach = 5 + rand() * 6;
-      const rise = 4 + rand() * 6;
-      const mid = {
-        x: p.x + Math.cos(ang) * reach * 0.5,
-        y: p.y + rise * 0.6,
-        z: p.z + Math.sin(ang) * reach * 0.5,
-      };
-      const end = { x: p.x + Math.cos(ang) * reach, y: p.y + rise, z: p.z + Math.sin(ang) * reach };
-      // Not across a camera's view (the puzzle's, the twist's, the Crown's).
-      if (CAMERA_SPOTS.some((c) => segmentDistance3(c, mid, end) < 5 || segmentDistance3(c, p, mid) < 5))
-        continue;
-      // Not up through a deck (a twig under the boards stays under them).
-      if (throughDeck(p, mid, r0) || throughDeck(mid, end, r0 * 0.6)) continue;
-      out.push({
-        id: `${limb.id}-twig-${k}`,
-        canopy: false,
-        points: [
-          { ...p, r: r0 },
-          { ...mid, r: r0 * 0.6 },
-          { ...end, r: Math.max(0.12, r0 * 0.3) },
-        ],
-      });
-    }
-  }
-  return out;
-}
-
 const MAIN_BRANCHES: readonly Branch[] = [
   ...LIMBS.map(limbBranch),
   ...PILLARS.bearings.map(pillarBranch),
   ...leaderBranches(),
 ];
 
-export const BRANCHES: readonly Branch[] = [
-  ...MAIN_BRANCHES,
-  ...twigBranches(MAIN_BRANCHES.filter((b) => b.canopy || b.id.startsWith('leader'))),
-];
-
-/** The limbs that carry canopy (pads hang off their outer ends). */
+/** The limbs that carry canopy (the sprays fork off them; the prop roots and vines hang from them). */
 export const CANOPY_LIMBS = MAIN_BRANCHES.filter((b) => b.canopy);
 
 /** The crew houses on their boughs (centre of the floor, floor height, facing the tree). */
@@ -483,117 +405,435 @@ export function cableDistance(x: number, y: number, z: number): number {
   return Math.hypot(x - a.x - dx * t, y - a.y - dy * t, z - a.z - dz * t);
 }
 
-/** A leaf cluster: a soft clump of leaves. */
+/** A point on a branch's centre line, with its radius there. */
+export type BranchPoint = P3 & { r: number };
+
+/** The ring of canopy round the cathedral: from just outside its open heart to the drip line. */
+const RING = { rIn: 27, rOut: 58 } as const;
+
+/** 0 away from the Sea Window, 1 inside it (eased in over the 18° outside its edges). */
+function seaWeight(bearing: number): number {
+  const [a, b] = TB.tree.canopy.seaWindow;
+  return smoothstep(-18, 0, Math.min(bearing - a, b - bearing));
+}
+
+/** A leaf layer's underside and top over a point (a lens, closed at its edges), or null off it. */
+interface LayerSpan {
+  bottom: number;
+  top: number;
+}
+
+/**
+ * The ring's leaf layer: a lens from r 27 to the drip line at r 58, its underside sloping up toward the
+ * trunk (the ceiling seen from the decks), its top ≤ 56 m (≤ 48 m over the Sea Window).
+ */
+function ringLayer(x: number, z: number): LayerSpan | null {
+  const r = Math.hypot(x - TREE.x, z - TREE.z);
+  if (r < RING.rIn || r > RING.rOut) return null;
+  const c = TB.tree.canopy;
+  const s = seaWeight(bearingOf(x, z));
+  const u = (r - RING.rIn) / (RING.rOut - RING.rIn);
+  const bottom = lerp(lerp(44, 41.5, s), c.ring.bottom + 1.5 * s, u);
+  const cap = lerp(c.ring.top, c.ring.topSeaWindow, s);
+  const thick = lerp(13, 7, s) * Math.sqrt(Math.sin(Math.PI * u));
+  return { bottom, top: Math.max(bottom, Math.min(cap, bottom + thick)) };
+}
+
+function crownLayer(m: (typeof CROWN_MASSES)[number], x: number, z: number): LayerSpan | null {
+  const c = atBearing(m.bearing, m.r);
+  const b = (m.bearing * Math.PI) / 180;
+  const ux = Math.sin(b);
+  const uz = -Math.cos(b);
+  const lu = (x - c.x) * ux + (z - c.z) * uz;
+  const lv = -(x - c.x) * uz + (z - c.z) * ux;
+  const e = (lu / m.rx) ** 2 + (lv / m.rz) ** 2;
+  if (e > 1) return null;
+  const k = Math.sqrt(1 - e);
+  return { bottom: m.y - m.ry * 0.5 * k, top: m.y + m.ry * 0.92 * k };
+}
+
+const LAYERS: readonly ((x: number, z: number) => LayerSpan | null)[] = [
+  ringLayer,
+  ...CROWN_MASSES.map((m) => (x: number, z: number) => crownLayer(m, x, z)),
+];
+
+/** The leaf layers' plan area (m²), for spacing a tier's clumps. */
+const LAYER_AREA =
+  Math.PI * (RING.rOut ** 2 - RING.rIn ** 2) + CROWN_MASSES.reduce((a, m) => a + Math.PI * m.rx * m.rz, 0);
+
+/** The walks the wood keeps under (by its joists) or 4.5 m over: the decks, the gallery, the top landing. */
+const RAISED_WALKS = [
+  ...Object.values(DECKS).map((d) => ({ rect: d.rect, y: d.y })),
+  { rect: GALLERY_RECT, y: TB.gallery.y },
+  { rect: TOP_LANDING, y: CROWN.y },
+];
+
+/**
+ * Whether wood of radius `r` at a point keeps clear of every walk (under a raised walk's joists or
+ * 4.5 m over it, `above` m over the stair, bridges and paths), the houses, the cable and the cameras.
+ */
+function woodClear(
+  clearance: WalkClearance,
+  keep: readonly Keepout[],
+  p: P3,
+  r: number,
+  above: number,
+): boolean {
+  const rad = r * 1.3;
+  for (const w of RAISED_WALKS)
+    if (inRect(w.rect, p.x, p.z, rad + 0.8) && p.y + rad > w.y - 0.9 && p.y - rad < w.y + 4.6) return false;
+  if (clearance.conflict(p.x, p.y, p.z, rad, { beside: 0.8, above, below: 1.2 })) return false;
+  if (inKeepout(keep, p.x, p.y, p.z, rad + 0.3)) return false;
+  if (cableDistance(p.x, p.y, p.z) < 2.5 + rad) return false;
+  if (flightDistance(p.x, p.y, p.z) < 2 + rad) return false;
+  return !CAMERA_SPOTS.some((c) => Math.hypot(c.x - p.x, c.y - p.y, c.z - p.z) - rad < 4);
+}
+
+/** How far a point is from the arrival flyover's path (straight between its keys): it climbs through the cathedral. */
+function flightDistance(x: number, y: number, z: number): number {
+  const k = THOUSAND_BOUGH_ARRIVAL.keys;
+  let best = Infinity;
+  for (let i = 0; i < k.length - 1; i++) {
+    const a = k[i]!;
+    const b = k[i + 1]!;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const dz = b.z - a.z;
+    const t = Math.max(
+      0,
+      Math.min(1, ((x - a.x) * dx + (y - a.y) * dy + (z - a.z) * dz) / (dx * dx + dy * dy + dz * dz)),
+    );
+    best = Math.min(best, Math.hypot(x - a.x - dx * t, y - a.y - dy * t, z - a.z - dz * t));
+  }
+  return best;
+}
+
+/** A branch's centre line every `step` metres (straight between its points). */
+function sampleBranch(b: Branch, step: number): BranchPoint[] {
+  const out: BranchPoint[] = [];
+  const p = b.points;
+  for (let i = 0; i < p.length - 1; i++) {
+    const a = p[i]!;
+    const c = p[i + 1]!;
+    const n = Math.max(1, Math.ceil(Math.hypot(c.x - a.x, c.y - a.y, c.z - a.z) / step));
+    for (let k = 0; k < n; k++) {
+      const t = k / n;
+      out.push({
+        x: a.x + (c.x - a.x) * t,
+        y: a.y + (c.y - a.y) * t,
+        z: a.z + (c.z - a.z) * t,
+        r: a.r + (c.r - a.r) * t,
+      });
+    }
+  }
+  out.push({ ...p[p.length - 1]! });
+  return out;
+}
+
+/**
+ * The canopy's sprays: boughs forking off the canopy limbs (and the leaders, into the high crown) and
+ * reaching out into the leaf layer, so every leaf clump has wood within a twig's reach. Each rises
+ * from a point on its parent's centre line in a gentle arch, tapering, and keeps clear of every walk.
+ */
+function canopySprays(parents: readonly Branch[]): Branch[] {
+  const clearance = new WalkClearance();
+  const keep = treeKeepouts();
+  const rand = mulberry32(0x5b4a);
+  type Source = { id: string; pts: BranchPoint[]; spray: boolean };
+  const limbs: Source[] = parents
+    .filter((b) => b.canopy)
+    .map((b) => ({ id: b.id, pts: sampleBranch(b, 2), spray: false }));
+  const leaders: Source[] = parents
+    .filter((b) => b.id.startsWith('leader'))
+    .map((b) => ({ id: b.id, pts: sampleBranch(b, 2), spray: false }));
+  // Where the sprays reach: rings through the ring's layer (low in it, and up toward its top where
+  // it's thick), and a grid through the high crown's masses at two heights.
+  const targets: { x: number; y: number; z: number; crown: boolean }[] = [];
+  for (const [ri, rt] of [31, 39, 47, 55].entries()) {
+    const n = Math.round((2 * Math.PI * rt) / 11);
+    for (let k = 0; k < n; k++)
+      for (const high of [false, true]) {
+        const b = ((k + (ri % 2) * 0.5 + (high ? 0.5 : 0) + (rand() - 0.5) * 0.3) / n) * 360;
+        const p = atBearing(b, rt + (rand() - 0.5) * 3);
+        const l = ringLayer(p.x, p.z);
+        if (!l) continue;
+        const thick = l.top - l.bottom;
+        if (high && thick < 6) continue;
+        targets.push({
+          x: p.x,
+          z: p.z,
+          y: high ? l.top - 3 : l.bottom + Math.min(2.5, thick * 0.35),
+          crown: false,
+        });
+      }
+  }
+  for (const m of CROWN_MASSES) {
+    const c = atBearing(m.bearing, m.r);
+    for (let gx = -m.rx; gx <= m.rx; gx += 9)
+      for (let gz = -m.rz; gz <= m.rz; gz += 9)
+        for (const h of [0.15, 0.5, 0.85]) {
+          const x = c.x + gx + (rand() - 0.5) * 3 + h * 4;
+          const z = c.z + gz + (rand() - 0.5) * 3 + h * 4;
+          const l = crownLayer(m, x, z);
+          if (!l || l.top - l.bottom < 6) continue;
+          targets.push({ x, z, y: l.bottom + (l.top - l.bottom) * h, crown: true });
+        }
+  }
+  const out: Branch[] = [];
+  const sprays: Source[] = [];
+  /** A spray from `s` to `t`: up first, then out, in a gentle arch, tapering; null if it meets a walk. */
+  const grow = (s: BranchPoint, t: P3): BranchPoint[] | null => {
+    const len = Math.hypot(t.x - s.x, t.y - s.y, t.z - s.z);
+    const n = Math.max(3, Math.ceil(len / 3));
+    const r0 = Math.min(0.7, s.r * 0.6);
+    const sway = (rand() - 0.5) * 0.12 * len;
+    const pts: BranchPoint[] = [];
+    for (let k = 0; k <= n; k++) {
+      const u = k / n;
+      const lift = 1 - Math.pow(1 - u, 2.2);
+      const arch = Math.sin(Math.PI * u) * len * 0.05;
+      // Sideways a little, square to the spray (no ruler-straight sprays).
+      const sx = (-(t.z - s.z) / len) * sway * Math.sin(Math.PI * u);
+      const sz = ((t.x - s.x) / len) * sway * Math.sin(Math.PI * u);
+      pts.push({
+        x: s.x + (t.x - s.x) * u + sx,
+        y: s.y + (t.y - s.y) * lift + arch,
+        z: s.z + (t.z - s.z) * u + sz,
+        r: r0 + (0.18 - r0) * Math.pow(u, 0.8),
+      });
+    }
+    for (let k = 1; k < pts.length; k++) {
+      const a = pts[k - 1]!;
+      const c = pts[k]!;
+      const m = Math.ceil(Math.hypot(c.x - a.x, c.y - a.y, c.z - a.z));
+      for (let j = 1; j <= m; j++) {
+        const u = j / m;
+        const q = { x: a.x + (c.x - a.x) * u, y: a.y + (c.y - a.y) * u, z: a.z + (c.z - a.z) * u };
+        if (Math.hypot(q.x - TREE.x, q.z - TREE.z) < HELIX.rOuter + 1.5) return null;
+        if (!woodClear(clearance, keep, q, a.r + (c.r - a.r) * u, 3)) return null;
+      }
+    }
+    return pts;
+  };
+  // Twice: off the limbs and the leaders first, then the targets they couldn't reach off those sprays.
+  let left = targets.map((t, i) => ({ t, i }));
+  for (const pass of [0, 1]) {
+    const failed: typeof left = [];
+    for (const { t, i } of left) {
+      const rt = Math.hypot(t.x - TREE.x, t.z - TREE.z);
+      const starts: { p: BranchPoint; id: string; d: number }[] = [];
+      const from = pass === 0 ? (t.crown ? leaders : limbs) : sprays;
+      for (const src of from)
+        for (const [k, p] of src.pts.entries()) {
+          // Off a spray's middle reach only (not its root, nor its tip).
+          if (src.spray && (k < 2 || k > src.pts.length - 2)) continue;
+          const rr = Math.hypot(p.x - TREE.x, p.z - TREE.z);
+          if (
+            t.crown ? p.y < COLUMN_TOP + 4 || rr < 6 : rr < HELIX.rOuter + 2 || rr > rt + (src.spray ? 6 : -2)
+          )
+            continue;
+          if (p.y > t.y + 1) continue;
+          starts.push({ p, id: src.id, d: Math.hypot(t.x - p.x, t.y - p.y, t.z - p.z) });
+        }
+      starts.sort((a, b) => a.d - b.d);
+      let done = false;
+      for (const s of starts.slice(0, 10)) {
+        if (s.d < 3.5 || s.d > 28) continue;
+        const pts = grow(s.p, t);
+        if (!pts) continue;
+        const id = `${s.id.replace(/-spray-\d+$/, '')}-spray-${i}`;
+        out.push({ id, canopy: false, points: pts, parent: s.id });
+        sprays.push({ id, pts: sampleBranch({ id, canopy: false, points: pts }, 2), spray: true });
+        done = true;
+        break;
+      }
+      if (!done) failed.push({ t, i });
+    }
+    left = failed;
+  }
+  return out;
+}
+
+const SPRAYS = canopySprays(MAIN_BRANCHES);
+
+export const BRANCHES: readonly Branch[] = [...MAIN_BRANCHES, ...SPRAYS];
+
+/** The wood a leaf clump may hang from: the canopy limbs, the sprays and the leaders. */
+const CANOPY_WOOD: readonly { id: string; pts: readonly BranchPoint[] }[] = [
+  ...CANOPY_LIMBS.map((b) => ({
+    id: b.id,
+    pts: b.points.filter((p) => Math.hypot(p.x - TREE.x, p.z - TREE.z) > 22),
+  })),
+  ...MAIN_BRANCHES.filter((b) => b.id.startsWith('leader')).map((b) => ({
+    id: b.id,
+    pts: b.points.slice(1),
+  })),
+  ...SPRAYS.map((b) => ({ id: b.id, pts: b.points })),
+];
+
+/**
+ * The sprays that carry leaves (a clump hangs off them, or off a spray forking from them): the only
+ * ones a level of detail draws (bare sprays of the bigger, fewer clumps of the lower tiers aren't).
+ */
+export function carryingSprays(clusters: readonly Cluster[]): Set<string> {
+  const parent = new Map(SPRAYS.map((b) => [b.id, b.parent]));
+  const out = new Set<string>();
+  for (const c of clusters)
+    for (let id: string | undefined = c.wood; id && parent.has(id) && !out.has(id); id = parent.get(id))
+      out.add(id);
+  return out;
+}
+
+/** A leaf cluster: a soft clump of leaves, on the end of its own twig. */
 export interface Cluster extends P3 {
   r: number;
-  /** 0 at a pad's underside, 1 at its sunlit top. */
+  /** 0 on the canopy's underside, 1 on its sunlit top. */
   up: number;
   seed: number;
-  /** The pad's outward normal there (the clump shades as part of the pad's one soft volume). */
+  /** The leaf layer's outward normal there (the clump shades as part of the canopy's one soft volume). */
   nx: number;
   ny: number;
   nz: number;
+  /** Its twig: from a point on a limb's, a spray's or a leader's centre line into the clump's heart. */
+  twig: readonly BranchPoint[];
+  /** The branch its twig comes off. */
+  wood: string;
 }
 
-/** The canopy's pads: 9 round the ring (low through the Sea Window), and the high crown's 2 masses. */
-export const PADS = (() => {
-  const c = TB.tree.canopy;
-  const pads: { bearing: number; r: number; y: number; rx: number; ry: number; rz: number }[] = [];
-  for (let i = 0; i < c.ring.pads; i++) {
-    const bearing = (i * 360) / c.ring.pads + 12;
-    const sea = bearing >= c.seaWindow[0] && bearing <= c.seaWindow[1];
-    const top = sea ? c.ring.topSeaWindow : c.ring.top;
-    const bottom = c.ring.bottom + (sea ? 1.5 : 0);
-    pads.push({
-      bearing,
-      r: 43 + (i % 3) * 3,
-      y: (top + bottom) / 2,
-      rx: 15,
-      ry: (top - bottom) / 2,
-      rz: 13,
-    });
-  }
-  for (const m of CROWN_MASSES)
-    pads.push({ bearing: m.bearing, r: m.r, y: m.y, rx: m.rx, ry: m.ry, rz: m.rz });
-  return pads;
-})();
+/** The nearest point on the canopy's wood to (x, y, z), preferring wood below it (leaves hang, they don't dangle). */
+function nearestWood(x: number, y: number, z: number, out: BranchPoint & { id: string }): number {
+  let best = Infinity;
+  for (const { id, pts: line } of CANOPY_WOOD)
+    for (let i = 0; i < line.length - 1; i++) {
+      const a = line[i]!;
+      const b = line[i + 1]!;
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const dz = b.z - a.z;
+      const t = Math.max(
+        0,
+        Math.min(1, ((x - a.x) * dx + (y - a.y) * dy + (z - a.z) * dz) / (dx * dx + dy * dy + dz * dz || 1)),
+      );
+      const px = a.x + dx * t;
+      const py = a.y + dy * t;
+      const pz = a.z + dz * t;
+      const d = Math.hypot(x - px, y - py, z - pz) + Math.max(0, py - y) * 1.5;
+      if (d < best) {
+        best = d;
+        out.x = px;
+        out.y = py;
+        out.z = pz;
+        out.r = a.r + (b.r - a.r) * t;
+        out.id = id;
+      }
+    }
+  return best;
+}
 
 /**
- * The leaf clusters for a tier's count: spread over the pads' outer surfaces (mostly their tops and
- * sides), each kept clear of every walk surface (6 m above, 4 m beside), the houses, the mast, the
- * Sky Basket, the gondola's cable (4 m) and the cathedral (nothing inside 26 m below 56 m).
+ * The leaf clusters for a tier's count: two layers (the underside and the top) of the ring's and the
+ * high crown's leaf lenses, packed on a jittered hex grid so they overlap into one ceiling, the
+ * spacing (and so the clump size) set by the count. Each is lifted, where it can, to keep clear of
+ * every walk surface (6 m above, 4 m beside), the houses, the mast, the Sky Basket, the gondola's
+ * cable (4 m) and the cathedral (nothing inside 26 m below 56 m), and hangs from its own twig off the
+ * nearest wood (or isn't grown).
  */
 export function canopyClusters(count: number, clearance: WalkClearance, scale = 1): Cluster[] {
   const rand = mulberry32(0x7b0b + count);
   const keep = treeKeepouts();
   const c = TB.tree.canopy;
+  const sp = Math.sqrt((2 * LAYER_AREA) / (0.866 * count));
   const out: Cluster[] = [];
-  // Each pad's share by its size (the high crown's two masses are the biggest).
-  const sizes = PADS.map((p) => p.rx * p.rz);
-  const total = sizes.reduce((a, b) => a + b, 0);
-  for (const [pi, pad] of PADS.entries()) {
-    const perPad = Math.ceil((count * 2.2 * sizes[pi]!) / total);
-    const centre = atBearing(pad.bearing, pad.r);
-    const b = (pad.bearing * Math.PI) / 180;
-    const ux = Math.sin(b);
-    const uz = -Math.cos(b);
-    for (let i = 0; i < perPad; i++) {
-      // A point on the pad's ellipsoid, biased to its top and sides.
-      const phi = rand() * Math.PI * 2;
-      const cosT = 1 - Math.pow(rand(), 0.8) * 1.55;
-      const sinT = Math.sqrt(Math.max(0, 1 - cosT * cosT));
-      const lu = Math.cos(phi) * sinT * pad.rx * (0.8 + rand() * 0.2);
-      const lv = Math.sin(phi) * sinT * pad.rz * (0.8 + rand() * 0.2);
-      const ly = Math.max(-1, cosT) * pad.ry;
-      const x = centre.x + lu * ux - lv * uz;
-      const z = centre.z + lu * uz + lv * ux;
-      const y = pad.y + ly;
-      const r = (1.25 + rand() * 1.1) * scale;
-      const rr = Math.hypot(x - TREE.x, z - TREE.z);
-      if (rr < c.openR + r && y - r < c.openBelow) continue;
-      if (inKeepout(keep, x, y, z, r)) continue;
-      if (cableDistance(x, y, z) < 4 + r) continue;
-      if (clearance.conflict(x, y, z, r, { beside: c.clearBeside, above: c.clearAbove, below: 1 })) continue;
-      const nu = lu / (pad.rx * pad.rx);
-      const nv = lv / (pad.rz * pad.rz);
-      const ny = ly / (pad.ry * pad.ry);
-      const nx = nu * ux - nv * uz;
-      const nz = nu * uz + nv * ux;
-      const nl = Math.hypot(nx, ny, nz) || 1;
-      out.push({
-        x,
-        y,
-        z,
-        r,
-        up: (ly / pad.ry + 1) / 2,
-        seed: rand(),
-        nx: nx / nl,
-        ny: ny / nl,
-        nz: nz / nl,
-      });
-    }
-  }
-  // Even thinning down to the tier's count (seeded, so every run is the same).
-  const step = out.length / count;
-  const picked: Cluster[] = [];
-  if (step <= 1) picked.push(...out);
-  else for (let i = 0; i < count; i++) picked.push(out[Math.floor(i * step)]!);
-  // Leaves down over the limbs' outer reaches too (the pads hang on them; the limbs don't stop bare
-  // short of the leaves): a clump on top of each limb every few metres past r 30.
-  for (const limb of CANOPY_LIMBS)
-    for (let i = 1; i < limb.points.length; i += 2) {
-      const p = limb.points[i]!;
-      if (Math.hypot(p.x - TREE.x, p.z - TREE.z) < 30) continue;
-      const r = (1.4 + rand() * 0.9) * scale;
-      const x = p.x + (rand() - 0.5) * 1.5;
-      const y = p.y + p.r * 0.6 + r * 0.5;
-      const z = p.z + (rand() - 0.5) * 1.5;
-      if (inKeepout(keep, x, y, z, r)) continue;
-      if (cableDistance(x, y, z) < 4 + r) continue;
-      if (clearance.conflict(x, y, z, r, { beside: c.clearBeside, above: c.clearAbove, below: 1 })) continue;
-      picked.push({ x, y, z, r, up: 0.7, seed: rand(), nx: 0, ny: 1, nz: 0 });
-    }
-  return picked;
+  const wood = { x: 0, y: 0, z: 0, r: 0, id: '' };
+  const fits = (x: number, y: number, z: number, r: number) => {
+    const rr = Math.hypot(x - TREE.x, z - TREE.z);
+    if (rr < c.openR + r && y - r < c.openBelow) return false;
+    if (inKeepout(keep, x, y, z, r)) return false;
+    if (cableDistance(x, y, z) < 4 + r) return false;
+    if (flightDistance(x, y, z) < 3.5 + r) return false;
+    return !clearance.conflict(x, y, z, r, { beside: c.clearBeside, above: c.clearAbove, below: 1 });
+  };
+  const span = RING.rOut + 6;
+  for (const layer of [0, 1])
+    for (let j = 0, z0 = TREE.z - span; z0 <= TREE.z + span; j++, z0 += sp * 0.866)
+      for (let x0 = TREE.x - span + ((j % 2) + layer) * 0.5 * sp; x0 <= TREE.x + span; x0 += sp) {
+        const x = x0 + (rand() - 0.5) * sp * 0.5;
+        const z = z0 + (rand() - 0.5) * sp * 0.5;
+        const seed = rand();
+        const size = 0.85 + rand() * 0.3;
+        for (const at of LAYERS) {
+          const l = at(x, z);
+          if (!l) continue;
+          // Lifted over a walk's envelope as far as its layer's top allows, and smaller where it
+          // still won't fit (the big clumps of the lower tiers, over the decks).
+          let r = 0;
+          let y = 0;
+          let thin = false;
+          let placed = false;
+          for (const shrink of [1, 0.7, 0.5]) {
+            r = sp * 0.62 * scale * size * shrink;
+            thin = l.top - l.bottom < r * 1.1;
+            if (thin && layer === 1) break;
+            y = thin ? (l.top + l.bottom) / 2 : layer === 0 ? l.bottom + r * 0.55 : l.top - r * 0.5;
+            const highest = Math.max(y, l.top);
+            while (y <= highest && !fits(x, y, z, r)) y += 1;
+            if (y <= highest) {
+              placed = true;
+              break;
+            }
+          }
+          if (!placed) continue;
+          // Its twig: from the nearest wood up into its heart, short enough to be a twig.
+          const d = nearestWood(x, y - r * 0.3, z, wood);
+          if (d > Math.max(7, r * 2.4)) continue;
+          const len = Math.hypot(x - wood.x, y - wood.y, z - wood.z);
+          const twig: BranchPoint[] = [
+            { x: wood.x, y: wood.y, z: wood.z, r: Math.min(wood.r * 0.6, 0.12 + r * 0.05) },
+            {
+              x: wood.x + (x - wood.x) * 0.55,
+              y: wood.y + (y - wood.y) * 0.55 + len * 0.1,
+              z: wood.z + (z - wood.z) * 0.55,
+              r: 0.08 + r * 0.035,
+            },
+            { x, y, z, r: 0.05 + r * 0.02 },
+          ];
+          let ok = true;
+          for (let k = 1; k <= 4 && ok; k++) {
+            const t = k / 5;
+            const a = t < 0.55 ? twig[0]! : twig[1]!;
+            const b = t < 0.55 ? twig[1]! : twig[2]!;
+            const u = t < 0.55 ? t / 0.55 : (t - 0.55) / 0.45;
+            ok = woodClear(
+              clearance,
+              keep,
+              { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u, z: a.z + (b.z - a.z) * u },
+              a.r,
+              2.5,
+            );
+          }
+          if (!ok) continue;
+          // The layer's outward normal (its slope from the neighbouring spans).
+          const h = 1.5;
+          const sample = (sx: number, sz: number) => {
+            const s = at(sx, sz);
+            return s ? (layer === 0 && !thin ? s.bottom : s.top) : null;
+          };
+          const hx0 = sample(x - h, z);
+          const hx1 = sample(x + h, z);
+          const hz0 = sample(x, z - h);
+          const hz1 = sample(x, z + h);
+          const sign = layer === 0 && !thin ? -1 : 1;
+          let nx = hx0 !== null && hx1 !== null ? (-(hx1 - hx0) / (2 * h)) * sign : (x - TREE.x) * 0.02;
+          let nz = hz0 !== null && hz1 !== null ? (-(hz1 - hz0) / (2 * h)) * sign : (z - TREE.z) * 0.02;
+          let ny = thin ? 0.2 : sign;
+          const nl = Math.hypot(nx, ny, nz) || 1;
+          nx /= nl;
+          ny /= nl;
+          nz /= nl;
+          out.push({ x, y, z, r, up: thin ? 0.55 : layer, seed, nx, ny, nz, twig, wood: wood.id });
+        }
+      }
+  return out;
 }
 
 /** A prop root: from its limb down to the ground. */

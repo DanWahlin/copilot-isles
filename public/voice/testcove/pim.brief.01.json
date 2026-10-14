@@ -1,7 +1,7 @@
 {
   "id": "pim.brief.01",
   "speaker": "Pim",
-  "text": "Captain! I'm Pim, that's Pol. We add the course's practice items to new forks.",
+  "text": "Captain! I'm Pim, that's Pol. Our crane runs the course's setup script on your fork.",
   "words": [
     {
       "word": "Captain",
@@ -29,49 +29,54 @@
       "end": 3.292416
     },
     {
-      "word": "We",
+      "word": "Our",
       "start": 3.292416,
-      "end": 3.459833
+      "end": 3.526791
     },
     {
-      "word": "add",
-      "start": 3.459833,
-      "end": 3.56025
+      "word": "crane",
+      "start": 3.526791,
+      "end": 3.761166
+    },
+    {
+      "word": "runs",
+      "start": 3.761166,
+      "end": 4.017875
     },
     {
       "word": "the",
-      "start": 3.56025,
-      "end": 3.683041
+      "start": 4.017875,
+      "end": 4.18525
     },
     {
       "word": "course's",
-      "start": 3.683041,
-      "end": 4.051333
+      "start": 4.18525,
+      "end": 4.575875
     },
     {
-      "word": "practice",
-      "start": 4.051333,
-      "end": 4.464291
+      "word": "setup",
+      "start": 4.575875,
+      "end": 4.910708
     },
     {
-      "word": "items",
-      "start": 4.464291,
-      "end": 4.84375
+      "word": "script",
+      "start": 4.910708,
+      "end": 5.267875
     },
     {
-      "word": "to",
-      "start": 4.84375,
-      "end": 4.9665
+      "word": "on",
+      "start": 5.267875,
+      "end": 5.390625
     },
     {
-      "word": "new",
-      "start": 4.9665,
-      "end": 5.133916
+      "word": "your",
+      "start": 5.390625,
+      "end": 5.50225
     },
     {
-      "word": "forks",
-      "start": 5.133916,
-      "end": 5.383916
+      "word": "fork",
+      "start": 5.50225,
+      "end": 5.75225
     }
   ]
 }

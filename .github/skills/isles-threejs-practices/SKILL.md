@@ -152,8 +152,30 @@ the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _
   and check authored leaf colours (the common bush's leaf map was red; it is recoloured green).
 - **Masks decide the look more than the palette:** brown hills came from slope and height mask rules
   calling grassy hillsides rock and cliff. Fix the masks (`coveMasks`) before re-tinting colours.
+- **Splashes from nowhere:** a splash reads as an event, so its cause must be visible at the distance
+  it's seen. Battle splinters (0.4 m chips) and far flying fish made bright splashes with nothing
+  visible above them; a hit splashed beside the hull; a pod splashed before its first animal; and the
+  battle sampled waves on its own clock (out of phase with the drawn sea). Now: no splash without a
+  ball, a sinking hull or an animal you can see (`LEAP_MIN_PIXELS`), effects sample the ocean's clock,
+  and ambient life keeps out of battles and puzzle courses (`QuietSea`).
 - **Shared audio and voice:** one subsystem cancelling must not stop a voice another system started
   (`Dialogue.cancel` only stops its own line).
+- **Background shakes with TAA on (motion vectors):** trees and hills behind Thousand-Bough's mist
+  shook by about 1 px with the camera still: TRAA's sub-pixel jitter showed wherever the motion
+  vectors were wrong. Velocity has no blending, so a see-through card wrote its (nonsense) motion over
+  its whole quad, and three takes a vertex's last position from the plain geometry, not the
+  `positionNode`, so wind sway and shader-placed grass read as motion. Now the scene pass uses
+  `sceneVelocity` (engine/motion-vectors.ts): see-through effects that write no depth leave the
+  motion behind them (`writesMotionVectors` opts one in, like the ocean). Wrap displacing
+  `positionNode`s in `trackedPosition`, or set `positionPrevious` yourself (ocean, shared skinning).
+  Check with a still camera and paused clock: a burst of screenshots should not move.
+- **Props stuck through an arm:** Rhea's spyglass sat on her forearm, placed for the bind pose, and
+  her commander's hip fist went on the spyglass hand, so it stuck out through her arm in talk. Now a
+  carried prop goes in the fist (`holdInFist`/`inFist` in npc-accessories: on the palm bone, its
+  handle along the knuckle line, hanging plumb), a carrying hand never gestures or goes to the hip,
+  and holders nod hello (the wave swings the prop through the head). Belt and back props sit where
+  the arms and legs don't reach. `prop-audit.test.ts` plays every NPC's clips on the real rigs and
+  measures each prop's depth in the skinned body (and a held one's in the coats): keep it under 1 cm.
 
 ## 6. Verify like this
 

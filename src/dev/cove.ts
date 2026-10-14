@@ -234,6 +234,10 @@ const frozenDir = new Vector3();
   setView,
   shot,
   setCam,
+  /** Lets the orbit camera look up from below its target (canopy and ceiling views). */
+  lookUp: (on = true) => {
+    controls.maxPolarAngle = on ? Math.PI * 0.95 : Math.PI * 0.495;
+  },
   skyBake,
   skyLook,
   /** Sky-bake layer: 0 the sky, 1 the cloud layer's light, 2 its transmittance. */

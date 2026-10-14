@@ -22,6 +22,24 @@ describe('gear check', () => {
     ]);
     expect(lines.join('\n')).not.toMatch(/not found|missing/i);
     expect(lines.at(-1)).toContain(YOUR_HANDLE);
-    expect(lines.map(gearTone)).toEqual(['cmd', 'ok', 'cmd', 'ok', 'cmd', 'ok', 'cmd', 'ok', 'cmd', 'you']);
+    expect(lines.map((l) => gearTone(l))).toEqual([
+      'cmd',
+      'ok',
+      'cmd',
+      'ok',
+      'cmd',
+      'ok',
+      'cmd',
+      'ok',
+      'cmd',
+      'you',
+    ]);
+  });
+
+  it('names the account that owns your fork, once you’ve given it', () => {
+    const lines = gearReadout('dan-sample', 'octo.ghe.com');
+    expect(lines.at(-1)).toBe('✓ Logged in to octo.ghe.com account dan-sample');
+    expect(gearTone(lines.at(-1)!, 'dan-sample')).toBe('you');
+    expect(gearTone(lines.at(-1)!)).toBeUndefined();
   });
 });

@@ -1,4 +1,5 @@
 import type { ChapterId } from './course/chapters';
+import type { ForkPlace } from './fork';
 
 export type { ChapterId };
 
@@ -114,6 +115,11 @@ export interface Page {
   caption: string;
   /** Optional code block (e.g. the setup commands page). */
   code?: string;
+  /**
+   * Links into the player's fork, shown once they've given it: only the places the course section
+   * sends them (its Actions tab, Issues, Settings…).
+   */
+  fork?: readonly ForkPlace[];
   source: SourceRef;
 }
 

@@ -41,6 +41,7 @@ import {
 } from 'three/tsl';
 import type { TierSettings } from './quality';
 import { createAutoExposure } from './auto-exposure';
+import { sceneVelocity, velocityBlend } from './motion-vectors';
 
 export interface Post {
   render(): void;
@@ -115,7 +116,7 @@ export async function createPost(
   if (sceneTarget) sceneTarget.texture.name = 'output';
   const scenePass = direct ? null : pass(scene, camera, { type: renderer.getOutputBufferType() });
   if (scenePass && temporalPost) {
-    scenePass.setMRT(mrt({ output, velocity }));
+    scenePass.setMRT(mrt({ output, velocity: sceneVelocity }).setBlendMode('velocity', velocityBlend));
   }
   const hdr = (
     sceneTarget ? texture(sceneTarget.texture) : scenePass!.getTextureNode('output')

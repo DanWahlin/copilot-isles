@@ -83,7 +83,7 @@ const SOURCE_LOCOMOTION: Record<SourceKey, 'captain' | 'anne' | 'henry'> = {
   henry_npc: 'henry',
 };
 
-const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
+export const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
   man: { source: 'captain', scale: 1, radius: 0.34, height: 1.78, tint: 0xffffff },
   woman: { source: 'anne', scale: 0.98, radius: 0.31, height: 1.7, tint: 0xffffff },
   // Nell hugs her ledger on the left and Ezra his on the right, so each talks with the other hand.
@@ -153,7 +153,8 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
     tint: 0xffffff,
     hand: 'left',
   },
-  // Rhea rests her spyglass hand on her hip.
+  // Rhea carries her spyglass in her left fist and talks with her right (the commander's hip fist
+  // would put the spyglass through her side, so a carrying hand stays with its prop).
   rhea: {
     source: 'anne_npc',
     scale: 1.02,
@@ -205,7 +206,7 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
     radius: 0.32,
     height: 1.7,
     tint: 0xffffff,
-    hand: 'right',
+    hand: 'left',
   },
   mer_vendor: {
     source: 'henry_npc',
@@ -239,7 +240,7 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
     radius: 0.31,
     height: 1.62,
     tint: 0xffffff,
-    hand: 'left',
+    hand: 'right',
     reads: true,
   },
   elder: {
@@ -253,7 +254,7 @@ const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
   },
   tb_kid_a: { source: 'henry_npc', scale: 0.68, radius: 0.22, height: 1.18, tint: 0xffffff },
   tb_kid_b: { source: 'anne_npc', scale: 0.7, radius: 0.22, height: 1.2, tint: 0xffffff },
-  tb_weaver: { source: 'anne_npc', scale: 0.97, radius: 0.32, height: 1.68, tint: 0xffffff, hand: 'right' },
+  tb_weaver: { source: 'anne_npc', scale: 0.97, radius: 0.32, height: 1.68, tint: 0xffffff, hand: 'left' },
   tb_operator: { source: 'henry_npc', scale: 1, radius: 0.34, height: 1.74, tint: 0xffffff, hand: 'left' },
   tb_fisher: { source: 'henry_npc', scale: 0.94, radius: 0.32, height: 1.64, tint: 0xffffff, hand: 'right' },
   tb_lookout: { source: 'henry_npc', scale: 1, radius: 0.33, height: 1.75, tint: 0xffffff },
@@ -407,7 +408,8 @@ async function loadLocomotionPacks(
   return packs;
 }
 
-function normalizeClips(
+/** The library's clip set from a source's glTF clips and its locomotion pack (the prop audit uses it too). */
+export function normalizeClips(
   clips: readonly AnimationClip[],
   locomotion?: ReadonlyMap<CharacterClip, AnimationClip>,
 ): Map<CharacterClip, AnimationClip> {
@@ -488,7 +490,7 @@ function dampTrack(clip: AnimationClip, names: readonly string[], keep: number):
  */
 const FOREARM_SCALE = 0.8;
 
-function shortenForearms(root: Group): void {
+export function shortenForearms(root: Group): void {
   for (const name of ['LowerArmL', 'LowerArmR']) {
     const bone = root.getObjectByName(name);
     if (bone) bone.scale.multiplyScalar(FOREARM_SCALE);

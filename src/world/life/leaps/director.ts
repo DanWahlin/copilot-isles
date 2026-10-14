@@ -1,6 +1,7 @@
 import { Matrix4, PerspectiveCamera, Vector2, Vector3 } from 'three/webgpu';
 import type { HeightField } from '../../contracts';
 import { COVE } from '../../layout';
+import type { QuietSea } from '../quiet-sea';
 
 export interface ScreenRect {
   x: number;
@@ -38,6 +39,28 @@ export interface DirectorOptions {
   titleMode?: boolean;
   viewport?: ViewportSize;
   avoidRects?: ScreenRect[];
+  /** Stretches of sea to keep out of (a battle, a puzzle's course). */
+  quiet?: QuietSea | null;
+}
+
+/**
+ * How big a creature must look (px) for a leap to be shown in the game: its splashes only read as a
+ * dolphin's or a flying fish's if you can see the animal too. A dolphin's length; a flying fish's
+ * wingspan (its widest look).
+ */
+export const LEAP_MIN_PIXELS = { dolphin: 24, fish: 14 } as const;
+const LEAP_SPAN = { dolphin: 3.2, fish: 1.3 } as const;
+
+/** The size (px) of something `length` m across, `distance` m from a camera of `fovDeg` and `zoom`. */
+export function leapPixels(
+  length: number,
+  distance: number,
+  fovDeg: number,
+  viewportHeight: number,
+  zoom = 1,
+): number {
+  const half = Math.tan((fovDeg * Math.PI) / 360) / Math.max(1e-3, zoom);
+  return (length * viewportHeight) / (2 * Math.max(1e-3, distance) * half);
 }
 
 const tmpForward = new Vector3();
@@ -204,9 +227,13 @@ export class LeapsDirector {
   next(camera: PerspectiveCamera, kind: LeapKind | 'any' = 'any'): ProjectedArc | null {
     const selected: LeapKind = kind === 'any' ? (this.rng() < 0.54 ? 'fish' : 'dolphin') : kind;
     const basis = cameraBasis(camera);
-    const minD = this.options.titleMode ? 65 : 45;
-    const maxD = this.options.titleMode ? 250 : 185;
-    for (let attempt = 0; attempt < 96; attempt++) {
+    const minD = this.options.titleMode ? 65 : 35;
+    // In the game, no farther than the animal still reads at (checked again for the arc below).
+    const readable =
+      (LEAP_SPAN[selected] * this.viewport.height) /
+      ((2 * LEAP_MIN_PIXELS[selected] * Math.tan((camera.fov * Math.PI) / 360)) / camera.zoom);
+    const maxD = this.options.titleMode ? 250 : Math.max(minD + 5, Math.min(185, readable));
+    for (let attempt = 0; attempt < 160; attempt++) {
       const dist = minD + this.rng() * (maxD - minD);
       const lateral = (this.rng() - 0.5) * dist * 1.05;
       const start = camera.position
@@ -223,18 +250,40 @@ export class LeapsDirector {
         .normalize();
       const length = selected === 'dolphin' ? 20 + this.rng() * 28 : 16 + this.rng() * 30;
       const end = start.clone().addScaledVector(dir, length);
-      if (!isOpenWater(this.options.heightField, start.x, start.z, !!this.options.titleMode)) continue;
-      if (!isOpenWater(this.options.heightField, end.x, end.z, !!this.options.titleMode)) continue;
+      const title = !!this.options.titleMode;
+      if (!isOpenWater(this.options.heightField, start.x, start.z, title)) continue;
+      if (!isOpenWater(this.options.heightField, end.x, end.z, title)) continue;
+      const quiet = this.options.quiet;
+      if (quiet && (quiet.blocks(start.x, start.z, 25) || quiet.blocks(end.x, end.z, 25))) continue;
       const arc: LeapArc = {
         kind: selected,
         start,
         end,
         controlHeight: selected === 'dolphin' ? 3.6 + this.rng() * 4.8 : 0.8 + this.rng() * 1.5,
         duration: selected === 'dolphin' ? 1.6 + this.rng() * 1.0 : 2.2 + this.rng() * 2.0,
-        school: selected === 'dolphin' ? 2 + Math.floor(this.rng() * 3) : 5 + Math.floor(this.rng() * 8),
+        // In the game a pod is small: a few animals you can follow, not a burst of splashes.
+        school:
+          selected === 'dolphin'
+            ? (title ? 2 : 1) + Math.floor(this.rng() * 3)
+            : title
+              ? 5 + Math.floor(this.rng() * 8)
+              : 2 + Math.floor(this.rng() * 3),
         seed: randomSeed(this.rng),
       };
-      if (!this.options.titleMode && hasTerrainBackdrop(arc, camera, this.options.heightField)) continue;
+      if (!title) {
+        // Close enough to see the animal, not just its splashes.
+        tmpPoint.lerpVectors(start, end, 0.5);
+        tmpPoint.y = arc.controlHeight * 0.5;
+        const px = leapPixels(
+          LEAP_SPAN[selected],
+          tmpPoint.distanceTo(camera.position),
+          camera.fov,
+          this.viewport.height,
+          camera.zoom,
+        );
+        if (px < LEAP_MIN_PIXELS[selected]) continue;
+      }
+      if (!title && hasTerrainBackdrop(arc, camera, this.options.heightField)) continue;
       const projected = projectArc(arc, camera, this.viewport);
       if (!projected || !rectInside(projected.rect, this.viewport)) continue;
       if (this.avoidRects.some((rect) => rectsIntersect(projected.rect, rect))) continue;

@@ -49,6 +49,7 @@ import { createPolarGrid, type PolarGridOptions } from './polar-grid';
 import { createRippleTexture } from './ripple-texture';
 import { WATER_DEPTH_BOUNDS, waterDepthTexture } from './water-depth-texture';
 import { FADE_DISTANCE, WaveField, wavesForTier } from './waves';
+import { writesMotionVectors } from '../../engine/motion-vectors';
 
 export interface OceanOptions {
   tier: TierSettings;
@@ -113,6 +114,8 @@ export function createOcean({
 
   const mat = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false, fog: false });
   mat.blending = NoBlending;
+  // Its motion vectors are right (positionPrevious below), so TRAA keeps them though it's see-through.
+  writesMotionVectors(mat);
 
   // --- Vertex: Gerstner displacement of the rest grid (exactly what WaveField inverts on the CPU).
   const rest = positionLocal.xz.add(modelPosition.xz);

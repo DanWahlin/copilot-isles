@@ -93,6 +93,8 @@ export class BattleRun {
   private disposed = false;
   /** Rested by `suspend` (you sailed into an island's waters), until `resume`. */
   private suspended = false;
+  /** Lets the leaping fish and dolphins back into the sea (they stay out while the battle's on). */
+  private unquiet: (() => void) | null = null;
 
   constructor(private readonly o: BattleRunOptions) {
     const { engine, cove, audio } = o;
@@ -147,6 +149,9 @@ export class BattleRun {
   begin(): void {
     if (this.started) return;
     this.started = true;
+    // A dolphin's splash looks like a ball's: nothing leaps while the battle's on (or its hulls sink),
+    // only while it rests in harbour.
+    this.unquiet = this.o.cove.quietSea.add({ x: 0, z: 0, r: Infinity, when: () => !this.suspended });
     this.setMusic(true);
     let hidden = false;
     try {
@@ -257,7 +262,8 @@ export class BattleRun {
         if (s.assist) b.setAssist(!b.assist);
       }
     }
-    b.update(dt, t);
+    // The ocean is drawn at the world's clock; the battle samples it there (its own clock differs).
+    b.update(dt, t, world.time.value);
 
     // The director frames the battle's beats until you drag the view, and stands off after the win.
     const director = this.director;
@@ -325,6 +331,8 @@ export class BattleRun {
     if (this.disposed) return;
     if (this.wasDirecting) cam?.frame(null);
     this.disposed = true;
+    this.unquiet?.();
+    this.unquiet = null;
     const { engine, cove } = this.o;
     this.setMusic(false);
     engine.scene.remove(this.battle.group);

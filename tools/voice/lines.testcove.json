@@ -225,7 +225,7 @@
       "id": "pim.done.01",
       "speaker": "Pim",
       "voice": "en-IE-ConnorNeural",
-      "text": "Nine pennants, five notices, seven hulls, three seals. Your fork's ready for practice!",
+      "text": "Nine labels, five issues, seven branches, three pull requests. Your fork's ready for practice!",
       "prosody": {
         "rate": "+12%"
       }
@@ -243,7 +243,7 @@
       "id": "pim.brief.01",
       "speaker": "Pim",
       "voice": "en-IE-ConnorNeural",
-      "text": "Captain! I'm Pim, that's Pol. We add the course's practice items to new forks.",
+      "text": "Captain! I'm Pim, that's Pol. Our crane runs the course's setup script on your fork.",
       "prosody": {
         "rate": "+12%"
       }
@@ -252,7 +252,16 @@
       "id": "pol.brief.01",
       "speaker": "Pol",
       "voice": "en-IE-EmilyNeural",
-      "text": "The course has a setup script. It adds labels, the coloured pennants, and issues, the bounty notices.",
+      "text": "It adds labels, issues, branches, and pull requests for later chapters. They're practice, not problems.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pim.brief.fork",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "text": "What's your fork's address, Captain? We'll paint it on the crane's sign.",
       "prosody": {
         "rate": "+12%"
       }
@@ -261,7 +270,7 @@
       "id": "pim.brief.02",
       "speaker": "Pim",
       "voice": "en-IE-ConnorNeural",
-      "text": "Practice branches too, the practice hulls. The bugs stay on those, never on main.",
+      "text": "Then the setup script, in the app's Terminal. Preview it with --dry-run first.",
       "prosody": {
         "rate": "+12%"
       }
@@ -270,7 +279,7 @@
       "id": "pol.brief.02",
       "speaker": "Pol",
       "voice": "en-IE-EmilyNeural",
-      "text": "And pull requests, sealed inspection requests: changes to review, a feedback comment, and a check that fails on purpose.",
+      "text": "Check that the Repository line names your fork. Only then run it with --yes.",
       "prosody": {
         "rate": "+12%"
       }
@@ -279,7 +288,7 @@
       "id": "pim.brief.03",
       "speaker": "Pim",
       "voice": "en-IE-ConnorNeural",
-      "text": "They’re training scenarios, not problems with your setup.",
+      "text": "Same on our crane: aim her at your ship, pull Dry-Run, read the sign, then --yes.",
       "prosody": {
         "rate": "+12%"
       }
@@ -288,34 +297,7 @@
       "id": "pol.brief.actions",
       "speaker": "Pol",
       "voice": "en-IE-EmilyNeural",
-      "text": "First, a job on GitHub.com. Open your fork's Actions tab. New forks switch workflows off.",
-      "prosody": {
-        "rate": "+12%"
-      }
-    },
-    {
-      "id": "pim.brief.actions",
-      "speaker": "Pim",
-      "voice": "en-IE-ConnorNeural",
-      "text": "Select, I understand my workflows, go ahead and enable them. Then GitHub can run the practice checks.",
-      "prosody": {
-        "rate": "+12%"
-      }
-    },
-    {
-      "id": "pol.brief.03",
-      "speaker": "Pol",
-      "voice": "en-IE-EmilyNeural",
-      "text": "Then the script, in the app's Terminal. Our crane works the same way. Turn the capstan to aim her, pull Dry-Run to preview, and read the Repository line on her sign.",
-      "prosody": {
-        "rate": "+12%"
-      }
-    },
-    {
-      "id": "pim.brief.04",
-      "speaker": "Pim",
-      "voice": "en-IE-ConnorNeural",
-      "text": "Only when it names your own fork do you pull --yes.",
+      "text": "First, on GitHub.com, open your fork's Actions tab and enable workflows.",
       "prosody": {
         "rate": "+12%"
       }
@@ -324,7 +306,7 @@
       "id": "pol.solved.01",
       "speaker": "Pol",
       "voice": "en-IE-EmilyNeural",
-      "text": "Setup complete. Your fork has everything the course needs, Captain.",
+      "text": "Setup complete! Your fork has its practice items now, ready for later chapters.",
       "prosody": {
         "rate": "+12%"
       }
@@ -333,16 +315,7 @@
       "id": "pim.solved.01",
       "speaker": "Pim",
       "voice": "en-IE-ConnorNeural",
-      "text": "In the app, you run both commands in that same Terminal tab, from the repository root.",
-      "prosody": {
-        "rate": "+12%"
-      }
-    },
-    {
-      "id": "pol.solved.02",
-      "speaker": "Pol",
-      "voice": "en-IE-EmilyNeural",
-      "text": "Your fork's got its practice issues and pull requests now. You'll work through them in later chapters.",
+      "text": "In the app, run both commands in Terminal, from the repository root.",
       "prosody": {
         "rate": "+12%"
       }
@@ -351,7 +324,7 @@
       "id": "pol.refuse.guild.01",
       "speaker": "Pol",
       "voice": "en-IE-EmilyNeural",
-      "text": "Hear that pawl? The script stops before changing a repository owned by an organization.",
+      "text": "Refused! An organization owns that one. The script stops before changing it.",
       "prosody": {
         "rate": "+12%"
       }
@@ -360,7 +333,7 @@
       "id": "pim.refuse.guild.01",
       "speaker": "Pim",
       "voice": "en-IE-ConnorNeural",
-      "text": "There’s an --allow-shared-repository flag for that, used with --yes. Only when you’re authorized and the Repository line is exactly the target you meant.",
+      "text": "If you're authorized to set one up, and the Repository line's right, add --allow-shared-repository.",
       "prosody": {
         "rate": "+12%"
       }
@@ -452,6 +425,13 @@
       "voiceEnv": "AZURE_SPEECH_MALE_VOICE_UK",
       "fallbackVoice": "en-GB-OllieMultilingualNeural",
       "text": "That link takes you straight to the fork page. It’s in your Logbook now, and under your task, whenever you need it."
+    },
+    {
+      "id": "ezra.fork.register",
+      "speaker": "Ezra",
+      "voiceEnv": "AZURE_SPEECH_MALE_VOICE_UK",
+      "fallbackVoice": "en-GB-OllieMultilingualNeural",
+      "text": "Forked it? Write its address in my register, so the harbour knows which ship is yours."
     },
     {
       "id": "ezra.fork.03",
@@ -1679,7 +1659,9 @@
       "speaker": "Juno",
       "tts": "elevenlabs",
       "voice": "XEQBC9sleaE3f5ff82UR",
-      "prosody": { "rate": "+10%" },
+      "prosody": {
+        "rate": "+10%"
+      },
       "text": "Welcome aboard, Captain! I’m Juno, your first mate."
     },
     {
@@ -1687,7 +1669,9 @@
       "speaker": "Juno",
       "tts": "elevenlabs",
       "voice": "XEQBC9sleaE3f5ff82UR",
-      "prosody": { "rate": "+10%" },
+      "prosody": {
+        "rate": "+10%"
+      },
       "text": "Each island teaches a chapter of the GitHub Copilot app. Finish its quests to earn its seal."
     },
     {
@@ -1695,7 +1679,9 @@
       "speaker": "Juno",
       "tts": "elevenlabs",
       "voice": "XEQBC9sleaE3f5ff82UR",
-      "prosody": { "rate": "+10%" },
+      "prosody": {
+        "rate": "+10%"
+      },
       "text": "Quests fill your Logbook and your purse. Then we sail on!"
     },
     {
@@ -1703,7 +1689,9 @@
       "speaker": "Juno",
       "tts": "elevenlabs",
       "voice": "XEQBC9sleaE3f5ff82UR",
-      "prosody": { "rate": "+10%" },
+      "prosody": {
+        "rate": "+10%"
+      },
       "text": "And look out for starfish. They hide on every island."
     },
     {
@@ -1711,7 +1699,9 @@
       "speaker": "Juno",
       "tts": "elevenlabs",
       "voice": "XEQBC9sleaE3f5ff82UR",
-      "prosody": { "rate": "+10%" },
+      "prosody": {
+        "rate": "+10%"
+      },
       "text": "Now, open the chest, Captain. Our chart’s inside."
     },
     {

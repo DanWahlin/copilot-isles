@@ -5,7 +5,6 @@ import {
   BufferAttribute,
   BufferGeometry,
   CylinderGeometry,
-  Euler,
   Group,
   Matrix4,
   Mesh,
@@ -164,8 +163,8 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
       break;
     case 'mer_kid_a':
       addChildSailorCap(root, 0x2f6fa1, 0xd28a22);
-      addToyPinwheel(root, 1);
-      addSatchel(root, 0x8b4f24, -1);
+      addToyPinwheel(root, -1);
+      addSatchel(root, 0x8b4f24, 1);
       break;
     case 'mer_kid_b':
       addHeadscarf(root, 0xc64e3f, 0xf0dfbd);
@@ -835,8 +834,9 @@ function addSash(root: Group, color: ColorHex, side: -1 | 1): void {
 }
 
 function addSatchel(root: Group, color: ColorHex, side: -1 | 1): void {
-  const bag = mesh(new BoxGeometry(0.07, 0.16, 0.2), mat(color), 'satchel');
-  bag.position.set(side * 0.25, 0.4, -0.15);
+  // At the hip, in the gap the thigh's swing and the hanging arm leave (props audit, 0.5 cm clear).
+  const bag = mesh(new BoxGeometry(0.045, 0.14, 0.14), mat(color), 'satchel');
+  bag.position.set(side * 0.285, 0.33, -0.06);
   addRoot(root, bag, 'Hips');
 }
 
@@ -869,146 +869,201 @@ function addMoneyPouch(root: Group, leather: ColorHex, side: -1 | 1): void {
 }
 
 function addTacklePouch(root: Group, leather: ColorHex, side: -1 | 1): void {
+  // On the belt at the hip, outside a seated thigh.
   const pouch = mesh(new BoxGeometry(0.12, 0.11, 0.075), mat(leather), 'tackle pouch');
-  pouch.position.set(side * 0.25, 0.36, 0.05);
+  pouch.position.set(side * 0.32, 0.42, 0.02);
   pouch.rotation.z = side * 0.08;
   addRoot(root, pouch, 'Hips');
 
   const cork = mesh(new SphereGeometry(0.025, 6, 4), mat(0xd6b35f), 'fishing cork');
-  cork.position.set(side * 0.25, 0.43, 0.1);
+  cork.position.set(side * 0.32, 0.49, 0.07);
   cork.scale.set(1, 0.8, 0.55);
   addRoot(root, cork, 'Hips');
 }
 
 function addLedgerInHand(root: Group, color: ColorHex, side: -1 | 1): void {
-  holds(root, side);
-  // Carried by its spine: the top edge sits in the closed fist and the book hangs along the fingers.
-  const grip = handGrip(root, side);
+  // Carried by its spine: the top edge sits in the closed fist and the book hangs below it, its broad
+  // face to the leg.
+  const f = holdInFist(root, side);
   const W = 0.17;
   const H = 0.23;
   const book = mesh(new BoxGeometry(W, H, 0.035), mat(color), 'ledger');
+  inFist(root, f, book, [0, H / 2 - 0.035, 0]);
+  // The page shows on the side away from the leg.
   const page = mesh(new BoxGeometry(W - 0.025, H - 0.035, 0.008), mat(0xe8dcb8), 'ledger page');
-  if (!grip) {
-    book.position.set(side * 0.34, 0.34, 0.08);
-    page.position.set(side * 0.34, 0.34, 0.102);
-  } else {
-    book.quaternion.copy(grip.quaternion);
-    book.position
-      .copy(grip.palm)
-      .addScaledVector(grip.up, -(H / 2 - 0.03))
-      .addScaledVector(grip.out, 0.01);
-    page.quaternion.copy(grip.quaternion);
-    // The page shows on the outside of the book, away from the leg.
-    page.position.copy(book.position).addScaledVector(grip.out, 0.022).addScaledVector(grip.up, -0.008);
-  }
-  addRoot(root, book, lowerArmName(side));
-  addRoot(root, page, lowerArmName(side));
+  inFist(root, f, page, [0, H / 2 - 0.027, 0.0215]);
 }
 
 /**
- * Where a hand closes, in the character's own frame at bind pose (arms down): the fist's centre, and a
- * frame for a book carried at the side, upright, its broad face against the leg (`out` points away
- * from the body). A prop built in this frame and attached to the forearm stays in the fist.
+ * A closed hand's grip, in the character's own frame at bind pose. `origin` is the middle of the fist
+ * (where a handle passes through); `across` runs along the knuckle line toward the index and thumb
+ * (forward for a hanging hand: a handle's direction), `down` is straight down square to it (where a
+ * carried thing hangs), and `out` points away from the body. The idle arms hang much as they do at
+ * bind, so a part placed in these coordinates (`inFist`) and carried by the palm bone hangs plumb in
+ * the idle and follows the hand in every pose.
  */
-function handGrip(
-  root: Group,
-  side: -1 | 1,
-): { palm: Vector3; up: Vector3; out: Vector3; quaternion: Quaternion } | null {
-  const sfx = side === 1 ? 'L' : 'R';
-  const wrist = root.getObjectByName(`Middle1${sfx}`);
-  const knuckle = root.getObjectByName(`Middle2${sfx}`);
-  if (!wrist || !knuckle) return null;
-  root.updateMatrixWorld(true);
-  const w = root.worldToLocal(wrist.getWorldPosition(new Vector3()));
-  const k = root.worldToLocal(knuckle.getWorldPosition(new Vector3()));
-  const palm = w.clone().lerp(k, 0.75);
-  const up = new Vector3(0, 1, 0);
-  const out = new Vector3(side, 0, 0);
-  // Tipped a little forward and out at the bottom, as a book swings from a relaxed hand.
-  const quaternion = new Quaternion().setFromEuler(new Euler(0.12, 0, side * -0.08));
-  up.applyQuaternion(quaternion);
-  out.applyQuaternion(quaternion);
-  // Book width runs front to back, its height up and down, its thickness out from the leg.
-  quaternion.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI / 2));
-  return { palm, up, out, quaternion };
+interface Fist {
+  readonly origin: Vector3;
+  /** Columns: across, down, across × down (a right-handed basis). */
+  readonly basis: Quaternion;
+  /** +1 when the basis's third axis points out from the body, -1 when it points in. */
+  readonly outSign: number;
+  readonly bone: string;
 }
 
-function addMarketBasket(root: Group, side: -1 | 1): void {
+/** Marks the hand that carries a prop and finds its fist. */
+function holdInFist(root: Group, side: -1 | 1): Fist {
   holds(root, side);
-  const basket = mesh(new CylinderGeometry(0.075, 0.105, 0.12, 10), mat(0x9d642e), 'market basket');
-  basket.position.set(side * 0.31, 0.36, 0.1);
+  return fistOf(root, side);
+}
+
+/**
+ * The fist from the hand's bones at bind pose: the wrist (the palm bone), the knuckles and the resting
+ * middle fingertip. The grip only turns the finger joints, so it moves none of these. Rigs without
+ * fingers (tests) get a fist at the forearm's end.
+ */
+function fistOf(root: Group, side: -1 | 1): Fist {
+  const sfx = side === 1 ? 'L' : 'R';
+  const names = [`Middle1${sfx}`, `Middle2${sfx}`, `Index2${sfx}`, `Pinky2${sfx}`, `Middle3${sfx}_end`];
+  const bones = names.map((name) => root.getObjectByName(name));
+  if (bones.some((b) => !(b instanceof Bone))) return forearmFist(root, side);
+  root.updateMatrixWorld(true);
+  const [wrist, knuckle, index, pinky, tip] = bones.map((b) =>
+    root.worldToLocal(b!.getWorldPosition(new Vector3())),
+  ) as [Vector3, Vector3, Vector3, Vector3, Vector3];
+  const fingers = knuckle.clone().sub(wrist).normalize();
+  const across = index.clone().sub(pinky);
+  across.addScaledVector(fingers, -across.dot(fingers)).normalize();
+  // The kit's fingers rest half curled, toward the palm (the thumb isn't a reliable guide: the
+  // right one lies almost in the palm's plane).
+  const palm = new Vector3().crossVectors(across, fingers);
+  if (palm.dot(tip.sub(knuckle)) < 0) palm.negate();
+  const origin = wrist.clone().lerp(knuckle, FIST_ALONG).addScaledVector(palm, FIST_DEPTH);
+  return frame(origin, across, side, `Middle1${sfx}`);
+}
+
+/** How far from the wrist toward the knuckles, and how far out of the palm, a handle sits (m). */
+const FIST_ALONG = 0.6;
+const FIST_DEPTH = 0.035;
+
+function forearmFist(root: Group, side: -1 | 1): Fist {
+  root.updateMatrixWorld(true);
+  const forearm = root.getObjectByName(lowerArmName(side));
+  const origin = forearm
+    ? root.worldToLocal(forearm.getWorldPosition(new Vector3())).add(new Vector3(0, -0.2, 0.04))
+    : new Vector3(side * 0.34, 0.36, 0.1);
+  return frame(origin, new Vector3(0, 0, 1), side, lowerArmName(side));
+}
+
+function frame(origin: Vector3, across: Vector3, side: -1 | 1, bone: string): Fist {
+  const down = new Vector3(0, -1, 0);
+  down.addScaledVector(across, -down.dot(across)).normalize();
+  const third = new Vector3().crossVectors(across, down);
+  const basis = new Quaternion().setFromRotationMatrix(new Matrix4().makeBasis(across, down, third));
+  return { origin, basis, outSign: third.x * side >= 0 ? 1 : -1, bone };
+}
+
+/**
+ * Places `part` in the fist: `at` is [across, down, out] in metres from the fist's middle, and `turn`
+ * (optional) turns the part in the fist's frame (its X along `across`, Y along `down`).
+ */
+function inFist(
+  root: Group,
+  f: Fist,
+  part: Mesh,
+  at: readonly [number, number, number],
+  turn: Quaternion = NO_TURN,
+): void {
+  part.position
+    .set(at[0], at[1], at[2] * f.outSign)
+    .applyQuaternion(f.basis)
+    .add(f.origin);
+  part.quaternion.copy(f.basis).multiply(turn);
+  addRoot(root, part, f.bone);
+}
+
+const NO_TURN = new Quaternion();
+/** A part's Y axis along the fist's `across` (a handle through the fist), its +Y toward the thumb. */
+const ROD = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -Math.PI / 2);
+/** A part's Y axis up (against `down`). */
+const UPRIGHT = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI);
+
+function addMarketBasket(root: Group, side: -1 | 1): void {
+  // Carried by the handle: the loop's top runs through the fist and the basket hangs below it.
+  const f = holdInFist(root, side);
+  const handle = mesh(new TorusGeometry(0.07, 0.007, 5, 12), mat(0x6a3d1f), 'market basket handle');
+  handle.scale.set(1, 0.8, 1);
+  inFist(root, f, handle, [0, 0.056, 0]);
+  const basket = mesh(new CylinderGeometry(0.105, 0.075, 0.12, 10), mat(0x9d642e), 'market basket');
   basket.scale.set(1, 1, 0.72);
-  addRoot(root, basket, lowerArmName(side));
-
-  const handle = mesh(new TorusGeometry(0.075, 0.007, 5, 12), mat(0x6a3d1f), 'market basket handle');
-  handle.position.set(side * 0.31, 0.43, 0.1);
-  handle.rotation.x = Math.PI / 2;
-  handle.scale.set(0.9, 0.55, 1);
-  addRoot(root, handle, lowerArmName(side));
-
+  inFist(root, f, basket, [0, 0.165, 0], UPRIGHT);
   for (const [i, color] of [0xc64e3f, 0xd28a22, 0x8fbf4a].entries()) {
     const fruit = mesh(new SphereGeometry(0.025, 6, 4), mat(color), 'basket fruit');
-    fruit.position.set(side * (0.28 + i * 0.03), 0.43, 0.1 + (i % 2) * 0.025);
-    addRoot(root, fruit, lowerArmName(side));
+    inFist(root, f, fruit, [(i - 1) * 0.045, 0.1, (i % 2) * 0.03 - 0.015]);
   }
 }
 
 function addFruitTray(root: Group, side: -1 | 1): void {
-  holds(root, side);
+  // A shallow trug carried by its arched handle, the produce on top beside the handle.
+  const f = holdInFist(root, side);
+  const arch = mesh(new TorusGeometry(0.075, 0.008, 5, 10, Math.PI), mat(0x6a3d1f), 'vendor tray handle');
+  inFist(root, f, arch, [0, 0.075, 0], UPRIGHT);
   const tray = mesh(new BoxGeometry(0.22, 0.035, 0.14), mat(0x8b5a2b), 'vendor produce tray');
-  tray.position.set(side * 0.31, 0.43, 0.12);
-  tray.rotation.z = side * 0.04;
-  addRoot(root, tray, lowerArmName(side));
-
+  inFist(root, f, tray, [0, 0.092, 0]);
   for (const [i, color] of [0xd28a22, 0xc64e3f, 0x8fbf4a, 0xd9c88f].entries()) {
     const fruit = mesh(new SphereGeometry(0.03, 6, 4), mat(color), 'vendor produce');
-    fruit.position.set(side * (0.235 + i * 0.045), 0.47, 0.105 + (i % 2) * 0.035);
-    addRoot(root, fruit, lowerArmName(side));
+    inFist(root, f, fruit, [(i - 1.5) * 0.05, 0.047, i % 2 ? 0.038 : -0.038]);
   }
 }
 
 function addScroll(root: Group, side: -1 | 1): void {
-  // Tucked into the satchel on the same side, poking up out of the flap.
+  // Tucked into the belt behind the hip, leaning back and toward the spine, behind the arm.
   const scroll = mesh(new CylinderGeometry(0.03, 0.03, 0.26, 8), mat(0xe4d1a4), 'rolled chart');
-  scroll.position.set(-side * 0.25, 0.5, -0.14);
-  scroll.rotation.x = -0.25;
+  scroll.position.set(-side * 0.225, 0.48, -0.28);
+  scroll.rotation.set(-0.35, 0, -side * 0.35);
   addRoot(root, scroll, 'Hips');
 }
 
 function addSpyglass(root: Group, side: -1 | 1): void {
-  // Pushed through the belt at the hip, pointing forward and a little down.
+  // Pushed through the belt at the hip like a short sword, pointing back and down, outside the thigh
+  // and under the arm.
   const tube = mesh(new CylinderGeometry(0.03, 0.04, 0.32, 8), mat(0xb27a35), 'spyglass');
-  tube.position.set(side * 0.22, 0.44, -0.08);
-  tube.rotation.x = Math.PI / 2 + 0.35;
+  tube.position.set(side * 0.28, 0.4, -0.08);
+  tube.rotation.x = -(Math.PI / 2 + 0.35);
   addRoot(root, tube, 'Hips');
   const rim = mesh(new CylinderGeometry(0.046, 0.046, 0.025, 8), mat(0xd5b75f), 'spyglass rim');
-  rim.position.set(side * 0.22, 0.385, 0.07);
+  rim.position.set(side * 0.28, 0.345, -0.23);
   rim.rotation.x = tube.rotation.x;
   addRoot(root, rim, 'Hips');
 }
 
 function addLute(root: Group): void {
-  // Slung across the back, neck up over the right shoulder.
+  // Slung across the back, the neck up over the right shoulder.
   const body = mesh(new CylinderGeometry(0.16, 0.2, 0.055, 14), mat(0x9a5f2e), 'lute body');
-  body.position.set(0.05, 0.5, -0.33);
+  body.position.set(0.05, 0.58, -0.36);
   body.rotation.x = Math.PI / 2;
   body.scale.set(0.85, 1.1, 1);
   addRoot(root, body, 'Torso');
 
   const soundHole = mesh(new CylinderGeometry(0.05, 0.05, 0.061, 8), mat(0x382619), 'lute soundhole');
-  soundHole.position.set(0.05, 0.51, -0.36);
+  soundHole.position.set(0.05, 0.59, -0.39);
   soundHole.rotation.x = Math.PI / 2;
   addRoot(root, soundHole, 'Torso');
 
+  // From the body's rim up and out to the right (-x), past the shoulder, clear of the head.
+  const tilt = 0.75;
+  const up = new Vector3(-Math.sin(tilt), Math.cos(tilt), 0);
   const neck = mesh(new BoxGeometry(0.045, 0.5, 0.035), mat(0x7a4625), 'lute neck');
-  neck.position.set(-0.08, 0.78, -0.33);
-  neck.rotation.z = -0.46;
+  neck.position.set(0.05, 0.58, -0.36).addScaledVector(up, 0.42);
+  neck.rotation.z = tilt;
   addRoot(root, neck, 'Torso');
 
-  for (const x of [-0.035, 0, 0.035]) {
+  for (const x of [-0.025, 0, 0.025]) {
     const string = mesh(new BoxGeometry(0.006, 0.46, 0.006), mat(0xe5d6a4), 'lute string');
-    string.position.set(-0.04 + x, 0.7, -0.362);
-    string.rotation.z = -0.39;
+    string.position
+      .set(0.05 + x * Math.cos(tilt), 0.58 + x * Math.sin(tilt), -0.392)
+      .addScaledVector(up, 0.23);
+    string.rotation.z = tilt;
     addRoot(root, string, 'Torso');
   }
 }
@@ -1019,23 +1074,19 @@ function addLute(root: Group): void {
  */
 function addFishingRod(root: Group): void {
   const side = -1;
-  holds(root, side);
-  const grip = handGrip(root, side);
-  const palm = grip ? grip.palm.clone() : new Vector3(side * 0.34, 0.36, 0.1);
-  // Raised about 40° from horizontal, pointing forward (+z) and a little out to his right.
-  const dir = new Vector3(side * 0.18, 0.62, 0.76).normalize();
+  const f = holdInFist(root, side);
+  // Out of the thumb side of his fist, forward and raised about 40°; the butt sits in the fist.
+  const dir = new Vector3(Math.cos(0.7), -Math.sin(0.7), 0);
   const L = 2.2;
-  const butt = palm.clone().addScaledVector(dir, -0.25);
+  const butt = -0.12;
   const rod = mesh(new CylinderGeometry(0.008, 0.017, L, 8), mat(0x5d4027), 'fishing rod');
-  rod.position.copy(butt).addScaledVector(dir, L / 2);
-  rod.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), dir);
-  addRoot(root, rod, lowerArmName(side));
-  const tip = butt.clone().addScaledVector(dir, L);
+  const along = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), dir);
+  inFist(root, f, rod, [dir.x * (butt + L / 2), dir.y * (butt + L / 2), 0], along);
   // The line drops from the tip to about the waterline (the seat's on the pier deck, ~1.8 m up).
-  const drop = tip.y + 1.75;
+  const tip = dir.clone().multiplyScalar(butt + L);
+  const drop = 2.1 - tip.y;
   const line = mesh(new CylinderGeometry(0.0025, 0.0025, drop, 4), mat(0xe8e2d0), 'fishing line');
-  line.position.set(tip.x, tip.y - drop / 2, tip.z);
-  addRoot(root, line, lowerArmName(side));
+  inFist(root, f, line, [tip.x, tip.y + drop / 2, 0]);
 }
 
 function addBucket(root: Group, color: ColorHex, side: -1 | 1): void {
@@ -1048,13 +1099,13 @@ function addBucket(root: Group, color: ColorHex, side: -1 | 1): void {
 }
 
 function addTool(root: Group, metal: ColorHex, side: -1 | 1): void {
-  // A mallet hung from the belt, head up.
+  // A mallet hung from the belt, head up, clear of the thigh.
   const handle = mesh(new BoxGeometry(0.03, 0.3, 0.03), mat(0x5c3b23), 'tool handle');
-  handle.position.set(side * 0.23, 0.33, -0.1);
+  handle.position.set(side * 0.29, 0.3, -0.02);
   handle.rotation.x = 0.12;
   addRoot(root, handle, 'Hips');
   const head = mesh(new BoxGeometry(0.05, 0.05, 0.14), mat(metal), 'tool head');
-  head.position.set(side * 0.23, 0.49, -0.08);
+  head.position.set(side * 0.29, 0.46, 0);
   addRoot(root, head, 'Hips');
 }
 
@@ -1068,16 +1119,18 @@ function addRolledSleeves(root: Group, color: ColorHex): void {
 }
 
 function addFishingNet(root: Group, side: -1 | 1): void {
-  const ring = mesh(new TorusGeometry(0.11, 0.009, 5, 18), mat(0xd8c99a), 'coiled fishing net');
-  ring.position.set(side * 0.23, 0.45, -0.12);
-  ring.rotation.set(Math.PI / 2, 0, side * 0.15);
-  addRoot(root, ring, 'Hips');
+  // Coiled on the ground beside the seat, its loose ends trailing out (both fishers sit all day). On
+  // the rig's root bone, like the fisherman's bucket: it stays put, clear of the legs.
+  const ring = mesh(new TorusGeometry(0.11, 0.012, 5, 18), mat(0xd8c99a), 'coiled fishing net');
+  ring.position.set(side * 0.45, 0.012, 0.05);
+  ring.rotation.set(Math.PI / 2, 0, 0);
+  addRoot(root, ring, 'Root');
 
   for (let i = 0; i < 4; i += 1) {
-    const line = mesh(new BoxGeometry(0.006, 0.2, 0.006), mat(0xe7d9b5), 'fishing net line');
-    line.position.set(side * (0.18 + i * 0.035), 0.45, -0.045);
-    line.rotation.z = side * (0.45 - i * 0.25);
-    addRoot(root, line, 'Hips');
+    const line = mesh(new BoxGeometry(0.006, 0.006, 0.2), mat(0xe7d9b5), 'fishing net line');
+    line.position.set(side * (0.42 + i * 0.03), 0.006, 0.2);
+    line.rotation.y = side * (0.45 - i * 0.3);
+    addRoot(root, line, 'Root');
   }
 }
 
@@ -1102,26 +1155,24 @@ function addNeckerchief(root: Group, color: ColorHex): void {
 }
 
 function addToyPinwheel(root: Group, side: -1 | 1): void {
-  holds(root, side);
+  // The stick through the fist, held out forward, the vanes at its far end.
+  const f = holdInFist(root, side);
   const stick = mesh(new BoxGeometry(0.012, 0.28, 0.012), mat(0x7a4a2a), 'pinwheel stick');
-  stick.position.set(side * 0.3, 0.4, 0.14);
-  stick.rotation.z = side * 0.18;
-  addRoot(root, stick, lowerArmName(side));
-
+  inFist(root, f, stick, [0.09, 0, 0], ROD);
   for (const [i, color] of [0xc64e3f, 0xd28a22, 0x2f6fa1, 0x1f8790].entries()) {
-    const vane = mesh(new BoxGeometry(0.06, 0.018, 0.012), mat(color), 'pinwheel vane');
-    vane.position.set(side * 0.31, 0.54, 0.15);
-    vane.rotation.z = (Math.PI / 2) * i;
-    addRoot(root, vane, lowerArmName(side));
+    const a = (Math.PI / 2) * i;
+    const spoke = new Vector3(0, Math.cos(a), Math.sin(a));
+    const vane = mesh(new BoxGeometry(0.06, 0.012, 0.018), mat(color), 'pinwheel vane');
+    const turn = new Quaternion().setFromUnitVectors(new Vector3(1, 0, 0), spoke);
+    inFist(root, f, vane, [0.22, spoke.y * 0.03, spoke.z * 0.03], turn);
   }
 }
 
 function addToyHoop(root: Group, side: -1 | 1): void {
-  holds(root, side);
+  // Held by its rim, the hoop hanging below the fist.
+  const f = holdInFist(root, side);
   const hoop = mesh(new TorusGeometry(0.1, 0.008, 5, 18), mat(0xd6b35f), 'toy hoop');
-  hoop.position.set(side * 0.3, 0.35, 0.12);
-  hoop.rotation.y = side * 0.25;
-  addRoot(root, hoop, lowerArmName(side));
+  inFist(root, f, hoop, [0, 0.1, 0]);
 }
 
 function addGuardLivery(root: Group, navy: ColorHex, burgundy: ColorHex, brass: ColorHex): void {
@@ -1165,70 +1216,58 @@ function addGuardLivery(root: Group, navy: ColorHex, burgundy: ColorHex, brass: 
 }
 
 function addMerchantScales(root: Group, side: -1 | 1): void {
-  holds(root, side);
-  const x = side * 0.26;
-  const top = new Vector3(x, 0.62, 0.16);
-  const center = new Vector3(x, 0.52, 0.17);
-  const left = new Vector3(x - 0.1, 0.51, 0.17);
-  const right = new Vector3(x + 0.1, 0.51, 0.17);
+  // Hung from the fist by the top of the hook: the beam runs front to back, the pans hang below.
+  const f = holdInFist(root, side);
+  const top = new Vector3(0, -0.03, 0);
+  const center = new Vector3(0, 0.09, 0);
+  const left = new Vector3(-0.1, 0.1, 0);
+  const right = new Vector3(0.1, 0.1, 0);
   const parts = [
     rod(top, center, 0.008),
     rod(left, right, 0.009),
-    rod(left, new Vector3(left.x, 0.43, 0.18), 0.005),
-    rod(right, new Vector3(right.x, 0.43, 0.18), 0.005),
+    rod(left, new Vector3(left.x, 0.18, 0), 0.005),
+    rod(right, new Vector3(right.x, 0.18, 0), 0.005),
   ];
   const geometry = mergeGeometries(parts, false)!;
   for (const part of parts) part.dispose();
-  addRoot(root, mesh(geometry, mat(0xd0a14b), 'merchant scales'), lowerArmName(side));
-
+  inFist(root, f, mesh(geometry, mat(0xd0a14b), 'merchant scales'), [0, 0, 0]);
   for (const panX of [left.x, right.x]) {
-    const pan = mesh(new CylinderGeometry(0.045, 0.06, 0.012, 10), mat(0xc38b42), 'scale pan');
-    pan.position.set(panX, 0.42, 0.18);
-    addRoot(root, pan, lowerArmName(side));
+    const pan = mesh(new CylinderGeometry(0.052, 0.052, 0.012, 10), mat(0xc38b42), 'scale pan');
+    inFist(root, f, pan, [panX, 0.186, 0]);
   }
 }
 
 function addRolledMapInHand(root: Group, side: -1 | 1): void {
-  holds(root, side);
-  const scroll = mesh(new CylinderGeometry(0.034, 0.034, 0.28, 10), mat(0xe2c98f), 'rolled map in hand');
-  scroll.position.set(side * 0.26, 0.49, 0.15);
-  scroll.rotation.set(0.2, 0.1 * side, Math.PI / 2 + side * 0.2);
-  addRoot(root, scroll, lowerArmName(side));
-
-  const band = mesh(new CylinderGeometry(0.037, 0.037, 0.032, 8), mat(0x1f8a93), 'map ribbon');
-  band.position.copy(scroll.position);
-  band.rotation.copy(scroll.rotation);
-  addRoot(root, band, lowerArmName(side));
+  // Through the fist, a little more of it out of the thumb side.
+  const f = holdInFist(root, side);
+  const scroll = mesh(new CylinderGeometry(0.03, 0.03, 0.28, 10), mat(0xe2c98f), 'rolled map in hand');
+  inFist(root, f, scroll, [0.03, 0, 0], ROD);
+  const band = mesh(new CylinderGeometry(0.033, 0.033, 0.032, 8), mat(0x1f8a93), 'map ribbon');
+  inFist(root, f, band, [0.1, 0, 0], ROD);
 }
 
 function addMalletInHand(root: Group, side: -1 | 1): void {
-  holds(root, side);
+  // Held at the end of the handle, the head forward and upright.
+  const f = holdInFist(root, side);
   const handle = mesh(new BoxGeometry(0.028, 0.34, 0.028), mat(0x5b351f), 'shipwright mallet handle');
-  handle.position.set(side * 0.27, 0.43, 0.13);
-  handle.rotation.set(0.1, 0, side * 0.12);
-  addRoot(root, handle, lowerArmName(side));
-
-  const head = mesh(new BoxGeometry(0.17, 0.065, 0.075), mat(0x3a2a1c), 'shipwright mallet head');
-  head.position.set(side * 0.27, 0.59, 0.14);
-  head.rotation.y = side * 0.08;
-  addRoot(root, head, lowerArmName(side));
+  inFist(root, f, handle, [0.11, 0, 0], ROD);
+  const head = mesh(new BoxGeometry(0.065, 0.17, 0.075), mat(0x3a2a1c), 'shipwright mallet head');
+  inFist(root, f, head, [0.28, 0, 0]);
 }
 
 function addSpyglassInHand(root: Group, side: -1 | 1): void {
-  holds(root, side);
-  const tube = mesh(new CylinderGeometry(0.032, 0.043, 0.28, 10), mat(0xb98533), 'handheld spyglass');
-  tube.position.set(side * 0.26, 0.54, 0.19);
-  tube.rotation.set(Math.PI / 2 + 0.08, side * 0.2, 0);
-  addRoot(root, tube, lowerArmName(side));
-
-  const rim = mesh(new CylinderGeometry(0.048, 0.048, 0.025, 10), mat(0xddbd65), 'handheld spyglass rim');
-  rim.position.set(side * 0.26, 0.54, 0.325);
-  rim.rotation.copy(tube.rotation);
-  addRoot(root, rim, lowerArmName(side));
+  // Through the fist, the eyepiece back (little-finger side), the objective and its rim forward.
+  const f = holdInFist(root, side);
+  const back = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI / 2);
+  const tube = mesh(new CylinderGeometry(0.026, 0.035, 0.28, 10), mat(0xb98533), 'handheld spyglass');
+  inFist(root, f, tube, [0.04, 0, 0], back);
+  const rim = mesh(new CylinderGeometry(0.04, 0.04, 0.025, 10), mat(0xddbd65), 'handheld spyglass rim');
+  inFist(root, f, rim, [0.168, 0, 0], back);
 }
 
 function addAstrolabeInHand(root: Group, side: -1 | 1): void {
-  holds(root, side);
+  // Hung from the fist by its shackle, the ring's face to the side.
+  const f = holdInFist(root, side);
   const ring = new TorusGeometry(0.07, 0.0055, 5, 20);
   const parts = [
     ring,
@@ -1238,15 +1277,9 @@ function addAstrolabeInHand(root: Group, side: -1 | 1): void {
   ];
   const geometry = mergeGeometries(parts, false)!;
   for (const part of parts) part.dispose();
-  const astrolabe = mesh(geometry, mat(0xd3a34d), 'brass astrolabe');
-  astrolabe.position.set(side * 0.33, 0.45, 0.18);
-  astrolabe.rotation.set(0.08, side * 0.12, 0);
-  addRoot(root, astrolabe, lowerArmName(side));
-
-  const grip = mesh(new BoxGeometry(0.018, 0.1, 0.018), mat(0xd3a34d), 'astrolabe hand grip');
-  grip.position.set(side * 0.33, 0.39, 0.18);
-  grip.rotation.z = side * 0.08;
-  addRoot(root, grip, lowerArmName(side));
+  inFist(root, f, mesh(geometry, mat(0xd3a34d), 'brass astrolabe'), [0, 0.1, 0]);
+  const grip = mesh(new BoxGeometry(0.018, 0.07, 0.018), mat(0xd3a34d), 'astrolabe hand grip');
+  inFist(root, f, grip, [0, 0, 0]);
 }
 
 function addPencilBehindEar(root: Group, side: -1 | 1): void {
@@ -1537,6 +1570,7 @@ function skinAccessories(body: SkinnedMesh, byAnchor: Map<Object3D, Mesh[]>): Sk
   const bones = body.skeleton.bones;
   const geometries: BufferGeometry[] = [];
   const names: string[] = [];
+  const counts: number[] = [];
   const toBind = new Matrix4();
   const bindInverse = new Matrix4().copy(body.bindMatrix).invert();
   // Where skinning puts a vertex: world space for an attached mesh, else bind space through the mesh.
@@ -1566,6 +1600,7 @@ function skinAccessories(body: SkinnedMesh, byAnchor: Map<Object3D, Mesh[]>): Sk
       g.setAttribute('skinWeight', new BufferAttribute(weight, 4));
       geometries.push(g);
       names.push(part.name);
+      counts.push(count);
     }
     byAnchor.delete(anchor);
     for (const part of parts) part.removeFromParent();
@@ -1580,6 +1615,8 @@ function skinAccessories(body: SkinnedMesh, byAnchor: Map<Object3D, Mesh[]>): Sk
   out.receiveShadow = true;
   out.userData.ownedGeometry = true;
   out.userData.parts = names;
+  // Each part's vertex count, in `parts` order (the held-prop audit finds each part's vertices).
+  out.userData.partVertices = counts;
   out.userData.cullRadius = ACCESSORY_CULL_RADIUS;
   out.position.copy(body.position);
   out.quaternion.copy(body.quaternion);

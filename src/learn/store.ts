@@ -1,4 +1,5 @@
 import { CHESTS, GLOSSARY, PAGES, QUIZZES, TRIALS } from './content/index';
+import type { ForkRef } from './fork';
 import { grade, type Answer, type Grade } from './grade';
 import { Progress } from './progress';
 import {
@@ -28,6 +29,8 @@ export interface Tracker {
   }[];
 }
 export type RevealFrom = 'page' | 'chest' | 'bottle';
+/** Who's asking for the player's fork: Ezra's register, the crane's sign, or the Logbook. */
+export type ForkFrom = 'ezra' | 'crane' | 'logbook';
 
 export interface ActiveQuiz {
   quiz: Quiz;
@@ -68,6 +71,10 @@ export interface LearnState {
   sails: string | null;
   /** The palette stand's theme picker while it's open; `selected` previews on the sails. */
   palette: { selected: string } | null;
+  /** The player's fork (`owner/repo` on GitHub), or null if they haven't given it. */
+  fork: ForkRef | null;
+  /** The fork form while it's open. */
+  forkForm: { from: ForkFrom } | null;
   /** An arrival flyover is playing: the purse and task list step aside for the view. */
   cinematic: boolean;
   /** A conversation or framed shot is on: the task list fades so the scene has the screen. */
@@ -98,6 +105,7 @@ export class LearnStore {
   private revealDone: (() => void) | null = null;
   private bannerDone: (() => void) | null = null;
   private paletteDone: ((id: string | null) => void) | null = null;
+  private forkDone: ((fork: ForkRef | null) => void) | null = null;
   private seed = 1;
 
   constructor(progress = new Progress()) {
@@ -118,6 +126,8 @@ export class LearnStore {
       starfishIsland: null,
       sails: progress.data.sails,
       palette: null,
+      fork: progress.data.fork,
+      forkForm: null,
       cinematic: false,
       calm: false,
       spotlight: NO_SPOTLIGHT,
@@ -134,7 +144,15 @@ export class LearnStore {
   /** True while a modal learning overlay owns input (the game pauses walking/interaction). */
   get busy(): boolean {
     const s = this.state;
-    return !!(s.quiz || s.reveal || s.banner || s.palette || s.logbook.open || s.spyglass?.full);
+    return !!(
+      s.quiz ||
+      s.reveal ||
+      s.banner ||
+      s.palette ||
+      s.forkForm ||
+      s.logbook.open ||
+      s.spyglass?.full
+    );
   }
 
   // ---- Quizzes ----
@@ -358,6 +376,37 @@ export class LearnStore {
     this.set({ sails: id });
   };
 
+  // ---- Your fork ----
+
+  /**
+   * Opens the fork form. Resolves with the fork the player saved, or null if they skipped (the game
+   * keeps using the placeholder fork, and whatever was saved before stays).
+   */
+  askFork = (from: ForkFrom): Promise<ForkRef | null> => {
+    this.forkDone?.(null);
+    this.set({ forkForm: { from } });
+    return new Promise((resolve) => (this.forkDone = resolve));
+  };
+
+  /** Saves the fork (null forgets it) and closes the form. */
+  saveFork = (fork: ForkRef | null): void => {
+    this.progress.setFork(fork);
+    const saved = this.progress.data.fork;
+    const done = this.forkDone;
+    this.forkDone = null;
+    this.set({ fork: saved, forkForm: null });
+    done?.(saved);
+  };
+
+  /** Skip for now: closes the form and changes nothing. */
+  skipFork = (): void => {
+    if (!this.state.forkForm) return;
+    const done = this.forkDone;
+    this.forkDone = null;
+    this.set({ forkForm: null });
+    done?.(null);
+  };
+
   // ---- Starfish ----
 
   /** The island the purse counts starfish for (null hides the counter). */
@@ -418,12 +467,14 @@ export class LearnStore {
     this.revealDone?.();
     this.bannerDone?.();
     this.paletteDone?.(null);
-    this.quizDone = this.revealDone = this.bannerDone = this.paletteDone = null;
+    this.forkDone?.(null);
+    this.quizDone = this.revealDone = this.bannerDone = this.paletteDone = this.forkDone = null;
     this.set({
       quiz: null,
       reveal: null,
       banner: null,
       palette: null,
+      forkForm: null,
       spyglass: null,
       logbook: { open: false, tab: 'pages', page: null },
       cinematic: false,
@@ -458,6 +509,7 @@ export class LearnStore {
       tracker: null,
       starfish: [],
       sails: null,
+      fork: null,
       logbookOpened: false,
     });
   };

@@ -1,47 +1,87 @@
 {
   "id": "pim.brief.03",
   "speaker": "Pim",
-  "text": "They’re training scenarios, not problems with your setup.",
+  "text": "Same on our crane: aim her at your ship, pull Dry-Run, read the sign, then --yes.",
   "words": [
     {
-      "word": "They’re",
+      "word": "Same",
       "start": 0.044625,
-      "end": 0.256708
+      "end": 0.3125
     },
     {
-      "word": "training",
-      "start": 0.256708,
-      "end": 0.5915
+      "word": "on",
+      "start": 0.3125,
+      "end": 0.424125
     },
     {
-      "word": "scenarios",
-      "start": 0.5915,
-      "end": 1.40625
+      "word": "our",
+      "start": 0.424125,
+      "end": 0.625
     },
     {
-      "word": "not",
-      "start": 1.40625,
-      "end": 1.584833
+      "word": "crane",
+      "start": 0.625,
+      "end": 1.205375
     },
     {
-      "word": "problems",
-      "start": 1.584833,
-      "end": 2.053583
+      "word": "aim",
+      "start": 1.205375,
+      "end": 1.395083
     },
     {
-      "word": "with",
-      "start": 2.053583,
-      "end": 2.176333
+      "word": "her",
+      "start": 1.395083,
+      "end": 1.529
+    },
+    {
+      "word": "at",
+      "start": 1.529,
+      "end": 1.651791
     },
     {
       "word": "your",
-      "start": 2.176333,
-      "end": 2.287958
+      "start": 1.651791,
+      "end": 1.763375
     },
     {
-      "word": "setup",
-      "start": 2.287958,
-      "end": 2.537958
+      "word": "ship",
+      "start": 1.763375,
+      "end": 2.232125
+    },
+    {
+      "word": "pull",
+      "start": 2.232125,
+      "end": 2.421875
+    },
+    {
+      "word": "Dry-Run",
+      "start": 2.421875,
+      "end": 3.102666
+    },
+    {
+      "word": "read",
+      "start": 3.102666,
+      "end": 3.31475
+    },
+    {
+      "word": "the",
+      "start": 3.31475,
+      "end": 3.415166
+    },
+    {
+      "word": "sign",
+      "start": 3.415166,
+      "end": 3.962041
+    },
+    {
+      "word": "then",
+      "start": 3.962041,
+      "end": 4.3415
+    },
+    {
+      "word": "-yes",
+      "start": 4.3415,
+      "end": 4.5915
     }
   ]
 }

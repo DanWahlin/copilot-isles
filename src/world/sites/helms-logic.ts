@@ -120,3 +120,17 @@ export function sampleCourse(
   out.push({ ...points[points.length - 1]! });
   return out;
 }
+
+/**
+ * The water the three runs use (every buoy and mark, with `margin` m of sea round them), as a circle:
+ * the leaping fish and dolphins keep out of it while the course is sailed.
+ */
+export function helmsCourseArea(margin = 30): { x: number; z: number; r: number } {
+  const points = HELM_ORDER.flatMap((m) => helmCourse(MERIDIAN_HELMS[m]));
+  const xs = points.map((p) => p.x);
+  const zs = points.map((p) => p.z);
+  const x = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const z = (Math.min(...zs) + Math.max(...zs)) / 2;
+  const r = Math.max(...points.map((p) => Math.hypot(p.x - x, p.z - z)));
+  return { x, z, r: r + margin };
+}

@@ -40,6 +40,7 @@ const learnState = () =>
       reveal: l.reveal?.page.id ?? null,
       banner: l.banner?.title ?? null,
       spyglass: l.spyglass?.image ?? null,
+      forkForm: l.forkForm?.from ?? null,
       dialogue: st.dialogue,
       quests: window.__dev.learn.progress.data.quests,
       pages: l.pages.length,
@@ -62,6 +63,46 @@ async function clickHotspot() {
   await page.mouse.click(box.x, box.y);
 }
 
+/**
+ * What to do when the fork form opens: `'skip'` (Skip for now) or an address to type in. Ezra's
+ * register is skipped, so the crane asks again; there the run types a fork, so the crane's sign,
+ * terminal, and the Actions link use it.
+ */
+let forkPlan = 'skip';
+const forkAnswers = [];
+async function answerFork(from) {
+  await page.waitForSelector('.ci-fork', { timeout: 5000 });
+  await page.waitForTimeout(400);
+  const focused = await page.evaluate(() => document.activeElement?.classList.contains('ci-fork-input'));
+  if (!focused) logs.push(`[questtest] fork (${from}): the address field isn't focused`);
+  if (forkPlan === 'skip') {
+    await shot(`fork-${from}`);
+    await page.click('.ci-fork-actions .ci-btn.ghost');
+  } else {
+    // A bad address first: it's refused with a message, and nothing is saved.
+    await page.keyboard.type('javascript:alert(1)');
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(200);
+    const err = await page.evaluate(() => document.querySelector('.ci-fork-error')?.textContent ?? '');
+    if (!/GitHub address/.test(err))
+      logs.push(`[questtest] fork (${from}): no error for a bad address (${err})`);
+    await page.fill('.ci-fork-input', '');
+    await page.keyboard.type(forkPlan, { delay: 10 });
+    await page.waitForTimeout(250);
+    const read = await page.evaluate(() => document.querySelector('.ci-fork-read')?.textContent ?? '');
+    if (!read.includes('dan-sample/copilot-app-for-beginners'))
+      logs.push(`[questtest] fork (${from}): read back ${JSON.stringify(read)}`);
+    await shot(`fork-${from}`);
+    await page.keyboard.press('Enter');
+  }
+  await page.waitForTimeout(300);
+  forkAnswers.push({
+    from,
+    plan: forkPlan,
+    saved: await page.evaluate(() => window.__dev.learn.getState().fork),
+  });
+}
+
 const seen = new Set();
 /** Drives dialogue, quizzes, and reveals until `done(state)` or the timeout. */
 async function drive(label, done, ms = 120000) {
@@ -69,7 +110,8 @@ async function drive(label, done, ms = 120000) {
   while (Date.now() - t0 < ms) {
     const s = await learnState();
     if (done(s)) return s;
-    if (s.quiz) {
+    if (s.forkForm) await answerFork(s.forkForm);
+    else if (s.quiz) {
       if (!seen.has(s.quiz.id)) {
         seen.add(s.quiz.id);
         await page.waitForTimeout(500);
@@ -235,9 +277,37 @@ if (gs) {
   await shot('gear-checks');
 } else logs.push('[questtest] no gear rack hook');
 
-// Pim & Pol: the Dry-Run Crane (P0.2). Every capstan turn and lever pull goes through E.
+// Pim & Pol: the Dry-Run Crane (P0.2). Every capstan turn and lever pull goes through E. Ezra's
+// register was skipped, so Pim asks for the fork: this time the run types one in.
+if (forkAnswers.length !== 1 || forkAnswers[0].saved)
+  logs.push(
+    `[questtest] fork: Ezra's register should have asked once and been skipped (${JSON.stringify(forkAnswers)})`,
+  );
+forkPlan = 'https://github.com/dan-sample/copilot-app-for-beginners.git';
+const FORK = 'dan-sample/copilot-app-for-beginners';
 await talk('pim');
 results.pim = await drive('pim', (s) => s.quests['Q0.7'] === 'crane' && !s.dialogue && !s.quiz && !s.reveal);
+{
+  const f = forkAnswers.at(-1);
+  if (forkAnswers.length !== 2 || f?.from !== 'crane' || `${f.saved?.owner}/${f.saved?.repo}` !== FORK)
+    logs.push(`[questtest] fork: the crane didn't save the typed fork (${JSON.stringify(forkAnswers)})`);
+}
+// The Actions page now links straight to the fork's Actions tab (checked in the Logbook copy).
+{
+  await page.evaluate(() => window.__dev.learn.openLogbook('pages', 'pg.workflows'));
+  await page.waitForTimeout(300);
+  const href = await page.evaluate(
+    () => document.querySelector('.ci-fork-link')?.getAttribute('href') ?? null,
+  );
+  if (href !== `https://github.com/${FORK}/actions`) logs.push(`[questtest] fork: Actions link is ${href}`);
+  await page.evaluate(() => window.__dev.learn.openLogbook('quests'));
+  await page.waitForTimeout(300);
+  const card = await page.evaluate(() => document.querySelector('.ci-fork-card')?.textContent ?? '');
+  if (!card.includes(FORK)) logs.push(`[questtest] fork: the Logbook card reads ${JSON.stringify(card)}`);
+  await shot('fork-logbook');
+  await page.evaluate(() => window.__dev.learn.closeLogbook());
+  await page.waitForTimeout(300);
+}
 const crane = () => page.evaluate(() => window.__dev.session().debug.puzzle('P0.2')?.state() ?? null);
 const cs = await page.evaluate(() => window.__dev.session().debug.puzzle('P0.2')?.spots() ?? null);
 if (cs) {
@@ -300,6 +370,13 @@ if (cs) {
   await tap('KeyE');
   await idle();
   await shot('crane-ghosts-yours');
+  {
+    const term = await page.evaluate(() => document.querySelector('.hud-term')?.textContent ?? '');
+    if (!term.includes(`Repository: ${FORK}`))
+      logs.push(
+        `[questtest] crane: the terminal doesn't show your fork (${JSON.stringify(term.slice(0, 200))})`,
+      );
+  }
   await stand(cs.yes);
   await tap('KeyE');
   await page.waitForTimeout(2500);

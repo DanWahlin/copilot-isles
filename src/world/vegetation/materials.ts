@@ -25,6 +25,7 @@ import {
   cameraViewMatrix,
   clamp,
   color,
+  cos,
   dot,
   float,
   floor,
@@ -55,6 +56,7 @@ import {
 import { world } from '../uniforms';
 import { terrainNoiseTexture } from '../terrain/noise-texture';
 import { gustNode } from '../wind-nodes';
+import { trackedPosition } from '../../engine/motion-vectors';
 import type { HeightGrid } from './types';
 
 // three's TSL fluent node typings do not cover the mixed scalar/vector graph assembled here.
@@ -217,9 +219,9 @@ export function createPalmMaterial(): MeshStandardNodeMaterial {
     select(frond, frondBend.mul(-0.16).add(flutter.mul(0.35)), float(0)),
     world.windDir.y.mul(select(frond, frondBend, stemBend).mul(heightGate)),
   );
-  material.positionNode = (positionLocal as AnyNode)
-    .add(stream)
-    .add(select(frond, sideFlutter, vec3(0, 0, 0))) as AnyNode;
+  material.positionNode = trackedPosition(
+    (positionLocal as AnyNode).add(stream).add(select(frond, sideFlutter, vec3(0, 0, 0))),
+  );
   return material;
 }
 
@@ -251,7 +253,35 @@ export function createVegetationMaterial(
   const isLeaf = greaterThan(part, float(0.5));
   const isFruit = greaterThan(part, float(1.5)).and(part.lessThan(float(2.5))) as AnyNode;
   const isDead = greaterThan(part, float(2.5)).and(part.lessThan(float(3.5))) as AnyNode;
-  const isRock = greaterThan(part, float(3.5));
+  const isRock = greaterThan(part, float(3.5)).and(part.lessThan(float(4.5))) as AnyNode;
+  // A leaf card (part 5): a spray of pointed leaves cut out of a round card, each leaf its own tone.
+  // Two offset grids of rotated lens shapes, so the sprays don't read as a grid.
+  const isCard = greaterThan(part, float(4.5)) as AnyNode;
+  const cardUv = uv() as AnyNode;
+  const cardLeaf = (scale: number, offset: number) => {
+    const q = cardUv.mul(scale).add(offset);
+    const cell = floor(q);
+    const h = hash12(cell.add(offset * 7.3)) as AnyNode;
+    const a = h.mul(6.2832);
+    const f = (fract(q) as AnyNode)
+      .sub(0.5)
+      .add((vec2 as AnyNode)(h.sub(0.5), fract(h.mul(13.7)).sub(0.5)).mul(0.22));
+    const ca = cos(a);
+    const sa = sin(a);
+    const along = f.x.mul(ca).sub(f.y.mul(sa)).div(0.5);
+    const across = abs(f.x.mul(sa).add(f.y.mul(ca)));
+    const inside = across
+      .lessThan(float(0.22).mul(float(1).sub(along.mul(along))))
+      .and(abs(along).lessThan(float(1))) as AnyNode;
+    return { inside, h };
+  };
+  const leafA = cardLeaf(4, 0);
+  const leafB = cardLeaf(4, 0.5);
+  const inLeaf = leafA.inside.or(leafB.inside) as AnyNode;
+  const leafHash = select(leafA.inside, leafA.h, leafB.h) as AnyNode;
+  const cardLeaves = inLeaf.and(
+    (fract(cardUv) as AnyNode).sub(0.5).length().lessThan(float(0.49)),
+  ) as AnyNode;
   const leafDeep = color(0x2b5622);
   const leafSun = color(0x72862e);
   const bark = sourceColor.mul(mix(color(0xa08f74), color(0xd2ac79), shade.mul(0.36)));
@@ -283,7 +313,22 @@ export function createVegetationMaterial(
   const rock = mix(plainRock, mix(barkTone, mossTone, barkMoss.mul(0.85)), barkOn);
   const leafAo = smoothstep(float(0.18), float(1.0), shade);
   const leafColor = mix(leafDeep, leafSun, leafAo) as AnyNode;
-  const leaf = (mix(sourceColor, leafColor, float(0.68)) as AnyNode).mul(tint.mul(0.14).add(0.72));
+  // A great tree's leaf masses (bark on) carry the cards' leaves as a pattern, dark between them,
+  // easing to its mean where the leaves shrink to a few pixels.
+  const massTone = mix(
+    select(inLeaf, leafHash.mul(0.3).add(0.92), float(0.6)),
+    float(0.84),
+    smoothstep(float(0.35), float(1), fwidth(cardUv.x).add(fwidth(cardUv.y)).mul(4)),
+  );
+  const isMass = isLeaf.and(part.lessThan(float(1.5)));
+  const cardTone = select(
+    isCard,
+    leafHash.mul(0.36).add(0.8),
+    select(isMass, mix(float(1), massTone, barkOn), float(1)),
+  ) as AnyNode;
+  const leaf = (mix(sourceColor, leafColor, float(0.68)) as AnyNode)
+    .mul(tint.mul(0.14).add(0.72))
+    .mul(cardTone);
   const trunkRings = abs(
     sin((positionGeometry as AnyNode).y.mul(9.4).add((positionLocal as AnyNode).x.mul(1.7))),
   ).smoothstep(float(0.78), float(0.99));
@@ -320,7 +365,7 @@ export function createVegetationMaterial(
   material.colorNode = albedo;
   material.emissiveNode = albedo.mul(translucency).mul(leafWeight) as AnyNode;
   material.roughnessNode = select(isRock, float(0.86), select(isLeaf, float(0.6), float(0.9))) as AnyNode;
-  material.maskNode = lodMask();
+  material.maskNode = lodMask().and(isCard.not().or(cardLeaves));
 
   const windDamp = float(1).sub(world.reducedMotion.mul(0.82));
   const heightGate = smoothstep(float(0.4), float(7.5), (positionGeometry as AnyNode).y);
@@ -331,7 +376,21 @@ export function createVegetationMaterial(
     .mul(0.41)
     .add((positionLocal as AnyNode).z.mul(0.27))
     .add(world.time.mul(2.7));
-  const flutter = sin(phase).mul(select(isLeaf, float(0.13), float(0.028)));
+  // A great tree (bark on) holds its wood still, and its leaves sway about where they hang: `vegPart`'s
+  // fraction is 0 where a clump meets its twig (or a vine its limb) and 0.4 at its far edge.
+  const hang = fract(part).mul(2.5).min(float(1));
+  const hangAmp = select(isLeaf.and(isRock.not()), hang.mul(0.2).mul(windDamp), float(0));
+  const rustle = sin(
+    world.time
+      .mul(6.1)
+      .add((positionLocal as AnyNode).x.mul(2.3))
+      .add((positionLocal as AnyNode).z.mul(1.9)),
+  )
+    .mul(hangAmp)
+    .mul(0.25);
+  const flutter = sin(phase)
+    .mul(mix(select(isLeaf, float(0.13), float(0.028)), hangAmp, barkOn))
+    .add(rustle.mul(barkOn));
   const bend = world.windSpeed.mul(0.018).mul(gust).mul(heightGate).mul(windDamp);
   const sway = (vec3 as AnyNode)(
     world.windDir.x.mul(bend.add(flutter)),
@@ -345,7 +404,7 @@ export function createVegetationMaterial(
     0,
     sin((positionGeometry as AnyNode).y.mul(0.36).add((positionLocal as AnyNode).x.mul(0.09))).mul(0.045),
   ).mul(curveGate);
-  material.positionNode = (positionLocal as AnyNode).add(sway).add(trunkCurve);
+  material.positionNode = trackedPosition((positionLocal as AnyNode).add(sway).add(trunkCurve));
   return material;
 }
 
@@ -409,11 +468,9 @@ export function createGrassMaterial(
     0.12,
   );
 
-  material.positionNode = (vec3 as AnyNode)(
-    worldXZ.x.add(sway.x),
-    terrainY.add(blade.mul(sizeFade)),
-    worldXZ.y.add(sway.z),
-  ) as AnyNode;
+  material.positionNode = trackedPosition(
+    (vec3 as AnyNode)(worldXZ.x.add(sway.x), terrainY.add(blade.mul(sizeFade)), worldXZ.y.add(sway.z)),
+  );
   const root = tint.mul(0.52);
   const tip = mix(tint.mul(float(1.08).add(sheen.mul(0.04))), color(0xb5c95a), float(0.42)) as AnyNode;
   const grassColor = (mix(root, tip, smoothstep(float(0.04), float(1.0), shade)) as AnyNode).mul(

@@ -207,7 +207,7 @@ export async function createThousandBoughAsync(
   const camBoxes: CameraBlockerBox[] = [
     ...village.out.cameraBoxes,
     ...rocks.cameraBoxes,
-    ...branchCameraBoxes(),
+    ...branchCameraBoxes(banyan.sprays),
   ];
   const circles = [...village.out.circles, ...rocks.circles];
   return {

@@ -10,6 +10,7 @@ import {
 } from 'three/webgpu';
 import type { VillageKit } from '../../village/kit';
 import { mergeWithRigidParts, type RigidParts } from '../../sites/rigid-parts';
+import { mulberry32 } from '../../../util/math';
 import type { ChannelRoutingState, Crew, Flow, FlumeTerraceView } from './contract';
 import { THOUSAND_BOUGH as TB } from './layout';
 import { thousandBoughHeight } from './height';
@@ -131,13 +132,136 @@ function elbowWater(b: Buckets, dye: number): void {
 }
 
 /** The kit's glow material shows its paint × 0.18 by day: dye the water bright enough to read. */
-function tintGlow(g: BufferGeometry, dye: number): void {
+function tintGlow(g: BufferGeometry, dye: number, strength = 4.6): void {
   const c = g.getAttribute('color');
   const r = ((dye >> 16) & 255) / 255;
   const gg = ((dye >> 8) & 255) / 255;
   const bb = (dye & 255) / 255;
-  for (let i = 0; i < c.count; i++) c.setXYZ(i, r * 4.6, gg * 4.6, bb * 4.6);
+  for (let i = 0; i < c.count; i++) c.setXYZ(i, r * strength, gg * strength, bb * strength);
   c.needsUpdate = true;
+}
+
+/**
+ * Fen's shared trough (the demo): one wide, plank-floored channel laid over the board (its tiles put
+ * away under it), falling with the rows, with ribs across it at the tiles' seams, posts and a rail
+ * down its sides on stone piers, and a lip at its foot. Built level about its centre; it's pitched
+ * down the slope where it's placed.
+ */
+const TROUGH_W = COLS * TILE + 0.4;
+const TROUGH_L = ROWS * TILE + 0.4;
+/** Its fall: the rows step down 0.5 m every tile. */
+const TROUGH_PITCH = Math.atan2(0.5, TILE);
+/** Its floor's underside at the board's centre: just over each row's tiles' floor (they're put away under it). */
+const TROUGH_Y = F.rowY[0]! - FLOOR + 0.02 - Math.tan(TROUGH_PITCH) * TILE;
+
+function troughWood(b: Buckets): void {
+  const paints = [PAINT.teak, PAINT.weathered, PAINT.plank, PAINT.teak, PAINT.weathered];
+  const n = Math.floor(TROUGH_W / 0.46);
+  for (let i = 0; i < n; i++) {
+    const x = -TROUGH_W / 2 + (i + 0.5) * (TROUGH_W / n);
+    box(b, 'wood', x, 0.06, 0, TROUGH_W / n - 0.04, 0.12, TROUGH_L, 0, paints[i % paints.length]!);
+  }
+  for (let k = 0; k <= ROWS; k++) {
+    const z = -TROUGH_L / 2 + 0.2 + k * TILE;
+    // A rib across the floor at each seam, its sleeper under it, a post and a pier each side.
+    box(b, 'wood', 0, 0.23, z, TROUGH_W - 0.1, 0.22, 0.16, 0, PAINT.teakDark);
+    box(b, 'wood', 0, 0.05, z, TROUGH_W + 0.5, 0.1, 0.24, 0, PAINT.teakDark);
+    for (const s of [-1, 1])
+      box(b, 'wood', s * (TROUGH_W / 2 + 0.24), 0.59, z, 0.22, 1.22, 0.22, 0, PAINT.weathered);
+  }
+  for (const s of [-1, 1]) {
+    box(b, 'wood', s * (TROUGH_W / 2 + 0.1), 0.39, 0, 0.18, 0.82, TROUGH_L, 0, PAINT.teakDark);
+    box(b, 'wood', s * (TROUGH_W / 2 + 0.2), 1.05, 0, 0.14, 0.12, TROUGH_L + 0.3, 0, PAINT.weathered);
+  }
+  // The lip at its foot, where it all spills into the sluice.
+  box(b, 'wood', 0, 0.2, TROUGH_L / 2 + 0.06, TROUGH_W + 0.4, 0.44, 0.14, 0, PAINT.teakDark);
+}
+
+/** The trough's stone piers: on the terrace's side walls, one a row each side (level, not pitched). */
+function troughPiers(b: Buckets): void {
+  const tan = Math.tan(TROUGH_PITCH);
+  for (let r = 0; r < ROWS; r++) {
+    const z = F.rows[r]! - F.center.z;
+    const top = TROUGH_Y - z * tan;
+    const bottom = F.rowY[r]! - FLOOR - 0.06;
+    for (const s of [-1, 1])
+      box(
+        b,
+        'stone',
+        s * (TROUGH_W / 2 + 0.24),
+        (top + bottom) / 2,
+        z,
+        0.62,
+        top - bottom,
+        0.62,
+        0.15,
+        PAINT.stone,
+      );
+  }
+}
+
+/** A reach of the trough's water (between two ribs): bands of the crews' dyes blurring into mud downstream. */
+function troughWater(b: Buckets, row: number): void {
+  const n = 12;
+  const w = (TROUGH_W - 0.6) / n;
+  const z = -TROUGH_L / 2 + 0.2 + (row + 0.5) * TILE;
+  const spread = 2.2 + row * 1.4;
+  const mud = 0.05 + row * row * 0.45;
+  const rand = mulberry32(0x7a0 + row);
+  for (let i = 0; i < n; i++) {
+    const x = -TROUGH_W / 2 + 0.3 + (i + 0.5) * w;
+    let r = ((DYE.mixed >> 16) & 255) * mud;
+    let g = ((DYE.mixed >> 8) & 255) * mud;
+    let bl = (DYE.mixed & 255) * mud;
+    let sum = mud;
+    for (const crew of CREWS) {
+      const d = x - (F.cols[F.gates[crew]]! - F.center.x);
+      const k = Math.exp(-((d / spread) ** 2));
+      r += ((DYE[crew] >> 16) & 255) * k;
+      g += ((DYE[crew] >> 8) & 255) * k;
+      bl += (DYE[crew] & 255) * k;
+      sum += k;
+    }
+    const dye = (Math.round(r / sum) << 16) | (Math.round(g / sum) << 8) | Math.round(bl / sum);
+    sheet(b, x, 0.31, z, w, TILE - 0.22, dye, 1.9);
+    // Streaks of light on the current (the water's moving, it isn't paint).
+    for (let k = 0; k < 2; k++) {
+      if (rand() < 0.35) continue;
+      const len = 0.4 + rand() * 1.1;
+      const sz = z + (rand() - 0.5) * (TILE - 0.6 - len);
+      sheet(b, x + (rand() - 0.5) * w * 0.8, 0.322, sz, 0.05, len, dye, 2.4 + rand() * 0.6);
+    }
+  }
+  // Foam where the water piles up against the rib below.
+  sheet(b, 0, 0.334, z + TILE / 2 - 0.2, TROUGH_W - 0.7, 0.1, PAINT.cream, 1.5);
+}
+
+/** A flat, glowing quad facing up (water, a streak, foam): two triangles where a box takes twelve. */
+function sheet(
+  b: Buckets,
+  x: number,
+  y: number,
+  z: number,
+  w: number,
+  d: number,
+  dye: number,
+  strength: number,
+): void {
+  const g = gridSurface(
+    b,
+    'glow',
+    [
+      { x: x - w / 2, y, z: z - d / 2 },
+      { x: x + w / 2, y, z: z - d / 2 },
+      { x: x - w / 2, y, z: z + d / 2 },
+      { x: x + w / 2, y, z: z + d / 2 },
+    ],
+    2,
+    2,
+    0xffffff,
+  );
+  g.computeVertexNormals();
+  tintGlow(g, dye, strength);
 }
 
 const TMP = new Matrix4();
@@ -214,16 +338,10 @@ export function createFlumeTerrace(
     wood.push(wheelGeometry());
   }
   woodIndex.trough = wood.length;
-  take(
-    (b) => {
-      box(b, 'wood', 0, 0.12, 0, COLS * TILE + 0.4, 0.24, ROWS * TILE + 0.4, 0, PAINT.weathered);
-      for (const s of [-1, 1])
-        box(b, 'wood', s * (COLS * TILE * 0.5 + 0.1), 0.6, 0, 0.2, 0.9, ROWS * TILE + 0.4, 0, PAINT.teakDark);
-    },
-    'wood',
-    wood,
-  );
-  const stoneIndex = { rocks: [] as number[], boulder: -1 };
+  take(troughWood, 'wood', wood);
+  const stoneIndex = { rocks: [] as number[], boulder: -1, piers: -1 };
+  stoneIndex.piers = stone.length;
+  take(troughPiers, 'stone', stone);
   for (let i = 0; i < ROWS * COLS; i++) {
     stoneIndex.rocks.push(stone.length);
     take(rockPiece, 'stone', stone);
@@ -258,16 +376,13 @@ export function createFlumeTerrace(
   take(frame(0xffe08a), 'glow', glow);
   const pulsePart = glow.length;
   take(frame(0xff5a3a), 'glow', glow);
-  // The demo's shared trough: a wide sheet of muddy water over the board.
-  const demoWater = glow.length;
-  take(
-    (b) => {
-      const g = box(b, 'glow', 0, 0.42, 0, COLS * TILE, 0.05, ROWS * TILE, 0, 0xffffff);
-      tintGlow(g, DYE.mixed);
-    },
-    'glow',
-    glow,
-  );
+  // The demo's shared trough's water, a reach between each pair of ribs: the three crews' dyes run
+  // in at their gates and blur into mud on the way down.
+  const demoWater: number[] = [];
+  for (let r = 0; r < ROWS; r++) {
+    demoWater.push(glow.length);
+    take((b) => troughWater(b, r), 'glow', glow);
+  }
 
   const woodParts = mergeWithRigidParts([], wood);
   const stoneParts = mergeWithRigidParts([], stone);
@@ -318,14 +433,19 @@ export function createFlumeTerrace(
   const water = new Int8Array(ROWS * COLS).fill(-1);
 
   const placeTiles = () => {
+    // The tiles are put away under the demo's trough until its boards come up.
+    const covered = !!demo && demo.t < 14;
     for (let i = 0; i < ROWS * COLS; i++) {
       const r = Math.floor(i / COLS);
       const c = i % COLS;
       const t = board[i]!;
       const rot = t.from + (t.rot - t.from) * Math.min(1, t.shown);
-      woodParts.set(woodIndex.straight[i]!, t.kind === 'straight' ? tileMatrix(r, c, rot, TMP) : ZERO);
-      woodParts.set(woodIndex.elbow[i]!, t.kind === 'elbow' ? tileMatrix(r, c, rot, TMP) : ZERO);
-      const rockShown = t.kind === 'rock' && !(round === 3 && r === 2 && c === 2 && boulder);
+      woodParts.set(
+        woodIndex.straight[i]!,
+        t.kind === 'straight' && !covered ? tileMatrix(r, c, rot, TMP) : ZERO,
+      );
+      woodParts.set(woodIndex.elbow[i]!, t.kind === 'elbow' && !covered ? tileMatrix(r, c, rot, TMP) : ZERO);
+      const rockShown = t.kind === 'rock' && !covered && !(round === 3 && r === 2 && c === 2 && boulder);
       stoneParts.set(stoneIndex.rocks[i]!, rockShown ? tileMatrix(r, c, 0, TMP) : ZERO);
       for (const dye of DYES) {
         const d = DYES.indexOf(dye);
@@ -356,19 +476,17 @@ export function createFlumeTerrace(
     }
   };
 
-  const centre = new Vector3(F.center.x, F.rowY[1]! + 0.15, F.center.z);
   const placeDemo = () => {
-    if (demo) {
-      const lift = Math.max(0, demo.t - 14) * 1.2;
-      Q.identity();
-      TMP.compose(V.set(centre.x, centre.y + lift, centre.z), Q, ONE);
-      const shown = demo.t < 17;
-      woodParts.set(woodIndex.trough, shown ? TMP : ZERO);
-      glowParts.set(demoWater, shown && demo.t > 2 ? TMP : ZERO);
-    } else {
-      woodParts.set(woodIndex.trough, ZERO);
-      glowParts.set(demoWater, ZERO);
-    }
+    const lift = demo ? Math.max(0, demo.t - 14) * 1.2 : 0;
+    const shown = !!demo && demo.t < 17;
+    Q.setFromAxisAngle(XV, TROUGH_PITCH);
+    TMP.compose(V.set(F.center.x, TROUGH_Y + lift, F.center.z), Q, ONE);
+    woodParts.set(woodIndex.trough, shown ? TMP : ZERO);
+    // The water runs down the trough a reach at a time.
+    for (let r = 0; r < ROWS; r++) glowParts.set(demoWater[r]!, shown && demo!.t > 2 + r * 0.6 ? TMP : ZERO);
+    Q.identity();
+    TMP.compose(V.set(F.center.x, lift, F.center.z), Q, ONE);
+    stoneParts.set(stoneIndex.piers, shown ? TMP : ZERO);
     if (boulder || round === 3) {
       const t = boulder ? Math.min(1, boulder.t / 1.6) : 1;
       const r2 = tileCentre(2, 2, V);

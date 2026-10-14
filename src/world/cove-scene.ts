@@ -47,6 +47,7 @@ import { ANCHORAGE_FISHING_BOATS } from './islands/anchorage/life';
 import { createMeridianTownAsync, type MeridianTownSystem } from './meridian-town';
 import { createBirds, type BirdsSystem } from './life/birds';
 import type { LeapsSystem } from './life/leaps';
+import { QuietSea } from './life/quiet-sea';
 import { villageExclusionAsync } from './village-exclusion';
 import { BRIGANTINE_CARGO, createCoveSites, type CoveSites } from './sites';
 import type { CircleObstacle } from './contracts';
@@ -96,6 +97,8 @@ export interface CoveScene {
   debris: BeachDebrisSystem;
   birds: BirdsSystem | null;
   leaps: LeapsSystem | null;
+  /** Stretches of sea the leaping fish and dolphins keep out of (a battle, a puzzle's course). */
+  quietSea: QuietSea;
   /**
    * How objects that join after the island's warm-up get warmed (the game's flow sets one that
    * matches the post's scene pass); without one they're precompiled with `compileAsync`.
@@ -484,6 +487,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   if (blobs) scene.add(blobs.mesh);
 
   let leaps: LeapsSystem | null = null;
+  const quietSea = new QuietSea();
   let lateWarm: ((roots: Object3D[]) => Promise<void>) | null = null;
   let disposed = false;
   let result: CoveScene | null = null;
@@ -492,7 +496,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     if (disposed || leaps || tier.leaps <= 0) return;
     const { createLeaps } = await import('./life/leaps');
     if (disposed || leaps) return;
-    const created = createLeaps({ tier, heightField });
+    const created = createLeaps({ tier, heightField, waves: ocean.field, quiet: quietSea });
     // In the scene for its warm (which keeps it from being drawn until it's built), then live.
     scene.add(created.group);
     if (lateWarm) await lateWarm([created.group]);
@@ -630,6 +634,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     debris,
     birds,
     leaps,
+    quietSea,
     starfish,
     detail,
     setLateWarm(warm) {

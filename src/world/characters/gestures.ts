@@ -349,6 +349,8 @@ export class GesturePlanner {
   private hip = 0;
   private readonly a = newPose();
   private readonly b = newPose();
+  /** The other hand carries something (a spyglass, a ledger): it stays with it, never on the hip. */
+  offHandHolds = false;
 
   constructor(
     private readonly hand: GestureHand,
@@ -420,7 +422,8 @@ export class GesturePlanner {
     f.nod = 0;
     f.tilt = 0;
     f.turn = 0;
-    const hipTarget = this.on && this.style === 'commander' && this.talkSide !== null ? 1 : 0;
+    const hipTarget =
+      this.on && this.style === 'commander' && this.talkSide !== null && !this.offHandHolds ? 1 : 0;
     this.hip += (hipTarget - this.hip) * (1 - Math.exp(-dt * 4));
     if (this.hip > 0.002) this.blendHip(this.hip);
     if (!this.on) {

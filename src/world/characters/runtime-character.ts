@@ -162,6 +162,8 @@ export class RuntimeCharacter implements Character {
   private handPoseL: ArmPose = REST_POSE;
   private handPoseR: ArmPose = REST_POSE;
   private readonly reads: boolean;
+  /** Carries something in a hand: the wave clip would swing it through the arm, so they nod hello. */
+  private readonly holding: boolean;
   /** A one-shot clip (a wave hello, a nod) blended over a standing idle, then handed back. */
   private overlay: { clip: CharacterClip; t: number; dur: number; peak: number } | null = null;
   /** Head-only nod (radians, down), set by the 'nod' gesture. */
@@ -188,11 +190,17 @@ export class RuntimeCharacter implements Character {
     this.npc = !PLAYER_BODIES.includes(body as PlayerBody);
     this.npcAnimRate = Math.max(0.1, options.tier?.npcAnimRate ?? 1);
     this.updateTarget = options.updateTarget ?? null;
+    // A hand that carries a prop (a ledger, a spyglass) never gestures: the other one talks.
+    const holds = (group.userData.holds ?? []) as number[];
+    const left = holds.includes(1);
+    const right = holds.includes(-1);
     this.gestures = new GesturePlanner(
-      config.hand ?? 'either',
+      left !== right ? (left ? 'right' : 'left') : (config.hand ?? 'either'),
       clips.has('nod'),
       config.gestures ?? (config.reads ? 'ledger' : 'open'),
     );
+    this.gestures.offHandHolds = left || right;
+    this.holding = left || right;
     this.reads = !!config.reads;
     this.capsule = { radius: config.radius * config.scale, height: config.height * config.scale };
     this.mixer = new AnimationMixer(group);
@@ -222,10 +230,9 @@ export class RuntimeCharacter implements Character {
     group.updateMatrixWorld(true);
     this.handL = this.npc && this.lowerArmL ? HandRig.of(this.lowerArmL, 1) : null;
     this.handR = this.npc && this.lowerArmR ? HandRig.of(this.lowerArmR, -1) : null;
-    // A hand that carries a prop (a ledger, a spyglass) keeps its fingers closed on it.
-    const holds = (group.userData.holds ?? []) as number[];
-    if (this.handL && holds.includes(1)) this.handL.grip = 1;
-    if (this.handR && holds.includes(-1)) this.handR.grip = 1;
+    // A hand that carries a prop keeps its fingers closed on it.
+    if (this.handL && left) this.handL.grip = 1;
+    if (this.handR && right) this.handR.grip = 1;
     this.fingersL = this.npc ? [] : fingerChains(this.lowerArmL);
     this.fingersR = this.npc ? [] : fingerChains(this.lowerArmR);
     this.upperLegL = bone(group, 'UpperLegL');
@@ -382,7 +389,7 @@ export class RuntimeCharacter implements Character {
 
   greet(): void {
     if (this.talking || !this.npc) return;
-    this.startOverlay('wave', 1);
+    this.startOverlay(this.holding ? 'nod' : 'wave', 1);
   }
 
   update(dt: number): void {

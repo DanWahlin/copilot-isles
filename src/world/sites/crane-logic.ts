@@ -9,7 +9,12 @@
  *   repository…") unless `--allow-shared-repository` is added.
  * - Outside a clone it stops with "Run this script from the root of a cloned Git repository."
  * - "Preview first" is the course's rule rather than the script's, so Pol enforces it.
+ *
+ * Your berth shows your own fork when you've given it (Ezra's register or the crane's form), passed
+ * in as `yours`; otherwise the placeholder `your-handle/copilot-app-for-beginners`.
  */
+import { FORK_PLACEHOLDER } from '../../learn/fork';
+
 type Owner = 'you' | 'captain' | 'guild';
 
 export interface CraneFacing {
@@ -19,9 +24,11 @@ export interface CraneFacing {
   heading: number;
   owner: Owner | null;
   repository: string | null;
+  /** Whose sloop it is, for Pim's remark (another captain's berth only). */
+  captain?: string;
 }
 
-export const YOUR_REPOSITORY = 'your-handle/copilot-app-for-beginners';
+export const YOUR_REPOSITORY = FORK_PLACEHOLDER;
 
 /** In the order the capstan turns them (clockwise seen from above): west, north, east, south. */
 export const CRANE_FACINGS: readonly CraneFacing[] = [
@@ -31,6 +38,7 @@ export const CRANE_FACINGS: readonly CraneFacing[] = [
     heading: -Math.PI / 2,
     owner: 'captain',
     repository: 'm-reyes/copilot-app-for-beginners',
+    captain: 'M. Reyes',
   },
   {
     id: 'berth3',
@@ -42,6 +50,28 @@ export const CRANE_FACINGS: readonly CraneFacing[] = [
   { id: 'berth1', berth: 1, heading: Math.PI / 2, owner: 'you', repository: YOUR_REPOSITORY },
   { id: 'quay', berth: null, heading: 0, owner: null, repository: null },
 ];
+
+/** Stand-ins for the other berths if the player's own fork happens to share an owner with one. */
+const DECOY_SPARES: Readonly<Record<'captain' | 'guild', { repository: string; captain?: string }>> = {
+  captain: { repository: 'j-okafor/copilot-app-for-beginners', captain: 'J. Okafor' },
+  guild: { repository: 'tidewater-guild/copilot-app-for-beginners' },
+};
+
+const ownerOf = (repo: string) => repo.split('/')[0]!.toLowerCase();
+
+/**
+ * The berths with your own fork on yours. The other captains' forks stay as decoys, swapped for a
+ * spare if one shares your fork's owner (so only your berth ever shows your name).
+ */
+export function craneFacings(yours: string = YOUR_REPOSITORY): readonly CraneFacing[] {
+  if (yours === YOUR_REPOSITORY) return CRANE_FACINGS;
+  return CRANE_FACINGS.map((f) => {
+    if (f.owner === 'you') return { ...f, repository: yours };
+    if ((f.owner === 'captain' || f.owner === 'guild') && ownerOf(f.repository!) === ownerOf(yours))
+      return { ...f, ...DECOY_SPARES[f.owner] };
+    return f;
+  });
+}
 
 /** The crane starts aimed at another captain's sloop (POC §4.5). */
 export const CRANE_START = 0;
@@ -105,9 +135,9 @@ export function turnCapstan(s: CraneState): CraneStep {
 }
 
 /** `node .github/scripts/setup-training-scenarios.js --dry-run` */
-export function dryRun(s: CraneState): CraneStep {
+export function dryRun(s: CraneState, yours: string = YOUR_REPOSITORY): CraneStep {
   if (s.complete) return { state: s, event: { kind: 'already' } };
-  const f = CRANE_FACINGS[s.facing]!;
+  const f = craneFacings(yours)[s.facing]!;
   if (!f.owner || !f.repository) return { state: { ...s, preview: null }, event: { kind: 'not-a-repo' } };
   return {
     state: { ...s, preview: s.facing },
@@ -116,9 +146,9 @@ export function dryRun(s: CraneState): CraneStep {
 }
 
 /** `node .github/scripts/setup-training-scenarios.js --yes` */
-export function confirmYes(s: CraneState): CraneStep {
+export function confirmYes(s: CraneState, yours: string = YOUR_REPOSITORY): CraneStep {
   if (s.complete) return { state: s, event: { kind: 'already' } };
-  const f = CRANE_FACINGS[s.facing]!;
+  const f = craneFacings(yours)[s.facing]!;
   if (!f.owner || !f.repository) return { state: s, event: { kind: 'not-a-repo' } };
   if (s.preview !== s.facing) return { state: s, event: { kind: 'preview-first' } };
   if (f.owner !== 'you')
@@ -127,8 +157,12 @@ export function confirmYes(s: CraneState): CraneStep {
 }
 
 /** The painted `Repository:` sign on the arm (two lines), after `event` (or the state alone). */
-export function signLines(s: CraneState, event?: CraneEvent): [string, string] {
-  if (s.complete) return [`Repository: ${YOUR_REPOSITORY}`, 'Setup complete.'];
+export function signLines(
+  s: CraneState,
+  event?: CraneEvent,
+  yours: string = YOUR_REPOSITORY,
+): [string, string] {
+  if (s.complete) return [`Repository: ${yours}`, 'Setup complete.'];
   switch (event?.kind) {
     case 'not-a-repo':
       return ['Setup failed:', 'run it from the root of a cloned Git repository.'];
@@ -137,7 +171,7 @@ export function signLines(s: CraneState, event?: CraneEvent): [string, string] {
     default:
       break;
   }
-  const f = CRANE_FACINGS[s.facing]!;
+  const f = craneFacings(yours)[s.facing]!;
   if (s.preview === s.facing && f.repository) return [`Repository: ${f.repository}`, 'Default branch: main'];
   return ['Repository:', '(pull Dry-Run to preview)'];
 }
@@ -153,16 +187,10 @@ const planned = () => {
  * The terminal panel at the crane: what the setup script printed last, after `event` (or the
  * state alone). The arm sign carries the `Repository:` line; this is the whole readout.
  */
-export function terminalLines(s: CraneState, event?: CraneEvent): string[] {
+export function terminalLines(s: CraneState, event?: CraneEvent, yours: string = YOUR_REPOSITORY): string[] {
   const [a, b] = planned();
   if (s.complete)
-    return [
-      `${SETUP_COMMAND} --yes`,
-      `Repository: ${YOUR_REPOSITORY}`,
-      `Created ${a}`,
-      `${b}.`,
-      'Setup complete.',
-    ];
+    return [`${SETUP_COMMAND} --yes`, `Repository: ${yours}`, `Created ${a}`, `${b}.`, 'Setup complete.'];
   switch (event?.kind) {
     case 'not-a-repo':
       return [`${SETUP_COMMAND} --dry-run`, 'Run this script from the root', 'of a cloned Git repository.'];
@@ -176,7 +204,7 @@ export function terminalLines(s: CraneState, event?: CraneEvent): string[] {
     default:
       break;
   }
-  const f = CRANE_FACINGS[s.facing]!;
+  const f = craneFacings(yours)[s.facing]!;
   if (s.preview === s.facing && f.repository)
     return [
       `${SETUP_COMMAND} --dry-run`,
@@ -192,10 +220,10 @@ export function terminalLines(s: CraneState, event?: CraneEvent): string[] {
 export type LineTone = 'cmd' | 'you' | 'other' | 'ok';
 
 /** How a readout line is inked: the command, your fork, anyone else's (and failures), or success. */
-export function lineTone(line: string): LineTone | undefined {
-  const yourOwner = `${YOUR_REPOSITORY.split('/')[0]}/`;
+export function lineTone(line: string, yours: string = YOUR_REPOSITORY): LineTone | undefined {
+  const yourOwner = `${yours.split('/')[0]}/`;
   if (line.startsWith('$')) return 'cmd';
-  if (line.includes(YOUR_REPOSITORY) || line === yourOwner) return 'you';
+  if (line.endsWith(` ${yours}`) || line === yours || line === yourOwner) return 'you';
   if (/^Repository: .+|^[\w-]+\/$/.test(line) || /^(Refusing|Setup failed|Run this)/.test(line))
     return 'other';
   if (line === 'Setup complete.' || line.startsWith('Dry run complete.')) return 'ok';

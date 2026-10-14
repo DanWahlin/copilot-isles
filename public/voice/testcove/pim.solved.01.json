@@ -1,7 +1,7 @@
 {
   "id": "pim.solved.01",
   "speaker": "Pim",
-  "text": "In the app, you run both commands in that same Terminal tab, from the repository root.",
+  "text": "In the app, run both commands in Terminal, from the repository root.",
   "words": [
     {
       "word": "In",
@@ -16,72 +16,52 @@
     {
       "word": "app",
       "start": 0.301333,
-      "end": 0.725458
-    },
-    {
-      "word": "you",
-      "start": 0.725458,
-      "end": 0.848208
+      "end": 0.736625
     },
     {
       "word": "run",
-      "start": 0.848208,
-      "end": 1.037958
+      "start": 0.736625,
+      "end": 0.959833
     },
     {
       "word": "both",
-      "start": 1.037958,
-      "end": 1.272333
+      "start": 0.959833,
+      "end": 1.183041
     },
     {
       "word": "commands",
-      "start": 1.272333,
-      "end": 1.674125
+      "start": 1.183041,
+      "end": 1.573666
     },
     {
       "word": "in",
-      "start": 1.674125,
-      "end": 1.774541
-    },
-    {
-      "word": "that",
-      "start": 1.774541,
-      "end": 1.875
-    },
-    {
-      "word": "same",
-      "start": 1.875,
-      "end": 2.109375
+      "start": 1.573666,
+      "end": 1.696416
     },
     {
       "word": "Terminal",
-      "start": 2.109375,
-      "end": 2.4665
-    },
-    {
-      "word": "tab",
-      "start": 2.4665,
-      "end": 3.00225
+      "start": 1.696416,
+      "end": 2.265625
     },
     {
       "word": "from",
-      "start": 3.00225,
-      "end": 3.136166
+      "start": 2.265625,
+      "end": 2.421875
     },
     {
       "word": "the",
-      "start": 3.136166,
-      "end": 3.191958
+      "start": 2.421875,
+      "end": 2.477666
     },
     {
       "word": "repository",
-      "start": 3.191958,
-      "end": 3.738833
+      "start": 2.477666,
+      "end": 3.035708
     },
     {
       "word": "root",
-      "start": 3.738833,
-      "end": 3.988833
+      "start": 3.035708,
+      "end": 3.285708
     }
   ]
 }

@@ -1,0 +1,87 @@
+{
+  "id": "ezra.fork.register",
+  "speaker": "Ezra",
+  "text": "Forked it? Write its address in my register, so the harbour knows which ship is yours.",
+  "words": [
+    {
+      "word": "Forked",
+      "start": 0.07,
+      "end": 0.59
+    },
+    {
+      "word": "it",
+      "start": 0.59,
+      "end": 1.19
+    },
+    {
+      "word": "Write",
+      "start": 1.19,
+      "end": 1.55
+    },
+    {
+      "word": "its",
+      "start": 1.55,
+      "end": 1.71
+    },
+    {
+      "word": "address",
+      "start": 1.71,
+      "end": 2.15
+    },
+    {
+      "word": "in",
+      "start": 2.15,
+      "end": 2.23
+    },
+    {
+      "word": "my",
+      "start": 2.23,
+      "end": 2.389
+    },
+    {
+      "word": "register",
+      "start": 2.389,
+      "end": 3.19
+    },
+    {
+      "word": "so",
+      "start": 3.19,
+      "end": 3.429
+    },
+    {
+      "word": "the",
+      "start": 3.429,
+      "end": 3.55
+    },
+    {
+      "word": "harbour",
+      "start": 3.55,
+      "end": 3.909
+    },
+    {
+      "word": "knows",
+      "start": 3.909,
+      "end": 4.23
+    },
+    {
+      "word": "which",
+      "start": 4.23,
+      "end": 4.47
+    },
+    {
+      "word": "ship",
+      "start": 4.47,
+      "end": 4.75
+    },
+    {
+      "word": "is",
+      "start": 4.75,
+      "end": 4.83
+    },
+    {
+      "word": "yours",
+      "start": 4.83,
+      "end": 5.08
+    }
+  ]
+}

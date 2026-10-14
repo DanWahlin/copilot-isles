@@ -18,6 +18,7 @@ import {
   BRANCHES,
   TRUNK_BASE,
   canopyClusters,
+  carryingSprays,
   groundRoots,
   hangingVines,
   propRoots,
@@ -25,17 +26,20 @@ import {
   type PropRoot,
 } from './shape';
 
-/** Leaf clusters, prop roots and LOD detail per tier (spec §9.4, §9.8). */
+/**
+ * Leaf clusters, prop roots and LOD detail per tier (spec §9.4, §9.8). The clusters' count sets their
+ * spacing and so their size: fewer tiers' clumps are bigger, and the canopy stays one ceiling.
+ */
 const TIER_TREE: Record<
   TierSettings['tier'],
   { clusters: number; roots: number; near: BanyanDetail; vines: number; ground: number }
 > = {
-  lite: { clusters: 250, roots: 12, near: BANYAN_DETAIL.lite, vines: 0, ground: 8 },
-  low: { clusters: 430, roots: 24, near: BANYAN_DETAIL.lite, vines: 30, ground: 22 },
+  lite: { clusters: 340, roots: 12, near: BANYAN_DETAIL.lite, vines: 0, ground: 8 },
+  low: { clusters: 480, roots: 24, near: { ...BANYAN_DETAIL.lite, cards: 6 }, vines: 30, ground: 22 },
   medium: {
-    clusters: 780,
+    clusters: 900,
     roots: 36,
-    near: { ...BANYAN_DETAIL.near, tufts: 1, fine: false },
+    near: { ...BANYAN_DETAIL.near, lobes: 1, cards: 6 },
     vines: 50,
     ground: 24,
   },
@@ -47,13 +51,14 @@ const TIER_TREE: Record<
 export const BANYAN_LOD = { near: 120, band: 10 } as const;
 
 /**
- * The follow camera keeps out of the limbs, the boughs and the leaders (a box round each 3 m of
- * them); leaves aren't blockers (they keep clear of every walk instead).
+ * The follow camera keeps out of the limbs, the boughs, the leaders and the sprays the tier draws (a
+ * box round each 3 m of them); leaves aren't blockers (they keep clear of every walk instead).
  */
-export function branchCameraBoxes(): CameraBlockerBox[] {
+export function branchCameraBoxes(sprays: ReadonlySet<string> = new Set()): CameraBlockerBox[] {
   const out: CameraBlockerBox[] = [];
   for (const b of BRANCHES) {
     if (b.id.startsWith('pillar')) continue;
+    if (b.parent && !sprays.has(b.id)) continue;
     const pts = b.points;
     for (let i = 0; i < pts.length - 1; i++) {
       const a = pts[i]!;
@@ -92,6 +97,8 @@ export interface Banyan {
   /** The little sister tree at Bough Landing. */
   sister: InstancedMesh;
   clusters: readonly Cluster[];
+  /** The canopy sprays the near tree draws (the ones carrying its leaves). */
+  sprays: ReadonlySet<string>;
   roots: readonly PropRoot[];
   /** Picks the level of detail for a camera at (x, z) (no allocation). */
   lod(x: number, z: number): void;
@@ -105,19 +112,12 @@ export interface Banyan {
  */
 export function createBanyan(tier: TierSettings, clearance: WalkClearance): Banyan {
   const t = TIER_TREE[tier.tier];
-  // On Lite and Low fewer, bigger clumps, so the crown stays one full dome.
-  const clusters = canopyClusters(
-    t.clusters,
-    clearance,
-    tier.tier === 'lite' ? 1.5 : tier.tier === 'low' ? 1.2 : 1,
-  );
-  // The far tree (from the sea): half the clumps, bigger, so its crown reads as one full dome.
-  const farClusters = canopyClusters(
-    Math.round(t.clusters / 2),
-    clearance,
-    tier.tier === 'lite' ? 1.75 : 1.55,
-  );
-  // The little sister by the landing is seen close: ragged lobes where the tier has the room.
+  const clusters = canopyClusters(t.clusters, clearance);
+  // The far tree (from the sea): half the clumps, a little bigger, so its crown reads as one full dome.
+  const farClusters = canopyClusters(Math.round(t.clusters / 2), clearance, 1.1);
+  // The little sister by the landing is seen close but small: a quarter of the clumps, leaf cards
+  // and ragged lobes where the tier has the room.
+  const sisterClusters = canopyClusters(Math.round(t.clusters / 4), clearance, 1.05);
   const fine = tier.tier === 'high' || tier.tier === 'ultra';
   const roots = propRoots(t.roots);
   const ground = groundRoots(t.ground, roots);
@@ -163,7 +163,11 @@ export function createBanyan(tier: TierSettings, clearance: WalkClearance): Bany
     false,
   );
   const sister = make(
-    buildBanyan({ ...BANYAN_DETAIL.far, lobes: fine ? 3 : 2, fine }, farClusters, []),
+    buildBanyan(
+      { ...BANYAN_DETAIL.far, lobes: 1, cards: fine ? 5 : 3, twigs: true, fine },
+      sisterClusters,
+      [],
+    ),
     'thousand-bough-sister',
     true,
   );
@@ -176,6 +180,7 @@ export function createBanyan(tier: TierSettings, clearance: WalkClearance): Bany
     far,
     sister,
     clusters,
+    sprays: carryingSprays(clusters),
     roots,
     lod(x, z) {
       const d = Math.hypot(x - TREE.x, z - TREE.z);

@@ -146,6 +146,16 @@ describe('GesturePlanner', () => {
     expect(f.left.curl).toBeLessThan(0.05);
   });
 
+  it('keeps a commander’s carrying hand with its prop, off the hip', () => {
+    const p = new GesturePlanner('right', true, 'commander', seeded(2));
+    p.offHandHolds = true;
+    p.start();
+    for (let i = 0; i < 60 * 20; i++) {
+      const f = p.update(1 / 60);
+      expect(f.left.inward + f.left.flex + f.left.abduct + f.left.elbow).toBe(0);
+    }
+  });
+
   it('times a voiced line’s strokes from its words', () => {
     const p = new GesturePlanner('either', true, 'open', seeded(3));
     p.start();

@@ -148,8 +148,14 @@ repairs.
 
 - **Your hull** has 100 points. A ball hit takes 4–7. A full enemy broadside rarely lands more than 2–3.
 - **Raider hulls**: cutter 45, brigantine 80. A hit takes 6–9 (×1.5 when double-shotted).
-- Hits throw **splinters** (small wood chips, pooled) and a **dark scorch** decal fades on the hull. Misses
-  throw a **splash** (the Leaps crown and plume, larger).
+- Hits throw **splinters** (small wood chips, pooled) and a **puff** of smoke and dust from the struck
+  side, and a **dark scorch** decal fades on the hull. A hit makes no splash. Misses throw a **splash** (the
+  Leaps crown and plume, larger) exactly where the ball goes into the sea.
+- **Every splash has a cause you can see** (2026-10-13): a ball flies as a dark dash with a short smoke
+  trail, a splash only comes from a ball going in or a sinking hull, splinters land without one, the
+  splashes sit on the sea as it's drawn (the battle samples the ocean's clock, not its own), and no
+  dolphin or flying fish leaps while a battle is on (`QuietSea`, `src/world/life/quiet-sea.ts`). Tested by
+  `src/world/battle/splashes.test.ts`.
 - At 0 a raider **strikes its colours** (the flag comes down), a **rowing boat** pulls away from its lee
   side toward the fog, and the hull **lists and settles** over ≈ 12 s and slips under. It leaves 3–5 bobbing
   **stores** (barrels, crates) that float for 40 s.
@@ -237,7 +243,7 @@ trim. Only one raider in a wave fires at a time (a 2.5 s token) so warnings neve
 
 **Draw calls added in battle (High)**: raider ships (measured per ship in the prototype; the target is ≤ 3
 ships × the brigantine's count at a low-detail tier), plus one instanced draw each for cannonballs (pool 64),
-splashes (pool 64), muzzle smoke (pool 72), splinters (pool 96), stores (pool 24), rowing boats (pool 4),
+splashes (pool 64), muzzle smoke (pool 72, plus 128 trail puffs in the same draw), splinters (pool 96), stores (pool 24), rowing boats (pool 4),
 the firing arcs (one mesh), and the warning arcs (one mesh): **≤ 8 + ships**.
 
 **Pipelines (§15.4)**: ≤ 6 new (ball, smoke, splinters, stores, arcs, rowing boat). The splash reuses its

@@ -1,77 +1,67 @@
 {
   "id": "pol.refuse.guild.01",
   "speaker": "Pol",
-  "text": "Hear that pawl? The script stops before changing a repository owned by an organization.",
+  "text": "Refused! An organization owns that one. The script stops before changing it.",
   "words": [
     {
-      "word": "Hear",
+      "word": "Refused",
       "start": 0.0486659,
-      "end": 0.249541
+      "end": 1.690625
     },
     {
-      "word": "that",
-      "start": 0.249541,
-      "end": 0.439291
-    },
-    {
-      "word": "pawl",
-      "start": 0.439291,
-      "end": 1.646
-    },
-    {
-      "word": "The",
-      "start": 1.646,
-      "end": 1.76875
-    },
-    {
-      "word": "script",
-      "start": 1.76875,
-      "end": 2.148208
-    },
-    {
-      "word": "stops",
-      "start": 2.148208,
-      "end": 2.594625
-    },
-    {
-      "word": "before",
-      "start": 2.594625,
-      "end": 2.962958
-    },
-    {
-      "word": "changing",
-      "start": 2.962958,
-      "end": 3.375875
-    },
-    {
-      "word": "a",
-      "start": 3.375875,
-      "end": 3.431708
-    },
-    {
-      "word": "repository",
-      "start": 3.431708,
-      "end": 4.079
-    },
-    {
-      "word": "owned",
-      "start": 4.079,
-      "end": 4.346875
-    },
-    {
-      "word": "by",
-      "start": 4.346875,
-      "end": 4.536625
-    },
-    {
-      "word": "an",
-      "start": 4.536625,
-      "end": 4.61475
+      "word": "An",
+      "start": 1.690625,
+      "end": 1.902666
     },
     {
       "word": "organization",
-      "start": 4.61475,
-      "end": 4.86475
+      "start": 1.902666,
+      "end": 2.750875
+    },
+    {
+      "word": "owns",
+      "start": 2.750875,
+      "end": 3.063375
+    },
+    {
+      "word": "that",
+      "start": 3.063375,
+      "end": 3.264291
+    },
+    {
+      "word": "one",
+      "start": 3.264291,
+      "end": 4.436166
+    },
+    {
+      "word": "The",
+      "start": 4.436166,
+      "end": 4.558916
+    },
+    {
+      "word": "script",
+      "start": 4.558916,
+      "end": 4.938375
+    },
+    {
+      "word": "stops",
+      "start": 4.938375,
+      "end": 5.396
+    },
+    {
+      "word": "before",
+      "start": 5.396,
+      "end": 5.764291
+    },
+    {
+      "word": "changing",
+      "start": 5.764291,
+      "end": 6.17725
+    },
+    {
+      "word": "it",
+      "start": 6.17725,
+      "end": 6.42725
     }
   ]
 }

@@ -119,10 +119,10 @@ export const CH00: ChapterContent = {
       id: 'S0.3',
       type: 'scenario',
       situation:
-        'You select **Add GitHub repository** and search for `copilot-app-for-beginners`. Say two results come up: `github/copilot-app-for-beginners` and `your-handle/copilot-app-for-beginners`.',
+        'You select **Add GitHub repository** and search for `copilot-app-for-beginners`. Say two results come up: `github/copilot-app-for-beginners` and `{fork}`.',
       prompt: 'Which one do you pick?',
       options: [
-        { id: 'fork', text: '`your-handle/copilot-app-for-beginners`, your fork' },
+        { id: 'fork', text: '`{fork}`, your fork' },
         {
           id: 'upstream',
           text: '`github/copilot-app-for-beginners`, the original course',
@@ -477,6 +477,7 @@ export const CH00: ChapterContent = {
       title: 'Fork the course',
       caption:
         'Fork the course repository on GitHub at [github.com/github/copilot-app-for-beginners/fork](https://github.com/github/copilot-app-for-beginners/fork). Your practice work, and the practice items the setup script adds, go in your fork, not the original.',
+      fork: ['repo'],
       source: src('connect-to-your-repository', '365638d573db'),
     },
     {
@@ -513,6 +514,7 @@ export const CH00: ChapterContent = {
       title: 'Turn on workflows',
       caption:
         'New forks start with GitHub Actions switched off. On GitHub.com, open your fork’s **Actions** tab and select **I understand my workflows, go ahead and enable them** so the practice checks can run.',
+      fork: ['actions'],
       source: src('add-the-course-practice-items', '15d697dd1d02'),
     },
     {
@@ -520,6 +522,7 @@ export const CH00: ChapterContent = {
       title: 'The practice checks',
       caption:
         'With workflows on, GitHub runs automated checks on your fork’s pull requests. One of the practice pull requests has a check that fails on purpose, so you can fix it in a later chapter.',
+      fork: ['actions', 'pulls'],
       source: src('add-the-course-practice-items', '15d697dd1d02'),
     },
     {
@@ -530,6 +533,7 @@ export const CH00: ChapterContent = {
       code:
         'node .github/scripts/setup-training-scenarios.js --dry-run   # preview; check Repository:\n' +
         'node .github/scripts/setup-training-scenarios.js --yes       # wait for "Setup complete."',
+      fork: ['issues', 'pulls'],
       source: src('add-the-course-practice-items', '15d697dd1d02'),
     },
     {
@@ -567,6 +571,7 @@ export const CH00: ChapterContent = {
       caption:
         'The setup script won’t change a repository an organization owns. Add `--allow-shared-repository` only if you’re authorized and the `Repository:` line shows the right target. Issues missing? On GitHub.com, open your fork’s **Settings** → **Features**, turn on **Issues**, and rerun. Can’t run the script at all? The course’s Training GitHub Scenarios appendix has the manual steps. Do them before Chapter 02.',
       code: 'node .github/scripts/setup-training-scenarios.js --yes --allow-shared-repository',
+      fork: ['settings', 'issues'],
       source: src('the-script-stops-for-an-organization-fork', 'b65840384055'),
     },
     {
@@ -654,15 +659,17 @@ export const CH00: ChapterContent = {
     'bo.gear.brief.02': src('check-your-tools-in-terminal', '6ff94698a3b3'),
     'bo.gear.brief.03': src('check-your-tools-in-terminal', '6ff94698a3b3'),
     'bo.gear.checked.02': src('check-your-tools-in-terminal', '6ff94698a3b3'),
+    'pim.brief.01': src('add-the-course-practice-items', '15d697dd1d02'),
     'pol.brief.01': src('add-the-course-practice-items', '15d697dd1d02'),
+    'pol.brief.actions': src('add-the-course-practice-items', '15d697dd1d02'),
     'pim.brief.02': src('add-the-course-practice-items', '15d697dd1d02'),
     'pol.brief.02': src('add-the-course-practice-items', '15d697dd1d02'),
     'pim.brief.03': src('add-the-course-practice-items', '15d697dd1d02'),
-    'pol.brief.actions': src('add-the-course-practice-items', '15d697dd1d02'),
-    'pim.brief.actions': src('add-the-course-practice-items', '15d697dd1d02'),
-    'pol.brief.03': src('add-the-course-practice-items', '15d697dd1d02'),
-    'pim.brief.04': src('add-the-course-practice-items', '15d697dd1d02'),
+    'pol.solved.01': src('add-the-course-practice-items', '15d697dd1d02'),
     'pim.solved.01': src('add-the-course-practice-items', '15d697dd1d02'),
+    'pim.done.01': src('add-the-course-practice-items', '15d697dd1d02'),
+    'pol.refuse.guild.01': src('the-script-stops-for-an-organization-fork', 'b65840384055'),
+    'pim.refuse.guild.01': src('the-script-stops-for-an-organization-fork', 'b65840384055'),
     'suri.brief.02': src('add-the-course-practice-items', '15d697dd1d02'),
     'wingman.suri.01': src('add-the-course-practice-items', '15d697dd1d02'),
     'juno.brief.02': src('learn-more-about-the-course-repository', '104572df79ac'),

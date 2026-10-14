@@ -277,6 +277,9 @@ export function npcScript(
             { term: 'fork' },
             { page: 'pg.fork' },
             { say: 'ezra.fork.link' },
+            // Right after forking, the fork's URL is in the browser: write it in Ezra's register
+            // (Skip for now always works). The crane's sign, Bo's rack, and fork links use it.
+            { askFork: 'ezra', line: 'ezra.fork.register' },
             {
               show: 'shared/app-github-copilot-app',
               caption: 'Then add your fork to the app, starting from the **New** view.',
@@ -285,7 +288,8 @@ export function npcScript(
             { quiz: 'H0.2' },
             {
               show: 'ch00/app-add-project',
-              caption: '**+** next to **Projects** → **Add GitHub repository**, then pick your fork.',
+              caption:
+                '**+** next to **Projects** → **Add GitHub repository**, then pick your fork, `{fork}`.',
             },
             { say: 'ezra.fork.03' },
             { say: 'ezra.fork.careful' },
@@ -475,31 +479,30 @@ export const SURI_SOLVED: readonly ScriptStep[] = [
 ];
 
 /**
- * Pim and Pol's opening beat (Q0.7), the course's "Add the course practice items": what the setup
- * script adds, turning on workflows in the fork's Actions tab (on GitHub.com), then P0.2.
+ * Pim and Pol's opening beat (Q0.7), the course's "Add the course practice items", kept short and
+ * literal: what the setup script adds to your fork (practice, not problems), your fork's address if
+ * Ezra didn't get it (for the crane's sign and the Actions link), turning on workflows in the
+ * fork's Actions tab on GitHub.com, then the rule: `--dry-run`, check `Repository:`, then `--yes`.
  */
 const CRANE_BRIEF: readonly ScriptStep[] = [
   { say: 'pim.brief.01' },
   { say: 'pol.brief.01' },
-  { say: 'pim.brief.02' },
-  { say: 'pol.brief.02' },
-  { say: 'pim.brief.03' },
+  { askFork: 'crane', line: 'pim.brief.fork' },
   { say: 'pol.brief.actions' },
-  { say: 'pim.brief.actions' },
   { term: 'github-actions' },
   { page: 'pg.workflows', doubloons: 10 },
-  { say: 'pol.brief.03' },
+  { say: 'pim.brief.02' },
+  { say: 'pol.brief.02' },
   { term: 'dry-run' },
-  { say: 'pim.brief.04' },
+  { say: 'pim.brief.03' },
   { quest: 'Q0.7', step: 'crane' },
 ];
 
-/** Pol's closing beat once the crane's done (P0.2), also used if you come back after quitting. */
+/** Pol and Pim's closing beat once the crane's done (P0.2), also used if you come back after quitting. */
 export const POL_SOLVED: readonly ScriptStep[] = [
   { say: 'pol.solved.01' },
   { say: 'pim.solved.01' },
   { page: 'P0.S', doubloons: 20 },
-  { say: 'pol.solved.02' },
   { say: 'pim.solved.03' },
   { quest: 'Q0.7', step: 'done' },
   { quest: 'Q0.8', step: 'start' },

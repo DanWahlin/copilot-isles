@@ -1,0 +1,67 @@
+{
+  "id": "pim.brief.fork",
+  "speaker": "Pim",
+  "text": "What's your fork's address, Captain? We'll paint it on the crane's sign.",
+  "words": [
+    {
+      "word": "What's",
+      "start": 0.044625,
+      "end": 0.279
+    },
+    {
+      "word": "your",
+      "start": 0.279,
+      "end": 0.368291
+    },
+    {
+      "word": "fork's",
+      "start": 0.368291,
+      "end": 0.647333
+    },
+    {
+      "word": "address",
+      "start": 0.647333,
+      "end": 1.272333
+    },
+    {
+      "word": "Captain",
+      "start": 1.272333,
+      "end": 2.444208
+    },
+    {
+      "word": "We'll",
+      "start": 2.444208,
+      "end": 2.62275
+    },
+    {
+      "word": "paint",
+      "start": 2.62275,
+      "end": 2.857125
+    },
+    {
+      "word": "it",
+      "start": 2.857125,
+      "end": 2.93525
+    },
+    {
+      "word": "on",
+      "start": 2.93525,
+      "end": 3.058041
+    },
+    {
+      "word": "the",
+      "start": 3.058041,
+      "end": 3.1585
+    },
+    {
+      "word": "crane's",
+      "start": 3.1585,
+      "end": 3.4375
+    },
+    {
+      "word": "sign",
+      "start": 3.4375,
+      "end": 3.6875
+    }
+  ]
+}

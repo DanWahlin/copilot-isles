@@ -4,9 +4,11 @@ import { CHAPTERS } from '../../learn/content/index';
 import { loadGlossary, prefetchChapter } from '../../learn/course/source';
 import type { LearnStore } from '../../learn/store';
 import { SoundButton } from '../SoundButton';
+import { ForkForm } from './ForkForm';
 import { Logbook, PageReveal, Spyglass } from './PageViews';
 import { QuestTracker } from './QuestTracker';
 import { QuizPanel } from './QuizPanel';
+import { ForkContext } from './Rich';
 import { StarfishCount } from './Starfish';
 import { ThemePicker } from './ThemePicker';
 import './learn.css';
@@ -75,7 +77,7 @@ function LearnLayer({
   }, [store, playing]);
 
   return (
-    <>
+    <ForkContext.Provider value={s.fork}>
       {visible && !s.cinematic && (
         <div className="ci-purse">
           {sound !== NO_SOUND && <SoundButton muted={muted} onToggle={sound.toggle} className="in-purse" />}
@@ -98,6 +100,7 @@ function LearnLayer({
         !s.reveal &&
         !s.logbook.open &&
         !s.palette &&
+        !s.forkForm &&
         !s.banner &&
         !s.spyglass && <QuestTracker tracker={s.tracker} calm={s.calm} spot={s.spotlight.tracker} />}
       {s.spyglass && !s.spyglass.full && !s.quiz && !s.logbook.open && (
@@ -121,8 +124,9 @@ function LearnLayer({
           </div>
         </div>
       )}
+      {s.forkForm && !s.quiz && !s.reveal && <ForkForm store={store} from={s.forkForm.from} fork={s.fork} />}
       {s.spyglass?.full && <Spyglass store={store} spy={s.spyglass} />}
-    </>
+    </ForkContext.Provider>
   );
 }
 

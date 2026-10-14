@@ -16,6 +16,7 @@ import {
   SplashPool,
   SplinterPool,
   STORE_POWDER,
+  TRAIL_EVERY,
   STORE_TIMBER,
   STORE_WRECKAGE,
   StorePool,
@@ -286,7 +287,13 @@ export class Battle {
   phaseAt = 0;
 
   private readonly tier: TierSettings;
+  /**
+   * The sea as it's drawn, sampled with the battle clock: the battle's clock starts at 0 and stops
+   * while the game is paused, the ocean's doesn't, so each sample adds `seaOffset` (set by `update`).
+   * Without it the raiders rode, and the splashes sat on, a sea out of phase with the one on screen.
+   */
   private readonly waves: WaveSampler;
+  private seaOffset = 0;
   private readonly combatants: Combatant[] = [];
   private readonly balls: BallPool;
   private readonly splashes: SplashPool;
@@ -352,7 +359,11 @@ export class Battle {
 
   constructor(o: BattleOptions) {
     this.tier = o.tier;
-    this.waves = o.waves;
+    const sea = o.waves;
+    this.waves = {
+      heightAt: (x, z, t) => sea.heightAt(x, z, t + this.seaOffset),
+      velocityAt: (x, z, t, out) => sea.velocityAt(x, z, t + this.seaOffset, out),
+    };
     this.plan = o.plan ?? PASSAGE_WAVES;
     this.rand = seededRandom(o.seed ?? 0xba771e);
     this.caption = o.onCaption ?? (() => undefined);
@@ -364,8 +375,8 @@ export class Battle {
     const budget = fxBudget(o.tier);
     this.balls = new BallPool(budget.balls);
     this.splashes = new SplashPool(budget.splashes);
-    this.smoke = new SmokePool(budget.smoke);
-    this.splinters = new SplinterPool(budget.splinters, this.splashes);
+    this.smoke = new SmokePool(budget.smoke, budget.trail);
+    this.splinters = new SplinterPool(budget.splinters);
     this.stores = new StorePool(budget.stores);
     this.boats = new BoatPool(budget.boats);
     this.arcs = new ArcSet(o.tier, 8);
@@ -882,8 +893,10 @@ export class Battle {
 
   // ---- Frame ------------------------------------------------------------------------------------
 
-  update(dt: number, t: number): void {
+  /** `seaT` is the ocean's clock (the time the drawn waves are at); it defaults to the battle's. */
+  update(dt: number, t: number, seaT = t): void {
     this.now = t;
+    this.seaOffset = seaT - t;
     const player = this.player;
     // Raiders' sailing and positions; the player's ship is stepped by its owner.
     this.trackVelocity(player, dt);
@@ -929,6 +942,7 @@ export class Battle {
       this.collide(t);
       this.accumulator -= SUBSTEP;
     }
+    this.trailBalls(t);
     this.collectStores(t);
     this.flow(t);
 
@@ -941,6 +955,16 @@ export class Battle {
     this.boats.update(dt, t, this.waves);
     this.fog.update(dt, t, wind[0]!, wind[1]!);
     this.drawArcs();
+  }
+
+  /** Each ball in flight leaves a puff of smoke every TRAIL_EVERY s, so you can follow the shot. */
+  private trailBalls(t: number): void {
+    const balls = this.balls;
+    for (let i = 0; i < balls.size; i++) {
+      if (balls.owner[i] === -1 || balls.age[i]! < balls.trailAt[i]!) continue;
+      balls.trailAt[i] = balls.age[i]! + TRAIL_EVERY;
+      this.smoke.trail(balls.x[i]!, balls.y[i]!, balls.z[i]!, t);
+    }
   }
 
   private trackVelocity(c: Combatant, dt: number): void {
@@ -1099,8 +1123,15 @@ export class Battle {
       if (y < 1.5) {
         const sea = this.waves.heightAt(x, z, t);
         if (y < sea) {
-          this.splashes.spawn(x, sea, z, t, 2.4 + this.rand() * 0.8, 1, this.rand());
-          this.emit('splash', x, sea, z, 0.8 + this.rand() * 0.3);
+          // The splash goes where the ball crossed the surface during this sub-step, not where the
+          // step left it (up to a metre on and under the water).
+          const vy = balls.vy[i]!;
+          const back = vy < 0 ? Math.min(1, (sea - y) / (-vy * SUBSTEP)) * SUBSTEP : 0;
+          const sx = x - balls.vx[i]! * back;
+          const sz = z - balls.vz[i]! * back;
+          const sy = this.waves.heightAt(sx, sz, t);
+          this.splashes.spawn(sx, sy, sz, t, 2.4 + this.rand() * 0.8, 1, this.rand());
+          this.emit('splash', sx, sy, sz, 0.8 + this.rand() * 0.3);
           balls.free(i);
         }
       }
@@ -1118,6 +1149,7 @@ export class Battle {
   ): void {
     if (c.state !== 'afloat') {
       this.splinters.burst(x, y, z, 0, 0, 3, this.rand);
+      this.timberPuff(x, y, z, 0, 0, t);
       return;
     }
     c.hull = Math.max(0, c.hull - damage);
@@ -1128,7 +1160,9 @@ export class Battle {
     const nz = -Math.sin(h) * localSide;
     this.splinters.burst(x, y, z, nx, nz, 4, this.rand);
     this.emit('timber', x, y, z, c.player ? 1.15 : 0.9);
-    this.splashes.spawn(x + nx * 0.8, this.waves.heightAt(x, z, t), z + nz * 0.8, t, 1.3, 0, this.rand());
+    // A hit shows on the timber where the ball struck (a burst of splinters and a puff of dust and
+    // smoke), not as a splash in the sea beside her.
+    this.timberPuff(x, y, z, nx, nz, t);
     // A ball striking home rocks the hull away from it, with a short shudder.
     const rm = world.reducedMotion.value > 0.5;
     c.ship.dynamics.kick(localSide * (rm ? 0.03 : 0.07), (this.rand() - 0.5) * (rm ? 0.02 : 0.05));
@@ -1140,6 +1174,25 @@ export class Battle {
     }
     this.caption('Hit!');
     if (c.hull <= 0) this.strike(c, t);
+  }
+
+  /** The flash and puff where a ball strikes a hull, thrown out from the struck side. */
+  private timberPuff(x: number, y: number, z: number, nx: number, nz: number, t: number): void {
+    const rm = world.reducedMotion.value > 0.5;
+    // A ball home at the waterline still puffs where you can see it, above the sea.
+    const y0 = Math.max(y, this.waves.heightAt(x, z, t) + 0.4);
+    for (let k = 0; k < 2; k++)
+      this.smoke.spawn(
+        x + nx * (0.4 + k * 0.8),
+        y0 + k * 0.3,
+        z + nz * (0.4 + k * 0.8),
+        nx * (3 + k * 2),
+        0.8 + k * 0.4,
+        nz * (3 + k * 2),
+        t,
+        rm ? 1.6 : 2.6 + k,
+        (rm ? 0.6 : 1) * (0.9 + k * 0.4),
+      );
   }
 
   private strike(c: Combatant, t: number): void {
@@ -1202,18 +1255,12 @@ export class Battle {
       9 * clamp01((age - 11) / 5) ** 2;
     g.position.set(pose.x, swell - sink * c.scale, pose.z);
     g.rotation.set(bowUp, pose.heading, list, 'YXZ');
-    // Air bubbling out along the waterline while she goes down.
-    if (age > 1.5 && age < 15.5 && this.rand() < dt * (age > 11 ? 6 : 2.5)) {
-      const along = (this.rand() - 0.6) * 18 * c.scale;
-      this.splashes.spawn(
-        pose.x + Math.sin(pose.heading) * along,
-        this.waves.heightAt(pose.x, pose.z, t),
-        pose.z + Math.cos(pose.heading) * along,
-        t,
-        0.9 + this.rand() * 0.6,
-        0,
-        this.rand(),
-      );
+    // Air bubbling out along her waterline while she goes down (on the hull, never off it).
+    if (age > 1.5 && age < 15.5 && this.rand() < dt * (age > 11 ? 3 : 1.2)) {
+      const along = (this.rand() - 0.6) * 16 * c.scale;
+      const bx = pose.x + Math.sin(pose.heading) * along;
+      const bz = pose.z + Math.cos(pose.heading) * along;
+      this.splashes.spawn(bx, this.waves.heightAt(bx, bz, t), bz, t, 0.9 + this.rand() * 0.6, 0, this.rand());
     }
     // Follow-through: the bow slips under with a last gout of spray.
     if (age >= 15.6 && age - dt < 15.6) {
@@ -1224,7 +1271,9 @@ export class Battle {
       const y = this.waves.heightAt(bx, bz, t);
       this.splashes.spawn(bx, y, bz, t, 3.4, 1, this.rand());
       this.emit('sink', bx, y, bz);
-      this.splashes.spawn(bx - fx * 4, y, bz - fz * 4, t, 2.2, 0, this.rand());
+      const ax = bx - fx * 4;
+      const az = bz - fz * 4;
+      this.splashes.spawn(ax, this.waves.heightAt(ax, az, t), az, t, 2.2, 0, this.rand());
     }
     if (age > SINK_SECONDS) {
       c.state = 'gone';

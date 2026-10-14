@@ -1,10 +1,12 @@
 import type { CameraShot } from '../follow-camera';
 import type { TerminalLine } from '../hud';
+import type { QuietSea } from '../../world/life/quiet-sea';
 import type { HelmBuoysSite } from '../../world/sites/helm-buoys';
 import {
   HELM_ORDER,
   MERIDIAN_HELMS,
   TAKE_RANGE,
+  helmsCourseArea,
   nextHelm,
   type HelmMode,
 } from '../../world/sites/helms-logic';
@@ -73,7 +75,7 @@ interface Run {
  * The terminal panel reads like the app's session: your ask, her steps, and where she's waiting on
  * you. The helms you've sailed are saved; a run you leave part-way starts over.
  */
-export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite): Puzzle {
+export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: QuietSea): Puzzle {
   const saved = host.learn?.progress.data.puzzles[HELMS_ID];
   const done: HelmMode[] = HELM_ORDER.slice(0, Math.min(3, Math.max(0, saved?.state?.[0] ?? 0)));
   let solved = saved?.solved ?? false;
@@ -82,6 +84,9 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite): Puzzle 
   for (const m of done) buoys.setSailed(m, true);
 
   const active = () => host.quests()[QUEST] === 'helms';
+  // While the course is on, no dolphin or flying fish leaps among the buoys (their splashes would
+  // read as something the lesson put there).
+  const unquiet = quiet?.add({ ...helmsCourseArea(), when: () => active() && !solved });
   const save = () => host.learn?.progress.setPuzzle(HELMS_ID, { solved, state: [done.length] });
   const pose = () => host.ship.pose;
   const here = () => ({ x: pose().x, z: pose().z });
@@ -323,6 +328,7 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite): Puzzle 
     dispose() {
       token++;
       buoys.showRoute(null);
+      unquiet?.();
     },
   };
 }

@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState, type PointerEvent, type WheelEvent } from 'react';
+import { useContext, useEffect, useRef, useState, type PointerEvent, type WheelEvent } from 'react';
 import { STARFISH } from '../../world/starfish/spots';
 import { StarfishLog } from './Starfish';
 import { CHAPTERS, GLOSSARY, IMAGES, PAGES, courseUrl, imageUrl } from '../../learn/content/index';
 import { chapterUrl } from '../../learn/course/chapters';
+import { forkName, forkUrl, PLACE_LABEL, type ForkPlace } from '../../learn/fork';
 import type { LearnState, LearnStore, LogbookTab, RevealFrom } from '../../learn/store';
 import type { Page } from '../../learn/types';
 import { CourseGlossaryEntry, CourseImg, CourseLink, FromTheCourse, useCourseImage } from './CourseMarkdown';
-import { Rich } from './Rich';
+import { ForkContext, Rich } from './Rich';
 
 /** Chapters to look in for a course picture (the one whose folder holds it is tried first). */
 const CHAPTER_IDS = CHAPTERS.map((c) => c.chapter);
@@ -54,9 +55,65 @@ function PageBody({ page, onImage }: { page: Page; onImage?: (id: string) => voi
           <code>{page.code}</code>
         </pre>
       )}
+      <ForkLinks places={page.fork} />
       <FromTheCourse source={page.source} />
       <CourseLink source={page.source} fallback={courseUrl(page.source)} />
     </>
+  );
+}
+
+/** Links into the player's fork for the places this page's course section sends them (once given). */
+function ForkLinks({ places }: { places?: readonly ForkPlace[] }) {
+  const fork = useContext(ForkContext);
+  if (!fork || !places?.length) return null;
+  const name = forkName(fork);
+  return (
+    <p className="ci-fork-links">
+      <span className="ci-course-kicker">Open in your fork</span>
+      {places.map((p) => (
+        <a
+          key={p}
+          className="ci-fork-link"
+          href={forkUrl(fork, p)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${p === 'repo' ? name : `${PLACE_LABEL[p]} in ${name}`} on GitHub (opens in a new tab)`}
+        >
+          {p === 'repo' ? name : PLACE_LABEL[p]} ↗
+        </a>
+      ))}
+    </p>
+  );
+}
+
+/** The Logbook's note of the player's fork, with a way to add or change it. */
+function ForkCard({ store }: { store: LearnStore }) {
+  const fork = useContext(ForkContext);
+  return (
+    <div className="ci-fork-card">
+      {fork ? (
+        <p>
+          <span className="ci-course-kicker">Your fork</span>{' '}
+          <a
+            className="ci-rich-link"
+            href={forkUrl(fork)}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${forkName(fork)} on GitHub (opens in a new tab)`}
+          >
+            {forkName(fork)} ↗
+          </a>
+        </p>
+      ) : (
+        <p>
+          <span className="ci-course-kicker">Your fork</span> Not added yet. Add it to see your own{' '}
+          <code>Repository:</code> line at the crane and links into your fork.
+        </p>
+      )}
+      <button type="button" className="ci-btn ghost" onClick={() => void store.askFork('logbook')}>
+        {fork ? 'Change' : 'Add your fork'}
+      </button>
+    </div>
   );
 }
 
@@ -236,7 +293,7 @@ export function Logbook({ store, state }: { store: LearnStore; state: LearnState
   const allPages = [...PAGES.values()];
   const open = page ? PAGES.get(page) : undefined;
   useKeys((e) => {
-    if (e.repeat || state.spyglass?.full) return;
+    if (e.repeat || state.spyglass?.full || store.getState().forkForm) return;
     if (e.key === 'Escape' || e.code === 'KeyJ') {
       e.preventDefault();
       if (open) store.openLogbook(tab, null);
@@ -344,6 +401,7 @@ export function Logbook({ store, state }: { store: LearnStore; state: LearnState
           {tab === 'starfish' && (
             <StarfishLog found={state.starfish} here={state.starfishIsland?.id ?? null} />
           )}
+          {tab === 'quests' && <ForkCard store={store} />}
           {tab === 'quests' && (
             <ul className="ci-quests">
               {state.quests.length === 0 && (

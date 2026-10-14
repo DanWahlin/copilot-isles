@@ -1,9 +1,9 @@
+import { COURSE_REPO, type ForkRef } from '../../learn/fork';
 import type { GearRackSite } from '../../world/sites';
-import { gearReadout, gearTone } from '../../world/sites/gear-logic';
+import { gearReadout, gearTone, YOUR_HANDLE } from '../../world/sites/gear-logic';
 import type { Puzzle, PuzzleHost, PuzzleTerminal } from './types';
 
 const ID = 'gear.rack';
-const TITLE = 'Terminal · copilot-app-for-beginners';
 
 /**
  * Bo's gear rack as scenery (Q0.4): E there, or Bo's `gear-checks` cue while he explains them, runs
@@ -12,7 +12,21 @@ const TITLE = 'Terminal · copilot-app-for-beginners';
  */
 export function createGearRack(host: PuzzleHost, site: GearRackSite): Puzzle & { cue(): void } {
   const spots = site.spots();
-  const lines = gearReadout().map((text) => ({ text, tone: gearTone(text) }));
+  // `gh auth status` names the account that owns your fork (its owner, once you've given it).
+  let fork: ForkRef | null | undefined;
+  let readout: PuzzleTerminal = { title: '', lines: [] };
+  const current = (): PuzzleTerminal => {
+    const now = host.learn?.progress.data.fork ?? null;
+    if (now !== fork) {
+      fork = now;
+      const handle = now?.owner ?? YOUR_HANDLE;
+      readout = {
+        title: `Terminal · ${now?.repo ?? COURSE_REPO}`,
+        lines: gearReadout(handle, now?.host).map((text) => ({ text, tone: gearTone(text, handle) })),
+      };
+    }
+    return readout;
+  };
   let shown = false;
   const near = (r: number) => Math.hypot(host.player.x - spots.rack.x, host.player.z - spots.rack.z) < r;
 
@@ -43,7 +57,7 @@ export function createGearRack(host: PuzzleHost, site: GearRackSite): Puzzle & {
         shown = false;
         return null;
       }
-      return { title: TITLE, lines };
+      return current();
     },
     update() {},
     debug: {

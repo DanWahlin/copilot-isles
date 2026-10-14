@@ -10,8 +10,9 @@ import {
   type PerspectiveCamera,
 } from 'three/webgpu';
 import { tierSettings, type TierSettings } from '../../../engine/quality';
-import type { HeightField, Tier } from '../../contracts';
+import type { HeightField, Tier, WaveSampler } from '../../contracts';
 import { unreflected } from '../../reflection';
+import type { QuietSea } from '../quiet-sea';
 import { world } from '../../uniforms';
 import { LeapsDirector, seededRandom, type LeapArc, type LeapKind, type ScreenRect } from './director';
 import { createDolphinGeometry, createFlyingFishGeometry, createSplashGeometry } from './geometry';
@@ -24,6 +25,13 @@ export interface CreateLeapsOptions {
   titleMode?: boolean;
   avoidRects?: ScreenRect[];
   viewport?: { width: number; height: number };
+  /**
+   * The sea as it's drawn: the animals break, and their splashes sit on, its moving surface rather
+   * than the still water line (y = 0) when given.
+   */
+  waves?: WaveSampler | null;
+  /** Stretches of sea to keep out of while they're quiet (a battle, a puzzle's course). */
+  quiet?: QuietSea | null;
 }
 
 export interface LeapsSystem {
@@ -52,6 +60,7 @@ interface Agent {
 
 interface Splash {
   x: number;
+  y: number;
   z: number;
   start: number;
   duration: number;
@@ -115,11 +124,20 @@ function velocityAt(agent: Agent, s: number, out: Vector3): Vector3 {
   return out;
 }
 
-function spawnSplash(splashes: Splash[], x: number, z: number, t: number, scale: number, kind = 0): void {
+function spawnSplash(
+  splashes: Splash[],
+  x: number,
+  y: number,
+  z: number,
+  t: number,
+  scale: number,
+  kind = 0,
+): void {
   if (splashes.length >= MAX_SPLASHES) splashes.shift();
   const seed = Math.random();
   splashes.push({
     x,
+    y,
     z,
     start: t,
     duration: kind ? 1.7 : 1.4,
@@ -129,7 +147,12 @@ function spawnSplash(splashes: Splash[], x: number, z: number, t: number, scale:
   });
 }
 
-function addPod(agents: Agent[], splashes: Splash[], arc: LeapArc, now: number, rng: () => number): void {
+/**
+ * Adds a pod's animals. Each one splashes as it breaks the surface and as it dives back in, where it
+ * does (`updateMeshes`); the pod itself makes no splash of its own, so no splash comes before the
+ * animal that makes it.
+ */
+function addPod(agents: Agent[], arc: LeapArc, now: number, rng: () => number, title: boolean): void {
   tmpDir.copy(arc.end).sub(arc.start).setY(0).normalize();
   const right = new Vector3(tmpDir.z, 0, -tmpDir.x);
   const max = arc.kind === 'dolphin' ? MAX_DOLPHINS : MAX_FISH;
@@ -149,14 +172,14 @@ function addPod(agents: Agent[], splashes: Splash[], arc: LeapArc, now: number, 
       startTime: now + i * (arc.kind === 'dolphin' ? 0.18 : 0.055),
       duration: arc.duration * (0.88 + rng() * 0.25),
       height,
-      scale: arc.kind === 'dolphin' ? 1.35 + rng() * 0.22 : 0.75 + rng() * 0.25,
+      // In the game a flying fish is drawn a touch big, so it reads at the distances it's seen.
+      scale: arc.kind === 'dolphin' ? 1.35 + rng() * 0.22 : (title ? 0.75 : 1.05) + rng() * 0.25,
       phase: rng() * Math.PI * 2,
       dive: leapDive(height, HIDE_DEPTH[arc.kind]),
       splashedExit: false,
       splashedEntry: false,
     });
   }
-  spawnSplash(splashes, arc.start.x, arc.start.z, now, arc.kind === 'dolphin' ? 2.7 : 0.7);
 }
 
 export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
@@ -168,6 +191,7 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
     seed,
     heightField: options.heightField ?? null,
     titleMode: options.titleMode,
+    quiet: options.quiet ?? null,
     avoidRects: options.avoidRects,
     viewport: options.viewport,
   });
@@ -215,8 +239,12 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
   let lastViewportH = 0;
 
   function schedule(now: number): void {
-    nextAt = now + (options.titleMode ? 6 + rng() * 14 : 20 + rng() * 40);
+    nextAt = now + (options.titleMode ? 6 + rng() * 14 : 30 + rng() * 45);
   }
+
+  const waves = options.waves ?? null;
+  /** The sea's surface at (x, z) now (the still water line without `waves`). */
+  const surface = (x: number, z: number, t: number) => (waves ? waves.heightAt(x, z, t) : 0);
 
   function force(kind: LeapKind = rng() < 0.5 ? 'dolphin' : 'fish'): boolean {
     if (!enabled || world.reducedMotion.value > 0.5) return false;
@@ -240,7 +268,6 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
         .addScaledVector(tmpDir, selected === 'dolphin' ? 10 : 18);
       addPod(
         agents,
-        splashes,
         {
           kind: selected,
           start,
@@ -252,12 +279,13 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
         },
         world.time.value,
         rng,
+        true,
       );
       return true;
     }
     const arc = director.next(camera, kind);
     if (!arc) return false;
-    addPod(agents, splashes, arc.arc, world.time.value, rng);
+    addPod(agents, arc.arc, world.time.value, rng, false);
     return true;
   }
 
@@ -278,15 +306,20 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
       }
       pointAt(a, s, tmpPos);
       velocityAt(a, s, tmpVel);
+      const sea = surface(tmpPos.x, tmpPos.z, now);
+      tmpPos.y += sea;
       if (!a.splashedExit && s >= 0) {
-        spawnSplash(splashes, tmpPos.x, tmpPos.z, now, a.kind === 'dolphin' ? 2.2 * a.scale : 0.6);
+        spawnSplash(splashes, tmpPos.x, sea, tmpPos.z, now, a.kind === 'dolphin' ? 2.2 * a.scale : 0.6);
         a.splashedExit = true;
       }
       if (!a.splashedEntry && s >= 1) {
+        const ex = a.end.x + a.offset.x;
+        const ez = a.end.z + a.offset.z;
         spawnSplash(
           splashes,
-          a.end.x + a.offset.x,
-          a.end.z + a.offset.z,
+          ex,
+          surface(ex, ez, now),
+          ez,
           now,
           a.kind === 'dolphin' ? 2.8 * a.scale : 0.7,
           1,
@@ -338,7 +371,11 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
       const scale = splash.scale * 0.75;
       tmpEuler.set(0, splash.seed * Math.PI * 2, 0, 'YXZ');
       tmpQuat.setFromEuler(tmpEuler);
-      tmpMatrix.compose(tmpPos.set(splash.x, 0.04, splash.z), tmpQuat, tmpScale.set(scale, scale, scale));
+      tmpMatrix.compose(
+        tmpPos.set(splash.x, splash.y + 0.04, splash.z),
+        tmpQuat,
+        tmpScale.set(scale, scale, scale),
+      );
       splashMesh.setMatrixAt(s, tmpMatrix);
       splashAge.setX(s, age);
       splashSeed.setX(s, splash.seed);
@@ -366,8 +403,9 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
         director.setViewport({ width: Math.max(1, lastViewportW), height: Math.max(1, lastViewportH) });
       }
       if (enabled && world.reducedMotion.value < 0.5 && t >= nextAt) {
-        const projected = director.next(camera, 'any');
-        if (projected) addPod(agents, splashes, projected.arc, t, rng);
+        // While the whole sea is quiet (a battle) nothing leaps.
+        const projected = options.quiet?.everywhere ? null : director.next(camera, 'any');
+        if (projected) addPod(agents, projected.arc, t, rng, !!options.titleMode);
         schedule(t);
       }
       updateMeshes(t);

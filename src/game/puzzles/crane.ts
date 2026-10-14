@@ -1,7 +1,8 @@
+import { COURSE_REPO, forkName } from '../../learn/fork';
 import type { CraneSite } from '../../world/sites';
 import {
   CRANE_CARGO,
-  CRANE_FACINGS,
+  craneFacings,
   confirmYes,
   craneHintTarget,
   dryRun,
@@ -34,6 +35,8 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
   let state: CraneState = restoreCrane(saved?.state, saved?.solved ?? false);
   let hintOn = false;
   let running = false;
+  /** Your fork's `owner/repo` (the placeholder until you've given it), read fresh so a change shows. */
+  const yours = () => forkName(host.learn?.progress.data.fork ?? null);
 
   const started = () => {
     const q = host.quests()[QUEST];
@@ -45,9 +48,11 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
   /** What the terminal panel shows while you're at the crane: the script's last output. */
   let terminal: string[] = [];
   /** The arm sign and the terminal, after `ev` (or the state alone). */
+  let paintedFork = host.learn?.progress.data.fork ?? null;
   const readout = (ev?: CraneEvent) => {
-    site.setSign(signLines(state, ev));
-    terminal = terminalLines(state, ev);
+    paintedFork = host.learn?.progress.data.fork ?? null;
+    site.setSign(signLines(state, ev, yours()), yours());
+    terminal = terminalLines(state, ev, yours());
   };
 
   // Restore what the harbour looked like.
@@ -129,7 +134,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     readout();
     host.audio?.sfx.oneShot('crane_ratchet', spots.capstan, 0.9);
     save();
-    const f = CRANE_FACINGS[state.facing]!;
+    const f = craneFacings(yours())[state.facing]!;
     host.hud.toast(
       f.berth ? `The crane swings to Berth ${f.berth}.` : 'The crane swings back over the quay.',
       2.5,
@@ -143,7 +148,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     }
     site.pullLever('dry');
     host.audio?.sfx.oneShot('lever', spots.dry, 0.9);
-    const step = dryRun(state);
+    const step = dryRun(state, yours());
     state = step.state;
     save();
     const ev = step.event;
@@ -166,9 +171,10 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     readout();
     if (ev.owner === 'you')
       say('Pim', `Repository: ${ev.repository}. That’s your fork. Now you can pull --yes.`, 5);
-    else if (ev.owner === 'captain')
-      say('Pim', `Repository: ${ev.repository}. That’s M. Reyes’s fork, not yours. Turn the capstan.`, 5);
-    else say('Pim', `Repository: ${ev.repository}. That one belongs to an organization, Captain.`, 5);
+    else if (ev.owner === 'captain') {
+      const who = craneFacings(yours())[ev.facing]!.captain ?? 'another captain';
+      say('Pim', `Repository: ${ev.repository}. That’s ${who}’s fork, not yours. Turn the capstan.`, 5);
+    } else say('Pim', `Repository: ${ev.repository}. That one belongs to an organization, Captain.`, 5);
   }
 
   async function confirm(): Promise<void> {
@@ -178,7 +184,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     }
     site.pullLever('yes');
     host.audio?.sfx.oneShot('lever', spots.yes, 0.9);
-    const step = confirmYes(state);
+    const step = confirmYes(state, yours());
     const ev = step.event;
     state = step.state;
     switch (ev.kind) {
@@ -213,19 +219,15 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
       'Pol',
     );
     running = false;
-    site.setSign(signLines(state)); // The terminal keeps the refusal.
+    site.setSign(signLines(state, undefined, yours()), yours()); // The terminal keeps the refusal.
   }
 
   async function complete(): Promise<void> {
     running = true;
     clearHint();
     site.clearCrates('ghost');
-    site.setSign([`Repository: ${CRANE_FACINGS[YOUR_FACING]!.repository}`, 'Creating practice items…']);
-    terminal = [
-      `${SETUP_COMMAND} --yes`,
-      `Repository: ${CRANE_FACINGS[YOUR_FACING]!.repository}`,
-      'Creating practice items…',
-    ];
+    site.setSign([`Repository: ${yours()}`, 'Creating practice items…'], yours());
+    terminal = [`${SETUP_COMMAND} --yes`, `Repository: ${yours()}`, 'Creating practice items…'];
     await site.drop('real', YOUR_FACING, (k) => {
       host.audio?.sfx.oneShot('crate_thud', spots.capstan, 0.9);
       site.setBoard(k + 1);
@@ -287,13 +289,14 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
       return 'Pulled it for you. Watch the hold fill.';
     },
     update() {
-      // The site animates itself.
+      // The site animates itself. A fork given (or changed in the Logbook) repaints the sign.
+      if ((host.learn?.progress.data.fork ?? null) !== paintedFork && !running && !site.busy) readout();
     },
     terminal() {
       if (!started() || host.quests()[QUEST] === 'done' || !near(9)) return null;
       return {
-        title: 'Terminal · copilot-app-for-beginners',
-        lines: terminal.map((text) => ({ text, tone: lineTone(text) })),
+        title: `Terminal · ${host.learn?.progress.data.fork?.repo ?? COURSE_REPO}`,
+        lines: terminal.map((text) => ({ text, tone: lineTone(text, yours()) })),
       };
     },
     debug: {

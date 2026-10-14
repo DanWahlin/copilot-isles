@@ -1,3 +1,5 @@
+import { cleanFork, type ForkRef } from './fork';
+
 /**
  * Learning progress (POC §3.9 subset): pages, chests, glossary, quiz attempts, quests, trials, seals,
  * and doubloons, saved to localStorage under a versioned key. Position/captain stay in GameFlow's save.
@@ -35,6 +37,11 @@ export interface ProgressData {
   /** Typed at captain select; the ship's name defaults to "<captain>’s Brigantine" (POC §4.8). */
   captainName: string | null;
   shipName: string | null;
+  /**
+   * The player's fork of the course, typed at Ezra's register or the crane (null until then, or if
+   * they skipped). Local only: the game never looks it up on GitHub.
+   */
+  fork: ForkRef | null;
   /** Puzzle id → saved state. */
   puzzles: Record<string, PuzzleSave>;
   /** Whether the player has opened the Logbook yet (until then, new pages say where they went). */
@@ -60,6 +67,7 @@ function emptyProgress(now = Date.now()): ProgressData {
     sails: null,
     captainName: null,
     shipName: null,
+    fork: null,
     puzzles: {},
     logbookOpened: false,
     arrivals: [],
@@ -135,6 +143,7 @@ export function parseProgress(raw: string | null): ProgressData {
       sails: typeof d.sails === 'string' ? d.sails : null,
       captainName: cleanName(d.captainName),
       shipName: cleanName(d.shipName),
+      fork: cleanFork(d.fork),
       puzzles: parsePuzzles(d.puzzles),
       logbookOpened: d.logbookOpened === true,
       arrivals: strings(d.arrivals),
@@ -253,6 +262,11 @@ export class Progress {
   setNames(captain: string | null, ship: string | null): void {
     this.data.captainName = cleanName(captain);
     this.data.shipName = cleanName(ship);
+    this.save();
+  }
+
+  setFork(fork: ForkRef | null): void {
+    this.data.fork = fork ? cleanFork(fork) : null;
     this.save();
   }
 

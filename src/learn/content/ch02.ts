@@ -803,6 +803,7 @@ export const CH02: ChapterContent = {
       title: 'No practice branches?',
       caption:
         'Run the Chapter 00 setup script again, and check that you connected your fork, not the upstream course repository.',
+      fork: ['repo', 'branches'],
       source: S.noBranches,
     },
     {

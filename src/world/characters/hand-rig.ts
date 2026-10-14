@@ -28,7 +28,7 @@ export class HandRig {
   private constructor(
     private readonly forearm: Bone,
     private readonly side: Side,
-    chains: Record<'Index' | 'Middle' | 'Thumb', Bone[]>,
+    chains: Record<'Index' | 'Middle' | 'Thumb' | 'Pinky', Bone[]>,
   ) {
     forearm.updateWorldMatrix(true, true);
     const knuckleI = chains.Index[1]!.getWorldPosition(new Vector3());
@@ -49,19 +49,25 @@ export class HandRig {
         gain: kind !== 0 && bone.parent !== forearm && bone.parent!.parent !== forearm ? 0.85 : 1,
       });
     };
-    // kind: 0 palm (wrist bend), 1 index, 2 middle, 3 thumb.
-    for (const palm of [chains.Index[0]!, chains.Middle[0]!, chains.Thumb[0]!]) add(palm, 0);
+    // kind: 0 palm (wrist bend), 1 index, 2 middle (the little finger curls with it), 3 thumb.
+    for (const palm of [chains.Index[0]!, chains.Middle[0]!, chains.Thumb[0]!, ...chains.Pinky.slice(0, 1)])
+      add(palm, 0);
     for (const b of chains.Index.slice(1)) add(b, 1);
-    for (const b of chains.Middle.slice(1)) add(b, 2);
+    for (const b of [...chains.Middle.slice(1), ...chains.Pinky.slice(1)]) add(b, 2);
     for (const b of chains.Thumb.slice(1)) add(b, 3);
   }
 
   /** The hand under `forearm`, or null when it hasn't the full set of fingers (the captain's hook). */
   static of(forearm: Bone, side: Side): HandRig | null {
-    const chains: Record<'Index' | 'Middle' | 'Thumb', Bone[]> = { Index: [], Middle: [], Thumb: [] };
+    const chains: Record<'Index' | 'Middle' | 'Thumb' | 'Pinky', Bone[]> = {
+      Index: [],
+      Middle: [],
+      Thumb: [],
+      Pinky: [],
+    };
     for (const child of forearm.children) {
       if (!(child instanceof Bone)) continue;
-      const kind = (['Index', 'Middle', 'Thumb'] as const).find((k) => child.name.startsWith(k));
+      const kind = (['Index', 'Middle', 'Thumb', 'Pinky'] as const).find((k) => child.name.startsWith(k));
       if (!kind) continue;
       let b: Bone | undefined = child;
       while (b && !b.name.endsWith('_end')) {

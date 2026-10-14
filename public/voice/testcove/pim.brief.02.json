@@ -1,77 +1,72 @@
 {
   "id": "pim.brief.02",
   "speaker": "Pim",
-  "text": "Practice branches too, the practice hulls. The bugs stay on those, never on main.",
+  "text": "Then the setup script, in the app's Terminal. Preview it with --dry-run first.",
   "words": [
     {
-      "word": "Practice",
+      "word": "Then",
       "start": 0.044625,
-      "end": 0.424125
-    },
-    {
-      "word": "branches",
-      "start": 0.424125,
-      "end": 0.837041
-    },
-    {
-      "word": "too",
-      "start": 0.837041,
-      "end": 1.294625
+      "end": 0.212041
     },
     {
       "word": "the",
-      "start": 1.294625,
-      "end": 1.395083
+      "start": 0.212041,
+      "end": 0.279
     },
     {
-      "word": "practice",
-      "start": 1.395083,
-      "end": 1.796875
+      "word": "setup",
+      "start": 0.279,
+      "end": 0.5915
     },
     {
-      "word": "hulls",
-      "start": 1.796875,
-      "end": 3.035708
+      "word": "script",
+      "start": 0.5915,
+      "end": 1.149541
     },
     {
-      "word": "The",
-      "start": 3.035708,
-      "end": 3.136166
+      "word": "in",
+      "start": 1.149541,
+      "end": 1.25
     },
     {
-      "word": "bugs",
-      "start": 3.136166,
-      "end": 3.404
+      "word": "the",
+      "start": 1.25,
+      "end": 1.361625
     },
     {
-      "word": "stay",
-      "start": 3.404,
-      "end": 3.660708
+      "word": "app's",
+      "start": 1.361625,
+      "end": 1.573666
     },
     {
-      "word": "on",
-      "start": 3.660708,
-      "end": 3.805791
+      "word": "Terminal",
+      "start": 1.573666,
+      "end": 2.779
     },
     {
-      "word": "those",
-      "start": 3.805791,
-      "end": 4.3415
+      "word": "Preview",
+      "start": 2.779,
+      "end": 3.180791
     },
     {
-      "word": "never",
-      "start": 4.3415,
-      "end": 4.654
+      "word": "it",
+      "start": 3.180791,
+      "end": 3.270083
     },
     {
-      "word": "on",
-      "start": 4.654,
-      "end": 4.81025
+      "word": "with",
+      "start": 3.270083,
+      "end": 3.59375
     },
     {
-      "word": "main",
-      "start": 4.81025,
-      "end": 5.06025
+      "word": "-dry-run",
+      "start": 3.59375,
+      "end": 4.051333
+    },
+    {
+      "word": "first",
+      "start": 4.051333,
+      "end": 4.301333
     }
   ]
 }

@@ -85,7 +85,7 @@ const EXPRESSIONS: Record<string, Expression> = {
   'suri.idle.dry': 'concerned',
   'pol.idle.waiting': 'concerned',
   'pol.crane.01': 'concerned',
-  'pim.brief.02': 'concerned',
+  'pol.brief.02': 'concerned',
   'pol.refuse.guild.01': 'concerned',
   'pol.refuse.captain.01': 'surprised',
   'ezra.wait.01': 'neutral',

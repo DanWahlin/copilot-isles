@@ -1,72 +1,77 @@
 {
   "id": "pim.done.01",
   "speaker": "Pim",
-  "text": "Nine pennants, five notices, seven hulls, three seals. Your fork's ready for practice!",
+  "text": "Nine labels, five issues, seven branches, three pull requests. Your fork's ready for practice!",
   "words": [
     {
       "word": "Nine",
       "start": 0.044625,
-      "end": 0.323666
+      "end": 0.3125
     },
     {
-      "word": "pennants",
-      "start": 0.323666,
-      "end": 0.870541
+      "word": "labels",
+      "start": 0.3125,
+      "end": 0.948666
     },
     {
       "word": "five",
-      "start": 0.870541,
-      "end": 1.138375
+      "start": 0.948666,
+      "end": 1.25
     },
     {
-      "word": "notices",
-      "start": 1.138375,
+      "word": "issues",
+      "start": 1.25,
       "end": 1.863833
     },
     {
       "word": "seven",
       "start": 1.863833,
-      "end": 2.154
+      "end": 2.176333
     },
     {
-      "word": "hulls",
-      "start": 2.154,
-      "end": 2.745541
+      "word": "branches",
+      "start": 2.176333,
+      "end": 2.901791
     },
     {
       "word": "three",
-      "start": 2.745541,
-      "end": 3.00225
+      "start": 2.901791,
+      "end": 3.180791
     },
     {
-      "word": "seals",
-      "start": 3.00225,
-      "end": 4.285708
+      "word": "pull",
+      "start": 3.180791,
+      "end": 3.381708
+    },
+    {
+      "word": "requests",
+      "start": 3.381708,
+      "end": 4.799125
     },
     {
       "word": "Your",
-      "start": 4.285708,
-      "end": 4.419625
+      "start": 4.799125,
+      "end": 4.933041
     },
     {
       "word": "fork's",
-      "start": 4.419625,
-      "end": 4.754458
+      "start": 4.933041,
+      "end": 5.267875
     },
     {
       "word": "ready",
-      "start": 4.754458,
-      "end": 4.977666
+      "start": 5.267875,
+      "end": 5.491083
     },
     {
       "word": "for",
-      "start": 4.977666,
-      "end": 5.100458
+      "start": 5.491083,
+      "end": 5.613833
     },
     {
       "word": "practice",
-      "start": 5.100458,
-      "end": 5.350458
+      "start": 5.613833,
+      "end": 5.863833
     }
   ]
 }

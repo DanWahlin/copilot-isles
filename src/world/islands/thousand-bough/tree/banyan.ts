@@ -6,6 +6,7 @@ import {
   BRANCHES,
   ROOT_GATE,
   TRUNK_BASE,
+  carryingSprays,
   coreSurface,
   type Branch,
   type Cluster,
@@ -420,7 +421,7 @@ function vine(g: VegGeometry, v: Vine): void {
         k / sides,
         t,
         c,
-        leafy ? 1 : BARK_PART,
+        leafy ? leafPart(false, t) : BARK_PART,
         leafy ? 0.35 : 0.3,
       );
     }
@@ -507,15 +508,44 @@ const ICO2 = (() => {
   return { v, f };
 })();
 
-function clump(g: VegGeometry, c: Cluster, lobes: number, tufts = 0, fine = false): void {
+/** The leaves' sway weight in `vegPart`'s fraction: 0 where a clump hangs from its twig, 1 at its far side. */
+function leafPart(card: boolean, weight: number): number {
+  return (card ? 5 : 1) + 0.4 * Math.min(1, Math.max(0, weight));
+}
+
+/** How far a leaf's normal leans to the canopy's (0.55 facing out of it, none facing into it). */
+function layerLean(x: number, y: number, z: number, c: Cluster): number {
+  const d = (x * c.nx + y * c.ny + z * c.nz) / (Math.hypot(x, y, z) || 1);
+  return 0.55 * Math.min(1, Math.max(0, (d + 0.2) / 0.7));
+}
+
+/**
+ * A clump of leaves on the end of its twig: an irregular, flattened lobe or two (soft normals leaning
+ * to the canopy's own, so the clumps read as one leafy mass), a leaf pattern over them, and leaf cards
+ * (sprays of leaves cut out of the shared material's card part) over its underside and round its rim,
+ * so its outline and the canopy's underside read as leaves. Every vertex carries how far it is from
+ * where the twig enters: the material sways the leaves about that point, never the whole clump.
+ */
+function clump(g: VegGeometry, c: Cluster, d: BanyanDetail): void {
   const rand = mulberry32(Math.floor(c.seed * 1e6) + 7);
   // One clump in four a fresher, yellower green (the canopy's three greens, not one).
   const fresh = rand() < 0.25 ? 0.22 : 0;
-  for (let l = 0; l < lobes; l++) {
-    const shape = l === 0 && lobes >= 3 ? ICO2 : ICO;
-    const lr = c.r * (l === 0 ? 0.85 + rand() * 0.4 : 0.42 + rand() * 0.45);
+  // Where the twig comes in (its sway's pivot).
+  const t0 = c.twig[0] ?? { x: c.x, y: c.y - c.r, z: c.z };
+  const tl = Math.hypot(t0.x - c.x, t0.y - c.y, t0.z - c.z) || 1;
+  const px = c.x + ((t0.x - c.x) / tl) * c.r * 0.7;
+  const py = c.y + ((t0.y - c.y) / tl) * c.r * 0.5;
+  const pz = c.z + ((t0.z - c.z) / tl) * c.r * 0.7;
+  const weight = (x: number, y: number, z: number) => Math.hypot(x - px, y - py, z - pz) / (1.8 * c.r);
+  // The leaf pattern's offset (each clump its own leaves).
+  const uo = Math.floor(rand() * 40);
+  const vo = Math.floor(rand() * 40);
+  const tone = (h: number) => Math.max(0, Math.min(1, h * 0.95 + c.up * 0.35 + fresh - 0.12));
+  for (let l = 0; l < d.lobes; l++) {
+    const shape = l === 0 && (d.lobes >= 3 || d.fine) ? ICO2 : ICO;
+    const lr = c.r * (l === 0 ? (d.cards ? 0.78 : 0.95) + rand() * 0.3 : 0.4 + rand() * 0.35);
     const ox = l === 0 ? 0 : (rand() - 0.5) * c.r * 1.5;
-    const oy = l === 0 ? 0 : (rand() - 0.25) * c.r * 0.7;
+    const oy = l === 0 ? 0 : (rand() - 0.25) * c.r * 0.5;
     const oz = l === 0 ? 0 : (rand() - 0.5) * c.r * 1.5;
     const base = g.count;
     let vi = 0;
@@ -524,73 +554,124 @@ function clump(g: VegGeometry, c: Cluster, lobes: number, tufts = 0, fine = fals
       // in and out (sprays of leaves, not a smooth ball).
       const j =
         shape === ICO2
-          ? vi < 12 || !fine
+          ? vi < 12 || !d.fine
             ? 1.04 + rand() * 0.2
             : 0.7 + rand() * 0.42
-          : fine
+          : d.fine
             ? 0.72 + rand() * 0.55
             : 0.9 + rand() * 0.2;
       vi++;
-      const x = vx! * lr * j;
-      const y = vy! * lr * j * 0.72;
-      const z = vz! * lr * j;
-      // Sunlit on top, deep underneath; the outer clumps of a pad brighter than its inner ones.
-      const h = (vy! + 1) / 2;
+      const x = c.x + ox + vx! * lr * j;
+      const y = c.y + oy + vy! * lr * j * 0.62;
+      const z = c.z + oz + vz! * lr * j;
       // Deep in the shade underneath, bright where the sun catches the top.
-      const tone = Math.max(0, Math.min(1, h * 0.95 + c.up * 0.35 + fresh - 0.12));
-      const colour =
-        tone < 0.5 ? mixC(LEAF_DEEP, LEAF_MID, tone * 2) : mixC(LEAF_MID, LEAF_RIM, (tone - 0.5) * 2);
-      // Normals lean to the pad's own: the clumps read as one soft, leafy mass, not separate balls.
-      const nx = vx! * 0.45 + c.nx * 0.55;
-      const ny = vy! * 0.45 + c.ny * 0.55;
-      const nz = vz! * 0.45 + c.nz * 0.55;
+      const t = tone((vy! + 1) / 2);
+      const colour = t < 0.5 ? mixC(LEAF_DEEP, LEAF_MID, t * 2) : mixC(LEAF_MID, LEAF_RIM, (t - 0.5) * 2);
+      // Normals lean to the canopy's own on the side that faces out of it (one soft, leafy mass); the
+      // side turned into the canopy keeps its own, so an upper clump's underside stays in shade.
+      const lean = layerLean(vx!, vy!, vz!, c);
+      const nx = vx! * (1 - lean) + c.nx * lean;
+      const ny = vy! * (1 - lean) + c.ny * lean;
+      const nz = vz! * (1 - lean) + c.nz * lean;
       const nl = Math.hypot(nx, ny, nz) || 1;
       g.vertex(
-        c.x + ox + x,
-        c.y + oy + y,
-        c.z + oz + z,
+        x,
+        y,
+        z,
         nx / nl,
         ny / nl,
         nz / nl,
-        vx! * 0.5 + 0.5,
-        vz! * 0.5 + 0.5,
+        uo + (x - c.x + (z - c.z) * 0.35) * 0.45,
+        vo + (y - c.y + (z - c.z) * 0.6) * 0.45,
         colour,
-        1,
-        0.04 + tone * 0.96,
+        leafPart(false, weight(x, y, z)),
+        0.04 + t * 0.96,
       );
     }
-    for (const [a, b, d] of shape.f) g.tri(base + a!, base + b!, base + d!);
+    for (const [a, b, e] of shape.f) g.tri(base + a!, base + b!, base + e!);
   }
-  // Leafy tufts out on the pad's surface: they break the clump's round outline into sprays of leaves.
-  for (let k = 0; k < tufts; k++) {
-    const tr = c.r * (0.28 + rand() * 0.18);
-    const cx = c.x + c.nx * c.r * 0.85 + (rand() - 0.5) * 1.8 * c.r;
-    const cy = c.y + c.ny * c.r * 0.85 + (rand() - 0.5) * 1.2 * c.r;
-    const cz = c.z + c.nz * c.r * 0.85 + (rand() - 0.5) * 1.8 * c.r;
+  // Leaf cards round the core, half out past it, so the clump's outline is leaves: spread over the
+  // underside and rim of the canopy's lower clumps (seen from the decks and the ground), over the rim
+  // and top of its upper ones (seen from the sea and the Crown).
+  const [elLo, elHi] = c.up < 0.4 ? [-0.95, 0.3] : c.up > 0.6 ? [-0.3, 0.95] : [-0.85, 0.85];
+  const rh = c.r * 1.05;
+  const rv = c.r * 0.62;
+  const spin = rand() * Math.PI * 2;
+  for (let k = 0; k < d.cards; k++) {
+    // An even spread (golden angle), jittered.
+    const el = elLo + ((k + 0.5) / d.cards) * (elHi - elLo) + (rand() - 0.5) * 0.15;
+    const az = spin + k * 2.39996 + (rand() - 0.5) * 0.5;
+    const ce = Math.sqrt(Math.max(0, 1 - el * el));
+    const dx = Math.cos(az) * ce;
+    const dz = Math.sin(az) * ce;
+    const s = c.r * (1.0 + rand() * 0.35);
+    // Its middle just inside the core: the leaves grow out of the mass, never float off it.
+    const cx = c.x + dx * rh * 0.9;
+    const cy = c.y + el * rv * 0.78;
+    const cz = c.z + dz * rh * 0.9;
+    // Square to the core's surface there, tipped a little.
+    let nx = dx * rv + (rand() - 0.5) * 0.5;
+    let ny = el * rh * 1.2 + (rand() - 0.5) * 0.4;
+    let nz = dz * rv + (rand() - 0.5) * 0.5;
+    const nl = Math.hypot(nx, ny, nz) || 1;
+    nx /= nl;
+    ny /= nl;
+    nz /= nl;
+    // Two axes across the card, turned by a random angle about its normal.
+    let ax = Math.abs(ny) < 0.9 ? -nz : 0;
+    let ay = Math.abs(ny) < 0.9 ? 0 : nz;
+    let azz = Math.abs(ny) < 0.9 ? nx : -ny;
+    const al = Math.hypot(ax, ay, azz) || 1;
+    ax /= al;
+    ay /= al;
+    azz /= al;
+    const bx = ny * azz - nz * ay;
+    const by = nz * ax - nx * azz;
+    const bz = nx * ay - ny * ax;
+    const rot = rand() * Math.PI * 2;
+    const cr = Math.cos(rot) * s * 0.5;
+    const sr = Math.sin(rot) * s * 0.5;
+    const ux = ax * cr + bx * sr;
+    const uy = ay * cr + by * sr;
+    const uz = azz * cr + bz * sr;
+    const vx = bx * cr - ax * sr;
+    const vy = by * cr - ay * sr;
+    const vz = bz * cr - azz * sr;
+    const t = tone((el + 1) / 2);
+    const colour = t < 0.5 ? mixC(LEAF_DEEP, LEAF_MID, t * 2) : mixC(LEAF_MID, LEAF_RIM, (t - 0.5) * 2);
+    const cl = layerLean(nx, ny, nz, c);
+    const vnx = nx * (1 - cl) + c.nx * cl;
+    const vny = ny * (1 - cl) + c.ny * cl;
+    const vnz = nz * (1 - cl) + c.nz * cl;
+    const vl = Math.hypot(vnx, vny, vnz) || 1;
+    const cu = Math.floor(rand() * 40);
+    const cv = Math.floor(rand() * 40);
     const base = g.count;
-    for (const [vx, vy, vz] of ICO.v) {
-      const j = 0.75 + rand() * 0.5;
-      const tone = Math.min(1, ((vy! + 1) / 2) * 0.6 + c.up * 0.5 + 0.15);
-      const colour = mixC(LEAF_MID, LEAF_RIM, tone);
-      const nx = vx! * 0.4 + c.nx * 0.6;
-      const ny = vy! * 0.4 + c.ny * 0.6;
-      const nz = vz! * 0.4 + c.nz * 0.6;
-      const nl = Math.hypot(nx, ny, nz) || 1;
+    for (const [su, sv] of [
+      [-1, -1],
+      [1, -1],
+      [-1, 1],
+      [1, 1],
+    ] as const) {
+      const x = cx + ux * su + vx * sv;
+      const y = cy + uy * su + vy * sv;
+      const z = cz + uz * su + vz * sv;
       g.vertex(
-        cx + vx! * tr * j,
-        cy + vy! * tr * j * 0.6,
-        cz + vz! * tr * j,
-        nx / nl,
-        ny / nl,
-        nz / nl,
-        0.5,
-        0.5,
+        x,
+        y,
+        z,
+        vnx / vl,
+        vny / vl,
+        vnz / vl,
+        cu + (su + 1) / 2,
+        cv + (sv + 1) / 2,
         colour,
-        1,
-        0.3 + tone * 0.7,
+        leafPart(true, weight(x, y, z)),
+        0.04 + t * 0.96,
       );
     }
-    for (const [a, b, d] of ICO.f) g.tri(base + a!, base + b!, base + d!);
+    g.tri(base, base + 1, base + 2);
+    g.tri(base + 1, base + 3, base + 2);
   }
 }
 
@@ -604,19 +685,21 @@ export interface BanyanDetail {
   step: number;
   /** Lobes per leaf clump. */
   lobes: number;
-  /** Leafy tufts per clump (its outline's sprays). */
-  tufts: number;
+  /** Leaf cards per clump. */
+  cards: number;
+  /** Each clump's own twig (lost from far away). */
+  twigs: boolean;
   /** Every lobe on the split, ragged shape (the near tree on the finer tiers). */
   fine?: boolean;
 }
 
 export const BANYAN_DETAIL: Record<'near' | 'far' | 'lite', BanyanDetail> = {
-  near: { coreSeg: 64, limbSeg: 12, rootSeg: 7, step: 1.6, lobes: 3, tufts: 2, fine: true },
-  lite: { coreSeg: 40, limbSeg: 8, rootSeg: 5, step: 2.4, lobes: 2, tufts: 0 },
-  far: { coreSeg: 28, limbSeg: 6, rootSeg: 4, step: 4, lobes: 2, tufts: 0 },
+  near: { coreSeg: 64, limbSeg: 12, rootSeg: 7, step: 1.6, lobes: 2, cards: 8, twigs: true, fine: true },
+  lite: { coreSeg: 40, limbSeg: 8, rootSeg: 5, step: 2.8, lobes: 1, cards: 4, twigs: true },
+  far: { coreSeg: 28, limbSeg: 6, rootSeg: 4, step: 4, lobes: 2, cards: 0, twigs: false },
 };
 
-/** The great banyan (core, pillars, limbs, boughs, leaders, prop roots and leaf clumps) as one mesh. */
+/** The great banyan (core, pillars, limbs, sprays, leaders, prop roots and leaf clumps on their twigs) as one mesh. */
 export function buildBanyan(
   d: BanyanDetail,
   clusters: readonly Cluster[],
@@ -625,15 +708,25 @@ export function buildBanyan(
 ): BufferGeometry {
   const g = new VegGeometry();
   core(g, d.coreSeg, d.step);
+  const carrying = carryingSprays(clusters);
   BRANCHES.forEach((b, i) => {
     const pillar = b.id.startsWith('pillar');
-    const twig = b.id.includes('twig');
-    const seg = pillar
-      ? Math.max(8, d.limbSeg + 2)
-      : twig
-        ? Math.max(4, Math.round(d.limbSeg / 2))
-        : d.limbSeg;
-    tube(g, resample(b, pillar ? d.step * 1.2 : d.step), seg, 101 + i, !pillar);
+    const spray = b.id.includes('spray');
+    if (spray && !carrying.has(b.id)) return;
+    const fine = d.limbSeg >= 10;
+    const seg = pillar ? Math.max(8, d.limbSeg + 2) : spray ? (fine ? 6 : 3) : d.limbSeg;
+    // The coarser levels draw a spray through every other point of its arch.
+    const line =
+      spray && !fine
+        ? { ...b, points: b.points.filter((_, k) => k % 2 === 0 || k === b.points.length - 1) }
+        : b;
+    tube(
+      g,
+      resample(line, pillar ? d.step * 1.2 : spray ? d.step * (fine ? 1.5 : 3) : d.step),
+      seg,
+      101 + i,
+      !pillar,
+    );
   });
   roots.forEach((r, i) => propRoot(g, r, d.rootSeg, 501 + i));
   (extras.ground ?? []).forEach((r, i) => groundRoot(g, r, Math.max(5, d.rootSeg), 801 + i));
@@ -648,7 +741,20 @@ export function buildBanyan(
       ),
     );
   for (const v of extras.vines ?? []) vine(g, v);
-  for (const c of clusters) clump(g, c, d.lobes, d.tufts, d.fine);
+  // The twigs end inside their clumps (no caps): a few rings each, straight on the coarser levels.
+  if (d.twigs)
+    clusters.forEach((c, i) => {
+      const fine = d.limbSeg >= 10;
+      const points = (fine ? c.twig : [c.twig[0]!, c.twig[c.twig.length - 1]!]) as Branch['points'];
+      tube(
+        g,
+        resample({ id: 'twig', canopy: false, points }, Math.max(2.4, d.step * 1.8)),
+        fine ? 4 : 3,
+        3001 + i,
+        false,
+      );
+    });
+  for (const c of clusters) clump(g, c, d);
   return g.build();
 }
 

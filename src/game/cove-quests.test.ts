@@ -1,9 +1,12 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   boardingOpen,
   currentQuest,
   migrateQuests,
   npcScript,
+  POL_SOLVED,
   questTarget,
   questTracker,
   type QuestState,
@@ -68,6 +71,36 @@ describe('Anchorage guidance', () => {
     const crane = steps.findIndex((s) => 'quest' in s && s.step === 'crane');
     expect(workflows).toBeGreaterThan(0);
     expect(crane).toBeGreaterThan(workflows);
+  });
+
+  it('keeps the crane talk short: six lines to brief, three to close', () => {
+    const brief = npcScript('pim', { ...through('Q0.4'), 'Q0.7': 'start' })!.steps;
+    expect(brief.filter((s) => 'say' in s)).toHaveLength(6);
+    const solved = npcScript('pol', { ...through('Q0.4'), 'Q0.7': 'solved' })!.steps;
+    expect(solved.filter((s) => 'say' in s)).toHaveLength(3);
+  });
+
+  it('asks for your fork at Ezra’s register, and again at the crane before its Actions link', () => {
+    const ezra = npcScript('merchant', through('Q0.2'))!.steps;
+    const register = ezra.findIndex((s) => 'askFork' in s);
+    expect(ezra[register]).toEqual({ askFork: 'ezra', line: 'ezra.fork.register' });
+    expect(register).toBeGreaterThan(ezra.findIndex((s) => 'page' in s && s.page === 'pg.fork'));
+    expect(register).toBeLessThan(ezra.findIndex((s) => 'quiz' in s && s.quiz === 'S0.3'));
+    const brief = npcScript('pim', { ...through('Q0.4'), 'Q0.7': 'start' })!.steps;
+    const ask = brief.findIndex((s) => 'askFork' in s);
+    expect(ask).toBeGreaterThan(0);
+    expect(ask).toBeLessThan(brief.findIndex((s) => 'page' in s && s.page === 'pg.workflows'));
+    const voiced = new Set(
+      (
+        JSON.parse(readFileSync(join(__dirname, '../../tools/voice/lines.testcove.json'), 'utf8')) as {
+          lines: { id: string }[];
+        }
+      ).lines.map((l) => l.id),
+    );
+    for (const s of [...ezra, ...brief, ...POL_SOLVED]) {
+      if ('say' in s) expect(voiced.has(s.say), s.say).toBe(true);
+      if ('askFork' in s && s.line) expect(voiced.has(s.line), s.line).toBe(true);
+    }
   });
 
   it('runs the Trial at the bow and goes straight on to the christening', () => {

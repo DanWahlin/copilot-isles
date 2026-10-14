@@ -271,10 +271,11 @@ The stops run along the harbour in the chapter's order, so there's no doubling b
 **Q0.6 · Open the Sluice (optional)**. Opens once the crane's done. Suri's mill shows what turning on workflows does → **P0.1**, then **[P] "The practice checks"** (pg.checks). Afterwards, Wingman heads off a mix-up: *"These are GitHub Actions workflows. The Clock Tower's **Automations** are something else, saved agent tasks, and you'll learn those much later."*
 
 **Q0.7 · The Dry-Run Crane** *(00 · Add the course practice items, steps 2-3)*
-- Pim & Pol explain that the script stocks your ship with **labels** (colored pennants), **issues** (bounty notices), **practice branches** (practice hulls, *"the bugs stay on those, never on `main`"*), and **pull requests** (sealed inspection requests: changes to review, a feedback comment, and an intentionally failing check).
-- *"They're training scenarios, not problems with your setup."*
-- **Actions first** *(the section's step 1)*: *"First, a job on GitHub.com. Open your fork's **Actions** tab. New forks switch workflows off."* Select **I understand my workflows, go ahead and enable them**, so GitHub can run the practice checks. **[P] "Turn on workflows"** (pg.workflows). → **P0.2**.
-- After the crane, Pol hands you a **[P0.S] "The setup commands"** page. It shows exactly what the crane stood for. You run both commands in the app's **Terminal** tab, from the repository root (the folder that contains `.github` and `samples`):
+- Kept short and literal (six lines). Pim & Pol say the crane runs the course's setup script on your fork, which adds **labels**, **issues**, **branches**, and **pull requests** for later chapters: *"They're practice, not problems."*
+- **Your fork's address** (if Ezra's register didn't get it): Pim asks, and the fork form opens (see **Your fork** below).
+- **Actions first** *(the section's step 1)*: *"First, on GitHub.com, open your fork's Actions tab and enable workflows."* **[P] "Turn on workflows"** (pg.workflows) names **I understand my workflows, go ahead and enable them** and, once you've given your fork, links straight to its **Actions** tab.
+- The rule, then the crane: preview with `--dry-run` in the app's **Terminal**, check the `Repository:` line names your fork, and only then run `--yes`. *"Same on our crane: aim her at your ship, pull Dry-Run, read the sign, then --yes."* → **P0.2**.
+- After the crane (three lines), Pol and Pim hand you a **[P0.S] "The setup commands"** page. It shows exactly what the crane stood for. You run both commands in the app's **Terminal** tab, from the repository root (the folder that contains `.github` and `samples`):
   ```bash
   node .github/scripts/setup-training-scenarios.js --dry-run   # preview; check the Repository: line
   node .github/scripts/setup-training-scenarios.js --yes       # run it; wait for "Setup complete."
@@ -304,16 +305,17 @@ The stops run along the harbour in the chapter's order, so there's no doubling b
 - **Hints:** (1) "Follow the water from the spring." (2) Highlights the tile nearest the break. (3) Auto-rotates one tile.
 
 **P0.2 · The Dry-Run Crane** (signature, ~4 min)
-- **Pieces:** a crane on a capstan (4 facings, one per berth), a **Dry-Run lever**, a **`--yes` lever**, and a painted **`Repository:` sign** on the crane arm. Berth 1 is your ship, with your chart's name on its flag. Berth 2 belongs to another captain. Berth 3 flies a guild (organization) flag.
+- **Pieces:** a crane on a capstan (4 facings, one per berth), a **Dry-Run lever**, a **`--yes` lever**, and a painted **`Repository:` sign** on the crane arm. Berth 1 is your ship: the sign and terminal show **your fork's `owner/repo`** once you've given it (otherwise `your-handle/copilot-app-for-beginners`). Berth 2 belongs to another captain. Berth 3 flies a guild (organization) flag.
 - **Start state:** the crane faces **Berth 2**.
 - **Loop:**
-  1. Pull **Dry-Run**. Translucent ghost crates (pennants, notices, hulls, sealed requests) drop onto the targeted ship, and the sign reads `Repository: <other-captain>/copilot-app-for-beginners`. Pim: *"Wait for the preview to finish, then check the Repository line."*
+  1. Pull **Dry-Run**. Translucent ghost crates (one per practice item kind) drop onto the targeted ship, and the sign reads `Repository: <other-captain>/copilot-app-for-beginners`. Pim: *"Wait for the preview to finish, then check the Repository line."*
   2. Turn the capstan to aim at your ship and pull Dry-Run again. The sign shows **your** name and the ghosts land on your deck.
   3. Pull **`--yes`**. Real crates drop into your hold with a satisfying stack animation, and a banner unfurls: **`Setup complete.`**
 - **Guards (these teach; nothing fails):**
   - Pulling `--yes` before a confirmed dry-run makes Pol stop you: *"Preview first, always!"*
   - Aiming at **Berth 3** makes the crane lock. *"The script stops before changing a repository owned by an organization."* An optional dialogue explains `--allow-shared-repository`.
-- **Checklist board:** pennants for labels, notices for issues, hulls for branches, seals for PRs, each ticked as it lands.
+- **Checklist board:** labels, issues, practice branches, and pull requests, each ticked as its crate lands.
+- **Your fork (Ezra's register, then the crane):** right after forking (Q0.3), Ezra asks for the fork's address, while it's in the browser. Skipped there, Pim asks once more in the crane brief. The form takes `https://github.com/<owner>/<repo>`, `github.com/<owner>/<repo>`, `<owner>/<repo>`, an SSH remote, a trailing `.git` or `/`, or a `*.ghe.com` host; it reads the address back, warns if the name isn't `copilot-app-for-beginners`, refuses the original `github/copilot-app-for-beginners`, and always offers **Skip for now**. It never calls GitHub: the fork is kept in the local save only (`progress.fork`), and the Logbook's Quests tab can change or forget it. It's used in on-screen text only (voiced lines can't say it): the crane's sign and terminal, Bo's `gh auth status` line, S0.3's search results, Ezra's add-your-fork caption, and links into the fork on pg.fork, pg.workflows, pg.checks, P0.S, B0.3, and B2.1.
 - **Hints:** (1) "What does the sign say?" (2) Highlights the capstan. (3) Points to your berth.
 
 ### 4.6 Chests & pages

@@ -5,6 +5,7 @@ import {
   YOUR_FACING,
   YOUR_REPOSITORY,
   confirmYes,
+  craneFacings,
   craneHintTarget,
   dryRun,
   initialCrane,
@@ -137,5 +138,42 @@ describe('crane logic (P0.2)', () => {
     expect(lineTone('Setup complete.')).toBe('ok');
     expect(lineTone('Default branch: main')).toBeUndefined();
     expect(lineTone('Repository:')).toBeUndefined();
+  });
+
+  it('shows the player’s own fork on their berth, the sign, and the terminal', () => {
+    const yours = 'dan-sample/copilot-app-for-beginners';
+    let s = turnTo(initialCrane(), YOUR_FACING);
+    const d = dryRun(s, yours);
+    expect(d.event).toMatchObject({ kind: 'preview', owner: 'you', repository: yours });
+    expect(signLines(d.state, d.event, yours)[0]).toBe(`Repository: ${yours}`);
+    expect(terminalLines(d.state, d.event, yours)[1]).toBe(`Repository: ${yours}`);
+    s = d.state;
+    const done = confirmYes(s, yours);
+    expect(done.event).toEqual({ kind: 'complete', repository: yours });
+    expect(signLines(done.state, undefined, yours)).toEqual([`Repository: ${yours}`, 'Setup complete.']);
+    expect(terminalLines(done.state, undefined, yours)[1]).toBe(`Repository: ${yours}`);
+    // The other captains' forks stay decoys and still get refused.
+    const other = dryRun(initialCrane(), yours);
+    expect(other.event).toMatchObject({ owner: 'captain', repository: 'm-reyes/copilot-app-for-beginners' });
+    expect(confirmYes(other.state, yours).event.kind).toBe('refused');
+    expect(lineTone(`Repository: ${yours}`, yours)).toBe('you');
+    expect(lineTone('dan-sample/', yours)).toBe('you');
+    expect(lineTone(`Repository: ${YOUR_REPOSITORY}`, yours)).toBe('other');
+    expect(lineTone('Repository: m-reyes/copilot-app-for-beginners', yours)).toBe('other');
+  });
+
+  it('swaps a decoy that shares the player’s owner, so only their berth shows their name', () => {
+    for (const yours of ['m-reyes/copilot-app-for-beginners', 'Harbour-Guild/my-fork']) {
+      const f = craneFacings(yours);
+      const names = f.map((x) => x.repository).filter(Boolean);
+      expect(new Set(names).size).toBe(3);
+      expect(f[YOUR_FACING]!.repository).toBe(yours);
+      const owner = yours.split('/')[0]!.toLowerCase();
+      expect(
+        f.filter((x) => x.owner !== 'you' && x.repository?.toLowerCase().startsWith(`${owner}/`)),
+      ).toEqual([]);
+    }
+    expect(craneFacings('m-reyes/x')[CRANE_START]!.captain).toBe('J. Okafor');
+    expect(craneFacings()).toBe(CRANE_FACINGS);
   });
 });

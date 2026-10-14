@@ -29,6 +29,37 @@ describe('runScript', () => {
     expect(finished).toBe(true);
   });
 
+  it('asks for the fork only when there isn’t one, with its line first', async () => {
+    const learn = new LearnStore(new Progress(null));
+    const said: string[] = [];
+    const dialogue = {
+      play: async (ids: readonly string[]) => void said.push(...ids),
+      say: async () => undefined,
+    } as unknown as Dialogue;
+    const steps = [{ askFork: 'crane', line: 'pim.brief.fork' }, { say: 'after' }] as const;
+    const run = runScript(steps, { dialogue, learn, speaker: 'Pim' });
+    for (let i = 0; i < 5 && !learn.getState().forkForm; i++) await Promise.resolve();
+    expect(said).toEqual(['pim.brief.fork']);
+    expect(learn.getState().forkForm).toEqual({ from: 'crane' });
+    learn.saveFork({ host: 'github.com', owner: 'dan-sample', repo: 'copilot-app-for-beginners' });
+    expect(await run).toBe(true);
+    expect(said).toEqual(['pim.brief.fork', 'after']);
+    // Given once, it's not asked again (and its line isn't played).
+    said.length = 0;
+    expect(await runScript(steps, { dialogue, learn, speaker: 'Pim' })).toBe(true);
+    expect(said).toEqual(['after']);
+  });
+
+  it('carries on after Skip for now', async () => {
+    const learn = new LearnStore(new Progress(null));
+    const dialogue = { play: async () => undefined, say: async () => undefined } as unknown as Dialogue;
+    const run = runScript([{ askFork: 'ezra' }], { dialogue, learn, speaker: 'Ezra' });
+    for (let i = 0; i < 5 && !learn.getState().forkForm; i++) await Promise.resolve();
+    learn.skipFork();
+    expect(await run).toBe(true);
+    expect(learn.getState().fork).toBeNull();
+  });
+
   it('files a page in the Logbook without stopping for a reveal card', async () => {
     const learn = new LearnStore(new Progress(null));
     const dialogue = { play: async () => undefined, say: async () => undefined } as unknown as Dialogue;

@@ -1,82 +1,62 @@
 {
   "id": "pol.brief.actions",
   "speaker": "Pol",
-  "text": "First, a job on GitHub.com. Open your fork's Actions tab. New forks switch workflows off.",
+  "text": "First, on GitHub.com, open your fork's Actions tab and enable workflows.",
   "words": [
     {
       "word": "First",
       "start": 0.05,
-      "end": 0.86475
-    },
-    {
-      "word": "a",
-      "start": 0.86475,
-      "end": 0.965166
-    },
-    {
-      "word": "job",
-      "start": 0.965166,
-      "end": 1.322333
+      "end": 0.753125
     },
     {
       "word": "on",
-      "start": 1.322333,
-      "end": 1.500875
+      "start": 0.753125,
+      "end": 0.942875
     },
     {
       "word": "GitHub.com",
-      "start": 1.500875,
-      "end": 3.342416
+      "start": 0.942875,
+      "end": 2.192875
     },
     {
-      "word": "Open",
-      "start": 3.342416,
-      "end": 3.733041
+      "word": "open",
+      "start": 2.192875,
+      "end": 2.494208
     },
     {
       "word": "your",
-      "start": 3.733041,
-      "end": 3.92275
+      "start": 2.494208,
+      "end": 2.650458
     },
     {
       "word": "fork's",
-      "start": 3.92275,
-      "end": 4.346875
+      "start": 2.650458,
+      "end": 3.029916
     },
     {
       "word": "Actions",
-      "start": 4.346875,
-      "end": 4.826791
+      "start": 3.029916,
+      "end": 3.465166
     },
     {
       "word": "tab",
-      "start": 4.826791,
-      "end": 6.021
+      "start": 3.465166,
+      "end": 3.777666
     },
     {
-      "word": "New",
-      "start": 6.021,
-      "end": 6.277666
+      "word": "and",
+      "start": 3.777666,
+      "end": 3.911625
     },
     {
-      "word": "forks",
-      "start": 6.277666,
-      "end": 6.746416
-    },
-    {
-      "word": "switch",
-      "start": 6.746416,
-      "end": 7.070083
+      "word": "enable",
+      "start": 3.911625,
+      "end": 4.257583
     },
     {
       "word": "workflows",
-      "start": 7.070083,
-      "end": 7.639291
-    },
-    {
-      "word": "off",
-      "start": 7.639291,
-      "end": 7.889291
+      "start": 4.257583,
+      "end": 4.507583
     }
   ]
 }

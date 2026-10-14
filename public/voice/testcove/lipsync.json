@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-13T21:08:43.163Z",
+  "generatedAt": "2026-10-14T01:42:47.393Z",
   "generator": "Rhubarb Lip Sync 1.14.0",
   "scope": "Every voiced islander (not Wingman)",
   "lines": {
@@ -134,13 +134,13 @@
       "v": "XABGFGEBEFCBXBCBABEFBDCEFGEBX"
     },
     "pim.done.01": {
-      "h": "2f0e9dfa1b6697b1",
+      "h": "93a878f4fcd53fb3",
       "e": "happy",
       "t": [
-        0, 9, 9, 7, 8, 19, 38, 6, 5, 7, 7, 7, 49, 15, 11, 7, 7, 21, 14, 14, 17, 70, 85, 15, 7, 7, 35, 7, 10,
-        5, 4, 7, 14, 14, 74
+        0, 9, 15, 14, 7, 9, 46, 9, 7, 21, 35, 15, 9, 7, 7, 7, 8, 6, 5, 35, 21, 16, 8, 14, 28, 7, 7, 28, 83,
+        16, 7, 7, 35, 7, 10, 4, 4, 7, 14, 14, 74
       ],
-      "v": "XCBACBGCBGCBXBCGCHBXBXFGFBGABCBCBX"
+      "v": "XCHCABFCBFXBCGBABCBXBAFBFCBXFGFBGABCBCBX"
     },
     "pol.done.01": {
       "h": "128864ddd1e0ef39",
@@ -152,122 +152,92 @@
       "v": "XBACABXBCBGEBXBCBADBEBHCBXBCBX"
     },
     "pim.brief.01": {
-      "h": "23138df912663e92",
+      "h": "9f31d13e9a55948c",
       "e": "happy",
       "t": [
-        0, 7, 3, 8, 27, 79, 6, 6, 8, 21, 29, 10, 8, 16, 21, 84, 7, 20, 21, 21, 12, 35, 7, 14, 8, 40, 7, 14,
-        21, 74
+        0, 3, 8, 8, 5, 19, 81, 6, 6, 8, 21, 29, 10, 8, 16, 21, 84, 15, 4, 61, 21, 42, 7, 9, 19, 8, 4, 11, 14,
+        14, 14, 7, 7, 76
       ],
-      "v": "XCABXCBABABAEHXFBEBABCBAFGEBX"
+      "v": "XCABCXCBABABAEHXDCBEBCABABDFGECBX"
     },
     "pol.brief.01": {
-      "h": "387f624085852272",
+      "h": "00eb5ab32d0c2bfe",
       "e": "neutral",
       "t": [
-        0, 12, 4, 32, 49, 14, 12, 22, 10, 17, 89, 9, 14, 21, 7, 7, 11, 38, 27, 25, 8, 17, 67, 5, 33, 42, 18,
-        6, 6, 11, 35, 14, 35, 75
+        0, 13, 9, 14, 14, 7, 7, 10, 38, 23, 21, 17, 33, 15, 7, 49, 28, 8, 8, 25, 14, 7, 7, 21, 7, 7, 7, 21, 7,
+        8, 5, 18, 21, 85, 9, 9, 89, 5, 5, 7, 12, 4, 8, 9, 7, 17, 16, 73
       ],
-      "v": "XBEBCABABXBCBHCABXBACBCBFXBACBCBX"
+      "v": "XBCBHCABXBABACBXBAFBFCBGCHBCABEBXBABCDBABAHCABX"
     },
     "pim.brief.02": {
-      "h": "23923e812f0a70ad",
-      "e": "concerned",
+      "h": "6c9e383270ba5287",
+      "e": "neutral",
       "t": [
-        0, 3, 8, 28, 10, 7, 6, 14, 53, 8, 9, 43, 21, 14, 77, 7, 6, 21, 14, 14, 7, 7, 7, 14, 21, 17, 16, 21, 7,
-        8, 10, 21, 72
+        0, 8, 4, 11, 21, 7, 9, 21, 8, 12, 14, 19, 7, 11, 6, 13, 8, 13, 7, 70, 12, 16, 7, 21, 7, 7, 35, 7, 28,
+        7, 14, 21, 75
       ],
-      "v": "XABABCBFBABHBXBACBCBDBEFBCECACBX"
+      "v": "XBCBCABABXBCABEACHXABGFBFBCBGEBX"
     },
     "pol.brief.02": {
-      "h": "719bde2535b79f3a",
-      "e": "neutral",
+      "h": "1a3727fcff0100e3",
+      "e": "concerned",
       "t": [
-        0, 14, 4, 8, 23, 14, 7, 14, 28, 22, 43, 8, 11, 42, 14, 28, 29, 6, 6, 21, 14, 7, 7, 28, 29, 14, 7, 8,
-        16, 14, 7, 8, 14, 14, 32, 25, 7, 21, 14, 7, 21, 7, 8, 12, 8, 14, 21, 74
+        0, 12, 7, 13, 28, 8, 18, 14, 7, 14, 7, 7, 7, 21, 7, 8, 21, 7, 14, 7, 14, 92, 5, 19, 21, 56, 21, 28, 74
       ],
-      "v": "XBAFBFCBXBACBCBXBCBFBGFBGBACDCACBXBCBGCBDAEACBX"
+      "v": "XBCBADBEBHCBCBAFGECBXEBCBCBX"
     },
     "pim.brief.03": {
-      "h": "3ea9cc5a7d3c6b25",
-      "e": "neutral",
-      "t": [0, 8, 5, 4, 56, 14, 14, 7, 14, 19, 5, 4, 7, 9, 4, 4, 9, 7, 8, 8, 21, 7, 7, 7, 7, 16, 73],
-      "v": "XBCBCBEFBCDBABDABABFBCBCAX"
-    },
-    "pol.brief.actions": {
-      "h": "6d4c888828506a51",
+      "h": "12f1ecaf368ffe36",
       "e": "neutral",
       "t": [
-        0, 12, 11, 21, 46, 7, 14, 7, 9, 13, 21, 14, 8, 6, 5, 14, 20, 8, 16, 88, 8, 11, 15, 7, 14, 7, 14, 7,
-        14, 7, 35, 21, 20, 89, 24, 7, 14, 28, 7, 14, 14, 7, 7, 7, 14, 7, 7, 21, 14, 78
-      ],
-      "v": "XGEBCBEADBCABDBDCAXEABCEGECBCBCAXFGEBFBFECGEFBEGX"
-    },
-    "pim.brief.actions": {
-      "h": "2694b0bd56762cd8",
-      "e": "neutral",
-      "t": [
-        0, 8, 7, 7, 7, 7, 30, 6, 6, 7, 21, 14, 7, 8, 6, 13, 14, 7, 14, 23, 18, 7, 21, 7, 35, 8, 14, 7, 11, 82,
-        26, 14, 8, 24, 21, 9, 42, 14, 21, 75
-      ],
-      "v": "XBCHCBCBCBCBACFBGEFEFCBCABCAXBCACBABCBX"
-    },
-    "pol.brief.03": {
-      "h": "a8bdcfe0f7ec903d",
-      "e": "neutral",
-      "t": [
-        0, 12, 5, 5, 28, 7, 28, 29, 21, 7, 16, 10, 14, 8, 18, 7, 90, 5, 25, 7, 14, 7, 14, 7, 21, 7, 7, 8, 11,
-        14, 7, 77, 13, 14, 28, 12, 13, 14, 14, 7, 8, 31, 24, 12, 14, 21, 7, 21, 8, 19, 7, 21, 36, 43, 8, 13,
-        14, 14, 7, 7, 7, 7, 7, 14, 28, 7, 21, 80
-      ],
-      "v": "XBCBCBXBCABEACHXDBCBFECBCBAFCBXBECABFCBAECAFBCBABGFXBADBEBHCBCDBCBX"
-    },
-    "pim.brief.04": {
-      "h": "bef129d5344f4ecd",
-      "e": "concerned",
-      "t": [0, 8, 6, 20, 7, 7, 14, 7, 8, 10, 14, 14, 7, 14, 21, 8, 35, 7, 25, 14, 76],
-      "v": "XEBFBCBAFEFGEFAFECBX"
-    },
-    "pol.solved.01": {
-      "h": "3dcca7dffe9b9567",
-      "e": "neutral",
-      "t": [0, 11, 18, 14, 10, 15, 8, 45, 89, 12, 14, 7, 14, 21, 14, 7, 7, 28, 21, 79, 17, 8, 6, 27, 76],
-      "v": "XBCABABXCEGECBCGBEBCABCX"
-    },
-    "pim.solved.01": {
-      "h": "1b9421113be7e599",
-      "e": "neutral",
-      "t": [
-        0, 9, 22, 7, 36, 17, 7, 8, 14, 14, 8, 14, 42, 7, 5, 12, 8, 17, 14, 41, 6, 6, 6, 8, 17, 14, 7, 7, 21,
+        0, 8, 18, 8, 25, 14, 7, 42, 5, 5, 8, 10, 21, 7, 14, 32, 10, 21, 7, 14, 21, 14, 44, 7, 21, 16, 8, 56,
         14, 75
       ],
-      "v": "XBCAFBAEBACBABEABCABABADBEBFBX"
+      "v": "XBADBCBCBADBEBAFBCBCXBCBXBCBX"
     },
-    "pol.solved.02": {
-      "h": "9ac7e811cbf6d266",
+    "pol.brief.actions": {
+      "h": "10baedf8e90bc535",
       "e": "neutral",
       "t": [
-        0, 13, 10, 14, 7, 14, 42, 12, 35, 28, 7, 7, 8, 20, 21, 7, 7, 21, 21, 14, 90, 23, 14, 14, 21, 14, 8,
-        10, 14, 7, 21, 7, 9, 7, 14, 21, 76
+        0, 13, 7, 20, 39, 5, 32, 8, 5, 12, 7, 20, 8, 41, 8, 8, 24, 7, 14, 7, 7, 7, 14, 35, 14, 18, 12, 14, 10,
+        9, 7, 7, 7, 7, 14, 28, 75
       ],
-      "v": "XCEGEBABFBCAFBFCBCEXFECFCABHCBCABEBX"
+      "v": "XGEBDBABEFDCAEACEGECBCBCABCABFECGEFX"
+    },
+    "pol.solved.01": {
+      "h": "fd84de647e02dde5",
+      "e": "happy",
+      "t": [
+        0, 10, 11, 21, 10, 14, 8, 48, 91, 9, 14, 14, 14, 21, 14, 12, 35, 7, 14, 8, 7, 20, 14, 35, 41, 7, 7,
+        21, 7, 8, 4, 25, 14, 75
+      ],
+      "v": "XBCABABXCEGECBABCBABCECBGHBCABEBX"
+    },
+    "pim.solved.01": {
+      "h": "d59f650da6406ed5",
+      "e": "neutral",
+      "t": [
+        0, 9, 22, 7, 38, 14, 8, 13, 7, 7, 8, 14, 21, 14, 8, 13, 7, 20, 3, 8, 9, 8, 17, 14, 7, 7, 21, 14, 74
+      ],
+      "v": "XBCABAEFBACBEACHXBABADBEBFBX"
     },
     "pol.refuse.guild.01": {
-      "h": "9afe41a373657ef7",
+      "h": "8244c7006f9a8545",
       "e": "concerned",
       "t": [
-        0, 10, 25, 8, 16, 21, 92, 22, 8, 21, 10, 4, 9, 7, 7, 15, 7, 14, 35, 7, 7, 8, 17, 14, 7, 21, 7, 7, 8,
-        12, 7, 7, 14, 28, 42, 78
+        0, 12, 13, 7, 35, 21, 89, 4, 11, 7, 28, 7, 14, 14, 14, 7, 14, 14, 7, 7, 14, 21, 91, 23, 8, 21, 10, 4,
+        10, 6, 6, 10, 14, 14, 7, 7, 49, 75
       ],
-      "v": "XBAEHXBABDCABABGEBCBADBEBEBACBCECBX"
+      "v": "XBGFBXBCECBCBCEFBCBFCXBABDCABABGEBCBX"
     },
     "pim.refuse.guild.01": {
-      "h": "6faa0bf59ce51865",
-      "e": "concerned",
+      "h": "e44e4a70e931d063",
+      "e": "neutral",
       "t": [
-        0, 8, 6, 5, 24, 7, 7, 14, 7, 7, 8, 14, 14, 7, 7, 7, 7, 7, 7, 7, 14, 7, 35, 18, 7, 7, 17, 29, 14, 84,
-        6, 5, 14, 21, 21, 7, 14, 35, 8, 19, 7, 14, 7, 7, 7, 84, 14, 14, 14, 8, 14, 14, 76
+        0, 8, 9, 7, 7, 14, 7, 14, 7, 14, 7, 7, 14, 7, 14, 37, 19, 8, 15, 14, 7, 7, 7, 7, 28, 7, 36, 8, 18, 12,
+        7, 14, 7, 7, 8, 18, 7, 14, 14, 75
       ],
-      "v": "XBCBCHBCBADBEBGHCBGBCBFBFBCBXEFBFEBEBADBEBHCBDBFACBX"
+      "v": "XBGFEBEBFBCBFCABADBEBHCBCBCBCHBCBADBEBX"
     },
     "pol.refuse.guild.02": {
       "h": "6fac1f5b87f4da90",
@@ -2255,6 +2225,21 @@
       "e": "happy",
       "t": [0, 3, 9, 14, 7, 7, 21, 21, 9, 5, 26, 56, 13, 28, 8, 19, 5, 53, 14, 21, 7, 21, 14, 7, 4],
       "v": "XGCBFBCABCXBCADCBCFBCECX"
+    },
+    "pim.brief.fork": {
+      "h": "882951812ca3a563",
+      "e": "neutral",
+      "t": [0, 9, 31, 7, 7, 28, 14, 23, 13, 8, 6, 19, 84, 4, 8, 16, 14, 14, 21, 7, 21, 14, 14, 74],
+      "v": "XFGFBCBCABCXBACBDBCBCBX"
+    },
+    "ezra.fork.register": {
+      "h": "c782555f9a4cf69b",
+      "e": "neutral",
+      "t": [
+        0, 3, 10, 7, 42, 58, 68, 7, 21, 8, 6, 12, 7, 21, 21, 32, 9, 7, 7, 14, 7, 8, 9, 14, 7, 21, 28, 8, 19,
+        7, 21, 14, 12
+      ],
+      "v": "XGEBXBCBACBCBECBEFDCAECEFBABCEBX"
     }
   }
 }

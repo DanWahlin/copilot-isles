@@ -1,13 +1,20 @@
-import type { ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
+import { forkName, type ForkRef } from '../../learn/fork';
 
 const LINK = /^\[([^\]]+)\]\((https:\/\/[^\s)]+)\)$/;
 
+/** The player's fork, for `{fork}` in content strings (the placeholder fork until they give it). */
+export const ForkContext = createContext<ForkRef | null>(null);
+
 /**
  * Renders content strings: `**bold**` for UI labels, `code` spans, and `[text](https://…)` links
- * (https only, opened in a new tab). No HTML is ever injected.
+ * (https only, opened in a new tab). `{fork}` becomes the player's `owner/repo`. No HTML is ever
+ * injected.
  */
 export function Rich({ text }: { text: string }): ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\(https:\/\/[^\s)]+\))/g);
+  const fork = useContext(ForkContext);
+  const shown = text.includes('{fork}') ? text.replaceAll('{fork}', forkName(fork)) : text;
+  const parts = shown.split(/(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\(https:\/\/[^\s)]+\))/g);
   return parts.map((p, i) => {
     if (p.startsWith('**') && p.endsWith('**') && p.length > 4)
       return <strong key={i}>{p.slice(2, -2)}</strong>;

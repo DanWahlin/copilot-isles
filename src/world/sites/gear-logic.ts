@@ -34,20 +34,23 @@ export const gearDef = (id: GearId): GearDef => GEAR.find((g) => g.id === id)!;
 /** The handle the game shows for your own GitHub account. */
 export const YOUR_HANDLE = 'your-handle';
 
-/** Terminal after the four version checks and `gh auth status`, run at Bo's rack. */
-export function gearReadout(): string[] {
+/**
+ * Terminal after the four version checks and `gh auth status`, run at Bo's rack. `handle` is the
+ * account that owns the player's fork, once they've given it.
+ */
+export function gearReadout(handle: string = YOUR_HANDLE, host = 'github.com'): string[] {
   const lines: string[] = [];
   for (const g of GEAR) lines.push(`$ ${g.command}`, g.output);
-  lines.push('$ gh auth status', `✓ Logged in to github.com account ${YOUR_HANDLE}`);
+  lines.push('$ gh auth status', `✓ Logged in to ${host} account ${handle}`);
   return lines;
 }
 
 export type GearTone = 'cmd' | 'you' | 'ok';
 
 /** How a readout line is inked: commands, your account, and version numbers. */
-export function gearTone(line: string): GearTone | undefined {
+export function gearTone(line: string, handle: string = YOUR_HANDLE): GearTone | undefined {
   if (line.startsWith('$')) return 'cmd';
-  if (line.includes(YOUR_HANDLE)) return 'you';
+  if (line.endsWith(` account ${handle}`)) return 'you';
   if (GEAR.some((g) => g.output === line)) return 'ok';
   return undefined;
 }

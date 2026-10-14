@@ -53,7 +53,8 @@ export interface CraneSite {
   /** Shows `count` crates already landed (restoring a save). */
   showCrates(kind: CrateKind, facing: number, count: number): void;
   clearCrates(kind: CrateKind): void;
-  setSign(lines: readonly string[]): void;
+  /** Paints the arm sign; `yours` (your fork's `owner/repo`) is inked gold. */
+  setSign(lines: readonly string[], yours?: string): void;
   /** Ticks the stores board for the first `n` cargo kinds. */
   setBoard(n: number): void;
   setBanner(open: boolean, snap?: boolean): void;
@@ -554,9 +555,9 @@ export function createCrane(o: CraneOptions): CraneSite {
       shown[kind] = { facing: -1, count: 0 };
       crates[kind].forEach((c) => (c.visible = false));
     },
-    setSign(lines) {
+    setSign(lines, yours) {
       const shown = jibLines(lines);
-      sign.redraw(shown, { colors: shown.map(inkFor) });
+      sign.redraw(shown, { colors: shown.map((l) => inkFor(l, yours)) });
     },
     setBoard(n) {
       board.redraw(boardLines(n), {
@@ -708,8 +709,8 @@ function jibLines(lines: readonly string[]): string[] {
 const INK: Record<LineTone, string> = { cmd: '#9fb6c4', you: '#ffd98a', other: '#ffb09a', ok: '#b9ef9c' };
 
 /** Ink per line: your fork in gold, anyone else's (and refusals) in coral, success in green. */
-function inkFor(line: string): string | undefined {
-  const tone = lineTone(line);
+function inkFor(line: string, yours?: string): string | undefined {
+  const tone = lineTone(line, yours);
   return tone ? INK[tone] : undefined;
 }
 

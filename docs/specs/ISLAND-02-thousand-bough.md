@@ -322,7 +322,7 @@ near (1957, −1518).
 | **Trunk** | 7 fused trunks, fluted; radius 9 at y 18.5 (buttress flare to 14 at the knoll rim, between the deck ring segments), 8 at y 30, 7 at y 40, 6 at y 50, top of the trunk y 52 |
 | **Major limbs** | 7, leaving the trunk between y 27 and 40 at bearings **20, 95, 135, 165, 235, 300, 340**, reaching r 45–60, diameter 3.5 → 1.5 m. Each limb's height where it crosses the stair band (r 15.5–19.5) obeys the **stair clearance rule** (§3.6). Proposed limb heights at the band: 20 → 32.5, 95 → 35, 135 → 31, 165 → 37, 235 → 27.5, 300 → 30, 340 → 34 |
 | **Prop roots** | 36 aerial roots from the limbs to the ground at r 26–55, diameter 0.8–2.2 m; none on a path, deck, or within 2.5 m of one; they make colonnades either side of the Fern Walk's last 30 m |
-| **Canopy** | an **open cathedral**: no leaves inside r 26 below y 56; an outer ring of 9 pads at r 30–60, bottoms ≥ 36, tops ≤ 48 on the south side (bearings 120–260, the **Sea Window**) and ≤ 56 elsewhere; a **high crown** of two masses to the NE (bearings 20–80, r 19–45) from y 58 to **77**. The Crown Deck has open sky to the S, W and N |
+| **Canopy** | an **open cathedral**: no leaves inside r 26 below y 56; an outer ring of leaf at r 27–58 (one continuous ceiling, its underside sloping up toward the trunk), bottoms ≥ 36, tops ≤ 48 on the south side (bearings 120–260, the **Sea Window**) and ≤ 56 elsewhere; a **high crown** of two masses to the NE (bearings 20–80, r 19–45) from y 58 to **77**. The Crown Deck has open sky to the S, W and N. **Every leaf clump hangs on wood:** sprays fork off the limbs and the leaders into the leaf, and each clump has its own twig off them into its heart (tested); its leaves sway about where the twig enters, never the whole clump |
 | **Hanging life** | vines and moss strands (leaf material ribbons), 120 lanterns on the limbs, 6 bird perches |
 | **Canopy clearance envelope** | **no leaf geometry within 6 m above or 4 m beside any walkable surface** (tested) |
 | **The little sister tree** | at (1956, −1442), the same generator at scale 0.18, 6 prop roots, 12 lanterns |
@@ -1086,9 +1086,10 @@ Until A's views exist, B tests against a **stub** of the same interfaces (`contr
 
 LOD switches are dithered (PLAN §6), never alpha-blended; the hand-off distances get hysteresis (±8 m).
 Only the trunk, limbs and the canopy clusters cast into the cached sun shadow map; small props don't.
-The build is sliced (`runSliced`, a few ms a frame). Clusters are leaf cards from the shared vegetation
-leaf material (no new graph), tinted per instance (`tint`) with the §2.3 greens; colour checked so no
-distant cluster turns into blotches (lesson: alpha-tested foliage at a distance).
+The build is sliced (`runSliced`, a few ms a frame). Clusters are a soft core with a leaf pattern and
+alpha-tested leaf cards round it (the shared vegetation material's card part, `vegPart` 5: no new
+graph), tinted per instance (`tint`) with the §2.3 greens; the far level has no cards, so no distant
+cluster turns into blotches (lesson: alpha-tested foliage at a distance).
 
 ### 9.5 Arrival flyover (`THOUSAND_BOUGH_ARRIVAL` in `arrivals.ts`, A)
 

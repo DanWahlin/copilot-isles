@@ -45,6 +45,8 @@ export interface FxBudget {
   balls: number;
   splashes: number;
   smoke: number;
+  /** Puffs for the balls' smoke trails (a ring of their own in the smoke's draw). */
+  trail: number;
   splinters: number;
   stores: number;
   boats: number;
@@ -53,24 +55,36 @@ export interface FxBudget {
 export function fxBudget(tier: TierSettings): FxBudget {
   switch (tier.tier) {
     case 'lite':
-      return { balls: 32, splashes: 24, smoke: 0, splinters: 0, stores: 16, boats: 2 };
+      return { balls: 32, splashes: 24, smoke: 0, trail: 0, splinters: 0, stores: 16, boats: 2 };
     case 'low':
-      return { balls: 40, splashes: 32, smoke: 36, splinters: 32, stores: 20, boats: 3 };
+      return { balls: 40, splashes: 32, smoke: 36, trail: 48, splinters: 32, stores: 20, boats: 3 };
     case 'medium':
-      return { balls: 64, splashes: 48, smoke: 72, splinters: 64, stores: 32, boats: 4 };
+      return { balls: 64, splashes: 48, smoke: 72, trail: 96, splinters: 64, stores: 32, boats: 4 };
     default:
-      return { balls: 64, splashes: 64, smoke: 72, splinters: 96, stores: 32, boats: 4 };
+      return { balls: 64, splashes: 64, smoke: 72, trail: 128, splinters: 96, stores: 32, boats: 4 };
   }
 }
 
 const GRAVITY = 9.81;
-const BALL_RADIUS = 0.2;
+/**
+ * A ball's drawn size (m): a little over a real round shot's, so it reads at fighting range. Only the
+ * drawing; the hits test the ball's centre.
+ */
+const BALL_RADIUS = 0.3;
+/** How long a streak a flying ball draws behind it (s of its flight): it reads as a dark dash. */
+const BALL_STREAK = 0.03;
+/** How often a flying ball leaves a puff of its smoke trail (s). */
+export const TRAIL_EVERY = 0.07;
+/** How long a trail puff hangs (s). */
+const TRAIL_LIFE = 1.1;
 const tmpM = new Matrix4();
 const tmpQ = new Quaternion();
 const tmpE = new Euler(0, 0, 0, 'YXZ');
 const tmpP = new Vector3();
 const tmpS = new Vector3();
+const tmpD = new Vector3();
 const tmpC = new Color();
+const AXIS_Z = new Vector3(0, 0, 1);
 
 function pooled(mesh: InstancedMesh, name: string): InstancedMesh {
   mesh.name = name;
@@ -135,6 +149,8 @@ export class BallPool {
   readonly damage: Float32Array;
   /** 1 once the ball has whistled past the player's ship (so it sounds once). */
   readonly whizzed: Uint8Array;
+  /** The ball's age (s) when it leaves its next trail puff. */
+  readonly trailAt: Float32Array;
   readonly size: number;
 
   constructor(size: number) {
@@ -149,6 +165,7 @@ export class BallPool {
     this.owner = new Int16Array(size).fill(-1);
     this.damage = new Float32Array(size);
     this.whizzed = new Uint8Array(size);
+    this.trailAt = new Float32Array(size);
     const ball = asPart(paint(new SphereGeometry(BALL_RADIUS, 10, 6), 0x1b1a19), PART_BALL);
     this.mesh = propMesh(ball, size, 'battle-balls').mesh;
   }
@@ -175,6 +192,8 @@ export class BallPool {
       this.age[i] = 0;
       this.damage[i] = damage;
       this.whizzed[i] = 0;
+      // The first trail puff comes once it's clear of the muzzle smoke.
+      this.trailAt[i] = 0.05;
       return i;
     }
     return -1;
@@ -196,11 +215,26 @@ export class BallPool {
     }
   }
 
+  /**
+   * Draws every ball in flight as a dash along its path: the ball at its position with a short
+   * streak behind it, so a shot reads at range (a lone 0.6 m ball is a few pixels at 80 m).
+   */
   sync(): void {
     let n = 0;
     for (let i = 0; i < this.size; i++) {
       if (this.owner[i] === -1) continue;
-      tmpM.makeTranslation(this.x[i]!, this.y[i]!, this.z[i]!);
+      const vx = this.vx[i]!;
+      const vy = this.vy[i]!;
+      const vz = this.vz[i]!;
+      const speed = Math.hypot(vx, vy, vz);
+      const streak = speed * BALL_STREAK;
+      tmpD.set(vx, vy, vz).multiplyScalar(speed > 1e-4 ? 1 / speed : 0);
+      if (speed > 1e-4) tmpQ.setFromUnitVectors(AXIS_Z, tmpD);
+      else tmpQ.identity();
+      // The sphere stretched along its flight, its front at the ball's position.
+      const half = streak * 0.5;
+      tmpP.set(this.x[i]! - tmpD.x * half, this.y[i]! - tmpD.y * half, this.z[i]! - tmpD.z * half);
+      tmpM.compose(tmpP, tmpQ, tmpS.set(1, 1, 1 + streak / (2 * BALL_RADIUS)));
       this.mesh.setMatrixAt(n++, tmpM);
     }
     this.mesh.count = n;
@@ -229,6 +263,8 @@ export class SplashPool {
   private readonly kindAttr: InstancedBufferAttribute;
   private next = 0;
   readonly size: number;
+  /** Told of every splash as it's made (tests check each has its cause). */
+  onSpawn: ((x: number, y: number, z: number, kind: number) => void) | null = null;
 
   constructor(size: number) {
     this.size = Math.max(1, size);
@@ -267,6 +303,7 @@ export class SplashPool {
     this.scale[i] = scale;
     this.seed[i] = seed;
     this.kind[i] = kind;
+    this.onSpawn?.(x, y, z, kind);
   }
 
   sync(t: number): void {
@@ -317,10 +354,15 @@ export class SmokePool {
   /** age, size, seed per drawn puff. */
   private readonly dataAttr: InstancedBufferAttribute;
   private next = 0;
+  private nextTrail = 0;
   readonly size: number;
+  /** Slots for gun smoke (0 … muzzle − 1); the balls' trail puffs ring through the rest. */
+  private readonly muzzle: number;
 
-  constructor(size: number) {
-    this.size = Math.max(1, size);
+  constructor(size: number, trail = 0) {
+    this.muzzle = Math.max(1, size);
+    this.size = this.muzzle + Math.max(0, trail);
+    this.nextTrail = this.muzzle;
     const n = this.size;
     this.x = new Float32Array(n);
     this.y = new Float32Array(n);
@@ -352,7 +394,33 @@ export class SmokePool {
     size: number,
   ): void {
     const i = this.next;
-    this.next = (this.next + 1) % this.size;
+    this.next = (this.next + 1) % this.muzzle;
+    this.put(i, x, y, z, vx, vy, vz, t, life, size);
+  }
+
+  /**
+   * One puff of a flying ball's smoke trail: small, short-lived and left hanging where the ball
+   * was, so a shot draws a fading line from the gun to where it lands. It starts past the flash.
+   */
+  trail(x: number, y: number, z: number, t: number): void {
+    if (this.size === this.muzzle) return;
+    const i = this.nextTrail;
+    this.nextTrail = i + 1 < this.size ? i + 1 : this.muzzle;
+    this.put(i, x, y, z, 0, 0.15, 0, t - 0.08 * TRAIL_LIFE, TRAIL_LIFE, 0.4);
+  }
+
+  private put(
+    i: number,
+    x: number,
+    y: number,
+    z: number,
+    vx: number,
+    vy: number,
+    vz: number,
+    t: number,
+    life: number,
+    size: number,
+  ): void {
     this.x[i] = x;
     this.y[i] = y;
     this.z[i] = z;
@@ -398,7 +466,7 @@ export class SmokePool {
   }
 }
 
-/** Wood splinters thrown from a hit: tumbling chips on ballistic paths that drop into the sea. */
+/** Wood splinters thrown from a hit: tumbling chips on ballistic paths that drop into the sea and float. */
 export class SplinterPool {
   readonly mesh: InstancedMesh;
   private readonly x: Float32Array;
@@ -417,10 +485,7 @@ export class SplinterPool {
   private next = 0;
   readonly size: number;
 
-  constructor(
-    size: number,
-    private readonly splashes: SplashPool | null = null,
-  ) {
+  constructor(size: number) {
     this.size = Math.max(1, size);
     const n = this.size;
     this.x = new Float32Array(n);
@@ -479,10 +544,10 @@ export class SplinterPool {
         this.z[i] += this.vz[i]! * dt;
         const sea = waves.heightAt(this.x[i]!, this.z[i]!, t);
         if (this.y[i]! < sea) {
-          // It lands with a small splash and floats a while.
+          // It lands and floats a while. No splash: a chip is too small to see at fighting range, so
+          // its splash would come out of nowhere.
           this.live[i] = 2;
           this.until[i] = t + 4 + (i % 5);
-          this.splashes?.spawn(this.x[i]!, sea, this.z[i]!, t, 0.35 * this.scale[i]!, 0, (i * 0.618) % 1);
         }
         const a = t * this.spin[i]!;
         pitch = a;

@@ -1,122 +1,77 @@
 {
   "id": "pim.refuse.guild.01",
   "speaker": "Pim",
-  "text": "There’s an --allow-shared-repository flag for that, used with --yes. Only when you’re authorized and the Repository line is exactly the target you meant.",
+  "text": "If you're authorized to set one up, and the Repository line's right, add --allow-shared-repository.",
   "words": [
     {
-      "word": "There’s",
+      "word": "If",
       "start": 0.044625,
-      "end": 0.267875
+      "end": 0.18975
     },
     {
-      "word": "an",
-      "start": 0.267875,
-      "end": 0.446416
-    },
-    {
-      "word": "-allow-shared-repository",
-      "start": 0.446416,
-      "end": 1.350458
-    },
-    {
-      "word": "flag",
-      "start": 1.350458,
-      "end": 1.651791
-    },
-    {
-      "word": "for",
-      "start": 1.651791,
-      "end": 1.763375
-    },
-    {
-      "word": "that",
-      "start": 1.763375,
-      "end": 2.254458
-    },
-    {
-      "word": "used",
-      "start": 2.254458,
-      "end": 2.5
-    },
-    {
-      "word": "with",
-      "start": 2.5,
-      "end": 2.790166
-    },
-    {
-      "word": "-yes",
-      "start": 2.790166,
-      "end": 3.984375
-    },
-    {
-      "word": "Only",
-      "start": 3.984375,
-      "end": 4.25225
-    },
-    {
-      "word": "when",
-      "start": 4.25225,
-      "end": 4.397333
-    },
-    {
-      "word": "you’re",
-      "start": 4.397333,
-      "end": 4.520083
+      "word": "you're",
+      "start": 0.18975,
+      "end": 0.334833
     },
     {
       "word": "authorized",
-      "start": 4.520083,
-      "end": 5.066958
+      "start": 0.334833,
+      "end": 0.803583
+    },
+    {
+      "word": "to",
+      "start": 0.803583,
+      "end": 0.881708
+    },
+    {
+      "word": "set",
+      "start": 0.881708,
+      "end": 1.104916
+    },
+    {
+      "word": "one",
+      "start": 1.104916,
+      "end": 1.294625
+    },
+    {
+      "word": "up",
+      "start": 1.294625,
+      "end": 1.71875
     },
     {
       "word": "and",
-      "start": 5.066958,
-      "end": 5.178583
+      "start": 1.71875,
+      "end": 1.830375
     },
     {
       "word": "the",
-      "start": 5.178583,
-      "end": 5.234375
+      "start": 1.830375,
+      "end": 1.897333
     },
     {
       "word": "Repository",
-      "start": 5.234375,
-      "end": 5.792416
+      "start": 1.897333,
+      "end": 2.433041
     },
     {
-      "word": "line",
-      "start": 5.792416,
-      "end": 6.082583
+      "word": "line's",
+      "start": 2.433041,
+      "end": 2.734375
     },
     {
-      "word": "is",
-      "start": 6.082583,
-      "end": 6.205375
+      "word": "right",
+      "start": 2.734375,
+      "end": 3.270083
     },
     {
-      "word": "exactly",
-      "start": 6.205375,
-      "end": 6.651791
+      "word": "add",
+      "start": 3.270083,
+      "end": 3.571416
     },
     {
-      "word": "the",
-      "start": 6.651791,
-      "end": 6.796875
-    },
-    {
-      "word": "target",
-      "start": 6.796875,
-      "end": 7.131708
-    },
-    {
-      "word": "you",
-      "start": 7.131708,
-      "end": 7.221
-    },
-    {
-      "word": "meant",
-      "start": 7.221,
-      "end": 7.471
+      "word": "-allow-shared-repository",
+      "start": 3.571416,
+      "end": 3.821416
     }
   ]
 }

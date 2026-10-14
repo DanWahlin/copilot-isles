@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PerspectiveCamera } from 'three/webgpu';
-import { LeapsDirector, projectArc, type ScreenRect } from './director';
+import { LEAP_MIN_PIXELS, LeapsDirector, leapPixels, projectArc, type ScreenRect } from './director';
+import { QuietSea } from '../quiet-sea';
 import type { HeightField } from '../../contracts';
 
 function intersects(a: ScreenRect, b: ScreenRect): boolean {
@@ -43,6 +44,32 @@ describe('LeapsDirector', () => {
       expect(projected.rect.x + projected.rect.w).toBeLessThanOrEqual(viewport.width - 8);
       expect(projected.rect.y + projected.rect.h).toBeLessThanOrEqual(viewport.height - 8);
       for (const rect of avoid) expect(intersects(projected.rect, rect)).toBe(false);
+    }
+  });
+
+  it('only picks game leaps near enough to see the animal, and none in a quiet stretch of sea', () => {
+    const camera = new PerspectiveCamera(50, 16 / 9, 0.1, 1500);
+    camera.position.set(0, 8, 0);
+    camera.lookAt(0, 0, -80);
+    camera.updateMatrixWorld(true);
+    camera.updateProjectionMatrix();
+    const viewport = { width: 1280, height: 720 };
+    const quiet = new QuietSea();
+    quiet.add({ x: 40, z: -60, r: 30 });
+    const director = new LeapsDirector({ seed: 0x51ab, heightField: water, viewport, quiet });
+    const span = { dolphin: 3.2, fish: 1.3 };
+    for (let i = 0; i < 40; i++) {
+      const p = director.next(camera, i % 2 ? 'fish' : 'dolphin');
+      expect(p, `spawn ${i}`).not.toBeNull();
+      if (!p) continue;
+      const { arc } = p;
+      const mid = arc.start
+        .clone()
+        .lerp(arc.end, 0.5)
+        .setY(arc.controlHeight * 0.5);
+      const px = leapPixels(span[arc.kind], mid.distanceTo(camera.position), camera.fov, viewport.height);
+      expect(px).toBeGreaterThanOrEqual(LEAP_MIN_PIXELS[arc.kind]);
+      for (const end of [arc.start, arc.end]) expect(Math.hypot(end.x - 40, end.z + 60)).toBeGreaterThan(30);
     }
   });
 });

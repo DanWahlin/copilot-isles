@@ -224,6 +224,57 @@ describe('Thousand-Bough layout', () => {
     expect(top).toBeLessThan(TB.tree.crownTop + 3);
   });
 
+  it('hangs every leaf clump on wood: a twig off a limb, a spray or a leader into its heart (every tier)', () => {
+    const lines = BRANCHES.filter((b) => !b.id.startsWith('pillar'));
+    /** How far a point is inside (negative) or outside a branch's wood. */
+    const fromWood = (p: { x: number; y: number; z: number }, b: (typeof lines)[number]) => {
+      let best = Infinity;
+      for (let i = 0; i < b.points.length - 1; i++) {
+        const a = b.points[i]!;
+        const c = b.points[i + 1]!;
+        const dx = c.x - a.x;
+        const dy = c.y - a.y;
+        const dz = c.z - a.z;
+        const t = Math.max(
+          0,
+          Math.min(
+            1,
+            ((p.x - a.x) * dx + (p.y - a.y) * dy + (p.z - a.z) * dz) / (dx * dx + dy * dy + dz * dz),
+          ),
+        );
+        const d = Math.hypot(p.x - a.x - dx * t, p.y - a.y - dy * t, p.z - a.z - dz * t);
+        best = Math.min(best, d - (a.r + (c.r - a.r) * t));
+      }
+      return best;
+    };
+    // Every spray forks from its parent's wood.
+    for (const b of BRANCHES.filter((k) => k.parent)) {
+      const parent = BRANCHES.find((k) => k.id === b.parent)!;
+      expect(fromWood(b.points[0]!, parent), b.id).toBeLessThan(0.03);
+    }
+    for (const count of [340, 480, 900, 1500]) {
+      const clusters = canopyClusters(count, clearance);
+      expect(clusters.length, `${count}`).toBeGreaterThan(count * 0.7);
+      for (const c of clusters) {
+        const twig = c.twig;
+        const wood = lines.find((b) => b.id === c.wood)!;
+        expect(wood, c.wood).toBeDefined();
+        // Its twig starts in that wood and ends in the clump's heart: nothing hangs in the air.
+        expect(fromWood(twig[0]!, wood), `${count} ${c.wood}`).toBeLessThan(0.03);
+        const end = twig[twig.length - 1]!;
+        expect(Math.hypot(end.x - c.x, end.y - c.y, end.z - c.z)).toBeLessThan(0.03);
+        // A twig, not a pole.
+        expect(Math.hypot(twig[0]!.x - c.x, twig[0]!.y - c.y, twig[0]!.z - c.z)).toBeLessThan(
+          Math.max(8.5, c.r * 3),
+        );
+        // The bigger clumps of the lower tiers keep the envelope too.
+        expect(clearance.conflict(c.x, c.y, c.z, c.r, { beside: 3.95, above: 5.95, below: 0.9 })).toBeNull();
+        const r = Math.hypot(c.x - TREE.x, c.z - TREE.z);
+        if (r < TB.tree.canopy.openR) expect(c.y - c.r).toBeGreaterThanOrEqual(TB.tree.canopy.openBelow);
+      }
+    }
+  });
+
   it('hangs the prop roots clear of every path, deck and bridge, on dry ground', () => {
     const roots = propRoots(36);
     expect(roots.length).toBeGreaterThanOrEqual(24);

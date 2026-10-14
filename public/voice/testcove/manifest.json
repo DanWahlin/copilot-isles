@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-13T21:05:19.219Z",
+  "generatedAt": "2026-10-14T01:40:48.773Z",
   "set": "testcove",
   "lines": [
     {
@@ -2200,78 +2200,83 @@
     {
       "id": "pim.done.01",
       "speaker": "Pim",
-      "text": "Nine pennants, five notices, seven hulls, three seals. Your fork's ready for practice!",
-      "duration": 6.407,
+      "text": "Nine labels, five issues, seven branches, three pull requests. Your fork's ready for practice!",
+      "duration": 6.907,
       "files": {
         "webm": "pim.done.01.webm",
         "m4a": "pim.done.01.m4a"
       },
-      "hash": "2f0e9dfa1b6697b1",
+      "hash": "93a878f4fcd53fb3",
       "words": [
         {
           "word": "Nine",
           "start": 0.044625,
-          "end": 0.323666
+          "end": 0.3125
         },
         {
-          "word": "pennants",
-          "start": 0.323666,
-          "end": 0.870541
+          "word": "labels",
+          "start": 0.3125,
+          "end": 0.948666
         },
         {
           "word": "five",
-          "start": 0.870541,
-          "end": 1.138375
+          "start": 0.948666,
+          "end": 1.25
         },
         {
-          "word": "notices",
-          "start": 1.138375,
+          "word": "issues",
+          "start": 1.25,
           "end": 1.863833
         },
         {
           "word": "seven",
           "start": 1.863833,
-          "end": 2.154
+          "end": 2.176333
         },
         {
-          "word": "hulls",
-          "start": 2.154,
-          "end": 2.745541
+          "word": "branches",
+          "start": 2.176333,
+          "end": 2.901791
         },
         {
           "word": "three",
-          "start": 2.745541,
-          "end": 3.00225
+          "start": 2.901791,
+          "end": 3.180791
         },
         {
-          "word": "seals",
-          "start": 3.00225,
-          "end": 4.285708
+          "word": "pull",
+          "start": 3.180791,
+          "end": 3.381708
+        },
+        {
+          "word": "requests",
+          "start": 3.381708,
+          "end": 4.799125
         },
         {
           "word": "Your",
-          "start": 4.285708,
-          "end": 4.419625
+          "start": 4.799125,
+          "end": 4.933041
         },
         {
           "word": "fork's",
-          "start": 4.419625,
-          "end": 4.754458
+          "start": 4.933041,
+          "end": 5.267875
         },
         {
           "word": "ready",
-          "start": 4.754458,
-          "end": 4.977666
+          "start": 5.267875,
+          "end": 5.491083
         },
         {
           "word": "for",
-          "start": 4.977666,
-          "end": 5.100458
+          "start": 5.491083,
+          "end": 5.613833
         },
         {
           "word": "practice",
-          "start": 5.100458,
-          "end": 5.350458
+          "start": 5.613833,
+          "end": 5.863833
         }
       ],
       "voice": "en-IE-ConnorNeural"
@@ -2338,13 +2343,13 @@
     {
       "id": "pim.brief.01",
       "speaker": "Pim",
-      "text": "Captain! I'm Pim, that's Pol. We add the course's practice items to new forks.",
-      "duration": 6.407,
+      "text": "Captain! I'm Pim, that's Pol. Our crane runs the course's setup script on your fork.",
+      "duration": 6.707,
       "files": {
         "webm": "pim.brief.01.webm",
         "m4a": "pim.brief.01.m4a"
       },
-      "hash": "23138df912663e92",
+      "hash": "9f31d13e9a55948c",
       "words": [
         {
           "word": "Captain",
@@ -2372,49 +2377,54 @@
           "end": 3.292416
         },
         {
-          "word": "We",
+          "word": "Our",
           "start": 3.292416,
-          "end": 3.459833
+          "end": 3.526791
         },
         {
-          "word": "add",
-          "start": 3.459833,
-          "end": 3.56025
+          "word": "crane",
+          "start": 3.526791,
+          "end": 3.761166
+        },
+        {
+          "word": "runs",
+          "start": 3.761166,
+          "end": 4.017875
         },
         {
           "word": "the",
-          "start": 3.56025,
-          "end": 3.683041
+          "start": 4.017875,
+          "end": 4.18525
         },
         {
           "word": "course's",
-          "start": 3.683041,
-          "end": 4.051333
+          "start": 4.18525,
+          "end": 4.575875
         },
         {
-          "word": "practice",
-          "start": 4.051333,
-          "end": 4.464291
+          "word": "setup",
+          "start": 4.575875,
+          "end": 4.910708
         },
         {
-          "word": "items",
-          "start": 4.464291,
-          "end": 4.84375
+          "word": "script",
+          "start": 4.910708,
+          "end": 5.267875
         },
         {
-          "word": "to",
-          "start": 4.84375,
-          "end": 4.9665
+          "word": "on",
+          "start": 5.267875,
+          "end": 5.390625
         },
         {
-          "word": "new",
-          "start": 4.9665,
-          "end": 5.133916
+          "word": "your",
+          "start": 5.390625,
+          "end": 5.50225
         },
         {
-          "word": "forks",
-          "start": 5.133916,
-          "end": 5.383916
+          "word": "fork",
+          "start": 5.50225,
+          "end": 5.75225
         }
       ],
       "voice": "en-IE-ConnorNeural"
@@ -2422,98 +2432,88 @@
     {
       "id": "pol.brief.01",
       "speaker": "Pol",
-      "text": "The course has a setup script. It adds labels, the coloured pennants, and issues, the bounty notices.",
-      "duration": 8.007,
+      "text": "It adds labels, issues, branches, and pull requests for later chapters. They're practice, not problems.",
+      "duration": 8.607,
       "files": {
         "webm": "pol.brief.01.webm",
         "m4a": "pol.brief.01.m4a"
       },
-      "hash": "387f624085852272",
+      "hash": "00eb5ab32d0c2bfe",
       "words": [
         {
-          "word": "The",
-          "start": 0.05,
-          "end": 0.161625
-        },
-        {
-          "word": "course",
-          "start": 0.161625,
-          "end": 0.574541
-        },
-        {
-          "word": "has",
-          "start": 0.574541,
-          "end": 0.741958
-        },
-        {
-          "word": "a",
-          "start": 0.741958,
-          "end": 0.775458
-        },
-        {
-          "word": "setup",
-          "start": 0.775458,
-          "end": 1.233041
-        },
-        {
-          "word": "script",
-          "start": 1.233041,
-          "end": 2.538833
-        },
-        {
           "word": "It",
-          "start": 2.538833,
-          "end": 2.784375
+          "start": 0.05,
+          "end": 0.284375
         },
         {
           "word": "adds",
-          "start": 2.784375,
-          "end": 3.05225
+          "start": 0.284375,
+          "end": 0.507583
         },
         {
           "word": "labels",
-          "start": 3.05225,
-          "end": 3.92275
-        },
-        {
-          "word": "the",
-          "start": 3.92275,
-          "end": 4.000875
-        },
-        {
-          "word": "coloured",
-          "start": 4.000875,
-          "end": 4.279916
-        },
-        {
-          "word": "pennants",
-          "start": 4.279916,
-          "end": 5.0835
-        },
-        {
-          "word": "and",
-          "start": 5.0835,
-          "end": 5.284375
+          "start": 0.507583,
+          "end": 1.311166
         },
         {
           "word": "issues",
-          "start": 5.284375,
-          "end": 6.14375
+          "start": 1.311166,
+          "end": 2.137041
         },
         {
-          "word": "the",
-          "start": 6.14375,
-          "end": 6.210708
+          "word": "branches",
+          "start": 2.137041,
+          "end": 3.063375
         },
         {
-          "word": "bounty",
-          "start": 6.210708,
-          "end": 6.534375
+          "word": "and",
+          "start": 3.063375,
+          "end": 3.2085
         },
         {
-          "word": "notices",
-          "start": 6.534375,
-          "end": 6.784375
+          "word": "pull",
+          "start": 3.2085,
+          "end": 3.420541
+        },
+        {
+          "word": "requests",
+          "start": 3.420541,
+          "end": 3.967416
+        },
+        {
+          "word": "for",
+          "start": 3.967416,
+          "end": 4.067875
+        },
+        {
+          "word": "later",
+          "start": 4.067875,
+          "end": 4.335708
+        },
+        {
+          "word": "chapters",
+          "start": 4.335708,
+          "end": 5.751791
+        },
+        {
+          "word": "They're",
+          "start": 5.751791,
+          "end": 5.919208
+        },
+        {
+          "word": "practice",
+          "start": 5.919208,
+          "end": 6.845541
+        },
+        {
+          "word": "not",
+          "start": 6.845541,
+          "end": 7.091083
+        },
+        {
+          "word": "problems",
+          "start": 7.091083,
+          "end": 7.341083
         }
       ],
       "voice": "en-IE-EmilyNeural"
@@ -2521,83 +2521,78 @@
     {
       "id": "pim.brief.02",
       "speaker": "Pim",
-      "text": "Practice branches too, the practice hulls. The bugs stay on those, never on main.",
-      "duration": 6.007,
+      "text": "Then the setup script, in the app's Terminal. Preview it with --dry-run first.",
+      "duration": 5.307,
       "files": {
         "webm": "pim.brief.02.webm",
         "m4a": "pim.brief.02.m4a"
       },
-      "hash": "23923e812f0a70ad",
+      "hash": "6c9e383270ba5287",
       "words": [
         {
-          "word": "Practice",
+          "word": "Then",
           "start": 0.044625,
-          "end": 0.424125
-        },
-        {
-          "word": "branches",
-          "start": 0.424125,
-          "end": 0.837041
-        },
-        {
-          "word": "too",
-          "start": 0.837041,
-          "end": 1.294625
+          "end": 0.212041
         },
         {
           "word": "the",
-          "start": 1.294625,
-          "end": 1.395083
+          "start": 0.212041,
+          "end": 0.279
         },
         {
-          "word": "practice",
-          "start": 1.395083,
-          "end": 1.796875
+          "word": "setup",
+          "start": 0.279,
+          "end": 0.5915
         },
         {
-          "word": "hulls",
-          "start": 1.796875,
-          "end": 3.035708
+          "word": "script",
+          "start": 0.5915,
+          "end": 1.149541
         },
         {
-          "word": "The",
-          "start": 3.035708,
-          "end": 3.136166
+          "word": "in",
+          "start": 1.149541,
+          "end": 1.25
         },
         {
-          "word": "bugs",
-          "start": 3.136166,
-          "end": 3.404
+          "word": "the",
+          "start": 1.25,
+          "end": 1.361625
         },
         {
-          "word": "stay",
-          "start": 3.404,
-          "end": 3.660708
+          "word": "app's",
+          "start": 1.361625,
+          "end": 1.573666
         },
         {
-          "word": "on",
-          "start": 3.660708,
-          "end": 3.805791
+          "word": "Terminal",
+          "start": 1.573666,
+          "end": 2.779
         },
         {
-          "word": "those",
-          "start": 3.805791,
-          "end": 4.3415
+          "word": "Preview",
+          "start": 2.779,
+          "end": 3.180791
         },
         {
-          "word": "never",
-          "start": 4.3415,
-          "end": 4.654
+          "word": "it",
+          "start": 3.180791,
+          "end": 3.270083
         },
         {
-          "word": "on",
-          "start": 4.654,
-          "end": 4.81025
+          "word": "with",
+          "start": 3.270083,
+          "end": 3.59375
         },
         {
-          "word": "main",
-          "start": 4.81025,
-          "end": 5.06025
+          "word": "-dry-run",
+          "start": 3.59375,
+          "end": 4.051333
+        },
+        {
+          "word": "first",
+          "start": 4.051333,
+          "end": 4.301333
         }
       ],
       "voice": "en-IE-ConnorNeural"
@@ -2605,108 +2600,83 @@
     {
       "id": "pol.brief.02",
       "speaker": "Pol",
-      "text": "And pull requests, sealed inspection requests: changes to review, a feedback comment, and a check that fails on purpose.",
-      "duration": 8.107,
+      "text": "Check that the Repository line names your fork. Only then run it with --yes.",
+      "duration": 5.607,
       "files": {
         "webm": "pol.brief.02.webm",
         "m4a": "pol.brief.02.m4a"
       },
-      "hash": "719bde2535b79f3a",
+      "hash": "1a3727fcff0100e3",
       "words": [
         {
-          "word": "And",
+          "word": "Check",
           "start": 0.05,
-          "end": 0.250875
-        },
-        {
-          "word": "pull",
-          "start": 0.250875,
-          "end": 0.48525
-        },
-        {
-          "word": "requests",
-          "start": 0.48525,
-          "end": 1.311166
-        },
-        {
-          "word": "sealed",
-          "start": 1.311166,
-          "end": 1.679458
-        },
-        {
-          "word": "inspection",
-          "start": 1.679458,
-          "end": 2.204
-        },
-        {
-          "word": "requests",
-          "start": 2.204,
-          "end": 3.063375
-        },
-        {
-          "word": "changes",
-          "start": 3.063375,
-          "end": 3.465166
-        },
-        {
-          "word": "to",
-          "start": 3.465166,
-          "end": 3.554458
-        },
-        {
-          "word": "review",
-          "start": 3.554458,
-          "end": 4.23525
-        },
-        {
-          "word": "a",
-          "start": 4.23525,
-          "end": 4.313375
-        },
-        {
-          "word": "feedback",
-          "start": 4.313375,
-          "end": 4.782125
-        },
-        {
-          "word": "comment",
-          "start": 4.782125,
-          "end": 5.574541
-        },
-        {
-          "word": "and",
-          "start": 5.574541,
-          "end": 5.697333
-        },
-        {
-          "word": "a",
-          "start": 5.697333,
-          "end": 5.730791
-        },
-        {
-          "word": "check",
-          "start": 5.730791,
-          "end": 5.998666
+          "end": 0.3625
         },
         {
           "word": "that",
-          "start": 5.998666,
-          "end": 6.154916
+          "start": 0.3625,
+          "end": 0.496416
         },
         {
-          "word": "fails",
-          "start": 6.154916,
-          "end": 6.567875
+          "word": "the",
+          "start": 0.496416,
+          "end": 0.574541
         },
         {
-          "word": "on",
-          "start": 6.567875,
-          "end": 6.712958
+          "word": "Repository",
+          "start": 0.574541,
+          "end": 1.17725
         },
         {
-          "word": "purpose",
-          "start": 6.712958,
-          "end": 6.962958
+          "word": "line",
+          "start": 1.17725,
+          "end": 1.534375
+        },
+        {
+          "word": "names",
+          "start": 1.534375,
+          "end": 1.858041
+        },
+        {
+          "word": "your",
+          "start": 1.858041,
+          "end": 1.936166
+        },
+        {
+          "word": "fork",
+          "start": 1.936166,
+          "end": 3.253125
+        },
+        {
+          "word": "Only",
+          "start": 3.253125,
+          "end": 3.532125
+        },
+        {
+          "word": "then",
+          "start": 3.532125,
+          "end": 3.755375
+        },
+        {
+          "word": "run",
+          "start": 3.755375,
+          "end": 3.900458
+        },
+        {
+          "word": "it",
+          "start": 3.900458,
+          "end": 4.067875
+        },
+        {
+          "word": "with",
+          "start": 4.067875,
+          "end": 4.313375
+        },
+        {
+          "word": "yes",
+          "start": 4.313375,
+          "end": 4.563375
         }
       ],
       "voice": "en-IE-EmilyNeural"
@@ -2714,53 +2684,93 @@
     {
       "id": "pim.brief.03",
       "speaker": "Pim",
-      "text": "They’re training scenarios, not problems with your setup.",
-      "duration": 3.507,
+      "text": "Same on our crane: aim her at your ship, pull Dry-Run, read the sign, then --yes.",
+      "duration": 5.607,
       "files": {
         "webm": "pim.brief.03.webm",
         "m4a": "pim.brief.03.m4a"
       },
-      "hash": "3ea9cc5a7d3c6b25",
+      "hash": "12f1ecaf368ffe36",
       "words": [
         {
-          "word": "They’re",
+          "word": "Same",
           "start": 0.044625,
-          "end": 0.256708
+          "end": 0.3125
         },
         {
-          "word": "training",
-          "start": 0.256708,
-          "end": 0.5915
+          "word": "on",
+          "start": 0.3125,
+          "end": 0.424125
         },
         {
-          "word": "scenarios",
-          "start": 0.5915,
-          "end": 1.40625
+          "word": "our",
+          "start": 0.424125,
+          "end": 0.625
         },
         {
-          "word": "not",
-          "start": 1.40625,
-          "end": 1.584833
+          "word": "crane",
+          "start": 0.625,
+          "end": 1.205375
         },
         {
-          "word": "problems",
-          "start": 1.584833,
-          "end": 2.053583
+          "word": "aim",
+          "start": 1.205375,
+          "end": 1.395083
         },
         {
-          "word": "with",
-          "start": 2.053583,
-          "end": 2.176333
+          "word": "her",
+          "start": 1.395083,
+          "end": 1.529
+        },
+        {
+          "word": "at",
+          "start": 1.529,
+          "end": 1.651791
         },
         {
           "word": "your",
-          "start": 2.176333,
-          "end": 2.287958
+          "start": 1.651791,
+          "end": 1.763375
         },
         {
-          "word": "setup",
-          "start": 2.287958,
-          "end": 2.537958
+          "word": "ship",
+          "start": 1.763375,
+          "end": 2.232125
+        },
+        {
+          "word": "pull",
+          "start": 2.232125,
+          "end": 2.421875
+        },
+        {
+          "word": "Dry-Run",
+          "start": 2.421875,
+          "end": 3.102666
+        },
+        {
+          "word": "read",
+          "start": 3.102666,
+          "end": 3.31475
+        },
+        {
+          "word": "the",
+          "start": 3.31475,
+          "end": 3.415166
+        },
+        {
+          "word": "sign",
+          "start": 3.415166,
+          "end": 3.962041
+        },
+        {
+          "word": "then",
+          "start": 3.962041,
+          "end": 4.3415
+        },
+        {
+          "word": "-yes",
+          "start": 4.3415,
+          "end": 4.5915
         }
       ],
       "voice": "en-IE-ConnorNeural"
@@ -2768,489 +2778,147 @@
     {
       "id": "pol.brief.actions",
       "speaker": "Pol",
-      "text": "First, a job on GitHub.com. Open your fork's Actions tab. New forks switch workflows off.",
-      "duration": 8.808,
+      "text": "First, on GitHub.com, open your fork's Actions tab and enable workflows.",
+      "duration": 5.807,
       "files": {
         "webm": "pol.brief.actions.webm",
         "m4a": "pol.brief.actions.m4a"
       },
-      "hash": "6d4c888828506a51",
+      "hash": "10baedf8e90bc535",
       "words": [
         {
           "word": "First",
           "start": 0.05,
-          "end": 0.86475
-        },
-        {
-          "word": "a",
-          "start": 0.86475,
-          "end": 0.965166
-        },
-        {
-          "word": "job",
-          "start": 0.965166,
-          "end": 1.322333
+          "end": 0.753125
         },
         {
           "word": "on",
-          "start": 1.322333,
-          "end": 1.500875
+          "start": 0.753125,
+          "end": 0.942875
         },
         {
           "word": "GitHub.com",
-          "start": 1.500875,
-          "end": 3.342416
+          "start": 0.942875,
+          "end": 2.192875
         },
         {
-          "word": "Open",
-          "start": 3.342416,
-          "end": 3.733041
+          "word": "open",
+          "start": 2.192875,
+          "end": 2.494208
         },
         {
           "word": "your",
-          "start": 3.733041,
-          "end": 3.92275
+          "start": 2.494208,
+          "end": 2.650458
         },
         {
           "word": "fork's",
-          "start": 3.92275,
-          "end": 4.346875
+          "start": 2.650458,
+          "end": 3.029916
         },
         {
           "word": "Actions",
-          "start": 4.346875,
-          "end": 4.826791
+          "start": 3.029916,
+          "end": 3.465166
         },
         {
           "word": "tab",
-          "start": 4.826791,
-          "end": 6.021
-        },
-        {
-          "word": "New",
-          "start": 6.021,
-          "end": 6.277666
-        },
-        {
-          "word": "forks",
-          "start": 6.277666,
-          "end": 6.746416
-        },
-        {
-          "word": "switch",
-          "start": 6.746416,
-          "end": 7.070083
-        },
-        {
-          "word": "workflows",
-          "start": 7.070083,
-          "end": 7.639291
-        },
-        {
-          "word": "off",
-          "start": 7.639291,
-          "end": 7.889291
-        }
-      ],
-      "voice": "en-IE-EmilyNeural"
-    },
-    {
-      "id": "pim.brief.actions",
-      "speaker": "Pim",
-      "text": "Select, I understand my workflows, go ahead and enable them. Then GitHub can run the practice checks.",
-      "duration": 6.807,
-      "files": {
-        "webm": "pim.brief.actions.webm",
-        "m4a": "pim.brief.actions.m4a"
-      },
-      "hash": "2694b0bd56762cd8",
-      "words": [
-        {
-          "word": "Select",
-          "start": 0.044625,
-          "end": 0.647333
-        },
-        {
-          "word": "I",
-          "start": 0.647333,
-          "end": 0.758916
-        },
-        {
-          "word": "understand",
-          "start": 0.758916,
-          "end": 1.261166
-        },
-        {
-          "word": "my",
-          "start": 1.261166,
-          "end": 1.428583
-        },
-        {
-          "word": "workflows",
-          "start": 1.428583,
-          "end": 2.176333
-        },
-        {
-          "word": "go",
-          "start": 2.176333,
-          "end": 2.332583
-        },
-        {
-          "word": "ahead",
-          "start": 2.332583,
-          "end": 2.723208
+          "start": 3.465166,
+          "end": 3.777666
         },
         {
           "word": "and",
-          "start": 2.723208,
-          "end": 2.834833
+          "start": 3.777666,
+          "end": 3.911625
         },
         {
           "word": "enable",
-          "start": 2.834833,
-          "end": 3.180791
+          "start": 3.911625,
+          "end": 4.257583
         },
         {
-          "word": "them",
-          "start": 3.180791,
-          "end": 4.18525
-        },
-        {
-          "word": "Then",
-          "start": 4.18525,
-          "end": 4.397333
-        },
-        {
-          "word": "GitHub",
-          "start": 4.397333,
-          "end": 4.776791
-        },
-        {
-          "word": "can",
-          "start": 4.776791,
-          "end": 4.888375
-        },
-        {
-          "word": "run",
-          "start": 4.888375,
-          "end": 5.100458
-        },
-        {
-          "word": "the",
-          "start": 5.100458,
-          "end": 5.200875
-        },
-        {
-          "word": "practice",
-          "start": 5.200875,
-          "end": 5.580375
-        },
-        {
-          "word": "checks",
-          "start": 5.580375,
-          "end": 5.830375
-        }
-      ],
-      "voice": "en-IE-ConnorNeural"
-    },
-    {
-      "id": "pol.brief.03",
-      "speaker": "Pol",
-      "text": "Then the script, in the app's Terminal. Our crane works the same way. Turn the capstan to aim her, pull Dry-Run to preview, and read the Repository line on her sign.",
-      "duration": 11.607,
-      "files": {
-        "webm": "pol.brief.03.webm",
-        "m4a": "pol.brief.03.m4a"
-      },
-      "hash": "a8bdcfe0f7ec903d",
-      "words": [
-        {
-          "word": "Then",
-          "start": 0.0486659,
-          "end": 0.283041
-        },
-        {
-          "word": "the",
-          "start": 0.283041,
-          "end": 0.327666
-        },
-        {
-          "word": "script",
-          "start": 0.327666,
-          "end": 1.108916
-        },
-        {
-          "word": "in",
-          "start": 1.108916,
-          "end": 1.242875
-        },
-        {
-          "word": "the",
-          "start": 1.242875,
-          "end": 1.354458
-        },
-        {
-          "word": "app's",
-          "start": 1.354458,
-          "end": 1.678125
-        },
-        {
-          "word": "Terminal",
-          "start": 1.678125,
-          "end": 2.974125
-        },
-        {
-          "word": "Our",
-          "start": 2.974125,
-          "end": 3.186166
-        },
-        {
-          "word": "crane",
-          "start": 3.186166,
-          "end": 3.61025
-        },
-        {
-          "word": "works",
-          "start": 3.61025,
-          "end": 3.889291
-        },
-        {
-          "word": "the",
-          "start": 3.889291,
-          "end": 3.95625
-        },
-        {
-          "word": "same",
-          "start": 3.95625,
-          "end": 4.291083
-        },
-        {
-          "word": "way",
-          "start": 4.291083,
-          "end": 5.418291
-        },
-        {
-          "word": "Turn",
-          "start": 5.418291,
-          "end": 5.741958
-        },
-        {
-          "word": "the",
-          "start": 5.741958,
-          "end": 5.786625
-        },
-        {
-          "word": "capstan",
-          "start": 5.786625,
-          "end": 6.233041
-        },
-        {
-          "word": "to",
-          "start": 6.233041,
-          "end": 6.355791
-        },
-        {
-          "word": "aim",
-          "start": 6.355791,
-          "end": 6.590166
-        },
-        {
-          "word": "her",
-          "start": 6.590166,
-          "end": 7.226333
-        },
-        {
-          "word": "pull",
-          "start": 7.226333,
-          "end": 7.471875
-        },
-        {
-          "word": "Dry-Run",
-          "start": 7.471875,
-          "end": 7.907125
-        },
-        {
-          "word": "to",
-          "start": 7.907125,
-          "end": 7.974125
-        },
-        {
-          "word": "preview",
-          "start": 7.974125,
-          "end": 8.7665
-        },
-        {
-          "word": "and",
-          "start": 8.7665,
-          "end": 8.933916
-        },
-        {
-          "word": "read",
-          "start": 8.933916,
-          "end": 9.134833
-        },
-        {
-          "word": "the",
-          "start": 9.134833,
-          "end": 9.212958
-        },
-        {
-          "word": "Repository",
-          "start": 9.212958,
-          "end": 9.771
-        },
-        {
-          "word": "line",
-          "start": 9.771,
-          "end": 10.072333
-        },
-        {
-          "word": "on",
-          "start": 10.072333,
-          "end": 10.23975
-        },
-        {
-          "word": "her",
-          "start": 10.23975,
-          "end": 10.340166
-        },
-        {
-          "word": "sign",
-          "start": 10.340166,
-          "end": 10.590166
+          "word": "workflows",
+          "start": 4.257583,
+          "end": 4.507583
         }
       ],
       "voice": "en-IE-EmilyNeural"
-    },
-    {
-      "id": "pim.brief.04",
-      "speaker": "Pim",
-      "text": "Only when it names your own fork do you pull --yes.",
-      "duration": 3.307,
-      "files": {
-        "webm": "pim.brief.04.webm",
-        "m4a": "pim.brief.04.m4a"
-      },
-      "hash": "bef129d5344f4ecd",
-      "words": [
-        {
-          "word": "Only",
-          "start": 0.044625,
-          "end": 0.3125
-        },
-        {
-          "word": "when",
-          "start": 0.3125,
-          "end": 0.424125
-        },
-        {
-          "word": "it",
-          "start": 0.424125,
-          "end": 0.535708
-        },
-        {
-          "word": "names",
-          "start": 0.535708,
-          "end": 0.81475
-        },
-        {
-          "word": "your",
-          "start": 0.81475,
-          "end": 0.948666
-        },
-        {
-          "word": "own",
-          "start": 0.948666,
-          "end": 1.160708
-        },
-        {
-          "word": "fork",
-          "start": 1.160708,
-          "end": 1.462041
-        },
-        {
-          "word": "do",
-          "start": 1.462041,
-          "end": 1.540166
-        },
-        {
-          "word": "you",
-          "start": 1.540166,
-          "end": 1.68525
-        },
-        {
-          "word": "pull",
-          "start": 1.68525,
-          "end": 2.06475
-        },
-        {
-          "word": "-yes",
-          "start": 2.06475,
-          "end": 2.31475
-        }
-      ],
-      "voice": "en-IE-ConnorNeural"
     },
     {
       "id": "pol.solved.01",
       "speaker": "Pol",
-      "text": "Setup complete. Your fork has everything the course needs, Captain.",
-      "duration": 5.707,
+      "text": "Setup complete! Your fork has its practice items now, ready for later chapters.",
+      "duration": 6.707,
       "files": {
         "webm": "pol.solved.01.webm",
         "m4a": "pol.solved.01.m4a"
       },
-      "hash": "3dcca7dffe9b9567",
+      "hash": "fd84de647e02dde5",
       "words": [
         {
           "word": "Setup",
           "start": 0.0486659,
-          "end": 0.573208
+          "end": 0.562041
         },
         {
           "word": "complete",
-          "start": 0.573208,
-          "end": 2.025458
+          "start": 0.562041,
+          "end": 2.04775
         },
         {
           "word": "Your",
-          "start": 2.025458,
-          "end": 2.304458
+          "start": 2.04775,
+          "end": 2.337958
         },
         {
           "word": "fork",
-          "start": 2.304458,
-          "end": 2.683916
+          "start": 2.337958,
+          "end": 2.717416
         },
         {
           "word": "has",
-          "start": 2.683916,
-          "end": 2.940625
+          "start": 2.717416,
+          "end": 2.907125
         },
         {
-          "word": "everything",
-          "start": 2.940625,
-          "end": 3.33125
+          "word": "its",
+          "start": 2.907125,
+          "end": 3.029916
         },
         {
-          "word": "the",
-          "start": 3.33125,
-          "end": 3.375875
+          "word": "practice",
+          "start": 3.029916,
+          "end": 3.465166
         },
         {
-          "word": "course",
-          "start": 3.375875,
-          "end": 3.699541
+          "word": "items",
+          "start": 3.465166,
+          "end": 3.8335
         },
         {
-          "word": "needs",
-          "start": 3.699541,
-          "end": 4.436166
+          "word": "now",
+          "start": 3.8335,
+          "end": 4.469625
         },
         {
-          "word": "Captain",
-          "start": 4.436166,
-          "end": 4.686166
+          "word": "ready",
+          "start": 4.469625,
+          "end": 4.882583
+        },
+        {
+          "word": "for",
+          "start": 4.882583,
+          "end": 4.983041
+        },
+        {
+          "word": "later",
+          "start": 4.983041,
+          "end": 5.23975
+        },
+        {
+          "word": "chapters",
+          "start": 5.23975,
+          "end": 5.48975
         }
       ],
       "voice": "en-IE-EmilyNeural"
@@ -3258,13 +2926,13 @@
     {
       "id": "pim.solved.01",
       "speaker": "Pim",
-      "text": "In the app, you run both commands in that same Terminal tab, from the repository root.",
-      "duration": 4.907,
+      "text": "In the app, run both commands in Terminal, from the repository root.",
+      "duration": 4.207,
       "files": {
         "webm": "pim.solved.01.webm",
         "m4a": "pim.solved.01.m4a"
       },
-      "hash": "1b9421113be7e599",
+      "hash": "d59f650da6406ed5",
       "words": [
         {
           "word": "In",
@@ -3279,255 +2947,126 @@
         {
           "word": "app",
           "start": 0.301333,
-          "end": 0.725458
-        },
-        {
-          "word": "you",
-          "start": 0.725458,
-          "end": 0.848208
+          "end": 0.736625
         },
         {
           "word": "run",
-          "start": 0.848208,
-          "end": 1.037958
+          "start": 0.736625,
+          "end": 0.959833
         },
         {
           "word": "both",
-          "start": 1.037958,
-          "end": 1.272333
+          "start": 0.959833,
+          "end": 1.183041
         },
         {
           "word": "commands",
-          "start": 1.272333,
-          "end": 1.674125
+          "start": 1.183041,
+          "end": 1.573666
         },
         {
           "word": "in",
-          "start": 1.674125,
-          "end": 1.774541
-        },
-        {
-          "word": "that",
-          "start": 1.774541,
-          "end": 1.875
-        },
-        {
-          "word": "same",
-          "start": 1.875,
-          "end": 2.109375
+          "start": 1.573666,
+          "end": 1.696416
         },
         {
           "word": "Terminal",
-          "start": 2.109375,
-          "end": 2.4665
-        },
-        {
-          "word": "tab",
-          "start": 2.4665,
-          "end": 3.00225
+          "start": 1.696416,
+          "end": 2.265625
         },
         {
           "word": "from",
-          "start": 3.00225,
-          "end": 3.136166
+          "start": 2.265625,
+          "end": 2.421875
         },
         {
           "word": "the",
-          "start": 3.136166,
-          "end": 3.191958
+          "start": 2.421875,
+          "end": 2.477666
         },
         {
           "word": "repository",
-          "start": 3.191958,
-          "end": 3.738833
+          "start": 2.477666,
+          "end": 3.035708
         },
         {
           "word": "root",
-          "start": 3.738833,
-          "end": 3.988833
+          "start": 3.035708,
+          "end": 3.285708
         }
       ],
       "voice": "en-IE-ConnorNeural"
     },
     {
-      "id": "pol.solved.02",
-      "speaker": "Pol",
-      "text": "Your fork's got its practice issues and pull requests now. You'll work through them in later chapters.",
-      "duration": 6.807,
-      "files": {
-        "webm": "pol.solved.02.webm",
-        "m4a": "pol.solved.02.m4a"
-      },
-      "hash": "9ac7e811cbf6d266",
-      "words": [
-        {
-          "word": "Your",
-          "start": 0.05,
-          "end": 0.317875
-        },
-        {
-          "word": "fork's",
-          "start": 0.317875,
-          "end": 0.741958
-        },
-        {
-          "word": "got",
-          "start": 0.741958,
-          "end": 0.920541
-        },
-        {
-          "word": "its",
-          "start": 0.920541,
-          "end": 1.043291
-        },
-        {
-          "word": "practice",
-          "start": 1.043291,
-          "end": 1.433916
-        },
-        {
-          "word": "issues",
-          "start": 1.433916,
-          "end": 1.835708
-        },
-        {
-          "word": "and",
-          "start": 1.835708,
-          "end": 1.9585
-        },
-        {
-          "word": "pull",
-          "start": 1.9585,
-          "end": 2.204
-        },
-        {
-          "word": "requests",
-          "start": 2.204,
-          "end": 2.73975
-        },
-        {
-          "word": "now",
-          "start": 2.73975,
-          "end": 3.900458
-        },
-        {
-          "word": "You'll",
-          "start": 3.900458,
-          "end": 4.179458
-        },
-        {
-          "word": "work",
-          "start": 4.179458,
-          "end": 4.447333
-        },
-        {
-          "word": "through",
-          "start": 4.447333,
-          "end": 4.692875
-        },
-        {
-          "word": "them",
-          "start": 4.692875,
-          "end": 4.938375
-        },
-        {
-          "word": "in",
-          "start": 4.938375,
-          "end": 5.105791
-        },
-        {
-          "word": "later",
-          "start": 5.105791,
-          "end": 5.373666
-        },
-        {
-          "word": "chapters",
-          "start": 5.373666,
-          "end": 5.623666
-        }
-      ],
-      "voice": "en-IE-EmilyNeural"
-    },
-    {
       "id": "pol.refuse.guild.01",
       "speaker": "Pol",
-      "text": "Hear that pawl? The script stops before changing a repository owned by an organization.",
-      "duration": 6.307,
+      "text": "Refused! An organization owns that one. The script stops before changing it.",
+      "duration": 7.207,
       "files": {
         "webm": "pol.refuse.guild.01.webm",
         "m4a": "pol.refuse.guild.01.m4a"
       },
-      "hash": "9afe41a373657ef7",
+      "hash": "8244c7006f9a8545",
       "words": [
         {
-          "word": "Hear",
+          "word": "Refused",
           "start": 0.0486659,
-          "end": 0.249541
+          "end": 1.690625
         },
         {
-          "word": "that",
-          "start": 0.249541,
-          "end": 0.439291
-        },
-        {
-          "word": "pawl",
-          "start": 0.439291,
-          "end": 1.646
-        },
-        {
-          "word": "The",
-          "start": 1.646,
-          "end": 1.76875
-        },
-        {
-          "word": "script",
-          "start": 1.76875,
-          "end": 2.148208
-        },
-        {
-          "word": "stops",
-          "start": 2.148208,
-          "end": 2.594625
-        },
-        {
-          "word": "before",
-          "start": 2.594625,
-          "end": 2.962958
-        },
-        {
-          "word": "changing",
-          "start": 2.962958,
-          "end": 3.375875
-        },
-        {
-          "word": "a",
-          "start": 3.375875,
-          "end": 3.431708
-        },
-        {
-          "word": "repository",
-          "start": 3.431708,
-          "end": 4.079
-        },
-        {
-          "word": "owned",
-          "start": 4.079,
-          "end": 4.346875
-        },
-        {
-          "word": "by",
-          "start": 4.346875,
-          "end": 4.536625
-        },
-        {
-          "word": "an",
-          "start": 4.536625,
-          "end": 4.61475
+          "word": "An",
+          "start": 1.690625,
+          "end": 1.902666
         },
         {
           "word": "organization",
-          "start": 4.61475,
-          "end": 4.86475
+          "start": 1.902666,
+          "end": 2.750875
+        },
+        {
+          "word": "owns",
+          "start": 2.750875,
+          "end": 3.063375
+        },
+        {
+          "word": "that",
+          "start": 3.063375,
+          "end": 3.264291
+        },
+        {
+          "word": "one",
+          "start": 3.264291,
+          "end": 4.436166
+        },
+        {
+          "word": "The",
+          "start": 4.436166,
+          "end": 4.558916
+        },
+        {
+          "word": "script",
+          "start": 4.558916,
+          "end": 4.938375
+        },
+        {
+          "word": "stops",
+          "start": 4.938375,
+          "end": 5.396
+        },
+        {
+          "word": "before",
+          "start": 5.396,
+          "end": 5.764291
+        },
+        {
+          "word": "changing",
+          "start": 5.764291,
+          "end": 6.17725
+        },
+        {
+          "word": "it",
+          "start": 6.17725,
+          "end": 6.42725
         }
       ],
       "voice": "en-IE-EmilyNeural"
@@ -3535,128 +3074,83 @@
     {
       "id": "pim.refuse.guild.01",
       "speaker": "Pim",
-      "text": "There’s an --allow-shared-repository flag for that, used with --yes. Only when you’re authorized and the Repository line is exactly the target you meant.",
-      "duration": 8.407,
+      "text": "If you're authorized to set one up, and the Repository line's right, add --allow-shared-repository.",
+      "duration": 5.407,
       "files": {
         "webm": "pim.refuse.guild.01.webm",
         "m4a": "pim.refuse.guild.01.m4a"
       },
-      "hash": "6faa0bf59ce51865",
+      "hash": "e44e4a70e931d063",
       "words": [
         {
-          "word": "There’s",
+          "word": "If",
           "start": 0.044625,
-          "end": 0.267875
+          "end": 0.18975
         },
         {
-          "word": "an",
-          "start": 0.267875,
-          "end": 0.446416
-        },
-        {
-          "word": "-allow-shared-repository",
-          "start": 0.446416,
-          "end": 1.350458
-        },
-        {
-          "word": "flag",
-          "start": 1.350458,
-          "end": 1.651791
-        },
-        {
-          "word": "for",
-          "start": 1.651791,
-          "end": 1.763375
-        },
-        {
-          "word": "that",
-          "start": 1.763375,
-          "end": 2.254458
-        },
-        {
-          "word": "used",
-          "start": 2.254458,
-          "end": 2.5
-        },
-        {
-          "word": "with",
-          "start": 2.5,
-          "end": 2.790166
-        },
-        {
-          "word": "-yes",
-          "start": 2.790166,
-          "end": 3.984375
-        },
-        {
-          "word": "Only",
-          "start": 3.984375,
-          "end": 4.25225
-        },
-        {
-          "word": "when",
-          "start": 4.25225,
-          "end": 4.397333
-        },
-        {
-          "word": "you’re",
-          "start": 4.397333,
-          "end": 4.520083
+          "word": "you're",
+          "start": 0.18975,
+          "end": 0.334833
         },
         {
           "word": "authorized",
-          "start": 4.520083,
-          "end": 5.066958
+          "start": 0.334833,
+          "end": 0.803583
+        },
+        {
+          "word": "to",
+          "start": 0.803583,
+          "end": 0.881708
+        },
+        {
+          "word": "set",
+          "start": 0.881708,
+          "end": 1.104916
+        },
+        {
+          "word": "one",
+          "start": 1.104916,
+          "end": 1.294625
+        },
+        {
+          "word": "up",
+          "start": 1.294625,
+          "end": 1.71875
         },
         {
           "word": "and",
-          "start": 5.066958,
-          "end": 5.178583
+          "start": 1.71875,
+          "end": 1.830375
         },
         {
           "word": "the",
-          "start": 5.178583,
-          "end": 5.234375
+          "start": 1.830375,
+          "end": 1.897333
         },
         {
           "word": "Repository",
-          "start": 5.234375,
-          "end": 5.792416
+          "start": 1.897333,
+          "end": 2.433041
         },
         {
-          "word": "line",
-          "start": 5.792416,
-          "end": 6.082583
+          "word": "line's",
+          "start": 2.433041,
+          "end": 2.734375
         },
         {
-          "word": "is",
-          "start": 6.082583,
-          "end": 6.205375
+          "word": "right",
+          "start": 2.734375,
+          "end": 3.270083
         },
         {
-          "word": "exactly",
-          "start": 6.205375,
-          "end": 6.651791
+          "word": "add",
+          "start": 3.270083,
+          "end": 3.571416
         },
         {
-          "word": "the",
-          "start": 6.651791,
-          "end": 6.796875
-        },
-        {
-          "word": "target",
-          "start": 6.796875,
-          "end": 7.131708
-        },
-        {
-          "word": "you",
-          "start": 7.131708,
-          "end": 7.221
-        },
-        {
-          "word": "meant",
-          "start": 7.221,
-          "end": 7.471
+          "word": "-allow-shared-repository",
+          "start": 3.571416,
+          "end": 3.821416
         }
       ],
       "voice": "en-IE-ConnorNeural"
@@ -26289,6 +25783,174 @@
         }
       ],
       "voice": "2qQJWjw5XdG80GreshqG"
+    },
+    {
+      "id": "pim.brief.fork",
+      "speaker": "Pim",
+      "text": "What's your fork's address, Captain? We'll paint it on the crane's sign.",
+      "duration": 4.607,
+      "files": {
+        "webm": "pim.brief.fork.webm",
+        "m4a": "pim.brief.fork.m4a"
+      },
+      "hash": "882951812ca3a563",
+      "words": [
+        {
+          "word": "What's",
+          "start": 0.044625,
+          "end": 0.279
+        },
+        {
+          "word": "your",
+          "start": 0.279,
+          "end": 0.368291
+        },
+        {
+          "word": "fork's",
+          "start": 0.368291,
+          "end": 0.647333
+        },
+        {
+          "word": "address",
+          "start": 0.647333,
+          "end": 1.272333
+        },
+        {
+          "word": "Captain",
+          "start": 1.272333,
+          "end": 2.444208
+        },
+        {
+          "word": "We'll",
+          "start": 2.444208,
+          "end": 2.62275
+        },
+        {
+          "word": "paint",
+          "start": 2.62275,
+          "end": 2.857125
+        },
+        {
+          "word": "it",
+          "start": 2.857125,
+          "end": 2.93525
+        },
+        {
+          "word": "on",
+          "start": 2.93525,
+          "end": 3.058041
+        },
+        {
+          "word": "the",
+          "start": 3.058041,
+          "end": 3.1585
+        },
+        {
+          "word": "crane's",
+          "start": 3.1585,
+          "end": 3.4375
+        },
+        {
+          "word": "sign",
+          "start": 3.4375,
+          "end": 3.6875
+        }
+      ],
+      "voice": "en-IE-ConnorNeural"
+    },
+    {
+      "id": "ezra.fork.register",
+      "speaker": "Ezra",
+      "text": "Forked it? Write its address in my register, so the harbour knows which ship is yours.",
+      "duration": 5.408,
+      "files": {
+        "webm": "ezra.fork.register.webm",
+        "m4a": "ezra.fork.register.m4a"
+      },
+      "hash": "c782555f9a4cf69b",
+      "words": [
+        {
+          "word": "Forked",
+          "start": 0.07,
+          "end": 0.59
+        },
+        {
+          "word": "it",
+          "start": 0.59,
+          "end": 1.19
+        },
+        {
+          "word": "Write",
+          "start": 1.19,
+          "end": 1.55
+        },
+        {
+          "word": "its",
+          "start": 1.55,
+          "end": 1.71
+        },
+        {
+          "word": "address",
+          "start": 1.71,
+          "end": 2.15
+        },
+        {
+          "word": "in",
+          "start": 2.15,
+          "end": 2.23
+        },
+        {
+          "word": "my",
+          "start": 2.23,
+          "end": 2.389
+        },
+        {
+          "word": "register",
+          "start": 2.389,
+          "end": 3.19
+        },
+        {
+          "word": "so",
+          "start": 3.19,
+          "end": 3.429
+        },
+        {
+          "word": "the",
+          "start": 3.429,
+          "end": 3.55
+        },
+        {
+          "word": "harbour",
+          "start": 3.55,
+          "end": 3.909
+        },
+        {
+          "word": "knows",
+          "start": 3.909,
+          "end": 4.23
+        },
+        {
+          "word": "which",
+          "start": 4.23,
+          "end": 4.47
+        },
+        {
+          "word": "ship",
+          "start": 4.47,
+          "end": 4.75
+        },
+        {
+          "word": "is",
+          "start": 4.75,
+          "end": 4.83
+        },
+        {
+          "word": "yours",
+          "start": 4.83,
+          "end": 5.08
+        }
+      ],
+      "voice": "en-GB-Ollie:DragonHDLatestNeural"
     }
   ]
 }

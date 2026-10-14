@@ -1,57 +1,72 @@
 {
   "id": "pol.solved.01",
   "speaker": "Pol",
-  "text": "Setup complete. Your fork has everything the course needs, Captain.",
+  "text": "Setup complete! Your fork has its practice items now, ready for later chapters.",
   "words": [
     {
       "word": "Setup",
       "start": 0.0486659,
-      "end": 0.573208
+      "end": 0.562041
     },
     {
       "word": "complete",
-      "start": 0.573208,
-      "end": 2.025458
+      "start": 0.562041,
+      "end": 2.04775
     },
     {
       "word": "Your",
-      "start": 2.025458,
-      "end": 2.304458
+      "start": 2.04775,
+      "end": 2.337958
     },
     {
       "word": "fork",
-      "start": 2.304458,
-      "end": 2.683916
+      "start": 2.337958,
+      "end": 2.717416
     },
     {
       "word": "has",
-      "start": 2.683916,
-      "end": 2.940625
+      "start": 2.717416,
+      "end": 2.907125
     },
     {
-      "word": "everything",
-      "start": 2.940625,
-      "end": 3.33125
+      "word": "its",
+      "start": 2.907125,
+      "end": 3.029916
     },
     {
-      "word": "the",
-      "start": 3.33125,
-      "end": 3.375875
+      "word": "practice",
+      "start": 3.029916,
+      "end": 3.465166
     },
     {
-      "word": "course",
-      "start": 3.375875,
-      "end": 3.699541
+      "word": "items",
+      "start": 3.465166,
+      "end": 3.8335
     },
     {
-      "word": "needs",
-      "start": 3.699541,
-      "end": 4.436166
+      "word": "now",
+      "start": 3.8335,
+      "end": 4.469625
     },
     {
-      "word": "Captain",
-      "start": 4.436166,
-      "end": 4.686166
+      "word": "ready",
+      "start": 4.469625,
+      "end": 4.882583
+    },
+    {
+      "word": "for",
+      "start": 4.882583,
+      "end": 4.983041
+    },
+    {
+      "word": "later",
+      "start": 4.983041,
+      "end": 5.23975
+    },
+    {
+      "word": "chapters",
+      "start": 5.23975,
+      "end": 5.48975
     }
   ]
 }

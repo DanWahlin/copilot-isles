@@ -1,92 +1,82 @@
 {
   "id": "pol.brief.01",
   "speaker": "Pol",
-  "text": "The course has a setup script. It adds labels, the coloured pennants, and issues, the bounty notices.",
+  "text": "It adds labels, issues, branches, and pull requests for later chapters. They're practice, not problems.",
   "words": [
     {
-      "word": "The",
-      "start": 0.05,
-      "end": 0.161625
-    },
-    {
-      "word": "course",
-      "start": 0.161625,
-      "end": 0.574541
-    },
-    {
-      "word": "has",
-      "start": 0.574541,
-      "end": 0.741958
-    },
-    {
-      "word": "a",
-      "start": 0.741958,
-      "end": 0.775458
-    },
-    {
-      "word": "setup",
-      "start": 0.775458,
-      "end": 1.233041
-    },
-    {
-      "word": "script",
-      "start": 1.233041,
-      "end": 2.538833
-    },
-    {
       "word": "It",
-      "start": 2.538833,
-      "end": 2.784375
+      "start": 0.05,
+      "end": 0.284375
     },
     {
       "word": "adds",
-      "start": 2.784375,
-      "end": 3.05225
+      "start": 0.284375,
+      "end": 0.507583
     },
     {
       "word": "labels",
-      "start": 3.05225,
-      "end": 3.92275
-    },
-    {
-      "word": "the",
-      "start": 3.92275,
-      "end": 4.000875
-    },
-    {
-      "word": "coloured",
-      "start": 4.000875,
-      "end": 4.279916
-    },
-    {
-      "word": "pennants",
-      "start": 4.279916,
-      "end": 5.0835
-    },
-    {
-      "word": "and",
-      "start": 5.0835,
-      "end": 5.284375
+      "start": 0.507583,
+      "end": 1.311166
     },
     {
       "word": "issues",
-      "start": 5.284375,
-      "end": 6.14375
+      "start": 1.311166,
+      "end": 2.137041
     },
     {
-      "word": "the",
-      "start": 6.14375,
-      "end": 6.210708
+      "word": "branches",
+      "start": 2.137041,
+      "end": 3.063375
     },
     {
-      "word": "bounty",
-      "start": 6.210708,
-      "end": 6.534375
+      "word": "and",
+      "start": 3.063375,
+      "end": 3.2085
     },
     {
-      "word": "notices",
-      "start": 6.534375,
-      "end": 6.784375
+      "word": "pull",
+      "start": 3.2085,
+      "end": 3.420541
+    },
+    {
+      "word": "requests",
+      "start": 3.420541,
+      "end": 3.967416
+    },
+    {
+      "word": "for",
+      "start": 3.967416,
+      "end": 4.067875
+    },
+    {
+      "word": "later",
+      "start": 4.067875,
+      "end": 4.335708
+    },
+    {
+      "word": "chapters",
+      "start": 4.335708,
+      "end": 5.751791
+    },
+    {
+      "word": "They're",
+      "start": 5.751791,
+      "end": 5.919208
+    },
+    {
+      "word": "practice",
+      "start": 5.919208,
+      "end": 6.845541
+    },
+    {
+      "word": "not",
+      "start": 6.845541,
+      "end": 7.091083
+    },
+    {
+      "word": "problems",
+      "start": 7.091083,
+      "end": 7.341083
     }
   ]
 }

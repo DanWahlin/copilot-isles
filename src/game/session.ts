@@ -1241,7 +1241,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     buoys.group.visible = false;
     engine.scene.add(buoys.group);
     meridianSites.push(buoys);
-    puzzles.push(createThreeHelms(helmsHost, buoys));
+    puzzles.push(createThreeHelms(helmsHost, buoys, cove.quietSea));
     const roots = [
       ...meridianNpcs.list.map((n) => n.character.group),
       ...chests.slice(chestsBefore).map((c) => c.chest.group),

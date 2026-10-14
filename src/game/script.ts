@@ -1,4 +1,4 @@
-import type { LearnStore } from '../learn/store';
+import type { ForkFrom, LearnStore } from '../learn/store';
 import type { Dialogue } from './dialogue';
 
 /**
@@ -19,7 +19,12 @@ export type ScriptStep =
   /** Runs a Trial; failing or leaving it ends the script (the NPC offers it again). */
   | { trial: string }
   /** A world beat the session plays and awaits (the christening's coconut, say). */
-  | { cue: string };
+  | { cue: string }
+  /**
+   * Asks for the player's fork (the form always offers Skip for now), only if they haven't given it
+   * yet. `line` is a voiced line played first, only when the form opens.
+   */
+  | { askFork: Exclude<ForkFrom, 'logbook'>; line?: string };
 
 export interface ScriptContext {
   dialogue: Dialogue;
@@ -61,6 +66,12 @@ export async function runScript(steps: readonly ScriptStep[], ctx: ScriptContext
       else if ('term' in s) learn?.learnTerm(s.term);
       else if ('quest' in s) ctx.onQuest?.(s.quest, s.step);
       else if ('cue' in s) await ctx.onCue?.(s.cue);
+      else if ('askFork' in s) {
+        if (!learn || learn.getState().fork) continue;
+        if (s.line) await dialogue.play([s.line]);
+        if (ctx.cancelled?.()) return false;
+        await learn.askFork(s.askFork);
+      }
     }
     return true;
   } finally {

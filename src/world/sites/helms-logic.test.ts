@@ -5,6 +5,7 @@ import {
   HELM_ORDER,
   MERIDIAN_HELMS,
   helmCourse,
+  helmsCourseArea,
   nextHelm,
   TAKE_RANGE,
   sampleCourse,
@@ -77,5 +78,14 @@ describe('the Three Helms', () => {
       for (let j = i + 1; j < buoys.length; j++)
         expect(Math.hypot(buoys[i]!.x - buoys[j]!.x, buoys[i]!.z - buoys[j]!.z)).toBeGreaterThan(40);
     for (const b of buoys) expect(b.z).toBeGreaterThan(MERIDIAN.mole.lighthouse.z + 20);
+  });
+});
+
+describe('helmsCourseArea', () => {
+  it('takes in every buoy and mark with sea to spare (the leaps keep out of it)', () => {
+    const area = helmsCourseArea(30);
+    for (const m of HELM_ORDER)
+      for (const p of helmCourse(MERIDIAN_HELMS[m]))
+        expect(Math.hypot(p.x - area.x, p.z - area.z)).toBeLessThanOrEqual(area.r - 30 + 1e-9);
   });
 });

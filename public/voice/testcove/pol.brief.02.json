@@ -1,102 +1,77 @@
 {
   "id": "pol.brief.02",
   "speaker": "Pol",
-  "text": "And pull requests, sealed inspection requests: changes to review, a feedback comment, and a check that fails on purpose.",
+  "text": "Check that the Repository line names your fork. Only then run it with --yes.",
   "words": [
     {
-      "word": "And",
+      "word": "Check",
       "start": 0.05,
-      "end": 0.250875
-    },
-    {
-      "word": "pull",
-      "start": 0.250875,
-      "end": 0.48525
-    },
-    {
-      "word": "requests",
-      "start": 0.48525,
-      "end": 1.311166
-    },
-    {
-      "word": "sealed",
-      "start": 1.311166,
-      "end": 1.679458
-    },
-    {
-      "word": "inspection",
-      "start": 1.679458,
-      "end": 2.204
-    },
-    {
-      "word": "requests",
-      "start": 2.204,
-      "end": 3.063375
-    },
-    {
-      "word": "changes",
-      "start": 3.063375,
-      "end": 3.465166
-    },
-    {
-      "word": "to",
-      "start": 3.465166,
-      "end": 3.554458
-    },
-    {
-      "word": "review",
-      "start": 3.554458,
-      "end": 4.23525
-    },
-    {
-      "word": "a",
-      "start": 4.23525,
-      "end": 4.313375
-    },
-    {
-      "word": "feedback",
-      "start": 4.313375,
-      "end": 4.782125
-    },
-    {
-      "word": "comment",
-      "start": 4.782125,
-      "end": 5.574541
-    },
-    {
-      "word": "and",
-      "start": 5.574541,
-      "end": 5.697333
-    },
-    {
-      "word": "a",
-      "start": 5.697333,
-      "end": 5.730791
-    },
-    {
-      "word": "check",
-      "start": 5.730791,
-      "end": 5.998666
+      "end": 0.3625
     },
     {
       "word": "that",
-      "start": 5.998666,
-      "end": 6.154916
+      "start": 0.3625,
+      "end": 0.496416
     },
     {
-      "word": "fails",
-      "start": 6.154916,
-      "end": 6.567875
+      "word": "the",
+      "start": 0.496416,
+      "end": 0.574541
     },
     {
-      "word": "on",
-      "start": 6.567875,
-      "end": 6.712958
+      "word": "Repository",
+      "start": 0.574541,
+      "end": 1.17725
     },
     {
-      "word": "purpose",
-      "start": 6.712958,
-      "end": 6.962958
+      "word": "line",
+      "start": 1.17725,
+      "end": 1.534375
+    },
+    {
+      "word": "names",
+      "start": 1.534375,
+      "end": 1.858041
+    },
+    {
+      "word": "your",
+      "start": 1.858041,
+      "end": 1.936166
+    },
+    {
+      "word": "fork",
+      "start": 1.936166,
+      "end": 3.253125
+    },
+    {
+      "word": "Only",
+      "start": 3.253125,
+      "end": 3.532125
+    },
+    {
+      "word": "then",
+      "start": 3.532125,
+      "end": 3.755375
+    },
+    {
+      "word": "run",
+      "start": 3.755375,
+      "end": 3.900458
+    },
+    {
+      "word": "it",
+      "start": 3.900458,
+      "end": 4.067875
+    },
+    {
+      "word": "with",
+      "start": 4.067875,
+      "end": 4.313375
+    },
+    {
+      "word": "yes",
+      "start": 4.313375,
+      "end": 4.563375
     }
   ]
 }
