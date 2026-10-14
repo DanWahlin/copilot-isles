@@ -222,6 +222,7 @@ async function boot(): Promise<void> {
   flow.resumeAfterApply();
   for (let i = 0; i < 12; i++) await nextFrame();
   engine.counters.hitches.length = 0;
+  engine.counters.stalls.length = 0;
   engine.counters.arm();
   stage(1, 'Ready');
 

@@ -73,26 +73,35 @@ function split(pieces: Piece[], maxTriangles: number, out: Piece[][]): void {
  * pieces are consumed: they're disposed once merged. The triangle total doesn't change.
  */
 export function mergeIntoChunks(geometries: BufferGeometry[], options: ChunkOptions): GeometryChunk[] {
+  return [...eachChunk(geometries, options)];
+}
+
+/**
+ * `mergeIntoChunks` a chunk at a time, so a sliced build can breathe between chunks (merging a big
+ * material's pieces at once took tens of milliseconds). The pieces are disposed once it's run out.
+ */
+export function* eachChunk(geometries: BufferGeometry[], options: ChunkOptions): Generator<GeometryChunk> {
   const pieces: Piece[] = geometries.map((geometry) => {
     if (!geometry.boundingSphere) geometry.computeBoundingSphere();
     const s = geometry.boundingSphere!;
     return { geometry, x: s.center.x, z: s.center.z, triangles: triangleCount(geometry) };
   });
-  const chunks: GeometryChunk[] = [];
   const leaves: Piece[][] = [];
   if (pieces.length > 0) split(pieces, options.maxTriangles, leaves);
-  for (const leaf of leaves) {
-    const merged = mergeGeometries(
-      leaf.map((p) => p.geometry),
-      false,
-    );
-    if (!merged) continue;
-    merged.computeBoundingSphere();
-    merged.computeBoundingBox();
-    chunks.push({ geometry: merged, triangles: triangleCount(merged) });
+  try {
+    for (const leaf of leaves) {
+      const merged = mergeGeometries(
+        leaf.map((p) => p.geometry),
+        false,
+      );
+      if (!merged) continue;
+      merged.computeBoundingSphere();
+      merged.computeBoundingBox();
+      yield { geometry: merged, triangles: triangleCount(merged) };
+    }
+  } finally {
+    for (const geometry of geometries) geometry.dispose();
   }
-  for (const geometry of geometries) geometry.dispose();
-  return chunks;
 }
 
 /**

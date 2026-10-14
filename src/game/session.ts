@@ -1184,9 +1184,23 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   ): Promise<{ roots: Object3D[]; reveal(): void }> => {
     if (!town || disposed || meridianNpcs) return noMeridian;
     const cast = [...MERIDIAN_NPCS, ...meridianExtras(town.anchors)];
-    meridianNpcs = new NpcCrowd(o.characters, cast, town.anchors, world, tier, camera, {
-      ...town.anchors.promenade!,
-    });
+    // A character a slice: the whole cast at once stalled a frame for ~150 ms while you sailed.
+    const crowd = await NpcCrowd.createAsync(
+      o.characters,
+      cast,
+      town.anchors,
+      world,
+      tier,
+      camera,
+      { ...town.anchors.promenade! },
+      buildSlice,
+      () => !disposed && !meridianNpcs,
+    );
+    if (disposed || meridianNpcs) {
+      crowd.dispose();
+      return noMeridian;
+    }
+    meridianNpcs = crowd;
     await buildSlice();
     for (const n of meridianNpcs.list) {
       n.character.group.visible = false;

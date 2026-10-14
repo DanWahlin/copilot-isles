@@ -17,7 +17,7 @@ import { BANYAN_DETAIL, TREE_ORIGIN, buildBanyan, type BanyanDetail } from './ba
 import {
   BRANCHES,
   TRUNK_BASE,
-  canopyClusters,
+  canopyClusterSteps,
   carryingSprays,
   groundRoots,
   hangingVines,
@@ -108,20 +108,38 @@ export interface Banyan {
 /**
  * The great banyan and its little sister at Bough Landing, as instanced meshes in the vegetation's
  * procedural material (the same shader Meridian's brush and cacti use): a near level and a far level,
- * each one draw for both trees. The sister is the same tree at 0.18 scale.
+ * each one draw for both trees. The sister is the same tree at 0.18 scale. Built a part at a time,
+ * `breathe` between parts (at once it took 150-230 ms).
  */
-export function createBanyan(tier: TierSettings, clearance: WalkClearance): Banyan {
+export async function createBanyanAsync(
+  tier: TierSettings,
+  clearance: WalkClearance,
+  breathe: () => Promise<void>,
+): Promise<Banyan> {
+  const steps = banyanSteps(tier, clearance);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+    await breathe();
+  }
+}
+
+function* banyanSteps(tier: TierSettings, clearance: WalkClearance): Generator<void, Banyan, void> {
   const t = TIER_TREE[tier.tier];
-  const clusters = canopyClusters(t.clusters, clearance);
+  const clusters = yield* canopyClusterSteps(t.clusters, clearance);
+  yield;
   // The far tree (from the sea): half the clumps, a little bigger, so its crown reads as one full dome.
-  const farClusters = canopyClusters(Math.round(t.clusters / 2), clearance, 1.1);
+  const farClusters = yield* canopyClusterSteps(Math.round(t.clusters / 2), clearance, 1.1);
+  yield;
   // The little sister by the landing is seen close but small: a quarter of the clumps, leaf cards
   // and ragged lobes where the tier has the room.
-  const sisterClusters = canopyClusters(Math.round(t.clusters / 4), clearance, 1.05);
+  const sisterClusters = yield* canopyClusterSteps(Math.round(t.clusters / 4), clearance, 1.05);
+  yield;
   const fine = tier.tier === 'high' || tier.tier === 'ultra';
   const roots = propRoots(t.roots);
   const ground = groundRoots(t.ground, roots);
   const vines = hangingVines(t.vines, clearance);
+  yield;
   const material = createVegetationMaterial({
     alphaTest: 0.12,
     color: new Color(0xffffff),
@@ -153,17 +171,19 @@ export function createBanyan(tier: TierSettings, clearance: WalkClearance): Bany
     return mesh;
   };
   const near = make(
-    buildBanyan(t.near, clusters, roots, { vines, ground, gate: true }),
+    yield* buildBanyan(t.near, clusters, roots, { vines, ground, gate: true }),
     'thousand-bough-banyan',
     false,
   );
+  yield;
   const far = make(
-    buildBanyan(BANYAN_DETAIL.far, farClusters, roots.slice(0, 12), { ground, gate: true }),
+    yield* buildBanyan(BANYAN_DETAIL.far, farClusters, roots.slice(0, 12), { ground, gate: true }),
     'thousand-bough-banyan-far',
     false,
   );
+  yield;
   const sister = make(
-    buildBanyan(
+    yield* buildBanyan(
       { ...BANYAN_DETAIL.far, lobes: 1, cards: fine ? 5 : 3, twigs: true, fine, lean: t.near.lean },
       sisterClusters,
       [],

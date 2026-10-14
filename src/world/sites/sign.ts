@@ -110,7 +110,25 @@ function paintSign(
       }),
     );
   const tall = () => lines.reduce((h, _, k) => h + size * scale(k) * 1.18, 0);
-  while (size > 10 && (widest() > px * 0.88 || tall() > ch * 0.84)) size -= 2;
+  const fits = () => size <= 10 || (widest() <= px * 0.88 && tall() <= ch * 0.84);
+  // Lettering widens in step with its size, and each new size costs the browser a font set-up, so
+  // start a step or two above where it should fit (on the same even steps down from the start)
+  // rather than measuring every size down from the top. The size is the same as stepping down.
+  const top = size;
+  const guess = Math.min((px * 0.88) / Math.max(1, widest()), (ch * 0.84) / Math.max(1, tall()));
+  if (guess < 1) {
+    size = Math.min(top, Math.max(top - 2 * Math.floor((top - top * guess) / 2) + 2, 10 + ((top - 10) % 2)));
+    // A start that already fits steps back up while the next size up fits too.
+    if (fits()) {
+      while (size + 2 <= top) {
+        size += 2;
+        if (fits()) continue;
+        size -= 2;
+        break;
+      }
+    }
+  }
+  while (!fits()) size -= 2;
   ctx.font = FONT(size);
   ctx.textBaseline = 'middle';
   const list = o.layout === 'list' && lines.length > 1;
@@ -238,6 +256,25 @@ export class SignSet {
   /** Packs and paints the atlas and builds the one merged mesh. */
   finalize(): Mesh {
     if (this.merged) return this.merged;
+    const steps = this.finalizeSteps();
+    for (;;) {
+      const r = steps.next();
+      if (r.done) return r.value;
+    }
+  }
+
+  /** `finalize()` a board at a time, `breathe` between boards (painting a big set at once stalls a frame). */
+  async finalizeAsync(breathe: () => Promise<void>): Promise<Mesh> {
+    if (this.merged) return this.merged;
+    const steps = this.finalizeSteps();
+    for (;;) {
+      const r = steps.next();
+      if (r.done) return r.value;
+      await breathe();
+    }
+  }
+
+  private *finalizeSteps(): Generator<void, Mesh, void> {
     // Boards stack down a column; a set too tall for one starts another beside it.
     const column = SIGN_PX + GUTTER * 2;
     let columns = 1;
@@ -261,7 +298,10 @@ export class SignSet {
     canvas.width = width;
     canvas.height = height;
     this.canvas = canvas;
-    for (const e of this.entries) this.paint(e);
+    for (const e of this.entries) {
+      this.paint(e);
+      yield;
+    }
     const atlas = new CanvasTexture(canvas);
     atlas.colorSpace = SRGBColorSpace;
     atlas.anisotropy = 4;

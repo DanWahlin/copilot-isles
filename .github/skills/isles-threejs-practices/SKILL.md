@@ -54,6 +54,14 @@ the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _
   and refill reusable arrays (`arr.length = 0; arr.push(...)`), like the harbour mirror's hidden list
   and the cloud trace's compute lists.
 - Build big things in slices (`buildSlice`, `runSliced`, generators with `breathe()`), a few ms a frame.
+  The slicer only yields at a `breathe()`: one step without one is one frame, however long. An island
+  streamed during play once stalled 50–230 ms a frame (the banyan, the tree village's merges and signs,
+  each cast's dressing) with the slicer on. Yield per part (`eachChunk`, `NpcCrowd.createAsync`,
+  `SignSet.finalizeAsync`).
+- The hitch guard only sees new programs, geometries and textures. CPU stalls go to
+  `window.__isles.stalls()` (frame gaps over 50 ms after warm-up, `excused` inside a late warm); it
+  isn't a test gate (timing depends on the machine), so measure a stream with long tasks and a CPU
+  profile.
 - A precompile only helps if it builds the **exact** pipeline the real draw uses (same shader code and
   same pipeline key: depth format, sample count, blending). Otherwise it's waste, and the real draw
   still builds its pipeline synchronously. Measure, don't assume (issue 231):

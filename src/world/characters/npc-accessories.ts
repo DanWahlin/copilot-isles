@@ -670,11 +670,20 @@ function strapSurfaces(root: Group): { tris: Float32Array; worn: Uint8Array } {
     const g = o.geometry;
     const pos = g.getAttribute('position');
     toRoot.multiplyMatrices(rootInverse, o.matrixWorld);
+    // Each vertex is posed once (skinning on the CPU is the slow part), however many triangles share it.
+    const posed = new Float64Array(pos.count * 3);
+    const done = new Uint8Array(pos.count);
     const corner = (i: number) => {
-      if (skinned) (o as SkinnedMesh).getVertexPosition(i, v);
-      else v.fromBufferAttribute(pos, i);
-      v.applyMatrix4(toRoot);
-      tris.push(v.x, v.y, v.z);
+      if (!done[i]) {
+        if (skinned) (o as SkinnedMesh).getVertexPosition(i, v);
+        else v.fromBufferAttribute(pos, i);
+        v.applyMatrix4(toRoot);
+        posed[i * 3] = v.x;
+        posed[i * 3 + 1] = v.y;
+        posed[i * 3 + 2] = v.z;
+        done[i] = 1;
+      }
+      tris.push(posed[i * 3]!, posed[i * 3 + 1]!, posed[i * 3 + 2]!);
     };
     // Only the draw range: a body's index also carries its coarser levels of detail after it.
     const start = g.drawRange.start;
@@ -718,6 +727,36 @@ function rayHits(ray: Ray, s: { tris: Float32Array; worn: Uint8Array }): { d: nu
   return out.sort((a, b) => a.d - b.d);
 }
 
+/**
+ * The triangles that reach the plane `normal · p = offset` (a hair either side), in their order. A ray
+ * that lies in that plane can cross no other, so the sash's rays test only these (a few percent).
+ */
+function surfacesOnPlane(
+  s: { tris: Float32Array; worn: Uint8Array },
+  normal: Vector3,
+  offset: number,
+): { tris: Float32Array; worn: Uint8Array } {
+  const t = s.tris;
+  const keep: number[] = [];
+  for (let i = 0, f = 0; i < t.length; i += 9, f++) {
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (let k = i; k < i + 9; k += 3) {
+      const d = normal.x * t[k]! + normal.y * t[k + 1]! + normal.z * t[k + 2]!;
+      lo = Math.min(lo, d);
+      hi = Math.max(hi, d);
+    }
+    if (lo <= offset + 1e-4 && hi >= offset - 1e-4) keep.push(f);
+  }
+  const tris = new Float32Array(keep.length * 9);
+  const worn = new Uint8Array(keep.length);
+  keep.forEach((f, j) => {
+    tris.set(t.subarray(f * 9, f * 9 + 9), j * 9);
+    worn[j] = s.worn[f]!;
+  });
+  return { tris, worn };
+}
+
 function boneLocal(root: Group, name: string, out: Vector3): Vector3 | null {
   const bone = root.getObjectByName(name);
   if (!(bone instanceof Bone)) return null;
@@ -744,6 +783,10 @@ function addSash(root: Group, color: ColorHex, side: -1 | 1): void {
   const across = new Vector3().crossVectors(up, forward).normalize();
 
   const surfaces = strapSurfaces(root);
+  // Each ray lies in a plane across the band (centre line or an edge): only the triangles there.
+  const EDGES = [-0.8, 0, 0.8];
+  const centreAcross = across.dot(centre);
+  const bands = EDGES.map((e) => surfacesOnPlane(surfaces, across, centreAcross + e * halfWidth));
   const ray = new Ray();
   const raw: number[] = [];
   const dirs: Vector3[] = [];
@@ -753,10 +796,10 @@ function addSash(root: Group, color: ColorHex, side: -1 | 1): void {
     dirs.push(d);
     // The band lies on the highest of its centre line and its two edges.
     let r = 0;
-    for (const e of [-0.8, 0, 0.8]) {
-      ray.origin.copy(centre).addScaledVector(across, e * halfWidth);
+    for (let b = 0; b < EDGES.length; b++) {
+      ray.origin.copy(centre).addScaledVector(across, EDGES[b]! * halfWidth);
       ray.direction.copy(d);
-      const hits = rayHits(ray, surfaces);
+      const hits = rayHits(ray, bands[b]!);
       if (!hits.length) continue;
       // The body's surface, or a coat panel worn over it (which can stand well off the chest); not
       // an arm further out (part of the body mesh).

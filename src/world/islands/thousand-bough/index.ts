@@ -9,7 +9,7 @@ import { THOUSAND_BOUGH } from './layout';
 import { BEACON_Y } from './set-pieces';
 import { createThousandBoughWaterMesh } from './water-mesh';
 import type { CameraBlockerBox } from '../../terrain/camera-blockers';
-import { branchCameraBoxes, createBanyan } from './tree';
+import { branchCameraBoxes, createBanyanAsync } from './tree';
 import { thousandBoughPlantsSliced } from './vegetation';
 import { createMist, type Mist } from './mist';
 import type { ThousandBoughRocks } from './rocks';
@@ -195,7 +195,7 @@ export async function createThousandBoughAsync(
   await breathe();
   const clearance = new WalkClearance();
   await breathe();
-  const banyan = createBanyan(o.tier, clearance);
+  const banyan = await createBanyanAsync(o.tier, clearance, breathe);
   group.add(banyan.near, banyan.far, banyan.sister);
   await breathe();
   const village = await createTreeVillage({ tier: o.tier, kit: o.kit, clearance }, breathe);

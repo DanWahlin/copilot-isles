@@ -73,6 +73,26 @@ describe('FrameCounters', () => {
     c.endFrame(4);
     expect(c.hitches).toEqual([{ t: 4, programs: 1, geometries: 0, textures: 0 }]);
   });
+
+  it('records frame gaps over 50 ms as stalls once armed, apart from hitches', async () => {
+    const c = new FrameCounters({ info: stubInfo() });
+    c.stage = () => 'playing';
+    c.noteFrameGap(200, 0); // not armed yet
+    c.arm();
+    c.noteFrameGap(16.7, 1);
+    c.noteFrameGap(50, 2);
+    c.noteFrameGap(120.4, 3);
+    let finish!: () => void;
+    const work = c.excuse(new Promise<void>((resolve) => (finish = resolve)));
+    c.noteFrameGap(80, 4);
+    finish();
+    await work;
+    expect(c.stalls).toEqual([
+      { t: 3, ms: 120, stage: 'playing' },
+      { t: 4, ms: 80, stage: 'playing', excused: true },
+    ]);
+    expect(c.hitches).toEqual([]);
+  });
 });
 
 describe('limitGpuMs', () => {

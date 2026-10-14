@@ -222,6 +222,7 @@ export class Engine {
     const tickStart = performance.now();
     const raw = (now - this.last) / 1000;
     this.last = now;
+    this.counters.noteFrameGap(raw * 1000, this.clock.sim);
     const dt = Math.min(raw, 0.1);
     if (raw > 0) this.fps += (1 / raw - this.fps) * 0.05;
 

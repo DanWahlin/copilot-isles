@@ -733,15 +733,19 @@ export const BANYAN_DETAIL: Record<'near' | 'far' | 'lite', BanyanDetail> = {
   far: { coreSeg: 28, limbSeg: 6, rootSeg: 4, step: 4, lobes: 2, cards: 0, twigs: false },
 };
 
-/** The great banyan (core, pillars, limbs, sprays, leaders, prop roots and leaf clumps on their twigs) as one mesh. */
-export function buildBanyan(
+/**
+ * The great banyan (core, pillars, limbs, sprays, leaders, prop roots and leaf clumps on their twigs) as
+ * one mesh, a part at a time (a sliced build breathes at each yield).
+ */
+export function* buildBanyan(
   d: BanyanDetail,
   clusters: readonly Cluster[],
   roots: readonly PropRoot[],
   extras: { vines?: readonly Vine[]; ground?: readonly GroundRoot[]; gate?: boolean } = {},
-): BufferGeometry {
+): Generator<void, BufferGeometry, void> {
   const g = new VegGeometry();
   core(g, d.coreSeg, d.step);
+  yield;
   const carrying = carryingSprays(clusters);
   BRANCHES.forEach((b, i) => {
     const pillar = b.id.startsWith('pillar');
@@ -762,6 +766,7 @@ export function buildBanyan(
       !pillar,
     );
   });
+  yield;
   roots.forEach((r, i) => propRoot(g, r, d.rootSeg, 501 + i));
   (extras.ground ?? []).forEach((r, i) => groundRoot(g, r, Math.max(5, d.rootSeg), 801 + i));
   if (extras.gate)
@@ -775,6 +780,7 @@ export function buildBanyan(
       ),
     );
   for (const v of extras.vines ?? []) vine(g, v);
+  yield;
   // The twigs end inside their clumps (no caps): a few rings each, straight on the coarser levels.
   if (d.twigs)
     clusters.forEach((c, i) => {
@@ -788,7 +794,11 @@ export function buildBanyan(
         false,
       );
     });
-  for (const c of clusters) clump(g, c, d);
+  for (let i = 0; i < clusters.length; i++) {
+    if (i % 8 === 0) yield;
+    clump(g, clusters[i]!, d);
+  }
+  yield;
   return g.build();
 }
 

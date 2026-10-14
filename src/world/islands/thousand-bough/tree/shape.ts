@@ -785,6 +785,19 @@ function nearestWood(x: number, y: number, z: number, out: BranchPoint & { id: s
  * nearest wood (or isn't grown).
  */
 export function canopyClusters(count: number, clearance: WalkClearance, scale = 1): Cluster[] {
+  const steps = canopyClusterSteps(count, clearance, scale);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+
+/** `canopyClusters` a grid row at a time (a sliced build breathes at each yield). */
+export function* canopyClusterSteps(
+  count: number,
+  clearance: WalkClearance,
+  scale = 1,
+): Generator<void, Cluster[], void> {
   const rand = mulberry32(0x7b0b + count);
   const keep = treeKeepouts();
   const c = TB.tree.canopy;
@@ -881,7 +894,7 @@ export function canopyClusters(count: number, clearance: WalkClearance, scale = 
   };
   const span = RING.rOut + 6;
   for (const layer of [0, 1])
-    for (let j = 0, z0 = TREE.z - span; z0 <= TREE.z + span; j++, z0 += sp * 0.866)
+    for (let j = 0, z0 = TREE.z - span; z0 <= TREE.z + span; j++, z0 += sp * 0.866) {
       for (let x0 = TREE.x - span + ((j % 2) + layer) * 0.5 * sp; x0 <= TREE.x + span; x0 += sp) {
         const x = x0 + (rand() - 0.5) * sp * 0.5;
         const z = z0 + (rand() - 0.5) * sp * 0.5;
@@ -889,11 +902,14 @@ export function canopyClusters(count: number, clearance: WalkClearance, scale = 
         const size = 0.85 + rand() * 0.3;
         for (const at of LAYERS) grow(x, z, layer, at, seed, size, sp);
       }
+      yield;
+    }
   // The deck pads on a grid of their own, no coarser than PAD_SPACING: the lower tiers' big clumps
   // still roof the deck (their own random stream, so the ring's and the crown's clumps don't move).
   const padRand = mulberry32(0x3d1 + count);
   const psp = Math.min(sp, PAD_SPACING);
   for (const m of DECK_PADS) {
+    yield;
     const ctr = atBearing(m.bearing, m.r);
     const at = (x: number, z: number) => crownLayer(m, x, z);
     const reach = Math.max(m.rx, m.rz);

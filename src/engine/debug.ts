@@ -1,4 +1,4 @@
-import type { FrameCounters, FrameStats, Hitch } from './frame-counters';
+import type { FrameCounters, FrameStats, Hitch, Stall } from './frame-counters';
 
 export interface BackendInfo {
   backend: 'webgpu' | 'webgl2';
@@ -18,6 +18,8 @@ interface IslesDebug {
   } & BackendInfo;
   shot?(id: string): void;
   hitches(): Hitch[];
+  /** Frames over 50 ms apart after warm-up (main-thread stalls the hitch guard can't see). */
+  stalls(): Stall[];
   state(): string;
 }
 
@@ -63,6 +65,7 @@ export function installDebug(
       ...backend,
     }),
     hitches: () => [...counters.hitches],
+    stalls: () => [...counters.stalls],
     state: getState,
     ...(options.shot ? { shot: options.shot } : {}),
   };

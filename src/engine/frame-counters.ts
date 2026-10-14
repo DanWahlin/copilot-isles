@@ -24,6 +24,22 @@ export interface Hitch {
   stage?: string;
 }
 
+/**
+ * A frame that came long after the one before it (wall time), while the guard is armed: a main-thread
+ * stall (a long build step, a synchronous shader build) that the resource guard can't see.
+ */
+export interface Stall {
+  t: number;
+  /** Wall time since the frame before, in ms. */
+  ms: number;
+  stage?: string;
+  /** It fell in an excused late addition's load or warm (its stalls still show to the player). */
+  excused?: boolean;
+}
+
+/** A frame gap over this (ms) is a stall: the Long Tasks API's threshold. */
+export const STALL_MS = 50;
+
 /** The subset of three's `Info` we read (it's the same object on the WebGPU and WebGL2 backends). */
 export interface InfoLike {
   autoReset: boolean;
@@ -62,6 +78,8 @@ export class FrameCounters {
     trackedMB: 0,
   };
   readonly hitches: Hitch[] = [];
+  /** Frame gaps over STALL_MS after warm-up (`noteFrameGap`). Not hitches: timing depends on the machine. */
+  readonly stalls: Stall[] = [];
   /** Labels each hitch with what the game was doing (set by the game flow). */
   stage: (() => string) | null = null;
   private armed = false;
@@ -130,6 +148,21 @@ export class FrameCounters {
     };
     work.then(done, done);
     return work;
+  }
+
+  /**
+   * Records a frame that came `gapMs` (wall time) after the frame before as a stall when it's over
+   * STALL_MS and the guard is armed. The resource guard only sees new programs, geometries and textures,
+   * so CPU work (a build step that doesn't breathe) never shows there.
+   */
+  noteFrameGap(gapMs: number, t: number): void {
+    if (!this.armed || gapMs <= STALL_MS || this.stalls.length >= 200) return;
+    this.stalls.push({
+      t,
+      ms: Math.round(gapMs),
+      ...(this.stage ? { stage: this.stage() } : {}),
+      ...(this.excused > 0 || this.settle > 0 ? { excused: true } : {}),
+    });
   }
 
   /** Call once warm-up is complete. */

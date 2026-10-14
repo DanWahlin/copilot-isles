@@ -370,9 +370,23 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
       ...THOUSAND_BOUGH_NPCS.map((n) => ({ ...n, keepY: true })),
       ...thousandBoughExtras(anchors, q()['Q2.5'] === 'done'),
     ];
-    crowd = new NpcCrowd(host.characters, cast, anchors, host.world, host.tier, host.camera, {
-      ...anchors.tamsin,
-    });
+    // A character a slice: the whole cast at once stalled a frame for ~190 ms while you sailed.
+    const made = await NpcCrowd.createAsync(
+      host.characters,
+      cast,
+      anchors,
+      host.world,
+      host.tier,
+      host.camera,
+      { ...anchors.tamsin },
+      buildSlice,
+      () => !disposed,
+    );
+    if (disposed) {
+      made.dispose();
+      return none;
+    }
+    crowd = made;
     await buildSlice();
     const roots: Object3D[] = [];
     for (const n of crowd.list) {

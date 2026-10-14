@@ -1,11 +1,11 @@
 import { Group, Mesh, type BufferGeometry, type Material } from 'three/webgpu';
 import type { TierSettings } from '../../../../engine/quality';
 import { SignSet, type PaintedSign } from '../../../sites/sign';
-import { mergeIntoChunks, chunkOptions } from '../../../village/chunks';
+import { eachChunk, chunkOptions } from '../../../village/chunks';
 import type { MaterialKey, VillageKit } from '../../../village/kit';
 import { makeBuckets, PAINT, box, cone, lanternPaint, rod, type Buckets } from './pieces';
 import { buildHouses } from './houses';
-import { buildStructure, type StructureOut } from './structure';
+import { buildStructureSteps, type StructureOut } from './structure';
 import type { WalkClearance } from './clearance';
 import { createFlumeTerrace, type FlumeTerrace } from '../flume';
 import { createSetPieces, type SetPieces } from '../set-pieces';
@@ -42,15 +42,19 @@ function lantern(buckets: Buckets, l: { x: number; y: number; z: number; hang: b
     );
 }
 
-/** Merges each bucket into chunks of its kit material (one draw a chunk, no new shader). */
-function meshesFromBuckets(
+/**
+ * Merges each bucket into chunks of its kit material (one draw a chunk, no new shader), breathing
+ * between chunks.
+ */
+async function meshesFromBuckets(
   buckets: Buckets,
   kit: VillageKit,
   tier: TierSettings,
   name: string,
   into: Group,
+  breathe: () => Promise<void>,
   shadows = true,
-): Mesh[] {
+): Promise<Mesh[]> {
   const meshes: Mesh[] = [];
   // Lite draws the small metal, cloth and rope parts with the timber (three draws fewer; they're tiny there).
   if (tier.tier === 'lite')
@@ -65,7 +69,8 @@ function meshesFromBuckets(
       g.dispose();
       return f;
     });
-    for (const chunk of mergeIntoChunks(flat, chunkOptions(tier))) {
+    await breathe();
+    for (const chunk of eachChunk(flat, chunkOptions(tier))) {
       const mesh = new Mesh(chunk.geometry, kit.materials[key] as Material);
       mesh.name = `${name}-${key}`;
       // Only the timber, thatch and stone cast (rope, iron, cloth and glass are too fine to show).
@@ -73,6 +78,7 @@ function meshesFromBuckets(
       mesh.receiveShadow = key !== 'glow' && key !== 'halo';
       into.add(mesh);
       meshes.push(mesh);
+      await breathe();
     }
   }
   return meshes;
@@ -98,27 +104,33 @@ export async function createTreeVillage(
   // Stilts stand only where nobody walks.
   const clear = (x: number, z: number) =>
     !o.clearance.conflict(x, 0, z, 0.3, { beside: 1.2, above: 200, below: 200, ignore: (s) => s.y > 22 });
-  const out = buildStructure(buckets, late, clear, wharf);
+  const steps = buildStructureSteps(buckets, late, clear, wharf);
+  let r = steps.next();
+  for (; !r.done; r = steps.next()) await breathe();
+  const out = r.value;
   await breathe();
   const signs = new SignSet('thousand-bough-signs');
   const { wheels, practiceSign } = buildHouses(buckets, signs, out);
+  await breathe();
   const flume = createFlumeTerrace(o.kit, buckets, wheels, signs);
+  await breathe();
   const pieces = createSetPieces(o.kit, buckets, signs);
   group.add(pieces.group);
   out.colliders.push(...flume.colliders);
   group.add(flume.group);
   await breathe();
   for (const l of out.lanterns) lantern(buckets, l);
-  meshesFromBuckets(buckets, o.kit, o.tier, 'tb-village', group);
-  if (wharf !== buckets) meshesFromBuckets(wharf, o.kit, o.tier, 'tb-wharf', group, false);
+  await meshesFromBuckets(buckets, o.kit, o.tier, 'tb-village', group, breathe);
+  if (wharf !== buckets) await meshesFromBuckets(wharf, o.kit, o.tier, 'tb-wharf', group, breathe, false);
   await breathe();
   const r3 = new Group();
   r3.name = 'thousand-bough-r3';
   r3.visible = false;
   r3.userData.prewarm = true;
-  meshesFromBuckets(late, o.kit, o.tier, 'tb-r3', r3);
+  await meshesFromBuckets(late, o.kit, o.tier, 'tb-r3', r3, breathe);
   group.add(r3);
-  const signMesh = signs.finalize();
+  await breathe();
+  const signMesh = await signs.finalizeAsync(breathe);
   group.add(signMesh);
   // The signs' objects are placed in world space: they hang off the group (at the origin).
   for (const child of [] as never[]) void child;

@@ -241,46 +241,79 @@ export class NpcCrowd {
   private t = 0;
 
   constructor(
+    private readonly lib: CharacterLibrary,
+    specs: readonly NpcSpec[],
+    private readonly anchors: Record<string, VillageAnchor>,
+    private readonly world: CollisionWorld,
+    private readonly tier: TierSettings,
+    private readonly updateTarget: Parameters<CharacterLibrary['create']>[0]['updateTarget'],
+    private readonly fallback: VillageAnchor,
+  ) {
+    specs.forEach((spec, i) => this.place(spec, i));
+  }
+
+  /**
+   * The same crowd, one character a slice (`breathe` between them): dressing a character takes
+   * several milliseconds, so a whole island's cast at once stalls a frame during play. Stops early
+   * when `alive()` turns false (the voyage ended mid-cast: the library may be disposed, and with no
+   * slicer the rest would build in one task); the caller then disposes the partial crowd.
+   */
+  static async createAsync(
     lib: CharacterLibrary,
     specs: readonly NpcSpec[],
     anchors: Record<string, VillageAnchor>,
-    private readonly world: CollisionWorld,
+    world: CollisionWorld,
     tier: TierSettings,
     updateTarget: Parameters<CharacterLibrary['create']>[0]['updateTarget'],
     fallback: VillageAnchor,
-  ) {
-    specs.forEach((spec, i) => {
-      const home = anchors[spec.anchor] ?? { ...fallback, x: fallback.x + i * 1.5 };
-      const out = spec.out ?? 0;
-      // Patrollers start on their loop, so they never cut through props to reach it.
-      const start = spec.patrol?.[0];
-      const x = start ? start[0] : home.x + Math.sin(home.heading) * out;
-      const z = start ? start[1] : home.z + Math.cos(home.heading) * out;
-      const y = spec.keepY ? home.y : world.groundAt(x, z);
-      const heading = npcHeading(spec, home);
-      const character = lib.create({ body: spec.body ?? (spec.id as NpcId), tier, updateTarget });
-      character.group.position.set(x, y, z);
-      character.group.rotation.y = heading;
-      character.play(spec.patrol || spec.orbit ? 'idle' : spec.clip);
-      const obstacle: CircleObstacle = { x, z, r: spec.obstacleR ?? character.capsule.radius + 0.1 };
-      world.addDynamic(obstacle);
-      this.list.push({
-        spec,
-        character,
-        x,
-        y,
-        z,
-        heading,
-        home,
-        obstacle,
-        talking: false,
-        lastBark: -99,
-        faceTarget: null,
-        greetedAt: -GREET_GAP,
-        greetArmed: true,
-      });
-      this.homes.set(this.list[this.list.length - 1]!, home);
+    breathe: () => Promise<void>,
+    alive: () => boolean,
+  ): Promise<NpcCrowd> {
+    const crowd = new NpcCrowd(lib, [], anchors, world, tier, updateTarget, fallback);
+    for (let i = 0; i < specs.length; i++) {
+      await breathe();
+      if (!alive()) break;
+      crowd.place(specs[i]!, i);
+    }
+    return crowd;
+  }
+
+  private place(spec: NpcSpec, i: number): void {
+    const { anchors, fallback, world } = this;
+    const home = anchors[spec.anchor] ?? { ...fallback, x: fallback.x + i * 1.5 };
+    const out = spec.out ?? 0;
+    // Patrollers start on their loop, so they never cut through props to reach it.
+    const start = spec.patrol?.[0];
+    const x = start ? start[0] : home.x + Math.sin(home.heading) * out;
+    const z = start ? start[1] : home.z + Math.cos(home.heading) * out;
+    const y = spec.keepY ? home.y : world.groundAt(x, z);
+    const heading = npcHeading(spec, home);
+    const character = this.lib.create({
+      body: spec.body ?? (spec.id as NpcId),
+      tier: this.tier,
+      updateTarget: this.updateTarget,
     });
+    character.group.position.set(x, y, z);
+    character.group.rotation.y = heading;
+    character.play(spec.patrol || spec.orbit ? 'idle' : spec.clip);
+    const obstacle: CircleObstacle = { x, z, r: spec.obstacleR ?? character.capsule.radius + 0.1 };
+    world.addDynamic(obstacle);
+    this.list.push({
+      spec,
+      character,
+      x,
+      y,
+      z,
+      heading,
+      home,
+      obstacle,
+      talking: false,
+      lastBark: -99,
+      faceTarget: null,
+      greetedAt: -GREET_GAP,
+      greetArmed: true,
+    });
+    this.homes.set(this.list[this.list.length - 1]!, home);
   }
 
   private patrolIndex = new Map<Npc, number>();

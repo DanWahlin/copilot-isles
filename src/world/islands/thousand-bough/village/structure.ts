@@ -1264,16 +1264,36 @@ export function buildStructure(
   clear: (x: number, z: number) => boolean,
   wharfBuckets: Buckets = buckets,
 ): StructureOut {
+  const steps = buildStructureSteps(buckets, lateBuckets, clear, wharfBuckets);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+
+/** `buildStructure` a part at a time (a sliced build breathes at each yield; at once it took ~95 ms). */
+export function* buildStructureSteps(
+  buckets: Buckets,
+  lateBuckets: Buckets,
+  clear: (x: number, z: number) => boolean,
+  wharfBuckets: Buckets = buckets,
+): Generator<void, StructureOut, void> {
   const out = emptyStructure();
   trunkBlockers(out);
   rootHall(buckets);
+  yield;
   greatStair(buckets, out);
+  yield;
   treeDecks(buckets, out, clear);
+  yield;
   crownDeck(buckets, out);
+  yield;
   galleryAndBoardwalk(buckets, out);
+  yield;
   for (const b of BRIDGES) {
     if (b.id !== 'R3') {
       ropeBridge(buckets, out, b);
+      yield;
       continue;
     }
     // R3 is drawn apart (shown when it unrolls); its hand-lines fence its walk from the start (nobody
@@ -1301,8 +1321,10 @@ export function buildStructure(
     out.colliders.push(...gates);
     out.lateColliders.set('R3', gates);
   }
+  yield;
   spireLookouts(buckets, out);
   fallsLedge(buckets, out);
+  yield;
   wharfAndLanding(wharfBuckets, out);
   walkSlabs(out);
   // The Root Gate's two roots: their feet fence the walker, the arch over the path the camera.

@@ -29,7 +29,7 @@ import {
   chunkLodEdges,
   chunkLodFloor,
   chunkOptions,
-  mergeIntoChunks,
+  eachChunk,
 } from '../village/chunks';
 import { loadLodSimplifier, type LodSimplifier } from '../characters/character-lod';
 import { MERIDIAN, meridianQuayHeight } from '../islands/meridian';
@@ -368,10 +368,12 @@ function* buildMeridianTown({
     if (parts.length === 0) continue;
     // Some three primitives are non-indexed after transforms; index them so they merge.
     const indexed = parts.some((g) => g.index);
-    for (const chunk of mergeIntoChunks(
+    // A chunk a slice: merging and simplifying a whole material at once took 50-70 ms.
+    for (const chunk of eachChunk(
       indexed ? parts.map((g) => (g.index ? g : withIndex(g))) : parts,
       chunkOptions(tier),
     )) {
+      yield;
       if (simplify) buildChunkLodIndex(chunk.geometry, simplify);
       const mesh = new Mesh(chunk.geometry, kit.materials[key]);
       mesh.name = `meridian-town-${key}`;
@@ -382,8 +384,8 @@ function* buildMeridianTown({
       staticMeshes.push(mesh);
       staticDraws += 1;
       staticTriangles += chunk.triangles;
+      yield;
     }
-    yield;
   }
 
   const propMeshes: Mesh[] = [];

@@ -898,6 +898,7 @@ export class GameFlow implements GameBridge {
       await frame();
       opening.setDrawWorld(false);
       engine.counters.hitches.length = 0;
+      engine.counters.stalls.length = 0;
       engine.counters.arm();
       report(1, 'Landfall');
       this.save(captain);
