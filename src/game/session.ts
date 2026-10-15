@@ -26,7 +26,7 @@ import type { BattleRun } from './battle-run';
 
 export { ISLANDS, islandAt } from './islands';
 import { meridianQuayHeight, meridianWater } from '../world/islands/meridian';
-import { terrainRockCameraBlockers } from '../world/terrain/terrain-rocks';
+import { terrainRockCameraBlockersSliced } from '../world/terrain/terrain-rocks';
 import { meridianTownPlantColliders } from '../world/meridian-town/plantings';
 import { FlyoverPath } from './flyover';
 import { world as worldUniforms } from '../world/uniforms';
@@ -70,6 +70,9 @@ import { ISLAND_TIPS, TIP_SPOTS } from './island-tips';
 import { createCrateYard } from './puzzles/crate-yard';
 import { createCrateYardSite } from '../world/sites/crate-yard';
 import { createThreeHelms, type HelmsHost } from './puzzles/three-helms';
+import { createLostLetters, type LettersHost } from './puzzles/lost-letters';
+import { ALCOVES, LETTERS } from './puzzles/hall-letters';
+import { createRecordsAlcoves } from '../world/sites/records-alcoves';
 import { createHelmBuoys } from '../world/sites/helm-buoys';
 import { loadVillageKit } from '../world/village/kit';
 import {
@@ -317,7 +320,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   };
   // Thousand-Bough's content (decks, the stair, its pools), live once its world has streamed in.
   let tb: ThousandBoughContent | null = null;
-  /** The Gate Board or the Flag Hoist has the keys and the camera. */
+  /** The Gate Board, the Flag Hoist or Pell's letters has the keys and the camera. */
   let tbModal = false;
   const tbSurface: WalkSurface = {
     heightAt: (x, z, y) => tb?.surface.heightAt(x, z, y) ?? null,
@@ -349,7 +352,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     inland: (x, z) => meridianWater().levelAt(x, z) ?? tb?.inland(x, z) ?? null,
   });
   // Boulders and the headland cliff's overhang: only the follow camera keeps out of them.
-  for (const b of terrainRockCameraBlockers(terrain.heightField, tier.tier)) world.addCameraBox(b);
+  // In slices: all at once, the headland's blockers held a frame for ~120 ms behind the cabin.
+  const rockBlockers = terrainRockCameraBlockersSliced(terrain.heightField, tier.tier);
+  for (let r = rockBlockers.next(); ; r = rockBlockers.next()) {
+    if (r.done) {
+      for (const b of r.value) world.addCameraBox(b);
+      break;
+    }
+    await buildSlice();
+  }
   for (const b of village.cameraBlockers) world.addCameraBox(b);
   for (const b of cove.wreck.cameraBlockers) world.addCameraBox(b);
   for (const b of sites.colliders.camera) world.addCameraBox(b);
@@ -455,7 +466,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const footstepPuffs = new FootstepPuffs();
   footstepPuffs.addTo(engine.scene);
 
-  const npcs = new NpcCrowd(
+  // A character a slice (the whole cast at once held a frame for ~30 ms behind the cabin).
+  await buildSlice();
+  const npcs = await NpcCrowd.createAsync(
     o.characters,
     COVE_NPCS,
     { ...village.anchors, ...sites.anchors, juno: COVE.firstMate, lyra: sites.hammock.seat },
@@ -468,7 +481,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       z: COVE.spawn.z + 3,
       heading: 0,
     },
+    buildSlice,
+    () => true,
   );
+  await buildSlice();
   for (const n of npcs.list) {
     engine.scene.add(n.character.group);
     cove.detail.anchorage.add(n.character.group);
@@ -545,7 +561,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   };
   noteMeridianSeal(quests()['Q1.8'] === 'done');
   if (!quests()['Q0.2']) setQuest('Q0.2', 'start');
-  migrateQuests(quests(), setQuest);
+  // Suri's gate lever (P0.1) is the crane job's Actions step; without a save there's nothing to check.
+  migrateQuests(quests(), setQuest, {
+    workflowsOn: learn ? !!learn.progress.data.puzzles['P0.1']?.flags?.includes('gate') : undefined,
+  });
   publishQuests();
   /** Chart labels already shown without a save (dev pages with `?nolearn`). */
   const labelsShown = new Set<string>();
@@ -671,7 +690,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   function scriptFor(n: Npc) {
     if (tb?.ids.has(n.spec.id)) return tb.script(n.spec.id);
     return meridianIds.has(n.spec.id)
-      ? meridianNpcScript(n.spec.id, quests())
+      ? meridianNpcScript(n.spec.id, quests(), {
+          lettersFiled: learn ? !!learn.progress.data.puzzles['P1.3']?.solved : undefined,
+        })
       : npcScript(n.spec.id, quests());
   }
   /** The camera shot of the conversation that's on (so a tour can come back to it). */
@@ -735,7 +756,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   /** A chest at a spot (Thousand-Bough's sit by the booths and behind the falls, not by an NPC). */
   const placeChestAt = (id: string, x: number, y: number, z: number, heading: number, detail: FarCull) => {
     const c = { id };
-    const chest = createChest();
+    const chest = createChest({ lite: tier.tier === 'lite' });
     chest.group.position.set(x, y, z);
     chest.group.rotation.y = heading;
     if (learn?.isChestOpen(c.id)) chest.setOpen();
@@ -840,6 +861,24 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       scriptRunning = false;
       return ok;
     },
+  };
+  /** A puzzle overlay (the Gate Board, the Flag Hoist, Pell's letters) has the keys, the pad and Esc. */
+  function setOverlayModal(on: boolean): void {
+    tbModal = on;
+    input.enabled = !on && !paused && !scriptRunning;
+    if (on) {
+      hero.setSpeed(0);
+      hud.setPrompt(null);
+    }
+  }
+  // P1.3 The Lost Letters: an overlay at Pell's desk, with the camera on the record cabinets.
+  const lettersHost: LettersHost = {
+    ...puzzleHost,
+    frame: (shot) => cam.frame(shot),
+    cut: (shot) => cam.cut(shot),
+    setModal: setOverlayModal,
+    reducedMotion: () => worldUniforms.reducedMotion.value > 0.5,
+    place: placePlayer,
   };
   // P1.2 The Three Helms: the crew takes the wheel for each mode, and Rhea comes aboard to teach it.
   const helmsHost: HelmsHost = {
@@ -1272,6 +1311,23 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     }
     await buildSlice();
     if (disposed) return noMeridian;
+    // P1.3 The Lost Letters: record cabinets between the Hall of Records' columns, and Pell's desk.
+    const recordsAt = town.anchors.recordsAlcoves;
+    if (recordsAt) {
+      const site = createRecordsAlcoves({
+        kit,
+        origin: recordsAt,
+        alcoves: ALCOVES,
+        letters: LETTERS.map((l) => l.answer),
+      });
+      site.group.visible = false;
+      engine.scene.add(site.group);
+      for (const b of site.colliders.boxes) world.addBox(b);
+      meridianSites.push(site);
+      puzzles.push(createLostLetters(lettersHost, site));
+    }
+    await buildSlice();
+    if (disposed) return noMeridian;
     const buoys = createHelmBuoys({ kit, waves: ocean.field });
     buoys.group.visible = false;
     engine.scene.add(buoys.group);
@@ -1342,14 +1398,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       hero.group.rotation.y = player.heading;
       cam.snapBehind(heading);
     },
-    setModal: (on) => {
-      tbModal = on;
-      input.enabled = !on && !paused && !scriptRunning;
-      if (on) {
-        hero.setSpeed(0);
-        hud.setPrompt(null);
-      }
-    },
+    setModal: setOverlayModal,
     reducedMotion: () => worldUniforms.reducedMotion.value > 0.5,
     label: puzzleLabel,
     addNpcTalk: (n) => addNpcTalk(n),
@@ -2246,7 +2295,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
             const act = sailAction();
             if (act) act.fire();
             else dock();
-          } else if (cooldown <= 0 && mode === 'walk' && !tbModal) interactions.fire();
+          } else if (cooldown <= 0 && mode === 'walk' && !tbModal) interactions.fire(s.run);
         }
 
         if (hintTimer > 0 && (hintTimer -= dt) <= 0 && !dialogue.active) void welcome();

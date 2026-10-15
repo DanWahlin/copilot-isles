@@ -2,11 +2,13 @@
 // End-to-end Chapter 01 run at Port Meridian, in the course's order: Tobias, Mina's tour, Lyra, Anders
 // and the Crate Yard (P1.1, solved by its hook), Rhea and the Three Helms (P1.2, sailed for real: each
 // buoy's helm, Interactive's marks, Plan's approval, Autopilot home to the berth), the lift up the
-// bluff to Oren, Pell, and the Admiral's Exam that lights the lighthouse. Screenshots at each beat.
+// bluff to Oren, Pell and the Lost Letters (P1.3, played with the keyboard), and the Admiral's Exam that
+// lights the lighthouse. Screenshots at each beat. At a helm order and at Pell's desk it also types
+// in the fork form over the overlay, to check the overlay leaves those keys (and J) alone.
 // Oren asks which model the player kept and which computer they're on (Your setup): `--setup=skip`
 // skips both forms; by default the run enters them and checks the shortcut, quiz and Logbook use them.
 // node tools/meridiantest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/meridian]
-//                             [--from=admiral|oren] [--setup=enter|skip]
+//                             [--from=admiral|oren|pell] [--setup=enter|skip]
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
 import { answerSetupForm, logbookPage, setupPlan } from './lib/setup-forms.mjs';
 
@@ -312,7 +314,137 @@ async function checkOrenSetup() {
   await page.waitForTimeout(200);
 }
 
-// --from=admiral skips to the exam with Chapter 01's other steps marked done; --from=oren to Oren.
+/**
+ * Typing in the fork form (and the Logbook's J) mustn't reach a puzzle overlay's keys. Opens the fork
+ * form over the overlay, types into it with real key presses, checks `unmoved()` (no pick or filing
+ * happened), and skips the form with Esc. `logbook` first presses J: it should open the Logbook (true)
+ * or be held back while the overlay's open (false).
+ */
+async function forkFormKeys(label, logbook, unmoved) {
+  await page.keyboard.press('KeyJ');
+  await page.waitForTimeout(300);
+  const opened = await S(() => window.__dev.learn.getState().logbook.open);
+  if (opened !== logbook)
+    logs.push(`[meridiantest] ${label}: J ${opened ? 'opened' : 'didn’t open'} the Logbook`);
+  if (opened) {
+    await page.keyboard.press('Digit1');
+    await page.waitForTimeout(300);
+    if (!(await unmoved())) logs.push(`[meridiantest] ${label}: 1 in the Logbook reached the overlay`);
+  }
+  await S(() => void window.__dev.learn.askFork('logbook'));
+  await page.waitForSelector('.ci-fork-input');
+  await page.focus('.ci-fork-input');
+  await page.keyboard.press('ControlOrMeta+A');
+  await page.keyboard.type('octo/repo 1e2');
+  await page.keyboard.press('Space');
+  await page.keyboard.press('ArrowLeft');
+  await page.waitForTimeout(300);
+  const typed = await S(() => document.querySelector('.ci-fork-input')?.value ?? null);
+  if (typed !== 'octo/repo 1e2 ') logs.push(`[meridiantest] ${label}: the fork form got "${typed}"`);
+  if (!(await unmoved())) logs.push(`[meridiantest] ${label}: typing in the fork form reached the overlay`);
+  await shot(`${label}-fork-form`);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
+  if (opened) {
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+  }
+  const left = await S(() => {
+    const l = window.__dev.learn.getState();
+    return { fork: !!l.forkForm, logbook: l.logbook.open };
+  });
+  if (left.fork || left.logbook) logs.push(`[meridiantest] ${label}: Esc left ${JSON.stringify(left)}`);
+  if (!(await unmoved())) logs.push(`[meridiantest] ${label}: Esc reached the overlay`);
+}
+
+/** The Lost Letters hold J back (the Logbook would open under them) and leave the fork form its keys. */
+async function lettersLeaveLearnKeys(letters) {
+  const before = await letters();
+  const unmoved = async () => {
+    const s = await letters();
+    return s.open && s.index === before.index && s.misses === before.misses;
+  };
+  await forkFormKeys('letters', false, unmoved);
+}
+
+/**
+ * Q1.7 Pell, then P1.3 The Lost Letters played with the keyboard: walk up to Pell's desk, press E,
+ * file one letter in the wrong cubby (and check Pell's cited reason), try the decoy in Model providers,
+ * then file every letter with its number key (N for Pell's tray), and Pell's debrief with H1.4.
+ */
+async function pellAndLetters() {
+  await talk('pell');
+  await drive('Pell', quest('Q1.7', 'letters'));
+  const compass = await S(() => document.querySelector('.hud-compass-label')?.textContent ?? null);
+  if (!compass?.includes('letters')) logs.push(`[meridiantest] compass after Pell: ${compass}`);
+  const letters = () => S(() => window.__dev.session().debug.puzzle('P1.3').state());
+  const desk = await S(() => window.__dev.session().debug.puzzle('P1.3').desk());
+  // From the foot of the portico steps, walk up to the desk.
+  await S((d) => window.__dev.bench.teleport(d.x, d.z - 3.2, d.heading, d.heading, 0.12), desk);
+  await page.waitForTimeout(600);
+  let p = null;
+  for (let i = 0; i < 8 && !p?.includes('Pell’s letters'); i++) {
+    await S(() => window.__dev.hold(['KeyW'], 350));
+    await page.waitForTimeout(300);
+    p = await S(() => document.querySelector('.hud-prompt.show')?.textContent ?? null);
+  }
+  if (!p?.includes('Pell’s letters')) logs.push(`[meridiantest] no letters prompt at the desk (${p})`);
+  // The chart label shows the first time you stand at it; any key past it, then E opens the bundle.
+  for (let i = 0; i < 12 && !(await letters()).open; i++) {
+    await tap('KeyE');
+    await page.waitForTimeout(600);
+  }
+  if (!(await letters()).open) logs.push('[meridiantest] the letters overlay never opened');
+  await page.waitForTimeout(1600);
+  await shot('letters-open');
+  await lettersLeaveLearnKeys(letters);
+  const settle = async () => {
+    for (let i = 0; i < 80; i++) {
+      const s = await letters();
+      if (!s.view.busy) return s;
+      if ((await learnState()).dialogue) await tap('KeyE');
+      await page.waitForTimeout(250);
+    }
+    logs.push('[meridiantest] the letters overlay stayed busy');
+    return letters();
+  };
+  // The first letter (a second GitHub login) in General: handed back with Pell's cited reason.
+  await tap('Digit1');
+  await page.waitForTimeout(700);
+  let st = await letters();
+  if (st.index !== 0 || st.view.message?.tone !== 'bad' || st.view.message?.cite !== 'Settings')
+    logs.push(`[meridiantest] a wrong filing wasn't handed back: ${JSON.stringify(st.view.message)}`);
+  await shot('letters-wrong');
+  await settle();
+  // Accounts, Accessibility, Sessions, Model providers; the decoy (Model providers first, then N);
+  // Projects, Customize.
+  const keys = ['Digit2', 'Digit5', 'Digit3', 'Digit8', 'Digit8', 'KeyN', 'Digit0', 'Digit7'];
+  for (const [i, key] of keys.entries()) {
+    await tap(key);
+    await page.waitForTimeout(500);
+    st = await letters();
+    if (i === 4) {
+      if (!/model picker below the prompt box/.test(st.view.message?.text ?? ''))
+        logs.push(`[meridiantest] the decoy in Model providers: ${JSON.stringify(st.view.message)}`);
+      await shot('letters-decoy');
+    }
+    if (i === 5) await shot('letters-tray');
+    if (st.solved) break;
+    await settle();
+  }
+  st = await letters();
+  if (!st.solved || st.misses !== 2)
+    logs.push(`[meridiantest] letters: ${JSON.stringify({ ...st, view: null })}`);
+  await drive('Pell debrief', quest('Q1.7', 'done'));
+  const quizzes = await S(() => window.__dev.learn.progress.data.quizzes);
+  if (!quizzes['H1.4']?.passed) logs.push('[meridiantest] Pell’s H1.4 hotspot wasn’t asked');
+  await S((d) => window.__dev.bench.teleport(d.x, d.z - 3.2, d.heading, d.heading, 0.12), desk);
+  await page.waitForTimeout(1200);
+  await shot('letters-filed');
+}
+
+// --from=admiral skips to the exam with Chapter 01's other steps marked done; --from=oren to Oren;
+// --from=pell to Pell and his letters.
 if (opt.from === 'admiral') {
   await S(() => {
     for (const id of ['Q1.1', 'Q1.2', 'Q1.3', 'Q1.4', 'Q1.5', 'Q1.6', 'Q1.7'])
@@ -326,8 +458,14 @@ if (opt.from === 'admiral') {
   await talk('oren');
   await drive('Oren', quest('Q1.6', 'done'));
   await checkOrenSetup();
-  await talk('pell');
-  await drive('Pell', quest('Q1.7', 'done'));
+  await pellAndLetters();
+} else if (opt.from === 'pell') {
+  await S(() => {
+    for (const id of ['Q1.1', 'Q1.2', 'Q1.3', 'Q1.4', 'Q1.5', 'Q1.6'])
+      window.__dev.session().debug.quest(id, 'done');
+    window.__dev.session().debug.quest('Q1.7', 'start');
+  });
+  await pellAndLetters();
 } else {
   // Q1.1 Tobias → Q1.2 Mina's tour (a shot at each landmark) → Q1.3 Lyra.
   await talk('tobias');
@@ -351,6 +489,21 @@ if (opt.from === 'admiral') {
   await S((y) => window.__dev.session().debug.teleport(y.lever.x + 1.5, y.lever.z + 1.5, Math.PI), yard);
   await page.waitForTimeout(1200);
   await shot('crate-yard');
+  // The trick crate (a read-only tour) refused at the tavern, with the course's reason; then Z.
+  const yardCrates = await S(() => window.__dev.session().debug.puzzle('P1.1').state());
+  await S(() => window.__dev.session().debug.puzzle('P1.1').push(2, 2, 'w'));
+  await page.waitForTimeout(500);
+  const toast = await S(() => document.querySelector('.hud-toast.show')?.textContent ?? '');
+  if (!toast.includes('No files change, but it needs your repository'))
+    logs.push(`[meridiantest] trick crate refusal: "${toast}"`);
+  await shot('crate-yard-trick');
+  await S(() => window.__dev.session().debug.puzzle('P1.1').push(2, 2, 'e'));
+  await page.waitForTimeout(500);
+  await S(() => window.__dev.session().debug.puzzle('P1.1').undo());
+  await page.waitForTimeout(500);
+  const undone = await S(() => window.__dev.session().debug.puzzle('P1.1').state());
+  if (JSON.stringify(undone.at) !== JSON.stringify(yardCrates.at))
+    logs.push(`[meridiantest] crate undo: ${JSON.stringify(undone.at)} vs ${JSON.stringify(yardCrates.at)}`);
   await S(() => window.__dev.session().debug.puzzle('P1.1').solve());
   await drive('crates solved', quest('Q1.4', 'done'));
   await shot('crate-yard-solved');
@@ -364,25 +517,39 @@ if (opt.from === 'admiral') {
     rhea: window.__dev.session().debug.rheaAboard?.() ?? null,
     compass: document.querySelector('.hud-compass-label')?.textContent ?? null,
   }));
-  if (!aboard.compass?.includes('Interactive')) logs.push(`[meridiantest] compass at sea: ${aboard.compass}`);
+  if (!aboard.compass?.includes('Blue Marks')) logs.push(`[meridiantest] compass at sea: ${aboard.compass}`);
   await S(() => window.__dev.session().debug.sailTo(686, -600, 0));
   await page.waitForTimeout(1500);
   const helmState = () => S(() => window.__dev.session().debug.puzzle('P1.2').state());
   const prompt = () => S(() => document.querySelector('.hud-prompt.show')?.textContent ?? null);
   const term = () => S(() => document.querySelector('.hud-term.show')?.textContent ?? null);
+  const card = () =>
+    S(() => ({
+      title: document.querySelector('.ci-sc h2')?.textContent ?? null,
+      message: document.querySelector('.ci-sc-message')?.textContent ?? '',
+    }));
+  const pick = (id) => page.click(`.ci-sc button[data-choice="${id}"]`);
   let p = await prompt();
-  if (!p?.includes('Take the Interactive helm')) logs.push(`[meridiantest] no helm prompt (${p})`);
+  if (!p?.includes('Hear Rhea’s order')) logs.push(`[meridiantest] no helm prompt (${p})`);
   await shot('helm-interactive-prompt');
+  // One wrong pick per order (its reason shows on the card), Autopilot on the reef passage stops
+  // short, Interactive gets a heading at each mark, and Plan's review is approved too soon, fixed,
+  // then approved.
+  const wrongFirst = { interactive: 'plan', plan: 'autopilot', autopilot: 'interactive' };
+  const wrongTried = new Set();
+  let approvedDraft = false;
   const phasesSeen = new Set();
   const t0 = Date.now();
   while (Date.now() - t0 < 300000) {
     const h = await helmState();
     if (h.solved) break;
     const s = await learnState();
-    const key = h.run ? `${h.run.mode}-${h.run.phase}-${h.run.leg}` : `free-${h.done.length}`;
+    const key = h.run
+      ? `${h.run.mode}-${h.run.phase}-${h.run.leg}${h.run.revised ? '-revised' : ''}`
+      : `free-${h.done.length}`;
     if (!phasesSeen.has(key)) {
       phasesSeen.add(key);
-      await page.waitForTimeout(h.run?.phase === 'review' ? 1600 : 400);
+      await page.waitForTimeout(h.run?.phase === 'review' || h.run?.phase === 'order' ? 1600 : 400);
       await shot(`helm-${key}`);
     }
     if (s.dialogue) await tap('KeyE');
@@ -390,15 +557,47 @@ if (opt.from === 'admiral') {
       // Between helms: bring her up to the next buoy (the crew does it on Wingman's third hint).
       const next = ['interactive', 'plan', 'autopilot'][h.done.length];
       p = await prompt();
-      if (p?.includes('Take the')) await tap('KeyE');
+      if (p?.includes('Hear Rhea’s order')) await tap('KeyE');
       else if (next) {
         logs.push(`[meridiantest] after ${h.done.join(',')}: not in reach of the ${next} buoy (${p})`);
         break;
       }
-    } else if (h.run.phase === 'hold' || h.run.phase === 'review') {
-      if (h.run.phase === 'review' && !(await term())?.includes('approve'))
-        logs.push('[meridiantest] Plan review terminal has no approval line');
-      await tap('KeyE');
+    } else if (h.choice && !h.choice.busy && h.run.phase === 'order') {
+      if (!seen.has('helm-fork-form')) {
+        // At sea J opens the Logbook, and a digit there or in the fork form isn't a helm pick.
+        seen.add('helm-fork-form');
+        const tried = h.run.tried.length;
+        await forkFormKeys('helm', true, async () => {
+          const n = await helmState();
+          return n.run?.phase === 'order' && n.run.tried.length === tried;
+        });
+        continue;
+      }
+      if (!wrongTried.has(h.run.mode)) {
+        wrongTried.add(h.run.mode);
+        await pick(wrongFirst[h.run.mode]);
+      } else {
+        const c = await card();
+        if (h.run.tried.length && !c.message)
+          logs.push(`[meridiantest] ${h.run.mode}: no reason for the wrong helm`);
+        if (h.run.mode === 'plan' && !c.message.includes('Chart it first'))
+          logs.push(`[meridiantest] reef passage under Autopilot: "${c.message}"`);
+        await shot(`helm-${h.run.mode}-wrong`);
+        await pick(h.run.mode);
+      }
+    } else if (h.choice && !h.choice.busy && h.run.phase === 'choose')
+      await pick(h.choice.options[h.run.leg % 2]);
+    else if (h.choice && !h.choice.busy && h.run.phase === 'review') {
+      const t = (await term()) ?? '';
+      if (!t.includes('Review plan')) logs.push('[meridiantest] Plan review terminal has no review line');
+      if (!h.run.revised && !approvedDraft) {
+        approvedDraft = true;
+        if (!t.includes('Shoal')) logs.push('[meridiantest] the plan doesn’t name the Shoal');
+        await pick('approve');
+      } else if (!h.run.revised) {
+        await shot('helm-plan-approved-too-soon');
+        await pick('suggest');
+      } else await pick('approve');
     }
     await page.waitForTimeout(400);
   }
@@ -432,9 +631,8 @@ if (opt.from === 'admiral') {
   await drive('Oren', quest('Q1.6', 'done'));
   await checkOrenSetup();
 
-  // Q1.7 Pell → Q1.8 the Admiral's Exam and the lighthouse.
-  await talk('pell');
-  await drive('Pell', quest('Q1.7', 'done'));
+  // Q1.7 Pell and the Lost Letters → Q1.8 the Admiral's Exam and the lighthouse.
+  await pellAndLetters();
 }
 await talk('admiral');
 let lit = false;

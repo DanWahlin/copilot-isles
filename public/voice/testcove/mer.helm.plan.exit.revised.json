@@ -1,0 +1,82 @@
+{
+  "id": "mer.helm.plan.exit.revised",
+  "speaker": "Rhea",
+  "text": "You could, and you’d prompt each step yourself in Interactive. But this plan’s ready now.",
+  "words": [
+    {
+      "word": "You",
+      "start": 0.0485409,
+      "end": 0.194166
+    },
+    {
+      "word": "could",
+      "start": 0.194166,
+      "end": 0.716
+    },
+    {
+      "word": "and",
+      "start": 0.716,
+      "end": 0.8495
+    },
+    {
+      "word": "you’d",
+      "start": 0.8495,
+      "end": 1.104375
+    },
+    {
+      "word": "prompt",
+      "start": 1.104375,
+      "end": 1.456291
+    },
+    {
+      "word": "each",
+      "start": 1.456291,
+      "end": 1.723291
+    },
+    {
+      "word": "step",
+      "start": 1.723291,
+      "end": 1.990291
+    },
+    {
+      "word": "yourself",
+      "start": 1.990291,
+      "end": 2.415041
+    },
+    {
+      "word": "in",
+      "start": 2.415041,
+      "end": 2.536416
+    },
+    {
+      "word": "Interactive",
+      "start": 2.536416,
+      "end": 4.199041
+    },
+    {
+      "word": "But",
+      "start": 4.199041,
+      "end": 4.356791
+    },
+    {
+      "word": "this",
+      "start": 4.356791,
+      "end": 4.563125
+    },
+    {
+      "word": "plan’s",
+      "start": 4.563125,
+      "end": 4.939333
+    },
+    {
+      "word": "ready",
+      "start": 4.939333,
+      "end": 5.218458
+    },
+    {
+      "word": "now",
+      "start": 5.218458,
+      "end": 5.468458
+    }
+  ]
+}

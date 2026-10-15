@@ -43,6 +43,10 @@ class NullCanvasContext {
   createLinearGradient(): CanvasGradient {
     return { addColorStop: () => undefined } as unknown as CanvasGradient;
   }
+  createRadialGradient(): CanvasGradient {
+    return this.createLinearGradient();
+  }
+
   measureText(text: string): TextMetrics {
     return { width: text.length * 32 } as TextMetrics;
   }

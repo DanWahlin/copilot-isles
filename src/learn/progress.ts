@@ -121,6 +121,8 @@ const renamed = (ids: string[]): string[] => [...new Set(ids.flatMap((s) => RENA
 const TAUGHT_BY: Readonly<Record<string, readonly string[]>> = {
   'Q1.5': ['tool-permissions'],
   'Q1.6': ['context-window'],
+  // Pell's Lost Letters (P1.3) teach Settings as a term; saves that finished him before get it too.
+  'Q1.7': ['settings'],
 };
 
 const withTaught = (glossary: string[], quests: Record<string, string>): string[] => [

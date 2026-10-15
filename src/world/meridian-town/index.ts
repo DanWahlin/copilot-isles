@@ -184,6 +184,8 @@ const TAVERN_PAD = { x0: 607, x1: 637, z0: -813, z1: -779, height: MERIDIAN.pads
 const CITADEL = { x: MERIDIAN.pads.citadel.x, z: MERIDIAN.pads.citadel.z, r: 39, height: 40 } as const;
 /** The Hall of Records on the citadel, raised on a stone podium with a paved portico in front. */
 const HALL_OF_RECORDS = { x: 809.3, z: -778.0 } as const;
+/** The admiral's terrace: on the citadel's pad, but outside its curtain wall's ring. */
+const ADMIRAL_TERRACE = { x: 792.8, z: -812.8 } as const;
 const LIFT_BOTTOM = { x: 770.3, z: -766.8, y: MERIDIAN.harbor.quay.height } as const;
 const LIFT_TOP = { x: 798.2, z: -779.2, y: 40.35 } as const;
 
@@ -750,8 +752,9 @@ function addEastArmArrivalDressing(
   addBox(buckets, 'stone', arm.x1 + 7.7, deck + 4.95, -711, 3.4, 0.34, 114, 0, LIMESTONE_LIGHT);
   addBox(buckets, 'stone', arm.x1 + 4.1, deck - 0.18, -711, 4.8, 3.5, 114, 0, 0x9a8260);
   addBox(buckets, 'stone', arm.x1 + 3.6, deck + 3.0, -711, 5.4, 0.28, 114, 0, LIMESTONE_LIGHT);
-  // The four stepped walls and their copings, for the camera.
-  for (const [x0, x1, y0, y1, z0, z1] of [
+  // The four stepped walls and their copings, for the camera (and the walls for walkers too: from the
+  // lift's foot you could walk in behind the arm's parapet and through the solid steps).
+  for (const [x0, x1, y0, y1, z0, z1, solid] of [
     [
       arm.x1 - 0.25,
       arm.x1 + 2.95,
@@ -759,6 +762,7 @@ function addEastArmArrivalDressing(
       deck + 3.81,
       midZ - armLen * 0.5 + 3.0,
       midZ + armLen * 0.5 - 3.0,
+      true,
     ],
     [
       arm.x1 + 0.6,
@@ -767,9 +771,10 @@ function addEastArmArrivalDressing(
       deck + 7.81,
       midZ - armLen * 0.5 + 2.3,
       midZ + armLen * 0.5 - 2.3,
+      true,
     ],
-    [arm.x1 + 0.9, arm.x1 + 6.5, deck - 0.18, deck + 3.32, -768, -654],
-    [arm.x1 + 6.0, arm.x1 + 9.5, deck - 0.25, deck + 5.35, -768, -654],
+    [arm.x1 + 0.9, arm.x1 + 6.5, deck - 0.18, deck + 3.32, -768, -654, true],
+    [arm.x1 + 6.0, arm.x1 + 9.5, deck - 0.25, deck + 5.35, -768, -654, true],
     // The wide paving behind the walls stands a little proud of the ground, which a low camera grazed.
     [
       arm.x1 + 3.5,
@@ -778,8 +783,9 @@ function addEastArmArrivalDressing(
       deck + 0.22,
       midZ - armLen * 0.5 + 1.6,
       midZ + armLen * 0.5 - 1.6,
+      false,
     ],
-  ] as const)
+  ] as const) {
     colliders.camera?.push({
       x: (x0 + x1) * 0.5,
       z: (z0 + z1) * 0.5,
@@ -789,6 +795,19 @@ function addEastArmArrivalDressing(
       y0,
       y1,
     });
+    // The arm's own parapet keeps its east edge: the walk box starts behind it.
+    const w0 = Math.max(x0, arm.x1 + 0.45);
+    if (solid)
+      colliders.boxes.push({
+        x: (w0 + x1) * 0.5,
+        z: (z0 + z1) * 0.5,
+        hx: (x1 - w0) * 0.5,
+        hz: (z1 - z0) * 0.5,
+        rot: 0,
+        y0,
+        y1,
+      });
+  }
 
   for (const z of [-762, -748, -734, -716, -696, -678, -660]) {
     addBox(
@@ -1581,7 +1600,10 @@ function addCitadel(
   void heightField;
   const y = CITADEL.height;
   addDiscPaving(buckets, CITADEL.x, y - 0.08, CITADEL.z, CITADEL.r * 0.78, 0xe4c991, 40);
-  addCurtainWall(buckets, colliders, perches, CITADEL.x, y, CITADEL.z, CITADEL.r, CITADEL_EMBRASURES);
+  // The way out to the admiral's terrace stays open to walkers (the wall has no gate there yet).
+  addCurtainWall(buckets, colliders, perches, CITADEL.x, y, CITADEL.z, CITADEL.r, CITADEL_EMBRASURES, [
+    ADMIRAL_TERRACE,
+  ]);
   addRoundTower(buckets, colliders, perches, 788, y, -781, 4.5, 10.5, true);
   addRoundTower(buckets, colliders, perches, 821, y, -760, 4.2, 9.6, true);
   addRoundTower(buckets, colliders, perches, 842, y, -796, 4.8, 10.8, true);
@@ -1591,7 +1613,19 @@ function addCitadel(
   anchor('oren', { x: 821.4, y, z: -800.2, heading: 2.35, tx: 826.5, ty: y + 6.2, tz: -804.5 });
 
   addHallOfRecords(buckets, colliders, perches, HALL_OF_RECORDS.x, y, HALL_OF_RECORDS.z, kit, stairSpans);
-  anchor('pell', { x: 809.4, y: y + 0.25, z: -785.3, heading: 0, tx: 809.3, ty: y + 3.6, tz: -778.0 });
+  // P1.3's record cabinets stand between the portico's columns, Pell's desk in front: the hall's
+  // front wall at the portico floor, facing out.
+  anchor('recordsAlcoves', {
+    x: HALL_OF_RECORDS.x,
+    y: y + 0.6,
+    z: HALL_OF_RECORDS.z - 2.4,
+    heading: Math.PI,
+    tx: HALL_OF_RECORDS.x,
+    ty: y + 2.4,
+    tz: HALL_OF_RECORDS.z - 2.4,
+  });
+  // Pell stands beside his desk, in front of a column, so he doesn't hide a cabinet from the steps.
+  anchor('pell', { x: 808.08, y: y + 0.6, z: -783.0, heading: Math.PI, tx: 809.3, ty: y + 2.4, tz: -780.4 });
   anchor('recordsPortico', {
     x: 809.4,
     y: y + 0.25,
@@ -1602,7 +1636,7 @@ function addCitadel(
     tz: -778.0,
   });
 
-  addAdmiralTerrace(buckets, colliders, perches, 792.8, y, -812.8, high);
+  addAdmiralTerrace(buckets, colliders, perches, ADMIRAL_TERRACE.x, y, ADMIRAL_TERRACE.z, high);
   anchor('admiral', { x: 793.4, y: y + 0.35, z: -812.4, heading: 2.8, tx: 688, ty: 8, tz: -706 });
 
   if (!low) {
@@ -3078,10 +3112,11 @@ function addHallOfRecords(
     // Camera only: the walk circle has no height, so the camera counted only the column's foot.
     colliders.camera?.push({ x: px, z: z - 4.25, hx: 0.45, hz: 0.45, rot: 0, y0: y + 0.45, y1: y + 5.1 });
   }
-  // Camera only: the two banners and the pediment over the portico.
+  // Camera only: the two banners and the pediment over the portico. The banners hang outside the
+  // end columns, clear of the record cabinets between them (P1.3).
   for (const side of [-1, 1])
     colliders.camera?.push({
-      x: x + side * 5.4,
+      x: x + side * 7.05,
       z: z - 5.0,
       hx: 0.32,
       hz: 0.12,
@@ -3090,8 +3125,8 @@ function addHallOfRecords(
       y1: y + 4.45,
     });
   colliders.camera?.push({ x, z: z - 3.0, hx: 4.35, hz: 0.75, rot: 0, y0: y + 5.4, y1: y + 8.05 });
-  addBox(buckets, 'cloth', x - 5.4, y + 0.8, z - 5.0, 0.52, 3.6, 0.06, 0, CLOTH_BLUE);
-  addBox(buckets, 'cloth', x + 5.4, y + 0.8, z - 5.0, 0.52, 3.6, 0.06, 0, CLOTH_RED);
+  addBox(buckets, 'cloth', x - 7.05, y + 0.8, z - 5.0, 0.52, 3.6, 0.06, 0, CLOTH_BLUE);
+  addBox(buckets, 'cloth', x + 7.05, y + 0.8, z - 5.0, 0.52, 3.6, 0.06, 0, CLOTH_RED);
   colliders.boxes.push({ x: x + 1.7, z: z + 1.7, hx: 5.4, hz: 3.4, rot: 0, height: 6.8 });
   // The whole hall and its cornice, for the camera (the walk box above is smaller).
   colliders.camera?.push({ x, z: z + 1.2, hx: 7.6, hz: 3.95, rot: 0, y0: y + 0.45, y1: y + 6.0 });
@@ -3215,6 +3250,7 @@ function addCurtainWall(
   z: number,
   r: number,
   embrasures: readonly Embrasure[] = [],
+  passes: readonly { x: number; z: number }[] = [],
 ): void {
   const rx = r * 0.78;
   const rz = r * 0.68;
@@ -3283,7 +3319,12 @@ function addCurtainWall(
     if (i % 3 === 0) colliders.boxes.push({ x: px, z: pz, hx: 1.4, hz: 0.95, rot, height: h + 0.9 });
     if (i % 4 === 0) perches.push(new Vector3(px, y + h + 0.8, pz));
   }
-  // The whole ring, merlons included, for the camera: one chord box per segment of the wall.
+  // The whole ring, merlons included: one chord box per segment of the wall, for walkers and the
+  // camera. (It was the camera's only: the merlons' boxes stand far apart, and between them you
+  // walked into the wall, where the camera ignored the box you stood in and looked out through it.)
+  // Round each of `passes` (a place outside the ring you walk out to) three segments stay the
+  // camera's only.
+  const passAngles = passes.map((p) => Math.atan2((p.z - z) / rz, (p.x - x) / rx));
   for (let i = 0; i < steps; i += 1) {
     const a0 = (i / steps) * Math.PI * 2,
       a1 = ((i + 1) / steps) * Math.PI * 2;
@@ -3292,7 +3333,11 @@ function addCurtainWall(
     const x1 = x + Math.cos(a1) * rx,
       z1 = z + Math.sin(a1) * rz;
     const len = Math.hypot(x1 - x0, z1 - z0);
-    colliders.camera?.push({
+    const mid = (a0 + a1) * 0.5;
+    const open = passAngles.some(
+      (a) => Math.abs(Math.atan2(Math.sin(mid - a), Math.cos(mid - a))) < (1.5 * Math.PI * 2) / steps,
+    );
+    (open ? colliders.camera : colliders.boxes)?.push({
       x: (x0 + x1) * 0.5,
       z: (z0 + z1) * 0.5,
       hx: len * 0.5 + 0.15,

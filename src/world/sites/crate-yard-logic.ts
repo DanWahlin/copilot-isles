@@ -1,23 +1,36 @@
 /**
- * P1.1 The Crate Yard (Chapter 01, Anders): push each crate onto its plate. Chat work (questions,
- * brainstorming, summaries) goes to the tavern plate; project work (changing code, tests, pull
- * requests) to the slipway plate. Pure grid logic; the site draws it and the puzzle drives it.
+ * P1.1 The Crate Yard (Chapter 01, Anders): push each crate onto its plate. The course's rule decides
+ * the plate: a chat for questions, brainstorming, summaries and orientation; a project session when
+ * the agent needs your repository, to read it, change code or make a pull request (01 §Chats,
+ * Project Sessions, and Modes; §Project Sessions). The trick crate, a read-only tour of the book app,
+ * changes no files but still needs the repository. Pure grid logic; the site draws it and the puzzle
+ * drives it.
  *
  * The yard is a grid of cells, x across (0 = the tavern side) and z deep. You push a crate one cell
- * by standing next to it and pressing E toward it. Crates can't be pulled. A plate only takes the
- * right kind of crate: push the wrong one on and it's refused (it stays where it was), with the
- * reason, so the yard never jams on a wrong answer.
+ * by standing next to it and pressing E toward it. Crates can't be pulled, but a push can be undone.
+ * A plate only takes the right kind of crate: push the wrong one on and it's refused (it stays where
+ * it was), with the reason, so the yard never jams on a wrong answer.
  */
+import { courseRefs } from '../../learn/course/refs';
+import type { SourceRef } from '../../learn/types';
 
 export type CrateKind = 'chat' | 'project';
+
+const src = courseRefs('01-tour-the-app');
+/** The course's table of chats and project sessions (it sits under "From the Studio"). */
+const TABLE = src('from-the-studio-in-the-control-room', '7847b6fe96d3');
+const CHATS = src('chat-sessions', '98f6ea579753');
+const PROJECTS = src('project-sessions', 'b8e172159d21');
 
 export interface CrateDef {
   id: string;
   kind: CrateKind;
-  /** The task stencilled on the crate (two short lines). */
-  label: readonly [string, string];
+  /** The task stencilled on the crate (two or three short lines). */
+  label: readonly string[];
   /** Why it belongs where it does, said when it's pushed onto the wrong plate. */
   why: string;
+  /** The course section `why` paraphrases. */
+  source: SourceRef;
 }
 
 export interface YardLayout {
@@ -45,12 +58,13 @@ export const DIRS: Readonly<Record<Dir, readonly [number, number]>> = {
 };
 
 /**
- * The tavern plates are on the west side (x = 0) and the slipway plates on the east. Four crates are
- * a push from home; "Fix a bug" and "Brainstorm ideas" start on the wrong side and have to be walked
- * round. Solvable in 13 pushes (the solver test checks it).
+ * The tavern plates are on the west side (x = 0) and the slipway plates on the east. Each trick crate
+ * starts a push from the wrong plate: the book-app tour (it changes no files, but it needs your
+ * repository) beside the tavern, and the general worktree question beside the slipway. Solvable in
+ * 15 pushes (the solver test checks it).
  */
 export const MERIDIAN_YARD: YardLayout = {
-  cols: 6,
+  cols: 5,
   rows: 5,
   chatPlates: [
     [0, 1],
@@ -58,52 +72,67 @@ export const MERIDIAN_YARD: YardLayout = {
     [0, 3],
   ],
   projectPlates: [
-    [5, 1],
-    [5, 2],
-    [5, 3],
+    [4, 0],
+    [4, 1],
+    [4, 2],
+    [4, 3],
   ],
   crates: [
     {
       id: 'question',
       kind: 'chat',
       label: ['Ask a quick', 'question'],
-      at: [1, 2],
-      why: 'A quick question doesn’t need your repository. That’s a chat.',
+      at: [2, 3],
+      why: 'A quick question doesn’t need your repository. Ask it in a chat.',
+      source: TABLE,
     },
     {
       id: 'bug',
       kind: 'project',
       label: ['Fix a bug', 'in the repo'],
-      at: [2, 3],
-      why: 'Fixing a bug changes files, so it needs a project session.',
+      at: [2, 0],
+      why: 'Fixing a bug changes code in your repository. That needs a project session.',
+      source: PROJECTS,
     },
     {
       id: 'brainstorm',
       kind: 'chat',
       label: ['Brainstorm', 'ideas'],
-      at: [3, 2],
-      why: 'Brainstorming is exploring. No branch needed, so it’s a chat.',
+      at: [1, 3],
+      why: 'Brainstorming is exploring. A chat makes no branch or worktree, and it doesn’t need one.',
+      source: TABLE,
     },
     {
       id: 'test',
       kind: 'project',
       label: ['Add a test', 'for search'],
-      at: [4, 1],
-      why: 'Adding a test changes your repository. That’s project work.',
+      at: [3, 3],
+      why: 'Adding a test edits code in your repository. That’s project work.',
+      source: TABLE,
     },
     {
-      id: 'summary',
+      id: 'worktree',
       kind: 'chat',
-      label: ['Summarize', 'a chapter'],
-      at: [1, 3],
-      why: 'Summarizing just needs an answer, so it’s a chat.',
+      label: ['Explain', 'worktrees,', 'in general'],
+      at: [3, 1],
+      why: 'That’s a general question. It doesn’t need your repository, so ask it in a chat.',
+      source: CHATS,
     },
     {
       id: 'pr',
       kind: 'project',
       label: ['Open a', 'pull request'],
-      at: [4, 2],
-      why: 'A pull request is repository work. Start a project session.',
+      at: [3, 2],
+      why: 'A pull request is made from your repository. Start a project session.',
+      source: PROJECTS,
+    },
+    {
+      id: 'tour',
+      kind: 'project',
+      label: ['Tour the', 'book app', '(no edits)'],
+      at: [1, 2],
+      why: 'No files change, but it needs your repository. That’s a project session.',
+      source: PROJECTS,
     },
   ],
   entry: [2, 4],
@@ -155,6 +184,30 @@ export function push(
   if (plate && plate !== layout.crates[crate]!.kind) return { ok: false, reason: 'wrong-plate', crate };
   state.at[crate] = [tx, tz];
   return { ok: true, crate, to: [tx, tz], placed: plate !== null };
+}
+
+/** A push you can take back (Z): the crate and the cell it came from. */
+export interface PushRecord {
+  crate: number;
+  from: [number, number];
+}
+
+/**
+ * Takes back the last push in `history` (it slides back to where it was), unless something's in
+ * that cell now (`blocked`: the captain's standing there, say). Returns the crate moved, or -1.
+ */
+export function undo(
+  state: YardState,
+  history: PushRecord[],
+  blocked: (x: number, z: number) => boolean = () => false,
+): number {
+  const last = history[history.length - 1];
+  if (!last) return -1;
+  const [x, z] = last.from;
+  if (crateAt(state, x, z) >= 0 || blocked(x, z)) return -1;
+  history.pop();
+  state.at[last.crate] = [x, z];
+  return last.crate;
 }
 
 export function solved(layout: YardLayout, state: YardState): boolean {

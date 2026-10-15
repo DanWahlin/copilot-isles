@@ -36,7 +36,7 @@
 
 - **Briefing (Dan's note: what are the lines on the water?).** A short card before each battle ("Before the fog lifts") with four drawn rows: gold arcs (where your guns reach), red chevrons (a raider is about to fire), cartridges (reloading, Space / Z / C), and Bring her round (R). Set sail (Enter, Space, Esc) or Skip closes it; "Don't show this again" is kept in localStorage. Keyboard focus starts on Set sail; all buttons are at least 44 px; it fits a 390 px phone. Dev flags `?brief` / `?nobrief`.
 
-## Teaching map (v2; built 2026-10-04: `BATTLE_PLANS` in `src/world/battle/battle.ts`, new quizzes N0.1, N1.1, N1.2)
+## Teaching map (v2; built 2026-10-04: `BATTLE_PLANS` in `src/world/battle/battle.ts`, battle quizzes N0.1, N0.2, N1.1, N1.2, N1.6)
 
 Each wave carries its own quiz id, so the bosun asks about the habit that wave stands for. Battle 2 plays on the dev page with `?battle=2`; in the game it follows the Seal of Meridian once Thousand-Bough Isle exists. Wave 3 is in (*Max Effort*, *Overthought*). The wave 2 merchant is not built yet (Dan to decide).
 
@@ -49,17 +49,17 @@ v1 mistakes, fixed here: a cut fragment was presented as a pitfall; one quote wa
 | Wave | Habit | Course sentence (verbatim) | Section | Raiders | Bosun's question |
 |---|---|---|---|---|---|
 | 1 | Preview before you run it | "The script creates items on GitHub in your fork, so you'll preview its target and planned changes before running it." | 00 · Add the Course Practice Items | *Unchecked*, *No Dry Run* | **New:** "The setup script creates items on GitHub in your fork. What do you run first?" `--dry-run` ✓ / `--yes` / `--allow-shared-repository` |
-| 2 | Check the target | "Wait for the preview to finish. It ends with `Dry run complete. No changes were made.` Confirm that the `Repository:` line in the output shows your fork before you continue." | 00 · Add the Course Practice Items | *Wrong Fork*, *Wrong Account* | **Existing T0.5** (source `00-setup#add-the-course-practice-items`): the dry run shows someone else's repository. What now? Stop and point it at your fork ✓ |
+| 2 | Check the target | "Wait for the preview to finish. It ends with `Dry run complete. No changes were made.` Confirm that the `Repository:` line in the output shows your fork before you continue." | 00 · Add the Course Practice Items | *Wrong Fork*, *Wrong Account* | **New N0.2** (source `00-setup#add-the-course-practice-items`): the output shows `Repository: github/copilot-app-for-beginners`. Stop, return to your fork, and rerun the preview ✓ |
 
 *Wrong Account* rests on: "The setup script uses the GitHub CLI, which has a separate sign-in. Confirm that it uses the account you used to create your fork:" (00 · Check Your Tools in Terminal; the sentence ends in a colon before `gh auth status`, so quote it with the command or not at all).
 
-Optional wave 2 mechanic: a friendly merchant flying your colours comes out of the fog with the raiders, and your guns hold fire on her. The only line: "Check her colours first." It's a game line, not a course claim.
+Optional wave 2 mechanic (not added with M3): a friendly merchant flying your colours comes out of the fog with the raiders, and your guns hold fire on her. The only line: "Check her colours first." It's a game line, not a course claim.
 
 ### Battle 2 (later): Port Meridian → the Chapter 02 island (recaps Chapter 01)
 
 | Wave | Habit | Course sentence (verbatim) | Section | Raiders | Bosun's question |
 |---|---|---|---|---|---|
-| 1 | One worktree per session | "Most project sessions should use a **New worktree**. Separate worktrees let agents work at the same time without changing the same working copy." | 01 · Project Sessions | *Shared Checkout*, *Tangled Copy* | **Existing A1.5** (`01-tour-the-app#project-sessions`) |
+| 1 | One worktree per session | "Most project sessions should use a **New worktree**. Separate worktrees let agents work at the same time without changing the same working copy." | 01 · Project Sessions | *Shared Checkout*, *Tangled Copy* | **New N1.6** (`01-tour-the-app#project-sessions`): two project sessions need separate working copies; choose **New worktree** for each ✓, not **Current checkout** for both |
 | 2 | Know when the agent will ask | "**Always ask** asks each time. **Approve all** runs tools without asking. **Assisted** asks only when a tool request fails an AI safety check. Check this setting so you know when to expect approval requests." | 01 · Modes | *Blind Approval*, *Unasked* | **New:** "You want the agent to ask before every tool it uses. Which **Tool permissions** setting?" **Always ask** ✓ / **Approve all** / **Assisted** |
 | 3 (optional) | Effort isn't a guarantee | "Higher effort does not guarantee a correct answer." | 01 · Models and Reasoning Effort | *Max Effort* | **New:** "Does a higher **Reasoning effort** guarantee a correct answer?" No ✓ / Yes / Only with **Auto** |
 

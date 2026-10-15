@@ -80,12 +80,13 @@ const CREST_SCATTER = vec3(0.12, 0.55, 0.45);
 const FOAM_PATTERN_MEAN = 0.32;
 
 /**
- * The ocean's polar grid per tier. Lite's rings widen faster and it has fewer spokes (about 28k
- * triangles instead of Low's 56k, PLAN §12.1); its three long waves still resolve.
+ * The ocean's polar grid per tier. Lite's rings widen faster and it has fewer spokes (about 21k
+ * triangles instead of Low's 56k, PLAN §12.1); its three long waves still resolve (the shortest,
+ * 13.5 m, has about four vertices a wave out to 40 m, where the grid's filtering fades it anyway).
  */
 export function oceanGrid(tier: TierSettings): PolarGridOptions {
   const radius = 18000;
-  if (tier.tier === 'lite') return { dr0: 0.7, growth: 1.07, radius, segments: 128 };
+  if (tier.tier === 'lite') return { dr0: 0.7, growth: 1.08, radius, segments: 104 };
   if (tier.tier === 'low') return { dr0: 0.7, growth: 1.05, radius, segments: 192 };
   if (tier.tier === 'medium') return { dr0: 0.5, growth: 1.035, radius, segments: 288 };
   return { dr0: 0.35, growth: 1.035, radius, segments: 384 };

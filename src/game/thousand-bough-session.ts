@@ -17,7 +17,14 @@ import type { CameraShot } from './follow-camera';
 import type { Interactions } from './interaction';
 import { NpcCrowd, type Npc } from './npcs';
 import { createChannelRouting } from './puzzles/channel-routing/puzzle';
-import { FlagHoist, FLAGS, type FlagSymbol } from './puzzles/flag-hoist';
+import {
+  FlagHoist,
+  HOIST_ORDERS,
+  orderPicks,
+  pickFlag,
+  rightPick,
+  type HoistOrder,
+} from './puzzles/flag-hoist';
 import { createPracticeSession } from './puzzles/practice-session';
 import type { Puzzle, PuzzleHost } from './puzzles/types';
 import type { ScriptStep } from './script';
@@ -182,8 +189,10 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
   const hoistView = createViewStore<FlagHoistView>({
     open: false,
     step: 0,
-    of: 4,
+    of: HOIST_ORDERS.length,
+    title: null,
     order: '',
+    choices: null,
     message: null,
     focus: 0,
     busy: false,
@@ -193,22 +202,35 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
   let unmountHoist: (() => void) | null = null;
   const pad = new Map<number, boolean>();
 
-  async function hoistFlag(symbol: FlagSymbol): Promise<void> {
+  /** The overlay's view of an order. */
+  const orderView = (o: HoistOrder) => ({
+    title: o.kind === 'choice' ? o.title : null,
+    order: o.text,
+    choices: o.kind === 'choice' ? o.choices.map(({ id, icon, text }) => ({ id, icon, text })) : null,
+  });
+
+  async function hoistFlag(pick: string): Promise<void> {
     const h = hoist;
-    if (!h || hoistView.get().busy || !sys) return;
+    const o = h?.order;
+    if (!h || !o || hoistView.get().busy || !sys) return;
     const mast = A.flagMast;
-    const r = h.hoist(symbol);
-    hoistView.set({ busy: true, focus: FLAGS.findIndex((f) => f.symbol === symbol) });
-    sfx('rope_hoist', mast, 0.7);
-    await sys.mast.hoist(symbol, r.ok);
+    const flag = pickFlag(o, pick);
+    const r = h.hoist(pick);
+    hoistView.set({ busy: true, focus: Math.max(0, orderPicks(o).indexOf(pick)) });
+    if (flag) {
+      sfx('rope_hoist', mast, 0.7);
+      await sys.mast.hoist(flag, r.ok);
+    }
     if (!r.ok) {
       hoistView.set({ message: { text: r.reason, tone: 'bad' } });
       await host.text('Ines', r.reason.replace(/`([^`]+)`/g, '$1'));
       hoistView.set({ busy: false });
       return;
     }
-    hoistView.set({ message: { text: `${symbol}: that’s the one!`, tone: 'good' } });
-    if (r.done || h.index === 1) await host.say(['tb.ines.flag.ok']);
+    hoistView.set({
+      message: { text: o.kind === 'flag' ? `${pick}: that’s the one!` : 'That’s the one!', tone: 'good' },
+    });
+    if (r.done || h.index === 1 || o.kind === 'choice') await host.say(['tb.ines.flag.ok']);
     if (r.done) {
       sfx('chime_solve', mast, 0.8);
       await wait(600);
@@ -217,7 +239,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
       hoistDone?.();
       return;
     }
-    hoistView.set({ step: h.index, order: h.order!.text, message: null });
+    hoistView.set({ step: h.index, ...orderView(h.order!), message: null, focus: 0 });
     await host.say([h.order!.line]);
     hoistView.set({ busy: false });
   }
@@ -254,8 +276,8 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
     hoistView.set({
       open: true,
       step: 0,
-      of: 4,
-      order: hoist.order!.text,
+      of: HOIST_ORDERS.length,
+      ...orderView(hoist.order!),
       message: null,
       busy: true,
       focus: 0,
@@ -559,9 +581,12 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
       return d && !was;
     };
     const v = hoistView.get();
-    if (edge(14) || edge(15)) hoistView.set({ focus: (v.focus + 1) % FLAGS.length });
-    if (edge(12) || edge(13)) hoistView.set({ focus: (v.focus + FLAGS.length - 1) % FLAGS.length });
-    if (edge(0) && !v.busy) void hoistFlag(FLAGS[hoistView.get().focus]!.symbol);
+    const o = hoist?.order;
+    if (!o) return;
+    const picks = orderPicks(o);
+    if (edge(14) || edge(15)) hoistView.set({ focus: (v.focus + 1) % picks.length });
+    if (edge(12) || edge(13)) hoistView.set({ focus: (v.focus + picks.length - 1) % picks.length });
+    if (edge(0) && !v.busy) void hoistFlag(picks[hoistView.get().focus] ?? picks[0]!);
   }
 
   return {
@@ -619,8 +644,16 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
     debug: {
       ready: () => !!sys,
       routing: () => routing?.debug ?? null,
-      hoist: () => ({ ...hoistView.get(), index: hoist?.index ?? -1 }),
-      hoistFlag: (s: FlagSymbol) => hoistFlag(s),
+      // `right`: the right pick's key (1-4), for the tests and the reel.
+      hoist: () => {
+        const o = hoist?.order;
+        return {
+          ...hoistView.get(),
+          index: hoist?.index ?? -1,
+          right: o ? orderPicks(o).indexOf(rightPick(o)) + 1 : 0,
+        };
+      },
+      hoistFlag: (s: string) => hoistFlag(s),
       rideBasket: (up: boolean) => rideBasket(up),
       inBooth: () => inBooth,
       sealing: () => sealing,

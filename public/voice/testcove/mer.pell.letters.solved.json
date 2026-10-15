@@ -1,0 +1,117 @@
+{
+  "id": "mer.pell.letters.solved",
+  "speaker": "Pell",
+  "text": "Every letter in its place! Each alcove in my hall is an area in Settings, in the same order as the app.",
+  "words": [
+    {
+      "word": "Every",
+      "start": 0.048083,
+      "end": 0.348541
+    },
+    {
+      "word": "letter",
+      "start": 0.348541,
+      "end": 0.685083
+    },
+    {
+      "word": "in",
+      "start": 0.685083,
+      "end": 0.79325
+    },
+    {
+      "word": "its",
+      "start": 0.79325,
+      "end": 0.9495
+    },
+    {
+      "word": "place",
+      "start": 0.9495,
+      "end": 2.34375
+    },
+    {
+      "word": "Each",
+      "start": 2.34375,
+      "end": 2.596166
+    },
+    {
+      "word": "alcove",
+      "start": 2.596166,
+      "end": 2.992791
+    },
+    {
+      "word": "in",
+      "start": 2.992791,
+      "end": 3.100958
+    },
+    {
+      "word": "my",
+      "start": 3.100958,
+      "end": 3.26925
+    },
+    {
+      "word": "hall",
+      "start": 3.26925,
+      "end": 3.629791
+    },
+    {
+      "word": "is",
+      "start": 3.629791,
+      "end": 3.75
+    },
+    {
+      "word": "an",
+      "start": 3.75,
+      "end": 3.882208
+    },
+    {
+      "word": "area",
+      "start": 3.882208,
+      "end": 4.254791
+    },
+    {
+      "word": "in",
+      "start": 4.254791,
+      "end": 4.399041
+    },
+    {
+      "word": "Settings",
+      "start": 4.399041,
+      "end": 5.048083
+    },
+    {
+      "word": "in",
+      "start": 5.048083,
+      "end": 5.15625
+    },
+    {
+      "word": "the",
+      "start": 5.15625,
+      "end": 5.264416
+    },
+    {
+      "word": "same",
+      "start": 5.264416,
+      "end": 5.564916
+    },
+    {
+      "word": "order",
+      "start": 5.564916,
+      "end": 5.877416
+    },
+    {
+      "word": "as",
+      "start": 5.877416,
+      "end": 5.985583
+    },
+    {
+      "word": "the",
+      "start": 5.985583,
+      "end": 6.117791
+    },
+    {
+      "word": "app.",
+      "start": 6.117791,
+      "end": 6.367791
+    }
+  ]
+}

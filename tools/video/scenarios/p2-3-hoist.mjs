@@ -1,6 +1,7 @@
-// P2.3 The Flag Hoist (Ines, Thousand-Bough): Ines's brief on the four flags, then four orders
-// answered with the number keys. The first flag hoisted is the wrong one, so it drops back with
-// her reason; then all four go up. Stops as her check (M2.2) opens.
+// P2.3 The Flag Hoist (Ines, Thousand-Bough): Ines's brief on the four flags, then six orders
+// answered with the number keys: four needs (never the symbol), "Pack light", and a letter from
+// ashore. The first flag hoisted is the wrong one, so it drops back with her reason; then the rest
+// go right. Stops as her check (K2.3) opens.
 import { questsDone, tb, thousandBoughAshore } from '../game.mjs';
 
 export default {
@@ -11,8 +12,8 @@ export default {
   island: 'Thousand-Bough Isle',
   who: 'with Ines on the Signal Deck',
   subtitle:
-    'Four flags for the prompt box: @ brings files, # brings issues, / runs commands, & points at another session. Less is more.',
-  chapter: 'Course Chapter 02 · Context syntax',
+    'Four flags for the prompt box: @ brings files, # brings issues, / runs commands, & points at another session. Pack light: less is more.',
+  chapter: 'Course Chapter 02 · Context syntax · Attaching files',
   flags: ['thousandbough'],
 
   async setup(page, api) {
@@ -50,11 +51,11 @@ export default {
         await api.pause(1500);
         continue;
       }
-      await api.press(['Digit1', 'Digit2', 'Digit3', 'Digit4'][h.index]);
+      await api.press(`Digit${h.right}`);
       hoisted++;
       await api.pause(1200);
     }
-    if (hoisted < 4) api.log(`only ${hoisted} flags hoisted`);
+    if (hoisted < 6) api.log(`only ${hoisted} orders answered`);
     await api.pause(1200);
   },
 };

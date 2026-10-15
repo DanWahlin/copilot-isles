@@ -44,8 +44,9 @@ Anchorage and Port Meridian's harbours stay calm. We'll adjust the later places 
   sentences in `.plans/battle-plan.md` "Teaching map"). Wave 1, *Unchecked* and *No Dry Run*: preview
   before you run it, *"The script creates items on GitHub in your fork, so you'll preview its target and
   planned changes before running it."* The bosun asks **N0.1**. Wave 2, *Wrong Fork* and *Wrong Account*:
-  check the target (the `Repository:` line quote above). The bosun asks **T0.5**. Both are cited to
-  00 §Add the Course Practice Items.
+  check the target (the `Repository:` line quote above). The bosun asks **N0.2** with a fresh preview
+  that names the original course repository and ends with `Dry run complete. No changes were made.` Both
+  questions are cited to 00 §Add the Course Practice Items.
 - **The reward** is the same as everywhere (§2.1's last bullet): a right answer lets you **pick** a
   double-shotted volley or quick repairs. A wrong answer shows the "why" and the course link, and you still
   get the base repairs.
@@ -59,7 +60,7 @@ Anchorage and Port Meridian's harbours stay calm. We'll adjust the later places 
 
 | Wave | Raiders | Habit (verbatim course sentence) | Question |
 |---|---|---|---|
-| 1 | *Shared Checkout*, *Tangled Copy* | *"Most project sessions should use a **New worktree**. Separate worktrees let agents work at the same time without changing the same working copy."* (01 §Project Sessions) | A1.5 |
+| 1 | *Shared Checkout*, *Tangled Copy* | *"Most project sessions should use a **New worktree**. Separate worktrees let agents work at the same time without changing the same working copy."* (01 §Project Sessions) | N1.6 (choose a new worktree for each session) |
 | 2 | *Blind Approval*, *Unasked* | *"**Always ask** asks each time. **Approve all** runs tools without asking."* (01 §Modes) | N1.1 |
 | 3 | *Max Effort*, *Overthought* | *"Higher effort does not guarantee a correct answer."* (01 §Models and Reasoning Effort) | N1.2 |
 

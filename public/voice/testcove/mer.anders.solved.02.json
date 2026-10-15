@@ -1,0 +1,137 @@
+{
+  "id": "mer.anders.solved.02",
+  "speaker": "Anders",
+  "text": "In the app, a question starts with + next to Projects, then Chat. Work that needs your repository starts from the + next to your project.",
+  "words": [
+    {
+      "word": "In",
+      "start": 0.053208,
+      "end": 0.226083
+    },
+    {
+      "word": "the",
+      "start": 0.226083,
+      "end": 0.359041
+    },
+    {
+      "word": "app",
+      "start": 0.359041,
+      "end": 0.771291
+    },
+    {
+      "word": "a",
+      "start": 0.771291,
+      "end": 0.83775
+    },
+    {
+      "word": "question",
+      "start": 0.83775,
+      "end": 1.3165
+    },
+    {
+      "word": "starts",
+      "start": 1.3165,
+      "end": 1.728708
+    },
+    {
+      "word": "with",
+      "start": 1.728708,
+      "end": 1.914875
+    },
+    {
+      "word": "plus",
+      "start": 1.914875,
+      "end": 2.247333
+    },
+    {
+      "word": "next",
+      "start": 2.247333,
+      "end": 2.553208
+    },
+    {
+      "word": "to",
+      "start": 2.553208,
+      "end": 2.646291
+    },
+    {
+      "word": "Projects",
+      "start": 2.646291,
+      "end": 3.444166
+    },
+    {
+      "word": "then",
+      "start": 3.444166,
+      "end": 3.6835
+    },
+    {
+      "word": "Chat",
+      "start": 3.6835,
+      "end": 5.053208
+    },
+    {
+      "word": "Work",
+      "start": 5.053208,
+      "end": 5.398916
+    },
+    {
+      "word": "that",
+      "start": 5.398916,
+      "end": 5.625
+    },
+    {
+      "word": "needs",
+      "start": 5.625,
+      "end": 5.90425
+    },
+    {
+      "word": "your",
+      "start": 5.90425,
+      "end": 6.063833
+    },
+    {
+      "word": "repository",
+      "start": 6.063833,
+      "end": 6.688833
+    },
+    {
+      "word": "starts",
+      "start": 6.688833,
+      "end": 7.08775
+    },
+    {
+      "word": "from",
+      "start": 7.08775,
+      "end": 7.247333
+    },
+    {
+      "word": "the",
+      "start": 7.247333,
+      "end": 7.353708
+    },
+    {
+      "word": "plus",
+      "start": 7.353708,
+      "end": 7.672875
+    },
+    {
+      "word": "next",
+      "start": 7.672875,
+      "end": 7.978708
+    },
+    {
+      "word": "to",
+      "start": 7.978708,
+      "end": 8.071791
+    },
+    {
+      "word": "your",
+      "start": 8.071791,
+      "end": 8.284583
+    },
+    {
+      "word": "project",
+      "start": 8.284583,
+      "end": 8.534583
+    }
+  ]
+}

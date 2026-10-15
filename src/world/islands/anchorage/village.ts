@@ -32,7 +32,8 @@ import {
   chunkLodEdges,
   chunkLodFloor,
   chunkOptions,
-  mergeIntoChunks,
+  eachChunk,
+  moveBucketInto,
 } from '../../village/chunks';
 import { loadLodSimplifier } from '../../characters/character-lod';
 import { wrapAngle } from '../../../util/math';
@@ -71,6 +72,7 @@ import {
   housePerches,
   houseStairsSpan,
   HOUSE_STOREY_HEIGHT,
+  placementWorldBox,
   placementWorldMaxY,
   stairsHeightAt,
   type HouseFootprint,
@@ -221,10 +223,15 @@ export async function createVillage({
   const neighbourDetail: Mesh[] = [];
   const simplify = typeof window === 'undefined' ? null : await loadLodSimplifier();
   const chunkLods = new ChunkLods(chunkLodEdges(tier), chunkLodFloor(tier));
+  // Lite draws the rope with the cloth (alike: matte vertex colour), a draw fewer.
+  if (tier.tier === 'lite') moveBucketInto(buckets, 'rope', 'cloth');
   for (const key of Object.keys(buckets) as MaterialKey[]) {
     const geometries = buckets[key];
     if (geometries.length === 0) continue;
-    for (const chunk of mergeIntoChunks(geometries, chunkOptions(tier))) {
+    // A chunk a slice: a material's chunks and their levels of detail at once held a frame for
+    // ~60 ms while the cabin played.
+    for (const chunk of eachChunk(geometries, chunkOptions(tier))) {
+      await buildSlice();
       if (simplify) buildChunkLodIndex(chunk.geometry, simplify);
       const mesh = new Mesh(chunk.geometry, materials[key]);
       chunkLods.attach(mesh);
@@ -654,6 +661,9 @@ function addBuilding(
     y0: baseY - 0.5,
     y1: baseY + house.storeys * HOUSE_STOREY_HEIGHT,
   });
+  // Open shutters stand about 0.55 m off the wall, past the façade blocker.
+  for (const placement of placements)
+    if (placement.role === 'shutters') cameraBlockers.push(placementWorldBox(placement));
   if (house.balcony && house.storeys > 1) {
     // The front balcony: its floor 2 m out from the wall, a storey up, and its railing.
     const b = localToWorld(spec.x, spec.z, spec.rot, 0, -footprint.d * 0.5 - 1);

@@ -43,8 +43,8 @@
     "puzzle:P0.1": {
       "game": "puzzle",
       "k": "Anchorage Cay · Sluice & Waterwheel",
-      "t": "Turn on GitHub Actions in your fork",
-      "b": "New forks start with workflows switched off. Turn them on so the course’s practice checks can run.",
+      "t": "Turn on GitHub Actions first",
+      "b": "New forks start with workflows switched off. Turn them on before the setup script, so GitHub can run the practice checks.",
       "ch": "00",
       "c": "Add the course practice items",
       "source": {
@@ -57,7 +57,7 @@
       "game": "puzzle",
       "k": "Anchorage Cay · The Dry-Run Crane",
       "t": "Preview before you run",
-      "b": "Run the setup script with --dry-run first. Check that its Repository: line names your fork, then run it with --yes.",
+      "b": "With workflows on, run the setup script with --dry-run. Check that its Repository: line names your fork, then use --yes.",
       "ch": "00",
       "c": "Add the course practice items",
       "source": {
@@ -70,7 +70,7 @@
       "game": "puzzle",
       "k": "Port Meridian · The Shipyard",
       "t": "Chat or project session?",
-      "b": "Chats are for questions and exploring. Use a project session when the agent needs your repository or changes code.",
+      "b": "Chats are for questions and exploring. Use a project session when the agent needs your repository, even just to read it.",
       "ch": "01",
       "c": "Chat sessions and Project sessions",
       "source": {
@@ -83,7 +83,7 @@
       "game": "puzzle",
       "k": "Port Meridian · The Three Helms",
       "t": "Interactive, Plan, or Autopilot?",
-      "b": "Steer step by step, plan first and approve, or let it run end to end. Pick the mode that fits the task.",
+      "b": "Read each order and pick the mode: step by step, plan first and review, or end to end. Then sail it that way.",
       "ch": "01",
       "c": "Modes",
       "source": {
@@ -92,11 +92,24 @@
         "hash": "4a1370424345"
       }
     },
+    "puzzle:P1.3": {
+      "game": "puzzle",
+      "k": "Port Meridian · The Hall of Records",
+      "t": "Find your way around Settings",
+      "b": "Open it with the gear at the bottom of the sidebar. Model providers adds providers. You still pick the model below the prompt box.",
+      "ch": "01",
+      "c": "Settings",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "settings",
+        "hash": "5b95eb5b50e3"
+      }
+    },
     "puzzle:P2.1": {
       "game": "puzzle",
       "k": "Thousand-Bough Isle · Channel Routing",
       "t": "Parallel sessions with worktrees",
-      "b": "Each session gets its own worktree, so parallel sessions don’t mix their file changes.",
+      "b": "Each session gets its own worktree, so parallel sessions don’t mix their file changes. Then pick where each crew works.",
       "ch": "02",
       "c": "Why the app uses worktrees",
       "source": {

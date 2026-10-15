@@ -1,32 +1,52 @@
 {
   "id": "tb.ines.order.2",
   "speaker": "Ines",
-  "text": "Next: bring in issue twelve.",
+  "text": "Next: get a recap of your last day's work.",
   "words": [
     {
       "word": "Next",
       "start": 0,
-      "end": 0.627
+      "end": 0.66
     },
     {
-      "word": "bring",
-      "start": 0.627,
-      "end": 1.04
+      "word": "get",
+      "start": 0.66,
+      "end": 1
     },
     {
-      "word": "in",
-      "start": 1.04,
-      "end": 1.267
+      "word": "a",
+      "start": 1,
+      "end": 1.12
     },
     {
-      "word": "issue",
-      "start": 1.267,
-      "end": 1.691
+      "word": "recap",
+      "start": 1.12,
+      "end": 1.547
     },
     {
-      "word": "twelve",
-      "start": 1.691,
-      "end": 1.941
+      "word": "of",
+      "start": 1.547,
+      "end": 1.632
+    },
+    {
+      "word": "your",
+      "start": 1.632,
+      "end": 1.824
+    },
+    {
+      "word": "last",
+      "start": 1.824,
+      "end": 2.12
+    },
+    {
+      "word": "day's",
+      "start": 2.12,
+      "end": 2.496
+    },
+    {
+      "word": "work",
+      "start": 2.496,
+      "end": 2.746
     }
   ]
 }

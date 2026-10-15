@@ -1,0 +1,102 @@
+{
+  "id": "mer.pell.letters.again",
+  "speaker": "Pell",
+  "text": "A new bundle of lost letters came in, Captain. They’re on my desk, if you’d like to file them.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0.048083,
+      "end": 0.14425
+    },
+    {
+      "word": "new",
+      "start": 0.14425,
+      "end": 0.408666
+    },
+    {
+      "word": "bundle",
+      "start": 0.408666,
+      "end": 0.76925
+    },
+    {
+      "word": "of",
+      "start": 0.76925,
+      "end": 0.865375
+    },
+    {
+      "word": "lost",
+      "start": 0.865375,
+      "end": 1.153833
+    },
+    {
+      "word": "letters",
+      "start": 1.153833,
+      "end": 1.490375
+    },
+    {
+      "word": "came",
+      "start": 1.490375,
+      "end": 1.754791
+    },
+    {
+      "word": "in",
+      "start": 1.754791,
+      "end": 2.1755
+    },
+    {
+      "word": "Captain",
+      "start": 2.1755,
+      "end": 3.497583
+    },
+    {
+      "word": "They’re",
+      "start": 3.497583,
+      "end": 3.762
+    },
+    {
+      "word": "on",
+      "start": 3.762,
+      "end": 3.89425
+    },
+    {
+      "word": "my",
+      "start": 3.89425,
+      "end": 4.0625
+    },
+    {
+      "word": "desk",
+      "start": 4.0625,
+      "end": 4.663458
+    },
+    {
+      "word": "if",
+      "start": 4.663458,
+      "end": 4.795666
+    },
+    {
+      "word": "you’d",
+      "start": 4.795666,
+      "end": 4.951916
+    },
+    {
+      "word": "like",
+      "start": 4.951916,
+      "end": 5.180291
+    },
+    {
+      "word": "to",
+      "start": 5.180291,
+      "end": 5.276458
+    },
+    {
+      "word": "file",
+      "start": 5.276458,
+      "end": 5.613
+    },
+    {
+      "word": "them",
+      "start": 5.613,
+      "end": 5.863
+    }
+  ]
+}

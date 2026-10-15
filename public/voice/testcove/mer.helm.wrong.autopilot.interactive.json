@@ -1,0 +1,87 @@
+{
+  "id": "mer.helm.wrong.autopilot.interactive",
+  "speaker": "Rhea",
+  "text": "Interactive would check in with you at every mark. A clear, well-defined run doesn’t need that.",
+  "words": [
+    {
+      "word": "Interactive",
+      "start": 0.0485409,
+      "end": 0.740291
+    },
+    {
+      "word": "would",
+      "start": 0.740291,
+      "end": 0.898041
+    },
+    {
+      "word": "check",
+      "start": 0.898041,
+      "end": 1.213583
+    },
+    {
+      "word": "in",
+      "start": 1.213583,
+      "end": 1.359208
+    },
+    {
+      "word": "with",
+      "start": 1.359208,
+      "end": 1.517
+    },
+    {
+      "word": "you",
+      "start": 1.517,
+      "end": 1.67475
+    },
+    {
+      "word": "at",
+      "start": 1.67475,
+      "end": 1.832541
+    },
+    {
+      "word": "every",
+      "start": 1.832541,
+      "end": 2.087375
+    },
+    {
+      "word": "mark",
+      "start": 2.087375,
+      "end": 3.422333
+    },
+    {
+      "word": "A",
+      "start": 3.422333,
+      "end": 3.531541
+    },
+    {
+      "word": "clear",
+      "start": 3.531541,
+      "end": 4.1505
+    },
+    {
+      "word": "well-defined",
+      "start": 4.1505,
+      "end": 4.769416
+    },
+    {
+      "word": "run",
+      "start": 4.769416,
+      "end": 5.072833
+    },
+    {
+      "word": "doesn’t",
+      "start": 5.072833,
+      "end": 5.388333
+    },
+    {
+      "word": "need",
+      "start": 5.388333,
+      "end": 5.594666
+    },
+    {
+      "word": "that",
+      "start": 5.594666,
+      "end": 5.844666
+    }
+  ]
+}

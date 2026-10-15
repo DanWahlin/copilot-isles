@@ -1,0 +1,57 @@
+{
+  "id": "mer.pell.letters.wait",
+  "speaker": "Pell",
+  "text": "The letters are on my desk, Captain, under the alcoves.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0.048083,
+      "end": 0.180291
+    },
+    {
+      "word": "letters",
+      "start": 0.180291,
+      "end": 0.540875
+    },
+    {
+      "word": "are",
+      "start": 0.540875,
+      "end": 0.637
+    },
+    {
+      "word": "on",
+      "start": 0.637,
+      "end": 0.78125
+    },
+    {
+      "word": "my",
+      "start": 0.78125,
+      "end": 0.9495
+    },
+    {
+      "word": "desk",
+      "start": 0.9495,
+      "end": 1.538458
+    },
+    {
+      "word": "Captain",
+      "start": 1.538458,
+      "end": 2.151458
+    },
+    {
+      "word": "under",
+      "start": 2.151458,
+      "end": 2.35575
+    },
+    {
+      "word": "the",
+      "start": 2.35575,
+      "end": 2.475958
+    },
+    {
+      "word": "alcoves",
+      "start": 2.475958,
+      "end": 2.725958
+    }
+  ]
+}

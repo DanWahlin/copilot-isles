@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest';
-import type { BufferGeometry } from 'three/webgpu';
+import { describe, expect, it, vi } from 'vitest';
+import { PerspectiveCamera, type BufferGeometry, type Mesh } from 'three/webgpu';
 import type { Tier } from '../contracts';
 import { normalFromGrid, type TerrainBakeData } from './bake';
 import {
   buildTerrainLodGeometries,
   chunkBoxDistance,
+  createTerrain,
   createTerrainHeightField,
   pickTerrainLod,
   TERRAIN_CHUNK_SIZE,
@@ -12,6 +13,12 @@ import {
   terrainLodThresholds,
 } from './terrain-mesh';
 import { WALK_RIG } from '../../game/follow-camera';
+
+// The terrain's own look loads textures (a browser's job); these tests only need its meshes.
+vi.mock('./terrain-material', async () => {
+  const { MeshStandardNodeMaterial } = await import('three/webgpu');
+  return { createTerrainMaterial: () => new MeshStandardNodeMaterial() };
+});
 import { mulberry32 } from '../../util/math';
 
 /** A rough, made-up baked grid (steep random relief, so the bilinear patch and the triangles differ). */
@@ -380,6 +387,59 @@ describe('terrain level of detail', () => {
       for (const set of lods) for (const g of set) g.dispose();
       expect(worstStep).toBeGreaterThan(0.5); // the levels really do differ here
       expect(worstGap).toBeLessThanOrEqual(0);
+    });
+  }
+});
+
+describe('merged far blocks', () => {
+  const C = TERRAIN_CHUNK_SIZE;
+  /** The meshes drawn now, and how many of them cover each chunk's middle (it must be exactly one). */
+  const drawn = (group: { children: unknown[] }) => {
+    const meshes = (group.children as Mesh[]).filter(
+      (m) => m.isMesh && m.visible && /terrain-chunk/.test(m.name),
+    );
+    const cover: number[] = [];
+    for (let iz = 0; iz < 4; iz++)
+      for (let ix = 0; ix < 4; ix++) {
+        const x = (ix + 0.5) * C;
+        const z = (iz + 0.5) * C;
+        cover.push(
+          meshes.filter((m) => {
+            const b = m.geometry.boundingBox ?? (m.geometry.computeBoundingBox(), m.geometry.boundingBox!);
+            return x > b.min.x && x < b.max.x && z > b.min.z && z < b.max.z;
+          }).length,
+        );
+      }
+    return { meshes, cover };
+  };
+  for (const tier of ['lite', 'high'] as const) {
+    it(`draws every chunk once, in as few draws as the levels allow (${tier})`, () => {
+      const data = roughData({ minX: 0, maxX: C * 4, minZ: 0, maxZ: C * 4, cell: 4 }, 5);
+      const terrain = createTerrain({ tier, data, createRocks: () => null });
+      const camera = new PerspectiveCamera();
+      // Far out at sea: the whole island is one draw on Lite; High doesn't merge (it has the draws).
+      camera.position.set(5000, 10, 5000);
+      terrain.update(camera);
+      let d = drawn(terrain.group);
+      if (tier === 'lite') expect(d.meshes.map((m) => m.name)).toEqual(['terrain-chunks-all-lod2']);
+      else expect(d.meshes.length).toBe(16);
+      expect(d.cover.every((n) => n === 1)).toBe(true);
+      // On the island: the chunk underfoot draws its own finest level, the far side merges.
+      camera.position.set(C * 0.5, 10, C * 0.5);
+      terrain.update(camera);
+      d = drawn(terrain.group);
+      expect(d.cover.every((n) => n === 1)).toBe(true);
+      expect(d.meshes.some((m) => m.name === 'terrain-chunk-0-0')).toBe(true);
+      if (tier === 'lite') expect(d.meshes.length).toBeLessThan(16);
+      // A warm-up's merged level shows every merged block (and no chunk); null goes back.
+      expect(terrain.lodCount).toBe(tier === 'lite' ? 4 : 3);
+      terrain.setLod(terrain.lodCount - 1);
+      d = drawn(terrain.group);
+      if (tier === 'lite') expect(d.meshes.every((m) => m.name.startsWith('terrain-chunks-'))).toBe(true);
+      terrain.setLod(null);
+      terrain.update(camera);
+      expect(drawn(terrain.group).cover.every((n) => n === 1)).toBe(true);
+      terrain.dispose();
     });
   }
 });

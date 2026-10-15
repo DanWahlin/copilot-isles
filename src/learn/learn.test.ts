@@ -135,6 +135,14 @@ describe('progress', () => {
     for (const id of old.glossary) expect(GLOSSARY.has(id), id).toBe(true);
   });
 
+  it('gives saves that finished Pell before his Lost Letters (P1.3) the Settings term', () => {
+    const old = parseProgress(JSON.stringify({ v: 1, quests: { 'Q1.7': 'done' }, puzzles: {} }));
+    expect(old.glossary).toContain('settings');
+    expect(GLOSSARY.has('settings')).toBe(true);
+    expect(old.puzzles['P1.3']).toBeUndefined();
+    expect(parseProgress(JSON.stringify({ v: 1, quests: { 'Q1.7': 'letters' } })).glossary).toEqual([]);
+  });
+
   it('round-trips an export code, including non-ASCII', () => {
     const p = new Progress(new MemStorage());
     p.add('seals', 'Seal of Anchorage ⚓');
@@ -173,15 +181,26 @@ describe('paint your sails', () => {
     expect(learn.getState().sails).toBeNull();
   });
 
-  it('mirrors the app’s six themes and falls back to GitHub', () => {
+  it('names only the course’s GitHub theme after the app; the rest are sail colours on their old ids', () => {
     expect(SAIL_PALETTES.map((p) => p.name)).toEqual([
       'GitHub',
-      'Fox',
-      'IC Orange PPL',
-      'Monochrome',
-      'Noctis Azureus',
-      'Notionish',
+      'Rose',
+      'Sunset Orange',
+      'Charcoal',
+      'Midnight Blue',
+      'Chalk White',
     ]);
+    // Saves keep the ids, so a palette picked under its old theme name still paints the same sails.
+    expect(SAIL_PALETTES.map((p) => p.id)).toEqual([
+      'github',
+      'fox',
+      'ic-orange-ppl',
+      'monochrome',
+      'noctis-azureus',
+      'notionish',
+    ]);
+    expect(sailPalette('noctis-azureus').name).toBe('Midnight Blue');
+    expect(SAIL_PALETTES.filter((p) => p.card).map((p) => p.id)).toEqual(['github']);
     expect(new Set(SAIL_PALETTES.map((p) => p.id)).size).toBe(SAIL_PALETTES.length);
     expect(sailPalette('nope').id).toBe('github');
     expect(sailPalette(null).id).toBe('github');

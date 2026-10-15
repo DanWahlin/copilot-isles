@@ -1,47 +1,57 @@
 {
   "id": "mer.helm.plan.go",
   "speaker": "Rhea",
-  "text": "Plan approved. Now she sails it straight through.",
+  "text": "Approved. Now she sails the plan in Autopilot, straight through.",
   "words": [
     {
-      "word": "Plan",
+      "word": "Approved",
       "start": 0.0485409,
-      "end": 0.364083
-    },
-    {
-      "word": "approved",
-      "start": 0.364083,
-      "end": 1.80825
+      "end": 1.54125
     },
     {
       "word": "Now",
-      "start": 1.80825,
-      "end": 2.07525
+      "start": 1.54125,
+      "end": 1.80825
     },
     {
       "word": "she",
-      "start": 2.07525,
-      "end": 2.257291
+      "start": 1.80825,
+      "end": 1.978166
     },
     {
       "word": "sails",
-      "start": 2.257291,
-      "end": 2.682041
+      "start": 1.978166,
+      "end": 2.34225
     },
     {
-      "word": "it",
-      "start": 2.682041,
-      "end": 2.815541
+      "word": "the",
+      "start": 2.34225,
+      "end": 2.451458
+    },
+    {
+      "word": "plan",
+      "start": 2.451458,
+      "end": 2.767
+    },
+    {
+      "word": "in",
+      "start": 2.767,
+      "end": 2.9005
+    },
+    {
+      "word": "Autopilot",
+      "start": 2.9005,
+      "end": 3.859208
     },
     {
       "word": "straight",
-      "start": 2.815541,
-      "end": 3.19175
+      "start": 3.859208,
+      "end": 4.271833
     },
     {
       "word": "through",
-      "start": 3.19175,
-      "end": 3.44175
+      "start": 4.271833,
+      "end": 4.521833
     }
   ]
 }

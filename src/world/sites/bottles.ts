@@ -7,8 +7,8 @@ import { createSparkleMaterial, shaftGeometry, starGeometry } from './sparkle';
 /**
  * Anchorage Cay's message bottles (POC §4.4, B0.1-B0.4): sea-green bottles washed up on the beaches,
  * each with a rolled note inside and a soft glint so they're findable. They're optional, and each
- * holds one troubleshooting page. All the bottles merge into one mesh per material (4 draws), rebuilt
- * only when one's picked up.
+ * holds one troubleshooting page. All the bottles merge into one mesh per material (4 draws; 2 on
+ * Lite, where the note and the cork draw with the glass), rebuilt only when one's picked up.
  */
 export interface BottleSpot {
   id: string;
@@ -49,6 +49,8 @@ export function createBottles(o: {
   kit: VillageKit;
   ground: (x: number, z: number) => number;
   spots?: readonly BottleSpot[];
+  /** Lite: the note and the cork (a few pixels there) draw with the glass, two draws fewer. */
+  lite?: boolean;
 }): BottleSite {
   const list = o.spots ?? COVE_BOTTLES;
   const group = new Group();
@@ -85,6 +87,7 @@ export function createBottles(o: {
       if (collected.has(b.id)) continue;
       addBottle(parts, b);
     }
+    if (o.lite) parts.glass.push(...parts.note.splice(0), ...parts.cork.splice(0));
     for (const key of Object.keys(parts) as (keyof typeof materials)[]) {
       if (parts[key].length === 0) continue;
       const mesh = new Mesh(merge(parts[key]), materials[key]);

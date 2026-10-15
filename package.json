@@ -20,6 +20,7 @@
     "check:budgets": "node tools/check-budgets.mjs",
     "check:frame-budgets": "node tools/budgettest.mjs",
     "check:secrets": "node tools/check-secrets.mjs",
+    "check:opening": "node tools/openingtest.mjs",
     "course:sync": "node tools/course/sync.mjs",
     "course:drift": "tsx tools/course/drift.ts",
     "course:refs": "node tools/course/refs.mjs",

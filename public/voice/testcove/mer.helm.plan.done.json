@@ -1,7 +1,7 @@
 {
   "id": "mer.helm.plan.done",
   "speaker": "Rhea",
-  "text": "That’s Plan. You saw the whole route before anything moved.",
+  "text": "That’s Plan. You read the route, caught the Shoal, and fixed it before anything moved.",
   "words": [
     {
       "word": "That’s",
@@ -16,42 +16,67 @@
     {
       "word": "You",
       "start": 1.6505,
-      "end": 1.844666
+      "end": 1.820375
     },
     {
-      "word": "saw",
-      "start": 1.844666,
-      "end": 2.050958
+      "word": "read",
+      "start": 1.820375,
+      "end": 2.014583
     },
     {
       "word": "the",
-      "start": 2.050958,
-      "end": 2.160208
-    },
-    {
-      "word": "whole",
-      "start": 2.160208,
-      "end": 2.5
+      "start": 2.014583,
+      "end": 2.123791
     },
     {
       "word": "route",
-      "start": 2.5,
-      "end": 2.79125
+      "start": 2.123791,
+      "end": 2.742708
+    },
+    {
+      "word": "caught",
+      "start": 2.742708,
+      "end": 3.009708
+    },
+    {
+      "word": "the",
+      "start": 3.009708,
+      "end": 3.094666
+    },
+    {
+      "word": "Shoal",
+      "start": 3.094666,
+      "end": 3.786416
+    },
+    {
+      "word": "and",
+      "start": 3.786416,
+      "end": 3.90775
+    },
+    {
+      "word": "fixed",
+      "start": 3.90775,
+      "end": 4.271833
+    },
+    {
+      "word": "it",
+      "start": 4.271833,
+      "end": 4.381083
     },
     {
       "word": "before",
-      "start": 2.79125,
-      "end": 3.143208
+      "start": 4.381083,
+      "end": 4.733
     },
     {
       "word": "anything",
-      "start": 3.143208,
-      "end": 3.580083
+      "start": 4.733,
+      "end": 5.15775
     },
     {
       "word": "moved",
-      "start": 3.580083,
-      "end": 3.830083
+      "start": 5.15775,
+      "end": 5.40775
     }
   ]
 }

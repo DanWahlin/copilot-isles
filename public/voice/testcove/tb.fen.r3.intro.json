@@ -1,0 +1,97 @@
+{
+  "id": "tb.fen.r3.intro",
+  "speaker": "Fen",
+  "text": "Last round! Every crew has its own channel now. Read their orders and pick where each one works.",
+  "words": [
+    {
+      "word": "Last",
+      "start": 0,
+      "end": 0.307
+    },
+    {
+      "word": "round",
+      "start": 0.307,
+      "end": 0.827
+    },
+    {
+      "word": "Every",
+      "start": 0.827,
+      "end": 1.424
+    },
+    {
+      "word": "crew",
+      "start": 1.424,
+      "end": 1.74
+    },
+    {
+      "word": "has",
+      "start": 1.74,
+      "end": 1.94
+    },
+    {
+      "word": "its",
+      "start": 1.94,
+      "end": 2.08
+    },
+    {
+      "word": "own",
+      "start": 2.08,
+      "end": 2.37
+    },
+    {
+      "word": "channel",
+      "start": 2.37,
+      "end": 2.78
+    },
+    {
+      "word": "now",
+      "start": 2.78,
+      "end": 3.152
+    },
+    {
+      "word": "Read",
+      "start": 3.152,
+      "end": 3.613
+    },
+    {
+      "word": "their",
+      "start": 3.613,
+      "end": 3.76
+    },
+    {
+      "word": "orders",
+      "start": 3.76,
+      "end": 4.3
+    },
+    {
+      "word": "and",
+      "start": 4.3,
+      "end": 4.528
+    },
+    {
+      "word": "pick",
+      "start": 4.528,
+      "end": 4.747
+    },
+    {
+      "word": "where",
+      "start": 4.747,
+      "end": 4.928
+    },
+    {
+      "word": "each",
+      "start": 4.928,
+      "end": 5.18
+    },
+    {
+      "word": "one",
+      "start": 5.18,
+      "end": 5.453
+    },
+    {
+      "word": "works",
+      "start": 5.453,
+      "end": 5.703
+    }
+  ]
+}

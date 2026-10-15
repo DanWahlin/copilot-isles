@@ -1,0 +1,122 @@
+{
+  "id": "pol.refuse.actions.01",
+  "speaker": "Pol",
+  "text": "Setup failed! Your fork’s workflows are still off. Pull the gate lever at Suri’s mill, that’s the Actions tab, then run --yes again.",
+  "words": [
+    {
+      "word": "Setup",
+      "start": 0.0486659,
+      "end": 0.573208
+    },
+    {
+      "word": "failed",
+      "start": 0.573208,
+      "end": 1.9585
+    },
+    {
+      "word": "Your",
+      "start": 1.9585,
+      "end": 2.215166
+    },
+    {
+      "word": "fork’s",
+      "start": 2.215166,
+      "end": 2.605791
+    },
+    {
+      "word": "workflows",
+      "start": 2.605791,
+      "end": 3.230791
+    },
+    {
+      "word": "are",
+      "start": 3.230791,
+      "end": 3.342416
+    },
+    {
+      "word": "still",
+      "start": 3.342416,
+      "end": 3.632583
+    },
+    {
+      "word": "off",
+      "start": 3.632583,
+      "end": 4.871416
+    },
+    {
+      "word": "Pull",
+      "start": 4.871416,
+      "end": 5.116958
+    },
+    {
+      "word": "the",
+      "start": 5.116958,
+      "end": 5.195083
+    },
+    {
+      "word": "gate",
+      "start": 5.195083,
+      "end": 5.440625
+    },
+    {
+      "word": "lever",
+      "start": 5.440625,
+      "end": 5.820083
+    },
+    {
+      "word": "at",
+      "start": 5.820083,
+      "end": 5.942875
+    },
+    {
+      "word": "Suri’s",
+      "start": 5.942875,
+      "end": 6.233041
+    },
+    {
+      "word": "mill",
+      "start": 6.233041,
+      "end": 6.858041
+    },
+    {
+      "word": "that’s",
+      "start": 6.858041,
+      "end": 7.070083
+    },
+    {
+      "word": "the",
+      "start": 7.070083,
+      "end": 7.204
+    },
+    {
+      "word": "Actions",
+      "start": 7.204,
+      "end": 7.650458
+    },
+    {
+      "word": "tab",
+      "start": 7.650458,
+      "end": 8.275458
+    },
+    {
+      "word": "then",
+      "start": 8.275458,
+      "end": 8.498666
+    },
+    {
+      "word": "run",
+      "start": 8.498666,
+      "end": 8.7665
+    },
+    {
+      "word": "yes",
+      "start": 8.7665,
+      "end": 9.101333
+    },
+    {
+      "word": "again",
+      "start": 9.101333,
+      "end": 9.351333
+    }
+  ]
+}

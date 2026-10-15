@@ -35,7 +35,7 @@ Every course objective is **taught** (by an NPC or a Logbook page), **practiced*
 | Start a project session with the **+ next to the project** (not the **Projects +**); workspace selector → **Current checkout** (not **New worktree**) for setup, then a short prompt creates the session | Bo (Q0.4), C0.6 | Your Own Deck | H0.4, T0 #1, #2, #7 |
 | **View → Toggle Review Panel** → **Terminal** tab (or **+ → Terminal**); version checks; install only what's missing | Bo (Q0.4), pg.terminal | Gear Rack (scenery) | T0 #2 |
 | `gh auth status` / `gh auth login` (GitHub.com → Login with a web browser) | Bo (Q0.4), pg.terminal | | S0.1, T0 #2 |
-| Enable workflows on the fork (GitHub.com → your fork → **Actions** tab) so GitHub Actions can run the practice checks | Pim & Pol (Q0.7), pg.workflows; Suri (Q0.6, optional), pg.checks | P0.1 Sluice (optional) | T0 #4, #2 |
+| Enable workflows on the fork (GitHub.com → your fork → **Actions** tab) so GitHub Actions can run the practice checks, **before** the setup script | Pim & Pol (Q0.7), pg.workflows; Suri (Q0.7 `actions`, Q0.6 optional), pg.checks | P0.1 gate lever (required, before the crane); the mill race (optional: the checks run, one fails on purpose); the crane's dry-run warning and `--yes` refusal | T0 #4, #2 |
 | Setup script: labels, issues, practice branches, PRs; bugs stay off `main`; in **Terminal**, from the repo root, run `node .github/scripts/setup-training-scenarios.js --dry-run`, check the `Repository:` line, then `--yes`, and wait for `Setup complete.` | Pim & Pol (Q0.7), page P0.S | **P0.2 Dry-Run Crane** | T0 #1, #3, #5 |
 | First prompt goes to the **Copilot app** prompt box, *not* Terminal; model output varies | Juno (Q0.8), pg.first-prompt | Speaking Tube | S0.2, T0 #2 |
 | Troubleshooting (sign-in, app policy ≠ CLI policy, Git missing, can't see repo / chat can't explain it, org fork, `Setup failed`, Issues disabled, manual appendix) | Bottles B0.1-B0.4 | | T0 #8 |
@@ -52,10 +52,10 @@ Every course objective is **taught** (by an NPC or a Logbook page), **practiced*
 | Most project sessions use **New worktree**; the Ch 00 session on **Current checkout** was the exception (the app remembers it until Ch 02) | Anders (Q1.5) | | A1 #4 |
 | Modes: **Interactive / Plan / Autopilot** ("options, not levels to unlock"); **Tool permissions** (Always ask, Approve all, Assisted) | Rhea (Q1.6), C1.7 | **P1.2 Three Helms** | S1.2, A1 #9 |
 | **Model**, **Reasoning effort** & **Context window** (hidden while the **Auto** switch is on); **Auto** ≠ **Autopilot**; you can change the model mid-session without changing the mode | Oren (Q1.7) | Star Charts | H1.5, S1.3, A1 #6-7 |
-| Settings (the gear at the bottom of the sidebar): 9 areas plus **Projects**, & what **Model providers** does | Pell (Q1.8), C1.5 | **P1.3 Banners of the Hall** | H1.6, A1 #8 |
+| Settings (the gear at the bottom of the sidebar): 9 areas plus **Projects**, & what **Model providers** does | Pell (Q1.8) | **P1.3 The Lost Letters** (built) | H1.6 (built as H1.4), A1 #8 |
 | Voice dictation (optional) | Whispering Gallery (Q1.9) | | O1.1 (optional) |
 | Studio analogy: control room | Lyra (Q1.10), C1.8 | | |
-| Key takeaways (6) | Admiral (Q1.11) | | A1 |
+| Key takeaways (5) | Admiral (Q1.11) | | A1 |
 
 ---
 
@@ -254,7 +254,7 @@ The stops run along the harbour in the chapter's order, so there's no doubling b
 - Nell starts with the basics: the GitHub account, a Copilot plan *or* your own model provider, and, for Business/Enterprise, the **GitHub Copilot app** policy. Then the tools: she opens **[C0.1] her chest** while she talks (the `nell-chest` cue), which holds **[P] "What you need"** (pg.prereqs): the tool links, what each is for, and that you'll check them in the app's **Terminal** later.
 - The spyglass shows the app (`app-github-copilot-app`) with the download link, and she grants **[P] "Get the Copilot app"** (pg.install).
 - The spyglass shows `app-sign-in`. Signing in is one obvious button, so it's shown and told, not quizzed. She explains that at **Connect your repositories** you leave every repository unselected and select **Continue**, because you'll connect your fork shortly. The app opens the **New** view (**[C0.3] "The New view"**).
-- **Paint Your Sails:** app 1.1.25 dropped the first-run theme step, so the spyglass shows `app-settings` and Nell points you to the gear at the bottom of the sidebar, then **Themes**. Here, your theme is your sails: the palette stand beside her has six palettes named after the app's themes. Your choice recolors your sails and persists, and **Finish** sends you on to Ezra.
+- **Paint Your Sails:** app 1.1.25 dropped the first-run theme step, so the spyglass shows `app-settings` and Nell points you to the gear at the bottom of the sidebar, then **Themes**. Here, your theme is your sails: the palette stand beside her has six palettes. Only **GitHub** is named after an app theme (the one the course shows); the others are plain sail colours (Rose, Sunset Orange, Charcoal, Midnight Blue, Chalk White) with no app-theme claim, on the same save ids as before. Your choice recolors your sails and persists, and **Finish** sends you on to Ezra.
 
 **Q0.3 · Copy the Master Chart** *(00 · Connect to your repository)*
 - Ezra waits at his chart table on the quay by the pier foot. He explains that a **fork** is *your own copy* of the course repository on GitHub, and grants **[P] "Fork the course"** (pg.fork, with the fork URL).
@@ -268,14 +268,16 @@ The stops run along the harbour in the chapter's order, so there's no doubling b
 - **Gear Rack (scenery):** four pieces over readable plaques (compass = Git `git --version`, lantern = Node.js `node -v`, rope coil = npm `npm -v`, spyglass = GitHub CLI `gh --version`) under a **Gear Check** header. Bo runs them (the `gear-checks` cue) and the terminal panel shows every version plus `gh auth status`. **Every check passes:** the game can't see your machine, so it never claims a tool is missing. *"If one says command not found, install just that tool, then run the checks again."* E at the rack reruns the readout any time.
 - GitHub CLI has its own sign-in. **S0.1:** `gh auth status` shows *someone-else*. What now? → `gh auth login` → **GitHub.com** → **Login with a web browser** → run `gh auth status` again and confirm. **[P] "Terminal in the app"** (pg.terminal) has the checks, `gh auth status`, and `gh auth login` as a code block.
 
-**Q0.6 · Open the Sluice (optional)**. Opens once the crane's done. Suri's mill shows what turning on workflows does → **P0.1**, then **[P] "The practice checks"** (pg.checks). Afterwards, Wingman heads off a mix-up: *"These are GitHub Actions workflows. The Clock Tower's **Automations** are something else, saved agent tasks, and you'll learn those much later."*
+**Q0.6 · The Mill Race (optional)**. Opens once the crane's done (your fork has its practice pull requests). Suri: *"With workflows on, GitHub runs automated checks on them. My mill shows how."* → **P0.1**'s channels, then **[P] "The practice checks"** (pg.checks). Afterwards, Wingman heads off a mix-up: *"These are GitHub Actions workflows. The Clock Tower's **Automations** are something else, saved agent tasks, and you'll learn those much later."*
 
-**Q0.7 · The Dry-Run Crane** *(00 · Add the course practice items, steps 2-3)*
+**Q0.7 · The Dry-Run Crane** *(00 · Add the course practice items, steps 1-5)*
 - Kept short and literal (six lines). Pim & Pol say the crane runs the course's setup script on your fork, which adds **labels**, **issues**, **branches**, and **pull requests** for later chapters: *"They're practice, not problems."*
 - **Your fork's address** (if Ezra's register didn't get it): Pim asks, and the fork form opens (see **Your fork** below).
 - **Actions first** *(the section's step 1)*: *"First, on GitHub.com, open your fork's Actions tab and enable workflows."* **[P] "Turn on workflows"** (pg.workflows) names **I understand my workflows, go ahead and enable them** and, once you've given your fork, links straight to its **Actions** tab.
-- The rule, then the crane: preview with `--dry-run` in the app's **Terminal**, check the `Repository:` line names your fork, and only then run `--yes`. *"Same on our crane: aim her at your ship, pull Dry-Run, read the sign, then --yes."* → **P0.2**.
-- After the crane (three lines), Pol and Pim hand you a **[P0.S] "The setup commands"** page. It shows exactly what the crane stood for. You run both commands in the app's **Terminal** tab, from the repository root (the folder that contains `.github` and `samples`):
+- The rule, then the order: preview with `--dry-run` in the app's **Terminal**, check the `Repository:` line names your fork, and only then run `--yes`. *"Same here: Actions first. Pull the gate lever at Suri's mill, then aim our crane at your ship, Dry-Run, and --yes."* The job's next step is **`actions`**: the compass points at **Suri's gate lever** (P0.1's lever, your fork's Actions tab). Suri, if you talk to her there: *"That gate's your fork's Actions tab. Pull the lever: I understand my workflows, go ahead and enable them."* Pulling it moves the job on to the crane (**P0.2**).
+- **Skip the lever and the crane teaches it, as the real script does:** your fork's dry run prints the script's warning, `[dry-run] GitHub Actions is not active. Enable workflows at https://github.com/<fork>/actions before running with --yes.`, and `--yes` stops with `Setup failed: The Book app web workflow is not active. Open https://github.com/<fork>/actions, enable workflows for the fork, then rerun the setup script.` Pol: *"Setup failed! Your fork's workflows are still off. Pull the gate lever at Suri's mill, that's the Actions tab, then run --yes again."* (00 · The script stops with "Setup failed").
+- **Older saves:** a save waiting at the crane (`crane`) with the gate never pulled goes back to `actions` (`migrateQuests`); a save that finished the crane before the lever was required has its gate lifted for it.
+- After the crane (four lines), Pol and Pim hand you a **[P0.S] "The setup commands"** page. Pim adds what to do if the line was wrong in the app: *"If the Repository line ever isn't yours, you probably added the original. Add your fork to Projects instead."* (00 · Connect to Your Repository, step 3). It shows exactly what the crane stood for. You run both commands in the app's **Terminal** tab, from the repository root (the folder that contains `.github` and `samples`):
   ```bash
   node .github/scripts/setup-training-scenarios.js --dry-run   # preview; check the Repository: line
   node .github/scripts/setup-training-scenarios.js --yes       # run it; wait for "Setup complete."
@@ -298,11 +300,11 @@ The stops run along the harbour in the chapter's order, so there's no doubling b
 
 ### 4.5 Puzzles
 
-**P0.1 · Sluice & Waterwheel** (warm-up, ~2 min)
-- A 3×4 grid of rotatable channel tiles runs between the waterfall ("Actions spring") and the waterwheel. You rotate tiles with E to connect a path. There's a single solution, and 2 dead-end tiles act as distractors. The water is a **flow-map surface** that follows each tile's direction. When a tile connects, its water visibly starts moving, and a dead end pools and stops.
-- The final gate carries a painted sign: *"Workflows aren't being run on this forked repository."* Its lever reads **"I understand my workflows, go ahead and enable them."**
-- **Solved:** water flows, the wheel turns, and lanterns across the village light up. Suri: *"There. The practice checks can run on your fork now."*
-- **Hints:** (1) "Follow the water from the spring." (2) Highlights the tile nearest the break. (3) Auto-rotates one tile.
+**P0.1 · Sluice & Waterwheel** (two parts: the gate lever, required; the mill race, optional, ~2 min)
+- **The gate (Q0.7 `actions`, before the crane):** the basin gate carries a painted sign, *"Workflows aren't being run on this forked repository."*, and its lever's plaque reads **"I understand my workflows, go ahead and enable them."** (both sized to read from the tiles). Pulling it lifts the gate: workflows are on, and the crane's `--yes` will run.
+- **The mill race (Q0.6, optional, once the crane's stocked your fork):** a 3×4 grid of rotatable channel tiles runs from the Actions spring to **two outlets**: the **waterwheel** (the practice checks running) and the **check gate**, a board jammed shut under a sign, *"Practice check: fails on purpose."* (00 · Add the Course Practice Items: *"an intentionally failing automated check"*). A **tee** tile splits the water. You turn tiles with **E** (clockwise) or **Shift+E** (anticlockwise, as in Channel Routing; the pad's run button + A). There's a single solution (up to the 2 dead-end caps), about a dozen presses. The water is a **flow-map surface** that follows each tile's direction: a connected run moves, a dead end pools, and the water reaching the check gate backs up against it. The wheel turns as soon as it gets water.
+- **Solved (both outlets wet):** the wheel turns, the check gate stays jammed, and the lanterns light. Suri: *"There! With workflows on, GitHub runs the practice checks. See the check gate? That one fails on purpose."* *"That's practice, not a broken setup. You'll fix it in a later chapter."*
+- **Hints:** the gate: (1) read the sign (2) the lever's words (3) pulls it. The race: (1) "Does it reach both outlets?" (2) Highlights the tile nearest the break (and says when Shift+E is the short way). (3) Turns one tile.
 
 **P0.2 · The Dry-Run Crane** (signature, ~4 min)
 - **Pieces:** a crane on a capstan (4 facings, one per berth), a **Dry-Run lever**, a **`--yes` lever**, and a painted **`Repository:` sign** on the crane arm. Berth 1 is your ship: the sign and terminal show **your fork's `owner/repo`** once you've given it (otherwise `your-handle/copilot-app-for-beginners`). Berth 2 belongs to another captain. Berth 3 flies a guild (organization) flag.
@@ -313,6 +315,7 @@ The stops run along the harbour in the chapter's order, so there's no doubling b
   3. Pull **`--yes`**. Real crates drop into your hold with a satisfying stack animation, and a banner unfurls: **`Setup complete.`**
 - **Guards (these teach; nothing fails):**
   - Pulling `--yes` before a confirmed dry-run makes Pol stop you: *"Preview first, always!"*
+  - Workflows still off (Suri's gate lever not pulled): your fork's dry run carries the script's Actions warning, and `--yes` stops with its `Setup failed:` message (see Q0.7).
   - Aiming at **Berth 3** makes the crane lock. *"The script stops before changing a repository owned by an organization."* An optional dialogue explains `--allow-shared-repository`.
 - **Checklist board:** labels, issues, practice branches, and pull requests, each ticked as its crate lands.
 - **Your fork (Ezra's register, then the crane):** right after forking (Q0.3), Ezra asks for the fork's address, while it's in the browser. Skipped there, Pim asks once more in the crane brief. The form takes `https://github.com/<owner>/<repo>`, `github.com/<owner>/<repo>`, `<owner>/<repo>`, an SSH remote, a trailing `.git` or `/`, or a `*.ghe.com` host; it reads the address back, warns if the name isn't `copilot-app-for-beginners`, refuses the original `github/copilot-app-for-beginners`, and always offers **Skip for now**. It never calls GitHub: the fork is kept in the local save only (`progress.fork`), and the Logbook's Quests tab can change or forget it. It's used in on-screen text only (voiced lines can't say it): the crane's sign and terminal, Bo's `gh auth status` line, S0.3's search results, Ezra's add-your-fork caption, and links into the fork on pg.fork, pg.workflows, pg.checks, P0.S, B0.3, and B2.1.
@@ -461,7 +464,7 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
   - Quick explanation → default.
 - **Try it:** the speaking tube shows the chapter's prompt (*"In samples/book-app-web, explain how filterBooks searches book titles and authors. Does letter case affect the results?…"*) with a **"Try it in the app ↗"** link to the chapter section. You then choose **"I tried it"** or **"Show me a good answer"**. Only after that choice does Juno describe what a good answer contains: it matches titles and authors without depending on letter case, it cites `samples/book-app-web/src/App.tsx`, and no files change. Players who never open the app still learn it, and players who do aren't spoiled.
 
-**Q1.8 · The Hall of Records** *(01 · Settings)*. Pell's hall has **9 alcoves**, one per settings area: General, Accounts, Sessions, Themes, Accessibility, Voice dictation, Customize, Model providers, Experimental (and a **Projects** list below them). Settings opens from the gear at the bottom of the sidebar. → **P1.3**, then **H1.6** on `app-settings`: "Where would you set **app-wide instructions**?" → **Sessions** `[0.209,0.258,0.140,0.033]`. Pell adds: *"Model providers connects extra providers with your own keys. It doesn't replace the model picker below the prompt box."* **[C1.5]**
+**Q1.8 · The Hall of Records** *(01 · Settings)*. *(Built as quest Q1.7, steps `start` → `letters` → `solved` → `done`.)* Pell's hall has **an alcove per Settings area**, in the app's order: General, Accounts, Sessions, Themes, Accessibility, Voice dictation, Customize, Model providers, Experimental, and **Projects** last (the app lists each project below the areas). Pell shows `app-settings`: *"Select the gear at the bottom of the sidebar"* (the course: *"Select the gear icon at the bottom of the sidebar to open **Settings**"*), then hands you his lost letters → **P1.3**. His debrief shows `app-settings` again (*"Each alcove in my hall is an area in Settings, in the same order as the app… they're listed down the left. Projects is at the foot"*), then the hotspot on `app-settings`: "You want to give the app instructions that apply to every session. Which settings area?" → **Sessions** (built as **H1.4**; the spec called it H1.6). Pell adds: *"Model providers connects other providers with your own API keys. It doesn't replace the model picker."* He files Settings and Voice dictation pages and the chapter's troubleshooting (B1.1-B1.3), ending on *"Can't find a setting? Look for the closest area. Versions vary."* (01 · Troubleshooting).
 
 **Q1.9 · The Whispering Gallery (optional)** *(01 · Optional: Voice dictation)*. An echoing dome explains that dictation turns speech into **editable prompt text**. **O1.1** orders the steps: Settings → **Voice dictation** → set up input device → **Microphone privacy / Open preferences** → **Test mic** → note the shortcut → new chat → use the shortcut. *The POC never touches the real microphone.*
 
@@ -485,6 +488,7 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 
 - **Feedback:** a misrouted crate bounces back with a one-line reason.
 - **Solved:** both doors swing open, and the tavern cheers.
+- **As built** (`src/world/sites/crate-yard-logic.ts`, `src/game/puzzles/crate-yard.ts`): a 5×5 yard with 3 Chat plates and 4 Project plates and 7 crates: *Ask a quick question*, *Brainstorm ideas*, *Explain worktrees, in general* → Chat; *Fix a bug in the repo*, *Add a test for search*, *Open a pull request*, *Tour the book app (no edits)* → Project. Each trick crate starts one push from the wrong plate. The rule is the course's: a project session when the agent needs your repository (to read it, change code or make a pull request); a chat for questions, brainstorming, summaries and orientation (01 §Chats, Project Sessions, and Modes; §Project Sessions). Each crate's reason cites its section (`cited` in `ch01.ts`); the tour refused at the tavern says *"No files change, but it needs your repository. That's a project session."* Hint tier 1: *"Does the agent need your repository for this job?"* **Z** (or LB) takes back the last push, the lever resets the yard, and each crate's top label turns to face you. 15 pushes solve it. Anders' debrief shows `app-quick-chat`: a question starts with **+** next to **Projects** → **Chat**; repository work starts from the **+** next to your project.
 
 **P1.2 · The Three Helms** (signature, ~7 min). Three short harbor voyages in a training cutter, one per helm:
 1. **Interactive · Harbor Slalom:** you steer through 5 buoys. At each buoy the crew *checks in* ("Hard to port, Captain?"), and you confirm or adjust. It teaches step-by-step collaboration.
@@ -492,6 +496,11 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 3. **Autopilot · Supply Run:** a clear, well-defined outcome (deliver 3 crates to the mole). Set the destination and let the trusted helmsman sail it **end to end with no required input**. It follows an **authored waypoint spline** around moored boats and buoys (PLAN §6 Physics & motion). A small, de-emphasized **Stop** control exists, but it's optional and the voyage never asks you for anything.
 
 *Checkpoints:* P1.2 saves after each of the three voyages (§3.9).
+
+*As built* (`src/world/sites/helms-logic.ts`, `src/game/puzzles/three-helms.ts`, ~4 min): three buoys in the bay, each an order from Rhea, not a mode. At each one she hands you an **order card** written from the modes table's use-case column (01 §Modes), and you pick the helm on a card beside the session panel (1-3, tap, or d-pad and A). Each option shows the course's own words for the mode (*"Step-by-step collaboration"*, *"Plan first, execute when ready"*, *"End-to-end execution without interruption"*). A wrong pick gets Rhea's voiced reason; **Autopilot** on the reef passage sets off and stops: *"This passage is one where the approach matters. Chart it first."* Then the run makes you use the mode:
+1. **Interactive · The Blue Marks:** at the buoy and at each mark you **choose the next heading** (two each time). You direct the work; Rhea's wrap-up says a yes for each tool is **Tool permissions**, not the mode.
+2. **Plan · The Reef Passage:** Rhea charts the route (a dashed line on the water and the plan in the session panel), and the review offers the app's options as the course names them: **Approve and implement this plan**, **Exit plan mode and I will prompt myself**, **Suggest changes to the plan** (02 §Exercise: Start a Session from a Branch and Attach an Issue). Her first chart cuts straight across the **Shoal** (a marked hazard): approving it now is refused with the reason, exiting returns to Interactive, and suggesting changes re-charts round it. Approving the fixed plan sails it in **Autopilot**, straight through.
+3. **Autopilot · The Run Home:** a well-defined task with a clear outcome: she sails to your berth and moors, with no stops.
 
 - **S1.2 (scenario, 5 cards):**
 
@@ -505,19 +514,26 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 
 - **Bonus MC:** "Is Autopilot the 'highest level' you unlock?" → *No. They're options you pick per task.*
 
-**P1.3 · Banners of the Hall** (Zelda-style rotating pillars, ~3 min)
-- Six stone pillars, each with 3 banner faces (settings areas). Above each pillar a request is carved. Rotate every pillar to its matching area and the **Archive vault** opens (chest **C1.5**).
+**P1.3 · The Lost Letters** *(built; ~2-3 min; replaces the spec's "Banners of the Hall" after the 2026-10-15 puzzle audit: its carvings copied the course's keywords, three faces a pillar fell to elimination, and it skipped four areas and the Model providers lesson)*
+- **Where:** the Hall of Records on the citadel. Five oak record cabinets stand between the portico's six columns, two alcoves each, one per Settings area in the app's order (top row General → Accessibility, bottom row Voice dictation → **Projects** on a brown plate), with a "Settings" board on the middle one. Pell's desk stands in front with his bundle of letters and his tray, and Pell at the top of the steps beside it. The two portico banners moved out past the end columns so they don't hide a cabinet. Built from the village kit's wood and plaster and one sign atlas (no new shader; `src/world/sites/records-alcoves.ts`).
+- **Play:** E at the desk opens the bundle (an overlay, `src/ui/puzzles/LostLetters.tsx`) with the camera on the cabinets. Each letter is a captain's problem in their own words, never the area's name. File it with the number keys (**1-9**, **0** for Projects), **N** for Pell's tray, arrows/WASD + Enter, the d-pad + A (B closes), a tap or a click (every target ≥ 44 px). **Esc** steps away; filed letters stay filed and the place you've reached is saved. A filed letter stands in its alcove (the decoy lies in the tray).
+- **Wrong filing:** the letter comes back with Pell's reason (shown and read as his line), and the course section under it. By default the reason is what the chosen area holds (the course's table) plus what the captain needs; a real letter in the tray gets *"There's an area in Settings for this one. Look for the closest match."* (01 · Troubleshooting). Logic: `src/game/puzzles/hall-letters.ts` (unit tests check the alcoves against the course's table, the citations against `content/course.lock.json`, and that no letter names its area).
 
-| Carved request | Answer |
-|---|---|
-| Set app-wide instructions | **Sessions** |
-| Add another GitHub account | **Accounts** |
-| Use your own API keys for other providers | **Model providers** |
-| Change where repositories are stored | **General** |
-| Display zoom & keyboard shortcuts | **Accessibility** |
-| Try preview features | **Experimental** |
+| # | Letter (abridged) | Files in | Lesson (01 · section) |
+|---|---|---|---|
+| 1 | "The second fleet gave me its own GitHub login. How do I get both into the app?" | **Accounts** | Add another GitHub account (Settings) |
+| 2 | "The words in the app are too small. I'd like the whole thing bigger." | **Accessibility** | Display zoom; Themes is the look, not the size (Settings) |
+| 3 | "Your agent's answers run on for pages! I want short, plain replies from now on." | **Sessions** | Set the response style (Settings) |
+| 4 | "My company pays for models from another provider. I want them with our own API key." | **Model providers** | Custom models from other providers with your own keys (Settings) |
+| 5 | **Decoy:** "This bug's a nasty one, across several files. I want a stronger model, and more thinking, for this one task." | **Pell's tray (Not in Settings)** | Pick the model and effort in the model control below the prompt box (Models and Reasoning Effort). In Model providers: *"Model providers connects extra providers with your own keys. It doesn't replace the model picker below the prompt box."* (Settings) |
+| 6 | "I connected a project I hardly use. I'd like it out of my sidebar, but I don't want to lose it." | **Projects** | Per-project settings such as **Show in sidebar** (Settings) |
+| 7 | "I want to add an MCP server, so the agent can reach our ticket tracker." | **Customize** | Pell: *"Right alcove, and it points you on. You manage MCP servers in the Customize view, in the sidebar."* (Settings) |
 
-- **Hints:** (1) "Read each carving aloud." (2) Highlights one wrong pillar. (3) Solves one pillar.
+- **Hints** (Wingman, at the desk): (1) "Read the letter for what the captain's trying to do. Then think where that lives in Settings." (2) The right alcove glows in the overlay. (3) Files the letter in hand.
+- **Solved:** a chime, then Pell's debrief (Q1.8 above) with the H1.4 hotspot as the transfer step. The chart label `puzzle:P1.3` shows once per save when you first stand at the desk.
+- **Older saves:** a save that finished Pell before the letters keeps Q1.7 done; Pell says a new bundle came in, and the desk offers the letters for practice (a short debrief, no quest change). Those saves also get the new **Settings** glossary term (`TAUGHT_BY` in `src/learn/progress.ts`).
+- **Voice:** Pell (`en-GB-ElliotNeural`): `mer.pell.letters`, `.letters.02`, `.letters.wait`, `.letter.ok`, `.letter.customize`, `.letter.decoy`, `.letters.solved`, `.letters.debrief`, `.letters.again`; each teaching line is cited in `ch01.ts` `voiced`. The reasons are unvoiced lines.
+- **Tests:** `hall-letters.test.ts`, `meridian-quests.test.ts`; `tools/meridiantest.mjs` plays it with the keyboard (`--from=pell` starts there); the video scenario is `tools/video/scenarios/p1-3-letters.mjs`.
 
 ### 6.6 Chests & pages
 | ID | Where | Image | Caption |
@@ -526,13 +542,13 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 | C1.2 | Bounty Board | `01-tour-the-app/assets/app-pull-requests-page.webp`, `app-issues-page.webp` | **Pull requests** and **Issues** list the items that involve you, with tabs to filter them. |
 | C1.3 | Clock Tower | `01-tour-the-app/assets/app-automations-page.webp` | **Automations** saves agent tasks to run manually, on a schedule, or from events. |
 | C1.4 | Tavern cellar | `01-tour-the-app/assets/app-quick-chat.webp` | Start a chat with **+** next to **Projects**, then **Chat**. The project picker shows **Chat**. |
-| C1.5 | Archive vault | `01-tour-the-app/assets/app-settings.webp` | **Settings** holds General, Accounts, Sessions, Themes, Accessibility and more. |
+| C1.5 | Archive vault *(not built: P1.3's debrief shows this image instead)* | `01-tour-the-app/assets/app-settings.webp` | **Settings** holds General, Accounts, Sessions, Themes, Accessibility and more. |
 | C1.6 | Workshop | `01-tour-the-app/assets/editor-vs-app.webp` | Use both. Switch when the job changes. |
 | C1.7 | Academy | `01-tour-the-app/assets/session-mode-decision-ladder.webp` | Interactive, Plan, Autopilot, with more autonomy from left to right: pick the mode that fits the task. |
 | C1.8 | Fountain | `01-tour-the-app/assets/producer-control-room-modes.webp` | A producer directs each take differently, and so do you. |
 
 ### 6.7 The Admiral's Exam (A1)
-Nine items. Pass with all correct (retries allowed, hint tier 3 off). All six key takeaways are covered: takeaway 1 → #1, 2 → #2, 3 → #3, 4 → #5, 5 → #9, 6 → #6-7. The rest are extras.
+Nine items. Pass with all correct (retries allowed, hint tier 3 off). All five of the chapter's key takeaways are covered. As built in `src/learn/content/ch01.ts`: takeaway 1 → A1.1, 2 → A1.3, 3 → A1.4, 4 → A1.6, 5 → A1.9. The rest are extras.
 1. **MC:** "When do you open the app instead of staying in your editor?" → *When agent work needs a clearer place to run and review.*
 2. **MC:** "Can you open the project in VS Code from the app?" → *Yes, any time.*
 3. **Matching:** New / Pull requests / Issues / Automations / Customize → their purposes.

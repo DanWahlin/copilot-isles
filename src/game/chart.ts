@@ -122,6 +122,11 @@ function coveCoast(cell = 4): { coast: [number, number][][]; reef: [number, numb
   return cachedCoast;
 }
 
+/** Works out the Chart's coastlines ahead (the title does, while idle), so the Chart opens at once. */
+export function prewarmChart(): void {
+  coveCoast();
+}
+
 export function buildChart(
   anchors: Record<string, { x: number; z: number; heading: number }>,
   player: { x: number; z: number; heading: number; onShip: boolean } | null,

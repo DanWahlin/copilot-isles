@@ -874,6 +874,19 @@ export function headlandCliffCameraBlockers(
   out: CameraBlockerBox[],
   tier: Tier = 'high',
 ): void {
+  const steps = headlandCliffCameraBlockerSteps(heightField, out, tier);
+  while (!steps.next().done);
+}
+
+/**
+ * `headlandCliffCameraBlockers`, yielding after each column group and each rock: all at once, it held
+ * a frame for ~120 ms while the cabin played over the island build.
+ */
+export function* headlandCliffCameraBlockerSteps(
+  heightField: Pick<HeightField, 'heightAt' | 'shapeField'>,
+  out: CameraBlockerBox[],
+  tier: Tier = 'high',
+): Generator<void, void, void> {
   const frame = headlandCliffFrame(heightField);
   if (frame.stations.length < 2) return;
   const detail = HEADLAND_CLIFF_DETAIL[tier];
@@ -1071,9 +1084,12 @@ export function headlandCliffCameraBlockers(
         y1,
       });
     }
+    yield;
   }
-  for (const part of [...footBlocks(frame, detail, profile), ...topOutcrops(frame, detail)])
+  for (const part of [...footBlocks(frame, detail, profile), ...topOutcrops(frame, detail)]) {
     rockCameraBlockers(part, (x, z) => heightField.heightAt(x, z), out);
+    yield;
+  }
   // The game's cliff (built with the terrain, so before this) moved some of its face out further.
   const covered = coverBlockers.get(heightField);
   if (covered) for (const b of covered) out.push(b);

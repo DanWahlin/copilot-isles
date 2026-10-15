@@ -1,7 +1,7 @@
 {
   "id": "mer.helm.interactive.take",
   "speaker": "Rhea",
-  "text": "Interactive helm. We’ll sail one leg at a time, and I’ll check with you at every mark.",
+  "text": "Interactive helm. We’ll work it out together, step by step. At each mark, you choose the heading.",
   "words": [
     {
       "word": "Interactive",
@@ -16,77 +16,77 @@
     {
       "word": "We’ll",
       "start": 2.07525,
-      "end": 2.293708
+      "end": 2.281541
     },
     {
-      "word": "sail",
-      "start": 2.293708,
-      "end": 2.621375
+      "word": "work",
+      "start": 2.281541,
+      "end": 2.560666
     },
     {
-      "word": "one",
-      "start": 2.621375,
-      "end": 2.864083
+      "word": "it",
+      "start": 2.560666,
+      "end": 2.682041
     },
     {
-      "word": "leg",
-      "start": 2.864083,
-      "end": 3.094666
+      "word": "out",
+      "start": 2.682041,
+      "end": 2.851958
     },
     {
-      "word": "at",
-      "start": 3.094666,
-      "end": 3.203875
+      "word": "together",
+      "start": 2.851958,
+      "end": 3.483
     },
     {
-      "word": "a",
-      "start": 3.203875,
-      "end": 3.276708
+      "word": "step",
+      "start": 3.483,
+      "end": 3.822833
     },
     {
-      "word": "time",
-      "start": 3.276708,
-      "end": 3.932041
+      "word": "by",
+      "start": 3.822833,
+      "end": 3.956291
     },
     {
-      "word": "and",
-      "start": 3.932041,
-      "end": 4.029125
+      "word": "step",
+      "start": 3.956291,
+      "end": 5.279125
     },
     {
-      "word": "I’ll",
-      "start": 4.029125,
-      "end": 4.17475
+      "word": "At",
+      "start": 5.279125,
+      "end": 5.473291
     },
     {
-      "word": "check",
-      "start": 4.17475,
-      "end": 4.478166
-    },
-    {
-      "word": "with",
-      "start": 4.478166,
-      "end": 4.635916
-    },
-    {
-      "word": "you",
-      "start": 4.635916,
-      "end": 4.781541
-    },
-    {
-      "word": "at",
-      "start": 4.781541,
-      "end": 4.927166
-    },
-    {
-      "word": "every",
-      "start": 4.927166,
-      "end": 5.169916
+      "word": "each",
+      "start": 5.473291,
+      "end": 5.716
     },
     {
       "word": "mark",
-      "start": 5.169916,
-      "end": 5.419916
+      "start": 5.716,
+      "end": 6.371375
+    },
+    {
+      "word": "you",
+      "start": 6.371375,
+      "end": 6.517
+    },
+    {
+      "word": "choose",
+      "start": 6.517,
+      "end": 6.856791
+    },
+    {
+      "word": "the",
+      "start": 6.856791,
+      "end": 6.94175
+    },
+    {
+      "word": "heading",
+      "start": 6.94175,
+      "end": 7.19175
     }
   ]
 }

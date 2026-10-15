@@ -1,7 +1,7 @@
 {
   "id": "mer.helm.plan.take",
   "speaker": "Rhea",
-  "text": "Plan helm. Here’s the route I’ve charted. Look it over, then approve it.",
+  "text": "Plan helm. Here’s the route I’ve charted. Read it before you choose.",
   "words": [
     {
       "word": "Plan",
@@ -39,34 +39,29 @@
       "end": 4.004875
     },
     {
-      "word": "Look",
+      "word": "Read",
       "start": 4.004875,
-      "end": 4.223291
+      "end": 4.284
     },
     {
       "word": "it",
-      "start": 4.223291,
-      "end": 4.356791
+      "start": 4.284,
+      "end": 4.405333
     },
     {
-      "word": "over",
-      "start": 4.356791,
-      "end": 4.951458
+      "word": "before",
+      "start": 4.405333,
+      "end": 4.684458
     },
     {
-      "word": "then",
-      "start": 4.951458,
-      "end": 5.145625
+      "word": "you",
+      "start": 4.684458,
+      "end": 4.854375
     },
     {
-      "word": "approve",
-      "start": 5.145625,
-      "end": 5.521833
-    },
-    {
-      "word": "it",
-      "start": 5.521833,
-      "end": 5.771833
+      "word": "choose",
+      "start": 4.854375,
+      "end": 5.104375
     }
   ]
 }

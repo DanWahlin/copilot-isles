@@ -1,67 +1,97 @@
 {
   "id": "suri.sluice.01",
   "speaker": "Suri",
-  "text": "Lever first, then turn the channels. Follow the water from the spring.",
+  "text": "Follow the water from the spring. It has to reach both outlets: my wheel and the check gate.",
   "words": [
     {
-      "word": "Lever",
-      "start": 0.07,
-      "end": 0.43
-    },
-    {
-      "word": "first",
-      "start": 0.43,
-      "end": 0.87
-    },
-    {
-      "word": "then",
-      "start": 0.87,
-      "end": 1.27
-    },
-    {
-      "word": "turn",
-      "start": 1.27,
-      "end": 1.47
-    },
-    {
-      "word": "the",
-      "start": 1.47,
-      "end": 1.63
-    },
-    {
-      "word": "channels",
-      "start": 1.63,
-      "end": 2.55
-    },
-    {
       "word": "Follow",
-      "start": 2.55,
-      "end": 2.949
+      "start": 0.07,
+      "end": 0.55
     },
     {
       "word": "the",
-      "start": 2.949,
-      "end": 3.07
+      "start": 0.55,
+      "end": 1.07
     },
     {
       "word": "water",
-      "start": 3.07,
-      "end": 3.429
+      "start": 1.07,
+      "end": 1.59
     },
     {
       "word": "from",
-      "start": 3.429,
-      "end": 3.59
+      "start": 1.59,
+      "end": 1.75
     },
     {
       "word": "the",
-      "start": 3.59,
-      "end": 3.71
+      "start": 1.75,
+      "end": 1.87
     },
     {
       "word": "spring",
-      "start": 3.71,
-      "end": 3.96
+      "start": 1.87,
+      "end": 2.11
+    },
+    {
+      "word": "It",
+      "start": 2.11,
+      "end": 2.19
+    },
+    {
+      "word": "has",
+      "start": 2.19,
+      "end": 2.429
+    },
+    {
+      "word": "to",
+      "start": 2.429,
+      "end": 2.51
+    },
+    {
+      "word": "reach",
+      "start": 2.51,
+      "end": 2.71
+    },
+    {
+      "word": "both",
+      "start": 2.71,
+      "end": 2.869
+    },
+    {
+      "word": "outlets",
+      "start": 2.869,
+      "end": 3.51
+    },
+    {
+      "word": "my",
+      "start": 3.51,
+      "end": 3.789
+    },
+    {
+      "word": "wheel",
+      "start": 3.789,
+      "end": 4.23
+    },
+    {
+      "word": "and",
+      "start": 4.23,
+      "end": 4.43
+    },
+    {
+      "word": "the",
+      "start": 4.43,
+      "end": 4.55
+    },
+    {
+      "word": "check",
+      "start": 4.55,
+      "end": 4.83
+    },
+    {
+      "word": "gate",
+      "start": 4.83,
+      "end": 5.08
     }
   ]
 }

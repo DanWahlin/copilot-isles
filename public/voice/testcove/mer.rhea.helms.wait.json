@@ -1,82 +1,77 @@
 {
   "id": "mer.rhea.helms.wait",
   "speaker": "Rhea",
-  "text": "The three helms are out in the bay, Captain. Board your ship and sail them.",
+  "text": "My orders are waiting at the buoys, Captain. Board your ship and sail out.",
   "words": [
     {
-      "word": "The",
+      "word": "My",
       "start": 0.0485409,
-      "end": 0.182041
+      "end": 0.254875
     },
     {
-      "word": "three",
-      "start": 0.182041,
-      "end": 0.521833
-    },
-    {
-      "word": "helms",
-      "start": 0.521833,
-      "end": 0.898041
+      "word": "orders",
+      "start": 0.254875,
+      "end": 0.655333
     },
     {
       "word": "are",
-      "start": 0.898041,
-      "end": 1.007291
+      "start": 0.655333,
+      "end": 0.740291
     },
     {
-      "word": "out",
-      "start": 1.007291,
-      "end": 1.225708
+      "word": "waiting",
+      "start": 0.740291,
+      "end": 1.165041
     },
     {
-      "word": "in",
-      "start": 1.225708,
-      "end": 1.322833
+      "word": "at",
+      "start": 1.165041,
+      "end": 1.25
     },
     {
       "word": "the",
-      "start": 1.322833,
-      "end": 1.40775
+      "start": 1.25,
+      "end": 1.347083
     },
     {
-      "word": "bay",
-      "start": 1.40775,
-      "end": 1.978166
+      "word": "buoys",
+      "start": 1.347083,
+      "end": 1.953875
     },
     {
       "word": "Captain",
-      "start": 1.978166,
-      "end": 3.373791
+      "start": 1.953875,
+      "end": 3.3495
     },
     {
       "word": "Board",
-      "start": 3.373791,
-      "end": 3.640791
+      "start": 3.3495,
+      "end": 3.6165
     },
     {
       "word": "your",
-      "start": 3.640791,
-      "end": 3.774291
+      "start": 3.6165,
+      "end": 3.75
     },
     {
       "word": "ship",
-      "start": 3.774291,
-      "end": 4.126208
+      "start": 3.75,
+      "end": 4.101958
     },
     {
       "word": "and",
-      "start": 4.126208,
-      "end": 4.235416
+      "start": 4.101958,
+      "end": 4.211166
     },
     {
       "word": "sail",
-      "start": 4.235416,
-      "end": 4.623791
+      "start": 4.211166,
+      "end": 4.563125
     },
     {
-      "word": "them",
-      "start": 4.623791,
-      "end": 4.873791
+      "word": "out",
+      "start": 4.563125,
+      "end": 4.813125
     }
   ]
 }

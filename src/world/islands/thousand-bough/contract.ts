@@ -89,7 +89,7 @@ export type TbInteractionId =
   | 'booth:c';
 
 export interface FlumeTerraceView {
-  /** Round 3 drops the boulder and swaps the tiles. */
+  /** A round starts (every round plays on the same board; round 3's channels are dug already). */
   setRound(round: 1 | 2 | 3): Promise<void>;
   setBoard(board: ChannelRoutingState['board'], animate: boolean): void;
   setCursor(cell: readonly [number, number] | null): void;

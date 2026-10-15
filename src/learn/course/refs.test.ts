@@ -9,7 +9,7 @@ import { chapterLock, glossaryLock, HASH_LENGTH, type CourseLock } from './lock'
 
 /**
  * PLAN §8.3-8.4 guards: the bundled snapshot matches `content/course.lock.json`, and every authored
- * `SourceRef` (quizzes, Logbook pages, voiced lines) and course image resolves against it.
+ * `SourceRef` (quizzes, Logbook pages, voiced lines, cited teaching text) and course image resolves against it.
  */
 const ROOT = join(__dirname, '../../..');
 const PUBLIC = join(ROOT, 'public');
@@ -23,6 +23,9 @@ function allRefs(): { where: string; ref: SourceRef }[] {
   for (const p of PAGES.values()) out.push({ where: `page ${p.id}`, ref: p.source });
   for (const c of CHAPTERS)
     for (const [id, ref] of Object.entries(c.voiced ?? {})) out.push({ where: `voiced ${id}`, ref });
+  for (const c of CHAPTERS)
+    for (const [id, { source }] of Object.entries(c.cited ?? {}))
+      out.push({ where: `cited ${id}`, ref: source });
   return out;
 }
 
@@ -84,6 +87,13 @@ describe('SourceRefs', () => {
       expect(chapter!.sections[ref.anchor], `${where}: #${ref.anchor} isn't in ${ref.chapter}`).toBeDefined();
       expect(ref.hash, where).toMatch(HASH);
     }
+  });
+
+  it('includes every cited teaching line in the source checks', () => {
+    const expected = CHAPTERS.flatMap((c) => Object.keys(c.cited ?? {}).map((id) => `cited ${id}`));
+    const checked = new Set(allRefs().map(({ where }) => where));
+    expect(expected.length).toBeGreaterThan(0);
+    for (const where of expected) expect(checked, where).toContain(where);
   });
 
   it('every hotspot quiz records the bundled screenshot it was measured on', () => {

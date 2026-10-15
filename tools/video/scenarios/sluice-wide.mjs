@@ -1,9 +1,10 @@
 // Sluice & Waterwheel for the highlight reel, on one wide shot of the mill terrace: the lever, the
 // stone channel tiles, the water and the waterwheel all read at once, in the upper part of the frame
-// (clear of the reel's lower third). The puzzle is played by real input as in `sluice` (the lever,
-// the first channel turned a step too far and back, the rest, the wheel). Setup (off camera): Suri's
-// brief done (Q0.6 at "sluice"), the game's own chart labels marked as shown, the captain by the
-// lever, and the game camera held on the wide shot with its own `cut` (as the fly-bys do).
+// (clear of the reel's lower third). The mill race is played by real input as in `sluice` (the first
+// channel turned a step too far and Shift+E back, the rest, the wheel and the jammed check gate).
+// Setup (off camera): the crane done, so Suri's gate is up (Actions first), her brief done (Q0.6 at
+// "sluice"), the game's own chart labels marked as shown, the captain by the lever, and the game
+// camera held on the wide shot with its own `cut` (as the fly-bys do).
 import { labelsShown } from '../game.mjs';
 import { skipTalk } from '../lib.mjs';
 import sluice, { solveSluice } from './p0-1-sluice.mjs';
@@ -22,9 +23,11 @@ export default {
     await labelsShown(api);
     await api.S(() => {
       const d = window.__dev.session().debug;
+      // A finished crane job means workflows are on: the sluice lifts its gate.
       for (const q of ['Q0.2', 'Q0.3', 'Q0.4', 'Q0.5', 'Q0.7']) d.quest(q, 'done');
       d.quest('Q0.6', 'sluice');
     });
+    await api.waitFor(() => window.__dev.session().debug.puzzle('P0.1').state().gate, null, 3000);
     await skipTalk(page, 10_000);
     const spots = await api.S(() => window.__dev.session().debug.puzzle('P0.1').spots());
     // A few steps from the lever, so the clip opens with the captain walking up to it.

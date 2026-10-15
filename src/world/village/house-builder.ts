@@ -258,6 +258,36 @@ export function placementWorldMaxY(placement: PiecePlacement): number {
   return placement.position.y + pieceBounds(placement.piece)[4];
 }
 
+/**
+ * The yawed box round a placed piece's bounds, in the world (the shape of a box collider): for a
+ * camera blocker round a part that stands past a house's façade blocker (open shutters reach about
+ * 0.55 m off the wall).
+ */
+export function placementWorldBox(placement: PiecePlacement): {
+  x: number;
+  z: number;
+  hx: number;
+  hz: number;
+  rot: number;
+  y0: number;
+  y1: number;
+} {
+  const b = pieceBounds(placement.piece);
+  const e = placement.matrix.elements;
+  const cx = (b[0] + b[3]) * 0.5,
+    cz = (b[2] + b[5]) * 0.5;
+  return {
+    x: e[0] * cx + e[8] * cz + e[12],
+    z: e[2] * cx + e[10] * cz + e[14],
+    hx: (b[3] - b[0]) * 0.5,
+    hz: (b[5] - b[2]) * 0.5,
+    // The collision world's yaw: its local x runs along (cos rot, −sin rot).
+    rot: Math.atan2(-e[2], e[0]),
+    y0: e[13] + b[1],
+    y1: e[13] + b[4],
+  };
+}
+
 function addDoorPlacements(
   placements: PiecePlacement[],
   root: Matrix4,

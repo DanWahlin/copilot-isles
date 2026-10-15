@@ -34,6 +34,7 @@ import { createBrigantine, type Brigantine } from '../world/ship';
 import { BRIEFING_DELAY, BRIEFING_GIVE_UP, Briefing, loadBriefing, type BriefingLine } from './briefing';
 import { createCabin, type Cabin } from './cabin';
 import { createCutsceneOutput } from './cutscene-output';
+import { warmProgressively } from '../engine/warm';
 import { drawChartArt } from './chart-art';
 import { CHART_ISLANDS, chartIsland, worldToPaper, type ChartIslandId } from './chart-map';
 import { createChartPaper, rollRadius, type ChartPaper } from './chart-paper';
@@ -128,8 +129,11 @@ export interface Opening {
   warm(): Promise<void>;
   /** Sets the voyage's details and poses the first shot (after `prepare`). */
   start(details: OpeningStart): void;
-  /** Under the veil: compiles and uploads everything (one hidden draw), then lifts the veil off the cabin. */
-  play(): Promise<void>;
+  /**
+   * Under the veil: compiles and uploads everything (one hidden draw), runs `underVeil` (work that
+   * can't be sliced, while the screen is still dark), then lifts the veil off the cabin.
+   */
+  play(underVeil?: () => Promise<void>): Promise<void>;
   /** E, Space, a click or tap, gamepad A: opens the chest when it's waiting, otherwise skips ahead. */
   press(): void;
   /** Skips ahead (Esc, the Skip button). */
@@ -817,9 +821,23 @@ export function createOpening(o: OpeningOptions): Opening {
       await output.compile(piece, camera, scene);
       if (!flatOut) await yieldNow();
     }
-    // One draw offscreen: the sun's shadow pass compiles and every texture (the chart's ink, the
-    // nameplate) uploads now, not under the Set sail veil.
-    if (!disposed && !flatOut) output.renderOffscreen(scene, camera);
+    // Drawn offscreen, a few new looks a frame: the sun's shadow pass compiles and every texture (the
+    // chart's ink, the nameplate) uploads now, not under the Set sail veil. (All in one draw, it held
+    // the captain screen for ~60 ms.)
+    if (!disposed && !flatOut) {
+      let drawMs = 0;
+      await warmProgressively(
+        scene,
+        async () => {
+          if (disposed || flatOut) return;
+          const t0 = performance.now();
+          output.renderOffscreen(scene, camera);
+          drawMs = performance.now() - t0;
+          await new Promise<void>((r) => requestAnimationFrame(() => r()));
+        },
+        { targetMs: 8, startBatch: 1, frameCost: () => drawMs },
+      );
+    }
     for (const h of hidden) h.visible = false;
   }
   let prepared = false;
@@ -900,7 +918,7 @@ export function createOpening(o: OpeningOptions): Opening {
       camera.lookAt(cam.look);
       camera.updateMatrixWorld();
     },
-    async play() {
+    async play(underVeil) {
       sliceBudget.ms = Infinity;
       flatOut = true;
       await api.prepare();
@@ -924,6 +942,8 @@ export function createOpening(o: OpeningOptions): Opening {
       applyBeat(kind === 'continue' || reduced ? 99 : 0);
       engine.cutscene = cutscene;
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      if (disposed) return;
+      if (underVeil) await underVeil().catch(() => undefined);
       if (disposed) return;
       playing = true;
       const audio = o.audio();

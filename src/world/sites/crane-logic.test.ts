@@ -4,6 +4,8 @@ import {
   CRANE_START,
   YOUR_FACING,
   YOUR_REPOSITORY,
+  actionsFailure,
+  actionsWarning,
   confirmYes,
   craneFacings,
   craneHintTarget,
@@ -87,6 +89,42 @@ describe('crane logic (P0.2)', () => {
     expect(turnCapstan(done.state).event.kind).toBe('already');
     expect(dryRun(done.state).event.kind).toBe('already');
     expect(confirmYes(done.state).event.kind).toBe('already');
+  });
+
+  it('warns in the dry run and refuses --yes on your fork until its workflows are on', () => {
+    const yours = 'dan-sample/copilot-app-for-beginners';
+    const d = dryRun(turnTo(initialCrane(), YOUR_FACING), yours);
+    // The script's own words (setup-training-scenarios.js), with your fork's Actions tab.
+    expect(actionsWarning(yours)).toBe(
+      '[dry-run] GitHub Actions is not active. Enable workflows at https://github.com/dan-sample/copilot-app-for-beginners/actions before running with --yes.',
+    );
+    expect(actionsFailure(yours)).toBe(
+      'Setup failed: The Book app web workflow is not active. Open https://github.com/dan-sample/copilot-app-for-beginners/actions, enable workflows for the fork, then rerun the setup script.',
+    );
+    const preview = terminalLines(d.state, d.event, yours, false);
+    expect(preview.slice(1, 4)).toEqual([
+      `Repository: ${yours}`,
+      'Default branch: main',
+      actionsWarning(yours),
+    ]);
+    expect(preview.at(-1)).toBe('Dry run complete. No changes were made.');
+    expect(terminalLines(d.state, d.event, yours, true)).not.toContain(actionsWarning(yours));
+    const off = confirmYes(d.state, yours, false);
+    expect(off.event).toEqual({ kind: 'actions-off', repository: yours });
+    expect(off.state.complete).toBe(false);
+    expect(terminalLines(off.state, off.event, yours, false).at(-1)).toBe(actionsFailure(yours));
+    expect(signLines(off.state, off.event, yours)).toEqual([
+      'Setup failed:',
+      'The Book app web workflow is not active.',
+    ]);
+    expect(lineTone(actionsWarning(yours), yours)).toBe('other');
+    expect(lineTone(actionsFailure(yours), yours)).toBe('other');
+    // Another captain's fork is refused first (the script checks ownership before Actions).
+    const other = dryRun(initialCrane(), yours);
+    expect(terminalLines(other.state, other.event, yours, false)).not.toContain(actionsWarning(yours));
+    expect(confirmYes(other.state, yours, false).event.kind).toBe('refused');
+    // Once workflows are on, --yes runs.
+    expect(confirmYes(d.state, yours, true).event.kind).toBe('complete');
   });
 
   it('round-trips a save and drops a stale preview', () => {

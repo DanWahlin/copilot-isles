@@ -6,13 +6,16 @@ import type { SignalMastView } from './contract';
 import { THOUSAND_BOUGH as TB, TREE } from './layout';
 import { thousandBoughHeight } from './height';
 import { PAINT, beam, box, cone, lanternPaint, makeBuckets, rod, rope, type Buckets } from './village/pieces';
-import { BASKET, COLUMN_TOP, DECKS } from './village/surfaces';
+import { BASKET, bridgeY, COLUMN_TOP, DECKS } from './village/surfaces';
+import type { BridgeSpec } from './layout';
 
 /**
  * The tree village's moving set pieces: the Signal Deck's mast and its four flags (`@ # / &`), the
- * Cloud gondola gliding up into the mist on Thunder Crown every 90 s, the Sky Basket's cage, and the
- * Crown Beacon. Static parts go into the village's buckets; the moving ones are rigid parts of one
- * merged mesh per material (no new shader), placed without allocating.
+ * Cloud gondola gliding up into the mist on Thunder Crown every 90 s, the Sky Basket's cage, the
+ * Crown Beacon, and the Spire twist's two lanterns (Feature's and Docs' previews, carried out onto
+ * the Spire Bridge until they jam at mid-span). Static parts go into the village's buckets; the
+ * moving ones are rigid parts of one merged mesh per material (no new shader), placed without
+ * allocating.
  */
 
 const FLAGS = ['@', '#', '/', '&'] as const;
@@ -39,6 +42,10 @@ export interface SetPieces extends SignalMastView {
   skyBasketCar(t: number): void;
   /** The Crown Beacon lit (after the Seal). */
   beacon(on: boolean): void;
+  /** The Spire twist (P2.2): Feature's and Docs' lanterns meet mid-span on the 5173 bridge and jam. */
+  spireJam(): Promise<void>;
+  /** A crew's lantern walks to (or shows at) a lookout, or goes out. */
+  spireLantern(crew: 'feature' | 'docs', lookout: 5173 | 5174, on: boolean): void;
   update(dt: number, t: number): void;
   dispose(): void;
 }
@@ -217,6 +224,22 @@ export function createSetPieces(kit: VillageKit, statics: Buckets, signs: SignSe
     for (let i = 0; i < g.getAttribute('color').count; i++) g.getAttribute('color').setXYZ(i, 6.5, 6.2, 5.2);
     glowParts.push(flatMerge(b.glow));
   }
+  // The Spire twist's lanterns on their staffs (wood 2-3, glow 1-2): Feature's blue, Docs' teal.
+  for (const dye of [PAINT.feature, PAINT.docs]) {
+    takeWood((b) => {
+      // A big stage lantern (it has to read from the twist camera, 20 m off) held up on a pole: a
+      // few triangles, as these parts are drawn wherever the set pieces are.
+      rod(b, 'wood', { x: 0, y: -1.3, z: 0 }, { x: 0, y: -0.36, z: 0 }, 0.06, 4, PAINT.teakDark, 0.06, true);
+    });
+    const b = makeBuckets();
+    const g = box(b, 'glow', 0, 0, 0, 0.62, 0.76, 0.62, 0, 0xffffff);
+    const c = g.getAttribute('color');
+    // Bright, but not so bright it washes out to white: the crew's colour has to show.
+    const k = 2.4 / 255;
+    for (let i = 0; i < c.count; i++)
+      c.setXYZ(i, ((dye >> 16) & 255) * k + 0.1, ((dye >> 8) & 255) * k + 0.1, (dye & 255) * k + 0.1);
+    glowParts.push(flatMerge(b.glow));
+  }
   void moving;
   const wood = mergeWithRigidParts([], woodParts, { bounds: true });
   const glow = mergeWithRigidParts([], glowParts, { bounds: true });
@@ -273,6 +296,45 @@ export function createSetPieces(kit: VillageKit, statics: Buckets, signs: SignSe
   let basketOn = false;
   let basket = 0;
   let beaconOn = false;
+  // The two lanterns: on which bridge, how far along (0 the Three Landings, 1 the Spire), where
+  // they're walking to, and the jam's bump (seconds since it started; −1: none).
+  const R2 = TB.bridges.find((b) => b.id === 'R2')!;
+  const R3 = TB.bridges.find((b) => b.id === 'R3')!;
+  const lanterns = [
+    { on: false, path: R2 as BridgeSpec, t: 0.22, to: 0.22, wood: 2, glow: 1 },
+    { on: false, path: R2 as BridgeSpec, t: 0.78, to: 0.78, wood: 3, glow: 2 },
+  ];
+  let jam = -1;
+  let jammed: (() => void) | null = null;
+  const placeLantern = (l: (typeof lanterns)[number], side: number, bump: number) => {
+    if (!l.on) {
+      wood.set(l.wood, HIDE);
+      glow.set(l.glow, HIDE);
+      return;
+    }
+    const b = l.path;
+    const t = l.t + bump;
+    const walking = Math.abs(l.to - l.t) > 1e-3;
+    const bob = walking ? Math.abs(Math.sin(gondolaT * 9)) * 0.06 : 0;
+    // Carried at hand height along the bridge's centre line, swinging a little.
+    V.set(
+      b.from.x + (b.to.x - b.from.x) * t,
+      bridgeY(b, Math.min(1, Math.max(0, t))) + 1.3 + bob,
+      b.from.z + (b.to.z - b.from.z) * t,
+    );
+    // Facing along the bridge, the way it's carried (the two face each other).
+    Q.setFromAxisAngle(Y, Math.atan2(b.to.x - b.from.x, b.to.z - b.from.z) + (side > 0 ? 0 : Math.PI));
+    M.compose(V, Q, ONE);
+    wood.set(l.wood, M);
+    glow.set(l.glow, M);
+  };
+  const placeLanterns = () => {
+    // The jam: they bump nose to nose a few times, then stand stuck.
+    const u = jam < 0 ? 1 : Math.min(1, jam / 1.4);
+    const bump = jam < 0 ? 0 : Math.max(0, Math.sin(jam * 13)) * 0.012 * (1 - u);
+    placeLantern(lanterns[0]!, 1, bump);
+    placeLantern(lanterns[1]!, -1, -bump);
+  };
   const placeCable = (t: number, out: Vector3) => {
     const sag = 2.5 * 4 * t * (1 - t);
     return out.set(
@@ -307,6 +369,7 @@ export function createSetPieces(kit: VillageKit, statics: Buckets, signs: SignSe
       );
     else wood.set(1, M.compose(V.set(BASKET.x, TB.skyBasket.topY, BASKET.z), Q, ONE));
     glow.set(0, beaconOn ? M.compose(V.set(TREE.x, beaconY, TREE.z), Q, ONE) : HIDE);
+    placeLanterns();
     wood.commit();
     glow.commit();
   };
@@ -350,8 +413,58 @@ export function createSetPieces(kit: VillageKit, statics: Buckets, signs: SignSe
       beaconOn = on;
       place();
     },
+    spireJam() {
+      const [f, d] = lanterns;
+      // Out from each end of the 5173 bridge (or bump again, if they're already stuck there).
+      for (const [l, from, to] of [
+        [f!, 0.22, 0.475],
+        [d!, 0.78, 0.525],
+      ] as const) {
+        if (!l.on || l.path !== R2) {
+          l.on = true;
+          l.path = R2;
+          l.t = from;
+        }
+        l.to = to;
+      }
+      jam = -1;
+      jammed?.();
+      return new Promise<void>((done) => (jammed = done));
+    },
+    spireLantern(crew, lookout, on) {
+      const l = lanterns[crew === 'feature' ? 0 : 1]!;
+      const path = lookout === 5173 ? R2 : R3;
+      if (!on) l.on = false;
+      else if (!l.on || l.path !== path) {
+        // Appears on its bridge (a cut, not a walk across), part way, and walks to its lookout.
+        l.path = path;
+        l.t = l.on ? 0.6 : 1;
+        l.on = true;
+      }
+      l.to = 1;
+      place();
+    },
     update(dt) {
       gondolaT += dt;
+      // The lanterns walk at about 3.5 m/s; once both stand at mid-span, the jam's bump plays.
+      let walking = false;
+      for (const l of lanterns) {
+        const len = Math.hypot(l.path.to.x - l.path.from.x, l.path.to.z - l.path.from.z);
+        const step = (3.5 * dt) / len;
+        if (Math.abs(l.to - l.t) > 1e-3) {
+          l.t += Math.sign(l.to - l.t) * Math.min(Math.abs(l.to - l.t), step);
+          walking = true;
+        } else l.t = l.to;
+      }
+      if (jammed && !walking) {
+        jam = jam < 0 ? 0 : jam + dt;
+        if (jam > 1.6) {
+          const d = jammed;
+          jammed = null;
+          jam = -1;
+          d();
+        }
+      }
       if (send) {
         sendT += dt;
         if (sendT > TB.gondola.period * 0.5) {

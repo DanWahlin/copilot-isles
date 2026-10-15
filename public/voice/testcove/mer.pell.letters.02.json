@@ -1,0 +1,137 @@
+{
+  "id": "mer.pell.letters.02",
+  "speaker": "Pell",
+  "text": "File each one in the alcove for the area that fixes it. If one isn’t a Settings job at all, it goes back in my tray.",
+  "words": [
+    {
+      "word": "File",
+      "start": 0.048083,
+      "end": 0.45675
+    },
+    {
+      "word": "each",
+      "start": 0.45675,
+      "end": 0.661041
+    },
+    {
+      "word": "one",
+      "start": 0.661041,
+      "end": 0.9255
+    },
+    {
+      "word": "in",
+      "start": 0.9255,
+      "end": 0.997583
+    },
+    {
+      "word": "the",
+      "start": 0.997583,
+      "end": 1.129791
+    },
+    {
+      "word": "alcove",
+      "start": 1.129791,
+      "end": 1.586541
+    },
+    {
+      "word": "for",
+      "start": 1.586541,
+      "end": 1.682708
+    },
+    {
+      "word": "the",
+      "start": 1.682708,
+      "end": 1.850958
+    },
+    {
+      "word": "area",
+      "start": 1.850958,
+      "end": 2.1755
+    },
+    {
+      "word": "that",
+      "start": 2.1755,
+      "end": 2.379791
+    },
+    {
+      "word": "fixes",
+      "start": 2.379791,
+      "end": 2.8125
+    },
+    {
+      "word": "it",
+      "start": 2.8125,
+      "end": 3.90625
+    },
+    {
+      "word": "If",
+      "start": 3.90625,
+      "end": 4.098541
+    },
+    {
+      "word": "one",
+      "start": 4.098541,
+      "end": 4.338958
+    },
+    {
+      "word": "isn’t",
+      "start": 4.338958,
+      "end": 4.567291
+    },
+    {
+      "word": "a",
+      "start": 4.567291,
+      "end": 4.639416
+    },
+    {
+      "word": "Settings",
+      "start": 4.639416,
+      "end": 5.096166
+    },
+    {
+      "word": "job",
+      "start": 5.096166,
+      "end": 5.396625
+    },
+    {
+      "word": "at",
+      "start": 5.396625,
+      "end": 5.540875
+    },
+    {
+      "word": "all",
+      "start": 5.540875,
+      "end": 6.045666
+    },
+    {
+      "word": "it",
+      "start": 6.045666,
+      "end": 6.165875
+    },
+    {
+      "word": "goes",
+      "start": 6.165875,
+      "end": 6.430291
+    },
+    {
+      "word": "back",
+      "start": 6.430291,
+      "end": 6.694708
+    },
+    {
+      "word": "in",
+      "start": 6.694708,
+      "end": 6.814916
+    },
+    {
+      "word": "my",
+      "start": 6.814916,
+      "end": 6.971166
+    },
+    {
+      "word": "tray",
+      "start": 6.971166,
+      "end": 7.221166
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "id": "tb.fen.ws.worktree",
+  "speaker": "Fen",
+  "text": "That crew's making real changes. A new worktree keeps them apart from main, and it still runs on your machine.",
+  "words": [
+    {
+      "word": "That",
+      "start": 0,
+      "end": 0.224
+    },
+    {
+      "word": "crew's",
+      "start": 0.224,
+      "end": 0.606
+    },
+    {
+      "word": "making",
+      "start": 0.606,
+      "end": 0.928
+    },
+    {
+      "word": "real",
+      "start": 0.928,
+      "end": 1.2
+    },
+    {
+      "word": "changes",
+      "start": 1.2,
+      "end": 2.08
+    },
+    {
+      "word": "A",
+      "start": 2.08,
+      "end": 2.36
+    },
+    {
+      "word": "new",
+      "start": 2.36,
+      "end": 2.56
+    },
+    {
+      "word": "worktree",
+      "start": 2.56,
+      "end": 3.093
+    },
+    {
+      "word": "keeps",
+      "start": 3.093,
+      "end": 3.392
+    },
+    {
+      "word": "them",
+      "start": 3.392,
+      "end": 3.587
+    },
+    {
+      "word": "apart",
+      "start": 3.587,
+      "end": 3.968
+    },
+    {
+      "word": "from",
+      "start": 3.968,
+      "end": 4.24
+    },
+    {
+      "word": "main",
+      "start": 4.24,
+      "end": 4.98
+    },
+    {
+      "word": "and",
+      "start": 4.98,
+      "end": 5.093
+    },
+    {
+      "word": "it",
+      "start": 5.093,
+      "end": 5.253
+    },
+    {
+      "word": "still",
+      "start": 5.253,
+      "end": 5.6
+    },
+    {
+      "word": "runs",
+      "start": 5.6,
+      "end": 6
+    },
+    {
+      "word": "on",
+      "start": 6,
+      "end": 6.208
+    },
+    {
+      "word": "your",
+      "start": 6.208,
+      "end": 6.45
+    },
+    {
+      "word": "machine",
+      "start": 6.45,
+      "end": 6.7
+    }
+  ]
+}

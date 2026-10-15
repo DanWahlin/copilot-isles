@@ -174,19 +174,78 @@ function rockMatrix(s: RockSpot, out: Matrix4): Matrix4 {
   return out.compose(P, Q, S);
 }
 
-/** The Spire: a cluster of hexagonal basalt columns, flat on top at 27 and stepped to the ledge at 24.5. */
-export function spireGeometry(): BufferGeometry {
+/** One of the Spire's basalt columns: its axis, its cap's height, its corners' radius. */
+interface SpireColumn {
+  x: number;
+  z: number;
+  top: number;
+  r: number;
+  /** Under the Spire's top (its flat summit) rather than round its rim or under the ledge. */
+  onTop: boolean;
+}
+
+const SPIRE_BASE = TB.spire.ground - 1.5;
+/** A column's first corner (the others every 60°), in radians from +x towards +z. */
+const SPIRE_CORNER = 0.1;
+
+/** The Spire's columns: the same every time (seeded). */
+function spireColumns(): SpireColumn[] {
   const rand = mulberry32(0x5b17);
+  const col = 1.25;
+  const out: SpireColumn[] = [];
+  const step = col * Math.sqrt(3);
+  for (let q = -4; q <= 4; q++)
+    for (let r = -4; r <= 4; r++) {
+      const x = TB.spire.x + step * (q + r * 0.5);
+      const z = TB.spire.z + col * 1.5 * r;
+      const d = Math.hypot(x - TB.spire.x, z - TB.spire.z);
+      const onTop = d <= SPIRE_TOP.r - 0.2;
+      const lx = x - SPIRE_LEDGE.x;
+      const lz = z - SPIRE_LEDGE.z;
+      const onLedge = Math.abs(lx) <= SPIRE_LEDGE.hu + 0.4 && Math.abs(lz) <= SPIRE_LEDGE.hv + 0.4 && !onTop;
+      if (d > TB.spire.radius + 1.2 && !onLedge) continue;
+      // The walk surfaces' columns are flush with them (2 cm under, the boards and the moss on top);
+      // round the rim they stand a little lower and break up the outline.
+      let top: number;
+      if (onTop) top = SPIRE_TOP.y - 0.02;
+      else if (onLedge) top = TB.spire.ledge.y - 0.25;
+      else top = SPIRE_TOP.y - 0.8 - Math.pow(rand(), 0.7) * 7;
+      out.push({ x, z, top, r: col * (onTop || onLedge ? 0.99 : 0.9 + rand() * 0.15), onTop });
+    }
+  return out;
+}
+
+/**
+ * Camera blockers for the Spire's rim and ledge columns, one a column (a box round its hexagon): the
+ * hexagon of boxes round the Spire misses the corners of the columns that stand out past it (the
+ * ledge's row reaches about 9.7 m out).
+ */
+function spireColumnBlockers(columns: readonly SpireColumn[], out: CameraBlockerBox[]): void {
+  for (const c of columns)
+    if (!c.onTop)
+      out.push({
+        x: c.x,
+        z: c.z,
+        hx: c.r,
+        hz: c.r * (Math.sqrt(3) / 2),
+        // Local x along the first corner (the collision world's local x runs along cos rot, −sin rot).
+        rot: -SPIRE_CORNER,
+        y0: SPIRE_BASE,
+        y1: c.top,
+      });
+}
+
+/** The Spire: a cluster of hexagonal basalt columns, flat on top at 27 and stepped to the ledge at 24.5. */
+export function spireGeometry(columns: readonly SpireColumn[] = spireColumns()): BufferGeometry {
   const pos: number[] = [];
   const nrm: number[] = [];
   const idx: number[] = [];
-  const col = 1.25;
-  const base = TB.spire.ground - 1.5;
+  const base = SPIRE_BASE;
   const prism = (cx: number, cz: number, top: number, r: number) => {
     const start = pos.length / 3;
     const corners: [number, number][] = [];
     for (let k = 0; k < 6; k++) {
-      const a = (k / 6) * Math.PI * 2 + 0.1;
+      const a = (k / 6) * Math.PI * 2 + SPIRE_CORNER;
       corners.push([cx + Math.cos(a) * r, cz + Math.sin(a) * r]);
     }
     // Sides (flat-shaded quads) up to a chamfer, the chamfer's bevel, then the inset cap: a basalt
@@ -226,25 +285,7 @@ export function spireGeometry(): BufferGeometry {
     for (let k = 0; k < 6; k++) idx.push(c, c + 1 + ((k + 1) % 6), c + 1 + k);
     void start;
   };
-  const step = col * Math.sqrt(3);
-  for (let q = -4; q <= 4; q++)
-    for (let r = -4; r <= 4; r++) {
-      const x = TB.spire.x + step * (q + r * 0.5);
-      const z = TB.spire.z + col * 1.5 * r;
-      const d = Math.hypot(x - TB.spire.x, z - TB.spire.z);
-      const onTop = d <= SPIRE_TOP.r - 0.2;
-      const lx = x - SPIRE_LEDGE.x;
-      const lz = z - SPIRE_LEDGE.z;
-      const onLedge = Math.abs(lx) <= SPIRE_LEDGE.hu + 0.4 && Math.abs(lz) <= SPIRE_LEDGE.hv + 0.4 && !onTop;
-      if (d > TB.spire.radius + 1.2 && !onLedge) continue;
-      // The walk surfaces' columns are flush with them (2 cm under, the boards and the moss on top);
-      // round the rim they stand a little lower and break up the outline.
-      let top: number;
-      if (onTop) top = SPIRE_TOP.y - 0.02;
-      else if (onLedge) top = TB.spire.ledge.y - 0.25;
-      else top = SPIRE_TOP.y - 0.8 - Math.pow(rand(), 0.7) * 7;
-      prism(x, z, top, col * (onTop || onLedge ? 0.99 : 0.9 + rand() * 0.15));
-    }
+  for (const c of columns) prism(c.x, c.z, c.top, c.r);
   const g = new BufferGeometry();
   g.setAttribute('position', new BufferAttribute(new Float32Array(pos), 3));
   g.setAttribute('normal', new BufferAttribute(new Float32Array(nrm), 3));
@@ -253,22 +294,15 @@ export function spireGeometry(): BufferGeometry {
   return g;
 }
 
-/** Maximum flume stones of one asset shown at a time. */
-const FLUME_STONE_SLOTS = 4;
-
 /**
- * The Flume Terrace's stones (its rock tiles, Round 3's boulder and the chips it knocks loose). The
- * flume creates and owns its own meshes, using these shared island geometries and material.
+ * The Flume Terrace's stones (its rock tiles). The flume creates and owns its own mesh, using these
+ * shared island geometries and material.
  */
 export interface FlumeStones {
   /** One geometry per rock asset (`ROCK_ASSETS` order). */
   geometries: BufferGeometry[];
   /** The same rock material used by the island batches. */
   readonly material: Material;
-  /** Instance capacity of each flume mesh. */
-  readonly slots: number;
-  /** Lite: the boulder takes the cheapest rock and knocks no chips loose. */
-  readonly cheap: boolean;
   /** Whether the island's rock batches cast the sun's shadow on this tier. */
   readonly shadows: boolean;
 }
@@ -303,13 +337,7 @@ export function createThousandBoughRocks(
   });
   const circles: CircleObstacle[] = [];
   const cameraBoxes: CameraBlockerBox[] = [];
-  const flumeStones: FlumeStones = {
-    geometries: [],
-    material,
-    slots: FLUME_STONE_SLOTS,
-    cheap: smallKept < 0.25,
-    shadows,
-  };
+  const flumeStones: FlumeStones = { geometries: [], material, shadows };
   for (let a = 0; a < 3; a++) {
     const asset = ROCK_ASSETS[a]!;
     const mine = spots.filter((s) => s.asset === a);
@@ -348,7 +376,8 @@ export function createThousandBoughRocks(
     mesh.receiveShadow = true;
     group.add(mesh);
   }
-  const spire = sharedInstancedMesh(spireGeometry(), material, 1);
+  const columns = spireColumns();
+  const spire = sharedInstancedMesh(spireGeometry(columns), material, 1);
   spire.name = 'thousand-bough-spire';
   spire.setMatrixAt(0, M.identity());
   spire.instanceMatrix.needsUpdate = true;
@@ -388,5 +417,6 @@ export function createThousandBoughRocks(
       y0: y,
       y1: Math.min(TB.spire.top - 0.2, y + 3),
     });
+  spireColumnBlockers(columns, cameraBoxes);
   return { group, circles, cameraBoxes, flumeStones };
 }

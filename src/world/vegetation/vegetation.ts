@@ -84,7 +84,7 @@ function triangleCount(geometry: BufferGeometry): number {
 }
 
 function palmGeometryDistance(tier: TierSettings): number {
-  if (tier.tier === 'lite') return tier.treeNear * 1.25;
+  if (tier.tier === 'lite') return tier.treeNear * 1.45;
   if (tier.tier === 'low') return tier.treeNear * 1.4;
   if (tier.tier === 'medium') return tier.treeNear * 1.55;
   return 285;
@@ -271,7 +271,9 @@ function updateBatch(batch: PlantBatch, camera: PerspectiveCamera, tier: TierSet
   for (let i = 0; i < batch.instances.length; i++) {
     const instance = batch.instances[i]!;
     const d = Math.hypot(instance.x - camera.position.x, instance.z - camera.position.z);
-    const maxD = batch.nearOnly ? handoff + 10 : batch.farDistance;
+    // A near-only plant has dissolved into its impostor by `handoff + 6` (its fade is 0 there, and the
+    // material draws none of it): past that it isn't drawn at all.
+    const maxD = batch.nearOnly ? handoff + 6 : batch.farDistance;
     if (d > maxD) continue;
     if (batch.mesh.frustumCulled) {
       const lean = 1 + Math.abs(instance.leanX) + Math.abs(instance.leanZ);

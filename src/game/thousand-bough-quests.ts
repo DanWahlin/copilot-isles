@@ -63,7 +63,7 @@ export const THOUSAND_BOUGH_QUESTS: readonly TbQuestDef[] = [
     task: 'Choose where a session runs',
     steps: {
       start: 'Climb the Great Stair to Oak at the Three Landings.',
-      done: 'New worktree is the safe default. Base branch sets where it starts. Create from always makes a new worktree.',
+      done: 'New worktree is the safe default, so switch back to it. Base branch sets where it starts. Create from always makes a new worktree.',
     },
   },
   {
@@ -72,7 +72,8 @@ export const THOUSAND_BOUGH_QUESTS: readonly TbQuestDef[] = [
     task: 'Run crews in parallel',
     steps: {
       start: 'Fen Marrow’s at the Flume Gallery, along the boardwalk from the Three Landings.',
-      channels: 'Route each crew’s water to its own wheel at the Gate Board.',
+      channels:
+        'Route each crew’s water to its own wheel at the Gate Board, then pick where each crew works.',
       twist: 'Both crews want the Lookout.',
       solved: 'Talk to Fen.',
       done: 'Worktrees separate files and branches, not ports. Use different ports for parallel previews.',
@@ -84,7 +85,7 @@ export const THOUSAND_BOUGH_QUESTS: readonly TbQuestDef[] = [
     task: 'Add context to a prompt',
     steps: {
       start: 'Ines Calloway runs the Signal Deck, higher up the stair.',
-      done: '@ files and folders, # issues and pull requests, / commands, & other sessions. Less is often more.',
+      done: '@ files and folders, # issues and pull requests, / commands, & other sessions. Less is often more. Drop files from your computer on a session.',
     },
   },
   {
@@ -259,6 +260,8 @@ const OAK: readonly ScriptStep[] = [
   { say: 'tb.oak.06' },
   { say: 'tb.oak.07' },
   { hide: true },
+  // Switch back: the selector still says Current checkout from Chapter 00.
+  { quiz: 'K2.4' },
   { quiz: 'H2.1' },
   { say: 'tb.oak.08' },
   { term: 'new-worktree' },
@@ -289,8 +292,15 @@ const FEN: readonly ScriptStep[] = [
 /** Fen's close once the twist's settled (played at once by the puzzle, or when you talk to him). */
 export const FEN_SOLVED: readonly ScriptStep[] = [
   { say: 'tb.fen.close' },
+  // Back to the app: the isolation is one choice in the workspace selector.
+  {
+    show: 'ch02/app-where-sessions-run',
+    caption:
+      'In the app: **+**, then **New worktree** in the workspace selector. The app makes the folder and branch.',
+  },
+  { say: 'tb.fen.app' },
+  { hide: true },
   { say: 'tb.fen.oneatatime' },
-  { term: 'context' },
   { file: 'pg2.parallel' },
   { page: 'pg2.ports', doubloons: 15 },
   { say: 'tb.fen.next' },
@@ -298,16 +308,19 @@ export const FEN_SOLVED: readonly ScriptStep[] = [
   { quest: 'Q2.6', step: 'start' },
 ];
 
+// The four flags, "less is more" and dropping a file on a session, then six orders to practise them
+// (the hoist), and a check that carries the tip to a new job (K2.3).
 const INES: readonly ScriptStep[] = [
   { say: 'tb.ines.01' },
   { say: 'tb.ines.02' },
   { say: 'tb.ines.03' },
   { say: 'tb.ines.04' },
-  { cue: 'tb-flag-hoist' },
-  { quiz: 'M2.2' },
   { say: 'tb.ines.05' },
+  { cue: 'tb-flag-hoist' },
+  { quiz: 'K2.3' },
   { say: 'tb.ines.06' },
   { say: 'tb.ines.07' },
+  { term: 'context' },
   { term: 'context-syntax' },
   { term: 'slash-command' },
   { page: 'pg2.context-syntax', doubloons: 15 },
@@ -479,7 +492,10 @@ export const THOUSAND_BOUGH_LINES: readonly string[] = [
   'tb.fen.deadend',
   'tb.fen.round1',
   'tb.fen.round2',
-  'tb.fen.rain',
+  'tb.fen.r3.intro',
+  'tb.fen.ws.worktree',
+  'tb.fen.ws.checkout',
+  'tb.fen.ws.cloud',
   'tb.fen.round3',
   'tb.fen.twist.01',
   'tb.fen.twist.02',
@@ -493,6 +509,8 @@ export const THOUSAND_BOUGH_LINES: readonly string[] = [
   'tb.ines.order.2',
   'tb.ines.order.3',
   'tb.ines.order.4',
+  'tb.ines.order.5',
+  'tb.ines.order.6',
   'tb.ines.flag.ok',
   'tb.rook.wait',
   'tb.rook.done',

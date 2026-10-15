@@ -1,0 +1,97 @@
+{
+  "id": "mer.helm.wrong.autopilot.plan",
+  "speaker": "Rhea",
+  "text": "Plan would chart the route for your review first. On a run this clear, there’s nothing to review.",
+  "words": [
+    {
+      "word": "Plan",
+      "start": 0.0485409,
+      "end": 0.376208
+    },
+    {
+      "word": "would",
+      "start": 0.376208,
+      "end": 0.534
+    },
+    {
+      "word": "chart",
+      "start": 0.534,
+      "end": 0.861666
+    },
+    {
+      "word": "the",
+      "start": 0.861666,
+      "end": 0.983
+    },
+    {
+      "word": "route",
+      "start": 0.983,
+      "end": 1.262125
+    },
+    {
+      "word": "for",
+      "start": 1.262125,
+      "end": 1.359208
+    },
+    {
+      "word": "your",
+      "start": 1.359208,
+      "end": 1.492708
+    },
+    {
+      "word": "review",
+      "start": 1.492708,
+      "end": 1.844666
+    },
+    {
+      "word": "first",
+      "start": 1.844666,
+      "end": 3.252416
+    },
+    {
+      "word": "On",
+      "start": 3.252416,
+      "end": 3.422333
+    },
+    {
+      "word": "a",
+      "start": 3.422333,
+      "end": 3.495125
+    },
+    {
+      "word": "run",
+      "start": 3.495125,
+      "end": 3.75
+    },
+    {
+      "word": "this",
+      "start": 3.75,
+      "end": 3.932041
+    },
+    {
+      "word": "clear",
+      "start": 3.932041,
+      "end": 4.623791
+    },
+    {
+      "word": "there’s",
+      "start": 4.623791,
+      "end": 4.84225
+    },
+    {
+      "word": "nothing",
+      "start": 4.84225,
+      "end": 5.279125
+    },
+    {
+      "word": "to",
+      "start": 5.279125,
+      "end": 5.388333
+    },
+    {
+      "word": "review",
+      "start": 5.388333,
+      "end": 5.638333
+    }
+  ]
+}

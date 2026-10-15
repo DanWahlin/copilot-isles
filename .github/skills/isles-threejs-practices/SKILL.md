@@ -117,6 +117,18 @@ the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _
   banyan, the brush) was its own program, and the glow didn't follow the sun.
 - A dev page precompiles like the game (`post.compileObject` through `compileProgressively`), or its
   census counts shaders the game never builds (play.html's bare `compileAsync` added about 12).
+- r186 `compileAsync` builds its node graphs in `scheduler.yield()` slices that run ahead of the
+  next frame: dozens in flight at once held a frame for 100–120 ms. `compileProgressively` keeps
+  four in flight. One build stage can't be split (a big compute kernel's setup took 60–110 ms, the
+  cloud noise bakes are sync `compute` calls): do that work where the screen is still (the opening
+  makes the island's sky under its veil, `Opening.play(underVeil)`).
+- Size a real-draw warm by **new looks** (material and geometry layout; an instanced mesh is always
+  new), not by objects: shared looks are nearly free, each new one costs ~10 ms (`warmProgressively`).
+- The first `AudioContext` of a browser session starts the audio service: a 300–600 ms block. Make
+  it while the page loads (`audio/early-context.ts`); the first gesture only resumes it.
+- Measure the opening with `tools/openingtest.mjs` (frame gaps, presented and requestAnimationFrame,
+  `--profile` for a CPU profile of each gap). A gap with an idle main thread is the GPU process
+  (a big WGSL module's first compile, or texture uploads).
 - Late instanced additions on the title (gulls, leaps): don't precompile them (no precompile matches
   an instanced draw). Add them and wait two frames inside `engine.counters.excuse`.
 - Every distinct look in the harbour mirror is a second set of shaders: keep small things out
@@ -224,6 +236,15 @@ the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _
   `Shape`, its curves and earcut) added 6 KB gz to vendor-three, which is at its 256 KB cap. Build
   extrusions and lathes by hand (`extrudeX`/`lathe` in shore-cannon.ts, the starfish's fan). Before
   you import a new three class, check `npm run check:budgets` exits 0.
+- **Lite at the edge of its budget (draws and triangles):** measure before cutting
+  (`node tools/budgettest.mjs --tiers=lite --meshes` splits each worst frame by mesh and material).
+  What paid: the terrain's chunks merge into far blocks once they're coarse (one draw for an island
+  seen from the sea; `MERGED_BLOCKS`, and a warm draws every level, `lodCount`); the ship's merged
+  hull takes index LODs as it sails (`attachMovingLod`); alike small parts draw with a neighbour on
+  Lite (rope with cloth, `moveBucketInto`). What didn't: meshoptimizer can't simplify flat-shaded
+  meshes (the trees' bark, the tree village's boxes): every hard-edge vertex is locked, so check what
+  `buildChunkLodIndex`/`simplifyInPlace` return. And count what's drawn but unseen: plants past their
+  dissolve band (fade 0) still cost their triangles.
 
 ## 6. Verify like this
 

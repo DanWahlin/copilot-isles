@@ -6,21 +6,23 @@ import type { VillageKit } from '../village/kit';
 import { box, cylinder, merge } from './geo';
 import { InstanceProxies } from './proxies';
 import { SignSet } from './sign';
-import { HELM_ORDER, MERIDIAN_HELMS, type HelmMode } from './helms-logic';
+import { HELM_ORDER, HELM_ORDERS, MERIDIAN_HELMS, SHOAL, sampleCourse, type HelmMode } from './helms-logic';
 
 /** Metres from the route point to its marker float. */
 const MARK_OFFSET = 9;
+/** The charted route's dashes on the water (Plan): length, width, and spacing, in metres. */
+const DASH = { length: 2.8, width: 0.9, every: 5 } as const;
 
-const LABEL: Readonly<Record<HelmMode, string>> = {
-  interactive: 'INTERACTIVE',
-  plan: 'PLAN',
-  autopilot: 'AUTOPILOT',
-};
+/** A route on the water: a mode's, or Plan's first chart (the one across the Shoal). */
+export type HelmRoute = HelmMode | 'draft';
 
 export interface HelmBuoysSite {
   readonly group: Group;
-  /** Shows a run's route markers (Plan charts its whole route; Interactive shows the next mark). */
-  showRoute(mode: HelmMode | null, upTo?: number, from?: number): void;
+  /**
+   * Shows a route's marker floats (Plan's charted route also as a dashed line on the water;
+   * Interactive shows the next mark).
+   */
+  showRoute(route: HelmRoute | null, upTo?: number, from?: number): void;
   /** Dims a helm's flag once it's been sailed. */
   setSailed(mode: HelmMode, sailed: boolean): void;
   update(dt: number, t: number): void;
@@ -28,9 +30,11 @@ export interface HelmBuoysSite {
 }
 
 /**
- * The Three Helms' buoys in the bay (P1.2): a big float for each mode with its colour flag and a
- * name board you can read from the helm, and small marker floats along each route. They ride the
- * waves. The three float bodies draw as one instanced mesh and the name boards as one sign atlas.
+ * The Three Helms' buoys in the bay (P1.2): a big float for each of Rhea's orders with its colour
+ * flag and a board you can read from the helm (the order's number and name, not its mode), small
+ * marker floats along each route, Plan's charted route as a dashed line, and the Shoal: a hazard
+ * float on rocks that Rhea's first chart cuts across. They ride the waves. The float bodies draw as
+ * one instanced mesh and the boards as one sign atlas.
  */
 export function createHelmBuoys(o: { kit: VillageKit; waves: WaveSampler }): HelmBuoysSite {
   const group = new Group();
@@ -52,7 +56,8 @@ export function createHelmBuoys(o: { kit: VillageKit; waves: WaveSampler }): Hel
   ]);
   const bodySpots: Object3D[] = [];
   const flags = new Map<HelmMode, Mesh>();
-  const routes = new Map<HelmMode, Group[]>();
+  const routes = new Map<HelmRoute, Group[]>();
+  const lines = new Map<HelmRoute, Mesh>();
   const disposables: { dispose(): void }[] = [];
 
   for (const mode of HELM_ORDER) {
@@ -65,22 +70,73 @@ export function createHelmBuoys(o: { kit: VillageKit; waves: WaveSampler }): Hel
     const flag = new Mesh(flagGeo, mats.cloth);
     flag.castShadow = true;
     flags.set(mode, flag);
-    const sign = signs.add([LABEL[mode]], 3.2, 0.9, { twoSided: true, size: 0.2 });
-    sign.object.position.set(0, 2.6, 0);
+    const n = HELM_ORDER.indexOf(mode) + 1;
+    const sign = signs.add([`ORDER ${n}`, HELM_ORDERS[mode].name.toUpperCase()], 3.6, 1.2, {
+      twoSided: true,
+      size: 0.13,
+    });
+    sign.object.position.set(0, 2.75, 0);
     g.add(bodySpot, flag, sign.object);
     g.position.set(run.buoy.x, 0, run.buoy.z);
     group.add(g);
     floats.push({ g, x: run.buoy.x, z: run.buoy.z, phase: floats.length * 1.7 });
     disposables.push(flagGeo);
 
+    routes.set(mode, routeMarkers(run.buoy, run.route, run.colour));
+    if (mode === 'plan') {
+      routes.set('draft', routeMarkers(run.buoy, run.draft!.route, run.colour));
+      lines.set('plan', routeLine(run.buoy, run.route, run.colour));
+      lines.set('draft', routeLine(run.buoy, run.draft!.route, run.colour));
+    }
+  }
+
+  // The Shoal: a red float with its board, on a ring of rocks just breaking the surface.
+  const shoal = new Group();
+  shoal.name = 'the Shoal';
+  const shoalSpot = new Object3D();
+  bodySpots.push(shoalSpot);
+  const shoalSign = signs.add(['SHOAL'], 2.6, 0.8, { twoSided: true, size: 0.2, fill: '#8b1f1f' });
+  shoalSign.object.position.set(0, 2.5, 0);
+  shoal.add(shoalSpot, shoalSign.object);
+  shoal.position.set(SHOAL.x, 0, SHOAL.z);
+  group.add(shoal);
+  floats.push({ g: shoal, x: SHOAL.x, z: SHOAL.z, phase: 5.1 });
+  const rockGeo = merge(
+    [0, 1, 2, 3, 4, 5].map((i) => {
+      const a = i * 1.05 + 0.4,
+        r = 3.2 + (i % 3) * 1.1;
+      return cylinder(
+        0.5 + (i % 2) * 0.3,
+        0.9 + (i % 2) * 0.3,
+        1.4,
+        {
+          x: SHOAL.x + Math.cos(a) * r,
+          y: -1.05,
+          z: SHOAL.z + Math.sin(a) * r,
+        },
+        0x4a4640,
+        7,
+      );
+    }),
+  );
+  disposables.push(rockGeo);
+  const rocks = new Mesh(rockGeo, mats.wood);
+  rocks.name = 'the Shoal: rocks';
+  group.add(rocks);
+
+  /** Marker floats along a route: each floats off to port of where she heaves to, so the hull never sits on it. */
+  function routeMarkers(
+    buoy: { x: number; z: number },
+    route: readonly { x: number; z: number }[],
+    colour: number,
+  ): Group[] {
     const markerGeo = merge([
-      cylinder(0.05, 0.55, 1.3, { y: -0.3 }, run.colour, 10),
+      cylinder(0.05, 0.55, 1.3, { y: -0.3 }, colour, 10),
       cylinder(0.56, 0.56, 0.14, { y: -0.36 }, 0xf1e5c8, 10),
     ]);
     disposables.push(markerGeo);
-    // Each mark floats off to port of where she heaves to, so the hull never sits on it.
-    const markers = run.route.map((p, i) => {
-      const prev = i === 0 ? run.buoy : run.route[i - 1]!;
+    return route.map((p, i) => {
+      const prev = i === 0 ? buoy : route[i - 1]!;
       const dx = p.x - prev.x,
         dz = p.z - prev.z;
       const len = Math.hypot(dx, dz) || 1;
@@ -92,11 +148,51 @@ export function createHelmBuoys(o: { kit: VillageKit; waves: WaveSampler }): Hel
       m.add(mesh);
       m.position.set(x, 0, z);
       m.visible = false;
+      // Shown only on a run: the island's warm shows it once so its first sighting builds nothing.
+      m.userData.prewarm = true;
       group.add(m);
       floats.push({ g: m, x, z, phase: i * 0.9 + 3 });
       return m;
     });
-    routes.set(mode, markers);
+  }
+
+  /**
+   * A charted route as dashes on the water, thick enough to read from the review's high shot. The
+   * dashes stand a little proud of the surface (a static mesh, so the swell doesn't drown them).
+   */
+  function routeLine(
+    buoy: { x: number; z: number },
+    route: readonly { x: number; z: number }[],
+    colour: number,
+  ): Mesh {
+    const path = sampleCourse([buoy, ...route], 1);
+    const parts = [];
+    let along = 0;
+    let next = 10;
+    for (let i = 1; i < path.length; i++) {
+      const a = path[i - 1]!,
+        b = path[i]!;
+      along += Math.hypot(b.x - a.x, b.z - a.z);
+      if (along < next) continue;
+      next += DASH.every;
+      parts.push(
+        box(
+          DASH.width,
+          0.9,
+          DASH.length,
+          { x: b.x, y: -0.4, z: b.z, ry: Math.atan2(b.x - a.x, b.z - a.z) },
+          colour,
+        ),
+      );
+    }
+    const geo = merge(parts);
+    disposables.push(geo);
+    const line = new Mesh(geo, mats.cloth);
+    line.name = 'helm route line';
+    line.visible = false;
+    line.userData.prewarm = true;
+    group.add(line);
+    return line;
   }
 
   const bodyMesh = sharedInstancedMesh(body, mats.wood, bodySpots.length);
@@ -110,9 +206,10 @@ export function createHelmBuoys(o: { kit: VillageKit; waves: WaveSampler }): Hel
   let t0 = 0;
   return {
     group,
-    showRoute(mode, upTo = Infinity, from = 0) {
+    showRoute(route, upTo = Infinity, from = 0) {
       for (const [m, markers] of routes)
-        markers.forEach((g, i) => (g.visible = m === mode && i >= from && i < upTo));
+        markers.forEach((g, i) => (g.visible = m === route && i >= from && i < upTo));
+      for (const [m, line] of lines) line.visible = m === route;
     },
     setSailed(mode, sailed) {
       const flag = flags.get(mode);

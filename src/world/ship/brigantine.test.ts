@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { BufferAttribute, Mesh, Object3D } from 'three/webgpu';
-import { createBrigantine, fitShipNameFontSize } from './brigantine';
+import { addLiteShipLods, createBrigantine, fitShipNameFontSize } from './brigantine';
+import { TIERS } from '../../engine/quality';
 import { QUARTERDECK_Z, WHEEL } from './brigantine-hull';
 import { SCORCH_SLOTS, shipScorch } from './brigantine-materials';
 import { CUTTER_FLAG, createCutterSailGeometry, createRiggingGeometry } from './brigantine-rig';
@@ -203,7 +204,43 @@ function captureMeshSignatures(root: Object3D): MeshSignature[] {
   return signatures;
 }
 
+/** Meshes (draws) under a root. */
+function meshCount(root: Object3D): number {
+  let n = 0;
+  root.traverse((o) => {
+    if ((o as Mesh).isMesh) n++;
+  });
+  return n;
+}
+
 describe('createBrigantine', () => {
+  it("draws the brigantine's spars with her hull on Lite, with levels of detail", async () => {
+    const ship = createBrigantine({ tier: 'lite' });
+    const before = meshCount(ship.group);
+    const drawCalls = ship.drawCallCount;
+    const tris = (name: string) => {
+      const g = (ship.group.getObjectByName(name) as Mesh).geometry;
+      return g.index!.count / 3;
+    };
+    const merged = tris('hull deck trim and stern (merged)') + tris('spars and furled canvas (merged)');
+    await addLiteShipLods(ship, TIERS.lite);
+    expect(meshCount(ship.group)).toBe(before - 1);
+    expect(ship.drawCallCount).toBe(drawCalls - 1);
+    expect(ship.group.getObjectByName('spars and furled canvas (merged)')).toBeUndefined();
+    const hull = ship.group.getObjectByName('hull deck trim and stern (merged)') as Mesh;
+    // The full list still holds every triangle (the coarser levels follow it in the index).
+    const ranges = hull.geometry.userData.lodRanges as number[];
+    expect(ranges[1]! / 3).toBe(merged);
+    expect(ranges[3]!).toBeLessThan(ranges[1]!);
+    ship.dispose();
+    // Other tiers are left as they are.
+    const low = createBrigantine({ tier: 'low' });
+    const lowDraws = meshCount(low.group);
+    await addLiteShipLods(low, TIERS.low);
+    expect(meshCount(low.group)).toBe(lowDraws);
+    low.dispose();
+  });
+
   it('keeps the hero asset inside the draw-call and high-tier triangle budget', () => {
     const ship = createBrigantine({ tier: 'high' });
     expect(ship.drawCallCount).toBeLessThanOrEqual(20);

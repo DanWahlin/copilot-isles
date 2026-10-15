@@ -1,0 +1,107 @@
+{
+  "id": "mer.helm.wrong.interactive.plan",
+  "speaker": "Rhea",
+  "text": "Plan would chart the whole course for your approval, then sail it straight through. You wanted to call every turn.",
+  "words": [
+    {
+      "word": "Plan",
+      "start": 0.0485409,
+      "end": 0.388333
+    },
+    {
+      "word": "would",
+      "start": 0.388333,
+      "end": 0.570375
+    },
+    {
+      "word": "chart",
+      "start": 0.570375,
+      "end": 0.898041
+    },
+    {
+      "word": "the",
+      "start": 0.898041,
+      "end": 0.983
+    },
+    {
+      "word": "whole",
+      "start": 0.983,
+      "end": 1.298541
+    },
+    {
+      "word": "course",
+      "start": 1.298541,
+      "end": 1.6505
+    },
+    {
+      "word": "for",
+      "start": 1.6505,
+      "end": 1.735416
+    },
+    {
+      "word": "your",
+      "start": 1.735416,
+      "end": 1.893208
+    },
+    {
+      "word": "approval",
+      "start": 1.893208,
+      "end": 2.706291
+    },
+    {
+      "word": "then",
+      "start": 2.706291,
+      "end": 2.9005
+    },
+    {
+      "word": "sail",
+      "start": 2.9005,
+      "end": 3.300958
+    },
+    {
+      "word": "it",
+      "start": 3.300958,
+      "end": 3.434458
+    },
+    {
+      "word": "straight",
+      "start": 3.434458,
+      "end": 3.810666
+    },
+    {
+      "word": "through",
+      "start": 3.810666,
+      "end": 5.072833
+    },
+    {
+      "word": "You",
+      "start": 5.072833,
+      "end": 5.218458
+    },
+    {
+      "word": "wanted",
+      "start": 5.218458,
+      "end": 5.509708
+    },
+    {
+      "word": "to",
+      "start": 5.509708,
+      "end": 5.618916
+    },
+    {
+      "word": "call",
+      "start": 5.618916,
+      "end": 5.934458
+    },
+    {
+      "word": "every",
+      "start": 5.934458,
+      "end": 6.177166
+    },
+    {
+      "word": "turn",
+      "start": 6.177166,
+      "end": 6.427166
+    }
+  ]
+}

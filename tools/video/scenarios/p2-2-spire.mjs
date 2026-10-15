@@ -41,12 +41,18 @@ export default {
         await tb(api, 'routing.turn', w[0], w[1], 1);
         await api.pause(60);
       }
+      // Round 3: every channel's dug; each crew goes where its order fits.
+      if (round === 3) {
+        const best = await tb(api, 'routing.best');
+        for (const [i, crew] of ['feature', 'bugfix', 'docs'].entries())
+          await tb(api, 'routing.pick', crew, best[i]);
+      }
       if (round < 3) {
         await tb(api, 'routing.run');
         await api.pause(1500);
       }
     }
-    // Round 3 is routed; the run (and everything after) is filmed.
+    // Round 3's crews are placed; the run (and everything after) is filmed.
     await skipTalk(page, 3000);
   },
 

@@ -885,37 +885,57 @@ export function wreckWaterline(): { x: number; z: number }[] {
 
 /** Builds the wreck for a tier (one mesh, the ship's material) with its obstacles and blockers. */
 export function createWreck(tier: Tier): WreckSystem {
+  const steps = createWreckSteps(tier);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+
+/**
+ * `createWreck`, yielding between its parts (the hull, the deck, the trim, the rig, the merge, the
+ * weathering and the atlas): built at once, she held a frame for ~70 ms while the cabin played.
+ */
+export function* createWreckSteps(tier: Tier): Generator<void, WreckSystem, void> {
   const parts = partsFor(tier);
   const hull = createHullGeometry(parts.hull);
   const hullPositions = (hull.getAttribute('position').array as Float32Array).slice();
   const holes = parts.hull === 'lite' ? HOLES.filter((h) => !h.slit) : HOLES;
   const damaged = damagedBy(holes);
+  yield;
   dropTriangles(hull, damaged);
   const pieces: BufferGeometry[] = [hull];
   const extra = new MeshBuilder();
+  yield;
   if (parts.deck) {
     const deck = createDeckGeometry(parts.deck);
     dropTriangles(deck, (x, y, z) => inRailGap(x, y, z) || inHatch(x, y, z));
     pieces.push(deck);
   } else plainDeck(extra);
+  yield;
   if (parts.trim) {
     const trim = createTrimGeometry(parts.trim);
     dropTriangles(trim, damaged);
     pieces.push(trim);
   }
   if (parts.gold) pieces.push(createSternGoldGeometry());
+  yield;
   rig(extra, parts, pieces);
   rags(extra, parts);
   damageDetail(extra, parts, holes);
+  yield;
   pieces.push(extra.build(), rigging(parts));
+  yield;
 
   const matrix = wreckMatrix(new Matrix4());
 
   const geometry = mergeGeometries(pieces, false);
   for (const piece of pieces) piece.dispose();
   if (!geometry) throw new Error('wreck: parts did not merge');
+  yield;
   weather(geometry);
   geometry.computeBoundingSphere();
+  yield;
 
   const label = wreckAtlas();
   const material = makeShipMaterial(label, uniform(1), uniform(0), uniform(0));

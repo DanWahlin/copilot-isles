@@ -15,6 +15,7 @@ import {
   writeStartupBenchmark,
 } from '../engine/benchmark';
 import { installDebug } from '../engine/debug';
+import { prepareAudioContext } from '../audio/early-context';
 import { TIER_NAMES, TIER_ORDER } from '../engine/tier-info';
 import type { Tier } from '../world/contracts';
 
@@ -97,13 +98,17 @@ async function boot(): Promise<void> {
 
   const engine = Engine.fromRenderer(renderer, { canvas, backend, tier, hdr });
   stage(0.25, 'Raising the swell');
-  const [{ GameFlow }, { mountUi }, { createAudio }, { mountLearn }] = await Promise.all([
+  const gameModules = Promise.all([
     import('../game/flow'),
     import('../ui/mount'),
     import('../audio'),
     import('../ui/learn/LearnLayer'),
     import('../game/hud.css'),
   ]);
+  // While the game's code loads: the first AudioContext starts the browser's audio service, a long
+  // block that froze the title on its first click (early-context.ts).
+  prepareAudioContext();
+  const [{ GameFlow }, { mountUi }, { createAudio }, { mountLearn }] = await gameModules;
   const titlePostOptions = { lean: true, temporal: !q.has('notaa') };
   let post = await createPost(renderer, engine.scene, engine.camera, tier, titlePostOptions);
   if (post) engine.renderFn = post.render;

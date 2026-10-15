@@ -67,7 +67,8 @@ snapshot them to `public/course/ch02/`; ids below are `ch02/<file-without-extens
 | Worktree + why (`what-is-a-git-worktree`, `why-the-github-copilot-app-uses-worktrees`) | Root Hall, Saffi | **M2.1** matching (the table) | `pg2.worktree`, `pg2.why` |
 | Where a session runs, Base branch, switch back, Create from (`where-a-session-runs`) | Three Landings, Oak | **H2.1** hotspot | `pg2.where` |
 | Parallel without collisions; not ports (`why-…`, `where-a-session-runs`, `two-previews-collided`, `key-takeaways`) | Flume Terrace + Spire, Fen | **P2.1** Channel Routing, **P2.2** Spire twist | `pg2.parallel`, `pg2.ports` |
-| `@ # / &`, less is more, drag and drop, the `/` palette (`context-syntax`, `attaching-files`, `slash-commands`) | Signal Deck, Ines | **M2.2** matching (+ **P2.3** Flag Hoist) | `pg2.context-syntax`, `pg2.attach`, `pg2.slash`, `pg2.more-commands` (chest C2.2) |
+| Decide between current checkout, a new worktree, or a cloud sandbox (`learning-objectives`, `where-a-session-runs`) | Oak; Flume Terrace round 3, Fen | **P2.1** round 3 (a place for each crew), **K2.4** (switch back to New worktree) | `pg2.where`, `pg2.parallel` |
+| `@ # / &`, less is more, drag and drop, the `/` palette (`context-syntax`, `attaching-files`, `slash-commands`) | Signal Deck, Ines | **P2.3** Flag Hoist (six orders), then **K2.3** | `pg2.context-syntax`, `pg2.attach`, `pg2.slash`, `pg2.more-commands` (chest C2.2) |
 | Exercise 1 (`exercise-start-…`) | Practice Bough, Rook | **H2.3** hotspot | `pg2.create-from`, `pg2.plan`, `pg2.preview` |
 | Exercise 2 (`exercise-check-…`) | Chronicle Loft, Pip | **H2.6** hotspot | `pg2.chronicle`, `pg2.context`, `pg2.details` |
 | Key takeaways (`key-takeaways`) | Crown Deck, Elder Maren | **Trial T2** (9 items) | `pg2.takeaways` |
@@ -409,7 +410,7 @@ radius** and **camera space** (§3.9).
 | `elder` | Elder Maren Ashgrove | (2010, 50.5, −1552) | 0 | (1931, 6, −1372) |
 | `gateBoard` | Gate Board console (P2.1 start) | (2022.5, 26, −1620) | −1.57 | grid centre |
 | `puzzleCam` | puzzle camera | (2010, 36, −1596) | — | (2008, 21, −1626) |
-| `twistCam` | twist camera | (2026, 34, −1626) | — | (2056, 24, −1578) |
+| `twistCam` | twist camera | (2040, 31, −1598) (was (2026, 34, −1626): too far for the jam to read) | — | (2054, 25.5, −1576) |
 | `flagMast` | signal mast base | (1986, 31.3, −1540) | — | — |
 | `skyBasketBottom` / `skyBasketTop` | lift | (1987, 18.5, −1560) / (1987, 50.5, −1560) | — | — |
 | `lanternHouse` | optional assignment house | the L1E scaffold (2038, 30, −1549) | — | — |
@@ -481,7 +482,7 @@ carries it.
 | Q2.3 | **One Trunk, Many Houses** | Saffi · Root Hall (L0) | Learn what a Git worktree is and why the app uses them | Worktree-backed sessions | **M2.1** | `pg2.worktree`, `pg2.why` | Up the Great Stair to Oak |
 | Q2.4 | **The Three Landings** | Oak · L1E | Choose where a session runs; send a crate up the Cloud gondola | **+**, the workspace selector, **New worktree** / **Current checkout** / **Cloud**, **Base branch**, **Create from** | **H2.1** | `pg2.where` | Fen at the Flume Gallery |
 | Q2.5 | **Channel Routing** | Fen · Flume Gallery, then the Spire | Route three crews' water so they never mix; then the ports twist | Parallel sessions; worktrees don't separate ports | **P2.1**, **P2.2** | `pg2.parallel`, `pg2.ports` | Ines on the Signal Deck |
-| Q2.6 | **Four Flags** | Ines · Signal Deck (L2SW) | Hoist the right flag for each order; less is more | `@`, `#`, `/`, `&` in the prompt box; drag and drop onto a session; type `/` for the palette | **M2.2** (+ P2.3 Flag Hoist) | `pg2.context-syntax`, `pg2.attach`, `pg2.slash` | Rook across the Signal Bridge |
+| Q2.6 | **Four Flags** | Ines · Signal Deck (L2SW) | Hoist the right flag for each need; pack light; drop a file on the session | `@`, `#`, `/`, `&` in the prompt box; drag and drop onto a session; type `/` for the palette | P2.3 Flag Hoist, then **K2.3** | `pg2.context-syntax`, `pg2.attach`, `pg2.slash` | Rook across the Signal Bridge |
 | Q2.7 | **The Practice Bough** | Rook · L2S | Walk through Exercise 1 with the screenshots | **Create from** → **Branches** → **Plan** → `#3` → **Review plan** → **Exit plan mode and I will prompt myself** → preview → **Changes** | **H2.3** | `pg2.create-from`, `pg2.plan`, `pg2.preview` | Pip at the Chronicle Loft |
 | Q2.8 | **The Chronicle Loft** | Pip · L3SE | Read the crew's day back; check the session's usage | `/chronicle standup`, `/context`, the usage popup, the session name menu | **H2.6** | `pg2.chronicle`, `pg2.context`, `pg2.details` | The Elder at the Crown |
 | Q2.9 | **The Canopy Trial** | Elder Maren · Crown Deck (L4) | Pass the Trial; light the Crown Beacon | key takeaways | **Trial T2** | `pg2.takeaways` | Keelhaven (Chapter 03) |
@@ -562,13 +563,15 @@ house on a fresh bough, the Great Hall's upper door, the gondola.
 7. "The app remembers your last choice. You picked Current checkout on Anchorage, so switch back to New worktree." `[§where-a-session-runs]`
 8. "And a session you start with **Create from** always gets a new worktree." `[§where-a-session-runs]`
 9. "When in doubt, a new worktree. It keeps `main` clean and still runs on your machine." `[§where-a-session-runs]`
-10. Check **H2.1**. → "Fen's got crews that won't stop tangling. Boardwalk's that way."
+10. Check **K2.4** right after line 7 (switch back): "Your workspace selector still says **Current checkout**, your pick from Chapter 00. What do you do before your next session?" → "Open the workspace selector and choose **New worktree**" (vs "Nothing. Each new session starts on New worktree": the app remembers your last choice · "Choose Cloud" · "Keep Current checkout. It's quicker"). `[§where-a-session-runs]`
+11. Check **H2.1**. → "Fen's got crews that won't stop tangling. Boardwalk's that way."
 
 **Q2.5 Fen (Flume Gallery → Spire).** See §5 for the puzzle. Outline: Fen's demo of the shared trough
 (Without isolation), three rounds, then the twist. Closing lines:
 - "Three crews, three channels, one spring. You can run sessions side by side without mixing their changes." `[§why-the-github-copilot-app-uses-worktrees]`
 - "Mind, the course has you work one session at a time in this chapter." `[§why-…]`
 - After the twist: "Worktrees separate files and branches, not everything. Dev servers, databases and ports can still collide." `[§where-a-session-runs]` "So give parallel previews different ports." `[§key-takeaways]`
+- Back to the app, over `app-where-sessions-run`: "In the app you don't dig channels. Pick New worktree in the workspace selector, and the app makes the folder and branch." `[§where-a-session-runs]`
 → "Ines wants a word about what you pack. Signal Deck, up the stair."
 
 **Q2.6 Ines (Signal Deck).** Four flags on the mast (PLAN §3): **cargo crate** = `@`, **bounty notice** =
@@ -580,7 +583,8 @@ house on a fresh bough, the Great Hall's upper door, the gondola.
 5. "Got a file that isn't in the repository? Drag it from your computer onto a session or agent in the sidebar." `[§attaching-files]`
 6. "Not sure what commands you've got? Type `/` and read the palette. It changes with your app, plugins, skills and policy." `[§slash-commands]`
 7. "Today you need two: `/chronicle`, and `/context`. Pip'll show you both." `[§slash-commands]`
-8. **P2.3 Flag Hoist**, then check **M2.2**. → "Rook's crew is on the Practice Bough. Mind the bridge, it sways."
+8. **P2.3 Flag Hoist** (after line 5; lines 6 and 7 follow the check), then check **K2.3**. Grants the
+   glossary terms **Context** and **Context syntax**. → "Rook's crew is on the Practice Bough. Mind the bridge, it sways."
 
 **Q2.7 Rook (Practice Bough).** A spyglass walk-through, one screenshot per step, each with an "Open in
 the course ↗" link; nothing is clicked in the real app.
@@ -645,6 +649,7 @@ See [channel-routing-grids.svg](island-02/channel-routing-grids.svg).
 | Water spilling off the grid into the Great Hall | changes landing in your main checkout; a new worktree keeps them out of `main` (`learning-objectives`, `where-a-session-runs` tip) |
 | A crew's water turning another crew's wheel | "Diffs stay tied to the session" (`why-…`) |
 | Three colours running at once, no mixing | "you can run several sessions in parallel without mixing their file changes" (`why-…`) |
+| Round 3: a crew's own channel, the Great Hall, or the gondola | the workspace selector's **New worktree**, **Current checkout** and **Cloud**, each for the order its "Choose it when..." row describes (`where-a-session-runs`) |
 | Two crews on one bridge to Lookout 5173 | "Dev servers, databases, and ports can still collide" (`where-a-session-runs`, `two-previews-collided`) |
 | Opening the bridge to Lookout 5174, or closing one crew's lantern | "Stop one Vite server or start the second on port `5174`" (`two-previews-collided`); "Use different ports for parallel previews" (`key-takeaways` 3) |
 
@@ -696,8 +701,45 @@ column (a dead end in Round 1, a mix in Round 2), so pressing **Open the gates**
 Docs needs r0c3 → N–E, r0c4 → S–W, r1c4 → N–S. Bug Fix runs straight down c2. **Exactly one solution**
 (the solver in `draw.py` confirms it; B's test repeats it).
 
-**Round 3: After the rain.** A boulder (one of the island's mossy basalt rocks, filling one tile) rolls out of the jungle on the slope above, bounds over the header west of Feature's gate, splashes down and hops into r2c2, knocking a few chips loose (camera beat, `rock_tumble` sound), and Fen swaps
-in new tiles: Board B. All gates live. Start: every tile at rot 0.
+**Round 3: Where does each crew work?** (Replaced the boulder round and Board B, 2026-10-15.) Fen's crew
+digs the rest: every tile turns to Board A's solution (every crew has its own channel; the tiles don't
+turn this round). Each crew now gets an order, and you pick where it works, as the workspace selector
+does for a session: the course's objective *"Decide between working in your current checkout, an
+isolated worktree, or a cloud sandbox"* (`learning-objectives`, `where-a-session-runs`). Each order is
+one row of the course's "Choose it when..." column. A new worktree is **never wrong** where the order
+leaves it open: the section's tip says *"When in doubt, choose a new worktree"* and Key Takeaway 2 calls it
+the safe default. So only Bug Fix, whose order asks to offload the work and keep the machine untouched,
+has a single right place (Cloud); Feature's order (keep it apart from main, on your machine) is New
+worktree; the quick look takes Current checkout **or** New worktree:
+
+| Crew | Order | Best | In the world |
+|---|---|---|---|
+| ★ Feature | "Build the reading list. Keep its changes, branch and diff apart from main, on your machine." | **New worktree** | down its own channel to its wheel |
+| 🐞 Bug Fix | "A long job to offload. Keep your own machine untouched." | **Cloud** | its gate stays shut; the gondola runs (off your deck) |
+| 📜 Docs | "Just a quick, low-stakes look at the README. Touching your working folder is fine." | **Current checkout** ✓ "Right: a quick, low-stakes look can run in your current checkout." · **New worktree** ✓ "That works too. A new worktree is the safe default; for a quick look, Current checkout is fine as well." | checkout: its water runs into the Great Hall (main), fine for a quick look; worktree: down its own channel |
+
+Opening the gates with a crew in the wrong place shows each crew's result in words (✓/✗ and "fits /
+doesn't fit this order", or the place's own line, as for Docs above), the first wrong crew's reason on
+screen (`CREW_ORDERS[…].why`, e.g. Docs in the Cloud: "Cloud offloads the work. For a quick, low-stakes
+look, Current checkout is fine, and a new worktree is the safe default."), and Fen says why its best
+place fits (`tb.fen.ws.worktree|checkout|cloud`; for Docs: "That's only a quick, low-stakes look. Your
+current checkout's fine for that, and a new worktree's the safe default."). `CREW_ORDERS[…].accept` lists
+every right place; a unit test fails if an order refuses New worktree without asking to offload the work
+and keep the machine untouched. Solved: "Every crew where its order fits. The choices trade speed
+against isolation." `[§where-a-session-runs]`
+
+Controls: each crew is a radio group of three buttons (≥ 44 px; the pick shows ● and a frame, never
+colour alone). Keys ↑/↓ pick the crew, ←/→ (or E, or 1–3) its place, F opens the gates, R clears, Q
+hints. Gamepad: d-pad ↑/↓ crew, ←/→ or A place, X gates, Y hint. Hints: (1) "Read each crew's order. Own
+channel, a quick look, or off your deck?" (2) the first wrong crew's order again; (3) Wingman puts it
+in its place. Resuming a save at round 3 opens straight on the picks (nothing replays).
+
+Board B and the boulder (below, kept for the record) are retired; `draw.py` still draws them. With
+Board B gone, the **wrong wheel** ending can't happen on the board (Board A can't send a crew to
+another crew's wheel); the logic and Fen's line stay.
+
+*Retired:* **After the rain.** A boulder rolled into r2c2 and Fen swapped in Board B. All gates live.
+Start: every tile at rot 0.
 
 ```
 Board B (types)       Solution rotations
@@ -732,7 +774,7 @@ Water resets when you rotate a tile after a run. There's no fail state, no move 
 
 **Hints (Wingman, Q; tier 3 is available, this isn't a Trial):** R1/R2: (1) "Follow each colour down
 from its gate. Where do two meet?" (2) the first mixed or spilling tile pulses; (3) one wrong tile turns
-right. R3: (1) "Bug Fix can't go through the boulder. Which side leaves Docs a way down?" (2) r1c2
+right. R3 (retired Board B): (1) "Bug Fix can't go through the boulder. Which side leaves Docs a way down?" (2) r1c2
 pulses; (3) r1c2 turns to W–N.
 
 ### 5.5 Controls
@@ -761,9 +803,12 @@ board.
 ### 5.6 The Spire twist (P2.2, ~2 min)
 
 1. Fen: "Now both Feature and Docs want to show their work at the Lookout." Camera → `twistCam`.
-2. Two lantern carriers (Feature blue, Docs teal) step onto bridge **R2** from opposite ends of L1E's
-   gallery and meet mid-span at the sign **5173**; the bridge sways, lanterns clack, the magic-lantern
-   screen flickers between their two slides (`timber_creak_groan`, a comic stop).
+2. Two lanterns (Feature blue, Docs teal, big stage lanterns on carrying poles) come out onto bridge
+   **R2**, one from each end, and meet nose to nose at mid-span; they bump a few times and stand stuck
+   (`timber_creak_groan`, a comic stop). The camera's close enough (about 20 m) for the jam to read.
+   After the answer, Feature's walks on to Lookout 5173 and Docs' to 5174 (or Feature's goes out and
+   Docs' crosses alone); they stay lit there. (`set-pieces.ts` `spireJam` / `spireLantern`: rigid
+   parts of the set pieces' merged meshes, so no new draw or shader.)
 3. Fen: "Their channels are separate. So why are they stuck?" A choice (keys 1–4, or tap):
 
 | Choice | Result | Line | Source |
@@ -824,7 +869,8 @@ hotspot, `T2.x` = Trial items, `C2.x` chests, `B2.x` bottles, `pg2.*` pages. Eve
 | **M2.1** | matching | "Match each problem to what a worktree-backed session gives you." | Multiple tasks edit the same folder ↔ Each task gets a separate folder · Easy to lose track of branch state ↔ The session branch is visible in the app · Tests and diffs mix together ↔ Diffs stay tied to the session · Hard to compare work ↔ Easier to inspect and approve | — | `why-the-github-copilot-app-uses-worktrees` |
 | **H2.1** | hotspot `app-where-sessions-run` | "Where do you set the branch that a new worktree starts from?" | `base-branch` | `new-worktree` ("That box is the course's highlight. **New worktree** says *where*; the starting branch is set further down.") · `current-checkout` · `cloud` · `workspace-selector` ("This opens the menu. The setting you want is inside it.") | `where-a-session-runs` |
 | **P2.1/P2.2** | puzzle | §5 | — | — | §5.1 |
-| **M2.2** | matching | "Hoist the right flag: match each symbol to what it brings." | `@` ↔ files or folders · `#` ↔ issues or pull requests · `/` ↔ slash commands · `&` ↔ other sessions, when the prompt box offers it | — | `context-syntax` |
+| **K2.4** | mc | "Your workspace selector still says **Current checkout**, your pick from Chapter 00. What do you do before your next session?" | **Open the workspace selector and choose New worktree** | "Nothing. Each new session starts on New worktree" ("The app remembers your last choice, so it would stay on Current checkout.") · "Choose Cloud" ("Cloud runs the session off your machine. The course switches back to New worktree.") · "Keep Current checkout. It's quicker" ("Quick, but it works right in your clone…") | `where-a-session-runs` |
+| **K2.3** | mc | "Your turn: Copilot's adding a light and dark theme to the Book App. What context do you attach?" | **`@samples/book-app-web/src`: the code it needs** | "`@` every folder in the repository" · "Every open issue, with `#`" · "Nothing. Copilot will search everything" | `context-syntax` (the tip; the scenario is the chapter's assignment) |
 | **H2.3** | hotspot `app-plan-from-issue` | "The course has you leave plan mode and write your own prompts. Which option?" | `exit-plan` | `approve` ("That approves the plan and implements it in **Autopilot**.") · `suggest` ("That asks for changes to the plan.") · `continue` ("Pick an option first; **Continue** confirms it.") · `plan-tab` ("That's where the plan opens.") | `exercise-start-a-session-from-a-branch-and-attach-an-issue` |
 | **H2.6** | hotspot `app-context-information` | "Where do you see how many AI credits this session has used?" | `session` | `plan` ("**Plan** is the share of your plan used.") · `tokens` ("**Tokens** counts what went to the model and back.") · `context` (course highlight; "That's how the context window is divided.") · `view-usage` ("That opens your account's usage and billing.") | `exercise-check-the-session-with-slash-commands` |
 
@@ -835,7 +881,8 @@ hotspot, `T2.x` = Trial items, `C2.x` chests, `B2.x` bottles, `pg2.*` pages. Eve
 - **H2.5** (Rook): `app-chronicle-standup-output`, "Where's the pill that opens the session's diff above
   the prompt box?" → `changes-pill`; distractors `plan-pill`, `chronicle-chip`, `background-pill` (feedback
   doesn't explain Background; it isn't in the chapter's text).
-- **K2.3** (Ines, after the Flag Hoist): "You want Copilot to fix one empty-state message. What do you
+- *(Was K2.3, now the Flag Hoist's "Pack light" order, with the course exercise's answer: `#` just the
+  empty-state issue.)* "You want Copilot to fix one empty-state message. What do you
   attach?" → "Just the folder it lives in, with `@`" (less is often more) vs "Every folder in the
   repository" / "Nothing; Copilot will search everything" / "Every open issue with `#`".
   `[§context-syntax]`
@@ -871,7 +918,7 @@ nothing authored (PLAN §8.1).
 | `pg2.worktree` | What's a Git worktree? | `one-repo-many-worktrees` | extra working folders for one repository, usually each on its own branch | `what-is-a-git-worktree` |
 | `pg2.why` | Why worktrees | — | the four rows of the table; parallel sessions don't mix file changes; one at a time in this chapter | `why-…` |
 | `pg2.where` | Where a session runs | `app-where-sessions-run` | **+**, the workspace selector, the three options, **Base branch**, switch back to **New worktree**, **Create from** | `where-a-session-runs` |
-| `pg2.parallel` | Parallel sessions | — | the Channel Routing lesson | `why-…` |
+| `pg2.parallel` | Parallel sessions | `app-where-sessions-run` | the Channel Routing lesson, then the app: you don't dig channels, you pick **New worktree** in the workspace selector and the app makes the folder and branch; **Current checkout** for a quick look, **Cloud** to offload | `where-a-session-runs` |
 | `pg2.ports` | Not ports | `app-book-app-empty-state-before` (the URL shows 5173) | files and branches, not dev servers, databases, or ports; stop one or use `5174` | `where-a-session-runs`, `two-previews-collided` |
 | `pg2.context-syntax` | Four flags | — | the `@ # / &` table; less is often more | `context-syntax` |
 | `pg2.attach` | Drop a file on a session | — | drag files onto a session or agent in the sidebar | `attaching-files` |
@@ -902,7 +949,7 @@ Workspace selector · Context · Context syntax (`@ # / &`) · Slash command · 
 
 | Id | Where | What | Controls | Teaches |
 |---|---|---|---|---|
-| **P2.3 Flag Hoist** | Signal Deck | Ines calls four orders ("Bring `@samples/book-app-web/src`", "Bring issue `#12`", "Run `/chronicle standup`", "Point at another crew's session"); you hoist the matching flag at one of four halyard posts (3 m apart). The flag runs up the mast and snaps in the wind. A wrong flag drops back with Ines's reason | walk to a post + E; or keys 1–4 / tap the flag chips (≥ 48 px) | `context-syntax` |
+| **P2.3 Flag Hoist** | Signal Deck | Ines calls six orders. Four are needs, never the symbol: "Copilot needs the Book App's source folder" (`@`), "Get a recap of your last day's work" (`/`), "Attach the bug report about the empty state" (`#`), "Use what Rook's crew's session found" (`&`); you hoist the flag that brings it. Then **Pack light**: "Copilot's fixing one empty-state message. What do you bring?" → `#` just the empty-state issue (vs `@` every folder, nothing, `#` every open issue). Last, **A letter from ashore**: "A letter's on your computer, not in the repository. Get it into the session." → drag it onto the session in the sidebar (vs `@`, `#`, `/context`). The flag runs up the mast and snaps in the wind; a wrong pick drops back with Ines's reason. Then check **K2.3** (a new job, the same tip) | keys 1–4 / tap the flag or choice (≥ 48 px; ≥ 44 px in the landscape-phone layout) | `context-syntax`, `attaching-files`, `exercise-start-…` |
 | **Booth Pools** | Q2.2 | Step into each of the three booths: the island music ducks and that booth's instrument plays close (kalimba, flute, rain-stick), muffled outside it. Stepping back out lets the full song in | walk | the analogy, felt |
 | **Cloud gondola** | Q2.4 | Pull the bell rope: a crate rides the gondola into the mist on Thunder Crown and comes back sealed 60 s later. Oak: "Done somewhere else, and your own deck stayed untouched." `[§where-a-session-runs]` | E at the bell | Cloud |
 | **Lantern House** | §4.5 | day/night shutters | E at the lever | the assignment |
@@ -952,7 +999,7 @@ New files (B sources them; each logged: CC0 field recordings in `ASSETS.md`, AI-
 | `frogs_dusk` | tree frogs round the pools (bed; hush within 6 m of the player) | Freesound CC0 |
 | `parrot_call` (3 variants) | parrots flushing and crossing | Freesound CC0 |
 | `booth_kalimba`, `booth_flute`, `booth_rainstick` | 8 s loops for the three booths (key and tempo matched to the island track) | ElevenLabs Sound Effects (the `sound-effects` skill) or Suno stems from Dan's track |
-| `gondola_bell`, `rope_hoist`, `lantern_click`, `rock_tumble` | gondola, Flag Hoist, magic lantern, the Round 3 boulder | ElevenLabs Sound Effects or Kenney CC0 |
+| `gondola_bell`, `rope_hoist`, `lantern_click`, `rock_tumble` | gondola (and round 3's Cloud crew), Flag Hoist, magic lantern, (the retired Round 3 boulder) | ElevenLabs Sound Effects or Kenney CC0 |
 
 Mix: beds duck under voice; positional sounds use HRTF; captions for important cues (water flowing,
 mixed, wheels turning, bridge jam, Seal).
@@ -1016,7 +1063,7 @@ src/learn/content/ch02.ts             (B)
 - `flow.ts` gets `warmThousandBough`, a copy of `warmMeridian` using `warmLate` (`keepHidden`, terrain
   LOD warm), and `travelTo('island:thousand-bough')` waits for it behind the fade.
 - The island's world stays hidden until its warm-up draws it; late parts (the R3 bridge, the Seal's
-  lanterns, the Round 3 boulder, fireflies) carry `userData.prewarm` so the warm shows them once.
+  lanterns, fireflies) carry `userData.prewarm` so the warm shows them once.
 - Instanced meshes (canopy clusters, lanterns, mist, fireflies, prop roots if instanced) use
   `sharedInstancedMesh` and aren't precompiled for the scene pass. Characters go through `shareSkinning`
   and `unreflected`.
@@ -1045,7 +1092,7 @@ export type TbInteractionId =
   | 'basket:bottom' | 'basket:top' | 'lantern:lever' | 'booth:a' | 'booth:b' | 'booth:c';
 
 export interface FlumeTerraceView {
-  setRound(round: 1 | 2 | 3): Promise<void>;          // round 3 drops the boulder and swaps tiles
+  setRound(round: 1 | 2 | 3): Promise<void>;          // every round plays on Board A (round 3: channels dug)
   setBoard(board: ChannelRoutingState['board'], animate: boolean): void;
   setCursor(cell: readonly [number, number] | null): void;
   tileCenter(row: number, col: number, out: Vector3): Vector3;  // for touch hit areas
@@ -1087,15 +1134,20 @@ Until A's views exist, B tests against a **stub** of the same interfaces (`contr
 | Level | Distance (from camera to T) | Trunk + limbs + roots | Canopy clusters | Notes |
 |---|---|---|---|---|
 | LOD0 | < 110 m | Ultra/High 40k tris, Medium 25k, Low 14k, Lite 8k | High 900 × 48 tris, Medium 600, Low 350, Lite 200 × 24 | full lanterns, vines |
-| LOD1 | 110–400 m | 6k merged | one third of the clusters, larger | lanterns as halo points only |
+| LOD1 | 110–400 m | 6k merged, every prop root | half the clusters, larger: one flat, ragged lobe under a few big leaf cards each | lanterns as halo points only |
 | LOD2 | > 400 m (and the silhouette before streaming) | 600-tri dome + trunk silhouette in the distant-island material | — | 0 new programs |
 
 LOD switches are dithered (PLAN §6), never alpha-blended; the hand-off distances get hysteresis (±8 m).
 Only the trunk, limbs and the canopy clusters cast into the cached sun shadow map; small props don't.
 The build is sliced (`runSliced`, a few ms a frame). Clusters are a soft core with a leaf pattern and
 alpha-tested leaf cards round it (the shared vegetation material's card part, `vegPart` 5: no new
-graph), tinted per instance (`tint`) with the §2.3 greens; the far level has no cards, so no distant
-cluster turns into blotches (lesson: alpha-tested foliage at a distance).
+graph), tinted per instance (`tint`) with the §2.3 greens. The far level (`BANYAN_DETAIL.far`) reads as
+broad layers of leaves from the sea, not round puffs: each clump is one flat (`squash`), ragged lobe
+whose normals lean to the canopy's own (`lean`), so the clumps shade as one canopy, darker under each
+tier, with a few big leaf cards round its rim (each holds several sprays, `cardSpan`, and lies on the
+lobe, which fills the shape: the cards only break up the edge, so a far one can't turn into a blotch;
+lesson: alpha-tested foliage at a distance). Lite and Low get more cards a clump (`farCards`: fewer,
+bigger clumps), and it has fewer triangles than the round two-lobe clumps it replaced on every tier.
 
 ### 9.5 Arrival flyover (`THOUSAND_BOUGH_ARRIVAL` in `arrivals.ts`, A)
 

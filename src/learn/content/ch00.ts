@@ -189,7 +189,7 @@ export const CH00: ChapterContent = {
         'You want the option that works in the clone already on your machine.',
         'Select **Current checkout**.',
       ],
-      source: src('check-your-tools-in-terminal', '6ff94698a3b3', {
+      source: src('check-your-tools-in-terminal', 'cf4e4b176d0b', {
         src: 'course/ch00/app-current-checkout-workspace-selector.webp',
         hash: '9685f68887a9',
       }),
@@ -227,7 +227,7 @@ export const CH00: ChapterContent = {
           'Right. Sign in with `gh auth login`, then confirm the active account with `gh auth status`.',
         wrong: 'The CLI’s account has to match your fork before you continue.',
       },
-      source: src('check-your-tools-in-terminal', '6ff94698a3b3'),
+      source: src('check-your-tools-in-terminal', 'cf4e4b176d0b'),
     },
     {
       id: 'S0.2',
@@ -300,7 +300,7 @@ export const CH00: ChapterContent = {
         wrong:
           'Workflows are a GitHub.com setting. In the app, commands and requests go to different places.',
       },
-      source: src('check-your-tools-in-terminal', '6ff94698a3b3'),
+      source: src('check-your-tools-in-terminal', 'cf4e4b176d0b'),
     },
     {
       id: 'T0.3',
@@ -365,6 +365,38 @@ export const CH00: ChapterContent = {
       },
       source: src('add-the-course-practice-items', '15d697dd1d02'),
     },
+    // Sea battle 1, wave 2: check the preview's target before running the setup.
+    {
+      id: 'N0.2',
+      type: 'scenario',
+      situation:
+        'The preview reports `Repository: github/copilot-app-for-beginners` and ends with `Dry run complete. No changes were made.` You meant to set up your fork.',
+      prompt: 'What should you do before running `--yes`?',
+      options: [
+        {
+          id: 'fork',
+          text: 'Stop and rerun `--dry-run` from your fork. Continue only when `Repository:` names it.',
+        },
+        {
+          id: 'yes',
+          text: 'Run `--yes`; the dry run finished without errors.',
+          feedback:
+            'The output names the original course repository, not your fork. Check the `Repository:` line before continuing.',
+        },
+        {
+          id: 'repeat',
+          text: 'Run the same dry run again, then use `--yes` if it finishes the same way.',
+          feedback:
+            'A successful preview does not change its target. The `Repository:` line must name your fork before you continue.',
+        },
+      ],
+      answer: 'fork',
+      explain: {
+        correct: 'Right. Confirm `Repository:` shows your fork before you run the setup for real.',
+        wrong: 'This preview names the original repository. Check the target before running `--yes`.',
+      },
+      source: src('add-the-course-practice-items', '15d697dd1d02'),
+    },
     {
       id: 'T0.5',
       type: 'scenario',
@@ -391,7 +423,7 @@ export const CH00: ChapterContent = {
         { id: 'account', text: 'A GitHub account' },
         { id: 'plan', text: 'A Copilot plan, or your own model provider' },
         { id: 'git', text: 'Git' },
-        { id: 'node', text: 'Node.js LTS' },
+        { id: 'node', text: 'Node.js (the version marked LTS)' },
         { id: 'gh', text: 'GitHub CLI (`gh`)' },
         { id: 'vscode', text: 'VS Code' },
       ],
@@ -400,7 +432,7 @@ export const CH00: ChapterContent = {
         correct: 'That’s the list. Your editor is welcome, but it isn’t required for setup.',
         wrong: 'Five of these are prerequisites. One is nice to have but not required.',
       },
-      source: src('prerequisites', '8cf6b77a5305'),
+      source: src('prerequisites', '814ec181ea99'),
     },
     {
       id: 'T0.10',
@@ -424,7 +456,7 @@ export const CH00: ChapterContent = {
         correct: 'Right. The **+** beside the project starts a project session in it.',
         wrong: 'Look beside the project itself, not the **Projects** heading.',
       },
-      source: src('check-your-tools-in-terminal', '6ff94698a3b3'),
+      source: src('check-your-tools-in-terminal', 'cf4e4b176d0b'),
     },
     {
       id: 'T0.8',
@@ -461,8 +493,8 @@ export const CH00: ChapterContent = {
       id: 'pg.prereqs',
       title: 'What you need',
       caption:
-        'A GitHub account, and a Copilot plan **or** your own model provider. On Copilot Business or Enterprise, your organization has to enable the **GitHub Copilot app** policy. Install [Git](https://git-scm.com/install), [Node.js LTS](https://nodejs.org) (it runs the course’s sample app), and [GitHub CLI](https://cli.github.com) (`gh`, for the one-time setup script). You’ll check their versions in the app’s **Terminal** once your fork is connected.',
-      source: src('prerequisites', '8cf6b77a5305'),
+        'A GitHub account, and a Copilot plan **or** your own model provider. On Copilot Business or Enterprise, your organization has to enable the **GitHub Copilot app** policy. Install [Git](https://git-scm.com/install), [Node.js](https://nodejs.org/en/download) (the version marked **LTS**, for the course’s sample app), and [GitHub CLI](https://cli.github.com) (`gh`, for the one-time setup script). You’ll check their versions in the app’s **Terminal** once your fork is connected.',
+      source: src('prerequisites', '814ec181ea99'),
     },
     {
       id: 'C0.3',
@@ -495,7 +527,7 @@ export const CH00: ChapterContent = {
       caption:
         'Point to your project in the sidebar and select the **+** that appears to start a project session. Sessions start on **New worktree** by default. For setup, pick **Current checkout** in the workspace selector below the prompt box, so it runs in the clone already on your machine. Then submit this short prompt to create the session.',
       code: 'Name the top-level folders in this repository. Do not change any files.',
-      source: src('check-your-tools-in-terminal', '6ff94698a3b3'),
+      source: src('check-your-tools-in-terminal', 'cf4e4b176d0b'),
     },
     {
       id: 'pg.terminal',
@@ -507,7 +539,7 @@ export const CH00: ChapterContent = {
         'git --version\nnode -v\nnpm -v\ngh --version\n' +
         'gh auth status   # signed in as the account that owns your fork?\n' +
         'gh auth login    # if not: GitHub.com → Login with a web browser',
-      source: src('check-your-tools-in-terminal', '6ff94698a3b3'),
+      source: src('check-your-tools-in-terminal', 'cf4e4b176d0b'),
     },
     {
       id: 'pg.workflows',
@@ -642,8 +674,8 @@ export const CH00: ChapterContent = {
   // The course section each voiced teaching line paraphrases (PLAN §8.3): the drift report flags
   // a line when its section changes upstream. Banter and directions aren't listed.
   voiced: {
-    'nell.papers.01': src('prerequisites', '8cf6b77a5305'),
-    'nell.papers.tools': src('prerequisites', '8cf6b77a5305'),
+    'nell.papers.01': src('prerequisites', '814ec181ea99'),
+    'nell.papers.tools': src('prerequisites', '814ec181ea99'),
     'nell.papers.app': src('installation', 'bf12cef33675'),
     'nell.papers.signin': src('installation', 'bf12cef33675'),
     'nell.papers.05': src('installation', 'bf12cef33675'),
@@ -653,12 +685,12 @@ export const CH00: ChapterContent = {
     'ezra.fork.03': src('connect-to-your-repository', '365638d573db'),
     'ezra.fork.careful': src('connect-to-your-repository', '365638d573db'),
     'bo.deck.01': src('connect-to-your-repository', '365638d573db'),
-    'bo.deck.02': src('check-your-tools-in-terminal', '6ff94698a3b3'),
-    'bo.deck.03': src('check-your-tools-in-terminal', '6ff94698a3b3'),
-    'bo.gear.brief.01': src('check-your-tools-in-terminal', '6ff94698a3b3'),
-    'bo.gear.brief.02': src('check-your-tools-in-terminal', '6ff94698a3b3'),
-    'bo.gear.brief.03': src('check-your-tools-in-terminal', '6ff94698a3b3'),
-    'bo.gear.checked.02': src('check-your-tools-in-terminal', '6ff94698a3b3'),
+    'bo.deck.02': src('check-your-tools-in-terminal', 'cf4e4b176d0b'),
+    'bo.deck.03': src('check-your-tools-in-terminal', 'cf4e4b176d0b'),
+    'bo.gear.brief.01': src('check-your-tools-in-terminal', 'cf4e4b176d0b'),
+    'bo.gear.brief.02': src('check-your-tools-in-terminal', 'cf4e4b176d0b'),
+    'bo.gear.brief.03': src('check-your-tools-in-terminal', 'cf4e4b176d0b'),
+    'bo.gear.checked.02': src('check-your-tools-in-terminal', 'cf4e4b176d0b'),
     'pim.brief.01': src('add-the-course-practice-items', '15d697dd1d02'),
     'pol.brief.01': src('add-the-course-practice-items', '15d697dd1d02'),
     'pol.brief.actions': src('add-the-course-practice-items', '15d697dd1d02'),
@@ -671,6 +703,12 @@ export const CH00: ChapterContent = {
     'pol.refuse.guild.01': src('the-script-stops-for-an-organization-fork', 'b65840384055'),
     'pim.refuse.guild.01': src('the-script-stops-for-an-organization-fork', 'b65840384055'),
     'suri.brief.02': src('add-the-course-practice-items', '15d697dd1d02'),
+    'suri.actions.01': src('add-the-course-practice-items', '15d697dd1d02'),
+    'suri.actions.02': src('add-the-course-practice-items', '15d697dd1d02'),
+    'suri.solved.01': src('add-the-course-practice-items', '15d697dd1d02'),
+    'suri.solved.02': src('add-the-course-practice-items', '15d697dd1d02'),
+    'pim.solved.fork': src('connect-to-your-repository', '365638d573db'),
+    'pol.refuse.actions.01': src('the-script-stops-with-setup-failed', '3935f4325855'),
     'wingman.suri.01': src('add-the-course-practice-items', '15d697dd1d02'),
     'juno.brief.02': src('learn-more-about-the-course-repository', '104572df79ac'),
     'juno.brief.03': src('learn-more-about-the-course-repository', '104572df79ac'),

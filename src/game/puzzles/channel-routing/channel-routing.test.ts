@@ -1,14 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  BOARD_A_KINDS,
-  BOARD_B_KINDS,
-  CREWS,
-  makeBoard,
-  roundBoard,
-  roundLive,
-  roundSolution,
-  START_A,
-} from './boards';
+import { BOARD_A_KINDS, CREWS, makeBoard, roundBoard, roundLive, roundSolution, START_A } from './boards';
 import { openGates, pathSets, ports, rotate, solved, tileLabel, wrongTile } from './logic';
 import type { Crew, Flow, FlowEnd, Rot, Tile } from './types';
 
@@ -34,30 +25,24 @@ describe('channel routing', () => {
     expect(ports({ kind: 'rock', rot: 0 })).toBe(0);
   });
 
-  it('has exactly one set of paths for rounds 2 and 3 (draw.py)', () => {
+  it('has exactly one set of paths for rounds 1 and 2 (draw.py)', () => {
     expect(pathSets(BOARD_A_KINDS, ['feature'])).toHaveLength(1);
     expect(pathSets(BOARD_A_KINDS, [...CREWS])).toHaveLength(1);
-    expect(pathSets(BOARD_B_KINDS, [...CREWS])).toHaveLength(1);
-    expect(pathSets(BOARD_B_KINDS, [...CREWS])[0]).toEqual([
-      '0,1 0,0 1,0 2,0 3,0',
-      '0,2 1,2 1,1 2,1 3,1 3,2',
-      '0,3 0,4 1,4 2,4 2,3 3,3 3,4',
-    ]);
   });
 
-  it('gives Bug Fix two tempting detours on Board B, and only one leaves Docs a way down', () => {
-    const bug = pathSets(BOARD_B_KINDS, ['bugfix']);
-    expect(bug.length).toBeGreaterThanOrEqual(2);
-    expect(pathSets(BOARD_B_KINDS, ['bugfix', 'docs'])).toHaveLength(1);
-  });
-
-  it('solves every round with the solution rotations, and every start is unsolved', () => {
-    for (const round of [1, 2, 3] as const) {
+  it('solves rounds 1 and 2 with the solution rotations, and both starts are unsolved', () => {
+    for (const round of [1, 2] as const) {
       const start = roundBoard(round);
       expect(solved(openGates(start, roundLive(round)), roundLive(round)), `start ${round}`).toBe(false);
       const done = solve(start, round);
       expect(solved(openGates(done, roundLive(round)), roundLive(round)), `solved ${round}`).toBe(true);
     }
+  });
+
+  it('starts round 3 with every crew in its own channel (it’s about where they work)', () => {
+    const b = roundBoard(3);
+    expect(wrongTile(b, roundSolution(3))).toBeNull();
+    expect(solved(openGates(b, roundLive(3)), roundLive(3))).toBe(true);
   });
 
   it('round 1’s start sends Feature into Bug Fix’s column, and that mixes in round 2', () => {
@@ -91,9 +76,10 @@ describe('channel routing', () => {
     const hall = rotate(solve(a, 2), 0, 0, -1);
     expect(openGates(hall, live).find((f) => f.crew === 'feature')!.end).toBe('mainHall');
     seen.add('mainHall');
-    // Docs into Bug Fix's wheel on Board B: r3c3 W–N and r3c2 E–S turn it west and out c2.
-    const b = solve(roundBoard(3), 3);
-    const swapped = rotate(rotate(b, 3, 3, -1), 3, 2, -1);
+    // Docs into Bug Fix's wheel (not on Board A, which can't send a crew to another's wheel): an
+    // elbow W–N at r0c3 and one E–S at r0c2 send it west and down c2.
+    const z = [0, 0, 0, 0, 0] as const;
+    const swapped = makeBoard(['SSLLS', 'SSSSS', 'SSSSS', 'SSSSS'], [[0, 0, 1, 3, 0], z, z, z]);
     const docs = openGates(swapped, { feature: false, bugfix: false, docs: true })[0]!;
     expect(docs.end).toBe('wrongWheel');
     expect(docs.wheel).toBe('bugfix');
@@ -119,8 +105,8 @@ describe('channel routing', () => {
   });
 
   it('never turns a rock', () => {
-    const b = roundBoard(3);
-    expect(rotate(b, 2, 2)[2]![2]).toEqual({ kind: 'rock', rot: 0 });
+    const b = roundBoard(2);
+    expect(rotate(b, 1, 1)[1]![1]).toEqual({ kind: 'rock', rot: 0 });
   });
 
   it('accepts either straight orientation that matches the solution', () => {

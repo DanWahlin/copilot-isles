@@ -1,52 +1,52 @@
 {
   "id": "mer.helm.next.autopilot",
   "speaker": "Rhea",
-  "text": "Last one, the Autopilot buoy with the green flag.",
+  "text": "Last order’s at the buoy with the green flag.",
   "words": [
     {
       "word": "Last",
       "start": 0.0485409,
-      "end": 0.42475
+      "end": 0.449041
     },
     {
-      "word": "one",
-      "start": 0.42475,
-      "end": 0.995125
+      "word": "order’s",
+      "start": 0.449041,
+      "end": 0.813125
+    },
+    {
+      "word": "at",
+      "start": 0.813125,
+      "end": 0.934458
     },
     {
       "word": "the",
-      "start": 0.995125,
-      "end": 1.128625
-    },
-    {
-      "word": "Autopilot",
-      "start": 1.128625,
-      "end": 1.820375
+      "start": 0.934458,
+      "end": 1.055833
     },
     {
       "word": "buoy",
-      "start": 1.820375,
-      "end": 2.087375
+      "start": 1.055833,
+      "end": 1.359208
     },
     {
       "word": "with",
-      "start": 2.087375,
-      "end": 2.233
+      "start": 1.359208,
+      "end": 1.504875
     },
     {
       "word": "the",
-      "start": 2.233,
-      "end": 2.34225
+      "start": 1.504875,
+      "end": 1.614083
     },
     {
       "word": "green",
-      "start": 2.34225,
-      "end": 2.682041
+      "start": 1.614083,
+      "end": 1.953875
     },
     {
       "word": "flag",
-      "start": 2.682041,
-      "end": 2.932041
+      "start": 1.953875,
+      "end": 2.203875
     }
   ]
 }

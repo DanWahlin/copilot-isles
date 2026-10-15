@@ -260,7 +260,8 @@ const frozenDir = new Vector3();
     m.setWater(
       f.cells.map((c, i) => ({ ...c, mask: openings(L.tiles[i]!.kind, rots[i]!) })),
       gate,
-      f.solved,
+      f.wheel,
+      f.check,
     );
     return { solved: f.solved, path: solutionPath(L) };
   },

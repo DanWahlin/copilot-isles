@@ -7,7 +7,9 @@ const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
 /**
  * Paint Your Sails (POC §4.4): the palette stand's picker. In the app, the theme lives in Settings →
- * Themes (Chapter 01 · Settings); here, it paints your sails. Picking a card previews it; Finish keeps it.
+ * Themes (Chapter 01 · Settings), where the course shows the GitHub theme; here, a palette paints your
+ * sails. Only GitHub gets an app-style card: the other palettes are sail colours, with no app-theme
+ * claim. Picking a card previews it; Finish keeps it.
  */
 export function ThemePicker({ store, selected }: { store: LearnStore; selected: string }) {
   const [query, setQuery] = useState('');
@@ -53,18 +55,19 @@ export function ThemePicker({ store, selected }: { store: LearnStore; selected: 
         <div className="ci-palette-side">
           <p className="ci-page-kicker">Paint your sails</p>
           <h2 id="ci-palette-title">
-            Pick a{' '}
+            Pick{' '}
             <span className="ci-palette-glyph" aria-hidden>
               <SailGlyph palette={current} />
             </span>{' '}
-            <strong>theme</strong> for your sails.
+            <strong>colours</strong> for your sails.
           </h2>
           <p className="ci-palette-note">
-            In the app, select the gear at the bottom of the sidebar, then <strong>Themes</strong>.
+            In the app, select the gear at the bottom of the sidebar, then <strong>Themes</strong>. The course
+            shows the <strong>GitHub</strong> theme there.
           </p>
           <p className="ci-palette-aside">
-            Here, the theme you pick paints your ship’s sails. You can repaint them any time, here or from the
-            game’s <strong>Settings</strong>.
+            Here, <strong>GitHub</strong> matches that theme, and the other colours are just for your ship.
+            You can repaint any time, here or from the game’s <strong>Settings</strong>.
           </p>
           <div className="ci-palette-actions">
             <button type="button" className="ci-btn primary" onClick={store.finishPalette}>
@@ -116,6 +119,7 @@ function PaletteCard({
   onFinish: () => void;
 }) {
   const c = p.card;
+  const cloth = hex(p.cloth);
   return (
     <button
       type="button"
@@ -127,42 +131,57 @@ function PaletteCard({
       onClick={onPick}
       onDoubleClick={onFinish}
     >
-      <span className="ci-palette-mock" style={{ background: c.page }} aria-hidden>
-        <span className="side" style={{ background: c.sidebar }}>
-          <i className="dots" />
-          <i style={{ background: c.ink, width: '70%' }} />
-          <i style={{ background: c.ink, width: '55%' }} />
-          <i style={{ background: c.ink, width: '62%' }} />
-          <i className="sel" style={{ background: c.ink }} />
-        </span>
-        <span className="body">
-          <span className="row">
-            <i style={{ background: c.accents[0], width: '14%' }} />
-            <i style={{ background: c.ink, width: '38%' }} />
-            <i style={{ background: c.accents[1], width: '14%', marginLeft: 'auto' }} />
+      {c ? (
+        <span className="ci-palette-mock" style={{ background: c.page }} aria-hidden>
+          <span className="side" style={{ background: c.sidebar }}>
+            <i className="dots" />
+            <i style={{ background: c.ink, width: '70%' }} />
+            <i style={{ background: c.ink, width: '55%' }} />
+            <i style={{ background: c.ink, width: '62%' }} />
+            <i className="sel" style={{ background: c.ink }} />
           </span>
-          <i style={{ background: c.ink, width: '92%' }} />
-          <i style={{ background: c.ink, width: '74%' }} />
-          <span className="row">
-            <i style={{ background: c.accents[2], width: '18%' }} />
-            <i style={{ background: c.accents[2], width: '18%' }} />
+          <span className="body">
+            <span className="row">
+              <i style={{ background: c.accents[0], width: '14%' }} />
+              <i style={{ background: c.ink, width: '38%' }} />
+              <i style={{ background: c.accents[1], width: '14%', marginLeft: 'auto' }} />
+            </span>
+            <i style={{ background: c.ink, width: '92%' }} />
+            <i style={{ background: c.ink, width: '74%' }} />
+            <span className="row">
+              <i style={{ background: c.accents[2], width: '18%' }} />
+              <i style={{ background: c.accents[2], width: '18%' }} />
+            </span>
+            <span className="row">
+              <i style={{ background: c.accents[3], width: '14%' }} />
+              <i style={{ background: c.accents[3], width: '26%' }} />
+            </span>
+            <i style={{ background: c.ink, width: '80%' }} />
           </span>
-          <span className="row">
-            <i style={{ background: c.accents[3], width: '14%' }} />
-            <i style={{ background: c.accents[3], width: '26%' }} />
+          <span className="sail">
+            <SailGlyph palette={p} />
           </span>
-          <i style={{ background: c.ink, width: '80%' }} />
+          <span className="strip">
+            {c.strip.map((s, i) => (
+              <i key={i} style={{ background: s }} />
+            ))}
+          </span>
         </span>
-        <span className="sail">
-          <SailGlyph palette={p} />
+      ) : (
+        <span
+          className="ci-palette-mock sails"
+          style={{ background: `radial-gradient(circle at 50% 42%, ${cloth}55, ${cloth}22 70%), #f4efe4` }}
+          aria-hidden
+        >
+          <span className="sail">
+            <SailGlyph palette={p} />
+          </span>
         </span>
-        <span className="strip">
-          {c.strip.map((s, i) => (
-            <i key={i} style={{ background: s }} />
-          ))}
-        </span>
+      )}
+      <span className="ci-palette-name">
+        {p.name}
+        {c && <small> · app theme</small>}
       </span>
-      <span className="ci-palette-name">{p.name}</span>
     </button>
   );
 }

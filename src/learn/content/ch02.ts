@@ -1,3 +1,4 @@
+import { HOIST_ORDERS, type HoistReason } from '../../game/puzzles/flag-hoist';
 import { courseRefs } from '../course/refs';
 import type { ChapterContent, Rect } from '../types';
 
@@ -32,6 +33,24 @@ const S = {
   assignment: src('assignment', 'a6fd57783531'),
   next: src('whats-next', '6b31efae2fea'),
 } as const;
+
+const HOIST_SOURCES: Record<HoistReason['section'], typeof S.syntax> = {
+  'context-syntax': S.syntax,
+  'slash-commands': S.slash,
+  'attaching-files': S.attach,
+};
+const HOIST_CITED = Object.fromEntries(
+  HOIST_ORDERS.flatMap((order) => {
+    const reasons =
+      order.kind === 'flag'
+        ? Object.values(order.wrong).filter((value): value is HoistReason => value !== undefined)
+        : order.choices.flatMap((choice) => (choice.why ? [choice.why] : []));
+    return reasons.map((reason) => [
+      `P2.3.${reason.id}`,
+      { text: reason.text, source: HOIST_SOURCES[reason.section] },
+    ]);
+  }),
+);
 
 // Pinned screenshots (`npm run course:refs -- 02`): the files the rects and alt text describe.
 const IMG = {
@@ -307,26 +326,76 @@ export const CH02: ChapterContent = {
       source: src('where-a-session-runs', 'a55a83c1ff55', IMG.where),
     },
     {
-      id: 'M2.2',
-      type: 'matching',
-      prompt: 'Hoist the right flag: match each symbol to what it brings.',
-      pairs: [
-        { left: { id: 'at', text: '`@`' }, right: { id: 'files', text: 'Files or folders' } },
-        { left: { id: 'hash', text: '`#`' }, right: { id: 'issues', text: 'Issues or pull requests' } },
-        { left: { id: 'slash', text: '`/`' }, right: { id: 'commands', text: 'Slash commands' } },
+      id: 'K2.4',
+      type: 'mc',
+      prompt:
+        'Your workspace selector still says **Current checkout**, your pick from Chapter 00. What do you do before your next session?',
+      options: [
+        { id: 'switch', text: 'Open the workspace selector and choose **New worktree**' },
         {
-          left: { id: 'amp', text: '`&`' },
-          right: { id: 'sessions', text: 'Other sessions, when the prompt box offers it' },
+          id: 'nothing',
+          text: 'Nothing. Each new session starts on **New worktree**',
+          feedback: 'The app remembers your last choice, so it would stay on **Current checkout**.',
+        },
+        {
+          id: 'cloud',
+          text: 'Choose **Cloud**',
+          feedback:
+            '**Cloud** runs the session off your machine. The course switches back to **New worktree**.',
+        },
+        {
+          id: 'keep',
+          text: 'Keep **Current checkout**. It’s quicker',
+          feedback:
+            'Quick, but it works right in your clone. The course uses **New worktree**, the safe default.',
         },
       ],
+      answer: 'switch',
       explain: {
-        correct: 'Right. And bring the smallest amount of useful context. Less is often more.',
-        wrong: 'Think of the examples: `@samples/book-app-web/src`, `#12`, `/chronicle standup`.',
+        correct:
+          'Right. The app remembers your last choice, so switch back to **New worktree**. You don’t need to send a prompt.',
+        wrong: 'The app remembers your last choice. What should it be for this course?',
       },
       hints: [
-        'Each symbol has one job in the prompt box.',
-        '`#12` is an issue, and `@samples/book-app-web/src` is a folder.',
-        '`@` files or folders · `#` issues or pull requests · `/` slash commands · `&` other sessions.',
+        'The app remembers what you picked last.',
+        'This course leans on the safe default.',
+        'Choose **New worktree** in the workspace selector.',
+      ],
+      source: S.where,
+    },
+    {
+      id: 'K2.3',
+      type: 'mc',
+      prompt:
+        'Your turn: Copilot’s adding a light and dark theme to the Book App. What context do you attach?',
+      options: [
+        { id: 'src', text: '`@samples/book-app-web/src`: the code it needs' },
+        {
+          id: 'repo',
+          text: '`@` every folder in the repository',
+          feedback: 'That’s far more than the job needs. Bring the smallest amount of useful context.',
+        },
+        {
+          id: 'issues',
+          text: 'Every open issue, with `#`',
+          feedback: 'None of those issues is about the theme. They’re cargo the job doesn’t need.',
+        },
+        {
+          id: 'nothing',
+          text: 'Nothing. Copilot will search everything',
+          feedback: 'Point Copilot at the code it needs. Less is more, but not nothing.',
+        },
+      ],
+      answer: 'src',
+      explain: {
+        correct:
+          'Right. The course’s assignment does just that: `@samples/book-app-web/src`. The smallest amount of useful context. Less is often more.',
+        wrong: 'Bring only what this job needs, and no less.',
+      },
+      hints: [
+        'Pack light, like the last order on the hoist.',
+        'The theme lives in the Book App’s code.',
+        '`@samples/book-app-web/src`.',
       ],
       source: S.syntax,
     },
@@ -689,9 +758,10 @@ export const CH02: ChapterContent = {
     {
       id: 'pg2.parallel',
       title: 'Parallel sessions',
+      image: 'ch02/app-where-sessions-run',
       caption:
-        'Three crews, three channels, one spring: one repository with a worktree for each session. Each session’s changes stay in its own channel, so they don’t mix.',
-      source: S.why,
+        'Three crews, three channels, one spring: one repository with a worktree for each session, so their changes don’t mix. In the app you don’t dig channels. Start a session with **+** and pick **New worktree** in the workspace selector, and the app makes the folder and branch. **Current checkout** suits a quick, low-stakes look, and **Cloud** offloads the work.',
+      source: S.where,
     },
     {
       id: 'pg2.ports',
@@ -935,7 +1005,12 @@ export const CH02: ChapterContent = {
     'tb.fen.mainhall': S.where,
     'tb.fen.wrongwheel': S.why,
     'tb.fen.round2': S.why,
-    'tb.fen.round3': S.why,
+    'tb.fen.r3.intro': S.where,
+    'tb.fen.ws.worktree': S.where,
+    'tb.fen.ws.checkout': S.where,
+    'tb.fen.ws.cloud': S.where,
+    'tb.fen.round3': S.where,
+    'tb.fen.app': S.where,
     'tb.fen.oneatatime': S.why,
     'tb.fen.twist.redig': S.collided,
     'tb.fen.twist.port': S.collided,
@@ -947,6 +1022,12 @@ export const CH02: ChapterContent = {
     'tb.ines.02': S.syntax,
     'tb.ines.03': S.syntax,
     'tb.ines.04': S.syntax,
+    'tb.ines.order.1': S.syntax,
+    'tb.ines.order.2': S.syntax,
+    'tb.ines.order.3': S.syntax,
+    'tb.ines.order.4': S.syntax,
+    'tb.ines.order.5': S.syntax,
+    'tb.ines.order.6': S.attach,
     'tb.ines.05': S.attach,
     'tb.ines.06': S.slash,
     'tb.ines.07': S.slash,
@@ -965,4 +1046,7 @@ export const CH02: ChapterContent = {
     'tb.pip.06': S.exCheck,
     'tb.elder.next': S.next,
   },
+
+  // P2.3 Flag Hoist: each wrong-choice reason cites the course section it paraphrases.
+  cited: HOIST_CITED,
 };

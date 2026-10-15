@@ -2,8 +2,9 @@
 // End-to-end Chapter 02 run on Thousand-Bough Isle, in the course's order (docs/specs/ISLAND-02-thousand-bough.md
 // §4): ashore at the Root Wharf, Tamsin, Lyra at the Booth Pools (and her chest), Saffi in the Root Hall,
 // Oak at the Three Landings (and the gondola), Fen's Channel Routing played for real with the keyboard
-// and mouse (three rounds, a wrong run first, a hint) and the Spire twist (a wrong answer, then a right
-// one), Ines's Flag Hoist (a wrong flag, then all four), Rook, Pip, and the Elder's Canopy Trial with the
+// and mouse (two rounds of tiles, a wrong run first, a hint; round 3's places for the crews, a wrong one
+// first) and the Spire twist (a wrong answer, then a right one), Ines's Flag Hoist (a wrong flag, then
+// all six orders), Rook, Pip, and the Elder's Canopy Trial with the
 // Seal's Thousand Lanterns. Then the Sky Basket, the chest behind the falls, the bottles and the starfish.
 // Fails on any page error, a missing beat, or a hitch after warm-up. Screenshots at every beat.
 // Rook asks for the session's branch and the practice issue's number (Your setup): by default the run
@@ -76,6 +77,7 @@ const learnState = () =>
       doubloons: l.doubloons,
       board: !!document.querySelector('.ci-cr-grid, .ci-cr-twist'),
       hoist: !!document.querySelector('.ci-fh-flags'),
+      places: !!document.querySelector('.ci-cr-crews'),
     };
   });
 
@@ -342,6 +344,65 @@ async function playRound(round, opts) {
   if (!/wheel/.test(msg)) fail(`round ${round} didn't solve: "${msg}"`);
 }
 
+/**
+ * Round 3 with real input: the crews' orders and places, a wrong place first (Feature in the current
+ * checkout), a hint, then each crew where its order fits, by mouse and keys.
+ */
+async function playPlaces() {
+  const open = await page
+    .waitForFunction(
+      () => !!document.querySelector('.ci-cr-crews') && !document.querySelector('.ci-cr-go')?.disabled,
+      null,
+      { timeout: 60000 },
+    )
+    .then(() => true)
+    .catch(() => false);
+  if (!open) {
+    fail(`round 3's places never showed (P2.1 is ${(await learnState()).quests['P2.1']})`);
+    await shot('round3-missing');
+    return;
+  }
+  await page.waitForTimeout(500);
+  await shot('round3-start');
+  const orders = await S(() => [...document.querySelectorAll('.ci-cr-crew-order')].map((e) => e.textContent));
+  if (orders.length !== 3) fail(`round 3 shows ${orders.length} crew orders`);
+  const best = await tb('routing.best');
+  // Feature in the Great Hall (by mouse); the others by keys.
+  await page.click('[data-crew="feature"] [data-ws="checkout"]');
+  const key = { worktree: 'Digit1', checkout: 'Digit2', cloud: 'Digit3' };
+  for (let i = 1; i < 3; i++) {
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press(key[best[i]]);
+  }
+  const checked = await S(() =>
+    [...document.querySelectorAll('.ci-cr-ws [aria-checked="true"]')].map((b) => b.dataset.ws),
+  );
+  if (checked.join() !== ['checkout', best[1], best[2]].join()) fail(`round 3 picks show ${checked}`);
+  await page.keyboard.press('KeyF');
+  await page.waitForFunction(() => !!document.querySelector('.ci-cr-verdict'), null, { timeout: 30000 });
+  await page.waitForTimeout(400);
+  await shot('round3-wrong');
+  const msg = await S(() => document.querySelector('.ci-cr-message')?.textContent ?? '');
+  if (!/New worktree/.test(msg)) fail(`round 3 wrong place says "${msg}"`);
+  const marks = await S(() => [...document.querySelectorAll('.ci-cr-verdict')].map((e) => e.textContent));
+  if (!/✗/.test(marks[0] ?? '') || !/✓/.test(marks[1] ?? '')) fail(`round 3 verdicts: ${marks}`);
+  await page.waitForFunction(() => !document.querySelector('.ci-cr-go')?.disabled, null, { timeout: 30000 });
+  await page.keyboard.press('KeyQ');
+  await page.waitForTimeout(600);
+  await shot('round3-hint');
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press(key[best[0]]);
+  await page.keyboard.press('KeyF');
+  await page
+    .waitForFunction(() => /fits/.test(document.querySelector('.ci-cr-message')?.textContent ?? ''), null, {
+      timeout: 30000,
+    })
+    .catch(() => fail('round 3 never solved'));
+  await page.waitForTimeout(300);
+  await shot('round3-solved');
+}
+
 /** Rook's branch and issue questions (Your setup), then everywhere the answers show. */
 async function checkRookSetup() {
   const setup = await S(() => window.__dev.learn.getState().setup);
@@ -430,7 +491,7 @@ if (opt.from === 'elder') {
   await drive('Fen', (s) => s.board, 120000);
   await playRound(1, { wrongFirst: true, click: true });
   await playRound(2, { wrongFirst: true, hint: true });
-  await playRound(3, { wrongFirst: false });
+  await playPlaces();
   await page
     .waitForFunction(() => !!document.querySelector('.ci-cr-twist'), null, { timeout: 90000 })
     .catch(() => fail('the Spire twist never asked its question'));
@@ -466,13 +527,16 @@ if (opt.from === 'elder') {
       await shot('hoist-wrong');
       return 'handled';
     }
-    const answer = ['Digit1', 'Digit2', 'Digit3', 'Digit4'][h.index];
-    await page.keyboard.press(answer);
+    if (h.index === 0 && /[@#&`]/.test(h.order)) fail(`the first order gives the answer away: ${h.order}`);
+    if (h.choices && !seen.has(`hoist-${h.index}`)) {
+      seen.add(`hoist-${h.index}`);
+      await shot(`hoist-order-${h.index + 1}`);
+    }
+    await page.keyboard.press(`Digit${h.right}`);
     hoisted += 1;
-    if (h.index === 3) await shot('hoist-last');
     return 'handled';
   });
-  if (hoisted < 4) fail(`only ${hoisted} flags hoisted`);
+  if (hoisted < 6) fail(`only ${hoisted} orders answered`);
 
   // Q2.7 Rook → Q2.8 Pip.
   await talk('rook');

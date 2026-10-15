@@ -6,6 +6,7 @@ import {
   nearestBreak,
   openings,
   rotatable,
+  shortestTurn,
   solutionPath,
   type SluiceLayout,
 } from '../../world/sites/sluice-logic';
@@ -14,11 +15,19 @@ import type { HintTier, Puzzle, PuzzleHost } from './types';
 
 const SLUICE_ID = 'P0.1';
 const QUEST = 'Q0.6';
+/** Pim and Pol's crane job: its `actions` step is this lever (Actions first, before the script). */
+const CRANE_QUEST = 'Q0.7';
 
 /**
- * P0.1 Sluice & Waterwheel (POC §4.5): pull the lever under the "Workflows aren't being run" sign to
- * lift the gate, then turn channel tiles (E) until the spring's water reaches the wheel. The wheel
- * turns, the lanterns light, and Suri closes Q0.6. Tile turns, the lever, and solved are saved.
+ * P0.1 Sluice & Waterwheel (POC §4.5), in two parts, as Chapter 00 · Add the Course Practice Items
+ * orders them:
+ * - **Actions first** (required, Q0.7's `actions` step): pull the lever under the "Workflows aren't
+ *   being run" sign to lift the gate, before the crane's setup script will run with `--yes`.
+ * - **The practice checks** (optional, Q0.6, once the crane's stocked your fork): turn channel tiles
+ *   (E clockwise, Shift+E back) until the water reaches both outlets: the wheel turns (the checks
+ *   run) and the check gate stays jammed (the practice check that fails on purpose). The lanterns
+ *   light and Suri closes Q0.6.
+ * Tile turns, the lever, and solved are saved.
  */
 export function createSluice(
   host: PuzzleHost,
@@ -35,10 +44,18 @@ export function createSluice(
   let solved = saved?.solved ?? false;
   let hintCell = -1;
 
+  /** Q0.6 is under way: the channels can turn. */
   const started = () => {
     const q = host.quests()[QUEST];
     return q === 'sluice' || q === 'solved' || q === 'done';
   };
+  /** The crane job is waiting on Actions (or an older save never pulled it). */
+  const actionsStep = () => {
+    const q = host.quests()[CRANE_QUEST];
+    return q === 'actions' || q === 'crane';
+  };
+  const leverOpen = () => !gate && (actionsStep() || started());
+  const tilesOpen = () => gate && started() && !solved;
 
   const save = () =>
     host.learn?.progress.setPuzzle(SLUICE_ID, { solved, state: rots.slice(), flags: gate ? ['gate'] : [] });
@@ -53,8 +70,23 @@ export function createSluice(
       pooled: c.pooled,
       distance: c.distance,
     }));
-    site.setWater(cells, gate, f.solved);
+    site.setWater(cells, gate, f.wheel, f.check);
     return f.solved;
+  };
+
+  /**
+   * Keeps the gate and the crane job in step: a finished crane means workflows are on (older saves
+   * finished it before the lever was part of it; Pim and Pol had them turn workflows on in the
+   * brief), and a lever pulled before the crane job asked for it moves that job on to the crane.
+   */
+  const syncGate = (): void => {
+    const q = host.quests()[CRANE_QUEST];
+    if (!gate && (q === 'solved' || q === 'done')) {
+      gate = true;
+      site.setLever(true, true);
+      save();
+      refresh();
+    } else if (gate && q === 'actions') host.setQuest(CRANE_QUEST, 'crane');
   };
 
   rots.forEach((r, i) => site.setRotation(i, r, true));
@@ -63,6 +95,7 @@ export function createSluice(
   if (solved)
     layout.tiles.forEach((t, i) => rotatable(t) && site.setRotation(i, (rots[i] = t.solution), true));
   refresh();
+  syncGate();
   // Solved but the closing beat never ran (quit mid-way): Suri finishes it when you talk to her.
   if (solved && host.quests()[QUEST] === 'sluice') host.setQuest(QUEST, 'solved');
 
@@ -89,12 +122,12 @@ export function createSluice(
     y: site.top,
     z: site.anchors.millLever!.z,
     radius: 2.1,
-    enabled: () => host.canAct() && started() && !gate,
+    enabled: () => host.canAct() && leverOpen(),
     onInteract: () => pullLever(),
   });
   host.interactions.add({
     id: 'mill:tile',
-    label: () => 'Turn the channel',
+    label: () => 'Turn the channel · Shift+E turns back',
     get x() {
       return focus >= 0 ? site.cellCenter(focus).x : 1e6;
     },
@@ -105,11 +138,12 @@ export function createSluice(
       return focus >= 0 ? site.cellCenter(focus).z : 1e6;
     },
     radius: 2.6,
-    enabled: () => host.canAct() && started() && !solved && focus >= 0 && !site.turning,
-    onInteract: () => turn(focus),
+    enabled: () => host.canAct() && tilesOpen() && focus >= 0 && !site.turning,
+    onInteract: (back) => turn(focus, back),
   });
 
-  function pullLever(): void {
+  /** `quiet`: Wingman's hint pulled it, so he does the talking. */
+  function pullLever(quiet = false): void {
     if (gate) return;
     gate = true;
     site.setLever(true);
@@ -121,13 +155,22 @@ export function createSluice(
     setTimeout(() => host.audio?.sfx.oneShot('gate_lift', pos(spoutAt.x, site.top, spoutAt.z), 1), 350);
     save();
     refresh();
-    host.hud.toast('Workflows enabled. Now turn the channels (E) to carry the water to the wheel.', 4.5);
+    if (actionsStep()) {
+      // Actions first: the crane's setup script can run with --yes now.
+      host.setQuest(CRANE_QUEST, 'crane');
+      host.hud.toast('Workflows enabled. Now run the setup script at the crane.', 4.5);
+      if (!quiet) void host.beat([{ say: 'suri.actions.02' }], 'Suri');
+    } else
+      host.hud.toast(
+        'Workflows enabled. Now turn the channels (E, or Shift+E to turn back) until the water reaches both outlets.',
+        5,
+      );
   }
 
-  function turn(i: number): void {
+  function turn(i: number, back = false): void {
     if (i < 0 || solved) return;
-    rots[i] = (rots[i]! + 1) % 4;
-    site.setRotation(i, rots[i]!);
+    rots[i] = (rots[i]! + (back ? 3 : 1)) % 4;
+    site.setRotation(i, rots[i]!, false, back);
     const c = site.cellCenter(i);
     host.audio?.sfx.oneShot('stone_turn', pos(c.x, site.top, c.z), 0.85);
     if (i === hintCell) {
@@ -159,24 +202,28 @@ export function createSluice(
 
   return {
     id: SLUICE_ID,
-    engaged: () => started() && !solved && near(),
+    engaged: () => (leverOpen() || tilesOpen()) && near(),
     hintKey: () => (gate ? `tiles:${rots.join('')}` : 'gate'),
     hint(tier: HintTier) {
-      if (!started() || solved) return null;
-      if (!gate) {
+      if (leverOpen()) {
         if (tier === 1) return 'Read the sign over the gate, Captain. That’s the Actions tab talking.';
         if (tier === 2)
           return 'The lever by the basin: “I understand my workflows, go ahead and enable them.”';
-        pullLever();
-        return 'I’ve pulled it for you. Workflows are on.';
+        pullLever(true);
+        return actionsStep()
+          ? 'I’ve pulled it for you. Workflows are on, so back to the crane!'
+          : 'I’ve pulled it for you. Workflows are on.';
       }
-      if (tier === 1) return 'Follow the water from the spring. Where does it stop?';
+      if (!tilesOpen()) return null;
+      if (tier === 1) return 'Follow the water from the spring. Does it reach both outlets?';
       const i = nearestBreak(layout, rots, path);
       if (i < 0) return null;
       if (tier === 2) {
         hintCell = i;
         site.setHint(i);
-        return 'That glowing tile is where the water stops. Turn it until the channel lines up.';
+        return shortestTurn(layout.tiles[i]!.kind, rots[i]!, layout.tiles[i]!.solution) < 0
+          ? 'That glowing tile is where the water stops. Shift+E turns it back the short way.'
+          : 'That glowing tile is where the water stops. Turn it until the channel lines up.';
       }
       const t = layout.tiles[i]!;
       rots[i] = t.solution;
@@ -189,7 +236,8 @@ export function createSluice(
       return 'There, I’ve turned that one. Keep going!';
     },
     update() {
-      focus = host.canAct() && started() && !solved ? target() : -1;
+      syncGate();
+      focus = host.canAct() && tilesOpen() ? target() : -1;
       site.setFocus(focus === hintCell ? -1 : focus);
       // Positional water sounds only while you're nearby.
       const p = host.player;
@@ -218,7 +266,7 @@ export function createSluice(
     debug: {
       state: () => ({ rots: rots.slice(), gate, solved, focus, hint: hintCell, turning: site.turning }),
       solve: () => {
-        if (!gate) pullLever();
+        if (!gate) pullLever(true);
         layout.tiles.forEach((tile, i) => {
           if (rotatable(tile) && openings(tile.kind, rots[i]!) !== openings(tile.kind, tile.solution)) {
             rots[i] = tile.solution;
@@ -229,7 +277,7 @@ export function createSluice(
         save();
         if (now && !solved) void onSolved();
       },
-      turn: (i: number) => turn(i),
+      turn: (i: number, back = false) => turn(i, back),
       lever: () => pullLever(),
       /** Where things are, so tests can walk up and press E like a player. */
       spots: () => ({

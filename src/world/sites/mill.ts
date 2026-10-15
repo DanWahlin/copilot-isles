@@ -27,7 +27,7 @@ import { markShadowMover } from '../shadow-casters';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyNode = any;
 
-type MillTileKind = 'straight' | 'corner' | 'cap' | 'blank';
+type MillTileKind = 'straight' | 'corner' | 'tee' | 'cap' | 'blank';
 
 /** What the sluice logic says about one cell's water (mirrors game/puzzles/sluice-logic CellFlow). */
 export interface MillCellWater {
@@ -61,15 +61,19 @@ export interface MillSite {
   cellCenter(i: number): { x: number; z: number };
   /** Grid cell under (x, z), or -1. */
   cellAt(x: number, z: number): number;
-  /** Turns a tile to `quarterTurns` clockwise; animated unless `snap`. */
-  setRotation(i: number, quarterTurns: number, snap?: boolean): void;
+  /** Turns a tile to `quarterTurns` clockwise; animated unless `snap`, and anticlockwise if `back`. */
+  setRotation(i: number, quarterTurns: number, snap?: boolean, back?: boolean): void;
   /** True while any tile is still turning. */
   readonly turning: boolean;
   /** The subtle outline on the tile you're facing, and the gold pulse used by hints. */
   setFocus(i: number): void;
   setHint(i: number): void;
-  /** The logic's view of the water; the site animates draining and filling toward it. */
-  setWater(cells: readonly MillCellWater[], gateOpen: boolean, solved: boolean): void;
+  /**
+   * The logic's view of the water; the site animates draining and filling toward it. `wheel`: water
+   * runs off to the wheel (it turns); `check`: water backs up at the jammed check gate. Both light
+   * the lanterns.
+   */
+  setWater(cells: readonly MillCellWater[], gateOpen: boolean, wheel: boolean, check: boolean): void;
   setLever(pulled: boolean, snap?: boolean): void;
   update(dt: number, t: number): void;
   dispose(): void;
@@ -114,7 +118,8 @@ const sbox = (w: number, h: number, d: number, p: Parameters<typeof box>[3], hex
 /**
  * P0.1's set piece (POC §4.5): a low limestone terrace with a 3 × 4 grid of rotatable channel
  * tiles, the Actions spring spouting from rocks into a gated basin, an outlet flume feeding a
- * breastshot waterwheel in a tail pool, four lanterns, painted signs, and west stairs. Draws:
+ * breastshot waterwheel in a tail pool, a second outlet that ends at a jammed check gate (the
+ * practice check that fails on purpose), four lanterns, painted signs, and west stairs. Draws:
  * terrace with the tiles and spout, wood, iron, wheel, gate, lever, lanterns, rocks, water, and two
  * outline frames (the signs draw in the shared sign atlas).
  */
@@ -158,8 +163,9 @@ export function createMill(o: MillOptions): MillSite {
   const wood: BufferGeometry[] = [];
   const iron: BufferGeometry[] = [];
 
-  // Outlet position (needed to cut the north rim).
+  // Outlet positions (needed to cut the north rim): the wheel's (west) and the check gate's (east).
   const out = { x: cellX(0), z0: gz0, z1: tz0 };
+  const chk = { x: cellX(cols - 1), z0: gz0, z1: tz0 };
   const flumeY = top - TROUGH_D;
 
   // Terrace body (under the tiles), a footing course, and the deck around the grid.
@@ -181,14 +187,16 @@ export function createMill(o: MillOptions): MillSite {
     );
   deck(tx0, gx0, tz0, gz1); // west rim
   deck(gx1, tx1, tz0, gz1); // east rim
-  deck(gx0, out.x - TROUGH / 2, tz0, gz0); // north rim, either side of the outlet
-  deck(out.x + TROUGH / 2, gx1, tz0, gz0);
+  deck(gx0, out.x - TROUGH / 2, tz0, gz0); // north rim, either side of each outlet
+  deck(out.x + TROUGH / 2, chk.x - TROUGH / 2, tz0, gz0);
+  deck(chk.x + TROUGH / 2, gx1, tz0, gz0);
   deck(tx0, basin.x0, gz1, tz1); // south walk, west of the basin
   deck(basin.x1, tx1, gz1, tz1); // south walk, east of the basin
-  // The outlet channel's bed through the north rim.
-  stone.push(
-    sbox(TROUGH, TILE_H - TROUGH_D, gz0 - tz0, { x: out.x, y: top - TILE_H, z: (gz0 + tz0) / 2 }, STONE_WET),
-  );
+  // The outlet channels' beds through the north rim.
+  for (const x of [out.x, chk.x])
+    stone.push(
+      sbox(TROUGH, TILE_H - TROUGH_D, gz0 - tz0, { x, y: top - TILE_H, z: (gz0 + tz0) / 2 }, STONE_WET),
+    );
   // Coping course round the outer edge, a shade lighter and a hand's width proud (broken by the outlet).
   const cope = 0.12;
   const coping = (x0: number, x1: number, z0: number, z1: number) =>
@@ -196,7 +204,8 @@ export function createMill(o: MillOptions): MillSite {
       sbox(x1 - x0, cope, z1 - z0, { x: (x0 + x1) / 2, y: top - cope + 0.001, z: (z0 + z1) / 2 }, COPING),
     );
   coping(tx0 - 0.08, out.x - TROUGH / 2, tz0 - 0.08, tz0 + 0.3);
-  coping(out.x + TROUGH / 2, tx1 + 0.08, tz0 - 0.08, tz0 + 0.3);
+  coping(out.x + TROUGH / 2, chk.x - TROUGH / 2, tz0 - 0.08, tz0 + 0.3);
+  coping(chk.x + TROUGH / 2, tx1 + 0.08, tz0 - 0.08, tz0 + 0.3);
   coping(tx0 - 0.08, tx0 + 0.3, tz0, tz1 + 0.08);
   coping(tx1 - 0.3, tx1 + 0.08, tz0, tz1 + 0.08);
 
@@ -247,12 +256,15 @@ export function createMill(o: MillOptions): MillSite {
       ),
     );
   }
-  // Cheek walls either side of the flight, stepping down with it.
+  // Cheek walls either side of the flight, stepping down with it (and a camera blocker a step: the
+  // walk box has one height for the whole flight, so the camera counted the top steps only to it).
+  const cheekBlockers: VillageBoxCollider[] = [];
   for (const z of [stairs.z0 - 0.15, stairs.z1 + 0.15])
     for (let s = 0; s < steps; s++) {
       const h = top + 0.25 - s * stairs.rise;
       const x = stairs.x1 - (s + 0.5) * stairs.tread;
       stone.push(sbox(stairs.tread + 0.01, h - base, 0.3, { x, y: base, z }, STONE_DARK));
+      cheekBlockers.push({ x, z, hx: stairs.tread / 2 + 0.005, hz: 0.15, rot: 0, y0: base, y1: h });
     }
 
   // Breastshot waterwheel: fed at axle height by a short timber flume from the outlet channel, its
@@ -360,8 +372,37 @@ export function createMill(o: MillOptions): MillSite {
   const lever = { x: cellX(1) - 0.3, z: gz1 + 0.85 };
   wood.push(plank(0.22, 0.95, 0.22, { x: lever.x, y: top, z: lever.z }, WOOD_DARK, TRIM.dark));
   iron.push(box(0.3, 0.12, 0.3, { x: lever.x, y: top + 0.9, z: lever.z }, IRON));
-  const plaque = { x: lever.x - 1.05, z: gz1 + 0.95 };
-  wood.push(plank(0.12, 0.95, 0.12, { x: plaque.x, y: top, z: plaque.z }, WOOD_DARK, TRIM.dark));
+  const plaque = { x: lever.x - 1.15, z: gz1 + 0.95 };
+  wood.push(plank(0.12, 1.05, 0.12, { x: plaque.x, y: top, z: plaque.z }, WOOD_DARK, TRIM.dark));
+
+  // The check gate: the east outlet ends at a board jammed shut between two short jambs, a little
+  // askew, with an iron bar across it. Two taller posts either side and a lintel carry its sign.
+  const chkGateZ = tz0 + 0.14;
+  const chkPost = 0.86;
+  const jam = plank(TROUGH + 0.1, 0.62, 0.09, { y: 0 }, WOOD, TRIM.light);
+  jam.rotateZ(0.09);
+  jam.translate(chk.x, top - TROUGH_D - 0.06, chkGateZ);
+  wood.push(jam);
+  const bar = box(TROUGH + 0.32, 0.07, 0.05, { y: 0 }, IRON);
+  bar.rotateZ(-0.16);
+  bar.translate(chk.x, top + 0.2, chkGateZ + 0.07);
+  iron.push(bar);
+  for (const sx of [-1, 1]) {
+    wood.push(
+      plank(
+        0.12,
+        0.62 + TROUGH_D,
+        0.14,
+        { x: chk.x + sx * (TROUGH / 2 + 0.1), y: top - TROUGH_D - 0.06, z: chkGateZ },
+        WOOD_DARK,
+        TRIM.dark,
+      ),
+    );
+    wood.push(plank(0.14, 1.6, 0.16, { x: chk.x + sx * chkPost, y: top, z: chkGateZ }, WOOD_DARK, TRIM.dark));
+  }
+  wood.push(
+    plank(2 * chkPost + 0.2, 0.16, 0.2, { x: chk.x, y: top + 1.44, z: chkGateZ }, WOOD_DARK, TRIM.dark),
+  );
 
   // Lantern posts at the terrace corners (heads light when the wheel turns).
   const lanterns: [number, number][] = [
@@ -522,19 +563,31 @@ export function createMill(o: MillOptions): MillSite {
     group.add(sign.object);
   };
   addSign(
-    signs.add(['Workflows aren’t being run', 'on this forked repository.'], 2.1, 0.62),
+    signs.add(['Workflows aren’t being run', 'on this forked repository.'], 2.5, 0.74),
     cx,
-    gateY + 1.55,
+    gateY + 1.6,
     gz1 - 0.1,
     Math.PI,
   );
+  // The lever's plaque: big enough to read from the tiles in front of it.
   addSign(
-    signs.add(['I understand my workflows,', 'go ahead and enable them.'], 0.95, 0.5, { size: 0.19 }),
+    signs.add(['I understand my workflows,', 'go ahead and enable them.'], 1.45, 0.66),
     plaque.x,
-    top + 1.08,
+    top + 1.2,
     plaque.z - 0.05,
     Math.PI,
-    -0.5,
+    -0.32,
+  );
+  // Over the check gate, readable from the terrace and from the wheel's side.
+  addSign(
+    signs.add(['Practice check:', 'fails on purpose.'], 1.5, 0.62, {
+      twoSided: true,
+      colors: [undefined, '#ff9f7a'],
+    }),
+    chk.x,
+    top + 1.08,
+    chkGateZ,
+    0,
   );
   addSign(
     signs.add(['The Actions Spring', '· mill race ·'], 1.3, 0.52),
@@ -571,6 +624,10 @@ export function createMill(o: MillOptions): MillSite {
 
   const circles: CircleObstacle[] = [
     { x: lever.x, z: lever.z, r: 0.28 },
+    { x: chk.x - chkPost, z: chkGateZ, r: 0.14 },
+    { x: chk.x + chkPost, z: chkGateZ, r: 0.14 },
+    { x: chk.x - TROUGH / 2 - 0.1, z: chkGateZ, r: 0.1 },
+    { x: chk.x + TROUGH / 2 + 0.1, z: chkGateZ, r: 0.1 },
     { x: plaque.x, z: plaque.z, r: 0.22 },
     { x: post.x, z: post.z, r: 0.2 },
     ...lanterns.map(([x, z]) => ({ x, z, r: 0.2 })),
@@ -612,11 +669,26 @@ export function createMill(o: MillOptions): MillSite {
     },
   ];
 
-  // Camera only: the gate frame and its sign over the basin mouth, and the signpost's two boards (the
-  // walk colliders have no height, so the camera counted them only near the ground).
+  // Camera only: the gate frame and its sign over the basin mouth (the sign is wider than the frame),
+  // the lever's plaque, the check gate's frame, lintel and sign, the signpost's two boards (the walk
+  // colliders have no height, so the camera counted them only near the ground), the terrace's body
+  // (its coping stands proud of the walk surface's edge) and the stair's cheek walls.
   const camera: VillageBoxCollider[] = [
     { x: cx, z: gz1 + 0.05, hx: TROUGH / 2 + 0.38, hz: 0.17, rot: 0, y0: gateY - 0.1, y1: gateY + 1.95 },
+    { x: cx, z: gz1 - 0.1, hx: 1.3, hz: 0.1, rot: 0, y0: gateY + 1.2, y1: gateY + 2.0 },
+    { x: plaque.x, z: plaque.z - 0.05, hx: 0.75, hz: 0.14, rot: 0, y0: top + 0.85, y1: top + 1.55 },
+    { x: chk.x, z: chkGateZ, hx: chkPost + 0.12, hz: 0.12, rot: 0, y0: top + 0.6, y1: top + 1.65 },
     { x: post.x, z: post.z, hx: 0.17, hz: 0.7, rot: 0, y0: postY - 0.2, y1: postY + 1.75 },
+    {
+      x: (tx0 + tx1) / 2,
+      z: (tz0 + tz1) / 2,
+      hx: (tx1 - tx0) / 2 + 0.08,
+      hz: (tz1 - tz0) / 2 + 0.08,
+      rot: 0,
+      y0: base,
+      y1: top,
+    },
+    ...cheekBlockers,
   ];
 
   const anchors: Record<string, VillageAnchor> = {
@@ -659,9 +731,11 @@ export function createMill(o: MillOptions): MillSite {
     distance: 0,
   }));
   let gate = false,
-    solved = false;
+    wheelOn = false,
+    checkOn = false;
   let gateLift = 0,
     outletFill = 0,
+    checkFill = 0,
     wheelSpeed = 0,
     wheelAngle = 0,
     leverAngle = 0,
@@ -746,6 +820,15 @@ export function createMill(o: MillOptions): MillSite {
         kind: -1,
       });
     }
+    // The check gate's channel: still water backing up against the jammed board.
+    if (checkFill > 0.001) {
+      const y = chY(checkFill);
+      water.strip(chk.x, chk.z0, chk.x, chkGateZ + 0.06, y, TROUGH - 0.08, 20, {
+        fill: checkFill,
+        speed: 0.05,
+        foam: 0.3,
+      });
+    }
     const churn = 0.04 + wheelSpeed * 0.25;
     water.quad(
       [pool.x0, poolY, pool.z1],
@@ -776,13 +859,19 @@ export function createMill(o: MillOptions): MillSite {
       const r = rows - 1 - Math.floor((z - gz0) / T);
       return r * cols + c;
     },
-    setRotation(i, q, snap = false) {
+    setRotation(i, q, snap = false, back = false) {
       const tile = tiles[i];
       if (!tile) return;
-      // Clockwise from above is negative yaw; keep turning forward (no unwinding).
+      // Clockwise from above is negative yaw; keep turning the way the player turned it (no
+      // unwinding): forward for E, back for Shift+E.
       let target = -q * (Math.PI / 2);
-      while (target > tile.target + 1e-6) target -= Math.PI * 2;
-      while (target < tile.target - Math.PI * 2 + 1e-6) target += Math.PI * 2;
+      if (back) {
+        while (target < tile.target + 1e-6) target += Math.PI * 2;
+        while (target > tile.target + Math.PI * 2 - 1e-6) target -= Math.PI * 2;
+      } else {
+        while (target > tile.target + 1e-6) target -= Math.PI * 2;
+        while (target < tile.target - Math.PI * 2 + 1e-6) target += Math.PI * 2;
+      }
       tile.target = target;
       if (snap) {
         tile.angle = target;
@@ -801,10 +890,11 @@ export function createMill(o: MillOptions): MillSite {
     setHint(i) {
       hintIdx = i;
     },
-    setWater(cells, gateOpen, isSolved) {
+    setWater(cells, gateOpen, wheel, check) {
       targetCells = cells;
       gate = gateOpen;
-      solved = isSolved;
+      wheelOn = wheel;
+      checkOn = check;
       dirty = true;
     },
     setLever(pulled, snap = false) {
@@ -863,13 +953,19 @@ export function createMill(o: MillOptions): MillSite {
         gateBoard.position.y = gateY - 0.02 + gateLift * 0.78;
         changed = true;
       }
-      const outTarget = solved ? 1 : 0;
+      const outTarget = wheelOn ? 1 : 0;
       if (outletFill !== outTarget) {
         outletFill +=
           Math.sign(outTarget - outletFill) * Math.min(Math.abs(outTarget - outletFill), dt * 0.9);
         changed = true;
       }
-      const wheelTarget = solved ? 0.85 : 0;
+      const checkTarget = checkOn ? 1 : 0;
+      if (checkFill !== checkTarget) {
+        checkFill +=
+          Math.sign(checkTarget - checkFill) * Math.min(Math.abs(checkTarget - checkFill), dt * 0.9);
+        changed = true;
+      }
+      const wheelTarget = wheelOn ? 0.85 : 0;
       wheelSpeed += (wheelTarget - wheelSpeed) * (1 - Math.exp(-dt * 0.6));
       if (wheelSpeed > 1e-3) {
         // Fed on its south side, so the south paddles go down (positive turn about +x).
@@ -881,7 +977,7 @@ export function createMill(o: MillOptions): MillSite {
           Math.sign(leverTarget - leverAngle) * Math.min(Math.abs(leverTarget - leverAngle), dt * 3);
       }
       leverPivot.rotation.x = 0.55 - leverAngle * 1.1;
-      const litTarget = solved ? 1 : 0;
+      const litTarget = wheelOn && checkOn ? 1 : 0;
       litValue += (litTarget - litValue) * (1 - Math.exp(-dt * 1.2));
       lit.value = litValue;
       if (changed || wheelSpeed > 1e-3) rebuildWater();
@@ -923,7 +1019,7 @@ export function createMill(o: MillOptions): MillSite {
 function buildTile(kind: MillTileKind): BufferGeometry {
   const s = COVE.mill.tile - GAP;
   const side = (s - TROUGH) / 2;
-  const open = { straight: [0, 2], corner: [0, 1], cap: [0], blank: [] as number[] }[kind];
+  const open = { straight: [0, 2], corner: [0, 1], tee: [0, 1, 3], cap: [0], blank: [] as number[] }[kind];
   const parts: BufferGeometry[] = [sbox(s, TILE_H - TROUGH_D, s, { y: -TILE_H }, STONE_WET)];
   const spans = [
     [-s / 2, -s / 2 + side],

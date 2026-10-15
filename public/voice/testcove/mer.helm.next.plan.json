@@ -1,52 +1,52 @@
 {
   "id": "mer.helm.next.plan",
   "speaker": "Rhea",
-  "text": "Next, the Plan buoy. Look for the orange flag.",
+  "text": "Next order’s at the buoy with the orange flag.",
   "words": [
     {
       "word": "Next",
       "start": 0.0485409,
-      "end": 0.740291
+      "end": 0.436875
+    },
+    {
+      "word": "order’s",
+      "start": 0.436875,
+      "end": 0.813125
+    },
+    {
+      "word": "at",
+      "start": 0.813125,
+      "end": 0.910208
     },
     {
       "word": "the",
-      "start": 0.740291,
-      "end": 0.873791
-    },
-    {
-      "word": "Plan",
-      "start": 0.873791,
-      "end": 1.225708
+      "start": 0.910208,
+      "end": 1.031541
     },
     {
       "word": "buoy",
-      "start": 1.225708,
-      "end": 2.427166
+      "start": 1.031541,
+      "end": 1.347083
     },
     {
-      "word": "Look",
-      "start": 2.427166,
-      "end": 2.694166
-    },
-    {
-      "word": "for",
-      "start": 2.694166,
-      "end": 2.815541
+      "word": "with",
+      "start": 1.347083,
+      "end": 1.517
     },
     {
       "word": "the",
-      "start": 2.815541,
-      "end": 2.949041
+      "start": 1.517,
+      "end": 1.638333
     },
     {
       "word": "orange",
-      "start": 2.949041,
-      "end": 3.300958
+      "start": 1.638333,
+      "end": 1.990291
     },
     {
       "word": "flag",
-      "start": 3.300958,
-      "end": 3.550958
+      "start": 1.990291,
+      "end": 2.240291
     }
   ]
 }

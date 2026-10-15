@@ -10,12 +10,14 @@ import { COLS, CREW_LOOK, CREWS, GATE_COL, ROWS, WHEEL_AT } from '../../game/puz
 import { ports, tileLabel } from '../../game/puzzles/channel-routing/logic';
 import type { Crew, Flow, Tile } from '../../game/puzzles/channel-routing/types';
 import type { ChannelRoutingStore, ChannelRoutingView } from '../../game/puzzles/channel-routing/view';
+import { CREW_ORDERS, WORKSPACES } from '../../game/puzzles/channel-routing/workspaces';
 import './channel-routing.css';
 
 /**
  * P2.1 Channel Routing's overlay (docs/specs/ISLAND-02-thousand-bough.md §5.5): the Gate Board as a
  * schematic you can play with keyboard, mouse, touch or gamepad (the puzzle feeds the pad), invisible
- * hit areas over the 3D tiles, the result in words (never colour alone), and the Spire twist's choice.
+ * hit areas over the 3D tiles, the result in words (never colour alone), round 3's workspace for each
+ * crew, and the Spire twist's choice.
  */
 const SIDE_XY = [
   [0.5, 0],
@@ -102,6 +104,64 @@ function DemoCard({ card }: { card: NonNullable<ChannelRoutingView['card']> }) {
   );
 }
 
+/** Round 3: each crew's order and the three places it can work (a radio group each). */
+function Workspaces({ v, a }: { v: ChannelRoutingView; a: ChannelRoutingStore['actions'] }) {
+  return (
+    <ol className="ci-cr-crews">
+      {CREWS.map((crew, i) => {
+        const look = CREW_LOOK[crew];
+        const pick = v.picks[crew];
+        const verdict = v.verdicts?.[crew];
+        return (
+          <li
+            key={crew}
+            className={`ci-cr-crew${i === v.crewFocus ? ' is-focus' : ''}`}
+            data-crew={crew}
+            style={{ '--crew': look.colour } as CSSProperties}
+          >
+            <p className="ci-cr-crew-order">
+              <b className="ci-cr-crew-name">
+                <span aria-hidden="true">{look.icon}</span> {look.name}
+              </b>{' '}
+              {CREW_ORDERS[crew].order}
+            </p>
+            <div className="ci-cr-ws" role="radiogroup" aria-label={`Where ${look.name} works`}>
+              {WORKSPACES.map((w) => (
+                <button
+                  key={w.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={pick === w.id}
+                  data-ws={w.id}
+                  disabled={v.busy}
+                  className={pick === w.id ? 'is-on' : undefined}
+                  onClick={() => a.pick(crew, w.id)}
+                  onFocus={() => a.focusCrew(0, i)}
+                >
+                  <span className="ci-cr-ws-name">
+                    <span aria-hidden="true">{pick === w.id ? '● ' : '○ '}</span>
+                    {w.name}
+                  </span>
+                  <small>
+                    <span aria-hidden="true">{w.icon} </span>
+                    {w.island}
+                  </small>
+                </button>
+              ))}
+            </div>
+            {verdict && (
+              <p className={`ci-cr-verdict is-${verdict.right ? 'good' : 'bad'}`}>
+                <span aria-hidden="true">{verdict.right ? '✓ ' : '✗ '}</span>
+                {verdict.text}
+              </p>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
 function crewOf(col: number): Crew | null {
   for (const c of CREWS) if (GATE_COL[c] === col) return c;
   return null;
@@ -139,6 +199,39 @@ function ChannelRouting({ store }: { store: ChannelRoutingStore }) {
       if (e.code === 'Tab') return;
       handled();
       if (e.repeat && !/Arrow|Key[WASD]/.test(e.code)) return;
+      if (s.round === 3) {
+        // Round 3: up/down picks the crew, left/right (or E, or 1-3) its place.
+        const crew = CREWS[s.crewFocus]!;
+        const at = WORKSPACES.findIndex((w) => w.id === s.picks[crew]);
+        const step = (d: number) =>
+          a.pick(crew, WORKSPACES[at < 0 ? (d > 0 ? 0 : WORKSPACES.length - 1) : (at + d + 3) % 3]!.id);
+        const n = /^Digit\d$/.test(e.code) ? Number(e.code.slice(5)) : 0;
+        if (n >= 1 && n <= WORKSPACES.length) return a.pick(crew, WORKSPACES[n - 1]!.id);
+        switch (e.code) {
+          case 'ArrowUp':
+          case 'KeyW':
+            return a.focusCrew(-1);
+          case 'ArrowDown':
+          case 'KeyS':
+            return a.focusCrew(1);
+          case 'ArrowLeft':
+          case 'KeyA':
+            return step(-1);
+          case 'ArrowRight':
+          case 'KeyD':
+          case 'KeyE':
+          case 'Space':
+            return step(e.shiftKey ? -1 : 1);
+          case 'KeyF':
+          case 'Enter':
+            return a.openGates();
+          case 'KeyR':
+            return a.reset();
+          case 'KeyQ':
+            return a.hint();
+        }
+        return;
+      }
       const cur = s.cursor ?? [0, 1];
       switch (e.code) {
         case 'ArrowUp':
@@ -173,7 +266,7 @@ function ChannelRouting({ store }: { store: ChannelRoutingStore }) {
 
   // Keyboard focus follows the cursor once you're in the grid.
   useEffect(() => {
-    if (!v.open || !v.cursor || v.twist) return;
+    if (!v.open || !v.cursor || v.twist || v.round === 3) return;
     const el = tileRefs.current[v.cursor[0] * COLS + v.cursor[1]];
     if (el && document.activeElement !== el && document.activeElement?.closest('.ci-cr-grid')) el.focus();
   }, [v.open, v.cursor, v.twist]);
@@ -241,7 +334,7 @@ function ChannelRouting({ store }: { store: ChannelRoutingStore }) {
 
   return (
     <div className="ci-cr" role="dialog" aria-label="Channel Routing: the Gate Board">
-      {v.hits && !v.twist && (
+      {v.hits && !v.twist && v.round !== 3 && (
         <div className="ci-cr-hits" aria-hidden="true">
           {v.hits.map((h, i) =>
             h
@@ -255,10 +348,18 @@ function ChannelRouting({ store }: { store: ChannelRoutingStore }) {
           )}
         </div>
       )}
-      <section className={`ci-cr-panel${v.twist ? ' is-twist' : ''}`}>
+      <section
+        className={`ci-cr-panel ci-cr-two${v.twist ? ' is-twist' : ''}${!v.twist && v.round === 3 ? ' is-places' : ''}`}
+      >
         <header className="ci-cr-head">
           <p className="ci-cr-eyebrow">{v.twist ? 'The Spire' : `Channel Routing · Round ${v.round} of 3`}</p>
-          <h2>{v.twist ? 'Why are they stuck?' : 'Give every crew its own channel'}</h2>
+          <h2>
+            {v.twist
+              ? 'Why are they stuck?'
+              : v.round === 3
+                ? 'Where does each crew work?'
+                : 'Give every crew its own channel'}
+          </h2>
         </header>
 
         {v.twist ? (
@@ -287,6 +388,8 @@ function ChannelRouting({ store }: { store: ChannelRoutingStore }) {
               ))}
             </ol>
           </div>
+        ) : v.round === 3 ? (
+          <Workspaces v={v} a={a} />
         ) : (
           <div className="ci-cr-board">
             <div className="ci-cr-gates" aria-hidden="true">
@@ -339,76 +442,91 @@ function ChannelRouting({ store }: { store: ChannelRoutingStore }) {
           </div>
         )}
 
-        {(v.message || !v.twist) && (
-          <p className={`ci-cr-message is-${v.message?.tone ?? 'info'}`}>
-            {v.message ? (
+        {/* Fen's word and the buttons (the right-hand column on a landscape phone). */}
+        <div className="ci-cr-side">
+          {(v.message || !v.twist) && (
+            <p className={`ci-cr-message is-${v.message?.tone ?? 'info'}`}>
+              {v.message ? (
+                <>
+                  {v.message.crew && <b className="ci-cr-msg-icon">{CREW_LOOK[v.message.crew].icon}</b>}
+                  {v.message.text}
+                </>
+              ) : v.round === 3 ? (
+                'Read each crew’s order and pick where it works: New worktree, Current checkout or Cloud.'
+              ) : (
+                'Turn the tiles so each crew’s water reaches its own wheel, then open the gates.'
+              )}
+            </p>
+          )}
+
+          {!v.twist && (
+            <div className="ci-cr-actions">
+              <button
+                type="button"
+                className="ci-cr-go"
+                disabled={v.busy || v.phase !== 'routing'}
+                onClick={() => a.openGates()}
+              >
+                Open the gates <kbd>F</kbd>
+              </button>
+              <div className="ci-cr-small">
+                {v.round !== 3 && (
+                  <>
+                    <button
+                      type="button"
+                      disabled={v.busy || !v.cursor}
+                      onClick={() => v.cursor && a.turn(v.cursor[0], v.cursor[1], -1)}
+                      aria-label="Turn the selected tile anticlockwise"
+                    >
+                      ↺
+                    </button>
+                    <button
+                      type="button"
+                      disabled={v.busy || !v.cursor}
+                      onClick={() => v.cursor && a.turn(v.cursor[0], v.cursor[1], 1)}
+                      aria-label="Turn the selected tile clockwise"
+                    >
+                      ↻
+                    </button>
+                    <button type="button" disabled={v.busy} onClick={() => a.undo()}>
+                      Undo <kbd>Z</kbd>
+                    </button>
+                  </>
+                )}
+                <button type="button" disabled={v.busy} onClick={() => a.reset()}>
+                  Reset <kbd>R</kbd>
+                </button>
+                <button type="button" onClick={() => a.hint()} aria-label="Ask Wingman for a hint">
+                  🦜 Hint <kbd>Q</kbd>
+                </button>
+                <button type="button" onClick={() => a.leave()}>
+                  Leave <kbd>Esc</kbd>
+                </button>
+              </div>
+            </div>
+          )}
+          <p className="ci-cr-help" aria-hidden="true">
+            {v.twist ? (
               <>
-                {v.message.crew && <b className="ci-cr-msg-icon">{CREW_LOOK[v.message.crew].icon}</b>}
-                {v.message.text}
+                Press <kbd>1</kbd>–<kbd>{v.twist.choices.length || 4}</kbd> or tap an answer
+              </>
+            ) : v.round === 3 ? (
+              <>
+                <kbd>↑</kbd>
+                <kbd>↓</kbd> crew · <kbd>←</kbd>
+                <kbd>→</kbd> or <kbd>1</kbd>–<kbd>3</kbd> where it works · <kbd>F</kbd> open the gates
               </>
             ) : (
-              'Turn the tiles so each crew’s water reaches its own wheel, then open the gates.'
+              <>
+                <kbd>W</kbd>
+                <kbd>A</kbd>
+                <kbd>S</kbd>
+                <kbd>D</kbd> move · <kbd>E</kbd> turn · <kbd>Shift</kbd>+<kbd>E</kbd> turn back · long-press a
+                tile to turn it back
+              </>
             )}
           </p>
-        )}
-
-        {!v.twist && (
-          <div className="ci-cr-actions">
-            <button
-              type="button"
-              className="ci-cr-go"
-              disabled={v.busy || v.phase !== 'routing'}
-              onClick={() => a.openGates()}
-            >
-              Open the gates <kbd>F</kbd>
-            </button>
-            <div className="ci-cr-small">
-              <button
-                type="button"
-                disabled={v.busy || !v.cursor}
-                onClick={() => v.cursor && a.turn(v.cursor[0], v.cursor[1], -1)}
-                aria-label="Turn the selected tile anticlockwise"
-              >
-                ↺
-              </button>
-              <button
-                type="button"
-                disabled={v.busy || !v.cursor}
-                onClick={() => v.cursor && a.turn(v.cursor[0], v.cursor[1], 1)}
-                aria-label="Turn the selected tile clockwise"
-              >
-                ↻
-              </button>
-              <button type="button" disabled={v.busy} onClick={() => a.undo()}>
-                Undo <kbd>Z</kbd>
-              </button>
-              <button type="button" disabled={v.busy} onClick={() => a.reset()}>
-                Reset <kbd>R</kbd>
-              </button>
-              <button type="button" onClick={() => a.hint()} aria-label="Ask Wingman for a hint">
-                🦜 Hint <kbd>Q</kbd>
-              </button>
-              <button type="button" onClick={() => a.leave()}>
-                Leave <kbd>Esc</kbd>
-              </button>
-            </div>
-          </div>
-        )}
-        <p className="ci-cr-help" aria-hidden="true">
-          {v.twist ? (
-            <>
-              Press <kbd>1</kbd>–<kbd>{v.twist.choices.length}</kbd> or tap an answer
-            </>
-          ) : (
-            <>
-              <kbd>W</kbd>
-              <kbd>A</kbd>
-              <kbd>S</kbd>
-              <kbd>D</kbd> move · <kbd>E</kbd> turn · <kbd>Shift</kbd>+<kbd>E</kbd> turn back · long-press a
-              tile to turn it back
-            </>
-          )}
-        </p>
+        </div>
         <div className="ci-cr-live" role="status" aria-live="polite">
           {v.announce}
         </div>

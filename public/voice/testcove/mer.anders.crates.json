@@ -1,7 +1,7 @@
 {
   "id": "mer.anders.crates",
   "speaker": "Anders",
-  "text": "Now, my crates are all muddled. Chat work goes on the tavern plates, project work on the slipway plates.",
+  "text": "Now, my crates are all muddled. Chats go on the tavern plates. Anything that needs your repository goes on the slipway plates.",
   "words": [
     {
       "word": "Now",
@@ -34,69 +34,84 @@
       "end": 2.978708
     },
     {
-      "word": "Chat",
+      "word": "Chats",
       "start": 2.978708,
-      "end": 3.284583
+      "end": 3.377666
     },
     {
-      "word": "work",
-      "start": 3.284583,
-      "end": 3.563833
-    },
-    {
-      "word": "goes",
-      "start": 3.563833,
-      "end": 3.896291
+      "word": "go",
+      "start": 3.377666,
+      "end": 3.577125
     },
     {
       "word": "on",
-      "start": 3.896291,
-      "end": 4.015958
+      "start": 3.577125,
+      "end": 3.75
     },
     {
       "word": "the",
-      "start": 4.015958,
-      "end": 4.122333
+      "start": 3.75,
+      "end": 3.856375
     },
     {
       "word": "tavern",
-      "start": 4.122333,
-      "end": 4.468083
+      "start": 3.856375,
+      "end": 4.255333
     },
     {
       "word": "plates",
-      "start": 4.468083,
-      "end": 5.093083
+      "start": 4.255333,
+      "end": 5.731375
     },
     {
-      "word": "project",
-      "start": 5.093083,
-      "end": 5.545208
+      "word": "Anything",
+      "start": 5.731375,
+      "end": 6.143625
     },
     {
-      "word": "work",
-      "start": 5.545208,
-      "end": 5.864375
+      "word": "that",
+      "start": 6.143625,
+      "end": 6.303208
+    },
+    {
+      "word": "needs",
+      "start": 6.303208,
+      "end": 6.569166
+    },
+    {
+      "word": "your",
+      "start": 6.569166,
+      "end": 6.715416
+    },
+    {
+      "word": "repository",
+      "start": 6.715416,
+      "end": 7.353708
+    },
+    {
+      "word": "goes",
+      "start": 7.353708,
+      "end": 7.726083
     },
     {
       "word": "on",
-      "start": 5.864375,
-      "end": 5.997333
+      "start": 7.726083,
+      "end": 7.859041
     },
     {
       "word": "the",
-      "start": 5.997333,
-      "end": 6.117041
+      "start": 7.859041,
+      "end": 7.965416
     },
     {
       "word": "slipway",
-      "start": 6.117041,
-      "end": 6.582458
+      "start": 7.965416,
+      "end": 8.444166
     },
     {
       "word": "plates",
-      "start": 6.582458,
-      "end": 6.832458
+      "start": 8.444166,
+      "end": 8.694166
     }
   ]
 }

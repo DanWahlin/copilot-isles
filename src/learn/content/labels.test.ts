@@ -91,7 +91,7 @@ describe('chart labels (docs/specs/LOWER-THIRDS.md)', () => {
   });
 
   it('cover every puzzle the islands build (POC §4.5, §6.5; ISLAND-02 §5-§7)', () => {
-    for (const id of ['P0.1', 'P0.2', 'P1.1', 'P1.2', 'P2.1', 'P2.2', 'P2.3'])
+    for (const id of ['P0.1', 'P0.2', 'P1.1', 'P1.2', 'P1.3', 'P2.1', 'P2.2', 'P2.3'])
       expect(chartLabel(`puzzle:${id}`)?.game, id).toBe('puzzle');
     expect(chartLabel('puzzle:Q0.8.pipes')).toBeNull();
   });

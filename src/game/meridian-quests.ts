@@ -60,7 +60,7 @@ export const MERIDIAN_QUESTS: readonly MeridianQuestDef[] = [
     steps: {
       start: 'Anders Holt, the shipwright, is at the shipyard at the west end of the quay.',
       crates:
-        'Push each crate onto its plate: chat work to the tavern plate, project work to the slipway plate.',
+        'Push each crate onto its plate: chat work to the tavern, work that needs your repository to the slipway. Z takes a push back.',
       solved: 'Every crate’s in place. Talk to Anders.',
       done: 'Project sessions are for work in your repository, on a New worktree by default.',
     },
@@ -71,7 +71,8 @@ export const MERIDIAN_QUESTS: readonly MeridianQuestDef[] = [
     task: 'Choose a session mode',
     steps: {
       start: 'Captain Rhea Marlowe is by your ship on the east arm.',
-      helms: 'Board your ship and sail the three helms out in the bay: Interactive, Plan and Autopilot.',
+      helms:
+        'Board your ship and sail to the buoys in the bay. At each one, read Rhea’s order and pick the helm that fits.',
       solved: 'You’ve sailed all three helms. Talk to Rhea on the east arm.',
       done: 'Interactive, Plan and Autopilot change the level of autonomy. Pick the mode that fits the task.',
     },
@@ -91,6 +92,9 @@ export const MERIDIAN_QUESTS: readonly MeridianQuestDef[] = [
     task: 'Find your way round Settings',
     steps: {
       start: 'Pell Winthrop keeps the Hall of Records in the citadel.',
+      letters:
+        'File each lost letter in the alcove for the Settings area that fixes it. Pell’s desk is in front of them.',
+      solved: 'Every letter’s filed. Talk to Pell.',
       done: 'Settings opens from the gear at the bottom of the sidebar. App-wide instructions are under Sessions.',
     },
   },
@@ -126,6 +130,8 @@ export const MERIDIAN_TARGETS: Readonly<
     labels: { 'npc:oren': 'Oren' },
   },
   'Q1.7:start': { ids: ['npc:pell'], label: 'Pell' },
+  'Q1.7:letters': { ids: ['letters:*'], label: 'Pell’s letters' },
+  'Q1.7:solved': { ids: ['npc:pell'], label: 'Pell' },
   'Q1.8:start': { ids: ['npc:admiral'], label: 'Admiral Vale' },
   'Q1.8:exam': { ids: ['npc:admiral'], label: 'Admiral Vale' },
 };
@@ -307,7 +313,15 @@ const ANDERS: readonly ScriptStep[] = [
 
 /** Anders's beat when the crate yard's solved (played at once by the puzzle, or when you talk to him). */
 export const ANDERS_SOLVED: readonly ScriptStep[] = [
+  // The trick crate's lesson, then where each kind starts in the app.
   { say: 'mer.anders.solved' },
+  {
+    show: 'ch01/app-quick-chat',
+    caption:
+      'A question: **+** next to **Projects**, then **Chat**. Work that needs your repository: the **+** next to your project.',
+  },
+  { say: 'mer.anders.solved.02' },
+  { hide: true },
   { say: 'mer.anders.next' },
   { quest: 'Q1.4', step: 'done' },
   { quest: 'Q1.5', step: 'start' },
@@ -362,6 +376,8 @@ const OREN: readonly ScriptStep[] = [
   { page: 'pg1.try-controls', doubloons: 15 },
   { say: 'mer.oren.07' },
   { say: 'mer.oren.08' },
+  // Try Again with a Different Model: Retry, below a response.
+  { quiz: 'R1.1' },
   // What the player kept in their own model control (Your setup), and one question that fits it.
   { askSetup: 'model' },
   { quiz: 'N1.3', when: 'model:auto' },
@@ -380,21 +396,46 @@ const OREN: readonly ScriptStep[] = [
 ];
 
 const PELL: readonly ScriptStep[] = [
+  // Where Settings opens, then the lost letters (P1.3) to practise its areas before the real screen.
   { say: 'mer.pell.01' },
   {
     show: 'ch01/app-settings',
     caption: 'Select the gear at the bottom of the sidebar to open **Settings**.',
   },
-  { say: 'mer.pell.02' },
-  { say: 'mer.pell.03' },
+  { say: 'mer.pell.letters' },
   { hide: true },
+  { say: 'mer.pell.letters.02' },
+  { quest: 'Q1.7', step: 'letters' },
+];
+
+/**
+ * What the alcoves stand for, on the course's screenshot. A save that finished Pell before the letters
+ * existed can file them for practice and gets just this; its quest stays done.
+ */
+export const PELL_LETTERS_DEBRIEF: readonly ScriptStep[] = [
+  { say: 'mer.pell.letters.solved' },
+  {
+    show: 'ch01/app-settings',
+    caption:
+      'Select the gear at the bottom of the sidebar. The areas are listed down the left, with **Projects** at the foot.',
+  },
+  { say: 'mer.pell.letters.debrief' },
+  { hide: true },
+];
+
+/** Pell's debrief once the letters are filed (played at once by the puzzle, or when you talk to him). */
+export const PELL_SOLVED: readonly ScriptStep[] = [
+  ...PELL_LETTERS_DEBRIEF,
+  // The same idea on the real screen: where app-wide instructions live.
   { quiz: 'H1.4' },
+  { term: 'settings' },
   { say: 'mer.pell.04' },
   { term: 'model-providers' },
-  { say: 'mer.pell.05' },
   { page: 'pg1.settings', doubloons: 15 },
+  { say: 'mer.pell.05' },
   { file: 'pg1.voice' },
   // The chapter's troubleshooting, kept with the records.
+  { say: 'mer.pell.done' },
   { file: 'B1.1' },
   { file: 'B1.2' },
   { file: 'B1.3' },
@@ -426,9 +467,14 @@ const ADMIRAL_RETRY: readonly ScriptStep[] = [{ say: 'mer.admiral.retry' }, { tr
 
 /**
  * The beat a Meridian NPC offers right now. NPCs ahead of the story point you back to whoever's
- * next; everyone's got a line once their part's done.
+ * next; everyone's got a line once their part's done. `lettersFiled` is whether P1.3's letters are
+ * all filed (a save that finished Pell before the letters existed hears there's a new bundle).
  */
-export function meridianNpcScript(npc: string, q: QuestState): { steps: readonly ScriptStep[] } | null {
+export function meridianNpcScript(
+  npc: string,
+  q: QuestState,
+  o: { lettersFiled?: boolean } = {},
+): { steps: readonly ScriptStep[] } | null {
   const line = (id: string) => ({ steps: [{ say: id }] as readonly ScriptStep[] });
   switch (npc) {
     case 'tobias':
@@ -456,9 +502,14 @@ export function meridianNpcScript(npc: string, q: QuestState): { steps: readonly
     case 'oren':
       if (!done(q, 'Q1.5')) return line('mer.oren.wait');
       return done(q, 'Q1.6') ? line('mer.oren.done') : { steps: OREN };
-    case 'pell':
+    case 'pell': {
       if (!done(q, 'Q1.6')) return line('mer.pell.wait');
-      return done(q, 'Q1.7') ? line('mer.pell.done') : { steps: PELL };
+      const step = q['Q1.7'];
+      if (step === 'letters') return line('mer.pell.letters.wait');
+      if (step === 'solved') return { steps: PELL_SOLVED };
+      if (step !== 'done') return { steps: PELL };
+      return line(o.lettersFiled === false ? 'mer.pell.letters.again' : 'mer.pell.done');
+    }
     case 'admiral':
       if (!done(q, 'Q1.7')) return line('mer.admiral.wait');
       if (q['Q1.8'] === 'exam') return { steps: ADMIRAL_RETRY };

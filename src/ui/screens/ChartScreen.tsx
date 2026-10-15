@@ -92,6 +92,17 @@ export function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBri
           </button>
         </div>
         <div className="ci-chart-map">
+          {/* The paper on a layer of its own, under the map: drawn once, so an island's hover
+              animation doesn't redraw its noise and its shadow every frame (that held the Chart's
+              frames for 200 ms or more while an island was pointed at). */}
+          <svg
+            className="ci-chart-paper"
+            viewBox={`0 0 ${ARCH_W} ${ARCH_H}`}
+            preserveAspectRatio="xMidYMid meet"
+            aria-hidden="true"
+          >
+            <Parchment w={ARCH_W} h={ARCH_H} />
+          </svg>
           <svg
             viewBox={`0 0 ${ARCH_W} ${ARCH_H}`}
             preserveAspectRatio="xMidYMid meet"
@@ -100,7 +111,6 @@ export function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBri
               mode === 'archipelago' ? 'Chart of the Copilot Isles' : `Chart of ${chart.island.name}`
             }
           >
-            <Parchment w={ARCH_W} h={ARCH_H} />
             {mode === 'archipelago' ? (
               <ArchipelagoMap
                 islands={islands}

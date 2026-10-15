@@ -116,35 +116,52 @@
       "speaker": "Suri",
       "voice": "en-US-Jenny:DragonHDLatestNeural",
       "fallbackVoice": "en-US-JennyNeural",
-      "text": "Mill's dry today, Captain. Come back once your fork has its practice items."
+      "text": "Mill’s quiet today, Captain. Pim and Pol at the crane will send you up when it’s time."
+    },
+    {
+      "id": "suri.actions.01",
+      "speaker": "Suri",
+      "voice": "en-US-Jenny:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-JennyNeural",
+      "text": "I’m Suri, keeper of the mill. That gate’s your fork’s Actions tab. Pull the lever: I understand my workflows, go ahead and enable them."
+    },
+    {
+      "id": "suri.actions.02",
+      "speaker": "Suri",
+      "voice": "en-US-Jenny:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-JennyNeural",
+      "text": "Gate’s up, so your workflows are on! Back to the crane, Captain. Come see me once your practice items are in."
     },
     {
       "id": "suri.brief.01",
       "speaker": "Suri",
       "voice": "en-US-Jenny:DragonHDLatestNeural",
       "fallbackVoice": "en-US-JennyNeural",
-      "text": "You’re the captain with the new fork? Suri Okoye. I keep the mill."
+      "text": "Your fork’s got its practice pull requests now, Captain. Let’s watch the checks run."
     },
     {
       "id": "suri.brief.02",
       "speaker": "Suri",
       "voice": "en-US-Jenny:DragonHDLatestNeural",
       "fallbackVoice": "en-US-JennyNeural",
-      "text": "Pim and Pol had you turn on workflows in your fork's Actions tab. My mill shows what that does."
+      "text": "With workflows on, GitHub runs automated checks on them. My mill shows how."
     },
     {
       "id": "suri.brief.05",
       "speaker": "Suri",
       "voice": "en-US-Jenny:DragonHDLatestNeural",
       "fallbackVoice": "en-US-JennyNeural",
-      "text": "Here the gate’s your Actions tab. Pull the lever, then turn the channels with E until the spring reaches my wheel."
+      "text": "Turn the channels with E, or Shift+E to turn back, until the water reaches both outlets: my wheel and the check gate.",
+      "sub": {
+        "Shift+E": "shift E"
+      }
     },
     {
       "id": "suri.sluice.01",
       "speaker": "Suri",
       "voice": "en-US-Jenny:DragonHDLatestNeural",
       "fallbackVoice": "en-US-JennyNeural",
-      "text": "Lever first, then turn the channels. Follow the water from the spring."
+      "text": "Follow the water from the spring. It has to reach both outlets: my wheel and the check gate."
     },
     {
       "id": "suri.done.01",
@@ -158,14 +175,14 @@
       "speaker": "Suri",
       "voice": "en-US-Jenny:DragonHDLatestNeural",
       "fallbackVoice": "en-US-JennyNeural",
-      "text": "There. The practice checks can run on your fork now."
+      "text": "There! With workflows on, GitHub runs the practice checks. See the check gate? That one fails on purpose."
     },
     {
       "id": "suri.solved.02",
       "speaker": "Suri",
       "voice": "en-US-Jenny:DragonHDLatestNeural",
       "fallbackVoice": "en-US-JennyNeural",
-      "text": "Later chapters use those checks, so that's time well spent. Fair winds, Captain."
+      "text": "That’s practice, not a broken setup. You’ll fix it in a later chapter. Fair winds, Captain."
     },
     {
       "id": "pim.idle.ready",
@@ -288,7 +305,7 @@
       "id": "pim.brief.03",
       "speaker": "Pim",
       "voice": "en-IE-ConnorNeural",
-      "text": "Same on our crane: aim her at your ship, pull Dry-Run, read the sign, then --yes.",
+      "text": "Same here: Actions first. Pull the gate lever at Suri’s mill, then aim our crane at your ship, Dry-Run, and --yes.",
       "prosody": {
         "rate": "+12%"
       }
@@ -316,6 +333,15 @@
       "speaker": "Pim",
       "voice": "en-IE-ConnorNeural",
       "text": "In the app, run both commands in Terminal, from the repository root.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pim.solved.fork",
+      "speaker": "Pim",
+      "voice": "en-IE-ConnorNeural",
+      "text": "If the Repository line ever isn’t yours, you probably added the original. Add your fork to Projects instead.",
       "prosody": {
         "rate": "+12%"
       }
@@ -352,6 +378,15 @@
       "speaker": "Pol",
       "voice": "en-IE-EmilyNeural",
       "text": "Refused! That’s another captain’s fork. The script won’t change a repository you don’t own.",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    {
+      "id": "pol.refuse.actions.01",
+      "speaker": "Pol",
+      "voice": "en-IE-EmilyNeural",
+      "text": "Setup failed! Your fork’s workflows are still off. Pull the gate lever at Suri’s mill, that’s the Actions tab, then run --yes again.",
       "prosody": {
         "rate": "+12%"
       }
@@ -487,14 +522,17 @@
       "speaker": "Bo",
       "voice": "en-GB-Ryan:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-RyanNeural",
-      "text": "Commands run there. Start with the four version checks on my rack. Each should print a version number."
+      "text": "Commands run there. Start with the four version checks on my rack. Each should print a version number. For Node, compare the first number with the LTS version on the download page.",
+      "sub": {
+        "LTS": "L T S"
+      }
     },
     {
       "id": "bo.gear.brief.03",
       "speaker": "Bo",
       "voice": "en-GB-Ryan:DragonHDLatestNeural",
       "fallbackVoice": "en-GB-RyanNeural",
-      "text": "If one says command not found, install just that tool, then run the checks again."
+      "text": "If a command's missing, install just that tool. If Node's first number is lower, install the long-term support version, then run the checks again."
     },
     {
       "id": "bo.gear.checked.02",
@@ -1143,7 +1181,7 @@
     {
       "id": "mer.anders.crates",
       "speaker": "Anders",
-      "text": "Now, my crates are all muddled. Chat work goes on the tavern plates, project work on the slipway plates.",
+      "text": "Now, my crates are all muddled. Chats go on the tavern plates. Anything that needs your repository goes on the slipway plates.",
       "voice": "en-GB-EthanNeural",
       "prosody": {
         "rate": "-6%"
@@ -1161,10 +1199,22 @@
     {
       "id": "mer.anders.solved",
       "speaker": "Anders",
-      "text": "Every crate in its place. You can tell a question from a job.",
+      "text": "Every crate in its place. Even the tour: it doesn’t change a file, but it needs your repository, so it’s a project session.",
       "voice": "en-GB-EthanNeural",
       "prosody": {
         "rate": "-6%"
+      }
+    },
+    {
+      "id": "mer.anders.solved.02",
+      "speaker": "Anders",
+      "text": "In the app, a question starts with + next to Projects, then Chat. Work that needs your repository starts from the + next to your project.",
+      "voice": "en-GB-EthanNeural",
+      "prosody": {
+        "rate": "-6%"
+      },
+      "sub": {
+        "+": "plus"
       }
     },
     {
@@ -1179,7 +1229,7 @@
     {
       "id": "mer.anders.done",
       "speaker": "Anders",
-      "text": "Questions to a chat, jobs to a project session. Good work.",
+      "text": "Questions to a chat. Anything that needs your repository, to a project session. Good work.",
       "voice": "en-GB-EthanNeural",
       "prosody": {
         "rate": "-6%"
@@ -1224,7 +1274,7 @@
     {
       "id": "mer.rhea.helms",
       "speaker": "Rhea",
-      "text": "Board your ship. Each buoy out in the bay is a helm to sail.",
+      "text": "Board your ship. At each buoy in the bay, I’ll hand you an order, and you pick the helm that fits.",
       "voice": "en-GB-AbbiNeural",
       "prosody": {
         "rate": "+3%"
@@ -1233,7 +1283,7 @@
     {
       "id": "mer.rhea.helms.wait",
       "speaker": "Rhea",
-      "text": "The three helms are out in the bay, Captain. Board your ship and sail them.",
+      "text": "My orders are waiting at the buoys, Captain. Board your ship and sail out.",
       "voice": "en-GB-AbbiNeural",
       "prosody": {
         "rate": "+3%"
@@ -1429,26 +1479,6 @@
       }
     },
     {
-      "id": "mer.pell.02",
-      "speaker": "Pell",
-      "text": "General has updates, storage and the theme. Accounts lets you add another GitHub account.",
-      "voice": "en-GB-ElliotNeural",
-      "prosody": {
-        "rate": "+4%",
-        "pitch": "+1st"
-      }
-    },
-    {
-      "id": "mer.pell.03",
-      "speaker": "Pell",
-      "text": "Sessions is where you manage sessions and chats, the response style, and app-wide instructions.",
-      "voice": "en-GB-ElliotNeural",
-      "prosody": {
-        "rate": "+4%",
-        "pitch": "+1st"
-      }
-    },
-    {
       "id": "mer.pell.04",
       "speaker": "Pell",
       "text": "Model providers connects other providers with your own API keys. It doesn’t replace the model picker.",
@@ -1495,6 +1525,99 @@
       "id": "mer.pell.done",
       "speaker": "Pell",
       "text": "Can’t find a setting? Look for the closest area. Versions vary.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.letters",
+      "speaker": "Pell",
+      "text": "Captains write to me when they can’t find a setting, and these letters have gone astray.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.letters.02",
+      "speaker": "Pell",
+      "text": "File each one in the alcove for the area that fixes it. If one isn’t a Settings job at all, it goes back in my tray.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.letters.wait",
+      "speaker": "Pell",
+      "text": "The letters are on my desk, Captain, under the alcoves.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.letter.ok",
+      "speaker": "Pell",
+      "text": "Filed! On to the next.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.letter.customize",
+      "speaker": "Pell",
+      "text": "Right alcove, and it points you on. You manage MCP servers in the Customize view, in the sidebar.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      },
+      "sub": {
+        "MCP": "M C P"
+      }
+    },
+    {
+      "id": "mer.pell.letter.decoy",
+      "speaker": "Pell",
+      "text": "Quite right, that’s not a setting. You pick the model and effort in the model control, below the prompt box.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.letters.solved",
+      "speaker": "Pell",
+      "text": "Every letter in its place! Each alcove in my hall is an area in Settings, in the same order as the app.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.letters.debrief",
+      "speaker": "Pell",
+      "text": "Select the gear at the bottom of the sidebar, and they’re listed down the left. Projects is at the foot, with each project’s own settings.",
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    {
+      "id": "mer.pell.letters.again",
+      "speaker": "Pell",
+      "text": "A new bundle of lost letters came in, Captain. They’re on my desk, if you’d like to file them.",
       "voice": "en-GB-ElliotNeural",
       "prosody": {
         "rate": "+4%",
@@ -1565,9 +1688,36 @@
       }
     },
     {
+      "id": "mer.helm.order.interactive",
+      "speaker": "Rhea",
+      "text": "First order. Thread the blue marks with me. I want you involved the whole way, calling every turn. Which helm fits?",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.wrong.interactive.plan",
+      "speaker": "Rhea",
+      "text": "Plan would chart the whole course for your approval, then sail it straight through. You wanted to call every turn.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.wrong.interactive.autopilot",
+      "speaker": "Rhea",
+      "text": "Autopilot works end to end without checking in, so you wouldn’t call a single turn.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
       "id": "mer.helm.interactive.take",
       "speaker": "Rhea",
-      "text": "Interactive helm. We’ll sail one leg at a time, and I’ll check with you at every mark.",
+      "text": "Interactive helm. We’ll work it out together, step by step. At each mark, you choose the heading.",
       "voice": "en-GB-AbbiNeural",
       "prosody": {
         "rate": "+3%"
@@ -1576,7 +1726,7 @@
     {
       "id": "mer.helm.interactive.check",
       "speaker": "Rhea",
-      "text": "Mark reached. Shall we sail the next leg?",
+      "text": "Mark reached. Which way next, Captain?",
       "voice": "en-GB-AbbiNeural",
       "prosody": {
         "rate": "+3%"
@@ -1585,7 +1735,7 @@
     {
       "id": "mer.helm.interactive.done",
       "speaker": "Rhea",
-      "text": "That’s Interactive. You were involved at every step.",
+      "text": "That’s Interactive. You called every heading, and we worked step by step. Saying yes to each tool is different. That’s Tool permissions, not the mode.",
       "voice": "en-GB-AbbiNeural",
       "prosody": {
         "rate": "+3%"
@@ -1594,7 +1744,34 @@
     {
       "id": "mer.helm.next.plan",
       "speaker": "Rhea",
-      "text": "Next, the Plan buoy. Look for the orange flag.",
+      "text": "Next order’s at the buoy with the orange flag.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.order.plan",
+      "speaker": "Rhea",
+      "text": "Second order: the reef passage. The approach matters here, so we see the route before we move. Which helm?",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.wrong.plan.autopilot",
+      "speaker": "Rhea",
+      "text": "Hold fast! This passage is one where the approach matters. Chart it first.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.wrong.plan.interactive",
+      "speaker": "Rhea",
+      "text": "Interactive would work it out with you, one mark at a time. Here the approach matters, so we want the whole route first.",
       "voice": "en-GB-AbbiNeural",
       "prosody": {
         "rate": "+3%"
@@ -1603,7 +1780,52 @@
     {
       "id": "mer.helm.plan.take",
       "speaker": "Rhea",
-      "text": "Plan helm. Here’s the route I’ve charted. Look it over, then approve it.",
+      "text": "Plan helm. Here’s the route I’ve charted. Read it before you choose.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.plan.approve.draft",
+      "speaker": "Rhea",
+      "text": "Approve and implement sails it in Autopilot, straight through. Leg two crosses the Shoal! Read the plan, then suggest a change.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.plan.exit",
+      "speaker": "Rhea",
+      "text": "Exit plan mode puts us back in Interactive, and you’d prompt each step yourself. This plan only needs one fix.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.plan.suggest",
+      "speaker": "Rhea",
+      "text": "Good catch. I’ll chart her round the Shoal. Have another look.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.plan.exit.revised",
+      "speaker": "Rhea",
+      "text": "You could, and you’d prompt each step yourself in Interactive. But this plan’s ready now.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.plan.suggest.revised",
+      "speaker": "Rhea",
+      "text": "It’s clear of the Shoal now. There’s nothing left to change.",
       "voice": "en-GB-AbbiNeural",
       "prosody": {
         "rate": "+3%"
@@ -1612,7 +1834,7 @@
     {
       "id": "mer.helm.plan.go",
       "speaker": "Rhea",
-      "text": "Plan approved. Now she sails it straight through.",
+      "text": "Approved. Now she sails the plan in Autopilot, straight through.",
       "voice": "en-GB-AbbiNeural",
       "prosody": {
         "rate": "+3%"
@@ -1621,7 +1843,7 @@
     {
       "id": "mer.helm.plan.done",
       "speaker": "Rhea",
-      "text": "That’s Plan. You saw the whole route before anything moved.",
+      "text": "That’s Plan. You read the route, caught the Shoal, and fixed it before anything moved.",
       "voice": "en-GB-AbbiNeural",
       "prosody": {
         "rate": "+3%"
@@ -1630,7 +1852,34 @@
     {
       "id": "mer.helm.next.autopilot",
       "speaker": "Rhea",
-      "text": "Last one, the Autopilot buoy with the green flag.",
+      "text": "Last order’s at the buoy with the green flag.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.order.autopilot",
+      "speaker": "Rhea",
+      "text": "Last order. Take her home to your berth. It’s well defined, and the outcome’s clear. Which helm?",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.wrong.autopilot.interactive",
+      "speaker": "Rhea",
+      "text": "Interactive would check in with you at every mark. A clear, well-defined run doesn’t need that.",
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    {
+      "id": "mer.helm.wrong.autopilot.plan",
+      "speaker": "Rhea",
+      "text": "Plan would chart the route for your review first. On a run this clear, there’s nothing to review.",
       "voice": "en-GB-AbbiNeural",
       "prosody": {
         "rate": "+3%"
@@ -2067,18 +2316,39 @@
       "text": "Three crews, three channels, one spring. That's one repository with a worktree for each session."
     },
     {
-      "id": "tb.fen.rain",
+      "id": "tb.fen.r3.intro",
       "speaker": "Fen",
       "tts": "elevenlabs",
       "voice": "y6p0SvBlfEe2MH4XN7BP",
-      "text": "Och, the rain's brought a boulder down! New tiles, same rule: every crew its own channel."
+      "text": "Last round! Every crew has its own channel now. Read their orders and pick where each one works."
+    },
+    {
+      "id": "tb.fen.ws.worktree",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "That crew's making real changes. A new worktree keeps them apart from main, and it still runs on your machine."
+    },
+    {
+      "id": "tb.fen.ws.checkout",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "That's only a quick, low-stakes look. Your current checkout's fine for that, and a new worktree's the safe default."
+    },
+    {
+      "id": "tb.fen.ws.cloud",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "That crew wants the work off your deck. Cloud runs it in a cloud sandbox on GitHub's hosted infrastructure."
     },
     {
       "id": "tb.fen.round3",
       "speaker": "Fen",
       "tts": "elevenlabs",
       "voice": "y6p0SvBlfEe2MH4XN7BP",
-      "text": "Nothing mixed, round a boulder and all. Sessions can run side by side without mixing their changes."
+      "text": "Every crew where its order fits. The choices trade speed against isolation."
     },
     {
       "id": "tb.fen.twist.01",
@@ -2128,6 +2398,13 @@
       "tts": "elevenlabs",
       "voice": "y6p0SvBlfEe2MH4XN7BP",
       "text": "Worktrees separate files and branches, not everything. Dev servers, databases and ports can still collide."
+    },
+    {
+      "id": "tb.fen.app",
+      "speaker": "Fen",
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP",
+      "text": "In the app you don't dig channels. Pick New worktree in the workspace selector, and the app makes the folder and branch."
     },
     {
       "id": "tb.fen.oneatatime",
@@ -2190,28 +2467,42 @@
       "speaker": "Ines",
       "tts": "elevenlabs",
       "voice": "EoMKQ1XHxZPJ6KVTvPL3",
-      "text": "First order: bring the folder samples, book app web, source."
+      "text": "First order: Copilot needs the Book App's source folder."
     },
     {
       "id": "tb.ines.order.2",
       "speaker": "Ines",
       "tts": "elevenlabs",
       "voice": "EoMKQ1XHxZPJ6KVTvPL3",
-      "text": "Next: bring in issue twelve."
+      "text": "Next: get a recap of your last day's work."
     },
     {
       "id": "tb.ines.order.3",
       "speaker": "Ines",
       "tts": "elevenlabs",
       "voice": "EoMKQ1XHxZPJ6KVTvPL3",
-      "text": "Now: run chronicle standup."
+      "text": "Now: attach the bug report about the empty state."
     },
     {
       "id": "tb.ines.order.4",
       "speaker": "Ines",
       "tts": "elevenlabs",
       "voice": "EoMKQ1XHxZPJ6KVTvPL3",
-      "text": "Last one: point at another crew's session."
+      "text": "And: use what Rook's crew's session found."
+    },
+    {
+      "id": "tb.ines.order.5",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "Pack light! Copilot's fixing one empty-state message. What do you bring?"
+    },
+    {
+      "id": "tb.ines.order.6",
+      "speaker": "Ines",
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3",
+      "text": "Last one: a letter that's on your computer, not in the repository. Get it into the session."
     },
     {
       "id": "tb.ines.flag.ok",

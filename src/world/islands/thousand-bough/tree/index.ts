@@ -32,19 +32,35 @@ import {
  */
 const TIER_TREE: Record<
   TierSettings['tier'],
-  { clusters: number; roots: number; near: BanyanDetail; vines: number; ground: number }
+  {
+    clusters: number;
+    roots: number;
+    near: BanyanDetail;
+    vines: number;
+    ground: number;
+    /** Leaf cards a clump on the far tree (fewer, bigger clumps get more, so its rim stays leafy). */
+    farCards: number;
+  }
 > = {
-  lite: { clusters: 250, roots: 12, near: BANYAN_DETAIL.lite, vines: 0, ground: 8 },
-  low: { clusters: 480, roots: 24, near: { ...BANYAN_DETAIL.lite, cards: 10 }, vines: 30, ground: 22 },
+  lite: { clusters: 250, roots: 12, near: BANYAN_DETAIL.lite, vines: 0, ground: 8, farCards: 8 },
+  low: {
+    clusters: 480,
+    roots: 24,
+    near: { ...BANYAN_DETAIL.lite, cards: 10 },
+    vines: 30,
+    ground: 22,
+    farCards: 6,
+  },
   medium: {
     clusters: 900,
     roots: 36,
     near: { ...BANYAN_DETAIL.near, lobes: 1, cards: 6 },
     vines: 50,
     ground: 24,
+    farCards: 4,
   },
-  high: { clusters: 1500, roots: 36, near: BANYAN_DETAIL.near, vines: 80, ground: 32 },
-  ultra: { clusters: 1500, roots: 36, near: BANYAN_DETAIL.near, vines: 80, ground: 32 },
+  high: { clusters: 1500, roots: 36, near: BANYAN_DETAIL.near, vines: 80, ground: 32, farCards: 4 },
+  ultra: { clusters: 1500, roots: 36, near: BANYAN_DETAIL.near, vines: 80, ground: 32, farCards: 4 },
 };
 
 /** Where the near tree hands over to the far one (m from the camera to the trunk), with hysteresis. */
@@ -177,14 +193,28 @@ function* banyanSteps(tier: TierSettings, clearance: WalkClearance): Generator<v
   );
   yield;
   const far = make(
-    yield* buildBanyan(BANYAN_DETAIL.far, farClusters, roots.slice(0, 12), { ground, gate: true }),
+    // Every prop root the tier has (thin columns under the canopy are what say "banyan" from the sea).
+    yield* buildBanyan({ ...BANYAN_DETAIL.far, cards: t.farCards }, farClusters, roots, {
+      ground,
+      gate: true,
+    }),
     'thousand-bough-banyan-far',
     false,
   );
   yield;
   const sister = make(
     yield* buildBanyan(
-      { ...BANYAN_DETAIL.far, lobes: 1, cards: fine ? 5 : 3, twigs: true, fine, lean: t.near.lean },
+      {
+        coreSeg: BANYAN_DETAIL.far.coreSeg,
+        limbSeg: BANYAN_DETAIL.far.limbSeg,
+        rootSeg: BANYAN_DETAIL.far.rootSeg,
+        step: BANYAN_DETAIL.far.step,
+        lobes: 1,
+        cards: fine ? 5 : 3,
+        twigs: true,
+        fine,
+        lean: t.near.lean,
+      },
       sisterClusters,
       [],
     ),

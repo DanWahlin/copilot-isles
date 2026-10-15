@@ -2,8 +2,8 @@
   "$comment": "Written by tools/course/sync.mjs (PLAN §8.2). Section hashes are the first 12 hex digits of the SHA-256 of normalizeForCompare(markdown); images keep the full SHA-256. Do not edit by hand.",
   "repo": "github/copilot-app-for-beginners",
   "ref": "main",
-  "sha": "86bb298c6429905c16378eb720c642c74128d1d0",
-  "syncedAt": "2026-10-14",
+  "sha": "1ba934ec5e20ad8593d128514c547028f123dbe9",
+  "syncedAt": "2026-10-15",
   "catalog": [
     {
       "id": "00-setup",
@@ -50,7 +50,7 @@
     "00-setup": {
       "short": "ch00",
       "title": "Setup",
-      "hash": "5528dd890455",
+      "hash": "c9e3c3d72145",
       "sections": {
         "learning-objectives": {
           "title": "Learning Objectives",
@@ -61,8 +61,8 @@
         "prerequisites": {
           "title": "Prerequisites",
           "level": 2,
-          "hash": "8cf6b77a5305",
-          "terms": ["GitHub Copilot app", "Terminal"]
+          "hash": "814ec181ea99",
+          "terms": ["GitHub Copilot app", "LTS", "Terminal"]
         },
         "the-course-theme-working-in-a-recording-studio": {
           "title": "The Course Theme: Working in a Recording Studio",
@@ -95,7 +95,7 @@
         "check-your-tools-in-terminal": {
           "title": "Check Your Tools in Terminal",
           "level": 2,
-          "hash": "6ff94698a3b3",
+          "hash": "cf4e4b176d0b",
           "images": ["00-setup/assets/app-current-checkout-workspace-selector.webp"],
           "terms": [
             "Terminal",
@@ -104,6 +104,7 @@
             "Current checkout",
             "View",
             "Toggle Review Panel",
+            "LTS",
             "GitHub.com",
             "Login with a web browser"
           ]

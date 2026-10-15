@@ -399,20 +399,6 @@ function ribbon(len: number, width: number, dye: number, strength: number): Buff
   return g;
 }
 
-/** A pebble of foam or grit (a splash, a dust puff): a little glowing diamond. */
-function fleck(): BufferGeometry {
-  return flatShape(
-    [
-      [0, -0.14],
-      [0.14, 0],
-      [0, 0.14],
-      [-0.14, 0],
-    ],
-    0xf6efe2,
-    3.4,
-  );
-}
-
 /**
  * A stand-in for one of the island's rocks (unit size, base at 0, as tall as the rock asset) when
  * there are no rock batches to borrow: two basalt blocks with a mossy top, a few triangles.
@@ -494,6 +480,8 @@ const TROUGH_M = new Matrix4().compose(
 const PIERS_M = new Matrix4().makeTranslation(F.center.x, 0, F.center.z);
 /** A borrowed rock slot waits hidden on the terrace (scale 0, so it doesn't stretch its batch's bounds). */
 const STONE_HIDDEN = new Matrix4().makeScale(0, 0, 0).setPosition(F.center.x, F.rowY[1]!, F.center.z);
+/** Board A's rock tiles (row 2, columns 2 and 4). */
+const TILE_ROCKS = 2;
 
 function tileMatrix(row: number, col: number, rot: number, out: Matrix4, lift = 0): Matrix4 {
   Q.setFromAxisAngle(UPV, -rot * (Math.PI / 2));
@@ -514,62 +502,15 @@ const DRAIN_SPEED = 8;
 const FLOATS = 4;
 const FLOAT_LOOP = WATER_RUN + 1.2;
 
-// Round 3's boulder (spec §5.3): it rolls out of the jungle on the slope above, bounds over the
-// header box west of Feature's gate, lands short with a splash and hops into row 3, column 3.
-const BOULDER_ASSET = 2;
 function rockHeight(asset: number): number {
   const p = ROCK_ASSETS[asset]!.positions;
   let top = 0;
   for (let i = 1; i < p.length; i += 3) top = Math.max(top, p[i]!);
   return top;
 }
-const PEBBLE_ASSET = 1;
+/** The board's rock tiles: one of the island's mossy basalt rocks in each. */
 const TILE_ROCK_ASSET = 0;
-const boulderScale = (asset: number) => new Vector3(2.4, 1.8 / rockHeight(asset), 2.25);
-const BOULDER_C = 0.9;
 const TILE_ROCK_SCALE = new Vector3(2.2, 1.65 / rockHeight(TILE_ROCK_ASSET), 2.05);
-/** Its keys: rolling on the ground (A to B), the bound over the header (B to C), the hop home (C to D). */
-const BOULDER_KEYS = (() => {
-  const ground = (x: number, z: number) => thousandBoughHeight(x, z) + BOULDER_C;
-  const a = { x: 1993.4, z: -1642.6 };
-  const b = { x: 1997.6, z: -1634.6 };
-  const c = { x: F.cols[2]! - 0.9, z: F.rows[2]! - 1.3 };
-  const d = { x: F.cols[2]!, z: F.rows[2]! };
-  return {
-    a: { ...a, y: ground(a.x, a.z) },
-    b: { ...b, y: ground(b.x, b.z) },
-    c: { ...c, y: F.rowY[2]! + BOULDER_C - 0.05 },
-    d: { ...d, y: F.rowY[2]! + BOULDER_C - 0.12 },
-  };
-})();
-const BT = { roll: 0.55, land: 1.25, home: 1.6, still: 2.05 };
-const BOULDER_LEN = (() => {
-  const k = BOULDER_KEYS;
-  const h = (p: { x: number; z: number }, q: { x: number; z: number }) => Math.hypot(q.x - p.x, q.z - p.z);
-  return [h(k.a, k.b), h(k.b, k.c), h(k.c, k.d)];
-})();
-/** It rolls two whole turns, so it comes to rest the right way up. */
-const BOULDER_AXIS = new Vector3(
-  BOULDER_KEYS.d.z - BOULDER_KEYS.a.z,
-  0,
-  -(BOULDER_KEYS.d.x - BOULDER_KEYS.a.x),
-).normalize();
-const BOULDER_YAW = 0.7;
-/** The chips it knocks loose: where each comes to rest round it in the tile (angle, distance, size). */
-const PEBBLES = [
-  [0.7, 1.32, 0.46],
-  [2.3, 1.38, 0.34],
-  [3.7, 1.3, 0.52],
-  [5.2, 1.42, 0.3],
-] as const;
-const PEBBLE_FLIGHT = 0.5;
-/** The splash at each touchdown: flecks out and up, gone in `FLECK_LIFE`. */
-const SPLASH = [
-  { at: BT.land, n: 14, speed: 3.4, up: 3.8 },
-  { at: BT.home, n: 8, speed: 2.4, up: 2.4 },
-];
-const FLECK_LIFE = 0.75;
-const SPLASH_END = BT.home + FLECK_LIFE + 0.05;
 
 interface Run {
   flows: readonly Flow[];
@@ -607,7 +548,7 @@ export function createFlumeTerrace(
   // Rigid parts: wood (straight, elbow and a rock's bed per cell, the gates, the wheels, the demo
   // trough and its stacked boards), stone (the trough's piers; painted rocks if there are no rock
   // batches to borrow), glow (water per cell, kind and dye; the cursor and pulse frames; the demo's
-  // water, floats, spill and chutes; the boulder's splash).
+  // water, floats, spill and chutes).
   const wood: BufferGeometry[] = [];
   const stone: BufferGeometry[] = [];
   const glow: BufferGeometry[] = [];
@@ -642,14 +583,12 @@ export function createFlumeTerrace(
   }
   woodIndex.trough = take(troughWood, 'wood', wood);
   woodIndex.stacks = take(troughStacks, 'wood', wood);
-  const stoneIndex = { piers: take(troughPiers, 'stone', stone), rocks: [] as number[], boulder: -1 };
+  const stoneIndex = { piers: take(troughPiers, 'stone', stone), rocks: [] as number[] };
   // Stand-ins for the borrowed rocks: the island's rock shapes, painted.
-  for (let k = 0; k < 4; k++) {
+  for (let k = 0; k < TILE_ROCKS; k++) {
     stoneIndex.rocks.push(stone.length);
     stone.push(standInRock(TILE_ROCK_ASSET));
   }
-  stoneIndex.boulder = stone.length;
-  stone.push(standInRock(BOULDER_ASSET));
   const glowIndex: Record<Dye, { straight: number[]; elbow: number[] }> = {
     feature: { straight: [], elbow: [] },
     bugfix: { straight: [], elbow: [] },
@@ -753,21 +692,6 @@ export function createFlumeTerrace(
       w.crew as Crew,
     );
   }
-  // The boulder's splash: flecks of foam and grit.
-  const flecks: { part: number; splash: number; angle: number; speed: number; up: number }[] = [];
-  SPLASH.forEach((s, i) => {
-    for (let k = 0; k < s.n; k++) {
-      flecks.push({
-        part: glow.length,
-        splash: i,
-        angle: (k / s.n) * Math.PI * 2 + rand() * 0.5,
-        speed: s.speed * (0.7 + rand() * 0.5),
-        up: s.up * (0.7 + rand() * 0.5),
-      });
-      glow.push(fleck());
-    }
-  });
-
   const woodParts = mergeWithRigidParts([], wood);
   const stoneParts = mergeWithRigidParts([], stone);
   const glowParts = mergeWithRigidParts([], glow);
@@ -816,42 +740,31 @@ export function createFlumeTerrace(
   let drain = -1;
   let poured: (() => void) | null = null;
   let drained: (() => void) | null = null;
-  let boulder: { t: number; done: () => void } | null = null;
-  /** Seconds since the boulder set off, for its splash (−1: none). */
-  let splash = -1;
-  let round = 1;
   /** What water each cell shows: its dye index (−1 none) and since when. */
   const water = new Int8Array(ROWS * COLS).fill(-1);
 
-  // The flume's separate rock meshes and the last matrix written to each, so only moves upload.
+  // The flume's separate rock mesh (the board's rock tiles) and the last matrix written to each
+  // slot, so only moves upload.
   let stones: FlumeStones | null = null;
-  let stoneMeshes: InstancedMesh[] | null = null;
+  let stoneMesh: InstancedMesh | null = null;
   let stoneLast: Float32Array | null = null;
-  /** Which slots show a stone: a batch draws only up to its last one in use. */
+  /** Which slots show a stone: the mesh draws only up to its last one in use. */
   let stoneOn: Uint8Array | null = null;
-  const stoneDirty = [false, false, false];
-  /** Lite's boulder is the cheapest rock (and it knocks no chips loose). */
-  let boulderAsset = BOULDER_ASSET;
-  let boulderSize = boulderScale(BOULDER_ASSET);
-  const putStone = (asset: number, slot: number, m: Matrix4) => {
+  let stoneDirty = false;
+  const putStone = (slot: number, m: Matrix4) => {
     if (!stones) {
-      // The stand-ins: the tile rocks and the boulder (no chips).
-      const part =
-        asset === TILE_ROCK_ASSET
-          ? stoneIndex.rocks[slot]
-          : asset === BOULDER_ASSET && slot === 0
-            ? stoneIndex.boulder
-            : -1;
-      if (part !== undefined && part >= 0) stoneParts.set(part, m === STONE_HIDDEN ? ZERO : m);
+      // The painted stand-ins.
+      const part = stoneIndex.rocks[slot];
+      if (part !== undefined) stoneParts.set(part, m === STONE_HIDDEN ? ZERO : m);
       return;
     }
     const on = m === STONE_HIDDEN ? 0 : 1;
-    if (stoneOn![asset * stones.slots + slot] !== on) {
-      stoneOn![asset * stones.slots + slot] = on;
-      stoneDirty[asset] = true;
+    if (stoneOn![slot] !== on) {
+      stoneOn![slot] = on;
+      stoneDirty = true;
     }
     const last = stoneLast!;
-    const o = (asset * stones.slots + slot) * 16;
+    const o = slot * 16;
     const e = m.elements;
     let moved = false;
     for (let k = 0; k < 16; k++) {
@@ -862,55 +775,8 @@ export function createFlumeTerrace(
       }
     }
     if (!moved) return;
-    stoneMeshes![asset]!.setMatrixAt(slot, m);
-    stoneDirty[asset] = true;
-  };
-
-  /** The boulder's pose `t` seconds into its arrival (resting once it's still), into `out`. */
-  const boulderPose = (t: number, out: Matrix4) => {
-    const k = BOULDER_KEYS;
-    type Key = { x: number; y: number; z: number };
-    let from: Key = k.d;
-    let to: Key = k.d;
-    let s = 1;
-    let hop = 0;
-    let travelled = BOULDER_LEN[0]! + BOULDER_LEN[1]! + BOULDER_LEN[2]!;
-    if (t < BT.roll) {
-      // Gathering speed down the slope, on the ground.
-      s = (t / BT.roll) ** 1.6;
-      from = k.a;
-      to = k.b;
-      travelled = BOULDER_LEN[0]! * s;
-    } else if (t < BT.land) {
-      s = (t - BT.roll) / (BT.land - BT.roll);
-      from = k.b;
-      to = k.c;
-      hop = 3.3;
-      travelled = BOULDER_LEN[0]! + BOULDER_LEN[1]! * s;
-    } else if (t < BT.home) {
-      s = (t - BT.land) / (BT.home - BT.land);
-      from = k.c;
-      to = k.d;
-      hop = 0.45;
-      travelled = BOULDER_LEN[0]! + BOULDER_LEN[1]! + BOULDER_LEN[2]! * s;
-    }
-    const x = from.x + (to.x - from.x) * s;
-    const z = from.z + (to.z - from.z) * s;
-    let y = from.y + (to.y - from.y) * s + 4 * hop * s * (1 - s);
-    if (t < BT.roll) y = thousandBoughHeight(x, z) + BOULDER_C;
-    const total = BOULDER_LEN[0]! + BOULDER_LEN[1]! + BOULDER_LEN[2]!;
-    let angle = (travelled / total) * Math.PI * 4;
-    // A rock that's stopped rocks back and forth once or twice.
-    if (t > BT.home && t < BT.still) {
-      const u = (t - BT.home) / (BT.still - BT.home);
-      angle += Math.sin(u * Math.PI * 3) * 0.12 * (1 - u);
-    }
-    Q.setFromAxisAngle(BOULDER_AXIS, angle);
-    Q2.setFromAxisAngle(UPV, BOULDER_YAW);
-    Q.multiply(Q2);
-    out.compose(V.set(x, y, z), Q, boulderSize);
-    // The rock's origin is its base: turn it about its middle.
-    return out.multiply(TMP2.makeTranslation(0, -BOULDER_C / boulderSize.y, 0));
+    stoneMesh!.setMatrixAt(slot, m);
+    stoneDirty = true;
   };
 
   const placeRocks = () => {
@@ -919,40 +785,12 @@ export function createFlumeTerrace(
     for (let i = 0; i < ROWS * COLS; i++) {
       const r = Math.floor(i / COLS);
       const c = i % COLS;
-      if (board[i]!.kind !== 'rock' || covered || (round === 3 && r === 2 && c === 2) || slot >= 4) continue;
+      if (board[i]!.kind !== 'rock' || covered || slot >= TILE_ROCKS) continue;
       Q.setFromAxisAngle(UPV, 0.9 + i * 2.39);
       TMP.compose(V.set(F.cols[c]!, F.rowY[r]! - 0.08, F.rows[r]!), Q, TILE_ROCK_SCALE);
-      putStone(TILE_ROCK_ASSET, slot++, TMP);
+      putStone(slot++, TMP);
     }
-    for (; slot < 4; slot++) putStone(TILE_ROCK_ASSET, slot, STONE_HIDDEN);
-    const showBoulder = round === 3 && !covered;
-    putStone(boulderAsset, 0, showBoulder ? boulderPose(boulder ? boulder.t : BT.still, TMP) : STONE_HIDDEN);
-    if (stones?.cheap) return;
-    // The chips fly from where it first lands and settle round it.
-    const bt = boulder ? boulder.t : BT.still;
-    const k = BOULDER_KEYS;
-    for (let p = 0; p < PEBBLES.length; p++) {
-      const pebble = PEBBLES[p]!;
-      const a = pebble[0];
-      const dist = pebble[1];
-      const size = pebble[2];
-      if (!showBoulder || bt < BT.land) {
-        putStone(PEBBLE_ASSET, p, STONE_HIDDEN);
-        continue;
-      }
-      const u = Math.min(1, (bt - BT.land) / (PEBBLE_FLIGHT + p * 0.05));
-      const ex = k.d.x + Math.cos(a) * dist;
-      const ez = k.d.z + Math.sin(a) * dist;
-      const ey = F.rowY[2]! - 0.04;
-      const sy = F.rowY[2]! + 0.1;
-      V.set(k.c.x + (ex - k.c.x) * u, sy + (ey - sy) * u + 4 * 0.9 * u * (1 - u), k.c.z + (ez - k.c.z) * u);
-      Q.setFromAxisAngle(UPV, a * 3 + u * 5);
-      Q2.setFromAxisAngle(XV, (1 - u) * 6);
-      Q.multiply(Q2);
-      TMP.compose(V, Q, V2.set(size, size * 0.9, size));
-      putStone(PEBBLE_ASSET, p, TMP);
-    }
-    if (stones) for (let p = PEBBLES.length; p < stones.slots; p++) putStone(PEBBLE_ASSET, p, STONE_HIDDEN);
+    for (; slot < TILE_ROCKS; slot++) putStone(slot, STONE_HIDDEN);
   };
 
   const placeTiles = () => {
@@ -1103,39 +941,25 @@ export function createFlumeTerrace(
     group,
     colliders,
     useStones(s) {
-      // Hide the painted stand-ins; these meshes share the island's real rock assets.
+      // Hide the painted stand-ins; this mesh shares the island's real rock asset.
       for (const p of stoneIndex.rocks) stoneParts.set(p, ZERO);
-      stoneParts.set(stoneIndex.boulder, ZERO);
       stones = s;
-      stoneMeshes = s.geometries.map((geometry, asset) => {
-        const mesh = sharedInstancedMesh(geometry, s.material, s.slots, { count: 0 });
-        mesh.name = `thousand-bough-flume-rocks-${ROCK_ASSETS[asset]!.key}`;
-        mesh.castShadow = false;
-        mesh.receiveShadow = true;
-        mesh.visible = false;
-        mesh.computeBoundingSphere();
-        markInstancesChanged(mesh);
-        group.add(mesh);
-        return mesh;
-      });
-      stoneLast = new Float32Array(3 * s.slots * 16).fill(Number.NaN);
-      stoneOn = new Uint8Array(3 * s.slots);
-      if (s.cheap) {
-        boulderAsset = PEBBLE_ASSET;
-        boulderSize = boulderScale(PEBBLE_ASSET);
-      }
+      const mesh = sharedInstancedMesh(s.geometries[TILE_ROCK_ASSET]!, s.material, TILE_ROCKS, { count: 0 });
+      mesh.name = `thousand-bough-flume-rocks-${ROCK_ASSETS[TILE_ROCK_ASSET]!.key}`;
+      mesh.castShadow = false;
+      mesh.receiveShadow = true;
+      mesh.visible = false;
+      mesh.computeBoundingSphere();
+      markInstancesChanged(mesh);
+      group.add(mesh);
+      stoneMesh = mesh;
+      stoneLast = new Float32Array(TILE_ROCKS * 16).fill(Number.NaN);
+      stoneOn = new Uint8Array(TILE_ROCKS);
       placeRocks();
     },
-    async setRound(r) {
+    async setRound() {
+      // Every round plays on the same board; the trough's long gone by round 1.
       if (trough) clearTrough();
-      const was = round;
-      round = r;
-      if (r === 3 && was !== 3) {
-        splash = 0;
-        await new Promise<void>((done) => {
-          boulder = { t: 0, done };
-        });
-      }
       placeAll();
     },
     setBoard(b: ChannelRoutingState['board'], animate) {
@@ -1257,15 +1081,6 @@ export function createFlumeTerrace(
         }
         moved = true;
       }
-      if (boulder) {
-        boulder.t += dt;
-        moved = true;
-        if (boulder.t > BT.still) {
-          const b = boulder;
-          boulder = null;
-          b.done();
-        }
-      }
       if (moved) placeAll();
       for (const w of wheels) {
         w.speed += (w.target - w.speed) * Math.min(1, dt * 1.5);
@@ -1274,56 +1089,28 @@ export function createFlumeTerrace(
           placeWheel(w);
         }
       }
-      // The boulder's splash (it outlasts the boulder's own beat a little).
-      if (splash >= 0) {
-        splash += dt;
-        const over = splash > SPLASH_END;
-        for (const f of flecks) {
-          const s = SPLASH[f.splash]!;
-          const age = splash - s.at;
-          const at = f.splash === 0 ? BOULDER_KEYS.c : BOULDER_KEYS.d;
-          const y = F.rowY[2]! + 0.25 + f.up * age - 4.9 * age * age;
-          if (over || age < 0 || age > FLECK_LIFE || y < F.rowY[2]! + 0.03) {
-            glowParts.set(f.part, ZERO);
-            continue;
-          }
-          const r = f.speed * age;
-          const k = 1.6 * (1 - (age / FLECK_LIFE) ** 2);
-          Q.setFromAxisAngle(UPV, f.angle);
-          TMP.compose(
-            V.set(at.x + Math.cos(f.angle) * r, y, at.z + Math.sin(f.angle) * r),
-            Q,
-            V2.set(k, k, k),
-          );
-          glowParts.set(f.part, TMP);
-        }
-        if (over) splash = -1;
-      }
       woodParts.commit();
       stoneParts.commit();
       glowParts.commit();
-      if (stones && stoneMeshes)
-        for (let a = 0; a < 3; a++)
-          if (stoneDirty[a]) {
-            stoneDirty[a] = false;
-            const mesh = stoneMeshes[a]!;
-            let used = 0;
-            for (let k = 0; k < stones.slots; k++) if (stoneOn![a * stones.slots + k]) used = k + 1;
-            mesh.count = used;
-            mesh.visible = used > 0;
-            mesh.castShadow = used > 0 && stones.shadows;
-            if (used > 0) {
-              markInstancesChanged(mesh);
-              mesh.computeBoundingSphere();
-            }
-          }
+      if (stones && stoneMesh && stoneDirty) {
+        stoneDirty = false;
+        let used = 0;
+        for (let k = 0; k < TILE_ROCKS; k++) if (stoneOn![k]) used = k + 1;
+        stoneMesh.count = used;
+        stoneMesh.visible = used > 0;
+        stoneMesh.castShadow = used > 0 && stones.shadows;
+        if (used > 0) {
+          markInstancesChanged(stoneMesh);
+          stoneMesh.computeBoundingSphere();
+        }
+      }
     },
     dispose() {
-      for (const mesh of stoneMeshes ?? []) {
-        group.remove(mesh);
-        mesh.dispose();
+      if (stoneMesh) {
+        group.remove(stoneMesh);
+        stoneMesh.dispose();
       }
-      stoneMeshes = null;
+      stoneMesh = null;
       stones = null;
       woodParts.geometry.dispose();
       stoneParts.geometry.dispose();
@@ -1332,7 +1119,6 @@ export function createFlumeTerrace(
   };
   placeAll();
   for (const w of wheels) placeWheel(w);
-  for (const f of flecks) glowParts.set(f.part, ZERO);
   woodParts.commit();
   stoneParts.commit();
   glowParts.commit();
@@ -1520,10 +1306,11 @@ function buildStatics(b: Buckets, colliders: BoxCollider[], signs?: SignSet): vo
         4,
         PAINT.rope,
       );
+    // The crew's name as big as the board allows (it reads at Lite's render scale too).
     const board = signs?.add([look.icon, look.name], 2.7, 1.45, {
       fill: look.colour,
-      size: 0.24,
-      scales: [1.5, 1],
+      size: 0.42,
+      scales: [0.9, 1.7],
       colors: [undefined, '#fff6e2'],
       twoSided: true,
     });

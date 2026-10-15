@@ -24,7 +24,7 @@ import type { CoveScene } from '../world/cove-scene';
 import type { CreatedTerrain } from '../world/terrain/terrain-mesh';
 import { prewarmWaterDepthTexture } from '../world/ocean/water-depth-texture';
 import { world } from '../world/uniforms';
-import { buildChart, coveTravelPoints } from './chart';
+import { buildChart, coveTravelPoints, prewarmChart } from './chart';
 import type { GameSession } from './session';
 import { LearnStore } from '../learn/store';
 import type { OsId } from '../learn/setup';
@@ -32,6 +32,7 @@ import type { Opening } from '../opening/opening';
 import { ANCHORAGE_ARRIVAL, arrivalFlight } from './arrivals';
 import { compileProgressively, revealPrewarm, warmProgressively, warmTerrainLods } from '../engine/warm';
 import { skipSunShadowsWhereOff } from '../world/sky/cached-sun-shadow';
+import { createSky, type SkySystem } from '../world/sky/sky-system';
 import { releaseRemovedObjects } from '../util/dispose-three';
 import { buildSlice, installBuildSlicer } from '../engine/build-slice';
 import { savedBattles } from './battles';
@@ -217,6 +218,8 @@ export class GameFlow implements GameBridge {
       // Already in this chunk (the title's ocean imports it), so a plain import: a dynamic one can't split it.
       void prewarmWaterDepthTexture();
     }, 1500);
+    // The Chart's coastlines (~15 ms, the first time the Chart opened).
+    window.setTimeout(prewarmChart, 2500);
   }
 
   chooseCaptain(): void {
@@ -697,6 +700,7 @@ export class GameFlow implements GameBridge {
       this.set({ progress: { ...progressNow } });
     };
     let opening: Opening | null = null;
+    const early: { sky: SkySystem | null } = { sky: null };
     try {
       const progress = (start: number, end: number, message: string) => (p: PackProgress) => {
         report(start + (end - start) * p.ratio, message);
@@ -754,7 +758,12 @@ export class GameFlow implements GameBridge {
       this.resolutionHeld = true;
       // The island builds in short slices of each frame, so the cabin and the chart never stall.
       this.unslice ??= installBuildSlicer(BUILD_SLICE_MS);
-      await opening.play();
+      // The island's sky first, while the screen is still dark: its cloud noise bakes and its compute
+      // kernels each build in one step three can't split (60–110 ms on High), which stalled the cabin.
+      await opening.play(async () => {
+        early.sky = createSky(engine.renderer, engine.scene, engine.tier, engine.backend);
+        await early.sky.prefetch([]);
+      });
       // Back from Apply's reload: skip the cabin scene, straight to the chart and the dive.
       if (this.settingsOnLand) opening.skip();
       const [{ createCove }, { createSession, ISLANDS, islandAt }] = await islandCode;
@@ -767,6 +776,7 @@ export class GameFlow implements GameBridge {
       const [cove, characters] = await Promise.all([
         createCove(engine, {
           packBase: base,
+          sky: early.sky,
           onProgress: (p, m) => report(0.42 + p * 0.34, m),
           // A frame between build stages, so the cabin keeps moving while the island builds.
           breathe: buildSlice,
@@ -852,7 +862,15 @@ export class GameFlow implements GameBridge {
         );
         // The post chain's own quad first, in a frame of its own, then what only a real draw builds
         // (shadow passes, instanced meshes on the pass path), behind the cabin.
-        post?.warmOutput?.();
+        // With the world out of the camera's view, so its first draws wait for the batches below
+        // (drawn here at once, the terrain, the sea and the sky held this frame for ~55 ms).
+        const layers = engine.camera.layers.mask;
+        engine.camera.layers.set(30);
+        try {
+          post?.warmOutput?.();
+        } finally {
+          engine.camera.layers.mask = layers;
+        }
         engine.renderNow();
         await frame();
         opening.setDrawWorld(true);
@@ -860,7 +878,7 @@ export class GameFlow implements GameBridge {
         endShadowWarm = cove.sky.shadowWarm(engine.scene);
         await warmProgressively(engine.scene, frame, {
           targetMs: 12,
-          startBatch: 3,
+          startBatch: 1,
           frameCost: () => engine.cpuMs,
           solo: (o) => {
             const m = o as Object3D & { isInstancedMesh?: boolean; count?: number };
@@ -946,6 +964,7 @@ export class GameFlow implements GameBridge {
       console.error(err);
       this.unslice?.();
       this.unslice = null;
+      if (early.sky && this.cove?.sky !== early.sky) early.sky.dispose();
       opening?.dispose();
       this.opening = null;
       this.openingPrep = null;

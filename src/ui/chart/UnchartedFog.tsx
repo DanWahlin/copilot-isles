@@ -12,19 +12,28 @@ export interface UnchartedChapter {
  * on the Chart as an uncharted island in the fog, with a link to read the chapter in the course.
  */
 export function useUnchartedChapters(): UnchartedChapter[] {
-  const [list, setList] = useState<UnchartedChapter[]>([]);
+  const [list, setList] = useState<UnchartedChapter[]>(() => known ?? []);
   useEffect(() => {
+    if (known) return;
     let live = true;
-    const charted = new Set(ARCHIPELAGO.map((i) => chapterParts(i.chapter).num));
-    void import('../../learn/course/source')
-      .then((m) => m.loadCatalog())
-      .then((cat) => live && setList(cat.filter((c) => !charted.has(c.num))))
-      .catch(() => undefined);
+    void prefetchUnchartedChapters().then((l) => live && setList(l));
     return () => {
       live = false;
     };
   }, []);
   return list;
+}
+
+/** The chapters once loaded, so a later Chart opens with its fog already drawn (no second paint). */
+let known: UnchartedChapter[] | null = null;
+
+/** Loads the course's chapter list ahead (the title does, while idle). */
+export function prefetchUnchartedChapters(): Promise<UnchartedChapter[]> {
+  const charted = new Set(ARCHIPELAGO.map((i) => chapterParts(i.chapter).num));
+  return import('../../learn/course/source')
+    .then((m) => m.loadCatalog())
+    .then((cat) => (known = cat.filter((c) => !charted.has(c.num))))
+    .catch(() => []);
 }
 
 /** Drawn in the chart's empty north-east corner, clear of the voyage route. */

@@ -110,6 +110,7 @@ describe('createMeridianTown', () => {
       'outfitter',
       'crateYard',
       'recordsPortico',
+      'recordsAlcoves',
       'liftBottom',
       'liftTop',
       'lighthouse',
@@ -318,8 +319,11 @@ describe('createMeridianTown', () => {
   it('puts you on top of the Hall of Records podium, a step up from the citadel floor', () => {
     const kit = testKit();
     const town = createMeridianTown({ tier: tierSettings('low'), heightField, kit });
-    const pell = town.anchors.pell!;
-    // From Pell, in front of the portico, walking in between the columns and on toward the doors.
+    // From the citadel floor in front of the portico steps, walking in between the columns and on
+    // toward the doors (Pell stands at the top of the steps, by his desk: P1.3).
+    const pell = { x: 809.4, z: -785.3 };
+    expect(town.anchors.pell!.y).toBeCloseTo(40.6, 2);
+    expect(town.walkable(town.anchors.pell!.x, town.anchors.pell!.z)).toBeCloseTo(40.6, 2);
     let last = town.walkable(pell.x, pell.z)!;
     expect(last).toBeCloseTo(40, 2);
     for (let z = pell.z; z <= pell.z + 4.2; z += 0.25) {

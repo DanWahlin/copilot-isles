@@ -102,7 +102,7 @@ export function createPaintSails(
     hintKey: () => (hinted ? 'lit' : '-'),
     hint(tier: HintTier) {
       if (!active()) return null;
-      if (tier === 1) return 'The palette stand’s by Nell’s door. Any theme will do, it’s your ship.';
+      if (tier === 1) return 'The palette stand’s by Nell’s door. Any colours will do, it’s your ship.';
       if (tier === 2) {
         setHint(true);
         return 'See the sparkle by Nell’s door? Pick a palette there, then select Finish.';

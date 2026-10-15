@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // End-to-end quest run on the play page, in Chapter 00's order: Nell (prerequisites chest, spyglass
 // views, pages), the palette stand (Paint Your Sails), Ezra's fork, Bo's session and tool checks at
-// his gear rack, Pim and Pol's Dry-Run Crane (P0.2), Suri's optional sluice (P0.1), Juno's First
+// his gear rack, Pim and Pol's Dry-Run Crane (P0.2) with Suri's gate lever first (P0.1, Actions),
+// Suri's optional mill race (P0.1's channels: the practice checks), Juno's First
 // Words (Q0.8), the message bottles, Lyra's soundcheck (Q0.9), then Nell at the bow: the
 // Harbormaster's Trial and the christening. Answered through the real UI where it matters (hotspots
 // are clicked; other types use __dev.answer()), with screenshots at each beat.
@@ -279,7 +280,9 @@ if (gs) {
 } else logs.push('[questtest] no gear rack hook');
 
 // Pim & Pol: the Dry-Run Crane (P0.2). Every capstan turn and lever pull goes through E. Ezra's
-// register was skipped, so Pim asks for the fork: this time the run types one in.
+// register was skipped, so Pim asks for the fork: this time the run types one in. Their brief sends
+// you to Suri's gate lever first (Q0.7 `actions`); the run tries the crane anyway, so your fork's
+// dry run warns that Actions is off and --yes fails, then pulls the lever and comes back.
 if (forkAnswers.length !== 1 || forkAnswers[0].saved)
   logs.push(
     `[questtest] fork: Ezra's register should have asked once and been skipped (${JSON.stringify(forkAnswers)})`,
@@ -287,7 +290,16 @@ if (forkAnswers.length !== 1 || forkAnswers[0].saved)
 forkPlan = 'https://github.com/dan-sample/copilot-app-for-beginners.git';
 const FORK = 'dan-sample/copilot-app-for-beginners';
 await talk('pim');
-results.pim = await drive('pim', (s) => s.quests['Q0.7'] === 'crane' && !s.dialogue && !s.quiz && !s.reveal);
+results.pim = await drive(
+  'pim',
+  (s) => s.quests['Q0.7'] === 'actions' && !s.dialogue && !s.quiz && !s.reveal,
+);
+{
+  await page.waitForTimeout(600);
+  const label = await page.evaluate(() => document.querySelector('.hud-compass-label')?.textContent ?? '');
+  if (!label.includes('Suri’s gate lever'))
+    logs.push(`[questtest] crane: after the brief the compass reads ${JSON.stringify(label)}`);
+}
 {
   const f = forkAnswers.at(-1);
   if (forkAnswers.length !== 2 || f?.from !== 'crane' || `${f.saved?.owner}/${f.saved?.repo}` !== FORK)
@@ -400,7 +412,7 @@ if (cs) {
   if ((await crane())?.facing !== cs.yours) logs.push('[questtest] crane: capstan never reached your berth');
   await shot('crane-aimed');
 
-  // Preview, then --yes for real.
+  // Preview your fork with workflows still off: the script's Actions warning.
   await stand(cs.dry, -0.35);
   await tap('KeyE');
   await idle();
@@ -411,6 +423,51 @@ if (cs) {
       logs.push(
         `[questtest] crane: the terminal doesn't show your fork (${JSON.stringify(term.slice(0, 200))})`,
       );
+    const warn = `[dry-run] GitHub Actions is not active. Enable workflows at https://github.com/${FORK}/actions before running with --yes.`;
+    if (!term.includes(warn))
+      logs.push(
+        `[questtest] crane: no Actions warning in the dry run (${JSON.stringify(term.slice(0, 400))})`,
+      );
+  }
+  // --yes with workflows off: the script's "Setup failed", and Pol sends you to the gate lever.
+  await stand(cs.yes);
+  await tap('KeyE');
+  await page.waitForTimeout(800);
+  await shot('crane-actions-off');
+  {
+    const term = await page.evaluate(() => document.querySelector('.hud-term')?.textContent ?? '');
+    if (!term.includes('Setup failed: The Book app web workflow is not active.'))
+      logs.push(`[questtest] crane: --yes with Actions off read ${JSON.stringify(term.slice(0, 400))}`);
+  }
+  await drive('crane-actions-off', (s) => !s.dialogue);
+  await idle();
+  if ((await crane())?.complete) logs.push('[questtest] crane: --yes completed with workflows off');
+
+  // Actions first: Suri's gate lever (through E), then back to the crane.
+  const ms = await page.evaluate(() => window.__dev.session().debug.puzzle('P0.1')?.spots() ?? null);
+  if (ms) {
+    await page.evaluate(({ lever }) => {
+      window.__dev.session().debug.teleport(lever.x + 1.1, lever.z, -Math.PI / 2);
+      window.__dev.look(-Math.PI / 2 + 0.5, 0.3);
+    }, ms);
+    await page.waitForTimeout(900);
+    if ((await focus()) !== 'mill:lever')
+      logs.push(`[questtest] mill: focus at the lever was ${await focus()}`);
+    await shot('mill-lever');
+    await tap('KeyE');
+    await page.waitForTimeout(1200);
+    const gate = await page.evaluate(() => window.__dev.session().debug.puzzle('P0.1').state().gate);
+    if (!gate) logs.push('[questtest] mill: E at the lever did not open the gate');
+    results.lever = await drive('lever', (s) => s.quests['Q0.7'] === 'crane' && !s.dialogue);
+  } else logs.push('[questtest] no P0.1 debug hook');
+
+  // Back at the crane: the preview still stands, and --yes runs now.
+  await stand(cs.dry, -0.35);
+  await page.waitForTimeout(500);
+  {
+    const term = await page.evaluate(() => document.querySelector('.hud-term')?.textContent ?? '');
+    if (term.includes('GitHub Actions is not active'))
+      logs.push('[questtest] crane: the Actions warning stayed after the lever');
   }
   await stand(cs.yes);
   await tap('KeyE');
@@ -423,8 +480,8 @@ if (cs) {
   await shot('crane-solved');
 } else logs.push('[questtest] no P0.2 debug hook');
 
-// Suri: Open the Sluice (P0.1, optional once the crane's done). The lever and one tile turn go
-// through E like a player would.
+// Suri: the Mill Race (P0.1's channels, optional once the crane's done). Her gate's already up; one
+// tile turn (E) and one back (Shift+E) go through the keys like a player's would.
 await talk('suri');
 results.suri = await drive(
   'suri',
@@ -433,16 +490,7 @@ results.suri = await drive(
 const sluice = () => page.evaluate(() => window.__dev.session().debug.puzzle('P0.1')?.state() ?? null);
 const spots = await page.evaluate(() => window.__dev.session().debug.puzzle('P0.1')?.spots() ?? null);
 if (spots) {
-  await page.evaluate(({ lever }) => {
-    window.__dev.session().debug.teleport(lever.x + 1.1, lever.z, -Math.PI / 2);
-    window.__dev.look(-Math.PI / 2 + 0.5, 0.3);
-  }, spots);
-  await page.waitForTimeout(900);
-  await shot('mill-lever');
-  await tap('KeyE');
-  await page.waitForTimeout(1200);
-  if (!(await sluice())?.gate) logs.push('[questtest] mill: E at the lever did not open the gate');
-
+  if (!(await sluice())?.gate) logs.push('[questtest] mill: the gate is down at the mill race');
   const cell = spots.cells.findIndex((c) => c.turns);
   const before = (await sluice())?.rots[cell];
   await page.evaluate((c) => {
@@ -453,8 +501,13 @@ if (spots) {
   await tap('KeyE');
   await page.waitForTimeout(900);
   const after = (await sluice())?.rots[cell];
-  if (after === before) logs.push(`[questtest] mill: E on tile ${cell} did not turn it`);
+  if (after !== (before + 1) % 4)
+    logs.push(`[questtest] mill: E on tile ${cell} turned it ${before} → ${after}`);
   await shot('mill-turned');
+  await page.evaluate(() => window.__dev.hold(['ShiftLeft', 'KeyE'], 120));
+  await page.waitForTimeout(900);
+  const back = (await sluice())?.rots[cell];
+  if (back !== before) logs.push(`[questtest] mill: Shift+E on tile ${cell} turned it ${after} → ${back}`);
 
   await page.evaluate(() => window.__dev.session().debug.puzzle('P0.1').solve());
   results.sluice = await drive('sluice', (s) => s.quests['Q0.6'] === 'done' && !s.dialogue && !s.reveal);

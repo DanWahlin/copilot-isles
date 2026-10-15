@@ -247,6 +247,13 @@ describe('Meridian puzzle sites', () => {
     expect(positions(named(yard.group, 'crate yard lettering')[0]!)).not.toEqual(letters);
     expect(bodies.instanceMatrix.array.slice(0, 16)).not.toEqual(matrices.slice(0, 16));
     expect(bodies.instanceMatrix.array.slice(16, 32)).toEqual(matrices.slice(16, 32));
+    // Seen from the far side, the top stencils turn to face you (the crates stay put).
+    const lettersBefore = positions(named(yard.group, 'crate yard lettering')[0]!).slice();
+    const c = yard.cellCenter(2, 2);
+    yard.faceLabels(c.x - Math.sin(0.3) * 20, c.z - Math.cos(0.3) * 20);
+    yard.update(0.016, 0.032);
+    expect(positions(named(yard.group, 'crate yard lettering')[0]!)).not.toEqual(lettersBefore);
+    expect(bodies.instanceMatrix.array.slice(16, 32)).toEqual(matrices.slice(16, 32));
   });
 
   test('the helm buoys draw their floats as one instanced mesh that rides the waves', () => {
@@ -254,8 +261,18 @@ describe('Meridian puzzle sites', () => {
     const floats = named(helms.group, 'helm buoy floats') as InstancedMesh[];
     expect(floats).toHaveLength(1);
     expect(floats[0]!.isInstancedMesh).toBe(true);
-    expect(floats[0]!.count).toBe(3);
+    // The three orders' buoys and the Shoal's float.
+    expect(floats[0]!.count).toBe(4);
     expect(named(helms.group, 'helm name boards')).toHaveLength(1);
+    // Plan's routes as dashed lines: the first chart, then the fixed one, never both.
+    const lines = named(helms.group, 'helm route line');
+    expect(lines).toHaveLength(2);
+    helms.showRoute('draft');
+    expect(lines.filter((l) => l.visible)).toHaveLength(1);
+    helms.showRoute('plan');
+    expect(lines.filter((l) => l.visible)).toHaveLength(1);
+    helms.showRoute(null);
+    expect(lines.filter((l) => l.visible)).toHaveLength(0);
     helms.update(0.016, 0);
     const before = floats[0]!.instanceMatrix.array.slice(0, 48);
     helms.update(0.016, 1);

@@ -3,13 +3,22 @@ import type { ThousandBoughSystem } from '../../../world/islands/thousand-bough/
 import { THOUSAND_BOUGH } from '../../../world/islands/thousand-bough/layout';
 import type { SliceName } from '../../../audio/soundscape/bank';
 import type { CameraShot } from '../../follow-camera';
+import { PadEdges, standardPad } from '../pad-edges';
 import type { HintTier, Puzzle, PuzzleHost } from '../types';
 import type { ScriptStep } from '../../script';
-import { COLS, CREW_LOOK, ROWS } from './boards';
+import { COLS, CREW_LOOK, CREWS, ROWS } from './boards';
 import { tileLabel } from './logic';
-import { ChannelRoutingModel, END_LINE, TWIST_CHOICES, type RunResult, type TwistChoice } from './model';
+import {
+  ChannelRoutingModel,
+  END_LINE,
+  TWIST_CHOICES,
+  type RunResult,
+  type TwistChoice,
+  type WorkspaceRun,
+} from './model';
 import type { Crew } from './types';
 import { createViewStore, type ChannelRoutingStore, type ChannelRoutingView } from './view';
+import { BEST_LINE, CREW_ORDERS, WORKSPACES, workspaceName, type Workspace } from './workspaces';
 
 /** What Channel Routing needs beyond the usual puzzle host: the camera, voices and the screen. */
 export interface ChannelRoutingHost extends PuzzleHost {
@@ -53,10 +62,27 @@ const NEW_WAY = {
 };
 
 const crewName = (c: Crew) => CREW_LOOK[c].name;
+const PICK_HELP =
+  'Pick where each crew works: New worktree, Current checkout or Cloud. Use the arrow keys or 1 to 3, then open the gates.';
 /** “Feature’s”, “Docs’”. */
 const whose = (c: Crew) => (crewName(c).endsWith('s') ? `${crewName(c)}’` : `${crewName(c)}’s`);
 const where = (at: readonly [number, number] | null) =>
   at ? ` at row ${at[0] + 1}, column ${at[1] + 1}` : '';
+
+/** Round 3's result per crew, in words (never colour alone). */
+export function workspaceVerdicts(run: WorkspaceRun): Record<Crew, { right: boolean; text: string }> {
+  const out = {} as Record<Crew, { right: boolean; text: string }>;
+  for (const crew of CREWS) {
+    const v = run.verdicts[crew];
+    out[crew] = {
+      right: v.right,
+      text:
+        (v.right ? CREW_ORDERS[crew].right?.[v.pick] : undefined) ??
+        `${workspaceName(v.pick)} ${v.right ? 'fits' : 'doesn’t fit'} this order.`,
+    };
+  }
+  return out;
+}
 
 /** The result in words, for the message box and screen readers (never colour alone). */
 export function describeRun(run: RunResult, round: 1 | 2 | 3): string {
@@ -119,6 +145,9 @@ export function createChannelRouting(
     announce: '',
     card: null,
     hits: null,
+    picks: model.picks,
+    crewFocus: 0,
+    verdicts: null,
   });
   const sync = (patch: Partial<ChannelRoutingView> = {}) => {
     const s = model.state;
@@ -129,9 +158,10 @@ export function createChannelRouting(
       live: s.live,
       cursor: s.cursor,
       flows: s.flows,
+      picks: model.picks,
       ...patch,
     });
-    sys.flume.setCursor(view.get().open ? s.cursor : null);
+    sys.flume.setCursor(view.get().open && s.round !== 3 ? s.cursor : null);
   };
 
   const anchors = sys.anchors;
@@ -162,10 +192,13 @@ export function createChannelRouting(
   /** Opens the board at the Gate Board (E there, or straight after Fen's welcome). */
   async function open(): Promise<void> {
     if (view.get().open || !playing()) return;
+    // The A that opened the board is still down: it mustn't also turn a tile or move a crew.
+    pad.edges.arm();
     host.setModal(true);
     await mount();
     if (step() === 'twist') {
-      view.set({ open: true });
+      // The Spire's question shows while Fen sets it up (never the board behind it).
+      view.set({ open: true, busy: true, twist: { question: TWIST_QUESTION, choices: [] } });
       await twist();
       return;
     }
@@ -176,7 +209,11 @@ export function createChannelRouting(
       open: true,
       card: null,
       message: null,
-      announce: `Round ${model.state.round} of 3. ${liveCrews()} Use the arrow keys to pick a tile and E to turn it.`,
+      verdicts: null,
+      announce:
+        model.state.round === 3
+          ? `Round 3 of 3. ${PICK_HELP}`
+          : `Round ${model.state.round} of 3. ${liveCrews()} Use the arrow keys to pick a tile and E to turn it.`,
     });
     host.label?.('puzzle:P2.1');
   }
@@ -215,6 +252,7 @@ export function createChannelRouting(
   async function runGates(): Promise<void> {
     const s = view.get();
     if (!s.open || s.busy || s.twist || model.state.phase !== 'routing') return;
+    if (model.state.round === 3) return runWorkspaces();
     const run = model.run();
     sfx('gate_lift', 0.7);
     sync({ busy: true, pulse: null, message: { text: 'The gates are open…', tone: 'info' }, announce: '' });
@@ -239,6 +277,53 @@ export function createChannelRouting(
     sync({ busy: false });
   }
 
+  /** Round 3: each crew's water goes where its workspace sends it, then Fen says why. */
+  async function runWorkspaces(): Promise<void> {
+    if (!model.picked) {
+      const text = 'Pick a place for every crew first.';
+      sync({ message: { text, tone: 'info' }, announce: text });
+      return;
+    }
+    const run = model.runWorkspaces();
+    if (!run) return;
+    sfx('gate_lift', 0.7);
+    sync({
+      busy: true,
+      pulse: null,
+      verdicts: null,
+      message: { text: 'The gates are open…', tone: 'info' },
+      announce: '',
+    });
+    if (CREWS.some((c) => run.verdicts[c].pick === 'cloud')) {
+      // The cloud crew's work rides the gondola, off your deck.
+      sfx('gondola_bell', 0.6);
+      void sys.fx.gondolaSend();
+    }
+    const longest = Math.max(0, ...run.flows.map((f) => f.cells.length));
+    await Promise.all([sys.flume.runFlows(run.flows), wait(longest * 220 + 500)]);
+    if (!view.get().open) return;
+    const verdicts = workspaceVerdicts(run);
+    if (run.solved) {
+      const text = 'Every crew works where its order fits.';
+      sfx('chime_solve', 0.9);
+      sync({ message: { text, tone: 'good' }, verdicts, announce: text });
+      await solvedRound();
+      return;
+    }
+    const p = run.problem!;
+    const text = CREW_ORDERS[p.crew].why[p.pick] ?? `${crewName(p.crew)} isn’t in the best place.`;
+    sync({
+      message: { text, crew: p.crew, tone: 'bad' },
+      verdicts,
+      announce: `${CREWS.map((c) => `${crewName(c)}: ${verdicts[c].text}`).join(' ')} ${text}`,
+    });
+    await host.say([BEST_LINE[p.best]]);
+    if (!view.get().open) return;
+    model.drain();
+    sys.flume.resetWater();
+    sync({ busy: false });
+  }
+
   async function solvedRound(): Promise<void> {
     const round = model.state.round;
     if (round === 1) {
@@ -252,17 +337,18 @@ export function createChannelRouting(
     }
     if (round === 2) {
       await host.say(['tb.fen.round2']);
-      sfx('rock_tumble', 0.9);
       model.startRound(3);
       host.setQuest(SAVE, 'r3');
       await sys.flume.setRound(3);
-      sys.flume.setBoard(model.state.board, false);
+      sys.flume.setBoard(model.state.board, !host.reducedMotion());
       sys.flume.resetWater();
       sync({
-        message: { text: 'A boulder’s fallen into the middle of the board. New tiles!', tone: 'info' },
-        announce: 'Round 3 of 3. A boulder blocks row 3, column 3. Every gate is open.',
+        message: { text: 'Every crew has its own channel. Now pick where each one works.', tone: 'info' },
+        crewFocus: 0,
+        verdicts: null,
+        announce: `Round 3 of 3. ${PICK_HELP}`,
       });
-      await host.say(['tb.fen.rain']);
+      await host.say(['tb.fen.r3.intro']);
       sync({ busy: false });
       return;
     }
@@ -328,14 +414,26 @@ export function createChannelRouting(
     if (!view.get().open) return null;
     if (view.get().twist) return 'Their channels are fine. What else do two previews share?';
     const round = model.state.round;
+    if (round === 3) {
+      const crew = model.wrongCrew();
+      if (!crew) return 'Every crew’s in the right place, Captain. Open the gates!';
+      const order = CREW_ORDERS[crew];
+      const i = CREWS.indexOf(crew);
+      if (tier === 1) return 'Read each crew’s order. Own channel, a quick look, or off your deck?';
+      if (tier === 2) {
+        sync({ crewFocus: i });
+        return `Look at ${whose(crew)} order again: “${order.order}”`;
+      }
+      model.pick(crew, order.best);
+      sync({ crewFocus: i, verdicts: null, message: null });
+      return `I put ${crewName(crew)} on ${workspaceName(order.best)} for you.`;
+    }
     if (tier === 1)
-      return round === 3
-        ? 'Bug Fix can’t go through the boulder. Which side leaves Docs a way down?'
-        : mixedSeen
-          ? 'Follow each colour down from its gate. Where do two meet?'
-          : 'Follow the water down from the gate. Where does it go wrong?';
+      return mixedSeen
+        ? 'Follow each colour down from its gate. Where do two meet?'
+        : 'Follow the water down from the gate. Where does it go wrong?';
     if (tier === 2) {
-      const cell = round === 3 && model.state.board[1]![2]!.rot !== 3 ? ([1, 2] as const) : model.wrongTile();
+      const cell = model.wrongTile();
       if (!cell) return 'Every tile’s right, Captain. Open the gates!';
       pulseUntil = performance.now() + 6000;
       sync({ pulse: cell, cursor: cell });
@@ -370,6 +468,11 @@ export function createChannelRouting(
       },
       reset: () => {
         if (view.get().busy) return;
+        if (model.state.round === 3) {
+          model.reset();
+          sync({ verdicts: null, message: null, announce: 'Every crew’s place is cleared.' });
+          return;
+        }
         model.reset();
         sys.flume.setBoard(model.state.board, !host.reducedMotion());
         sync({ pulse: null, message: null, announce: 'The board’s back to the start of the round.' });
@@ -384,6 +487,20 @@ export function createChannelRouting(
       },
       leave: close,
       choose: (id) => void choose(id),
+      pick: (crew, w) => {
+        if (view.get().busy || !model.pick(crew, w)) return;
+        sfx('lever', 0.3);
+        sync({
+          crewFocus: CREWS.indexOf(crew),
+          verdicts: null,
+          message: null,
+          announce: `${crewName(crew)}: ${workspaceName(w)}.`,
+        });
+      },
+      focusCrew: (d, to) => {
+        const i = to ?? (view.get().crewFocus + d + CREWS.length) % CREWS.length;
+        view.set({ crewFocus: Math.max(0, Math.min(CREWS.length - 1, i)) });
+      },
     },
   };
 
@@ -401,21 +518,29 @@ export function createChannelRouting(
 
   // Gamepad (spec §5.5): d-pad or left stick moves, A/RB turn, LB turns back, X opens the gates,
   // Y hints, B leaves, View resets, d-pad down held undoes.
-  const pad = { held: new Map<number, boolean>(), stickAt: 0, downFor: 0 };
-  const padEdge = (p: Gamepad, i: number) => {
-    const d = !!p.buttons[i]?.pressed;
-    const was = pad.held.get(i) ?? false;
-    pad.held.set(i, d);
-    return d && !was;
-  };
+  const pad = { edges: new PadEdges(), stickAt: 0, downFor: 0 };
+  const padEdge = (p: Gamepad, i: number) => pad.edges.edge(p, i);
   function pollPad(dt: number): void {
-    const p = navigator.getGamepads?.().find((g) => g && g.connected && g.mapping === 'standard');
-    if (!p) return;
+    const p = standardPad();
+    if (!p || !pad.edges.look(p)) return;
     const s = view.get();
     const a = store.actions;
     if (padEdge(p, 1) || padEdge(p, 9)) return a.leave();
     if (s.twist) {
       // Up/down picks, A answers.
+      return;
+    }
+    if (model.state.round === 3) {
+      // Up/down picks the crew; left/right or A changes its place; X opens the gates; Y hints.
+      if (padEdge(p, 12)) a.focusCrew(-1);
+      if (padEdge(p, 13)) a.focusCrew(1);
+      const crew = CREWS[s.crewFocus]!;
+      const at = WORKSPACES.findIndex((w) => w.id === s.picks[crew]);
+      const step = padEdge(p, 15) || padEdge(p, 0) ? 1 : padEdge(p, 14) ? -1 : 0;
+      if (step) a.pick(crew, WORKSPACES[at < 0 ? (step > 0 ? 0 : 2) : (at + step + 3) % 3]!.id);
+      if (padEdge(p, 2)) a.openGates();
+      if (padEdge(p, 3)) a.hint();
+      if (padEdge(p, 8)) a.reset();
       return;
     }
     if (padEdge(p, 12)) a.move(-1, 0);
@@ -503,7 +628,7 @@ export function createChannelRouting(
         pulseUntil = 0;
         if (!view.get().busy) view.set({ pulse: null });
       }
-      if (!view.get().twist && !view.get().busy && (lastHits += dt) > 0.4) {
+      if (!view.get().twist && !view.get().busy && model.state.round !== 3 && (lastHits += dt) > 0.4) {
         lastHits = 0;
         refreshHits();
       }
@@ -522,6 +647,8 @@ export function createChannelRouting(
       run: () => runGates(),
       choose: (id: string) => choose(id),
       wrong: () => model.wrongTile(),
+      pick: (crew: Crew, w: Workspace) => store.actions.pick(crew, w),
+      best: () => CREWS.map((c) => CREW_ORDERS[c].best),
     },
     dispose() {
       host.interactions.remove('flume:board');

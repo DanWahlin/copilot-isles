@@ -1,0 +1,32 @@
+{
+  "id": "mer.pell.letter.ok",
+  "speaker": "Pell",
+  "text": "Filed! On to the next.",
+  "words": [
+    {
+      "word": "Filed",
+      "start": 0.048083,
+      "end": 1.526458
+    },
+    {
+      "word": "On",
+      "start": 1.526458,
+      "end": 1.694708
+    },
+    {
+      "word": "to",
+      "start": 1.694708,
+      "end": 1.814916
+    },
+    {
+      "word": "the",
+      "start": 1.814916,
+      "end": 1.935083
+    },
+    {
+      "word": "next",
+      "start": 1.935083,
+      "end": 2.185083
+    }
+  ]
+}

@@ -1,112 +1,122 @@
 {
   "id": "suri.brief.05",
   "speaker": "Suri",
-  "text": "Here the gate’s your Actions tab. Pull the lever, then turn the channels with E until the spring reaches my wheel.",
+  "text": "Turn the channels with E, or Shift+E to turn back, until the water reaches both outlets: my wheel and the check gate.",
   "words": [
     {
-      "word": "Here",
+      "word": "Turn",
       "start": 0.07,
+      "end": 0.27
+    },
+    {
+      "word": "the",
+      "start": 0.27,
       "end": 0.39
     },
     {
-      "word": "the",
-      "start": 0.39,
-      "end": 0.55
-    },
-    {
-      "word": "gate’s",
-      "start": 0.55,
-      "end": 0.99
-    },
-    {
-      "word": "your",
-      "start": 0.99,
-      "end": 1.15
-    },
-    {
-      "word": "Actions",
-      "start": 1.15,
-      "end": 1.47
-    },
-    {
-      "word": "tab",
-      "start": 1.47,
-      "end": 2.15
-    },
-    {
-      "word": "Pull",
-      "start": 2.15,
-      "end": 2.389
-    },
-    {
-      "word": "the",
-      "start": 2.389,
-      "end": 2.51
-    },
-    {
-      "word": "lever",
-      "start": 2.51,
-      "end": 3.07
-    },
-    {
-      "word": "then",
-      "start": 3.07,
-      "end": 3.309
-    },
-    {
-      "word": "turn",
-      "start": 3.309,
-      "end": 3.55
-    },
-    {
-      "word": "the",
-      "start": 3.55,
-      "end": 3.67
-    },
-    {
       "word": "channels",
-      "start": 3.67,
-      "end": 4.07
+      "start": 0.39,
+      "end": 0.79
     },
     {
       "word": "with",
-      "start": 4.07,
-      "end": 4.31
+      "start": 0.79,
+      "end": 1.03
     },
     {
       "word": "E",
-      "start": 4.31,
-      "end": 4.67
+      "start": 1.03,
+      "end": 1.59
+    },
+    {
+      "word": "or",
+      "start": 1.59,
+      "end": 1.83
+    },
+    {
+      "word": "shift",
+      "start": 1.83,
+      "end": 2.19
+    },
+    {
+      "word": "E",
+      "start": 2.19,
+      "end": 2.469
+    },
+    {
+      "word": "to",
+      "start": 2.469,
+      "end": 2.63
+    },
+    {
+      "word": "turn",
+      "start": 2.63,
+      "end": 2.909
+    },
+    {
+      "word": "back",
+      "start": 2.909,
+      "end": 3.55
     },
     {
       "word": "until",
-      "start": 4.67,
-      "end": 4.95
+      "start": 3.55,
+      "end": 3.789
     },
     {
       "word": "the",
-      "start": 4.95,
-      "end": 5.07
+      "start": 3.789,
+      "end": 3.909
     },
     {
-      "word": "spring",
-      "start": 5.07,
-      "end": 5.39
+      "word": "water",
+      "start": 3.909,
+      "end": 4.27
     },
     {
       "word": "reaches",
-      "start": 5.39,
-      "end": 5.75
+      "start": 4.27,
+      "end": 4.67
+    },
+    {
+      "word": "both",
+      "start": 4.67,
+      "end": 4.99
+    },
+    {
+      "word": "outlets",
+      "start": 4.99,
+      "end": 5.87
     },
     {
       "word": "my",
-      "start": 5.75,
-      "end": 5.91
+      "start": 5.87,
+      "end": 6.15
     },
     {
       "word": "wheel",
-      "start": 5.91,
-      "end": 6.16
+      "start": 6.15,
+      "end": 6.59
+    },
+    {
+      "word": "and",
+      "start": 6.59,
+      "end": 6.79
+    },
+    {
+      "word": "the",
+      "start": 6.79,
+      "end": 6.91
+    },
+    {
+      "word": "check",
+      "start": 6.91,
+      "end": 7.19
+    },
+    {
+      "word": "gate",
+      "start": 7.19,
+      "end": 7.44
     }
   ]
 }

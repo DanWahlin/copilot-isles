@@ -1,0 +1,117 @@
+{
+  "id": "tb.fen.app",
+  "speaker": "Fen",
+  "text": "In the app you don't dig channels. Pick New worktree in the workspace selector, and the app makes the folder and branch.",
+  "words": [
+    {
+      "word": "In",
+      "start": 0,
+      "end": 0.12
+    },
+    {
+      "word": "the",
+      "start": 0.12,
+      "end": 0.32
+    },
+    {
+      "word": "app",
+      "start": 0.32,
+      "end": 0.62
+    },
+    {
+      "word": "you",
+      "start": 0.62,
+      "end": 0.86
+    },
+    {
+      "word": "don't",
+      "start": 0.86,
+      "end": 1.18
+    },
+    {
+      "word": "dig",
+      "start": 1.18,
+      "end": 1.422
+    },
+    {
+      "word": "channels",
+      "start": 1.422,
+      "end": 2.096
+    },
+    {
+      "word": "Pick",
+      "start": 2.096,
+      "end": 2.54
+    },
+    {
+      "word": "New",
+      "start": 2.54,
+      "end": 2.784
+    },
+    {
+      "word": "worktree",
+      "start": 2.784,
+      "end": 3.307
+    },
+    {
+      "word": "in",
+      "start": 3.307,
+      "end": 3.38
+    },
+    {
+      "word": "the",
+      "start": 3.38,
+      "end": 3.488
+    },
+    {
+      "word": "workspace",
+      "start": 3.488,
+      "end": 3.973
+    },
+    {
+      "word": "selector",
+      "start": 3.973,
+      "end": 4.76
+    },
+    {
+      "word": "and",
+      "start": 4.76,
+      "end": 4.9
+    },
+    {
+      "word": "the",
+      "start": 4.9,
+      "end": 5.04
+    },
+    {
+      "word": "app",
+      "start": 5.04,
+      "end": 5.347
+    },
+    {
+      "word": "makes",
+      "start": 5.347,
+      "end": 5.7
+    },
+    {
+      "word": "the",
+      "start": 5.7,
+      "end": 5.829
+    },
+    {
+      "word": "folder",
+      "start": 5.829,
+      "end": 6.28
+    },
+    {
+      "word": "and",
+      "start": 6.28,
+      "end": 6.469
+    },
+    {
+      "word": "branch",
+      "start": 6.469,
+      "end": 6.719
+    }
+  ]
+}

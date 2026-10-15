@@ -1,0 +1,107 @@
+{
+  "id": "mer.helm.plan.exit",
+  "speaker": "Rhea",
+  "text": "Exit plan mode puts us back in Interactive, and you’d prompt each step yourself. This plan only needs one fix.",
+  "words": [
+    {
+      "word": "Exit",
+      "start": 0.0485409,
+      "end": 0.436875
+    },
+    {
+      "word": "plan",
+      "start": 0.436875,
+      "end": 0.764583
+    },
+    {
+      "word": "mode",
+      "start": 0.764583,
+      "end": 1.055833
+    },
+    {
+      "word": "puts",
+      "start": 1.055833,
+      "end": 1.298541
+    },
+    {
+      "word": "us",
+      "start": 1.298541,
+      "end": 1.468458
+    },
+    {
+      "word": "back",
+      "start": 1.468458,
+      "end": 1.67475
+    },
+    {
+      "word": "in",
+      "start": 1.67475,
+      "end": 1.784
+    },
+    {
+      "word": "Interactive",
+      "start": 1.784,
+      "end": 2.803416
+    },
+    {
+      "word": "and",
+      "start": 2.803416,
+      "end": 2.92475
+    },
+    {
+      "word": "you’d",
+      "start": 2.92475,
+      "end": 3.155333
+    },
+    {
+      "word": "prompt",
+      "start": 3.155333,
+      "end": 3.495125
+    },
+    {
+      "word": "each",
+      "start": 3.495125,
+      "end": 3.75
+    },
+    {
+      "word": "step",
+      "start": 3.75,
+      "end": 4.029125
+    },
+    {
+      "word": "yourself",
+      "start": 4.029125,
+      "end": 5.449041
+    },
+    {
+      "word": "This",
+      "start": 5.449041,
+      "end": 5.655333
+    },
+    {
+      "word": "plan",
+      "start": 5.655333,
+      "end": 6.043708
+    },
+    {
+      "word": "only",
+      "start": 6.043708,
+      "end": 6.347083
+    },
+    {
+      "word": "needs",
+      "start": 6.347083,
+      "end": 6.699041
+    },
+    {
+      "word": "one",
+      "start": 6.699041,
+      "end": 7.014583
+    },
+    {
+      "word": "fix",
+      "start": 7.014583,
+      "end": 7.264583
+    }
+  ]
+}

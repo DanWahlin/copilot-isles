@@ -145,7 +145,7 @@ export default {
       id: 'helms',
       lowerThird: { ...label('puzzle:P1.2') },
       label:
-        'The Three Helms: Interactive holds at the mark, Plan waits for approval, Autopilot takes her home',
+        'The Three Helms: pick the mode for each order. You choose each heading, review and fix the plan, then hand over the run home',
       xfade: 0.4,
       parts: [
         // Interactive: under way on the first leg, turning toward the mark.
@@ -154,11 +154,11 @@ export default {
           in: { mark: 'interactive-leg-0', at: 0.4 },
           out: { mark: 'interactive-leg-0', at: 4.9 },
         },
-        // She heaves to at the mark: "Mark reached. Shall we sail the next leg?"
+        // She heaves to at the mark: "Mark reached. Which way next, Captain?" You choose the heading.
         {
           take: 'helms',
-          in: { mark: 'interactive-hold-0', at: -0.2 },
-          out: { mark: 'interactive-hold-0', at: 4.0 },
+          in: { mark: 'interactive-choose-1', at: -0.2 },
+          out: { mark: 'interactive-choose-1', at: 4.0 },
         },
         // Plan: the charted plan in the terminal, waiting for approval, then approved.
         { take: 'helms', in: { mark: 'plan-review-0', at: 2.8 }, out: { mark: 'plan-sailing-0', at: -1.7 } },

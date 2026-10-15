@@ -158,4 +158,9 @@ export interface ChapterContent {
   trials: readonly Trial[];
   /** The course section each voiced teaching line (tools/voice/lines.*.json id) paraphrases. */
   voiced?: Readonly<Record<string, SourceRef>>;
+  /**
+   * Unvoiced teaching text in a puzzle (a crate's reason for its plate, say), keyed `<puzzle>.<id>`,
+   * with the course section it paraphrases. The drift report checks these like voiced lines.
+   */
+  cited?: Readonly<Record<string, { text: string; source: SourceRef }>>;
 }

@@ -1,6 +1,6 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { createRoot } from 'react-dom/client';
-import { FLAGS, type FlagSymbol } from '../../game/puzzles/flag-hoist';
+import { FLAGS } from '../../game/puzzles/flag-hoist';
 import './channel-routing.css';
 
 /** What the Flag Hoist overlay shows (P2.3, docs/specs/ISLAND-02-thousand-bough.md §7). */
@@ -8,9 +8,13 @@ export interface FlagHoistView {
   open: boolean;
   step: number;
   of: number;
+  /** A name for a choice order ("Pack light"); none for a flag order. */
+  title: string | null;
   order: string;
+  /** A choice order's picks (keys 1-4); null: hoist one of the four flags. */
+  choices: readonly { id: string; icon: string; text: string }[] | null;
   message: { text: string; tone: 'good' | 'bad' } | null;
-  /** The flag the gamepad's on. */
+  /** The pick the gamepad's on. */
   focus: number;
   busy: boolean;
 }
@@ -18,7 +22,8 @@ export interface FlagHoistView {
 export interface FlagHoistStore {
   get(): FlagHoistView;
   subscribe(fn: () => void): () => void;
-  hoist(symbol: FlagSymbol): void;
+  /** A flag's symbol, or a choice's id. */
+  hoist(pick: string): void;
 }
 
 /** `code` spans in a line (backticks), the rest as text. */
@@ -34,16 +39,20 @@ function Code({ text }: { text: string }) {
   );
 }
 
+const plain = (s: string) => s.replace(/`([^`]+)`/g, '$1');
+
 function FlagHoist({ store }: { store: FlagHoistStore }) {
   const v = useSyncExternalStore(store.subscribe, store.get);
   useEffect(() => {
     if (!v.open) return;
     const key = (e: KeyboardEvent) => {
+      const s = store.get();
+      const picks = s.choices ? s.choices.map((c) => c.id) : FLAGS.map((f) => f.symbol);
       const n = /^Digit\d$/.test(e.code) ? Number(e.code.slice(5)) : Number(e.key);
-      if (n >= 1 && n <= FLAGS.length) {
+      if (n >= 1 && n <= picks.length) {
         e.preventDefault();
         e.stopImmediatePropagation();
-        if (!e.repeat && !store.get().busy) store.hoist(FLAGS[n - 1]!.symbol);
+        if (!e.repeat && !s.busy) store.hoist(picks[n - 1]!);
       }
     };
     window.addEventListener('keydown', key, true);
@@ -54,49 +63,87 @@ function FlagHoist({ store }: { store: FlagHoistStore }) {
     return () => document.body.classList.remove('ci-cr-open');
   }, [v.open]);
   if (!v.open) return null;
+  const n = v.choices ? v.choices.length : FLAGS.length;
   return (
     <div className="ci-cr" role="dialog" aria-label="Flag Hoist">
-      <section className="ci-cr-panel ci-fh">
+      <section className="ci-cr-panel ci-cr-two ci-fh">
         <header className="ci-cr-head">
           <p className="ci-cr-eyebrow">
             Flag Hoist · Order {Math.min(v.step + 1, v.of)} of {v.of}
+            {v.title ? ` · ${v.title}` : ''}
           </p>
           <h2 className="ci-fh-order">
             <Code text={v.order} />
           </h2>
         </header>
-        <ol className="ci-fh-flags">
-          {FLAGS.map((f, i) => (
-            <li key={f.symbol}>
-              <button
-                type="button"
-                className={i === v.focus ? 'is-focus' : undefined}
-                disabled={v.busy}
-                data-flag={f.symbol}
-                aria-label={`${f.symbol}: ${f.picture}, brings ${f.brings.toLowerCase()}`}
-                onClick={() => store.hoist(f.symbol)}
-              >
-                <span className="ci-fh-pennant" aria-hidden="true">
-                  <span className="ci-fh-icon">{f.icon}</span>
-                  <span className="ci-fh-symbol">{f.symbol}</span>
-                </span>
-                <span className="ci-fh-text">
-                  <b>{f.picture}</b>
-                  <small>{f.brings}</small>
-                </span>
-                <kbd>{i + 1}</kbd>
-              </button>
-            </li>
-          ))}
-        </ol>
-        <p className={`ci-cr-message is-${v.message?.tone ?? 'info'}`}>
-          {v.message ? <Code text={v.message.text} /> : 'Hoist the flag that brings what Ines asks for.'}
-        </p>
-        <p className="ci-cr-help" aria-hidden="true">
-          Press <kbd>1</kbd>–<kbd>4</kbd> or tap a flag
-        </p>
+        {v.choices ? (
+          <ol className="ci-fh-flags ci-fh-choices">
+            {v.choices.map((c, i) => (
+              <li key={c.id}>
+                <button
+                  type="button"
+                  className={i === v.focus ? 'is-focus' : undefined}
+                  disabled={v.busy}
+                  data-pick={c.id}
+                  aria-label={plain(c.text)}
+                  onClick={() => store.hoist(c.id)}
+                >
+                  <span className="ci-fh-cargo" aria-hidden="true">
+                    {c.icon}
+                  </span>
+                  <span className="ci-fh-text">
+                    <b>
+                      <Code text={c.text} />
+                    </b>
+                  </span>
+                  <kbd>{i + 1}</kbd>
+                </button>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <ol className="ci-fh-flags">
+            {FLAGS.map((f, i) => (
+              <li key={f.symbol}>
+                <button
+                  type="button"
+                  className={i === v.focus ? 'is-focus' : undefined}
+                  disabled={v.busy}
+                  data-flag={f.symbol}
+                  data-pick={f.symbol}
+                  aria-label={`${f.symbol}: ${f.picture}, brings ${f.brings.toLowerCase()}`}
+                  onClick={() => store.hoist(f.symbol)}
+                >
+                  <span className="ci-fh-pennant" aria-hidden="true">
+                    <span className="ci-fh-icon">{f.icon}</span>
+                    <span className="ci-fh-symbol">{f.symbol}</span>
+                  </span>
+                  <span className="ci-fh-text">
+                    <b>{f.picture}</b>
+                    <small>{f.brings}</small>
+                  </span>
+                  <kbd>{i + 1}</kbd>
+                </button>
+              </li>
+            ))}
+          </ol>
+        )}
+        <div className="ci-cr-side">
+          <p className={`ci-cr-message is-${v.message?.tone ?? 'info'}`}>
+            {v.message ? (
+              <Code text={v.message.text} />
+            ) : v.choices ? (
+              'Pick what Ines asks for.'
+            ) : (
+              'Hoist the flag that brings what Ines asks for.'
+            )}
+          </p>
+          <p className="ci-cr-help" aria-hidden="true">
+            Press <kbd>1</kbd>–<kbd>{n}</kbd> or tap {v.choices ? 'a choice' : 'a flag'}
+          </p>
+        </div>
         <div className="ci-cr-live" role="status" aria-live="polite">
-          {v.message?.text ?? v.order}
+          {plain(v.message?.text ?? v.order)}
         </div>
       </section>
     </div>

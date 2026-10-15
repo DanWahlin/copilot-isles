@@ -1,14 +1,24 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { Box3, BoxGeometry, Mesh, SphereGeometry, type BufferGeometry } from 'three/webgpu';
+import {
+  Box3,
+  BoxGeometry,
+  CylinderGeometry,
+  Mesh,
+  PerspectiveCamera,
+  SphereGeometry,
+  type BufferGeometry,
+} from 'three/webgpu';
 import { TIERS } from '../../engine/quality';
 import { TIER_ORDER } from '../../engine/tier-info';
 import { loadLodSimplifier, lodRanges, type LodSimplifier } from '../characters/character-lod';
 import {
   ChunkLods,
+  attachMovingLod,
   buildChunkLodIndex,
   chunkLodEdges,
   chunkLodFloor,
   mergeIntoChunks,
+  moveBucketInto,
   simplifyInPlace,
   triangleCount,
 } from './chunks';
@@ -154,5 +164,49 @@ describe('chunk levels of detail', () => {
     for (let i = 1; i < edges.length; i++) expect(edges[i]![0]).toBeGreaterThan(edges[i - 1]![0]);
     // Medium and up: the first level's 5 cm is half a pixel or less, so it starts past ~90 m.
     expect(chunkLodEdges(TIERS.medium)[0]).toBeGreaterThan(90);
+  });
+
+  it("picks a moving mesh's level from the drawing camera, wherever the mesh has gone", () => {
+    const g = new SphereGeometry(2, 48, 32);
+    expect(buildChunkLodIndex(g, simplify)).toBe(true);
+    const r = lodRanges(g)!;
+    const mesh = new Mesh(g);
+    expect(attachMovingLod(mesh, [50, 150])).toBe(true);
+    const camera = new PerspectiveCamera();
+    const draw = (shipX: number) => {
+      mesh.position.set(shipX, 0, 0);
+      mesh.updateMatrixWorld(true);
+      camera.updateMatrixWorld(true);
+      mesh.onBeforeRender(null!, null!, camera, g, null!, null!);
+      const count = g.drawRange.count;
+      mesh.onAfterRender(null!, null!, camera, g, null!, null!);
+      return count;
+    };
+    expect(draw(10)).toBe(r[1]);
+    expect(draw(120)).toBe(r[3]);
+    expect(draw(400)).toBe(r[5]);
+    // Sailing back alongside: full detail again.
+    expect(draw(8)).toBe(r[1]);
+    expect(g.drawRange.count).toBe(r[1]);
+    expect(attachMovingLod(new Mesh(new BoxGeometry()), [50, 150])).toBe(false);
+  });
+});
+
+describe('moveBucketInto', () => {
+  it('moves pieces that merge alike, and leaves pieces that would not', () => {
+    const buckets = {
+      rope: [new CylinderGeometry(0.02, 0.02, 1, 6)],
+      cloth: [new BoxGeometry(1, 1, 1)],
+      metal: [new BoxGeometry(1, 1, 1).toNonIndexed()],
+      wood: [] as BufferGeometry[],
+    };
+    expect(moveBucketInto(buckets, 'rope', 'cloth')).toBe(true);
+    expect(buckets.rope).toHaveLength(0);
+    expect(buckets.cloth).toHaveLength(2);
+    // Non-indexed pieces don't merge with indexed ones: they stay where they are.
+    expect(moveBucketInto(buckets, 'metal', 'cloth')).toBe(false);
+    expect(buckets.metal).toHaveLength(1);
+    // Nothing to move.
+    expect(moveBucketInto(buckets, 'wood', 'cloth')).toBe(false);
   });
 });

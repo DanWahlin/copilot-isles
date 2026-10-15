@@ -1,42 +1,42 @@
 {
   "id": "tb.ines.order.4",
   "speaker": "Ines",
-  "text": "Last one: point at another crew's session.",
+  "text": "And: use what Rook's crew's session found.",
   "words": [
     {
-      "word": "Last",
+      "word": "And",
       "start": 0,
-      "end": 0.4
+      "end": 0.9
     },
     {
-      "word": "one",
-      "start": 0.4,
-      "end": 1.247
+      "word": "use",
+      "start": 0.9,
+      "end": 1.232
     },
     {
-      "word": "point",
-      "start": 1.247,
-      "end": 1.733
+      "word": "what",
+      "start": 1.232,
+      "end": 1.4
     },
     {
-      "word": "at",
-      "start": 1.733,
-      "end": 1.87
-    },
-    {
-      "word": "another",
-      "start": 1.87,
-      "end": 2.144
+      "word": "Rook's",
+      "start": 1.4,
+      "end": 1.648
     },
     {
       "word": "crew's",
-      "start": 2.144,
-      "end": 2.53
+      "start": 1.648,
+      "end": 1.97
     },
     {
       "word": "session",
-      "start": 2.53,
-      "end": 2.78
+      "start": 1.97,
+      "end": 2.387
+    },
+    {
+      "word": "found",
+      "start": 2.387,
+      "end": 2.637
     }
   ]
 }

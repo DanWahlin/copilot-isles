@@ -1,0 +1,92 @@
+{
+  "id": "mer.helm.order.autopilot",
+  "speaker": "Rhea",
+  "text": "Last order. Take her home to your berth. It’s well defined, and the outcome’s clear. Which helm?",
+  "words": [
+    {
+      "word": "Last",
+      "start": 0.0485409,
+      "end": 0.449041
+    },
+    {
+      "word": "order",
+      "start": 0.449041,
+      "end": 1.686875
+    },
+    {
+      "word": "Take",
+      "start": 1.686875,
+      "end": 1.966
+    },
+    {
+      "word": "her",
+      "start": 1.966,
+      "end": 2.111666
+    },
+    {
+      "word": "home",
+      "start": 2.111666,
+      "end": 2.415041
+    },
+    {
+      "word": "to",
+      "start": 2.415041,
+      "end": 2.512125
+    },
+    {
+      "word": "your",
+      "start": 2.512125,
+      "end": 2.6335
+    },
+    {
+      "word": "berth",
+      "start": 2.6335,
+      "end": 3.992708
+    },
+    {
+      "word": "It’s",
+      "start": 3.992708,
+      "end": 4.211166
+    },
+    {
+      "word": "well",
+      "start": 4.211166,
+      "end": 4.453875
+    },
+    {
+      "word": "defined",
+      "start": 4.453875,
+      "end": 5.242708
+    },
+    {
+      "word": "and",
+      "start": 5.242708,
+      "end": 5.376208
+    },
+    {
+      "word": "the",
+      "start": 5.376208,
+      "end": 5.509708
+    },
+    {
+      "word": "outcome’s",
+      "start": 5.509708,
+      "end": 5.970875
+    },
+    {
+      "word": "clear",
+      "start": 5.970875,
+      "end": 7.269416
+    },
+    {
+      "word": "Which",
+      "start": 7.269416,
+      "end": 7.524291
+    },
+    {
+      "word": "helm",
+      "start": 7.524291,
+      "end": 7.774291
+    }
+  ]
+}

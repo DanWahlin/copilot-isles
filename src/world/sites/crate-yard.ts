@@ -2,6 +2,7 @@ import {
   CanvasTexture,
   DoubleSide,
   Group,
+  Matrix4,
   Mesh,
   MeshStandardNodeMaterial,
   SRGBColorSpace,
@@ -22,6 +23,9 @@ import { palettedMaterial } from '../characters/stage-light';
 /** Metres per yard cell (a crate is 1.1 m, so there's room to walk between them). */
 export const YARD_CELL = 1.5;
 const CRATE = 1.1;
+/** Scratch for a crate's top stencil (the crate's matrix, turned a quarter at a time). */
+const TOP = new Matrix4();
+const TURN = new Matrix4();
 
 export interface CrateYardSite {
   readonly group: Group;
@@ -45,6 +49,11 @@ export interface CrateYardSite {
   setHome(home: readonly boolean[]): void;
   /** Highlights a crate (Wingman's hint), or -1 for none. */
   setHint(i: number): void;
+  /**
+   * Turns each crate's top stencil a quarter at a time so it reads upright from a viewer at
+   * (x, z) (the captain, with the camera behind): the side stencils are always upright.
+   */
+  faceLabels(x: number, z: number): void;
   setLever(pulled: boolean): void;
   readonly sliding: boolean;
   update(dt: number, t: number): void;
@@ -52,10 +61,10 @@ export interface CrateYardSite {
 }
 
 /**
- * The crate yard on the shipyard apron (P1.1): a paved grid with three Chat plates (a speech bubble,
- * tavern side) and three Project plates (a folder, slipway side), a tall sign over each row, six
- * wooden crates stencilled with their task on every face, and a reset lever by the gate. The crates
- * carry no hint of which plate they belong on.
+ * The crate yard on the shipyard apron (P1.1): a paved grid with the Chat plates (a speech bubble,
+ * tavern side) and the Project plates (a folder, slipway side), a tall sign over each side, wooden
+ * crates stencilled with their task on every face (the top one turns to face you), and a reset lever
+ * by the gate. The crates carry no hint of which plate they belong on.
  */
 export function createCrateYardSite(o: {
   tier: TierSettings;
@@ -182,17 +191,27 @@ export function createCrateYardSite(o: {
   handle.rotation.x = -0.5;
   yard.add(handle);
 
-  // Crates: wood with the task on every side and the top.
+  // Crates: wood with the task on every side, and on the top as a part of its own (it turns to
+  // face you).
   const crateQuads = layout.crates.map((_, i) => {
     const q = new UvQuadBuilder(1024, 1024);
-    const r = atlas.rects[`crate${i}` as AtlasKey];
+    const r = atlas.rects[crateKey(i)];
     const h = CRATE / 2 + 0.005;
     const up = new Vector3(0, 0.38, 0);
     q.plane(new Vector3(0, CRATE / 2, h), new Vector3(0.48, 0, 0), up, r);
     q.plane(new Vector3(0, CRATE / 2, -h), new Vector3(-0.48, 0, 0), up, r);
     q.plane(new Vector3(h, CRATE / 2, 0), new Vector3(0, 0, -0.48), up, r);
     q.plane(new Vector3(-h, CRATE / 2, 0), new Vector3(0, 0, 0.48), up, r);
-    q.plane(new Vector3(0, CRATE + 0.005, 0), new Vector3(0.48, 0, 0), new Vector3(0, 0, -0.38), r);
+    return q.geometry();
+  });
+  const crateTops = layout.crates.map((_, i) => {
+    const q = new UvQuadBuilder(1024, 1024);
+    q.plane(
+      new Vector3(0, CRATE + 0.005, 0),
+      new Vector3(0.48, 0, 0),
+      new Vector3(0, 0, -0.38),
+      atlas.rects[crateKey(i)],
+    );
     return q.geometry();
   });
   const crateBody = merge([
@@ -217,7 +236,8 @@ export function createCrateYardSite(o: {
   const crates = layout.crates.map(() => {
     const g = new Group();
     yard.add(g);
-    return { group: g, from: new Vector3(), to: new Vector3(), t: 1, wobble: 0, moved: true };
+    // `turn`: the top stencil's quarter turns about the crate's up axis (0-3).
+    return { group: g, from: new Vector3(), to: new Vector3(), t: 1, wobble: 0, moved: true, turn: 0 };
   });
   const bodies = sharedInstancedMesh(crateBody, materials.wood, crates.length);
   bodies.name = 'crate yard crates';
@@ -227,9 +247,11 @@ export function createCrateYardSite(o: {
     bodies,
     crates.map((k) => k.group),
   );
-  const lettering = mergeWithRigidParts([plateQuads.geometry(), signQuads.geometry()], crateQuads, {
-    bounds: true,
-  });
+  const lettering = mergeWithRigidParts(
+    [plateQuads.geometry(), signQuads.geometry()],
+    [...crateQuads, ...crateTops],
+    { bounds: true },
+  );
   const letters = new Mesh(lettering.geometry, atlas.material);
   letters.name = 'crate yard lettering';
   yard.add(letters);
@@ -240,6 +262,8 @@ export function createCrateYardSite(o: {
       k.moved = false;
       k.group.updateMatrix();
       lettering.set(i, k.group.matrix);
+      TURN.makeRotationY((k.turn * Math.PI) / 2);
+      lettering.set(crates.length + i, TOP.multiplyMatrices(k.group.matrix, TURN));
       any = true;
     });
     if (!any) return;
@@ -335,6 +359,21 @@ export function createCrateYardSite(o: {
         hint.position.set(p.x, 0.075, p.z);
       }
     },
+    faceLabels(x, z) {
+      // The viewer in the yard's frame (as `toLocal`, without the object: this runs every frame).
+      const dx = x - o.origin.x,
+        dz = z - o.origin.z;
+      const lx = dx * c - dz * s,
+        lz = dx * s + dz * c;
+      for (const k of crates) {
+        // The stencil's top edge points along (−sin a, −cos a) in the yard's frame: away from you.
+        const a = Math.atan2(k.group.position.x - lx, k.group.position.z - lz) + Math.PI;
+        const turn = ((Math.round(a / (Math.PI / 2)) % 4) + 4) % 4;
+        if (turn === k.turn) continue;
+        k.turn = turn;
+        k.moved = true;
+      }
+    },
     setLever(pulled) {
       handle.rotation.x = pulled ? 0.5 : -0.5;
     },
@@ -378,8 +417,11 @@ export function createCrateYardSite(o: {
   };
 }
 
-type AtlasKey =
-  'chatPlate' | 'projectPlate' | 'chatSign' | 'projectSign' | 'resetSign' | `crate${0 | 1 | 2 | 3 | 4 | 5}`;
+/** Room for eight crates' stencils in the atlas. */
+const CRATE_SLOTS = 8;
+type CrateKey = `crate${0 | 1 | 2 | 3 | 4 | 5 | 6 | 7}`;
+type AtlasKey = 'chatPlate' | 'projectPlate' | 'chatSign' | 'projectSign' | 'resetSign' | CrateKey;
+const crateKey = (i: number) => `crate${i}` as CrateKey;
 
 interface YardAtlas {
   material: MeshStandardNodeMaterial;
@@ -390,22 +432,21 @@ interface YardAtlas {
 }
 
 /**
- * One canvas for the yard's words and emblems: the six crate stencils (dark on pale wood), the two
- * plate emblems (the app's speech bubble and folder), the two side signs, and the reset plaque.
+ * One canvas for the yard's words and emblems: up to eight crate stencils (dark on pale wood), the
+ * two plate emblems (the app's speech bubble and folder), the two side signs, and the reset plaque.
  */
 function createYardAtlas(layout: YardLayout): YardAtlas {
+  if (layout.crates.length > CRATE_SLOTS) throw new Error(`the yard's atlas holds ${CRATE_SLOTS} crates`);
+  const crateRects = {} as Record<CrateKey, UvRect>;
+  for (let i = 0; i < CRATE_SLOTS; i++)
+    crateRects[crateKey(i)] = { x: (i % 4) * 256, y: Math.floor(i / 4) * 206, w: 254, h: 204 };
   const rects: Record<AtlasKey, UvRect> = {
-    crate0: { x: 0, y: 0, w: 340, h: 272 },
-    crate1: { x: 342, y: 0, w: 340, h: 272 },
-    crate2: { x: 684, y: 0, w: 340, h: 272 },
-    crate3: { x: 0, y: 274, w: 340, h: 272 },
-    crate4: { x: 342, y: 274, w: 340, h: 272 },
-    crate5: { x: 684, y: 274, w: 340, h: 272 },
-    chatPlate: { x: 0, y: 548, w: 256, h: 256 },
-    projectPlate: { x: 258, y: 548, w: 256, h: 256 },
-    resetSign: { x: 516, y: 548, w: 508, h: 150 },
-    chatSign: { x: 0, y: 806, w: 510, h: 218 },
-    projectSign: { x: 514, y: 806, w: 510, h: 218 },
+    ...crateRects,
+    chatPlate: { x: 0, y: 414, w: 256, h: 256 },
+    projectPlate: { x: 258, y: 414, w: 256, h: 256 },
+    resetSign: { x: 516, y: 414, w: 508, h: 150 },
+    chatSign: { x: 0, y: 672, w: 510, h: 218 },
+    projectSign: { x: 514, y: 672, w: 510, h: 218 },
   };
   const tex = new CanvasTexture(
     typeof document === 'undefined' ? undefined : document.createElement('canvas'),
@@ -416,11 +457,12 @@ function createYardAtlas(layout: YardLayout): YardAtlas {
   if (canvas) {
     canvas.width = canvas.height = 1024;
     const ctx = canvas.getContext('2d')!;
-    layout.crates.forEach((crate, i) => stencil(ctx, rects[`crate${i}` as AtlasKey], crate.label));
+    layout.crates.forEach((crate, i) => stencil(ctx, rects[crateKey(i)], crate.label));
     emblem(ctx, rects.chatPlate, 'chat');
     emblem(ctx, rects.projectPlate, 'project');
-    signBoard(ctx, rects.chatSign, 'CHAT', 'Questions · ideas · summaries', '#1f4e86', 'chat');
-    signBoard(ctx, rects.projectSign, 'PROJECT', 'Changes to your repository', '#2c6b3c', 'project');
+    // The course's table (01 §Chats, Project Sessions, and Modes), in short.
+    signBoard(ctx, rects.chatSign, 'CHAT', 'Ask · brainstorm · summarize', '#1f4e86', 'chat');
+    signBoard(ctx, rects.projectSign, 'PROJECT', 'Work that needs your repository', '#2c6b3c', 'project');
     signBoard(ctx, rects.resetSign, 'RESET THE YARD', '', '#6d3a1f', null);
     tex.needsUpdate = true;
   }
@@ -463,27 +505,29 @@ function createYardAtlas(layout: YardLayout): YardAtlas {
   };
 }
 
-function stencil(ctx: CanvasRenderingContext2D, r: UvRect, lines: readonly [string, string]): void {
+function stencil(ctx: CanvasRenderingContext2D, r: UvRect, lines: readonly string[]): void {
   const g = ctx.createLinearGradient(r.x, r.y, r.x, r.y + r.h);
   g.addColorStop(0, '#e2c08c');
   g.addColorStop(1, '#cfa76c');
   ctx.fillStyle = g;
   ctx.fillRect(r.x, r.y, r.w, r.h);
   ctx.strokeStyle = '#5b3216';
-  ctx.lineWidth = 10;
-  ctx.strokeRect(r.x + 8, r.y + 8, r.w - 16, r.h - 16);
+  ctx.lineWidth = 8;
+  ctx.strokeRect(r.x + 6, r.y + 6, r.w - 12, r.h - 12);
   ctx.fillStyle = '#2a170a';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  for (const [k, text] of lines.entries()) {
-    let size = 64;
+  // One size for every line, as big as the longest line and the line count allow.
+  const n = lines.length;
+  let size = n > 2 ? 44 : 52;
+  const fits = () => lines.every((text) => ctx.measureText(text).width <= r.w - 30);
+  ctx.font = `700 ${size}px Georgia, 'Times New Roman', serif`;
+  while (size > 24 && !fits()) {
+    size -= 2;
     ctx.font = `700 ${size}px Georgia, 'Times New Roman', serif`;
-    while (size > 30 && ctx.measureText(text).width > r.w - 40) {
-      size -= 4;
-      ctx.font = `700 ${size}px Georgia, 'Times New Roman', serif`;
-    }
-    ctx.fillText(text, r.x + r.w / 2, r.y + r.h * (k === 0 ? 0.36 : 0.66));
   }
+  const gap = size * 1.12;
+  lines.forEach((text, k) => ctx.fillText(text, r.x + r.w / 2, r.y + r.h / 2 + (k - (n - 1) / 2) * gap));
 }
 
 /** The app's icons, drawn simply: a speech bubble for Chat, a folder for Project. */

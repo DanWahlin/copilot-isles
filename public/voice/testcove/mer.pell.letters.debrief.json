@@ -1,0 +1,132 @@
+{
+  "id": "mer.pell.letters.debrief",
+  "speaker": "Pell",
+  "text": "Select the gear at the bottom of the sidebar, and they’re listed down the left. Projects is at the foot, with each project’s own settings.",
+  "words": [
+    {
+      "word": "Select",
+      "start": 0.048083,
+      "end": 0.408666
+    },
+    {
+      "word": "the",
+      "start": 0.408666,
+      "end": 0.504791
+    },
+    {
+      "word": "gear",
+      "start": 0.504791,
+      "end": 0.76925
+    },
+    {
+      "word": "at",
+      "start": 0.76925,
+      "end": 0.889416
+    },
+    {
+      "word": "the",
+      "start": 0.889416,
+      "end": 0.997583
+    },
+    {
+      "word": "bottom",
+      "start": 0.997583,
+      "end": 1.334125
+    },
+    {
+      "word": "of",
+      "start": 1.334125,
+      "end": 1.40625
+    },
+    {
+      "word": "the",
+      "start": 1.40625,
+      "end": 1.514416
+    },
+    {
+      "word": "sidebar",
+      "start": 1.514416,
+      "end": 2.35575
+    },
+    {
+      "word": "and",
+      "start": 2.35575,
+      "end": 2.463958
+    },
+    {
+      "word": "they’re",
+      "start": 2.463958,
+      "end": 2.680291
+    },
+    {
+      "word": "listed",
+      "start": 2.680291,
+      "end": 3.052875
+    },
+    {
+      "word": "down",
+      "start": 3.052875,
+      "end": 3.29325
+    },
+    {
+      "word": "the",
+      "start": 3.29325,
+      "end": 3.389416
+    },
+    {
+      "word": "left",
+      "start": 3.389416,
+      "end": 4.651458
+    },
+    {
+      "word": "Projects",
+      "start": 4.651458,
+      "end": 5.14425
+    },
+    {
+      "word": "is",
+      "start": 5.14425,
+      "end": 5.276458
+    },
+    {
+      "word": "at",
+      "start": 5.276458,
+      "end": 5.384625
+    },
+    {
+      "word": "the",
+      "start": 5.384625,
+      "end": 5.48075
+    },
+    {
+      "word": "foot",
+      "start": 5.48075,
+      "end": 5.973541
+    },
+    {
+      "word": "with",
+      "start": 5.973541,
+      "end": 6.141833
+    },
+    {
+      "word": "each",
+      "start": 6.141833,
+      "end": 6.358166
+    },
+    {
+      "word": "project’s",
+      "start": 6.358166,
+      "end": 6.826916
+    },
+    {
+      "word": "own",
+      "start": 6.826916,
+      "end": 7.04325
+    },
+    {
+      "word": "settings",
+      "start": 7.04325,
+      "end": 7.29325
+    }
+  ]
+}

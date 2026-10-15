@@ -28,14 +28,14 @@ without a `label` keeps the plain card. A puzzle without a label in `content/lab
 
 **The puzzles** (POC §4.5, §6.5; ISLAND-02 §5-§7): Anchorage has the Sluice & Waterwheel (P0.1) and the
 Dry-Run Crane (P0.2); Port Meridian has the Crate Yard (P1.1, "The Shipyard" in the quest log) and the
-Three Helms (P1.2); Thousand-Bough has Channel Routing (P2.1), the Spire twist (P2.2) and the Flag Hoist
-(P2.3). The POC's P1.3 Banners of the Hall isn't built. The other `Puzzle` objects aren't puzzles you
+Three Helms (P1.2) and the Lost Letters (P1.3, at Pell's desk in the Hall of Records); Thousand-Bough
+has Channel Routing (P2.1), the Spire twist (P2.2) and the Flag Hoist (P2.3). The other `Puzzle` objects aren't puzzles you
 solve and get no label: First Words, the Soundcheck, the Christening and Paint Your Sails are quest
 beats with their own dialogue and quiz, and the gear rack and Rook's session terminal are scenery.
 
 **The battles' questions** (`BATTLE_PLANS`, src/world/battle/battle.ts): battle 1 (Anchorage → Port
-Meridian) asks N0.1 and T0.5, both from Chapter 00 · Add the course practice items. Battle 2 (Port
-Meridian → Thousand-Bough) asks A1.5 (Project sessions), N1.1 (Modes) and N1.2 (Models and reasoning
+Meridian) asks N0.1 and N0.2, both from Chapter 00 · Add the course practice items. Battle 2 (Port
+Meridian → Thousand-Bough) asks N1.6 (Project Sessions), N1.1 (Modes) and N1.2 (Models and reasoning
 effort), all Chapter 01. Each battle's label cites the chapter its questions come from (a test checks every
 wave's quiz).
 
@@ -63,13 +63,14 @@ wave's quiz).
 | `arrival:thousand-bough` | Arrival | Thousand-Bough Isle · Landfall | Give every task its own session | A session has its own branch, diff and history, and its worktree keeps the changes out of your main checkout. | Course Chapter 02 · Sessions, Worktrees, and Context | 02 `#key-takeaways` (1, 2) |
 | `puzzle:P0.1` | Sluice & Waterwheel | Anchorage Cay · Sluice & Waterwheel | Turn on GitHub Actions in your fork | New forks start with workflows switched off. Turn them on so the course’s practice checks can run. | Course Chapter 00 · Add the course practice items | 00 `#add-the-course-practice-items` (step 3) |
 | `puzzle:P0.2` | The Dry-Run Crane | Anchorage Cay · The Dry-Run Crane | Preview before you run | Run the setup script with --dry-run first. Check that its Repository: line names your fork, then run it with --yes. | Course Chapter 00 · Add the course practice items | 00 `#add-the-course-practice-items` (steps 4-5) |
-| `puzzle:P1.1` | The Crate Yard | Port Meridian · The Shipyard | Chat or project session? | Chats are for questions and exploring. Use a project session when the agent needs your repository or changes code. | Course Chapter 01 · Chat sessions and Project sessions | 01 `#project-sessions` (and Chat Sessions above it) |
-| `puzzle:P1.2` | The Three Helms | Port Meridian · The Three Helms | Interactive, Plan, or Autopilot? | Steer step by step, plan first and approve, or let it run end to end. Pick the mode that fits the task. | Course Chapter 01 · Modes | 01 `#modes` |
-| `puzzle:P2.1` | Channel Routing | Thousand-Bough Isle · Channel Routing | Parallel sessions with worktrees | Each session gets its own worktree, so parallel sessions don’t mix their file changes. | Course Chapter 02 · Why the app uses worktrees | 02 `#why-the-github-copilot-app-uses-worktrees` |
+| `puzzle:P1.1` | The Crate Yard | Port Meridian · The Shipyard | Chat or project session? | Chats are for questions and exploring. Use a project session when the agent needs your repository, even just to read it. | Course Chapter 01 · Chat sessions and Project sessions | 01 `#project-sessions` (and Chat Sessions above it) |
+| `puzzle:P1.2` | The Three Helms | Port Meridian · The Three Helms | Interactive, Plan, or Autopilot? | Read each order and pick the mode: step by step, plan first and review, or end to end. Then sail it that way. | Course Chapter 01 · Modes | 01 `#modes` |
+| `puzzle:P1.3` | The Lost Letters | Port Meridian · The Hall of Records | Find your way around Settings | Open it with the gear at the bottom of the sidebar. Model providers adds providers. You still pick the model below the prompt box. | Course Chapter 01 · Settings | 01 `#settings` (and the table in it) |
+| `puzzle:P2.1` | Channel Routing | Thousand-Bough Isle · Channel Routing | Parallel sessions with worktrees | Each session gets its own worktree, so parallel sessions don’t mix their file changes. Then pick where each crew works. | Course Chapter 02 · Why the app uses worktrees | 02 `#why-the-github-copilot-app-uses-worktrees` |
 | `puzzle:P2.2` | Spire twist | Thousand-Bough Isle · The Spire Twist | What worktrees don’t keep apart | Worktrees keep files and branches apart. Find out what two previews running side by side can still share. | Course Chapter 02 · Two previews collided | 02 `#two-previews-collided` |
 | `puzzle:P2.3` | Flag Hoist | Thousand-Bough Isle · The Flag Hoist | Bring the right context | A few special characters in the prompt box add context and commands. Bring only what the task needs: less is often more. | Course Chapter 02 · Context syntax | 02 `#context-syntax` (the table and its tip) |
-| `battle:passage-anchorage-meridian` | Battle 1 | The Passage · Sea Battle | Review between the waves | Between waves, the bosun asks a question about what you just learned. | Questions from Course Chapter 00 · Add the course practice items | 00 `#add-the-course-practice-items` (N0.1, T0.5) |
-| `battle:passage-meridian-thousand-bough` | Battle 2 | The Passage to Thousand-Bough · Sea Battle | Review between the waves | Between waves, the bosun asks about Port Meridian: chats and project sessions, modes, and reasoning effort. | Questions from Course Chapter 01 · Key takeaways | 01 `#key-takeaways` (3-5; A1.5, N1.1, N1.2) |
+| `battle:passage-anchorage-meridian` | Battle 1 | The Passage · Sea Battle | Review between the waves | Between waves, the bosun asks a question about what you just learned. | Questions from Course Chapter 00 · Add the course practice items | 00 `#add-the-course-practice-items` (N0.1, N0.2) |
+| `battle:passage-meridian-thousand-bough` | Battle 2 | The Passage to Thousand-Bough · Sea Battle | Review between the waves | Between waves, the bosun asks about Port Meridian: chats and project sessions, modes, and reasoning effort. | Questions from Course Chapter 01 · Key takeaways | 01 `#key-takeaways` (3-5; N1.6, N1.1, N1.2) |
 
 `Repository:`, `--dry-run` and `--yes` are the course's own script output and flags. Battle 1's chapter line
 was "Questions from Course Chapter 00 · Setup" in the reel; it now names the section both its questions

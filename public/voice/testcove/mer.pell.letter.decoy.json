@@ -1,0 +1,107 @@
+{
+  "id": "mer.pell.letter.decoy",
+  "speaker": "Pell",
+  "text": "Quite right, that’s not a setting. You pick the model and effort in the model control, below the prompt box.",
+  "words": [
+    {
+      "word": "Quite",
+      "start": 0.048083,
+      "end": 0.396625
+    },
+    {
+      "word": "right",
+      "start": 0.396625,
+      "end": 0.985583
+    },
+    {
+      "word": "that’s",
+      "start": 0.985583,
+      "end": 1.189916
+    },
+    {
+      "word": "not",
+      "start": 1.189916,
+      "end": 1.382208
+    },
+    {
+      "word": "a",
+      "start": 1.382208,
+      "end": 1.454333
+    },
+    {
+      "word": "setting",
+      "start": 1.454333,
+      "end": 2.776458
+    },
+    {
+      "word": "You",
+      "start": 2.776458,
+      "end": 2.932708
+    },
+    {
+      "word": "pick",
+      "start": 2.932708,
+      "end": 3.149041
+    },
+    {
+      "word": "the",
+      "start": 3.149041,
+      "end": 3.257208
+    },
+    {
+      "word": "model",
+      "start": 3.257208,
+      "end": 3.653833
+    },
+    {
+      "word": "and",
+      "start": 3.653833,
+      "end": 3.762
+    },
+    {
+      "word": "effort",
+      "start": 3.762,
+      "end": 4.0745
+    },
+    {
+      "word": "in",
+      "start": 4.0745,
+      "end": 4.170666
+    },
+    {
+      "word": "the",
+      "start": 4.170666,
+      "end": 4.254791
+    },
+    {
+      "word": "model",
+      "start": 4.254791,
+      "end": 4.555291
+    },
+    {
+      "word": "control",
+      "start": 4.555291,
+      "end": 5.204333
+    },
+    {
+      "word": "below",
+      "start": 5.204333,
+      "end": 5.516833
+    },
+    {
+      "word": "the",
+      "start": 5.516833,
+      "end": 5.649041
+    },
+    {
+      "word": "prompt",
+      "start": 5.649041,
+      "end": 6.021625
+    },
+    {
+      "word": "box",
+      "start": 6.021625,
+      "end": 6.271625
+    }
+  ]
+}

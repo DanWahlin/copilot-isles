@@ -1,6 +1,7 @@
 // P2.1 Channel Routing (Fen, Thousand-Bough): Fen's demo of the shared trough, then the Gate Board
 // played with the keyboard (arrows move, E turns a gate, F runs the water) and once with the mouse.
-// Round 1 is run before it's routed (the crews' water mixes), then fixed; rounds 2 and 3 go clean.
+// Round 1 is run before it's routed (the crews' water mixes), then fixed; round 2 goes clean; in
+// round 3 you pick where each crew works (one wrong place first).
 import { questsDone, tb, thousandBoughAshore } from '../game.mjs';
 
 /** Waits for a round's board, routes every wrong gate by real input, and runs the water. */
@@ -65,6 +66,51 @@ export async function playRound(api, round, { wrongFirst = false, click = false 
   if (!/wheel/.test(msg)) api.log(`round ${round} didn't solve: "${msg}"`);
 }
 
+/**
+ * Round 3 by real input: one crew in the wrong place first (Docs in the Cloud, so Fen says a quick
+ * look suits the current checkout, or the safe default), then every crew where its order fits.
+ */
+export async function playPlaces(api) {
+  const page = api.page;
+  const open = await api.waitFor(
+    () => !!document.querySelector('.ci-cr-crews') && !document.querySelector('.ci-cr-go')?.disabled,
+    null,
+    90_000,
+  );
+  if (!open) throw new Error('the Gate Board never showed round 3');
+  api.mark('round 3');
+  await api.pause(3500);
+  const best = await tb(api, 'routing.best');
+  const crews = ['feature', 'bugfix', 'docs'];
+  const key = { worktree: 'Digit1', checkout: 'Digit2', cloud: 'Digit3' };
+  for (const [i, crew] of crews.entries()) {
+    // Read the crew's order, then pick with the keys (Docs in the Cloud first: it isn't offloading).
+    await api.pause(1400);
+    const w = crew === 'docs' ? 'cloud' : best[i];
+    if (i === 0) await api.click(`[data-crew="${crew}"] [data-ws="${w}"]`);
+    else {
+      await page.keyboard.press('ArrowDown');
+      await api.pause(300);
+      await page.keyboard.press(key[w]);
+    }
+  }
+  await api.pause(900);
+  api.mark('round 3 run, Docs misplaced');
+  await api.press('KeyF');
+  await api.waitFor(() => !document.querySelector('.ci-cr-go')?.disabled, null, 30_000);
+  await api.pause(1200);
+  await api.click('[data-crew="docs"] [data-ws="checkout"]');
+  await api.pause(900);
+  api.mark('round 3 run');
+  await api.press('KeyF');
+  await api.waitFor(
+    () => /fits/.test(document.querySelector('.ci-cr-message')?.textContent ?? ''),
+    null,
+    30_000,
+  );
+  api.mark('round 3 done');
+}
+
 export default {
   id: 'channels',
   order: 5,
@@ -73,8 +119,8 @@ export default {
   island: 'Thousand-Bough Isle',
   who: 'with Fen at the Flume Gallery',
   subtitle:
-    'Parallel sessions: each crew works in its own worktree, so their changes never mix. Route three crews’ water to their own wheels.',
-  chapter: 'Course Chapter 02 · Why the app uses worktrees · Parallel sessions',
+    'Parallel sessions: each crew works in its own worktree, so their changes never mix. Then pick where each crew works.',
+  chapter: 'Course Chapter 02 · Why the app uses worktrees · Where a session runs',
   flags: ['thousandbough'],
 
   async setup(page, api) {
@@ -92,8 +138,8 @@ export default {
     await api.waitFor(() => !!document.querySelector('.ci-cr-grid'), null, 120_000);
     await playRound(api, 1, { wrongFirst: true, click: true });
     await playRound(api, 2);
-    await playRound(api, 3);
-    // The third wheel turns; hold on it until Fen moves on to the Spire.
+    await playPlaces(api);
+    // Every crew's in place; hold on it until Fen moves on to the Spire.
     await api.pause(1500);
     await api.waitFor(() => !!document.querySelector('.ci-cr-twist'), null, 30_000);
     await api.pause(1200);

@@ -28,6 +28,7 @@ import {
 import { lerp } from '../../util/math';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { plainShadowColor } from '../../engine/shadow-color';
+import { moveBucketInto } from '../village/chunks';
 
 export type FlagKind = 'you' | 'captain' | 'guild';
 
@@ -145,6 +146,12 @@ export function createSloop(o: SloopOptions): Sloop {
   addDeckDetails(buckets, detail, o.accent);
   addRig(buckets, detail);
   addDolphinPiles(buckets, detail);
+  if (o.tier.tier === 'lite') {
+    // Lite: the rope with the cloth (alike: matte vertex colour) and the few iron fittings with the
+    // timber (they're a few pixels there), two draws fewer.
+    moveBucketInto(buckets, 'rope', 'cloth');
+    moveBucketInto(buckets, 'metal', 'wood');
+  }
 
   const meshes = [
     addMergedMesh(motion, 'sloop wood', buckets.wood, o.kit.materials.wood),

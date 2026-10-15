@@ -1,0 +1,102 @@
+{
+  "id": "mer.helm.order.plan",
+  "speaker": "Rhea",
+  "text": "Second order: the reef passage. The approach matters here, so we see the route before we move. Which helm?",
+  "words": [
+    {
+      "word": "Second",
+      "start": 0.0485409,
+      "end": 0.521833
+    },
+    {
+      "word": "order",
+      "start": 0.521833,
+      "end": 1.189333
+    },
+    {
+      "word": "the",
+      "start": 1.189333,
+      "end": 1.310666
+    },
+    {
+      "word": "reef",
+      "start": 1.310666,
+      "end": 1.601958
+    },
+    {
+      "word": "passage",
+      "start": 1.601958,
+      "end": 3.009708
+    },
+    {
+      "word": "The",
+      "start": 3.009708,
+      "end": 3.155333
+    },
+    {
+      "word": "approach",
+      "start": 3.155333,
+      "end": 3.555833
+    },
+    {
+      "word": "matters",
+      "start": 3.555833,
+      "end": 3.90775
+    },
+    {
+      "word": "here",
+      "start": 3.90775,
+      "end": 4.490291
+    },
+    {
+      "word": "so",
+      "start": 4.490291,
+      "end": 4.660208
+    },
+    {
+      "word": "we",
+      "start": 4.660208,
+      "end": 4.793708
+    },
+    {
+      "word": "see",
+      "start": 4.793708,
+      "end": 5.024291
+    },
+    {
+      "word": "the",
+      "start": 5.024291,
+      "end": 5.15775
+    },
+    {
+      "word": "route",
+      "start": 5.15775,
+      "end": 5.509708
+    },
+    {
+      "word": "before",
+      "start": 5.509708,
+      "end": 5.813125
+    },
+    {
+      "word": "we",
+      "start": 5.813125,
+      "end": 5.95875
+    },
+    {
+      "word": "move",
+      "start": 5.95875,
+      "end": 7.293708
+    },
+    {
+      "word": "Which",
+      "start": 7.293708,
+      "end": 7.548541
+    },
+    {
+      "word": "helm",
+      "start": 7.548541,
+      "end": 7.798541
+    }
+  ]
+}

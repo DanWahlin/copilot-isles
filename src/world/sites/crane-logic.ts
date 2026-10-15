@@ -8,6 +8,12 @@
  * - `--yes` refuses a repository you don't own ("Refusing to change shared or upstream
  *   repository…") unless `--allow-shared-repository` is added.
  * - Outside a clone it stops with "Run this script from the root of a cloned Git repository."
+ * - While your fork's GitHub Actions workflows are off (Suri's gate is down), `--dry-run` warns
+ *   `[dry-run] GitHub Actions is not active. Enable workflows at …/actions before running with
+ *   --yes.` and `--yes` stops with `Setup failed: The Book app web workflow is not active. Open
+ *   …/actions, enable workflows for the fork, then rerun the setup script.` (the script's own words;
+ *   Chapter 00 · Add the Course Practice Items, steps 1–3, come before the dry run). The other
+ *   captains' forks have theirs on.
  * - "Preview first" is the course's rule rather than the script's, so Pol enforces it.
  *
  * Your berth shows your own fork when you've given it (Ezra's register or the crane's form), passed
@@ -99,6 +105,8 @@ export type CraneEvent =
   | { kind: 'not-a-repo' }
   | { kind: 'preview-first' }
   | { kind: 'refused'; owner: Exclude<Owner, 'you'>; repository: string }
+  /** `--yes` on your fork while its workflows are off. */
+  | { kind: 'actions-off'; repository: string }
   | { kind: 'complete'; repository: string }
   | { kind: 'already' };
 
@@ -145,16 +153,31 @@ export function dryRun(s: CraneState, yours: string = YOUR_REPOSITORY): CraneSte
   };
 }
 
-/** `node .github/scripts/setup-training-scenarios.js --yes` */
-export function confirmYes(s: CraneState, yours: string = YOUR_REPOSITORY): CraneStep {
+/**
+ * `node .github/scripts/setup-training-scenarios.js --yes`. `actionsOn`: your fork's workflows are
+ * enabled (the script checks after the shared-repository guard, as here).
+ */
+export function confirmYes(s: CraneState, yours: string = YOUR_REPOSITORY, actionsOn = true): CraneStep {
   if (s.complete) return { state: s, event: { kind: 'already' } };
   const f = craneFacings(yours)[s.facing]!;
   if (!f.owner || !f.repository) return { state: s, event: { kind: 'not-a-repo' } };
   if (s.preview !== s.facing) return { state: s, event: { kind: 'preview-first' } };
   if (f.owner !== 'you')
     return { state: s, event: { kind: 'refused', owner: f.owner, repository: f.repository } };
+  if (!actionsOn) return { state: s, event: { kind: 'actions-off', repository: f.repository } };
   return { state: { ...s, complete: true }, event: { kind: 'complete', repository: f.repository } };
 }
+
+/** Your fork's Actions tab, as the script prints it. */
+export const actionsUrl = (repository: string): string => `https://github.com/${repository}/actions`;
+
+/** The script's dry-run warning while the fork's workflows are off (its exact words). */
+export const actionsWarning = (repository: string): string =>
+  `[dry-run] GitHub Actions is not active. Enable workflows at ${actionsUrl(repository)} before running with --yes.`;
+
+/** The script's `--yes` failure while the fork's workflows are off (its exact words). */
+export const actionsFailure = (repository: string): string =>
+  `Setup failed: The Book app web workflow is not active. Open ${actionsUrl(repository)}, enable workflows for the fork, then rerun the setup script.`;
 
 /** The painted `Repository:` sign on the arm (two lines), after `event` (or the state alone). */
 export function signLines(
@@ -168,6 +191,8 @@ export function signLines(
       return ['Setup failed:', 'run it from the root of a cloned Git repository.'];
     case 'refused':
       return ['Refusing to change shared repository', event.repository];
+    case 'actions-off':
+      return ['Setup failed:', 'The Book app web workflow is not active.'];
     default:
       break;
   }
@@ -186,8 +211,14 @@ const planned = () => {
 /**
  * The terminal panel at the crane: what the setup script printed last, after `event` (or the
  * state alone). The arm sign carries the `Repository:` line; this is the whole readout.
+ * `actionsOn`: your fork's workflows are enabled (else its dry run carries the script's warning).
  */
-export function terminalLines(s: CraneState, event?: CraneEvent, yours: string = YOUR_REPOSITORY): string[] {
+export function terminalLines(
+  s: CraneState,
+  event?: CraneEvent,
+  yours: string = YOUR_REPOSITORY,
+  actionsOn = true,
+): string[] {
   const [a, b] = planned();
   if (s.complete)
     return [`${SETUP_COMMAND} --yes`, `Repository: ${yours}`, `Created ${a}`, `${b}.`, 'Setup complete.'];
@@ -201,6 +232,13 @@ export function terminalLines(s: CraneState, event?: CraneEvent, yours: string =
         'Refusing to change shared or',
         'upstream repository.',
       ];
+    case 'actions-off':
+      return [
+        `${SETUP_COMMAND} --yes`,
+        `Repository: ${event.repository}`,
+        'Default branch: main',
+        actionsFailure(event.repository),
+      ];
     default:
       break;
   }
@@ -210,6 +248,7 @@ export function terminalLines(s: CraneState, event?: CraneEvent, yours: string =
       `${SETUP_COMMAND} --dry-run`,
       `Repository: ${f.repository}`,
       'Default branch: main',
+      ...(f.owner === 'you' && !actionsOn ? [actionsWarning(f.repository)] : []),
       `[dry-run] would create ${a}`,
       `[dry-run] ${b}`,
       'Dry run complete. No changes were made.',
@@ -224,7 +263,10 @@ export function lineTone(line: string, yours: string = YOUR_REPOSITORY): LineTon
   const yourOwner = `${yours.split('/')[0]}/`;
   if (line.startsWith('$')) return 'cmd';
   if (line.endsWith(` ${yours}`) || line === yours || line === yourOwner) return 'you';
-  if (/^Repository: .+|^[\w-]+\/$/.test(line) || /^(Refusing|Setup failed|Run this)/.test(line))
+  if (
+    /^Repository: .+|^[\w-]+\/$/.test(line) ||
+    /^(Refusing|Setup failed|Run this|\[dry-run\] GitHub Actions is not active)/.test(line)
+  )
     return 'other';
   if (line === 'Setup complete.' || line.startsWith('Dry run complete.')) return 'ok';
   return undefined;

@@ -65,19 +65,40 @@ describe('Anchorage guidance', () => {
     expect(npcScript('dockhand_b', through('Q0.4'))).toBeNull();
   });
 
-  it('has Pim and Pol turn on workflows before the crane', () => {
+  it('has Pim and Pol send you to enable workflows (Suri’s gate lever) before the crane', () => {
     const steps = npcScript('pim', { ...through('Q0.4'), 'Q0.7': 'start' })!.steps;
     const workflows = steps.findIndex((s) => 'page' in s && s.page === 'pg.workflows');
-    const crane = steps.findIndex((s) => 'quest' in s && s.step === 'crane');
     expect(workflows).toBeGreaterThan(0);
-    expect(crane).toBeGreaterThan(workflows);
+    expect(steps.at(-1)).toEqual({ quest: 'Q0.7', step: 'actions' });
+    const actions = { ...through('Q0.4'), 'Q0.7': 'actions' };
+    expect(currentQuest(actions)).toMatchObject({ id: 'Q0.7', step: 'actions' });
+    expect(questTarget(actions)).toEqual({ ids: ['mill:lever'], label: 'Suri’s gate lever' });
+    expect(questTracker(actions).tasks.find((t) => t.id === 'Q0.7')!.detail).toMatch(/Actions tab/);
+    // Suri meets you at her gate; Pim and Pol point you back up to it.
+    expect(npcScript('suri', actions)!.steps).toEqual([{ say: 'suri.actions.01' }]);
+    expect(npcScript('pol', actions)!.steps).toEqual([{ say: 'pim.brief.03' }]);
+    // Lever pulled: on to the crane, and Suri sends you back there.
+    const crane = { ...through('Q0.4'), 'Q0.7': 'crane' };
+    expect(questTarget(crane)?.ids).toEqual(['crane:*']);
+    expect(npcScript('suri', crane)!.steps).toEqual([{ say: 'suri.actions.02' }]);
+    expect(npcScript('suri', through('Q0.3'))!.steps).toEqual([{ say: 'suri.idle.dry' }]);
   });
 
-  it('keeps the crane talk short: six lines to brief, three to close', () => {
+  it('keeps the crane talk short: six lines to brief, four to close (with what to do if the line’s wrong)', () => {
     const brief = npcScript('pim', { ...through('Q0.4'), 'Q0.7': 'start' })!.steps;
     expect(brief.filter((s) => 'say' in s)).toHaveLength(6);
     const solved = npcScript('pol', { ...through('Q0.4'), 'Q0.7': 'solved' })!.steps;
-    expect(solved.filter((s) => 'say' in s)).toHaveLength(3);
+    expect(solved.filter((s) => 'say' in s)).toHaveLength(4);
+    expect(solved).toContainEqual({ say: 'pim.solved.fork' });
+  });
+
+  it('has Suri show the practice checks once the crane’s done, one failing on purpose', () => {
+    const q = { ...through('Q0.7'), 'Q0.6': 'start' };
+    const brief = npcScript('suri', q)!.steps;
+    expect(brief.at(-1)).toEqual({ quest: 'Q0.6', step: 'sluice' });
+    const solved = npcScript('suri', { ...q, 'Q0.6': 'solved' })!.steps;
+    expect(solved).toContainEqual({ page: 'pg.checks', doubloons: 15 });
+    expect(solved.at(-1)).toEqual({ quest: 'Q0.6', step: 'done' });
   });
 
   it('asks for your fork at Ezra’s register, and again at the crane before its Actions link', () => {
@@ -97,7 +118,15 @@ describe('Anchorage guidance', () => {
         }
       ).lines.map((l) => l.id),
     );
-    for (const s of [...ezra, ...brief, ...POL_SOLVED]) {
+    const suri = ['start', 'solved'].flatMap(
+      (step) => npcScript('suri', { ...through('Q0.7'), 'Q0.6': step })!.steps,
+    );
+    const actions = [
+      ...npcScript('suri', { ...through('Q0.4'), 'Q0.7': 'actions' })!.steps,
+      ...npcScript('suri', { ...through('Q0.4'), 'Q0.7': 'crane' })!.steps,
+      { say: 'pol.refuse.actions.01' },
+    ];
+    for (const s of [...ezra, ...brief, ...POL_SOLVED, ...suri, ...actions]) {
       if ('say' in s) expect(voiced.has(s.say), s.say).toBe(true);
       if ('askFork' in s && s.line) expect(voiced.has(s.line), s.line).toBe(true);
     }
@@ -175,6 +204,25 @@ describe('older saves', () => {
     expect(afterCrane['Q0.6']).toBe('start');
     expect(migrated(through('Q0.8'))['Q0.10']).toBe('start');
     expect(migrated(through('Q0.10'))['Q0.11']).toBe('start');
+  });
+
+  it('sends a save waiting at the crane back to Suri’s gate lever if workflows are still off', () => {
+    const waiting: Record<string, string> = { ...through('Q0.4'), 'Q0.7': 'crane' };
+    const back: Record<string, string> = { ...waiting };
+    migrateQuests(waiting, (id, step) => (back[id] = step), { workflowsOn: false });
+    expect(back['Q0.7']).toBe('actions');
+    const on: Record<string, string> = { ...waiting };
+    migrateQuests(waiting, (id, step) => (on[id] = step), { workflowsOn: true });
+    expect(on).toEqual(waiting);
+    // No save to read (dev pages): leave it.
+    expect(migrated(waiting)).toEqual(waiting);
+    // Any other crane step stays, whatever the gate: a finished crane counts as workflows on.
+    for (const step of ['start', 'actions', 'solved', 'done']) {
+      const q: Record<string, string> = { ...through('Q0.4'), 'Q0.7': step };
+      const out: Record<string, string> = { ...q };
+      migrateQuests(q, (id, s) => (out[id] = s), { workflowsOn: false });
+      expect(out['Q0.7']).toBe(step);
+    }
   });
 
   it('leaves a current save alone', () => {

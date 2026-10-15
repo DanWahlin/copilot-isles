@@ -1,0 +1,122 @@
+{
+  "id": "mer.helm.wrong.plan.interactive",
+  "speaker": "Rhea",
+  "text": "Interactive would work it out with you, one mark at a time. Here the approach matters, so we want the whole route first.",
+  "words": [
+    {
+      "word": "Interactive",
+      "start": 0.0485409,
+      "end": 0.752416
+    },
+    {
+      "word": "would",
+      "start": 0.752416,
+      "end": 0.898041
+    },
+    {
+      "word": "work",
+      "start": 0.898041,
+      "end": 1.177166
+    },
+    {
+      "word": "it",
+      "start": 1.177166,
+      "end": 1.298541
+    },
+    {
+      "word": "out",
+      "start": 1.298541,
+      "end": 1.504875
+    },
+    {
+      "word": "with",
+      "start": 1.504875,
+      "end": 1.662625
+    },
+    {
+      "word": "you",
+      "start": 1.662625,
+      "end": 2.160208
+    },
+    {
+      "word": "one",
+      "start": 2.160208,
+      "end": 2.402916
+    },
+    {
+      "word": "mark",
+      "start": 2.402916,
+      "end": 2.694166
+    },
+    {
+      "word": "at",
+      "start": 2.694166,
+      "end": 2.803416
+    },
+    {
+      "word": "a",
+      "start": 2.803416,
+      "end": 2.864083
+    },
+    {
+      "word": "time",
+      "start": 2.864083,
+      "end": 4.186875
+    },
+    {
+      "word": "Here",
+      "start": 4.186875,
+      "end": 4.405333
+    },
+    {
+      "word": "the",
+      "start": 4.405333,
+      "end": 4.526708
+    },
+    {
+      "word": "approach",
+      "start": 4.526708,
+      "end": 4.915041
+    },
+    {
+      "word": "matters",
+      "start": 4.915041,
+      "end": 5.69175
+    },
+    {
+      "word": "so",
+      "start": 5.69175,
+      "end": 5.861666
+    },
+    {
+      "word": "we",
+      "start": 5.861666,
+      "end": 5.983
+    },
+    {
+      "word": "want",
+      "start": 5.983,
+      "end": 6.201458
+    },
+    {
+      "word": "the",
+      "start": 6.201458,
+      "end": 6.286416
+    },
+    {
+      "word": "whole",
+      "start": 6.286416,
+      "end": 6.6505
+    },
+    {
+      "word": "route",
+      "start": 6.6505,
+      "end": 6.917458
+    },
+    {
+      "word": "first",
+      "start": 6.917458,
+      "end": 7.167458
+    }
+  ]
+}

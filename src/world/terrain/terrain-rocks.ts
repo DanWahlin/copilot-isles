@@ -5,7 +5,7 @@ import { COVE } from '../layout';
 import { ROCK_ASSETS } from './rock-assets';
 import { createRockMaterial } from './terrain-material';
 import { createSeaStack, createSeaStackMaterial } from './sea-stack';
-import { createHeadlandCliff, headlandCliffCameraBlockers } from './headland-cliff';
+import { createHeadlandCliff, headlandCliffCameraBlockerSteps } from './headland-cliff';
 import { meshCameraBlockers, type CameraBlockerBox } from './camera-blockers';
 import { wreckToWorld } from '../islands/anchorage/wreck-pose';
 
@@ -246,16 +246,21 @@ function rockMatrix(r: RockInstance, heightField: HeightField, matrix: Matrix4):
 
 /**
  * Camera-only blockers for Anchorage Cay's boulders, the headland's cliff and the sea stack's foot
- * (the follow camera keeps out of them; walkers don't see them).
+ * (the follow camera keeps out of them; walkers don't see them). A generator that yields between
+ * pieces, so a session builds them in slices (`breathe()` between).
  */
-export function terrainRockCameraBlockers(heightField: HeightField, tier: Tier = 'high'): CameraBlockerBox[] {
+export function* terrainRockCameraBlockersSliced(
+  heightField: HeightField,
+  tier: Tier = 'high',
+): Generator<void, CameraBlockerBox[], void> {
   const out: CameraBlockerBox[] = [];
   const matrix = new Matrix4();
   for (const r of allRockInstances()) {
     if (Math.max(r.sx, r.sy, r.sz) < 0.9) continue;
     meshCameraBlockers(ROCK_ASSETS[r.asset].positions, rockMatrix(r, heightField, matrix), out);
   }
-  headlandCliffCameraBlockers(heightField, out, tier);
+  yield;
+  yield* headlandCliffCameraBlockerSteps(heightField, out, tier);
   return out;
 }
 

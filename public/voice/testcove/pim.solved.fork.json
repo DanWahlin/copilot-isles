@@ -1,0 +1,97 @@
+{
+  "id": "pim.solved.fork",
+  "speaker": "Pim",
+  "text": "If the Repository line ever isn’t yours, you probably added the original. Add your fork to Projects instead.",
+  "words": [
+    {
+      "word": "If",
+      "start": 0.044625,
+      "end": 0.167416
+    },
+    {
+      "word": "the",
+      "start": 0.167416,
+      "end": 0.279
+    },
+    {
+      "word": "Repository",
+      "start": 0.279,
+      "end": 0.837041
+    },
+    {
+      "word": "line",
+      "start": 0.837041,
+      "end": 1.138375
+    },
+    {
+      "word": "ever",
+      "start": 1.138375,
+      "end": 1.383916
+    },
+    {
+      "word": "isn’t",
+      "start": 1.383916,
+      "end": 1.618291
+    },
+    {
+      "word": "yours",
+      "start": 1.618291,
+      "end": 2.1875
+    },
+    {
+      "word": "you",
+      "start": 2.1875,
+      "end": 2.265625
+    },
+    {
+      "word": "probably",
+      "start": 2.265625,
+      "end": 2.756708
+    },
+    {
+      "word": "added",
+      "start": 2.756708,
+      "end": 3.024541
+    },
+    {
+      "word": "the",
+      "start": 3.024541,
+      "end": 3.0915
+    },
+    {
+      "word": "original",
+      "start": 3.0915,
+      "end": 4.352666
+    },
+    {
+      "word": "Add",
+      "start": 4.352666,
+      "end": 4.49775
+    },
+    {
+      "word": "your",
+      "start": 4.49775,
+      "end": 4.609375
+    },
+    {
+      "word": "fork",
+      "start": 4.609375,
+      "end": 4.921875
+    },
+    {
+      "word": "to",
+      "start": 4.921875,
+      "end": 4.977666
+    },
+    {
+      "word": "Projects",
+      "start": 4.977666,
+      "end": 5.43525
+    },
+    {
+      "word": "instead",
+      "start": 5.43525,
+      "end": 5.68525
+    }
+  ]
+}

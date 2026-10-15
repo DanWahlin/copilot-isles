@@ -119,7 +119,19 @@ export async function createTreeVillage(
   out.colliders.push(...flume.colliders);
   group.add(flume.group);
   await breathe();
-  for (const l of out.lanterns) lantern(buckets, l);
+  for (const l of out.lanterns) {
+    lantern(buckets, l);
+    // The camera keeps out of it too (they hang at head height beside the walks and on the rails).
+    out.cameraBoxes.push({
+      x: l.x,
+      z: l.z,
+      hx: 0.19,
+      hz: 0.19,
+      rot: 0.4,
+      y0: l.y - 0.2,
+      y1: l.y + (l.hang ? 0.46 : 0.32),
+    });
+  }
   await meshesFromBuckets(buckets, o.kit, o.tier, 'tb-village', group, breathe);
   if (wharf !== buckets) await meshesFromBuckets(wharf, o.kit, o.tier, 'tb-wharf', group, breathe, false);
   await breathe();

@@ -1,4 +1,5 @@
 import type { ChannelRoutingState, Crew, Flow, Tile } from './types';
+import type { Workspace } from './workspaces';
 
 /**
  * What the Channel Routing overlay (src/ui/puzzles/ChannelRouting.tsx) shows and what it can do.
@@ -31,6 +32,12 @@ export interface ChannelRoutingView {
   card: { kicker: string; title: string; text: string } | null;
   /** Screen-space hit areas over the 3D tiles (CSS px), when the puzzle camera shows them. */
   hits: readonly ({ x: number; y: number; size: number } | null)[] | null;
+  /** Round 3: where each crew works (null until picked). */
+  picks: Readonly<Record<Crew, Workspace | null>>;
+  /** Round 3: the crew the keys and the pad are on (0-2, gate order). */
+  crewFocus: number;
+  /** Round 3: after a run, whether each crew's place suits its order, and why not. */
+  verdicts: Readonly<Record<Crew, { right: boolean; text: string }>> | null;
 }
 
 export interface ChannelRoutingActions {
@@ -43,6 +50,10 @@ export interface ChannelRoutingActions {
   hint(): void;
   leave(): void;
   choose(id: string): void;
+  /** Round 3: where a crew works. */
+  pick(crew: Crew, w: Workspace): void;
+  /** Round 3: moves the keys' crew (or sets it, with `to`). */
+  focusCrew(d: number, to?: number): void;
 }
 
 export interface ChannelRoutingStore {

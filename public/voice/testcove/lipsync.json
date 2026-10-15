@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-14T23:36:57.458Z",
+  "generatedAt": "2026-10-15T17:25:40.558Z",
   "generator": "Rhubarb Lip Sync 1.14.0",
   "scope": "Every voiced islander (not Wingman)",
   "lines": {
@@ -22,47 +22,49 @@
       "v": "XBCBEACBCFGFBFCBFECBDBXBXBCBACACEFGBADCABAFBEBX"
     },
     "suri.idle.dry": {
-      "h": "613888c3136f212c",
+      "h": "dccda54a48e5346e",
       "e": "concerned",
       "t": [
-        0, 1, 8, 35, 7, 21, 28, 8, 6, 27, 19, 19, 8, 13, 7, 7, 7, 28, 7, 14, 28, 14, 10, 37, 7, 21, 9, 18, 16
+        0, 1, 5, 29, 7, 7, 28, 28, 8, 5, 25, 35, 12, 9, 8, 8, 8, 30, 14, 7, 14, 14, 35, 7, 21, 7, 16, 4, 25,
+        21, 7, 11, 19
       ],
-      "v": "XABCBCABCBCACBFCFGECBABCBABX"
+      "v": "XABFCBCABCBABABAEBCBCBCFCAFBCBAX"
     },
     "suri.brief.01": {
-      "h": "8d4bcf64c6e869f2",
+      "h": "36b831dd4fade5ca",
       "e": "neutral",
       "t": [
-        0, 3, 12, 7, 21, 8, 5, 18, 21, 21, 7, 14, 7, 14, 36, 32, 7, 7, 21, 14, 38, 5, 19, 10, 6, 8, 28, 16
+        0, 3, 15, 14, 7, 14, 14, 21, 10, 7, 6, 14, 8, 12, 28, 14, 21, 35, 8, 6, 26, 22, 7, 20, 7, 7, 28, 14,
+        21, 28, 18
       ],
-      "v": "XFBCABCBFGECBXBCBHCBCBABABX"
+      "v": "XFGFBDBABCBAFBCBCABCBHBFDBCBCX"
     },
     "suri.brief.02": {
-      "h": "1596c596fa48d37c",
+      "h": "5497fedfa269d922",
       "e": "neutral",
       "t": [
-        0, 3, 10, 6, 6, 8, 28, 7, 7, 21, 21, 14, 7, 7, 7, 7, 7, 14, 7, 14, 14, 14, 14, 7, 7, 21, 14, 14, 7,
-        21, 19, 34, 9, 4, 4, 8, 32, 7, 14, 14, 7, 7, 28, 21, 18
+        0, 3, 12, 7, 14, 7, 7, 7, 7, 7, 25, 7, 33, 14, 12, 7, 13, 14, 7, 14, 8, 5, 26, 14, 14, 7, 7, 7, 14,
+        14, 27, 8, 7, 6, 8, 44, 7, 7, 28, 14, 16
       ],
-      "v": "ABABAEHCFEDCFECGEFBFGECBCBCBCAXACBABEFBCBCBX"
+      "v": "XBFECGEFBDCBCABCBEBACBCBDCBCAXACBABFBDEX"
     },
     "suri.brief.05": {
-      "h": "573847c8ba153cb9",
+      "h": "903712c0736d03fa",
       "e": "neutral",
       "t": [
-        0, 3, 42, 21, 7, 14, 7, 14, 14, 14, 7, 21, 19, 24, 12, 19, 7, 7, 14, 7, 21, 16, 6, 5, 7, 21, 14, 14,
-        14, 70, 7, 35, 8, 58, 8, 7, 6, 7, 28, 15
+        0, 5, 12, 14, 14, 21, 97, 13, 54, 21, 7, 21, 8, 34, 14, 19, 25, 7, 7, 7, 7, 21, 28, 8, 18, 7, 7, 7, 7,
+        14, 7, 59, 8, 4, 4, 14, 14, 14, 21, 28, 28, 28, 17
       ],
-      "v": "XBCBFBCBCBCAXAFCHCGECBCBECBCBCBABACBFBX"
+      "v": "BECBCBEBFBEACBXBCFEBEBAEFBCBHCBACBFBHCBCBX"
     },
     "suri.sluice.01": {
-      "h": "b9724b918c517c34",
+      "h": "654f98bc4e1a4424",
       "e": "neutral",
       "t": [
-        0, 3, 12, 7, 7, 7, 14, 21, 35, 14, 21, 14, 14, 21, 14, 14, 41, 11, 7, 14, 7, 7, 7, 28, 7, 8, 11, 8,
-        43, 18
+        0, 3, 5, 5, 7, 21, 7, 7, 14, 7, 8, 10, 8, 41, 23, 6, 18, 5, 18, 21, 8, 19, 7, 14, 7, 7, 7, 51, 8, 5,
+        5, 14, 40, 9, 7, 7, 14, 28, 21, 13
       ],
-      "v": "XHCGEGEBCECBCHBXGDEFBFEBABABX"
+      "v": "XGDEFEBEBABABXBCEFBAEBCBHCBACBFBCBCBCBX"
     },
     "suri.done.01": {
       "h": "22592b7feb4ef506",
@@ -71,19 +73,22 @@
       "v": "XBFBXFABCBCBCBCDECGCBX"
     },
     "suri.solved.01": {
-      "h": "2ec174fa093c6ae1",
-      "e": "neutral",
-      "t": [0, 3, 7, 7, 21, 30, 8, 10, 48, 7, 14, 21, 14, 14, 14, 14, 7, 35, 7, 19],
-      "v": "XBCBXBABCBCBDFGECEX"
-    },
-    "suri.solved.02": {
-      "h": "b76001a989736f24",
+      "h": "e4a2077ffd66abeb",
       "e": "happy",
       "t": [
-        0, 3, 4, 4, 7, 14, 7, 7, 8, 6, 12, 28, 7, 7, 14, 7, 21, 21, 12, 17, 7, 21, 14, 8, 6, 6, 7, 8, 27, 49,
-        7, 7, 7, 7, 14, 21, 8, 4, 25, 16
+        0, 3, 5, 18, 35, 7, 13, 7, 7, 7, 7, 14, 7, 35, 7, 28, 14, 11, 6, 12, 14, 10, 49, 21, 21, 45, 20, 7,
+        14, 28, 21, 56, 6, 6, 14, 14, 14, 7, 21, 7, 8, 10, 8, 19, 21, 16
       ],
-      "v": "XHCBEBCABEFBEFBCBXBCBCAFCBACBGCBFBCABCX"
+      "v": "XBCBFBFECGEBDCBCABCBABCBXBCBCBXBCBCGCBDAEACBX"
+    },
+    "suri.solved.02": {
+      "h": "cac0299685622ece",
+      "e": "happy",
+      "t": [
+        0, 3, 6, 6, 14, 10, 6, 5, 67, 6, 6, 7, 8, 20, 21, 14, 7, 7, 58, 19, 7, 42, 7, 7, 7, 14, 14, 7, 11, 6,
+        26, 49, 6, 13, 7, 7, 14, 21, 8, 5, 25, 17
+      ],
+      "v": "XBCBABCBCDCAECBCBAFGBCHCEBCABEXGCBFBCABCX"
     },
     "pim.idle.ready": {
       "h": "97473fb7cfd0a79a",
@@ -187,13 +192,13 @@
       "v": "XBCBADBEBHCBCBAFGECBXEBCBCBX"
     },
     "pim.brief.03": {
-      "h": "12f1ecaf368ffe36",
+      "h": "6429153393c96e95",
       "e": "neutral",
       "t": [
-        0, 8, 18, 8, 25, 14, 7, 42, 5, 5, 8, 10, 21, 7, 14, 32, 10, 21, 7, 14, 21, 14, 44, 7, 21, 16, 8, 56,
-        14, 75
+        0, 7, 7, 6, 7, 8, 54, 7, 34, 7, 14, 21, 71, 12, 14, 7, 14, 28, 7, 14, 21, 7, 7, 8, 27, 22, 4, 11, 7,
+        8, 8, 21, 7, 7, 7, 14, 21, 23, 19, 7, 14, 21, 19, 10, 17, 31, 14, 75
       ],
-      "v": "XBADBCBCBADBEBAFBCBCXBCBXBCBX"
+      "v": "XBCBABCBGEBXAFBCBGEBFBABXBCBADBCBCFBABCBCBCBCBX"
     },
     "pol.brief.actions": {
       "h": "10baedf8e90bc535",
@@ -396,22 +401,24 @@
       "v": "XCBCEFEHBXEACGFBCDCBGFACBCBABEACAXCEBCAXBCHCBAHCBXBCBEACHX"
     },
     "bo.gear.brief.02": {
-      "h": "fa0f5892ce17884a",
+      "h": "7a0a96ed731c1df7",
       "e": "neutral",
       "t": [
-        0, 10, 8, 15, 42, 7, 7, 76, 10, 14, 7, 7, 14, 14, 14, 7, 14, 35, 7, 14, 7, 7, 9, 6, 19, 7, 21, 58, 13,
-        21, 8, 23, 7, 14, 7, 14, 28, 9, 19, 16
+        0, 1, 7, 6, 8, 14, 35, 7, 7, 44, 7, 14, 7, 7, 7, 7, 14, 14, 7, 7, 35, 7, 14, 7, 7, 9, 4, 18, 14, 14,
+        48, 13, 21, 8, 22, 7, 7, 14, 35, 10, 19, 51, 5, 5, 14, 7, 46, 8, 12, 14, 14, 14, 14, 8, 10, 7, 21, 7,
+        28, 7, 7, 7, 14, 14, 7, 7, 7, 7, 14, 21, 8, 18, 28, 16
       ],
-      "v": "BACBCBXBDBFBGEGEBCBECACBCBXBFABCGEBCAEX"
+      "v": "XBAEFBCBXBDBFBCGEGEBCBECACBCBXBFABCGEBAEXGBCEBACBGECAEFBCBCBGEBCECBCEACBX"
     },
     "bo.gear.brief.03": {
-      "h": "f816ec43e1335d08",
+      "h": "43da6504dc911eea",
       "e": "concerned",
       "t": [
-        0, 3, 5, 4, 14, 14, 7, 7, 21, 9, 17, 14, 7, 14, 14, 7, 7, 7, 14, 12, 23, 21, 14, 7, 14, 7, 49, 19, 6,
-        13, 35, 7, 14, 42, 17
+        0, 3, 6, 6, 14, 8, 11, 14, 8, 33, 21, 22, 21, 14, 7, 14, 27, 8, 21, 44, 11, 7, 7, 7, 7, 7, 7, 14, 7,
+        14, 8, 16, 14, 14, 7, 14, 42, 21, 7, 7, 21, 7, 21, 6, 6, 8, 21, 7, 7, 7, 28, 25, 5, 11, 7, 14, 14, 7,
+        14, 42, 12
       ],
-      "v": "XBGFCBCBADCDBGCECBXBEBCBCFXBCBCBCX"
+      "v": "XBCBACBABXBEBCBFEHXBGCEBCGEBCAEBEFEBEBCEBEABAEBGEBXBCBCBCBCX"
     },
     "bo.gear.checked.02": {
       "h": "888d52e90d8f3360",
@@ -999,13 +1006,13 @@
       "v": "XEACFBCBCBCBABDABEBACBXFBAFCABCABGCBACBGCBX"
     },
     "mer.anders.crates": {
-      "h": "bbac2594e27d91fe",
+      "h": "ae82ab809409be6b",
       "e": "neutral",
       "t": [
-        0, 12, 24, 10, 13, 9, 21, 7, 21, 7, 28, 11, 39, 101, 9, 7, 7, 14, 35, 7, 7, 7, 7, 7, 21, 7, 8, 17, 40,
-        15, 7, 13, 7, 14, 7, 28, 14, 21, 16, 4, 8, 21, 35, 90
+        0, 12, 24, 10, 13, 9, 21, 7, 21, 7, 28, 11, 40, 101, 7, 7, 14, 21, 7, 7, 7, 14, 21, 7, 8, 19, 35, 100,
+        7, 69, 7, 7, 7, 8, 19, 14, 7, 7, 28, 7, 7, 7, 7, 28, 13, 4, 4, 8, 16, 7, 35, 89
       ],
-      "v": "XCEACBCBDEABXBCBFEFBECBCBAHBADBCBFECBAFAHBX"
+      "v": "XCEACBCBDEABXBCBEFECBCBAHBXCBCEBADBEBEFBECBAFCAHCBX"
     },
     "mer.anders.crates.wait": {
       "h": "606efa65dd4dcb50",
@@ -1017,10 +1024,13 @@
       "v": "XAFBEFBAHBCABCXBGACBCBDBCDBEFGEX"
     },
     "mer.anders.solved": {
-      "h": "6b623ccc369af027",
+      "h": "f454f93cf0c3d2a1",
       "e": "neutral",
-      "t": [0, 11, 7, 7, 35, 7, 28, 8, 17, 7, 28, 101, 5, 39, 7, 14, 7, 42, 8, 12, 7, 14, 21, 89],
-      "v": "XCGBCBAHCBXFCHBCBACBEAX"
+      "t": [
+        0, 11, 8, 7, 70, 8, 16, 7, 28, 100, 12, 7, 14, 42, 27, 10, 14, 7, 7, 14, 7, 14, 7, 21, 7, 32, 11, 56,
+        7, 7, 8, 20, 7, 7, 14, 14, 19, 6, 5, 7, 14, 13, 7, 6, 7, 7, 14, 14, 7, 14, 96
+      ],
+      "v": "XCGBAHCBXBGBFXBCBCBCBCGCBABEBADCBEBXBEFBABDBCBCBCX"
     },
     "mer.anders.next": {
       "h": "289f41db77e1836c",
@@ -1029,13 +1039,13 @@
       "v": "XBACEBAEBDBAXBCEFBCBX"
     },
     "mer.anders.done": {
-      "h": "39acb257fefb8c4c",
+      "h": "5c378f83ceeede38",
       "e": "happy",
       "t": [
-        0, 6, 10, 7, 21, 28, 7, 14, 7, 21, 21, 6, 6, 13, 25, 12, 6, 6, 7, 7, 21, 7, 14, 14, 90, 24, 7, 7, 21,
-        14, 90
+        0, 5, 9, 7, 21, 35, 7, 7, 7, 28, 100, 7, 62, 21, 7, 8, 19, 14, 14, 24, 18, 7, 11, 6, 6, 7, 7, 21, 7,
+        28, 91, 25, 7, 7, 21, 14, 90
       ],
-      "v": "XBFBFCBCBXBDAFABDBCBCBCXFBFECX"
+      "v": "XBFBFCBCBXCBFBADBEBFCABDBCBCBXFBFECX"
     },
     "mer.rhea.wait": {
       "h": "a49112165eb223de",
@@ -1071,18 +1081,22 @@
       "v": "XBCBDBCACBFECHDCBXBABCFCBFBCBXHCBCBEBX"
     },
     "mer.rhea.helms": {
-      "h": "aba3f2f509c5e232",
-      "e": "neutral",
-      "t": [0, 1, 8, 7, 21, 28, 22, 87, 17, 8, 13, 7, 7, 28, 8, 22, 28, 14, 7, 8, 13, 14, 14, 21, 86],
-      "v": "XAEFBAXBAFBCBACBCHAFBCBX"
-    },
-    "mer.rhea.helms.wait": {
-      "h": "43eb0fb8ba4e39f0",
+      "h": "7fbbe3a917c32013",
       "e": "neutral",
       "t": [
-        0, 8, 44, 14, 7, 8, 9, 7, 35, 8, 20, 29, 20, 9, 7, 27, 77, 12, 12, 21, 21, 8, 10, 28, 7, 21, 7, 13, 80
+        0, 1, 8, 7, 21, 28, 22, 88, 5, 26, 8, 14, 21, 8, 26, 14, 26, 6, 13, 7, 28, 14, 7, 7, 21, 21, 7, 7, 8,
+        32, 21, 7, 8, 4, 4, 7, 14, 35, 82
       ],
-      "v": "XBCHABDBACBCABCXAEFBACBCBCAX"
+      "v": "XAEFBAXCBAEBACBXBHCFCEBEBCBABCHABCBGBX"
+    },
+    "mer.rhea.helms.wait": {
+      "h": "2d0ecba92e439837",
+      "e": "neutral",
+      "t": [
+        0, 7, 8, 7, 6, 7, 28, 14, 7, 7, 14, 14, 7, 8, 11, 45, 17, 8, 7, 28, 77, 12, 11, 21, 21, 8, 10, 28, 7,
+        7, 14, 28, 82
+      ],
+      "v": "XACBEBCFCBCBACBCABCXAEFBACBCHCBX"
     },
     "mer.rhea.solved": {
       "h": "d0718cbddb89ebda",
@@ -1239,24 +1253,6 @@
       ],
       "v": "XBXBHCBCBADBABGBCBADBXBCBCBEHCBXCBACBEBGCBFCX"
     },
-    "mer.pell.02": {
-      "h": "742a4d0aad2b8da3",
-      "e": "neutral",
-      "t": [
-        0, 8, 12, 21, 7, 21, 8, 4, 11, 28, 12, 11, 14, 28, 7, 63, 89, 21, 7, 14, 7, 7, 28, 7, 28, 7, 7, 21, 8,
-        26, 7, 7, 14, 84
-      ],
-      "v": "XBCHCABCBXBEBCBXCEBHBFBCBECACECBX"
-    },
-    "mer.pell.03": {
-      "h": "382fd7ac7cee050b",
-      "e": "neutral",
-      "t": [
-        0, 10, 7, 6, 14, 7, 28, 28, 8, 8, 77, 7, 51, 7, 13, 8, 17, 14, 19, 5, 21, 7, 6, 7, 14, 7, 6, 42, 7,
-        14, 21, 14, 80
-      ],
-      "v": "XBCBCBFACBCBCBADBDCBCBCAFCBCBCBX"
-    },
     "mer.pell.04": {
       "h": "2315b5b17f7220ba",
       "e": "neutral",
@@ -1346,58 +1342,61 @@
       "v": "XGCBFBCABCXAEBCBABCGFX"
     },
     "mer.helm.interactive.take": {
-      "h": "759b84b1af9e05bc",
+      "h": "93385fb460526b24",
       "e": "neutral",
       "t": [
-        0, 7, 16, 21, 28, 7, 21, 7, 14, 90, 28, 7, 14, 7, 14, 14, 35, 21, 7, 34, 6, 6, 21, 14, 7, 7, 7, 14, 7,
-        14, 14, 7, 8, 18, 7, 14, 81
+        0, 8, 15, 21, 7, 21, 7, 21, 7, 14, 91, 7, 21, 35, 7, 28, 7, 14, 17, 7, 14, 13, 9, 14, 14, 23, 87, 7,
+        34, 8, 15, 46, 45, 5, 18, 35, 80
       ],
-      "v": "XBEBGCHAXBCBFCHBDBABCBCBFBFBCGBADCBX"
+      "v": "XBECBGCHAXBHCBCBECBCACBCAXCBADBFECBX"
     },
     "mer.helm.interactive.check": {
-      "h": "c9faa45623bda445",
+      "h": "c75eaf6e59550475",
       "e": "neutral",
-      "t": [0, 7, 8, 8, 63, 88, 8, 7, 7, 7, 21, 7, 21, 21, 14, 7, 21, 7, 81],
-      "v": "XADBXBCHFBCBCBHCBX"
+      "t": [0, 9, 14, 63, 90, 7, 13, 7, 35, 44, 21, 9, 5, 32, 82],
+      "v": "XDBXFBFCBCABCX"
     },
     "mer.helm.interactive.done": {
-      "h": "469a2bee6203b0a9",
-      "e": "neutral",
-      "t": [0, 9, 5, 5, 28, 21, 7, 28, 14, 90, 22, 7, 14, 7, 7, 14, 7, 7, 14, 7, 21, 14, 23, 80],
-      "v": "XBCBECBGXFEBGDHCBCGBCAX"
-    },
-    "mer.helm.next.plan": {
-      "h": "49cdece47dac43f8",
-      "e": "neutral",
-      "t": [0, 7, 20, 28, 16, 7, 7, 14, 14, 8, 17, 21, 86, 17, 7, 7, 21, 7, 28, 7, 14, 14, 83],
-      "v": "XCBXBAHCAFBXFBGBEBGCBX"
-    },
-    "mer.helm.plan.take": {
-      "h": "1ecb86e5811182d0",
+      "h": "4647aab9d411e997",
       "e": "neutral",
       "t": [
-        0, 1, 7, 13, 35, 14, 12, 92, 34, 7, 14, 7, 14, 21, 7, 35, 90, 6, 20, 14, 8, 22, 25, 14, 8, 24, 7, 28,
-        80
+        0, 10, 39, 21, 35, 14, 91, 4, 18, 7, 14, 7, 14, 7, 35, 29, 9, 7, 7, 14, 7, 21, 14, 13, 9, 14, 14, 24,
+        87, 12, 7, 7, 26, 5, 18, 14, 28, 42, 14, 14, 14, 90, 19, 30, 4, 8, 8, 18, 21, 33, 7, 21, 21, 28, 79
       ],
-      "v": "XAHCHAXBCFBCBDBXFBCACBCAFGBX"
+      "v": "XBEBGXCEBCGBCBXBFBHCBCACBCAXBCBCEFBFBGCBXBFABABCBCBCBX"
+    },
+    "mer.helm.next.plan": {
+      "h": "9dbecf580b4f659d",
+      "e": "neutral",
+      "t": [0, 7, 17, 14, 7, 7, 7, 7, 28, 8, 24, 7, 7, 28, 7, 28, 7, 14, 7, 89],
+      "v": "XCBEFBCBAEBFBEBHCBX"
+    },
+    "mer.helm.plan.take": {
+      "h": "80fac2ca2c71e795",
+      "e": "neutral",
+      "t": [0, 1, 8, 11, 42, 7, 17, 88, 34, 7, 14, 7, 14, 21, 7, 35, 91, 28, 8, 13, 7, 7, 70, 81],
+      "v": "XAHCHAXBCFBCBDBXBABGEFX"
     },
     "mer.helm.plan.go": {
-      "h": "84f73d98df7d6775",
+      "h": "cf8ef79dc26d5ac6",
       "e": "neutral",
-      "t": [0, 1, 8, 11, 14, 8, 24, 28, 89, 20, 7, 28, 7, 56, 7, 7, 35, 87],
-      "v": "XAHCACBXCEBCBCBFX"
+      "t": [0, 5, 18, 36, 98, 15, 7, 28, 7, 21, 8, 17, 7, 28, 14, 8, 14, 35, 19, 22, 7, 7, 42, 83],
+      "v": "XABXCEBCBAHCBEACBXBCBFX"
     },
     "mer.helm.plan.done": {
-      "h": "fd6bde6cb7d54759",
+      "h": "06d92687b7419044",
       "e": "neutral",
-      "t": [0, 7, 18, 8, 11, 35, 92, 15, 7, 14, 7, 21, 35, 8, 11, 14, 14, 7, 42, 14, 28, 82],
-      "v": "XBAHCXFBECEFABGBCBCBX"
+      "t": [
+        0, 7, 18, 8, 10, 35, 90, 17, 21, 7, 7, 7, 40, 29, 28, 7, 21, 26, 15, 7, 28, 8, 8, 14, 7, 7, 7, 35, 8,
+        18, 7, 14, 83
+      ],
+      "v": "XBAHCXFBCBCBFBEFXBGBABGEBCBAFGBX"
     },
     "mer.helm.next.autopilot": {
-      "h": "09f5415be67aff65",
+      "h": "d9abe1f8237d2500",
       "e": "neutral",
-      "t": [0, 8, 12, 7, 14, 7, 28, 27, 18, 14, 8, 17, 14, 8, 14, 70, 14, 21, 7, 82],
-      "v": "XHCBFCXBEACBAFBGCBX"
+      "t": [0, 8, 6, 13, 7, 14, 49, 8, 17, 14, 7, 49, 14, 21, 7, 83],
+      "v": "XHCBEBAEBFBGCBX"
     },
     "mer.helm.autopilot.take": {
       "h": "3e30ce02d36af0da",
@@ -1813,23 +1812,14 @@
       ],
       "v": "XBFBXBCHBFECBABCBFBADBEBFBCFEBGEBXBCBCXB"
     },
-    "tb.fen.rain": {
-      "h": "064904e9dca0232b",
-      "e": "happy",
-      "t": [
-        0, 7, 6, 6, 21, 28, 7, 7, 7, 7, 14, 8, 18, 7, 8, 15, 7, 14, 42, 64, 21, 14, 42, 15, 24, 10, 9, 4, 28,
-        28, 14, 7, 7, 49, 15, 21, 14, 31, 15, 14, 14, 7
-      ],
-      "v": "XDCBCBCBCBAEBAEFBCXFCBXBAFEHBCGBFXBEFBCBX"
-    },
     "tb.fen.round3": {
-      "h": "7c455b697f10e41e",
+      "h": "b78f68a243b4dc51",
       "e": "neutral",
       "t": [
-        0, 3, 15, 21, 8, 35, 28, 7, 21, 8, 9, 7, 7, 27, 6, 6, 21, 21, 48, 10, 14, 56, 21, 28, 8, 17, 14, 7,
-        21, 21, 14, 7, 7, 14, 9, 57, 7, 42, 8
+        0, 6, 11, 7, 14, 35, 14, 7, 21, 14, 7, 14, 14, 42, 52, 6, 6, 7, 7, 56, 7, 14, 8, 40, 39, 7, 21, 7, 7,
+        14, 14, 14, 12
       ],
-      "v": "XCBABCBCAEFBECBEHXBCBCBACBCBCFBCBABCBX"
+      "v": "XCGBFBCBEBEGBXBCBEBCBABCBCBCHBCX"
     },
     "tb.fen.twist.01": {
       "h": "415bb9d01b94f52f",
@@ -1950,31 +1940,28 @@
       "v": "ABAEHCBACEBGFBDBCBHCBEGBAEX"
     },
     "tb.ines.order.1": {
-      "h": "7c17f6fd80ba33a3",
+      "h": "6d46c66d6901bcf3",
       "e": "neutral",
-      "t": [
-        0, 1, 4, 14, 14, 14, 7, 21, 32, 12, 24, 7, 14, 7, 21, 49, 17, 7, 8, 17, 14, 23, 8, 10, 10, 8, 23, 10,
-        7, 45, 15, 14, 7, 28
-      ],
-      "v": "XACBEBECABGEBEXBCACHBAFBCAFCAGEFB"
+      "t": [0, 3, 8, 16, 7, 21, 21, 57, 24, 8, 15, 49, 8, 6, 20, 15, 13, 21, 7, 7, 7, 7, 7, 21, 8],
+      "v": "XACBEFXEACBAFCABEBGEFBEX"
     },
     "tb.ines.order.2": {
-      "h": "ddda3dc0deae7b98",
+      "h": "b89f1182469e0a2b",
       "e": "neutral",
-      "t": [0, 9, 23, 38, 9, 69, 21, 7, 7, 14, 21, 14, 16],
-      "v": "XCBABFBFCHGX"
+      "t": [0, 4, 15, 77, 14, 7, 21, 8, 15, 7, 7, 7, 7, 7, 14, 14, 14, 7, 14, 35, 18],
+      "v": "XCBCBCACGFBHCBCBFECX"
     },
     "tb.ines.order.3": {
-      "h": "e9e129c94fc69cd2",
+      "h": "767ed624cb782801",
       "e": "neutral",
-      "t": [0, 3, 7, 21, 14, 21, 66, 35, 18, 7],
-      "v": "XCDECBCAX"
+      "t": [0, 3, 7, 20, 23, 4, 4, 21, 14, 8, 7, 14, 8, 20, 7, 7, 8, 7, 27, 7, 8, 32, 14, 42],
+      "v": "XCDECBCBACBAEBCACBCABCB"
     },
     "tb.ines.order.4": {
-      "h": "9449a2fd4a63ad77",
+      "h": "ee4a97731afde272",
       "e": "neutral",
-      "t": [0, 5, 10, 7, 21, 7, 21, 62, 12, 7, 28, 28, 7, 42, 14, 7, 21, 21],
-      "v": "XHCBFCXAEBCBFCBCX"
+      "t": [0, 8, 22, 21, 51, 55, 7, 35, 7, 7, 28, 7, 14, 7, 14, 13],
+      "v": "XCBXFBFBCBGCEBX"
     },
     "tb.ines.flag.ok": {
       "h": "f4fda8df5f40b897",
@@ -2240,6 +2227,307 @@
         7, 21, 14, 12
       ],
       "v": "XGEBXBCBACBCBECBEFDCAECEFBABCEBX"
+    },
+    "mer.pell.letters": {
+      "h": "e152535a3cedbc89",
+      "e": "neutral",
+      "t": [0, 5, 8, 8, 39, 21, 8, 9, 7, 14, 35, 7, 7, 7, 28, 7, 42, 14, 28, 7, 28, 7, 21, 7, 28, 14, 7, 83],
+      "v": "XCABFABFBCBGCBCBCBHBCECBCBX"
+    },
+    "mer.pell.letters.02": {
+      "h": "58ae22d5faad3780",
+      "e": "neutral",
+      "t": [
+        0, 8, 10, 14, 35, 7, 14, 21, 14, 21, 7, 14, 21, 7, 21, 7, 14, 7, 63, 90, 6, 6, 14, 7, 56, 14, 21, 7,
+        13, 5, 18, 21, 24, 4, 18, 7, 8, 8, 28, 8, 6, 26, 14, 7, 83
+      ],
+      "v": "XGCBFCBCEFGBCBCBGBXBGFCBCBDABEHXBEFACBACBCBX"
+    },
+    "mer.pell.letters.wait": {
+      "h": "c4d9782b966041cd",
+      "e": "neutral",
+      "t": [0, 10, 6, 12, 21, 14, 7, 7, 8, 6, 5, 21, 31, 14, 8, 5, 26, 16, 25, 14, 28, 7, 7, 14, 81],
+      "v": "XBHBDECACBCBCABCXBCEFGBX"
+    },
+    "mer.pell.letter.ok": {
+      "h": "6dff0ade6d41e0ff",
+      "e": "happy",
+      "t": [0, 11, 14, 14, 28, 90, 9, 14, 7, 28, 28, 80],
+      "v": "XGCBXDFBCBX"
+    },
+    "mer.pell.letter.customize": {
+      "h": "9f2b762c8e98b48a",
+      "e": "neutral",
+      "t": [
+        0, 10, 10, 21, 28, 7, 7, 17, 11, 8, 16, 7, 28, 14, 14, 92, 10, 8, 5, 25, 7, 8, 16, 8, 35, 7, 35, 21,
+        14, 8, 6, 12, 7, 28, 22, 28, 7, 7, 8, 16, 14, 81
+      ],
+      "v": "XBCEFGXBAEBFDCXFACBCABABCBCBACBGFXBCBADBX"
+    },
+    "mer.pell.letter.decoy": {
+      "h": "b9e2c2a51925d5e1",
+      "e": "neutral",
+      "t": [
+        0, 5, 7, 14, 21, 7, 21, 23, 22, 7, 28, 7, 28, 87, 8, 8, 25, 7, 9, 7, 14, 7, 21, 14, 28, 8, 5, 5, 21,
+        7, 21, 14, 18, 22, 8, 8, 11, 5, 5, 3, 8, 8, 17, 4, 26, 80
+      ],
+      "v": "XBFBCBXBDBCBXFABCADCHCGBADBCBEFXBABABDABADCBX"
+    },
+    "mer.pell.letters.solved": {
+      "h": "da65a8ebf771d24d",
+      "e": "happy",
+      "t": [
+        0, 9, 8, 7, 14, 7, 7, 14, 21, 8, 17, 7, 28, 91, 22, 7, 21, 7, 14, 8, 6, 5, 14, 35, 21, 21, 7, 63, 19,
+        26, 7, 7, 9, 27, 7, 21, 7, 19, 81
+      ],
+      "v": "XCGBHBEBAHCBXBCEFBACBEBCBCBXBCBAECBCAX"
+    },
+    "mer.pell.letters.debrief": {
+      "h": "4440281cdeb02904",
+      "e": "neutral",
+      "t": [
+        0, 9, 6, 5, 7, 7, 7, 7, 42, 8, 13, 14, 8, 5, 5, 21, 7, 7, 8, 14, 14, 23, 15, 14, 35, 14, 7, 7, 7, 7,
+        7, 7, 7, 14, 81, 15, 4, 4, 63, 7, 7, 14, 27, 4, 25, 13, 19, 7, 14, 7, 14, 63, 81
+      ],
+      "v": "XBCHCBCBADBABGBCBADBXBCBCECBCHCGBXABDBCGFBFBABCBEFBX"
+    },
+    "mer.pell.letters.again": {
+      "h": "32b061f3b422ea3c",
+      "e": "neutral",
+      "t": [
+        0, 7, 12, 14, 8, 14, 7, 7, 7, 7, 7, 14, 7, 14, 21, 14, 7, 8, 37, 11, 8, 5, 26, 92, 7, 6, 7, 10, 4, 8,
+        5, 5, 21, 21, 21, 6, 5, 7, 7, 7, 7, 21, 14, 21, 7, 10, 82
+      ],
+      "v": "XCFACBCHCGEBHBCBABCABCXBCBDCACBCBXBGFBHCFGBCAX"
+    },
+    "suri.actions.01": {
+      "h": "d2d9f6759000d1b4",
+      "e": "neutral",
+      "t": [
+        0, 1, 4, 4, 8, 11, 7, 52, 8, 11, 7, 7, 7, 8, 29, 38, 32, 21, 14, 7, 7, 14, 21, 14, 7, 14, 14, 17, 23,
+        12, 16, 7, 7, 7, 7, 7, 21, 40, 6, 27, 7, 7, 8, 7, 6, 14, 7, 7, 14, 31, 19, 35, 7, 14, 10, 12, 14, 12,
+        20
+      ],
+      "v": "XCBABDBAECGBABXCEGECBCBCBCAXAFBCHCGEXCBCBACFECGEFECBCABCAX"
+    },
+    "suri.actions.02": {
+      "h": "efae2629f9d8c6d5",
+      "e": "happy",
+      "t": [
+        0, 10, 7, 28, 25, 13, 7, 21, 14, 7, 7, 14, 7, 7, 7, 28, 7, 52, 12, 6, 20, 7, 7, 14, 7, 7, 21, 8, 6,
+        52, 8, 13, 8, 11, 7, 7, 14, 11, 7, 6, 21, 7, 14, 8, 19, 28, 18
+      ],
+      "v": "CBCABEFECGEBDBDCXACFBCBCBCABCABABFCFABCBCBABCX"
+    },
+    "pim.solved.fork": {
+      "h": "422f28e0b7c02791",
+      "e": "neutral",
+      "t": [
+        0, 8, 8, 7, 7, 8, 14, 14, 7, 14, 7, 28, 7, 7, 28, 7, 21, 27, 5, 5, 7, 7, 7, 6, 16, 7, 35, 7, 14, 14,
+        7, 83, 21, 14, 7, 14, 9, 20, 7, 28, 14, 21, 74
+      ],
+      "v": "XBGCADBEBHCGEBCEBFABACABCBEBCHXFGEBABCBCBX"
+    },
+    "pol.refuse.actions.01": {
+      "h": "2714a0a93a334561",
+      "e": "happy",
+      "t": [
+        0, 11, 11, 21, 16, 7, 14, 35, 89, 5, 12, 14, 7, 21, 7, 7, 7, 7, 14, 7, 14, 7, 28, 28, 14, 79, 12, 14,
+        7, 14, 28, 7, 14, 7, 21, 14, 8, 28, 33, 28, 14, 35, 14, 14, 37, 6, 13, 7, 42, 7, 42, 76
+      ],
+      "v": "XBCAGCBXCEGFBFECGEFBDBEGXAFBCBGECFBABXBCBCAXBCBCBCX"
+    },
+    "tb.fen.r3.intro": {
+      "h": "e8448dbaa43f03f6",
+      "e": "happy",
+      "t": [
+        0, 6, 5, 12, 56, 42, 7, 14, 35, 14, 28, 7, 21, 7, 21, 7, 21, 25, 43, 7, 21, 7, 14, 32, 8, 15, 21, 28,
+        7, 14, 10, 19, 13, 5, 19, 21
+      ],
+      "v": "XHCBCGBFCBEFBCHBXBCEBEBABFBFBAECBCB"
+    },
+    "tb.fen.ws.worktree": {
+      "h": "605706586d0e2c85",
+      "e": "neutral",
+      "t": [
+        0, 11, 14, 35, 8, 68, 7, 42, 40, 10, 42, 56, 16, 2, 7, 7, 6, 19, 14, 7, 7, 16, 8, 21, 38, 10, 63, 21,
+        14, 7, 28, 8, 5, 32, 16, 15
+      ],
+      "v": "XBFABCBXCFBABACADBGBACBXCBCBEFACBXB"
+    },
+    "tb.fen.ws.checkout": {
+      "h": "f34416d8ba54dfa8",
+      "e": "neutral",
+      "t": [
+        0, 6, 43, 7, 7, 7, 38, 21, 14, 19, 5, 25, 21, 56, 8, 7, 14, 28, 14, 21, 14, 14, 7, 7, 52, 18, 7, 42,
+        63, 7, 7, 7, 21, 14, 7, 7, 1
+      ],
+      "v": "XBCBFBEFCEFBXFCDBCBGBGEBCBFBCBGBGEBX"
+    },
+    "tb.fen.ws.cloud": {
+      "h": "fe48156fee84b1dd",
+      "e": "neutral",
+      "t": [
+        0, 11, 5, 5, 14, 7, 21, 14, 7, 21, 7, 7, 28, 7, 7, 28, 68, 70, 7, 14, 14, 42, 7, 7, 8, 13, 21, 14, 21,
+        21, 7, 21, 56, 7, 42, 21, 18
+      ],
+      "v": "XBCBGFBFBCFEGFCXBCBCBCBADBECEBEBGBXB"
+    },
+    "tb.fen.app": {
+      "h": "38be75c949b65f5a",
+      "e": "concerned",
+      "t": [
+        0, 5, 28, 7, 40, 7, 6, 14, 7, 49, 21, 7, 34, 12, 27, 42, 42, 7, 7, 7, 8, 8, 21, 14, 14, 14, 28, 14, 7,
+        21, 39, 4, 25, 7, 7, 7, 14, 21, 7, 8, 9, 21, 14, 11
+      ],
+      "v": "XBCAFBEFBCHBABFBFECACBHBDBCBCACBGEFECBABCBX"
+    },
+    "tb.ines.order.5": {
+      "h": "b3c4f9fa4177c1d6",
+      "e": "happy",
+      "t": [0, 1, 7, 15, 21, 7, 32, 16, 8, 17, 56, 7, 21, 8, 22, 14, 7, 8, 6, 82, 25, 8, 47, 21],
+      "v": "XACHCBEACBFCABCBACBFABX"
+    },
+    "tb.ines.order.6": {
+      "h": "08b4c454f67434ab",
+      "e": "neutral",
+      "t": [
+        0, 11, 5, 5, 21, 7, 21, 101, 12, 7, 7, 70, 14, 21, 14, 11, 8, 28, 32, 5, 5, 42, 7, 8, 15, 7, 7, 14,
+        21, 88, 19, 46, 21, 14, 14, 28, 41
+      ],
+      "v": "XHCBFCXCHCBEFBABEBCDBCADBCEBXCBFBCBX"
+    },
+    "mer.anders.solved.02": {
+      "h": "28f7c35b3ec9e8f5",
+      "e": "neutral",
+      "t": [
+        0, 12, 25, 7, 34, 6, 12, 7, 35, 21, 14, 7, 7, 12, 28, 14, 21, 9, 7, 6, 7, 7, 28, 25, 6, 12, 42, 102,
+        7, 13, 7, 49, 7, 7, 7, 8, 14, 14, 14, 14, 19, 5, 18, 8, 7, 12, 28, 14, 21, 7, 14, 10, 6, 5, 14, 7, 21,
+        88
+      ],
+      "v": "XBCACBCBDBFBABCFABCBCBXBCBXFECBCEBADBEBDCBABABCFCEABDBCBX"
+    },
+    "mer.helm.order.interactive": {
+      "h": "f1f9c8cb788e8023",
+      "e": "neutral",
+      "t": [
+        0, 7, 9, 14, 21, 28, 95, 39, 8, 27, 8, 13, 35, 8, 22, 88, 6, 6, 28, 14, 7, 14, 7, 7, 7, 14, 21, 14,
+        27, 20, 14, 21, 7, 7, 49, 88, 7, 14, 14, 7, 8, 8, 42, 82
+      ],
+      "v": "XGCBFXBAFADBABXCBFBGHGBCEFCBEBCGBCXFBCHAGBX"
+    },
+    "mer.helm.wrong.interactive.plan": {
+      "h": "0b160e3ed65a7aa6",
+      "e": "neutral",
+      "t": [
+        0, 2, 8, 10, 14, 14, 21, 7, 14, 7, 21, 7, 28, 21, 7, 7, 8, 22, 7, 48, 7, 21, 7, 56, 7, 42, 96, 15, 7,
+        7, 21, 21, 7, 14, 7, 7, 49, 80
+      ],
+      "v": "XAHCFBDBCEFEBCEAFGBCBCBCFXFEBFEHCGBCX"
+    },
+    "mer.helm.wrong.interactive.autopilot": {
+      "h": "f4432f6157215c14",
+      "e": "neutral",
+      "t": [
+        0, 7, 6, 13, 8, 14, 7, 7, 14, 7, 7, 28, 21, 14, 28, 7, 21, 21, 35, 26, 10, 35, 14, 14, 14, 42, 28, 14,
+        81
+      ],
+      "v": "XBEACBHBFCBFCBCBCBXBFBEHBECX"
+    },
+    "mer.helm.order.plan": {
+      "h": "098a83701d57dc30",
+      "e": "neutral",
+      "t": [
+        0, 8, 13, 21, 21, 7, 21, 30, 5, 11, 14, 8, 13, 42, 89, 10, 8, 18, 14, 8, 56, 32, 9, 7, 7, 35, 14, 14,
+        7, 8, 11, 7, 14, 7, 7, 8, 7, 34, 87, 5, 19, 21, 7, 14, 83
+      ],
+      "v": "XBCEBECBCBACBXBAEFABXBEFBCFBABGEFBACBXFBCHAX"
+    },
+    "mer.helm.wrong.plan.autopilot": {
+      "h": "ef6b7a303909610a",
+      "e": "happy",
+      "t": [
+        0, 9, 9, 7, 7, 8, 22, 21, 99, 9, 8, 19, 42, 7, 14, 7, 7, 14, 8, 19, 14, 8, 6, 27, 14, 88, 10, 7, 21,
+        14, 21, 14, 88
+      ],
+      "v": "XEFBAEFXBACBFCFCBAEFABEBXBDBGCBX"
+    },
+    "mer.helm.wrong.plan.interactive": {
+      "h": "9eecdb6f3232a59a",
+      "e": "neutral",
+      "t": [
+        0, 8, 11, 21, 7, 21, 7, 7, 21, 21, 14, 21, 28, 32, 6, 13, 9, 8, 21, 7, 28, 7, 15, 88, 29, 8, 18, 14,
+        8, 4, 4, 28, 14, 20, 10, 7, 7, 7, 7, 7, 7, 7, 21, 28, 14, 14, 21, 21, 82
+      ],
+      "v": "XBECBGFHBCBFBFCADBCDBAXBAEFACBEBXBEFBFDBCEFBGCBX"
+    },
+    "mer.helm.plan.approve.draft": {
+      "h": "05be19fa20ccb9e8",
+      "e": "happy",
+      "t": [
+        0, 3, 7, 7, 24, 7, 7, 14, 8, 8, 8, 4, 25, 7, 42, 7, 21, 8, 16, 35, 19, 24, 7, 7, 42, 91, 6, 13, 28,
+        21, 28, 7, 14, 14, 21, 85, 30, 8, 13, 35, 27, 14, 7, 14, 7, 7, 7, 14, 7, 14, 28, 81
+      ],
+      "v": "XCAFGCBABACBCBCEACBXBCBFXHCFEBCBEFXBAHCBCBCBCBCBCBX"
+    },
+    "mer.helm.plan.exit": {
+      "h": "587273eb72ddb1fd",
+      "e": "neutral",
+      "t": [
+        0, 7, 7, 20, 8, 18, 7, 21, 7, 8, 14, 14, 7, 8, 5, 40, 21, 28, 14, 27, 5, 26, 10, 7, 8, 45, 7, 13, 21,
+        14, 7, 14, 88, 11, 8, 18, 28, 63, 7, 21, 7, 42, 81
+      ],
+      "v": "XCBAHCHBAFBCACBEBGXCFABABCABCHGXBAHCBFCGBX"
+    },
+    "mer.helm.plan.suggest": {
+      "h": "790bbd5f0e4d680f",
+      "e": "neutral",
+      "t": [
+        0, 4, 16, 28, 28, 89, 4, 18, 14, 21, 7, 7, 7, 7, 7, 14, 7, 21, 89, 15, 7, 21, 7, 7, 7, 14, 21, 79
+      ],
+      "v": "XBCBXCBDEBCEBCBEFXCGCBCHCBX"
+    },
+    "mer.helm.plan.exit.revised": {
+      "h": "63a18a483cf69b80",
+      "e": "neutral",
+      "t": [
+        0, 8, 35, 7, 24, 6, 27, 11, 6, 8, 47, 7, 13, 23, 7, 7, 7, 21, 21, 7, 28, 14, 78, 12, 25, 8, 13, 14,
+        35, 7, 21, 14, 82
+      ],
+      "v": "XFBXBFABABCABCHGBECBGXABAHCBCDEX"
+    },
+    "mer.helm.plan.suggest.revised": {
+      "h": "e2ce41b87c6c68bb",
+      "e": "neutral",
+      "t": [0, 9, 52, 7, 28, 7, 7, 7, 21, 14, 91, 11, 14, 14, 21, 7, 7, 7, 7, 14, 14, 7, 35, 81],
+      "v": "XBCBEFCDEXCBCBCHCGFBCBX"
+    },
+    "mer.helm.order.autopilot": {
+      "h": "695388ecf57dee5f",
+      "e": "neutral",
+      "t": [
+        0, 8, 10, 7, 14, 14, 7, 21, 78, 14, 14, 19, 5, 16, 5, 60, 21, 90, 16, 7, 14, 14, 14, 7, 28, 24, 21, 7,
+        7, 14, 8, 4, 4, 21, 14, 14, 89, 5, 18, 21, 7, 14, 83
+      ],
+      "v": "XHCBEBEXBCFECEFBXBFCBGCBXBCBEACBHCBXFBCHAX"
+    },
+    "mer.helm.wrong.autopilot.interactive": {
+      "h": "2f17a44b0daea7a5",
+      "e": "neutral",
+      "t": [
+        0, 8, 11, 21, 7, 21, 7, 70, 21, 7, 14, 7, 14, 8, 15, 16, 11, 75, 85, 5, 11, 14, 7, 7, 28, 28, 7, 7,
+        28, 14, 21, 82
+      ],
+      "v": "XBECBGBFBCGBADCBXBFCBGCBCBCBCBX"
+    },
+    "mer.helm.wrong.autopilot.plan": {
+      "h": "5f38a95f82c233b4",
+      "e": "neutral",
+      "t": [
+        0, 1, 8, 11, 7, 21, 14, 14, 14, 7, 42, 7, 14, 7, 14, 14, 21, 21, 92, 7, 14, 7, 7, 21, 8, 13, 14, 45,
+        7, 14, 21, 14, 21, 7, 7, 28, 86
+      ],
+      "v": "XAHCFBDBCBCBGFGCBXDCBCBAHCBCBCBFBGFX"
     }
   }
 }

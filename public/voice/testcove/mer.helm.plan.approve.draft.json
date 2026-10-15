@@ -1,0 +1,112 @@
+{
+  "id": "mer.helm.plan.approve.draft",
+  "speaker": "Rhea",
+  "text": "Approve and implement sails it in Autopilot, straight through. Leg two crosses the Shoal! Read the plan, then suggest a change.",
+  "words": [
+    {
+      "word": "Approve",
+      "start": 0.0485409,
+      "end": 0.509708
+    },
+    {
+      "word": "and",
+      "start": 0.509708,
+      "end": 0.618916
+    },
+    {
+      "word": "implement",
+      "start": 0.618916,
+      "end": 1.104375
+    },
+    {
+      "word": "sails",
+      "start": 1.104375,
+      "end": 1.504875
+    },
+    {
+      "word": "it",
+      "start": 1.504875,
+      "end": 1.638333
+    },
+    {
+      "word": "in",
+      "start": 1.638333,
+      "end": 1.796125
+    },
+    {
+      "word": "Autopilot",
+      "start": 1.796125,
+      "end": 2.779125
+    },
+    {
+      "word": "straight",
+      "start": 2.779125,
+      "end": 3.19175
+    },
+    {
+      "word": "through",
+      "start": 3.19175,
+      "end": 4.453875
+    },
+    {
+      "word": "Leg",
+      "start": 4.453875,
+      "end": 4.757291
+    },
+    {
+      "word": "two",
+      "start": 4.757291,
+      "end": 5
+    },
+    {
+      "word": "crosses",
+      "start": 5,
+      "end": 5.42475
+    },
+    {
+      "word": "the",
+      "start": 5.42475,
+      "end": 5.534
+    },
+    {
+      "word": "Shoal",
+      "start": 5.534,
+      "end": 6.856791
+    },
+    {
+      "word": "Read",
+      "start": 6.856791,
+      "end": 7.135916
+    },
+    {
+      "word": "the",
+      "start": 7.135916,
+      "end": 7.245125
+    },
+    {
+      "word": "plan",
+      "start": 7.245125,
+      "end": 7.936875
+    },
+    {
+      "word": "then",
+      "start": 7.936875,
+      "end": 8.155333
+    },
+    {
+      "word": "suggest",
+      "start": 8.155333,
+      "end": 8.604375
+    },
+    {
+      "word": "a",
+      "start": 8.604375,
+      "end": 8.665041
+    },
+    {
+      "word": "change",
+      "start": 8.665041,
+      "end": 8.915041
+    }
+  ]
+}

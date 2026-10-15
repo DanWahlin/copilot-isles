@@ -107,7 +107,7 @@ export const TIERS: Record<Tier, TierSettings> = {
     grassCover: 0,
     grassDistance: 30,
     // Impostor-heavy (PLAN §12.1): trees hand off to their cards sooner than on Low.
-    treeNear: 22,
+    treeNear: 19,
     detailCullRatio: 100,
     birds: 8,
     npcAnimRate: 0.5,

@@ -1,8 +1,12 @@
+import { MERIDIAN_YARD } from '../../world/sites/crate-yard-logic';
 import { courseRefs } from '../course/refs';
 import type { ChapterContent, Rect } from '../types';
 
 const ch = '01-tour-the-app' as const;
 const src = courseRefs(ch);
+const src02 = courseRefs('02-sessions-worktrees-context');
+/** 02 §Exercise: Start a Session from a Branch and Attach an Issue: the Plan review's options. */
+const PLAN_REVIEW = src02('exercise-start-a-session-from-a-branch-and-attach-an-issue', '6db80a8de549');
 
 /** A rect in the course's 1920 × 1080 app screenshots, in pixels → normalized. */
 const px = (x: number, y: number, w: number, h: number): Rect => [x / 1920, y / 1080, w / 1920, h / 1080];
@@ -386,7 +390,7 @@ export const CH01: ChapterContent = {
       source: src('settings', '5b95eb5b50e3', { src: 'course/ch01/app-settings.webp', hash: '5bfe69fa74d5' }),
     },
 
-    // ---- The Admiral's Exam (A1): the chapter's six key takeaways ----
+    // ---- The Admiral's Exam (A1): the chapter's five key takeaways ----
     {
       id: 'A1.1',
       type: 'scenario',
@@ -627,6 +631,64 @@ export const CH01: ChapterContent = {
       },
       hints: ['It’s a keyboard shortcut.', 'Hold one key and press R.', 'Press {key:mod+R}.'],
       source: src('prompts-and-shortcuts', '06812f77c4eb'),
+    },
+    // Oren: Try Again with a Different Model (Retry, below a response).
+    {
+      id: 'R1.1',
+      type: 'scenario',
+      situation: 'You asked how filterBooks searches, and the answer misses the mark.',
+      prompt: 'What now?',
+      options: [
+        { id: 'retry', text: 'Select **Retry** below the response, with a different model or effort' },
+        {
+          id: 'retype',
+          text: 'Start a new session and type the whole prompt again',
+          feedback:
+            'You don’t need to retype it. **Retry** below the response tries again with a different model, effort or context window.',
+        },
+        {
+          id: 'autopilot',
+          text: 'Switch the mode to **Autopilot** and ask again',
+          feedback:
+            'The mode sets how independently the agent works, not how it thinks. Try **Retry** below the response with a different model or effort.',
+        },
+      ],
+      answer: 'retry',
+      explain: {
+        correct:
+          'Right. **Retry** appears below a response. Pick a different model, effort level or context window, and you don’t retype your prompt.',
+        wrong: 'Look below the response itself.',
+      },
+      hints: [
+        'You don’t have to start over.',
+        'There’s a button below the response.',
+        'Select **Retry** below the response.',
+      ],
+      source: src('try-again-with-a-different-model', 'b0031ded9c4d'),
+    },
+    // Sea battle 2, wave 1: keep concurrent project sessions in separate worktrees.
+    {
+      id: 'N1.6',
+      type: 'scenario',
+      situation:
+        'Two project sessions need to edit the same repository at once. You want each session’s changes kept separate from the other’s.',
+      prompt: 'Which workspace should you choose for each session?',
+      options: [
+        { id: 'worktree', text: 'A **New worktree** for each session' },
+        {
+          id: 'checkout',
+          text: 'The **Current checkout** for both sessions',
+          feedback:
+            'A **Current checkout** uses your existing clone, so both sessions would change the same working copy.',
+        },
+      ],
+      answer: 'worktree',
+      explain: {
+        correct:
+          'Right. The course says separate worktrees let agents work at the same time without changing the same working copy.',
+        wrong: 'Use a **New worktree** for each project session to keep their changes apart.',
+      },
+      source: src('project-sessions', 'b8e172159d21'),
     },
     {
       id: 'A1.5',
@@ -998,6 +1060,12 @@ export const CH01: ChapterContent = {
         'How much text the model can hold at once, including the conversation and the files it reads. Larger can help long sessions but uses more AI credits.',
     },
     {
+      id: 'settings',
+      term: 'Settings',
+      definition:
+        'The app’s options, opened with the gear at the bottom of the sidebar: General, Accounts, Sessions, Themes, Accessibility, Voice dictation, Customize, Model providers, Experimental, and each project’s own settings under Projects.',
+    },
+    {
       id: 'model-providers',
       term: 'Model providers',
       definition: 'A setting that connects models from other providers with your own API keys.',
@@ -1040,9 +1108,36 @@ export const CH01: ChapterContent = {
     'mer.anders.03': src('project-sessions', 'b8e172159d21'),
     'mer.anders.04': src('project-sessions', 'b8e172159d21'),
     'mer.anders.05': src('project-sessions', 'b8e172159d21'),
+    // P1.1 The Crate Yard (each crate's reason is in `cited`, below).
+    'mer.anders.crates': src('project-sessions', 'b8e172159d21'),
+    'mer.anders.solved': src('project-sessions', 'b8e172159d21'),
+    'mer.anders.solved.02': src('chat-sessions', '98f6ea579753'),
+    'mer.anders.done': src('project-sessions', 'b8e172159d21'),
     'mer.rhea.02': src('modes', '4a1370424345'),
     'mer.rhea.03': src('modes', '4a1370424345'),
+    'mer.rhea.helms': src('modes', '4a1370424345'),
     'mer.rhea.tools': src('modes', '4a1370424345'),
+    // P1.2 The Three Helms: the orders are the modes table's use cases, and the review is the app's.
+    'mer.helm.order.interactive': src('modes', '4a1370424345'),
+    'mer.helm.order.plan': src('modes', '4a1370424345'),
+    'mer.helm.order.autopilot': src('modes', '4a1370424345'),
+    'mer.helm.wrong.interactive.plan': src('modes', '4a1370424345'),
+    'mer.helm.wrong.interactive.autopilot': src('modes', '4a1370424345'),
+    'mer.helm.wrong.plan.autopilot': src('modes', '4a1370424345'),
+    'mer.helm.wrong.plan.interactive': src('modes', '4a1370424345'),
+    'mer.helm.wrong.autopilot.interactive': src('modes', '4a1370424345'),
+    'mer.helm.wrong.autopilot.plan': src('modes', '4a1370424345'),
+    'mer.helm.interactive.take': src('modes', '4a1370424345'),
+    'mer.helm.interactive.done': src('modes', '4a1370424345'),
+    'mer.helm.plan.take': src('modes', '4a1370424345'),
+    'mer.helm.plan.approve.draft': PLAN_REVIEW,
+    'mer.helm.plan.exit': PLAN_REVIEW,
+    'mer.helm.plan.suggest': PLAN_REVIEW,
+    'mer.helm.plan.exit.revised': PLAN_REVIEW,
+    'mer.helm.plan.go': PLAN_REVIEW,
+    'mer.helm.plan.done': src('modes', '4a1370424345'),
+    'mer.helm.autopilot.take': src('modes', '4a1370424345'),
+    'mer.helm.autopilot.done': src('modes', '4a1370424345'),
     'mer.oren.01': src('models-and-reasoning-effort', '84d625491118'),
     'mer.oren.02': src('models-and-reasoning-effort', '84d625491118'),
     'mer.oren.03': src('models-and-reasoning-effort', '84d625491118'),
@@ -1054,10 +1149,21 @@ export const CH01: ChapterContent = {
     'mer.oren.07': src('try-the-controls', '1a9a4b2f69f1'),
     'mer.oren.08': src('try-the-controls', '1a9a4b2f69f1'),
     'mer.pell.01': src('settings', '5b95eb5b50e3'),
-    'mer.pell.02': src('settings', '5b95eb5b50e3'),
-    'mer.pell.03': src('settings', '5b95eb5b50e3'),
     'mer.pell.04': src('settings', '5b95eb5b50e3'),
     'mer.pell.05': src('settings', '5b95eb5b50e3'),
+    // P1.3 The Lost Letters (src/game/puzzles/hall-letters.ts cites each letter and reason).
+    'mer.pell.letters': src('settings', '5b95eb5b50e3'),
+    'mer.pell.letters.02': src('settings', '5b95eb5b50e3'),
+    'mer.pell.letter.customize': src('settings', '5b95eb5b50e3'),
+    'mer.pell.letter.decoy': src('models-and-reasoning-effort', '84d625491118'),
+    'mer.pell.letters.solved': src('settings', '5b95eb5b50e3'),
+    'mer.pell.letters.debrief': src('settings', '5b95eb5b50e3'),
+    'mer.pell.done': src('i-cannot-find-a-setting-shown-in-the-chapter', 'a78cb1a046e1'),
     'mer.admiral.next': src('whats-next', '379b67eeb747'),
   },
+
+  // P1.1 The Crate Yard: each crate's reason, said when it's pushed onto the wrong plate.
+  cited: Object.fromEntries(
+    MERIDIAN_YARD.crates.map((c) => [`P1.1.${c.id}`, { text: c.why, source: c.source }]),
+  ),
 };

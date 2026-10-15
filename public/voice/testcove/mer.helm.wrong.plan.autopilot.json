@@ -1,0 +1,72 @@
+{
+  "id": "mer.helm.wrong.plan.autopilot",
+  "speaker": "Rhea",
+  "text": "Hold fast! This passage is one where the approach matters. Chart it first.",
+  "words": [
+    {
+      "word": "Hold",
+      "start": 0.0485409,
+      "end": 0.376208
+    },
+    {
+      "word": "fast",
+      "start": 0.376208,
+      "end": 1.796125
+    },
+    {
+      "word": "This",
+      "start": 1.796125,
+      "end": 2.002416
+    },
+    {
+      "word": "passage",
+      "start": 2.002416,
+      "end": 2.439333
+    },
+    {
+      "word": "is",
+      "start": 2.439333,
+      "end": 2.584958
+    },
+    {
+      "word": "one",
+      "start": 2.584958,
+      "end": 2.815541
+    },
+    {
+      "word": "where",
+      "start": 2.815541,
+      "end": 2.973291
+    },
+    {
+      "word": "the",
+      "start": 2.973291,
+      "end": 3.118916
+    },
+    {
+      "word": "approach",
+      "start": 3.118916,
+      "end": 3.531541
+    },
+    {
+      "word": "matters",
+      "start": 3.531541,
+      "end": 4.915041
+    },
+    {
+      "word": "Chart",
+      "start": 4.915041,
+      "end": 5.230583
+    },
+    {
+      "word": "it",
+      "start": 5.230583,
+      "end": 5.351958
+    },
+    {
+      "word": "first",
+      "start": 5.351958,
+      "end": 5.601958
+    }
+  ]
+}

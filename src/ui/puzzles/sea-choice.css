@@ -1,0 +1,221 @@
+/* P1.2 The Three Helms' choice card (src/ui/puzzles/SeaChoice.tsx). Tokens come from src/ui/ui.css. */
+.ci-sc-root {
+  position: fixed;
+  inset: 0;
+  /* Above the HUD (5), beside the learning overlay (6); menus never show with it. */
+  z-index: 6;
+  pointer-events: none;
+}
+.ci-sc {
+  position: absolute;
+  inset: 0;
+  color: var(--ci-cream, #fbefd6);
+  font-family: var(--ci-ui, Manrope, Inter, system-ui, sans-serif);
+}
+.ci-sc button {
+  pointer-events: auto;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.ci-sc button:disabled {
+  cursor: default;
+}
+.ci-sc :focus-visible {
+  outline: 2px solid var(--ci-focus, #65e5ff);
+  outline-offset: 2px;
+}
+.ci-sc kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5em;
+  height: 1.5em;
+  padding: 0 0.28em;
+  border: 1px solid rgba(232, 200, 138, 0.5);
+  border-radius: 5px;
+  background: rgba(232, 200, 138, 0.12);
+  color: var(--ci-gold, #e8c88a);
+  font: 700 0.72rem/1 var(--ci-ui);
+}
+
+/* Bottom right, under the session panel (top right), clear of the sea ahead. */
+.ci-sc-panel {
+  position: absolute;
+  right: clamp(12px, 3vw, 40px);
+  bottom: clamp(12px, 4vh, 48px);
+  width: min(420px, calc(100vw - 24px));
+  max-height: calc(100vh - 21rem);
+  overflow: auto;
+  padding: 16px 18px 12px;
+  border: 1px solid var(--ci-edge, rgba(232, 200, 138, 0.36));
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgba(232, 200, 138, 0.14), transparent 60%),
+    var(--ci-glass-strong, rgba(8, 18, 27, 0.82));
+  box-shadow: var(--ci-shadow, 0 24px 80px rgba(0, 0, 0, 0.42));
+  backdrop-filter: blur(10px) saturate(1.15);
+  pointer-events: auto;
+  animation: ci-sc-rise 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ci-sc-head {
+  margin-bottom: 6px;
+}
+.ci-sc-eyebrow {
+  margin: 0;
+  color: var(--ci-gold, #e8c88a);
+  font: 800 0.72rem/1.2 var(--ci-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.ci-sc-head h2 {
+  margin: 4px 0 0;
+  font: 600 1.28rem/1.2 var(--ci-display, Fraunces, Georgia, serif);
+}
+.ci-sc-prompt {
+  margin: 6px 0 10px;
+  font: 600 1rem/1.42 var(--ci-display, Fraunces, Georgia, serif);
+}
+.ci-sc-detail {
+  margin: 0 0 10px;
+  padding: 8px 12px 8px 30px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.22);
+  font: 600 0.86rem/1.5 var(--ci-ui);
+}
+.ci-sc-options {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ci-sc-options button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 12px;
+  border: 1px solid var(--ci-edge, rgba(232, 200, 138, 0.36));
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  text-align: left;
+}
+.ci-sc-options button:hover:not(:disabled),
+.ci-sc-options button.is-focus {
+  border-color: var(--ci-gold-strong, #ffd98a);
+  background: rgba(232, 200, 138, 0.14);
+}
+.ci-sc-options button.is-tried {
+  opacity: 0.55;
+}
+.ci-sc-text {
+  display: grid;
+  gap: 2px;
+}
+.ci-sc-text b {
+  font: 750 0.98rem/1.25 var(--ci-ui);
+}
+.ci-sc-text small {
+  color: var(--ci-muted, rgba(246, 236, 214, 0.72));
+  font: 600 0.8rem/1.25 var(--ci-ui);
+}
+.ci-sc-message {
+  min-height: 1.4em;
+  margin: 10px 2px 4px;
+  font: 600 0.9rem/1.4 var(--ci-ui);
+}
+.ci-sc-message.is-bad {
+  color: #ffd2c4;
+}
+.ci-sc-message.is-good {
+  color: #c9fff5;
+}
+.ci-sc-help {
+  margin: 4px 0 0;
+  color: var(--ci-muted, rgba(246, 236, 214, 0.72));
+  font: 600 0.72rem/1.6 var(--ci-ui);
+  text-align: center;
+}
+.ci-sc-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+@keyframes ci-sc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* Small screens: a bottom sheet. */
+@media (max-width: 760px), (max-height: 560px) {
+  .ci-sc-panel {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    width: auto;
+    max-height: 58vh;
+    padding: 12px 14px 10px;
+  }
+  .ci-sc-help {
+    display: none;
+  }
+}
+/* A landscape phone: the choices sit side by side so the card stays short. */
+@media (max-height: 560px) and (min-width: 600px) {
+  .ci-sc-panel {
+    max-height: 72vh;
+  }
+  .ci-sc-head h2 {
+    font-size: 1.05rem;
+  }
+  .ci-sc-prompt {
+    margin: 2px 0 6px;
+    font-size: 0.9rem;
+  }
+  /* The plan says it all: its lead-in line goes. */
+  .ci-sc-prompt:has(+ .ci-sc-detail) {
+    display: none;
+  }
+  .ci-sc-detail {
+    margin-bottom: 6px;
+    padding: 4px 10px 4px 26px;
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+  .ci-sc-options {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  .ci-sc-options button {
+    min-height: 48px;
+    padding: 6px 10px;
+  }
+  .ci-sc-message {
+    margin: 6px 2px 0;
+    font-size: 0.82rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ci-sc-panel {
+    animation: none;
+  }
+}
+.ci-sc.is-reduced .ci-sc-panel {
+  animation: none;
+}
+
+/* While the card's up on a wide screen, the subtitles and a chart label sit left of it. */
+@media (min-width: 761px) and (min-height: 561px) {
+  body.ci-sc-open .hud-subtitle {
+    left: calc((100vw - min(420px, 100vw - 24px) - clamp(12px, 3vw, 40px)) / 2);
+    max-width: min(40rem, calc(100vw - 500px));
+  }
+  body.ci-sc-open .hud-chart {
+    --lt-room: calc(100vw - 420px - clamp(12px, 3vw, 40px) - 96 * var(--lt-px) - 24px);
+  }
+}

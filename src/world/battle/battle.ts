@@ -73,7 +73,7 @@ export const PASSAGE_BATTLE: BattlePlan = {
         { name: 'Wrong Fork', kind: 'brigantine' },
         { name: 'Wrong Account', kind: 'cutter' },
       ],
-      quiz: 'T0.5',
+      quiz: 'N0.2',
     },
   ],
   won: 'The raiders are back in the fog. Port Meridian lies ahead.',
@@ -93,7 +93,7 @@ export const MERIDIAN_BATTLE: BattlePlan = {
         { name: 'Shared Checkout', kind: 'cutter' },
         { name: 'Tangled Copy', kind: 'cutter' },
       ],
-      quiz: 'A1.5',
+      quiz: 'N1.6',
     },
     {
       raiders: [

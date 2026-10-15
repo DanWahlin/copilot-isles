@@ -1,6 +1,8 @@
 /**
  * P0.1 Sluice & Waterwheel (POC §4.5): a grid of rotatable channel tiles between the Actions spring
- * and the waterwheel. Pure logic (no three.js) so the flow and the single solution are unit-tested.
+ * and two outlets: the waterwheel (the practice checks running) and the jammed check gate (the
+ * practice check that fails on purpose, Chapter 00 · Add the Course Practice Items). Pure logic (no
+ * three.js) so the flow and the single solution are unit-tested.
  *
  * Grid coordinates: row 0 is at the spring, the last row is at the wheel. Directions are sides of a
  * cell: N (toward the wheel, row + 1), E (col + 1), S (toward the spring, row − 1), W (col − 1).
@@ -11,12 +13,14 @@ export const S = 2;
 export const W = 3;
 type Dir = 0 | 1 | 2 | 3;
 
-export type TileKind = 'straight' | 'corner' | 'cap' | 'blank';
+export type TileKind = 'straight' | 'corner' | 'tee' | 'cap' | 'blank';
 
 /** Openings at rotation 0, one bit per side (bit d = side d is open). */
 const BASE: Record<TileKind, number> = {
   straight: (1 << N) | (1 << S),
   corner: (1 << N) | (1 << E),
+  /** Splits the water: open N, E and W (closed S) at rotation 0. */
+  tee: (1 << N) | (1 << E) | (1 << W),
   cap: 1 << N,
   blank: 0,
 };
@@ -38,6 +42,11 @@ export interface SluiceLayout {
   source: { row: number; col: number; side: Dir };
   /** Water leaving this cell through `side` reaches the wheel. */
   outlet: { row: number; col: number; side: Dir };
+  /**
+   * Water leaving this cell through `side` reaches the check gate, which is jammed: the water backs
+   * up there (pooled) rather than running on. When set, the puzzle needs both outlets.
+   */
+  check?: { row: number; col: number; side: Dir };
 }
 
 const opposite = (d: Dir): Dir => ((d + 2) % 4) as Dir;
@@ -67,8 +76,16 @@ interface CellFlow {
 
 export interface FlowResult {
   cells: CellFlow[];
+  /** Water reaches the wheel, and the check gate too when the layout has one. */
   solved: boolean;
-  /** Cells on the path from the spring to the wheel when solved (in order), else []. */
+  /** Water runs off to the wheel. */
+  wheel: boolean;
+  /** Water reaches the jammed check gate. */
+  check: boolean;
+  /**
+   * Cells from the spring to each outlet the water reaches (the wheel's run first, then the check
+   * gate's branch), in flow order.
+   */
   path: number[];
 }
 
@@ -77,7 +94,7 @@ export interface FlowResult {
  * wet neighbour's opening meets one of its own; the outlet cell must open toward the wheel.
  */
 export function flow(layout: SluiceLayout, rots: readonly number[], gateOpen: boolean, tile = 1): FlowResult {
-  const { rows, cols, tiles, source, outlet } = layout;
+  const { rows, cols, tiles, source, outlet, check } = layout;
   const cells: CellFlow[] = tiles.map(() => ({
     wet: false,
     entry: null,
@@ -89,7 +106,9 @@ export function flow(layout: SluiceLayout, rots: readonly number[], gateOpen: bo
   const masks = tiles.map((t, i) => openings(t.kind, rots[i] ?? 0));
   const idx = (r: number, c: number) => r * cols + c;
   const out = idx(outlet.row, outlet.col);
-  let solved = false;
+  const chk = check ? idx(check.row, check.col) : -1;
+  let wheel = false;
+  let jammed = false;
 
   const src = idx(source.row, source.col);
   if (gateOpen && isOpen(masks[src]!, source.side)) {
@@ -103,8 +122,14 @@ export function flow(layout: SluiceLayout, rots: readonly number[], gateOpen: bo
       for (let d = 0 as Dir; d < 4; d = (d + 1) as Dir) {
         if (!isOpen(masks[i]!, d) || d === cell.entry) continue;
         if (i === out && d === outlet.side) {
-          solved = true;
+          wheel = true;
           cell.through |= 1 << d;
+          continue;
+        }
+        if (i === chk && d === check!.side) {
+          // The check gate's jammed: the water reaches it and backs up.
+          jammed = true;
+          cell.pooled |= 1 << d;
           continue;
         }
         const nr = r + ROW_STEP[d],
@@ -133,8 +158,14 @@ export function flow(layout: SluiceLayout, rots: readonly number[], gateOpen: bo
   }
 
   const path: number[] = [];
-  if (solved) for (let i = out; i >= 0; i = parent[i]!) path.unshift(i);
-  return { cells, solved, path };
+  if (wheel) for (let i = out; i >= 0; i = parent[i]!) path.unshift(i);
+  if (jammed) {
+    const branch: number[] = [];
+    for (let i = chk; i >= 0 && !path.includes(i); i = parent[i]!) branch.unshift(i);
+    path.push(...branch);
+  }
+  const solved = wheel && (jammed || !check);
+  return { cells, solved, wheel, check: jammed, path };
 }
 
 /** True when two rotations give the same openings (a straight tile turned twice looks the same). */
@@ -171,15 +202,25 @@ export function solutionPath(layout: SluiceLayout): number[] {
 export const rotatable = (t: SluiceTile): boolean => t.kind !== 'blank';
 
 /**
- * Anchorage Cay's layout: 4 rows × 3 columns. The spring feeds the east column from the south and
- * the wheel takes water off the west column's north side. The path snakes through 8 tiles; two caps
- * are the dead-end distractors and two cells are fixed stone. Corner turns: 0 = N+E, 1 = E+S,
- * 2 = S+W, 3 = W+N.
+ * The fewest presses that turn a tile from `rot` to openings matching `solution`: E turns clockwise
+ * (+1), Shift+E anticlockwise (−1). Returns the signed count (0 when it's already right).
+ */
+export function shortestTurn(kind: TileKind, rot: number, solution: number): number {
+  for (const k of [0, 1, -1, 2]) if (sameOpenings(kind, rot + k, solution)) return k;
+  return 0;
+}
+
+/**
+ * Anchorage Cay's layout: 4 rows × 3 columns. The spring feeds the east column from the south. The
+ * water snakes through 7 tiles to a tee that splits it: west to the wheel (off the west column's
+ * north side) and east to the jammed check gate (off the east column's north side). Two caps are
+ * dead-end distractors and one cell is fixed stone. Corner turns: 0 = N+E, 1 = E+S, 2 = S+W,
+ * 3 = W+N. The tee's turn 2 is S+W+E.
  *
- *   row 3 (wheel)   E+N   S+W   stone
- *   row 2           S+E   W+N   cap
- *   row 1           E+N   E–W   S+W
- *   row 0 (spring)  stone cap   N–S
+ *   row 3 (outlets) E+N   S+W+E  W+N      wheel ← west · east → check gate
+ *   row 2           S+E   W+N    cap
+ *   row 1           E+N   E–W    S+W
+ *   row 0 (spring)  stone cap    N–S
  */
 export const ANCHORAGE_SLUICE: SluiceLayout = {
   rows: 4,
@@ -193,14 +234,16 @@ export const ANCHORAGE_SLUICE: SluiceLayout = {
     { kind: 'straight', solution: 1, start: 0 },
     { kind: 'corner', solution: 2, start: 0 },
 
-    { kind: 'corner', solution: 1, start: 3 },
+    { kind: 'corner', solution: 1, start: 0 },
     { kind: 'corner', solution: 3, start: 1 },
     { kind: 'cap', solution: 0, start: 3 },
 
     { kind: 'corner', solution: 0, start: 1 },
-    { kind: 'corner', solution: 2, start: 1 },
-    { kind: 'blank', solution: 0, start: 0 },
+    // Starts open to the west and north: the wheel can turn before the check gate gets any water.
+    { kind: 'tee', solution: 2, start: 3 },
+    { kind: 'corner', solution: 3, start: 1 },
   ],
   source: { row: 0, col: 2, side: S },
   outlet: { row: 3, col: 0, side: N },
+  check: { row: 3, col: 2, side: N },
 };

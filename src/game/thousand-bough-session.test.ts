@@ -89,8 +89,24 @@ describe('Channel Routing in the session (on the recording stub)', () => {
     expect(h.said).toContain('tb.fen.round1');
     await solveRound();
     expect(h.quests['P2.1']).toBe('r3');
-    expect(h.said).toEqual(expect.arrayContaining(['tb.fen.round2', 'tb.fen.rain']));
-    await solveRound();
+    expect(h.said).toEqual(expect.arrayContaining(['tb.fen.round2', 'tb.fen.r3.intro']));
+    // Round 3: where each crew works. A wrong place first (the Great Hall for Feature), then the right ones.
+    expect(p.debug.wrong()).toBeNull();
+    store.actions.openGates();
+    expect(store.get().message?.text).toMatch(/every crew/);
+    store.actions.pick('feature', 'checkout');
+    store.actions.pick('bugfix', 'cloud');
+    store.actions.pick('docs', 'checkout');
+    store.actions.openGates();
+    await settle();
+    expect(h.said).toContain('tb.fen.ws.worktree');
+    expect(store.get().verdicts?.feature.right).toBe(false);
+    expect(store.get().verdicts?.docs.right).toBe(true);
+    expect(calls.some((c) => c.view === 'fx' && c.fn === 'gondolaSend')).toBe(true);
+    store.actions.pick('feature', 'worktree');
+    store.actions.openGates();
+    await settle();
+    expect(h.said).toContain('tb.fen.round3');
     expect(h.quests['Q2.5']).toBe('twist');
     expect(calls.some((c) => c.view === 'spire' && c.fn === 'playJam')).toBe(true);
     expect(store.get().twist?.choices).toHaveLength(4);
@@ -119,12 +135,14 @@ describe('Channel Routing in the session (on the recording stub)', () => {
     const p = createChannelRouting(h.host, sys);
     await p.open();
     expect(h.store().get().round).toBe(3);
-    expect(h.store().get().board[2]![2]!.kind).toBe('rock');
-    h.store().actions.turn(0, 0, 1);
+    // Every channel's dug already, and nothing replays (no new round set-piece on the terrace).
+    expect(p.debug.wrong()).toBeNull();
+    expect(h.said).toEqual([]);
+    h.store().actions.pick('docs', 'checkout');
     h.store().actions.leave();
     expect(h.store().get().open).toBe(false);
     await p.open();
-    expect(h.store().get().board[0]![0]!.rot).toBe(1);
+    expect(h.store().get().picks.docs).toBe('checkout');
   });
 
   it('gives Wingman’s three hint tiers, the third turning a tile', async () => {

@@ -1,7 +1,7 @@
 {
   "id": "mer.anders.solved",
   "speaker": "Anders",
-  "text": "Every crate in its place. You can tell a question from a job.",
+  "text": "Every crate in its place. Even the tour: it doesn’t change a file, but it needs your repository, so it’s a project session.",
   "words": [
     {
       "word": "Every",
@@ -29,44 +29,94 @@
       "end": 2.5
     },
     {
-      "word": "You",
+      "word": "Even",
       "start": 2.5,
-      "end": 2.646291
+      "end": 2.819166
     },
     {
-      "word": "can",
-      "start": 2.646291,
-      "end": 2.805833
+      "word": "the",
+      "start": 2.819166,
+      "end": 2.938833
     },
     {
-      "word": "tell",
-      "start": 2.805833,
-      "end": 3.045208
+      "word": "tour",
+      "start": 2.938833,
+      "end": 3.563833
+    },
+    {
+      "word": "it",
+      "start": 3.563833,
+      "end": 3.6835
+    },
+    {
+      "word": "doesn’t",
+      "start": 3.6835,
+      "end": 4.002666
+    },
+    {
+      "word": "change",
+      "start": 4.002666,
+      "end": 4.321791
     },
     {
       "word": "a",
-      "start": 3.045208,
-      "end": 3.111708
+      "start": 4.321791,
+      "end": 4.375
     },
     {
-      "word": "question",
-      "start": 3.111708,
-      "end": 3.603708
+      "word": "file",
+      "start": 4.375,
+      "end": 5.026583
     },
     {
-      "word": "from",
-      "start": 3.603708,
-      "end": 3.789875
+      "word": "but",
+      "start": 5.026583,
+      "end": 5.186166
+    },
+    {
+      "word": "it",
+      "start": 5.186166,
+      "end": 5.319166
+    },
+    {
+      "word": "needs",
+      "start": 5.319166,
+      "end": 5.611708
+    },
+    {
+      "word": "your",
+      "start": 5.611708,
+      "end": 5.744666
+    },
+    {
+      "word": "repository",
+      "start": 5.744666,
+      "end": 6.648916
+    },
+    {
+      "word": "so",
+      "start": 6.648916,
+      "end": 6.8085
+    },
+    {
+      "word": "it’s",
+      "start": 6.8085,
+      "end": 6.968083
     },
     {
       "word": "a",
-      "start": 3.789875,
-      "end": 3.869666
+      "start": 6.968083,
+      "end": 7.047875
     },
     {
-      "word": "job",
-      "start": 3.869666,
-      "end": 4.1196660000000005
+      "word": "project",
+      "start": 7.047875,
+      "end": 7.5
+    },
+    {
+      "word": "session",
+      "start": 7.5,
+      "end": 7.75
     }
   ]
 }

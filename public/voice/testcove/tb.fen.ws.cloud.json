@@ -1,0 +1,102 @@
+{
+  "id": "tb.fen.ws.cloud",
+  "speaker": "Fen",
+  "text": "That crew wants the work off your deck. Cloud runs it in a cloud sandbox on GitHub's hosted infrastructure.",
+  "words": [
+    {
+      "word": "That",
+      "start": 0,
+      "end": 0.304
+    },
+    {
+      "word": "crew",
+      "start": 0.304,
+      "end": 0.627
+    },
+    {
+      "word": "wants",
+      "start": 0.627,
+      "end": 0.98
+    },
+    {
+      "word": "the",
+      "start": 0.98,
+      "end": 1.088
+    },
+    {
+      "word": "work",
+      "start": 1.088,
+      "end": 1.32
+    },
+    {
+      "word": "off",
+      "start": 1.32,
+      "end": 1.472
+    },
+    {
+      "word": "your",
+      "start": 1.472,
+      "end": 1.68
+    },
+    {
+      "word": "deck",
+      "start": 1.68,
+      "end": 2.227
+    },
+    {
+      "word": "Cloud",
+      "start": 2.227,
+      "end": 3.008
+    },
+    {
+      "word": "runs",
+      "start": 3.008,
+      "end": 3.227
+    },
+    {
+      "word": "it",
+      "start": 3.227,
+      "end": 3.333
+    },
+    {
+      "word": "in",
+      "start": 3.333,
+      "end": 3.48
+    },
+    {
+      "word": "a",
+      "start": 3.48,
+      "end": 3.573
+    },
+    {
+      "word": "cloud",
+      "start": 3.573,
+      "end": 3.92
+    },
+    {
+      "word": "sandbox",
+      "start": 3.92,
+      "end": 4.56
+    },
+    {
+      "word": "on",
+      "start": 4.56,
+      "end": 4.789
+    },
+    {
+      "word": "GitHub's",
+      "start": 4.789,
+      "end": 5.337
+    },
+    {
+      "word": "hosted",
+      "start": 5.337,
+      "end": 5.733
+    },
+    {
+      "word": "infrastructure",
+      "start": 5.733,
+      "end": 5.983
+    }
+  ]
+}

@@ -1,72 +1,87 @@
 {
   "id": "suri.solved.02",
   "speaker": "Suri",
-  "text": "Later chapters use those checks, so that's time well spent. Fair winds, Captain.",
+  "text": "That’s practice, not a broken setup. You’ll fix it in a later chapter. Fair winds, Captain.",
   "words": [
     {
-      "word": "Later",
+      "word": "That’s",
       "start": 0.07,
       "end": 0.39
     },
     {
-      "word": "chapters",
+      "word": "practice",
       "start": 0.39,
-      "end": 0.87
+      "end": 1.15
     },
     {
-      "word": "use",
-      "start": 0.87,
-      "end": 1.07
+      "word": "not",
+      "start": 1.15,
+      "end": 1.43
     },
     {
-      "word": "those",
-      "start": 1.07,
-      "end": 1.31
+      "word": "a",
+      "start": 1.43,
+      "end": 1.51
     },
     {
-      "word": "checks",
-      "start": 1.31,
+      "word": "broken",
+      "start": 1.51,
       "end": 1.91
     },
     {
-      "word": "so",
+      "word": "setup",
       "start": 1.91,
-      "end": 2.07
+      "end": 2.63
     },
     {
-      "word": "that's",
-      "start": 2.07,
-      "end": 2.349
+      "word": "You’ll",
+      "start": 2.63,
+      "end": 2.949
     },
     {
-      "word": "time",
-      "start": 2.349,
-      "end": 2.59
+      "word": "fix",
+      "start": 2.949,
+      "end": 3.23
     },
     {
-      "word": "well",
-      "start": 2.59,
-      "end": 2.789
+      "word": "it",
+      "start": 3.23,
+      "end": 3.309
     },
     {
-      "word": "spent",
-      "start": 2.789,
-      "end": 3.55
+      "word": "in",
+      "start": 3.309,
+      "end": 3.429
     },
     {
-      "word": "Fair",
-      "start": 3.55,
+      "word": "a",
+      "start": 3.429,
+      "end": 3.51
+    },
+    {
+      "word": "later",
+      "start": 3.51,
       "end": 3.829
     },
     {
-      "word": "winds",
+      "word": "chapter",
       "start": 3.829,
-      "end": 4.15
+      "end": 4.83
+    },
+    {
+      "word": "Fair",
+      "start": 4.83,
+      "end": 5.15
+    },
+    {
+      "word": "winds",
+      "start": 5.15,
+      "end": 5.47
     },
     {
       "word": "Captain",
-      "start": 4.15,
-      "end": 4.4
+      "start": 5.47,
+      "end": 5.72
     }
   ]
 }

@@ -71,6 +71,22 @@ after the splash; reduced motion starts it as the cabin fades in.
   It stays within the §15.4 pipeline caps.
 - **Tech.** TSL only (no GLSL strings), public three.js APIs only, no allocation in hot loops, and the
   hitch guard (`window.__isles.hitches()`) stays clean after warm-up.
+- **No visible stalls.** From the title's first press to the captain ashore, no frame gap over 100 ms
+  (aim for 50) where the player can see it. `tools/openingtest.mjs` plays the highlight reel's opening
+  steps and fails on any gap over 150 ms (`--max`); `--profile` names the functions inside each gap.
+  How it's kept there:
+  - The AudioContext is made while the game loads (`audio/early-context.ts`): the first one starts
+    the browser's audio service, a 300–600 ms block that froze the title on its first click.
+  - The Chart's coastlines and its course list load while the title idles, the island art is drawn
+    once, and the paper is a layer of its own, so a hover animation doesn't redraw its noise.
+  - On the captain screen, the cabin's bounds are worked out in slices and its warm draw lets a few
+    new looks in a frame (`warmProgressively`).
+  - Work three can't split (the island sky's cloud noise bakes and compute kernels, 60–110 ms each)
+    runs under the veil, before the cabin fades up (`Opening.play(underVeil)`). Everything else in
+    the island build yields a slice at a time (`breathe()`, `buildSlice()`), and the world's warm
+    sizes each frame by new looks, not objects.
+  - Left: a shader module's first compile in the GPU process (a 38 k-character WGSL module took
+    about 100 ms with the main thread idle). The browser does it; the warm spreads them a frame apart.
 - **Disney bar.** Anticipation and follow-through on the latch, the lid and the paper; warm key light
   with cool fill; no hard cuts except the spray flash; the camera always moves on eased arcs.
 

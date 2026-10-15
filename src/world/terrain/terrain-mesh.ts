@@ -8,6 +8,7 @@ import {
   Vector3,
   type Node,
 } from 'three/webgpu';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Tier, HeightField } from '../contracts';
 import { tierSettings, type TierSettings } from '../../engine/quality';
 import type { HeightGridData } from './cove-height';
@@ -42,8 +43,13 @@ export interface CreatedTerrain {
   heightField: HeightField;
   /** Picks each chunk's level of detail from the camera's distance to the chunk (see `terrainLodThresholds`). */
   update(camera: Camera): void;
-  /** Pins every chunk to one level of detail (0 = finest), or null to go back to distance (warm-ups). */
+  /**
+   * Pins every chunk to one level of detail (0 = finest), or null to go back to distance (warm-ups).
+   * The level after the coarsest shows the merged far blocks instead (`MERGED_BLOCKS`).
+   */
   setLod(lod: number | null): void;
+  /** How many levels `setLod` takes (the chunks' levels and the merged blocks): a warm-up draws each once. */
+  readonly lodCount: number;
   dispose(): void;
   heightGrid: TerrainHeightGrid;
 }
@@ -330,6 +336,27 @@ export function terrainLodThresholds(tier: Tier | TierSettings): readonly number
   if (t === 'medium') return [64, 270];
   return [40, 200];
 }
+
+/**
+ * Blocks of chunks (the whole terrain, 4 × 4, 2 × 2 and pairs; chunks across × along) merged at their
+ * coarsest level (on Lite, blocks of up to four chunks at the middle level too): a block draws in place
+ * of its chunks (one draw, the same material) while none of them is finer than that level, e.g. the
+ * far side of the island you're on, or a whole island seen from the sea. It draws at its finest
+ * chunk's level, so nothing gets coarser. Largest first.
+ */
+/**
+ * A merged block draws whole even when only part of it is in view, so it's kept small (Low's whole
+ * Thousand-Bough is over it, so there it merges 4 × 4). Only Lite and Low merge (PLAN §12.1: their
+ * draw budgets are the tight ones; Medium and up have the room, and their coarse chunks are dense).
+ */
+const MAX_MERGED_TRIANGLES = 12_000;
+const MERGED_BLOCKS: readonly (readonly [number, number])[] = [
+  [Infinity, Infinity],
+  [4, 4],
+  [2, 2],
+  [2, 1],
+  [1, 2],
+];
 
 /** How far past a threshold (metres) a chunk must be before it goes coarser, so it doesn't flicker on the line. */
 export const TERRAIN_LOD_HYSTERESIS = 12;
@@ -927,7 +954,89 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     minZ: data.minZ,
     cell: data.cell,
   };
+  // The merged far blocks, largest first; each one's chunks by index.
+  const blocks: { meshes: (Mesh | null)[]; members: number[] }[] = [];
+  const coarsestLod = steps.length - 1;
+  const mergedLod = steps.length;
+  const merges = tier.tier === 'lite' || tier.tier === 'low';
+  for (const [sx, sz] of merges ? MERGED_BLOCKS : []) {
+    const bySpot = new Map<string, number[]>();
+    chunks.forEach((c, i) => {
+      const ix = Math.floor(Math.round((c.minX - data.minX) / TERRAIN_CHUNK_SIZE) / sx);
+      const iz = Math.floor(Math.round((c.minZ - data.minZ) / TERRAIN_CHUNK_SIZE) / sz);
+      const key = Number.isFinite(sx) ? `${ix},${iz}` : 'all';
+      const list = bySpot.get(key);
+      if (list) list.push(i);
+      else bySpot.set(key, [i]);
+    });
+    for (const [key, members] of bySpot) {
+      // One chunk, or the same chunks as a bigger block: nothing saved.
+      if (
+        members.length < 2 ||
+        blocks.some((b) => b.members.length === members.length && b.members.every((m, k) => m === members[k]))
+      )
+        continue;
+      // Lite merges blocks of up to four chunks from the middle level too (its chunks there are a few
+      // hundred triangles each); a bigger block at that level would draw too many of them out of view.
+      const firstMergedLod =
+        tier.tier === 'lite' && members.length <= 4 ? Math.min(1, coarsestLod) : coarsestLod;
+      const meshes: (Mesh | null)[] = [];
+      for (let lod = 0; lod <= coarsestLod; lod++) {
+        let triangles = 0;
+        for (const i of members) triangles += chunks[i]!.geometries[lod]!.triangles;
+        if (lod < firstMergedLod || triangles > MAX_MERGED_TRIANGLES) {
+          meshes.push(null);
+          continue;
+        }
+        const geometry = mergeGeometries(
+          members.map((i) => chunks[i]!.geometries[lod]!.geometry),
+          false,
+        );
+        if (!geometry) {
+          meshes.push(null);
+          continue;
+        }
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
+        const mesh = new Mesh(geometry, material);
+        const where = Number.isFinite(sx) ? `${sx}x${sz}-${key.replace(',', '-')}` : 'all';
+        mesh.name = `terrain-chunks-${where}-lod${lod}`;
+        mesh.frustumCulled = true;
+        mesh.receiveShadow = true;
+        mesh.visible = false;
+        group.add(mesh);
+        meshes.push(mesh);
+        yield;
+      }
+      if (meshes.some((m) => m)) blocks.push({ meshes, members });
+    }
+  }
+  // Which chunks a shown block covers, refilled each frame.
+  const covered = new Uint8Array(chunks.length);
   let pinned: number | null = null;
+  const placeBlocks = () => {
+    covered.fill(0);
+    for (const block of blocks) {
+      // A block draws at its finest chunk's level, if that level is merged and no bigger block covers it.
+      let level = -1;
+      if (pinned === null) {
+        level = coarsestLod;
+        for (const i of block.members) {
+          if (covered[i]) {
+            level = -1;
+            break;
+          }
+          level = Math.min(level, chunks[i]!.current);
+        }
+        if (level >= 0 && block.meshes[level]) for (const i of block.members) covered[i] = 1;
+      }
+      for (let lod = 0; lod < block.meshes.length; lod++) {
+        const mesh = block.meshes[lod];
+        if (mesh) mesh.visible = pinned === mergedLod || (pinned === null && lod === level);
+      }
+    }
+    for (let i = 0; i < chunks.length; i++) chunks[i]!.mesh.visible = pinned !== mergedLod && !covered[i];
+  };
   const showLod = (chunk: (typeof chunks)[number], lod: number) => {
     const next = Math.min(chunk.geometries.length - 1, lod);
     if (next === chunk.current) return;
@@ -951,11 +1060,14 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
         const distance = chunkBoxDistance(x, z, chunk.minX, chunk.maxX, chunk.minZ, chunk.maxZ);
         showLod(chunk, pinned ?? pickTerrainLod(distance, chunk.current, thresholds));
       }
+      placeBlocks();
     },
     setLod(lod: number | null) {
       pinned = lod;
       if (lod !== null) for (const chunk of chunks) showLod(chunk, lod);
+      placeBlocks();
     },
+    lodCount: blocks.length ? mergedLod + 1 : steps.length,
     dispose() {
       const seen = new Set<BufferGeometry>();
       for (const chunk of chunks) {
@@ -966,6 +1078,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
           }
         }
       }
+      for (const block of blocks) for (const mesh of block.meshes) mesh?.geometry.dispose();
       rocks?.traverse((object) => {
         if (!(object instanceof Mesh)) return;
         object.geometry.dispose();

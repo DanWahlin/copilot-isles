@@ -6,6 +6,7 @@ import {
   LineBasicMaterial,
   LineSegments,
   MathUtils,
+  Matrix4,
   Mesh,
   Object3D,
   Vector3,
@@ -64,6 +65,9 @@ import {
   raiderCutterFlags,
 } from './ship-flags';
 import { windAt } from '../wind';
+import type { TierSettings } from '../../engine/quality';
+import { loadLodSimplifier } from '../characters/character-lod';
+import { attachMovingLod, buildChunkLodIndex, chunkLodEdges } from '../village/chunks';
 import {
   makeCanvasMaterial,
   createShipLabel,
@@ -380,6 +384,44 @@ class GunRecoil {
     for (let g = 0; g < GUN_SLOTS; g++) this.set(g, 0);
   }
 }
+
+/**
+ * Lite: the merged spars join the merged hull (the same material, and the rig never moves on a ship
+ * without a cutter rig: a draw fewer), and that mesh gets the towns' index levels of detail
+ * (`buildChunkLodIndex`, 5 and 18 cm off at most), picked by the drawing camera's distance as the ship
+ * sails: full detail from her deck, about a third of the triangles from the island. No new shader.
+ * Call before her first draw.
+ */
+export async function addLiteShipLods(ship: Brigantine, tier: TierSettings): Promise<void> {
+  if (tier.tier !== 'lite') return;
+  const hull = ship.group.getObjectByName('hull deck trim and stern (merged)') as Mesh | undefined;
+  const spars = ship.group.getObjectByName('spars and furled canvas (merged)') as Mesh | undefined;
+  if (!hull) return;
+  const rig = spars?.parent;
+  if (
+    spars &&
+    rig &&
+    rig.parent === hull.parent &&
+    spars.material === hull.material &&
+    spars.matrix.equals(IDENTITY) &&
+    rig.matrix.equals(IDENTITY) &&
+    hull.matrix.equals(IDENTITY) &&
+    !ship.group.getObjectByName('cutter rig')
+  ) {
+    const merged = mergeGeometries([hull.geometry, spars.geometry], false);
+    if (merged) {
+      hull.geometry.dispose();
+      spars.geometry.dispose();
+      hull.geometry = merged;
+      spars.removeFromParent();
+      ship.drawCallCount = drawCallCount(ship.group);
+    }
+  }
+  const simplify = await loadLodSimplifier();
+  if (simplify && buildChunkLodIndex(hull.geometry, simplify)) attachMovingLod(hull, chunkLodEdges(tier));
+}
+
+const IDENTITY = new Matrix4();
 
 export function createBrigantine({
   tier,

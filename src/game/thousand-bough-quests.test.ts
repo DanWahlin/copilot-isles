@@ -81,7 +81,7 @@ describe('Thousand-Bough quests (Chapter 02)', () => {
         if ('trial' in s) asked.push(s.trial);
       }
     }
-    expect(asked).toEqual(['K2.1', 'K2.2', 'M2.1', 'H2.1', 'M2.2', 'H2.3', 'H2.6', 'T2']);
+    expect(asked).toEqual(['K2.1', 'K2.2', 'M2.1', 'K2.4', 'H2.1', 'K2.3', 'H2.3', 'H2.6', 'T2']);
   });
 
   it('sends anyone ahead of the story back, and gives everyone a line once they’re done', () => {
@@ -169,7 +169,7 @@ describe('Thousand-Bough quests (Chapter 02)', () => {
     for (const id of teaching) expect(THOUSAND_BOUGH_LINES, id).toContain(id);
     // Every scripted line of the stops' teaching beats is cited, except greetings, directions and banter.
     const untaught =
-      /\.(wait|done|next|chest|01|channels|deadend|round1|rain|retry|pass|flag\.ok|order\.\d|twist\.0\d)$|^juno\.tb\.|^wingman\.tb\.0|^wingman\.starfish|^tb\.elder\.0[12]$|^tb\.saffi\.01$|^tb\.tamsin\.01$|^tb\.fen\.03$/;
+      /\.(wait|done|next|chest|01|channels|deadend|round1|retry|pass|flag\.ok|order\.\d|twist\.0\d)$|^juno\.tb\.|^wingman\.tb\.0|^wingman\.starfish|^tb\.elder\.0[12]$|^tb\.saffi\.01$|^tb\.tamsin\.01$|^tb\.fen\.03$/;
     for (const id of THOUSAND_BOUGH_LINES)
       if (!untaught.test(id)) expect(teaching, `${id} cites its section`).toContain(id);
   });

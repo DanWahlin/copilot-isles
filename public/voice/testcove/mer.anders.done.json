@@ -1,7 +1,7 @@
 {
   "id": "mer.anders.done",
   "speaker": "Anders",
-  "text": "Questions to a chat, jobs to a project session. Good work.",
+  "text": "Questions to a chat. Anything that needs your repository, to a project session. Good work.",
   "words": [
     {
       "word": "Questions",
@@ -21,42 +21,62 @@
     {
       "word": "chat",
       "start": 0.811166,
-      "end": 1.382958
+      "end": 2.207458
     },
     {
-      "word": "jobs",
-      "start": 1.382958,
-      "end": 1.742041
+      "word": "Anything",
+      "start": 2.207458,
+      "end": 2.619666
+    },
+    {
+      "word": "that",
+      "start": 2.619666,
+      "end": 2.792541
+    },
+    {
+      "word": "needs",
+      "start": 2.792541,
+      "end": 3.071791
+    },
+    {
+      "word": "your",
+      "start": 3.071791,
+      "end": 3.204791
+    },
+    {
+      "word": "repository",
+      "start": 3.204791,
+      "end": 4.069166
     },
     {
       "word": "to",
-      "start": 1.742041,
-      "end": 1.901583
+      "start": 4.069166,
+      "end": 4.228708
     },
     {
       "word": "a",
-      "start": 1.901583,
-      "end": 1.981375
+      "start": 4.228708,
+      "end": 4.3085
     },
     {
       "word": "project",
-      "start": 1.981375,
-      "end": 2.4335
+      "start": 4.3085,
+      "end": 4.773916
     },
     {
       "word": "session",
-      "start": 2.4335,
-      "end": 3.8165
+      "start": 4.773916,
+      "end": 6.170208
     },
     {
       "word": "Good",
-      "start": 3.8165,
-      "end": 4.055833
+      "start": 6.170208,
+      "end": 6.409583
     },
     {
       "word": "work",
-      "start": 4.055833,
-      "end": 4.305833
+      "start": 6.409583,
+      "end": 6.659583
     }
   ]
 }

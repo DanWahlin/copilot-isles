@@ -15,25 +15,31 @@ const think = (api, force = null) =>
     const p = s.debug.puzzle('P1.1');
     const st = p.state();
     const state = { at: st.at.map(([x, z]) => [x, z]) };
-    // The yard's grid from three crates' starting cells (it's an affine grid).
-    const c0 = lay.crates.map((c) => c.at);
+    // The yard's grid from three crates' cells (it's an affine grid): two steps across it, U per
+    // cell in x and V per cell in z, from any three crates that aren't in a line.
+    const g = st.at;
     const w = p.spots().cells;
     const fit =
       window.__yardFit ??
       (() => {
-        const iq = 0,
-          ib = 2,
-          is = 4; // question [1,2], brainstorm [3,2], summary [1,3]
-        const U = {
-          x: (w[ib].x - w[iq].x) / (c0[ib][0] - c0[iq][0]),
-          z: (w[ib].z - w[iq].z) / (c0[ib][0] - c0[iq][0]),
-        };
-        const V = { x: w[is].x - w[iq].x, z: w[is].z - w[iq].z };
-        const O = {
-          x: w[iq].x - c0[iq][0] * U.x - c0[iq][1] * V.x,
-          z: w[iq].z - c0[iq][0] * U.z - c0[iq][1] * V.z,
-        };
-        return { O, U, V };
+        for (let b = 1; b < g.length; b++)
+          for (let c = b + 1; c < g.length; c++) {
+            const [ax, az] = [g[b][0] - g[0][0], g[b][1] - g[0][1]];
+            const [bx, bz] = [g[c][0] - g[0][0], g[c][1] - g[0][1]];
+            const det = ax * bz - bx * az;
+            if (!det) continue;
+            const W1 = { x: w[b].x - w[0].x, z: w[b].z - w[0].z };
+            const W2 = { x: w[c].x - w[0].x, z: w[c].z - w[0].z };
+            // [U V] = [W1 W2] · inverse([[ax, bx], [az, bz]])
+            const U = { x: (W1.x * bz - W2.x * az) / det, z: (W1.z * bz - W2.z * az) / det };
+            const V = { x: (W2.x * ax - W1.x * bx) / det, z: (W2.z * ax - W1.z * bx) / det };
+            const O = {
+              x: w[0].x - g[0][0] * U.x - g[0][1] * V.x,
+              z: w[0].z - g[0][0] * U.z - g[0][1] * V.z,
+            };
+            return { O, U, V };
+          }
+        throw new Error('the crates are all in a line');
       })();
     window.__yardFit = fit;
     const at = (x, z) => ({ x: fit.O.x + x * fit.U.x + z * fit.V.x, z: fit.O.z + x * fit.U.z + z * fit.V.z });
@@ -54,6 +60,7 @@ const think = (api, force = null) =>
     let forced = null;
     if (force) {
       const i = lay.crates.findIndex((c) => c.id === force.id);
+      if (i < 0) throw new Error(`no crate "${force.id}" in the yard`);
       const [dx, dz] = L.DIRS[force.dir];
       forced = { from: [state.at[i][0] - dx, state.at[i][1] - dz], dir: force.dir, crate: i };
     }
@@ -101,7 +108,7 @@ export default {
   island: 'Port Meridian',
   who: 'with Anders at the shipyard',
   subtitle:
-    'Chat or project session? Questions and brainstorming go to a chat. Work that changes your repository needs a project session.',
+    'Chat or project session? Questions and brainstorming go to a chat. Work that needs your repository needs a project session.',
   chapter: 'Course Chapter 01 · Chat sessions and Project sessions',
   flags: ['meridian'],
 
@@ -130,20 +137,25 @@ export default {
     await api.easeLook((await api.state()).heading, 0.72, 1000);
     await api.pause(600);
 
-    // The tavern side first; then "Fix a bug" goes west too, toward the tavern's free plate, and the
-    // plate refuses it (the mistake). After that, the solver's pushes from wherever things stand.
+    // "Fix a bug" first, along the top to the slipway; the general worktree question toward the
+    // tavern; the pull request onto the slipway. Then "Tour the book app (no edits)" goes west toward
+    // the tavern's plate, and the plate refuses it: no files change, but it needs your repository (the
+    // mistake). After that, the solver's pushes from wherever things stand (16 pushes in all, one
+    // refused; check with the yard model before changing these).
     const opening = [
-      { id: 'question', dir: 'w' },
-      { id: 'summary', dir: 'n' },
-      { id: 'bug', dir: 'w' },
-      { id: 'bug', dir: 'w', wrong: true },
+      { id: 'bug', dir: 'e' },
+      { id: 'bug', dir: 'e' },
+      { id: 'worktree', dir: 'w' },
+      { id: 'worktree', dir: 'w' },
+      { id: 'pr', dir: 'e' },
+      { id: 'tour', dir: 'w', wrong: true },
     ];
     for (let guard = 0; guard < 40; guard++) {
       const force = opening.shift() ?? null;
       t = await think(api, force);
       if (t.solved || !t.next) break;
       const step = t.next;
-      if (force?.wrong) api.mark('wrong plate: Fix a bug onto the tavern plate');
+      if (force?.wrong) api.mark('wrong plate: Tour the book app onto the tavern plate');
       for (const c of step.route.slice(1)) await api.walkTo(c.x, c.z, { tol: 0.35, run: 99 });
       await api.face(step.crateAt.x, step.crateAt.z, 0.25);
       await api.pause(250);

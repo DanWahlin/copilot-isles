@@ -1,0 +1,87 @@
+{
+  "id": "mer.pell.letters",
+  "speaker": "Pell",
+  "text": "Captains write to me when they can’t find a setting, and these letters have gone astray.",
+  "words": [
+    {
+      "word": "Captains",
+      "start": 0.048083,
+      "end": 0.48075
+    },
+    {
+      "word": "write",
+      "start": 0.48075,
+      "end": 0.721166
+    },
+    {
+      "word": "to",
+      "start": 0.721166,
+      "end": 0.841333
+    },
+    {
+      "word": "me",
+      "start": 0.841333,
+      "end": 0.985583
+    },
+    {
+      "word": "when",
+      "start": 0.985583,
+      "end": 1.177875
+    },
+    {
+      "word": "they",
+      "start": 1.177875,
+      "end": 1.298083
+    },
+    {
+      "word": "can’t",
+      "start": 1.298083,
+      "end": 1.610583
+    },
+    {
+      "word": "find",
+      "start": 1.610583,
+      "end": 1.887
+    },
+    {
+      "word": "a",
+      "start": 1.887,
+      "end": 1.947125
+    },
+    {
+      "word": "setting",
+      "start": 1.947125,
+      "end": 2.608166
+    },
+    {
+      "word": "and",
+      "start": 2.608166,
+      "end": 2.716333
+    },
+    {
+      "word": "these",
+      "start": 2.716333,
+      "end": 2.932708
+    },
+    {
+      "word": "letters",
+      "start": 2.932708,
+      "end": 3.29325
+    },
+    {
+      "word": "have",
+      "start": 3.29325,
+      "end": 3.4255
+    },
+    {
+      "word": "gone",
+      "start": 3.4255,
+      "end": 3.629791
+    },
+    {
+      "word": "astray",
+      "start": 3.629791,
+      "end": 3.879791
+    }
+  ]
+}

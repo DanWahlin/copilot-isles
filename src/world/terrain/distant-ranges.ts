@@ -263,7 +263,7 @@ function createIslandMaterial(): MeshStandardNodeMaterial {
 }
 
 function qualityForTier(tier: QualityTier = 'high'): IslandQuality {
-  if (tier === 'lite') return { segments: 44, landRings: 13 };
+  if (tier === 'lite') return { segments: 36, landRings: 11 };
   if (tier === 'low') return { segments: 56, landRings: 16 };
   if (tier === 'medium') return { segments: 76, landRings: 21 };
   return { segments: 96, landRings: 26 };

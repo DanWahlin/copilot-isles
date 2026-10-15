@@ -233,6 +233,10 @@ export async function createThousandBoughAsync(
     flume: village.flume,
     spire: {
       ...base.spire,
+      playJam: () => village.pieces.spireJam(),
+      preview(crew, lookout, on) {
+        if (crew !== 'bugfix') village.pieces.spireLantern(crew, lookout, on);
+      },
       async openSecondBridge() {
         village.r3.visible = true;
         closed.delete('R3');

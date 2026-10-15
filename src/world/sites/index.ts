@@ -1,6 +1,7 @@
 import { Group } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle, HeightField } from '../contracts';
+import { buildSlice } from '../../engine/build-slice';
 import { loadVillageKit, type VillageAnchor, type VillageBoxCollider } from '../village/kit';
 import { loadPalmObject } from '../vegetation/model-loader';
 import { createBottles, type BottleSite } from './bottles';
@@ -58,8 +59,13 @@ export async function createCoveSites(o: {
     kinds: ANCHORAGE_SLUICE.tiles.map((t) => t.kind),
     signs,
   });
+  // A slice between set pieces, so the cabin keeps moving while the island builds (built at once,
+  // they held a frame for ~60 ms).
+  await buildSlice();
   const crane = createCrane({ tier: o.tier, kit, signs });
+  await buildSlice();
   const gear = createGearRack({ tier: o.tier, kit, ground: o.ground });
+  await buildSlice();
   const palette = createPaletteStand({ tier: o.tier, kit, ground: o.ground });
   const [hammockPalmA, hammockPalmB] = await Promise.all([
     loadPalmObject('a', 8.2),
@@ -71,11 +77,12 @@ export async function createCoveSites(o: {
     ground: o.ground,
     palms: { left: hammockPalmA, right: hammockPalmB },
   });
-  const bottles = createBottles({ kit, ground: o.ground });
+  await buildSlice();
+  const bottles = createBottles({ kit, ground: o.ground, lite: o.tier.tier === 'lite' });
   const group = new Group();
   group.name = 'puzzle sites';
   group.add(mill.group, crane.group, gear.group, palette.group, hammock.group, bottles.group);
-  group.add(signs.finalize());
+  group.add(await signs.finalizeAsync(buildSlice));
   return {
     group,
     mill,

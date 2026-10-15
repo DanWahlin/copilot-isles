@@ -1,7 +1,7 @@
 {
   "id": "mer.rhea.helms",
   "speaker": "Rhea",
-  "text": "Board your ship. Each buoy out in the bay is a helm to sail.",
+  "text": "Board your ship. At each buoy in the bay, I’ll hand you an order, and you pick the helm that fits.",
   "words": [
     {
       "word": "Board",
@@ -19,59 +19,94 @@
       "end": 1.723291
     },
     {
-      "word": "Each",
+      "word": "At",
       "start": 1.723291,
-      "end": 2.002416
+      "end": 1.917458
+    },
+    {
+      "word": "each",
+      "start": 1.917458,
+      "end": 2.160208
     },
     {
       "word": "buoy",
-      "start": 2.002416,
-      "end": 2.196583
-    },
-    {
-      "word": "out",
-      "start": 2.196583,
-      "end": 2.427166
+      "start": 2.160208,
+      "end": 2.3665
     },
     {
       "word": "in",
-      "start": 2.427166,
-      "end": 2.536416
+      "start": 2.3665,
+      "end": 2.487875
     },
     {
       "word": "the",
-      "start": 2.536416,
-      "end": 2.6335
+      "start": 2.487875,
+      "end": 2.584958
     },
     {
       "word": "bay",
-      "start": 2.6335,
-      "end": 2.92475
+      "start": 2.584958,
+      "end": 3.216
     },
     {
-      "word": "is",
-      "start": 2.92475,
-      "end": 3.082541
+      "word": "I’ll",
+      "start": 3.216,
+      "end": 3.398041
     },
     {
-      "word": "a",
-      "start": 3.082541,
-      "end": 3.143208
+      "word": "hand",
+      "start": 3.398041,
+      "end": 3.640791
+    },
+    {
+      "word": "you",
+      "start": 3.640791,
+      "end": 3.774291
+    },
+    {
+      "word": "an",
+      "start": 3.774291,
+      "end": 3.8835
+    },
+    {
+      "word": "order",
+      "start": 3.8835,
+      "end": 4.453875
+    },
+    {
+      "word": "and",
+      "start": 4.453875,
+      "end": 4.57525
+    },
+    {
+      "word": "you",
+      "start": 4.57525,
+      "end": 4.70875
+    },
+    {
+      "word": "pick",
+      "start": 4.70875,
+      "end": 4.963583
+    },
+    {
+      "word": "the",
+      "start": 4.963583,
+      "end": 5.060666
     },
     {
       "word": "helm",
-      "start": 3.143208,
-      "end": 3.45875
+      "start": 5.060666,
+      "end": 5.376208
     },
     {
-      "word": "to",
-      "start": 3.45875,
-      "end": 3.59225
+      "word": "that",
+      "start": 5.376208,
+      "end": 5.546125
     },
     {
-      "word": "sail",
-      "start": 3.59225,
-      "end": 3.84225
+      "word": "fits",
+      "start": 5.546125,
+      "end": 5.796125
     }
   ]
 }

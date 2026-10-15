@@ -12,6 +12,7 @@ import {
 import type { SliceName, SoundName } from './soundscape/bank';
 import { VoicePlayer, type WordCallback } from './voice/player';
 import { MUSIC_TRIM } from './beds';
+import { takeAudioContext } from './early-context';
 
 export { AMBIENT_BEDS } from './beds';
 
@@ -208,7 +209,8 @@ class IslesAudioImpl implements IslesAudio {
     const ctor = this.audioCtor();
     if (!ctor) return false;
     try {
-      const ctx = new ctor({ latencyHint: 'interactive' });
+      // Made while the page loaded (early-context.ts), so the gesture only resumes it.
+      const ctx = takeAudioContext() ?? new ctor({ latencyHint: 'interactive' });
       this.ctx = ctx;
       this.buildGraph(ctx);
       if (ctx.state === 'suspended') await ctx.resume();

@@ -13,7 +13,8 @@
 // node tools/budgettest.mjs [--base=http://127.0.0.1:5353] [--tiers=lite,low,medium,high,ultra]
 //   [--islands=anchorage,meridian,thousand-bough] [--spots=12] (seeded walkable spots per island, plus the named ones)
 //   [--yaws=4] [--frames=8] (frames read per view) [--top=10] (groups to print) [--json=<file>]
-//   [--views] (print every view) [--webgl]
+//   [--views] (print every view) [--meshes] (print the worst frames' top meshes by name and material)
+//   [--webgl]
 // npm run check:frame-budgets -- --base=http://127.0.0.1:5353 runs it as a gate (not part of the build).
 // It ends with one line per tier and island, and exits 0 only when every tier's worst view is within
 // budget; it exits 1 when any is over (there's no allowance for a known gap), or on a page error.
@@ -118,7 +119,19 @@ function installProbe() {
       cascade = prevCascade;
     }
   };
-  const blank = () => ({ draws: 0, tris: 0, passes: {}, groups: {} });
+  // Per-mesh key: the object's name (or its parent's, for unnamed parts) and its material's name.
+  const meshOf = new WeakMap();
+  const meshKey = (o) => {
+    let k = meshOf.get(o);
+    if (k) return k;
+    let n = o.name;
+    for (let p = o.parent; !n && p && p !== mainScene; p = p.parent) n = p.name && `${p.name}/${o.type}`;
+    const m = Array.isArray(o.material) ? o.material[0] : o.material;
+    k = `${n || o.type} [${m?.name || m?.type || '-'}]`;
+    meshOf.set(o, k);
+    return k;
+  };
+  const blank = () => ({ draws: 0, tris: 0, passes: {}, groups: {}, meshes: {} });
   let cur = blank();
   const frames = [];
   const update = info.update.bind(info);
@@ -134,6 +147,10 @@ function installProbe() {
     const g = (cur.groups[key] ??= { draws: 0, tris: 0 });
     g.draws++;
     g.tris += tris;
+    const mk = `${key.slice(0, key.indexOf(' '))} ${meshKey(object)}`;
+    const m = (cur.meshes[mk] ??= { draws: 0, tris: 0 });
+    m.draws++;
+    m.tris += tris;
   };
   const reset = info.reset.bind(info);
   info.reset = () => {
@@ -288,6 +305,12 @@ for (const tier of tiers) {
         .slice(0, TOP)
         .map(([g, v]) => `${g} ${v.draws}d/${fmtK(v.tris)}`);
       console.log(`      ${top.join('\n      ')}`);
+      if (!opt.meshes) return;
+      const meshes = Object.entries(f.meshes)
+        .sort((a, b) => b[1][key] - a[1][key])
+        .slice(0, Number(opt.meshes) > 1 ? Number(opt.meshes) : 40)
+        .map(([g, v]) => `${g} ${v.draws}d/${fmtK(v.tris)}`);
+      console.log(`      meshes:\n        ${meshes.join('\n        ')}`);
     };
     show('worst-tris frame', maxT.worst, 'tris');
     show('worst-draws frame', maxD.worstDraws, 'draws');

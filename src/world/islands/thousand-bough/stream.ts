@@ -2,6 +2,7 @@ import { Group, Vector3, type Mesh, type Object3D, type PerspectiveCamera, type 
 import type { Node } from 'three/webgpu';
 import type { TierSettings } from '../../../engine/quality';
 import type { CircleObstacle } from '../../contracts';
+import { loadLodSimplifier } from '../../characters/character-lod';
 import { FarCull } from '../../far-cull';
 import { skipSunShadows } from '../../sky/cached-sun-shadow';
 import { createCoastFoam } from '../../terrain/coast-foam';
@@ -9,6 +10,7 @@ import { loadTerrainPack } from '../../terrain/bake';
 import type { CompositeHeightField } from '../../terrain/composite-height-field';
 import { createTerrainAsync, type CreatedTerrain } from '../../terrain/terrain-mesh';
 import type { VegetationSystem } from '../../vegetation';
+import { LITE_ROCK_ERROR, simplifyInPlace } from '../../village/chunks';
 import { loadVillageKit } from '../../village/kit';
 import { createBirds, type BirdsSystem } from '../../life/birds';
 import { createThousandBoughAsync, type ThousandBoughWorld } from './index';
@@ -200,6 +202,12 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
           },
           ctx.breathe,
         );
+        // Lite's rocks (the boulders, the cave's roof and the flume's stones share their shapes) take
+        // the coarser shape the other islands' loose rocks have there. Before anything draws them, so
+        // nothing uploads twice.
+        const shapes = (rocks as ThousandBoughRocks | null)?.flumeStones.geometries ?? [];
+        const simplify = tier.tier === 'lite' && shapes.length ? await loadLodSimplifier() : null;
+        if (simplify) for (const g of shapes) simplifyInPlace(g, simplify, LITE_ROCK_ERROR);
         await ctx.breathe();
         if (ctx.skipShadows) skipSunShadows(terrain.group);
         const foam = createCoastFoam(data, terrain.heightField, { maxDistance: 1100 });

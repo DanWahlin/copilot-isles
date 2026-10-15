@@ -12,7 +12,7 @@ vi.mock('../../terrain/terrain-material', async () => {
 });
 
 describe('flume rock meshes', () => {
-  it('animates the boulder without changing or moving the island rock batches', async () => {
+  it('places the board’s rock tiles without changing or moving the island rock batches', async () => {
     const materials = {
       wood: new MeshBasicMaterial(),
       stone: new MeshBasicMaterial(),
@@ -36,20 +36,33 @@ describe('flume rock meshes', () => {
         (child as InstancedMesh).isInstancedMesh === true,
     ) as InstancedMesh[];
     const flumeVersions = flumeBatches.map((mesh) => mesh.instanceMatrix.version);
-    for (let i = 0; i < flumeBatches.length; i++) {
-      expect(flumeBatches[i]!.geometry).toBe(rocks.flumeStones.geometries[i]);
-      expect(flumeBatches[i]!.material).toBe(rocks.flumeStones.material);
-    }
+    expect(flumeBatches[0]!.geometry).toBe(rocks.flumeStones.geometries[0]);
+    expect(flumeBatches[0]!.material).toBe(rocks.flumeStones.material);
 
-    const boulder = flume.setRound(3);
-    for (let frame = 0; frame < 130; frame++) {
+    expect(flumeBatches).toHaveLength(1);
+    flume.setBoard(
+      [
+        [...'LLSLL'].map(() => ({ kind: 'elbow' as const, rot: 0 as const })),
+        [...'SRSRS'].map((k) => ({
+          kind: k === 'R' ? ('rock' as const) : ('straight' as const),
+          rot: 0 as const,
+        })),
+        [...'SLSLS'].map(() => ({ kind: 'straight' as const, rot: 0 as const })),
+        [...'SSSSS'].map(() => ({ kind: 'straight' as const, rot: 0 as const })),
+      ],
+      false,
+    );
+    // Round 3 plays on the same board: nothing rolls in, and resuming there replays nothing.
+    const round = flume.setRound(3);
+    for (let frame = 0; frame < 30; frame++) {
       flume.update(1 / 60);
       rocks.group.updateMatrixWorld(true);
       sweep.run(rocks.group, true);
     }
-    await boulder;
+    await round;
 
     expect(flumeBatches.some((mesh, i) => mesh.instanceMatrix.version > flumeVersions[i]!)).toBe(true);
+    expect(flumeBatches[0]!.count).toBe(2);
     expect(rockBatches.map((mesh) => mesh.instanceMatrix.version)).toEqual(versions);
     for (const mesh of rockBatches) {
       const record = casterRecord(mesh);

@@ -1656,6 +1656,20 @@
   border-top: 1px solid rgba(31, 35, 40, 0.1);
   font: 600 0.95rem/1.2 var(--ci-ui);
 }
+.ci-palette-name small {
+  font-weight: 500;
+  color: #57606a;
+}
+/* Sail colours that aren't app themes: just the sail, no app-style mock. */
+.ci-palette-mock.sails {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ci-palette-mock.sails .sail {
+  position: static;
+  font-size: clamp(3rem, 5.4vw, 4.4rem);
+}
 .ci-palette-empty {
   grid-column: 1 / -1;
   margin: 1rem 0;

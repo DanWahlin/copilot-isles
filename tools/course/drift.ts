@@ -2,7 +2,7 @@
  * Course drift report (PLAN §8.4 step 4). Compares authored content's `SourceRef`s and course images
  * against `content/course.lock.json` and lists everything the course moved underneath:
  *
- * - quizzes, Logbook pages, and voiced lines whose source section changed or disappeared,
+ * - quizzes, Logbook pages, and voiced lines (and cited puzzle text) whose source section changed or disappeared,
  * - pinned screenshots (hotspot rects, captions) whose upstream file changed, with before/after
  *   montages when `sync.mjs --report=<dir>` saved the upstream copies,
  * - the UI-term check: bolded UI names the course dropped since the previous lock that authored
@@ -39,7 +39,7 @@ const voice = JSON.parse(await readFile(join(root, 'tools/voice/lines.testcove.j
 const voiceText = new Map(voice.lines.map((l) => [l.id, l.text]));
 
 interface Item {
-  kind: 'quiz' | 'page' | 'voiced';
+  kind: 'quiz' | 'page' | 'voiced' | 'cited';
   id: string;
   ref: SourceRef;
   text: string;
@@ -53,6 +53,9 @@ for (const p of PAGES.values())
 for (const c of CHAPTERS)
   for (const [id, ref] of Object.entries(c.voiced ?? {}))
     items.push({ kind: 'voiced', id, ref, text: voiceText.get(id) ?? '' });
+for (const c of CHAPTERS)
+  for (const [id, { text, source }] of Object.entries(c.cited ?? {}))
+    items.push({ kind: 'cited', id, ref: source, text });
 
 const lines: string[] = [];
 const say = (s = '') => lines.push(s);
@@ -82,7 +85,8 @@ for (const it of items) {
 }
 say(`### Authored content whose course section changed`);
 say();
-if (!changed.size && !missing.length) say('None. Every quiz, page, and voiced line matches its section.');
+if (!changed.size && !missing.length)
+  say('None. Every quiz, page, voiced line, and cited teaching line matches its section.');
 for (const [key, list] of changed) {
   const [chapter, anchor] = key.split('#');
   say(

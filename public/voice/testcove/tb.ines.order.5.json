@@ -1,0 +1,62 @@
+{
+  "id": "tb.ines.order.5",
+  "speaker": "Ines",
+  "text": "Pack light! Copilot's fixing one empty-state message. What do you bring?",
+  "words": [
+    {
+      "word": "Pack",
+      "start": 0,
+      "end": 0.307
+    },
+    {
+      "word": "light",
+      "start": 0.307,
+      "end": 0.88
+    },
+    {
+      "word": "Copilot's",
+      "start": 0.88,
+      "end": 1.486
+    },
+    {
+      "word": "fixing",
+      "start": 1.486,
+      "end": 1.8
+    },
+    {
+      "word": "one",
+      "start": 1.8,
+      "end": 1.973
+    },
+    {
+      "word": "empty-state",
+      "start": 1.973,
+      "end": 2.61
+    },
+    {
+      "word": "message",
+      "start": 2.61,
+      "end": 3.152
+    },
+    {
+      "word": "What",
+      "start": 3.152,
+      "end": 3.627
+    },
+    {
+      "word": "do",
+      "start": 3.627,
+      "end": 3.72
+    },
+    {
+      "word": "you",
+      "start": 3.72,
+      "end": 3.893
+    },
+    {
+      "word": "bring",
+      "start": 3.893,
+      "end": 4.143
+    }
+  ]
+}

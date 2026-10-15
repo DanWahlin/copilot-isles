@@ -53,7 +53,7 @@ export function ArchipelagoMap({
             {island.status === 'current' && (
               <ellipse className="ci-arch-here" rx={art.rx * 1.55} ry={art.ry * 1.6} />
             )}
-            <g className="ci-arch-art">{art.draw()}</g>
+            <g className="ci-arch-art">{drawArt(island.id, art)}</g>
             <g className="ci-arch-badge" transform={`translate(${-art.rx * 0.95} ${-art.ry * 0.9})`}>
               <circle r="15" />
               <text dy="0.36em">{num}</text>
@@ -229,6 +229,14 @@ interface IslandArt {
 }
 
 const SAND = '#e9d49b';
+
+/** Each island's art, drawn once (it never changes): pointing at an island re-renders the map. */
+const drawnArt = new Map<string, ReactNode>();
+function drawArt(id: string, art: IslandArt): ReactNode {
+  let node = drawnArt.get(id);
+  if (node === undefined) drawnArt.set(id, (node = art.draw()));
+  return node;
+}
 
 function Base({
   d,

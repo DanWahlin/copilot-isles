@@ -1,0 +1,112 @@
+{
+  "id": "mer.helm.order.interactive",
+  "speaker": "Rhea",
+  "text": "First order. Thread the blue marks with me. I want you involved the whole way, calling every turn. Which helm fits?",
+  "words": [
+    {
+      "word": "First",
+      "start": 0.0485409,
+      "end": 0.461166
+    },
+    {
+      "word": "order",
+      "start": 0.461166,
+      "end": 1.711166
+    },
+    {
+      "word": "Thread",
+      "start": 1.711166,
+      "end": 2.087375
+    },
+    {
+      "word": "the",
+      "start": 2.087375,
+      "end": 2.220875
+    },
+    {
+      "word": "blue",
+      "start": 2.220875,
+      "end": 2.5
+    },
+    {
+      "word": "marks",
+      "start": 2.5,
+      "end": 2.888333
+    },
+    {
+      "word": "with",
+      "start": 2.888333,
+      "end": 3.046125
+    },
+    {
+      "word": "me",
+      "start": 3.046125,
+      "end": 4.17475
+    },
+    {
+      "word": "I",
+      "start": 4.17475,
+      "end": 4.332541
+    },
+    {
+      "word": "want",
+      "start": 4.332541,
+      "end": 4.538833
+    },
+    {
+      "word": "you",
+      "start": 4.538833,
+      "end": 4.672333
+    },
+    {
+      "word": "involved",
+      "start": 4.672333,
+      "end": 5.097083
+    },
+    {
+      "word": "the",
+      "start": 5.097083,
+      "end": 5.169916
+    },
+    {
+      "word": "whole",
+      "start": 5.169916,
+      "end": 5.473291
+    },
+    {
+      "word": "way",
+      "start": 5.473291,
+      "end": 6.019416
+    },
+    {
+      "word": "calling",
+      "start": 6.019416,
+      "end": 6.3835
+    },
+    {
+      "word": "every",
+      "start": 6.3835,
+      "end": 6.6505
+    },
+    {
+      "word": "turn",
+      "start": 6.6505,
+      "end": 7.961166
+    },
+    {
+      "word": "Which",
+      "start": 7.961166,
+      "end": 8.216
+    },
+    {
+      "word": "helm",
+      "start": 8.216,
+      "end": 8.507291
+    },
+    {
+      "word": "fits",
+      "start": 8.507291,
+      "end": 8.757291
+    }
+  ]
+}

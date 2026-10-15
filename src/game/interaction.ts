@@ -13,7 +13,8 @@ export interface Interactable {
    */
   bias?: number;
   enabled?: () => boolean;
-  onInteract(): void;
+  /** `back`: E pressed with Shift held (or the pad's run button), e.g. to turn a tile anticlockwise. */
+  onInteract(back?: boolean): void;
 }
 
 /**
@@ -94,9 +95,9 @@ export class Interactions {
       .sort((a, b) => a.d - b.d);
   }
 
-  fire(): boolean {
+  fire(back = false): boolean {
     if (!this.current) return false;
-    this.current.onInteract();
+    this.current.onInteract(back);
     return true;
   }
 }

@@ -11,6 +11,7 @@ import {
   Mesh,
   MeshBasicNodeMaterial,
   MeshStandardNodeMaterial,
+  Sphere,
   SphereGeometry,
   BufferGeometry,
 } from 'three/webgpu';
@@ -632,8 +633,17 @@ export async function createIslandProps(o: IslandPropsOptions): Promise<IslandPr
     await breathe();
   }
 
+  // The bounds a slice per island: the merged million points' bounding sphere, worked out on the
+  // first compile, held the captain screen for ~50 ms.
+  const bounds = new Sphere();
+  for (const g of list) {
+    g.computeBoundingSphere();
+    if (g.boundingSphere) bounds.union(g.boundingSphere);
+    await breathe();
+  }
   const geo = mergeGeometries(list, false);
   for (const g of list) g.dispose();
+  if (geo) geo.boundingSphere = bounds;
   const mat = new MeshStandardNodeMaterial({
     vertexColors: true,
     roughness: 0.82,

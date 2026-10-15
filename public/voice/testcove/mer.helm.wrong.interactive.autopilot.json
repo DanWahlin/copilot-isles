@@ -1,0 +1,82 @@
+{
+  "id": "mer.helm.wrong.interactive.autopilot",
+  "speaker": "Rhea",
+  "text": "Autopilot works end to end without checking in, so you wouldn’t call a single turn.",
+  "words": [
+    {
+      "word": "Autopilot",
+      "start": 0.0485409,
+      "end": 0.728166
+    },
+    {
+      "word": "works",
+      "start": 0.728166,
+      "end": 1.080083
+    },
+    {
+      "word": "end",
+      "start": 1.080083,
+      "end": 1.262125
+    },
+    {
+      "word": "to",
+      "start": 1.262125,
+      "end": 1.3835
+    },
+    {
+      "word": "end",
+      "start": 1.3835,
+      "end": 1.662625
+    },
+    {
+      "word": "without",
+      "start": 1.662625,
+      "end": 2.038833
+    },
+    {
+      "word": "checking",
+      "start": 2.038833,
+      "end": 2.415041
+    },
+    {
+      "word": "in",
+      "start": 2.415041,
+      "end": 2.912625
+    },
+    {
+      "word": "so",
+      "start": 2.912625,
+      "end": 3.070375
+    },
+    {
+      "word": "you",
+      "start": 3.070375,
+      "end": 3.216
+    },
+    {
+      "word": "wouldn’t",
+      "start": 3.216,
+      "end": 3.531541
+    },
+    {
+      "word": "call",
+      "start": 3.531541,
+      "end": 3.786416
+    },
+    {
+      "word": "a",
+      "start": 3.786416,
+      "end": 3.834958
+    },
+    {
+      "word": "single",
+      "start": 3.834958,
+      "end": 4.211166
+    },
+    {
+      "word": "turn",
+      "start": 4.211166,
+      "end": 4.461166
+    }
+  ]
+}

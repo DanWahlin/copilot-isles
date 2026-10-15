@@ -1,7 +1,9 @@
 // P0.2 The Dry-Run Crane (Pim & Pol, Anchorage): their brief (with your fork's address typed into
-// the crane's form), then a Dry-Run on the berth the crane already faces (someone else's), --yes
-// pulled anyway and refused, the capstan turned to your own berth, a second Dry-Run that shows your
-// fork by name, and --yes for real.
+// the crane's form; it ends "Actions first" at Suri's gate), then a Dry-Run on the berth the crane
+// already faces (someone else's), --yes pulled anyway and refused, the capstan turned to your own
+// berth, a second Dry-Run that shows your fork by name and the script's warning that GitHub Actions
+// isn't active, --yes refused with "Setup failed", workflows turned on (Suri's gate, off camera; the
+// `sluice` scenario shows it), and --yes for real.
 import { skipTalk } from '../lib.mjs';
 
 const crane = (api) => api.S(() => window.__dev.session().debug.puzzle('P0.2').state());
@@ -39,7 +41,7 @@ export default {
   island: 'Anchorage Cay',
   who: 'with Pim and Pol on the quay',
   subtitle:
-    'Preview the setup script with --dry-run, check the Repository: line is your fork, then run it for real with --yes.',
+    'With workflows on, run the setup script with --dry-run. Check that its Repository: line names your fork, then use --yes.',
   chapter: 'Course Chapter 00 · Add the course practice items',
   flags: [],
 
@@ -61,7 +63,7 @@ export default {
   async play(page, api) {
     await api.pause(800);
     await api.talkTo(this.spot);
-    const briefed = (s) => s.quests['Q0.7'] === 'crane' && !s.dialogue && !s.banner && !s.reveal;
+    const briefed = (s) => s.quests['Q0.7'] === 'actions' && !s.dialogue && !s.banner && !s.reveal;
     const s = await api.converse({ until: (s) => !!s.forkForm || briefed(s) });
     if (s.forkForm) {
       await enterFork(page, api);
@@ -127,10 +129,41 @@ export default {
     }
     await api.pause(800);
 
-    // Preview again (your fork this time), then --yes for real.
+    // Preview again (your fork this time): the script warns that GitHub Actions isn't active.
     await goTo(cs.dry, 'Pull Dry-Run');
     await idle(api);
-    await api.pause(2800);
+    const warned = await api.waitFor(
+      () =>
+        (document.querySelector('.hud-term.show')?.textContent ?? '').includes(
+          'GitHub Actions is not active',
+        ),
+      null,
+      6000,
+    );
+    if (!warned) throw new Error('The dry run on your fork did not warn that Actions is off');
+    api.mark('actions warning');
+    await api.pause(3200);
+    // --yes anyway: "Setup failed", and Pol sends you to Suri's gate.
+    await goToYes();
+    await api.pause(800);
+    await api.converse({ idle: 1200 });
+    await idle(api);
+    const failed = await api.waitFor(
+      () =>
+        (document.querySelector('.hud-term.show')?.textContent ?? '').includes(
+          'Setup failed: The Book app web workflow is not active.',
+        ),
+      null,
+      8000,
+    );
+    if (!failed) throw new Error('The Actions-off --yes failure did not appear in the terminal');
+    api.mark('actions-off --yes refused');
+    await api.pause(1200);
+
+    // Workflows on (Suri's gate lever, off camera), then --yes for real.
+    api.mark('workflows on (off camera)');
+    await api.S(() => window.__dev.session().debug.quest('Q0.7', 'crane'));
+    await api.pause(1500);
     await goToYes();
     await api.pause(1200);
     await api.converse({

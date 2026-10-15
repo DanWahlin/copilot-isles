@@ -28,7 +28,9 @@ const QUEST = 'Q0.7';
  * Dry-Run to preview (ghost crates land and the sign shows `Repository:`), and pull `--yes` once
  * the preview shows your own fork. Real crates stock your ship, the stores board ticks, and the
  * "Setup complete." banner unfurls. Guards teach rather than fail: Pol stops a `--yes` without a
- * preview, the script refuses a repository you don't own, and the quay isn't a repository at all.
+ * preview, the script refuses a repository you don't own, the quay isn't a repository at all, and
+ * until you've pulled Suri's gate lever (Q0.7's `actions` step: your fork's Actions tab) your fork's
+ * dry run warns that GitHub Actions isn't active and `--yes` stops with the script's "Setup failed".
  */
 export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
   const saved = host.learn?.progress.data.puzzles[CRANE_ID];
@@ -40,8 +42,10 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
 
   const started = () => {
     const q = host.quests()[QUEST];
-    return q === 'crane' || q === 'solved' || q === 'done';
+    return q === 'actions' || q === 'crane' || q === 'solved' || q === 'done';
   };
+  /** Your fork's workflows are on: Suri's gate lever moves the job past `actions` (the sluice does). */
+  const actionsOn = () => host.quests()[QUEST] !== 'actions';
   const save = () =>
     host.learn?.progress.setPuzzle(CRANE_ID, { solved: state.complete, state: saveCrane(state) });
 
@@ -49,10 +53,12 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
   let terminal: string[] = [];
   /** The arm sign and the terminal, after `ev` (or the state alone). */
   let paintedFork = host.learn?.progress.data.fork ?? null;
+  let paintedActions = actionsOn();
   const readout = (ev?: CraneEvent) => {
     paintedFork = host.learn?.progress.data.fork ?? null;
+    paintedActions = actionsOn();
     site.setSign(signLines(state, ev, yours()), yours());
-    terminal = terminalLines(state, ev, yours());
+    terminal = terminalLines(state, ev, yours(), paintedActions);
   };
 
   // Restore what the harbour looked like.
@@ -169,7 +175,13 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     await site.drop('ghost', ev.facing, () => host.audio?.sfx.oneShot('crate_thud', spots.capstan, 0.25));
     running = false;
     readout();
-    if (ev.owner === 'you')
+    if (ev.owner === 'you' && !actionsOn())
+      say(
+        'Pim',
+        `Repository: ${ev.repository}. That’s your fork, but read the warning: GitHub Actions isn’t on yet. Workflows first!`,
+        6,
+      );
+    else if (ev.owner === 'you')
       say('Pim', `Repository: ${ev.repository}. That’s your fork. Now you can pull --yes.`, 5);
     else if (ev.owner === 'captain') {
       const who = craneFacings(yours())[ev.facing]!.captain ?? 'another captain';
@@ -184,7 +196,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     }
     site.pullLever('yes');
     host.audio?.sfx.oneShot('lever', spots.yes, 0.9);
-    const step = confirmYes(state, yours());
+    const step = confirmYes(state, yours(), actionsOn());
     const ev = step.event;
     state = step.state;
     switch (ev.kind) {
@@ -198,6 +210,9 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
         return;
       case 'refused':
         await refused(ev);
+        return;
+      case 'actions-off':
+        await actionsOff();
         return;
       case 'complete':
         await complete();
@@ -220,6 +235,17 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     );
     running = false;
     site.setSign(signLines(state, undefined, yours()), yours()); // The terminal keeps the refusal.
+  }
+
+  /** `--yes` on your fork with its workflows off: the script's "Setup failed", and Pol says why. */
+  async function actionsOff(): Promise<void> {
+    site.refuse();
+    readout({ kind: 'actions-off', repository: yours() });
+    host.audio?.sfx.oneShot('crane_ratchet', spots.capstan, 1);
+    running = true;
+    await host.beat([{ say: 'pol.refuse.actions.01' }], 'Pol');
+    running = false;
+    site.setSign(signLines(state, undefined, yours()), yours()); // The terminal keeps the failure.
   }
 
   async function complete(): Promise<void> {
@@ -283,6 +309,12 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
         void preview();
         return 'There’s your preview. Check the Repository line.';
       }
+      if (!actionsOn()) {
+        if (tier === 1) return 'Read the warning in that dry run. What has to be on before --yes?';
+        if (tier === 2)
+          return 'Workflows first: pull the gate lever at Suri’s mill. It’s your fork’s Actions tab.';
+        return 'The compass points at Suri’s gate lever. Pull it, then come back for --yes.';
+      }
       if (tier === 1) return 'The Repository line shows your fork. What runs it for real?';
       if (tier === 2) return 'Pull the red --yes lever on the right.';
       void confirm();
@@ -290,7 +322,9 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     },
     update() {
       // The site animates itself. A fork given (or changed in the Logbook) repaints the sign.
-      if ((host.learn?.progress.data.fork ?? null) !== paintedFork && !running && !site.busy) readout();
+      const stale =
+        (host.learn?.progress.data.fork ?? null) !== paintedFork || actionsOn() !== paintedActions;
+      if (stale && !running && !site.busy) readout();
     },
     terminal() {
       if (!started() || host.quests()[QUEST] === 'done' || !near(9)) return null;
@@ -306,6 +340,8 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
       yes: () => confirm(),
       solve: async () => {
         if (state.complete) return;
+        // Tests that skip the mill: workflows count as on.
+        if (!actionsOn()) host.setQuest(QUEST, 'crane');
         while (state.facing !== YOUR_FACING) turn();
         while (site.busy) await new Promise((r) => setTimeout(r, 100));
         await preview();

@@ -179,6 +179,17 @@ function coinHeap(): BufferGeometry {
   return heap;
 }
 
+/** The coin heap in the body's layout (indexed, with uvs), to merge with it. */
+function asBodyPart(coins: BufferGeometry): BufferGeometry {
+  const g = coins.clone();
+  const n = g.getAttribute('position').count;
+  g.setAttribute('uv', new BufferAttribute(new Float32Array(n * 2), 2));
+  const index = new Uint32Array(n);
+  for (let i = 0; i < n; i++) index[i] = i;
+  g.setIndex(new BufferAttribute(index, 1));
+  return g;
+}
+
 let sharedMaterial: MeshStandardNodeMaterial | null = null;
 /**
  * Gold for the coins and gems: a little metallic to catch the light, but mostly its own colour (a
@@ -220,9 +231,10 @@ export interface TreasureChest {
 
 /**
  * A small iron-banded treasure chest heaped with gold coins, with a warm shimmer until it's opened.
- * Three draws (the body, the coins, and the lid); every chest shares the materials.
+ * Three draws (the body, the coins, and the lid; two on Lite, where the coins draw with the body);
+ * every chest shares the materials.
  */
-export function createChest(): TreasureChest {
+export function createChest(o: { lite?: boolean } = {}): TreasureChest {
   sharedMaterial ??= new MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.18 });
   // The body's shader (only its roughness and metalness differ): the lid's inside is its own
   // darker faces (insideFaces), not a double-sided colour graph with shaders of its own.
@@ -249,6 +261,9 @@ export function createChest(): TreasureChest {
   parts.push(box(0.12, 0.14, 0.03, 0, H - 0.06, D / 2 + 0.02, GOLD));
   // The open chest: a dark hollow inside the walls (the coins sit in it, under the lid until then).
   parts.push(box(W - WALL * 2, 0.004, D - WALL * 2, 0, H + 0.002, 0, HOLLOW));
+  const coinGeo = coinHeap();
+  // Lite: the coins join the body (the same shader; a little less sheen), a draw fewer.
+  if (o.lite) parts.push(asBodyPart(coinGeo));
   const bodyGeo = mergeGeometries(parts)!;
   for (const p of parts) p.dispose();
   const body = new Mesh(bodyGeo, sharedMaterial);
@@ -259,7 +274,6 @@ export function createChest(): TreasureChest {
     roughness: 0.42,
     metalness: 0.3,
   });
-  const coinGeo = coinHeap();
   const coins = new Mesh(coinGeo, sharedCoinMaterial);
   coins.name = 'chest coins';
   coins.receiveShadow = true;
@@ -281,7 +295,8 @@ export function createChest(): TreasureChest {
   const hinge = new Group();
   hinge.position.set(0, H, -D / 2);
   hinge.add(lid);
-  group.add(body, coins, hinge);
+  group.add(body, hinge);
+  if (!o.lite) group.add(coins);
 
   const glowMat = new SpriteNodeMaterial({
     map: glowTexture(),

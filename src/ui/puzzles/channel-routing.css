@@ -397,6 +397,10 @@
   font: 600 0.72rem/1.6 var(--ci-ui);
   text-align: center;
 }
+/* Fen's or Ines's word and the buttons: one column with the rest, except on a landscape phone. */
+.ci-cr-side {
+  display: contents;
+}
 .ci-cr-live {
   position: absolute;
   width: 1px;
@@ -474,6 +478,77 @@
     opacity: 0;
     transform: translateY(calc(-50% + 14px));
   }
+}
+
+/* Round 3: where each crew works (a radio group per crew; the pick shows ● and a frame, not colour alone). */
+.ci-cr-crews {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ci-cr-crew {
+  padding: 9px 10px 8px;
+  border: 1px solid var(--ci-edge, rgba(232, 200, 138, 0.36));
+  border-left: 5px solid var(--crew);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.ci-cr-crew.is-focus {
+  border-color: var(--ci-gold-strong, #ffd98a);
+  border-left-color: var(--crew);
+  background: rgba(232, 200, 138, 0.08);
+}
+.ci-cr-crew-order {
+  margin: 0 0 7px;
+  font: 600 0.84rem/1.35 var(--ci-ui);
+}
+.ci-cr-crew-name {
+  margin-right: 2px;
+  color: #fff6e2;
+  white-space: nowrap;
+}
+.ci-cr-ws {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.ci-cr-ws button {
+  display: grid;
+  gap: 2px;
+  align-content: center;
+  min-height: 48px;
+  padding: 5px 4px;
+  border: 1px solid var(--ci-edge, rgba(232, 200, 138, 0.36));
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  text-align: center;
+}
+.ci-cr-ws button:hover:not(:disabled) {
+  background: rgba(232, 200, 138, 0.14);
+}
+.ci-cr-ws button.is-on {
+  border: 2px solid var(--ci-gold-strong, #ffd98a);
+  padding: 4px 3px;
+  background: rgba(232, 200, 138, 0.2);
+}
+.ci-cr-ws-name {
+  font: 750 0.78rem/1.15 var(--ci-ui);
+}
+.ci-cr-ws small {
+  color: var(--ci-muted, rgba(246, 236, 214, 0.72));
+  font: 600 0.66rem/1.15 var(--ci-ui);
+}
+.ci-cr-verdict {
+  margin: 6px 2px 0;
+  font: 700 0.8rem/1.3 var(--ci-ui);
+}
+.ci-cr-verdict.is-good {
+  color: #c9fff5;
+}
+.ci-cr-verdict.is-bad {
+  color: #ffd2c4;
 }
 
 /* Small screens: a bottom sheet that leaves the terrace in view above it. */
@@ -593,4 +668,162 @@
 .ci-fh-text small {
   color: var(--ci-muted, rgba(246, 236, 214, 0.72));
   font: 600 0.8rem/1.2 var(--ci-ui);
+}
+/* A choice order ("Pack light", the letter): a cargo picture, then the choice. */
+.ci-fh-cargo {
+  min-width: 70px;
+  font-size: 1.3rem;
+  letter-spacing: -0.2em;
+  text-align: center;
+}
+.ci-fh-choices .ci-fh-text b code {
+  padding: 0.04em 0.3em;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  font:
+    0.92em/1.3 ui-monospace,
+    'SF Mono',
+    Menlo,
+    Consolas,
+    monospace;
+}
+
+/*
+ * Landscape phones (844 × 390): the panel docks to the right at full height, in two columns: the board,
+ * the crews, the question or the flags on the left; Fen's or Ines's word and the buttons on the right.
+ * Every target stays at least 44 px.
+ */
+@media (orientation: landscape) and (max-height: 560px) and (min-width: 600px) {
+  .ci-cr-panel.ci-cr-two {
+    top: 8px;
+    right: 8px;
+    bottom: 8px;
+    left: auto;
+    display: grid;
+    grid-template-columns: max-content minmax(180px, 1fr);
+    align-content: start;
+    column-gap: 12px;
+    width: min(640px, calc(100vw - 16px));
+    max-height: none;
+    padding: 8px 12px;
+    border-radius: 16px;
+  }
+  .ci-cr-two > .ci-cr-head {
+    grid-column: 1 / -1;
+    margin-bottom: 6px;
+  }
+  .ci-cr-two > .ci-cr-board,
+  .ci-cr-two > .ci-cr-crews,
+  .ci-cr-two > .ci-cr-twist,
+  .ci-cr-two > .ci-fh-flags {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+  }
+  .ci-cr-two .ci-cr-side {
+    display: block;
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+  }
+  .ci-cr-two .ci-cr-eyebrow {
+    font-size: 0.62rem;
+  }
+  .ci-cr-two .ci-cr-head h2,
+  .ci-cr-two .ci-fh-order {
+    margin-top: 2px;
+    font-size: 1rem !important;
+  }
+  .ci-cr-two .ci-cr-board {
+    --tile: 44px;
+    gap: 3px;
+    padding: 6px;
+  }
+  .ci-cr-two .ci-cr-gate,
+  .ci-cr-two .ci-cr-wheel,
+  .ci-cr-two .ci-cr-hall {
+    padding: 2px 1px;
+    font-size: 0.58rem;
+  }
+  .ci-cr-two .ci-cr-crews,
+  .ci-cr-two .ci-cr-twist {
+    width: min(420px, calc(100vw - 280px));
+    gap: 6px;
+  }
+  /* The island's picture for each place goes; the course's names stay. */
+  .ci-cr-two .ci-cr-ws small {
+    display: none;
+  }
+  .ci-cr-two .ci-cr-crew {
+    padding: 5px 8px 6px;
+  }
+  .ci-cr-two .ci-cr-crew-order {
+    margin-bottom: 4px;
+    font-size: 0.74rem;
+    line-height: 1.25;
+  }
+  .ci-cr-two .ci-cr-ws button {
+    min-height: 44px;
+    padding: 3px;
+  }
+  .ci-cr-two .ci-cr-verdict {
+    margin-top: 3px;
+    font-size: 0.72rem;
+    line-height: 1.2;
+  }
+  .ci-cr-two .ci-cr-question {
+    margin: 0 0 6px;
+    font-size: 0.9rem;
+  }
+  .ci-cr-two .ci-cr-choices {
+    gap: 6px;
+  }
+  .ci-cr-two .ci-cr-choices button {
+    min-height: 48px;
+    padding: 6px 10px;
+    font-size: 0.86rem;
+  }
+  .ci-cr-two .ci-cr-message {
+    display: block;
+    min-height: 0;
+    margin: 0 0 8px;
+    font-size: 0.82rem;
+  }
+  .ci-cr-two .ci-cr-msg-icon {
+    margin-right: 6px;
+  }
+  .ci-cr-two .ci-cr-go {
+    min-height: 52px;
+  }
+  .ci-cr-two .ci-cr-small button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 8px;
+  }
+  .ci-cr-two .ci-cr-help {
+    margin-top: 6px;
+  }
+  .ci-cr-two .ci-fh-flags {
+    width: min(340px, calc(100vw - 300px));
+    gap: 5px;
+    margin: 0;
+  }
+  .ci-cr-two .ci-fh-flags button {
+    min-height: 48px;
+    padding: 4px 10px;
+    gap: 8px;
+  }
+  .ci-cr-two .ci-fh-pennant {
+    min-width: 58px;
+    padding: 4px 12px 4px 8px;
+  }
+  .ci-cr-two .ci-fh-symbol {
+    font-size: 1.1rem;
+  }
+  .ci-cr-two .ci-fh-text b {
+    font-size: 0.86rem;
+  }
+  .ci-cr-two .ci-fh-text small {
+    font-size: 0.72rem;
+  }
 }

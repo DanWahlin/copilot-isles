@@ -93,6 +93,13 @@ export const CH02: ChapterContent = {
   voiced: {
     'thb.guide.01': src('what-is-a-git-worktree', '4ccaddd0c3f4'),
   },
+  // Unvoiced teaching copy (for example, a puzzle's wrong-choice reason).
+  cited: {
+    'P2.3.order.1.#': {
+      text: '`#` brings issues and pull requests. A folder comes with `@`.',
+      source: src('context-syntax', 'e41d9116c6a3'),
+    },
+  },
   // …chests, glossary, trials
 };
 ```
@@ -106,8 +113,9 @@ Rules:
 - **Every image that authored content uses is pinned.** Sync never overwrites it, because your rects,
   alt text and captions describe that exact file. Hotspot quizzes always show the pinned file;
   Logbook pages and spyglass views show the live picture while the course still shows it.
-- **Anchors must exist.** `src/learn/course/refs.test.ts` checks every `SourceRef` anchor against the
-  snapshot, every image hash against its file, and every `voiced` id against the voice lines.
+- **Anchors must exist.** `src/learn/course/refs.test.ts` checks every quiz, page, voiced-line and
+  cited-text `SourceRef` against the snapshot, every image hash against its file, and every `voiced`
+  id against the voice lines.
 - **Teaching accuracy still applies:** paraphrase, keep the course's UI names exactly (**New**,
   **Current checkout**…), and don't invent app UI names.
 

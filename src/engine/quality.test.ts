@@ -21,7 +21,7 @@ describe('tier settings (PLAN §12.1 budget cuts)', () => {
   });
 
   it("gives Lite the coarsest ocean grid and keeps the others' as they were", () => {
-    expect(oceanTriangles('lite')).toBeLessThan(30_000);
+    expect(oceanTriangles('lite')).toBeLessThan(21_000);
     expect(oceanTriangles('lite')).toBeLessThan(oceanTriangles('low'));
     expect(oceanGrid(TIERS.low)).toEqual({ dr0: 0.7, growth: 1.05, radius: 18000, segments: 192 });
     expect(oceanGrid(TIERS.medium)).toEqual({ dr0: 0.5, growth: 1.035, radius: 18000, segments: 288 });

@@ -1,0 +1,92 @@
+{
+  "id": "tb.ines.order.6",
+  "speaker": "Ines",
+  "text": "Last one: a letter that's on your computer, not in the repository. Get it into the session.",
+  "words": [
+    {
+      "word": "Last",
+      "start": 0,
+      "end": 0.4
+    },
+    {
+      "word": "one",
+      "start": 0.4,
+      "end": 1.24
+    },
+    {
+      "word": "a",
+      "start": 1.24,
+      "end": 1.829
+    },
+    {
+      "word": "letter",
+      "start": 1.829,
+      "end": 2.288
+    },
+    {
+      "word": "that's",
+      "start": 2.288,
+      "end": 2.64
+    },
+    {
+      "word": "on",
+      "start": 2.64,
+      "end": 2.832
+    },
+    {
+      "word": "your",
+      "start": 2.832,
+      "end": 3.022
+    },
+    {
+      "word": "computer",
+      "start": 3.022,
+      "end": 3.92
+    },
+    {
+      "word": "not",
+      "start": 3.92,
+      "end": 4.213
+    },
+    {
+      "word": "in",
+      "start": 4.213,
+      "end": 4.34
+    },
+    {
+      "word": "the",
+      "start": 4.34,
+      "end": 4.465
+    },
+    {
+      "word": "repository",
+      "start": 4.465,
+      "end": 5.5
+    },
+    {
+      "word": "Get",
+      "start": 5.5,
+      "end": 6.453
+    },
+    {
+      "word": "it",
+      "start": 6.453,
+      "end": 6.624
+    },
+    {
+      "word": "into",
+      "start": 6.624,
+      "end": 6.9
+    },
+    {
+      "word": "the",
+      "start": 6.9,
+      "end": 7.03
+    },
+    {
+      "word": "session",
+      "start": 7.03,
+      "end": 7.28
+    }
+  ]
+}

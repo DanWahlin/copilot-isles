@@ -6,6 +6,8 @@ import {
   push,
   solve,
   solved as isSolved,
+  undo,
+  type PushRecord,
   type YardLayout,
   type YardState,
 } from '../../world/sites/crate-yard-logic';
@@ -13,12 +15,17 @@ import { ANDERS_SOLVED } from '../meridian-quests';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 
 const YARD_ID = 'P1.1';
+const DIR = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] } as const;
 const QUEST = 'Q1.4';
+
+/** The gamepad button that undoes a push (LB). */
+const PAD_UNDO = 4;
 
 /**
  * P1.1 The Crate Yard (Anders, Q1.4): face a crate and press E to push it one cell. Chat work goes
- * to the tavern plates, project work to the slipway plates; a plate refuses the wrong crate and
- * says why. The lever by the gate resets the yard. Crate positions and solved are saved.
+ * to the tavern plates; work that needs your repository (even just to read it) goes to the slipway
+ * plates. A plate refuses the wrong crate and says why. Z (or LB) takes back the last push, and the
+ * lever by the gate resets the yard. Crate positions and solved are saved.
  */
 export function createCrateYard(
   host: PuzzleHost,
@@ -41,6 +48,9 @@ export function createCrateYard(
   let solved = saved?.solved ?? false;
   let hintCrate = -1;
   let moves = 0;
+  const history: PushRecord[] = [];
+  let undoTold = false;
+  let padHeld = true;
 
   const started = () => {
     const q = host.quests()[QUEST];
@@ -106,6 +116,8 @@ export function createCrateYard(
   });
 
   function tryPush(from: readonly [number, number], dir: 'n' | 's' | 'e' | 'w'): void {
+    const before = state.at[crateAt(state, from[0] + DIR[dir][0], from[1] + DIR[dir][1])];
+    const was: [number, number] | null = before ? [before[0], before[1]] : null;
     const r = push(layout, state, from, dir);
     const at = (i: number) => {
       const c = site.cellCenter(state.at[i]![0], state.at[i]![1]);
@@ -118,7 +130,12 @@ export function createCrateYard(
       if (r.reason === 'wrong-plate') host.hud.toast(layout.crates[r.crate]!.why, 5);
       return;
     }
+    if (was) history.push({ crate: r.crate, from: was });
     moves += 1;
+    if (!undoTold && moves === 2) {
+      undoTold = true;
+      host.hud.toast('Pushed one the wrong way? Press Z (LB on a gamepad) to take it back.', 4);
+    }
     site.setCrate(r.crate, r.to);
     host.audio?.sfx.oneShot('stone_turn', at(r.crate), 0.8);
     if (r.crate === hintCrate) setHint(-1);
@@ -127,7 +144,30 @@ export function createCrateYard(
     if (isSolved(layout, state)) void onSolved();
   }
 
+  /** Takes back the last push (Z or LB), unless you're standing where the crate goes back. */
+  function takeBack(): void {
+    if (!started() || solved || site.sliding || !near() || !host.canAct()) return;
+    if (!history.length) return host.hud.toast('No push to take back. The lever by the gate starts over.', 3);
+    const me = site.cellAt(host.player.x, host.player.z);
+    const i = undo(state, history, (x, z) => !!me && me[0] === x && me[1] === z);
+    if (i < 0) return host.hud.toast('Step out of the way, Captain, so the crate can slide back.', 3);
+    moves = Math.max(0, moves - 1);
+    site.setCrate(i, state.at[i]!);
+    const c = site.cellCenter(state.at[i]![0], state.at[i]![1]);
+    host.audio?.sfx.oneShot('stone_turn', { x: c.x, y: site.top + 0.5, z: c.z }, 0.6);
+    if (i === hintCrate) setHint(-1);
+    site.setHome(home());
+    save();
+  }
+  const onKey = (e: KeyboardEvent) => {
+    if (e.code !== 'KeyZ' || e.repeat) return;
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+    takeBack();
+  };
+  if (typeof window !== 'undefined') window.addEventListener('keydown', onKey);
+
   function reset(): void {
+    history.length = 0;
     state = initialState(layout);
     state.at.forEach((cell, i) => site.setCrate(i, cell));
     site.setHome(home());
@@ -170,7 +210,7 @@ export function createCrateYard(
     hintKey: () => state.at.map(String).join('|'),
     hint(tier: HintTier) {
       if (!started() || solved) return null;
-      if (tier === 1) return 'Read each crate, Captain. Would that job change your repository?';
+      if (tier === 1) return 'Read each crate, Captain. Does the agent need your repository for this job?';
       const path = solve(layout, state, standing());
       if (!path?.length) return 'That yard’s jammed, Captain. Pull the lever by the gate to start it over.';
       const step = path[0]!;
@@ -182,11 +222,24 @@ export function createCrateYard(
       return 'There, I’ve pushed one for you. Keep going!';
     },
     update() {
-      focus = host.canAct() && started() && !solved ? ahead() : null;
+      const here = started() && !solved && near();
+      focus = here && host.canAct() ? ahead() : null;
+      if (!here) {
+        // An LB still down as you walk up to the yard isn't an undo: it has to come up first.
+        padHeld = true;
+        return;
+      }
+      site.faceLabels(host.player.x, host.player.z);
+      let down = false;
+      for (const pad of navigator.getGamepads?.() ?? [])
+        if (pad?.connected && pad.mapping === 'standard') down ||= !!pad.buttons[PAD_UNDO]?.pressed;
+      if (down && !padHeld) takeBack();
+      padHeld = down;
     },
     debug: {
       state: () => ({ at: state.at.map(([x, z]) => [x, z]), solved, moves, hint: hintCrate }),
       push: (x: number, z: number, dir: 'n' | 's' | 'e' | 'w') => tryPush([x, z], dir),
+      undo: () => takeBack(),
       solve: () => {
         for (const step of solve(layout, state, standing()) ?? []) tryPush(step.from, step.dir);
       },
@@ -195,9 +248,12 @@ export function createCrateYard(
         top: site.top,
         cells: layout.crates.map((_, i) => site.cellCenter(state.at[i]![0], state.at[i]![1])),
         lever: { x: lever.x, z: lever.z },
+        entry: site.cellCenter(layout.entry[0], layout.entry[1]),
+        centre: site.cellCenter((layout.cols - 1) / 2, (layout.rows - 1) / 2),
       }),
     },
     dispose() {
+      if (typeof window !== 'undefined') window.removeEventListener('keydown', onKey);
       host.interactions.remove('crates:push');
       host.interactions.remove('crates:reset');
     },

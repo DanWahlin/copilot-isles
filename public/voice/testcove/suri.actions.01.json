@@ -1,0 +1,127 @@
+{
+  "id": "suri.actions.01",
+  "speaker": "Suri",
+  "text": "I’m Suri, keeper of the mill. That gate’s your fork’s Actions tab. Pull the lever: I understand my workflows, go ahead and enable them.",
+  "words": [
+    {
+      "word": "I’m",
+      "start": 0.07,
+      "end": 0.23
+    },
+    {
+      "word": "Suri",
+      "start": 0.23,
+      "end": 0.75
+    },
+    {
+      "word": "keeper",
+      "start": 0.75,
+      "end": 1.11
+    },
+    {
+      "word": "of",
+      "start": 1.11,
+      "end": 1.23
+    },
+    {
+      "word": "the",
+      "start": 1.23,
+      "end": 1.35
+    },
+    {
+      "word": "mill",
+      "start": 1.35,
+      "end": 1.95
+    },
+    {
+      "word": "That",
+      "start": 1.95,
+      "end": 2.23
+    },
+    {
+      "word": "gate’s",
+      "start": 2.23,
+      "end": 2.63
+    },
+    {
+      "word": "your",
+      "start": 2.63,
+      "end": 2.909
+    },
+    {
+      "word": "fork’s",
+      "start": 2.909,
+      "end": 3.15
+    },
+    {
+      "word": "Actions",
+      "start": 3.15,
+      "end": 3.55
+    },
+    {
+      "word": "tab",
+      "start": 3.55,
+      "end": 4.15
+    },
+    {
+      "word": "Pull",
+      "start": 4.15,
+      "end": 4.39
+    },
+    {
+      "word": "the",
+      "start": 4.39,
+      "end": 4.51
+    },
+    {
+      "word": "lever",
+      "start": 4.51,
+      "end": 5.31
+    },
+    {
+      "word": "I",
+      "start": 5.31,
+      "end": 5.43
+    },
+    {
+      "word": "understand",
+      "start": 5.43,
+      "end": 5.87
+    },
+    {
+      "word": "my",
+      "start": 5.87,
+      "end": 5.99
+    },
+    {
+      "word": "workflows",
+      "start": 5.99,
+      "end": 6.75
+    },
+    {
+      "word": "go",
+      "start": 6.75,
+      "end": 7.03
+    },
+    {
+      "word": "ahead",
+      "start": 7.03,
+      "end": 7.23
+    },
+    {
+      "word": "and",
+      "start": 7.23,
+      "end": 7.35
+    },
+    {
+      "word": "enable",
+      "start": 7.35,
+      "end": 7.71
+    },
+    {
+      "word": "them",
+      "start": 7.71,
+      "end": 7.96
+    }
+  ]
+}

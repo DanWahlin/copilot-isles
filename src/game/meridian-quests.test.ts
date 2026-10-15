@@ -70,6 +70,9 @@ describe('Meridian quest line', () => {
     talk('rhea');
     talk('oren');
     talk('pell');
+    expect(q['Q1.7']).toBe('letters');
+    q['Q1.7'] = 'solved'; // the Lost Letters
+    talk('pell');
     talk('admiral');
     expect(MERIDIAN_QUESTS.every((d) => q[d.id] === 'done')).toBe(true);
     expect(meridianCurrent(q)).toBeNull();
@@ -84,6 +87,33 @@ describe('Meridian quest line', () => {
     const retry = meridianNpcScript('admiral', { 'Q1.7': 'done', 'Q1.8': 'exam' })!.steps;
     expect(retry[0]).toEqual({ say: 'mer.admiral.retry' });
     expect(retry).toContainEqual({ trial: 'A1' });
+  });
+
+  it('sends you to Pell’s letters, debriefs once they’re filed, and offers them to older saves', () => {
+    const before = { 'Q1.1': 'done', 'Q1.2': 'done', 'Q1.3': 'done', 'Q1.4': 'done', 'Q1.5': 'done' };
+    const q: Record<string, string> = { ...before, 'Q1.6': 'done', 'Q1.7': 'start' };
+    const intro = meridianNpcScript('pell', q)!.steps;
+    expect(intro).toContainEqual({ quest: 'Q1.7', step: 'letters' });
+    expect(intro.some((s) => 'quiz' in s)).toBe(false);
+    expect(meridianTarget({ ...q, 'Q1.7': 'letters' })).toMatchObject({ ids: ['letters:*'] });
+    expect(meridianNpcScript('pell', { ...q, 'Q1.7': 'letters' })!.steps).toEqual([
+      { say: 'mer.pell.letters.wait' },
+    ]);
+    const debrief = meridianNpcScript('pell', { ...q, 'Q1.7': 'solved' })!.steps;
+    expect(debrief).toContainEqual({ quiz: 'H1.4' });
+    expect(debrief).toContainEqual({
+      show: expect.stringMatching(/app-settings/),
+      caption: expect.any(String),
+    });
+    expect(debrief.at(-1)).toEqual({ quest: 'Q1.8', step: 'start' });
+    // A save that finished Pell before the letters existed keeps its quest, and hears there's a bundle.
+    const old = { ...q, 'Q1.7': 'done' };
+    expect(meridianNpcScript('pell', old, { lettersFiled: false })!.steps).toEqual([
+      { say: 'mer.pell.letters.again' },
+    ]);
+    expect(meridianNpcScript('pell', old, { lettersFiled: true })!.steps).toEqual([{ say: 'mer.pell.done' }]);
+    expect(meridianNpcScript('pell', old)!.steps).toEqual([{ say: 'mer.pell.done' }]);
+    expect(meridianCurrent(old)?.id).toBe('Q1.8');
   });
 
   it('shows the current step’s detail in the tracker', () => {

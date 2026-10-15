@@ -1,92 +1,67 @@
 {
   "id": "tb.fen.round3",
   "speaker": "Fen",
-  "text": "Nothing mixed, round a boulder and all. Sessions can run side by side without mixing their changes.",
+  "text": "Every crew where its order fits. The choices trade speed against isolation.",
   "words": [
     {
-      "word": "Nothing",
+      "word": "Every",
       "start": 0,
-      "end": 0.387
+      "end": 0.32
     },
     {
-      "word": "mixed",
-      "start": 0.387,
-      "end": 1.047
+      "word": "crew",
+      "start": 0.32,
+      "end": 0.68
     },
     {
-      "word": "round",
-      "start": 1.047,
-      "end": 1.32
+      "word": "where",
+      "start": 0.68,
+      "end": 0.92
     },
     {
-      "word": "a",
-      "start": 1.32,
-      "end": 1.4
+      "word": "its",
+      "start": 0.92,
+      "end": 1.107
     },
     {
-      "word": "boulder",
-      "start": 1.4,
-      "end": 1.84
+      "word": "order",
+      "start": 1.107,
+      "end": 1.536
     },
     {
-      "word": "and",
-      "start": 1.84,
-      "end": 2.16
+      "word": "fits",
+      "start": 1.536,
+      "end": 2.14
     },
     {
-      "word": "all",
-      "start": 2.16,
-      "end": 2.578
+      "word": "The",
+      "start": 2.14,
+      "end": 2.63
     },
     {
-      "word": "Sessions",
-      "start": 2.578,
-      "end": 3.42
+      "word": "choices",
+      "start": 2.63,
+      "end": 3.187
     },
     {
-      "word": "can",
-      "start": 3.42,
-      "end": 3.68
+      "word": "trade",
+      "start": 3.187,
+      "end": 3.587
     },
     {
-      "word": "run",
-      "start": 3.68,
-      "end": 3.984
+      "word": "speed",
+      "start": 3.587,
+      "end": 3.99
     },
     {
-      "word": "side",
-      "start": 3.984,
-      "end": 4.32
+      "word": "against",
+      "start": 3.99,
+      "end": 4.56
     },
     {
-      "word": "by",
-      "start": 4.32,
-      "end": 4.544
-    },
-    {
-      "word": "side",
-      "start": 4.544,
-      "end": 4.89
-    },
-    {
-      "word": "without",
-      "start": 4.89,
-      "end": 5.577
-    },
-    {
-      "word": "mixing",
-      "start": 5.577,
-      "end": 5.947
-    },
-    {
-      "word": "their",
-      "start": 5.947,
-      "end": 6.14
-    },
-    {
-      "word": "changes",
-      "start": 6.14,
-      "end": 6.39
+      "word": "isolation",
+      "start": 4.56,
+      "end": 4.81
     }
   ]
 }

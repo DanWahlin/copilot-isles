@@ -485,16 +485,22 @@ function greatStair(buckets: Buckets, out: StructureOut): void {
         y1: top,
         height: top - TB.rootHall.y,
       });
+      void sign;
+    }
+    // For the camera, the wall itself: its 3° pieces, each up to its higher end (the walk boxes' 6°
+    // steps stop short of its last piece, and under each piece's top).
+    for (let t = PLINTH.from - 1; t + 3 <= PLINTH.to + 1e-6; t += 3) {
+      const a = atBearing(HELIX.startBearing + t, r);
+      const b = atBearing(HELIX.startBearing + t + 3, r);
       out.cameraBoxes.push({
         x: (a.x + b.x) / 2,
         z: (a.z + b.z) / 2,
-        hx: Math.hypot(b.x - a.x, b.z - a.z) / 2,
+        hx: Math.hypot(b.x - a.x, b.z - a.z) / 2 + 0.05,
         hz: 0.4,
         rot: Math.atan2(-(b.z - a.z), b.x - a.x),
         y0: TB.rootHall.y,
-        y1: top,
+        y1: helixY(t + 3) - 0.3,
       });
-      void sign;
     }
   }
 }
@@ -919,6 +925,16 @@ function fallsLedge(buckets: Buckets, out: StructureOut): void {
           yaw,
           PAINT.basalt,
         );
+      // The slab and its footing, for the camera (it stands up to 2 m over the ground beside it).
+      out.cameraBoxes.push({
+        x,
+        z,
+        hx: half + 0.15,
+        hz: len / n / 2,
+        rot: yaw,
+        y0: Math.min(g - 0.4, y - 0.75),
+        y1: y - 0.06,
+      });
     }
   }
   // A rope rail on the pool side, posts every 2.3 m.

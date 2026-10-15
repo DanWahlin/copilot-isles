@@ -4,8 +4,9 @@ import type { ScriptStep } from './script';
 /**
  * Anchorage Cay's quest line, in Chapter 00's order along the harbour: Nell's papers (prerequisites,
  * install, sign in) and the palette stand (theme), Ezra's fork, Bo's session and tool checks at the
- * pier foot, Pim and Pol's crane (Actions, then the setup script), Juno's first prompt, and Nell's
- * Trial and christening at your bow. Suri's sluice and Lyra's soundcheck are optional.
+ * pier foot, Pim and Pol's crane (Actions first, at the lever of Suri's sluice gate, then the setup
+ * script), Juno's first prompt, and Nell's Trial and christening at your bow. Suri's mill race (the
+ * practice checks) and Lyra's soundcheck are optional.
  */
 interface QuestDef {
   id: string;
@@ -69,6 +70,8 @@ const COVE_QUESTS: readonly QuestDef[] = [
     task: 'Add the course practice items',
     steps: {
       start: 'Find Pim and Pol at the crane at the end of the pier.',
+      actions:
+        'Actions first: on GitHub.com, you enable workflows in your fork’s Actions tab. Here, pull the gate lever at Suri’s mill.',
       crane: 'Aim the crane at your ship, preview with Dry-Run, check the Repository line, then pull --yes.',
       solved: 'Setup complete. Talk to Pol.',
       done: 'Workflows are on, and your fork has its practice labels, issues, branches, and pull requests.',
@@ -86,14 +89,15 @@ const COVE_QUESTS: readonly QuestDef[] = [
   },
   {
     id: 'Q0.6',
-    title: 'Open the Sluice (optional)',
+    title: 'The Mill Race (optional)',
     task: 'See the practice checks run',
     optional: true,
     steps: {
-      start: 'Suri Okoye’s mill past the storehouse shows what turning on Actions does.',
-      sluice: 'Pull the gate lever, then turn the channels until the water reaches the wheel.',
+      start: 'Suri Okoye’s mill past the storehouse shows what your workflows do with the practice items.',
+      sluice:
+        'Turn the channels (E, or Shift+E to turn back) until the water reaches both outlets: the wheel and the check gate.',
       solved: 'The wheel’s turning. Talk to Suri.',
-      done: 'With workflows on, GitHub runs the practice checks on your fork.',
+      done: 'With workflows on, GitHub runs the practice checks. One fails on purpose, for a later chapter.',
     },
   },
   {
@@ -132,10 +136,17 @@ const COVE_QUESTS: readonly QuestDef[] = [
  * or stale, so running it twice changes nothing):
  * - Nell's chest step is gone (she opens it while she talks), so a save waiting on it moves on.
  * - Bo's gear check (the old Q0.5) folded into Q0.4. Finished counts; half-done replays Bo.
- * - The crane follows Bo now, not Suri (whose sluice is optional). Suri opens once the crane's done.
+ * - The crane follows Bo now, not Suri (whose mill race is optional). Suri opens once the crane's done.
+ * - The crane job's `actions` step (Suri's gate lever) comes before the crane: a save waiting at the
+ *   crane whose gate is still down (`workflowsOn` false: the P0.1 lever was never pulled) goes back to
+ *   it. Finished crane jobs count as workflows on (the sluice lifts their gate).
  * - First Words brings the bard (Q0.9); the Trial is followed by the christening (Q0.11).
  */
-export function migrateQuests(saved: QuestState, set: (id: string, step: string) => void): void {
+export function migrateQuests(
+  saved: QuestState,
+  set: (id: string, step: string) => void,
+  o: { workflowsOn?: boolean } = {},
+): void {
   const q: Record<string, string> = { ...saved };
   const put = (id: string, step: string) => {
     q[id] = step;
@@ -149,6 +160,7 @@ export function migrateQuests(saved: QuestState, set: (id: string, step: string)
   }
   if (done(q, 'Q0.3') && !has('Q0.4')) put('Q0.4', 'start');
   if (done(q, 'Q0.4') && !has('Q0.7')) put('Q0.7', 'start');
+  if (q['Q0.7'] === 'crane' && o.workflowsOn === false) put('Q0.7', 'actions');
   if (done(q, 'Q0.7') && !has('Q0.8')) put('Q0.8', 'start');
   if (done(q, 'Q0.7') && !has('Q0.6')) put('Q0.6', 'start');
   if (done(q, 'Q0.8') && !has('Q0.9')) put('Q0.9', 'start');
@@ -181,6 +193,7 @@ const QUEST_TARGETS: Readonly<Record<string, { ids: readonly string[]; label: st
   'Q0.3:start': { ids: ['npc:merchant'], label: 'Ezra Quill' },
   'Q0.4:start': { ids: ['npc:dockhand_b'], label: 'Bo Marlin' },
   'Q0.7:start': { ids: ['npc:pim', 'npc:pol'], label: 'Pim and Pol' },
+  'Q0.7:actions': { ids: ['mill:lever'], label: 'Suri’s gate lever' },
   'Q0.7:crane': { ids: ['crane:*'], label: 'The crane' },
   'Q0.7:solved': { ids: ['npc:pol'], label: 'Pol' },
   'Q0.8:start': { ids: ['npc:juno'], label: 'Juno' },
@@ -341,11 +354,18 @@ export function npcScript(
 
     case 'suri': {
       const step = q['Q0.6'];
-      if (!step) return { steps: [{ say: 'suri.idle.dry' }] };
+      if (!step) {
+        // Actions first: the crane job sends you to her gate lever before the setup script.
+        const crane = q['Q0.7'];
+        if (crane === 'actions') return { steps: [{ say: 'suri.actions.01' }] };
+        if (crane === 'crane' || crane === 'solved') return { steps: [{ say: 'suri.actions.02' }] };
+        return { steps: [{ say: 'suri.idle.dry' }] };
+      }
       if (step === 'start') {
         return {
           steps: [
-            // Optional: Pim and Pol already had you turn workflows on; the mill shows what that does.
+            // Optional, once the crane's stocked your fork: workflows are on (her gate's up), so the
+            // practice checks run. The mill race shows them, one failing on purpose.
             { say: 'suri.brief.01' },
             { say: 'suri.brief.02' },
             { term: 'github-actions' },
@@ -381,6 +401,7 @@ export function npcScript(
           ],
         };
       if (step === 'start') return { steps: CRANE_BRIEF };
+      if (step === 'actions') return { steps: [{ say: 'pim.brief.03' }] };
       if (step === 'crane')
         return {
           steps: [{ say: npc === 'pim' ? 'pim.crane.01' : 'pol.crane.01' }],
@@ -469,7 +490,11 @@ const JUNO_BRIEF: readonly ScriptStep[] = [
   { quest: 'Q0.8', step: 'pipes' },
 ];
 
-/** Suri's lines once the sluice is solved (P0.1, optional), also used if you come back after quitting. */
+/**
+ * Suri's lines once the mill race is solved (P0.1, optional), also used if you come back after
+ * quitting: with workflows on, GitHub runs the practice checks, and one fails on purpose
+ * (Chapter 00 · Add the Course Practice Items).
+ */
 export const SURI_SOLVED: readonly ScriptStep[] = [
   { say: 'suri.solved.01' },
   { page: 'pg.checks', doubloons: 15 },
@@ -483,6 +508,8 @@ export const SURI_SOLVED: readonly ScriptStep[] = [
  * literal: what the setup script adds to your fork (practice, not problems), your fork's address if
  * Ezra didn't get it (for the crane's sign and the Actions link), turning on workflows in the
  * fork's Actions tab on GitHub.com, then the rule: `--dry-run`, check `Repository:`, then `--yes`.
+ * Like the course (steps 1–3 before the dry run) and the script (`--yes` refuses while workflows
+ * are off), Actions comes first: the job's next step is Suri's gate lever (`actions`).
  */
 const CRANE_BRIEF: readonly ScriptStep[] = [
   { say: 'pim.brief.01' },
@@ -495,13 +522,18 @@ const CRANE_BRIEF: readonly ScriptStep[] = [
   { say: 'pol.brief.02' },
   { term: 'dry-run' },
   { say: 'pim.brief.03' },
-  { quest: 'Q0.7', step: 'crane' },
+  { quest: 'Q0.7', step: 'actions' },
 ];
 
-/** Pol and Pim's closing beat once the crane's done (P0.2), also used if you come back after quitting. */
+/**
+ * Pol and Pim's closing beat once the crane's done (P0.2), also used if you come back after quitting:
+ * where the commands run in the app, and what to do if the `Repository:` line isn't yours (Chapter
+ * 00 · Connect to Your Repository, step 3: pick your fork, not the original).
+ */
 export const POL_SOLVED: readonly ScriptStep[] = [
   { say: 'pol.solved.01' },
   { say: 'pim.solved.01' },
+  { say: 'pim.solved.fork' },
   { page: 'P0.S', doubloons: 20 },
   { say: 'pim.solved.03' },
   { quest: 'Q0.7', step: 'done' },

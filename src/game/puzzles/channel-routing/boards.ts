@@ -1,7 +1,7 @@
 import type { Crew, Rot, Tile, TileKind } from './types';
 
 /**
- * Channel Routing's boards (docs/specs/ISLAND-02-thousand-bough.md §5.2-5.3; drawn and solved by
+ * Channel Routing's board (docs/specs/ISLAND-02-thousand-bough.md §5.2-5.3; drawn and solved by
  * `docs/specs/island-02/draw.py`). Rows run north → south, columns west → east.
  */
 export const ROWS = 4;
@@ -26,9 +26,8 @@ export const CREW_LOOK: Readonly<
 
 const KIND: Readonly<Record<string, TileKind>> = { S: 'straight', L: 'elbow', R: 'rock' };
 
-/** Board A (rounds 1 and 2) and Board B (round 3, after the boulder), as tile kinds. */
+/** Board A, for all three rounds. */
 export const BOARD_A_KINDS = ['LLSLL', 'SRSRS', 'SLSLS', 'SSSSS'] as const;
-export const BOARD_B_KINDS = ['LLSLL', 'SLLLS', 'SSRLL', 'SLLLL'] as const;
 
 /** Board A's start: Feature's water runs east into Bug Fix's column, so opening the gates shows the problem. */
 export const START_A: readonly (readonly Rot[])[] = [
@@ -37,16 +36,10 @@ export const START_A: readonly (readonly Rot[])[] = [
   [0, 0, 0, 3, 0],
   [0, 0, 0, 0, 0],
 ];
-export const START_B: readonly (readonly Rot[])[] = [
-  [0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0],
-];
 
 /**
  * The rotations every crew's path needs (null: the tile isn't on a path, so any rotation will do).
- * Round 1 needs only Feature's three tiles; round 2 all three crews' on Board A; round 3 Board B.
+ * Round 1 needs only Feature's three tiles; rounds 2 and 3 all three crews'.
  */
 export const SOLUTION_A: readonly (readonly (Rot | null)[])[] = [
   [1, 3, 0, 0, 2],
@@ -54,12 +47,11 @@ export const SOLUTION_A: readonly (readonly (Rot | null)[])[] = [
   [0, null, 0, null, 0],
   [0, null, 0, null, 0],
 ];
-export const SOLUTION_B: readonly (readonly (Rot | null)[])[] = [
-  [1, 3, 0, 0, 2],
-  [0, 1, 3, null, 0],
-  [0, 0, null, 1, 3],
-  [0, 0, 2, 0, 2],
-];
+
+/** Board A routed: every crew has its own channel (round 3 starts here; the tiles don't turn). */
+const ROUTED_A: readonly (readonly Rot[])[] = SOLUTION_A.map((row, r) =>
+  row.map((rot, c) => rot ?? START_A[r]![c]!),
+);
 
 export function makeBoard(kinds: readonly string[], rots: readonly (readonly Rot[])[]): Tile[][] {
   return kinds.map((row, r) =>
@@ -69,7 +61,7 @@ export function makeBoard(kinds: readonly string[], rots: readonly (readonly Rot
 
 /** The board a round starts on. */
 export function roundBoard(round: 1 | 2 | 3): Tile[][] {
-  return round === 3 ? makeBoard(BOARD_B_KINDS, START_B) : makeBoard(BOARD_A_KINDS, START_A);
+  return makeBoard(BOARD_A_KINDS, round === 3 ? ROUTED_A : START_A);
 }
 
 /** Which crews' gates are open in a round. */
@@ -81,9 +73,7 @@ const ALL_LIVE = { feature: true, bugfix: true, docs: true } as const;
 
 /** The rotation each tile needs this round (null where it doesn't matter). */
 export function roundSolution(round: 1 | 2 | 3): readonly (readonly (Rot | null)[])[] {
-  if (round === 3) return SOLUTION_B;
-  if (round === 2) return SOLUTION_A;
-  return ROUND1_SOLUTION;
+  return round === 1 ? ROUND1_SOLUTION : SOLUTION_A;
 }
 const ROUND1_SOLUTION: readonly (readonly (Rot | null)[])[] = [
   [1, 3, null, null, null],

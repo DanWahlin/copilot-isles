@@ -1,0 +1,62 @@
+{
+  "id": "mer.helm.plan.suggest.revised",
+  "speaker": "Rhea",
+  "text": "It’s clear of the Shoal now. There’s nothing left to change.",
+  "words": [
+    {
+      "word": "It’s",
+      "start": 0.0485409,
+      "end": 0.279125
+    },
+    {
+      "word": "clear",
+      "start": 0.279125,
+      "end": 0.594666
+    },
+    {
+      "word": "of",
+      "start": 0.594666,
+      "end": 0.716
+    },
+    {
+      "word": "the",
+      "start": 0.716,
+      "end": 0.800958
+    },
+    {
+      "word": "Shoal",
+      "start": 0.800958,
+      "end": 1.152916
+    },
+    {
+      "word": "now",
+      "start": 1.152916,
+      "end": 2.402916
+    },
+    {
+      "word": "There’s",
+      "start": 2.402916,
+      "end": 2.645625
+    },
+    {
+      "word": "nothing",
+      "start": 2.645625,
+      "end": 3.094666
+    },
+    {
+      "word": "left",
+      "start": 3.094666,
+      "end": 3.385916
+    },
+    {
+      "word": "to",
+      "start": 3.385916,
+      "end": 3.495125
+    },
+    {
+      "word": "change",
+      "start": 3.495125,
+      "end": 3.745125
+    }
+  ]
+}

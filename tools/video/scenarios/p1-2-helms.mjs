@@ -1,7 +1,9 @@
 // P1.2 The Three Helms (Rhea, Port Meridian): Rhea's brief on the session modes, then your own
-// ship sailed out to the three buoys. Interactive heaves to at every mark until you say go, Plan
-// charts the whole route and waits for your approval, Autopilot takes her home and moors.
-// Long stretches under sail are trimmed (a fade covers each cut).
+// ship sailed out to the three buoys. At each one Rhea hands you an order and you pick the helm:
+// Interactive (you choose each heading), Plan (the review: her first chart crosses the Shoal, so you
+// suggest a change, then approve it to sail in Autopilot; Autopilot picked for the reef passage
+// stops short first), and Autopilot home to the berth. Long stretches under sail are trimmed (a fade
+// covers each cut).
 import { meridianAshore, questsDone } from '../game.mjs';
 
 const helms = (api) => api.S(() => window.__dev.session().debug.puzzle('P1.2').state());
@@ -36,7 +38,7 @@ export default {
   island: 'Port Meridian',
   who: 'with Rhea, out in the bay',
   subtitle:
-    'Interactive, Plan and Autopilot: step-by-step, plan first and approve, or end to end without check-ins. Pick the mode that fits the task.',
+    'Read each order and pick the mode: choose every heading, review the plan and fix it, or hand over a clear job. Pick the mode that fits the task.',
   chapter: 'Course Chapter 01 · Modes',
   flags: ['meridian'],
   titleFrame: 4,
@@ -71,7 +73,7 @@ export default {
       }, BUOY.interactive);
       await api.pause(2500);
     });
-    const near = async () => (await api.prompt())?.includes('Take the Interactive helm');
+    const near = async () => (await api.prompt())?.includes('Hear Rhea’s order');
     await api.cutWhile(() => sailToward(api, BUOY.interactive.x, BUOY.interactive.z, 60_000, near), {
       head: 9000,
       tail: 4000,
@@ -84,7 +86,12 @@ export default {
       });
     }
 
-    // Three helms in order. Holds and the review wait on you; the long sails between are trimmed.
+    // Three orders in turn. The cards wait on you; the long sails between are trimmed.
+    const pick = async (id) => {
+      await api.pause(1400);
+      await page.click(`.ci-sc button[data-choice="${id}"]`);
+    };
+    let reefTried = false;
     const t0 = Date.now();
     let lastRun = '';
     while (Date.now() - t0 < 360_000) {
@@ -102,18 +109,27 @@ export default {
       }
       if (!h.run) {
         const p = await api.prompt();
-        if (p?.includes('Take the')) {
+        if (p?.includes('Hear Rhea’s order')) {
           await api.pause(900);
-          await api.interact('Take the');
+          await api.interact('Hear Rhea’s order');
         } else await api.pause(300);
-      } else if (h.run.phase === 'hold') {
-        await api.pause(1200);
-        await api.interact('Sail the next leg');
-      } else if (h.run.phase === 'review') {
-        // Read the charted plan in the terminal, then approve it.
-        await api.pause(4500);
-        await api.interact('Approve the plan');
-      } else if (h.run.phase === 'leg' || h.run.phase === 'sailing' || h.run.phase === 'docking') {
+      } else if (h.run.phase === 'order' && !h.choice?.busy) {
+        // The reef passage: Autopilot first (she stops short), then Plan.
+        if (h.run.mode === 'plan' && !reefTried) {
+          reefTried = true;
+          await pick('autopilot');
+        } else await pick(h.run.mode);
+      } else if (h.run.phase === 'choose' && !h.choice?.busy) await pick(h.choice.options[h.run.leg % 2]);
+      else if (h.run.phase === 'review' && !h.choice?.busy) {
+        // Read the charted plan, suggest the change round the Shoal, then approve the fixed plan.
+        await api.pause(3000);
+        await pick(h.run.revised ? 'approve' : 'suggest');
+      } else if (
+        h.run.phase === 'leg' ||
+        h.run.phase === 'sailing' ||
+        h.run.phase === 'docking' ||
+        h.run.phase === 'balk'
+      ) {
         const phase = h.run.phase;
         const mode = h.run.mode;
         const leg = h.run.leg;

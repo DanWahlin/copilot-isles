@@ -570,12 +570,12 @@ function clump(g: VegGeometry, c: Cluster, d: BanyanDetail): void {
           ? vi < 12 || !d.fine
             ? 1.04 + rand() * 0.2
             : 0.7 + rand() * 0.42
-          : d.fine
+          : d.fine || d.ragged
             ? 0.72 + rand() * 0.55
             : 0.9 + rand() * 0.2;
       vi++;
       const x = c.x + ox + vx! * lr * j;
-      const y = c.y + oy + vy! * lr * j * 0.62;
+      const y = c.y + oy + vy! * lr * j * (d.squash ?? 0.62);
       const z = c.z + oz + vz! * lr * j;
       // Deep in the shade underneath, bright where the sun catches the top.
       const t = tone((vy! + 1) / 2) * coreDim;
@@ -712,6 +712,10 @@ export interface BanyanDetail {
   cardSpan?: number;
   /** The core's radius (of the clump's) under its cards; a set one is darker too (default 0.78). */
   core?: number;
+  /** A lobe's height (of its width): flatter clumps lie in layers (default 0.62). */
+  squash?: number;
+  /** Lobes on the plain shape get the ragged outline the finer levels have (spray tips in and out). */
+  ragged?: boolean;
 }
 
 export const BANYAN_DETAIL: Record<'near' | 'far' | 'lite', BanyanDetail> = {
@@ -730,7 +734,23 @@ export const BANYAN_DETAIL: Record<'near' | 'far' | 'lite', BanyanDetail> = {
     cardSpan: 3,
     core: 0.6,
   },
-  far: { coreSeg: 28, limbSeg: 6, rootSeg: 4, step: 4, lobes: 2, cards: 0, twigs: false },
+  // From the sea (past 120 m): one flat, ragged lobe a clump under a few big leaf cards round its rim,
+  // its normals leaning to the canopy's, so the crown reads as broad layers of leaves (darker under
+  // each tier), not a heap of round puffs.
+  far: {
+    coreSeg: 28,
+    limbSeg: 6,
+    rootSeg: 4,
+    step: 4,
+    lobes: 1,
+    cards: 4,
+    twigs: false,
+    lean: 0.9,
+    cardSpan: 4,
+    core: 0.72,
+    squash: 0.46,
+    ragged: true,
+  },
 };
 
 /**

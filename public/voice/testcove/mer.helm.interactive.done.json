@@ -1,7 +1,7 @@
 {
   "id": "mer.helm.interactive.done",
   "speaker": "Rhea",
-  "text": "That’s Interactive. You were involved at every step.",
+  "text": "That’s Interactive. You called every heading, and we worked step by step. Saying yes to each tool is different. That’s Tool permissions, not the mode.",
   "words": [
     {
       "word": "That’s",
@@ -16,32 +16,117 @@
     {
       "word": "You",
       "start": 2.050958,
-      "end": 2.20875
+      "end": 2.184458
     },
     {
-      "word": "were",
-      "start": 2.20875,
-      "end": 2.390791
-    },
-    {
-      "word": "involved",
-      "start": 2.390791,
-      "end": 2.888333
-    },
-    {
-      "word": "at",
-      "start": 2.888333,
-      "end": 3.021833
+      "word": "called",
+      "start": 2.184458,
+      "end": 2.463583
     },
     {
       "word": "every",
-      "start": 3.021833,
-      "end": 3.288833
+      "start": 2.463583,
+      "end": 2.742708
+    },
+    {
+      "word": "heading",
+      "start": 2.742708,
+      "end": 3.446583
+    },
+    {
+      "word": "and",
+      "start": 3.446583,
+      "end": 3.555833
+    },
+    {
+      "word": "we",
+      "start": 3.555833,
+      "end": 3.677166
+    },
+    {
+      "word": "worked",
+      "start": 3.677166,
+      "end": 4.053416
     },
     {
       "word": "step",
-      "start": 3.288833,
-      "end": 3.538833
+      "start": 4.053416,
+      "end": 4.381083
+    },
+    {
+      "word": "by",
+      "start": 4.381083,
+      "end": 4.514583
+    },
+    {
+      "word": "step",
+      "start": 4.514583,
+      "end": 5.82525
+    },
+    {
+      "word": "Saying",
+      "start": 5.82525,
+      "end": 6.225708
+    },
+    {
+      "word": "yes",
+      "start": 6.225708,
+      "end": 6.480583
+    },
+    {
+      "word": "to",
+      "start": 6.480583,
+      "end": 6.601958
+    },
+    {
+      "word": "each",
+      "start": 6.601958,
+      "end": 6.868916
+    },
+    {
+      "word": "tool",
+      "start": 6.868916,
+      "end": 7.172333
+    },
+    {
+      "word": "is",
+      "start": 7.172333,
+      "end": 7.317958
+    },
+    {
+      "word": "different",
+      "start": 7.317958,
+      "end": 8.737875
+    },
+    {
+      "word": "That’s",
+      "start": 8.737875,
+      "end": 9.029125
+    },
+    {
+      "word": "Tool",
+      "start": 9.029125,
+      "end": 9.296125
+    },
+    {
+      "word": "permissions",
+      "start": 9.296125,
+      "end": 10.15775
+    },
+    {
+      "word": "not",
+      "start": 10.15775,
+      "end": 10.42475
+    },
+    {
+      "word": "the",
+      "start": 10.42475,
+      "end": 10.521833
+    },
+    {
+      "word": "mode",
+      "start": 10.521833,
+      "end": 10.771833
     }
   ]
 }

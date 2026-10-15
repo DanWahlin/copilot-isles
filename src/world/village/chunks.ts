@@ -1,5 +1,5 @@
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { BufferAttribute, type BufferGeometry, type Mesh } from 'three/webgpu';
+import { BufferAttribute, Vector3, type BufferGeometry, type Camera, type Mesh } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
 import { chooseLodLevel, lodRanges, type LodRanges, type LodSimplifier } from '../characters/character-lod';
 
@@ -102,6 +102,28 @@ export function* eachChunk(geometries: BufferGeometry[], options: ChunkOptions):
   } finally {
     for (const geometry of geometries) geometry.dispose();
   }
+}
+
+/**
+ * Lite: moves one material bucket's pieces into another's, so they draw as one (a draw fewer), when
+ * every piece has the same attributes (so they merge). For looks that are alike: the kit's rope and
+ * cloth are both vertex colour over a faint procedural pattern, matte. Returns whether it moved them.
+ */
+export function moveBucketInto<K extends string>(
+  buckets: Record<K, BufferGeometry[]>,
+  from: K,
+  to: K,
+): boolean {
+  const moving = buckets[from];
+  const target = buckets[to];
+  if (moving.length === 0) return false;
+  const layout = (g: BufferGeometry) =>
+    `${Object.keys(g.attributes).sort().join(',')}|${g.index ? 'i' : ''}|${Object.keys(g.morphAttributes).length}`;
+  const want = layout(target[0] ?? moving[0]!);
+  for (const g of moving) if (layout(g) !== want) return false;
+  for (const g of target) if (layout(g) !== want) return false;
+  target.push(...moving.splice(0));
+  return true;
 }
 
 /**
@@ -270,6 +292,44 @@ export class ChunkLods {
     this.z = z;
   }
 }
+
+const movingCentre = new Vector3();
+const movingCamera = new Vector3();
+
+/**
+ * `ChunkLods` for a mesh that moves (the ship): its level is picked as it's drawn, from the drawing
+ * camera's distance to its bounding sphere in world space (with the same hysteresis). The mesh needs
+ * LOD ranges (`buildChunkLodIndex`). Returns false (and changes nothing) without them.
+ */
+export function attachMovingLod(mesh: Mesh, edges: readonly [number, number]): boolean {
+  const geometry = mesh.geometry;
+  if (!lodRanges(geometry)) return false;
+  if (!geometry.boundingSphere) geometry.computeBoundingSphere();
+  const sphere = geometry.boundingSphere!;
+  let level = 0;
+  mesh.onBeforeRender = (_renderer, _scene, camera: Camera, g) => {
+    const r = lodRanges(g);
+    if (!r) return;
+    movingCentre.copy(sphere.center).applyMatrix4(mesh.matrixWorld);
+    movingCamera.setFromMatrixPosition(camera.matrixWorld);
+    level = chooseLodLevel(Math.max(0, movingCentre.distanceTo(movingCamera) - sphere.radius), level, edges);
+    g.drawRange.start = r[level * 2]!;
+    g.drawRange.count = r[level * 2 + 1]!;
+  };
+  mesh.onAfterRender = (_renderer, _scene, _camera, g) => {
+    const r = lodRanges(g);
+    if (!r) return;
+    g.drawRange.start = r[0];
+    g.drawRange.count = r[1];
+  };
+  return true;
+}
+
+/**
+ * Lite's rocks (`simplifyInPlace` on the shared rock shapes, about a metre across): at most 3 cm off on
+ * the unscaled rock (about 9 cm placed), about half the triangles.
+ */
+export const LITE_ROCK_ERROR = 0.03;
 
 /**
  * Replaces a mesh's triangles with a coarser set (the surface moves `error` at most, in the geometry's

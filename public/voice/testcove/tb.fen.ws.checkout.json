@@ -1,0 +1,102 @@
+{
+  "id": "tb.fen.ws.checkout",
+  "speaker": "Fen",
+  "text": "That's only a quick, low-stakes look. Your current checkout's fine for that, and a new worktree's the safe default.",
+  "words": [
+    {
+      "word": "That's",
+      "start": 0,
+      "end": 0.304
+    },
+    {
+      "word": "only",
+      "start": 0.304,
+      "end": 0.44
+    },
+    {
+      "word": "a",
+      "start": 0.44,
+      "end": 0.547
+    },
+    {
+      "word": "quick",
+      "start": 0.547,
+      "end": 1.1
+    },
+    {
+      "word": "low-stakes",
+      "start": 1.1,
+      "end": 1.744
+    },
+    {
+      "word": "look",
+      "start": 1.744,
+      "end": 2.288
+    },
+    {
+      "word": "Your",
+      "start": 2.288,
+      "end": 2.83
+    },
+    {
+      "word": "current",
+      "start": 2.83,
+      "end": 3.084
+    },
+    {
+      "word": "checkout's",
+      "start": 3.084,
+      "end": 3.632
+    },
+    {
+      "word": "fine",
+      "start": 3.632,
+      "end": 3.82
+    },
+    {
+      "word": "for",
+      "start": 3.82,
+      "end": 4.032
+    },
+    {
+      "word": "that",
+      "start": 4.032,
+      "end": 4.58
+    },
+    {
+      "word": "and",
+      "start": 4.58,
+      "end": 4.68
+    },
+    {
+      "word": "a",
+      "start": 4.68,
+      "end": 4.78
+    },
+    {
+      "word": "new",
+      "start": 4.78,
+      "end": 5.024
+    },
+    {
+      "word": "worktree's",
+      "start": 5.024,
+      "end": 5.54
+    },
+    {
+      "word": "the",
+      "start": 5.54,
+      "end": 5.68
+    },
+    {
+      "word": "safe",
+      "start": 5.68,
+      "end": 6.06
+    },
+    {
+      "word": "default",
+      "start": 6.06,
+      "end": 6.31
+    }
+  ]
+}

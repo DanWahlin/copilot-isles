@@ -1,72 +1,92 @@
 {
   "id": "suri.idle.dry",
   "speaker": "Suri",
-  "text": "Mill's dry today, Captain. Come back once your fork has its practice items.",
+  "text": "Mill’s quiet today, Captain. Pim and Pol at the crane will send you up when it’s time.",
   "words": [
     {
-      "word": "Mill's",
+      "word": "Mill’s",
       "start": 0.07,
-      "end": 0.39
+      "end": 0.35
     },
     {
-      "word": "dry",
-      "start": 0.39,
-      "end": 0.63
+      "word": "quiet",
+      "start": 0.35,
+      "end": 0.71
     },
     {
       "word": "today",
-      "start": 0.63,
-      "end": 0.91
+      "start": 0.71,
+      "end": 0.99
     },
     {
       "word": "Captain",
-      "start": 0.91,
-      "end": 1.67
+      "start": 0.99,
+      "end": 1.83
     },
     {
-      "word": "Come",
-      "start": 1.67,
-      "end": 1.91
-    },
-    {
-      "word": "back",
-      "start": 1.91,
+      "word": "Pim",
+      "start": 1.83,
       "end": 2.15
     },
     {
-      "word": "once",
+      "word": "and",
       "start": 2.15,
-      "end": 2.349
+      "end": 2.27
     },
     {
-      "word": "your",
-      "start": 2.349,
-      "end": 2.51
+      "word": "Pol",
+      "start": 2.27,
+      "end": 2.59
     },
     {
-      "word": "fork",
-      "start": 2.51,
-      "end": 2.869
+      "word": "at",
+      "start": 2.59,
+      "end": 2.67
     },
     {
-      "word": "has",
-      "start": 2.869,
-      "end": 3.07
+      "word": "the",
+      "start": 2.67,
+      "end": 2.789
     },
     {
-      "word": "its",
-      "start": 3.07,
-      "end": 3.23
+      "word": "crane",
+      "start": 2.789,
+      "end": 3.15
     },
     {
-      "word": "practice",
-      "start": 3.23,
-      "end": 3.67
+      "word": "will",
+      "start": 3.15,
+      "end": 3.309
     },
     {
-      "word": "items",
-      "start": 3.67,
-      "end": 3.92
+      "word": "send",
+      "start": 3.309,
+      "end": 3.55
+    },
+    {
+      "word": "you",
+      "start": 3.55,
+      "end": 3.71
+    },
+    {
+      "word": "up",
+      "start": 3.71,
+      "end": 3.869
+    },
+    {
+      "word": "when",
+      "start": 3.869,
+      "end": 4.03
+    },
+    {
+      "word": "it’s",
+      "start": 4.03,
+      "end": 4.23
+    },
+    {
+      "word": "time",
+      "start": 4.23,
+      "end": 4.48
     }
   ]
 }

@@ -4,7 +4,7 @@ import type { Engine } from '../engine/engine';
 import { bakeInstances } from '../engine/instancing';
 import { islandsTakeSunShadows, type TierSettings } from '../engine/quality';
 import { loadLodSimplifier } from './characters/character-lod';
-import { simplifyInPlace } from './village/chunks';
+import { LITE_ROCK_ERROR, simplifyInPlace } from './village/chunks';
 import { HarborMirror } from './ocean/harbor-mirror';
 import { createOcean, type Ocean } from './ocean/ocean';
 import { releaseWaterDepthTexture } from './ocean/water-depth-texture';
@@ -30,7 +30,7 @@ import {
 } from './islands/meridian';
 import type { CameraBlockerBox } from './terrain/camera-blockers';
 import { createBeachDebris, type BeachDebrisSystem } from './debris/beach-debris';
-import { createBrigantine, type Brigantine } from './ship';
+import { addLiteShipLods, createBrigantine, type Brigantine } from './ship';
 import { createVegetation, type VegetationSystem } from './vegetation';
 import type { PlantInstance } from './vegetation/types';
 import { meridianPlantsSliced } from './islands/meridian-plants';
@@ -40,7 +40,7 @@ import type { WaterStrips } from './sites/water';
 import { loadVillageKit, releaseVillageKitTextures } from './village/kit';
 import { DOCK_GULL_SPOT, createVillage, type VillageSystem } from './islands/anchorage/village';
 import { ANCHORAGE_VEGETATION } from './islands/anchorage/vegetation-rules';
-import { createWreck, wreckWaterline, type WreckSystem } from './islands/anchorage/wreck';
+import { createWreckSteps, wreckWaterline, type WreckSystem } from './islands/anchorage/wreck';
 import { createDockGull, type DockGull } from './life/dock-gull';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
@@ -125,8 +125,6 @@ export interface CoveScene {
 
 /** Beyond this distance (m) from an island's centre, its small detail is a pixel or two: it's culled. */
 const DETAIL_RANGE = { anchorage: 560, meridian: 620 };
-/** Lite's loose rocks: at most 2 cm off on the unscaled rock (about 6 cm placed), about half the triangles. */
-const LITE_ROCK_ERROR = 0.02;
 
 /**
  * Lite (PLAN §12.1, the weakest GPUs): the islands' loose instanced rocks (not cliffs or sea stacks)
@@ -191,6 +189,8 @@ export interface CoveOptions {
    * island builds (the opening's cabin keeps animating). Defaults to no pause.
    */
   breathe?: () => Promise<void>;
+  /** The island's sky, made ahead (the game flow makes it under the opening's veil); else made here. */
+  sky?: SkySystem | null;
 }
 
 /**
@@ -206,7 +206,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const report = o.onProgress ?? (() => {});
   const breathe = o.breathe ?? (() => Promise.resolve());
   report(0.1, 'Raising the sky');
-  const sky = createSky(renderer, scene, tier, engine.backend);
+  const sky = o.sky ?? createSky(renderer, scene, tier, engine.backend);
   await breathe();
   const cloudShadowNode = sky.cloudShadowNode?.(positionWorld.xz);
   const params =
@@ -223,6 +223,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
 
   report(0.3, 'Charting the cove');
   const data = await loadTerrainPack(`${o.packBase ?? '/packs'}/testcove/terrain`);
+  await breathe();
   const terrain = await createTerrainAsync(
     { tier, data, cloudShadowNode, recessSteep: HEADLAND_CLIFF_AREA },
     breathe,
@@ -426,12 +427,23 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   report(0.8, 'Rigging the brigantine');
   await breathe();
   const ship = createBrigantine({ tier: tier.tier });
+  await addLiteShipLods(ship, tier);
   ship.dynamics.reset(COVE.mooring.x, COVE.mooring.z, COVE.mooring.heading);
   if (skipIslandShadows) skipSunShadows(ship.group);
   scene.add(ship.group);
   sites.crane.setShip(ship.group, BRIGANTINE_CARGO);
   // The wreck draws with the ship's material, so it joins the scene before the island compiles.
-  const wreck = createWreck(tier.tier);
+  await breathe();
+  const wreckSteps = createWreckSteps(tier.tier);
+  let wreck: WreckSystem;
+  for (;;) {
+    const r = wreckSteps.next();
+    if (r.done) {
+      wreck = r.value;
+      break;
+    }
+    await breathe();
+  }
   if (skipIslandShadows) skipSunShadows(wreck.mesh);
   // ?nowreck leaves her out of the scene (a census without her); her obstacles stay.
   if (!params.has('nowreck')) scene.add(wreck.mesh);

@@ -1,7 +1,7 @@
 // The Sluice & Waterwheel's last move, framed for a highlight: every channel but the last is set off
-// camera (Suri's brief done, the lever pulled, the tiles turned with the puzzle's own debug hooks),
-// then on camera the captain turns the last tile with E, the water runs down the channel, and the
-// waterwheel at the terrace's end starts to turn. The camera is pulled back a little with the mouse
+// camera (the crane done, so Suri's gate is up; her brief done; the tiles turned with the puzzle's own
+// debug hooks, the check gate's branch already wet), then on camera the captain turns the wheel's
+// tile with E, the water runs down the channel, and the waterwheel at the terrace's end starts to turn. The camera is pulled back a little with the mouse
 // wheel and looks across the last tile to the wheel. The full puzzle, played by hand, is the `sluice`
 // scenario.
 import { skipTalk } from '../lib.mjs';
@@ -20,7 +20,8 @@ async function plan(api) {
         const t = lay.tiles[i];
         let k = 0;
         while (k < 4 && !L.sameOpenings(t.kind, (st.rots[i] + k) % 4, t.solution)) k++;
-        return { i, turns: k, x: spots.cells[i].x, z: spots.cells[i].z };
+        const wheel = i === lay.outlet.row * lay.cols + lay.outlet.col;
+        return { i, turns: k, wheel, x: spots.cells[i].x, z: spots.cells[i].z };
       });
   });
 }
@@ -32,7 +33,8 @@ export default {
   title: 'Sluice & Waterwheel: the Last Channel',
   island: 'Anchorage Cay',
   who: 'at Suri’s mill',
-  subtitle: 'The last channel turned: the water reaches the wheel, and the practice checks can run.',
+  subtitle:
+    'The last channel turned: the water reaches the wheel, and the practice checks run. One fails on purpose.',
   chapter: 'Course Chapter 00 · Add the course practice items',
   flags: [],
   titleFrame: 3,
@@ -47,9 +49,9 @@ export default {
     });
     await skipTalk(page, 15_000);
     await api.pause(1500);
-    // Every tile on the path set but the last one, which is left one quarter turn short.
+    // Every tile on the path set but the wheel's, which is left one quarter turn short.
     const tiles = await plan(api);
-    const last = tiles.filter((t) => t.turns > 0).at(-1) ?? tiles.at(-1);
+    const last = tiles.find((t) => t.wheel);
     for (const t of tiles) {
       const n = t === last ? (t.turns + 3) % 4 : t.turns;
       for (let k = 0; k < n; k++) {

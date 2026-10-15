@@ -990,6 +990,16 @@ function portSigns(buckets: Buckets, signs: SignSet, out: StructureOut): void {
     const sign = signs.add([port], 2.1, 0.78, { colors: ['#f8e6b8'], twoSided: true });
     sign.object.position.set(cx, e.y + 2.75, cz);
     sign.object.rotation.y = Math.atan2(dx, dz);
+    // The board and the beam over you, for the camera (you walk under them: the pivot ducks).
+    out.cameraBoxes.push({
+      x: cx,
+      z: cz,
+      hx: half + 0.42,
+      hz: 0.17,
+      rot: Math.atan2(-sz, sx),
+      y0: e.y + 2.3,
+      y1: e.y + 3.4,
+    });
   }
 }
 

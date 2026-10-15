@@ -1,0 +1,62 @@
+{
+  "id": "mer.helm.plan.suggest",
+  "speaker": "Rhea",
+  "text": "Good catch. I’ll chart her round the Shoal. Have another look.",
+  "words": [
+    {
+      "word": "Good",
+      "start": 0.0485409,
+      "end": 0.267
+    },
+    {
+      "word": "catch",
+      "start": 0.267,
+      "end": 1.614083
+    },
+    {
+      "word": "I’ll",
+      "start": 1.614083,
+      "end": 1.80825
+    },
+    {
+      "word": "chart",
+      "start": 1.80825,
+      "end": 2.0995
+    },
+    {
+      "word": "her",
+      "start": 2.0995,
+      "end": 2.233
+    },
+    {
+      "word": "round",
+      "start": 2.233,
+      "end": 2.512125
+    },
+    {
+      "word": "the",
+      "start": 2.512125,
+      "end": 2.572833
+    },
+    {
+      "word": "Shoal",
+      "start": 2.572833,
+      "end": 3.859208
+    },
+    {
+      "word": "Have",
+      "start": 3.859208,
+      "end": 4.089791
+    },
+    {
+      "word": "another",
+      "start": 4.089791,
+      "end": 4.453875
+    },
+    {
+      "word": "look",
+      "start": 4.453875,
+      "end": 4.703875
+    }
+  ]
+}
