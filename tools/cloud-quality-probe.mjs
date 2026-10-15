@@ -10,12 +10,14 @@ const out = opt.out || 'cloud-quality';
 const frames = Number(opt.frames || 48);
 const wait = Number(opt.wait || 3000);
 const viewport = { width: 1600, height: 900 };
-const target =
-  opt.target ||
-  '/Users/danwahlin/.copilot/workspaces/8f1fbb0b-e259-4e29-8599-3490b349acab/attachments/c34af3ed-d1f7-4ef0-a6f8-10c83ce1579b-ed545b5f-d2b3-45fc-b521-c6560687345a-clipboard.png';
-const before =
-  opt.before ||
-  '/Users/danwahlin/.copilot/workspaces/8f1fbb0b-e259-4e29-8599-3490b349acab/attachments/72eaf635-4a63-4e03-8f04-6c5cb8910521-a7a700d5-232e-4877-93d9-2e151a4437df-clipboard.png';
+const target = opt.target;
+const before = opt.before;
+if (!target || !before) {
+  console.error(
+    'Usage: node tools/cloud-quality-probe.mjs --target=<reference.png> --before=<before.png> [--base=<url>]',
+  );
+  process.exit(1);
+}
 
 await fs.mkdir(out, { recursive: true });
 

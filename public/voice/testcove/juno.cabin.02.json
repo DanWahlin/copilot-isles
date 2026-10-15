@@ -1,7 +1,7 @@
 {
   "id": "juno.cabin.02",
   "speaker": "Juno",
-  "text": "Each island teaches a chapter of the GitHub Copilot app. Finish its quests to earn its seal.",
+  "text": "Each island teaches a chapter of the GitHub Copilot app for Beginners course. Finish its quests to earn its seal.",
   "words": [
     {
       "word": "Each",
@@ -11,82 +11,97 @@
     {
       "word": "island",
       "start": 0.281,
-      "end": 0.7
+      "end": 0.718
     },
     {
       "word": "teaches",
-      "start": 0.7,
-      "end": 1.091
+      "start": 0.718,
+      "end": 1.2
     },
     {
       "word": "a",
-      "start": 1.091,
-      "end": 1.227
+      "start": 1.2,
+      "end": 1.291
     },
     {
       "word": "chapter",
-      "start": 1.227,
-      "end": 1.745
+      "start": 1.291,
+      "end": 1.77
     },
     {
       "word": "of",
-      "start": 1.745,
-      "end": 1.909
+      "start": 1.77,
+      "end": 1.982
     },
     {
       "word": "the",
-      "start": 1.909,
-      "end": 2.015
+      "start": 1.982,
+      "end": 2.088
     },
     {
       "word": "GitHub",
-      "start": 2.015,
-      "end": 2.4
+      "start": 2.088,
+      "end": 2.473
     },
     {
       "word": "Copilot",
-      "start": 2.4,
-      "end": 3
+      "start": 2.473,
+      "end": 3.055
     },
     {
       "word": "app",
-      "start": 3,
-      "end": 3.491
+      "start": 3.055,
+      "end": 3.309
+    },
+    {
+      "word": "for",
+      "start": 3.309,
+      "end": 3.469
+    },
+    {
+      "word": "Beginners",
+      "start": 3.469,
+      "end": 4
+    },
+    {
+      "word": "course",
+      "start": 4,
+      "end": 4.769
     },
     {
       "word": "Finish",
-      "start": 3.491,
-      "end": 4.4
+      "start": 4.769,
+      "end": 5.491
     },
     {
       "word": "its",
-      "start": 4.4,
-      "end": 4.582
+      "start": 5.491,
+      "end": 5.683
     },
     {
       "word": "quests",
-      "start": 4.582,
-      "end": 5.115
+      "start": 5.683,
+      "end": 6.279
     },
     {
       "word": "to",
-      "start": 5.115,
-      "end": 5.367
+      "start": 6.279,
+      "end": 6.531
     },
     {
       "word": "earn",
-      "start": 5.367,
-      "end": 5.673
+      "start": 6.531,
+      "end": 6.836
     },
     {
       "word": "its",
-      "start": 5.673,
-      "end": 5.964
+      "start": 6.836,
+      "end": 7.113
     },
     {
       "word": "seal",
-      "start": 5.964,
-      "end": 6.214
+      "start": 7.113,
+      "end": 7.363
     }
   ]
 }

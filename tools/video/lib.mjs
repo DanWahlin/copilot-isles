@@ -11,11 +11,34 @@ import { GPU_ARGS } from '../lib/browser.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const FPS = 30;
-export const SIZE = { width: 1280, height: 720 };
+/** The viewport, screencast and video size (`setSize`, record.mjs `--size=1920x1080`). */
+export let SIZE = { width: 1280, height: 720 };
+/** The screencast's JPEG quality (0–100; `setJpegQuality`, record.mjs `--jpeg=100`). */
+export let JPEG_QUALITY = 90;
 export const QUALITY_PRESETS = Object.freeze({
   review: Object.freeze({ preset: 'slow', videoBitrate: '1200k', tune: 'animation', audioBitrate: '128k' }),
   high: Object.freeze({ preset: 'medium', crf: '19', tune: null, audioBitrate: '160k' }),
+  // Highlight reels and other finals: near-transparent H.264 for upload and editing.
+  master: Object.freeze({ preset: 'slow', crf: '16', tune: null, profile: 'high', audioBitrate: '256k' }),
 });
+
+/** Parses "1920x1080" (or { width, height }) and sets the capture size. Both must be even. */
+export function setSize(spec) {
+  const m = typeof spec === 'string' ? /^(\d+)x(\d+)$/.exec(spec.trim()) : null;
+  const width = m ? Number(m[1]) : spec?.width;
+  const height = m ? Number(m[2]) : spec?.height;
+  if (!(width >= 320 && height >= 180 && width % 2 === 0 && height % 2 === 0))
+    throw new Error(`bad size ${JSON.stringify(spec)} (use e.g. 1920x1080)`);
+  SIZE = { width, height };
+  return SIZE;
+}
+
+export function setJpegQuality(q) {
+  const n = Number(q);
+  if (!(n >= 1 && n <= 100)) throw new Error(`bad JPEG quality ${q} (1–100)`);
+  JPEG_QUALITY = n;
+  return n;
+}
 /**
  * What a change in the page takes to reach a screencast frame (the next rendered frame, then the
  * compositor) while the audio tap hears a sound in the same JS turn. Measured with sync-check.mjs
@@ -27,10 +50,11 @@ export const AUDIO_LAG_MS = 45;
 
 /**
  * Chrome (headless, real GPU, WebGPU on, autoplay allowed so the AudioContext runs) and one page at
- * 1280×720, DPR 1, with the audio tap injected before any game script. Playwright keeps Chrome's
+ * SIZE (1280×720 unless `setSize` changed it), DPR 1, with the audio tap (and, with `cursor`, a
+ * drawn mouse pointer) injected before any game script. Playwright keeps Chrome's
  * `--mute-audio`, so nothing plays on the speakers; the tap reads the graph before the output.
  */
-export async function launch({ onPcm } = {}) {
+export async function launch({ onPcm, cursor = false } = {}) {
   const browser = await chromium.launch({
     channel: 'chrome',
     headless: true,
@@ -39,6 +63,8 @@ export async function launch({ onPcm } = {}) {
   const context = await browser.newContext({ viewport: SIZE, deviceScaleFactor: 1 });
   const page = await context.newPage();
   await page.addInitScript({ path: path.join(HERE, 'audio-tap.js') });
+  // Headless Chrome draws no pointer; scenarios that use the mouse on camera can show one.
+  if (cursor) await page.addInitScript({ path: path.join(HERE, 'cursor.js') });
   await page.exposeFunction('__recPush', (b64) => onPcm?.(Buffer.from(b64, 'base64')));
   return { browser, context, page };
 }
@@ -64,7 +90,23 @@ export class Recorder {
     this.cuts = [];
     this.marks = [];
     this.audio = null;
+    this.audioWait = null;
     this.frames = 0;
+    this.lastTs = null;
+    /** Gaps between delivered frames: the longest, and how many were over 100 ms (a visible stall). */
+    this.maxGap = 0;
+    this.stalls = 0;
+    /** [seconds into the clip, ms] for each of those gaps (a reel keeps them out of its cuts). */
+    this.gaps = [];
+  }
+
+  async waitForAudio() {
+    while (!this.stopped && !this.audio) {
+      await new Promise((r) => setTimeout(r, 100));
+      if (this.stopped) break;
+      this.audio = await this.page.evaluate(() => window.__rec?.start() ?? null).catch(() => null);
+    }
+    if (!this.audio) console.warn('[video] no AudioContext to record; this clip is silent');
   }
 
   /** The PCM sink for `launch({ onPcm })`. */
@@ -96,11 +138,13 @@ export class Recorder {
     if (audio) {
       this.pcm = fs.openSync(this.pcmPath, 'w');
       this.audio = await this.page.evaluate(() => window.__rec?.start() ?? null);
-      if (!this.audio) console.warn('[video] no AudioContext to record; this clip is silent');
+      // No AudioContext yet (a title screen makes it on the first click or key): start the audio as
+      // soon as one connects. Its start time is on the same clock, so it still lines up.
+      if (!this.audio) this.audioWait = this.waitForAudio();
     }
     await this.cdp.send('Page.startScreencast', {
       format: 'jpeg',
-      quality: 90,
+      quality: JPEG_QUALITY,
       maxWidth: SIZE.width,
       maxHeight: SIZE.height,
       everyNthFrame: 1,
@@ -114,6 +158,15 @@ export class Recorder {
     const ts = metadata?.timestamp ? metadata.timestamp * 1000 : Date.now();
     const buf = Buffer.from(data, 'base64');
     this.frames++;
+    if (this.lastTs !== null) {
+      const gap = ts - this.lastTs;
+      if (gap > this.maxGap) this.maxGap = gap;
+      if (gap > 100) {
+        this.stalls++;
+        this.gaps.push([+((this.lastTs - this.t0) / 1000).toFixed(2), Math.round(gap)]);
+      }
+    }
+    this.lastTs = ts;
     if (this.t0 === null) {
       this.t0 = ts;
       this.last = buf;
@@ -144,6 +197,7 @@ export class Recorder {
     const end = this.now();
     await this.cdp.send('Page.stopScreencast').catch(() => undefined);
     this.stopped = true;
+    await this.audioWait;
     if (this.last) this.fill(end);
     this.ff.stdin.end();
     await this.ffDone;
@@ -161,6 +215,13 @@ export class Recorder {
       end,
       duration: this.slots / FPS,
       frames: this.frames,
+      size: { ...SIZE },
+      jpeg: JPEG_QUALITY,
+      // Frames the page delivered per second of clip, and its longest stall.
+      fps: +(this.frames / Math.max(0.001, this.slots / FPS)).toFixed(2),
+      maxGapMs: Math.round(this.maxGap),
+      stalls: this.stalls,
+      gaps: this.gaps,
       cuts: this.cuts,
       marks: this.marks,
       audio: this.audio && fs.existsSync(this.pcmPath) ? { ...this.audio, pcm: this.pcmPath } : null,
@@ -196,6 +257,8 @@ export function makeApi(page, rec, { log = () => undefined } = {}) {
   const S = (f, a) => page.evaluate(f, a);
   const pause = (ms) => page.waitForTimeout(ms);
   const held = new Set();
+  /** Where the mouse is (Playwright starts it at the top-left corner). */
+  let mouse = { x: 0, y: 0 };
   const down = async (c) => {
     if (held.has(c)) return;
     held.add(c);
@@ -523,13 +586,31 @@ export function makeApi(page, rec, { log = () => undefined } = {}) {
       await pause(800);
     },
 
-    /** Moves the mouse to an element's centre in a few steps and clicks it. */
-    async click(selector) {
+    /** Moves the mouse from where it is to (x, y) over `ms`, eased, as a hand would. */
+    async glide(x, y, ms = 700) {
+      const from = mouse;
+      const n = Math.max(6, Math.round(ms / 25));
+      for (let i = 1; i <= n; i++) {
+        const k = i / n;
+        const e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+        mouse = { x: from.x + (x - from.x) * e, y: from.y + (y - from.y) * e };
+        await page.mouse.move(mouse.x, mouse.y);
+        await pause(ms / n);
+      }
+    },
+
+    /**
+     * Moves the mouse to an element's centre and clicks it: in a few quick steps, or with `ms`, a
+     * visible glide (for scenarios that draw the pointer).
+     */
+    async click(selector, { ms = 0 } = {}) {
       const box = await page.locator(selector).first().boundingBox();
       if (!box) return false;
       const x = box.x + box.width / 2,
         y = box.y + box.height / 2;
-      await page.mouse.move(x, y, { steps: 10 });
+      if (ms) await api.glide(x, y, ms);
+      else await page.mouse.move(x, y, { steps: 10 });
+      mouse = { x, y };
       await pause(120);
       await page.mouse.click(x, y);
       return true;
@@ -537,6 +618,34 @@ export function makeApi(page, rec, { log = () => undefined } = {}) {
 
     /** Marks a moment in the timeline (printed in the report). */
     mark: (label) => rec?.mark(label),
+
+    /**
+     * Watches for new elements matching `selector` (captions, toasts) and returns a function that
+     * turns each one into a mark (`<prefix>: <text>`, at the moment it showed, on the frames' clock).
+     */
+    async watchText(selector, prefix = 'text') {
+      await S((sel) => {
+        const seen = new WeakSet();
+        const list = [];
+        (window.__recWatch ??= {})[sel] = list;
+        const look = () => {
+          for (const el of document.querySelectorAll(sel)) {
+            if (seen.has(el)) continue;
+            seen.add(el);
+            list.push({ t: performance.timeOrigin + performance.now(), text: el.textContent.trim() });
+          }
+          requestAnimationFrame(look);
+        };
+        look();
+      }, selector);
+      return async () => {
+        const list = await S((sel) => window.__recWatch?.[sel] ?? [], selector);
+        if (!rec) return list;
+        for (const m of list) rec.marks.push({ t: m.t, label: `${prefix}: ${m.text.slice(0, 60)}` });
+        rec.marks.sort((a, b) => a.t - b.t);
+        return list;
+      };
+    },
 
     /** Runs `fn` and drops everything it shows from the video (a fade covers the join). */
     async cut(fn) {
@@ -629,13 +738,18 @@ const esc = (s) =>
 
 /** Renders the title card (the game's colours and type over a blurred frame of the clip). */
 export async function renderTitle(browser, meta, bgJpg, outPng) {
-  const page = await browser.newPage({ viewport: SIZE, deviceScaleFactor: 1 });
+  // The card is laid out 1280 CSS px wide; the device scale factor brings it up to SIZE.
+  const scale = SIZE.width / 1280;
+  const page = await browser.newPage({
+    viewport: { width: 1280, height: Math.round(SIZE.height / scale) },
+    deviceScaleFactor: scale,
+  });
   const bg =
     bgJpg && fs.existsSync(bgJpg)
       ? `data:image/jpeg;base64,${fs.readFileSync(bgJpg).toString('base64')}`
       : '';
   await page.setContent(`<!doctype html><html><head><style>
-    html,body{margin:0;width:1280px;height:720px;overflow:hidden;background:#06121b;color:#f6ecd6;
+    html,body{margin:0;width:100vw;height:100vh;overflow:hidden;background:#06121b;color:#f6ecd6;
       font-family:Georgia,'Times New Roman',serif}
     .bg{position:absolute;inset:-40px;background:url('${bg}') center/cover;filter:blur(14px) saturate(1.1) brightness(.62)}
     .shade{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgb(6 18 27/35%),rgb(6 18 27/88%))}
@@ -745,6 +859,7 @@ export async function finalize({ take, title, out, audio = true, titleSeconds = 
     encoding.preset,
     ...tune,
     ...rate,
+    ...(encoding.profile ? ['-profile:v', encoding.profile] : []),
     '-pix_fmt',
     'yuv420p',
   ];
@@ -805,14 +920,15 @@ export async function finalize({ take, title, out, audio = true, titleSeconds = 
   return { keep, cuts, offset: off, duration: await probeDuration(out) };
 }
 
-/** Six frames from across the video (after the title) in a 3×2 sheet. */
+/** Six frames from across the video (after the title) in a 3×2 sheet (each frame half SIZE). */
 export async function contactSheet(video, png, skip = 3) {
   const dur = await probeDuration(video);
   const span = Math.max(1, dur - skip - 1);
   const args = ['-y', '-loglevel', 'error'];
   for (let i = 0; i < 6; i++) args.push('-ss', (skip + 0.5 + (span * i) / 5.2).toFixed(2), '-i', video);
   const f = [];
-  for (let i = 0; i < 6; i++) f.push(`[${i}:v]scale=640:360,setsar=1[f${i}]`);
+  const tile = `${SIZE.width / 2}:${SIZE.height / 2}`;
+  for (let i = 0; i < 6; i++) f.push(`[${i}:v]scale=${tile},setsar=1[f${i}]`);
   f.push(
     `${[0, 1, 2, 3, 4, 5].map((i) => `[f${i}]`).join('')}xstack=inputs=6:layout=0_0|w0_0|w0+w1_0|0_h0|w0_h0|w0+w1_h0[out]`,
   );

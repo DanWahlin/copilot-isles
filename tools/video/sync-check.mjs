@@ -3,22 +3,25 @@
 // and beeping through the game's own AudioContext in the same JS turn, builds the MP4 the same way
 // record.mjs does, then finds each flash (frame brightness) and beep (audio onset) in the output.
 // A positive offset means the sound comes after the picture.
-//   node tools/video/sync-check.mjs [--base=http://127.0.0.1:5395] [--out=<dir>]
+//   node tools/video/sync-check.mjs [--base=http://127.0.0.1:5395] [--out=<dir>] [--size=1920x1080]
+//        [--jpeg=100] [--tier=low]
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { parseFlags } from '../lib/browser.mjs';
-import { Recorder, finalize, launch, openDevPage, run } from './lib.mjs';
+import { Recorder, finalize, launch, openDevPage, run, setJpegQuality, setSize } from './lib.mjs';
 
 const opt = parseFlags();
 const base = opt.base || 'http://127.0.0.1:5395';
 const out = path.resolve(opt.out || path.join(os.homedir(), 'Movies', 'copilot-isles'));
 const work = path.join(out, '.work', 'sync-check');
+if (opt.size) setSize(String(opt.size));
+if (opt.jpeg) setJpegQuality(opt.jpeg);
 fs.mkdirSync(work, { recursive: true });
 
 let rec = null;
 const { browser, page } = await launch({ onPcm: (b) => rec?.push(b) });
-await openDevPage(page, { base, tier: 'low' });
+await openDevPage(page, { base, tier: opt.tier || 'low' });
 // The beep goes through the game's context so it takes the same path as every game sound.
 await page.evaluate(() => {
   const div = document.createElement('div');

@@ -12,10 +12,12 @@ export async function playRound(api, round, { wrongFirst = false, click = false 
     90_000,
   );
   if (!open) throw new Error(`the Gate Board never showed round ${round}`);
+  api.mark(`round ${round}`);
   await api.waitFor(() => !document.querySelector('.ci-cr-go')?.disabled, null, 60_000);
   await api.pause(2200);
   if (wrongFirst) {
     // Run it as it stands: the water mixes (or stops short) and Fen says why.
+    api.mark(`round ${round} run unrouted`);
     await api.press('KeyF');
     await api.waitFor(
       () => !/gates are open/.test(document.querySelector('.ci-cr-message')?.textContent ?? ''),
@@ -51,6 +53,7 @@ export async function playRound(api, round, { wrongFirst = false, click = false 
     await api.pause(550);
   }
   await api.pause(900);
+  api.mark(`round ${round} run routed`);
   await api.press('KeyF');
   await api.waitFor(
     () => !/gates are open/.test(document.querySelector('.ci-cr-message')?.textContent ?? ''),
@@ -58,6 +61,7 @@ export async function playRound(api, round, { wrongFirst = false, click = false 
     30_000,
   );
   const msg = await api.S(() => document.querySelector('.ci-cr-message')?.textContent ?? '');
+  api.mark(`round ${round} done`);
   if (!/wheel/.test(msg)) api.log(`round ${round} didn't solve: "${msg}"`);
 }
 

@@ -28,6 +28,8 @@ export interface ChannelRoutingHost extends PuzzleHost {
   closing: readonly ScriptStep[];
   /** Fades the screen to black (true) and back, for the demo's cut to the board. */
   fade?(on: boolean, ms?: number): Promise<void>;
+  /** The chart label for the board or the Spire twist (docs/specs/LOWER-THIRDS.md), once a save. */
+  label?(id: 'puzzle:P2.1' | 'puzzle:P2.2'): void;
   /** Mounts the overlay (tests pass a stand-in; the game loads src/ui/puzzles/ChannelRouting.tsx). */
   mountUi?: (store: ChannelRoutingStore) => () => void;
 }
@@ -176,6 +178,7 @@ export function createChannelRouting(
       message: null,
       announce: `Round ${model.state.round} of 3. ${liveCrews()} Use the arrow keys to pick a tile and E to turn it.`,
     });
+    host.label?.('puzzle:P2.1');
   }
 
   const liveCrews = () => {
@@ -272,6 +275,7 @@ export function createChannelRouting(
     model.setPhase('twist');
     sync({ busy: true, message: null, pulse: null, hits: null });
     host.frame(camShot('twistCam'));
+    host.label?.('puzzle:P2.2');
     await host.say(['tb.fen.twist.01']);
     sfx('timber_creak_groan', 0.8);
     await sys.spire.playJam();

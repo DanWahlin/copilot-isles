@@ -1,5 +1,6 @@
 import { onPierDeck } from '../world/islands/anchorage/village';
 import { spyglassSpeakerPan } from '../learn/spyglass-layout';
+import { CHART_LABELS, chartLabel, firstShowing } from '../learn/content/labels';
 import { Vector3, type Group, type Object3D } from 'three/webgpu';
 import { buildSlice } from '../engine/build-slice';
 import type { IslesAudio } from '../audio';
@@ -251,6 +252,11 @@ const CHRISTEN_AT = new Vector3(-1.6, 2.4, 10.6);
 const INTRO_HOLD_MS = 1600;
 /** With reduced motion there's no flight: the title card holds over the captain this long. */
 const ARRIVAL_CARD_ONLY = 3.4;
+/** How often (s) the session looks for a puzzle that's ready for its chart label. */
+const LABEL_CHECK_EVERY = 0.25;
+/** …or the chart label, which has more to read (docs/specs/LOWER-THIRDS.md). */
+const ARRIVAL_LABEL_ONLY = 7;
+const cardOnlySeconds = (plan: IslandArrival) => (plan.label ? ARRIVAL_LABEL_ONLY : ARRIVAL_CARD_ONLY);
 /** Seconds into a flyover before a key press can skip it (so a held key from the menu doesn't). */
 const ARRIVAL_SKIP_AFTER = 0.6;
 /** Seconds of flight between the views warmed up while loading. */
@@ -541,6 +547,16 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   if (!quests()['Q0.2']) setQuest('Q0.2', 'start');
   migrateQuests(quests(), setQuest);
   publishQuests();
+  /** Chart labels already shown without a save (dev pages with `?nolearn`). */
+  const labelsShown = new Set<string>();
+  /**
+   * A puzzle's or a battle's chart label (docs/specs/LOWER-THIRDS.md), the first time it starts in
+   * this save. Ids without a label in content/labels.json show nothing.
+   */
+  function puzzleLabel(id: string): void {
+    const text = chartLabel(id);
+    if (text && firstShowing(learn?.progress ?? null, labelsShown, id)) hud.label.show(text, 'puzzle');
+  }
   // The passages' sea battles: built and warmed when you board with one waiting.
   const battles = new PassageBattles({
     engine,
@@ -553,6 +569,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     open: (id) => openIslands().some((b) => b.id === id),
     onDone: (id, how) => o.onBattle?.(id, how),
     toast: (text, seconds) => hud.toast(text, seconds),
+    onStart: (id) => puzzleLabel(`battle:${id}`),
   });
   battles.prefetch(island);
   let scriptRunning = false;
@@ -1094,7 +1111,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     audio?.sfx.oneShot('chime_solve', player, 0.9);
     for (const n of [...npcs.list, ...(meridianNpcs?.list ?? []), ...(tb?.npcs ?? [])])
       if (!n.talking && Math.hypot(n.x - player.x, n.z - player.z) < 45) n.character.greet();
-    audio?.sfx.oneShot('crowd_cheer_small', player, 0.8);
+    audio?.sfx.oneShot('stinger_triumph', player, 0.8);
     if (wingman && wingman.phase === 'perched') {
       hero.group.getWorldPosition(flightView.captain);
       camera.getWorldPosition(flightView.eye);
@@ -1143,7 +1160,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     await new Promise((r) => setTimeout(r, 1100));
     town.setLighthouseLit(true);
     lighthouseLit = true;
-    audio?.sfx.oneShot('crowd_cheer_small', player, 0.8);
+    audio?.sfx.oneShot('stinger_triumph', player, 0.8);
     await new Promise((r) => setTimeout(r, 2600));
     await hud.fade(true, 260);
     if (talkShot) cam.cut(talkShot);
@@ -1170,7 +1187,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     await hud.fade(false, 260);
     await new Promise((r) => setTimeout(r, 1100));
     village.setLighthouseLit(true);
-    audio?.sfx.oneShot('crowd_cheer_small', player, 0.8);
+    audio?.sfx.oneShot('stinger_triumph', player, 0.8);
     await new Promise((r) => setTimeout(r, 2600));
     await hud.fade(true, 260);
     if (talkShot) cam.cut(talkShot);
@@ -1279,6 +1296,24 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   };
   const meridianSetup = cove.meridian.townReady.then(setupMeridian);
 
+  /** Puzzles whose label has had its chance (shown now, shown in an earlier visit, or none). */
+  const labelDone = new Set<string>();
+  let labelCheckIn = 0;
+  /**
+   * A puzzle's label shows when you first stand at it ready to play (the puzzle's `engaged`), with no
+   * conversation, quest beat, quiz, menu or flyover in the way, and no other label up.
+   */
+  function checkPuzzleLabels(): void {
+    if (paused || scriptRunning || dialogue.active || learn?.busy || hud.label.mode) return;
+    if ((mode !== 'walk' && mode !== 'sail') || (arrival && arrival.phase !== 'done')) return;
+    for (const p of puzzles) {
+      if (labelDone.has(p.id) || !p.engaged()) continue;
+      labelDone.add(p.id);
+      puzzleLabel(`puzzle:${p.id}`);
+      return;
+    }
+  }
+
   // ---- Thousand-Bough Isle (Chapter 02): its cast and set pieces arrive with its world ----
   /** The open conversation's camera shot, again (after a cutaway in a script). */
   const backToTalk = () => cam.frame(talkShot);
@@ -1316,6 +1351,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       }
     },
     reducedMotion: () => worldUniforms.reducedMotion.value > 0.5,
+    label: puzzleLabel,
     addNpcTalk: (n) => addNpcTalk(n),
     placeChest: placeChestAt,
     openChest: async (id) => {
@@ -1993,18 +2029,18 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     a.time = arrivalHold ?? a.time + dt;
     const plan = a.plan;
     const cardAt = a.path ? plan.cardAt : 0.5;
-    const cardEnd = a.path ? plan.cardAt + plan.cardFor : ARRIVAL_CARD_ONLY - 0.4;
+    const cardEnd = a.path ? plan.cardAt + plan.cardFor : cardOnlySeconds(plan) - 0.4;
     const showCard = a.time >= cardAt && a.time < cardEnd;
     if (showCard !== a.card) {
       a.card = showCard;
-      hud.showCard(showCard ? plan.card : null);
+      hud.showCard(showCard ? plan.card : null, plan.label ? CHART_LABELS[plan.label] : null);
     }
     if (a.time > ARRIVAL_SKIP_AFTER && (s.interact || s.stirring || s.jump || s.map)) {
       void endArrival('skipped');
       return;
     }
     if (!a.path) {
-      if (a.time >= ARRIVAL_CARD_ONLY) void endArrival('landed');
+      if (a.time >= cardOnlySeconds(plan)) void endArrival('landed');
       return;
     }
     const landed = a.path.sample(a.time, flyShot);
@@ -2351,6 +2387,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         footstepPuffs.update(dt);
         for (const c of chests) c.chest.update(dt, t);
         for (const p of puzzles) p.update(dt, t);
+        if ((labelCheckIn -= dt) <= 0) {
+          labelCheckIn = LABEL_CHECK_EVERY;
+          checkPuzzleLabels();
+        }
         let term: PuzzleTerminal | null = null;
         for (const p of puzzles) if ((term = p.terminal?.() ?? null)) break;
         hud.setTerminal(term?.lines ?? null, term?.title);
@@ -2411,7 +2451,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     arrivalLeft() {
       const a = arrival;
       if (!a || a.phase === 'done') return 0;
-      if (!a.path) return Math.max(0, ARRIVAL_CARD_ONLY - a.time);
+      if (!a.path) return Math.max(0, cardOnlySeconds(a.plan) - a.time);
       return Math.max(0, a.plan.seconds - a.time);
     },
     begin() {

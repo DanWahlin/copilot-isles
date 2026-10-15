@@ -1,3 +1,5 @@
+import type { ChartLabelText } from '../learn/content/labels';
+import { ChartLabel } from './chart-label';
 import { formatDistance, relativeBearing, type CompassTarget } from './compass';
 import { alignSubtitle } from './subtitle-align';
 import { unpackMouthCues, type FaceExpression, type MouthCue } from '../world/characters/facial-animation';
@@ -93,6 +95,8 @@ export class Hud {
   private readonly cardEyebrow: HTMLSpanElement;
   private readonly cardTitle: HTMLHeadingElement;
   private readonly cardLine: HTMLParagraphElement;
+  /** The parchment chart label (docs/specs/LOWER-THIRDS.md): an island's arrival or a puzzle's start. */
+  readonly label: ChartLabel;
   /** Called when the cinematic's Skip button is pressed. */
   onSkip: (() => void) | null = null;
 
@@ -175,6 +179,11 @@ export class Hud {
     skip.append(text('span', 'hud-key', 'E'), text('span', '', 'Skip'));
     skip.addEventListener('click', () => this.onSkip?.());
     this.cine.append(el('div', 'hud-bar-top'), el('div', 'hud-bar-bottom'), this.card, skip);
+    // While it's up, the subtitles lift clear of it (hud.css): by its top less theirs (7vh) and a gap.
+    this.label = new ChartLabel((shown, top) => {
+      this.root.classList.toggle('has-label', shown);
+      if (shown) this.root.style.setProperty('--lt-lift', `${Math.max(0, top - innerHeight * 0.07 + 12)}px`);
+    });
     this.root.append(
       this.prompt,
       this.subtitle,
@@ -184,6 +193,8 @@ export class Hud {
       this.term,
       this.help,
       this.cine,
+      this.label.el,
+      this.label.live,
       this.fadeEl,
     );
     parent.append(this.root);
@@ -251,8 +262,20 @@ export class Hud {
     if (!on) this.showCard(null);
   }
 
-  /** Shows (or with null, hides) the island title card over a flyover. */
-  showCard(card: { eyebrow: string; title: string; line: string } | null): void {
+  /**
+   * Shows (or with null, hides) the island title card over a flyover. An island with a chart label
+   * shows the label in its place (the parchment, with what the island teaches and its chapter).
+   */
+  showCard(
+    card: { eyebrow: string; title: string; line: string } | null,
+    label?: ChartLabelText | null,
+  ): void {
+    if (card && label) {
+      if (this.label.mode !== 'arrival') this.label.show(label, 'arrival');
+      this.card.classList.remove('show');
+      return;
+    }
+    this.label.hide('arrival');
     if (card) {
       this.cardEyebrow.textContent = card.eyebrow;
       this.cardTitle.textContent = card.title;
@@ -327,6 +350,8 @@ export class Hud {
 
   setSailing(on: boolean): void {
     this.sail.classList.toggle('show', on);
+    // The chart label moves up clear of the gauge (hud.css).
+    this.root.classList.toggle('sailing', on);
   }
 
   updateSail(trim: number, rudder: number, speed: number, wind?: WindReading): void {
@@ -422,6 +447,7 @@ export class Hud {
   }
 
   dispose(): void {
+    this.label.dispose();
     clearTimeout(this.toastTimer);
     clearTimeout(this.subtitleTimer);
     this.root.remove();

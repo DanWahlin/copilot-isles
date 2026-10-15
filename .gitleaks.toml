@@ -1,0 +1,15 @@
+# gitleaks config: the default rules, plus allowlists for known false positives.
+# Run: gitleaks git . --config .gitleaks.toml   (and `gitleaks dir . --config .gitleaks.toml`)
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Asset keys and generated data, not secrets"
+paths = [
+  # Rock asset tables: `key: 'Rock_Medium_1'` style asset names trip generic-api-key.
+  '''src/world/terrain/rock-assets\.ts''',
+  '''tools/terrain/fetch-rocks\.ts''',
+  '''public/packs/testcove/rocks/manifest\.json''',
+  # Build output (git-ignored; `npm run check:secrets` scans it).
+  '''^dist/''',
+]

@@ -56,6 +56,8 @@ export interface ProgressData {
   arrivals: string[];
   /** Starfish found (ids from src/world/starfish/spots.ts). */
   starfish: string[];
+  /** Chart labels already shown (ids from content/labels.json): a puzzle's label shows once per save. */
+  labels: string[];
 }
 
 function emptyProgress(now = Date.now()): ProgressData {
@@ -79,6 +81,7 @@ function emptyProgress(now = Date.now()): ProgressData {
     logbookOpened: false,
     arrivals: [],
     starfish: [],
+    labels: [],
   };
 }
 
@@ -156,6 +159,7 @@ export function parseProgress(raw: string | null): ProgressData {
       logbookOpened: d.logbookOpened === true,
       arrivals: strings(d.arrivals),
       starfish: strings(d.starfish),
+      labels: strings(d.labels),
     };
   } catch {
     return emptyProgress();
@@ -201,8 +205,8 @@ export interface ProgressStorage {
   removeItem(key: string): void;
 }
 
-/** The id lists in progress: pages, chests, glossary terms, seals, islands arrived at, and starfish. */
-export type SetKind = 'pages' | 'chests' | 'glossary' | 'seals' | 'arrivals' | 'starfish';
+/** The id lists in progress: pages, chests, glossary terms, seals, islands arrived at, starfish, and labels. */
+export type SetKind = 'pages' | 'chests' | 'glossary' | 'seals' | 'arrivals' | 'starfish' | 'labels';
 
 export class Progress {
   data: ProgressData;

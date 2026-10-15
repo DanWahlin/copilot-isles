@@ -5,7 +5,8 @@
 //
 //   node tools/video/record.mjs --list
 //   node tools/video/record.mjs --scenario=<id>[,<id>…] [--base=http://127.0.0.1:5395] [--tier=high]
-//        [--out=<dir>] [--quality=review|high] [--no-audio] [--no-title] [--keep]
+//        [--out=<dir>] [--quality=review|high|master] [--size=1280x720] [--jpeg=90] [--no-audio]
+//        [--no-title] [--keep] [--take-only] [--work=<dir>]
 //   node tools/video/record.mjs --scenario=<id> --refinish   (rebuilds the MP4 from a --keep run)
 //   node tools/video/record.mjs --recompress --out=<dir>    (re-encodes existing MP4s to review quality)
 import fs from 'node:fs';
@@ -24,6 +25,8 @@ import {
   openDevPage,
   renderTitle,
   run,
+  setJpegQuality,
+  setSize,
   writeIndex,
 } from './lib.mjs';
 
@@ -36,6 +39,14 @@ if (opt.recompress && (typeof opt.out !== 'string' || !opt.out.trim())) {
   process.exit(2);
 }
 const out = path.resolve(opt.out || path.join(os.homedir(), 'Movies', 'copilot-isles'));
+const workRoot = path.resolve(typeof opt.work === 'string' ? opt.work : path.join(out, '.work'));
+try {
+  if (opt.size) setSize(String(opt.size));
+  if (opt.jpeg) setJpegQuality(opt.jpeg);
+} catch (e) {
+  console.error(e.message);
+  process.exit(2);
+}
 
 function formatBytes(bytes) {
   return `${(bytes / 1_000_000).toFixed(1)} MB`;
@@ -114,6 +125,7 @@ async function recompress(dir) {
         encoding.preset,
         ...tune,
         ...rate,
+        ...(encoding.profile ? ['-profile:v', encoding.profile] : []),
         '-pix_fmt',
         'yuv420p',
       ];
@@ -213,7 +225,7 @@ if (opt.recompress) process.exit(await recompress(out));
 
 const quality = opt.quality || 'review';
 if (!Object.hasOwn(QUALITY_PRESETS, quality)) {
-  console.error(`Unknown quality "${quality}". Use --quality=review or --quality=high.`);
+  console.error(`Unknown quality "${quality}". Use --quality=review, high or master.`);
   process.exit(1);
 }
 
@@ -246,7 +258,7 @@ fs.mkdirSync(out, { recursive: true });
 const report = [];
 for (const id of ids) {
   const sc = scenarios.get(id);
-  const work = path.join(out, '.work', id);
+  const work = path.join(workRoot, id);
   const notes = [];
   const log = (m) => {
     notes.push(m);
@@ -254,13 +266,15 @@ for (const id of ids) {
   };
   const t0 = Date.now();
   let rec = null;
-  const { browser, page } = await launch({ onPcm: (b) => rec?.push(b) });
+  const { browser, page } = await launch({ onPcm: (b) => rec?.push(b), cursor: !!sc.cursor });
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   try {
     let take;
     if (opt.refinish) {
       take = JSON.parse(fs.readFileSync(path.join(work, 'take.json'), 'utf8'));
+      // Finish at the size it was filmed at.
+      if (take.size) setSize(take.size);
       log('rebuilding from the kept recording');
     } else {
       fs.rmSync(work, { recursive: true, force: true });
@@ -273,7 +287,9 @@ for (const id of ids) {
       });
       const film = async () => {
         log(`loading (${tier})`);
-        await openDevPage(page, { base, tier, time: sc.time ?? 16, flags: sc.flags ?? [] });
+        // A scenario can open its own page (the opening starts from the real title screen).
+        if (sc.open) await sc.open(page, { base, tier });
+        else await openDevPage(page, { base, tier, time: sc.time ?? 16, flags: sc.flags ?? [] });
         const setupApi = makeApi(page, null, { log });
         await sc.setup?.(page, setupApi);
         rec = new Recorder(page, work);
@@ -285,8 +301,26 @@ for (const id of ids) {
         return rec.stop();
       };
       take = await Promise.race([film(), watchdog]).finally(() => clearTimeout(timer));
+      take.scenario = id;
+      take.tier = tier;
+      take.errors = errors;
+      take.notes = notes;
       fs.writeFileSync(path.join(work, 'take.json'), JSON.stringify(take, null, 1));
-      log(`recorded ${take.duration.toFixed(1)} s (${take.frames} frames, ${take.cuts.length} cuts)`);
+      log(
+        `recorded ${take.duration.toFixed(1)} s (${take.frames} frames, ${take.fps} fps delivered, ` +
+          `longest gap ${take.maxGapMs} ms, ${take.stalls} gaps over 100 ms, ${take.cuts.length} cuts)`,
+      );
+    }
+    if (opt['take-only']) {
+      // The reel builder (reel.mjs) edits from the kept take; no MP4 of its own.
+      report.push({
+        id,
+        take: path.join(work, 'take.json'),
+        duration: +take.duration.toFixed(1),
+        notes,
+        errors,
+      });
+      continue;
     }
 
     // A frame from the clip for the title card's background.
@@ -341,6 +375,13 @@ for (const id of ids) {
       recorded: new Date().toISOString(),
       tier,
       audioOffset: fin.offset,
+      capture: {
+        size: take.size,
+        jpeg: take.jpeg,
+        fps: take.fps,
+        maxGapMs: take.maxGapMs,
+        stalls: take.stalls,
+      },
       kept: fin.keep,
       marks: take.marks.map((m) => ({ t: +((m.t - take.t0) / 1000).toFixed(2), label: m.label })),
       notes,
@@ -356,7 +397,7 @@ for (const id of ids) {
       errors,
     });
     log(`wrote ${mp4} (${fin.duration.toFixed(1)} s) in ${Math.round((Date.now() - t0) / 1000)} s`);
-    if (!opt.keep && !opt.refinish) fs.rmSync(work, { recursive: true, force: true });
+    if (!opt.keep && !opt.refinish && !opt['take-only']) fs.rmSync(work, { recursive: true, force: true });
   } catch (e) {
     log(`FAILED: ${e.stack || e.message}`);
     await page.screenshot({ path: path.join(out, `${id}-failed.png`) }).catch(() => undefined);
@@ -367,6 +408,6 @@ for (const id of ids) {
     await browser.close();
   }
 }
-writeIndex(out);
+if (!opt['take-only']) writeIndex(out);
 console.log(JSON.stringify({ out, index: path.join(out, 'index.html'), report }, null, 1));
 process.exit(report.some((r) => r.failed) ? 1 : 0);

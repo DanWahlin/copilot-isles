@@ -51,7 +51,7 @@
 ## 2. Research findings
 
 ### The course (important: the version matters)
-- The **public repo `github/copilot-app-for-beginners` has 8 chapters (00-07)**. Local version can be found at /Users/danwahlin/Desktop/projects/copilot-app-for-beginners.
+- The **public repo `github/copilot-app-for-beginners` has 8 chapters (00-07)**.
 - The course's recurring analogy is a **recording studio** (soundcheck, control room, booths, song charts, arrangement board, sequencer).
 - The course has **72 images** (~9 MB). About 40 are **real app UI screenshots at 1920×1080**, which is perfect for "click the right spot" hotspot quizzes. The rest are conceptual illustrations, which work well as chest rewards and logbook art.
 - Chapters include exact UI names (**New**, **Pull requests**, **Issues**, **Automations**, **Customize**, **New worktree / Current checkout / Cloud**, `@ # / &`, `/chronicle standup`, `/rubber-duck`, **Pick & Polish**, `/create-canvas`, **Create and run**…), so quiz content can be precise.

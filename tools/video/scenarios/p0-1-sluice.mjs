@@ -21,6 +21,73 @@ async function plan(api) {
   });
 }
 
+/**
+ * The puzzle played by real input from where Suri's brief leaves you: the lever, then the channels
+ * from the spring down (the first one turned a step too far, then back round), then over to watch
+ * the water reach the wheel, and Suri's closing lines.
+ */
+export async function solveSluice(page, api) {
+  // The lever under the "Workflows aren't being run" sign.
+  const spots = await api.S(() => window.__dev.session().debug.puzzle('P0.1').spots());
+  // The lever stands in the gate's housing; you pull it from the tiles just south of it.
+  await api.walkTo(spots.lever.x, spots.lever.z - 1.5, { tol: 0.3 });
+  await api.face(spots.lever.x, spots.lever.z);
+  await api.easeLook(0.5, 0.32, 900);
+  await api.pause(500);
+  api.mark('lever');
+  await api.interact('Pull the lever');
+  await api.pause(3200);
+
+  // The channels, from the spring down. The first one goes a turn too far, then back round.
+  const tiles = await plan(api);
+  api.log(`tiles to turn: ${tiles.map((t) => `${t.i}×${t.turns}`).join(' ')}`);
+  let first = true;
+  for (const t of tiles) {
+    await api.walkTo(t.x, t.z - 1, { tol: 0.3 });
+    await api.face(t.x, t.z + 1);
+    await api.easeLook(0.35, 0.62, 700);
+    await api.waitFor(() => window.__dev.state().focus === 'mill:tile', null, 3000);
+    api.mark(`tile ${t.i}`);
+    let presses = t.turns;
+    if (first) {
+      // One too many: the water stops short, so it has to come back round.
+      first = false;
+      api.mark('too far');
+      for (let k = 0; k <= t.turns; k++) {
+        await api.press('KeyE');
+        await api.pause(900);
+      }
+      await api.pause(1600);
+      api.mark('back round');
+      presses = t.kind === 'straight' ? 1 : 3;
+    }
+    for (let k = 0; k < presses; k++) {
+      await api.waitFor(() => !window.__dev.session().debug.puzzle('P0.1').state().turning, null, 3000);
+      await api.press('KeyE');
+      await api.pause(800);
+    }
+    await api.pause(700);
+    const st = await api.S(() => window.__dev.session().debug.puzzle('P0.1').state());
+    if (st.solved) {
+      api.mark('solved');
+      break;
+    }
+  }
+  // Over to the tiles' south edge to watch the water reach the wheel (it sits below, in its pool),
+  // then Suri's closing lines and the practice-checks card.
+  const wheel = { x: spots.cells[9].x, z: spots.cells[9].z - 3.8 };
+  await api.walkTo(spots.cells[10].x - 0.9, spots.cells[10].z - 0.7, { tol: 0.35 });
+  await api.face(wheel.x, wheel.z);
+  const h = (await api.state()).heading;
+  api.mark('to the wheel');
+  await api.easeLook(h + 0.35, 0.42, 1400);
+  api.mark('wheel');
+  await api.converse({
+    until: (s) => s.quests['Q0.6'] === 'done' && !s.dialogue && !s.reveal && !s.banner,
+  });
+  await api.pause(2500);
+}
+
 export default {
   id: 'sluice',
   order: 1,
@@ -55,55 +122,6 @@ export default {
     });
     await api.pause(600);
 
-    // The lever under the "Workflows aren't being run" sign.
-    const spots = await api.S(() => window.__dev.session().debug.puzzle('P0.1').spots());
-    // The lever stands in the gate's housing; you pull it from the tiles just south of it.
-    await api.walkTo(spots.lever.x, spots.lever.z - 1.5, { tol: 0.3 });
-    await api.face(spots.lever.x, spots.lever.z);
-    await api.easeLook(0.5, 0.32, 900);
-    await api.pause(500);
-    await api.interact('Pull the lever');
-    await api.pause(3200);
-
-    // The channels, from the spring down. The first one goes a turn too far, then back round.
-    const tiles = await plan(api);
-    api.log(`tiles to turn: ${tiles.map((t) => `${t.i}×${t.turns}`).join(' ')}`);
-    let first = true;
-    for (const t of tiles) {
-      await api.walkTo(t.x, t.z - 1, { tol: 0.3 });
-      await api.face(t.x, t.z + 1);
-      await api.easeLook(0.35, 0.62, 700);
-      await api.waitFor(() => window.__dev.state().focus === 'mill:tile', null, 3000);
-      let presses = t.turns;
-      if (first) {
-        // One too many: the water stops short, so it has to come back round.
-        first = false;
-        for (let k = 0; k <= t.turns; k++) {
-          await api.press('KeyE');
-          await api.pause(900);
-        }
-        await api.pause(1600);
-        presses = t.kind === 'straight' ? 1 : 3;
-      }
-      for (let k = 0; k < presses; k++) {
-        await api.waitFor(() => !window.__dev.session().debug.puzzle('P0.1').state().turning, null, 3000);
-        await api.press('KeyE');
-        await api.pause(800);
-      }
-      await api.pause(700);
-      const st = await api.S(() => window.__dev.session().debug.puzzle('P0.1').state());
-      if (st.solved) break;
-    }
-    // Over to the tiles' south edge to watch the water reach the wheel (it sits below, in its pool),
-    // then Suri's closing lines and the practice-checks card.
-    const wheel = { x: spots.cells[9].x, z: spots.cells[9].z - 3.8 };
-    await api.walkTo(spots.cells[10].x - 0.9, spots.cells[10].z - 0.7, { tol: 0.35 });
-    await api.face(wheel.x, wheel.z);
-    const h = (await api.state()).heading;
-    await api.easeLook(h + 0.35, 0.42, 1400);
-    await api.converse({
-      until: (s) => s.quests['Q0.6'] === 'done' && !s.dialogue && !s.reveal && !s.banner,
-    });
-    await api.pause(2500);
+    await solveSluice(page, api);
   },
 };

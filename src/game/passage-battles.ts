@@ -35,6 +35,8 @@ export interface PassageBattlesOptions {
   onDone(id: string, how: 'won' | 'skipped'): void;
   /** A short HUD line ("The raiders fall back into the fog…"). */
   toast(text: string, seconds: number): void;
+  /** A battle's first wave starts (after the briefing): its id, for its chart label. */
+  onStart?(id: string): void;
 }
 
 /** How often (s) the trigger and the zone are checked while you sail. */
@@ -100,6 +102,7 @@ export class PassageBattles {
           // Raiders run aground like you do (every island's terrain).
           ground: this.o.cove.heightField,
           onEnd: (how) => this.end(b, how),
+          onStart: () => this.o.onStart?.(b.id),
         });
         return this.run.ready;
       })

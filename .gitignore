@@ -26,3 +26,6 @@ public/packs/manifest.json
 
 # Visual-regression baselines: regenerated with `npm run shots` (issue #30)
 tests/visual/baseline/
+
+# Rendered videos (large binaries; GitHub rejects files over 100 MB)
+videos/

@@ -148,7 +148,7 @@ await step('arrival', async () => {
   // card over a letterboxed view, then play.
   const a = await page.evaluate(() => ({
     phase: window.__flow.session.debug.arrival()?.phase,
-    card: document.querySelector('.hud-card')?.textContent ?? '',
+    card: document.querySelector('.hud-card.show, .hud-chart.show')?.textContent ?? '',
   }));
   await shot('arrival-card');
   check(
@@ -314,14 +314,16 @@ await step('travel to Port Meridian', async () => {
   // The card comes up 0.5 s into the arrival, which can start a little after the island switches.
   await page
     .waitForFunction(
-      () => document.querySelector('.hud-card.show')?.textContent?.includes('Port Meridian'),
+      () => document.querySelector('.hud-card.show, .hud-chart.show')?.textContent?.includes('Port Meridian'),
       null,
       {
         timeout: 4000,
       },
     )
     .catch(() => null);
-  const card = await page.evaluate(() => document.querySelector('.hud-card.show')?.textContent ?? '');
+  const card = await page.evaluate(
+    () => document.querySelector('.hud-card.show, .hud-chart.show')?.textContent ?? '',
+  );
   await shot('meridian-card');
   check('Port Meridian’s arrival card shows', card.includes('Port Meridian'), card.slice(0, 60));
   await page.waitForFunction(() => window.__flow.session.debug.arrival()?.phase === 'done', null, {

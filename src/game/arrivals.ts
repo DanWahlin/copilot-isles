@@ -1,3 +1,4 @@
+import type { ChartLabelId } from '../learn/content/labels';
 import { MERIDIAN } from '../world/islands/meridian';
 import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
 import { COVE } from '../world/layout';
@@ -14,6 +15,11 @@ export interface IslandArrival {
   id: IslandId;
   /** The title card over the flight: the chapter, the island, and what you'll do there. */
   card: { eyebrow: string; title: string; line: string };
+  /**
+   * The chart label shown in the card's place (docs/specs/LOWER-THIRDS.md): the parchment with what
+   * the island teaches and its course chapter. Islands without one keep the plain title card.
+   */
+  label?: ChartLabelId;
   /** From the open sea across the island; the descent to the captain is added at landing. */
   keys: readonly FlyKey[];
   /** Seconds for the whole flight, landing included. */
@@ -50,6 +56,7 @@ export const ANCHORAGE_ARRIVAL: IslandArrival = {
     title: 'Anchorage Cay',
     line: 'Set up the GitHub Copilot app and earn your first Seal',
   },
+  label: 'arrival:anchorage',
   keys: [
     { x: -15, y: 8, z: -400, tx: -95, ty: 10, tz: -105, pace: 1.3 },
     { x: -70, y: 17, z: -250, tx: -103, ty: 8, tz: -100, pace: 1.1 },
@@ -61,7 +68,8 @@ export const ANCHORAGE_ARRIVAL: IslandArrival = {
   ],
   seconds: 19,
   cardAt: 2.2,
-  cardFor: 5,
+  // The chart label has more to read than a title (docs/specs/LOWER-THIRDS.md).
+  cardFor: 6.4,
   fromChart: {
     keys: [
       // Out of the chart's sea: low over the water north of the harbour, the ship ahead.
@@ -74,7 +82,7 @@ export const ANCHORAGE_ARRIVAL: IslandArrival = {
     ],
     seconds: 12,
     cardAt: 1.2,
-    cardFor: 4.2,
+    cardFor: 6.4,
   },
 };
 
@@ -92,6 +100,7 @@ export const MERIDIAN_ARRIVAL: IslandArrival = {
     title: 'Port Meridian',
     line: 'Find your way around the GitHub Copilot app',
   },
+  label: 'arrival:meridian',
   keys: [
     // A slow glide in over the wide view while the title card's up, then on past the lighthouse.
     { x: 550, y: 8, z: -500, tx: M.mole.lighthouse.x, ty: 9, tz: M.mole.lighthouse.z, pace: 0.45 },
@@ -112,10 +121,10 @@ export const MERIDIAN_ARRIVAL: IslandArrival = {
     { x: 790, y: 34, z: -718, tx: M.harbor.landing.x, ty: 4, tz: M.harbor.landing.z, pace: 0.75 },
   ],
   seconds: 19,
-  // The card holds over the wide opening (the whole harbour, the town and the citadel behind),
-  // clear before the camera drops past the lighthouse.
+  // The chart label comes up over the wide opening (the whole harbour, the town and the citadel
+  // behind) and, in its corner, stays to be read while the camera drops past the lighthouse.
   cardAt: 0.6,
-  cardFor: 3.4,
+  cardFor: 6.4,
 };
 
 const TB = THOUSAND_BOUGH;
@@ -133,6 +142,7 @@ export const THOUSAND_BOUGH_ARRIVAL: IslandArrival = {
     title: 'Thousand-Bough Isle',
     line: 'Give every task its own treehouse',
   },
+  label: 'arrival:thousand-bough',
   keys: [
     { x: 1700, y: 12, z: -1020, tx: TB.tree.x, ty: 48, tz: TB.tree.z, pace: 0.45 },
     { x: 1890, y: 16, z: -1215, tx: TB.harbor.berth.x, ty: 6, tz: TB.harbor.berth.z, pace: 1.1 },
@@ -145,7 +155,8 @@ export const THOUSAND_BOUGH_ARRIVAL: IslandArrival = {
   landingShot: TB.harbor.landingShot,
   seconds: 28,
   cardAt: 0.6,
-  cardFor: 3.6,
+  // The chart label unrolls (1.1 s) and has more to read than a title: long enough to read it twice.
+  cardFor: 6.4,
 };
 
 export const ARRIVALS: Readonly<Record<IslandId, IslandArrival>> = {

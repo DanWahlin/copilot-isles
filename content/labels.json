@@ -1,0 +1,163 @@
+{
+  "$comment": "Chart labels (docs/specs/LOWER-THIRDS.md): what you learn at an island or a puzzle, and why. One text source for the game (src/learn/content/labels.ts) and the highlight reel (tools/video/reels/*.mjs can read it with fs and JSON.parse). Keys match the reel's lowerThird: k = small-caps label (place · activity), t = headline (what you learn), b = one line (why it matters), ch = the course chapter on the seal, c = the course section after 'Course Chapter <ch> · ', chLine = an optional override of 'Course Chapter <ch>'. source = the course section the text paraphrases (README anchor and its hash in content/course.lock.json). 'game' says where the game shows it: over an island's arrival, when a puzzle opens (once per save), or when a sea battle starts (once per save). A battle's id is its plan id (src/world/battle/battle.ts).",
+  "labels": {
+    "arrival:anchorage": {
+      "game": "arrival",
+      "k": "Anchorage Cay · Landfall",
+      "t": "Set up the GitHub Copilot app",
+      "b": "Connect your fork of the course, check your tools, and add the practice items that later chapters use.",
+      "ch": "00",
+      "c": "Setup",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "learning-objectives",
+        "hash": "4350d5f5c0ab"
+      }
+    },
+    "arrival:meridian": {
+      "game": "arrival",
+      "k": "Port Meridian · Landfall",
+      "t": "Find your way around the app",
+      "b": "Tour the app, then pick a chat or a project session, a mode, and a model and reasoning effort that fit the task.",
+      "ch": "01",
+      "c": "Tour the App",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "learning-objectives",
+        "hash": "10570b2bca05"
+      }
+    },
+    "arrival:thousand-bough": {
+      "game": "arrival",
+      "k": "Thousand-Bough Isle · Landfall",
+      "t": "Give every task its own session",
+      "b": "A session has its own branch, diff and history, and its worktree keeps the changes out of your main checkout.",
+      "ch": "02",
+      "c": "Sessions, Worktrees, and Context",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "key-takeaways",
+        "hash": "f1ddff6b1420"
+      }
+    },
+    "puzzle:P0.1": {
+      "game": "puzzle",
+      "k": "Anchorage Cay · Sluice & Waterwheel",
+      "t": "Turn on GitHub Actions in your fork",
+      "b": "New forks start with workflows switched off. Turn them on so the course’s practice checks can run.",
+      "ch": "00",
+      "c": "Add the course practice items",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "add-the-course-practice-items",
+        "hash": "15d697dd1d02"
+      }
+    },
+    "puzzle:P0.2": {
+      "game": "puzzle",
+      "k": "Anchorage Cay · The Dry-Run Crane",
+      "t": "Preview before you run",
+      "b": "Run the setup script with --dry-run first. Check that its Repository: line names your fork, then run it with --yes.",
+      "ch": "00",
+      "c": "Add the course practice items",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "add-the-course-practice-items",
+        "hash": "15d697dd1d02"
+      }
+    },
+    "puzzle:P1.1": {
+      "game": "puzzle",
+      "k": "Port Meridian · The Shipyard",
+      "t": "Chat or project session?",
+      "b": "Chats are for questions and exploring. Use a project session when the agent needs your repository or changes code.",
+      "ch": "01",
+      "c": "Chat sessions and Project sessions",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "project-sessions",
+        "hash": "b8e172159d21"
+      }
+    },
+    "puzzle:P1.2": {
+      "game": "puzzle",
+      "k": "Port Meridian · The Three Helms",
+      "t": "Interactive, Plan, or Autopilot?",
+      "b": "Steer step by step, plan first and approve, or let it run end to end. Pick the mode that fits the task.",
+      "ch": "01",
+      "c": "Modes",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "modes",
+        "hash": "4a1370424345"
+      }
+    },
+    "puzzle:P2.1": {
+      "game": "puzzle",
+      "k": "Thousand-Bough Isle · Channel Routing",
+      "t": "Parallel sessions with worktrees",
+      "b": "Each session gets its own worktree, so parallel sessions don’t mix their file changes.",
+      "ch": "02",
+      "c": "Why the app uses worktrees",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "why-the-github-copilot-app-uses-worktrees",
+        "hash": "b28050c33200"
+      }
+    },
+    "puzzle:P2.2": {
+      "game": "puzzle",
+      "k": "Thousand-Bough Isle · The Spire Twist",
+      "t": "What worktrees don’t keep apart",
+      "b": "Worktrees keep files and branches apart. Find out what two previews running side by side can still share.",
+      "ch": "02",
+      "c": "Two previews collided",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "two-previews-collided",
+        "hash": "5140d326c5b7"
+      }
+    },
+    "puzzle:P2.3": {
+      "game": "puzzle",
+      "k": "Thousand-Bough Isle · The Flag Hoist",
+      "t": "Bring the right context",
+      "b": "A few special characters in the prompt box add context and commands. Bring only what the task needs: less is often more.",
+      "ch": "02",
+      "c": "Context syntax",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "context-syntax",
+        "hash": "e41d9116c6a3"
+      }
+    },
+    "battle:passage-anchorage-meridian": {
+      "game": "battle",
+      "k": "The Passage · Sea Battle",
+      "t": "Review between the waves",
+      "b": "Between waves, the bosun asks a question about what you just learned.",
+      "ch": "00",
+      "c": "Add the course practice items",
+      "chLine": "Questions from Course Chapter 00",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "add-the-course-practice-items",
+        "hash": "15d697dd1d02"
+      }
+    },
+    "battle:passage-meridian-thousand-bough": {
+      "game": "battle",
+      "k": "The Passage to Thousand-Bough · Sea Battle",
+      "t": "Review between the waves",
+      "b": "Between waves, the bosun asks about Port Meridian: chats and project sessions, modes, and reasoning effort.",
+      "ch": "01",
+      "c": "Key takeaways",
+      "chLine": "Questions from Course Chapter 01",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "key-takeaways",
+        "hash": "c91fe4b46114"
+      }
+    }
+  }
+}

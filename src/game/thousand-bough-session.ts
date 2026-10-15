@@ -4,6 +4,7 @@ import type { SoundLoopHandle, SoundLoopName } from '../audio/soundscape/soundsc
 import type { SliceName } from '../audio/soundscape/bank';
 import { buildSlice } from '../engine/build-slice';
 import type { TierSettings } from '../engine/quality';
+import type { ChartLabelId } from '../learn/content/labels';
 import type { LearnStore } from '../learn/store';
 import type { CharacterLibrary } from '../world/characters';
 import type { FarCull } from '../world/far-cull';
@@ -59,6 +60,8 @@ export interface ThousandBoughHost {
   /** The board or the hoist owns the keys and camera. */
   setModal(on: boolean): void;
   reducedMotion(): boolean;
+  /** A puzzle's chart label (docs/specs/LOWER-THIRDS.md): shows the first time in a save. */
+  label(id: ChartLabelId): void;
   addNpcTalk(n: Npc): void;
   /** A treasure chest at a spot (the session's chests, saved and opened like the others). */
   placeChest(id: string, x: number, y: number, z: number, heading: number, detail: FarCull): Object3D | null;
@@ -146,7 +149,7 @@ export async function playSeal(
   // Hold on the tree while the light runs down every bough.
   await Promise.all([sys.fx.sealCascade(reduced), wait(reduced ? 2400 : 5200)]);
   sys.fx.skyBasketEnabled(true);
-  host.audio?.sfx.oneShot('crowd_cheer_small', host.player, 0.7);
+  host.audio?.sfx.oneShot('stinger_triumph', host.player, 0.7);
   await wait(reduced ? 600 : 1800);
   await host.fade(true, 260);
   host.backToTalk();
@@ -247,6 +250,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
       ),
     );
     setModal(true);
+    host.label('puzzle:P2.3');
     hoistView.set({
       open: true,
       step: 0,
@@ -450,6 +454,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
         setModal,
         reducedMotion: host.reducedMotion,
         fade: host.fade,
+        label: host.label,
         closing: FEN_SOLVED,
       },
       s,

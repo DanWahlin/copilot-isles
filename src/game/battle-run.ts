@@ -31,6 +31,8 @@ export interface BattleRunOptions {
   ground?: HeightField | null;
   /** Once, when the battle is won or skipped. */
   onEnd(how: 'won' | 'skipped'): void;
+  /** Once, when the first wave starts (after the briefing): the battle's chart label. */
+  onStart?(): void;
 }
 
 /** The briefing shows before every battle until you tick "Don't show this again". */
@@ -161,6 +163,7 @@ export class BattleRun {
     }
     if (hidden) {
       this.battle.start(this.t);
+      this.o.onStart?.();
       return;
     }
     this.hud.showBriefing((hide) => {
@@ -171,7 +174,9 @@ export class BattleRun {
           // Private mode.
         }
       }
-      if (!this.ended) this.battle.start(this.t);
+      if (this.ended) return;
+      this.battle.start(this.t);
+      this.o.onStart?.();
     });
   }
 

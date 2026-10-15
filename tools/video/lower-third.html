@@ -1,0 +1,332 @@
+<!doctype html>
+<!--
+  The highlight reel's lower third (style A, "chart label"): torn parchment with burnt edges, a
+  compass rose, and a red wax seal with the course chapter number. Rendered by lower-third.mjs on a
+  transparent 1920×1080 page: `?part=card` draws the parchment, compass and text; `?part=seal` draws
+  only the seal (it lands a beat later); `&layout=end` is the reel's centred end card. The text is set
+  with `window.setText({ k, t, b, ch, c, chLine, tag, credit })`.
+  Fonts (Fraunces, Alegreya, Alegreya SC, Cinzel; SIL OFL) are injected by lower-third.mjs from a local
+  cache. The SVG filters use fixed seeds, so the rough edge is the same on every render.
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: transparent;
+      }
+      .lt {
+        position: absolute;
+        left: 72px;
+        bottom: 64px;
+        color: #3a2310;
+        width: 1180px;
+        height: 236px;
+      }
+      /* Parchment body: warm base, mottling, burnt edges; the rough edge comes from the SVG filter. */
+      .paper {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(ellipse at 20% 30%, rgba(255, 246, 220, 0.55), transparent 55%),
+          radial-gradient(ellipse at 80% 70%, rgba(196, 150, 90, 0.35), transparent 60%),
+          radial-gradient(ellipse at 60% 20%, rgba(170, 120, 60, 0.18), transparent 50%),
+          linear-gradient(180deg, #f3e3bd, #e8d09c);
+        box-shadow:
+          inset 0 0 38px 10px rgba(122, 72, 24, 0.55),
+          inset 0 0 6px 2px rgba(80, 40, 10, 0.6);
+        filter: url(#rough) drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
+      }
+      /* Inside the torn edge: the mockup's grain filled its whole filter region, a faint tan box past
+         the paper that showed as a band once the card unrolls. */
+      .grain {
+        position: absolute;
+        inset: 8px;
+        filter: url(#grain);
+        mix-blend-mode: multiply;
+        opacity: 0.35;
+        pointer-events: none;
+      }
+      .content {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 26px;
+        padding: 26px 40px 26px 30px;
+        height: 100%;
+        box-sizing: border-box;
+      }
+      .kicker {
+        font-family: 'Alegreya SC', serif;
+        font-weight: 700;
+        font-size: 24px;
+        letter-spacing: 0.08em;
+        color: #7a2e12;
+      }
+      .title {
+        font-family: 'Fraunces', serif;
+        font-weight: 800;
+        font-size: 50px;
+        line-height: 1.05;
+        margin: 2px 0 8px;
+        color: #2e1a0a;
+      }
+      .body {
+        font-family: 'Alegreya', serif;
+        font-weight: 500;
+        font-size: 29px;
+        line-height: 1.25;
+        color: #3a2310;
+        max-width: 900px;
+        /* Two lines of similar length (no single word left alone on the second). */
+        text-wrap: balance;
+      }
+      .chapter {
+        font-family: 'Alegreya SC', serif;
+        font-weight: 700;
+        font-size: 21px;
+        letter-spacing: 0.06em;
+        color: #5a3a1a;
+        margin-top: 10px;
+      }
+      .chapter b {
+        color: #7a2e12;
+      }
+      .seal {
+        position: absolute;
+        right: -26px;
+        top: -30px;
+        width: 104px;
+        height: 104px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 38% 34%, #d0463a, #9b1d16 55%, #6d100c);
+        box-shadow:
+          0 6px 12px rgba(0, 0, 0, 0.5),
+          inset 0 -6px 10px rgba(0, 0, 0, 0.35),
+          inset 0 4px 8px rgba(255, 160, 140, 0.35);
+        filter: url(#seal);
+        display: grid;
+        place-items: center;
+        color: #f6d9c8;
+        font-family: 'Cinzel', serif;
+        font-weight: 700;
+        text-align: center;
+      }
+      .seal span {
+        font-size: 13px;
+        letter-spacing: 0.12em;
+        display: block;
+        margin-bottom: -6px;
+      }
+      .seal strong {
+        font-size: 40px;
+      }
+      /* A range ("00–02"): no "CHAPTER" word, and numerals sized to sit inside the wax. */
+      .seal.range span {
+        display: none;
+      }
+      .seal.range strong {
+        font-size: 29px;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+      }
+      /* The end card: the same parchment, centred and larger, with the title set big. */
+      .tag,
+      .credit,
+      .anchor {
+        display: none;
+      }
+      body.layout-end .lt {
+        left: 410px;
+        top: 330px;
+        bottom: auto;
+        width: 1100px;
+        height: 420px;
+      }
+      body.layout-end .content {
+        gap: 40px;
+        padding: 34px 64px 34px 52px;
+      }
+      body.layout-end .content > svg {
+        width: 200px;
+        height: 200px;
+        flex: none;
+      }
+      body.layout-end .title {
+        font-size: 92px;
+        line-height: 1;
+        margin: 6px 0 4px;
+      }
+      body.layout-end .tag {
+        display: block;
+        font-family: 'Alegreya', serif;
+        font-weight: 500;
+        font-size: 33px;
+        color: #7a2e12;
+        margin-bottom: 16px;
+      }
+      body.layout-end .body {
+        max-width: 720px;
+      }
+      body.layout-end .chapter {
+        display: none;
+      }
+      body.layout-end .credit {
+        display: block;
+        font-family: 'Alegreya SC', serif;
+        font-weight: 700;
+        font-size: 22px;
+        letter-spacing: 0.06em;
+        color: #5a3a1a;
+        margin-top: 14px;
+      }
+      body.layout-end .seal {
+        width: 120px;
+        height: 120px;
+      }
+      body.layout-end .seal > div {
+        display: none;
+      }
+      body.layout-end .seal .anchor {
+        display: block;
+      }
+      /* display, not visibility: a hidden filtered layer (the grain) still painted in Chrome. */
+      body.part-card .seal,
+      body.part-seal .paper,
+      body.part-seal .grain,
+      body.part-seal .content {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute">
+      <filter id="rough" x="-5%" y="-10%" width="110%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="4" seed="7" result="n" />
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id="grain" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" />
+        <feColorMatrix type="matrix" values="0 0 0 0 0.45  0 0 0 0 0.3  0 0 0 0 0.15  0 0 0 0.9 0" />
+      </filter>
+      <filter id="seal" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="2" seed="2" result="n" />
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="7" />
+      </filter>
+    </svg>
+
+    <div class="lt">
+      <div class="paper"></div>
+      <div class="grain"></div>
+      <div class="content">
+        <svg width="150" height="150" viewBox="-75 -75 150 150" aria-hidden="true">
+          <g fill="none" stroke="#5a3416" stroke-width="2">
+            <circle r="62" />
+            <circle r="56" stroke-width="1" />
+            <g stroke-width="1">
+              <line x1="0" y1="-66" x2="0" y2="66" />
+              <line x1="-66" y1="0" x2="66" y2="0" />
+              <line x1="-46" y1="-46" x2="46" y2="46" />
+              <line x1="-46" y1="46" x2="46" y2="-46" />
+            </g>
+          </g>
+          <g fill="#5a3416">
+            <path d="M0,-60 L9,-9 L0,0 Z" />
+            <path d="M0,-60 L-9,-9 L0,0 Z" fill="#b78449" />
+            <path d="M60,0 L9,9 L0,0 Z" />
+            <path d="M60,0 L9,-9 L0,0 Z" fill="#b78449" />
+            <path d="M0,60 L-9,9 L0,0 Z" />
+            <path d="M0,60 L9,9 L0,0 Z" fill="#b78449" />
+            <path d="M-60,0 L-9,-9 L0,0 Z" />
+            <path d="M-60,0 L-9,9 L0,0 Z" fill="#b78449" />
+            <circle r="5" fill="#7a2e12" />
+            <text
+              y="-66"
+              text-anchor="middle"
+              font-family="Cinzel"
+              font-weight="700"
+              font-size="16"
+              fill="#7a2e12"
+              dy="-2"
+            >
+              N
+            </text>
+          </g>
+        </svg>
+        <div>
+          <div class="kicker" id="k"></div>
+          <div class="title" id="t"></div>
+          <div class="tag" id="tag"></div>
+          <div class="body" id="b"></div>
+          <div class="credit" id="credit"></div>
+          <div class="chapter"><b id="chLine"></b><span id="cSep"> · </span><span id="c"></span></div>
+        </div>
+      </div>
+      <div class="seal">
+        <svg class="anchor" width="120" height="120" viewBox="-60 -60 120 120" aria-hidden="true">
+          <g fill="none" stroke="#f6d9c8" stroke-width="5" stroke-linecap="round">
+            <circle cy="-30" r="8" />
+            <line y1="-22" y2="32" />
+            <line x1="-17" y1="-10" x2="17" y2="-10" />
+            <path d="M-30,10 C-28,30 -14,38 0,38 C14,38 28,30 30,10" />
+            <path d="M-36,16 L-30,8 L-24,16 M24,16 L30,8 L36,16" />
+          </g>
+        </svg>
+        <div><span id="sealWord">CHAPTER</span><strong id="ch"></strong></div>
+      </div>
+    </div>
+    <script>
+      const q = new URLSearchParams(location.search);
+      document.body.className = [
+        q.get('part') && `part-${q.get('part')}`,
+        q.get('layout') && `layout-${q.get('layout')}`,
+      ]
+        .filter(Boolean)
+        .join(' ');
+      /**
+       * Sets the text (as text, never HTML). `chLine` overrides "Course Chapter <ch>"; an empty `c`
+       * drops the " · <c>" after it. A `ch` range ("00–02") drops the seal's word for larger numerals.
+       */
+      window.setText = ({ k, t, b, ch = '', c, chLine, tag = '', credit = '' }) => {
+        const $ = (id) => document.getElementById(id);
+        $('k').textContent = k;
+        $('t').textContent = t;
+        $('b').textContent = b;
+        $('tag').textContent = tag;
+        $('credit').textContent = credit;
+        $('ch').textContent = ch;
+        const range = ch.length > 2;
+        document.querySelector('.seal').classList.toggle('range', range);
+        $('chLine').textContent = chLine || `Course Chapter ${ch}`;
+        $('c').textContent = c || '';
+        $('cSep').style.display = c ? '' : 'none';
+      };
+      /**
+       * A headline a little too long is set a size or two smaller (to 92 %) rather than wrapping onto
+       * a second line (the card has no room for one) or running under the seal (it keeps 84 px clear
+       * of the card's right edge). Called once the fonts are loaded.
+       */
+      window.fitTitle = () => {
+        const t = document.getElementById('t');
+        t.style.fontSize = '';
+        t.style.width = 'max-content';
+        let size = parseFloat(getComputedStyle(t).fontSize);
+        const min = size * 0.92;
+        const right = document.querySelector('.lt').getBoundingClientRect().right - 84;
+        const tooBig = () =>
+          t.getBoundingClientRect().height > size * 1.4 || t.getBoundingClientRect().right > right;
+        while (tooBig() && size > min) {
+          size -= 1;
+          t.style.fontSize = `${size}px`;
+        }
+        t.style.width = '';
+        return size;
+      };
+    </script>
+  </body>
+</html>

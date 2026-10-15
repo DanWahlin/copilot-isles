@@ -3,6 +3,7 @@
 // her round, Space fires when a battery bears). The bosun's question after wave 1 is answered wrong
 // (no reward, but the crew patches the hull), wave 2's right (a reward picked), and the win card.
 // Long stretches of manoeuvring are trimmed (a fade covers each cut).
+import { labelsShown } from '../game.mjs';
 import { skipTalk } from '../lib.mjs';
 
 const snap = (api) =>
@@ -45,92 +46,121 @@ async function sailToward(api, x, z, ms, done) {
   if (key) await api.page.keyboard.up(key);
 }
 
-export default {
-  id: 'battle1',
-  order: 8,
-  code: 'Sea battle 1',
-  title: 'Raiders on the Passage',
-  island: 'Anchorage Cay → Port Meridian',
-  who: 'your brigantine against the raiders',
-  subtitle:
-    'Two waves of raiders between the islands. Bring her round, fire when a battery bears, and answer the bosun’s question between waves.',
-  chapter: 'Questions from Course Chapter 00 · Setup',
-  flags: [],
-  titleFrame: 12,
+/**
+ * The battle as a scenario. `rightFirst`: the first wave's question is answered right too (no
+ * mistake), and `firstWaveOnly`: the take stops after that question and its reward. `labelsSeen`:
+ * the game's own chart label for the battle is marked as shown off camera (the reel adds its own).
+ */
+export function battleScenario({
+  rightFirst = false,
+  firstWaveOnly = false,
+  labelsSeen = false,
+  ...meta
+} = {}) {
+  return {
+    id: 'battle1',
+    order: 8,
+    code: 'Sea battle 1',
+    title: 'Raiders on the Passage',
+    island: 'Anchorage Cay → Port Meridian',
+    who: 'your brigantine against the raiders',
+    subtitle:
+      'Two waves of raiders between the islands. Bring her round, fire when a battery bears, and answer the bosun’s question between waves.',
+    chapter: 'Questions from Course Chapter 00 · Setup',
+    flags: [],
+    titleFrame: 12,
 
-  async setup(page, api) {
-    await skipTalk(page, 15_000);
-    // The Seal of Anchorage (Chapter 00 done), aboard, and out near the harbour mouth.
-    await api.S(() => {
-      const d = window.__dev.session().debug;
-      for (const q of ['Q0.2', 'Q0.3', 'Q0.4', 'Q0.5', 'Q0.6', 'Q0.7', 'Q0.8', 'Q0.9', 'Q0.10', 'Q0.11'])
-        d.quest(q, 'done');
-    });
-    await skipTalk(page, 15_000);
-    await api.S(() => window.__dev.session().debug.board());
-    await page.waitForFunction(() => window.__dev.state().mode === 'sail', null, { timeout: 20_000 });
-    await page.waitForFunction(() => !!window.__dev.session().debug.battleRun(), null, { timeout: 60_000 });
-    await api.S(() => window.__dev.session().debug.sailTo(215, -360, 2.2));
-    await api.pause(3000);
-  },
+    async setup(page, api) {
+      await skipTalk(page, 15_000);
+      // The Seal of Anchorage (Chapter 00 done), aboard, and out near the harbour mouth.
+      await api.S(() => {
+        const d = window.__dev.session().debug;
+        for (const q of ['Q0.2', 'Q0.3', 'Q0.4', 'Q0.5', 'Q0.6', 'Q0.7', 'Q0.8', 'Q0.9', 'Q0.10', 'Q0.11'])
+          d.quest(q, 'done');
+      });
+      await skipTalk(page, 15_000);
+      await api.S(() => window.__dev.session().debug.board());
+      await page.waitForFunction(() => window.__dev.state().mode === 'sail', null, { timeout: 20_000 });
+      await page.waitForFunction(() => !!window.__dev.session().debug.battleRun(), null, { timeout: 60_000 });
+      if (labelsSeen) await labelsShown(api);
+      await api.S(() => window.__dev.session().debug.sailTo(215, -360, 2.2));
+      await api.pause(3000);
+    },
 
-  async play(page, api) {
-    // Under sail toward Port Meridian until the lookout calls sails.
-    const started = () => api.S(() => !!window.__dev.session().debug.battleRun()?.started);
-    await api.cutWhile(() => sailToward(api, 747, -700, 120_000, started), { head: 9000, tail: 2500 });
-    if (!(await started())) throw new Error('no lookout call on the passage');
-    await api.pause(900);
-    if (await api.S(() => !!document.querySelector('.bh-brief'))) {
-      await api.pause(5500);
-      await api.press('Enter');
-    }
-    await api.pause(4000);
-    // Gentle seas (no break-off), as tools/battletest.mjs plays it.
-    await api.S(() => window.__dev.session().debug.battleRun().battle.setCalm(true));
+    async play(page, api) {
+      // The battle's captions ("Hit!", "Splash, short") become marks, for an edit to find the action.
+      const captions = await api.watchText('.bh-caption', 'caption');
+      // Under sail toward Port Meridian until the lookout calls sails.
+      const started = () => api.S(() => !!window.__dev.session().debug.battleRun()?.started);
+      await api.cutWhile(() => sailToward(api, 747, -700, 120_000, started), { head: 9000, tail: 2500 });
+      if (!(await started())) throw new Error('no lookout call on the passage');
+      await api.pause(900);
+      if (await api.S(() => !!document.querySelector('.bh-brief'))) {
+        await api.pause(5500);
+        await api.press('Enter');
+      }
+      await api.pause(4000);
+      // Gentle seas (no break-off), as tools/battletest.mjs plays it.
+      await api.S(() => window.__dev.session().debug.battleRun().battle.setCalm(true));
 
-    const quiz = (wave) =>
-      api.S(async (wi) => {
-        const run = window.__dev.session().debug.battleRun();
-        const { QUIZZES } = await import('/src/learn/content/index.ts');
-        const q = QUIZZES.get(run.plan.waves[wi].quiz);
-        return q ? q.options.findIndex((o) => o.id === q.answer) : -1;
-      }, wave);
+      const quiz = (wave) =>
+        api.S(async (wi) => {
+          const run = window.__dev.session().debug.battleRun();
+          const { QUIZZES } = await import('/src/learn/content/index.ts');
+          const q = QUIZZES.get(run.plan.waves[wi].quiz);
+          return q ? q.options.findIndex((o) => o.id === q.answer) : -1;
+        }, wave);
 
-    for (let wave = 0; wave < 2; wave++) {
-      await waitPhase(api, ['fight']);
-      await api.pause(600);
-      await api.press('KeyR');
-      // The fight: keep her round and fire whenever a battery bears. The middle of a long fight
-      // is trimmed; its first broadsides and the strike stay.
-      await api.cutWhile(
-        async () => {
-          const t0 = Date.now();
-          while (Date.now() - t0 < 240_000) {
-            const s = await snap(api);
-            if (!s || s.phase !== 'fight') break;
-            if (!s.assist) await api.press('KeyR');
-            if (s.bears[0] || s.bears[1]) {
-              await api.press('Space');
-              await api.pause(1300);
-            } else await api.pause(350);
-          }
-        },
-        { head: 28_000, tail: 14_000 },
-      );
-      await waitPhase(api, ['question'], 40_000);
-      // The bosun's question: read it, then answer with the mouse (wave 1 wrong, wave 2 right).
-      await api.pause(4500);
-      const right = await quiz(wave);
-      const n = await api.S(() => document.querySelectorAll('.bh-options .bh-choice').length);
-      const pick = wave === 0 ? (right + 1) % n : right;
-      await api.click(`.bh-options .bh-choice:nth-child(${pick + 1})`);
-      await api.pause(5500);
-      // Wave 1: "Make repairs and sail on". Wave 2: quick repairs.
-      await api.click(wave === 0 ? '.bh-picks .bh-choice' : '.bh-picks .bh-choice:nth-of-type(2)');
-      await api.pause(1500);
-    }
-    const won = await waitPhase(api, ['won'], 60_000);
-    if (won?.phase !== 'won') api.log(`the battle ended ${won?.phase}`);
-    await api.pause(7000);
-  },
-};
+      for (let wave = 0; wave < 2; wave++) {
+        await waitPhase(api, ['fight']);
+        await api.pause(600);
+        await api.press('KeyR');
+        // The fight: keep her round and fire whenever a battery bears. The middle of a long fight
+        // is trimmed; its first broadsides and the strike stay.
+        await api.cutWhile(
+          async () => {
+            const t0 = Date.now();
+            while (Date.now() - t0 < 240_000) {
+              const s = await snap(api);
+              if (!s || s.phase !== 'fight') break;
+              if (!s.assist) await api.press('KeyR');
+              if (s.bears[0] || s.bears[1]) {
+                api.mark('fire');
+                await api.press('Space');
+                await api.pause(1300);
+              } else await api.pause(350);
+            }
+          },
+          { head: 28_000, tail: 14_000 },
+        );
+        await waitPhase(api, ['question'], 40_000);
+        api.mark(`question ${wave + 1}`);
+        // The bosun's question: read it, then answer with the mouse (wave 1 wrong, wave 2 right).
+        await api.pause(4500);
+        const right = await quiz(wave);
+        const n = await api.S(() => document.querySelectorAll('.bh-options .bh-choice').length);
+        const pick = wave === 0 && !rightFirst ? (right + 1) % n : right;
+        api.mark(`answer ${wave + 1}`);
+        await api.click(`.bh-options .bh-choice:nth-child(${pick + 1})`);
+        await api.pause(5500);
+        // Wave 1: "Make repairs and sail on" (or, answered right, the first reward). Wave 2: quick repairs.
+        api.mark(`reward ${wave + 1}`);
+        await api.click(wave === 0 ? '.bh-picks .bh-choice' : '.bh-picks .bh-choice:nth-of-type(2)');
+        await api.pause(1500);
+        if (firstWaveOnly) {
+          await api.pause(1500);
+          await captions();
+          return;
+        }
+      }
+      const won = await waitPhase(api, ['won'], 60_000);
+      if (won?.phase !== 'won') api.log(`the battle ended ${won?.phase}`);
+      api.mark('won');
+      await api.pause(7000);
+      await captions();
+    },
+    ...meta,
+  };
+}
+
+export default battleScenario();

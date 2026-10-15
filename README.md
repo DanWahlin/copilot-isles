@@ -47,3 +47,10 @@ Voice lines are in [`tools/voice/lines.testcove.json`](tools/voice/lines.testcov
 
 ElevenLabs Voice Library voices can be removed by their owners. With a notice period, you can use the voice until
 the period ends. Audio that you already made continues to work.
+
+## License
+
+The code is under the [MIT License](LICENSE). Third-party assets and code keep their own licences:
+see [`ASSETS.md`](ASSETS.md), [`public/audio/CREDITS.md`](public/audio/CREDITS.md) and
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). AI-generated art, music and voices are listed in
+[`ART_PROVENANCE.md`](ART_PROVENANCE.md).
