@@ -284,6 +284,7 @@ export const BANK = {
   hatch_clank: { file: 'hatch_clank', slices: [[0, 1.2265]], lufs: [-18] },
   bottle_pop: { file: 'bottle_pop', slices: [[0, 0.5465]], lufs: [-18] },
   coconut_crack: { file: 'coconut_crack', slices: [[0, 0.4265]], lufs: [-18] },
+  crowd_cheer_christening: { file: 'crowd_cheer_christening', slices: [[0, 3.4565]], lufs: [-18] },
   stinger_triumph: { file: 'stinger_triumph', slices: [[0, 4.5065]], lufs: [-18] },
   lute_strum: { file: 'lute_strum', slices: [[0, 2.1665]], lufs: [-18] },
   // The opening (tools/sfx/fetch.sh; CC0, logged in ASSETS.md). The latch is too short for an

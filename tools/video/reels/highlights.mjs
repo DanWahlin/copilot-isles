@@ -1,15 +1,15 @@
-// The Copilot Isles highlight reel, v8 (1080p, about three and a half minutes): the whole opening as
-// one take, from the title screen (music from the first second) to the first steps on Anchorage Cay
-// (Juno's full welcome in the cabin, the game's own parchment arrival card), then "Learn as You Play"
-// ending on Rook's Practice Bough (his line on starting a session from a branch, and his session
-// terminal magnified), then one highlight per puzzle or battle (15–20 s each: the moves, one mistake
+// The Copilot Isles highlight reel, v9 (1080p, about three and three-quarter minutes): the whole
+// opening as one take, from the title screen (music from the first second) to the first steps on
+// Anchorage Cay (Juno's full welcome in the cabin, the game's own parchment arrival card), then
+// "Learn as You Play" ending on Rook's Practice Bough (his line on starting a session from a branch,
+// and his session terminal magnified), then one highlight per puzzle or battle (the moves, one mistake
 // and its feedback where there is one, the solve; the Three Helms with each mode's terminal
 // magnified; the sea battle with the bosun's question answered right), a ~10 s fly-by of each island,
 // and an end card. Inside a section, short crossfades skip dead time; the other joins fade through
 // black. Each section is levelled to about -19 LUFS (the fly-bys -20) with one gain.
 // Times are seconds into a take, or { mark, at } (a mark's label prefix plus an offset); the takes'
-// marks are listed in <out>/.work/takes/<id>/take.json. Earlier cuts: `highlights-v1` … `-v7` (v8
-// staggers the Rook part's lower third and terminal close-up, and adds a card over the fly-bys).
+// marks are listed in <out>/.work/takes/<id>/take.json. Earlier cuts: `highlights-v1` … `-v8` (v9
+// films the reworked Sluice & Waterwheel and Three Helms again: takes `sluice-wide` and `helms-reel`).
 //   node tools/video/reel.mjs --reel=highlights --out=<dir> --base=http://127.0.0.1:5395
 import fs from 'node:fs';
 
@@ -30,10 +30,10 @@ const label = (id) => {
 
 export default {
   id: 'highlights',
-  version: 'v8',
+  version: 'v9',
   title: 'Copilot Isles · Highlights',
   lead: 'A highlight reel recorded live from the game (WebGPU, High tier, 1080p) with its own sound.',
-  output: 'highlights-1080p-v8.mp4',
+  output: 'highlights-1080p-v9.mp4',
   size: '1920x1080',
   tier: 'high',
   jpeg: 100,
@@ -47,12 +47,9 @@ export default {
   truePeak: -1,
   /** The page's poster frame (seconds into the reel): the gull on the wordmark. */
   posterAt: 8,
-  maxHighlight: 20,
-  maxTotal: 225,
-  alsoShow: [
-    { reel: 'highlights-v7', label: 'v7', note: 'the previous cut (3:29)' },
-    { reel: 'highlights-v6', label: 'v6', note: 'the cut before the review (3:40)' },
-  ],
+  maxHighlight: 30,
+  maxTotal: 240,
+  alsoShow: [{ reel: 'highlights-v8', label: 'v8', note: 'the previous cut (3:36)' }],
   segments: [
     {
       id: 'opening',
@@ -111,17 +108,21 @@ export default {
     },
     {
       id: 'sluice',
-      lowerThird: { ...label('puzzle:P0.1') },
-      label: 'Sluice & Waterwheel: the lever, a channel turned too far and back, the water reaches the wheel',
+      // After Suri's "Gate's up, so your workflows are on!" (its caption sits where the card goes),
+      // gone before her line at the check gate.
+      lowerThird: { ...label('puzzle:P0.1'), at: 4.1 },
+      label:
+        'Sluice & Waterwheel: the lever (workflows on), a channel turned too far and back, the tee feeds the wheel and the check gate',
       xfade: 0.4,
       parts: [
-        // One wide shot of the terrace (lever, tiles, water and wheel in the upper part of the frame):
-        // the captain walks to the lever and pulls it; the water's let in.
-        { take: 'sluice-wide', in: { mark: 'lever', at: -1.5 }, out: { mark: 'lever', at: 3.7 } },
-        // The first channel turned one step too far (the water stops short), then back round.
-        { take: 'sluice-wide', in: { mark: 'too far', at: 0 }, out: { mark: 'back round', at: 1.05 } },
-        // The last channel turned: the water runs down to the wheel, it turns, and Suri's line.
-        { take: 'sluice-wide', in: { mark: 'tile 9', at: -0.35 }, out: { mark: 'solved', at: 3.8 } },
+        // One wide shot of the terrace (lever, tiles, check gate, tee and wheel in the upper part of
+        // the frame): the captain pulls the lever, and Suri: "Gate's up, so your workflows are on!"
+        { take: 'sluice-wide', in: { mark: 'lever', at: -1.2 }, out: { mark: 'lever', at: 2.7 } },
+        // The first channel turned one step too far (the water stops short), then back (Shift+E).
+        { take: 'sluice-wide', in: { mark: 'too far', at: -0.2 }, out: { mark: 'back', at: 1.55 } },
+        // The last channel turned: the tee splits the water to the wheel and to the jammed check gate,
+        // and Suri on the gate that fails on purpose.
+        { take: 'sluice-wide', in: { mark: 'tile 11', at: -0.4 }, out: { mark: 'solved', at: 3.85 } },
       ],
     },
     {
@@ -143,62 +144,59 @@ export default {
     },
     {
       id: 'helms',
-      lowerThird: { ...label('puzzle:P1.2') },
       label:
-        'The Three Helms: pick the mode for each order. You choose each heading, review and fix the plan, then hand over the run home',
+        'The Three Helms: you choose the heading, Autopilot stops short of the reef, the plan is reviewed and fixed, Autopilot takes her home',
       xfade: 0.4,
+      // Take `helms-reel` (the helms scenario with the game's own cards already shown). Times are
+      // seconds into the take: its marks repeat (each order's card comes back after a balk or a
+      // review), so plain times are clearer. 94–107 s has stalls; none of the parts use it.
       parts: [
-        // Interactive: under way on the first leg, turning toward the mark.
-        {
-          take: 'helms',
-          in: { mark: 'interactive-leg-0', at: 0.4 },
-          out: { mark: 'interactive-leg-0', at: 4.9 },
-        },
-        // She heaves to at the mark: "Mark reached. Which way next, Captain?" You choose the heading.
-        {
-          take: 'helms',
-          in: { mark: 'interactive-choose-1', at: -0.2 },
-          out: { mark: 'interactive-choose-1', at: 4.0 },
-        },
-        // Plan: the charted plan in the terminal, waiting for approval, then approved.
-        { take: 'helms', in: { mark: 'plan-review-0', at: 2.8 }, out: { mark: 'plan-sailing-0', at: -1.7 } },
-        // Autopilot: past the lighthouse and alongside the east-arm berth with no stops.
-        {
-          take: 'helms',
-          in: { mark: 'autopilot-docking', at: -8.0 },
-          out: { mark: 'autopilot-docking', at: -1.25 },
-        },
+        // Interactive: "To mark 1. Which way, Captain?" A heading picked, and she turns for the mark.
+        { take: 'helms-reel', in: 74.2, out: 79.5 },
+        // The reef passage order card: Autopilot picked, and she sets sail for the reef ...
+        { take: 'helms-reel', in: 174.2, out: 179.0 },
+        // ... and stops short: "Hold fast! This passage is one where the approach matters." The card
+        // greys Autopilot out ("Chart it first.").
+        { take: 'helms-reel', in: 192.0, out: 196.6 },
+        // Plan picked: the review card with the app's three options, and Rhea's charted route.
+        { take: 'helms-reel', in: 200.9, out: 206.9 },
+        // "Suggest changes to the plan": "Good catch, I'll chart her round the Shoal."
+        { take: 'helms-reel', in: 212.5, out: 217.8 },
+        // The last order, in Autopilot: along the east arm to her berth with no stops ("✓ Moored").
+        { take: 'helms-reel', in: 328.4, out: 333.6 },
       ],
-      // Each mode's session terminal, magnified (top left, clear of the ship).
+      // Each mode's session terminal, magnified (top left, clear of the ship), after the lower third.
       closeups: [
         {
-          label: 'Interactive: waiting on you',
-          part: 1,
-          at: 0.6,
-          dur: 2.8,
-          crop: { x: 1400, y: 64, w: 504, h: 112 },
-          x: 80,
-          y: 90,
-        },
-        {
-          label: 'Plan: approve this plan?',
-          part: 2,
-          at: 0.6,
-          dur: 3.0,
-          crop: { x: 1400, y: 64, w: 504, h: 192 },
-          x: 80,
-          y: 90,
-        },
-        {
-          label: 'Autopilot: no check-ins',
+          label: 'Plan: the charted plan, straight across the Shoal',
           part: 3,
-          at: 0.8,
-          dur: 2.6,
-          crop: { x: 1400, y: 64, w: 504, h: 92 },
+          at: 2.0,
+          dur: 3.0,
+          crop: { x: 1400, y: 64, w: 504, h: 152 },
+          x: 80,
+          y: 90,
+        },
+        {
+          label: 'Plan (revised): keep her clear of the Shoal',
+          part: 4,
+          at: 1.4,
+          dur: 3.2,
+          crop: { x: 1400, y: 64, w: 504, h: 196 },
+          x: 80,
+          y: 90,
+        },
+        {
+          label: 'Autopilot: no check-ins, moored',
+          part: 5,
+          at: 1.5,
+          dur: 3.1,
+          crop: { x: 1400, y: 64, w: 504, h: 110 },
           x: 80,
           y: 90,
         },
       ],
+      // Over the Interactive and reef parts (no captions there), gone before Rhea's "Hold fast!".
+      lowerThird: { ...label('puzzle:P1.2'), at: 0.6 },
     },
     {
       id: 'channels',

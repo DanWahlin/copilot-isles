@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { createRoot } from 'react-dom/client';
 import { FLAGS } from '../../game/puzzles/flag-hoist';
+import { isTyping } from '../typing';
 import './channel-routing.css';
 
 /** What the Flag Hoist overlay shows (P2.3, docs/specs/ISLAND-02-thousand-bough.md §7). */
@@ -24,6 +25,8 @@ export interface FlagHoistStore {
   subscribe(fn: () => void): () => void;
   /** A flag's symbol, or a choice's id. */
   hoist(pick: string): void;
+  /** A learning overlay is open and owns the keyboard and gamepad. */
+  blocked(): boolean;
 }
 
 /** `code` spans in a line (backticks), the rest as text. */
@@ -46,6 +49,7 @@ function FlagHoist({ store }: { store: FlagHoistStore }) {
   useEffect(() => {
     if (!v.open) return;
     const key = (e: KeyboardEvent) => {
+      if (isTyping(e) || store.blocked()) return;
       const s = store.get();
       const picks = s.choices ? s.choices.map((c) => c.id) : FLAGS.map((f) => f.symbol);
       const n = /^Digit\d$/.test(e.code) ? Number(e.code.slice(5)) : Number(e.key);

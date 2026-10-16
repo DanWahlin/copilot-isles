@@ -254,6 +254,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
         get: hoistView.get,
         subscribe: hoistView.subscribe,
         hoist: (s) => void hoistFlag(s),
+        blocked: () => !!host.learn?.busy,
       });
     }
     // From the trunk side of the deck, looking out past the mast to the cove (the sun's to the right).
@@ -578,7 +579,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
       const d = !!p.buttons[i]?.pressed;
       const was = pad.get(i) ?? false;
       pad.set(i, d);
-      return d && !was;
+      return !host.learn?.busy && d && !was;
     };
     const v = hoistView.get();
     const o = hoist?.order;

@@ -3,8 +3,8 @@
 // §4): ashore at the Root Wharf, Tamsin, Lyra at the Booth Pools (and her chest), Saffi in the Root Hall,
 // Oak at the Three Landings (and the gondola), Fen's Channel Routing played for real with the keyboard
 // and mouse (two rounds of tiles, a wrong run first, a hint; round 3's places for the crews, a wrong one
-// first) and the Spire twist (a wrong answer, then a right one), Ines's Flag Hoist (a wrong flag, then
-// all six orders), Rook, Pip, and the Elder's Canopy Trial with the
+// first) and the Spire twist (a wrong answer, then a right one), Ines's Flag Hoist (Logbook layering
+// and key ownership, a wrong flag, then all six orders), Rook, Pip, and the Elder's Canopy Trial with the
 // Seal's Thousand Lanterns. Then the Sky Basket, the chest behind the falls, the bottles and the starfish.
 // Fails on any page error, a missing beat, or a hitch after warm-up. Screenshots at every beat.
 // Rook asks for the session's branch and the practice issue's number (Your setup): by default the run
@@ -522,8 +522,32 @@ if (opt.from === 'elder') {
     if (!wrongFlag) {
       wrongFlag = true;
       await shot('hoist-order-1');
-      await page.keyboard.press('Digit2');
-      await page.waitForTimeout(1200);
+      await page.keyboard.press('KeyJ');
+      await page.waitForTimeout(300);
+      const opened = await S(() => window.__dev.learn.getState().logbook.open);
+      if (!opened) fail('J did not open the Logbook over the Flag Hoist');
+      const stack = await S(() => {
+        const logbook = document.querySelector('.ci-logbook');
+        if (!logbook) return null;
+        const rect = logbook.getBoundingClientRect();
+        const top = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        return !!top && (top === logbook || logbook.contains(top));
+      });
+      if (!stack) fail('the Logbook was not topmost over the Flag Hoist');
+      await page.keyboard.press(`Digit${h.right}`);
+      await page.waitForTimeout(300);
+      const duringLogbook = await tb('hoist');
+      if (duringLogbook.index !== h.index) fail('a Logbook digit reached the Flag Hoist');
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+      if (await S(() => window.__dev.learn.getState().logbook.open))
+        fail('Escape did not close the Logbook over the Flag Hoist');
+      await page.keyboard.press(`Digit${h.right === 2 ? 1 : 2}`);
+      await page.waitForTimeout(250);
+      const afterClose = await tb('hoist');
+      if (afterClose.index !== h.index || (!afterClose.busy && !afterClose.message))
+        fail('the Flag Hoist did not accept a keyboard pick after the Logbook closed');
+      await page.waitForTimeout(950);
       await shot('hoist-wrong');
       return 'handled';
     }

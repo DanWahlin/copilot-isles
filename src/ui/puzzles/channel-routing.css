@@ -2,7 +2,7 @@
 .ci-cr-root {
   position: fixed;
   inset: 0;
-  /* Above the HUD (5), beside the learning overlay (6); menus never show with it. */
+  /* Above the HUD (5), below learning overlays (7); menus never show with it. */
   z-index: 6;
   pointer-events: none;
 }

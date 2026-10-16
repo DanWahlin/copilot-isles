@@ -88,7 +88,7 @@ export function createChristening(
     const at = { x: bow.x, y: o.nell.y + 0.4, z: bow.z };
     // The coconut's flight takes 0.6 s (ship/christening.ts), then it cracks on the stem.
     setTimeout(() => host.audio?.sfx.oneShot('coconut_crack', at, 0.9), 600);
-    setTimeout(() => host.audio?.sfx.oneShot('stinger_triumph', undefined, 0.55), 900);
+    setTimeout(() => host.audio?.sfx.oneShot('crowd_cheer_christening', undefined, 0.55), 900);
     await o.ship.christen({ x: o.nell.x, y: o.nell.y + 1.45, z: o.nell.z });
     paintName();
     host.audio?.sfx.oneShot('chime_solve', undefined, 0.8);

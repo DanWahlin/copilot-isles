@@ -16,6 +16,7 @@ const PUZZLE_ONE_SHOTS = [
   'hatch_clank',
   'bottle_pop',
   'coconut_crack',
+  'crowd_cheer_christening',
   'stinger_triumph',
   'lute_strum',
 ] as const;

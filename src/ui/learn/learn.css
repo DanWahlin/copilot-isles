@@ -2,8 +2,8 @@
 .ci-learn {
   position: fixed;
   inset: 0;
-  /* Above the HUD (5). Menus (.ci-ui, 6) never show together with a learning overlay. */
-  z-index: 6;
+  /* Above puzzle overlays (6) and the HUD (5). Menus (.ci-ui, 6) never show together with it. */
+  z-index: 7;
   isolation: isolate;
   pointer-events: none;
   color: var(--ci-cream, #fbefd6);

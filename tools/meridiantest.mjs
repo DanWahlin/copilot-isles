@@ -327,6 +327,21 @@ async function forkFormKeys(label, logbook, unmoved) {
   if (opened !== logbook)
     logs.push(`[meridiantest] ${label}: J ${opened ? 'opened' : 'didn’t open'} the Logbook`);
   if (opened) {
+    if (label === 'helm') {
+      const stack = await S(() => {
+        const logbook = document.querySelector('.ci-logbook');
+        if (!logbook) return null;
+        const rect = logbook.getBoundingClientRect();
+        const top = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        return {
+          topmost: !!top && (top === logbook || logbook.contains(top)),
+          top:
+            top?.tagName.toLowerCase() + (top?.getAttribute('class') ? `.${top.getAttribute('class')}` : ''),
+        };
+      });
+      if (!stack?.topmost)
+        logs.push(`[meridiantest] helm: Logbook isn’t topmost at its centre (${stack?.top ?? 'missing'})`);
+    }
     await page.keyboard.press('Digit1');
     await page.waitForTimeout(300);
     if (!(await unmoved())) logs.push(`[meridiantest] ${label}: 1 in the Logbook reached the overlay`);
@@ -564,13 +579,30 @@ if (opt.from === 'admiral') {
       }
     } else if (h.choice && !h.choice.busy && h.run.phase === 'order') {
       if (!seen.has('helm-fork-form')) {
-        // At sea J opens the Logbook, and a digit there or in the fork form isn't a helm pick.
+        // At sea J opens the Logbook over the card; a digit there or in the fork form isn't a pick,
+        // and a digit selects the card again once both overlays close.
         seen.add('helm-fork-form');
         const tried = h.run.tried.length;
         await forkFormKeys('helm', true, async () => {
           const n = await helmState();
           return n.run?.phase === 'order' && n.run.tried.length === tried;
         });
+        const wrongIndex = h.choice.options.findIndex((option) => option === wrongFirst[h.run.mode]);
+        if (wrongIndex < 0) logs.push(`[meridiantest] ${h.run.mode}: no keyboard option for the wrong helm`);
+        else {
+          await page.keyboard.press(`Digit${wrongIndex + 1}`);
+          let after = await helmState();
+          const deadline = Date.now() + 5000;
+          while (after.run?.tried.length !== tried + 1 && Date.now() < deadline) {
+            await page.waitForTimeout(100);
+            after = await helmState();
+          }
+          if (after.run?.tried.length !== tried + 1)
+            logs.push(
+              `[meridiantest] ${h.run.mode}: choice card did not accept a digit after the Logbook closed`,
+            );
+          else wrongTried.add(h.run.mode);
+        }
         continue;
       }
       if (!wrongTried.has(h.run.mode)) {

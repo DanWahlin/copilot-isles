@@ -155,15 +155,21 @@ in Rook's session terminal), `sluice` and `sluice-wheel` (the lever, a channel t
 back, and the last channel turned as the wheel starts), `shipwreck`, `battle1`, `helms`,
 `channels-mix` (round 2 run with a gate turned back so the colours mix, then routed and run clean),
 and a closing fly-by of each island: `flyby-anchorage`, `flyby-meridian` and `flyby-thousandbough`.
-The current cut (v7) has a lower third on each learning section (Rook's Practice Bough, the
-sluice, the battle, the helms and Channel Routing), terminal close-ups on Rook's part and on each
-of the Three Helms' modes, and an end card. The sluice, sea-battle, Three Helms and Channel Routing
-cards read their text from the game's `content/labels.json` (`label('<id>')` in
-`reels/highlights.mjs`), so the reel and the game show the same words. `highlights-v6` is the
-previous cut; v1–v5's files are kept but their oldest takes (`opening-v1`, `channels`) were deleted
-to save disk, so only v4–v7 rebuild with `--refinish`. New takes for v7: `opening` (music from the
-first second, two islands pointed at on the Chart), `rook-talk`, `sluice-wide`, `battle1-review`
-and a longer `flyby-thousandbough`. Scenarios for puzzles and battles call `labelsShown(api)`
+The current cut (v9) has a lower third on each learning section (Rook's Practice Bough, the
+sluice, the battle, the helms and Channel Routing) and one over the fly-bys, terminal close-ups on
+Rook's part and on the Three Helms' Plan and Autopilot parts (each after the lower third has gone),
+and an end card. The sluice, sea-battle, Three Helms and Channel Routing cards read their text from
+the game's `content/labels.json` (`label('<id>')` in `reels/highlights.mjs`), so the reel and the
+game show the same words. `highlights-v8` is the previous cut (its mp4 is kept as a compressed copy
+in the repo's ignored `videos/` folder); v1–v7's reel files are kept, but their takes were deleted
+to save disk, so only v8 and v9 rebuild with `--refinish`. v9 films the reworked puzzles again:
+`sluice-wide` (workflows on at the lever before the crane, a channel turned too far and back with
+Shift+E, the tee feeding the wheel and the jammed check gate) and `helms-reel` (the `helms`
+scenario with the game's own cards marked shown: Interactive heading picks, Autopilot stopping short
+of the reef, the plan review with "Suggest changes to the plan", Autopilot to the berth). For a
+smaller copy to share, re-encode the master with `ffmpeg -i <master> -c:v libx264 -preset slower
+-crf 22 -tune animation -pix_fmt yuv420p -c:a aac -b:a 160k -movflags +faststart <copy>.mp4`.
+Scenarios for puzzles and battles call `labelsShown(api)`
 (`game.mjs`) in setup, which adds every label id to the save's `labels` list, so the game's own
 parchment cards don't show under the reel's.
 
