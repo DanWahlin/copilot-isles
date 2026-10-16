@@ -4,9 +4,17 @@ import type { Hud, SubtitleLine } from './hud';
 type LineHook = (line: SubtitleLine | null) => void;
 
 /**
+ * The longest a line's caption waits for its voice to load (a slow connection). Past it the caption
+ * shows on its own for its usual time, and the voice is left out rather than starting late.
+ */
+export const VOICE_WAIT_MS = 4000;
+
+/**
  * Plays a run of voiced lines with synced subtitles. The subtitle highlight runs on its own
  * timers from the manifest word timings, so it works before audio is unlocked (and in headless
- * shots). The voice plays alongside when audio is available. Interact skips to the next line.
+ * shots). The voice plays alongside when audio is available: the run's lines load as it starts, and
+ * each caption waits (up to VOICE_WAIT_MS) for its voice, so they start together. Interact skips to
+ * the next line.
  */
 export class Dialogue {
   active = false;
@@ -24,17 +32,20 @@ export class Dialogue {
   async play(ids: readonly string[], onLine?: (id: string) => void): Promise<void> {
     const token = ++this.token;
     this.active = true;
+    this.preload(ids);
     for (const id of ids) {
       if (token !== this.token) return;
       const line = this.hud.line(id);
       if (!line) continue;
+      const voiced = await this.voiceFor(id);
+      if (token !== this.token) return;
       onLine?.(id);
       this.onLine?.(line);
       this.hud.showLine(id, -1);
       line.words.forEach((w, i) => {
         this.timers.push(window.setTimeout(() => this.hud.showSpoken(id, i), w.start * 1000));
       });
-      if (this.audio) void this.audio.playVoice(id).catch(() => undefined);
+      if (voiced) void this.audio?.playVoice(id).catch(() => undefined);
       await new Promise<void>((resolve) => {
         this.wake = resolve;
         this.timers.push(window.setTimeout(resolve, (line.duration + 0.55) * 1000));
@@ -46,6 +57,25 @@ export class Dialogue {
     if (token !== this.token) return;
     this.active = false;
     this.hud.hideSubtitle();
+  }
+
+  /** Starts loading lines that are coming up (a conversation's, an island's welcome). */
+  preload(ids: readonly string[]): void {
+    this.audio?.preloadVoice(ids);
+  }
+
+  /** Waits for a line's voice (up to VOICE_WAIT_MS, or a press); true if it can play with its caption. */
+  private async voiceFor(id: string): Promise<boolean> {
+    const audio = this.audio;
+    if (!audio) return false;
+    if (audio.voiceReady(id)) return true;
+    await new Promise<void>((resolve) => {
+      this.wake = resolve;
+      this.timers.push(window.setTimeout(resolve, VOICE_WAIT_MS));
+      void audio.prepareVoice(id).then(() => resolve());
+    });
+    this.clearTimers();
+    return audio.voiceReady(id);
   }
 
   /** Skips the current line. */

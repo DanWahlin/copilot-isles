@@ -62,4 +62,31 @@ describe('Juno’s cabin briefing', () => {
     b.start();
     expect(b.done).toBe(true);
   });
+
+  it('holds a line until its voice is ready, and gives up after VOICE_WAIT', () => {
+    const ready = new Set<string>();
+    const heard: (string | null)[] = [];
+    const lines = new Map([...BRIEFING, CHEST_LINE].map((id) => [id, line(id, 4)]));
+    const b = new Briefing(lines, {
+      onLine: (l) => heard.push(l?.id ?? null),
+      onWord: () => undefined,
+      ready: (id) => ready.has(id),
+    });
+    b.start();
+    expect(heard).toEqual([]);
+    expect(b.done).toBe(false);
+    b.update(0.5);
+    expect(heard).toEqual([]);
+    ready.add(BRIEFING[0]);
+    b.update(0.1);
+    expect(heard).toEqual([BRIEFING[0]]);
+    // The line's full length plays from when it showed.
+    b.update(1.9);
+    expect(heard).toEqual([BRIEFING[0]]);
+    // The next line isn't ready: it waits, then shows on its own after VOICE_WAIT.
+    b.update(0.5);
+    expect(heard).toEqual([BRIEFING[0]]);
+    for (let i = 0; i < 45; i += 1) b.update(0.1);
+    expect(heard).toEqual([BRIEFING[0], BRIEFING[1]]);
+  });
 });

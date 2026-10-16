@@ -276,6 +276,7 @@ describe('setup steps in a script', () => {
     ({
       play: async (ids: readonly string[]) => void said.push(...ids),
       say: async (_who: string, text: string) => void said.push(text),
+      preload: () => undefined,
     }) as unknown as Dialogue;
 
   it('asks once, carries on after Skip, and only asks the quiz that fits the answer', async () => {

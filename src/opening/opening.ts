@@ -32,6 +32,7 @@ import type { Character, CharacterLibrary } from '../world/characters';
 import type { Input } from '../engine/input';
 import { createBrigantine, type Brigantine } from '../world/ship';
 import { BRIEFING_DELAY, BRIEFING_GIVE_UP, Briefing, loadBriefing, type BriefingLine } from './briefing';
+import { OPENING_SOUNDS } from './sounds';
 import { createCabin, type Cabin } from './cabin';
 import { createCutsceneOutput } from './cutscene-output';
 import { warmProgressively } from '../engine/warm';
@@ -325,8 +326,10 @@ export function createOpening(o: OpeningOptions): Opening {
     guide?.setTalking(!!line);
     guide?.setSpotlight(!!line);
     const audio = o.audio();
-    if (line) void audio?.playVoice(line.id).catch(() => undefined);
-    else audio?.stopVoice();
+    // A line whose voice didn't load in time (Briefing's VOICE_WAIT) shows on its own, without a late voice.
+    if (line) {
+      if (audio?.voiceReady(line.id)) void audio.playVoice(line.id).catch(() => undefined);
+    } else audio?.stopVoice();
   }
   let paper: ChartPaper | null = null;
   let ship: Brigantine | null = null;
@@ -676,7 +679,8 @@ export function createOpening(o: OpeningOptions): Opening {
     // can't be had, the island's functions are sampled instead (coarser, and slower).
     const base = o.packBase ?? '/packs';
     const baked = await Promise.all(
-      CHART_ISLANDS.map((src) => loadTerrainPack(`${base}/${src.pack}`).catch(() => null)),
+      // Low priority: it builds on the title, where the song's stream (also low) must keep its share.
+      CHART_ISLANDS.map((src) => loadTerrainPack(`${base}/${src.pack}`, 'low').catch(() => null)),
     );
     for (const [i, src] of CHART_ISLANDS.entries()) {
       const data = baked[i];
@@ -692,7 +696,12 @@ export function createOpening(o: OpeningOptions): Opening {
     // Juno's lines load alongside (small: five word lists and the shared lip-sync cues).
     void loadBriefing(new URL(`${import.meta.env.BASE_URL}voice/testcove/`, location.href).toString())
       .then((lines) => {
-        if (!disposed) briefing = new Briefing(lines, { onLine: speakLine, onWord: lightCaption });
+        if (!disposed)
+          briefing = new Briefing(lines, {
+            onLine: speakLine,
+            onWord: lightCaption,
+            ready: (id) => o.audio()?.voiceReady(id) ?? true,
+          });
       })
       .catch(() => undefined);
     const art = drawChartArt(grids);
@@ -949,7 +958,7 @@ export function createOpening(o: OpeningOptions): Opening {
       const audio = o.audio();
       if (audio) {
         const sfx = audio.sfx;
-        sfx.preload(['opening_whoosh', 'opening_spray', ...CUES.map((c) => c[1])]);
+        sfx.preload([...OPENING_SOUNDS, ...CUES.map((c) => c[1])]);
         // Quiet in the cabin before the chest opens (reduced motion starts the cue now).
         // (Continue starts it with the dive, below, so its peak still lands at the splash however long
         // the chart waits for the island.)

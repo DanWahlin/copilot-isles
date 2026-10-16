@@ -67,7 +67,17 @@ class PackLoader {
     return `${appUrl(clean)}?v=${hash}`;
   }
 
-  async prefetch(packId: string, onProgress?: ProgressCallback, signal?: AbortSignal): Promise<void> {
+  /**
+   * Loads a pack's files. `priority: 'low'` is for loads nothing waits on yet (the title's head start
+   * on the island): over HTTP/2 the browser's high-priority requests are served first, and they starved
+   * the music's stream (an `<audio>` element's request is low priority) for 40 s on Slow 4G.
+   */
+  async prefetch(
+    packId: string,
+    onProgress?: ProgressCallback,
+    signal?: AbortSignal,
+    priority: RequestPriority = 'auto',
+  ): Promise<void> {
     if (this.resident.has(packId)) {
       const total = this.manifest?.packs[packId]?.totalBytes ?? 0;
       onProgress?.({ loadedBytes: total, totalBytes: total, ratio: 1, file: '' });
@@ -75,7 +85,7 @@ class PackLoader {
     }
     const existing = this.inflight.get(packId);
     if (existing) return existing;
-    const task = this.prefetchInternal(packId, onProgress, signal).finally(() =>
+    const task = this.prefetchInternal(packId, onProgress, signal, priority).finally(() =>
       this.inflight.delete(packId),
     );
     this.inflight.set(packId, task);
@@ -92,8 +102,9 @@ class PackLoader {
 
   private async prefetchInternal(
     packId: string,
-    onProgress?: ProgressCallback,
-    signal?: AbortSignal,
+    onProgress: ProgressCallback | undefined,
+    signal: AbortSignal | undefined,
+    priority: RequestPriority,
   ): Promise<void> {
     const manifest = await this.loadManifest();
     const pack = manifest?.packs[packId];
@@ -114,7 +125,7 @@ class PackLoader {
     const worker = async () => {
       while (cursor < pack.files.length) {
         const file = pack.files[cursor++];
-        await this.fetchFile(file, (loaded) => report(file.path, loaded), signal);
+        await this.fetchFile(file, (loaded) => report(file.path, loaded), signal, priority);
         report(file.path, file.bytes);
       }
     };
@@ -125,9 +136,10 @@ class PackLoader {
   private async fetchFile(
     file: PackFile,
     onFileProgress: (loaded: number) => void,
-    signal?: AbortSignal,
+    signal: AbortSignal | undefined,
+    priority: RequestPriority,
   ): Promise<void> {
-    const response = await fetch(this.url(file.path), { signal });
+    const response = await fetch(this.url(file.path), { signal, priority });
     if (!response.ok) throw new Error(`Pack file ${file.path} failed: HTTP ${response.status}`);
     const reader = response.body?.getReader();
     if (!reader) {

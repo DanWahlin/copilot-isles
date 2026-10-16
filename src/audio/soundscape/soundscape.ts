@@ -185,6 +185,8 @@ export class IslesSoundScape {
   private buses: SoundBuses | null = null;
   private readonly buffers = new Map<SoundName, AudioBuffer>();
   private readonly loading = new Map<SoundName, Promise<void>>();
+  /** Files fetched before the unlock (or still decoding), by name. */
+  private readonly bytes = new Map<SoundName, Promise<ArrayBuffer | null>>();
   private readonly beds = new Map<BedName, ActiveBed>();
   private readonly positionalLoops = new Set<ActiveLoop>();
   private readonly limiter = new VoiceLimiter<ActiveVoice>(CAPS);
@@ -201,7 +203,7 @@ export class IslesSoundScape {
   };
   private readonly lastSlice: Partial<Record<SliceName, number>> = {};
   private baseUrl: string;
-  private extension: '.ogg' | '.m4a' = '.ogg';
+  private extension: '.ogg' | '.m4a' | null = null;
   private listenerX = 0;
   private listenerY = 1.7;
   private listenerZ = 0;
@@ -222,6 +224,8 @@ export class IslesSoundScape {
     this.ctx = ctx;
     this.buses = buses;
     this.extension = chooseAudioFormat(audioElement).extension;
+    // Sounds fetched before the unlock (preload) decode now.
+    for (const name of this.bytes.keys()) void this.want(name);
   }
 
   setListener(pos: Vec3Like, forward: Vec3Like = DEFAULT_FORWARD): void {
@@ -338,6 +342,7 @@ export class IslesSoundScape {
     this.positionalLoops.clear();
     this.buffers.clear();
     this.loading.clear();
+    this.bytes.clear();
     this.ctx = null;
     this.buses = null;
   }
@@ -364,29 +369,46 @@ export class IslesSoundScape {
 
   /**
    * Starts loading sounds now, so their first play isn't dropped while they download (the opening's
-   * cabin sounds, a battle's first broadside). Callers may ignore the promise.
+   * cabin sounds, a battle's first broadside). Before the unlock it only fetches them; they decode
+   * when the audio engine starts. Callers may ignore the promise.
    */
   preload(names: readonly SoundName[]): Promise<void> {
     return Promise.all(names.map((n) => this.want(n))).then(() => undefined);
   }
 
+  private fetchBytes(name: SoundName): Promise<ArrayBuffer | null> {
+    let p = this.bytes.get(name);
+    if (!p) {
+      this.extension ??= chooseAudioFormat(
+        typeof document === 'undefined' ? null : document.createElement('audio'),
+      ).extension;
+      // Loops (ambient beds) load at low priority, so they share the line with the music's stream
+      // (an <audio> element's request is low priority) instead of starving it.
+      const priority: RequestPriority = 'loop' in BANK[name] ? 'low' : 'auto';
+      p = fetch(`${this.baseUrl}${BANK[name].file}${this.extension}`, { priority })
+        .then((response) => (response.ok ? response.arrayBuffer() : null))
+        .catch(() => null);
+      this.bytes.set(name, p);
+    }
+    return p;
+  }
+
   private async want(name: SoundName): Promise<AudioBuffer | null> {
-    if (!this.ctx) return null;
+    const ctx = this.ctx;
+    if (!ctx) {
+      void this.fetchBytes(name);
+      return null;
+    }
     const ready = this.buffers.get(name);
     if (ready) return ready;
     if (!this.loading.has(name)) {
-      const entry = BANK[name];
-      const url = `${this.baseUrl}${entry.file}${this.extension}`;
-      const promise = fetch(url)
-        .then((response) => {
-          if (!response.ok) throw new Error(`audio ${name}: HTTP ${response.status}`);
-          return response.arrayBuffer();
-        })
-        .then((data) => this.ctx?.decodeAudioData(data))
+      const promise = this.fetchBytes(name)
+        .then((data) => (data ? ctx.decodeAudioData(data) : null))
         .then((buffer) => {
-          if (buffer) this.buffers.set(name, buffer);
+          if (buffer && this.ctx === ctx) this.buffers.set(name, buffer);
         })
-        .catch(() => undefined);
+        .catch(() => undefined)
+        .finally(() => this.bytes.delete(name));
       this.loading.set(name, promise);
     }
     await this.loading.get(name);

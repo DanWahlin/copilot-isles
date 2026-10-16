@@ -29,6 +29,8 @@ import type { GameSession } from './session';
 import { LearnStore } from '../learn/store';
 import type { OsId } from '../learn/setup';
 import type { Opening } from '../opening/opening';
+import { BRIEFING_LINES } from '../opening/briefing';
+import { OPENING_SOUNDS } from '../opening/sounds';
 import { ANCHORAGE_ARRIVAL, arrivalFlight } from './arrivals';
 import { compileProgressively, revealPrewarm, warmProgressively, warmTerrainLods } from '../engine/warm';
 import { skipSunShadowsWhereOff } from '../world/sky/cached-sun-shadow';
@@ -122,6 +124,11 @@ export interface GameFlowOptions {
  * Cay → play, with pause, chart, settings, controls, credits, fast travel, and a small save.
  * Implements the UI bridge; the React UI renders `UiState` and calls these actions.
  */
+/** The title's sea beds, buffered with its song before the first press. */
+const TITLE_BEDS = ['wind', 'surf_far', 'gulls_far'] as const;
+/** The longest the title's other downloads wait for its song to buffer (Fast 3G needs ~11 s alone). */
+const TITLE_MUSIC_WAIT_MS = 15_000;
+
 export class GameFlow implements GameBridge {
   private state: UiState;
   private readonly listeners = new Set<(s: UiState) => void>();
@@ -137,6 +144,8 @@ export class GameFlow implements GameBridge {
   private saveTimer = 0;
   private audioReady = false;
   private titlePrefetchStarted = false;
+  /** The title's song and sea buffering (see prefetchTitleAudio); the title's other downloads wait for it. */
+  private titleAudio: Promise<void> | null = null;
   /** After Apply's reload into the game: reopen Graphics settings once you've landed. */
   private settingsOnLand: QualityNotice = null;
   /** The opening (the Captain's Chest and the living chart) while it plays over the load. */
@@ -210,20 +219,25 @@ export class GameFlow implements GameBridge {
     if (this.audioReady) this.o.audio.music.setIsland('harbour');
     this.set({ screen: 'title', returnTo: 'title', hasSave: !!readJson<SaveData>(SAVE_KEY) });
     this.o.onTitleReady?.();
+    this.prefetchTitleAudio();
     this.prefetchTitlePacks();
     // The opening's cabin and chart start building now (a few ms a frame), so Set sail never waits.
-    window.setTimeout(() => {
-      void this.prepareOpening();
-      // The island's ocean-floor map bakes quietly too (it was a ~1 s freeze in the island build).
-      // Already in this chunk (the title's ocean imports it), so a plain import: a dynamic one can't split it.
-      void prewarmWaterDepthTexture();
-    }, 1500);
+    // Its downloads wait for the title's song, like the packs (prefetchTitleAudio).
+    void this.titleAudio?.then(() =>
+      window.setTimeout(() => {
+        void this.prepareOpening();
+        // The island's ocean-floor map bakes quietly too (it was a ~1 s freeze in the island build).
+        // Already in this chunk (the title's ocean imports it), so a plain import: a dynamic one can't split it.
+        void prewarmWaterDepthTexture();
+      }, 1500),
+    );
     // The Chart's coastlines (~15 ms, the first time the Chart opened).
     window.setTimeout(prewarmChart, 2500);
   }
 
   chooseCaptain(): void {
     void this.unlockAudio();
+    this.prefetchOpeningAudio();
     this.prefetchTitlePacks();
     // While the captain's named, the cabin and chart build and compile in the background (no dark
     // gap at Set sail); the menu covers the title, so the small extra frame time doesn't show.
@@ -636,16 +650,44 @@ export class GameFlow implements GameBridge {
     this.o.engine.setRenderScale(s.renderScale === 'auto' ? null : s.renderScale);
   }
 
+  /**
+   * The opening's sound starts loading on the captain screen: Juno's cabin lines, its sound effects
+   * and its song (it starts at the chest's latch, while the island streams in behind the cabin).
+   */
+  private prefetchOpeningAudio(): void {
+    const a = this.o.audio;
+    a.music.prefetch('opening');
+    a.preloadVoice(BRIEFING_LINES);
+    void a.sfx.preload(OPENING_SOUNDS);
+  }
+
+  /**
+   * The title's song and sea buffer once the title's up (loading needs no gesture), so the first press
+   * plays them at once. Until the song has buffered (or TITLE_MUSIC_WAIT_MS), the title's other
+   * downloads wait: an `<audio>` element's request is low priority, and over HTTP/2 (GitHub Pages) the
+   * game's high-priority fetches were served first, so on Slow 4G the title's song didn't start for
+   * 40 s after the press (tools/audiotest.mjs).
+   */
+  private prefetchTitleAudio(): void {
+    const a = this.o.audio;
+    this.titleAudio ??= this.titleReady().then(() => {
+      a.music.prefetch('harbour');
+      void a.sfx.preload(TITLE_BEDS);
+      return a.music.whenBuffered('harbour', TITLE_MUSIC_WAIT_MS);
+    });
+  }
+
   private prefetchTitlePacks(): void {
     if (this.titlePrefetchStarted) return;
     this.titlePrefetchStarted = true;
     const run = () => {
-      void packs
-        .loadManifest()
-        .then(() => packs.prefetch('testcove/critical'))
+      void (this.titleAudio ?? Promise.resolve())
+        .then(() => packs.loadManifest())
+        // Nothing waits on it yet: low priority, so the title's song keeps its share of the line.
+        .then(() => packs.prefetch('testcove/critical', undefined, undefined, 'low'))
         .catch(() => undefined);
       // The opening builds quietly too, so Continue (and a quick Set sail) fade straight into it.
-      void this.prepareOpening();
+      void (this.titleAudio ?? Promise.resolve()).then(() => this.prepareOpening());
     };
     const idle = (
       globalThis as { requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number }
@@ -691,6 +733,7 @@ export class GameFlow implements GameBridge {
     if (this.loading) return;
     this.loading = true;
     void this.unlockAudio();
+    this.prefetchOpeningAudio();
     const { engine } = this.o;
     const destination = save?.place ?? 'Anchorage Cay';
     const progressNow = { value: 0.02, message: 'Weighing anchor', destination, cinematic: true };
@@ -821,6 +864,8 @@ export class GameFlow implements GameBridge {
         // Saved at once, even at sea, so a won or skipped battle is never fought again.
         onBattle: () => this.save(),
       });
+      // The island's theme takes over from the opening's song: it buffers while the cabin plays.
+      this.o.audio.music.prefetch(ISLANDS[this.session.island].music);
       // Both islands' skies (and the passage between them) go on the GPU before the hitch guard arms.
       await cove.sky.prefetch([
         ISLANDS.anchorage.sky.hours,

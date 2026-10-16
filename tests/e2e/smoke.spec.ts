@@ -54,3 +54,22 @@ test('software rendering shows the fallback with a course link', async ({ page }
     'https://github.com/github/copilot-app-for-beginners',
   );
 });
+
+// The Chart's islands sit on a map layer above a separate paper layer. A stacking change once
+// painted the paper over the map, so only blank parchment showed: check that an island is on top.
+test('Captain’s Chart: the islands draw above the paper', async ({ page }) => {
+  if (CI) test.setTimeout(150_000);
+  await page.goto(`/?debug&webgl${force}`);
+  await page.waitForFunction(() => Boolean(window.__isles), null, { timeout: BOOT_MS });
+  await expect(page.locator('#loading')).toHaveCount(0, { timeout: FADE_MS });
+  await page.getByRole('button', { name: 'Chart' }).click();
+  const island = page.locator('.ci-arch-island').first();
+  await expect(island).toBeVisible();
+  const onTop = await island.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return Boolean(hit && el.contains(hit));
+  });
+  expect(onTop).toBe(true);
+  expect(await page.locator('.ci-arch-island').count()).toBe(8);
+});

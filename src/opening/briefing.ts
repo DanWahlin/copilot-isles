@@ -29,12 +29,19 @@ export const LINE_GAP = 0.3;
 export const BRIEFING_DELAY = 1.0;
 /** If the lines haven't loaded by this long after the fade, the cabin goes on without them. */
 export const BRIEFING_GIVE_UP = 5;
+/**
+ * The longest a line waits for its voice (a slow connection) before its caption shows on its own.
+ * The voice is then left out, rather than starting late against the caption and Juno's mouth.
+ */
+export const VOICE_WAIT = 4;
 
 export interface BriefingHooks {
   /** A line starts (or `null`: the talk paused or ended). */
   onLine(line: BriefingLine | null): void;
   /** The spoken word moved on (index into the line's words). */
   onWord(index: number): void;
+  /** Whether a line's voice can start now (default: always); a line waits up to VOICE_WAIT for it. */
+  ready?(id: string): boolean;
 }
 
 /**
@@ -44,6 +51,8 @@ export interface BriefingHooks {
 export class Briefing {
   private queue: string[] = [];
   private line: BriefingLine | null = null;
+  /** The line's been announced (it may wait first for its voice). */
+  private shown = false;
   private time = 0;
   private word = -1;
   private started = false;
@@ -110,6 +119,10 @@ export class Briefing {
     const line = this.line;
     if (!line) return;
     this.time += dt;
+    if (!this.shown) {
+      if (!this.hooks.ready?.(line.id) && this.time < VOICE_WAIT) return;
+      return this.show();
+    }
     let w = this.word;
     while (w + 1 < line.words.length && line.words[w + 1]!.start <= this.time) w += 1;
     if (w !== this.word) {
@@ -124,6 +137,13 @@ export class Briefing {
     this.line = id ? (this.lines.get(id) ?? null) : null;
     this.time = 0;
     this.word = -1;
+    this.shown = false;
+    if (!this.line || (this.hooks.ready?.(this.line.id) ?? true)) this.show();
+  }
+
+  private show(): void {
+    this.shown = true;
+    this.time = 0;
     this.hooks.onLine(this.line);
   }
 }

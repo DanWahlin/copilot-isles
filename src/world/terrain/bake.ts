@@ -572,10 +572,14 @@ export function terrainDataFromPack(json: PackedTerrainJson, binary: ArrayBuffer
   };
 }
 
-export async function loadTerrainPack(baseUrl = '/packs/testcove/terrain'): Promise<TerrainBakeData> {
+/** `priority: 'low'` for loads nothing waits on yet (see PackLoader.prefetch). */
+export async function loadTerrainPack(
+  baseUrl = '/packs/testcove/terrain',
+  priority: RequestPriority = 'auto',
+): Promise<TerrainBakeData> {
   const [jsonResponse, binResponse] = await Promise.all([
-    fetch(packs.url(`${baseUrl}.json`)),
-    fetch(packs.url(`${baseUrl}.bin`)),
+    fetch(packs.url(`${baseUrl}.json`), { priority }),
+    fetch(packs.url(`${baseUrl}.bin`), { priority }),
   ]);
   if (!jsonResponse.ok) throw new Error(`Failed to load terrain JSON: ${jsonResponse.status}`);
   if (!binResponse.ok) throw new Error(`Failed to load terrain binary: ${binResponse.status}`);

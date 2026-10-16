@@ -54,6 +54,15 @@ class FakeElement {
   paused = true;
   plays = 0;
   refuse = false;
+  /** HAVE_ENOUGH_DATA unless a test says the track hasn't buffered yet. */
+  readyState = 4;
+  private readonly listeners = new Map<string, (() => void)[]>();
+  addEventListener(type: string, fn: () => void): void {
+    this.listeners.set(type, [...(this.listeners.get(type) ?? []), fn]);
+  }
+  emit(type: string): void {
+    for (const fn of this.listeners.get(type) ?? []) fn();
+  }
   canPlayType(type: string): string {
     return type.includes('opus') ? 'probably' : '';
   }
@@ -206,5 +215,93 @@ describe('MusicPlayer', () => {
     player.setIsland('opening', { at: 9.4 });
     expect(elements).toHaveLength(2);
     expect(cue.currentTime).toBe(9.4);
+  });
+
+  it('prefetches a track before the unlock without playing it, and plays that element later', () => {
+    const { player, elements, bind } = setup();
+    player.prefetch('opening');
+    expect(elements).toHaveLength(1);
+    expect(elements[0]!.src).toBe('/audio/music_island_reveal.ogg');
+    expect(elements[0]!.preload).toBe('auto');
+    expect(elements[0]!.plays).toBe(0);
+    player.prefetch('opening');
+    bind();
+    player.setIsland('opening', { at: 0 });
+    expect(elements).toHaveLength(1);
+    expect(elements[0]!.paused).toBe(false);
+  });
+
+  it('holds the handover until a track that has not buffered yet can play', () => {
+    const { player, ctx, elements, bind } = setup();
+    bind();
+    player.setIsland('harbour');
+    player.prefetch('anchorage');
+    const island = elements[1]!;
+    island.readyState = 0;
+    player.setIsland('anchorage');
+    const [seaGain, islandGain] = ctx.gains;
+    // The sea keeps playing; the island track waits at silence.
+    expect(seaGain!.gain.target).toBeCloseTo(trackGain(MUSIC_TRACKS.harbour));
+    expect(islandGain!.gain.target).toBe(0);
+    ctx.currentTime = 20;
+    island.readyState = 4;
+    island.emit('playing');
+    expect(seaGain!.gain.target).toBe(0);
+    expect(islandGain!.gain.target).toBeCloseTo(trackGain(MUSIC_TRACKS.anchorage));
+    expect(islandGain!.gain.endsAt).toBeCloseTo(23);
+  });
+
+  it('fades back in after a stall, but not after a blip', () => {
+    const { player, ctx, elements, bind } = setup();
+    bind();
+    player.setIsland('harbour');
+    const gain = ctx.gains[0]!.gain;
+    const target = trackGain(MUSIC_TRACKS.harbour);
+    elements[0]!.emit('waiting');
+    ctx.currentTime += 0.1;
+    gain.endsAt = 0;
+    elements[0]!.emit('playing');
+    expect(gain.endsAt).toBe(0);
+    elements[0]!.emit('waiting');
+    ctx.currentTime += 2;
+    elements[0]!.emit('playing');
+    expect(gain.value).toBe(0);
+    expect(gain.target).toBeCloseTo(target);
+    expect(gain.endsAt).toBeCloseTo(ctx.currentTime + 0.6);
+  });
+
+  it('waits for the whole track in one buffered range (an Ogg file loads its last page first)', async () => {
+    const { player, elements } = setup();
+    player.prefetch('harbour');
+    const el = elements[0] as FakeElement & {
+      duration: number;
+      buffered: unknown;
+      removeEventListener(): void;
+    };
+    const ranges = (r: [number, number][]) => ({
+      length: r.length,
+      start: (i: number) => r[i]![0],
+      end: (i: number) => r[i]![1],
+    });
+    el.duration = 150;
+    el.buffered = ranges([
+      [0, 7],
+      [148, 150],
+    ]);
+    el.removeEventListener = () => undefined;
+    let done = false;
+    const wait = player.whenBuffered('harbour', 60_000).then(() => (done = true));
+    el.emit('progress');
+    await Promise.resolve();
+    expect(done).toBe(false);
+    el.buffered = ranges([[0, 150]]);
+    el.emit('progress');
+    await wait;
+    expect(done).toBe(true);
+  });
+
+  it('resolves at once for a track that is not loading', async () => {
+    const { player } = setup();
+    await expect(player.whenBuffered('battle', 60_000)).resolves.toBeUndefined();
   });
 });

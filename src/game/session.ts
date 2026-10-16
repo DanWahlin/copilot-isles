@@ -1668,6 +1668,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     // Port Meridian streams in while you sail (it's not loaded while you're ashore on Anchorage).
     void cove.meridian.load();
     if (tbReachable()) void cove.thousandBough.load();
+    // The compass's island is the likely next theme: it buffers while you sail.
+    audio?.music.prefetch(sailTarget().music);
     mode = 'transition';
     input.enabled = false;
     hud.setPrompt(null);
@@ -1699,6 +1701,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     audio?.music.setIsland('harbour');
   }
 
+  /** The island whose waters the ship was last in (its theme's been prefetched). */
+  let musicWaters: IslandId | null = null;
   /** The open island whose berth is within docking range of the ship, if any. */
   function berthInRange(): IslandBerth | null {
     let best: IslandBerth | null = null;
@@ -2021,6 +2025,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     card: boolean;
   } | null = null;
   function startArrival(plan: IslandArrival, waitForBegin: boolean): void {
+    // Wingman's welcome follows the flight: its lines load meanwhile.
+    dialogue.preload(welcomeLines());
     const reduced = worldUniforms.reducedMotion.value > 0.5;
     let path: FlyoverPath | null = null;
     if (!reduced) {
@@ -2371,6 +2377,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           } else if (mode === 'docking' && (dyn.dockComplete || (dockTime += dt) > DOCK_ASSIST_MAX))
             void disembark();
           const pose = dyn.pose;
+          // Into an island's waters: its theme starts buffering before you dock.
+          const waters = islandAt(pose.x, pose.z);
+          if (waters !== musicWaters) {
+            musicWaters = waters;
+            audio?.music.prefetch(ISLANDS[waters].music);
+          }
           const near = mode === 'sail' && !crewAtHelm ? berthInRange() : null;
           const act = mode === 'sail' && !dialogue.active ? sailAction() : null;
           hud.setPrompt(act?.label ?? near?.dockLabel ?? null);
@@ -2469,6 +2481,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     dialogue.cancel();
     wingman?.landNow();
     const to = ISLANDS[islandAt(x, z)];
+    // Its theme buffers while the island streams in, so it starts at once on arrival.
+    audio?.music.prefetch(to.music);
     // Fast travel to a battle's destination skips it (and it counts as done).
     battles.travel(island, to.id, cam);
     if (to.id === 'meridian') await cove.meridian.load();

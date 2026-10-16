@@ -10,7 +10,7 @@ import {
   type Vec3Like,
 } from './soundscape/soundscape';
 import type { SliceName, SoundName } from './soundscape/bank';
-import { VoicePlayer, type WordCallback } from './voice/player';
+import { VoicePlayer, chooseVoiceFormat, type VoiceWordTiming, type WordCallback } from './voice/player';
 import { MUSIC_TRIM } from './beds';
 import { takeAudioContext } from './early-context';
 
@@ -26,6 +26,13 @@ export interface IslesAudio {
     setIsland(island: MusicCue | null, opts?: { at?: number; fade?: number }): void;
     /** Seconds into `island`'s track while it's playing, or null (not playing, or it has ended). */
     position(island: IslandMusic): number | null;
+    /**
+     * Starts buffering a track that's coming up (the title's on the title, the opening's on the
+     * captain screen, an island's as it streams in, the battle's when one's set), so it starts at once.
+     */
+    prefetch(cue: MusicCue): void;
+    /** Resolves once a prefetched track has buffered to its end, or after `timeoutMs`. */
+    whenBuffered(cue: MusicCue, timeoutMs: number): Promise<void>;
   };
   readonly sfx: {
     setListener(pos: Vec3Like, forward?: Vec3Like): void;
@@ -40,7 +47,14 @@ export interface IslesAudio {
   };
   readonly volumes: VolumeControls;
   onWord: WordCallback | null;
-  playVoice(lineId: string): Promise<void>;
+  /** Plays a voice line (`words` drive `onWord`, for the dev page). */
+  playVoice(lineId: string, words?: readonly VoiceWordTiming[]): Promise<void>;
+  /** Starts fetching (and, once unlocked, decoding) voice lines that will be needed soon. */
+  preloadVoice(ids: readonly string[]): void;
+  /** Resolves once a line can start at once (true), or false if it can't load. */
+  prepareVoice(lineId: string): Promise<boolean>;
+  /** Whether a line can start at once (also true while sound is locked: there's nothing to wait for). */
+  voiceReady(lineId: string): boolean;
   /** Stops the current voice line (skip) and releases the music duck. */
   stopVoice(): void;
   update(dt: number): void;
@@ -151,6 +165,7 @@ class IslesAudioImpl implements IslesAudio {
   private limiter: DynamicsCompressorNode | null = null;
   private readonly buses: Partial<Record<BusName, GainNode>> = {};
   private voicePlayer: VoicePlayer | null = null;
+  private voiceBound = false;
   private ducked = false;
   private unlocking: Promise<boolean> | null = null;
 
@@ -158,6 +173,8 @@ class IslesAudioImpl implements IslesAudio {
     setIsland: (island: MusicCue | null, opts?: { at?: number; fade?: number }) =>
       this.musicPlayer.setIsland(island, opts),
     position: (island: IslandMusic) => this.musicPlayer.position(island),
+    prefetch: (cue: MusicCue) => this.musicPlayer.prefetch(cue),
+    whenBuffered: (cue: MusicCue, timeoutMs: number) => this.musicPlayer.whenBuffered(cue, timeoutMs),
   };
 
   readonly sfx = {
@@ -179,9 +196,22 @@ class IslesAudioImpl implements IslesAudio {
     return this.unlocking;
   }
 
-  async playVoice(lineId: string): Promise<void> {
-    if (!this.voicePlayer) return;
-    await this.voicePlayer.play(lineId, this.onWord);
+  async playVoice(lineId: string, words?: readonly VoiceWordTiming[]): Promise<void> {
+    if (!this.voiceBound) return;
+    await this.voice()?.play(lineId, this.onWord, words);
+  }
+
+  preloadVoice(ids: readonly string[]): void {
+    this.voice()?.preload(ids);
+  }
+
+  prepareVoice(lineId: string): Promise<boolean> {
+    if (!this.voiceBound) return Promise.resolve(true);
+    return this.voice()?.prepare(lineId) ?? Promise.resolve(true);
+  }
+
+  voiceReady(lineId: string): boolean {
+    return !this.voiceBound || (this.voice()?.isReady(lineId) ?? true);
   }
 
   stopVoice(): void {
@@ -203,6 +233,17 @@ class IslesAudioImpl implements IslesAudio {
     this.ctx = null;
     this.master = null;
     this.voicePlayer = null;
+    this.voiceBound = false;
+  }
+
+  /** The voice player (made on first use: it only fetches until the unlock binds it). */
+  private voice(): VoicePlayer | null {
+    if (this.voicePlayer || typeof document === 'undefined') return this.voicePlayer;
+    this.voicePlayer = new VoicePlayer(
+      new URL(`${import.meta.env.BASE_URL}voice/testcove/`, location.href).toString(),
+      chooseVoiceFormat(document.createElement('audio')),
+    );
+    return this.voicePlayer;
   }
 
   private async doUnlock(): Promise<boolean> {
@@ -222,13 +263,8 @@ class IslesAudioImpl implements IslesAudio {
       if (ambience && sfx) this.soundscape.bind(ctx, { ambience, sfx }, audioElement);
       if (music) this.musicPlayer.bind(ctx, music);
       if (voice) {
-        this.voicePlayer = new VoicePlayer(
-          new URL(`${import.meta.env.BASE_URL}voice/testcove/manifest.json`, location.href).toString(),
-          ctx,
-          voice,
-          audioElement,
-          (ducked) => this.setDucked(ducked),
-        );
+        this.voice()?.bind(ctx, voice, (ducked) => this.setDucked(ducked));
+        this.voiceBound = true;
       }
       this.applyAllVolumes();
       return ctx.state === 'running';

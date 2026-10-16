@@ -33,6 +33,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
+  // Media streams (the music's <audio> elements, Range requests) go straight to the network: the
+  // Cache API can't store a partial (206) response, and answering a Range request with a whole
+  // cached file breaks streaming. Music and voice aren't under the cached paths anyway.
+  if (request.headers.has('range')) return;
   const url = new URL(request.url);
   if (COURSE_RE.test(request.url)) {
     event.respondWith(staleWhileRevalidate(event, request));

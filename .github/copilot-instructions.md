@@ -27,6 +27,7 @@ npm run build && npm run check:budgets && npm run check:secrets
 npm run test:e2e         # builds, serves on 127.0.0.1:4173, runs Playwright (local Chrome; Chromium in CI)
 npm run check:frame-budgets -- --base=http://127.0.0.1:5353  # PLAN §12.1 draws/triangles per tier (no-HMR server)
 npm run check:opening -- --base=http://127.0.0.1:5353  # the opening's frame gaps (fails over 150 ms; --profile, --webgl, --tier)
+npm run build && npm run check:audio  # streaming audio on Slow 4G, served like GitHub Pages (HTTP/2 by priority): fails on a music gap > 300 ms or a voiced caption without its voice (--profile=fast3g|dsl|none, --flow=islands|full, --visits=cold,warm, --tap)
 npm run toolchain        # installs KTX-Software into .tools/, finds Blender, verifies gltf-transform + ffmpeg
 ```
 

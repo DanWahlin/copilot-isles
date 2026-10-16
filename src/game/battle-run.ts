@@ -128,6 +128,8 @@ export class BattleRun {
     unreflected.add(group);
     engine.scene.add(group);
     if (audio) void audio.sfx.preload(BATTLE_SOUNDS);
+    // The battle's music buffers while you sail out, so it starts on the lookout's call.
+    audio?.music.prefetch('battle');
     // Built now and warmed while you sail out: its first real frames build nothing (skill §3).
     this.ready = engine.counters.excuse(this.warm());
   }

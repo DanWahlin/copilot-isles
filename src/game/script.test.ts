@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Progress } from '../learn/progress';
 import { LearnStore } from '../learn/store';
 import type { Dialogue } from './dialogue';
-import { runScript } from './script';
+import { runScript, voicedLines } from './script';
 
 describe('runScript', () => {
   it('waits for the Logbook to close before the next step', async () => {
@@ -15,6 +15,7 @@ describe('runScript', () => {
         if (ids[0] === 'a') learn.openLogbook();
       },
       say: async () => undefined,
+      preload: () => undefined,
     } as unknown as Dialogue;
     let finished = false;
     const run = runScript([{ say: 'a' }, { say: 'b' }], { dialogue, learn, speaker: 'Nell' }).then((ok) => {
@@ -35,6 +36,7 @@ describe('runScript', () => {
     const dialogue = {
       play: async (ids: readonly string[]) => void said.push(...ids),
       say: async () => undefined,
+      preload: () => undefined,
     } as unknown as Dialogue;
     const steps = [{ askFork: 'crane', line: 'pim.brief.fork' }, { say: 'after' }] as const;
     const run = runScript(steps, { dialogue, learn, speaker: 'Pim' });
@@ -52,7 +54,11 @@ describe('runScript', () => {
 
   it('carries on after Skip for now', async () => {
     const learn = new LearnStore(new Progress(null));
-    const dialogue = { play: async () => undefined, say: async () => undefined } as unknown as Dialogue;
+    const dialogue = {
+      play: async () => undefined,
+      say: async () => undefined,
+      preload: () => undefined,
+    } as unknown as Dialogue;
     const run = runScript([{ askFork: 'ezra' }], { dialogue, learn, speaker: 'Ezra' });
     for (let i = 0; i < 5 && !learn.getState().forkForm; i++) await Promise.resolve();
     learn.skipFork();
@@ -62,7 +68,11 @@ describe('runScript', () => {
 
   it('files a page in the Logbook without stopping for a reveal card', async () => {
     const learn = new LearnStore(new Progress(null));
-    const dialogue = { play: async () => undefined, say: async () => undefined } as unknown as Dialogue;
+    const dialogue = {
+      play: async () => undefined,
+      say: async () => undefined,
+      preload: () => undefined,
+    } as unknown as Dialogue;
     const ok = await runScript([{ file: 'pg1.editor' }, { file: 'pg1.voice' }], {
       dialogue,
       learn,
@@ -84,10 +94,30 @@ describe('runScript', () => {
       const dialogue = {
         play: async (ids: readonly string[]) => void said.push(...ids),
         say: async () => undefined,
+        preload: () => undefined,
       } as unknown as Dialogue;
       const ok = await runScript([{ trial: 'T0' }, { say: 'after' }], { dialogue, learn, speaker: 'Nell' });
       expect(ok).toBe(passed);
       expect(said).toEqual(passed ? ['after'] : []);
     }
+  });
+
+  it('loads every voiced line of the script as it starts', async () => {
+    const preloaded: string[][] = [];
+    const dialogue = {
+      play: async () => undefined,
+      say: async () => undefined,
+      preload: (ids: readonly string[]) => void preloaded.push([...ids]),
+    } as unknown as Dialogue;
+    const steps = [
+      { say: 'a' },
+      { text: 'unvoiced' },
+      { askFork: 'crane', line: 'fork.line' },
+      { askSetup: 'model', line: 'setup.line' },
+      { say: 'b' },
+    ] as const;
+    expect(voicedLines(steps)).toEqual(['a', 'fork.line', 'setup.line', 'b']);
+    await runScript([{ say: 'a' }, { say: 'b' }], { dialogue, learn: null, speaker: 'Nell' });
+    expect(preloaded).toEqual([['a', 'b']]);
   });
 });

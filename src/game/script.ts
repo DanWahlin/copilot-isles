@@ -48,9 +48,21 @@ export interface ScriptContext {
   format?(text: string): string;
 }
 
+/** The voiced lines a script may play, in order. */
+export function voicedLines(steps: readonly ScriptStep[]): string[] {
+  const ids: string[] = [];
+  for (const s of steps) {
+    if ('say' in s) ids.push(s.say);
+    else if (('askFork' in s || 'askSetup' in s) && s.line) ids.push(s.line);
+  }
+  return ids;
+}
+
 /** Runs a script; resolves false if a quiz was abandoned (the NPC will ask again next time). */
 export async function runScript(steps: readonly ScriptStep[], ctx: ScriptContext): Promise<boolean> {
   const { dialogue, learn } = ctx;
+  // The whole conversation's voice loads as it starts, so no line waits for a download.
+  dialogue.preload(voicedLines(steps));
   try {
     for (const s of steps) {
       // NPCs tell you to press J; if you do, the conversation waits until you close the Logbook.

@@ -207,6 +207,27 @@ the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _
   and ambient life keeps out of battles and puzzle courses (`QuietSea`).
 - **Shared audio and voice:** one subsystem cancelling must not stop a voice another system started
   (`Dialogue.cancel` only stops its own line).
+- **Streaming audio (the title was silent for 40 s on Slow 4G):** GitHub Pages serves HTTP/2 by
+  request priority. A music `<audio>` element's request is low priority (`u=3`); a plain `fetch` is
+  high (`u=1`). At the first press the beds, the title's head start on the island (4 MB) and the
+  chart's terrain (6.7 MB) all went first, and the song got 0 bytes for 26–40 s. A local HTTP/1.1
+  server or Chrome's throttling alone never shows it: measure with `npm run check:audio`
+  (tools/audiotest.mjs serves the build like Pages, tools/lib/pages-server.mjs). Now:
+  - Downloads nothing waits on yet go `priority: 'low'` (`packs.prefetch(…, 'low')`,
+    `loadTerrainPack(…, 'low')`, the ambient beds): they share the line with the music.
+  - The title's song buffers once the title's up (`music.prefetch`), and the title's other downloads
+    wait for it (`music.whenBuffered`, up to 15 s). Prefetch the next track where it's known: the
+    opening's on New Voyage, the island's theme when the session's made or you travel or sail into its
+    waters, the battle's when the battle is built.
+  - A track asked for before it has data starts (and the old one hands over) only on `playing`, and
+    one that stalls fades back in, so music never slams in late at full level.
+  - Voice lines load by id (`<id>.webm`, no 600 KB manifest first) and ahead of time
+    (`preloadVoice`: the cabin's on New Voyage, an island's welcome at its arrival, a whole script as it
+    starts). A caption waits up to 4 s for its voice (`VOICE_WAIT`), then shows on its own; a voice
+    never starts late or under another line (`VoicePlayer`'s token).
+  - Sounds a scene plays go in its preload list (`OPENING_SOUNDS`, `BATTLE_SOUNDS`): a one-shot
+    asked for before its file has loaded is dropped. Preloads fetch before the unlock and decode at it.
+  - The service worker leaves Range requests (media streams) to the network.
 - **Background shakes with TAA on (motion vectors):** trees and hills behind Thousand-Bough's mist
   shook by about 1 px with the camera still: TRAA's sub-pixel jitter showed wherever the motion
   vectors were wrong. Velocity has no blending, so a see-through card wrote its (nonsense) motion over

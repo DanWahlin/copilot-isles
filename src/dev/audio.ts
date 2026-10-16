@@ -168,7 +168,7 @@ async function loadVoiceButtons(): Promise<void> {
         currentLine = line;
         currentWord = -1;
         renderSubtitle();
-        void audio.playVoice(line.id);
+        void audio.playVoice(line.id, line.words);
       }),
     );
   }
