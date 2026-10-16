@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ChartData, ChartIsland, ChartPoint, GameBridge, UiState } from '../bridge';
 import { ARCH_H, ARCH_W, ARCHIPELAGO } from '../chart/archipelago';
 import { ArchipelagoMap, CompassRose, Parchment } from '../chart/ArchipelagoMap';
@@ -63,6 +63,11 @@ export function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBri
   const [selectedIsland, setSelectedIsland] = useState<ChartIsland | null>(
     islands.find((island) => island.status === 'current') ?? islands[0] ?? null,
   );
+  // The island you point at is a likely jump: it starts streaming while you read its card.
+  const selectedId = selectedIsland?.id ?? null;
+  useEffect(() => {
+    if (selectedId && state.returnTo !== 'title') bridge.chartSelect?.(selectedId);
+  }, [selectedId, bridge, state.returnTo]);
 
   return (
     <OverlayShell

@@ -89,3 +89,31 @@ describe('CollisionWorld.cameraBlockedAt', () => {
     expect(w.cameraBlockedAt(0, -2, 20.5, 0.2)).toBe(true);
   });
 });
+
+describe('CollisionWorld.remove', () => {
+  it("takes an unloaded island's colliders and camera blockers out, and leaves the rest", () => {
+    const keepBox = { x: 0, z: 0, hx: 1, hz: 1, rot: 0, height: 2 };
+    const box = { x: 40, z: 0, hx: 1, hz: 1, rot: 0, height: 2 };
+    const circle = { x: 80, z: 0, r: 1 };
+    const cameraBox = { x: 120, z: 0, hx: 1, hz: 1, rot: 0, height: 4 };
+    const crate = { x: 160, z: 0, r: 0.6 };
+    const w = new CollisionWorld({ ground: seabed, boxes: [keepBox, box], circles: [circle] });
+    w.addCameraBox(cameraBox);
+    w.addDynamic(crate);
+    const pushed = (x: number) => {
+      const p = { x, z: 0 };
+      w.pushOut(p, 0.3);
+      return p.x !== x;
+    };
+    expect(pushed(40.5)).toBe(true);
+    expect(pushed(80.5)).toBe(true);
+    expect(pushed(160.2)).toBe(true);
+    expect(w.cameraBlockedAt(120, 1, 0, 0.25)).toBe(true);
+    w.remove([box, circle, cameraBox, crate]);
+    expect(pushed(40.5)).toBe(false);
+    expect(pushed(80.5)).toBe(false);
+    expect(pushed(160.2)).toBe(false);
+    expect(w.cameraBlockedAt(120, 1, 0, 0.25)).toBe(false);
+    expect(pushed(0.5)).toBe(true);
+  });
+});

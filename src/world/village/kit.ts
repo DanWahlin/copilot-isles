@@ -1,3 +1,5 @@
+import { ktx2Loader } from '../../engine/ktx2';
+import type { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import {
   BufferAttribute,
   BufferGeometry,
@@ -96,7 +98,14 @@ function kitMaterialKey(material: string): MaterialKey {
 let villageKitPromise: Promise<VillageKit> | null = null;
 
 export function loadVillageKit(base = '/packs/testcove/village/kit.glb'): Promise<VillageKit> {
-  villageKitPromise ??= loadVillageKitInternal(base);
+  if (!villageKitPromise) {
+    const p = loadVillageKitInternal(base);
+    villageKitPromise = p;
+    // A failed load (offline) is tried again by the next caller, not cached.
+    p.catch(() => {
+      if (villageKitPromise === p) villageKitPromise = null;
+    });
+  }
   return villageKitPromise;
 }
 
@@ -185,10 +194,44 @@ function clonePavingMaterial(material: Material): Material {
 }
 
 async function loadVillageKitInternal(url: string): Promise<VillageKit> {
+  // Its roughness maps are KTX2 with a WebP fallback (tools/village/ktx-roughness.mjs): compressed on
+  // the GPU when the Basis transcoder loads, the WebP when it doesn't (`KHR_texture_basisu` isn't
+  // required). A transcode that fails mid-load leaves a map out: then the kit loads again on WebP.
+  const ktx2 = await ktx2Loader();
+  if (ktx2) {
+    const gltf = await loadKitGltf(url, ktx2);
+    if (!missingRoughness(gltf)) return createVillageKitFromGltf(gltf);
+    console.warn('[kit] a KTX2 roughness map failed to transcode; loading the WebP maps');
+  }
+  return createVillageKitFromGltf(await loadKitGltf(url, null));
+}
+
+function loadKitGltf(url: string, ktx2: KTX2Loader | null): Promise<GLTF> {
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
-  const gltf: GLTF = await loader.loadAsync(packs.url(url));
-  return createVillageKitFromGltf(gltf);
+  if (ktx2) loader.setKTX2Loader(ktx2);
+  return loader.loadAsync(packs.url(url));
+}
+
+/** A material whose glTF has a roughness map but whose loaded copy came without one. */
+export function missingRoughness(gltf: Pick<GLTF, 'parser' | 'scenes'>): boolean {
+  const defs = (
+    gltf.parser.json as {
+      materials?: { name?: string; pbrMetallicRoughness?: { metallicRoughnessTexture?: unknown } }[];
+    }
+  ).materials;
+  const want = new Set(
+    (defs ?? []).filter((m) => m.pbrMetallicRoughness?.metallicRoughnessTexture).map((m) => m.name),
+  );
+  let missing = false;
+  for (const scene of gltf.scenes)
+    scene.traverse((o) => {
+      const mats = (o as Mesh).material;
+      for (const m of Array.isArray(mats) ? mats : mats ? [mats] : [])
+        if (want.has(m.name) && !(m as Material & { roughnessMap?: Texture | null }).roughnessMap)
+          missing = true;
+    });
+  return missing;
 }
 
 function createVillageKitFromGltf(gltf: GLTF): VillageKit {

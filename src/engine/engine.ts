@@ -1,4 +1,5 @@
 import { ACESFilmicToneMapping, HalfFloatType, PerspectiveCamera, Scene, WebGPURenderer } from 'three/webgpu';
+import { setKtx2Renderer } from './ktx2';
 import type { Backend } from '../world/contracts';
 import { world } from '../world/uniforms';
 import { AdaptiveResolution } from './adaptive-res';
@@ -85,6 +86,8 @@ export class Engine {
   /** Wraps an already-initialised renderer (boot owns creation + the WebGL2 retry). */
   static fromRenderer(renderer: WebGPURenderer, o: EngineOptions): Engine {
     const e = new Engine(renderer, o);
+    // KTX2 textures (the village kit's roughness maps) transcode to this renderer's formats.
+    setKtx2Renderer(renderer);
     // ACES gives the quality-slice look: soft sun roll-off and warm highlights without AgX's
     // heavy desaturation of the saturated sails and chibi character palettes.
     renderer.toneMapping = ACESFilmicToneMapping;

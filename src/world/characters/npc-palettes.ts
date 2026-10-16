@@ -1,4 +1,4 @@
-import { CanvasTexture, ClampToEdgeWrapping, Material, Texture } from 'three/webgpu';
+import { CanvasTexture, ClampToEdgeWrapping, Material, NearestFilter, Texture } from 'three/webgpu';
 import { MACAW_PAINT } from './parrot';
 import type { CharacterBody, NpcId, SourceKey } from './types';
 
@@ -54,6 +54,8 @@ const SOURCE_FAMILY: Record<SourceKey, AtlasFamily> = {
  * The eye cells hold only the two eyeballs and are painted through the dedicated eyes slot, never
  * by the clothing, hair or skin slots (issue #142).
  */
+/** Swatches across (and down) the atlas. */
+const ATLAS_GRID = 32;
 export const ATLAS_EYES: Record<AtlasFamily, Swatch> = { captain: [6, 7], anne: [8, 9], henry: [7, 11] };
 const ANNE_LIDS: Swatch = [6, 9];
 
@@ -651,7 +653,10 @@ function buildCanvasTexture(
 ): { texture: CanvasTexture; ctx: CanvasRenderingContext2D; cell: number } | null {
   const image = base.image as CanvasImageSource | undefined;
   if (!image) return null;
-  const size = 512;
+  // The kit's atlas is a 32 × 32 grid of flat swatches (every cell one colour, measured on all three
+  // rigs), so one texel a cell is the same picture: 4 KB a palette instead of 1.3 MB at 512² with mips.
+  // Sampled nearest, every uv inside a cell reads its exact colour, near or far.
+  const size = ATLAS_GRID;
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
@@ -665,11 +670,11 @@ function buildCanvasTexture(
   texture.flipY = base.flipY;
   texture.wrapS = ClampToEdgeWrapping;
   texture.wrapT = ClampToEdgeWrapping;
-  texture.magFilter = base.magFilter;
-  texture.minFilter = base.minFilter;
-  texture.generateMipmaps = base.generateMipmaps;
+  texture.magFilter = NearestFilter;
+  texture.minFilter = NearestFilter;
+  texture.generateMipmaps = false;
   texture.userData.isCharacterVariantTexture = true;
-  return { texture, ctx, cell: size / 32 };
+  return { texture, ctx, cell: size / ATLAS_GRID };
 }
 
 function paint(ctx: CanvasRenderingContext2D, cells: readonly Swatch[], color: Hex, size: number): void {

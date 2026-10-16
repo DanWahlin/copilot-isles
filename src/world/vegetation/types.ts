@@ -1,4 +1,4 @@
-import type { PerspectiveCamera, Group, WebGPURenderer } from 'three/webgpu';
+import type { PerspectiveCamera, Group, Object3D, WebGPURenderer } from 'three/webgpu';
 import type { HeightField, Tier } from '../contracts';
 import type { TierSettings } from '../../engine/quality';
 import type { VegetationExclude } from './exclusions';
@@ -123,6 +123,12 @@ export interface VegetationSystem {
    * when that island's in view). Shares the loaded models and the impostor atlas; freed with the system.
    */
   addPlants(plants: readonly PlantInstance[], name: string): Promise<VegetationPatch>;
+  /** Frees a patch from `addPlants` (its island has unloaded); the shared models and atlas stay. */
+  removePlants(patch: VegetationPatch): void;
+  /** The first island's own plants (batches, casters, grass, impostors), not the patches. */
+  home(): Object3D[];
+  /** Stops (or resumes) updating the first island's own plants while it's dormant. */
+  setHomeAwake(on: boolean): void;
   dispose(): void;
   stats(): VegetationStats;
 }

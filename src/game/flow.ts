@@ -25,7 +25,9 @@ import type { CreatedTerrain } from '../world/terrain/terrain-mesh';
 import { prewarmWaterDepthTexture } from '../world/ocean/water-depth-texture';
 import { world } from '../world/uniforms';
 import { buildChart, coveTravelPoints, prewarmChart } from './chart';
-import type { GameSession } from './session';
+import { meridianOpen } from './meridian-open';
+import { thousandBoughOpen } from './thousand-bough-open';
+import type { GameSession, StreamedIsland } from './session';
 import { LearnStore } from '../learn/store';
 import type { OsId } from '../learn/setup';
 import type { Opening } from '../opening/opening';
@@ -38,12 +40,6 @@ import { createSky, type SkySystem } from '../world/sky/sky-system';
 import { releaseRemovedObjects } from '../util/dispose-three';
 import { buildSlice, installBuildSlicer } from '../engine/build-slice';
 import { savedBattles } from './battles';
-
-/** An island's cast and props from the session, to warm with the island and show after. */
-interface IslandSetup {
-  roots: Object3D[];
-  reveal(): void;
-}
 
 const SETTINGS_KEY = 'copilot-isles.settings.v1';
 /** The crossfade (s) from the opening's song into the island's theme, at the song's phrase end. */
@@ -73,6 +69,7 @@ const BRIDGE_METHODS = [
   'openLogbook',
   'back',
   'travelTo',
+  'chartSelect',
   'quitToTitle',
   'startOver',
   'updateSettings',
@@ -159,10 +156,14 @@ export class GameFlow implements GameBridge {
   private resolutionHeld = false;
   /** Uninstalls the build slicer (the island builds a few ms per frame while the scene moves). */
   private unslice: (() => void) | null = null;
-  /** Port Meridian's late warm-up: resolves once it's streamed in and warmed (it waits for a trigger). */
-  private meridianWarm: Promise<void> = Promise.resolve();
-  /** Thousand-Bough's late warm-up, like Meridian's. */
-  private thousandBoughWarm: Promise<void> = Promise.resolve();
+  /**
+   * Each streamed island's late warm-up, per setup of its content (it streams in again after it's
+   * been freed, and warms again): a chart jump there waits for the one that matches the session's.
+   */
+  private islandWarm = new Map<StreamedIsland, { gen: number; done: Promise<void> }>();
+  private unwatchIslands: (() => void) | null = null;
+  /** The chart's pick waits a moment before it prefetches (pointing across the chart isn't a pick). */
+  private chartPickTimer = 0;
 
   constructor(private readonly o: GameFlowOptions) {
     const settings = sanitizeSettings({ ...DEFAULT_SETTINGS, ...readJson<Partial<Settings>>(SETTINGS_KEY) });
@@ -283,8 +284,6 @@ export class GameFlow implements GameBridge {
 
   openChart(): void {
     const from = this.state.screen;
-    // A jump to Port Meridian may follow: start streaming it now.
-    void this.cove?.meridian.load();
     this.session?.setPaused(true);
     const anchors = this.cove ? { ...this.cove.village.anchors, ...this.cove.sites.anchors } : {};
     this.set({
@@ -323,6 +322,24 @@ export class GameFlow implements GameBridge {
     this.set({ screen: to, returnTo: to === 'paused' ? 'playing' : 'title' });
   }
 
+  /**
+   * The chart's island card shows `islandId`: a jump there is likely, so it starts streaming in at
+   * low priority once the pick has held a moment (PLAN §13.3; it's freed again if you don't go).
+   */
+  chartSelect(islandId: string): void {
+    window.clearTimeout(this.chartPickTimer);
+    const cove = this.cove;
+    if (!cove || !this.session || islandId === this.session.island) return;
+    if (islandId !== 'anchorage' && islandId !== 'meridian' && islandId !== 'thousand-bough') return;
+    // A locked island (not open yet) is only shown on the chart: nothing of it streams (the same gate
+    // as `openIslands`, from the modules the chart asks without loading the world).
+    if (islandId === 'meridian' && !meridianOpen()) return;
+    if (islandId === 'thousand-bough' && !thousandBoughOpen()) return;
+    this.chartPickTimer = window.setTimeout(() => {
+      if (this.cove === cove && this.state.screen === 'chart') void cove[islandStream(islandId)].load('low');
+    }, 600);
+  }
+
   /** Fast travel to a point on Anchorage's chart, or to another island's quay (`island:<id>`). */
   travelTo(pointId: string): void {
     if (!this.session || !this.cove) return;
@@ -336,12 +353,10 @@ export class GameFlow implements GameBridge {
     const p = { x: 'wx' in to ? to.wx : to.x, z: 'wz' in to ? to.wz : to.z, heading: to.heading };
     void (async () => {
       await session.hud.fade(true, 260);
-      // A jump to Port Meridian waits for it to stream in and warm (behind the fade).
-      if (pointId === 'island:meridian') await this.meridianWarm;
-      if (pointId === 'island:thousand-bough') {
-        void this.cove?.thousandBough.load();
-        await this.thousandBoughWarm;
-      }
+      // A jump to another island waits for it to stream in and warm (behind the fade).
+      const id = pointId.slice('island:'.length);
+      if (this.cove && (id === 'anchorage' || id === 'meridian' || id === 'thousand-bough'))
+        await this.islandWarmed(this.cove, session, id);
       if (this.session !== session) return;
       await session.travel(p.x, p.z, p.heading);
       this.resume();
@@ -351,59 +366,69 @@ export class GameFlow implements GameBridge {
   }
 
   /**
-   * Warms Port Meridian once it has streamed in (boarding, the chart, or coming within range starts
-   * that): its terrain, foam, plants, town and gulls, its cast, chests and puzzle sites. The frame
-   * loop leaves its visibility to the warm meanwhile, and it's hidden again afterwards (shown by
-   * distance).
+   * Warms a streamed island's world and the session's content on it (its cast, chests and sites),
+   * each time it streams in: the frame loop leaves its visibility to the warm meanwhile, and it's
+   * hidden again afterwards (shown by distance).
    */
-  private async warmMeridian(
+  private warmIsland(
     cove: CoveScene,
-    session: GameSession,
+    id: StreamedIsland,
+    setup: { roots: Object3D[]; reveal(): void },
     post: { compileObject(object: Object3D): Promise<void> } | null,
   ): Promise<void> {
-    const { roots: gs, reveal } = await session.meridianSetup;
     // This runs straight after the setup (a microtask, before the next frame), so warmLate hides what
     // it added before it's drawn.
-    const own = cove.meridian.roots();
-    if (this.cove !== cove || !own.length) return;
-    cove.meridian.hold(true);
-    try {
-      await this.warmLate(cove, [...own, ...gs], post, { keepHidden: own, terrain: cove.meridian.terrain });
-    } finally {
-      if (this.cove === cove) {
-        cove.meridian.hold(false);
-        reveal();
-      }
+    const stream = cove[islandStream(id)];
+    const own = stream.roots();
+    if (this.cove !== cove) return Promise.resolve();
+    if (!own.length) {
+      setup.reveal();
+      return Promise.resolve();
     }
+    stream.hold(true);
+    return this.warmLate(cove, [...own, ...setup.roots], post, {
+      keepHidden: own,
+      terrain: stream.terrain,
+      // The harbour mirror only draws round Anchorage's harbour, a long way from Thousand-Bough.
+      reflected: id !== 'thousand-bough',
+    }).finally(() => {
+      if (this.cove === cove) {
+        stream.hold(false);
+        setup.reveal();
+      }
+    });
   }
 
-  /**
-   * Warms Thousand-Bough once it has streamed in (coming within range, a jump there, or boarding for
-   * it starts that), like Port Meridian: its terrain, foam, tree village, plants and birds, and the
-   * cast and props the session puts on it (`thousandBoughSetup`, when the session has one).
-   */
-  private async warmThousandBough(
+  /** Watches the session's islands from now on: each setup of one (a first visit or a reload) is warmed. */
+  private watchIslands(
     cove: CoveScene,
     session: GameSession,
     post: { compileObject(object: Object3D): Promise<void> } | null,
-  ): Promise<void> {
-    const world = await cove.thousandBough.worldReady;
-    const setup = await (session as { thousandBoughSetup?: Promise<IslandSetup> }).thousandBoughSetup;
-    const own = cove.thousandBough.roots();
-    if (this.cove !== cove || !world || !own.length) return;
-    cove.thousandBough.hold(true);
-    try {
-      await this.warmLate(cove, [...own, ...(setup?.roots ?? [])], post, {
-        keepHidden: own,
-        terrain: cove.thousandBough.terrain,
-        // The harbour mirror only draws round Anchorage's harbour, a long way off.
-        reflected: false,
-      });
-    } finally {
-      if (this.cove === cove) {
-        cove.thousandBough.hold(false);
-        setup?.reveal();
-      }
+    warmedAlready: readonly StreamedIsland[],
+  ): void {
+    this.unwatchIslands?.();
+    this.islandWarm.clear();
+    const warm = (id: StreamedIsland, setup: { roots: Object3D[]; reveal(): void }, gen: number) =>
+      this.islandWarm.set(id, { gen, done: this.warmIsland(cove, id, setup, post) });
+    for (const { id, setup, gen } of session.islandSetups()) {
+      if (warmedAlready.includes(id)) this.islandWarm.set(id, { gen, done: Promise.resolve() });
+      else warm(id, setup, gen);
+    }
+    this.unwatchIslands = session.onIslandSetup((id, setup) => warm(id, setup, session.islandSetupGen(id)));
+  }
+
+  /** Streams an island in (if it isn't) and waits for its content's warm-up; gives up if the voyage ends. */
+  private async islandWarmed(cove: CoveScene, session: GameSession, id: StreamedIsland): Promise<void> {
+    // A jump there asks again at once, even after a failed stream.
+    const world = await cove[islandStream(id)].load('auto', true);
+    if (!world) return;
+    const stream = cove[islandStream(id)];
+    for (let i = 0; i < 1800 && this.cove === cove && this.session === session; i++) {
+      // This load's content is set up (a reload's too: one setup per load) and its warm has begun.
+      const gen = session.islandSetupGen(id);
+      const w = this.islandWarm.get(id);
+      if (stream.state === 'resident' && gen === stream.loads && w?.gen === gen) return w.done;
+      await new Promise<void>((r) => requestAnimationFrame(() => r()));
     }
   }
 
@@ -880,9 +905,7 @@ export class GameFlow implements GameBridge {
       // few milliseconds of main-thread work a frame, while the cabin holds its establishing shot.
       // Objects that appear later (marked userData.prewarm) are shown for the warm, then hidden.
       if (thousandBoughFirst) {
-        const setup = await (this.session as { thousandBoughSetup?: Promise<IslandSetup> })
-          .thousandBoughSetup;
-        setup?.reveal();
+        (await this.session.thousandBoughSetup).reveal();
         cove.thousandBough.hold(true);
         for (const r of cove.thousandBough.roots()) r.visible = true;
       }
@@ -995,9 +1018,11 @@ export class GameFlow implements GameBridge {
       this.set({ screen: 'playing', returnTo: 'playing', hasSave: true, save: this.saveSummary() });
       engine.renderer.domElement.focus();
       this.session.begin();
-      if (!meridianFirst) this.meridianWarm = this.warmMeridian(cove, this.session, post ?? null);
-      if (!thousandBoughFirst)
-        this.thousandBoughWarm = this.warmThousandBough(cove, this.session, post ?? null);
+      // From here, each island that streams in (a first visit, or again after it was freed) warms.
+      const warmedWithVoyage: StreamedIsland[] = ['anchorage'];
+      if (meridianFirst) warmedWithVoyage.push('meridian');
+      if (thousandBoughFirst) warmedWithVoyage.push('thousand-bough');
+      this.watchIslands(cove, this.session, post ?? null, warmedWithVoyage);
       if (this.settingsOnLand) {
         const qualityNotice = this.settingsOnLand;
         this.settingsOnLand = null;
@@ -1043,6 +1068,10 @@ export class GameFlow implements GameBridge {
 
   private endVoyage(): void {
     this.islandMusicDue = null;
+    this.unwatchIslands?.();
+    this.unwatchIslands = null;
+    this.islandWarm.clear();
+    window.clearTimeout(this.chartPickTimer);
     this.unslice?.();
     this.unslice = null;
     if (this.resolutionHeld) {
@@ -1129,6 +1158,11 @@ export class GameFlow implements GameBridge {
 const QUALITIES = new Set(['auto', 'lite', 'low', 'medium', 'high', 'ultra']);
 
 /** Old or hand-edited settings fall back to the defaults field by field. */
+/** The scene's stream for an island (`cove.anchorage`, `cove.meridian`, `cove.thousandBough`). */
+function islandStream(id: StreamedIsland): 'anchorage' | 'meridian' | 'thousandBough' {
+  return id === 'thousand-bough' ? 'thousandBough' : id;
+}
+
 function sanitizeSettings(s: Settings): Settings {
   const out = { ...s };
   if (!QUALITIES.has(out.quality)) out.quality = DEFAULT_SETTINGS.quality;

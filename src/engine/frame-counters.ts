@@ -1,4 +1,5 @@
 import type { WebGPURenderer } from 'three/webgpu';
+import { correctMemoryInfo, type InfoWithMemory } from './memory-ledger';
 
 export interface FrameStats {
   /** Draw calls in the last frame, summed across every pass (scene, mirror, post). Used for budgets. */
@@ -92,6 +93,7 @@ export class FrameCounters {
   constructor(renderer: WebGPURenderer | { info: InfoLike }) {
     this.info = renderer.info as unknown as InfoLike;
     this.info.autoReset = false;
+    correctMemoryInfo(renderer.info as unknown as InfoWithMemory);
   }
 
   beginFrame(): void {

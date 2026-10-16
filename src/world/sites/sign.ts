@@ -164,8 +164,32 @@ export interface SignOptions extends SignStyle {
   offsetY?: number;
 }
 
-/** Each board is painted at this width in pixels (its height keeps the board's aspect). */
+/** Boards are laid out (frame, lettering) at this width in pixels, then painted scaled to their size. */
 const SIGN_PX = 1024;
+/**
+ * Atlas pixels per metre of board, and the narrowest and widest a board is painted, per tier. A board
+ * used to be painted 1024 px wide whatever its size (a 0.5 m plaque at 2 000 px/m): at the follow
+ * camera's distance a metre of board covers ~300 px on a 1080p High screen, ~600 px in a talk shot.
+ * Lite draws at ~0.55 of a 1366-wide screen, so half that is still more than it shows.
+ */
+const SIGN_RESOLUTION = {
+  ultra: { perMetre: 640, min: 384, max: 1024 },
+  high: { perMetre: 640, min: 384, max: 1024 },
+  medium: { perMetre: 512, min: 320, max: 1024 },
+  low: { perMetre: 384, min: 256, max: 768 },
+  lite: { perMetre: 320, min: 192, max: 512 },
+} as const;
+let resolution: { perMetre: number; min: number; max: number } = SIGN_RESOLUTION.high;
+
+/** Sets how finely new sign sets paint their boards (the world's owner, from its tier). */
+export function setSignResolution(tier: keyof typeof SIGN_RESOLUTION): void {
+  resolution = SIGN_RESOLUTION[tier];
+}
+
+/** A board's painted width in atlas pixels. */
+export function signPixels(w: number): number {
+  return Math.round(Math.min(resolution.max, Math.max(resolution.min, w * resolution.perMetre)));
+}
 /** Edge pixels repeat this far round each board, so filtering and the first mips don't bleed. */
 const GUTTER = 8;
 /** WebGPU's default `maxTextureDimension2D`. */
@@ -231,8 +255,8 @@ export class SignSet {
       h,
       offsetY,
       twoSided,
-      pw: SIGN_PX,
-      ph: Math.round((SIGN_PX * h) / w),
+      pw: signPixels(w),
+      ph: Math.max(1, Math.round((signPixels(w) * h) / w)),
       lines,
       style,
       x: 0,
@@ -275,23 +299,7 @@ export class SignSet {
   }
 
   private *finalizeSteps(): Generator<void, Mesh, void> {
-    // Boards stack down a column; a set too tall for one starts another beside it.
-    const column = SIGN_PX + GUTTER * 2;
-    let columns = 1;
-    let y = 0;
-    let height = 1;
-    for (const e of this.entries) {
-      const h = e.ph + GUTTER * 2;
-      if (y > 0 && y + h > MAX_ATLAS) {
-        columns++;
-        y = 0;
-      }
-      e.x = (columns - 1) * column + GUTTER;
-      e.y = y + GUTTER;
-      y += h;
-      height = Math.max(height, y);
-    }
-    const width = columns * column;
+    const { width, height } = packShelves(this.entries);
     if (height > MAX_ATLAS || width > MAX_ATLAS)
       throw new Error(`SignSet ${this.name}: atlas ${width} × ${height} px is too big`);
     const canvas = document.createElement('canvas');
@@ -370,12 +378,15 @@ export class SignSet {
   private paint(e: SignEntry): void {
     const canvas = this.canvas!;
     const ctx = canvas.getContext('2d')!;
+    // Laid out at SIGN_PX wide (the frame, seams and lettering keep their proportions), scaled to fit.
+    const k = e.pw / SIGN_PX;
     ctx.save();
     ctx.translate(e.x, e.y);
     ctx.beginPath();
     ctx.rect(0, 0, e.pw, e.ph);
     ctx.clip();
-    paintSign(ctx, e.pw, e.ph, e.lines, e.style);
+    ctx.scale(k, k);
+    paintSign(ctx, SIGN_PX, e.ph / k, e.lines, e.style);
     ctx.restore();
     ctx.save();
     ctx.imageSmoothingEnabled = false;
@@ -387,6 +398,39 @@ export class SignSet {
     ctx.drawImage(canvas, x + pw - 1, y - g, 1, ph + g * 2, x + pw, y - g, g, ph + g * 2);
     ctx.restore();
   }
+}
+
+/**
+ * Packs boards (with their gutters) into shelves, tallest first, each into the first shelf it fits
+ * (first-fit decreasing height). The atlas is as wide as the widest board, or wider when the set is
+ * too tall for one texture. Sets each entry's `x`/`y`; returns the atlas size.
+ */
+function packShelves(entries: SignEntry[]): { width: number; height: number } {
+  const g2 = GUTTER * 2;
+  let area = 0;
+  let widest = 1;
+  for (const e of entries) {
+    area += (e.pw + g2) * (e.ph + g2);
+    widest = Math.max(widest, e.pw + g2);
+  }
+  const width = Math.min(MAX_ATLAS, Math.max(widest, Math.ceil((area * 1.2) / MAX_ATLAS / 64) * 64));
+  const order = [...entries].sort((a, b) => b.ph - a.ph || b.pw - a.pw);
+  const shelves: { y: number; h: number; x: number }[] = [];
+  let height = 0;
+  for (const e of order) {
+    const w = e.pw + g2;
+    const h = e.ph + g2;
+    let shelf = shelves.find((s) => s.x + w <= width && h <= s.h);
+    if (!shelf) {
+      shelf = { y: height, h, x: 0 };
+      shelves.push(shelf);
+      height += h;
+    }
+    e.x = shelf.x + GUTTER;
+    e.y = shelf.y + GUTTER;
+    shelf.x += w;
+  }
+  return { width, height: Math.max(1, height) };
 }
 
 /**

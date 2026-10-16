@@ -21,7 +21,7 @@ import { MERIDIAN_YARD } from './crate-yard-logic';
 import { createHelmBuoys } from './helm-buoys';
 import { createMill } from './mill';
 import { InstanceProxies } from './proxies';
-import { SignSet } from './sign';
+import { SignSet, setSignResolution, signPixels } from './sign';
 import { flatHeight, installCanvasStub, kit } from './site-test-support';
 
 beforeAll(installCanvasStub);
@@ -67,6 +67,17 @@ const calmSea: WaveSampler = {
 };
 
 describe('SignSet', () => {
+  test("paints a board at its size in metres, within its tier's limits", () => {
+    setSignResolution('high');
+    expect(signPixels(0.5)).toBe(384);
+    expect(signPixels(1.22)).toBe(781);
+    expect(signPixels(3.6)).toBe(1024);
+    setSignResolution('lite');
+    expect(signPixels(0.5)).toBe(192);
+    expect(signPixels(3.6)).toBe(512);
+    setSignResolution('high');
+  });
+
   test('draws every board from one atlas with one material and one mesh', () => {
     const set = new SignSet('test signs');
     set.add(['One'], 2, 0.5);
@@ -86,16 +97,29 @@ describe('SignSet', () => {
     expect(geometry.index?.count).toBe(6 + 12 + 6);
     expect(mesh.castShadow).toBe(true);
 
-    // Every board maps to its own atlas band (no overlap).
+    // Every board maps to its own atlas rectangle (no overlap).
     const uv = geometry.getAttribute('uv') as BufferAttribute;
-    const bands = [0, 4, 12].map((start) => [uv.getY(start), uv.getY(start + 2)] as const);
-    for (const [v0, v1] of bands) {
-      expect(v0).toBeGreaterThanOrEqual(0);
-      expect(v1).toBeLessThanOrEqual(1);
-      expect(v1).toBeGreaterThan(v0);
+    const rects = [0, 4, 12].map((start) => ({
+      u0: uv.getX(start),
+      v0: uv.getY(start),
+      u1: uv.getX(start + 2),
+      v1: uv.getY(start + 2),
+    }));
+    for (const r of rects) {
+      expect(r.u0).toBeGreaterThanOrEqual(0);
+      expect(r.v0).toBeGreaterThanOrEqual(0);
+      expect(r.u1).toBeLessThanOrEqual(1);
+      expect(r.v1).toBeLessThanOrEqual(1);
+      expect(r.v1).toBeGreaterThan(r.v0);
+      expect(r.u1).toBeGreaterThan(r.u0);
     }
-    const sorted = [...bands].sort((a, b) => a[0] - b[0]);
-    for (let i = 1; i < sorted.length; i++) expect(sorted[i]![0]).toBeGreaterThanOrEqual(sorted[i - 1]![1]);
+    for (let i = 0; i < rects.length; i++)
+      for (let j = i + 1; j < rects.length; j++) {
+        const a = rects[i]!,
+          b = rects[j]!;
+        const apart = a.u1 <= b.u0 || b.u1 <= a.u0 || a.v1 <= b.v0 || b.v1 <= a.v0;
+        expect(apart).toBe(true);
+      }
     expect(() => set.add(['Late'], 1, 1)).toThrow();
     set.dispose();
   });

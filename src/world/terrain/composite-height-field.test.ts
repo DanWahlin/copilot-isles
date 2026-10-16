@@ -34,4 +34,17 @@ describe('CompositeHeightField', () => {
     expect(composite.heightAt(4, 4)).toBe(1);
     expect(composite.heightAt(8, 8)).toBe(9);
   });
+
+  it('takes an unloaded island out, and back in when it streams again', () => {
+    const composite = new CompositeHeightField(-58);
+    composite.add({ minX: -10, maxX: 10, minZ: -10, maxZ: 10 }, field(3));
+    const meridian = field(63);
+    const box = { minX: 800, maxX: 900, minZ: -900, maxZ: -800 };
+    composite.add(box, meridian);
+    composite.remove(meridian);
+    expect(composite.heightAt(850, -850)).toBe(-58);
+    expect(composite.heightAt(0, 0)).toBe(3);
+    composite.add(box, meridian);
+    expect(composite.heightAt(850, -850)).toBe(63);
+  });
 });

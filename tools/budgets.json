@@ -15,5 +15,26 @@
     }
   },
   "titleWireMaxKB": 4096,
-  "skyKeyMaxKB": 112
+  "skyKeyMaxKB": 112,
+  "memory": {
+    "$comment": "tools/memorytest.mjs (npm run check:memory): GPU memory three tracks (renderer.info, made honest by engine/memory-ledger.ts) and the JS heap after GC, at each stop of two Anchorage \u2192 Meridian \u2192 Thousand-Bough \u2192 Anchorage round trips. Ceilings are the measured peaks plus ~15 %.",
+    "margin": {
+      "trackedPct": 10,
+      "heapPct": 15
+    },
+    "leak": {
+      "trackedMB": 8,
+      "heapMB": 6
+    },
+    "ceilings": {
+      "high": {
+        "trackedMB": 661,
+        "heapMB": 129
+      },
+      "lite": {
+        "trackedMB": 228,
+        "heapMB": 103
+      }
+    }
+  }
 }

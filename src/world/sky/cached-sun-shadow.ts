@@ -1,12 +1,23 @@
-import { Matrix4, Object3D, ShadowBaseNode, Vector3, type Mesh } from 'three/webgpu';
+import {
+  Matrix4,
+  Object3D,
+  RedFormat,
+  ShadowBaseNode,
+  ShadowNode,
+  UnsignedByteType,
+  Vector3,
+  type DepthTexture,
+  type Mesh,
+  type RenderTarget,
+} from 'three/webgpu';
 import type {
   DirectionalLight,
   DirectionalLightShadow,
   Light,
+  LightShadow,
   Node,
   NodeBuilder,
   NodeFrame,
-  ShadowNode,
 } from 'three/webgpu';
 import {
   Fn,
@@ -16,7 +27,6 @@ import {
   length,
   min,
   normalWorld,
-  shadow,
   shadowPositionWorld,
   smoothstep,
   uniform,
@@ -99,6 +109,34 @@ class ShadowSlot extends Object3D {
 }
 
 /**
+ * A sun shadow map whose colour target is one byte a texel. three's `ShadowNode` gives every map an
+ * RGBA8 colour target the size of the map as well as its depth (for `shadowMap.transmitted`, which we
+ * don't use; three's render path needs a colour attachment): 64 MB at High's 4096², of which the PCF
+ * lookup reads nothing. R8 keeps the attachment and cuts it to a quarter.
+ */
+interface ShadowTargets {
+  shadowMap: RenderTarget;
+  depthTexture: DepthTexture;
+}
+interface ShadowTargetSetup {
+  setupRenderTarget(this: ShadowNode, shadow: LightShadow, builder: NodeBuilder): ShadowTargets;
+}
+
+class DepthOnlyShadowNode extends ShadowNode {
+  // three's own hook (documented in ShadowNode.js; missing from @types/three 0.186).
+  setupRenderTarget(shadow: LightShadow, builder: NodeBuilder): ShadowTargets {
+    const made = (ShadowNode.prototype as unknown as ShadowTargetSetup).setupRenderTarget.call(
+      this,
+      shadow,
+      builder,
+    );
+    made.shadowMap.texture.format = RedFormat;
+    made.shadowMap.texture.type = UnsignedByteType;
+    return made;
+  }
+}
+
+/**
  * The sun's shadows as two maps (PLAN §12.1, §12.4): a large static map that's drawn only when the
  * focus moves past the threshold, the sun turns, or a static caster changes (shadow-cache.ts), and a
  * small map around the focus for moving things, drawn every frame. Receivers take the darker of the
@@ -177,8 +215,8 @@ export class CachedSunShadowNode extends ShadowBaseNode {
   }
 
   override setup(builder: NodeBuilder): Node {
-    const nodes = (this.shadowNodes ??= this.slots.map((slot) =>
-      shadow(slot as unknown as Light, slot.shadow),
+    const nodes = (this.shadowNodes ??= this.slots.map(
+      (slot) => new DepthOnlyShadowNode(slot as unknown as Light, slot.shadow),
     )) as unknown as Node<'float'>[];
     const position = shadowPositionWorld as Node<'vec3'>;
     return Fn(() => {

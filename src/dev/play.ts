@@ -80,21 +80,23 @@ async function begin(unlock: boolean): Promise<void> {
     quiet: q.has('quiet'),
     learn,
   });
-  // The game's flow warms Port Meridian once it streams in; here its cast and sites just precompile,
+  // The game's flow warms an island each time it streams in; here its cast and sites just precompile,
   // for the post's scene pass like the game's warm (a bare precompile builds shaders no draw uses).
   const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
-  const precompile = (g: Object3D) =>
-    void (post
-      ? compileProgressively(g, (o) => post.compileObject(o), nextFrame)
-      : renderer.compileAsync(g, camera, scene));
-  void session.meridianSetup.then(({ roots, reveal }) => {
+  const precompile = (g: Object3D): Promise<void> =>
+    post
+      ? compileProgressively(g, (o) => post.compileObject(o), nextFrame).then(() => undefined)
+      : renderer.compileAsync(g, camera, scene).then(() => undefined);
+  // Each time an island's content goes on (a first visit, or again after it was freed).
+  const ready = ({ roots, reveal }: { roots: Object3D[]; reveal(): void }, reload: boolean) => {
     reveal();
-    roots.forEach(precompile);
-  });
-  void session.thousandBoughSetup.then(({ roots, reveal }) => {
-    reveal();
-    roots.forEach(precompile);
-  });
+    const built = Promise.all(roots.map(precompile)).then(nextFrame).then(nextFrame);
+    // An island back from being freed re-uploads what it gave back: a late addition, like the game's
+    // warm (which this page doesn't run).
+    if (reload) void engine.counters.excuse(built);
+  };
+  for (const { setup } of session.islandSetups()) ready(setup, false);
+  session.onIslandSetup((id, setup) => ready(setup, session!.islandSetupGen(id) > 1));
   for (const fn of playingListeners) fn();
   document.getElementById('start')!.classList.add('hide');
   canvas.focus();

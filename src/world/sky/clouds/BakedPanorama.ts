@@ -117,13 +117,39 @@ const keyTextures: (Promise<Texture> | null)[] = SKY_KEYS.map(() => null);
 const loadedKeys: (Texture | null)[] = SKY_KEYS.map(() => null);
 const keyDomes: number[] = SKY_KEYS.map(() => 0);
 let bitmapLoader: ImageBitmapLoader | null = null;
+/** The baked keys are 4096 × 1024; a tier that draws at half width or less decodes them at half. */
+const KEY_SIZE = { width: 4096, height: 1024 };
+let keyWidth = KEY_SIZE.width;
+
+/** Sets the width the keys decode to (the tier's): drops keys decoded at another width. */
+function setKeyWidth(width: number): void {
+  if (width === keyWidth) return;
+  keyWidth = width;
+  bitmapLoader = null;
+  for (let i = 0; i < SKY_KEYS.length; i++) {
+    if (keyDomes[i]! > 0) continue;
+    loadedKeys[i]?.dispose();
+    loadedKeys[i] = null;
+    keyTextures[i] = null;
+  }
+}
 
 function loadKey(i: number): Promise<Texture> {
   const cached = keyTextures[i];
   if (cached) return cached;
+  const half = keyWidth < KEY_SIZE.width;
   bitmapLoader ??= new ImageBitmapLoader().setOptions({
     imageOrientation: 'none',
     premultiplyAlpha: 'none',
+    // Lite and Low (render scale ~0.55-0.75, DPR 1) show a 360° sky across ~2 600-4 000 px at most:
+    // half the width is as sharp on screen, at a quarter of the memory (21 → 5.3 MB a key, with mips).
+    ...(half
+      ? {
+          resizeWidth: keyWidth,
+          resizeHeight: (KEY_SIZE.height * keyWidth) / KEY_SIZE.width,
+          resizeQuality: 'high' as const,
+        }
+      : {}),
   });
   const loader = bitmapLoader;
   const url = `${import.meta.env.BASE_URL}sky/clouds-${SKY_KEYS[i]!.name}.webp`;
@@ -149,7 +175,8 @@ function loadKey(i: number): Promise<Texture> {
   return p;
 }
 
-export function createBakedClouds(renderer: WebGPURenderer): BakedClouds {
+export function createBakedClouds(renderer: WebGPURenderer, opts: { halfKeys?: boolean } = {}): BakedClouds {
+  setKeyWidth(opts.halfKeys ? KEY_SIZE.width / 2 : KEY_SIZE.width);
   // Turns the layer so its baked sun sits where today's sun is (islands and Settings set the azimuth).
   const turn = uniform(0);
   const night = uniform(0);

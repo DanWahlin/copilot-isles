@@ -386,8 +386,14 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
     group: Group;
     batches: PlantBatch[];
     impostors: ImpostorBatch | null;
+    casters: InstancedMesh[];
+    /** It baked the impostor atlas the later patches share (kept until the system goes). */
+    ownsBake: boolean;
   }
   const patches: Patch[] = [];
+  /** The first island's own plants (not the patches): false while that island is dormant. */
+  let homeAwake = true;
+  const homeCasters = casters.slice();
 
   let lastStats: VegetationStats = {
     totalInstances: batches.reduce((sum, batch) => sum + batch.instances.length, 0),
@@ -404,9 +410,11 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
     group,
     update(camera) {
       setPlantFrustum(camera);
-      for (const batch of batches) updateBatch(batch, camera, tier);
-      grass.update(camera);
-      impostors?.update(camera);
+      if (homeAwake) {
+        for (const batch of batches) updateBatch(batch, camera, tier);
+        grass.update(camera);
+        impostors?.update(camera);
+      }
       const grassStats = grass.stats();
       const impostorStats = impostors?.stats() ?? { visibleInstances: 0, drawCalls: 0, triangles: 0 };
       let visibleInstances = grassStats.visibleInstances + impostorStats.visibleInstances;
@@ -466,7 +474,9 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
       const patchGroup = new Object3D() as Group;
       patchGroup.name = name;
       patchGroup.visible = false;
+      const castersBefore = casters.length;
       const patchBatches = buildBatches(plants, patchGroup);
+      const patchCasters = casters.slice(castersBefore);
       await buildSlice();
       const entries = collectTreeLike(plants);
       if (entries.length > 0 && !impostorBake) {
@@ -477,12 +487,49 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
         entries.length > 0 && impostorBake
           ? new ImpostorBatch(entries, impostorBake, { ...impostorOptions, sharedBake: !patchOwnsBake })
           : null;
+      const ownsBake = patchOwnsBake && !!patchImpostors;
       // Only the first patch to bake the atlas owns it.
       patchOwnsBake = false;
       if (patchImpostors) patchGroup.add(patchImpostors.mesh);
-      patches.push({ group: patchGroup, batches: patchBatches, impostors: patchImpostors });
+      patches.push({
+        group: patchGroup,
+        batches: patchBatches,
+        impostors: patchImpostors,
+        casters: patchCasters,
+        ownsBake,
+      });
       group.add(patchGroup);
       return { group: patchGroup };
+    },
+    home() {
+      return [
+        ...batches.map((b) => b.mesh),
+        ...homeCasters,
+        grass.group,
+        ...(impostors ? [impostors.mesh] : []),
+      ];
+    },
+    setHomeAwake(on) {
+      homeAwake = on;
+    },
+    removePlants(patch) {
+      const i = patches.findIndex((p) => p.group === patch.group);
+      if (i < 0) return;
+      const p = patches[i]!;
+      // A patch that baked the shared atlas keeps its batch (and the atlas) until the system goes.
+      if (p.ownsBake) return;
+      patches.splice(i, 1);
+      p.group.removeFromParent();
+      for (const batch of p.batches) {
+        batch.mesh.geometry.dispose();
+        batch.mesh.dispose();
+      }
+      for (const caster of p.casters) {
+        casters.splice(casters.indexOf(caster), 1);
+        caster.geometry.dispose();
+        caster.dispose();
+      }
+      p.impostors?.dispose();
     },
     dispose() {
       for (const batch of [...batches, ...patches.flatMap((p) => p.batches)]) {

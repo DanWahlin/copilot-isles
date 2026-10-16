@@ -1,16 +1,5 @@
 import { sharedInstancedMesh } from '../../engine/instancing';
-import {
-  BufferAttribute,
-  BufferGeometry,
-  DoubleSide,
-  Euler,
-  Group,
-  Matrix4,
-  Mesh,
-  MeshBasicNodeMaterial,
-  Quaternion,
-  Vector3,
-} from 'three/webgpu';
+import { BufferAttribute, BufferGeometry, Euler, Group, Matrix4, Quaternion, Vector3 } from 'three/webgpu';
 import type { CircleObstacle, HeightField } from '../contracts';
 import { fbm2, ridged2 } from '../terrain/cove-height';
 import { ROCK_ASSETS } from '../terrain/rock-assets';
@@ -556,64 +545,6 @@ export function meridianMasks(
   const total = sand + grass + rock + cliff;
   if (total < 0.001) return { sand: 0.2, grass: 0, rock: 0.8, cliff: 0 };
   return { sand: sand / total, grass: grass / total, rock: rock / total, cliff: cliff / total };
-}
-
-export function createMeridianSilhouette(): Group {
-  const group = new Group();
-  group.name = 'meridian-silhouette';
-  const positions: number[] = [];
-  const indices: number[] = [];
-  const alongSegments = 96;
-  const depthSegments = 12;
-  const angle = -0.5;
-  const ca = Math.cos(angle);
-  const sa = Math.sin(angle);
-
-  for (let i = 0; i <= alongSegments; i++) {
-    const u = i / alongSegments;
-    const along = (u - 0.5) * 500;
-    const peakA = Math.exp(-((u - 0.36) ** 2) / 0.006) * 34;
-    const peakB = Math.exp(-((u - 0.53) ** 2) / 0.012) * 46;
-    const peakC = Math.exp(-((u - 0.69) ** 2) / 0.01) * 28;
-    const ridge = 9 + peakA + peakB + peakC + Math.sin(u * Math.PI * 5.5) * 3;
-    const width = 190 + Math.sin(u * Math.PI) * 64;
-    for (let j = 0; j <= depthSegments; j++) {
-      const v = j / depthSegments;
-      const depth = (v - 0.25) * width;
-      const backSlope = smoothstep(0.5, 0.94, v);
-      const crown = Math.sin(Math.PI * Math.min(1, v * 0.82 + 0.18));
-      const y = -5.2 + ridge * backSlope * Math.pow(Math.max(0, crown), 0.65) - (1 - backSlope) * 4.2;
-      const x = MERIDIAN.center.x + ca * along - sa * depth;
-      const z = MERIDIAN.center.z + sa * along + ca * depth;
-      positions.push(x, y, z);
-    }
-  }
-
-  const stride = depthSegments + 1;
-  for (let i = 0; i < alongSegments; i++) {
-    for (let j = 0; j < depthSegments; j++) {
-      const a = i * stride + j;
-      const b = a + stride;
-      indices.push(a, b, a + 1, a + 1, b, b + 1);
-    }
-  }
-
-  const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
-  geometry.setIndex(indices);
-  // No normals: the unlit material doesn't read them, and without them it shares its shader with the
-  // other far-island silhouettes (Thousand-Bough's).
-  geometry.computeBoundingSphere();
-  const material = new MeshBasicNodeMaterial({
-    color: 0x8ba5a4,
-    depthWrite: true,
-    side: DoubleSide,
-  });
-  material.fog = true;
-  const mesh = new Mesh(geometry, material);
-  mesh.name = 'meridian-silhouette-mesh';
-  group.add(mesh);
-  return group;
 }
 
 const rockEuler = new Euler();

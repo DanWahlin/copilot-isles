@@ -226,7 +226,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
       "indices": 42,
       "path": "dry-run crane (P0.2)/crane signs#13",
       "position": "122caa01",
-      "uv": "7aff9625",
+      "uv": "1588f3a1",
       "vertices": 28,
     },
     {
@@ -456,7 +456,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
       "indices": 36,
       "path": "mill race (P0.1)/mill signs#15",
       "position": "bc023d4d",
-      "uv": "44635719",
+      "uv": "f3d2658d",
       "vertices": 24,
     },
     {

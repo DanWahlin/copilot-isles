@@ -130,6 +130,28 @@ export class CollisionWorld {
   }
 
   /**
+   * Takes colliders out again (an island that has unloaded): static circles and boxes, camera-only
+   * blockers, and moving ones, matched by identity.
+   */
+  remove(items: Iterable<CircleObstacle | BoxCollider>): void {
+    const gone = new Set<object>(items);
+    if (gone.size === 0) return;
+    const keep = <T extends object>(list: T[]) => {
+      let w = 0;
+      for (let r = 0; r < list.length; r++) if (!gone.has(list[r]!)) list[w++] = list[r]!;
+      list.length = w;
+    };
+    for (const grid of [this.grid, this.cameraGrid])
+      for (const [k, b] of grid) {
+        keep(b.circles);
+        keep(b.boxes);
+        if (b.circles.length === 0 && b.boxes.length === 0) grid.delete(k);
+      }
+    keep(this.dynamic);
+    keep(this.cameraDynamic);
+  }
+
+  /**
    * The man-made surface height at (x, z), if one is at or above the terrain. `y` (the walker's feet)
    * picks the level of a stacked surface (see WalkSurface).
    */

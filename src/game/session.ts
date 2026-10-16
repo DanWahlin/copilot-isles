@@ -3,6 +3,7 @@ import { spyglassSpeakerPan } from '../learn/spyglass-layout';
 import { CHART_LABELS, chartLabel, firstShowing } from '../learn/content/labels';
 import { Vector3, type Group, type Object3D } from 'three/webgpu';
 import { buildSlice } from '../engine/build-slice';
+import { releaseRemovedObjects } from '../util/dispose-three';
 import type { IslesAudio } from '../audio';
 import type { FootstepSurface } from '../audio/soundscape/soundscape';
 import type { Engine } from '../engine/engine';
@@ -15,7 +16,13 @@ import type { FarCull } from '../world/far-cull';
 import { COVE } from '../world/layout';
 import { windOnBow } from '../world/ship/dynamics';
 import { windAt } from '../world/wind';
-import { CollisionWorld, type SurfaceKind, type WalkSurface } from './collision';
+import { CollisionWorld, type BoxCollider, type SurfaceKind, type WalkSurface } from './collision';
+import type { CircleObstacle } from '../world/contracts';
+import { Residency, type ResidencyDecision } from './residency';
+import { MERIDIAN_FOOTPRINT, MERIDIAN_RANGE } from '../world/islands/meridian-stream';
+import { footprintDistance } from '../world/islands/footprint';
+import { ANCHORAGE_RANGE } from '../world/islands/anchorage/stream';
+import { THOUSAND_BOUGH_FOOTPRINT, THOUSAND_BOUGH_RANGE } from '../world/islands/thousand-bough/stream';
 import { Dialogue } from './dialogue';
 import { FootstepPuffs } from './footstep-puffs';
 import { FollowCamera, SAIL_RIG, WALK_RIG, type CameraShot } from './follow-camera';
@@ -25,7 +32,7 @@ import { PassageBattles } from './passage-battles';
 import type { BattleRun } from './battle-run';
 
 export { ISLANDS, islandAt } from './islands';
-import { meridianQuayHeight, meridianWater } from '../world/islands/meridian';
+import { MERIDIAN, meridianQuayHeight, meridianWater } from '../world/islands/meridian';
 import { terrainRockCameraBlockersSliced } from '../world/terrain/terrain-rocks';
 import { meridianTownPlantColliders } from '../world/meridian-town/plantings';
 import { FlyoverPath } from './flyover';
@@ -64,6 +71,7 @@ import {
   thousandBoughTracker,
 } from './thousand-bough-quests';
 import { createThousandBoughContent, type ThousandBoughContent } from './thousand-bough-session';
+import type { ThousandBoughSystem } from '../world/islands/thousand-bough/contract';
 import { noteMeridianSeal } from './thousand-bough-open';
 import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
 import { ISLAND_TIPS, TIP_SPOTS } from './island-tips';
@@ -101,6 +109,13 @@ import { createSluice } from './puzzles/sluice';
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal, SailAction } from './puzzles/types';
 
 type SessionMode = 'walk' | 'sail' | 'docking' | 'transition';
+/** The islands that stream in and out (Anchorage, built with the world, goes dormant instead). */
+export type StreamedIsland = 'anchorage' | 'meridian' | 'thousand-bough';
+/** An island's cast, chests and sites, hidden until whoever warms them calls `reveal`. */
+export interface IslandSetup {
+  roots: Object3D[];
+  reveal(): void;
+}
 /** A first landfall: waiting for the game to show, flying in (or, with reduced motion, just the title card), then done. */
 type ArrivalPhase = 'waiting' | 'flying' | 'card' | 'done';
 
@@ -156,9 +171,18 @@ export interface GameSession {
    * they've joined the scene: unwarmed and hidden, so nothing draws them before they're built. Whoever
    * warms them calls `reveal` after (the flow, with the town). Empty if Meridian never loads.
    */
-  readonly meridianSetup: Promise<{ roots: Object3D[]; reveal(): void }>;
+  readonly meridianSetup: Promise<IslandSetup>;
   /** Thousand-Bough's cast, chests and set pieces, like `meridianSetup`, once its world's streamed. */
-  readonly thousandBoughSetup: Promise<{ roots: Object3D[]; reveal(): void }>;
+  readonly thousandBoughSetup: Promise<IslandSetup>;
+  /**
+   * Hears each time an island's cast, chests and sites join the scene: the first visit, and each
+   * time it streams in again after it was freed. Hidden and unwarmed until the listener calls `reveal`.
+   */
+  onIslandSetup(fn: (id: StreamedIsland, setup: IslandSetup) => void): () => void;
+  /** The islands whose content is in the scene now, and which setup (1, 2, …) it is. */
+  islandSetups(): { id: StreamedIsland; setup: IslandSetup; gen: number }[];
+  /** How many times an island's content has been set up this voyage (0: never). */
+  islandSetupGen(id: StreamedIsland): number;
   /** Fast travel: docks the ship if you're sailing, then puts you at (x, z). */
   travel(x: number, z: number, heading: number): Promise<void>;
   /** An open island's quay by the berth (the chart's "Travel here"), or null if it isn't open. */
@@ -236,6 +260,18 @@ export interface GameSession {
     skipArrival(): void;
     /** The passage battle's run once it's built (tests: its Battle, HUD and camera director). */
     battleRun(): BattleRun | null;
+    /**
+     * Which islands are in memory (tests, the memory gate): each streamed island's state, and
+     * `settled` once every island you've left is freed and every one you need is in.
+     */
+    residency(): {
+      resident: string[];
+      states: Record<string, string>;
+      settled: boolean;
+    };
+    /** Frees (or streams in) an island now, whatever the residency rules say (tests, screenshots). */
+    unloadIsland(id: StreamedIsland): Promise<void>;
+    loadIsland(id: StreamedIsland): Promise<void>;
   };
   dispose(): void;
 }
@@ -595,17 +631,21 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   battles.prefetch(island);
   let scriptRunning = false;
   let disposed = false;
-  let meridianTownCollidersAdded = false;
+  /** Port Meridian's town colliders and camera blockers while it's in (taken out when it's freed). */
+  const meridianTownColliders: (CircleObstacle | BoxCollider)[] = [];
   const addMeridianTownColliders = (town: CoveScene['meridian']['town']) => {
-    if (!town || disposed || meridianTownCollidersAdded) return;
+    if (!town || disposed || meridianTownColliders.length) return;
     for (const c of town.colliders.circles) world.addCircle(c);
     for (const b of town.colliders.boxes) world.addBox(b);
     for (const b of town.cameraBlockers) world.addCameraBox(b);
     for (const b of cove.meridian.rockCameraBlockers) world.addCameraBox(b);
-    meridianTownCollidersAdded = true;
+    meridianTownColliders.push(
+      ...town.colliders.circles,
+      ...town.colliders.boxes,
+      ...town.cameraBlockers,
+      ...cove.meridian.rockCameraBlockers,
+    );
   };
-  addMeridianTownColliders(cove.meridian.town);
-  void cove.meridian.townReady.then(addMeridianTownColliders);
   // World beats a script can wait on (`{ cue }` steps), registered by the puzzles below.
   const cues = new Map<string, () => Promise<void>>();
   const scriptExtras = {
@@ -745,7 +785,14 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   });
 
   // Treasure chests beside their NPCs; each grants a Logbook page once.
-  const chests: { id: string; chest: TreasureChest; x: number; y: number; z: number }[] = [];
+  const chests: {
+    id: string;
+    chest: TreasureChest;
+    x: number;
+    y: number;
+    z: number;
+    circle: CircleObstacle;
+  }[] = [];
   const placeChest = (c: { id: string; side: number; back: number }, n: Npc, detail: FarCull) => {
     const s = Math.sin(n.heading);
     const co = Math.cos(n.heading);
@@ -764,8 +811,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     if (learn?.isChestOpen(c.id)) chest.setOpen();
     engine.scene.add(chest.group);
     detail.add(chest.group);
-    world.addCircle({ x, z, r: 0.55 });
-    chests.push({ id: c.id, chest, x, y, z });
+    const circle = { x, z, r: 0.55 };
+    world.addCircle(circle);
+    chests.push({ id: c.id, chest, x, y, z, circle });
     interactions.add({
       id: `chest:${c.id}`,
       label: () => 'Open the chest',
@@ -782,6 +830,19 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     const n = npcs.list.find((v) => v.spec.id === c.npc);
     if (n) placeChest(c, n, cove.detail.anchorage);
   }
+  /** Takes chests away with their island (whether each is open lives in the save, not the chest). */
+  const removeChests = (ids: readonly string[]) => {
+    for (const id of ids) {
+      const i = chests.findIndex((c) => c.id === id);
+      if (i < 0) continue;
+      const c = chests[i]!;
+      chests.splice(i, 1);
+      interactions.remove(`chest:${id}`);
+      world.remove([c.circle]);
+      c.chest.group.removeFromParent();
+      c.chest.dispose();
+    }
+  };
   async function openChest(id: string, chest: TreasureChest): Promise<void> {
     input.enabled = false;
     audio?.sfx.oneShot('step_wood', chest.group.position, 1);
@@ -1236,11 +1297,35 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   });
   if (quests()['Q0.10'] === 'done') village.setLighthouseLit(true);
 
-  const noMeridian = { roots: [] as Object3D[], reveal() {} };
-  const setupMeridian = async (
-    town: CoveScene['meridian']['town'],
-  ): Promise<{ roots: Object3D[]; reveal(): void }> => {
+  const noMeridian: IslandSetup = { roots: [], reveal() {} };
+  /**
+   * What an island's content added to the session (colliders, interactions, chests, puzzles), so
+   * it can all be taken out again when the island is freed. Whatever the player has done there lives
+   * in the save (quests, puzzles' state, chests, starfish), and the next setup reads it back.
+   */
+  interface IslandScope {
+    colliders: (CircleObstacle | BoxCollider)[];
+    interactions: string[];
+    chests: string[];
+    puzzles: Puzzle[];
+  }
+  const newScope = (): IslandScope => ({ colliders: [], interactions: [], chests: [], puzzles: [] });
+  const clearScope = (sc: IslandScope) => {
+    world.remove(sc.colliders);
+    for (const id of sc.interactions) interactions.remove(id);
+    for (const p of sc.puzzles) {
+      const i = puzzles.indexOf(p);
+      if (i >= 0) puzzles.splice(i, 1);
+      p.dispose();
+    }
+    removeChests(sc.chests);
+    sc.colliders.length = sc.interactions.length = sc.chests.length = sc.puzzles.length = 0;
+  };
+  let meridianScope = newScope();
+  const setupMeridian = async (town: CoveScene['meridian']['town']): Promise<IslandSetup> => {
     if (!town || disposed || meridianNpcs) return noMeridian;
+    addMeridianTownColliders(town);
+    const scope = meridianScope;
     const cast = [...MERIDIAN_NPCS, ...meridianExtras(town.anchors)];
     // A character a slice: the whole cast at once stalled a frame for ~150 ms while you sailed.
     const crowd = await NpcCrowd.createAsync(
@@ -1252,9 +1337,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       camera,
       { ...town.anchors.promenade! },
       buildSlice,
-      () => !disposed && !meridianNpcs,
+      () => !disposed && !meridianNpcs && cove.meridian.town === town,
     );
-    if (disposed || meridianNpcs) {
+    if (disposed || meridianNpcs || cove.meridian.town !== town) {
       crowd.dispose();
       return noMeridian;
     }
@@ -1264,6 +1349,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       n.character.group.visible = false;
       engine.scene.add(n.character.group);
       addNpcTalk(n);
+      scope.interactions.push(`npc:${n.spec.id}`);
     }
     await buildSlice();
     const chestsBefore = chests.length;
@@ -1271,11 +1357,18 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       const n = meridianNpcs.list.find((v) => v.spec.id === c.npc);
       if (n) placeChest(c, n, cove.detail.meridian);
     }
-    for (const c of chests.slice(chestsBefore)) c.chest.group.visible = false;
+    for (const c of chests.slice(chestsBefore)) {
+      c.chest.group.visible = false;
+      scope.chests.push(c.id);
+    }
     if (quests()['Q1.8'] === 'done') {
       town.setLighthouseLit(true);
       lighthouseLit = true;
     }
+    // The lift's car where you left it (a reload builds the town with the car at the bottom).
+    if (liftAt) town.setLiftCar(liftAt);
+    // The mooring lines go back on (or stay off) on the next frame.
+    mooredShown = false;
     // The lift, from the top of the east arm to the citadel bluff.
     for (const [id, up] of [
       ['liftBottom', true],
@@ -1283,8 +1376,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     ] as const) {
       const a = town.anchors[id];
       if (!a) continue;
+      const iid = up ? 'lift:bottom' : 'lift:top';
+      scope.interactions.push(iid);
       interactions.add({
-        id: up ? 'lift:bottom' : 'lift:top',
+        id: iid,
         label: () => (up ? 'Ride the lift up' : 'Ride the lift down'),
         x: a.x,
         y: a.y,
@@ -1296,7 +1391,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     }
     // P1.1 The Crate Yard on the shipyard apron, and P1.2 The Three Helms out in the bay.
     const kit = await loadVillageKit();
-    if (disposed) return noMeridian;
+    if (disposed || cove.meridian.town !== town) return noMeridian;
+    const sitesBefore = meridianSites.length;
     const yardAt = town.anchors.crateYard;
     if (yardAt) {
       const site = createCrateYardSite({ tier, kit, origin: yardAt, layout: MERIDIAN_YARD });
@@ -1308,11 +1404,14 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         world.addDynamic(c);
         world.addCameraDynamic(c);
       }
+      scope.colliders.push(...site.colliders.circles, ...site.colliders.boxes, ...site.crateCircles);
       meridianSites.push(site);
-      puzzles.push(createCrateYard(puzzleHost, site));
+      const p = createCrateYard(puzzleHost, site);
+      puzzles.push(p);
+      scope.puzzles.push(p);
     }
     await buildSlice();
-    if (disposed) return noMeridian;
+    if (disposed || cove.meridian.town !== town) return noMeridian;
     // P1.3 The Lost Letters: record cabinets between the Hall of Records' columns, and Pell's desk.
     const recordsAt = town.anchors.recordsAlcoves;
     if (recordsAt) {
@@ -1325,20 +1424,25 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       site.group.visible = false;
       engine.scene.add(site.group);
       for (const b of site.colliders.boxes) world.addBox(b);
+      scope.colliders.push(...site.colliders.boxes);
       meridianSites.push(site);
-      puzzles.push(createLostLetters(lettersHost, site));
+      const p = createLostLetters(lettersHost, site);
+      puzzles.push(p);
+      scope.puzzles.push(p);
     }
     await buildSlice();
-    if (disposed) return noMeridian;
+    if (disposed || cove.meridian.town !== town) return noMeridian;
     const buoys = createHelmBuoys({ kit, waves: ocean.field });
     buoys.group.visible = false;
     engine.scene.add(buoys.group);
     meridianSites.push(buoys);
-    puzzles.push(createThreeHelms(helmsHost, buoys, cove.quietSea));
+    const helms = createThreeHelms(helmsHost, buoys, cove.quietSea);
+    puzzles.push(helms);
+    scope.puzzles.push(helms);
     const roots = [
       ...meridianNpcs.list.map((n) => n.character.group),
       ...chests.slice(chestsBefore).map((c) => c.chest.group),
-      ...meridianSites.map((s) => s.group),
+      ...meridianSites.slice(sitesBefore).map((s) => s.group),
     ];
     for (const n of meridianNpcs.list) cove.detail.meridian.add(n.character.group);
     for (const s of meridianSites) cove.detail.meridian.add(s.group);
@@ -1352,7 +1456,21 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       },
     };
   };
-  const meridianSetup = cove.meridian.townReady.then(setupMeridian);
+  /** Takes Port Meridian's cast, chests, sites, puzzles and colliders out (before its world is freed). */
+  const teardownMeridian = () => {
+    if (meridianNpcs) {
+      meridianNpcs.dispose();
+      meridianNpcs = null;
+    }
+    clearScope(meridianScope);
+    meridianScope = newScope();
+    for (const site of meridianSites.splice(0)) {
+      site.group.removeFromParent();
+      site.dispose();
+    }
+    world.remove(meridianTownColliders);
+    meridianTownColliders.length = 0;
+  };
 
   /** Puzzles whose label has had its chance (shown now, shown in an earlier visit, or none). */
   const labelDone = new Set<string>();
@@ -1405,6 +1523,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     label: puzzleLabel,
     addNpcTalk: (n) => addNpcTalk(n),
     placeChest: placeChestAt,
+    removeChests,
     openChest: async (id) => {
       const c = chests.find((v) => v.id === id);
       if (c && !c.chest.opened) {
@@ -1416,9 +1535,167 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     cues,
     puzzles,
   });
-  const thousandBoughSetup = cove.thousandBough.worldReady.then((sys) =>
-    sys && tb ? tb.setup(sys) : noMeridian,
-  );
+
+  // ---- Islands that stream in and out (PLAN §13.3) ----
+  // Each time an island's world streams in, its content goes on it and the listeners (the flow's
+  // warm, the dev page's precompile) hear of it; before its world is freed, its content comes off.
+  const streams = {
+    anchorage: cove.anchorage,
+    meridian: cove.meridian,
+    'thousand-bough': cove.thousandBough,
+  } as const;
+  const setupListeners = new Set<(id: StreamedIsland, setup: IslandSetup) => void>();
+  // Anchorage's content went in with the session (its first setup).
+  const setupGen: Record<StreamedIsland, number> = { anchorage: 1, meridian: 0, 'thousand-bough': 0 };
+  const currentSetup: Partial<Record<StreamedIsland, IslandSetup>> = { anchorage: noMeridian };
+  const deferred = () => {
+    let resolve!: (s: IslandSetup) => void;
+    const promise = new Promise<IslandSetup>((r) => (resolve = r));
+    return { promise, resolve };
+  };
+  const nextSetup = { anchorage: deferred(), meridian: deferred(), 'thousand-bough': deferred() };
+  nextSetup.anchorage.resolve(noMeridian);
+  /** Anchorage's cast and chests while it's dormant, and whether each was shown. */
+  let anchorageParked: { object: Object3D; visible: boolean }[] = [];
+  const anchorageContent = (): Object3D[] => [
+    ...npcs.list.map((n) => n.character.group),
+    ...chests.filter((c) => COVE_CHESTS.some((k) => k.id === c.id)).map((c) => c.chest.group),
+  ];
+  /** Anchorage wakes: its cast and chests go back in (hidden until the warm-up shows them). */
+  const setupAnchorage = async (): Promise<IslandSetup> => {
+    const parked = anchorageParked;
+    anchorageParked = [];
+    for (const p of parked) {
+      p.object.visible = false;
+      engine.scene.add(p.object);
+    }
+    return {
+      roots: parked.map((p) => p.object),
+      reveal() {
+        for (const p of parked) p.object.visible = p.visible;
+        cove.anchorage.reveal();
+      },
+    };
+  };
+  /** Islands whose content is being built, or taken down. */
+  const settingUp = new Set<StreamedIsland>();
+  const unloading = new Set<StreamedIsland>();
+  const runSetup = (id: StreamedIsland, make: () => Promise<IslandSetup>) => {
+    settingUp.add(id);
+    void make().then((setup) => {
+      settingUp.delete(id);
+      if (disposed || setup === noMeridian) return;
+      setupGen[id]++;
+      currentSetup[id] = setup;
+      nextSetup[id].resolve(setup);
+      for (const fn of setupListeners) fn(id, setup);
+    });
+  };
+  const onMeridianTown = (town: NonNullable<CoveScene['meridian']['town']>) =>
+    runSetup('meridian', () => setupMeridian(town));
+  const onThousandBough = (sys: ThousandBoughSystem) =>
+    runSetup('thousand-bough', () => (tb && !disposed ? tb.setup(sys) : Promise.resolve(noMeridian)));
+  const unsubscribeStreams = [
+    cove.anchorage.onReady(() => runSetup('anchorage', setupAnchorage)),
+    cove.meridian.onReady(onMeridianTown),
+    cove.thousandBough.onReady(onThousandBough),
+  ];
+  // Streamed in before the session (a save there).
+  if (cove.meridian.state === 'resident' && cove.meridian.town) onMeridianTown(cove.meridian.town);
+  if (cove.thousandBough.state === 'resident' && cove.thousandBough.system)
+    onThousandBough(cove.thousandBough.system);
+
+  /** Frees an island you've left: its content comes off first, then its world, a part a frame. */
+  async function unloadIsland(id: StreamedIsland): Promise<void> {
+    if (unloading.has(id) || settingUp.has(id)) return;
+    unloading.add(id);
+    try {
+      await engine.counters.excuse(
+        (async () => {
+          // Everything its content put in the scene: once it's out, three is told it's disposed, or
+          // its render objects (and through them the cast, chests and sites) stay alive (skill §4).
+          const leaving: Object3D[] = [];
+          if (id !== 'anchorage')
+            for (const r of currentSetup[id]?.roots ?? []) r.traverse((o) => void leaving.push(o));
+          currentSetup[id] = undefined;
+          nextSetup[id] = deferred();
+          if (id === 'meridian') teardownMeridian();
+          else if (id === 'thousand-bough') tb?.teardown();
+          else {
+            // Anchorage sleeps with its cast and chests (they stay as they are, out of the scene).
+            const content = anchorageContent().filter((o) => o.parent);
+            anchorageParked = content.map((object) => ({ object, visible: object.visible }));
+            cove.anchorage.extra = content;
+          }
+          releaseRemovedObjects(leaving, engine.scene);
+          await streams[id].unload();
+        })(),
+      );
+    } finally {
+      unloading.delete(id);
+    }
+  }
+  const residency = new Residency([
+    { id: 'anchorage', x: COVE.island.center.x, z: COVE.island.center.z, ...ANCHORAGE_RANGE },
+    {
+      id: 'meridian',
+      x: MERIDIAN.center.x,
+      z: MERIDIAN.center.z,
+      load: MERIDIAN_RANGE.load,
+      unload: MERIDIAN_RANGE.unload,
+      distance: (x, z) => footprintDistance(MERIDIAN_FOOTPRINT, x, z),
+    },
+    {
+      id: 'thousand-bough',
+      x: THOUSAND_BOUGH.center.x,
+      z: THOUSAND_BOUGH.center.z,
+      load: THOUSAND_BOUGH_RANGE.load,
+      unload: THOUSAND_BOUGH_RANGE.unload,
+      distance: (x, z) => footprintDistance(THOUSAND_BOUGH_FOOTPRINT, x, z),
+    },
+  ]);
+  const residencyOut: ResidencyDecision = { load: [], unload: [] };
+  let residencyIn = 0;
+  const reachable = (id: IslandId) => openIslands().some((b) => b.id === id);
+  /** Where you are for residency: your feet ashore, the ship at sea (not the camera, which roams). */
+  const residencyFocus = () =>
+    mode === 'sail' || mode === 'docking' ? { x: dyn.pose.x, z: dyn.pose.z } : { x: player.x, z: player.z };
+  /** Twice a second: streams in what you'll need, frees what you've left (game/residency.ts). */
+  const updateResidency = (dt: number, t: number) => {
+    if ((residencyIn -= dt) > 0) return;
+    residencyIn = 0.5;
+    const aboard = mode === 'sail' || mode === 'docking';
+    const busy =
+      battles.active ||
+      scriptRunning ||
+      dialogue.active ||
+      anyTalking() ||
+      (!!arrival && arrival.phase !== 'done') ||
+      mode === 'transition' ||
+      mode === 'docking' ||
+      !!liftRide ||
+      tbModal ||
+      cam.framing ||
+      !!learn?.busy ||
+      puzzles.some((p) => p.engaged());
+    const f = residencyFocus();
+    residency.update(
+      {
+        now: t,
+        x: f.x,
+        z: f.z,
+        on: island,
+        target: aboard ? sailTarget().id : null,
+        busy,
+        state: (id) => streams[id].state,
+        held: (id) => streams[id].held || settingUp.has(id) || unloading.has(id),
+      },
+      residencyOut,
+    );
+    for (const l of residencyOut.load)
+      if (reachable(l.id) && !unloading.has(l.id)) void streams[l.id].load(l.priority);
+    for (const id of residencyOut.unload) void unloadIsland(id);
+  };
 
   /** What E does at sea right now, from whichever puzzle has something (taking a helm, the next leg). */
   function sailAction(): SailAction | null {
@@ -1663,11 +1940,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     };
   }
 
+  /** The compass's island streams in at low priority while you sail (nothing waits on it yet). */
+  const prefetchSailTarget = () => {
+    const to = sailTarget().id;
+    if (to !== island) void streams[to].load('low');
+  };
+
   async function board(): Promise<void> {
     if (mode !== 'walk') return;
-    // Port Meridian streams in while you sail (it's not loaded while you're ashore on Anchorage).
-    void cove.meridian.load();
-    if (tbReachable()) void cove.thousandBough.load();
+    prefetchSailTarget();
     // The compass's island is the likely next theme: it buffers while you sail.
     audio?.music.prefetch(sailTarget().music);
     mode = 'transition';
@@ -2261,7 +2542,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           hud.setPrompt(null);
           hero.update(dt);
           updateWingman(dt);
-          npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
+          if (cove.anchorage.shown) npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
           if (meridianNpcs && nearMeridian()) meridianNpcs.update(dt, mode === 'walk' ? player : FAR);
           tb?.updateNpcs(dt, mode === 'walk' ? player : FAR, camera.position);
           audio?.update(dt);
@@ -2276,7 +2557,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           hero.setSpeed(0);
           hero.update(dt);
           updateWingman(dt);
-          npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
+          if (cove.anchorage.shown) npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
           if (meridianNpcs && nearMeridian()) meridianNpcs.update(dt, mode === 'walk' ? player : FAR);
           tb?.updateNpcs(dt, mode === 'walk' ? player : FAR, camera.position);
           for (const c of chests) c.chest.update(dt, t);
@@ -2417,6 +2698,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         }
 
         if (liftRide) updateLift(dt, s, t);
+        updateResidency(dt, t);
         for (const site of meridianSites) site.update(dt, t);
         tb?.update(dt, t);
         updateCompass();
@@ -2444,7 +2726,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         hero.update(dt);
         if (rheaAboard?.group.parent) rheaAboard.update(dt);
         updateWingman(dt);
-        npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
+        if (cove.anchorage.shown) npcs.update(dt, mode === 'walk' ? player : { x: 1e6, y: 0, z: 1e6 });
         if (meridianNpcs && nearMeridian()) meridianNpcs.update(dt, mode === 'walk' ? player : FAR);
         tb?.updateNpcs(dt, mode === 'walk' ? player : FAR, camera.position);
         footstepPuffs.update(dt);
@@ -2485,8 +2767,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     audio?.music.prefetch(to.music);
     // Fast travel to a battle's destination skips it (and it counts as done).
     battles.travel(island, to.id, cam);
-    if (to.id === 'meridian') await cove.meridian.load();
-    if (to.id === 'thousand-bough') await cove.thousandBough.load();
+    await streams[to.id].load('auto', true);
     if (disposed) return;
     if (mode === 'sail' || mode === 'docking') await disembark(to);
     if (to.id !== island) {
@@ -2558,8 +2839,25 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       view(0);
       await step();
     },
-    meridianSetup,
-    thousandBoughSetup,
+    get meridianSetup() {
+      return nextSetup.meridian.promise;
+    },
+    get thousandBoughSetup() {
+      return nextSetup['thousand-bough'].promise;
+    },
+    onIslandSetup(fn) {
+      setupListeners.add(fn);
+      return () => setupListeners.delete(fn);
+    },
+    islandSetups() {
+      const out: { id: StreamedIsland; setup: IslandSetup; gen: number }[] = [];
+      for (const id of ['anchorage', 'meridian', 'thousand-bough'] as const) {
+        const setup = currentSetup[id];
+        if (setup) out.push({ id, setup, gen: setupGen[id] });
+      }
+      return out;
+    },
+    islandSetupGen: (id) => setupGen[id],
     travel,
     battle: {
       get active() {
@@ -2646,8 +2944,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         })),
       quest: (id: string, step: string) => setQuest(id, step),
       sailTo(x, z, heading) {
-        void cove.meridian.load();
-        if (tbReachable()) void cove.thousandBough.load();
+        prefetchSailTarget();
         if (mode === 'sail') dyn.reset(x, z, heading);
       },
       gangway: () => ({ down: gangwayDown, foot: { ...plank.foot }, top: { ...plank.top } }),
@@ -2686,6 +2983,28 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         if (arrival && arrival.phase !== 'done') void endArrival('skipped');
       },
       battleRun: () => battles.current,
+      unloadIsland: (id) => unloadIsland(id),
+      loadIsland: async (id) => void (await streams[id].load()),
+      residency() {
+        const states: Record<string, string> = {};
+        let settled = true;
+        const resident: string[] = [];
+        for (const r of residency.rules) {
+          const state = streams[r.id].state;
+          states[r.id] = state;
+          if (state === 'resident' || state === 'loading') resident.push(r.id);
+          const f = residencyFocus();
+          const d = Math.hypot(f.x - r.x, f.z - r.z);
+          const aboard = mode === 'sail' || mode === 'docking';
+          const keep = island === r.id || (aboard && sailTarget().id === r.id) || d <= r.unload;
+          const needed = island === r.id || (aboard && sailTarget().id === r.id) || d < r.load;
+          if (state === 'loading' || state === 'unloading' || settingUp.has(r.id) || unloading.has(r.id))
+            settled = false;
+          else if (state === 'resident' && !keep) settled = false;
+          else if (state === 'absent' && needed && reachable(r.id)) settled = false;
+        }
+        return { resident, states, settled };
+      },
       state: () => ({
         mode,
         x: +player.x.toFixed(2),
@@ -2710,6 +3029,13 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     },
     dispose() {
       disposed = true;
+      for (const u of unsubscribeStreams) u();
+      // Anchorage's cast and chests while it's dormant are out of the scene (the voyage's end doesn't
+      // see them): told they're disposed once they're freed below.
+      const parkedContent: Object3D[] = [];
+      for (const p of anchorageParked) p.object.traverse((o) => void parkedContent.push(o));
+      anchorageParked = [];
+      setupListeners.clear();
       battles.dispose(cam);
       learn?.reset();
       for (const p of puzzles) p.dispose();
@@ -2731,6 +3057,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       clearCharacterLodView(hero.group);
       footstepPuffs.dispose();
       hud.dispose();
+      releaseRemovedObjects(parkedContent, engine.scene);
     },
   };
 }

@@ -1,4 +1,4 @@
-const VERSION = 's12-v1';
+const VERSION = 's13-v1';
 const STATIC_CACHE = `copilot-isles-static-${VERSION}`;
 const RUNTIME_CACHE = `copilot-isles-runtime-${VERSION}`;
 const COURSE_CACHE = `copilot-isles-course-${VERSION}`;
@@ -49,7 +49,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.pathname.includes('/assets/') || (url.pathname.includes('/packs/') && url.searchParams.has('v'))) {
+  // The Basis transcoder (KTX2 textures, public/basis/) is fixed per three.js release: cache-first too.
+  if (
+    url.pathname.includes('/assets/') ||
+    url.pathname.includes('/basis/') ||
+    (url.pathname.includes('/packs/') && url.searchParams.has('v'))
+  ) {
     event.respondWith(cacheFirst(request));
   }
 });

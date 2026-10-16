@@ -96,4 +96,6 @@ const doc = await io.read('$OUT');
 for (const node of doc.getRoot().listNodes()) if (node.getMesh()) node.getMesh().setName(node.getName());
 await io.write('$OUT', doc);
 NODE
+# Roughness / ORM maps as KTX2 (ETC1S): compressed on the GPU (PLAN §12.7).
+node "$ROOT/tools/village/ktx-roughness.mjs" --in="$OUT" --out="$OUT"
 printf 'kit %s %s\n' "$actual" "$(shasum -a 256 "$OUT" | awk '{print $1}')"

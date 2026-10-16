@@ -32,6 +32,14 @@ export class CompositeHeightField implements HeightField {
     this.shapes?.add(bounds, field.shapeField ?? field);
   }
 
+  /** Takes out a layer added with `add` (an island that has unloaded). */
+  remove(field: HeightField): void {
+    const i = this.layers.findIndex((l) => l.field === field);
+    if (i < 0) return;
+    this.layers.splice(i, 1);
+    this.shapes?.remove(field.shapeField ?? field);
+  }
+
   heightAt(x: number, z: number): number {
     return this.pick(x, z)?.heightAt(x, z) ?? this.fallbackHeight;
   }

@@ -17,35 +17,69 @@ import { createThousandBoughAsync, type ThousandBoughWorld } from './index';
 import { createThousandBoughRocks, type ThousandBoughRocks } from './rocks';
 import { THOUSAND_BOUGH as TB } from './layout';
 import { createThousandBoughSilhouette } from './tree/silhouette';
+import { footprintDistance, type IslandFootprint } from '../footprint';
+import { disposeTree } from '../../island-parts';
+import { freeInSlices, StreamLifecycle, type StreamState } from '../../stream-lifecycle';
+import type { VegetationPatch } from '../../vegetation/types';
 
-/** Within this distance (m) of the island's centre it streams in; within `SHOW` it's drawn (not the silhouette). */
 /** The share of the island's small stones each tier keeps. */
 const SMALL_ROCKS = { lite: 0.1, low: 0.4, medium: 1, high: 1, ultra: 1 } as const;
 /** The boulders cast the sun's shadow on High and Ultra (Low and Medium spend those triangles elsewhere). */
 const ROCK_SHADOWS = (tier: TierSettings['tier']) => tier === 'high' || tier === 'ultra';
 
-export const THOUSAND_BOUGH_RANGE = { load: 1100, show: 900, detail: 640 } as const;
+/**
+ * Distances (m): it streams in within `load`, is drawn (not the silhouette) within `show`, and may be
+ * freed past `unload` (game/residency.ts), all by `footprintDistance` (from its centre as if its shore
+ * were round); its small detail within `detail` of its centre.
+ */
+export const THOUSAND_BOUGH_RANGE = { load: 1100, show: 900, detail: 640, unload: 1350 } as const;
+
+/** Thousand-Bough's outline (as `MERIDIAN_FOOTPRINT`): its ranges go by `footprintDistance`. */
+export const THOUSAND_BOUGH_FOOTPRINT: IslandFootprint = {
+  x: TB.center.x,
+  z: TB.center.z,
+  radii: [
+    320, 324, 336, 324, 320, 268, 260, 260, 256, 256, 252, 148, 308, 328, 332, 328, 336, 348, 352, 384, 400,
+    368, 340, 324, 316, 312, 324, 348, 344, 332, 336, 344,
+  ],
+};
 
 export interface ThousandBoughStream {
   /** The far shape, drawn until the island is near. */
   silhouette: Group;
+  /** Resolves once the silhouette's mesh is built (a few grid rows a breath). */
+  readonly silhouetteReady: Promise<void>;
   terrain: CreatedTerrain | null;
   foam: Mesh | null;
   /** The island's world (the tree village, its water, mist, life), once streamed. */
   system: ThousandBoughWorld | null;
   ready: boolean;
+  /** Where it is: absent, loading, resident or unloading. */
+  readonly state: StreamState;
+  /** How many times it has streamed in this voyage (each load's content is set up once). */
+  readonly loads: number;
   /**
-   * Starts streaming the island (once; later calls return the same promise). Nothing of it loads
-   * until something needs it: boarding with the island open, the chart, a save or a jump there, or
-   * coming within 1100 m. Resolves with the system once everything is in the scene (hidden), or null.
+   * Starts streaming the island (once per residency; later calls share it). Nothing of it loads
+   * until something needs it: boarding for it, the chart's pick, a save or a jump there, or coming
+   * within 1100 m. Resolves with the system once everything is in the scene (hidden), or null. After
+   * an unload the next call streams it again; `priority` 'low' is a prefetch.
    */
-  load(): Promise<ThousandBoughWorld | null>;
-  /** Resolves when `load` has finished (it doesn't start the stream). */
-  worldReady: Promise<ThousandBoughWorld | null>;
+  load(priority?: RequestPriority, retry?: boolean): Promise<ThousandBoughWorld | null>;
+  /** Resolves when the current (or next) load has finished (it doesn't start the stream). */
+  readonly worldReady: Promise<ThousandBoughWorld | null>;
+  /** Hears every load (the first and each reload after an unload). */
+  onReady(fn: (world: ThousandBoughWorld) => void): () => void;
+  /**
+   * Frees the island (terrain, foam, the tree village, plants, birds, its height field and ship
+   * obstacles) a part a frame; the silhouette stays. Whoever put things on it takes them off first.
+   */
+  unload(): Promise<void>;
   /** The island's own roots (terrain, foam, world, plants, birds) for a warm-up, once streamed. */
   roots(): Object3D[];
   /** Hands the island's visibility to a warm-up (the frame loop keeps updating but stops showing/hiding it). */
   hold(on: boolean): void;
+  /** True while a warm-up holds it. */
+  readonly held: boolean;
   /** Small detail (people, chests, props) culled while the camera's far from the island. */
   detail: FarCull;
   /** Per frame: streams in by range, shows or hides by range, and runs the world. */
@@ -80,42 +114,186 @@ export interface ThousandBoughStreamContext {
  */
 export function createThousandBoughStream(ctx: ThousandBoughStreamContext): ThousandBoughStream {
   const { scene, tier } = ctx;
-  const silhouette = ctx.disabled ? new Group() : createThousandBoughSilhouette();
+  const far = ctx.disabled
+    ? { group: new Group(), ready: Promise.resolve() }
+    : createThousandBoughSilhouette(tier.tier, ctx.breathe);
+  const silhouette = far.group;
   scene.add(silhouette);
-  let resolveReady: (s: ThousandBoughWorld | null) => void = () => {};
-  const worldReady = new Promise<ThousandBoughWorld | null>((r) => (resolveReady = r));
-  if (ctx.disabled) resolveReady(null);
-  let streaming: Promise<void> | null = null;
   let disposed = false;
   let held = false;
-  let plants: Object3D | null = null;
+  let plants: VegetationPatch | null = null;
   let birds: BirdsSystem | null = null;
+  let obstacles: CircleObstacle[] = [];
+  let priority: RequestPriority = 'auto';
   const detail = new FarCull(TB.center.x, TB.center.z, THOUSAND_BOUGH_RANGE.detail, tier.detailCullRatio);
+
+  const buildParts = async (): Promise<ThousandBoughWorld | null> => {
+    const data = await loadTerrainPack(`${ctx.packBase}/thousand-bough/terrain`, priority);
+    if (disposed) return null;
+    // The island's own boulders and the Spire ride with the terrain (shown and warmed with it).
+    let rocks: ThousandBoughRocks | null = null;
+    const terrain = await createTerrainAsync(
+      {
+        tier,
+        data,
+        name: 'thousand-bough-terrain',
+        cloudShadowNode: ctx.cloudShadowNode,
+        createRocks: (hf) =>
+          (rocks = createThousandBoughRocks(hf, undefined, SMALL_ROCKS[tier.tier], ROCK_SHADOWS(tier.tier)))
+            .group,
+      },
+      ctx.breathe,
+    );
+    // Owned from here: a failure later takes it back (teardown).
+    self.terrain = terrain;
+    // Lite's rocks (the boulders, the cave's roof and the flume's stones share their shapes) take
+    // the coarser shape the other islands' loose rocks have there. Before anything draws them, so
+    // nothing uploads twice.
+    const shapes = (rocks as ThousandBoughRocks | null)?.flumeStones.geometries ?? [];
+    const simplify = tier.tier === 'lite' && shapes.length ? await loadLodSimplifier() : null;
+    if (simplify) for (const g of shapes) simplifyInPlace(g, simplify, LITE_ROCK_ERROR);
+    await ctx.breathe();
+    if (ctx.skipShadows) skipSunShadows(terrain.group);
+    const foam = createCoastFoam(data, terrain.heightField, { maxDistance: 1100 });
+    self.foam = foam;
+    terrain.group.visible = false;
+    foam.visible = false;
+    scene.add(terrain.group, foam);
+    ctx.heightField.add(
+      { minX: data.minX, maxX: data.maxX, minZ: data.minZ, maxZ: data.maxZ },
+      terrain.heightField,
+    );
+    self.terrain = terrain;
+    self.foam = foam;
+    self.ready = true;
+    const kit = await loadVillageKit();
+    if (disposed) return null;
+    const system = await createThousandBoughAsync(
+      { tier, heightField: terrain.heightField, kit, rocks },
+      ctx.breathe,
+    );
+    if (disposed) {
+      system.dispose();
+      return null;
+    }
+    system.group.visible = false;
+    if (ctx.skipShadows) skipSunShadows(system.group);
+    scene.add(system.group);
+    self.system = system;
+    obstacles = system.shipObstacles();
+    ctx.shipObstacles.push(...obstacles);
+    const vegetation = ctx.vegetation();
+    if (vegetation) {
+      const flora = await system.plants(ctx.breathe);
+      if (disposed) return null;
+      plants = await vegetation.addPlants(flora, 'thousand-bough-plants');
+      if (ctx.skipShadows) skipSunShadows(plants.group);
+    }
+    if (ctx.birds && tier.birds > 0) {
+      birds = createBirds({
+        tier,
+        perches: [],
+        center: new Vector3(TB.tree.x - 30, 0, TB.tree.z + 60),
+        radius: 200,
+        seed: 0x7b0b9,
+      });
+      birds.group.visible = false;
+      scene.add(birds.group);
+    }
+    return system;
+  };
+
+  const teardown = async (): Promise<void> => {
+    const { terrain, foam, system } = self;
+    const patch = plants;
+    const flock = birds;
+    self.ready = false;
+    self.terrain = null;
+    self.foam = null;
+    self.system = null;
+    plants = null;
+    birds = null;
+    if (terrain) ctx.heightField.remove(terrain.heightField);
+    for (const o of obstacles) {
+      const i = ctx.shipObstacles.indexOf(o);
+      if (i >= 0) ctx.shipObstacles.splice(i, 1);
+    }
+    obstacles = [];
+    // Its air goes back to the open sea's.
+    resetMood();
+    const vegetation = ctx.vegetation();
+    await freeInSlices(
+      scene,
+      [terrain?.group, foam, system?.group, patch?.group, flock?.group],
+      [
+        () => patch && vegetation?.removePlants(patch),
+        () => flock?.dispose(),
+        () => system?.dispose(),
+        () => foam && disposeTree(foam),
+        () => terrain?.dispose(),
+      ],
+      ctx.breathe,
+    );
+  };
+
+  /** A stream that fails part-way (a 404, offline) takes back what it had added, then reports it. */
+  const build = async (): Promise<ThousandBoughWorld | null> => {
+    try {
+      return await buildParts();
+    } catch (error) {
+      await teardown();
+      throw error;
+    }
+  };
+
+  const life = new StreamLifecycle<ThousandBoughWorld>(build, teardown, ctx.disabled);
+  const resetMood = () => {
+    const mood = ctx.sky.mood;
+    mood.fogScale = 1;
+    for (let i = 0; i < 3; i++) mood.hazeTint[i] = 1;
+    mood.fill = 1;
+    mood.exposure = 1;
+  };
 
   const self: ThousandBoughStream = {
     silhouette,
+    silhouetteReady: far.ready,
     terrain: null,
     foam: null,
     system: null,
     ready: false,
     detail,
-    worldReady,
-    load() {
-      if (!ctx.disabled && !streaming) streaming = stream();
-      return worldReady;
+    get state() {
+      return life.state;
+    },
+    get loads() {
+      return life.loads;
+    },
+    get worldReady() {
+      return life.ready;
+    },
+    onReady: (fn) => life.onReady(fn),
+    unload: () => life.unload(),
+    load(p: RequestPriority = 'auto', retry = false) {
+      // A load that's needed now raises a prefetch's priority for whatever it hasn't fetched yet.
+      if (life.state !== 'loading' || p !== 'low') priority = p;
+      return life.load(retry);
     },
     roots() {
       const roots: (Object3D | null | undefined)[] = [
         self.terrain?.group,
         self.foam,
         self.system?.group,
-        plants,
+        plants?.group,
         birds?.group,
       ];
       return roots.filter((r): r is Object3D => !!r);
     },
     hold(on) {
       held = on;
+    },
+    get held() {
+      return held;
     },
     update(camera, dt, t) {
       const d = Math.hypot(camera.position.x - TB.center.x, camera.position.z - TB.center.z);
@@ -128,14 +306,15 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
       for (let i = 0; i < 3; i++) mood.hazeTint[i] = 1 + (TB.mood.hazeTint[i]! - 1) * k;
       mood.fill = 1 + (TB.mood.fill - 1) * k;
       mood.exposure = 1 + (TB.mood.exposure - 1) * k;
-      if (d < THOUSAND_BOUGH_RANGE.load) void self.load();
-      const near = d < THOUSAND_BOUGH_RANGE.show;
+      const reach = footprintDistance(THOUSAND_BOUGH_FOOTPRINT, camera.position.x, camera.position.z);
+      if (reach < THOUSAND_BOUGH_RANGE.load) void self.load();
+      const near = reach < THOUSAND_BOUGH_RANGE.show;
       const show = near || held;
-      if (self.terrain && self.foam && !held) {
+      if (self.ready && self.terrain && self.foam && !held) {
         self.terrain.group.visible = show;
         self.foam.visible = show;
         if (self.system) self.system.group.visible = show;
-        if (plants) plants.visible = show;
+        if (plants) plants.group.visible = show;
         if (birds) birds.group.visible = show;
       }
       if (show) self.terrain?.update(camera);
@@ -154,20 +333,16 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
     },
     dispose() {
       disposed = true;
+      life.end();
       scene.remove(silhouette);
-      silhouette.traverse((o) => {
-        const m = o as Object3D & { geometry?: { dispose(): void }; material?: { dispose(): void } };
-        m.geometry?.dispose();
-        m.material?.dispose();
-      });
+      disposeTree(silhouette);
       if (self.terrain) {
         scene.remove(self.terrain.group);
         self.terrain.dispose();
       }
       if (self.foam) {
         scene.remove(self.foam);
-        self.foam.geometry.dispose();
-        (self.foam.material as { dispose(): void }).dispose();
+        disposeTree(self.foam);
       }
       if (self.system) {
         scene.remove(self.system.group);
@@ -179,87 +354,5 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
       }
     },
   };
-
-  const stream = () =>
-    loadTerrainPack(`${ctx.packBase}/thousand-bough/terrain`)
-      .then(async (data) => {
-        if (disposed) return resolveReady(null);
-        // The island's own boulders and the Spire ride with the terrain (shown and warmed with it).
-        let rocks: ThousandBoughRocks | null = null;
-        const terrain = await createTerrainAsync(
-          {
-            tier,
-            data,
-            name: 'thousand-bough-terrain',
-            cloudShadowNode: ctx.cloudShadowNode,
-            createRocks: (hf) =>
-              (rocks = createThousandBoughRocks(
-                hf,
-                undefined,
-                SMALL_ROCKS[tier.tier],
-                ROCK_SHADOWS(tier.tier),
-              )).group,
-          },
-          ctx.breathe,
-        );
-        // Lite's rocks (the boulders, the cave's roof and the flume's stones share their shapes) take
-        // the coarser shape the other islands' loose rocks have there. Before anything draws them, so
-        // nothing uploads twice.
-        const shapes = (rocks as ThousandBoughRocks | null)?.flumeStones.geometries ?? [];
-        const simplify = tier.tier === 'lite' && shapes.length ? await loadLodSimplifier() : null;
-        if (simplify) for (const g of shapes) simplifyInPlace(g, simplify, LITE_ROCK_ERROR);
-        await ctx.breathe();
-        if (ctx.skipShadows) skipSunShadows(terrain.group);
-        const foam = createCoastFoam(data, terrain.heightField, { maxDistance: 1100 });
-        terrain.group.visible = false;
-        foam.visible = false;
-        scene.add(terrain.group, foam);
-        ctx.heightField.add(
-          { minX: data.minX, maxX: data.maxX, minZ: data.minZ, maxZ: data.maxZ },
-          terrain.heightField,
-        );
-        self.terrain = terrain;
-        self.foam = foam;
-        self.ready = true;
-        const kit = await loadVillageKit();
-        if (disposed) return resolveReady(null);
-        const system = await createThousandBoughAsync(
-          { tier, heightField: terrain.heightField, kit, rocks },
-          ctx.breathe,
-        );
-        if (disposed) {
-          system.dispose();
-          return resolveReady(null);
-        }
-        system.group.visible = false;
-        if (ctx.skipShadows) skipSunShadows(system.group);
-        scene.add(system.group);
-        self.system = system;
-        ctx.shipObstacles.push(...system.shipObstacles());
-        const vegetation = ctx.vegetation();
-        if (vegetation) {
-          const flora = await system.plants(ctx.breathe);
-          if (disposed) return resolveReady(null);
-          plants = (await vegetation.addPlants(flora, 'thousand-bough-plants')).group;
-          if (ctx.skipShadows) skipSunShadows(plants);
-        }
-        if (ctx.birds && tier.birds > 0) {
-          birds = createBirds({
-            tier,
-            perches: [],
-            center: new Vector3(TB.tree.x - 30, 0, TB.tree.z + 60),
-            radius: 200,
-            seed: 0x7b0b9,
-          });
-          birds.group.visible = false;
-          scene.add(birds.group);
-        }
-        resolveReady(system);
-      })
-      .catch((error) => {
-        console.warn('[thousand-bough] stream failed', error);
-        resolveReady(null);
-      });
-
   return self;
 }

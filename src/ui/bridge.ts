@@ -202,6 +202,8 @@ export interface GameBridge {
   back(): void;
   /** Fast travel to a chart point on the current island (docks the ship first if sailing). */
   travelTo(pointId: string): void;
+  /** The chart's picked island (a likely jump): it starts streaming in at low priority. */
+  chartSelect?(islandId: string): void;
   quitToTitle(): void;
   /**
    * Erases the voyage and its learning progress (quests, pages, doubloons, names, sails), keeps the

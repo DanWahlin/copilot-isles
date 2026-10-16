@@ -251,7 +251,9 @@ export function createSky(
   const tideClouds = liveClouds
     ? (new TidewaterClouds(renderer, tideAtmo) as unknown as TidewaterCloudsPort)
     : null;
-  const bakedClouds = liveClouds ? null : createBakedClouds(renderer);
+  const bakedClouds = liveClouds
+    ? null
+    : createBakedClouds(renderer, { halfKeys: tier.tier === 'lite' || tier.tier === 'low' });
   tideSky.starIntensity.value = 0;
   if (tideClouds) {
     if (tier.tier === 'medium') {

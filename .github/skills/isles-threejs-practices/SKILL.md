@@ -178,6 +178,58 @@ the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _
 - Measure with `info.memory` at the first title, after one voyage and after two (a leftover that
   grows each voyage shows on the second), per tier, on both backends.
 
+### Islands you've left are freed (residency)
+
+- At most the island you're on and the one you're sailing to stay in memory (PLAN §13.3), plus any
+  within its load range; the rest are silhouettes. `game/residency.ts` decides (pure, tested): an
+  island streams in when you're on it, sail to it (a low-priority prefetch) or come within `load`,
+  and is freed past `unload` after 20 s away, never while a battle, script, arrival, chart jump, the
+  lift or a puzzle is on, or while it streams or warms. It measures from your feet or the ship, not
+  the camera. `npm run check:memory` (tools/memorytest.mjs) is the gate.
+- Meridian and Thousand-Bough are `StreamLifecycle`s (world/stream-lifecycle.ts): `load` builds,
+  `unload` frees a part a frame (`freeInSlices`: dispose, then `releaseRemovedObjects`), `onReady`
+  hears every load. Everything a streamed world adds to shared state comes off with it: its height
+  field layer (`CompositeHeightField.remove`), ship obstacles, vegetation patch
+  (`vegetation.removePlants`), and the session's colliders (`CollisionWorld.remove`), interactions,
+  chests, puzzles and cast (an island scope in session.ts; `ThousandBoughContent.teardown`).
+- Whatever the player can see after a reload comes from the save, never from scene objects: quests,
+  puzzles' state (`progress.setPuzzle`), chests, bottles, starfish, the branch sign. A rebuilt island
+  is a continued save's island. Session state that isn't saved (the lift car, mooring lines) is
+  re-applied in the setup.
+- Each reload is a new setup: the flow warms every setup (`session.onIslandSetup`), and a chart jump
+  waits for the warm whose generation matches the stream's `loads` (a stale resolved warm let the
+  island draw unwarmed: 2 hitches).
+- Anchorage is built with the world, so it goes dormant instead: its parts leave the scene, and
+  `releaseGpuCopies` frees the GPU copies only it uses (CPU data stays). Only plain meshes give their
+  geometry back: three frees an instanced or skinned mesh's instance and bone buffers with its
+  geometry, and the next draw submits the destroyed buffer (11 000 validation errors, like issue 251).
+  Waking puts the parts back hidden and warms them; `reveal` shows them. Its `dispose` never puts
+  parked parts back: their owners free them, and the world's dispose sends them `dispose`
+  (`parkedRoots`). Put back, a quit while it was dormant left a ghost Anchorage on the title, drawn
+  with freed buffers ("used in submit while destroyed").
+- A stream that fails part-way (a 404, offline) takes back what it added (scene, height field, ship
+  obstacles) and goes `failed`: it tries again after `RETRY_AFTER_MS` or when asked (`load(…, true)`
+  for a jump there), not every frame in range. A shared download promise (the kit) is never cached
+  rejected. An optional speed-up (KTX2) is never `extensionsRequired`: the kit keeps its WebP.
+- Silhouettes stand in for an island at its swap distance, so they're built to read like it there,
+  per island (`meridian-silhouette.ts`, `thousand-bough/tree/silhouette.ts`): the baked masks'
+  colours, its sky's sun baked in (Lambert, with a sky-to-ground ambient), sheer faces as cliff, a
+  tree line, the town as blocks from the same terrace rows with roofs, landmarks as prisms, falls as
+  strips. The real ground's sheen toward a low sun is view dependent, so the one shared graph adds it
+  (on bare ground, the colour's alpha). Build them in slices (`createIslandSilhouetteAsync`) and wait
+  for them before the warm. Swap by distance from the shore (`footprintDistance`), not the centre:
+  Meridian's ridge runs ~500 m north-east of its centre, so a centre-distance swap came ~250 m off
+  its cliffs. Compare real and silhouette from several bearings, High and Lite, before calling it done.
+- `renderer.info.memory` isn't the GPU's memory as three counts it: an interleaved buffer counts once
+  per attribute (an instanced mesh's matrices four times, ~120 MB on High) and a compressed texture as
+  1 byte. `engine/memory-ledger.ts` corrects both on our renderer. Use `trackedMB` from the counters.
+- What paid (High, Anchorage, honest MB): the sun's shadow map colour target as R8 (three always
+  makes an RGBA8 one; −48 MB at 4096²), NPC palettes as 32 × 32 nearest textures (the kit atlas is
+  flat 32 px swatches; 1.3 MB → 4 KB each), sign atlases painted by board size and shelf-packed, Lite
+  and Low cloud keys decoded at half width, and the kit's roughness maps as KTX2 ETC1S
+  (tools/village/ktx-roughness.mjs, `engine/ktx2.ts`). Base colour and normal maps stay WebP:
+  ETC1S shows on them at High's distances, and UASTC would add megabytes to the download.
+
 ## 5. Lessons learned (bugs we have hit)
 
 - **A value first built inside a `select` branch (palms went black):** three writes `select` as an

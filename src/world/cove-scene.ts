@@ -1,10 +1,9 @@
-import { Group, Mesh, Vector3, type InstancedMesh, type Material, type Object3D } from 'three/webgpu';
+import { Group, Mesh, Vector3, type Object3D } from 'three/webgpu';
 import { positionWorld } from 'three/tsl';
 import type { Engine } from '../engine/engine';
-import { bakeInstances } from '../engine/instancing';
-import { islandsTakeSunShadows, type TierSettings } from '../engine/quality';
-import { loadLodSimplifier } from './characters/character-lod';
-import { LITE_ROCK_ERROR, simplifyInPlace } from './village/chunks';
+import { islandsTakeSunShadows } from '../engine/quality';
+import { coarserRocksOnLite, disposeTree, singlePassWaterOnLite } from './island-parts';
+import { releaseRemovedObjects } from '../util/dispose-three';
 import { HarborMirror } from './ocean/harbor-mirror';
 import { createOcean, type Ocean } from './ocean/ocean';
 import { releaseWaterDepthTexture } from './ocean/water-depth-texture';
@@ -21,22 +20,14 @@ import { releaseTerrainNoiseTexture } from './terrain/noise-texture';
 import { CompositeHeightField } from './terrain/composite-height-field';
 import { COVE } from './layout';
 import { createStarfish, type StarfishSystem } from './starfish';
-import {
-  MERIDIAN,
-  createMeridianRocks,
-  createMeridianSilhouette,
-  meridianRockCameraBlockersSliced,
-  meridianRockShipObstacles,
-} from './islands/meridian';
-import type { CameraBlockerBox } from './terrain/camera-blockers';
+import { setSignResolution } from './sites/sign';
+import { MERIDIAN } from './islands/meridian';
+import { createMeridianStream, type MeridianStream } from './islands/meridian-stream';
+import { createAnchorageStream, type AnchorageStream } from './islands/anchorage/stream';
+import { createAnchorageSilhouette } from './islands/anchorage/silhouette';
 import { createBeachDebris, type BeachDebrisSystem } from './debris/beach-debris';
 import { addLiteShipLods, createBrigantine, type Brigantine } from './ship';
 import { createVegetation, type VegetationSystem } from './vegetation';
-import type { PlantInstance } from './vegetation/types';
-import { meridianPlantsSliced } from './islands/meridian-plants';
-import { meridianTownPlants } from './meridian-town/plantings';
-import { createMeridianWaterMesh } from './islands/meridian-water-mesh';
-import type { WaterStrips } from './sites/water';
 import { loadVillageKit, releaseVillageKitTextures } from './village/kit';
 import { DOCK_GULL_SPOT, createVillage, type VillageSystem } from './islands/anchorage/village';
 import { ANCHORAGE_VEGETATION } from './islands/anchorage/vegetation-rules';
@@ -47,7 +38,6 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { packs } from '../engine/packs';
 import { createFishingBoat, type FishingBoat } from './life/fishing-boat';
 import { ANCHORAGE_FISHING_BOATS } from './islands/anchorage/life';
-import { createMeridianTownAsync, type MeridianTownSystem } from './meridian-town';
 import { createBirds, type BirdsSystem } from './life/birds';
 import type { LeapsSystem } from './life/leaps';
 import { QuietSea } from './life/quiet-sea';
@@ -66,31 +56,10 @@ export interface CoveScene {
   heightField: CompositeHeightField;
   foam: Mesh;
   ranges: Group;
-  meridian: {
-    silhouette: Group;
-    terrain: CreatedTerrain | null;
-    foam: Mesh | null;
-    town: MeridianTownSystem | null;
-    /** Camera-only blockers for its coastal rocks, built in slices before `town` is set. */
-    rockCameraBlockers: CameraBlockerBox[];
-    ready: boolean;
-    /**
-     * Starts streaming Port Meridian (once; later calls return the same promise). Nothing of it loads
-     * until something needs it: boarding, the chart, a save or a jump there, or coming within 900 m.
-     * Resolves with the town once terrain and town are in the scene (hidden), or null if Meridian is
-     * disabled or failed.
-     */
-    load(): Promise<MeridianTownSystem | null>;
-    /** Resolves when `load` has finished (it doesn't start the stream). */
-    townReady: Promise<MeridianTownSystem | null>;
-    /** Meridian's own roots (terrain, foam, town, gulls) for a warm-up, once streamed. */
-    roots(): Object3D[];
-    /**
-     * Hands Meridian's visibility to a warm-up running from afar (the frame loop stops showing and
-     * hiding it, but keeps updating it; the silhouette stays as it is).
-     */
-    hold(on: boolean): void;
-  };
+  /** Port Meridian (Chapter 01), streamed in when something needs it and freed once you've left. */
+  meridian: MeridianStream;
+  /** Anchorage (Chapter 00): built with the world, dormant (a silhouette) while you're elsewhere. */
+  anchorage: AnchorageStream;
   /** Thousand-Bough Isle (Chapter 02), streamed in like Meridian when something needs it. */
   thousandBough: ThousandBoughStream;
   vegetation: VegetationSystem | null;
@@ -127,51 +96,6 @@ export interface CoveScene {
 const DETAIL_RANGE = { anchorage: 560, meridian: 620 };
 
 /**
- * Lite (PLAN §12.1, the weakest GPUs): the islands' loose instanced rocks (not cliffs or sea stacks)
- * draw a coarser copy of their shape, all baked into one draw (they never move). Done before the
- * island warms, so nothing uploads twice.
- */
-async function coarserRocksOnLite(root: Object3D, tier: TierSettings): Promise<void> {
-  if (tier.tier !== 'lite') return;
-  const simplify = await loadLodSimplifier();
-  const rocks: InstancedMesh[] = [];
-  root.traverse((o) => {
-    const mesh = o as InstancedMesh;
-    if (mesh.isInstancedMesh && /rocks-Rock_/.test(mesh.name)) rocks.push(mesh);
-  });
-  if (rocks.length === 0) return;
-  if (simplify) for (const mesh of rocks) simplifyInPlace(mesh.geometry, simplify, LITE_ROCK_ERROR);
-  const parent = rocks[0]!.parent;
-  const material = rocks[0]!.material;
-  const same = rocks.filter((mesh) => mesh.parent === parent && mesh.material === material);
-  const baked = parent ? bakeInstances(same) : null;
-  if (!parent || !baked) return;
-  const mesh = new Mesh(baked, material);
-  mesh.name = `${parent.name}-Rock_baked`;
-  mesh.castShadow = false;
-  mesh.receiveShadow = same[0]!.receiveShadow;
-  for (const rock of same) {
-    rock.removeFromParent();
-    rock.geometry.dispose();
-    rock.dispose();
-  }
-  parent.add(mesh);
-}
-
-/**
- * Lite: the flowing water strips (mill race, fountain, Meridian's brooks) draw in one pass, not a back
- * then a front pass (three's default for a two-sided transparent material). They're shallow strips
- * seen from above, so the order of their two sides doesn't show.
- */
-function singlePassWaterOnLite(root: Object3D, tier: TierSettings): void {
-  if (tier.tier !== 'lite') return;
-  root.traverse((o) => {
-    const mesh = o as Mesh;
-    if (mesh.isMesh && mesh.userData.waterStrips) (mesh.material as Material).forceSinglePass = true;
-  });
-}
-
-/**
  * Past this distance (m) from Anchorage's centre the island draws as a neighbour (PLAN §12.3): its
  * village's thin timber, ironwork, rope and cloth, its loose props and rocks drop out (they're at
  * least ~575 m away, a pixel or less). Its terrain, walls, roofs and lights stay.
@@ -205,6 +129,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const skipIslandShadows = tier.shadowCascades > 0 && !islandsTakeSunShadows(tier);
   const report = o.onProgress ?? (() => {});
   const breathe = o.breathe ?? (() => Promise.resolve());
+  setSignResolution(tier.tier);
   report(0.1, 'Raising the sky');
   const sky = o.sky ?? createSky(renderer, scene, tier, engine.backend);
   await breathe();
@@ -212,10 +137,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const params =
     typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
   const mirrorDisabled = params.has('nomirror');
-  // Meridian's gulls arrive with its town (the stream below).
-  let meridianBirds: BirdsSystem | null = null;
   const meridianDisabled = params.has('nomeridian');
-  let meridianWaterMesh: WaterStrips | null = null;
   const mirror = tier.mirror ? new HarborMirror({ renderer, tier, disabled: mirrorDisabled }) : null;
   const ocean = createOcean({ tier, env: sky.env, mirror: mirror?.input, terrainDepth: true });
   await breathe();
@@ -240,13 +162,21 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   await breathe();
   const ranges = await createDistantRangesAsync(tier, breathe);
   await breathe();
-  const meridianSilhouette = meridianDisabled ? new Group() : createMeridianSilhouette();
-  scene.add(terrain.group, foam, ranges, meridianSilhouette);
-  let resolveMeridianTown: (town: MeridianTownSystem | null) => void = () => {};
-  const meridianTownReady = new Promise<MeridianTownSystem | null>((resolve) => {
-    resolveMeridianTown = resolve;
-  });
+  scene.add(terrain.group, foam, ranges);
   const shipObstacles: CircleObstacle[] = [];
+  const meridian = createMeridianStream({
+    scene,
+    tier,
+    packBase: o.packBase ?? '/packs',
+    cloudShadowNode,
+    breathe,
+    heightField,
+    shipObstacles,
+    vegetation: () => vegetation,
+    birds: o.birds !== false,
+    skipShadows: skipIslandShadows,
+    disabled: meridianDisabled,
+  });
   const thousandBough = createThousandBoughStream({
     scene,
     tier,
@@ -261,128 +191,6 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     skipShadows: skipIslandShadows,
     disabled: params.has('nothousandbough'),
   });
-  const meridian = {
-    silhouette: meridianSilhouette,
-    terrain: null as CreatedTerrain | null,
-    foam: null as Mesh | null,
-    town: null as MeridianTownSystem | null,
-    rockCameraBlockers: [] as CameraBlockerBox[],
-    ready: false,
-    load(): Promise<MeridianTownSystem | null> {
-      if (!meridianDisabled && !meridianStream) meridianStream = streamMeridian();
-      return meridianTownReady;
-    },
-    townReady: meridianTownReady,
-    roots(): Object3D[] {
-      const roots: (Object3D | null | undefined)[] = [
-        meridian.terrain?.group,
-        meridian.foam,
-        meridian.town?.group,
-        meridianBirds?.group,
-        meridianPlants,
-      ];
-      return roots.filter((r): r is Object3D => !!r);
-    },
-    hold(on: boolean) {
-      meridianHeld = on;
-    },
-  };
-  let meridianStream: Promise<void> | null = null;
-  let meridianPlants: Object3D | null = null;
-  let meridianHeld = false;
-  if (meridianDisabled) resolveMeridianTown(null);
-  const streamMeridian = () =>
-    loadTerrainPack(`${o.packBase ?? '/packs'}/meridian/terrain`)
-      .then(async (meridianData) => {
-        if (disposed) return resolveMeridianTown(null);
-        const meridianTerrain = await createTerrainAsync(
-          {
-            tier,
-            data: meridianData,
-            name: 'port-meridian-terrain',
-            createRocks: createMeridianRocks,
-            cloudShadowNode,
-          },
-          breathe,
-        );
-        await breathe();
-        await coarserRocksOnLite(meridianTerrain.group, tier);
-        // The tarn, cascade, brook, lake and outflow ride with the terrain (shown and hidden with it).
-        meridianWaterMesh = createMeridianWaterMesh();
-        meridianTerrain.group.add(meridianWaterMesh.mesh);
-        singlePassWaterOnLite(meridianWaterMesh.mesh, tier);
-        if (skipIslandShadows) skipSunShadows(meridianTerrain.group);
-        const meridianFoam = createCoastFoam(meridianData, meridianTerrain.heightField, {
-          maxDistance: 1100,
-        });
-        meridianTerrain.group.visible = false;
-        meridianFoam.visible = false;
-        scene.add(meridianTerrain.group, meridianFoam);
-        heightField.add(
-          {
-            minX: meridianData.minX,
-            maxX: meridianData.maxX,
-            minZ: meridianData.minZ,
-            maxZ: meridianData.maxZ,
-          },
-          meridianTerrain.heightField,
-        );
-        meridian.terrain = meridianTerrain;
-        meridian.foam = meridianFoam;
-        meridian.ready = true;
-        const rockBlockers = meridianRockCameraBlockersSliced(meridianTerrain.heightField);
-        for (let r = rockBlockers.next(); ; r = rockBlockers.next()) {
-          if (r.done) {
-            meridian.rockCameraBlockers = r.value;
-            break;
-          }
-          await breathe();
-        }
-        const townKit = await loadVillageKit();
-        if (disposed) return resolveMeridianTown(null);
-        const town = await createMeridianTownAsync(
-          { tier, heightField: meridianTerrain.heightField, kit: townKit },
-          breathe,
-        );
-        town.group.visible = false;
-        meridian.town = town;
-        scene.add(town.group);
-        shipObstacles.push(...town.shipObstacles);
-        shipObstacles.push(...meridianRockShipObstacles(meridianTerrain.heightField));
-        // Its plants (hills and town) as their own vegetation batches, shown with the island.
-        if (vegetation) {
-          const flora: PlantInstance[] = [];
-          const steps = meridianPlantsSliced(tier.tier);
-          for (let r = steps.next(); ; r = steps.next()) {
-            if (r.done) {
-              flora.push(...r.value, ...meridianTownPlants(tier.tier));
-              break;
-            }
-            await breathe();
-          }
-          if (disposed) return resolveMeridianTown(null);
-          meridianPlants = (await vegetation.addPlants(flora, 'port-meridian-plants')).group;
-          if (skipIslandShadows) skipSunShadows(meridianPlants);
-        }
-        // Gulls wheeling over Meridian's harbour and the mole, like Anchorage's.
-        if (o.birds !== false && tier.birds > 0 && !meridianBirds) {
-          meridianBirds = createBirds({
-            tier,
-            perches: [],
-            center: new Vector3(MERIDIAN.harbor.center.x + 30, 0, MERIDIAN.harbor.center.z - 40),
-            radius: 170,
-            seed: 0x3e51d,
-          });
-          meridianBirds.group.visible = false;
-          scene.add(meridianBirds.group);
-        }
-        resolveMeridianTown(town);
-      })
-      .catch((error) => {
-        console.warn('[meridian] terrain stream failed', error);
-        resolveMeridianTown(null);
-      });
-
   report(0.5, 'Building the harbor');
   const villageKit = typeof window === 'undefined' ? undefined : await loadVillageKit();
   const village = await createVillage({ tier, heightField, kit: villageKit });
@@ -524,6 +332,33 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const blobs = tier.tier === 'low' || tier.tier === 'lite' ? new BlobShadows(BLOB_RANGE[tier.tier]) : null;
   if (blobs) scene.add(blobs.mesh);
 
+  // Anchorage goes dormant while you're at another island (PLAN §13.3): its parts leave the scene
+  // and their GPU copies are freed, and its silhouette (ground and buildings) stands in.
+  const anchorage = createAnchorageStream({
+    scene,
+    terrain,
+    silhouette: createAnchorageSilhouette({
+      heightField: terrain.heightField,
+      bounds: { minX: data.minX, maxX: data.maxX, minZ: data.minZ, maxZ: data.maxZ },
+      buildings: village.colliders.boxes,
+    }),
+    parts: () =>
+      [
+        terrain.group,
+        foam,
+        village.group,
+        sites.group,
+        debris.group,
+        wreck.mesh,
+        birds?.group,
+        dockGull?.group,
+        ...fishingBoats.map((b) => b.group),
+        ...(vegetation?.home() ?? []),
+      ].filter((o): o is Object3D => !!o),
+    plantsAwake: (on) => vegetation?.setHomeAwake(on),
+    breathe,
+  });
+
   let leaps: LeapsSystem | null = null;
   const quietSea = new QuietSea();
   let lateWarm: ((roots: Object3D[]) => Promise<void>) | null = null;
@@ -589,10 +424,6 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       terrain.group,
       foam,
       ranges,
-      meridian.terrain?.group,
-      meridian.foam,
-      meridian.town?.group,
-      meridian.silhouette,
       village.group,
       sites.group,
       debris.group,
@@ -601,9 +432,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       vegetation?.group,
       birds?.group,
       dockGull?.group,
-      meridianBirds?.group,
       leaps?.group,
     );
+    mirrorHidden.push(anchorage.silhouette);
+    meridian.mirrorHidden(mirrorHidden);
     thousandBough.mirrorHidden(mirrorHidden);
     return mirrorHidden;
   };
@@ -613,38 +445,24 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       ocean.update(camera, t);
       shipEnv.t = t;
       ship.update(dt, t, shipEnv);
-      terrain.update(camera);
+      // A dormant Anchorage's parts are out of the scene: they don't update until it's shown again.
+      const home = anchorage.shown;
+      if (home) terrain.update(camera);
+      anchorage.update(camera);
       detail.anchorage.update(camera.position.x, camera.position.z);
       detail.meridian.update(camera.position.x, camera.position.z);
       shipDetail.update(camera.position.x, camera.position.z);
       neighbour.update(camera.position.x, camera.position.z);
-      const toMeridian = Math.hypot(
-        camera.position.x - MERIDIAN.center.x,
-        camera.position.z - MERIDIAN.center.z,
-      );
-      const nearMeridian = toMeridian < 760;
-      const showMeridian = nearMeridian || meridianHeld;
-      if (toMeridian < 900) void meridian.load();
-      if (meridian.terrain && meridian.foam) {
-        if (!meridianHeld) meridian.terrain.group.visible = showMeridian;
-        if (!meridianHeld) meridian.foam.visible = showMeridian;
-        if (meridian.town && !meridianHeld) meridian.town.group.visible = showMeridian;
-        if (meridianPlants && !meridianHeld) meridianPlants.visible = showMeridian;
-        if (showMeridian) meridian.terrain.update(camera);
-      }
-      meridian.silhouette.visible = !nearMeridian;
+      meridian.update(camera, dt, t);
       thousandBough.update(camera, dt, t);
       vegetation?.update(camera);
-      village.update(dt, t, camera);
-      if (showMeridian) meridian.town?.update(dt, t, camera);
-      if (meridianBirds) {
-        if (!meridianHeld) meridianBirds.group.visible = showMeridian;
-        if (showMeridian) meridianBirds.update(dt, t, camera);
+      if (home) {
+        village.update(dt, t, camera);
+        sites.update(dt, t);
+        birds?.update(dt, t, camera);
+        dockGull?.update(dt, t, camera);
+        for (const boat of fishingBoats) boat.update(dt, t, camera);
       }
-      sites.update(dt, t);
-      birds?.update(dt, t, camera);
-      dockGull?.update(dt, t, camera);
-      for (const boat of fishingBoats) boat.update(dt, t, camera);
       starfish.update(dt, t, camera);
       leaps?.update(dt, t, camera);
       focus.set(camera.position.x, 0, camera.position.z);
@@ -655,6 +473,8 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       mirror?.finalizeFrame(engine.counters.last.drawCalls, engine.counters.last.triangles);
     },
   });
+  // The far islands' silhouettes are built a few rows a breath: in the scene before the island compiles.
+  await Promise.all([meridian.silhouetteReady, thousandBough.silhouetteReady]);
   report(0.9, 'Lighting the lanterns');
 
   result = {
@@ -667,6 +487,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     ranges,
     meridian,
     thousandBough,
+    anchorage,
     vegetation,
     ship,
     village,
@@ -689,33 +510,29 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       disposed = true;
       if (leapsTimer) window.clearTimeout(leapsTimer);
       removeSystem();
+      // A dormant Anchorage's parts are out of the scene, so the voyage's end doesn't see them: they
+      // stay out, and are told they're disposed here once their owners have freed them.
+      const parked: Object3D[] = [];
+      for (const r of anchorage.parkedRoots()) r.traverse((o) => void parked.push(o));
       scene.remove(
         ocean.mesh,
         terrain.group,
         foam,
         ranges,
-        meridian.silhouette,
         village.group,
         debris.group,
         ship.group,
         wreck.mesh,
       );
-      if (meridian.terrain) scene.remove(meridian.terrain.group);
-      if (meridian.foam) scene.remove(meridian.foam);
-      if (meridian.town) scene.remove(meridian.town.group);
       if (vegetation) scene.remove(vegetation.group);
       if (birds) scene.remove(birds.group);
       if (dockGull) scene.remove(dockGull.group);
-      if (meridianBirds) scene.remove(meridianBirds.group);
       if (leaps) scene.remove(leaps.group);
       disposeTree(foam);
       disposeTree(ranges);
-      disposeTree(meridian.silhouette);
+      anchorage.dispose();
+      meridian.dispose();
       thousandBough.dispose();
-      meridianWaterMesh?.dispose();
-      meridian.terrain?.dispose();
-      if (meridian.foam) disposeTree(meridian.foam);
-      meridian.town?.dispose();
       birds?.dispose();
       dockGull?.dispose();
       for (const boat of fishingBoats) {
@@ -724,7 +541,6 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       }
       starfish.dispose();
       blobs?.dispose();
-      meridianBirds?.dispose();
       leaps?.dispose();
       village.dispose();
       wreck.dispose();
@@ -742,6 +558,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       releaseTerrainNoiseTexture();
       releaseVillageKitTextures();
       releaseWaterDepthTexture();
+      releaseRemovedObjects(parked, scene);
     },
   };
   return result;
@@ -752,12 +569,4 @@ function excludeVillageAndSites(
   sites: CoveSites,
 ): (x: number, z: number) => boolean {
   return (x, z) => village(x, z) || sites.excludes(x, z);
-}
-
-function disposeTree(root: Object3D): void {
-  root.traverse((o) => {
-    const m = o as Object3D & { geometry?: { dispose(): void }; material?: { dispose(): void } };
-    m.geometry?.dispose();
-    m.material?.dispose();
-  });
 }
