@@ -38,9 +38,6 @@ export function TitleScreen({ state, bridge }: { state: UiState; bridge: GameBri
         <MenuButton onClick={bridge.openControls}>Controls</MenuButton>
         <MenuButton onClick={bridge.openCredits}>Credits</MenuButton>
       </nav>
-      <p className="ci-title-note">
-        An unofficial, personal project, not a GitHub product. The character voices are AI-generated.
-      </p>
     </main>
   );
 }
