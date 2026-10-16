@@ -478,7 +478,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   if (o.birds !== false && tier.birds > 0) {
     const gull = createDockGull({
       loader: new GLTFLoader(),
-      url: '/packs/testcove/life/dock-gull.glb',
+      url: packs.url('/packs/testcove/life/dock-gull.glb'),
       at: DOCK_GULL_SPOT,
       heading: Math.PI / 2,
     });

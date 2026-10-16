@@ -366,7 +366,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   for (const b of sites.colliders.camera) world.addCameraBox(b);
 
   const hud = new Hud(o.hudParent);
-  await hud.loadSubtitles(o.voiceManifest ?? '/voice/testcove/manifest.json');
+  await hud.loadSubtitles(
+    o.voiceManifest ?? `${import.meta.env.BASE_URL || '/'}voice/testcove/manifest.json`,
+  );
   hud.setHelp(WALK_HELP);
   let facialSpeaker: Character | null = null;
   let lineFace: Character | null = null;

@@ -22,7 +22,7 @@
 | NPC voices | **Fully voiced, neural TTS** (Azure Speech, pre-generated). See §7a |
 | Art approach | **A. Hybrid stylized realism** |
 | AI-generated art | **Allowed anywhere it helps** (uses the image model in `~/.env`). See §6a |
-| Branding | **Unsure.** Build unbranded, with a theme layer so logos/mascots can be dropped in later. The **affiliation line** wording is a required decision before the first public deploy |
+| Branding | **Unsure.** Build unbranded, with a theme layer so logos/mascots can be dropped in later. **Decided 2026-10-15:** an unofficial, personal project (title screen, Credits, README) |
 | Platforms | **Runs everywhere, WebGPU-first** (capability classes in **§15.1**, with the automatic WebGL2 backend as the fallback): desktop (keyboard/mouse + gamepad) **and tablets (touch) now**. Phones get the same technology **capped at the Medium feature set**, and **phone UX lands in Phase 2b**. **Performance floor: Intel UHD 620 at 30 fps**, plus a **Lite** preset for Chromebooks. Devices that can't run 3D get the **2D Chart & Logbook mode**. See §14 |
 | Rendering backend | **WebGPU-first: three.js `WebGPURenderer` + TSL** (one node shader language → WGSL on WebGPU, GLSL on the automatic **WebGL2 backend**). Compute features (FFT ocean, sims, volumetric clouds, GPU particles, GPU culling) run on WebGPU tiers, and WebGL2 gets non-compute paths. Decided 2026-09-23 after the Tidewater study. See **§15** |
 | Test hardware | **Emulated** on the M3 Max (locked render scale + scaled GPU budgets + CPU throttling), with **cloud real-device runs** for iPad/Android tablets. A **real UHD 620 check happens before public launch** (user decision; accepted risk in §11) |
@@ -345,7 +345,7 @@ The upside is that the music is adaptive, tiny to download, and has no licensing
 
 ### 7a. Voice acting (Azure Speech TTS)
 - An **offline build script** (`tools/voice/generate.ts`) reads each island's dialogue YAML and renders every line with SSML to **Opus (WebM) plus an AAC (.m4a) fallback**. The client downloads exactly **one** format per line, picked with `canPlayType`. The key stays in `~/.env` and never ships to the browser.
-- **Disclosure:** the credits and Settings say the voices are **synthetic, generated with Azure AI Speech**. Before the first public deploy, we check the current Azure Speech terms for redistributing neural and Dragon HD audio.
+- **Disclosure:** the credits and Settings say the voices are **synthetic, generated with Azure AI Speech**. Checked 2026-10-15 before the first public deploy: prebuilt neural voices may be used in a public app when players are told the voices are AI-generated (title screen, Settings, Credits).
 - The script caches by a hash of the text and voice, so only changed lines get re-rendered.
 - **Cast:** the UK HD voices in `~/.env` are the defaults: `en-GB-Ollie` (`AZURE_SPEECH_MALE_VOICE_UK`) and `en-GB-Ada` (`AZURE_SPEECH_FEMALE_VOICE_UK`), both `DragonHDLatestNeural`. Juno, who sails with you to every island, uses Ada. Other characters use the other UK HD voices (`en-GB-Sonia`, `en-GB-Ryan`) or a distinct regional neural voice, so no two characters on one island share a voice (changed 2026-09-25). We'll add more Azure neural voices and regional English accents per character, chosen respectfully and never as caricature. Rate and pitch settings give each character a distinct personality. The **parrot** uses a pitch-shifted, bright voice with audio FX.
 - The player can type any name, so **spoken lines call you "Captain"** while the on-screen text uses your name.

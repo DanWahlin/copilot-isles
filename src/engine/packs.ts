@@ -61,7 +61,9 @@ class PackLoader {
   url(path: string): string {
     const clean = stripQuery(path);
     const hash = this.manifest?.fileIndex?.[clean]?.sha256 ?? this.findFile(clean)?.sha256;
-    if (!hash) return path;
+    // Files outside the manifest still resolve against the app's base, so a sub-path deploy
+    // (GitHub Pages serves the game under /copilot-isles/) finds them.
+    if (!hash) return appUrl(path);
     return `${appUrl(clean)}?v=${hash}`;
   }
 

@@ -1,12 +1,25 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite';
+import { readFileSync } from 'node:fs';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+
+// The Credits screen reads asset authors from ASSETS.md (dev serves it from the root); ship a copy
+// next to index.html so it also loads from a sub-path deploy such as GitHub Pages.
+function assetCredits(): Plugin {
+  return {
+    name: 'asset-credits',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'ASSETS.md', source: readFileSync('ASSETS.md', 'utf8') });
+    },
+  };
+}
 
 // PLAN §13.1: boot stays tiny; three.js and React get their own long-lived hashed chunks,
 // and game systems load later through dynamic import().
 export default defineConfig({
   base: './',
-  plugins: [react()],
+  plugins: [react(), assetCredits()],
   build: {
     target: 'es2022',
     manifest: true,

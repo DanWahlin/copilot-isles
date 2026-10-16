@@ -3,7 +3,12 @@
 Sail a sun-drenched archipelago and learn the **GitHub Copilot app**, one island per chapter of the
 [GitHub Copilot app for Beginners](https://github.com/github/copilot-app-for-beginners) course.
 
-> **Status:** Phase 0 (look, sound & performance spike). See [`docs/specs/PHASE-0-spike.md`](docs/specs/PHASE-0-spike.md).
+> **Unofficial project:** Copilot Isles is a personal project by Dan Wahlin. It isn't an official GitHub
+> or Microsoft product, and GitHub hasn't endorsed it. GitHub and GitHub Copilot are trademarks of
+> GitHub, Inc. The character voices are AI-generated.
+
+> **Status:** early preview. Three islands (course Chapters 00–02) are playable at
+> **https://danwahlin.github.io/copilot-isles/** (a WebGPU or WebGL2 browser; desktop works best).
 
 ## Getting started
 

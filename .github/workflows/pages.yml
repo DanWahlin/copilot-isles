@@ -1,8 +1,9 @@
 name: Deploy to GitHub Pages
 
-# Manual only. Deploy gate (PLAN §0 / spec §9): the affiliation line must be decided and the
-# Azure Speech terms checked before the first public deploy. Pages on a private repo needs a
-# paid GitHub plan, and the published site is public either way.
+# Manual only. The deploy gate (PLAN §0 / spec §9) passed on 2026-10-15: the affiliation line is
+# "an unofficial, personal project" (title screen, Credits, README), and the AI-voice disclosure
+# required by the Azure AI Speech / Microsoft AI code of conduct is on the title screen, in Settings
+# and in Credits. Pages on a private repo needs a paid GitHub plan; the site is public either way.
 on:
   workflow_dispatch:
 

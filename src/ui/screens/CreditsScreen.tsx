@@ -10,7 +10,7 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
   ]);
   useEffect(() => {
     let cancelled = false;
-    fetch('/ASSETS.md')
+    fetch(`${import.meta.env.BASE_URL || '/'}ASSETS.md`)
       .then((response) => (response.ok ? response.text() : ''))
       .then((text) => {
         if (cancelled || !text) return;
@@ -91,7 +91,15 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
         <p>
           “Bamboo Tide”, “Island Reveal”, “Brass of the Storm” and “Misty Jungle Dusk”, made for Copilot Isles
           with Suno. “Medieval: The Bard’s Tale” by RandomMind and “Sunset Plains” by Yoiyami, both CC0 on
-          OpenGameArt. Synthetic voices generated offline with Azure AI Speech and ElevenLabs.
+          OpenGameArt. The character voices are AI-generated with Azure AI Speech and ElevenLabs. They aren’t
+          real people.
+        </p>
+        <p>Seagull models by Poly by Google, CC BY 3.0 (poly.pizza).</p>
+        <h3>About this project</h3>
+        <p>
+          Copilot Isles is an unofficial, personal project. It isn’t an official GitHub or Microsoft product,
+          and GitHub hasn’t endorsed it. GitHub and GitHub Copilot are trademarks of GitHub, Inc. The lessons
+          come from the MIT-licensed GitHub Copilot app for Beginners course.
         </p>
       </div>
     </OverlayShell>
