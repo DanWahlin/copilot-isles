@@ -38,7 +38,6 @@ export function SettingsScreen({ state, bridge }: { state: UiState; bridge: Game
             value={settings.voice}
             onChange={(voice) => bridge.updateSettings({ voice })}
           />
-          <p className="ci-settings-note">The character voices are AI-generated. They aren’t real people.</p>
         </SettingsGroup>
         <SettingsGroup title="Controls">
           <Slider
