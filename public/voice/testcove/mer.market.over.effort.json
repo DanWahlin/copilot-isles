@@ -1,0 +1,62 @@
+{
+  "id": "mer.market.over.effort",
+  "speaker": "Gilda",
+  "text": "High effort for a quick look? The default would've done it.",
+  "words": [
+    {
+      "word": "High",
+      "start": 0,
+      "end": 0.309
+    },
+    {
+      "word": "effort",
+      "start": 0.309,
+      "end": 0.78
+    },
+    {
+      "word": "for",
+      "start": 0.78,
+      "end": 1
+    },
+    {
+      "word": "a",
+      "start": 1,
+      "end": 1.093
+    },
+    {
+      "word": "quick",
+      "start": 1.093,
+      "end": 1.44
+    },
+    {
+      "word": "look",
+      "start": 1.44,
+      "end": 1.96
+    },
+    {
+      "word": "The",
+      "start": 1.96,
+      "end": 2.38
+    },
+    {
+      "word": "default",
+      "start": 2.38,
+      "end": 2.827
+    },
+    {
+      "word": "would've",
+      "start": 2.827,
+      "end": 3.072
+    },
+    {
+      "word": "done",
+      "start": 3.072,
+      "end": 3.28
+    },
+    {
+      "word": "it",
+      "start": 3.28,
+      "end": 3.53
+    }
+  ]
+}

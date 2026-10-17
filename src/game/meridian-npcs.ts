@@ -69,6 +69,17 @@ export function meridianExtras(anchors: Readonly<Record<string, { x: number; z: 
       ],
     },
     {
+      // Gilda keeps the Model Market behind her counter: the market's own E (src/game/puzzles/
+      // model-market.ts) is the way to talk shop, so she has no bark of her own.
+      id: 'gilda',
+      body: 'mer_market',
+      name: 'Gilda',
+      anchor: 'gilda',
+      clip: 'idle',
+      // On her step behind the counter (no walk surface there).
+      keepY: true,
+    },
+    {
       id: 'mer_kid_a',
       name: 'Nico',
       anchor: 'extraFountain',

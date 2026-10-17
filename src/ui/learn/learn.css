@@ -686,6 +686,39 @@
 .ci-starfish.done {
   color: #ffd98a;
 }
+.ci-starfish-purse {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #ffd98a;
+  font-weight: 800;
+}
+.ci-starfish-purse-word {
+  color: var(--ci-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+@media (max-width: 760px) {
+  .ci-starfish-purse-word {
+    display: none;
+  }
+}
+.ci-starfish-jar {
+  width: 1.1em;
+  height: 1.2em;
+  flex: none;
+}
+.ci-starfish-jar .glass {
+  fill: rgba(170, 225, 230, 0.28);
+  stroke: #bfe7ea;
+  stroke-width: 1.2;
+}
+.ci-starfish-jar .lid {
+  fill: #e8b54a;
+}
+.ci-starfish-jar .star {
+  fill: #ff7a45;
+}
 .ci-starfish-icon {
   width: 1.05em;
   height: 1.05em;

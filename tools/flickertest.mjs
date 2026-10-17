@@ -52,6 +52,7 @@ const VIEWS = [
   ['m-quay', 'meridian', [692, 6, -762], [650, 2.4, -754], 'Meridian quay paving close up'],
   ['m-town', 'meridian', [610, 82, -610], [855, 32, -875], 'terraced town, roofs, roads'],
   ['m-plaza', 'meridian', [690, 22, -770], [660, 8, -800], 'plaza paving and houses'],
+  ['m-market', 'meridian', [669.6, 9.9, -789.6], [679, 9.7, -787.3], 'Model Market: boards, awning, counter'],
   ['m-fort', 'meridian', [786, 50, -760], [806, 41, -780], 'Meridian fort: walls, towers, roofs'],
   ['m-citadel', 'meridian', [890, 105, -855], [1028, 64, -1002], 'citadel walls'],
   ['m-ridge', 'meridian', [910, 118, -780], [1110, 92, -1078], 'ridge rocks, distant ranges'],

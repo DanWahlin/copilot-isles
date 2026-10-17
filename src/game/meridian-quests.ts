@@ -23,6 +23,8 @@ interface MeridianQuestDef {
   task: string;
   /** Step id → what the Logbook and tracker say to do next. `done` marks completion. */
   steps: Record<string, string>;
+  /** Off the main line: it shows once started and never holds up the Seal. */
+  optional?: boolean;
 }
 
 export const MERIDIAN_QUESTS: readonly MeridianQuestDef[] = [
@@ -108,7 +110,20 @@ export const MERIDIAN_QUESTS: readonly MeridianQuestDef[] = [
       done: 'The Seal of Meridian is yours.',
     },
   },
+  {
+    id: 'Q1.A',
+    title: 'The Model Market',
+    task: 'Hire a model that fits the job',
+    optional: true,
+    steps: {
+      start:
+        'Gilda’s stall is under the arcade at the top of the stair street. Pick a job from her board and pay in starfish.',
+      done: 'Auto or a light model for a quick look. A model suited to complex coding and more effort for hard work.',
+    },
+  },
 ];
+
+const MAIN = MERIDIAN_QUESTS.filter((d) => !d.optional);
 
 /** Where the compass points on Meridian for each quest step (interaction ids; the nearest usable wins). */
 export const MERIDIAN_TARGETS: Readonly<
@@ -140,7 +155,7 @@ const done = (q: QuestState, id: string) => q[id] === 'done';
 
 /** The Meridian step you're on: the first unfinished one in order (it starts once you land). */
 export function meridianCurrent(q: QuestState): { id: string; task: string; step: string } | null {
-  const d = MERIDIAN_QUESTS.find((c) => q[c.id] !== 'done');
+  const d = MAIN.find((c) => q[c.id] !== 'done');
   return d ? { id: d.id, task: d.task, step: q[d.id] ?? 'start' } : null;
 }
 
@@ -151,7 +166,7 @@ export function meridianTarget(
   return c ? (MERIDIAN_TARGETS[`${c.id}:${c.step}`] ?? null) : null;
 }
 
-/** The Meridian task list: the chapter's steps in order, the current one with what to do next. */
+/** The Meridian task list: the chapter's steps in order, the current one with what to do next (and the optional market once started). */
 export function meridianTracker(q: QuestState): QuestTracker {
   const current = meridianCurrent(q);
   return {
@@ -159,10 +174,17 @@ export function meridianTracker(q: QuestState): QuestTracker {
     chapter: MERIDIAN_ISLAND.chapter,
     goal: MERIDIAN_ISLAND.goal,
     next: MERIDIAN_ISLAND.next,
-    tasks: MERIDIAN_QUESTS.map((d) => {
-      const status: TrackerStatus = done(q, d.id) ? 'done' : d.id === current?.id ? 'active' : 'upcoming';
-      const detail = status === 'active' ? (d.steps[current!.step] ?? '') : '';
-      return { id: d.id, title: d.title, task: d.task, detail, status, optional: false };
+    // The optional market shows once it's started (Gilda's hello).
+    tasks: MERIDIAN_QUESTS.filter((d) => !d.optional || q[d.id]).map((d) => {
+      const optionalStep = d.optional ? q[d.id] : undefined;
+      const status: TrackerStatus = done(q, d.id)
+        ? 'done'
+        : d.id === current?.id || optionalStep
+          ? 'active'
+          : 'upcoming';
+      const step = d.optional ? optionalStep : current?.step;
+      const detail = status === 'active' && step ? (d.steps[step] ?? '') : '';
+      return { id: d.id, title: d.title, task: d.task, detail, status, optional: !!d.optional };
     }),
   };
 }

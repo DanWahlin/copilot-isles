@@ -74,13 +74,13 @@ describe('Meridian quest line', () => {
     q['Q1.7'] = 'solved'; // the Lost Letters
     talk('pell');
     talk('admiral');
-    expect(MERIDIAN_QUESTS.every((d) => q[d.id] === 'done')).toBe(true);
+    expect(MERIDIAN_QUESTS.every((d) => d.optional || q[d.id] === 'done')).toBe(true);
     expect(meridianCurrent(q)).toBeNull();
     expect(meridianTracker(q).tasks.every((t) => t.status === 'done')).toBe(true);
   });
 
   it('points the compass at every step, and the Admiral skips her introduction on a retry', () => {
-    for (const d of MERIDIAN_QUESTS)
+    for (const d of MERIDIAN_QUESTS.filter((x) => !x.optional))
       for (const step of Object.keys(d.steps))
         if (step !== 'done') expect(MERIDIAN_TARGETS[`${d.id}:${step}`], `${d.id}:${step}`).toBeTruthy();
     expect(meridianTarget({})?.label).toBe('Tobias');
@@ -114,6 +114,22 @@ describe('Meridian quest line', () => {
     expect(meridianNpcScript('pell', old, { lettersFiled: true })!.steps).toEqual([{ say: 'mer.pell.done' }]);
     expect(meridianNpcScript('pell', old)!.steps).toEqual([{ say: 'mer.pell.done' }]);
     expect(meridianCurrent(old)?.id).toBe('Q1.8');
+  });
+
+  it('keeps the Model Market optional: listed once Gilda’s said hello, never in the way of the Seal', () => {
+    const market = MERIDIAN_QUESTS.find((d) => d.id === 'Q1.A')!;
+    expect(market.optional).toBe(true);
+    expect(meridianTracker({}).tasks.some((t) => t.id === 'Q1.A')).toBe(false);
+    const started = meridianTracker({ 'Q1.A': 'start' });
+    expect(started.tasks.find((t) => t.id === 'Q1.A')).toMatchObject({ status: 'active', optional: true });
+    expect(started.tasks.find((t) => t.id === 'Q1.A')!.detail).toMatch(/Gilda/);
+    expect(meridianCurrent({ 'Q1.A': 'start' })?.id).toBe('Q1.1');
+    const all = Object.fromEntries(MERIDIAN_QUESTS.filter((d) => !d.optional).map((d) => [d.id, 'done']));
+    expect(meridianCurrent({ ...all, 'Q1.A': 'start' })).toBeNull();
+    expect(meridianTracker({ ...all, 'Q1.A': 'done' }).tasks.at(-1)).toMatchObject({
+      id: 'Q1.A',
+      status: 'done',
+    });
   });
 
   it('shows the current step’s detail in the tracker', () => {

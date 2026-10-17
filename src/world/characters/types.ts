@@ -33,6 +33,7 @@ const NPC_IDS = [
   'mer_kid_a',
   'mer_kid_b',
   'mer_guard',
+  'mer_market',
   // Thousand-Bough Isle (Chapter 02).
   'tamsin',
   'saffi',

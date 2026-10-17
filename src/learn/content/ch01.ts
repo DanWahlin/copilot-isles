@@ -1,3 +1,4 @@
+import { JOBS, QUOTES } from '../../game/market/jobs';
 import { MERIDIAN_YARD } from '../../world/sites/crate-yard-logic';
 import { courseRefs } from '../course/refs';
 import type { ChapterContent, Rect } from '../types';
@@ -945,6 +946,13 @@ export const CH01: ChapterContent = {
       source: src('try-the-controls', '1a9a4b2f69f1'),
     },
     {
+      id: 'pg1.market',
+      title: 'The Model Market',
+      caption:
+        'Models differ in capabilities, speed and usage cost. For a repository tour or a short explanation, keep **Auto** or the current model and its default reasoning effort. For a difficult bug or a change across several files, consider a model suited to complex coding and a higher effort level, though higher effort doesn’t guarantee a correct answer. If a response doesn’t work for you, select **Retry** below it to try again with a different model or effort, without retyping your prompt. (Gilda’s boards group the models the way GitHub Docs does: Lightweight, Versatile and Powerful.)',
+      source: src('models-and-reasoning-effort', '84d625491118'),
+    },
+    {
       id: 'pg1.prompts',
       title: 'Prompts and shortcuts',
       caption:
@@ -1160,10 +1168,22 @@ export const CH01: ChapterContent = {
     'mer.pell.letters.debrief': src('settings', '5b95eb5b50e3'),
     'mer.pell.done': src('i-cannot-find-a-setting-shown-in-the-chapter', 'a78cb1a046e1'),
     'mer.admiral.next': src('whats-next', '379b67eeb747'),
+    // The Model Market (src/game/market/jobs.ts quotes the course for each job and grade, in `cited`).
+    'mer.market.hello': src('models-and-reasoning-effort', '84d625491118'),
+    'mer.market.auto': src('models-and-reasoning-effort', '84d625491118'),
+    'mer.market.over': src('models-and-reasoning-effort', '84d625491118'),
+    'mer.market.over.effort': src('models-and-reasoning-effort', '84d625491118'),
+    'mer.market.short': src('try-again-with-a-different-model', 'b0031ded9c4d'),
+    'mer.market.short.auto': src('models-and-reasoning-effort', '84d625491118'),
   },
 
   // P1.1 The Crate Yard: each crate's reason, said when it's pushed onto the wrong plate.
-  cited: Object.fromEntries(
-    MERIDIAN_YARD.crates.map((c) => [`P1.1.${c.id}`, { text: c.why, source: c.source }]),
-  ),
+  // The Model Market: each job's course sentence, and every sentence its grades quote.
+  cited: Object.fromEntries([
+    ...MERIDIAN_YARD.crates.map((c) => [`P1.1.${c.id}`, { text: c.why, source: c.source }] as const),
+    ...JOBS.map((j) => [`market.job.${j.id}`, { text: j.why.text, source: j.why.source }] as const),
+    ...Object.entries(QUOTES).map(
+      ([k, q]) => [`market.quote.${k}`, { text: q.text, source: q.source }] as const,
+    ),
+  ]),
 };

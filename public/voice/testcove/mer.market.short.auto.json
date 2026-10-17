@@ -1,0 +1,122 @@
+{
+  "id": "mer.market.short.auto",
+  "speaker": "Gilda",
+  "text": "With Auto on, the effort setting's hidden. For a job this hard, turn Auto off, then pick a model and a higher effort.",
+  "words": [
+    {
+      "word": "With",
+      "start": 0,
+      "end": 0.336
+    },
+    {
+      "word": "Auto",
+      "start": 0.336,
+      "end": 0.853
+    },
+    {
+      "word": "on",
+      "start": 0.853,
+      "end": 1.24
+    },
+    {
+      "word": "the",
+      "start": 1.24,
+      "end": 1.417
+    },
+    {
+      "word": "effort",
+      "start": 1.417,
+      "end": 1.82
+    },
+    {
+      "word": "setting's",
+      "start": 1.82,
+      "end": 2.48
+    },
+    {
+      "word": "hidden",
+      "start": 2.48,
+      "end": 3.3
+    },
+    {
+      "word": "For",
+      "start": 3.3,
+      "end": 3.64
+    },
+    {
+      "word": "a",
+      "start": 3.64,
+      "end": 3.78
+    },
+    {
+      "word": "job",
+      "start": 3.78,
+      "end": 4.144
+    },
+    {
+      "word": "this",
+      "start": 4.144,
+      "end": 4.496
+    },
+    {
+      "word": "hard",
+      "start": 4.496,
+      "end": 5.024
+    },
+    {
+      "word": "turn",
+      "start": 5.024,
+      "end": 5.376
+    },
+    {
+      "word": "Auto",
+      "start": 5.376,
+      "end": 5.9
+    },
+    {
+      "word": "off",
+      "start": 5.9,
+      "end": 6.864
+    },
+    {
+      "word": "then",
+      "start": 6.864,
+      "end": 7.184
+    },
+    {
+      "word": "pick",
+      "start": 7.184,
+      "end": 7.48
+    },
+    {
+      "word": "a",
+      "start": 7.48,
+      "end": 7.587
+    },
+    {
+      "word": "model",
+      "start": 7.587,
+      "end": 7.98
+    },
+    {
+      "word": "and",
+      "start": 7.98,
+      "end": 8.2
+    },
+    {
+      "word": "a",
+      "start": 8.2,
+      "end": 8.309
+    },
+    {
+      "word": "higher",
+      "start": 8.309,
+      "end": 8.823
+    },
+    {
+      "word": "effort",
+      "start": 8.823,
+      "end": 9.073
+    }
+  ]
+}

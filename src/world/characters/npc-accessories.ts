@@ -161,6 +161,11 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
       addNeckerchief(root, 0xc64e3f);
       addFruitTray(root, -1);
       break;
+    case 'mer_market':
+      addHeadscarf(root, 0x7b2f86, 0xf0dfbd);
+      addApron(root, 0xf0e6cf, 0x2f5f9a);
+      addMoneyPouch(root, 0x8b5428, 1);
+      break;
     case 'mer_kid_a':
       addChildSailorCap(root, 0x2f6fa1, 0xd28a22);
       addToyPinwheel(root, -1);

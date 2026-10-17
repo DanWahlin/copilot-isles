@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-15T17:25:40.558Z",
+  "generatedAt": "2026-10-16T22:42:27.749Z",
   "generator": "Rhubarb Lip Sync 1.14.0",
   "scope": "Every voiced islander (not Wingman)",
   "lines": {
@@ -2528,6 +2528,91 @@
         7, 14, 21, 14, 21, 7, 7, 28, 86
       ],
       "v": "XAHCFBDBCBCBGFGCBXDCBCBAHCBCBCBFBGFX"
+    },
+    "mer.market.hello": {
+      "h": "b0ce1de240f3da72",
+      "e": "happy",
+      "t": [
+        0, 3, 12, 21, 12, 42, 14, 21, 7, 28, 8, 14, 21, 9, 17, 8, 6, 20, 9, 6, 90, 7, 21, 7, 14, 14, 7, 38,
+        31, 8, 6, 5, 21, 7, 35, 14, 49, 7, 45, 8, 8, 17, 14, 7, 9, 7, 51, 26, 21, 8, 23, 14, 11
+      ],
+      "v": "XCEABCBFCABFABADBACBCBCBGCBFADBCHBGBEABABCBADBEBAECX"
+    },
+    "mer.market.open": {
+      "h": "8c8c29cd2997d174",
+      "e": "neutral",
+      "t": [
+        0, 12, 32, 7, 13, 13, 7, 3, 8, 8, 18, 56, 35, 21, 8, 7, 6, 21, 17, 16, 21, 7, 44, 21, 21, 7, 7, 21, 7,
+        7, 14, 19
+      ],
+      "v": "XBDAGBABAEBCBADBCHCBCBCGCBCBCHX"
+    },
+    "mer.market.auto": {
+      "h": "df432b3763735bd5",
+      "e": "concerned",
+      "t": [
+        0, 6, 14, 7, 7, 14, 7, 7, 28, 7, 52, 7, 7, 18, 33, 7, 24, 27, 28, 13, 6, 6, 14, 7, 7, 7, 28, 17, 6,
+        41, 14, 8, 34, 21, 14, 21, 38, 14, 7, 14, 28, 14, 44, 7, 7, 7, 21, 7, 7, 8, 25, 7, 7, 14, 10, 10, 28,
+        24
+      ],
+      "v": "XCEBEFBCEBEFXBCAFBADBCHGBFXBCHEFBFDCBFDBXBGCBEBEACBHBACBX"
+    },
+    "mer.market.right": {
+      "h": "1cc6f8559c6c5082",
+      "e": "happy",
+      "t": [0, 3, 13, 7, 28, 14, 78, 7, 8, 7, 20, 7, 7, 14, 8, 28, 14, 7, 7, 21, 42, 8, 6, 13, 13, 12],
+      "v": "XBCBDBCABDBGBACBGECBADBXB"
+    },
+    "mer.market.over": {
+      "h": "3aac83d6aa809441",
+      "e": "neutral",
+      "t": [
+        0, 5, 11, 7, 14, 14, 21, 7, 35, 14, 7, 14, 21, 7, 7, 7, 7, 7, 7, 28, 21, 44, 4, 4, 21, 7, 7, 7, 7, 14,
+        35, 21
+      ],
+      "v": "XBCBCHEBDBGBGECBFBFBXEBEFBCBCBX"
+    },
+    "mer.market.over.effort": {
+      "h": "49e19431e751e535",
+      "e": "neutral",
+      "t": [0, 3, 23, 7, 14, 14, 7, 21, 7, 7, 7, 35, 21, 28, 32, 31, 14, 7, 7, 7, 21, 14, 28, 21],
+      "v": "XDBCGEBGBCBFBXBGBCFBCBX"
+    },
+    "mer.market.short": {
+      "h": "98e9f65ea7f4fb2c",
+      "e": "neutral",
+      "t": [
+        0, 8, 19, 7, 25, 7, 82, 7, 8, 45, 10, 24, 13, 12, 14, 7, 14, 15, 30, 7, 49, 49, 9, 7, 6, 21, 32, 20,
+        12, 29, 18, 14, 35, 25
+      ],
+      "v": "XCDBFBDABAEACBCHXBCBEADBCHEAECGBX"
+    },
+    "mer.market.short.auto": {
+      "h": "7a7cc97ac1a368bd",
+      "e": "neutral",
+      "t": [
+        0, 8, 9, 21, 21, 7, 7, 35, 13, 27, 14, 7, 7, 21, 7, 77, 21, 50, 6, 6, 14, 14, 7, 22, 26, 28, 7, 7, 28,
+        7, 14, 14, 7, 42, 21, 28, 26, 80, 9, 6, 6, 14, 14, 14, 14, 28, 7, 14, 21, 14, 7, 28, 24
+      ],
+      "v": "XFBEBCDCBCGEBCBCXGBCBEABCBEBCBEBEFBXBADBCHCBCBECGEBX"
+    },
+    "mer.market.broke": {
+      "h": "2b7fbb25d86d9a8a",
+      "e": "neutral",
+      "t": [
+        0, 3, 7, 7, 14, 21, 7, 14, 35, 42, 11, 14, 7, 14, 28, 7, 38, 5, 4, 7, 7, 21, 7, 7, 7, 14, 40, 30, 11,
+        8, 28, 21, 14, 7, 7, 7, 21, 14, 8, 4
+      ],
+      "v": "XCEFDBGBXBCBCBEHEFGEBCBHCBCACBFGCECBCAX"
+    },
+    "mer.market.done": {
+      "h": "77b46b1b95557297",
+      "e": "happy",
+      "t": [
+        0, 3, 12, 14, 28, 7, 8, 31, 7, 8, 23, 35, 31, 19, 7, 28, 7, 42, 19, 5, 18, 7, 14, 21, 14, 14, 7, 14,
+        10, 6, 6, 21, 14, 21, 14, 6, 41, 14, 17
+      ],
+      "v": "XCGBDADCAEBXBCBCBCEFCDCDBGEADBCHCABDCX"
     }
   }
 }

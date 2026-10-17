@@ -30,6 +30,7 @@ npm run check:opening -- --base=http://127.0.0.1:5353  # the opening's frame gap
 npm run build && npm run check:audio  # streaming audio on Slow 4G, served like GitHub Pages (HTTP/2 by priority): fails on a music gap > 300 ms or a voiced caption without its voice (--profile=fast3g|dsl|none, --flow=islands|full, --visits=cold,warm, --tap)
 npm run check:memory -- --base=http://127.0.0.1:5353  # GPU (renderer.info, honest) + JS heap per stop of Anchorage → Meridian → Thousand-Bough → Anchorage ×2, High+Lite × WebGPU+WebGL2: fails over budgets.json `memory` ceilings, > +10 % tracked / +15 % heap back home, growth between round trips, hitches or WebGPU errors, then quits with Anchorage dormant and starts a new voyage (one Anchorage, memory as the first) (--tiers, --backends, --trips, --out)
 npm run toolchain        # installs KTX-Software into .tools/, finds Blender, verifies gltf-transform + ffmpeg
+npm run models:sync      # the Model Market's models from GitHub Docs → content/models.json (-- --check)
 ```
 
 ## Non-negotiables

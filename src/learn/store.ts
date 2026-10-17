@@ -78,6 +78,8 @@ export interface LearnState {
   /** Starfish found anywhere, and the island you're on (for the purse's counter), or null at sea. */
   starfish: readonly string[];
   starfishIsland: { id: StarfishIsland; name: string } | null;
+  /** Starfish to spend at the Model Market (the purse shows it beside the island's count). */
+  starfishPurse: number;
   /** The saved sail palette (Paint Your Sails), or null for the default. */
   sails: string | null;
   /** The palette stand's theme picker while it's open; `selected` previews on the sails. */
@@ -142,6 +144,7 @@ export class LearnStore {
       tracker: null,
       starfish: progress.data.starfish.slice(),
       starfishIsland: null,
+      starfishPurse: progress.data.starfishPurse,
       sails: progress.data.sails,
       palette: null,
       fork: progress.data.fork,
@@ -489,8 +492,28 @@ export class LearnStore {
     const complete = count.found === count.total;
     const earned = STARFISH_REWARD + (complete ? STARFISH_SET_REWARD : 0);
     this.progress.addDoubloons(earned);
-    this.set({ starfish: this.progress.data.starfish.slice(), doubloons: this.progress.data.doubloons });
+    // Each starfish is also one to spend at the Model Market.
+    this.progress.earnStarfish(1);
+    this.set({
+      starfish: this.progress.data.starfish.slice(),
+      doubloons: this.progress.data.doubloons,
+      starfishPurse: this.progress.data.starfishPurse,
+    });
     return { ...count, earned, complete };
+  };
+
+  /** Pays the Model Market; false (and nothing spent) if the purse is short. */
+  spendStarfish = (n: number): boolean => {
+    if (!this.progress.spendStarfish(n)) return false;
+    this.set({ starfishPurse: this.progress.data.starfishPurse });
+    return true;
+  };
+
+  /** A market refund, plus any doubloons that come with it. */
+  refundStarfish = (n: number, doubloons = 0): void => {
+    this.progress.earnStarfish(n);
+    if (doubloons) this.progress.addDoubloons(doubloons);
+    this.set({ starfishPurse: this.progress.data.starfishPurse, doubloons: this.progress.data.doubloons });
   };
 
   // ---- Logbook ----
@@ -571,6 +594,7 @@ export class LearnStore {
       quests: [],
       tracker: null,
       starfish: [],
+      starfishPurse: 0,
       sails: null,
       fork: null,
       setup: { ...EMPTY_SETUP },

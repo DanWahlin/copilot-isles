@@ -1,0 +1,47 @@
+{
+  "id": "mer.market.right",
+  "speaker": "Gilda",
+  "text": "Right-sized! Here's some starfish back for hiring smart.",
+  "words": [
+    {
+      "word": "Right-sized",
+      "start": 0,
+      "end": 0.944
+    },
+    {
+      "word": "Here's",
+      "start": 0.944,
+      "end": 1.312
+    },
+    {
+      "word": "some",
+      "start": 1.312,
+      "end": 1.52
+    },
+    {
+      "word": "starfish",
+      "start": 1.52,
+      "end": 2.16
+    },
+    {
+      "word": "back",
+      "start": 2.16,
+      "end": 2.52
+    },
+    {
+      "word": "for",
+      "start": 2.52,
+      "end": 2.709
+    },
+    {
+      "word": "hiring",
+      "start": 2.709,
+      "end": 3.227
+    },
+    {
+      "word": "smart",
+      "start": 3.227,
+      "end": 3.477
+    }
+  ]
+}

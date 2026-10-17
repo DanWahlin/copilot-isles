@@ -81,6 +81,10 @@ import { createThreeHelms, type HelmsHost } from './puzzles/three-helms';
 import { createLostLetters, type LettersHost } from './puzzles/lost-letters';
 import { ALCOVES, LETTERS } from './puzzles/hall-letters';
 import { createRecordsAlcoves } from '../world/sites/records-alcoves';
+import { createModelMarketSigns } from '../world/sites/model-market';
+import { createModelMarket, type MarketHost } from './puzzles/model-market';
+import { CATEGORY_PRICE, JOBS as MARKET_JOBS } from './market/jobs';
+import { BOARDS as MARKET_BOARDS } from './market/models';
 import { createHelmBuoys } from '../world/sites/helm-buoys';
 import { loadVillageKit } from '../world/village/kit';
 import {
@@ -943,6 +947,18 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     reducedMotion: () => worldUniforms.reducedMotion.value > 0.5,
     place: placePlayer,
   };
+  // The Model Market: an overlay at Gilda's counter on the plaza, with the camera on her stall.
+  const marketHost: MarketHost = {
+    ...puzzleHost,
+    frame: (shot) => cam.frame(shot),
+    cut: (shot) => cam.cut(shot),
+    setModal: setOverlayModal,
+    reducedMotion: () => worldUniforms.reducedMotion.value > 0.5,
+    place: placePlayer,
+    filePage: (id) => {
+      if (learn?.filePage(id)) hud.toast('New Logbook page: The Model Market. Press J to read it.', 3.5);
+    },
+  };
   // P1.2 The Three Helms: the crew takes the wheel for each mode, and Rhea comes aboard to teach it.
   const helmsHost: HelmsHost = {
     ...puzzleHost,
@@ -1427,6 +1443,30 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       scope.colliders.push(...site.colliders.boxes);
       meridianSites.push(site);
       const p = createLostLetters(lettersHost, site);
+      puzzles.push(p);
+      scope.puzzles.push(p);
+    }
+    await buildSlice();
+    if (disposed || cove.meridian.town !== town) return noMeridian;
+    // The Model Market (optional): the boards' lettering on Gilda's stall (the stall's part of the
+    // town), and her counter. What's been hired lives in the save, so a reload shows the same notes.
+    const marketAt = town.anchors.modelMarket;
+    if (marketAt) {
+      const site = createModelMarketSigns({
+        origin: marketAt,
+        boards: MARKET_BOARDS.map((b) => ({
+          category: b.category,
+          price: CATEGORY_PRICE[b.category],
+          names: b.shown.map((m) => m.name),
+          more: b.more.length,
+        })),
+        jobs: MARKET_JOBS.map((j) => ({ id: j.id, note: j.note, size: j.size })),
+        done: [],
+      });
+      site.group.visible = false;
+      engine.scene.add(site.group);
+      meridianSites.push(site);
+      const p = createModelMarket(marketHost, site);
       puzzles.push(p);
       scope.puzzles.push(p);
     }

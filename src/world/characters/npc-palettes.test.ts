@@ -20,6 +20,7 @@ describe('NPC palettes', () => {
     'mer_kid_a',
     'mer_kid_b',
     'mer_guard',
+    'mer_market',
   ] as const;
 
   it('uses the dedicated atlas eye cell and no clothing slot for each family', () => {

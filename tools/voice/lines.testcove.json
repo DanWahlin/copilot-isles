@@ -1904,6 +1904,76 @@
       }
     },
     {
+      "id": "mer.market.hello",
+      "speaker": "Gilda",
+      "tts": "elevenlabs",
+      "voice": "5DTSWAtuA2BoWMSMFTRP",
+      "text": "Ahoy, Captain! Welcome to Gilda's Model Market. Trade your starfish for a model that fits the job. Bigger models cost more."
+    },
+    {
+      "id": "mer.market.open",
+      "speaker": "Gilda",
+      "tts": "elevenlabs",
+      "voice": "5DTSWAtuA2BoWMSMFTRP",
+      "text": "Pick a job from the board, then hire a model and set the effort dial."
+    },
+    {
+      "id": "mer.market.auto",
+      "speaker": "Gilda",
+      "tts": "elevenlabs",
+      "voice": "5DTSWAtuA2BoWMSMFTRP",
+      "text": "Auto's the house special. The app chooses a model for you, then tells you which one and why. It isn't Autopilot, mind."
+    },
+    {
+      "id": "mer.market.right",
+      "speaker": "Gilda",
+      "tts": "elevenlabs",
+      "voice": "5DTSWAtuA2BoWMSMFTRP",
+      "text": "Right-sized! Here's some starfish back for hiring smart."
+    },
+    {
+      "id": "mer.market.over",
+      "speaker": "Gilda",
+      "tts": "elevenlabs",
+      "voice": "5DTSWAtuA2BoWMSMFTRP",
+      "text": "That's a lot of starfish for a quick look. Auto would've done it."
+    },
+    {
+      "id": "mer.market.over.effort",
+      "speaker": "Gilda",
+      "tts": "elevenlabs",
+      "voice": "5DTSWAtuA2BoWMSMFTRP",
+      "text": "High effort for a quick look? The default would've done it."
+    },
+    {
+      "id": "mer.market.short",
+      "speaker": "Gilda",
+      "tts": "elevenlabs",
+      "voice": "5DTSWAtuA2BoWMSMFTRP",
+      "text": "Not quite. This job needs more muscle. Retry with a stronger model or more effort."
+    },
+    {
+      "id": "mer.market.short.auto",
+      "speaker": "Gilda",
+      "tts": "elevenlabs",
+      "voice": "5DTSWAtuA2BoWMSMFTRP",
+      "text": "With Auto on, the effort setting's hidden. For a job this hard, turn Auto off, then pick a model and a higher effort."
+    },
+    {
+      "id": "mer.market.broke",
+      "speaker": "Gilda",
+      "tts": "elevenlabs",
+      "voice": "5DTSWAtuA2BoWMSMFTRP",
+      "text": "No starfish? They hide all over the islands. Come back when you've found some."
+    },
+    {
+      "id": "mer.market.done",
+      "speaker": "Gilda",
+      "tts": "elevenlabs",
+      "voice": "5DTSWAtuA2BoWMSMFTRP",
+      "text": "Every job on the board, right-sized. You've got an eye for models, Captain!"
+    },
+    {
       "id": "juno.cabin.01",
       "speaker": "Juno",
       "tts": "elevenlabs",

@@ -10,7 +10,7 @@ import { QuestTracker } from './QuestTracker';
 import { QuizPanel } from './QuizPanel';
 import { ForkContext, SetupContext } from './Rich';
 import { SetupForm } from './SetupForm';
-import { StarfishCount } from './Starfish';
+import { StarfishCount, StarfishPurse } from './Starfish';
 import { ThemePicker } from './ThemePicker';
 import './learn.css';
 
@@ -90,6 +90,7 @@ function LearnLayer({
             {s.starfishIsland && (
               <StarfishCount island={s.starfishIsland} found={s.starfish} spot={s.spotlight.starfish} />
             )}
+            {(s.starfishPurse > 0 || s.starfish.length > 0) && <StarfishPurse count={s.starfishPurse} />}
             {/* Glows from the first page until the player has opened the Logbook once. */}
             <span className={`ci-purse-hint${!s.logbookOpened && s.pages.length > 0 ? ' nudge' : ''}`}>
               <kbd>J</kbd> Logbook

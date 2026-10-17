@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-15T17:25:25.731Z",
+  "generatedAt": "2026-10-16T22:39:54.458Z",
   "set": "testcove",
   "lines": [
     {
@@ -29874,6 +29874,921 @@
         }
       ],
       "voice": "en-GB-AbbiNeural"
+    },
+    {
+      "id": "mer.market.hello",
+      "speaker": "Gilda",
+      "text": "Ahoy, Captain! Welcome to Gilda's Model Market. Trade your starfish for a model that fits the job. Bigger models cost more.",
+      "duration": 9.308,
+      "files": {
+        "webm": "mer.market.hello.webm",
+        "m4a": "mer.market.hello.m4a"
+      },
+      "hash": "b0ce1de240f3da72",
+      "words": [
+        {
+          "word": "Ahoy",
+          "start": 0,
+          "end": 0.805
+        },
+        {
+          "word": "Captain",
+          "start": 0.805,
+          "end": 1.25
+        },
+        {
+          "word": "Welcome",
+          "start": 1.25,
+          "end": 1.653
+        },
+        {
+          "word": "to",
+          "start": 1.653,
+          "end": 1.8
+        },
+        {
+          "word": "Gilda's",
+          "start": 1.8,
+          "end": 2.293
+        },
+        {
+          "word": "Model",
+          "start": 2.293,
+          "end": 2.629
+        },
+        {
+          "word": "Market",
+          "start": 2.629,
+          "end": 3.253
+        },
+        {
+          "word": "Trade",
+          "start": 3.253,
+          "end": 3.552
+        },
+        {
+          "word": "your",
+          "start": 3.552,
+          "end": 3.776
+        },
+        {
+          "word": "starfish",
+          "start": 3.776,
+          "end": 4.58
+        },
+        {
+          "word": "for",
+          "start": 4.58,
+          "end": 4.92
+        },
+        {
+          "word": "a",
+          "start": 4.92,
+          "end": 5.04
+        },
+        {
+          "word": "model",
+          "start": 5.04,
+          "end": 5.504
+        },
+        {
+          "word": "that",
+          "start": 5.504,
+          "end": 5.84
+        },
+        {
+          "word": "fits",
+          "start": 5.84,
+          "end": 6.2
+        },
+        {
+          "word": "the",
+          "start": 6.2,
+          "end": 6.42
+        },
+        {
+          "word": "job",
+          "start": 6.42,
+          "end": 7.04
+        },
+        {
+          "word": "Bigger",
+          "start": 7.04,
+          "end": 7.589
+        },
+        {
+          "word": "models",
+          "start": 7.589,
+          "end": 8.128
+        },
+        {
+          "word": "cost",
+          "start": 8.128,
+          "end": 8.704
+        },
+        {
+          "word": "more",
+          "start": 8.704,
+          "end": 8.954
+        }
+      ],
+      "voice": "5DTSWAtuA2BoWMSMFTRP"
+    },
+    {
+      "id": "mer.market.open",
+      "speaker": "Gilda",
+      "text": "Pick a job from the board, then hire a model and set the effort dial.",
+      "duration": 5.108,
+      "files": {
+        "webm": "mer.market.open.webm",
+        "m4a": "mer.market.open.m4a"
+      },
+      "hash": "8c8c29cd2997d174",
+      "words": [
+        {
+          "word": "Pick",
+          "start": 0,
+          "end": 0.2
+        },
+        {
+          "word": "a",
+          "start": 0.2,
+          "end": 0.34
+        },
+        {
+          "word": "job",
+          "start": 0.34,
+          "end": 0.672
+        },
+        {
+          "word": "from",
+          "start": 0.672,
+          "end": 0.84
+        },
+        {
+          "word": "the",
+          "start": 0.84,
+          "end": 1.013
+        },
+        {
+          "word": "board",
+          "start": 1.013,
+          "end": 1.648
+        },
+        {
+          "word": "then",
+          "start": 1.648,
+          "end": 1.904
+        },
+        {
+          "word": "hire",
+          "start": 1.904,
+          "end": 2.2
+        },
+        {
+          "word": "a",
+          "start": 2.2,
+          "end": 2.32
+        },
+        {
+          "word": "model",
+          "start": 2.32,
+          "end": 2.8
+        },
+        {
+          "word": "and",
+          "start": 2.8,
+          "end": 3.12
+        },
+        {
+          "word": "set",
+          "start": 3.12,
+          "end": 3.44
+        },
+        {
+          "word": "the",
+          "start": 3.44,
+          "end": 3.771
+        },
+        {
+          "word": "effort",
+          "start": 3.771,
+          "end": 4.4
+        },
+        {
+          "word": "dial",
+          "start": 4.4,
+          "end": 4.65
+        }
+      ],
+      "voice": "5DTSWAtuA2BoWMSMFTRP"
+    },
+    {
+      "id": "mer.market.auto",
+      "speaker": "Gilda",
+      "text": "Auto's the house special. The app chooses a model for you, then tells you which one and why. It isn't Autopilot, mind.",
+      "duration": 9.208,
+      "files": {
+        "webm": "mer.market.auto.webm",
+        "m4a": "mer.market.auto.m4a"
+      },
+      "hash": "df432b3763735bd5",
+      "words": [
+        {
+          "word": "Auto's",
+          "start": 0,
+          "end": 0.58
+        },
+        {
+          "word": "the",
+          "start": 0.58,
+          "end": 0.693
+        },
+        {
+          "word": "house",
+          "start": 0.693,
+          "end": 1.03
+        },
+        {
+          "word": "special",
+          "start": 1.03,
+          "end": 1.68
+        },
+        {
+          "word": "The",
+          "start": 1.68,
+          "end": 2.02
+        },
+        {
+          "word": "app",
+          "start": 2.02,
+          "end": 2.38
+        },
+        {
+          "word": "chooses",
+          "start": 2.38,
+          "end": 2.88
+        },
+        {
+          "word": "a",
+          "start": 2.88,
+          "end": 3.027
+        },
+        {
+          "word": "model",
+          "start": 3.027,
+          "end": 3.4
+        },
+        {
+          "word": "for",
+          "start": 3.4,
+          "end": 3.58
+        },
+        {
+          "word": "you",
+          "start": 3.58,
+          "end": 4.032
+        },
+        {
+          "word": "then",
+          "start": 4.032,
+          "end": 4.24
+        },
+        {
+          "word": "tells",
+          "start": 4.24,
+          "end": 4.68
+        },
+        {
+          "word": "you",
+          "start": 4.68,
+          "end": 4.867
+        },
+        {
+          "word": "which",
+          "start": 4.867,
+          "end": 5.3
+        },
+        {
+          "word": "one",
+          "start": 5.3,
+          "end": 5.7
+        },
+        {
+          "word": "and",
+          "start": 5.7,
+          "end": 6.12
+        },
+        {
+          "word": "why",
+          "start": 6.12,
+          "end": 6.667
+        },
+        {
+          "word": "It",
+          "start": 6.667,
+          "end": 6.98
+        },
+        {
+          "word": "isn't",
+          "start": 6.98,
+          "end": 7.46
+        },
+        {
+          "word": "Autopilot",
+          "start": 7.46,
+          "end": 8.608
+        },
+        {
+          "word": "mind",
+          "start": 8.608,
+          "end": 8.858
+        }
+      ],
+      "voice": "5DTSWAtuA2BoWMSMFTRP"
+    },
+    {
+      "id": "mer.market.right",
+      "speaker": "Gilda",
+      "text": "Right-sized! Here's some starfish back for hiring smart.",
+      "duration": 4.008,
+      "files": {
+        "webm": "mer.market.right.webm",
+        "m4a": "mer.market.right.m4a"
+      },
+      "hash": "1cc6f8559c6c5082",
+      "words": [
+        {
+          "word": "Right-sized",
+          "start": 0,
+          "end": 0.944
+        },
+        {
+          "word": "Here's",
+          "start": 0.944,
+          "end": 1.312
+        },
+        {
+          "word": "some",
+          "start": 1.312,
+          "end": 1.52
+        },
+        {
+          "word": "starfish",
+          "start": 1.52,
+          "end": 2.16
+        },
+        {
+          "word": "back",
+          "start": 2.16,
+          "end": 2.52
+        },
+        {
+          "word": "for",
+          "start": 2.52,
+          "end": 2.709
+        },
+        {
+          "word": "hiring",
+          "start": 2.709,
+          "end": 3.227
+        },
+        {
+          "word": "smart",
+          "start": 3.227,
+          "end": 3.477
+        }
+      ],
+      "voice": "5DTSWAtuA2BoWMSMFTRP"
+    },
+    {
+      "id": "mer.market.over",
+      "speaker": "Gilda",
+      "text": "That's a lot of starfish for a quick look. Auto would've done it.",
+      "duration": 4.408,
+      "files": {
+        "webm": "mer.market.over.webm",
+        "m4a": "mer.market.over.m4a"
+      },
+      "hash": "3aac83d6aa809441",
+      "words": [
+        {
+          "word": "That's",
+          "start": 0,
+          "end": 0.36
+        },
+        {
+          "word": "a",
+          "start": 0.36,
+          "end": 0.52
+        },
+        {
+          "word": "lot",
+          "start": 0.52,
+          "end": 0.907
+        },
+        {
+          "word": "of",
+          "start": 0.907,
+          "end": 1.04
+        },
+        {
+          "word": "starfish",
+          "start": 1.04,
+          "end": 1.64
+        },
+        {
+          "word": "for",
+          "start": 1.64,
+          "end": 1.8
+        },
+        {
+          "word": "a",
+          "start": 1.8,
+          "end": 1.88
+        },
+        {
+          "word": "quick",
+          "start": 1.88,
+          "end": 2.16
+        },
+        {
+          "word": "look",
+          "start": 2.16,
+          "end": 2.96
+        },
+        {
+          "word": "Auto",
+          "start": 2.96,
+          "end": 3.307
+        },
+        {
+          "word": "would've",
+          "start": 3.307,
+          "end": 3.568
+        },
+        {
+          "word": "done",
+          "start": 3.568,
+          "end": 3.84
+        },
+        {
+          "word": "it",
+          "start": 3.84,
+          "end": 4.09
+        }
+      ],
+      "voice": "5DTSWAtuA2BoWMSMFTRP"
+    },
+    {
+      "id": "mer.market.over.effort",
+      "speaker": "Gilda",
+      "text": "High effort for a quick look? The default would've done it.",
+      "duration": 3.808,
+      "files": {
+        "webm": "mer.market.over.effort.webm",
+        "m4a": "mer.market.over.effort.m4a"
+      },
+      "hash": "49e19431e751e535",
+      "words": [
+        {
+          "word": "High",
+          "start": 0,
+          "end": 0.309
+        },
+        {
+          "word": "effort",
+          "start": 0.309,
+          "end": 0.78
+        },
+        {
+          "word": "for",
+          "start": 0.78,
+          "end": 1
+        },
+        {
+          "word": "a",
+          "start": 1,
+          "end": 1.093
+        },
+        {
+          "word": "quick",
+          "start": 1.093,
+          "end": 1.44
+        },
+        {
+          "word": "look",
+          "start": 1.44,
+          "end": 1.96
+        },
+        {
+          "word": "The",
+          "start": 1.96,
+          "end": 2.38
+        },
+        {
+          "word": "default",
+          "start": 2.38,
+          "end": 2.827
+        },
+        {
+          "word": "would've",
+          "start": 2.827,
+          "end": 3.072
+        },
+        {
+          "word": "done",
+          "start": 3.072,
+          "end": 3.28
+        },
+        {
+          "word": "it",
+          "start": 3.28,
+          "end": 3.53
+        }
+      ],
+      "voice": "5DTSWAtuA2BoWMSMFTRP"
+    },
+    {
+      "id": "mer.market.short",
+      "speaker": "Gilda",
+      "text": "Not quite. This job needs more muscle. Retry with a stronger model or more effort.",
+      "duration": 6.808,
+      "files": {
+        "webm": "mer.market.short.webm",
+        "m4a": "mer.market.short.m4a"
+      },
+      "hash": "98e9f65ea7f4fb2c",
+      "words": [
+        {
+          "word": "Not",
+          "start": 0,
+          "end": 0.467
+        },
+        {
+          "word": "quite",
+          "start": 0.467,
+          "end": 0.944
+        },
+        {
+          "word": "This",
+          "start": 0.944,
+          "end": 1.3
+        },
+        {
+          "word": "job",
+          "start": 1.3,
+          "end": 1.667
+        },
+        {
+          "word": "needs",
+          "start": 1.667,
+          "end": 2.064
+        },
+        {
+          "word": "more",
+          "start": 2.064,
+          "end": 2.4
+        },
+        {
+          "word": "muscle",
+          "start": 2.4,
+          "end": 3.067
+        },
+        {
+          "word": "Retry",
+          "start": 3.067,
+          "end": 3.632
+        },
+        {
+          "word": "with",
+          "start": 3.632,
+          "end": 3.8
+        },
+        {
+          "word": "a",
+          "start": 3.8,
+          "end": 3.902
+        },
+        {
+          "word": "stronger",
+          "start": 3.902,
+          "end": 4.493
+        },
+        {
+          "word": "model",
+          "start": 4.493,
+          "end": 5.093
+        },
+        {
+          "word": "or",
+          "start": 5.093,
+          "end": 5.424
+        },
+        {
+          "word": "more",
+          "start": 5.424,
+          "end": 5.783
+        },
+        {
+          "word": "effort",
+          "start": 5.783,
+          "end": 6.033
+        }
+      ],
+      "voice": "5DTSWAtuA2BoWMSMFTRP"
+    },
+    {
+      "id": "mer.market.short.auto",
+      "speaker": "Gilda",
+      "text": "With Auto on, the effort setting's hidden. For a job this hard, turn Auto off, then pick a model and a higher effort.",
+      "duration": 9.808,
+      "files": {
+        "webm": "mer.market.short.auto.webm",
+        "m4a": "mer.market.short.auto.m4a"
+      },
+      "hash": "7a7cc97ac1a368bd",
+      "words": [
+        {
+          "word": "With",
+          "start": 0,
+          "end": 0.336
+        },
+        {
+          "word": "Auto",
+          "start": 0.336,
+          "end": 0.853
+        },
+        {
+          "word": "on",
+          "start": 0.853,
+          "end": 1.24
+        },
+        {
+          "word": "the",
+          "start": 1.24,
+          "end": 1.417
+        },
+        {
+          "word": "effort",
+          "start": 1.417,
+          "end": 1.82
+        },
+        {
+          "word": "setting's",
+          "start": 1.82,
+          "end": 2.48
+        },
+        {
+          "word": "hidden",
+          "start": 2.48,
+          "end": 3.3
+        },
+        {
+          "word": "For",
+          "start": 3.3,
+          "end": 3.64
+        },
+        {
+          "word": "a",
+          "start": 3.64,
+          "end": 3.78
+        },
+        {
+          "word": "job",
+          "start": 3.78,
+          "end": 4.144
+        },
+        {
+          "word": "this",
+          "start": 4.144,
+          "end": 4.496
+        },
+        {
+          "word": "hard",
+          "start": 4.496,
+          "end": 5.024
+        },
+        {
+          "word": "turn",
+          "start": 5.024,
+          "end": 5.376
+        },
+        {
+          "word": "Auto",
+          "start": 5.376,
+          "end": 5.9
+        },
+        {
+          "word": "off",
+          "start": 5.9,
+          "end": 6.864
+        },
+        {
+          "word": "then",
+          "start": 6.864,
+          "end": 7.184
+        },
+        {
+          "word": "pick",
+          "start": 7.184,
+          "end": 7.48
+        },
+        {
+          "word": "a",
+          "start": 7.48,
+          "end": 7.587
+        },
+        {
+          "word": "model",
+          "start": 7.587,
+          "end": 7.98
+        },
+        {
+          "word": "and",
+          "start": 7.98,
+          "end": 8.2
+        },
+        {
+          "word": "a",
+          "start": 8.2,
+          "end": 8.309
+        },
+        {
+          "word": "higher",
+          "start": 8.309,
+          "end": 8.823
+        },
+        {
+          "word": "effort",
+          "start": 8.823,
+          "end": 9.073
+        }
+      ],
+      "voice": "5DTSWAtuA2BoWMSMFTRP"
+    },
+    {
+      "id": "mer.market.broke",
+      "speaker": "Gilda",
+      "text": "No starfish? They hide all over the islands. Come back when you've found some.",
+      "duration": 5.708,
+      "files": {
+        "webm": "mer.market.broke.webm",
+        "m4a": "mer.market.broke.m4a"
+      },
+      "hash": "2b7fbb25d86d9a8a",
+      "words": [
+        {
+          "word": "No",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "word": "starfish",
+          "start": 0.24,
+          "end": 1.168
+        },
+        {
+          "word": "They",
+          "start": 1.168,
+          "end": 1.744
+        },
+        {
+          "word": "hide",
+          "start": 1.744,
+          "end": 2.14
+        },
+        {
+          "word": "all",
+          "start": 2.14,
+          "end": 2.624
+        },
+        {
+          "word": "over",
+          "start": 2.624,
+          "end": 2.9
+        },
+        {
+          "word": "the",
+          "start": 2.9,
+          "end": 3.04
+        },
+        {
+          "word": "islands",
+          "start": 3.04,
+          "end": 3.776
+        },
+        {
+          "word": "Come",
+          "start": 3.776,
+          "end": 4.224
+        },
+        {
+          "word": "back",
+          "start": 4.224,
+          "end": 4.512
+        },
+        {
+          "word": "when",
+          "start": 4.512,
+          "end": 4.66
+        },
+        {
+          "word": "you've",
+          "start": 4.66,
+          "end": 4.933
+        },
+        {
+          "word": "found",
+          "start": 4.933,
+          "end": 5.28
+        },
+        {
+          "word": "some",
+          "start": 5.28,
+          "end": 5.53
+        }
+      ],
+      "voice": "5DTSWAtuA2BoWMSMFTRP"
+    },
+    {
+      "id": "mer.market.done",
+      "speaker": "Gilda",
+      "text": "Every job on the board, right-sized. You've got an eye for models, Captain!",
+      "duration": 6.208,
+      "files": {
+        "webm": "mer.market.done.webm",
+        "m4a": "mer.market.done.m4a"
+      },
+      "hash": "77b46b1b95557297",
+      "words": [
+        {
+          "word": "Every",
+          "start": 0,
+          "end": 0.42
+        },
+        {
+          "word": "job",
+          "start": 0.42,
+          "end": 0.8
+        },
+        {
+          "word": "on",
+          "start": 0.8,
+          "end": 0.98
+        },
+        {
+          "word": "the",
+          "start": 0.98,
+          "end": 1.12
+        },
+        {
+          "word": "board",
+          "start": 1.12,
+          "end": 2.067
+        },
+        {
+          "word": "right-sized",
+          "start": 2.067,
+          "end": 3.14
+        },
+        {
+          "word": "You've",
+          "start": 3.14,
+          "end": 3.56
+        },
+        {
+          "word": "got",
+          "start": 3.56,
+          "end": 3.76
+        },
+        {
+          "word": "an",
+          "start": 3.76,
+          "end": 3.98
+        },
+        {
+          "word": "eye",
+          "start": 3.98,
+          "end": 4.2
+        },
+        {
+          "word": "for",
+          "start": 4.2,
+          "end": 4.411
+        },
+        {
+          "word": "models",
+          "start": 4.411,
+          "end": 5.365
+        },
+        {
+          "word": "Captain",
+          "start": 5.365,
+          "end": 5.615
+        }
+      ],
+      "voice": "5DTSWAtuA2BoWMSMFTRP"
     }
   ]
 }

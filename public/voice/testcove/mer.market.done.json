@@ -1,0 +1,72 @@
+{
+  "id": "mer.market.done",
+  "speaker": "Gilda",
+  "text": "Every job on the board, right-sized. You've got an eye for models, Captain!",
+  "words": [
+    {
+      "word": "Every",
+      "start": 0,
+      "end": 0.42
+    },
+    {
+      "word": "job",
+      "start": 0.42,
+      "end": 0.8
+    },
+    {
+      "word": "on",
+      "start": 0.8,
+      "end": 0.98
+    },
+    {
+      "word": "the",
+      "start": 0.98,
+      "end": 1.12
+    },
+    {
+      "word": "board",
+      "start": 1.12,
+      "end": 2.067
+    },
+    {
+      "word": "right-sized",
+      "start": 2.067,
+      "end": 3.14
+    },
+    {
+      "word": "You've",
+      "start": 3.14,
+      "end": 3.56
+    },
+    {
+      "word": "got",
+      "start": 3.56,
+      "end": 3.76
+    },
+    {
+      "word": "an",
+      "start": 3.76,
+      "end": 3.98
+    },
+    {
+      "word": "eye",
+      "start": 3.98,
+      "end": 4.2
+    },
+    {
+      "word": "for",
+      "start": 4.2,
+      "end": 4.411
+    },
+    {
+      "word": "models",
+      "start": 4.411,
+      "end": 5.365
+    },
+    {
+      "word": "Captain",
+      "start": 5.365,
+      "end": 5.615
+    }
+  ]
+}

@@ -32,6 +32,7 @@ Voice lines are in [`tools/voice/lines.testcove.json`](../tools/voice/lines.test
 | Rook      | ElevenLabs      | [Noah Yorkshire](https://elevenlabs.io/voices/poHOO1m3tBNm4Ywmzcaq) (`poHOO1m3tBNm4Ywmzcaq`)                           | Yorkshire, male. Voice Library, 730-day notice period.                                           |
 | Pip       | ElevenLabs      | [Daniel – Bright, Warm and Commanding](https://elevenlabs.io/voices/gwU7DXdLrTvWCiUTPZG8) (`gwU7DXdLrTvWCiUTPZG8`)     | Warm, male voice. Voice Library, 730-day notice period.                                          |
 | Maren     | ElevenLabs      | [Eleanor – Gracious and Authoritative](https://elevenlabs.io/voices/2qQJWjw5XdG80GreshqG) (`2qQJWjw5XdG80GreshqG`)     | British, female. Voice Library, 730-day notice period.                                           |
+| Gilda | ElevenLabs | [Caty – Calm & whimsical](https://elevenlabs.io/voices/5DTSWAtuA2BoWMSMFTRP) (`5DTSWAtuA2BoWMSMFTRP`) | English with an Italian accent, female. Voice Library, 730-day notice period. The Model Market (Port Meridian). |
 
 ElevenLabs Voice Library voices can be removed by their owners. With a notice period, you can use the voice until
 the period ends. Audio that you already made continues to work.

@@ -1,0 +1,77 @@
+{
+  "id": "mer.market.broke",
+  "speaker": "Gilda",
+  "text": "No starfish? They hide all over the islands. Come back when you've found some.",
+  "words": [
+    {
+      "word": "No",
+      "start": 0,
+      "end": 0.24
+    },
+    {
+      "word": "starfish",
+      "start": 0.24,
+      "end": 1.168
+    },
+    {
+      "word": "They",
+      "start": 1.168,
+      "end": 1.744
+    },
+    {
+      "word": "hide",
+      "start": 1.744,
+      "end": 2.14
+    },
+    {
+      "word": "all",
+      "start": 2.14,
+      "end": 2.624
+    },
+    {
+      "word": "over",
+      "start": 2.624,
+      "end": 2.9
+    },
+    {
+      "word": "the",
+      "start": 2.9,
+      "end": 3.04
+    },
+    {
+      "word": "islands",
+      "start": 3.04,
+      "end": 3.776
+    },
+    {
+      "word": "Come",
+      "start": 3.776,
+      "end": 4.224
+    },
+    {
+      "word": "back",
+      "start": 4.224,
+      "end": 4.512
+    },
+    {
+      "word": "when",
+      "start": 4.512,
+      "end": 4.66
+    },
+    {
+      "word": "you've",
+      "start": 4.66,
+      "end": 4.933
+    },
+    {
+      "word": "found",
+      "start": 4.933,
+      "end": 5.28
+    },
+    {
+      "word": "some",
+      "start": 5.28,
+      "end": 5.53
+    }
+  ]
+}

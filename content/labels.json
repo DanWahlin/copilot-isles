@@ -105,6 +105,19 @@
         "hash": "5b95eb5b50e3"
       }
     },
+    "puzzle:market": {
+      "game": "puzzle",
+      "k": "Port Meridian · The Model Market",
+      "t": "Hire a model that fits the job",
+      "b": "Models differ in capabilities, speed and cost. Keep it light for a quick look; bring more power and effort for hard work.",
+      "ch": "01",
+      "c": "Models and Reasoning Effort",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "models-and-reasoning-effort",
+        "hash": "84d625491118"
+      }
+    },
     "puzzle:P2.1": {
       "game": "puzzle",
       "k": "Thousand-Bough Isle · Channel Routing",

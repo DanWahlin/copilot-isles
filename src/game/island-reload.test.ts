@@ -2,11 +2,16 @@ import { describe, expect, it, vi } from 'vitest';
 import type { RecordsAlcovesSite } from '../world/sites/records-alcoves';
 import { createChannelRouting, type ChannelRoutingHost } from './puzzles/channel-routing/puzzle';
 import { createLostLetters, type LettersHost } from './puzzles/lost-letters';
+import { createModelMarket, type MarketHost } from './puzzles/model-market';
+import { Progress } from '../learn/progress';
+import { LearnStore } from '../learn/store';
+import type { ModelMarketSite } from '../world/sites/model-market';
 import { LETTERS } from './puzzles/hall-letters';
 import { recordingThousandBough } from './thousand-bough-contract.stub';
 import { FEN_SOLVED } from './thousand-bough-quests';
 
 vi.mock('../ui/puzzles/LostLetters', () => ({ mountLostLetters: () => () => undefined }));
+vi.mock('../ui/puzzles/ModelMarket', () => ({ mountModelMarket: () => () => undefined }));
 
 /**
  * An island that was freed and streamed in again gets new sites and new puzzles (session.ts's
@@ -118,6 +123,68 @@ describe('an island rebuilt after an unload reads the save', () => {
     s.quests['P2.1'] = 'r3';
     const rebuilt = createChannelRouting(host, recordingThousandBough().sys);
     expect(round(rebuilt)).toBe(3);
+    rebuilt.dispose();
+  });
+
+  it('The Model Market: jobs done, the purse and the notes come back from the save', async () => {
+    const mem = new Map<string, string>();
+    const storage = {
+      getItem: (k: string) => mem.get(k) ?? null,
+      setItem: (k: string, v: string) => void mem.set(k, v),
+      removeItem: (k: string) => void mem.delete(k),
+    };
+    const learn = new LearnStore(new Progress(storage));
+    learn.refundStarfish(5);
+    const quests: Record<string, string> = {};
+    const host = {
+      learn,
+      hud: { toast: vi.fn() },
+      dialogue: { say: vi.fn(async () => undefined), play: vi.fn(async () => undefined) },
+      audio: null,
+      interactions: { add: vi.fn(), remove: vi.fn() },
+      player: { x: 0, y: 0, z: 0, heading: 0 },
+      quests: () => quests,
+      setQuest: (id: string, step: string) => void (quests[id] = step),
+      canAct: () => true,
+      beat: vi.fn(async () => true),
+      frame: vi.fn(),
+      cut: vi.fn(),
+      setModal: vi.fn(),
+      reducedMotion: () => true,
+      place: vi.fn(),
+      filePage: vi.fn(),
+    } as unknown as MarketHost;
+    const site = () =>
+      ({
+        stand: { x: 0, y: 0, z: 1, heading: 0 },
+        counter: { x: 0, y: 0, z: 0 },
+        shot: {},
+        setDone: vi.fn(),
+      }) as unknown as ModelMarketSite;
+    type Debug = {
+      open(): Promise<void>;
+      pickJob(id: string): void;
+      pick(p: string): void;
+      pay(): void;
+      state(): { done: string[]; purse: number };
+    };
+    const firstSite = site();
+    const first = createModelMarket(host, firstSite);
+    const d = first.debug as unknown as Debug;
+    await d.open();
+    d.pickJob('tour');
+    d.pick('auto');
+    d.pay();
+    expect(d.state()).toMatchObject({ done: ['tour'], purse: 5 });
+    expect(quests['Q1.A']).toBe('start');
+    first.dispose();
+    // A new store from the same storage, as the next session's would be.
+    const again = new LearnStore(new Progress(storage));
+    const rebuiltSite = site();
+    const rebuilt = createModelMarket({ ...host, learn: again } as MarketHost, rebuiltSite);
+    expect((rebuilt.debug as unknown as Debug).state()).toMatchObject({ done: ['tour'], purse: 5 });
+    expect(rebuiltSite.setDone).toHaveBeenCalledWith(['tour']);
+    expect(again.progress.data.market.greeted).toBe(true);
     rebuilt.dispose();
   });
 });

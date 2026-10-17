@@ -26,6 +26,7 @@
     "course:sync": "node tools/course/sync.mjs",
     "course:drift": "tsx tools/course/drift.ts",
     "course:refs": "node tools/course/refs.mjs",
+    "models:sync": "node tools/models/sync.mjs",
     "toolchain": "bash tools/setup-toolchain.sh",
     "toolchain:check": "node tools/check-toolchain.mjs",
     "voice:lipsync": "tsx tools/voice/lipsync.ts",

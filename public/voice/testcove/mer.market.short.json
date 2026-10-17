@@ -1,0 +1,82 @@
+{
+  "id": "mer.market.short",
+  "speaker": "Gilda",
+  "text": "Not quite. This job needs more muscle. Retry with a stronger model or more effort.",
+  "words": [
+    {
+      "word": "Not",
+      "start": 0,
+      "end": 0.467
+    },
+    {
+      "word": "quite",
+      "start": 0.467,
+      "end": 0.944
+    },
+    {
+      "word": "This",
+      "start": 0.944,
+      "end": 1.3
+    },
+    {
+      "word": "job",
+      "start": 1.3,
+      "end": 1.667
+    },
+    {
+      "word": "needs",
+      "start": 1.667,
+      "end": 2.064
+    },
+    {
+      "word": "more",
+      "start": 2.064,
+      "end": 2.4
+    },
+    {
+      "word": "muscle",
+      "start": 2.4,
+      "end": 3.067
+    },
+    {
+      "word": "Retry",
+      "start": 3.067,
+      "end": 3.632
+    },
+    {
+      "word": "with",
+      "start": 3.632,
+      "end": 3.8
+    },
+    {
+      "word": "a",
+      "start": 3.8,
+      "end": 3.902
+    },
+    {
+      "word": "stronger",
+      "start": 3.902,
+      "end": 4.493
+    },
+    {
+      "word": "model",
+      "start": 4.493,
+      "end": 5.093
+    },
+    {
+      "word": "or",
+      "start": 5.093,
+      "end": 5.424
+    },
+    {
+      "word": "more",
+      "start": 5.424,
+      "end": 5.783
+    },
+    {
+      "word": "effort",
+      "start": 5.783,
+      "end": 6.033
+    }
+  ]
+}

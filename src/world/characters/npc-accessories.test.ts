@@ -29,6 +29,7 @@ const MERIDIAN_MARKERS = {
   mer_kid_a: ['child sailor cap', 'pinwheel vane', 'satchel'],
   mer_kid_b: ['headscarf wrap', 'toy hoop', 'sash'],
   mer_guard: ['guard bicorne', 'guard uniform coat', 'guard brass belt'],
+  mer_market: ['headscarf wrap', 'merchant apron bib', 'money pouch'],
 } as const satisfies Partial<Record<CharacterBody, readonly string[]>>;
 
 describe('NPC accessories', () => {

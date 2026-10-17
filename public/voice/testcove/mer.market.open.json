@@ -1,0 +1,82 @@
+{
+  "id": "mer.market.open",
+  "speaker": "Gilda",
+  "text": "Pick a job from the board, then hire a model and set the effort dial.",
+  "words": [
+    {
+      "word": "Pick",
+      "start": 0,
+      "end": 0.2
+    },
+    {
+      "word": "a",
+      "start": 0.2,
+      "end": 0.34
+    },
+    {
+      "word": "job",
+      "start": 0.34,
+      "end": 0.672
+    },
+    {
+      "word": "from",
+      "start": 0.672,
+      "end": 0.84
+    },
+    {
+      "word": "the",
+      "start": 0.84,
+      "end": 1.013
+    },
+    {
+      "word": "board",
+      "start": 1.013,
+      "end": 1.648
+    },
+    {
+      "word": "then",
+      "start": 1.648,
+      "end": 1.904
+    },
+    {
+      "word": "hire",
+      "start": 1.904,
+      "end": 2.2
+    },
+    {
+      "word": "a",
+      "start": 2.2,
+      "end": 2.32
+    },
+    {
+      "word": "model",
+      "start": 2.32,
+      "end": 2.8
+    },
+    {
+      "word": "and",
+      "start": 2.8,
+      "end": 3.12
+    },
+    {
+      "word": "set",
+      "start": 3.12,
+      "end": 3.44
+    },
+    {
+      "word": "the",
+      "start": 3.44,
+      "end": 3.771
+    },
+    {
+      "word": "effort",
+      "start": 3.771,
+      "end": 4.4
+    },
+    {
+      "word": "dial",
+      "start": 4.4,
+      "end": 4.65
+    }
+  ]
+}

@@ -38,7 +38,7 @@ describe('Meridian tracker', () => {
   it('lists the chapter in order with the first unfinished step active', () => {
     const fresh = meridianTracker({});
     expect(fresh.island).toBe('Port Meridian');
-    expect(fresh.tasks.map((t) => t.id)).toEqual(MERIDIAN_QUESTS.map((q) => q.id));
+    expect(fresh.tasks.map((t) => t.id)).toEqual(MERIDIAN_QUESTS.filter((q) => !q.optional).map((q) => q.id));
     expect(fresh.tasks[0]!.status).toBe('active');
     expect(fresh.tasks.slice(1).every((t) => t.status === 'upcoming')).toBe(true);
     const later = meridianTracker({ 'Q1.1': 'done', 'Q1.2': 'done' });

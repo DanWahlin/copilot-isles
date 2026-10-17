@@ -1,0 +1,116 @@
+# The Model Market's weekly model sync (docs/specs/MODEL-MARKET.md §4).
+#
+#   1 Sync     tools/models/sync.mjs reads GitHub Docs' Copilot model tables (github/docs,
+#              data/tables/copilot) over plain HTTPS and rewrites content/models.json if the Claude,
+#              GPT or MAI models changed. No token: the commit comes from `git ls-remote`.
+#   2 Verify   typecheck, lint, format, unit tests (the board rule and the file's shape), build,
+#              budgets and the secret scan.
+#   3 Deliver  one PR, "Weekly refresh: Copilot models", updated each week until it's merged. Nothing
+#              auto-merges.
+#
+# A separate workflow from weekly-refresh.yml, on the same schedule: that one only runs when the course
+# changes. Uses only GITHUB_TOKEN. Opening the PR needs the repository setting "Allow GitHub Actions to
+# create and approve pull requests" (the course refresh needs it too). PRs opened with GITHUB_TOKEN don't
+# start other workflows (CI), which is why step 2 runs the checks here.
+#
+# Pages deploys by hand (pages.yml): after merging a models PR, run "Deploy to GitHub Pages" so the game
+# shows the new names.
+name: Weekly models refresh
+
+on:
+  schedule:
+    - cron: '0 13 * * 1' # Mondays, 6 AM Pacific (PDT), with the course refresh
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: models-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Sync, verify, and deliver
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # push the refresh branch
+      pull-requests: write # open or update the PR
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: 1 · Sync
+        id: sync
+        run: npm run models:sync
+
+      - name: 2 · Verify
+        id: verify
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          CI: 'true'
+        run: |
+          set +e
+          failed=""
+          run() {
+            local name=$1
+            shift
+            echo "::group::$name"
+            "$@" || failed="$failed $name"
+            echo "::endgroup::"
+          }
+          run typecheck npm run typecheck
+          run lint npm run lint
+          run format npm run format:check
+          run unit-tests npm test
+          run build npm run build
+          run budgets npm run check:budgets
+          run secrets npm run check:secrets
+          echo "failed=${failed# }" >> "$GITHUB_OUTPUT"
+          [ -z "$failed" ] && echo "ok=true" >> "$GITHUB_OUTPUT" || echo "ok=false" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: 3 · Deliver
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERIFY_OK: ${{ steps.verify.outputs.ok }}
+          VERIFY_FAILED: ${{ steps.verify.outputs.failed }}
+        run: |
+          if [ -z "$(git status --porcelain -- content/models.json)" ]; then
+            echo "content/models.json is already up to date; no PR." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          branch="models-refresh"
+          sha=$(node -p "require('./content/models.json').source.commit.slice(0, 7)")
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$branch"
+          git add content/models.json
+          git commit -m "Weekly refresh: Copilot models @ github/docs $sha"
+          git push --force origin "$branch"
+
+          {
+            echo "Refreshes the Model Market's models from GitHub Docs' Copilot tables at [\`$sha\`](https://github.com/github/docs/tree/$sha/data/tables/copilot) (docs/specs/MODEL-MARKET.md §4)."
+            echo
+            echo '```diff'
+            git diff HEAD~1 HEAD -- content/models.json | grep -E '^[+-] +"(name|category|ga)"' || true
+            echo '```'
+            echo
+            echo "### Checks"
+            echo
+            if [ "$VERIFY_OK" = "true" ]; then echo "Typecheck, lint, format, unit tests, build, budgets, and the secret scan all passed."; else echo "**Failed:** ${VERIFY_FAILED:-unknown}. See the workflow run."; fi
+            echo
+            echo "After merging, run **Deploy to GitHub Pages** to ship the new names."
+          } > "$RUNNER_TEMP/pr-body.md"
+
+          title="Weekly refresh: Copilot models"
+          if gh pr view "$branch" --json state -q .state 2> /dev/null | grep -q OPEN; then
+            gh pr edit "$branch" --title "$title" --body-file "$RUNNER_TEMP/pr-body.md"
+          else
+            gh pr create --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/pr-body.md"
+          fi

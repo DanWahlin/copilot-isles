@@ -45,6 +45,31 @@ export function StarfishCount({
   );
 }
 
+/**
+ * The purse's starfish to spend at the Model Market (docs/specs/MODEL-MARKET.md §3): a jar with a
+ * starfish in it, and the number. The island's "found" count beside it doesn't change when you spend.
+ */
+export function StarfishPurse({ count }: { count: number }) {
+  return (
+    <span
+      className="ci-starfish-purse"
+      title="Starfish to spend at Gilda’s Model Market"
+      aria-label={`${count} starfish to spend`}
+    >
+      <svg className="ci-starfish-jar" viewBox="-10 -12 20 22" aria-hidden>
+        <path className="glass" d="M-6-7h12v13a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3Z" />
+        <rect className="lid" x="-7" y="-10" width="14" height="3.2" rx="1.2" />
+        <path
+          className="star"
+          d="M0-4.6 1.15-1.6 4.35-1.45 1.85.6 2.7 3.7 0 1.95-2.7 3.7-1.85.6-4.35-1.45-1.15-1.6Z"
+        />
+      </svg>
+      {count}
+      <span className="ci-starfish-purse-word"> to spend</span>
+    </span>
+  );
+}
+
 /** The Logbook's Starfish tab: each island's starfish, found ones named, the rest as hints. */
 export function StarfishLog({ found, here }: { found: readonly string[]; here: StarfishIsland | null }) {
   const islands = (Object.keys(ISLAND_NAMES) as StarfishIsland[]).sort((a, b) =>
@@ -55,7 +80,8 @@ export function StarfishLog({ found, here }: { found: readonly string[]; here: S
     <div className="ci-starfish-log">
       <p className="ci-starfish-intro">
         Starfish hide all over the islands. Walk into one to pick it up: each is worth 5 doubloons, and
-        finding every one on an island earns 20 more. You've found {total} of {STARFISH.length}.
+        finding every one on an island earns 20 more. Each is also one to spend at Gilda’s Model Market on
+        Port Meridian. You've found {total} of {STARFISH.length}.
       </p>
       {islands.map((id) => {
         const all = starfishOn(id);

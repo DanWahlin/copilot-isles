@@ -37,7 +37,7 @@ export class Dialogue {
       if (token !== this.token) return;
       const line = this.hud.line(id);
       if (!line) continue;
-      const voiced = await this.voiceFor(id);
+      const voiced = await this.voiceFor(id, token);
       if (token !== this.token) return;
       onLine?.(id);
       this.onLine?.(line);
@@ -50,6 +50,8 @@ export class Dialogue {
         this.wake = resolve;
         this.timers.push(window.setTimeout(resolve, (line.duration + 0.55) * 1000));
       });
+      // A newer run took over (it owns the timers and the voice now): leave them to it.
+      if (token !== this.token) return;
       this.clearTimers();
       this.onLine?.(null);
       this.audio?.stopVoice();
@@ -65,7 +67,7 @@ export class Dialogue {
   }
 
   /** Waits for a line's voice (up to VOICE_WAIT_MS, or a press); true if it can play with its caption. */
-  private async voiceFor(id: string): Promise<boolean> {
+  private async voiceFor(id: string, token: number): Promise<boolean> {
     const audio = this.audio;
     if (!audio) return false;
     if (audio.voiceReady(id)) return true;
@@ -74,7 +76,7 @@ export class Dialogue {
       this.timers.push(window.setTimeout(resolve, VOICE_WAIT_MS));
       void audio.prepareVoice(id).then(() => resolve());
     });
-    this.clearTimers();
+    if (token === this.token) this.clearTimers();
     return audio.voiceReady(id);
   }
 
@@ -93,9 +95,9 @@ export class Dialogue {
       this.wake = resolve;
       this.timers.push(window.setTimeout(resolve, seconds * 1000));
     });
+    if (token !== this.token) return;
     this.clearTimers();
     this.onLine?.(null);
-    if (token !== this.token) return;
     this.active = false;
     this.hud.hideSubtitle();
   }

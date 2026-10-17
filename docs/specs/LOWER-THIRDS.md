@@ -28,7 +28,8 @@ without a `label` keeps the plain card. A puzzle without a label in `content/lab
 
 **The puzzles** (POC §4.5, §6.5; ISLAND-02 §5-§7): Anchorage has the Sluice & Waterwheel (P0.1) and the
 Dry-Run Crane (P0.2); Port Meridian has the Crate Yard (P1.1, "The Shipyard" in the quest log) and the
-Three Helms (P1.2) and the Lost Letters (P1.3, at Pell's desk in the Hall of Records); Thousand-Bough
+Three Helms (P1.2) and the Lost Letters (P1.3, at Pell's desk in the Hall of Records), and the optional Model
+Market (`market`, at Gilda's counter on the plaza; docs/specs/MODEL-MARKET.md); Thousand-Bough
 has Channel Routing (P2.1), the Spire twist (P2.2) and the Flag Hoist (P2.3). The other `Puzzle` objects aren't puzzles you
 solve and get no label: First Words, the Soundcheck, the Christening and Paint Your Sails are quest
 beats with their own dialogue and quiz, and the gear rack and Rook's session terminal are scenery.
@@ -66,6 +67,7 @@ wave's quiz).
 | `puzzle:P1.1` | The Crate Yard | Port Meridian · The Shipyard | Chat or project session? | Chats are for questions and exploring. Use a project session when the agent needs your repository, even just to read it. | Course Chapter 01 · Chat sessions and Project sessions | 01 `#project-sessions` (and Chat Sessions above it) |
 | `puzzle:P1.2` | The Three Helms | Port Meridian · The Three Helms | Interactive, Plan, or Autopilot? | Read each order and pick the mode: step by step, plan first and review, or end to end. Then sail it that way. | Course Chapter 01 · Modes | 01 `#modes` |
 | `puzzle:P1.3` | The Lost Letters | Port Meridian · The Hall of Records | Find your way around Settings | Open it with the gear at the bottom of the sidebar. Model providers adds providers. You still pick the model below the prompt box. | Course Chapter 01 · Settings | 01 `#settings` (and the table in it) |
+| `puzzle:market` | The Model Market | Port Meridian · The Model Market | Hire a model that fits the job | Models differ in capabilities, speed and cost. Keep it light for a quick look; bring more power and effort for hard work. | Course Chapter 01 · Models and Reasoning Effort | 01 `#models-and-reasoning-effort` |
 | `puzzle:P2.1` | Channel Routing | Thousand-Bough Isle · Channel Routing | Parallel sessions with worktrees | Each session gets its own worktree, so parallel sessions don’t mix their file changes. Then pick where each crew works. | Course Chapter 02 · Why the app uses worktrees | 02 `#why-the-github-copilot-app-uses-worktrees` |
 | `puzzle:P2.2` | Spire twist | Thousand-Bough Isle · The Spire Twist | What worktrees don’t keep apart | Worktrees keep files and branches apart. Find out what two previews running side by side can still share. | Course Chapter 02 · Two previews collided | 02 `#two-previews-collided` |
 | `puzzle:P2.3` | Flag Hoist | Thousand-Bough Isle · The Flag Hoist | Bring the right context | A few special characters in the prompt box add context and commands. Bring only what the task needs: less is often more. | Course Chapter 02 · Context syntax | 02 `#context-syntax` (the table and its tip) |

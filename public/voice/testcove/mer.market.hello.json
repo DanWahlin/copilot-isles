@@ -1,0 +1,112 @@
+{
+  "id": "mer.market.hello",
+  "speaker": "Gilda",
+  "text": "Ahoy, Captain! Welcome to Gilda's Model Market. Trade your starfish for a model that fits the job. Bigger models cost more.",
+  "words": [
+    {
+      "word": "Ahoy",
+      "start": 0,
+      "end": 0.805
+    },
+    {
+      "word": "Captain",
+      "start": 0.805,
+      "end": 1.25
+    },
+    {
+      "word": "Welcome",
+      "start": 1.25,
+      "end": 1.653
+    },
+    {
+      "word": "to",
+      "start": 1.653,
+      "end": 1.8
+    },
+    {
+      "word": "Gilda's",
+      "start": 1.8,
+      "end": 2.293
+    },
+    {
+      "word": "Model",
+      "start": 2.293,
+      "end": 2.629
+    },
+    {
+      "word": "Market",
+      "start": 2.629,
+      "end": 3.253
+    },
+    {
+      "word": "Trade",
+      "start": 3.253,
+      "end": 3.552
+    },
+    {
+      "word": "your",
+      "start": 3.552,
+      "end": 3.776
+    },
+    {
+      "word": "starfish",
+      "start": 3.776,
+      "end": 4.58
+    },
+    {
+      "word": "for",
+      "start": 4.58,
+      "end": 4.92
+    },
+    {
+      "word": "a",
+      "start": 4.92,
+      "end": 5.04
+    },
+    {
+      "word": "model",
+      "start": 5.04,
+      "end": 5.504
+    },
+    {
+      "word": "that",
+      "start": 5.504,
+      "end": 5.84
+    },
+    {
+      "word": "fits",
+      "start": 5.84,
+      "end": 6.2
+    },
+    {
+      "word": "the",
+      "start": 6.2,
+      "end": 6.42
+    },
+    {
+      "word": "job",
+      "start": 6.42,
+      "end": 7.04
+    },
+    {
+      "word": "Bigger",
+      "start": 7.04,
+      "end": 7.589
+    },
+    {
+      "word": "models",
+      "start": 7.589,
+      "end": 8.128
+    },
+    {
+      "word": "cost",
+      "start": 8.128,
+      "end": 8.704
+    },
+    {
+      "word": "more",
+      "start": 8.704,
+      "end": 8.954
+    }
+  ]
+}

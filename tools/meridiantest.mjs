@@ -3,12 +3,15 @@
 // and the Crate Yard (P1.1, solved by its hook), Rhea and the Three Helms (P1.2, sailed for real: each
 // buoy's helm, Interactive's marks, Plan's approval, Autopilot home to the berth), the lift up the
 // bluff to Oren, Pell and the Lost Letters (P1.3, played with the keyboard), and the Admiral's Exam that
-// lights the lighthouse. Screenshots at each beat. At a helm order and at Pell's desk it also types
+// lights the lighthouse. Screenshots at each beat. First, on the way up from the quay, Gilda's Model
+// Market (optional): walk up as Gilda calls out, then a quick job right-sized, one overspent, and a hard
+// one that falls short and is retried, all with real keys, then Meridian is freed and rebuilt to check the market reads the save. At a helm order and at Pell's desk it also types
 // in the fork form over the overlay, to check the overlay leaves those keys (and J) alone.
 // Oren asks which model the player kept and which computer they're on (Your setup): `--setup=skip`
 // skips both forms; by default the run enters them and checks the shortcut, quiz and Logbook use them.
 // node tools/meridiantest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/meridian]
-//                             [--from=admiral|oren|pell] [--setup=enter|skip]
+//                             [--from=admiral|oren|pell|market] [--setup=enter|skip]
+// (--from=market plays only the market and its reload.)
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
 import { answerSetupForm, logbookPage, setupPlan } from './lib/setup-forms.mjs';
 
@@ -458,6 +461,191 @@ async function pellAndLetters() {
   await shot('letters-filed');
 }
 
+/**
+ * The Model Market (docs/specs/MODEL-MARKET.md), with real key presses: walk across the plaza (Gilda
+ * calls out), E at the counter, then 1 (tour) 1 (Auto) E → right-sized; 2 (explain)
+ * 4 (Powerful) → (High) E → overspent; 3 (bug) 2 (Lightweight) → → (High) E → fell short, R (Retry with
+ * a different model: Powerful, High) E → right-sized. The fork form's typing mustn't reach it. Then
+ * Meridian is freed and streamed in again: the jobs, the purse and the quest come back from the save.
+ */
+async function marketRun() {
+  const M = (f, a) => S(f, a);
+  const market = () => M(() => window.__dev.session().debug.puzzle('market')?.state() ?? null);
+  await M(() => window.__dev.learn.refundStarfish(10));
+  const purse0 = await M(() => window.__dev.learn.getState().starfishPurse);
+  // From the fountain side of the plaza, walk toward the stall (north), until Gilda says hello.
+  await M(() => window.__dev.bench.teleport(674.6, -799.5, 0.2, 0.2, 0.14));
+  await page.waitForTimeout(700);
+  for (let i = 0; i < 10 && !(await M(() => window.__dev.learn.progress.data.market.greeted)); i++)
+    await M(() => window.__dev.hold(['KeyW'], 300));
+  const greeted = await learnState();
+  if (greeted.quests['Q1.A'] !== 'start')
+    logs.push(`[meridiantest] market: no hello (Q1.A ${greeted.quests['Q1.A']})`);
+  if (!greeted.subtitle.includes('Model Market'))
+    logs.push(`[meridiantest] market: hello caption "${greeted.subtitle}"`);
+  await shot('market-hello');
+  await drive('Gilda hello', (st) => !st.dialogue, 20000);
+  // Up to the counter: the prompt, then E (any first key also clears the chart label).
+  const stand = await M(() => window.__dev.session().debug.puzzle('market').stand());
+  await M(
+    (d) =>
+      window.__dev.bench.teleport(
+        d.x - Math.sin(d.heading) * 2.2,
+        d.z - Math.cos(d.heading) * 2.2,
+        d.heading,
+        d.heading,
+        0.12,
+      ),
+    stand,
+  );
+  await page.waitForTimeout(600);
+  let p = null;
+  for (let i = 0; i < 8 && !p?.includes('Model Market'); i++) {
+    await M(() => window.__dev.hold(['KeyW'], 250));
+    await page.waitForTimeout(250);
+    p = await M(() => document.querySelector('.hud-prompt.show')?.textContent ?? null);
+  }
+  if (!p?.includes('Model Market')) logs.push(`[meridiantest] market: no counter prompt (${p})`);
+  await shot('market-counter');
+  for (let i = 0; i < 10 && !(await market())?.open; i++) {
+    await page.keyboard.press('KeyE');
+    await page.waitForTimeout(500);
+  }
+  if (!(await market())?.open) {
+    logs.push('[meridiantest] market: the work order never opened');
+    return;
+  }
+  await page.waitForTimeout(1200);
+  const opened = await market();
+  if (opened.view.screen !== 'board') logs.push(`[meridiantest] market: opened on ${opened.view.screen}`);
+  await shot('market-board');
+  const press = async (...codes) => {
+    for (const c of codes) {
+      await page.keyboard.press(c);
+      await page.waitForTimeout(220);
+    }
+    await page.waitForTimeout(350);
+    return market();
+  };
+  const expectOutcome = (st, want, label) => {
+    const got = st.view.result?.feedback.outcome;
+    if (got !== want) logs.push(`[meridiantest] market ${label}: ${got} (wanted ${want})`);
+  };
+  // The fork form over the work order: its typing (and J) stay out of the market.
+  {
+    const before = JSON.stringify((await market()).view.screen);
+    await forkFormKeys('market', false, async () => {
+      const st = await market();
+      return st.open && JSON.stringify(st.view.screen) === before && st.view.job === null;
+    });
+  }
+  // 1 · The tour with Auto: right-sized, 1 starfish back.
+  let st = await press('Digit1');
+  if (st.view.screen !== 'hire' || st.view.job !== 'tour')
+    logs.push(`[meridiantest] market: 1 → ${st.view.screen} ${st.view.job}`);
+  await shot('market-hire');
+  st = await press('Digit1', 'KeyE');
+  expectOutcome(st, 'right', 'tour + Auto');
+  const live = await M(() => document.querySelector('.ci-mm-live')?.textContent ?? '');
+  if (!live.startsWith('Right-sized')) logs.push(`[meridiantest] market: live region "${live}"`);
+  await page.waitForTimeout(600);
+  await shot('market-right');
+  if (st.purse !== purse0)
+    logs.push(`[meridiantest] market: purse ${st.purse} after Auto and a refund (was ${purse0})`);
+  // 2 · Explain filterBooks with Powerful on High: overspent, no refund.
+  st = await press('KeyE');
+  if (st.view.screen !== 'board') logs.push(`[meridiantest] market: Got it → ${st.view.screen}`);
+  st = await press('Digit2', 'Digit4', 'ArrowRight');
+  if (st.view.draft.category !== 'Powerful' || st.view.draft.effort !== 'high')
+    logs.push(`[meridiantest] market: draft ${JSON.stringify(st.view.draft)}`);
+  st = await press('KeyE');
+  expectOutcome(st, 'over', 'explain + Powerful High');
+  await page.waitForTimeout(600);
+  await shot('market-over');
+  if (st.purse !== purse0 - 4) logs.push(`[meridiantest] market: purse ${st.purse} after overspending 4`);
+  // 3 · The bug with Lightweight on High: fell short; R retries with a different model (Powerful, High).
+  st = await press('KeyE', 'Digit3', 'Digit2', 'ArrowRight', 'ArrowRight', 'KeyE');
+  expectOutcome(st, 'short', 'bug + Lightweight High');
+  await page.waitForTimeout(600);
+  await shot('market-short');
+  st = await press('KeyR');
+  if (!st.view.retry || st.view.draft.category !== 'Powerful' || st.view.draft.effort !== 'high')
+    logs.push(
+      `[meridiantest] market: Retry → ${JSON.stringify({ retry: st.view.retry, draft: st.view.draft })}`,
+    );
+  await shot('market-retry');
+  st = await press('KeyE');
+  expectOutcome(st, 'right', 'bug Retry + Powerful High');
+  await page.waitForTimeout(600);
+  await shot('market-retry-right');
+  const doneBefore = st.done.slice().sort();
+  const purseBefore = st.purse;
+  if (JSON.stringify(doneBefore) !== JSON.stringify(['bug', 'tour']))
+    logs.push(`[meridiantest] market: done ${doneBefore}`);
+  // Esc on the result goes back to the board, Esc again steps away.
+  st = await press('Escape', 'Escape');
+  if (st.open) logs.push('[meridiantest] market: Esc twice left it open');
+  await page.waitForTimeout(500);
+  const walk = await M(() => window.__dev.state());
+  if (walk.mode !== 'walk') logs.push(`[meridiantest] market: mode ${walk.mode} after closing`);
+  const page1 = await M(() => window.__dev.learn.getState().pages.includes('pg1.market'));
+  if (!page1) logs.push('[meridiantest] market: no Logbook page pg1.market');
+  // Freed and streamed in again: the market's state comes from the save.
+  await M(() => window.__dev.session().debug.unloadIsland('meridian'));
+  await page.waitForFunction(() => !window.__dev.session().debug.puzzle('market'), null, { timeout: 30000 });
+  await M(() => window.__dev.session().debug.loadIsland('meridian'));
+  await page
+    .waitForFunction(() => !!window.__dev.session().debug.puzzle('market'), null, { timeout: 90000 })
+    .catch(() => logs.push('[meridiantest] market: no market after Meridian streamed in again'));
+  await page.waitForTimeout(2500);
+  const back = await market();
+  if (
+    back &&
+    (JSON.stringify(back.done.slice().sort()) !== JSON.stringify(doneBefore) || back.purse !== purseBefore)
+  )
+    logs.push(
+      `[meridiantest] market after reload: ${JSON.stringify({ done: back.done, purse: back.purse })}`,
+    );
+  // The stall's own shot (the notes on the cork board show which jobs are done).
+  await M(() => window.__dev.session().camera.cut(window.__dev.session().debug.puzzle('market').shot()));
+  await page.waitForTimeout(1500);
+  await shot('market-reloaded');
+  await M(() => window.__dev.session().camera.frame(null));
+  // The game has its keys back: a talk prompt by Tobias's table.
+  const t = await M(() =>
+    window.__dev
+      .session()
+      .debug.cast()
+      .find((n) => n.id === 'tobias'),
+  );
+  await M(
+    (t) =>
+      window.__dev.bench.teleport(
+        t.x + Math.sin(t.h) * 2,
+        t.z + Math.cos(t.h) * 2,
+        t.h + Math.PI,
+        t.h + Math.PI,
+        0.15,
+      ),
+    t,
+  );
+  await page.waitForTimeout(700);
+  const after = await M(() => ({
+    prompt: document.querySelector('.hud-prompt.show')?.textContent ?? null,
+    state: window.__dev.state(),
+    busy: window.__dev.learn.busy,
+  }));
+  if (!after.prompt?.includes('Tobias'))
+    logs.push(`[meridiantest] market: no prompt after the market ${JSON.stringify(after)}`);
+}
+
+if (opt.from === 'market') {
+  await marketRun();
+  await browser.close();
+  console.log(JSON.stringify({ url, shots: shots.length, logs: logs.slice(0, 30) }, null, 1));
+  process.exit(0);
+}
+
 // --from=admiral skips to the exam with Chapter 01's other steps marked done; --from=oren to Oren;
 // --from=pell to Pell and his letters.
 if (opt.from === 'admiral') {
@@ -482,6 +670,8 @@ if (opt.from === 'admiral') {
   });
   await pellAndLetters();
 } else {
+  // The Model Market first, at the top of the stair street from the quay (it's optional).
+  await marketRun();
   // Q1.1 Tobias → Q1.2 Mina's tour (a shot at each landmark) → Q1.3 Lyra.
   await talk('tobias');
   await drive('Tobias', quest('Q1.1', 'done'));

@@ -37,6 +37,21 @@ describe('Dialogue.cancel', () => {
     expect(audio.stopVoice).not.toHaveBeenCalled();
   });
 
+  it('lets a newer run finish when an older one’s timer fires (a line said over another)', async () => {
+    const { dialogue } = fakes();
+    const first = dialogue.play(['l']);
+    await vi.advanceTimersByTimeAsync(500);
+    const second = dialogue.play(['l']);
+    await vi.advanceTimersByTimeAsync(0);
+    // The first line's timer fires while the second is up: it mustn't clear the second's.
+    await vi.advanceTimersByTimeAsync(1100);
+    await vi.advanceTimersByTimeAsync(1000);
+    await second;
+    expect(dialogue.active).toBe(false);
+    dialogue.cancel();
+    await Promise.race([first, vi.advanceTimersByTimeAsync(0)]);
+  });
+
   it('stops its own line', async () => {
     const { audio, dialogue } = fakes();
     const done = dialogue.play(['l']);

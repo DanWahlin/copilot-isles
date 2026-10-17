@@ -396,6 +396,17 @@ export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
     bandana: HAIR.chestnut,
     bandanaStripe: HAIR.chestnut,
   },
+  mer_market: {
+    skin: SKIN.weatheredMedium,
+    eyes: EYES.warmBrown,
+    hair: HAIR.grey,
+    shirt: OUTFIT.cream,
+    vest: OUTFIT.indigo,
+    trousers: OUTFIT.brown,
+    sash: OUTFIT.burgundy,
+    bandana: OUTFIT.plum,
+    bandanaStripe: OUTFIT.cream,
+  },
   mer_kid_a: {
     skin: SKIN.fair,
     eyes: EYES.blue,

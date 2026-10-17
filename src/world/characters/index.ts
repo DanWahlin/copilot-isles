@@ -216,6 +216,15 @@ export const BODY_CONFIG: Record<CharacterBody, BodyConfig> = {
     tint: 0xffffff,
     hand: 'left',
   },
+  // Gilda keeps the Model Market under the plaza's arcade (docs/specs/MODEL-MARKET.md).
+  mer_market: {
+    source: 'anne_npc',
+    scale: 0.97,
+    radius: 0.32,
+    height: 1.66,
+    tint: 0xffffff,
+    hand: 'right',
+  },
   mer_kid_a: { source: 'henry_npc', scale: 0.68, radius: 0.22, height: 1.18, tint: 0xffffff },
   mer_kid_b: { source: 'anne_npc', scale: 0.7, radius: 0.22, height: 1.2, tint: 0xffffff },
   mer_guard: { source: 'henry_npc', scale: 1.05, radius: 0.35, height: 1.82, tint: 0xffffff },

@@ -1,0 +1,101 @@
+# A trimmed copy of github/docs data/tables/copilot/models-and-pricing.yml for the catalog tests
+# (src/game/market/catalog.test.ts): two price tiers for one model, a footnote, quoted names, a
+# preview, and providers the market leaves out.
+
+# OpenAI
+- model: 'GPT-5 mini'
+  provider: openai
+  release_status: GA
+  category: Lightweight
+  input: $0.25
+  output: $2.00
+
+- model: 'GPT-5.4'
+  provider: openai
+  release_status: GA
+  category: Versatile
+  threshold: '≤ 272K'
+  tier: Default
+  input: $2.50
+
+- model: GPT-5.4
+  provider: openai
+  release_status: GA
+  category: Versatile
+  threshold: '> 272K'
+  tier: Long context
+  input: $5.00
+
+- model: GPT-5.6 Luna
+  provider: openai
+  release_status: GA
+  category: Lightweight
+
+- model: GPT-6 Luna
+  provider: openai
+  release_status: GA
+  category: Lightweight
+
+- model: GPT-6 Sol
+  provider: openai
+  release_status: GA
+  category: Powerful
+
+- model: GPT-6.1 Sol
+  provider: openai
+  release_status: GA
+  category: Powerful
+
+- model: GPT-6 Astra
+  provider: openai
+  release_status: GA
+  category: Powerful
+
+- model: GPT-5.6 Terra
+  provider: openai
+  release_status: GA
+  category: Versatile
+
+# Anthropic
+- model: Claude Haiku 5.5
+  provider: anthropic
+  release_status: GA
+  category: Lightweight
+
+- model: Claude Sonnet 5.5
+  provider: anthropic
+  release_status: GA
+  category: Versatile
+
+- model: Claude Opus 5.5
+  provider: anthropic
+  release_status: GA
+  category: Powerful
+
+- model: Claude Opus 4.8 (fast mode) (preview)
+  provider: anthropic
+  release_status: GA
+  category: Powerful
+
+- model: Claude Fable 5.1
+  provider: anthropic
+  release_status: Public preview
+  category: Powerful
+
+# Google
+- model: 'Gemini 3.8 Flash[^gemini-flash-promo]'
+  provider: google
+  release_status: GA
+  category: Versatile
+
+# Microsoft
+- model: 'MAI-Code-1.1-Flash'
+  provider: microsoft
+  release_status: GA
+  category: Lightweight
+
+# xAI
+- model: 'Grok 4.7'
+  provider: xai
+  release_status: GA
+  category: Versatile

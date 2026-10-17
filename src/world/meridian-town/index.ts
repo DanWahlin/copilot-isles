@@ -65,6 +65,7 @@ import {
 } from '../village/kit';
 import { segmentDistance } from '../../util/math';
 import { MONUMENT_TOP, anchorMonument } from './anchor-monument';
+import { MARKET_LAYOUT, MODEL_MARKET, addModelMarketStall, marketToWorld } from './model-market';
 import { CITADEL_EMBRASURES, MERIDIAN_BATTERIES, type Embrasure } from '../islands/meridian-batteries';
 import { addShoreBatteries, cannonDetail, shoreBatteryWalkable } from '../village/shore-battery';
 
@@ -1359,7 +1360,35 @@ function addPlaza(
     tz: -797.7,
   });
 
-  addAwningStall(buckets, colliders, 681.7, PLAZA.height, -787.9, 0, CLOTH_BLUE, CLOTH_GOLD);
+  // Gilda's Model Market (docs/specs/MODEL-MARKET.md) under its own arches against the corner house,
+  // on your right as you come up the stair street: it took the place of a plain awning stall.
+  addModelMarketStall(
+    buckets,
+    { boxes: colliders.boxes, camera: colliders.camera ?? [] },
+    PLAZA.height,
+    liteTown,
+  );
+  anchor('modelMarket', {
+    x: MODEL_MARKET.x,
+    y: PLAZA.height,
+    z: MODEL_MARKET.z,
+    heading: MODEL_MARKET.heading,
+  });
+  {
+    const v = marketToWorld(MARKET_LAYOUT.vendor.x, MARKET_LAYOUT.vendor.z);
+    const you = marketToWorld(MARKET_LAYOUT.stand.x, MARKET_LAYOUT.stand.z);
+    anchor('gilda', {
+      x: v.x,
+      y: PLAZA.height + MARKET_LAYOUT.vendor.y,
+      z: v.z,
+      heading: MODEL_MARKET.heading,
+      tx: you.x,
+      ty: PLAZA.height + 1.5,
+      tz: you.z,
+    });
+    const barrels = marketToWorld(-5.6, -1.6);
+    addBarrelCluster(buckets, colliders, barrels.x, PLAZA.height, barrels.z, 0.7);
+  }
   addAwningStall(buckets, colliders, 646.2, PLAZA.height, -810.6, Math.PI / 2, CLOTH_RED, LIMESTONE_LIGHT);
   addBench(buckets, colliders, 680.8, PLAZA.height, -807.2, -25 * DEG);
   addBench(buckets, colliders, 653.8, PLAZA.height, -800.5, 82 * DEG);

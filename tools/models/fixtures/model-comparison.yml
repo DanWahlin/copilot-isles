@@ -1,0 +1,22 @@
+# A trimmed copy of github/docs data/tables/copilot/model-comparison.yml for the catalog tests.
+
+- name: GPT-5 mini
+  task_area: General-purpose coding and writing
+  excels_at: Fast, accurate code completions and explanations
+  further_reading: '[GPT-5 mini model card](https://example.com)'
+
+- name: GPT-6.1 Sol
+  task_area: Complex coding tasks
+  excels_at: 'Advanced, efficient reasoning for complex coding tasks'
+
+- name: Claude Haiku 5.5
+  task_area: Fast help with simple or repetitive tasks
+  excels_at: Fast, reliable answers to lightweight coding questions
+
+- name: MAI-Code-1.1-Flash
+  task_area: General-purpose coding and writing, image understanding
+  excels_at: Fast code completions and explanations, instruction following, tool use
+
+- name: Gemini 3.8 Flash
+  task_area: Fast help
+  excels_at: Quick answers

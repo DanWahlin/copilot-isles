@@ -1,0 +1,117 @@
+{
+  "id": "mer.market.auto",
+  "speaker": "Gilda",
+  "text": "Auto's the house special. The app chooses a model for you, then tells you which one and why. It isn't Autopilot, mind.",
+  "words": [
+    {
+      "word": "Auto's",
+      "start": 0,
+      "end": 0.58
+    },
+    {
+      "word": "the",
+      "start": 0.58,
+      "end": 0.693
+    },
+    {
+      "word": "house",
+      "start": 0.693,
+      "end": 1.03
+    },
+    {
+      "word": "special",
+      "start": 1.03,
+      "end": 1.68
+    },
+    {
+      "word": "The",
+      "start": 1.68,
+      "end": 2.02
+    },
+    {
+      "word": "app",
+      "start": 2.02,
+      "end": 2.38
+    },
+    {
+      "word": "chooses",
+      "start": 2.38,
+      "end": 2.88
+    },
+    {
+      "word": "a",
+      "start": 2.88,
+      "end": 3.027
+    },
+    {
+      "word": "model",
+      "start": 3.027,
+      "end": 3.4
+    },
+    {
+      "word": "for",
+      "start": 3.4,
+      "end": 3.58
+    },
+    {
+      "word": "you",
+      "start": 3.58,
+      "end": 4.032
+    },
+    {
+      "word": "then",
+      "start": 4.032,
+      "end": 4.24
+    },
+    {
+      "word": "tells",
+      "start": 4.24,
+      "end": 4.68
+    },
+    {
+      "word": "you",
+      "start": 4.68,
+      "end": 4.867
+    },
+    {
+      "word": "which",
+      "start": 4.867,
+      "end": 5.3
+    },
+    {
+      "word": "one",
+      "start": 5.3,
+      "end": 5.7
+    },
+    {
+      "word": "and",
+      "start": 5.7,
+      "end": 6.12
+    },
+    {
+      "word": "why",
+      "start": 6.12,
+      "end": 6.667
+    },
+    {
+      "word": "It",
+      "start": 6.667,
+      "end": 6.98
+    },
+    {
+      "word": "isn't",
+      "start": 6.98,
+      "end": 7.46
+    },
+    {
+      "word": "Autopilot",
+      "start": 7.46,
+      "end": 8.608
+    },
+    {
+      "word": "mind",
+      "start": 8.608,
+      "end": 8.858
+    }
+  ]
+}

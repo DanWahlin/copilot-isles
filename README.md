@@ -48,7 +48,10 @@ More commands, the stack, and the project rules are in
 - **Plan:** [`.plans/PLAN.md`](.plans/PLAN.md)
 - **Specs:** [Islands 00–01](docs/specs/POC-islands-00-01.md) ·
   [Thousand-Bough Isle](docs/specs/ISLAND-02-thousand-bough.md) · [Sea battles](docs/specs/BATTLES.md) ·
-  [Opening](docs/specs/OPENING-living-chart.md) · [Chart labels](docs/specs/LOWER-THIRDS.md)
+  [Opening](docs/specs/OPENING-living-chart.md) · [Chart labels](docs/specs/LOWER-THIRDS.md) ·
+  [Model Market](docs/specs/MODEL-MARKET.md)
+- **Model list:** the Model Market's models come from GitHub Docs (`npm run models:sync`). A weekly
+  workflow (`models-refresh.yml`) opens a PR when they change; after you merge it, run the Pages deploy.
 - **Course content:** [authoring guide](docs/course-content-authoring.md)
 - **Character voices:** [`docs/voices.md`](docs/voices.md) (all AI-generated)
 - **Background:** [research](docs/research/) · [design reviews](docs/reviews/)

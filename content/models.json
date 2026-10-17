@@ -1,0 +1,244 @@
+{
+  "source": {
+    "repo": "github/docs",
+    "path": "data/tables/copilot",
+    "commit": "dae83f7d28f3b8e10015bd6b6d8b72267cedceca",
+    "fetchedAt": "2026-10-16T22:36:34.864Z"
+  },
+  "models": [
+    {
+      "name": "Claude Haiku 5.5",
+      "provider": "anthropic",
+      "family": "Claude",
+      "category": "Lightweight",
+      "taskArea": "Fast help with simple or repetitive tasks",
+      "excelsAt": "Fast, reliable answers to lightweight coding questions",
+      "ga": true
+    },
+    {
+      "name": "GPT-5 mini",
+      "provider": "openai",
+      "family": "GPT",
+      "category": "Lightweight",
+      "taskArea": "General-purpose coding and writing",
+      "excelsAt": "Fast, accurate code completions and explanations",
+      "ga": true
+    },
+    {
+      "name": "GPT-5.4 mini",
+      "provider": "openai",
+      "family": "GPT",
+      "category": "Lightweight",
+      "taskArea": "Agentic software development",
+      "excelsAt": "Codebase exploration and is especially effective when using grep-style tools",
+      "ga": true
+    },
+    {
+      "name": "GPT-5.4 nano",
+      "provider": "openai",
+      "family": "GPT",
+      "category": "Lightweight",
+      "taskArea": "",
+      "excelsAt": "",
+      "ga": true
+    },
+    {
+      "name": "GPT-5.6 Luna",
+      "provider": "openai",
+      "family": "GPT",
+      "category": "Lightweight",
+      "taskArea": "Fast help with simple or repetitive tasks",
+      "excelsAt": "Quick, cost-efficient responses for smaller, faster coding tasks",
+      "ga": true
+    },
+    {
+      "name": "GPT-6 Luna",
+      "provider": "openai",
+      "family": "GPT",
+      "category": "Lightweight",
+      "taskArea": "Fast help with simple or repetitive tasks",
+      "excelsAt": "Quick, cost-efficient responses for smaller, faster tasks",
+      "ga": true
+    },
+    {
+      "name": "MAI-Code-1.1-Flash",
+      "provider": "microsoft",
+      "family": "MAI",
+      "category": "Lightweight",
+      "taskArea": "General-purpose coding and writing, image understanding",
+      "excelsAt": "Fast code completions and explanations, instruction following, tool use",
+      "ga": true
+    },
+    {
+      "name": "Claude Haiku 4.5",
+      "provider": "anthropic",
+      "family": "Claude",
+      "category": "Versatile",
+      "taskArea": "Fast help with simple or repetitive tasks",
+      "excelsAt": "Fast, reliable answers to lightweight coding questions",
+      "ga": true
+    },
+    {
+      "name": "Claude Sonnet 4",
+      "provider": "anthropic",
+      "family": "Claude",
+      "category": "Versatile",
+      "taskArea": "",
+      "excelsAt": "",
+      "ga": true
+    },
+    {
+      "name": "Claude Sonnet 4.6",
+      "provider": "anthropic",
+      "family": "Claude",
+      "category": "Versatile",
+      "taskArea": "General-purpose coding and agent tasks",
+      "excelsAt": "Complex problem-solving challenges, sophisticated reasoning",
+      "ga": true
+    },
+    {
+      "name": "Claude Sonnet 5",
+      "provider": "anthropic",
+      "family": "Claude",
+      "category": "Versatile",
+      "taskArea": "General-purpose coding and agent tasks",
+      "excelsAt": "Complex problem-solving challenges, sophisticated reasoning",
+      "ga": true
+    },
+    {
+      "name": "Claude Sonnet 5.5",
+      "provider": "anthropic",
+      "family": "Claude",
+      "category": "Versatile",
+      "taskArea": "General-purpose coding and agent tasks",
+      "excelsAt": "Efficient task completion with fewer steps, tokens, and tool calls",
+      "ga": true
+    },
+    {
+      "name": "GPT-5.4",
+      "provider": "openai",
+      "family": "GPT",
+      "category": "Versatile",
+      "taskArea": "Deep reasoning and debugging",
+      "excelsAt": "Multi-step problem solving and architecture-level code analysis",
+      "ga": true
+    },
+    {
+      "name": "GPT-5.6 Terra",
+      "provider": "openai",
+      "family": "GPT",
+      "category": "Versatile",
+      "taskArea": "General-purpose coding and agent tasks",
+      "excelsAt": "Balanced everyday interactive and agentic coding",
+      "ga": true
+    },
+    {
+      "name": "Claude Fable 5",
+      "provider": "anthropic",
+      "family": "Claude",
+      "category": "Powerful",
+      "taskArea": "Long-horizon, autonomous coding and knowledge-work",
+      "excelsAt": "First-attempt correctness through upfront reasoning, aggressive parallel tool batching, and proactive verification of pre-existing test state before debugging",
+      "ga": true
+    },
+    {
+      "name": "Claude Fable 5.1",
+      "provider": "anthropic",
+      "family": "Claude",
+      "category": "Powerful",
+      "taskArea": "Long-horizon, autonomous coding and knowledge-work",
+      "excelsAt": "Substantial, long-running coding tasks, including deep codebase research, feature development, and complex agentic workflows",
+      "ga": true
+    },
+    {
+      "name": "Claude Opus 4.8",
+      "provider": "anthropic",
+      "family": "Claude",
+      "category": "Powerful",
+      "taskArea": "Deep reasoning and debugging",
+      "excelsAt": "Complex problem-solving challenges, sophisticated reasoning",
+      "ga": true
+    },
+    {
+      "name": "Claude Opus 4.8 (fast mode) (preview)",
+      "provider": "anthropic",
+      "family": "Claude",
+      "category": "Powerful",
+      "taskArea": "Deep reasoning and debugging",
+      "excelsAt": "Complex problem-solving challenges, sophisticated reasoning",
+      "ga": false
+    },
+    {
+      "name": "Claude Opus 5",
+      "provider": "anthropic",
+      "family": "Claude",
+      "category": "Powerful",
+      "taskArea": "Deep reasoning and debugging",
+      "excelsAt": "Complex problem-solving challenges, sophisticated reasoning",
+      "ga": true
+    },
+    {
+      "name": "Claude Opus 5.5",
+      "provider": "anthropic",
+      "family": "Claude",
+      "category": "Powerful",
+      "taskArea": "Long-running agentic coding and knowledge work",
+      "excelsAt": "Efficient multistep tasks, error recovery, and collaboration",
+      "ga": true
+    },
+    {
+      "name": "GPT-5.3-Codex",
+      "provider": "openai",
+      "family": "GPT",
+      "category": "Powerful",
+      "taskArea": "Agentic software development",
+      "excelsAt": "Agentic tasks",
+      "ga": true
+    },
+    {
+      "name": "GPT-5.5",
+      "provider": "openai",
+      "family": "GPT",
+      "category": "Powerful",
+      "taskArea": "Deep reasoning and debugging",
+      "excelsAt": "Multi-step problem solving and architecture-level code analysis",
+      "ga": true
+    },
+    {
+      "name": "GPT-5.6 Sol",
+      "provider": "openai",
+      "family": "GPT",
+      "category": "Powerful",
+      "taskArea": "Deep reasoning and debugging",
+      "excelsAt": "Complex reasoning over large codebases and long-running agentic work",
+      "ga": true
+    },
+    {
+      "name": "GPT-6 Astra",
+      "provider": "openai",
+      "family": "GPT",
+      "category": "Powerful",
+      "taskArea": "Long-horizon, autonomous coding and agentic tasks",
+      "excelsAt": "Long-horizon coding tasks with continuous planning, batched diagnosis and verification, and independent result confirmation",
+      "ga": true
+    },
+    {
+      "name": "GPT-6 Sol",
+      "provider": "openai",
+      "family": "GPT",
+      "category": "Powerful",
+      "taskArea": "Interactive and agentic coding",
+      "excelsAt": "All-round development tasks that benefit from careful, multistep validation",
+      "ga": true
+    },
+    {
+      "name": "GPT-6.1 Sol",
+      "provider": "openai",
+      "family": "GPT",
+      "category": "Powerful",
+      "taskArea": "Complex coding tasks",
+      "excelsAt": "Advanced, efficient reasoning for complex coding tasks",
+      "ga": true
+    }
+  ]
+}

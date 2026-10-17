@@ -21,6 +21,24 @@ export interface PuzzleSave {
   flags?: string[];
 }
 
+/** One hire at the Model Market, as saved: a model that leaves the board later still loads. */
+export interface MarketHire {
+  outcome: 'right' | 'over' | 'short';
+  /** 'Auto', or the model's category on the day you hired it. */
+  category: string;
+  /** The model's name (null for Auto). */
+  model: string | null;
+  effort: 'low' | 'default' | 'high' | null;
+  paid: number;
+}
+
+export interface MarketSave {
+  /** Job id → whether it's been done right-sized, and the last hire for it. */
+  jobs: Record<string, { done: boolean; last: MarketHire | null }>;
+  /** The stallholder has said hello (once per save). */
+  greeted: boolean;
+}
+
 export interface ProgressData {
   v: 1;
   created: number;
@@ -56,6 +74,14 @@ export interface ProgressData {
   arrivals: string[];
   /** Starfish found (ids from src/world/starfish/spots.ts). */
   starfish: string[];
+  /**
+   * Starfish to spend at the Model Market (docs/specs/MODEL-MARKET.md §3): one for each starfish
+   * picked up, less what the market took. Never below 0. Saves from before the market start with one
+   * for each starfish they'd found.
+   */
+  starfishPurse: number;
+  /** The Model Market's jobs (src/game/market/jobs.ts): what you last hired for each, and if it's done. */
+  market: MarketSave;
   /** Chart labels already shown (ids from content/labels.json): a puzzle's label shows once per save. */
   labels: string[];
 }
@@ -81,6 +107,8 @@ function emptyProgress(now = Date.now()): ProgressData {
     logbookOpened: false,
     arrivals: [],
     starfish: [],
+    starfishPurse: 0,
+    market: { jobs: {}, greeted: false },
     labels: [],
   };
 }
@@ -161,11 +189,47 @@ export function parseProgress(raw: string | null): ProgressData {
       logbookOpened: d.logbookOpened === true,
       arrivals: strings(d.arrivals),
       starfish: strings(d.starfish),
+      // A save from before the market: every starfish found so far is there to spend.
+      starfishPurse:
+        typeof d.starfishPurse === 'number' && Number.isFinite(d.starfishPurse)
+          ? Math.max(0, Math.floor(d.starfishPurse))
+          : new Set(strings(d.starfish)).size,
+      market: parseMarket(d.market),
       labels: strings(d.labels),
     };
   } catch {
     return emptyProgress();
   }
+}
+
+const OUTCOMES = ['right', 'over', 'short'] as const;
+const EFFORTS = ['low', 'default', 'high'] as const;
+
+function parseHire(v: unknown): MarketHire | null {
+  if (!v || typeof v !== 'object') return null;
+  const h = v as Partial<MarketHire>;
+  if (!OUTCOMES.includes(h.outcome as MarketHire['outcome']) || typeof h.category !== 'string') return null;
+  return {
+    outcome: h.outcome as MarketHire['outcome'],
+    category: h.category,
+    model: typeof h.model === 'string' ? h.model : null,
+    effort: EFFORTS.includes(h.effort as 'low') ? (h.effort as MarketHire['effort']) : null,
+    paid: typeof h.paid === 'number' && h.paid >= 0 ? Math.floor(h.paid) : 0,
+  };
+}
+
+function parseMarket(v: unknown): MarketSave {
+  const out: MarketSave = { jobs: {}, greeted: false };
+  if (!v || typeof v !== 'object') return out;
+  const m = v as { jobs?: unknown; greeted?: unknown };
+  out.greeted = m.greeted === true;
+  if (m.jobs && typeof m.jobs === 'object')
+    for (const [id, raw] of Object.entries(m.jobs as Record<string, unknown>)) {
+      if (!raw || typeof raw !== 'object') continue;
+      const j = raw as { done?: unknown; last?: unknown };
+      out.jobs[id] = { done: j.done === true, last: parseHire(j.last) };
+    }
+  return out;
 }
 
 function parsePuzzles(v: unknown): Record<string, PuzzleSave> {
@@ -293,6 +357,34 @@ export class Progress {
   /** The ship's name, falling back to the captain's default. */
   get shipName(): string {
     return this.data.shipName ?? defaultShipName(this.data.captainName);
+  }
+
+  /** Adds starfish to spend (one for each pickup, a market refund). */
+  earnStarfish(n: number): void {
+    this.data.starfishPurse += Math.max(0, Math.floor(n));
+    this.save();
+  }
+
+  /** Spends starfish at the market; false (and nothing spent) if there aren't enough. */
+  spendStarfish(n: number): boolean {
+    const cost = Math.max(0, Math.floor(n));
+    if (cost > this.data.starfishPurse) return false;
+    this.data.starfishPurse -= cost;
+    this.save();
+    return true;
+  }
+
+  /** Saves a hire for a market job; a job done right-sized stays done. */
+  recordHire(job: string, hire: MarketHire): void {
+    const prev = this.data.market.jobs[job];
+    this.data.market.jobs[job] = { done: !!prev?.done || hire.outcome === 'right', last: hire };
+    this.save();
+  }
+
+  markMarketGreeted(): void {
+    if (this.data.market.greeted) return;
+    this.data.market.greeted = true;
+    this.save();
   }
 
   addDoubloons(n: number): void {
