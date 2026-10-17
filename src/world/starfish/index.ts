@@ -111,7 +111,7 @@ export function createStarfish(): StarfishSystem {
 }
 
 /** A puffy five-armed star standing on edge, its arms' tips coral and its heart gold (vertex colours). */
-function starGeometry(): BufferGeometry {
+export function starGeometry(): BufferGeometry {
   // Hand-built (not ExtrudeGeometry, which drags the whole Shape/earcut stack into vendor-three):
   // each face is a fan from a raised heart through a mid ring to the rim, and a wall joins the rims.
   const rings: [scale: number, z: number][] = [

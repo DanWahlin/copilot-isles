@@ -17,7 +17,9 @@ import {
   starfishCount,
   type StarfishIsland,
 } from '../world/starfish/spots';
-import type { Page, Quiz } from './types';
+import type { Page, Quiz, SourceRef } from './types';
+import { coveredTopics } from './course-board';
+import type { ChapterId } from './course/chapters';
 
 export type LogbookTab = 'pages' | 'glossary' | 'quests' | 'starfish';
 
@@ -94,6 +96,11 @@ export interface LearnState {
   osDetected: OsId;
   /** A setup form while it's open. */
   setupForm: { kind: SetupKind; from: SetupFrom } | null;
+  /**
+   * An island's course notice board while it's open (docs/specs/COURSE-BOARDS.md): its chapter, and
+   * the topics the player has met in the game (a held page or a passed quiz cites them).
+   */
+  courseBoard: { chapter: ChapterId; covered: readonly string[] } | null;
   /** An arrival flyover is playing: the purse and task list step aside for the view. */
   cinematic: boolean;
   /** A conversation or framed shot is on: the task list fades so the scene has the screen. */
@@ -152,6 +159,7 @@ export class LearnStore {
       setup: progress.data.setup,
       osDetected: detectOs(),
       setupForm: null,
+      courseBoard: null,
       cinematic: false,
       calm: false,
       spotlight: NO_SPOTLIGHT,
@@ -175,6 +183,7 @@ export class LearnStore {
       s.palette ||
       s.forkForm ||
       s.setupForm ||
+      s.courseBoard ||
       s.logbook.open ||
       s.spyglass?.full
     );
@@ -399,6 +408,26 @@ export class LearnStore {
   setSails = (id: string): void => {
     this.progress.setSails(id);
     this.set({ sails: id });
+  };
+
+  // ---- Course notice boards ----
+
+  /** Opens an island's course notice board, with ✓ on the topics the player has met in the game. */
+  openCourseBoard = (chapter: ChapterId): void => {
+    const sources: SourceRef[] = [];
+    for (const id of this.state.pages) {
+      const page = PAGES.get(id);
+      if (page) sources.push(page.source);
+    }
+    for (const [id, r] of Object.entries(this.progress.data.quizzes)) {
+      const quiz = r.passed ? QUIZZES.get(id) : undefined;
+      if (quiz) sources.push(quiz.source);
+    }
+    this.set({ courseBoard: { chapter, covered: [...coveredTopics(chapter, sources)] } });
+  };
+
+  closeCourseBoard = (): void => {
+    if (this.state.courseBoard) this.set({ courseBoard: null });
   };
 
   // ---- Your fork ----

@@ -47,6 +47,11 @@ export const COVE = {
    */
   chartTable: { x: -115.4, z: -67.6 },
   gearRack: { x: -119.6, z: -63.2, rot: -0.95 },
+  /**
+   * The course notice board (docs/specs/COURSE-BOARDS.md): on the east side of the street from the
+   * quay up to the village square, turned toward the pier foot, so it's in view as you come ashore.
+   */
+  courseBoard: { x: -99.8, y: 2.48, z: -59.2, rot: -2.16 },
   /** Two small moored boats in the basin. */
   boats: [
     { x: -135, z: -118, heading: 0.4 },

@@ -133,14 +133,15 @@ describe('createMeridianTown', () => {
       expect(anchor!.y).toBeLessThanOrEqual(42);
     }
     // Each material splits into spatial chunks of 24k triangles at most (frustum culling skips most).
-    expect(town.metrics.staticDraws).toBeLessThanOrEqual(20);
-    expect(town.metrics.drawCalls).toBeLessThanOrEqual(25);
+    // High's façades, roofs and plaza dressing fill a few more chunks (PLAN §12.1 High has room).
+    expect(town.metrics.staticDraws).toBeLessThanOrEqual(26);
+    expect(town.metrics.drawCalls).toBeLessThanOrEqual(31);
     const chunks = town.group.children.filter((o) => o.name.startsWith('meridian-town-')) as Mesh[];
     expect(chunks.length).toBe(town.metrics.staticDraws);
     const chunkTriangles = chunks.reduce((sum, m) => sum + (m.geometry.index?.count ?? 0) / 3, 0);
     expect(chunkTriangles).toBe(town.metrics.staticTriangles);
     for (const m of chunks) expect((m.geometry.index?.count ?? 0) / 3).toBeLessThanOrEqual(24_000 + 2_000);
-    expect(town.metrics.triangles).toBeLessThan(260_000);
+    expect(town.metrics.triangles).toBeLessThan(380_000);
     expect(town.metrics.buildingCount).toBeGreaterThanOrEqual(25);
     expect(town.colliders.boxes.length + town.colliders.circles.length).toBeGreaterThan(80);
 
@@ -275,13 +276,15 @@ describe('createMeridianTown', () => {
     const kit = testKit();
     const town = createMeridianTown({ tier: tierSettings('low'), heightField, kit });
     let last: number | null = null;
-    for (let z = MERIDIAN.harbor.quay.z0; z >= MERIDIAN.pads.plaza.z; z -= 0.5) {
+    // From the quay in front of the stair's foot (it starts out on the quay) up to the plaza.
+    const foot = -762.5;
+    for (let z = foot; z >= MERIDIAN.pads.plaza.z; z -= 0.5) {
       const h = town.walkable(668, z) ?? meridianTownStairHeight(668, z);
       expect(h, `z=${z}`).not.toBeNull();
       if (last !== null) expect(Math.abs(h! - last)).toBeLessThanOrEqual(0.66);
       last = h!;
     }
-    expect(town.walkable(668, MERIDIAN.harbor.quay.z0)).toBeCloseTo(MERIDIAN.harbor.quay.height, 1);
+    expect(town.walkable(668, foot)).toBeCloseTo(MERIDIAN.harbor.quay.height, 1);
     expect(town.walkable(668, MERIDIAN.pads.plaza.z)).toBeCloseTo(MERIDIAN.pads.plaza.height, 1);
 
     town.dispose();
@@ -303,8 +306,8 @@ describe('createMeridianTown', () => {
         v.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld);
         // From the harbour-front lane to just past the fountain, up to rail height above the paving
         // (the top step stood 10 cm proud of it), but not the fountain itself. The paving's own top
-        // (y = paved + 0.08) is allowed.
-        if (v.x < 662 || v.x > 674 || v.z > -777.5 || v.z < -797 || v.y <= paved + 0.085 || v.y > paved + 1.6)
+        // (y = paved + 0.08) is allowed, and so are the plaza's stone inlays, 1.5 cm proud of it.
+        if (v.x < 662 || v.x > 674 || v.z > -777.5 || v.z < -797 || v.y <= paved + 0.1 || v.y > paved + 1.6)
           continue;
         if (Math.hypot(v.x - 668, v.z + 797.2) < 3.35) continue;
         proud.push(`${mesh.name} ${v.x.toFixed(1)},${v.y.toFixed(2)},${v.z.toFixed(1)}`);
@@ -448,13 +451,15 @@ describe('Port Meridian town planting', () => {
     for (const p of plants) {
       const r = p.species === 'flowerBush' || p.species === 'fern' ? 0.25 : 0.5;
       const where = `${p.species} @ ${p.x.toFixed(1)}, ${p.z.toFixed(1)}`;
+      // Planted up on a terrace wall (above the walk and the ground there), not in anyone's way.
+      if (p.y > (town.walkable(p.x, p.z) ?? meridianHeight(p.x, p.z)) + 0.4) continue;
       const box = town.colliders.boxes.find((b) => boxHitsPoint(b, p.x, p.z, r));
       if (box) problems.push(`${where} in box ${box.x.toFixed(1)},${box.z.toFixed(1)} ${box.hx}x${box.hz}`);
       const circle = town.colliders.circles.find((c) => circleHitsPoint(c, p.x, p.z, r));
       if (circle)
         problems.push(`${where} in circle ${circle.x.toFixed(1)},${circle.z.toFixed(1)} r${circle.r}`);
       // The quay's palm row stands on the promenade, against its back wall (trunks have colliders).
-      const quayRow = p.species.startsWith('palm') && Math.abs(p.z - (MERIDIAN.harbor.quay.z0 + 1.6)) < 0.01;
+      const quayRow = p.species.startsWith('palm') && Math.abs(p.z - (MERIDIAN.harbor.quay.z0 + 2.2)) < 0.01;
       if (!quayRow && town.walkable(p.x, p.z) !== null) problems.push(`${where} on a walkway`);
       for (const [id, a] of Object.entries(town.anchors))
         if (Math.hypot(a.x - p.x, a.z - p.z) < 3) problems.push(`${where} at anchor ${id}`);

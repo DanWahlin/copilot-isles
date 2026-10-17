@@ -65,9 +65,20 @@ import {
 } from '../village/kit';
 import { segmentDistance } from '../../util/math';
 import { MONUMENT_TOP, anchorMonument } from './anchor-monument';
+import { HARBOUR_STAIR, addHarbourStair, harbourStairHeight } from './plaza-stair';
+import {
+  addBunting,
+  addGatePier,
+  addPlazaDressing,
+  dressHarbourWall,
+  dressTerraceWall,
+} from './plaza-dressing';
+import { addTiledRoof } from './plaza-roofs';
+import { addPlazaRim, plazaRimWalk } from './plaza-rim';
 import { MARKET_LAYOUT, MODEL_MARKET, addModelMarketStall, marketToWorld } from './model-market';
 import { CITADEL_EMBRASURES, MERIDIAN_BATTERIES, type Embrasure } from '../islands/meridian-batteries';
 import { addShoreBatteries, cannonDetail, shoreBatteryWalkable } from '../village/shore-battery';
+import { addMeridianCourseBoard } from './course-board';
 
 type HouseSide = 'front' | 'back' | 'left' | 'right';
 type HouseRoof = 'gable' | 'tower' | 'flat';
@@ -130,6 +141,8 @@ export interface CreateMeridianTownOptions {
  * Set for each build (the build runs to the end before the next starts).
  */
 let liteTown = false;
+/** How much small dressing the plaza art pass adds: lite (Lite and Low), medium, or full (High up). */
+let townDetail: 'lite' | 'medium' | 'full' = 'full';
 
 type Buckets = Record<MaterialKey, BufferGeometry[]>;
 /** `camera`: camera-only blockers (see MeridianTownSystem.cameraBlockers). */
@@ -147,8 +160,13 @@ type BasicAnchor = {
 
 const DEG = Math.PI / 180;
 const LIMESTONE_DARK = 0x91704c;
+/** The terraces' retaining walls: warm honey stone (they read as dark rubble in LIMESTONE_DARK). */
+const TERRACE_STONE = 0xc39a6a;
 const DEEP_BLUE = 0x174b75;
 const DEEP_GREEN = 0x1f5c43;
+const SHUTTER_GREEN = 0x2a6a46;
+/** Window and door surrounds (pale dressed stone). */
+const FRAME_CREAM = 0xf1e2c0;
 const CYPRESS = 0x173f26;
 const OLIVE = 0x6f814c;
 const OLIVE_SILVER = 0x9aa876;
@@ -163,13 +181,8 @@ const CLOTH_RED = 0xa73a31;
 const CLOTH_GOLD = 0xd79b37;
 const PAPER = 0xe9d5a0;
 
-const STAIR_STREET = {
-  x: 668,
-  z0: MERIDIAN.harbor.quay.z0,
-  z1: MERIDIAN.pads.plaza.z,
-  width: 8.8,
-  steps: 12,
-} as const;
+/** The stair street from the quay to the harbour-front lane (meridian-town/plaza-stair.ts). */
+const STAIR_STREET = HARBOUR_STAIR;
 
 const TAVERN_LANE = {
   x: 622,
@@ -254,6 +267,7 @@ function* buildMeridianTown({
   const mediumUp = tier.tier !== 'lite' && tier.tier !== 'low';
   const high = tier.tier === 'high' || tier.tier === 'ultra';
   vineShare = high ? 0.38 : mediumUp ? 0.26 : 0.12;
+  townDetail = low ? 'lite' : high ? 'full' : 'medium';
   const liftCar = new Group();
   liftCar.name = 'meridian-lift-car';
   const lighthouseGlow = new Group();
@@ -261,7 +275,10 @@ function* buildMeridianTown({
   lighthouseGlow.visible = false;
   const mooringLines = createMooringLines(kit.materials);
 
+  const rim = plazaRimWalk(heightField);
   const townWalkable = (x: number, z: number): number | null => {
+    const rimHeight = rim.walkable(x, z);
+    if (rimHeight !== null) return rimHeight;
     const battery = shoreBatteryWalkable(MERIDIAN_BATTERIES, x, z);
     if (battery !== null) return battery;
     for (const span of stairSpans) {
@@ -313,6 +330,7 @@ function* buildMeridianTown({
   yield;
   addStairStreet(buckets, colliders);
   addPlaza(buckets, colliders, perches, heightField, kit, high, anchor);
+  addPlazaRim(buckets, colliders, heightField, townDetail);
   yield;
   addTavern(buckets, colliders, stairSpans, perches, heightField, kit, low, high, anchor);
   yield;
@@ -340,6 +358,8 @@ function* buildMeridianTown({
   yield;
   addVegetation(buckets, colliders, perches, heightField, low, high);
   yield;
+  // The course notice board on the quay (docs/specs/COURSE-BOARDS.md).
+  const courseBoard = yield* addMeridianCourseBoard(buckets, colliders, group);
 
   anchor('rhea', { x: 761.4, z: -699.2, heading: -Math.PI / 2, tx: 755.2, ty: 3.8, tz: -704 });
   anchor('crateYard', { x: 594.2, z: -759.2, heading: Math.PI / 2, tx: 586, ty: 3, tz: -752 });
@@ -443,6 +463,7 @@ function* buildMeridianTown({
       disposeTree(lighthouseGlow);
       disposeTree(liftCar);
       disposeTree(mooringLines);
+      courseBoard.dispose();
       group.clear();
     },
   };
@@ -1136,83 +1157,7 @@ function addHarbourFront(
 }
 
 function addStairStreet(buckets: Buckets, colliders: ColliderSet): void {
-  const dz = STAIR_STREET.z1 - STAIR_STREET.z0;
-  const tread = Math.abs(dz) / STAIR_STREET.steps;
-  const rise = (PLAZA.height - MERIDIAN.harbor.quay.height) / STAIR_STREET.steps;
-  // The street is open only up to the harbour-front lane: from there the lane and the plaza are paved
-  // over it at plaza height. Its rails and posts stop there (run on to the plaza's middle, they rose
-  // out of the paving beside the fountain), and so do its steps: the top tread stood 10 cm proud of
-  // the plaza paving north of the fountain.
-  const openZ = HARBOUR_FRONT_ROW.laneZ + HARBOUR_FRONT_ROW.laneWidth * 0.5;
-  for (let i = 0; i < STAIR_STREET.steps; i += 1) {
-    const z = STAIR_STREET.z0 - tread * (i + 0.5);
-    if (z + tread * 0.5 < openZ) break;
-    const h = MERIDIAN.harbor.quay.height + rise * (i + 1);
-    addBox(
-      buckets,
-      'paving',
-      STAIR_STREET.x,
-      h + 0.02,
-      z,
-      STAIR_STREET.width,
-      0.16,
-      tread + 0.04,
-      0,
-      0xf0d7aa,
-    );
-    addBox(
-      buckets,
-      'stone',
-      STAIR_STREET.x,
-      h - rise - 0.02,
-      z + tread * 0.5,
-      STAIR_STREET.width,
-      rise + 0.04,
-      0.16,
-      0,
-      LIMESTONE_DARK,
-    );
-  }
-  addBox(
-    buckets,
-    'stone',
-    STAIR_STREET.x - STAIR_STREET.width * 0.5 - 0.44,
-    MERIDIAN.harbor.quay.height,
-    -784,
-    0.5,
-    3.0,
-    25.2,
-    0,
-    LIMESTONE_DARK,
-  );
-  addBox(
-    buckets,
-    'stone',
-    STAIR_STREET.x + STAIR_STREET.width * 0.5 + 0.44,
-    MERIDIAN.harbor.quay.height,
-    -784,
-    0.5,
-    3.0,
-    25.2,
-    0,
-    LIMESTONE_DARK,
-  );
-  const railHeight = (z: number): number => (stairStreetHeight(STAIR_STREET.x, z) ?? 4) + 1.2;
-  for (const side of [-1, 1]) {
-    const x = STAIR_STREET.x + side * (STAIR_STREET.width * 0.5 + 0.8);
-    for (const z of [STAIR_STREET.z0, (STAIR_STREET.z0 + openZ) * 0.5, openZ + 0.3]) {
-      const y = stairStreetHeight(STAIR_STREET.x, z) ?? 4;
-      addCylinderGeom(buckets.metal, x, y, z, 0.08, 0.1, 1.35, 6, 0, METAL);
-    }
-    const ropeX = STAIR_STREET.x + side * 5;
-    const a = STAIR_STREET.z0 - 1;
-    const b = openZ + 0.3;
-    addSagRope(buckets, { x: ropeX, y: railHeight(a), z: a }, { x: ropeX, y: railHeight(b), z: b });
-  }
-  colliders.boxes.push(
-    { x: 662.9, z: -784, hx: 0.45, hz: 12.7, rot: 0, height: 3.1 },
-    { x: 673.1, z: -784, hx: 0.45, hz: 12.7, rot: 0, height: 3.1 },
-  );
+  addHarbourStair(buckets, colliders, townDetail === 'lite' ? 'lite' : 'full');
 }
 
 function addPlaza(
@@ -1386,10 +1331,29 @@ function addPlaza(
       ty: PLAZA.height + 1.5,
       tz: you.z,
     });
-    const barrels = marketToWorld(-5.6, -1.6);
+    const barrels = marketToWorld(-6.95, -1.6);
     addBarrelCluster(buckets, colliders, barrels.x, PLAZA.height, barrels.z, 0.7);
   }
   addAwningStall(buckets, colliders, 646.2, PLAZA.height, -810.6, Math.PI / 2, CLOTH_RED, LIMESTONE_LIGHT);
+  addPlazaDressing(
+    buckets,
+    colliders,
+    {
+      y: PLAZA.height,
+      fountain: { x: 668, z: -797.2 },
+      border: { x0: 647.5, x1: 691.5, z0: -781.5, z1: -818.0 },
+      // Gilda's stall and its barrels (meridian-town/model-market.ts).
+      keepOut: [
+        {
+          x0: MODEL_MARKET.x - 8,
+          x1: MODEL_MARKET.x + 8.5,
+          z0: MODEL_MARKET.z - 8.7,
+          z1: MODEL_MARKET.z + 9,
+        },
+      ],
+    },
+    townDetail,
+  );
   addBench(buckets, colliders, 680.8, PLAZA.height, -807.2, -25 * DEG);
   addBench(buckets, colliders, 653.8, PLAZA.height, -800.5, 82 * DEG);
   addPottedCypress(buckets, colliders, 645.7, PLAZA.height, -786.2, 1.1);
@@ -1786,8 +1750,9 @@ function addRetainingWallSegment(
   const length = x1 - x0;
   if (length < 2.5) return;
   const midX = (x0 + x1) * 0.5;
-  addBox(buckets, 'stone', midX, bottom, wallZ, length + 0.6, h, 0.72, 0, LIMESTONE_DARK);
+  addBox(buckets, 'stone', midX, bottom, wallZ, length + 0.6, h, 0.72, 0, TERRACE_STONE);
   addBox(buckets, 'stone', midX, top + 0.02, wallZ, length + 0.95, 0.24, 0.9, 0, LIMESTONE_LIGHT);
+  dressTerraceWall(buckets, x0, x1, wallZ + 0.36, bottom, top, townDetail, Math.round(x0 + top * 10));
   // Camera only (the lanes' ground steps already stop the walker): the wall's face and its cap (the face
   // can stand higher than the cap).
   colliders.camera?.push({
@@ -1835,8 +1800,7 @@ function addTerraceHouseRun(
   options: { arcade: boolean; backRow?: boolean },
 ): void {
   const run = terraceRun(row, !!options.backRow);
-  if (options.arcade)
-    for (const gap of run.gaps) addArcadeBridge(buckets, gap.x0, gap.x1, row, colliders.camera);
+  if (options.arcade) for (const gap of run.gaps) addArcadeBridge(buckets, gap.x0, gap.x1, row, colliders);
   for (const h of run.houses) {
     const seed = h.seed;
     addTownHouse(buckets, colliders, stairSpans, perches, heightField, kit, {
@@ -1876,25 +1840,25 @@ function addArcadeBridge(
   x0: number,
   x1: number,
   row: TerraceRowSpec,
-  camera?: VillageBoxCollider[],
+  colliders: ColliderSet,
 ): void {
-  const mid = (x0 + x1) * 0.5;
+  // Gate piers at the lane's mouth, pennants strung between them (a deck and a plastered parapet once
+  // spanned the gap on two piers: over the plaza's 44 m opening it read as a huge blank wall). The
+  // plaza's own east corner is the market's (no pier there).
   const z = row.houseZ + 4.1;
-  const radius = Math.min(6.0, (x1 - x0) * 0.36);
-  // Camera only: the piers, the deck and parapet over the lane, and the two low end stones of the arch.
-  const y = row.height;
-  camera?.push(
-    { x: x0 + 0.45, z, hx: 0.5, hz: 0.45, rot: 0, y0: y, y1: y + 3.3 },
-    { x: x1 - 0.45, z, hx: 0.5, hz: 0.45, rot: 0, y0: y, y1: y + 3.3 },
-    { x: mid, z, hx: (x1 - x0) * 0.5 + 0.5, hz: 0.45, rot: 0, y0: y + 3.3, y1: y + 5.15 },
-    { x: mid - radius * 0.76, z, hx: radius * 0.15, hz: 0.32, rot: 0, y0: y + 2.68, y1: y + 3.3 },
-    { x: mid + radius * 0.76, z, hx: radius * 0.15, hz: 0.32, rot: 0, y0: y + 2.68, y1: y + 3.3 },
+  const detail = townDetail === 'lite' ? 'lite' : 'full';
+  const wide = x1 - x0 > 30;
+  const left = addGatePier(buckets, colliders, x0 + 0.6, row.height, z, detail, Math.round(x0));
+  if (wide) return;
+  const right = addGatePier(buckets, colliders, x1 - 0.6, row.height, z, detail, Math.round(x1));
+  addBunting(
+    buckets,
+    { x: x0 + 0.6, y: left + 0.6, z },
+    { x: x1 - 0.6, y: right + 0.6, z },
+    0.9,
+    0.62,
+    Math.round(x0),
   );
-  addBox(buckets, 'stone', x0 + 0.45, row.height, z, 0.9, 3.2, 0.78, 0, LIMESTONE_LIGHT);
-  addBox(buckets, 'stone', x1 - 0.45, row.height, z, 0.9, 3.2, 0.78, 0, LIMESTONE_LIGHT);
-  addArchVoussoirs(buckets, mid, row.height + 2.78, z, radius, 0, LIMESTONE_LIGHT);
-  addBox(buckets, 'stone', mid, row.height + 3.35, z, x1 - x0 + 1.0, 0.65, 0.82, 0, LIMESTONE_LIGHT);
-  addBox(buckets, 'plaster', mid, row.height + 4.0, z - 0.05, x1 - x0 - 1.2, 1.1, 0.58, 0, 0xe8cf9a);
 }
 
 function addArchVoussoirs(
@@ -1918,64 +1882,66 @@ function addArchVoussoirs(
 function addHarbourPromenadeWall(buckets: Buckets, colliders: ColliderSet): void {
   const fullMid = (MERIDIAN.harbor.quay.x0 + MERIDIAN.harbor.quay.x1) * 0.5;
   const fullWidth = MERIDIAN.harbor.quay.x1 - MERIDIAN.harbor.quay.x0;
+  // (A second full-height wall once stood out on the quay at z −765.9: it cut the promenade in two,
+  // with the quay's palms in a trench behind it, and the stair street ran through it.)
+  // The lane's buried back wall (its top under the paving), open where the stair street comes up.
+  const cutX0 = STAIR_STREET.x - STAIR_STREET.width * 0.65;
+  const cutX1 = STAIR_STREET.x + STAIR_STREET.width * 0.65;
+  for (const [x0, x1] of [
+    [MERIDIAN.harbor.quay.x0 - 1.0, cutX0],
+    [cutX1, MERIDIAN.harbor.quay.x1 + 1.0],
+  ] as const) {
+    const mid = (x0 + x1) * 0.5;
+    addBox(
+      buckets,
+      'stone',
+      mid,
+      MERIDIAN.harbor.quay.height - 0.2,
+      -778.0,
+      x1 - x0,
+      PLAZA.height - MERIDIAN.harbor.quay.height + 0.15,
+      1.8,
+      0,
+      LIMESTONE_DARK,
+    );
+    colliders.camera?.push({
+      x: mid,
+      z: -778.0,
+      hx: (x1 - x0) * 0.5,
+      hz: 0.9,
+      rot: 0,
+      y0: MERIDIAN.harbor.quay.height - 0.2,
+      y1: PLAZA.height,
+    });
+  }
+  // The lane's paving, from the house fronts to the top of the stair (the stair's own treads go on).
+  const laneZ0 = STAIR_STREET.z1;
   addBox(
     buckets,
-    'stone',
+    'paving',
     fullMid,
-    MERIDIAN.harbor.quay.height - 0.2,
-    -765.9,
-    fullWidth + 2.0,
-    PLAZA.height - MERIDIAN.harbor.quay.height + 0.2,
-    1.25,
+    PLAZA.height - 0.09,
+    (-784.4 + laneZ0) * 0.5,
+    fullWidth,
+    0.18,
+    laneZ0 + 784.4,
     0,
-    LIMESTONE_DARK,
+    0xf0d7aa,
   );
-  addBox(
-    buckets,
-    'stone',
-    fullMid,
-    PLAZA.height - 0.04,
-    -765.9,
-    fullWidth + 2.4,
-    0.28,
-    1.45,
-    0,
-    LIMESTONE_LIGHT,
-  );
-  addBox(
-    buckets,
-    'stone',
-    fullMid,
-    MERIDIAN.harbor.quay.height - 0.2,
-    -778.0,
-    fullWidth + 2.0,
-    PLAZA.height - MERIDIAN.harbor.quay.height + 0.45,
-    1.8,
-    0,
-    LIMESTONE_DARK,
-  );
-  addBox(
-    buckets,
-    'stone',
-    fullMid,
-    PLAZA.height - 0.04,
-    -778.0,
-    fullWidth + 2.6,
-    0.32,
-    2.05,
-    0,
-    LIMESTONE_LIGHT,
-  );
-  // The two full-width walls and their copings, for the camera.
-  for (const [z, hx, hz, y1] of [
-    [-765.9, fullWidth * 0.5 + 1.2, 0.73, PLAZA.height + 0.25],
-    [-778.0, fullWidth * 0.5 + 1.3, 1.03, PLAZA.height + 0.29],
-  ] as const)
-    colliders.camera?.push({ x: fullMid, z, hx, hz, rot: 0, y0: MERIDIAN.harbor.quay.height - 0.2, y1 });
-  addBox(buckets, 'paving', fullMid, PLAZA.height - 0.09, -779.8, fullWidth, 0.18, 9.2, 0, 0xf0d7aa);
   for (let x = MERIDIAN.harbor.quay.x0 + 3; x <= MERIDIAN.harbor.quay.x1 - 3; x += 4.6)
-    addBox(buckets, 'stone', x, PLAZA.height + 0.025, -779.8, 0.13, 0.038, 8.3, 0, 0x8e6f4a);
-  for (let z = -783.5; z <= -776; z += 1.35)
+    addBox(
+      buckets,
+      'stone',
+      x,
+      PLAZA.height + 0.025,
+      (-783.95 + laneZ0) * 0.5,
+      0.13,
+      0.038,
+      laneZ0 + 783.95,
+      0,
+      0x8e6f4a,
+    );
+  for (let z = -783.5; z <= laneZ0 - 0.2; z += 1.35)
     addBox(buckets, 'stone', fullMid, PLAZA.height + 0.022, z, fullWidth - 1.2, 0.036, 0.095, 0, 0x9f7d55);
   for (const [x0, x1] of [
     [MERIDIAN.harbor.quay.x0, STAIR_STREET.x - STAIR_STREET.width * 0.65],
@@ -1996,7 +1962,17 @@ function addHarbourPromenadeWall(buckets: Buckets, colliders: ColliderSet): void
       LIMESTONE_DARK,
     );
     addBox(buckets, 'stone', mid, PLAZA.height - 0.06, -771.0, width + 0.6, 0.28, 1.15, 0, LIMESTONE_LIGHT);
-    addBox(buckets, 'paving', mid, PLAZA.height - 0.08, -775.0, width, 0.16, 3.6, 0, 0xf0d7aa);
+    dressHarbourWall(
+      buckets,
+      colliders,
+      x0,
+      x1,
+      -770.525,
+      MERIDIAN.harbor.quay.height - 0.15,
+      PLAZA.height + 0.2,
+      townDetail,
+    );
+    addBox(buckets, 'paving', mid, PLAZA.height - 0.08, -775.2, width, 0.16, 4.0, 0, 0xf0d7aa);
     addArcade(buckets, colliders.camera, mid, PLAZA.height, -776.45, 0, Math.max(3, Math.floor(width / 12)));
     colliders.boxes.push({ x: mid, z: -773.7, hx: width * 0.5, hz: 0.6, rot: 0, height: 4.8 });
     // The retaining wall's face over the quay, for the camera.
@@ -2112,10 +2088,10 @@ function addTownEdgeInfill(
   addTownPavingPatch(buckets, 715, 7.1, -825.5, 58, 19, 0, 0xd2a271);
   addTownPavingPatch(buckets, 668, 8.6, -838.5, 78, 10.5, 0, 0xc99868);
   // The hillside lanes are paved by the drapes below (flat slabs there stood clear of the slope).
-  addDrapedPavingPatch(buckets, heightField, 668, -823, 148, 36, 0xcf9e6c);
-  addDrapedPavingPatch(buckets, heightField, 668, -806, 96, 24, 0xd6a874);
-  addDrapedPavingPatch(buckets, heightField, 560, -858, 36, 96, 0xc49564);
-  addDrapedPavingPatch(buckets, heightField, 828, -878, 38, 96, 0xc49564);
+  addDrapedPavingPatch(buckets, heightField, 668, -823, 148, 36, 0xe4cba0);
+  addDrapedPavingPatch(buckets, heightField, 668, -806, 96, 24, 0xe8d2a8);
+  addDrapedPavingPatch(buckets, heightField, 560, -858, 36, 96, 0xdcc196);
+  addDrapedPavingPatch(buckets, heightField, 828, -878, 38, 96, 0xdcc196);
   addOliveGrove(buckets, colliders, 564, 8.2, -804, 3, 2, 6.0, 5.2, 0.42);
   addOliveGrove(buckets, colliders, 555, 12.8, -892, 2, 3, 6.5, 6.0, 0.46);
   addOliveGrove(buckets, colliders, 832, 16.8, -846, 2, 3, 6.2, 6.4, 0.44);
@@ -2202,8 +2178,19 @@ function addFillerHouse(
   const h = floors * 2.6;
   addBox(buckets, 'stone', x, y - 0.15, z, w + 0.5, 0.45, d + 0.5, rot, 0xb79462);
   addBox(buckets, 'plaster', x, y + 0.3, z, w, h, d, rot, tint);
-  addBox(buckets, 'roofTile', x, y + h + 0.4, z, w + 0.6, 0.28, d + 0.6, rot, roofTint, 0, 0.18);
-  addBox(buckets, 'roofTile', x, y + h + 0.65, z, w + 0.7, 0.32, d * 0.5, rot, roofTint, 0, -0.18);
+  addTiledRoof(
+    buckets,
+    x,
+    y + h + 0.3,
+    z,
+    w,
+    d,
+    rot,
+    roofTint,
+    tint,
+    'hip',
+    townDetail === 'lite' ? 'lite' : 'full',
+  );
   for (const lx of [-w * 0.24, w * 0.24]) {
     const p = localToWorld(x, z, rot, lx, -d * 0.5 - 0.05);
     addBox(buckets, 'metal', p.x, y + 2.1, p.z, 0.58, 0.72, 0.06, rot, 0x15303a);
@@ -2422,17 +2409,19 @@ function addTownHouse(
   addBox(buckets, 'stone', spec.x, y, spec.z, w + 0.25, 0.55, d + 0.25, spec.rotY, 0xb79462);
   addBox(buckets, 'plaster', spec.x, y + 0.55, spec.z, w, wallH, d, spec.rotY, spec.tint);
   for (let floor = 1; floor <= floors; floor += 1) {
+    // Slim string courses between floors, a deeper cornice under the eaves.
+    const cornice = floor === floors;
     addBox(
       buckets,
       'stone',
       spec.x,
-      y + 0.55 + floor * floorH - 0.08,
+      y + 0.55 + floor * floorH - (cornice ? 0.2 : 0.06),
       spec.z,
-      w + 0.18,
-      0.14,
-      d + 0.18,
+      w + (cornice ? 0.26 : 0.1),
+      cornice ? 0.22 : 0.1,
+      d + (cornice ? 0.26 : 0.1),
       spec.rotY,
-      0xd7b77f,
+      cornice ? 0xe6cf9f : 0xd7b77f,
     );
   }
   const terraceRunHouse = spec.id.includes('-house-');
@@ -2444,11 +2433,23 @@ function addTownHouse(
     addFacadeOpenings(buckets, { ...spec, doorSide: 'right' }, y + 0.55, wallH, spec.seed + 47, true);
   }
   const top = y + 0.55 + wallH;
-  if (spec.roof === 'flat' || spec.seed % 4 === 0) {
+  if (spec.roof === 'flat') {
     addFlatRoofTerrace(buckets, spec.x, top, spec.z, w, d, spec.rotY, spec.roofTint, spec.seed);
     if (spec.seed % 3 === 0) addPergola(buckets, spec.x, top + 0.52, spec.z, w, d, spec.rotY);
   } else {
-    addTerracottaRoof(buckets, spec.x, top, spec.z, w, d, spec.rotY, spec.roofTint, spec.roof === 'tower');
+    addTerracottaRoof(
+      buckets,
+      spec.x,
+      top,
+      spec.z,
+      w,
+      d,
+      spec.rotY,
+      spec.roofTint,
+      spec.roof === 'tower',
+      spec.tint,
+      spec.seed,
+    );
   }
   if (spec.awning) {
     const door = facadeWorldPoint(spec, spec.doorSide, 0, 0);
@@ -2490,18 +2491,68 @@ function addFacadeOpenings(
   const width = sideSpan(spec, spec.doorSide);
   const floors = Math.max(1, Math.floor(wallH / 2.72));
   const cols = width >= 7 ? 3 : width >= 5.5 ? 2 : 1;
-  const shutter = seed % 2 === 0 ? DEEP_BLUE : DEEP_GREEN;
+  // Mostly green shutters (the concept's), some blue.
+  const shutter = seed % 3 === 0 ? DEEP_BLUE : SHUTTER_GREEN;
+  const yaw = sideYaw(spec.rotY, spec.doorSide);
   for (let floor = 0; floor < floors; floor += 1) {
     const y = baseY + floor * 2.72 + 1.25;
     for (let col = 0; col < cols; col += 1) {
       if (floor === 0 && col === Math.floor(cols / 2) && !secondary) continue;
       const along = (col - (cols - 1) / 2) * (width / (cols + 0.55));
       const tall = floor === floors - 1 && seed % 3 === 0;
-      addFacadeRect(buckets, spec, spec.doorSide, along, y, 0.72, tall ? 1.3 : 0.95, 'metal', 0x1b2528);
+      const winH = tall ? 1.3 : 0.95;
+      addFacadeRect(buckets, spec, spec.doorSide, along, y, 0.72, winH, 'metal', 0x1b2528);
       addFacadeRect(buckets, spec, spec.doorSide, along - 0.55, y + 0.05, 0.18, 1.05, 'cloth', shutter);
       addFacadeRect(buckets, spec, spec.doorSide, along + 0.55, y + 0.05, 0.18, 1.05, 'cloth', shutter);
       addFacadeRect(buckets, spec, spec.doorSide, along, y - 0.16, 0.94, 0.12, 'stone', LIMESTONE_LIGHT);
-      if (floor > 0 && (seed + floor + col) % 5 === 0) {
+      // A pale surround: a lintel (Medium up) and jambs (High), between the glass and the shutters.
+      if (townDetail !== 'lite' && !secondary) {
+        addFacadeRect(
+          buckets,
+          spec,
+          spec.doorSide,
+          along,
+          y + winH + 0.02,
+          0.98,
+          0.14,
+          'stone',
+          FRAME_CREAM,
+          true,
+        );
+        if (townDetail === 'full')
+          for (const side of [-1, 1])
+            addFacadeRect(
+              buckets,
+              spec,
+              spec.doorSide,
+              along + side * 0.41,
+              y - 0.04,
+              0.09,
+              winH + 0.06,
+              'stone',
+              FRAME_CREAM,
+              true,
+            );
+      }
+      // A little wrought-iron balcony at a top-floor window (High).
+      const juliet =
+        townDetail === 'full' && !secondary && floor === floors - 1 && floor > 0 && (seed + col) % 3 === 1;
+      if (juliet) {
+        const p = facadeWorldPoint(spec, spec.doorSide, along, 0.26);
+        const slabY = baseY + floor * 2.72 + 1.02;
+        addBox(buckets, 'stone', p.x, slabY, p.z, 1.12, 0.1, 0.5, yaw, LIMESTONE_LIGHT);
+        const q = facadeWorldPoint(spec, spec.doorSide, along, 0.48);
+        addBox(buckets, 'metal', q.x, slabY + 0.68, q.z, 1.1, 0.05, 0.05, yaw, METAL);
+        addBox(buckets, 'metal', q.x, slabY + 0.16, q.z, 1.1, 0.04, 0.04, yaw, METAL);
+        for (let k = 0; k < 5; k += 1) {
+          const r = facadeWorldPoint(spec, spec.doorSide, along - 0.52 + k * 0.26, 0.48);
+          addBox(buckets, 'metal', r.x, slabY + 0.1, r.z, 0.03, 0.6, 0.03, yaw, METAL);
+        }
+        addFlowerBox(buckets, facadeWorldPoint(spec, spec.doorSide, along + 0.3, 0.32), slabY + 0.1, yaw);
+      }
+      const pick = (seed + floor + col) % 5;
+      const boxes = pick === 0 || (townDetail === 'full' && !secondary && pick === 2);
+      if (floor > 0 && !juliet && boxes) {
         addFacadeRect(buckets, spec, spec.doorSide, along, y - 0.58, 0.9, 0.12, 'wood', DARK_WOOD);
         addFlowerBox(
           buckets,
@@ -2526,6 +2577,24 @@ function addFacadeOpenings(
       0x4d3020,
     );
     addFacadeRect(buckets, spec, spec.doorSide, 0, baseY + 2.0, 1.55, 0.16, 'stone', LIMESTONE_LIGHT);
+    if (townDetail !== 'lite') {
+      // A stone door surround and a step at the threshold.
+      for (const side of [-1, 1])
+        addFacadeRect(
+          buckets,
+          spec,
+          spec.doorSide,
+          side * 0.71,
+          baseY + 0.1,
+          0.2,
+          2.0,
+          'stone',
+          FRAME_CREAM,
+          true,
+        );
+      const step = facadeWorldPoint(spec, spec.doorSide, 0, 0.28);
+      addBox(buckets, 'stone', step.x, baseY - 0.12, step.z, 1.7, 0.16, 0.56, yaw, LIMESTONE_LIGHT);
+    }
   }
 }
 
@@ -2581,15 +2650,25 @@ function addTerracottaRoof(
   rot: number,
   roofTint: number,
   tower: boolean,
+  wallTint: number,
+  seed: number,
 ): void {
-  const colour = roofTint || TERRACOTTA_WARM;
-  addBox(buckets, 'roofTile', x, y + 0.06, z, w + 0.8, 0.18, d + 0.8, rot, colour);
-  if (tower)
-    addCone(buckets.roofTile, x, y + 0.18, z, Math.max(w, d) * 0.78, 2.0, 4, Math.PI / 4 + rot, colour);
-  else {
-    addBox(buckets, 'roofTile', x, y + 0.25, z, w + 1.0, 0.34, d * 0.52, rot, colour, 0, 0.18);
-    addBox(buckets, 'roofTile', x, y + 0.25, z, w + 1.0, 0.34, d * 0.52, rot, colour, 0, -0.18);
-  }
+  // Tiled roofs with a ridge and eaves (meridian-town/plaza-roofs.ts): a gable along the façade, or
+  // hipped on a third of the houses and on the towers.
+  const kind = tower || seed % 3 === 0 ? 'hip' : 'gable';
+  addTiledRoof(
+    buckets,
+    x,
+    y,
+    z,
+    w,
+    d,
+    rot,
+    roofTint || TERRACOTTA_WARM,
+    wallTint,
+    kind,
+    townDetail === 'lite' ? 'lite' : 'full',
+  );
 }
 
 function addPergola(
@@ -2677,19 +2756,22 @@ function addBougainvilleaOnFacade(
 }
 
 function addFlowerBox(buckets: Buckets, p: { x: number; z: number }, y: number, rot: number): void {
-  addBox(buckets, 'wood', p.x, y, p.z, 0.82, 0.16, 0.18, rot, DARK_WOOD);
+  // A terracotta trough, a cushion of leaves (Medium up) and geraniums spilling over it.
+  addBox(buckets, 'stone', p.x, y, p.z, 0.82, 0.18, 0.2, rot, 0xb8562e);
+  if (townDetail !== 'lite') addSphere(buckets.cloth, p.x, y + 0.2, p.z, 0.44, 0.12, 0.12, 0x2f6e35, 5, 3);
+  const colours = [0xd8333a, 0xe0679a, 0xd8333a, 0xf2efe6];
   for (let i = 0; i < 4; i += 1) {
     addSphere(
       buckets.cloth,
       p.x + (i - 1.5) * 0.18 * Math.cos(rot),
-      y + 0.18,
+      y + 0.24,
       p.z - (i - 1.5) * 0.18 * Math.sin(rot),
       0.1,
       0.08,
       0.1,
-      i % 2 ? BOUGAINVILLEA : 0xe2b23a,
-      liteTown ? 4 : 6,
-      liteTown ? 3 : 4,
+      colours[(i + Math.round(p.x * 7)) % 4]!,
+      liteTown ? 4 : 5,
+      3,
     );
   }
 }
@@ -2704,8 +2786,9 @@ function addFacadeRect(
   h: number,
   key: MaterialKey,
   colour: number,
+  flat = false,
 ): void {
-  if (liteTown) {
+  if (liteTown || flat) {
     // The box's front face (its 5.5 cm depth centred 8 cm out), facing out from the wall.
     const p = facadeWorldPoint(spec, side, along, 0.08 + 0.0275);
     const q = facadeWorldPoint(spec, side, along, 1.08);
@@ -4151,7 +4234,7 @@ function addBougainvillea(
       size * 0.7,
       leafy ? 0x2f5a2a : bracts[i % bracts.length]!,
       liteTown ? 4 : 5,
-      2,
+      townDetail === 'lite' ? 2 : 3,
     );
   }
   // The leaves stand out from the wall further than a house's walking box; keep the camera out. Each
@@ -4454,13 +4537,7 @@ function stairsHeightAt(_span: StairSpan, _x: number, _z: number): number | null
 }
 
 function stairStreetHeight(x: number, z: number): number | null {
-  if (Math.abs(x - STAIR_STREET.x) > STAIR_STREET.width * 0.5) return null;
-  if (z > STAIR_STREET.z0 + 0.35 || z < STAIR_STREET.z1 - 0.35) return null;
-  const t = Math.max(0, Math.min(1, (STAIR_STREET.z0 - z) / (STAIR_STREET.z0 - STAIR_STREET.z1)));
-  const step = Math.min(STAIR_STREET.steps, Math.max(0, Math.ceil(t * STAIR_STREET.steps)));
-  return (
-    MERIDIAN.harbor.quay.height + ((PLAZA.height - MERIDIAN.harbor.quay.height) * step) / STAIR_STREET.steps
-  );
+  return harbourStairHeight(x, z);
 }
 
 function laneHeight(x: number, z: number): number | null {

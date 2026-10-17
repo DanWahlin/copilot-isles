@@ -92,6 +92,8 @@ import {
   type VillageBoxCollider,
   type VillageKit,
 } from '../../village/kit';
+import { islandCourseBoard } from '../../../learn/course-board';
+import { addCourseBoardTimber } from '../../sites/course-board';
 
 interface VillageMetrics {
   staticDraws: number;
@@ -193,6 +195,13 @@ export async function createVillage({
   const fountainWater = addPlaza(buckets, colliders, anchors, heightField, villageKit, low);
   await buildSlice();
   addMarketStalls(buckets, colliders, anchors, heightField, perches);
+  // The course notice board on the street up from the quay (its lettering is in the sites' atlas).
+  const courseBoard = islandCourseBoard('anchorage');
+  if (courseBoard) {
+    const parts = addCourseBoardTimber(buckets, COVE.courseBoard, courseBoard);
+    colliders.boxes.push(parts.box);
+    cameraBlockers.push(parts.camera);
+  }
   if (!low) addVillageFestooning(buckets, colliders, heightField);
   await buildSlice();
   addLighthouse(buckets, colliders, shipObstacles, anchors, perches, heightField, low);

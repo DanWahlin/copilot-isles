@@ -102,6 +102,9 @@ import { MERIDIAN_YARD } from '../world/sites/crate-yard-logic';
 import { plankProgress, plankSurface, type PlankSpan } from './gangway';
 import { runScript, type ScriptStep } from './script';
 import { defaultShipName } from '../learn/progress';
+import { islandChapter } from '../learn/course-board';
+import { COURSE_BOARDS } from '../world/islands/course-boards';
+import { courseBoardSpot } from '../world/sites/course-board';
 import { fillSetup } from '../learn/setup';
 import { createBard } from './puzzles/bard';
 import { createChristening } from './puzzles/christening';
@@ -223,6 +226,8 @@ export interface GameSession {
     } | null;
     /** Starts a conversation with an NPC wherever you're standing (tests: carry on past an unreachable one). */
     talk(id: string): boolean;
+    /** Where to stand to read each island's course notice board, facing it (tests). */
+    courseBoards(): { island: IslandId; x: number; y: number; z: number; heading: number }[];
     /** Interactions within `r` metres of (x, z) and whether each is usable now (tests). */
     near(x: number, z: number, r: number): { id: string; y: number; d: number; on: boolean }[];
     /** The lift's raw anchors (tests: tx/ty/tz are the car's ends). */
@@ -787,6 +792,31 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       );
     },
   });
+
+  /**
+   * An island's course notice board (docs/specs/COURSE-BOARDS.md): walk up and read its chapter's
+   * topics, each a link into the course. Anchorage's is there from the start; a streamed island's
+   * comes and goes with its content. Returns the interaction's id.
+   */
+  const addCourseBoard = (id: IslandId): string => {
+    const iid = `course-board:${id}`;
+    const pose = COURSE_BOARDS[id];
+    const chapter = islandChapter(id);
+    interactions.remove(iid);
+    if (!chapter) return iid;
+    interactions.add({
+      id: iid,
+      label: () => 'Read the notices',
+      x: pose.x + Math.sin(pose.rot) * 0.9,
+      y: pose.y,
+      z: pose.z + Math.cos(pose.rot) * 0.9,
+      radius: 2.7,
+      enabled: () => mode === 'walk' && !scriptRunning && !dialogue.active,
+      onInteract: () => learn?.openCourseBoard(chapter),
+    });
+    return iid;
+  };
+  addCourseBoard('anchorage');
 
   // Treasure chests beside their NPCs; each grants a Logbook page once.
   const chests: {
@@ -1405,6 +1435,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         onInteract: () => rideLift(up),
       });
     }
+    scope.interactions.push(addCourseBoard('meridian'));
     // P1.1 The Crate Yard on the shipyard apron, and P1.2 The Three Helms out in the bay.
     const kit = await loadVillageKit();
     if (disposed || cove.meridian.town !== town) return noMeridian;
@@ -1634,7 +1665,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const onMeridianTown = (town: NonNullable<CoveScene['meridian']['town']>) =>
     runSetup('meridian', () => setupMeridian(town));
   const onThousandBough = (sys: ThousandBoughSystem) =>
-    runSetup('thousand-bough', () => (tb && !disposed ? tb.setup(sys) : Promise.resolve(noMeridian)));
+    runSetup('thousand-bough', async () => {
+      if (!tb || disposed) return noMeridian;
+      const setup = await tb.setup(sys);
+      if (!disposed && cove.thousandBough.system === sys) addCourseBoard('thousand-bough');
+      return setup;
+    });
   const unsubscribeStreams = [
     cove.anchorage.onReady(() => runSetup('anchorage', setupAnchorage)),
     cove.meridian.onReady(onMeridianTown),
@@ -1660,8 +1696,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           currentSetup[id] = undefined;
           nextSetup[id] = deferred();
           if (id === 'meridian') teardownMeridian();
-          else if (id === 'thousand-bough') tb?.teardown();
-          else {
+          else if (id === 'thousand-bough') {
+            tb?.teardown();
+            interactions.remove('course-board:thousand-bough');
+          } else {
             // Anchorage sleeps with its cast and chests (they stay as they are, out of the scene).
             const content = anchorageContent().filter((o) => o.parent);
             anchorageParked = content.map((object) => ({ object, visible: object.visible }));
@@ -2945,6 +2983,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         ...(tb?.bottles() ?? []),
       ],
       thousandBough: () => tb?.debug ?? null,
+      courseBoards: () =>
+        (Object.keys(COURSE_BOARDS) as IslandId[]).map((id) => ({
+          island: id,
+          ...courseBoardSpot(COURSE_BOARDS[id]),
+        })),
       puzzle: (id: string) => puzzles.find((p) => p.id === id)?.debug ?? null,
       liftSpots: () => {
         const a = cove.meridian.town?.anchors;

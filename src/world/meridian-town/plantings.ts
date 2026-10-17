@@ -9,6 +9,9 @@ import {
   type TerraceRowSpec,
 } from './terraces';
 import { segmentDistance, sinHash } from '../../util/math';
+import { RIM_PLANTS, inPlazaRim } from './plaza-rim';
+
+const GROUND = { heightAt: meridianHeight };
 
 /**
  * Port Meridian's town planted like a Mediterranean harbour town: a row of palms along the quay,
@@ -51,7 +54,7 @@ const CLEAR_BOXES: readonly { x0: number; x1: number; z0: number; z1: number }[]
   { x0: 603, x1: 641, z0: -817, z1: -775 }, // tavern pad
   { x0: 566, x1: 616, z0: -779, z1: -731 }, // shipyard apron
   { x0: 568, x1: 596, z0: -739, z1: -702 }, // mole connector
-  { x0: 662, x1: 674, z0: -800, z1: -770 }, // stair street
+  { x0: 661, x1: 675, z0: -778, z1: -762.8 }, // stair street (from the quay up through the harbour wall)
   { x0: 617, x1: 627, z0: -800, z1: -770 }, // tavern lane
 ];
 
@@ -112,6 +115,7 @@ export function meridianTownPlantBlocked(x: number, z: number, r = 0.8): boolean
   }
   for (const sx of STAIR_XS) if (Math.abs(x - sx) < 3.4 + r && z < -836 && z > -962) return true;
   if (inHouse(x, z, 0.5 + r)) return true;
+  if (inPlazaRim(x, z, r + 0.3, GROUND)) return true;
   for (const [bx, bz, hx, hz] of BUILT)
     if (Math.abs(x - bx) < hx + 0.6 + r && Math.abs(z - bz) < hz + 0.6 + r) return true;
   const c = MERIDIAN.pads.citadel;
@@ -166,7 +170,7 @@ export function meridianTownPlants(tier: Tier): PlantInstance[] {
       i % 3 === 1 ? 'palmCluster' : 'palmTall',
       x,
       quay.height,
-      quay.z0 + 1.6,
+      quay.z0 + 2.2,
       900 + i,
       0.88 + sinHash(i, 1, 12) * 0.2,
     );
@@ -239,6 +243,12 @@ export function meridianTownPlants(tier: Tier): PlantInstance[] {
               : 0.85 + sinHash(cx, cz, 35) * 0.3;
       add(species, x, y - 0.1, z, cx * 1000 + cz, scale);
     }
+  }
+  // On the plaza's terrace walls: palms, bananas and cypresses (meridian-town/plaza-rim.ts).
+  for (const [i, p] of RIM_PLANTS.entries()) {
+    if (tier === 'lite' && !p.species.startsWith('palm')) continue;
+    if (tier === 'low' && i % 2 === 1) continue;
+    out.push(plant(p.species, p.x, p.y, p.z, 1300 + i, p.scale));
   }
   return out;
 }

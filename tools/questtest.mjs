@@ -220,6 +220,63 @@ const filed = await page.evaluate(() => window.__dev.learn.progress.data.pages);
 for (const id of ['C0.3', 'pg.install'])
   if (!filed.includes(id)) logs.push(`[questtest] Nell's talk didn't put ${id} in the Logbook`);
 
+// The course notice board (docs/specs/COURSE-BOARDS.md): walk up, E opens it, and each topic is a
+// real link into Chapter 00 that opens in a new tab (checked, not followed). Nell's install page
+// ticks Installation. Esc goes back, and the run carries on from where it was.
+{
+  const back = await page.evaluate(() => window.__dev.state());
+  const spot = await page.evaluate(() =>
+    window.__dev
+      .session()
+      .debug.courseBoards()
+      .find((b) => b.island === 'anchorage'),
+  );
+  await page.evaluate((b) => window.__dev.session().debug.teleport(b.x, b.z, b.heading), spot);
+  await page.waitForTimeout(600);
+  const focus = (await page.evaluate(() => window.__dev.state())).focus;
+  if (focus !== 'course-board:anchorage') logs.push(`[questtest] board: E isn't on the board (${focus})`);
+  await tap('KeyE');
+  await page.waitForTimeout(700);
+  const board = await page.evaluate(() => ({
+    state: window.__dev.learn.getState().courseBoard,
+    links: [...document.querySelectorAll('.ci-cb a')].map((a) => ({
+      text: a.textContent,
+      href: a.getAttribute('href'),
+      target: a.getAttribute('target'),
+      rel: a.getAttribute('rel'),
+      label: a.getAttribute('aria-label'),
+      met: a.classList.contains('met'),
+    })),
+    focused: document.activeElement?.textContent ?? '',
+  }));
+  await shot('course-board');
+  const install = board.links.find((l) => l.text.includes('Installation'));
+  const want =
+    'https://github.com/github/copilot-app-for-beginners/blob/main/00-setup/README.md#installation';
+  if (board.state?.chapter !== '00-setup')
+    logs.push(`[questtest] board: didn't open (${JSON.stringify(board.state)})`);
+  else if (!install || install.href !== want)
+    logs.push(`[questtest] board: Installation links to ${install?.href}`);
+  else if (board.links.some((l) => l.target !== '_blank' || !/noopener/.test(l.rel ?? '')))
+    logs.push('[questtest] board: a link doesn’t open in a new tab with noopener');
+  else if (board.links.some((l) => !/new tab/.test(l.label ?? '')))
+    logs.push('[questtest] board: a link’s label doesn’t say it opens a new tab');
+  else if (!install.met) logs.push('[questtest] board: Installation has no ✓ after Nell’s install page');
+  else if (board.links.length < 7) logs.push(`[questtest] board: only ${board.links.length} links`);
+  if (!board.focused.includes('Learning Objectives'))
+    logs.push(`[questtest] board: the first topic isn't focused (${board.focused})`);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(400);
+  if (await page.evaluate(() => window.__dev.learn.getState().courseBoard))
+    logs.push('[questtest] board: Esc didn’t close it');
+  results.courseBoard = {
+    links: board.links.length,
+    met: board.links.filter((l) => l.met).map((l) => l.text),
+  };
+  await page.evaluate((b) => window.__dev.session().debug.teleport(b.x, b.z, b.heading), back);
+  await page.waitForTimeout(400);
+}
+
 // Paint Your Sails: E at the palette stand opens the theme picker; pick a card and select Finish
 // through the real UI, then Nell sends you on to Ezra.
 const stand = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.2.palette')?.spot() ?? null);
@@ -725,17 +782,18 @@ const final = await learnState();
     ['landing', 755.2, -704, Math.PI],
     ['arm-north', 763, -742, Math.PI],
     ['promenade-east', 734, -762, -Math.PI / 2],
-    ['stair-foot', 668, -772, Math.PI],
-    ['stair-1', 668, -774, Math.PI],
-    ['stair-2', 668, -776, Math.PI],
-    ['stair-3', 668, -778, Math.PI],
-    ['stair-4', 668, -780, Math.PI],
-    ['stair-5', 668, -782, Math.PI],
-    ['stair-6', 668, -784, Math.PI],
-    ['stair-7', 668, -786, Math.PI],
-    ['stair-8', 668, -788, Math.PI],
-    ['stair-9', 668, -790, Math.PI],
-    ['stair-10', 668, -792, Math.PI],
+    // The harbour stair (src/world/meridian-town/plaza-stair.ts HARBOUR_STAIR): 12 steps from the
+    // quay at z -763.6 up to the lane at z -777.2, then along the lane to the plaza.
+    ['stair-foot', 668, -763.0, Math.PI],
+    ...Array.from({ length: 12 }, (_, i) => [
+      `stair-${i + 1}`,
+      668,
+      -763.6 - (i + 0.5) * (13.6 / 12),
+      Math.PI,
+    ]),
+    ['stair-top', 668, -778.2, Math.PI],
+    ['lane', 668, -786, Math.PI],
+    ['lane-2', 666, -791, Math.PI],
     ['plaza-shoulder', 664, -793, Math.PI],
     ['plaza-edge', 660, -794, Math.PI],
     ['plaza', 660, -796, Math.PI],

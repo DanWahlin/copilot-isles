@@ -34,7 +34,7 @@ export interface ModelMarketSite {
   readonly stand: { x: number; y: number; z: number; heading: number };
   /** The counter's front (where E works from). */
   readonly counter: { x: number; y: number; z: number };
-  /** The stall from the plaza, for the overlay (its boards over the parchment's top edge). */
+  /** The stall square on from the plaza (concept B's close-up), held while the market is open. */
   readonly shot: MarketShot;
   /** Ticks the done jobs' notes on the cork board. */
   setDone(ids: readonly string[]): void;
@@ -45,12 +45,16 @@ export interface ModelMarketSite {
 const INK = '#3b2616';
 const CREAM = '#fbefd6';
 const GOLD = '#ffe2a0';
-/** Board faces by category: green, blue, red (the size and the stars say it too). */
-const FILL = ['#4f7f43', '#2c64a0', '#9a2a24'] as const;
+/** Board faces by category: sage, sky blue, red (the size and the stars say it too). */
+const FILL = ['#93ad74', '#3a78bd', '#ad2c26'] as const;
+/** Lettering per board: dark ink on the pale sage board, cream on the blue and red ones. */
+const INK_ON = ['#24301c', CREAM, CREAM] as const;
+const TITLE_ON = ['#2f4a1f', GOLD, GOLD] as const;
+const MORE_ON = ['#3d4f2c', '#e9d9b6', '#e9d9b6'] as const;
 
 /**
- * The Model Market's lettering (docs/specs/MODEL-MARKET.md §2): the three hanging boards, the name
- * banner, the House special plaque on the counter and the notes on the jobs board, as one sign atlas
+ * The Model Market's lettering (docs/specs/MODEL-MARKET.md §2): the three hanging boards, the small
+ * name plaque, the House special plaque on the counter and the notes on the jobs board, as one sign atlas
  * (one draw, the painted-sign material: no new shader). The stall itself is part of the town
  * (src/world/meridian-town/model-market.ts); this only letters it.
  */
@@ -77,25 +81,23 @@ export function createModelMarketSigns(o: {
     const spot = L.boards[i];
     if (!spot) return;
     const lines = [`${b.category} · ${b.price} ★`, ...b.names, ...(b.more > 0 ? [`+${b.more} more`] : [])];
-    const s = signs.add(lines, spot.w, spot.h, {
+    const ink = INK_ON[i] ?? CREAM;
+    const s = signs.add(lines, spot.w - 0.06, spot.h - 0.06, {
       layout: 'list',
       fill: FILL[i],
       size: 0.1,
       colors: lines.map((_, k) =>
-        k === 0 ? GOLD : k === lines.length - 1 && b.more > 0 ? '#e9d9b6' : CREAM,
+        k === 0
+          ? (TITLE_ON[i] ?? GOLD)
+          : k === lines.length - 1 && b.more > 0
+            ? (MORE_ON[i] ?? '#e9d9b6')
+            : ink,
       ),
       scales: lines.map((_, k) => (k === 0 ? 1.12 : k === lines.length - 1 && b.more > 0 ? 0.8 : 1)),
     });
-    s.object.position.set(spot.x, L.boardTop - spot.h / 2, L.boardZ);
+    s.object.position.set(spot.x, spot.top - spot.h / 2, L.boardZ);
     root.add(s.object);
   });
-  const banner = signs.add(['Gilda’s Model Market'], L.banner.w, L.banner.h, {
-    look: 'cloth',
-    size: 0.09,
-    colors: ['#7a1f2d'],
-  });
-  banner.object.position.set(0, L.banner.y, L.banner.z);
-  root.add(banner.object);
   const plaque = signs.add(['House special: Auto · 1 ★', 'The app chooses a model'], L.plaque.w, L.plaque.h, {
     fill: '#26302a',
     size: 0.08,
@@ -104,6 +106,13 @@ export function createModelMarketSigns(o: {
   });
   plaque.object.position.set(L.plaque.x, L.plaque.y, L.plaque.z);
   root.add(plaque.object);
+  const name = signs.add(['Gilda’s', 'Model Market'], L.name.w, L.name.h, {
+    size: 0.17,
+    colors: [GOLD, CREAM],
+    scales: [1, 0.86],
+  });
+  name.object.position.set(L.name.x, L.name.y, L.name.z);
+  root.add(name.object);
 
   const noteLines = (j: MarketJobNote, done: boolean) => [
     j.note,
@@ -133,9 +142,10 @@ export function createModelMarketSigns(o: {
     new Vector3(lx, ly, lz).applyMatrix4(root.matrixWorld);
   const standAt = world(L.stand.x, 0, L.stand.z);
   const counterAt = world(L.counter.x, 0, L.counter.z);
-  // From the plaza, a little left and above the counter: the boards fill the top of the frame.
-  const eye = world(-1.2, 3.1, 8.6);
-  const at = world(-0.2, 2.9, -1.0);
+  // Square on from the plaza at a standing eye height, like concept B's close-up: the three boards
+  // across the top, Gilda at the counter in the middle, the jar, the bell and the jobs board.
+  const eye = world(-0.4, 2.8, 6.6);
+  const at = world(0.1, 2.85, -2.0);
 
   return {
     group,

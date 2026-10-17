@@ -21,17 +21,19 @@ The market is **optional**: it never blocks the Seal of Meridian.
 
 | What | Where (src) | Notes |
 | --- | --- | --- |
-| The stall | `src/world/meridian-town/model-market.ts` (`addModelMarketStall`), built into the town's buckets | Three stone arches against the corner house on the plaza's east side, at the top of the stair street from the quay (it replaced a plain awning stall at the same spot). Back and side walls, two piers, a lintel, a plaster band and a cornice. |
-| Signboards | `src/world/sites/model-market.ts` (`createModelMarketSigns`), one `SignSet` | Three boards hang on chains in the arches: **Lightweight** (green, 1.55 × 0.9 m), **Versatile** (blue, 1.95 × 1.15 m), **Powerful** (red on a gold backing, 2.3 × 1.4 m). Each says its category and price, the board rule's four names, and "+N more". Also: the "Gilda's Model Market" banner, the chalk plaque **House special: Auto · 1 ★** on the counter's front, and four job notes on the cork board (✓ Done once a job's done right-sized). |
-| Dressing | the stall | A red-and-white striped awning over the counter, a glass starfish jar (the till), a brass bell, a cork jobs board on posts, two lanterns, shelves of pottery, a blue curtain, crates and a barrel, two potted shrubs, barrels outside. |
-| Gilda | `src/game/meridian-npcs.ts` (`gilda`, body `mer_market`) | Behind the counter. Headscarf, apron, money pouch. She has no bark: the counter's E opens the market. |
+| The stall | `src/world/meridian-town/model-market.ts` (`addModelMarketStall`), shapes in `market-shapes.ts`, built into the town's buckets | A warm sandstone loggia against the corner house on the plaza's east side, at the top of the stair street from the quay. Three round arches for the stall and a fourth as an open passage over the harbour-front lane; square piers in courses with plinths and capitals, voussoir rings with a keystone and a moulded archivolt, a cornice, an upper storey with four shuttered windows and window boxes, and a tiled gable roof (the plaza's `addTiledRoof`). The counter stands back under the arches behind a walkway with a timber ceiling. |
+| Signboards | `src/world/sites/model-market.ts` (`createModelMarketSigns`), one `SignSet` | Three boards hang on chains from carved beams inside the arches, each a step higher: **Lightweight** (sage, 1.32 × 0.74 m, scalloped top), **Versatile** (blue, 1.86 × 1.0 m, scalloped top), **Powerful** (red, 2.6 × 1.42 m, a crest and a gilded frame). The shaped backings and carved frames are geometry; the faces are the sign atlas. Each says its category and price, the board rule's four names, and "+N more". Also: a small carved name plaque on the left pier, the chalk plaque **House special: Auto · 1 ★** on the counter's front, and four job notes on the cork board (✓ Done once a job's done right-sized). |
+| Dressing | the stall | A red-and-white awning with a scalloped valance over the counter, a big glass jar of starfish (the collectible's own shape and colours) at the counter's front edge, a brass bell, a cork jobs board on posts, two iron lanterns (their glass is the glow material, warm by day too), shelves of turned bottles, jars and pots, a blue curtain, a blue-and-white cloth over the counter's end, two potted palms, a barrel, and a cypress in a stone planter. |
+| Gilda | `src/game/meridian-npcs.ts` (`gilda`, body `mer_market`, 1.2× scale) | Behind the counter on a step. Headscarf, apron, money pouch. She has no bark: the counter's E opens the market, and the camera holds a square-on view of the stall (`site.shot`, like concept B's close-up). |
 
 **Cost:** no new shader or material. The stall's parts are merged into the town's existing material chunks
-(stone, plaster, wood, cloth, metal, glow). The lettering is one sign atlas and one draw (the painted-sign
-material the other sites use). Lite leaves out the shelf pottery and uses fewer segments on the shrubs.
+(plaster, wood, cloth, metal, glow, roof tile, stone). The lettering is one sign atlas and one draw (the painted-sign
+material the other sites use). About 14k triangles on High and 7.7k on Lite (Lite drops shelf pottery, chain links,
+shutter slats and flowers, and uses fewer segments).
 
-**Colliders:** the walls, piers, counter, jobs board and pots stop the walker; the arches' lintel, band, roof,
-boards and awning are camera blockers. All come off with Meridian when it unloads (the town's colliders and the
+**Colliders:** the walls, piers, counter, barrel, pots and planter stop the walker; the wall over the arches, the
+upper storey, the passage's lintel, the counter, the shelves and the cypress are camera blockers (not the boards or
+the awning, so the follow camera never folds in at the counter). All come off with Meridian when it unloads (the town's colliders and the
 island scope in `session.ts`).
 
 **Reload:** the stall is part of the town, so it comes back with it. The signs and the counter are rebuilt in

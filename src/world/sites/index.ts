@@ -12,6 +12,9 @@ import { createMill, type MillSite } from './mill';
 import { createPaletteStand, type PaletteStandSite } from './palette-stand';
 import { SignSet } from './sign';
 import { ANCHORAGE_SLUICE } from './sluice-logic';
+import { islandCourseBoard } from '../../learn/course-board';
+import { COVE } from '../layout';
+import { addCourseBoardNotices, courseBoardExcludes } from './course-board';
 
 export type { CraneSite } from './crane';
 export { BRIGANTINE_CARGO } from './crane';
@@ -79,6 +82,9 @@ export async function createCoveSites(o: {
   });
   await buildSlice();
   const bottles = createBottles({ kit, ground: o.ground, lite: o.tier.tier === 'lite' });
+  // The course notice board's header and notes (its timber is the village's).
+  const courseBoard = islandCourseBoard('anchorage');
+  if (courseBoard) addCourseBoardNotices(signs, COVE.courseBoard, courseBoard);
   const group = new Group();
   group.name = 'puzzle sites';
   group.add(mill.group, crane.group, gear.group, palette.group, hammock.group, bottles.group);
@@ -117,7 +123,8 @@ export async function createCoveSites(o: {
       gear.excludes(x, z) ||
       palette.excludes(x, z) ||
       hammock.excludes(x, z) ||
-      bottles.excludes(x, z),
+      bottles.excludes(x, z) ||
+      courseBoardExcludes(COVE.courseBoard, x, z),
     update(dt, t) {
       mill.update(dt, t);
       crane.update(dt, t);

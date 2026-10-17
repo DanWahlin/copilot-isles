@@ -298,7 +298,8 @@ export class SignSet {
     }
   }
 
-  private *finalizeSteps(): Generator<void, Mesh, void> {
+  /** `finalize()` as a generator, a board a step (for a build that's a generator itself). */
+  *finalizeSteps(): Generator<void, Mesh, void> {
     const { width, height } = packShelves(this.entries);
     if (height > MAX_ATLAS || width > MAX_ATLAS)
       throw new Error(`SignSet ${this.name}: atlas ${width} × ${height} px is too big`);

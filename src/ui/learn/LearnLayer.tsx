@@ -4,6 +4,7 @@ import { CHAPTERS } from '../../learn/content/index';
 import { loadGlossary, prefetchChapter } from '../../learn/course/source';
 import type { LearnStore } from '../../learn/store';
 import { SoundButton } from '../SoundButton';
+import { CourseBoardPanel } from './CourseBoard';
 import { ForkForm } from './ForkForm';
 import { Logbook, PageReveal, Spyglass } from './PageViews';
 import { QuestTracker } from './QuestTracker';
@@ -106,6 +107,7 @@ function LearnLayer({
           !s.palette &&
           !s.forkForm &&
           !s.setupForm &&
+          !s.courseBoard &&
           !s.banner &&
           !s.spyglass && <QuestTracker tracker={s.tracker} calm={s.calm} spot={s.spotlight.tracker} />}
         {s.spyglass && !s.spyglass.full && !s.quiz && !s.logbook.open && (
@@ -140,6 +142,14 @@ function LearnLayer({
             from={s.setupForm.from}
             setup={s.setup}
             detected={s.osDetected}
+          />
+        )}
+        {s.courseBoard && !s.quiz && !s.reveal && !s.logbook.open && !s.forkForm && !s.setupForm && (
+          <CourseBoardPanel
+            key={s.courseBoard.chapter}
+            store={store}
+            chapter={s.courseBoard.chapter}
+            covered={s.courseBoard.covered}
           />
         )}
         {s.spyglass?.full && <Spyglass store={store} spy={s.spyglass} />}
