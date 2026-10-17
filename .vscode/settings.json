@@ -1,0 +1,6 @@
+{
+  "json.schemas": [
+    { "fileMatch": ["/content/models.json"], "url": "./content/schemas/models.schema.json" },
+    { "fileMatch": ["/content/course.lock.json"], "url": "./content/schemas/course-lock.schema.json" }
+  ]
+}

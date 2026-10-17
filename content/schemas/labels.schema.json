@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chart labels (content/labels.json)",
+  "description": "What you learn at an island, a puzzle or a sea battle, and why, with its course chapter. docs/specs/LOWER-THIRDS.md, docs/content-data.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["labels"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$comment": { "type": "string" },
+    "labels": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^(arrival|puzzle|battle):[A-Za-z0-9.-]+$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["game", "k", "t", "b", "ch", "c", "source"],
+        "properties": {
+          "game": {
+            "description": "Where the game shows it (null: only the highlight reel).",
+            "enum": ["arrival", "puzzle", "battle", null]
+          },
+          "k": { "description": "The small-caps label: place · activity.", "type": "string", "minLength": 1 },
+          "t": { "description": "The headline: what you learn.", "type": "string", "minLength": 1 },
+          "b": { "description": "One line: why it matters.", "type": "string", "minLength": 1 },
+          "ch": {
+            "description": "The course chapter on the seal (\"02\").",
+            "type": "string",
+            "pattern": "^\\d{2}$"
+          },
+          "c": { "description": "The course section after \"Course Chapter <ch> · \".", "type": "string" },
+          "chLine": { "description": "Replaces \"Course Chapter <ch>\".", "type": "string" },
+          "source": {
+            "description": "The course section the text paraphrases.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["chapter", "anchor", "hash"],
+            "properties": {
+              "chapter": { "type": "string", "pattern": "^\\d{2}-[a-z0-9-]+$" },
+              "anchor": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+              "hash": { "type": "string", "pattern": "^[0-9a-f]{12}$" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

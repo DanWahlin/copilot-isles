@@ -1,4 +1,4 @@
-import { JOBS, QUOTES } from '../../game/market/jobs';
+import { GILDA_SOURCES, JOBS, QUOTES } from '../../game/market/jobs';
 import { MERIDIAN_YARD } from '../../world/sites/crate-yard-logic';
 import { courseRefs } from '../course/refs';
 import type { ChapterContent, Rect } from '../types';
@@ -1168,13 +1168,9 @@ export const CH01: ChapterContent = {
     'mer.pell.letters.debrief': src('settings', '5b95eb5b50e3'),
     'mer.pell.done': src('i-cannot-find-a-setting-shown-in-the-chapter', 'a78cb1a046e1'),
     'mer.admiral.next': src('whats-next', '379b67eeb747'),
-    // The Model Market (src/game/market/jobs.ts quotes the course for each job and grade, in `cited`).
-    'mer.market.hello': src('models-and-reasoning-effort', '84d625491118'),
-    'mer.market.auto': src('models-and-reasoning-effort', '84d625491118'),
-    'mer.market.over': src('models-and-reasoning-effort', '84d625491118'),
-    'mer.market.over.effort': src('models-and-reasoning-effort', '84d625491118'),
-    'mer.market.short': src('try-again-with-a-different-model', 'b0031ded9c4d'),
-    'mer.market.short.auto': src('models-and-reasoning-effort', '84d625491118'),
+    // The Model Market: Gilda's teaching lines cite their sections in content/market.json (`gilda.*.source`),
+    // and its quotes for each job and grade are in `cited`.
+    ...GILDA_SOURCES,
   },
 
   // P1.1 The Crate Yard: each crate's reason, said when it's pushed onto the wrong plate.

@@ -316,11 +316,6 @@ export const THOUSAND_BOUGH = {
     landingShot: { x: 1937.6, y: 8.6, z: -1367.5, tx: 1990, ty: 37, tz: -1536 },
     /** The timber deck at the wharf's land end, with the boathouse. */
     boughLanding: { x: 1947, z: -1434, sx: 22, sz: 14, y: 2.6 },
-    /**
-     * The course notice board (docs/specs/COURSE-BOARDS.md) on Bough Landing's east side, facing back
-     * up the wharf: you see it as you walk ashore, before the Fern Walk.
-     */
-    courseBoard: { x: 1954.5, y: 2.6, z: -1431.5, rot: -0.75 },
   },
   /** The little sister tree at Bough Landing (the same generator, scale 0.18). */
   sister: { x: 1957, z: -1446.5, scale: 0.18, propRoots: 6, lanterns: 12 },

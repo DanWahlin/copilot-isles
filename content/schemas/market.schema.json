@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "The Model Market (content/market.json)",
+  "description": "Prices, refunds, the board rule's numbers, stamps, course quotes, jobs and Gilda's lines. docs/content-data.md, docs/specs/MODEL-MARKET.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "categories",
+    "efforts",
+    "autoPrice",
+    "maxPrice",
+    "sizes",
+    "board",
+    "stamps",
+    "quotes",
+    "jobs",
+    "gilda"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$comment": { "type": "string" },
+    "categories": {
+      "description": "GitHub Docs' model categories, smallest (cheapest) to largest: the boards' order and their size marks.",
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "price", "size", "tagline"],
+        "properties": {
+          "id": { "enum": ["Lightweight", "Versatile", "Powerful"] },
+          "price": {
+            "description": "Starfish to hire a model of this category.",
+            "$ref": "#/$defs/starfish"
+          },
+          "size": { "description": "Read out for the size mark (\"Small model\").", "$ref": "#/$defs/text" },
+          "tagline": {
+            "description": "The line under the category on the overlay's board.",
+            "$ref": "#/$defs/text"
+          }
+        }
+      }
+    },
+    "efforts": {
+      "description": "The effort dial, low to high (the grading reads them in this order).",
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "price"],
+        "properties": {
+          "id": { "enum": ["low", "default", "high"] },
+          "label": { "$ref": "#/$defs/text" },
+          "price": { "description": "Starfish added to the model's price.", "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "autoPrice": { "description": "Starfish for Auto (the house special).", "$ref": "#/$defs/starfish" },
+    "maxPrice": {
+      "description": "No hire costs more than this (at most 4).",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4
+    },
+    "sizes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["quick", "hard"],
+      "properties": {
+        "quick": { "$ref": "#/$defs/size" },
+        "hard": { "$ref": "#/$defs/size" }
+      }
+    },
+    "board": {
+      "description": "The board rule's numbers (docs/specs/MODEL-MARKET.md §4.2).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["size", "perFamily"],
+      "properties": {
+        "size": { "description": "Names on each signboard.", "type": "integer", "minimum": 1, "maximum": 6 },
+        "perFamily": {
+          "description": "At most this many of one family (Claude, GPT, MAI) before the board fills up.",
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "stamps": {
+      "description": "The stamp on the work order for each outcome.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["right", "over", "short"],
+      "properties": {
+        "right": { "$ref": "#/$defs/text" },
+        "over": { "$ref": "#/$defs/text" },
+        "short": { "$ref": "#/$defs/text" }
+      }
+    },
+    "quotes": {
+      "description": "Course sentences, word for word. The keys the grading uses (cost, effort, hard, noGuarantee, auto, autopilot, autoHidden, retry) must stay.",
+      "type": "object",
+      "required": ["cost", "effort", "hard", "noGuarantee", "auto", "autopilot", "autoHidden", "retry"],
+      "propertyNames": { "pattern": "^[a-z][A-Za-z]*$" },
+      "additionalProperties": { "$ref": "#/$defs/quote" }
+    },
+    "jobs": {
+      "description": "Gilda's jobs board, in order (keys 1-4; the cork board has four spots).",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "note", "size", "brief", "why"],
+        "properties": {
+          "id": {
+            "description": "Saved in players' progress: don't rename a job's id.",
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "title": { "description": "The work order's heading.", "$ref": "#/$defs/text" },
+          "note": { "description": "The note pinned on the cork board (short).", "$ref": "#/$defs/text" },
+          "size": { "enum": ["quick", "hard"] },
+          "brief": {
+            "description": "One line about the job, from the course's own tasks.",
+            "$ref": "#/$defs/text"
+          },
+          "why": {
+            "description": "A key of `quotes`: what the course says about a job like this.",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "gilda": {
+      "description": "Gilda's voiced lines. The grading and the puzzle use every key.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hello",
+        "open",
+        "auto",
+        "right",
+        "over",
+        "overEffort",
+        "short",
+        "shortAuto",
+        "broke",
+        "done"
+      ],
+      "properties": {
+        "hello": { "$ref": "#/$defs/line" },
+        "open": { "$ref": "#/$defs/line" },
+        "auto": { "$ref": "#/$defs/line" },
+        "right": { "$ref": "#/$defs/line" },
+        "over": { "$ref": "#/$defs/line" },
+        "overEffort": { "$ref": "#/$defs/line" },
+        "short": { "$ref": "#/$defs/line" },
+        "shortAuto": { "$ref": "#/$defs/line" },
+        "broke": { "$ref": "#/$defs/line" },
+        "done": { "$ref": "#/$defs/line" }
+      }
+    }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1 },
+    "starfish": { "type": "integer", "minimum": 1, "maximum": 4 },
+    "size": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "refund", "doubloons"],
+      "properties": {
+        "label": { "description": "\"Quick look\", \"Hard job\".", "$ref": "#/$defs/text" },
+        "refund": {
+          "description": "Starfish back for a right-sized hire (less than it cost).",
+          "type": "integer",
+          "minimum": 0
+        },
+        "doubloons": {
+          "description": "Doubloons the first time the job's done right-sized.",
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "cite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chapter", "anchor", "hash"],
+      "properties": {
+        "chapter": {
+          "description": "The course chapter's folder.",
+          "type": "string",
+          "pattern": "^\\d{2}-[a-z0-9-]+$"
+        },
+        "anchor": {
+          "description": "The section's README anchor (content/course.lock.json).",
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "hash": {
+          "description": "The section's hash from `npm run course:refs -- <NN>`.",
+          "type": "string",
+          "pattern": "^[0-9a-f]{12}$"
+        }
+      }
+    },
+    "quote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "chapter", "anchor", "hash"],
+      "properties": {
+        "text": {
+          "description": "Exactly as the course writes it, **bold** included.",
+          "$ref": "#/$defs/text"
+        },
+        "chapter": { "type": "string", "pattern": "^\\d{2}-[a-z0-9-]+$" },
+        "anchor": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "hash": { "type": "string", "pattern": "^[0-9a-f]{12}$" }
+      }
+    },
+    "line": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["voice", "text"],
+      "properties": {
+        "voice": {
+          "description": "The voice line's id in tools/voice/lines.testcove.json.",
+          "type": "string",
+          "pattern": "^[a-z0-9.]+$"
+        },
+        "text": {
+          "description": "The voice line's text, word for word (the caption).",
+          "$ref": "#/$defs/text"
+        },
+        "source": { "description": "The course section a teaching line paraphrases.", "$ref": "#/$defs/cite" }
+      }
+    }
+  }
+}

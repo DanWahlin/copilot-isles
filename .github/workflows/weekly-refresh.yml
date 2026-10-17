@@ -5,13 +5,20 @@
 #   3 Screenshots    the same run copies referenced images byte-for-byte (pinned ones are kept) and
 #                    saves upstream copies of changed pinned images for before/after montages
 #   4 Drift report   tools/course/drift.ts, including the UI-term check
+#  4b Content data   npm run content:check (tools/content/report.ts, docs/content-data.md): every
+#                    content/*.json against its schema, the Model Market's course quotes still word for
+#                    word in the new snapshot, every cited anchor still in the lock, Gilda's captions
+#                    still her voice lines, and each course notice board's topics with what the sync
+#                    added or removed. It lists each JSON entry that needs an edit.
 #   5 Drafted fixes  not yet (follow-up: hand the drift report to the Copilot coding agent)
 #   6 Voices         only when voice lines changed AND the Azure Speech secrets exist; safe to skip
 #   7 Other sources  not yet (follow-up: tools/music/fetch.sh --check and the ASSETS.md list)
 #   8 Verify         typecheck, lint, unit tests (every SourceRef resolves against the snapshot),
 #                    build, budgets, secret scan, and the Playwright suite
 #   9 Deliver        one PR, "Weekly refresh: course @ <sha>", labelled needs-content-review when
-#                    authored content is affected or a check fails. Nothing auto-merges.
+#                    authored content is affected, a content entry broke, or a check fails. Nothing
+#                    auto-merges. Merging it deploys the site: the merge's push runs CI, and pages.yml
+#                    deploys when CI passes on main.
 #
 # Uses only GITHUB_TOKEN. Opening the PR needs the repository setting "Allow GitHub Actions to create
 # and approve pull requests". PRs opened with GITHUB_TOKEN don't start other workflows (CI), which is
@@ -81,6 +88,11 @@ jobs:
       - name: 4 · Drift report
         id: drift
         run: npx tsx tools/course/drift.ts --previous="$DRIFT_DIR/previous-lock.json" --report="$DRIFT_DIR" --out="$DRIFT_DIR/report.md"
+
+      - name: 4b · Content data (quotes, anchors, voice lines, board topics)
+        id: content
+        continue-on-error: true # an unset "broken" output labels the PR, so it still opens
+        run: npm run content:check -- --previous="$DRIFT_DIR/previous-lock.json" --out="$DRIFT_DIR/content.md" --report-only
 
       - name: 6 · Voices (only changed lines, only with secrets)
         id: voices
@@ -154,6 +166,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           AFFECTED: ${{ steps.drift.outputs.affected }}
+          CONTENT_BROKEN: ${{ steps.content.outputs.broken }}
           VERIFY_OK: ${{ steps.verify.outputs.ok }}
           VERIFY_FAILED: ${{ steps.verify.outputs.failed }}
           VOICES: ${{ steps.voices.outputs.summary }}
@@ -180,9 +193,11 @@ jobs:
             echo
             cat "$DRIFT_DIR/report.md"
             echo
+            if [ -f "$DRIFT_DIR/content.md" ]; then cat "$DRIFT_DIR/content.md"; else echo "**The content data check didn't run.** See the workflow run."; fi
+            echo
             echo "### Voices"
             echo
-            echo "${VOICES:-Step 6 didn't run.}"
+            echo "${VOICES:-Step 6 did not run.}"
             echo
             echo "### Checks"
             echo
@@ -194,7 +209,7 @@ jobs:
           } > "$RUNNER_TEMP/pr-body.md"
 
           labels=()
-          if [ "$AFFECTED" = "true" ] || [ "$VERIFY_OK" != "true" ]; then
+          if [ "$AFFECTED" = "true" ] || [ "$CONTENT_BROKEN" != "false" ] || [ "$VERIFY_OK" != "true" ]; then
             gh label create needs-content-review --color D93F0B \
               --description 'The course changed under authored content (PLAN §8.4)' 2> /dev/null || true
             labels=(--label needs-content-review)

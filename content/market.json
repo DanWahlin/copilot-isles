@@ -1,0 +1,215 @@
+{
+  "$schema": "./schemas/market.schema.json",
+  "$comment": "The Model Market's data (docs/specs/MODEL-MARKET.md, docs/content-data.md): prices in starfish, refunds and doubloons, the board rule's numbers, the stamps, the course quotes, the jobs and Gilda's lines. The grading rules stay in src/game/market/jobs.ts. Loaded at build time by src/content/market.ts; checked by src/content/content.test.ts and `npm run content:check`. Quotes must be word for word in the cited section of public/course/**; `hash` is the section's hash from `npm run course:refs -- 01`. Gilda's `text` must match her line in tools/voice/lines.testcove.json: change both, then regenerate the audio (docs/content-data.md).",
+  "categories": [
+    {
+      "id": "Lightweight",
+      "price": 1,
+      "size": "Small",
+      "tagline": "Quick looks and short answers"
+    },
+    {
+      "id": "Versatile",
+      "price": 2,
+      "size": "Medium",
+      "tagline": "Everyday coding and agent work"
+    },
+    {
+      "id": "Powerful",
+      "price": 3,
+      "size": "Large",
+      "tagline": "Hard bugs and big changes"
+    }
+  ],
+  "efforts": [
+    { "id": "low", "label": "Low", "price": 0 },
+    { "id": "default", "label": "Default", "price": 0 },
+    { "id": "high", "label": "High", "price": 1 }
+  ],
+  "autoPrice": 1,
+  "maxPrice": 4,
+  "sizes": {
+    "quick": { "label": "Quick look", "refund": 1, "doubloons": 5 },
+    "hard": { "label": "Hard job", "refund": 2, "doubloons": 10 }
+  },
+  "board": { "size": 4, "perFamily": 2 },
+  "stamps": {
+    "right": "✓ Right-sized",
+    "over": "! Overspent",
+    "short": "↻ Fell short"
+  },
+  "quotes": {
+    "cost": {
+      "text": "Models differ in capabilities, speed, and usage cost.",
+      "chapter": "01-tour-the-app",
+      "anchor": "models-and-reasoning-effort",
+      "hash": "84d625491118"
+    },
+    "effort": {
+      "text": "Higher effort can help with complex problems, but can take longer.",
+      "chapter": "01-tour-the-app",
+      "anchor": "models-and-reasoning-effort",
+      "hash": "84d625491118"
+    },
+    "quick": {
+      "text": "For a repository tour or a short explanation, keep **Auto** or the current model and its default reasoning effort.",
+      "chapter": "01-tour-the-app",
+      "anchor": "models-and-reasoning-effort",
+      "hash": "84d625491118"
+    },
+    "hard": {
+      "text": "For a difficult bug or a change across several files, consider a model suited to complex coding and a higher effort level.",
+      "chapter": "01-tour-the-app",
+      "anchor": "models-and-reasoning-effort",
+      "hash": "84d625491118"
+    },
+    "noGuarantee": {
+      "text": "Higher effort does not guarantee a correct answer.",
+      "chapter": "01-tour-the-app",
+      "anchor": "models-and-reasoning-effort",
+      "hash": "84d625491118"
+    },
+    "auto": {
+      "text": "With **Auto**, the Copilot app chooses a model for your task and shows which model it selected in the conversation, alongside a short explanation of why it made that choice.",
+      "chapter": "01-tour-the-app",
+      "anchor": "models-and-reasoning-effort",
+      "hash": "84d625491118"
+    },
+    "autopilot": {
+      "text": "This is different from **Autopilot**, which controls how independently the agent works.",
+      "chapter": "01-tour-the-app",
+      "anchor": "models-and-reasoning-effort",
+      "hash": "84d625491118"
+    },
+    "autoHidden": {
+      "text": "If the **Auto** switch is on, these settings are hidden. Turn it off to see them.",
+      "chapter": "01-tour-the-app",
+      "anchor": "models-and-reasoning-effort",
+      "hash": "84d625491118"
+    },
+    "vary": {
+      "text": "Available models, effort levels, and context window sizes vary.",
+      "chapter": "01-tour-the-app",
+      "anchor": "models-and-reasoning-effort",
+      "hash": "84d625491118"
+    },
+    "simple": {
+      "text": "Keep the default for this simple question.",
+      "chapter": "01-tour-the-app",
+      "anchor": "try-the-controls",
+      "hash": "1a9a4b2f69f1"
+    },
+    "retry": {
+      "text": "If the agent's response doesn't work for you, you can retry it with a different model or reasoning effort without re-typing your prompt.",
+      "chapter": "01-tour-the-app",
+      "anchor": "try-again-with-a-different-model",
+      "hash": "b0031ded9c4d"
+    }
+  },
+  "jobs": [
+    {
+      "id": "tour",
+      "title": "Give the new deckhand a tour of the repo",
+      "note": "Tour the repo",
+      "size": "quick",
+      "brief": "A beginner-friendly tour of samples/book-app-web: what it does, how its files are organized, and what its tests cover. No files change.",
+      "why": "quick"
+    },
+    {
+      "id": "explain",
+      "title": "Explain how filterBooks searches",
+      "note": "Explain filterBooks",
+      "size": "quick",
+      "brief": "Does letter case affect the book app’s search? Refer to the file, and don’t change anything.",
+      "why": "simple"
+    },
+    {
+      "id": "bug",
+      "title": "Track down a difficult bug in the book app",
+      "note": "Track down a bug",
+      "size": "hard",
+      "brief": "Something in the book app breaks, and it isn’t obvious why.",
+      "why": "hard"
+    },
+    {
+      "id": "files",
+      "title": "Change the book app across several files",
+      "note": "Change many files",
+      "size": "hard",
+      "brief": "One change that reaches across several of the book app’s files.",
+      "why": "hard"
+    }
+  ],
+  "gilda": {
+    "hello": {
+      "voice": "mer.market.hello",
+      "text": "Ahoy, Captain! Welcome to Gilda's Model Market. Trade your starfish for a model that fits the job. Bigger models cost more.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "models-and-reasoning-effort",
+        "hash": "84d625491118"
+      }
+    },
+    "open": {
+      "voice": "mer.market.open",
+      "text": "Pick a job from the board, then hire a model and set the effort dial."
+    },
+    "auto": {
+      "voice": "mer.market.auto",
+      "text": "Auto's the house special. The app chooses a model for you, then tells you which one and why. It isn't Autopilot, mind.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "models-and-reasoning-effort",
+        "hash": "84d625491118"
+      }
+    },
+    "right": {
+      "voice": "mer.market.right",
+      "text": "Right-sized! Here's some starfish back for hiring smart."
+    },
+    "over": {
+      "voice": "mer.market.over",
+      "text": "That's a lot of starfish for a quick look. Auto would've done it.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "models-and-reasoning-effort",
+        "hash": "84d625491118"
+      }
+    },
+    "overEffort": {
+      "voice": "mer.market.over.effort",
+      "text": "High effort for a quick look? The default would've done it.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "models-and-reasoning-effort",
+        "hash": "84d625491118"
+      }
+    },
+    "short": {
+      "voice": "mer.market.short",
+      "text": "Not quite. This job needs more muscle. Retry with a stronger model or more effort.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "try-again-with-a-different-model",
+        "hash": "b0031ded9c4d"
+      }
+    },
+    "shortAuto": {
+      "voice": "mer.market.short.auto",
+      "text": "With Auto on, the effort setting's hidden. For a job this hard, turn Auto off, then pick a model and a higher effort.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "models-and-reasoning-effort",
+        "hash": "84d625491118"
+      }
+    },
+    "broke": {
+      "voice": "mer.market.broke",
+      "text": "No starfish? They hide all over the islands. Come back when you've found some."
+    },
+    "done": {
+      "voice": "mer.market.done",
+      "text": "Every job on the board, right-sized. You've got an eye for models, Captain!"
+    }
+  }
+}

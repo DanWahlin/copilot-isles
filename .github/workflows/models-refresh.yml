@@ -3,8 +3,9 @@
 #   1 Sync     tools/models/sync.mjs reads GitHub Docs' Copilot model tables (github/docs,
 #              data/tables/copilot) over plain HTTPS and rewrites content/models.json if the Claude,
 #              GPT or MAI models changed. No token: the commit comes from `git ls-remote`.
-#   2 Verify   typecheck, lint, format, unit tests (the board rule and the file's shape), build,
-#              budgets and the secret scan.
+#   2 Verify   the content check (every content/*.json against its schema in content/schemas/, and
+#              the market's semantic checks; docs/content-data.md), typecheck, lint, format, unit tests
+#              (the board rule and the file's shape), build, budgets and the secret scan.
 #   3 Deliver  one PR, "Weekly refresh: Copilot models", updated each week until it's merged. Nothing
 #              auto-merges.
 #
@@ -13,8 +14,7 @@
 # create and approve pull requests" (the course refresh needs it too). PRs opened with GITHUB_TOKEN don't
 # start other workflows (CI), which is why step 2 runs the checks here.
 #
-# Pages deploys by hand (pages.yml): after merging a models PR, run "Deploy to GitHub Pages" so the game
-# shows the new names.
+# Merging the PR deploys it: the merge's push runs CI, and pages.yml deploys when CI passes on main.
 name: Weekly models refresh
 
 on:
@@ -63,6 +63,7 @@ jobs:
             "$@" || failed="$failed $name"
             echo "::endgroup::"
           }
+          run content npm run content:check -- --out="$RUNNER_TEMP/content.md"
           run typecheck npm run typecheck
           run lint npm run lint
           run format npm run format:check
@@ -103,9 +104,10 @@ jobs:
             echo
             echo "### Checks"
             echo
-            if [ "$VERIFY_OK" = "true" ]; then echo "Typecheck, lint, format, unit tests, build, budgets, and the secret scan all passed."; else echo "**Failed:** ${VERIFY_FAILED:-unknown}. See the workflow run."; fi
+            if [ "$VERIFY_OK" = "true" ]; then echo "The content check, typecheck, lint, format, unit tests, build, budgets, and the secret scan all passed."; else echo "**Failed:** ${VERIFY_FAILED:-unknown}. See the workflow run."; fi
             echo
-            echo "After merging, run **Deploy to GitHub Pages** to ship the new names."
+            if [ -f "$RUNNER_TEMP/content.md" ]; then cat "$RUNNER_TEMP/content.md"; echo; fi
+            echo "Merging deploys the new names: CI runs on the merge, then **Deploy to GitHub Pages** runs by itself."
           } > "$RUNNER_TEMP/pr-body.md"
 
           title="Weekly refresh: Copilot models"

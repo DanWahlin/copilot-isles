@@ -94,6 +94,7 @@ import {
 } from '../../village/kit';
 import { islandCourseBoard } from '../../../learn/course-board';
 import { addCourseBoardTimber } from '../../sites/course-board';
+import { COURSE_BOARDS } from '../course-boards';
 
 interface VillageMetrics {
   staticDraws: number;
@@ -198,7 +199,7 @@ export async function createVillage({
   // The course notice board on the street up from the quay (its lettering is in the sites' atlas).
   const courseBoard = islandCourseBoard('anchorage');
   if (courseBoard) {
-    const parts = addCourseBoardTimber(buckets, COVE.courseBoard, courseBoard);
+    const parts = addCourseBoardTimber(buckets, COURSE_BOARDS.anchorage, courseBoard);
     colliders.boxes.push(parts.box);
     cameraBlockers.push(parts.camera);
   }

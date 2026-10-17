@@ -1,4 +1,5 @@
 import { Group, Vector3 } from 'three/webgpu';
+import { MARKET } from '../../content/market';
 import { unreflected } from '../reflection';
 import type { VillageAnchor } from '../village/kit';
 import { MARKET_LAYOUT } from '../meridian-town/model-market';
@@ -98,12 +99,17 @@ export function createModelMarketSigns(o: {
     s.object.position.set(spot.x, spot.top - spot.h / 2, L.boardZ);
     root.add(s.object);
   });
-  const plaque = signs.add(['House special: Auto · 1 ★', 'The app chooses a model'], L.plaque.w, L.plaque.h, {
-    fill: '#26302a',
-    size: 0.08,
-    colors: [CREAM, '#d9e3c9'],
-    scales: [1, 0.82],
-  });
+  const plaque = signs.add(
+    [`House special: Auto · ${MARKET.autoPrice} ★`, 'The app chooses a model'],
+    L.plaque.w,
+    L.plaque.h,
+    {
+      fill: '#26302a',
+      size: 0.08,
+      colors: [CREAM, '#d9e3c9'],
+      scales: [1, 0.82],
+    },
+  );
   plaque.object.position.set(L.plaque.x, L.plaque.y, L.plaque.z);
   root.add(plaque.object);
   const name = signs.add(['Gilda’s', 'Model Market'], L.name.w, L.name.h, {
@@ -116,7 +122,7 @@ export function createModelMarketSigns(o: {
 
   const noteLines = (j: MarketJobNote, done: boolean) => [
     j.note,
-    done ? '✓ Done' : j.size === 'quick' ? 'Quick look' : 'Hard job',
+    done ? '✓ Done' : MARKET.sizes[j.size].label,
   ];
   const notes: { job: MarketJobNote; sign: PaintedSign; done: boolean }[] = [];
   o.jobs.forEach((j, i) => {

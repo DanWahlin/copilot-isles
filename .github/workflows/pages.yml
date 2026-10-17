@@ -1,9 +1,23 @@
 name: Deploy to GitHub Pages
 
-# Manual only. The deploy gate (PLAN §0 / spec §9) passed on 2026-10-15: the affiliation line is
-# "an unofficial, personal project" (Credits, README), and the AI-voice disclosure
-# required by the Azure AI Speech / Microsoft AI code of conduct is in Credits. Pages on a private repo needs a paid GitHub plan; the site is public either way.
+# Deploys on every merge to main, and by hand.
+#
+#   Auto     when CI (ci.yml) passes on a push to main (a merged PR, the weekly refresh PRs included),
+#            this builds and deploys that exact commit (`head_sha`). PRs opened with GITHUB_TOKEN don't
+#            start CI, but a person merging one makes a push that does. A failed CI run, a PR's CI run
+#            and a run on another branch deploy nothing.
+#   Manual   "Run workflow" (workflow_dispatch) deploys the branch you pick.
+#
+# The content in content/*.json is part of the build (docs/content-data.md), so a merged content edit
+# reaches players with this deploy. The deploy gate (PLAN §0 / spec §9) passed on 2026-10-15: the
+# affiliation line is "an unofficial, personal project" (Credits, README), and the AI-voice disclosure
+# required by the Azure AI Speech / Microsoft AI code of conduct is in Credits. Pages on a private repo
+# needs a paid GitHub plan; the site is public either way.
 on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -17,9 +31,15 @@ concurrency:
 
 jobs:
   build:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The commit CI passed on (a manual run builds the branch it was started on).
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc

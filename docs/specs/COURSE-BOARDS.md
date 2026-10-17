@@ -9,14 +9,16 @@ GitHub in a new tab. It's separate from Port Meridian's Bounty Board, which stay
 
 ## Where the boards stand
 
-| Island         | Chapter | Where                                                                                       | Data                             |
-| -------------- | ------- | ------------------------------------------------------------------------------------------- | -------------------------------- |
-| Anchorage Cay  | 00      | East side of the street from the quay up to the village square, turned toward the pier foot | `COVE.courseBoard`               |
-| Port Meridian  | 01      | Against the harbour wall at the back of the quay, between two palms, facing the water       | `MERIDIAN.harbor.courseBoard`    |
-| Thousand-Bough | 02      | Bough Landing's east side, facing back up the Root Wharf, before the Fern Walk              | `THOUSAND_BOUGH.harbor.courseBoard` |
+| Island         | Chapter | Where                                                                                       | Data (`content/course-boards.json`) |
+| -------------- | ------- | ------------------------------------------------------------------------------------------- | ----------------------------------- |
+| Anchorage Cay  | 00      | East side of the street from the quay up to the village square, turned toward the pier foot | `islands.anchorage`                 |
+| Port Meridian  | 01      | Against the harbour wall at the back of the quay, between two palms, facing the water       | `islands.meridian`                  |
+| Thousand-Bough | 02      | Bough Landing's east side, facing back up the Root Wharf, before the Fern Walk              | `islands["thousand-bough"]`         |
 
-`src/world/islands/course-boards.ts` lists the three poses (one line an island). Meridian's board is
-on the quay, well clear of the plaza, the Model Market and the stair street.
+The chapters and poses are in `content/course-boards.json` ([content-data.md](../content-data.md)):
+one entry an island, read at build time (`src/content/course-boards.ts`,
+`src/world/islands/course-boards.ts`). Meridian's board is on the quay, well clear of the plaza, the
+Model Market and the stair street.
 
 ## Topics: from the course lock, kept current by the weekly sync
 
@@ -28,8 +30,10 @@ exact titles, except:
   hand-off to the next chapter, and the sources).
 - **By title prefix:** `The Course Theme`, `From the Studio` (the recording-studio story frame).
 
-`COURSE_BOARD_SKIP_ANCHORS` and `COURSE_BOARD_SKIP_TITLES` hold the two lists. When
-`tools/course/sync.mjs` adds or renames a section, the boards follow on the next build. Each topic
+`skip.anchors` and `skip.titlePrefixes` in `content/course-boards.json` hold the two lists (the file
+also has the header and pin text). When `tools/course/sync.mjs` adds or renames a section, the boards
+follow on the next build, and the weekly refresh PR lists each board's topics and what changed
+(`npm run content:check`). Each topic
 links to `…/blob/main/<chapter>/README.md#<anchor>` (the same link `courseUrl` gives a `SourceRef`),
 and two pins link to the chapter's README ("This chapter") and the course's home, the course
 repository's README ("The whole course").
@@ -93,6 +97,9 @@ works it out once, when the board opens, from the pages and quiz records already
 ## Tests
 
 - `src/learn/course-board.test.ts`: topics, skip lists, links, the island-to-chapter map, the ✓s.
+- `src/content/content.test.ts`: `content/course-boards.json` against its schema, each board's
+  chapter in the snapshot with at least 5 topics and matching the chart, and each board on its island
+  (in its waters, on the ground or a deck).
 - `tools/questtest.mjs`: after Nell's talk, walks to Anchorage's board, opens it with E, and checks
   Installation's link (URL, `target="_blank"`, `noopener`, the new-tab label), its ✓ from Nell's
   install page, the first topic's focus, and Esc. It doesn't follow the link.

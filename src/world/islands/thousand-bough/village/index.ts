@@ -11,7 +11,7 @@ import { createFlumeTerrace, type FlumeTerrace } from '../flume';
 import { createSetPieces, type SetPieces } from '../set-pieces';
 import { islandCourseBoard } from '../../../../learn/course-board';
 import { addCourseBoardNotices, addCourseBoardTimber } from '../../../sites/course-board';
-import { THOUSAND_BOUGH } from '../layout';
+import { COURSE_BOARDS } from '../../course-boards';
 
 export interface TreeVillage {
   group: Group;
@@ -122,7 +122,7 @@ export async function createTreeVillage(
   // The course notice board on Bough Landing (docs/specs/COURSE-BOARDS.md).
   const courseBoard = islandCourseBoard('thousand-bough');
   if (courseBoard) {
-    const pose = THOUSAND_BOUGH.harbor.courseBoard;
+    const pose = COURSE_BOARDS['thousand-bough'];
     const parts = addCourseBoardTimber(buckets, pose, courseBoard);
     addCourseBoardNotices(signs, pose, courseBoard);
     out.colliders.push(parts.box);

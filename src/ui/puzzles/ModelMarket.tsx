@@ -11,6 +11,7 @@ import {
   GILDA_TEXT,
   JOBS,
   QUOTES,
+  SIZE_LABEL,
   jobById,
   price,
   type CourseQuote,
@@ -20,6 +21,7 @@ import {
   type JobId,
 } from '../../game/market/jobs';
 import { boardOf, modelsIn } from '../../game/market/models';
+import { MARKET } from '../../content/market';
 import { isTyping } from '../typing';
 import './model-market.css';
 
@@ -94,17 +96,7 @@ export const draftHire = (d: MarketDraft): Hire =>
   d.auto ? { auto: true } : { auto: false, category: d.category, model: d.model, effort: d.effort };
 
 const PICKS: readonly ('auto' | ModelCategory)[] = ['auto', ...CATEGORIES];
-const SIZE_WORD: Readonly<Record<ModelCategory, string>> = {
-  Lightweight: 'Small',
-  Versatile: 'Medium',
-  Powerful: 'Large',
-};
-const TAGLINE: Readonly<Record<ModelCategory, string>> = {
-  Lightweight: 'Quick looks and short answers',
-  Versatile: 'Everyday coding and agent work',
-  Powerful: 'Hard bugs and big changes',
-};
-const SIZE_LABEL = { quick: 'Quick look', hard: 'Hard job' } as const;
+const categoryData = (c: ModelCategory) => MARKET.categories.find((x) => x.id === c)!;
 
 /** `**bold**` spans as <b>. */
 function Bold({ text }: { text: string }) {
@@ -136,7 +128,9 @@ function Quote({ q }: { q: CourseQuote }) {
       <p>
         “<Bold text={q.text} />”
       </p>
-      <cite>Course Chapter 01 · {q.section}</cite>
+      <cite>
+        Course Chapter {q.source.chapter.slice(0, 2)} · {q.section}
+      </cite>
     </blockquote>
   );
 }
@@ -145,7 +139,7 @@ function Quote({ q }: { q: CourseQuote }) {
 function SizeStars({ c }: { c: ModelCategory }) {
   const n = CATEGORIES.indexOf(c) + 1;
   return (
-    <span className="ci-mm-size" aria-label={`${SIZE_WORD[c]} model`}>
+    <span className="ci-mm-size" aria-label={`${categoryData(c).size} model`}>
       <span aria-hidden="true">
         {'■'.repeat(n)}
         {'□'.repeat(3 - n)}
@@ -217,7 +211,7 @@ function Board({ v, a }: { v: MarketView; a: MarketActions }) {
                 {c} <SizeStars c={c} />
               </h3>
               <p className="ci-mm-tag">
-                {TAGLINE[c]} · <Star n={CATEGORY_PRICE[c]} />
+                {categoryData(c).tagline} · <Star n={CATEGORY_PRICE[c]} />
               </p>
               <ul>
                 {(open ? [...b.shown, ...b.more] : b.shown).map((m) => (

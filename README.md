@@ -51,8 +51,10 @@ More commands, the stack, and the project rules are in
   [Opening](docs/specs/OPENING-living-chart.md) · [Chart labels](docs/specs/LOWER-THIRDS.md) ·
   [Model Market](docs/specs/MODEL-MARKET.md)
 - **Model list:** the Model Market's models come from GitHub Docs (`npm run models:sync`). A weekly
-  workflow (`models-refresh.yml`) opens a PR when they change; after you merge it, run the Pages deploy.
-- **Course content:** [authoring guide](docs/course-content-authoring.md)
+  workflow (`models-refresh.yml`) opens a PR when they change; merging it deploys the site.
+- **Course content:** [authoring guide](docs/course-content-authoring.md) ·
+  [content data](docs/content-data.md) (the JSON files in `content/`: the Model Market, the course
+  notice boards, chart labels; how to edit them and how a change reaches players)
 - **Character voices:** [`docs/voices.md`](docs/voices.md) (all AI-generated)
 - **Background:** [research](docs/research/) · [design reviews](docs/reviews/)
 

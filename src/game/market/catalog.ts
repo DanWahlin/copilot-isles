@@ -2,14 +2,16 @@
  * The Model Market's model list (docs/specs/MODEL-MARKET.md §4): the weekly sync
  * (tools/models/sync.mjs) reads two tables from github/docs, keeps the Claude, GPT and MAI models, and
  * writes content/models.json. The game reads that file at build time and fills each signboard with
- * the board rule below. Pure functions, no DOM: the sync loads this file through tsx.
+ * the board rule below. The categories' order and the rule's numbers are in content/market.json.
+ * Pure functions, no DOM: the sync loads this file through tsx.
  */
+import { MARKET, type ModelCategoryId } from '../../content/market';
 
-export type ModelCategory = 'Lightweight' | 'Versatile' | 'Powerful';
+export type ModelCategory = ModelCategoryId;
 export type ModelFamily = 'Claude' | 'GPT' | 'MAI';
 
 /** The board's order: smallest (cheapest) to largest. */
-export const CATEGORIES: readonly ModelCategory[] = ['Lightweight', 'Versatile', 'Powerful'];
+export const CATEGORIES: readonly ModelCategory[] = MARKET.categories.map((c) => c.id);
 
 export interface ModelEntry {
   /** The model's name, as GitHub Docs writes it (footnote markers removed). */
@@ -146,12 +148,12 @@ export function boardOrder(models: readonly ModelEntry[]): ModelEntry[] {
 }
 
 /** How many names each signboard shows, and how many of one family it takes before it fills up. */
-export const BOARD_SIZE = 4;
-export const PER_FAMILY = 2;
+export const BOARD_SIZE = MARKET.board.size;
+export const PER_FAMILY = MARKET.board.perFamily;
 
 /**
  * The board rule (docs/specs/MODEL-MARKET.md §4.2), in the board order (GA first, newest version
- * first, then alphabetical): GA models first, at most two of each family (Claude, GPT, MAI) so the
+ * first, then alphabetical): GA models first, at most `PER_FAMILY` (2) of each family (Claude, GPT, MAI) so the
  * board mixes them; then, if there's room, the other GA models; then previews. `shown` is in the board
  * order; `more` is every other model in the category, in the same order (the UI's "+N more").
  */

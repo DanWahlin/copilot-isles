@@ -1,9 +1,9 @@
 import type { BufferGeometry, Group } from 'three/webgpu';
 import { islandCourseBoard } from '../../learn/course-board';
-import { MERIDIAN } from '../islands/meridian';
 import { addCourseBoardNotices, addCourseBoardTimber } from '../sites/course-board';
 import { SignSet } from '../sites/sign';
 import type { MaterialKey, VillageBoxCollider } from '../village/kit';
+import { COURSE_BOARDS } from '../islands/course-boards';
 
 /**
  * Port Meridian's course notice board (docs/specs/COURSE-BOARDS.md) on the quay, clear of the plaza:
@@ -17,7 +17,7 @@ export function* addMeridianCourseBoard(
 ): Generator<void, { dispose(): void }, void> {
   const board = islandCourseBoard('meridian');
   if (!board) return { dispose() {} };
-  const pose = MERIDIAN.harbor.courseBoard;
+  const pose = COURSE_BOARDS.meridian;
   const parts = addCourseBoardTimber(buckets, pose, board);
   colliders.boxes.push(parts.box);
   colliders.camera?.push(parts.camera);

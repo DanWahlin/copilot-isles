@@ -111,14 +111,14 @@ save still loads and the game calls it "a Powerful model" (`savedHireName`).
 ### 4.4 The workflow
 
 `.github/workflows/models-refresh.yml` runs `npm run models:sync` every Monday (the course refresh's schedule) and
-on demand. If `content/models.json` changed, it runs the checks (typecheck, lint, format, unit tests, build,
-budgets, secrets) and opens or updates **one PR**, "Weekly refresh: Copilot models". Nothing auto-merges. It uses
+on demand. If `content/models.json` changed, it runs the checks (the content check, typecheck, lint, format, unit
+tests, build, budgets, secrets) and opens or updates **one PR**, "Weekly refresh: Copilot models". Nothing auto-merges. It uses
 only `GITHUB_TOKEN` (the repository setting "Allow GitHub Actions to create and approve pull requests" is already
 needed by the course refresh). It's a separate workflow because the course refresh only runs when the course
 changes.
 
-**Deploying:** GitHub Pages deploys by hand today (`pages.yml`, `workflow_dispatch`). After merging a models PR,
-run the Pages workflow to ship the new names.
+**Deploying:** merging the PR deploys it. The merge's push to `main` runs CI, and when CI passes, `pages.yml`
+builds that commit and deploys it (it can still be run by hand).
 
 ## 5. Jobs and grading (Chapter 01 · Models and Reasoning Effort)
 
@@ -154,8 +154,12 @@ different model" moves to a Powerful model (a model suited to complex coding; Lo
 keeps the model on High. After Auto: Powerful on Default, or Versatile on High. A Retry is a new hire (it costs
 starfish), but you don't pick the job again.
 
-All the quotes are in `CH01.cited` (`market.job.*`, `market.quote.*`) and Gilda's teaching lines in `CH01.voiced`,
-so the drift report flags them if the course moves on.
+All the quotes are in `CH01.cited` (`market.job.*`, `market.quote.*`) and Gilda's teaching lines in `CH01.voiced`
+(from their `source` in `content/market.json`), so the drift report flags them if the course moves on.
+
+**The data is JSON:** the jobs, the prices, refunds and doubloons, the effort levels, the board rule's numbers, the
+stamps, the course quotes and Gilda's lines are in `content/market.json` ([content-data.md](../content-data.md)),
+checked against `content/schemas/market.schema.json`. The grading above stays in code (`src/game/market/jobs.ts`).
 
 ## 6. The overlay (UI 2, `src/ui/puzzles/ModelMarket.tsx`)
 
@@ -198,6 +202,10 @@ Gilda: ElevenLabs Voice Library "Caty – Calm & whimsical" (`5DTSWAtuA2BoWMSMFT
 - `src/game/market/market.test.ts`: the sync's parsing and filtering (fixture in `tools/models/fixtures/`), the
   board rule, `content/models.json`, prices, every job's grades, refunds, Retry, the purse (earn, spend, never
   below 0, old-save migration), saved hires (a model that left the list), and that every quote is the course's.
+- `src/content/content.test.ts`: `content/market.json` against its schema; every quote word for word in its
+  cited section of the snapshot, every anchor and hash in the lock; Gilda's captions the same as her voice lines
+  and their audio; the economy (prices 1-4, bigger models cost more, a refund never more than the hire, enough
+  starfish on Anchorage and Meridian for every job); and that broken edits are reported by entry.
 - `src/learn/content/labels.test.ts`, `src/learn/course/refs.test.ts`: the label and every citation.
 - `src/game/meridian-quests.test.ts`: the optional task.
 - `tools/meridiantest.mjs`: plays the market with real keys (a quick job right-sized, one overspent, a hard job
@@ -208,4 +216,4 @@ Gilda: ElevenLabs Voice Library "Caty – Calm & whimsical" (`5DTSWAtuA2BoWMSMFT
 
 - Roll out to the other islands: one stall per island with the same boards (the economy and the sync are shared),
   or one market only?
-- Deploy on merge: add `push` to `main` as a Pages trigger, so a merged models PR ships by itself?
+- ~~Deploy on merge~~: done. `pages.yml` deploys when CI passes on a push to `main` (docs/content-data.md).

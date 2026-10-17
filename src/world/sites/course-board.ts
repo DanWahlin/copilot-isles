@@ -1,4 +1,5 @@
 import { BoxGeometry, BufferAttribute, Matrix4, type BufferGeometry } from 'three/webgpu';
+import { COURSE_BOARDS_DATA, boardText } from '../../content/course-boards';
 import type { CourseBoard } from '../../learn/course-board';
 import { paint, type MaterialKey, type VillageBoxCollider } from '../village/kit';
 import { TRIM } from './geo';
@@ -238,7 +239,10 @@ export function wrapTitle(title: string): string[] {
   return out;
 }
 
-/** The carved header and the parchment notes, into the island's sign atlas (one draw for the lettering). */
+/**
+ * The carved header and the parchment notes (their text from content/course-boards.json), into the
+ * island's sign atlas (one draw for the lettering).
+ */
 export function addCourseBoardNotices(signs: SignSet, pose: CourseBoardPose, board: CourseBoard): void {
   const at = (lx: number, ly: number, lz: number) => ({
     x: pose.x + lx * Math.cos(pose.rot) + lz * Math.sin(pose.rot),
@@ -246,7 +250,7 @@ export function addCourseBoardNotices(signs: SignSet, pose: CourseBoardPose, boa
     z: pose.z - lx * Math.sin(pose.rot) + lz * Math.cos(pose.rot),
   });
   const header = signs.add(
-    ['Course Notices', `Chapter ${board.num} · ${board.title}`],
+    COURSE_BOARDS_DATA.header.sign.map((t) => boardText(t, board)),
     BOARD.w - 0.16,
     0.34,
     {
@@ -260,8 +264,7 @@ export function addCourseBoardNotices(signs: SignSet, pose: CourseBoardPose, boa
   const cells = noteCells(board.topics.length + 2);
   const notes: { lines: string[]; pin: boolean }[] = [
     ...board.topics.map((t) => ({ lines: wrapTitle(t.title), pin: false })),
-    { lines: ['This chapter', `${board.num} · ${board.title}`], pin: true },
-    { lines: ['The whole course', 'on GitHub'], pin: true },
+    ...COURSE_BOARDS_DATA.pins.map((p) => ({ lines: [p.label, boardText(p.sign, board)], pin: true })),
   ];
   notes.forEach((n, i) => {
     const c = cells[i]!;

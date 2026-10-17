@@ -14,6 +14,9 @@ weekly refresh can tell you when the course changed under your content. The desi
 - **Authored (you write it):** dialogue, voiced lines, quizzes, hotspot rects, Logbook page titles
   and captions, glossary terms, and quests. Paraphrase the course in the game's voice. Don't copy
   course text: the live excerpt shows the course's exact words beside your caption.
+- **Data (JSON in `content/`):** the Model Market's jobs, prices and course quotes, the course
+  notice boards, and the chart labels. See [content-data.md](content-data.md) for each file, its
+  schema and checks, and how a change reaches players.
 
 ## 1. Get the chapter into the snapshot
 
@@ -151,6 +154,10 @@ The weekly refresh (`.github/workflows/weekly-refresh.yml`) runs `tools/course/s
 - quizzes, pages and voiced lines whose section hash changed or whose anchor disappeared,
 - pinned screenshots whose upstream file changed (with before/after montages), and
 - bolded UI names the course dropped that authored text still uses.
+
+The same run checks the JSON content files (`npm run content:check`,
+[content-data.md](content-data.md)): course quotes still word for word, cited anchors still there,
+and each course notice board's topics with what the sync added or removed.
 
 To fix an item, re-read the section, update the content, and paste the new hash from
 `npm run course:refs`. For a changed screenshot, re-measure the hotspot rects and alt text against

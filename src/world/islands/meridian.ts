@@ -37,12 +37,6 @@ export const MERIDIAN = {
     berth: { x: 747.35, z: -700, heading: 0 },
     /** Where you step ashore beside the gangway, facing up the arm toward the town. */
     landing: { x: 755.2, z: -704, heading: Math.PI },
-    /**
-     * The course notice board (docs/specs/COURSE-BOARDS.md): against the harbour wall at the back of
-     * the quay, between two palms, facing the water. You pass it walking from the east arm to the
-     * stair street, well clear of the plaza.
-     */
-    courseBoard: { x: 723, y: 2.4, z: -768.6, rot: 0 },
   },
   mole: {
     start: { x: 578, z: -708 },

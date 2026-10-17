@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import paperUrl from '../../game/chart-label/paper.webp';
 import { PadEdges, standardPad } from '../../game/puzzles/pad-edges';
+import { COURSE_BOARDS_DATA, boardText } from '../../content/course-boards';
 import { courseBoard } from '../../learn/course-board';
 import type { ChapterId } from '../../learn/course/chapters';
 import type { LearnStore } from '../../learn/store';
@@ -110,7 +111,7 @@ export function CourseBoardPanel({
       >
         <div className="ci-cb-paper" aria-hidden />
         <div className="ci-cb-body">
-          <p className="ci-cb-kicker">Course notices · Chapter {board.num}</p>
+          <p className="ci-cb-kicker">{boardText(COURSE_BOARDS_DATA.header.kicker, board)}</p>
           <h2 id="ci-cb-title">{board.title}</h2>
           <p id="ci-cb-intro" className="ci-cb-intro">
             Pick a topic to read it in the course. Each one opens the course on GitHub in a new tab, so your
@@ -149,38 +150,24 @@ export function CourseBoardPanel({
               })}
             </ul>
             <ul className="ci-cb-pins" aria-label="More of the course">
-              <li>
-                <a
-                  data-cb=""
-                  className="ci-cb-link pin"
-                  href={board.chapterUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`This chapter: Chapter ${board.num}, ${board.title} (${NEW_TAB})`}
-                >
-                  <span className="ci-cb-text">
-                    <small>This chapter</small>
-                    {board.num} · {board.title}
-                  </span>
-                  <ExternalIcon />
-                </a>
-              </li>
-              <li>
-                <a
-                  data-cb=""
-                  className="ci-cb-link pin"
-                  href={board.homeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`The whole course: GitHub Copilot app for Beginners (${NEW_TAB})`}
-                >
-                  <span className="ci-cb-text">
-                    <small>The whole course</small>
-                    GitHub Copilot app for Beginners
-                  </span>
-                  <ExternalIcon />
-                </a>
-              </li>
+              {COURSE_BOARDS_DATA.pins.map((p) => (
+                <li key={p.link}>
+                  <a
+                    data-cb=""
+                    className="ci-cb-link pin"
+                    href={p.link === 'chapter' ? board.chapterUrl : board.homeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${p.label}: ${boardText(p.aria, board)} (${NEW_TAB})`}
+                  >
+                    <span className="ci-cb-text">
+                      <small>{p.label}</small>
+                      {boardText(p.text, board)}
+                    </span>
+                    <ExternalIcon />
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
           <p className="ci-cb-note" role="status" aria-live="polite">

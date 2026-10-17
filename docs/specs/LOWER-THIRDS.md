@@ -57,6 +57,9 @@ wave's quiz).
 
 ## 4. Text (one source: `content/labels.json`)
 
+The file's schema is `content/schemas/labels.schema.json`; [content-data.md](../content-data.md) has how to edit
+it and how the content checks read it.
+
 | Id | Shown | Label (k) | Headline (t) | Line (b) | Chapter line | Course source (README anchor) |
 | --- | --- | --- | --- | --- | --- | --- |
 | `arrival:anchorage` | Arrival | Anchorage Cay · Landfall | Set up the GitHub Copilot app | Connect your fork of the course, check your tools, and add the practice items that later chapters use. | Course Chapter 00 · Setup | 00 `#learning-objectives` |

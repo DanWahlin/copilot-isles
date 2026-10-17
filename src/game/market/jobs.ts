@@ -1,69 +1,47 @@
-import { courseRefs } from '../../learn/course/refs';
+import {
+  MARKET,
+  sectionTitle,
+  sourceOf,
+  type EffortId,
+  type GildaKey,
+  type JobSizeId,
+  type MarketData,
+  type MarketQuoteData,
+  type OutcomeId,
+  type QuoteKey,
+} from '../../content/market';
 import type { SourceRef } from '../../learn/types';
 import type { ModelCategory } from './catalog';
 
 /**
  * The Model Market's rules (docs/specs/MODEL-MARKET.md §3, §5): the jobs on Gilda's board, what a
  * hire costs in starfish, and how it's graded against Chapter 01's guidance on models and reasoning
- * effort. Pure data and functions: the puzzle (src/game/puzzles/model-market.ts) and the overlay
- * (src/ui/puzzles/ModelMarket.tsx) play them.
+ * effort. The data (jobs, prices, refunds, stamps, quotes, Gilda's lines) is `content/market.json`
+ * (docs/content-data.md); the grading is here. Pure data and functions: the puzzle
+ * (src/game/puzzles/model-market.ts) and the overlay (src/ui/puzzles/ModelMarket.tsx) play them.
  */
-
-const src = courseRefs('01-tour-the-app');
 
 /** A course sentence, word for word (a test finds each in the bundled README), and where it's from. */
 export interface CourseQuote {
   /** Exactly as the course writes it, `**bold**` included. */
   text: string;
-  /** Shown as 'Course Chapter 01 · <section>'. */
+  /** Shown as 'Course Chapter <NN> · <section>': the section's title in the course lock. */
   section: string;
   source: SourceRef;
 }
 
-const MODELS = {
-  section: 'Models and Reasoning Effort',
-  source: src('models-and-reasoning-effort', '84d625491118'),
-};
-const TRY = { section: 'Try the Controls', source: src('try-the-controls', '1a9a4b2f69f1') };
-const RETRY = {
-  section: 'Try Again with a Different Model',
-  source: src('try-again-with-a-different-model', 'b0031ded9c4d'),
-};
+const quote = (q: MarketQuoteData): CourseQuote => ({
+  text: q.text,
+  section: sectionTitle(q),
+  source: sourceOf(q),
+});
 
-export const QUOTES = {
-  cost: { text: 'Models differ in capabilities, speed, and usage cost.', ...MODELS },
-  effort: { text: 'Higher effort can help with complex problems, but can take longer.', ...MODELS },
-  quick: {
-    text: 'For a repository tour or a short explanation, keep **Auto** or the current model and its default reasoning effort.',
-    ...MODELS,
-  },
-  hard: {
-    text: 'For a difficult bug or a change across several files, consider a model suited to complex coding and a higher effort level.',
-    ...MODELS,
-  },
-  noGuarantee: { text: 'Higher effort does not guarantee a correct answer.', ...MODELS },
-  auto: {
-    text: 'With **Auto**, the Copilot app chooses a model for your task and shows which model it selected in the conversation, alongside a short explanation of why it made that choice.',
-    ...MODELS,
-  },
-  autopilot: {
-    text: 'This is different from **Autopilot**, which controls how independently the agent works.',
-    ...MODELS,
-  },
-  autoHidden: {
-    text: 'If the **Auto** switch is on, these settings are hidden. Turn it off to see them.',
-    ...MODELS,
-  },
-  vary: { text: 'Available models, effort levels, and context window sizes vary.', ...MODELS },
-  simple: { text: 'Keep the default for this simple question.', ...TRY },
-  retry: {
-    text: "If the agent's response doesn't work for you, you can retry it with a different model or reasoning effort without re-typing your prompt.",
-    ...RETRY,
-  },
-} as const satisfies Record<string, CourseQuote>;
+export const QUOTES = Object.fromEntries(
+  Object.entries(MARKET.quotes).map(([k, q]) => [k, quote(q)]),
+) as Readonly<Record<QuoteKey, CourseQuote>>;
 
-export type JobId = 'tour' | 'explain' | 'bug' | 'files';
-export type JobSize = 'quick' | 'hard';
+export type JobId = string;
+export type JobSize = JobSizeId;
 
 export interface MarketJob {
   id: JobId;
@@ -79,76 +57,64 @@ export interface MarketJob {
 }
 
 /** Gilda's jobs board, in order: two quick looks, then two hard jobs (keys 1-4). */
-export const JOBS: readonly MarketJob[] = [
-  {
-    id: 'tour',
-    title: 'Give the new deckhand a tour of the repo',
-    note: 'Tour the repo',
-    size: 'quick',
-    brief:
-      'A beginner-friendly tour of samples/book-app-web: what it does, how its files are organized, and what its tests cover. No files change.',
-    why: QUOTES.quick,
-  },
-  {
-    id: 'explain',
-    title: 'Explain how filterBooks searches',
-    note: 'Explain filterBooks',
-    size: 'quick',
-    brief: 'Does letter case affect the book app’s search? Refer to the file, and don’t change anything.',
-    why: QUOTES.simple,
-  },
-  {
-    id: 'bug',
-    title: 'Track down a difficult bug in the book app',
-    note: 'Track down a bug',
-    size: 'hard',
-    brief: 'Something in the book app breaks, and it isn’t obvious why.',
-    why: QUOTES.hard,
-  },
-  {
-    id: 'files',
-    title: 'Change the book app across several files',
-    note: 'Change many files',
-    size: 'hard',
-    brief: 'One change that reaches across several of the book app’s files.',
-    why: QUOTES.hard,
-  },
-];
+export const JOBS: readonly MarketJob[] = MARKET.jobs.map((j) => ({
+  id: j.id,
+  title: j.title,
+  note: j.note,
+  size: j.size,
+  brief: j.brief,
+  why: QUOTES[j.why],
+}));
 
 export const jobById = (id: string): MarketJob | null => JOBS.find((j) => j.id === id) ?? null;
 
-export type Effort = 'low' | 'default' | 'high';
+export type Effort = EffortId;
+/** The effort dial, low to high (the grading reads them in this order). */
 export const EFFORTS: readonly Effort[] = ['low', 'default', 'high'];
-export const EFFORT_LABEL: Readonly<Record<Effort, string>> = {
-  low: 'Low',
-  default: 'Default',
-  high: 'High',
-};
+const effortData = (m: MarketData, e: Effort) => m.efforts.find((x) => x.id === e);
+export const EFFORT_LABEL: Readonly<Record<Effort, string>> = Object.fromEntries(
+  EFFORTS.map((e) => [e, effortData(MARKET, e)?.label ?? e]),
+) as Record<Effort, string>;
 
 /** A hire: Auto (the app picks, and Effort is hidden), or a model of a category with an effort. */
 export type Hire = { auto: true } | { auto: false; category: ModelCategory; model: string; effort: Effort };
 
 /** Starfish per hire (docs/specs/MODEL-MARKET.md §3): bigger models cost more. */
-export const AUTO_PRICE = 1;
-export const CATEGORY_PRICE: Readonly<Record<ModelCategory, number>> = {
-  Lightweight: 1,
-  Versatile: 2,
-  Powerful: 3,
-};
-export const EFFORT_PRICE: Readonly<Record<Effort, number>> = { low: 0, default: 0, high: 1 };
-export const MAX_PRICE = 4;
+export const AUTO_PRICE = MARKET.autoPrice;
+export const CATEGORY_PRICE: Readonly<Record<ModelCategory, number>> = Object.fromEntries(
+  MARKET.categories.map((c) => [c.id, c.price]),
+) as Record<ModelCategory, number>;
+export const EFFORT_PRICE: Readonly<Record<Effort, number>> = Object.fromEntries(
+  EFFORTS.map((e) => [e, effortData(MARKET, e)?.price ?? 0]),
+) as Record<Effort, number>;
+export const MAX_PRICE = MARKET.maxPrice;
 
-export function price(h: Hire): number {
-  if (h.auto) return AUTO_PRICE;
-  return Math.min(MAX_PRICE, CATEGORY_PRICE[h.category] + EFFORT_PRICE[h.effort]);
+export const price = (h: Hire): number => priceIn(MARKET, h);
+
+/** A hire's price with a market file's prices (the content check reads the file on disk). */
+export function priceIn(m: MarketData, h: Hire): number {
+  if (h.auto) return m.autoPrice;
+  const model = m.categories.find((c) => c.id === h.category)?.price ?? 0;
+  return Math.min(m.maxPrice, model + (effortData(m, h.effort)?.price ?? 0));
 }
 
 /** Starfish back for a right-sized hire: one for a quick look, two for a hard job done right. */
-export const REFUND: Readonly<Record<JobSize, number>> = { quick: 1, hard: 2 };
+export const REFUND: Readonly<Record<JobSize, number>> = {
+  quick: MARKET.sizes.quick.refund,
+  hard: MARKET.sizes.hard.refund,
+};
 /** Doubloons the first time each job's done right-sized. */
-export const JOB_DOUBLOONS: Readonly<Record<JobSize, number>> = { quick: 5, hard: 10 };
+export const JOB_DOUBLOONS: Readonly<Record<JobSize, number>> = {
+  quick: MARKET.sizes.quick.doubloons,
+  hard: MARKET.sizes.hard.doubloons,
+};
+/** "Quick look", "Hard job". */
+export const SIZE_LABEL: Readonly<Record<JobSize, string>> = {
+  quick: MARKET.sizes.quick.label,
+  hard: MARKET.sizes.hard.label,
+};
 
-export type Outcome = 'right' | 'over' | 'short';
+export type Outcome = OutcomeId;
 export type Reason =
   | 'quick-right'
   | 'quick-over-model'
@@ -182,59 +148,50 @@ export function grade(job: MarketJob, h: Hire): { outcome: Outcome; reason: Reas
     : { outcome: 'short', reason: 'hard-short-effort' };
 }
 
-/** The cheapest right-sized hire for a job, in starfish ("it cost 4 for a 1-starfish job"). */
-export function fairPrice(job: MarketJob): number {
-  return job.size === 'quick' ? AUTO_PRICE : CATEGORY_PRICE.Versatile + EFFORT_PRICE.high;
+/** Every hire the market sells (each category at each effort, and Auto), for the economy's sums. */
+function everyHire(): Hire[] {
+  const out: Hire[] = [{ auto: true }];
+  for (const c of MARKET.categories)
+    for (const effort of EFFORTS) out.push({ auto: false, category: c.id, model: c.id, effort });
+  return out;
 }
 
-/** What the stallholder says (voice line ids in tools/voice/lines.testcove.json, and their text). */
-export const GILDA = {
-  hello: 'mer.market.hello',
-  open: 'mer.market.open',
-  auto: 'mer.market.auto',
-  right: 'mer.market.right',
-  over: 'mer.market.over',
-  overEffort: 'mer.market.over.effort',
-  short: 'mer.market.short',
-  shortAuto: 'mer.market.short.auto',
-  broke: 'mer.market.broke',
-  done: 'mer.market.done',
-} as const;
+/** The cheapest right-sized hire for a job, in starfish ("it cost 4 for a 1-starfish job"). */
+export function fairPrice(job: MarketJob): number {
+  let best = Infinity;
+  for (const h of everyHire()) if (grade(job, h).outcome === 'right') best = Math.min(best, price(h));
+  return best;
+}
 
-export const GILDA_TEXT: Readonly<Record<(typeof GILDA)[keyof typeof GILDA], string>> = {
-  'mer.market.hello':
-    "Ahoy, Captain! Welcome to Gilda's Model Market. Trade your starfish for a model that fits the job. Bigger models cost more.",
-  'mer.market.open': 'Pick a job from the board, then hire a model and set the effort dial.',
-  'mer.market.auto':
-    "Auto's the house special. The app chooses a model for you, then tells you which one and why. It isn't Autopilot, mind.",
-  'mer.market.right': "Right-sized! Here's some starfish back for hiring smart.",
-  'mer.market.over': "That's a lot of starfish for a quick look. Auto would've done it.",
-  'mer.market.over.effort': "High effort for a quick look? The default would've done it.",
-  'mer.market.short': 'Not quite. This job needs more muscle. Retry with a stronger model or more effort.',
-  'mer.market.short.auto':
-    "With Auto on, the effort setting's hidden. For a job this hard, turn Auto off, then pick a model and a higher effort.",
-  'mer.market.broke': "No starfish? They hide all over the islands. Come back when you've found some.",
-  'mer.market.done': "Every job on the board, right-sized. You've got an eye for models, Captain!",
-};
+/** What the stallholder says: voice line ids (tools/voice/lines.testcove.json) by what they're for. */
+export const GILDA = Object.fromEntries(
+  Object.entries(MARKET.gilda).map(([k, l]) => [k, l.voice]),
+) as Readonly<Record<GildaKey, string>>;
+
+/** Each of Gilda's voice lines' text (the caption), by voice line id. */
+export const GILDA_TEXT: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.values(MARKET.gilda).map((l) => [l.voice, l.text]),
+);
+
+/** The course sections Gilda's teaching lines paraphrase, by voice line id (Chapter 01's `voiced`). */
+export const GILDA_SOURCES: Readonly<Record<string, SourceRef>> = Object.fromEntries(
+  Object.values(MARKET.gilda).flatMap((l) => (l.source ? [[l.voice, sourceOf(l.source)] as const] : [])),
+);
 
 export interface Feedback {
   outcome: Outcome;
   reason: Reason;
   /** The stamp on the work order. */
   stamp: string;
-  /** Gilda's voiced line. */
-  line: (typeof GILDA)[keyof typeof GILDA];
+  /** Gilda's voiced line (its id). */
+  line: string;
   /** What happened, in one sentence. */
   summary: string;
   /** The course sentences behind the grade (the Retry one too when it fell short). */
   quotes: readonly CourseQuote[];
 }
 
-export const STAMP: Readonly<Record<Outcome, string>> = {
-  right: '✓ Right-sized',
-  over: '! Overspent',
-  short: '↻ Fell short',
-};
+export const STAMP: Readonly<Record<Outcome, string>> = MARKET.stamps;
 
 /** "Auto", or "Claude Haiku 5.5 on Default". */
 export function hireName(h: Hire): string {
