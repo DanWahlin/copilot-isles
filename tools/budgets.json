@@ -1,5 +1,5 @@
 {
-  "$comment": "PLAN \u00a713.5 load budgets, enforced in CI on the production build (gzip -9 sizes). vendor-three = three/webgpu (WebGPURenderer + WebGL2 backend + node/TSL system), measured 234 KB gz at three 0.186; 251.2 KB after the \u2264150-programs work (ce218a1) pulled in more of the node/shadow system, so the cap is 256 KB.",
+  "$comment": "PLAN \u00a713.5 load budgets, enforced in CI on the production build (gzip -9 sizes). vendor-three = three/webgpu (WebGPURenderer + WebGL2 backend + node/TSL system), measured 234 KB gz at three 0.186; 251.2 KB after the \u2264150-programs work (ce218a1) pulled in more of the node/shadow system, so the cap is 256 KB. course-<id> = one course pack's data (docs/specs/COURSE-PACKS.md \u00a72: its chapters, quests, labels, boards, market, models and lock), loaded with the voyage, never by the title (check-budgets fails if the entry imports it statically).",
   "chunks": {
     "boot (entry)": {
       "entry": true,
@@ -12,6 +12,10 @@
     "vendor-ui": {
       "name": "vendor-ui",
       "maxGzipKB": 70
+    },
+    "course-copilot-app": {
+      "name": "course-copilot-app",
+      "maxGzipKB": 80
     }
   },
   "titleWireMaxKB": 4096,

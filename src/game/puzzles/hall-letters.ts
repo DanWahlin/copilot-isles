@@ -10,7 +10,7 @@
  * (Course Chapter 01 · Settings, "Settings reference: What each area controls").
  */
 
-/** A course section a letter or a reason paraphrases (README anchor and its hash in content/course.lock.json). */
+/** A course section a letter or a reason paraphrases (README anchor and its hash in the course pack's lock.json). */
 export interface LetterCite {
   anchor: string;
   hash: string;

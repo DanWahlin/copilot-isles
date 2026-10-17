@@ -240,7 +240,7 @@ export function wrapTitle(title: string): string[] {
 }
 
 /**
- * The carved header and the parchment notes (their text from content/course-boards.json), into the
+ * The carved header and the parchment notes (their text from the course pack's boards.json), into the
  * island's sign atlas (one draw for the lettering).
  */
 export function addCourseBoardNotices(signs: SignSet, pose: CourseBoardPose, board: CourseBoard): void {

@@ -288,7 +288,7 @@ const norm = (s) =>
 
 async function lineIndex() {
   try {
-    const res = await fetch(`${base}/voice/testcove/manifest.json`);
+    const res = await fetch(`${base}/courses/copilot-app/voice/manifest.json`);
     const manifest = await res.json();
     const exact = new Map();
     for (const l of manifest.lines) exact.set(norm(l.text), l);

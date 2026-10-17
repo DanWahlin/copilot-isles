@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
+import { COURSE, courseAssetBase } from '../../course/catalog';
 import type { GameBridge } from '../bridge';
 import { OverlayShell } from '../components/OverlayShell';
+
+const courseHome = `https://github.com/${COURSE.source.repo}`;
 
 export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
   const [assetCredits, setAssetCredits] = useState<string[]>([
@@ -33,8 +36,8 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
   const [courseLicense, setCourseLicense] = useState('');
   useEffect(() => {
     let cancelled = false;
-    // The course's own LICENSE, bundled with the course snapshot by tools/course/sync.mjs.
-    fetch(`${import.meta.env.BASE_URL || '/'}course/LICENSE`)
+    // The course's own LICENSE, bundled with the course pack's snapshot by tools/course/sync.mjs.
+    fetch(`${courseAssetBase()}course/LICENSE`)
       .then((response) => (response.ok ? response.text() : ''))
       .then((text) => !cancelled && setCourseLicense(text.trim()))
       .catch(() => undefined);
@@ -51,7 +54,7 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
           Copyright © 2026
         </p>
         <p>
-          <a href="https://github.com/github/copilot-app-for-beginners">GitHub Copilot app for Beginners</a>
+          <a href={courseHome}>{COURSE.title}</a>
         </p>
         <p>Built with three.js, React, TypeScript, and Web Audio.</p>
         <h3>Assets and audio</h3>
@@ -67,10 +70,8 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
         </p>
         <h3>Course content</h3>
         <p>
-          Course text and screenshots come from{' '}
-          <a href="https://github.com/github/copilot-app-for-beginners">GitHub Copilot app for Beginners</a>,
-          © GitHub, Inc., under the MIT License. The game reads them live from GitHub, so its pages keep up
-          with the course.
+          Course text and screenshots come from <a href={courseHome}>{COURSE.title}</a>
+          {`, ${COURSE.source.copyright}, under the ${COURSE.source.license} License. The game reads them live from GitHub, so its pages keep up with the course.`}
         </p>
         <p className="ci-credits-privacy">
           Privacy: to read the course, your browser connects to raw.githubusercontent.com, so GitHub sees your
@@ -83,7 +84,7 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
         </p>
         {courseLicense && (
           <details className="ci-credits-license">
-            <summary>Course license (MIT)</summary>
+            <summary>{`Course license (${COURSE.source.license})`}</summary>
             <pre>{courseLicense}</pre>
           </details>
         )}
@@ -97,9 +98,7 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
         <p>Seagull models by Poly by Google, CC BY 3.0 (poly.pizza).</p>
         <h3>About this project</h3>
         <p>
-          Copilot Isles is an unofficial, personal project. It isn’t an official GitHub or Microsoft product,
-          and GitHub hasn’t endorsed it. GitHub and GitHub Copilot are trademarks of GitHub, Inc. The lessons
-          come from the MIT-licensed GitHub Copilot app for Beginners course.
+          {`Copilot Isles is an unofficial, personal project. It isn’t an official GitHub or Microsoft product, and GitHub hasn’t endorsed it. GitHub and GitHub Copilot are trademarks of GitHub, Inc. The lessons come from the ${COURSE.source.license}-licensed ${COURSE.title} course.`}
         </p>
       </div>
     </OverlayShell>

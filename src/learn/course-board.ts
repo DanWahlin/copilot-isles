@@ -1,17 +1,18 @@
-import { chapters as LOCKED } from '../../content/course.lock.json';
 import { COURSE_BOARDS_DATA } from '../content/course-boards';
+import { onCourse } from '../course/active';
+import { COURSE_BOARDS } from '../world/islands/course-boards';
 import { COURSE_CHAPTERS, COURSE_REPO, chapterUrl, type ChapterId } from './course/chapters';
 import type { ChapterLock } from './course/lock';
 import type { SourceRef } from './types';
 
 /**
  * The course notice boards (docs/specs/COURSE-BOARDS.md): one on each island, with its chapter's
- * topics pinned up. The topics come from the bundled course lock (`content/course.lock.json`), so the
+ * topics pinned up. The topics come from the course pack's lock (`courses/<id>/lock.json`), so the
  * weekly course sync keeps the boards current: each is one of the chapter's `##` sections, with the
  * course's exact title, linked to its anchor in the chapter's README (the same link as `courseUrl`
  * gives a `SourceRef` there; this module doesn't import the authored content, so the islands' builds
- * can paint the notes without it). Which chapter each island shows, the skip lists, and the header and
- * pin text are in `content/course-boards.json` (docs/content-data.md).
+ * can paint the notes without it). Which chapter each island shows is in the pack's `course.json`; the
+ * skip lists and the header and pin text are in its `boards.json` (docs/content-data.md).
  */
 export interface CourseBoardTopic {
   /** The section's README anchor (GitHub's slug). */
@@ -38,40 +39,55 @@ export interface CourseBoard {
  * Sections that aren't topics: what you need first, the hand-off to the next chapter, and the list
  * of sources. Matched by anchor.
  */
-export const COURSE_BOARD_SKIP_ANCHORS: readonly string[] = COURSE_BOARDS_DATA.skip.anchors;
+export let COURSE_BOARD_SKIP_ANCHORS: readonly string[] = [];
 
 /**
  * The chapter's story frame (the course's recording-studio theme) isn't a topic either. Matched by
  * the start of the heading, so a new chapter's "From the Studio: …" section stays off its board.
  */
-export const COURSE_BOARD_SKIP_TITLES: readonly string[] = COURSE_BOARDS_DATA.skip.titlePrefixes;
+export let COURSE_BOARD_SKIP_TITLES: readonly string[] = [];
 
 export const COURSE_HOME_URL = `https://github.com/${COURSE_REPO}`;
 
-const locked = LOCKED as Partial<Record<ChapterId, ChapterLock>>;
+let locked: Partial<Record<ChapterId, ChapterLock>> = {};
+
+const boards = new Map<ChapterId, CourseBoard>();
+
+onCourse((p) => {
+  COURSE_BOARD_SKIP_ANCHORS = COURSE_BOARDS_DATA.skip.anchors;
+  COURSE_BOARD_SKIP_TITLES = COURSE_BOARDS_DATA.skip.titlePrefixes;
+  locked = p.lock.chapters;
+  boards.clear();
+});
+
+/** The `##` sections that aren't topics (a pack's `boards.json` → `skip`). */
+export interface BoardSkip {
+  anchors: readonly string[];
+  titlePrefixes: readonly string[];
+}
 
 /** Whether a `##` section is listed on its chapter's board. */
-function isBoardTopic(anchor: string, title: string): boolean {
-  return (
-    !COURSE_BOARD_SKIP_ANCHORS.includes(anchor) && !COURSE_BOARD_SKIP_TITLES.some((t) => title.startsWith(t))
-  );
+function isBoardTopic(anchor: string, title: string, skip: BoardSkip): boolean {
+  return !skip.anchors.includes(anchor) && !skip.titlePrefixes.some((t) => title.startsWith(t));
 }
 
 /**
  * A chapter's topics from a course lock's chapter: its `##` sections in order, less the skipped ones.
- * The game reads the bundled lock; `npm run content:check` also reads the previous one, to list what
- * a course sync changed on the boards.
+ * The game reads the course pack's lock with its own skip lists; `npm run content:check` passes the
+ * pack's on disk, and also reads the previous lock, to list what a course sync changed on the boards.
  */
-export function boardTopics(chapter: ChapterId, lock: Pick<ChapterLock, 'sections'>): CourseBoardTopic[] {
+export function boardTopics(
+  chapter: ChapterId,
+  lock: Pick<ChapterLock, 'sections'>,
+  skip: BoardSkip = { anchors: COURSE_BOARD_SKIP_ANCHORS, titlePrefixes: COURSE_BOARD_SKIP_TITLES },
+): CourseBoardTopic[] {
   const topics: CourseBoardTopic[] = [];
   for (const [anchor, s] of Object.entries(lock.sections)) {
-    if (s.level !== 2 || !isBoardTopic(anchor, s.title)) continue;
+    if (s.level !== 2 || !isBoardTopic(anchor, s.title, skip)) continue;
     topics.push({ anchor, title: s.title, url: chapterUrl(chapter, anchor) });
   }
   return topics;
 }
-
-const boards = new Map<ChapterId, CourseBoard>();
 
 /** A chapter's board, or null if the chapter isn't in the bundled snapshot yet. */
 export function courseBoard(chapter: ChapterId): CourseBoard | null {
@@ -121,10 +137,10 @@ export function coveredTopics(chapter: ChapterId, sources: Iterable<SourceRef>):
   return out;
 }
 
-/** An island's chapter (content/course-boards.json), or null for an island without a board. */
+/** An island's chapter (the course's `course.json`), or null for an island without a board. */
 export function islandChapter(island: string): ChapterId | null {
-  const islands: Readonly<Record<string, { chapter: ChapterId }>> = COURSE_BOARDS_DATA.islands;
-  return Object.hasOwn(islands, island) ? islands[island]!.chapter : null;
+  const islands: Readonly<Record<string, { chapter: ChapterId }>> = COURSE_BOARDS;
+  return Object.hasOwn(islands, island) ? islands[island]!.chapter || null : null;
 }
 
 /** An island's board (its chapter's), or null. */

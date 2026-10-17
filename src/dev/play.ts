@@ -14,6 +14,10 @@ import { LearnStore } from '../learn/store';
 import { mountLearn } from '../ui/learn/LearnLayer';
 import '../ui/ui.css';
 import { compileAndStart, createDevHarness } from './harness';
+import { activateCourse } from '../course/load';
+
+// The course pack the page's content comes from (a voyage loads it the same way).
+await activateCourse();
 
 /**
  * Test Cove play page (Phase 0 T11): walk the harbor, talk to Nell, board the brigantine, sail,

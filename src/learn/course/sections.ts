@@ -126,7 +126,7 @@ export function parseSections(markdown: string): CourseSection[] {
 
 /**
  * Whitespace-insensitive form of a section, used for change detection. A section's hash (in
- * `content/course.lock.json` and every authored `SourceRef`) is the first 12 hex digits of the
+ * the course pack's `lock.json` and every authored `SourceRef`) is the first 12 hex digits of the
  * SHA-256 of this string.
  */
 export function normalizeForCompare(markdown: string): string {

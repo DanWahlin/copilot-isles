@@ -5,6 +5,10 @@ import { Progress } from '../learn/progress';
 import { LearnStore } from '../learn/store';
 import { mountLearn } from '../ui/learn/LearnLayer';
 import '../ui/ui.css';
+import { activateCourse } from '../course/load';
+
+// The course pack the page's content comes from (a voyage loads it the same way).
+await activateCourse();
 
 const q = new URLSearchParams(location.search);
 const memory = new Map<string, string>();

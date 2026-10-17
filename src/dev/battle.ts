@@ -14,6 +14,10 @@ import { createBrigantine } from '../world/ship';
 import { createSky } from '../world/sky/sky-system';
 import { world } from '../world/uniforms';
 import { compileAndStart, createDevHarness, engineStats } from './harness';
+import { activateCourse } from '../course/load';
+
+// The course pack the page's content comes from (a voyage loads it the same way).
+await activateCourse();
 
 /**
  * Sea-battle prototype (docs/specs/BATTLES.md §11): open water, your brigantine, one passage battle.

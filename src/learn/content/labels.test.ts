@@ -18,7 +18,7 @@ import {
 } from './labels';
 
 const ROOT = join(__dirname, '../../..');
-const lock = JSON.parse(readFileSync(join(ROOT, 'content/course.lock.json'), 'utf8')) as CourseLock;
+const lock = JSON.parse(readFileSync(join(ROOT, 'courses/copilot-app/lock.json'), 'utf8')) as CourseLock;
 const entries = Object.entries(CHART_LABELS) as [ChartLabelId, (typeof CHART_LABELS)[ChartLabelId]][];
 
 class MemStorage implements ProgressStorage {
@@ -63,7 +63,7 @@ describe('chart labels (docs/specs/LOWER-THIRDS.md)', () => {
   });
 
   it('read the same from the JSON file the reel can load with plain Node', () => {
-    const raw = JSON.parse(readFileSync(join(ROOT, 'content/labels.json'), 'utf8')) as {
+    const raw = JSON.parse(readFileSync(join(ROOT, 'courses/copilot-app/labels.json'), 'utf8')) as {
       labels: Record<string, { k: string; t: string; b: string; ch: string; c: string }>;
     };
     expect(raw.labels).toEqual(CHART_LABELS);

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "The course lock (content/course.lock.json)",
+  "title": "A course pack's lock (courses/<id>/lock.json)",
   "description": "Written by `npm run course:sync` (tools/course/sync.mjs): the bundled course snapshot's commit and a hash for every section and image. Don't edit by hand. docs/content-data.md, docs/course-content-authoring.md.",
   "type": "object",
   "additionalProperties": false,

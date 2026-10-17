@@ -2,9 +2,14 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseSections } from '../course/sections';
-import { CH02 } from './ch02';
+import { CHAPTERS } from './index';
 
-const README = readFileSync(join(__dirname, '../../../public/course/ch02/README.md'), 'utf8');
+const CH02 = CHAPTERS.find((c) => c.chapter === '02-sessions-worktrees-context')!;
+
+const README = readFileSync(
+  join(__dirname, '../../../courses/copilot-app/public/course/ch02/README.md'),
+  'utf8',
+);
 
 describe('Chapter 02 content', () => {
   it('cites sections that exist in the ch02 snapshot', () => {

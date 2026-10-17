@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { CH02 } from '../learn/content/ch02';
+import { CHAPTERS } from '../learn/content/index';
 import { CHESTS, PAGES, QUIZZES, TRIALS, GLOSSARY } from '../learn/content/index';
 import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
 import type { QuestState } from './cove-quests';
@@ -21,14 +21,20 @@ import {
   thousandBoughTracker,
 } from './thousand-bough-quests';
 
+const CH02 = CHAPTERS.find((c) => c.chapter === '02-sessions-worktrees-context')!;
+
 const ROOT = join(__dirname, '../..');
-const lines = JSON.parse(readFileSync(join(ROOT, 'tools/voice/lines.testcove.json'), 'utf8')) as {
+const lines = JSON.parse(readFileSync(join(ROOT, 'courses/copilot-app/voice/lines.json'), 'utf8')) as {
   lines: { id: string; speaker: string; text: string; voice?: string; tts?: string }[];
 };
-const manifest = JSON.parse(readFileSync(join(ROOT, 'public/voice/testcove/manifest.json'), 'utf8')) as {
+const manifest = JSON.parse(
+  readFileSync(join(ROOT, 'courses/copilot-app/public/voice/manifest.json'), 'utf8'),
+) as {
   lines: { id: string; speaker: string; text: string; duration: number }[];
 };
-const lipsync = JSON.parse(readFileSync(join(ROOT, 'public/voice/testcove/lipsync.json'), 'utf8')) as {
+const lipsync = JSON.parse(
+  readFileSync(join(ROOT, 'courses/copilot-app/public/voice/lipsync.json'), 'utf8'),
+) as {
   lines: Record<string, unknown>;
 };
 const byId = new Map(lines.lines.map((l) => [l.id, l]));

@@ -3,10 +3,11 @@
  * Weekly model sync for the Model Market (docs/specs/MODEL-MARKET.md §4). Reads GitHub Docs' Copilot
  * model tables at the head of `main` from raw.githubusercontent.com (no token, no REST API: the
  * commit comes from `git ls-remote`), keeps the Claude, GPT and MAI models (src/game/market/catalog.ts),
- * and writes content/models.json. The file only changes when the models do: a new docs commit with
+ * and writes the course pack's models.json (courses/<id>/models.json). The file only changes when the models do: a new docs commit with
  * the same models leaves it alone, so a re-run writes the same bytes.
  *
- *   npm run models:sync                       write content/models.json if the models changed
+ *   npm run models:sync                       write courses/copilot-app/models.json if the models changed
+ *   npm run models:sync -- --course=<id>      another course pack's
  *   npm run models:sync -- --check            exit 1 if it would change (no writes)
  *   npm run models:sync -- --ref=<sha>        read one docs commit
  *   npm run models:sync -- --from=<dir>       read models-and-pricing.yml and model-comparison.yml from a folder (offline)
@@ -15,14 +16,13 @@
  */
 import { execFile } from 'node:child_process';
 import { appendFile, readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { tsImport } from 'tsx/esm/api';
 
 const exec = promisify(execFile);
 const root = fileURLToPath(new URL('../..', import.meta.url));
-const OUT = join(root, 'content', 'models.json');
 const {
   DOCS_REPO,
   DOCS_DIR,
@@ -31,7 +31,8 @@ const {
   catalogFromTables,
   formatModelsFile,
   sameModels,
-} = await tsImport('../../src/game/market/catalog.ts', import.meta.url);
+  useCourse,
+} = await tsImport('./catalog.ts', import.meta.url);
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
@@ -39,6 +40,10 @@ const args = Object.fromEntries(
     return [k, v.length ? v.join('=') : true];
   }),
 );
+/** The course pack whose Model Market this is (`--course=<id>`, default copilot-app). */
+const COURSE = typeof args.course === 'string' ? args.course : 'copilot-app';
+const { modelsFile: OUT } = useCourse(COURSE);
+const OUT_REL = relative(root, OUT);
 
 async function headCommit() {
   const { stdout } = await exec('git', ['ls-remote', `https://github.com/${DOCS_REPO}`, 'refs/heads/main']);
@@ -94,15 +99,15 @@ if (args.check) {
     const after = new Set(models.map((m) => `${m.name} (${m.category})`));
     for (const m of after) if (!before.has(m)) console.log(`  + ${m}`);
     for (const m of before) if (!after.has(m)) console.log(`  - ${m}`);
-    console.log('content/models.json would change. Run `npm run models:sync`.');
+    console.log(`${OUT_REL} would change. Run \`npm run models:sync\`.`);
     process.exit(1);
   }
-  console.log('content/models.json is up to date.');
+  console.log(`${OUT_REL} is up to date.`);
   process.exit(0);
 }
 
 if (!changed) {
-  console.log('No model changes; content/models.json is unchanged.');
+  console.log(`No model changes; ${OUT_REL} is unchanged.`);
   await output(false);
 } else {
   const file = {

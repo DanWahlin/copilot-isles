@@ -47,8 +47,10 @@ describe('course markdown', () => {
       '<img src="https://raw.githubusercontent.com/github/copilot-app-for-beginners/main/00-setup/assets/app-add-project.webp" alt="Projects menu"',
     );
     const snap = html(md, chapterResolvers('00-setup', 'snapshot'));
-    expect(snap).toContain('src="/course/ch00/app-add-project.webp" alt="Projects menu"');
-    expect(snap).toContain('src="/course/shared/app-github-copilot-app.webp" alt="The app"');
+    expect(snap).toContain('src="/courses/copilot-app/course/ch00/app-add-project.webp" alt="Projects menu"');
+    expect(snap).toContain(
+      'src="/courses/copilot-app/course/shared/app-github-copilot-app.webp" alt="The app"',
+    );
   });
 
   it('parses lists, nested content, notes, tables, and code', () => {
@@ -203,6 +205,17 @@ describe('course markdown with hostile input', () => {
     expect(safeImageSrc('/course/ch00/a.webp')).toBe('/course/ch00/a.webp');
     expect(safeImageSrc('./course/ch00/a.webp')).toBe('./course/ch00/a.webp');
     expect(safeImageSrc('/course/../secret.webp')).toBeNull();
+    expect(safeImageSrc('/courses/copilot-app/course/ch00/a.webp')).toBe(
+      '/courses/copilot-app/course/ch00/a.webp',
+    );
+    expect(safeImageSrc('./courses/copilot-app/course/ch00/a.webp')).toBe(
+      './courses/copilot-app/course/ch00/a.webp',
+    );
+    expect(safeImageSrc('/copilot-isles/courses/copilot-app/course/a.webp')).toBe(
+      '/copilot-isles/courses/copilot-app/course/a.webp',
+    );
+    expect(safeImageSrc('/courses/../course/a.webp')).toBeNull();
+    expect(safeImageSrc('/courses/copilot-app/voice/a.webp')).toBeNull();
     expect(safeImageSrc('http://raw.githubusercontent.com/a.webp')).toBeNull();
     expect(safeImageSrc('https://raw.githubusercontent.com/a.svg')).toBeNull();
     expect(safeImageSrc('https://evil.example/a.webp')).toBeNull();

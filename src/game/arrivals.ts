@@ -1,3 +1,4 @@
+import { courseIsland } from '../course/catalog';
 import type { ChartLabelId } from '../learn/content/labels';
 import { MERIDIAN } from '../world/islands/meridian';
 import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
@@ -39,6 +40,12 @@ export interface IslandArrival {
   landingShot?: CameraShot;
 }
 
+/** An island's title card: the course's chapter line and teaching line over the island's name. */
+function arrivalCard(island: IslandId, title: string): IslandArrival['card'] {
+  const a = courseIsland(island)?.arrival;
+  return { eyebrow: a?.eyebrow ?? '', title, line: a?.line ?? '' };
+}
+
 /** The flight to fly: the island's own, or its shorter one after the opening's chart dive. */
 export function arrivalFlight(arrival: IslandArrival, fromChart: boolean): IslandArrival {
   return fromChart && arrival.fromChart ? { ...arrival, ...arrival.fromChart } : arrival;
@@ -51,11 +58,7 @@ export function arrivalFlight(arrival: IslandArrival, fromChart: boolean): Islan
  */
 export const ANCHORAGE_ARRIVAL: IslandArrival = {
   id: 'anchorage',
-  card: {
-    eyebrow: 'Chapter 00 · Setup',
-    title: 'Anchorage Cay',
-    line: 'Set up the GitHub Copilot app and earn your first Seal',
-  },
+  card: arrivalCard('anchorage', 'Anchorage Cay'),
   label: 'arrival:anchorage',
   keys: [
     { x: -15, y: 8, z: -400, tx: -95, ty: 10, tz: -105, pace: 1.3 },
@@ -95,11 +98,7 @@ const M = MERIDIAN;
  */
 export const MERIDIAN_ARRIVAL: IslandArrival = {
   id: 'meridian',
-  card: {
-    eyebrow: 'Chapter 01 · Tour the App',
-    title: 'Port Meridian',
-    line: 'Find your way around the GitHub Copilot app',
-  },
+  card: arrivalCard('meridian', 'Port Meridian'),
   label: 'arrival:meridian',
   keys: [
     // A slow glide in over the wide view while the title card's up, then on past the lighthouse.
@@ -137,11 +136,7 @@ const TB = THOUSAND_BOUGH;
  */
 export const THOUSAND_BOUGH_ARRIVAL: IslandArrival = {
   id: 'thousand-bough',
-  card: {
-    eyebrow: 'Chapter 02 · Sessions, Worktrees & Context',
-    title: 'Thousand-Bough Isle',
-    line: 'Give every task its own treehouse',
-  },
+  card: arrivalCard('thousand-bough', 'Thousand-Bough Isle'),
   label: 'arrival:thousand-bough',
   keys: [
     { x: 1700, y: 12, z: -1020, tx: TB.tree.x, ty: 48, tz: TB.tree.z, pace: 0.45 },

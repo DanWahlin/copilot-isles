@@ -17,7 +17,7 @@ import {
 
 const L = MERIDIAN_YARD;
 const idx = (id: string) => L.crates.findIndex((c) => c.id === id);
-const lock = JSON.parse(readFileSync(join(__dirname, '../../../content/course.lock.json'), 'utf8')) as {
+const lock = JSON.parse(readFileSync(join(__dirname, '../../../courses/copilot-app/lock.json'), 'utf8')) as {
   chapters: Record<string, { sections: Record<string, { hash: string }> }>;
 };
 

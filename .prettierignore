@@ -6,6 +6,6 @@ docs/
 .plans/
 package-lock.json
 THIRD_PARTY_NOTICES.md
-public/course/**/*.md
+courses/*/public/course/**/*.md
 # The Basis Universal transcoder, copied unchanged from three.js (THIRD_PARTY_NOTICES.md).
 public/basis/

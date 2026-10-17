@@ -26,9 +26,11 @@ export interface NpcSpec {
   /** Where on the circle they start (radians), so two can share one without bunching up. */
   orbitPhase?: number;
   speed?: number;
-  /** Voice line ids for a conversation; otherwise a random unvoiced bark. */
+  /**
+   * Voice line ids for a conversation; otherwise a random unvoiced bark from the course pack
+   * (`quests/<island>.json` → `barks`, by this NPC's id: src/course/active.ts `barksFor`).
+   */
   voiced?: string[];
-  barks?: string[];
   /** Keeps the anchor's height instead of snapping to the ground (tower tops, benches). */
   keepY?: boolean;
   /** Collision radius in place of the body's, for someone standing in a narrow spot (the gallery). */
@@ -72,10 +74,6 @@ export const COVE_NPCS: NpcSpec[] = [
     // At his chart table on the quay by the pier foot, facing the way you come from Nell.
     anchor: 'chartTable',
     clip: 'idle',
-    barks: [
-      'A fork is your own copy of the master chart. Mark it up all you like.',
-      'Add a project with the plus next to Projects. Then pick Add GitHub repository.',
-    ],
   },
   {
     id: 'dockhand_b',
@@ -83,10 +81,6 @@ export const COVE_NPCS: NpcSpec[] = [
     // In front of his gear rack, beside Ezra at the pier foot.
     anchor: 'boRack',
     clip: 'idle',
-    barks: [
-      'For setup, choose Current checkout, Captain. New worktrees come later.',
-      'Git, Node.js, npm, and GitHub CLI. Check them in Terminal, and install only what’s missing.',
-    ],
   },
   {
     id: 'dockhand_a',
@@ -102,7 +96,6 @@ export const COVE_NPCS: NpcSpec[] = [
       [-119, -69.8],
     ],
     speed: 1.2,
-    barks: ['Mind the bollards!', 'Tide waits for no one.', "Heard you're sailing soon. Fair winds!"],
   },
   {
     id: 'fisherman',
@@ -112,7 +105,6 @@ export const COVE_NPCS: NpcSpec[] = [
     clip: 'sit',
     keepY: true,
     seatDrop: 0.22,
-    barks: ['Fish bite best when the Terminal is quiet.', 'Patience, Captain. Same as prompting.'],
   },
   {
     id: 'old_sailor',
@@ -122,10 +114,6 @@ export const COVE_NPCS: NpcSpec[] = [
     clip: 'sit',
     keepY: true,
     seatDrop: 0.22,
-    barks: [
-      'Sailed with three captains. The good ones read the logbook.',
-      'Aye, that lighthouse has seen things.',
-    ],
   },
   {
     id: 'child',
@@ -135,7 +123,6 @@ export const COVE_NPCS: NpcSpec[] = [
     orbit: 3.4,
     orbitCenter: [-2.7, 1.2],
     speed: 2.6,
-    barks: ['Race you to the lighthouse!', 'Is that your ship? It is so big!'],
   },
   {
     id: 'suri',
@@ -143,10 +130,6 @@ export const COVE_NPCS: NpcSpec[] = [
     anchor: 'suri',
     clip: 'idle',
     keepY: true,
-    barks: [
-      'The spring never stops. Getting it to the wheel is the trick.',
-      'Actions on, checks on. That’s the rule.',
-    ],
   },
   {
     id: 'pim',
@@ -154,10 +137,6 @@ export const COVE_NPCS: NpcSpec[] = [
     anchor: 'pim',
     clip: 'idle',
     keepY: true,
-    barks: [
-      'Dry run first. Always a dry run first.',
-      'Nine pennants, five notices, seven hulls, three seals.',
-    ],
   },
   {
     id: 'pol',
@@ -165,7 +144,6 @@ export const COVE_NPCS: NpcSpec[] = [
     anchor: 'pol',
     clip: 'idle',
     keepY: true,
-    barks: ['Preview first, always!', 'Check the Repository line. Every time.'],
   },
   {
     id: 'juno',
@@ -173,10 +151,6 @@ export const COVE_NPCS: NpcSpec[] = [
     anchor: 'juno',
     clip: 'idle',
     keepY: true,
-    barks: [
-      'The crew’s ready when you are, Captain. Finish your setup first.',
-      'A good first mate listens more than she talks.',
-    ],
   },
   {
     id: 'lyra',
@@ -191,7 +165,6 @@ export const COVE_NPCS: NpcSpec[] = [
       faceLocal: [0, -6],
       standLocal: [0, -1.45],
     },
-    barks: ['Every island has its own tune, Captain.', 'Hush. The reef’s keeping time.'],
   },
   {
     id: 'lookout',
@@ -201,7 +174,6 @@ export const COVE_NPCS: NpcSpec[] = [
     keepY: true,
     obstacleR: 0.26,
     talkEyeLift: 2.4,
-    barks: ['Clear skies to the horizon, Captain.'],
   },
 ];
 

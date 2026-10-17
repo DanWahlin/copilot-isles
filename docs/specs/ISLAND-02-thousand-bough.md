@@ -35,7 +35,7 @@
 
 Course folder `02-sessions-worktrees-context`. Anchors are the slugs that `src/learn/course/sections.ts`
 produces for this README (checked by running it). Images are in `assets/` (the live-course agent will
-snapshot them to `public/course/ch02/`; ids below are `ch02/<file-without-extension>`).
+snapshot them to `courses/copilot-app/public/course/ch02/`; ids below are `ch02/<file-without-extension>`).
 
 ### 1.1 Sections, in order
 
@@ -854,7 +854,7 @@ unsolved and the Round 1/2 start produces `mixed`; every `FlowEnd` is reachable.
 
 ---
 
-## 6. Checks, Logbook, chests and Trial (`src/learn/content/ch02.ts`)
+## 6. Checks, Logbook, chests and Trial (`courses/copilot-app/chapters/02-sessions-worktrees-context.json`)
 
 `const ch = '02-sessions-worktrees-context'`. Ids: `K` = choice or multi check, `M` = matching, `H` =
 hotspot, `T2.x` = Trial items, `C2.x` chests, `B2.x` bottles, `pg2.*` pages. Every item has
@@ -1006,7 +1006,7 @@ mixed, wheels turning, bridge jam, Seal).
 
 ### 8.3 Voice
 
-- Pipeline: `tools/voice/generate.ts` with lines in `tools/voice/lines.testcove.json` (the one set the
+- Pipeline: `tools/voice/generate.ts` with lines in `courses/copilot-app/voice/lines.json` (the one set the
   game uses today; Meridian's cast is in it too), `"tts": "elevenlabs"`, model `eleven_v3`, through the
   signed-in `elevenlabs` CLI (no key in the repo). Generate only changed lines (`--only Tamsin,Saffi,…`),
   then `npm run voice:lipsync` for mouth cues.
@@ -1051,7 +1051,7 @@ src/game/thousand-bough-open.ts       (B) like meridianOpen (dev, ?thousandbough
 src/game/puzzles/channel-routing/     (B) types.ts, boards.ts, logic.ts, session glue, tests
 src/game/puzzles/flag-hoist.ts        (B)
 src/ui/puzzles/ChannelRouting.tsx     (B) HUD overlay, tile buttons, chips, live region
-src/learn/content/ch02.ts             (B)
+courses/copilot-app/chapters/02-sessions-worktrees-context.json             (B)
 ```
 
 ### 9.2 Streaming and warm-up (like Meridian, skill §3)
@@ -1225,8 +1225,8 @@ anchors and an empty group. After step 0 the contract changes only with both bui
 
 | Area | **A: world** owns | **B: content** owns |
 |---|---|---|
-| New files | everything under `src/world/islands/thousand-bough/`, `src/world/life/fireflies.ts`, `public/packs/thousand-bough/*`, `tools/thousandbough-shots.mjs` | `src/game/thousand-bough-*.ts`, `src/game/puzzles/channel-routing/*`, `src/game/puzzles/flag-hoist.ts`, `src/ui/puzzles/ChannelRouting.tsx` (+ css), `src/learn/content/ch02.ts`, `contract.stub.ts`, `tools/thousandboughtest.mjs` |
-| Shared files edited | `src/world/cove-scene.ts`, `src/game/flow.ts`, `src/game/islands.ts`, `src/game/arrivals.ts`, `src/opening/chart-map.ts`, `src/ui/chart/archipelago.ts` (status only), `src/world/sky/sky-system.ts` (mood), `src/world/islands/terrain-regions.ts`, `src/world/starfish/*` registry, `src/world/terrain/*` only if a shared fix is needed, `public/packs/manifest.json`, `tools/budgettest.mjs`, `tools/cameratest.mjs`, `tools/flickertest.mjs`, the bake tool | `src/game/session.ts` (cast, scripts, sites, wiring the system's surfaces/colliders/camera boxes/inland), `src/game/meridian-quests.ts` (`next`), `src/learn/types.ts` (`ChapterId`, after the live-course work lands), `src/learn/content/index.ts`, `src/audio/music/tracks.ts`, `src/audio/soundscape/*`, `public/audio/*`, `tools/music/fetch.sh`, `tools/voice/lines.testcove.json`, `public/voice/testcove/tb-*`, `ASSETS.md`, `ART_PROVENANCE.md`, `public/audio/CREDITS.md`, `THIRD_PARTY_NOTICES.md` if needed |
+| New files | everything under `src/world/islands/thousand-bough/`, `src/world/life/fireflies.ts`, `public/packs/thousand-bough/*`, `tools/thousandbough-shots.mjs` | `src/game/thousand-bough-*.ts`, `src/game/puzzles/channel-routing/*`, `src/game/puzzles/flag-hoist.ts`, `src/ui/puzzles/ChannelRouting.tsx` (+ css), `courses/copilot-app/chapters/02-sessions-worktrees-context.json`, `contract.stub.ts`, `tools/thousandboughtest.mjs` |
+| Shared files edited | `src/world/cove-scene.ts`, `src/game/flow.ts`, `src/game/islands.ts`, `src/game/arrivals.ts`, `src/opening/chart-map.ts`, `src/ui/chart/archipelago.ts` (status only), `src/world/sky/sky-system.ts` (mood), `src/world/islands/terrain-regions.ts`, `src/world/starfish/*` registry, `src/world/terrain/*` only if a shared fix is needed, `public/packs/manifest.json`, `tools/budgettest.mjs`, `tools/cameratest.mjs`, `tools/flickertest.mjs`, the bake tool | `src/game/session.ts` (cast, scripts, sites, wiring the system's surfaces/colliders/camera boxes/inland), `src/game/meridian-quests.ts` (`next`), `src/learn/types.ts` (`ChapterId`, after the live-course work lands), `src/learn/content/index.ts`, `src/audio/music/tracks.ts`, `src/audio/soundscape/*`, `public/audio/*`, `tools/music/fetch.sh`, `courses/copilot-app/voice/lines.json`, `courses/copilot-app/public/voice/tb-*`, `ASSETS.md`, `ART_PROVENANCE.md`, `public/audio/CREDITS.md`, `THIRD_PARTY_NOTICES.md` if needed |
 | Interfaces | provides the `ThousandBoughSystem` and its views; anchors exactly as §3.7 | calls the views; never reads world geometry directly; places NPCs only at anchors |
 | Licensing rows | sends B the rows for any world asset (in the PR text) | writes every `ASSETS.md` / `ART_PROVENANCE.md` row |
 

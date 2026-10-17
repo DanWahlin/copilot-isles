@@ -9,6 +9,10 @@ import {
   orbitViews,
   showSkyReadouts,
 } from './harness';
+import { activateCourse } from '../course/load';
+
+// The course pack the page's content comes from (a voyage loads it the same way).
+await activateCourse();
 
 /** Anchorage Cay village dev page: Test Cove plus the procedural harbor village (?webgl, ?tier=, ?view=). */
 const h = await createDevHarness();

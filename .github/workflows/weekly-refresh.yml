@@ -1,12 +1,14 @@
 # PLAN §8.4: keeps everything the course feeds into the game up to date.
 #
-#   1 Course check   compare upstream main with content/course.lock.json (no dependencies needed)
+# One course pack (docs/specs/COURSE-PACKS.md §7): COURSE below. Every path is courses/$COURSE/.
+#
+#   1 Course check   compare upstream main with the pack's lock.json (no dependencies needed)
 #   2 Content        tools/course/sync.mjs: READMEs, GLOSSARY.md, LICENSE, sections, and hashes
 #   3 Screenshots    the same run copies referenced images byte-for-byte (pinned ones are kept) and
 #                    saves upstream copies of changed pinned images for before/after montages
 #   4 Drift report   tools/course/drift.ts, including the UI-term check
 #  4b Content data   npm run content:check (tools/content/report.ts, docs/content-data.md): every
-#                    content/*.json against its schema, the Model Market's course quotes still word for
+#                    file of the pack against its schema in courses/schemas/, the Model Market's course quotes still word for
 #                    word in the new snapshot, every cited anchor still in the lock, Gilda's captions
 #                    still her voice lines, and each course notice board's topics with what the sync
 #                    added or removed. It lists each JSON entry that needs an edit.
@@ -37,6 +39,10 @@ on:
 
 permissions: {}
 
+env:
+  # The course pack this refresh follows (courses/<id>/course.json → source.repo).
+  COURSE: copilot-app
+
 concurrency:
   group: weekly-refresh
   cancel-in-progress: false
@@ -56,7 +62,7 @@ jobs:
         with:
           node-version-file: .nvmrc
       - id: check
-        run: node tools/course/sync.mjs --check
+        run: node tools/course/sync.mjs --course="$COURSE" --check
 
   refresh:
     name: 2-9 · Refresh, verify, and deliver
@@ -82,17 +88,17 @@ jobs:
       - name: 2-3 · Content and screenshots
         run: |
           mkdir -p "$DRIFT_DIR"
-          git show HEAD:content/course.lock.json > "$DRIFT_DIR/previous-lock.json" || echo '{}' > "$DRIFT_DIR/previous-lock.json"
-          node tools/course/sync.mjs --ref="$SHA" --report="$DRIFT_DIR"
+          git show "HEAD:courses/$COURSE/lock.json" > "$DRIFT_DIR/previous-lock.json" || echo '{}' > "$DRIFT_DIR/previous-lock.json"
+          node tools/course/sync.mjs --course="$COURSE" --ref="$SHA" --report="$DRIFT_DIR"
 
       - name: 4 · Drift report
         id: drift
-        run: npx tsx tools/course/drift.ts --previous="$DRIFT_DIR/previous-lock.json" --report="$DRIFT_DIR" --out="$DRIFT_DIR/report.md"
+        run: npx tsx tools/course/drift.ts --course="$COURSE" --previous="$DRIFT_DIR/previous-lock.json" --report="$DRIFT_DIR" --out="$DRIFT_DIR/report.md"
 
       - name: 4b · Content data (quotes, anchors, voice lines, board topics)
         id: content
         continue-on-error: true # an unset "broken" output labels the PR, so it still opens
-        run: npm run content:check -- --previous="$DRIFT_DIR/previous-lock.json" --out="$DRIFT_DIR/content.md" --report-only
+        run: npm run content:check -- --course="$COURSE" --previous="$DRIFT_DIR/previous-lock.json" --out="$DRIFT_DIR/content.md" --report-only
 
       - name: 6 · Voices (only changed lines, only with secrets)
         id: voices
@@ -105,9 +111,10 @@ jobs:
           # them on this branch. ElevenLabs lines need the ElevenLabs CLI sign-in and stay manual.
           changed=$(node -e '
             const fs = require("fs"); const { execSync } = require("child_process");
-            const now = JSON.parse(fs.readFileSync("tools/voice/lines.testcove.json", "utf8")).lines;
+            const file = `courses/${process.env.COURSE}/voice/lines.json`;
+            const now = JSON.parse(fs.readFileSync(file, "utf8")).lines;
             let before = [];
-            try { before = JSON.parse(execSync("git show HEAD:tools/voice/lines.testcove.json")).lines; } catch {}
+            try { before = JSON.parse(execSync(`git show HEAD:${file}`)).lines; } catch {}
             const old = new Map(before.map((l) => [l.id, JSON.stringify(l)]));
             console.log(now.filter((l) => old.get(l.id) !== JSON.stringify(l) && l.tts !== "elevenlabs").map((l) => l.id).join(","));
           ')
@@ -124,7 +131,7 @@ jobs:
           # tools/voice/generate.ts reads ~/.env; write it on the runner only, readable by this user only.
           umask 077
           printf 'AZURE_SPEECH_KEY=%s\nAZURE_SPEECH_REGION=%s\n' "$AZURE_SPEECH_KEY" "$AZURE_SPEECH_REGION" > "$HOME/.env"
-          npx tsx tools/voice/generate.ts --only="$changed"
+          npx tsx tools/voice/generate.ts --course "$COURSE" --only="$changed"
           rm -f "$HOME/.env"
           echo "summary=Regenerated voice lines: $changed." >> "$GITHUB_OUTPUT"
 
@@ -171,7 +178,7 @@ jobs:
           VERIFY_FAILED: ${{ steps.verify.outputs.failed }}
           VOICES: ${{ steps.voices.outputs.summary }}
         run: |
-          if [ -z "$(git status --porcelain -- content public/course tools/voice public/voice)" ]; then
+          if [ -z "$(git status --porcelain -- "courses/$COURSE")" ]; then
             echo "The snapshot is already up to date; no PR." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
@@ -180,12 +187,13 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git switch -c "$branch"
-          git add content public/course tools/voice public/voice
+          git add "courses/$COURSE"
           git commit -m "Weekly refresh: course @ $short"
           git push --force origin "$branch"
 
           {
-            echo "Refreshes the bundled course snapshot to [\`$short\`](https://github.com/github/copilot-app-for-beginners/commit/$SHA) (PLAN §8.4)."
+            repo=$(node -p "require('./courses/$COURSE/course.json').source.repo")
+            echo "Refreshes the \`$COURSE\` course pack's snapshot to [\`$short\`](https://github.com/$repo/commit/$SHA) (PLAN §8.4)."
             echo
             echo '```'
             git diff --stat HEAD~1 HEAD

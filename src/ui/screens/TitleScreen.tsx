@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { COURSE } from '../../course/catalog';
 import type { GameBridge, UiState } from '../bridge';
 import { prefetchUnchartedChapters } from '../chart/UnchartedFog';
 import { MenuButton } from '../components/MenuButton';
@@ -18,7 +19,7 @@ export function TitleScreen({ state, bridge }: { state: UiState; bridge: GameBri
         <p className="ci-kicker">A pirate island adventure</p>
         <h1 id="title-wordmark">COPILOT ISLES</h1>
         <div id="title-wordmark-gull" className="ci-title-gull" aria-hidden="true" />
-        <p className="ci-subtitle">Learn the GitHub Copilot app, one island at a time</p>
+        <p className="ci-subtitle">{COURSE.tagline}</p>
       </div>
       <nav className="ci-menu-list" aria-label="Main menu">
         <MenuButton onClick={bridge.chooseCaptain} initial={!state.hasSave}>

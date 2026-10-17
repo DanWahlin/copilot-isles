@@ -82,7 +82,7 @@ export interface ProgressData {
   starfishPurse: number;
   /** The Model Market's jobs (src/game/market/jobs.ts): what you last hired for each, and if it's done. */
   market: MarketSave;
-  /** Chart labels already shown (ids from content/labels.json): a puzzle's label shows once per save. */
+  /** Chart labels already shown (ids from the course pack's labels.json): a puzzle's label shows once per save. */
   labels: string[];
 }
 

@@ -14,7 +14,7 @@ import {
 } from './content/index';
 import type { Rect } from './types';
 
-const PUBLIC = join(__dirname, '../../public');
+const PUBLIC = join(__dirname, '../../courses/copilot-app/public');
 
 /** Reads a WebP's canvas size from its header (VP8X / VP8 / VP8L). */
 function webpSize(file: string): [number, number] {

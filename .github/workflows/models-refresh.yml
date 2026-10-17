@@ -1,9 +1,10 @@
 # The Model Market's weekly model sync (docs/specs/MODEL-MARKET.md §4).
 #
 #   1 Sync     tools/models/sync.mjs reads GitHub Docs' Copilot model tables (github/docs,
-#              data/tables/copilot) over plain HTTPS and rewrites content/models.json if the Claude,
+#              data/tables/copilot) over plain HTTPS and rewrites the course pack's models.json
+#              (courses/$COURSE/models.json; only the Copilot app course has a Model Market) if the Claude,
 #              GPT or MAI models changed. No token: the commit comes from `git ls-remote`.
-#   2 Verify   the content check (every content/*.json against its schema in content/schemas/, and
+#   2 Verify   the content check (every file of the pack against its schema in courses/schemas/, and
 #              the market's semantic checks; docs/content-data.md), typecheck, lint, format, unit tests
 #              (the board rule and the file's shape), build, budgets and the secret scan.
 #   3 Deliver  one PR, "Weekly refresh: Copilot models", updated each week until it's merged. Nothing
@@ -23,6 +24,10 @@ on:
   workflow_dispatch:
 
 permissions: {}
+
+env:
+  # The course pack whose Model Market this is (docs/specs/COURSE-PACKS.md §7).
+  COURSE: copilot-app
 
 concurrency:
   group: models-refresh
@@ -46,7 +51,7 @@ jobs:
 
       - name: 1 · Sync
         id: sync
-        run: npm run models:sync
+        run: npm run models:sync -- --course="$COURSE"
 
       - name: 2 · Verify
         id: verify
@@ -63,7 +68,7 @@ jobs:
             "$@" || failed="$failed $name"
             echo "::endgroup::"
           }
-          run content npm run content:check -- --out="$RUNNER_TEMP/content.md"
+          run content npm run content:check -- --course="$COURSE" --out="$RUNNER_TEMP/content.md"
           run typecheck npm run typecheck
           run lint npm run lint
           run format npm run format:check
@@ -82,16 +87,17 @@ jobs:
           VERIFY_OK: ${{ steps.verify.outputs.ok }}
           VERIFY_FAILED: ${{ steps.verify.outputs.failed }}
         run: |
-          if [ -z "$(git status --porcelain -- content/models.json)" ]; then
-            echo "content/models.json is already up to date; no PR." | tee -a "$GITHUB_STEP_SUMMARY"
+          models="courses/$COURSE/models.json"
+          if [ -z "$(git status --porcelain -- "$models")" ]; then
+            echo "$models is already up to date; no PR." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           branch="models-refresh"
-          sha=$(node -p "require('./content/models.json').source.commit.slice(0, 7)")
+          sha=$(node -p "require('./$models').source.commit.slice(0, 7)")
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git switch -c "$branch"
-          git add content/models.json
+          git add "$models"
           git commit -m "Weekly refresh: Copilot models @ github/docs $sha"
           git push --force origin "$branch"
 
@@ -99,7 +105,7 @@ jobs:
             echo "Refreshes the Model Market's models from GitHub Docs' Copilot tables at [\`$sha\`](https://github.com/github/docs/tree/$sha/data/tables/copilot) (docs/specs/MODEL-MARKET.md §4)."
             echo
             echo '```diff'
-            git diff HEAD~1 HEAD -- content/models.json | grep -E '^[+-] +"(name|category|ga)"' || true
+            git diff HEAD~1 HEAD -- "$models" | grep -E '^[+-] +"(name|category|ga)"' || true
             echo '```'
             echo
             echo "### Checks"

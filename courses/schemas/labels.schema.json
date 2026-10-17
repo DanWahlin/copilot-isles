@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Chart labels (content/labels.json)",
+  "title": "A course pack's chart labels (courses/<id>/labels.json)",
   "description": "What you learn at an island, a puzzle or a sea battle, and why, with its course chapter. docs/specs/LOWER-THIRDS.md, docs/content-data.md.",
   "type": "object",
   "additionalProperties": false,

@@ -1,10 +1,10 @@
-import data from '../../../content/labels.json';
+import { onCourse } from '../../course/active';
 import type { SourceRef } from '../types';
 
 /**
  * Chart labels (docs/specs/LOWER-THIRDS.md): the parchment label that says what you'll learn at an
- * island or a puzzle and why, with its course chapter. The text lives in `content/labels.json` so the
- * highlight reel can read the same data; the keys match the reel's `lowerThird`.
+ * island or a puzzle and why, with its course chapter. The text lives in the course pack's
+ * `labels.json` so the highlight reel can read the same data; the keys match the reel's `lowerThird`.
  */
 export interface ChartLabelText {
   /** Where the game shows it: over an island's arrival, when a puzzle opens, or when a battle starts. */
@@ -25,10 +25,14 @@ export interface ChartLabelText {
   source: SourceRef;
 }
 
-/** Every label's id, from the JSON's keys (`arrival:<island>`, `puzzle:<id>`, `battle:<plan id>`). */
-export type ChartLabelId = keyof typeof data.labels;
+/** A label's id: `arrival:<island>`, `puzzle:<id>`, `battle:<plan id>`. */
+export type ChartLabelId = string;
 
-export const CHART_LABELS = data.labels as Readonly<Record<ChartLabelId, ChartLabelText>>;
+/** The active course's labels (empty until a voyage loads the course pack). */
+export let CHART_LABELS: Readonly<Record<ChartLabelId, ChartLabelText>> = {};
+onCourse((p) => {
+  CHART_LABELS = p.labels;
+});
 
 /** A label by a computed id (a puzzle's or a battle's), or null if it has none. */
 export function chartLabel(id: string): ChartLabelText | null {

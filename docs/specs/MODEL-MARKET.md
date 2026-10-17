@@ -72,7 +72,7 @@ token, no REST API):
 - `data/tables/copilot/model-comparison.yml`: `task_area`, `excels_at`.
 
 It keeps **Claude, GPT and MAI** models only (`anthropic` + "Claude…", `openai` + "GPT…", `microsoft` +
-"MAI-…"), one row per model (the pricing table has a row per price tier), and writes `content/models.json`:
+"MAI-…"), one row per model (the pricing table has a row per price tier), and writes `courses/copilot-app/models.json`:
 
 ```json
 { "source": { "repo": "github/docs", "path": "data/tables/copilot", "commit": "<sha>", "fetchedAt": "<iso>" },
@@ -84,7 +84,7 @@ Sorted by category (small to large), then name. **No prices:** the game's prices
 The file only changes when the models do: a new docs commit with the same models leaves it alone.
 `--check` exits 1 if the file would change (no writes). `--from=<dir>` reads the two files from a folder.
 
-The game imports `content/models.json` at build time (`src/game/market/models.ts`), so a merged sync PR ships the
+The game imports `courses/copilot-app/models.json` at build time (`src/game/market/models.ts`), so a merged sync PR ships the
 new names with the next deploy.
 
 ### 4.2 The board rule
@@ -105,13 +105,13 @@ Claude Opus 5.5, Claude Fable 5.1 (+8).
 
 ### 4.3 A model that leaves the list
 
-A hire is saved as its category and name (`MarketHire`). If the name isn't in `content/models.json` any more, the
+A hire is saved as its category and name (`MarketHire`). If the name isn't in `courses/copilot-app/models.json` any more, the
 save still loads and the game calls it "a Powerful model" (`savedHireName`).
 
 ### 4.4 The workflow
 
 `.github/workflows/models-refresh.yml` runs `npm run models:sync` every Monday (the course refresh's schedule) and
-on demand. If `content/models.json` changed, it runs the checks (the content check, typecheck, lint, format, unit
+on demand. If `courses/copilot-app/models.json` changed, it runs the checks (the content check, typecheck, lint, format, unit
 tests, build, budgets, secrets) and opens or updates **one PR**, "Weekly refresh: Copilot models". Nothing auto-merges. It uses
 only `GITHUB_TOKEN` (the repository setting "Allow GitHub Actions to create and approve pull requests" is already
 needed by the course refresh). It's a separate workflow because the course refresh only runs when the course
@@ -136,7 +136,7 @@ builds that commit and deploys it (it can still be run by hand).
 | Quick look | Auto; Lightweight on Low or Default | Versatile or Powerful (any effort); Lightweight on High | never |
 | Hard job | Powerful on Default or High; Versatile on High | never | Auto (its effort is hidden); Lightweight (any); Versatile on Low or Default; Powerful on Low |
 
-Each outcome quotes the course word for word (a unit test finds every quote in `public/course/ch01/README.md`):
+Each outcome quotes the course word for word (a unit test finds every quote in `courses/copilot-app/public/course/ch01/README.md`):
 
 - Overspent: "Models differ in capabilities, speed, and usage cost." or "Higher effort can help with complex
   problems, but can take longer.", and the job's sentence.
@@ -155,11 +155,11 @@ keeps the model on High. After Auto: Powerful on Default, or Versatile on High. 
 starfish), but you don't pick the job again.
 
 All the quotes are in `CH01.cited` (`market.job.*`, `market.quote.*`) and Gilda's teaching lines in `CH01.voiced`
-(from their `source` in `content/market.json`), so the drift report flags them if the course moves on.
+(from their `source` in `courses/copilot-app/market.json`), so the drift report flags them if the course moves on.
 
 **The data is JSON:** the jobs, the prices, refunds and doubloons, the effort levels, the board rule's numbers, the
-stamps, the course quotes and Gilda's lines are in `content/market.json` ([content-data.md](../content-data.md)),
-checked against `content/schemas/market.schema.json`. The grading above stays in code (`src/game/market/jobs.ts`).
+stamps, the course quotes and Gilda's lines are in `courses/copilot-app/market.json` ([content-data.md](../content-data.md)),
+checked against `courses/schemas/market.schema.json`. The grading above stays in code (`src/game/market/jobs.ts`).
 
 ## 6. The overlay (UI 2, `src/ui/puzzles/ModelMarket.tsx`)
 
@@ -195,14 +195,14 @@ the work order while she says it (the HUD's caption steps aside for it). Phones:
 ## 8. Voice
 
 Gilda: ElevenLabs Voice Library "Caty – Calm & whimsical" (`5DTSWAtuA2BoWMSMFTRP`), English with an Italian accent
-(the town's Mediterranean cast). Lines `mer.market.*` in `tools/voice/lines.testcove.json`.
+(the town's Mediterranean cast). Lines `mer.market.*` in `courses/copilot-app/voice/lines.json`.
 
 ## 9. Tests
 
 - `src/game/market/market.test.ts`: the sync's parsing and filtering (fixture in `tools/models/fixtures/`), the
-  board rule, `content/models.json`, prices, every job's grades, refunds, Retry, the purse (earn, spend, never
+  board rule, `courses/copilot-app/models.json`, prices, every job's grades, refunds, Retry, the purse (earn, spend, never
   below 0, old-save migration), saved hires (a model that left the list), and that every quote is the course's.
-- `src/content/content.test.ts`: `content/market.json` against its schema; every quote word for word in its
+- `src/content/content.test.ts`: `courses/copilot-app/market.json` against its schema; every quote word for word in its
   cited section of the snapshot, every anchor and hash in the lock; Gilda's captions the same as her voice lines
   and their audio; the economy (prices 1-4, bigger models cost more, a refund never more than the hire, enough
   starfish on Anchorage and Meridian for every job); and that broken edits are reported by entry.

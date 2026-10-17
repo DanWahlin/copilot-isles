@@ -1,0 +1,174 @@
+{
+  "$schema": "../schemas/course.schema.json",
+  "id": "copilot-app",
+  "version": 1,
+  "title": "GitHub Copilot app for Beginners",
+  "tagline": "Learn the GitHub Copilot app, one island at a time",
+  "description": "Learn the GitHub Copilot app: set it up, tour it, run sessions in worktrees, and on through workflows, skills, MCP, canvases and automations.",
+  "language": "en",
+  "source": {
+    "kind": "github",
+    "repo": "github/copilot-app-for-beginners",
+    "ref": "main",
+    "license": "MIT",
+    "copyright": "© GitHub, Inc.",
+    "chapters": [
+      {
+        "id": "00-setup",
+        "short": "ch00",
+        "title": "Setup"
+      },
+      {
+        "id": "01-tour-the-app",
+        "short": "ch01",
+        "title": "Tour the App"
+      },
+      {
+        "id": "02-sessions-worktrees-context",
+        "short": "ch02",
+        "title": "Sessions, Worktrees, and Context"
+      },
+      {
+        "id": "03-development-workflows",
+        "short": "ch03",
+        "title": "Development and GitHub Workflows"
+      },
+      {
+        "id": "04-skills-custom-agents",
+        "short": "ch04",
+        "title": "Skills and Custom Agents"
+      },
+      {
+        "id": "05-mcp-plugins",
+        "short": "ch05",
+        "title": "MCP Servers and Plugins"
+      },
+      {
+        "id": "06-canvases",
+        "short": "ch06",
+        "title": "Canvases"
+      },
+      {
+        "id": "07-automations",
+        "short": "ch07",
+        "title": "Automations"
+      }
+    ]
+  },
+  "islands": [
+    {
+      "island": "anchorage",
+      "chapter": "00-setup",
+      "label": "00 · Setup",
+      "minutes": 20,
+      "seal": "Seal of Anchorage",
+      "topics": [
+        "Install the app and sign in",
+        "Add your fork and start a project session",
+        "Check your tools in Terminal",
+        "Add the course practice items"
+      ],
+      "arrival": {
+        "eyebrow": "Chapter 00 · Setup",
+        "line": "Set up the GitHub Copilot app and earn your first Seal"
+      }
+    },
+    {
+      "island": "meridian",
+      "chapter": "01-tour-the-app",
+      "label": "01 · Tour the App",
+      "minutes": 30,
+      "topics": [
+        "Why the app, not just your editor or CLI",
+        "Key features, Chats, and settings",
+        "Interactive, Plan, and Autopilot modes",
+        "Picking a model and reasoning effort"
+      ],
+      "arrival": {
+        "eyebrow": "Chapter 01 · Tour the App",
+        "line": "Find your way around the GitHub Copilot app"
+      }
+    },
+    {
+      "island": "thousand-bough",
+      "chapter": "02-sessions-worktrees-context",
+      "label": "02 · Sessions, Worktrees & Context",
+      "minutes": 30,
+      "topics": [
+        "Worktree-backed sessions from a branch",
+        "Why isolation protects your main branch",
+        "Adding context with @, #, and /",
+        "Current checkout, worktree, or cloud sandbox"
+      ],
+      "arrival": {
+        "eyebrow": "Chapter 02 · Sessions, Worktrees & Context",
+        "line": "Give every task its own treehouse"
+      }
+    },
+    {
+      "island": "keelhaven",
+      "chapter": "03-development-workflows",
+      "label": "03 · Dev & GitHub Workflows",
+      "minutes": 75,
+      "topics": [
+        "Review panel, tests, and browser preview",
+        "Regression tests and the rubber duck agent",
+        "Issues and Pull requests: from issue to pull request",
+        "Fixing review comments and failing checks"
+      ]
+    },
+    {
+      "island": "guildcrest",
+      "chapter": "04-skills-custom-agents",
+      "label": "04 · Skills & Custom Agents",
+      "minutes": 60,
+      "topics": [
+        "Instructions vs. skills vs. custom agents",
+        "Updating the book-app-reviewer skill",
+        "A read-only custom agent",
+        "Validating a skill-guided change"
+      ]
+    },
+    {
+      "island": "sunspire",
+      "chapter": "05-mcp-plugins",
+      "label": "05 · MCP Servers & Plugins",
+      "minutes": 45,
+      "topics": [
+        "What an MCP server is, and how it differs from a plugin",
+        "Connecting a server and checking its tools",
+        "Installing a plugin and using its skill",
+        "Reviewing permissions and tool activity"
+      ]
+    },
+    {
+      "island": "inkwell",
+      "chapter": "06-canvases",
+      "label": "06 · Canvases",
+      "minutes": 80,
+      "topics": [
+        "When a long chat thread gets in the way",
+        "A session board with /create-canvas",
+        "Keeping the plan and evidence visible"
+      ]
+    },
+    {
+      "island": "tidewheel",
+      "chapter": "07-automations",
+      "label": "07 · Automations",
+      "minutes": 50,
+      "topics": [
+        "When to automate recurring agent work",
+        "On-demand local automations",
+        "Schedules and run history",
+        "Event triggers and cloud automations"
+      ]
+    }
+  ],
+  "practice": {
+    "issue": 3,
+    "issueTitle": "Improve the empty state copy",
+    "branch": "practice-empty-state-copy",
+    "repoName": "copilot-app-for-beginners"
+  }
+}

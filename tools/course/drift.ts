@@ -1,6 +1,7 @@
 /**
- * Course drift report (PLAN §8.4 step 4). Compares authored content's `SourceRef`s and course images
- * against `content/course.lock.json` and lists everything the course moved underneath:
+ * Course drift report (PLAN §8.4 step 4). Compares a course pack's authored `SourceRef`s and course
+ * images against its `lock.json` (`--course=<id>`, default copilot-app) and lists everything the
+ * course moved underneath:
  *
  * - quizzes, Logbook pages, and voiced lines (and cited puzzle text) whose source section changed or disappeared,
  * - pinned screenshots (hotspot rects, captions) whose upstream file changed, with before/after
@@ -15,12 +16,11 @@
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { CHAPTERS, IMAGES, PAGES, QUIZZES } from '../../src/learn/content/index';
+import { activateCourseFromDisk, coursePaths, DEFAULT_COURSE } from '../course-pack/read';
 import type { CourseLock } from '../../src/learn/course/lock';
 import type { SourceRef } from '../../src/learn/types';
 
-const root = fileURLToPath(new URL('../..', import.meta.url));
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
     const [k, ...v] = a.replace(/^--/, '').split('=');
@@ -28,12 +28,15 @@ const args = Object.fromEntries(
   }),
 ) as Record<string, string | undefined>;
 
-const lock = JSON.parse(await readFile(join(root, 'content/course.lock.json'), 'utf8')) as CourseLock;
+const course = args.course && args.course !== 'true' ? args.course : DEFAULT_COURSE;
+const pack = activateCourseFromDisk(course);
+const paths = coursePaths(course);
+const lock = JSON.parse(await readFile(paths.lock, 'utf8')) as CourseLock;
 const previous =
   args.previous && existsSync(args.previous)
     ? (JSON.parse(await readFile(args.previous, 'utf8')) as CourseLock)
     : null;
-const voice = JSON.parse(await readFile(join(root, 'tools/voice/lines.testcove.json'), 'utf8')) as {
+const voice = JSON.parse(await readFile(paths.lines, 'utf8')) as {
   lines: { id: string; text: string }[];
 };
 const voiceText = new Map(voice.lines.map((l) => [l.id, l.text]));
@@ -60,7 +63,7 @@ for (const c of CHAPTERS)
 const lines: string[] = [];
 const say = (s = '') => lines.push(s);
 const short = (s?: string) => (s ? s.slice(0, 7) : 'none');
-const COURSE = 'https://github.com/github/copilot-app-for-beginners';
+const COURSE = `https://github.com/${pack.meta.source.repo}`;
 
 say(`## Course drift report`);
 say();
@@ -135,7 +138,7 @@ if (args.report && drifted.length) {
       if (!img.upstream || !existsSync(after)) continue;
       const w = 900;
       const [a, b] = await Promise.all(
-        [join(root, 'public', src), after].map((f) =>
+        [join(paths.public, src), after].map((f) =>
           sharp(f).resize({ width: w }).png().toBuffer({ resolveWithObject: true }),
         ),
       );
@@ -170,7 +173,7 @@ const glossaryTerms = (l: CourseLock | null) =>
   new Set(Object.values(l?.glossary.terms ?? {}).flatMap((t) => [t.title, ...(t.terms ?? [])]));
 const readme = new Map<string, string>();
 for (const [id, ch] of Object.entries(lock.chapters)) {
-  const f = join(root, 'public/course', ch!.short, 'README.md');
+  const f = join(paths.snapshot, ch!.short, 'README.md');
   if (existsSync(f)) readme.set(id, await readFile(f, 'utf8'));
 }
 

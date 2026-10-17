@@ -1,24 +1,12 @@
-import data from '../../content/course-boards.json';
-import type { IslandId } from '../game/arrivals';
-import type { ChapterId } from '../learn/course/chapters';
+import { onCourse } from '../course/active';
 
 /**
- * The typed view of `content/course-boards.json` (docs/content-data.md, docs/specs/COURSE-BOARDS.md):
- * each island's board (its chapter and where it stands), the header and pin text, and the `##`
- * sections that aren't topics. The topics come from content/course.lock.json. It's part of the build,
- * so a merged edit ships with the next deploy; `src/content/content.test.ts` validates it.
+ * The typed view of a course pack's `boards.json` (docs/content-data.md, docs/specs/COURSE-BOARDS.md):
+ * the header and pin text, and the `##` sections that aren't topics. Which chapter an island's board
+ * shows is the island's chapter in the pack's `course.json`, where it stands is the game's
+ * (src/world/islands/course-boards.ts), and the topics come from the pack's `lock.json`.
+ * `src/content/content.test.ts` validates it.
  */
-
-/** Where a board stands: `y` is the ground under it, `rot` its yaw (it faces local +z). */
-export interface CourseBoardPlacement {
-  chapter: ChapterId;
-  /** Where it is, in words (for people editing the file). */
-  where: string;
-  x: number;
-  y: number;
-  z: number;
-  rot: number;
-}
 
 export interface CourseBoardPinData {
   /** The chapter's README, or the course's home. */
@@ -37,10 +25,17 @@ export interface CourseBoardsData {
   header: { sign: readonly string[]; kicker: string };
   pins: readonly CourseBoardPinData[];
   skip: { anchors: readonly string[]; titlePrefixes: readonly string[] };
-  islands: Readonly<Record<IslandId, CourseBoardPlacement>>;
 }
 
-export const COURSE_BOARDS_DATA = data as unknown as CourseBoardsData;
+/** The active course's board text (empty until a voyage loads the course pack). */
+export let COURSE_BOARDS_DATA: CourseBoardsData = {
+  header: { sign: [], kicker: '' },
+  pins: [],
+  skip: { anchors: [], titlePrefixes: [] },
+};
+onCourse((p) => {
+  COURSE_BOARDS_DATA = p.boards;
+});
 
 /** Fills `{num}` and `{title}` in the file's text. */
 export function boardText(template: string, b: { num: string; title: string }): string {

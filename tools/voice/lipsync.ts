@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { courseArg, coursePaths } from '../course-pack/read';
 
 type MouthShape = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'X';
 type Expression = 'neutral' | 'happy' | 'concerned' | 'surprised';
@@ -60,7 +61,9 @@ interface RhubarbOutput {
 const exec = promisify(execFile);
 const root = fileURLToPath(new URL('../..', import.meta.url));
 const cacheDir = join(root, '.tools', 'voice-cache');
-const outDir = join(root, 'public', 'voice', 'testcove');
+/** The course pack whose lines to time (`--course <id>`, default copilot-app). */
+const course = courseArg();
+const { voice: outDir, lines: linesPath } = coursePaths(course);
 const rhubarb = join(root, '.tools', 'rhubarb', 'rhubarb');
 const shapeSet = new Set<string>(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'X']);
 
@@ -120,9 +123,7 @@ async function main(): Promise<void> {
   });
   await mkdir(cacheDir, { recursive: true });
   const manifest = JSON.parse(await readFile(join(outDir, 'manifest.json'), 'utf8')) as VoiceManifest;
-  const linesFile = JSON.parse(
-    await readFile(join(root, 'tools', 'voice', 'lines.testcove.json'), 'utf8'),
-  ) as LinesFile;
+  const linesFile = JSON.parse(await readFile(linesPath, 'utf8')) as LinesFile;
   const textById = new Map(linesFile.lines.map((line) => [line.id, line.text]));
   // Wingman is a parrot with a beak, not a painted face.
   const wanted = manifest.lines.filter((line) => line.speaker !== 'Wingman');
@@ -160,7 +161,7 @@ async function main(): Promise<void> {
   await exec(join(root, 'node_modules', '.bin', 'prettier'), ['--write', outPath], { cwd: root });
   const size = (await stat(outPath)).size;
   console.log(
-    `Wrote public/voice/testcove/lipsync.json (${(size / 1024).toFixed(1)} KB, ${wanted.length} lines).`,
+    `Wrote courses/${course}/public/voice/lipsync.json (${(size / 1024).toFixed(1)} KB, ${wanted.length} lines).`,
   );
 }
 

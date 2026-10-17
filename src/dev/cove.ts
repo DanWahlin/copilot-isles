@@ -14,6 +14,10 @@ import {
   showSkyReadouts,
 } from './harness';
 import { auditCoplanar, type CoplanarAuditOptions } from './coplanar-audit';
+import { activateCourse } from '../course/load';
+
+// The course pack the page's content comes from (a voyage loads it the same way).
+await activateCourse();
 
 /** Test Cove dev page: every world module together under the shared sky (?webgl, ?tier=, ?tm=). */
 const h = await createDevHarness();

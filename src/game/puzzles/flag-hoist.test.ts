@@ -8,7 +8,9 @@ import {
   rightPick,
   type HoistReason,
 } from './flag-hoist';
-import { CH02 } from '../../learn/content/ch02';
+import { CHAPTERS } from '../../learn/content/index';
+
+const CH02 = CHAPTERS.find((c) => c.chapter === '02-sessions-worktrees-context')!;
 
 describe('Flag Hoist (P2.3)', () => {
   it('has one flag per context symbol', () => {

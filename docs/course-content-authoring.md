@@ -1,34 +1,36 @@
 # How to author a chapter against CourseSource
 
-This page is for anyone who writes an island's teaching content (`src/learn/content/chNN.ts`). It
-explains how authored content points at the course, so the game can show live course text and the
-weekly refresh can tell you when the course changed under your content. The design is in
-`.plans/PLAN.md` §8.
+This page is for anyone who writes an island's teaching content: a course pack's
+`courses/<id>/chapters/<chapter>.json` and `quests/<island>.json` ([COURSE-PACKS.md](specs/COURSE-PACKS.md),
+[content-data.md](content-data.md)). It explains how authored content points at the course, so the
+game can show live course text and the weekly refresh can tell you when the course changed under your
+content. The design is in `.plans/PLAN.md` §8.
 
 ## What is live and what you author
 
 - **Live (you don't write it):** "From the course" excerpts on Logbook pages and chest scrolls, the
   course's own caption under spyglass pictures, the course glossary entries in the Logbook, and the
   pictures on Logbook pages. `CourseSource` (`src/learn/course/source.ts`) reads them from
-  `raw.githubusercontent.com` and falls back to the bundled snapshot in `public/course/**`.
+  `raw.githubusercontent.com` and falls back to the pack's bundled snapshot in
+  `courses/<id>/public/course/**`.
 - **Authored (you write it):** dialogue, voiced lines, quizzes, hotspot rects, Logbook page titles
   and captions, glossary terms, and quests. Paraphrase the course in the game's voice. Don't copy
   course text: the live excerpt shows the course's exact words beside your caption.
-- **Data (JSON in `content/`):** the Model Market's jobs, prices and course quotes, the course
-  notice boards, and the chart labels. See [content-data.md](content-data.md) for each file, its
-  schema and checks, and how a change reaches players.
+- **The rest of the pack:** the Model Market's jobs, prices and course quotes, the course notice
+  boards, and the chart labels. See [content-data.md](content-data.md) for each file, its schema and
+  checks, and how a change reaches players.
 
 ## 1. Get the chapter into the snapshot
 
 Chapters 00, 01 and 02 are in the snapshot. For another chapter:
 
 ```bash
-node tools/course/sync.mjs --chapters=00,01,02,03
+node tools/course/sync.mjs --course=copilot-app --chapters=00,01,02,03
 ```
 
-This copies the chapter's `README.md` and every image it shows into `public/course/chNN/`
-(byte-for-byte), and adds the chapter to `content/course.lock.json`. It never calls the GitHub REST
-API.
+This copies the chapter's `README.md` and every image it shows into the pack's
+`public/course/chNN/` (byte-for-byte), and adds the chapter to the pack's `lock.json`. It never calls
+the GitHub REST API. The chapter must be in `course.json` → `source.chapters`.
 
 ## 2. List the anchors and hashes
 
@@ -36,78 +38,78 @@ API.
 npm run course:refs -- 02
 ```
 
-The output has one line per README heading, ready to paste:
+The output has one line per README heading, ready to paste as a `source`:
 
 ```text
-const src = courseRefs('02-sessions-worktrees-context');
+02-sessions-worktrees-context (Sessions, Worktrees, and Context) @ 1ba934e: a "source" for each section
 
-src('what-is-a-git-worktree', '4ccaddd0c3f4')  // What Is a Git Worktree?
+{"chapter":"02-sessions-worktrees-context","anchor":"what-is-a-git-worktree","hash":"4ccaddd0c3f4"}  // What Is a Git Worktree?
 ...
 Images the chapter shows (src · hash):
   course/ch02/app-where-sessions-run.webp · d975962f610a
 ```
 
-## 3. Write the content with `SourceRef`s
+## 3. Write the content with `source`s
 
-```ts
-import { courseRefs } from '../course/refs';
-import type { ChapterContent } from '../types';
+`chapters/02-sessions-worktrees-context.json` (abridged):
 
-const ch = '02-sessions-worktrees-context' as const;
-const src = courseRefs(ch);
-
-export const CH02: ChapterContent = {
-  chapter: ch,
-  images: [
+```json
+{
+  "$schema": "../../schemas/chapter.schema.json",
+  "chapter": "02-sessions-worktrees-context",
+  "images": [
     {
-      id: 'ch02/app-where-sessions-run',
-      src: 'course/ch02/app-where-sessions-run.webp',
-      hash: 'd975962f610a', // from course:refs: the file your alt text and rects describe
-      width: 1920,
-      height: 1080,
-      alt: '…',
-    },
+      "id": "ch02/app-where-sessions-run",
+      "src": "course/ch02/app-where-sessions-run.webp",
+      "hash": "d975962f610a",
+      "width": 1920,
+      "height": 1080,
+      "alt": "…"
+    }
   ],
-  quizzes: [
+  "quizzes": [
     {
-      id: 'M2.1',
-      type: 'mc',
-      // …
-      source: src('what-is-a-git-worktree', '4ccaddd0c3f4'),
+      "id": "M2.1",
+      "type": "mc",
+      "source": { "chapter": "02-sessions-worktrees-context", "anchor": "what-is-a-git-worktree", "hash": "4ccaddd0c3f4" }
     },
     {
-      id: 'H2.1',
-      type: 'hotspot',
-      image: 'ch02/app-where-sessions-run',
-      // …
-      // Hotspot quizzes also record the screenshot they were measured on.
-      source: src('where-a-session-runs', 'a55a83c1ff55', {
-        src: 'course/ch02/app-where-sessions-run.webp',
-        hash: 'd975962f610a',
-      }),
-    },
+      "id": "H2.1",
+      "type": "hotspot",
+      "image": "ch02/app-where-sessions-run",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "where-a-session-runs",
+        "hash": "a55a83c1ff55",
+        "image": { "src": "course/ch02/app-where-sessions-run.webp", "hash": "d975962f610a" }
+      }
+    }
   ],
-  pages: [
-    // A page's `source` picks its "From the course" excerpt and its "Open in the course ↗" link.
-    { id: 'pg2.worktree', title: '…', image: 'ch02/…', caption: '…', source: src('what-is-a-git-worktree', '4ccaddd0c3f4') },
+  "pages": [
+    { "id": "pg2.worktree", "title": "…", "image": "ch02/…", "caption": "…", "source": { "…": "…" } }
   ],
-  // The course section each voiced teaching line paraphrases (ids from tools/voice/lines.*.json).
-  // Leave out banter and directions.
-  voiced: {
-    'thb.guide.01': src('what-is-a-git-worktree', '4ccaddd0c3f4'),
+  "voiced": {
+    "thb.guide.01": { "chapter": "02-sessions-worktrees-context", "anchor": "what-is-a-git-worktree", "hash": "4ccaddd0c3f4" }
   },
-  // Unvoiced teaching copy (for example, a puzzle's wrong-choice reason).
-  cited: {
-    'P2.3.order.1.#': {
-      text: '`#` brings issues and pull requests. A folder comes with `@`.',
-      source: src('context-syntax', 'e41d9116c6a3'),
-    },
-  },
-  // …chests, glossary, trials
-};
+  "cited": {
+    "P2.3.order.1.#": {
+      "text": "`#` brings issues and pull requests. A folder comes with `@`.",
+      "source": { "chapter": "02-sessions-worktrees-context", "anchor": "context-syntax", "hash": "e41d9116c6a3" }
+    }
+  }
+}
 ```
 
-Then add the chapter to `CHAPTERS` in `src/learn/content/index.ts`.
+- An image's `hash` is the file your alt text and rects describe (from `course:refs`). Hotspot quizzes
+  also record the screenshot they were measured on (`source.image`).
+- A page's `source` picks its "From the course" excerpt and its "Open in the course ↗" link.
+- `voiced` maps each voiced teaching line (ids from the pack's `voice/lines.json`) to the section it
+  paraphrases. Leave out banter and directions.
+- `cited` holds unvoiced teaching copy (for example, a puzzle's wrong-choice reason), keyed
+  `<puzzle>.<id>`.
+
+The game reads every file in `chapters/`, in file-name order: a new chapter is a new file. Quests and
+scripts that use the chapter go in the island's `quests/<island>.json`.
 
 Rules:
 
@@ -116,9 +118,9 @@ Rules:
 - **Every image that authored content uses is pinned.** Sync never overwrites it, because your rects,
   alt text and captions describe that exact file. Hotspot quizzes always show the pinned file;
   Logbook pages and spyglass views show the live picture while the course still shows it.
-- **Anchors must exist.** `src/learn/course/refs.test.ts` checks every quiz, page, voiced-line and
-  cited-text `SourceRef` against the snapshot, every image hash against its file, and every `voiced`
-  id against the voice lines.
+- **Anchors must exist.** `npm run content:check` and `src/learn/course/refs.test.ts` check every
+  quiz, page, voiced-line and cited-text `source` against the snapshot, every image hash against its
+  file, every id a script uses, and every `voiced` id against the voice lines.
 - **Teaching accuracy still applies:** paraphrase, keep the course's UI names exactly (**New**,
   **Current checkout**…), and don't invent app UI names.
 

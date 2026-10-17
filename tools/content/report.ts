@@ -1,7 +1,7 @@
 /**
- * Checks the content files and reports (docs/content-data.md):
+ * Checks a course pack and reports (docs/content-data.md):
  *
- *   npm run content:check -- [--previous=<old course.lock.json>] [--out=<report.md>] [--report-only]
+ *   npm run content:check -- [--course=<id>] [--previous=<old lock.json>] [--out=<report.md>] [--report-only]
  *
  * Prints every issue (file, JSON path, what to change) and each course notice board's topics, with
  * what changed since `--previous` (the weekly course refresh passes the lock from before its sync).
@@ -9,13 +9,12 @@
  */
 import { appendFile, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import type { CourseMeta } from '../../src/course/catalog';
 import type { CourseBoardsData } from '../../src/content/course-boards';
 import type { CourseLock } from '../../src/learn/course/lock';
-import { boardChanges, checkContent } from './check';
+import { coursePaths, DEFAULT_COURSE, ROOT as root } from '../course-pack/read';
+import { boardChanges, checkBoardSpots, checkContent, courseBoardIslands } from './check';
 
-const root = fileURLToPath(new URL('../..', import.meta.url));
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
     const [k, ...v] = a.replace(/^--/, '').split('=');
@@ -23,14 +22,23 @@ const args = Object.fromEntries(
   }),
 ) as Record<string, string | undefined>;
 
+const course = args.course && args.course !== 'true' ? args.course : DEFAULT_COURSE;
+const paths = coursePaths(course);
 const readJson = async <T>(p: string): Promise<T> => JSON.parse(await readFile(p, 'utf8')) as T;
-const issues = checkContent(root);
+const issues = [
+  ...checkContent(root, {}, course),
+  ...checkBoardSpots().map((s) => ({
+    file: 'src/world/islands/course-boards.ts',
+    path: s.island,
+    message: s.message,
+  })),
+];
 
 const lines: string[] = [];
 const say = (s = '') => lines.push(s);
-say('## Content data check');
+say(`## Content data check: \`courses/${course}/\``);
 say();
-if (!issues.length) say('Every file in `content/` passed its schema and the content checks.');
+if (!issues.length) say(`Every file in \`courses/${course}/\` passed its schema and the content checks.`);
 else {
   say(
     `**${issues.length} ${issues.length === 1 ? 'entry needs' : 'entries need'} an edit** (how: \`docs/content-data.md\`):`,
@@ -46,13 +54,15 @@ say();
 // The boards follow the course lock by themselves; this lists what they'll show after this sync.
 let boards: CourseBoardsData | null = null;
 let lock: CourseLock | null = null;
+let meta: CourseMeta | null = null;
 try {
-  boards = await readJson<CourseBoardsData>(join(root, 'content/course-boards.json'));
-  lock = await readJson<CourseLock>(join(root, 'content/course.lock.json'));
+  boards = await readJson<CourseBoardsData>(paths.boards);
+  lock = await readJson<CourseLock>(paths.lock);
+  meta = await readJson<CourseMeta>(paths.course);
 } catch {
   // checkContent already reported the broken file.
 }
-if (boards && lock) {
+if (boards && lock && meta) {
   const previous =
     args.previous && existsSync(args.previous) ? await readJson<CourseLock>(args.previous) : null;
   say('### Course notice boards');
@@ -63,7 +73,7 @@ if (boards && lock) {
       : 'Topics come from the course lock, so each board follows the course on the next build:',
   );
   say();
-  for (const b of boardChanges(boards, lock, previous)) {
+  for (const b of boardChanges(courseBoardIslands(meta), boards.skip, lock, previous)) {
     const changes = [...b.added.map((t) => `+ ${t}`), ...b.removed.map((t) => `− ${t}`)];
     say(
       `- **${b.island}** (${b.chapter}, ${b.topics.length} topics): ${b.topics.map((t) => t.title).join(' · ') || '(none)'}${previous ? (changes.length ? `. **Changed:** ${changes.join(', ')}` : '. No change.') : ''}`,

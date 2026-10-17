@@ -14,16 +14,16 @@
 import fs from 'node:fs';
 
 /**
- * The game's chart labels (content/labels.json, docs/specs/LOWER-THIRDS.md §10): the puzzle and
+ * The game's chart labels (courses/copilot-app/labels.json, docs/specs/LOWER-THIRDS.md §10): the puzzle and
  * battle cards read their text from there, so the reel and the game can't drift. Only the text keys
  * are taken (the file's `game` and `source` fields are for the game).
  */
 const { labels } = JSON.parse(
-  fs.readFileSync(new URL('../../../content/labels.json', import.meta.url), 'utf8'),
+  fs.readFileSync(new URL('../../../courses/copilot-app/labels.json', import.meta.url), 'utf8'),
 );
 const label = (id) => {
   const l = labels[id];
-  if (!l) throw new Error(`content/labels.json has no "${id}"`);
+  if (!l) throw new Error(`courses/copilot-app/labels.json has no "${id}"`);
   const { k, t, b, ch, c, chLine } = l;
   return { k, t, b, ch, c, ...(chLine ? { chLine } : {}) };
 };
@@ -98,7 +98,7 @@ export default {
         t: 'Start a session from a branch',
         b: 'Pick your branch under Create from, and every session gets its own new worktree.',
         ch: '02',
-        // The course's section (src/learn/content/ch02.ts `exStart`, content/course.lock.json).
+        // The course's section (courses/copilot-app/chapters/02-*.json `exStart`, courses/copilot-app/lock.json).
         c: 'Exercise: Start a Session from a Branch and Attach an Issue',
         // Over the Rook part only, clear of the quiz and the Logbook page.
         part: 2,
@@ -199,7 +199,7 @@ export default {
     },
     {
       id: 'channels',
-      // What you learn here and why (tools/video/lower-third.html), from content/labels.json.
+      // What you learn here and why (tools/video/lower-third.html), from courses/copilot-app/labels.json.
       lowerThird: {
         ...label('puzzle:P2.1'),
       },

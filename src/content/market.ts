@@ -1,21 +1,23 @@
-import { chapters as LOCKED } from '../../content/course.lock.json';
-import data from '../../content/market.json';
+import { onCourse } from '../course/active';
 import type { ChapterId } from '../learn/course/chapters';
 import type { SourceRef } from '../learn/types';
 
 /**
- * The typed view of `content/market.json` (docs/content-data.md): the Model Market's prices, refunds,
- * board numbers, stamps, course quotes, jobs and Gilda's lines. It's part of the build, so a merged
- * edit ships with the next deploy. `src/content/content.test.ts` validates the file against
- * `content/schemas/market.schema.json` and checks the quotes, anchors and voice lines.
+ * The typed view of a course pack's `market.json` (docs/content-data.md): the Model Market's prices,
+ * refunds, board numbers, stamps, course quotes, jobs and Gilda's lines. It's part of the build, so a
+ * merged edit ships with the next deploy. `src/content/content.test.ts` validates the file against
+ * `courses/schemas/market.schema.json` and checks the quotes, anchors and voice lines. The Model
+ * Market teaches the Copilot app's models, so only that course has one (COURSE-PACKS.md §4); its
+ * quote and line keys are typed from that pack's file.
  */
+type MarketFile = typeof import('../../courses/copilot-app/market.json');
 
 export type ModelCategoryId = 'Lightweight' | 'Versatile' | 'Powerful';
 export type EffortId = 'low' | 'default' | 'high';
 export type JobSizeId = 'quick' | 'hard';
 export type OutcomeId = 'right' | 'over' | 'short';
 
-/** Where a course sentence is from (`hash` is the section's hash in content/course.lock.json). */
+/** Where a course sentence is from (`hash` is the section's hash in the pack's lock.json). */
 export interface CourseCite {
   chapter: ChapterId;
   anchor: string;
@@ -27,8 +29,8 @@ export interface MarketQuoteData extends CourseCite {
   text: string;
 }
 
-export type QuoteKey = keyof typeof data.quotes;
-export type GildaKey = keyof typeof data.gilda;
+export type QuoteKey = keyof MarketFile['quotes'];
+export type GildaKey = keyof MarketFile['gilda'];
 
 export interface MarketJobData {
   id: string;
@@ -41,7 +43,7 @@ export interface MarketJobData {
 }
 
 export interface GildaLineData {
-  /** The voice line's id in tools/voice/lines.testcove.json. */
+  /** The voice line's id in the pack's voice/lines.json. */
   voice: string;
   /** The caption: the voice line's text, word for word. */
   text: string;
@@ -62,9 +64,15 @@ export interface MarketData {
   gilda: Readonly<Record<GildaKey, GildaLineData>>;
 }
 
-export const MARKET = data as unknown as MarketData;
+/** The active course's market (empty until a voyage loads the course pack). */
+export let MARKET: MarketData = {} as MarketData;
 
-const locked = LOCKED as Partial<Record<ChapterId, { sections: Record<string, { title: string }> }>>;
+let locked: Partial<Record<ChapterId, { sections: Record<string, { title: string }> }>> = {};
+
+onCourse((p) => {
+  MARKET = p.market;
+  locked = p.lock.chapters;
+});
 
 /** A cited section's title in the course lock ("Models and Reasoning Effort"), or its anchor. */
 export function sectionTitle(c: CourseCite): string {

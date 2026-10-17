@@ -1,3 +1,4 @@
+import { courseVoiceBase } from '../course/catalog';
 import {
   Group,
   Vector2,
@@ -694,7 +695,7 @@ export function createOpening(o: OpeningOptions): Opening {
     if (disposed) return;
     await document.fonts?.ready;
     // Juno's lines load alongside (small: five word lists and the shared lip-sync cues).
-    void loadBriefing(new URL(`${import.meta.env.BASE_URL}voice/testcove/`, location.href).toString())
+    void loadBriefing(new URL(courseVoiceBase(), location.href).toString())
       .then((lines) => {
         if (!disposed)
           briefing = new Briefing(lines, {

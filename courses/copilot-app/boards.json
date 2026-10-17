@@ -1,0 +1,28 @@
+{
+  "$schema": "../schemas/boards.schema.json",
+  "$comment": "The course notice boards (docs/specs/COURSE-BOARDS.md, docs/content-data.md): the header and pins, and which ## sections aren't topics. Which chapter an island's board shows is the island's chapter in course.json; where it stands is the game's (src/world/islands/course-boards.ts). The topics themselves come from lock.json, so the weekly course sync keeps them current. Read from the active course pack by src/content/course-boards.ts; checked by src/content/content.test.ts and `npm run content:check`. In the text, {num} is the chapter's number (\"01\") and {title} its title in the course.",
+  "header": {
+    "sign": ["Course Notices", "Chapter {num} · {title}"],
+    "kicker": "Course notices · Chapter {num}"
+  },
+  "pins": [
+    {
+      "link": "chapter",
+      "label": "This chapter",
+      "sign": "{num} · {title}",
+      "text": "{num} · {title}",
+      "aria": "Chapter {num}, {title}"
+    },
+    {
+      "link": "home",
+      "label": "The whole course",
+      "sign": "on GitHub",
+      "text": "GitHub Copilot app for Beginners",
+      "aria": "GitHub Copilot app for Beginners"
+    }
+  ],
+  "skip": {
+    "anchors": ["prerequisites", "whats-next", "source-references"],
+    "titlePrefixes": ["The Course Theme", "From the Studio"]
+  }
+}

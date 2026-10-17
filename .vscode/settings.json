@@ -1,6 +1,7 @@
 {
   "json.schemas": [
-    { "fileMatch": ["/content/models.json"], "url": "./content/schemas/models.schema.json" },
-    { "fileMatch": ["/content/course.lock.json"], "url": "./content/schemas/course-lock.schema.json" }
+    { "fileMatch": ["/courses/*/models.json"], "url": "./courses/schemas/models.schema.json" },
+    { "fileMatch": ["/courses/*/lock.json"], "url": "./courses/schemas/lock.schema.json" },
+    { "fileMatch": ["/courses/*/voice/lines.json"], "url": "./courses/schemas/voice-lines.schema.json" }
   ]
 }

@@ -24,7 +24,7 @@ questions:
 | **Sea battle start** | The first wave starts, after the briefing (`BattleRunOptions.onStart`) | Once per save, per battle | As a puzzle's |
 
 There's **one card**: the parchment replaces the plain title card on every island. An island added later
-without a `label` keeps the plain card. A puzzle without a label in `content/labels.json` shows nothing.
+without a `label` keeps the plain card. A puzzle without a label in `courses/copilot-app/labels.json` shows nothing.
 
 **The puzzles** (POC §4.5, §6.5; ISLAND-02 §5-§7): Anchorage has the Sluice & Waterwheel (P0.1) and the
 Dry-Run Crane (P0.2); Port Meridian has the Crate Yard (P1.1, "The Shipyard" in the quest log) and the
@@ -42,8 +42,8 @@ wave's quiz).
 
 ## 3. Rules
 
-- **Teaching accuracy.** Every label cites its course chapter and section (`source` in `content/labels.json`:
-  the README anchor and its hash in `content/course.lock.json`). A unit test fails when the section's hash
+- **Teaching accuracy.** Every label cites its course chapter and section (`source` in `courses/copilot-app/labels.json`:
+  the README anchor and its hash in `courses/copilot-app/lock.json`). A unit test fails when the section's hash
   moves on. Don't invent app UI names.
 - **Don't spoil a puzzle.** A label says what you'll learn, not the answer. The Spire twist asks "why are they
   stuck?", so its label doesn't say "ports" (a test checks it).
@@ -55,9 +55,9 @@ wave's quiz).
 - **Never cover the subtitles.** While a label is up on a wide screen, the subtitles move up clear of it (a
   transform, measured once when it shows).
 
-## 4. Text (one source: `content/labels.json`)
+## 4. Text (one source: `courses/copilot-app/labels.json`)
 
-The file's schema is `content/schemas/labels.schema.json`; [content-data.md](../content-data.md) has how to edit
+The file's schema is `courses/schemas/labels.schema.json`; [content-data.md](../content-data.md) has how to edit
 it and how the content checks read it.
 
 | Id | Shown | Label (k) | Headline (t) | Line (b) | Chapter line | Course source (README anchor) |
@@ -143,21 +143,21 @@ At 390×844 the card ends at y ≈ 250 px; the Gate Board's sheet starts at y �
 2. **Anchorage Cay and Port Meridian arrivals:** `label` on `ANCHORAGE_ARRIVAL` (and its `fromChart` flight)
    and `MERIDIAN_ARRIVAL`, with `cardFor` 6.4 s. `tools/usertest.mjs` reads `.hud-card.show, .hud-chart.show`.
 3. **The other puzzles:** the session shows `puzzle:<id>` the first time a puzzle is `engaged()` (§2), so a new
-   puzzle only needs its text in `content/labels.json`.
+   puzzle only needs its text in `courses/copilot-app/labels.json`.
 4. **The sea battles:** `battle:<plan id>` when the first wave starts.
 
 To add an island: give its `IslandArrival` a `label`, and add `arrival:<id>` and its puzzles' `puzzle:<id>`
-texts to `content/labels.json`. The unit tests check every arrival, puzzle and battle has one, with a
+texts to `courses/copilot-app/labels.json`. The unit tests check every arrival, puzzle and battle has one, with a
 chapter that matches.
 
 ## 10. Sharing the text with the reel
 
-`content/labels.json` is plain JSON with the reel's keys (`k`, `t`, `b`, `ch`, `c`, `chLine`), so a reel can
+`courses/copilot-app/labels.json` is plain JSON with the reel's keys (`k`, `t`, `b`, `ch`, `c`, `chLine`), so a reel can
 read it without TypeScript:
 
 ```js
 import fs from 'node:fs';
-const { labels } = JSON.parse(fs.readFileSync(new URL('../../../content/labels.json', import.meta.url)));
+const { labels } = JSON.parse(fs.readFileSync(new URL('../../../courses/copilot-app/labels.json', import.meta.url)));
 // in a section: lowerThird: { ...labels['puzzle:P2.1'] },
 ```
 

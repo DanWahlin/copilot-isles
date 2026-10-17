@@ -1,4 +1,5 @@
 import { createAudio } from '../audio';
+import { courseVoiceBase } from '../course/catalog';
 import type { IslandMusic } from '../audio/music/tracks';
 import type { BedName, FootstepSurface, SurfKind } from '../audio/soundscape/soundscape';
 import type { VoiceManifest, VoiceManifestLine } from '../audio/voice/player';
@@ -155,7 +156,7 @@ function renderSubtitle(): void {
 
 async function loadVoiceButtons(): Promise<void> {
   const root = mustElement('voices');
-  const response = await fetch('/voice/testcove/manifest.json');
+  const response = await fetch(`${courseVoiceBase()}manifest.json`);
   if (!response.ok) {
     root.textContent = 'Run npx tsx tools/voice/generate.ts to create voice files.';
     return;

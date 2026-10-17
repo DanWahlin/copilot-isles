@@ -4,7 +4,8 @@ A browser 3D island adventure that teaches the **GitHub Copilot app for Beginner
 (`github/copilot-app-for-beginners`). Each chapter is an island.
 
 - **Plan:** `.plans/PLAN.md` (decisions §0, water/physics/environment §6, budgets §12, loading §13, platforms §14)
-- **Specs:** `docs/specs/PHASE-0-spike.md` (current phase), `docs/specs/POC-islands-00-01.md`
+- **Specs:** `docs/specs/PHASE-0-spike.md` (current phase), `docs/specs/POC-islands-00-01.md`,
+  `docs/specs/COURSE-PACKS.md` (course content as data)
 - **Research & reviews:** `docs/research/`, `docs/reviews/`
 
 ## Stack
@@ -30,7 +31,8 @@ npm run check:opening -- --base=http://127.0.0.1:5353  # the opening's frame gap
 npm run build && npm run check:audio  # streaming audio on Slow 4G, served like GitHub Pages (HTTP/2 by priority): fails on a music gap > 300 ms or a voiced caption without its voice (--profile=fast3g|dsl|none, --flow=islands|full, --visits=cold,warm, --tap)
 npm run check:memory -- --base=http://127.0.0.1:5353  # GPU (renderer.info, honest) + JS heap per stop of Anchorage → Meridian → Thousand-Bough → Anchorage ×2, High+Lite × WebGPU+WebGL2: fails over budgets.json `memory` ceilings, > +10 % tracked / +15 % heap back home, growth between round trips, hitches or WebGPU errors, then quits with Anchorage dormant and starts a new voyage (one Anchorage, memory as the first) (--tiers, --backends, --trips, --out)
 npm run toolchain        # installs KTX-Software into .tools/, finds Blender, verifies gltf-transform + ffmpeg
-npm run models:sync      # the Model Market's models from GitHub Docs → content/models.json (-- --check)
+npm run models:sync      # the Model Market's models from GitHub Docs → courses/copilot-app/models.json (-- --check)
+npm run content:check    # a course pack's files against courses/schemas/ and the content checks (-- --course=<id>)
 ```
 
 ## Non-negotiables
@@ -46,6 +48,10 @@ Solutions LLC, MIT, <path>@<commit>`), and the full notice goes in `THIRD_PARTY_
   once in TS, and the GPU side is built from the same TS as TSL nodes (no second shader copy).
 - **Hot loops don't allocate.** Reuse vectors/matrices, keep a fixed timestep, and after warm-up the hitch guard
   (`window.__isles.hitches()`) must stay empty.
+- **Course content is data:** every course word (quests, scripts, barks, quizzes, pages, labels, board
+  text, arrival lines, voice lines and audio, the snapshot) lives in a course pack, `courses/<id>/`
+  (docs/specs/COURSE-PACKS.md, docs/content-data.md). The game reads it through `src/course/` after a
+  voyage loads it; the title loads only `course.json`. Puzzle content stays in TypeScript until step 2.
 - **Teaching accuracy:** every teaching line cites its course chapter/section. Don't invent app UI names.
 - **Accessibility:** respect reduced motion (PLAN §9), keep keyboard/gamepad/touch parity, and use ≥ 44 px touch targets.
 - **Licensing:** log every third-party asset in `ASSETS.md` (CC0 kits, textures) and every AI-generated asset in

@@ -1,17 +1,18 @@
 /**
  * The Model Market's model list (docs/specs/MODEL-MARKET.md §4): the weekly sync
  * (tools/models/sync.mjs) reads two tables from github/docs, keeps the Claude, GPT and MAI models, and
- * writes content/models.json. The game reads that file at build time and fills each signboard with
- * the board rule below. The categories' order and the rule's numbers are in content/market.json.
- * Pure functions, no DOM: the sync loads this file through tsx.
+ * writes the course pack's models.json. The game reads that file with the course pack and fills each
+ * signboard with the board rule below. The categories' order and the rule's numbers are in the
+ * pack's market.json. Pure functions, no DOM: the sync loads this file through tsx.
  */
 import { MARKET, type ModelCategoryId } from '../../content/market';
+import { onCourse } from '../../course/active';
 
 export type ModelCategory = ModelCategoryId;
 export type ModelFamily = 'Claude' | 'GPT' | 'MAI';
 
 /** The board's order: smallest (cheapest) to largest. */
-export const CATEGORIES: readonly ModelCategory[] = MARKET.categories.map((c) => c.id);
+export let CATEGORIES: readonly ModelCategory[] = [];
 
 export interface ModelEntry {
   /** The model's name, as GitHub Docs writes it (footnote markers removed). */
@@ -148,8 +149,14 @@ export function boardOrder(models: readonly ModelEntry[]): ModelEntry[] {
 }
 
 /** How many names each signboard shows, and how many of one family it takes before it fills up. */
-export const BOARD_SIZE = MARKET.board.size;
-export const PER_FAMILY = MARKET.board.perFamily;
+export let BOARD_SIZE = 0;
+export let PER_FAMILY = 0;
+
+onCourse(() => {
+  CATEGORIES = MARKET.categories.map((c) => c.id);
+  BOARD_SIZE = MARKET.board.size;
+  PER_FAMILY = MARKET.board.perFamily;
+});
 
 /**
  * The board rule (docs/specs/MODEL-MARKET.md §4.2), in the board order (GA first, newest version

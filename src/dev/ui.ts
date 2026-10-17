@@ -8,6 +8,10 @@ import {
 } from '../ui/bridge';
 import { ARCHIPELAGO } from '../ui/chart/archipelago';
 import { mountUi } from '../ui/mount';
+import { activateCourse } from '../course/load';
+
+// The course pack the page's content comes from (a voyage loads it the same way).
+await activateCourse();
 
 class MockBridge implements GameBridge {
   private listeners = new Set<(state: UiState) => void>();

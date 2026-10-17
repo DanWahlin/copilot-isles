@@ -6,14 +6,16 @@ import { ISLAND_TIPS, TIP_SPOTS } from './island-tips';
 
 const lines = new Map(
   (
-    JSON.parse(readFileSync(join(__dirname, '../../tools/voice/lines.testcove.json'), 'utf8')) as {
+    JSON.parse(readFileSync(join(__dirname, '../../courses/copilot-app/voice/lines.json'), 'utf8')) as {
       lines: { id: string; text: string }[];
     }
   ).lines.map((l) => [l.id, l.text]),
 );
 const manifest = new Set(
   (
-    JSON.parse(readFileSync(join(__dirname, '../../public/voice/testcove/manifest.json'), 'utf8')) as {
+    JSON.parse(
+      readFileSync(join(__dirname, '../../courses/copilot-app/public/voice/manifest.json'), 'utf8'),
+    ) as {
       lines: { id: string }[];
     }
   ).lines.map((l) => l.id),

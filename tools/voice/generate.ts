@@ -8,6 +8,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { parseKeyValueEnv, redactSecretValues } from '../../src/audio/voice/env';
 import { rateFactor, wordsFromAlignment, type CharacterAlignment } from '../../src/audio/voice/alignment';
+import { courseArg, coursePaths } from '../course-pack/read';
 
 interface VoiceLineDefinition {
   readonly id: string;
@@ -61,8 +62,9 @@ interface GeneratedLine {
 const exec = promisify(execFile);
 const root = fileURLToPath(new URL('../..', import.meta.url));
 const cacheDir = join(root, '.tools', 'voice-cache');
-const outDir = join(root, 'public', 'voice', 'testcove');
-const linesPath = join(root, 'tools', 'voice', 'lines.testcove.json');
+/** The course pack whose lines to make (`--course <id>`, default copilot-app; docs/voices.md). */
+const course = courseArg();
+const { voice: outDir, lines: linesPath } = coursePaths(course);
 const requiredEnv = ['AZURE_SPEECH_KEY', 'AZURE_SPEECH_REGION'] as const;
 /** Azure synthesizes Riff24Khz16BitMonoPcm, and ElevenLabs lines ask for pcm_24000. */
 const SAMPLE_RATE = 24000;
@@ -130,7 +132,7 @@ async function main(): Promise<void> {
   if (only) {
     const previous = JSON.parse(await readFile(manifestPath, 'utf8')) as { lines: { id: string }[] };
     const byId = new Map(entries.map((entry) => [entry.id, entry]));
-    // Lines removed from lines.testcove.json drop out of the manifest too.
+    // Lines removed from the pack's voice/lines.json drop out of the manifest too.
     const live = new Set(data.lines.map((line) => line.id));
     const kept = previous.lines
       .filter((entry) => live.has(entry.id))
@@ -145,7 +147,7 @@ async function main(): Promise<void> {
   });
   if (fallbackSpeakers.size)
     console.log(`Primary voice failed for ${[...fallbackSpeakers].join(', ')}; used their fallback voices.`);
-  console.log(`Generated ${lines.length} voice lines in public/voice/testcove.`);
+  console.log(`Generated ${lines.length} voice lines in courses/${course}/public/voice.`);
 }
 
 async function loadEnv(): Promise<ReturnType<typeof parseKeyValueEnv>> {

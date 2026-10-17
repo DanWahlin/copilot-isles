@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "The Model Market's models (content/models.json)",
+  "title": "The Model Market's models (courses/<id>/models.json)",
   "description": "Written by `npm run models:sync` (tools/models/sync.mjs) from GitHub Docs' Copilot model tables. Don't edit by hand. docs/content-data.md, docs/specs/MODEL-MARKET.md §4.",
   "type": "object",
   "additionalProperties": false,

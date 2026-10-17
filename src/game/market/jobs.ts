@@ -10,14 +10,16 @@ import {
   type OutcomeId,
   type QuoteKey,
 } from '../../content/market';
+import { onCourse } from '../../course/active';
 import type { SourceRef } from '../../learn/types';
 import type { ModelCategory } from './catalog';
 
 /**
  * The Model Market's rules (docs/specs/MODEL-MARKET.md §3, §5): the jobs on Gilda's board, what a
  * hire costs in starfish, and how it's graded against Chapter 01's guidance on models and reasoning
- * effort. The data (jobs, prices, refunds, stamps, quotes, Gilda's lines) is `content/market.json`
- * (docs/content-data.md); the grading is here. Pure data and functions: the puzzle
+ * effort. The data (jobs, prices, refunds, stamps, quotes, Gilda's lines) is the course pack's
+ * `market.json` (docs/content-data.md); the grading is here. The values below are the active
+ * course's, set when a voyage loads it (src/course/active.ts). Pure data and functions: the puzzle
  * (src/game/puzzles/model-market.ts) and the overlay (src/ui/puzzles/ModelMarket.tsx) play them.
  */
 
@@ -36,9 +38,7 @@ const quote = (q: MarketQuoteData): CourseQuote => ({
   source: sourceOf(q),
 });
 
-export const QUOTES = Object.fromEntries(
-  Object.entries(MARKET.quotes).map(([k, q]) => [k, quote(q)]),
-) as Readonly<Record<QuoteKey, CourseQuote>>;
+export let QUOTES = {} as Readonly<Record<QuoteKey, CourseQuote>>;
 
 export type JobId = string;
 export type JobSize = JobSizeId;
@@ -57,14 +57,7 @@ export interface MarketJob {
 }
 
 /** Gilda's jobs board, in order: two quick looks, then two hard jobs (keys 1-4). */
-export const JOBS: readonly MarketJob[] = MARKET.jobs.map((j) => ({
-  id: j.id,
-  title: j.title,
-  note: j.note,
-  size: j.size,
-  brief: j.brief,
-  why: QUOTES[j.why],
-}));
+export let JOBS: readonly MarketJob[] = [];
 
 export const jobById = (id: string): MarketJob | null => JOBS.find((j) => j.id === id) ?? null;
 
@@ -72,22 +65,16 @@ export type Effort = EffortId;
 /** The effort dial, low to high (the grading reads them in this order). */
 export const EFFORTS: readonly Effort[] = ['low', 'default', 'high'];
 const effortData = (m: MarketData, e: Effort) => m.efforts.find((x) => x.id === e);
-export const EFFORT_LABEL: Readonly<Record<Effort, string>> = Object.fromEntries(
-  EFFORTS.map((e) => [e, effortData(MARKET, e)?.label ?? e]),
-) as Record<Effort, string>;
+export let EFFORT_LABEL = {} as Readonly<Record<Effort, string>>;
 
 /** A hire: Auto (the app picks, and Effort is hidden), or a model of a category with an effort. */
 export type Hire = { auto: true } | { auto: false; category: ModelCategory; model: string; effort: Effort };
 
 /** Starfish per hire (docs/specs/MODEL-MARKET.md §3): bigger models cost more. */
-export const AUTO_PRICE = MARKET.autoPrice;
-export const CATEGORY_PRICE: Readonly<Record<ModelCategory, number>> = Object.fromEntries(
-  MARKET.categories.map((c) => [c.id, c.price]),
-) as Record<ModelCategory, number>;
-export const EFFORT_PRICE: Readonly<Record<Effort, number>> = Object.fromEntries(
-  EFFORTS.map((e) => [e, effortData(MARKET, e)?.price ?? 0]),
-) as Record<Effort, number>;
-export const MAX_PRICE = MARKET.maxPrice;
+export let AUTO_PRICE = 0;
+export let CATEGORY_PRICE = {} as Readonly<Record<ModelCategory, number>>;
+export let EFFORT_PRICE = {} as Readonly<Record<Effort, number>>;
+export let MAX_PRICE = 0;
 
 export const price = (h: Hire): number => priceIn(MARKET, h);
 
@@ -99,20 +86,11 @@ export function priceIn(m: MarketData, h: Hire): number {
 }
 
 /** Starfish back for a right-sized hire: one for a quick look, two for a hard job done right. */
-export const REFUND: Readonly<Record<JobSize, number>> = {
-  quick: MARKET.sizes.quick.refund,
-  hard: MARKET.sizes.hard.refund,
-};
+export let REFUND = {} as Readonly<Record<JobSize, number>>;
 /** Doubloons the first time each job's done right-sized. */
-export const JOB_DOUBLOONS: Readonly<Record<JobSize, number>> = {
-  quick: MARKET.sizes.quick.doubloons,
-  hard: MARKET.sizes.hard.doubloons,
-};
+export let JOB_DOUBLOONS = {} as Readonly<Record<JobSize, number>>;
 /** "Quick look", "Hard job". */
-export const SIZE_LABEL: Readonly<Record<JobSize, string>> = {
-  quick: MARKET.sizes.quick.label,
-  hard: MARKET.sizes.hard.label,
-};
+export let SIZE_LABEL = {} as Readonly<Record<JobSize, string>>;
 
 export type Outcome = OutcomeId;
 export type Reason =
@@ -163,20 +141,14 @@ export function fairPrice(job: MarketJob): number {
   return best;
 }
 
-/** What the stallholder says: voice line ids (tools/voice/lines.testcove.json) by what they're for. */
-export const GILDA = Object.fromEntries(
-  Object.entries(MARKET.gilda).map(([k, l]) => [k, l.voice]),
-) as Readonly<Record<GildaKey, string>>;
+/** What the stallholder says: voice line ids (the pack's voice/lines.json) by what they're for. */
+export let GILDA = {} as Readonly<Record<GildaKey, string>>;
 
 /** Each of Gilda's voice lines' text (the caption), by voice line id. */
-export const GILDA_TEXT: Readonly<Record<string, string>> = Object.fromEntries(
-  Object.values(MARKET.gilda).map((l) => [l.voice, l.text]),
-);
+export let GILDA_TEXT: Readonly<Record<string, string>> = {};
 
 /** The course sections Gilda's teaching lines paraphrase, by voice line id (Chapter 01's `voiced`). */
-export const GILDA_SOURCES: Readonly<Record<string, SourceRef>> = Object.fromEntries(
-  Object.values(MARKET.gilda).flatMap((l) => (l.source ? [[l.voice, sourceOf(l.source)] as const] : [])),
-);
+export let GILDA_SOURCES: Readonly<Record<string, SourceRef>> = {};
 
 export interface Feedback {
   outcome: Outcome;
@@ -191,7 +163,49 @@ export interface Feedback {
   quotes: readonly CourseQuote[];
 }
 
-export const STAMP: Readonly<Record<Outcome, string>> = MARKET.stamps;
+export let STAMP = {} as Readonly<Record<Outcome, string>>;
+
+onCourse(() => {
+  const m = MARKET;
+  QUOTES = Object.fromEntries(Object.entries(m.quotes).map(([k, q]) => [k, quote(q)])) as Record<
+    QuoteKey,
+    CourseQuote
+  >;
+  JOBS = m.jobs.map((j) => ({
+    id: j.id,
+    title: j.title,
+    note: j.note,
+    size: j.size,
+    brief: j.brief,
+    why: QUOTES[j.why],
+  }));
+  EFFORT_LABEL = Object.fromEntries(EFFORTS.map((e) => [e, effortData(m, e)?.label ?? e])) as Record<
+    Effort,
+    string
+  >;
+  AUTO_PRICE = m.autoPrice;
+  CATEGORY_PRICE = Object.fromEntries(m.categories.map((c) => [c.id, c.price])) as Record<
+    ModelCategory,
+    number
+  >;
+  EFFORT_PRICE = Object.fromEntries(EFFORTS.map((e) => [e, effortData(m, e)?.price ?? 0])) as Record<
+    Effort,
+    number
+  >;
+  MAX_PRICE = m.maxPrice;
+  REFUND = { quick: m.sizes.quick.refund, hard: m.sizes.hard.refund };
+  JOB_DOUBLOONS = { quick: m.sizes.quick.doubloons, hard: m.sizes.hard.doubloons };
+  SIZE_LABEL = { quick: m.sizes.quick.label, hard: m.sizes.hard.label };
+  GILDA = Object.fromEntries(Object.entries(m.gilda).map(([k, l]) => [k, l.voice])) as Record<
+    GildaKey,
+    string
+  >;
+  GILDA_TEXT = Object.fromEntries(Object.values(m.gilda).map((l) => [l.voice, l.text]));
+  GILDA_SOURCES = Object.fromEntries(
+    Object.values(m.gilda).flatMap((l) => (l.source ? [[l.voice, sourceOf(l.source)] as const] : [])),
+  );
+  STAMP = m.stamps;
+});
 
 /** "Auto", or "Claude Haiku 5.5 on Default". */
 export function hireName(h: Hire): string {

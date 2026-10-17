@@ -1,3 +1,4 @@
+import { courseVoiceBase } from '../course/catalog';
 import { MusicPlayer } from './music/music-player';
 import type { IslandMusic, MusicCue } from './music/tracks';
 import {
@@ -240,7 +241,7 @@ class IslesAudioImpl implements IslesAudio {
   private voice(): VoicePlayer | null {
     if (this.voicePlayer || typeof document === 'undefined') return this.voicePlayer;
     this.voicePlayer = new VoicePlayer(
-      new URL(`${import.meta.env.BASE_URL}voice/testcove/`, location.href).toString(),
+      new URL(courseVoiceBase(), location.href).toString(),
       chooseVoiceFormat(document.createElement('audio')),
     );
     return this.voicePlayer;

@@ -3,6 +3,7 @@
  * chapter's stops (docs/specs/ISLAND-02-thousand-bough.md §4), plus each speaker's voice auditions.
  * Open /devpages/voices.html on the dev server.
  */
+import { courseVoiceBase } from '../course/catalog';
 
 interface ManifestLine {
   id: string;
@@ -19,7 +20,7 @@ interface Conversation {
   match: (id: string) => boolean;
 }
 
-const VOICE_BASE = `${import.meta.env.BASE_URL}voice/testcove/`;
+const VOICE_BASE = courseVoiceBase();
 // Auditions live in the git-ignored tool cache, which the dev server serves from the repo root.
 const AUDITIONS = '/tools/.cache/voice-auditions/thousand-bough/';
 

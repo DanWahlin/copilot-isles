@@ -19,9 +19,9 @@ import {
 import { REVIEW_OPTIONS } from '../../game/puzzles/three-helms';
 
 const COURSE = (short: string) =>
-  readFileSync(join(__dirname, `../../../public/course/${short}/README.md`), 'utf8');
+  readFileSync(join(__dirname, `../../../courses/copilot-app/public/course/${short}/README.md`), 'utf8');
 const VOICE = JSON.parse(
-  readFileSync(join(__dirname, '../../../tools/voice/lines.testcove.json'), 'utf8'),
+  readFileSync(join(__dirname, '../../../courses/copilot-app/voice/lines.json'), 'utf8'),
 ) as {
   lines: { id: string; text: string }[];
 };

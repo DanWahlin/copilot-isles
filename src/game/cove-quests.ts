@@ -1,135 +1,62 @@
+import { courseScript, islandQuests, onCourse } from '../course/active';
+import type { QuestDef, QuestTarget } from '../course/pack';
 import { meridianOpen } from './meridian-open';
 import type { ScriptStep } from './script';
 
 /**
- * Anchorage Cay's quest line, in Chapter 00's order along the harbour: Nell's papers (prerequisites,
- * install, sign in) and the palette stand (theme), Ezra's fork, Bo's session and tool checks at the
- * pier foot, Pim and Pol's crane (Actions first, at the lever of Suri's sluice gate, then the setup
- * script), Juno's first prompt, and Nell's Trial and christening at your bow. Suri's mill race (the
- * practice checks) and Lyra's soundcheck are optional.
+ * Anchorage Cay's quest line: the logic (which beat each NPC offers, the tracker, the compass, old
+ * saves). The quests' text, the compass labels and every script are the course pack's
+ * (`courses/<id>/quests/anchorage.json`, docs/specs/COURSE-PACKS.md). For the Copilot app course,
+ * in Chapter 00's order along the harbour: Nell's papers (prerequisites, install, sign in) and the
+ * palette stand (theme), Ezra's fork, Bo's session and tool checks at the pier foot, Pim and Pol's
+ * crane (Actions first, at the lever of Suri's sluice gate, then the setup script), Juno's first
+ * prompt, and Nell's Trial and christening at your bow. Suri's mill race (the practice checks) and
+ * Lyra's soundcheck are optional.
  */
-interface QuestDef {
-  id: string;
-  title: string;
-  /** The plain-words task for the on-screen tracker (what the player is doing in the app). */
-  task: string;
-  /** Optional quests only appear in the tracker once they've started. */
-  optional?: boolean;
-  /** A link the tracker keeps under this task (e.g. where to download the app). */
-  link?: { label: string; url: string };
-  /** Step id → what the Logbook says to do next. `done` marks completion. */
-  steps: Record<string, string>;
-}
+const ISLAND = 'anchorage';
 
-/** Chapter 00's "Download and install the GitHub Copilot app" link. */
-const APP_INSTALL_URL = 'https://github.com/features/ai/github-app';
-/** Chapter 00's "Fork the course repository on GitHub" link. */
-const FORK_URL = 'https://github.com/github/copilot-app-for-beginners/fork';
-/** The spyglass caption for the New view after Connect your repositories (Chapter 00 · Installation). */
+/**
+ * @course-content The spyglass caption for the New view after Connect your repositories (Chapter 00 ·
+ * Installation), for the palette stand (src/game/puzzles/paint-sails.ts): puzzle content moves to the
+ * course pack in step 2 (COURSE-PACKS.md §4).
+ */
 export const NEW_VIEW_CAPTION =
   'Select **Continue**, and the app opens the **New** view. New work starts here.';
-/** Connect your repositories (no screenshot in the course), then the New view it opens. */
-const CONNECT_CAPTION =
-  'At **Connect your repositories**, leave every repository unselected and select **Continue**. The app opens the **New** view, where new work starts.';
 
-const COVE_QUESTS: readonly QuestDef[] = [
-  {
-    id: 'Q0.2',
-    title: 'Captain’s Papers',
-    task: 'Install the app and sign in',
-    link: { label: 'Download the Copilot app', url: APP_INSTALL_URL },
-    steps: {
-      start: 'Talk to Nell Tidewell by the harbourmaster’s door.',
-      palette:
-        'Paint your sails at the palette stand beside Nell. In the app, themes are in Settings → Themes.',
-      done: 'Signed in, the New view is open, and your sails are painted.',
-    },
-  },
-  {
-    id: 'Q0.3',
-    title: 'Copy the Master Chart',
-    task: 'Fork the course and add it to Projects',
-    link: { label: 'Fork the course repository', url: FORK_URL },
-    steps: {
-      start: 'Find Ezra Quill at his chart table by the pier.',
-      done: 'Your fork is added under Projects.',
-    },
-  },
-  {
-    id: 'Q0.4',
-    title: 'Your Own Deck',
-    task: 'Start a session and check your tools',
-    steps: {
-      start: 'Bo Marlin, the quartermaster, is at his gear rack beside Ezra.',
-      done: 'Your session runs on Current checkout, and every tool checks out in Terminal.',
-    },
-  },
-  {
-    id: 'Q0.7',
-    title: 'The Dry-Run Crane',
-    task: 'Add the course practice items',
-    steps: {
-      start: 'Find Pim and Pol at the crane at the end of the pier.',
-      actions:
-        'Actions first: on GitHub.com, you enable workflows in your fork’s Actions tab. Here, pull the gate lever at Suri’s mill.',
-      crane: 'Aim the crane at your ship, preview with Dry-Run, check the Repository line, then pull --yes.',
-      solved: 'Setup complete. Talk to Pol.',
-      done: 'Workflows are on, and your fork has its practice labels, issues, branches, and pull requests.',
-    },
-  },
-  {
-    id: 'Q0.8',
-    title: 'First Words',
-    task: 'Ask the agent about the course',
-    steps: {
-      start: 'Find Juno, your first mate, on the pier beside your ship.',
-      pipes: 'Send the course’s overview prompt to the agent. Which fitting on your ship’s rail carries it?',
-      done: 'Your request went to the agent, and the crew answered.',
-    },
-  },
-  {
-    id: 'Q0.6',
-    title: 'The Mill Race (optional)',
-    task: 'See the practice checks run',
-    optional: true,
-    steps: {
-      start: 'Suri Okoye’s mill past the storehouse shows what your workflows do with the practice items.',
-      sluice:
-        'Turn the channels (E, or Shift+E to turn back) until the water reaches both outlets: the wheel and the check gate.',
-      solved: 'The wheel’s turning. Talk to Suri.',
-      done: 'With workflows on, GitHub runs the practice checks. One fails on purpose, for a later chapter.',
-    },
-  },
-  {
-    id: 'Q0.9',
-    title: 'Soundcheck (optional)',
-    task: 'Hear the studio analogy',
-    optional: true,
-    steps: {
-      start: 'Lute music’s drifting up from the lagoon. Find Lyra Wren, the bard, at her hammock.',
-      done: 'Setting up the app is like prepping a studio before the first take.',
-    },
-  },
-  {
-    id: 'Q0.10',
-    title: 'The Harbormaster’s Trial',
-    task: 'Pass the Trial to earn the Seal',
-    steps: {
-      start: 'Nell’s waiting by your bow at the end of the pier.',
-      done: 'The Seal of Anchorage is yours.',
-    },
-  },
-  {
-    id: 'Q0.11',
-    title: 'Christen Your Ship',
-    task: 'Name your ship and set sail',
-    steps: {
-      start: 'Talk to Nell by your bow at the end of the pier.',
-      sail: 'The gangway’s down. Walk up it to take the helm.',
-      done: 'Your ship has her name, and you’ve taken her out.',
-    },
-  },
-];
+/** The island's quests, in story order (the course pack's). */
+let COVE_QUESTS: readonly QuestDef[] = [];
+/** Where the compass points for each quest step (the course pack's `targets`). */
+let QUEST_TARGETS: Readonly<Record<string, QuestTarget>> = {};
+/** Suri's lines once the mill race is solved (P0.1), also used if you come back after quitting. */
+export let SURI_SOLVED: readonly ScriptStep[] = [];
+/** Pol and Pim's closing beat once the crane's done (P0.2), also used if you come back after quitting. */
+export let POL_SOLVED: readonly ScriptStep[] = [];
+/** The island this quest line belongs to, for the tracker's header (its name is the game's). */
+export let COVE_ISLAND = { name: 'Anchorage Cay', chapter: '', goal: '', next: '' };
+let CHRISTENING: readonly ScriptStep[] = [];
+let NELL_TRIAL: readonly ScriptStep[] = [];
+
+const script = (name: string) => courseScript(ISLAND, name);
+
+/**
+ * Port Meridian's open (the dev build, for now): Wingman's last sailing line points the way there.
+ * Otherwise these waters are yours (the course's line).
+ */
+const pointToMeridian = (steps: readonly ScriptStep[]): readonly ScriptStep[] =>
+  meridianOpen()
+    ? steps.map((s) => ('say' in s && s.say === 'wingman.sail.03' ? { say: 'wingman.sail.meridian' } : s))
+    : steps;
+
+onCourse(() => {
+  const q = islandQuests(ISLAND);
+  COVE_QUESTS = q.quests;
+  QUEST_TARGETS = q.targets;
+  SURI_SOLVED = script('suri.solved');
+  POL_SOLVED = script('pol.solved');
+  COVE_ISLAND = { name: 'Anchorage Cay', ...q.tracker };
+  CHRISTENING = pointToMeridian(script('christening'));
+  NELL_TRIAL = pointToMeridian(script('nell.trial'));
+});
 
 /**
  * Brings an older save in line with today's quest line (each rule sets a step only if it's missing
@@ -183,26 +110,6 @@ export function currentQuest(q: QuestState): { id: string; task: string; step: s
   return d ? { id: d.id, task: d.task, step: q[d.id] ?? null } : null;
 }
 
-/**
- * Where the compass points for each quest step: interaction ids (a trailing `*` matches a prefix; the
- * nearest usable one wins) and the marker's label. Puzzles point at their parts, never at an answer.
- */
-const QUEST_TARGETS: Readonly<Record<string, { ids: readonly string[]; label: string }>> = {
-  'Q0.2:start': { ids: ['npc:nell'], label: 'Nell Tidewell' },
-  'Q0.2:palette': { ids: ['palette:stand'], label: 'Palette stand' },
-  'Q0.3:start': { ids: ['npc:merchant'], label: 'Ezra Quill' },
-  'Q0.4:start': { ids: ['npc:dockhand_b'], label: 'Bo Marlin' },
-  'Q0.7:start': { ids: ['npc:pim', 'npc:pol'], label: 'Pim and Pol' },
-  'Q0.7:actions': { ids: ['mill:lever'], label: 'Suri’s gate lever' },
-  'Q0.7:crane': { ids: ['crane:*'], label: 'The crane' },
-  'Q0.7:solved': { ids: ['npc:pol'], label: 'Pol' },
-  'Q0.8:start': { ids: ['npc:juno'], label: 'Juno' },
-  'Q0.8:pipes': { ids: ['pipe:*'], label: 'Your ship’s rail' },
-  'Q0.10:start': { ids: ['npc:nell'], label: 'Nell, by your bow' },
-  'Q0.11:start': { ids: ['npc:nell'], label: 'Nell, by your bow' },
-  'Q0.11:sail': { ids: ['ship:board'], label: 'The gangway' },
-};
-
 /** What the compass should point at ashore right now, or null once every task's done. */
 export function questTarget(q: QuestState): { ids: readonly string[]; label: string } | null {
   const c = currentQuest(q);
@@ -232,41 +139,7 @@ export function npcScript(
   switch (npc) {
     case 'nell':
       if (!q['Q0.2'] || q['Q0.2'] === 'start') {
-        return {
-          steps: [
-            // The course's order (Chapter 00 · Prerequisites, Installation), kept short (about 30 s
-            // of voice and one card): papers, the chest with the full list (the Business/Enterprise
-            // policy and the tools Bo checks later), the app and its download link, Sign in, Connect
-            // your repositories → Continue → the New view, then Settings → Themes and the palette
-            // stand. The install and New view pages go straight into the Logbook (no cards).
-            { say: 'nell.papers.01' },
-            { say: 'nell.papers.tools' },
-            { cue: 'nell-chest' },
-            {
-              show: 'shared/app-github-copilot-app',
-              caption: `The **GitHub Copilot app**. Download and install it from [${APP_INSTALL_URL.replace('https://', '')}](${APP_INSTALL_URL}).`,
-            },
-            { say: 'nell.papers.app' },
-            {
-              show: 'ch00/app-sign-in',
-              caption:
-                'Open the app and select **Sign in to GitHub** (on GHE.com, **Sign in to GitHub Enterprise Cloud**).',
-            },
-            { say: 'nell.papers.signin' },
-            { show: 'shared/app-github-copilot-app', caption: CONNECT_CAPTION },
-            { say: 'nell.papers.05' },
-            { file: 'pg.install' },
-            { file: 'C0.3', doubloons: 20 },
-            {
-              show: 'ch01/app-settings',
-              caption:
-                'Select the gear at the bottom of the sidebar to open **Settings**. Your theme is under **Themes**.',
-            },
-            { say: 'nell.papers.06' },
-            { hide: true },
-            { quest: 'Q0.2', step: 'palette' },
-          ],
-        };
+        return { steps: script('nell.papers') };
       }
       if (q['Q0.2'] === 'palette') return { steps: [{ say: 'nell.palette.01' }] };
       if (q['Q0.10'] === 'start') return { steps: NELL_TRIAL };
@@ -275,82 +148,19 @@ export function npcScript(
       return { steps: [{ say: done(q, 'Q0.10') ? 'nell.done.02' : 'nell.done.01' }] };
 
     case 'lyra':
-      if (q['Q0.9'] === 'start') return { steps: LYRA_SOUNDCHECK };
+      if (q['Q0.9'] === 'start') return { steps: script('lyra.soundcheck') };
       return { steps: [{ say: done(q, 'Q0.9') ? 'lyra.done.01' : 'lyra.idle.01' }] };
 
     case 'merchant':
       if (!done(q, 'Q0.2')) return { steps: [{ say: 'ezra.wait.01' }] };
       if (!done(q, 'Q0.3')) {
-        return {
-          steps: [
-            // The course's order: fork on GitHub (the link stays in the Logbook and tracker), then
-            // add it from the New view: find the + (H0.2), see the menu it opens, and pick your fork
-            // rather than the original (S0.3).
-            { say: 'ezra.fork.01' },
-            { term: 'fork' },
-            { page: 'pg.fork' },
-            { say: 'ezra.fork.link' },
-            // Right after forking, the fork's URL is in the browser: write it in Ezra's register
-            // (Skip for now always works). The crane's sign, Bo's rack, and fork links use it.
-            { askFork: 'ezra', line: 'ezra.fork.register' },
-            {
-              show: 'shared/app-github-copilot-app',
-              caption: 'Then add your fork to the app, starting from the **New** view.',
-            },
-            { say: 'ezra.fork.02' },
-            { quiz: 'H0.2' },
-            {
-              show: 'ch00/app-add-project',
-              caption:
-                '**+** next to **Projects** → **Add GitHub repository**, then pick your fork, `{fork}`.',
-            },
-            { say: 'ezra.fork.03' },
-            { say: 'ezra.fork.careful' },
-            { hide: true },
-            { quiz: 'S0.3' },
-            { page: 'C0.4', doubloons: 20 },
-            { say: 'ezra.fork.04' },
-            { quest: 'Q0.3', step: 'done' },
-            { quest: 'Q0.4', step: 'start' },
-          ],
-        };
+        return { steps: script('ezra.fork') };
       }
       return null;
 
     case 'dockhand_b':
       if (!done(q, 'Q0.3') || done(q, 'Q0.4')) return null;
-      return {
-        steps: [
-          // The course's "Check your tools in Terminal": a project session on Current checkout, a short
-          // prompt that creates it, the Terminal tab, the version checks (Bo's rack runs them, and they
-          // all pass), then GitHub CLI's own sign-in.
-          { say: 'bo.deck.01' },
-          { term: 'project-session' },
-          { say: 'bo.deck.02' },
-          { quiz: 'H0.4' },
-          { term: 'current-checkout' },
-          { term: 'worktree' },
-          { page: 'C0.6', doubloons: 10 },
-          { say: 'bo.deck.03' },
-          {
-            show: 'shared/app-review-panel',
-            caption:
-              '**View → Toggle Review Panel**, then the **Terminal** tab. No tab? **+** → **Terminal**.',
-          },
-          { say: 'bo.gear.brief.01' },
-          { term: 'review-panel' },
-          { hide: true },
-          { say: 'bo.gear.brief.02' },
-          { cue: 'gear-checks' },
-          { say: 'bo.gear.brief.03' },
-          { say: 'bo.gear.checked.02' },
-          { quiz: 'S0.1' },
-          { page: 'pg.terminal', doubloons: 10 },
-          { say: 'bo.signed.02' },
-          { quest: 'Q0.4', step: 'done' },
-          { quest: 'Q0.7', step: 'start' },
-        ],
-      };
+      return { steps: script('bo.deck') };
 
     case 'suri': {
       const step = q['Q0.6'];
@@ -362,17 +172,7 @@ export function npcScript(
         return { steps: [{ say: 'suri.idle.dry' }] };
       }
       if (step === 'start') {
-        return {
-          steps: [
-            // Optional, once the crane's stocked your fork: workflows are on (her gate's up), so the
-            // practice checks run. The mill race shows them, one failing on purpose.
-            { say: 'suri.brief.01' },
-            { say: 'suri.brief.02' },
-            { term: 'github-actions' },
-            { say: 'suri.brief.05' },
-            { quest: 'Q0.6', step: 'sluice' },
-          ],
-        };
+        return { steps: script('suri.brief') };
       }
       if (step === 'sluice')
         return {
@@ -400,7 +200,7 @@ export function npcScript(
             },
           ],
         };
-      if (step === 'start') return { steps: CRANE_BRIEF };
+      if (step === 'start') return { steps: script('crane.brief') };
       if (step === 'actions') return { steps: [{ say: 'pim.brief.03' }] };
       if (step === 'crane')
         return {
@@ -415,7 +215,7 @@ export function npcScript(
     case 'juno': {
       const step = q['Q0.8'];
       if (!step) return null;
-      if (step === 'start') return { steps: JUNO_BRIEF };
+      if (step === 'start') return { steps: script('juno.brief') };
       if (step === 'pipes')
         return {
           steps: [{ say: 'juno.pipes.01' }],
@@ -429,125 +229,6 @@ export function npcScript(
       return null;
   }
 }
-
-/**
- * The christening (Q0.11): Nell names the ship at the bow (the `christen` cue throws the coconut), Juno
- * reports the crew's aboard, and Wingman gives the sailing lesson. The naming line carries the
- * captain's own ship name, so it stays a subtitle.
- */
-const CHRISTENING: readonly ScriptStep[] = [
-  { say: 'nell.christen.01' },
-  { text: 'I name this ship {ship}!' },
-  { cue: 'christen' },
-  { say: 'nell.christen.02' },
-  { say: 'juno.christen.01' },
-  { say: 'wingman.sail.01' },
-  { say: 'wingman.sail.02' },
-  // Port Meridian's open (the dev build, for now): point the way. Otherwise these waters are yours.
-  { say: meridianOpen() ? 'wingman.sail.meridian' : 'wingman.sail.03' },
-  { quest: 'Q0.11', step: 'sail' },
-];
-
-/**
- * The Harbormaster's Trial (Q0.10), with Nell at your bow once the first prompt's sent, so there's no
- * walk back up the harbour. Passing goes straight on to the christening.
- */
-const NELL_TRIAL: readonly ScriptStep[] = [
-  { say: 'nell.trial.01' },
-  { say: 'wingman.trial.01' },
-  { trial: 'T0' },
-  // The harbour cheers the new Seal and Wingman takes a lap, then the point lighthouse lights.
-  { cue: 'celebrate' },
-  { cue: 'anchorage-lighthouse' },
-  { quest: 'Q0.10', step: 'done' },
-  { say: 'nell.trial.02' },
-  { quest: 'Q0.11', step: 'start' },
-  ...CHRISTENING,
-];
-
-/** Lyra's soundcheck (Q0.9, optional): the course's recording-studio theme, and C0.5. */
-const LYRA_SOUNDCHECK: readonly ScriptStep[] = [
-  { say: 'lyra.soundcheck.01' },
-  { say: 'lyra.soundcheck.02' },
-  { page: 'C0.5', doubloons: 10 },
-  { say: 'lyra.soundcheck.03' },
-  { say: 'lyra.soundcheck.04' },
-  { quest: 'Q0.9', step: 'done' },
-];
-
-/** Juno's opening beat (Q0.8): the course's first prompt, where it goes in the app, and two fittings on the rail. */
-const JUNO_BRIEF: readonly ScriptStep[] = [
-  { say: 'juno.brief.01' },
-  { say: 'juno.brief.02' },
-  { say: 'juno.brief.03' },
-  {
-    show: 'shared/app-review-panel',
-    caption: 'Requests go in the **prompt box**. Commands go in **Terminal**.',
-  },
-  { say: 'juno.brief.04' },
-  { hide: true },
-  { say: 'juno.brief.05' },
-  { quest: 'Q0.8', step: 'pipes' },
-];
-
-/**
- * Suri's lines once the mill race is solved (P0.1, optional), also used if you come back after
- * quitting: with workflows on, GitHub runs the practice checks, and one fails on purpose
- * (Chapter 00 · Add the Course Practice Items).
- */
-export const SURI_SOLVED: readonly ScriptStep[] = [
-  { say: 'suri.solved.01' },
-  { page: 'pg.checks', doubloons: 15 },
-  { say: 'wingman.suri.01' },
-  { say: 'suri.solved.02' },
-  { quest: 'Q0.6', step: 'done' },
-];
-
-/**
- * Pim and Pol's opening beat (Q0.7), the course's "Add the course practice items", kept short and
- * literal: what the setup script adds to your fork (practice, not problems), your fork's address if
- * Ezra didn't get it (for the crane's sign and the Actions link), turning on workflows in the
- * fork's Actions tab on GitHub.com, then the rule: `--dry-run`, check `Repository:`, then `--yes`.
- * Like the course (steps 1–3 before the dry run) and the script (`--yes` refuses while workflows
- * are off), Actions comes first: the job's next step is Suri's gate lever (`actions`).
- */
-const CRANE_BRIEF: readonly ScriptStep[] = [
-  { say: 'pim.brief.01' },
-  { say: 'pol.brief.01' },
-  { askFork: 'crane', line: 'pim.brief.fork' },
-  { say: 'pol.brief.actions' },
-  { term: 'github-actions' },
-  { page: 'pg.workflows', doubloons: 10 },
-  { say: 'pim.brief.02' },
-  { say: 'pol.brief.02' },
-  { term: 'dry-run' },
-  { say: 'pim.brief.03' },
-  { quest: 'Q0.7', step: 'actions' },
-];
-
-/**
- * Pol and Pim's closing beat once the crane's done (P0.2), also used if you come back after quitting:
- * where the commands run in the app, and what to do if the `Repository:` line isn't yours (Chapter
- * 00 · Connect to Your Repository, step 3: pick your fork, not the original).
- */
-export const POL_SOLVED: readonly ScriptStep[] = [
-  { say: 'pol.solved.01' },
-  { say: 'pim.solved.01' },
-  { say: 'pim.solved.fork' },
-  { page: 'P0.S', doubloons: 20 },
-  { say: 'pim.solved.03' },
-  { quest: 'Q0.7', step: 'done' },
-  { quest: 'Q0.8', step: 'start' },
-  { quest: 'Q0.6', step: 'start' },
-];
-
-/** The island this quest line belongs to, for the tracker's header. */
-export const COVE_ISLAND = {
-  name: 'Anchorage Cay',
-  chapter: 'Chapter 00 · Setup',
-  goal: 'Set up the Copilot app and earn the Seal of Anchorage',
-  next: 'Port Meridian’s the next island, and she’s coming soon. Until then these waters are yours, and the compass points back to the pier.',
-} as const;
 
 export type TrackerStatus = 'done' | 'active' | 'upcoming';
 

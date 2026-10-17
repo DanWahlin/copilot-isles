@@ -8,12 +8,12 @@ import { COURSE_CHAPTERS, repoPath } from './chapters';
 import { chapterLock, glossaryLock, HASH_LENGTH, type CourseLock } from './lock';
 
 /**
- * PLAN §8.3-8.4 guards: the bundled snapshot matches `content/course.lock.json`, and every authored
+ * PLAN §8.3-8.4 guards: the bundled snapshot matches `courses/copilot-app/lock.json`, and every authored
  * `SourceRef` (quizzes, Logbook pages, voiced lines, cited teaching text) and course image resolves against it.
  */
 const ROOT = join(__dirname, '../../..');
-const PUBLIC = join(ROOT, 'public');
-const lock = JSON.parse(readFileSync(join(ROOT, 'content/course.lock.json'), 'utf8')) as CourseLock;
+const PUBLIC = join(ROOT, 'courses/copilot-app/public');
+const lock = JSON.parse(readFileSync(join(ROOT, 'courses/copilot-app/lock.json'), 'utf8')) as CourseLock;
 const sha256 = (data: string | Buffer) => createHash('sha256').update(data).digest('hex');
 const HASH = new RegExp(`^[0-9a-f]{${HASH_LENGTH}}$`);
 
@@ -125,7 +125,7 @@ describe('SourceRefs', () => {
   });
 
   it('voiced refs name real voice lines', () => {
-    const lines = JSON.parse(readFileSync(join(ROOT, 'tools/voice/lines.testcove.json'), 'utf8')) as {
+    const lines = JSON.parse(readFileSync(join(ROOT, 'courses/copilot-app/voice/lines.json'), 'utf8')) as {
       lines: { id: string }[];
     };
     const ids = new Set(lines.lines.map((l) => l.id));

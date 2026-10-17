@@ -50,7 +50,7 @@ describe('subtitle alignment', () => {
   });
 
   it('aligns every voiced line, so no subtitle loses its punctuation', () => {
-    const url = new URL('../../public/voice/testcove/manifest.json', import.meta.url);
+    const url = new URL('../../courses/copilot-app/public/voice/manifest.json', import.meta.url);
     const manifest = JSON.parse(readFileSync(url, 'utf8')) as {
       lines: { id: string; text: string; words: { word: string }[] }[];
     };

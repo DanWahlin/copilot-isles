@@ -9,28 +9,28 @@ GitHub in a new tab. It's separate from Port Meridian's Bounty Board, which stay
 
 ## Where the boards stand
 
-| Island         | Chapter | Where                                                                                       | Data (`content/course-boards.json`) |
-| -------------- | ------- | ------------------------------------------------------------------------------------------- | ----------------------------------- |
-| Anchorage Cay  | 00      | East side of the street from the quay up to the village square, turned toward the pier foot | `islands.anchorage`                 |
-| Port Meridian  | 01      | Against the harbour wall at the back of the quay, between two palms, facing the water       | `islands.meridian`                  |
-| Thousand-Bough | 02      | Bough Landing's east side, facing back up the Root Wharf, before the Fern Walk              | `islands["thousand-bough"]`         |
+| Island         | Chapter | Where                                                                                       |
+| -------------- | ------- | ------------------------------------------------------------------------------------------- |
+| Anchorage Cay  | 00      | East side of the street from the quay up to the village square, turned toward the pier foot |
+| Port Meridian  | 01      | Against the harbour wall at the back of the quay, between two palms, facing the water       |
+| Thousand-Bough | 02      | Bough Landing's east side, facing back up the Root Wharf, before the Fern Walk              |
 
-The chapters and poses are in `content/course-boards.json` ([content-data.md](../content-data.md)):
-one entry an island, read at build time (`src/content/course-boards.ts`,
-`src/world/islands/course-boards.ts`). Meridian's board is on the quay, well clear of the plaza, the
-Model Market and the stair street.
+Where each board stands is the game's (`src/world/islands/course-boards.ts`, one entry an island).
+Which chapter it shows is the island's chapter in the course pack's `course.json`, and its text is the
+pack's `boards.json` ([content-data.md](../content-data.md), [COURSE-PACKS.md](COURSE-PACKS.md)).
+Meridian's board is on the quay, well clear of the plaza, the Model Market and the stair street.
 
 ## Topics: from the course lock, kept current by the weekly sync
 
-`src/learn/course-board.ts` reads `content/course.lock.json` (its `chapters` only; the bundle leaves
-out the rest). A board lists its chapter's `##` sections in the course's order, with the course's
+`src/learn/course-board.ts` reads the course pack's `lock.json` (its `chapters`), which loads with the
+voyage. A board lists its chapter's `##` sections in the course's order, with the course's
 exact titles, except:
 
 - **By anchor:** `prerequisites`, `whats-next`, `source-references` (what you need first, the
   hand-off to the next chapter, and the sources).
 - **By title prefix:** `The Course Theme`, `From the Studio` (the recording-studio story frame).
 
-`skip.anchors` and `skip.titlePrefixes` in `content/course-boards.json` hold the two lists (the file
+`skip.anchors` and `skip.titlePrefixes` in `courses/copilot-app/boards.json` hold the two lists (the file
 also has the header and pin text). When `tools/course/sync.mjs` adds or renames a section, the boards
 follow on the next build, and the weekly refresh PR lists each board's topics and what changed
 (`npm run content:check`). Each topic
@@ -97,9 +97,9 @@ works it out once, when the board opens, from the pages and quiz records already
 ## Tests
 
 - `src/learn/course-board.test.ts`: topics, skip lists, links, the island-to-chapter map, the ✓s.
-- `src/content/content.test.ts`: `content/course-boards.json` against its schema, each board's
-  chapter in the snapshot with at least 5 topics and matching the chart, and each board on its island
-  (in its waters, on the ground or a deck).
+- `src/content/content.test.ts`: `courses/copilot-app/boards.json` against its schema, each board's
+  chapter in the snapshot with at least 5 topics, and each board on its island (in its waters, on the
+  ground or a deck).
 - `tools/questtest.mjs`: after Nell's talk, walks to Anchorage's board, opens it with E, and checks
   Installation's link (URL, `target="_blank"`, `noopener`, the new-tab label), its ✓ from Nell's
   install page, the first topic's focus, and Esc. It doesn't follow the link.

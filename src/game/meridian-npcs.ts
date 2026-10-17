@@ -41,10 +41,6 @@ export function meridianExtras(anchors: Readonly<Record<string, { x: number; z: 
       clip: 'sit',
       keepY: true,
       seatDrop: 0.22,
-      barks: [
-        'Forty years I’ve fished off this mole. Never once needed a worktree.',
-        'Quick question? That’s a chat. Big job? That’s a project. Same as nets and boats.',
-      ],
     },
     {
       id: 'mer_matron',
@@ -53,20 +49,12 @@ export function meridianExtras(anchors: Readonly<Record<string, { x: number; z: 
       clip: 'sit',
       keepY: true,
       seatDrop: 0.22,
-      barks: [
-        'My grandson checks Pull requests and Issues every morning. Every last one.',
-        'The Admiral’s up on her terrace. She doesn’t hand out Seals for nothing.',
-      ],
     },
     {
       id: 'mer_vendor',
       name: 'Marco',
       anchor: 'extraStall',
       clip: 'idle',
-      barks: [
-        'Fresh from the bay! Pick what suits the job, like a model.',
-        'Auto picks the model for you. It isn’t Autopilot, mind.',
-      ],
     },
     {
       // Gilda keeps the Model Market behind her counter: the market's own E (src/game/puzzles/
@@ -86,7 +74,6 @@ export function meridianExtras(anchors: Readonly<Record<string, { x: number; z: 
       clip: 'run',
       orbit: 3.4,
       speed: 2.6,
-      barks: ['Catch me if you can!', 'Did you sail the three helms? I want to!'],
     },
     {
       id: 'mer_kid_b',
@@ -97,17 +84,12 @@ export function meridianExtras(anchors: Readonly<Record<string, { x: number; z: 
       // Half a lap behind Nico, chasing him round.
       orbitPhase: Math.PI,
       speed: 2.6,
-      barks: ['Nico, wait for me!', 'The lighthouse lights up when someone earns the Seal!'],
     },
     {
       id: 'mer_guard',
       name: 'Citadel Guard',
       anchor: 'extraCitadel',
       clip: 'idle',
-      barks: [
-        'The Hall of Records is through the gate. Settings, all nine areas.',
-        'Mind the drop, Captain.',
-      ],
     },
   ];
   if (quayA && quayB)
@@ -122,7 +104,6 @@ export function meridianExtras(anchors: Readonly<Record<string, { x: number; z: 
         [quayB.x, quayB.z],
       ],
       speed: 1.2,
-      barks: ['Mind the ropes, Captain!', 'Your ship’s the talk of the quay.'],
     });
   return extras.filter((e) => anchors[e.anchor]);
 }

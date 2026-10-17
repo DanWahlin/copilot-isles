@@ -1,3 +1,5 @@
+import { COURSE } from '../course/catalog';
+
 /**
  * The player's fork of the course repository, typed into Ezra's register or at the crane. It's parsed
  * and checked here, on the device only: the game never calls GitHub to look it up (privacy), and it's
@@ -13,8 +15,8 @@ export interface ForkRef {
 
 export type ForkParse = { ok: true; fork: ForkRef; warning: string | null } | { ok: false; error: string };
 
-/** The course repository's name. A fork keeps it unless the player renamed it. */
-export const COURSE_REPO = 'copilot-app-for-beginners';
+/** The course repository's name (the pack's `practice.repoName`). A fork keeps it unless the player renamed it. */
+export const COURSE_REPO = COURSE.practice.repoName;
 /** What the game shows when the player hasn't told it their fork. */
 export const FORK_PLACEHOLDER = `your-handle/${COURSE_REPO}`;
 /** Longer than any real GitHub URL a player would paste (owner 39 + name 100 + host and path). */
@@ -72,7 +74,7 @@ export function parseFork(input: unknown): ForkParse {
   if (parts.length < 2)
     return {
       ok: false,
-      error: 'Add the repository name after the owner, like your-handle/copilot-app-for-beginners.',
+      error: `Add the repository name after the owner, like ${FORK_PLACEHOLDER}.`,
     };
   const owner = parts[0]!;
   const repo = parts[1]!.replace(/\.git$/i, '');
@@ -101,7 +103,7 @@ export function parseFork(input: unknown): ForkParse {
 function notGitHub(): ForkParse {
   return {
     ok: false,
-    error: 'Use your fork’s GitHub address, like https://github.com/your-handle/copilot-app-for-beginners.',
+    error: `Use your fork’s GitHub address, like https://github.com/${FORK_PLACEHOLDER}.`,
   };
 }
 

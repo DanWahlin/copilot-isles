@@ -6,8 +6,9 @@ export type { ChapterId };
 
 /**
  * Learning content (POC §3.4-3.6): course images, quizzes, Logbook pages, chests, glossary terms,
- * and Trials. Content lives in typed modules (src/learn/content/*) rather than YAML so the compiler
- * checks every id and the tests can validate rects against the images.
+ * and Trials. Content lives in a course pack's `chapters/<chapter>.json` (docs/specs/COURSE-PACKS.md);
+ * these types are its contract. The JSON Schema (`courses/schemas/chapter.schema.json`), the content
+ * check and the tests check every id, and validate rects against the images.
  */
 
 /** Normalized image rect: x, y, width, height, all 0-1 of the image size. */
@@ -15,9 +16,9 @@ export type Rect = readonly [x: number, y: number, w: number, h: number];
 
 /**
  * Where an authored item comes from in the course (PLAN §8.3, §8.5): the chapter, the README heading
- * anchor (its "Open in the course ↗" link), and the hash of that section in `content/course.lock.json`
+ * anchor (its "Open in the course ↗" link), and the hash of that section in the course pack's `lock.json`
  * when the item was written. The drift report flags the item when the course section's hash moves
- * on. Make them with `courseRefs(chapter)` from `src/learn/course/refs.ts`.
+ * on. `npm run course:refs -- <nn>` prints them for a course pack's JSON.
  */
 export interface SourceRef {
   chapter: ChapterId;

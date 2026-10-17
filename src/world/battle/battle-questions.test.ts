@@ -7,7 +7,7 @@ import type { Quiz } from '../../learn/types';
 import { BATTLE_PLANS } from './battle';
 
 const lock = JSON.parse(
-  readFileSync(join(__dirname, '../../../content/course.lock.json'), 'utf8'),
+  readFileSync(join(__dirname, '../../../courses/copilot-app/lock.json'), 'utf8'),
 ) as CourseLock;
 const battleQuestionIds = BATTLE_PLANS.flatMap((plan) => plan.waves.map((wave) => wave.quiz));
 const trialQuestionIds = new Set([...TRIALS.values()].flatMap((trial) => trial.items));

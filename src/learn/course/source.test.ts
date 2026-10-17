@@ -16,10 +16,12 @@ import {
   snapshotUrl,
 } from './source';
 
-const PUBLIC = join(__dirname, '../../../public');
+/** The course pack's served files: its snapshot is `<base>courses/copilot-app/course/…`. */
+const PUBLIC = join(__dirname, '../../../courses/copilot-app/public');
+const SNAP = '/courses/copilot-app/';
 const RAW = 'https://raw.githubusercontent.com/github/copilot-app-for-beginners/main/';
 
-/** fetch() that serves the bundled snapshot from public/ and live files from `live` (or fails). */
+/** fetch() that serves the pack's bundled snapshot and live files from `live` (or fails). */
 function stubFetch(live: Record<string, string> | 'offline') {
   const calls: string[] = [];
   vi.stubGlobal('fetch', async (url: string) => {
@@ -29,7 +31,8 @@ function stubFetch(live: Record<string, string> | 'offline') {
       const body = live[url.slice(RAW.length)];
       return new Response(body ?? 'Not Found', { status: body === undefined ? 404 : 200 });
     }
-    if (url.startsWith('/course/')) return new Response(readFileSync(join(PUBLIC, url)));
+    if (url.startsWith(`${SNAP}course/`))
+      return new Response(readFileSync(join(PUBLIC, url.slice(SNAP.length))));
     return new Response('', { status: 404 });
   });
   return calls;
@@ -107,7 +110,10 @@ describe('CourseSource', () => {
     resetCourseSource();
     stubFetch({ '00-setup/README.md': md.replace(/app-add-project\.webp/g, 'app-add-project-v2.webp') });
     const gone = await resolveImage('course/ch00/app-add-project.webp', ['00-setup']);
-    expect(gone).toMatchObject({ origin: 'snapshot', src: '/course/ch00/app-add-project.webp' });
+    expect(gone).toMatchObject({
+      origin: 'snapshot',
+      src: '/courses/copilot-app/course/ch00/app-add-project.webp',
+    });
   });
 
   it('maps snapshot paths both ways', () => {
@@ -116,9 +122,11 @@ describe('CourseSource', () => {
     );
     expect(repoPathForSnapshot('course/shared/x.webp')).toBe('assets/x.webp');
     expect(repoPathForSnapshot('course/ch00/../x.webp')).toBeNull();
-    expect(snapshotUrl('02-sessions-worktrees-context/README.md')).toBe('/course/ch02/README.md');
+    expect(snapshotUrl('02-sessions-worktrees-context/README.md')).toBe(
+      '/courses/copilot-app/course/ch02/README.md',
+    );
     expect(snapshotUrl('assets/app-github-copilot-app.webp')).toBe(
-      '/course/shared/app-github-copilot-app.webp',
+      '/courses/copilot-app/course/shared/app-github-copilot-app.webp',
     );
     expect(liveUrl('00-setup/assets/a b.webp', 'abc1234')).toBe(
       'https://raw.githubusercontent.com/github/copilot-app-for-beginners/abc1234/00-setup/assets/a%20b.webp',

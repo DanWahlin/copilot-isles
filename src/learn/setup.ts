@@ -1,3 +1,5 @@
+import { COURSE } from '../course/catalog';
+
 /**
  * "Your setup": what the player tells the game about their own copy of the course, so it can show
  * their values in place of the course's examples. All of it is optional (every form has Skip), kept in
@@ -34,10 +36,13 @@ export const SETUP_KINDS: readonly SetupKind[] = ['os', 'issue', 'branch', 'mode
 
 export const EMPTY_SETUP: SetupData = { os: null, issue: null, branch: null, model: null };
 
-/** The course's practice issue and branch (Chapter 02 · Exercise: Start a Session from a Branch). */
-export const COURSE_ISSUE = 3;
-export const COURSE_ISSUE_TITLE = 'Improve the empty state copy';
-export const COURSE_BRANCH = 'practice-empty-state-copy';
+/**
+ * The course's practice issue and branch (the course pack's `course.json` → `practice`; for the
+ * Copilot app course, Chapter 02 · Exercise: Start a Session from a Branch).
+ */
+export const COURSE_ISSUE = COURSE.practice.issue;
+export const COURSE_ISSUE_TITLE = COURSE.practice.issueTitle;
+export const COURSE_BRANCH = COURSE.practice.branch;
 
 // ---- The computer ----
 
@@ -107,7 +112,7 @@ export function parseIssue(input: unknown): FieldParse<number> {
   const raw = input.trim();
   if (raw.length > ISSUE_INPUT_MAX) return { ok: false, error: 'That’s too long for an issue number.' };
   const m = /^#?\s?([0-9]+)$/.exec(raw) ?? ISSUE_URL.exec(raw);
-  if (!m) return { ok: false, error: 'Type just the number after the #, like 3.' };
+  if (!m) return { ok: false, error: `Type just the number after the #, like ${COURSE_ISSUE}.` };
   const digits = m[1]!.replace(/^0+(?=\d)/, '');
   const n = digits.length > 7 ? Infinity : Number(digits);
   if (n < 1) return { ok: false, error: 'Issue numbers start at 1.' };
@@ -136,7 +141,7 @@ export function parseBranch(input: unknown): FieldParse<string> {
   if (/\s/.test(b)) return { ok: false, error: 'Branch names don’t have spaces.' };
   b = b.replace(/^refs\/heads\//, '').replace(/^origin\//, '');
   if (!BRANCH_CHARS.test(b))
-    return { ok: false, error: 'Use letters, digits, and . _ / + - only, like practice-empty-state-copy.' };
+    return { ok: false, error: `Use letters, digits, and . _ / + - only, like ${COURSE_BRANCH}.` };
   if (b.length > BRANCH_MAX)
     return { ok: false, error: `Branch names here can be up to ${BRANCH_MAX} characters.` };
   if (b.startsWith('-') || b.startsWith('/') || b.endsWith('/') || b.endsWith('.'))

@@ -2,16 +2,18 @@
 /**
  * Course snapshot sync (PLAN §8.2, §8.4 steps 1-3). Pulls the course's root README (the chapter
  * list), GLOSSARY.md, LICENSE, each snapshotted chapter's README.md, and every image those READMEs
- * reference from raw.githubusercontent.com at one commit, copies them byte-for-byte into
- * `public/course/**`, and writes `content/course.lock.json` with the commit SHA and a hash per
- * section and image. It never calls the GitHub REST API: the commit comes from `git ls-remote`.
+ * reference from raw.githubusercontent.com at one commit, copies them byte-for-byte into the course
+ * pack's snapshot (`courses/<id>/public/course/**`), and writes the pack's `lock.json` with the
+ * commit SHA and a hash per section and image. It never calls the GitHub REST API: the commit comes
+ * from `git ls-remote`. The course's repository and chapters are the pack's `course.json` → `source`.
  *
- * Images that authored content points at (`src: 'course/…'` in src/learn/content/*.ts) are pinned:
+ * Images that authored content points at (`src: 'course/…'` in the pack's chapters/*.json) are pinned:
  * hotspot rects, alt text, and captions were written against those exact files, so sync keeps the
  * bundled file and records the upstream hash beside it for the drift report. `--unpin` takes the
  * upstream file once someone has re-checked the content.
  *
  *   node tools/course/sync.mjs                     sync main (chapters already in the lock, or 00-02)
+ *   node tools/course/sync.mjs --course=<id>       another course pack (default copilot-app)
  *   node tools/course/sync.mjs --chapters=00,01,02,03
  *   node tools/course/sync.mjs --ref=<sha>         sync one commit (the lock keeps following its branch)
  *   node tools/course/sync.mjs --from=<clone dir>  read files from a local clone (offline)
@@ -24,26 +26,39 @@
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { appendFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 const exec = promisify(execFile);
 const root = fileURLToPath(new URL('../..', import.meta.url));
-const LOCK = join(root, 'content', 'course.lock.json');
-const PUBLIC = join(root, 'public');
-// The course repo (also in src/learn/course/chapters.ts). `--check` needs only this, so it runs
-// without installing dependencies; the rest of the TS helpers load after it.
-const COURSE_REPO = 'github/copilot-app-for-beginners';
-let COURSE_CHAPTERS, repoPath, snapshotPath, chapterLock, glossaryLock, parseCatalog, HASH_LENGTH;
+
+const args = Object.fromEntries(
+  process.argv.slice(2).map((a) => {
+    const [k, ...v] = a.replace(/^--/, '').split('=');
+    return [k, v.length ? v.join('=') : true];
+  }),
+);
+
+// The course pack (docs/specs/COURSE-PACKS.md): its course.json names the course's repository and
+// chapters. `--check` needs only that, so it runs without installing dependencies; the TS helpers
+// load after it.
+const COURSE = typeof args.course === 'string' ? args.course : 'copilot-app';
+if (!/^[a-z0-9-]+$/.test(COURSE)) throw new Error(`--course: "${COURSE}" isn't a course id`);
+const PACK = join(root, 'courses', COURSE);
+const META = JSON.parse(readFileSync(join(PACK, 'course.json'), 'utf8'));
+const LOCK = join(PACK, 'lock.json');
+/** The pack's served files: the snapshot is `course/**` in here, as the lock's paths say. */
+const PUBLIC = join(PACK, 'public');
+const COURSE_REPO = META.source.repo;
+const COURSE_CHAPTERS = META.source.chapters;
+let repoPath, snapshotPathIn, chapterLock, glossaryLock, parseCatalog, HASH_LENGTH;
+const snapshotPath = (path) => snapshotPathIn(COURSE_CHAPTERS, path);
 
 async function loadHelpers() {
   const { tsImport } = await import('tsx/esm/api');
-  ({ COURSE_CHAPTERS, repoPath, snapshotPath } = await tsImport(
-    '../../src/learn/course/chapters.ts',
-    import.meta.url,
-  ));
+  ({ repoPath, snapshotPathIn } = await tsImport('../../src/learn/course/chapters.ts', import.meta.url));
   ({ chapterLock, glossaryLock, parseCatalog, HASH_LENGTH } = await tsImport(
     '../../src/learn/course/lock.ts',
     import.meta.url,
@@ -55,13 +70,6 @@ const DERIVED = {
   'course/shared/app-review-panel.webp': '03-development-workflows/assets/app-workspace-panel.webp',
 };
 const RASTER = /\.(webp|png|jpe?g|gif)$/i;
-
-const args = Object.fromEntries(
-  process.argv.slice(2).map((a) => {
-    const [k, ...v] = a.replace(/^--/, '').split('=');
-    return [k, v.length ? v.join('=') : true];
-  }),
-);
 
 const sha256 = (data) => createHash('sha256').update(data).digest('hex');
 const short = (s) => (s ? s.slice(0, 7) : 'none');
@@ -118,14 +126,15 @@ async function getFile(sha, path) {
   throw new Error(`fetch failed: ${url}`);
 }
 
-/** Every `src: 'course/…'` that authored content uses. */
+/** Every `"src": "course/…"` that the pack's chapters use (their images, and hotspot quizzes' screenshots). */
 async function authoredImages() {
-  const dir = join(root, 'src', 'learn', 'content');
+  const dir = join(PACK, 'chapters');
   const out = new Set();
+  if (!existsSync(dir)) return out;
   for (const f of await readdir(dir)) {
-    if (!f.endsWith('.ts')) continue;
+    if (!f.endsWith('.json')) continue;
     const text = await readFile(join(dir, f), 'utf8');
-    for (const m of text.matchAll(/\bsrc:\s*['"`](course\/[^'"`]+)['"`]/g)) out.add(m[1]);
+    for (const m of text.matchAll(/"src":\s*"(course\/[^"]+)"/g)) out.add(m[1]);
   }
   return out;
 }

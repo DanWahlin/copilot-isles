@@ -3,14 +3,14 @@ import fs from 'node:fs';
 import { skipTalk } from './lib.mjs';
 
 /**
- * Off camera: marks every chart label in content/labels.json as already shown in this save (the
+ * Off camera: marks every chart label in courses/copilot-app/labels.json as already shown in this save (the
  * game shows each once, the first time a puzzle or a battle starts, and stores the ids in the save's
  * `labels` list), so a take of a puzzle or a battle doesn't show the game's own parchment card under
  * the reel's lower third. The arrival cards in `opening` aren't touched (that take has no dev page).
  */
 export async function labelsShown(api) {
   const { labels } = JSON.parse(
-    fs.readFileSync(new URL('../../content/labels.json', import.meta.url), 'utf8'),
+    fs.readFileSync(new URL('../../courses/copilot-app/labels.json', import.meta.url), 'utf8'),
   );
   const added = await api.S((ids) => {
     const p = window.__dev.learn.progress;

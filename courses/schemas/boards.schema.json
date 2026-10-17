@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A course pack's notice-board text (courses/<id>/boards.json)",
+  "description": "The header and pin text, and the ## sections that aren't topics. Which chapter a board shows is its island's chapter in course.json; where it stands is the game's. The topics come from the pack's lock.json. docs/content-data.md, docs/specs/COURSE-BOARDS.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["header", "pins", "skip"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "header": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sign", "kicker"],
+      "properties": {
+        "sign": {
+          "description": "The carved header's lines. {num} is the chapter's number, {title} its title in the course.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/text"
+          }
+        },
+        "kicker": {
+          "description": "The small line over the title in the overlay.",
+          "$ref": "#/$defs/text"
+        }
+      }
+    },
+    "pins": {
+      "description": "The two pins under the topics: the chapter's README, then the course's home.",
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["link", "label", "sign", "text", "aria"],
+        "properties": {
+          "link": {
+            "enum": ["chapter", "home"]
+          },
+          "label": {
+            "description": "The pin's first line.",
+            "$ref": "#/$defs/text"
+          },
+          "sign": {
+            "description": "The second line on the board in the world.",
+            "$ref": "#/$defs/text"
+          },
+          "text": {
+            "description": "The second line in the overlay.",
+            "$ref": "#/$defs/text"
+          },
+          "aria": {
+            "description": "What a screen reader says after the label.",
+            "$ref": "#/$defs/text"
+          }
+        }
+      }
+    },
+    "skip": {
+      "description": "## sections that aren't topics.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["anchors", "titlePrefixes"],
+      "properties": {
+        "anchors": {
+          "description": "Matched by README anchor.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          }
+        },
+        "titlePrefixes": {
+          "description": "Matched by the start of the heading.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/text"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

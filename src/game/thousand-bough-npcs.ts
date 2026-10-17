@@ -47,11 +47,6 @@ export function thousandBoughExtras(
       clip: 'run',
       orbit: 2.6,
       speed: 2.4,
-      barks: [
-        'Race you to the rope swing!',
-        // why-the-github-copilot-app-uses-worktrees
-        'My treehouse, my branch. Nobody tracks mud in.',
-      ],
     },
     {
       id: 'tb_kid_b',
@@ -61,7 +56,6 @@ export function thousandBoughExtras(
       orbit: 2.6,
       orbitPhase: Math.PI,
       speed: 2.4,
-      barks: ['Teo, wait for me!', 'When the Beacon lights, every lantern on the tree lights too!'],
     },
     {
       id: 'tb_weaver',
@@ -70,21 +64,12 @@ export function thousandBoughExtras(
       clip: 'sit',
       keepY: true,
       seatDrop: 0.22,
-      barks: [
-        // context-syntax
-        'Less is often more, Captain. Don’t bring the whole library.',
-        'One trunk, a thousand boughs. I’ve woven every rope bridge on them.',
-      ],
     },
     {
       id: 'tb_operator',
       name: 'Moss',
       anchor: 'extraLift',
       clip: 'idle',
-      barks: [
-        'The Sky Basket only runs once the Elder sends it down.',
-        'Up and down all day. Best view on the island, mind.',
-      ],
     },
     {
       id: 'tb_fisher',
@@ -93,10 +78,6 @@ export function thousandBoughExtras(
       clip: 'sit',
       keepY: true,
       seatDrop: 0.22,
-      barks: [
-        'The mist rolls in every evening. You get used to it.',
-        'Up in those boughs, every crew minds its own branch. Quieter that way.',
-      ],
     },
   ];
   if (twistDone)
@@ -105,11 +86,6 @@ export function thousandBoughExtras(
       name: 'Lookout Jory',
       anchor: 'extraLook',
       clip: 'idle',
-      barks: [
-        // two-previews-collided
-        'Two lanterns on one lookout? That’s a jam on the bridge.',
-        'Feature’s on 5173 and Docs is on 5174. No more jams.',
-      ],
     });
   return extras.filter((e) => anchors[e.anchor]);
 }

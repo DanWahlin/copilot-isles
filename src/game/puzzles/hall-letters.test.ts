@@ -13,13 +13,13 @@ import {
 } from './hall-letters';
 
 const ROOT = join(__dirname, '../../..');
-const lock = JSON.parse(readFileSync(join(ROOT, 'content/course.lock.json'), 'utf8')) as {
+const lock = JSON.parse(readFileSync(join(ROOT, 'courses/copilot-app/lock.json'), 'utf8')) as {
   chapters: Record<string, { sections: Record<string, { hash: string }> }>;
 };
-const readme = readFileSync(join(ROOT, 'public/course/ch01/README.md'), 'utf8');
+const readme = readFileSync(join(ROOT, 'courses/copilot-app/public/course/ch01/README.md'), 'utf8');
 const voiced = new Set(
   (
-    JSON.parse(readFileSync(join(ROOT, 'tools/voice/lines.testcove.json'), 'utf8')) as {
+    JSON.parse(readFileSync(join(ROOT, 'courses/copilot-app/voice/lines.json'), 'utf8')) as {
       lines: { id: string }[];
     }
   ).lines.map((l) => l.id),

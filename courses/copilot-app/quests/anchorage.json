@@ -1,0 +1,609 @@
+{
+  "$schema": "../../schemas/quests.schema.json",
+  "island": "anchorage",
+  "tracker": {
+    "chapter": "Chapter 00 · Setup",
+    "goal": "Set up the Copilot app and earn the Seal of Anchorage",
+    "next": "Port Meridian’s the next island, and she’s coming soon. Until then these waters are yours, and the compass points back to the pier."
+  },
+  "quests": [
+    {
+      "id": "Q0.2",
+      "title": "Captain’s Papers",
+      "task": "Install the app and sign in",
+      "link": {
+        "label": "Download the Copilot app",
+        "url": "https://github.com/features/ai/github-app"
+      },
+      "steps": {
+        "start": "Talk to Nell Tidewell by the harbourmaster’s door.",
+        "palette": "Paint your sails at the palette stand beside Nell. In the app, themes are in Settings → Themes.",
+        "done": "Signed in, the New view is open, and your sails are painted."
+      }
+    },
+    {
+      "id": "Q0.3",
+      "title": "Copy the Master Chart",
+      "task": "Fork the course and add it to Projects",
+      "link": {
+        "label": "Fork the course repository",
+        "url": "https://github.com/github/copilot-app-for-beginners/fork"
+      },
+      "steps": {
+        "start": "Find Ezra Quill at his chart table by the pier.",
+        "done": "Your fork is added under Projects."
+      }
+    },
+    {
+      "id": "Q0.4",
+      "title": "Your Own Deck",
+      "task": "Start a session and check your tools",
+      "steps": {
+        "start": "Bo Marlin, the quartermaster, is at his gear rack beside Ezra.",
+        "done": "Your session runs on Current checkout, and every tool checks out in Terminal."
+      }
+    },
+    {
+      "id": "Q0.7",
+      "title": "The Dry-Run Crane",
+      "task": "Add the course practice items",
+      "steps": {
+        "start": "Find Pim and Pol at the crane at the end of the pier.",
+        "actions": "Actions first: on GitHub.com, you enable workflows in your fork’s Actions tab. Here, pull the gate lever at Suri’s mill.",
+        "crane": "Aim the crane at your ship, preview with Dry-Run, check the Repository line, then pull --yes.",
+        "solved": "Setup complete. Talk to Pol.",
+        "done": "Workflows are on, and your fork has its practice labels, issues, branches, and pull requests."
+      }
+    },
+    {
+      "id": "Q0.8",
+      "title": "First Words",
+      "task": "Ask the agent about the course",
+      "steps": {
+        "start": "Find Juno, your first mate, on the pier beside your ship.",
+        "pipes": "Send the course’s overview prompt to the agent. Which fitting on your ship’s rail carries it?",
+        "done": "Your request went to the agent, and the crew answered."
+      }
+    },
+    {
+      "id": "Q0.6",
+      "title": "The Mill Race (optional)",
+      "task": "See the practice checks run",
+      "optional": true,
+      "steps": {
+        "start": "Suri Okoye’s mill past the storehouse shows what your workflows do with the practice items.",
+        "sluice": "Turn the channels (E, or Shift+E to turn back) until the water reaches both outlets: the wheel and the check gate.",
+        "solved": "The wheel’s turning. Talk to Suri.",
+        "done": "With workflows on, GitHub runs the practice checks. One fails on purpose, for a later chapter."
+      }
+    },
+    {
+      "id": "Q0.9",
+      "title": "Soundcheck (optional)",
+      "task": "Hear the studio analogy",
+      "optional": true,
+      "steps": {
+        "start": "Lute music’s drifting up from the lagoon. Find Lyra Wren, the bard, at her hammock.",
+        "done": "Setting up the app is like prepping a studio before the first take."
+      }
+    },
+    {
+      "id": "Q0.10",
+      "title": "The Harbormaster’s Trial",
+      "task": "Pass the Trial to earn the Seal",
+      "steps": {
+        "start": "Nell’s waiting by your bow at the end of the pier.",
+        "done": "The Seal of Anchorage is yours."
+      }
+    },
+    {
+      "id": "Q0.11",
+      "title": "Christen Your Ship",
+      "task": "Name your ship and set sail",
+      "steps": {
+        "start": "Talk to Nell by your bow at the end of the pier.",
+        "sail": "The gangway’s down. Walk up it to take the helm.",
+        "done": "Your ship has her name, and you’ve taken her out."
+      }
+    }
+  ],
+  "targets": {
+    "Q0.2:start": {
+      "ids": ["npc:nell"],
+      "label": "Nell Tidewell"
+    },
+    "Q0.2:palette": {
+      "ids": ["palette:stand"],
+      "label": "Palette stand"
+    },
+    "Q0.3:start": {
+      "ids": ["npc:merchant"],
+      "label": "Ezra Quill"
+    },
+    "Q0.4:start": {
+      "ids": ["npc:dockhand_b"],
+      "label": "Bo Marlin"
+    },
+    "Q0.7:start": {
+      "ids": ["npc:pim", "npc:pol"],
+      "label": "Pim and Pol"
+    },
+    "Q0.7:actions": {
+      "ids": ["mill:lever"],
+      "label": "Suri’s gate lever"
+    },
+    "Q0.7:crane": {
+      "ids": ["crane:*"],
+      "label": "The crane"
+    },
+    "Q0.7:solved": {
+      "ids": ["npc:pol"],
+      "label": "Pol"
+    },
+    "Q0.8:start": {
+      "ids": ["npc:juno"],
+      "label": "Juno"
+    },
+    "Q0.8:pipes": {
+      "ids": ["pipe:*"],
+      "label": "Your ship’s rail"
+    },
+    "Q0.10:start": {
+      "ids": ["npc:nell"],
+      "label": "Nell, by your bow"
+    },
+    "Q0.11:start": {
+      "ids": ["npc:nell"],
+      "label": "Nell, by your bow"
+    },
+    "Q0.11:sail": {
+      "ids": ["ship:board"],
+      "label": "The gangway"
+    }
+  },
+  "scripts": {
+    "christening": [
+      {
+        "say": "nell.christen.01"
+      },
+      {
+        "text": "I name this ship {ship}!"
+      },
+      {
+        "cue": "christen"
+      },
+      {
+        "say": "nell.christen.02"
+      },
+      {
+        "say": "juno.christen.01"
+      },
+      {
+        "say": "wingman.sail.01"
+      },
+      {
+        "say": "wingman.sail.02"
+      },
+      {
+        "say": "wingman.sail.03"
+      },
+      {
+        "quest": "Q0.11",
+        "step": "sail"
+      }
+    ],
+    "nell.trial": [
+      {
+        "say": "nell.trial.01"
+      },
+      {
+        "say": "wingman.trial.01"
+      },
+      {
+        "trial": "T0"
+      },
+      {
+        "cue": "celebrate"
+      },
+      {
+        "cue": "anchorage-lighthouse"
+      },
+      {
+        "quest": "Q0.10",
+        "step": "done"
+      },
+      {
+        "say": "nell.trial.02"
+      },
+      {
+        "quest": "Q0.11",
+        "step": "start"
+      },
+      {
+        "script": "christening"
+      }
+    ],
+    "lyra.soundcheck": [
+      {
+        "say": "lyra.soundcheck.01"
+      },
+      {
+        "say": "lyra.soundcheck.02"
+      },
+      {
+        "page": "C0.5",
+        "doubloons": 10
+      },
+      {
+        "say": "lyra.soundcheck.03"
+      },
+      {
+        "say": "lyra.soundcheck.04"
+      },
+      {
+        "quest": "Q0.9",
+        "step": "done"
+      }
+    ],
+    "juno.brief": [
+      {
+        "say": "juno.brief.01"
+      },
+      {
+        "say": "juno.brief.02"
+      },
+      {
+        "say": "juno.brief.03"
+      },
+      {
+        "show": "shared/app-review-panel",
+        "caption": "Requests go in the **prompt box**. Commands go in **Terminal**."
+      },
+      {
+        "say": "juno.brief.04"
+      },
+      {
+        "hide": true
+      },
+      {
+        "say": "juno.brief.05"
+      },
+      {
+        "quest": "Q0.8",
+        "step": "pipes"
+      }
+    ],
+    "suri.solved": [
+      {
+        "say": "suri.solved.01"
+      },
+      {
+        "page": "pg.checks",
+        "doubloons": 15
+      },
+      {
+        "say": "wingman.suri.01"
+      },
+      {
+        "say": "suri.solved.02"
+      },
+      {
+        "quest": "Q0.6",
+        "step": "done"
+      }
+    ],
+    "crane.brief": [
+      {
+        "say": "pim.brief.01"
+      },
+      {
+        "say": "pol.brief.01"
+      },
+      {
+        "askFork": "crane",
+        "line": "pim.brief.fork"
+      },
+      {
+        "say": "pol.brief.actions"
+      },
+      {
+        "term": "github-actions"
+      },
+      {
+        "page": "pg.workflows",
+        "doubloons": 10
+      },
+      {
+        "say": "pim.brief.02"
+      },
+      {
+        "say": "pol.brief.02"
+      },
+      {
+        "term": "dry-run"
+      },
+      {
+        "say": "pim.brief.03"
+      },
+      {
+        "quest": "Q0.7",
+        "step": "actions"
+      }
+    ],
+    "pol.solved": [
+      {
+        "say": "pol.solved.01"
+      },
+      {
+        "say": "pim.solved.01"
+      },
+      {
+        "say": "pim.solved.fork"
+      },
+      {
+        "page": "P0.S",
+        "doubloons": 20
+      },
+      {
+        "say": "pim.solved.03"
+      },
+      {
+        "quest": "Q0.7",
+        "step": "done"
+      },
+      {
+        "quest": "Q0.8",
+        "step": "start"
+      },
+      {
+        "quest": "Q0.6",
+        "step": "start"
+      }
+    ],
+    "nell.papers": [
+      {
+        "say": "nell.papers.01"
+      },
+      {
+        "say": "nell.papers.tools"
+      },
+      {
+        "cue": "nell-chest"
+      },
+      {
+        "show": "shared/app-github-copilot-app",
+        "caption": "The **GitHub Copilot app**. Download and install it from [github.com/features/ai/github-app](https://github.com/features/ai/github-app)."
+      },
+      {
+        "say": "nell.papers.app"
+      },
+      {
+        "show": "ch00/app-sign-in",
+        "caption": "Open the app and select **Sign in to GitHub** (on GHE.com, **Sign in to GitHub Enterprise Cloud**)."
+      },
+      {
+        "say": "nell.papers.signin"
+      },
+      {
+        "show": "shared/app-github-copilot-app",
+        "caption": "At **Connect your repositories**, leave every repository unselected and select **Continue**. The app opens the **New** view, where new work starts."
+      },
+      {
+        "say": "nell.papers.05"
+      },
+      {
+        "file": "pg.install"
+      },
+      {
+        "file": "C0.3",
+        "doubloons": 20
+      },
+      {
+        "show": "ch01/app-settings",
+        "caption": "Select the gear at the bottom of the sidebar to open **Settings**. Your theme is under **Themes**."
+      },
+      {
+        "say": "nell.papers.06"
+      },
+      {
+        "hide": true
+      },
+      {
+        "quest": "Q0.2",
+        "step": "palette"
+      }
+    ],
+    "ezra.fork": [
+      {
+        "say": "ezra.fork.01"
+      },
+      {
+        "term": "fork"
+      },
+      {
+        "page": "pg.fork"
+      },
+      {
+        "say": "ezra.fork.link"
+      },
+      {
+        "askFork": "ezra",
+        "line": "ezra.fork.register"
+      },
+      {
+        "show": "shared/app-github-copilot-app",
+        "caption": "Then add your fork to the app, starting from the **New** view."
+      },
+      {
+        "say": "ezra.fork.02"
+      },
+      {
+        "quiz": "H0.2"
+      },
+      {
+        "show": "ch00/app-add-project",
+        "caption": "**+** next to **Projects** → **Add GitHub repository**, then pick your fork, `{fork}`."
+      },
+      {
+        "say": "ezra.fork.03"
+      },
+      {
+        "say": "ezra.fork.careful"
+      },
+      {
+        "hide": true
+      },
+      {
+        "quiz": "S0.3"
+      },
+      {
+        "page": "C0.4",
+        "doubloons": 20
+      },
+      {
+        "say": "ezra.fork.04"
+      },
+      {
+        "quest": "Q0.3",
+        "step": "done"
+      },
+      {
+        "quest": "Q0.4",
+        "step": "start"
+      }
+    ],
+    "bo.deck": [
+      {
+        "say": "bo.deck.01"
+      },
+      {
+        "term": "project-session"
+      },
+      {
+        "say": "bo.deck.02"
+      },
+      {
+        "quiz": "H0.4"
+      },
+      {
+        "term": "current-checkout"
+      },
+      {
+        "term": "worktree"
+      },
+      {
+        "page": "C0.6",
+        "doubloons": 10
+      },
+      {
+        "say": "bo.deck.03"
+      },
+      {
+        "show": "shared/app-review-panel",
+        "caption": "**View → Toggle Review Panel**, then the **Terminal** tab. No tab? **+** → **Terminal**."
+      },
+      {
+        "say": "bo.gear.brief.01"
+      },
+      {
+        "term": "review-panel"
+      },
+      {
+        "hide": true
+      },
+      {
+        "say": "bo.gear.brief.02"
+      },
+      {
+        "cue": "gear-checks"
+      },
+      {
+        "say": "bo.gear.brief.03"
+      },
+      {
+        "say": "bo.gear.checked.02"
+      },
+      {
+        "quiz": "S0.1"
+      },
+      {
+        "page": "pg.terminal",
+        "doubloons": 10
+      },
+      {
+        "say": "bo.signed.02"
+      },
+      {
+        "quest": "Q0.4",
+        "step": "done"
+      },
+      {
+        "quest": "Q0.7",
+        "step": "start"
+      }
+    ],
+    "suri.brief": [
+      {
+        "say": "suri.brief.01"
+      },
+      {
+        "say": "suri.brief.02"
+      },
+      {
+        "term": "github-actions"
+      },
+      {
+        "say": "suri.brief.05"
+      },
+      {
+        "quest": "Q0.6",
+        "step": "sluice"
+      }
+    ]
+  },
+  "notes": {
+    "christening": "The christening (Q0.11): Nell names the ship at the bow (the `christen` cue throws the coconut), Juno reports the crew's aboard, and Wingman gives the sailing lesson. The naming line carries the captain's own ship name, so it stays a subtitle. While Port Meridian is open (the dev build, or ?meridian), the game plays wingman.sail.meridian instead of wingman.sail.03 to point the way.",
+    "nell.trial": "The Harbormaster's Trial (Q0.10), with Nell at your bow once the first prompt's sent, so there's no walk back up the harbour. Passing goes straight on to the christening.",
+    "lyra.soundcheck": "Lyra's soundcheck (Q0.9, optional): the course's recording-studio theme, and C0.5.",
+    "juno.brief": "Juno's opening beat (Q0.8): the course's first prompt, where it goes in the app, and two fittings on the rail.",
+    "suri.solved": "Suri's lines once the mill race is solved (P0.1, optional), also used if you come back after quitting: with workflows on, GitHub runs the practice checks, and one fails on purpose (Chapter 00 · Add the Course Practice Items).",
+    "crane.brief": "Pim and Pol's opening beat (Q0.7), the course's \"Add the course practice items\", kept short and literal: what the setup script adds to your fork (practice, not problems), your fork's address if Ezra didn't get it (for the crane's sign and the Actions link), turning on workflows in the fork's Actions tab on GitHub.com, then the rule: `--dry-run`, check `Repository:`, then `--yes`. Like the course (steps 1–3 before the dry run) and the script (`--yes` refuses while workflows are off), Actions comes first: the job's next step is Suri's gate lever (`actions`).",
+    "pol.solved": "Pol and Pim's closing beat once the crane's done (P0.2), also used if you come back after quitting: where the commands run in the app, and what to do if the `Repository:` line isn't yours (Chapter 00 · Connect to Your Repository, step 3: pick your fork, not the original).",
+    "nell.papers": "Nell's papers (Q0.2) in the course's order (Chapter 00 · Prerequisites, Installation), kept short (about 30 s of voice and one card): papers, the chest with the full list (the Business/Enterprise policy and the tools Bo checks later), the app and its download link, Sign in, Connect your repositories → Continue → the New view, then Settings → Themes and the palette stand. The install and New view pages go straight into the Logbook (no cards).",
+    "ezra.fork": "Ezra's fork (Q0.3) in the course's order: fork on GitHub (the link stays in the Logbook and tracker), then add it from the New view: find the + (H0.2), see the menu it opens, and pick your fork rather than the original (S0.3). Right after forking, the fork's URL is in the browser: write it in Ezra's register (Skip for now always works). The crane's sign, Bo's rack, and fork links use it.",
+    "bo.deck": "Bo's deck (Q0.4), the course's \"Check your tools in Terminal\": a project session on Current checkout, a short prompt that creates it, the Terminal tab, the version checks (Bo's rack runs them, and they all pass), then GitHub CLI's own sign-in.",
+    "suri.brief": "Suri's mill race (Q0.6, optional), once the crane's stocked your fork: workflows are on (her gate's up), so the practice checks run. The mill race shows them, one failing on purpose."
+  },
+  "barks": {
+    "merchant": [
+      "A fork is your own copy of the master chart. Mark it up all you like.",
+      "Add a project with the plus next to Projects. Then pick Add GitHub repository."
+    ],
+    "dockhand_b": [
+      "For setup, choose Current checkout, Captain. New worktrees come later.",
+      "Git, Node.js, npm, and GitHub CLI. Check them in Terminal, and install only what’s missing."
+    ],
+    "dockhand_a": ["Mind the bollards!", "Tide waits for no one.", "Heard you're sailing soon. Fair winds!"],
+    "fisherman": ["Fish bite best when the Terminal is quiet.", "Patience, Captain. Same as prompting."],
+    "old_sailor": [
+      "Sailed with three captains. The good ones read the logbook.",
+      "Aye, that lighthouse has seen things."
+    ],
+    "child": ["Race you to the lighthouse!", "Is that your ship? It is so big!"],
+    "suri": [
+      "The spring never stops. Getting it to the wheel is the trick.",
+      "Actions on, checks on. That’s the rule."
+    ],
+    "pim": [
+      "Dry run first. Always a dry run first.",
+      "Nine pennants, five notices, seven hulls, three seals."
+    ],
+    "pol": ["Preview first, always!", "Check the Repository line. Every time."],
+    "juno": [
+      "The crew’s ready when you are, Captain. Finish your setup first.",
+      "A good first mate listens more than she talks."
+    ],
+    "lyra": ["Every island has its own tune, Captain.", "Hush. The reef’s keeping time."],
+    "lookout": ["Clear skies to the horizon, Captain."]
+  }
+}

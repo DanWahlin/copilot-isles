@@ -3,8 +3,20 @@
 Every character voice is AI-generated (ElevenLabs or Azure AI Speech). Provenance and dates are in
 [`ART_PROVENANCE.md`](../ART_PROVENANCE.md).
 
-Voice lines are in [`tools/voice/lines.testcove.json`](../tools/voice/lines.testcove.json).
-[`tools/voice/generate.ts`](../tools/voice/generate.ts) makes the audio at build time.
+Voice lines belong to a course pack ([COURSE-PACKS.md](specs/COURSE-PACKS.md)). The Copilot app
+course's are in [`courses/copilot-app/voice/lines.json`](../courses/copilot-app/voice/lines.json), and
+their audio, word timings, `manifest.json` and `lipsync.json` are in `courses/copilot-app/public/voice/`
+(served as `<base>courses/copilot-app/voice/`). [`tools/voice/generate.ts`](../tools/voice/generate.ts)
+makes the audio, and `npm run voice:lipsync` the mouth cues; both take `--course <id>` (default
+`copilot-app`):
+
+```bash
+npx tsx tools/voice/generate.ts --course copilot-app --only=mer.market.hello
+npm run voice:lipsync -- --course copilot-app
+```
+
+The cast below is this course's. Another course can give the same characters other voices (or
+another language) in its own `voice/lines.json`.
 
 | Character | Service         | Voice                                                                                                                  | Notes                                                                                            |
 | --------- | --------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |

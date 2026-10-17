@@ -113,7 +113,7 @@ describe('Anchorage guidance', () => {
     expect(ask).toBeLessThan(brief.findIndex((s) => 'page' in s && s.page === 'pg.workflows'));
     const voiced = new Set(
       (
-        JSON.parse(readFileSync(join(__dirname, '../../tools/voice/lines.testcove.json'), 'utf8')) as {
+        JSON.parse(readFileSync(join(__dirname, '../../courses/copilot-app/voice/lines.json'), 'utf8')) as {
           lines: { id: string }[];
         }
       ).lines.map((l) => l.id),

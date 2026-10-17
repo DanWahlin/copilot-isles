@@ -10,9 +10,11 @@ const publicDir = resolve(root, 'public');
 const outPath = resolve(publicDir, 'packs/manifest.json');
 
 const PACK_DEFS = [
+  // Course packs' files (their snapshot and voice) are served from courses/<id>/public/, not packs:
+  // voice lines load by id (src/audio/voice/player.ts), so nothing here lists them.
   {
     id: 'common/critical',
-    include: ['fonts/**', 'voice/testcove/manifest.json'],
+    include: ['fonts/**'],
   },
   {
     id: 'testcove/critical',

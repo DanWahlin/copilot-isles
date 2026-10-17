@@ -56,6 +56,30 @@ const titleOk = title <= budgets.titleWireMaxKB * 1024;
 if (!titleOk) failed = true;
 rows.push(['title (wire, gz)', kb(title), `${budgets.titleWireMaxKB}`, titleOk ? 'ok' : 'OVER']);
 
+// Course packs load with the voyage (docs/specs/COURSE-PACKS.md §2): the title only has the course
+// list (each pack's course.json). No course-<id> chunk may be in the entry's static imports.
+const packIds = existsSync(join(root, 'courses'))
+  ? readdirSync(join(root, 'courses')).filter((d) => existsSync(join(root, 'courses', d, 'course.json')))
+  : [];
+const isPackChunk = (name) => packIds.some((id) => name === `course-${id}`);
+const staticKeys = new Set();
+const walkStatic = (key) => {
+  if (staticKeys.has(key) || !manifest[key]) return;
+  staticKeys.add(key);
+  (manifest[key].imports || []).forEach(walkStatic);
+};
+walkStatic(entryKey);
+for (const key of staticKeys) {
+  const name = manifest[key].name ?? '';
+  if (!isPackChunk(name)) continue;
+  failed = true;
+  rows.push([name, kb(gz(manifest[key].file)), '-', 'IN THE TITLE (load it with the voyage)']);
+}
+const coursePacks = entries.filter(([, v]) => isPackChunk(v.name ?? '')).length;
+const packsOk = coursePacks === packIds.length;
+if (!packsOk) failed = true;
+rows.push(['course packs (lazy chunks)', `${coursePacks}`, `${packIds.length}`, packsOk ? 'ok' : 'MISSING']);
+
 // The baked cloud keys (BakedPanorama.ts) load at run time, one or two at a time: each stays small.
 const skyDir = join(dist, 'sky');
 const skyKeys = existsSync(skyDir) ? readdirSync(skyDir).filter((f) => f.endsWith('.webp')) : [];

@@ -1,12 +1,15 @@
-import data from '../../../content/models.json';
+import { onCourse } from '../../course/active';
 import { CATEGORIES, boardFor, type ModelCategory, type ModelEntry, type ModelsFile } from './catalog';
 
 /**
- * The models on Gilda's boards: content/models.json (written by the weekly sync, tools/models/sync.mjs),
- * read at build time, so a merged sync PR ships new names with the next deploy.
+ * The models on Gilda's boards: the course pack's models.json (written by the weekly sync,
+ * tools/models/sync.mjs), part of the build, so a merged sync PR ships new names with the next deploy.
  */
-export const MODELS_FILE = data as unknown as ModelsFile;
-export const MODELS: readonly ModelEntry[] = MODELS_FILE.models;
+export let MODELS_FILE: ModelsFile = {
+  source: { repo: '', path: '', commit: '', fetchedAt: '' },
+  models: [],
+};
+export let MODELS: readonly ModelEntry[] = [];
 
 export interface MarketBoard {
   category: ModelCategory;
@@ -16,10 +19,13 @@ export interface MarketBoard {
   more: readonly ModelEntry[];
 }
 
-export const BOARDS: readonly MarketBoard[] = CATEGORIES.map((category) => ({
-  category,
-  ...boardFor(MODELS, category),
-}));
+export let BOARDS: readonly MarketBoard[] = [];
+
+onCourse((p) => {
+  MODELS_FILE = p.models;
+  MODELS = MODELS_FILE.models;
+  BOARDS = CATEGORIES.map((category) => ({ category, ...boardFor(MODELS, category) }));
+});
 
 export const boardOf = (c: ModelCategory): MarketBoard => BOARDS.find((b) => b.category === c)!;
 

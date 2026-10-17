@@ -28,6 +28,13 @@ writing `smoothstep(548, 566, P.x)` or `COVE.` inside a shared file, stop and ad
 the island's data instead. A terrain region is a 0-1 TSL mask in world space; the shared material owns
 the look (`dryGrass`, `town`, `bluff`, `grassHill`, ...), the island only says _where_.
 
+The same split holds for the course: an island owns its geometry, cast and puzzle mechanics; every
+course word (quests, scripts, barks, quizzes, pages, labels, board text, arrival lines, voice lines and
+their audio, the snapshot) is a course pack's, in `courses/<id>/` (docs/specs/COURSE-PACKS.md). A pack
+loads with the voyage (`src/course/load.ts`), never with the title: read its data through
+`src/course/active.ts` (or a module's `onCourse` hook), not at module top level. Its snapshot and
+voice are served from `<base>courses/<id>/` (`courseAssetBase()`, `courseVoiceBase()`).
+
 ## 2. Shaders: TSL only, one graph per look
 
 - Write materials as TSL node graphs (`colorNode`, `positionNode`, `opacityNode`, `maskNode`).

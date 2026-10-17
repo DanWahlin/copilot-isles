@@ -1,11 +1,16 @@
 /**
- * The content files' checks (docs/content-data.md): every file in `content/` against its JSON Schema
- * in `content/schemas/`, then what a schema can't say:
+ * The course packs' checks (docs/content-data.md, docs/specs/COURSE-PACKS.md §3): every file of a pack
+ * (`courses/<id>/`, less its served `public/` folder) against its JSON Schema in `courses/schemas/`,
+ * then what a schema can't say:
  *
- * - course quotes are word for word in the cited section of the bundled snapshot (`public/course/**`),
- *   and every cited anchor and hash is in `content/course.lock.json`;
- * - Gilda's captions are her voice lines' text (tools/voice/lines.testcove.json) and the audio's
- *   (public/voice/testcove/manifest.json), so a changed line is regenerated;
+ * - every cited anchor and hash is in the pack's `lock.json` (chapters' quizzes, pages, voiced and
+ *   cited lines; chart labels; the market's quotes and Gilda's sources), and market quotes are word
+ *   for word in the cited section of the pack's own snapshot (`public/course/**`);
+ * - ids resolve: chapters' images, pages, quizzes and Trials; every script step (quizzes, pages, terms,
+ *   Trials, images, quest steps, other scripts); the compass's quest steps; the islands, chapters
+ *   and NPCs the pack names (the game's islands and cast);
+ * - every voice line a script, a chapter or the market plays is in `voice/lines.json`, and its audio
+ *   (`public/voice/manifest.json`) says the same words, so a changed line is regenerated;
  * - the economy stays sane (prices 1 to 4, bigger models cost more, a refund is never more than the
  *   hire, every job can be done with the starfish you can find before the market);
  * - each board's chapter is in the snapshot with at least 5 topics, and each board stands on its island.
@@ -13,40 +18,51 @@
  * `src/content/content.test.ts` fails on any issue; `npm run content:check` (tools/content/report.ts)
  * writes them as a report for the weekly refresh PRs.
  */
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { join, relative } from 'node:path';
+import type { CourseMeta } from '../../src/course/catalog';
+import type { IslandQuestsFile, PackScriptStep, QuestDef } from '../../src/course/pack';
 import type { CourseBoardsData } from '../../src/content/course-boards';
 import type { MarketData } from '../../src/content/market';
 import { islandAt, type IslandId } from '../../src/game/islands';
-import { CATEGORIES } from '../../src/game/market/catalog';
+import { MERIDIAN_NPCS, meridianExtras } from '../../src/game/meridian-npcs';
 import { EFFORTS, grade, priceIn, type Hire, type MarketJob } from '../../src/game/market/jobs';
+import { COVE_NPCS } from '../../src/game/npcs';
+import { THOUSAND_BOUGH_NPCS, thousandBoughExtras } from '../../src/game/thousand-bough-npcs';
 import { boardTopics, type CourseBoardTopic } from '../../src/learn/course-board';
-import type { ChapterId } from '../../src/learn/course/chapters';
 import type { CourseLock } from '../../src/learn/course/lock';
 import { normalizeForCompare, parseSections } from '../../src/learn/course/sections';
+import type { ChapterContent, SourceRef } from '../../src/learn/types';
 import { ARCHIPELAGO } from '../../src/ui/chart/archipelago';
+import { COURSE_BOARDS, type CourseBoardPlacement } from '../../src/world/islands/course-boards';
 import { meridianHeight } from '../../src/world/islands/meridian';
 import { thousandBoughHeight } from '../../src/world/islands/thousand-bough/height';
 import { starfishOn } from '../../src/world/starfish/spots';
 import { coveHeight } from '../../src/world/terrain/cove-height';
+import { DEFAULT_COURSE } from '../course-pack/read';
 import { at, validate, type JsonSchema } from './json-schema';
 
 export interface ContentIssue {
-  /** The content file, like `content/market.json`. */
+  /** The pack's file, like `courses/copilot-app/market.json`. */
   file: string;
   /** Where in it, like `quotes.cost` (empty for the whole file). */
   path: string;
   message: string;
 }
 
-/** Each content file and its schema. */
-export const CONTENT_FILES = [
-  { file: 'content/market.json', schema: 'content/schemas/market.schema.json' },
-  { file: 'content/course-boards.json', schema: 'content/schemas/course-boards.schema.json' },
-  { file: 'content/labels.json', schema: 'content/schemas/labels.schema.json' },
-  { file: 'content/models.json', schema: 'content/schemas/models.schema.json' },
-  { file: 'content/course.lock.json', schema: 'content/schemas/course-lock.schema.json' },
-] as const;
+/** A pack's files by kind (paths in the pack) and their schemas in `courses/schemas/`. */
+export const PACK_FILES: readonly { file: string; schema: string }[] = [
+  { file: 'course.json', schema: 'course.schema.json' },
+  { file: 'chapters/*.json', schema: 'chapter.schema.json' },
+  { file: 'quests/*.json', schema: 'quests.schema.json' },
+  { file: 'labels.json', schema: 'labels.schema.json' },
+  { file: 'boards.json', schema: 'boards.schema.json' },
+  { file: 'market.json', schema: 'market.schema.json' },
+  { file: 'models.json', schema: 'models.schema.json' },
+  { file: 'lock.json', schema: 'lock.schema.json' },
+  { file: 'voice/lines.json', schema: 'voice-lines.schema.json' },
+];
 
 /** A board needs at least this many topics to read as a board (docs/specs/COURSE-BOARDS.md). */
 export const MIN_BOARD_TOPICS = 5;
@@ -61,6 +77,23 @@ const GROUND: Readonly<Record<IslandId, (x: number, z: number) => number>> = {
   'thousand-bough': thousandBoughHeight,
 };
 
+/** The game's cast (every NPC a pack can give barks to), with every extra that can appear. */
+function castIds(): Set<string> {
+  const anyAnchor = new Proxy({}, { get: () => ({ x: 0, z: 0 }), has: () => true }) as Record<
+    string,
+    { x: number; z: number }
+  >;
+  return new Set(
+    [
+      ...COVE_NPCS,
+      ...MERIDIAN_NPCS,
+      ...meridianExtras(anyAnchor),
+      ...THOUSAND_BOUGH_NPCS,
+      ...thousandBoughExtras(anyAnchor, true),
+    ].map((n) => n.id),
+  );
+}
+
 interface Cite {
   chapter: string;
   anchor: string;
@@ -73,106 +106,321 @@ interface VoiceLine {
   text: string;
 }
 
+/** A pack's files on disk (paths in the pack), less `public/`, sorted. */
+function filesOf(dir: string): string[] {
+  const out: string[] = [];
+  const walk = (d: string) => {
+    for (const name of readdirSync(d).sort()) {
+      const p = join(d, name);
+      const rel = relative(dir, p).split('\\').join('/');
+      if (statSync(p).isDirectory()) {
+        if (rel !== 'public') walk(p);
+      } else out.push(rel);
+    }
+  };
+  if (existsSync(dir)) walk(dir);
+  return out;
+}
+
+const schemaFor = (rel: string) =>
+  PACK_FILES.find((f) =>
+    f.file.includes('*') ? rel.startsWith(f.file.split('*')[0]!) && rel.endsWith('.json') : f.file === rel,
+  )?.schema ?? null;
+
 /**
- * Every issue in the content files under `root`. `instead` replaces a file's parsed contents (by
- * path, like `content/market.json`), so the tests can check what a broken edit reports.
+ * Every issue in a course pack under `root` (default: the Copilot app course). `instead` replaces a
+ * file's parsed contents (by path from `root`, like `courses/copilot-app/market.json`), so the tests
+ * can check what a broken edit reports.
  */
-export function checkContent(root: string, instead: Readonly<Record<string, unknown>> = {}): ContentIssue[] {
+export function checkContent(
+  root: string,
+  instead: Readonly<Record<string, unknown>> = {},
+  course: string = DEFAULT_COURSE,
+): ContentIssue[] {
   const issues: ContentIssue[] = [];
+  const dir = `courses/${course}`;
   const read = (p: string) => readFileSync(join(root, p), 'utf8');
   const parsed = new Map<string, unknown>();
+  const fileOf = (rel: string) => `${dir}/${rel}`;
+  const issue = (rel: string, path: string, message: string) =>
+    issues.push({ file: fileOf(rel), path, message });
 
-  for (const { file, schema } of CONTENT_FILES) {
-    let value: unknown;
-    try {
-      value = Object.hasOwn(instead, file) ? instead[file] : JSON.parse(read(file));
-    } catch (e) {
-      issues.push({ file, path: '', message: `isn't valid JSON: ${(e as Error).message}` });
+  const files = filesOf(join(root, dir));
+  for (const req of PACK_FILES.filter((f) => !f.file.includes('*')))
+    if (!files.includes(req.file)) issue(req.file, '', 'is missing: every course pack has one');
+  for (const rel of files) {
+    if (rel === 'README.md') continue;
+    const schema = schemaFor(rel);
+    if (!schema) {
+      issue(
+        rel,
+        '',
+        `isn't a course pack file (${PACK_FILES.map((f) => f.file).join(', ')}, README.md, or public/)`,
+      );
       continue;
     }
-    parsed.set(file, value);
-    const found = validate(JSON.parse(read(schema)) as JsonSchema, value);
-    for (const i of found) issues.push({ file, path: i.path, message: `${i.message} (${schema})` });
+    let value: unknown;
+    try {
+      value = Object.hasOwn(instead, fileOf(rel)) ? instead[fileOf(rel)] : JSON.parse(read(fileOf(rel)));
+    } catch (e) {
+      issue(rel, '', `isn't valid JSON: ${(e as Error).message}`);
+      continue;
+    }
+    parsed.set(rel, value);
+    for (const i of validate(JSON.parse(read(`courses/schemas/${schema}`)) as JsonSchema, value))
+      issue(rel, i.path, `${i.message} (courses/schemas/${schema})`);
   }
   // Semantic checks need files that passed their schema.
-  const ok = (file: string) => parsed.has(file) && !issues.some((i) => i.file === file);
-  const lock = ok('content/course.lock.json') ? (parsed.get('content/course.lock.json') as CourseLock) : null;
-  if (!lock) return issues;
+  const ok = (rel: string) => parsed.has(rel) && !issues.some((i) => i.file === fileOf(rel));
+  const get = <T>(rel: string) => (ok(rel) ? (parsed.get(rel) as T) : null);
+  const lock = get<CourseLock>('lock.json');
+  const meta = get<CourseMeta>('course.json');
+  if (!lock || !meta) return issues;
 
   const readmes = new Map<string, ReturnType<typeof parseSections>>();
   const sectionOf = (chapter: string, anchor: string) => {
-    const short = lock.chapters[chapter as ChapterId]?.short;
+    const short = lock.chapters[chapter]?.short;
     if (!short) return null;
     if (!readmes.has(short)) {
-      const path = `public/course/${short}/README.md`;
+      const path = `${dir}/public/course/${short}/README.md`;
       readmes.set(short, existsSync(join(root, path)) ? parseSections(read(path)) : []);
     }
     return readmes.get(short)!.find((s) => s.anchor === anchor) ?? null;
   };
   /** An anchor and hash against the lock. */
-  const cite = (file: string, path: string, c: Cite) => {
-    const ch = lock.chapters[c.chapter as ChapterId];
+  const cite = (rel: string, path: string, c: Cite) => {
+    const ch = lock.chapters[c.chapter];
     const s = ch?.sections[c.anchor];
-    if (!ch) issues.push({ file, path, message: `chapter ${c.chapter} isn't in the course snapshot` });
+    if (!ch) issue(rel, path, `chapter ${c.chapter} isn't in the course snapshot`);
     else if (!s)
-      issues.push({
-        file,
+      issue(
+        rel,
         path,
-        message: `section #${c.anchor} isn't in ${c.chapter} any more (renamed or removed): pick the section that says it now`,
-      });
+        `section #${c.anchor} isn't in ${c.chapter} any more (renamed or removed): pick the section that says it now`,
+      );
     else if (s.hash !== c.hash)
-      issues.push({
-        file,
+      issue(
+        rel,
         path,
-        message: `section #${c.anchor} changed (hash ${c.hash} → ${s.hash}): re-read it, update the text if it no longer fits, then set "hash": "${s.hash}"`,
-      });
+        `section #${c.anchor} changed (hash ${c.hash} → ${s.hash}): re-read it, update the text if it no longer fits, then set "hash": "${s.hash}"`,
+      );
   };
 
-  if (ok('content/market.json'))
-    checkMarket(parsed.get('content/market.json') as MarketData, {
-      issues,
+  // Voice: the lines file, and the audio the generator made from it.
+  const voice = get<{ lines: VoiceLine[] }>('voice/lines.json');
+  const manifestPath = `${dir}/public/voice/manifest.json`;
+  const manifest = existsSync(join(root, manifestPath))
+    ? (JSON.parse(read(manifestPath)) as { lines: VoiceLine[] })
+    : { lines: [] };
+  const lines = new Map((voice?.lines ?? []).map((l) => [l.id, l]));
+  const audio = new Map(manifest.lines.map((l) => [l.id, l]));
+  /** A voice line a script or a chapter plays: in the lines file, with audio that says the same. */
+  const voiced = (rel: string, path: string, id: string) => {
+    if (!voice) return;
+    const l = lines.get(id);
+    if (!l) return issue(rel, path, `"${id}" isn't in ${dir}/voice/lines.json`);
+    const a = audio.get(id);
+    if (!a)
+      issue(
+        rel,
+        path,
+        `"${id}" has no audio (${manifestPath}): npx tsx tools/voice/generate.ts --course ${course} --only=${id}`,
+      );
+    else if (a.text !== l.text)
+      issue(
+        rel,
+        path,
+        `"${id}": the audio says something else: regenerate it (npx tsx tools/voice/generate.ts --course ${course} --only=${id}; docs/content-data.md)`,
+      );
+  };
+
+  // course.json: the game's islands, the course's chapters.
+  const chapterIds = new Set(meta.source.chapters.map((c) => c.id));
+  const places = new Set(ARCHIPELAGO.map((i) => i.id));
+  if (meta.id !== course) issue('course.json', 'id', `should be "${course}" (the pack's folder)`);
+  meta.source.chapters.forEach((c, i) => {
+    const l = lock.chapters[c.id];
+    if (l && l.short !== c.short)
+      issue('course.json', `source.chapters[${i}].short`, `the snapshot keeps it in "${l.short}"`);
+  });
+  for (const ch of Object.keys(lock.chapters))
+    if (!chapterIds.has(ch))
+      issue('course.json', 'source.chapters', `the snapshot has ${ch}, which isn't listed`);
+  const islandsSeen = new Set<string>();
+  meta.islands.forEach((isl, i) => {
+    const path = `islands[${i}]`;
+    if (!places.has(isl.island))
+      issue('course.json', `${path}.island`, `"${isl.island}" isn't one of the game's islands`);
+    if (islandsSeen.has(isl.island))
+      issue('course.json', `${path}.island`, `"${isl.island}" is listed twice`);
+    islandsSeen.add(isl.island);
+    if (!chapterIds.has(isl.chapter))
+      issue('course.json', `${path}.chapter`, `${isl.chapter} isn't in source.chapters`);
+    if (isl.label.slice(0, 2) !== isl.chapter.slice(0, 2))
+      issue('course.json', `${path}.label`, `should start with "${isl.chapter.slice(0, 2)}" (its chapter)`);
+  });
+
+  // Chapters: ids, references, sources.
+  const chapters = files
+    .filter((f) => f.startsWith('chapters/'))
+    .map((rel) => [rel, get<ChapterContent>(rel)] as const)
+    .filter((c): c is readonly [string, ChapterContent] => c[1] !== null);
+  const ids = {
+    image: new Set<string>(),
+    quiz: new Set<string>(),
+    page: new Set<string>(),
+    chest: new Set<string>(),
+    term: new Set<string>(),
+    trial: new Set<string>(),
+  };
+  const unique = (rel: string, path: string, kind: keyof typeof ids, id: string) => {
+    if (ids[kind].has(id)) issue(rel, path, `${kind} "${id}" is used twice in the course`);
+    ids[kind].add(id);
+  };
+  for (const [rel, c] of chapters) {
+    if (rel !== `chapters/${c.chapter}.json`) issue(rel, 'chapter', `should be the file's name (${rel})`);
+    if (!lock.chapters[c.chapter])
+      issue(rel, 'chapter', `${c.chapter} isn't in the course snapshot (sync it first)`);
+    c.images.forEach((img, i) => unique(rel, `images[${i}].id`, 'image', img.id));
+    c.quizzes.forEach((q, i) => unique(rel, `quizzes[${i}].id`, 'quiz', q.id));
+    c.pages.forEach((p, i) => unique(rel, `pages[${i}].id`, 'page', p.id));
+    c.chests.forEach((x, i) => unique(rel, `chests[${i}].id`, 'chest', x.id));
+    c.glossary.forEach((g, i) => unique(rel, `glossary[${i}].id`, 'term', g.id));
+    c.trials.forEach((t, i) => unique(rel, `trials[${i}].id`, 'trial', t.id));
+  }
+  const sha12 = (p: string) => createHash('sha256').update(readFileSync(p)).digest('hex').slice(0, 12);
+  for (const [rel, c] of chapters) {
+    const src = (path: string, s: SourceRef) => {
+      cite(rel, path, s);
+      if (s.image && !existsSync(join(root, dir, 'public', s.image.src)))
+        issue(rel, `${path}.image.src`, `${s.image.src} isn't in the snapshot`);
+    };
+    c.images.forEach((img, i) => {
+      const file = join(root, dir, 'public', img.src);
+      if (!existsSync(file)) issue(rel, `images[${i}].src`, `${img.src} isn't in the snapshot`);
+      else if (sha12(file) !== img.hash)
+        issue(
+          rel,
+          `images[${i}].hash`,
+          `${img.src} isn't the file this was written against (it's ${sha12(file)})`,
+        );
+    });
+    c.quizzes.forEach((q, i) => {
+      src(`quizzes[${i}].source`, q.source);
+      if (q.type === 'hotspot' && !ids.image.has(q.image))
+        issue(rel, `quizzes[${i}].image`, `"${q.image}" isn't a course image of this pack`);
+    });
+    c.pages.forEach((p, i) => {
+      src(`pages[${i}].source`, p.source);
+      if (p.image && !ids.image.has(p.image))
+        issue(rel, `pages[${i}].image`, `"${p.image}" isn't a course image`);
+    });
+    c.chests.forEach((x, i) => {
+      if (!ids.page.has(x.page)) issue(rel, `chests[${i}].page`, `"${x.page}" isn't a page`);
+    });
+    c.trials.forEach((t, i) =>
+      t.items.forEach((q, j) => {
+        if (!ids.quiz.has(q)) issue(rel, `trials[${i}].items[${j}]`, `"${q}" isn't a quiz`);
+      }),
+    );
+    for (const [id, s] of Object.entries(c.voiced ?? {})) {
+      src(at('voiced', id), s);
+      voiced(rel, at('voiced', id), id);
+    }
+    for (const [id, x] of Object.entries(c.cited ?? {})) src(`${at('cited', id)}.source`, x.source);
+  }
+
+  // Quests: islands, quest steps, every script step, barks.
+  const quests = files
+    .filter((f) => f.startsWith('quests/'))
+    .map((rel) => [rel, get<IslandQuestsFile>(rel)] as const)
+    .filter((q): q is readonly [string, IslandQuestsFile] => q[1] !== null);
+  const questDefs = new Map<string, QuestDef>();
+  for (const [rel, q] of quests)
+    q.quests.forEach((d, i) => {
+      if (questDefs.has(d.id)) issue(rel, `quests[${i}].id`, `quest "${d.id}" is used twice in the course`);
+      questDefs.set(d.id, d);
+    });
+  const cast = castIds();
+  for (const [rel, q] of quests) {
+    if (rel !== `quests/${q.island}.json`) issue(rel, 'island', `should be the file's name (${rel})`);
+    const isl = meta.islands.find((i) => i.island === q.island);
+    if (!isl) issue(rel, 'island', `"${q.island}" isn't one of the course's islands (course.json)`);
+    else if (!lock.chapters[isl.chapter])
+      issue(rel, 'island', `its chapter ${isl.chapter} isn't in the course snapshot (sync it first)`);
+    q.quests.forEach((d, i) => {
+      if (!Object.hasOwn(d.steps, 'done')) issue(rel, `quests[${i}].steps`, 'needs a "done" step');
+    });
+    for (const key of Object.keys(q.targets)) {
+      const [quest, step] = key.split(':') as [string, string];
+      const d = questDefs.get(quest);
+      if (!d) issue(rel, at('targets', key), `"${quest}" isn't a quest`);
+      else if (!Object.hasOwn(d.steps, step))
+        issue(rel, at('targets', key), `"${step}" isn't a step of ${quest}`);
+    }
+    for (const [name, steps] of Object.entries(q.scripts))
+      steps.forEach((s: PackScriptStep, i) => {
+        const path = `${at('scripts', name)}[${i}]`;
+        const has = (kind: keyof typeof ids, id: string, what: string) => {
+          if (!ids[kind].has(id)) issue(rel, path, `"${id}" isn't ${what} in this course`);
+        };
+        if ('say' in s) voiced(rel, path, s.say);
+        else if ('show' in s) has('image', s.show, 'a course image');
+        else if ('quiz' in s) has('quiz', s.quiz, 'a quiz');
+        else if ('page' in s) has('page', s.page, 'a page');
+        else if ('file' in s) has('page', s.file, 'a page');
+        else if ('term' in s) has('term', s.term, 'a glossary term');
+        else if ('trial' in s) has('trial', s.trial, 'a Trial');
+        else if ('quest' in s) {
+          const d = questDefs.get(s.quest);
+          if (!d) issue(rel, path, `"${s.quest}" isn't a quest`);
+          else if (!Object.hasOwn(d.steps, s.step))
+            issue(rel, path, `"${s.step}" isn't a step of ${s.quest}`);
+        } else if ('script' in s) {
+          if (!Object.hasOwn(q.scripts, s.script))
+            issue(rel, path, `"${s.script}" isn't a script of ${q.island}`);
+        }
+        if (('askFork' in s || 'askSetup' in s) && s.line) voiced(rel, path, s.line);
+      });
+    for (const npc of Object.keys(q.barks))
+      if (!cast.has(npc)) issue(rel, at('barks', npc), `"${npc}" isn't one of the game's NPCs`);
+  }
+
+  const market = get<MarketData>('market.json');
+  if (market)
+    checkMarket(market, {
+      issue,
       cite,
       sectionOf,
-      voice: JSON.parse(read('tools/voice/lines.testcove.json')) as { lines: VoiceLine[] },
-      manifest: JSON.parse(read('public/voice/testcove/manifest.json')) as { lines: VoiceLine[] },
+      lines,
+      audio,
+      course,
+      linesFile: `${dir}/voice/lines.json`,
+      manifestPath,
     });
-  if (ok('content/course-boards.json'))
-    checkBoards(parsed.get('content/course-boards.json') as CourseBoardsData, lock, issues);
-  if (ok('content/labels.json')) {
-    const labels = (
-      parsed.get('content/labels.json') as { labels: Record<string, { ch: string; source: Cite }> }
-    ).labels;
-    for (const [id, l] of Object.entries(labels)) {
-      const path = at('labels', id);
-      cite('content/labels.json', `${path}.source`, l.source);
-      if (l.source.chapter.slice(0, 2) !== l.ch)
-        issues.push({
-          file: 'content/labels.json',
-          path: `${path}.ch`,
-          message: `should be "${l.source.chapter.slice(0, 2)}" (its source's chapter)`,
-        });
-    }
+  const boards = get<CourseBoardsData>('boards.json');
+  if (boards) checkBoards(boards, meta, lock, issue);
+  const labels = get<{ labels: Record<string, { ch: string; source: Cite }> }>('labels.json')?.labels;
+  for (const [id, l] of Object.entries(labels ?? {})) {
+    const path = at('labels', id);
+    cite('labels.json', `${path}.source`, l.source);
+    if (l.source.chapter.slice(0, 2) !== l.ch)
+      issue(
+        'labels.json',
+        `${path}.ch`,
+        `should be "${l.source.chapter.slice(0, 2)}" (its source's chapter)`,
+      );
   }
-  if (ok('content/models.json')) {
-    const models = (parsed.get('content/models.json') as { models: { name: string; category: string }[] })
-      .models;
+  const models = get<{ models: { name: string; category: string }[] }>('models.json')?.models;
+  if (models) {
     const names = new Set<string>();
     models.forEach((m, i) => {
-      if (names.has(m.name))
-        issues.push({
-          file: 'content/models.json',
-          path: `models[${i}]`,
-          message: `${m.name} is listed twice`,
-        });
+      if (names.has(m.name)) issue('models.json', `models[${i}]`, `${m.name} is listed twice`);
       names.add(m.name);
     });
-    for (const c of CATEGORIES)
-      if (!models.some((m) => m.category === c))
-        issues.push({
-          file: 'content/models.json',
-          path: 'models',
-          message: `no ${c} model: its signboard would be empty`,
-        });
+    for (const c of market?.categories ?? [])
+      if (!models.some((m) => m.category === c.id))
+        issue('models.json', 'models', `no ${c.id} model: its signboard would be empty`);
   }
   return issues;
 }
@@ -180,19 +428,22 @@ export function checkContent(root: string, instead: Readonly<Record<string, unkn
 function checkMarket(
   m: MarketData,
   ctx: {
-    issues: ContentIssue[];
-    cite: (file: string, path: string, c: Cite) => void;
+    issue: (rel: string, path: string, message: string) => void;
+    cite: (rel: string, path: string, c: Cite) => void;
     sectionOf: (chapter: string, anchor: string) => { markdown: string } | null;
-    voice: { lines: VoiceLine[] };
-    manifest: { lines: VoiceLine[] };
+    lines: ReadonlyMap<string, VoiceLine>;
+    audio: ReadonlyMap<string, VoiceLine>;
+    course: string;
+    linesFile: string;
+    manifestPath: string;
   },
 ): void {
-  const file = 'content/market.json';
-  const fail = (path: string, message: string) => ctx.issues.push({ file, path, message });
+  const rel = 'market.json';
+  const fail = (path: string, message: string) => ctx.issue(rel, path, message);
 
   for (const [k, q] of Object.entries(m.quotes)) {
     const path = `quotes.${k}`;
-    ctx.cite(file, path, q);
+    ctx.cite(rel, path, q);
     const s = ctx.sectionOf(q.chapter, q.anchor);
     if (s && !normalizeForCompare(s.markdown).includes(normalizeForCompare(q.text)))
       fail(
@@ -260,37 +511,44 @@ function checkMarket(
       `the jobs need ${fair} starfish right-sized, but there are only ${MARKET_STARFISH} on Anchorage and Meridian`,
     );
 
-  const lines = new Map(ctx.voice.lines.map((l) => [l.id, l]));
-  const audio = new Map(ctx.manifest.lines.map((l) => [l.id, l]));
   const seen = new Set<string>();
   for (const [k, g] of Object.entries(m.gilda)) {
     const path = `gilda.${k}`;
     if (seen.has(g.voice)) fail(`${path}.voice`, `"${g.voice}" is used twice`);
     seen.add(g.voice);
-    const l = lines.get(g.voice);
-    if (!l) fail(`${path}.voice`, `"${g.voice}" isn't in tools/voice/lines.testcove.json`);
+    const l = ctx.lines.get(g.voice);
+    if (!l) fail(`${path}.voice`, `"${g.voice}" isn't in ${ctx.linesFile}`);
     else {
       if (l.speaker !== 'Gilda') fail(`${path}.voice`, `"${g.voice}" is ${l.speaker}'s line, not Gilda's`);
       if (l.text !== g.text)
-        fail(
-          `${path}.text`,
-          `differs from "${g.voice}" in tools/voice/lines.testcove.json: change both to the same words`,
-        );
+        fail(`${path}.text`, `differs from "${g.voice}" in ${ctx.linesFile}: change both to the same words`);
     }
-    const a = audio.get(g.voice);
-    if (!a) fail(`${path}.voice`, `"${g.voice}" has no audio (public/voice/testcove/manifest.json)`);
+    const a = ctx.audio.get(g.voice);
+    if (!a) fail(`${path}.voice`, `"${g.voice}" has no audio (${ctx.manifestPath})`);
     else if (a.text !== g.text)
       fail(
         `${path}.text`,
-        `the audio says something else: regenerate it (npx tsx tools/voice/generate.ts --only=${g.voice}; docs/content-data.md)`,
+        `the audio says something else: regenerate it (npx tsx tools/voice/generate.ts --course ${ctx.course} --only=${g.voice}; docs/content-data.md)`,
       );
-    if (g.source) ctx.cite(file, `${path}.source`, g.source);
+    if (g.source) ctx.cite(rel, `${path}.source`, g.source);
   }
 }
 
-function checkBoards(b: CourseBoardsData, lock: CourseLock, issues: ContentIssue[]): void {
-  const file = 'content/course-boards.json';
-  const fail = (path: string, message: string) => issues.push({ file, path, message });
+/** The islands with a notice board (the game's) and the chapter each shows (the course's). */
+export function courseBoardIslands(meta: CourseMeta): { island: IslandId; chapter: string }[] {
+  return (Object.keys(COURSE_BOARDS) as IslandId[]).flatMap((island) => {
+    const chapter = meta.islands.find((i) => i.island === island)?.chapter;
+    return chapter ? [{ island, chapter }] : [];
+  });
+}
+
+function checkBoards(
+  b: CourseBoardsData,
+  meta: CourseMeta,
+  lock: CourseLock,
+  issue: (rel: string, path: string, message: string) => void,
+): void {
+  const fail = (path: string, message: string) => issue('boards.json', path, message);
   const links = b.pins.map((p) => p.link).sort();
   if (links.join(',') !== 'chapter,home') fail('pins', 'should be one "chapter" pin and one "home" pin');
   const tokens = [...b.header.sign, b.header.kicker, ...b.pins.flatMap((p) => [p.sign, p.text, p.aria])];
@@ -299,27 +557,45 @@ function checkBoards(b: CourseBoardsData, lock: CourseLock, issues: ContentIssue
       if (m[1] !== 'num' && m[1] !== 'title')
         fail('header', `"{${m[1]}}" isn't a field: use {num} or {title}`);
 
-  for (const [island, p] of Object.entries(b.islands) as [IslandId, (typeof b.islands)[IslandId]][]) {
-    const path = at('islands', island);
-    const ch = lock.chapters[p.chapter];
-    if (!ch) fail(`${path}.chapter`, `${p.chapter} isn't in the course snapshot (sync it first)`);
+  for (const { island, chapter } of courseBoardIslands(meta)) {
+    const path = `islands[${meta.islands.findIndex((i) => i.island === island)}].chapter`;
+    const ch = lock.chapters[chapter];
+    if (!ch) issue('course.json', path, `${chapter} isn't in the course snapshot (sync it first)`);
     else {
-      const n = boardTopics(p.chapter, ch).length;
+      const n = boardTopics(chapter, ch, b.skip).length;
       if (n < MIN_BOARD_TOPICS)
         fail(
-          `${path}.chapter`,
-          `${p.chapter}'s board has ${n} topics (at least ${MIN_BOARD_TOPICS}): check "skip"`,
+          'skip',
+          `${chapter}'s board (${island}) has ${n} topics (at least ${MIN_BOARD_TOPICS}): check "skip"`,
         );
     }
-    const chart = ARCHIPELAGO.find((i) => i.id === island)?.chapter.slice(0, 2);
-    if (chart !== p.chapter.slice(0, 2))
-      fail(`${path}.chapter`, `the chart says ${island} is chapter ${chart ?? '(none)'}`);
-    if (islandAt(p.x, p.z) !== island) fail(path, `(${p.x}, ${p.z}) isn't in ${island}'s waters`);
-    const ground = GROUND[island](p.x, p.z);
-    if (ground < 0.5) fail(path, `(${p.x}, ${p.z}) is in the water (ground ${ground.toFixed(2)} m)`);
-    else if (p.y < ground - 0.3 || p.y > ground + 1)
-      fail(`${path}.y`, `should be the ground under it (${ground.toFixed(2)} m, or a deck up to 1 m above)`);
   }
+}
+
+/**
+ * Where the game's boards stand (src/world/islands/course-boards.ts): each on its island, on the
+ * ground or a deck up to 1 m above it. `spots` replaces the game's (the tests break one).
+ */
+export function checkBoardSpots(
+  spots: Readonly<Record<string, Pick<CourseBoardPlacement, 'x' | 'y' | 'z'>>> = COURSE_BOARDS,
+): { island: string; message: string }[] {
+  const out: { island: string; message: string }[] = [];
+  for (const [island, p] of Object.entries(spots) as [
+    IslandId,
+    Pick<CourseBoardPlacement, 'x' | 'y' | 'z'>,
+  ][]) {
+    if (islandAt(p.x, p.z) !== island)
+      out.push({ island, message: `(${p.x}, ${p.z}) isn't in ${island}'s waters` });
+    const ground = GROUND[island](p.x, p.z);
+    if (ground < 0.5)
+      out.push({ island, message: `(${p.x}, ${p.z}) is in the water (ground ${ground.toFixed(2)} m)` });
+    else if (p.y < ground - 0.3 || p.y > ground + 1)
+      out.push({
+        island,
+        message: `y should be the ground under it (${ground.toFixed(2)} m, or a deck up to 1 m above)`,
+      });
+  }
+  return out;
 }
 
 /** One board's topics before and after a course sync. */
@@ -333,21 +609,22 @@ export interface BoardChange {
 
 /** Each board's topics from `lock`, and what changed since `previous` (when given). */
 export function boardChanges(
-  b: CourseBoardsData,
+  islands: readonly { island: string; chapter: string }[],
+  skip: CourseBoardsData['skip'],
   lock: CourseLock,
   previous: CourseLock | null,
 ): BoardChange[] {
-  return Object.entries(b.islands).map(([island, p]) => {
-    const now = lock.chapters[p.chapter];
-    const was = previous?.chapters[p.chapter];
-    const topics = now ? boardTopics(p.chapter, now) : [];
-    const before = was ? boardTopics(p.chapter, was) : topics;
+  return islands.map(({ island, chapter }) => {
+    const now = lock.chapters[chapter];
+    const was = previous?.chapters[chapter];
+    const topics = now ? boardTopics(chapter, now, skip) : [];
+    const before = was ? boardTopics(chapter, was, skip) : topics;
     const titles = (t: readonly CourseBoardTopic[]) => new Set(t.map((x) => x.title));
     const a = titles(topics),
       r = titles(before);
     return {
       island,
-      chapter: p.chapter,
+      chapter,
       topics,
       added: [...a].filter((t) => !r.has(t)),
       removed: [...r].filter((t) => !a.has(t)),

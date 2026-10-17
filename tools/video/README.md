@@ -159,7 +159,7 @@ The current cut (v9) has a lower third on each learning section (Rook's Practice
 sluice, the battle, the helms and Channel Routing) and one over the fly-bys, terminal close-ups on
 Rook's part and on the Three Helms' Plan and Autopilot parts (each after the lower third has gone),
 and an end card. The sluice, sea-battle, Three Helms and Channel Routing cards read their text from
-the game's `content/labels.json` (`label('<id>')` in `reels/highlights.mjs`), so the reel and the
+the game's `courses/copilot-app/labels.json` (`label('<id>')` in `reels/highlights.mjs`), so the reel and the
 game show the same words. `highlights-v8` is the previous cut (its mp4 is kept as a compressed copy
 in the repo's ignored `videos/` folder); v1–v7's reel files are kept, but their takes were deleted
 to save disk, so only v8 and v9 rebuild with `--refinish`. v9 films the reworked puzzles again:

@@ -1,0 +1,575 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A course pack's chapter (courses/<id>/chapters/<chapter>.json)",
+  "description": "One chapter's teaching content: course images, quizzes, Logbook pages, chests, glossary terms, Trials, and the course sections voiced and unvoiced teaching lines paraphrase (src/learn/types.ts, docs/course-content-authoring.md).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["chapter", "images", "quizzes", "pages", "chests", "glossary", "trials"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "chapter": {
+      "$ref": "#/$defs/chapterId"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "src", "width", "height", "alt", "hash"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+/[\\w.-]+$"
+          },
+          "src": {
+            "description": "The snapshot path, under the pack's public/.",
+            "type": "string",
+            "pattern": "^course/[\\w./-]+$"
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "alt": {
+            "$ref": "#/$defs/text"
+          },
+          "hash": {
+            "description": "The bundled file's SHA-256 (first 12 hex digits) the alt text, captions and rects describe.",
+            "$ref": "#/$defs/hash"
+          }
+        }
+      }
+    },
+    "quizzes": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "type", "prompt", "explain", "source", "options", "answer"],
+            "properties": {
+              "type": {
+                "enum": ["mc", "scenario"]
+              },
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "prompt": {
+                "$ref": "#/$defs/text"
+              },
+              "explain": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["correct", "wrong"],
+                "properties": {
+                  "correct": {
+                    "$ref": "#/$defs/text"
+                  },
+                  "wrong": {
+                    "$ref": "#/$defs/text"
+                  }
+                }
+              },
+              "source": {
+                "$ref": "#/$defs/sourceRef"
+              },
+              "hints": {
+                "description": "Wingman's three hint tiers: a nudge, a direction, then the answer (an empty third tier is off).",
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "situation": {
+                "$ref": "#/$defs/text"
+              },
+              "options": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "$ref": "#/$defs/option"
+                }
+              },
+              "answer": {
+                "$ref": "#/$defs/id"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "type", "prompt", "explain", "source", "options", "answers"],
+            "properties": {
+              "type": {
+                "const": "multi"
+              },
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "prompt": {
+                "$ref": "#/$defs/text"
+              },
+              "explain": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["correct", "wrong"],
+                "properties": {
+                  "correct": {
+                    "$ref": "#/$defs/text"
+                  },
+                  "wrong": {
+                    "$ref": "#/$defs/text"
+                  }
+                }
+              },
+              "source": {
+                "$ref": "#/$defs/sourceRef"
+              },
+              "hints": {
+                "description": "Wingman's three hint tiers: a nudge, a direction, then the answer (an empty third tier is off).",
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "options": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "$ref": "#/$defs/option"
+                }
+              },
+              "answers": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/id"
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "type", "prompt", "explain", "source", "image", "mask", "targets"],
+            "properties": {
+              "type": {
+                "const": "hotspot"
+              },
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "prompt": {
+                "$ref": "#/$defs/text"
+              },
+              "explain": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["correct", "wrong"],
+                "properties": {
+                  "correct": {
+                    "$ref": "#/$defs/text"
+                  },
+                  "wrong": {
+                    "$ref": "#/$defs/text"
+                  }
+                }
+              },
+              "source": {
+                "$ref": "#/$defs/sourceRef"
+              },
+              "hints": {
+                "description": "Wingman's three hint tiers: a nudge, a direction, then the answer (an empty third tier is off).",
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "image": {
+                "type": "string"
+              },
+              "mask": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/rect"
+                }
+              },
+              "targets": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "rect", "label"],
+                  "properties": {
+                    "id": {
+                      "$ref": "#/$defs/id"
+                    },
+                    "rect": {
+                      "$ref": "#/$defs/rect"
+                    },
+                    "label": {
+                      "$ref": "#/$defs/text"
+                    },
+                    "correct": {
+                      "type": "boolean"
+                    },
+                    "feedback": {
+                      "$ref": "#/$defs/text"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "type", "prompt", "explain", "source", "items"],
+            "properties": {
+              "type": {
+                "const": "ordering"
+              },
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "prompt": {
+                "$ref": "#/$defs/text"
+              },
+              "explain": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["correct", "wrong"],
+                "properties": {
+                  "correct": {
+                    "$ref": "#/$defs/text"
+                  },
+                  "wrong": {
+                    "$ref": "#/$defs/text"
+                  }
+                }
+              },
+              "source": {
+                "$ref": "#/$defs/sourceRef"
+              },
+              "hints": {
+                "description": "Wingman's three hint tiers: a nudge, a direction, then the answer (an empty third tier is off).",
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "$ref": "#/$defs/option"
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "type", "prompt", "explain", "source", "pairs"],
+            "properties": {
+              "type": {
+                "const": "matching"
+              },
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "prompt": {
+                "$ref": "#/$defs/text"
+              },
+              "explain": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["correct", "wrong"],
+                "properties": {
+                  "correct": {
+                    "$ref": "#/$defs/text"
+                  },
+                  "wrong": {
+                    "$ref": "#/$defs/text"
+                  }
+                }
+              },
+              "source": {
+                "$ref": "#/$defs/sourceRef"
+              },
+              "hints": {
+                "description": "Wingman's three hint tiers: a nudge, a direction, then the answer (an empty third tier is off).",
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "pairs": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["left", "right"],
+                  "properties": {
+                    "left": {
+                      "$ref": "#/$defs/option"
+                    },
+                    "right": {
+                      "$ref": "#/$defs/option"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "caption", "source"],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "title": {
+            "$ref": "#/$defs/text"
+          },
+          "image": {
+            "type": "string"
+          },
+          "caption": {
+            "description": "1-3 plain sentences. **bold** marks UI labels.",
+            "$ref": "#/$defs/text"
+          },
+          "code": {
+            "$ref": "#/$defs/text"
+          },
+          "fork": {
+            "type": "array",
+            "items": {
+              "enum": ["repo", "actions", "issues", "pulls", "branches", "settings"]
+            }
+          },
+          "setup": {
+            "type": "array",
+            "items": {
+              "enum": ["os", "issue", "branch", "model"]
+            }
+          },
+          "source": {
+            "$ref": "#/$defs/sourceRef"
+          }
+        }
+      }
+    },
+    "chests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "page", "doubloons"],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "page": {
+            "$ref": "#/$defs/id"
+          },
+          "doubloons": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "kind": {
+            "enum": ["chest", "bottle"]
+          }
+        }
+      }
+    },
+    "glossary": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "term", "definition"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "term": {
+            "$ref": "#/$defs/text"
+          },
+          "definition": {
+            "$ref": "#/$defs/text"
+          }
+        }
+      }
+    },
+    "trials": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "items", "reward"],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "title": {
+            "$ref": "#/$defs/text"
+          },
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/$defs/id"
+            }
+          },
+          "reward": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["seal", "doubloons"],
+            "properties": {
+              "seal": {
+                "$ref": "#/$defs/text"
+              },
+              "doubloons": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "voiced": {
+      "description": "Voice line id (voice/lines.json) → the course section the teaching line paraphrases. Leave out banter and directions.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/sourceRef"
+      }
+    },
+    "cited": {
+      "description": "Unvoiced teaching text in a puzzle, keyed <puzzle>.<id>, with the course section it paraphrases.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text", "source"],
+        "properties": {
+          "text": {
+            "$ref": "#/$defs/text"
+          },
+          "source": {
+            "$ref": "#/$defs/sourceRef"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][\\w.:-]*$"
+    },
+    "chapterId": {
+      "type": "string",
+      "pattern": "^\\d{2}-[a-z0-9-]+$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{12}$"
+    },
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chapter", "anchor", "hash"],
+      "description": "Where an item comes from in the course: the chapter, the README heading anchor, and the section's hash in the pack's lock.json when it was written (npm run course:refs).",
+      "properties": {
+        "chapter": {
+          "$ref": "#/$defs/chapterId"
+        },
+        "anchor": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "image": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["src", "hash"],
+          "description": "The course screenshot a hotspot quiz was measured on (its snapshot path) and its file's hash.",
+          "properties": {
+            "src": {
+              "type": "string",
+              "pattern": "^course/"
+            },
+            "hash": {
+              "$ref": "#/$defs/hash"
+            }
+          }
+        }
+      }
+    },
+    "rect": {
+      "type": "array",
+      "description": "x, y, width, height: 0-1 of the image size.",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "text": {
+          "$ref": "#/$defs/text"
+        },
+        "feedback": {
+          "description": "Shown when this wrong option is picked.",
+          "$ref": "#/$defs/text"
+        }
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "$schema": "./schemas/market.schema.json",
-  "$comment": "The Model Market's data (docs/specs/MODEL-MARKET.md, docs/content-data.md): prices in starfish, refunds and doubloons, the board rule's numbers, the stamps, the course quotes, the jobs and Gilda's lines. The grading rules stay in src/game/market/jobs.ts. Loaded at build time by src/content/market.ts; checked by src/content/content.test.ts and `npm run content:check`. Quotes must be word for word in the cited section of public/course/**; `hash` is the section's hash from `npm run course:refs -- 01`. Gilda's `text` must match her line in tools/voice/lines.testcove.json: change both, then regenerate the audio (docs/content-data.md).",
+  "$schema": "../schemas/market.schema.json",
+  "$comment": "The Model Market's data (docs/specs/MODEL-MARKET.md, docs/content-data.md): prices in starfish, refunds and doubloons, the board rule's numbers, the stamps, the course quotes, the jobs and Gilda's lines. The grading rules stay in src/game/market/jobs.ts. Read from the active course pack by src/content/market.ts; checked by src/content/content.test.ts and `npm run content:check`. Quotes must be word for word in the cited section of this pack's snapshot (public/course/**); `hash` is the section's hash from `npm run course:refs -- 01`. Gilda's `text` must match her line in voice/lines.json: change both, then regenerate the audio (docs/content-data.md).",
   "categories": [
     {
       "id": "Lightweight",
@@ -22,17 +22,40 @@
     }
   ],
   "efforts": [
-    { "id": "low", "label": "Low", "price": 0 },
-    { "id": "default", "label": "Default", "price": 0 },
-    { "id": "high", "label": "High", "price": 1 }
+    {
+      "id": "low",
+      "label": "Low",
+      "price": 0
+    },
+    {
+      "id": "default",
+      "label": "Default",
+      "price": 0
+    },
+    {
+      "id": "high",
+      "label": "High",
+      "price": 1
+    }
   ],
   "autoPrice": 1,
   "maxPrice": 4,
   "sizes": {
-    "quick": { "label": "Quick look", "refund": 1, "doubloons": 5 },
-    "hard": { "label": "Hard job", "refund": 2, "doubloons": 10 }
+    "quick": {
+      "label": "Quick look",
+      "refund": 1,
+      "doubloons": 5
+    },
+    "hard": {
+      "label": "Hard job",
+      "refund": 2,
+      "doubloons": 10
+    }
   },
-  "board": { "size": 4, "perFamily": 2 },
+  "board": {
+    "size": 4,
+    "perFamily": 2
+  },
   "stamps": {
     "right": "✓ Right-sized",
     "over": "! Overspent",

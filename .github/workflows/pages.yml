@@ -8,7 +8,7 @@ name: Deploy to GitHub Pages
 #            and a run on another branch deploy nothing.
 #   Manual   "Run workflow" (workflow_dispatch) deploys the branch you pick.
 #
-# The content in content/*.json is part of the build (docs/content-data.md), so a merged content edit
+# The course packs in courses/<id>/ are part of the build (docs/content-data.md), so a merged content edit
 # reaches players with this deploy. The deploy gate (PLAN §0 / spec §9) passed on 2026-10-15: the
 # affiliation line is "an unofficial, personal project" (Credits, README), and the AI-voice disclosure
 # required by the Azure AI Speech / Microsoft AI code of conduct is in Credits. Pages on a private repo

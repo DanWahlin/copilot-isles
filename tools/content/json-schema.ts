@@ -1,8 +1,8 @@
 /**
- * A small JSON Schema checker for the content files (docs/content-data.md). It knows the keywords the
- * schemas in `content/schemas/` use, from draft 2020-12, and throws on any other, so a schema can't
+ * A small JSON Schema checker for the course packs' files (docs/content-data.md). It knows the keywords the
+ * schemas in `courses/schemas/` use, from draft 2020-12, and throws on any other, so a schema can't
  * ask for a check that silently doesn't happen. Dev-only: the tests and `npm run content:check` use it;
- * the game never imports it (it reads the JSON at build time, already checked).
+ * the game never imports it (it reads the course packs' JSON, already checked).
  */
 
 export type JsonSchema = boolean | { [keyword: string]: unknown };
@@ -42,6 +42,7 @@ const KEYWORDS = new Set([
   'minLength',
   'pattern',
   '$ref',
+  'anyOf',
 ]);
 
 function typeOf(v: unknown): string {
@@ -89,6 +90,22 @@ function check(schema: JsonSchema, v: unknown, path: string, root: JsonSchema, o
   const fail = (message: string) => out.push({ path, message });
 
   if (typeof schema.$ref === 'string') check(resolve(schema.$ref, root), v, path, root, out);
+
+  // anyOf: valid if one branch is. Otherwise the issues of the branch that came closest (a quiz of
+  // type "hotspot" reports what its hotspot shape is missing, not every other shape's complaints).
+  if (Array.isArray(schema.anyOf)) {
+    let best: SchemaIssue[] | null = null;
+    for (const branch of schema.anyOf as JsonSchema[]) {
+      const found: SchemaIssue[] = [];
+      check(branch, v, path, root, found);
+      if (!found.length) {
+        best = null;
+        break;
+      }
+      if (!best || found.length < best.length) best = found;
+    }
+    if (best) out.push(...best);
+  }
 
   const actual = typeOf(v);
   if (schema.type !== undefined) {

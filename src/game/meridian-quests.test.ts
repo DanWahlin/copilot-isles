@@ -16,7 +16,7 @@ import type { ScriptStep } from './script';
 const NPCS = ['tobias', 'mina', 'lyra_meridian', 'anders', 'rhea', 'oren', 'pell', 'admiral'];
 const voiced = new Set(
   (
-    JSON.parse(readFileSync(join(__dirname, '../../tools/voice/lines.testcove.json'), 'utf8')) as {
+    JSON.parse(readFileSync(join(__dirname, '../../courses/copilot-app/voice/lines.json'), 'utf8')) as {
       lines: { id: string }[];
     }
   ).lines.map((l) => l.id),

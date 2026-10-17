@@ -9,36 +9,49 @@ import type {
   SourceRef,
   Trial,
 } from '../types';
-import { CH00 } from './ch00';
-import { CH01 } from './ch01';
-import { CH02 } from './ch02';
+import { onCourse } from '../../course/active';
+import { courseAssetBase } from '../../course/catalog';
+import { COURSE_BLOB } from '../course/chapters';
 
-export const CHAPTERS: readonly ChapterContent[] = [CH00, CH01, CH02];
+/**
+ * The active course's teaching content (docs/specs/COURSE-PACKS.md): its chapters
+ * (`courses/<id>/chapters/*.json`, in the course's order) and an index of each kind by id. They're
+ * empty until a voyage loads the course pack, then filled in place.
+ */
+export const CHAPTERS: ChapterContent[] = [];
 
-const index = <T extends { id: string }>(pick: (c: ChapterContent) => readonly T[]) => {
-  const m = new Map<string, T>();
+export const IMAGES = new Map<string, CourseImage>();
+export const QUIZZES = new Map<string, Quiz>();
+export const PAGES = new Map<string, Page>();
+export const CHESTS = new Map<string, Chest>();
+export const GLOSSARY = new Map<string, GlossaryTerm>();
+export const TRIALS = new Map<string, Trial>();
+
+function index<T extends { id: string }>(m: Map<string, T>, pick: (c: ChapterContent) => readonly T[]): void {
+  m.clear();
   for (const c of CHAPTERS) for (const item of pick(c)) m.set(item.id, item);
-  return m;
-};
+}
 
-export const IMAGES = index<CourseImage>((c) => c.images);
-export const QUIZZES = index<Quiz>((c) => c.quizzes);
-export const PAGES = index<Page>((c) => c.pages);
-export const CHESTS = index<Chest>((c) => c.chests);
-export const GLOSSARY = index<GlossaryTerm>((c) => c.glossary);
-export const TRIALS = index<Trial>((c) => c.trials);
-
-const COURSE_REPO = 'https://github.com/github/copilot-app-for-beginners/blob/main';
+onCourse((p) => {
+  CHAPTERS.length = 0;
+  CHAPTERS.push(...p.chapters);
+  index(IMAGES, (c) => c.images);
+  index(QUIZZES, (c) => c.quizzes);
+  index(PAGES, (c) => c.pages);
+  index(CHESTS, (c) => c.chests);
+  index(GLOSSARY, (c) => c.glossary);
+  index(TRIALS, (c) => c.trials);
+});
 
 /** "Open in the course ↗" link for a source ref. */
 export function courseUrl(s: SourceRef): string {
-  return `${COURSE_REPO}/${s.chapter}/README.md#${s.anchor}`;
+  return `${COURSE_BLOB}/${s.chapter}/README.md#${s.anchor}`;
 }
 
-/** Public URL for a course image id (via BASE_URL: '/' in dev pages, './' in the relative-base build). */
+/** URL for a course image id: the pack's snapshot, through BASE_URL (a sub-path deploy works too). */
 export function imageUrl(id: string): string {
   const img = IMAGES.get(id);
-  return img ? `${import.meta.env.BASE_URL || '/'}${img.src}` : '';
+  return img ? `${courseAssetBase()}${img.src}` : '';
 }
 
 export function rectArea(r: Rect): number {

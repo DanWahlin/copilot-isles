@@ -1,47 +1,68 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { CONTENT_FILES, boardChanges, checkContent, type ContentIssue } from '../../tools/content/check';
+import {
+  PACK_FILES,
+  boardChanges,
+  checkBoardSpots,
+  checkContent,
+  courseBoardIslands,
+  type ContentIssue,
+} from '../../tools/content/check';
 import { validate } from '../../tools/content/json-schema';
+import { coursePack } from '../course/active';
+import { withoutMeta } from '../course/pack';
+import { COURSE } from '../course/catalog';
+import { readCoursePack } from '../../tools/course-pack/read';
+import type { CourseMeta } from '../course/catalog';
 import { GILDA, GILDA_TEXT, JOBS, QUOTES, STAMP } from '../game/market/jobs';
 import { courseBoard } from '../learn/course-board';
 import type { CourseLock } from '../learn/course/lock';
 import { COURSE_BOARDS } from '../world/islands/course-boards';
-import { COURSE_BOARDS_DATA } from './course-boards';
+import { COURSE_BOARDS_DATA, type CourseBoardsData } from './course-boards';
 import { MARKET, type MarketData } from './market';
 
 const ROOT = join(__dirname, '../..');
+const PACK = 'courses/copilot-app';
 const json = <T>(p: string) => JSON.parse(readFileSync(join(ROOT, p), 'utf8')) as T;
-const market = () => json<MarketData>('content/market.json');
-const boards = () => json<typeof COURSE_BOARDS_DATA>('content/course-boards.json');
-const lock = () => json<CourseLock>('content/course.lock.json');
+const market = () => json<MarketData>(`${PACK}/market.json`);
+const boards = () => json<CourseBoardsData & { $schema?: string; $comment?: string }>(`${PACK}/boards.json`);
+const meta = () => json<CourseMeta & { $schema?: string }>(`${PACK}/course.json`);
+const lock = () => json<CourseLock>(`${PACK}/lock.json`);
+const quests = (island: string) =>
+  json<{ scripts: Record<string, unknown[]>; barks: Record<string, string[]> }>(
+    `${PACK}/quests/${island}.json`,
+  );
 const show = (issues: ContentIssue[]) => issues.map((i) => `${i.file} ${i.path}: ${i.message}`).join('\n');
 /** The issues a broken copy of one file gets (the other files are as on disk). */
-const issuesWith = (file: string, value: unknown) => checkContent(ROOT, { [file]: value });
+const issuesWith = (file: string, value: unknown) => checkContent(ROOT, { [`${PACK}/${file}`]: value });
 const paths = (issues: ContentIssue[]) => issues.map((i) => i.path);
 
-describe('content files (docs/content-data.md)', () => {
+describe('course pack files (docs/content-data.md, COURSE-PACKS.md §3)', () => {
   it('pass their schemas and every content check', () => {
     const issues = checkContent(ROOT);
     expect(issues, show(issues)).toEqual([]);
+    expect(checkBoardSpots()).toEqual([]);
   });
 
-  it('have a schema each', () => {
-    const files = readdirSync(join(ROOT, 'content'))
-      .filter((f) => f.endsWith('.json'))
-      .map((f) => `content/${f}`);
-    expect(CONTENT_FILES.map((c) => c.file).sort()).toEqual(files.sort());
-    for (const f of ['content/market.json', 'content/course-boards.json', 'content/labels.json'])
-      expect(json<{ $schema: string }>(f).$schema, f).toBe(
-        `./schemas/${CONTENT_FILES.find((c) => c.file === f)!
-          .schema.split('/')
-          .pop()}`,
+  it('name their schema (the hand-edited ones), and every schema is in courses/schemas/', () => {
+    for (const f of ['course.json', 'labels.json', 'boards.json', 'market.json'])
+      expect(json<{ $schema: string }>(`${PACK}/${f}`).$schema, f).toBe(
+        `../schemas/${PACK_FILES.find((p) => p.file === f)!.schema}`,
       );
+    for (const f of ['chapters/00-setup.json', 'quests/anchorage.json'])
+      expect(json<{ $schema: string }>(`${PACK}/${f}`).$schema, f).toBe(
+        `../../schemas/${PACK_FILES.find((p) => p.file === `${f.split('/')[0]}/*.json`)!.schema}`,
+      );
+    const schemas = readdirSync(join(ROOT, 'courses/schemas')).sort();
+    expect([...new Set(PACK_FILES.map((p) => p.schema))].sort()).toEqual(schemas);
   });
 
   it('load as the game reads them', () => {
-    expect(MARKET).toEqual(market());
-    expect(COURSE_BOARDS_DATA).toEqual(boards());
+    expect(MARKET).toEqual(withoutMeta(market()));
+    expect(COURSE_BOARDS_DATA).toEqual(withoutMeta(boards()));
+    expect(COURSE).toEqual(withoutMeta(meta()));
+    expect(coursePack()).toEqual(readCoursePack());
     expect(JOBS.map((j) => j.id)).toEqual(market().jobs.map((j) => j.id));
     for (const j of JOBS) expect(j.why).toBe(QUOTES[market().jobs.find((x) => x.id === j.id)!.why]);
     for (const [k, g] of Object.entries(market().gilda)) {
@@ -50,9 +71,9 @@ describe('content files (docs/content-data.md)', () => {
     }
     expect(STAMP).toEqual(market().stamps);
     expect(QUOTES.retry.section).toBe('Try Again with a Different Model');
-    for (const [island, p] of Object.entries(boards().islands)) {
-      expect(COURSE_BOARDS[island as keyof typeof COURSE_BOARDS]).toMatchObject({ x: p.x, z: p.z });
-      expect(courseBoard(p.chapter as Parameters<typeof courseBoard>[0])).not.toBeNull();
+    for (const { island, chapter } of courseBoardIslands(COURSE)) {
+      expect(COURSE_BOARDS[island].chapter).toBe(chapter);
+      expect(courseBoard(chapter)).not.toBeNull();
     }
   });
 });
@@ -63,59 +84,88 @@ describe('the content checks report broken edits by entry', () => {
     m.quotes.cost.text = 'Models differ in price.';
     m.quotes.effort.anchor = 'no-such-section';
     m.quotes.hard.hash = '000000000000';
-    expect(paths(issuesWith('content/market.json', m))).toEqual([
-      'quotes.cost.text',
-      'quotes.effort',
-      'quotes.hard',
-    ]);
+    expect(paths(issuesWith('market.json', m))).toEqual(['quotes.cost.text', 'quotes.effort', 'quotes.hard']);
   });
 
   it('a caption that isn’t its voice line, or a voice line that doesn’t exist', () => {
     const m = market();
     m.gilda.hello.text = 'Ahoy!';
     m.gilda.open.voice = 'mer.market.nope';
-    const issues = issuesWith('content/market.json', m);
+    const issues = issuesWith('market.json', m);
     expect(paths(issues)).toEqual([
       'gilda.hello.text',
       'gilda.hello.text',
       'gilda.open.voice',
       'gilda.open.voice',
     ]);
-    expect(issues[1]!.message).toContain('tools/voice/generate.ts --only=mer.market.hello');
+    expect(issues[1]!.message).toContain(
+      'tools/voice/generate.ts --course copilot-app --only=mer.market.hello',
+    );
   });
 
   it('prices and refunds that break the economy', () => {
     const m = market();
     m.sizes.hard.refund = 4;
     (m.categories[1] as { price: number }).price = 1;
-    expect(paths(issuesWith('content/market.json', m))).toEqual(['categories[1].price', 'sizes.hard.refund']);
+    expect(paths(issuesWith('market.json', m))).toEqual(['categories[1].price', 'sizes.hard.refund']);
     const pricey = market();
     (pricey as { maxPrice: number }).maxPrice = 5;
-    expect(paths(issuesWith('content/market.json', pricey))).toEqual(['maxPrice']);
+    expect(paths(issuesWith('market.json', pricey))).toEqual(['maxPrice']);
   });
 
   it('a job that quotes a missing sentence, and fields the schema doesn’t know', () => {
     const m = market() as MarketData & { extra?: boolean };
     (m.jobs[0] as { why: string }).why = 'nope';
-    expect(paths(issuesWith('content/market.json', m))).toEqual(['jobs[0].why']);
+    expect(paths(issuesWith('market.json', m))).toEqual(['jobs[0].why']);
     m.extra = true;
-    expect(paths(issuesWith('content/market.json', m))).toEqual(['extra']);
+    expect(paths(issuesWith('market.json', m))).toEqual(['extra']);
   });
 
-  it('a board off its island, in the water, or on a chapter the snapshot hasn’t got', () => {
-    const b = boards();
-    b.islands.anchorage.x = 723;
-    b.islands.anchorage.z = -768.6;
-    b.islands.meridian.y = 9;
-    (b.islands['thousand-bough'] as { chapter: string }).chapter = '09-none';
-    const issues = issuesWith('content/course-boards.json', b);
-    expect(paths(issues)).toEqual([
-      'islands.anchorage',
-      'islands.anchorage',
-      'islands.meridian.y',
-      'islands["thousand-bough"].chapter',
-      'islands["thousand-bough"].chapter',
+  it('script steps whose ids don’t resolve, and barks for someone the game hasn’t got', () => {
+    const q = quests('anchorage');
+    q.scripts['nell.papers'] = [
+      { say: 'nell.nope' },
+      { quiz: 'Q9.9' },
+      { show: 'ch00/nope' },
+      { quest: 'Q0.2', step: 'nope' },
+      { script: 'nope' },
+      { say: 'nell.papers.01', extra: true },
+    ];
+    q.barks.nobody = ['Hello!'];
+    expect(paths(issuesWith('quests/anchorage.json', q))).toEqual(['scripts["nell.papers"][5].extra']);
+    delete (q.scripts['nell.papers'][5] as { extra?: boolean }).extra;
+    expect(paths(issuesWith('quests/anchorage.json', q))).toEqual([
+      'scripts["nell.papers"][0]',
+      'scripts["nell.papers"][1]',
+      'scripts["nell.papers"][2]',
+      'scripts["nell.papers"][3]',
+      'scripts["nell.papers"][4]',
+      'barks.nobody',
     ]);
+  });
+
+  it('an island the game hasn’t got, or a chapter the course doesn’t list', () => {
+    const c = meta();
+    (c.islands[0] as { island: string }).island = 'atlantis';
+    (c.islands[1] as { chapter: string }).chapter = '09-none';
+    expect(paths(issuesWith('course.json', c))).toEqual(
+      expect.arrayContaining(['islands[0].island', 'islands[1].chapter']),
+    );
+  });
+
+  it('a board whose chapter has too few topics', () => {
+    const b = boards();
+    b.skip.titlePrefixes = [...b.skip.titlePrefixes, 'Learning', 'Key', 'Trouble', 'Tour', 'Why', 'Chats'];
+    expect(new Set(paths(issuesWith('boards.json', b)))).toEqual(new Set(['skip']));
+  });
+
+  it('a board off its island, or in the water', () => {
+    const spots = {
+      anchorage: { ...COURSE_BOARDS.anchorage, x: 723, z: -768.6 },
+      meridian: { ...COURSE_BOARDS.meridian, y: 9 },
+      'thousand-bough': COURSE_BOARDS['thousand-bough'],
+    };
+    expect(checkBoardSpots(spots).map((s) => s.island)).toEqual(['anchorage', 'anchorage', 'meridian']);
   });
 });
 
@@ -126,7 +176,7 @@ describe('the course boards after a course sync', () => {
     const ch = before.chapters['01-tour-the-app']!;
     delete ch.sections.settings;
     ch.sections['old-topic'] = { title: 'Old Topic', level: 2, hash: '000000000000' };
-    const changes = boardChanges(boards(), now, before);
+    const changes = boardChanges(courseBoardIslands(meta()), boards().skip, now, before);
     const meridian = changes.find((c) => c.island === 'meridian')!;
     expect(meridian.topics.map((t) => t.title)).toEqual(
       courseBoard('01-tour-the-app')!.topics.map((t) => t.title),
@@ -162,6 +212,27 @@ describe('the schema checker', () => {
       'should be integer, not number',
       'should be one of "x", "y"',
     ]);
+  });
+
+  it('takes the anyOf branch that fits, or reports the closest one', () => {
+    const schema = {
+      anyOf: [
+        {
+          type: 'object',
+          additionalProperties: false,
+          required: ['say'],
+          properties: { say: { type: 'string' } },
+        },
+        {
+          type: 'object',
+          additionalProperties: false,
+          required: ['quiz'],
+          properties: { quiz: { type: 'string' }, when: { enum: ['a'] } },
+        },
+      ],
+    };
+    expect(validate(schema, { say: 'x' })).toEqual([]);
+    expect(validate(schema, { quiz: 'q', when: 'b' }).map((i) => i.path)).toEqual(['when']);
   });
 
   it('refuses a keyword it doesn’t check', () => {

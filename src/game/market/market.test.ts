@@ -154,17 +154,17 @@ describe('the board rule (MODEL-MARKET.md §4.2)', () => {
   });
 });
 
-describe('content/models.json', () => {
+describe('courses/copilot-app/models.json', () => {
   it('is a sync’s output: GitHub Docs as the source, sorted, no prices', () => {
     expect(MODELS_FILE.source.repo).toBe('github/docs');
     expect(MODELS_FILE.source.path).toBe('data/tables/copilot');
     expect(MODELS_FILE.source.commit).toMatch(/^[0-9a-f]{40}$/);
-    expect(formatModelsFile(MODELS_FILE)).toBe(read('content/models.json'));
+    expect(formatModelsFile(MODELS_FILE)).toBe(read('courses/copilot-app/models.json'));
     for (const x of MODELS) {
       expect(['Claude', 'GPT', 'MAI'], x.name).toContain(x.family);
       expect(CATEGORIES, x.name).toContain(x.category);
     }
-    expect(read('content/models.json')).not.toMatch(/\$\d/);
+    expect(read('courses/copilot-app/models.json')).not.toMatch(/\$\d/);
   });
 
   it('fills every board with GA models', () => {
@@ -292,8 +292,8 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
 });
 
 describe('teaching accuracy (Chapter 01)', () => {
-  const readme = read('public/course/ch01/README.md');
-  const lines = JSON.parse(read('tools/voice/lines.testcove.json')) as {
+  const readme = read('courses/copilot-app/public/course/ch01/README.md');
+  const lines = JSON.parse(read('courses/copilot-app/voice/lines.json')) as {
     lines: { id: string; speaker: string; text: string }[];
   };
 

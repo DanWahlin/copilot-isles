@@ -3,7 +3,7 @@
  * data tree that `CourseMarkdown` renders as React elements, so nothing is ever set as HTML. Raw
  * HTML is dropped (its text is kept) except `<img>` and `<br>`. Every link and image URL goes
  * through the caller's resolver and then `safeHref` / `safeImageSrc`: links must be http(s), and
- * images must be https on an allowed host or a bundled `course/` path.
+ * images must be https on an allowed host or a course pack's bundled `course/` path.
  */
 
 export type Inline =
@@ -40,7 +40,8 @@ export interface MarkdownOptions {
 /** Hosts course images may load from (the live course and GitHub's own image hosts). */
 const IMAGE_HOSTS = new Set(['raw.githubusercontent.com', 'github.com', 'user-images.githubusercontent.com']);
 const IMAGE_EXT = /\.(webp|png|jpe?g|gif|avif)$/i;
-const BUNDLED_IMAGE = /^(?:\.?\/|\/[\w-]+\/)?course\/(?:[\w-]+\/)*[\w-]+\.\w+$/;
+/** A course pack's snapshot picture: `[<base>]courses/<id>/course/…` (or a bare `course/…`). */
+const BUNDLED_IMAGE = /^(?:\.?\/|\/[\w-]+\/)?(?:courses\/[a-z0-9-]+\/)?course\/(?:[\w-]+\/)*[\w-]+\.\w+$/;
 
 /** An http(s) URL as a string, or null (javascript:, data:, relative, and malformed URLs fail). */
 export function safeHref(href: string): string | null {

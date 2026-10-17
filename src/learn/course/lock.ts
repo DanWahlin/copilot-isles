@@ -2,7 +2,7 @@ import type { ChapterId } from './chapters';
 import { boldTerms, normalizeForCompare, parseSections } from './sections';
 
 /**
- * `content/course.lock.json` (PLAN §8.2-8.4): the bundled snapshot's course commit and a hash for
+ * A course pack's `lock.json` (PLAN §8.2-8.4, `courses/<id>/lock.json`): the bundled snapshot's course commit and a hash for
  * every section and image. `tools/course/sync.mjs` writes it, the drift report compares authored
  * `SourceRef`s against it, and the tests check the snapshot still matches it.
  */

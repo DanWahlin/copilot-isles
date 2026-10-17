@@ -1,6 +1,8 @@
 import { onPierDeck } from '../world/islands/anchorage/village';
 import { spyglassSpeakerPan } from '../learn/spyglass-layout';
 import { CHART_LABELS, chartLabel, firstShowing } from '../learn/content/labels';
+import { barksFor } from '../course/active';
+import { courseVoiceBase } from '../course/catalog';
 import { Vector3, type Group, type Object3D } from 'three/webgpu';
 import { buildSlice } from '../engine/build-slice';
 import { releaseRemovedObjects } from '../util/dispose-three';
@@ -411,9 +413,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   for (const b of sites.colliders.camera) world.addCameraBox(b);
 
   const hud = new Hud(o.hudParent);
-  await hud.loadSubtitles(
-    o.voiceManifest ?? `${import.meta.env.BASE_URL || '/'}voice/testcove/manifest.json`,
-  );
+  await hud.loadSubtitles(o.voiceManifest ?? `${courseVoiceBase()}manifest.json`);
   hud.setHelp(WALK_HELP);
   let facialSpeaker: Character | null = null;
   let lineFace: Character | null = null;
@@ -617,7 +617,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const labelsShown = new Set<string>();
   /**
    * A puzzle's or a battle's chart label (docs/specs/LOWER-THIRDS.md), the first time it starts in
-   * this save. Ids without a label in content/labels.json show nothing.
+   * this save. Ids without a label in the course pack's labels.json show nothing.
    */
   function puzzleLabel(id: string): void {
     const text = chartLabel(id);
@@ -708,9 +708,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         input.enabled = false;
         await dialogue.play(n.spec.voiced);
         input.enabled = true;
-      } else if (n.spec.barks?.length) {
-        const i = Math.floor(Math.random() * n.spec.barks.length);
-        hud.showText(n.spec.name, n.spec.barks[i]!, 4.5);
+      } else if (barksFor(n.spec.id)?.length) {
+        const barks = barksFor(n.spec.id)!;
+        const i = Math.floor(Math.random() * barks.length);
+        hud.showText(n.spec.name, barks[i]!, 4.5);
         await new Promise((r) => setTimeout(r, 2600));
       }
     } finally {
@@ -749,7 +750,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   /** The camera shot of the conversation that's on (so a tour can come back to it). */
   let talkShot: CameraShot | null = null;
   const addNpcTalk = (n: Npc) => {
-    if (!n.spec.voiced && !n.spec.barks && !scriptFor(n)) return;
+    if (!n.spec.voiced && !barksFor(n.spec.id) && !scriptFor(n)) return;
     interactions.add({
       id: `npc:${n.spec.id}`,
       label: () => `Talk to ${n.spec.name}`,

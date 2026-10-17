@@ -29,6 +29,7 @@ import { meridianOpen } from './meridian-open';
 import { thousandBoughOpen } from './thousand-bough-open';
 import type { GameSession, StreamedIsland } from './session';
 import { LearnStore } from '../learn/store';
+import { activateCourse } from '../course/load';
 import type { OsId } from '../learn/setup';
 import type { Opening } from '../opening/opening';
 import { BRIEFING_LINES } from '../opening/briefing';
@@ -789,8 +790,10 @@ export class GameFlow implements GameBridge {
       setSailVeil.style.opacity = '1';
       document.documentElement.classList.add('ci-opening-active');
       this.o.input.enabled = true;
-      // The island's code loads behind the cabin: the cabin only waits for itself and the fade.
-      const islandCode = Promise.all([import('../world/cove-scene'), import('./session')]);
+      // The island's code and the course's data (its lazy chunk: chapters, quests, labels, boards,
+      // market, lock; the title only has its course.json) load behind the cabin: the cabin only
+      // waits for itself and the fade. The course pack is active before the session reads any of it.
+      const islandCode = Promise.all([import('../world/cove-scene'), import('./session'), activateCourse()]);
       islandCode.catch(() => undefined);
       const [ready] = await Promise.all([
         prep.then(async (o) => (await o.prepare(), o)),

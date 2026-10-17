@@ -16,7 +16,7 @@ import {
 } from './course-board';
 
 const ROOT = join(__dirname, '../..');
-const lock = JSON.parse(readFileSync(join(ROOT, 'content/course.lock.json'), 'utf8')) as CourseLock;
+const lock = JSON.parse(readFileSync(join(ROOT, 'courses/copilot-app/lock.json'), 'utf8')) as CourseLock;
 
 describe('course notice boards', () => {
   it('lists every snapshotted chapter’s ## sections that are topics, with at least 5 a board', () => {

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "The Model Market (content/market.json)",
+  "title": "The Model Market (courses/<id>/market.json)",
   "description": "Prices, refunds, the board rule's numbers, stamps, course quotes, jobs and Gilda's lines. docs/content-data.md, docs/specs/MODEL-MARKET.md.",
   "type": "object",
   "additionalProperties": false,
@@ -197,7 +197,7 @@
           "pattern": "^\\d{2}-[a-z0-9-]+$"
         },
         "anchor": {
-          "description": "The section's README anchor (content/course.lock.json).",
+          "description": "The section's README anchor (the pack's lock.json).",
           "type": "string",
           "pattern": "^[a-z0-9-]+$"
         },
@@ -228,7 +228,7 @@
       "required": ["voice", "text"],
       "properties": {
         "voice": {
-          "description": "The voice line's id in tools/voice/lines.testcove.json.",
+          "description": "The voice line's id in the pack's voice/lines.json.",
           "type": "string",
           "pattern": "^[a-z0-9.]+$"
         },

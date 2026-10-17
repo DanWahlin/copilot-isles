@@ -1,0 +1,329 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A course pack's quests for one island (courses/<id>/quests/<island>.json)",
+  "description": "The island's quests (story order), the compass's labels, the tracker's header, every named script its NPCs and puzzles play (src/game/script.ts), and its NPCs' barks. Which script an NPC offers when is the game's (src/game/*-quests.ts) until COURSE-PACKS.md step 2.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["island", "tracker", "quests", "targets", "scripts", "barks"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "island": {
+      "description": "The game's island id.",
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "tracker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chapter", "goal", "next"],
+      "properties": {
+        "chapter": {
+          "$ref": "#/$defs/text"
+        },
+        "goal": {
+          "$ref": "#/$defs/text"
+        },
+        "next": {
+          "description": "What's next once every task's done.",
+          "$ref": "#/$defs/text"
+        }
+      }
+    },
+    "quests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "task", "steps"],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "title": {
+            "$ref": "#/$defs/text"
+          },
+          "task": {
+            "$ref": "#/$defs/text"
+          },
+          "optional": {
+            "type": "boolean"
+          },
+          "link": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "url"],
+            "properties": {
+              "label": {
+                "$ref": "#/$defs/text"
+              },
+              "url": {
+                "type": "string",
+                "pattern": "^https://"
+              }
+            }
+          },
+          "steps": {
+            "description": "Step id → what the Logbook and tracker say to do next. \"done\" marks completion.",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        }
+      }
+    },
+    "targets": {
+      "description": "\"<quest>:<step>\" → where the compass points (interaction ids; a trailing * matches a prefix) and its label.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[\\w.]+:[\\w-]+$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ids", "label"],
+        "properties": {
+          "ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "label": {
+            "$ref": "#/$defs/text"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        }
+      }
+    },
+    "scripts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "$ref": "#/$defs/step"
+        }
+      }
+    },
+    "notes": {
+      "description": "What each script (or bark) is for, for authors. The game ignores it.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "barks": {
+      "description": "NPC id → the unvoiced lines they say when the game has no script for them.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "$ref": "#/$defs/text"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][\\w.:-]*$"
+    },
+    "step": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["say"],
+          "properties": {
+            "say": {
+              "description": "A voiced line (voice/lines.json).",
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["text"],
+          "properties": {
+            "text": {
+              "description": "An unvoiced line ({captain}, {ship} and the setup tokens are filled in).",
+              "$ref": "#/$defs/text"
+            },
+            "speaker": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["show"],
+          "properties": {
+            "show": {
+              "description": "A course image id (a chapter's images) in the spyglass.",
+              "type": "string"
+            },
+            "caption": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["hide"],
+          "properties": {
+            "hide": {
+              "const": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["quiz"],
+          "properties": {
+            "quiz": {
+              "$ref": "#/$defs/id"
+            },
+            "when": {
+              "enum": ["model:auto", "model:picked"]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["page"],
+          "properties": {
+            "page": {
+              "$ref": "#/$defs/id"
+            },
+            "doubloons": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["file"],
+          "properties": {
+            "file": {
+              "description": "Shelves a page in the Logbook without a reveal card.",
+              "$ref": "#/$defs/id"
+            },
+            "doubloons": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["term"],
+          "properties": {
+            "term": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]+$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["quest", "step"],
+          "properties": {
+            "quest": {
+              "$ref": "#/$defs/id"
+            },
+            "step": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["trial"],
+          "properties": {
+            "trial": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["cue"],
+          "properties": {
+            "cue": {
+              "description": "A world beat the island's session plays (the game's).",
+              "type": "string",
+              "pattern": "^[a-z0-9-]+(:[\\w.-]+)?$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["askFork"],
+          "properties": {
+            "askFork": {
+              "enum": ["ezra", "crane"]
+            },
+            "line": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["askSetup"],
+          "properties": {
+            "askSetup": {
+              "enum": ["os", "issue", "branch", "model"]
+            },
+            "line": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["script"],
+          "properties": {
+            "script": {
+              "description": "Another script of this island, spliced in here.",
+              "type": "string"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

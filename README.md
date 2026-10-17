@@ -52,9 +52,10 @@ More commands, the stack, and the project rules are in
   [Model Market](docs/specs/MODEL-MARKET.md)
 - **Model list:** the Model Market's models come from GitHub Docs (`npm run models:sync`). A weekly
   workflow (`models-refresh.yml`) opens a PR when they change; merging it deploys the site.
-- **Course content:** [authoring guide](docs/course-content-authoring.md) ·
-  [content data](docs/content-data.md) (the JSON files in `content/`: the Model Market, the course
-  notice boards, chart labels; how to edit them and how a change reaches players)
+- **Course content:** [course packs](docs/specs/COURSE-PACKS.md) (everything a course says is data,
+  in `courses/<id>/`: chapters, quests and scripts, labels, boards, the Model Market, voice lines and
+  their audio, the course snapshot) · [content data](docs/content-data.md) (each file, how to edit it,
+  and how a change reaches players) · [authoring guide](docs/course-content-authoring.md)
 - **Character voices:** [`docs/voices.md`](docs/voices.md) (all AI-generated)
 - **Background:** [research](docs/research/) · [design reviews](docs/reviews/)
 

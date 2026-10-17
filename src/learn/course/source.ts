@@ -7,13 +7,14 @@ import {
   snapshotPath,
   type ChapterId,
 } from './chapters';
+import { courseAssetBase } from '../../course/catalog';
 import { parseCatalog } from './lock';
 import { linkRefs } from './markdown';
 import { imageRefs, parseSections, type CourseSection } from './sections';
 
 /**
  * CourseSource (PLAN §8.2): the course's text and pictures, fetched live from raw.githubusercontent.com
- * (never the GitHub REST API) with the bundled snapshot in `public/course/**` as a quiet fallback when
+ * (never the GitHub REST API) with the course pack's bundled snapshot (`courses/<id>/public/course/**`) as a quiet fallback when
  * the fetch fails, the player is offline, or the parse breaks. `?course=<sha>` pins a commit and
  * `?course=snapshot` skips the network. Each document is fetched once per session and kept, so text
  * never changes mid-conversation; the Service Worker (public/sw.js) caches the responses
@@ -56,7 +57,7 @@ export function courseRef(search = typeof location === 'undefined' ? '' : locati
   return q && SHA.test(q) ? q.toLowerCase() : 'main';
 }
 
-const base = () => import.meta.env?.BASE_URL || '/';
+const base = () => courseAssetBase();
 
 /** Live URL for a course repo path at the current ref. */
 export function liveUrl(path: string, ref = courseRef()): string {
