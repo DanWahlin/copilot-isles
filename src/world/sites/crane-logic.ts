@@ -17,8 +17,15 @@
  * - "Preview first" is the course's rule rather than the script's, so Pol enforces it.
  *
  * Your berth shows your own fork when you've given it (Ezra's register or the crane's form), passed
- * in as `yours`; otherwise the placeholder `your-handle/copilot-app-for-beginners`.
+ * in as `yours`; otherwise the placeholder (`FORK_PLACEHOLDER`).
+ *
+ * The game owns the berths, their headings and the guards (a procedure with a dry run); whose ship
+ * is at each berth, what the script stocks and prints, and what Pim and Pol say are the course
+ * pack's (`puzzles/crane.json`).
  */
+import { onCourse } from '../../course/active';
+import type { PuzzleFile } from '../../course/pack';
+import { fill, puzzleContent, textOf } from '../../course/puzzles';
 import { FORK_PLACEHOLDER } from '../../learn/fork';
 
 type Owner = 'you' | 'captain' | 'guild';
@@ -36,31 +43,42 @@ export interface CraneFacing {
 
 export const YOUR_REPOSITORY = FORK_PLACEHOLDER;
 
-/** In the order the capstan turns them (clockwise seen from above): west, north, east, south. */
-export const CRANE_FACINGS: readonly CraneFacing[] = [
-  {
-    id: 'berth2',
-    berth: 2,
-    heading: -Math.PI / 2,
-    owner: 'captain',
-    repository: 'm-reyes/copilot-app-for-beginners',
-    captain: 'M. Reyes',
-  },
-  {
-    id: 'berth3',
-    berth: 3,
-    heading: Math.PI,
-    owner: 'guild',
-    repository: 'harbour-guild/copilot-app-for-beginners',
-  },
-  { id: 'berth1', berth: 1, heading: Math.PI / 2, owner: 'you', repository: YOUR_REPOSITORY },
-  { id: 'quay', berth: null, heading: 0, owner: null, repository: null },
+type Spare = { repository: string; captain?: string };
+
+/** `puzzles/crane.json`. */
+export interface CraneFile extends PuzzleFile {
+  /** Whose ship is at each berth (`you`: the player's fork), and nobody's over the quay. */
+  targets: Readonly<
+    Record<CraneFacing['id'], { owner: Owner | null; repository?: string; captain?: string }>
+  >;
+  /** Stand-ins for the other berths if the player's own fork happens to share an owner with one. */
+  spares: Readonly<Record<'captain' | 'guild', Spare>>;
+  /** What the script stocks your repository with, one crate per kind. */
+  cargo: readonly { id: CargoId; title: string; count: number }[];
+  /** The command line the terminal shows (its flags are text). */
+  command: string;
+  /** Your fork's Actions tab, `{repository}` filled in. */
+  actionsUrl: string;
+  /** How the readout inks lines: someone else's or a failure (prefixes), and success. */
+  tones: { other: readonly string[]; ok: readonly string[]; okPrefix: readonly string[] };
+}
+
+export const craneContent = () => puzzleContent<CraneFile>('crane');
+const T = (key: string, v?: Readonly<Record<string, string | number>>) => textOf(craneContent(), key, v);
+
+/** The game's berths, in the order the capstan turns them (clockwise from above): west, north, east, south. */
+const BERTHS: readonly Pick<CraneFacing, 'id' | 'berth' | 'heading'>[] = [
+  { id: 'berth2', berth: 2, heading: -Math.PI / 2 },
+  { id: 'berth3', berth: 3, heading: Math.PI },
+  { id: 'berth1', berth: 1, heading: Math.PI / 2 },
+  { id: 'quay', berth: null, heading: 0 },
 ];
 
-/** Stand-ins for the other berths if the player's own fork happens to share an owner with one. */
-const DECOY_SPARES: Readonly<Record<'captain' | 'guild', { repository: string; captain?: string }>> = {
-  captain: { repository: 'j-okafor/copilot-app-for-beginners', captain: 'J. Okafor' },
-  guild: { repository: 'tidewater-guild/copilot-app-for-beginners' },
+/** The berths with the course's ships (your berth shows the placeholder). */
+export let CRANE_FACINGS: readonly CraneFacing[] = [];
+let DECOY_SPARES: Readonly<Record<'captain' | 'guild', Spare>> = {
+  captain: { repository: '' },
+  guild: { repository: '' },
 };
 
 const ownerOf = (repo: string) => repo.split('/')[0]!.toLowerCase();
@@ -81,15 +99,38 @@ export function craneFacings(yours: string = YOUR_REPOSITORY): readonly CraneFac
 
 /** The crane starts aimed at another captain's sloop (POC §4.5). */
 export const CRANE_START = 0;
-export const YOUR_FACING = CRANE_FACINGS.findIndex((f) => f.owner === 'you');
+export let YOUR_FACING = 2;
+
+/** The cargo's crates: which prop stands for each kind (the game's). */
+const CARGO_PROPS = { labels: 'pennants', issues: 'notices', branches: 'hulls', prs: 'seals' } as const;
+type CargoId = keyof typeof CARGO_PROPS;
+export interface CraneCargo {
+  id: CargoId;
+  title: string;
+  count: number;
+  prop: (typeof CARGO_PROPS)[CargoId];
+}
 
 /** What the script stocks your repository with, one crate per kind (counts match the script). */
-export const CRANE_CARGO = [
-  { id: 'labels', title: 'Labels', count: 9, prop: 'pennants' },
-  { id: 'issues', title: 'Issues', count: 5, prop: 'notices' },
-  { id: 'branches', title: 'Practice branches', count: 7, prop: 'hulls' },
-  { id: 'prs', title: 'Pull requests', count: 3, prop: 'seals' },
-] as const;
+export let CRANE_CARGO: readonly CraneCargo[] = [];
+export let SETUP_COMMAND = '';
+
+onCourse(() => {
+  const c = craneContent();
+  CRANE_FACINGS = BERTHS.map((b) => {
+    const t = c.targets[b.id];
+    return {
+      ...b,
+      owner: t.owner,
+      repository: t.owner === 'you' ? YOUR_REPOSITORY : (t.repository ?? null),
+      ...(t.captain ? { captain: t.captain } : {}),
+    };
+  });
+  DECOY_SPARES = c.spares;
+  YOUR_FACING = CRANE_FACINGS.findIndex((f) => f.owner === 'you');
+  CRANE_CARGO = c.cargo.map((k) => ({ id: k.id, title: k.title, count: k.count, prop: CARGO_PROPS[k.id] }));
+  SETUP_COMMAND = c.command;
+});
 
 export interface CraneState {
   facing: number;
@@ -169,15 +210,15 @@ export function confirmYes(s: CraneState, yours: string = YOUR_REPOSITORY, actio
 }
 
 /** Your fork's Actions tab, as the script prints it. */
-export const actionsUrl = (repository: string): string => `https://github.com/${repository}/actions`;
+export const actionsUrl = (repository: string): string => fill(craneContent().actionsUrl, { repository });
 
 /** The script's dry-run warning while the fork's workflows are off (its exact words). */
 export const actionsWarning = (repository: string): string =>
-  `[dry-run] GitHub Actions is not active. Enable workflows at ${actionsUrl(repository)} before running with --yes.`;
+  T('actionsWarning', { url: actionsUrl(repository) });
 
 /** The script's `--yes` failure while the fork's workflows are off (its exact words). */
 export const actionsFailure = (repository: string): string =>
-  `Setup failed: The Book app web workflow is not active. Open ${actionsUrl(repository)}, enable workflows for the fork, then rerun the setup script.`;
+  T('actionsFailure', { url: actionsUrl(repository) });
 
 /** The painted `Repository:` sign on the arm (two lines), after `event` (or the state alone). */
 export function signLines(
@@ -185,28 +226,28 @@ export function signLines(
   event?: CraneEvent,
   yours: string = YOUR_REPOSITORY,
 ): [string, string] {
-  if (s.complete) return [`Repository: ${yours}`, 'Setup complete.'];
+  if (s.complete) return [T('repository', { repository: yours }), T('complete')];
   switch (event?.kind) {
     case 'not-a-repo':
-      return ['Setup failed:', 'run it from the root of a cloned Git repository.'];
+      return [T('failed'), T('notARepoSign')];
     case 'refused':
-      return ['Refusing to change shared repository', event.repository];
+      return [T('refusedSign'), event.repository];
     case 'actions-off':
-      return ['Setup failed:', 'The Book app web workflow is not active.'];
+      return [T('failed'), T('actionsOffSign')];
     default:
       break;
   }
   const f = craneFacings(yours)[s.facing]!;
-  if (s.preview === s.facing && f.repository) return [`Repository: ${f.repository}`, 'Default branch: main'];
-  return ['Repository:', '(pull Dry-Run to preview)'];
+  if (s.preview === s.facing && f.repository)
+    return [T('repository', { repository: f.repository }), T('defaultBranch')];
+  return [T('repositoryEmpty'), T('pullDryRun')];
 }
 
-export const SETUP_COMMAND = '$ node …/setup-training-scenarios.js';
-
 const planned = () => {
-  const [labels, issues, branches, prs] = CRANE_CARGO.map((c) => c.count);
-  return [`${labels} labels, ${issues} issues,`, `${branches} branches and ${prs} pull requests`];
+  const counts = Object.fromEntries(CRANE_CARGO.map((c) => [c.id, c.count]));
+  return [T('plannedA', counts), T('plannedB', counts)];
 };
+const cmd = (flag: 'dryRunFlag' | 'yesFlag') => `${SETUP_COMMAND} ${T(flag)}`;
 
 /**
  * The terminal panel at the crane: what the setup script printed last, after `event` (or the
@@ -221,22 +262,28 @@ export function terminalLines(
 ): string[] {
   const [a, b] = planned();
   if (s.complete)
-    return [`${SETUP_COMMAND} --yes`, `Repository: ${yours}`, `Created ${a}`, `${b}.`, 'Setup complete.'];
+    return [
+      cmd('yesFlag'),
+      T('repository', { repository: yours }),
+      T('created', { a: a! }),
+      T('plannedEnd', { b: b! }),
+      T('complete'),
+    ];
   switch (event?.kind) {
     case 'not-a-repo':
-      return [`${SETUP_COMMAND} --dry-run`, 'Run this script from the root', 'of a cloned Git repository.'];
+      return [cmd('dryRunFlag'), T('notARepo1'), T('notARepo2')];
     case 'refused':
       return [
-        `${SETUP_COMMAND} --yes`,
-        `Repository: ${event.repository}`,
-        'Refusing to change shared or',
-        'upstream repository.',
+        cmd('yesFlag'),
+        T('repository', { repository: event.repository }),
+        T('refused1'),
+        T('refused2'),
       ];
     case 'actions-off':
       return [
-        `${SETUP_COMMAND} --yes`,
-        `Repository: ${event.repository}`,
-        'Default branch: main',
+        cmd('yesFlag'),
+        T('repository', { repository: event.repository }),
+        T('defaultBranch'),
         actionsFailure(event.repository),
       ];
     default:
@@ -245,15 +292,15 @@ export function terminalLines(
   const f = craneFacings(yours)[s.facing]!;
   if (s.preview === s.facing && f.repository)
     return [
-      `${SETUP_COMMAND} --dry-run`,
-      `Repository: ${f.repository}`,
-      'Default branch: main',
+      cmd('dryRunFlag'),
+      T('repository', { repository: f.repository }),
+      T('defaultBranch'),
       ...(f.owner === 'you' && !actionsOn ? [actionsWarning(f.repository)] : []),
-      `[dry-run] would create ${a}`,
-      `[dry-run] ${b}`,
-      'Dry run complete. No changes were made.',
+      T('wouldCreate', { a: a! }),
+      T('wouldCreateMore', { b: b! }),
+      T('dryRunDone'),
     ];
-  return [SETUP_COMMAND, '', '(pull Dry-Run to preview)'];
+  return [SETUP_COMMAND, '', T('pullDryRun')];
 }
 
 export type LineTone = 'cmd' | 'you' | 'other' | 'ok';
@@ -263,12 +310,16 @@ export function lineTone(line: string, yours: string = YOUR_REPOSITORY): LineTon
   const yourOwner = `${yours.split('/')[0]}/`;
   if (line.startsWith('$')) return 'cmd';
   if (line.endsWith(` ${yours}`) || line === yours || line === yourOwner) return 'you';
+  const c = craneContent();
+  const repo = T('repository');
+  const repoPrefix = repo.slice(0, repo.indexOf('{repository}'));
   if (
-    /^Repository: .+|^[\w-]+\/$/.test(line) ||
-    /^(Refusing|Setup failed|Run this|\[dry-run\] GitHub Actions is not active)/.test(line)
+    (line.startsWith(repoPrefix) && line.length > repoPrefix.length) ||
+    /^[\w-]+\/$/.test(line) ||
+    c.tones.other.some((p) => line.startsWith(p))
   )
     return 'other';
-  if (line === 'Setup complete.' || line.startsWith('Dry run complete.')) return 'ok';
+  if (c.tones.ok.includes(line) || c.tones.okPrefix.some((p) => line.startsWith(p))) return 'ok';
   return undefined;
 }
 

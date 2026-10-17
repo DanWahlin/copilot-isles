@@ -22,7 +22,16 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import type { CourseMeta } from '../../src/course/catalog';
-import type { IslandQuestsFile, PackScriptStep, QuestDef } from '../../src/course/pack';
+import {
+  PUZZLE_MECHANICS,
+  type IslandQuestsFile,
+  type PackScriptStep,
+  type PuzzleFile,
+  type QuestDef,
+} from '../../src/course/pack';
+import { GAME_PUZZLES } from '../../src/course/puzzles';
+import type { Beat, QuestCond } from '../../src/game/beats';
+import { resolveLine, type CastEntry, type VoiceLineDefinition } from '../voice/lines';
 import type { CourseBoardsData } from '../../src/content/course-boards';
 import type { MarketData } from '../../src/content/market';
 import { islandAt, type IslandId } from '../../src/game/islands';
@@ -62,7 +71,17 @@ export const PACK_FILES: readonly { file: string; schema: string }[] = [
   { file: 'models.json', schema: 'models.schema.json' },
   { file: 'lock.json', schema: 'lock.schema.json' },
   { file: 'voice/lines.json', schema: 'voice-lines.schema.json' },
+  { file: 'voice/cast.json', schema: 'voice-cast.schema.json' },
+  // One schema per mechanic: the file's own `mechanic` picks it.
+  { file: 'puzzles/*.json', schema: 'puzzle-<mechanic>.schema.json' },
 ];
+
+/** Every schema in `courses/schemas/`, with the puzzles' one per mechanic. */
+export const PACK_SCHEMAS: readonly string[] = PACK_FILES.flatMap((f) =>
+  f.schema.includes('<mechanic>')
+    ? PUZZLE_MECHANICS.map((m) => f.schema.replace('<mechanic>', m))
+    : [f.schema],
+);
 
 /** A board needs at least this many topics to read as a board (docs/specs/COURSE-BOARDS.md). */
 export const MIN_BOARD_TOPICS = 5;
@@ -167,8 +186,17 @@ export function checkContent(
       continue;
     }
     parsed.set(rel, value);
-    for (const i of validate(JSON.parse(read(`courses/schemas/${schema}`)) as JsonSchema, value))
-      issue(rel, i.path, `${i.message} (courses/schemas/${schema})`);
+    let file = schema;
+    if (schema.includes('<mechanic>')) {
+      const m = (value as { mechanic?: unknown } | null)?.mechanic;
+      if (!PUZZLE_MECHANICS.includes(m as PuzzleFile['mechanic'])) {
+        issue(rel, 'mechanic', `should be one of ${PUZZLE_MECHANICS.join(', ')}`);
+        continue;
+      }
+      file = schema.replace('<mechanic>', m as string);
+    }
+    for (const i of validate(JSON.parse(read(`courses/schemas/${file}`)) as JsonSchema, value))
+      issue(rel, i.path, `${i.message} (courses/schemas/${file})`);
   }
   // Semantic checks need files that passed their schema.
   const ok = (rel: string) => parsed.has(rel) && !issues.some((i) => i.file === fileOf(rel));
@@ -330,7 +358,37 @@ export function checkContent(
     for (const [id, x] of Object.entries(c.cited ?? {})) src(`${at('cited', id)}.source`, x.source);
   }
 
-  // Quests: islands, quest steps, every script step, barks.
+  /** A script's steps: every id they name is in this course. */
+  const steps = (
+    rel: string,
+    base: string,
+    list: readonly PackScriptStep[],
+    isScript: (name: string) => boolean,
+    island: string,
+  ) =>
+    list.forEach((s, i) => {
+      const path = `${base}[${i}]`;
+      const has = (kind: keyof typeof ids, id: string, what: string) => {
+        if (!ids[kind].has(id)) issue(rel, path, `"${id}" isn't ${what} in this course`);
+      };
+      if ('say' in s) voiced(rel, path, s.say);
+      else if ('show' in s) has('image', s.show, 'a course image');
+      else if ('quiz' in s) has('quiz', s.quiz, 'a quiz');
+      else if ('page' in s) has('page', s.page, 'a page');
+      else if ('file' in s) has('page', s.file, 'a page');
+      else if ('term' in s) has('term', s.term, 'a glossary term');
+      else if ('trial' in s) has('trial', s.trial, 'a Trial');
+      else if ('quest' in s) {
+        const d = questDefs.get(s.quest);
+        if (!d) issue(rel, path, `"${s.quest}" isn't a quest`);
+        else if (!Object.hasOwn(d.steps, s.step)) issue(rel, path, `"${s.step}" isn't a step of ${s.quest}`);
+      } else if ('script' in s) {
+        if (!isScript(s.script)) issue(rel, path, `"${s.script}" isn't a script of ${island}`);
+      }
+      if (('askFork' in s || 'askSetup' in s) && s.line) voiced(rel, path, s.line);
+    });
+
+  // Quests: islands, quest steps, every script step, barks, beats.
   const quests = files
     .filter((f) => f.startsWith('quests/'))
     .map((rel) => [rel, get<IslandQuestsFile>(rel)] as const)
@@ -358,32 +416,162 @@ export function checkContent(
       else if (!Object.hasOwn(d.steps, step))
         issue(rel, at('targets', key), `"${step}" isn't a step of ${quest}`);
     }
-    for (const [name, steps] of Object.entries(q.scripts))
-      steps.forEach((s: PackScriptStep, i) => {
-        const path = `${at('scripts', name)}[${i}]`;
-        const has = (kind: keyof typeof ids, id: string, what: string) => {
-          if (!ids[kind].has(id)) issue(rel, path, `"${id}" isn't ${what} in this course`);
-        };
-        if ('say' in s) voiced(rel, path, s.say);
-        else if ('show' in s) has('image', s.show, 'a course image');
-        else if ('quiz' in s) has('quiz', s.quiz, 'a quiz');
-        else if ('page' in s) has('page', s.page, 'a page');
-        else if ('file' in s) has('page', s.file, 'a page');
-        else if ('term' in s) has('term', s.term, 'a glossary term');
-        else if ('trial' in s) has('trial', s.trial, 'a Trial');
-        else if ('quest' in s) {
-          const d = questDefs.get(s.quest);
-          if (!d) issue(rel, path, `"${s.quest}" isn't a quest`);
-          else if (!Object.hasOwn(d.steps, s.step))
-            issue(rel, path, `"${s.step}" isn't a step of ${s.quest}`);
-        } else if ('script' in s) {
-          if (!Object.hasOwn(q.scripts, s.script))
-            issue(rel, path, `"${s.script}" isn't a script of ${q.island}`);
+    for (const [name, list] of Object.entries(q.scripts))
+      steps(rel, at('scripts', name), list, (n) => Object.hasOwn(q.scripts, n), q.island);
+    q.beats?.forEach((b: Beat, i) => {
+      const path = `beats[${i}]`;
+      for (const npc of typeof b.npc === 'string' ? [b.npc] : b.npc)
+        if (!cast.has(npc)) issue(rel, `${path}.npc`, `"${npc}" isn't one of the game's NPCs`);
+      for (const [key, c] of Object.entries(b.when ?? {})) {
+        if (key.startsWith('$')) {
+          if (typeof c !== 'boolean') issue(rel, at(`${path}.when`, key), 'a flag is true or false');
+          continue;
         }
-        if (('askFork' in s || 'askSetup' in s) && s.line) voiced(rel, path, s.line);
-      });
+        const d = questDefs.get(key);
+        if (!d) {
+          issue(rel, at(`${path}.when`, key), `"${key}" isn't a quest`);
+          continue;
+        }
+        const cond = c as QuestCond;
+        const want =
+          cond !== null && typeof cond === 'object' && !Array.isArray(cond)
+            ? (cond as { not: unknown }).not
+            : cond;
+        for (const step of Array.isArray(want) ? want : [want])
+          if (step !== null && !Object.hasOwn(d.steps, step as string))
+            issue(rel, at(`${path}.when`, key), `"${step as string}" isn't a step of ${key}`);
+      }
+      const what = [b.script, b.say, b.none].filter((x) => x !== undefined).length;
+      if (what !== 1) issue(rel, path, 'needs one of "script", "say" or "none"');
+      if (b.script && !Object.hasOwn(q.scripts, b.script))
+        issue(rel, `${path}.script`, `"${b.script}" isn't a script of ${q.island}`);
+      if (b.say) voiced(rel, `${path}.say`, b.say);
+    });
     for (const npc of Object.keys(q.barks))
       if (!cast.has(npc)) issue(rel, at('barks', npc), `"${npc}" isn't one of the game's NPCs`);
+  }
+
+  // Puzzles (COURSE-PACKS.md §4): one file per puzzle the game plays, with the mechanic it runs.
+  const questsOk = quests.length === files.filter((f) => f.startsWith('quests/')).length;
+  for (const [name, mechanic] of Object.entries(GAME_PUZZLES)) {
+    const rel = `puzzles/${name}.json`;
+    if (!files.includes(rel))
+      issue(
+        rel,
+        '',
+        `is missing: the game plays "${name}" (${mechanic}); set "disabled": true to turn it off`,
+      );
+    else {
+      const m = (parsed.get(rel) as { mechanic?: string } | undefined)?.mechanic;
+      // (An unknown mechanic is the schema step's issue.)
+      if (m !== mechanic && PUZZLE_MECHANICS.includes(m as PuzzleFile['mechanic']))
+        issue(rel, 'mechanic', `should be "${mechanic}": the game's ${name} runs that mechanic`);
+    }
+  }
+  const checkPuzzle = (rel: string, p: PuzzleFile & Record<string, unknown>): void => {
+    // Every voice line it plays: its `lines`, and any `line` (or a letter's `ok`) in its content.
+    const walk = (v: unknown, path: string, key: string) => {
+      if (typeof v === 'string') {
+        if (
+          key === 'line' ||
+          (key === 'ok' && path.startsWith('items')) ||
+          path.startsWith('lines') ||
+          /^orders\.\w+\.wrong/.test(path)
+        )
+          voiced(rel, path, v);
+      } else if (Array.isArray(v)) v.forEach((x, i) => walk(x, at(path, i), key));
+      else if (v && typeof v === 'object')
+        for (const [k, x] of Object.entries(v))
+          if (k !== 'text' && k !== 'scripts' && !k.startsWith('$')) walk(x, path ? at(path, k) : k, k);
+    };
+    walk(p, '', '');
+    if (typeof p.quiz === 'string' && !ids.quiz.has(p.quiz))
+      issue(rel, 'quiz', `"${p.quiz}" isn't a quiz in this course`);
+    // Its scripts name quest steps: checked once every quests file is (a broken one hides its quests).
+    if (questsOk)
+      for (const [name, list] of Object.entries((p.scripts ?? {}) as Record<string, PackScriptStep[]>))
+        steps(rel, at('scripts', name), list, () => false, rel);
+    // Cited sections: the items' own sources, and the `cites` (or `section` anchors) of its chapter.
+    const items = Array.isArray(p.items) ? (p.items as Record<string, unknown>[]) : [];
+    items.forEach((it, i) => {
+      if (it.source) cite(rel, `items[${i}].source`, it.source as Cite);
+    });
+    const ch = p.chapter;
+    if (ch && !lock.chapters[ch]) issue(rel, 'chapter', `${ch} isn't in the course snapshot`);
+    for (const [k, c] of Object.entries((p.cites ?? {}) as Record<string, { anchor: string; hash: string }>))
+      if (ch) cite(rel, at('cites', k), { chapter: ch, anchor: c.anchor, hash: c.hash });
+    const section = (v: unknown, path: string) => {
+      if (Array.isArray(v)) v.forEach((x, i) => section(x, at(path, i)));
+      else if (v && typeof v === 'object')
+        for (const [k, x] of Object.entries(v)) {
+          const here = at(path, k);
+          if (k === 'section' && typeof x === 'string' && ch && !p.cites && !lock.chapters[ch]?.sections[x])
+            issue(rel, here, `#${x} isn't a section of ${ch}`);
+          else section(x, here);
+        }
+    };
+    section(items, 'items');
+    for (const [k, c] of Object.entries((p.cites ?? {}) as Record<string, unknown>))
+      if (typeof c !== 'object') issue(rel, at('cites', k), 'should be a section');
+  };
+  for (const rel of files.filter((f) => f.startsWith('puzzles/'))) {
+    const name = rel.slice('puzzles/'.length, -'.json'.length);
+    if (!Object.hasOwn(GAME_PUZZLES, name))
+      issue(rel, '', `isn't a puzzle the game plays (${Object.keys(GAME_PUZZLES).join(', ')})`);
+    const p = get<PuzzleFile & Record<string, unknown>>(rel);
+    if (p) checkPuzzle(rel, p);
+  }
+
+  // Hooks (COURSE-PACKS.md §5): the lines and quizzes the game asks for by id.
+  const h = meta.hooks;
+  const hook = (path: string, id: string) => voiced('course.json', `hooks.${path}`, id);
+  h.briefing.lines.forEach((id, i) => hook(`briefing.lines[${i}]`, id));
+  hook('briefing.chest', h.briefing.chest);
+  for (const [island, x] of Object.entries(h.islands)) {
+    const path = at('islands', island);
+    if (!meta.islands.some((i) => i.island === island))
+      issue('course.json', `hooks.${path}`, `"${island}" isn't one of the course's islands`);
+    x.landing?.forEach((id, i) => hook(`${path}.landing[${i}]`, id));
+    x.welcome.forEach((id, i) => {
+      if (id !== '@nav' && id !== '@starfish') hook(`${path}.welcome[${i}]`, id);
+    });
+    x.welcomeBack?.forEach((id, i) => hook(`${path}.welcomeBack[${i}]`, id));
+    hook(`${path}.tips.nav`, x.tips.nav);
+    hook(`${path}.tips.starfish`, x.tips.starfish);
+  }
+  hook('sail.line', h.sail.line);
+  if (h.sail.meridianOpen) hook('sail.meridianOpen', h.sail.meridianOpen);
+  for (const [npc, list] of Object.entries(h.npcVoiced)) {
+    if (!cast.has(npc))
+      issue('course.json', `hooks.${at('npcVoiced', npc)}`, `"${npc}" isn't one of the game's NPCs`);
+    list.forEach((id, i) => hook(`${at('npcVoiced', npc)}[${i}]`, id));
+  }
+  for (const [k, id] of Object.entries(h.setPieces)) hook(at('setPieces', k), id);
+  for (const [b, x] of Object.entries(h.battles))
+    x.waves.forEach((w, i) => {
+      if (!ids.quiz.has(w.quiz))
+        issue(
+          'course.json',
+          `hooks.${at('battles', b)}.waves[${i}].quiz`,
+          `"${w.quiz}" isn't a quiz in this course`,
+        );
+    });
+
+  // The cast (COURSE-PACKS.md §5): every line has a voice, through its speaker or its own fields.
+  const castFile = get<{ speakers: Record<string, CastEntry> }>('voice/cast.json');
+  if (voice && castFile) {
+    for (const [i, l] of (voice.lines as VoiceLineDefinition[]).entries()) {
+      const r = resolveLine(l, castFile.speakers);
+      if (!r.voice && !r.voiceEnv)
+        issue(
+          'voice/lines.json',
+          `lines[${i}]`,
+          `"${l.id}" has no voice: give ${l.speaker} one in voice/cast.json`,
+        );
+    }
+    for (const speaker of Object.keys(castFile.speakers))
+      if (!voice.lines.some((l) => l.speaker === speaker))
+        issue('voice/cast.json', at('speakers', speaker), `no line in voice/lines.json is ${speaker}'s`);
   }
 
   const market = get<MarketData>('market.json');

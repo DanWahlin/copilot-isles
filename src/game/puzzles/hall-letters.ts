@@ -6,9 +6,14 @@
  * reason and the course section it comes from. Pure data and a small state machine; the puzzle
  * (lost-letters.ts) plays it with the alcoves in the hall and the overlay (src/ui/puzzles/LostLetters.tsx).
  *
- * The alcoves are the course's Settings areas in the app's order, with **Projects** below them
- * (Course Chapter 01 · Settings, "Settings reference: What each area controls").
+ * The alcoves, letters, reasons and words are the course pack's `puzzles/lost-letters.json`: for the
+ * Copilot app course, its Settings areas in the app's order, with **Projects** below them (Course
+ * Chapter 01 · Settings, "Settings reference: What each area controls").
  */
+
+import { onCourse } from '../../course/active';
+import type { PuzzleFile } from '../../course/pack';
+import { puzzleContent, textOf } from '../../course/puzzles';
 
 /** A course section a letter or a reason paraphrases (README anchor and its hash in the course pack's lock.json). */
 export interface LetterCite {
@@ -18,19 +23,25 @@ export interface LetterCite {
   section: string;
 }
 
-export const CITE = {
-  settings: { anchor: 'settings', hash: '5b95eb5b50e3', section: 'Settings' },
-  models: {
-    anchor: 'models-and-reasoning-effort',
-    hash: '84d625491118',
-    section: 'Models and Reasoning Effort',
-  },
-  troubleshooting: {
-    anchor: 'i-cannot-find-a-setting-shown-in-the-chapter',
-    hash: 'a78cb1a046e1',
-    section: 'Troubleshooting',
-  },
-} as const satisfies Record<string, LetterCite>;
+/** A puzzle file's letter: its `cite` (and each `wrong` reason's) is a key in `cites`. */
+type LetterEntry = Omit<Letter, 'cite' | 'wrong'> & {
+  cite: string;
+  wrong?: Readonly<Partial<Record<Destination, { text: string; cite: string }>>>;
+};
+
+/** `puzzles/lost-letters.json` (classify: the letters into the bins, or back in the tray). */
+interface LostLettersFile extends PuzzleFile {
+  cites: Readonly<Record<string, LetterCite>>;
+  bins: readonly Alcove[];
+  tray: { id: 'tray'; name: string };
+  items: readonly LetterEntry[];
+}
+
+export const lettersContent = () => puzzleContent<LostLettersFile>('lost-letters');
+const T = (key: string, v?: Readonly<Record<string, string | number>>) => textOf(lettersContent(), key, v);
+
+/** The course sections the letters and reasons cite, by key. */
+export let CITE: Readonly<Record<string, LetterCite>> = {};
 
 export type AlcoveId =
   | 'general'
@@ -55,63 +66,13 @@ export interface Alcove {
   holds: string;
 }
 
-/** In the app's order (keys 1-9, then 0 for Projects). */
-export const ALCOVES: readonly Alcove[] = [
-  {
-    id: 'general',
-    name: 'General',
-    holds: '**General** checks for app updates, sets where repositories are stored, and changes the theme.',
-  },
-  {
-    id: 'accounts',
-    name: 'Accounts',
-    holds: '**Accounts** shows your account information and adds another GitHub account.',
-  },
-  {
-    id: 'sessions',
-    name: 'Sessions',
-    holds:
-      '**Sessions** manages sessions and chats, the response style, app-wide instructions and branch naming.',
-  },
-  { id: 'themes', name: 'Themes', holds: '**Themes** selects and customizes the app theme.' },
-  {
-    id: 'accessibility',
-    name: 'Accessibility',
-    holds: '**Accessibility** has display zoom, keyboard shortcuts, and notifications and announcements.',
-  },
-  {
-    id: 'voice',
-    name: 'Voice dictation',
-    holds: '**Voice dictation** sets up the microphone, its shortcut and the transcription models.',
-  },
-  {
-    id: 'customize',
-    name: 'Customize',
-    holds:
-      '**Customize** points you to the **Customize** view in the sidebar, for MCP servers, plugins, skills and canvases.',
-  },
-  {
-    id: 'providers',
-    name: 'Model providers',
-    holds: '**Model providers** connects models from other providers with your own API keys.',
-  },
-  {
-    id: 'experimental',
-    name: 'Experimental',
-    holds: '**Experimental** lets you try preview features that can change or be removed.',
-  },
-  {
-    id: 'projects',
-    name: 'Projects',
-    holds:
-      '**Projects** holds each project’s own settings, such as **Show in sidebar**, sandbox rules and the default branch.',
-  },
-];
+/** The bins in the app's order (keys 1-9, then 0 for the last). */
+export let ALCOVES: readonly Alcove[] = [];
 
-export const TRAY = { id: 'tray', name: 'Not in Settings' } as const;
+export let TRAY: { readonly id: 'tray'; readonly name: string } = { id: 'tray', name: '' };
 
 /** Every destination in the overlay's order: the ten alcoves, then the tray. */
-export const DESTINATIONS: readonly Destination[] = [...ALCOVES.map((a) => a.id), TRAY.id];
+export let DESTINATIONS: readonly Destination[] = [];
 
 export interface Letter {
   id: string;
@@ -126,82 +87,28 @@ export interface Letter {
   /** A nudge after a wrong alcove's own description: what the captain's really after. */
   need: string;
   /** Reasons for particular wrong filings, in place of the alcove's description and the nudge. */
-  wrong?: Readonly<Partial<Record<Destination, { text: string; cite: LetterCite }>>>;
+  wrong?: Partial<Record<Destination, { text: string; cite: LetterCite }>>;
 }
 
 /** In the order Pell hands them over. The decoy comes straight after Model providers, on purpose. */
-export const LETTERS: readonly Letter[] = [
-  {
-    id: 'second-login',
-    from: 'Captain Ivo Brask',
-    text: 'I sail for two fleets now, and the second one gave me its own GitHub login. How do I get both into the app?',
-    answer: 'accounts',
-    cite: CITE.settings,
-    need: 'This captain needs a second GitHub sign-in in the app.',
-  },
-  {
-    id: 'small-text',
-    from: 'Captain Aldous Hask',
-    text: 'My eyes aren’t what they were. The words in the app are too small, and I’d like the whole thing bigger.',
-    answer: 'accessibility',
-    cite: CITE.settings,
-    need: 'This captain needs the app bigger on the screen, so it’s easier to read.',
-    wrong: {
-      themes: {
-        text: '**Themes** changes how the app looks, not how big it is. Making everything bigger helps the captain read it.',
-        cite: CITE.settings,
-      },
-    },
-  },
-  {
-    id: 'long-replies',
-    from: 'Captain Morwen Tull',
-    text: 'Your agent’s answers run on for pages! I want short, plain replies from now on, whatever I’m working on.',
-    answer: 'sessions',
-    cite: CITE.settings,
-    need: 'This is about how the agent replies, every time you work with it.',
-  },
-  {
-    id: 'own-key',
-    from: 'Captain Teodor Salk',
-    text: 'My company pays for models from another provider. I want to use them in the app with our own API key.',
-    answer: 'providers',
-    cite: CITE.settings,
-    need: 'Think about where you’d bring your own key for another provider’s models.',
-  },
-  {
-    id: 'decoy-model',
-    from: 'Captain Gil Brannoch',
-    text: 'This bug’s a nasty one, across several files. I want a stronger model, and more thinking, for this one task.',
-    answer: 'tray',
-    cite: CITE.models,
-    ok: 'mer.pell.letter.decoy',
-    need: 'No area in Settings picks the model for one task. Is this a Settings job at all?',
-    wrong: {
-      providers: {
-        text: '**Model providers** connects extra providers with your own keys. It doesn’t replace the model picker below the prompt box.',
-        cite: CITE.settings,
-      },
-    },
-  },
-  {
-    id: 'hide-project',
-    from: 'Captain Juna Pike',
-    text: 'I connected a project I hardly use. I’d like it out of my sidebar, but I don’t want to lose it.',
-    answer: 'projects',
-    cite: CITE.settings,
-    need: 'This is a setting for one project, not for the whole app.',
-  },
-  {
-    id: 'mcp-server',
-    from: 'Captain Della Oakes',
-    text: 'I want to add an MCP server, so the agent can reach our ticket tracker. Where’s that kept?',
-    answer: 'customize',
-    cite: CITE.settings,
-    ok: 'mer.pell.letter.customize',
-    need: 'An MCP server extends what the app can do.',
-  },
-];
+export let LETTERS: readonly Letter[] = [];
+
+onCourse(() => {
+  const c = lettersContent();
+  CITE = c.cites;
+  ALCOVES = c.bins;
+  TRAY = c.tray;
+  DESTINATIONS = [...ALCOVES.map((a) => a.id), TRAY.id];
+  const cite = (k: string) => CITE[k]!;
+  LETTERS = c.items.map(({ wrong, ...l }) => {
+    const letter: Letter = { ...l, cite: cite(l.cite) };
+    if (wrong)
+      letter.wrong = Object.fromEntries(
+        Object.entries(wrong).map(([d, w]) => [d, { text: w!.text, cite: cite(w!.cite) }]),
+      );
+    return letter;
+  });
+});
 
 function alcove(id: AlcoveId): Alcove {
   return ALCOVES.find((a) => a.id === id)!;
@@ -216,12 +123,8 @@ export function whyNot(letter: Letter, d: Destination): { text: string; cite: Le
   const own = letter.wrong?.[d];
   if (own) return own;
   // A real Settings job in the tray: the course's advice for a setting you can't find.
-  if (d === 'tray')
-    return {
-      text: 'There’s an area in Settings for this one. Look for the closest match.',
-      cite: CITE.troubleshooting,
-    };
-  return { text: `${alcove(d).holds} ${letter.need}`, cite: CITE.settings };
+  if (d === 'tray') return { text: T('trayWhy'), cite: CITE.troubleshooting! };
+  return { text: `${alcove(d).holds} ${letter.need}`, cite: CITE.settings! };
 }
 
 export type FileResult =

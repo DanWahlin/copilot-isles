@@ -28,14 +28,23 @@ import {
   type SetupKind,
 } from '../../learn/setup';
 import type { LearnStore, SetupFrom } from '../../learn/store';
+import { COURSE } from '../../course/catalog';
+import { fill } from '../../course/fill';
+import { Rich as RichText } from '../components/Rich';
 import { useFormKeys } from './ForkForm';
 
-const KICKER: Record<SetupKind, string> = {
-  os: 'Your computer',
-  issue: 'Your practice issue',
-  branch: 'Your session’s branch',
-  model: 'Your model',
-};
+/** The forms' words: the course's (course.json `setup`). */
+const COPY = COURSE.setup;
+const VALUES = { issue: COURSE_ISSUE, issueTitle: COURSE_ISSUE_TITLE, branch: COURSE_BRANCH };
+
+/** The course's copy with {issue}, {issueTitle} and {branch} filled. */
+function Rich({ text }: { text: string }) {
+  return <RichText text={text} values={VALUES} />;
+}
+
+/** A form's title: the first time it asks, or a change from the Logbook. */
+const title = (kind: SetupKind, from: SetupFrom) =>
+  from === 'logbook' ? COPY[kind].title : <Rich text={COPY[kind].ask} />;
 
 const PRIVACY = 'It stays on this device, in your save. The game doesn’t send it anywhere.';
 
@@ -118,7 +127,7 @@ function Shell({
         onKeyDown={keyDown}
         noValidate
       >
-        <p className="ci-page-kicker">{KICKER[kind]}</p>
+        <p className="ci-page-kicker">{COPY[kind].label}</p>
         <h2 id={`${ids}-title`}>{title}</h2>
         <p id={`${ids}-intro`} className="ci-fork-intro">
           {intro}
@@ -165,22 +174,9 @@ function OsForm({ store, from, setup, detected }: FormProps) {
       store={store}
       from={from}
       kind="os"
-      title={
-        from === 'logbook' ? (
-          'Change your computer'
-        ) : (
-          <>
-            Which <strong>computer</strong> are you on?
-          </>
-        )
-      }
-      intro={
-        <>
-          Shortcuts differ by computer. The course writes them for both: <strong>Ctrl+R</strong> (or{' '}
-          <strong>Cmd+R</strong> on macOS). Pick the one you run the Copilot app on.
-        </>
-      }
-      uses="The game will show the course’s shortcuts with your computer’s keys, in captions, Logbook pages, and quizzes."
+      title={title('os', from)}
+      intro={<Rich text={COPY.os.intro} />}
+      uses={COPY.os.uses}
       privacy={`It stays on this device, in your save. To guess, the game only asks your browser which system it’s on (it says ${OS_NAMES[detected]}).`}
       save={save}
       canSave
@@ -192,7 +188,7 @@ function OsForm({ store, from, setup, detected }: FormProps) {
       {(ids) => (
         <>
           <fieldset className="ci-setup-choices">
-            <legend className="ci-fork-label">Your computer</legend>
+            <legend className="ci-fork-label">{COPY.os.label}</legend>
             {OS_IDS.map((id) => (
               <label key={id} className={`ci-setup-choice${os === id ? ' on' : ''}`}>
                 <input
@@ -210,8 +206,8 @@ function OsForm({ store, from, setup, detected }: FormProps) {
           </fieldset>
           <div className="ci-fork-status" aria-live="polite">
             <p className="ci-fork-read">
-              <span aria-hidden>✓</span> Prompt history on {OS_NAMES[os]}:{' '}
-              <kbd>{formatKeys('mod+R', os)}</kbd>
+              <span aria-hidden>✓</span> {fill(COPY.os.read, { os: OS_NAMES[os] })}{' '}
+              <kbd>{formatKeys(COPY.os.shortcut, os)}</kbd>
             </p>
           </div>
         </>
@@ -237,23 +233,9 @@ function IssueForm({ store, from, setup }: FormProps) {
       store={store}
       from={from}
       kind="issue"
-      title={
-        from === 'logbook' ? (
-          'Change your practice issue'
-        ) : (
-          <>
-            What <strong>number</strong> is your practice issue?
-          </>
-        )
-      }
-      intro={
-        <>
-          The course’s <strong>{COURSE_ISSUE_TITLE}</strong> issue is #{COURSE_ISSUE}. If yours has a
-          different number, type it here. In the app, type <code>#</code> in the prompt box and pick the issue
-          by its title to see it.
-        </>
-      }
-      uses="Rook’s captions, your Logbook page, and the quiz will use your number."
+      title={title('issue', from)}
+      intro={<Rich text={COPY.issue.intro} />}
+      uses={COPY.issue.uses}
       save={save}
       canSave={ok !== null}
       saveLabel={ok !== null ? `Use #${ok}` : 'Save'}
@@ -263,7 +245,7 @@ function IssueForm({ store, from, setup }: FormProps) {
       {(ids) => (
         <>
           <label className="ci-fork-label" htmlFor={`${ids}-input`}>
-            Issue number
+            {COPY.issue.field}
           </label>
           <input
             id={`${ids}-input`}
@@ -284,14 +266,18 @@ function IssueForm({ store, from, setup }: FormProps) {
           <div id={`${ids}-status`} className="ci-fork-status" aria-live="polite">
             {ok !== null && (
               <p className="ci-fork-read">
-                <span aria-hidden>✓</span> Your issue:{' '}
+                <span aria-hidden>✓</span> {COPY.issue.read}{' '}
                 <strong>
                   #{ok} {COURSE_ISSUE_TITLE}
                 </strong>
               </p>
             )}
             {error && <p className="ci-fork-error">{error}</p>}
-            {!parsed && <p className="ci-fork-hint">Just the number, like {COURSE_ISSUE}.</p>}
+            {!parsed && (
+              <p className="ci-fork-hint">
+                <Rich text={COPY.issue.hint!} />
+              </p>
+            )}
           </div>
         </>
       )}
@@ -316,32 +302,18 @@ function BranchForm({ store, from, setup }: FormProps) {
       store={store}
       from={from}
       kind="branch"
-      title={
-        from === 'logbook' ? (
-          'Change your session’s branch'
-        ) : (
-          <>
-            Which <strong>branch</strong> is your session on?
-          </>
-        )
-      }
-      intro={
-        <>
-          You started it with <strong>Create from</strong> on <code>{COURSE_BRANCH}</code>, in a new worktree.
-          Select the session name at the top of the app’s window to see its working branch, then type it, or
-          keep this one.
-        </>
-      }
-      uses="The Practice Bough’s session terminal, your Logbook, and Pip’s standup will show it."
+      title={title('branch', from)}
+      intro={<Rich text={COPY.branch.intro} />}
+      uses={COPY.branch.uses}
       save={save}
       canSave={ok !== null}
-      saveLabel={ok === COURSE_BRANCH ? 'That’s the one' : 'Save'}
+      saveLabel={ok === COURSE_BRANCH ? COPY.branch.match : 'Save'}
       forget={setup.branch !== null}
     >
       {(ids) => (
         <>
           <label className="ci-fork-label" htmlFor={`${ids}-input`}>
-            Working branch
+            {COPY.branch.field}
           </label>
           <input
             id={`${ids}-input`}
@@ -363,13 +335,13 @@ function BranchForm({ store, from, setup }: FormProps) {
           <div id={`${ids}-status`} className="ci-fork-status" aria-live="polite">
             {ok !== null && (
               <p className="ci-fork-read">
-                <span aria-hidden>✓</span> Your branch: <strong>{ok}</strong>
+                <span aria-hidden>✓</span> {COPY.branch.read} <strong>{ok}</strong>
               </p>
             )}
             {error && <p className="ci-fork-error">{error}</p>}
             {!parsed && (
               <p className="ci-fork-hint">
-                Like <code>{COURSE_BRANCH}</code>
+                <Rich text={COPY.branch.hint!} />
               </p>
             )}
           </div>
@@ -379,11 +351,7 @@ function BranchForm({ store, from, setup }: FormProps) {
   );
 }
 
-const MODEL_CHOICES: readonly { pick: ModelPick['pick']; label: string; note: string }[] = [
-  { pick: 'auto', label: 'Auto', note: 'the app chooses' },
-  { pick: 'current', label: 'My current model', note: 'I kept it' },
-  { pick: 'other', label: 'Another model', note: 'I picked one' },
-];
+const MODEL_PICKS: readonly ModelPick['pick'][] = ['auto', 'current', 'other'];
 
 function ModelForm({ store, from, setup }: FormProps) {
   const [pick, setPick] = useState<ModelPick['pick']>(setup.model?.pick ?? 'auto');
@@ -396,22 +364,9 @@ function ModelForm({ store, from, setup }: FormProps) {
       store={store}
       from={from}
       kind="model"
-      title={
-        from === 'logbook' ? (
-          'Change your model'
-        ) : (
-          <>
-            Which <strong>model</strong> did you pick?
-          </>
-        )
-      }
-      intro={
-        <>
-          For this exercise the course says you can keep <strong>Auto</strong> or your current model. What
-          does your model control show?
-        </>
-      }
-      uses="Your Logbook will note it, and Oren will ask one question about your choice."
+      title={title('model', from)}
+      intro={<Rich text={COPY.model.intro} />}
+      uses={COPY.model.uses}
       save={save}
       canSave
       saveLabel="Save"
@@ -421,8 +376,8 @@ function ModelForm({ store, from, setup }: FormProps) {
       {(ids) => (
         <>
           <fieldset className="ci-setup-choices">
-            <legend className="ci-fork-label">Your model control</legend>
-            {MODEL_CHOICES.map((c) => (
+            <legend className="ci-fork-label">{COPY.model.field}</legend>
+            {MODEL_PICKS.map((pk) => ({ pick: pk, ...COPY.model.choices[pk] })).map((c) => (
               <label key={c.pick} className={`ci-setup-choice${pick === c.pick ? ' on' : ''}`}>
                 <input
                   ref={c.pick === pick ? first : undefined}
@@ -440,7 +395,7 @@ function ModelForm({ store, from, setup }: FormProps) {
           {pick === 'other' && (
             <>
               <label className="ci-fork-label" htmlFor={`${ids}-name`}>
-                Its name, as the app shows it (optional)
+                {COPY.model.name}
               </label>
               <input
                 id={`${ids}-name`}
@@ -456,7 +411,7 @@ function ModelForm({ store, from, setup }: FormProps) {
           )}
           <div className="ci-fork-status" aria-live="polite">
             <p className="ci-fork-read">
-              <span aria-hidden>✓</span> Your model: <strong>{modelLabel(chosen)}</strong>
+              <span aria-hidden>✓</span> {COPY.model.read} <strong>{modelLabel(chosen)}</strong>
             </p>
           </div>
         </>

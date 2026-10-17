@@ -1,0 +1,129 @@
+{
+  "$schema": "../../schemas/voice-cast.schema.json",
+  "$comment": "Who voices each speaker in this course (docs/voices.md): the speech service, the voice, its fallback, prosody and effect. A line in lines.json may set any of these itself to override its speaker's.",
+  "speakers": {
+    "Nell": {
+      "tts": "elevenlabs",
+      "voice": "EIsgvJT3rwoPvRFG6c4n"
+    },
+    "Wingman": {
+      "tts": "elevenlabs",
+      "voice": "tfsEebr1nWcNraaptkk3",
+      "fx": "wingman-bird"
+    },
+    "Suri": {
+      "voice": "en-US-Jenny:DragonHDLatestNeural",
+      "fallbackVoice": "en-US-JennyNeural"
+    },
+    "Pim": {
+      "voice": "en-IE-ConnorNeural",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    "Pol": {
+      "voice": "en-IE-EmilyNeural",
+      "prosody": {
+        "rate": "+12%"
+      }
+    },
+    "Ezra": {
+      "voiceEnv": "AZURE_SPEECH_MALE_VOICE_UK",
+      "fallbackVoice": "en-GB-OllieMultilingualNeural"
+    },
+    "Bo": {
+      "voice": "en-GB-Ryan:DragonHDLatestNeural",
+      "fallbackVoice": "en-GB-RyanNeural"
+    },
+    "Juno": {
+      "tts": "elevenlabs",
+      "voice": "XEQBC9sleaE3f5ff82UR"
+    },
+    "Lyra": {
+      "voice": "en-GB-LibbyNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    "Tobias": {
+      "voice": "en-GB-ThomasNeural",
+      "prosody": {
+        "rate": "-4%"
+      }
+    },
+    "Mina": {
+      "voice": "en-GB-HollieNeural",
+      "prosody": {
+        "rate": "+6%"
+      }
+    },
+    "Anders": {
+      "voice": "en-GB-EthanNeural",
+      "prosody": {
+        "rate": "-6%"
+      }
+    },
+    "Rhea": {
+      "voice": "en-GB-AbbiNeural",
+      "prosody": {
+        "rate": "+3%"
+      }
+    },
+    "Oren": {
+      "voice": "en-GB-OliverNeural",
+      "prosody": {
+        "rate": "-10%",
+        "pitch": "-1st"
+      }
+    },
+    "Pell": {
+      "voice": "en-GB-ElliotNeural",
+      "prosody": {
+        "rate": "+4%",
+        "pitch": "+1st"
+      }
+    },
+    "Admiral": {
+      "voice": "en-GB-OliviaNeural",
+      "prosody": {
+        "rate": "-5%"
+      }
+    },
+    "Gilda": {
+      "tts": "elevenlabs",
+      "voice": "5DTSWAtuA2BoWMSMFTRP"
+    },
+    "Tamsin": {
+      "tts": "elevenlabs",
+      "voice": "L4so9SudEsIYzE9j4qlR"
+    },
+    "Saffi": {
+      "tts": "elevenlabs",
+      "voice": "kkPJzQOWz2Oz9cUaEaQd"
+    },
+    "Oak": {
+      "tts": "elevenlabs",
+      "voice": "LEvd0YiWkwZ6hTZOmdVE"
+    },
+    "Fen": {
+      "tts": "elevenlabs",
+      "voice": "y6p0SvBlfEe2MH4XN7BP"
+    },
+    "Ines": {
+      "tts": "elevenlabs",
+      "voice": "EoMKQ1XHxZPJ6KVTvPL3"
+    },
+    "Rook": {
+      "tts": "elevenlabs",
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
+    },
+    "Pip": {
+      "tts": "elevenlabs",
+      "voice": "gwU7DXdLrTvWCiUTPZG8"
+    },
+    "Maren": {
+      "tts": "elevenlabs",
+      "voice": "2qQJWjw5XdG80GreshqG"
+    }
+  }
+}

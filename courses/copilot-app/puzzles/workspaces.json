@@ -1,0 +1,82 @@
+{
+  "$schema": "../../schemas/puzzle-match.schema.json",
+  "id": "P2.1",
+  "mechanic": "match",
+  "$comment": "Channel Routing's round 3 (Q2.5, Fen): every crew has its own channel, and you match each crew to the place it works, as the workspace selector does for a session. `places` come in the selector's order (keys 1-3; `island` is the island's picture for each; the game runs `worktree` down the crew's channel, `checkout` into the Great Hall, and `cloud` up the gondola). Each crew's `order` is one row of the course's \"Choose it when...\" column; `accept` lists every right place (`best` is the one Wingman's hint picks); `right` and `why` are what a place says (unvoiced; Fen says `lines.best.<place>`). For the Copilot app course: 02 §Where a Session Runs (\"When in doubt, choose a new worktree\").",
+  "places": [
+    {
+      "id": "worktree",
+      "name": "New worktree",
+      "icon": "🌿",
+      "island": "Its own channel"
+    },
+    {
+      "id": "checkout",
+      "name": "Current checkout",
+      "icon": "🏛️",
+      "island": "Through the Great Hall"
+    },
+    {
+      "id": "cloud",
+      "name": "Cloud",
+      "icon": "☁️",
+      "island": "Up the gondola"
+    }
+  ],
+  "orders": {
+    "feature": {
+      "order": "Build the reading list. Keep its changes, branch and diff apart from main, on your machine.",
+      "best": "worktree",
+      "accept": ["worktree"],
+      "why": {
+        "checkout": "Feature’s changes ran through the Great Hall, your working folder. To keep them apart from main, pick New worktree.",
+        "cloud": "Cloud runs it off your machine. Feature wants its own folder and branch right here: New worktree."
+      }
+    },
+    "bugfix": {
+      "order": "A long job to offload. Keep your own machine untouched.",
+      "best": "cloud",
+      "accept": ["cloud"],
+      "why": {
+        "worktree": "A new worktree still runs on your machine. To offload the work and keep your deck untouched, send it by Cloud.",
+        "checkout": "Current checkout works right in your folder, the opposite of untouched. Send Bug Fix by Cloud."
+      }
+    },
+    "docs": {
+      "order": "Just a quick, low-stakes look at the README. Touching your working folder is fine.",
+      "best": "checkout",
+      "accept": ["checkout", "worktree"],
+      "right": {
+        "checkout": "Right: a quick, low-stakes look can run in your current checkout.",
+        "worktree": "That works too. A new worktree is the safe default; for a quick look, Current checkout is fine as well."
+      },
+      "why": {
+        "cloud": "Cloud offloads the work. For a quick, low-stakes look, Current checkout is fine, and a new worktree is the safe default."
+      }
+    }
+  },
+  "text": {
+    "pickHelp": "Pick where each crew works: New worktree, Current checkout or Cloud. Use the arrow keys or 1 to 3, then open the gates.",
+    "fits": "{place} fits this order.",
+    "doesntFit": "{place} doesn’t fit this order.",
+    "pickFirst": "Pick a place for every crew first.",
+    "solved": "Every crew works where its order fits.",
+    "notBest": "{crew} isn’t in the best place.",
+    "verdict": "{crew}: {text}",
+    "intro": "Every crew has its own channel. Now pick where each one works.",
+    "hintDone": "Every crew’s in the right place, Captain. Open the gates!",
+    "hint1": "Read each crew’s order. Own channel, a quick look, or off your deck?",
+    "hint2": "Look at {whose} order again: “{order}”",
+    "hint3": "I put {crew} on {place} for you.",
+    "cleared": "Every crew’s place is cleared.",
+    "picked": "{crew}: {place}.",
+    "where": "Where {crew} works",
+    "title": "Where does each crew work?",
+    "ask": "Read each crew’s order and pick where it works: New worktree, Current checkout or Cloud."
+  },
+  "lines": {
+    "best.worktree": "tb.fen.ws.worktree",
+    "best.checkout": "tb.fen.ws.checkout",
+    "best.cloud": "tb.fen.ws.cloud"
+  }
+}

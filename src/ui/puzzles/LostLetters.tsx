@@ -1,6 +1,13 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ALCOVES, DESTINATIONS, TRAY, type Destination } from '../../game/puzzles/hall-letters';
+import {
+  ALCOVES,
+  DESTINATIONS,
+  TRAY,
+  lettersContent,
+  type Destination,
+} from '../../game/puzzles/hall-letters';
+import { textOf } from '../../course/puzzles';
 import { isTyping } from '../typing';
 import './channel-routing.css';
 import './lost-letters.css';
@@ -31,6 +38,8 @@ export interface LostLettersStore {
   /** A learning overlay (the Logbook, a quiz, the fork form) is up: it has the keys and the pad. */
   blocked(): boolean;
 }
+
+const T = (key: string, v?: Readonly<Record<string, string | number>>) => textOf(lettersContent(), key, v);
 
 /** `**bold**` spans in a line, the rest as text. */
 function Bold({ text }: { text: string }) {
@@ -129,21 +138,15 @@ function LostLetters({ store }: { store: LostLettersStore }) {
     </button>
   );
   return (
-    <div
-      className={`ci-cr ci-ll${v.reduced ? ' is-reduced' : ''}`}
-      role="dialog"
-      aria-label="The Lost Letters"
-    >
+    <div className={`ci-cr ci-ll${v.reduced ? ' is-reduced' : ''}`} role="dialog" aria-label={T('title')}>
       <section className="ci-cr-panel ci-ll-panel">
         <div className="ci-ll-side">
           <header className="ci-ll-head">
-            <p className="ci-cr-eyebrow">
-              The Lost Letters · Letter {Math.min(v.step + 1, v.of)} of {v.of}
-            </p>
+            <p className="ci-cr-eyebrow">{T('eyebrow', { n: Math.min(v.step + 1, v.of), of: v.of })}</p>
             <button
               type="button"
               className="ci-ll-close"
-              aria-label="Step away from the desk (Esc). Your letters stay filed."
+              aria-label={T('close')}
               disabled={v.busy}
               onClick={() => store.close()}
             >
@@ -152,24 +155,26 @@ function LostLetters({ store }: { store: LostLettersStore }) {
           </header>
           {v.letter && (
             <article className="ci-ll-letter">
-              <p className="ci-ll-from">From {v.letter.from}</p>
+              <p className="ci-ll-from">{T('from', { from: v.letter.from })}</p>
               <p className="ci-ll-text">“{v.letter.text}”</p>
             </article>
           )}
           <p className={`ci-cr-message ci-ll-message is-${v.message?.tone ?? 'info'}`}>
             <span>
-              {v.message ? <Bold text={v.message.text} /> : 'Which Settings area fixes it?'}
-              {v.message?.cite && <small className="ci-ll-cite">Course Chapter 01 · {v.message.cite}</small>}
+              {v.message ? <Bold text={v.message.text} /> : T('ask')}
+              {v.message?.cite && (
+                <small className="ci-ll-cite">{T('cite', { section: v.message.cite })}</small>
+              )}
             </span>
           </p>
         </div>
         <div className="ci-ll-choices">
-          <ol className="ci-ll-alcoves" aria-label="Settings areas">
+          <ol className="ci-ll-alcoves" aria-label={T('bins')}>
             {ALCOVES.map((a, i) => (
               <li key={a.id}>{button(a.id, i, a.name, a.id === 'projects' ? 'is-projects' : '')}</li>
             ))}
           </ol>
-          {button(TRAY.id, DESTINATIONS.length - 1, `${TRAY.name}: back in Pell’s tray`, 'ci-ll-tray')}
+          {button(TRAY.id, DESTINATIONS.length - 1, T('trayButton', { tray: TRAY.name }), 'ci-ll-tray')}
           <p className="ci-cr-help" aria-hidden="true">
             Press <kbd>1</kbd>–<kbd>9</kbd>, <kbd>0</kbd> or <kbd>N</kbd>, or tap an area · <kbd>Esc</kbd>{' '}
             steps away
@@ -179,7 +184,7 @@ function LostLetters({ store }: { store: LostLettersStore }) {
           {v.message
             ? v.message.text.replace(/\*\*/g, '')
             : v.letter
-              ? `Letter from ${v.letter.from}: ${v.letter.text}`
+              ? T('live', { from: v.letter.from, text: v.letter.text })
               : ''}
         </div>
       </section>

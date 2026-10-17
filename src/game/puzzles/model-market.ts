@@ -8,6 +8,7 @@ import {
   REFUND,
   feedback,
   jobById,
+  marketText as T,
   price,
   retryHire,
   type Effort,
@@ -107,7 +108,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite): Puzz
 
   host.interactions.add({
     id: 'market:counter',
-    label: () => 'Hire a model at Gilda’s Model Market',
+    label: () => T('interact'),
     x: site.counter.x,
     y: site.counter.y,
     z: site.counter.z,
@@ -300,10 +301,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite): Puzz
       draft: { auto: false, category: h.category, model: h.model, effort: h.effort },
       retry: true,
       result: null,
-      notice:
-        kind === 'model'
-          ? 'Retry with a different model: same job, and you don’t write it again.'
-          : 'Retry with more effort: same job, and you don’t write it again.',
+      notice: kind === 'model' ? T('retryModelNotice') : T('retryEffortNotice'),
     });
   }
 
@@ -365,14 +363,13 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite): Puzz
       if (!host.learn || dist() > NEAR) return null;
       const v = view.get();
       const job = v.job ? jobById(v.job) : null;
-      if (tier === 1)
-        return 'Read the job first, Captain. A quick look doesn’t need a big model. A hard job wants more muscle and effort.';
+      if (tier === 1) return T('hint1');
       if (tier === 2) {
         glow = true;
         if (job) view.set({ hint: fits(job.id) });
-        return 'I’ll mark a hire that fits each job. Open Gilda’s work order and look for the glow.';
+        return T('hint2');
       }
-      return 'Quick looks: Auto, or a Lightweight model on its default effort. Hard jobs: a Powerful model, or a Versatile one on High effort.';
+      return T('hint3');
     },
     update() {
       if (open) pollPad();

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { DEFAULT_SAIL_PALETTE, SAIL_PALETTES } from '../../world/ship/sail-palettes';
 import { detectOs, formatKeys, OS_IDS, OS_NAMES, type OsId } from '../../learn/setup';
 import type { GameBridge, SubtitleSize, UiState } from '../bridge';
+import { COURSE } from '../../course/catalog';
+import { Rich } from '../components/Rich';
 import { ApplyQuality, QualityPicker, RenderScaleControl } from '../components/GraphicsSettings';
 import { OverlayShell } from '../components/OverlayShell';
 import { Select, SettingsGroup, Slider, Toggle } from '../components/SettingsControls';
@@ -152,8 +154,13 @@ function YourComputer({ state, setOs }: { state: UiState; setOs: (os: OsId | nul
         onChange={(v) => setOs(v === 'auto' ? null : (v as OsId))}
       />
       <p className="ci-setting-note">
-        Prompt history is <strong>{formatKeys('mod+R', os ?? detected)}</strong> on {OS_NAMES[os ?? detected]}
-        . It stays on this device.
+        <Rich
+          text={COURSE.setup.os.note}
+          values={{
+            keys: formatKeys(COURSE.setup.os.shortcut, os ?? detected),
+            os: OS_NAMES[os ?? detected],
+          }}
+        />
       </p>
     </SettingsGroup>
   );

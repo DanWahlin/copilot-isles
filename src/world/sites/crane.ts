@@ -19,10 +19,13 @@ import { COVE } from '../layout';
 import { deckHeightAt } from '../ship/lines';
 import { world } from '../uniforms';
 import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
-import { CRANE_CARGO, CRANE_FACINGS, lineTone, type LineTone } from './crane-logic';
+import { CRANE_CARGO, CRANE_FACINGS, craneContent, lineTone, type LineTone } from './crane-logic';
+import { textOf } from '../../course/puzzles';
 import { box, cylinder, merge, paint, plank, TRIM } from './geo';
 import { SignSet, type PaintedSign } from './sign';
 import { createBerthFlags, createSloop, type Sloop } from './sloop';
+
+const T = (key: string, v?: Readonly<Record<string, string | number>>) => textOf(craneContent(), key, v);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyNode = any;
@@ -213,8 +216,8 @@ export function createCrane(o: CraneOptions): CraneSite {
 
   // Levers: a timber stand each, an iron quadrant, and a painted plaque. The arms pivot toward you.
   const levers = {
-    dry: { x: C.x - 1.25, z: C.z + 4.2, knob: 0x9ec6dc, label: '--dry-run' },
-    yes: { x: C.x + 1.25, z: C.z + 4.2, knob: 0xc4523f, label: '--yes' },
+    dry: { x: C.x - 1.25, z: C.z + 4.2, knob: 0x9ec6dc, label: T('dryRunFlag') },
+    yes: { x: C.x + 1.25, z: C.z + 4.2, knob: 0xc4523f, label: T('yesFlag') },
   };
   for (const l of Object.values(levers)) {
     baseWood.push(plank(0.44, 0.62, 0.34, { x: l.x, y: DECK, z: l.z }, WOOD_DARK, TRIM.dark));
@@ -368,7 +371,7 @@ export function createCrane(o: CraneOptions): CraneSite {
   const signHang = new Group();
   signHang.position.set(0, SIGN.top, SIGN.z);
   slew.add(signHang);
-  const sign = signs.add(jibLines(['Repository:', '(pull Dry-Run to preview)']), SIGN.w, SIGN.h, {
+  const sign = signs.add(jibLines([T('repositoryEmpty'), T('pullDryRun')]), SIGN.w, SIGN.h, {
     twoSided: true,
     offsetY: -SIGN.h / 2 - 0.34,
   });
@@ -384,7 +387,7 @@ export function createCrane(o: CraneOptions): CraneSite {
   signHang.add(bridle);
   let signYaw = 0;
   let lastSlew = 0;
-  const banner = signs.add(['Setup complete.'], 3.0, 0.8, {
+  const banner = signs.add([T('complete')], 3.0, 0.8, {
     look: 'cloth',
     twoSided: true,
     size: 0.13,
@@ -509,8 +512,10 @@ export function createCrane(o: CraneOptions): CraneSite {
 
   function boardLines(n: number): string[] {
     return [
-      'Practice items for your fork',
-      ...CRANE_CARGO.map((c, k) => `${k < n ? '✓' : '○'}  ${c.count} ${c.title.toLowerCase()}`),
+      T('boardTitle'),
+      ...CRANE_CARGO.map((c, k) =>
+        T('boardItem', { mark: k < n ? '✓' : '○', count: c.count, title: c.title.toLowerCase() }),
+      ),
     ];
   }
 

@@ -162,6 +162,209 @@
       "label": "Elder Maren"
     }
   },
+  "beats": [
+    {
+      "npc": "tamsin",
+      "when": {
+        "Q2.1": "done"
+      },
+      "say": "tb.tamsin.done"
+    },
+    {
+      "npc": "tamsin",
+      "script": "tamsin"
+    },
+    {
+      "npc": "lyra_bough",
+      "when": {
+        "Q2.1": {
+          "not": "done"
+        }
+      },
+      "say": "tb.lyra.wait"
+    },
+    {
+      "npc": "lyra_bough",
+      "when": {
+        "Q2.2": "done"
+      },
+      "say": "tb.lyra.done"
+    },
+    {
+      "npc": "lyra_bough",
+      "script": "lyra"
+    },
+    {
+      "npc": "saffi",
+      "when": {
+        "Q2.2": {
+          "not": "done"
+        }
+      },
+      "say": "tb.saffi.wait"
+    },
+    {
+      "npc": "saffi",
+      "when": {
+        "Q2.3": "done"
+      },
+      "say": "tb.saffi.done"
+    },
+    {
+      "npc": "saffi",
+      "script": "saffi"
+    },
+    {
+      "npc": "oak",
+      "when": {
+        "Q2.3": {
+          "not": "done"
+        }
+      },
+      "say": "tb.oak.wait"
+    },
+    {
+      "npc": "oak",
+      "when": {
+        "Q2.4": "done"
+      },
+      "say": "tb.oak.done"
+    },
+    {
+      "npc": "oak",
+      "script": "oak"
+    },
+    {
+      "npc": "fen",
+      "when": {
+        "Q2.4": {
+          "not": "done"
+        }
+      },
+      "say": "tb.fen.wait"
+    },
+    {
+      "npc": "fen",
+      "when": {
+        "Q2.5": ["channels", "twist"]
+      },
+      "say": "tb.fen.channels"
+    },
+    {
+      "npc": "fen",
+      "when": {
+        "Q2.5": "solved"
+      },
+      "script": "fen.solved"
+    },
+    {
+      "npc": "fen",
+      "when": {
+        "Q2.5": "done"
+      },
+      "say": "tb.fen.done"
+    },
+    {
+      "npc": "fen",
+      "script": "fen"
+    },
+    {
+      "npc": "ines",
+      "when": {
+        "Q2.5": {
+          "not": "done"
+        }
+      },
+      "say": "tb.ines.wait"
+    },
+    {
+      "npc": "ines",
+      "when": {
+        "Q2.6": "done"
+      },
+      "say": "tb.ines.done"
+    },
+    {
+      "npc": "ines",
+      "script": "ines"
+    },
+    {
+      "npc": "rook",
+      "when": {
+        "Q2.6": {
+          "not": "done"
+        }
+      },
+      "say": "tb.rook.wait"
+    },
+    {
+      "npc": "rook",
+      "when": {
+        "Q2.7": {
+          "not": "done"
+        }
+      },
+      "script": "rook"
+    },
+    {
+      "npc": "rook",
+      "when": {
+        "Q2.A": "start"
+      },
+      "script": "rook.assignment"
+    },
+    {
+      "npc": "rook",
+      "say": "tb.rook.done"
+    },
+    {
+      "npc": "pip",
+      "when": {
+        "Q2.7": {
+          "not": "done"
+        }
+      },
+      "say": "tb.pip.wait"
+    },
+    {
+      "npc": "pip",
+      "when": {
+        "Q2.8": "done"
+      },
+      "say": "tb.pip.done"
+    },
+    {
+      "npc": "pip",
+      "script": "pip"
+    },
+    {
+      "npc": "elder",
+      "when": {
+        "Q2.8": {
+          "not": "done"
+        }
+      },
+      "say": "tb.elder.wait"
+    },
+    {
+      "npc": "elder",
+      "when": {
+        "Q2.9": "exam"
+      },
+      "script": "elder.retry"
+    },
+    {
+      "npc": "elder",
+      "when": {
+        "Q2.9": "done"
+      },
+      "say": "tb.elder.done"
+    },
+    {
+      "npc": "elder",
+      "script": "elder"
+    }
+  ],
   "scripts": {
     "tamsin": [
       {

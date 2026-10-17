@@ -1,5 +1,4 @@
 /* global process */
-import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile, copyFile, access, rm } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -9,31 +8,7 @@ import { promisify } from 'node:util';
 import { parseKeyValueEnv, redactSecretValues } from '../../src/audio/voice/env';
 import { rateFactor, wordsFromAlignment, type CharacterAlignment } from '../../src/audio/voice/alignment';
 import { courseArg, coursePaths } from '../course-pack/read';
-
-interface VoiceLineDefinition {
-  readonly id: string;
-  readonly speaker: string;
-  readonly text: string;
-  /**
-   * The speech service (default Azure). ElevenLabs lines take a voice ID in `voice` and call the
-   * `elevenlabs` CLI, which uses its own sign-in (`elevenlabs auth login`), so no key is read here.
-   */
-  readonly tts?: 'azure' | 'elevenlabs';
-  /** ElevenLabs model ID (default `eleven_v3`). */
-  readonly model?: string;
-  readonly voice?: string;
-  readonly voiceEnv?: string;
-  readonly fallbackVoice?: string;
-  readonly prosody?: Readonly<Record<string, string>>;
-  readonly fx?: 'wingman-bright' | 'wingman-bird';
-  /** Whole words to say differently, e.g. `{ "gh": "G H" }` (an SSML `<sub>`; subtitles keep the word). */
-  readonly sub?: Readonly<Record<string, string>>;
-}
-
-interface LinesFile {
-  readonly set: string;
-  readonly lines: readonly VoiceLineDefinition[];
-}
+import { ELEVENLABS_MODEL, lineHash, readLines, type VoiceLineDefinition } from './lines';
 
 interface WordTiming {
   readonly word: string;
@@ -64,11 +39,10 @@ const root = fileURLToPath(new URL('../..', import.meta.url));
 const cacheDir = join(root, '.tools', 'voice-cache');
 /** The course pack whose lines to make (`--course <id>`, default copilot-app; docs/voices.md). */
 const course = courseArg();
-const { voice: outDir, lines: linesPath } = coursePaths(course);
+const { voice: outDir } = coursePaths(course);
 const requiredEnv = ['AZURE_SPEECH_KEY', 'AZURE_SPEECH_REGION'] as const;
 /** Azure synthesizes Riff24Khz16BitMonoPcm, and ElevenLabs lines ask for pcm_24000. */
 const SAMPLE_RATE = 24000;
-const ELEVENLABS_MODEL = 'eleven_v3';
 /** Seconds of audio kept after an ElevenLabs line's last word. */
 const ELEVENLABS_TAIL = 0.45;
 
@@ -94,11 +68,43 @@ function parseOnly(args: readonly string[]): ReadonlySet<string> | null {
   return new Set(names);
 }
 
+/**
+ * `--check` (and `--check --list-stale`): makes nothing and calls no speech service. Every line, resolved against the cast, must
+ * have its audio in the manifest with the same text and speaker, under the cache key it would make
+ * now (with the voice the manifest says it used). Exits 1 otherwise: those lines need generating.
+ */
+async function check(): Promise<void> {
+  const manifest = JSON.parse(await readFile(join(outDir, 'manifest.json'), 'utf8')) as {
+    lines: { id: string; speaker: string; text: string; voice: string; hash: string }[];
+  };
+  const made = new Map(manifest.lines.map((l) => [l.id, l]));
+  const stale: string[] = [];
+  const staleAzure: string[] = [];
+  for (const line of readLines(course).lines) {
+    const m = made.get(line.id);
+    if (!m || m.text !== line.text || m.speaker !== line.speaker || lineHash(line, m.voice) !== m.hash) {
+      stale.push(line.id);
+      if (line.tts !== 'elevenlabs') staleAzure.push(line.id);
+    }
+  }
+  // `--list-stale`: just the Azure lines to make again, comma-separated (the weekly refresh's step 6).
+  if (process.argv.includes('--list-stale')) {
+    console.log(staleAzure.join(','));
+    return;
+  }
+  if (stale.length) {
+    console.error(`${stale.length} voice lines need generating: ${stale.join(', ')}`);
+    process.exitCode = 1;
+  } else
+    console.log(`All ${made.size} voice lines in courses/${course}/public/voice match their lines and cast.`);
+}
+
 async function main(): Promise<void> {
+  if (process.argv.includes('--check')) return check();
   const only = parseOnly(process.argv.slice(2));
   const env = await loadEnv();
   const secrets = [...env.values.values()];
-  const data = JSON.parse(await readFile(linesPath, 'utf8')) as LinesFile;
+  const data = readLines(course);
   const selected = only
     ? data.lines.filter((line) => only.has(line.speaker) || only.has(line.id))
     : data.lines;
@@ -174,7 +180,7 @@ async function generateLine(
 
   for (let index = 0; index < attempts.length; index++) {
     const voice = attempts[index];
-    const hash = hashLine(line, voice);
+    const hash = lineHash(line, voice);
     const wavPath = join(cacheDir, `${hash}.wav`);
     const cacheJsonPath = join(cacheDir, `${hash}.json`);
     try {
@@ -439,23 +445,6 @@ function unmarkWord(text: string, subs: readonly string[]): string {
   let word = text.replace(/^[^<>]*">/, '').replace(/<\/?sub[^>]*>?/g, '');
   for (const sub of subs) if (word.startsWith(`${sub} `)) word = word.slice(sub.length + 1);
   return word;
-}
-
-function hashLine(line: VoiceLineDefinition, voice: string): string {
-  return createHash('sha256')
-    .update(
-      JSON.stringify({
-        text: line.text,
-        voice,
-        prosody: line.prosody ?? {},
-        fx: line.fx ?? '',
-        ...(line.sub ? { sub: line.sub } : {}),
-        // Only ElevenLabs lines add these, so Azure lines keep their cached hashes.
-        ...(line.tts === 'elevenlabs' ? { tts: line.tts, model: line.model ?? ELEVENLABS_MODEL } : {}),
-      }),
-    )
-    .digest('hex')
-    .slice(0, 16);
 }
 
 function closeWordEnds(words: readonly WordTiming[], duration: number): readonly WordTiming[] {

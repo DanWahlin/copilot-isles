@@ -1,5 +1,7 @@
 import { courseScript, islandQuests, onCourse } from '../course/active';
+import { islandHooks, welcomeLines } from '../course/catalog';
 import type { QuestDef, QuestTarget } from '../course/pack';
+import { beatSteps, pickBeat, type Beat } from './beats';
 import type { QuestState, QuestTracker, TrackerStatus } from './cove-quests';
 import type { ScriptStep } from './script';
 
@@ -29,6 +31,7 @@ export let THOUSAND_BOUGH_TARGETS: Readonly<Record<string, QuestTarget>> = {};
 export let FEN_SOLVED: readonly ScriptStep[] = [];
 
 let MAIN: readonly QuestDef[] = [];
+let BEATS: readonly Beat[] = [];
 
 const script = (name: string) => courseScript(ISLAND, name);
 
@@ -80,52 +83,18 @@ export function thousandBoughLog(
 }
 
 /** Juno and Wingman on the first landfall, once the flyover lands behind the captain. */
-export const THOUSAND_BOUGH_WELCOME = ['juno.tb.arrive', 'wingman.tb.01', 'wingman.tb.02'] as const;
+export const THOUSAND_BOUGH_WELCOME: readonly string[] = [
+  ...(islandHooks('thousand-bough').landing ?? []),
+  ...welcomeLines('thousand-bough', false),
+];
 
 /**
- * The beat a Thousand-Bough NPC offers right now. NPCs ahead of the story point you back to whoever's
- * next; everyone's got a line once their part's done.
+ * The beat a Thousand-Bough NPC offers right now: the first of the island's beats
+ * (`quests/thousand-bough.json` → `beats`) that fits. NPCs ahead of the story point you back to
+ * whoever's next; everyone's got a line once their part's done.
  */
 export function thousandBoughNpcScript(npc: string, q: QuestState): { steps: readonly ScriptStep[] } | null {
-  const line = (id: string) => ({ steps: [{ say: id }] as readonly ScriptStep[] });
-  switch (npc) {
-    case 'tamsin':
-      return done(q, 'Q2.1') ? line('tb.tamsin.done') : { steps: script('tamsin') };
-    case 'lyra_bough':
-      if (!done(q, 'Q2.1')) return line('tb.lyra.wait');
-      return done(q, 'Q2.2') ? line('tb.lyra.done') : { steps: script('lyra') };
-    case 'saffi':
-      if (!done(q, 'Q2.2')) return line('tb.saffi.wait');
-      return done(q, 'Q2.3') ? line('tb.saffi.done') : { steps: script('saffi') };
-    case 'oak':
-      if (!done(q, 'Q2.3')) return line('tb.oak.wait');
-      return done(q, 'Q2.4') ? line('tb.oak.done') : { steps: script('oak') };
-    case 'fen': {
-      if (!done(q, 'Q2.4')) return line('tb.fen.wait');
-      const step = q['Q2.5'];
-      if (step === 'channels' || step === 'twist') return line('tb.fen.channels');
-      if (step === 'solved') return { steps: FEN_SOLVED };
-      return step === 'done' ? line('tb.fen.done') : { steps: script('fen') };
-    }
-    case 'ines':
-      if (!done(q, 'Q2.5')) return line('tb.ines.wait');
-      return done(q, 'Q2.6') ? line('tb.ines.done') : { steps: script('ines') };
-    case 'rook':
-      if (!done(q, 'Q2.6')) return line('tb.rook.wait');
-      if (!done(q, 'Q2.7')) return { steps: script('rook') };
-      // After the Seal, Rook offers the assignment (the Lantern House).
-      if (q['Q2.A'] === 'start') return { steps: script('rook.assignment') };
-      return line('tb.rook.done');
-    case 'pip':
-      if (!done(q, 'Q2.7')) return line('tb.pip.wait');
-      return done(q, 'Q2.8') ? line('tb.pip.done') : { steps: script('pip') };
-    case 'elder':
-      if (!done(q, 'Q2.8')) return line('tb.elder.wait');
-      if (q['Q2.9'] === 'exam') return { steps: script('elder.retry') };
-      return done(q, 'Q2.9') ? line('tb.elder.done') : { steps: script('elder') };
-    default:
-      return null;
-  }
+  return beatSteps(pickBeat(BEATS, npc, q), script);
 }
 
 /** The voice lines the island's set pieces and NPC switch play (besides its scripts' and welcome's). */
@@ -187,6 +156,7 @@ onCourse(() => {
   THOUSAND_BOUGH_ISLAND = { name: 'Thousand-Bough Isle', ...q.tracker };
   THOUSAND_BOUGH_QUESTS = q.quests;
   MAIN = THOUSAND_BOUGH_QUESTS.filter((d) => !d.optional);
+  BEATS = q.beats;
   THOUSAND_BOUGH_TARGETS = q.targets;
   FEN_SOLVED = script('fen.solved');
   THOUSAND_BOUGH_LINES = [

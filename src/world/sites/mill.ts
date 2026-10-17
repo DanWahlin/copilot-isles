@@ -23,6 +23,14 @@ import { mergeWithRigidParts } from './rigid-parts';
 import { SignSet, type PaintedSign } from './sign';
 import { WaterStrips } from './water';
 import { markShadowMover } from '../shadow-casters';
+import type { PuzzleFile } from '../../course/pack';
+import { puzzleContent } from '../../course/puzzles';
+
+/** The mill's painted signs: the course's (`puzzles/sluice.json` → `signs`). */
+const SIGNS = () =>
+  puzzleContent<PuzzleFile & { signs: Record<'gate' | 'lever' | 'check' | 'spring', readonly string[]> }>(
+    'sluice',
+  ).signs;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyNode = any;
@@ -562,25 +570,12 @@ export function createMill(o: MillOptions): MillSite {
     sign.object.rotation.set(tilt, ry, 0, 'YXZ');
     group.add(sign.object);
   };
-  addSign(
-    signs.add(['Workflows aren’t being run', 'on this forked repository.'], 2.5, 0.74),
-    cx,
-    gateY + 1.6,
-    gz1 - 0.1,
-    Math.PI,
-  );
+  addSign(signs.add(SIGNS().gate, 2.5, 0.74), cx, gateY + 1.6, gz1 - 0.1, Math.PI);
   // The lever's plaque: big enough to read from the tiles in front of it.
-  addSign(
-    signs.add(['I understand my workflows,', 'go ahead and enable them.'], 1.45, 0.66),
-    plaque.x,
-    top + 1.2,
-    plaque.z - 0.05,
-    Math.PI,
-    -0.32,
-  );
+  addSign(signs.add(SIGNS().lever, 1.45, 0.66), plaque.x, top + 1.2, plaque.z - 0.05, Math.PI, -0.32);
   // Over the check gate, readable from the terrace and from the wheel's side.
   addSign(
-    signs.add(['Practice check:', 'fails on purpose.'], 1.5, 0.62, {
+    signs.add(SIGNS().check, 1.5, 0.62, {
       twoSided: true,
       colors: [undefined, '#ff9f7a'],
     }),
@@ -589,20 +584,8 @@ export function createMill(o: MillOptions): MillSite {
     chkGateZ,
     0,
   );
-  addSign(
-    signs.add(['The Actions Spring', '· mill race ·'], 1.3, 0.52),
-    post.x - 0.085,
-    postY + 1.4,
-    post.z,
-    -Math.PI / 2,
-  );
-  addSign(
-    signs.add(['The Actions Spring', '· mill race ·'], 1.3, 0.52),
-    post.x + 0.085,
-    postY + 1.4,
-    post.z,
-    Math.PI / 2,
-  );
+  addSign(signs.add(SIGNS().spring, 1.3, 0.52), post.x - 0.085, postY + 1.4, post.z, -Math.PI / 2);
+  addSign(signs.add(SIGNS().spring, 1.3, 0.52), post.x + 0.085, postY + 1.4, post.z, Math.PI / 2);
   if (ownSigns) group.add(ownSigns.finalize());
 
   // Water.

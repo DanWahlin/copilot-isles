@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A course pack's ceremony puzzle (courses/<id>/puzzles/<name>.json)",
+  "description": "A set piece with nothing to get wrong (painting the sails, the bard, the christening): its words, and the scripts it plays. Every puzzle file has an `id`, its `mechanic`, and may set `disabled` (the site stays as scenery), `text` (its words by key, `{name}` filled in by the game) and `lines` (its voice line ids by what they're for). docs/specs/COURSE-PACKS.md §4.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "mechanic"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mechanic": {
+      "const": "ceremony"
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "The course turns this puzzle off: its site stays as scenery and its cue does nothing."
+    },
+    "text": {
+      "type": "object",
+      "description": "The puzzle's words by key (labels, hints, readouts, signs).",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "lines": {
+      "type": "object",
+      "description": "Voice line ids (voice/lines.json) by what they're for.",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[\\w.-]+$"
+      }
+    },
+    "scripts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "minItems": 1
+      }
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

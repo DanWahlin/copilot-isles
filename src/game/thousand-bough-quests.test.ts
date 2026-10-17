@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { resolvedLines } from '../../tools/voice/lines';
 import { CHAPTERS } from '../learn/content/index';
 import { CHESTS, PAGES, QUIZZES, TRIALS, GLOSSARY } from '../learn/content/index';
 import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
@@ -24,9 +25,8 @@ import {
 const CH02 = CHAPTERS.find((c) => c.chapter === '02-sessions-worktrees-context')!;
 
 const ROOT = join(__dirname, '../..');
-const lines = JSON.parse(readFileSync(join(ROOT, 'courses/copilot-app/voice/lines.json'), 'utf8')) as {
-  lines: { id: string; speaker: string; text: string; voice?: string; tts?: string }[];
-};
+/** Every line with its speaker's cast (courses/copilot-app/voice/cast.json). */
+const lines = { lines: resolvedLines('copilot-app') };
 const manifest = JSON.parse(
   readFileSync(join(ROOT, 'courses/copilot-app/public/voice/manifest.json'), 'utf8'),
 ) as {

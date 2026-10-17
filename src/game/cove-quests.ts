@@ -1,5 +1,7 @@
 import { courseScript, islandQuests, onCourse } from '../course/active';
+import { COURSE } from '../course/catalog';
 import type { QuestDef, QuestTarget } from '../course/pack';
+import { beatSteps, pickBeat, type Beat } from './beats';
 import { meridianOpen } from './meridian-open';
 import type { ScriptStep } from './script';
 
@@ -15,14 +17,6 @@ import type { ScriptStep } from './script';
  */
 const ISLAND = 'anchorage';
 
-/**
- * @course-content The spyglass caption for the New view after Connect your repositories (Chapter 00 ·
- * Installation), for the palette stand (src/game/puzzles/paint-sails.ts): puzzle content moves to the
- * course pack in step 2 (COURSE-PACKS.md §4).
- */
-export const NEW_VIEW_CAPTION =
-  'Select **Continue**, and the app opens the **New** view. New work starts here.';
-
 /** The island's quests, in story order (the course pack's). */
 let COVE_QUESTS: readonly QuestDef[] = [];
 /** Where the compass points for each quest step (the course pack's `targets`). */
@@ -33,8 +27,9 @@ export let SURI_SOLVED: readonly ScriptStep[] = [];
 export let POL_SOLVED: readonly ScriptStep[] = [];
 /** The island this quest line belongs to, for the tracker's header (its name is the game's). */
 export let COVE_ISLAND = { name: 'Anchorage Cay', chapter: '', goal: '', next: '' };
-let CHRISTENING: readonly ScriptStep[] = [];
-let NELL_TRIAL: readonly ScriptStep[] = [];
+let BEATS: readonly Beat[] = [];
+/** The island's scripts as its NPCs play them (Wingman's sail line follows Meridian's gate). */
+let SCRIPTS: Readonly<Record<string, readonly ScriptStep[]>> = {};
 
 const script = (name: string) => courseScript(ISLAND, name);
 
@@ -44,7 +39,9 @@ const script = (name: string) => courseScript(ISLAND, name);
  */
 const pointToMeridian = (steps: readonly ScriptStep[]): readonly ScriptStep[] =>
   meridianOpen()
-    ? steps.map((s) => ('say' in s && s.say === 'wingman.sail.03' ? { say: 'wingman.sail.meridian' } : s))
+    ? steps.map((s) =>
+        'say' in s && s.say === COURSE.hooks.sail.line ? { say: COURSE.hooks.sail.meridianOpen } : s,
+      )
     : steps;
 
 onCourse(() => {
@@ -54,8 +51,8 @@ onCourse(() => {
   SURI_SOLVED = script('suri.solved');
   POL_SOLVED = script('pol.solved');
   COVE_ISLAND = { name: 'Anchorage Cay', ...q.tracker };
-  CHRISTENING = pointToMeridian(script('christening'));
-  NELL_TRIAL = pointToMeridian(script('nell.trial'));
+  BEATS = q.beats;
+  SCRIPTS = Object.fromEntries(Object.entries(q.scripts).map(([k, v]) => [k, pointToMeridian(v)]));
 });
 
 /**
@@ -131,103 +128,15 @@ export type QuestState = Readonly<Record<string, string>>;
 
 const done = (q: QuestState, id: string) => q[id] === 'done';
 
-/** The scripted beat an NPC offers right now, or null to fall back to barks. */
+/**
+ * The scripted beat an NPC offers right now, or null to fall back to barks: the first of the island's
+ * beats (`quests/anchorage.json` → `beats`) that fits the quest state.
+ */
 export function npcScript(
   npc: string,
   q: QuestState,
 ): { steps: readonly ScriptStep[]; repeat?: string } | null {
-  switch (npc) {
-    case 'nell':
-      if (!q['Q0.2'] || q['Q0.2'] === 'start') {
-        return { steps: script('nell.papers') };
-      }
-      if (q['Q0.2'] === 'palette') return { steps: [{ say: 'nell.palette.01' }] };
-      if (q['Q0.10'] === 'start') return { steps: NELL_TRIAL };
-      if (q['Q0.11'] === 'start') return { steps: CHRISTENING };
-      if (boardingOpen(q)) return { steps: [{ say: 'nell.christen.03' }] };
-      return { steps: [{ say: done(q, 'Q0.10') ? 'nell.done.02' : 'nell.done.01' }] };
-
-    case 'lyra':
-      if (q['Q0.9'] === 'start') return { steps: script('lyra.soundcheck') };
-      return { steps: [{ say: done(q, 'Q0.9') ? 'lyra.done.01' : 'lyra.idle.01' }] };
-
-    case 'merchant':
-      if (!done(q, 'Q0.2')) return { steps: [{ say: 'ezra.wait.01' }] };
-      if (!done(q, 'Q0.3')) {
-        return { steps: script('ezra.fork') };
-      }
-      return null;
-
-    case 'dockhand_b':
-      if (!done(q, 'Q0.3') || done(q, 'Q0.4')) return null;
-      return { steps: script('bo.deck') };
-
-    case 'suri': {
-      const step = q['Q0.6'];
-      if (!step) {
-        // Actions first: the crane job sends you to her gate lever before the setup script.
-        const crane = q['Q0.7'];
-        if (crane === 'actions') return { steps: [{ say: 'suri.actions.01' }] };
-        if (crane === 'crane' || crane === 'solved') return { steps: [{ say: 'suri.actions.02' }] };
-        return { steps: [{ say: 'suri.idle.dry' }] };
-      }
-      if (step === 'start') {
-        return { steps: script('suri.brief') };
-      }
-      if (step === 'sluice')
-        return {
-          steps: [{ say: 'suri.sluice.01' }],
-        };
-      if (step === 'solved') return { steps: SURI_SOLVED };
-      return { steps: [{ say: 'suri.done.01' }] };
-    }
-
-    case 'pim':
-    case 'pol': {
-      const step = q['Q0.7'];
-      if (!step)
-        return {
-          steps: [
-            {
-              say:
-                npc === 'pim'
-                  ? done(q, 'Q0.4')
-                    ? 'pim.idle.ready'
-                    : 'pim.idle.waiting'
-                  : done(q, 'Q0.4')
-                    ? 'pol.idle.ready'
-                    : 'pol.idle.waiting',
-            },
-          ],
-        };
-      if (step === 'start') return { steps: script('crane.brief') };
-      if (step === 'actions') return { steps: [{ say: 'pim.brief.03' }] };
-      if (step === 'crane')
-        return {
-          steps: [{ say: npc === 'pim' ? 'pim.crane.01' : 'pol.crane.01' }],
-        };
-      if (step === 'solved') return { steps: POL_SOLVED };
-      return {
-        steps: [{ say: npc === 'pim' ? 'pim.done.01' : 'pol.done.01' }],
-      };
-    }
-
-    case 'juno': {
-      const step = q['Q0.8'];
-      if (!step) return null;
-      if (step === 'start') return { steps: script('juno.brief') };
-      if (step === 'pipes')
-        return {
-          steps: [{ say: 'juno.pipes.01' }],
-        };
-      return {
-        steps: [{ say: done(q, 'Q0.10') ? 'juno.done.sealed.01' : 'juno.done.01' }],
-      };
-    }
-
-    default:
-      return null;
-  }
+  return beatSteps(pickBeat(BEATS, npc, q), (name) => SCRIPTS[name] ?? script(name));
 }
 
 export type TrackerStatus = 'done' | 'active' | 'upcoming';

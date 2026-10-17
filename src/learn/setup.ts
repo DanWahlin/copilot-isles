@@ -204,10 +204,11 @@ export function cleanSetup(v: unknown): SetupData {
 
 /** How the game names the player's model choice (never more than they told it). */
 export function modelLabel(m: ModelPick | null): string {
-  if (!m) return 'the model you chose';
-  if (m.pick === 'auto') return 'Auto';
-  if (m.pick === 'current') return 'your current model';
-  return m.name ?? 'the model you picked';
+  const names = COURSE.setup.model.names;
+  if (!m) return names.none;
+  if (m.pick === 'auto') return names.auto;
+  if (m.pick === 'current') return names.current;
+  return m.name ?? names.other;
 }
 
 /** Script steps and quizzes that only fit some answers (a model quiz for Auto, another for a picked one). */

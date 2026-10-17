@@ -1,0 +1,11 @@
+{
+  "$schema": "../../schemas/puzzle-ceremony.schema.json",
+  "id": "Q0.9.bard",
+  "mechanic": "ceremony",
+  "$comment": "Lyra's soundcheck (Q0.9, optional): lute music drifts up from the lagoon once your first prompt's gone to the crew; follow it to her hammock. Her talk is the island's lyra.soundcheck script.",
+  "text": {
+    "hint1": "Hear that lute? Lyra the bard’s down on the lagoon beach, south of the village.",
+    "hint2": "Follow the music to the hammock on the lagoon beach and talk to Lyra. It’s optional, but she tells it well.",
+    "announce": "Lute music’s drifting up from the lagoon. Lyra the bard has a song for you."
+  }
+}

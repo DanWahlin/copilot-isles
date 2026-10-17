@@ -109,15 +109,8 @@ jobs:
         run: |
           # Step 5 (drafted fixes) doesn't exist yet, so voice lines only change when a person edits
           # them on this branch. ElevenLabs lines need the ElevenLabs CLI sign-in and stay manual.
-          changed=$(node -e '
-            const fs = require("fs"); const { execSync } = require("child_process");
-            const file = `courses/${process.env.COURSE}/voice/lines.json`;
-            const now = JSON.parse(fs.readFileSync(file, "utf8")).lines;
-            let before = [];
-            try { before = JSON.parse(execSync(`git show HEAD:${file}`)).lines; } catch {}
-            const old = new Map(before.map((l) => [l.id, JSON.stringify(l)]));
-            console.log(now.filter((l) => old.get(l.id) !== JSON.stringify(l) && l.tts !== "elevenlabs").map((l) => l.id).join(","));
-          ')
+          # Lines whose text, voice or cast changed, from the manifest's cache keys (Azure only).
+          changed=$(npx tsx tools/voice/generate.ts --course "$COURSE" --check --list-stale)
           if [ -z "$changed" ]; then
             echo "No Azure voice lines changed; nothing to regenerate." | tee -a "$GITHUB_STEP_SUMMARY"
             echo "summary=No voice lines changed, so no TTS characters were used." >> "$GITHUB_OUTPUT"

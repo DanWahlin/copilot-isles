@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { createRoot } from 'react-dom/client';
-import { FLAGS } from '../../game/puzzles/flag-hoist';
+import { FLAGS, hoistContent } from '../../game/puzzles/flag-hoist';
+import { textOf } from '../../course/puzzles';
 import { isTyping } from '../typing';
 import './channel-routing.css';
 
@@ -42,6 +43,7 @@ function Code({ text }: { text: string }) {
   );
 }
 
+const T = (key: string, v?: Readonly<Record<string, string | number>>) => textOf(hoistContent(), key, v);
 const plain = (s: string) => s.replace(/`([^`]+)`/g, '$1');
 
 function FlagHoist({ store }: { store: FlagHoistStore }) {
@@ -69,12 +71,12 @@ function FlagHoist({ store }: { store: FlagHoistStore }) {
   if (!v.open) return null;
   const n = v.choices ? v.choices.length : FLAGS.length;
   return (
-    <div className="ci-cr" role="dialog" aria-label="Flag Hoist">
+    <div className="ci-cr" role="dialog" aria-label={T('title')}>
       <section className="ci-cr-panel ci-cr-two ci-fh">
         <header className="ci-cr-head">
           <p className="ci-cr-eyebrow">
-            Flag Hoist · Order {Math.min(v.step + 1, v.of)} of {v.of}
-            {v.title ? ` · ${v.title}` : ''}
+            {T('eyebrow', { n: Math.min(v.step + 1, v.of), of: v.of })}
+            {v.title ? T('eyebrowTitle', { title: v.title }) : ''}
           </p>
           <h2 className="ci-fh-order">
             <Code text={v.order} />
@@ -115,7 +117,11 @@ function FlagHoist({ store }: { store: FlagHoistStore }) {
                   disabled={v.busy}
                   data-flag={f.symbol}
                   data-pick={f.symbol}
-                  aria-label={`${f.symbol}: ${f.picture}, brings ${f.brings.toLowerCase()}`}
+                  aria-label={T('flagLabel', {
+                    symbol: f.symbol,
+                    picture: f.picture,
+                    brings: f.brings.toLowerCase(),
+                  })}
                   onClick={() => store.hoist(f.symbol)}
                 >
                   <span className="ci-fh-pennant" aria-hidden="true">
@@ -134,13 +140,7 @@ function FlagHoist({ store }: { store: FlagHoistStore }) {
         )}
         <div className="ci-cr-side">
           <p className={`ci-cr-message is-${v.message?.tone ?? 'info'}`}>
-            {v.message ? (
-              <Code text={v.message.text} />
-            ) : v.choices ? (
-              'Pick what Ines asks for.'
-            ) : (
-              'Hoist the flag that brings what Ines asks for.'
-            )}
+            {v.message ? <Code text={v.message.text} /> : v.choices ? T('pickChoice') : T('pickFlag')}
           </p>
           <p className="ci-cr-help" aria-hidden="true">
             Press <kbd>1</kbd>–<kbd>{n}</kbd> or tap {v.choices ? 'a choice' : 'a flag'}

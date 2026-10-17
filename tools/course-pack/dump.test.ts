@@ -14,16 +14,64 @@ import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from '
 import { join, relative } from 'node:path';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 
 type Any = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
-const MODULES = import.meta.glob(['../../src/**/*.ts', '../../src/**/*.tsx', '!../../src/**/*.test.ts']);
+/**
+ * World signs' lettering (COURSE-PACKS.md §9, step 2): a stand-in SignSet records every board a site
+ * adds or repaints, so the dump holds what the signs say without a canvas.
+ */
+const SIGNS = vi.hoisted(() => [] as { set: string; lines: readonly string[]; redraw?: true }[]);
+vi.mock('../../src/world/sites/sign', async (importOriginal) => {
+  const real = await importOriginal<Any>();
+  const { Mesh, Object3D } = await import('three/webgpu');
+  class SignSet {
+    constructor(private readonly name: string) {}
+    get mesh() {
+      return null;
+    }
+    get count() {
+      return 0;
+    }
+    add(lines: readonly string[]) {
+      SIGNS.push({ set: this.name, lines: [...lines] });
+      return {
+        object: new Object3D(),
+        redraw: (l: readonly string[]) => SIGNS.push({ set: this.name, lines: [...l], redraw: true }),
+      };
+    }
+    finalize() {
+      return new Mesh();
+    }
+    async finalizeAsync() {
+      return new Mesh();
+    }
+    update() {}
+    dispose() {}
+  }
+  return { ...real, SignSet };
+});
+
+const MODULES = import.meta.glob([
+  '../../src/**/*.ts',
+  '../../src/**/*.tsx',
+  '!../../src/**/*.test.ts',
+  '../../tools/voice/*.ts',
+  '../../tools/course-pack/*.ts',
+  '!../../tools/**/*.test.ts',
+]);
 
 async function tryImport(path: string): Promise<Any | null> {
-  const load = MODULES[`../../src/${path}.ts`] ?? MODULES[`../../src/${path}.tsx`];
+  // Tools' keys come relative to this folder (`../voice/lines.ts`).
+  const tool = path.startsWith('tools/') ? path.slice('tools/'.length) : null;
+  const load = tool
+    ? Object.entries(MODULES).find(
+        ([k]) => k.endsWith(`/${tool.split('/').pop()}.ts`) && k.includes(tool.split('/')[0]!),
+      )?.[1]
+    : (MODULES[`../../src/${path}.ts`] ?? MODULES[`../../src/${path}.tsx`]);
   return load ? ((await load()) as Any) : null;
 }
 
@@ -263,7 +311,9 @@ test('dump the course data', async () => {
     dump.quests[`${island}.first`] = rows.slice(0, 40);
   }
   dump.questExports = {
-    NEW_VIEW_CAPTION: cove.NEW_VIEW_CAPTION,
+    NEW_VIEW_CAPTION:
+      cove.NEW_VIEW_CAPTION ??
+      (await tryImport('course/puzzles'))!.puzzleContent('palette').scripts.newViewLate[0].caption,
     SURI_SOLVED: cove.SURI_SOLVED,
     POL_SOLVED: cove.POL_SOLVED,
     COVE_ISLAND: cove.COVE_ISLAND,
@@ -366,10 +416,268 @@ test('dump the course data', async () => {
   // The course lock and voice lines (as data), and every course file by hash.
   const json = (...files: string[]) => JSON.parse(readFileSync(firstFile(...files), 'utf8'));
   dump.lock = json('courses/copilot-app/lock.json', 'content/course.lock.json');
-  dump.voiceLines = json('courses/copilot-app/voice/lines.json', 'tools/voice/lines.testcove.json');
+  const rawLines = json('courses/copilot-app/voice/lines.json');
+  dump.voiceSet = rawLines.set;
   dump.modelsFile = json('courses/copilot-app/models.json', 'content/models.json');
   dump.voiceFiles = filesUnder(firstDir('courses/copilot-app/public/voice', 'public/voice/testcove'));
   dump.snapshotFiles = filesUnder(firstDir('courses/copilot-app/public/course', 'public/course'));
+
+  // Puzzle content (COURSE-PACKS.md §4): each puzzle's data, through the game's own exports, and
+  // what its pure functions say for a spread of inputs.
+  const gear = (await tryImport('world/sites/gear-logic'))!;
+  const gearLines = [gear.gearReadout(), gear.gearReadout('octo', 'octo.ghe.com')];
+  dump.puzzleGear = {
+    ids: gear.GEAR_IDS,
+    defs: gear.GEAR_IDS.map((id: string) => gear.gearDef(id)),
+    handle: gear.YOUR_HANDLE,
+    readouts: gearLines,
+    tones: [...gearLines[0], ...gearLines[1]].map((l: string) => [
+      gear.gearTone(l),
+      gear.gearTone(l, 'octo'),
+    ]),
+  };
+  const practice = (await tryImport('game/puzzles/practice-session'))!;
+  dump.puzzlePractice = [
+    { os: null, issue: null, branch: null, model: null },
+    { os: 'mac', issue: 7, branch: 'my-branch', model: null },
+    { os: null, issue: 0, branch: null, model: null },
+  ].map((x) => practice.practiceSessionReadout(x));
+
+  const crane = (await tryImport('world/sites/crane-logic'))!;
+  const yoursList = [
+    crane.YOUR_REPOSITORY,
+    'me/copilot-app-for-beginners',
+    'm-reyes/my-fork',
+    'harbour-guild/x',
+  ];
+  const craneRuns: Any[] = [];
+  for (const yours of yoursList)
+    for (const actionsOn of [true, false]) {
+      let st = crane.initialCrane();
+      const rec = (event?: Any) => {
+        const term = crane.terminalLines(st, event, yours, actionsOn);
+        craneRuns.push({
+          yours,
+          actionsOn,
+          st,
+          event,
+          sign: crane.signLines(st, event, yours),
+          term,
+          tones: term.map((l: string) => crane.lineTone(l, yours)),
+          hint: crane.craneHintTarget(st),
+          save: crane.saveCrane(st),
+        });
+      };
+      rec();
+      for (let i = 0; i < 4; i++) {
+        let step = crane.confirmYes(st, yours, actionsOn);
+        rec(step.event);
+        step = crane.dryRun(st, yours);
+        st = step.state;
+        rec(step.event);
+        step = crane.confirmYes(st, yours, actionsOn);
+        st = step.state;
+        rec(step.event);
+        step = crane.turnCapstan(st);
+        st = step.state;
+        rec(step.event);
+      }
+    }
+  dump.puzzleCrane = {
+    yours: crane.YOUR_REPOSITORY,
+    facings: crane.CRANE_FACINGS,
+    byYours: yoursList.map((y) => crane.craneFacings(y)),
+    start: crane.CRANE_START,
+    yourFacing: crane.YOUR_FACING,
+    cargo: crane.CRANE_CARGO,
+    command: crane.SETUP_COMMAND,
+    actions: [crane.actionsUrl('me/r'), crane.actionsWarning('me/r'), crane.actionsFailure('me/r')],
+    restored: [
+      crane.restoreCrane([2, 2], false),
+      crane.restoreCrane(undefined, true),
+      crane.restoreCrane([9, 1], false),
+    ],
+    runs: sha(JSON.stringify(canon(craneRuns))),
+    firstRuns: craneRuns.slice(0, 30),
+  };
+  const craneSite = await tryImport('world/sites/crane');
+  dump.puzzleCraneSite = craneSite?.BRIGANTINE_CARGO ?? null;
+
+  dump.puzzleYard = (await tryImport('world/sites/crate-yard-logic'))!.MERIDIAN_YARD;
+  dump.puzzleSluice = (await tryImport('world/sites/sluice-logic'))!.ANCHORAGE_SLUICE;
+  const helms = (await tryImport('world/sites/helms-logic'))!;
+  dump.puzzleHelms = {
+    order: helms.HELM_ORDER,
+    modes: helms.MODE_INFO,
+    orders: helms.HELM_ORDERS,
+    runs: helms.MERIDIAN_HELMS,
+    review: (await tryImport('game/puzzles/three-helms'))!.REVIEW_OPTIONS,
+  };
+  const letters = (await tryImport('game/puzzles/hall-letters'))!;
+  dump.puzzleLetters = {
+    cite: letters.CITE,
+    alcoves: letters.ALCOVES,
+    tray: letters.TRAY,
+    destinations: letters.DESTINATIONS,
+    letters: letters.LETTERS,
+    names: letters.DESTINATIONS.map((d: string) => letters.destinationName(d)),
+    whyNot: letters.LETTERS.map((l: Any) => letters.DESTINATIONS.map((d: string) => letters.whyNot(l, d))),
+  };
+  const flags = (await tryImport('game/puzzles/flag-hoist'))!;
+  dump.puzzleFlags = {
+    flags: flags.FLAGS,
+    orders: flags.HOIST_ORDERS,
+    right: flags.HOIST_ORDERS.map((o: Any) => flags.rightPick(o)),
+    picks: flags.HOIST_ORDERS.map((o: Any) =>
+      flags.orderPicks(o).map((p: string) => [p, flags.pickFlag(o, p)]),
+    ),
+  };
+  const boardsCr = (await tryImport('game/puzzles/channel-routing/boards'))!;
+  const ws = (await tryImport('game/puzzles/channel-routing/workspaces'))!;
+  const crModel = (await tryImport('game/puzzles/channel-routing/model'))!;
+  const crPuzzle = (await tryImport('game/puzzles/channel-routing/puzzle'))!;
+  const crews: string[] = [...boardsCr.CREWS];
+  const wsIds: string[] = ws.WORKSPACES.map((w: Any) => w.id);
+  const verdicts: Any[] = [];
+  for (const a of wsIds)
+    for (const b of wsIds)
+      for (const c of wsIds) {
+        const picks: Any = { [crews[0]!]: a, [crews[1]!]: b, [crews[2]!]: c };
+        const v = Object.fromEntries(
+          crews.map((cr) => [cr, { pick: picks[cr], right: ws.fits(cr, picks[cr]) }]),
+        );
+        verdicts.push(crPuzzle.workspaceVerdicts({ flows: [], solved: false, verdicts: v, problem: null }));
+      }
+  const described: string[] = [];
+  for (const round of [1, 2, 3])
+    described.push(crPuzzle.describeRun({ flows: [], solved: true, problem: null }, round));
+  for (const crew of crews)
+    for (const end of ['mixed', 'mainHall', 'wrongWheel', 'deadEnd'])
+      for (const at of [null, [1, 2]])
+        for (const wheel of [null, crews.find((c) => c !== crew)])
+          described.push(
+            crPuzzle.describeRun(
+              { flows: wheel ? [{ crew, wheel, end }] : [], solved: false, problem: { crew, end, at } },
+              2,
+            ),
+          );
+  dump.puzzleChannels = {
+    crews,
+    look: boardsCr.CREW_LOOK,
+    workspaces: ws.WORKSPACES,
+    orders: ws.CREW_ORDERS,
+    best: ws.BEST_LINE,
+    names: wsIds.map((w) => ws.workspaceName(w)),
+    fits: crews.map((cr) => wsIds.map((w) => ws.fits(cr, w))),
+    end: crModel.END_LINE,
+    twist: crModel.TWIST_CHOICES,
+    verdicts,
+    described,
+  };
+  const everyHire: Any[] = [{ auto: true }];
+  for (const category of catalogMod.CATEGORIES)
+    for (const effort of jobs.EFFORTS)
+      everyHire.push({ auto: false, category, model: `${category} model`, effort });
+  dump.puzzleMarket = {
+    feedback: jobs.JOBS.map((j: Any) => everyHire.map((h) => jobs.feedback(j, h))),
+    names: everyHire.map((h) => jobs.hireName(h)),
+    retry: everyHire.flatMap((h) =>
+      (['model', 'effort'] as const).map((k) => jobs.retryHire(h, k, (c: string) => `first ${c}`)),
+    ),
+  };
+
+  // World signs with course words: the sites as the game builds them, through the stand-in SignSet.
+  {
+    const three = await import('three/webgpu');
+    const kit = { materials: new Proxy({}, { get: () => new three.MeshStandardMaterial() }) } as Any;
+    const tier = (await tryImport('engine/quality'))!.tierSettings('high');
+    const origin = { x: 0, y: 0, z: 0, heading: 0 };
+    const sitesMod = (p: string) => tryImport(`world/sites/${p}`);
+    // Sites paint a few canvases (the sloops' flags): a stand-in 2D context that draws nothing.
+    const noop: Any = new Proxy(() => noop, {
+      get: (_t, k) => (k === 'measureText' ? () => ({ width: 1 }) : noop),
+    });
+    const element = () => ({
+      width: 1,
+      height: 1,
+      style: {},
+      getContext: () => noop,
+      addEventListener() {},
+      removeEventListener() {},
+      setAttribute() {},
+    });
+    const hadDocument = 'document' in globalThis;
+    if (!hadDocument) (globalThis as Any).document = { createElement: element, createElementNS: element };
+    SIGNS.length = 0;
+    const craneSite = (await sitesMod('crane'))!.createCrane({ tier, kit });
+    craneSite.setBoard(2);
+    craneSite.setSign(['Repository: me/r', 'Will create 4 labels'], 'me/r');
+    (await sitesMod('mill'))!.createMill({
+      tier,
+      kit,
+      heightField: { heightAt: () => 0, normalAt: () => ({ x: 0, y: 1, z: 0 }) },
+      kinds: dump.puzzleSluice.tiles.map((t: Any) => t.kind),
+    });
+    const lettersContent = letters.lettersContent as (() => Any) | undefined;
+    (await sitesMod('records-alcoves'))!.createRecordsAlcoves({
+      kit,
+      origin,
+      alcoves: letters.ALCOVES,
+      letters: letters.LETTERS.map((l: Any) => l.answer),
+      crest: lettersContent?.().text.crest,
+    });
+    const market = (await sitesMod('model-market'))!.createModelMarketSigns({
+      origin,
+      boards: models.BOARDS.map((b: Any) => ({
+        category: b.category,
+        price: jobs.CATEGORY_PRICE[b.category],
+        names: b.shown.map((m: Any) => m.name),
+        more: b.more.length,
+      })),
+      jobs: jobs.JOBS.map((j: Any) => ({ id: j.id, note: j.note, size: j.size })),
+      done: [],
+    });
+    market.setDone([jobs.JOBS[0].id]);
+    dump.signs = SIGNS.map((x) => ({ ...x }));
+    if (!hadDocument) delete (globalThis as Any).document;
+  }
+
+  // Hooks (COURSE-PACKS.md §5): the lines and questions the game asks for by id.
+  const briefing = (await tryImport('opening/briefing'))!;
+  dump.hooks = {
+    briefing: briefing.BRIEFING,
+    chest: briefing.CHEST_LINE,
+    briefingLines: briefing.BRIEFING_LINES,
+    battles: (await tryImport('world/battle/battle'))!.BATTLE_PLANS,
+  };
+
+  // The voice cast (COURSE-PACKS.md §5): every line as the generator reads it, with its cache hash.
+  const voiceLines = await tryImport('tools/voice/lines');
+  const resolved: Any[] = voiceLines?.resolvedLines
+    ? voiceLines.resolvedLines('copilot-app')
+    : rawLines.lines;
+  dump.castResolved = resolved;
+  // The generator's cache key (tools/voice/generate.ts), with the voice the manifest says it used:
+  // the same key means the same audio, so the cast changes no file.
+  const manifest = JSON.parse(
+    readFileSync(firstFile('courses/copilot-app/public/voice/manifest.json'), 'utf8'),
+  ) as { lines: { id: string; voice: string; hash: string }[] };
+  const used = new Map(manifest.lines.map((l) => [l.id, l]));
+  const hashLine = (l: Any, voice: string) =>
+    sha(
+      JSON.stringify({
+        text: l.text,
+        voice,
+        prosody: l.prosody ?? {},
+        fx: l.fx ?? '',
+        ...(l.sub ? { sub: l.sub } : {}),
+        ...(l.tts === 'elevenlabs' ? { tts: l.tts, model: l.model ?? 'eleven_v3' } : {}),
+      }),
+    ).slice(0, 16);
+  dump.castHashes = resolved.map((l: Any) => {
+    const m = used.get(l.id);
+    return [l.id, m ? hashLine(l, m.voice) : null, m ? m.hash : null];
+  });
 
   // The title and the credits as they render.
   const bridge = new Proxy({}, { get: () => () => undefined });
@@ -377,6 +685,29 @@ test('dump the course data', async () => {
   const credits = (await tryImport('ui/screens/CreditsScreen'))!;
   dump.title = renderToStaticMarkup(createElement(title.TitleScreen, { state: { hasSave: false }, bridge }));
   dump.credits = renderToStaticMarkup(createElement(credits.CreditsScreen, { bridge }));
+
+  // The "Your setup" forms as they render, for each kind, asked first and changed from the Logbook.
+  const setupForm = (await tryImport('ui/learn/SetupForm'))!;
+  const setupMod = (await tryImport('learn/setup'))!;
+  const store = new Proxy({}, { get: () => () => undefined });
+  const blank = { os: null, issue: null, branch: null, model: null };
+  const given = { os: 'mac', issue: 7, branch: 'my-branch', model: { pick: 'other', name: 'Some Model' } };
+  dump.setupForms = ['os', 'issue', 'branch', 'model'].flatMap((kind) =>
+    (['script', 'logbook'] as const).flatMap((from) =>
+      [blank, given].map((setup) =>
+        renderToStaticMarkup(
+          createElement(setupForm.SetupForm, { kind, store, from, setup, detected: 'windows' }),
+        ).replace(/«[^»]*»|:r[0-9a-z]+:|_R_[0-9a-zA-Z_]+_/g, '#'),
+      ),
+    ),
+  );
+  dump.modelLabels = [
+    null,
+    { pick: 'auto' },
+    { pick: 'current' },
+    { pick: 'other' },
+    { pick: 'other', name: 'X' },
+  ].map((m) => setupMod.modelLabel(m));
 
   const text = `${JSON.stringify(canon(dump), null, 1)}\n`;
   writeFileSync(out, text);

@@ -1,0 +1,42 @@
+{
+  "$schema": "../../schemas/puzzle-checklist.schema.json",
+  "id": "gear.rack",
+  "mechanic": "checklist",
+  "$comment": "Bo's gear rack (Q0.4): the course's \"Check your tools in Terminal\" version checks, one per piece of gear on the rack (the game's compass, lantern, rope and spyglass), and what Terminal prints. Every check passes.",
+  "checks": [
+    {
+      "id": "compass",
+      "name": "compass",
+      "tool": "Git",
+      "command": "git --version",
+      "output": "git version 2.49.0"
+    },
+    {
+      "id": "lantern",
+      "name": "lantern",
+      "tool": "Node.js",
+      "command": "node -v",
+      "output": "v22.16.0"
+    },
+    {
+      "id": "rope",
+      "name": "rope coil",
+      "tool": "npm",
+      "command": "npm -v",
+      "output": "10.9.2"
+    },
+    {
+      "id": "spyglass",
+      "name": "spyglass",
+      "tool": "GitHub CLI",
+      "command": "gh --version",
+      "output": "gh version 2.74.0"
+    }
+  ],
+  "text": {
+    "signIn": "$ gh auth status",
+    "signedIn": "✓ Logged in to {host} account {handle}",
+    "title": "Terminal · {repo}",
+    "interact": "Run Bo’s version checks"
+  }
+}

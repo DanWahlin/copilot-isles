@@ -1,25 +1,37 @@
+import type { PuzzleFile } from '../../course/pack';
+import { fill, puzzleContent } from '../../course/puzzles';
 import { COURSE_BRANCH, COURSE_ISSUE, COURSE_ISSUE_TITLE, type SetupData } from '../../learn/setup';
 import type { Puzzle, PuzzleTerminal } from './types';
+
+/** `puzzles/practice-session.json`: the readout, a checklist. */
+interface PracticeSessionFile extends PuzzleFile {
+  title: string;
+  /** `you`: the line shows the player's own value (once given) for that setup field. */
+  readout: readonly { text: string; tone?: 'cmd'; you?: 'branch' | 'issue' }[];
+}
 
 /**
  * The Practice Bough's session terminal (Chapter 02 · Exercise: Start a Session from a Branch): near
  * Rook, the HUD terminal shows the exercise's session with the player's own values from Your setup:
  * the working branch the app gave it and the number of the practice issue they attached. Until they
- * give them, it shows the course's (`practice-empty-state-copy`, `#3`).
+ * give them, it shows the course's practice values. The readout is the course pack's
+ * (`puzzles/practice-session.json`).
  */
 export function practiceSessionReadout(s: SetupData): PuzzleTerminal {
-  const branch = s.branch ?? COURSE_BRANCH;
+  const c = puzzleContent<PracticeSessionFile>('practice-session');
+  const values = {
+    branch: s.branch ?? COURSE_BRANCH,
+    courseBranch: COURSE_BRANCH,
+    issue: s.issue ?? COURSE_ISSUE,
+    issueTitle: COURSE_ISSUE_TITLE,
+  };
+  const given = { branch: !!s.branch, issue: s.issue !== null };
   return {
-    title: `Session · ${branch}`,
-    lines: [
-      { text: `Create from › Branches › ${COURSE_BRANCH}`, tone: 'cmd' },
-      { text: 'New worktree' },
-      { text: `Working branch: ${branch}`, tone: s.branch ? 'you' : undefined },
-      {
-        text: `Attached: #${s.issue ?? COURSE_ISSUE} ${COURSE_ISSUE_TITLE}`,
-        tone: s.issue !== null ? 'you' : undefined,
-      },
-    ],
+    title: fill(c.title, values),
+    lines: c.readout.map((l) => ({
+      text: fill(l.text, values),
+      tone: l.tone ?? (l.you && given[l.you] ? 'you' : undefined),
+    })),
   };
 }
 

@@ -1,3 +1,6 @@
+import { onCourse } from '../../../course/active';
+import type { PuzzleFile } from '../../../course/pack';
+import { lineOf, puzzleContent } from '../../../course/puzzles';
 import type { Crew } from './types';
 
 /**
@@ -7,16 +10,30 @@ import type { Crew } from './types';
  * one row of the course's "Choose it when..." column. A new worktree is never wrong where the order
  * leaves it open (the section's tip: "When in doubt, choose a new worktree"; Key Takeaway 2: "the safe
  * default"), so the quick look takes Current checkout or New worktree. Cloud is the only answer just
- * where the order asks to offload the work and keep the machine untouched.
+ * where the order asks to offload the work and keep the machine untouched. The places' names and the
+ * crews' orders are the course pack's `puzzles/workspaces.json`; what each place does to the water
+ * is the game's (`ChannelRoutingModel.runWorkspaces`).
  */
 export type Workspace = 'worktree' | 'checkout' | 'cloud';
 
+export interface WorkspacePlace {
+  id: Workspace;
+  name: string;
+  icon: string;
+  /** The island's picture for it. */
+  island: string;
+}
+
+/** `puzzles/workspaces.json` (match: each crew to the place its order fits). */
+interface WorkspacesFile extends PuzzleFile {
+  places: readonly WorkspacePlace[];
+  orders: Readonly<Record<Crew, CrewOrder>>;
+}
+
+export const workspacesContent = () => puzzleContent<WorkspacesFile>('workspaces');
+
 /** The three places, in the selector's order (keys 1-3), with the island's picture for each. */
-export const WORKSPACES: readonly { id: Workspace; name: string; icon: string; island: string }[] = [
-  { id: 'worktree', name: 'New worktree', icon: '🌿', island: 'Its own channel' },
-  { id: 'checkout', name: 'Current checkout', icon: '🏛️', island: 'Through the Great Hall' },
-  { id: 'cloud', name: 'Cloud', icon: '☁️', island: 'Up the gondola' },
-];
+export let WORKSPACES: readonly WorkspacePlace[] = [];
 
 export interface CrewOrder {
   /** What the crew's been asked to do (on screen). */
@@ -31,51 +48,21 @@ export interface CrewOrder {
   why: Readonly<Partial<Record<Workspace, string>>>;
 }
 
-export const CREW_ORDERS: Readonly<Record<Crew, CrewOrder>> = {
-  feature: {
-    order: 'Build the reading list. Keep its changes, branch and diff apart from main, on your machine.',
-    best: 'worktree',
-    accept: ['worktree'],
-    why: {
-      checkout:
-        'Feature’s changes ran through the Great Hall, your working folder. To keep them apart from main, pick New worktree.',
-      cloud:
-        'Cloud runs it off your machine. Feature wants its own folder and branch right here: New worktree.',
-    },
-  },
-  bugfix: {
-    order: 'A long job to offload. Keep your own machine untouched.',
-    best: 'cloud',
-    accept: ['cloud'],
-    why: {
-      worktree:
-        'A new worktree still runs on your machine. To offload the work and keep your deck untouched, send it by Cloud.',
-      checkout:
-        'Current checkout works right in your folder, the opposite of untouched. Send Bug Fix by Cloud.',
-    },
-  },
-  docs: {
-    order: 'Just a quick, low-stakes look at the README. Touching your working folder is fine.',
-    best: 'checkout',
-    accept: ['checkout', 'worktree'],
-    right: {
-      checkout: 'Right: a quick, low-stakes look can run in your current checkout.',
-      worktree:
-        'That works too. A new worktree is the safe default; for a quick look, Current checkout is fine as well.',
-    },
-    why: {
-      cloud:
-        'Cloud offloads the work. For a quick, low-stakes look, Current checkout is fine, and a new worktree is the safe default.',
-    },
-  },
-};
+export let CREW_ORDERS: Readonly<Record<Crew, CrewOrder>> = {} as Record<Crew, CrewOrder>;
 
 /** What Fen says when a crew's in the wrong place: why its best place fits (voice line ids). */
-export const BEST_LINE: Readonly<Record<Workspace, string>> = {
-  worktree: 'tb.fen.ws.worktree',
-  checkout: 'tb.fen.ws.checkout',
-  cloud: 'tb.fen.ws.cloud',
-};
+export let BEST_LINE: Readonly<Record<Workspace, string>> = {} as Record<Workspace, string>;
+
+onCourse(() => {
+  const c = workspacesContent();
+  WORKSPACES = c.places;
+  CREW_ORDERS = c.orders;
+  BEST_LINE = {
+    worktree: lineOf(c, 'best.worktree'),
+    checkout: lineOf(c, 'best.checkout'),
+    cloud: lineOf(c, 'best.cloud'),
+  };
+});
 
 /** Whether a place suits a crew's order. */
 export const fits = (crew: Crew, w: Workspace) => CREW_ORDERS[crew].accept.includes(w);

@@ -1,0 +1,136 @@
+{
+  "$schema": "../../schemas/puzzle-procedure.schema.json",
+  "id": "P0.2",
+  "mechanic": "procedure",
+  "$comment": "The Dry-Run Crane (Q0.7): a procedure with a dry run. It follows the course's setup script (.github/scripts/setup-training-scenarios.js): the dry run previews the repository a berth's ship stands for, and the run refuses one you don't own, stops outside a clone, and stops while your fork's workflows are off. The game owns the guards and the berths; this file says whose ship is where, what the script prints, and what Pim and Pol say. {yours} is the player's fork (or the placeholder).",
+  "targets": {
+    "berth2": {
+      "owner": "captain",
+      "repository": "m-reyes/copilot-app-for-beginners",
+      "captain": "M. Reyes"
+    },
+    "berth3": {
+      "owner": "guild",
+      "repository": "harbour-guild/copilot-app-for-beginners"
+    },
+    "berth1": {
+      "owner": "you"
+    },
+    "quay": {
+      "owner": null
+    }
+  },
+  "spares": {
+    "captain": {
+      "repository": "j-okafor/copilot-app-for-beginners",
+      "captain": "J. Okafor"
+    },
+    "guild": {
+      "repository": "tidewater-guild/copilot-app-for-beginners"
+    }
+  },
+  "cargo": [
+    {
+      "id": "labels",
+      "title": "Labels",
+      "count": 9
+    },
+    {
+      "id": "issues",
+      "title": "Issues",
+      "count": 5
+    },
+    {
+      "id": "branches",
+      "title": "Practice branches",
+      "count": 7
+    },
+    {
+      "id": "prs",
+      "title": "Pull requests",
+      "count": 3
+    }
+  ],
+  "command": "$ node …/setup-training-scenarios.js",
+  "actionsUrl": "https://github.com/{repository}/actions",
+  "tones": {
+    "other": ["Refusing", "Setup failed", "Run this", "[dry-run] GitHub Actions is not active"],
+    "ok": ["Setup complete."],
+    "okPrefix": ["Dry run complete."]
+  },
+  "text": {
+    "actionsWarning": "[dry-run] GitHub Actions is not active. Enable workflows at {url} before running with --yes.",
+    "actionsFailure": "Setup failed: The Book app web workflow is not active. Open {url}, enable workflows for the fork, then rerun the setup script.",
+    "repository": "Repository: {repository}",
+    "repositoryEmpty": "Repository:",
+    "complete": "Setup complete.",
+    "failed": "Setup failed:",
+    "notARepoSign": "run it from the root of a cloned Git repository.",
+    "refusedSign": "Refusing to change shared repository",
+    "actionsOffSign": "The Book app web workflow is not active.",
+    "defaultBranch": "Default branch: main",
+    "pullDryRun": "(pull Dry-Run to preview)",
+    "plannedA": "{labels} labels, {issues} issues,",
+    "plannedB": "{branches} branches and {prs} pull requests",
+    "created": "Created {a}",
+    "plannedEnd": "{b}.",
+    "dryRunFlag": "--dry-run",
+    "yesFlag": "--yes",
+    "notARepo1": "Run this script from the root",
+    "notARepo2": "of a cloned Git repository.",
+    "refused1": "Refusing to change shared or",
+    "refused2": "upstream repository.",
+    "wouldCreate": "[dry-run] would create {a}",
+    "wouldCreateMore": "[dry-run] {b}",
+    "dryRunDone": "Dry run complete. No changes were made.",
+    "noticeLabel": "Read the crane notice",
+    "noticeTitle": "Crane notice",
+    "noticeBefore": "This crane runs the course’s setup script. Talk to Pim and Pol to start.",
+    "noticeAfter": "This crane runs the course’s setup script, which adds practice items to your fork. It opens once your session’s ready: see Bo by the pier foot.",
+    "capstan": "Turn the capstan",
+    "pullDry": "Pull Dry-Run",
+    "pullYes": "Pull --yes",
+    "swingBerth": "The crane swings to Berth {berth}.",
+    "swingQuay": "The crane swings back over the quay.",
+    "stillSwinging": "Let her finish swinging first, Captain.",
+    "nothingQuay": "Nothing to preview over the quay. The script only runs from the root of a cloned Git repository.",
+    "signChecking1": "Repository: …",
+    "signChecking2": "[dry-run] would create…",
+    "dryRunCommand": "{command} --dry-run",
+    "checking": "Checking the repository…",
+    "waitPreview": "Wait for the preview to finish, then check the Repository line.",
+    "previewYoursActionsOff": "Repository: {repository}. That’s your fork, but read the warning: GitHub Actions isn’t on yet. Workflows first!",
+    "previewYours": "Repository: {repository}. That’s your fork. Now you can pull --yes.",
+    "anotherCaptain": "another captain",
+    "previewCaptain": "Repository: {repository}. That’s {who}’s fork, not yours. Turn the capstan.",
+    "previewGuild": "Repository: {repository}. That one belongs to an organization, Captain.",
+    "yesQuay": "That’s the quay! Run it from the root of a cloned Git repository.",
+    "previewFirst": "Preview first, always! Pull Dry-Run and check the Repository line.",
+    "yesCommand": "{command} --yes",
+    "creating": "Creating practice items…",
+    "stowed": "{title} ×{count} stowed.",
+    "finishWithPol": "Talk to Pol to finish up at the crane.",
+    "hintAim1": "What does the sign say? Pull Dry-Run and read the Repository line.",
+    "hintAim2": "Turn the capstan until the crane points at your own ship, Berth 1.",
+    "hintAim3": "I’ve swung her round to your ship. Now preview it with Dry-Run.",
+    "hintPreview1": "She’s aimed at your ship. What does a dry run show before you change anything?",
+    "hintPreview2": "Pull the Dry-Run lever, the pale blue one on the left.",
+    "hintPreview3": "There’s your preview. Check the Repository line.",
+    "hintActions1": "Read the warning in that dry run. What has to be on before --yes?",
+    "hintActions2": "Workflows first: pull the gate lever at Suri’s mill. It’s your fork’s Actions tab.",
+    "hintActions3": "The compass points at Suri’s gate lever. Pull it, then come back for --yes.",
+    "hintYes1": "The Repository line shows your fork. What runs it for real?",
+    "hintYes2": "Pull the red --yes lever on the right.",
+    "hintYes3": "Pulled it for you. Watch the hold fill.",
+    "terminalTitle": "Terminal · {repo}",
+    "boardTitle": "Practice items for your fork",
+    "boardItem": "{mark}  {count} {title}"
+  },
+  "lines": {
+    "refuseGuild1": "pol.refuse.guild.01",
+    "refuseGuild2": "pim.refuse.guild.01",
+    "refuseGuild3": "pol.refuse.guild.02",
+    "refuseCaptain": "pol.refuse.captain.01",
+    "refuseActions": "pol.refuse.actions.01"
+  }
+}

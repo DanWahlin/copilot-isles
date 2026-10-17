@@ -2,7 +2,7 @@ import { onPierDeck } from '../world/islands/anchorage/village';
 import { spyglassSpeakerPan } from '../learn/spyglass-layout';
 import { CHART_LABELS, chartLabel, firstShowing } from '../learn/content/labels';
 import { barksFor } from '../course/active';
-import { courseVoiceBase } from '../course/catalog';
+import { courseVoiceBase, islandHooks, welcomeLines as courseWelcome } from '../course/catalog';
 import { Vector3, type Group, type Object3D } from 'three/webgpu';
 import { buildSlice } from '../engine/build-slice';
 import { releaseRemovedObjects } from '../util/dispose-three';
@@ -58,30 +58,20 @@ import {
   questTracker,
 } from './cove-quests';
 import { bearingOf, type CompassTarget } from './compass';
-import {
-  MERIDIAN_WELCOME,
-  meridianLog,
-  meridianNpcScript,
-  meridianTarget,
-  meridianTracker,
-} from './meridian-quests';
+import { meridianLog, meridianNpcScript, meridianTarget, meridianTracker } from './meridian-quests';
 import { MERIDIAN_NPCS, meridianExtras } from './meridian-npcs';
-import {
-  THOUSAND_BOUGH_WELCOME,
-  thousandBoughLog,
-  thousandBoughTarget,
-  thousandBoughTracker,
-} from './thousand-bough-quests';
+import { thousandBoughLog, thousandBoughTarget, thousandBoughTracker } from './thousand-bough-quests';
 import { createThousandBoughContent, type ThousandBoughContent } from './thousand-bough-session';
 import type { ThousandBoughSystem } from '../world/islands/thousand-bough/contract';
 import { noteMeridianSeal } from './thousand-bough-open';
 import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
-import { ISLAND_TIPS, TIP_SPOTS } from './island-tips';
+import { TIP_SPOTS } from './island-tips';
 import { createCrateYard } from './puzzles/crate-yard';
 import { createCrateYardSite } from '../world/sites/crate-yard';
 import { createThreeHelms, type HelmsHost } from './puzzles/three-helms';
 import { createLostLetters, type LettersHost } from './puzzles/lost-letters';
-import { ALCOVES, LETTERS } from './puzzles/hall-letters';
+import { ALCOVES, LETTERS, lettersContent } from './puzzles/hall-letters';
+import { puzzleOn, textOf } from '../course/puzzles';
 import { createRecordsAlcoves } from '../world/sites/records-alcoves';
 import { createModelMarketSigns } from '../world/sites/model-market';
 import { createModelMarket, type MarketHost } from './puzzles/model-market';
@@ -1033,49 +1023,55 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   };
   const nell = npcs.list.find((n) => n.spec.id === 'nell');
   const bowXZ: number[] = [0, 0];
-  const christening = nell
-    ? createChristening(puzzleHost, {
-        ship,
-        nell: {
-          get x() {
-            return nell.x;
+  // A course can turn a puzzle off (`"disabled": true` in its puzzles/<name>.json): its site stays as
+  // scenery, and a cue that would start it does nothing.
+  const christening =
+    nell && puzzleOn('christening')
+      ? createChristening(puzzleHost, {
+          ship,
+          nell: {
+            get x() {
+              return nell.x;
+            },
+            get y() {
+              return nell.y;
+            },
+            get z() {
+              return nell.z;
+            },
+            face: (t) => (nell.faceTarget = t),
+            moveTo: (spot) => npcs.moveTo(nell, spot),
           },
-          get y() {
-            return nell.y;
+          spot: COVE.christening,
+          bow: () => {
+            ship.bowWorld(bowXZ);
+            return { x: bowXZ[0]!, z: bowXZ[1]! };
           },
-          get z() {
-            return nell.z;
+          shipName: () => learn?.progress.shipName ?? defaultShipName(null),
+          frame: (shot) => cam.frame(shot),
+          shot: () => {
+            // Ship-local: over the pier, aft of the bow and up high, looking at the port bow name board.
+            ship.group.updateMatrixWorld();
+            const eye = ship.group.localToWorld(CHRISTEN_EYE.clone());
+            const at = ship.group.localToWorld(CHRISTEN_AT.clone());
+            return { x: eye.x, y: eye.y, z: eye.z, tx: at.x, ty: at.y, tz: at.z };
           },
-          face: (t) => (nell.faceTarget = t),
-          moveTo: (spot) => npcs.moveTo(nell, spot),
-        },
-        spot: COVE.christening,
-        bow: () => {
-          ship.bowWorld(bowXZ);
-          return { x: bowXZ[0]!, z: bowXZ[1]! };
-        },
-        shipName: () => learn?.progress.shipName ?? defaultShipName(null),
-        frame: (shot) => cam.frame(shot),
-        shot: () => {
-          // Ship-local: over the pier, aft of the bow and up high, looking at the port bow name board.
-          ship.group.updateMatrixWorld();
-          const eye = ship.group.localToWorld(CHRISTEN_EYE.clone());
-          const at = ship.group.localToWorld(CHRISTEN_AT.clone());
-          return { x: eye.x, y: eye.y, z: eye.z, tx: at.x, ty: at.y, tz: at.z };
-        },
-      })
-    : null;
+        })
+      : null;
   if (christening) cues.set('christen', christening.cue);
-  const gearRack = createGearRack(puzzleHost, sites.gear);
-  cues.set('gear-checks', async () => gearRack.cue());
+  else cues.set('christen', async () => {});
+  const gearRack = puzzleOn('gear-rack') ? createGearRack(puzzleHost, sites.gear) : null;
+  cues.set('gear-checks', async () => gearRack?.cue());
   const lyra = npcs.list.find((n) => n.spec.id === 'lyra');
   const puzzles: Puzzle[] = [
-    createPaintSails(puzzleHost, sites.palette, ship),
-    createBard(puzzleHost, sites.hammock, () => lyra?.talking ?? false),
-    createSluice(puzzleHost, sites.mill),
-    createCrane(puzzleHost, sites.crane),
-    gearRack,
-    createFirstWords(puzzleHost, ship, () => island === 'anchorage' && shipDocked()),
+    ...(puzzleOn('palette') ? [createPaintSails(puzzleHost, sites.palette, ship)] : []),
+    ...(puzzleOn('bard') ? [createBard(puzzleHost, sites.hammock, () => lyra?.talking ?? false)] : []),
+    ...(puzzleOn('sluice') ? [createSluice(puzzleHost, sites.mill)] : []),
+    ...(puzzleOn('crane') ? [createCrane(puzzleHost, sites.crane)] : []),
+    ...(gearRack ? [gearRack] : []),
+    ...(puzzleOn('first-words')
+      ? [createFirstWords(puzzleHost, ship, () => island === 'anchorage' && shipDocked())]
+      : []),
     ...(christening ? [christening] : []),
   ];
   const hintPresses = new Map<string, { key: string; n: number }>();
@@ -1454,9 +1450,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       }
       scope.colliders.push(...site.colliders.circles, ...site.colliders.boxes, ...site.crateCircles);
       meridianSites.push(site);
-      const p = createCrateYard(puzzleHost, site);
-      puzzles.push(p);
-      scope.puzzles.push(p);
+      if (puzzleOn('crate-yard')) {
+        const p = createCrateYard(puzzleHost, site);
+        puzzles.push(p);
+        scope.puzzles.push(p);
+      }
     }
     await buildSlice();
     if (disposed || cove.meridian.town !== town) return noMeridian;
@@ -1468,15 +1466,18 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         origin: recordsAt,
         alcoves: ALCOVES,
         letters: LETTERS.map((l) => l.answer),
+        crest: textOf(lettersContent(), 'crest'),
       });
       site.group.visible = false;
       engine.scene.add(site.group);
       for (const b of site.colliders.boxes) world.addBox(b);
       scope.colliders.push(...site.colliders.boxes);
       meridianSites.push(site);
-      const p = createLostLetters(lettersHost, site);
-      puzzles.push(p);
-      scope.puzzles.push(p);
+      if (puzzleOn('lost-letters')) {
+        const p = createLostLetters(lettersHost, site);
+        puzzles.push(p);
+        scope.puzzles.push(p);
+      }
     }
     await buildSlice();
     if (disposed || cove.meridian.town !== town) return noMeridian;
@@ -1498,9 +1499,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       site.group.visible = false;
       engine.scene.add(site.group);
       meridianSites.push(site);
-      const p = createModelMarket(marketHost, site);
-      puzzles.push(p);
-      scope.puzzles.push(p);
+      if (puzzleOn('market')) {
+        const p = createModelMarket(marketHost, site);
+        puzzles.push(p);
+        scope.puzzles.push(p);
+      }
     }
     await buildSlice();
     if (disposed || cove.meridian.town !== town) return noMeridian;
@@ -1508,9 +1511,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     buoys.group.visible = false;
     engine.scene.add(buoys.group);
     meridianSites.push(buoys);
-    const helms = createThreeHelms(helmsHost, buoys, cove.quietSea);
-    puzzles.push(helms);
-    scope.puzzles.push(helms);
+    if (puzzleOn('three-helms')) {
+      const helms = createThreeHelms(helmsHost, buoys, cove.quietSea);
+      puzzles.push(helms);
+      scope.puzzles.push(helms);
+    }
     const roots = [
       ...meridianNpcs.list.map((n) => n.character.group),
       ...chests.slice(chestsBefore).map((c) => c.chest.group),
@@ -2249,31 +2254,23 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // A fresh voyage (Nell not met yet) gets Wingman's welcome and the first step; later sessions a
   // short welcome back.
   // Every island's first welcome points out the task list, the compass and its starfish.
+  // The lines are the course's (`course.json` → `hooks.islands`): an island's landing lines (Juno's
+  // first look at Thousand-Bough), then Wingman's welcome with the island's tips.
+  const firstWelcome = (i: string) => [...(islandHooks(i).landing ?? []), ...courseWelcome(i)];
   const welcomeLines = (): string[] =>
     island === 'thousand-bough'
       ? quests()['Q2.1'] === 'done'
         ? []
-        : [
-            ...THOUSAND_BOUGH_WELCOME,
-            ISLAND_TIPS['thousand-bough'].nav,
-            ISLAND_TIPS['thousand-bough'].starfish,
-          ]
+        : firstWelcome('thousand-bough')
       : island === 'meridian'
         ? quests()['Q1.1'] === 'done'
           ? []
-          : [...MERIDIAN_WELCOME, ISLAND_TIPS.meridian.nav, ISLAND_TIPS.meridian.starfish]
+          : firstWelcome('meridian')
         : island !== 'anchorage'
           ? []
           : quests()['Q0.2'] === 'start'
-            ? [
-                'wingman.welcome.01',
-                'wingman.welcome.02',
-                'wingman.welcome.03',
-                ISLAND_TIPS.anchorage.nav,
-                ISLAND_TIPS.anchorage.starfish,
-                'wingman.welcome.05',
-              ]
-            : ['wingman.welcome.back'];
+            ? firstWelcome('anchorage')
+            : [...(islandHooks('anchorage').welcomeBack ?? [])];
   /** Wingman's welcome is on: the task list and compass stay up so he can point them out. */
   let welcoming = false;
   const spotlightTip = (id: string | null) => {
@@ -2301,7 +2298,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   async function playWelcome(lines: string[]): Promise<void> {
     // Thousand-Bough: Juno's first look at the great tree plays over the tree, framed from over the
     // captain's shoulder (the arrival's last hold), before Wingman flies up.
-    if (lines[0] === 'juno.tb.arrive' && mode === 'walk') {
+    const landing = islandHooks(island).landing ?? [];
+    if (landing.length && lines[0] === landing[0] && mode === 'walk') {
       input.enabled = false;
       hero.setSpeed(0);
       cam.frame(THOUSAND_BOUGH.harbor.landingShot);

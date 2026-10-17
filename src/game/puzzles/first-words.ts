@@ -3,13 +3,11 @@ import type { TerminalLine } from '../hud';
 import type { ScriptStep } from '../script';
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal } from './types';
 import { sleep } from '../../util/math';
+import type { PuzzleFile } from '../../course/pack';
+import { fill, lineOf, puzzleContent, textOf } from '../../course/puzzles';
 
 const FIRST_WORDS_ID = 'Q0.8.pipes';
 const QUEST = 'Q0.8';
-const QUIZ = 'S0.2';
-
-const SHORT_PROMPT = 'Give me an overview of the copilot-app-for-beginners course repository…';
-
 type Pipe = 'tube' | 'hatch';
 
 /** What the puzzle needs from the brigantine: its group and the two rail fittings. */
@@ -23,39 +21,35 @@ export interface FirstWordsShip {
   };
 }
 
-/** The Terminal hatch's answer: it tries to run your request as a command. */
-const HATCH_LINES: readonly TerminalLine[] = [
-  { text: `$ ${SHORT_PROMPT}`, tone: 'cmd' },
-  { text: 'zsh: command not found: Give', tone: 'other' },
-];
+/** A readout: its title and lines (`{prompt}` is the prompt). */
+interface Readout {
+  title: string;
+  lines: readonly TerminalLine[];
+}
 
-/** The agent's answer to the first prompt (the course's expected output). */
-const REPLY_LINES: readonly TerminalLine[] = [
-  { text: `> ${SHORT_PROMPT}`, tone: 'cmd' },
-  { text: 'This course has eight chapters, from 00 Setup to 07 Automations.' },
-  {
-    text: 'Learning path: Setup → Tour the App → Sessions, Worktrees, and Context → Development and GitHub Workflows → Skills and Custom Agents → MCP Servers and Plugins → Canvases → Automations.',
-  },
-  { text: 'samples/book-app-web is the web sample you’ll use in later exercises.', tone: 'ok' },
-];
-
-/** Juno's lines once the crew answers: the expected output, the page, then on to the Trial. */
-const JUNO_REPLY: readonly ScriptStep[] = [
-  { say: 'juno.reply.01' },
-  { say: 'juno.reply.02' },
-  { say: 'juno.reply.vary' },
-  { page: 'pg.first-prompt', doubloons: 10 },
-  { say: 'juno.reply.03' },
-  { quest: QUEST, step: 'done' },
-  { quest: 'Q0.10', step: 'start' },
-  { quest: 'Q0.9', step: 'start' },
-];
+/** `puzzles/first-words.json`: choose the right tool for the course's first prompt. */
+interface FirstWordsFile extends PuzzleFile {
+  /** The quiz the choice answers. */
+  quiz: string;
+  /** The ship's two fittings: their label, the quiz option each one picks, and which is right. */
+  tools: Readonly<Record<Pipe, { label: string; option: string; right?: boolean }>>;
+  prompt: string;
+  /** What the wrong fitting prints, and the crew's reply through the right one. */
+  hatch: Readout;
+  reply: Readout;
+  /** Juno's lines once the crew answers: the expected output, the page, then on. */
+  scripts: { reply: readonly ScriptStep[] };
+}
+const content = () => puzzleContent<FirstWordsFile>('first-words');
+const T = (key: string) => textOf(content(), key);
+const readout = (r: Readout): readonly TerminalLine[] =>
+  r.lines.map((l) => ({ ...l, text: fill(l.text, { prompt: content().prompt }) }));
 
 /**
- * Q0.8 First Words (POC §4.4): two fittings on the ship's rail, the brass Prompt Box speaking tube
- * (to the crew) and the iron Terminal hatch (to the engine room). Speaking the course's first
- * prompt into one of them is S0.2. The hatch tries to run it as a command and clanks shut; the
- * tube carries it to the crew, and Juno reads back the expected output.
+ * Q0.8 First Words (POC §4.4), choose the tool: two fittings on the ship's rail, the brass speaking
+ * tube (to the crew) and the iron hatch (to the engine room). Speaking the course's first prompt into
+ * one of them answers the course's quiz. The wrong one prints what the pack says and clanks shut; the
+ * right one carries it to the crew, and Juno reads back the expected output (`puzzles/first-words.json`).
  */
 export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked: () => boolean): Puzzle {
   const tube = new Vector3();
@@ -63,7 +57,7 @@ export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked:
   let running = false;
   let hinted: Pipe | null = null;
   let lines: readonly TerminalLine[] | null = null;
-  let title = 'Terminal · engine room';
+  let title = '';
   let wasActive = false;
   /** Seconds the crew's reply has stayed up since the quest finished (it clears after a minute). */
   let replyAge = 0;
@@ -101,35 +95,33 @@ export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked:
       enabled: canUse,
       onInteract: () => void speak(id),
     });
-  at(tube, 'tube', 'Speak into the Prompt Box');
-  at(hatch, 'hatch', 'Call down the Terminal hatch');
+  at(tube, 'tube', content().tools.tube.label);
+  at(hatch, 'hatch', content().tools.hatch.label);
 
   async function speak(which: Pipe): Promise<void> {
     if (running) return;
     running = true;
-    const g = host.learn?.answerInWorld(QUIZ, {
-      type: 'scenario',
-      option: which === 'tube' ? 'prompt' : 'terminal',
-    });
+    const c = content();
+    const g = host.learn?.answerInWorld(c.quiz, { type: 'scenario', option: c.tools[which].option });
     ship.pipes.play(which);
-    if (which === 'hatch') {
+    if (!c.tools[which].right) {
       host.audio?.sfx.oneShot('hatch_clank', hatch, 0.9);
-      title = 'Terminal · engine room';
-      lines = HATCH_LINES;
+      title = c.hatch.title;
+      lines = readout(c.hatch);
       await sleep(900);
-      await host.beat([{ say: g && !g.correct ? 'juno.hatch.feedback.01' : 'juno.hatch.01' }], 'Juno');
+      await host.beat([{ say: lineOf(c, g && !g.correct ? 'hatchWrong' : 'hatch') }], 'Juno');
       running = false;
       return;
     }
     setHint(null);
     host.audio?.sfx.oneShot('tube_voice', tube, 0.9);
     await sleep(1300);
-    title = 'Copilot app · project session';
-    lines = REPLY_LINES;
+    title = c.reply.title;
+    lines = readout(c.reply);
     host.audio?.sfx.oneShot('chime_solve', undefined, 0.7);
-    const ok = await host.beat(JUNO_REPLY, 'Juno');
+    const ok = await host.beat(c.scripts.reply, 'Juno');
     running = false;
-    if (!ok) host.hud.toast('Talk to Juno to finish up at the ship.', 3.5);
+    if (!ok) host.hud.toast(T('finishWithJuno'), 3.5);
   }
 
   const near = (r = 6) => {
@@ -143,14 +135,14 @@ export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked:
     hintKey: () => `${hinted ?? '-'}`,
     hint(tier: HintTier) {
       if (!active()) return null;
-      if (tier === 1) return 'Is this a command to run, or a request for the agent?';
+      if (tier === 1) return T('hint1');
       if (tier === 2) {
         setHint('tube');
-        return 'Requests to the agent go in the prompt box. That’s the brass speaking tube.';
+        return T('hint2');
       }
       if (running || !docked()) return null;
       void speak('tube');
-      return 'I’ve spoken it into the Prompt Box for you. Listen.';
+      return T('hint3');
     },
     update(dt: number) {
       locate();

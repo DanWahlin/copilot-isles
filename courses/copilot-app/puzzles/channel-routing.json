@@ -1,0 +1,119 @@
+{
+  "$schema": "../../schemas/puzzle-route.schema.json",
+  "id": "P2.1",
+  "mechanic": "route",
+  "$comment": "Channel Routing and the Spire twist (P2.2) at Thousand-Bough's Flume Gallery (Q2.5, Fen): three crews' water from their gates to their own wheels on the Gate Board (the board, its tiles and the crews' colours are the game's). Rounds 1-2 turn tiles so no water mixes; round 3 picks where each crew works (puzzles/workspaces.json); the twist asks why two crews' previews jam at one Lookout. `crews` names each crew and what its water carries (on the gates' boards, the overlay and in words, never colour alone); `demo` is the cold open's two title cards; `twist` is the Spire's question and its four answers (`line`: Fen's voiced reply). For the Copilot app course: 02 §Worktrees (one branch, one folder each), §Previews (one port each).",
+  "crews": {
+    "feature": {
+      "name": "Feature",
+      "float": "blue blossoms",
+      "icon": "★",
+      "iconName": "star"
+    },
+    "bugfix": {
+      "name": "Bug Fix",
+      "float": "leaves",
+      "icon": "🐞",
+      "iconName": "beetle"
+    },
+    "docs": {
+      "name": "Docs",
+      "float": "paper boats",
+      "icon": "📜",
+      "iconName": "scroll"
+    }
+  },
+  "demo": {
+    "old": {
+      "kicker": "The old way",
+      "title": "One shared trough",
+      "text": "Every crew’s water runs down the same trough, so it all mixes into mud."
+    },
+    "new": {
+      "kicker": "The new way",
+      "title": "One channel per crew",
+      "text": "Each crew’s water stays in its own channel, all the way to its own wheel."
+    }
+  },
+  "twist": {
+    "question": "Feature and Docs both want to show their work at Lookout 5173. Their channels are separate. So why are they stuck?",
+    "choices": [
+      {
+        "id": "redig",
+        "text": "Dig them new channels.",
+        "right": false,
+        "line": "tb.fen.twist.redig"
+      },
+      {
+        "id": "port5174",
+        "text": "Send Docs to Lookout 5174.",
+        "right": true,
+        "line": "tb.fen.twist.port"
+      },
+      {
+        "id": "closeOne",
+        "text": "Close Feature’s lantern for now.",
+        "right": true,
+        "line": "tb.fen.twist.close"
+      },
+      {
+        "id": "share",
+        "text": "Let them share. They’ll manage.",
+        "right": false,
+        "line": "tb.fen.twist.share"
+      }
+    ]
+  },
+  "text": {
+    "whose": "{name}’s",
+    "whoseS": "{name}’",
+    "where": " at row {row}, column {col}",
+    "solved1": "Feature’s water turns Feature’s wheel. One crew, one channel.",
+    "solved": "Every crew’s water turns its own wheel, and nothing mixed.",
+    "mixed": "{who} water mixed with another crew’s{where}.",
+    "mainHall": "{who} water spilled into the Great Hall: the main checkout.",
+    "wrongWheel": "{who} water turned {whose} wheel.",
+    "anotherCrews": "another crew’s",
+    "deadEnd": "{who} water stops short{where}.",
+    "round": "Round {n} of 3. {rest}",
+    "turnHelp": "{live} Use the arrow keys to pick a tile and E to turn it.",
+    "gateOpen": "{crew}’s gate is open.",
+    "gatesOpen": "{crews} gates are open.",
+    "running": "The gates are open…",
+    "twistRight": "That’s it.",
+    "twistWrong": "Not quite. Listen to Fen.",
+    "right": "Right.",
+    "notQuite": "Not quite.",
+    "hintTwist": "Their channels are fine. What else do two previews share?",
+    "hint1Mixed": "Follow each colour down from its gate. Where do two meet?",
+    "hint1": "Follow the water down from the gate. Where does it go wrong?",
+    "hintDone": "Every tile’s right, Captain. Open the gates!",
+    "hint2": "That one, Captain: row {row}, column {col}.",
+    "hint3": "I turned row {row}, column {col} for you.",
+    "undone": "Undone.",
+    "reset": "The board’s back to the start of the round.",
+    "backToTwist": "Go back to the Spire question",
+    "useBoard": "Use the Gate Board",
+    "dialog": "Channel Routing: the Gate Board",
+    "twistEyebrow": "The Spire",
+    "eyebrow": "Channel Routing · Round {n} of 3",
+    "twistTitle": "Why are they stuck?",
+    "title": "Give every crew its own channel",
+    "hall": "Great Hall",
+    "hallSub": "main",
+    "ask": "Turn the tiles so each crew’s water reaches its own wheel, then open the gates."
+  },
+  "lines": {
+    "end.mixed": "tb.fen.mixed",
+    "end.mainHall": "tb.fen.mainhall",
+    "end.wrongWheel": "tb.fen.wrongwheel",
+    "end.deadEnd": "tb.fen.deadend",
+    "round1": "tb.fen.round1",
+    "round2": "tb.fen.round2",
+    "r3Intro": "tb.fen.r3.intro",
+    "round3": "tb.fen.round3",
+    "twist1": "tb.fen.twist.01",
+    "twist2": "tb.fen.twist.02",
+    "ports": "wingman.tb.ports"
+  }
+}

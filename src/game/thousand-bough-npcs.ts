@@ -1,11 +1,11 @@
-import type { NpcSpec } from './npcs';
+import { withCourseVoices, type NpcSpec } from './npcs';
 
 /**
  * Thousand-Bough's cast (Chapter 02), each at their island anchor (docs/specs/ISLAND-02-thousand-bough.md
  * §3.7, §4.2), standing on the island's walk surfaces. Scripted in the course's order
  * (thousand-bough-quests.ts).
  */
-export const THOUSAND_BOUGH_NPCS: NpcSpec[] = [
+export const THOUSAND_BOUGH_NPCS: NpcSpec[] = withCourseVoices([
   { id: 'tamsin', name: 'Tamsin Reed', anchor: 'tamsin', clip: 'idle' },
   { id: 'lyra_bough', body: 'lyra', name: 'Lyra Wren', anchor: 'lyra', clip: 'idle' },
   { id: 'saffi', name: 'Saffi Rootwell', anchor: 'saffi', clip: 'idle' },
@@ -15,7 +15,7 @@ export const THOUSAND_BOUGH_NPCS: NpcSpec[] = [
   { id: 'rook', name: 'Rook Tallow', anchor: 'rook', clip: 'idle' },
   { id: 'pip', name: 'Pip Hollow', anchor: 'pip', clip: 'idle' },
   { id: 'elder', name: 'Elder Maren Ashgrove', anchor: 'elder', clip: 'idle' },
-];
+]);
 
 /** The speaker names the voice lines use (the first word of each name), for the dialogue's faces. */
 export const THOUSAND_BOUGH_SPEAKERS = [

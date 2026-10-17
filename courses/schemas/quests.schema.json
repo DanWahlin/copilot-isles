@@ -136,6 +136,68 @@
           "$ref": "#/$defs/text"
         }
       }
+    },
+    "beats": {
+      "type": "array",
+      "description": "Which script or line each NPC offers for the quest state (src/game/beats.ts): the first row for the NPC whose `when` holds wins; no row means the NPC barks.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["npc"],
+        "properties": {
+          "npc": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/id"
+              },
+              {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/id"
+                }
+              }
+            ]
+          },
+          "when": {
+            "type": "object",
+            "description": "Every condition must hold: quest id → its step (a step, null for not started, a list of either, or {\"not\": …}). A key starting with $ is a flag the island passes in (true or false).",
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/stepIs"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["not"],
+                  "properties": {
+                    "not": {
+                      "$ref": "#/$defs/stepIs"
+                    }
+                  }
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            }
+          },
+          "script": {
+            "$ref": "#/$defs/id",
+            "description": "Plays a script of this island."
+          },
+          "say": {
+            "type": "string",
+            "pattern": "^[\\w.-]+$",
+            "description": "Plays one voiced line."
+          },
+          "none": {
+            "const": true,
+            "description": "Nothing to offer (the NPC barks)."
+          }
+        }
+      }
     }
   },
   "$defs": {
@@ -321,6 +383,33 @@
               "description": "Another script of this island, spliced in here.",
               "type": "string"
             }
+          }
+        }
+      ]
+    },
+    "stepIs": {
+      "description": "A quest step name, null (not started), or a list of either.",
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         }
       ]

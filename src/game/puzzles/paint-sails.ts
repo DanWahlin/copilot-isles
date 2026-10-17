@@ -1,6 +1,7 @@
 import type { LearnState } from '../../learn/store';
 import { DEFAULT_SAIL_PALETTE } from '../../world/ship/sail-palettes';
-import { NEW_VIEW_CAPTION } from '../cove-quests';
+import type { PuzzleFile } from '../../course/pack';
+import { puzzleContent, textOf } from '../../course/puzzles';
 import type { ScriptStep } from '../script';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 
@@ -14,29 +15,24 @@ export interface PaintSailsStand {
   setHint(on: boolean): void;
 }
 
-/** Finish on the stand the first time: Nell sends you on to Ezra. */
-const PALETTE_FINISHED: readonly ScriptStep[] = [
-  { say: 'nell.palette.02' },
-  { quest: QUEST, step: 'done' },
-  { quest: 'Q0.3', step: 'start' },
-];
-
-/**
- * Saves from before app 1.1.25 met the New view here, after the theme step; Nell shows it now if
- * that page isn't in the Logbook yet.
- */
-const NEW_VIEW_LATE: readonly ScriptStep[] = [
-  { show: 'shared/app-github-copilot-app', caption: NEW_VIEW_CAPTION },
-  { say: 'nell.settings.01' },
-  { hide: true },
-  { page: 'C0.3', doubloons: 20 },
-];
+/** `puzzles/palette.json`: a ceremony, its scripts and words. */
+interface PaletteFile extends PuzzleFile {
+  scripts: {
+    /** Finish on the stand the first time: Nell sends you on. */
+    finished: readonly ScriptStep[];
+    /** For saves from before the New view moved: Nell shows it, if that page isn't in the Logbook yet. */
+    newViewLate: readonly ScriptStep[];
+  };
+}
+const content = () => puzzleContent<PaletteFile>('palette');
+const T = (key: string) => textOf(content(), key);
 
 /**
  * Paint Your Sails (POC §4.4, Q0.2): the palette stand beside Nell's door. The app's theme lives in
  * Settings → Themes; here, it's your sails. Pick a palette (it previews on the stand's sample sail and
  * on your ship), then select Finish. The first time, during Q0.2, Nell sends you on to Ezra. The stand
- * stays open for repainting afterwards, and so does Settings → Your sails.
+ * stays open for repainting afterwards, and so does Settings → Your sails. Its scripts and words are
+ * the course pack's (`puzzles/palette.json`).
  */
 export function createPaintSails(
   host: PuzzleHost,
@@ -67,7 +63,7 @@ export function createPaintSails(
 
   host.interactions.add({
     id: 'palette:stand',
-    label: () => (active() ? 'Paint your sails' : 'Repaint your sails'),
+    label: () => (active() ? T('paint') : T('repaint')),
     x: stand.spot.x,
     y: stand.spot.y,
     z: stand.spot.z,
@@ -88,8 +84,13 @@ export function createPaintSails(
       if (first) {
         setHint(false);
         const late = !learn.getState().pages.includes('C0.3');
-        await host.beat(late ? [...NEW_VIEW_LATE, ...PALETTE_FINISHED] : PALETTE_FINISHED, 'Nell');
-      } else host.hud.toast('Sails repainted.', 2.2);
+        await host.beat(
+          late
+            ? [...content().scripts.newViewLate, ...content().scripts.finished]
+            : content().scripts.finished,
+          'Nell',
+        );
+      } else host.hud.toast(T('repainted'), 2.2);
     }
     running = false;
   }
@@ -102,17 +103,17 @@ export function createPaintSails(
     hintKey: () => (hinted ? 'lit' : '-'),
     hint(tier: HintTier) {
       if (!active()) return null;
-      if (tier === 1) return 'The palette stand’s by Nell’s door. Any colours will do, it’s your ship.';
+      if (tier === 1) return T('hint1');
       if (tier === 2) {
         setHint(true);
-        return 'See the sparkle by Nell’s door? Pick a palette there, then select Finish.';
+        return T('hint2');
       }
       if (running || !near(4)) {
         setHint(true);
-        return 'Walk up to the sparkling stand and press E.';
+        return T('hint3Walk');
       }
       void open();
-      return 'I’ve opened the palette stand for you. Pick one and select Finish.';
+      return T('hint3');
     },
     update() {
       const on = active();

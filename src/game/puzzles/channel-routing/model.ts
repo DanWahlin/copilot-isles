@@ -2,6 +2,9 @@ import { COLS, CREWS, ROWS, roundBoard, roundLive, roundSolution } from './board
 import { openGates, rotate, solved, wrongTile } from './logic';
 import type { ChannelRoutingState, Crew, Flow, FlowEnd, Tile } from './types';
 import { CREW_ORDERS, fits, type Workspace } from './workspaces';
+import { onCourse } from '../../../course/active';
+import { lineOf } from '../../../course/puzzles';
+import { routingContent } from './boards';
 
 /**
  * Channel Routing's state machine (docs/specs/ISLAND-02-thousand-bough.md §5.3-5.6), free of the
@@ -10,21 +13,34 @@ import { CREW_ORDERS, fits, type Workspace } from './workspaces';
  */
 export type TwistChoice = NonNullable<ChannelRoutingState['twistChoice']>;
 
+export interface TwistAnswer {
+  id: TwistChoice;
+  text: string;
+  right: boolean;
+  /** Fen's voiced reply. */
+  line: string;
+}
+
 /** What Fen says when a crew's water goes wrong (voice line ids), and the course section it teaches. */
-export const END_LINE: Readonly<Record<Exclude<FlowEnd, 'wheel'>, string>> = {
-  mixed: 'tb.fen.mixed',
-  mainHall: 'tb.fen.mainhall',
-  wrongWheel: 'tb.fen.wrongwheel',
-  deadEnd: 'tb.fen.deadend',
-};
+export let END_LINE: Readonly<Record<Exclude<FlowEnd, 'wheel'>, string>> = {} as Record<
+  Exclude<FlowEnd, 'wheel'>,
+  string
+>;
 
 /** The twist's four answers, in the order they're offered (keys 1-4). */
-export const TWIST_CHOICES: readonly { id: TwistChoice; text: string; right: boolean; line: string }[] = [
-  { id: 'redig', text: 'Dig them new channels.', right: false, line: 'tb.fen.twist.redig' },
-  { id: 'port5174', text: 'Send Docs to Lookout 5174.', right: true, line: 'tb.fen.twist.port' },
-  { id: 'closeOne', text: 'Close Feature’s lantern for now.', right: true, line: 'tb.fen.twist.close' },
-  { id: 'share', text: 'Let them share. They’ll manage.', right: false, line: 'tb.fen.twist.share' },
-];
+export let TWIST_CHOICES: readonly TwistAnswer[] = [];
+
+onCourse(() => {
+  const c = routingContent();
+  const end = (k: string) => lineOf(c, `end.${k}`);
+  END_LINE = {
+    mixed: end('mixed'),
+    mainHall: end('mainHall'),
+    wrongWheel: end('wrongWheel'),
+    deadEnd: end('deadEnd'),
+  };
+  TWIST_CHOICES = c.twist.choices;
+});
 
 export interface RunResult {
   flows: readonly Flow[];

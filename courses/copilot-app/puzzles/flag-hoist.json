@@ -1,0 +1,237 @@
+{
+  "$schema": "../../schemas/puzzle-classify.schema.json",
+  "id": "P2.3",
+  "mechanic": "classify",
+  "$comment": "Flag Hoist on the Signal Deck (Thousand-Bough, Ines): six orders. A `flag` order is answered with one of the four flags (the bins, keys 1-4; the mast's flags are drawn by `symbol`); a `choice` order with one of its own choices (`right` marks the answer; `flag` is what goes up the mast, or null). Each wrong pick drops back with Ines's reason (`text`) and the course section (`section`, an anchor in 02's README) it paraphrases. For the Copilot app course: 02 §Context Syntax, §Slash Commands and §Attaching Files (the tip, \"Less is often more\"). `line` is Ines's voiced order.",
+  "chapter": "02-sessions-worktrees-context",
+  "bins": [
+    {
+      "symbol": "@",
+      "picture": "Cargo crate",
+      "icon": "📦",
+      "brings": "Files or folders"
+    },
+    {
+      "symbol": "#",
+      "picture": "Bounty notice",
+      "icon": "📜",
+      "brings": "Issues or pull requests"
+    },
+    {
+      "symbol": "/",
+      "picture": "Bosun’s whistle",
+      "icon": "📯",
+      "brings": "Slash commands"
+    },
+    {
+      "symbol": "&",
+      "picture": "Crew log",
+      "icon": "📒",
+      "brings": "Other sessions"
+    }
+  ],
+  "items": [
+    {
+      "kind": "flag",
+      "line": "tb.ines.order.1",
+      "text": "Copilot needs the Book App’s source folder.",
+      "answer": "@",
+      "wrong": {
+        "#": {
+          "id": "order.1.#",
+          "text": "`#` brings issues and pull requests. A folder comes with `@`, like `@samples/book-app-web/src`.",
+          "section": "context-syntax"
+        },
+        "/": {
+          "id": "order.1./",
+          "text": "`/` runs a command. To bring a folder, type `@`.",
+          "section": "context-syntax"
+        },
+        "&": {
+          "id": "order.1.&",
+          "text": "`&` points at another session, not a folder. Folders come with `@`.",
+          "section": "context-syntax"
+        }
+      }
+    },
+    {
+      "kind": "flag",
+      "line": "tb.ines.order.2",
+      "text": "Get a recap of your last day’s work.",
+      "answer": "/",
+      "wrong": {
+        "@": {
+          "id": "order.2.@",
+          "text": "`@` brings files. A recap is a slash command: `/chronicle standup`.",
+          "section": "slash-commands"
+        },
+        "#": {
+          "id": "order.2.#",
+          "text": "`#` brings an issue. For a recap, run `/chronicle standup`.",
+          "section": "slash-commands"
+        },
+        "&": {
+          "id": "order.2.&",
+          "text": "`&` points at a session. For your recap, run `/chronicle standup`.",
+          "section": "slash-commands"
+        }
+      }
+    },
+    {
+      "kind": "flag",
+      "line": "tb.ines.order.3",
+      "text": "Attach the bug report about the empty state.",
+      "answer": "#",
+      "wrong": {
+        "@": {
+          "id": "order.3.@",
+          "text": "`@` brings files or folders. A bug report is an issue, and issues come with `#`.",
+          "section": "context-syntax"
+        },
+        "/": {
+          "id": "order.3./",
+          "text": "`/` runs a command. Attach an issue with `#`, like `#12`.",
+          "section": "context-syntax"
+        },
+        "&": {
+          "id": "order.3.&",
+          "text": "`&` points at another session. Issues come with `#`.",
+          "section": "context-syntax"
+        }
+      }
+    },
+    {
+      "kind": "flag",
+      "line": "tb.ines.order.4",
+      "text": "Use what Rook’s crew’s session found.",
+      "answer": "&",
+      "wrong": {
+        "@": {
+          "id": "order.4.@",
+          "text": "`@` is for files and folders. Another session comes with `&`, when the prompt box offers it.",
+          "section": "context-syntax"
+        },
+        "#": {
+          "id": "order.4.#",
+          "text": "`#` is for issues and pull requests. Other sessions use `&`.",
+          "section": "context-syntax"
+        },
+        "/": {
+          "id": "order.4./",
+          "text": "`/` runs commands. Other sessions use `&`, when the prompt box offers it.",
+          "section": "context-syntax"
+        }
+      }
+    },
+    {
+      "kind": "choice",
+      "line": "tb.ines.order.5",
+      "title": "Pack light",
+      "text": "Copilot’s fixing one empty-state message. What do you bring?",
+      "choices": [
+        {
+          "id": "every-folder",
+          "icon": "📦📦📦",
+          "text": "`@` every folder in the repository",
+          "flag": "@",
+          "why": {
+            "id": "order.5.every-folder",
+            "text": "That’s the whole hold. Copilot only needs what this one fix needs. Bring the smallest amount of useful context.",
+            "section": "context-syntax"
+          }
+        },
+        {
+          "id": "nothing",
+          "icon": "🪣",
+          "text": "Nothing. Copilot can go looking",
+          "flag": null,
+          "why": {
+            "id": "order.5.nothing",
+            "text": "An empty hold isn’t useful context. Give Copilot the one thing the fix is about.",
+            "section": "context-syntax"
+          }
+        },
+        {
+          "id": "one-issue",
+          "icon": "📜",
+          "text": "`#` just the empty-state issue",
+          "flag": "#",
+          "right": true
+        },
+        {
+          "id": "every-issue",
+          "icon": "📜📜📜",
+          "text": "`#` every open issue",
+          "flag": "#",
+          "why": {
+            "id": "order.5.every-issue",
+            "text": "Only one issue is about this message. The rest is cargo it doesn’t need. Less is often more.",
+            "section": "context-syntax"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "choice",
+      "line": "tb.ines.order.6",
+      "title": "A letter from ashore",
+      "text": "A letter’s on your computer, not in the repository. Get it into the session.",
+      "choices": [
+        {
+          "id": "at",
+          "icon": "📦",
+          "text": "Type `@` and pick it",
+          "flag": "@",
+          "why": {
+            "id": "order.6.at",
+            "text": "`@` picks files and folders from your project. This letter isn’t in the repository, so drag it from your computer onto the session.",
+            "section": "attaching-files"
+          }
+        },
+        {
+          "id": "drop",
+          "icon": "✉️",
+          "text": "Drag it from your computer onto the session in the sidebar",
+          "flag": null,
+          "right": true
+        },
+        {
+          "id": "hash",
+          "icon": "📜",
+          "text": "Type `#` and pick it",
+          "flag": "#",
+          "why": {
+            "id": "order.6.hash",
+            "text": "`#` brings issues and pull requests, not files.",
+            "section": "context-syntax"
+          }
+        },
+        {
+          "id": "context",
+          "icon": "📯",
+          "text": "Run `/context`",
+          "flag": "/",
+          "why": {
+            "id": "order.6.context",
+            "text": "`/context` shows what the session holds. It doesn’t add a file.",
+            "section": "slash-commands"
+          }
+        }
+      ]
+    }
+  ],
+  "text": {
+    "notThat": "Not that one.",
+    "flagOk": "{pick}: that’s the one!",
+    "choiceOk": "That’s the one!",
+    "title": "Flag Hoist",
+    "eyebrow": "Flag Hoist · Order {n} of {of}",
+    "eyebrowTitle": " · {title}",
+    "pickChoice": "Pick what Ines asks for.",
+    "pickFlag": "Hoist the flag that brings what Ines asks for.",
+    "flagLabel": "{symbol}: {picture}, brings {brings}"
+  },
+  "lines": {
+    "ok": "tb.ines.flag.ok"
+  }
+}

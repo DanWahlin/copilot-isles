@@ -1,0 +1,24 @@
+{
+  "$schema": "../../schemas/puzzle-checklist.schema.json",
+  "id": "tb.practice-session",
+  "mechanic": "checklist",
+  "$comment": "The Practice Bough's session terminal near Rook (Chapter 02 · Exercise: Start a Session from a Branch). {branch} and {issue} are the player's own values from Your setup (or the course's practice values); a line with \"you\" is inked as theirs once they've given that value.",
+  "title": "Session · {branch}",
+  "readout": [
+    {
+      "text": "Create from › Branches › {courseBranch}",
+      "tone": "cmd"
+    },
+    {
+      "text": "New worktree"
+    },
+    {
+      "text": "Working branch: {branch}",
+      "you": "branch"
+    },
+    {
+      "text": "Attached: #{issue} {issueTitle}",
+      "you": "issue"
+    }
+  ]
+}

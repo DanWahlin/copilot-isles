@@ -1,0 +1,30 @@
+{
+  "$schema": "../../schemas/puzzle-route.schema.json",
+  "id": "P0.1",
+  "mechanic": "route",
+  "$comment": "Suri's mill race (Q0.6, optional): turn the channel tiles until the water from the spring reaches both outlets. The grid is the game's; what the spring, the wheel and the check gate stand for (for the Copilot app course: the fork's GitHub Actions, the practice checks running, and the check that fails on purpose) is this file's.",
+  "signs": {
+    "gate": ["Workflows aren’t being run", "on this forked repository."],
+    "lever": ["I understand my workflows,", "go ahead and enable them."],
+    "check": ["Practice check:", "fails on purpose."],
+    "spring": ["The Actions Spring", "· mill race ·"]
+  },
+  "text": {
+    "lever": "Pull the lever",
+    "turn": "Turn the channel · Shift+E turns back",
+    "enabledCrane": "Workflows enabled. Now run the setup script at the crane.",
+    "enabledTurn": "Workflows enabled. Now turn the channels (E, or Shift+E to turn back) until the water reaches both outlets.",
+    "finishWithSuri": "Talk to Suri to finish up at the mill.",
+    "hintGate1": "Read the sign over the gate, Captain. That’s the Actions tab talking.",
+    "hintGate2": "The lever by the basin: “I understand my workflows, go ahead and enable them.”",
+    "hintGate3Crane": "I’ve pulled it for you. Workflows are on, so back to the crane!",
+    "hintGate3": "I’ve pulled it for you. Workflows are on.",
+    "hintFlow1": "Follow the water from the spring. Does it reach both outlets?",
+    "hintFlow2Back": "That glowing tile is where the water stops. Shift+E turns it back the short way.",
+    "hintFlow2": "That glowing tile is where the water stops. Turn it until the channel lines up.",
+    "hintFlow3": "There, I’ve turned that one. Keep going!"
+  },
+  "lines": {
+    "workflowsOn": "suri.actions.02"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A course pack's budget puzzle (courses/<id>/puzzles/<name>.json)",
+  "description": "Spend a purse on the right-sized choice for each job (Copilot app only: the Model Market). The economy is market.json; this file is its words. Every puzzle file has an `id`, its `mechanic`, and may set `disabled` (the site stays as scenery), `text` (its words by key, `{name}` filled in by the game) and `lines` (its voice line ids by what they're for). docs/specs/COURSE-PACKS.md §4.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "mechanic", "text"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mechanic": {
+      "const": "budget"
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "The course turns this puzzle off: its site stays as scenery and its cue does nothing."
+    },
+    "text": {
+      "type": "object",
+      "description": "The puzzle's words by key (labels, hints, readouts, signs).",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "lines": {
+      "type": "object",
+      "description": "Voice line ids (voice/lines.json) by what they're for.",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[\\w.-]+$"
+      }
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

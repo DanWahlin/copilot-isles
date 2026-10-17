@@ -15,7 +15,7 @@ import type { CircleObstacle } from '../contracts';
 import { unreflected } from '../reflection';
 import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
 import { UvQuadBuilder, box, cylinder, merge, poseFrame, type UvRect } from './geo';
-import { plateAt, type YardLayout } from './crate-yard-logic';
+import { crateYardContent, plateAt, type YardLayout } from './crate-yard-logic';
 import { InstanceProxies } from './proxies';
 import { mergeWithRigidParts } from './rigid-parts';
 import { palettedMaterial } from '../characters/stage-light';
@@ -461,8 +461,9 @@ function createYardAtlas(layout: YardLayout): YardAtlas {
     emblem(ctx, rects.chatPlate, 'chat');
     emblem(ctx, rects.projectPlate, 'project');
     // The course's table (01 §Chats, Project Sessions, and Modes), in short.
-    signBoard(ctx, rects.chatSign, 'CHAT', 'Ask · brainstorm · summarize', '#1f4e86', 'chat');
-    signBoard(ctx, rects.projectSign, 'PROJECT', 'Work that needs your repository', '#2c6b3c', 'project');
+    const bins = crateYardContent().bins;
+    signBoard(ctx, rects.chatSign, bins.chat.sign, bins.chat.sub, '#1f4e86', 'chat');
+    signBoard(ctx, rects.projectSign, bins.project.sign, bins.project.sub, '#2c6b3c', 'project');
     signBoard(ctx, rects.resetSign, 'RESET THE YARD', '', '#6d3a1f', null);
     tex.needsUpdate = true;
   }

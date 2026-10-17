@@ -17,10 +17,15 @@ import {
   type CraneEvent,
   type CraneState,
 } from '../../world/sites/crane-logic';
+import { lineOf, textOf } from '../../course/puzzles';
+import { craneContent } from '../../world/sites/crane-logic';
 import { POL_SOLVED } from '../cove-quests';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 
 const CRANE_ID = 'P0.2';
+/** The crane's words and lines (`puzzles/crane.json`). */
+const T = (key: string, v?: Readonly<Record<string, string | number>>) => textOf(craneContent(), key, v);
+const L = (key: string) => lineOf(craneContent(), key);
 const QUEST = 'Q0.7';
 
 /**
@@ -78,24 +83,18 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
   // Before the crane job starts, the capstan explains what the crane is for and who opens it.
   host.interactions.add({
     id: 'crane:notice',
-    label: () => 'Read the crane notice',
+    label: () => T('noticeLabel'),
     x: spots.capstan.x,
     y: spots.capstan.y,
     z: spots.capstan.z,
     radius: 2.5,
     enabled: () => host.canAct() && !started() && !state.complete,
     onInteract: () =>
-      say(
-        'Crane notice',
-        host.quests()['Q0.4'] === 'done'
-          ? 'This crane runs the course’s setup script. Talk to Pim and Pol to start.'
-          : 'This crane runs the course’s setup script, which adds practice items to your fork. It opens once your session’s ready: see Bo by the pier foot.',
-        6,
-      ),
+      say(T('noticeTitle'), host.quests()['Q0.4'] === 'done' ? T('noticeBefore') : T('noticeAfter'), 6),
   });
   host.interactions.add({
     id: 'crane:capstan',
-    label: () => 'Turn the capstan',
+    label: () => T('capstan'),
     x: spots.capstan.x,
     y: spots.capstan.y,
     z: spots.capstan.z,
@@ -105,7 +104,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
   });
   host.interactions.add({
     id: 'crane:dry',
-    label: () => 'Pull Dry-Run',
+    label: () => T('pullDry'),
     x: spots.dry.x,
     y: spots.dry.y,
     z: spots.dry.z,
@@ -115,7 +114,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
   });
   host.interactions.add({
     id: 'crane:yes',
-    label: () => 'Pull --yes',
+    label: () => T('pullYes'),
     x: spots.yes.x,
     y: spots.yes.y,
     z: spots.yes.z,
@@ -141,15 +140,12 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     host.audio?.sfx.oneShot('crane_ratchet', spots.capstan, 0.9);
     save();
     const f = craneFacings(yours())[state.facing]!;
-    host.hud.toast(
-      f.berth ? `The crane swings to Berth ${f.berth}.` : 'The crane swings back over the quay.',
-      2.5,
-    );
+    host.hud.toast(f.berth ? T('swingBerth', { berth: f.berth }) : T('swingQuay'), 2.5);
   }
 
   async function preview(): Promise<void> {
     if (site.busy) {
-      say('Pim', 'Let her finish swinging first, Captain.', 3);
+      say('Pim', T('stillSwinging'), 3);
       return;
     }
     site.pullLever('dry');
@@ -161,37 +157,29 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     if (ev.kind === 'not-a-repo') {
       site.clearCrates('ghost');
       readout(ev);
-      say(
-        'Pim',
-        'Nothing to preview over the quay. The script only runs from the root of a cloned Git repository.',
-      );
+      say('Pim', T('nothingQuay'));
       return;
     }
     if (ev.kind !== 'preview') return;
     running = true;
-    site.setSign(['Repository: …', '[dry-run] would create…']);
-    terminal = [`${SETUP_COMMAND} --dry-run`, 'Checking the repository…'];
-    say('Pim', 'Wait for the preview to finish, then check the Repository line.', 3.5);
+    site.setSign([T('signChecking1'), T('signChecking2')]);
+    terminal = [T('dryRunCommand', { command: SETUP_COMMAND }), T('checking')];
+    say('Pim', T('waitPreview'), 3.5);
     await site.drop('ghost', ev.facing, () => host.audio?.sfx.oneShot('crate_thud', spots.capstan, 0.25));
     running = false;
     readout();
     if (ev.owner === 'you' && !actionsOn())
-      say(
-        'Pim',
-        `Repository: ${ev.repository}. That’s your fork, but read the warning: GitHub Actions isn’t on yet. Workflows first!`,
-        6,
-      );
-    else if (ev.owner === 'you')
-      say('Pim', `Repository: ${ev.repository}. That’s your fork. Now you can pull --yes.`, 5);
+      say('Pim', T('previewYoursActionsOff', { repository: ev.repository }), 6);
+    else if (ev.owner === 'you') say('Pim', T('previewYours', { repository: ev.repository }), 5);
     else if (ev.owner === 'captain') {
-      const who = craneFacings(yours())[ev.facing]!.captain ?? 'another captain';
-      say('Pim', `Repository: ${ev.repository}. That’s ${who}’s fork, not yours. Turn the capstan.`, 5);
-    } else say('Pim', `Repository: ${ev.repository}. That one belongs to an organization, Captain.`, 5);
+      const who = craneFacings(yours())[ev.facing]!.captain ?? T('anotherCaptain');
+      say('Pim', T('previewCaptain', { repository: ev.repository, who }), 5);
+    } else say('Pim', T('previewGuild', { repository: ev.repository }), 5);
   }
 
   async function confirm(): Promise<void> {
     if (site.busy) {
-      say('Pim', 'Wait for the preview to finish, then check the Repository line.', 3.5);
+      say('Pim', T('waitPreview'), 3.5);
       return;
     }
     site.pullLever('yes');
@@ -202,11 +190,11 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     switch (ev.kind) {
       case 'not-a-repo':
         readout(ev);
-        say('Pol', 'That’s the quay! Run it from the root of a cloned Git repository.');
+        say('Pol', T('yesQuay'));
         return;
       case 'preview-first':
         clearHint();
-        say('Pol', 'Preview first, always! Pull Dry-Run and check the Repository line.');
+        say('Pol', T('previewFirst'));
         return;
       case 'refused':
         await refused(ev);
@@ -229,8 +217,8 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     running = true;
     await host.beat(
       ev.owner === 'guild'
-        ? [{ say: 'pol.refuse.guild.01' }, { say: 'pim.refuse.guild.01' }, { say: 'pol.refuse.guild.02' }]
-        : [{ say: 'pol.refuse.captain.01' }],
+        ? [{ say: L('refuseGuild1') }, { say: L('refuseGuild2') }, { say: L('refuseGuild3') }]
+        : [{ say: L('refuseCaptain') }],
       'Pol',
     );
     running = false;
@@ -243,7 +231,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     readout({ kind: 'actions-off', repository: yours() });
     host.audio?.sfx.oneShot('crane_ratchet', spots.capstan, 1);
     running = true;
-    await host.beat([{ say: 'pol.refuse.actions.01' }], 'Pol');
+    await host.beat([{ say: L('refuseActions') }], 'Pol');
     running = false;
     site.setSign(signLines(state, undefined, yours()), yours()); // The terminal keeps the failure.
   }
@@ -252,13 +240,17 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     running = true;
     clearHint();
     site.clearCrates('ghost');
-    site.setSign([`Repository: ${yours()}`, 'Creating practice items…'], yours());
-    terminal = [`${SETUP_COMMAND} --yes`, `Repository: ${yours()}`, 'Creating practice items…'];
+    site.setSign([T('repository', { repository: yours() }), T('creating')], yours());
+    terminal = [
+      T('yesCommand', { command: SETUP_COMMAND }),
+      T('repository', { repository: yours() }),
+      T('creating'),
+    ];
     await site.drop('real', YOUR_FACING, (k) => {
       host.audio?.sfx.oneShot('crate_thud', spots.capstan, 0.9);
       site.setBoard(k + 1);
       const c = CRANE_CARGO[k]!;
-      host.hud.toast(`${c.title} ×${c.count} stowed.`, 1.6);
+      host.hud.toast(T('stowed', { title: c.title, count: c.count }), 1.6);
     });
     readout();
     site.setBanner(true);
@@ -268,7 +260,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     await new Promise((r) => setTimeout(r, 900));
     host.audio?.sfx.oneShot('chime_solve', undefined, 0.8);
     const ok = await host.beat(POL_SOLVED, 'Pol');
-    if (!ok) host.hud.toast('Talk to Pol to finish up at the crane.', 3.5);
+    if (!ok) host.hud.toast(T('finishWithPol'), 3.5);
   }
 
   const near = (r = 14) => {
@@ -284,11 +276,11 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
       if (!started() || state.complete) return null;
       const aimed = state.facing === YOUR_FACING;
       if (!aimed) {
-        if (tier === 1) return 'What does the sign say? Pull Dry-Run and read the Repository line.';
+        if (tier === 1) return T('hintAim1');
         if (tier === 2) {
           hintOn = true;
           site.setHint(true);
-          return 'Turn the capstan until the crane points at your own ship, Berth 1.';
+          return T('hintAim2');
         }
         if (site.busy) return null;
         // Tier 3: swing it round to your berth.
@@ -300,25 +292,23 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
         readout();
         host.audio?.sfx.oneShot('crane_ratchet', spots.capstan, 0.9);
         save();
-        return 'I’ve swung her round to your ship. Now preview it with Dry-Run.';
+        return T('hintAim3');
       }
       if (state.preview !== state.facing) {
-        if (tier === 1)
-          return 'She’s aimed at your ship. What does a dry run show before you change anything?';
-        if (tier === 2) return 'Pull the Dry-Run lever, the pale blue one on the left.';
+        if (tier === 1) return T('hintPreview1');
+        if (tier === 2) return T('hintPreview2');
         void preview();
-        return 'There’s your preview. Check the Repository line.';
+        return T('hintPreview3');
       }
       if (!actionsOn()) {
-        if (tier === 1) return 'Read the warning in that dry run. What has to be on before --yes?';
-        if (tier === 2)
-          return 'Workflows first: pull the gate lever at Suri’s mill. It’s your fork’s Actions tab.';
-        return 'The compass points at Suri’s gate lever. Pull it, then come back for --yes.';
+        if (tier === 1) return T('hintActions1');
+        if (tier === 2) return T('hintActions2');
+        return T('hintActions3');
       }
-      if (tier === 1) return 'The Repository line shows your fork. What runs it for real?';
-      if (tier === 2) return 'Pull the red --yes lever on the right.';
+      if (tier === 1) return T('hintYes1');
+      if (tier === 2) return T('hintYes2');
       void confirm();
-      return 'Pulled it for you. Watch the hold fill.';
+      return T('hintYes3');
     },
     update() {
       // The site animates itself. A fork given (or changed in the Logbook) repaints the sign.
@@ -329,7 +319,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     terminal() {
       if (!started() || host.quests()[QUEST] === 'done' || !near(9)) return null;
       return {
-        title: `Terminal · ${host.learn?.progress.data.fork?.repo ?? COURSE_REPO}`,
+        title: T('terminalTitle', { repo: host.learn?.progress.data.fork?.repo ?? COURSE_REPO }),
         lines: terminal.map((text) => ({ text, tone: lineTone(text, yours()) })),
       };
     },

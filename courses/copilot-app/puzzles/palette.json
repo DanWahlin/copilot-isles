@@ -1,0 +1,46 @@
+{
+  "$schema": "../../schemas/puzzle-ceremony.schema.json",
+  "id": "Q0.2.palette",
+  "mechanic": "ceremony",
+  "$comment": "Paint Your Sails (Q0.2): the palette stand beside Nell's door. For the Copilot app course, the app's theme in Settings → Themes; here, your sails. finished: the first time you select Finish. newViewLate: saves from before app 1.1.25 meet the New view here, after the theme step.",
+  "scripts": {
+    "finished": [
+      {
+        "say": "nell.palette.02"
+      },
+      {
+        "quest": "Q0.2",
+        "step": "done"
+      },
+      {
+        "quest": "Q0.3",
+        "step": "start"
+      }
+    ],
+    "newViewLate": [
+      {
+        "show": "shared/app-github-copilot-app",
+        "caption": "Select **Continue**, and the app opens the **New** view. New work starts here."
+      },
+      {
+        "say": "nell.settings.01"
+      },
+      {
+        "hide": true
+      },
+      {
+        "page": "C0.3",
+        "doubloons": 20
+      }
+    ]
+  },
+  "text": {
+    "paint": "Paint your sails",
+    "repaint": "Repaint your sails",
+    "repainted": "Sails repainted.",
+    "hint1": "The palette stand’s by Nell’s door. Any colours will do, it’s your ship.",
+    "hint2": "See the sparkle by Nell’s door? Pick a palette there, then select Finish.",
+    "hint3Walk": "Walk up to the sparkling stand and press E.",
+    "hint3": "I’ve opened the palette stand for you. Pick one and select Finish."
+  }
+}

@@ -15,8 +15,18 @@ npx tsx tools/voice/generate.ts --course copilot-app --only=mer.market.hello
 npm run voice:lipsync -- --course copilot-app
 ```
 
+Who voices each speaker is the pack's `voice/cast.json`: the speech service (`tts`), the `voice` (or
+`voiceEnv`, an environment variable that names it, with a `fallbackVoice`), `model`, `prosody` and
+`fx`. A line in `voice/lines.json` holds its id, speaker and text, and anything that's its own (a
+`prosody`, a `sub`); a field on the line overrides its speaker's. To recast a character, change its
+entry in `cast.json` and make its lines again (the cache key includes the voice, so they all change).
+
+`generate.ts --check` makes nothing: it checks that every line, resolved against the cast, still
+matches the audio in `manifest.json` (its text, speaker and cache hash), and `--check --list-stale`
+lists the Azure lines that need making again (the weekly course refresh uses it).
+
 The cast below is this course's. Another course can give the same characters other voices (or
-another language) in its own `voice/lines.json`.
+another language) in its own `voice/cast.json`.
 
 | Character | Service         | Voice                                                                                                                  | Notes                                                                                            |
 | --------- | --------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |

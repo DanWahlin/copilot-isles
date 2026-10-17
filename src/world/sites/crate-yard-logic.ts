@@ -1,9 +1,9 @@
 /**
- * P1.1 The Crate Yard (Chapter 01, Anders): push each crate onto its plate. The course's rule decides
- * the plate: a chat for questions, brainstorming, summaries and orientation; a project session when
- * the agent needs your repository, to read it, change code or make a pull request (01 §Chats,
- * Project Sessions, and Modes; §Project Sessions). The trick crate, a read-only tour of the book app,
- * changes no files but still needs the repository. Pure grid logic; the site draws it and the puzzle
+ * P1.1 The Crate Yard (Anders), a classify puzzle: push each crate onto a plate of its kind. The crates
+ * (their stencils, kinds and the reasons) and the plates' signs are the course pack's
+ * (`puzzles/crate-yard.json`; for the Copilot app course, 01 §Chats, Project Sessions, and Modes: a
+ * chat for questions, a project session when the agent needs your repository). The grid, the plates
+ * and the crates' starting cells are the game's. Pure grid logic; the site draws it and the puzzle
  * drives it.
  *
  * The yard is a grid of cells, x across (0 = the tavern side) and z deep. You push a crate one cell
@@ -11,16 +11,13 @@
  * A plate only takes the right kind of crate: push the wrong one on and it's refused (it stays where
  * it was), with the reason, so the yard never jams on a wrong answer.
  */
-import { courseRefs } from '../../learn/course/refs';
+import { onCourse } from '../../course/active';
+import type { PuzzleFile } from '../../course/pack';
+import { puzzleContent } from '../../course/puzzles';
 import type { SourceRef } from '../../learn/types';
 
+/** The yard's two kinds of plate (the tavern side and the slipway); the course says what they mean. */
 export type CrateKind = 'chat' | 'project';
-
-const src = courseRefs('01-tour-the-app');
-/** The course's table of chats and project sessions (it sits under "From the Studio"). */
-const TABLE = src('from-the-studio-in-the-control-room', '7847b6fe96d3');
-const CHATS = src('chat-sessions', '98f6ea579753');
-const PROJECTS = src('project-sessions', 'b8e172159d21');
 
 export interface CrateDef {
   id: string;
@@ -63,80 +60,59 @@ export const DIRS: Readonly<Record<Dir, readonly [number, number]>> = {
  * repository) beside the tavern, and the general worktree question beside the slipway. Solvable in
  * 15 pushes (the solver test checks it).
  */
-export const MERIDIAN_YARD: YardLayout = {
+/** `puzzles/crate-yard.json`: classify each crate onto its kind's plates. */
+export interface CrateYardFile extends PuzzleFile {
+  /** The plates' signs, by kind. */
+  bins: Readonly<Record<CrateKind, { sign: string; sub: string }>>;
+  /** The crates, in the yard's slot order (`SLOTS`). */
+  items: readonly CrateDef[];
+}
+
+export const crateYardContent = () => puzzleContent<CrateYardFile>('crate-yard');
+
+/** Where each crate starts, by slot (the pack's crates fill them in order). */
+const SLOTS: readonly (readonly [number, number])[] = [
+  [2, 3],
+  [2, 0],
+  [1, 3],
+  [3, 3],
+  [3, 1],
+  [3, 2],
+  [1, 2],
+];
+
+/** The yard as the course fills it (empty until a voyage loads the course pack). */
+export let MERIDIAN_YARD: YardLayout = {
   cols: 5,
   rows: 5,
-  chatPlates: [
-    [0, 1],
-    [0, 2],
-    [0, 3],
-  ],
-  projectPlates: [
-    [4, 0],
-    [4, 1],
-    [4, 2],
-    [4, 3],
-  ],
-  crates: [
-    {
-      id: 'question',
-      kind: 'chat',
-      label: ['Ask a quick', 'question'],
-      at: [2, 3],
-      why: 'A quick question doesn’t need your repository. Ask it in a chat.',
-      source: TABLE,
-    },
-    {
-      id: 'bug',
-      kind: 'project',
-      label: ['Fix a bug', 'in the repo'],
-      at: [2, 0],
-      why: 'Fixing a bug changes code in your repository. That needs a project session.',
-      source: PROJECTS,
-    },
-    {
-      id: 'brainstorm',
-      kind: 'chat',
-      label: ['Brainstorm', 'ideas'],
-      at: [1, 3],
-      why: 'Brainstorming is exploring. A chat makes no branch or worktree, and it doesn’t need one.',
-      source: TABLE,
-    },
-    {
-      id: 'test',
-      kind: 'project',
-      label: ['Add a test', 'for search'],
-      at: [3, 3],
-      why: 'Adding a test edits code in your repository. That’s project work.',
-      source: TABLE,
-    },
-    {
-      id: 'worktree',
-      kind: 'chat',
-      label: ['Explain', 'worktrees,', 'in general'],
-      at: [3, 1],
-      why: 'That’s a general question. It doesn’t need your repository, so ask it in a chat.',
-      source: CHATS,
-    },
-    {
-      id: 'pr',
-      kind: 'project',
-      label: ['Open a', 'pull request'],
-      at: [3, 2],
-      why: 'A pull request is made from your repository. Start a project session.',
-      source: PROJECTS,
-    },
-    {
-      id: 'tour',
-      kind: 'project',
-      label: ['Tour the', 'book app', '(no edits)'],
-      at: [1, 2],
-      why: 'No files change, but it needs your repository. That’s a project session.',
-      source: PROJECTS,
-    },
-  ],
+  chatPlates: [],
+  projectPlates: [],
+  crates: [],
   entry: [2, 4],
 };
+
+onCourse(() => {
+  const items = crateYardContent().items;
+  if (items.length > SLOTS.length)
+    throw new Error(`The crate yard has ${SLOTS.length} slots, not ${items.length}`);
+  MERIDIAN_YARD = {
+    cols: 5,
+    rows: 5,
+    chatPlates: [
+      [0, 1],
+      [0, 2],
+      [0, 3],
+    ],
+    projectPlates: [
+      [4, 0],
+      [4, 1],
+      [4, 2],
+      [4, 3],
+    ],
+    crates: items.map((c, i) => ({ ...c, at: SLOTS[i]! })),
+    entry: [2, 4],
+  };
+});
 
 export function initialState(layout: YardLayout): YardState {
   return { at: layout.crates.map((c) => [c.at[0], c.at[1]]) };

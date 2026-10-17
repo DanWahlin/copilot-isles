@@ -25,6 +25,7 @@ import {
 import { Battery, bearing, gunStations, MAX_RANGE, PORT, STARBOARD, type Side } from './gunnery';
 import { RaiderBrain, type RaiderHelm, type RaiderView } from './raider-ai';
 import { clamp01 } from '../../util/math';
+import { COURSE } from '../../course/catalog';
 
 /** A raider in a wave: its name board and its size (docs/specs/BATTLES.md §4.1). */
 export interface RaiderSpec {
@@ -53,65 +54,47 @@ export interface BattlePlan {
 }
 
 /**
+ * A battle plan: the game's part (where it's fought, its raiders' sizes) with the course's (each
+ * raider's name, the question after each wave, the win line, the chapter: `course.json` →
+ * `hooks.battles.<id>`).
+ */
+function plan(id: string, title: string, kinds: readonly (readonly RaiderSpec['kind'][])[]): BattlePlan {
+  const h = COURSE.hooks.battles[id];
+  if (!h) throw new Error(`The course has no battle "${id}" (course.json → hooks.battles)`);
+  return {
+    id,
+    chapter: h.chapter as BattlePlan['chapter'],
+    title,
+    waves: kinds.map((wave, w) => ({
+      raiders: wave.map((kind, r) => ({ name: h.waves[w]?.raiders[r] ?? '', kind })),
+      quiz: h.waves[w]?.quiz ?? '',
+    })),
+    won: h.won,
+  };
+}
+
+/**
  * Battle 1, the passage from Anchorage to Port Meridian, recaps Chapter 00: preview before you run
  * (wave 1), then check the target (wave 2).
  */
-export const PASSAGE_BATTLE: BattlePlan = {
-  id: 'passage-anchorage-meridian',
-  chapter: '00',
-  title: 'Anchorage → Port Meridian',
-  waves: [
-    {
-      raiders: [
-        { name: 'Unchecked', kind: 'cutter' },
-        { name: 'No Dry Run', kind: 'cutter' },
-      ],
-      quiz: 'N0.1',
-    },
-    {
-      raiders: [
-        { name: 'Wrong Fork', kind: 'brigantine' },
-        { name: 'Wrong Account', kind: 'cutter' },
-      ],
-      quiz: 'N0.2',
-    },
-  ],
-  won: 'The raiders are back in the fog. Port Meridian lies ahead.',
-};
+export const PASSAGE_BATTLE: BattlePlan = plan('passage-anchorage-meridian', 'Anchorage → Port Meridian', [
+  ['cutter', 'cutter'],
+  ['brigantine', 'cutter'],
+]);
 
 /**
  * Battle 2, the passage from Port Meridian to Thousand-Bough Isle, recaps Chapter 01: a worktree for
  * each session (wave 1), know when the agent will ask (wave 2), and effort isn't a guarantee (wave 3).
  */
-export const MERIDIAN_BATTLE: BattlePlan = {
-  id: 'passage-meridian-thousand-bough',
-  chapter: '01',
-  title: 'Port Meridian → Thousand-Bough Isle',
-  waves: [
-    {
-      raiders: [
-        { name: 'Shared Checkout', kind: 'cutter' },
-        { name: 'Tangled Copy', kind: 'cutter' },
-      ],
-      quiz: 'N1.6',
-    },
-    {
-      raiders: [
-        { name: 'Blind Approval', kind: 'brigantine' },
-        { name: 'Unasked', kind: 'cutter' },
-      ],
-      quiz: 'N1.1',
-    },
-    {
-      raiders: [
-        { name: 'Max Effort', kind: 'brigantine' },
-        { name: 'Overthought', kind: 'cutter' },
-      ],
-      quiz: 'N1.2',
-    },
+export const MERIDIAN_BATTLE: BattlePlan = plan(
+  'passage-meridian-thousand-bough',
+  'Port Meridian → Thousand-Bough Isle',
+  [
+    ['cutter', 'cutter'],
+    ['brigantine', 'cutter'],
+    ['brigantine', 'cutter'],
   ],
-  won: 'The raiders are back in the fog. Thousand-Bough Isle lies ahead.',
-};
+);
 
 export const BATTLE_PLANS: readonly BattlePlan[] = [PASSAGE_BATTLE, MERIDIAN_BATTLE];
 

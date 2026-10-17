@@ -1,4 +1,4 @@
-import type { NpcSpec } from './npcs';
+import { withCourseVoices, type NpcSpec } from './npcs';
 
 /**
  * Port Meridian's cast (Chapter 01), each at their town anchor and standing on the town's real walk
@@ -6,7 +6,7 @@ import type { NpcSpec } from './npcs';
  * height and you can talk to her from the foot of it. Everyone's scripted in the course's order
  * (meridian-quests.ts).
  */
-export const MERIDIAN_NPCS: NpcSpec[] = [
+export const MERIDIAN_NPCS: NpcSpec[] = withCourseVoices([
   { id: 'tobias', name: 'Tobias Crane', anchor: 'tobias', clip: 'idle' },
   { id: 'mina', name: 'Mina Solé', anchor: 'mina', clip: 'idle' },
   {
@@ -23,7 +23,7 @@ export const MERIDIAN_NPCS: NpcSpec[] = [
   { id: 'oren', name: 'Oren Vey', anchor: 'oren', clip: 'idle' },
   { id: 'pell', name: 'Pell Winthrop', anchor: 'pell', clip: 'idle' },
   { id: 'admiral', name: 'Admiral Vale', anchor: 'admiral', clip: 'idle' },
-];
+]);
 
 /**
  * Port Meridian's townsfolk: life round the harbour and the plaza, with a bark each that nods to the

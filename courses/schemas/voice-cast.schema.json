@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A course pack's voice cast (courses/<id>/voice/cast.json)",
+  "description": "Who voices each speaker in this course (docs/voices.md): the speech service, voice, fallback, prosody and effect. A line in voice/lines.json may set any of these itself to override its speaker's. tools/voice/generate.ts reads both.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["speakers"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "speakers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tts": {
+            "description": "The speech service (default Azure).",
+            "enum": ["azure", "elevenlabs"]
+          },
+          "model": {
+            "description": "ElevenLabs model id (default eleven_v3).",
+            "type": "string"
+          },
+          "voice": {
+            "description": "An Azure voice name, or an ElevenLabs voice id.",
+            "$ref": "#/$defs/text"
+          },
+          "voiceEnv": {
+            "description": "An environment variable that names the Azure voice.",
+            "type": "string"
+          },
+          "fallbackVoice": {
+            "$ref": "#/$defs/text"
+          },
+          "prosody": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "fx": {
+            "enum": ["wingman-bright", "wingman-bird"]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

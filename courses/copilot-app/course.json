@@ -170,5 +170,151 @@
     "issueTitle": "Improve the empty state copy",
     "branch": "practice-empty-state-copy",
     "repoName": "copilot-app-for-beginners"
+  },
+  "setup": {
+    "$comment": "The \"Your setup\" forms (src/ui/learn/SetupForm.tsx): what each asks, and where the course says to look. `label` is the form's kicker and the Logbook's note; `**bold**` and `code` spans render as such; {issue}, {issueTitle}, {branch}, {os} and {keys} are filled in. `os.shortcut` is the shortcut shown with your computer's keys (src/learn/setup.ts formatKeys).",
+    "os": {
+      "label": "Your computer",
+      "title": "Change your computer",
+      "ask": "Which **computer** are you on?",
+      "intro": "Shortcuts differ by computer. The course writes them for both: **Ctrl+R** (or **Cmd+R** on macOS). Pick the one you run the Copilot app on.",
+      "uses": "The game will show the course’s shortcuts with your computer’s keys, in captions, Logbook pages, and quizzes.",
+      "shortcut": "mod+R",
+      "read": "Prompt history on {os}:",
+      "note": "Prompt history is **{keys}** on {os}. It stays on this device."
+    },
+    "issue": {
+      "label": "Your practice issue",
+      "title": "Change your practice issue",
+      "ask": "What **number** is your practice issue?",
+      "intro": "The course’s **{issueTitle}** issue is #{issue}. If yours has a different number, type it here. In the app, type `#` in the prompt box and pick the issue by its title to see it.",
+      "uses": "Rook’s captions, your Logbook page, and the quiz will use your number.",
+      "field": "Issue number",
+      "read": "Your issue:",
+      "hint": "Just the number, like {issue}."
+    },
+    "branch": {
+      "label": "Your session’s branch",
+      "title": "Change your session’s branch",
+      "ask": "Which **branch** is your session on?",
+      "intro": "You started it with **Create from** on `{branch}`, in a new worktree. Select the session name at the top of the app’s window to see its working branch, then type it, or keep this one.",
+      "uses": "The Practice Bough’s session terminal, your Logbook, and Pip’s standup will show it.",
+      "field": "Working branch",
+      "read": "Your branch:",
+      "match": "That’s the one",
+      "hint": "Like `{branch}`"
+    },
+    "model": {
+      "label": "Your model",
+      "title": "Change your model",
+      "ask": "Which **model** did you pick?",
+      "intro": "For this exercise the course says you can keep **Auto** or your current model. What does your model control show?",
+      "uses": "Your Logbook will note it, and Oren will ask one question about your choice.",
+      "field": "Your model control",
+      "choices": {
+        "auto": {
+          "label": "Auto",
+          "note": "the app chooses"
+        },
+        "current": {
+          "label": "My current model",
+          "note": "I kept it"
+        },
+        "other": {
+          "label": "Another model",
+          "note": "I picked one"
+        }
+      },
+      "name": "Its name, as the app shows it (optional)",
+      "read": "Your model:",
+      "names": {
+        "none": "the model you chose",
+        "auto": "Auto",
+        "current": "your current model",
+        "other": "the model you picked"
+      }
+    }
+  },
+  "hooks": {
+    "briefing": {
+      "lines": ["juno.cabin.01", "juno.cabin.02", "juno.cabin.03", "juno.cabin.04"],
+      "chest": "juno.cabin.chest"
+    },
+    "islands": {
+      "anchorage": {
+        "welcome": [
+          "wingman.welcome.01",
+          "wingman.welcome.02",
+          "wingman.welcome.03",
+          "@nav",
+          "@starfish",
+          "wingman.welcome.05"
+        ],
+        "welcomeBack": ["wingman.welcome.back"],
+        "tips": {
+          "nav": "wingman.welcome.04",
+          "starfish": "wingman.starfish.anchorage"
+        }
+      },
+      "meridian": {
+        "welcome": ["wingman.meridian.01", "wingman.meridian.02", "@nav", "@starfish"],
+        "tips": {
+          "nav": "wingman.meridian.03",
+          "starfish": "wingman.starfish.meridian"
+        }
+      },
+      "thousand-bough": {
+        "landing": ["juno.tb.arrive"],
+        "welcome": ["wingman.tb.01", "wingman.tb.02", "@nav", "@starfish"],
+        "tips": {
+          "nav": "wingman.tb.03",
+          "starfish": "wingman.starfish.thousand-bough"
+        }
+      }
+    },
+    "sail": {
+      "line": "wingman.sail.03",
+      "meridianOpen": "wingman.sail.meridian"
+    },
+    "npcVoiced": {
+      "nell": ["nell.papers.01", "nell.papers.05"]
+    },
+    "setPieces": {
+      "gondola": "tb.oak.gondola"
+    },
+    "battles": {
+      "passage-anchorage-meridian": {
+        "chapter": "00",
+        "won": "The raiders are back in the fog. Port Meridian lies ahead.",
+        "waves": [
+          {
+            "quiz": "N0.1",
+            "raiders": ["Unchecked", "No Dry Run"]
+          },
+          {
+            "quiz": "N0.2",
+            "raiders": ["Wrong Fork", "Wrong Account"]
+          }
+        ]
+      },
+      "passage-meridian-thousand-bough": {
+        "chapter": "01",
+        "won": "The raiders are back in the fog. Thousand-Bough Isle lies ahead.",
+        "waves": [
+          {
+            "quiz": "N1.6",
+            "raiders": ["Shared Checkout", "Tangled Copy"]
+          },
+          {
+            "quiz": "N1.1",
+            "raiders": ["Blind Approval", "Unasked"]
+          },
+          {
+            "quiz": "N1.2",
+            "raiders": ["Max Effort", "Overthought"]
+          }
+        ]
+      }
+    }
   }
 }

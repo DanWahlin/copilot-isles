@@ -70,6 +70,8 @@ export function createRecordsAlcoves(o: {
   alcoves: readonly RecordsAlcove[];
   /** Each letter's answer, in the order they're handed over (an alcove id, or 'tray'). */
   letters: readonly string[];
+  /** The cloth over the middle cabinet (the course pack's word for the bins: "Settings"). */
+  crest: string;
 }): RecordsAlcovesSite {
   const group = new Group();
   group.name = 'hall of records alcoves (P1.3)';
@@ -174,7 +176,7 @@ export function createRecordsAlcoves(o: {
   };
   setFiled(0);
 
-  // Name plates under the cubbies (Projects on brown), and "Settings" on the middle cabinet.
+  // Name plates under the cubbies (the last, Projects, on brown), and the crest on the middle cabinet.
   const signs = new SignSet('hall cubby plates');
   o.alcoves.forEach((a, i) => {
     const { x, shelf } = slot(i);
@@ -187,7 +189,7 @@ export function createRecordsAlcoves(o: {
     s.object.position.set(x, shelf - 0.16, front + 0.008);
     root.add(s.object);
   });
-  const crest = signs.add(['Settings'], 1.3, 0.34, { look: 'cloth', size: 0.16, colors: ['#1f3a6b'] });
+  const crest = signs.add([o.crest], 1.3, 0.34, { look: 'cloth', size: 0.16, colors: ['#1f3a6b'] });
   crest.object.position.set(0, CAB.h + 0.28, front - 0.02);
   root.add(crest.object);
   const signMesh = signs.finalize();

@@ -12,6 +12,11 @@ import {
 } from '../../world/sites/sluice-logic';
 import { SURI_SOLVED } from '../cove-quests';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
+import { lineOf, puzzleContent, textOf } from '../../course/puzzles';
+
+/** The mill race's words and lines (`puzzles/sluice.json`). */
+const T = (key: string) => textOf(puzzleContent('sluice'), key);
+const L = (key: string) => lineOf(puzzleContent('sluice'), key);
 
 const SLUICE_ID = 'P0.1';
 const QUEST = 'Q0.6';
@@ -117,7 +122,7 @@ export function createSluice(
 
   host.interactions.add({
     id: 'mill:lever',
-    label: () => 'Pull the lever',
+    label: () => T('lever'),
     x: site.anchors.millLever!.x,
     y: site.top,
     z: site.anchors.millLever!.z,
@@ -127,7 +132,7 @@ export function createSluice(
   });
   host.interactions.add({
     id: 'mill:tile',
-    label: () => 'Turn the channel · Shift+E turns back',
+    label: () => T('turn'),
     get x() {
       return focus >= 0 ? site.cellCenter(focus).x : 1e6;
     },
@@ -158,13 +163,9 @@ export function createSluice(
     if (actionsStep()) {
       // Actions first: the crane's setup script can run with --yes now.
       host.setQuest(CRANE_QUEST, 'crane');
-      host.hud.toast('Workflows enabled. Now run the setup script at the crane.', 4.5);
-      if (!quiet) void host.beat([{ say: 'suri.actions.02' }], 'Suri');
-    } else
-      host.hud.toast(
-        'Workflows enabled. Now turn the channels (E, or Shift+E to turn back) until the water reaches both outlets.',
-        5,
-      );
+      host.hud.toast(T('enabledCrane'), 4.5);
+      if (!quiet) void host.beat([{ say: L('workflowsOn') }], 'Suri');
+    } else host.hud.toast(T('enabledTurn'), 5);
   }
 
   function turn(i: number, back = false): void {
@@ -192,7 +193,7 @@ export function createSluice(
     await new Promise((r) => setTimeout(r, 1900));
     host.audio?.sfx.oneShot('chime_solve', undefined, 0.8);
     const ok = await host.beat(SURI_SOLVED, 'Suri');
-    if (!ok) host.hud.toast('Talk to Suri to finish up at the mill.', 3.5);
+    if (!ok) host.hud.toast(T('finishWithSuri'), 3.5);
   }
 
   const near = () => {
@@ -206,24 +207,21 @@ export function createSluice(
     hintKey: () => (gate ? `tiles:${rots.join('')}` : 'gate'),
     hint(tier: HintTier) {
       if (leverOpen()) {
-        if (tier === 1) return 'Read the sign over the gate, Captain. That’s the Actions tab talking.';
-        if (tier === 2)
-          return 'The lever by the basin: “I understand my workflows, go ahead and enable them.”';
+        if (tier === 1) return T('hintGate1');
+        if (tier === 2) return T('hintGate2');
         pullLever(true);
-        return actionsStep()
-          ? 'I’ve pulled it for you. Workflows are on, so back to the crane!'
-          : 'I’ve pulled it for you. Workflows are on.';
+        return actionsStep() ? T('hintGate3Crane') : T('hintGate3');
       }
       if (!tilesOpen()) return null;
-      if (tier === 1) return 'Follow the water from the spring. Does it reach both outlets?';
+      if (tier === 1) return T('hintFlow1');
       const i = nearestBreak(layout, rots, path);
       if (i < 0) return null;
       if (tier === 2) {
         hintCell = i;
         site.setHint(i);
         return shortestTurn(layout.tiles[i]!.kind, rots[i]!, layout.tiles[i]!.solution) < 0
-          ? 'That glowing tile is where the water stops. Shift+E turns it back the short way.'
-          : 'That glowing tile is where the water stops. Turn it until the channel lines up.';
+          ? T('hintFlow2Back')
+          : T('hintFlow2');
       }
       const t = layout.tiles[i]!;
       rots[i] = t.solution;
@@ -233,7 +231,7 @@ export function createSluice(
       const now = refresh();
       save();
       if (now && !solved) void onSolved();
-      return 'There, I’ve turned that one. Keep going!';
+      return T('hintFlow3');
     },
     update() {
       syncGate();

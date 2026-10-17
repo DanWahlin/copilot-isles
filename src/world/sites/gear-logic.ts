@@ -1,8 +1,12 @@
+import { onCourse } from '../../course/active';
+import type { PuzzleFile } from '../../course/pack';
+import { fill, puzzleContent, textOf } from '../../course/puzzles';
+
 /**
- * Bo's gear check (Q0.4, POC §4.4). Pure logic (no three.js): the course's "Check your tools in
- * Terminal" version checks, one piece of gear per tool on Bo's rack, and what Terminal prints when
- * you run them there. Every check passes: the game can't see your machine, so it never claims a
- * tool is missing. The course's own advice ("install only what's missing") is told, not staged.
+ * Bo's gear check (Q0.4, POC §4.4), a checklist. Pure logic (no three.js): one piece of gear per tool
+ * on Bo's rack, and what Terminal prints when you run the checks there. Every check passes: the game
+ * can't see your machine, so it never claims a tool is missing. The checks themselves are the course
+ * pack's (`puzzles/gear-rack.json`: for the Copilot app course, "Check your tools in Terminal").
  */
 export type GearId = 'compass' | 'lantern' | 'rope' | 'spyglass';
 
@@ -14,22 +18,20 @@ export interface GearDef {
   output: string;
 }
 
-/** In hanging order, left to right on the rack. */
-const GEAR: readonly GearDef[] = [
-  { id: 'compass', name: 'compass', tool: 'Git', command: 'git --version', output: 'git version 2.49.0' },
-  { id: 'lantern', name: 'lantern', tool: 'Node.js', command: 'node -v', output: 'v22.16.0' },
-  { id: 'rope', name: 'rope coil', tool: 'npm', command: 'npm -v', output: '10.9.2' },
-  {
-    id: 'spyglass',
-    name: 'spyglass',
-    tool: 'GitHub CLI',
-    command: 'gh --version',
-    output: 'gh version 2.74.0',
-  },
-];
+/** `puzzles/gear-rack.json`. */
+export interface GearRackFile extends PuzzleFile {
+  /** In hanging order, left to right on the rack. */
+  checks: readonly GearDef[];
+}
 
-export const GEAR_IDS: readonly GearId[] = GEAR.map((g) => g.id);
-export const gearDef = (id: GearId): GearDef => GEAR.find((g) => g.id === id)!;
+export const gearContent = () => puzzleContent<GearRackFile>('gear-rack');
+const gear = () => gearContent().checks;
+
+export let GEAR_IDS: readonly GearId[] = [];
+onCourse(() => {
+  GEAR_IDS = gear().map((g) => g.id);
+});
+export const gearDef = (id: GearId): GearDef => gear().find((g) => g.id === id)!;
 
 /** The handle the game shows for your own GitHub account. */
 export const YOUR_HANDLE = 'your-handle';
@@ -40,8 +42,9 @@ export const YOUR_HANDLE = 'your-handle';
  */
 export function gearReadout(handle: string = YOUR_HANDLE, host = 'github.com'): string[] {
   const lines: string[] = [];
-  for (const g of GEAR) lines.push(`$ ${g.command}`, g.output);
-  lines.push('$ gh auth status', `✓ Logged in to ${host} account ${handle}`);
+  const c = gearContent();
+  for (const g of c.checks) lines.push(`$ ${g.command}`, g.output);
+  lines.push(textOf(c, 'signIn'), textOf(c, 'signedIn', { host, handle }));
   return lines;
 }
 
@@ -50,7 +53,10 @@ export type GearTone = 'cmd' | 'you' | 'ok';
 /** How a readout line is inked: commands, your account, and version numbers. */
 export function gearTone(line: string, handle: string = YOUR_HANDLE): GearTone | undefined {
   if (line.startsWith('$')) return 'cmd';
-  if (line.endsWith(` account ${handle}`)) return 'you';
-  if (GEAR.some((g) => g.output === line)) return 'ok';
+  // The signed-in line ends with your account (whatever the host).
+  const signedIn = textOf(gearContent(), 'signedIn');
+  if (line.endsWith(fill(signedIn.slice(signedIn.indexOf('{host}') + '{host}'.length), { handle })))
+    return 'you';
+  if (gear().some((g) => g.output === line)) return 'ok';
   return undefined;
 }

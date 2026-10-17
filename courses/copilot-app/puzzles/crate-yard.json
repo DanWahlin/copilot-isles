@@ -1,0 +1,107 @@
+{
+  "$schema": "../../schemas/puzzle-classify.schema.json",
+  "id": "P1.1",
+  "mechanic": "classify",
+  "$comment": "The Crate Yard (Q1.4, Anders): push each crate onto a plate of its kind. The yard's grid, its plates and where each crate starts are the game's (src/world/sites/crate-yard-logic.ts: the crates fill its slots in this order); what's on each crate, which plate it belongs on (chat: the tavern side; project: the slipway), why, and the plates' signs are this file's. For the Copilot app course, 01 · Chats, Project Sessions, and Modes: a chat for questions and brainstorming, a project session when the agent needs your repository.",
+  "bins": {
+    "chat": {
+      "sign": "CHAT",
+      "sub": "Ask · brainstorm · summarize"
+    },
+    "project": {
+      "sign": "PROJECT",
+      "sub": "Work that needs your repository"
+    }
+  },
+  "items": [
+    {
+      "id": "question",
+      "kind": "chat",
+      "label": ["Ask a quick", "question"],
+      "why": "A quick question doesn’t need your repository. Ask it in a chat.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "from-the-studio-in-the-control-room",
+        "hash": "7847b6fe96d3"
+      }
+    },
+    {
+      "id": "bug",
+      "kind": "project",
+      "label": ["Fix a bug", "in the repo"],
+      "why": "Fixing a bug changes code in your repository. That needs a project session.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "project-sessions",
+        "hash": "b8e172159d21"
+      }
+    },
+    {
+      "id": "brainstorm",
+      "kind": "chat",
+      "label": ["Brainstorm", "ideas"],
+      "why": "Brainstorming is exploring. A chat makes no branch or worktree, and it doesn’t need one.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "from-the-studio-in-the-control-room",
+        "hash": "7847b6fe96d3"
+      }
+    },
+    {
+      "id": "test",
+      "kind": "project",
+      "label": ["Add a test", "for search"],
+      "why": "Adding a test edits code in your repository. That’s project work.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "from-the-studio-in-the-control-room",
+        "hash": "7847b6fe96d3"
+      }
+    },
+    {
+      "id": "worktree",
+      "kind": "chat",
+      "label": ["Explain", "worktrees,", "in general"],
+      "why": "That’s a general question. It doesn’t need your repository, so ask it in a chat.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "chat-sessions",
+        "hash": "98f6ea579753"
+      }
+    },
+    {
+      "id": "pr",
+      "kind": "project",
+      "label": ["Open a", "pull request"],
+      "why": "A pull request is made from your repository. Start a project session.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "project-sessions",
+        "hash": "b8e172159d21"
+      }
+    },
+    {
+      "id": "tour",
+      "kind": "project",
+      "label": ["Tour the", "book app", "(no edits)"],
+      "why": "No files change, but it needs your repository. That’s a project session.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "project-sessions",
+        "hash": "b8e172159d21"
+      }
+    }
+  ],
+  "text": {
+    "push": "Push the crate",
+    "reset": "Reset the yard",
+    "undoHint": "Pushed one the wrong way? Press Z (LB on a gamepad) to take it back.",
+    "nothingToUndo": "No push to take back. The lever by the gate starts over.",
+    "stepAside": "Step out of the way, Captain, so the crate can slide back.",
+    "finishWithAnders": "Talk to Anders to finish up at the shipyard.",
+    "hint1": "Read each crate, Captain. Does the agent need your repository for this job?",
+    "hintJammed": "That yard’s jammed, Captain. Pull the lever by the gate to start it over.",
+    "hint2": "Try the glowing crate next. Which plate does its job belong on?",
+    "hint3": "There, I’ve pushed one for you. Keep going!"
+  }
+}

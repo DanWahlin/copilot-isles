@@ -8,6 +8,7 @@ import {
   type WheelEvent,
 } from 'react';
 import { STARFISH } from '../../world/starfish/spots';
+import { COURSE } from '../../course/catalog';
 import { StarfishLog } from './Starfish';
 import { CHAPTERS, GLOSSARY, IMAGES, PAGES, courseUrl, imageUrl } from '../../learn/content/index';
 import { chapterUrl } from '../../learn/course/chapters';
@@ -107,13 +108,13 @@ function ForkLinks({ places }: { places?: readonly ForkPlace[] }) {
 function SetupNotes({ kinds }: { kinds?: readonly SetupKind[] }) {
   const { setup, detected } = useContext(SetupContext);
   const notes = (kinds ?? []).flatMap((k): { k: SetupKind; label: string; value: ReactNode }[] => {
-    if (k === 'os') return [{ k, label: 'Your computer', value: OS_NAMES[setup.os ?? detected] }];
+    if (k === 'os') return [{ k, label: COURSE.setup.os.label, value: OS_NAMES[setup.os ?? detected] }];
     if (k === 'issue' && setup.issue !== null)
-      return [{ k, label: 'Your practice issue', value: `#${setup.issue} ${COURSE_ISSUE_TITLE}` }];
+      return [{ k, label: COURSE.setup.issue.label, value: `#${setup.issue} ${COURSE_ISSUE_TITLE}` }];
     if (k === 'branch' && setup.branch !== null)
-      return [{ k, label: 'Your session’s branch', value: <code>{setup.branch}</code> }];
+      return [{ k, label: COURSE.setup.branch.label, value: <code>{setup.branch}</code> }];
     if (k === 'model' && setup.model !== null)
-      return [{ k, label: 'Your model', value: modelLabel(setup.model) }];
+      return [{ k, label: COURSE.setup.model.label, value: modelLabel(setup.model) }];
     return [];
   });
   if (!notes.length) return null;

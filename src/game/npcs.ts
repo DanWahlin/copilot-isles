@@ -5,6 +5,7 @@ import type { CircleObstacle } from '../world/contracts';
 import type { VillageAnchor } from '../world/village/kit';
 import type { CollisionWorld } from './collision';
 import { wrapAngle } from '../util/math';
+import { COURSE } from '../course/catalog';
 
 export interface NpcSpec {
   /** Who they are in scripts and interactions (`npc:<id>`). */
@@ -51,7 +52,19 @@ export interface NpcSpec {
 }
 
 /** Test Cove folk (POC §4.3 cast, trimmed for the spike). Barks tease chapter-00 lessons. */
-export const COVE_NPCS: NpcSpec[] = [
+/**
+ * The cast with the course's voiced lines for anyone who has some (`course.json` →
+ * `hooks.npcVoiced`, by NPC id): they say those instead of a bark when there's no script for them.
+ */
+export function withCourseVoices(specs: NpcSpec[]): NpcSpec[] {
+  for (const s of specs) {
+    const v = COURSE.hooks.npcVoiced[s.id];
+    if (v) s.voiced = [...v];
+  }
+  return specs;
+}
+
+export const COVE_NPCS: NpcSpec[] = withCourseVoices([
   {
     id: 'nell',
     name: 'Nell Tidewell',
@@ -59,7 +72,6 @@ export const COVE_NPCS: NpcSpec[] = [
     // At the foot of her door stairs (they run 2.25 m out from the wall; the anchor's 0.9 out).
     out: 1.9,
     clip: 'idle',
-    voiced: ['nell.papers.01', 'nell.papers.05'],
     talkShot: {
       // Keep the door-stair view, but leave room behind the captain's shoulder.
       shotLocal: [4.5, 2.4, 4.8],
@@ -175,7 +187,7 @@ export const COVE_NPCS: NpcSpec[] = [
     obstacleR: 0.26,
     talkEyeLift: 2.4,
   },
-];
+]);
 
 export interface Npc {
   spec: NpcSpec;

@@ -1,3 +1,6 @@
+import { onCourse } from '../../course/active';
+import type { PuzzleFile } from '../../course/pack';
+import { puzzleContent } from '../../course/puzzles';
 /**
  * P1.2 The Three Helms (Chapter 01, Rhea): three orders sailed in your own ship, out in the bay south
  * of Port Meridian's harbour mouth. At each buoy Rhea hands you an order card, written from the use
@@ -60,50 +63,23 @@ export interface HelmOrder {
 
 export const HELM_ORDER: readonly HelmMode[] = ['interactive', 'plan', 'autopilot'];
 
-/** The modes as the app describes them (01 §Modes, "How the app interprets it"). */
-export const MODE_INFO: Readonly<Record<HelmMode, { name: string; says: string }>> = {
-  interactive: { name: 'Interactive', says: 'Step-by-step collaboration' },
-  plan: { name: 'Plan', says: 'Plan first, execute when ready' },
-  autopilot: { name: 'Autopilot', says: 'End-to-end execution without interruption' },
-};
-
 /**
- * The three orders, keyed by the helm that fits them (the buoys come in this order, and each run ends
- * near the next buoy). Each is a use case from the course's modes table: involved throughout, the
- * approach matters, well defined with a clear outcome.
+ * The modes as the course describes them (for the Copilot app course, 01 §Modes, "How the app
+ * interprets it"), and the three orders, keyed by the helm that fits them (the buoys come in this
+ * order, and each run ends near the next buoy): the course pack's `puzzles/three-helms.json`.
  */
-export const HELM_ORDERS: Readonly<Record<HelmMode, HelmOrder>> = {
-  interactive: {
-    name: 'The Blue Marks',
-    line: 'mer.helm.order.interactive',
-    text: 'Thread the blue marks with me. I want you involved the whole way, calling every turn.',
-    wrong: {
-      interactive: null,
-      plan: 'mer.helm.wrong.interactive.plan',
-      autopilot: 'mer.helm.wrong.interactive.autopilot',
-    },
-  },
-  plan: {
-    name: 'The Reef Passage',
-    line: 'mer.helm.order.plan',
-    text: 'Take her through the reef passage. The approach matters here, so we see the route before we move.',
-    wrong: {
-      interactive: 'mer.helm.wrong.plan.interactive',
-      plan: null,
-      autopilot: 'mer.helm.wrong.plan.autopilot',
-    },
-  },
-  autopilot: {
-    name: 'The Run Home',
-    line: 'mer.helm.order.autopilot',
-    text: 'Take her home to your berth on the east arm. It’s well defined, and the outcome’s clear.',
-    wrong: {
-      interactive: 'mer.helm.wrong.autopilot.interactive',
-      plan: 'mer.helm.wrong.autopilot.plan',
-      autopilot: null,
-    },
-  },
-};
+export let MODE_INFO: Readonly<Record<HelmMode, { name: string; says: string }>> = {} as Record<
+  HelmMode,
+  { name: string; says: string }
+>;
+export let HELM_ORDERS: Readonly<Record<HelmMode, HelmOrder>> = {} as Record<HelmMode, HelmOrder>;
+onCourse(() => {
+  const c = puzzleContent<PuzzleFile & { modes: typeof MODE_INFO; orders: typeof HELM_ORDERS }>(
+    'three-helms',
+  );
+  MODE_INFO = c.modes;
+  HELM_ORDERS = c.orders;
+});
 
 /** How close to a buoy you hear its order (each run stops about 28 m from the next buoy). */
 export const TAKE_RANGE = 34;

@@ -13,6 +13,10 @@ import {
 } from '../../world/sites/crate-yard-logic';
 import { ANDERS_SOLVED } from '../meridian-quests';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
+import { puzzleContent, textOf } from '../../course/puzzles';
+
+/** The yard's words: the course pack's `puzzles/crate-yard.json`. */
+const T = (key: string) => textOf(puzzleContent('crate-yard'), key);
 
 const YARD_ID = 'P1.1';
 const DIR = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] } as const;
@@ -87,7 +91,7 @@ export function createCrateYard(
 
   host.interactions.add({
     id: 'crates:push',
-    label: () => 'Push the crate',
+    label: () => T('push'),
     get x() {
       return focus ? site.cellCenter(state.at[focus.crate]![0], state.at[focus.crate]![1]).x : 1e6;
     },
@@ -106,7 +110,7 @@ export function createCrateYard(
   const lever = site.anchors.crateLever!;
   host.interactions.add({
     id: 'crates:reset',
-    label: () => 'Reset the yard',
+    label: () => T('reset'),
     x: lever.x,
     y: lever.y,
     z: lever.z,
@@ -134,7 +138,7 @@ export function createCrateYard(
     moves += 1;
     if (!undoTold && moves === 2) {
       undoTold = true;
-      host.hud.toast('Pushed one the wrong way? Press Z (LB on a gamepad) to take it back.', 4);
+      host.hud.toast(T('undoHint'), 4);
     }
     site.setCrate(r.crate, r.to);
     host.audio?.sfx.oneShot('stone_turn', at(r.crate), 0.8);
@@ -147,10 +151,10 @@ export function createCrateYard(
   /** Takes back the last push (Z or LB), unless you're standing where the crate goes back. */
   function takeBack(): void {
     if (!started() || solved || site.sliding || !near() || !host.canAct()) return;
-    if (!history.length) return host.hud.toast('No push to take back. The lever by the gate starts over.', 3);
+    if (!history.length) return host.hud.toast(T('nothingToUndo'), 3);
     const me = site.cellAt(host.player.x, host.player.z);
     const i = undo(state, history, (x, z) => !!me && me[0] === x && me[1] === z);
-    if (i < 0) return host.hud.toast('Step out of the way, Captain, so the crate can slide back.', 3);
+    if (i < 0) return host.hud.toast(T('stepAside'), 3);
     moves = Math.max(0, moves - 1);
     site.setCrate(i, state.at[i]!);
     const c = site.cellCenter(state.at[i]![0], state.at[i]![1]);
@@ -192,7 +196,7 @@ export function createCrateYard(
     await new Promise((r) => setTimeout(r, 700));
     host.audio?.sfx.oneShot('chime_solve', undefined, 0.8);
     const ok = await host.beat(ANDERS_SOLVED, 'Anders');
-    if (!ok) host.hud.toast('Talk to Anders to finish up at the shipyard.', 3.5);
+    if (!ok) host.hud.toast(T('finishWithAnders'), 3.5);
   }
 
   const near = () => {
@@ -210,16 +214,16 @@ export function createCrateYard(
     hintKey: () => state.at.map(String).join('|'),
     hint(tier: HintTier) {
       if (!started() || solved) return null;
-      if (tier === 1) return 'Read each crate, Captain. Does the agent need your repository for this job?';
+      if (tier === 1) return T('hint1');
       const path = solve(layout, state, standing());
-      if (!path?.length) return 'That yard’s jammed, Captain. Pull the lever by the gate to start it over.';
+      if (!path?.length) return T('hintJammed');
       const step = path[0]!;
       if (tier === 2) {
         setHint(step.crate);
-        return 'Try the glowing crate next. Which plate does its job belong on?';
+        return T('hint2');
       }
       tryPush(step.from, step.dir);
-      return 'There, I’ve pushed one for you. Keep going!';
+      return T('hint3');
     },
     update() {
       const here = started() && !solved && near();

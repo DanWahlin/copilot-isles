@@ -2,6 +2,10 @@ import type { VillageAnchor } from '../../world/village/kit';
 import type { CameraShot } from '../follow-camera';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 import { sleep } from '../../util/math';
+import { puzzleContent, textOf } from '../../course/puzzles';
+
+/** Its words: the course pack's `puzzles/christening.json`. */
+const T = (key: string) => textOf(puzzleContent('christening'), key);
 
 const CHRISTENING_ID = 'Q0.11.christen';
 const QUEST = 'Q0.11';
@@ -102,8 +106,8 @@ export function createChristening(
     hintKey: () => step() ?? '-',
     hint(tier: HintTier) {
       if (step() !== 'start') return null;
-      if (tier === 1) return 'Every ship needs a name before her first voyage. Nell’s waiting by your bow.';
-      return 'Talk to Nell at the end of the pier, Captain. She’s got a coconut with your name on it.';
+      if (tier === 1) return T('hint1');
+      return T('hint2');
     },
     cue,
     update() {

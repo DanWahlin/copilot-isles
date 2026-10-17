@@ -2,7 +2,15 @@ import type { RecordsAlcovesSite, RecordsShot } from '../../world/sites/records-
 import { createViewStore } from './channel-routing/view';
 import type { LostLettersStore, LostLettersView } from '../../ui/puzzles/LostLetters';
 import { PELL_LETTERS_DEBRIEF, PELL_SOLVED } from '../meridian-quests';
-import { DESTINATIONS, HallLetters, LETTERS, destinationName, type Destination } from './hall-letters';
+import {
+  DESTINATIONS,
+  HallLetters,
+  LETTERS,
+  destinationName,
+  lettersContent,
+  type Destination,
+} from './hall-letters';
+import { lineOf, textOf } from '../../course/puzzles';
 import { PadEdges, standardPad } from './pad-edges';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 
@@ -20,6 +28,8 @@ export interface LettersHost extends PuzzleHost {
   place(x: number, z: number, heading: number): void;
 }
 
+const T = (key: string, v?: Readonly<Record<string, string | number>>) => textOf(lettersContent(), key, v);
+const L = (key: string) => lineOf(lettersContent(), key);
 const plain = (s: string) => s.replace(/\*\*([^*]+)\*\*/g, '$1');
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -66,7 +76,7 @@ export function createLostLetters(host: LettersHost, site: RecordsAlcovesSite): 
 
   host.interactions.add({
     id: 'letters:desk',
-    label: () => (letters.index > 0 ? 'Sort the rest of Pell’s letters' : 'Sort Pell’s letters'),
+    label: () => (letters.index > 0 ? T('sortRest') : T('sort')),
     x: site.deskTop.x,
     y: site.desk.y,
     z: site.deskTop.z,
@@ -131,13 +141,12 @@ export function createLostLetters(host: LettersHost, site: RecordsAlcovesSite): 
     host.audio?.sfx.oneShot('quill', at, 0.8);
     site.setFiled(letters.index);
     save();
-    const filed =
-      d === 'tray' ? 'Back in Pell’s tray: not a Settings job.' : `Filed in **${destinationName(d)}**.`;
+    const filed = d === 'tray' ? T('filedTray') : T('filed', { name: destinationName(d) });
     view.set({ message: { text: filed, tone: 'good', cite: r.letter.ok ? r.letter.cite.section : null } });
     if (r.letter.ok) await host.dialogue.play([r.letter.ok]);
     else if (!okSaid && !r.done) {
       okSaid = true;
-      await host.dialogue.play(['mer.pell.letter.ok']);
+      await host.dialogue.play([L('ok')]);
     } else await wait(host.reducedMotion() ? 300 : 800);
     if (r.done) {
       await onSolved();
@@ -159,7 +168,7 @@ export function createLostLetters(host: LettersHost, site: RecordsAlcovesSite): 
     }
     host.setQuest(QUEST, 'solved');
     const ok = await host.beat(PELL_SOLVED, 'Pell');
-    if (!ok) host.hud.toast('Talk to Pell to finish up in the Hall of Records.', 3.5);
+    if (!ok) host.hud.toast(T('noTalk'), 3.5);
   }
 
   /** Wingman's third hint, or a test: files the letter in hand where it belongs. */
@@ -196,14 +205,13 @@ export function createLostLetters(host: LettersHost, site: RecordsAlcovesSite): 
     hintKey: () => `${letters.index}`,
     hint(tier: HintTier) {
       if (!started() || !available()) return null;
-      if (tier === 1)
-        return 'Read the letter for what the captain’s trying to do, Captain. Then think where that lives in Settings.';
+      if (tier === 1) return T('hint1');
       if (tier === 2) {
         view.set({ hint: DESTINATIONS.indexOf(letters.letter!.answer) });
-        return 'I’ve marked the right spot for this letter. Open the bundle and look for the glow.';
+        return T('hint2');
       }
       fileForYou();
-      return 'There, I’ve filed one for you. Keep going!';
+      return T('hint3');
     },
     update() {
       if (open) pollPad();

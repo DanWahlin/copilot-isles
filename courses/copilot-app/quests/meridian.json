@@ -162,6 +162,217 @@
       "label": "Admiral Vale"
     }
   },
+  "beats": [
+    {
+      "npc": "tobias",
+      "when": {
+        "Q1.1": "done"
+      },
+      "say": "mer.tobias.done"
+    },
+    {
+      "npc": "tobias",
+      "script": "tobias"
+    },
+    {
+      "npc": "mina",
+      "when": {
+        "Q1.1": {
+          "not": "done"
+        }
+      },
+      "say": "mer.mina.wait"
+    },
+    {
+      "npc": "mina",
+      "when": {
+        "Q1.2": "done"
+      },
+      "say": "mer.mina.done"
+    },
+    {
+      "npc": "mina",
+      "script": "mina.tour"
+    },
+    {
+      "npc": "lyra_meridian",
+      "when": {
+        "Q1.2": {
+          "not": "done"
+        }
+      },
+      "say": "mer.lyra.wait"
+    },
+    {
+      "npc": "lyra_meridian",
+      "when": {
+        "Q1.3": "done"
+      },
+      "say": "mer.lyra.done"
+    },
+    {
+      "npc": "lyra_meridian",
+      "script": "lyra"
+    },
+    {
+      "npc": "anders",
+      "when": {
+        "Q1.3": {
+          "not": "done"
+        }
+      },
+      "say": "mer.anders.wait"
+    },
+    {
+      "npc": "anders",
+      "when": {
+        "Q1.4": "crates"
+      },
+      "say": "mer.anders.crates.wait"
+    },
+    {
+      "npc": "anders",
+      "when": {
+        "Q1.4": "solved"
+      },
+      "script": "anders.solved"
+    },
+    {
+      "npc": "anders",
+      "when": {
+        "Q1.4": "done"
+      },
+      "say": "mer.anders.done"
+    },
+    {
+      "npc": "anders",
+      "script": "anders"
+    },
+    {
+      "npc": "rhea",
+      "when": {
+        "Q1.4": {
+          "not": "done"
+        }
+      },
+      "say": "mer.rhea.wait"
+    },
+    {
+      "npc": "rhea",
+      "when": {
+        "Q1.5": "helms"
+      },
+      "say": "mer.rhea.helms.wait"
+    },
+    {
+      "npc": "rhea",
+      "when": {
+        "Q1.5": "solved"
+      },
+      "script": "rhea.debrief"
+    },
+    {
+      "npc": "rhea",
+      "when": {
+        "Q1.5": "done"
+      },
+      "say": "mer.rhea.done"
+    },
+    {
+      "npc": "rhea",
+      "script": "rhea"
+    },
+    {
+      "npc": "oren",
+      "when": {
+        "Q1.5": {
+          "not": "done"
+        }
+      },
+      "say": "mer.oren.wait"
+    },
+    {
+      "npc": "oren",
+      "when": {
+        "Q1.6": "done"
+      },
+      "say": "mer.oren.done"
+    },
+    {
+      "npc": "oren",
+      "script": "oren"
+    },
+    {
+      "npc": "pell",
+      "when": {
+        "Q1.6": {
+          "not": "done"
+        }
+      },
+      "say": "mer.pell.wait"
+    },
+    {
+      "npc": "pell",
+      "when": {
+        "Q1.7": "letters"
+      },
+      "say": "mer.pell.letters.wait"
+    },
+    {
+      "npc": "pell",
+      "when": {
+        "Q1.7": "solved"
+      },
+      "script": "pell.solved"
+    },
+    {
+      "npc": "pell",
+      "when": {
+        "Q1.7": {
+          "not": "done"
+        }
+      },
+      "script": "pell"
+    },
+    {
+      "npc": "pell",
+      "when": {
+        "$lettersFiled": false
+      },
+      "say": "mer.pell.letters.again"
+    },
+    {
+      "npc": "pell",
+      "say": "mer.pell.done"
+    },
+    {
+      "npc": "admiral",
+      "when": {
+        "Q1.7": {
+          "not": "done"
+        }
+      },
+      "say": "mer.admiral.wait"
+    },
+    {
+      "npc": "admiral",
+      "when": {
+        "Q1.8": "exam"
+      },
+      "script": "admiral.retry"
+    },
+    {
+      "npc": "admiral",
+      "when": {
+        "Q1.8": "done"
+      },
+      "say": "mer.admiral.done"
+    },
+    {
+      "npc": "admiral",
+      "script": "admiral"
+    }
+  ],
   "scripts": {
     "tobias": [
       {

@@ -6,7 +6,7 @@ import type { CameraShot } from '../../follow-camera';
 import { PadEdges, standardPad } from '../pad-edges';
 import type { HintTier, Puzzle, PuzzleHost } from '../types';
 import type { ScriptStep } from '../../script';
-import { COLS, CREW_LOOK, CREWS, ROWS } from './boards';
+import { COLS, CREW_LOOK, CREWS, ROWS, routingContent } from './boards';
 import { tileLabel } from './logic';
 import {
   ChannelRoutingModel,
@@ -18,7 +18,15 @@ import {
 } from './model';
 import type { Crew } from './types';
 import { createViewStore, type ChannelRoutingStore, type ChannelRoutingView } from './view';
-import { BEST_LINE, CREW_ORDERS, WORKSPACES, workspaceName, type Workspace } from './workspaces';
+import {
+  BEST_LINE,
+  CREW_ORDERS,
+  WORKSPACES,
+  workspaceName,
+  workspacesContent,
+  type Workspace,
+} from './workspaces';
+import { lineOf, textOf } from '../../../course/puzzles';
 
 /** What Channel Routing needs beyond the usual puzzle host: the camera, voices and the screen. */
 export interface ChannelRoutingHost extends PuzzleHost {
@@ -46,28 +54,18 @@ export interface ChannelRoutingHost extends PuzzleHost {
 const ID = 'P2.1';
 /** Saved with the quests: the round you'd got to (a checkpoint at each round's start, POC §3.9). */
 const SAVE = 'P2.1';
-const TWIST_QUESTION =
-  'Feature and Docs both want to show their work at Lookout 5173. Their channels are separate. So why are they stuck?';
-
-/** The title cards over Fen's demo (spec §5.3, the cold open). */
-const OLD_WAY = {
-  kicker: 'The old way',
-  title: 'One shared trough',
-  text: 'Every crew’s water runs down the same trough, so it all mixes into mud.',
-};
-const NEW_WAY = {
-  kicker: 'The new way',
-  title: 'One channel per crew',
-  text: 'Each crew’s water stays in its own channel, all the way to its own wheel.',
-};
+const T = (key: string, v?: Readonly<Record<string, string | number>>) => textOf(routingContent(), key, v);
+const L = (key: string) => lineOf(routingContent(), key);
+/** Round 3's words (the places and the crews' orders). */
+const W = (key: string, v?: Readonly<Record<string, string | number>>) => textOf(workspacesContent(), key, v);
+const twistQuestion = () => routingContent().twist.question;
 
 const crewName = (c: Crew) => CREW_LOOK[c].name;
-const PICK_HELP =
-  'Pick where each crew works: New worktree, Current checkout or Cloud. Use the arrow keys or 1 to 3, then open the gates.';
+const pickHelp = () => W('pickHelp');
 /** “Feature’s”, “Docs’”. */
-const whose = (c: Crew) => (crewName(c).endsWith('s') ? `${crewName(c)}’` : `${crewName(c)}’s`);
+const whose = (c: Crew) => T(crewName(c).endsWith('s') ? 'whoseS' : 'whose', { name: crewName(c) });
 const where = (at: readonly [number, number] | null) =>
-  at ? ` at row ${at[0] + 1}, column ${at[1] + 1}` : '';
+  at ? T('where', { row: at[0] + 1, col: at[1] + 1 }) : '';
 
 /** Round 3's result per crew, in words (never colour alone). */
 export function workspaceVerdicts(run: WorkspaceRun): Record<Crew, { right: boolean; text: string }> {
@@ -78,7 +76,7 @@ export function workspaceVerdicts(run: WorkspaceRun): Record<Crew, { right: bool
       right: v.right,
       text:
         (v.right ? CREW_ORDERS[crew].right?.[v.pick] : undefined) ??
-        `${workspaceName(v.pick)} ${v.right ? 'fits' : 'doesn’t fit'} this order.`,
+        W(v.right ? 'fits' : 'doesntFit', { place: workspaceName(v.pick) }),
     };
   }
   return out;
@@ -86,23 +84,20 @@ export function workspaceVerdicts(run: WorkspaceRun): Record<Crew, { right: bool
 
 /** The result in words, for the message box and screen readers (never colour alone). */
 export function describeRun(run: RunResult, round: 1 | 2 | 3): string {
-  if (run.solved)
-    return round === 1
-      ? 'Feature’s water turns Feature’s wheel. One crew, one channel.'
-      : 'Every crew’s water turns its own wheel, and nothing mixed.';
+  if (run.solved) return round === 1 ? T('solved1') : T('solved');
   const p = run.problem!;
   const who = whose(p.crew);
   switch (p.end) {
     case 'mixed':
-      return `${who} water mixed with another crew’s${where(p.at)}.`;
+      return T('mixed', { who, where: where(p.at) });
     case 'mainHall':
-      return `${who} water spilled into the Great Hall: the main checkout.`;
+      return T('mainHall', { who });
     case 'wrongWheel': {
       const f = run.flows.find((x) => x.crew === p.crew);
-      return `${who} water turned ${f?.wheel ? whose(f.wheel) : 'another crew’s'} wheel.`;
+      return T('wrongWheel', { who, whose: f?.wheel ? whose(f.wheel) : T('anotherCrews') });
     }
     default:
-      return `${who} water stops short${where(p.at)}.`;
+      return T('deadEnd', { who, where: where(p.at) });
   }
 }
 
@@ -198,7 +193,7 @@ export function createChannelRouting(
     await mount();
     if (step() === 'twist') {
       // The Spire's question shows while Fen sets it up (never the board behind it).
-      view.set({ open: true, busy: true, twist: { question: TWIST_QUESTION, choices: [] } });
+      view.set({ open: true, busy: true, twist: { question: twistQuestion(), choices: [] } });
       await twist();
       return;
     }
@@ -212,15 +207,15 @@ export function createChannelRouting(
       verdicts: null,
       announce:
         model.state.round === 3
-          ? `Round 3 of 3. ${PICK_HELP}`
-          : `Round ${model.state.round} of 3. ${liveCrews()} Use the arrow keys to pick a tile and E to turn it.`,
+          ? T('round', { n: 3, rest: pickHelp() })
+          : T('round', { n: model.state.round, rest: T('turnHelp', { live: liveCrews() }) }),
     });
     host.label?.('puzzle:P2.1');
   }
 
   const liveCrews = () => {
     const live = (['feature', 'bugfix', 'docs'] as const).filter((c) => model.state.live[c]).map(crewName);
-    return live.length === 1 ? `${live[0]}’s gate is open.` : `${live.join(', ')} gates are open.`;
+    return live.length === 1 ? T('gateOpen', { crew: live[0]! }) : T('gatesOpen', { crews: live.join(', ') });
   };
 
   function close(): void {
@@ -255,7 +250,7 @@ export function createChannelRouting(
     if (model.state.round === 3) return runWorkspaces();
     const run = model.run();
     sfx('gate_lift', 0.7);
-    sync({ busy: true, pulse: null, message: { text: 'The gates are open…', tone: 'info' }, announce: '' });
+    sync({ busy: true, pulse: null, message: { text: T('running'), tone: 'info' }, announce: '' });
     const longest = Math.max(0, ...run.flows.map((f) => f.cells.length));
     // The overlay's water takes about 0.22 s a tile; the terrace animates its own.
     await Promise.all([sys.flume.runFlows(run.flows), wait(longest * 220 + 500)]);
@@ -280,7 +275,7 @@ export function createChannelRouting(
   /** Round 3: each crew's water goes where its workspace sends it, then Fen says why. */
   async function runWorkspaces(): Promise<void> {
     if (!model.picked) {
-      const text = 'Pick a place for every crew first.';
+      const text = W('pickFirst');
       sync({ message: { text, tone: 'info' }, announce: text });
       return;
     }
@@ -291,7 +286,7 @@ export function createChannelRouting(
       busy: true,
       pulse: null,
       verdicts: null,
-      message: { text: 'The gates are open…', tone: 'info' },
+      message: { text: T('running'), tone: 'info' },
       announce: '',
     });
     if (CREWS.some((c) => run.verdicts[c].pick === 'cloud')) {
@@ -304,18 +299,18 @@ export function createChannelRouting(
     if (!view.get().open) return;
     const verdicts = workspaceVerdicts(run);
     if (run.solved) {
-      const text = 'Every crew works where its order fits.';
+      const text = W('solved');
       sfx('chime_solve', 0.9);
       sync({ message: { text, tone: 'good' }, verdicts, announce: text });
       await solvedRound();
       return;
     }
     const p = run.problem!;
-    const text = CREW_ORDERS[p.crew].why[p.pick] ?? `${crewName(p.crew)} isn’t in the best place.`;
+    const text = CREW_ORDERS[p.crew].why[p.pick] ?? W('notBest', { crew: crewName(p.crew) });
     sync({
       message: { text, crew: p.crew, tone: 'bad' },
       verdicts,
-      announce: `${CREWS.map((c) => `${crewName(c)}: ${verdicts[c].text}`).join(' ')} ${text}`,
+      announce: `${CREWS.map((c) => W('verdict', { crew: crewName(c), text: verdicts[c].text })).join(' ')} ${text}`,
     });
     await host.say([BEST_LINE[p.best]]);
     if (!view.get().open) return;
@@ -327,32 +322,32 @@ export function createChannelRouting(
   async function solvedRound(): Promise<void> {
     const round = model.state.round;
     if (round === 1) {
-      await host.say(['tb.fen.round1']);
+      await host.say([L('round1')]);
       model.startRound(2);
       host.setQuest(SAVE, 'r2');
       await sys.flume.setRound(2);
       sys.flume.resetWater();
-      sync({ busy: false, message: null, announce: `Round 2 of 3. ${liveCrews()}` });
+      sync({ busy: false, message: null, announce: T('round', { n: 2, rest: liveCrews() }) });
       return;
     }
     if (round === 2) {
-      await host.say(['tb.fen.round2']);
+      await host.say([L('round2')]);
       model.startRound(3);
       host.setQuest(SAVE, 'r3');
       await sys.flume.setRound(3);
       sys.flume.setBoard(model.state.board, !host.reducedMotion());
       sys.flume.resetWater();
       sync({
-        message: { text: 'Every crew has its own channel. Now pick where each one works.', tone: 'info' },
+        message: { text: W('intro'), tone: 'info' },
         crewFocus: 0,
         verdicts: null,
-        announce: `Round 3 of 3. ${PICK_HELP}`,
+        announce: T('round', { n: 3, rest: pickHelp() }),
       });
-      await host.say(['tb.fen.r3.intro']);
+      await host.say([L('r3Intro')]);
       sync({ busy: false });
       return;
     }
-    await host.say(['tb.fen.round3']);
+    await host.say([L('round3')]);
     host.setQuest('Q2.5', 'twist');
     await twist();
   }
@@ -362,14 +357,14 @@ export function createChannelRouting(
     sync({ busy: true, message: null, pulse: null, hits: null });
     host.frame(camShot('twistCam'));
     host.label?.('puzzle:P2.2');
-    await host.say(['tb.fen.twist.01']);
+    await host.say([L('twist1')]);
     sfx('timber_creak_groan', 0.8);
     await sys.spire.playJam();
-    await host.say(['tb.fen.twist.02']);
+    await host.say([L('twist2')]);
     sync({
       busy: false,
-      twist: { question: TWIST_QUESTION, choices: TWIST_CHOICES.map(({ id, text }) => ({ id, text })) },
-      announce: TWIST_QUESTION,
+      twist: { question: twistQuestion(), choices: TWIST_CHOICES.map(({ id, text }) => ({ id, text })) },
+      announce: twistQuestion(),
     });
   }
 
@@ -380,8 +375,8 @@ export function createChannelRouting(
     view.set({
       busy: true,
       twist: { ...s.twist, picked: { id: c.id, right: c.right } },
-      message: { text: c.right ? 'That’s it.' : 'Not quite. Listen to Fen.', tone: c.right ? 'good' : 'bad' },
-      announce: `${c.text} ${c.right ? 'Right.' : 'Not quite.'}`,
+      message: { text: T(c.right ? 'twistRight' : 'twistWrong'), tone: c.right ? 'good' : 'bad' },
+      announce: `${c.text} ${T(c.right ? 'right' : 'notQuite')}`,
     });
     if (!c.right) {
       if (id === 'share') {
@@ -403,7 +398,7 @@ export function createChannelRouting(
       sys.spire.preview('docs', 5174, true);
       await host.say([c.line]);
     }
-    await host.say(['wingman.tb.ports']);
+    await host.say([L('ports')]);
     host.setQuest('Q2.5', 'solved');
     close();
     await host.beat(host.closing, 'Fen');
@@ -412,39 +407,36 @@ export function createChannelRouting(
   // Wingman's hints (spec §5.4). Tier 3 turns one wrong tile (this isn't a Trial).
   const hint = (tier: HintTier): string | null => {
     if (!view.get().open) return null;
-    if (view.get().twist) return 'Their channels are fine. What else do two previews share?';
+    if (view.get().twist) return T('hintTwist');
     const round = model.state.round;
     if (round === 3) {
       const crew = model.wrongCrew();
-      if (!crew) return 'Every crew’s in the right place, Captain. Open the gates!';
+      if (!crew) return W('hintDone');
       const order = CREW_ORDERS[crew];
       const i = CREWS.indexOf(crew);
-      if (tier === 1) return 'Read each crew’s order. Own channel, a quick look, or off your deck?';
+      if (tier === 1) return W('hint1');
       if (tier === 2) {
         sync({ crewFocus: i });
-        return `Look at ${whose(crew)} order again: “${order.order}”`;
+        return W('hint2', { whose: whose(crew), order: order.order });
       }
       model.pick(crew, order.best);
       sync({ crewFocus: i, verdicts: null, message: null });
-      return `I put ${crewName(crew)} on ${workspaceName(order.best)} for you.`;
+      return W('hint3', { crew: crewName(crew), place: workspaceName(order.best) });
     }
-    if (tier === 1)
-      return mixedSeen
-        ? 'Follow each colour down from its gate. Where do two meet?'
-        : 'Follow the water down from the gate. Where does it go wrong?';
+    if (tier === 1) return mixedSeen ? T('hint1Mixed') : T('hint1');
     if (tier === 2) {
       const cell = model.wrongTile();
-      if (!cell) return 'Every tile’s right, Captain. Open the gates!';
+      if (!cell) return T('hintDone');
       pulseUntil = performance.now() + 6000;
       sync({ pulse: cell, cursor: cell });
       model.setCursor(cell);
-      return `That one, Captain: row ${cell[0] + 1}, column ${cell[1] + 1}.`;
+      return T('hint2', { row: cell[0] + 1, col: cell[1] + 1 });
     }
     const fixed = model.fixOne();
-    if (!fixed) return 'Every tile’s right, Captain. Open the gates!';
+    if (!fixed) return T('hintDone');
     sys.flume.setBoard(model.state.board, !host.reducedMotion());
     sync({ pulse: fixed });
-    return `I turned row ${fixed[0] + 1}, column ${fixed[1] + 1} for you.`;
+    return T('hint3', { row: fixed[0] + 1, col: fixed[1] + 1 });
   };
 
   const store: ChannelRoutingStore = {
@@ -464,18 +456,18 @@ export function createChannelRouting(
       undo: () => {
         if (view.get().busy || !model.undo()) return;
         sys.flume.setBoard(model.state.board, !host.reducedMotion());
-        sync({ announce: 'Undone.' });
+        sync({ announce: T('undone') });
       },
       reset: () => {
         if (view.get().busy) return;
         if (model.state.round === 3) {
           model.reset();
-          sync({ verdicts: null, message: null, announce: 'Every crew’s place is cleared.' });
+          sync({ verdicts: null, message: null, announce: W('cleared') });
           return;
         }
         model.reset();
         sys.flume.setBoard(model.state.board, !host.reducedMotion());
-        sync({ pulse: null, message: null, announce: 'The board’s back to the start of the round.' });
+        sync({ pulse: null, message: null, announce: T('reset') });
       },
       hint: () => {
         // Same tiers as Wingman's Q: a nudge, then the tile, then one turned for you.
@@ -494,7 +486,7 @@ export function createChannelRouting(
           crewFocus: CREWS.indexOf(crew),
           verdicts: null,
           message: null,
-          announce: `${crewName(crew)}: ${workspaceName(w)}.`,
+          announce: W('picked', { crew: crewName(crew), place: workspaceName(w) }),
         });
       },
       focusCrew: (d, to) => {
@@ -507,7 +499,7 @@ export function createChannelRouting(
   // The board's interaction: E at the Gate Board.
   host.interactions.add({
     id: 'flume:board',
-    label: () => (step() === 'twist' ? 'Go back to the Spire question' : 'Use the Gate Board'),
+    label: () => (step() === 'twist' ? T('backToTwist') : T('useBoard')),
     x: at.x,
     y: at.y,
     z: at.z,
@@ -596,7 +588,7 @@ export function createChannelRouting(
     async demo() {
       host.frame(camShot('puzzleCam'));
       await mount();
-      view.set({ card: OLD_WAY });
+      view.set({ card: routingContent().demo.old });
       sfx('gate_lift', 0.7);
       await sys.flume.demoSharedTrough();
     },
@@ -608,7 +600,7 @@ export function createChannelRouting(
       await host.fade?.(true, ms);
       sys.flume.clearSharedTrough();
       sys.flume.setBoard(model.state.board, false);
-      view.set({ card: NEW_WAY });
+      view.set({ card: routingContent().demo.new });
       await host.fade?.(false, ms);
     },
     engaged: () => view.get().open,

@@ -1,0 +1,130 @@
+{
+  "$schema": "../../schemas/puzzle-choose-tool.schema.json",
+  "id": "P1.2",
+  "mechanic": "choose-tool",
+  "$comment": "The Three Helms (Q1.5, Rhea): a Copilot-app-only mechanic. Three orders sailed in your own ship; at each buoy you pick the helm (the session mode) that fits, and the run acts out the mode: Interactive (you choose each heading), Plan (review her plan: approve, exit, or suggest changes), Autopilot (she sails it end to end). The courses, buoys and headings are the game's; the modes' names, the orders (01 §Modes, the use-case column), the review's options (worded as the app words them, 02 §Exercise: Start a Session from a Branch), Rhea's lines and the readouts are this file's.",
+  "modes": {
+    "interactive": {
+      "name": "Interactive",
+      "says": "Step-by-step collaboration"
+    },
+    "plan": {
+      "name": "Plan",
+      "says": "Plan first, execute when ready"
+    },
+    "autopilot": {
+      "name": "Autopilot",
+      "says": "End-to-end execution without interruption"
+    }
+  },
+  "orders": {
+    "interactive": {
+      "name": "The Blue Marks",
+      "line": "mer.helm.order.interactive",
+      "text": "Thread the blue marks with me. I want you involved the whole way, calling every turn.",
+      "wrong": {
+        "interactive": null,
+        "plan": "mer.helm.wrong.interactive.plan",
+        "autopilot": "mer.helm.wrong.interactive.autopilot"
+      }
+    },
+    "plan": {
+      "name": "The Reef Passage",
+      "line": "mer.helm.order.plan",
+      "text": "Take her through the reef passage. The approach matters here, so we see the route before we move.",
+      "wrong": {
+        "interactive": "mer.helm.wrong.plan.interactive",
+        "plan": null,
+        "autopilot": "mer.helm.wrong.plan.autopilot"
+      }
+    },
+    "autopilot": {
+      "name": "The Run Home",
+      "line": "mer.helm.order.autopilot",
+      "text": "Take her home to your berth on the east arm. It’s well defined, and the outcome’s clear.",
+      "wrong": {
+        "interactive": "mer.helm.wrong.autopilot.interactive",
+        "plan": "mer.helm.wrong.autopilot.plan",
+        "autopilot": null
+      }
+    }
+  },
+  "review": [
+    {
+      "id": "approve",
+      "label": "Approve and implement this plan"
+    },
+    {
+      "id": "exit",
+      "label": "Exit plan mode and I will prompt myself"
+    },
+    {
+      "id": "suggest",
+      "label": "Suggest changes to the plan"
+    }
+  ],
+  "orderHints": {
+    "interactive": "“Involved the whole way” is the course’s use case for the mode that works with you step by step.",
+    "plan": "“The approach matters” is the course’s use case for the mode that plans first.",
+    "autopilot": "“Well defined, with a clear outcome” is the use case for the mode that runs end to end."
+  },
+  "lines": {
+    "take.interactive": "mer.helm.interactive.take",
+    "take.plan": "mer.helm.plan.take",
+    "take.autopilot": "mer.helm.autopilot.take",
+    "done.interactive": "mer.helm.interactive.done",
+    "done.plan": "mer.helm.plan.done",
+    "done.autopilot": "mer.helm.autopilot.done",
+    "next.plan": "mer.helm.next.plan",
+    "next.autopilot": "mer.helm.next.autopilot",
+    "check": "mer.helm.interactive.check",
+    "planGo": "mer.helm.plan.go",
+    "approveDraft": "mer.helm.plan.approve.draft",
+    "exitRevised": "mer.helm.plan.exit.revised",
+    "exit": "mer.helm.plan.exit",
+    "suggestRevised": "mer.helm.plan.suggest.revised",
+    "suggest": "mer.helm.plan.suggest"
+  },
+  "text": {
+    "orderEyebrow": "Rhea’s order · {n} of 3",
+    "sessionInteractive": "Session · Interactive",
+    "legFirst": "To mark 1",
+    "legNext": "Mark {from} → mark {to}",
+    "headingPrompt": "Which way, Captain? You choose the heading.",
+    "sessionPlan": "Session · Plan",
+    "reviewRevised": "Review plan (revised)",
+    "review": "Review plan",
+    "reviewPrompt": "Read Rhea’s plan, then choose:",
+    "hear": "Hear Rhea’s order",
+    "askInteractive": "Thread the blue marks with me, one mark at a time",
+    "leg": "→ Leg {n}: {heading}…",
+    "waitingHeading": "Waiting on you: which way to mark {n}?",
+    "askPlan": "Chart a course through the reef passage",
+    "askRevise": "Suggest changes: keep her clear of the Shoal",
+    "planRevised": "Plan (revised):",
+    "plan": "Plan:",
+    "planDone": "✓ {n}. {step}",
+    "planStep": "   {n}. {step}",
+    "reviewWaiting": "Review plan: waiting on you",
+    "sessionAutopilot": "Session · Autopilot",
+    "askAutopilot": "Take her home to the east-arm berth",
+    "working": "Working through it, no check-ins…",
+    "moored": "✓ Moored at the east arm",
+    "hintAtBuoy": "We’re at the buoy. Press E to hear Rhea’s order.",
+    "hintSail1": "Sail up to the buoy with the {flag} flag, Captain. The compass points the way.",
+    "hintSail2": "Follow the gold marker on the compass to the {flag} flag, then press E beside it.",
+    "hintSail3": "Here, the crew will take her up to the buoy for you.",
+    "hintOrder1": "Read Rhea’s order. Do you want a say at every step, a plan to review first, or a clear job to hand over?",
+    "hintOrder3": "There: the {mode} helm.",
+    "hintHeading": "Your call, Captain: either heading works. In Interactive, you direct each step.",
+    "hintHeading3": "Straight on, then.",
+    "hintReview1": "Read the plan line by line before you choose. Is any leg risky?",
+    "hintReview2Revised": "The plan’s clear of the Shoal now. Which option sails it?",
+    "hintReview2": "Leg 2 crosses the Shoal. Which option lets you fix the plan?",
+    "hintReview3Revised": "Approved. Off she goes.",
+    "hintReview3": "I’ve asked her to steer round the Shoal.",
+    "hintRun": "Rhea’s got the helm. Watch how this mode works.",
+    "buoyLabel": "Order {n}: {name}",
+    "markLabel": "Mark {n}"
+  }
+}

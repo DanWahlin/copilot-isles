@@ -1,5 +1,7 @@
 import { courseScript, islandQuests, onCourse } from '../course/active';
+import { welcomeLines } from '../course/catalog';
 import type { QuestDef, QuestTarget } from '../course/pack';
+import { beatSteps, pickBeat, type Beat } from './beats';
 import type { QuestState, QuestTracker, TrackerStatus } from './cove-quests';
 import type { ScriptStep } from './script';
 
@@ -22,6 +24,7 @@ export let MERIDIAN_ISLAND = { name: 'Port Meridian', chapter: '', goal: '', nex
 export let MERIDIAN_QUESTS: readonly QuestDef[] = [];
 
 let MAIN: readonly QuestDef[] = [];
+let BEATS: readonly Beat[] = [];
 
 /** Where the compass points on Meridian for each quest step (interaction ids; the nearest usable wins). */
 export let MERIDIAN_TARGETS: Readonly<Record<string, QuestTarget>> = {};
@@ -40,6 +43,7 @@ onCourse(() => {
   MERIDIAN_ISLAND = { name: 'Port Meridian', ...q.tracker };
   MERIDIAN_QUESTS = q.quests;
   MAIN = MERIDIAN_QUESTS.filter((d) => !d.optional);
+  BEATS = q.beats;
   MERIDIAN_TARGETS = q.targets;
   ANDERS_SOLVED = script('anders.solved');
   PELL_LETTERS_DEBRIEF = script('pell.letters.debrief');
@@ -95,58 +99,18 @@ export function meridianLog(q: QuestState): { id: string; title: string; detail:
 }
 
 /** Wingman's lines on the first landfall, once the flyover lands behind the captain. */
-export const MERIDIAN_WELCOME = ['wingman.meridian.01', 'wingman.meridian.02'] as const;
+export const MERIDIAN_WELCOME: readonly string[] = welcomeLines('meridian', false);
 
 /**
- * The beat a Meridian NPC offers right now. NPCs ahead of the story point you back to whoever's
- * next; everyone's got a line once their part's done. `lettersFiled` is whether P1.3's letters are
- * all filed (a save that finished Pell before the letters existed hears there's a new bundle).
+ * The beat a Meridian NPC offers right now: the first of the island's beats (`quests/meridian.json` →
+ * `beats`) that fits. NPCs ahead of the story point you back to whoever's next; everyone's got a line
+ * once their part's done. `lettersFiled` is whether P1.3's letters are all filed (a save that finished
+ * Pell before the letters existed hears there's a new bundle).
  */
 export function meridianNpcScript(
   npc: string,
   q: QuestState,
   o: { lettersFiled?: boolean } = {},
 ): { steps: readonly ScriptStep[] } | null {
-  const line = (id: string) => ({ steps: [{ say: id }] as readonly ScriptStep[] });
-  switch (npc) {
-    case 'tobias':
-      return done(q, 'Q1.1') ? line('mer.tobias.done') : { steps: script('tobias') };
-    case 'mina':
-      if (!done(q, 'Q1.1')) return line('mer.mina.wait');
-      return done(q, 'Q1.2') ? line('mer.mina.done') : { steps: script('mina.tour') };
-    case 'lyra_meridian':
-      if (!done(q, 'Q1.2')) return line('mer.lyra.wait');
-      return done(q, 'Q1.3') ? line('mer.lyra.done') : { steps: script('lyra') };
-    case 'anders': {
-      if (!done(q, 'Q1.3')) return line('mer.anders.wait');
-      const step = q['Q1.4'];
-      if (step === 'crates') return line('mer.anders.crates.wait');
-      if (step === 'solved') return { steps: ANDERS_SOLVED };
-      return step === 'done' ? line('mer.anders.done') : { steps: script('anders') };
-    }
-    case 'rhea': {
-      if (!done(q, 'Q1.4')) return line('mer.rhea.wait');
-      const step = q['Q1.5'];
-      if (step === 'helms') return line('mer.rhea.helms.wait');
-      if (step === 'solved') return { steps: script('rhea.debrief') };
-      return step === 'done' ? line('mer.rhea.done') : { steps: script('rhea') };
-    }
-    case 'oren':
-      if (!done(q, 'Q1.5')) return line('mer.oren.wait');
-      return done(q, 'Q1.6') ? line('mer.oren.done') : { steps: script('oren') };
-    case 'pell': {
-      if (!done(q, 'Q1.6')) return line('mer.pell.wait');
-      const step = q['Q1.7'];
-      if (step === 'letters') return line('mer.pell.letters.wait');
-      if (step === 'solved') return { steps: PELL_SOLVED };
-      if (step !== 'done') return { steps: script('pell') };
-      return line(o.lettersFiled === false ? 'mer.pell.letters.again' : 'mer.pell.done');
-    }
-    case 'admiral':
-      if (!done(q, 'Q1.7')) return line('mer.admiral.wait');
-      if (q['Q1.8'] === 'exam') return { steps: script('admiral.retry') };
-      return done(q, 'Q1.8') ? line('mer.admiral.done') : { steps: script('admiral') };
-    default:
-      return null;
-  }
+  return beatSteps(pickBeat(BEATS, npc, q, { lettersFiled: o.lettersFiled }), script);
 }

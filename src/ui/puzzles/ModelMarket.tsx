@@ -8,11 +8,13 @@ import {
   EFFORTS,
   EFFORT_LABEL,
   EFFORT_PRICE,
+  GILDA,
   GILDA_TEXT,
   JOBS,
   QUOTES,
   SIZE_LABEL,
   jobById,
+  marketText as T,
   price,
   type CourseQuote,
   type Effort,
@@ -115,7 +117,7 @@ const plain = (s: string) => s.replace(/\*\*/g, '');
 
 function Star({ n }: { n: number }) {
   return (
-    <span className="ci-mm-price" aria-label={`${n} starfish`}>
+    <span className="ci-mm-price" aria-label={T('starfish', { n })}>
       {n}
       <span aria-hidden="true"> ★</span>
     </span>
@@ -128,9 +130,7 @@ function Quote({ q }: { q: CourseQuote }) {
       <p>
         “<Bold text={q.text} />”
       </p>
-      <cite>
-        Course Chapter {q.source.chapter.slice(0, 2)} · {q.section}
-      </cite>
+      <cite>{T('cite', { chapter: q.source.chapter.slice(0, 2), section: q.section })}</cite>
     </blockquote>
   );
 }
@@ -139,7 +139,7 @@ function Quote({ q }: { q: CourseQuote }) {
 function SizeStars({ c }: { c: ModelCategory }) {
   const n = CATEGORIES.indexOf(c) + 1;
   return (
-    <span className="ci-mm-size" aria-label={`${categoryData(c).size} model`}>
+    <span className="ci-mm-size" aria-label={T('sizeModel', { size: categoryData(c).size })}>
       <span aria-hidden="true">
         {'■'.repeat(n)}
         {'□'.repeat(3 - n)}
@@ -152,7 +152,7 @@ function Says({ text }: { text: string | null }) {
   if (!text) return null;
   return (
     <p className="ci-mm-gilda">
-      <b>Gilda:</b> “{text}”
+      <b>{T('speaker')}</b> {T('says', { text })}
     </p>
   );
 }
@@ -174,15 +174,10 @@ function Header({
         <h2 id="ci-mm-title">{title}</h2>
         {sub && <p className="ci-mm-sub">{sub}</p>}
       </div>
-      <span className="ci-mm-purse" aria-label={`${v.purse} starfish to spend`}>
-        <span aria-hidden="true">★</span> {v.purse} to spend
+      <span className="ci-mm-purse" aria-label={T('purseLabel', { n: v.purse })}>
+        <span aria-hidden="true">★</span> {T('purse', { n: v.purse })}
       </span>
-      <button
-        type="button"
-        className="ci-mm-close"
-        aria-label="Step away from the stall (Esc)"
-        onClick={onClose}
-      >
+      <button type="button" className="ci-mm-close" aria-label={T('close')} onClick={onClose}>
         ✕
       </button>
     </header>
@@ -192,14 +187,9 @@ function Header({
 function Board({ v, a }: { v: MarketView; a: MarketActions }) {
   return (
     <>
-      <Header
-        v={v}
-        title="Gilda’s Model Market"
-        sub="Hire a model for the job. Bigger models cost more starfish."
-        onClose={a.close}
-      />
+      <Header v={v} title={T('title')} sub={T('sub')} onClose={a.close} />
       <p className="ci-mm-special">
-        <b>House special: Auto</b> · <Star n={AUTO_PRICE} /> · the app chooses a model for your task.
+        <b>{T('special')}</b> · <Star n={AUTO_PRICE} /> · {T('specialText')}
       </p>
       <div className="ci-mm-boards">
         {CATEGORIES.map((c) => {
@@ -217,7 +207,7 @@ function Board({ v, a }: { v: MarketView; a: MarketActions }) {
                 {(open ? [...b.shown, ...b.more] : b.shown).map((m) => (
                   <li key={m.name}>
                     {m.name}
-                    {!m.ga && <span className="ci-mm-preview"> (preview)</span>}
+                    {!m.ga && <span className="ci-mm-preview">{T('preview')}</span>}
                   </li>
                 ))}
               </ul>
@@ -228,7 +218,7 @@ function Board({ v, a }: { v: MarketView; a: MarketActions }) {
                   aria-expanded={open}
                   onClick={() => a.more(open ? null : c)}
                 >
-                  {open ? 'Show fewer' : `+${b.more.length} more`}
+                  {open ? T('fewer') : T('more', { n: b.more.length })}
                 </button>
               )}
             </section>
@@ -236,7 +226,7 @@ function Board({ v, a }: { v: MarketView; a: MarketActions }) {
         })}
       </div>
       <section className="ci-mm-jobs" aria-labelledby="ci-mm-jobs-title">
-        <h3 id="ci-mm-jobs-title">Jobs board: pick one</h3>
+        <h3 id="ci-mm-jobs-title">{T('jobs')}</h3>
         <ol>
           {JOBS.map((j, i) => {
             const s = v.jobs.find((x) => x.id === j.id);
@@ -253,7 +243,7 @@ function Board({ v, a }: { v: MarketView; a: MarketActions }) {
                   <span className="ci-mm-job-text">
                     <span className="ci-mm-job-size">{SIZE_LABEL[j.size]}</span>
                     <span className="ci-mm-job-title">{j.title}</span>
-                    {s?.done && <span className="ci-mm-job-done">✓ Done right-sized</span>}
+                    {s?.done && <span className="ci-mm-job-done">{T('doneRight')}</span>}
                   </span>
                 </button>
               </li>
@@ -262,8 +252,8 @@ function Board({ v, a }: { v: MarketView; a: MarketActions }) {
         </ol>
       </section>
       <Says text={v.says} />
-      {v.purse === 0 && v.says !== GILDA_TEXT['mer.market.broke'] && (
-        <p className="ci-mm-notice">{GILDA_TEXT['mer.market.broke']}</p>
+      {v.purse === 0 && v.says !== GILDA_TEXT[GILDA.broke] && (
+        <p className="ci-mm-notice">{GILDA_TEXT[GILDA.broke]}</p>
       )}
       <footer className="ci-mm-foot">
         <Quote q={QUOTES.cost} />
@@ -302,42 +292,42 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
   const isHint = (p: 'auto' | ModelCategory) => v.hint?.pick === p;
   return (
     <>
-      <Header v={v} title="Who’ll take the job?" onClose={a.close} />
+      <Header v={v} title={T('hireTitle')} onClose={a.close} />
       <div className="ci-mm-hire">
         <div className="ci-mm-order">
           <article className="ci-mm-ticket">
             <p className="ci-mm-eyebrow">
-              Work order · {SIZE_LABEL[job.size]}
-              {v.retry && ' · Retry'}
+              {T('workOrder', { size: SIZE_LABEL[job.size] })}
+              {v.retry && T('retryTag')}
             </p>
             <p className="ci-mm-ticket-title">{job.title}</p>
             <p className="ci-mm-ticket-brief">{job.brief}</p>
           </article>
-          <h3 className="ci-mm-step">What the course says</h3>
+          <h3 className="ci-mm-step">{T('courseSays')}</h3>
           <Quote q={job.why} />
           <dl className="ci-mm-tally">
-            <dt>{d.auto ? 'Auto' : d.model}</dt>
+            <dt>{d.auto ? T('auto') : d.model}</dt>
             <dd>
               <Star n={d.auto ? AUTO_PRICE : CATEGORY_PRICE[d.category]} />
             </dd>
-            <dt>{d.auto ? 'Effort (hidden with Auto)' : `${EFFORT_LABEL[d.effort]} effort`}</dt>
+            <dt>{d.auto ? T('effortHidden') : T('effort', { effort: EFFORT_LABEL[d.effort] })}</dt>
             <dd>
               {d.auto ? '+0' : `+${Math.min(EFFORT_PRICE[d.effort], cost - CATEGORY_PRICE[d.category])}`}
             </dd>
-            <dt className="total">Total</dt>
+            <dt className="total">{T('total')}</dt>
             <dd className="total">
               <Star n={cost} />
             </dd>
           </dl>
           <p className="ci-mm-left">
-            Your purse: {v.purse} starfish → {short ? 'not enough' : `${v.purse - cost} left`}
+            {T('left', { n: v.purse, rest: short ? T('notEnough') : T('leftOver', { n: v.purse - cost }) })}
           </p>
           {v.notice && <p className="ci-mm-notice">{v.notice}</p>}
           <Says text={v.says} />
         </div>
         <div className="ci-mm-controls">
-          <h3 className="ci-mm-step">1 · Pick a model</h3>
-          <div className="ci-mm-picks" role="radiogroup" aria-label="Model">
+          <h3 className="ci-mm-step">{T('step1')}</h3>
+          <div className="ci-mm-picks" role="radiogroup" aria-label={T('modelGroup')}>
             {PICKS.map((p, i) => {
               const on = p === 'auto' ? d.auto : !d.auto && d.category === p;
               return (
@@ -351,7 +341,7 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
                   onClick={() => a.pick(p)}
                 >
                   <kbd aria-hidden="true">{i + 1}</kbd>
-                  <span>{p === 'auto' ? 'Auto' : p}</span>
+                  <span>{p === 'auto' ? T('auto') : p}</span>
                   <Star n={pickPrice(p)} />
                 </button>
               );
@@ -363,7 +353,11 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
               <Quote q={QUOTES.autopilot} />
             </div>
           ) : (
-            <ul className="ci-mm-models" role="radiogroup" aria-label={`${d.category} models`}>
+            <ul
+              className="ci-mm-models"
+              role="radiogroup"
+              aria-label={T('categoryModels', { category: d.category })}
+            >
               {models.map((m) => (
                 <li key={m.name}>
                   <button
@@ -375,7 +369,7 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
                   >
                     <span className="name">
                       {m.name}
-                      {!m.ga && ' (preview)'}
+                      {!m.ga && T('preview')}
                     </span>
                     {m.taskArea && <span className="area">{m.taskArea}</span>}
                   </button>
@@ -383,10 +377,10 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
               ))}
             </ul>
           )}
-          <h3 className="ci-mm-step">2 · Set the effort dial</h3>
+          <h3 className="ci-mm-step">{T('step2')}</h3>
           <div className="ci-mm-effort">
             <Dial effort={d.effort} off={d.auto} />
-            <div className="ci-mm-levels" role="radiogroup" aria-label="Reasoning effort">
+            <div className="ci-mm-levels" role="radiogroup" aria-label={T('effortGroup')}>
               {EFFORTS.map((e) => (
                 <button
                   key={e}
@@ -407,7 +401,7 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
           <Quote q={d.auto ? QUOTES.autoHidden : QUOTES.effort} />
           <div className="ci-mm-actions">
             <button type="button" className="ci-mm-btn" onClick={a.back}>
-              <kbd aria-hidden="true">Esc</kbd> Back to the board
+              <kbd aria-hidden="true">Esc</kbd> {T('back')}
             </button>
             <button
               type="button"
@@ -416,15 +410,10 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
               aria-disabled={short}
               onClick={a.pay}
             >
-              {short ? `You need ${cost} starfish` : `Sign & pay ${cost} ★`}
+              {short ? T('need', { n: cost }) : T('pay', { n: cost })}
             </button>
           </div>
-          {short && (
-            <p className="ci-mm-notice">
-              You’ve got {v.purse}. Auto and Lightweight cost {AUTO_PRICE}, or find more starfish round the
-              islands.
-            </p>
-          )}
+          {short && <p className="ci-mm-notice">{T('short', { n: v.purse, price: AUTO_PRICE })}</p>}
           <p className="ci-mm-help" aria-hidden="true">
             <kbd>1</kbd>–<kbd>4</kbd> model · <kbd>↑</kbd>
             <kbd>↓</kbd> name · <kbd>←</kbd>
@@ -440,35 +429,42 @@ function Result({ v, a }: { v: MarketView; a: MarketActions }) {
   const r = v.result!;
   const job = jobById(r.job)!;
   const f = r.feedback;
-  const who = r.hire.auto ? 'Auto' : `${r.hire.model} · ${EFFORT_LABEL[r.hire.effort]} effort`;
+  const who = r.hire.auto
+    ? T('auto')
+    : T('hired.who', { model: r.hire.model, effort: EFFORT_LABEL[r.hire.effort] });
   return (
     <>
-      <Header v={v} title={job.title} onClose={a.close} sub={`Work order · ${SIZE_LABEL[job.size]}`} />
+      <Header
+        v={v}
+        title={job.title}
+        onClose={a.close}
+        sub={T('workOrder', { size: SIZE_LABEL[job.size] })}
+      />
       <div className="ci-mm-result">
         <p className={`ci-mm-stamp is-${f.outcome}`} aria-hidden="true">
           {f.stamp}
         </p>
         <p className="ci-mm-hired">
-          Hired {who} · paid <Star n={r.paid} />
+          {T('hired', { who })} <Star n={r.paid} />
         </p>
         <p className="ci-mm-summary">{f.summary}</p>
-        <h3 className="ci-mm-step">Gilda says</h3>
-        <p className="ci-mm-says">“{v.says ?? GILDA_TEXT[f.line]}”</p>
+        <h3 className="ci-mm-step">{T('gildaSays')}</h3>
+        <p className="ci-mm-says">{T('says', { text: v.says ?? GILDA_TEXT[f.line] ?? '' })}</p>
         {f.quotes.map((q) => (
           <Quote key={q.text} q={q} />
         ))}
         <p className="ci-mm-reward">
           {r.refund > 0
-            ? `Right-sized: ${r.refund} starfish back${r.doubloons ? ` and ${r.doubloons} doubloons` : ''}.`
+            ? T('refund', { n: r.refund, doubloons: r.doubloons ? T('doubloons', { n: r.doubloons }) : '' })
             : f.outcome === 'over'
-              ? 'Job done, no refund: you paid for more than it needed.'
-              : 'No refund. Retry costs a new hire, but you won’t write the job again.'}
+              ? T('noRefundOver')
+              : T('noRefundShort')}
         </p>
         <div className="ci-mm-actions">
           {f.outcome === 'short' ? (
             <>
               <button type="button" className="ci-mm-btn" data-retry="model" onClick={() => a.retry('model')}>
-                <kbd aria-hidden="true">R</kbd> Retry: a different model
+                <kbd aria-hidden="true">R</kbd> {T('retryModel')}
               </button>
               <button
                 type="button"
@@ -477,12 +473,12 @@ function Result({ v, a }: { v: MarketView; a: MarketActions }) {
                 data-retry="effort"
                 onClick={() => a.retry('effort')}
               >
-                <kbd aria-hidden="true">E</kbd> Retry: more effort
+                <kbd aria-hidden="true">E</kbd> {T('retryEffort')}
               </button>
             </>
           ) : (
             <button type="button" className="ci-mm-btn primary" data-primary onClick={a.back}>
-              <kbd aria-hidden="true">E</kbd> Got it
+              <kbd aria-hidden="true">E</kbd> {T('gotIt')}
             </button>
           )}
         </div>
@@ -495,14 +491,20 @@ function Result({ v, a }: { v: MarketView; a: MarketActions }) {
 function announce(v: MarketView): string {
   if (v.screen === 'result' && v.result) {
     const f = v.result.feedback;
-    return `${plain(f.stamp.replace(/^\W+\s*/, ''))}. ${f.summary} Gilda says: ${v.says ?? GILDA_TEXT[f.line]}`;
+    return T('announceResult', {
+      stamp: plain(f.stamp.replace(/^\W+\s*/, '')),
+      summary: f.summary,
+      says: v.says ?? GILDA_TEXT[f.line] ?? '',
+    });
   }
   if (v.screen === 'hire' && v.job) {
     const cost = price(draftHire(v.draft));
-    const pick = v.draft.auto ? 'Auto' : `${v.draft.model}, ${EFFORT_LABEL[v.draft.effort]} effort`;
-    return `${v.notice ? `${v.notice} ` : ''}${jobById(v.job)!.title}. ${pick}: ${cost} starfish. You have ${v.purse}.`;
+    const pick = v.draft.auto
+      ? T('auto')
+      : T('announcePick', { model: v.draft.model, effort: EFFORT_LABEL[v.draft.effort] });
+    return `${v.notice ? `${v.notice} ` : ''}${T('announceHire', { title: jobById(v.job)!.title, pick, n: cost, purse: v.purse })}`;
   }
-  return `Gilda’s Model Market. You have ${v.purse} starfish to spend. Pick a job, 1 to 4.${v.says ? ` Gilda says: ${v.says}` : ''}`;
+  return `${T('announceBoard', { n: v.purse })}${v.says ? T('announceSays', { says: v.says }) : ''}`;
 }
 
 const UP = new Set(['ArrowUp', 'KeyW']);

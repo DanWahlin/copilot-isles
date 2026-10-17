@@ -161,6 +161,263 @@
       "label": "The gangway"
     }
   },
+  "beats": [
+    {
+      "npc": "nell",
+      "when": {
+        "Q0.2": [null, "start"]
+      },
+      "script": "nell.papers"
+    },
+    {
+      "npc": "nell",
+      "when": {
+        "Q0.2": "palette"
+      },
+      "say": "nell.palette.01"
+    },
+    {
+      "npc": "nell",
+      "when": {
+        "Q0.10": "start"
+      },
+      "script": "nell.trial"
+    },
+    {
+      "npc": "nell",
+      "when": {
+        "Q0.11": "start"
+      },
+      "script": "christening"
+    },
+    {
+      "npc": "nell",
+      "when": {
+        "Q0.11": ["sail", "done"]
+      },
+      "say": "nell.christen.03"
+    },
+    {
+      "npc": "nell",
+      "when": {
+        "Q0.10": "done"
+      },
+      "say": "nell.done.02"
+    },
+    {
+      "npc": "nell",
+      "say": "nell.done.01"
+    },
+    {
+      "npc": "lyra",
+      "when": {
+        "Q0.9": "start"
+      },
+      "script": "lyra.soundcheck"
+    },
+    {
+      "npc": "lyra",
+      "when": {
+        "Q0.9": "done"
+      },
+      "say": "lyra.done.01"
+    },
+    {
+      "npc": "lyra",
+      "say": "lyra.idle.01"
+    },
+    {
+      "npc": "merchant",
+      "when": {
+        "Q0.2": {
+          "not": "done"
+        }
+      },
+      "say": "ezra.wait.01"
+    },
+    {
+      "npc": "merchant",
+      "when": {
+        "Q0.3": {
+          "not": "done"
+        }
+      },
+      "script": "ezra.fork"
+    },
+    {
+      "npc": "dockhand_b",
+      "when": {
+        "Q0.3": {
+          "not": "done"
+        }
+      },
+      "none": true
+    },
+    {
+      "npc": "dockhand_b",
+      "when": {
+        "Q0.4": "done"
+      },
+      "none": true
+    },
+    {
+      "npc": "dockhand_b",
+      "script": "bo.deck"
+    },
+    {
+      "npc": "suri",
+      "when": {
+        "Q0.6": null,
+        "Q0.7": "actions"
+      },
+      "say": "suri.actions.01"
+    },
+    {
+      "npc": "suri",
+      "when": {
+        "Q0.6": null,
+        "Q0.7": ["crane", "solved"]
+      },
+      "say": "suri.actions.02"
+    },
+    {
+      "npc": "suri",
+      "when": {
+        "Q0.6": null
+      },
+      "say": "suri.idle.dry"
+    },
+    {
+      "npc": "suri",
+      "when": {
+        "Q0.6": "start"
+      },
+      "script": "suri.brief"
+    },
+    {
+      "npc": "suri",
+      "when": {
+        "Q0.6": "sluice"
+      },
+      "say": "suri.sluice.01"
+    },
+    {
+      "npc": "suri",
+      "when": {
+        "Q0.6": "solved"
+      },
+      "script": "suri.solved"
+    },
+    {
+      "npc": "suri",
+      "say": "suri.done.01"
+    },
+    {
+      "npc": "pim",
+      "when": {
+        "Q0.7": null,
+        "Q0.4": "done"
+      },
+      "say": "pim.idle.ready"
+    },
+    {
+      "npc": "pim",
+      "when": {
+        "Q0.7": null
+      },
+      "say": "pim.idle.waiting"
+    },
+    {
+      "npc": "pol",
+      "when": {
+        "Q0.7": null,
+        "Q0.4": "done"
+      },
+      "say": "pol.idle.ready"
+    },
+    {
+      "npc": "pol",
+      "when": {
+        "Q0.7": null
+      },
+      "say": "pol.idle.waiting"
+    },
+    {
+      "npc": ["pim", "pol"],
+      "when": {
+        "Q0.7": "start"
+      },
+      "script": "crane.brief"
+    },
+    {
+      "npc": ["pim", "pol"],
+      "when": {
+        "Q0.7": "actions"
+      },
+      "say": "pim.brief.03"
+    },
+    {
+      "npc": "pim",
+      "when": {
+        "Q0.7": "crane"
+      },
+      "say": "pim.crane.01"
+    },
+    {
+      "npc": "pol",
+      "when": {
+        "Q0.7": "crane"
+      },
+      "say": "pol.crane.01"
+    },
+    {
+      "npc": ["pim", "pol"],
+      "when": {
+        "Q0.7": "solved"
+      },
+      "script": "pol.solved"
+    },
+    {
+      "npc": "pim",
+      "say": "pim.done.01"
+    },
+    {
+      "npc": "pol",
+      "say": "pol.done.01"
+    },
+    {
+      "npc": "juno",
+      "when": {
+        "Q0.8": null
+      },
+      "none": true
+    },
+    {
+      "npc": "juno",
+      "when": {
+        "Q0.8": "start"
+      },
+      "script": "juno.brief"
+    },
+    {
+      "npc": "juno",
+      "when": {
+        "Q0.8": "pipes"
+      },
+      "say": "juno.pipes.01"
+    },
+    {
+      "npc": "juno",
+      "when": {
+        "Q0.10": "done"
+      },
+      "say": "juno.done.sealed.01"
+    },
+    {
+      "npc": "juno",
+      "say": "juno.done.01"
+    }
+  ],
   "scripts": {
     "christening": [
       {

@@ -11,15 +11,17 @@ Today there's one pack, `courses/copilot-app/` (the GitHub Copilot app for Begin
 
 | File (in `courses/<id>/`) | What it controls | Who changes it | Loader (typed) |
 | --- | --- | --- | --- |
-| `course.json` | The course's id, title, tagline, description and language; its source (repository, license, copyright, chapters); the islands it uses (each one's chapter, chart label, minutes, Seal, topics, and arrival-card lines); its practice values (issue, branch, repository name) | You, by hand | `src/course/catalog.ts` |
+| `course.json` | The course's id, title, tagline, description and language; its source (repository, license, copyright, chapters); the islands it uses (each one's chapter, chart label, minutes, Seal, topics, and arrival-card lines); its practice values (issue, branch, repository name); the "Your setup" forms' words (`setup`); and the lines and questions the game asks for by id (`hooks`) | You, by hand | `src/course/catalog.ts` |
 | `chapters/<chapter>.json` | A chapter's course images, quizzes, Logbook pages, chests, glossary terms, Trials, and the course sections voiced (`voiced`) and unvoiced (`cited`) teaching lines paraphrase ([course-content-authoring.md](course-content-authoring.md)) | You, by hand | `src/learn/content/index.ts` |
-| `quests/<island>.json` | An island's quests (title, task, link, what each step says), the tracker's header, where the compass points for each step, every named script its NPCs and puzzles play, and its NPCs' barks | You, by hand | `src/course/active.ts`, `src/game/*-quests.ts` |
+| `quests/<island>.json` | An island's quests (title, task, link, what each step says), the tracker's header, where the compass points for each step, every named script its NPCs and puzzles play, which script or line each NPC offers when (`beats`), and its NPCs' barks | You, by hand | `src/course/active.ts`, `src/game/beats.ts`, `src/game/*-quests.ts` |
+| `puzzles/<name>.json` | One puzzle's content: what you sort, pick or route, the answers and the reasons a wrong pick gets, the course sections they cite, the site's signs, the overlay's and Wingman's words (`text`) and the voice lines it plays (`lines`). Each names its `mechanic`, and `"disabled": true` turns the puzzle off | You, by hand | `src/course/puzzles.ts`, the puzzle's module |
 | `labels.json` | Chart labels: what you learn at an island, a puzzle or a sea battle (docs/specs/LOWER-THIRDS.md) | You, by hand | `src/learn/content/labels.ts` |
 | `boards.json` | The course notice boards' header and pin text, and the `##` sections that aren't topics | You, by hand | `src/content/course-boards.ts` |
 | `market.json` | The Model Market: model categories (order, price, tagline), effort levels (label, price), the Auto price and the price cap, refunds and doubloons by job size, the board rule's numbers (`board.size`, `board.perFamily`), the stamps, the course quotes, the jobs on Gilda's board, and Gilda's lines | You, by hand | `src/content/market.ts` |
 | `models.json` | The Model Market's model names, categories and task areas, from GitHub Docs | `npm run models:sync` (`models-refresh.yml`) | `src/game/market/models.ts` |
 | `lock.json` | The bundled course snapshot: its commit and a hash for each section and image. The boards' topics come from it | `npm run course:sync` (`weekly-refresh.yml`) | `src/learn/course/lock.ts` |
-| `voice/lines.json` | Every voice line: id, speaker, engine, voice and text (the caption) | You, by hand ([voices.md](voices.md)) | `tools/voice/generate.ts` |
+| `voice/lines.json` | Every voice line: id, speaker and text (the caption), and anything that's the line's own (a prosody, a `sub`) | You, by hand ([voices.md](voices.md)) | `tools/voice/lines.ts` |
+| `voice/cast.json` | Who voices each speaker: the speech service, voice, fallback, prosody and effect (a line's own fields override its speaker's) | You, by hand ([voices.md](voices.md)) | `tools/voice/lines.ts` |
 | `public/course/**` | The course snapshot: READMEs, `GLOSSARY.md`, `LICENSE`, and the images the chapters show | `npm run course:sync` | `src/learn/course/source.ts` |
 | `public/voice/**` | Each line's audio (`.webm`, `.m4a`), word timings (`.json`), `manifest.json` and `lipsync.json` | `tools/voice/generate.ts`, `npm run voice:lipsync` | `src/audio`, `src/game/dialogue.ts` |
 
@@ -27,10 +29,10 @@ Don't edit `models.json`, `lock.json`, the snapshot or the voice files by hand: 
 
 What the game owns stays in code on purpose: the islands and their art, the characters (names,
 looks, where they stand), where each notice board stands (`src/world/islands/course-boards.ts`), the
-grading rules (`src/game/market/jobs.ts`), the board rule's order (`src/game/market/catalog.ts`), and
-all geometry and puzzle logic. Which script an NPC offers when, island gating, the lines the game
-itself asks for (island tips, welcomes, the cabin briefing, battle questions), and puzzle content are
-still TypeScript until step 2 of [COURSE-PACKS.md](specs/COURSE-PACKS.md) (they're marked there).
+grading rules (`src/game/market/jobs.ts`), the board rule's order (`src/game/market/catalog.ts`), each
+puzzle's mechanic (its rules, grid, geometry and controls), the quests' trackers, saves and island
+gating. [COURSE-PACKS.md](specs/COURSE-PACKS.md) ("Still course-specific in code after step 2") lists
+what's left.
 
 ### How the game loads a pack
 
@@ -44,8 +46,9 @@ still TypeScript until step 2 of [COURSE-PACKS.md](specs/COURSE-PACKS.md) (they'
   `voice/…`) from the pack's `public/` folder: `vite.config.ts` serves it in dev and copies it into
   `dist/courses/<id>/` for the build, so a sub-path deploy (GitHub Pages) works.
 - **In code**, read pack data through `src/course/active.ts` (`coursePack()`, `courseScript()`,
-  `barksFor()`) or keep what you derive from it in an `onCourse` hook, never at module top level: a
-  module may load before the pack does. Node tools read a pack with `tools/course-pack/read.ts`
+  `barksFor()`) and `src/course/puzzles.ts` (`puzzleContent()`, `textOf()`, `lineOf()`, `puzzleOn()`),
+  or keep what you derive from it in an `onCourse` hook, never at module top level: a module may load
+  before the pack does. `course.json` (`COURSE`, `src/course/catalog.ts`) is there from the start. Node tools read a pack with `tools/course-pack/read.ts`
   (`activateCourseFromDisk`), and Vitest activates the default pack before every test file
   (`src/course/test-setup.ts`).
 
@@ -60,6 +63,14 @@ so VS Code and other editors check your edit as you type and show each field's d
   chapter label (it starts with the chapter's number). An island with an `arrival` shows those lines
   over its name when you arrive.
 - **`practice`**: the course's own example values, shown until the player gives theirs (Your setup).
+- **`setup`**: the "Your setup" forms' words (kicker, titles, intro, what each value is used for, the
+  model choices), the Logbook's notes and the Settings screen's shortcut line. `**bold**` and `` `code` ``
+  render as such; `{issue}`, `{issueTitle}`, `{branch}`, `{os}` and `{keys}` are filled in.
+- **`hooks`**: the voice lines and questions the game asks for by id, so it never names one itself:
+  the cabin `briefing`; each island's `welcome` (`@nav` and `@starfish` mark where its `tips` go; they're
+  left out when the tips are off), `welcomeBack` and `landing`; the `sail` line; `npcVoiced` (what an
+  NPC with no script says instead of a bark); `setPieces` (the gondola's line); and the sea `battles`
+  (each wave's quiz and its raiders' names, and the line when it's won).
 
 ### `chapters/<chapter>.json` and `quests/<island>.json`
 
@@ -70,6 +81,33 @@ so VS Code and other editors check your edit as you type and show each field's d
   says what each script is for; the game ignores it.
 - **Ids are saved in players' progress** (quests and their steps, pages, chests, quizzes, glossary
   terms, Trials, labels, market jobs): don't rename them.
+- **Beats** (`beats`) say which script or line each NPC offers for the quest state. The first row for
+  the NPC whose `when` holds wins: `{ "npc": "mina", "when": { "Q1.1": { "not": "done" } }, "say":
+  "mer.mina.wait" }`. A `when` names quests and the step each must be at (a step, `null` for not
+  started, a list of either, or `{ "not": … }`); a key starting with `$` is a flag the island passes in
+  (`$lettersFiled`). A row has one of `script` (a script of the island), `say` (one line) or `none`
+  (nothing: the NPC barks). No row also means a bark.
+
+### `puzzles/<name>.json`
+
+- The game plays a fixed set of puzzles (`GAME_PUZZLES` in `src/course/puzzles.ts`), each with its
+  mechanic: **classify** (`crate-yard`, `lost-letters`, `flag-hoist`), **choose-tool** (`first-words`,
+  and the Copilot-only `three-helms`), **route** (`sluice`, `channel-routing`), **match**
+  (`workspaces`), **procedure** (`crane`), **checklist** (`gear-rack`, `practice-session`), **budget**
+  (the Copilot-only `market`; its economy is `market.json`) and **ceremony** (`palette`, `bard`,
+  `christening`). A pack has a file for each; the schema is `courses/schemas/puzzle-<mechanic>.schema.json`.
+- **`text`**: the puzzle's words by key (labels, readouts, signs, the overlay, Wingman's hints).
+  `{name}` is a value the game fills in (`Mark {from} → mark {to}`); keep each key's `{names}`. A key the
+  game asks for and the file hasn't got stops the puzzle with an error, so don't remove keys.
+- **`lines`**: the voice lines it plays, by what they're for (`"round1": "tb.fen.round1"`); a `line` in
+  its content (an order, a twist's answer) is a voice line too.
+- **Cited reasons**: the crate yard's items have a `source`; the Lost Letters' `cites` and the Flag
+  Hoist's `section` anchors are in the file's `chapter`. The content check holds them to the lock.
+- **`"disabled": true`** turns a puzzle off: its site stays as scenery, and the cue that would start it
+  does nothing. Change the quests that wait on it too (their step won't finish by itself).
+- Ids the game's logic knows stay as they are: a crate's `kind` (`chat`, `project`), a letter's
+  `answer` (an alcove id or `tray`), a flag's `symbol`, the helms' modes (`interactive`, `plan`,
+  `autopilot`), the places (`worktree`, `checkout`, `cloud`) and the twist's answers' ids.
 
 ### `market.json`
 
@@ -105,7 +143,8 @@ so VS Code and other editors check your edit as you type and show each field's d
 A caption and its voice line must say the same words. If you change a voiced line's text (in a
 script's line, or Gilda's `text` in `market.json`):
 
-1. Change the same line's `text` in the pack's `voice/lines.json`.
+1. Change the same line's `text` in the pack's `voice/lines.json` (and, for a puzzle's or a hook's
+   line, nothing else: they name the line by id).
 2. Make the audio again: `npx tsx tools/voice/generate.ts --course copilot-app --only=<ids>` (for
    example `--only=mer.market.hello`). This updates the pack's `public/voice/` and its `manifest.json`.
 3. Commit the JSON, the lines file and the audio together.
@@ -133,10 +172,15 @@ change. The checks (tools/content/check.ts):
   `cited`; chart labels; market quotes and Gilda's sources), every market quote is word for word in its
   cited section of the pack's snapshot, and every image matches the file it was written against;
 - ids resolve: chapters' images, pages, quizzes and Trials; every script step (quizzes, pages, terms,
-  Trials, images, quest steps, other scripts); the compass's quest steps; the islands and chapters
-  `course.json` names; the NPCs given barks (the game's cast);
-- every voice line a script, a chapter or the market plays is in `voice/lines.json`, and its audio in
-  `public/voice/manifest.json` says the same words; Gilda's lines are hers;
+  Trials, images, quest steps, other scripts), in quests and in puzzles; the compass's quest steps; the
+  islands and chapters `course.json` names; the NPCs given barks or beats (the game's cast); each
+  beat's quests, steps and script; the hooks' islands, NPCs and battle quizzes;
+- there's a puzzle file for each puzzle the game plays, with its mechanic (and no other), valid against
+  that mechanic's schema; its cited sections are in the lock;
+- every voice line a script, a chapter, a beat, a hook, a puzzle or the market plays is in
+  `voice/lines.json`, and its audio in `public/voice/manifest.json` says the same words; Gilda's lines
+  are hers; every line has a voice (its own, or its speaker's in `voice/cast.json`), and every speaker
+  in the cast has a line;
 - the economy: every hire costs 1 to `maxPrice` (≤ 4), bigger models cost more, a refund is never more
   than the hire, and every job can be done right-sized with the starfish on Anchorage and Meridian;
 - every board's chapter is in the snapshot with at least 5 topics, and every board stands on its island

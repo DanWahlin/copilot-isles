@@ -1,3 +1,7 @@
+import { onCourse } from '../../../course/active';
+import type { PuzzleFile } from '../../../course/pack';
+import { puzzleContent } from '../../../course/puzzles';
+import type { TwistAnswer } from './model';
 import type { Crew, Rot, Tile, TileKind } from './types';
 
 /**
@@ -15,14 +19,43 @@ export const GATE_COL: Readonly<Record<Crew, number>> = { feature: 1, bugfix: 2,
 /** The south edge's outlets: c0, c2 and c4 turn a crew's wheel; c1 and c3 spill into the Great Hall. */
 export const WHEEL_AT: readonly (Crew | null)[] = ['feature', null, 'bugfix', null, 'docs'];
 
-/** What each crew's water carries and its icon (colourblind-safe: never colour alone). */
-export const CREW_LOOK: Readonly<
-  Record<Crew, { name: string; colour: string; float: string; icon: string; iconName: string }>
-> = {
-  feature: { name: 'Feature', colour: '#3B82F6', float: 'blue blossoms', icon: '★', iconName: 'star' },
-  bugfix: { name: 'Bug Fix', colour: '#3FA34D', float: 'leaves', icon: '🐞', iconName: 'beetle' },
-  docs: { name: 'Docs', colour: '#1EA7A7', float: 'paper boats', icon: '📜', iconName: 'scroll' },
+/** A crew as the course names it: what its water carries, and its icon (never colour alone). */
+export interface CrewWords {
+  name: string;
+  float: string;
+  icon: string;
+  iconName: string;
+}
+
+/** `puzzles/channel-routing.json` (route: each crew's water to its own wheel). */
+export interface ChannelRoutingFile extends PuzzleFile {
+  crews: Readonly<Record<Crew, CrewWords>>;
+  /** The cold open's title cards: the old way, then the new. */
+  demo: Readonly<Record<'old' | 'new', { kicker: string; title: string; text: string }>>;
+  twist: { question: string; choices: readonly TwistAnswer[] };
+}
+
+export const routingContent = () => puzzleContent<ChannelRoutingFile>('channel-routing');
+
+/** Each crew's water colour (the game's; colourblind-safe with the icon beside it). */
+const CREW_COLOUR: Readonly<Record<Crew, string>> = {
+  feature: '#3B82F6',
+  bugfix: '#3FA34D',
+  docs: '#1EA7A7',
 };
+
+/** What each crew's water carries and its icon (colourblind-safe: never colour alone). */
+export let CREW_LOOK: Readonly<Record<Crew, CrewWords & { colour: string }>> = {} as Record<
+  Crew,
+  CrewWords & { colour: string }
+>;
+onCourse(() => {
+  const crews = routingContent().crews;
+  CREW_LOOK = Object.fromEntries(CREWS.map((c) => [c, { ...crews[c], colour: CREW_COLOUR[c] }])) as Record<
+    Crew,
+    CrewWords & { colour: string }
+  >;
+});
 
 const KIND: Readonly<Record<string, TileKind>> = { S: 'straight', L: 'elbow', R: 'rock' };
 

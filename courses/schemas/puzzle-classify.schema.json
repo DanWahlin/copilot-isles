@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A course pack's classify puzzle (courses/<id>/puzzles/<name>.json)",
+  "description": "Sort each item into the bin it belongs in (crates by where the work runs, letters into the Settings cubbies, orders onto the flag that brings them). `bins` are the places in key order; `items` are what you sort, each with its answer and the reason a wrong pick gets; a `tray` is the 'none of these' bin. Every puzzle file has an `id`, its `mechanic`, and may set `disabled` (the site stays as scenery), `text` (its words by key, `{name}` filled in by the game) and `lines` (its voice line ids by what they're for). docs/specs/COURSE-PACKS.md §4.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "mechanic", "bins", "items"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mechanic": {
+      "const": "classify"
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "The course turns this puzzle off: its site stays as scenery and its cue does nothing."
+    },
+    "text": {
+      "type": "object",
+      "description": "The puzzle's words by key (labels, hints, readouts, signs).",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "lines": {
+      "type": "object",
+      "description": "Voice line ids (voice/lines.json) by what they're for.",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[\\w.-]+$"
+      }
+    },
+    "bins": {
+      "description": "The places, in key order: a list, or an object by kind.",
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "minItems": 1
+        },
+        {
+          "type": "object",
+          "minProperties": 1
+        }
+      ]
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "minItems": 1,
+      "description": "What you sort, in the order it's handed over."
+    },
+    "tray": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "const": "tray"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "cites": {
+      "type": "object",
+      "description": "The course sections the reasons paraphrase, by key (anchor, its hash in lock.json, the section's name), in `chapter`.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["anchor", "hash", "section"],
+        "properties": {
+          "anchor": {
+            "type": "string",
+            "minLength": 1
+          },
+          "hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{12}$"
+          },
+          "section": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "chapter": {
+      "type": "string",
+      "description": "The chapter `cites` and the items' `section` anchors are in.",
+      "pattern": "^\\d\\d-[\\w-]+$"
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

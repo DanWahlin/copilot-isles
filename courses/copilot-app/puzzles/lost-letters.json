@@ -1,0 +1,176 @@
+{
+  "$schema": "../../schemas/puzzle-classify.schema.json",
+  "id": "P1.3",
+  "mechanic": "classify",
+  "$comment": "The Lost Letters in the Hall of Records (Q1.7, Pell): each letter is a captain's problem, filed in the cubby (bin) that fixes it, or back in the tray when it isn't a job for any bin (the decoy). A wrong filing hands it back with the bin's own description and the letter's `need`, or the letter's own `wrong` reason, cited. The bins are the course's Settings areas in the app's order (01 · Settings, \"Settings reference: What each area controls\"); the game shows them on the cabinets' name plates (the last on brown) and keys them 1-9, 0. `cites` are course sections (README anchor, its hash in lock.json, the section's name).",
+  "chapter": "01-tour-the-app",
+  "cites": {
+    "settings": {
+      "anchor": "settings",
+      "hash": "5b95eb5b50e3",
+      "section": "Settings"
+    },
+    "models": {
+      "anchor": "models-and-reasoning-effort",
+      "hash": "84d625491118",
+      "section": "Models and Reasoning Effort"
+    },
+    "troubleshooting": {
+      "anchor": "i-cannot-find-a-setting-shown-in-the-chapter",
+      "hash": "a78cb1a046e1",
+      "section": "Troubleshooting"
+    }
+  },
+  "bins": [
+    {
+      "id": "general",
+      "name": "General",
+      "holds": "**General** checks for app updates, sets where repositories are stored, and changes the theme."
+    },
+    {
+      "id": "accounts",
+      "name": "Accounts",
+      "holds": "**Accounts** shows your account information and adds another GitHub account."
+    },
+    {
+      "id": "sessions",
+      "name": "Sessions",
+      "holds": "**Sessions** manages sessions and chats, the response style, app-wide instructions and branch naming."
+    },
+    {
+      "id": "themes",
+      "name": "Themes",
+      "holds": "**Themes** selects and customizes the app theme."
+    },
+    {
+      "id": "accessibility",
+      "name": "Accessibility",
+      "holds": "**Accessibility** has display zoom, keyboard shortcuts, and notifications and announcements."
+    },
+    {
+      "id": "voice",
+      "name": "Voice dictation",
+      "holds": "**Voice dictation** sets up the microphone, its shortcut and the transcription models."
+    },
+    {
+      "id": "customize",
+      "name": "Customize",
+      "holds": "**Customize** points you to the **Customize** view in the sidebar, for MCP servers, plugins, skills and canvases."
+    },
+    {
+      "id": "providers",
+      "name": "Model providers",
+      "holds": "**Model providers** connects models from other providers with your own API keys."
+    },
+    {
+      "id": "experimental",
+      "name": "Experimental",
+      "holds": "**Experimental** lets you try preview features that can change or be removed."
+    },
+    {
+      "id": "projects",
+      "name": "Projects",
+      "holds": "**Projects** holds each project’s own settings, such as **Show in sidebar**, sandbox rules and the default branch."
+    }
+  ],
+  "tray": {
+    "id": "tray",
+    "name": "Not in Settings"
+  },
+  "items": [
+    {
+      "id": "second-login",
+      "from": "Captain Ivo Brask",
+      "text": "I sail for two fleets now, and the second one gave me its own GitHub login. How do I get both into the app?",
+      "answer": "accounts",
+      "cite": "settings",
+      "need": "This captain needs a second GitHub sign-in in the app."
+    },
+    {
+      "id": "small-text",
+      "from": "Captain Aldous Hask",
+      "text": "My eyes aren’t what they were. The words in the app are too small, and I’d like the whole thing bigger.",
+      "answer": "accessibility",
+      "cite": "settings",
+      "need": "This captain needs the app bigger on the screen, so it’s easier to read.",
+      "wrong": {
+        "themes": {
+          "text": "**Themes** changes how the app looks, not how big it is. Making everything bigger helps the captain read it.",
+          "cite": "settings"
+        }
+      }
+    },
+    {
+      "id": "long-replies",
+      "from": "Captain Morwen Tull",
+      "text": "Your agent’s answers run on for pages! I want short, plain replies from now on, whatever I’m working on.",
+      "answer": "sessions",
+      "cite": "settings",
+      "need": "This is about how the agent replies, every time you work with it."
+    },
+    {
+      "id": "own-key",
+      "from": "Captain Teodor Salk",
+      "text": "My company pays for models from another provider. I want to use them in the app with our own API key.",
+      "answer": "providers",
+      "cite": "settings",
+      "need": "Think about where you’d bring your own key for another provider’s models."
+    },
+    {
+      "id": "decoy-model",
+      "from": "Captain Gil Brannoch",
+      "text": "This bug’s a nasty one, across several files. I want a stronger model, and more thinking, for this one task.",
+      "answer": "tray",
+      "cite": "models",
+      "ok": "mer.pell.letter.decoy",
+      "need": "No area in Settings picks the model for one task. Is this a Settings job at all?",
+      "wrong": {
+        "providers": {
+          "text": "**Model providers** connects extra providers with your own keys. It doesn’t replace the model picker below the prompt box.",
+          "cite": "settings"
+        }
+      }
+    },
+    {
+      "id": "hide-project",
+      "from": "Captain Juna Pike",
+      "text": "I connected a project I hardly use. I’d like it out of my sidebar, but I don’t want to lose it.",
+      "answer": "projects",
+      "cite": "settings",
+      "need": "This is a setting for one project, not for the whole app."
+    },
+    {
+      "id": "mcp-server",
+      "from": "Captain Della Oakes",
+      "text": "I want to add an MCP server, so the agent can reach our ticket tracker. Where’s that kept?",
+      "answer": "customize",
+      "cite": "settings",
+      "ok": "mer.pell.letter.customize",
+      "need": "An MCP server extends what the app can do."
+    }
+  ],
+  "text": {
+    "trayWhy": "There’s an area in Settings for this one. Look for the closest match.",
+    "crest": "Settings",
+    "sort": "Sort Pell’s letters",
+    "sortRest": "Sort the rest of Pell’s letters",
+    "filedTray": "Back in Pell’s tray: not a Settings job.",
+    "filed": "Filed in **{name}**.",
+    "noTalk": "Talk to Pell to finish up in the Hall of Records.",
+    "hint1": "Read the letter for what the captain’s trying to do, Captain. Then think where that lives in Settings.",
+    "hint2": "I’ve marked the right spot for this letter. Open the bundle and look for the glow.",
+    "hint3": "There, I’ve filed one for you. Keep going!",
+    "title": "The Lost Letters",
+    "eyebrow": "The Lost Letters · Letter {n} of {of}",
+    "close": "Step away from the desk (Esc). Your letters stay filed.",
+    "from": "From {from}",
+    "ask": "Which Settings area fixes it?",
+    "cite": "Course Chapter 01 · {section}",
+    "bins": "Settings areas",
+    "trayButton": "{tray}: back in Pell’s tray",
+    "live": "Letter from {from}: {text}"
+  },
+  "lines": {
+    "ok": "mer.pell.letter.ok"
+  }
+}

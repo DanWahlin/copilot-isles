@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   PACK_FILES,
+  PACK_SCHEMAS,
   boardChanges,
   checkBoardSpots,
   checkContent,
@@ -55,7 +56,7 @@ describe('course pack files (docs/content-data.md, COURSE-PACKS.md §3)', () => 
         `../../schemas/${PACK_FILES.find((p) => p.file === `${f.split('/')[0]}/*.json`)!.schema}`,
       );
     const schemas = readdirSync(join(ROOT, 'courses/schemas')).sort();
-    expect([...new Set(PACK_FILES.map((p) => p.schema))].sort()).toEqual(schemas);
+    expect([...new Set(PACK_SCHEMAS)].sort()).toEqual(schemas);
   });
 
   it('load as the game reads them', () => {
@@ -151,6 +152,53 @@ describe('the content checks report broken edits by entry', () => {
     expect(paths(issuesWith('course.json', c))).toEqual(
       expect.arrayContaining(['islands[0].island', 'islands[1].chapter']),
     );
+  });
+
+  it('puzzles: a mechanic the game doesn’t run there, a voice line or a citation that doesn’t resolve', () => {
+    const helms = json<Record<string, unknown>>(`${PACK}/puzzles/three-helms.json`);
+    expect(paths(issuesWith('puzzles/three-helms.json', { ...helms, mechanic: 'route' }))).toEqual(
+      expect.arrayContaining(['mechanic']),
+    );
+    expect(paths(issuesWith('puzzles/three-helms.json', { ...helms, mechanic: 'dance' }))).toEqual([
+      'mechanic',
+    ]);
+    expect(issuesWith('puzzles/three-helms.json', { ...helms, disabled: true })).toEqual([]);
+    const lines = { ...(helms.lines as Record<string, string>), check: 'mer.helm.nope' };
+    expect(paths(issuesWith('puzzles/three-helms.json', { ...helms, lines }))).toEqual(['lines.check']);
+    const letters = json<{ cites: Record<string, { hash: string }> }>(`${PACK}/puzzles/lost-letters.json`);
+    letters.cites.settings!.hash = '000000000000';
+    expect(paths(issuesWith('puzzles/lost-letters.json', letters))).toEqual(['cites.settings']);
+    const flags = json<{ items: { wrong?: Record<string, { section: string }> }[] }>(
+      `${PACK}/puzzles/flag-hoist.json`,
+    );
+    flags.items[0]!.wrong!['#']!.section = 'nope';
+    expect(paths(issuesWith('puzzles/flag-hoist.json', flags))).toEqual(['items[0].wrong["#"].section']);
+  });
+
+  it('beats and hooks whose NPCs, quest steps, scripts, lines or quizzes don’t resolve', () => {
+    const q = json<{ beats: unknown[] }>(`${PACK}/quests/meridian.json`);
+    q.beats = [
+      { npc: 'nobody', script: 'tobias' },
+      { npc: 'tobias', when: { 'Q1.1': 'nope' }, say: 'mer.tobias.done' },
+      { npc: 'tobias', when: { 'Q1.1': { not: ['done', 'nope'] } }, script: 'nope' },
+      { npc: 'tobias', say: 'mer.nope' },
+      { npc: 'tobias', when: { $lettersFiled: true } },
+    ];
+    expect(paths(issuesWith('quests/meridian.json', q))).toEqual([
+      'beats[0].npc',
+      'beats[1].when["Q1.1"]',
+      'beats[2].when["Q1.1"]',
+      'beats[2].script',
+      'beats[3].say',
+      'beats[4]',
+    ]);
+    const c = meta();
+    c.hooks.briefing.chest = 'juno.nope';
+    (c.hooks.battles['passage-anchorage-meridian']!.waves[0] as { quiz: string }).quiz = 'N9.9';
+    expect(paths(issuesWith('course.json', c))).toEqual([
+      'hooks.briefing.chest',
+      'hooks.battles["passage-anchorage-meridian"].waves[0].quiz',
+    ]);
   });
 
   it('a board whose chapter has too few topics', () => {

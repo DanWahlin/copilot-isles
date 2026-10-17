@@ -45,13 +45,14 @@ courses/
     quests/anchorage.json        quest defs, named scripts, barks, step targets
     quests/meridian.json
     quests/thousand-bough.json
-    puzzles/<puzzle-id>.json     puzzle content (step 2; none in step 1)
+    puzzles/<name>.json          one puzzle's content, by mechanic (step 2: 15 files)
     labels.json                  chart labels                        (was content/labels.json)
     boards.json                  notice-board text, skip lists       (was content/course-boards.json, minus poses)
     market.json                  the Model Market                    (was content/market.json)
     models.json                  Copilot models from GitHub Docs     (was content/models.json)
     lock.json                    snapshot commit, section and image hashes (was content/course.lock.json)
-    voice/lines.json             every voice line: id, speaker, tts, voice, text (was tools/voice/lines.testcove.json)
+    voice/lines.json             every voice line: id, speaker, text (was tools/voice/lines.testcove.json)
+    voice/cast.json              speaker → service, voice, model, prosody, fx (step 2)
     public/                      served as <base>courses/copilot-app/
       course/                    the snapshot: READMEs, GLOSSARY, LICENSE, images (was public/course/)
       voice/                     <id>.webm/.m4a/.json, manifest.json, lipsync.json (was public/voice/testcove/)
@@ -154,7 +155,8 @@ all):
 
 ## 4. Puzzle mechanics vs. content
 
-Step 1 leaves puzzle content where it is. This table is the plan for step 2.
+Step 1 left puzzle content where it was; this table was the plan for step 2. What step 2 built is in
+§9, "Step 2 as built".
 
 | Puzzle (id) | Island · NPC | Generic mechanic | Content fields | Content today | Step 2 |
 | --- | --- | --- | --- | --- | --- |
@@ -186,7 +188,7 @@ JSON names its mechanic, so a second course can reuse the site with other conten
   `voice/` (`audio/index.ts` today hardcodes `voice/testcove/`).
 - **Tools per pack:** `tools/voice/generate.ts --course <id>` reads `courses/<id>/voice/lines.json` and
   writes `courses/<id>/public/voice/`; `tools/voice/lipsync.ts --course <id>` the same. `--only` still works.
-- **Cast:** step 1 keeps `tts` and `voice` on each line (moved verbatim). Step 2 adds `voice/cast.json`
+- **Cast:** step 1 kept `tts` and `voice` on each line (moved verbatim). Step 2 added `voice/cast.json`
   (speaker → engine, voice id, fx); a line's own fields override. Another course (or language) can recast.
 - **Captions come from the pack** (`lines.json` text via the manifest), as today.
 - **Text-only packs** (step 3): `"voice": false` in `course.json`; the dialogue shows captions and advances
@@ -251,7 +253,7 @@ Step 1 changes no save key.
 | `public/voice/testcove/**` (24 MB) | `courses/copilot-app/public/voice/**` | `git mv` |
 | `public/course/**` (2.4 MB) | `courses/copilot-app/public/course/**` | `git mv`; in-pack paths (`course/ch02/x.webp`) unchanged |
 
-### Stays in TS until step 2 (tagged `@course-content` so `grep` lists them)
+### Stayed in TS until step 2 (done: see "Step 2 as built")
 
 - Puzzle content (every "Content today" cell in §4).
 - NPC script *selection* (`npcScript`, `meridianNpcScript`, `thousandBoughNpcScript`: switches on quest
@@ -278,11 +280,98 @@ Step 1 changes no save key.
   (`course/ch02/x.webp`), every id saved in progress, and the save keys.
 - The content check knows README.md in a pack; every other file must be a pack file with a schema.
 
+### Step 2 as built
+
+**Puzzles.** One file per puzzle the game plays (`GAME_PUZZLES`, `src/course/puzzles.ts`), each naming
+its `mechanic` and validated by `courses/schemas/puzzle-<mechanic>.schema.json`. Every file may have
+`text` (its words by key; the game fills `{name}` with `textOf`), `lines` (voice line ids by purpose,
+`lineOf`) and `"disabled": true`. Modules keep their exported names (`HELM_ORDERS`, `LETTERS`, `FLAGS`,
+`CREW_LOOK`, `WORKSPACES`, `CRANE_CARGO`, `MERIDIAN_YARD`…) as live bindings set in `onCourse`.
+
+| File | Mechanic | What moved | What stayed in code |
+| --- | --- | --- | --- |
+| `gear-rack.json` | checklist | the checks (tool, command, output), the terminal's sign-in and title, the prompt | the rack, its order of play |
+| `practice-session.json` | checklist | the terminal's title and readout (setup tokens) | — |
+| `palette.json` | ceremony | the finished and late scripts, prompts, hints | the colours (game art) |
+| `bard.json`, `christening.json` | ceremony | Wingman's hints (and the bard's announcement) | timing, the ship name board |
+| `sluice.json` | route | the mill's signs, prompts and messages, the `workflowsOn` line | the tile grid and rules |
+| `crane.json` | procedure | berth owners and repositories, spare names, cargo, the command, Actions URL, readout tones, signs, lever plates, Pim and Pol's refusals | berth geometry (`BERTHS`), the guards' rules (fork ownership, Actions on), the slew |
+| `first-words.json` | choose-tool | the quiz, both tools, the prompt, the hatch and reply panels and script | the pipe and hatch |
+| `crate-yard.json` | classify | the bins' signs and the items in slot order (label, kind, why, source) | the grid (`SLOTS`), moves, the atlas painter |
+| `three-helms.json` | choose-tool (Copilot-only) | modes, orders, review options, hints, every readout and line | the courses, buoys and headings; each run acts out `interactive`/`plan`/`autopilot` |
+| `lost-letters.json` | classify | Settings areas (bins), the tray, letters, reasons, cites, plates and crest, overlay words | the cabinets, keys 1-9, 0, N |
+| `market.json` (puzzle) | budget (Copilot-only) | the overlay's words, hire names, outcome summaries, the stall's signs, hints | grading (`jobs.ts`), the economy stays in the pack's `market.json` |
+| `channel-routing.json` | route | crews' names, floats and icons, the demo's cards, the twist (question, answers, lines), results, hints, overlay words | the board, tiles, colours, the twist's ids (`port5174`, `closeOne`, `share` drive the Spire) |
+| `workspaces.json` | match | places (names, icons, pictures), the crews' orders (accept, best, right, why), Fen's lines | what each place does to the water (`runWorkspaces`) |
+| `flag-hoist.json` | classify | the flags (bins), the six orders and choices with their reasons and sections | the mast and its flags' art (by `symbol`) |
+
+The "refactor first" rows split as the table says: the crane's berths are geometry and the guards are
+rules (both code), and its targets and words are the pack's; the crate yard's grid is code and its
+items come in slot order; the workspaces' places and orders are the pack's, and their effect on the
+water is the model's. `"disabled": true` keeps the site as scenery: `session.ts` and
+`thousand-bough-session.ts` create a puzzle only when `puzzleOn(name)`, and its cue does nothing. Every
+file must exist (the sites read their words); a pack that disables a puzzle changes the quests that
+wait on it.
+
+**Beats.** `quests/<island>.json` → `beats`: rows `{ npc, when, script | say | none }`, the first that
+holds wins (`src/game/beats.ts`); `when` maps quest → step (a step, `null`, a list, or `{ "not": … }`),
+and `$flag` keys are the island's flags (`$lettersFiled`). `npcScript`, `meridianNpcScript` and
+`thousandBoughNpcScript` read them. Quest trackers, `migrateQuests` and gating stay in code.
+
+**Hooks.** `course.json` → `hooks`: `briefing` (lines, chest), `islands.<id>` (`landing`, `welcome` with
+`@nav`/`@starfish`, `welcomeBack`, `tips`), `sail`, `npcVoiced`, `setPieces`, `battles.<plan>` (chapter,
+`won`, waves' quiz and raiders). The game's battle plans keep their raider kinds and titles.
+
+**Cast.** `voice/cast.json` holds what's common to a speaker's lines (`tts`, `model`, `voice`,
+`voiceEnv`, `fallbackVoice`, `prosody`, `fx`); `tools/voice/lines.ts` resolves a line over its speaker.
+Every resolved line has the cache hash in the manifest, so no audio changes. `generate.ts --check`
+proves it without calling a service; `--check --list-stale` feeds the weekly refresh.
+
+**Signs and setup copy.** World signs with course words read the pack: the Settings plates and crest,
+the market's boards, plaque, name and notes, the crane's plates, board, sign and banner, the mill's
+signs, the crews' gate boards, the helm buoys' order names. The setup forms, the Logbook's setup notes
+and the Settings screen's shortcut line read `course.json` → `setup` (eager: the Settings screen opens
+from the title); `Rich` (`src/ui/components/Rich.tsx`) renders their `**bold**` and `` `code` ``.
+
+**Checks.** The content check validates `voice/cast.json` and each puzzle by its mechanic; requires a
+file for each game puzzle with its mechanic; resolves puzzles' voice lines, quizzes, scripts, items'
+sources, cites and section anchors; beats' NPCs, quests, steps, scripts and lines; hooks' lines,
+islands, NPCs and battle quizzes; and gives every line a voice.
+
+### Still course-specific in code after step 2
+
+- Quest wiring in puzzle modules: quest ids and steps (`Q0.7`, `Q1.7: 'letters'`), puzzle save keys
+  (`P1.3`, `market`), label ids, cue names. They're saved, so they stay (step 3 keys saves by course).
+- Ids the mechanics' rules know: crate kinds `chat`/`project`, letters' `tray`, flag symbols
+  `@ # / &`, helm modes, workspaces `worktree`/`checkout`/`cloud`, the twist's answer ids, the crane's
+  guards (a fork you own, Actions on), the market's categories and efforts (`Lightweight`… `high`).
+- English grammar helpers: the crews' possessive (`whose`), lower-casing a flag's meaning.
+- Island dressing that shows course words: Thousand-Bough's house signs (`feature`, `bug-fix`,
+  `docs`, `Base branch: main`, `main`, the Lookouts `5173`/`5174`, `Chronicle Loft`), the battle plans'
+  titles, the helm buoys' `ORDER n` and `SHOAL`.
+- Game chrome around puzzles: key help (`Press 1–9…`), generic buttons (`Undo`, `Reset`, `Leave`,
+  `Hint`), the setup forms' buttons and privacy line, tile labels.
+- `modelLabel`'s fallbacks and the setup parsers' error messages (`src/learn/setup.ts`).
+- `index.html` meta text, `boot/fallback.ts`, the service worker's single course repo, and the game's
+  name (decision D4).
+
 ### Proving behaviour is identical
 
 As the last data move did: `tools/course-pack/dump.test.ts` (`DUMP_OUT=<file> npx vitest run --config
 tools/course-pack/vitest.config.mjs`) runs on the commit before and after and writes
-canonical JSON (sorted keys). The diff must be empty except the documented URL prefix.
+canonical JSON (sorted keys). The diff must be empty except the documented URL prefix. Step 2 runs the
+same script on both commits (byte-identical) and adds:
+
+- every puzzle's content through its module's exports, and its pure functions over their inputs (the
+  crane's runs, the letters' reasons for every filing, the channels' verdicts and results, the market's
+  feedback for every hire, the gear and practice readouts);
+- hooks (the briefing, the battle plans), and each voice line resolved against the cast with its cache
+  hash beside the manifest's;
+- the world signs, recorded through a stand-in `SignSet` while the crane, the mill, the Hall of Records'
+  alcoves and the market's stall are built; the setup forms rendered for each kind, asked and changed.
+
+A literal census (each string in the 3036b2a version of every changed file is still in code or in the
+pack) covers words that only show at play time (overlays, hints).
 
 - every index: images, quizzes, pages, chests, glossary, Trials, `voiced`, `cited`; `imageUrl()` per image;
 - quests: defs, tracker, log and target for each state of a full playthrough;

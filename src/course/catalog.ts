@@ -30,6 +30,41 @@ export interface CourseIslandMeta {
   arrival?: { eyebrow: string; line: string };
 }
 
+/** An island's lines the game asks for by id (COURSE-PACKS.md §5). */
+export interface IslandHooks {
+  /** Played over the landing shot before Wingman flies up (Juno's first look at an island). */
+  landing?: readonly string[];
+  /** Wingman's welcome, the first landfall; `@nav` and `@starfish` stand for the island's tips. */
+  welcome: readonly string[];
+  /** Wingman's welcome on a later landfall (Anchorage). */
+  welcomeBack?: readonly string[];
+  /** The tips the welcome points out: the task list and compass, then the island's starfish. */
+  tips: { nav: string; starfish: string };
+}
+
+/** The battle's course part: what its waves are called, the question after each, and the win line. */
+export interface BattleHooks {
+  /** The course chapter it recaps ("00"). */
+  chapter: string;
+  won: string;
+  waves: readonly { quiz: string; raiders: readonly string[] }[];
+}
+
+/** Everything the game asks a course for by id rather than finding it in a script. */
+export interface CourseHooks {
+  /** Juno's briefing in the cabin, then her line once the chest is ready. */
+  briefing: { lines: readonly string[]; chest: string };
+  islands: Readonly<Record<string, IslandHooks>>;
+  /** Wingman's last sailing line at the christening, and the one while Port Meridian is open. */
+  sail: { line: string; meridianOpen: string };
+  /** NPC id → the voiced lines they say when they've no script (instead of a bark). */
+  npcVoiced: Readonly<Record<string, readonly string[]>>;
+  /** Set pieces' lines by name (the gondola ride's). */
+  setPieces: Readonly<Record<string, string>>;
+  /** Battle plan id → its course part. */
+  battles: Readonly<Record<string, BattleHooks>>;
+}
+
 export interface CourseMeta {
   id: string;
   version: number;
@@ -51,6 +86,35 @@ export interface CourseMeta {
   islands: readonly CourseIslandMeta[];
   /** The course's practice values (the player's own replace them once given: src/learn/setup.ts). */
   practice: { issue: number; issueTitle: string; branch: string; repoName: string };
+  /** The "Your setup" forms' words (src/ui/learn/SetupForm.tsx). */
+  setup: SetupCopy;
+  hooks: CourseHooks;
+}
+
+/** One "Your setup" form: its kicker (and the Logbook's note), titles, intro, and what it's used for. */
+export interface SetupFormCopy {
+  label: string;
+  /** The title from the Logbook (a change). */
+  title: string;
+  /** The title the first time it's asked. */
+  ask: string;
+  intro: string;
+  uses: string;
+  field?: string;
+  read: string;
+  hint?: string;
+}
+
+export interface SetupCopy {
+  os: SetupFormCopy & { shortcut: string; note: string };
+  issue: SetupFormCopy;
+  branch: SetupFormCopy & { match: string };
+  model: SetupFormCopy & {
+    choices: Readonly<Record<'auto' | 'current' | 'other', { label: string; note: string }>>;
+    name: string;
+    /** How captions name the pick: none yet, Auto, your current one, or one you picked (unnamed). */
+    names: Readonly<Record<'none' | 'auto' | 'current' | 'other', string>>;
+  };
 }
 
 /** A pack's course.json, less its `$schema` (for editors). */
@@ -79,6 +143,27 @@ export function courseAssetBase(id: string = COURSE.id): string {
 /** The course's voice lines (`<id>.webm`/`.m4a`, timings and `manifest.json`). */
 export function courseVoiceBase(id: string = COURSE.id): string {
   return `${courseAssetBase(id)}voice/`;
+}
+
+/** An island's hooks (empty for an island the course doesn't voice). */
+export function islandHooks(island: string, c: CourseMeta = COURSE): IslandHooks {
+  return c.hooks.islands[island] ?? { welcome: [], tips: { nav: '', starfish: '' } };
+}
+
+/** A welcome with its `@nav` and `@starfish` tips put in (or left out, `withTips: false`). */
+export function welcomeLines(island: string, withTips = true, c: CourseMeta = COURSE): string[] {
+  const h = islandHooks(island, c);
+  return h.welcome.flatMap((id) =>
+    id === '@nav'
+      ? withTips
+        ? [h.tips.nav]
+        : []
+      : id === '@starfish'
+        ? withTips
+          ? [h.tips.starfish]
+          : []
+        : [id],
+  );
 }
 
 /** The island's entry in the course, if the course uses it. */

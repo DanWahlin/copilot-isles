@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A course pack's checklist puzzle (courses/<id>/puzzles/<name>.json)",
+  "description": "Check each thing in turn (the gear rack's tools and versions; the practice session's readout). Every puzzle file has an `id`, its `mechanic`, and may set `disabled` (the site stays as scenery), `text` (its words by key, `{name}` filled in by the game) and `lines` (its voice line ids by what they're for). docs/specs/COURSE-PACKS.md §4.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "mechanic"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mechanic": {
+      "const": "checklist"
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "The course turns this puzzle off: its site stays as scenery and its cue does nothing."
+    },
+    "text": {
+      "type": "object",
+      "description": "The puzzle's words by key (labels, hints, readouts, signs).",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "lines": {
+      "type": "object",
+      "description": "Voice line ids (voice/lines.json) by what they're for.",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[\\w.-]+$"
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "tool", "command", "output"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tool": {
+            "type": "string",
+            "minLength": 1
+          },
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "readout": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text"],
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "tone": {
+            "enum": ["cmd"]
+          },
+          "you": {
+            "enum": ["os", "issue", "branch", "model"],
+            "description": "The line shows a Your setup value: the game marks it as yours."
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

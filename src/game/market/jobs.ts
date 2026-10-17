@@ -13,6 +13,8 @@ import {
 import { onCourse } from '../../course/active';
 import type { SourceRef } from '../../learn/types';
 import type { ModelCategory } from './catalog';
+import type { PuzzleFile } from '../../course/pack';
+import { puzzleContent, textOf } from '../../course/puzzles';
 
 /**
  * The Model Market's rules (docs/specs/MODEL-MARKET.md §3, §5): the jobs on Gilda's board, what a
@@ -37,6 +39,11 @@ const quote = (q: MarketQuoteData): CourseQuote => ({
   section: sectionTitle(q),
   source: sourceOf(q),
 });
+
+/** The market's words (`puzzles/market.json`): the overlay, the hire's name, the summaries, the signs. */
+export const marketText = (key: string, v?: Readonly<Record<string, string | number>>) =>
+  textOf(puzzleContent<PuzzleFile>('market'), key, v);
+const T = marketText;
 
 export let QUOTES = {} as Readonly<Record<QuoteKey, CourseQuote>>;
 
@@ -209,7 +216,7 @@ onCourse(() => {
 
 /** "Auto", or "Claude Haiku 5.5 on Default". */
 export function hireName(h: Hire): string {
-  return h.auto ? 'Auto' : `${h.model} on ${EFFORT_LABEL[h.effort]}`;
+  return h.auto ? T('auto') : T('hireName', { model: h.model, effort: EFFORT_LABEL[h.effort] });
 }
 
 export function feedback(job: MarketJob, h: Hire): Feedback {
@@ -218,54 +225,55 @@ export function feedback(job: MarketJob, h: Hire): Feedback {
   const who = hireName(h);
   const fair = fairPrice(job);
   const base = { outcome, reason, stamp: STAMP[outcome] };
+  const summary = T(`summary.${reason}`, { who, paid, fair });
   switch (reason) {
     case 'quick-right':
       return {
         ...base,
         line: GILDA.right,
-        summary: `${who} did the job for ${paid} starfish: right-sized.`,
+        summary,
         quotes: [job.why, ...(h.auto ? [QUOTES.auto] : [])],
       };
     case 'quick-over-model':
       return {
         ...base,
         line: GILDA.over,
-        summary: `${who} did the job, but it cost ${paid} starfish for a ${fair}-starfish job.`,
+        summary,
         quotes: [QUOTES.cost, job.why],
       };
     case 'quick-over-effort':
       return {
         ...base,
         line: GILDA.overEffort,
-        summary: `${who} did the job, but High effort cost ${paid} starfish for a ${fair}-starfish job.`,
+        summary,
         quotes: [QUOTES.effort, job.why],
       };
     case 'hard-right':
       return {
         ...base,
         line: GILDA.right,
-        summary: `${who} got it done: right-sized for a hard job.`,
+        summary,
         quotes: [QUOTES.hard, QUOTES.noGuarantee],
       };
     case 'hard-short-auto':
       return {
         ...base,
         line: GILDA.shortAuto,
-        summary: 'Auto made a start, but with its effort hidden, the job isn’t done.',
+        summary,
         quotes: [QUOTES.autoHidden, QUOTES.hard, QUOTES.retry],
       };
     case 'hard-short-model':
       return {
         ...base,
         line: GILDA.short,
-        summary: `${who} made a start, but a Lightweight model isn’t enough for this job.`,
+        summary,
         quotes: [QUOTES.hard, QUOTES.retry],
       };
     case 'hard-short-effort':
       return {
         ...base,
         line: GILDA.short,
-        summary: `${who} made a start, but it needs more effort for this job.`,
+        summary,
         quotes: [QUOTES.hard, QUOTES.effort, QUOTES.retry],
       };
   }

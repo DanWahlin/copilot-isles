@@ -21,11 +21,13 @@ import { createChannelRouting } from './puzzles/channel-routing/puzzle';
 import {
   FlagHoist,
   HOIST_ORDERS,
+  hoistContent,
   orderPicks,
   pickFlag,
   rightPick,
   type HoistOrder,
 } from './puzzles/flag-hoist';
+import { lineOf, puzzleOn, textOf } from '../course/puzzles';
 import { createPracticeSession } from './puzzles/practice-session';
 import type { Puzzle, PuzzleHost } from './puzzles/types';
 import type { ScriptStep } from './script';
@@ -33,6 +35,7 @@ import { THOUSAND_BOUGH_NPCS, thousandBoughExtras } from './thousand-bough-npcs'
 import { FEN_SOLVED, thousandBoughNpcScript } from './thousand-bough-quests';
 import { createViewStore } from './puzzles/channel-routing/view';
 import type { FlagHoistView } from '../ui/puzzles/FlagHoist';
+import { COURSE } from '../course/catalog';
 
 /**
  * Thousand-Bough Isle's content in the play session (docs/specs/ISLAND-02-thousand-bough.md §4-§7):
@@ -194,6 +197,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
   };
 
   // ---- P2.3 Flag Hoist ----
+  const hoistText = (key: string, v?: Readonly<Record<string, string>>) => textOf(hoistContent(), key, v);
   const hoistView = createViewStore<FlagHoistView>({
     open: false,
     step: 0,
@@ -236,9 +240,12 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
       return;
     }
     hoistView.set({
-      message: { text: o.kind === 'flag' ? `${pick}: that’s the one!` : 'That’s the one!', tone: 'good' },
+      message: {
+        text: o.kind === 'flag' ? hoistText('flagOk', { pick }) : hoistText('choiceOk'),
+        tone: 'good',
+      },
     });
-    if (r.done || h.index === 1 || o.kind === 'choice') await host.say(['tb.ines.flag.ok']);
+    if (r.done || h.index === 1 || o.kind === 'choice') await host.say([lineOf(hoistContent(), 'ok')]);
     if (r.done) {
       sfx('chime_solve', mast, 0.8);
       await wait(600);
@@ -363,7 +370,9 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
   host.cues.set('tb-flume-open', async () => {
     openBoardSoon = true;
   });
-  host.cues.set('tb-flag-hoist', () => runHoist());
+  host.cues.set('tb-flag-hoist', async () => {
+    if (puzzleOn('flag-hoist')) await runHoist();
+  });
   host.cues.set('tb-crown-view', async () => {
     if (done('Q2.9') || q()['Q2.9'] === 'exam') return;
     crownView = true;
@@ -494,30 +503,38 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
     }
 
     // Set pieces.
-    routing = createChannelRouting(
-      {
-        ...host.puzzleHost,
-        frame: host.frame,
-        say: host.say,
-        wingman: (t) => void host.text('Wingman', t),
-        project: (x, y, z) => project(x, y, z),
-        setModal,
-        reducedMotion: host.reducedMotion,
-        fade: host.fade,
-        label: host.label,
-        closing: FEN_SOLVED,
-      },
-      s,
-    );
-    const practice = createPracticeSession({
-      rook: A.rook,
-      player: host.player,
-      setup: () => host.learn?.getState().setup ?? null,
-      started: () => !!q()['Q2.7'],
-    });
+    // A course can turn a puzzle off (`"disabled": true`): the Gate Board and the deck stay as scenery.
+    routing = !puzzleOn('channel-routing')
+      ? null
+      : createChannelRouting(
+          {
+            ...host.puzzleHost,
+            frame: host.frame,
+            say: host.say,
+            wingman: (t) => void host.text('Wingman', t),
+            project: (x, y, z) => project(x, y, z),
+            setModal,
+            reducedMotion: host.reducedMotion,
+            fade: host.fade,
+            label: host.label,
+            closing: FEN_SOLVED,
+          },
+          s,
+        );
     // Rook's practice session, with the player's own branch and issue number (Your setup).
-    host.puzzles.push(routing, practice);
-    added.puzzles.push(routing, practice);
+    const practice = !puzzleOn('practice-session')
+      ? null
+      : createPracticeSession({
+          rook: A.rook,
+          player: host.player,
+          setup: () => host.learn?.getState().setup ?? null,
+          started: () => !!q()['Q2.7'],
+        });
+    for (const p of [routing, practice]) {
+      if (!p) continue;
+      host.puzzles.push(p);
+      added.puzzles.push(p);
+    }
     addInteraction({
       id: 'gondola:bell',
       label: () => 'Ring the gondola bell',
@@ -581,7 +598,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
     gondolaBusy = true;
     sfx('gondola_bell', A.gondolaBell, 0.9);
     void sys.fx.gondolaSend();
-    await host.say(['tb.oak.gondola']);
+    await host.say([COURSE.hooks.setPieces.gondola!]);
     gondolaBusy = false;
   }
 

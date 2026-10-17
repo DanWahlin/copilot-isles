@@ -1,0 +1,93 @@
+{
+  "$schema": "../../schemas/puzzle-choose-tool.schema.json",
+  "id": "Q0.8.pipes",
+  "mechanic": "choose-tool",
+  "$comment": "First Words (Q0.8): two fittings on the ship's rail, the speaking tube (to the crew) and the hatch (to the engine room). For the Copilot app course, the Prompt Box and Terminal: speaking the course's first prompt into one of them answers the quiz (the right tool is the tube). {prompt} is the prompt.",
+  "quiz": "S0.2",
+  "tools": {
+    "tube": {
+      "label": "Speak into the Prompt Box",
+      "option": "prompt",
+      "right": true
+    },
+    "hatch": {
+      "label": "Call down the Terminal hatch",
+      "option": "terminal"
+    }
+  },
+  "prompt": "Give me an overview of the copilot-app-for-beginners course repository…",
+  "hatch": {
+    "title": "Terminal · engine room",
+    "lines": [
+      {
+        "text": "$ {prompt}",
+        "tone": "cmd"
+      },
+      {
+        "text": "zsh: command not found: Give",
+        "tone": "other"
+      }
+    ]
+  },
+  "reply": {
+    "title": "Copilot app · project session",
+    "lines": [
+      {
+        "text": "> {prompt}",
+        "tone": "cmd"
+      },
+      {
+        "text": "This course has eight chapters, from 00 Setup to 07 Automations."
+      },
+      {
+        "text": "Learning path: Setup → Tour the App → Sessions, Worktrees, and Context → Development and GitHub Workflows → Skills and Custom Agents → MCP Servers and Plugins → Canvases → Automations."
+      },
+      {
+        "text": "samples/book-app-web is the web sample you’ll use in later exercises.",
+        "tone": "ok"
+      }
+    ]
+  },
+  "scripts": {
+    "reply": [
+      {
+        "say": "juno.reply.01"
+      },
+      {
+        "say": "juno.reply.02"
+      },
+      {
+        "say": "juno.reply.vary"
+      },
+      {
+        "page": "pg.first-prompt",
+        "doubloons": 10
+      },
+      {
+        "say": "juno.reply.03"
+      },
+      {
+        "quest": "Q0.8",
+        "step": "done"
+      },
+      {
+        "quest": "Q0.10",
+        "step": "start"
+      },
+      {
+        "quest": "Q0.9",
+        "step": "start"
+      }
+    ]
+  },
+  "lines": {
+    "hatch": "juno.hatch.01",
+    "hatchWrong": "juno.hatch.feedback.01"
+  },
+  "text": {
+    "finishWithJuno": "Talk to Juno to finish up at the ship.",
+    "hint1": "Is this a command to run, or a request for the agent?",
+    "hint2": "Requests to the agent go in the prompt box. That’s the brass speaking tube.",
+    "hint3": "I’ve spoken it into the Prompt Box for you. Listen."
+  }
+}

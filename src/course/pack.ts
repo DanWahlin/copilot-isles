@@ -1,5 +1,6 @@
 import type { MarketData } from '../content/market';
 import type { CourseBoardsData } from '../content/course-boards';
+import type { Beat } from '../game/beats';
 import type { ScriptStep } from '../game/script';
 import type { ModelsFile } from '../game/market/catalog';
 import type { ChartLabelText } from '../learn/content/labels';
@@ -47,6 +48,8 @@ export interface IslandQuestsFile {
   quests: readonly QuestDef[];
   /** `<quest>:<step>` → where the compass points. */
   targets: Readonly<Record<string, QuestTarget>>;
+  /** Which script or line each NPC offers for the quest state; the first row that fits wins. */
+  beats: readonly Beat[];
   /** Named scripts the island's NPCs and puzzles play (src/game/script.ts). */
   scripts: Readonly<Record<string, readonly PackScriptStep[]>>;
   /** What each script is for (for authors; the game ignores it). */
@@ -60,6 +63,34 @@ export interface IslandQuests extends Omit<IslandQuestsFile, 'scripts'> {
   scripts: Readonly<Record<string, readonly ScriptStep[]>>;
 }
 
+/** The kinds of puzzle the game can run (COURSE-PACKS.md §4): a puzzle file names its mechanic. */
+export const PUZZLE_MECHANICS = [
+  'classify',
+  'choose-tool',
+  'route',
+  'match',
+  'procedure',
+  'checklist',
+  'budget',
+  'ceremony',
+] as const;
+export type PuzzleMechanic = (typeof PUZZLE_MECHANICS)[number];
+
+/** `puzzles/<name>.json`: a puzzle's content. Its other fields depend on its mechanic. */
+export interface PuzzleFile {
+  /** The puzzle's name in the course (`P0.2`, `P1.3`): for people and messages; saves keep the game's keys. */
+  id: string;
+  mechanic: PuzzleMechanic;
+  /** The chapter its `cites` (or its items' `section` anchors) are in. */
+  chapter?: string;
+  /** Off for this course: its site stays as scenery and the game doesn't create the puzzle. */
+  disabled?: boolean;
+  /** Its words (labels, hints, readouts), by key; `{name}` marks a value the game fills in. */
+  text?: Readonly<Record<string, string>>;
+  /** Its voiced lines, by what they're for. */
+  lines?: Readonly<Record<string, string>>;
+}
+
 export interface CoursePack {
   id: string;
   meta: CourseMeta;
@@ -68,6 +99,8 @@ export interface CoursePack {
   /** Island id → its quests. */
   quests: Readonly<Record<string, IslandQuests>>;
   labels: Readonly<Record<string, ChartLabelText>>;
+  /** File name (`crane`) → the puzzle's content. */
+  puzzles: Readonly<Record<string, PuzzleFile>>;
   boards: CourseBoardsData;
   market: MarketData;
   models: ModelsFile;
@@ -124,11 +157,17 @@ export function assemblePack(meta: CourseMeta, files: PackFiles): CoursePack {
     const file = withoutMeta(files[p] as IslandQuestsFile);
     quests[file.island] = { ...file, scripts: expandScripts(file.island, file.scripts) };
   }
+  const puzzles: Record<string, PuzzleFile> = {};
+  for (const p of Object.keys(files).sort()) {
+    const m = /^puzzles\/([^/]+)\.json$/.exec(p);
+    if (m) puzzles[m[1]!] = withoutMeta(files[p] as PuzzleFile);
+  }
   return {
     id,
     meta,
     chapters,
     quests,
+    puzzles,
     labels: need<{ labels: Record<string, ChartLabelText> }>(files, 'labels.json', id).labels,
     boards: withoutMeta(need<CourseBoardsData>(files, 'boards.json', id)),
     market: withoutMeta(need<MarketData>(files, 'market.json', id)),

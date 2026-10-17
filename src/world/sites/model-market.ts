@@ -4,6 +4,7 @@ import { unreflected } from '../reflection';
 import type { VillageAnchor } from '../village/kit';
 import { MARKET_LAYOUT } from '../meridian-town/model-market';
 import { SignSet, type PaintedSign } from './sign';
+import { marketText as T } from '../../game/market/jobs';
 
 /** A held camera shot: the eye, and the point it looks at (the follow camera's `CameraShot`). */
 export interface MarketShot {
@@ -81,7 +82,11 @@ export function createModelMarketSigns(o: {
   o.boards.forEach((b, i) => {
     const spot = L.boards[i];
     if (!spot) return;
-    const lines = [`${b.category} · ${b.price} ★`, ...b.names, ...(b.more > 0 ? [`+${b.more} more`] : [])];
+    const lines = [
+      T('boardHead', { category: b.category, price: b.price }),
+      ...b.names,
+      ...(b.more > 0 ? [T('more', { n: b.more })] : []),
+    ];
     const ink = INK_ON[i] ?? CREAM;
     const s = signs.add(lines, spot.w - 0.06, spot.h - 0.06, {
       layout: 'list',
@@ -100,7 +105,7 @@ export function createModelMarketSigns(o: {
     root.add(s.object);
   });
   const plaque = signs.add(
-    [`House special: Auto · ${MARKET.autoPrice} ★`, 'The app chooses a model'],
+    [T('plaque', { price: MARKET.autoPrice }), T('plaqueSub')],
     L.plaque.w,
     L.plaque.h,
     {
@@ -112,7 +117,7 @@ export function createModelMarketSigns(o: {
   );
   plaque.object.position.set(L.plaque.x, L.plaque.y, L.plaque.z);
   root.add(plaque.object);
-  const name = signs.add(['Gilda’s', 'Model Market'], L.name.w, L.name.h, {
+  const name = signs.add([T('nameTop'), T('nameBottom')], L.name.w, L.name.h, {
     size: 0.17,
     colors: [GOLD, CREAM],
     scales: [1, 0.86],
@@ -122,7 +127,7 @@ export function createModelMarketSigns(o: {
 
   const noteLines = (j: MarketJobNote, done: boolean) => [
     j.note,
-    done ? '✓ Done' : MARKET.sizes[j.size].label,
+    done ? T('noteDone') : MARKET.sizes[j.size].label,
   ];
   const notes: { job: MarketJobNote; sign: PaintedSign; done: boolean }[] = [];
   o.jobs.forEach((j, i) => {

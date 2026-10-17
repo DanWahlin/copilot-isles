@@ -13,7 +13,9 @@
     "language",
     "source",
     "islands",
-    "practice"
+    "practice",
+    "setup",
+    "hooks"
   ],
   "properties": {
     "$schema": {
@@ -165,12 +167,387 @@
           "pattern": "^[\\w.-]+$"
         }
       }
+    },
+    "setup": {
+      "type": "object",
+      "description": "The \"Your setup\" forms' words (src/ui/learn/SetupForm.tsx), the Logbook's notes and the Settings screen's shortcut line. `**bold**` and `code` spans render as such; {issue}, {issueTitle}, {branch}, {os} and {keys} are filled in.",
+      "additionalProperties": false,
+      "required": ["os", "issue", "branch", "model"],
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "os": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["label", "title", "ask", "intro", "uses", "read", "shortcut", "note"],
+          "properties": {
+            "label": {
+              "$ref": "#/$defs/text"
+            },
+            "title": {
+              "$ref": "#/$defs/text"
+            },
+            "ask": {
+              "$ref": "#/$defs/text"
+            },
+            "intro": {
+              "$ref": "#/$defs/text"
+            },
+            "uses": {
+              "$ref": "#/$defs/text"
+            },
+            "field": {
+              "$ref": "#/$defs/text"
+            },
+            "read": {
+              "$ref": "#/$defs/text"
+            },
+            "hint": {
+              "$ref": "#/$defs/text"
+            },
+            "shortcut": {
+              "type": "string",
+              "pattern": "^(mod|ctrl|shift|alt)(\\+\\w+)+$",
+              "description": "The shortcut shown with your computer's keys (src/learn/setup.ts formatKeys)."
+            },
+            "note": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        },
+        "issue": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["label", "title", "ask", "intro", "uses", "read"],
+          "properties": {
+            "label": {
+              "$ref": "#/$defs/text"
+            },
+            "title": {
+              "$ref": "#/$defs/text"
+            },
+            "ask": {
+              "$ref": "#/$defs/text"
+            },
+            "intro": {
+              "$ref": "#/$defs/text"
+            },
+            "uses": {
+              "$ref": "#/$defs/text"
+            },
+            "field": {
+              "$ref": "#/$defs/text"
+            },
+            "read": {
+              "$ref": "#/$defs/text"
+            },
+            "hint": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        },
+        "branch": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["label", "title", "ask", "intro", "uses", "read", "match"],
+          "properties": {
+            "label": {
+              "$ref": "#/$defs/text"
+            },
+            "title": {
+              "$ref": "#/$defs/text"
+            },
+            "ask": {
+              "$ref": "#/$defs/text"
+            },
+            "intro": {
+              "$ref": "#/$defs/text"
+            },
+            "uses": {
+              "$ref": "#/$defs/text"
+            },
+            "field": {
+              "$ref": "#/$defs/text"
+            },
+            "read": {
+              "$ref": "#/$defs/text"
+            },
+            "hint": {
+              "$ref": "#/$defs/text"
+            },
+            "match": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        },
+        "model": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["label", "title", "ask", "intro", "uses", "read", "choices", "name", "names"],
+          "properties": {
+            "label": {
+              "$ref": "#/$defs/text"
+            },
+            "title": {
+              "$ref": "#/$defs/text"
+            },
+            "ask": {
+              "$ref": "#/$defs/text"
+            },
+            "intro": {
+              "$ref": "#/$defs/text"
+            },
+            "uses": {
+              "$ref": "#/$defs/text"
+            },
+            "field": {
+              "$ref": "#/$defs/text"
+            },
+            "read": {
+              "$ref": "#/$defs/text"
+            },
+            "hint": {
+              "$ref": "#/$defs/text"
+            },
+            "choices": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["auto", "current", "other"],
+              "properties": {
+                "auto": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["label", "note"],
+                  "properties": {
+                    "label": {
+                      "$ref": "#/$defs/text"
+                    },
+                    "note": {
+                      "$ref": "#/$defs/text"
+                    }
+                  }
+                },
+                "current": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["label", "note"],
+                  "properties": {
+                    "label": {
+                      "$ref": "#/$defs/text"
+                    },
+                    "note": {
+                      "$ref": "#/$defs/text"
+                    }
+                  }
+                },
+                "other": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["label", "note"],
+                  "properties": {
+                    "label": {
+                      "$ref": "#/$defs/text"
+                    },
+                    "note": {
+                      "$ref": "#/$defs/text"
+                    }
+                  }
+                }
+              }
+            },
+            "name": {
+              "$ref": "#/$defs/text"
+            },
+            "names": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["none", "auto", "current", "other"],
+              "properties": {
+                "none": {
+                  "$ref": "#/$defs/text"
+                },
+                "auto": {
+                  "$ref": "#/$defs/text"
+                },
+                "current": {
+                  "$ref": "#/$defs/text"
+                },
+                "other": {
+                  "$ref": "#/$defs/text"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "description": "The lines and questions the game asks for by id (docs/specs/COURSE-PACKS.md §5): the cabin briefing, each island's welcome and tips, the sail, NPCs' voiced fallbacks, set pieces and the sea battles' waves.",
+      "additionalProperties": false,
+      "required": ["briefing", "islands", "sail", "npcVoiced", "setPieces", "battles"],
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "briefing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lines", "chest"],
+          "properties": {
+            "lines": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/line"
+              },
+              "minItems": 1
+            },
+            "chest": {
+              "$ref": "#/$defs/line"
+            }
+          }
+        },
+        "islands": {
+          "type": "object",
+          "description": "By the game's island id.",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["welcome", "tips"],
+            "properties": {
+              "landing": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/line"
+                },
+                "minItems": 1,
+                "description": "Lines on landing, before the welcome (Juno's at Thousand-Bough)."
+              },
+              "welcome": {
+                "type": "array",
+                "minItems": 1,
+                "description": "The island's first welcome: line ids, with @nav and @starfish where its tips go (left out when the tips are off).",
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/line"
+                    },
+                    {
+                      "enum": ["@nav", "@starfish"]
+                    }
+                  ]
+                }
+              },
+              "welcomeBack": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/line"
+                },
+                "minItems": 1,
+                "description": "A shorter welcome on a later arrival."
+              },
+              "tips": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["nav", "starfish"],
+                "properties": {
+                  "nav": {
+                    "$ref": "#/$defs/line"
+                  },
+                  "starfish": {
+                    "$ref": "#/$defs/line"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "sail": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["line"],
+          "properties": {
+            "line": {
+              "$ref": "#/$defs/line",
+              "description": "Wingman on setting sail."
+            },
+            "meridianOpen": {
+              "$ref": "#/$defs/line",
+              "description": "When the way to the next island opens."
+            }
+          }
+        },
+        "npcVoiced": {
+          "type": "object",
+          "description": "NPC id → the voiced lines they say when they've no script (instead of a bark).",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/line"
+            },
+            "minItems": 1
+          }
+        },
+        "setPieces": {
+          "type": "object",
+          "description": "Set pieces' lines by name (the game's: `gondola`).",
+          "additionalProperties": {
+            "$ref": "#/$defs/line"
+          }
+        },
+        "battles": {
+          "type": "object",
+          "description": "The game's sea battles by plan id: the course chapter they test, the line when they're won, and each wave's quiz and its raiders' names.",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["chapter", "won", "waves"],
+            "properties": {
+              "chapter": {
+                "type": "string",
+                "pattern": "^\\d\\d$"
+              },
+              "won": {
+                "$ref": "#/$defs/text"
+              },
+              "waves": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["quiz", "raiders"],
+                  "properties": {
+                    "quiz": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "raiders": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/$defs/text"
+                      },
+                      "minItems": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "$defs": {
     "text": {
       "type": "string",
       "minLength": 1
+    },
+    "line": {
+      "type": "string",
+      "pattern": "^[\\w.-]+$",
+      "description": "A voice line id (voice/lines.json)."
     }
   }
 }

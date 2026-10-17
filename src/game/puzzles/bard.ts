@@ -1,4 +1,8 @@
 import type { HintTier, Puzzle, PuzzleHost } from './types';
+import { puzzleContent, textOf } from '../../course/puzzles';
+
+/** Its words: the course pack's `puzzles/bard.json`. */
+const T = (key: string) => textOf(puzzleContent('bard'), key);
 
 const BARD_ID = 'Q0.9.bard';
 const QUEST = 'Q0.9';
@@ -33,9 +37,8 @@ export function createBard(host: PuzzleHost, site: BardSite, talking: () => bool
     hintKey: () => step() ?? '-',
     hint(tier: HintTier) {
       if (step() !== 'start') return null;
-      if (tier === 1)
-        return 'Hear that lute? Lyra the bard’s down on the lagoon beach, south of the village.';
-      return 'Follow the music to the hammock on the lagoon beach and talk to Lyra. It’s optional, but she tells it well.';
+      if (tier === 1) return T('hint1');
+      return T('hint2');
     },
     update(dt: number) {
       const s = step();
@@ -45,7 +48,7 @@ export function createBard(host: PuzzleHost, site: BardSite, talking: () => bool
       }
       if (announce && host.canAct()) {
         announce = false;
-        host.hud.toast('Lute music’s drifting up from the lagoon. Lyra the bard has a song for you.', 5);
+        host.hud.toast(T('announce'), 5);
       }
       if ((strumIn -= dt) > 0) return;
       strumIn = STRUM_MIN + Math.random() * STRUM_SPREAD;

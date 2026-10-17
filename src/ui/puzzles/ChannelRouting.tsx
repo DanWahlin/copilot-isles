@@ -6,12 +6,24 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { createRoot } from 'react-dom/client';
-import { COLS, CREW_LOOK, CREWS, GATE_COL, ROWS, WHEEL_AT } from '../../game/puzzles/channel-routing/boards';
+import {
+  COLS,
+  CREW_LOOK,
+  CREWS,
+  GATE_COL,
+  ROWS,
+  WHEEL_AT,
+  routingContent,
+} from '../../game/puzzles/channel-routing/boards';
 import { ports, tileLabel } from '../../game/puzzles/channel-routing/logic';
 import type { Crew, Flow, Tile } from '../../game/puzzles/channel-routing/types';
 import type { ChannelRoutingStore, ChannelRoutingView } from '../../game/puzzles/channel-routing/view';
-import { CREW_ORDERS, WORKSPACES } from '../../game/puzzles/channel-routing/workspaces';
+import { CREW_ORDERS, WORKSPACES, workspacesContent } from '../../game/puzzles/channel-routing/workspaces';
+import { textOf } from '../../course/puzzles';
 import './channel-routing.css';
+
+const T = (key: string, v?: Readonly<Record<string, string | number>>) => textOf(routingContent(), key, v);
+const W = (key: string, v?: Readonly<Record<string, string | number>>) => textOf(workspacesContent(), key, v);
 
 /**
  * P2.1 Channel Routing's overlay (docs/specs/ISLAND-02-thousand-bough.md §5.5): the Gate Board as a
@@ -125,7 +137,7 @@ function Workspaces({ v, a }: { v: ChannelRoutingView; a: ChannelRoutingStore['a
               </b>{' '}
               {CREW_ORDERS[crew].order}
             </p>
-            <div className="ci-cr-ws" role="radiogroup" aria-label={`Where ${look.name} works`}>
+            <div className="ci-cr-ws" role="radiogroup" aria-label={W('where', { crew: look.name })}>
               {WORKSPACES.map((w) => (
                 <button
                   key={w.id}
@@ -333,7 +345,7 @@ function ChannelRouting({ store }: { store: ChannelRoutingStore }) {
   };
 
   return (
-    <div className="ci-cr" role="dialog" aria-label="Channel Routing: the Gate Board">
+    <div className="ci-cr" role="dialog" aria-label={T('dialog')}>
       {v.hits && !v.twist && v.round !== 3 && (
         <div className="ci-cr-hits" aria-hidden="true">
           {v.hits.map((h, i) =>
@@ -352,14 +364,8 @@ function ChannelRouting({ store }: { store: ChannelRoutingStore }) {
         className={`ci-cr-panel ci-cr-two${v.twist ? ' is-twist' : ''}${!v.twist && v.round === 3 ? ' is-places' : ''}`}
       >
         <header className="ci-cr-head">
-          <p className="ci-cr-eyebrow">{v.twist ? 'The Spire' : `Channel Routing · Round ${v.round} of 3`}</p>
-          <h2>
-            {v.twist
-              ? 'Why are they stuck?'
-              : v.round === 3
-                ? 'Where does each crew work?'
-                : 'Give every crew its own channel'}
-          </h2>
+          <p className="ci-cr-eyebrow">{v.twist ? T('twistEyebrow') : T('eyebrow', { n: v.round })}</p>
+          <h2>{v.twist ? T('twistTitle') : v.round === 3 ? W('title') : T('title')}</h2>
         </header>
 
         {v.twist ? (
@@ -421,8 +427,8 @@ function ChannelRouting({ store }: { store: ChannelRoutingStore }) {
                 if (!crew)
                   return (
                     <span key={c} className={`ci-cr-hall${hall ? ' is-wet' : ''}`}>
-                      Great Hall
-                      <small>main</small>
+                      {T('hall')}
+                      <small>{T('hallSub')}</small>
                     </span>
                   );
                 const look = CREW_LOOK[crew];
@@ -452,9 +458,9 @@ function ChannelRouting({ store }: { store: ChannelRoutingStore }) {
                   {v.message.text}
                 </>
               ) : v.round === 3 ? (
-                'Read each crew’s order and pick where it works: New worktree, Current checkout or Cloud.'
+                W('ask')
               ) : (
-                'Turn the tiles so each crew’s water reaches its own wheel, then open the gates.'
+                T('ask')
               )}
             </p>
           )}

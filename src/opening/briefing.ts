@@ -1,14 +1,16 @@
 import type { FaceExpression, MouthCue } from '../world/characters/facial-animation';
+import { COURSE } from '../course/catalog';
 
 /**
  * Juno's short welcome in the captain's cabin (Dan: tell the player what they'll be doing overall):
  * each island teaches a chapter of the course through quests, quests fill the Logbook and the purse,
  * then you sail on, and starfish hide on every island. It plays while the island builds behind the
  * cabin, so it mostly costs no wait; the chest waits for it, E skips a line and Esc skips it all.
+ * The lines are the course's (`course.json` → `hooks.briefing`).
  */
-export const BRIEFING = ['juno.cabin.01', 'juno.cabin.02', 'juno.cabin.03', 'juno.cabin.04'] as const;
+export const BRIEFING: readonly string[] = COURSE.hooks.briefing.lines;
 /** Said once the chest is ready to open. */
-export const CHEST_LINE = 'juno.cabin.chest';
+export const CHEST_LINE: string = COURSE.hooks.briefing.chest;
 /** The cabin's lines, in the order they're fetched. */
 export const BRIEFING_LINES: readonly string[] = [...BRIEFING, CHEST_LINE];
 
