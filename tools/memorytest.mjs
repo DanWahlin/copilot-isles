@@ -2,7 +2,8 @@
 // The memory gate (PLAN §12.7, §13.3): plays Anchorage → Port Meridian → Thousand-Bough → Anchorage by
 // chart travel, twice, on each tier and backend, and reads the GPU memory three tracks
 // (`renderer.info.memory`, made honest by engine/memory-ledger.ts) and the JS heap after a forced GC
-// at every stop. Fails if, back at Anchorage, memory is more than a small margin over the first visit,
+// at every stop. Fails if, back at Anchorage, memory is more than a small margin over the first visit
+// (the heap's is a share or an absolute floor, whichever is more: budgets.json `margin.heapFloorMB`),
 // if it keeps rising from one round trip to the next (a leak), if any stop is over its tier's ceiling
 // (tools/budgets.json `memory`), or on a page error, a WebGPU validation error or a hitch. Then it
 // sails to Port Meridian, waits for Anchorage to go dormant, quits to the title and starts a new
@@ -172,22 +173,28 @@ async function run(tier, backend) {
     for (const l of logs) fail(l);
     // Back at Anchorage, close to the first visit.
     const m = budgets.margin;
+    // The heap's allowance: a share of the first visit's, or an absolute floor (budgets.json says why).
+    const heapLimit = (mb) => +Math.max(mb * (1 + m.heapPct / 100), mb + m.heapFloorMB).toFixed(1);
     const b1 = back[0];
     if (b1) {
       if (b1.trackedMB > first.trackedMB * (1 + m.trackedPct / 100))
         fail(
           `back at Anchorage: tracked ${b1.trackedMB} MB > first ${first.trackedMB} MB + ${m.trackedPct} %`,
         );
-      if (b1.heapMB > first.heapMB * (1 + m.heapPct / 100))
-        fail(`back at Anchorage: heap ${b1.heapMB} MB > first ${first.heapMB} MB + ${m.heapPct} %`);
+      if (b1.heapMB > heapLimit(first.heapMB))
+        fail(
+          `back at Anchorage: heap ${b1.heapMB} MB > ${heapLimit(first.heapMB)} MB (first ${first.heapMB} MB)`,
+        );
     }
     // The next voyage starts where the first did.
     if (again.trackedMB > first.trackedMB * (1 + m.trackedPct / 100))
       fail(
         `new voyage: tracked ${again.trackedMB} MB > first voyage ${first.trackedMB} MB + ${m.trackedPct} %`,
       );
-    if (again.heapMB > first.heapMB * (1 + m.heapPct / 100))
-      fail(`new voyage: heap ${again.heapMB} MB > first voyage ${first.heapMB} MB + ${m.heapPct} %`);
+    if (again.heapMB > heapLimit(first.heapMB))
+      fail(
+        `new voyage: heap ${again.heapMB} MB > ${heapLimit(first.heapMB)} MB (first voyage ${first.heapMB} MB)`,
+      );
     // No growth from one round trip to the next.
     for (let i = 1; i < back.length; i++) {
       const a = back[i - 1],

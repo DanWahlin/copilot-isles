@@ -33,9 +33,11 @@ import {
   fract,
   greaterThan,
   materialColor,
+  int,
   max,
   min,
   mix,
+  normalGeometry,
   normalLocal,
   normalWorld,
   positionGeometry,
@@ -46,9 +48,11 @@ import {
   select,
   sin,
   smoothstep,
+  step,
   texture,
   uniform,
   uv,
+  varying,
   vec2,
   vec3,
   vec4,
@@ -57,6 +61,7 @@ import { world } from '../uniforms';
 import { terrainNoiseTexture } from '../terrain/noise-texture';
 import { gustNode } from '../wind-nodes';
 import { trackedPosition } from '../../engine/motion-vectors';
+import { FLORA_SPECIES_MAX, FLOWER_REACH, floraPushers, floraSpeciesTable } from '../flora/nodes';
 import type { HeightGrid } from './types';
 
 // three's TSL fluent node typings do not cover the mixed scalar/vector graph assembled here.
@@ -459,10 +464,29 @@ export interface GrassReach {
   keep: number;
 }
 
+/** How an island's grass is coloured beyond its blade tints (from its flora palette). */
+export interface GrassLook {
+  /** The ground's tone under the blades (sRGB hex): the roots fade into it, so no pale soil shows. */
+  ground: number;
+  /** Share of dead straw blades (0-1), and their colour (sRGB hex). */
+  straw: number;
+  strawColour: number;
+}
+
+/**
+ * One graph for every island's grass, seed heads and flowers (no new shader per species or island):
+ * blades sway in the shared gust field and are pushed aside by the feet in `floraPushers`; their
+ * roots fade into the ground's tone, a few are dead straw, and the sun shines through their tips
+ * when you look toward it. Flowers (`vegPart` 3 petals, 5 stems) read their species' shape, eye and
+ * glow from the shared table (`floraSpeciesTable`) by the row in `grassShape.x` (-2 - row).
+ * Every part's value is worked out unconditionally and blended by 0/1 weights, not `select`, so no
+ * shared node is first built inside a branch (see `withVars`).
+ */
 export function createGrassMaterial(
   heightTexture: DataTexture,
   grid: HeightGrid,
   reach: GrassReach,
+  look: GrassLook,
 ): MeshStandardNodeMaterial {
   const material = new MeshStandardNodeMaterial({
     side: DoubleSide,
@@ -471,11 +495,16 @@ export function createGrassMaterial(
     metalness: 0,
   });
   const tint = attribute('tint', 'vec3') as AnyNode;
-  // Per clump: x is its thinning rank (below zero is never thinned), y its exclusion-edge weight.
+  // Per clump: x is its thinning rank (below zero is never thinned; a flower's is -2 - its species
+  // row), y its exclusion-edge weight.
   const clumpShape = attribute('grassShape', 'vec2') as AnyNode;
   const reachU = uniform(new Vector3(reach.full, reach.far, reach.keep)) as AnyNode;
+  const groundU = uniform(new Color(look.ground)) as AnyNode;
+  const strawU = uniform(look.straw) as AnyNode;
+  const strawColourU = uniform(new Color(look.strawColour)) as AnyNode;
   const shade = attribute('shade', 'float') as AnyNode;
   const part = attribute('vegPart', 'float') as AnyNode;
+  const st = uv() as AnyNode;
   const params = uniform(
     new Vector4(grid.minX, grid.minZ, (grid.nx - 1) * grid.cell, (grid.nz - 1) * grid.cell),
   );
@@ -486,15 +515,36 @@ export function createGrassMaterial(
     (vec2 as AnyNode)(0.998),
   );
   const terrainY = (texture(heightTexture, hUv) as AnyNode).r;
-  const blade = (positionGeometry as AnyNode).y;
+
+  // Which part a vertex is, as 0/1 weights: blades (1), seed heads (2), petals (3), stems (5).
+  const flower = step(2.5, part) as AnyNode;
+  const petalW = flower.mul(float(1).sub(step(3.5, part)));
+  const stemW = step(4.5, part) as AnyNode;
+  const bladeW = float(1).sub(step(1.5, part));
+  const seedW = float(1).sub(bladeW).sub(flower);
+  const table = floraSpeciesTable();
+  const row = int(clamp(float(-2).sub(clumpShape.x), float(0), float(FLORA_SPECIES_MAX - 1))) as AnyNode;
+  const shapeS = table.shape.element(row) as AnyNode;
+  const eyeS = varying(table.eye.element(row)) as AnyNode;
+  const glowS = varying(shapeS.w) as AnyNode;
+
+  // Height above the ground. A flower's instance scales y by its stem; a tussock's by its scale (half
+  // of it, so its tallest blades stay in reach), and a head dishes by its species' cup and throat.
+  const geomY = (positionGeometry as AnyNode).y;
+  const localY = (positionLocal as AnyNode).y;
+  const height = mix(mix(geomY, localY, 0.5), localY, flower);
+  const r = st.y;
+  const lift = petalW.mul(shapeS.x.mul(r.mul(r)).sub(shapeS.y.mul(float(1).sub(r)))).mul(shapeS.z);
   // Distance fades are worked out here from the camera, not written per frame, and only at the far
   // edge of the reach: clumps near the player are always full height, so nothing sprouts beside you.
   const toCamera = (vec3 as AnyNode)(worldXZ.x, terrainY, worldXZ.y).distance(cameraPosition);
-  const outer = float(1).sub(smoothstep(reachU.y.mul(0.84), reachU.y, toCamera));
+  // Flowers draw over the nearer part of the reach (the terrain's speckle carries their drifts on).
+  const farEdge = reachU.y.mul(mix(float(1), float(FLOWER_REACH), flower));
+  const outer = float(1).sub(smoothstep(farEdge.mul(0.84), farEdge, toCamera));
   const keep = float(1).sub(smoothstep(reachU.x, reachU.y, toCamera).mul(float(1).sub(reachU.z)));
   const thin = clamp(keep.sub(clumpShape.x).div(0.12), float(0), float(1));
   const sizeFade = clumpShape.y.mul(outer).mul(thin);
-  const bladeGate = smoothstep(float(0.02), float(1.0), blade).mul(sizeFade);
+  const bladeGate = smoothstep(float(0.02), float(1.0), height).mul(sizeFade);
   const gust = gustNode(worldXZ) as AnyNode;
   const motion = float(1).sub(world.reducedMotion.mul(0.9));
   const phase = world.time
@@ -505,27 +555,107 @@ export function createGrassMaterial(
   const sway = (vec3 as AnyNode)(world.windDir.x.mul(wave), 0, world.windDir.y.mul(wave))
     .mul(bladeGate)
     .mul(motion);
+
+  // Feet push the blades and flowers aside (and a little down), most at the tips.
+  let push: AnyNode = vec2(0, 0);
+  for (const pusher of floraPushers) {
+    const p = pusher as AnyNode;
+    const away = worldXZ.sub(p.xy);
+    const d = away.length();
+    const k = float(1)
+      .sub(smoothstep(p.z.mul(0.3), p.z, d))
+      .mul(p.w);
+    push = push.add(away.div(max(d, float(0.05))).mul(k));
+  }
+  const bend = smoothstep(float(0), float(0.45), height).mul(sizeFade);
+  const pushLen = min(push.length(), float(1));
+  const pushXZ = push
+    .mul(bend)
+    .mul(0.3)
+    .mul(float(1).sub(world.reducedMotion.mul(0.5)));
+  // Far blades turn their width toward the camera (wider at the root), so they never thin to a line.
+  const view = worldXZ.sub((vec2 as AnyNode)(cameraPosition.x, cameraPosition.z));
+  const right = (vec2 as AnyNode)(view.y.negate(), view.x).div(max(view.length(), float(0.001)));
+  const widen = smoothstep(float(4), float(30), toCamera)
+    .mul(0.022)
+    .mul(float(1).sub(shade))
+    .mul(st.x.sub(0.5))
+    .mul(bladeW);
+  const lowered = float(1).sub(pushLen.mul(0.35).mul(bend));
+
+  material.positionNode = trackedPosition(
+    (vec3 as AnyNode)(
+      worldXZ.x.add(sway.x).add(pushXZ.x).add(right.x.mul(widen)),
+      terrainY.add(height.add(lift).mul(sizeFade).mul(lowered)),
+      worldXZ.y.add(sway.z).add(pushXZ.y).add(right.y.mul(widen)),
+    ),
+  );
+
   const sheen = smoothstep(float(0.05), float(0.75), (normalWorld as AnyNode).dot(world.sunDir).abs()).mul(
     0.12,
   );
-
-  material.positionNode = trackedPosition(
-    (vec3 as AnyNode)(worldXZ.x.add(sway.x), terrainY.add(blade.mul(sizeFade)), worldXZ.y.add(sway.z)),
+  // A few dead straw blades: a blade's own normal (one per blade in the tussock) and its clump's tint
+  // pick them, so the choice holds along the blade.
+  const n = normalGeometry as AnyNode;
+  const strawHash = fract(
+    fract(n.x.mul(31.7).add(n.z.mul(57.3)).add(tint.r.mul(91.1)).add(tint.g.mul(47.9)))
+      .mul(43.13)
+      .add(0.17),
   );
-  const root = tint.mul(0.52);
-  const tip = mix(tint.mul(float(1.08).add(sheen.mul(0.04))), color(0xb5c95a), float(0.42)) as AnyNode;
-  const grassColor = (mix(root, tip, smoothstep(float(0.04), float(1.0), shade)) as AnyNode).mul(
-    color(0xfff02a),
-  );
+  const strawW = step(strawHash, strawU).mul(bladeW);
+  const bladeTint = mix(tint, strawColourU, strawW);
+  const root = bladeTint.mul(0.52);
+  // Tips catch the light: toward a sunny yellow-green, kept near the blade's own hue (moss stays moss).
+  const tipLight = mix(color(0xb5c95a), bladeTint.mul(1.7), 0.4);
+  const tip = mix(bladeTint.mul(float(1.08).add(sheen.mul(0.04))), tipLight, mix(0.42, 0.12, strawW));
+  const lit = (mix(root, tip, smoothstep(float(0.04), float(1.0), shade)) as AnyNode).mul(color(0xfff02a));
+  // The roots fade into the ground's own tone, and a passing gust brightens the blades.
+  const rootMatch = float(1)
+    .sub(smoothstep(float(0), float(0.4), shade))
+    .mul(0.6);
+  const grassColor = mix(lit, groundU, rootMatch).mul(gust.sub(1).mul(0.24).mul(shade).add(1));
   const seedColor = mix(
     color(0x756331),
     color(0xc9b77a),
     smoothstep(float(0.0), float(1.0), shade),
   ) as AnyNode;
-  const isSeed = greaterThan(part, float(1.5));
+  // Flowers: a round head's eye blends out to its petals; a spike darkens toward its base and takes
+  // the eye's colour at its tip; stems are green.
+  const bloom = mix(eyeS.xyz, tint.mul(mix(0.82, 1.12, r)), smoothstep(float(0.06), float(0.42), r));
+  const spikeHead = mix(
+    tint.mul(mix(0.72, 1.08, st.y)),
+    eyeS.xyz,
+    smoothstep(float(0.82), float(1), st.y).mul(0.5),
+  );
+  const headColor = mix(bloom, spikeHead, eyeS.w) as AnyNode;
+  const stemColor = mix(color(0x2f4a1a), color(0x58782c), shade);
+  const flowerColor = mix(headColor, stemColor, stemW);
+  const albedo = grassColor.mul(bladeW).add(seedColor.mul(seedW)).add(flowerColor.mul(flower)) as AnyNode;
+
+  // The sun through the grass: blades (and seed heads) glow at their tips when you look toward a sun
+  // that's up, strongest straight into it.
+  const toView = (positionWorld as AnyNode).sub(cameraPosition).normalize();
+  const into = smoothstep(float(0.2), float(0.95), toView.dot(world.sunDir));
+  const backlit = into
+    .mul(smoothstep(float(0.02), float(0.25), (world.sunDir as AnyNode).y))
+    .mul(float(1).sub(world.night))
+    .mul(shade.mul(shade))
+    .mul(bladeW.add(seedW.mul(0.6)).add(petalW.mul(0.7)));
+  const sun = (vec3 as AnyNode)(world.sunColor.r, world.sunColor.g, world.sunColor.b);
   const maskMode = typeof location !== 'undefined' && new URLSearchParams(location.search).has('grassMask');
-  material.colorNode = maskMode ? color(0xff00ff) : (select(isSeed, seedColor, grassColor) as AnyNode);
-  material.emissiveNode = maskMode ? color(0xff00ff) : (color(0x6f6d24).mul(sheen.mul(0.006)) as AnyNode);
+  material.colorNode = maskMode ? color(0xff00ff) : albedo;
+  material.emissiveNode = maskMode
+    ? color(0xff00ff)
+    : (color(0x6f6d24)
+        .mul(sheen.mul(0.006))
+        .add(mix(tip, headColor, petalW).mul(sun).mul(backlit.mul(0.3)))
+        // Glowing caps: faint by day, brightest at dusk and night.
+        .add(
+          headColor
+            .mul(glowS)
+            .mul(petalW)
+            .mul(mix(0.3, 1, world.night)),
+        ) as AnyNode);
   return material;
 }
 

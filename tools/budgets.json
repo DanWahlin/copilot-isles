@@ -28,7 +28,9 @@
     "$comment": "tools/memorytest.mjs (npm run check:memory): GPU memory three tracks (renderer.info, made honest by engine/memory-ledger.ts) and the JS heap after GC, at each stop of two Anchorage \u2192 Meridian \u2192 Thousand-Bough \u2192 Anchorage round trips. Ceilings are the measured peaks plus ~15 %.",
     "margin": {
       "trackedPct": 10,
-      "heapPct": 15
+      "heapPct": 15,
+      "$heapFloorMB": "The heap may also grow this much (MB), whichever allows more: what a first voyage leaves behind for good doesn't scale with the heap. A heap-snapshot diff (first Anchorage vs a new voyage, High WebGPU) put ~7 MB of the ~10 MB in V8 compiled code for the island modules a voyage first loads (they never unload) and ~1 MB in kept CPU data (packs, caches); the same +10 MB at HEAD. A relative-only margin passed at 86 MB and failed once the grass freed its build data (69 MB).",
+      "heapFloorMB": 12
     },
     "leak": {
       "trackedMB": 8,

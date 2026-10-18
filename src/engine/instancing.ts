@@ -111,7 +111,8 @@ export function sharedInstancedMesh<G extends BufferGeometry, M extends Material
 
 const changedRanges = new WeakMap<BufferAttribute, { start: number; count: number }>();
 
-function markAttributeChanged(attribute: BufferAttribute, count: number): void {
+/** Marks the first `count` values of an attribute for upload (no allocation after the first call). */
+export function markAttributeChanged(attribute: BufferAttribute, count: number): void {
   let range = changedRanges.get(attribute);
   if (!range) {
     range = { start: 0, count };

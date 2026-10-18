@@ -18,6 +18,7 @@ Every island is a package; shared systems never import an island's coordinates.
 | Berth, music, sky, arrival | `src/game/islands.ts` (`ISLANDS`, `IslandId`)                                                                                                                                                             | one entry per island                                                                                                                               |
 | Terrain looks              | `src/world/terrain/terrain-material.ts` + `terrain-regions.ts` (`TerrainRegions`, `combineTerrainRegions`)                                                                                                | `src/world/islands/anchorage/terrain-regions.ts`, `src/world/islands/meridian-terrain-regions.ts`; registry `src/world/islands/terrain-regions.ts` |
 | Vegetation                 | `src/world/vegetation/scatter.ts`, `grass.ts`, `vegetation.ts` (`IslandVegetationRules` in `vegetation/types.ts`: bounds, grass bounds, species rules, exclusions, curated/extra plants, hero palm zones) | `src/world/islands/anchorage/vegetation-rules.ts` (`ANCHORAGE_VEGETATION`)                                                                         |
+| Grass and flowers (flora)  | `src/world/flora/` (`FloraPalette`, `FloraRules` in `types.ts`; `scatterFlora`, drifts, plant forms, species table, terrain `floraGround`), drawn by `vegetation/grass.ts`                                | `anchorage/flora*.ts`, `meridian-flora*.ts`, `thousand-bough/flora*.ts`; registry `src/world/islands/flora-palettes.ts`                            |
 | Starfish                   | `src/world/starfish/spots.ts` (`StarfishSpot`, `STARFISH`)                                                                                                                                                | `src/world/islands/anchorage/starfish.ts`, `src/world/islands/meridian-starfish.ts`                                                                |
 | Towns                      | `src/world/village/kit.ts` (kit loader, buckets, `transform`/`paint`/`localToWorld`, colliders, anchors), `house-builder.ts`, `materials.ts`                                                              | `src/world/islands/anchorage/village.ts` (+ `buildings.ts`, `plantings.ts`, `lighthouse-stair.ts`), `src/world/meridian-town/`                     |
 | Shore batteries            | `src/world/village/shore-battery.ts` (decks, stairs, fences, guns into the town buckets; walk surfaces, colliders), `shore-cannon.ts` (the gun model and its levels)                                      | `src/world/islands/anchorage/batteries.ts`, `src/world/islands/meridian-batteries.ts` (+ the citadel's embrasures)                                 |
@@ -277,6 +278,25 @@ hook (release it when the site is freed).
 - **Alpha-tested foliage at a distance:** thin leaf cards vanish when drawn small, leaving only their
   most opaque parts (red flowers became red blotches on the hills). Hand distant plants to impostors,
   and check authored leaf colours (the common bush's leaf map was red; it is recoloured green).
+- **A flower species is data, never a material:** every island's species is a row in one shared
+  table (`floraSpeciesTable`, uniform arrays: shape, eye, glow, form), read by the one grass material by
+  the row in its instance's `grassShape.x`. Plant forms are geometries with the blades' attributes;
+  `grass-material.test.ts` builds every form's WGSL and expects one shader. Adding a species or an
+  island's palette added no program (Ultra census unchanged); the terrain looks drift colours up in a
+  table too (`DRIFT_BINS` rows per island), so its cost doesn't grow with islands or species.
+- **Flowers lost in grass, and confetti on the ground:** single 7 cm heads on stems under the grass's
+  height read as a few red specks. Plants are small clumps (three heads, five spikes, seven fronds)
+  standing above the blades, their faces tipped outward so a side-on camera still sees them, densest
+  in drifts. Past their reach the terrain carries the same drifts (`driftAt` and `driftNodes` share
+  constants). Its first try, pixel-sized dots on a world grid, read as litter: grid cells are squares
+  on the ground, so on slopes and at glancing angles every dot stretched into a dash, and cream
+  flowers on green read as paper scraps. `floraDrifts` keeps dots round on screen (squashed along the
+  view by the ground's foreshortening, searched over 2 × 2 cells so none is cut), swells and shrinks
+  them by clump noise instead of switching them on and off, fades them out by 48 m and as they shrink
+  under ~2 px, and leaves the distance to a patchy wash of the drift's colours (pale species darkened
+  toward their eye). It's one branch: off the open ground nothing runs, past 48 m only the wash.
+  Blades fill a disc (a sunflower spiral): a ring of blades read as circles on a sparse sward.
+
 - **Masks decide the look more than the palette:** brown hills came from slope and height mask rules
   calling grassy hillsides rock and cliff. Fix the masks (`coveMasks`) before re-tinting colours.
 - **Splashes from nowhere:** a splash reads as an event, so its cause must be visible at the distance

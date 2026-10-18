@@ -35,8 +35,23 @@ import type { Tier } from '../contracts';
 import { ISLAND_TERRAIN_REGIONS } from '../islands/terrain-regions';
 import { combineTerrainRegions, type TerrainRegions } from './terrain-regions';
 import { terrainNoiseTexture } from './noise-texture';
+import { floraDrifts, floraSward } from '../flora/ground-nodes';
+import { FLOWER_REACH } from '../flora/nodes';
+import { GRASS_REACH, grassReachScale } from '../vegetation/grass-reach';
+import { gustNode } from '../wind-nodes';
+import { tierSettings } from '../../engine/quality';
 
 const uSunBlend = uniform(1);
+
+/**
+ * Where the drift speckle starts (m from the camera): past most of the flower heads' reach on the
+ * tiers that draw them, and right at your feet on Lite (no grass or flowers there).
+ */
+function speckleStart(tier: Tier | undefined): number {
+  const t = tierSettings(tier ?? 'high');
+  if (t.grassCover * t.grassDensity <= 0.1) return 2;
+  return GRASS_REACH.far * grassReachScale(t) * FLOWER_REACH * 0.7;
+}
 
 // TSL's fluent typings don't cover every mixed scalar/vector graph used by this material.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -620,6 +635,47 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const basaltMossTone = mix(color(0x34502a), color(0x6b8a3c), noiseFine.g.mul(0.6).add(noiseMid.r.mul(0.4)));
   base = mix(base, mix(basaltTone, basaltMossTone, basaltMoss.mul(0.92)), R.basalt);
 
+  // The islands' flora carried on in the ground, from the feet to the horizon (0 draws, so Lite's
+  // meadows get it too): open grassy ground takes its island's sward (the blades' mean tone, with
+  // tussock grain), forest floors a moss carpet, and both the flower drifts past the plants' reach
+  // (`floraDrifts`). A passing gust shows as a sheen over the meadow, and it glows toward a low sun.
+  const flora = floraSward(P);
+  const meadow = grassMask
+    .mul(smoothstep(0.55, 0.85, N.y))
+    .mul(float(1).sub(villageGround))
+    .mul(float(1).sub(R.town))
+    .mul(float(1).sub(R.limestoneRidge))
+    .mul(float(1).sub(R.bluff))
+    .mul(float(1).sub(R.paths))
+    .mul(float(1).sub(R.forestFloor))
+    .mul(float(1).sub(underwater))
+    .mul(float(1).sub(cliffInfluence))
+    .mul(saturate(flora.inside));
+  const forest = R.forestFloor.mul(saturate(flora.inside)).mul(float(1).sub(underwater));
+  const tussock = grassFineA.mul(0.55).add(grassFineB.mul(0.45));
+  const swardGrain = float(0.76)
+    .add(tussock.mul(0.38))
+    .mul(float(0.9).add(meadowMacro.mul(0.2)));
+  const sward = mix(flora.lush, flora.dry, R.dryGrass).mul(swardGrain);
+  base = mix(base, sward, meadow.mul(flora.cover));
+  base = mix(base, flora.moss.mul(float(0.8).add(tussock.mul(0.4))), forest.mul(0.82));
+  if (!options.miniature) {
+    const drifts = floraDrifts({
+      sward: flora,
+      P,
+      N,
+      // Under trees the forest's flowers are few: half the open meadow's.
+      open: meadow.add(forest.mul(0.5)).min(1),
+      near: speckleStart(options.tier),
+      clump: grassFineA,
+      patch: meadowMacro,
+      grain: swardGrain,
+    });
+    base = mix(base, drifts.xyz, drifts.w);
+  }
+  const gustLift: AnyNode = options.miniature ? float(0) : gustNode(vec2(P.x, P.z) as AnyNode).sub(1);
+  base = base.mul(gustLift.mul(meadow).mul(0.07).add(1));
+
   const sunVis = mix(light.y, light.z, uSunBlend);
   const cloud = options.cloudShadowNode ?? float(1);
   const bakedLight = saturate(light.x.mul(0.64).add(sunVis.mul(cloud).mul(0.36))).mul(
@@ -673,8 +729,19 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(cliffMask.mul(0.75)))
     // The headland's shoulders all stand over a big drop; only a faint glow there, or its whole top goes gold.
     .mul(float(1).sub(headlandScrub.mul(0.85)));
+  // The meadow's sheen under a gust, seen at a slant, and its glow when you look toward a low sun.
+  const grazing = pow(float(1).sub(saturate(dot(N, viewDir))), 1.5);
+  const sunUp = smoothstep(0.02, 0.2, world.sunDir.y).mul(float(1).sub(world.night));
+  const gustSheen = smoothstep(0.05, 0.4, gustLift).mul(grazing).mul(meadow).mul(sunUp);
+  const lowSun = float(1).sub(smoothstep(0.12, 0.55, world.sunDir.y));
+  const forwardGlow = smoothstep(0.35, 1.0, dot(viewDir.negate(), world.sunDir))
+    .mul(lowSun)
+    .mul(grazing)
+    .mul(meadow)
+    .mul(sunUp);
+  const meadowLight = sward.mul(gustSheen.mul(0.3).add(forwardGlow.mul(0.32)));
   material.emissiveNode = vec3(world.sunColor.r, world.sunColor.g, world.sunColor.b)
-    .mul(rim.mul(0.55))
+    .mul(rim.mul(0.55).add(meadowLight))
     .add(vec3(0.65, 0.95, 1.0).mul(caustics.mul(0.18)));
   return material;
 }

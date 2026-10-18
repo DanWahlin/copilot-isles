@@ -24,6 +24,7 @@ import {
   meridianRockShipObstacles,
 } from './meridian';
 import { meridianPlantsSliced } from './meridian-plants';
+import { MERIDIAN_FLORA } from './meridian-flora';
 import { createMeridianSilhouette } from './meridian-silhouette';
 import { footprintDistance, type IslandFootprint } from './footprint';
 import { createMeridianWaterMesh } from './meridian-water-mesh';
@@ -200,7 +201,11 @@ export function createMeridianStream(ctx: MeridianStreamContext): MeridianStream
         await ctx.breathe();
       }
       if (disposed) return null;
-      plants = await vegetation.addPlants(flora, 'port-meridian-plants');
+      plants = await vegetation.addPlants(flora, 'port-meridian-plants', {
+        rules: MERIDIAN_FLORA,
+        heightField: terrain.heightField,
+        heightGrid: terrain.heightGrid,
+      });
       if (ctx.skipShadows) skipSunShadows(plants.group);
     }
     // Gulls wheeling over Meridian's harbour and the mole, like Anchorage's.

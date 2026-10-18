@@ -53,5 +53,7 @@ export const thousandBoughTerrainRegions: TerrainRegions = ({ P, y, up }) => {
   const basalt = smoothstep(0.97, 0.8, up)
     .mul(smoothstep(-1, 3, y))
     .mul(island);
-  return { paths, grassySlopes: valley, cave, basalt };
+  // The valley's floor under the jungle: moss, off the paths and the steep faces.
+  const forestFloor = valley.mul(float(1).sub(paths)).mul(smoothstep(0.72, 0.9, up));
+  return { paths, grassySlopes: valley, cave, basalt, forestFloor };
 };

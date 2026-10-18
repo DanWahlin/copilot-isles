@@ -1,4 +1,5 @@
 import { unreflected } from '../reflection';
+import { floraFeet } from '../flora/feet';
 import { CharacterLod, attachCharacterLod } from './character-lod';
 import {
   AnimationAction,
@@ -187,6 +188,7 @@ export class RuntimeCharacter implements Character {
   ) {
     this.characterBody = body;
     unreflected.add(group);
+    floraFeet.add(group);
     this.npc = !PLAYER_BODIES.includes(body as PlayerBody);
     this.npcAnimRate = Math.max(0.1, options.tier?.npcAnimRate ?? 1);
     this.updateTarget = options.updateTarget ?? null;
@@ -415,6 +417,7 @@ export class RuntimeCharacter implements Character {
 
   dispose(): void {
     unreflected.delete(this.group);
+    floraFeet.delete(this.group);
     this.mixer.stopAllAction();
     this.face?.dispose();
     this.group.traverse((object) => {
