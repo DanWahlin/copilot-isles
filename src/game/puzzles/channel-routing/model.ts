@@ -3,8 +3,8 @@ import { openGates, rotate, solved, wrongTile } from './logic';
 import type { ChannelRoutingState, Crew, Flow, FlowEnd, Tile } from './types';
 import { CREW_ORDERS, fits, type Workspace } from './workspaces';
 import { onCourse } from '../../../course/active';
-import { lineOf } from '../../../course/puzzles';
-import { routingContent } from './boards';
+import { lineOf, puzzleMaybe } from '../../../course/puzzles';
+import type { ChannelRoutingFile } from './boards';
 
 /**
  * Channel Routing's state machine (docs/specs/ISLAND-02-thousand-bough.md §5.3-5.6), free of the
@@ -31,15 +31,15 @@ export let END_LINE: Readonly<Record<Exclude<FlowEnd, 'wheel'>, string>> = {} as
 export let TWIST_CHOICES: readonly TwistAnswer[] = [];
 
 onCourse(() => {
-  const c = routingContent();
-  const end = (k: string) => lineOf(c, `end.${k}`);
+  const c = puzzleMaybe<ChannelRoutingFile>('channel-routing');
+  const end = (k: string) => (c ? lineOf(c, `end.${k}`) : '');
   END_LINE = {
     mixed: end('mixed'),
     mainHall: end('mainHall'),
     wrongWheel: end('wrongWheel'),
     deadEnd: end('deadEnd'),
   };
-  TWIST_CHOICES = c.twist.choices;
+  TWIST_CHOICES = c?.twist.choices ?? [];
 });
 
 export interface RunResult {

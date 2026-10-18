@@ -13,7 +13,7 @@ import {
 import { validate } from '../../tools/content/json-schema';
 import { coursePack } from '../course/active';
 import { withoutMeta } from '../course/pack';
-import { COURSE } from '../course/catalog';
+import { COURSE, COURSES } from '../course/catalog';
 import { readCoursePack } from '../../tools/course-pack/read';
 import type { CourseMeta } from '../course/catalog';
 import { GILDA, GILDA_TEXT, JOBS, QUOTES, STAMP } from '../game/market/jobs';
@@ -44,6 +44,33 @@ describe('course pack files (docs/content-data.md, COURSE-PACKS.md §3)', () => 
     const issues = checkContent(ROOT);
     expect(issues, show(issues)).toEqual([]);
     expect(checkBoardSpots()).toEqual([]);
+  });
+
+  it('every course in the catalog passes too', () => {
+    for (const c of COURSES) {
+      const issues = checkContent(ROOT, {}, c.id);
+      expect(issues, `${c.id}\n${show(issues)}`).toEqual([]);
+    }
+  });
+
+  it('the service worker caches live course files from every pack’s repository, and no other', () => {
+    const sw = readFileSync(join(ROOT, 'public/sw.js'), 'utf8');
+    const listed = /\/\* course-repos \*\/ \[([^\]]*)\]/.exec(sw)![1]!;
+    expect([...listed.matchAll(/'([^']+)'/g)].map((m) => m[1])).toEqual(
+      COURSES.map((c) => c.source.repo).sort(),
+    );
+  });
+
+  it('a text-only course has captions, not a cast; a voiced one a cast', () => {
+    const cli = 'courses/copilot-cli';
+    const meta = json<CourseMeta>(`${cli}/course.json`);
+    expect(
+      paths(checkContent(ROOT, { [`${cli}/course.json`]: { ...meta, voice: true } }, 'copilot-cli')),
+    ).toContain('');
+    const lines = json<{ lines: { id: string; text: string }[] }>(`${cli}/voice/lines.json`);
+    lines.lines[0]!.text = 'Something else.';
+    const issues = checkContent(ROOT, { [`${cli}/voice/lines.json`]: lines }, 'copilot-cli');
+    expect(issues.map((i) => i.message).join('\n')).toMatch(/the caption says something else/);
   });
 
   it('name their schema (the hand-edited ones), and every schema is in courses/schemas/', () => {

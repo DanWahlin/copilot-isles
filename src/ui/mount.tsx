@@ -18,6 +18,7 @@ function fallbackBridge(): GameBridge {
     screen: 'title',
     returnTo: 'title',
     progress: { value: 0, message: 'Ready' },
+    course: 'copilot-app',
     hasSave: false,
     save: null,
     learn: { doubloons: 0, seals: [], sails: null, captainName: null, shipName: null },
@@ -41,6 +42,8 @@ function fallbackBridge(): GameBridge {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
+    chooseCourse: () => open('course'),
+    pickCourse: (course) => setState({ course, screen: 'captain' }),
     chooseCaptain: () => open('captain'),
     newVoyage: (captain) =>
       setState({

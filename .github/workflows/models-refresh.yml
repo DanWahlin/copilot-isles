@@ -2,8 +2,9 @@
 #
 #   1 Sync     tools/models/sync.mjs reads GitHub Docs' Copilot model tables (github/docs,
 #              data/tables/copilot) over plain HTTPS and rewrites the course pack's models.json
-#              (courses/$COURSE/models.json; only the Copilot app course has a Model Market) if the Claude,
-#              GPT or MAI models changed. No token: the commit comes from `git ls-remote`.
+#              (courses/$COURSE/models.json) if the Claude, GPT or MAI models changed. No token: the
+#              commit comes from `git ls-remote`. It runs for each pack that has a models.json (a Model
+#              Market): tools/course-pack/list.mjs --models (today only the Copilot app course).
 #   2 Verify   the content check (every file of the pack against its schema in courses/schemas/, and
 #              the market's semantic checks; docs/content-data.md), typecheck, lint, format, unit tests
 #              (the board rule and the file's shape), build, budgets and the secret scan.
@@ -25,22 +26,40 @@ on:
 
 permissions: {}
 
-env:
-  # The course pack whose Model Market this is (docs/specs/COURSE-PACKS.md §7).
-  COURSE: copilot-app
-
 concurrency:
   group: models-refresh
   cancel-in-progress: false
 
 jobs:
+  packs:
+    name: Course packs with a Model Market
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      courses: ${{ steps.list.outputs.courses }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: list
+        run: node tools/course-pack/list.mjs --models
+
   refresh:
-    name: Sync, verify, and deliver
+    name: ${{ matrix.course }} · sync, verify, and deliver
+    needs: packs
+    if: needs.packs.outputs.courses != '[]'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        course: ${{ fromJSON(needs.packs.outputs.courses) }}
     permissions:
       contents: write # push the refresh branch
       pull-requests: write # open or update the PR
+    env:
+      # The course pack whose Model Market this is (docs/specs/COURSE-PACKS.md §7).
+      COURSE: ${{ matrix.course }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -92,7 +111,7 @@ jobs:
             echo "$models is already up to date; no PR." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          branch="models-refresh"
+          branch="models-refresh/$COURSE"
           sha=$(node -p "require('./$models').source.commit.slice(0, 7)")
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

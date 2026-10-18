@@ -42,6 +42,8 @@ import { packs } from '../../engine/packs';
 import { plainShadowColor } from '../../engine/shadow-color';
 import { world } from '../uniforms';
 import { gustNode } from '../wind-nodes';
+import { hasActiveCourse } from '../../course/active';
+import { puzzleMaybe, textOf } from '../../course/puzzles';
 
 // TSL fluent typings do not cover this graph.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -127,6 +129,17 @@ function getShipWoodTexture(): Texture {
   return shipWoodTexture;
 }
 
+/**
+ * The two fittings' plates on the rail (First Words): the course's words (`puzzles/first-words.json`
+ * → `text.plate.*`), blank where it turns the puzzle off; before any course is active (the title),
+ * the Copilot app course's.
+ */
+function railPlate(fitting: 'tube' | 'hatch'): string {
+  if (!hasActiveCourse()) return fitting === 'tube' ? 'PROMPT BOX' : 'TERMINAL';
+  const p = puzzleMaybe('first-words');
+  return p && !p.disabled ? textOf(p, `plate.${fitting}`) : '';
+}
+
 export function createShipLabel(): ShipLabel {
   let texture: Texture;
   let canvas: HTMLCanvasElement | null = null;
@@ -210,7 +223,7 @@ function repaintShipLabelCanvas(label: ShipLabel): void {
     0,
     brass,
     '#7a4a17',
-    'PROMPT BOX',
+    railPlate('tube'),
     "700 {size}px Georgia, 'Times New Roman', serif",
     '#2b1707',
   );
@@ -223,7 +236,7 @@ function repaintShipLabelCanvas(label: ShipLabel): void {
     0,
     iron,
     '#090909',
-    'TERMINAL',
+    railPlate('hatch'),
     "700 {size}px 'SFMono-Regular', Consolas, monospace",
     '#ffb160',
   );

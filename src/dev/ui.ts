@@ -19,6 +19,7 @@ class MockBridge implements GameBridge {
     screen: 'title',
     returnTo: 'title',
     progress: { value: 0.58, message: 'Planting palms' },
+    course: 'copilot-app',
     hasSave: true,
     save: { location: 'Anchorage Cay', questsDone: 3 },
     learn: {
@@ -98,6 +99,8 @@ class MockBridge implements GameBridge {
 
   newVoyage = (captain: CaptainBody) => this.set({ captain, screen: 'voyage-loading', returnTo: 'title' });
   continueVoyage = () => this.set({ screen: 'playing', returnTo: 'playing' });
+  chooseCourse = () => this.open('course');
+  pickCourse = (course: string) => this.set({ course, screen: 'captain' });
   chooseCaptain = () => this.open('captain');
   resume = () => this.set({ screen: 'playing', returnTo: 'playing' });
   pause = () => this.set({ screen: 'paused', returnTo: 'playing' });

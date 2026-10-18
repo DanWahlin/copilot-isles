@@ -1,0 +1,419 @@
+{
+  "set": "copilot-cli",
+  "textOnly": true,
+  "lines": [
+    {
+      "id": "cli.juno.cabin.01",
+      "speaker": "Juno",
+      "text": "Welcome aboard, Captain! I’m Juno, your first mate.",
+      "duration": 4.16,
+      "words": []
+    },
+    {
+      "id": "cli.juno.cabin.02",
+      "speaker": "Juno",
+      "text": "Each island teaches a chapter of the GitHub Copilot CLI for Beginners course. Finish its quests to earn its Seal.",
+      "duration": 8,
+      "words": []
+    },
+    {
+      "id": "cli.juno.cabin.03",
+      "speaker": "Juno",
+      "text": "Quests fill your Logbook and your purse. Then we sail on!",
+      "duration": 5.12,
+      "words": []
+    },
+    {
+      "id": "cli.juno.cabin.04",
+      "speaker": "Juno",
+      "text": "And look out for starfish. They hide on every island.",
+      "duration": 4.8,
+      "words": []
+    },
+    {
+      "id": "cli.juno.cabin.chest",
+      "speaker": "Juno",
+      "text": "Now, open the chest, Captain. Our chart’s inside.",
+      "duration": 4.16,
+      "words": []
+    },
+    {
+      "id": "cli.wingman.welcome.01",
+      "speaker": "Wingman",
+      "text": "Ahoy, Captain! Up here! I’m Wingman, your parrot and first mate.",
+      "duration": 5.12,
+      "words": []
+    },
+    {
+      "id": "cli.wingman.welcome.02",
+      "speaker": "Wingman",
+      "text": "Every island out here teaches a chapter of the GitHub Copilot CLI for Beginners course, and each one has a Seal to earn.",
+      "duration": 8.96,
+      "words": []
+    },
+    {
+      "id": "cli.wingman.welcome.03",
+      "speaker": "Wingman",
+      "text": "We’re on Anchorage Cay, where you’ll install Copilot CLI, sign in, and check it works. Nell’s by the harbourmaster’s door, so start with her.",
+      "duration": 9.28,
+      "words": []
+    },
+    {
+      "id": "cli.wingman.welcome.04",
+      "speaker": "Wingman",
+      "text": "Your tasks are in the top left, and the compass up top points to the next one.",
+      "duration": 7.04,
+      "words": []
+    },
+    {
+      "id": "cli.wingman.starfish.anchorage",
+      "speaker": "Wingman",
+      "text": "And seven starfish are hidden around Anchorage Cay. Your count’s in the top right.",
+      "duration": 6.08,
+      "words": []
+    },
+    {
+      "id": "cli.wingman.welcome.05",
+      "speaker": "Wingman",
+      "text": "Stuck? Press Q for a hint. I’ll ride on your shoulder. Hints are my job. Decisions are yours!",
+      "duration": 7.36,
+      "words": []
+    },
+    {
+      "id": "cli.wingman.welcome.back",
+      "speaker": "Wingman",
+      "text": "Welcome back, Captain! Your next task’s in the top left.",
+      "duration": 4.8,
+      "words": []
+    },
+    {
+      "id": "cli.nell.papers.01",
+      "speaker": "Nell",
+      "text": "Morning, Captain! To sail from Anchorage, you need papers: a GitHub account with Copilot access.",
+      "duration": 6.4,
+      "words": []
+    },
+    {
+      "id": "cli.nell.papers.02",
+      "speaker": "Nell",
+      "text": "You’ll want terminal basics too, commands like cd and ls. The list’s in my chest.",
+      "duration": 6.4,
+      "words": []
+    },
+    {
+      "id": "cli.nell.papers.03",
+      "speaker": "Nell",
+      "text": "Not sure you’ve got access? Check your status at github.com/settings/copilot. You should see Copilot Individual, Business, Enterprise, or GitHub Education.",
+      "duration": 8,
+      "words": []
+    },
+    {
+      "id": "cli.nell.papers.04",
+      "speaker": "Nell",
+      "text": "Papers in order! Ezra’s at his chart table by the pier. He’ll get the course aboard.",
+      "duration": 6.72,
+      "words": []
+    },
+    {
+      "id": "cli.nell.done.01",
+      "speaker": "Nell",
+      "text": "Papers in order. Off you go!",
+      "duration": 3.52,
+      "words": []
+    },
+    {
+      "id": "cli.nell.done.02",
+      "speaker": "Nell",
+      "text": "A sealed captain! Fair winds.",
+      "duration": 3.2,
+      "words": []
+    },
+    {
+      "id": "cli.ezra.wait.01",
+      "speaker": "Ezra",
+      "text": "Get your papers from Nell first, Captain. Then we’ll talk charts.",
+      "duration": 5.12,
+      "words": []
+    },
+    {
+      "id": "cli.ezra.01",
+      "speaker": "Ezra",
+      "text": "Every captain needs the course aboard, its sample book app and all. There are two ways to get it.",
+      "duration": 7.68,
+      "words": []
+    },
+    {
+      "id": "cli.ezra.02",
+      "speaker": "Ezra",
+      "text": "Don’t want to install anything? Fork the repository and make a GitHub Codespace. Copilot CLI’s ready to go there, with Python and pytest. You’ll just need to sign in.",
+      "duration": 10.88,
+      "words": []
+    },
+    {
+      "id": "cli.ezra.03",
+      "speaker": "Ezra",
+      "text": "On your own machine? Clone the repository to get the course samples, then cd into copilot-cli-for-beginners.",
+      "duration": 6.72,
+      "words": []
+    },
+    {
+      "id": "cli.ezra.04",
+      "speaker": "Ezra",
+      "text": "Course aboard. Bo’s at his gear rack beside me. He’ll get Copilot CLI installed.",
+      "duration": 6.08,
+      "words": []
+    },
+    {
+      "id": "cli.bo.01",
+      "speaker": "Bo",
+      "text": "Bo Marlin, quartermaster. Let’s get GitHub Copilot CLI installed. Pick the way that fits your system.",
+      "duration": 6.72,
+      "words": []
+    },
+    {
+      "id": "cli.bo.02",
+      "speaker": "Bo",
+      "text": "Got Node.js? Then npm’s a quick way. On macOS or Linux, there’s Homebrew or the install script. On Windows, WinGet.",
+      "duration": 8,
+      "words": []
+    },
+    {
+      "id": "cli.bo.03",
+      "speaker": "Bo",
+      "text": "In a Codespace, you can skip this. The CLI’s already there.",
+      "duration": 5.12,
+      "words": []
+    },
+    {
+      "id": "cli.bo.04",
+      "speaker": "Bo",
+      "text": "That’s the CLI aboard. Pim and Pol are at the end of the pier. They’ll get you signed in.",
+      "duration": 7.68,
+      "words": []
+    },
+    {
+      "id": "cli.pim.idle.waiting",
+      "speaker": "Pim",
+      "text": "I’m Pim, and that’s Pol. Once Copilot CLI’s installed, we’ll get you signed in. Bo’s by the pier foot.",
+      "duration": 7.68,
+      "words": []
+    },
+    {
+      "id": "cli.pol.idle.waiting",
+      "speaker": "Pol",
+      "text": "Not yet, Captain. Install the CLI with Bo first.",
+      "duration": 4.48,
+      "words": []
+    },
+    {
+      "id": "cli.pim.01",
+      "speaker": "Pim",
+      "text": "Open a terminal at the root of the copilot-cli-for-beginners repository, and start the CLI. Just type copilot.",
+      "duration": 7.04,
+      "words": []
+    },
+    {
+      "id": "cli.pol.01",
+      "speaker": "Pol",
+      "text": "First, it asks you to trust the folder. You can trust it one time, or across all future sessions.",
+      "duration": 7.68,
+      "words": []
+    },
+    {
+      "id": "cli.pim.02",
+      "speaker": "Pim",
+      "text": "Then sign in with your GitHub account. Type /login, and pick Sign in with your browser.",
+      "duration": 6.72,
+      "words": []
+    },
+    {
+      "id": "cli.pol.02",
+      "speaker": "Pol",
+      "text": "No browser? On a remote or headless terminal, like SSH, you get a one-time code instead. That’s the device code flow.",
+      "duration": 8.32,
+      "words": []
+    },
+    {
+      "id": "cli.pim.03",
+      "speaker": "Pim",
+      "text": "Visit github.com/login/device on another machine, and enter the code to finish.",
+      "duration": 5.12,
+      "words": []
+    },
+    {
+      "id": "cli.pol.03",
+      "speaker": "Pol",
+      "text": "And it sticks. You only sign in again if your token expires, or you sign out.",
+      "duration": 6.72,
+      "words": []
+    },
+    {
+      "id": "cli.pim.done.01",
+      "speaker": "Pim",
+      "text": "Signed in and trusted. Juno’s by your ship, Captain. Time for your first words.",
+      "duration": 6.08,
+      "words": []
+    },
+    {
+      "id": "cli.pol.done.01",
+      "speaker": "Pol",
+      "text": "Token expired one day? Just run /login again.",
+      "duration": 4.16,
+      "words": []
+    },
+    {
+      "id": "cli.juno.brief.01",
+      "speaker": "Juno",
+      "text": "Juno, your first mate. You’re installed and signed in, so let’s check it works.",
+      "duration": 6.08,
+      "words": []
+    },
+    {
+      "id": "cli.juno.brief.02",
+      "speaker": "Juno",
+      "text": "At Copilot CLI’s prompt, you ask in plain words. Try this one: Say hello and tell me what you can help with.",
+      "duration": 8.64,
+      "words": []
+    },
+    {
+      "id": "cli.juno.brief.03",
+      "speaker": "Juno",
+      "text": "Two fittings on the rail behind me. The brass speaking tube goes to Copilot’s prompt. The iron hatch goes down to the shell. Your call, Captain.",
+      "duration": 9.92,
+      "words": []
+    },
+    {
+      "id": "cli.juno.pipes.01",
+      "speaker": "Juno",
+      "text": "It’s a request for Copilot, not a shell command. Pick the fitting on the rail that carries it.",
+      "duration": 7.36,
+      "words": []
+    },
+    {
+      "id": "cli.juno.hatch.01",
+      "speaker": "Juno",
+      "text": "That went down to the shell, Captain. The shell runs commands like cd and ls. Requests go to Copilot’s prompt.",
+      "duration": 8,
+      "words": []
+    },
+    {
+      "id": "cli.juno.hatch.feedback.01",
+      "speaker": "Juno",
+      "text": "The shell runs commands, Captain. Ask Copilot through its prompt: the speaking tube.",
+      "duration": 5.76,
+      "words": []
+    },
+    {
+      "id": "cli.juno.reply.01",
+      "speaker": "Juno",
+      "text": "Hear that? A friendly answer, listing what Copilot CLI can help with.",
+      "duration": 5.44,
+      "words": []
+    },
+    {
+      "id": "cli.juno.reply.02",
+      "speaker": "Juno",
+      "text": "Yours will be worded differently. Your model, tools, and responses will differ.",
+      "duration": 5.44,
+      "words": []
+    },
+    {
+      "id": "cli.juno.reply.03",
+      "speaker": "Juno",
+      "text": "Then try it on the course’s book app. An @ in front of a file’s path brings that file in.",
+      "duration": 8,
+      "words": []
+    },
+    {
+      "id": "cli.juno.reply.04",
+      "speaker": "Juno",
+      "text": "When you’re done, /exit leaves the CLI. Nell’s waiting by your bow with the Harbormaster’s Trial.",
+      "duration": 6.72,
+      "words": []
+    },
+    {
+      "id": "cli.juno.done.01",
+      "speaker": "Juno",
+      "text": "The crew’s heard your first words. Nell’s waiting by your bow with the Harbormaster’s Trial.",
+      "duration": 6.4,
+      "words": []
+    },
+    {
+      "id": "cli.juno.done.sealed.01",
+      "speaker": "Juno",
+      "text": "The crew’s proud of you, Captain. Wherever you sail next, they’re listening.",
+      "duration": 5.44,
+      "words": []
+    },
+    {
+      "id": "cli.nell.trial.01",
+      "speaker": "Nell",
+      "text": "You’re set up, Captain. Before your ship gets her name, there’s the Harbormaster’s Trial: seven questions on what you’ve done.",
+      "duration": 8,
+      "words": []
+    },
+    {
+      "id": "cli.wingman.trial.01",
+      "speaker": "Wingman",
+      "text": "Seven questions, Captain. No answers from me in there, only nudges.",
+      "duration": 5.12,
+      "words": []
+    },
+    {
+      "id": "cli.nell.trial.02",
+      "speaker": "Nell",
+      "text": "The Seal of Anchorage, and well earned. Now, about that ship.",
+      "duration": 5.12,
+      "words": []
+    },
+    {
+      "id": "cli.nell.christen.01",
+      "speaker": "Nell",
+      "text": "No ship leaves Anchorage without a name, Captain, and yours has been waiting all morning.",
+      "duration": 6.4,
+      "words": []
+    },
+    {
+      "id": "cli.nell.christen.02",
+      "speaker": "Nell",
+      "text": "Fair winds to her, and to all who sail in her!",
+      "duration": 5.12,
+      "words": []
+    },
+    {
+      "id": "cli.nell.christen.03",
+      "speaker": "Nell",
+      "text": "She suits you, Captain. Fair winds.",
+      "duration": 3.52,
+      "words": []
+    },
+    {
+      "id": "cli.juno.christen.01",
+      "speaker": "Juno",
+      "text": "Crew’s aboard, Captain.",
+      "duration": 2.56,
+      "words": []
+    },
+    {
+      "id": "cli.wingman.sail.01",
+      "speaker": "Wingman",
+      "text": "Right, a quick sailing lesson. The gangway’s down now, so walk up it to take the helm. W and S trim the sails, and A and D steer.",
+      "duration": 10.56,
+      "words": []
+    },
+    {
+      "id": "cli.wingman.sail.02",
+      "speaker": "Wingman",
+      "text": "The compass up top points back to the pier. Bring her alongside and press E, and I’ll help you dock.",
+      "duration": 8,
+      "words": []
+    },
+    {
+      "id": "cli.wingman.sail.03",
+      "speaker": "Wingman",
+      "text": "The other islands aren’t charted in this course yet, Captain. Until they are, these waters are yours.",
+      "duration": 7.04,
+      "words": []
+    }
+  ]
+}

@@ -1,0 +1,776 @@
+{
+  "$schema": "../../schemas/chapter.schema.json",
+  "$comment": "GitHub Copilot CLI for Beginners, Chapter 00 · Quick Start (Anchorage Cay). Every quiz, page and teaching line cites the section it paraphrases (anchor and hash in lock.json).",
+  "chapter": "00-quick-start",
+  "images": [
+    {
+      "id": "ch00/copilot-trust",
+      "src": "course/ch00/copilot-trust.png",
+      "hash": "6a1e59edfa23",
+      "width": 2240,
+      "height": 1184,
+      "alt": "Trusting files in a folder with the Copilot CLI"
+    },
+    {
+      "id": "ch00/auth-device-flow",
+      "src": "course/ch00/auth-device-flow.png",
+      "hash": "a7b6bc639366",
+      "width": 1200,
+      "height": 354,
+      "alt": "Device Authorization Flow - showing the 5-step process from terminal login to signed-in confirmation"
+    }
+  ],
+  "quizzes": [
+    {
+      "id": "S0.1",
+      "type": "mc",
+      "prompt": "You see “You don’t have access to GitHub Copilot.” What can you do?",
+      "options": [
+        {
+          "id": "access",
+          "text": "Use the free option, subscribe to a plan, or join an organization that provides access"
+        },
+        {
+          "id": "reinstall",
+          "text": "Install Copilot CLI again",
+          "feedback": "The CLI isn’t the problem. Copilot CLI needs an active Copilot subscription."
+        },
+        {
+          "id": "login",
+          "text": "Run /login again",
+          "feedback": "Signing in won’t help without Copilot access. Get access first."
+        }
+      ],
+      "answer": "access",
+      "explain": {
+        "correct": "Right. Copilot CLI needs an active Copilot subscription, and you can check your status at github.com/settings/copilot.",
+        "wrong": "Copilot CLI needs Copilot access: the free option, a plan, or an organization that provides it."
+      },
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "what-copilot-access-means",
+        "hash": "5a28a6a5e514"
+      }
+    },
+    {
+      "id": "S0.3",
+      "type": "scenario",
+      "situation": "You don’t want to install any of the prerequisites on your computer.",
+      "prompt": "Where do you start?",
+      "options": [
+        {
+          "id": "codespace",
+          "text": "Fork the repository, then **Code** > **Codespaces** > **Create codespace on main**"
+        },
+        {
+          "id": "clone",
+          "text": "Clone the repository and install everything on your own machine",
+          "feedback": "That works too, but then you install the prerequisites yourself. A Codespace has them ready."
+        },
+        {
+          "id": "none",
+          "text": "You can’t use the course without installing things locally",
+          "feedback": "You can. A GitHub Codespace has GitHub Copilot CLI ready to go."
+        }
+      ],
+      "answer": "codespace",
+      "explain": {
+        "correct": "Right. A Codespace has GitHub Copilot CLI ready to go, and pre-installs Python and pytest. You’ll just need to sign in.",
+        "wrong": "A GitHub Codespace is the zero-setup way: fork, then **Code** > **Codespaces** > **Create codespace on main**."
+      },
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "github-codespaces-zero-setup",
+        "hash": "ab118192e0f5"
+      }
+    },
+    {
+      "id": "S0.4",
+      "type": "mc",
+      "prompt": "You’ve got Node.js installed. What’s a quick way to get the CLI?",
+      "options": [
+        {
+          "id": "npm",
+          "text": "`npm install -g @github/copilot`"
+        },
+        {
+          "id": "brew",
+          "text": "`brew install copilot-cli`",
+          "feedback": "That’s Homebrew, for macOS or Linux. With Node.js, npm is the quick way."
+        },
+        {
+          "id": "winget",
+          "text": "`winget install GitHub.Copilot`",
+          "feedback": "That’s WinGet, for Windows. With Node.js, npm is the quick way."
+        }
+      ],
+      "answer": "npm",
+      "explain": {
+        "correct": "Right. If you have Node.js installed, npm is a quick way to get the CLI.",
+        "wrong": "Not sure which to pick? Use `npm` if you have Node.js installed. Otherwise, choose the option that matches your system."
+      },
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "local-installation",
+        "hash": "6a259a0064c2"
+      }
+    },
+    {
+      "id": "S0.5",
+      "type": "scenario",
+      "situation": "You’re signing in to Copilot CLI over SSH, on a server with no browser.",
+      "prompt": "How do you finish signing in?",
+      "options": [
+        {
+          "id": "device",
+          "text": "Visit github.com/login/device in a browser on another machine, and enter the one-time code"
+        },
+        {
+          "id": "wait",
+          "text": "Wait for a browser to open on the server",
+          "feedback": "On a remote or headless terminal, there’s no browser to open. You get a one-time code instead."
+        },
+        {
+          "id": "skip",
+          "text": "Skip signing in: the CLI works without it",
+          "feedback": "You need to sign in with your GitHub account."
+        }
+      ],
+      "answer": "device",
+      "explain": {
+        "correct": "Right. That’s the device code flow: the terminal shows a one-time code, and you enter it at github.com/login/device.",
+        "wrong": "On a remote or headless terminal, Copilot CLI falls back to the device code flow."
+      },
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "authentication",
+        "hash": "29ec3f8246ba"
+      }
+    },
+    {
+      "id": "S0.2",
+      "type": "scenario",
+      "situation": "You want to send: “Say hello and tell me what you can help with.”",
+      "prompt": "Where does it go?",
+      "options": [
+        {
+          "id": "prompt",
+          "text": "At Copilot CLI’s prompt (the speaking tube to the crew)"
+        },
+        {
+          "id": "shell",
+          "text": "Straight into the shell (the engine-room hatch)",
+          "feedback": "The shell runs commands like `cd` and `ls`. Requests to Copilot go at its prompt, once you’ve started `copilot`."
+        }
+      ],
+      "answer": "prompt",
+      "explain": {
+        "correct": "Yes! Start `copilot`, then ask at its prompt. You should get a friendly response listing what Copilot CLI can help with.",
+        "wrong": "Requests go to Copilot at its prompt, after you start `copilot`."
+      },
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "step-1-test-copilot-cli",
+        "hash": "649949ce4cdf"
+      }
+    },
+    {
+      "id": "S0.6",
+      "type": "mc",
+      "prompt": "Which prompt asks Copilot about the book app’s main file?",
+      "options": [
+        {
+          "id": "at",
+          "text": "`What does @samples/book-app-project/book_app.py do?`"
+        },
+        {
+          "id": "plain",
+          "text": "`What does the book app do?`",
+          "feedback": "Copilot may not know which file you mean. An `@` and the file’s path points it at the file."
+        },
+        {
+          "id": "cd",
+          "text": "`cd samples/book-app-project`",
+          "feedback": "That’s a shell command that changes folders. It doesn’t ask Copilot anything."
+        }
+      ],
+      "answer": "at",
+      "explain": {
+        "correct": "Right. You should get a summary of the book app’s main functions and commands.",
+        "wrong": "Point Copilot at the file with `@` and its path."
+      },
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "step-3-try-copilot-cli-with-the-book-app",
+        "hash": "e678d7b74781"
+      }
+    },
+    {
+      "id": "T0.1",
+      "type": "ordering",
+      "prompt": "Put the quick start in order.",
+      "items": [
+        {
+          "id": "samples",
+          "text": "Get the course samples: a Codespace, or a clone"
+        },
+        {
+          "id": "install",
+          "text": "Install Copilot CLI (a Codespace has it already)"
+        },
+        {
+          "id": "start",
+          "text": "Start `copilot` at the repository root and trust the folder"
+        },
+        {
+          "id": "login",
+          "text": "Sign in with `/login`"
+        },
+        {
+          "id": "ask",
+          "text": "Ask a prompt to check it works"
+        }
+      ],
+      "explain": {
+        "correct": "That’s the quick start: the samples, the CLI, the folder, the sign-in, then a test prompt.",
+        "wrong": "You sign in after you’ve started the CLI and trusted the folder, and you test it once you’re signed in."
+      },
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "verify-it-works",
+        "hash": "462ed4890cd9"
+      }
+    },
+    {
+      "id": "T0.2",
+      "type": "matching",
+      "prompt": "Match each way to install Copilot CLI to its command.",
+      "pairs": [
+        {
+          "left": {
+            "id": "npm",
+            "text": "All platforms (npm)"
+          },
+          "right": {
+            "id": "npm-cmd",
+            "text": "`npm install -g @github/copilot`"
+          }
+        },
+        {
+          "left": {
+            "id": "brew",
+            "text": "macOS/Linux (Homebrew)"
+          },
+          "right": {
+            "id": "brew-cmd",
+            "text": "`brew install copilot-cli`"
+          }
+        },
+        {
+          "left": {
+            "id": "winget",
+            "text": "Windows (WinGet)"
+          },
+          "right": {
+            "id": "winget-cmd",
+            "text": "`winget install GitHub.Copilot`"
+          }
+        },
+        {
+          "left": {
+            "id": "script",
+            "text": "macOS/Linux (install script)"
+          },
+          "right": {
+            "id": "script-cmd",
+            "text": "`curl -fsSL https://gh.io/copilot-install | bash`"
+          }
+        }
+      ],
+      "explain": {
+        "correct": "Right. Choose what works for your system: npm, Homebrew, WinGet, or the install script.",
+        "wrong": "Homebrew is `brew`, WinGet is `winget`, the install script comes through `curl`, and npm installs `@github/copilot`."
+      },
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "local-installation",
+        "hash": "6a259a0064c2"
+      }
+    },
+    {
+      "id": "T0.3",
+      "type": "mc",
+      "prompt": "On a remote or headless terminal, your browser doesn’t open. What then?",
+      "options": [
+        {
+          "id": "code",
+          "text": "Visit github.com/login/device and enter the one-time code the terminal shows"
+        },
+        {
+          "id": "reinstall",
+          "text": "Install the CLI again",
+          "feedback": "The install’s fine. Without a browser, you use the device code flow."
+        },
+        {
+          "id": "token",
+          "text": "Copy a token from the CLI into the browser",
+          "feedback": "The terminal shows a one-time code, and you enter it at github.com/login/device."
+        }
+      ],
+      "answer": "code",
+      "explain": {
+        "correct": "Right. That’s the device code flow.",
+        "wrong": "Without a browser, Copilot CLI falls back to the device code flow."
+      },
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "browser-doesnt-open-automatically",
+        "hash": "2f287536a9b0"
+      }
+    },
+    {
+      "id": "T0.4",
+      "type": "mc",
+      "prompt": "Your terminal says “copilot: command not found”. What does that mean?",
+      "options": [
+        {
+          "id": "notinstalled",
+          "text": "The CLI isn’t installed. Try a different installation method"
+        },
+        {
+          "id": "noaccess",
+          "text": "You don’t have Copilot access",
+          "feedback": "That’s a different message. “command not found” means the CLI isn’t installed."
+        },
+        {
+          "id": "login",
+          "text": "You need to run /login",
+          "feedback": "You can’t run `/login` before the CLI is installed."
+        }
+      ],
+      "answer": "notinstalled",
+      "explain": {
+        "correct": "Right. If one method failed (say, `brew`), try npm or the install script.",
+        "wrong": "“command not found” means the CLI isn’t installed."
+      },
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "copilot-command-not-found",
+        "hash": "ce16b2953eb2"
+      }
+    },
+    {
+      "id": "T0.5",
+      "type": "multi",
+      "prompt": "Which of these mean you’ve got Copilot access at github.com/settings/copilot? Pick all that apply.",
+      "options": [
+        {
+          "id": "individual",
+          "text": "Copilot Individual"
+        },
+        {
+          "id": "business",
+          "text": "Copilot Business"
+        },
+        {
+          "id": "enterprise",
+          "text": "Copilot Enterprise"
+        },
+        {
+          "id": "education",
+          "text": "GitHub Education"
+        },
+        {
+          "id": "account",
+          "text": "Just a GitHub account, with no Copilot access"
+        }
+      ],
+      "answers": ["individual", "business", "enterprise", "education"],
+      "explain": {
+        "correct": "Right: Individual, Business, Enterprise, or GitHub Education. Copilot CLI needs an active Copilot subscription.",
+        "wrong": "A GitHub account alone isn’t enough. Copilot CLI needs an active Copilot subscription."
+      },
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "what-copilot-access-means",
+        "hash": "5a28a6a5e514"
+      }
+    },
+    {
+      "id": "T0.6",
+      "type": "mc",
+      "prompt": "How often do you sign in to Copilot CLI?",
+      "options": [
+        {
+          "id": "once",
+          "text": "Once. It persists until your token expires, or you sign out"
+        },
+        {
+          "id": "session",
+          "text": "At the start of every session",
+          "feedback": "The sign-in persists across sessions."
+        },
+        {
+          "id": "prompt",
+          "text": "Before every prompt",
+          "feedback": "The sign-in persists across sessions. You only do it once."
+        }
+      ],
+      "answer": "once",
+      "explain": {
+        "correct": "Right. One-time authentication: it persists until your token expires.",
+        "wrong": "The sign-in persists across sessions."
+      },
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "authentication",
+        "hash": "29ec3f8246ba"
+      }
+    },
+    {
+      "id": "T0.7",
+      "type": "mc",
+      "prompt": "The first time you start `copilot` in a folder, what does it ask?",
+      "options": [
+        {
+          "id": "trust",
+          "text": "To trust the folder, one time or across all future sessions"
+        },
+        {
+          "id": "model",
+          "text": "Which model to use",
+          "feedback": "It asks you to trust the folder first. Then you can sign in."
+        },
+        {
+          "id": "fork",
+          "text": "Whether to fork the repository",
+          "feedback": "It asks you to trust the folder containing the repository."
+        }
+      ],
+      "answer": "trust",
+      "explain": {
+        "correct": "Right. You can trust it one time, or across all future sessions.",
+        "wrong": "It asks you to trust the folder containing the repository."
+      },
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "authentication",
+        "hash": "29ec3f8246ba"
+      }
+    }
+  ],
+  "pages": [
+    {
+      "id": "pg.prereqs",
+      "title": "What you need",
+      "caption": "Two things first. **GitHub Account**: one with Copilot access. **Terminal basics**: you’re comfortable with commands like `cd` and `ls`. Students and teachers can get Copilot Pro free through GitHub Education.",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "-prerequisites",
+        "hash": "7af531f1ad41"
+      }
+    },
+    {
+      "id": "pg.access",
+      "title": "What Copilot access means",
+      "caption": "GitHub Copilot CLI needs an active Copilot subscription. Check your status at [github.com/settings/copilot](https://github.com/settings/copilot): you should see **Copilot Individual**, **Copilot Business**, **Copilot Enterprise**, or **GitHub Education**.",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "what-copilot-access-means",
+        "hash": "5a28a6a5e514"
+      }
+    },
+    {
+      "id": "pg.codespace",
+      "title": "A Codespace: zero setup",
+      "caption": "[Fork the repository](https://github.com/github/copilot-cli-for-beginners/fork), then select **Code** > **Codespaces** > **Create codespace on main**. GitHub Copilot CLI is ready to go (you’ll need to sign in), with Python and pytest pre-installed. To check it, run:",
+      "code": "cd samples/book-app-project && python book_app.py help",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "github-codespaces-zero-setup",
+        "hash": "ab118192e0f5"
+      }
+    },
+    {
+      "id": "pg.clone",
+      "title": "Or clone it",
+      "caption": "To run Copilot CLI on your own machine with the course samples, clone the repository first.",
+      "code": "git clone https://github.com/github/copilot-cli-for-beginners\ncd copilot-cli-for-beginners",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "local-installation",
+        "hash": "6a259a0064c2"
+      }
+    },
+    {
+      "id": "pg.install",
+      "title": "Install Copilot CLI",
+      "caption": "Pick one. Not sure which? Use `npm` if you have Node.js installed. Otherwise, choose the option that matches your system: Homebrew (macOS/Linux), WinGet (Windows), or the install script (macOS/Linux).",
+      "code": "npm install -g @github/copilot\nbrew install copilot-cli\nwinget install GitHub.Copilot\ncurl -fsSL https://gh.io/copilot-install | bash",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "local-installation",
+        "hash": "6a259a0064c2"
+      }
+    },
+    {
+      "id": "pg.signin",
+      "title": "Trust the folder, then sign in",
+      "image": "ch00/copilot-trust",
+      "caption": "Start `copilot` at the root of the repository and trust the folder, one time or across all future sessions. Then type `/login` and select **Sign in with your browser (recommended)**. On a remote or headless terminal, you get a one-time code to enter at [github.com/login/device](https://github.com/login/device).",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "authentication",
+        "hash": "29ec3f8246ba"
+      }
+    },
+    {
+      "id": "pg.first-prompt",
+      "title": "Check it works",
+      "caption": "At Copilot CLI’s prompt, ask this. You should get a friendly response listing Copilot CLI’s capabilities. Demo output varies: your model, tools, and responses will differ. Type `/exit` to leave the CLI.",
+      "code": "Say hello and tell me what you can help with",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "step-1-test-copilot-cli",
+        "hash": "649949ce4cdf"
+      }
+    },
+    {
+      "id": "pg.book-app",
+      "title": "Try it with the book app",
+      "caption": "In the shell, `python book_app.py list` (in `samples/book-app-project`) lists five books. Back at the repository root, start `copilot` and ask about the app’s main file. You should get a summary of its main functions and commands.",
+      "code": "copilot\n> What does @samples/book-app-project/book_app.py do?",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "step-3-try-copilot-cli-with-the-book-app",
+        "hash": "e678d7b74781"
+      }
+    },
+    {
+      "id": "B0.1",
+      "title": "“copilot: command not found”",
+      "caption": "The CLI isn’t installed. Try a different installation method: if `brew` failed, try `npm install -g @github/copilot`, or the install script.",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "copilot-command-not-found",
+        "hash": "ce16b2953eb2"
+      }
+    },
+    {
+      "id": "B0.2",
+      "title": "“You don’t have access to GitHub Copilot”",
+      "caption": "Check you have a Copilot subscription at [github.com/settings/copilot](https://github.com/settings/copilot), and that your organization permits CLI access if you’re using a work account.",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "you-dont-have-access-to-github-copilot",
+        "hash": "8e255a4d0776"
+      }
+    },
+    {
+      "id": "B0.3",
+      "title": "“Authentication failed”",
+      "caption": "Sign in again: start `copilot`, then run `/login`. A token that’s expired works the same way: run `/login` again.",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "authentication-failed",
+        "hash": "b282c2778494"
+      }
+    },
+    {
+      "id": "B0.4",
+      "title": "The browser doesn’t open",
+      "caption": "On a remote or headless terminal, the device code flow is used instead. Your terminal shows a one-time code: visit [github.com/login/device](https://github.com/login/device), enter it, then authorize access.",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "browser-doesnt-open-automatically",
+        "hash": "2f287536a9b0"
+      }
+    }
+  ],
+  "chests": [
+    {
+      "id": "C0.1",
+      "page": "pg.prereqs",
+      "doubloons": 10
+    },
+    {
+      "id": "B0.1",
+      "page": "B0.1",
+      "doubloons": 5,
+      "kind": "bottle"
+    },
+    {
+      "id": "B0.2",
+      "page": "B0.2",
+      "doubloons": 5,
+      "kind": "bottle"
+    },
+    {
+      "id": "B0.3",
+      "page": "B0.3",
+      "doubloons": 5,
+      "kind": "bottle"
+    },
+    {
+      "id": "B0.4",
+      "page": "B0.4",
+      "doubloons": 5,
+      "kind": "bottle"
+    }
+  ],
+  "glossary": [
+    {
+      "id": "cli",
+      "term": "CLI",
+      "definition": "Command Line Interface: a text-based way to work with software, like GitHub Copilot CLI."
+    },
+    {
+      "id": "slash-command",
+      "term": "Slash command",
+      "definition": "A command starting with `/` that controls Copilot, such as `/login` and `/exit`."
+    },
+    {
+      "id": "session",
+      "term": "Session",
+      "definition": "A conversation with Copilot that keeps its context and can be resumed later."
+    }
+  ],
+  "trials": [
+    {
+      "id": "T0",
+      "title": "The Harbormaster’s Trial",
+      "items": ["T0.1", "T0.2", "T0.3", "T0.4", "T0.5", "T0.6", "T0.7"],
+      "reward": {
+        "seal": "Seal of Anchorage",
+        "doubloons": 50
+      }
+    }
+  ],
+  "voiced": {
+    "cli.wingman.welcome.03": {
+      "chapter": "00-quick-start",
+      "anchor": "-learning-objectives",
+      "hash": "ebc41219c3d0"
+    },
+    "cli.nell.papers.01": {
+      "chapter": "00-quick-start",
+      "anchor": "-prerequisites",
+      "hash": "7af531f1ad41"
+    },
+    "cli.nell.papers.02": {
+      "chapter": "00-quick-start",
+      "anchor": "-prerequisites",
+      "hash": "7af531f1ad41"
+    },
+    "cli.nell.papers.03": {
+      "chapter": "00-quick-start",
+      "anchor": "what-copilot-access-means",
+      "hash": "5a28a6a5e514"
+    },
+    "cli.ezra.01": {
+      "chapter": "00-quick-start",
+      "anchor": "installation",
+      "hash": "618d4122404a"
+    },
+    "cli.ezra.02": {
+      "chapter": "00-quick-start",
+      "anchor": "github-codespaces-zero-setup",
+      "hash": "ab118192e0f5"
+    },
+    "cli.ezra.03": {
+      "chapter": "00-quick-start",
+      "anchor": "local-installation",
+      "hash": "6a259a0064c2"
+    },
+    "cli.bo.01": {
+      "chapter": "00-quick-start",
+      "anchor": "local-installation",
+      "hash": "6a259a0064c2"
+    },
+    "cli.bo.02": {
+      "chapter": "00-quick-start",
+      "anchor": "local-installation",
+      "hash": "6a259a0064c2"
+    },
+    "cli.bo.03": {
+      "chapter": "00-quick-start",
+      "anchor": "github-codespaces-zero-setup",
+      "hash": "ab118192e0f5"
+    },
+    "cli.pim.01": {
+      "chapter": "00-quick-start",
+      "anchor": "authentication",
+      "hash": "29ec3f8246ba"
+    },
+    "cli.pol.01": {
+      "chapter": "00-quick-start",
+      "anchor": "authentication",
+      "hash": "29ec3f8246ba"
+    },
+    "cli.pim.02": {
+      "chapter": "00-quick-start",
+      "anchor": "authentication",
+      "hash": "29ec3f8246ba"
+    },
+    "cli.pol.02": {
+      "chapter": "00-quick-start",
+      "anchor": "authentication",
+      "hash": "29ec3f8246ba"
+    },
+    "cli.pim.03": {
+      "chapter": "00-quick-start",
+      "anchor": "authentication",
+      "hash": "29ec3f8246ba"
+    },
+    "cli.pol.03": {
+      "chapter": "00-quick-start",
+      "anchor": "authentication",
+      "hash": "29ec3f8246ba"
+    },
+    "cli.pol.done.01": {
+      "chapter": "00-quick-start",
+      "anchor": "troubleshooting",
+      "hash": "246495c4ab26"
+    },
+    "cli.juno.brief.01": {
+      "chapter": "00-quick-start",
+      "anchor": "verify-it-works",
+      "hash": "462ed4890cd9"
+    },
+    "cli.juno.brief.02": {
+      "chapter": "00-quick-start",
+      "anchor": "step-1-test-copilot-cli",
+      "hash": "649949ce4cdf"
+    },
+    "cli.juno.hatch.01": {
+      "chapter": "00-quick-start",
+      "anchor": "step-1-test-copilot-cli",
+      "hash": "649949ce4cdf"
+    },
+    "cli.juno.hatch.feedback.01": {
+      "chapter": "00-quick-start",
+      "anchor": "step-1-test-copilot-cli",
+      "hash": "649949ce4cdf"
+    },
+    "cli.juno.reply.01": {
+      "chapter": "00-quick-start",
+      "anchor": "step-1-test-copilot-cli",
+      "hash": "649949ce4cdf"
+    },
+    "cli.juno.reply.02": {
+      "chapter": "00-quick-start",
+      "anchor": "step-1-test-copilot-cli",
+      "hash": "649949ce4cdf"
+    },
+    "cli.juno.reply.03": {
+      "chapter": "00-quick-start",
+      "anchor": "step-3-try-copilot-cli-with-the-book-app",
+      "hash": "e678d7b74781"
+    },
+    "cli.juno.reply.04": {
+      "chapter": "00-quick-start",
+      "anchor": "step-1-test-copilot-cli",
+      "hash": "649949ce4cdf"
+    }
+  }
+}

@@ -105,7 +105,9 @@ function buildChapter(chapter: ChapterId, origin: Origin, markdown: string): Cha
 
 const docs = new Map<string, Promise<unknown>>();
 
-function once<T>(key: string, load: () => Promise<T>): Promise<T> {
+function once<T>(name: string, load: () => Promise<T>): Promise<T> {
+  // Per course: two courses can both have a GLOSSARY.md (or a chapter 00).
+  const key = `${COURSE_REPO}:${name}`;
   let p = docs.get(key) as Promise<T> | undefined;
   if (!p) {
     p = load();
@@ -129,7 +131,7 @@ export function loadChapter(chapter: ChapterId): Promise<ChapterDoc> {
   const ref = courseRef();
   return once(`ch:${ref}:${chapter}`, async () => {
     const doc = await readChapter(chapter, ref);
-    ready.set(chapter, doc);
+    ready.set(`${COURSE_REPO}:${chapter}`, doc);
     return doc;
   });
 }
@@ -149,7 +151,7 @@ const ready = new Map<string, ChapterDoc>();
 
 /** Synchronous view of an already-loaded chapter (for first render without a loading flash). */
 export function peekChapter(chapter: ChapterId): ChapterDoc | undefined {
-  return ready.get(chapter);
+  return ready.get(`${COURSE_REPO}:${chapter}`);
 }
 
 export function prefetchChapter(chapter: ChapterId): Promise<ChapterDoc | null> {
@@ -248,7 +250,7 @@ export async function resolveImage(bundled: string, chapters: readonly ChapterId
 
 /** `resolveImage` without waiting, when every chapter it needs is loaded already. */
 export function peekImage(bundled: string, chapters: readonly ChapterId[]): ResolvedImage | undefined {
-  const docs = imageChapters(bundled, chapters).map((ch) => ready.get(ch));
+  const docs = imageChapters(bundled, chapters).map((ch) => ready.get(`${COURSE_REPO}:${ch}`));
   return docs.every(Boolean) ? pickImage(bundled, docs) : undefined;
 }
 

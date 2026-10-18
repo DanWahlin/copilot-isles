@@ -112,6 +112,15 @@ export default {
 
     // New Voyage, the captain's name typed at a human pace, Set sail.
     p = await clickEl(page, '.ci-menu-list button:has-text("New Voyage")', p, 700);
+    // With more than one course pack, New Voyage lists them first.
+    await page.waitForFunction(() => ['course', 'captain'].includes(window.__flow.getState().screen), null, {
+      timeout: 5000,
+    });
+    if ((await page.evaluate(() => window.__flow.getState().screen)) === 'course') {
+      api.mark('course');
+      await api.pause(900);
+      p = await clickEl(page, '[data-course="copilot-app"]', p, 700);
+    }
     await page.waitForFunction(() => window.__flow.getState().screen === 'captain', null, {
       timeout: 5000,
     });

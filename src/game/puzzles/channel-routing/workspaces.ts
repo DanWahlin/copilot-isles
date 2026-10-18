@@ -1,6 +1,6 @@
 import { onCourse } from '../../../course/active';
 import type { PuzzleFile } from '../../../course/pack';
-import { lineOf, puzzleContent } from '../../../course/puzzles';
+import { lineOf, puzzleContent, puzzleMaybe } from '../../../course/puzzles';
 import type { Crew } from './types';
 
 /**
@@ -54,14 +54,11 @@ export let CREW_ORDERS: Readonly<Record<Crew, CrewOrder>> = {} as Record<Crew, C
 export let BEST_LINE: Readonly<Record<Workspace, string>> = {} as Record<Workspace, string>;
 
 onCourse(() => {
-  const c = workspacesContent();
-  WORKSPACES = c.places;
-  CREW_ORDERS = c.orders;
-  BEST_LINE = {
-    worktree: lineOf(c, 'best.worktree'),
-    checkout: lineOf(c, 'best.checkout'),
-    cloud: lineOf(c, 'best.cloud'),
-  };
+  const c = puzzleMaybe<WorkspacesFile>('workspaces');
+  WORKSPACES = c?.places ?? [];
+  CREW_ORDERS = c?.orders ?? ({} as Record<Crew, CrewOrder>);
+  const best = (k: string) => (c ? lineOf(c, `best.${k}`) : '');
+  BEST_LINE = { worktree: best('worktree'), checkout: best('checkout'), cloud: best('cloud') };
 });
 
 /** Whether a place suits a crew's order. */

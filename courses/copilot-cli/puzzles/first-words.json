@@ -1,0 +1,95 @@
+{
+  "$schema": "../../schemas/puzzle-choose-tool.schema.json",
+  "id": "Q0.8.pipes",
+  "mechanic": "choose-tool",
+  "$comment": "First Words (Q0.8): two fittings on the ship’s rail, the speaking tube (to the crew) and the hatch (to the engine room). For the Copilot CLI course: Copilot CLI’s prompt and the shell. Asking the course’s Step 1 prompt through one of them answers the quiz (the right tool is the tube). The reply is the course’s expected output, in its own words, not a transcript (00 §Step 1: Test Copilot CLI). {prompt} is the prompt.",
+  "quiz": "S0.2",
+  "tools": {
+    "tube": {
+      "label": "Ask at Copilot CLI’s prompt",
+      "option": "prompt",
+      "right": true
+    },
+    "hatch": {
+      "label": "Type it into the shell",
+      "option": "shell"
+    }
+  },
+  "prompt": "Say hello and tell me what you can help with",
+  "hatch": {
+    "title": "Terminal · the shell",
+    "lines": [
+      {
+        "text": "$ {prompt}",
+        "tone": "cmd"
+      },
+      {
+        "text": "command not found: Say",
+        "tone": "other"
+      }
+    ]
+  },
+  "reply": {
+    "title": "Copilot CLI",
+    "lines": [
+      {
+        "text": "> {prompt}",
+        "tone": "cmd"
+      },
+      {
+        "text": "A friendly response, listing what Copilot CLI can help with."
+      },
+      {
+        "text": "Your model, tools, and responses will differ.",
+        "tone": "ok"
+      }
+    ]
+  },
+  "scripts": {
+    "reply": [
+      {
+        "say": "cli.juno.reply.01"
+      },
+      {
+        "say": "cli.juno.reply.02"
+      },
+      {
+        "page": "pg.first-prompt",
+        "doubloons": 10
+      },
+      {
+        "say": "cli.juno.reply.03"
+      },
+      {
+        "file": "pg.book-app",
+        "doubloons": 10
+      },
+      {
+        "quiz": "S0.6"
+      },
+      {
+        "say": "cli.juno.reply.04"
+      },
+      {
+        "quest": "Q0.8",
+        "step": "done"
+      },
+      {
+        "quest": "Q0.10",
+        "step": "start"
+      }
+    ]
+  },
+  "lines": {
+    "hatch": "cli.juno.hatch.01",
+    "hatchWrong": "cli.juno.hatch.feedback.01"
+  },
+  "text": {
+    "finishWithJuno": "Talk to Juno to finish up at the ship.",
+    "hint1": "Is this a command for the shell, or a request for Copilot?",
+    "hint2": "Requests to Copilot go at its prompt. That’s the brass speaking tube.",
+    "hint3": "I’ve asked it at Copilot’s prompt for you. Listen.",
+    "plate.tube": "PROMPT",
+    "plate.hatch": "SHELL"
+  }
+}

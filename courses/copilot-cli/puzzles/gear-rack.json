@@ -1,0 +1,7 @@
+{
+  "$schema": "../../schemas/puzzle-checklist.schema.json",
+  "id": "gear.rack",
+  "mechanic": "checklist",
+  "$comment": "Off in this course: Chapter 00 doesn’t check tool versions, so Bo’s rack stays scenery (its plaques blank) and Bo teaches the install in his script.",
+  "disabled": true
+}

@@ -124,7 +124,10 @@
     "hintYes3": "Pulled it for you. Watch the hold fill.",
     "terminalTitle": "Terminal · {repo}",
     "boardTitle": "Practice items for your fork",
-    "boardItem": "{mark}  {count} {title}"
+    "boardItem": "{mark}  {count} {title}",
+    "flag.captain": "REYES’S FORK",
+    "flag.guild": "GUILD FORK",
+    "flag.you": "YOUR FORK"
   },
   "lines": {
     "refuseGuild1": "pol.refuse.guild.01",

@@ -47,6 +47,7 @@ import type { CircleObstacle } from './contracts';
 import { FarCull } from './far-cull';
 import { createThousandBoughStream, type ThousandBoughStream } from './islands/thousand-bough/stream';
 import { BLOB_RANGE, BlobShadows } from './blob-shadows';
+import { COURSE, courseIsland } from '../course/catalog';
 
 export interface CoveScene {
   sky: SkySystem;
@@ -176,6 +177,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     birds: o.birds !== false,
     skipShadows: skipIslandShadows,
     disabled: meridianDisabled,
+    nearLoads: () => !!courseIsland('meridian', COURSE),
   });
   const thousandBough = createThousandBoughStream({
     scene,

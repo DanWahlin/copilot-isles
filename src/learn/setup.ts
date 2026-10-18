@@ -1,4 +1,4 @@
-import { COURSE } from '../course/catalog';
+import { COURSE, onCourseSelected } from '../course/catalog';
 
 /**
  * "Your setup": what the player tells the game about their own copy of the course, so it can show
@@ -40,9 +40,14 @@ export const EMPTY_SETUP: SetupData = { os: null, issue: null, branch: null, mod
  * The course's practice issue and branch (the course pack's `course.json` → `practice`; for the
  * Copilot app course, Chapter 02 · Exercise: Start a Session from a Branch).
  */
-export const COURSE_ISSUE = COURSE.practice.issue;
-export const COURSE_ISSUE_TITLE = COURSE.practice.issueTitle;
-export const COURSE_BRANCH = COURSE.practice.branch;
+export let COURSE_ISSUE = 0;
+export let COURSE_ISSUE_TITLE = '';
+export let COURSE_BRANCH = '';
+onCourseSelected((c) => {
+  COURSE_ISSUE = c.practice?.issue ?? 0;
+  COURSE_ISSUE_TITLE = c.practice?.issueTitle ?? '';
+  COURSE_BRANCH = c.practice?.branch ?? '';
+});
 
 // ---- The computer ----
 
@@ -202,9 +207,17 @@ export function cleanSetup(v: unknown): SetupData {
 
 // ---- Showing it ----
 
+/** For a course with no setup forms (a pick it never asked for). */
+const MODEL_NAMES = {
+  none: 'the model you chose',
+  auto: 'Auto',
+  current: 'your current model',
+  other: 'the model you picked',
+};
+
 /** How the game names the player's model choice (never more than they told it). */
 export function modelLabel(m: ModelPick | null): string {
-  const names = COURSE.setup.model.names;
+  const names = COURSE.setup?.model.names ?? MODEL_NAMES;
   if (!m) return names.none;
   if (m.pick === 'auto') return names.auto;
   if (m.pick === 'current') return names.current;

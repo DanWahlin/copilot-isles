@@ -1,4 +1,4 @@
-import { courseVoiceBase } from '../course/catalog';
+import { courseVoiceBase, courseVoiced } from '../course/catalog';
 import { MusicPlayer } from './music/music-player';
 import type { IslandMusic, MusicCue } from './music/tracks';
 import {
@@ -167,6 +167,10 @@ class IslesAudioImpl implements IslesAudio {
   private readonly buses: Partial<Record<BusName, GainNode>> = {};
   private voicePlayer: VoicePlayer | null = null;
   private voiceBound = false;
+  /** The folder the voice player reads (the course's). */
+  private voiceBase = '';
+  /** Binds a voice player to the unlocked graph (a course picked later gets its own player). */
+  private bindVoice: ((p: VoicePlayer) => void) | null = null;
   private ducked = false;
   private unlocking: Promise<boolean> | null = null;
 
@@ -235,15 +239,22 @@ class IslesAudioImpl implements IslesAudio {
     this.master = null;
     this.voicePlayer = null;
     this.voiceBound = false;
+    this.bindVoice = null;
   }
 
-  /** The voice player (made on first use: it only fetches until the unlock binds it). */
+  /**
+   * The current course's voice player (made on first use: it only fetches until the unlock binds it).
+   * A text-only course has none: its lines are captions, so nothing's fetched or waited for.
+   */
   private voice(): VoicePlayer | null {
-    if (this.voicePlayer || typeof document === 'undefined') return this.voicePlayer;
-    this.voicePlayer = new VoicePlayer(
-      new URL(courseVoiceBase(), location.href).toString(),
-      chooseVoiceFormat(document.createElement('audio')),
-    );
+    if (typeof document === 'undefined' || !courseVoiced()) return null;
+    const base = new URL(courseVoiceBase(), location.href).toString();
+    if (this.voicePlayer && this.voiceBase === base) return this.voicePlayer;
+    // Another course was picked: its lines come from its own folder.
+    this.voicePlayer?.stop();
+    this.voiceBase = base;
+    this.voicePlayer = new VoicePlayer(base, chooseVoiceFormat(document.createElement('audio')));
+    if (this.voiceBound) this.bindVoice?.(this.voicePlayer);
     return this.voicePlayer;
   }
 
@@ -264,7 +275,9 @@ class IslesAudioImpl implements IslesAudio {
       if (ambience && sfx) this.soundscape.bind(ctx, { ambience, sfx }, audioElement);
       if (music) this.musicPlayer.bind(ctx, music);
       if (voice) {
-        this.voice()?.bind(ctx, voice, (ducked) => this.setDucked(ducked));
+        this.bindVoice = (p) => p.bind(ctx, voice, (ducked) => this.setDucked(ducked));
+        const player = this.voice();
+        if (player) this.bindVoice(player);
         this.voiceBound = true;
       }
       this.applyAllVolumes();

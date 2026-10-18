@@ -1,0 +1,7 @@
+{
+  "$schema": "../../schemas/puzzle-ceremony.schema.json",
+  "id": "Q0.2.palette",
+  "mechanic": "ceremony",
+  "$comment": "Off in this course: Chapter 00 has no themes, so the palette stand stays scenery.",
+  "disabled": true
+}

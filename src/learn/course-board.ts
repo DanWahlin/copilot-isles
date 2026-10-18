@@ -1,5 +1,6 @@
 import { COURSE_BOARDS_DATA } from '../content/course-boards';
 import { onCourse } from '../course/active';
+import { onCourseSelected } from '../course/catalog';
 import { COURSE_BOARDS } from '../world/islands/course-boards';
 import { COURSE_CHAPTERS, COURSE_REPO, chapterUrl, type ChapterId } from './course/chapters';
 import type { ChapterLock } from './course/lock';
@@ -47,7 +48,10 @@ export let COURSE_BOARD_SKIP_ANCHORS: readonly string[] = [];
  */
 export let COURSE_BOARD_SKIP_TITLES: readonly string[] = [];
 
-export const COURSE_HOME_URL = `https://github.com/${COURSE_REPO}`;
+export let COURSE_HOME_URL = '';
+onCourseSelected(() => {
+  COURSE_HOME_URL = `https://github.com/${COURSE_REPO}`;
+});
 
 let locked: Partial<Record<ChapterId, ChapterLock>> = {};
 
@@ -84,7 +88,12 @@ export function boardTopics(
   const topics: CourseBoardTopic[] = [];
   for (const [anchor, s] of Object.entries(lock.sections)) {
     if (s.level !== 2 || !isBoardTopic(anchor, s.title, skip)) continue;
-    topics.push({ anchor, title: s.title, url: chapterUrl(chapter, anchor) });
+    // A heading's leading emoji ("🎯 Learning Objectives") stays off the board.
+    topics.push({
+      anchor,
+      title: s.title.replace(/^[^\p{L}\p{N}"'(]+/u, ''),
+      url: chapterUrl(chapter, anchor),
+    });
   }
   return topics;
 }

@@ -1,5 +1,5 @@
 import type { StarfishIsland } from '../world/starfish/spots';
-import { islandHooks } from '../course/catalog';
+import { COURSE, islandHooks, onCourseSelected, type CourseMeta } from '../course/catalog';
 
 /**
  * What Wingman points out on each island's first welcome, and which part of the screen lights up
@@ -12,16 +12,24 @@ export type HudSpot = 'tracker' | 'compass' | 'starfish';
 /** The welcome's tip lines per island: the task list and compass, then the island's starfish. */
 const ISLANDS: readonly StarfishIsland[] = ['anchorage', 'meridian', 'thousand-bough'];
 
-export const ISLAND_TIPS: Readonly<Record<StarfishIsland, { nav: string; starfish: string }>> =
-  Object.fromEntries(ISLANDS.map((i) => [i, islandHooks(i).tips])) as Record<
+const tipsOf = (c: CourseMeta) =>
+  Object.fromEntries(ISLANDS.map((i) => [i, islandHooks(i, c).tips])) as Record<
     StarfishIsland,
     { nav: string; starfish: string }
   >;
+const spotsOf = (tips: Readonly<Record<StarfishIsland, { nav: string; starfish: string }>>) =>
+  Object.fromEntries(
+    ISLANDS.flatMap((i) => [
+      [tips[i].nav, ['tracker', 'compass'] as const],
+      [tips[i].starfish, ['starfish'] as const],
+    ]),
+  ) as Record<string, readonly HudSpot[]>;
+
+export let ISLAND_TIPS: Readonly<Record<StarfishIsland, { nav: string; starfish: string }>> = tipsOf(COURSE);
 
 /** The screen parts each tip line shows (lit while the line plays). */
-export const TIP_SPOTS: Readonly<Record<string, readonly HudSpot[]>> = Object.fromEntries(
-  ISLANDS.flatMap((i) => [
-    [ISLAND_TIPS[i].nav, ['tracker', 'compass'] as const],
-    [ISLAND_TIPS[i].starfish, ['starfish'] as const],
-  ]),
-);
+export let TIP_SPOTS: Readonly<Record<string, readonly HudSpot[]>> = spotsOf(ISLAND_TIPS);
+onCourseSelected((c) => {
+  ISLAND_TIPS = tipsOf(c);
+  TIP_SPOTS = spotsOf(ISLAND_TIPS);
+});

@@ -22,7 +22,7 @@ export function TitleScreen({ state, bridge }: { state: UiState; bridge: GameBri
         <p className="ci-subtitle">{COURSE.tagline}</p>
       </div>
       <nav className="ci-menu-list" aria-label="Main menu">
-        <MenuButton onClick={bridge.chooseCaptain} initial={!state.hasSave}>
+        <MenuButton onClick={bridge.chooseCourse} initial={!state.hasSave}>
           New Voyage
         </MenuButton>
         {state.hasSave && (

@@ -99,6 +99,31 @@
 .hud-line span.spoken {
   opacity: 1;
 }
+/* A text-only course's caption: the whole line at once, and a button that moves it on (a tap). */
+.hud-subtitle.is-text {
+  padding-right: 3.4em;
+}
+.hud-subtitle.show .hud-next {
+  pointer-events: auto;
+}
+.hud-next {
+  position: absolute;
+  right: 0.45em;
+  bottom: 0.45em;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0.7em;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--gold);
+  font-size: 1.1em;
+  cursor: pointer;
+  pointer-events: none;
+}
+.hud-next:hover,
+.hud-next:focus-visible {
+  background: rgba(255, 255, 255, 0.18);
+}
 
 .hud-sail {
   position: absolute;

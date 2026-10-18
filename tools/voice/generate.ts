@@ -1,6 +1,6 @@
 /* global process */
 import { mkdir, readFile, writeFile, copyFile, access, rm } from 'node:fs/promises';
-import { constants } from 'node:fs';
+import { constants, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFile } from 'node:child_process';
@@ -9,6 +9,7 @@ import { parseKeyValueEnv, redactSecretValues } from '../../src/audio/voice/env'
 import { rateFactor, wordsFromAlignment, type CharacterAlignment } from '../../src/audio/voice/alignment';
 import { courseArg, coursePaths } from '../course-pack/read';
 import { ELEVENLABS_MODEL, lineHash, readLines, type VoiceLineDefinition } from './lines';
+import { readingTime } from '../../src/audio/voice/reading';
 
 interface WordTiming {
   readonly word: string;
@@ -99,7 +100,57 @@ async function check(): Promise<void> {
     console.log(`All ${made.size} voice lines in courses/${course}/public/voice match their lines and cast.`);
 }
 
+/** Whether the pack's lines have voices (`course.json` → `voice`; a text-only course's don't). */
+function voiced(): boolean {
+  const meta = JSON.parse(readFileSync(coursePaths(course).course, 'utf8')) as { voice?: boolean };
+  return meta.voice !== false;
+}
+
+/** A text-only course's caption for a line: its words at once, for its reading time. */
+const caption = (line: VoiceLineDefinition) => ({
+  id: line.id,
+  speaker: line.speaker,
+  text: line.text,
+  duration: readingTime(line.text),
+  words: [] as WordTiming[],
+});
+
+/**
+ * A text-only course (`"voice": false`): no speech service, no audio. The captions go where the voice
+ * would (`public/voice/`: manifest.json, one `<id>.json` per line for the cabin, and an empty
+ * lipsync.json), so the game reads them the same way.
+ */
+async function writeCaptions(): Promise<void> {
+  const data = readLines(course);
+  await rm(outDir, { recursive: true, force: true });
+  await mkdir(outDir, { recursive: true });
+  const lines = data.lines.map(caption);
+  for (const l of lines) await writeFile(join(outDir, `${l.id}.json`), `${JSON.stringify(l, null, 2)}\n`);
+  await writeFile(join(outDir, 'lipsync.json'), `${JSON.stringify({ lines: {} }, null, 2)}\n`);
+  await writeFile(
+    join(outDir, 'manifest.json'),
+    `${JSON.stringify({ set: data.set, textOnly: true, lines }, null, 2)}\n`,
+  );
+  console.log(`${lines.length} captions (text only, no voice) in courses/${course}/public/voice.`);
+}
+
+/** `--check` for a text-only course: every line's caption is in the manifest as it'd be written now. */
+async function checkCaptions(): Promise<void> {
+  const manifest = JSON.parse(await readFile(join(outDir, 'manifest.json'), 'utf8')) as {
+    lines: ReturnType<typeof caption>[];
+  };
+  const made = new Map(manifest.lines.map((l) => [l.id, JSON.stringify(l)]));
+  const stale = readLines(course).lines.filter((l) => made.get(l.id) !== JSON.stringify(caption(l)));
+  if (stale.length) {
+    console.error(`${stale.length} captions need writing: ${stale.map((l) => l.id).join(', ')}`);
+    process.exitCode = 1;
+  } else if (process.argv.includes('--list-stale')) console.log('');
+  else
+    console.log(`All ${made.size} captions in courses/${course}/public/voice match their lines (text only).`);
+}
+
 async function main(): Promise<void> {
+  if (!voiced()) return process.argv.includes('--check') ? checkCaptions() : writeCaptions();
   if (process.argv.includes('--check')) return check();
   const only = parseOnly(process.argv.slice(2));
   const env = await loadEnv();

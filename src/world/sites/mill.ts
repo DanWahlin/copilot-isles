@@ -24,13 +24,15 @@ import { SignSet, type PaintedSign } from './sign';
 import { WaterStrips } from './water';
 import { markShadowMover } from '../shadow-casters';
 import type { PuzzleFile } from '../../course/pack';
-import { puzzleContent } from '../../course/puzzles';
+import { puzzleMaybe } from '../../course/puzzles';
 
 /** The mill's painted signs: the course's (`puzzles/sluice.json` → `signs`). */
 const SIGNS = () =>
-  puzzleContent<PuzzleFile & { signs: Record<'gate' | 'lever' | 'check' | 'spring', readonly string[]> }>(
+  puzzleMaybe<PuzzleFile & { signs: Record<'gate' | 'lever' | 'check' | 'spring', readonly string[]> }>(
     'sluice',
-  ).signs;
+  )?.signs ?? BLANK_SIGNS;
+/** A course that turns the sluice off keeps the mill as scenery, its boards blank. */
+const BLANK_SIGNS = { gate: [''], lever: [''], check: [''], spring: [''] } as const;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyNode = any;

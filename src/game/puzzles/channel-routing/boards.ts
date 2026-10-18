@@ -1,6 +1,6 @@
 import { onCourse } from '../../../course/active';
 import type { PuzzleFile } from '../../../course/pack';
-import { puzzleContent } from '../../../course/puzzles';
+import { puzzleContent, puzzleMaybe } from '../../../course/puzzles';
 import type { TwistAnswer } from './model';
 import type { Crew, Rot, Tile, TileKind } from './types';
 
@@ -50,7 +50,12 @@ export let CREW_LOOK: Readonly<Record<Crew, CrewWords & { colour: string }>> = {
   CrewWords & { colour: string }
 >;
 onCourse(() => {
-  const crews = routingContent().crews;
+  const none = { name: '', float: '', icon: '', iconName: '' };
+  const crews = puzzleMaybe<ChannelRoutingFile>('channel-routing')?.crews ?? {
+    feature: none,
+    bugfix: none,
+    docs: none,
+  };
   CREW_LOOK = Object.fromEntries(CREWS.map((c) => [c, { ...crews[c], colour: CREW_COLOUR[c] }])) as Record<
     Crew,
     CrewWords & { colour: string }

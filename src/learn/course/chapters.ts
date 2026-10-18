@@ -1,4 +1,4 @@
-import { COURSE } from '../../course/catalog';
+import { onCourseSelected, type CourseMeta } from '../../course/catalog';
 
 /**
  * The course's chapters and where their files live (PLAN §8.2), from the course pack's `course.json`
@@ -6,14 +6,21 @@ import { COURSE } from '../../course/catalog';
  * repository, and `short` is its folder in the pack's snapshot (`courses/<id>/public/course/<short>/`).
  * Shared course images (the repo's root `assets/`) go in the snapshot's `shared/`.
  */
-export const COURSE_CHAPTERS = COURSE.source.chapters;
+export let COURSE_CHAPTERS: CourseMeta['source']['chapters'] = [];
 
 /** A chapter folder in the course's repository, e.g. "00-setup". */
 export type ChapterId = string;
 
-export const COURSE_REPO = COURSE.source.repo;
-export const COURSE_RAW = `https://raw.githubusercontent.com/${COURSE_REPO}`;
-export const COURSE_BLOB = `https://github.com/${COURSE_REPO}/blob/${COURSE.source.ref}`;
+export let COURSE_REPO = '';
+export let COURSE_RAW = '';
+export let COURSE_BLOB = '';
+// The current course's (live bindings: they follow the course picker).
+onCourseSelected((c) => {
+  COURSE_CHAPTERS = c.source.chapters;
+  COURSE_REPO = c.source.repo;
+  COURSE_RAW = `https://raw.githubusercontent.com/${COURSE_REPO}`;
+  COURSE_BLOB = `https://github.com/${COURSE_REPO}/blob/${c.source.ref}`;
+});
 
 export function chapterShort(id: ChapterId): string {
   return COURSE_CHAPTERS.find((c) => c.id === id)?.short ?? id.slice(0, 2);

@@ -709,6 +709,16 @@ test('dump the course data', async () => {
     { pick: 'other', name: 'X' },
   ].map((m) => setupMod.modelLabel(m));
 
+  // Where the Copilot app course's voyage is saved (COURSE-PACKS.md §6, step 3): the one diff step 3
+  // allows. Before course packs, the keys had no course in them.
+  const saveKeys = await tryImport('game/save-keys');
+  dump.saveKeys = saveKeys
+    ? {
+        save: saveKeys.courseKey('copilot-app', 'save'),
+        progress: saveKeys.courseKey('copilot-app', 'progress'),
+      }
+    : { save: 'copilot-isles.save.v1', progress: 'copilot-isles.progress.v1' };
+
   const text = `${JSON.stringify(canon(dump), null, 1)}\n`;
   writeFileSync(out, text);
   console.log(`dump: ${out} ${text.length} bytes, sha256 ${sha(text)}`);

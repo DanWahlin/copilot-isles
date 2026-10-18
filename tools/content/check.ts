@@ -29,7 +29,7 @@ import {
   type PuzzleFile,
   type QuestDef,
 } from '../../src/course/pack';
-import { GAME_PUZZLES } from '../../src/course/puzzles';
+import { GAME_PUZZLES, PUZZLE_ISLANDS } from '../../src/course/puzzles';
 import type { Beat, QuestCond } from '../../src/game/beats';
 import { resolveLine, type CastEntry, type VoiceLineDefinition } from '../voice/lines';
 import type { CourseBoardsData } from '../../src/content/course-boards';
@@ -75,6 +75,12 @@ export const PACK_FILES: readonly { file: string; schema: string }[] = [
   // One schema per mechanic: the file's own `mechanic` picks it.
   { file: 'puzzles/*.json', schema: 'puzzle-<mechanic>.schema.json' },
 ];
+
+/**
+ * Files a pack may leave out: the Model Market's two (a course without Port Meridian's market) and the
+ * cast (a text-only course). The checks below say when one's needed.
+ */
+const OPTIONAL_FILES = new Set(['market.json', 'models.json', 'voice/cast.json']);
 
 /** Every schema in `courses/schemas/`, with the puzzles' one per mechanic. */
 export const PACK_SCHEMAS: readonly string[] = PACK_FILES.flatMap((f) =>
@@ -165,7 +171,7 @@ export function checkContent(
     issues.push({ file: fileOf(rel), path, message });
 
   const files = filesOf(join(root, dir));
-  for (const req of PACK_FILES.filter((f) => !f.file.includes('*')))
+  for (const req of PACK_FILES.filter((f) => !f.file.includes('*') && !OPTIONAL_FILES.has(f.file)))
     if (!files.includes(req.file)) issue(req.file, '', 'is missing: every course pack has one');
   for (const rel of files) {
     if (rel === 'README.md') continue;
@@ -242,6 +248,9 @@ export function checkContent(
     : { lines: [] };
   const lines = new Map((voice?.lines ?? []).map((l) => [l.id, l]));
   const audio = new Map(manifest.lines.map((l) => [l.id, l]));
+  // A text-only course's "audio" is its captions (generate.ts writes them without a speech service).
+  const spoken = meta.voice !== false;
+  const made = spoken ? 'audio' : 'caption';
   /** A voice line a script or a chapter plays: in the lines file, with audio that says the same. */
   const voiced = (rel: string, path: string, id: string) => {
     if (!voice) return;
@@ -252,13 +261,13 @@ export function checkContent(
       issue(
         rel,
         path,
-        `"${id}" has no audio (${manifestPath}): npx tsx tools/voice/generate.ts --course ${course} --only=${id}`,
+        `"${id}" has no ${made} (${manifestPath}): npx tsx tools/voice/generate.ts --course ${course}${spoken ? ` --only=${id}` : ''}`,
       );
     else if (a.text !== l.text)
       issue(
         rel,
         path,
-        `"${id}": the audio says something else: regenerate it (npx tsx tools/voice/generate.ts --course ${course} --only=${id}; docs/content-data.md)`,
+        `"${id}": the ${made} says something else: regenerate it (npx tsx tools/voice/generate.ts --course ${course}${spoken ? ` --only=${id}` : ''}; docs/content-data.md)`,
       );
   };
 
@@ -455,6 +464,8 @@ export function checkContent(
   const questsOk = quests.length === files.filter((f) => f.startsWith('quests/')).length;
   for (const [name, mechanic] of Object.entries(GAME_PUZZLES)) {
     const rel = `puzzles/${name}.json`;
+    // Only the puzzles on the course's islands (the others' islands aren't open in it).
+    if (!meta.islands.some((i) => i.island === PUZZLE_ISLANDS[name]) && !files.includes(rel)) continue;
     if (!files.includes(rel))
       issue(
         rel,
@@ -557,7 +568,22 @@ export function checkContent(
         );
     });
 
-  // The cast (COURSE-PACKS.md §5): every line has a voice, through its speaker or its own fields.
+  // The Model Market's files come with its puzzle (a course without the market has neither).
+  const marketOn =
+    !!get<PuzzleFile>('puzzles/market.json') && !get<PuzzleFile>('puzzles/market.json')!.disabled;
+  for (const f of ['market.json', 'models.json'])
+    if (marketOn && !files.includes(f))
+      issue(f, '', 'is missing: the course runs the Model Market (puzzles/market.json)');
+  // The cast (COURSE-PACKS.md §5): every line has a voice, through its speaker or its own fields. A
+  // text-only course has captions instead, and no cast.
+  if (spoken && !files.includes('voice/cast.json'))
+    issue(
+      'voice/cast.json',
+      '',
+      'is missing: a voiced course says who voices each speaker (or set "voice": false)',
+    );
+  if (!spoken && files.includes('voice/cast.json'))
+    issue('voice/cast.json', '', 'a text-only course ("voice": false) has no voices to cast');
   const castFile = get<{ speakers: Record<string, CastEntry> }>('voice/cast.json');
   if (voice && castFile) {
     for (const [i, l] of (voice.lines as VoiceLineDefinition[]).entries()) {

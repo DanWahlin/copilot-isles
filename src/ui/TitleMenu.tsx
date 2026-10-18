@@ -5,6 +5,7 @@ import { TitleHint } from './components/TitleHint';
 import { focusable, initialFocusable } from './hooks/focus';
 import { useBridgeState } from './hooks/useBridgeState';
 import { CaptainSelect } from './screens/CaptainSelect';
+import { CourseSelect } from './screens/CourseSelect';
 import { ChartScreen } from './screens/ChartScreen';
 import { ControlsScreen } from './screens/ControlsScreen';
 import { CreditsScreen } from './screens/CreditsScreen';
@@ -72,6 +73,7 @@ export function TitleMenu({ bridge }: TitleMenuProps) {
           onToggle={() => bridge.updateSettings({ muted: !state.settings.muted })}
         />
       )}
+      {state.screen === 'course' && <CourseSelect state={state} bridge={bridge} />}
       {state.screen === 'captain' && (
         <CaptainSelect bridge={bridge} current={state.captain} save={state.hasSave ? state.save : null} />
       )}

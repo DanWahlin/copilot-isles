@@ -105,7 +105,8 @@ export function glossaryLock(markdown: string, hash: HashFn): CourseLock['glossa
   return { hash: hash(markdown).slice(0, HASH_LENGTH), terms };
 }
 
-const CATALOG_ROW = /^\|\s*(\d{2})\s*\|\s*\[([^\]]+)\]\(\.?\/?([0-9]{2}-[a-z0-9-]+)\/README\.md\)/gm;
+// A row may put an emoji before the link ("| 00 | 🚀 [Quick Start](./00-quick-start/README.md) |").
+const CATALOG_ROW = /^\|\s*(\d{2})\s*\|[^[|\n]*\[([^\]]+)\]\(\.?\/?([0-9]{2}-[a-z0-9-]+)\/README\.md\)/gm;
 
 /** The chapter table in the course's root README: `| 00 | [Setup](./00-setup/README.md) | … |`. */
 export function parseCatalog(rootReadme: string): CourseLock['catalog'] {

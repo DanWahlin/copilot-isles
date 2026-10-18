@@ -25,7 +25,7 @@
  */
 import { onCourse } from '../../course/active';
 import type { PuzzleFile } from '../../course/pack';
-import { fill, puzzleContent, textOf } from '../../course/puzzles';
+import { fill, puzzleContent, puzzleMaybe, textOf } from '../../course/puzzles';
 import { FORK_PLACEHOLDER } from '../../learn/fork';
 
 type Owner = 'you' | 'captain' | 'guild';
@@ -116,7 +116,15 @@ export let CRANE_CARGO: readonly CraneCargo[] = [];
 export let SETUP_COMMAND = '';
 
 onCourse(() => {
-  const c = craneContent();
+  // A course that turns the crane off keeps it as scenery: nobody's ships, no cargo, blank boards.
+  const c = puzzleMaybe<CraneFile>('crane');
+  if (!c?.targets) {
+    CRANE_FACINGS = BERTHS.map((b) => ({ ...b, owner: null, repository: null }));
+    YOUR_FACING = -1;
+    CRANE_CARGO = [];
+    SETUP_COMMAND = '';
+    return;
+  }
   CRANE_FACINGS = BERTHS.map((b) => {
     const t = c.targets[b.id];
     return {

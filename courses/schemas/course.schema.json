@@ -4,19 +4,7 @@
   "description": "What the title screen reads about a course (src/course/catalog.ts): its id, title and tagline, its source (repository, license, chapters), the islands it uses and what the chart and arrivals say about them, and its practice values. docs/specs/COURSE-PACKS.md.",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "id",
-    "version",
-    "title",
-    "tagline",
-    "description",
-    "language",
-    "source",
-    "islands",
-    "practice",
-    "setup",
-    "hooks"
-  ],
+  "required": ["id", "version", "title", "tagline", "description", "language", "source", "islands", "hooks"],
   "properties": {
     "$schema": {
       "type": "string"
@@ -46,6 +34,10 @@
     "language": {
       "type": "string",
       "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+    },
+    "voice": {
+      "type": "boolean",
+      "description": "Whether the course's lines have voices (default true). A text-only course (false) shows each line as a caption for its reading time, and a press moves it on; generate.ts writes the captions, and it has no voice/cast.json."
     },
     "source": {
       "type": "object",

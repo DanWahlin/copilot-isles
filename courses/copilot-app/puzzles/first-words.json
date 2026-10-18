@@ -88,6 +88,8 @@
     "finishWithJuno": "Talk to Juno to finish up at the ship.",
     "hint1": "Is this a command to run, or a request for the agent?",
     "hint2": "Requests to the agent go in the prompt box. That’s the brass speaking tube.",
-    "hint3": "I’ve spoken it into the Prompt Box for you. Listen."
+    "hint3": "I’ve spoken it into the Prompt Box for you. Listen.",
+    "plate.tube": "PROMPT BOX",
+    "plate.hatch": "TERMINAL"
   }
 }

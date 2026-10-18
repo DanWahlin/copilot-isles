@@ -1,0 +1,298 @@
+{
+  "$comment": "Written by tools/course/sync.mjs (PLAN §8.2). Section hashes are the first 12 hex digits of the SHA-256 of normalizeForCompare(markdown); images keep the full SHA-256. Do not edit by hand.",
+  "repo": "github/copilot-cli-for-beginners",
+  "ref": "main",
+  "sha": "802c19ea0986cd2a11bc0daedb9ad29ae0c081f8",
+  "syncedAt": "2026-10-17",
+  "catalog": [
+    {
+      "id": "00-quick-start",
+      "num": "00",
+      "title": "Quick Start"
+    },
+    {
+      "id": "01-setup-and-first-steps",
+      "num": "01",
+      "title": "First Steps"
+    },
+    {
+      "id": "02-context-conversations",
+      "num": "02",
+      "title": "Context and Conversations"
+    },
+    {
+      "id": "03-development-workflows",
+      "num": "03",
+      "title": "Development Workflows"
+    },
+    {
+      "id": "04-agents-custom-instructions",
+      "num": "04",
+      "title": "Create Specialized AI Assistants"
+    },
+    {
+      "id": "05-skills",
+      "num": "05",
+      "title": "Automate Repetitive Tasks"
+    },
+    {
+      "id": "06-mcp-servers",
+      "num": "06",
+      "title": "Connect to GitHub, Databases & APIs"
+    },
+    {
+      "id": "07-putting-it-together",
+      "num": "07",
+      "title": "Putting It All Together"
+    }
+  ],
+  "chapters": {
+    "00-quick-start": {
+      "short": "ch00",
+      "title": "Quick Start",
+      "hash": "887cf86305c9",
+      "sections": {
+        "-learning-objectives": {
+          "title": "🎯 Learning Objectives",
+          "level": 2,
+          "hash": "ebc41219c3d0",
+          "terms": ["Estimated Time"]
+        },
+        "-prerequisites": {
+          "title": "✅ Prerequisites",
+          "level": 2,
+          "hash": "7af531f1ad41",
+          "terms": [
+            "GitHub Account",
+            "Terminal basics",
+            "Copilot Individual",
+            "Copilot Business",
+            "Copilot Enterprise",
+            "GitHub Education"
+          ]
+        },
+        "what-copilot-access-means": {
+          "title": "What \"Copilot Access\" Means",
+          "level": 3,
+          "hash": "5a28a6a5e514",
+          "terms": ["Copilot Individual", "Copilot Business", "Copilot Enterprise", "GitHub Education"]
+        },
+        "installation": {
+          "title": "Installation",
+          "level": 2,
+          "hash": "618d4122404a",
+          "terms": [
+            "Time estimate",
+            "Code",
+            "Codespaces",
+            "Create codespace on main",
+            "Verify in Codespace",
+            "Not sure which to pick?",
+            "Tab"
+          ]
+        },
+        "github-codespaces-zero-setup": {
+          "title": "GitHub Codespaces (Zero Setup)",
+          "level": 3,
+          "hash": "ab118192e0f5",
+          "terms": ["Code", "Codespaces", "Create codespace on main", "Verify in Codespace"]
+        },
+        "local-installation": {
+          "title": "Local Installation",
+          "level": 3,
+          "hash": "6a259a0064c2",
+          "terms": ["Not sure which to pick?", "Tab"]
+        },
+        "authentication": {
+          "title": "Authentication",
+          "level": 2,
+          "hash": "29ec3f8246ba",
+          "images": ["00-quick-start/assets/copilot-trust.png", "00-quick-start/assets/auth-device-flow.png"],
+          "terms": [
+            "What happens next (local terminal):",
+            "Remote or headless terminals",
+            "device code flow",
+            "Tip"
+          ]
+        },
+        "verify-it-works": {
+          "title": "Verify It Works",
+          "level": 2,
+          "hash": "462ed4890cd9",
+          "images": ["00-quick-start/assets/hello-demo.gif"],
+          "terms": ["Expected output", "Note:"]
+        },
+        "step-1-test-copilot-cli": {
+          "title": "Step 1: Test Copilot CLI",
+          "level": 3,
+          "hash": "649949ce4cdf",
+          "images": ["00-quick-start/assets/hello-demo.gif"],
+          "terms": ["Expected output"]
+        },
+        "step-2-run-the-sample-book-app": {
+          "title": "Step 2: Run the Sample Book App",
+          "level": 3,
+          "hash": "76b52ef4c1b0",
+          "terms": ["Note:", "Expected output"]
+        },
+        "step-3-try-copilot-cli-with-the-book-app": {
+          "title": "Step 3: Try Copilot CLI with the Book App",
+          "level": 3,
+          "hash": "e678d7b74781",
+          "terms": ["Expected output"]
+        },
+        "-youre-ready": {
+          "title": "✅ You're Ready!",
+          "level": 2,
+          "hash": "79ac001ec4f8"
+        },
+        "troubleshooting": {
+          "title": "Troubleshooting",
+          "level": 2,
+          "hash": "246495c4ab26"
+        },
+        "copilot-command-not-found": {
+          "title": "\"copilot: command not found\"",
+          "level": 3,
+          "hash": "ce16b2953eb2"
+        },
+        "you-dont-have-access-to-github-copilot": {
+          "title": "\"You don't have access to GitHub Copilot\"",
+          "level": 3,
+          "hash": "8e255a4d0776"
+        },
+        "authentication-failed": {
+          "title": "\"Authentication failed\"",
+          "level": 3,
+          "hash": "b282c2778494"
+        },
+        "browser-doesnt-open-automatically": {
+          "title": "Browser doesn't open automatically",
+          "level": 3,
+          "hash": "2f287536a9b0"
+        },
+        "token-expired": {
+          "title": "Token expired",
+          "level": 3,
+          "hash": "2a6859fa076d"
+        },
+        "still-stuck": {
+          "title": "Still stuck?",
+          "level": 3,
+          "hash": "63b441895846"
+        },
+        "-key-takeaways": {
+          "title": "🔑 Key Takeaways",
+          "level": 2,
+          "hash": "0a07c38450ab",
+          "terms": [
+            "A GitHub Codespace is a quick way to get started",
+            "Multiple installation methods",
+            "One-time authentication",
+            "The book app works",
+            "Official Documentation",
+            "Quick Reference"
+          ]
+        }
+      }
+    }
+  },
+  "glossary": {
+    "hash": "c85e4bf71e65",
+    "terms": {
+      "a": {
+        "title": "A",
+        "level": 2,
+        "hash": "21daa13e21b8"
+      },
+      "c": {
+        "title": "C",
+        "level": 2,
+        "hash": "0b1276225600",
+        "terms": ["init", "repr"]
+      },
+      "f": {
+        "title": "F",
+        "level": 2,
+        "hash": "381348147be0"
+      },
+      "g": {
+        "title": "G",
+        "level": 2,
+        "hash": "9529b0422197"
+      },
+      "j": {
+        "title": "J",
+        "level": 2,
+        "hash": "532d54db669e"
+      },
+      "m": {
+        "title": "M",
+        "level": 2,
+        "hash": "9e641cdbcf32"
+      },
+      "n": {
+        "title": "N",
+        "level": 2,
+        "hash": "feb7ff1bc240"
+      },
+      "o": {
+        "title": "O",
+        "level": 2,
+        "hash": "f97af52692e5"
+      },
+      "p": {
+        "title": "P",
+        "level": 2,
+        "hash": "f43f7717b948"
+      },
+      "r": {
+        "title": "R",
+        "level": 2,
+        "hash": "11ad25f0b422"
+      },
+      "s": {
+        "title": "S",
+        "level": 2,
+        "hash": "c05c810f0a3a"
+      },
+      "t": {
+        "title": "T",
+        "level": 2,
+        "hash": "9790f354bd52"
+      },
+      "w": {
+        "title": "W",
+        "level": 2,
+        "hash": "3b764fd0cedc"
+      },
+      "y": {
+        "title": "Y",
+        "level": 2,
+        "hash": "43a36b9c880c"
+      }
+    }
+  },
+  "license": {
+    "hash": "2510b446bc1f"
+  },
+  "images": {
+    "course/ch00/auth-device-flow.png": {
+      "upstream": "00-quick-start/assets/auth-device-flow.png",
+      "sha256": "a7b6bc63936640da5e328e03243ee63e8cf5e9cb8dcd859ad36e57a46f6d1105",
+      "pinned": true,
+      "bytes": 96616
+    },
+    "course/ch00/copilot-trust.png": {
+      "upstream": "00-quick-start/assets/copilot-trust.png",
+      "sha256": "6a1e59edfa23a708f379a949d1026c050b94ba8a76b2291cbaad878d1057594b",
+      "pinned": true,
+      "bytes": 671386
+    },
+    "course/ch00/hello-demo.gif": {
+      "upstream": "00-quick-start/assets/hello-demo.gif",
+      "sha256": "d3a9f00faf2939d5f87c0181a4e9d2d64dbb4c3d626469cc38b1dfca122f24dd",
+      "bytes": 791732
+    }
+  }
+}

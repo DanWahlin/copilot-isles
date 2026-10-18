@@ -37,19 +37,20 @@ const script = (name: string) => courseScript(ISLAND, name);
  * Port Meridian's open (the dev build, for now): Wingman's last sailing line points the way there.
  * Otherwise these waters are yours (the course's line).
  */
-const pointToMeridian = (steps: readonly ScriptStep[]): readonly ScriptStep[] =>
-  meridianOpen()
-    ? steps.map((s) =>
-        'say' in s && s.say === COURSE.hooks.sail.line ? { say: COURSE.hooks.sail.meridianOpen } : s,
-      )
+const pointToMeridian = (steps: readonly ScriptStep[]): readonly ScriptStep[] => {
+  const { line, meridianOpen: open } = COURSE.hooks.sail;
+  return meridianOpen() && open
+    ? steps.map((s) => ('say' in s && s.say === line ? { say: open } : s))
     : steps;
+};
 
 onCourse(() => {
   const q = islandQuests(ISLAND);
   COVE_QUESTS = q.quests;
   QUEST_TARGETS = q.targets;
-  SURI_SOLVED = script('suri.solved');
-  POL_SOLVED = script('pol.solved');
+  // The mill race's and the crane's closing beats (a course that turns those puzzles off has none).
+  SURI_SOLVED = q.scripts['suri.solved'] ?? [];
+  POL_SOLVED = q.scripts['pol.solved'] ?? [];
   COVE_ISLAND = { name: 'Anchorage Cay', ...q.tracker };
   BEATS = q.beats;
   SCRIPTS = Object.fromEntries(Object.entries(q.scripts).map(([k, v]) => [k, pointToMeridian(v)]));
@@ -71,6 +72,8 @@ export function migrateQuests(
   set: (id: string, step: string) => void,
   o: { workflowsOn?: boolean } = {},
 ): void {
+  // These rules are the Copilot app course's quest line as it changed (its saves predate the others).
+  if (COURSE.id !== 'copilot-app') return;
   const q: Record<string, string> = { ...saved };
   const put = (id: string, step: string) => {
     q[id] = step;

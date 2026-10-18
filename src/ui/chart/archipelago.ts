@@ -1,4 +1,4 @@
-import { COURSE, courseIsland } from '../../course/catalog';
+import { COURSE, courseIsland, onCourseSelected, type CourseMeta } from '../../course/catalog';
 import type { ChartIsland } from '../bridge';
 
 /** The archipelago chart's drawing size (SVG units). Island x/y are fractions of it. */
@@ -74,17 +74,25 @@ const PLACES: readonly ChartPlace[] = [
 /**
  * The chart's islands: the game's places with the course's part (the pack's `course.json` →
  * `islands`): the chapter each one teaches, its topics (the chapter's learning objectives), the
- * course's estimated minutes, and the Seal.
+ * course's estimated minutes, and the Seal. An island the course doesn't use has none (uncharted).
  */
-export const ARCHIPELAGO: readonly ChartIsland[] = PLACES.map((p) => {
-  const c = courseIsland(p.id, COURSE);
-  return {
-    ...p,
-    chapter: c?.label ?? '',
-    minutes: c?.minutes ?? 0,
-    ...(c?.seal ? { seal: c.seal } : {}),
-    topics: c?.topics ?? [],
-  };
+export function archipelagoFor(course: CourseMeta): readonly ChartIsland[] {
+  return PLACES.map((p) => {
+    const c = courseIsland(p.id, course);
+    return {
+      ...p,
+      chapter: c?.label ?? '',
+      minutes: c?.minutes ?? 0,
+      ...(c?.seal ? { seal: c.seal } : {}),
+      topics: c?.topics ?? [],
+    };
+  });
+}
+
+/** The current course's chart (a live binding: it follows the course picker). */
+export let ARCHIPELAGO: readonly ChartIsland[] = archipelagoFor(COURSE);
+onCourseSelected((c) => {
+  ARCHIPELAGO = archipelagoFor(c);
 });
 
 /** "00 · Setup" → { num: '00', title: 'Setup' }. */

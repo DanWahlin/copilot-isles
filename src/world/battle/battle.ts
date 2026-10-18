@@ -25,7 +25,7 @@ import {
 import { Battery, bearing, gunStations, MAX_RANGE, PORT, STARBOARD, type Side } from './gunnery';
 import { RaiderBrain, type RaiderHelm, type RaiderView } from './raider-ai';
 import { clamp01 } from '../../util/math';
-import { COURSE } from '../../course/catalog';
+import { COURSE, onCourseSelected, type CourseMeta } from '../../course/catalog';
 
 /** A raider in a wave: its name board and its size (docs/specs/BATTLES.md §4.1). */
 export interface RaiderSpec {
@@ -58,9 +58,15 @@ export interface BattlePlan {
  * raider's name, the question after each wave, the win line, the chapter: `course.json` →
  * `hooks.battles.<id>`).
  */
-function plan(id: string, title: string, kinds: readonly (readonly RaiderSpec['kind'][])[]): BattlePlan {
-  const h = COURSE.hooks.battles[id];
-  if (!h) throw new Error(`The course has no battle "${id}" (course.json → hooks.battles)`);
+function plan(
+  c: CourseMeta,
+  id: string,
+  title: string,
+  kinds: readonly (readonly RaiderSpec['kind'][])[],
+): BattlePlan {
+  // A course without this battle (it doesn't use the passage's islands) gets an empty plan: the
+  // passage's destination isn't open in that course, so the battle never starts.
+  const h = c.hooks.battles[id] ?? { chapter: '', won: '', waves: [] };
   return {
     id,
     chapter: h.chapter as BattlePlan['chapter'],
@@ -77,26 +83,31 @@ function plan(id: string, title: string, kinds: readonly (readonly RaiderSpec['k
  * Battle 1, the passage from Anchorage to Port Meridian, recaps Chapter 00: preview before you run
  * (wave 1), then check the target (wave 2).
  */
-export const PASSAGE_BATTLE: BattlePlan = plan('passage-anchorage-meridian', 'Anchorage → Port Meridian', [
-  ['cutter', 'cutter'],
-  ['brigantine', 'cutter'],
-]);
+const passage = (c: CourseMeta) =>
+  plan(c, 'passage-anchorage-meridian', 'Anchorage → Port Meridian', [
+    ['cutter', 'cutter'],
+    ['brigantine', 'cutter'],
+  ]);
+export let PASSAGE_BATTLE: BattlePlan = passage(COURSE);
 
 /**
  * Battle 2, the passage from Port Meridian to Thousand-Bough Isle, recaps Chapter 01: a worktree for
  * each session (wave 1), know when the agent will ask (wave 2), and effort isn't a guarantee (wave 3).
  */
-export const MERIDIAN_BATTLE: BattlePlan = plan(
-  'passage-meridian-thousand-bough',
-  'Port Meridian → Thousand-Bough Isle',
-  [
+const meridianPassage = (c: CourseMeta) =>
+  plan(c, 'passage-meridian-thousand-bough', 'Port Meridian → Thousand-Bough Isle', [
     ['cutter', 'cutter'],
     ['brigantine', 'cutter'],
     ['brigantine', 'cutter'],
-  ],
-);
+  ]);
+export let MERIDIAN_BATTLE: BattlePlan = meridianPassage(COURSE);
 
-export const BATTLE_PLANS: readonly BattlePlan[] = [PASSAGE_BATTLE, MERIDIAN_BATTLE];
+export let BATTLE_PLANS: readonly BattlePlan[] = [PASSAGE_BATTLE, MERIDIAN_BATTLE];
+onCourseSelected((c) => {
+  PASSAGE_BATTLE = passage(c);
+  MERIDIAN_BATTLE = meridianPassage(c);
+  BATTLE_PLANS = [PASSAGE_BATTLE, MERIDIAN_BATTLE];
+});
 
 /** Battle 1's waves (kept for callers that only need the waves). */
 export const PASSAGE_WAVES: readonly WaveSpec[] = PASSAGE_BATTLE.waves;

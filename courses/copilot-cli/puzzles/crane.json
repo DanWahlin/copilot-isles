@@ -1,0 +1,7 @@
+{
+  "$schema": "../../schemas/puzzle-procedure.schema.json",
+  "id": "P0.2",
+  "mechanic": "procedure",
+  "$comment": "Off in this course: Chapter 00 has no setup script, so the crane stays scenery (its boards blank). Pim and Pol teach the sign-in instead.",
+  "disabled": true
+}

@@ -1,5 +1,5 @@
 import type { FaceExpression, MouthCue } from '../world/characters/facial-animation';
-import { COURSE } from '../course/catalog';
+import { onCourseSelected } from '../course/catalog';
 
 /**
  * Juno's short welcome in the captain's cabin (Dan: tell the player what they'll be doing overall):
@@ -8,11 +8,16 @@ import { COURSE } from '../course/catalog';
  * cabin, so it mostly costs no wait; the chest waits for it, E skips a line and Esc skips it all.
  * The lines are the course's (`course.json` → `hooks.briefing`).
  */
-export const BRIEFING: readonly string[] = COURSE.hooks.briefing.lines;
+export let BRIEFING: readonly string[] = [];
 /** Said once the chest is ready to open. */
-export const CHEST_LINE: string = COURSE.hooks.briefing.chest;
+export let CHEST_LINE = '';
 /** The cabin's lines, in the order they're fetched. */
-export const BRIEFING_LINES: readonly string[] = [...BRIEFING, CHEST_LINE];
+export let BRIEFING_LINES: readonly string[] = [];
+onCourseSelected((c) => {
+  BRIEFING = c.hooks.briefing.lines;
+  CHEST_LINE = c.hooks.briefing.chest;
+  BRIEFING_LINES = [...BRIEFING, CHEST_LINE];
+});
 
 export interface BriefingLine {
   id: string;
@@ -175,11 +180,14 @@ export async function loadBriefing(voiceBase: string): Promise<Map<string, Brief
     import('../world/characters/facial-animation').catch(() => null),
   ]);
   for (const l of lines) {
-    if (!l?.words?.length) continue;
+    // A text-only course's line has no word timings, only its reading time (`duration`).
+    const read = (l as { duration?: number } | null)?.duration;
+    if (!l || (!l.words?.length && !read)) continue;
     const face = lips?.lines?.[l.id];
     out.set(l.id, {
       ...l,
-      duration: l.words[l.words.length - 1]!.end + 0.25,
+      words: l.words ?? [],
+      duration: l.words?.length ? l.words[l.words.length - 1]!.end + 0.25 : read!,
       mouthCues: face && facial ? facial.unpackMouthCues(face.t, face.v) : undefined,
       expression: face?.e,
     });

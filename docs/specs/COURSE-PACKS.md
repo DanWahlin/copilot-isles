@@ -1,8 +1,9 @@
 # Course packs: one game, many courses
 
-**Status:** step 1 built (2026-10-17): the Copilot app course is `courses/copilot-app/`, and a dump of
-all derived data is byte-identical before and after (§9). Steps 2 and 3 are proposals. Decisions D1-D5
-(§10) are approved as recommended.
+**Status:** steps 1, 2 and 3 built. Step 1: the Copilot app course is `courses/copilot-app/`. Step 2:
+puzzles, beats, hooks, cast and signs are pack data. Step 3: a second pack (`courses/copilot-cli/`), the
+course picker and per-course saves. Each step's dump of derived data is byte-identical before and after,
+except the diffs §9 documents. Decisions D1-D5 (§10) are approved as recommended.
 
 Dan's ask: put everything course-related in data, so the same game can teach other courses, and players
 can (eventually) pick a topic. The game stays neutral; a **course pack** supplies every course word, the
@@ -198,7 +199,7 @@ JSON names its mechanic, so a second course can reuse the site with other conten
   hooks in step 2 (`course.json` → `hooks`).
 - The pack-level voice manifest replaces `voice/testcove/manifest.json` in `tools/packs/build-manifest.mjs`.
 
-## 6. Saves (step 3)
+## 6. Saves (step 3: done, see "Step 3 as built")
 
 - Settings, benchmark and battle-briefing stay global.
 - Per course: `copilot-isles.save.v1` → `copilot-isles.<course>.save.v1`, and the same for
@@ -221,7 +222,7 @@ Step 1 changes no save key.
   `models:sync -- --course copilot-app`.
 - Step 1: same two workflows, one pack, new paths and `--course copilot-app`.
 
-## 8. Course selection (step 3)
+## 8. Course selection (step 3: done, see "Step 3 as built")
 
 - The title's **New Voyage** opens a course list when there's more than one (from the eager catalog:
   title, tagline, language, chapters, minutes, license). **Continue** resumes the last course.
@@ -352,8 +353,84 @@ islands, NPCs and battle quizzes; and gives every line a voice.
 - Game chrome around puzzles: key help (`Press 1–9…`), generic buttons (`Undo`, `Reset`, `Leave`,
   `Hint`), the setup forms' buttons and privacy line, tile labels.
 - `modelLabel`'s fallbacks and the setup parsers' error messages (`src/learn/setup.ts`).
-- `index.html` meta text, `boot/fallback.ts`, the service worker's single course repo, and the game's
+- `index.html` meta text, `boot/fallback.ts`, the service worker's single course repo (step 3: from the packs), and the game's
   name (decision D4).
+
+### Step 3 as built
+
+**The second pack.** `courses/copilot-cli/` teaches [GitHub Copilot CLI for
+Beginners](https://github.com/github/copilot-cli-for-beginners) (MIT © GitHub) on Anchorage Cay only,
+as Chapter 00 · Quick Start. Chapter 00 is enough for a page set, a quiz set, a glossary and a Trial: it
+has the prerequisites, Codespaces or a local clone, the four ways to install, trusting a folder,
+`/login` with the device code, the first prompt, `@` file references, `/exit` and troubleshooting
+(Chapter 01 only adds modes the island's puzzles can't show yet). The snapshot and lock come from
+`node tools/course/sync.mjs --course=copilot-cli --chapters=00` (commit `802c19e`). Every quiz, page,
+caption and Trial question cites its Chapter 00 section; the drift report finds every cited section and
+bolded UI name. The pack is text-only (`"voice": false`), has no `market.json`, `models.json` or
+`voice/cast.json`, and keeps the copilot-app quest skeleton's ids (`Q0.2`…`Q0.11`, `C0.1`, `B0.1`–`B0.4`,
+`T0.1`…) because game code still waits on them. Puzzles: `first-words` (choose-tool: the prompt or the
+shell) and the christening's hints are on; the gear rack, palette, bard, sluice and crane are
+`"disabled": true` (the course doesn't teach what they act out), so they stay scenery with blank boards.
+The other islands aren't in the pack: the chart shows them uncharted, Port Meridian and Thousand-Bough
+never open or stream (`meridian-open.ts`, `thousand-bough-open.ts`, the session's `inCourse`, the
+stream's `nearLoads`), and no battle starts.
+
+**The live course.** `src/course/catalog.ts` holds every pack's `course.json` (eager, the title's only
+course data) and the active one (`COURSE`, a live binding). `selectCourse(id)` switches it and runs the
+`onCourseSelected` listeners (archipelago, briefing, setup copy, the fork and chapter URLs, battle plans,
+boards, island tips and welcomes), then `setActiveCourse` runs the pack's `onCourse` hooks. Hooks that
+read optional content tolerate its absence (no Meridian quests, no market, a disabled puzzle's words are
+`''`). Each pack is its own lazy chunk (`course-copilot-app`, `course-copilot-cli`).
+
+**Text-only voice.** With `"voice": false`, `tools/voice/generate.ts --course <id>` writes captions
+instead of audio: a manifest marked `textOnly`, one `<id>.json` per line with its reading time
+(`src/audio/voice/reading.ts`), an empty `lipsync.json`; `--check` proves them current. In the game
+`voice()` returns nothing, the caption holds for its reading time, and a 44 px **Next** button (a click or tap),
+the interact key or the gamepad's A moves on sooner. Reduced motion turns the caption's fade off. The
+cabin briefing shows each line's whole text.
+
+**Course picker.** **New Voyage** opens **Choose a course** (`src/ui/screens/CourseSelect.tsx`) when
+the catalog has more than one course: title, tagline, chapters charted of the course's chapters,
+minutes, voiced or captions, description, license and source link; arrow keys, the gamepad and taps
+choose. **Continue** resumes the last course played (`copilot-isles.course`). The chart, Logbook,
+credits (every course, its license and link) and boards read the active pack.
+
+**Saves (§6).** `src/game/save-keys.ts`: `copilot-isles.<course>.save.v1` and
+`copilot-isles.<course>.progress.v1`. At boot, if the old keys exist and copilot-app's don't, they're
+copied (never moved); this release also mirrors copilot-app's writes to the old keys, so a rollback
+finds current progress. Settings, benchmark and battle-briefing stay global. Export codes gain `c`; a
+code without it is copilot-app's. Tests: `src/game/save-keys.test.ts` (migration, mirror, rollback and
+roll-forward, import of old and new codes).
+
+**Workflows and service worker.** `tools/course-pack/list.mjs` lists packs (`--github`, `--models`).
+`weekly-refresh.yml` runs a matrix over packs with a GitHub source (sync, drift, content check, voices or
+captions), one branch and PR per course; `models-refresh.yml` runs only for packs with `models.json`.
+`public/sw.js` allows the live course from every pack's `source.repo`; the build writes that list from
+the packs, and a test checks it.
+
+**Proof.** The step-2 dump runs on `92c6a04` and on this tree for copilot-app. Two sections differ, both
+on purpose: `credits` (both courses are attributed) and `saveKeys` (new; the old commit records the
+legacy keys). Every other section is byte-identical. `src/course/copilot-cli.test.ts`, the content check
+(`--course=copilot-cli`), `tests/e2e/courses.spec.ts` (each course from the picker to Anchorage) and
+`tools/clitest.mjs` (the CLI quests end to end) cover the new pack.
+
+### Still course-specific in code after step 3
+
+- The quest skeleton: ids and steps the game waits on (`Q0.2` starts on landing, `Q0.8`'s `pipes` and
+  `done` in First Words, `Q0.10`'s lighthouse and battle, `Q0.11` sailing, chest `C0.1`, bottles
+  `B0.1`–`B0.4`, the Trial's seal). A course with another shape needs these as hooks.
+- `migrateQuests` (copilot-app's renamed quests) and the legacy save keys are copilot-app's.
+- Everything in "after step 2" that isn't listed above: mechanics' rule ids, island dressing, battle
+  titles, puzzle chrome, `index.html`, `boot/fallback.ts` and the game's name.
+- Defaults before a course is active: the title ship's rail plates and berth flags use copilot-app's words.
+
+### What a third course still needs
+
+- `courses/<id>/` with the files of §8 (copy `copilot-cli` for a text-only start) and one line in
+  `COURSES` (`src/course/catalog.ts`) and `tools/budgets.json` (`course-<id>` ≤ 80 KB gz).
+- To use islands past Anchorage: their quests, beats, puzzles and battle hooks, in the same shapes.
+- A voiced course: `voice/cast.json` and the generate/lipsync run (secrets; not in CI by default).
+- With a third course the picker still fits; past about five it needs scrolling or pages.
 
 ### Proving behaviour is identical
 

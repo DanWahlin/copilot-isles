@@ -107,6 +107,24 @@ export interface CoursePack {
   lock: CourseLock;
 }
 
+/** A course without the Model Market: nothing on its boards, no jobs. */
+const NO_MARKET: MarketData = {
+  categories: [],
+  efforts: [],
+  autoPrice: 0,
+  maxPrice: 0,
+  sizes: {
+    quick: { label: '', refund: 0, doubloons: 0 },
+    hard: { label: '', refund: 0, doubloons: 0 },
+  },
+  board: { size: 0, perFamily: 0 },
+  stamps: { right: '', over: '', short: '' },
+  quotes: {} as MarketData['quotes'],
+  jobs: [],
+  gilda: {} as MarketData['gilda'],
+};
+const NO_MODELS: ModelsFile = { source: { repo: '', path: '', commit: '', fetchedAt: '' }, models: [] };
+
 /** The pack's files the game reads, by path in the pack ("chapters/00-setup.json"). */
 type PackFiles = Readonly<Record<string, unknown>>;
 
@@ -170,8 +188,9 @@ export function assemblePack(meta: CourseMeta, files: PackFiles): CoursePack {
     puzzles,
     labels: need<{ labels: Record<string, ChartLabelText> }>(files, 'labels.json', id).labels,
     boards: withoutMeta(need<CourseBoardsData>(files, 'boards.json', id)),
-    market: withoutMeta(need<MarketData>(files, 'market.json', id)),
-    models: need<ModelsFile>(files, 'models.json', id),
+    // The Model Market teaches the Copilot app's models: a course without one has neither file.
+    market: files['market.json'] ? withoutMeta(files['market.json'] as MarketData) : NO_MARKET,
+    models: (files['models.json'] as ModelsFile | undefined) ?? NO_MODELS,
     lock: need<CourseLock>(files, 'lock.json', id),
   };
 }

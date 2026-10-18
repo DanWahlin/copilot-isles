@@ -15,14 +15,19 @@ import { mountLearn } from '../ui/learn/LearnLayer';
 import '../ui/ui.css';
 import { compileAndStart, createDevHarness } from './harness';
 import { activateCourse } from '../course/load';
+import { COURSE } from '../course/catalog';
+const COURSE_ID = () => COURSE.id;
 
-// The course pack the page's content comes from (a voyage loads it the same way).
-await activateCourse();
+// The course pack the page's content comes from (a voyage loads it the same way): `?pack=<id>`
+// (`?course=` already pins the course's commit).
+const PACK = new URLSearchParams(location.search).get('pack') ?? undefined;
+await activateCourse(PACK);
 
 /**
  * Test Cove play page (Phase 0 T11): walk the harbor, talk to Nell, board the brigantine, sail,
  * and dock. ?webgl, ?tier=, ?noveg, ?body=man|woman, ?auto (skip the start card), ?shot, ?time=,
- * ?nolearn (plain dialogue, no quizzes/chests), ?keep (keep learning progress in localStorage).
+ * ?nolearn (plain dialogue, no quizzes/chests), ?keep (keep learning progress in localStorage),
+ * ?pack=<course id> (another course pack, e.g. copilot-cli).
  */
 const { q, backend, tier, canvas, renderer, engine } = await createDevHarness();
 const { scene, camera, clock } = engine;
@@ -47,12 +52,15 @@ const learn = q.has('nolearn')
   ? null
   : new LearnStore(
       q.has('keep')
-        ? new Progress()
-        : new Progress({
-            getItem: (k) => memory.get(k) ?? null,
-            setItem: (k, v) => void memory.set(k, v),
-            removeItem: (k) => void memory.delete(k),
-          }),
+        ? new Progress(undefined, PACK)
+        : new Progress(
+            {
+              getItem: (k) => memory.get(k) ?? null,
+              setItem: (k, v) => void memory.set(k, v),
+              removeItem: (k) => void memory.delete(k),
+            },
+            PACK,
+          ),
     );
 const playingListeners = new Set<() => void>();
 if (learn)
@@ -146,6 +154,7 @@ const key = (code: string, down: boolean) => {
 };
 
 (window as unknown as { __dev: object }).__dev = {
+  course: () => COURSE_ID(),
   ready: true,
   session: () => session,
   /** The scene, its camera, and the engine, for tools that ray-test what's drawn (tools/cameratest.mjs). */

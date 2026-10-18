@@ -5,7 +5,7 @@ import type { CircleObstacle } from '../world/contracts';
 import type { VillageAnchor } from '../world/village/kit';
 import type { CollisionWorld } from './collision';
 import { wrapAngle } from '../util/math';
-import { COURSE } from '../course/catalog';
+import { onCourseSelected } from '../course/catalog';
 
 export interface NpcSpec {
   /** Who they are in scripts and interactions (`npc:<id>`). */
@@ -57,10 +57,13 @@ export interface NpcSpec {
  * `hooks.npcVoiced`, by NPC id): they say those instead of a bark when there's no script for them.
  */
 export function withCourseVoices(specs: NpcSpec[]): NpcSpec[] {
-  for (const s of specs) {
-    const v = COURSE.hooks.npcVoiced[s.id];
-    if (v) s.voiced = [...v];
-  }
+  onCourseSelected((c) => {
+    for (const s of specs) {
+      const v = c.hooks.npcVoiced[s.id];
+      if (v) s.voiced = [...v];
+      else delete s.voiced;
+    }
+  });
   return specs;
 }
 

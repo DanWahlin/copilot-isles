@@ -1,6 +1,6 @@
 import { onCourse } from '../../course/active';
 import type { PuzzleFile } from '../../course/pack';
-import { fill, puzzleContent, textOf } from '../../course/puzzles';
+import { fill, puzzleContent, puzzleMaybe, textOf } from '../../course/puzzles';
 
 /**
  * Bo's gear check (Q0.4, POC §4.4), a checklist. Pure logic (no three.js): one piece of gear per tool
@@ -25,7 +25,15 @@ export interface GearRackFile extends PuzzleFile {
 }
 
 export const gearContent = () => puzzleContent<GearRackFile>('gear-rack');
-const gear = () => gearContent().checks;
+/** The rack's gear, all four hung. A course that turns the rack off keeps it as scenery, plaques blank. */
+const BLANK_GEAR: readonly GearDef[] = (['compass', 'lantern', 'rope', 'spyglass'] as const).map((id) => ({
+  id,
+  name: '',
+  tool: '',
+  command: '',
+  output: '',
+}));
+const gear = () => puzzleMaybe<GearRackFile>('gear-rack')?.checks ?? BLANK_GEAR;
 
 export let GEAR_IDS: readonly GearId[] = [];
 onCourse(() => {

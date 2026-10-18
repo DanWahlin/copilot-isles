@@ -5,7 +5,9 @@ course in `courses/` ([COURSE-PACKS.md](specs/COURSE-PACKS.md)), so you can chan
 TypeScript, and the weekly refresh workflows can update it and check it. Each pack is part of the
 build: a change reaches players with the next deploy.
 
-Today there's one pack, `courses/copilot-app/` (the GitHub Copilot app for Beginners course).
+There are two packs: `courses/copilot-app/` (GitHub Copilot app for Beginners: Anchorage, Port Meridian
+and Thousand-Bough, voiced) and `courses/copilot-cli/` (GitHub Copilot CLI for Beginners: Anchorage only,
+Chapter 00, captions only). To add one, see [Adding a course](adding-a-course.md).
 
 ## The files
 
@@ -17,13 +19,13 @@ Today there's one pack, `courses/copilot-app/` (the GitHub Copilot app for Begin
 | `puzzles/<name>.json` | One puzzle's content: what you sort, pick or route, the answers and the reasons a wrong pick gets, the course sections they cite, the site's signs, the overlay's and Wingman's words (`text`) and the voice lines it plays (`lines`). Each names its `mechanic`, and `"disabled": true` turns the puzzle off | You, by hand | `src/course/puzzles.ts`, the puzzle's module |
 | `labels.json` | Chart labels: what you learn at an island, a puzzle or a sea battle (docs/specs/LOWER-THIRDS.md) | You, by hand | `src/learn/content/labels.ts` |
 | `boards.json` | The course notice boards' header and pin text, and the `##` sections that aren't topics | You, by hand | `src/content/course-boards.ts` |
-| `market.json` | The Model Market: model categories (order, price, tagline), effort levels (label, price), the Auto price and the price cap, refunds and doubloons by job size, the board rule's numbers (`board.size`, `board.perFamily`), the stamps, the course quotes, the jobs on Gilda's board, and Gilda's lines | You, by hand | `src/content/market.ts` |
-| `models.json` | The Model Market's model names, categories and task areas, from GitHub Docs | `npm run models:sync` (`models-refresh.yml`) | `src/game/market/models.ts` |
+| `market.json` (optional) | The Model Market: model categories (order, price, tagline), effort levels (label, price), the Auto price and the price cap, refunds and doubloons by job size, the board rule's numbers (`board.size`, `board.perFamily`), the stamps, the course quotes, the jobs on Gilda's board, and Gilda's lines | You, by hand | `src/content/market.ts` |
+| `models.json` (optional) | The Model Market's model names, categories and task areas, from GitHub Docs | `npm run models:sync` (`models-refresh.yml`) | `src/game/market/models.ts` |
 | `lock.json` | The bundled course snapshot: its commit and a hash for each section and image. The boards' topics come from it | `npm run course:sync` (`weekly-refresh.yml`) | `src/learn/course/lock.ts` |
 | `voice/lines.json` | Every voice line: id, speaker and text (the caption), and anything that's the line's own (a prosody, a `sub`) | You, by hand ([voices.md](voices.md)) | `tools/voice/lines.ts` |
-| `voice/cast.json` | Who voices each speaker: the speech service, voice, fallback, prosody and effect (a line's own fields override its speaker's) | You, by hand ([voices.md](voices.md)) | `tools/voice/lines.ts` |
+| `voice/cast.json` (voiced packs) | Who voices each speaker: the speech service, voice, fallback, prosody and effect (a line's own fields override its speaker's) | You, by hand ([voices.md](voices.md)) | `tools/voice/lines.ts` |
 | `public/course/**` | The course snapshot: READMEs, `GLOSSARY.md`, `LICENSE`, and the images the chapters show | `npm run course:sync` | `src/learn/course/source.ts` |
-| `public/voice/**` | Each line's audio (`.webm`, `.m4a`), word timings (`.json`), `manifest.json` and `lipsync.json` | `tools/voice/generate.ts`, `npm run voice:lipsync` | `src/audio`, `src/game/dialogue.ts` |
+| `public/voice/**` | Each line's audio (`.webm`, `.m4a`), word timings (`.json`), `manifest.json` and `lipsync.json`; in a text-only pack, each line's caption and reading time (`.json`) | `tools/voice/generate.ts`, `npm run voice:lipsync` | `src/audio`, `src/game/dialogue.ts` |
 
 Don't edit `models.json`, `lock.json`, the snapshot or the voice files by hand: their tools write them.
 
@@ -31,13 +33,15 @@ What the game owns stays in code on purpose: the islands and their art, the char
 looks, where they stand), where each notice board stands (`src/world/islands/course-boards.ts`), the
 grading rules (`src/game/market/jobs.ts`), the board rule's order (`src/game/market/catalog.ts`), each
 puzzle's mechanic (its rules, grid, geometry and controls), the quests' trackers, saves and island
-gating. [COURSE-PACKS.md](specs/COURSE-PACKS.md) ("Still course-specific in code after step 2") lists
+gating. [COURSE-PACKS.md](specs/COURSE-PACKS.md) ("Still course-specific in code after step 3") lists
 what's left.
 
 ### How the game loads a pack
 
-- **The title** reads only each pack's `course.json` (`src/course/catalog.ts`): the tagline, the
-  credits, the chart's chapters and topics, the arrival cards, the practice values.
+- **The title** reads only each pack's `course.json` (`src/course/catalog.ts`): the course list, the
+  tagline, the credits, the chart's chapters and topics, the arrival cards, the practice values.
+  `COURSE` is the active course, a live binding: `selectCourse(id)` switches it when you choose a course
+  (or Continue), and modules that derive from it listen with `onCourseSelected`.
 - **A voyage** (New Voyage or Continue) loads the rest (`src/course/load.ts`): Vite builds every JSON
   file of a pack, but `course.json` and `voice/`, into one lazy chunk, `course-<id>` (≤ 80 KB gz,
   `tools/budgets.json`). It loads behind the cabin, beside the island's code, and the pack is active
@@ -62,6 +66,8 @@ so VS Code and other editors check your edit as you type and show each field's d
   (`src/ui/chart/archipelago.ts`), `chapter` a chapter in `source.chapters`, and `label` the chart's
   chapter label (it starts with the chapter's number). An island with an `arrival` shows those lines
   over its name when you arrive.
+- **`voice`**: `false` for a text-only pack: captions hold for a reading time, or move on with **Next**
+  (a click or tap), the interact key or the gamepad's A. Leave it out for a voiced pack.
 - **`practice`**: the course's own example values, shown until the player gives theirs (Your setup).
 - **`setup`**: the "Your setup" forms' words (kicker, titles, intro, what each value is used for, the
   model choices), the Logbook's notes and the Settings screen's shortcut line. `**bold**` and `` `code` ``
@@ -140,6 +146,9 @@ so VS Code and other editors check your edit as you type and show each field's d
 
 ## Voiced lines: change the audio too
 
+In a text-only pack (`"voice": false`), change the line's `text` in `voice/lines.json` and run
+`npx tsx tools/voice/generate.ts --course <id>`: it writes the captions without calling a service.
+
 A caption and its voice line must say the same words. If you change a voiced line's text (in a
 script's line, or Gilda's `text` in `market.json`):
 
@@ -175,10 +184,11 @@ change. The checks (tools/content/check.ts):
   Trials, images, quest steps, other scripts), in quests and in puzzles; the compass's quest steps; the
   islands and chapters `course.json` names; the NPCs given barks or beats (the game's cast); each
   beat's quests, steps and script; the hooks' islands, NPCs and battle quizzes;
-- there's a puzzle file for each puzzle the game plays, with its mechanic (and no other), valid against
+- there's a puzzle file for each puzzle the game plays on the course's islands, with its mechanic (and no other), valid against
   that mechanic's schema; its cited sections are in the lock;
 - every voice line a script, a chapter, a beat, a hook, a puzzle or the market plays is in
-  `voice/lines.json`, and its audio in `public/voice/manifest.json` says the same words; Gilda's lines
+  `voice/lines.json`, and its audio (or, in a text-only pack, its caption) in
+  `public/voice/manifest.json` says the same words; Gilda's lines
   are hers; every line has a voice (its own, or its speaker's in `voice/cast.json`), and every speaker
   in the cast has a line;
 - the economy: every hire costs 1 to `maxPrice` (≤ 4), bigger models cost more, a refund is never more
@@ -192,11 +202,14 @@ change. The checks (tools/content/check.ts):
 
 ## How the workflows update and check the data
 
-Both workflows follow one pack, `COURSE` at the top of the workflow (today `copilot-app`).
+Both workflows run once per pack (a matrix from `node tools/course-pack/list.mjs`): the weekly refresh
+for each pack with a GitHub `source`, the models refresh only for packs with a `models.json` (today
+`copilot-app`).
 
 - **`weekly-refresh.yml`** (Mondays, when the course changes): syncs the pack's snapshot and
   `lock.json` (`tools/course/sync.mjs --course`), writes the drift report, then runs
-  `npm run content:check` against the new snapshot. The PR, "Weekly refresh: course @ <sha>", shows each
+  `npm run content:check` against the new snapshot, and makes changed voice lines again (or, for a
+text-only pack, its captions). The PR, "Weekly refresh: <course title> @ <sha>", one per course, shows each
   board's topics and what the sync added or removed, and lists each JSON entry that needs an edit (a
   quote that's no longer word for word, an anchor that's gone, a section whose hash changed). A broken
   entry labels the PR `needs-content-review`. Fix the entry on the PR's branch, and the checks pass
@@ -204,6 +217,15 @@ Both workflows follow one pack, `COURSE` at the top of the workflow (today `copi
 - **`models-refresh.yml`** (Mondays): runs `npm run models:sync -- --course=<id>`, then the same content
   check and the other checks, and opens "Weekly refresh: Copilot models" with the report.
 - Nothing merges by itself: a person reviews and merges each PR.
+
+## Saves
+
+Each course keeps its own save and progress (`copilot-isles.<course>.save.v1`,
+`copilot-isles.<course>.progress.v1`, `src/game/save-keys.ts`), and `copilot-isles.course` names the
+last one for Continue. Saves from before course packs (`copilot-isles.save.v1`, `copilot-isles.progress.v1`)
+are copied to copilot-app's keys once, and copilot-app's saves still write the old keys for one release so
+a rollback finds them. Export codes name their course (`c`); a code without it is copilot-app's. Never
+rename an id that a save holds (quests, pages, chests, quizzes, puzzles, labels, market jobs).
 
 ## How a change reaches players
 

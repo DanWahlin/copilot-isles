@@ -154,6 +154,42 @@ SOFTWARE.
 
 ```
 
+## GitHub Copilot CLI for Beginners
+
+- Source: https://github.com/github/copilot-cli-for-beginners (reference commit `802c19e`)
+- License: MIT
+- Used for: the course snapshot in `courses/copilot-cli/public/course/` (the root README, Chapter 00's README,
+  `GLOSSARY.md`, `LICENSE`, and the images Chapter 00 shows, synced by `tools/course/sync.mjs`; commit in
+  `courses/copilot-cli/lock.json`), the course text and pictures the game reads live from
+  `raw.githubusercontent.com` (PLAN §8.2), and the learning content the second course pack teaches on Anchorage
+  Cay (quizzes, pages, captions and glossary terms in `courses/copilot-cli/` paraphrase and link back to the
+  course's Chapter 00).
+
+```
+MIT License
+
+Copyright GitHub, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+```
+
 ## meshoptimizer
 
 - Source: https://github.com/zeux/meshoptimizer (npm package `meshoptimizer` 1.2.0)

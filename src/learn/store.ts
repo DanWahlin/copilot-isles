@@ -613,6 +613,27 @@ export class LearnStore {
   };
 
   /** A fresh voyage: wipes progress. */
+  /** Switches to another course's progress (each course keeps its own) and shows it. */
+  useCourse = (course: string): void => {
+    if (course === this.progress.course) return;
+    this.reset();
+    this.progress.useCourse(course);
+    const d = this.progress.data;
+    this.set({
+      doubloons: d.doubloons,
+      pages: d.pages.slice(),
+      glossary: d.glossary.slice(),
+      quests: [],
+      tracker: null,
+      starfish: d.starfish.slice(),
+      starfishPurse: d.starfishPurse,
+      sails: d.sails,
+      fork: d.fork,
+      setup: d.setup,
+      logbookOpened: d.logbookOpened,
+    });
+  };
+
   newGame = (): void => {
     this.reset();
     this.progress.reset();

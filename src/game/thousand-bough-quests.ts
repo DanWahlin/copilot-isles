@@ -1,5 +1,5 @@
-import { courseScript, islandQuests, onCourse } from '../course/active';
-import { islandHooks, welcomeLines } from '../course/catalog';
+import { courseScript, hasIslandQuests, islandQuests, onCourse } from '../course/active';
+import { islandHooks, onCourseSelected, welcomeLines } from '../course/catalog';
 import type { QuestDef, QuestTarget } from '../course/pack';
 import { beatSteps, pickBeat, type Beat } from './beats';
 import type { QuestState, QuestTracker, TrackerStatus } from './cove-quests';
@@ -83,10 +83,13 @@ export function thousandBoughLog(
 }
 
 /** Juno and Wingman on the first landfall, once the flyover lands behind the captain. */
-export const THOUSAND_BOUGH_WELCOME: readonly string[] = [
-  ...(islandHooks('thousand-bough').landing ?? []),
-  ...welcomeLines('thousand-bough', false),
-];
+export let THOUSAND_BOUGH_WELCOME: readonly string[] = [];
+onCourseSelected(() => {
+  THOUSAND_BOUGH_WELCOME = [
+    ...(islandHooks('thousand-bough').landing ?? []),
+    ...welcomeLines('thousand-bough', false),
+  ];
+});
 
 /**
  * The beat a Thousand-Bough NPC offers right now: the first of the island's beats
@@ -152,6 +155,16 @@ const SET_PIECE_LINES: readonly string[] = [
 export let THOUSAND_BOUGH_LINES: readonly string[] = [];
 
 onCourse(() => {
+  // A course without Thousand-Bough: nothing to do there (the island isn't open in it).
+  if (!hasIslandQuests(ISLAND)) {
+    THOUSAND_BOUGH_QUESTS = [];
+    MAIN = [];
+    BEATS = [];
+    THOUSAND_BOUGH_TARGETS = {};
+    FEN_SOLVED = [];
+    THOUSAND_BOUGH_LINES = [];
+    return;
+  }
   const q = islandQuests(ISLAND);
   THOUSAND_BOUGH_ISLAND = { name: 'Thousand-Bough Isle', ...q.tracker };
   THOUSAND_BOUGH_QUESTS = q.quests;

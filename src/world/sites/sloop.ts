@@ -29,10 +29,29 @@ import { lerp } from '../../util/math';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { plainShadowColor } from '../../engine/shadow-color';
 import { moveBucketInto } from '../village/chunks';
+import { hasActiveCourse } from '../../course/active';
+import { puzzleMaybe, textOf } from '../../course/puzzles';
 
 export type FlagKind = 'you' | 'captain' | 'guild';
 
 /** Canvas artwork for a flag, about 2:1 (each call returns a new canvas). */
+/**
+ * Whose fork a berth's flag names: the course's words (`puzzles/crane.json` → `text.flag.*`). A course
+ * that turns the crane off leaves the flags blank; before any course is active (the title), the
+ * Copilot app course's.
+ */
+function flagName(kind: FlagKind): string {
+  const key = `flag.${kind}`;
+  if (!hasActiveCourse()) return FLAG_NAMES[kind];
+  const crane = puzzleMaybe('crane');
+  return crane ? textOf(crane, key) : '';
+}
+const FLAG_NAMES: Readonly<Record<FlagKind, string>> = {
+  captain: 'REYES’S FORK',
+  guild: 'GUILD FORK',
+  you: 'YOUR FORK',
+};
+
 function drawFlag(kind: FlagKind): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
@@ -78,7 +97,7 @@ function drawFlag(kind: FlagKind): HTMLCanvasElement {
   ctx.fillStyle = palette.text;
   ctx.shadowColor = 'rgba(0,0,0,0.45)';
   ctx.shadowBlur = 3;
-  ctx.fillText(kind === 'captain' ? 'REYES’S FORK' : kind === 'guild' ? 'GUILD FORK' : 'YOUR FORK', 256, 178);
+  ctx.fillText(flagName(kind), 256, 178);
   ctx.shadowBlur = 0;
   return canvas;
 }

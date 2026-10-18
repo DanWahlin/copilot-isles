@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "A course pack's match puzzle (courses/<id>/puzzles/<name>.json)",
-  "description": "Match each one (a crew) to the place that fits its order. `places` come in key order; each order lists every right place (`accept`, `best` among them) and what the others say (`why`). Every puzzle file has an `id`, its `mechanic`, and may set `disabled` (the site stays as scenery), `text` (its words by key, `{name}` filled in by the game) and `lines` (its voice line ids by what they're for). docs/specs/COURSE-PACKS.md §4.",
+  "description": "Match each one (a crew) to the place that fits its order. `places` come in key order; each order lists every right place (`accept`, `best` among them) and what the others say (`why`). A puzzle the course runs has its mechanic's fields; a `\"disabled\": true` file needs none. Every puzzle file has an `id`, its `mechanic`, and may set `disabled` (the site stays as scenery), `text` (its words by key, `{name}` filled in by the game) and `lines` (its voice line ids by what they're for). docs/specs/COURSE-PACKS.md §4.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "mechanic", "places", "orders"],
+  "required": ["id", "mechanic"],
   "properties": {
     "$schema": {
       "type": "string"

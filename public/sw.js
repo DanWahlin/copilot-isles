@@ -3,8 +3,16 @@ const STATIC_CACHE = `copilot-isles-static-${VERSION}`;
 const RUNTIME_CACHE = `copilot-isles-runtime-${VERSION}`;
 const COURSE_CACHE = `copilot-isles-course-${VERSION}`;
 const MANIFEST_RE = /\/packs\/manifest\.json$/;
-// Live course content (PLAN §8.2, §13.6): the course repo's files on raw.githubusercontent.com only.
-const COURSE_RE = /^https:\/\/raw\.githubusercontent\.com\/github\/copilot-app-for-beginners\//;
+// Live course content (PLAN §8.2, §13.6): each course pack's repository on raw.githubusercontent.com
+// only. The build writes this list from the packs' `course.json` → `source.repo` (vite.config.ts,
+// COURSE-PACKS.md §7); src/content/content.test.ts keeps this copy (dev's) the same.
+const COURSE_REPOS = /* course-repos */ [
+  'github/copilot-app-for-beginners',
+  'github/copilot-cli-for-beginners',
+];
+const COURSE_RE = new RegExp(
+  `^https://raw\\.githubusercontent\\.com/(?:${COURSE_REPOS.map((r) => r.replace(/[.]/g, '\\.')).join('|')})/`,
+);
 
 self.addEventListener('install', () => {
   self.skipWaiting();

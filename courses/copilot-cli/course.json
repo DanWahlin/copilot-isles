@@ -1,0 +1,108 @@
+{
+  "$schema": "../schemas/course.schema.json",
+  "id": "copilot-cli",
+  "version": 1,
+  "title": "GitHub Copilot CLI for Beginners",
+  "tagline": "Learn GitHub Copilot CLI, one island at a time",
+  "description": "Learn to supercharge your development workflow with AI-powered command-line assistance from your terminal.",
+  "language": "en",
+  "voice": false,
+  "source": {
+    "kind": "github",
+    "repo": "github/copilot-cli-for-beginners",
+    "ref": "main",
+    "license": "MIT",
+    "copyright": "© GitHub, Inc.",
+    "chapters": [
+      {
+        "id": "00-quick-start",
+        "short": "ch00",
+        "title": "Quick Start"
+      },
+      {
+        "id": "01-setup-and-first-steps",
+        "short": "ch01",
+        "title": "First Steps"
+      },
+      {
+        "id": "02-context-conversations",
+        "short": "ch02",
+        "title": "Context and Conversations"
+      },
+      {
+        "id": "03-development-workflows",
+        "short": "ch03",
+        "title": "Development Workflows"
+      },
+      {
+        "id": "04-agents-custom-instructions",
+        "short": "ch04",
+        "title": "Create Specialized AI Assistants"
+      },
+      {
+        "id": "05-skills",
+        "short": "ch05",
+        "title": "Automate Repetitive Tasks"
+      },
+      {
+        "id": "06-mcp-servers",
+        "short": "ch06",
+        "title": "Connect to GitHub, Databases & APIs"
+      },
+      {
+        "id": "07-putting-it-together",
+        "short": "ch07",
+        "title": "Putting It All Together"
+      }
+    ]
+  },
+  "islands": [
+    {
+      "island": "anchorage",
+      "chapter": "00-quick-start",
+      "label": "00 · Quick Start",
+      "minutes": 10,
+      "seal": "Seal of Anchorage",
+      "topics": [
+        "Install GitHub Copilot CLI",
+        "Sign in with your GitHub account",
+        "Verify it works with a simple test"
+      ],
+      "arrival": {
+        "eyebrow": "Chapter 00 · Quick Start",
+        "line": "Install GitHub Copilot CLI and earn your first Seal"
+      }
+    }
+  ],
+  "hooks": {
+    "briefing": {
+      "lines": ["cli.juno.cabin.01", "cli.juno.cabin.02", "cli.juno.cabin.03", "cli.juno.cabin.04"],
+      "chest": "cli.juno.cabin.chest"
+    },
+    "islands": {
+      "anchorage": {
+        "welcome": [
+          "cli.wingman.welcome.01",
+          "cli.wingman.welcome.02",
+          "cli.wingman.welcome.03",
+          "@nav",
+          "@starfish",
+          "cli.wingman.welcome.05"
+        ],
+        "welcomeBack": ["cli.wingman.welcome.back"],
+        "tips": {
+          "nav": "cli.wingman.welcome.04",
+          "starfish": "cli.wingman.starfish.anchorage"
+        }
+      }
+    },
+    "sail": {
+      "line": "cli.wingman.sail.03"
+    },
+    "npcVoiced": {
+      "nell": ["cli.nell.papers.01", "cli.nell.done.01"]
+    },
+    "setPieces": {},
+    "battles": {}
+  }
+}

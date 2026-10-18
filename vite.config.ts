@@ -1,5 +1,13 @@
 /// <reference types="vitest/config" />
-import { cpSync, createReadStream, existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import {
+  cpSync,
+  createReadStream,
+  existsSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { extname, join, resolve, sep } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -31,6 +39,22 @@ const COURSE_TYPES: Readonly<Record<string, string>> = {
 
 // Course packs (docs/specs/COURSE-PACKS.md §2): each pack's `public/` folder (its course snapshot and
 // voice) is served as `<base>courses/<id>/`, from the pack in dev and copied into the build.
+/** Every pack's course repository (`course.json` → `source.repo`), for the service worker's allow-list. */
+function courseRepos(): string[] {
+  return readdirSync(COURSES_DIR)
+    .filter((id) => existsSync(join(COURSES_DIR, id, 'course.json')))
+    .map(
+      (id) =>
+        (
+          JSON.parse(readFileSync(join(COURSES_DIR, id, 'course.json'), 'utf8')) as {
+            source?: { repo?: string };
+          }
+        ).source?.repo,
+    )
+    .filter((r): r is string => !!r)
+    .sort();
+}
+
 function coursePackAssets(): Plugin {
   const packs = () => readdirSync(COURSES_DIR).filter((id) => existsSync(join(COURSES_DIR, id, 'public')));
   return {
@@ -56,6 +80,16 @@ function coursePackAssets(): Plugin {
       const out = options.dir ?? resolve('dist');
       for (const id of packs())
         cpSync(join(COURSES_DIR, id, 'public'), join(out, 'courses', id), { recursive: true });
+      // The service worker caches live course files only from the packs' own repositories.
+      const sw = join(out, 'sw.js');
+      if (existsSync(sw))
+        writeFileSync(
+          sw,
+          readFileSync(sw, 'utf8').replace(
+            /(\/\* course-repos \*\/ )\[[^\]]*\]/,
+            `$1${JSON.stringify(courseRepos()).replaceAll('"', "'").replaceAll(',', ', ')}`,
+          ),
+        );
     },
   };
 }

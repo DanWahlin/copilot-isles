@@ -1,4 +1,4 @@
-import { courseIsland } from '../../course/catalog';
+import { courseIsland, onCourseSelected } from '../../course/catalog';
 import type { IslandId } from '../../game/islands';
 import type { CourseBoardPose } from '../sites/course-board';
 
@@ -42,9 +42,14 @@ const SPOTS: Readonly<Record<IslandId, Omit<CourseBoardPlacement, 'chapter'>>> =
  * Where each island's course notice board stands (docs/specs/COURSE-BOARDS.md), with the chapter it
  * shows. Every island here has a board; an island the course doesn't use would show none.
  */
-export const COURSE_BOARDS: Readonly<Record<IslandId, CourseBoardPlacement>> = Object.fromEntries(
-  Object.entries(SPOTS).map(([island, spot]) => [
-    island,
-    { chapter: courseIsland(island)?.chapter ?? '', ...spot },
-  ]),
-) as Record<IslandId, CourseBoardPlacement>;
+const placements = () =>
+  Object.fromEntries(
+    Object.entries(SPOTS).map(([island, spot]) => [
+      island,
+      { chapter: courseIsland(island)?.chapter ?? '', ...spot },
+    ]),
+  ) as Record<IslandId, CourseBoardPlacement>;
+export let COURSE_BOARDS: Readonly<Record<IslandId, CourseBoardPlacement>> = placements();
+onCourseSelected(() => {
+  COURSE_BOARDS = placements();
+});

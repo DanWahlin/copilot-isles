@@ -21,7 +21,7 @@ import type { SeaChoiceOption, SeaChoiceView } from '../../ui/puzzles/SeaChoice'
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal, SailAction } from './types';
 import { onCourse } from '../../course/active';
 import type { PuzzleFile } from '../../course/pack';
-import { lineOf, puzzleContent, textOf } from '../../course/puzzles';
+import { lineOf, puzzleContent, puzzleMaybe, textOf } from '../../course/puzzles';
 
 const HELMS_ID = 'P1.2';
 const QUEST = 'Q1.5';
@@ -49,7 +49,7 @@ const L = (key: string) => lineOf(content(), key);
 /** The Plan review's options (the dump and tests read them here). */
 export let REVIEW_OPTIONS: readonly { id: ReviewChoice; label: string }[] = [];
 onCourse(() => {
-  REVIEW_OPTIONS = content().review;
+  REVIEW_OPTIONS = puzzleMaybe<ThreeHelmsFile>('three-helms')?.review ?? [];
 });
 
 /** What the Three Helms needs from the session beyond a walking puzzle's host. */

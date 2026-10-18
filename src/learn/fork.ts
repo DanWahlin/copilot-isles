@@ -1,4 +1,4 @@
-import { COURSE } from '../course/catalog';
+import { onCourseSelected } from '../course/catalog';
 
 /**
  * The player's fork of the course repository, typed into Ezra's register or at the crane. It's parsed
@@ -16,9 +16,13 @@ export interface ForkRef {
 export type ForkParse = { ok: true; fork: ForkRef; warning: string | null } | { ok: false; error: string };
 
 /** The course repository's name (the pack's `practice.repoName`). A fork keeps it unless the player renamed it. */
-export const COURSE_REPO = COURSE.practice.repoName;
+export let COURSE_REPO = '';
 /** What the game shows when the player hasn't told it their fork. */
-export const FORK_PLACEHOLDER = `your-handle/${COURSE_REPO}`;
+export let FORK_PLACEHOLDER = '';
+onCourseSelected((c) => {
+  COURSE_REPO = c.practice?.repoName ?? c.source.repo.split('/').pop()!;
+  FORK_PLACEHOLDER = `your-handle/${COURSE_REPO}`;
+});
 /** Longer than any real GitHub URL a player would paste (owner 39 + name 100 + host and path). */
 export const FORK_INPUT_MAX = 200;
 

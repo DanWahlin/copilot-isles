@@ -111,6 +111,8 @@ export interface MeridianStreamContext {
   /** Where the tier has sun shadows but the islands don't take them (cove-scene's `skipIslandShadows`). */
   skipShadows: boolean;
   disabled: boolean;
+  /** Whether coming near streams the island in (a course that doesn't use it leaves the silhouette). */
+  nearLoads?: () => boolean;
 }
 
 /**
@@ -307,7 +309,7 @@ export function createMeridianStream(ctx: MeridianStreamContext): MeridianStream
       const d = footprintDistance(MERIDIAN_FOOTPRINT, camera.position.x, camera.position.z);
       const near = d < MERIDIAN_RANGE.show;
       const show = near || held;
-      if (d < MERIDIAN_RANGE.load) void life.load();
+      if (d < MERIDIAN_RANGE.load && (ctx.nearLoads?.() ?? true)) void life.load();
       const { terrain, foam, town } = self;
       if (self.ready && terrain && foam) {
         if (!held) {

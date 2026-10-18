@@ -80,6 +80,8 @@ export class Hud {
   private lastPrompt = '';
   private toastTimer = 0;
   private subtitleTimer = 0;
+  /** Moves a conversation on to its next line (the caption's button, for a text-only course). */
+  onNext: (() => void) | null = null;
   private lines = new Map<string, SubtitleLine>();
   private readonly compass: HTMLDivElement;
   private readonly compassStrip: HTMLDivElement;
@@ -310,6 +312,20 @@ export class Hud {
     });
     if (!line.words.length) body.textContent = line.text;
     this.subtitle.append(body);
+    // A text-only course's line (no voice, no word timings): it holds for its reading time, and E,
+    // the pad's A, or this button (a tap) moves it on.
+    this.subtitle.classList.toggle('is-text', !line.words.length);
+    if (!line.words.length && this.onNext) {
+      const next = el('button', 'hud-next') as HTMLButtonElement;
+      next.type = 'button';
+      next.setAttribute('aria-label', 'Next line');
+      next.textContent = '▸';
+      next.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.onNext?.();
+      });
+      this.subtitle.append(next);
+    }
     this.subtitle.classList.add('show');
     this.subtitleTimer = window.setTimeout(
       () => this.subtitle.classList.remove('show'),
@@ -335,6 +351,7 @@ export class Hud {
       text('span', 'hud-speaker', speaker),
       text('span', 'hud-line spoken-all', line),
     );
+    this.subtitle.classList.remove('is-text');
     this.subtitle.classList.add('show');
     this.subtitleTimer = window.setTimeout(() => this.subtitle.classList.remove('show'), seconds * 1000);
   }

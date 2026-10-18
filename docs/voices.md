@@ -25,7 +25,13 @@ entry in `cast.json` and make its lines again (the cache key includes the voice,
 matches the audio in `manifest.json` (its text, speaker and cache hash), and `--check --list-stale`
 lists the Azure lines that need making again (the weekly course refresh uses it).
 
-The cast below is this course's. Another course can give the same characters other voices (or
+**Text-only packs.** A pack with `"voice": false` in `course.json` (today `copilot-cli`) has no audio
+and no `cast.json`. `generate.ts --course copilot-cli` writes its captions instead, calling no service: a
+`manifest.json` marked `textOnly`, one `<id>.json` per line with its text and reading time, and an empty
+`lipsync.json`. In the game a caption holds for its reading time, or moves on with **Next**, the
+interact key or the gamepad's A. `--check` proves the captions match `lines.json`.
+
+The cast below is the Copilot app course's. Another course can give the same characters other voices (or
 another language) in its own `voice/cast.json`.
 
 | Character | Service         | Voice                                                                                                                  | Notes                                                                                            |

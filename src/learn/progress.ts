@@ -1,11 +1,12 @@
 import { cleanFork, type ForkRef } from './fork';
 import { cleanSetup, EMPTY_SETUP, type SetupData } from './setup';
+import { courseKey, LEGACY_COURSE, writeCourseKey } from '../game/save-keys';
 
 /**
  * Learning progress (POC §3.9 subset): pages, chests, glossary, quiz attempts, quests, trials, seals,
  * and doubloons, saved to localStorage under a versioned key. Position/captain stay in GameFlow's save.
  */
-const PROGRESS_KEY = 'copilot-isles.progress.v1';
+// Per course: `copilot-isles.<course>.progress.v1` (src/game/save-keys.ts, COURSE-PACKS.md §6).
 
 interface QuizRecord {
   attempts: number;
@@ -246,20 +247,25 @@ function parsePuzzles(v: unknown): Record<string, PuzzleSave> {
   return out;
 }
 
-/** Export/import as a copyable base64 code (POC §3.9). */
-export function exportCode(p: ProgressData): string {
-  const bytes = new TextEncoder().encode(JSON.stringify(p));
+/**
+ * Export/import as a copyable base64 code (POC §3.9). The code names its course (`c`); a code from
+ * before course packs has none, and is the Copilot app course's.
+ */
+export function exportCode(p: ProgressData, course: string = LEGACY_COURSE): string {
+  const bytes = new TextEncoder().encode(JSON.stringify({ ...p, c: course }));
   let bin = '';
   for (const b of bytes) bin += String.fromCharCode(b);
   return btoa(bin);
 }
 
-export function importCode(code: string): ProgressData | null {
+export function importCode(code: string): { course: string; progress: ProgressData } | null {
   try {
     const bytes = Uint8Array.from(atob(code.trim()), (c) => c.charCodeAt(0));
     const raw = new TextDecoder().decode(bytes);
-    const parsed = JSON.parse(raw) as { v?: unknown };
-    return parsed?.v === 1 ? parseProgress(raw) : null;
+    const parsed = JSON.parse(raw) as { v?: unknown; c?: unknown };
+    if (parsed?.v !== 1) return null;
+    const course = typeof parsed.c === 'string' && /^[a-z0-9-]+$/.test(parsed.c) ? parsed.c : LEGACY_COURSE;
+    return { course, progress: parseProgress(raw) };
   } catch {
     return null;
   }
@@ -277,13 +283,32 @@ export type SetKind = 'pages' | 'chests' | 'glossary' | 'seals' | 'arrivals' | '
 export class Progress {
   data: ProgressData;
 
-  constructor(private readonly storage: ProgressStorage | null = safeLocalStorage()) {
-    this.data = parseProgress(storage?.getItem(PROGRESS_KEY) ?? null);
+  constructor(
+    private readonly storage: ProgressStorage | null = safeLocalStorage(),
+    private courseId: string = LEGACY_COURSE,
+  ) {
+    this.data = this.read();
+  }
+
+  /** The course this progress is for. */
+  get course(): string {
+    return this.courseId;
+  }
+
+  /** Switches to another course's progress (each course keeps its own). */
+  useCourse(course: string): void {
+    if (course === this.courseId) return;
+    this.courseId = course;
+    this.data = this.read();
+  }
+
+  private read(): ProgressData {
+    return parseProgress(this.storage?.getItem(courseKey(this.courseId, 'progress')) ?? null);
   }
 
   save(): void {
     try {
-      this.storage?.setItem(PROGRESS_KEY, JSON.stringify(this.data));
+      writeCourseKey(this.storage, this.courseId, 'progress', JSON.stringify(this.data));
     } catch {
       // Private mode or full storage: progress stays in memory for this session.
     }
@@ -291,7 +316,7 @@ export class Progress {
 
   reset(): void {
     this.data = emptyProgress();
-    this.storage?.removeItem(PROGRESS_KEY);
+    writeCourseKey(this.storage, this.courseId, 'progress', null);
   }
 
   has(kind: SetKind, id: string): boolean {

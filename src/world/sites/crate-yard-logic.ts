@@ -13,7 +13,7 @@
  */
 import { onCourse } from '../../course/active';
 import type { PuzzleFile } from '../../course/pack';
-import { puzzleContent } from '../../course/puzzles';
+import { puzzleContent, puzzleMaybe } from '../../course/puzzles';
 import type { SourceRef } from '../../learn/types';
 
 /** The yard's two kinds of plate (the tavern side and the slipway); the course says what they mean. */
@@ -92,7 +92,8 @@ export let MERIDIAN_YARD: YardLayout = {
 };
 
 onCourse(() => {
-  const items = crateYardContent().items;
+  // A course without Port Meridian has no crate yard: an empty yard.
+  const items = puzzleMaybe<CrateYardFile>('crate-yard')?.items ?? [];
   if (items.length > SLOTS.length)
     throw new Error(`The crate yard has ${SLOTS.length} slots, not ${items.length}`);
   MERIDIAN_YARD = {

@@ -10,7 +10,7 @@
  */
 import { onCourse } from '../../course/active';
 import type { PuzzleFile } from '../../course/pack';
-import { puzzleContent, textOf } from '../../course/puzzles';
+import { puzzleContent, puzzleMaybe, textOf } from '../../course/puzzles';
 
 export type FlagSymbol = '@' | '#' | '/' | '&';
 export type HoistSection = 'context-syntax' | 'slash-commands' | 'attaching-files';
@@ -78,8 +78,9 @@ const T = (key: string) => textOf(hoistContent(), key);
 
 export let HOIST_ORDERS: readonly HoistOrder[] = [];
 onCourse(() => {
-  FLAGS = hoistContent().bins;
-  HOIST_ORDERS = hoistContent().items;
+  const c = puzzleMaybe<FlagHoistFile>('flag-hoist');
+  FLAGS = c?.bins ?? [];
+  HOIST_ORDERS = c?.items ?? [];
 });
 
 /** The right pick for an order: its flag's symbol, or the right choice's id. */

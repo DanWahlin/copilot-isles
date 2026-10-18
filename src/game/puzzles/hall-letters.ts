@@ -13,7 +13,7 @@
 
 import { onCourse } from '../../course/active';
 import type { PuzzleFile } from '../../course/pack';
-import { puzzleContent, textOf } from '../../course/puzzles';
+import { puzzleContent, puzzleMaybe, textOf } from '../../course/puzzles';
 
 /** A course section a letter or a reason paraphrases (README anchor and its hash in the course pack's lock.json). */
 export interface LetterCite {
@@ -94,7 +94,14 @@ export interface Letter {
 export let LETTERS: readonly Letter[] = [];
 
 onCourse(() => {
-  const c = lettersContent();
+  const c = puzzleMaybe<LostLettersFile>('lost-letters') ?? {
+    id: '',
+    mechanic: 'classify',
+    cites: {},
+    bins: [],
+    tray: { id: 'tray', name: '' },
+    items: [],
+  };
   CITE = c.cites;
   ALCOVES = c.bins;
   TRAY = c.tray;

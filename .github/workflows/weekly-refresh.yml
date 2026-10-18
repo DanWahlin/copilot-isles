@@ -1,6 +1,8 @@
 # PLAN §8.4: keeps everything the course feeds into the game up to date.
 #
-# One course pack (docs/specs/COURSE-PACKS.md §7): COURSE below. Every path is courses/$COURSE/.
+# Every course pack with a GitHub source (docs/specs/COURSE-PACKS.md §7), one job each: the `packs` job
+# lists them (tools/course-pack/list.mjs --github), and each refresh job's COURSE is one of them. Every
+# path is courses/$COURSE/, and each pack gets its own PR.
 #
 #   1 Course check   compare upstream main with the pack's lock.json (no dependencies needed)
 #   2 Content        tools/course/sync.mjs: READMEs, GLOSSARY.md, LICENSE, sections, and hashes
@@ -13,11 +15,12 @@
 #                    still her voice lines, and each course notice board's topics with what the sync
 #                    added or removed. It lists each JSON entry that needs an edit.
 #   5 Drafted fixes  not yet (follow-up: hand the drift report to the Copilot coding agent)
-#   6 Voices         only when voice lines changed AND the Azure Speech secrets exist; safe to skip
+#   6 Voices         only when voice lines changed AND the Azure Speech secrets exist; safe to skip.
+#                    A text-only course ("voice": false) just rewrites its captions (no secrets)
 #   7 Other sources  not yet (follow-up: tools/music/fetch.sh --check and the ASSETS.md list)
 #   8 Verify         typecheck, lint, unit tests (every SourceRef resolves against the snapshot),
 #                    build, budgets, secret scan, and the Playwright suite
-#   9 Deliver        one PR, "Weekly refresh: course @ <sha>", labelled needs-content-review when
+#   9 Deliver        one PR per pack, "Weekly refresh: <course> @ <sha>", labelled needs-content-review when
 #                    authored content is affected, a content entry broke, or a check fails. Nothing
 #                    auto-merges. Merging it deploys the site: the merge's push runs CI, and pages.yml
 #                    deploys when CI passes on main.
@@ -39,68 +42,87 @@ on:
 
 permissions: {}
 
-env:
-  # The course pack this refresh follows (courses/<id>/course.json → source.repo).
-  COURSE: copilot-app
-
 concurrency:
   group: weekly-refresh
   cancel-in-progress: false
 
 jobs:
-  check:
-    name: 1 · Course check
+  packs:
+    name: Course packs
     runs-on: ubuntu-latest
     permissions:
       contents: read
     outputs:
-      changed: ${{ steps.check.outputs.changed }}
-      sha: ${{ steps.check.outputs.sha }}
+      courses: ${{ steps.list.outputs.courses }}
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: .nvmrc
-      - id: check
-        run: node tools/course/sync.mjs --course="$COURSE" --check
+      - id: list
+        run: node tools/course-pack/list.mjs --github
 
   refresh:
-    name: 2-9 · Refresh, verify, and deliver
-    needs: check
-    if: needs.check.outputs.changed == 'true' || inputs.force
+    name: ${{ matrix.course }} · check, refresh, verify, and deliver
+    needs: packs
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      # One pack at a time: each job runs the whole repository's checks.
+      max-parallel: 1
+      matrix:
+        course: ${{ fromJSON(needs.packs.outputs.courses) }}
     permissions:
       contents: write # push the refresh branch
       pull-requests: write # open or update the PR
       issues: write # create the needs-content-review label the first time
     env:
-      SHA: ${{ needs.check.outputs.sha }}
+      # The course pack this job follows (courses/<id>/course.json → source.repo).
+      COURSE: ${{ matrix.course }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
-      - run: echo "DRIFT_DIR=$RUNNER_TEMP/course-drift" >> "$GITHUB_ENV"
+
+      - name: 1 · Course check
+        id: check
+        run: node tools/course/sync.mjs --course="$COURSE" --check
+
+      - name: Refresh?
+        id: go
+        run: |
+          if [ "${{ steps.check.outputs.changed }}" = "true" ] || [ "${{ inputs.force }}" = "true" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "SHA=${{ steps.check.outputs.sha }}" >> "$GITHUB_ENV"
+          else
+            echo "courses/$COURSE is up to date with its course; nothing to refresh." | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - if: steps.go.outputs.run == 'true'
+        run: npm ci
+      - if: steps.go.outputs.run == 'true'
+        run: echo "DRIFT_DIR=$RUNNER_TEMP/course-drift" >> "$GITHUB_ENV"
 
       - name: 2-3 · Content and screenshots
+        if: steps.go.outputs.run == 'true'
         run: |
           mkdir -p "$DRIFT_DIR"
           git show "HEAD:courses/$COURSE/lock.json" > "$DRIFT_DIR/previous-lock.json" || echo '{}' > "$DRIFT_DIR/previous-lock.json"
           node tools/course/sync.mjs --course="$COURSE" --ref="$SHA" --report="$DRIFT_DIR"
 
       - name: 4 · Drift report
+        if: steps.go.outputs.run == 'true'
         id: drift
         run: npx tsx tools/course/drift.ts --course="$COURSE" --previous="$DRIFT_DIR/previous-lock.json" --report="$DRIFT_DIR" --out="$DRIFT_DIR/report.md"
 
       - name: 4b · Content data (quotes, anchors, voice lines, board topics)
+        if: steps.go.outputs.run == 'true'
         id: content
         continue-on-error: true # an unset "broken" output labels the PR, so it still opens
         run: npm run content:check -- --course="$COURSE" --previous="$DRIFT_DIR/previous-lock.json" --out="$DRIFT_DIR/content.md" --report-only
 
       - name: 6 · Voices (only changed lines, only with secrets)
+        if: steps.go.outputs.run == 'true'
         id: voices
         continue-on-error: true
         env:
@@ -109,6 +131,16 @@ jobs:
         run: |
           # Step 5 (drafted fixes) doesn't exist yet, so voice lines only change when a person edits
           # them on this branch. ElevenLabs lines need the ElevenLabs CLI sign-in and stay manual.
+          # A text-only course has captions, not voices: write them again if a line changed (no secrets).
+          if [ "$(node -p "require('./courses/$COURSE/course.json').voice !== false")" = "false" ]; then
+            if npx tsx tools/voice/generate.ts --course "$COURSE" --check; then
+              echo "summary=Text-only course: the captions match their lines." >> "$GITHUB_OUTPUT"
+            else
+              npx tsx tools/voice/generate.ts --course "$COURSE"
+              echo "summary=Text-only course: captions rewritten for changed lines (no speech service)." >> "$GITHUB_OUTPUT"
+            fi
+            exit 0
+          fi
           # Lines whose text, voice or cast changed, from the manifest's cache keys (Azure only).
           changed=$(npx tsx tools/voice/generate.ts --course "$COURSE" --check --list-stale)
           if [ -z "$changed" ]; then
@@ -129,6 +161,7 @@ jobs:
           echo "summary=Regenerated voice lines: $changed." >> "$GITHUB_OUTPUT"
 
       - name: 8 · Verify
+        if: steps.go.outputs.run == 'true'
         id: verify
         env:
           CI: 'true'
@@ -156,13 +189,14 @@ jobs:
           exit 0
 
       - uses: actions/upload-artifact@v7
-        if: always()
+        if: always() && steps.go.outputs.run == 'true'
         with:
-          name: course-drift
+          name: course-drift-${{ matrix.course }}
           path: ${{ runner.temp }}/course-drift
           retention-days: 30
 
       - name: 9 · Deliver
+        if: steps.go.outputs.run == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           AFFECTED: ${{ steps.drift.outputs.affected }}
@@ -176,12 +210,12 @@ jobs:
             exit 0
           fi
           short=${SHA:0:7}
-          branch="course-refresh/$short"
+          branch="course-refresh/$COURSE/$short"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git switch -c "$branch"
           git add "courses/$COURSE"
-          git commit -m "Weekly refresh: course @ $short"
+          git commit -m "Weekly refresh: $COURSE @ $short"
           git push --force origin "$branch"
 
           {
@@ -204,7 +238,7 @@ jobs:
             echo
             if [ "$VERIFY_OK" = "true" ]; then echo "Typecheck, lint, format, unit tests, build, budgets, secret scan, and e2e all passed."; else echo "**Failed:** ${VERIFY_FAILED:-unknown}. See the workflow run."; fi
             echo
-            echo "Before/after montages of changed screenshots: the \`course-drift\` artifact of [this run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)."
+            echo "Before/after montages of changed screenshots: the \`course-drift-$COURSE\` artifact of [this run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)."
             echo
             echo "_Not automated yet: step 5 (drafted fixes by the coding agent) and step 7 (music and asset sources)._"
           } > "$RUNNER_TEMP/pr-body.md"
@@ -215,7 +249,8 @@ jobs:
               --description 'The course changed under authored content (PLAN §8.4)' 2> /dev/null || true
             labels=(--label needs-content-review)
           fi
-          title="Weekly refresh: course @ $short"
+          course_title=$(node -p "require('./courses/$COURSE/course.json').title")
+          title="Weekly refresh: $course_title @ $short"
           if gh pr view "$branch" --json state -q .state 2> /dev/null | grep -q OPEN; then
             gh pr edit "$branch" --title "$title" --body-file "$RUNNER_TEMP/pr-body.md" "${labels[@]/--label/--add-label}"
           else

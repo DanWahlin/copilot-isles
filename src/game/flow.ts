@@ -30,6 +30,9 @@ import { thousandBoughOpen } from './thousand-bough-open';
 import type { GameSession, StreamedIsland } from './session';
 import { LearnStore } from '../learn/store';
 import { activateCourse } from '../course/load';
+import { COURSES, selectCourse } from '../course/catalog';
+import { Progress } from '../learn/progress';
+import { courseKey, lastCourse, migrateSaves, safeStorage, setLastCourse, writeCourseKey } from './save-keys';
 import type { OsId } from '../learn/setup';
 import type { Opening } from '../opening/opening';
 import { BRIEFING_LINES } from '../opening/briefing';
@@ -51,13 +54,15 @@ const ARRIVAL_NEAR = 2.5;
 const OPENING_PIXEL_CAP = 1.5;
 /** Main-thread build work per frame while the island builds behind the opening (ms). */
 const BUILD_SLICE_MS = 5;
-const SAVE_KEY = 'copilot-isles.save.v1';
+// The voyage's save is per course (save-keys.ts, COURSE-PACKS.md §6): `copilot-isles.<course>.save.v1`.
 /** Session storage: where Apply's reload should land (the title, or back in the game). */
 const RESUME_KEY = 'copilot-isles.apply-quality.v1';
 
 const BRIDGE_METHODS = [
   'getState',
   'subscribe',
+  'chooseCourse',
+  'pickCourse',
   'newVoyage',
   'continueVoyage',
   'chooseCaptain',
@@ -136,8 +141,10 @@ export class GameFlow implements GameBridge {
   /** The characters' load, started on the captain screen so Juno can stand in the cabin. */
   private characterLib: Promise<CharacterLibrary> | null = null;
   private session: GameSession | null = null;
-  /** Quizzes, pages, chests, and the Logbook (rendered by src/ui/learn). */
-  readonly learn = new LearnStore();
+  /** Quizzes, pages, chests, and the Logbook (rendered by src/ui/learn), for the current course. */
+  readonly learn: LearnStore;
+  /** The course a voyage plays: the last one played (Continue), or the one picked for a New Voyage. */
+  private course: string;
   private loading = false;
   private saveTimer = 0;
   private audioReady = false;
@@ -167,14 +174,24 @@ export class GameFlow implements GameBridge {
   private chartPickTimer = 0;
 
   constructor(private readonly o: GameFlowOptions) {
+    // Saves from before course packs become the Copilot app course's (their old keys stay for now).
+    const storage = safeStorage();
+    migrateSaves(storage);
+    this.course = lastCourse(
+      storage,
+      COURSES.map((c) => c.id),
+    );
+    selectCourse(this.course);
+    this.learn = new LearnStore(new Progress(storage, this.course));
     const settings = sanitizeSettings({ ...DEFAULT_SETTINGS, ...readJson<Partial<Settings>>(SETTINGS_KEY) });
-    const save = readJson<SaveData>(SAVE_KEY);
+    const save = this.readSave();
     this.state = {
       screen: 'title',
       returnTo: 'title',
       progress: { value: 0, message: '' },
       hasSave: !!save,
       save: save ? this.saveSummary() : null,
+      course: this.course,
       learn: this.learnSummary(),
       captain: save?.captain ?? 'man',
       settings,
@@ -219,7 +236,7 @@ export class GameFlow implements GameBridge {
     this.title ??= createTitleBackdrop(this.o.engine);
     this.title.setSails(this.learn.getState().sails);
     if (this.audioReady) this.o.audio.music.setIsland('harbour');
-    this.set({ screen: 'title', returnTo: 'title', hasSave: !!readJson<SaveData>(SAVE_KEY) });
+    this.set({ screen: 'title', returnTo: 'title', hasSave: !!this.readSave() });
     this.o.onTitleReady?.();
     this.prefetchTitleAudio();
     this.prefetchTitlePacks();
@@ -249,15 +266,57 @@ export class GameFlow implements GameBridge {
     this.set({ screen: 'captain', returnTo: 'title' });
   }
 
+  /** Title → the course list (with more than one course), else straight to captain select. */
+  chooseCourse(): void {
+    if (COURSES.length < 2) return this.chooseCaptain();
+    void this.unlockAudio();
+    this.set({ screen: 'course', returnTo: 'title' });
+  }
+
+  /** The course list's pick: that course's voyage starts at captain select. */
+  pickCourse(id: string): void {
+    this.useCourse(id);
+    this.chooseCaptain();
+  }
+
+  /** Makes a course the current one: its saves, its progress, its chart and its lines. */
+  private useCourse(id: string): void {
+    const known = COURSES.some((c) => c.id === id);
+    this.course = known ? id : this.course;
+    selectCourse(this.course);
+    this.learn.useCourse(this.course);
+    this.set({ course: this.course, hasSave: !!this.readSave() });
+  }
+
+  private readSave(): SaveData | null {
+    return readJson<SaveData>(courseKey(this.course, 'save'));
+  }
+
+  private writeSave(value: SaveData | null): void {
+    try {
+      writeCourseKey(safeStorage(), this.course, 'save', value === null ? null : JSON.stringify(value));
+    } catch {
+      // Private mode / storage full: saves just don't persist.
+    }
+  }
+
   newVoyage(captain: CaptainBody, names?: VoyageNames): void {
-    writeJson(SAVE_KEY, null);
+    setLastCourse(safeStorage(), this.course);
+    this.writeSave(null);
     this.learn.newGame();
     if (names) this.learn.progress.setNames(names.captain, names.ship);
     void this.voyage(captain, null);
   }
 
   continueVoyage(): void {
-    const save = readJson<SaveData>(SAVE_KEY);
+    // Continue resumes the last course played.
+    const last = lastCourse(
+      safeStorage(),
+      COURSES.map((c) => c.id),
+    );
+    if (last !== this.course) this.useCourse(last);
+    setLastCourse(safeStorage(), this.course);
+    const save = this.readSave();
     void this.voyage(save?.captain ?? this.state.captain, save);
   }
 
@@ -515,12 +574,12 @@ export class GameFlow implements GameBridge {
     // Back to the open-sea title: just wind and surf, no island palms or birdsong.
     this.o.audio.sfx.setBed('palms', 0);
     this.o.audio.sfx.setBed('birds_dawn', 0);
-    this.set({ hasSave: !!readJson<SaveData>(SAVE_KEY), save: this.saveSummary() });
+    this.set({ hasSave: !!this.readSave(), save: this.saveSummary() });
     this.showTitle();
   }
 
   startOver(): void {
-    writeJson(SAVE_KEY, null);
+    this.writeSave(null);
     this.learn.newGame();
     if (this.session) {
       this.endVoyage();
@@ -544,7 +603,7 @@ export class GameFlow implements GameBridge {
     if (this.state.qualityNotice?.kind === 'applying') return;
     const inGame = !!this.session;
     if (inGame) this.save();
-    writeSession(RESUME_KEY, { to: inGame && readJson<SaveData>(SAVE_KEY) ? 'game' : 'title' });
+    writeSession(RESUME_KEY, { to: inGame && this.readSave() ? 'game' : 'title' });
     this.set({ qualityNotice: { kind: 'applying' } });
     // The setting decides the tier after the reload, so a ?tier= link override goes.
     const url = new URL(location.href);
@@ -575,7 +634,7 @@ export class GameFlow implements GameBridge {
     if (!r) return;
     writeSession(RESUME_KEY, null);
     const notice: QualityNotice = { kind: 'applied', tier: this.state.graphics.tier };
-    if (r.to === 'game' && readJson<SaveData>(SAVE_KEY)) {
+    if (r.to === 'game' && this.readSave()) {
       this.settingsOnLand = notice;
       this.continueVoyage();
       return;
@@ -627,6 +686,7 @@ export class GameFlow implements GameBridge {
     const hasSave = patch.hasSave ?? this.state.hasSave;
     this.state = {
       ...this.state,
+      savedCourses: COURSES.filter((c) => readJson(courseKey(c.id, 'save'))).map((c) => c.id),
       save: hasSave ? this.saveSummary() : null,
       learn: this.learnSummary(),
       ...patch,
@@ -636,7 +696,7 @@ export class GameFlow implements GameBridge {
   }
 
   private saveSummary(): UiState['save'] {
-    const save = readJson<SaveData>(SAVE_KEY);
+    const save = this.readSave();
     if (!save) return null;
     return { location: save.place ?? 'Anchorage Cay', questsDone: this.questsDoneCount() };
   }
@@ -793,7 +853,11 @@ export class GameFlow implements GameBridge {
       // The island's code and the course's data (its lazy chunk: chapters, quests, labels, boards,
       // market, lock; the title only has its course.json) load behind the cabin: the cabin only
       // waits for itself and the fade. The course pack is active before the session reads any of it.
-      const islandCode = Promise.all([import('../world/cove-scene'), import('./session'), activateCourse()]);
+      const islandCode = Promise.all([
+        import('../world/cove-scene'),
+        import('./session'),
+        activateCourse(this.course),
+      ]);
       islandCode.catch(() => undefined);
       const [ready] = await Promise.all([
         prep.then(async (o) => (await o.prepare(), o)),
@@ -1114,12 +1178,12 @@ export class GameFlow implements GameBridge {
     const battles = this.session.battle.done();
     if (w.onShip) {
       // At sea the save keeps where you last stood ashore, with the battles brought up to date.
-      const last = readJson<SaveData>(SAVE_KEY);
+      const last = this.readSave();
       if (last && savedBattles(last.battles).length !== battles.length)
-        writeJson(SAVE_KEY, { ...last, battles } satisfies SaveData);
+        this.writeSave({ ...last, battles } satisfies SaveData);
       return;
     }
-    writeJson(SAVE_KEY, {
+    this.writeSave({
       captain,
       x: w.x,
       z: w.z,

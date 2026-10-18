@@ -1,0 +1,28 @@
+{
+  "$schema": "../schemas/boards.schema.json",
+  "$comment": "The course notice boards (docs/specs/COURSE-BOARDS.md): the header and pins, and which ## sections aren’t topics. In the text, {num} is the chapter’s number and {title} its title in the course.",
+  "header": {
+    "sign": ["Course Notices", "Chapter {num} · {title}"],
+    "kicker": "Course notices · Chapter {num}"
+  },
+  "pins": [
+    {
+      "link": "chapter",
+      "label": "This chapter",
+      "sign": "{num} · {title}",
+      "text": "{num} · {title}",
+      "aria": "Chapter {num}, {title}"
+    },
+    {
+      "link": "home",
+      "label": "The whole course",
+      "sign": "on GitHub",
+      "text": "GitHub Copilot CLI for Beginners",
+      "aria": "GitHub Copilot CLI for Beginners"
+    }
+  ],
+  "skip": {
+    "anchors": ["-youre-ready"],
+    "titlePrefixes": []
+  }
+}

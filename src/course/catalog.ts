@@ -1,4 +1,5 @@
 import COPILOT_APP from '../../courses/copilot-app/course.json';
+import COPILOT_CLI from '../../courses/copilot-cli/course.json';
 
 /**
  * The course catalog (docs/specs/COURSE-PACKS.md §2): every course pack's `course.json`, read at build
@@ -56,7 +57,7 @@ export interface CourseHooks {
   briefing: { lines: readonly string[]; chest: string };
   islands: Readonly<Record<string, IslandHooks>>;
   /** Wingman's last sailing line at the christening, and the one while Port Meridian is open. */
-  sail: { line: string; meridianOpen: string };
+  sail: { line: string; meridianOpen?: string };
   /** NPC id → the voiced lines they say when they've no script (instead of a bark). */
   npcVoiced: Readonly<Record<string, readonly string[]>>;
   /** Set pieces' lines by name (the gondola ride's). */
@@ -84,10 +85,18 @@ export interface CourseMeta {
     chapters: readonly CourseChapterMeta[];
   };
   islands: readonly CourseIslandMeta[];
-  /** The course's practice values (the player's own replace them once given: src/learn/setup.ts). */
-  practice: { issue: number; issueTitle: string; branch: string; repoName: string };
-  /** The "Your setup" forms' words (src/ui/learn/SetupForm.tsx). */
-  setup: SetupCopy;
+  /**
+   * Whether the course's lines have voices (default true). A text-only course (`false`) shows each
+   * line's caption for its reading time, and a press moves it on (COURSE-PACKS.md §5).
+   */
+  voice?: boolean;
+  /**
+   * The course's practice values (the player's own replace them once given: src/learn/setup.ts). A
+   * course without a practice repository leaves them out.
+   */
+  practice?: { issue: number; issueTitle: string; branch: string; repoName: string };
+  /** The "Your setup" forms' words (src/ui/learn/SetupForm.tsx), for a course that asks for them. */
+  setup?: SetupCopy;
   hooks: CourseHooks;
 }
 
@@ -122,14 +131,46 @@ function meta(file: object): CourseMeta {
   return Object.fromEntries(Object.entries(file).filter(([k]) => k !== '$schema')) as unknown as CourseMeta;
 }
 
-export const COURSES: readonly CourseMeta[] = [meta(COPILOT_APP)];
+/** Every course, in the picker's order. A new course adds one line here. */
+export const COURSES: readonly CourseMeta[] = [meta(COPILOT_APP), meta(COPILOT_CLI)];
 
-/** The course every voyage uses until there's a picker (COURSE-PACKS.md §8). */
-export const COURSE: CourseMeta = COURSES[0]!;
+/** The course a save without one is (every save before course packs was this course's). */
+export const DEFAULT_COURSE_ID = 'copilot-app';
+
+/**
+ * The course the player's in: the one picked at the title (or the last one played), set before its
+ * pack loads, and kept by the pack's activation (src/course/active.ts). A live binding: read it when
+ * you need it, not into a constant at module load.
+ */
+export let COURSE: CourseMeta = COURSES[0]!;
 
 export function courseMeta(id: string): CourseMeta | null {
   return COURSES.find((c) => c.id === id) ?? null;
 }
+
+const selected: ((c: CourseMeta) => void)[] = [];
+
+/**
+ * Runs `build` with the current course now and whenever another is selected: for what a module keeps
+ * from `course.json` (the chart's islands, the cabin's lines), so it follows the picker.
+ */
+export function onCourseSelected(build: (c: CourseMeta) => void): void {
+  selected.push(build);
+  build(COURSE);
+}
+
+/** Makes a course the current one (an unknown id keeps the default). */
+export function selectCourse(id: string): CourseMeta {
+  const next = courseMeta(id) ?? courseMeta(DEFAULT_COURSE_ID)!;
+  if (next !== COURSE) {
+    COURSE = next;
+    for (const b of selected) b(next);
+  }
+  return COURSE;
+}
+
+/** Whether a course's lines have voices (a text-only course's don't). */
+export const courseVoiced = (c: CourseMeta = COURSE): boolean => c.voice !== false;
 
 /**
  * Where a course's own files are served: its snapshot (`course/…`) and voice (`voice/…`), from the

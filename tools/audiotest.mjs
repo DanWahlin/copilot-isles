@@ -371,6 +371,12 @@ async function playFlow(page, mark, errors) {
   await page.waitForTimeout(600);
   mark('captain');
   p = await clickEl(page, '.ci-menu-list button:has-text("New Voyage")', p);
+  // With more than one course pack, New Voyage lists them first: the voiced course is the one to hear.
+  await until(page, () => ['course', 'captain'].includes(window.__flow.getState().screen), null, 8000);
+  if ((await page.evaluate(() => window.__flow.getState().screen)) === 'course') {
+    await page.waitForTimeout(600);
+    p = await clickEl(page, '[data-course="copilot-app"]', p);
+  }
   await until(page, () => window.__flow.getState().screen === 'captain', null, 8000);
   await page.waitForTimeout(600);
   p = await clickEl(page, 'input[placeholder="What should the crew call you?"]', p);

@@ -144,6 +144,8 @@ function YourComputer({ state, setOs }: { state: UiState; setOs: (os: OsId | nul
   const detected = state.learn.osDetected ?? detectOs();
   const os = state.learn.os ?? null;
   const names: Record<string, string> = { auto: `Auto (${OS_NAMES[detected]})`, ...OS_NAMES };
+  // The course's shortcut line (a course without setup forms has none).
+  const setup = COURSE.setup;
   return (
     <SettingsGroup title="Your computer">
       <Select
@@ -153,15 +155,17 @@ function YourComputer({ state, setOs }: { state: UiState; setOs: (os: OsId | nul
         names={names}
         onChange={(v) => setOs(v === 'auto' ? null : (v as OsId))}
       />
-      <p className="ci-setting-note">
-        <Rich
-          text={COURSE.setup.os.note}
-          values={{
-            keys: formatKeys(COURSE.setup.os.shortcut, os ?? detected),
-            os: OS_NAMES[os ?? detected],
-          }}
-        />
-      </p>
+      {setup && (
+        <p className="ci-setting-note">
+          <Rich
+            text={setup.os.note}
+            values={{
+              keys: formatKeys(setup.os.shortcut, os ?? detected),
+              os: OS_NAMES[os ?? detected],
+            }}
+          />
+        </p>
+      )}
     </SettingsGroup>
   );
 }

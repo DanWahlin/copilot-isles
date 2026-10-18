@@ -2,7 +2,13 @@ import { onPierDeck } from '../world/islands/anchorage/village';
 import { spyglassSpeakerPan } from '../learn/spyglass-layout';
 import { CHART_LABELS, chartLabel, firstShowing } from '../learn/content/labels';
 import { barksFor } from '../course/active';
-import { courseVoiceBase, islandHooks, welcomeLines as courseWelcome } from '../course/catalog';
+import {
+  COURSE,
+  courseIsland,
+  courseVoiceBase,
+  islandHooks,
+  welcomeLines as courseWelcome,
+} from '../course/catalog';
 import { Vector3, type Group, type Object3D } from 'three/webgpu';
 import { buildSlice } from '../engine/build-slice';
 import { releaseRemovedObjects } from '../util/dispose-three';
@@ -467,6 +473,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       glancers.push(other);
     }
   });
+  // A text-only course's caption has a button that moves the conversation on (touch parity with E).
+  hud.onNext = () => dialogue.next();
 
   // Player: stepUp covers the 0.6 m quay-to-pier lip.
   const player = new PlayerController({ stepUp: 0.66 });
@@ -1668,11 +1676,13 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       for (const fn of setupListeners) fn(id, setup);
     });
   };
+  // A course that doesn't use an island leaves it as scenery: no cast, sites or puzzles there.
+  const inCourse = (id: IslandId) => !!courseIsland(id, COURSE);
   const onMeridianTown = (town: NonNullable<CoveScene['meridian']['town']>) =>
-    runSetup('meridian', () => setupMeridian(town));
+    runSetup('meridian', async () => (inCourse('meridian') ? setupMeridian(town) : noMeridian));
   const onThousandBough = (sys: ThousandBoughSystem) =>
     runSetup('thousand-bough', async () => {
-      if (!tb || disposed) return noMeridian;
+      if (!tb || disposed || !inCourse('thousand-bough')) return noMeridian;
       const setup = await tb.setup(sys);
       if (!disposed && cove.thousandBough.system === sys) addCourseBoard('thousand-bough');
       return setup;

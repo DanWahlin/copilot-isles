@@ -9,6 +9,7 @@ import type { OsId } from '../learn/setup';
  */
 export type Screen =
   | 'title'
+  | 'course'
   | 'captain'
   | 'voyage-loading'
   | 'playing'
@@ -167,6 +168,11 @@ export interface UiState {
   /** The screen to return to when closing settings/controls/credits/chart. */
   returnTo: Screen;
   progress: VoyageProgress;
+  /** The current course's id (the course list's pick, or the last one played). */
+  course: string;
+  /** The courses with a saved voyage (the course list marks them). */
+  savedCourses?: readonly string[];
+  /** A save of the current course to continue. */
   hasSave: boolean;
   save: SaveSummary | null;
   learn: LearnSummary;
@@ -188,6 +194,10 @@ export interface GameBridge {
   subscribe(listener: (state: UiState) => void): () => void;
   newVoyage(captain: CaptainBody, names?: VoyageNames): void;
   continueVoyage(): void;
+  /** Title's New Voyage → the course list (more than one course), else captain select. */
+  chooseCourse(): void;
+  /** The course list's pick → captain select for that course. */
+  pickCourse(id: string): void;
   /** Title → captain select. */
   chooseCaptain(): void;
   resume(): void;

@@ -1,8 +1,9 @@
 # Copilot Isles
 
-A pirate island adventure in the browser that teaches the **GitHub Copilot app**. Each island is one
-chapter of the [GitHub Copilot app for Beginners](https://github.com/github/copilot-app-for-beginners)
-course.
+A pirate island adventure in the browser that teaches GitHub Copilot. Each island is one chapter of a
+course: pick the [GitHub Copilot app for Beginners](https://github.com/github/copilot-app-for-beginners)
+or the [GitHub Copilot CLI for Beginners](https://github.com/github/copilot-cli-for-beginners) course
+when you start a voyage.
 
 **▶ Play the early preview: https://danwahlin.github.io/copilot-isles/**
 
@@ -21,6 +22,19 @@ course.
 
 Every lesson cites its course chapter and section. A desktop browser with WebGPU or WebGL2 works
 best. Use the keyboard and mouse or a gamepad; the **Controls** screen lists every key.
+
+## Courses
+
+The game is the same for every course; a **course pack** (`courses/<id>/`) holds everything a course
+says: its chapters, quests, NPC lines, quizzes, puzzle content, signs and voice lines.
+
+| Course                                                                                                 | Pack                   | Islands                                           | Voices        |
+| ------------------------------------------------------------------------------------------------------ | ---------------------- | ------------------------------------------------- | ------------- |
+| [GitHub Copilot app for Beginners](https://github.com/github/copilot-app-for-beginners) (MIT © GitHub) | `courses/copilot-app/` | Anchorage Cay, Port Meridian, Thousand-Bough Isle | Voiced        |
+| [GitHub Copilot CLI for Beginners](https://github.com/github/copilot-cli-for-beginners) (MIT © GitHub) | `courses/copilot-cli/` | Anchorage Cay (Chapter 00 · Quick Start)          | Captions only |
+
+**New Voyage** lists the courses, and **Continue** picks up the last one you played (each course keeps
+its own save). To add one, see [Adding a course](docs/adding-a-course.md).
 
 ## Run it locally
 
@@ -52,7 +66,8 @@ More commands, the stack, and the project rules are in
   [Model Market](docs/specs/MODEL-MARKET.md)
 - **Model list:** the Model Market's models come from GitHub Docs (`npm run models:sync`). A weekly
   workflow (`models-refresh.yml`) opens a PR when they change; merging it deploys the site.
-- **Course content:** [course packs](docs/specs/COURSE-PACKS.md) (everything a course says is data,
+- **Course content:** [adding a course](docs/adding-a-course.md) ·
+  [course packs](docs/specs/COURSE-PACKS.md) (everything a course says is data,
   in `courses/<id>/`: chapters, quests and scripts, labels, boards, the Model Market, voice lines and
   their audio, the course snapshot) · [content data](docs/content-data.md) (each file, how to edit it,
   and how a change reaches players) · [authoring guide](docs/course-content-authoring.md)

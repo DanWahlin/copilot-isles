@@ -182,7 +182,10 @@ describe('your setup in the save', () => {
     expect(parseProgress('{"v":1,"setup":"linux"}').setup).toEqual(EMPTY_SETUP);
     expect(cleanSetup({ issue: 3.5, model: { pick: 'gpt' } })).toEqual(EMPTY_SETUP);
     // The export code carries it.
-    expect(importCode(exportCode(new Progress(storage).data))?.setup).toEqual({ ...YOURS, branch: null });
+    expect(importCode(exportCode(new Progress(storage).data))?.progress.setup).toEqual({
+      ...YOURS,
+      branch: null,
+    });
   });
 
   it('asks through the store: saving keeps it, skipping changes nothing, a new voyage forgets', async () => {

@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "A course pack's classify puzzle (courses/<id>/puzzles/<name>.json)",
-  "description": "Sort each item into the bin it belongs in (crates by where the work runs, letters into the Settings cubbies, orders onto the flag that brings them). `bins` are the places in key order; `items` are what you sort, each with its answer and the reason a wrong pick gets; a `tray` is the 'none of these' bin. Every puzzle file has an `id`, its `mechanic`, and may set `disabled` (the site stays as scenery), `text` (its words by key, `{name}` filled in by the game) and `lines` (its voice line ids by what they're for). docs/specs/COURSE-PACKS.md §4.",
+  "description": "Sort each item into the bin it belongs in (crates by where the work runs, letters into the Settings cubbies, orders onto the flag that brings them). `bins` are the places in key order; `items` are what you sort, each with its answer and the reason a wrong pick gets; a `tray` is the 'none of these' bin. A puzzle the course runs has its mechanic's fields; a `\"disabled\": true` file needs none. Every puzzle file has an `id`, its `mechanic`, and may set `disabled` (the site stays as scenery), `text` (its words by key, `{name}` filled in by the game) and `lines` (its voice line ids by what they're for). docs/specs/COURSE-PACKS.md §4.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "mechanic", "bins", "items"],
+  "required": ["id", "mechanic"],
   "properties": {
     "$schema": {
       "type": "string"

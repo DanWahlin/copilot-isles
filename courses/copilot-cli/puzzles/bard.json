@@ -1,0 +1,7 @@
+{
+  "$schema": "../../schemas/puzzle-ceremony.schema.json",
+  "id": "Q0.9.bard",
+  "mechanic": "ceremony",
+  "$comment": "Off in this course: Lyra has no soundcheck here (Chapter 00 has no studio analogy).",
+  "disabled": true
+}

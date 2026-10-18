@@ -1,0 +1,525 @@
+{
+  "$schema": "../../schemas/quests.schema.json",
+  "island": "anchorage",
+  "tracker": {
+    "chapter": "Chapter 00 · Quick Start",
+    "goal": "Install Copilot CLI and earn the Seal of Anchorage",
+    "next": "The other islands aren’t charted in this course yet. Until they are, these waters are yours, and the compass points back to the pier."
+  },
+  "quests": [
+    {
+      "id": "Q0.2",
+      "title": "Captain’s Papers",
+      "task": "Check your Copilot access",
+      "link": {
+        "label": "Check your Copilot status",
+        "url": "https://github.com/settings/copilot"
+      },
+      "steps": {
+        "start": "Talk to Nell Tidewell by the harbourmaster’s door.",
+        "done": "You’ve got a GitHub account with Copilot access, and terminal basics."
+      }
+    },
+    {
+      "id": "Q0.3",
+      "title": "The Course Aboard",
+      "task": "Get the course: a Codespace, or a clone",
+      "link": {
+        "label": "Fork the course repository",
+        "url": "https://github.com/github/copilot-cli-for-beginners/fork"
+      },
+      "steps": {
+        "start": "Find Ezra Quill at his chart table by the pier.",
+        "done": "The course and its book app are aboard."
+      }
+    },
+    {
+      "id": "Q0.4",
+      "title": "Copilot CLI Aboard",
+      "task": "Install GitHub Copilot CLI",
+      "steps": {
+        "start": "Bo Marlin, the quartermaster, is at his gear rack beside Ezra.",
+        "done": "Copilot CLI is installed (or ready in your Codespace)."
+      }
+    },
+    {
+      "id": "Q0.7",
+      "title": "Trust and Sign In",
+      "task": "Trust the folder and sign in with /login",
+      "steps": {
+        "start": "Find Pim and Pol at the crane at the end of the pier.",
+        "done": "The folder’s trusted, and you’re signed in."
+      }
+    },
+    {
+      "id": "Q0.8",
+      "title": "First Words",
+      "task": "Check that Copilot CLI works",
+      "steps": {
+        "start": "Find Juno, your first mate, on the pier beside your ship.",
+        "pipes": "Ask Copilot to say hello. Which fitting on your ship’s rail carries a request to Copilot?",
+        "done": "Copilot CLI answered: it works."
+      }
+    },
+    {
+      "id": "Q0.10",
+      "title": "The Harbormaster’s Trial",
+      "task": "Pass the Trial to earn the Seal",
+      "steps": {
+        "start": "Nell’s waiting by your bow at the end of the pier.",
+        "done": "The Seal of Anchorage is yours."
+      }
+    },
+    {
+      "id": "Q0.11",
+      "title": "Christen Your Ship",
+      "task": "Name your ship and set sail",
+      "steps": {
+        "start": "Talk to Nell by your bow at the end of the pier.",
+        "sail": "The gangway’s down. Walk up it to take the helm.",
+        "done": "Your ship has her name, and you’ve taken her out."
+      }
+    }
+  ],
+  "targets": {
+    "Q0.2:start": {
+      "ids": ["npc:nell"],
+      "label": "Nell Tidewell"
+    },
+    "Q0.3:start": {
+      "ids": ["npc:merchant"],
+      "label": "Ezra Quill"
+    },
+    "Q0.4:start": {
+      "ids": ["npc:dockhand_b"],
+      "label": "Bo Marlin"
+    },
+    "Q0.7:start": {
+      "ids": ["npc:pim", "npc:pol"],
+      "label": "Pim and Pol"
+    },
+    "Q0.8:start": {
+      "ids": ["npc:juno"],
+      "label": "Juno"
+    },
+    "Q0.8:pipes": {
+      "ids": ["pipe:*"],
+      "label": "Your ship’s rail"
+    },
+    "Q0.10:start": {
+      "ids": ["npc:nell"],
+      "label": "Nell, by your bow"
+    },
+    "Q0.11:start": {
+      "ids": ["npc:nell"],
+      "label": "Nell, by your bow"
+    },
+    "Q0.11:sail": {
+      "ids": ["ship:board"],
+      "label": "The gangway"
+    }
+  },
+  "beats": [
+    {
+      "npc": "nell",
+      "when": {
+        "Q0.2": [null, "start"]
+      },
+      "script": "nell.papers"
+    },
+    {
+      "npc": "nell",
+      "when": {
+        "Q0.10": "start"
+      },
+      "script": "nell.trial"
+    },
+    {
+      "npc": "nell",
+      "when": {
+        "Q0.11": "start"
+      },
+      "script": "christening"
+    },
+    {
+      "npc": "nell",
+      "when": {
+        "Q0.11": ["sail", "done"]
+      },
+      "say": "cli.nell.christen.03"
+    },
+    {
+      "npc": "nell",
+      "when": {
+        "Q0.10": "done"
+      },
+      "say": "cli.nell.done.02"
+    },
+    {
+      "npc": "nell",
+      "say": "cli.nell.done.01"
+    },
+    {
+      "npc": "merchant",
+      "when": {
+        "Q0.2": {
+          "not": "done"
+        }
+      },
+      "say": "cli.ezra.wait.01"
+    },
+    {
+      "npc": "merchant",
+      "when": {
+        "Q0.3": {
+          "not": "done"
+        }
+      },
+      "script": "ezra.course"
+    },
+    {
+      "npc": "dockhand_b",
+      "when": {
+        "Q0.3": {
+          "not": "done"
+        }
+      },
+      "none": true
+    },
+    {
+      "npc": "dockhand_b",
+      "when": {
+        "Q0.4": "done"
+      },
+      "none": true
+    },
+    {
+      "npc": "dockhand_b",
+      "script": "bo.install"
+    },
+    {
+      "npc": "pim",
+      "when": {
+        "Q0.7": null
+      },
+      "say": "cli.pim.idle.waiting"
+    },
+    {
+      "npc": "pol",
+      "when": {
+        "Q0.7": null
+      },
+      "say": "cli.pol.idle.waiting"
+    },
+    {
+      "npc": ["pim", "pol"],
+      "when": {
+        "Q0.7": "start"
+      },
+      "script": "signin"
+    },
+    {
+      "npc": "pim",
+      "say": "cli.pim.done.01"
+    },
+    {
+      "npc": "pol",
+      "say": "cli.pol.done.01"
+    },
+    {
+      "npc": "juno",
+      "when": {
+        "Q0.8": null
+      },
+      "none": true
+    },
+    {
+      "npc": "juno",
+      "when": {
+        "Q0.8": "start"
+      },
+      "script": "juno.brief"
+    },
+    {
+      "npc": "juno",
+      "when": {
+        "Q0.8": "pipes"
+      },
+      "say": "cli.juno.pipes.01"
+    },
+    {
+      "npc": "juno",
+      "when": {
+        "Q0.10": "done"
+      },
+      "say": "cli.juno.done.sealed.01"
+    },
+    {
+      "npc": "juno",
+      "say": "cli.juno.done.01"
+    }
+  ],
+  "scripts": {
+    "nell.papers": [
+      {
+        "say": "cli.nell.papers.01"
+      },
+      {
+        "say": "cli.nell.papers.02"
+      },
+      {
+        "cue": "nell-chest"
+      },
+      {
+        "say": "cli.nell.papers.03"
+      },
+      {
+        "page": "pg.access",
+        "doubloons": 10
+      },
+      {
+        "quiz": "S0.1"
+      },
+      {
+        "say": "cli.nell.papers.04"
+      },
+      {
+        "quest": "Q0.2",
+        "step": "done"
+      },
+      {
+        "quest": "Q0.3",
+        "step": "start"
+      }
+    ],
+    "ezra.course": [
+      {
+        "say": "cli.ezra.01"
+      },
+      {
+        "say": "cli.ezra.02"
+      },
+      {
+        "page": "pg.codespace",
+        "doubloons": 10
+      },
+      {
+        "say": "cli.ezra.03"
+      },
+      {
+        "file": "pg.clone"
+      },
+      {
+        "quiz": "S0.3"
+      },
+      {
+        "say": "cli.ezra.04"
+      },
+      {
+        "quest": "Q0.3",
+        "step": "done"
+      },
+      {
+        "quest": "Q0.4",
+        "step": "start"
+      }
+    ],
+    "bo.install": [
+      {
+        "say": "cli.bo.01"
+      },
+      {
+        "term": "cli"
+      },
+      {
+        "say": "cli.bo.02"
+      },
+      {
+        "page": "pg.install",
+        "doubloons": 10
+      },
+      {
+        "quiz": "S0.4"
+      },
+      {
+        "say": "cli.bo.03"
+      },
+      {
+        "say": "cli.bo.04"
+      },
+      {
+        "quest": "Q0.4",
+        "step": "done"
+      },
+      {
+        "quest": "Q0.7",
+        "step": "start"
+      }
+    ],
+    "signin": [
+      {
+        "say": "cli.pim.01"
+      },
+      {
+        "say": "cli.pol.01"
+      },
+      {
+        "show": "ch00/copilot-trust",
+        "caption": "Start `copilot` at the repository root, then trust the folder: one time, or across all future sessions."
+      },
+      {
+        "say": "cli.pim.02"
+      },
+      {
+        "hide": true
+      },
+      {
+        "term": "slash-command"
+      },
+      {
+        "say": "cli.pol.02"
+      },
+      {
+        "show": "ch00/auth-device-flow",
+        "caption": "The device code flow: visit **github.com/login/device** on another machine and enter the code."
+      },
+      {
+        "say": "cli.pim.03"
+      },
+      {
+        "hide": true
+      },
+      {
+        "quiz": "S0.5"
+      },
+      {
+        "page": "pg.signin",
+        "doubloons": 10
+      },
+      {
+        "say": "cli.pol.03"
+      },
+      {
+        "quest": "Q0.7",
+        "step": "done"
+      },
+      {
+        "quest": "Q0.8",
+        "step": "start"
+      },
+      {
+        "say": "cli.pim.done.01"
+      }
+    ],
+    "juno.brief": [
+      {
+        "say": "cli.juno.brief.01"
+      },
+      {
+        "say": "cli.juno.brief.02"
+      },
+      {
+        "say": "cli.juno.brief.03"
+      },
+      {
+        "quest": "Q0.8",
+        "step": "pipes"
+      }
+    ],
+    "nell.trial": [
+      {
+        "say": "cli.nell.trial.01"
+      },
+      {
+        "say": "cli.wingman.trial.01"
+      },
+      {
+        "trial": "T0"
+      },
+      {
+        "cue": "celebrate"
+      },
+      {
+        "cue": "anchorage-lighthouse"
+      },
+      {
+        "quest": "Q0.10",
+        "step": "done"
+      },
+      {
+        "say": "cli.nell.trial.02"
+      },
+      {
+        "quest": "Q0.11",
+        "step": "start"
+      },
+      {
+        "script": "christening"
+      }
+    ],
+    "christening": [
+      {
+        "say": "cli.nell.christen.01"
+      },
+      {
+        "text": "I name this ship {ship}!"
+      },
+      {
+        "cue": "christen"
+      },
+      {
+        "say": "cli.nell.christen.02"
+      },
+      {
+        "say": "cli.juno.christen.01"
+      },
+      {
+        "say": "cli.wingman.sail.01"
+      },
+      {
+        "say": "cli.wingman.sail.02"
+      },
+      {
+        "say": "cli.wingman.sail.03"
+      },
+      {
+        "quest": "Q0.11",
+        "step": "sail"
+      }
+    ]
+  },
+  "notes": {
+    "nell.papers": "Captain’s Papers (Q0.2): the prerequisites and what Copilot access means (00 §Prerequisites, §What \"Copilot Access\" Means). Nell opens chest C0.1 (the `nell-chest` cue).",
+    "ezra.course": "The course aboard (Q0.3): a GitHub Codespace, or a clone (00 §Installation).",
+    "bo.install": "Install the CLI (Q0.4): npm, Homebrew, WinGet or the install script (00 §Local Installation).",
+    "signin": "Sign in (Q0.7, Pim and Pol at the crane, which stays scenery in this course): trust the folder, /login, the device code flow (00 §Authentication).",
+    "juno.brief": "First words (Q0.8): the first-words puzzle (puzzles/first-words.json) asks the course’s Step 1 prompt at Copilot’s prompt, not the shell (00 §Verify It Works).",
+    "nell.trial": "The Harbormaster’s Trial (Q0.10) and the christening (Q0.11)."
+  },
+  "barks": {
+    "merchant": [
+      "A Codespace or a clone: either way, the book app comes aboard.",
+      "Fork it first, then Code, Codespaces, Create codespace on main."
+    ],
+    "dockhand_b": [
+      "Got Node.js? npm’s a quick way to get the CLI.",
+      "In a Codespace, the CLI’s already aboard."
+    ],
+    "dockhand_a": ["Mind the bollards!", "Tide waits for no one.", "Heard you’re sailing soon. Fair winds!"],
+    "fisherman": ["Fish bite best when the terminal’s quiet.", "Patience, Captain. Same as prompting."],
+    "old_sailor": [
+      "Sailed with three captains. The good ones read the logbook.",
+      "Aye, that lighthouse has seen things."
+    ],
+    "child": ["Race you to the lighthouse!", "Is that your ship? It’s so big!"],
+    "suri": ["The mill’s quiet today, Captain. Fair winds.", "The spring never stops. Nice, isn’t it?"],
+    "pim": ["Trust the folder, then /login.", "Sign in once. It sticks."],
+    "pol": ["No browser? You get a one-time code instead.", "Token expired? Run /login again."],
+    "juno": [
+      "The crew’s ready when you are, Captain. Finish your setup first.",
+      "A good first mate listens more than she talks."
+    ],
+    "lyra": ["Every island has its own tune, Captain.", "Hush. The reef’s keeping time."],
+    "lookout": ["Clear skies to the horizon, Captain."]
+  }
+}

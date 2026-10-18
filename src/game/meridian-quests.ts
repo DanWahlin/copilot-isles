@@ -1,5 +1,5 @@
-import { courseScript, islandQuests, onCourse } from '../course/active';
-import { welcomeLines } from '../course/catalog';
+import { courseScript, hasIslandQuests, islandQuests, onCourse } from '../course/active';
+import { onCourseSelected, welcomeLines } from '../course/catalog';
 import type { QuestDef, QuestTarget } from '../course/pack';
 import { beatSteps, pickBeat, type Beat } from './beats';
 import type { QuestState, QuestTracker, TrackerStatus } from './cove-quests';
@@ -39,6 +39,15 @@ export let PELL_SOLVED: readonly ScriptStep[] = [];
 const script = (name: string) => courseScript(ISLAND, name);
 
 onCourse(() => {
+  // A course without Port Meridian: nothing to do there (the island isn't open in it).
+  if (!hasIslandQuests(ISLAND)) {
+    MERIDIAN_QUESTS = [];
+    MAIN = [];
+    BEATS = [];
+    MERIDIAN_TARGETS = {};
+    ANDERS_SOLVED = PELL_LETTERS_DEBRIEF = PELL_SOLVED = [];
+    return;
+  }
   const q = islandQuests(ISLAND);
   MERIDIAN_ISLAND = { name: 'Port Meridian', ...q.tracker };
   MERIDIAN_QUESTS = q.quests;
@@ -99,7 +108,10 @@ export function meridianLog(q: QuestState): { id: string; title: string; detail:
 }
 
 /** Wingman's lines on the first landfall, once the flyover lands behind the captain. */
-export const MERIDIAN_WELCOME: readonly string[] = welcomeLines('meridian', false);
+export let MERIDIAN_WELCOME: readonly string[] = [];
+onCourseSelected(() => {
+  MERIDIAN_WELCOME = welcomeLines('meridian', false);
+});
 
 /**
  * The beat a Meridian NPC offers right now: the first of the island's beats (`quests/meridian.json` →

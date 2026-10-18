@@ -1,0 +1,19 @@
+{
+  "$schema": "../schemas/labels.schema.json",
+  "$comment": "Chart labels (docs/specs/LOWER-THIRDS.md): what you learn at an island, a puzzle or a sea battle, from the GitHub Copilot CLI course.",
+  "labels": {
+    "arrival:anchorage": {
+      "game": "arrival",
+      "k": "Anchorage Cay · Landfall",
+      "t": "Get GitHub Copilot CLI running",
+      "b": "Install the CLI, sign in with your GitHub account, and check it works with a simple test.",
+      "ch": "00",
+      "c": "Quick Start",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "-learning-objectives",
+        "hash": "ebc41219c3d0"
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import type { ScriptStep } from '../game/script';
+import { selectCourse } from './catalog';
 import type { CoursePack, IslandQuests } from './pack';
 
 /**
@@ -21,6 +22,7 @@ export function onCourse(build: (p: CoursePack) => void): void {
 export function setActiveCourse(p: CoursePack): void {
   if (active === p) return;
   active = p;
+  selectCourse(p.id);
   for (const h of hooks) h(p);
 }
 
@@ -32,6 +34,11 @@ export function hasActiveCourse(): boolean {
 export function coursePack(): CoursePack {
   if (!active) throw new Error('No course pack is active yet (src/course/load.ts activates it)');
   return active;
+}
+
+/** Whether the active course has quests on an island (a course may use only some islands). */
+export function hasIslandQuests(island: string): boolean {
+  return !!active?.quests[island];
 }
 
 /** An island's quests in the active course. */

@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "A course pack's procedure puzzle (courses/<id>/puzzles/<name>.json)",
-  "description": "A procedure with a dry run: aim, preview, check, then run it for real. The crane's targets (berths), its spare names, the cargo it lands, the command and the readout's tones. Every puzzle file has an `id`, its `mechanic`, and may set `disabled` (the site stays as scenery), `text` (its words by key, `{name}` filled in by the game) and `lines` (its voice line ids by what they're for). docs/specs/COURSE-PACKS.md §4.",
+  "description": "A procedure with a dry run: aim, preview, check, then run it for real. The crane's targets (berths), its spare names, the cargo it lands, the command and the readout's tones. A puzzle the course runs has its mechanic's fields; a `\"disabled\": true` file needs none. Every puzzle file has an `id`, its `mechanic`, and may set `disabled` (the site stays as scenery), `text` (its words by key, `{name}` filled in by the game) and `lines` (its voice line ids by what they're for). docs/specs/COURSE-PACKS.md §4.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "mechanic", "command"],
+  "required": ["id", "mechanic"],
   "properties": {
     "$schema": {
       "type": "string"

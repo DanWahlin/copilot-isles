@@ -1,4 +1,4 @@
-import { courseVoiceBase } from '../course/catalog';
+import { COURSE, courseVoiceBase } from '../course/catalog';
 import {
   Group,
   Vector2,
@@ -285,6 +285,23 @@ export function createOpening(o: OpeningOptions): Opening {
   let guide: Character | null = null;
   let greeted = false;
   let briefing: Briefing | null = null;
+  /** The course Juno's lines are for (the opening builds on the title, before the course is picked). */
+  let briefingCourse = '';
+  const loadLines = () => {
+    const course = COURSE.id;
+    briefingCourse = course;
+    briefing = null;
+    void loadBriefing(new URL(courseVoiceBase(), location.href).toString())
+      .then((lines) => {
+        if (!disposed && briefingCourse === course)
+          briefing = new Briefing(lines, {
+            onLine: speakLine,
+            onWord: lightCaption,
+            ready: (id) => o.audio()?.voiceReady(id) ?? true,
+          });
+      })
+      .catch(() => undefined);
+  };
   let briefingSkipped = false;
   /** The talk keeps wall-clock time (its voice does), not the beat's capped frame steps. */
   let talkClock = -1;
@@ -308,13 +325,16 @@ export function createOpening(o: OpeningOptions): Opening {
       line.words.map((w) => w.word),
     );
     const tokens = aligned?.tokens ?? line.words.map((w) => w.word);
-    tokens.forEach((token, i) => {
-      const span = document.createElement('span');
-      span.textContent = token;
-      span.dataset.at = String(aligned?.at[i] ?? i);
-      captionWords.push(span);
-      body.append(span, ' ');
-    });
+    // A text-only course's line has no word timings: the whole line at once.
+    if (!line.words.length) body.textContent = line.text;
+    else
+      tokens.forEach((token, i) => {
+        const span = document.createElement('span');
+        span.textContent = token;
+        span.dataset.at = String(aligned?.at[i] ?? i);
+        captionWords.push(span);
+        body.append(span, ' ');
+      });
     captionEl.replaceChildren(speaker, body);
     captionEl.classList.add('show');
   }
@@ -695,16 +715,7 @@ export function createOpening(o: OpeningOptions): Opening {
     if (disposed) return;
     await document.fonts?.ready;
     // Juno's lines load alongside (small: five word lists and the shared lip-sync cues).
-    void loadBriefing(new URL(courseVoiceBase(), location.href).toString())
-      .then((lines) => {
-        if (!disposed)
-          briefing = new Briefing(lines, {
-            onLine: speakLine,
-            onWord: lightCaption,
-            ready: (id) => o.audio()?.voiceReady(id) ?? true,
-          });
-      })
-      .catch(() => undefined);
+    loadLines();
     const art = drawChartArt(grids);
     // Sun shadows only where the tier has them (the world's sky makes the same choice, so the
     // renderer's shadow switch, and so every pipeline, stays as compiled).
@@ -929,6 +940,8 @@ export function createOpening(o: OpeningOptions): Opening {
       camera.updateMatrixWorld();
     },
     async play(underVeil) {
+      // Another course was picked after the opening built: Juno says that course's lines.
+      if (briefingCourse && briefingCourse !== COURSE.id) loadLines();
       sliceBudget.ms = Infinity;
       flatOut = true;
       await api.prepare();

@@ -148,8 +148,9 @@ describe('progress', () => {
     p.add('seals', 'Seal of Anchorage ⚓');
     p.addDoubloons(12);
     const back = importCode(exportCode(p.data));
-    expect(back?.seals).toEqual(['Seal of Anchorage ⚓']);
-    expect(back?.doubloons).toBe(12);
+    expect(back?.course).toBe('copilot-app');
+    expect(back?.progress.seals).toEqual(['Seal of Anchorage ⚓']);
+    expect(back?.progress.doubloons).toBe(12);
     expect(importCode('not base64 !!')).toBeNull();
   });
 });

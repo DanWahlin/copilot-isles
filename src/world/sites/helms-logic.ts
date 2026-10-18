@@ -1,6 +1,6 @@
 import { onCourse } from '../../course/active';
 import type { PuzzleFile } from '../../course/pack';
-import { puzzleContent } from '../../course/puzzles';
+import { puzzleMaybe } from '../../course/puzzles';
 /**
  * P1.2 The Three Helms (Chapter 01, Rhea): three orders sailed in your own ship, out in the bay south
  * of Port Meridian's harbour mouth. At each buoy Rhea hands you an order card, written from the use
@@ -74,11 +74,9 @@ export let MODE_INFO: Readonly<Record<HelmMode, { name: string; says: string }>>
 >;
 export let HELM_ORDERS: Readonly<Record<HelmMode, HelmOrder>> = {} as Record<HelmMode, HelmOrder>;
 onCourse(() => {
-  const c = puzzleContent<PuzzleFile & { modes: typeof MODE_INFO; orders: typeof HELM_ORDERS }>(
-    'three-helms',
-  );
-  MODE_INFO = c.modes;
-  HELM_ORDERS = c.orders;
+  const c = puzzleMaybe<PuzzleFile & { modes: typeof MODE_INFO; orders: typeof HELM_ORDERS }>('three-helms');
+  MODE_INFO = c?.modes ?? ({} as typeof MODE_INFO);
+  HELM_ORDERS = c?.orders ?? ({} as typeof HELM_ORDERS);
 });
 
 /** How close to a buoy you hear its order (each run stops about 28 m from the next buoy). */

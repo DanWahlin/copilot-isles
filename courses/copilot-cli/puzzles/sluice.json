@@ -1,0 +1,7 @@
+{
+  "$schema": "../../schemas/puzzle-route.schema.json",
+  "id": "P0.1",
+  "mechanic": "route",
+  "$comment": "Off in this course: Chapter 00 has no GitHub Actions step, so Suri’s mill stays scenery (its boards blank).",
+  "disabled": true
+}

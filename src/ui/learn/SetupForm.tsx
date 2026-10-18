@@ -34,17 +34,18 @@ import { Rich as RichText } from '../components/Rich';
 import { useFormKeys } from './ForkForm';
 
 /** The forms' words: the course's (course.json `setup`). */
-const COPY = COURSE.setup;
-const VALUES = { issue: COURSE_ISSUE, issueTitle: COURSE_ISSUE_TITLE, branch: COURSE_BRANCH };
+// Only a course with `setup` asks for these forms (its scripts' `askSetup` steps).
+const copy = () => COURSE.setup!;
+const values = () => ({ issue: COURSE_ISSUE, issueTitle: COURSE_ISSUE_TITLE, branch: COURSE_BRANCH });
 
 /** The course's copy with {issue}, {issueTitle} and {branch} filled. */
 function Rich({ text }: { text: string }) {
-  return <RichText text={text} values={VALUES} />;
+  return <RichText text={text} values={values()} />;
 }
 
 /** A form's title: the first time it asks, or a change from the Logbook. */
 const title = (kind: SetupKind, from: SetupFrom) =>
-  from === 'logbook' ? COPY[kind].title : <Rich text={COPY[kind].ask} />;
+  from === 'logbook' ? copy()[kind].title : <Rich text={copy()[kind].ask} />;
 
 const PRIVACY = 'It stays on this device, in your save. The game doesn’t send it anywhere.';
 
@@ -127,7 +128,7 @@ function Shell({
         onKeyDown={keyDown}
         noValidate
       >
-        <p className="ci-page-kicker">{COPY[kind].label}</p>
+        <p className="ci-page-kicker">{copy()[kind].label}</p>
         <h2 id={`${ids}-title`}>{title}</h2>
         <p id={`${ids}-intro`} className="ci-fork-intro">
           {intro}
@@ -175,8 +176,8 @@ function OsForm({ store, from, setup, detected }: FormProps) {
       from={from}
       kind="os"
       title={title('os', from)}
-      intro={<Rich text={COPY.os.intro} />}
-      uses={COPY.os.uses}
+      intro={<Rich text={copy().os.intro} />}
+      uses={copy().os.uses}
       privacy={`It stays on this device, in your save. To guess, the game only asks your browser which system it’s on (it says ${OS_NAMES[detected]}).`}
       save={save}
       canSave
@@ -188,7 +189,7 @@ function OsForm({ store, from, setup, detected }: FormProps) {
       {(ids) => (
         <>
           <fieldset className="ci-setup-choices">
-            <legend className="ci-fork-label">{COPY.os.label}</legend>
+            <legend className="ci-fork-label">{copy().os.label}</legend>
             {OS_IDS.map((id) => (
               <label key={id} className={`ci-setup-choice${os === id ? ' on' : ''}`}>
                 <input
@@ -206,8 +207,8 @@ function OsForm({ store, from, setup, detected }: FormProps) {
           </fieldset>
           <div className="ci-fork-status" aria-live="polite">
             <p className="ci-fork-read">
-              <span aria-hidden>✓</span> {fill(COPY.os.read, { os: OS_NAMES[os] })}{' '}
-              <kbd>{formatKeys(COPY.os.shortcut, os)}</kbd>
+              <span aria-hidden>✓</span> {fill(copy().os.read, { os: OS_NAMES[os] })}{' '}
+              <kbd>{formatKeys(copy().os.shortcut, os)}</kbd>
             </p>
           </div>
         </>
@@ -234,8 +235,8 @@ function IssueForm({ store, from, setup }: FormProps) {
       from={from}
       kind="issue"
       title={title('issue', from)}
-      intro={<Rich text={COPY.issue.intro} />}
-      uses={COPY.issue.uses}
+      intro={<Rich text={copy().issue.intro} />}
+      uses={copy().issue.uses}
       save={save}
       canSave={ok !== null}
       saveLabel={ok !== null ? `Use #${ok}` : 'Save'}
@@ -245,7 +246,7 @@ function IssueForm({ store, from, setup }: FormProps) {
       {(ids) => (
         <>
           <label className="ci-fork-label" htmlFor={`${ids}-input`}>
-            {COPY.issue.field}
+            {copy().issue.field}
           </label>
           <input
             id={`${ids}-input`}
@@ -266,7 +267,7 @@ function IssueForm({ store, from, setup }: FormProps) {
           <div id={`${ids}-status`} className="ci-fork-status" aria-live="polite">
             {ok !== null && (
               <p className="ci-fork-read">
-                <span aria-hidden>✓</span> {COPY.issue.read}{' '}
+                <span aria-hidden>✓</span> {copy().issue.read}{' '}
                 <strong>
                   #{ok} {COURSE_ISSUE_TITLE}
                 </strong>
@@ -275,7 +276,7 @@ function IssueForm({ store, from, setup }: FormProps) {
             {error && <p className="ci-fork-error">{error}</p>}
             {!parsed && (
               <p className="ci-fork-hint">
-                <Rich text={COPY.issue.hint!} />
+                <Rich text={copy().issue.hint!} />
               </p>
             )}
           </div>
@@ -303,17 +304,17 @@ function BranchForm({ store, from, setup }: FormProps) {
       from={from}
       kind="branch"
       title={title('branch', from)}
-      intro={<Rich text={COPY.branch.intro} />}
-      uses={COPY.branch.uses}
+      intro={<Rich text={copy().branch.intro} />}
+      uses={copy().branch.uses}
       save={save}
       canSave={ok !== null}
-      saveLabel={ok === COURSE_BRANCH ? COPY.branch.match : 'Save'}
+      saveLabel={ok === COURSE_BRANCH ? copy().branch.match : 'Save'}
       forget={setup.branch !== null}
     >
       {(ids) => (
         <>
           <label className="ci-fork-label" htmlFor={`${ids}-input`}>
-            {COPY.branch.field}
+            {copy().branch.field}
           </label>
           <input
             id={`${ids}-input`}
@@ -335,13 +336,13 @@ function BranchForm({ store, from, setup }: FormProps) {
           <div id={`${ids}-status`} className="ci-fork-status" aria-live="polite">
             {ok !== null && (
               <p className="ci-fork-read">
-                <span aria-hidden>✓</span> {COPY.branch.read} <strong>{ok}</strong>
+                <span aria-hidden>✓</span> {copy().branch.read} <strong>{ok}</strong>
               </p>
             )}
             {error && <p className="ci-fork-error">{error}</p>}
             {!parsed && (
               <p className="ci-fork-hint">
-                <Rich text={COPY.branch.hint!} />
+                <Rich text={copy().branch.hint!} />
               </p>
             )}
           </div>
@@ -365,8 +366,8 @@ function ModelForm({ store, from, setup }: FormProps) {
       from={from}
       kind="model"
       title={title('model', from)}
-      intro={<Rich text={COPY.model.intro} />}
-      uses={COPY.model.uses}
+      intro={<Rich text={copy().model.intro} />}
+      uses={copy().model.uses}
       save={save}
       canSave
       saveLabel="Save"
@@ -376,8 +377,8 @@ function ModelForm({ store, from, setup }: FormProps) {
       {(ids) => (
         <>
           <fieldset className="ci-setup-choices">
-            <legend className="ci-fork-label">{COPY.model.field}</legend>
-            {MODEL_PICKS.map((pk) => ({ pick: pk, ...COPY.model.choices[pk] })).map((c) => (
+            <legend className="ci-fork-label">{copy().model.field}</legend>
+            {MODEL_PICKS.map((pk) => ({ pick: pk, ...copy().model.choices[pk] })).map((c) => (
               <label key={c.pick} className={`ci-setup-choice${pick === c.pick ? ' on' : ''}`}>
                 <input
                   ref={c.pick === pick ? first : undefined}
@@ -395,7 +396,7 @@ function ModelForm({ store, from, setup }: FormProps) {
           {pick === 'other' && (
             <>
               <label className="ci-fork-label" htmlFor={`${ids}-name`}>
-                {COPY.model.name}
+                {copy().model.name}
               </label>
               <input
                 id={`${ids}-name`}
@@ -411,7 +412,7 @@ function ModelForm({ store, from, setup }: FormProps) {
           )}
           <div className="ci-fork-status" aria-live="polite">
             <p className="ci-fork-read">
-              <span aria-hidden>✓</span> {COPY.model.read} <strong>{modelLabel(chosen)}</strong>
+              <span aria-hidden>✓</span> {copy().model.read} <strong>{modelLabel(chosen)}</strong>
             </p>
           </div>
         </>

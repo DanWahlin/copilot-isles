@@ -1,7 +1,7 @@
 # Copilot Isles: contributor & agent instructions
 
-A browser 3D island adventure that teaches the **GitHub Copilot app for Beginners** course
-(`github/copilot-app-for-beginners`). Each chapter is an island.
+A browser 3D island adventure that teaches GitHub Copilot courses: **GitHub Copilot app for Beginners**
+(`github/copilot-app-for-beginners`) and **GitHub Copilot CLI for Beginners** (`github/copilot-cli-for-beginners`). Each chapter is an island.
 
 - **Plan:** `.plans/PLAN.md` (decisions §0, water/physics/environment §6, budgets §12, loading §13, platforms §14)
 - **Specs:** `docs/specs/PHASE-0-spike.md` (current phase), `docs/specs/POC-islands-00-01.md`,
@@ -51,7 +51,8 @@ Solutions LLC, MIT, <path>@<commit>`), and the full notice goes in `THIRD_PARTY_
 - **Course content is data:** every course word (quests, scripts, barks, quizzes, pages, labels, board
   text, arrival lines, voice lines and audio, the snapshot) lives in a course pack, `courses/<id>/`
   (docs/specs/COURSE-PACKS.md, docs/content-data.md). The game reads it through `src/course/` after a
-  voyage loads it; the title loads only `course.json`. Puzzle content stays in TypeScript until step 2.
+  voyage loads it; the title loads only each pack's `course.json`. Saves are per course
+  (`copilot-isles.<course>.save.v1`). Adding a course: docs/adding-a-course.md.
 - **Teaching accuracy:** every teaching line cites its course chapter/section. Don't invent app UI names.
 - **Accessibility:** respect reduced motion (PLAN §9), keep keyboard/gamepad/touch parity, and use ≥ 44 px touch targets.
 - **Licensing:** log every third-party asset in `ASSETS.md` (CC0 kits, textures) and every AI-generated asset in
