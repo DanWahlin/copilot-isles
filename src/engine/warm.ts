@@ -1,4 +1,4 @@
-import type { Object3D } from 'three/webgpu';
+import type { LOD, Object3D } from 'three/webgpu';
 
 /** A layer no camera looks at: staged objects sit on it until they're let in. */
 const STAGING_LAYER = 31;
@@ -220,18 +220,30 @@ export async function compileProgressively(
 
 /**
  * Shows the hidden objects under `root` marked `userData.prewarm` (things that appear later, such
- * as the parrot's flight rig) so a warm compiles and uploads them too. Returns the function that
- * hides them again.
+ * as the parrot's flight rig) so a warm compiles and uploads them too, and every level of a three
+ * `LOD` (it shows only the level for the camera's distance: the sea stack's far level uploaded its
+ * geometry mid-play when first seen from another island). Returns the function that undoes it.
  */
 export function revealPrewarm(root: Object3D): () => void {
   const shown: Object3D[] = [];
+  const lods: { lod: LOD; autoUpdate: boolean; visible: boolean[] }[] = [];
   root.traverse((obj) => {
     if (obj.userData.prewarm === true && !obj.visible) {
       obj.visible = true;
       shown.push(obj);
     }
+    const lod = obj as LOD;
+    if (lod.isLOD) {
+      lods.push({ lod, autoUpdate: lod.autoUpdate, visible: lod.levels.map((l) => l.object.visible) });
+      lod.autoUpdate = false;
+      for (const l of lod.levels) l.object.visible = true;
+    }
   });
   return () => {
     for (const obj of shown) obj.visible = false;
+    for (const { lod, autoUpdate, visible } of lods) {
+      lod.autoUpdate = autoUpdate;
+      lod.levels.forEach((l, i) => (l.object.visible = visible[i]!));
+    }
   };
 }

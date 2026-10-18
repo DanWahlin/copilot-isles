@@ -21,7 +21,6 @@ import {
 import type { Tier } from '../world/contracts';
 import type { CharacterLibrary } from '../world/characters';
 import type { CoveScene } from '../world/cove-scene';
-import type { CreatedTerrain } from '../world/terrain/terrain-mesh';
 import { prewarmWaterDepthTexture } from '../world/ocean/water-depth-texture';
 import { world } from '../world/uniforms';
 import { buildChart, coveTravelPoints, prewarmChart } from './chart';
@@ -38,12 +37,11 @@ import type { Opening } from '../opening/opening';
 import { BRIEFING_LINES } from '../opening/briefing';
 import { OPENING_SOUNDS } from '../opening/sounds';
 import { ANCHORAGE_ARRIVAL, arrivalFlight } from './arrivals';
-import { compileProgressively, revealPrewarm, warmProgressively, warmTerrainLods } from '../engine/warm';
-import { skipSunShadowsWhereOff } from '../world/sky/cached-sun-shadow';
 import { createSky, type SkySystem } from '../world/sky/sky-system';
 import { releaseRemovedObjects } from '../util/dispose-three';
 import { buildSlice, installBuildSlicer } from '../engine/build-slice';
 import { savedBattles } from './battles';
+import { islandStream, warmIsland, warmLate, warmWorld, type ScenePassCompiler } from './island-warm';
 
 const SETTINGS_KEY = 'copilot-isles.settings.v1';
 /** The crossfade (s) from the opening's song into the island's theme, at the song's phrase end. */
@@ -425,38 +423,14 @@ export class GameFlow implements GameBridge {
     })();
   }
 
-  /**
-   * Warms a streamed island's world and the session's content on it (its cast, chests and sites),
-   * each time it streams in: the frame loop leaves its visibility to the warm meanwhile, and it's
-   * hidden again afterwards (shown by distance).
-   */
+  /** Warms a streamed island each time it streams in (island-warm.ts). */
   private warmIsland(
     cove: CoveScene,
     id: StreamedIsland,
     setup: { roots: Object3D[]; reveal(): void },
-    post: { compileObject(object: Object3D): Promise<void> } | null,
+    post: ScenePassCompiler | null,
   ): Promise<void> {
-    // This runs straight after the setup (a microtask, before the next frame), so warmLate hides what
-    // it added before it's drawn.
-    const stream = cove[islandStream(id)];
-    const own = stream.roots();
-    if (this.cove !== cove) return Promise.resolve();
-    if (!own.length) {
-      setup.reveal();
-      return Promise.resolve();
-    }
-    stream.hold(true);
-    return this.warmLate(cove, [...own, ...setup.roots], post, {
-      keepHidden: own,
-      terrain: stream.terrain,
-      // The harbour mirror only draws round Anchorage's harbour, a long way from Thousand-Bough.
-      reflected: id !== 'thousand-bough',
-    }).finally(() => {
-      if (this.cove === cove) {
-        stream.hold(false);
-        setup.reveal();
-      }
-    });
+    return warmIsland({ engine: this.o.engine, cove, id, setup, post, live: () => this.cove === cove });
   }
 
   /** Watches the session's islands from now on: each setup of one (a first visit or a reload) is warmed. */
@@ -492,80 +466,13 @@ export class GameFlow implements GameBridge {
     }
   }
 
-  /**
-   * Warms objects that join the world after it's playing (another island, the leaping fish) like the
-   * island's own warm-up: pipelines precompiled for the post's scene pass off-thread, then a few
-   * objects a frame get one real draw (instanced and skinned meshes, uploads, shadow passes) unculled
-   * for that frame, then a terrain's finer levels of detail. Nothing under `roots` is drawn otherwise
-   * until it's done (hidden, or on a layer no camera sees), so no first draw builds a shader on the
-   * spot; uploads are excused from the hitch guard. Only frames that draw the world count. Roots end
-   * as they were, except `keepHidden` ones, which end hidden. Stops if the voyage ends.
-   */
-  private async warmLate(
+  /** Warms what joins the world after it's playing (island-warm.ts). */
+  private warmLate(
     cove: CoveScene,
     roots: readonly Object3D[],
-    post: { compileObject(object: Object3D): Promise<void> } | null,
-    opts: { keepHidden?: readonly Object3D[]; terrain?: CreatedTerrain | null; reflected?: boolean } = {},
+    post: ScenePassCompiler | null,
   ): Promise<void> {
-    if (!roots.length) return;
-    const wasVisible = roots.map((r) => r.visible);
-    const hideAll = () => {
-      for (const r of roots) r.visible = false;
-    };
-    hideAll();
-    const engine = this.o.engine;
-    const live = () => this.cove === cove;
-    const frame = async () => {
-      do await new Promise<void>((r) => requestAnimationFrame(() => r()));
-      while (engine.worldHidden() && live());
-      if (!live()) throw new Error('voyage ended');
-    };
-    const compile = (o: Object3D) =>
-      Promise.all([
-        post ? post.compileObject(o) : engine.renderer.compileAsync(o, engine.camera, engine.scene),
-        opts.reflected === false ? null : cove.mirror?.compileObject(engine.renderer, engine.scene, o),
-      ]).then(() => undefined);
-    const steady = { targetMs: 3, startBatch: 2, frameCost: () => engine.cpuMs };
-    await engine.counters
-      .excuse(
-        (async () => {
-          // Parts that appear later (marked userData.prewarm, like Meridian's mooring lines) are shown
-          // for the warm too, so their first real showing doesn't upload or compile mid-play.
-          const hidePrewarm = roots.map((r) => revealPrewarm(r));
-          // One shader per look whether a mesh takes the sun's shadows or not (before any compile).
-          if (cove.sky.sun.castShadow) for (const r of roots) skipSunShadowsWhereOff(r);
-          try {
-            // Each mesh compiles on its own (hidden parents don't matter); the root is only shown
-            // while compileProgressively gathers its meshes, synchronously.
-            for (const root of roots) {
-              root.visible = true;
-              const done = compileProgressively(root, compile, frame, 3);
-              root.visible = false;
-              await done;
-            }
-            for (const r of roots) r.visible = true;
-            const endShadowWarm = cove.sky.shadowWarm(roots);
-            try {
-              await warmProgressively(roots, frame, {
-                ...steady,
-                solo: (o) => !!(o as Object3D & { isInstancedMesh?: boolean }).isInstancedMesh,
-              });
-            } finally {
-              endShadowWarm();
-            }
-            hideAll();
-            if (opts.terrain) {
-              opts.terrain.group.visible = true;
-              await warmTerrainLods(opts.terrain, frame, steady);
-            }
-          } finally {
-            for (const hide of hidePrewarm) hide();
-            if (live())
-              roots.forEach((r, i) => (r.visible = opts.keepHidden?.includes(r) ? false : wasVisible[i]!));
-          }
-        })(),
-      )
-      .catch(() => undefined);
+    return warmLate({ engine: this.o.engine, cove, roots, post, live: () => this.cove === cove });
   }
 
   quitToTitle(): void {
@@ -981,59 +888,36 @@ export class GameFlow implements GameBridge {
         cove.meridian.hold(true);
         for (const r of cove.meridian.roots()) r.visible = true;
       }
-      const hidePrewarm = revealPrewarm(engine.scene);
-      // One shader per look whether a mesh takes the sun's shadows or not (before any compile).
-      if (cove.sky.sun.castShadow) skipSunShadowsWhereOff(engine.scene);
-      let endShadowWarm: (() => void) | null = null;
       try {
-        await compileProgressively(
-          engine.scene,
-          (o) =>
-            Promise.all([
-              post ? post.compileObject(o) : engine.renderer.compileAsync(o, engine.camera, engine.scene),
-              cove.mirror?.compileObject(engine.renderer, engine.scene, o),
-            ]).then(() => undefined),
+        await warmWorld({
+          engine,
+          cove,
+          post: post ?? null,
           frame,
-        );
-        // The post chain's own quad first, in a frame of its own, then what only a real draw builds
-        // (shadow passes, instanced meshes on the pass path), behind the cabin.
-        // With the world out of the camera's view, so its first draws wait for the batches below
-        // (drawn here at once, the terrain, the sea and the sky held this frame for ~55 ms).
-        const layers = engine.camera.layers.mask;
-        engine.camera.layers.set(30);
-        try {
-          post?.warmOutput?.();
-        } finally {
-          engine.camera.layers.mask = layers;
-        }
-        engine.renderNow();
-        await frame();
-        opening.setDrawWorld(true);
-        // Small batches: each new shadow or post pipeline is built synchronously on its first draw.
-        endShadowWarm = cove.sky.shadowWarm(engine.scene);
-        await warmProgressively(engine.scene, frame, {
-          targetMs: 12,
-          startBatch: 1,
-          frameCost: () => engine.cpuMs,
-          solo: (o) => {
-            const m = o as Object3D & { isInstancedMesh?: boolean; count?: number };
-            if (!m.isInstancedMesh || !m.count) return false;
-            for (let p: Object3D | null = o; p; p = p.parent) if (!p.visible) return false;
-            return true;
+          // The terrain's finer levels of detail (and Meridian's, for a save there).
+          terrains: [
+            cove.terrain,
+            meridianFirst ? cove.meridian.terrain : null,
+            thousandBoughFirst ? cove.thousandBough.terrain : null,
+          ],
+          beforeDraws: async () => {
+            // The post chain's own quad first, in a frame of its own, then what only a real draw builds
+            // (shadow passes, instanced meshes on the pass path), behind the cabin.
+            // With the world out of the camera's view, so its first draws wait for the batches below
+            // (drawn here at once, the terrain, the sea and the sky held this frame for ~55 ms).
+            const layers = engine.camera.layers.mask;
+            engine.camera.layers.set(30);
+            try {
+              post?.warmOutput?.();
+            } finally {
+              engine.camera.layers.mask = layers;
+            }
+            engine.renderNow();
+            await frame();
+            ready.setDrawWorld(true);
           },
         });
-        // The terrain's finer levels of detail (and Meridian's, for a save there).
-        for (const t of [
-          cove.terrain,
-          meridianFirst ? cove.meridian.terrain : null,
-          thousandBoughFirst ? cove.thousandBough.terrain : null,
-        ]) {
-          if (t)
-            await warmTerrainLods(t, frame, { targetMs: 12, startBatch: 3, frameCost: () => engine.cpuMs });
-        }
       } finally {
-        endShadowWarm?.();
-        hidePrewarm();
         cove.meridian.hold(false);
         cove.thousandBough.hold(false);
       }
@@ -1225,10 +1109,6 @@ export class GameFlow implements GameBridge {
 const QUALITIES = new Set(['auto', 'lite', 'low', 'medium', 'high', 'ultra']);
 
 /** Old or hand-edited settings fall back to the defaults field by field. */
-/** The scene's stream for an island (`cove.anchorage`, `cove.meridian`, `cove.thousandBough`). */
-function islandStream(id: StreamedIsland): 'anchorage' | 'meridian' | 'thousandBough' {
-  return id === 'thousand-bough' ? 'thousandBough' : id;
-}
 
 function sanitizeSettings(s: Settings): Settings {
   const out = { ...s };

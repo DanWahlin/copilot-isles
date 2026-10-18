@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BoxGeometry, Group, Mesh, MeshBasicMaterial, type Object3D } from 'three/webgpu';
+import { BoxGeometry, Group, LOD, Mesh, MeshBasicMaterial, type Object3D } from 'three/webgpu';
 import { compileProgressively, revealPrewarm, warmProgressively } from './warm';
 
 /** A root with a part that's shown only later (like Meridian's mooring lines or the ship's gangplank). */
@@ -46,6 +46,19 @@ describe('revealPrewarm', () => {
     hide();
     expect(compiled).toContain(lateMesh);
     expect(compiled).toHaveLength(2);
+  });
+
+  it('shows every level of a LOD for the warm, then gives it back to the camera', () => {
+    const lod = new LOD();
+    const near = new Mesh(new BoxGeometry(), new MeshBasicMaterial());
+    const far = new Mesh(new BoxGeometry(), new MeshBasicMaterial());
+    lod.addLevel(near, 0);
+    lod.addLevel(far, 100);
+    far.visible = false;
+    const hide = revealPrewarm(lod);
+    expect([near.visible, far.visible, lod.autoUpdate]).toEqual([true, true, false]);
+    hide();
+    expect([near.visible, far.visible, lod.autoUpdate]).toEqual([true, false, true]);
   });
 });
 

@@ -54,6 +54,11 @@ export function createAnchorageStream(ctx: {
   /** Its plants stop (or start) updating. */
   plantsAwake(on: boolean): void;
   breathe: () => Promise<void>;
+  /**
+   * Warms what shows late (the world's late warm): the silhouette is hidden for the world's warm-up,
+   * so its first showing would upload its geometry mid-play.
+   */
+  warm?: (roots: Object3D[]) => Promise<void>;
 }): AnchorageStream {
   const { scene, silhouette } = ctx;
   silhouette.visible = false;
@@ -83,6 +88,7 @@ export function createAnchorageStream(ctx: {
     parked = objects.map((object) => ({ object, parent: object.parent!, visible: object.visible }));
     for (const p of parked) p.object.removeFromParent();
     silhouette.visible = true;
+    await ctx.warm?.([silhouette]);
     await ctx.breathe();
     // Only what nothing in the scene still draws (the village kit, terrain textures and shared
     // models stay for the island you're on).

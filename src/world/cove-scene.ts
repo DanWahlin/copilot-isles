@@ -334,6 +334,8 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const blobs = tier.tier === 'low' || tier.tier === 'lite' ? new BlobShadows(BLOB_RANGE[tier.tier]) : null;
   if (blobs) scene.add(blobs.mesh);
 
+  /** The flow's warm for anything that joins after the world's warm-up (`setLateWarm`). */
+  let lateWarm: ((roots: Object3D[]) => Promise<void>) | null = null;
   // Anchorage goes dormant while you're at another island (PLAN §13.3): its parts leave the scene
   // and their GPU copies are freed, and its silhouette (ground and buildings) stands in.
   const anchorage = createAnchorageStream({
@@ -359,11 +361,11 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       ].filter((o): o is Object3D => !!o),
     plantsAwake: (on) => vegetation?.setHomeAwake(on),
     breathe,
+    warm: (roots) => lateWarm?.(roots) ?? Promise.resolve(),
   });
 
   let leaps: LeapsSystem | null = null;
   const quietSea = new QuietSea();
-  let lateWarm: ((roots: Object3D[]) => Promise<void>) | null = null;
   let disposed = false;
   let result: CoveScene | null = null;
   const immediateLeaps = typeof location !== 'undefined' && location.pathname.includes('leaps');

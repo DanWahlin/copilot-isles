@@ -87,12 +87,18 @@ hook (release it when the site is freed).
   - Only precompile what a pass really draws (the harbour mirror skips its hidden list).
 - Other islands load lazily (issue 232): stream one only when something needs it (boarding, the
   chart, a save or jump there, or coming within range), then warm it through the flow (see
-  `GameFlow.warmMeridian`). Keep it hidden until its warm-up draws it: a hidden group isn't compiled
-  by `compileAsync` (it compiles nothing), and a first on-screen draw builds shaders on the spot.
+  `warmIsland`, game/island-warm.ts). Keep it hidden until its warm-up draws it: a hidden group
+  isn't compiled by `compileAsync` (it compiles nothing), and a first on-screen draw builds shaders
+  on the spot.
   Terrain levels of detail need a real draw each (`warmTerrainLods`); a precompile won't upload them.
 - Anything added after the island's warm-up (late props, life, another island) goes through
-  `cove.setLateWarm`'s warm (`GameFlow.warmLate`), not a bare `renderer.compileAsync`: a top-level
-  precompile doesn't match the scene pass, so the first draw builds the shader anyway.
+  `cove.setLateWarm`'s warm (`warmLate`, game/island-warm.ts), not a bare `renderer.compileAsync`:
+  a top-level precompile doesn't match the scene pass, so the first draw builds the shader anyway.
+  So does what's hidden for the world's warm and shown later by code, not by `userData.prewarm`
+  (Anchorage's silhouette, shown when it goes dormant, uploaded its geometry mid-play: issue 254).
+- Don't rebuild a geometry during play (a pickup, a state change): change its buffer instead. The
+  message bottles merged a new mesh per material at each pickup (4 geometries, a hitch); now each
+  is built once and a read bottle's vertices collapse (`bottles.ts`).
 - Another island's plants go in with `vegetation.addPlants` when that island streams in, not in the
   first island's batches.
 - Shader sharing (issues 235–237): three r186 names some buffers after node ids, which makes every
@@ -127,8 +133,12 @@ hook (release it when the site is freed).
 - Use a uniform's node in a graph, never its `.value`: `world.sunDir.value.y` went into the
   vegetation shader as a constant, so each vegetation material built at another sun height (the
   banyan, the brush) was its own program, and the glow didn't follow the sun.
-- A dev page precompiles like the game (`post.compileObject` through `compileProgressively`), or its
-  census counts shaders the game never builds (play.html's bare `compileAsync` added about 12).
+- A dev page warms like the game, or its census counts shaders the game never builds and its
+  hitch guard sees what the game's wouldn't. play.html uses the game's own warms
+  (`warmWorld`, `warmIsland`, `warmLate` in game/island-warm.ts) and exposes `window.__isles`
+  (tests' hitch checks). Its own precompile, without `skipSunShadowsWhereOff` or a late warm,
+  counted 145-147 on Ultra at Thousand-Bough against the game's 131-133 (issue 253). Check a dev
+  page's number against the game's (`?debug`, `window.__flow.travelTo`) before cutting anything.
 - r186 `compileAsync` builds its node graphs in `scheduler.yield()` slices that run ahead of the
   next frame: dozens in flight at once held a frame for 100–120 ms. `compileProgressively` keeps
   four in flight. One build stage can't be split (a big compute kernel's setup took 60–110 ms, the
