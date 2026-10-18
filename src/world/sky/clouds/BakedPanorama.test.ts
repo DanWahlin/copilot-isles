@@ -1,7 +1,18 @@
+import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
+import {
+  BasicNodeLibrary,
+  BoxGeometry,
+  Mesh,
+  MeshBasicNodeMaterial,
+  PerspectiveCamera,
+  Scene,
+  WGSLNodeBuilder,
+} from 'three/webgpu';
+import { context, normalize, positionWorld } from 'three/tsl';
 import { ISLANDS } from '../../../game/islands';
 import { sunState } from '../sun';
-import { SKY_KEYS, bakeAzimuthDeg, keyBlend } from './BakedPanorama';
+import { SKY_KEYS, bakeAzimuthDeg, createBakedClouds, keyBlend } from './BakedPanorama';
 
 const elevation = (hours: number, az = 0) => sunState(hours, az).sun[1];
 
@@ -32,5 +43,80 @@ describe('baked sky keys', () => {
       return Math.atan2(s[2], s[0]);
     });
     for (const a of azimuths) expect(Math.cos(a - azimuths[0]!)).toBeCloseTo(1, 9);
+  });
+});
+
+/** The baked layer's fragment WGSL, built by three's node builder with a stand-in renderer (no GPU). */
+function layerWgsl(): string {
+  const clouds = createBakedClouds({} as never);
+  const material = new MeshBasicNodeMaterial();
+  material.colorNode = clouds.sampleView(normalize(positionWorld)).rgb;
+  const mesh = new Mesh(new BoxGeometry(), material);
+  const renderer = {
+    backend: {
+      isWebGPUBackend: true,
+      compatibilityMode: false,
+      parameters: {},
+      utils: { getTextureSampleData: () => ({ primarySamples: 1 }) },
+    },
+    getRenderTarget: () => null,
+    getOutputRenderTarget: () => null,
+    getMRT: () => null,
+    hasFeature: () => false,
+    library: new BasicNodeLibrary(),
+    contextNode: context(),
+    debug: { checkShaderErrors: false, diagnostics: { keywords: false } },
+    lighting: { enabled: false },
+    highPrecision: false,
+  };
+  const builder = new WGSLNodeBuilder(mesh, renderer as never) as unknown as {
+    build(): void;
+    material: unknown;
+    camera: unknown;
+    scene: unknown;
+    fragmentShader: string;
+  };
+  builder.material = material;
+  builder.camera = new PerspectiveCamera();
+  builder.scene = new Scene();
+  builder.build();
+  clouds.dispose();
+  return builder.fragmentShader;
+}
+
+describe('baked cloud layer', () => {
+  // Its u wraps 1 → 0 at one azimuth. An implicit-derivative sample (or a textureLoad, which three
+  // writes for the unfilterable placeholder) can't tell that from a jump: it took the coarsest mip
+  // there and drew a line down the sky.
+  it('samples both keys with gradients that ignore the wrap, through a sampler', () => {
+    const wgsl = layerWgsl();
+    const grads = [...wgsl.matchAll(/textureSampleGrad\(\s*(\w+),\s*(\w+)_sampler/g)];
+    expect(grads).toHaveLength(2);
+    for (const [, tex, s] of grads) {
+      expect(s).toBe(tex);
+      expect(wgsl).toMatch(new RegExp(`var ${tex}_sampler\\s*:\\s*sampler;`));
+    }
+    expect(wgsl).not.toMatch(/textureLoad|textureSample\(/);
+  });
+
+  it('keys tile across the azimuth wrap', async () => {
+    for (const k of SKY_KEYS) {
+      const { data, info } = await sharp(`public/sky/clouds-${k.name}.webp`)
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      const { width, height, channels } = info;
+      const at = (x: number, y: number, c: number) => data[(y * width + x) * channels + c]!;
+      // Mean step between neighbouring columns: across the wrap (last → first) and inside the image.
+      const step = (a: number, b: number) => {
+        let sum = 0;
+        for (let y = 0; y < height; y++)
+          for (let c = 0; c < channels; c++) sum += Math.abs(at(a, y, c) - at(b, y, c));
+        return sum / (height * channels);
+      };
+      let inside = 0;
+      for (let x = 0; x < width - 1; x += 64) inside += step(x, x + 1);
+      inside /= Math.ceil((width - 1) / 64);
+      expect(step(width - 1, 0)).toBeLessThan(Math.max(1, inside * 3));
+    }
   });
 });

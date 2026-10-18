@@ -12,14 +12,18 @@ import {
   type WebGPURenderer,
 } from 'three/webgpu';
 import {
+  abs,
   acos,
   atan,
   clamp,
+  dFdx,
+  dFdy,
   float,
   fract,
   max,
   mix,
   smoothstep,
+  step,
   texture,
   uniform,
   vec2,
@@ -92,6 +96,11 @@ const azimuth = (d: readonly number[]) => Math.atan2(d[2]!, d[0]!);
 /** Every key is baked with the sun at this azimuth (the afternoon key's, at azimuth setting 0). */
 const BAKED_SUN_AZIMUTH = azimuth(sunState(16.2).sun);
 const KEY_ELEVATION = SKY_KEYS.map((k) => sunState(k.hours).sun[1]);
+
+/** The derivative of a coordinate that wraps at 1 from two copies half a turn apart: the smaller one. */
+function wrappedDerivative(d: Node<'float'>, dHalf: Node<'float'>): Node<'float'> {
+  return mix(d, dHalf, step(abs(dHalf), abs(d)));
+}
 
 /** The sun-azimuth setting (degrees) that puts the sun at the baked azimuth at `hours`. */
 export function bakeAzimuthDeg(hours: number): number {
@@ -187,6 +196,11 @@ export function createBakedClouds(renderer: WebGPURenderer, opts: { halfKeys?: b
   // arrives.
   const placeholder = new DataTexture(new Uint8Array([89, 137, 203, 255]), 1, 1);
   placeholder.colorSpace = SRGBColorSpace;
+  // The shader is built for whichever texture is in the slot then: a Nearest one made WebGPU's a
+  // textureLoad with no sampler (unfiltered, no mips, clamped), kept after the keys arrived.
+  placeholder.minFilter = LinearFilter;
+  placeholder.magFilter = LinearFilter;
+  placeholder.wrapS = RepeatWrapping;
   placeholder.needsUpdate = true;
   const keyA = texture(placeholder);
   const keyB = texture(placeholder);
@@ -198,11 +212,18 @@ export function createBakedClouds(renderer: WebGPURenderer, opts: { halfKeys?: b
   const sampleView = (dir: Node<'vec3'>) => {
     // the drift, as a shift of the cloud plane: zero at the horizon, largest overhead
     const d = vec3(dir.x.sub(drift.x.mul(dir.y)), dir.y, dir.z.sub(drift.y.mul(dir.y)));
-    const u = fract(atan(d.z, d.x).sub(turn).div(TAU).add(1));
+    const a = atan(d.z, d.x).sub(turn).div(TAU);
+    const u = fract(a);
     const v = clamp(acos(clamp(d.y.div(d.length()), -1, 1)).div(V_SPAN), 0, 1);
     // flipY is off, so v = 0 is the top row (the zenith).
     const uv = vec2(u, v);
-    const c = mix(keyA.sample(uv), keyB.sample(uv), blend);
+    // u wraps 1 → 0 at the layer's seam, where its screen derivative (about 1) picked the coarsest
+    // mip: a pale line down the sky (WebGL2). Sample with u's derivative taken from u or u half a turn
+    // on, whichever doesn't wrap there.
+    const uHalf = fract(a.add(0.5));
+    const gx = vec2(wrappedDerivative(dFdx(u), dFdx(uHalf)), dFdx(v));
+    const gy = vec2(wrappedDerivative(dFdy(u), dFdy(uHalf)), dFdy(v));
+    const c = mix(keyA.sample(uv).grad(gx, gy), keyB.sample(uv).grad(gx, gy), blend);
     const cover = float(1).sub(c.a);
     const day = max(c.rgb.sub(pedestal.mul(c.a)), 0);
     const light = mix(day, moonlit.mul(cover), night);
