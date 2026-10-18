@@ -16,6 +16,7 @@ import { createBirds, type BirdsSystem } from '../../life/birds';
 import { createThousandBoughAsync, type ThousandBoughWorld } from './index';
 import { createThousandBoughRocks, type ThousandBoughRocks } from './rocks';
 import { THOUSAND_BOUGH as TB } from './layout';
+import { THOUSAND_BOUGH_FLORA } from './flora';
 import { createThousandBoughSilhouette } from './tree/silhouette';
 import { footprintDistance, type IslandFootprint } from '../footprint';
 import { disposeTree } from '../../island-parts';
@@ -186,7 +187,11 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
     if (vegetation) {
       const flora = await system.plants(ctx.breathe);
       if (disposed) return null;
-      plants = await vegetation.addPlants(flora, 'thousand-bough-plants');
+      plants = await vegetation.addPlants(flora, 'thousand-bough-plants', {
+        rules: THOUSAND_BOUGH_FLORA,
+        heightField: terrain.heightField,
+        heightGrid: terrain.heightGrid,
+      });
       if (ctx.skipShadows) skipSunShadows(plants.group);
     }
     if (ctx.birds && tier.birds > 0) {

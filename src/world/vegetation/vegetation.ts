@@ -9,6 +9,7 @@ import {
   Quaternion,
   Sphere,
   Vector3,
+  type DataTexture,
   type Group,
   type Material,
   type PerspectiveCamera,
@@ -21,6 +22,7 @@ import { assignCaster } from '../shadow-casters';
 import type { Tier } from '../contracts';
 import { createHeightDataTexture } from './materials';
 import { GrassField } from './grass';
+import { updateFloraPushers } from '../flora/nodes';
 import { ImpostorBatch, bakeImpostorAtlas } from './impostors';
 import {
   loadVegetationGeometries,
@@ -355,19 +357,24 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
   };
   const batches = buildBatches(scatter.plants, group);
 
-  const heightTexture = createHeightDataTexture(options.heightGrid);
-  const grass = new GrassField(
-    options.heightField,
-    options.heightGrid,
-    heightTexture,
-    tier,
-    seed,
-    options.island.grassBounds,
-    options.exclude,
-    true,
-  );
-  await grass.build(buildSlice);
-  group.add(grass.group);
+  const heightTexture = options.flora ? createHeightDataTexture(options.heightGrid) : null;
+  const grass =
+    options.flora && heightTexture
+      ? new GrassField(
+          options.heightField,
+          options.heightGrid,
+          heightTexture,
+          tier,
+          seed,
+          options.flora,
+          options.exclude,
+          { defer: true },
+        )
+      : null;
+  if (grass) {
+    await grass.build(buildSlice);
+    group.add(grass.group);
+  }
 
   const impostorOptions = {
     handoff: (species: PlantSpecies) => geometryHandoff(species, tier),
@@ -385,6 +392,8 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
   interface Patch {
     group: Group;
     batches: PlantBatch[];
+    /** The island's grass and flowers (and their height texture), if it has flora. */
+    grass: { field: GrassField; heightTexture: DataTexture } | null;
     impostors: ImpostorBatch | null;
     casters: InstancedMesh[];
     /** It baked the impostor atlas the later patches share (kept until the system goes). */
@@ -410,12 +419,18 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
     group,
     update(camera) {
       setPlantFrustum(camera);
+      updateFloraPushers(camera.position.x, camera.position.z);
       if (homeAwake) {
         for (const batch of batches) updateBatch(batch, camera, tier);
-        grass.update(camera);
+        grass?.update(camera);
         impostors?.update(camera);
       }
-      const grassStats = grass.stats();
+      const grassStats = grass?.stats() ?? {
+        visibleInstances: 0,
+        visibleCells: 0,
+        drawCalls: 0,
+        triangles: 0,
+      };
       const impostorStats = impostors?.stats() ?? { visibleInstances: 0, drawCalls: 0, triangles: 0 };
       let visibleInstances = grassStats.visibleInstances + impostorStats.visibleInstances;
       let drawCalls = grassStats.drawCalls + impostorStats.drawCalls;
@@ -426,12 +441,12 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
         if (!patch.group.visible) continue;
         for (const batch of patch.batches) updateBatch(batch, camera, tier);
         patch.impostors?.update(camera);
-        const s = patch.impostors?.stats();
-        if (s) {
-          visibleInstances += s.visibleInstances;
-          drawCalls += s.drawCalls;
-          triangles += s.triangles;
-        }
+        patch.grass?.field.update(camera);
+        const ps = patch.impostors?.stats();
+        const gs = patch.grass?.field.stats();
+        visibleInstances += (ps?.visibleInstances ?? 0) + (gs?.visibleInstances ?? 0);
+        drawCalls += (ps?.drawCalls ?? 0) + (gs?.drawCalls ?? 0);
+        triangles += (ps?.triangles ?? 0) + (gs?.triangles ?? 0);
         for (const batch of patch.batches) {
           visibleInstances += batch.visible;
           if (batch.visible > 0) {
@@ -467,7 +482,7 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
         meshBatchesVisible,
       };
     },
-    async addPlants(list, name) {
+    async addPlants(list, name, flora) {
       const plants = {} as Record<PlantSpecies, PlantInstance[]>;
       for (const species of Object.keys(scatter.plants) as PlantSpecies[]) plants[species] = [];
       for (const plant of list) plants[plant.species].push(plant);
@@ -491,9 +506,27 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
       // Only the first patch to bake the atlas owns it.
       patchOwnsBake = false;
       if (patchImpostors) patchGroup.add(patchImpostors.mesh);
+      let patchGrass: Patch['grass'] = null;
+      if (flora) {
+        const texture = createHeightDataTexture(flora.heightGrid);
+        const field = new GrassField(
+          flora.heightField,
+          flora.heightGrid,
+          texture,
+          tier,
+          seed ^ 0x5f1a,
+          flora.rules,
+          undefined,
+          { defer: true, name: `${name}-grass` },
+        );
+        await field.build(buildSlice);
+        patchGroup.add(field.group);
+        patchGrass = { field, heightTexture: texture };
+      }
       patches.push({
         group: patchGroup,
         batches: patchBatches,
+        grass: patchGrass,
         impostors: patchImpostors,
         casters: patchCasters,
         ownsBake,
@@ -505,7 +538,7 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
       return [
         ...batches.map((b) => b.mesh),
         ...homeCasters,
-        grass.group,
+        ...(grass ? [grass.group] : []),
         ...(impostors ? [impostors.mesh] : []),
       ];
     },
@@ -530,6 +563,8 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
         caster.dispose();
       }
       p.impostors?.dispose();
+      p.grass?.field.dispose();
+      p.grass?.heightTexture.dispose();
     },
     dispose() {
       for (const batch of [...batches, ...patches.flatMap((p) => p.batches)]) {
@@ -540,11 +575,15 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
         caster.geometry.dispose();
         caster.dispose();
       }
-      grass.dispose();
+      grass?.dispose();
       // Patches first: one may share the island's atlas, which the island's batch frees.
-      for (const patch of patches) patch.impostors?.dispose();
+      for (const patch of patches) {
+        patch.impostors?.dispose();
+        patch.grass?.field.dispose();
+        patch.grass?.heightTexture.dispose();
+      }
       impostors?.dispose();
-      heightTexture.dispose();
+      heightTexture?.dispose();
       const disposedMaterials = new Set<Material>();
       const disposedTextures = new Set<Texture>();
       const sharedPalmMaterial = palmMaterial();

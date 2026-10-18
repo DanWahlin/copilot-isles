@@ -3,6 +3,7 @@ import type { HeightField, Tier } from '../contracts';
 import type { TierSettings } from '../../engine/quality';
 import type { VegetationExclude } from './exclusions';
 import type { SeededRandom } from './random';
+import type { FloraRules } from '../flora/types';
 
 export interface HeightGrid {
   heights: Float32Array;
@@ -27,7 +28,7 @@ export type PlantSpecies =
   | 'brush'
   | 'cypress';
 
-export type GrassKind = 'seaOats' | 'meadow' | 'creeper' | 'wildflower' | 'seedHead';
+export type GrassKind = 'seaOats' | 'meadow' | 'creeper' | 'moss' | 'seedHead';
 
 export interface VegetationMasks {
   sand: number;
@@ -110,6 +111,13 @@ export interface VegetationStats {
   meshBatchesVisible: number;
 }
 
+/** An island's grass and flowers to add with its plants: its rules and its ground. */
+export interface FloraSource {
+  rules: FloraRules;
+  heightField: HeightField;
+  heightGrid: HeightGrid;
+}
+
 /** Plants added after the island's own (another island's), drawn only while `group` is visible. */
 export interface VegetationPatch {
   group: Group;
@@ -122,7 +130,7 @@ export interface VegetationSystem {
    * Adds another island's plants as their own batches and impostors, under a hidden group (show it
    * when that island's in view). Shares the loaded models and the impostor atlas; freed with the system.
    */
-  addPlants(plants: readonly PlantInstance[], name: string): Promise<VegetationPatch>;
+  addPlants(plants: readonly PlantInstance[], name: string, flora?: FloraSource): Promise<VegetationPatch>;
   /** Frees a patch from `addPlants` (its island has unloaded); the shared models and atlas stay. */
   removePlants(patch: VegetationPatch): void;
   /** The first island's own plants (batches, casters, grass, impostors), not the patches. */
@@ -144,6 +152,8 @@ export interface CreateVegetationOptions {
   exclude?: VegetationExclude;
   /** Hand-placed plants (e.g. the village's palms) added to the scatter's instanced batches. */
   extraPlants?: readonly PlantInstance[];
+  /** The island's grass and flowers (none without). */
+  flora?: FloraRules;
 }
 
 export interface ScatterOptions {

@@ -1,3 +1,5 @@
+import { smoothstep } from '../../util/math';
+
 export class SeededRandom {
   private state: number;
 
@@ -37,4 +39,19 @@ export function hash2(x: number, z: number, seed: number): number {
   h = Math.imul(h, 0x85ebca6b);
   h ^= h >>> 13;
   return (h >>> 0) / 0x100000000;
+}
+
+/** Smooth value noise (0-1) on a `cell`-metre lattice (`hash2` at its corners, eased between). */
+export function valueNoise(x: number, z: number, cell: number, seed: number): number {
+  const gx = x / cell;
+  const gz = z / cell;
+  const ix = Math.floor(gx);
+  const iz = Math.floor(gz);
+  const fx = smoothstep(0, 1, gx - ix);
+  const fz = smoothstep(0, 1, gz - iz);
+  const a = hash2(ix, iz, seed);
+  const b = hash2(ix + 1, iz, seed);
+  const c = hash2(ix, iz + 1, seed);
+  const d = hash2(ix + 1, iz + 1, seed);
+  return a + (b - a) * fx + (c - a) * fz + (a - b - c + d) * fx * fz;
 }

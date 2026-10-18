@@ -31,6 +31,7 @@ import { createVegetation, type VegetationSystem } from './vegetation';
 import { loadVillageKit, releaseVillageKitTextures } from './village/kit';
 import { DOCK_GULL_SPOT, createVillage, type VillageSystem } from './islands/anchorage/village';
 import { ANCHORAGE_VEGETATION } from './islands/anchorage/vegetation-rules';
+import { ANCHORAGE_FLORA } from './islands/anchorage/flora';
 import { createWreckSteps, wreckWaterline, type WreckSystem } from './islands/anchorage/wreck';
 import { createDockGull, type DockGull } from './life/dock-gull';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -228,6 +229,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       island: ANCHORAGE_VEGETATION,
       exclude: villageMask,
       extraPlants: village.plantings,
+      flora: ANCHORAGE_FLORA,
     });
     if (skipIslandShadows) skipSunShadows(vegetation.group);
     scene.add(vegetation.group);

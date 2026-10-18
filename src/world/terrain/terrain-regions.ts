@@ -47,6 +47,8 @@ export interface TerrainRegionMasks {
   limestoneRidge?: AnyNode;
   /** Wet, mossy basalt: dark columned faces with moss on every ledge (Thousand-Bough's cliffs). */
   basalt?: AnyNode;
+  /** A forest floor under trees: a moss carpet (with the island's forest flowers) instead of meadow. */
+  forestFloor?: AnyNode;
 }
 
 export type TerrainRegionKey = keyof TerrainRegionMasks;
@@ -66,6 +68,7 @@ const REGION_KEYS: readonly TerrainRegionKey[] = [
   'bluff',
   'limestoneRidge',
   'basalt',
+  'forestFloor',
 ];
 
 /**
