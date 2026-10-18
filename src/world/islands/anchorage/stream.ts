@@ -67,6 +67,8 @@ export function createAnchorageStream(ctx: {
   let awake = true;
   /** Woken, but not warmed and shown yet. */
   let showPending = false;
+  /** The silhouette's warm owns its visibility until it's done (it hides it between draws). */
+  let warming = false;
   let parked: { object: Object3D; parent: Object3D; visible: boolean }[] = [];
 
   const world: AnchorageWorld = { roots: [] };
@@ -88,7 +90,12 @@ export function createAnchorageStream(ctx: {
     parked = objects.map((object) => ({ object, parent: object.parent!, visible: object.visible }));
     for (const p of parked) p.object.removeFromParent();
     silhouette.visible = true;
-    await ctx.warm?.([silhouette]);
+    warming = true;
+    try {
+      await ctx.warm?.([silhouette]);
+    } finally {
+      warming = false;
+    }
     await ctx.breathe();
     // Only what nothing in the scene still draws (the village kit, terrain textures and shared
     // models stay for the island you're on).
@@ -131,7 +138,7 @@ export function createAnchorageStream(ctx: {
       ctx.plantsAwake(true);
     },
     update() {
-      silhouette.visible = !awake || showPending;
+      if (!warming) silhouette.visible = !awake || showPending;
     },
     dispose() {
       life.end();

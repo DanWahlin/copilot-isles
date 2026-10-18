@@ -3,6 +3,7 @@ import { COURSE } from '../course/catalog';
 import type { QuestDef, QuestTarget } from '../course/pack';
 import { beatSteps, pickBeat, type Beat } from './beats';
 import { meridianOpen } from './meridian-open';
+import { startedQuests, type QuestTracker, type TrackerStatus } from './quest-list';
 import type { ScriptStep } from './script';
 import type { QuestState } from './story';
 
@@ -99,24 +100,6 @@ export function npcScript(
   return beatSteps(pickBeat(BEATS, npc, q), (name) => SCRIPTS[name] ?? script(name));
 }
 
-export type TrackerStatus = 'done' | 'active' | 'upcoming';
-
-export interface QuestTracker {
-  island: string;
-  chapter: string;
-  goal: string;
-  next: string;
-  tasks: readonly {
-    id: string;
-    title: string;
-    task: string;
-    detail: string;
-    status: TrackerStatus;
-    optional: boolean;
-    link?: { label: string; url: string };
-  }[];
-}
-
 /**
  * The on-screen task list: every main quest in story order (optional ones once started), so the
  * player always sees the island's goal, what's done, and what to do next.
@@ -142,10 +125,5 @@ export function questTracker(q: QuestState): QuestTracker {
 
 /** The quest log for the Logbook, in story order, for quests that have started. */
 export function questLog(q: QuestState): { id: string; title: string; detail: string; done: boolean }[] {
-  return COVE_QUESTS.filter((d) => q[d.id]).map((d) => ({
-    id: d.id,
-    title: d.title,
-    detail: d.steps[q[d.id]!] ?? '',
-    done: q[d.id] === 'done',
-  }));
+  return startedQuests(COVE_QUESTS, q);
 }

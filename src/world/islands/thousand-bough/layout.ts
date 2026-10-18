@@ -488,7 +488,7 @@ export const THOUSAND_BOUGH = {
     elder: { x: 2010, y: 50.5, z: -1549.5, heading: 0, look: { x: 1931, y: 6, z: -1372 } },
     gateBoard: { x: 2022.5, y: 26, z: -1620, heading: -1.57, look: { x: 2008, y: 22.25, z: -1622 } },
     puzzleCam: { x: 2010, y: 36, z: -1596, heading: Math.PI, look: { x: 2008, y: 21, z: -1626 } },
-    // Square on to the 5173 bridge, close enough that the two lanterns jamming at mid-span read,
+    // Square on to the first lookout's bridge (R2), close enough that the two lanterns jamming at mid-span read,
     // with the whole span and both lookouts left of the puzzle panel.
     twistCam: {
       x: 2040,

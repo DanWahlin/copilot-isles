@@ -2,7 +2,6 @@ import { Group, Matrix4, Vector3 } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
 import { releaseSpriteQuad } from '../../engine/sprite-quad';
 import type { CircleObstacle, HeightField, WaveSampler } from '../contracts';
-import { seededRandom } from '../life/leaps/director';
 import { createBrigantine, type Brigantine, type BrigantineEnv } from '../ship';
 import { world } from '../uniforms';
 import { windAt } from '../wind';
@@ -23,8 +22,8 @@ import {
   StorePool,
 } from './fx';
 import { Battery, bearing, gunStations, MAX_RANGE, PORT, STARBOARD, type Side } from './gunnery';
-import { RaiderBrain, type RaiderHelm, type RaiderView } from './raider-ai';
-import { clamp01 } from '../../util/math';
+import { RaiderBrain, emptyRaiderView, type RaiderHelm } from './raider-ai';
+import { clamp01, seededRandom } from '../../util/math';
 import { COURSE, onCourseSelected, type CourseMeta } from '../../course/catalog';
 
 /** A raider in a wave: its name board and its size (docs/specs/BATTLES.md §4.1). */
@@ -203,6 +202,28 @@ export interface BattleSnapshot {
   assist: boolean;
 }
 
+/** A snapshot before any battle (idle, whole hull), for `Battle.snapshot` to fill. */
+export function emptyBattleSnapshot(): BattleSnapshot {
+  return {
+    phase: 'idle',
+    wave: 0,
+    waves: 0,
+    hull: 1,
+    raidersLeft: 0,
+    raidersTotal: 0,
+    bears: [false, false],
+    breakOffs: 0,
+    calm: false,
+    doubleShot: false,
+    stores: { timber: 0, powder: 0 },
+    lull: 0,
+    title: '',
+    hint: '',
+    hintTurn: 0,
+    assist: false,
+  };
+}
+
 export interface BattleOptions {
   tier: TierSettings;
   waves: WaveSampler;
@@ -305,42 +326,14 @@ export class Battle {
   private readonly openWater: ((x: number, z: number) => boolean) | null;
   private readonly ground: HeightField | null;
   private title = '';
-  private readonly view: RaiderView = {
-    x: 0,
-    z: 0,
-    heading: 0,
-    headingRate: 0,
-    targetX: 0,
-    targetZ: 0,
-    windX: 0,
-    windZ: 0,
-    loadedPort: 0,
-    loadedStarboard: 0,
-    hull: 1,
-    avoidX: 0,
-    avoidZ: 0,
-  };
+  private readonly view = emptyRaiderView();
   /** Only one raider lays its guns at a time, so warnings never stack (§7). */
   private token = -1;
   /** The raider the camera and your helmsman are watching (−1 none), with hysteresis. */
   private focusIdx = -1;
   /** Your helmsman: the raiders' own broadside logic, steering for you (or just advising). */
   private readonly helmsman = new RaiderBrain(78);
-  private readonly helmView: RaiderView = {
-    x: 0,
-    z: 0,
-    heading: 0,
-    headingRate: 0,
-    targetX: 0,
-    targetZ: 0,
-    windX: 0,
-    windZ: 0,
-    loadedPort: 0,
-    loadedStarboard: 0,
-    hull: 1,
-    avoidX: 0,
-    avoidZ: 0,
-  };
+  private readonly helmView = emptyRaiderView();
   /** What your helmsman would do now; the ship's owner applies it while `assist` is on. */
   readonly assistHelm: RaiderHelm = { trim: 0, rudder: 0 };
   /** "Bring her round": your helmsman steers to the best broadside until you take the helm back. */

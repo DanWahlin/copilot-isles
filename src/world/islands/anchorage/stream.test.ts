@@ -1,10 +1,10 @@
-import { BoxGeometry, Group, Mesh, MeshBasicNodeMaterial, Scene } from 'three/webgpu';
+import { BoxGeometry, Group, Mesh, MeshBasicNodeMaterial, PerspectiveCamera, Scene } from 'three/webgpu';
 import { describe, expect, it } from 'vitest';
 import { releaseRemovedObjects } from '../../../util/dispose-three';
 import type { CreatedTerrain } from '../../terrain/terrain-mesh';
 import { createAnchorageStream } from './stream';
 
-function world() {
+function world(warm?: (roots: unknown[]) => Promise<void>) {
   const scene = new Scene();
   const plants = new Group();
   scene.add(plants);
@@ -21,6 +21,7 @@ function world() {
     parts: () => [terrain, gulls, shrub],
     plantsAwake: () => {},
     breathe: async () => {},
+    warm,
   });
   return { scene, plants, terrain, gulls, shrub, stream };
 }
@@ -47,6 +48,26 @@ describe('Anchorage stream', () => {
     stream.reveal();
     expect(terrain.visible).toBe(true);
     expect(stream.parkedRoots()).toHaveLength(0);
+  });
+
+  it("leaves the silhouette's visibility to its warm while it runs", async () => {
+    let finish!: () => void;
+    let started!: () => void;
+    const warmStarted = new Promise<void>((r) => (started = r));
+    const { stream } = world(async ([silhouette]) => {
+      (silhouette as Group).visible = false;
+      started();
+      await new Promise<void>((r) => (finish = r));
+      (silhouette as Group).visible = true;
+    });
+    const sleeping = stream.unload();
+    await warmStarted;
+    stream.update(new PerspectiveCamera());
+    expect(stream.silhouette.visible).toBe(false);
+    finish();
+    await sleeping;
+    stream.update(new PerspectiveCamera());
+    expect(stream.silhouette.visible).toBe(true);
   });
 
   it('leaves parked parts out of the scene when the voyage ends while dormant (no ghost island)', async () => {

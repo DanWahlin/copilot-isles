@@ -1,7 +1,7 @@
 import { Group, Vector3 } from 'three/webgpu';
 import { MARKET } from '../../content/market';
 import { unreflected } from '../reflection';
-import type { VillageAnchor } from '../village/kit';
+import { anchorFrame, type VillageAnchor } from '../village/kit';
 import { MARKET_LAYOUT } from '../meridian-town/model-market';
 import { SignSet, type PaintedSign } from './sign';
 import { marketText as T } from '../../game/market/jobs';
@@ -71,11 +71,8 @@ export function createModelMarketSigns(o: {
   group.name = 'model market signs';
   // A Meridian site, so never in the Anchorage harbour mirror (PLAN §15.4).
   unreflected.add(group);
-  const root = new Group();
-  root.position.set(o.origin.x, o.origin.y, o.origin.z);
-  root.rotation.y = o.origin.heading;
+  const root = anchorFrame(o.origin);
   group.add(root);
-  root.updateMatrixWorld(true);
 
   const signs = new SignSet('model market signs');
   const L = MARKET_LAYOUT;

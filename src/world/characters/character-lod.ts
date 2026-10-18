@@ -84,20 +84,11 @@ export function buildLodIndex(
   simplify: LodSimplifier,
   ratios: readonly [number, number] = LOD_RATIOS,
 ): boolean {
-  const index = geometry.index;
-  const position = geometry.getAttribute('position');
-  if (!index || !position || geometry.groups.length > 0 || lodRanges(geometry)) return false;
-  const full = index.count - (index.count % 3);
-  if (full / 3 < MIN_TRIANGLES) return false;
-  const vertices = position.count;
-  const indices = new Uint32Array(full);
-  for (let i = 0; i < full; i++) indices[i] = index.getX(i);
-  const positions = new Float32Array(vertices * 3);
-  for (let i = 0; i < vertices; i++) {
-    positions[i * 3] = position.getX(i);
-    positions[i * 3 + 1] = position.getY(i);
-    positions[i * 3 + 2] = position.getZ(i);
-  }
+  const input = simplifierInput(geometry, MIN_TRIANGLES);
+  if (!input) return false;
+  const { indices, positions } = input;
+  const full = indices.length;
+  const vertices = positions.length / 3;
   const { data, stride, weights } = lodAttributes(geometry, vertices);
   const levels = ratios.map((ratio) => {
     const target = Math.max(3, Math.floor((full * ratio) / 3) * 3);
@@ -116,8 +107,48 @@ export function buildLodIndex(
   const lod1 = levels[0]!;
   // LOD 2 is never more than LOD 1 (a mesh the simplifier can't take far reuses LOD 1).
   const lod2 = levels[1]!.length <= lod1.length ? levels[1]! : lod1;
+  setLodIndex(geometry, indices, lod1, lod2);
+  return true;
+}
+
+/**
+ * An indexed, ungrouped geometry's whole triangle list and its positions, flat, as the simplifier
+ * takes them. Null for one it skips: not indexed, grouped, given LODs already, or under `minTriangles`.
+ */
+export function simplifierInput(
+  geometry: BufferGeometry,
+  minTriangles = 0,
+): { indices: Uint32Array; positions: Float32Array } | null {
+  const index = geometry.index;
+  const position = geometry.getAttribute('position');
+  if (!index || !position || geometry.groups.length > 0 || lodRanges(geometry)) return null;
+  const full = index.count - (index.count % 3);
+  if (full / 3 < minTriangles) return null;
+  const indices = new Uint32Array(full);
+  for (let i = 0; i < full; i++) indices[i] = index.getX(i);
+  const positions = new Float32Array(position.count * 3);
+  for (let i = 0; i < position.count; i++) {
+    positions[i * 3] = position.getX(i);
+    positions[i * 3 + 1] = position.getY(i);
+    positions[i * 3 + 2] = position.getZ(i);
+  }
+  return { indices, positions };
+}
+
+/**
+ * Puts LOD 1 and LOD 2 after the full list (`indices`) in the geometry's index, records the three
+ * ranges (`lodRanges`) and draws the full list.
+ */
+export function setLodIndex(
+  geometry: BufferGeometry,
+  indices: Uint32Array,
+  lod1: Uint32Array,
+  lod2: Uint32Array,
+): void {
+  const full = indices.length;
   const total = full + lod1.length + lod2.length;
-  const combined = vertices <= 65535 ? new Uint16Array(total) : new Uint32Array(total);
+  const combined =
+    geometry.getAttribute('position').count <= 65535 ? new Uint16Array(total) : new Uint32Array(total);
   combined.set(indices, 0);
   combined.set(lod1, full);
   combined.set(lod2, full + lod1.length);
@@ -125,7 +156,6 @@ export function buildLodIndex(
   geometry.setDrawRange(0, full);
   const ranges: LodRanges = [0, full, full, lod1.length, full + lod1.length, lod2.length];
   geometry.userData.lodRanges = ranges;
-  return true;
 }
 
 /** Per-vertex attributes the simplifier keeps (normal, then UV or colour) and their weights. */

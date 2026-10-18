@@ -25,6 +25,7 @@ import {
 } from '../../game/market/jobs';
 import { boardOf, modelsIn } from '../../game/market/models';
 import { MARKET } from '../../content/market';
+import { Bold } from '../components/Bold';
 import { isTyping } from '../typing';
 import './model-market.css';
 
@@ -100,19 +101,6 @@ export const draftHire = (d: MarketDraft): Hire =>
 
 const PICKS: readonly ('auto' | ModelCategory)[] = ['auto', ...CATEGORIES];
 const categoryData = (c: ModelCategory) => MARKET.categories.find((x) => x.id === c)!;
-
-/** `**bold**` spans as <b>. */
-function Bold({ text }: { text: string }) {
-  return (
-    <>
-      {text
-        .split(/(\*\*[^*]+\*\*)/)
-        .map((part, i) =>
-          part.startsWith('**') ? <b key={i}>{part.slice(2, -2)}</b> : <span key={i}>{part}</span>,
-        )}
-    </>
-  );
-}
 
 const plain = (s: string) => s.replace(/\*\*/g, '');
 

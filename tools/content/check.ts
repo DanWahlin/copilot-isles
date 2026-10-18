@@ -111,7 +111,7 @@ export const PACK_SCHEMAS: readonly string[] = PACK_FILES.flatMap((f) =>
 );
 
 /** A board needs at least this many topics to read as a board (docs/specs/COURSE-BOARDS.md). */
-export const MIN_BOARD_TOPICS = 5;
+const MIN_BOARD_TOPICS = 5;
 
 /** Starfish you can find before the market (Anchorage and Meridian). */
 const MARKET_STARFISH = starfishOn('anchorage').length + starfishOn('meridian').length;

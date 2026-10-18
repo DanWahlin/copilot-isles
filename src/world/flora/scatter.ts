@@ -1,3 +1,4 @@
+import { Color } from 'three/webgpu';
 import type { HeightField } from '../contracts';
 import type { GrassKind } from '../vegetation/types';
 import { EXCLUSION_SOFT_MARGIN, exclusionWeight, type VegetationExclude } from '../vegetation/exclusions';
@@ -77,13 +78,12 @@ function rampColour(ramp: readonly (readonly [number, number, number])[], t: num
   out.b = a[2] + (b[2] - a[2]) * f;
 }
 
-/** sRGB hex to linear rgb. */
+const scratchColour = new Color();
+
+/** sRGB hex to linear rgb (three's conversion, as the terrain's drift colours use). */
 export function linearRgb(hex: number): [number, number, number] {
-  const c = (v: number) => {
-    const s = v / 255;
-    return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-  };
-  return [c((hex >> 16) & 255), c((hex >> 8) & 255), c(hex & 255)];
+  const c = scratchColour.set(hex);
+  return [c.r, c.g, c.b];
 }
 
 /** A palette's species by habitat, and the drifts' leads. */

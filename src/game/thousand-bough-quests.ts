@@ -3,8 +3,9 @@ import { COURSE, islandHooks, onCourseSelected, welcomeLines } from '../course/c
 import { PUZZLE_ISLANDS, puzzleMaybe, voiceLinesOf } from '../course/puzzles';
 import type { QuestDef, QuestTarget } from '../course/pack';
 import { beatSteps, pickBeat, type Beat } from './beats';
-import type { QuestState, QuestTracker, TrackerStatus } from './cove-quests';
+import { firstOpenQuest, islandTasks, startedQuests, type QuestTracker } from './quest-list';
 import type { ScriptStep } from './script';
+import type { QuestState } from './story';
 
 /**
  * Thousand-Bough Isle's quest line: the logic (which beat each NPC offers, the tracker, the compass).
@@ -36,12 +37,9 @@ let BEATS: readonly Beat[] = [];
 
 const script = (name: string) => courseScript(ISLAND, name);
 
-const done = (q: QuestState, id: string) => q[id] === 'done';
-
 /** The step you're on: the first unfinished main quest in order. */
 export function thousandBoughCurrent(q: QuestState): { id: string; task: string; step: string } | null {
-  const d = MAIN.find((c) => q[c.id] !== 'done');
-  return d ? { id: d.id, task: d.task, step: q[d.id] ?? 'start' } : null;
+  return firstOpenQuest(MAIN, q);
 }
 
 export function thousandBoughTarget(q: QuestState): QuestTarget | null {
@@ -57,17 +55,7 @@ export function thousandBoughTracker(q: QuestState): QuestTracker {
     chapter: THOUSAND_BOUGH_ISLAND.chapter,
     goal: THOUSAND_BOUGH_ISLAND.goal,
     next: THOUSAND_BOUGH_ISLAND.next,
-    tasks: THOUSAND_BOUGH_QUESTS.filter((d) => !d.optional || q[d.id]).map((d) => {
-      const optionalStep = d.optional ? q[d.id] : undefined;
-      const status: TrackerStatus = done(q, d.id)
-        ? 'done'
-        : d.id === current?.id || optionalStep
-          ? 'active'
-          : 'upcoming';
-      const step = d.optional ? optionalStep : current?.step;
-      const detail = status === 'active' && step ? (d.steps[step] ?? '') : '';
-      return { id: d.id, title: d.title, task: d.task, detail, status, optional: !!d.optional, link: d.link };
-    }),
+    tasks: islandTasks(THOUSAND_BOUGH_QUESTS, q, current),
   };
 }
 
@@ -75,12 +63,7 @@ export function thousandBoughTracker(q: QuestState): QuestTracker {
 export function thousandBoughLog(
   q: QuestState,
 ): { id: string; title: string; detail: string; done: boolean }[] {
-  return THOUSAND_BOUGH_QUESTS.filter((d) => q[d.id]).map((d) => ({
-    id: d.id,
-    title: d.title,
-    detail: d.steps[q[d.id]!] ?? '',
-    done: q[d.id] === 'done',
-  }));
+  return startedQuests(THOUSAND_BOUGH_QUESTS, q);
 }
 
 /** Juno and Wingman on the first landfall, once the flyover lands behind the captain. */

@@ -1,5 +1,4 @@
 import { MathUtils, Vector3 } from 'three/webgpu';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createAudio } from '../audio';
 import { createPost } from '../engine/post';
 import { BATTLE_SOUNDS, createBattleAudio } from '../game/battle-audio';
@@ -8,12 +7,12 @@ import { BattleHud } from '../game/battle-hud';
 import { Helm } from '../game/helm';
 import { QUIZZES } from '../learn/content';
 import type { ChoiceQuiz } from '../learn/types';
-import { BATTLE_PLANS, Battle, type BattleSnapshot } from '../world/battle/battle';
+import { BATTLE_PLANS, Battle, emptyBattleSnapshot } from '../world/battle/battle';
 import { createOcean } from '../world/ocean/ocean';
 import { createBrigantine } from '../world/ship';
 import { createSky } from '../world/sky/sky-system';
 import { world } from '../world/uniforms';
-import { compileAndStart, createDevHarness, engineStats } from './harness';
+import { compileAndStart, createDevHarness, engineStats, seaOrbitControls } from './harness';
 import { activateCourse } from '../course/load';
 
 // The course pack the page's content comes from (a voyage loads it the same way).
@@ -83,12 +82,10 @@ scene.add(battle.group);
 if (q.has('calm')) battle.setCalm(true);
 hud.setWonText(plan.won);
 
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
+// Low enough for the director's sea-level shots; it keeps the camera 3 m above the water.
+const controls = seaOrbitControls(camera, canvas);
 controls.maxDistance = 260;
 controls.minDistance = 10;
-// Low enough for the director's sea-level shots; it keeps the camera 3 m above the water.
-controls.maxPolarAngle = Math.PI * 0.495;
 // Drag or zoom and the director stands off.
 controls.addEventListener('start', () => director.yieldToUser());
 
@@ -123,24 +120,7 @@ const camFocus = new Vector3();
 const lookDir = new Vector3();
 /** Where the camera looks, in the ship's frame (x to port, z to the bow), so shots can frame a raider. */
 const look = { x: 0, y: 3, z: 0 };
-const snap: BattleSnapshot = {
-  phase: 'idle',
-  wave: 0,
-  waves: 0,
-  hull: 1,
-  raidersLeft: 0,
-  raidersTotal: 0,
-  bears: [false, false],
-  breakOffs: 0,
-  calm: false,
-  doubleShot: false,
-  stores: { timber: 0, powder: 0 },
-  lull: 0,
-  title: '',
-  hint: '',
-  hintTurn: 0,
-  assist: false,
-};
+const snap = emptyBattleSnapshot();
 /** A ship the camera rides with (dev shots): index (0 yours), offset in its frame (x port, z bow), look height. */
 const track = { i: -1, x: 0, y: 0, z: 0, lookY: 6 };
 let clockT = 0;

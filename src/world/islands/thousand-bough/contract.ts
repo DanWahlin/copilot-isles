@@ -77,7 +77,6 @@ export type TbAnchorName =
 export type TbInteractionId =
   | `npc:${'tamsin' | 'lyra_bough' | 'saffi' | 'oak' | 'fen' | 'ines' | 'rook' | 'pip' | 'elder'}`
   | 'flume:board'
-  | `flag:${number}`
   | 'gondola:bell'
   | 'basket:bottom'
   | 'basket:top'

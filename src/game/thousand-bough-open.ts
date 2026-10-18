@@ -15,7 +15,7 @@ export function thousandBoughOpen(): boolean {
   return typeof location !== 'undefined' && new URLSearchParams(location.search).has('thousandbough');
 }
 
-/** The session calls this when the save loads and whenever Chapter 01's last quest changes. */
+/** The session calls this on load and after every quest change (the Meridian story's `sealed`). */
 export function noteMeridianSeal(on: boolean): void {
   meridianSealed = on;
 }

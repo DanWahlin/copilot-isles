@@ -1,8 +1,6 @@
-import { Group, Vector3, type Mesh, type Object3D, type PerspectiveCamera, type Scene } from 'three/webgpu';
-import type { Node } from 'three/webgpu';
-import type { TierSettings } from '../../engine/quality';
+import { Group, Vector3, type Mesh, type Object3D, type PerspectiveCamera } from 'three/webgpu';
 import type { CircleObstacle } from '../contracts';
-import { createBirds, type BirdsSystem } from '../life/birds';
+import type { BirdsSystem } from '../life/birds';
 import { createMeridianTownAsync, type MeridianTownSystem } from '../meridian-town';
 import { meridianTownPlants } from '../meridian-town/plantings';
 import type { WaterStrips } from '../sites/water';
@@ -10,12 +8,19 @@ import { skipSunShadows } from '../sky/cached-sun-shadow';
 import { loadTerrainPack } from '../terrain/bake';
 import type { CameraBlockerBox } from '../terrain/camera-blockers';
 import { createCoastFoam } from '../terrain/coast-foam';
-import type { CompositeHeightField } from '../terrain/composite-height-field';
 import { createTerrainAsync, type CreatedTerrain } from '../terrain/terrain-mesh';
-import type { VegetationSystem } from '../vegetation';
 import type { PlantInstance, VegetationPatch } from '../vegetation/types';
 import { loadVillageKit } from '../village/kit';
-import { coarserRocksOnLite, disposeTree, singlePassWaterOnLite } from '../island-parts';
+import {
+  addIslandBirds,
+  addIslandGround,
+  addIslandPlants,
+  coarserRocksOnLite,
+  disposeTree,
+  removeIslandGround,
+  singlePassWaterOnLite,
+  type IslandStreamContext,
+} from '../island-parts';
 import { freeInSlices, StreamLifecycle, type StreamState } from '../stream-lifecycle';
 import {
   MERIDIAN,
@@ -98,20 +103,7 @@ export interface MeridianStream {
   dispose(): void;
 }
 
-export interface MeridianStreamContext {
-  scene: Scene;
-  tier: TierSettings;
-  packBase: string;
-  cloudShadowNode?: Node<'float'> | null;
-  breathe: () => Promise<void>;
-  heightField: CompositeHeightField;
-  /** The ship's obstacles (the town's quays and the coastal rocks join them while it's in). */
-  shipObstacles: CircleObstacle[];
-  vegetation: () => VegetationSystem | null;
-  birds: boolean;
-  /** Where the tier has sun shadows but the islands don't take them (cove-scene's `skipIslandShadows`). */
-  skipShadows: boolean;
-  disabled: boolean;
+export interface MeridianStreamContext extends IslandStreamContext {
   /** Whether coming near streams the island in (a course that doesn't use it leaves the silhouette). */
   nearLoads?: () => boolean;
 }
@@ -162,15 +154,7 @@ export function createMeridianStream(ctx: MeridianStreamContext): MeridianStream
     if (ctx.skipShadows) skipSunShadows(terrain.group);
     const foam = createCoastFoam(data, terrain.heightField, { maxDistance: 1100 });
     self.foam = foam;
-    terrain.group.visible = false;
-    foam.visible = false;
-    scene.add(terrain.group, foam);
-    ctx.heightField.add(
-      { minX: data.minX, maxX: data.maxX, minZ: data.minZ, maxZ: data.maxZ },
-      terrain.heightField,
-    );
-    self.terrain = terrain;
-    self.foam = foam;
+    addIslandGround(ctx, data, terrain, foam);
     self.ready = true;
     const rockBlockers = meridianRockCameraBlockersSliced(terrain.heightField);
     for (let r = rockBlockers.next(); ; r = rockBlockers.next()) {
@@ -201,25 +185,15 @@ export function createMeridianStream(ctx: MeridianStreamContext): MeridianStream
         await ctx.breathe();
       }
       if (disposed) return null;
-      plants = await vegetation.addPlants(flora, 'port-meridian-plants', {
-        rules: MERIDIAN_FLORA,
-        heightField: terrain.heightField,
-        heightGrid: terrain.heightGrid,
-      });
-      if (ctx.skipShadows) skipSunShadows(plants.group);
+      plants = await addIslandPlants(ctx, vegetation, flora, 'port-meridian-plants', MERIDIAN_FLORA, terrain);
     }
     // Gulls wheeling over Meridian's harbour and the mole, like Anchorage's.
-    if (ctx.birds && tier.birds > 0) {
-      birds = createBirds({
-        tier,
-        perches: [],
-        center: new Vector3(MERIDIAN.harbor.center.x + 30, 0, MERIDIAN.harbor.center.z - 40),
-        radius: 170,
-        seed: 0x3e51d,
-      });
-      birds.group.visible = false;
-      scene.add(birds.group);
-    }
+    birds = addIslandBirds(
+      ctx,
+      new Vector3(MERIDIAN.harbor.center.x + 30, 0, MERIDIAN.harbor.center.z - 40),
+      170,
+      0x3e51d,
+    );
     return town;
   };
 
@@ -236,11 +210,7 @@ export function createMeridianStream(ctx: MeridianStreamContext): MeridianStream
     plants = null;
     birds = null;
     water = null;
-    if (terrain) ctx.heightField.remove(terrain.heightField);
-    for (const o of obstacles) {
-      const i = ctx.shipObstacles.indexOf(o);
-      if (i >= 0) ctx.shipObstacles.splice(i, 1);
-    }
+    removeIslandGround(ctx, terrain, obstacles);
     obstacles = [];
     const vegetation = ctx.vegetation();
     await freeInSlices(

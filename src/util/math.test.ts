@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { clamp, lerp, mulberry32, segmentDistance, sinHash, smoothstep, wrapAngle } from './math';
+import {
+  clamp,
+  lerp,
+  mulberry32,
+  segmentDistance,
+  segmentDistance3,
+  seededRandom,
+  sinHash,
+  smoothstep,
+  wrapAngle,
+} from './math';
 
 describe('math helpers', () => {
   it('clamps, lerps, and eases', () => {
@@ -26,6 +36,13 @@ describe('math helpers', () => {
     expect(segmentDistance(3, 4, 0, 0, 0, 0)).toBe(5);
   });
 
+  it('measures distance to a 3D segment, including past its ends and for a zero-length one', () => {
+    const a = { x: 0, y: 0, z: 0 };
+    expect(segmentDistance3(5, 3, 4, a, { x: 10, y: 0, z: 0 })).toBe(5);
+    expect(segmentDistance3(1, 2, -12, a, { x: 0, y: 0, z: -10 })).toBeCloseTo(Math.hypot(1, 2, 2), 10);
+    expect(segmentDistance3(2, 3, 6, a, a)).toBe(7);
+  });
+
   it('gives a repeatable seeded sequence in [0, 1)', () => {
     const a = mulberry32(42);
     const b = mulberry32(42);
@@ -33,6 +50,15 @@ describe('math helpers', () => {
     expect(values).toEqual(Array.from({ length: 50 }, () => b()));
     expect(values.every((v) => v >= 0 && v < 1)).toBe(true);
     expect(mulberry32(1)()).not.toBe(mulberry32(2)());
+  });
+
+  it('gives another repeatable seeded sequence in [0, 1), a zero seed included', () => {
+    const a = seededRandom(0xb17d5);
+    const b = seededRandom(0xb17d5);
+    const values = Array.from({ length: 50 }, () => a());
+    expect(values).toEqual(Array.from({ length: 50 }, () => b()));
+    expect(values.every((v) => v >= 0 && v < 1)).toBe(true);
+    expect(seededRandom(0)()).toBe(seededRandom(0x9e3779b9)());
   });
 
   it('hashes a point into [0, 1)', () => {

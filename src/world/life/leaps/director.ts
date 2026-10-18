@@ -2,6 +2,7 @@ import { Matrix4, PerspectiveCamera, Vector2, Vector3 } from 'three/webgpu';
 import type { HeightField } from '../../contracts';
 import { COVE } from '../../layout';
 import type { QuietSea } from '../quiet-sea';
+import { seededRandom } from '../../../util/math';
 
 export interface ScreenRect {
   x: number;
@@ -68,15 +69,6 @@ const tmpRight = new Vector3();
 const tmpPoint = new Vector3();
 const tmpProjected = new Vector3();
 const viewProjection = new Matrix4();
-
-export function seededRandom(seed: number): () => number {
-  let s = seed >>> 0 || 0x9e3779b9;
-  return () => {
-    s = Math.imul(s ^ (s >>> 15), 1 | s);
-    s ^= s + Math.imul(s ^ (s >>> 7), 61 | s);
-    return ((s ^ (s >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 function randomSeed(rng: () => number): number {
   return Math.floor(rng() * 0xffffffff) >>> 0;

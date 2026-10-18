@@ -46,6 +46,26 @@ function baseRadius(species: PlantSpecies, scale: number): number {
   }
 }
 
+/**
+ * The lowest of `h` (the ground at x, z) and the ground at `samples` points on a ring `r` m round it:
+ * where a plant's base sits, so no side of it floats over a slope.
+ */
+export function lowestOnRing(
+  heightAt: (x: number, z: number) => number,
+  x: number,
+  z: number,
+  h: number,
+  r: number,
+  samples: number,
+): number {
+  let y = h;
+  for (let i = 0; i < samples; i += 1) {
+    const a = (i / samples) * Math.PI * 2;
+    y = Math.min(y, heightAt(x + Math.cos(a) * r, z + Math.sin(a) * r));
+  }
+  return y;
+}
+
 function groundedHeight(
   species: PlantSpecies,
   scale: number,
@@ -54,12 +74,7 @@ function groundedHeight(
   heightAt: (x: number, z: number) => number,
 ): number {
   const r = baseRadius(species, scale);
-  let y = heightAt(x, z);
-  for (let i = 0; i < 6; i += 1) {
-    const a = (i / 6) * Math.PI * 2;
-    y = Math.min(y, heightAt(x + Math.cos(a) * r, z + Math.sin(a) * r));
-  }
-  return y - Math.min(0.18, 0.05 + r * 0.06);
+  return lowestOnRing(heightAt, x, z, heightAt(x, z), r, 6) - Math.min(0.18, 0.05 + r * 0.06);
 }
 
 function resolveTier(tier: Tier | TierSettings): TierSettings {

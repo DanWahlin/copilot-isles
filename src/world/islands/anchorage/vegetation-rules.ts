@@ -2,8 +2,8 @@
 import { COVE } from '../../layout';
 import type { HeightField, Tier } from '../../contracts';
 import { clamp01, segmentDistance, smoothstep } from '../../../util/math';
-import { headlandCliffPlantSpots } from '../../terrain/headland-cliff-shape';
-import { seaStackPlantSpots } from '../../terrain/sea-stack-shape';
+import { headlandCliffPlantSpots, type HeadlandPlantSpot } from '../../terrain/headland-cliff-shape';
+import { seaStackPlantSpots, type SeaStackPlantSpot } from '../../terrain/sea-stack-shape';
 import { slopeDegFromNormal } from '../../vegetation/scatter';
 import { SeededRandom, hash2, valueNoise } from '../../vegetation/random';
 import type {
@@ -304,22 +304,27 @@ const CURATED_PALMS: ReadonlyArray<{
   { species: 'palmCluster', x: 132, z: -14, scale: 0.78, rotation: -2.9 },
 ];
 
+/** A plant on a landform's own shape (the sea stack, the headland): no slope, colour and LOD seeded by its spot. */
+function plantOnShape(spot: SeaStackPlantSpot | HeadlandPlantSpot): PlantInstance {
+  return {
+    species: spot.species,
+    x: spot.x,
+    y: spot.y,
+    z: spot.z,
+    scale: spot.scale,
+    rotation: spot.rotation,
+    leanX: spot.leanX,
+    leanZ: spot.leanZ,
+    colorSeed: spot.seed,
+    lodSeed: spot.seed,
+    slopeDeg: 0,
+  };
+}
+
 /** The jungle on the sea stack's dome and ledges (placed on its shape, not on the height field). */
 function appendSeaStackPlants(plants: Record<PlantSpecies, PlantInstance[]>): void {
   for (const spot of seaStackPlantSpots()) {
-    plants[spot.species].push({
-      species: spot.species,
-      x: spot.x,
-      y: spot.y,
-      z: spot.z,
-      scale: spot.scale,
-      rotation: spot.rotation,
-      leanX: spot.leanX,
-      leanZ: spot.leanZ,
-      colorSeed: spot.seed,
-      lodSeed: spot.seed,
-      slopeDeg: 0,
-    });
+    plants[spot.species].push(plantOnShape(spot));
   }
 }
 
@@ -338,19 +343,7 @@ function appendHeadlandPlants(
   tier: Tier,
 ): void {
   for (const spot of headlandCliffPlantSpots(heightField, HEADLAND_PLANT_DENSITY[tier])) {
-    plants[spot.species].push({
-      species: spot.species,
-      x: spot.x,
-      y: spot.y,
-      z: spot.z,
-      scale: spot.scale,
-      rotation: spot.rotation,
-      leanX: spot.leanX,
-      leanZ: spot.leanZ,
-      colorSeed: spot.seed,
-      lodSeed: spot.seed,
-      slopeDeg: 0,
-    });
+    plants[spot.species].push(plantOnShape(spot));
   }
 }
 

@@ -1,6 +1,6 @@
 import { Group, Matrix4, Mesh, Quaternion, Vector3, type Material } from 'three/webgpu';
 import { unreflected } from '../reflection';
-import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
+import { anchorFrame, type VillageAnchor, type VillageBoxCollider, type VillageKit } from '../village/kit';
 import { box, merge } from './geo';
 import { mergeWithRigidParts } from './rigid-parts';
 import { SignSet } from './sign';
@@ -79,11 +79,8 @@ export function createRecordsAlcoves(o: {
   group.name = 'hall of records alcoves (P1.3)';
   // A Meridian site, so never in the Anchorage harbour mirror (PLAN §15.4).
   unreflected.add(group);
-  const root = new Group();
-  root.position.set(o.origin.x, o.origin.y, o.origin.z);
-  root.rotation.y = o.origin.heading;
+  const root = anchorFrame(o.origin);
   group.add(root);
-  root.updateMatrixWorld(true);
 
   const mats: Record<'wood' | 'plaster', Material> = {
     wood: o.kit.materials.wood,

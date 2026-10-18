@@ -52,7 +52,7 @@ export function parseYamlList(text: string): Record<string, string>[] {
 }
 
 /** A model's name without footnote markers (`Gemini 3.7 Flash[^promo]`) or stray spaces. */
-export function cleanModelName(name: string): string {
+function cleanModelName(name: string): string {
   return name
     .replace(/\[\^[^\]]*\]/g, '')
     .replace(/\s+/g, ' ')
@@ -60,7 +60,7 @@ export function cleanModelName(name: string): string {
 }
 
 /** Claude, GPT or MAI by provider and name, or null for every other model. */
-export function familyOf(name: string, provider: string): ModelFamily | null {
+function familyOf(name: string, provider: string): ModelFamily | null {
   if (provider === 'anthropic' && /^Claude\b/.test(name)) return 'Claude';
   if (provider === 'openai' && /^GPT\b/.test(name)) return 'GPT';
   if (provider === 'microsoft' && /^MAI-/.test(name)) return 'MAI';

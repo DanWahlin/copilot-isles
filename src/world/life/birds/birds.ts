@@ -17,7 +17,7 @@ import type { Tier } from '../../contracts';
 import { world } from '../../uniforms';
 import { createBirdGeometry } from './geometry';
 import { createBirdMaterial } from './material';
-import { clamp } from '../../../util/math';
+import { clamp, seededRandom } from '../../../util/math';
 
 export interface CreateBirdsOptions {
   tier: Tier | TierSettings;
@@ -73,15 +73,6 @@ function resolveTier(tier: Tier | TierSettings): TierSettings {
   return typeof tier === 'string' ? tierSettings(tier) : tier;
 }
 
-function random(seed: number): () => number {
-  let s = seed >>> 0 || 0x12345678;
-  return () => {
-    s = Math.imul(s ^ (s >>> 15), 1 | s);
-    s ^= s + Math.imul(s ^ (s >>> 7), 61 | s);
-    return ((s ^ (s >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 function angleDiff(a: number, b: number): number {
   let d = a - b;
   while (d > Math.PI) d -= Math.PI * 2;
@@ -125,7 +116,7 @@ function setMatrix(agent: BirdAgent): Matrix4 {
 export function createBirds(options: CreateBirdsOptions): BirdsSystem {
   const tier = resolveTier(options.tier);
   const count = Math.max(0, tier.birds);
-  const rng = random(options.seed ?? 0xb17d5);
+  const rng = seededRandom(options.seed ?? 0xb17d5);
   const agents: BirdAgent[] = [];
   const alt = options.altitude ?? DEFAULT_ALTITUDE;
   const perchCount = Math.min(options.perches.length, Math.ceil(count * 0.24));

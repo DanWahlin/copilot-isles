@@ -54,21 +54,17 @@ const LEAD_DOTS = 0.72;
 /** The drift's colour wash: gentle up close (the dots carry it), stronger far off where they've gone. */
 const WASH = { near: 0.2, far: 0.42 } as const;
 
-function linearColour(hex: number, out: Color): Color {
-  return out.set(hex);
-}
-
 /**
  * A species' colour as the terrain shows it far off: the middle of its pair, with near-whites warmed
  * toward its eye and dimmed, since a pale fleck on green reads as litter, not a flower.
  */
 function farColour(s: FloraSpecies, out: Color): Color {
-  const a = linearColour(s.colours[0], new Color());
-  const b = linearColour(s.colours[1], new Color());
+  const a = new Color(s.colours[0]);
+  const b = new Color(s.colours[1]);
   out.copy(a).lerp(b, 0.5);
   const luma = out.r * 0.2126 + out.g * 0.7152 + out.b * 0.0722;
   const pale = Math.min(1, Math.max(0, (luma - 0.45) / 0.35));
-  if (pale > 0) out.lerp(linearColour(s.eye, new Color()), 0.4 * pale).multiplyScalar(1 - 0.25 * pale);
+  if (pale > 0) out.lerp(new Color(s.eye), 0.4 * pale).multiplyScalar(1 - 0.25 * pale);
   return out;
 }
 
@@ -148,7 +144,7 @@ export function floraSward(P: AnyNode): FloraSward {
   let leadShare: AnyNode = float(0);
   const c = new Color();
   const tone = (hex: number) => {
-    linearColour(hex, c);
+    c.set(hex);
     return vec3(c.r, c.g, c.b);
   };
   ISLAND_FLORA_PALETTES.forEach((p, index) => {

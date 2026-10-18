@@ -433,6 +433,27 @@ function baseIslandHeight(spec: IslandSpec, x: number, z: number): { height: num
   return { height: h, peak };
 }
 
+/**
+ * Where the water on inner cell `i` of a `side`-wide grid runs: the lowest of the cell and its eight
+ * neighbours (the cell itself, or the first found, on a tie).
+ */
+function lowestNeighbour(heights: Float32Array, side: number, i: number): number {
+  let low = i;
+  let lowH = heights[i]!;
+  for (let dz = -1; dz <= 1; dz++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      if (dx === 0 && dz === 0) continue;
+      const n = i + dz * side + dx;
+      const nh = heights[n]!;
+      if (nh < lowH) {
+        low = n;
+        lowH = nh;
+      }
+    }
+  }
+  return low;
+}
+
 function erodeField(heights: Float32Array, flow: Float32Array, side: number, iterations: number): void {
   const delta = new Float32Array(heights.length);
   for (let iter = 0; iter < iterations; iter++) {
@@ -442,20 +463,8 @@ function erodeField(heights: Float32Array, flow: Float32Array, side: number, ite
         const i = z * side + x;
         const h = heights[i]!;
         if (h <= 0.01) continue;
-        let low = i;
-        let lowH = h;
-        for (let dz = -1; dz <= 1; dz++) {
-          for (let dx = -1; dx <= 1; dx++) {
-            if (dx === 0 && dz === 0) continue;
-            const n = i + dz * side + dx;
-            const nh = heights[n]!;
-            if (nh < lowH) {
-              low = n;
-              lowH = nh;
-            }
-          }
-        }
-        const diff = h - lowH;
+        const low = lowestNeighbour(heights, side, i);
+        const diff = h - heights[low]!;
         if (diff <= 0.026) continue;
         const moved = (diff - 0.026) * 0.18;
         delta[i] -= moved;
@@ -474,19 +483,7 @@ function erodeField(heights: Float32Array, flow: Float32Array, side: number, ite
     const x = i % side;
     const z = Math.floor(i / side);
     if (x <= 0 || z <= 0 || x >= side - 1 || z >= side - 1) continue;
-    let low = i;
-    let lowH = h;
-    for (let dz = -1; dz <= 1; dz++) {
-      for (let dx = -1; dx <= 1; dx++) {
-        if (dx === 0 && dz === 0) continue;
-        const n = i + dz * side + dx;
-        const nh = heights[n]!;
-        if (nh < lowH) {
-          low = n;
-          lowH = nh;
-        }
-      }
-    }
+    const low = lowestNeighbour(heights, side, i);
     if (low !== i) flow[low] += flow[i]! * 0.72;
   }
   for (let i = 0; i < heights.length; i++) {

@@ -451,7 +451,8 @@ export function meridianHeight(x: number, z: number): number {
   return meridianWater().carve(x, z, meridianHeightDry(x, z));
 }
 
-function meridianNormalAt(
+/** The ground's normal at (x, z), from the height's central differences 1.5 m either side. */
+export function meridianNormalAt(
   x: number,
   z: number,
   out: Float32Array | number[] = [0, 0, 0],

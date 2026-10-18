@@ -387,8 +387,8 @@ hook (release it when the site is freed).
   when touching the title or warm-up: timing-dependent hitches only show some of the time).
 - Dead code: `npx knip` with the real entry points (`src/boot/main.ts`, `src/dev/*.ts`, `tools/**`,
   tests). Duplication: `npx jscpd src --min-lines 12 --ignore "**/rock-assets.ts,**/*.test.ts"`.
-  Shared helpers live in `src/util/math.ts` (`smoothstep`, `clamp01`, `mulberry32`,
-  `segmentDistance`, `sinHash`); don't add local copies.
+  Shared helpers live in `src/util/math.ts` (`smoothstep`, `clamp01`, `wrapAngle`, `mulberry32`,
+  `seededRandom`, `segmentDistance`, `segmentDistance3`, `sinHash`); don't add local copies.
 
 ## 7. Scaling checklist
 

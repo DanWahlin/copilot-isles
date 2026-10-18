@@ -1,6 +1,5 @@
 import { Mesh, MeshStandardNodeMaterial, PlaneGeometry, Vector3 } from 'three/webgpu';
 import { color, mix, positionWorld, smoothstep, vec3 } from 'three/tsl';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createSky } from '../world/sky/sky-system';
 import { createOcean } from '../world/ocean/ocean';
 import {
@@ -9,6 +8,7 @@ import {
   createDevHarness,
   engineStats,
   orbitViews,
+  seaOrbitControls,
   showSkyReadouts,
 } from './harness';
 
@@ -46,9 +46,7 @@ beach.position.set(0, 0, 0);
 beach.receiveShadow = true;
 scene.add(beach);
 
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.maxPolarAngle = Math.PI * 0.495;
+const controls = seaOrbitControls(camera, canvas);
 
 const VIEWS: Record<string, [number[], number[]]> = {
   deck: [

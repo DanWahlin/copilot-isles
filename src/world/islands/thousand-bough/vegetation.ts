@@ -1,9 +1,10 @@
 import type { HeightField, Tier } from '../../contracts';
 import type { PlantInstance, PlantSpecies } from '../../vegetation/types';
 import { fbm2 } from '../../terrain/cove-height';
+import { lowestOnRing } from '../../vegetation/scatter';
 import { sinHash, smoothstep } from '../../../util/math';
 import { THOUSAND_BOUGH as TB, TREE } from './layout';
-import { thousandBoughHeight, thousandBoughMasks, thousandBoughWater } from './height';
+import { thousandBoughHeight, thousandBoughMasks, thousandBoughNormal, thousandBoughWater } from './height';
 import type { WalkClearance } from './village/clearance';
 import type { PropRoot } from './tree/shape';
 
@@ -36,16 +37,7 @@ const SIZE: Partial<Record<PlantSpecies, { h: number; r: number }>> = {
 /** The island's own functions as a height field (for the tests; the game passes its baked one). */
 export const THOUSAND_BOUGH_HEIGHT_FIELD: HeightField = {
   heightAt: thousandBoughHeight,
-  normalAt(x, z, out) {
-    const e = 1.5;
-    const nx = -(thousandBoughHeight(x + e, z) - thousandBoughHeight(x - e, z)) / (2 * e);
-    const nz = -(thousandBoughHeight(x, z + e) - thousandBoughHeight(x, z - e)) / (2 * e);
-    const len = Math.hypot(nx, 1, nz) || 1;
-    out[0] = nx / len;
-    out[1] = 1 / len;
-    out[2] = nz / len;
-    return out;
-  },
+  normalAt: thousandBoughNormal,
   masksAt: thousandBoughMasks,
 };
 
@@ -69,6 +61,27 @@ function cleared(x: number, z: number, r: number): boolean {
   return false;
 }
 
+/** How far a plant keeps from a walk beside it, over it and under it. */
+const WALK_MARGINS = { beside: 1.2, above: 1.5, below: 1.5 };
+
+/**
+ * Whether a plant `height` m tall and `r` m across fits at (x, z) on ground `h`: off the clearings and
+ * the banyan's roots, not on a path, nor reaching up into a deck, a stair or a bridge.
+ */
+function hasRoom(
+  x: number,
+  z: number,
+  h: number,
+  height: number,
+  r: number,
+  clearance: WalkClearance,
+  roots: readonly PropRoot[],
+): boolean {
+  if (cleared(x, z, r)) return false;
+  for (const root of roots) if (Math.hypot(x - root.foot.x, z - root.foot.z) < root.r + r + 0.4) return false;
+  return !clearance.conflict(x, h + height / 2, z, Math.max(r * 0.8, height / 2), WALK_MARGINS);
+}
+
 const NORMAL = [0, 0, 0];
 
 /**
@@ -84,6 +97,7 @@ export function* thousandBoughPlantsSliced(
   const out: PlantInstance[] = [];
   const keep = KEEP[tier];
   const water = thousandBoughWater();
+  const heightAt = (x: number, z: number) => field.heightAt(x, z);
   const { minX, maxX, minZ, maxZ } = TB.bounds;
   for (let cz = Math.ceil((minZ + 40) / CELL); cz * CELL < maxZ - 40; cz++) {
     for (let cx = Math.ceil((minX + 40) / CELL); cx * CELL < maxX - 40; cx++) {
@@ -115,25 +129,8 @@ export function* thousandBoughPlantsSliced(
         const size = SIZE[species] ?? { h: 2, r: 1 };
         const r = size.r * scale;
         if (shore < r * 0.6 + 1.6) continue;
-        if (cleared(x, z, r)) continue;
-        let blocked = false;
-        for (const root of roots)
-          if (Math.hypot(x - root.foot.x, z - root.foot.z) < root.r + r + 0.4) blocked = true;
-        if (blocked) continue;
-        // Not on a path, nor reaching up into a deck, a stair or a bridge.
-        if (
-          clearance.conflict(x, h + (size.h * scale) / 2, z, Math.max(r * 0.8, (size.h * scale) / 2), {
-            beside: 1.2,
-            above: 1.5,
-            below: 1.5,
-          })
-        )
-          continue;
-        let y = h;
-        for (let i = 0; i < 4; i++) {
-          const a = (i / 4) * Math.PI * 2;
-          y = Math.min(y, field.heightAt(x + Math.cos(a) * 0.7, z + Math.sin(a) * 0.7));
-        }
+        if (!hasRoom(x, z, h, size.h * scale, r, clearance, roots)) continue;
+        const y = lowestOnRing(heightAt, x, z, h, 0.7, 4);
         const palm = species.startsWith('palm');
         out.push({
           species,
@@ -168,20 +165,7 @@ export function* thousandBoughPlantsSliced(
       const species: PlantSpecies = sinHash(gx, gz, 94) < 0.72 ? 'fern' : 'shrub';
       const scale = scaleFor(species, sinHash(gx, gz, 95));
       const size = SIZE[species] ?? { h: 2, r: 1 };
-      const r = size.r * scale;
-      if (cleared(x, z, r)) continue;
-      let blocked = false;
-      for (const root of roots)
-        if (Math.hypot(x - root.foot.x, z - root.foot.z) < root.r + r + 0.4) blocked = true;
-      if (blocked) continue;
-      if (
-        clearance.conflict(x, h + (size.h * scale) / 2, z, Math.max(r * 0.8, (size.h * scale) / 2), {
-          beside: 1.2,
-          above: 1.5,
-          below: 1.5,
-        })
-      )
-        continue;
+      if (!hasRoom(x, z, h, size.h * scale, size.r * scale, clearance, roots)) continue;
       field.normalAt(x, z, NORMAL);
       out.push({
         species,

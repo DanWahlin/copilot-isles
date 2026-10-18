@@ -14,7 +14,8 @@ import type { HeightField, Tier, WaveSampler } from '../../contracts';
 import { unreflected } from '../../reflection';
 import type { QuietSea } from '../quiet-sea';
 import { world } from '../../uniforms';
-import { LeapsDirector, seededRandom, type LeapArc, type LeapKind, type ScreenRect } from './director';
+import { seededRandom } from '../../../util/math';
+import { LeapsDirector, type LeapArc, type LeapKind, type ScreenRect } from './director';
 import { createDolphinGeometry, createFlyingFishGeometry, createSplashGeometry } from './geometry';
 import { createDolphinMaterial, createFlyingFishMaterial, createSplashMaterial } from './material';
 

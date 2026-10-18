@@ -281,7 +281,6 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
       closeChoice();
       return take(r.mode);
     }
-    const my = token;
     if (!r.tried.includes(pick)) r.tried.push(pick);
     const line = HELM_ORDERS[r.mode].wrong[pick]!;
     if (r.mode === 'review' && pick === 'auto') {
@@ -299,22 +298,20 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
       );
       return;
     }
-    r.phase = 'brief';
-    openChoice('order', true, { text: lineText(line), tone: 'bad' });
-    await host.say([line]);
-    if (my !== token || run !== r) return;
-    r.phase = 'order';
-    setView({ busy: false });
+    return orderAgain(r, line);
   }
 
   /** \`auto\` stopped short of the reef passage: Rhea's line, then the order again. */
   async function balked(): Promise<void> {
     if (!run) return;
-    const my = token;
-    const r = run;
-    r.phase = 'brief';
     host.ship.clearAutopilot();
-    const line = HELM_ORDERS.review.wrong.auto!;
+    return orderAgain(run, HELM_ORDERS.review.wrong.auto!);
+  }
+
+  /** Rhea's reason a helm's wrong, over the order; then the order again (unless the run moved on). */
+  async function orderAgain(r: Run, line: string): Promise<void> {
+    const my = token;
+    r.phase = 'brief';
     openChoice('order', true, { text: lineText(line), tone: 'bad' });
     await host.say([line]);
     if (my !== token || run !== r) return;

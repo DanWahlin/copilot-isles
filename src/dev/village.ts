@@ -1,33 +1,25 @@
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { createCove } from '../world/cove-scene';
 import { createVillage } from '../world/islands/anchorage/village';
 import {
   bindSkyPanel,
   compileAndStart,
-  createDevHarness,
   engineStats,
   orbitViews,
+  seaOrbitControls,
   showSkyReadouts,
 } from './harness';
-import { activateCourse } from '../course/load';
-
-// The course pack the page's content comes from (a voyage loads it the same way).
-await activateCourse();
+import { createCovePage } from './cove-page';
 
 /** Anchorage Cay village dev page: Test Cove plus the procedural harbor village (?webgl, ?tier=, ?view=). */
-const h = await createDevHarness();
+const { h, cove, coveMs } = await createCovePage();
 const { q, backend, tier, canvas, renderer, engine } = h;
 const { scene, camera, clock } = engine;
 
 const t0 = performance.now();
-const cove = await createCove(engine, { vegetation: !q.has('noveg') });
 const village = await createVillage({ tier, heightField: cove.terrain.heightField });
 scene.add(village.group);
-const buildMs = performance.now() - t0;
+const buildMs = coveMs + performance.now() - t0;
 
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.maxPolarAngle = Math.PI * 0.495;
+const controls = seaOrbitControls(camera, canvas);
 
 const VIEWS: Record<string, [number[], number[]]> = {
   quay: [

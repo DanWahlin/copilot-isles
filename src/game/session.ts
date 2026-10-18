@@ -1301,6 +1301,19 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       tz: lh.z - dz * 6,
     };
   }
+  /** A Seal's lamp lighting: cut to `shot`, `light` it to a stinger, then cut back to the talk. */
+  async function showLighting(shot: CameraShot, light: () => void): Promise<void> {
+    await hud.fade(true, 260);
+    cam.cut(shot);
+    await hud.fade(false, 260);
+    await new Promise((r) => setTimeout(r, 1100));
+    light();
+    audio?.sfx.oneShot('stinger_triumph', player, 0.8);
+    await new Promise((r) => setTimeout(r, 2600));
+    await hud.fade(true, 260);
+    if (talkShot) cam.cut(talkShot);
+    await hud.fade(false, 260);
+  }
   // The Seal: the lighthouse on the mole lights up across the harbour.
   cues.set('lighthouse', async () => {
     const town = cove.meridian.town;
@@ -1308,18 +1321,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     const adm = town?.anchors.admiral;
     if (!town || !lh || !adm) return;
     // Cuts, not eases: the sea shot is across the harbour, and an ease would swoop through the bluff.
-    const shot = lighthouseShot(adm, lh);
-    await hud.fade(true, 260);
-    cam.cut(shot);
-    await hud.fade(false, 260);
-    await new Promise((r) => setTimeout(r, 1100));
-    town.setLighthouseLit(true);
-    lighthouseLit = true;
-    audio?.sfx.oneShot('stinger_triumph', player, 0.8);
-    await new Promise((r) => setTimeout(r, 2600));
-    await hud.fade(true, 260);
-    if (talkShot) cam.cut(talkShot);
-    await hud.fade(false, 260);
+    await showLighting(lighthouseShot(adm, lh), () => {
+      town.setLighthouseLit(true);
+      lighthouseLit = true;
+    });
   });
 
   // Anchorage's Seal (PLAN §4, Island 00 beat 11): the point lighthouse lights across the harbour.
@@ -1337,16 +1342,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       ty: L.top + 11,
       tz: L.z,
     };
-    await hud.fade(true, 260);
-    cam.cut(shot);
-    await hud.fade(false, 260);
-    await new Promise((r) => setTimeout(r, 1100));
-    village.setLighthouseLit(true);
-    audio?.sfx.oneShot('stinger_triumph', player, 0.8);
-    await new Promise((r) => setTimeout(r, 2600));
-    await hud.fade(true, 260);
-    if (talkShot) cam.cut(talkShot);
-    await hud.fade(false, 260);
+    await showLighting(shot, () => village.setLighthouseLit(true));
   });
   if (storyHolds('anchorage', 'sealed', quests())) village.setLighthouseLit(true);
 

@@ -26,6 +26,7 @@ import {
   beam,
   box,
   cone,
+  gridIndex,
   gridSurface,
   lanternPaint,
   makeBuckets,
@@ -307,18 +308,12 @@ function troughWaterReach(reach: number): BufferGeometry {
       nrm[i * 3 + 1] = 1;
     }
   }
-  const idx: number[] = [];
-  for (let r = 0; r < rows - 1; r++)
-    for (let c = 0; c < cols - 1; c++) {
-      const a = r * cols + c;
-      idx.push(a, a + cols, a + 1, a + 1, a + cols, a + cols + 1);
-    }
   const g = new BufferGeometry();
   g.setAttribute('position', new BufferAttribute(pos, 3));
   g.setAttribute('normal', new BufferAttribute(nrm, 3));
   g.setAttribute('uv', new BufferAttribute(new Float32Array(n * 2), 2));
   g.setAttribute('color', new BufferAttribute(col, 3));
-  g.setIndex(idx);
+  g.setIndex(gridIndex(rows, cols));
   return g;
 }
 
