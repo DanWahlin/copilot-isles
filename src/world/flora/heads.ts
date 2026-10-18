@@ -1,4 +1,5 @@
 import { BufferGeometry, Float32BufferAttribute } from 'three/webgpu';
+import { setBladeMorph } from '../vegetation/blade-bands';
 import type { HeadForm } from './types';
 
 /**
@@ -6,7 +7,7 @@ import type { HeadForm } from './types';
  * (1) and x and z are in head radii, so a plant's instance matrix scales x and z by its head's radius
  * (m) and y by its stem's height (m). Each is a small plant: a few heads (or spikes, caps, fronds) of
  * their own heights over a rosette of leaves. Every form has the grass blades' attributes (`vegPart`,
- * `shade`, `uv`), so all of them draw with the one grass material, which dishes each head by its
+ * `shade`, `uv`, and a zero `bladeMorph`), so all of them draw with the one grass material, which dishes each head by its
  * species (`cup`, `throat`) and colours it from its instance tint and the species table.
  *
  * `vegPart`: 3 the flowers (a head's petals, a spike's florets, a cap, a frond), 5 stems and leaves.
@@ -305,6 +306,7 @@ export function createFlowerGeometry(form: HeadForm): BufferGeometry {
   geometry.setAttribute('uv', new Float32BufferAttribute(b.uvs, 2));
   geometry.setAttribute('vegPart', new Float32BufferAttribute(b.parts, 1));
   geometry.setAttribute('shade', new Float32BufferAttribute(b.shade, 1));
+  setBladeMorph(geometry);
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return geometry;

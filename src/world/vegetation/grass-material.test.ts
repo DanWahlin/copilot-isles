@@ -3,6 +3,8 @@ import { InstancedBufferAttribute, InstancedMesh, type BufferGeometry } from 'th
 import { interleaveVertexAttributes } from '../../engine/instancing';
 import { createFlowerGeometry } from '../flora/heads';
 import type { HeadForm } from '../flora/types';
+import { bladeBands } from './blade-bands';
+import { createGrassGeometry, createSeedHeadGeometry } from './grass';
 import { createGrassMaterial, createHeightDataTexture } from './materials';
 import type { HeightGrid } from './types';
 import { buildWgsl, unsetReads } from './wgsl-test-helpers';
@@ -15,19 +17,34 @@ function grassWgsl(geometry: BufferGeometry): { vertex: string; fragment: string
     createHeightDataTexture(GRID),
     GRID,
     { full: 20, far: 40, keep: 0.35 },
+    bladeBands(1, 1.5),
     { ground: 0x4f6a22, straw: 0.04, strawColour: 0xc0ab5c },
   );
   interleaveVertexAttributes(geometry);
-  geometry.setAttribute('grassShape', new InstancedBufferAttribute(new Float32Array(8), 2));
+  geometry.setAttribute('grassShape', new InstancedBufferAttribute(new Float32Array(16), 4));
   geometry.setAttribute('tint', new InstancedBufferAttribute(new Float32Array(12), 3));
   return buildWgsl(new InstancedMesh(geometry, material, 4), material);
 }
 
 describe('grass material', () => {
-  it('draws every flower form with the same shader (a new species adds no program)', () => {
+  it('draws every blade band, seed head and flower form with the same shader (no new program)', () => {
     const forms: HeadForm[] = ['bloom', 'spike', 'cap', 'frond'];
-    const [first, ...rest] = forms.map((form) => grassWgsl(createFlowerGeometry(form)));
+    const [first, ...rest] = [
+      createGrassGeometry(184, 'near'),
+      createGrassGeometry(72, 'far'),
+      createGrassGeometry(20, 'far'),
+      createSeedHeadGeometry(),
+      ...forms.map((form) => createFlowerGeometry(form)),
+    ].map(grassWgsl);
     for (const other of rest) expect(other).toEqual(first);
+  });
+
+  it('keeps within the 16 vertex attribute slots WebGPU and WebGL2 promise', () => {
+    const { vertex } = grassWgsl(createGrassGeometry(20, 'far'));
+    const inputs = vertex.slice(vertex.indexOf('fn main('), vertex.indexOf('->', vertex.indexOf('fn main(')));
+    const slots = [...inputs.matchAll(/@location\(\s*\d+\s*\)/g)].length;
+    // The scene pass's motion vectors add last frame's instance matrix (four more slots).
+    expect(slots + 4).toBeLessThanOrEqual(16);
   });
 
   it('sets every shared value before a branch reads it', () => {

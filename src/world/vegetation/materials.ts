@@ -63,6 +63,7 @@ import { gustNode } from '../wind-nodes';
 import { trackedPosition } from '../../engine/motion-vectors';
 import { FLORA_SPECIES_MAX, FLOWER_REACH, floraPushers, floraSpeciesTable } from '../flora/nodes';
 import type { HeightGrid } from './types';
+import { BLADE_RANK_STEP, MID_ALONG, bladeBandShape, type BandMath, type BladeBands } from './blade-bands';
 
 // three's TSL fluent node typings do not cover the mixed scalar/vector graph assembled here.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -464,6 +465,16 @@ export interface GrassReach {
   keep: number;
 }
 
+/** `BandMath` on TSL nodes: the grass shader's side of `bladeBandShape`. */
+const NODE_MATH: BandMath<AnyNode> = {
+  k: (v) => float(v),
+  add: (a, b) => a.add(b),
+  sub: (a, b) => a.sub(b),
+  mul: (a, b) => a.mul(b),
+  step: (edge, x) => step(edge, x),
+  smoothstep: (e0, e1, x) => smoothstep(e0, e1, x),
+};
+
 /** How an island's grass is coloured beyond its blade tints (from its flora palette). */
 export interface GrassLook {
   /** The ground's tone under the blades (sRGB hex): the roots fade into it, so no pale soil shows. */
@@ -479,6 +490,8 @@ export interface GrassLook {
  * roots fade into the ground's tone, a few are dead straw, and the sun shines through their tips
  * when you look toward it. Flowers (`vegPart` 3 petals, 5 stems) read their species' shape, eye and
  * glow from the shared table (`floraSpeciesTable`) by the row in `grassShape.x` (-2 - row).
+ * Blades change detail with distance continuously (`bladeBandShape`, by `bands`), so the field's swaps
+ * between its three blade geometries show nothing.
  * Every part's value is worked out unconditionally and blended by 0/1 weights, not `select`, so no
  * shared node is first built inside a branch (see `withVars`).
  */
@@ -486,6 +499,7 @@ export function createGrassMaterial(
   heightTexture: DataTexture,
   grid: HeightGrid,
   reach: GrassReach,
+  bands: BladeBands,
   look: GrassLook,
 ): MeshStandardNodeMaterial {
   const material = new MeshStandardNodeMaterial({
@@ -496,9 +510,13 @@ export function createGrassMaterial(
   });
   const tint = attribute('tint', 'vec3') as AnyNode;
   // Per clump: x is its thinning rank (below zero is never thinned; a flower's is -2 - its species
-  // row), y its exclusion-edge weight.
-  const clumpShape = attribute('grassShape', 'vec2') as AnyNode;
+  // row), y its exclusion-edge weight, z its turn (radians about y) and w its width scale.
+  const clumpShape = attribute('grassShape', 'vec4') as AnyNode;
+  // Per blade vertex: the middle vertex's move onto its far triangle's edge (xyz) and its sideways
+  // offset (w); zero for seed heads and flowers.
+  const bladeMorph = attribute('bladeMorph', 'vec4') as AnyNode;
   const reachU = uniform(new Vector3(reach.full, reach.far, reach.keep)) as AnyNode;
+  const bandsU = uniform(new Vector4(bands.a1, bands.c1, bands.a2, bands.c2)) as AnyNode;
   const groundU = uniform(new Color(look.ground)) as AnyNode;
   const strawU = uniform(look.straw) as AnyNode;
   const strawColourU = uniform(new Color(look.strawColour)) as AnyNode;
@@ -528,23 +546,66 @@ export function createGrassMaterial(
   const eyeS = varying(table.eye.element(row)) as AnyNode;
   const glowS = varying(shapeS.w) as AnyNode;
 
+  // The blade's detail at its clump's ground distance (`bladeBandShape`). The clump's centre is the
+  // vertex less its own offset, turned and scaled like the instance; a blade's own moves (in the
+  // clump's unit space) go into the world the same way.
+  const turnC = cos(clumpShape.z);
+  const turnS = sin(clumpShape.z);
+  const turn = (v: AnyNode): AnyNode =>
+    (vec2 as AnyNode)(v.x.mul(turnC).add(v.y.mul(turnS)), v.y.mul(turnC).sub(v.x.mul(turnS)));
+  const geomXZ = (vec2 as AnyNode)((positionGeometry as AnyNode).x, (positionGeometry as AnyNode).z);
+  const centre = worldXZ.sub(turn(geomXZ).mul(clumpShape.w));
+  const groundDist = centre.sub((vec2 as AnyNode)(cameraPosition.x, cameraPosition.z)).length();
+  const rank = floor(part.sub(1).div(BLADE_RANK_STEP).add(0.5));
+  const band = bladeBandShape(NODE_MATH, groundDist, rank, {
+    a1: bandsU.x,
+    c1: bandsU.y,
+    a2: bandsU.z,
+    c2: bandsU.w,
+  });
+  // Sideways across the blade's face (its normal leans out along its spoke).
+  // Not `normalize()`: a flower's upright normal has no sideways part, and NaN times a zero weight is
+  // still NaN (the flowers vanished).
+  const flat = (vec2 as AnyNode)((normalGeometry as AnyNode).z.negate(), (normalGeometry as AnyNode).x);
+  const across = flat.div(max(flat.length(), float(1e-4)));
+  const spread = band.collapse.mul(band.widen).sub(1);
+  const bladeXZ = turn(bladeMorph.xz.mul(band.morph).add(across.mul(bladeMorph.w.mul(spread))))
+    .mul(clumpShape.w)
+    .mul(bladeW);
+
   // Height above the ground. A flower's instance scales y by its stem; a tussock's by its scale (half
   // of it, so its tallest blades stay in reach), and a head dishes by its species' cup and throat.
+  // A blade's middle vertex rises or sinks onto its far edge, and blades past the band's count shrink.
   const geomY = (positionGeometry as AnyNode).y;
   const localY = (positionLocal as AnyNode).y;
-  const height = mix(mix(geomY, localY, 0.5), localY, flower);
+  const standing = mix(mix(geomY, localY, 0.5), localY, flower);
+  const rise = bladeMorph.y.mul(standing.div(max(geomY, float(1e-4))));
+  const shrink = mix(float(1), band.collapse, bladeW);
+  const height = standing.add(rise.mul(band.morph)).mul(shrink);
+  // A near blade's middle vertex, as it slides onto its far edge, takes the edge's sway and push
+  // there (from its tip's: the far corner's are zero), so near and far blades move alike.
+  const onEdge = band.morph.mul(step(float(1e-8), bladeMorph.xyz.dot(bladeMorph.xyz))).mul(bladeW);
+  const tipHeight = standing.add(rise).mul(shrink).div(MID_ALONG);
+  const edgeGate = (lo: number, hi: number, along: number): AnyNode =>
+    mix(
+      smoothstep(float(lo), float(hi), height),
+      smoothstep(float(lo), float(hi), tipHeight).mul(along),
+      onEdge,
+    );
   const r = st.y;
   const lift = petalW.mul(shapeS.x.mul(r.mul(r)).sub(shapeS.y.mul(float(1).sub(r)))).mul(shapeS.z);
   // Distance fades are worked out here from the camera, not written per frame, and only at the far
   // edge of the reach: clumps near the player are always full height, so nothing sprouts beside you.
+  // They go by the clump centre's ground distance, as the field's re-pick measures it, so a clump it
+  // leaves out (or adds) is one the shader has faded away.
   const toCamera = (vec3 as AnyNode)(worldXZ.x, terrainY, worldXZ.y).distance(cameraPosition);
   // Flowers draw over the nearer part of the reach (the terrain's speckle carries their drifts on).
   const farEdge = reachU.y.mul(mix(float(1), float(FLOWER_REACH), flower));
-  const outer = float(1).sub(smoothstep(farEdge.mul(0.84), farEdge, toCamera));
-  const keep = float(1).sub(smoothstep(reachU.x, reachU.y, toCamera).mul(float(1).sub(reachU.z)));
+  const outer = float(1).sub(smoothstep(farEdge.mul(0.84), farEdge, groundDist));
+  const keep = float(1).sub(smoothstep(reachU.x, reachU.y, groundDist).mul(float(1).sub(reachU.z)));
   const thin = clamp(keep.sub(clumpShape.x).div(0.12), float(0), float(1));
   const sizeFade = clumpShape.y.mul(outer).mul(thin);
-  const bladeGate = smoothstep(float(0.02), float(1.0), height).mul(sizeFade);
+  const bladeGate = edgeGate(0.02, 1, MID_ALONG).mul(sizeFade);
   const gust = gustNode(worldXZ) as AnyNode;
   const motion = float(1).sub(world.reducedMotion.mul(0.9));
   const phase = world.time
@@ -567,7 +628,7 @@ export function createGrassMaterial(
       .mul(p.w);
     push = push.add(away.div(max(d, float(0.05))).mul(k));
   }
-  const bend = smoothstep(float(0), float(0.45), height).mul(sizeFade);
+  const bend = edgeGate(0, 0.45, MID_ALONG).mul(sizeFade);
   const pushLen = min(push.length(), float(1));
   const pushXZ = push
     .mul(bend)
@@ -578,16 +639,16 @@ export function createGrassMaterial(
   const right = (vec2 as AnyNode)(view.y.negate(), view.x).div(max(view.length(), float(0.001)));
   const widen = smoothstep(float(4), float(30), toCamera)
     .mul(0.022)
-    .mul(float(1).sub(shade))
+    .mul(mix(float(1).sub(shade), float(1), onEdge))
     .mul(st.x.sub(0.5))
     .mul(bladeW);
-  const lowered = float(1).sub(pushLen.mul(0.35).mul(bend));
+  const lowered = float(1).sub(pushLen.mul(0.35).mul(edgeGate(0, 0.45, 1).mul(sizeFade)));
 
   material.positionNode = trackedPosition(
     (vec3 as AnyNode)(
-      worldXZ.x.add(sway.x).add(pushXZ.x).add(right.x.mul(widen)),
+      worldXZ.x.add(sway.x).add(pushXZ.x).add(right.x.mul(widen)).add(bladeXZ.x),
       terrainY.add(height.add(lift).mul(sizeFade).mul(lowered)),
-      worldXZ.y.add(sway.z).add(pushXZ.y).add(right.y.mul(widen)),
+      worldXZ.y.add(sway.z).add(pushXZ.y).add(right.y.mul(widen)).add(bladeXZ.y),
     ),
   );
 
@@ -660,9 +721,38 @@ export function createGrassMaterial(
 }
 
 /**
+ * A model's own textured material (the kit's broadleaf, fern, banana, flowering bush, driftwood),
+ * cut out on its map's alpha, dissolving by its instance's `fade` like every other plant: without it,
+ * a plant past its fade drew whole until the field dropped it, so it popped in or out at its distance.
+ */
+export function createMappedVegetationMaterial(source: {
+  name: string;
+  map: Texture;
+  color: Color;
+  normalMap: Texture | null;
+  roughness: number;
+}): MeshStandardNodeMaterial {
+  const material = new MeshStandardNodeMaterial({
+    name: source.name,
+    map: source.map,
+    color: source.color,
+    normalMap: source.normalMap,
+    roughness: source.roughness,
+    metalness: 0,
+    side: DoubleSide,
+    // Cut out on the map's own alpha; blending foliage cards would need sorting.
+    alphaTest: 0.5,
+    vertexColors: true,
+  });
+  material.maskNode = lodMask();
+  return material;
+}
+
+/**
  * A leaf card whose authored colour is wrong for the island (the common bush's leaves are painted red):
  * the map keeps its leaf shapes (alpha) and shading (red channel), recoloured into a sunny bush green.
- * No per-instance attributes, so the impostor bake can draw it as is.
+ * It dissolves by its instance's `fade`; the impostor bake draws an albedo copy (no mask), so it needs
+ * no instance attributes there.
  */
 export function createRecoloredLeafMaterial(map: Texture, name: string): MeshStandardNodeMaterial {
   const material = new MeshStandardNodeMaterial({
@@ -676,11 +766,16 @@ export function createRecoloredLeafMaterial(map: Texture, name: string): MeshSta
   const texel = texture(map, uv()) as AnyNode;
   const shade = smoothstep(0.3, 1.0, texel.r);
   material.colorNode = vec4(mix(color(0x2f6420), color(0x8bbb48), shade) as AnyNode, texel.a) as AnyNode;
+  material.maskNode = lodMask();
   material.userData.disposeTextures = [map];
   return material;
 }
 
-export function createImpostorMaterial(atlas: Texture): MeshStandardNodeMaterial {
+/**
+ * The far plants' cards: each instance's `atlasUv` holds two baked views' tiles (xy and zw, `tileSize`
+ * square) and its `fade` the dissolve (x) and how far to blend from the first view to the second (y).
+ */
+export function createImpostorMaterial(atlas: Texture, tileSize: number): MeshStandardNodeMaterial {
   atlas.wrapS = ClampToEdgeWrapping;
   atlas.wrapT = ClampToEdgeWrapping;
   atlas.magFilter = LinearFilter;
@@ -688,11 +783,23 @@ export function createImpostorMaterial(atlas: Texture): MeshStandardNodeMaterial
   const material = new MeshStandardNodeMaterial({ side: DoubleSide, roughness: 0.9, metalness: 0 });
   material.name = 'vegetation-impostor';
   const tint = attribute('tint', 'vec3') as AnyNode;
-  const fade = attribute('fade', 'float') as AnyNode;
-  const tile = attribute('atlasUv', 'vec4') as AnyNode;
+  const fade = attribute('fade', 'vec2') as AnyNode;
+  const tiles = attribute('atlasUv', 'vec4') as AnyNode;
   // Render-target tiles come back vertically flipped relative to the card's UVs.
-  const cardUv = (vec2 as AnyNode)((uv() as AnyNode).x, float(1).sub((uv() as AnyNode).y));
-  const sample = texture(atlas, tile.xy.add(cardUv.mul(tile.zw))) as AnyNode;
+  const cardUv = (vec2 as AnyNode)((uv() as AnyNode).x, float(1).sub((uv() as AnyNode).y)).mul(tileSize);
+  const first = texture(atlas, tiles.xy.add(cardUv)) as AnyNode;
+  const second = texture(atlas, tiles.zw.add(cardUv)) as AnyNode;
+  // Blended by coverage, so where only one view has leaves they keep their own colour.
+  const wA = first.a.mul(float(1).sub(fade.y));
+  const wB = second.a.mul(fade.y);
+  const alpha = wA.add(wB);
+  const sample = vec4(
+    first.rgb
+      .mul(wA)
+      .add(second.rgb.mul(wB))
+      .div(max(alpha, float(1e-4))),
+    alpha,
+  ) as AnyNode;
   // The atlas holds albedo; light the card like a canopy (mostly up, a little toward the viewer)
   // so distant trees follow the scene's sun and time of day.
   const upView = (vec3(0, 1, 0) as AnyNode).transformDirection(cameraViewMatrix);
@@ -701,6 +808,6 @@ export function createImpostorMaterial(atlas: Texture): MeshStandardNodeMaterial
     .add(vec3(0, 0, 0.45))
     .normalize() as AnyNode;
   material.colorNode = sample.rgb.mul(tint.mul(0.16).add(0.84)) as AnyNode;
-  material.maskNode = greaterThan(sample.a.mul(fade), interleavedGradientNoise().mul(0.8).add(0.1));
+  material.maskNode = greaterThan(sample.a.mul(fade.x), interleavedGradientNoise().mul(0.8).add(0.1));
   return material;
 }

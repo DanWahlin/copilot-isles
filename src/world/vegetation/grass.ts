@@ -26,6 +26,15 @@ import type { GrassKind, HeightGrid } from './types';
 import type { VegetationExclude } from './exclusions';
 import { smoothstep } from '../../util/math';
 import { createGrassMaterial, type GrassReach } from './materials';
+import {
+  BLADE_COUNTS,
+  BLADE_RANK_STEP,
+  MID_ALONG,
+  bladeBands,
+  bladeLayout,
+  setBladeMorph,
+  type BladeBands,
+} from './blade-bands';
 import { GRASS_REACH, grassReachScale } from './grass-reach';
 import type { FloraRules, HeadForm } from '../flora/types';
 import { FLORA_CELL, scatterFlora, type FloraCell, type FloraClump } from '../flora/scatter';
@@ -39,25 +48,20 @@ interface TierMesh {
   shape: InstancedBufferAttribute;
   tint: InstancedBufferAttribute;
   capacity: number;
-  /** Blades: this detail draws out to here (the last band runs to the edge of the reach). */
+  /** Blades: this detail draws clumps closer than this (ground distance; the last band to the reach's edge). */
   maxDistance: number;
   triangles: number;
   visible: number;
   kind: MeshKind;
 }
 
-/**
- * Blade detail by distance (metres, high tier; lower tiers scale them down): full tussocks up close,
- * then fewer but wider blades that cover the same ground, so a swap is hard to see.
- */
-const BLADE_BANDS = [
-  { blades: 184, twoTri: true, widen: 1, until: 9 },
-  { blades: 72, twoTri: false, widen: 2.4, until: 18 },
-  { blades: 20, twoTri: false, widen: 7.5, until: Infinity },
-] as const;
 const REACH = GRASS_REACH;
-/** Re-pick visible clumps after the camera moves this far (m) or turns past this (cos of ~3°). */
-const REPICK_MOVE = 1.5;
+/**
+ * Re-pick visible clumps after the camera moves this far (m) or turns past this (cos of ~3°). A band
+ * swap waits until the shader has finished a band's transition this far closer (`bladeBands`), so a
+ * shorter move keeps the dense band's reach (and its triangles) down.
+ */
+const REPICK_MOVE = 1;
 const REPICK_TURN_COS = Math.cos((3 * Math.PI) / 180);
 /** Frustum padding (m) so a small turn between re-picks never shows an empty edge. */
 const FRUSTUM_PAD = 4;
@@ -118,28 +122,26 @@ function pushTri(
 }
 
 /**
- * A tussock of `blades` blades filling a disc (a sunflower spiral, so no ring or gap shows), the tall
- * ones in the middle and short fillers round the rim, all splaying outward like a fountain; `widen`
- * thickens them so fewer blades cover the same ground.
+ * A tussock's first `blades` blades (`bladeLayout`: every prefix fills the disc evenly), the tall ones
+ * in the middle and short fillers round the rim, all splaying outward like a fountain. `near` blades
+ * have two triangles, bent at a middle vertex; `far` ones one triangle. Each blade carries what the
+ * grass shader needs to turn the near shape into the far one and to widen or shrink it with distance
+ * (`bladeMorph`: the middle vertex's move onto the far edge, and each vertex's sideways offset), and
+ * its rank in its `vegPart` (`BLADE_RANK_STEP`), so blade i is the same blade in every band.
  */
-function createGrassGeometry(blades: number, detail: 'near' | 'far', widen = 1): BufferGeometry {
+export function createGrassGeometry(blades: number, detail: 'near' | 'far'): BufferGeometry {
   const positions: number[] = [];
   const normals: number[] = [];
   const uvs: number[] = [];
   const parts: number[] = [];
   const shade: number[] = [];
-  const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+  const morph: number[] = [];
+  const NONE = [0, 0, 0, 0];
   for (let i = 0; i < blades; i += 1) {
-    const angle = i * GOLDEN + (i % 3) * 0.13;
-    const out = Math.sqrt((i + 0.5) / blades);
+    const { x: ox, z: oz, cx, sz, out } = bladeLayout(i);
     const filler = out > 0.82 || i % 7 === 3;
-    const radius = 0.46 * out * (0.9 + (i % 5) * 0.05);
     const height = (filler ? 0.1 + (i % 5) * 0.014 : 0.2 + (i % 10) * 0.027) * (1.08 - out * 0.3);
-    const width = (filler ? 0.005 + (i % 3) * 0.0014 : 0.007 + (i % 5) * 0.0017) * widen;
-    const cx = Math.cos(angle);
-    const sz = Math.sin(angle);
-    const ox = cx * radius;
-    const oz = sz * radius;
+    const width = filler ? 0.005 + (i % 3) * 0.0014 : 0.007 + (i % 5) * 0.0017;
     // The blade's face turns across its spoke; it bends outward, more the further out it stands.
     const rightX = -sz * width;
     const rightZ = cx * width;
@@ -151,32 +153,82 @@ function createGrassGeometry(blades: number, detail: 'near' | 'far', widen = 1):
     const normal = [cx * 0.28, 0.86, sz * 0.28];
     const baseL = [ox - rightX, 0, oz - rightZ];
     const baseR = [ox + rightX, 0, oz + rightZ];
-    const mid = [ox + bendX * 0.42, height * 0.55, oz + bendZ * 0.42];
     const tip = [ox + bendX, Math.max(0.04, height - droop), oz + bendZ];
+    const part = 1 + i * BLADE_RANK_STEP;
+    const left = [0, 0, 0, -width];
+    const right = [0, 0, 0, width];
     if (detail === 'near') {
-      pushTri(positions, normals, uvs, parts, shade, baseL, baseR, mid, normal, [0, 0], [1, 0], [0.5, 0.58]);
+      // The second triangle runs up from one base corner; the middle vertex's far place is on the far
+      // triangle's other edge, so with it there the two triangles tile the far triangle exactly. Both
+      // are wound like the far triangle: a double-sided face wound the other way is lit from its back.
+      const fromLeft = i % 2 === 0;
+      const other = fromLeft ? baseR : baseL;
+      const mid = [ox + bendX * 0.42, height * 0.55, oz + bendZ * 0.42];
+      const onEdge = other.map((v, k) => v + (tip[k]! - v) * MID_ALONG);
+      const toEdge = [onEdge[0]! - mid[0]!, onEdge[1]! - mid[1]!, onEdge[2]! - mid[2]!];
+      const midMorph = [...toEdge, (1 - MID_ALONG) * (fromLeft ? width : -width)];
+      // The far triangle's uv at that point, so the shading matches too.
+      const midUv = [(1 - MID_ALONG) * (fromLeft ? 1 : 0) + MID_ALONG * 0.5, MID_ALONG];
+      pushTri(positions, normals, uvs, parts, shade, baseL, baseR, mid, normal, [0, 0], [1, 0], midUv, part);
+      morph.push(...left, ...right, ...midMorph);
+      if (fromLeft) {
+        pushTri(
+          positions,
+          normals,
+          uvs,
+          parts,
+          shade,
+          baseL,
+          mid,
+          tip,
+          normal,
+          [0, 0],
+          midUv,
+          [0.5, 1],
+          part,
+        );
+        morph.push(...left, ...midMorph, ...NONE);
+      } else {
+        pushTri(
+          positions,
+          normals,
+          uvs,
+          parts,
+          shade,
+          baseR,
+          tip,
+          mid,
+          normal,
+          [1, 0],
+          [0.5, 1],
+          midUv,
+          part,
+        );
+        morph.push(...right, ...NONE, ...midMorph);
+      }
+    } else {
       pushTri(
         positions,
         normals,
         uvs,
         parts,
         shade,
-        i % 2 === 0 ? baseL : baseR,
-        mid,
+        baseL,
+        baseR,
         tip,
         normal,
-        i % 2 === 0 ? [0, 0] : [1, 0],
-        [0.5, 0.58],
+        [0, 0],
+        [1, 0],
         [0.5, 1],
+        part,
       );
-    } else {
-      pushTri(positions, normals, uvs, parts, shade, baseL, baseR, tip, normal, [0, 0], [1, 0], [0.5, 1]);
+      morph.push(...left, ...right, ...NONE);
     }
   }
-  return makeGeometry(positions, normals, uvs, parts, shade);
+  return makeGeometry(positions, normals, uvs, parts, shade, morph);
 }
 
-function createSeedHeadGeometry(): BufferGeometry {
+export function createSeedHeadGeometry(): BufferGeometry {
   const positions: number[] = [];
   const normals: number[] = [];
   const uvs: number[] = [];
@@ -252,6 +304,7 @@ function makeGeometry(
   uvs: number[],
   parts: number[],
   shade: number[],
+  morph?: number[],
 ): BufferGeometry {
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
@@ -259,6 +312,7 @@ function makeGeometry(
   geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
   geometry.setAttribute('vegPart', new Float32BufferAttribute(parts, 1));
   geometry.setAttribute('shade', new Float32BufferAttribute(shade, 1));
+  setBladeMorph(geometry, morph);
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return geometry;
@@ -297,7 +351,8 @@ function setClumpMatrix(clump: FloraClump): void {
 
 /**
  * Clumps packed for copying into instance buffers: matrix, tint, and shape (thinning rank or a
- * flower's species row, and edge weight) per clump, plus where each clump stands. Written once.
+ * flower's species row, edge weight, and the clump's turn and width scale, from which the shader finds
+ * its centre) per clump, plus where each clump stands (x, z). Written once.
  */
 class Packed {
   readonly mats: Float32Array;
@@ -305,23 +360,25 @@ class Packed {
   readonly shapes: Float32Array;
   readonly pos: Float32Array;
 
-  constructor(clumps: readonly FloraClump[], heightField: HeightField, thinned: boolean) {
+  constructor(clumps: readonly FloraClump[], thinned: boolean) {
     const n = clumps.length;
     this.mats = new Float32Array(n * 16);
     this.tints = new Float32Array(n * 3);
-    this.shapes = new Float32Array(n * 2);
-    this.pos = new Float32Array(n * 3);
+    this.shapes = new Float32Array(n * 4);
+    this.pos = new Float32Array(n * 2);
     clumps.forEach((c, i) => {
       setClumpMatrix(c);
       tmpMatrix.toArray(this.mats, i * 16);
       this.tints[i * 3] = c.r;
       this.tints[i * 3 + 1] = c.g;
       this.tints[i * 3 + 2] = c.b;
-      this.shapes[i * 2] = c.species ? -2 - floraSpeciesIndex(c.species) : thinned ? c.lod : -1;
-      this.shapes[i * 2 + 1] = c.edgeWeight;
-      this.pos[i * 3] = c.x;
-      this.pos[i * 3 + 1] = heightField.heightAt(c.x, c.z);
-      this.pos[i * 3 + 2] = c.z;
+      this.shapes[i * 4] = c.species ? -2 - floraSpeciesIndex(c.species) : thinned ? c.lod : -1;
+      this.shapes[i * 4 + 1] = c.edgeWeight;
+      this.shapes[i * 4 + 2] = c.rotation;
+      // The width scale `setClumpMatrix` just put in the matrix.
+      this.shapes[i * 4 + 3] = tmpScale.x;
+      this.pos[i * 2] = c.x;
+      this.pos[i * 2 + 1] = c.z;
     });
   }
 }
@@ -349,8 +406,8 @@ export interface GrassFieldOptions {
 
 /**
  * An island's grass and flowers (its `FloraRules`, scattered by `scatterFlora`): tussocks in three
- * bands of detail by distance, seed heads, and flower plants in drifts, all drawn with one grass
- * material. Built once; each frame only re-picks which clumps draw once the camera has moved or
+ * bands of detail by distance (`blade-bands.ts`: continuous, so no swap shows), seed heads, and flower
+ * plants in drifts, all drawn with one grass material. Built once; each frame only re-picks which clumps draw once the camera has moved or
  * turned enough.
  */
 export class GrassField {
@@ -365,6 +422,7 @@ export class GrassField {
   private readonly material: MeshStandardNodeMaterial;
   private readonly tierScale: number;
   private readonly reach: GrassReach;
+  private readonly bands: BladeBands;
   private blades: Packed | null = null;
   private flowers: Packed | null = null;
   private seeds: Packed | null = null;
@@ -397,8 +455,9 @@ export class GrassField {
       far: REACH.far * this.tierScale,
       keep: REACH.keep,
     };
+    this.bands = bladeBands(this.tierScale, REPICK_MOVE);
     const palette = rules.palette;
-    this.material = createGrassMaterial(heightTexture, heightGrid, this.reach, {
+    this.material = createGrassMaterial(heightTexture, heightGrid, this.reach, this.bands, {
       ground: palette.sward.lush,
       straw: palette.grass.straw,
       strawColour: palette.grass.ramp[3],
@@ -475,20 +534,21 @@ export class GrassField {
       this.packedCells.push(packed);
     }
     this.cells.length = 0;
-    this.blades = new Packed(blades, heightField, true);
-    this.flowers = new Packed(flowers, heightField, false);
-    this.seeds = new Packed(seeds, heightField, false);
+    this.blades = new Packed(blades, true);
+    this.flowers = new Packed(flowers, false);
+    this.seeds = new Packed(seeds, false);
 
     if (blades.length > 0) {
-      for (const band of BLADE_BANDS) {
-        const until = band.until * this.tierScale;
+      const swaps = [this.bands.swap1, this.bands.swap2, Infinity];
+      BLADE_COUNTS.forEach((count, band) => {
+        const until = swaps[band]!;
         this.addTierMesh(
-          createGrassGeometry(band.blades, band.twoTri ? 'near' : 'far', band.widen),
+          createGrassGeometry(count, band === 0 ? 'near' : 'far'),
           this.capacity(blades.length, until, bladesPerCell),
           'blade',
           until,
         );
-      }
+      });
     }
     const byForm = new Map<HeadForm, TierMesh>();
     for (const [form, count] of flowerCount) {
@@ -539,9 +599,8 @@ export class GrassField {
     const seeds = this.seeds!;
     for (const cell of this.packedCells) {
       const dx = cell.x - eye.x,
-        dy = cell.y - eye.y,
         dz = cell.z - eye.z;
-      if (Math.sqrt(dx * dx + dy * dy + dz * dz) - cellRadius > far) continue;
+      if (Math.sqrt(dx * dx + dz * dz) - cellRadius > far) continue;
       this.sphere.center.set(cell.x, cell.y + 0.3, cell.z);
       // Padded so a small turn between re-picks never shows an empty edge.
       this.sphere.radius = cellRadius + FRUSTUM_PAD;
@@ -558,24 +617,26 @@ export class GrassField {
       if (m.visible === 0) continue;
       markInstancesChanged(m.mesh);
       markAttributeChanged(m.tint, m.visible * 3);
-      markAttributeChanged(m.shape, m.visible * 2);
+      markAttributeChanged(m.shape, m.visible * 4);
     }
   }
 
-  /** Copies clump `i` into its mesh (`target`, or the blade band for its distance) when in reach. */
+  /**
+   * Copies clump `i` into its mesh (`target`, or the blade band for its distance) when in reach. The
+   * shader fades, thins and changes detail by the clump centre's ground distance, as measured here, so
+   * allowing for a re-pick's move leaves out nothing it would show before the next re-pick.
+   */
   private place(pack: Packed, i: number, eye: Vector3, far: number, target: TierMesh | null): void {
-    const p = pack.pos;
-    const dx = p[i * 3]! - eye.x,
-      dy = p[i * 3 + 1]! - eye.y,
-      dz = p[i * 3 + 2]! - eye.z;
-    const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    const dx = pack.pos[i * 2]! - eye.x,
+      dz = pack.pos[i * 2 + 1]! - eye.z;
+    const d = Math.sqrt(dx * dx + dz * dz);
     if (d > far) return;
     let mesh = target;
     if (!mesh) {
       // A blade: skip it if the shader would thin it away anywhere within a re-pick of here.
       const near = Math.max(0, d - REPICK_MOVE);
       const keep = 1 - smoothstep(this.reach.full, this.reach.far, near) * (1 - this.reach.keep);
-      if (pack.shapes[i * 2]! >= keep) return;
+      if (pack.shapes[i * 4]! >= keep) return;
       for (const m of this.bladeMeshes) {
         if (d < m.maxDistance) {
           mesh = m;
@@ -593,8 +654,7 @@ export class GrassField {
     tint[slot * 3 + 1] = pack.tints[i * 3 + 1]!;
     tint[slot * 3 + 2] = pack.tints[i * 3 + 2]!;
     const shape = mesh.shape.array as Float32Array;
-    shape[slot * 2] = pack.shapes[i * 2]!;
-    shape[slot * 2 + 1] = pack.shapes[i * 2 + 1]!;
+    for (let k = 0; k < 4; k++) shape[slot * 4 + k] = pack.shapes[i * 4 + k]!;
   }
 
   stats(): { visibleInstances: number; visibleCells: number; drawCalls: number; triangles: number } {
@@ -629,7 +689,7 @@ export class GrassField {
     // One vertex buffer for the per-vertex attributes, so with the two instance attributes and the
     // matrices (now and last frame's) the draw stays within WebGPU's 8 vertex buffers.
     interleaveVertexAttributes(geometry);
-    const shape = new InstancedBufferAttribute(new Float32Array(maxInstances * 2), 2);
+    const shape = new InstancedBufferAttribute(new Float32Array(maxInstances * 4), 4);
     const tint = new InstancedBufferAttribute(new Float32Array(maxInstances * 3), 3);
     geometry.setAttribute('grassShape', shape);
     geometry.setAttribute('tint', tint);
