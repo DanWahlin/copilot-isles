@@ -4,10 +4,10 @@ import type { ScriptStep } from '../script';
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal } from './types';
 import { sleep } from '../../util/math';
 import type { PuzzleFile } from '../../course/pack';
-import { fill, lineOf, puzzleContent, textOf } from '../../course/puzzles';
+import { fill, lineOf, puzzleContent, puzzleQuest, textOf } from '../../course/puzzles';
+import { storyHolds } from '../story';
 
-const FIRST_WORDS_ID = 'Q0.8.pipes';
-const QUEST = 'Q0.8';
+const FIRST_WORDS_ID = 'first-words';
 type Pipe = 'tube' | 'hatch';
 
 /** What the puzzle needs from the brigantine: its group and the two rail fittings. */
@@ -62,7 +62,8 @@ export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked:
   /** Seconds the crew's reply has stayed up since the quest finished (it clears after a minute). */
   let replyAge = 0;
 
-  const active = () => host.quests()[QUEST] === 'pipes';
+  const quest = puzzleQuest('first-words');
+  const active = () => host.quests()[quest] === 'pipes';
   const locate = () => {
     ship.group.updateMatrixWorld();
     ship.group.localToWorld(tube.set(ship.pipes.tube.x, ship.pipes.tube.y, ship.pipes.tube.z));
@@ -150,22 +151,22 @@ export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked:
       if (on !== wasActive) {
         wasActive = on;
         if (!on) setHint(null);
-        if (!on && host.quests()[QUEST] !== 'done') lines = null;
+        if (!on && host.quests()[quest] !== 'done') lines = null;
       }
       // The reply lingers a minute by the tube, but not over the christening once the Trial's passed.
-      if (lines && host.quests()[QUEST] === 'done') {
+      if (lines && host.quests()[quest] === 'done') {
         replyAge += dt;
-        if (replyAge > 60 || host.quests()['Q0.10'] === 'done') lines = null;
+        if (replyAge > 60 || storyHolds('anchorage', 'sealed', host.quests())) lines = null;
       }
     },
     terminal(): PuzzleTerminal | null {
-      const q = host.quests()[QUEST];
+      const q = host.quests()[quest];
       if (!lines || (q !== 'pipes' && q !== 'done') || !near(5)) return null;
       return { title, lines };
     },
     debug: {
       state: () => ({
-        quest: host.quests()[QUEST] ?? null,
+        quest: host.quests()[quest] ?? null,
         running,
         hinted,
         title,

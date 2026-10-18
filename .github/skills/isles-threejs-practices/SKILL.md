@@ -33,7 +33,12 @@ course word (quests, scripts, barks, quizzes, pages, labels, board text, arrival
 their audio, the snapshot) is a course pack's, in `courses/<id>/` (docs/specs/COURSE-PACKS.md). A pack
 loads with the voyage (`src/course/load.ts`), never with the title: read its data through
 `src/course/active.ts` (or a module's `onCourse` hook), not at module top level. Its snapshot and
-voice are served from `<base>courses/<id>/` (`courseAssetBase()`, `courseVoiceBase()`).
+voice are served from `<base>courses/<id>/` (`courseAssetBase()`, `courseVoiceBase()`). Never write a
+quest id in game code: ask the island's story by name (`storyHolds`, `storyEvent`, src/game/story.ts;
+add the name to `STORY_CONDITIONS`), and read a puzzle's quest with `puzzleQuest()`. A mechanic acts on
+its own ids (`steer`, `channel`, `tavern`…); the pack binds its ids to them (`"acts"`, read with
+`byActs`/`rekey`), and a world sign with course words reads the pack and repaints in an `onCourse`
+hook (release it when the site is freed).
 
 ## 2. Shaders: TSL only, one graph per look
 
@@ -247,6 +252,12 @@ voice are served from `<base>courses/<id>/` (`courseAssetBase()`, `courseVoiceBa
   (`withVars` in vegetation/materials.ts), and check the built shader: `palm-material.test.ts` builds
   WGSL with three's node builder and flags a variable read on a path that never set it.
 
+- **A line down the sky (a wrapped texture coordinate):** the baked clouds' u is `fract(azimuth)`, and
+  where it jumps 1 → 0 an implicit-derivative sample takes the coarsest mip (issue 252). Sample a
+  wrapping coordinate with `.grad`, taking the derivative from it or its copy half a turn on, whichever
+  doesn't wrap there. And a `texture()` node's shader is built for whatever is in its slot then: a
+  Nearest placeholder made WebGPU's a `textureLoad` with no sampler (no filtering, no mips) for the
+  real texture too. Give placeholders the real texture's filters.
 - **Z-fighting with paper or decals:** geometry that lies exactly on a surface flickers through it.
   Sink it below the surface while it is flat (the chart's `PAPER_TUCK`), or offset it; never rely on
   equal depth.

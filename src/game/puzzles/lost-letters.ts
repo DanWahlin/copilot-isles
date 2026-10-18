@@ -10,12 +10,12 @@ import {
   lettersContent,
   type Destination,
 } from './hall-letters';
-import { lineOf, textOf } from '../../course/puzzles';
+import { lineOf, puzzleQuest, textOf } from '../../course/puzzles';
 import { PadEdges, standardPad } from './pad-edges';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 
-const ID = 'P1.3';
-const QUEST = 'Q1.7';
+/** Its save key and id (whether the letters are all filed picks Pell's beats). */
+export const LETTERS_ID = 'P1.3';
 
 /** What the Lost Letters needs beyond a puzzle's host: the camera, and the keys while it's open. */
 export interface LettersHost extends PuzzleHost {
@@ -41,7 +41,8 @@ const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
  * for practice (the quest stays done).
  */
 export function createLostLetters(host: LettersHost, site: RecordsAlcovesSite): Puzzle {
-  const saved = host.learn?.progress.data.puzzles[ID];
+  const quest = puzzleQuest('lost-letters');
+  const saved = host.learn?.progress.data.puzzles[LETTERS_ID];
   let solved = saved?.solved ?? false;
   const letters = new HallLetters(solved ? LETTERS.length : (saved?.state?.[0] ?? 0));
   let okSaid = false;
@@ -61,18 +62,18 @@ export function createLostLetters(host: LettersHost, site: RecordsAlcovesSite): 
   });
   let unmount: (() => void) | null = null;
 
-  const q = () => host.quests()[QUEST];
+  const q = () => host.quests()[quest];
   const started = () => q() === 'letters' || q() === 'solved' || q() === 'done';
   /** Open to sort: the quest's at the letters, or an older save finished Pell without them. */
   const available = () => !solved && (q() === 'letters' || q() === 'done');
-  const save = () => host.learn?.progress.setPuzzle(ID, { solved, state: [letters.index] });
+  const save = () => host.learn?.progress.setPuzzle(LETTERS_ID, { solved, state: [letters.index] });
   const letterView = () => {
     const l = letters.letter;
     return l ? { from: l.from, text: l.text } : null;
   };
 
   site.setFiled(letters.index);
-  if (solved && q() === 'letters') host.setQuest(QUEST, 'solved');
+  if (solved && q() === 'letters') host.setQuest(quest, 'solved');
 
   host.interactions.add({
     id: 'letters:desk',
@@ -166,7 +167,7 @@ export function createLostLetters(host: LettersHost, site: RecordsAlcovesSite): 
       await host.beat(PELL_LETTERS_DEBRIEF, 'Pell');
       return;
     }
-    host.setQuest(QUEST, 'solved');
+    host.setQuest(quest, 'solved');
     const ok = await host.beat(PELL_SOLVED, 'Pell');
     if (!ok) host.hud.toast(T('noTalk'), 3.5);
   }
@@ -200,7 +201,7 @@ export function createLostLetters(host: LettersHost, site: RecordsAlcovesSite): 
   const near = () => Math.hypot(host.player.x - site.deskTop.x, host.player.z - site.deskTop.z) < 6;
 
   return {
-    id: ID,
+    id: LETTERS_ID,
     engaged: () => available() && near(),
     hintKey: () => `${letters.index}`,
     hint(tier: HintTier) {

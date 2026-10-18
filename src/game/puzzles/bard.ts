@@ -1,11 +1,10 @@
 import type { HintTier, Puzzle, PuzzleHost } from './types';
-import { puzzleContent, textOf } from '../../course/puzzles';
+import { puzzleContent, puzzleQuest, textOf } from '../../course/puzzles';
 
 /** Its words: the course pack's `puzzles/bard.json`. */
 const T = (key: string) => textOf(puzzleContent('bard'), key);
 
-const BARD_ID = 'Q0.9.bard';
-const QUEST = 'Q0.9';
+const BARD_ID = 'bard';
 
 /** Where Lyra sits and where you stand to talk to her (the hammock site's anchors). */
 export interface BardSite {
@@ -24,7 +23,8 @@ const STRUM_SPREAD = 6;
  * plays her strums, announces the quest when it starts, and gives Wingman something to say.
  */
 export function createBard(host: PuzzleHost, site: BardSite, talking: () => boolean): Puzzle {
-  const step = () => host.quests()[QUEST];
+  const quest = puzzleQuest('bard');
+  const step = () => host.quests()[quest];
   let seen = step();
   let announce = false;
   let strumIn = 2;

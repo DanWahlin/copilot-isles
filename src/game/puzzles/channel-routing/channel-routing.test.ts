@@ -26,7 +26,7 @@ describe('channel routing', () => {
   });
 
   it('has exactly one set of paths for rounds 1 and 2 (draw.py)', () => {
-    expect(pathSets(BOARD_A_KINDS, ['feature'])).toHaveLength(1);
+    expect(pathSets(BOARD_A_KINDS, ['blue'])).toHaveLength(1);
     expect(pathSets(BOARD_A_KINDS, [...CREWS])).toHaveLength(1);
   });
 
@@ -49,16 +49,16 @@ describe('channel routing', () => {
     const start = roundBoard(1);
     const r1 = openGates(start, roundLive(1));
     expect(r1).toHaveLength(1);
-    expect(r1[0]).toMatchObject({ crew: 'feature', end: 'deadEnd', at: [0, 2] });
+    expect(r1[0]).toMatchObject({ crew: 'blue', end: 'deadEnd', at: [0, 2] });
     const r2 = openGates(start, roundLive(2));
-    expect(ends(r2).feature).toBe('mixed');
-    expect(r2.find((f) => f.crew === 'feature')!.at).toEqual([0, 2]);
+    expect(ends(r2).blue).toBe('mixed');
+    expect(r2.find((f) => f.crew === 'blue')!.at).toEqual([0, 2]);
   });
 
   it('keeps round 1’s tiles for round 2: Feature still flows, Docs and Bug Fix need work', () => {
     const r1 = solve(roundBoard(1), 1);
     const fl = openGates(r1, roundLive(2));
-    expect(ends(fl).feature).toBe('wheel');
+    expect(ends(fl).blue).toBe('wheel');
     expect(solved(fl, roundLive(2))).toBe(false);
   });
 
@@ -71,18 +71,18 @@ describe('channel routing', () => {
     const dead = rotate(a, 0, 1);
     for (const f of openGates(dead, live)) seen.add(f.end);
     // Bug Fix runs straight down c2 to its own wheel on the start board.
-    expect(ends(openGates(a, live)).bugfix).toBe('wheel');
+    expect(ends(openGates(a, live)).green).toBe('wheel');
     // Feature to the Great Hall: r0c0 turned E–S → N–E sends it off the north edge.
     const hall = rotate(solve(a, 2), 0, 0, -1);
-    expect(openGates(hall, live).find((f) => f.crew === 'feature')!.end).toBe('mainHall');
+    expect(openGates(hall, live).find((f) => f.crew === 'blue')!.end).toBe('mainHall');
     seen.add('mainHall');
     // Docs into Bug Fix's wheel (not on Board A, which can't send a crew to another's wheel): an
     // elbow W–N at r0c3 and one E–S at r0c2 send it west and down c2.
     const z = [0, 0, 0, 0, 0] as const;
     const swapped = makeBoard(['SSLLS', 'SSSSS', 'SSSSS', 'SSSSS'], [[0, 0, 1, 3, 0], z, z, z]);
-    const docs = openGates(swapped, { feature: false, bugfix: false, docs: true })[0]!;
+    const docs = openGates(swapped, { blue: false, green: false, teal: true })[0]!;
     expect(docs.end).toBe('wrongWheel');
-    expect(docs.wheel).toBe('bugfix');
+    expect(docs.wheel).toBe('green');
     seen.add('wrongWheel');
     seen.add('wheel');
     expect([...seen].sort()).toEqual(['deadEnd', 'mainHall', 'mixed', 'wheel', 'wrongWheel']);
@@ -115,7 +115,7 @@ describe('channel routing', () => {
     const flipped = rotate(rotate(solvedBoard, 1, 0), 1, 0); // straight turned half way round
     expect(solvedBoard[1]![0]!.rot).not.toBe(flipped[1]![0]!.rot);
     expect(wrongTile(flipped, roundSolution(2))).toBeNull();
-    const live: Record<Crew, boolean> = { feature: true, bugfix: true, docs: true };
+    const live: Record<Crew, boolean> = { blue: true, green: true, teal: true };
     expect(solved(openGates(flipped, live), live)).toBe(true);
     const rot: Rot = flipped[1]![0]!.rot;
     expect(rot % 2).toBe(0);

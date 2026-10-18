@@ -5,15 +5,15 @@ You are a senior reviewer acting as game director, technical director (browser 3
 - Do NOT read `~/.env`, `~/.grok/auth.json`, or any credential/secret files. Stay within:
   - the project: `~/Desktop/test/copilot-isles` (docs/PLAN.md, docs/specs/POC-islands-00-01.md)
   - the course source for fact-checking: `~/Desktop/projects/copilot-app-for-beginners` (chapter READMEs 00-07, GLOSSARY.md, assets)
-  - the web (for example https://www.arkenfall.site/, three.js docs, and license pages), if useful.
+  - the web (for example three.js docs and license pages), if useful.
 
 ## What the user asked for (their original requirements, summarized)
-1. Build a full browser game like https://www.arkenfall.site/, but an island scenario: islands with villages, and a boat the player sails between islands.
+1. Build a full, beautiful browser game with an island scenario: islands with villages, and a boat the player sails between islands.
 2. Base it entirely on the GitHub Copilot app for Beginners course (github/copilot-app-for-beginners). Each chapter is an island, starting at chapter 00. Beautiful, unique, internally consistent islands (tropical, desert with cactus, a castle, a village, an old pirate town, and so on).
 3. The player is a pirate (man or woman chosen at the start) who walks around and talks to characters, learning aspects of the GitHub Copilot app from that chapter.
 4. Course screenshots are integrated into dialogue and chests, plus quizzes where the player selects something on an image (new session, automation, etc.).
 5. Chapter concepts are highlighted creatively through Zelda-style puzzles (moving blocks, rerouting water) that use aspects of the chapter.
-6. Relaxing background music suited to each island. (The user later chose fully procedural music, like Arkenfall.)
+6. Relaxing background music suited to each island. (The user later chose fully procedural music.)
 7. Water, characters, buildings, ships, docks, and vegetation should be as realistic as possible while rendering well in browsers. Blue skies, flowing clouds, distant mountains. Very visually engaging.
 8. A cool map for navigation and fast travel.
 9. A professional, clean, refined menu: play/resume, map, settings, controls, quit.

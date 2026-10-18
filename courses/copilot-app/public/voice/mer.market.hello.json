@@ -6,107 +6,107 @@
     {
       "word": "Ahoy",
       "start": 0,
-      "end": 0.805
+      "end": 0.84
     },
     {
       "word": "Captain",
-      "start": 0.805,
-      "end": 1.25
+      "start": 0.84,
+      "end": 1.75
     },
     {
       "word": "Welcome",
-      "start": 1.25,
-      "end": 1.653
+      "start": 1.75,
+      "end": 2.267
     },
     {
       "word": "to",
-      "start": 1.653,
-      "end": 1.8
+      "start": 2.267,
+      "end": 2.4
     },
     {
       "word": "Gilda's",
-      "start": 1.8,
-      "end": 2.293
+      "start": 2.4,
+      "end": 2.933
     },
     {
       "word": "Model",
-      "start": 2.293,
-      "end": 2.629
+      "start": 2.933,
+      "end": 3.269
     },
     {
       "word": "Market",
-      "start": 2.629,
-      "end": 3.253
+      "start": 3.269,
+      "end": 3.947
     },
     {
       "word": "Trade",
-      "start": 3.253,
-      "end": 3.552
+      "start": 3.947,
+      "end": 4.912
     },
     {
       "word": "your",
-      "start": 3.552,
-      "end": 3.776
+      "start": 4.912,
+      "end": 5.136
     },
     {
       "word": "starfish",
-      "start": 3.776,
-      "end": 4.58
+      "start": 5.136,
+      "end": 5.92
     },
     {
       "word": "for",
-      "start": 4.58,
-      "end": 4.92
+      "start": 5.92,
+      "end": 6.24
     },
     {
       "word": "a",
-      "start": 4.92,
-      "end": 5.04
+      "start": 6.24,
+      "end": 6.373
     },
     {
       "word": "model",
-      "start": 5.04,
-      "end": 5.504
+      "start": 6.373,
+      "end": 6.672
     },
     {
       "word": "that",
-      "start": 5.504,
-      "end": 5.84
+      "start": 6.672,
+      "end": 6.864
     },
     {
       "word": "fits",
-      "start": 5.84,
-      "end": 6.2
+      "start": 6.864,
+      "end": 7.14
     },
     {
       "word": "the",
-      "start": 6.2,
-      "end": 6.42
+      "start": 7.14,
+      "end": 7.3
     },
     {
       "word": "job",
-      "start": 6.42,
-      "end": 7.04
+      "start": 7.3,
+      "end": 8.2
     },
     {
       "word": "Bigger",
-      "start": 7.04,
-      "end": 7.589
+      "start": 8.2,
+      "end": 8.937
     },
     {
       "word": "models",
-      "start": 7.589,
-      "end": 8.128
+      "start": 8.937,
+      "end": 9.36
     },
     {
       "word": "cost",
-      "start": 8.128,
-      "end": 8.704
+      "start": 9.36,
+      "end": 9.744
     },
     {
       "word": "more",
-      "start": 8.704,
-      "end": 8.954
+      "start": 9.744,
+      "end": 9.994
     }
   ]
 }

@@ -2,17 +2,21 @@
   "$schema": "../../schemas/puzzle-choose-tool.schema.json",
   "id": "P1.2",
   "mechanic": "choose-tool",
+  "quest": "Q1.5",
   "$comment": "The Three Helms (Q1.5, Rhea): a Copilot-app-only mechanic. Three orders sailed in your own ship; at each buoy you pick the helm (the session mode) that fits, and the run acts out the mode: Interactive (you choose each heading), Plan (review her plan: approve, exit, or suggest changes), Autopilot (she sails it end to end). The courses, buoys and headings are the game's; the modes' names, the orders (01 §Modes, the use-case column), the review's options (worded as the app words them, 02 §Exercise: Start a Session from a Branch), Rhea's lines and the readouts are this file's.",
   "modes": {
     "interactive": {
+      "acts": "steer",
       "name": "Interactive",
       "says": "Step-by-step collaboration"
     },
     "plan": {
+      "acts": "review",
       "name": "Plan",
       "says": "Plan first, execute when ready"
     },
     "autopilot": {
+      "acts": "auto",
       "name": "Autopilot",
       "says": "End-to-end execution without interruption"
     }
@@ -52,14 +56,17 @@
   "review": [
     {
       "id": "approve",
+      "acts": "accept",
       "label": "Approve and implement this plan"
     },
     {
       "id": "exit",
+      "acts": "takeOver",
       "label": "Exit plan mode and I will prompt myself"
     },
     {
       "id": "suggest",
+      "acts": "amend",
       "label": "Suggest changes to the plan"
     }
   ],
@@ -69,45 +76,45 @@
     "autopilot": "“Well defined, with a clear outcome” is the use case for the mode that runs end to end."
   },
   "lines": {
-    "take.interactive": "mer.helm.interactive.take",
-    "take.plan": "mer.helm.plan.take",
-    "take.autopilot": "mer.helm.autopilot.take",
-    "done.interactive": "mer.helm.interactive.done",
-    "done.plan": "mer.helm.plan.done",
-    "done.autopilot": "mer.helm.autopilot.done",
-    "next.plan": "mer.helm.next.plan",
-    "next.autopilot": "mer.helm.next.autopilot",
+    "take.steer": "mer.helm.interactive.take",
+    "take.review": "mer.helm.plan.take",
+    "take.auto": "mer.helm.autopilot.take",
+    "done.steer": "mer.helm.interactive.done",
+    "done.review": "mer.helm.plan.done",
+    "done.auto": "mer.helm.autopilot.done",
+    "next.review": "mer.helm.next.plan",
+    "next.auto": "mer.helm.next.autopilot",
     "check": "mer.helm.interactive.check",
-    "planGo": "mer.helm.plan.go",
-    "approveDraft": "mer.helm.plan.approve.draft",
-    "exitRevised": "mer.helm.plan.exit.revised",
-    "exit": "mer.helm.plan.exit",
-    "suggestRevised": "mer.helm.plan.suggest.revised",
-    "suggest": "mer.helm.plan.suggest"
+    "chartGo": "mer.helm.plan.go",
+    "acceptDraft": "mer.helm.plan.approve.draft",
+    "takeOverRevised": "mer.helm.plan.exit.revised",
+    "takeOver": "mer.helm.plan.exit",
+    "amendRevised": "mer.helm.plan.suggest.revised",
+    "amend": "mer.helm.plan.suggest"
   },
   "text": {
     "orderEyebrow": "Rhea’s order · {n} of 3",
-    "sessionInteractive": "Session · Interactive",
+    "sessionSteer": "Session · Interactive",
     "legFirst": "To mark 1",
     "legNext": "Mark {from} → mark {to}",
     "headingPrompt": "Which way, Captain? You choose the heading.",
-    "sessionPlan": "Session · Plan",
+    "sessionReview": "Session · Plan",
     "reviewRevised": "Review plan (revised)",
     "review": "Review plan",
     "reviewPrompt": "Read Rhea’s plan, then choose:",
     "hear": "Hear Rhea’s order",
-    "askInteractive": "Thread the blue marks with me, one mark at a time",
+    "askSteer": "Thread the blue marks with me, one mark at a time",
     "leg": "→ Leg {n}: {heading}…",
     "waitingHeading": "Waiting on you: which way to mark {n}?",
-    "askPlan": "Chart a course through the reef passage",
+    "askReview": "Chart a course through the reef passage",
     "askRevise": "Suggest changes: keep her clear of the Shoal",
-    "planRevised": "Plan (revised):",
-    "plan": "Plan:",
-    "planDone": "✓ {n}. {step}",
-    "planStep": "   {n}. {step}",
+    "chartRevised": "Plan (revised):",
+    "chart": "Plan:",
+    "chartDone": "✓ {n}. {step}",
+    "chartStep": "   {n}. {step}",
     "reviewWaiting": "Review plan: waiting on you",
-    "sessionAutopilot": "Session · Autopilot",
-    "askAutopilot": "Take her home to the east-arm berth",
+    "sessionAuto": "Session · Autopilot",
+    "askAuto": "Take her home to the east-arm berth",
     "working": "Working through it, no check-ins…",
     "moored": "✓ Moored at the east arm",
     "hintAtBuoy": "We’re at the buoy. Press E to hear Rhea’s order.",

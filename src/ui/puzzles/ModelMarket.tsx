@@ -12,6 +12,7 @@ import {
   GILDA_TEXT,
   JOBS,
   QUOTES,
+  TIER_OF,
   SIZE_LABEL,
   jobById,
   marketText as T,
@@ -196,7 +197,7 @@ function Board({ v, a }: { v: MarketView; a: MarketActions }) {
           const b = boardOf(c);
           const open = v.more === c;
           return (
-            <section key={c} className={`ci-mm-board is-${c.toLowerCase()}`} aria-labelledby={`ci-mm-b-${c}`}>
+            <section key={c} className={`ci-mm-board is-${TIER_OF[c]}`} aria-labelledby={`ci-mm-b-${c}`}>
               <h3 id={`ci-mm-b-${c}`}>
                 {c} <SizeStars c={c} />
               </h3>
@@ -337,7 +338,7 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
                   role="radio"
                   aria-checked={on}
                   data-pick={p}
-                  className={`ci-mm-pick is-${p.toLowerCase()}${on ? ' is-on' : ''}${isHint(p) ? ' is-hint' : ''}`}
+                  className={`ci-mm-pick is-${p === 'auto' ? 'auto' : TIER_OF[p]}${on ? ' is-on' : ''}${isHint(p) ? ' is-hint' : ''}`}
                   onClick={() => a.pick(p)}
                 >
                   <kbd aria-hidden="true">{i + 1}</kbd>
@@ -350,7 +351,7 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
           {d.auto ? (
             <div className="ci-mm-auto">
               <Quote q={QUOTES.auto} />
-              <Quote q={QUOTES.autopilot} />
+              <Quote q={QUOTES.autoAside} />
             </div>
           ) : (
             <ul

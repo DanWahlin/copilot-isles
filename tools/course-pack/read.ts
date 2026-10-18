@@ -5,11 +5,11 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { setActiveCourse } from '../../src/course/active';
-import type { CourseMeta } from '../../src/course/catalog';
+import { DEFAULT_COURSE_ID, type CourseMeta } from '../../src/course/catalog';
 import { assemblePack, withoutMeta, type CoursePack } from '../../src/course/pack';
 
 export const ROOT = join(import.meta.dirname, '..', '..');
-export const DEFAULT_COURSE = 'copilot-app';
+export const DEFAULT_COURSE = DEFAULT_COURSE_ID;
 
 /** Every file and folder of a pack that tools read or write (absolute paths). */
 export function coursePaths(id: string = DEFAULT_COURSE, root: string = ROOT) {

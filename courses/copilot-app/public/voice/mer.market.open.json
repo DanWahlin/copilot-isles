@@ -11,31 +11,31 @@
     {
       "word": "a",
       "start": 0.2,
-      "end": 0.34
+      "end": 0.3
     },
     {
       "word": "job",
-      "start": 0.34,
-      "end": 0.672
+      "start": 0.3,
+      "end": 0.512
     },
     {
       "word": "from",
-      "start": 0.672,
-      "end": 0.84
+      "start": 0.512,
+      "end": 0.66
     },
     {
       "word": "the",
-      "start": 0.84,
-      "end": 1.013
+      "start": 0.66,
+      "end": 0.787
     },
     {
       "word": "board",
-      "start": 1.013,
-      "end": 1.648
+      "start": 0.787,
+      "end": 1.552
     },
     {
       "word": "then",
-      "start": 1.648,
+      "start": 1.552,
       "end": 1.904
     },
     {
@@ -46,37 +46,37 @@
     {
       "word": "a",
       "start": 2.2,
-      "end": 2.32
+      "end": 2.307
     },
     {
       "word": "model",
-      "start": 2.32,
-      "end": 2.8
+      "start": 2.307,
+      "end": 2.74
     },
     {
       "word": "and",
-      "start": 2.8,
-      "end": 3.12
+      "start": 2.74,
+      "end": 3.16
     },
     {
       "word": "set",
-      "start": 3.12,
-      "end": 3.44
+      "start": 3.16,
+      "end": 3.54
     },
     {
       "word": "the",
-      "start": 3.44,
-      "end": 3.771
+      "start": 3.54,
+      "end": 3.657
     },
     {
       "word": "effort",
-      "start": 3.771,
-      "end": 4.4
+      "start": 3.657,
+      "end": 4.096
     },
     {
       "word": "dial",
-      "start": 4.4,
-      "end": 4.65
+      "start": 4.096,
+      "end": 4.346
     }
   ]
 }

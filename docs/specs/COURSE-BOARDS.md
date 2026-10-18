@@ -40,15 +40,15 @@ repository's README ("The whole course").
 
 Today's boards (lock `1ba934e`):
 
-- **00 · Setup:** Learning Objectives, Installation, Connect to Your Repository, Check Your Tools in
-  Terminal, Add the Course Practice Items, Learn More About the Course Repository, Troubleshooting,
-  Key Takeaways.
-- **01 · Tour the App:** Learning Objectives, Why Use the GitHub Copilot app?, Tour the App, Chats,
-  Project Sessions, and Modes, Models and Reasoning Effort, Prompts and Shortcuts, Settings,
-  Troubleshooting, Key Takeaways.
-- **02 · Sessions, Worktrees, and Context:** Learning Objectives, Core Concepts, Exercise: Start a
-  Session from a Branch and Attach an Issue, Exercise: Check the Session with Slash Commands,
-  Troubleshooting, Key Takeaways, Assignment.
+- **00 · Setup:** Installation, Connect to Your Repository, Check Your Tools in Terminal, Add the
+  Course Practice Items, Learn More About the Course Repository, Troubleshooting.
+- **01 · Tour the App:** Why Use the GitHub Copilot app?, Tour the App, Chats, Project Sessions, and
+  Modes, Models and Reasoning Effort, Prompts and Shortcuts, Settings, Troubleshooting.
+- **02 · Sessions, Worktrees, and Context:** Core Concepts, Exercise: Start a Session from a Branch and
+  Attach an Issue, Exercise: Check the Session with Slash Commands, Troubleshooting, Assignment.
+
+Learning Objectives and Key Takeaways stay off the boards (each pack's `skip.anchors`): they summarise
+the chapter, and the chapter's own page has them.
 
 `src/learn/course-board.test.ts` checks that every topic resolves to a `##` anchor in the lock, that
 every other `##` section is one the skip lists name, and that each chapter keeps at least 5 topics.

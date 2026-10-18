@@ -288,12 +288,12 @@ describe('Meridian puzzle sites', () => {
     // The three orders' buoys and the Shoal's float.
     expect(floats[0]!.count).toBe(4);
     expect(named(helms.group, 'helm name boards')).toHaveLength(1);
-    // Plan's routes as dashed lines: the first chart, then the fixed one, never both.
+    // The review helm's routes as dashed lines: the first chart, then the fixed one, never both.
     const lines = named(helms.group, 'helm route line');
     expect(lines).toHaveLength(2);
     helms.showRoute('draft');
     expect(lines.filter((l) => l.visible)).toHaveLength(1);
-    helms.showRoute('plan');
+    helms.showRoute('review');
     expect(lines.filter((l) => l.visible)).toHaveLength(1);
     helms.showRoute(null);
     expect(lines.filter((l) => l.visible)).toHaveLength(0);

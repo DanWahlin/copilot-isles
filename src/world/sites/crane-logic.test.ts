@@ -110,7 +110,7 @@ describe('crane logic (P0.2)', () => {
     expect(preview.at(-1)).toBe('Dry run complete. No changes were made.');
     expect(terminalLines(d.state, d.event, yours, true)).not.toContain(actionsWarning(yours));
     const off = confirmYes(d.state, yours, false);
-    expect(off.event).toEqual({ kind: 'actions-off', repository: yours });
+    expect(off.event).toEqual({ kind: 'gate-shut', repository: yours });
     expect(off.state.complete).toBe(false);
     expect(terminalLines(off.state, off.event, yours, false).at(-1)).toBe(actionsFailure(yours));
     expect(signLines(off.state, off.event, yours)).toEqual([

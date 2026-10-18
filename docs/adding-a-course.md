@@ -25,12 +25,18 @@ Then edit, in `courses/<id>/`:
   `short` name and title); `islands` (each island you use, its chapter, chart label, minutes, topics and
   arrival lines); `"voice": false` for captions only; `hooks` (the cabin briefing, each island's welcome
   and tips, the sailing line).
-- **`chapters/<chapter>.json`**: at least a page, a quiz, a glossary term and a Trial (the Seal).
-- **`quests/anchorage.json`**: the quests, a script for each quest-giving NPC, `beats` (who says what,
-  when) and barks. Keep the quest ids the game waits on (`Q0.2`, `Q0.8`, `Q0.10`, `Q0.11`, chest `C0.1`,
-  bottles `B0.1`–`B0.4`); the CLI pack shows the shape.
-- **`puzzles/<name>.json`**: content for each Anchorage puzzle the course can teach honestly, or
-  `"disabled": true` (the site stays scenery).
+- **`chapters/<chapter>.json`**: at least a page, a quiz, a glossary term and a Trial (the Seal), and
+  a chest for each chest and bottle the game places on your islands (Anchorage: `C0.1` beside Nell,
+  bottles `B0.1`–`B0.4`; those ids are the game's spots, what's in them is yours).
+- **`quests/anchorage.json`**: the quests (any ids you like), a script for each quest-giving NPC,
+  `beats` (who says what, when), barks and the `story`: which of your quests each condition and event
+  the game asks for means (`firstVisit`, `trialStarted`, `sealed`, `gangwayDown`; `landed`, `setSail`).
+  The CLI pack shows the shape.
+- **`puzzles/<name>.json`**: content for each Anchorage puzzle the course can teach honestly, with the
+  `quest` it plays in (that quest needs the steps the puzzle sets, `PUZZLE_STEPS` in
+  `src/course/puzzles.ts`, or map them in `steps`), or `"disabled": true` (the site stays scenery).
+  Name things with your own ids; where a puzzle acts a concept out, bind each of yours to the game's
+  with `"acts"` (the crane's cargo, the helms' modes…: [content-data.md](content-data.md)).
 - **`labels.json`**, **`boards.json`**, **`voice/lines.json`** (every line's id, speaker and text).
 - Leave out `market.json` and `models.json` unless the course teaches models, and `voice/cast.json` for a
   text-only pack.
@@ -70,6 +76,8 @@ every course. Each course has its own save (`copilot-isles.<id>.save.v1`).
 
 ## What a course can't change yet
 
-The islands, characters and puzzle mechanics are the game's. A course that needs another quest shape
-(other quest ids, islands past Anchorage without their quests, a puzzle with a new mechanic) needs code
-first: see "Still course-specific in code after step 3" in [COURSE-PACKS.md](specs/COURSE-PACKS.md).
+The islands, characters and puzzle mechanics are the game's, and so are the story's names (what the
+game asks each island), the steps each puzzle sets and the ids its mechanic acts out. Your quest ids,
+their order and steps, and every id you bind to the game's, are yours. A course that needs something the game doesn't ask for (a new story condition, a puzzle with a
+new mechanic) needs code first: see "Still course-specific in code after step 5" in
+[COURSE-PACKS.md](specs/COURSE-PACKS.md).

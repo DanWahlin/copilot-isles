@@ -4,10 +4,12 @@ import type { QuestDef, QuestTarget } from '../course/pack';
 import { beatSteps, pickBeat, type Beat } from './beats';
 import { meridianOpen } from './meridian-open';
 import type { ScriptStep } from './script';
+import type { QuestState } from './story';
 
 /**
- * Anchorage Cay's quest line: the logic (which beat each NPC offers, the tracker, the compass, old
- * saves). The quests' text, the compass labels and every script are the course pack's
+ * Anchorage Cay's quest line: the logic (which beat each NPC offers, the tracker, the compass). Old
+ * saves and the gangway are the course's (its migrations and story: src/game/story.ts); the quests'
+ * text, the compass labels and every script are the course pack's
  * (`courses/<id>/quests/anchorage.json`, docs/specs/COURSE-PACKS.md). For the Copilot app course,
  * in Chapter 00's order along the harbour: Nell's papers (prerequisites, install, sign in) and the
  * palette stand (theme), Ezra's fork, Bo's session and tool checks at the pier foot, Pim and Pol's
@@ -26,7 +28,12 @@ export let SURI_SOLVED: readonly ScriptStep[] = [];
 /** Pol and Pim's closing beat once the crane's done (P0.2), also used if you come back after quitting. */
 export let POL_SOLVED: readonly ScriptStep[] = [];
 /** The island this quest line belongs to, for the tracker's header (its name is the game's). */
-export let COVE_ISLAND = { name: 'Anchorage Cay', chapter: '', goal: '', next: '' };
+export let COVE_ISLAND: { name: string; chapter: string; goal: string; next: string; nextSail?: string } = {
+  name: 'Anchorage Cay',
+  chapter: '',
+  goal: '',
+  next: '',
+};
 let BEATS: readonly Beat[] = [];
 /** The island's scripts as its NPCs play them (Wingman's sail line follows Meridian's gate). */
 let SCRIPTS: Readonly<Record<string, readonly ScriptStep[]>> = {};
@@ -56,54 +63,6 @@ onCourse(() => {
   SCRIPTS = Object.fromEntries(Object.entries(q.scripts).map(([k, v]) => [k, pointToMeridian(v)]));
 });
 
-/**
- * Brings an older save in line with today's quest line (each rule sets a step only if it's missing
- * or stale, so running it twice changes nothing):
- * - Nell's chest step is gone (she opens it while she talks), so a save waiting on it moves on.
- * - Bo's gear check (the old Q0.5) folded into Q0.4. Finished counts; half-done replays Bo.
- * - The crane follows Bo now, not Suri (whose mill race is optional). Suri opens once the crane's done.
- * - The crane job's `actions` step (Suri's gate lever) comes before the crane: a save waiting at the
- *   crane whose gate is still down (`workflowsOn` false: the P0.1 lever was never pulled) goes back to
- *   it. Finished crane jobs count as workflows on (the sluice lifts their gate).
- * - First Words brings the bard (Q0.9); the Trial is followed by the christening (Q0.11).
- */
-export function migrateQuests(
-  saved: QuestState,
-  set: (id: string, step: string) => void,
-  o: { workflowsOn?: boolean } = {},
-): void {
-  // These rules are the Copilot app course's quest line as it changed (its saves predate the others).
-  if (COURSE.id !== 'copilot-app') return;
-  const q: Record<string, string> = { ...saved };
-  const put = (id: string, step: string) => {
-    q[id] = step;
-    set(id, step);
-  };
-  const has = (id: string) => q[id] !== undefined;
-  if (q['Q0.2'] === 'chest') put('Q0.2', 'palette');
-  if (has('Q0.5')) {
-    if (done(q, 'Q0.5') && !done(q, 'Q0.4')) put('Q0.4', 'done');
-    else if (!done(q, 'Q0.5') && done(q, 'Q0.4')) put('Q0.4', 'start');
-  }
-  if (done(q, 'Q0.3') && !has('Q0.4')) put('Q0.4', 'start');
-  if (done(q, 'Q0.4') && !has('Q0.7')) put('Q0.7', 'start');
-  if (q['Q0.7'] === 'crane' && o.workflowsOn === false) put('Q0.7', 'actions');
-  if (done(q, 'Q0.7') && !has('Q0.8')) put('Q0.8', 'start');
-  if (done(q, 'Q0.7') && !has('Q0.6')) put('Q0.6', 'start');
-  if (done(q, 'Q0.8') && !has('Q0.9')) put('Q0.9', 'start');
-  if (done(q, 'Q0.8') && !has('Q0.10')) put('Q0.10', 'start');
-  if (done(q, 'Q0.10') && !has('Q0.11')) put('Q0.11', 'start');
-}
-
-/**
- * The ship's gangway stays up until the christening: every task before it is on Anchorage, so there's
- * nowhere to sail yet. Christened (or an older save that already sailed), it's down whenever you're
- * ashore and she's moored.
- */
-export function boardingOpen(q: QuestState): boolean {
-  return q['Q0.11'] === 'sail' || q['Q0.11'] === 'done';
-}
-
 /** The main quest the player's on now: the first unfinished one in story order, or null when all done. */
 export function currentQuest(q: QuestState): { id: string; task: string; step: string | null } | null {
   const d = COVE_QUESTS.find((c) => !c.optional && q[c.id] !== 'done');
@@ -127,9 +86,7 @@ export const COVE_CHESTS: readonly { id: string; npc: string; side: number; back
   { id: 'C0.1', npc: 'nell', side: 2.1, back: 1.2 },
 ];
 
-export type QuestState = Readonly<Record<string, string>>;
-
-const done = (q: QuestState, id: string) => q[id] === 'done';
+export type { QuestState };
 
 /**
  * The scripted beat an NPC offers right now, or null to fall back to barks: the first of the island's

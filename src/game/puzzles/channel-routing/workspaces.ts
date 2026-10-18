@@ -1,20 +1,20 @@
 import { onCourse } from '../../../course/active';
 import type { PuzzleFile } from '../../../course/pack';
-import { lineOf, puzzleContent, puzzleMaybe } from '../../../course/puzzles';
+import { lineOf, puzzleContent, puzzleMaybe, rekey } from '../../../course/puzzles';
+import type { ChannelRoutingFile } from './boards';
 import type { Crew } from './types';
 
 /**
  * Round 3 of Channel Routing (docs/specs/ISLAND-02-thousand-bough.md §5.3): every crew has its own
- * channel now, and you pick where each one works, as the workspace selector does for a session
- * (02 §Where a Session Runs: "The choices trade off speed against isolation"). Each crew's order is
- * one row of the course's "Choose it when..." column. A new worktree is never wrong where the order
- * leaves it open (the section's tip: "When in doubt, choose a new worktree"; Key Takeaway 2: "the safe
- * default"), so the quick look takes Current checkout or New worktree. Cloud is the only answer just
- * where the order asks to offload the work and keep the machine untouched. The places' names and the
- * crews' orders are the course pack's `puzzles/workspaces.json`; what each place does to the water
- * is the game's (`ChannelRoutingModel.runWorkspaces`).
+ * channel now, and you pick where each one works. The game's places are what they do to the water
+ * (`ChannelRoutingModel.runWorkspaces`): `channel` runs a crew down its own channel to its wheel,
+ * `hall` runs it through the Great Hall, and `gondola` sends its work off the deck. The course pack's
+ * `puzzles/workspaces.json` names its places (each bound to one, `acts`) and writes each crew's order
+ * (for the Copilot app course: New worktree, Current checkout and Cloud, from 02 §Where a Session
+ * Runs, where a new worktree is never wrong if the order leaves it open).
  */
-export type Workspace = 'worktree' | 'checkout' | 'cloud';
+export const WORKSPACE_IDS = ['channel', 'hall', 'gondola'] as const;
+export type Workspace = (typeof WORKSPACE_IDS)[number];
 
 export interface WorkspacePlace {
   id: Workspace;
@@ -24,10 +24,20 @@ export interface WorkspacePlace {
   island: string;
 }
 
-/** `puzzles/workspaces.json` (match: each crew to the place its order fits). */
+/** A crew's order as the pack writes it: places by the course's ids. */
+interface CrewOrderFile {
+  order: string;
+  best: string;
+  accept: readonly string[];
+  right?: Readonly<Record<string, string>> | null;
+  why: Readonly<Record<string, string>>;
+}
+
+/** `puzzles/workspaces.json` (match: each crew to the place its order fits), by the course's ids. */
 interface WorkspacesFile extends PuzzleFile {
-  places: readonly WorkspacePlace[];
-  orders: Readonly<Record<Crew, CrewOrder>>;
+  places: readonly (Omit<WorkspacePlace, 'id'> & { id: string; acts: Workspace })[];
+  /** Keyed by the course's crew ids (`puzzles/channel-routing.json` → `crews`). */
+  orders: Readonly<Record<string, CrewOrderFile>>;
 }
 
 export const workspacesContent = () => puzzleContent<WorkspacesFile>('workspaces');
@@ -40,10 +50,10 @@ export interface CrewOrder {
   order: string;
   /** The place the order describes (Wingman's hint puts the crew here). */
   best: Workspace;
-  /** Every place that's right for the order (`best` and, where the order allows, New worktree). */
+  /** Every place that's right for the order (`best` and, where the order allows, others). */
   accept: readonly Workspace[];
   /** What a right place says, where it says more than "fits this order". */
-  right?: Readonly<Partial<Record<Workspace, string>>>;
+  right?: Readonly<Partial<Record<Workspace, string>>> | null;
   /** Why each other place isn't it (unvoiced; Fen says the voiced line for the best place). */
   why: Readonly<Partial<Record<Workspace, string>>>;
 }
@@ -55,10 +65,31 @@ export let BEST_LINE: Readonly<Record<Workspace, string>> = {} as Record<Workspa
 
 onCourse(() => {
   const c = puzzleMaybe<WorkspacesFile>('workspaces');
-  WORKSPACES = c?.places ?? [];
-  CREW_ORDERS = c?.orders ?? ({} as Record<Crew, CrewOrder>);
-  const best = (k: string) => (c ? lineOf(c, `best.${k}`) : '');
-  BEST_LINE = { worktree: best('worktree'), checkout: best('checkout'), cloud: best('cloud') };
+  const crews = puzzleMaybe<ChannelRoutingFile>('channel-routing')?.crews;
+  const acts = Object.fromEntries((c?.places ?? []).map((p) => [p.id, p.acts])) as Record<string, Workspace>;
+  const byPlace = <T>(r: Readonly<Record<string, T>>) =>
+    Object.fromEntries(Object.entries(r).map(([k, v]) => [acts[k], v])) as Partial<Record<Workspace, T>>;
+  WORKSPACES = (c?.places ?? []).map(({ acts: id, name, icon, island }) => ({ id, name, icon, island }));
+  CREW_ORDERS =
+    c && crews
+      ? rekey(
+          crews,
+          Object.fromEntries(
+            Object.entries(c.orders).map(([k, o]): [string, CrewOrder] => [
+              k,
+              {
+                order: o.order,
+                best: acts[o.best]!,
+                accept: o.accept.map((a) => acts[a]!),
+                right: o.right ? byPlace(o.right) : o.right,
+                why: byPlace(o.why),
+              },
+            ]),
+          ),
+        )
+      : ({} as Record<Crew, CrewOrder>);
+  const best = (k: Workspace) => (c ? lineOf(c, `best.${k}`) : '');
+  BEST_LINE = { channel: best('channel'), hall: best('hall'), gondola: best('gondola') };
 });
 
 /** Whether a place suits a crew's order. */

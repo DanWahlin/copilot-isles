@@ -367,9 +367,9 @@ async function playPlaces() {
   const orders = await S(() => [...document.querySelectorAll('.ci-cr-crew-order')].map((e) => e.textContent));
   if (orders.length !== 3) fail(`round 3 shows ${orders.length} crew orders`);
   const best = await tb('routing.best');
-  // Feature in the Great Hall (by mouse); the others by keys.
-  await page.click('[data-crew="feature"] [data-ws="checkout"]');
-  const key = { worktree: 'Digit1', checkout: 'Digit2', cloud: 'Digit3' };
+  // The blue crew in the Great Hall (by mouse); the others by keys.
+  await page.click('[data-crew="blue"] [data-ws="hall"]');
+  const key = { channel: 'Digit1', hall: 'Digit2', gondola: 'Digit3' };
   for (let i = 1; i < 3; i++) {
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press(key[best[i]]);
@@ -377,7 +377,7 @@ async function playPlaces() {
   const checked = await S(() =>
     [...document.querySelectorAll('.ci-cr-ws [aria-checked="true"]')].map((b) => b.dataset.ws),
   );
-  if (checked.join() !== ['checkout', best[1], best[2]].join()) fail(`round 3 picks show ${checked}`);
+  if (checked.join() !== ['hall', best[1], best[2]].join()) fail(`round 3 picks show ${checked}`);
   await page.keyboard.press('KeyF');
   await page.waitForFunction(() => !!document.querySelector('.ci-cr-verdict'), null, { timeout: 30000 });
   await page.waitForTimeout(400);

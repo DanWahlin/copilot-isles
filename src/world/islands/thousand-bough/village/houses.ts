@@ -21,19 +21,53 @@ import {
 } from './surfaces';
 import type { StructureOut } from './structure';
 import { branchSignLines } from './branch-sign';
+import { hasActiveCourse, islandSign } from '../../../../course/active';
+import { byActs, puzzleMaybe } from '../../../../course/puzzles';
+import type { PuzzleFile } from '../../../../course/pack';
+import type { Crew } from '../contract';
 
 /**
- * The tree village's houses and set pieces: the three crews' round treehouses (each its own: Feature's
- * star window and blue sails, Bug Fix's beetle weathervane and green shutters, Docs' scroll racks and
- * paper-boat garlands), the Practice Bough's cottage, the two-storey Chronicle Loft, the Three
- * Landings' scaffold, the boathouse, the reed booths, the wheel-lifts' frames, the Great Hall's arch
- * and the Fern Walk's lanterns and flowers. Every sign uses the course's exact strings.
+ * The island's lettering that's the course's (`puzzles/channel-routing.json`): each crew's
+ * treehouse sign (`crews.<id>.sign`), the Great Hall's arch (`text.hallSign`), the scaffold's board
+ * (`text.scaffoldSign`) and the Spire's two lookouts (`text.lookout1`, `text.lookout2`), blank in a
+ * course without the puzzle (its site is scenery); and the top deck's house board, the island's
+ * `loft` sign (`quests/thousand-bough.json` → `signs`).
+ */
+function courseSigns(): CourseSigns {
+  const c = hasActiveCourse()
+    ? puzzleMaybe<PuzzleFile & { crews: Record<string, { acts: Crew; sign: string }> }>('channel-routing')
+    : null;
+  const crews = c ? byActs(c.crews) : null;
+  const text = (key: string) => c?.text?.[key] ?? '';
+  return {
+    crew: (k) => crews?.[k]?.sign ?? '',
+    hall: text('hallSign'),
+    scaffold: text('scaffoldSign'),
+    lookouts: [text('lookout1'), text('lookout2')],
+    loft: islandSign('thousand-bough', 'loft'),
+  };
+}
+
+interface CourseSigns {
+  crew(k: Crew): string;
+  hall: string;
+  scaffold: string;
+  lookouts: readonly [string, string];
+  loft: string;
+}
+
+/**
+ * The tree village's houses and set pieces: the three crews' round treehouses (each its own: blue's
+ * star window and sails, green's beetle weathervane and shutters, teal's scroll racks and paper-boat
+ * garlands), the Practice Bough's cottage, the two-storey loft on the top deck, the Three Landings'
+ * scaffold, the boathouse, the reed booths, the wheel-lifts' frames, the Great Hall's arch and the
+ * Fern Walk's lanterns and flowers. The signs with course words read the course pack (`courseSigns`).
  */
 
 const TAU = Math.PI * 2;
 
 interface HutStyle {
-  crew: 'feature' | 'bugfix' | 'docs';
+  crew: 'blue' | 'green' | 'teal';
   trim: number;
   /** Wall sides. */
   sides: number;
@@ -108,6 +142,7 @@ function crewHut(
   out: StructureOut,
   h: (typeof CREW_HOUSES)[number],
   style: HutStyle,
+  sign: string,
 ): void {
   const scale = 0.9;
   const R = h.half * scale;
@@ -208,7 +243,7 @@ function crewHut(
         0.75,
         0.85,
         style.trim,
-        style.crew === 'bugfix',
+        style.crew === 'green',
       );
     }
   }
@@ -229,7 +264,7 @@ function crewHut(
   // Each crew's own touches.
   const fx = Math.sin(face);
   const fz = Math.cos(face);
-  if (style.crew === 'feature') {
+  if (style.crew === 'blue') {
     // A star-shaped window over the door, and two blue sails on spars.
     const sx = h.x + fx * (R + 0.1);
     const sz = h.z + fz * (R + 0.1);
@@ -268,13 +303,13 @@ function crewHut(
         ],
         2,
         2,
-        PAINT.feature,
+        PAINT.blue,
       );
     }
-  } else if (style.crew === 'bugfix') {
+  } else if (style.crew === 'green') {
     // A beetle weathervane on the finial.
     box(buckets, 'metal', h.x, top + 0.95, h.z, 0.32, 0.12, 0.5, face, PAINT.iron);
-    box(buckets, 'metal', h.x, top + 1.0, h.z, 0.36, 0.08, 0.28, face, PAINT.bugfix);
+    box(buckets, 'metal', h.x, top + 1.0, h.z, 0.36, 0.08, 0.28, face, PAINT.green);
     for (const s of [-1, 1])
       for (const o of [-0.15, 0, 0.15])
         beam(
@@ -334,13 +369,13 @@ function crewHut(
       };
       rope(buckets, p0, p1, 0.35, 0.015, PAINT.rope, 3);
       const mid = { x: (p0.x + p1.x) / 2, y: y + wallH - 0.55, z: (p0.z + p1.z) / 2 };
-      cone(buckets, 'cloth', mid.x, mid.y - 0.12, mid.z, 0.16, 0.18, 3, i % 2 ? PAINT.cream : PAINT.docs);
+      cone(buckets, 'cloth', mid.x, mid.y - 0.12, mid.z, 0.16, 0.18, 3, i % 2 ? PAINT.cream : PAINT.teal);
     }
   }
   // The crew's sign: a folder-tab board on the platform's front rail.
-  const sign = signs.add([h.sign], 1.5, 0.42, { twoSided: true, colors: ['#f6e7c8'] });
-  sign.object.position.set(h.x + fx * (plat - 0.05), y + 1.35, h.z + fz * (plat - 0.05));
-  sign.object.rotation.y = face;
+  const board = signs.add([sign], 1.5, 0.42, { twoSided: true, colors: ['#f6e7c8'] });
+  board.object.position.set(h.x + fx * (plat - 0.05), y + 1.35, h.z + fz * (plat - 0.05));
+  board.object.rotation.y = face;
   // The basket lift's rope from the platform's edge down to its wheel at the trunk's foot.
   const wheel = TB.water.wheels.find((w) => w.crew === h.crew)!;
   const wp = atBearing(wheel.bearing, wheel.r);
@@ -367,8 +402,14 @@ function crewHut(
   });
 }
 
-/** A rectangular cottage on a deck's outer end (the Practice Bough's, the Chronicle Loft). */
-function deckHouse(buckets: Buckets, signs: SignSet, out: StructureOut, id: 'L2S' | 'L3SE'): PaintedSign {
+/** A rectangular cottage on a deck's outer end (the Practice Bough's, the top deck's loft). */
+function deckHouse(
+  buckets: Buckets,
+  signs: SignSet,
+  out: StructureOut,
+  id: 'L2S' | 'L3SE',
+  loft = '',
+): PaintedSign {
   const d = DECKS[id];
   const r = d.rect;
   const spec = DECK_HOUSES[id];
@@ -524,7 +565,7 @@ function deckHouse(buckets: Buckets, signs: SignSet, out: StructureOut, id: 'L2S
   // The practice session's branch (the course's until the player gives theirs), on two lines broken
   // after a hyphen, so all of it fits over the door.
   const sign = signs.add(
-    id === 'L2S' ? branchSignLines(null) : ['Chronicle Loft'],
+    id === 'L2S' ? branchSignLines(null) : [loft],
     id === 'L2S' ? 2.3 : 2.0,
     id === 'L2S' ? 0.6 : 0.42,
     {
@@ -552,7 +593,7 @@ function deckHouse(buckets: Buckets, signs: SignSet, out: StructureOut, id: 'L2S
     out.lanterns.push({ x: p.x, y: y + 2.2, z: p.z, hang: true });
   }
   // A string of pennants along each long eave, the crews' three colours in turn.
-  const crews = [PAINT.feature, PAINT.bugfix, PAINT.docs];
+  const crews = [PAINT.blue, PAINT.green, PAINT.teal];
   for (const side of [-1, 1]) {
     const a = rectWorld(r, u - hd - 0.4, side * (hw + 0.55));
     const b = rectWorld(r, u + hd + 0.4, side * (hw + 0.55));
@@ -575,8 +616,8 @@ function deckHouse(buckets: Buckets, signs: SignSet, out: StructureOut, id: 'L2S
   return sign;
 }
 
-/** The Three Landings' scaffold on its fresh bough: a timber frame, signed "Base branch: main". */
-function scaffold(buckets: Buckets, signs: SignSet, out: StructureOut): void {
+/** The Three Landings' scaffold on its fresh bough: a timber frame with the course's board. */
+function scaffold(buckets: Buckets, signs: SignSet, out: StructureOut, words: string): void {
   const s = SCAFFOLD;
   const y = s.y;
   for (let i = 0; i < 4; i++) {
@@ -605,7 +646,7 @@ function scaffold(buckets: Buckets, signs: SignSet, out: StructureOut): void {
       0,
       PAINT.plank,
     );
-  const sign = signs.add(['Base branch: main'], 2.1, 0.5, { twoSided: true, colors: ['#f6e7c8'] });
+  const sign = signs.add([words], 2.1, 0.5, { twoSided: true, colors: ['#f6e7c8'] });
   // Facing the Three Landings (north).
   sign.object.position.set(s.x, y + 2.3, s.z - s.half * 0.95);
   sign.object.rotation.y = Math.PI;
@@ -762,7 +803,7 @@ export function wheelFrames(
     const p = atBearing(w.bearing, w.r);
     const ground = thousandBoughHeight(p.x, p.z);
     // The axle lies across the chute that feeds it (from its outlet on the board's south edge).
-    const ox = F.cols[F.outlets[w.crew as 'feature' | 'bugfix' | 'docs']]!;
+    const ox = F.cols[F.outlets[w.crew as 'blue' | 'green' | 'teal']]!;
     const oz = F.rows[F.rows.length - 1]! + F.tile / 2 + 1.9;
     const dl = Math.hypot(p.x - ox, p.z - oz);
     const dx = (p.x - ox) / dl;
@@ -799,8 +840,8 @@ export function wheelFrames(
   return wheels;
 }
 
-/** The Great Hall's arch on the trunk (bearing 180): a glowing woven screen in a timber arch, carved "main". */
-function greatHallArch(buckets: Buckets, signs: SignSet): void {
+/** The Great Hall's arch on the trunk (bearing 180): a glowing woven screen in a timber arch, the course's word. */
+function greatHallArch(buckets: Buckets, signs: SignSet, words: string): void {
   const b = TB.rootHall.hallArchBearing;
   const y = TB.rootHall.y;
   const r = coreSurface(b, y + 2) * 1.0 + 0.25;
@@ -866,7 +907,7 @@ function greatHallArch(buckets: Buckets, signs: SignSet): void {
     );
   }
   // The branch's name, big and carved over the arch (readable from the Root Gate).
-  const sign = signs.add(['main'], 2.6, 0.8, { colors: ['#f8e6b8'] });
+  const sign = signs.add([words], 2.6, 0.8, { colors: ['#f8e6b8'] });
   sign.object.position.set(c.x + ox * 0.32, y + H + 0.7, c.z + oz * 0.32);
   sign.object.rotation.y = Math.atan2(ox, oz);
 }
@@ -922,18 +963,19 @@ export function buildHouses(
   out: StructureOut,
 ): { wheels: ReturnType<typeof wheelFrames>; practiceSign: PaintedSign } {
   const styles: Record<string, HutStyle> = {
-    feature: { crew: 'feature', trim: PAINT.feature, sides: 10 },
-    bugfix: { crew: 'bugfix', trim: PAINT.bugfix, sides: 8 },
-    docs: { crew: 'docs', trim: PAINT.docs, sides: 12 },
+    blue: { crew: 'blue', trim: PAINT.blue, sides: 10 },
+    green: { crew: 'green', trim: PAINT.green, sides: 8 },
+    teal: { crew: 'teal', trim: PAINT.teal, sides: 12 },
   };
-  for (const h of CREW_HOUSES) crewHut(buckets, signs, out, h, styles[h.crew]!);
+  const words = courseSigns();
+  for (const h of CREW_HOUSES) crewHut(buckets, signs, out, h, styles[h.crew]!, words.crew(h.crew));
   const practiceSign = deckHouse(buckets, signs, out, 'L2S');
-  deckHouse(buckets, signs, out, 'L3SE');
-  scaffold(buckets, signs, out);
+  deckHouse(buckets, signs, out, 'L3SE', words.loft);
+  scaffold(buckets, signs, out, words.scaffold);
   boathouse(buckets, out);
   booths(buckets, out);
-  greatHallArch(buckets, signs);
-  portSigns(buckets, signs, out);
+  greatHallArch(buckets, signs, words.hall);
+  portSigns(buckets, signs, out, words.lookouts);
   pathMarkers(buckets, out);
   fernWalkLanterns(buckets, out);
   // The Mirror Pool path's lanterns lead on round the pool to the ledge's pair at the falls.
@@ -945,14 +987,19 @@ export function buildHouses(
 export type { Rect };
 
 /**
- * The twist's two ports, carved on boards where the bridges land (spec §2.7): `5173` on the Spire top
- * and `5174` on the ledge, each on two posts beside the bridge's end, facing back along it to L1E,
- * with a lantern over it.
+ * The twist's two lookouts, their course names carved on boards where the bridges land (spec §2.7):
+ * the first on the Spire top and the second on the ledge, each on two posts beside the bridge's end,
+ * facing back along it to L1E, with a lantern over it.
  */
-function portSigns(buckets: Buckets, signs: SignSet, out: StructureOut): void {
+function portSigns(
+  buckets: Buckets,
+  signs: SignSet,
+  out: StructureOut,
+  words: readonly [string, string],
+): void {
   for (const [id, port] of [
-    ['R2', '5173'],
-    ['R3', '5174'],
+    ['R2', words[0]],
+    ['R3', words[1]],
   ] as const) {
     const b = BRIDGES.find((x) => x.id === id)!;
     const e = b.to;

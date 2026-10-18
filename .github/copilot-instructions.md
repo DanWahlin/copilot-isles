@@ -37,7 +37,7 @@ npm run content:check    # a course pack's files against courses/schemas/ and th
 
 ## Non-negotiables
 
-- **Only copy code with a license that allows it.** Arkenfall, Sakura River Valley, and the Antikythera artifact are
+- **Only copy code with a license that allows it.** Sakura River Valley and the Antikythera artifact are
   **technique-only**. **Tidewater is MIT:** adapted files keep a header (`Adapted from Tidewater © 2026 DRG Software
 Solutions LLC, MIT, <path>@<commit>`), and the full notice goes in `THIRD_PARTY_NOTICES.md` (create it if missing).
 - **Secrets are build-time only.** Tools in `tools/` may read `~/.env` (Azure Speech, image model). Nothing in `src/`
@@ -51,8 +51,12 @@ Solutions LLC, MIT, <path>@<commit>`), and the full notice goes in `THIRD_PARTY_
 - **Course content is data:** every course word (quests, scripts, barks, quizzes, pages, labels, board
   text, arrival lines, voice lines and audio, the snapshot) lives in a course pack, `courses/<id>/`
   (docs/specs/COURSE-PACKS.md, docs/content-data.md). The game reads it through `src/course/` after a
-  voyage loads it; the title loads only each pack's `course.json`. Saves are per course
-  (`copilot-isles.<course>.save.v1`). Adding a course: docs/adding-a-course.md.
+  voyage loads it; the title loads only each pack's `course.json`. Game code never names a quest id:
+  it asks the island's `story` for a condition or event by name (`src/game/story.ts`), and a puzzle
+  reads its pack's `"quest"` (`puzzleQuest()`). Mechanics act on the game's own ids (`steer`, `channel`,
+  `tavern`, `small`…), and a pack binds its ids to them with `"acts"`; `src/course/neutral.test.ts`
+  fails on a course id or word in code. Saves are per course (`copilot-isles.<course>.save.v1`).
+  Adding a course: docs/adding-a-course.md.
 - **Teaching accuracy:** every teaching line cites its course chapter/section. Don't invent app UI names.
 - **Accessibility:** respect reduced motion (PLAN §9), keep keyboard/gamepad/touch parity, and use ≥ 44 px touch targets.
 - **Licensing:** log every third-party asset in `ASSETS.md` (CC0 kits, textures) and every AI-generated asset in

@@ -15,7 +15,7 @@ import type { VillageAnchor } from '../../village/kit';
  * owns it; it's declared here so the world's views can take it without importing game code. The
  * logic's `types.ts` re-exports these (or declares the same shapes).
  */
-export type Crew = 'feature' | 'bugfix' | 'docs';
+export type Crew = 'blue' | 'green' | 'teal';
 export type TileKind = 'straight' | 'elbow' | 'rock';
 export type Rot = 0 | 1 | 2 | 3;
 export interface Tile {
@@ -42,7 +42,8 @@ export interface ChannelRoutingState {
   cursor: readonly [number, number] | null;
   /** Empty until the gates open. */
   flows: readonly Flow[];
-  twistChoice?: 'redig' | 'port5174' | 'closeOne' | 'share';
+  /** The twist's answer, by the course's id for it. */
+  twistChoice?: string;
 }
 
 export type TbAnchorName =
@@ -76,10 +77,7 @@ export type TbAnchorName =
 export type TbInteractionId =
   | `npc:${'tamsin' | 'lyra_bough' | 'saffi' | 'oak' | 'fen' | 'ines' | 'rook' | 'pip' | 'elder'}`
   | 'flume:board'
-  | 'flag:@'
-  | 'flag:#'
-  | 'flag:/'
-  | 'flag:&'
+  | `flag:${number}`
   | 'gondola:bell'
   | 'basket:bottom'
   | 'basket:top'
@@ -116,11 +114,13 @@ export interface SpireView {
   playJam(): Promise<void>;
   /** R3 unrolls, then it's walkable. */
   openSecondBridge(): Promise<void>;
-  preview(crew: Crew, lookout: 5173 | 5174, on: boolean): void;
+  /** A crew's lantern at the Spire's first lookout (its top) or second (the south ledge). */
+  preview(crew: Crew, lookout: 1 | 2, on: boolean): void;
 }
 
 export interface SignalMastView {
-  hoist(flag: '@' | '#' | '/' | '&', ok: boolean): Promise<void>;
+  /** Runs a halyard's flag up (0 the first on the rail); a wrong one drops back. */
+  hoist(halyard: number, ok: boolean): Promise<void>;
   lowerAll(): void;
 }
 

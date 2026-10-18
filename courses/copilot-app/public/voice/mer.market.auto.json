@@ -6,112 +6,112 @@
     {
       "word": "Auto's",
       "start": 0,
-      "end": 0.58
+      "end": 0.5
     },
     {
       "word": "the",
-      "start": 0.58,
-      "end": 0.693
+      "start": 0.5,
+      "end": 0.6
     },
     {
       "word": "house",
-      "start": 0.693,
-      "end": 1.03
+      "start": 0.6,
+      "end": 0.86
     },
     {
       "word": "special",
-      "start": 1.03,
-      "end": 1.68
+      "start": 0.86,
+      "end": 1.63
     },
     {
       "word": "The",
-      "start": 1.68,
-      "end": 2.02
+      "start": 1.63,
+      "end": 1.9
     },
     {
       "word": "app",
-      "start": 2.02,
-      "end": 2.38
+      "start": 1.9,
+      "end": 2.13
     },
     {
       "word": "chooses",
-      "start": 2.38,
-      "end": 2.88
+      "start": 2.13,
+      "end": 2.52
     },
     {
       "word": "a",
-      "start": 2.88,
-      "end": 3.027
+      "start": 2.52,
+      "end": 2.6
     },
     {
       "word": "model",
-      "start": 3.027,
-      "end": 3.4
+      "start": 2.6,
+      "end": 2.88
     },
     {
       "word": "for",
-      "start": 3.4,
-      "end": 3.58
+      "start": 2.88,
+      "end": 3.18
     },
     {
       "word": "you",
-      "start": 3.58,
-      "end": 4.032
+      "start": 3.18,
+      "end": 3.504
     },
     {
       "word": "then",
-      "start": 4.032,
-      "end": 4.24
+      "start": 3.504,
+      "end": 3.653
     },
     {
       "word": "tells",
-      "start": 4.24,
-      "end": 4.68
+      "start": 3.653,
+      "end": 3.94
     },
     {
       "word": "you",
-      "start": 4.68,
-      "end": 4.867
+      "start": 3.94,
+      "end": 4.053
     },
     {
       "word": "which",
-      "start": 4.867,
-      "end": 5.3
+      "start": 4.053,
+      "end": 4.4
     },
     {
       "word": "one",
-      "start": 5.3,
-      "end": 5.7
+      "start": 4.4,
+      "end": 4.7
     },
     {
       "word": "and",
-      "start": 5.7,
-      "end": 6.12
+      "start": 4.7,
+      "end": 4.98
     },
     {
       "word": "why",
-      "start": 6.12,
-      "end": 6.667
+      "start": 4.98,
+      "end": 5.6
     },
     {
       "word": "It",
-      "start": 6.667,
-      "end": 6.98
+      "start": 5.6,
+      "end": 5.98
     },
     {
       "word": "isn't",
-      "start": 6.98,
-      "end": 7.46
+      "start": 5.98,
+      "end": 6.3
     },
     {
       "word": "Autopilot",
-      "start": 7.46,
-      "end": 8.608
+      "start": 6.3,
+      "end": 7.248
     },
     {
       "word": "mind",
-      "start": 8.608,
-      "end": 8.858
+      "start": 7.248,
+      "end": 7.498
     }
   ]
 }

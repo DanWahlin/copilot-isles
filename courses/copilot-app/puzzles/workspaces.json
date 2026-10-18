@@ -6,18 +6,21 @@
   "places": [
     {
       "id": "worktree",
+      "acts": "channel",
       "name": "New worktree",
       "icon": "🌿",
       "island": "Its own channel"
     },
     {
       "id": "checkout",
+      "acts": "hall",
       "name": "Current checkout",
       "icon": "🏛️",
       "island": "Through the Great Hall"
     },
     {
       "id": "cloud",
+      "acts": "gondola",
       "name": "Cloud",
       "icon": "☁️",
       "island": "Up the gondola"
@@ -75,8 +78,8 @@
     "ask": "Read each crew’s order and pick where it works: New worktree, Current checkout or Cloud."
   },
   "lines": {
-    "best.worktree": "tb.fen.ws.worktree",
-    "best.checkout": "tb.fen.ws.checkout",
-    "best.cloud": "tb.fen.ws.cloud"
+    "best.channel": "tb.fen.ws.worktree",
+    "best.hall": "tb.fen.ws.checkout",
+    "best.gondola": "tb.fen.ws.cloud"
   }
 }

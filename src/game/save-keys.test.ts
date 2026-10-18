@@ -59,6 +59,11 @@ describe('saves per course (COURSE-PACKS.md §6)', () => {
     expect(migrateSaves(fresh)).toEqual([]);
     expect([...fresh.m.keys()]).toEqual([]);
     expect(migrateSaves(null)).toEqual([]);
+    // A catalog with no course marked `"legacySaves": true` copies nothing.
+    const none = new Mem();
+    none.setItem(LEGACY_KEYS.save, SAVE);
+    expect(migrateSaves(none, null)).toEqual([]);
+    expect([...none.m.keys()]).toEqual([LEGACY_KEYS.save]);
   });
 
   it('rollback: the old keys follow the Copilot app course’s writes, so the build before finds the same voyage', () => {

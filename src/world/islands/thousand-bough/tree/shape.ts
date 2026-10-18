@@ -179,7 +179,7 @@ const LIMBS: readonly LimbSpec[] = [
   },
   // The crew houses' boughs and the fresh bough under the Three Landings' scaffold.
   {
-    id: 'bough-feature',
+    id: 'bough-blue',
     bearing: 315,
     path: [
       [3, 27],
@@ -193,7 +193,7 @@ const LIMBS: readonly LimbSpec[] = [
     canopy: false,
   },
   {
-    id: 'bough-bugfix',
+    id: 'bough-green',
     bearing: 350,
     path: [
       [3, 28.5],
@@ -207,7 +207,7 @@ const LIMBS: readonly LimbSpec[] = [
     canopy: false,
   },
   {
-    id: 'bough-docs',
+    id: 'bough-teal',
     bearing: 30,
     path: [
       [3, 30],
@@ -396,7 +396,7 @@ export function treeKeepouts(): Keepout[] {
   out.push({ x: basket.x, z: basket.z, r: 3.2, y0: TB.skyBasket.bottomY - 1, y1: TB.skyBasket.topY + 6 });
   const mast = TB.anchors.flagMast;
   out.push({ x: mast.x, z: mast.z, r: 3.5, y0: mast.y, y1: mast.y + 14 });
-  // The deck houses (the Practice Bough's and the Chronicle Loft) and the Crown Beacon.
+  // The deck houses (the Practice Bough's and the top deck's loft) and the Crown Beacon.
   for (const id of ['L2S', 'L3SE'] as const) {
     const d = DECKS[id];
     const hr = d.rect;

@@ -124,7 +124,7 @@ const DECKS: readonly TreeDeckSpec[] = [
   { id: 'L2S', name: 'Practice Bough', bearing: 160, r: 32, y: 32.5, radial: 10, across: 12, theta: null },
   {
     id: 'L3SE',
-    name: 'Chronicle Loft',
+    name: 'High Loft',
     bearing: 130,
     r: 26,
     y: helixY(650),
@@ -136,8 +136,7 @@ const DECKS: readonly TreeDeckSpec[] = [
 
 /** A crew's treehouse (seen, not entered). */
 export interface CrewHouseSpec {
-  readonly crew: 'feature' | 'bugfix' | 'docs';
-  readonly sign: 'feature' | 'bug-fix' | 'docs';
+  readonly crew: 'blue' | 'green' | 'teal';
   readonly bearing: number;
   readonly r: number;
   readonly floor: number;
@@ -265,9 +264,9 @@ export const THOUSAND_BOUGH = {
     headerRace: { from: { x: 2010, z: -1650 }, to: { x: 2008, z: -1632 }, width: 2 },
     /** The flume outflows' wheels: bearings 330, 0, 30 at r 26 from the tree. */
     wheels: [
-      { crew: 'feature', bearing: 330, r: 26 },
-      { crew: 'bugfix', bearing: 0, r: 26 },
-      { crew: 'docs', bearing: 30, r: 26 },
+      { crew: 'blue', bearing: 330, r: 26 },
+      { crew: 'green', bearing: 0, r: 26 },
+      { crew: 'teal', bearing: 30, r: 26 },
     ],
     wheelRace: { y: 17.5, to: { x: 1978, z: -1572 }, width: 1.5 },
     fernrun: [
@@ -385,11 +384,11 @@ export const THOUSAND_BOUGH = {
     width: 3,
   },
   houses: [
-    { crew: 'feature', sign: 'feature', bearing: 315, r: 31, floor: 31, color: '#3B82F6' },
-    { crew: 'bugfix', sign: 'bug-fix', bearing: 350, r: 31, floor: 33, color: '#3FA34D' },
-    { crew: 'docs', sign: 'docs', bearing: 30, r: 32, floor: 31, color: '#1EA7A7' },
+    { crew: 'blue', bearing: 315, r: 31, floor: 31, color: '#3B82F6' },
+    { crew: 'green', bearing: 350, r: 31, floor: 33, color: '#3FA34D' },
+    { crew: 'teal', bearing: 30, r: 32, floor: 31, color: '#1EA7A7' },
   ] as readonly CrewHouseSpec[],
-  /** The L1E scaffold on a fresh bough (the Lantern House after the Seal), signed "Base branch: main". */
+  /** The L1E scaffold on a fresh bough (the Lantern House after the Seal), with the course's board. */
   scaffold: { bearing: 110, r: 30, y: 30 },
   bridges: [
     {
@@ -402,7 +401,7 @@ export const THOUSAND_BOUGH = {
     },
     {
       id: 'R2',
-      name: 'Spire Bridge (5173)',
+      name: 'Spire Bridge',
       from: { x: 2045, y: helixY(250), z: -1563 },
       to: { x: 2064, y: 27, z: -1597 },
       sag: 1.8,
@@ -410,7 +409,7 @@ export const THOUSAND_BOUGH = {
     },
     {
       id: 'R3',
-      name: 'Second Bridge (5174)',
+      name: 'Second Bridge',
       from: { x: 2045, y: helixY(250), z: -1556 },
       to: { x: 2066, y: 24.5, z: -1587 },
       sag: 1.5,
@@ -526,9 +525,12 @@ export const THOUSAND_BOUGH = {
     { id: 'sf.t.signal', name: 'Up on the Signal Deck', x: 1988.4, z: -1538.4, y: helixY(385) },
     { id: 'sf.t.crown', name: 'At the top of the tree', x: 2010, z: -1567, y: 50.5 },
   ],
+  /** Chests (their pages and doubloons are the course's), each facing the way you come to it. */
   chests: [
-    { id: 'C2.1', page: 'pg2.booths', doubloons: 10, x: 1928.6, z: -1501, y: 7.3 },
-    { id: 'C2.2', page: 'pg2.more-commands', doubloons: 15, x: 2150, z: -1646, y: 19 },
+    // By the third booth, facing the Fern Walk.
+    { id: 'C2.1', x: 1928.6, z: -1501, y: 7.3, face: { x: 1950, z: -1510 } },
+    // In the cave behind Great Falls, facing the Mirror Pool out of the cave.
+    { id: 'C2.2', x: 2150, z: -1646, y: 19, face: { x: 2120, z: -1595 } },
   ],
   bottles: [
     { id: 'B2.1', x: 1840.6, z: -1352 },
@@ -544,9 +546,9 @@ export const THOUSAND_BOUGH = {
     rows: [-1626.8, -1623.6, -1620.4, -1617.2],
     rowY: [23, 22.5, 22, 21.5],
     /** Gates over columns (north edge). */
-    gates: { feature: 1, bugfix: 2, docs: 3 },
+    gates: { blue: 1, green: 2, teal: 3 },
     /** Outlets (south edge): column → whose wheel; the rest spill into the Great Hall sluice. */
-    outlets: { feature: 0, bugfix: 2, docs: 4 },
+    outlets: { blue: 0, green: 2, teal: 4 },
   },
 } as const;
 

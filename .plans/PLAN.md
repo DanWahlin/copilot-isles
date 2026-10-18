@@ -56,13 +56,11 @@
 - The course has **72 images** (~9 MB). About 40 are **real app UI screenshots at 1920×1080**, which is perfect for "click the right spot" hotspot quizzes. The rest are conceptual illustrations, which work well as chest rewards and logbook art.
 - Chapters include exact UI names (**New**, **Pull requests**, **Issues**, **Automations**, **Customize**, **New worktree / Current checkout / Cloud**, `@ # / &`, `/chronicle standup`, `/rubber-duck`, **Pick & Polish**, `/create-canvas`, **Create and run**…), so quiz content can be precise.
 
-### Arkenfall (what makes it look and feel so good)
-I reverse-read its production bundle:
-- **Three.js + Vite**, split into modules: `terrain`, `water`, `swell`, `sky`, `fog`, `atmosphere`, `vegetation`, `structures`, `Humanoid`, `camera`, `ui`, `audio`.
-- **100% procedural.** There are zero model or texture files. Terrain, water, vegetation, buildings, and characters are all generated in code.
-- **Music is synthesized live** ("Every note synthesised as you play") via Web Audio.
-- It uses AgX tone mapping, fbm-noise clouds, shoreline foam, and a DOM UI overlay with **Fraunces + Manrope** fonts.
-- **Takeaway:** its beauty comes from **lighting, atmosphere, water, and color grading**, not from asset fidelity. We should invest in the same places.
+### What makes a browser world look and feel good
+- The best stylised browser worlds are **three.js + Vite**, split into modules: terrain, water, swell, sky, fog, atmosphere, vegetation, structures, characters, camera, UI and audio.
+- Many generate terrain, water, vegetation and buildings in code, and some synthesize their music live with Web Audio.
+- AgX tone mapping, fbm-noise clouds, shoreline foam and a clean DOM UI overlay go a long way.
+- **Takeaway:** the beauty comes from **lighting, atmosphere, water, and color grading**, not from asset fidelity. We should invest in the same places.
 
 ### Sakura River Valley (water, physics & environment reference)
 Full study: [docs/research/2026-09-23-sakura-river-valley.md](../docs/research/2026-09-23-sakura-river-valley.md). This is a three.js river scene with **the best browser water we've seen**. It weighs **~7.5 MB** in total and draws **239 calls per frame**, though it pushes **~5.9 M triangles per frame** (mirror + main pass).
@@ -209,7 +207,7 @@ Tests: `tools/meridiantest.mjs` plays the chapter end to end in the browser (the
 ## 6. Visual direction & tech
 
 ### Recommended stack
-- **TypeScript + Vite** (same foundation as Arkenfall)
+- **TypeScript + Vite**
 - **three.js `WebGPURenderer` + TSL** (`three/webgpu`, `three/tsl`): node materials, compute, and the `RenderPipeline` post stack, with the automatic WebGL2 backend as the fallback (§0, §15). No GLSL strings or `onBeforeCompile`. Techniques from the GLSL-based studies are re-expressed as TSL nodes.
 - **Rapier** (WASM physics), limited to **primitive static colliders** (boxes, capsules, heightfield), scene queries, and the **kinematic character controller**. The POC has no dynamic rigid bodies: push blocks are grid logic, and the boat is a kinematic hull on analytic buoyancy
 - **React DOM overlay** for menus, dialogue, quizzes, map, and logbook, plus a small store (e.g. Zustand) to bridge the game and the UI
@@ -327,7 +325,7 @@ Our water has to cover **open-ocean swell, surf, lagoons, harbors, and flowing w
 ### Three possible art approaches
 | Option | Look | Speed | Notes |
 |---|---|---|---|
-| **A. Hybrid stylized realism** *(chosen)* | Closest to Arkenfall and "as realistic as possible" in a browser | Medium | Custom shaders + CC0 kits restyled + CC0 PBR textures |
+| **A. Hybrid stylized realism** *(chosen)* | A painterly, polished world, "as realistic as possible" in a browser | Medium | Custom shaders + CC0 kits restyled + CC0 PBR textures |
 | B. Low-poly kits as-is | Toy-like, cute | Fastest | Mixed kits can look inconsistent |
 | C. Push realism (photoscans) | Most realistic | Slowest, heaviest | Characters will lag behind the environment, which risks the uncanny valley |
 
@@ -335,8 +333,8 @@ Our water has to cover **open-ocean swell, surf, lagoons, harbors, and flowing w
 
 ## 7. Audio
 
-### What Arkenfall does
-It ships **no audio files**. A procedural engine synthesizes everything live in Web Audio:
+### The procedural option
+A game can ship **no audio files**: a procedural engine synthesizes everything live in Web Audio:
 - **Instruments:** harp, lute, flute, strings, choir, bells, pads, drums
 - **Musical rules:** modal scales (dorian, lydian, mixolydian, aeolian, pentatonic) with chord progressions, reverb, and delay
 - **Ambient life:** birdsong, bees, frogs, gusts, surf, creaks, and drips, all built from filtered noise and oscillators
@@ -483,7 +481,7 @@ Text size, dyslexia-friendly font option, adjustable text speed, high-contrast U
 |---|---|
 | Realism vs browser performance | Quality tiers and an early Phase 0 look/perf gate |
 | Planar mirror doubles the scene cost | Limited to High/Ultra and calm-zone visibility. Half-res, layer-culled, cheap-path shaders, a ≤ 35% budget, and PMREM always as the fallback |
-| Copying code from reference scenes | Arkenfall, Sakura Valley, and the Antikythera artifact are **study references only**. We re-implement their techniques and never copy their code, shaders, or assets |
+| Copying code from reference scenes | Sakura Valley and the Antikythera artifact are **study references only**. We re-implement their techniques and never copy their code, shaders, or assets |
 | Mixed CC0 kits look inconsistent | 1-2 kits per island, a shared palette and material pass, and Blender restyle scripts |
 | Pirate characters (m/f) need to look great | CC0 base bodies + modular outfits. We may need custom Blender work for hats and coats |
 | Procedural music sounds "synthy" | **Resolved 2026-09-25:** we A/B tested the generated score against CC0 recordings, and Dan picked the recordings (§7) |

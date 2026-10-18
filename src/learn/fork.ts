@@ -17,9 +17,12 @@ export type ForkParse = { ok: true; fork: ForkRef; warning: string | null } | { 
 
 /** The course repository's name (the pack's `practice.repoName`). A fork keeps it unless the player renamed it. */
 export let COURSE_REPO = '';
+/** The course repository's owner on github.com (its `source.repo`): a fork isn't theirs. */
+let COURSE_OWNER = '';
 /** What the game shows when the player hasn't told it their fork. */
 export let FORK_PLACEHOLDER = '';
 onCourseSelected((c) => {
+  COURSE_OWNER = c.source.repo.split('/')[0]!.toLowerCase();
   COURSE_REPO = c.practice?.repoName ?? c.source.repo.split('/').pop()!;
   FORK_PLACEHOLDER = `your-handle/${COURSE_REPO}`;
 });
@@ -92,7 +95,7 @@ export function parseFork(input: unknown): ForkParse {
       ok: false,
       error: `“${repo}” isn’t a repository name. Names use letters, digits, hyphens, dots, and underscores.`,
     };
-  if (host === 'github.com' && owner.toLowerCase() === 'github' && repo.toLowerCase() === COURSE_REPO)
+  if (host === 'github.com' && owner.toLowerCase() === COURSE_OWNER && repo.toLowerCase() === COURSE_REPO)
     return {
       ok: false,
       error: 'That’s the original course repository. Enter your fork, the copy under your own account.',

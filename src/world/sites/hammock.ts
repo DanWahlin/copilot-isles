@@ -45,7 +45,7 @@ export function createHammock(o: {
 }): HammockSite {
   const detail = o.tier.tier === 'lite' ? 8 : o.tier.tier === 'low' ? 10 : 12;
   const group = new Group();
-  group.name = 'bard hammock camp (Q0.9)';
+  group.name = 'bard hammock camp';
 
   const y = (x: number, z: number) => o.ground(x, z);
   const seat = {

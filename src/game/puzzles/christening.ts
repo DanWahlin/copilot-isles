@@ -2,13 +2,13 @@ import type { VillageAnchor } from '../../world/village/kit';
 import type { CameraShot } from '../follow-camera';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 import { sleep } from '../../util/math';
-import { puzzleContent, textOf } from '../../course/puzzles';
+import { puzzleContent, puzzleQuest, textOf } from '../../course/puzzles';
+import { storyHolds } from '../story';
 
 /** Its words: the course pack's `puzzles/christening.json`. */
 const T = (key: string) => textOf(puzzleContent('christening'), key);
 
-const CHRISTENING_ID = 'Q0.11.christen';
-const QUEST = 'Q0.11';
+const CHRISTENING_ID = 'christening';
 
 /** What the christening needs from the brigantine. */
 interface ChristeningShip {
@@ -62,7 +62,8 @@ export function createChristening(
   let atPier = false;
   let thrown = false;
 
-  const step = () => host.quests()[QUEST];
+  const quest = puzzleQuest('christening');
+  const step = () => host.quests()[quest];
   const paintName = () => {
     const s = step();
     const name = s === 'sail' || s === 'done' || thrown ? o.shipName() : null;
@@ -113,7 +114,7 @@ export function createChristening(
     update() {
       const s = step();
       // Nell waits at the pier head for the Trial and the ceremony, and goes home once you've sailed off.
-      const trial = host.quests()['Q0.10'] === 'start';
+      const trial = storyHolds('anchorage', 'trialStarted', host.quests());
       const want = trial || s === 'start' || ((s === 'sail' || s === 'done') && atPier && !far());
       if (want !== atPier) {
         atPier = want;

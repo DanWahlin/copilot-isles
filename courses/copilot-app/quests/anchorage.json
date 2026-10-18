@@ -4,7 +4,8 @@
   "tracker": {
     "chapter": "Chapter 00 · Setup",
     "goal": "Set up the Copilot app and earn the Seal of Anchorage",
-    "next": "Port Meridian’s the next island, and she’s coming soon. Until then these waters are yours, and the compass points back to the pier."
+    "next": "Port Meridian’s the next island, and she’s coming soon. Until then these waters are yours, and the compass points back to the pier.",
+    "nextSail": "Port Meridian’s next. Board your ship and follow the compass north-east."
   },
   "quests": [
     {
@@ -418,6 +419,18 @@
       "say": "juno.done.01"
     }
   ],
+  "story": {
+    "conditions": {
+      "firstVisit": { "Q0.2": "start" },
+      "trialStarted": { "Q0.10": "start" },
+      "sealed": { "Q0.10": "done" },
+      "gangwayDown": { "Q0.11": ["sail", "done"] }
+    },
+    "events": {
+      "landed": [{ "when": { "Q0.2": null }, "set": { "Q0.2": "start" } }],
+      "setSail": [{ "when": { "Q0.11": "sail" }, "set": { "Q0.11": "done" } }]
+    }
+  },
   "scripts": {
     "christening": [
       {

@@ -2,13 +2,16 @@
   "$schema": "../../schemas/puzzle-classify.schema.json",
   "id": "P1.1",
   "mechanic": "classify",
+  "quest": "Q1.4",
   "$comment": "The Crate Yard (Q1.4, Anders): push each crate onto a plate of its kind. The yard's grid, its plates and where each crate starts are the game's (src/world/sites/crate-yard-logic.ts: the crates fill its slots in this order); what's on each crate, which plate it belongs on (chat: the tavern side; project: the slipway), why, and the plates' signs are this file's. For the Copilot app course, 01 · Chats, Project Sessions, and Modes: a chat for questions and brainstorming, a project session when the agent needs your repository.",
   "bins": {
     "chat": {
+      "acts": "tavern",
       "sign": "CHAT",
       "sub": "Ask · brainstorm · summarize"
     },
     "project": {
+      "acts": "slipway",
       "sign": "PROJECT",
       "sub": "Work that needs your repository"
     }

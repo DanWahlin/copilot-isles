@@ -2,6 +2,7 @@
   "$schema": "../../schemas/puzzle-classify.schema.json",
   "id": "P1.3",
   "mechanic": "classify",
+  "quest": "Q1.7",
   "$comment": "The Lost Letters in the Hall of Records (Q1.7, Pell): each letter is a captain's problem, filed in the cubby (bin) that fixes it, or back in the tray when it isn't a job for any bin (the decoy). A wrong filing hands it back with the bin's own description and the letter's `need`, or the letter's own `wrong` reason, cited. The bins are the course's Settings areas in the app's order (01 · Settings, \"Settings reference: What each area controls\"); the game shows them on the cabinets' name plates (the last on brown) and keys them 1-9, 0. `cites` are course sections (README anchor, its hash in lock.json, the section's name).",
   "chapter": "01-tour-the-app",
   "cites": {
@@ -70,7 +71,8 @@
     {
       "id": "projects",
       "name": "Projects",
-      "holds": "**Projects** holds each project’s own settings, such as **Show in sidebar**, sandbox rules and the default branch."
+      "holds": "**Projects** holds each project’s own settings, such as **Show in sidebar**, sandbox rules and the default branch.",
+      "apart": true
     }
   ],
   "tray": {

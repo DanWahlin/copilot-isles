@@ -46,7 +46,7 @@ export function createGearRack(o: {
 }): GearRackSite {
   const detail = detailForTier(o.tier);
   const group = new Group();
-  group.name = 'gear rack (Q0.4)';
+  group.name = 'gear rack';
 
   const atlas = createTextAtlas();
   const signMesh = new Mesh(createTextGeometry(atlas.rects, groundAt), atlas.material);

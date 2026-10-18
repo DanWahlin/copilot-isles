@@ -1,5 +1,6 @@
 import { courseScript, hasIslandQuests, islandQuests, onCourse } from '../course/active';
-import { islandHooks, onCourseSelected, welcomeLines } from '../course/catalog';
+import { COURSE, islandHooks, onCourseSelected, welcomeLines } from '../course/catalog';
+import { PUZZLE_ISLANDS, puzzleMaybe, voiceLinesOf } from '../course/puzzles';
 import type { QuestDef, QuestTarget } from '../course/pack';
 import { beatSteps, pickBeat, type Beat } from './beats';
 import type { QuestState, QuestTracker, TrackerStatus } from './cove-quests';
@@ -100,57 +101,6 @@ export function thousandBoughNpcScript(npc: string, q: QuestState): { steps: rea
   return beatSteps(pickBeat(BEATS, npc, q), script);
 }
 
-/** The voice lines the island's set pieces and NPC switch play (besides its scripts' and welcome's). */
-const SET_PIECE_LINES: readonly string[] = [
-  'wingman.tb.03',
-  'wingman.starfish.thousand-bough',
-  'wingman.tb.ports',
-  'tb.tamsin.done',
-  'tb.lyra.wait',
-  'tb.lyra.done',
-  'tb.saffi.wait',
-  'tb.saffi.done',
-  'tb.oak.wait',
-  'tb.oak.done',
-  'tb.oak.gondola',
-  'tb.fen.wait',
-  'tb.fen.channels',
-  'tb.fen.done',
-  'tb.fen.mixed',
-  'tb.fen.mainhall',
-  'tb.fen.wrongwheel',
-  'tb.fen.deadend',
-  'tb.fen.round1',
-  'tb.fen.round2',
-  'tb.fen.r3.intro',
-  'tb.fen.ws.worktree',
-  'tb.fen.ws.checkout',
-  'tb.fen.ws.cloud',
-  'tb.fen.round3',
-  'tb.fen.twist.01',
-  'tb.fen.twist.02',
-  'tb.fen.twist.redig',
-  'tb.fen.twist.port',
-  'tb.fen.twist.close',
-  'tb.fen.twist.share',
-  'tb.ines.wait',
-  'tb.ines.done',
-  'tb.ines.order.1',
-  'tb.ines.order.2',
-  'tb.ines.order.3',
-  'tb.ines.order.4',
-  'tb.ines.order.5',
-  'tb.ines.order.6',
-  'tb.ines.flag.ok',
-  'tb.rook.wait',
-  'tb.rook.done',
-  'tb.pip.wait',
-  'tb.pip.done',
-  'tb.elder.wait',
-  'tb.elder.retry',
-  'tb.elder.done',
-];
-
 /** Every voice line the island's scripts and set pieces play (tests check each is voiced). */
 export let THOUSAND_BOUGH_LINES: readonly string[] = [];
 
@@ -172,21 +122,24 @@ onCourse(() => {
   BEATS = q.beats;
   THOUSAND_BOUGH_TARGETS = q.targets;
   FEN_SOLVED = script('fen.solved');
+  // The welcome and tips, the set pieces' lines, the beats' lines, the island's puzzles' lines and
+  // every script's, from the course pack.
+  const hooks = islandHooks(ISLAND);
+  const puzzles = Object.entries(PUZZLE_ISLANDS).flatMap(([name, island]) => {
+    const p = island === ISLAND ? puzzleMaybe(name) : null;
+    return p && !p.disabled ? voiceLinesOf(p) : [];
+  });
   THOUSAND_BOUGH_LINES = [
-    ...THOUSAND_BOUGH_WELCOME,
-    ...SET_PIECE_LINES,
-    ...[
-      'tamsin',
-      'lyra',
-      'saffi',
-      'oak',
-      'fen',
-      'fen.solved',
-      'ines',
-      'rook',
-      'pip',
-      'elder',
-      'rook.assignment',
-    ].flatMap((name) => script(name).flatMap((step) => ('say' in step ? [step.say] : []))),
-  ];
+    ...new Set([
+      ...THOUSAND_BOUGH_WELCOME,
+      hooks.tips.nav,
+      hooks.tips.starfish,
+      ...Object.values(COURSE.hooks.setPieces),
+      ...BEATS.flatMap((b) => (b.say ? [b.say] : [])),
+      ...puzzles,
+      ...Object.values(q.scripts).flatMap((steps) =>
+        steps.flatMap((step) => ('say' in step ? [step.say] : [])),
+      ),
+    ]),
+  ].filter(Boolean);
 });

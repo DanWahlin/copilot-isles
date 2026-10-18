@@ -42,7 +42,7 @@ import { packs } from '../../engine/packs';
 import { plainShadowColor } from '../../engine/shadow-color';
 import { world } from '../uniforms';
 import { gustNode } from '../wind-nodes';
-import { hasActiveCourse } from '../../course/active';
+import { hasActiveCourse, onCourse } from '../../course/active';
 import { puzzleMaybe, textOf } from '../../course/puzzles';
 
 // TSL fluent typings do not cover this graph.
@@ -95,6 +95,8 @@ export interface ShipLabel {
   texture: Texture;
   canvas: HTMLCanvasElement | null;
   name: string;
+  /** Stops repainting the rail plates when a course activates. */
+  release(): void;
 }
 
 export function fitShipNameFontSize(
@@ -131,11 +133,11 @@ function getShipWoodTexture(): Texture {
 
 /**
  * The two fittings' plates on the rail (First Words): the course's words (`puzzles/first-words.json`
- * → `text.plate.*`), blank where it turns the puzzle off; before any course is active (the title),
- * the Copilot app course's.
+ * → `text.plate.*`), blank where it turns the puzzle off or before any course is active (the title).
+ * The label repaints when a course activates.
  */
 function railPlate(fitting: 'tube' | 'hatch'): string {
-  if (!hasActiveCourse()) return fitting === 'tube' ? 'PROMPT BOX' : 'TERMINAL';
+  if (!hasActiveCourse()) return '';
   const p = puzzleMaybe('first-words');
   return p && !p.disabled ? textOf(p, `plate.${fitting}`) : '';
 }
@@ -163,8 +165,9 @@ export function createShipLabel(): ShipLabel {
   texture.minFilter = LinearMipmapLinearFilter;
   texture.magFilter = LinearFilter;
   texture.anisotropy = 4;
-  const label: ShipLabel = { texture, canvas, name: '' };
-  repaintShipLabelCanvas(label);
+  const label: ShipLabel = { texture, canvas, name: '', release: () => {} };
+  label.release = onCourse(() => repaintShipLabelCanvas(label));
+  if (!hasActiveCourse()) repaintShipLabelCanvas(label);
   return label;
 }
 

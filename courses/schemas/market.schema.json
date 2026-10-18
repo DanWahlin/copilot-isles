@@ -17,24 +17,39 @@
     "gilda"
   ],
   "properties": {
-    "$schema": { "type": "string" },
-    "$comment": { "type": "string" },
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
     "categories": {
-      "description": "GitHub Docs' model categories, smallest (cheapest) to largest: the boards' order and their size marks.",
+      "description": "The course's model categories (models.json names them), smallest (cheapest) to largest: the boards' order and their size marks, each bound to a size the grading reads.",
       "type": "array",
       "minItems": 3,
       "maxItems": 3,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "price", "size", "tagline"],
+        "required": ["id", "acts", "price", "size", "tagline"],
         "properties": {
-          "id": { "enum": ["Lightweight", "Versatile", "Powerful"] },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The category's name, as models.json writes it."
+          },
+          "acts": {
+            "enum": ["small", "medium", "large"],
+            "description": "The game's model size the grading reads for it (each once): a quick look wants small; a hard job large, or medium on high effort."
+          },
           "price": {
             "description": "Starfish to hire a model of this category.",
             "$ref": "#/$defs/starfish"
           },
-          "size": { "description": "Read out for the size mark (\"Small model\").", "$ref": "#/$defs/text" },
+          "size": {
+            "description": "Read out for the size mark (\"Small model\").",
+            "$ref": "#/$defs/text"
+          },
           "tagline": {
             "description": "The line under the category on the overlay's board.",
             "$ref": "#/$defs/text"
@@ -52,13 +67,24 @@
         "additionalProperties": false,
         "required": ["id", "label", "price"],
         "properties": {
-          "id": { "enum": ["low", "default", "high"] },
-          "label": { "$ref": "#/$defs/text" },
-          "price": { "description": "Starfish added to the model's price.", "type": "integer", "minimum": 0 }
+          "id": {
+            "enum": ["low", "default", "high"]
+          },
+          "label": {
+            "$ref": "#/$defs/text"
+          },
+          "price": {
+            "description": "Starfish added to the model's price.",
+            "type": "integer",
+            "minimum": 0
+          }
         }
       }
     },
-    "autoPrice": { "description": "Starfish for Auto (the house special).", "$ref": "#/$defs/starfish" },
+    "autoPrice": {
+      "description": "Starfish for Auto (the house special).",
+      "$ref": "#/$defs/starfish"
+    },
     "maxPrice": {
       "description": "No hire costs more than this (at most 4).",
       "type": "integer",
@@ -70,8 +96,12 @@
       "additionalProperties": false,
       "required": ["quick", "hard"],
       "properties": {
-        "quick": { "$ref": "#/$defs/size" },
-        "hard": { "$ref": "#/$defs/size" }
+        "quick": {
+          "$ref": "#/$defs/size"
+        },
+        "hard": {
+          "$ref": "#/$defs/size"
+        }
       }
     },
     "board": {
@@ -80,7 +110,12 @@
       "additionalProperties": false,
       "required": ["size", "perFamily"],
       "properties": {
-        "size": { "description": "Names on each signboard.", "type": "integer", "minimum": 1, "maximum": 6 },
+        "size": {
+          "description": "Names on each signboard.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6
+        },
         "perFamily": {
           "description": "At most this many of one family (Claude, GPT, MAI) before the board fills up.",
           "type": "integer",
@@ -94,17 +129,27 @@
       "additionalProperties": false,
       "required": ["right", "over", "short"],
       "properties": {
-        "right": { "$ref": "#/$defs/text" },
-        "over": { "$ref": "#/$defs/text" },
-        "short": { "$ref": "#/$defs/text" }
+        "right": {
+          "$ref": "#/$defs/text"
+        },
+        "over": {
+          "$ref": "#/$defs/text"
+        },
+        "short": {
+          "$ref": "#/$defs/text"
+        }
       }
     },
     "quotes": {
-      "description": "Course sentences, word for word. The keys the grading uses (cost, effort, hard, noGuarantee, auto, autopilot, autoHidden, retry) must stay.",
+      "description": "Course sentences, word for word. The keys the grading uses (cost, effort, hard, noGuarantee, auto, autoAside, autoHidden, retry) must stay.",
       "type": "object",
-      "required": ["cost", "effort", "hard", "noGuarantee", "auto", "autopilot", "autoHidden", "retry"],
-      "propertyNames": { "pattern": "^[a-z][A-Za-z]*$" },
-      "additionalProperties": { "$ref": "#/$defs/quote" }
+      "required": ["cost", "effort", "hard", "noGuarantee", "auto", "autoAside", "autoHidden", "retry"],
+      "propertyNames": {
+        "pattern": "^[a-z][A-Za-z]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/quote"
+      }
     },
     "jobs": {
       "description": "Gilda's jobs board, in order (keys 1-4; the cork board has four spots).",
@@ -121,9 +166,17 @@
             "type": "string",
             "pattern": "^[a-z][a-z0-9-]*$"
           },
-          "title": { "description": "The work order's heading.", "$ref": "#/$defs/text" },
-          "note": { "description": "The note pinned on the cork board (short).", "$ref": "#/$defs/text" },
-          "size": { "enum": ["quick", "hard"] },
+          "title": {
+            "description": "The work order's heading.",
+            "$ref": "#/$defs/text"
+          },
+          "note": {
+            "description": "The note pinned on the cork board (short).",
+            "$ref": "#/$defs/text"
+          },
+          "size": {
+            "enum": ["quick", "hard"]
+          },
           "brief": {
             "description": "One line about the job, from the course's own tasks.",
             "$ref": "#/$defs/text"
@@ -152,28 +205,58 @@
         "done"
       ],
       "properties": {
-        "hello": { "$ref": "#/$defs/line" },
-        "open": { "$ref": "#/$defs/line" },
-        "auto": { "$ref": "#/$defs/line" },
-        "right": { "$ref": "#/$defs/line" },
-        "over": { "$ref": "#/$defs/line" },
-        "overEffort": { "$ref": "#/$defs/line" },
-        "short": { "$ref": "#/$defs/line" },
-        "shortAuto": { "$ref": "#/$defs/line" },
-        "broke": { "$ref": "#/$defs/line" },
-        "done": { "$ref": "#/$defs/line" }
+        "hello": {
+          "$ref": "#/$defs/line"
+        },
+        "open": {
+          "$ref": "#/$defs/line"
+        },
+        "auto": {
+          "$ref": "#/$defs/line"
+        },
+        "right": {
+          "$ref": "#/$defs/line"
+        },
+        "over": {
+          "$ref": "#/$defs/line"
+        },
+        "overEffort": {
+          "$ref": "#/$defs/line"
+        },
+        "short": {
+          "$ref": "#/$defs/line"
+        },
+        "shortAuto": {
+          "$ref": "#/$defs/line"
+        },
+        "broke": {
+          "$ref": "#/$defs/line"
+        },
+        "done": {
+          "$ref": "#/$defs/line"
+        }
       }
     }
   },
   "$defs": {
-    "text": { "type": "string", "minLength": 1 },
-    "starfish": { "type": "integer", "minimum": 1, "maximum": 4 },
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "starfish": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4
+    },
     "size": {
       "type": "object",
       "additionalProperties": false,
       "required": ["label", "refund", "doubloons"],
       "properties": {
-        "label": { "description": "\"Quick look\", \"Hard job\".", "$ref": "#/$defs/text" },
+        "label": {
+          "description": "\"Quick look\", \"Hard job\".",
+          "$ref": "#/$defs/text"
+        },
         "refund": {
           "description": "Starfish back for a right-sized hire (less than it cost).",
           "type": "integer",
@@ -217,9 +300,18 @@
           "description": "Exactly as the course writes it, **bold** included.",
           "$ref": "#/$defs/text"
         },
-        "chapter": { "type": "string", "pattern": "^\\d{2}-[a-z0-9-]+$" },
-        "anchor": { "type": "string", "pattern": "^[a-z0-9-]+$" },
-        "hash": { "type": "string", "pattern": "^[0-9a-f]{12}$" }
+        "chapter": {
+          "type": "string",
+          "pattern": "^\\d{2}-[a-z0-9-]+$"
+        },
+        "anchor": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{12}$"
+        }
       }
     },
     "line": {
@@ -236,7 +328,10 @@
           "description": "The voice line's text, word for word (the caption).",
           "$ref": "#/$defs/text"
         },
-        "source": { "description": "The course section a teaching line paraphrases.", "$ref": "#/$defs/cite" }
+        "source": {
+          "description": "The course section a teaching line paraphrases.",
+          "$ref": "#/$defs/cite"
+        }
       }
     }
   }

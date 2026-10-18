@@ -115,15 +115,15 @@ export default {
         } else await api.pause(300);
       } else if (h.run.phase === 'order' && !h.choice?.busy) {
         // The reef passage: Autopilot first (she stops short), then Plan.
-        if (h.run.mode === 'plan' && !reefTried) {
+        if (h.run.mode === 'review' && !reefTried) {
           reefTried = true;
-          await pick('autopilot');
+          await pick('auto');
         } else await pick(h.run.mode);
       } else if (h.run.phase === 'choose' && !h.choice?.busy) await pick(h.choice.options[h.run.leg % 2]);
       else if (h.run.phase === 'review' && !h.choice?.busy) {
         // Read the charted plan, suggest the change round the Shoal, then approve the fixed plan.
         await api.pause(3000);
-        await pick(h.run.revised ? 'approve' : 'suggest');
+        await pick(h.run.revised ? 'accept' : 'amend');
       } else if (
         h.run.phase === 'leg' ||
         h.run.phase === 'sailing' ||

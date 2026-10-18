@@ -1,8 +1,7 @@
-const COURSE_URL = 'https://github.com/github/copilot-app-for-beginners';
-
 /**
  * PLAN §14.4 stub: devices without WebGL2 or with software rendering will get the
- * 2D Chart & Logbook mode (Phase 1). For now, explain and link to the course.
+ * 2D Chart & Logbook mode (Phase 1). For now, explain and link to the course: the catalog's first,
+ * loaded on demand so the boot chunk doesn't carry it.
  */
 export function showFallback(reason: 'no-webgl2' | 'software'): void {
   const message =
@@ -21,10 +20,17 @@ export function showFallback(reason: 'no-webgl2' | 'software'): void {
   h.textContent = 'COPILOT ISLES';
   const p = document.createElement('p');
   p.textContent = `${message} A 2D Chart & Logbook mode is coming. Until then, you can follow the course directly.`;
-  const a = document.createElement('a');
-  a.href = COURSE_URL;
-  a.textContent = 'Open the GitHub Copilot app for Beginners course ↗';
-  a.style.color = 'inherit';
-  box.append(h, p, a);
+  box.append(h, p);
   root.append(box);
+  void import('../course/catalog')
+    .then(({ COURSES }) => {
+      const c = COURSES[0];
+      if (!c?.source?.repo) return;
+      const a = document.createElement('a');
+      a.href = `https://github.com/${c.source.repo}`;
+      a.textContent = `Open the ${c.title} course ↗`;
+      a.style.color = 'inherit';
+      box.append(a);
+    })
+    .catch(() => {});
 }

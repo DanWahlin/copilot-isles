@@ -2,6 +2,7 @@
   "$schema": "../../schemas/puzzle-choose-tool.schema.json",
   "id": "Q0.8.pipes",
   "mechanic": "choose-tool",
+  "quest": "Q0.8",
   "$comment": "First Words (Q0.8): two fittings on the ship’s rail, the speaking tube (to the crew) and the hatch (to the engine room). For the Copilot CLI course: Copilot CLI’s prompt and the shell. Asking the course’s Step 1 prompt through one of them answers the quiz (the right tool is the tube). The reply is the course’s expected output, in its own words, not a transcript (00 §Step 1: Test Copilot CLI). {prompt} is the prompt.",
   "quiz": "S0.2",
   "tools": {

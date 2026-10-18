@@ -1,28 +1,32 @@
 import { onCourse } from '../../course/active';
 import type { PuzzleFile } from '../../course/pack';
-import { puzzleMaybe } from '../../course/puzzles';
+import { fill, puzzleMaybe, rekey } from '../../course/puzzles';
 /**
- * P1.2 The Three Helms (Chapter 01, Rhea): three orders sailed in your own ship, out in the bay south
- * of Port Meridian's harbour mouth. At each buoy Rhea hands you an order card, written from the use
- * case column of the course's modes table (01 §Modes), and you pick the helm (the mode) that fits.
- * A wrong pick gets Rhea's reason, and the reef passage under Autopilot stops short: "This passage is
- * one where the approach matters. Chart it first." Then the run teaches its mode by using it:
+ * The Three Helms (Rhea): three orders sailed in your own ship, out in the bay south of Port
+ * Meridian's harbour mouth. At each buoy Rhea hands you an order card and you pick the helm that
+ * fits. A wrong pick gets Rhea's reason, and the reef passage under `auto` stops short. Then the run
+ * acts its helm out (the game's helms; a course binds each of its modes to one with `"acts"`, and
+ * the Copilot app course's Interactive, Plan and Autopilot are `steer`, `review` and `auto`):
  *
- * - Interactive ("step-by-step collaboration"): at each mark you choose the next heading. You direct
- *   the work; a yes for each step would be Tool permissions, not the mode.
- * - Plan ("plan first, execute when ready"): Rhea charts the route and the review offers the app's
- *   three options (02 §Exercise: Start a Session from a Branch and Attach an Issue). Her first chart
- *   cuts across the Shoal, so suggesting a change is best; approving the fixed plan sails it in
- *   Autopilot, straight through.
- * - Autopilot ("end-to-end execution without interruption"): you give her the destination (your berth
- *   on the east arm) and she sails there and moors, with no stops.
+ * - `steer`: at each mark you choose the next heading. You direct the work.
+ * - `review`: Rhea charts the route and a review offers to accept it, take over, or amend it. Her
+ *   first chart cuts across the Shoal, so amending it is best; accepting the fixed chart sails it
+ *   straight through.
+ * - `auto`: you give her the destination (your berth on the east arm) and she sails there and moors,
+ *   with no stops.
  *
  * The crew trims the sails to a set pace on these runs, so the wind never stalls a lesson.
  */
 
-export type HelmMode = 'interactive' | 'plan' | 'autopilot';
+/** The game's helms: what each run acts out. */
+export const HELM_MODES = ['steer', 'review', 'auto'] as const;
+export type HelmMode = (typeof HELM_MODES)[number];
 
-/** One way to sail an Interactive leg: you choose it at the mark before. */
+/** What the `review` helm's options do: sail the chart, hand the wheel back, or amend the chart. */
+export const REVIEW_ACTS = ['accept', 'takeOver', 'amend'] as const;
+export type ReviewAct = (typeof REVIEW_ACTS)[number];
+
+/** One way to sail a `steer` leg: you choose it at the mark before. */
 export interface HelmHeading {
   id: string;
   /** What you tell Rhea (on the choice card and in the session log). */
@@ -37,15 +41,15 @@ export interface HelmRun {
   buoy: { x: number; z: number };
   /** The flag colour on the buoy and its route markers (linear-friendly deep colours). */
   colour: number;
-  /** Waypoints after the buoy. Interactive stops at each one for your next heading; the others sail through. */
+  /** Waypoints after the buoy. `steer` stops at each one for your next heading; the others sail through. */
   route: readonly { x: number; z: number }[];
   /** Metres per second while she sails the run. */
   speed: number;
-  /** The plan as Rhea charts it (Plan only): one short line per leg of `route`. */
+  /** The chart as Rhea draws it (`review` only): one short line per leg of `route` (`{auto}` is that helm's name). */
   plan?: readonly string[];
-  /** Plan only: her first chart, which cuts across the Shoal, and its lines. */
+  /** `review` only: her first chart, which cuts across the Shoal, and its lines. */
   draft?: { route: readonly { x: number; z: number }[]; plan: readonly string[] };
-  /** Interactive only: the two headings you choose between for each leg (to `route[i]`). */
+  /** `steer` only: the two headings you choose between for each leg (to `route[i]`). */
   headings?: readonly (readonly [HelmHeading, HelmHeading])[];
 }
 
@@ -57,16 +61,33 @@ export interface HelmOrder {
   line: string;
   /** The order, on the card. */
   text: string;
-  /** Rhea's voiced reason for each wrong helm (Autopilot on the reef passage sets off, then stops). */
+  /** Rhea's voiced reason for each wrong helm (`auto` on the reef passage sets off, then stops). */
   wrong: Readonly<Record<HelmMode, string | null>>;
 }
 
-export const HELM_ORDER: readonly HelmMode[] = ['interactive', 'plan', 'autopilot'];
+export const HELM_ORDER: readonly HelmMode[] = HELM_MODES;
+
+/** A course's mode in `puzzles/three-helms.json`: its words, and the helm it acts as. */
+export interface HelmModeFile {
+  acts: HelmMode;
+  name: string;
+  says: string;
+}
+
+/** The pack's three-helms file as the game reads it: modes, orders and hints keyed by its own mode ids. */
+export interface HelmsFile extends PuzzleFile {
+  modes: Readonly<Record<string, HelmModeFile>>;
+  /** Keyed by the mode that fits the order; `wrong` by the mode picked. */
+  orders: Readonly<
+    Record<string, Omit<HelmOrder, 'wrong'> & { wrong: Readonly<Record<string, string | null>> }>
+  >;
+  orderHints: Readonly<Record<string, string>>;
+}
 
 /**
- * The modes as the course describes them (for the Copilot app course, 01 §Modes, "How the app
- * interprets it"), and the three orders, keyed by the helm that fits them (the buoys come in this
- * order, and each run ends near the next buoy): the course pack's `puzzles/three-helms.json`.
+ * The course's modes (for the Copilot app course, 01 §Modes, "How the app interprets it"), and the
+ * three orders, keyed by the helm that fits them (the buoys come in this order, and each run ends
+ * near the next buoy): the course pack's `puzzles/three-helms.json`, by the helm each mode acts as.
  */
 export let MODE_INFO: Readonly<Record<HelmMode, { name: string; says: string }>> = {} as Record<
   HelmMode,
@@ -74,26 +95,39 @@ export let MODE_INFO: Readonly<Record<HelmMode, { name: string; says: string }>>
 >;
 export let HELM_ORDERS: Readonly<Record<HelmMode, HelmOrder>> = {} as Record<HelmMode, HelmOrder>;
 onCourse(() => {
-  const c = puzzleMaybe<PuzzleFile & { modes: typeof MODE_INFO; orders: typeof HELM_ORDERS }>('three-helms');
-  MODE_INFO = c?.modes ?? ({} as typeof MODE_INFO);
-  HELM_ORDERS = c?.orders ?? ({} as typeof HELM_ORDERS);
+  const c = puzzleMaybe<HelmsFile>('three-helms');
+  if (!c?.modes) {
+    MODE_INFO = {} as typeof MODE_INFO;
+    HELM_ORDERS = {} as typeof HELM_ORDERS;
+    return;
+  }
+  MODE_INFO = rekey(
+    c.modes,
+    Object.fromEntries(Object.entries(c.modes).map(([id, m]) => [id, { name: m.name, says: m.says }])),
+  );
+  HELM_ORDERS = rekey(
+    c.modes,
+    Object.fromEntries(
+      Object.entries(c.orders).map(([id, o]) => [id, { ...o, wrong: rekey(c.modes, o.wrong) }]),
+    ),
+  );
 });
 
 /** How close to a buoy you hear its order (each run stops about 28 m from the next buoy). */
 export const TAKE_RANGE = 34;
 
-/** Where the east-arm berth's approach begins (the Autopilot run hands over to docking there). */
+/** Where the east-arm berth's approach begins (the `auto` run hands over to docking there). */
 export const BERTH_APPROACH = { x: 747.4, z: -676 } as const;
 
 /** The Shoal: a marked hazard on the reef passage that Rhea's first chart cuts straight across. */
 export const SHOAL = { x: 813, z: -528 } as const;
 
-/** How far Autopilot gets into the reef passage before Rhea stops her (metres). */
+/** How far `auto` gets into the reef passage before Rhea stops her (metres). */
 export const BALK_RUN = 16;
 
 export const MERIDIAN_HELMS: Readonly<Record<HelmMode, HelmRun>> = {
-  interactive: {
-    mode: 'interactive',
+  steer: {
+    mode: 'steer',
     buoy: { x: 680, z: -582 },
     colour: 0x1f6fb2,
     route: [
@@ -117,8 +151,8 @@ export const MERIDIAN_HELMS: Readonly<Record<HelmMode, HelmRun>> = {
       ],
     ],
   },
-  plan: {
-    mode: 'plan',
+  review: {
+    mode: 'review',
     buoy: { x: 742, z: -560 },
     colour: 0xc9831c,
     route: [
@@ -132,7 +166,7 @@ export const MERIDIAN_HELMS: Readonly<Record<HelmMode, HelmRun>> = {
       'South-east to the first marker',
       'East to the far marker, south of the Shoal',
       'Come about at the far marker',
-      'Finish at the Autopilot buoy',
+      'Finish at the {auto} buoy',
     ],
     draft: {
       route: [
@@ -143,12 +177,12 @@ export const MERIDIAN_HELMS: Readonly<Record<HelmMode, HelmRun>> = {
       plan: [
         'South-east to the first marker',
         'Cut north-east, straight across the Shoal',
-        'Finish at the Autopilot buoy',
+        'Finish at the {auto} buoy',
       ],
     },
   },
-  autopilot: {
-    mode: 'autopilot',
+  auto: {
+    mode: 'auto',
     buoy: { x: 800, z: -566 },
     colour: 0x2f8f4e,
     route: [
@@ -160,9 +194,15 @@ export const MERIDIAN_HELMS: Readonly<Record<HelmMode, HelmRun>> = {
   },
 };
 
-/** The points she sails for Interactive leg `leg` with heading `h` (the mark last). */
-export function interactiveLeg(leg: number, h: HelmHeading): { x: number; z: number }[] {
-  return [...h.via, MERIDIAN_HELMS.interactive.route[leg]!];
+/** The points she sails for `steer` leg `leg` with heading `h` (the mark last). */
+export function steerLeg(leg: number, h: HelmHeading): { x: number; z: number }[] {
+  return [...h.via, MERIDIAN_HELMS.steer.route[leg]!];
+}
+
+/** Rhea's chart as the review shows it (the first, or the one round the Shoal), with the `auto` helm's name. */
+export function chartLines(revised: boolean): string[] {
+  const r = MERIDIAN_HELMS.review;
+  return (revised ? r.plan! : r.draft!.plan).map((l) => fill(l, { auto: MODE_INFO.auto?.name ?? '' }));
 }
 
 /** The next helm to sail, or null when all three are done (`done` is the list sailed so far). */

@@ -529,6 +529,51 @@
           }
         }
       }
+    },
+    "legacySaves": {
+      "type": "boolean",
+      "description": "Saves from before course packs (keys without a course) are this course's: copied to its keys once and mirrored for a release; an export code without a course is its (src/game/save-keys.ts). One course at most."
+    },
+    "migrations": {
+      "type": "object",
+      "description": "How the course brings older saves in line with today's ids, when the save loads (src/game/story.ts, src/learn/progress.ts).",
+      "additionalProperties": false,
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "quests": {
+          "description": "Rules for an older save's quests, applied in order when a session starts, each read against the steps the rules before it set: when its `when` holds, each quest in `set` goes to its step. A `when` may name quests and steps the course no longer has; `$workflowsOn` is whether the mill's gate lever was pulled (left out without a save). Write each so it sets a step only if it's missing or stale: running them twice changes nothing.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/rule"
+          }
+        },
+        "renamed": {
+          "description": "Logbook ids (pages, glossary terms) the course renamed or split: old id → today's ids.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "taught": {
+          "description": "Quest id → the glossary terms it teaches that saves which finished it before never got.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]+$"
+            }
+          }
+        }
+      }
     }
   },
   "$defs": {
@@ -540,6 +585,76 @@
       "type": "string",
       "pattern": "^[\\w.-]+$",
       "description": "A voice line id (voice/lines.json)."
+    },
+    "stepIs": {
+      "description": "A quest step name, null (not started), or a list of either.",
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "when": {
+      "type": "object",
+      "description": "Every condition must hold: quest id → its step (a step, null for not started, a list of either, or {\"not\": …}). A key starting with $ is a flag the game passes in (true or false).",
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/stepIs"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["not"],
+            "properties": {
+              "not": {
+                "$ref": "#/$defs/stepIs"
+              }
+            }
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["set"],
+      "properties": {
+        "when": {
+          "$ref": "#/$defs/when"
+        },
+        "set": {
+          "description": "Quest id → the step it goes to.",
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
     }
   }
 }

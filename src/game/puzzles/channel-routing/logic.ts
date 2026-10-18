@@ -48,14 +48,14 @@ interface Trace {
   wheel: Crew | undefined;
 }
 const traces: Record<Crew, Trace> = {
-  feature: { crew: 'feature', cells: [], blocked: null, end: 'deadEnd', wheel: undefined },
-  bugfix: { crew: 'bugfix', cells: [], blocked: null, end: 'deadEnd', wheel: undefined },
-  docs: { crew: 'docs', cells: [], blocked: null, end: 'deadEnd', wheel: undefined },
+  blue: { crew: 'blue', cells: [], blocked: null, end: 'deadEnd', wheel: undefined },
+  green: { crew: 'green', cells: [], blocked: null, end: 'deadEnd', wheel: undefined },
+  teal: { crew: 'teal', cells: [], blocked: null, end: 'deadEnd', wheel: undefined },
 };
 const flows: Record<Crew, Flow & { cells: (readonly [number, number])[] }> = {
-  feature: { crew: 'feature', cells: [], end: 'deadEnd' },
-  bugfix: { crew: 'bugfix', cells: [], end: 'deadEnd' },
-  docs: { crew: 'docs', cells: [], end: 'deadEnd' },
+  blue: { crew: 'blue', cells: [], end: 'deadEnd' },
+  green: { crew: 'green', cells: [], end: 'deadEnd' },
+  teal: { crew: 'teal', cells: [], end: 'deadEnd' },
 };
 const out: Flow[] = [];
 const seen = new Uint8Array(ROWS * COLS);

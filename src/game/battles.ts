@@ -1,4 +1,5 @@
 import type { IslandBerth } from './islands';
+import { storyHolds, type StoryIsland } from './story';
 
 /**
  * The sea battles on the passages between islands (docs/specs/BATTLES.md §1, §2.0, §2.0b, §3): which
@@ -10,17 +11,15 @@ export interface PassageBattle {
   id: string;
   /** Its index in `BATTLE_PLANS`. */
   plan: number;
-  /** The island you sail from. */
-  from: string;
+  /** The island you sail from: its Seal (its story's `sealed`) starts the battle. */
+  from: StoryIsland;
   /** The island you sail toward: an `ISLANDS` id, or a pattern for its name until it's built. */
   to: string | RegExp;
-  /** The quest that must be done first (the island's Seal). */
-  after: string;
 }
 
 export const PASSAGE_BATTLES: readonly PassageBattle[] = [
   // Battle 1: the first time you sail from Anchorage toward Port Meridian with the Seal of Anchorage.
-  { id: 'passage-anchorage-meridian', plan: 0, from: 'anchorage', to: 'meridian', after: 'Q0.10' },
+  { id: 'passage-anchorage-meridian', plan: 0, from: 'anchorage', to: 'meridian' },
   // Battle 2: from Port Meridian toward Thousand-Bough Isle with the Seal of Meridian, once that
   // island is in the registry (Chapter 02); until then it never starts.
   {
@@ -28,7 +27,6 @@ export const PASSAGE_BATTLES: readonly PassageBattle[] = [
     plan: 1,
     from: 'meridian',
     to: /thousand.?bough/i,
-    after: 'Q1.8',
   },
 ];
 
@@ -62,7 +60,7 @@ export function pendingBattle(
   open: (id: string) => boolean = () => true,
 ): PassageBattle | null {
   for (const b of PASSAGE_BATTLES) {
-    if (b.from !== from || done.has(b.id) || quests[b.after] !== 'done') continue;
+    if (b.from !== from || done.has(b.id) || !storyHolds(b.from, 'sealed', quests)) continue;
     const to = battleDestination(b, islands);
     if (to && islands[from] && open(to)) return b;
   }

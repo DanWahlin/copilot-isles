@@ -98,7 +98,7 @@ export type DeckId = TreeDeckSpec['id'];
 /**
  * The decks as built: the layout's centre bearing and height, the inner edge on the stair's outer
  * edge, and each deep enough for its stop and its house (the Practice Bough's house and the
- * Chronicle Loft stand on the outer end).
+ * top deck's loft stand on the outer end).
  */
 export const DECKS: Readonly<Record<DeckId, TreeDeckSpec & { rect: Rect }>> = (() => {
   const inner = HELIX.rOuter - 0.15;
@@ -115,7 +115,7 @@ export const DECKS: Readonly<Record<DeckId, TreeDeckSpec & { rect: Rect }>> = ((
   };
 })();
 
-/** The Practice Bough's house and the Chronicle Loft: on the outer end of their decks. */
+/** The Practice Bough's house and the top deck's loft: on the outer end of their decks. */
 export const DECK_HOUSES = {
   L2S: { depth: 4.4, width: 5.6, storeys: 1 },
   L3SE: { depth: 6, width: 6.6, storeys: 2 },

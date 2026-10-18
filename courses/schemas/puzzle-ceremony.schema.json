@@ -19,6 +19,24 @@
     "mechanic": {
       "const": "ceremony"
     },
+    "quest": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][\\w.:-]*$",
+      "description": "The quest the puzzle plays in (a quest of this course): the steps its mechanic sets and waits on (PUZZLE_STEPS, src/course/puzzles.ts) are that quest's."
+    },
+    "steps": {
+      "type": "object",
+      "description": "The mechanic's steps (PUZZLE_STEPS) that the quest calls something else: game step → the quest's step.",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "latePage": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The palette: a page `scripts.newViewLate` shows. A save without it in the Logbook hears that script before `scripts.finished`."
+    },
     "disabled": {
       "type": "boolean",
       "description": "The course turns this puzzle off: its site stays as scenery and its cue does nothing."

@@ -740,7 +740,7 @@ function wreckAtlas(): ShipLabel {
   texture.generateMipmaps = true;
   texture.anisotropy = 4;
   texture.needsUpdate = true;
-  return { texture, canvas: null, name: '' };
+  return { texture, canvas: null, name: '', release: () => {} };
 }
 
 const wp = { x: 0, y: 0, z: 0 };

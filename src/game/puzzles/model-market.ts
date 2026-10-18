@@ -1,5 +1,8 @@
+import type { PuzzleFile } from '../../course/pack';
+import { puzzleContent, puzzleQuest } from '../../course/puzzles';
 import { CATEGORIES, type ModelCategory } from '../market/catalog';
 import {
+  CATEGORY_OF,
   EFFORTS,
   GILDA,
   GILDA_TEXT,
@@ -16,6 +19,7 @@ import {
   type JobId,
 } from '../market/jobs';
 import { firstModel, modelsIn, savedHireName } from '../market/models';
+import { AUTO_HIRE } from '../../learn/progress';
 import type { MarketDraft, MarketStore, MarketView } from '../../ui/puzzles/ModelMarket';
 import type { ModelMarketSite, MarketShot } from '../../world/sites/model-market';
 import { createViewStore } from './channel-routing/view';
@@ -23,8 +27,6 @@ import { PadEdges, standardPad } from './pad-edges';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 
 const ID = 'market';
-const QUEST = 'Q1.A';
-const PAGE = 'pg1.market';
 /** Gilda calls out once you're this close (metres from the counter), the first time in a save. */
 const HELLO_RANGE = 9;
 /** You're "at the market" (the chart label, Wingman's hints) this close. */
@@ -43,7 +45,13 @@ export interface MarketHost extends PuzzleHost {
   filePage(id: string): void;
 }
 
-const DRAFT: MarketDraft = { auto: true, category: 'Lightweight', model: '', effort: 'default' };
+/** A new work order: Auto, with the smallest category (and `model`) ready behind it. */
+const draft = (model = ''): MarketDraft => ({
+  auto: true,
+  category: CATEGORY_OF.small,
+  model,
+  effort: 'default',
+});
 
 /**
  * The Model Market (docs/specs/MODEL-MARKET.md; Chapter 01 · Models and Reasoning Effort): an
@@ -54,6 +62,7 @@ const DRAFT: MarketDraft = { auto: true, category: 'Lightweight', model: '', eff
  * so a rebuilt Meridian shows the same jobs done.
  */
 export function createModelMarket(host: MarketHost, site: ModelMarketSite): Puzzle {
+  const quest = puzzleQuest('market');
   const progress = host.learn?.progress ?? null;
   const pad = new PadEdges();
   let open = false;
@@ -76,7 +85,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite): Puzz
     purse: purse(),
     jobs: jobsView(),
     job: null,
-    draft: DRAFT,
+    draft: draft(),
     retry: false,
     result: null,
     focus: 0,
@@ -91,7 +100,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite): Puzz
 
   site.setDone(doneIds());
   // A save that finished every job (before a reload) keeps its quest done.
-  if (doneIds().length === JOBS.length && host.quests()[QUEST] !== 'done') host.setQuest(QUEST, 'done');
+  if (doneIds().length === JOBS.length && host.quests()[quest] !== 'done') host.setQuest(quest, 'done');
 
   /** Gilda's line: voiced, and written on the work order (the HUD's captions step aside for it). */
   let speaking = 0;
@@ -195,7 +204,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite): Puzz
       screen: 'hire',
       job: id,
       focus: JOBS.findIndex((j) => j.id === id),
-      draft: { ...DRAFT, model: firstModel('Lightweight') },
+      draft: draft(firstModel(CATEGORY_OF.small)),
       retry: false,
       result: null,
       notice: null,
@@ -263,7 +272,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite): Puzz
     if (refund || doubloons) host.learn.refundStarfish(refund, doubloons);
     progress?.recordHire(job.id, {
       outcome: f.outcome,
-      category: hire.auto ? 'Auto' : hire.category,
+      category: hire.auto ? AUTO_HIRE : hire.category,
       model: hire.auto ? null : hire.model,
       effort: hire.auto ? null : hire.effort,
       paid: cost,
@@ -281,9 +290,10 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite): Puzz
       hint: null,
     });
     if (f.outcome === 'right' && !was) {
-      host.filePage(PAGE);
-      if (host.quests()[QUEST] !== 'done' && done.length === JOBS.length) {
-        host.setQuest(QUEST, 'done');
+      const page = puzzleContent<PuzzleFile & { page?: string }>('market').page;
+      if (page) host.filePage(page);
+      if (host.quests()[quest] !== 'done' && done.length === JOBS.length) {
+        host.setQuest(quest, 'done');
         view.set({ says: `${GILDA_TEXT[f.line]} ${GILDA_TEXT[GILDA.done]}` });
         speak([f.line, GILDA.done]);
         return;
@@ -309,7 +319,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite): Puzz
   function greet(): void {
     if (!progress || progress.data.market.greeted) return;
     progress.markMarketGreeted();
-    if (!host.quests()[QUEST]) host.setQuest(QUEST, 'start');
+    if (!host.quests()[quest]) host.setQuest(quest, 'start');
     say(GILDA.hello);
   }
 
@@ -317,7 +327,9 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite): Puzz
 
   /** The pick (and effort) that fits the open job: Wingman's second hint. */
   const fits = (id: JobId): { pick: 'auto' | ModelCategory; effort: Effort | null } =>
-    jobById(id)?.size === 'quick' ? { pick: 'auto', effort: null } : { pick: 'Powerful', effort: 'default' };
+    jobById(id)?.size === 'quick'
+      ? { pick: 'auto', effort: null }
+      : { pick: CATEGORY_OF.large, effort: 'default' };
 
   function pollPad(): void {
     const p = standardPad();

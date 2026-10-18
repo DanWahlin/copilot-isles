@@ -2,6 +2,8 @@
   "$schema": "../../schemas/puzzle-ceremony.schema.json",
   "id": "Q0.2.palette",
   "mechanic": "ceremony",
+  "quest": "Q0.2",
+  "latePage": "C0.3",
   "$comment": "Paint Your Sails (Q0.2): the palette stand beside Nell's door. For the Copilot app course, the app's theme in Settings → Themes; here, your sails. finished: the first time you select Finish. newViewLate: saves from before app 1.1.25 meet the New view here, after the theme step.",
   "scripts": {
     "finished": [

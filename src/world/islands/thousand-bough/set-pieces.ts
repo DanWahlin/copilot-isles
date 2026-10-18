@@ -8,19 +8,30 @@ import { thousandBoughHeight } from './height';
 import { PAINT, beam, box, cone, lanternPaint, makeBuckets, rod, rope, type Buckets } from './village/pieces';
 import { BASKET, bridgeY, COLUMN_TOP, DECKS } from './village/surfaces';
 import type { BridgeSpec } from './layout';
+import { hasActiveCourse } from '../../../course/active';
+import type { PuzzleFile } from '../../../course/pack';
+import { puzzleMaybe } from '../../../course/puzzles';
 
 /**
- * The tree village's moving set pieces: the Signal Deck's mast and its four flags (`@ # / &`), the
+ * The tree village's moving set pieces: the Signal Deck's mast and its four flags (the course's symbols), the
  * Cloud gondola gliding up into the mist on Thunder Crown every 90 s, the Sky Basket's cage, the
- * Crown Beacon, and the Spire twist's two lanterns (Feature's and Docs' previews, carried out onto
+ * Crown Beacon, and the Spire twist's two lanterns (the blue and teal crews' previews, carried out onto
  * the Spire Bridge until they jam at mid-span). Static parts go into the village's buckets; the
  * moving ones are rigid parts of one merged mesh per material (no new shader), placed without
  * allocating.
  */
 
-const FLAGS = ['@', '#', '/', '&'] as const;
-type Flag = (typeof FLAGS)[number];
+/** The Signal Deck's halyards, one flag each (the Flag Hoist's bins hang on them in order). */
+export const HALYARDS = 4;
 const MAST_H = 12;
+
+/** What's painted on each flag: the course's symbols (`puzzles/flag-hoist.json` → `bins`), in order. */
+function flagSymbols(): string[] {
+  const bins = hasActiveCourse()
+    ? (puzzleMaybe<PuzzleFile & { bins?: { symbol: string }[] }>('flag-hoist')?.bins ?? [])
+    : [];
+  return Array.from({ length: HALYARDS }, (_, i) => bins[i]?.symbol ?? '');
+}
 
 const M = new Matrix4();
 const Q = new Quaternion();
@@ -42,22 +53,22 @@ export interface SetPieces extends SignalMastView {
   skyBasketCar(t: number): void;
   /** The Crown Beacon lit (after the Seal). */
   beacon(on: boolean): void;
-  /** The Spire twist (P2.2): Feature's and Docs' lanterns meet mid-span on the 5173 bridge and jam. */
+  /** The Spire twist (P2.2): the blue and teal crews' lanterns jam mid-span on the first lookout's bridge. */
   spireJam(): Promise<void>;
   /** A crew's lantern walks to (or shows at) a lookout, or goes out. */
-  spireLantern(crew: 'feature' | 'docs', lookout: 5173 | 5174, on: boolean): void;
+  spireLantern(crew: 'blue' | 'teal', lookout: 1 | 2, on: boolean): void;
   update(dt: number, t: number): void;
   dispose(): void;
 }
 
 /** The halyard posts on the Signal Deck: four, 3 m apart along its outer rail. */
-export function halyardPosts(): { flag: Flag; x: number; y: number; z: number }[] {
+export function halyardPosts(): { x: number; y: number; z: number }[] {
   const d = DECKS.L2SW;
   const r = d.rect;
-  return FLAGS.map((flag, i) => {
+  return Array.from({ length: HALYARDS }, (_, i) => {
     const v = (i - 1.5) * 3;
     const u = r.hu - 1.4;
-    return { flag, x: r.x + u * r.ux - v * r.uz, y: d.y, z: r.z + u * r.uz + v * r.ux };
+    return { x: r.x + u * r.ux - v * r.uz, y: d.y, z: r.z + u * r.uz + v * r.ux };
   });
 }
 
@@ -112,20 +123,19 @@ export function createSetPieces(kit: VillageKit, statics: Buckets, signs: SignSe
   // A pennant at the masthead.
   const pennant = signs.add(['Thousand-Bough'], 2.2, 0.5, { look: 'cloth', twoSided: true });
   pennant.object.position.set(mast.x + 1.15, mast.y + MAST_H - 0.3, mast.z);
-  // The flags: painted cloth with the symbols, run up their halyards.
+  // The flags: painted cloth with the course's symbols, run up their halyards.
   const flags: {
-    flag: Flag;
     sign: PaintedSign;
     t: number;
     target: number;
     drop: boolean;
     done: (() => void) | null;
-  }[] = FLAGS.map((flag, i) => {
-    const sign = signs.add([flag], 0.9, 0.62, { look: 'cloth', twoSided: true, size: 0.5 });
+  }[] = flagSymbols().map((symbol, i) => {
+    const sign = signs.add([symbol], 0.9, 0.62, { look: 'cloth', twoSided: true, size: 0.5 });
     const p = posts[i]!;
     sign.object.position.set(p.x, p.y + 1.6, p.z);
     sign.object.rotation.y = Math.atan2(yx, yz) + Math.PI / 2;
-    return { flag, sign, t: 0, target: 0, drop: false, done: null };
+    return { sign, t: 0, target: 0, drop: false, done: null };
   });
 
   // The gondola: towers, the cable, the station's bull-wheel frame and the Cloud Loft's pavilion.
@@ -224,8 +234,8 @@ export function createSetPieces(kit: VillageKit, statics: Buckets, signs: SignSe
     for (let i = 0; i < g.getAttribute('color').count; i++) g.getAttribute('color').setXYZ(i, 6.5, 6.2, 5.2);
     glowParts.push(flatMerge(b.glow));
   }
-  // The Spire twist's lanterns on their staffs (wood 2-3, glow 1-2): Feature's blue, Docs' teal.
-  for (const dye of [PAINT.feature, PAINT.docs]) {
+  // The Spire twist's lanterns on their staffs (wood 2-3, glow 1-2): the blue crew's and the teal crew's.
+  for (const dye of [PAINT.blue, PAINT.teal]) {
     takeWood((b) => {
       // A big stage lantern (it has to read from the twist camera, 20 m off) held up on a pole: a
       // few triangles, as these parts are drawn wherever the set pieces are.
@@ -377,8 +387,8 @@ export function createSetPieces(kit: VillageKit, statics: Buckets, signs: SignSe
 
   const self: SetPieces = {
     group,
-    async hoist(flag, ok) {
-      const f = flags.find((k) => k.flag === flag);
+    async hoist(halyard, ok) {
+      const f = flags[halyard];
       if (!f) return;
       await new Promise<void>((done) => {
         f.target = 1;
@@ -415,7 +425,7 @@ export function createSetPieces(kit: VillageKit, statics: Buckets, signs: SignSe
     },
     spireJam() {
       const [f, d] = lanterns;
-      // Out from each end of the 5173 bridge (or bump again, if they're already stuck there).
+      // Out from each end of the first lookout's bridge (or bump again, if they're already stuck there).
       for (const [l, from, to] of [
         [f!, 0.22, 0.475],
         [d!, 0.78, 0.525],
@@ -432,8 +442,8 @@ export function createSetPieces(kit: VillageKit, statics: Buckets, signs: SignSe
       return new Promise<void>((done) => (jammed = done));
     },
     spireLantern(crew, lookout, on) {
-      const l = lanterns[crew === 'feature' ? 0 : 1]!;
-      const path = lookout === 5173 ? R2 : R3;
+      const l = lanterns[crew === 'blue' ? 0 : 1]!;
+      const path = lookout === 1 ? R2 : R3;
       if (!on) l.on = false;
       else if (!l.on || l.path !== path) {
         // Appears on its bridge (a cut, not a walk across), part way, and walks to its lookout.

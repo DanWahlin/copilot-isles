@@ -2,9 +2,13 @@
   "$schema": "../../schemas/puzzle-budget.schema.json",
   "id": "market",
   "mechanic": "budget",
+  "quest": "Q1.A",
+  "page": "pg1.market",
   "$comment": "Gilda's Model Market (Port Meridian, Q1.A): a Copilot-app-only mechanic. You hire a model (Auto, or a category's model with an effort) for each job on her board, paying starfish; the grade (right-sized, over, short) is the game's, against the course's guidance on models and reasoning effort. The jobs, prices, refunds, stamps, quotes and Gilda's lines are the pack's market.json; the model list is models.json; this file is the market's words: the overlay, the hire's name, each outcome's summary, the stall's signs and Wingman's hints.",
   "text": {
     "auto": "Auto",
+    "savedCategory": "a {category} model",
+    "savedModel": "a model",
     "hireName": "{model} on {effort}",
     "summary.quick-right": "{who} did the job for {paid} starfish: right-sized.",
     "summary.quick-over-model": "{who} did the job, but it cost {paid} starfish for a {fair}-starfish job.",

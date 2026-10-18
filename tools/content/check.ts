@@ -9,6 +9,10 @@
  * - ids resolve: chapters' images, pages, quizzes and Trials; every script step (quizzes, pages, terms,
  *   Trials, images, quest steps, other scripts); the compass's quest steps; the islands, chapters
  *   and NPCs the pack names (the game's islands and cast);
+ * - the quest skeleton: each island's story has every name the game asks for, each enabled puzzle's
+ *   quest has its mechanic's steps, migrations move saves to ids that exist, and a chest fills every
+ *   spot the game places on the course's islands;
+ * - the bindings: each game id a puzzle acts out is bound once (`acts`), and the pack's ids resolve;
  * - every voice line a script, a chapter or the market plays is in `voice/lines.json`, and its audio
  *   (`public/voice/manifest.json`) says the same words, so a changed line is regenerated;
  * - the economy stays sane (prices 1 to 4, bigger models cost more, a refund is never more than the
@@ -23,17 +27,32 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import type { CourseMeta } from '../../src/course/catalog';
 import {
+  ISLAND_SIGNS,
   PUZZLE_MECHANICS,
   type IslandQuestsFile,
   type PackScriptStep,
   type PuzzleFile,
   type QuestDef,
 } from '../../src/course/pack';
-import { GAME_PUZZLES, PUZZLE_ISLANDS } from '../../src/course/puzzles';
-import type { Beat, QuestCond } from '../../src/game/beats';
+import { GAME_PUZZLES, PUZZLE_ISLANDS, PUZZLE_STEPS } from '../../src/course/puzzles';
+import type { Beat } from '../../src/game/beats';
+import {
+  STORY_CONDITIONS,
+  STORY_EVENTS,
+  type QuestCond,
+  type StoryIsland,
+  type StoryRule,
+  type When,
+} from '../../src/game/story';
 import { resolveLine, type CastEntry, type VoiceLineDefinition } from '../voice/lines';
 import type { CourseBoardsData } from '../../src/content/course-boards';
-import type { MarketData } from '../../src/content/market';
+import { MODEL_TIERS, type MarketData } from '../../src/content/market';
+import { CREWS } from '../../src/game/puzzles/channel-routing/boards';
+import { WORKSPACE_IDS } from '../../src/game/puzzles/channel-routing/workspaces';
+import { HELM_MODES, REVIEW_ACTS } from '../../src/world/sites/helms-logic';
+import { CRATE_KINDS } from '../../src/world/sites/crate-yard-logic';
+import { HALYARDS } from '../../src/world/islands/thousand-bough/set-pieces';
+import { COVE_CHESTS, MERIDIAN_CHESTS } from '../../src/game/cove-quests';
 import { islandAt, type IslandId } from '../../src/game/islands';
 import { MERIDIAN_NPCS, meridianExtras } from '../../src/game/meridian-npcs';
 import { EFFORTS, grade, priceIn, type Hire, type MarketJob } from '../../src/game/market/jobs';
@@ -47,6 +66,8 @@ import { ARCHIPELAGO } from '../../src/ui/chart/archipelago';
 import { COURSE_BOARDS, type CourseBoardPlacement } from '../../src/world/islands/course-boards';
 import { meridianHeight } from '../../src/world/islands/meridian';
 import { thousandBoughHeight } from '../../src/world/islands/thousand-bough/height';
+import { THOUSAND_BOUGH } from '../../src/world/islands/thousand-bough/layout';
+import { COVE_BOTTLES } from '../../src/world/sites/bottles';
 import { starfishOn } from '../../src/world/starfish/spots';
 import { coveHeight } from '../../src/world/terrain/cove-height';
 import { DEFAULT_COURSE } from '../course-pack/read';
@@ -96,6 +117,13 @@ export const MIN_BOARD_TOPICS = 5;
 const MARKET_STARFISH = starfishOn('anchorage').length + starfishOn('meridian').length;
 
 /** The ground under a board: each island's own height function (the board may stand on a deck). */
+/** The chests and message bottles each island places (the game's spots; what's in them is the course's). */
+const CHEST_SPOTS: Readonly<Record<IslandId, readonly string[]>> = {
+  anchorage: [...COVE_CHESTS, ...COVE_BOTTLES].map((c) => c.id),
+  meridian: MERIDIAN_CHESTS.map((c) => c.id),
+  'thousand-bough': [...THOUSAND_BOUGH.chests, ...THOUSAND_BOUGH.bottles].map((c) => c.id),
+};
+
 const GROUND: Readonly<Record<IslandId, (x: number, z: number) => number>> = {
   anchorage: coveHeight,
   meridian: meridianHeight,
@@ -367,6 +395,17 @@ export function checkContent(
     for (const [id, x] of Object.entries(c.cited ?? {})) src(`${at('cited', id)}.source`, x.source);
   }
 
+  // Every chest and bottle the game places on the course's islands holds one of its chests.
+  meta.islands.forEach((isl, i) => {
+    for (const id of CHEST_SPOTS[isl.island as IslandId] ?? [])
+      if (!ids.chest.has(id))
+        issue(
+          'course.json',
+          `islands[${i}].island`,
+          `the game places chest "${id}" on ${isl.island}: a chapter's "chests" needs it`,
+        );
+  });
+
   /** A script's steps: every id they name is in this course. */
   const steps = (
     rel: string,
@@ -409,6 +448,37 @@ export function checkContent(
       questDefs.set(d.id, d);
     });
   const cast = castIds();
+  /** A quest and its step: both this course's. */
+  const questStep = (rel: string, path: string, quest: string, step: string | null) => {
+    const d = questDefs.get(quest);
+    if (!d) issue(rel, path, `"${quest}" isn't a quest`);
+    else if (step !== null && !Object.hasOwn(d.steps, step))
+      issue(rel, path, `"${step}" isn't a step of ${quest}`);
+  };
+  /** A `when`: flags are true or false, and every quest and step it names is this course's. */
+  const checkWhen = (rel: string, path: string, when: When) => {
+    for (const [key, c] of Object.entries(when)) {
+      if (key.startsWith('$')) {
+        if (typeof c !== 'boolean') issue(rel, at(path, key), 'a flag is true or false');
+        continue;
+      }
+      const cond = c as QuestCond;
+      const want =
+        cond !== null && typeof cond === 'object' && !Array.isArray(cond)
+          ? (cond as { not: unknown }).not
+          : cond;
+      if (!questDefs.has(key)) questStep(rel, at(path, key), key, null);
+      else
+        for (const step of Array.isArray(want) ? want : [want])
+          questStep(rel, at(path, key), key, step as string | null);
+    }
+  };
+  /** Rules: what they set is this course's (a migration's `when` may name quests it no longer has). */
+  const checkRules = (rel: string, path: string, rules: readonly StoryRule[], when: boolean) =>
+    rules.forEach((r, i) => {
+      if (when && r.when) checkWhen(rel, `${path}[${i}].when`, r.when);
+      for (const [id, step] of Object.entries(r.set)) questStep(rel, at(`${path}[${i}].set`, id), id, step);
+    });
   for (const [rel, q] of quests) {
     if (rel !== `quests/${q.island}.json`) issue(rel, 'island', `should be the file's name (${rel})`);
     const isl = meta.islands.find((i) => i.island === q.island);
@@ -431,25 +501,7 @@ export function checkContent(
       const path = `beats[${i}]`;
       for (const npc of typeof b.npc === 'string' ? [b.npc] : b.npc)
         if (!cast.has(npc)) issue(rel, `${path}.npc`, `"${npc}" isn't one of the game's NPCs`);
-      for (const [key, c] of Object.entries(b.when ?? {})) {
-        if (key.startsWith('$')) {
-          if (typeof c !== 'boolean') issue(rel, at(`${path}.when`, key), 'a flag is true or false');
-          continue;
-        }
-        const d = questDefs.get(key);
-        if (!d) {
-          issue(rel, at(`${path}.when`, key), `"${key}" isn't a quest`);
-          continue;
-        }
-        const cond = c as QuestCond;
-        const want =
-          cond !== null && typeof cond === 'object' && !Array.isArray(cond)
-            ? (cond as { not: unknown }).not
-            : cond;
-        for (const step of Array.isArray(want) ? want : [want])
-          if (step !== null && !Object.hasOwn(d.steps, step as string))
-            issue(rel, at(`${path}.when`, key), `"${step as string}" isn't a step of ${key}`);
-      }
+      if (b.when) checkWhen(rel, `${path}.when`, b.when);
       const what = [b.script, b.say, b.none].filter((x) => x !== undefined).length;
       if (what !== 1) issue(rel, path, 'needs one of "script", "say" or "none"');
       if (b.script && !Object.hasOwn(q.scripts, b.script))
@@ -458,7 +510,43 @@ export function checkContent(
     });
     for (const npc of Object.keys(q.barks))
       if (!cast.has(npc)) issue(rel, at('barks', npc), `"${npc}" isn't one of the game's NPCs`);
+    // The signs with course words the island's dressing asks for (ISLAND_SIGNS), and no others.
+    const signs = ISLAND_SIGNS[q.island] ?? [];
+    for (const n of signs)
+      if (!q.signs?.[n]) issue(rel, 'signs', `needs "${n}": the game asks ${q.island} for that sign`);
+    for (const n of Object.keys(q.signs ?? {}))
+      if (!signs.includes(n))
+        issue(rel, at('signs', n), `the game doesn't ask ${q.island} for a "${n}" sign`);
+    // The story (src/game/story.ts): every condition and event the game asks the island for.
+    const asks = Object.hasOwn(STORY_CONDITIONS, q.island) ? (q.island as StoryIsland) : null;
+    if (!asks) {
+      if (q.story) issue(rel, 'story', `the game asks ${q.island} for no story`);
+    } else if (!q.story)
+      issue(rel, 'story', `is missing: the game asks ${q.island} for ${STORY_CONDITIONS[asks].join(', ')}`);
+    else {
+      const { conditions, events } = q.story;
+      const names = (kind: string, asked: readonly string[], given: object) => {
+        for (const n of asked)
+          if (!Object.hasOwn(given, n))
+            issue(rel, `story.${kind}`, `needs "${n}": the game asks ${q.island} for it`);
+        for (const n of Object.keys(given))
+          if (!asked.includes(n))
+            issue(rel, at(`story.${kind}`, n), `the game doesn't ask ${q.island} for "${n}"`);
+      };
+      names('conditions', STORY_CONDITIONS[asks], conditions);
+      names('events', STORY_EVENTS[asks], events);
+      for (const [n, when] of Object.entries(conditions)) checkWhen(rel, at('story.conditions', n), when);
+      for (const [n, rules] of Object.entries(events)) checkRules(rel, at('story.events', n), rules, true);
+    }
   }
+  // Every island the course uses that the game asks a story of has its quests (and story).
+  for (const isl of meta.islands)
+    if (Object.hasOwn(STORY_CONDITIONS, isl.island) && !files.includes(`quests/${isl.island}.json`))
+      issue(
+        'course.json',
+        'islands',
+        `uses ${isl.island}, so it needs quests/${isl.island}.json and its story`,
+      );
 
   // Puzzles (COURSE-PACKS.md §4): one file per puzzle the game plays, with the mechanic it runs.
   const questsOk = quests.length === files.filter((f) => f.startsWith('quests/')).length;
@@ -496,6 +584,31 @@ export function checkContent(
           if (k !== 'text' && k !== 'scripts' && !k.startsWith('$')) walk(x, path ? at(path, k) : k, k);
     };
     walk(p, '', '');
+    // The quest it plays in has the steps its mechanic sets and waits on (once every quests file is ok).
+    const name = rel.slice('puzzles/'.length, -'.json'.length);
+    const want = p.disabled ? undefined : PUZZLE_STEPS[name];
+    const def = p.quest ? questDefs.get(p.quest) : undefined;
+    if (questsOk) {
+      if (p.quest && !def) issue(rel, 'quest', `"${p.quest}" isn't a quest in this course`);
+      else if (want && !def)
+        issue(
+          rel,
+          'quest',
+          `is missing: the game's ${name} sets or waits on ${want.join(', ')} in a quest of the course`,
+        );
+      else if (want)
+        for (const game of want) {
+          const step = (p.steps as Record<string, string> | undefined)?.[game] ?? game;
+          if (!Object.hasOwn(def!.steps, step))
+            issue(rel, 'quest', `${p.quest} needs a "${step}" step: the game's ${name} sets or waits on it`);
+        }
+    }
+    for (const game of Object.keys((p.steps ?? {}) as object))
+      if (!PUZZLE_STEPS[name]?.includes(game))
+        issue(rel, at('steps', game), `the game's ${name} has no step "${game}"`);
+    for (const key of ['latePage', 'page'] as const)
+      if (typeof p[key] === 'string' && !ids.page.has(p[key] as string))
+        issue(rel, key, `"${p[key] as string}" isn't a page in this course`);
     if (typeof p.quiz === 'string' && !ids.quiz.has(p.quiz))
       issue(rel, 'quiz', `"${p.quiz}" isn't a quiz in this course`);
     // Its scripts name quest steps: checked once every quests file is (a broken one hides its quests).
@@ -530,7 +643,34 @@ export function checkContent(
     if (!Object.hasOwn(GAME_PUZZLES, name))
       issue(rel, '', `isn't a puzzle the game plays (${Object.keys(GAME_PUZZLES).join(', ')})`);
     const p = get<PuzzleFile & Record<string, unknown>>(rel);
-    if (p) checkPuzzle(rel, p);
+    if (p) {
+      checkPuzzle(rel, p);
+      checkBindings(name, rel, p, issue, (n) =>
+        get<PuzzleFile & Record<string, unknown>>(`puzzles/${n}.json`),
+      );
+    }
+  }
+
+  // Migrations: what they move a save to is this course's.
+  const mig = meta.migrations;
+  if (mig && questsOk) {
+    if (mig.quests) checkRules('course.json', 'migrations.quests', mig.quests, false);
+    for (const [old, to] of Object.entries(mig.renamed ?? {}))
+      to.forEach((id, i) => {
+        if (!ids.page.has(id) && !ids.term.has(id))
+          issue(
+            'course.json',
+            `${at('migrations.renamed', old)}[${i}]`,
+            `"${id}" isn't a page or a glossary term`,
+          );
+      });
+    for (const [quest, terms] of Object.entries(mig.taught ?? {})) {
+      questStep('course.json', at('migrations.taught', quest), quest, null);
+      terms.forEach((t, i) => {
+        if (!ids.term.has(t))
+          issue('course.json', `${at('migrations.taught', quest)}[${i}]`, `"${t}" isn't a glossary term`);
+      });
+    }
   }
 
   // Hooks (COURSE-PACKS.md §5): the lines and quizzes the game asks for by id.
@@ -631,12 +771,170 @@ export function checkContent(
     models.forEach((m, i) => {
       if (names.has(m.name)) issue('models.json', `models[${i}]`, `${m.name} is listed twice`);
       names.add(m.name);
+      if (market && !market.categories.some((c) => c.id === m.category))
+        issue(
+          'models.json',
+          `models[${i}].category`,
+          `"${m.category}" isn't one of market.json's categories`,
+        );
     });
     for (const c of market?.categories ?? [])
       if (!models.some((m) => m.category === c.id))
         issue('models.json', 'models', `no ${c.id} model: its signboard would be empty`);
   }
   return issues;
+}
+
+type Issue = (rel: string, path: string, message: string) => void;
+type Entries = Readonly<Record<string, Record<string, unknown>>>;
+
+/** Each game id bound exactly once (`given`, in the pack's order). */
+function bindsEach(
+  issue: Issue,
+  rel: string,
+  path: string,
+  given: readonly unknown[],
+  want: readonly string[],
+): void {
+  for (const w of want) {
+    const n = given.filter((g) => g === w).length;
+    if (n !== 1) issue(rel, path, `binds "${w}" ${n} times: bind each of ${want.join(', ')} once`);
+  }
+}
+
+/** Keys that must be one of `known`. */
+function knownKeys(
+  issue: Issue,
+  rel: string,
+  path: string,
+  keys: readonly string[],
+  known: readonly string[],
+  what: string,
+): void {
+  for (const k of keys) if (!known.includes(k)) issue(rel, at(path, k), `"${k}" isn't ${what}`);
+}
+
+/** A value that must be one of `known`. */
+function known(
+  issue: Issue,
+  rel: string,
+  path: string,
+  v: string,
+  ids: readonly string[],
+  what: string,
+): void {
+  if (!ids.includes(v)) issue(rel, path, `"${v}" isn't ${what}`);
+}
+
+/**
+ * The game's mechanic ids a puzzle binds its own ids to (COURSE-PACKS.md, "Step 5 as built"): every
+ * one the mechanic acts out is bound once, and the file's other entries name its own ids.
+ */
+function checkBindings(
+  name: string,
+  rel: string,
+  p: PuzzleFile & Record<string, unknown>,
+  issue: Issue,
+  other: (name: string) => (PuzzleFile & Record<string, unknown>) | null,
+): void {
+  const acts = (r: unknown) => Object.values((r ?? {}) as Entries).map((v) => v.acts);
+  if (name === 'three-helms' && p.modes) {
+    const modes = Object.keys(p.modes as Entries);
+    bindsEach(issue, rel, 'modes', acts(p.modes), HELM_MODES);
+    bindsEach(
+      issue,
+      rel,
+      'review',
+      ((p.review ?? []) as { acts: string }[]).map((r) => r.acts),
+      REVIEW_ACTS,
+    );
+    const orders = (p.orders ?? {}) as Entries;
+    knownKeys(issue, rel, 'orders', Object.keys(orders), modes, 'a mode');
+    for (const m of modes) if (!orders[m]) issue(rel, 'orders', `needs an order for "${m}"`);
+    for (const [k, o] of Object.entries(orders))
+      knownKeys(
+        issue,
+        rel,
+        `${at('orders', k)}.wrong`,
+        Object.keys((o.wrong ?? {}) as object),
+        modes,
+        'a mode',
+      );
+    knownKeys(issue, rel, 'orderHints', Object.keys((p.orderHints ?? {}) as object), modes, 'a mode');
+  }
+  if (name === 'channel-routing' && p.crews) {
+    bindsEach(issue, rel, 'crews', acts(p.crews), CREWS);
+    const twist = (p.twist as { choices?: { acts: string; right: boolean }[] } | undefined)?.choices ?? [];
+    twist.forEach((c, i) => {
+      if (c.right && c.acts !== 'reroute' && c.acts !== 'close')
+        issue(rel, `twist.choices[${i}].acts`, 'a right answer reroutes or closes (the Spire acts it out)');
+    });
+  }
+  if (name === 'workspaces' && p.places) {
+    const places = p.places as { id: string; acts: string }[];
+    bindsEach(
+      issue,
+      rel,
+      'places',
+      places.map((x) => x.acts),
+      WORKSPACE_IDS,
+    );
+    const ids = places.map((x) => x.id);
+    const crews = Object.keys((other('channel-routing')?.crews ?? {}) as Entries);
+    const orders = (p.orders ?? {}) as Entries;
+    if (crews.length) {
+      knownKeys(issue, rel, 'orders', Object.keys(orders), crews, 'a crew of puzzles/channel-routing.json');
+      for (const c of crews) if (!orders[c]) issue(rel, 'orders', `needs an order for "${c}"`);
+    }
+    for (const [k, o] of Object.entries(orders)) {
+      const path = at('orders', k);
+      known(issue, rel, `${path}.best`, o.best as string, ids, 'a place');
+      ((o.accept ?? []) as string[]).forEach((a, j) =>
+        known(issue, rel, `${path}.accept[${j}]`, a, ids, 'a place'),
+      );
+      for (const f of ['right', 'why'])
+        knownKeys(issue, rel, `${path}.${f}`, Object.keys((o[f] ?? {}) as object), ids, 'a place');
+    }
+  }
+  if (name === 'crane' && Array.isArray(p.cargo)) {
+    const props = (p.cargo as { acts: string }[]).map((c) => c.acts);
+    if (new Set(props).size !== props.length) issue(rel, 'cargo', 'binds a prop twice: one kind per prop');
+  }
+  if (name === 'crate-yard' && p.bins && !Array.isArray(p.bins)) {
+    bindsEach(issue, rel, 'bins', acts(p.bins), CRATE_KINDS);
+    const bins = Object.keys(p.bins as Entries);
+    ((p.items ?? []) as { kind: string }[]).forEach((it, i) => {
+      if (!bins.includes(it.kind)) issue(rel, `items[${i}].kind`, `"${it.kind}" isn't a bin`);
+    });
+  }
+  if (name === 'lost-letters' && Array.isArray(p.bins)) {
+    const ids = [...(p.bins as { id: string }[]).map((b) => b.id), (p.tray as { id: string }).id];
+    ((p.items ?? []) as { answer: string; wrong?: object }[]).forEach((it, i) => {
+      known(issue, rel, `items[${i}].answer`, it.answer, ids, 'a bin or the tray');
+      knownKeys(issue, rel, `items[${i}].wrong`, Object.keys(it.wrong ?? {}), ids, 'a bin or the tray');
+    });
+  }
+  if (name === 'flag-hoist' && Array.isArray(p.bins)) {
+    const symbols = (p.bins as { symbol: string }[]).map((b) => b.symbol);
+    if (symbols.length > HALYARDS)
+      issue(rel, 'bins', `the mast has ${HALYARDS} halyards, not ${symbols.length}`);
+    (
+      (p.items ?? []) as {
+        kind: string;
+        answer?: string;
+        wrong?: object;
+        choices?: { flag: string | null }[];
+      }[]
+    ).forEach((it, i) => {
+      if (it.kind === 'flag') {
+        known(issue, rel, `items[${i}].answer`, it.answer!, symbols, 'a flag');
+        knownKeys(issue, rel, `items[${i}].wrong`, Object.keys(it.wrong ?? {}), symbols, 'a flag');
+      } else
+        it.choices?.forEach((c, j) => {
+          if (c.flag !== null) known(issue, rel, `items[${i}].choices[${j}].flag`, c.flag, symbols, 'a flag');
+        });
+    });
+  }
 }
 
 function checkMarket(
@@ -675,6 +973,9 @@ function checkMarket(
 
   const cats = m.categories.map((c) => c.id);
   if (new Set(cats).size !== cats.length) fail('categories', 'lists a category twice');
+  const tiers = Object.fromEntries(m.categories.map((c) => [c.id, c.acts]));
+  if (m.categories.map((c) => c.acts).join(',') !== MODEL_TIERS.join(','))
+    fail('categories', `bind ${MODEL_TIERS.join(', ')} once each, smallest first`);
   m.categories.forEach((c, i) => {
     const prev = m.categories[i - 1];
     if (prev && c.price <= prev.price)
@@ -705,7 +1006,7 @@ function checkMarket(
   let fair = 0;
   m.jobs.forEach((j, i) => {
     const job = { size: j.size } as MarketJob;
-    const right = hires.filter((h) => grade(job, h).outcome === 'right');
+    const right = hires.filter((h) => grade(job, h, tiers).outcome === 'right');
     if (!right.length) return fail(`jobs[${i}]`, 'no hire is right-sized for it');
     const least = Math.min(...right.map((h) => priceIn(m, h)));
     cheapest.set(j.size, least);

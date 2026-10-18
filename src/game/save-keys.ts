@@ -1,13 +1,15 @@
+import { DEFAULT_COURSE_ID, LEGACY_COURSE } from '../course/catalog';
+
 /**
  * Where a voyage is kept, per course (docs/specs/COURSE-PACKS.md §6). Settings, the benchmark and the
  * battle briefing stay global; a course's save (where you are, your captain) and its progress (quests,
- * pages, puzzles…) are its own, so two courses never share a quest id's step. Free of imports, so the
- * title can ask without loading the game.
+ * pages, puzzles…) are its own, so two courses never share a quest id's step. It reads only the
+ * catalog, so the title can ask without loading the game.
  *
  * Before course packs there was one course, and its keys had no course in them. On the first start
- * after the move, `migrateSaves` copies them to `copilot-app`'s. For one release the old keys stay and
- * follow `copilot-app`'s writes (`mirrorKey`), so a rollback to the build before still finds the same
- * voyage; the release after drops the mirror and removes them.
+ * after the move, `migrateSaves` copies them to the legacy course's (`"legacySaves": true` in its
+ * course.json). For one release the old keys stay and follow its writes (`mirrorKey`), so a rollback
+ * to the build before still finds the same voyage; the release after drops the mirror and removes them.
  */
 export interface SaveStorage {
   getItem(key: string): string | null;
@@ -15,8 +17,6 @@ export interface SaveStorage {
   removeItem(key: string): void;
 }
 
-/** The course every save from before course packs belongs to. */
-export const LEGACY_COURSE = 'copilot-app';
 /** The keys before course packs (one course, no course in the key). */
 export const LEGACY_KEYS = { save: 'copilot-isles.save.v1', progress: 'copilot-isles.progress.v1' } as const;
 /** The last course played (for Continue). */
@@ -29,29 +29,28 @@ export function courseKey(course: string, kind: SaveKind): string {
   return `copilot-isles.${course}.${kind}.v1`;
 }
 
-/** The old key a course's writes also go to for one release (only `copilot-app` has one). */
+/** The old key a course's writes also go to for one release (only the legacy course has one). */
 export function mirrorKey(course: string, kind: SaveKind): string | null {
   return course === LEGACY_COURSE ? LEGACY_KEYS[kind] : null;
 }
 
 /**
- * Copies the pre-course-pack save and progress to `copilot-app`'s keys, once: only when an old key
- * has something and the new one doesn't (so it never overwrites a newer voyage), and the old keys stay.
- * Returns the kinds it copied.
+ * Copies the pre-course-pack save and progress to the legacy course's keys, once: only when an old
+ * key has something and the new one doesn't (so it never overwrites a newer voyage), and the old keys
+ * stay. Returns the kinds it copied.
  */
-export function migrateSaves(storage: SaveStorage | null): SaveKind[] {
-  if (!storage) return [];
+export function migrateSaves(storage: SaveStorage | null, legacy: string | null = LEGACY_COURSE): SaveKind[] {
+  if (!storage || !legacy) return [];
   const moved: SaveKind[] = [];
   try {
     for (const kind of Object.keys(LEGACY_KEYS) as SaveKind[]) {
       const old = storage.getItem(LEGACY_KEYS[kind]);
-      const key = courseKey(LEGACY_COURSE, kind);
+      const key = courseKey(legacy, kind);
       if (old === null || old === 'null' || storage.getItem(key) !== null) continue;
       storage.setItem(key, old);
       moved.push(kind);
     }
-    if (moved.length && storage.getItem(LAST_COURSE_KEY) === null)
-      storage.setItem(LAST_COURSE_KEY, LEGACY_COURSE);
+    if (moved.length && storage.getItem(LAST_COURSE_KEY) === null) storage.setItem(LAST_COURSE_KEY, legacy);
   } catch {
     // Private mode or full storage: the old keys are still there for the next start.
   }
@@ -77,7 +76,7 @@ export function writeCourseKey(
 export function lastCourse(
   storage: SaveStorage | null,
   known: readonly string[],
-  fallback = LEGACY_COURSE,
+  fallback = DEFAULT_COURSE_ID,
 ): string {
   try {
     const id = storage?.getItem(LAST_COURSE_KEY) ?? null;

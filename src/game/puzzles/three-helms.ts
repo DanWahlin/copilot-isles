@@ -10,46 +10,46 @@ import {
   MODE_INFO,
   TAKE_RANGE,
   helmsCourseArea,
-  interactiveLeg,
+  chartLines,
+  steerLeg,
   nextHelm,
   type HelmHeading,
   type HelmMode,
-  type HelmOrder,
+  type HelmsFile,
+  type ReviewAct,
 } from '../../world/sites/helms-logic';
 import { world as worldUniforms } from '../../world/uniforms';
 import type { SeaChoiceOption, SeaChoiceView } from '../../ui/puzzles/SeaChoice';
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal, SailAction } from './types';
 import { onCourse } from '../../course/active';
-import type { PuzzleFile } from '../../course/pack';
-import { lineOf, puzzleContent, puzzleMaybe, textOf } from '../../course/puzzles';
+import { lineOf, puzzleContent, puzzleMaybe, puzzleQuest, rekey, textOf } from '../../course/puzzles';
 
 const HELMS_ID = 'P1.2';
-const QUEST = 'Q1.5';
 const FLAG: Readonly<Record<HelmMode, string>> = {
-  interactive: 'blue',
-  plan: 'orange',
-  autopilot: 'green',
+  steer: 'blue',
+  review: 'orange',
+  auto: 'green',
 };
-type ReviewChoice = 'approve' | 'exit' | 'suggest';
+type ReviewChoice = ReviewAct;
 
-/** `puzzles/three-helms.json` (a Copilot-app-only mechanic: each run acts out its session mode). */
-interface ThreeHelmsFile extends PuzzleFile {
-  modes: Readonly<Record<HelmMode, { name: string; says: string }>>;
-  orders: Readonly<Record<HelmMode, HelmOrder>>;
-  /** The Plan review's options, worded as the app words them. */
-  review: readonly { id: ReviewChoice; label: string }[];
-  /** Wingman's second hint on an order card: the course's use case for the helm that fits. */
-  orderHints: Readonly<Record<HelmMode, string>>;
+/** `puzzles/three-helms.json`: each run acts out the helm its mode is bound to (`acts`). */
+interface ThreeHelmsFile extends HelmsFile {
+  /** The `review` helm's options, worded as the course words them, each bound to what it does. */
+  review: readonly { id: string; acts: ReviewChoice; label: string }[];
 }
 export const helmsContent = () => puzzleContent<ThreeHelmsFile>('three-helms');
 const content = helmsContent;
 const T = (key: string, v?: Readonly<Record<string, string | number>>) => textOf(content(), key, v);
 const L = (key: string) => lineOf(content(), key);
 
-/** The Plan review's options (the dump and tests read them here). */
+/** The `review` helm's options, by what they do (the dump and tests read them here). */
 export let REVIEW_OPTIONS: readonly { id: ReviewChoice; label: string }[] = [];
+/** Wingman's second hint on an order card, by the helm that fits: the course's use case for it. */
+let ORDER_HINTS: Readonly<Record<HelmMode, string>> = {} as Record<HelmMode, string>;
 onCourse(() => {
-  REVIEW_OPTIONS = puzzleMaybe<ThreeHelmsFile>('three-helms')?.review ?? [];
+  const c = puzzleMaybe<ThreeHelmsFile>('three-helms');
+  REVIEW_OPTIONS = c?.review?.map((o) => ({ id: o.acts, label: o.label })) ?? [];
+  ORDER_HINTS = c?.modes ? rekey(c.modes, c.orderHints) : ({} as typeof ORDER_HINTS);
 });
 
 /** What the Three Helms needs from the session beyond a walking puzzle's host. */
@@ -79,12 +79,12 @@ type Phase =
   | 'approach' // Wingman's third hint: the crew sails you up to the buoy
   | 'brief' // Rhea's talking
   | 'order' // her order card's up: pick the helm
-  | 'balk' // Autopilot on the reef passage: she sets off, then stops
-  | 'choose' // Interactive: at a mark, waiting on your next heading
-  | 'leg' // Interactive: sailing one leg
-  | 'review' // Plan: the route's charted, waiting on the review's choice
-  | 'sailing' // Plan (in Autopilot, once approved) and Autopilot: straight through
-  | 'docking' // Autopilot: coming alongside
+  | 'balk' // `auto` on the reef passage: she sets off, then stops
+  | 'choose' // `steer`: at a mark, waiting on your next heading
+  | 'leg' // `steer`: sailing one leg
+  | 'review' // `review`: the route's charted, waiting on the review's choice
+  | 'sailing' // `review` (once accepted) and `auto`: straight through
+  | 'docking' // `auto`: coming alongside
   | 'wrap'; // the run's done and Rhea's summing up
 
 interface Run {
@@ -96,9 +96,9 @@ interface Run {
   taken: boolean;
   /** Wrong helms tried on this order. */
   tried: HelmMode[];
-  /** Interactive: the heading chosen for each leg so far. */
+  /** `steer`: the heading chosen for each leg so far. */
   headings: HelmHeading[];
-  /** Plan: you suggested the change, and the plan goes round the Shoal. */
+  /** `review`: you amended the chart, and it goes round the Shoal. */
   revised: boolean;
 }
 
@@ -108,13 +108,14 @@ type ChoiceKind = 'order' | 'heading' | 'review';
  * P1.2 The Three Helms (Rhea, Q1.5): three orders sailed in your own ship out in Port Meridian's
  * bay (helms-logic.ts has the lesson). Sail up to a buoy and press E: Rhea hands you an order card
  * and you pick the helm that fits, on a card beside the session panel (1-3, tap, or the d-pad and
- * A). Then the helm's run makes you use the mode: choose each heading (Interactive), review the plan
- * and fix it (Plan), or hand it over (Autopilot).
+ * A). Then the helm's run makes you use it: choose each heading (`steer`), review the chart and
+ * amend it (`review`), or hand it over (`auto`).
  *
  * The terminal panel reads like the app's session: your ask, her steps, and where she's waiting on
  * you. The helms you've sailed are saved; a run you leave part-way starts over.
  */
 export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: QuietSea): Puzzle {
+  const quest = puzzleQuest('three-helms');
   const saved = host.learn?.progress.data.puzzles[HELMS_ID];
   const done: HelmMode[] = HELM_ORDER.slice(0, Math.min(3, Math.max(0, saved?.state?.[0] ?? 0)));
   let solved = saved?.solved ?? false;
@@ -182,7 +183,7 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
     await p;
   };
 
-  const active = () => host.quests()[QUEST] === 'helms';
+  const active = () => host.quests()[quest] === 'helms';
   // While the course is on, no dolphin or flying fish leaps among the buoys (their splashes would
   // read as something the lesson put there).
   const unquiet = quiet?.add({ ...helmsCourseArea(), when: () => active() && !solved });
@@ -220,10 +221,10 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
         focus: same ? view.focus : 0,
       });
     } else if (k === 'heading') {
-      const legs = MERIDIAN_HELMS.interactive.headings!;
+      const legs = MERIDIAN_HELMS.steer.headings!;
       setView({
         ...base,
-        eyebrow: T('sessionInteractive'),
+        eyebrow: T('sessionSteer'),
         title: run.leg === 0 ? T('legFirst') : T('legNext', { from: run.leg, to: run.leg + 1 }),
         prompt: T('headingPrompt'),
         detail: [],
@@ -231,13 +232,12 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
         focus: 0,
       });
     } else {
-      const r = MERIDIAN_HELMS.plan;
       setView({
         ...base,
-        eyebrow: T('sessionPlan'),
+        eyebrow: T('sessionReview'),
         title: run.revised ? T('reviewRevised') : T('review'),
         prompt: T('reviewPrompt'),
-        detail: run.revised ? r.plan! : r.draft!.plan,
+        detail: chartLines(run.revised),
         options: REVIEW_OPTIONS.map((o) => ({ id: o.id, label: o.label })),
         focus: same ? view.focus : 0,
       });
@@ -284,18 +284,18 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
     const my = token;
     if (!r.tried.includes(pick)) r.tried.push(pick);
     const line = HELM_ORDERS[r.mode].wrong[pick]!;
-    if (r.mode === 'plan' && pick === 'autopilot') {
-      // She sets off into the passage under Autopilot, and Rhea stops her short.
+    if (r.mode === 'review' && pick === 'auto') {
+      // She sets off into the passage under \`auto\`, and Rhea stops her short.
       closeChoice();
       r.phase = 'balk';
-      const b = MERIDIAN_HELMS.plan.buoy;
+      const b = MERIDIAN_HELMS.review.buoy;
       const p = here();
       const dx = p.x - b.x,
         dz = p.z - b.z;
       const len = Math.hypot(dx, dz) || 1;
       host.ship.followSpline(
         [p, { x: p.x + (dx / len) * BALK_RUN, z: p.z + (dz / len) * BALK_RUN }],
-        MERIDIAN_HELMS.plan.speed,
+        MERIDIAN_HELMS.review.speed,
       );
       return;
     }
@@ -307,14 +307,14 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
     setView({ busy: false });
   }
 
-  /** Autopilot's stopped short of the reef passage: Rhea's line, then the order again. */
+  /** \`auto\` stopped short of the reef passage: Rhea's line, then the order again. */
   async function balked(): Promise<void> {
     if (!run) return;
     const my = token;
     const r = run;
     r.phase = 'brief';
     host.ship.clearAutopilot();
-    const line = HELM_ORDERS.plan.wrong.autopilot!;
+    const line = HELM_ORDERS.review.wrong.auto!;
     openChoice('order', true, { text: lineText(line), tone: 'bad' });
     await host.say([line]);
     if (my !== token || run !== r) return;
@@ -329,42 +329,42 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
     run.phase = 'brief';
     run.taken = true;
     const r = MERIDIAN_HELMS[mode];
-    if (mode === 'plan') {
+    if (mode === 'review') {
       buoys.showRoute('draft');
       host.frame(overview(r.draft!.route));
       openChoice('review', true);
-    } else if (mode === 'interactive') {
-      buoys.showRoute('interactive', 1);
+    } else if (mode === 'steer') {
+      buoys.showRoute('steer', 1);
       openChoice('heading', true);
     } else {
-      // Autopilot: she's under way while Rhea says so.
+      // \`auto\`: she's under way while Rhea says so.
       run.phase = 'sailing';
       host.ship.followSpline([here(), ...r.route], r.speed);
     }
     await host.say([L(`take.${mode}`)]);
     if (my !== token || !run) return;
-    if (mode === 'interactive') {
+    if (mode === 'steer') {
       run.phase = 'choose';
       setView({ busy: false });
-    } else if (mode === 'plan') {
+    } else if (mode === 'review') {
       run.phase = 'review';
       setView({ busy: false });
     }
   }
 
-  /** Interactive: you chose the next heading, so she sails the leg. */
+  /** \`steer\`: you chose the next heading, so she sails the leg. */
   function pickHeading(id: string): void {
     if (!run) return;
-    const h = MERIDIAN_HELMS.interactive.headings![run.leg]!.find((x) => x.id === id);
+    const h = MERIDIAN_HELMS.steer.headings![run.leg]!.find((x) => x.id === id);
     if (!h) return;
     closeChoice();
     run.headings[run.leg] = h;
     run.phase = 'leg';
-    buoys.showRoute('interactive', run.leg + 1, run.leg);
-    host.ship.followSpline([here(), ...interactiveLeg(run.leg, h)], MERIDIAN_HELMS.interactive.speed);
+    buoys.showRoute('steer', run.leg + 1, run.leg);
+    host.ship.followSpline([here(), ...steerLeg(run.leg, h)], MERIDIAN_HELMS.steer.speed);
   }
 
-  /** Interactive: a mark reached. She checks in, and you choose the next heading. */
+  /** \`steer\`: a mark reached. She checks in, and you choose the next heading. */
   function atMark(): void {
     if (!run) return;
     run.leg += 1;
@@ -373,7 +373,7 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
     sayOver(L('check'));
   }
 
-  /** Plan: one of the review's options. */
+  /** \`review\`: one of the review's options. */
   async function review(id: ReviewChoice): Promise<void> {
     if (!run) return;
     const my = token;
@@ -387,43 +387,43 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
       r.phase = 'review';
       setView({ busy: false });
     };
-    if (id === 'approve' && r.revised) {
+    if (id === 'accept' && r.revised) {
       closeChoice();
       r.phase = 'brief';
       host.frame(null);
-      await host.say([L('planGo')]);
+      await host.say([L('chartGo')]);
       if (my !== token || run !== r) return;
-      const plan = MERIDIAN_HELMS.plan;
+      const chart = MERIDIAN_HELMS.review;
       r.phase = 'sailing';
-      host.ship.followSpline([here(), ...plan.route], plan.speed);
-    } else if (id === 'approve') await say(L('approveDraft'), 'bad');
-    else if (id === 'exit') await say(r.revised ? L('exitRevised') : L('exit'), 'info');
-    else if (r.revised) await say(L('suggestRevised'), 'info');
+      host.ship.followSpline([here(), ...chart.route], chart.speed);
+    } else if (id === 'accept') await say(L('acceptDraft'), 'bad');
+    else if (id === 'takeOver') await say(r.revised ? L('takeOverRevised') : L('takeOver'), 'info');
+    else if (r.revised) await say(L('amendRevised'), 'info');
     else
-      await say(L('suggest'), 'good', () => {
+      await say(L('amend'), 'good', () => {
         r.revised = true;
-        buoys.showRoute('plan');
-        host.frame(overview(MERIDIAN_HELMS.plan.route));
+        buoys.showRoute('review');
+        host.frame(overview(MERIDIAN_HELMS.review.route));
       });
   }
 
   async function finish(mode: HelmMode): Promise<void> {
     const my = token;
     if (!run) return;
-    run.phase = mode === 'autopilot' ? 'docking' : 'wrap';
+    run.phase = mode === 'auto' ? 'docking' : 'wrap';
     if (!done.includes(mode)) done.push(mode);
     buoys.setSailed(mode, true);
     save();
     host.audio?.sfx.oneShot('chime_solve', undefined, 0.7);
-    if (mode === 'autopilot') {
+    if (mode === 'auto') {
       await host.dockHome();
       if (my !== token) return;
       buoys.showRoute(null);
       run = null;
       solved = true;
       save();
-      host.setQuest(QUEST, 'solved');
-      await host.say([L('done.autopilot')]);
+      host.setQuest(quest, 'solved');
+      await host.say([L('done.auto')]);
       return;
     }
     await host.say([L(`done.${mode}`)]);
@@ -457,7 +457,7 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
     host.ship.followSpline([p, { x: p.x + (b.x - p.x) * k, z: p.z + (b.z - p.z) * k }], 5);
   }
 
-  /** A high shot over a route from behind the ship (Plan's review). */
+  /** A high shot over a route from behind the ship (the \`review\` helm's chart). */
   function overview(route: readonly { x: number; z: number }[]): CameraShot {
     const p = here();
     let cx = 0,
@@ -490,8 +490,8 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
     if (!run || !run.taken) return null;
     const r = MERIDIAN_HELMS[run.mode];
     const lines: TerminalLine[] = [];
-    if (run.mode === 'interactive') {
-      lines.push({ tone: 'you', text: T('askInteractive') });
+    if (run.mode === 'steer') {
+      lines.push({ tone: 'you', text: T('askSteer') });
       const reached = run.phase === 'wrap' ? r.route.length : run.leg;
       for (let i = 0; i < reached; i++)
         lines.push({ tone: 'ok', text: `✓ Leg ${i + 1}: ${run.headings[i]?.label ?? ''}` });
@@ -502,30 +502,30 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
         });
       if (run.phase === 'choose' || (run.phase === 'brief' && run.leg < r.route.length))
         lines.push({ tone: 'cmd', text: T('waitingHeading', { n: run.leg + 1 }) });
-      return { title: T('sessionInteractive'), lines };
+      return { title: T('sessionSteer'), lines };
     }
-    if (run.mode === 'plan') {
-      const plan = run.revised ? r.plan! : r.draft!.plan;
-      lines.push({ tone: 'you', text: T('askPlan') });
+    if (run.mode === 'review') {
+      const chart = chartLines(run.revised);
+      lines.push({ tone: 'you', text: T('askReview') });
       if (run.revised) lines.push({ tone: 'you', text: T('askRevise') });
-      lines.push({ tone: 'other', text: run.revised ? T('planRevised') : T('plan') });
+      lines.push({ tone: 'other', text: run.revised ? T('chartRevised') : T('chart') });
       const sailing = run.phase === 'sailing' || run.phase === 'wrap';
-      const legsDone = run.phase === 'wrap' ? plan.length : Math.max(0, host.ship.passedWaypointCount - 1);
-      plan.forEach((step, i) =>
+      const legsDone = run.phase === 'wrap' ? chart.length : Math.max(0, host.ship.passedWaypointCount - 1);
+      chart.forEach((step, i) =>
         lines.push(
           sailing && i < legsDone
-            ? { tone: 'ok', text: T('planDone', { n: i + 1, step }) }
-            : { tone: 'other', text: T('planStep', { n: i + 1, step }) },
+            ? { tone: 'ok', text: T('chartDone', { n: i + 1, step }) }
+            : { tone: 'other', text: T('chartStep', { n: i + 1, step }) },
         ),
       );
       if (run.phase === 'review') lines.push({ tone: 'cmd', text: T('reviewWaiting') });
-      // Approve and implement sails the plan in Autopilot.
-      return { title: sailing ? T('sessionAutopilot') : T('sessionPlan'), lines };
+      // Accepting the chart sails it straight through, as \`auto\` does.
+      return { title: sailing ? T('sessionAuto') : T('sessionReview'), lines };
     }
-    lines.push({ tone: 'you', text: T('askAutopilot') });
+    lines.push({ tone: 'you', text: T('askAuto') });
     if (run.phase !== 'brief') lines.push({ tone: 'other', text: T('working') });
     if (run.phase === 'docking' || run.phase === 'wrap') lines.push({ tone: 'ok', text: T('moored') });
-    return { title: T('sessionAutopilot'), lines };
+    return { title: T('sessionAuto'), lines };
   }
 
   return {
@@ -546,19 +546,19 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
       }
       if (run.phase === 'order') {
         if (tier === 1) return T('hintOrder1');
-        if (tier === 2) return content().orderHints[run.mode];
+        if (tier === 2) return ORDER_HINTS[run.mode];
         void choose(run.mode);
         return T('hintOrder3', { mode: MODE_INFO[run.mode].name });
       }
       if (run.phase === 'choose') {
         if (tier < 3) return T('hintHeading');
-        void choose(MERIDIAN_HELMS.interactive.headings![run.leg]![0].id);
+        void choose(MERIDIAN_HELMS.steer.headings![run.leg]![0].id);
         return T('hintHeading3');
       }
       if (run.phase === 'review') {
         if (tier === 1) return T('hintReview1');
         if (tier === 2) return run.revised ? T('hintReview2Revised') : T('hintReview2');
-        void choose(run.revised ? 'approve' : 'suggest');
+        void choose(run.revised ? 'accept' : 'amend');
         return run.revised ? T('hintReview3Revised') : T('hintReview3');
       }
       return T('hintRun');
@@ -572,7 +572,7 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
         host.crewHelm(false);
       } else if (run.phase === 'balk') void balked();
       else if (run.phase === 'leg') {
-        if (run.leg >= MERIDIAN_HELMS.interactive.route.length - 1) void finish('interactive');
+        if (run.leg >= MERIDIAN_HELMS.steer.route.length - 1) void finish('steer');
         else atMark();
       } else if (run.phase === 'sailing') void finish(run.mode);
     },
@@ -585,8 +585,8 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
           ? { ...MERIDIAN_HELMS[n].buoy, label: T('buoyLabel', { n: orderNo(n), name: HELM_ORDERS[n].name }) }
           : null;
       }
-      if (run.mode === 'interactive' && run.phase === 'leg')
-        return { ...MERIDIAN_HELMS.interactive.route[run.leg]!, label: T('markLabel', { n: run.leg + 1 }) };
+      if (run.mode === 'steer' && run.phase === 'leg')
+        return { ...MERIDIAN_HELMS.steer.route[run.leg]!, label: T('markLabel', { n: run.leg + 1 }) };
       return null;
     },
     terminal,
@@ -632,7 +632,7 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
         host.crewHelm(false);
         solved = true;
         save();
-        host.setQuest(QUEST, 'solved');
+        host.setQuest(quest, 'solved');
       },
     },
     dispose() {

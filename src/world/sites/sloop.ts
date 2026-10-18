@@ -29,29 +29,23 @@ import { lerp } from '../../util/math';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { plainShadowColor } from '../../engine/shadow-color';
 import { moveBucketInto } from '../village/chunks';
-import { hasActiveCourse } from '../../course/active';
+import { hasActiveCourse, onCourse } from '../../course/active';
 import { puzzleMaybe, textOf } from '../../course/puzzles';
 
 export type FlagKind = 'you' | 'captain' | 'guild';
 
-/** Canvas artwork for a flag, about 2:1 (each call returns a new canvas). */
 /**
- * Whose fork a berth's flag names: the course's words (`puzzles/crane.json` → `text.flag.*`). A course
- * that turns the crane off leaves the flags blank; before any course is active (the title), the
- * Copilot app course's.
+ * Whose fork a berth's flag names: the course's words (`puzzles/crane.json` → `text.flag.*`), blank
+ * where it turns the crane off or before any course is active (the title). Flags repaint when a
+ * course activates.
  */
 function flagName(kind: FlagKind): string {
-  const key = `flag.${kind}`;
-  if (!hasActiveCourse()) return FLAG_NAMES[kind];
+  if (!hasActiveCourse()) return '';
   const crane = puzzleMaybe('crane');
-  return crane ? textOf(crane, key) : '';
+  return crane ? textOf(crane, `flag.${kind}`) : '';
 }
-const FLAG_NAMES: Readonly<Record<FlagKind, string>> = {
-  captain: 'REYES’S FORK',
-  guild: 'GUILD FORK',
-  you: 'YOUR FORK',
-};
 
+/** Canvas artwork for a flag, about 2:1 (each call returns a new canvas). */
 function drawFlag(kind: FlagKind): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
@@ -139,6 +133,8 @@ interface FlagRig {
   texture: CanvasTexture;
   base: Float32Array;
   wave: number;
+  /** Stops repainting its name. */
+  release(): void;
 }
 
 const HALF_LENGTH = 5.05;
@@ -202,6 +198,7 @@ export function createSloop(o: SloopOptions): Sloop {
     },
     dispose() {
       for (const mesh of meshes) mesh.geometry.dispose();
+      flag.release();
       flag.geometry.dispose();
       flag.texture.dispose();
       flag.material.dispose();
@@ -250,11 +247,6 @@ export function createBerthFlags(spots: readonly BerthFlagSpot[]): {
     for (const g of wood) poles.push(place(g));
 
     const y0 = k * cell + FLAG_ATLAS_GUTTER;
-    const art = drawFlag(f.kind);
-    ctx.drawImage(art, 0, y0);
-    // Repeat the top and bottom rows into the gutters so filtering doesn't pick up a neighbour.
-    ctx.drawImage(art, 0, 0, 512, 1, 0, y0 - FLAG_ATLAS_GUTTER, 512, FLAG_ATLAS_GUTTER);
-    ctx.drawImage(art, 0, 255, 512, 1, 0, y0 + 256, 512, FLAG_ATLAS_GUTTER);
     const g = flagGeometry(6, 0.88, 0.44).translate(0.08, 2.62, 0);
     const uvs = g.getAttribute('uv') as BufferAttribute;
     for (let i = 0; i < uvs.count; i++) uvs.setY(i, 1 - (y0 + (1 - uvs.getY(i)) * 256) / canvas.height);
@@ -266,7 +258,20 @@ export function createBerthFlags(spots: readonly BerthFlagSpot[]): {
   });
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
-  texture.needsUpdate = true;
+  /** Paints the flags' art (their names are the course's, so again when a course activates). */
+  const paint = () => {
+    spots.forEach((f, k) => {
+      const y0 = k * cell + FLAG_ATLAS_GUTTER;
+      const art = drawFlag(f.kind);
+      ctx.drawImage(art, 0, y0);
+      // Repeat the top and bottom rows into the gutters so filtering doesn't pick up a neighbour.
+      ctx.drawImage(art, 0, 0, 512, 1, 0, y0 - FLAG_ATLAS_GUTTER, 512, FLAG_ATLAS_GUTTER);
+      ctx.drawImage(art, 0, 255, 512, 1, 0, y0 + 256, 512, FLAG_ATLAS_GUTTER);
+    });
+    texture.needsUpdate = true;
+  };
+  const release = onCourse(paint);
+  if (!hasActiveCourse()) paint();
   const material = flagMaterial(texture);
   // Flag u (0 at the pole, 1 at the fly) before the atlas remap of v; it scales the wave.
   const us = new Float32Array(waves.length);
@@ -306,6 +311,7 @@ export function createBerthFlags(spots: readonly BerthFlagSpot[]): {
       geometry.computeVertexNormals();
     },
     dispose() {
+      release();
       geometry.dispose();
       texture.dispose();
       material.dispose();
@@ -773,16 +779,22 @@ function addFlag(
   const geometry = flagGeometry(cols, width, height);
   geometry.translate(pos.x, pos.y, pos.z);
   const base = (geometry.getAttribute('position') as BufferAttribute).array.slice() as Float32Array;
-  const texture = new CanvasTexture(drawFlag(kind));
+  const texture = new CanvasTexture<HTMLCanvasElement>(document.createElement('canvas'));
   texture.colorSpace = SRGBColorSpace;
-  texture.needsUpdate = true;
+  // Its name is the course's: painted again when a course activates.
+  const paint = () => {
+    texture.image = drawFlag(kind);
+    texture.needsUpdate = true;
+  };
+  const release = onCourse(paint);
+  if (!hasActiveCourse()) paint();
   const material = flagMaterial(texture);
   const mesh = new Mesh(geometry, material);
   mesh.name = `${kind} flag`;
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   group.add(mesh);
-  return { mesh, geometry, material, texture, base, wave: seeded(seed) * Math.PI * 2 };
+  return { mesh, geometry, material, texture, base, wave: seeded(seed) * Math.PI * 2, release };
 }
 
 function flagMaterial(texture: CanvasTexture): MeshStandardNodeMaterial {

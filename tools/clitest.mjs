@@ -195,7 +195,7 @@ results.juno = await drive(
 );
 
 // First Words: the speaking tube carries the prompt to Copilot (the hatch is the shell).
-const ps = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.8.pipes')?.spots() ?? null);
+const ps = await page.evaluate(() => window.__dev.session().debug.puzzle('first-words')?.spots() ?? null);
 if (ps) {
   await page.evaluate((p) => {
     window.__dev.session().debug.teleport(Math.min(p.x - 1.05, -106.45), p.z, Math.PI / 2);

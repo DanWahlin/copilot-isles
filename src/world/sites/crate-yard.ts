@@ -16,6 +16,7 @@ import { unreflected } from '../reflection';
 import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
 import { UvQuadBuilder, box, cylinder, merge, poseFrame, type UvRect } from './geo';
 import { crateYardContent, plateAt, type YardLayout } from './crate-yard-logic';
+import { byActs } from '../../course/puzzles';
 import { InstanceProxies } from './proxies';
 import { mergeWithRigidParts } from './rigid-parts';
 import { palettedMaterial } from '../characters/stage-light';
@@ -126,18 +127,18 @@ export function createCrateYardSite(o: {
 
   // Plates: raised slabs with the Chat or Project emblem, lit when a crate's home.
   const plateQuads = new UvQuadBuilder(1024, 1024);
-  const plateCells: { cell: [number, number]; kind: 'chat' | 'project' }[] = [];
-  for (const [x, z] of layout.chatPlates) plateCells.push({ cell: [x, z], kind: 'chat' });
-  for (const [x, z] of layout.projectPlates) plateCells.push({ cell: [x, z], kind: 'project' });
+  const plateCells: { cell: [number, number]; kind: 'tavern' | 'slipway' }[] = [];
+  for (const [x, z] of layout.tavernPlates) plateCells.push({ cell: [x, z], kind: 'tavern' });
+  for (const [x, z] of layout.slipwayPlates) plateCells.push({ cell: [x, z], kind: 'slipway' });
   const plateParts = plateCells.map(({ cell, kind }) => {
     const l = local(cell[0], cell[1]);
     plateQuads.plane(
       new Vector3(l.x, 0.075, l.z),
       new Vector3(0.62, 0, 0),
       new Vector3(0, 0, -0.62),
-      atlas.rects[kind === 'chat' ? 'chatPlate' : 'projectPlate'],
+      atlas.rects[kind === 'tavern' ? 'tavernPlate' : 'slipwayPlate'],
     );
-    return box(1.36, 0.07, 1.36, { x: l.x, z: l.z }, kind === 'chat' ? 0x1f4e86 : 0x2c6b3c);
+    return box(1.36, 0.07, 1.36, { x: l.x, z: l.z }, kind === 'tavern' ? 0x1f4e86 : 0x2c6b3c);
   });
   const plates = new Mesh(merge(plateParts), materials.stone);
   plates.name = 'crate yard plates';
@@ -164,8 +165,8 @@ export function createCrateYardSite(o: {
     // The board faces into the yard.
     signQuads.plane(face, new Vector3(0, 0, side * 1.62), new Vector3(0, 0.6, 0), rect);
   };
-  sideSign(-SX as -1 | 1, atlas.rects.chatSign);
-  sideSign(SX as -1 | 1, atlas.rects.projectSign);
+  sideSign(-SX as -1 | 1, atlas.rects.tavernSign);
+  sideSign(SX as -1 | 1, atlas.rects.slipwaySign);
   // The reset lever by the gate (local +z side, at the tavern end).
   const lever = { x: -w / 2 + 0.4, z: d / 2 + 1.1 };
   signParts.push(box(0.5, 0.5, 0.5, { x: lever.x, z: lever.z }, 0x5d4a38));
@@ -420,7 +421,7 @@ export function createCrateYardSite(o: {
 /** Room for eight crates' stencils in the atlas. */
 const CRATE_SLOTS = 8;
 type CrateKey = `crate${0 | 1 | 2 | 3 | 4 | 5 | 6 | 7}`;
-type AtlasKey = 'chatPlate' | 'projectPlate' | 'chatSign' | 'projectSign' | 'resetSign' | CrateKey;
+type AtlasKey = 'tavernPlate' | 'slipwayPlate' | 'tavernSign' | 'slipwaySign' | 'resetSign' | CrateKey;
 const crateKey = (i: number) => `crate${i}` as CrateKey;
 
 interface YardAtlas {
@@ -442,11 +443,11 @@ function createYardAtlas(layout: YardLayout): YardAtlas {
     crateRects[crateKey(i)] = { x: (i % 4) * 256, y: Math.floor(i / 4) * 206, w: 254, h: 204 };
   const rects: Record<AtlasKey, UvRect> = {
     ...crateRects,
-    chatPlate: { x: 0, y: 414, w: 256, h: 256 },
-    projectPlate: { x: 258, y: 414, w: 256, h: 256 },
+    tavernPlate: { x: 0, y: 414, w: 256, h: 256 },
+    slipwayPlate: { x: 258, y: 414, w: 256, h: 256 },
     resetSign: { x: 516, y: 414, w: 508, h: 150 },
-    chatSign: { x: 0, y: 672, w: 510, h: 218 },
-    projectSign: { x: 514, y: 672, w: 510, h: 218 },
+    tavernSign: { x: 0, y: 672, w: 510, h: 218 },
+    slipwaySign: { x: 514, y: 672, w: 510, h: 218 },
   };
   const tex = new CanvasTexture(
     typeof document === 'undefined' ? undefined : document.createElement('canvas'),
@@ -458,12 +459,12 @@ function createYardAtlas(layout: YardLayout): YardAtlas {
     canvas.width = canvas.height = 1024;
     const ctx = canvas.getContext('2d')!;
     layout.crates.forEach((crate, i) => stencil(ctx, rects[crateKey(i)], crate.label));
-    emblem(ctx, rects.chatPlate, 'chat');
-    emblem(ctx, rects.projectPlate, 'project');
+    emblem(ctx, rects.tavernPlate, 'tavern');
+    emblem(ctx, rects.slipwayPlate, 'slipway');
     // The course's table (01 §Chats, Project Sessions, and Modes), in short.
-    const bins = crateYardContent().bins;
-    signBoard(ctx, rects.chatSign, bins.chat.sign, bins.chat.sub, '#1f4e86', 'chat');
-    signBoard(ctx, rects.projectSign, bins.project.sign, bins.project.sub, '#2c6b3c', 'project');
+    const bins = byActs(crateYardContent().bins);
+    signBoard(ctx, rects.tavernSign, bins.tavern.sign, bins.tavern.sub, '#1f4e86', 'tavern');
+    signBoard(ctx, rects.slipwaySign, bins.slipway.sign, bins.slipway.sub, '#2c6b3c', 'slipway');
     signBoard(ctx, rects.resetSign, 'RESET THE YARD', '', '#6d3a1f', null);
     tex.needsUpdate = true;
   }
@@ -537,12 +538,12 @@ function drawIcon(
   cx: number,
   cy: number,
   s: number,
-  kind: 'chat' | 'project',
+  kind: 'tavern' | 'slipway',
 ): void {
   ctx.lineWidth = s * 0.09;
   ctx.lineJoin = 'round';
   ctx.beginPath();
-  if (kind === 'chat') {
+  if (kind === 'tavern') {
     ctx.ellipse(cx, cy - s * 0.05, s * 0.42, s * 0.34, 0, 0, Math.PI * 2);
     ctx.moveTo(cx - s * 0.22, cy + s * 0.22);
     ctx.lineTo(cx - s * 0.34, cy + s * 0.42);
@@ -559,8 +560,8 @@ function drawIcon(
   ctx.stroke();
 }
 
-function emblem(ctx: CanvasRenderingContext2D, r: UvRect, kind: 'chat' | 'project'): void {
-  ctx.fillStyle = kind === 'chat' ? '#1f4e86' : '#2c6b3c';
+function emblem(ctx: CanvasRenderingContext2D, r: UvRect, kind: 'tavern' | 'slipway'): void {
+  ctx.fillStyle = kind === 'tavern' ? '#1f4e86' : '#2c6b3c';
   ctx.fillRect(r.x, r.y, r.w, r.h);
   ctx.strokeStyle = '#f4ead2';
   drawIcon(ctx, r.x + r.w / 2, r.y + r.h / 2, r.w * 0.8, kind);
@@ -572,7 +573,7 @@ function signBoard(
   title: string,
   sub: string,
   colour: string,
-  icon: 'chat' | 'project' | null,
+  icon: 'tavern' | 'slipway' | null,
 ): void {
   ctx.fillStyle = colour;
   ctx.fillRect(r.x, r.y, r.w, r.h);

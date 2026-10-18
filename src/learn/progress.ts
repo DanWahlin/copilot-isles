@@ -1,6 +1,7 @@
 import { cleanFork, type ForkRef } from './fork';
 import { cleanSetup, EMPTY_SETUP, type SetupData } from './setup';
-import { courseKey, LEGACY_COURSE, writeCourseKey } from '../game/save-keys';
+import { courseMeta, DEFAULT_COURSE_ID, LEGACY_COURSE } from '../course/catalog';
+import { courseKey, writeCourseKey } from '../game/save-keys';
 
 /**
  * Learning progress (POC §3.9 subset): pages, chests, glossary, quiz attempts, quests, trials, seals,
@@ -22,10 +23,13 @@ export interface PuzzleSave {
   flags?: string[];
 }
 
+/** The category a saved Auto hire has (a save value, not a word to show). */
+export const AUTO_HIRE = 'Auto';
+
 /** One hire at the Model Market, as saved: a model that leaves the board later still loads. */
 export interface MarketHire {
   outcome: 'right' | 'over' | 'short';
-  /** 'Auto', or the model's category on the day you hired it. */
+  /** `AUTO_HIRE`, or the model's category on the day you hired it. */
   category: string;
   /** The model's name (null for Auto). */
   model: string | null;
@@ -131,39 +135,30 @@ export function defaultShipName(captain: string | null): string {
   return captain ? `${captain}’s Brigantine` : 'The Wayfinder';
 }
 
-/**
- * Logbook ids the course renamed or split (app 1.1.26: Local repository became Current checkout, and
- * My work became the Pull requests and Issues views). Old saves move to today's ids when they load.
- */
-const RENAMED: Readonly<Record<string, readonly string[]>> = {
-  'local-repository': ['current-checkout'],
-  'my-work': ['pull-requests', 'issues'],
-  'pg1.my-work': ['pg1.pull-requests', 'pg1.issues', 'pg1.more'],
-};
+/** Old ids moved to today's: the course's `migrations.renamed` (a Logbook id renamed or split). */
+const renamed = (ids: string[], to: Readonly<Record<string, readonly string[]>> = {}): string[] => [
+  ...new Set(ids.flatMap((s) => (Object.hasOwn(to, s) ? to[s]! : [s]))),
+];
 
-const renamed = (ids: string[]): string[] => [...new Set(ids.flatMap((s) => RENAMED[s] ?? [s]))];
-
-/**
- * Glossary terms a finished quest teaches that older saves never got (the 2026-10-02 course sync added
- * Tool permissions to Rhea's debrief and Context window to Oren's talk).
- */
-const TAUGHT_BY: Readonly<Record<string, readonly string[]>> = {
-  'Q1.5': ['tool-permissions'],
-  'Q1.6': ['context-window'],
-  // Pell's Lost Letters (P1.3) teach Settings as a term; saves that finished him before get it too.
-  'Q1.7': ['settings'],
-};
-
-const withTaught = (glossary: string[], quests: Record<string, string>): string[] => [
+/** Glossary terms a finished quest teaches that older saves never got (`migrations.taught`). */
+const withTaught = (
+  glossary: string[],
+  quests: Record<string, string>,
+  taught: Readonly<Record<string, readonly string[]>> = {},
+): string[] => [
   ...new Set([
     ...glossary,
-    ...Object.entries(TAUGHT_BY).flatMap(([q, terms]) => (quests[q] === 'done' ? terms : [])),
+    ...Object.entries(taught).flatMap(([q, terms]) => (quests[q] === 'done' ? terms : [])),
   ]),
 ];
 
-/** Parses a stored value, dropping anything malformed instead of throwing (old or hand-edited saves). */
-export function parseProgress(raw: string | null): ProgressData {
+/**
+ * Parses a stored value, dropping anything malformed instead of throwing (old or hand-edited saves),
+ * and moves old ids on with the course's `migrations`.
+ */
+export function parseProgress(raw: string | null, course: string = DEFAULT_COURSE_ID): ProgressData {
   if (!raw) return emptyProgress();
+  const m = courseMeta(course)?.migrations;
   try {
     const d = JSON.parse(raw) as Partial<ProgressData>;
     if (d?.v !== 1) return emptyProgress();
@@ -173,9 +168,9 @@ export function parseProgress(raw: string | null): ProgressData {
     const quests = d.quests && typeof d.quests === 'object' ? d.quests : {};
     return {
       ...base,
-      pages: renamed(strings(d.pages)),
+      pages: renamed(strings(d.pages), m?.renamed),
       chests: strings(d.chests),
-      glossary: withTaught(renamed(strings(d.glossary)), quests),
+      glossary: withTaught(renamed(strings(d.glossary), m?.renamed), quests, m?.taught),
       seals: strings(d.seals),
       quizzes: d.quizzes && typeof d.quizzes === 'object' ? d.quizzes : {},
       quests,
@@ -249,9 +244,9 @@ function parsePuzzles(v: unknown): Record<string, PuzzleSave> {
 
 /**
  * Export/import as a copyable base64 code (POC §3.9). The code names its course (`c`); a code from
- * before course packs has none, and is the Copilot app course's.
+ * before course packs has none, and is the legacy course's (src/game/save-keys.ts).
  */
-export function exportCode(p: ProgressData, course: string = LEGACY_COURSE): string {
+export function exportCode(p: ProgressData, course: string = DEFAULT_COURSE_ID): string {
   const bytes = new TextEncoder().encode(JSON.stringify({ ...p, c: course }));
   let bin = '';
   for (const b of bytes) bin += String.fromCharCode(b);
@@ -264,8 +259,11 @@ export function importCode(code: string): { course: string; progress: ProgressDa
     const raw = new TextDecoder().decode(bytes);
     const parsed = JSON.parse(raw) as { v?: unknown; c?: unknown };
     if (parsed?.v !== 1) return null;
-    const course = typeof parsed.c === 'string' && /^[a-z0-9-]+$/.test(parsed.c) ? parsed.c : LEGACY_COURSE;
-    return { course, progress: parseProgress(raw) };
+    const course =
+      typeof parsed.c === 'string' && /^[a-z0-9-]+$/.test(parsed.c)
+        ? parsed.c
+        : (LEGACY_COURSE ?? DEFAULT_COURSE_ID);
+    return { course, progress: parseProgress(raw, course) };
   } catch {
     return null;
   }
@@ -285,7 +283,7 @@ export class Progress {
 
   constructor(
     private readonly storage: ProgressStorage | null = safeLocalStorage(),
-    private courseId: string = LEGACY_COURSE,
+    private courseId: string = DEFAULT_COURSE_ID,
   ) {
     this.data = this.read();
   }
@@ -303,7 +301,7 @@ export class Progress {
   }
 
   private read(): ProgressData {
-    return parseProgress(this.storage?.getItem(courseKey(this.courseId, 'progress')) ?? null);
+    return parseProgress(this.storage?.getItem(courseKey(this.courseId, 'progress')) ?? null, this.courseId);
   }
 
   save(): void {

@@ -13,8 +13,18 @@ import type { ChannelRoutingFile } from './boards';
  */
 export type TwistChoice = NonNullable<ChannelRoutingState['twistChoice']>;
 
+/**
+ * What a twist answer does at the Spire (a course binds each of its answers to one, `acts`): send one
+ * crew to the second lookout, close one crew's lantern, let them share (the jam plays again), or
+ * nothing (Fen just answers). Whether it's right is the answer's own `right`.
+ */
+export const TWIST_ACTS = ['reroute', 'close', 'jam', 'none'] as const;
+export type TwistAct = (typeof TWIST_ACTS)[number];
+
 export interface TwistAnswer {
+  /** The course's id for the answer. */
   id: TwistChoice;
+  acts: TwistAct;
   text: string;
   right: boolean;
   /** Fen's voiced reply. */
@@ -59,7 +69,7 @@ export interface WorkspaceRun {
 }
 
 export type Picks = Readonly<Record<Crew, Workspace | null>>;
-const NO_PICKS: Picks = { feature: null, bugfix: null, docs: null };
+const NO_PICKS: Picks = { blue: null, green: null, teal: null };
 
 export class ChannelRoutingModel {
   private s: ChannelRoutingState;
@@ -185,12 +195,12 @@ export class ChannelRoutingModel {
   runWorkspaces(): WorkspaceRun | null {
     if (this.s.round !== 3 || this.s.phase !== 'routing' || !this.picked) return null;
     const live = {
-      feature: this.picks.feature !== 'cloud',
-      bugfix: this.picks.bugfix !== 'cloud',
-      docs: this.picks.docs !== 'cloud',
+      blue: this.picks.blue !== 'gondola',
+      green: this.picks.green !== 'gondola',
+      teal: this.picks.teal !== 'gondola',
     };
     const fl: Flow[] = openGates(this.s.board, live).map((f) =>
-      this.picks[f.crew] === 'checkout'
+      this.picks[f.crew] === 'hall'
         ? { crew: f.crew, cells: [...f.cells], end: 'mainHall' as const }
         : { ...f, cells: [...f.cells] },
     );

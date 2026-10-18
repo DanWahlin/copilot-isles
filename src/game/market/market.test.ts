@@ -8,13 +8,12 @@ import {
   BOARD_SIZE,
   CATEGORIES,
   boardFor,
-  catalogFromTables,
   formatModelsFile,
-  parseYamlList,
   sameModels,
   versionOf,
   type ModelEntry,
 } from './catalog';
+import { catalogFromTables, parseYamlList } from '../../../tools/models/catalog';
 import {
   AUTO_PRICE,
   EFFORTS,
@@ -28,6 +27,7 @@ import {
   jobById,
   price,
   retryHire,
+  TIER_OF,
   type Hire,
 } from './jobs';
 import { BOARDS, MODELS, MODELS_FILE, savedHireName } from './models';
@@ -177,10 +177,7 @@ describe('courses/copilot-app/models.json', () => {
 });
 
 describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
-  const hire = (
-    category: 'Lightweight' | 'Versatile' | 'Powerful',
-    effort: 'low' | 'default' | 'high',
-  ): Hire => ({
+  const hire = (category: string, effort: 'low' | 'default' | 'high'): Hire => ({
     auto: false,
     category,
     model: `${category} model`,
@@ -361,6 +358,8 @@ describe('the starfish purse (MODEL-MARKET.md §3)', () => {
     expect(savedHireName(again.jobs.tour!.last!)).toBe('a Powerful model');
     expect(savedHireName({ category: 'Auto', model: null })).toBe('Auto');
     expect(savedHireName({ category: MODELS[0]!.category, model: MODELS[0]!.name })).toBe(MODELS[0]!.name);
+    // A save keeps the course's category name; the grading reads it through the course's binding.
+    expect(TIER_OF[again.jobs.tour!.last!.category]).toBe('large');
     // Junk in a hand-edited save is dropped, not thrown.
     const junk = parseProgress(
       JSON.stringify({ v: 1, market: { jobs: { bug: { done: 'yes', last: { outcome: 'great' } } } } }),

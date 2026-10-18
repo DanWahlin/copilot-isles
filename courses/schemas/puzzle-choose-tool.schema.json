@@ -19,6 +19,19 @@
     "mechanic": {
       "const": "choose-tool"
     },
+    "quest": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][\\w.:-]*$",
+      "description": "The quest the puzzle plays in (a quest of this course): the steps its mechanic sets and waits on (PUZZLE_STEPS, src/course/puzzles.ts) are that quest's."
+    },
+    "steps": {
+      "type": "object",
+      "description": "The mechanic's steps (PUZZLE_STEPS) that the quest calls something else: game step → the quest's step.",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
     "disabled": {
       "type": "boolean",
       "description": "The course turns this puzzle off: its site stays as scenery and its cue does nothing."
@@ -74,8 +87,12 @@
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name", "says"],
+        "required": ["acts", "name", "says"],
         "properties": {
+          "acts": {
+            "description": "The Three Helms: the game's helm this mode acts out (steer: you choose each leg; review: a chart to accept, take over or amend; auto: handed over end to end). Each helm is bound once.",
+            "enum": ["steer", "review", "auto"]
+          },
           "name": {
             "type": "string",
             "minLength": 1
@@ -85,7 +102,8 @@
             "minLength": 1
           }
         }
-      }
+      },
+      "description": "The Three Helms: the course's modes, keyed by its own ids (orders, their `wrong` and orderHints use the same keys)."
     },
     "orders": {
       "type": "object",
@@ -96,10 +114,15 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "label"],
+        "required": ["id", "acts", "label"],
         "properties": {
           "id": {
-            "enum": ["approve", "exit", "suggest"]
+            "type": "string",
+            "pattern": "^[a-z][\\w-]*$"
+          },
+          "acts": {
+            "description": "What the option does: accept (sail the chart), takeOver (hand the wheel back), amend (chart round the Shoal). Each once.",
+            "enum": ["accept", "takeOver", "amend"]
           },
           "label": {
             "type": "string",

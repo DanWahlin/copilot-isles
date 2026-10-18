@@ -827,6 +827,7 @@ export function createBrigantine({
       christening.dispose();
       for (const material of materials) material.dispose();
       shipLabel.texture.dispose();
+      shipLabel.release();
       releaseShipSlot(slotIndex);
     },
   };

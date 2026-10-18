@@ -263,7 +263,7 @@ for (const id of ['C0.3', 'pg.install'])
     logs.push('[questtest] board: a link’s label doesn’t say it opens a new tab');
   else if (!install.met) logs.push('[questtest] board: Installation has no ✓ after Nell’s install page');
   else if (board.links.length < 7) logs.push(`[questtest] board: only ${board.links.length} links`);
-  if (!board.focused.includes('Learning Objectives'))
+  if (!board.focused.includes('Installation'))
     logs.push(`[questtest] board: the first topic isn't focused (${board.focused})`);
   await page.keyboard.press('Escape');
   await page.waitForTimeout(400);
@@ -279,7 +279,7 @@ for (const id of ['C0.3', 'pg.install'])
 
 // Paint Your Sails: E at the palette stand opens the theme picker; pick a card and select Finish
 // through the real UI, then Nell sends you on to Ezra.
-const stand = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.2.palette')?.spot() ?? null);
+const stand = await page.evaluate(() => window.__dev.session().debug.puzzle('palette')?.spot() ?? null);
 if (stand) {
   await page.evaluate((a) => {
     window.__dev.session().debug.teleport(a.x, a.z, a.heading);
@@ -295,9 +295,7 @@ if (stand) {
     await page.click('.ci-palette-card[data-id="noctis-azureus"]');
     await page.waitForTimeout(500);
     await shot('palette-picker');
-    const preview = await page.evaluate(
-      () => window.__dev.session().debug.puzzle('Q0.2.palette').state().shown,
-    );
+    const preview = await page.evaluate(() => window.__dev.session().debug.puzzle('palette').state().shown);
     if (preview !== 'noctis-azureus') logs.push(`[questtest] palette: preview is ${preview}`);
     await page.click('.ci-palette-actions .ci-btn.primary');
   } else logs.push('[questtest] palette: the picker did not open');
@@ -578,8 +576,8 @@ results.juno = await drive(
   'juno',
   (s) => s.quests['Q0.8'] === 'pipes' && !s.dialogue && !s.quiz && !s.reveal,
 );
-const fw = () => page.evaluate(() => window.__dev.session().debug.puzzle('Q0.8.pipes')?.state() ?? null);
-const ps = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.8.pipes')?.spots() ?? null);
+const fw = () => page.evaluate(() => window.__dev.session().debug.puzzle('first-words')?.state() ?? null);
+const ps = await page.evaluate(() => window.__dev.session().debug.puzzle('first-words')?.spots() ?? null);
 if (ps) {
   const focus = () => page.evaluate(() => window.__dev.session().debug.state().focus);
   /** Stands on the pier's east edge, facing the fitting on the ship's rail. */
@@ -647,8 +645,8 @@ if (washedUp?.length) {
 } else logs.push('[questtest] no bottle debug hook');
 
 // Lyra's soundcheck (Q0.9, optional): the bard at her hammock by the lagoon, and C0.5.
-if (await page.evaluate(() => !!window.__dev.session().debug.puzzle('Q0.9.bard'))) {
-  const bard = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.9.bard').state());
+if (await page.evaluate(() => !!window.__dev.session().debug.puzzle('bard'))) {
+  const bard = await page.evaluate(() => window.__dev.session().debug.puzzle('bard').state());
   if (bard.quest !== 'start') logs.push(`[questtest] bard: Q0.9 didn't start (${JSON.stringify(bard)})`);
   await talk('lyra');
   await shot('lyra-talk');
@@ -657,9 +655,9 @@ if (await page.evaluate(() => !!window.__dev.session().debug.puzzle('Q0.9.bard')
 
 // Nell at the pier head, by your bow: the Harbormaster's Trial (Q0.10), then straight on to the
 // christening (Q0.11): the coconut flies (the `christen` cue), then Juno and Wingman's sailing lesson.
-if (await page.evaluate(() => !!window.__dev.session().debug.puzzle('Q0.11.christen'))) {
+if (await page.evaluate(() => !!window.__dev.session().debug.puzzle('christening'))) {
   await page.waitForTimeout(600);
-  const at = await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.11.christen').state());
+  const at = await page.evaluate(() => window.__dev.session().debug.puzzle('christening').state());
   if (!at.atPier) logs.push(`[questtest] trial: Nell isn't at the pier (${JSON.stringify(at)})`);
   await talk('nell');
   await shot('trial-talk');
@@ -670,18 +668,16 @@ if (await page.evaluate(() => !!window.__dev.session().debug.puzzle('Q0.11.chris
     90000,
   );
   const sawThrow = await page.evaluate(
-    () => window.__dev.session().debug.puzzle('Q0.11.christen').state().thrown,
+    () => window.__dev.session().debug.puzzle('christening').state().thrown,
   );
   if (!sawThrow) logs.push('[questtest] christening: the coconut never flew');
-  const named = await page.evaluate(
-    () => window.__dev.session().debug.puzzle('Q0.11.christen').state().named,
-  );
+  const named = await page.evaluate(() => window.__dev.session().debug.puzzle('christening').state().named);
   if (!named) logs.push('[questtest] christening: the ship has no name');
   // The ceremony's own shot of the bow, now with the name on it.
-  await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.11.christen').frame(true));
+  await page.evaluate(() => window.__dev.session().debug.puzzle('christening').frame(true));
   await page.waitForTimeout(1600);
   await shot('christen-named');
-  await page.evaluate(() => window.__dev.session().debug.puzzle('Q0.11.christen').frame(false));
+  await page.evaluate(() => window.__dev.session().debug.puzzle('christening').frame(false));
   await page.waitForTimeout(1300);
   // The gangway's down now and the compass points at it; walking up the plank takes the helm.
   const gangway = await page.evaluate(() => window.__dev.session().debug.gangway());

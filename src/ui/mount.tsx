@@ -1,6 +1,7 @@
 import { createRoot, type Root } from 'react-dom/client';
 import { TitleMenu } from './TitleMenu';
 import { DEFAULT_SETTINGS, type GameBridge, type GraphicsInfo, type UiState } from './bridge';
+import { DEFAULT_COURSE_ID } from '../course/catalog';
 import './ui.css';
 
 const PREVIEW_GRAPHICS: GraphicsInfo = {
@@ -18,7 +19,7 @@ function fallbackBridge(): GameBridge {
     screen: 'title',
     returnTo: 'title',
     progress: { value: 0, message: 'Ready' },
-    course: 'copilot-app',
+    course: DEFAULT_COURSE_ID,
     hasSave: false,
     save: null,
     learn: { doubloons: 0, seals: [], sails: null, captainName: null, shipName: null },

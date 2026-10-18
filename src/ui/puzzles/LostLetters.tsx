@@ -54,7 +54,7 @@ function Bold({ text }: { text: string }) {
   );
 }
 
-/** The key for each destination: 1-9 for the first nine areas, 0 for Projects, N for the tray. */
+/** The key for each destination: 1-9 for the first nine areas, 0 for the tenth, N for the tray. */
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'N'];
 const STEP: Readonly<Record<string, number>> = {
   ArrowDown: 1,
@@ -171,7 +171,7 @@ function LostLetters({ store }: { store: LostLettersStore }) {
         <div className="ci-ll-choices">
           <ol className="ci-ll-alcoves" aria-label={T('bins')}>
             {ALCOVES.map((a, i) => (
-              <li key={a.id}>{button(a.id, i, a.name, a.id === 'projects' ? 'is-projects' : '')}</li>
+              <li key={a.id}>{button(a.id, i, a.name, a.apart ? 'is-apart' : '')}</li>
             ))}
           </ol>
           {button(TRAY.id, DESTINATIONS.length - 1, T('trayButton', { tray: TRAY.name }), 'ci-ll-tray')}

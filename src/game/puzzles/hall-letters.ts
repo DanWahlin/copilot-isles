@@ -29,11 +29,14 @@ type LetterEntry = Omit<Letter, 'cite' | 'wrong'> & {
   wrong?: Readonly<Partial<Record<Destination, { text: string; cite: string }>>>;
 };
 
-/** `puzzles/lost-letters.json` (classify: the letters into the bins, or back in the tray). */
+/**
+ * `puzzles/lost-letters.json` (classify: the letters into the bins, or back in the tray). Its tray has
+ * an id of the course's; letters' answers and wrong filings name it by that id.
+ */
 interface LostLettersFile extends PuzzleFile {
   cites: Readonly<Record<string, LetterCite>>;
   bins: readonly Alcove[];
-  tray: { id: 'tray'; name: string };
+  tray: { id: string; name: string };
   items: readonly LetterEntry[];
 }
 
@@ -43,27 +46,20 @@ const T = (key: string, v?: Readonly<Record<string, string | number>>) => textOf
 /** The course sections the letters and reasons cite, by key. */
 export let CITE: Readonly<Record<string, LetterCite>> = {};
 
-export type AlcoveId =
-  | 'general'
-  | 'accounts'
-  | 'sessions'
-  | 'themes'
-  | 'accessibility'
-  | 'voice'
-  | 'customize'
-  | 'providers'
-  | 'experimental'
-  | 'projects';
+/** A bin's id: the course's (the Copilot app course's Settings areas). */
+export type AlcoveId = string;
 
-/** Where a letter can go: an alcove, or back in Pell's tray (not a Settings job). */
+/** Where a letter can go: an alcove, or back in Pell's tray (the game's decoy: not this kind of job). */
 export type Destination = AlcoveId | 'tray';
 
 export interface Alcove {
   id: AlcoveId;
-  /** The area's name in the app, word for word. */
+  /** The area's name, word for word. */
   name: string;
-  /** What the area holds, from the course's table (01 · Settings). */
+  /** What the area holds, from the course. */
   holds: string;
+  /** Set apart from the rest: its plate is brown and its button stands apart (the last cabinet). */
+  apart?: boolean;
 }
 
 /** The bins in the app's order (keys 1-9, then 0 for the last). */
@@ -104,14 +100,15 @@ onCourse(() => {
   };
   CITE = c.cites;
   ALCOVES = c.bins;
-  TRAY = c.tray;
+  TRAY = { id: 'tray', name: c.tray.name };
   DESTINATIONS = [...ALCOVES.map((a) => a.id), TRAY.id];
   const cite = (k: string) => CITE[k]!;
+  const dest = (d: string): Destination => (d === c.tray.id ? 'tray' : d);
   LETTERS = c.items.map(({ wrong, ...l }) => {
-    const letter: Letter = { ...l, cite: cite(l.cite) };
+    const letter: Letter = { ...l, answer: dest(l.answer), cite: cite(l.cite) };
     if (wrong)
       letter.wrong = Object.fromEntries(
-        Object.entries(wrong).map(([d, w]) => [d, { text: w!.text, cite: cite(w!.cite) }]),
+        Object.entries(wrong).map(([d, w]) => [dest(d), { text: w!.text, cite: cite(w!.cite) }]),
       );
     return letter;
   });

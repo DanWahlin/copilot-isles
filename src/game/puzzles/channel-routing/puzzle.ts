@@ -26,7 +26,7 @@ import {
   workspacesContent,
   type Workspace,
 } from './workspaces';
-import { lineOf, textOf } from '../../../course/puzzles';
+import { lineOf, puzzleQuest, textOf } from '../../../course/puzzles';
 
 /** What Channel Routing needs beyond the usual puzzle host: the camera, voices and the screen. */
 export interface ChannelRoutingHost extends PuzzleHost {
@@ -62,7 +62,7 @@ const twistQuestion = () => routingContent().twist.question;
 
 const crewName = (c: Crew) => CREW_LOOK[c].name;
 const pickHelp = () => W('pickHelp');
-/** “Feature’s”, “Docs’”. */
+/** A crew's name with its possessive (the course's `whose` or, after an s, `whoseS`). */
 const whose = (c: Crew) => T(crewName(c).endsWith('s') ? 'whoseS' : 'whose', { name: crewName(c) });
 const where = (at: readonly [number, number] | null) =>
   at ? T('where', { row: at[0] + 1, col: at[1] + 1 }) : '';
@@ -164,7 +164,8 @@ export function createChannelRouting(
     const a = THOUSAND_BOUGH.anchors[name];
     return { x: a.x, y: a.y, z: a.z, tx: a.look.x, ty: a.look.y, tz: a.look.z };
   };
-  const step = () => host.quests()['Q2.5'];
+  const quest = puzzleQuest('channel-routing');
+  const step = () => host.quests()[quest];
   const playing = () => step() === 'channels' || step() === 'twist';
   const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
   const at = anchors.gateBoard;
@@ -214,7 +215,7 @@ export function createChannelRouting(
   }
 
   const liveCrews = () => {
-    const live = (['feature', 'bugfix', 'docs'] as const).filter((c) => model.state.live[c]).map(crewName);
+    const live = (['blue', 'green', 'teal'] as const).filter((c) => model.state.live[c]).map(crewName);
     return live.length === 1 ? T('gateOpen', { crew: live[0]! }) : T('gatesOpen', { crews: live.join(', ') });
   };
 
@@ -289,7 +290,7 @@ export function createChannelRouting(
       message: { text: T('running'), tone: 'info' },
       announce: '',
     });
-    if (CREWS.some((c) => run.verdicts[c].pick === 'cloud')) {
+    if (CREWS.some((c) => run.verdicts[c].pick === 'gondola')) {
       // The cloud crew's work rides the gondola, off your deck.
       sfx('gondola_bell', 0.6);
       void sys.fx.gondolaSend();
@@ -348,7 +349,7 @@ export function createChannelRouting(
       return;
     }
     await host.say([L('round3')]);
-    host.setQuest('Q2.5', 'twist');
+    host.setQuest(quest, 'twist');
     await twist();
   }
 
@@ -379,7 +380,7 @@ export function createChannelRouting(
       announce: `${c.text} ${T(c.right ? 'right' : 'notQuite')}`,
     });
     if (!c.right) {
-      if (id === 'share') {
+      if (c.acts === 'jam') {
         sfx('timber_creak_groan', 0.7);
         await sys.spire.playJam();
       }
@@ -387,19 +388,19 @@ export function createChannelRouting(
       view.set({ busy: false });
       return;
     }
-    if (id === 'closeOne') {
-      sys.spire.preview('feature', 5173, false);
-      sys.spire.preview('docs', 5173, true);
+    if (c.acts === 'close') {
+      sys.spire.preview('blue', 1, false);
+      sys.spire.preview('teal', 1, true);
       await host.say([c.line]);
       await sys.spire.openSecondBridge();
     } else {
       await sys.spire.openSecondBridge();
-      sys.spire.preview('feature', 5173, true);
-      sys.spire.preview('docs', 5174, true);
+      sys.spire.preview('blue', 1, true);
+      sys.spire.preview('teal', 2, true);
       await host.say([c.line]);
     }
     await host.say([L('ports')]);
-    host.setQuest('Q2.5', 'solved');
+    host.setQuest(quest, 'solved');
     close();
     await host.beat(host.closing, 'Fen');
   }

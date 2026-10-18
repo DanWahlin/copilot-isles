@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-16T22:39:54.458Z",
+  "generatedAt": "2026-10-18T08:05:52.555Z",
   "set": "testcove",
   "lines": [
     {
@@ -29879,131 +29879,131 @@
       "id": "mer.market.hello",
       "speaker": "Gilda",
       "text": "Ahoy, Captain! Welcome to Gilda's Model Market. Trade your starfish for a model that fits the job. Bigger models cost more.",
-      "duration": 9.308,
+      "duration": 10.108,
       "files": {
         "webm": "mer.market.hello.webm",
         "m4a": "mer.market.hello.m4a"
       },
-      "hash": "b0ce1de240f3da72",
+      "hash": "0ba0746779c393fc",
       "words": [
         {
           "word": "Ahoy",
           "start": 0,
-          "end": 0.805
+          "end": 0.84
         },
         {
           "word": "Captain",
-          "start": 0.805,
-          "end": 1.25
+          "start": 0.84,
+          "end": 1.75
         },
         {
           "word": "Welcome",
-          "start": 1.25,
-          "end": 1.653
+          "start": 1.75,
+          "end": 2.267
         },
         {
           "word": "to",
-          "start": 1.653,
-          "end": 1.8
+          "start": 2.267,
+          "end": 2.4
         },
         {
           "word": "Gilda's",
-          "start": 1.8,
-          "end": 2.293
+          "start": 2.4,
+          "end": 2.933
         },
         {
           "word": "Model",
-          "start": 2.293,
-          "end": 2.629
+          "start": 2.933,
+          "end": 3.269
         },
         {
           "word": "Market",
-          "start": 2.629,
-          "end": 3.253
+          "start": 3.269,
+          "end": 3.947
         },
         {
           "word": "Trade",
-          "start": 3.253,
-          "end": 3.552
+          "start": 3.947,
+          "end": 4.912
         },
         {
           "word": "your",
-          "start": 3.552,
-          "end": 3.776
+          "start": 4.912,
+          "end": 5.136
         },
         {
           "word": "starfish",
-          "start": 3.776,
-          "end": 4.58
+          "start": 5.136,
+          "end": 5.92
         },
         {
           "word": "for",
-          "start": 4.58,
-          "end": 4.92
+          "start": 5.92,
+          "end": 6.24
         },
         {
           "word": "a",
-          "start": 4.92,
-          "end": 5.04
+          "start": 6.24,
+          "end": 6.373
         },
         {
           "word": "model",
-          "start": 5.04,
-          "end": 5.504
+          "start": 6.373,
+          "end": 6.672
         },
         {
           "word": "that",
-          "start": 5.504,
-          "end": 5.84
+          "start": 6.672,
+          "end": 6.864
         },
         {
           "word": "fits",
-          "start": 5.84,
-          "end": 6.2
+          "start": 6.864,
+          "end": 7.14
         },
         {
           "word": "the",
-          "start": 6.2,
-          "end": 6.42
+          "start": 7.14,
+          "end": 7.3
         },
         {
           "word": "job",
-          "start": 6.42,
-          "end": 7.04
+          "start": 7.3,
+          "end": 8.2
         },
         {
           "word": "Bigger",
-          "start": 7.04,
-          "end": 7.589
+          "start": 8.2,
+          "end": 8.937
         },
         {
           "word": "models",
-          "start": 7.589,
-          "end": 8.128
+          "start": 8.937,
+          "end": 9.36
         },
         {
           "word": "cost",
-          "start": 8.128,
-          "end": 8.704
+          "start": 9.36,
+          "end": 9.744
         },
         {
           "word": "more",
-          "start": 8.704,
-          "end": 8.954
+          "start": 9.744,
+          "end": 9.994
         }
       ],
-      "voice": "5DTSWAtuA2BoWMSMFTRP"
+      "voice": "aAsWcN5jdLdiYG7Hq0YL"
     },
     {
       "id": "mer.market.open",
       "speaker": "Gilda",
       "text": "Pick a job from the board, then hire a model and set the effort dial.",
-      "duration": 5.108,
+      "duration": 4.608,
       "files": {
         "webm": "mer.market.open.webm",
         "m4a": "mer.market.open.m4a"
       },
-      "hash": "8c8c29cd2997d174",
+      "hash": "d06cd0edd36b8a90",
       "words": [
         {
           "word": "Pick",
@@ -30013,31 +30013,31 @@
         {
           "word": "a",
           "start": 0.2,
-          "end": 0.34
+          "end": 0.3
         },
         {
           "word": "job",
-          "start": 0.34,
-          "end": 0.672
+          "start": 0.3,
+          "end": 0.512
         },
         {
           "word": "from",
-          "start": 0.672,
-          "end": 0.84
+          "start": 0.512,
+          "end": 0.66
         },
         {
           "word": "the",
-          "start": 0.84,
-          "end": 1.013
+          "start": 0.66,
+          "end": 0.787
         },
         {
           "word": "board",
-          "start": 1.013,
-          "end": 1.648
+          "start": 0.787,
+          "end": 1.552
         },
         {
           "word": "then",
-          "start": 1.648,
+          "start": 1.552,
           "end": 1.904
         },
         {
@@ -30048,595 +30048,595 @@
         {
           "word": "a",
           "start": 2.2,
-          "end": 2.32
+          "end": 2.307
         },
         {
           "word": "model",
-          "start": 2.32,
-          "end": 2.8
+          "start": 2.307,
+          "end": 2.74
         },
         {
           "word": "and",
-          "start": 2.8,
-          "end": 3.12
+          "start": 2.74,
+          "end": 3.16
         },
         {
           "word": "set",
-          "start": 3.12,
-          "end": 3.44
+          "start": 3.16,
+          "end": 3.54
         },
         {
           "word": "the",
-          "start": 3.44,
-          "end": 3.771
+          "start": 3.54,
+          "end": 3.657
         },
         {
           "word": "effort",
-          "start": 3.771,
-          "end": 4.4
+          "start": 3.657,
+          "end": 4.096
         },
         {
           "word": "dial",
-          "start": 4.4,
-          "end": 4.65
+          "start": 4.096,
+          "end": 4.346
         }
       ],
-      "voice": "5DTSWAtuA2BoWMSMFTRP"
+      "voice": "aAsWcN5jdLdiYG7Hq0YL"
     },
     {
       "id": "mer.market.auto",
       "speaker": "Gilda",
       "text": "Auto's the house special. The app chooses a model for you, then tells you which one and why. It isn't Autopilot, mind.",
-      "duration": 9.208,
+      "duration": 7.608,
       "files": {
         "webm": "mer.market.auto.webm",
         "m4a": "mer.market.auto.m4a"
       },
-      "hash": "df432b3763735bd5",
+      "hash": "23560762edc69e71",
       "words": [
         {
           "word": "Auto's",
           "start": 0,
-          "end": 0.58
+          "end": 0.5
         },
         {
           "word": "the",
-          "start": 0.58,
-          "end": 0.693
+          "start": 0.5,
+          "end": 0.6
         },
         {
           "word": "house",
-          "start": 0.693,
-          "end": 1.03
+          "start": 0.6,
+          "end": 0.86
         },
         {
           "word": "special",
-          "start": 1.03,
-          "end": 1.68
+          "start": 0.86,
+          "end": 1.63
         },
         {
           "word": "The",
-          "start": 1.68,
-          "end": 2.02
+          "start": 1.63,
+          "end": 1.9
         },
         {
           "word": "app",
-          "start": 2.02,
-          "end": 2.38
+          "start": 1.9,
+          "end": 2.13
         },
         {
           "word": "chooses",
-          "start": 2.38,
-          "end": 2.88
+          "start": 2.13,
+          "end": 2.52
         },
         {
           "word": "a",
-          "start": 2.88,
-          "end": 3.027
+          "start": 2.52,
+          "end": 2.6
         },
         {
           "word": "model",
-          "start": 3.027,
-          "end": 3.4
+          "start": 2.6,
+          "end": 2.88
         },
         {
           "word": "for",
-          "start": 3.4,
-          "end": 3.58
+          "start": 2.88,
+          "end": 3.18
         },
         {
           "word": "you",
-          "start": 3.58,
-          "end": 4.032
+          "start": 3.18,
+          "end": 3.504
         },
         {
           "word": "then",
-          "start": 4.032,
-          "end": 4.24
+          "start": 3.504,
+          "end": 3.653
         },
         {
           "word": "tells",
-          "start": 4.24,
-          "end": 4.68
+          "start": 3.653,
+          "end": 3.94
         },
         {
           "word": "you",
-          "start": 4.68,
-          "end": 4.867
+          "start": 3.94,
+          "end": 4.053
         },
         {
           "word": "which",
-          "start": 4.867,
-          "end": 5.3
+          "start": 4.053,
+          "end": 4.4
         },
         {
           "word": "one",
-          "start": 5.3,
-          "end": 5.7
+          "start": 4.4,
+          "end": 4.7
         },
         {
           "word": "and",
-          "start": 5.7,
-          "end": 6.12
+          "start": 4.7,
+          "end": 4.98
         },
         {
           "word": "why",
-          "start": 6.12,
-          "end": 6.667
+          "start": 4.98,
+          "end": 5.6
         },
         {
           "word": "It",
-          "start": 6.667,
-          "end": 6.98
+          "start": 5.6,
+          "end": 5.98
         },
         {
           "word": "isn't",
-          "start": 6.98,
-          "end": 7.46
+          "start": 5.98,
+          "end": 6.3
         },
         {
           "word": "Autopilot",
-          "start": 7.46,
-          "end": 8.608
+          "start": 6.3,
+          "end": 7.248
         },
         {
           "word": "mind",
-          "start": 8.608,
-          "end": 8.858
+          "start": 7.248,
+          "end": 7.498
         }
       ],
-      "voice": "5DTSWAtuA2BoWMSMFTRP"
+      "voice": "aAsWcN5jdLdiYG7Hq0YL"
     },
     {
       "id": "mer.market.right",
       "speaker": "Gilda",
       "text": "Right-sized! Here's some starfish back for hiring smart.",
-      "duration": 4.008,
+      "duration": 4.208,
       "files": {
         "webm": "mer.market.right.webm",
         "m4a": "mer.market.right.m4a"
       },
-      "hash": "1cc6f8559c6c5082",
+      "hash": "4e73b8e88310d9f9",
       "words": [
         {
           "word": "Right-sized",
           "start": 0,
-          "end": 0.944
+          "end": 1.04
         },
         {
           "word": "Here's",
-          "start": 0.944,
-          "end": 1.312
+          "start": 1.04,
+          "end": 1.472
         },
         {
           "word": "some",
-          "start": 1.312,
-          "end": 1.52
+          "start": 1.472,
+          "end": 1.696
         },
         {
           "word": "starfish",
-          "start": 1.52,
-          "end": 2.16
+          "start": 1.696,
+          "end": 2.384
         },
         {
           "word": "back",
-          "start": 2.16,
-          "end": 2.52
+          "start": 2.384,
+          "end": 2.68
         },
         {
           "word": "for",
-          "start": 2.52,
-          "end": 2.709
+          "start": 2.68,
+          "end": 2.88
         },
         {
           "word": "hiring",
-          "start": 2.709,
-          "end": 3.227
+          "start": 2.88,
+          "end": 3.467
         },
         {
           "word": "smart",
-          "start": 3.227,
-          "end": 3.477
+          "start": 3.467,
+          "end": 3.717
         }
       ],
-      "voice": "5DTSWAtuA2BoWMSMFTRP"
+      "voice": "aAsWcN5jdLdiYG7Hq0YL"
     },
     {
       "id": "mer.market.over",
       "speaker": "Gilda",
       "text": "That's a lot of starfish for a quick look. Auto would've done it.",
-      "duration": 4.408,
+      "duration": 4.008,
       "files": {
         "webm": "mer.market.over.webm",
         "m4a": "mer.market.over.m4a"
       },
-      "hash": "3aac83d6aa809441",
+      "hash": "0eb612f5a227648d",
       "words": [
         {
           "word": "That's",
           "start": 0,
-          "end": 0.36
+          "end": 0.28
         },
         {
           "word": "a",
-          "start": 0.36,
-          "end": 0.52
+          "start": 0.28,
+          "end": 0.34
         },
         {
           "word": "lot",
-          "start": 0.52,
-          "end": 0.907
+          "start": 0.34,
+          "end": 0.453
         },
         {
           "word": "of",
-          "start": 0.907,
-          "end": 1.04
+          "start": 0.453,
+          "end": 0.64
         },
         {
           "word": "starfish",
-          "start": 1.04,
-          "end": 1.64
+          "start": 0.64,
+          "end": 1.24
         },
         {
           "word": "for",
-          "start": 1.64,
-          "end": 1.8
+          "start": 1.24,
+          "end": 1.4
         },
         {
           "word": "a",
-          "start": 1.8,
-          "end": 1.88
+          "start": 1.4,
+          "end": 1.48
         },
         {
           "word": "quick",
-          "start": 1.88,
-          "end": 2.16
+          "start": 1.48,
+          "end": 1.76
         },
         {
           "word": "look",
-          "start": 2.16,
-          "end": 2.96
+          "start": 1.76,
+          "end": 2.368
         },
         {
           "word": "Auto",
-          "start": 2.96,
-          "end": 3.307
+          "start": 2.368,
+          "end": 3.213
         },
         {
           "word": "would've",
-          "start": 3.307,
-          "end": 3.568
+          "start": 3.213,
+          "end": 3.472
         },
         {
           "word": "done",
-          "start": 3.568,
-          "end": 3.84
+          "start": 3.472,
+          "end": 3.653
         },
         {
           "word": "it",
-          "start": 3.84,
-          "end": 4.09
+          "start": 3.653,
+          "end": 3.903
         }
       ],
-      "voice": "5DTSWAtuA2BoWMSMFTRP"
+      "voice": "aAsWcN5jdLdiYG7Hq0YL"
     },
     {
       "id": "mer.market.over.effort",
       "speaker": "Gilda",
       "text": "High effort for a quick look? The default would've done it.",
-      "duration": 3.808,
+      "duration": 3.608,
       "files": {
         "webm": "mer.market.over.effort.webm",
         "m4a": "mer.market.over.effort.m4a"
       },
-      "hash": "49e19431e751e535",
+      "hash": "4199d8ed7c847be0",
       "words": [
         {
           "word": "High",
           "start": 0,
-          "end": 0.309
+          "end": 0.286
         },
         {
           "word": "effort",
-          "start": 0.309,
-          "end": 0.78
+          "start": 0.286,
+          "end": 0.6
         },
         {
           "word": "for",
-          "start": 0.78,
-          "end": 1
+          "start": 0.6,
+          "end": 0.76
         },
         {
           "word": "a",
-          "start": 1,
-          "end": 1.093
+          "start": 0.76,
+          "end": 0.853
         },
         {
           "word": "quick",
-          "start": 1.093,
-          "end": 1.44
+          "start": 0.853,
+          "end": 1.2
         },
         {
           "word": "look",
-          "start": 1.44,
-          "end": 1.96
+          "start": 1.2,
+          "end": 2.07
         },
         {
           "word": "The",
-          "start": 1.96,
-          "end": 2.38
+          "start": 2.07,
+          "end": 2.46
         },
         {
           "word": "default",
-          "start": 2.38,
-          "end": 2.827
+          "start": 2.46,
+          "end": 2.907
         },
         {
           "word": "would've",
-          "start": 2.827,
-          "end": 3.072
+          "start": 2.907,
+          "end": 3.152
         },
         {
           "word": "done",
-          "start": 3.072,
-          "end": 3.28
+          "start": 3.152,
+          "end": 3.36
         },
         {
           "word": "it",
-          "start": 3.28,
-          "end": 3.53
+          "start": 3.36,
+          "end": 3.608
         }
       ],
-      "voice": "5DTSWAtuA2BoWMSMFTRP"
+      "voice": "aAsWcN5jdLdiYG7Hq0YL"
     },
     {
       "id": "mer.market.short",
       "speaker": "Gilda",
       "text": "Not quite. This job needs more muscle. Retry with a stronger model or more effort.",
-      "duration": 6.808,
+      "duration": 5.908,
       "files": {
         "webm": "mer.market.short.webm",
         "m4a": "mer.market.short.m4a"
       },
-      "hash": "98e9f65ea7f4fb2c",
+      "hash": "dbeeeb676c713a61",
       "words": [
         {
           "word": "Not",
           "start": 0,
-          "end": 0.467
+          "end": 0.32
         },
         {
           "word": "quite",
-          "start": 0.467,
-          "end": 0.944
+          "start": 0.32,
+          "end": 1.072
         },
         {
           "word": "This",
-          "start": 0.944,
-          "end": 1.3
+          "start": 1.072,
+          "end": 1.26
         },
         {
           "word": "job",
-          "start": 1.3,
-          "end": 1.667
+          "start": 1.26,
+          "end": 1.48
         },
         {
           "word": "needs",
-          "start": 1.667,
-          "end": 2.064
+          "start": 1.48,
+          "end": 1.712
         },
         {
           "word": "more",
-          "start": 2.064,
-          "end": 2.4
+          "start": 1.712,
+          "end": 1.909
         },
         {
           "word": "muscle",
-          "start": 2.4,
-          "end": 3.067
+          "start": 1.909,
+          "end": 2.587
         },
         {
           "word": "Retry",
-          "start": 3.067,
-          "end": 3.632
+          "start": 2.587,
+          "end": 3.568
         },
         {
           "word": "with",
-          "start": 3.632,
+          "start": 3.568,
           "end": 3.8
         },
         {
           "word": "a",
           "start": 3.8,
-          "end": 3.902
+          "end": 3.884
         },
         {
           "word": "stronger",
-          "start": 3.902,
-          "end": 4.493
+          "start": 3.884,
+          "end": 4.307
         },
         {
           "word": "model",
-          "start": 4.493,
-          "end": 5.093
+          "start": 4.307,
+          "end": 4.773
         },
         {
           "word": "or",
-          "start": 5.093,
-          "end": 5.424
+          "start": 4.773,
+          "end": 5.088
         },
         {
           "word": "more",
-          "start": 5.424,
-          "end": 5.783
+          "start": 5.088,
+          "end": 5.349
         },
         {
           "word": "effort",
-          "start": 5.783,
-          "end": 6.033
+          "start": 5.349,
+          "end": 5.599
         }
       ],
-      "voice": "5DTSWAtuA2BoWMSMFTRP"
+      "voice": "aAsWcN5jdLdiYG7Hq0YL"
     },
     {
       "id": "mer.market.short.auto",
       "speaker": "Gilda",
       "text": "With Auto on, the effort setting's hidden. For a job this hard, turn Auto off, then pick a model and a higher effort.",
-      "duration": 9.808,
+      "duration": 8.408,
       "files": {
         "webm": "mer.market.short.auto.webm",
         "m4a": "mer.market.short.auto.m4a"
       },
-      "hash": "7a7cc97ac1a368bd",
+      "hash": "29bbdf91c8bae501",
       "words": [
         {
           "word": "With",
           "start": 0,
-          "end": 0.336
+          "end": 0.24
         },
         {
           "word": "Auto",
-          "start": 0.336,
-          "end": 0.853
+          "start": 0.24,
+          "end": 0.667
         },
         {
           "word": "on",
-          "start": 0.853,
-          "end": 1.24
+          "start": 0.667,
+          "end": 1.22
         },
         {
           "word": "the",
-          "start": 1.24,
-          "end": 1.417
+          "start": 1.22,
+          "end": 1.326
         },
         {
           "word": "effort",
-          "start": 1.417,
-          "end": 1.82
+          "start": 1.326,
+          "end": 1.64
         },
         {
           "word": "setting's",
-          "start": 1.82,
-          "end": 2.48
+          "start": 1.64,
+          "end": 2.126
         },
         {
           "word": "hidden",
-          "start": 2.48,
-          "end": 3.3
+          "start": 2.126,
+          "end": 2.72
         },
         {
           "word": "For",
-          "start": 3.3,
-          "end": 3.64
+          "start": 2.72,
+          "end": 3.28
         },
         {
           "word": "a",
-          "start": 3.64,
-          "end": 3.78
+          "start": 3.28,
+          "end": 3.4
         },
         {
           "word": "job",
-          "start": 3.78,
-          "end": 4.144
+          "start": 3.4,
+          "end": 3.568
         },
         {
           "word": "this",
-          "start": 4.144,
-          "end": 4.496
+          "start": 3.568,
+          "end": 3.824
         },
         {
           "word": "hard",
-          "start": 4.496,
-          "end": 5.024
+          "start": 3.824,
+          "end": 4.384
         },
         {
           "word": "turn",
-          "start": 5.024,
-          "end": 5.376
+          "start": 4.384,
+          "end": 4.736
         },
         {
           "word": "Auto",
-          "start": 5.376,
-          "end": 5.9
+          "start": 4.736,
+          "end": 5.22
         },
         {
           "word": "off",
-          "start": 5.9,
-          "end": 6.864
+          "start": 5.22,
+          "end": 5.984
         },
         {
           "word": "then",
-          "start": 6.864,
-          "end": 7.184
+          "start": 5.984,
+          "end": 6.32
         },
         {
           "word": "pick",
-          "start": 7.184,
-          "end": 7.48
+          "start": 6.32,
+          "end": 6.68
         },
         {
           "word": "a",
-          "start": 7.48,
-          "end": 7.587
+          "start": 6.68,
+          "end": 6.787
         },
         {
           "word": "model",
-          "start": 7.587,
-          "end": 7.98
+          "start": 6.787,
+          "end": 7.18
         },
         {
           "word": "and",
-          "start": 7.98,
-          "end": 8.2
+          "start": 7.18,
+          "end": 7.4
         },
         {
           "word": "a",
-          "start": 8.2,
-          "end": 8.309
+          "start": 7.4,
+          "end": 7.486
         },
         {
           "word": "higher",
-          "start": 8.309,
-          "end": 8.823
+          "start": 7.486,
+          "end": 7.817
         },
         {
           "word": "effort",
-          "start": 8.823,
-          "end": 9.073
+          "start": 7.817,
+          "end": 8.067
         }
       ],
-      "voice": "5DTSWAtuA2BoWMSMFTRP"
+      "voice": "aAsWcN5jdLdiYG7Hq0YL"
     },
     {
       "id": "mer.market.broke",
       "speaker": "Gilda",
       "text": "No starfish? They hide all over the islands. Come back when you've found some.",
-      "duration": 5.708,
+      "duration": 4.908,
       "files": {
         "webm": "mer.market.broke.webm",
         "m4a": "mer.market.broke.m4a"
       },
-      "hash": "2b7fbb25d86d9a8a",
+      "hash": "f62da316838d8419",
       "words": [
         {
           "word": "No",
@@ -30646,149 +30646,149 @@
         {
           "word": "starfish",
           "start": 0.24,
-          "end": 1.168
+          "end": 1.44
         },
         {
           "word": "They",
-          "start": 1.168,
-          "end": 1.744
+          "start": 1.44,
+          "end": 1.824
         },
         {
           "word": "hide",
-          "start": 1.744,
-          "end": 2.14
+          "start": 1.824,
+          "end": 2.12
         },
         {
           "word": "all",
-          "start": 2.14,
-          "end": 2.624
+          "start": 2.12,
+          "end": 2.288
         },
         {
           "word": "over",
-          "start": 2.624,
-          "end": 2.9
+          "start": 2.288,
+          "end": 2.52
         },
         {
           "word": "the",
-          "start": 2.9,
-          "end": 3.04
+          "start": 2.52,
+          "end": 2.74
         },
         {
           "word": "islands",
-          "start": 3.04,
-          "end": 3.776
+          "start": 2.74,
+          "end": 3.584
         },
         {
           "word": "Come",
-          "start": 3.776,
-          "end": 4.224
+          "start": 3.584,
+          "end": 3.712
         },
         {
           "word": "back",
-          "start": 4.224,
-          "end": 4.512
+          "start": 3.712,
+          "end": 3.872
         },
         {
           "word": "when",
-          "start": 4.512,
-          "end": 4.66
+          "start": 3.872,
+          "end": 4.02
         },
         {
           "word": "you've",
-          "start": 4.66,
-          "end": 4.933
+          "start": 4.02,
+          "end": 4.213
         },
         {
           "word": "found",
-          "start": 4.933,
-          "end": 5.28
+          "start": 4.213,
+          "end": 4.56
         },
         {
           "word": "some",
-          "start": 5.28,
-          "end": 5.53
+          "start": 4.56,
+          "end": 4.81
         }
       ],
-      "voice": "5DTSWAtuA2BoWMSMFTRP"
+      "voice": "aAsWcN5jdLdiYG7Hq0YL"
     },
     {
       "id": "mer.market.done",
       "speaker": "Gilda",
       "text": "Every job on the board, right-sized. You've got an eye for models, Captain!",
-      "duration": 6.208,
+      "duration": 4.408,
       "files": {
         "webm": "mer.market.done.webm",
         "m4a": "mer.market.done.m4a"
       },
-      "hash": "77b46b1b95557297",
+      "hash": "ae8e6a7c9371db79",
       "words": [
         {
           "word": "Every",
           "start": 0,
-          "end": 0.42
+          "end": 0.38
         },
         {
           "word": "job",
-          "start": 0.42,
-          "end": 0.8
+          "start": 0.38,
+          "end": 0.587
         },
         {
           "word": "on",
-          "start": 0.8,
-          "end": 0.98
+          "start": 0.587,
+          "end": 0.66
         },
         {
           "word": "the",
-          "start": 0.98,
-          "end": 1.12
+          "start": 0.66,
+          "end": 0.787
         },
         {
           "word": "board",
-          "start": 1.12,
-          "end": 2.067
+          "start": 0.787,
+          "end": 1.333
         },
         {
           "word": "right-sized",
-          "start": 2.067,
-          "end": 3.14
+          "start": 1.333,
+          "end": 2.34
         },
         {
           "word": "You've",
-          "start": 3.14,
-          "end": 3.56
+          "start": 2.34,
+          "end": 2.76
         },
         {
           "word": "got",
-          "start": 3.56,
-          "end": 3.76
+          "start": 2.76,
+          "end": 2.907
         },
         {
           "word": "an",
-          "start": 3.76,
-          "end": 3.98
+          "start": 2.907,
+          "end": 3.02
         },
         {
           "word": "eye",
-          "start": 3.98,
-          "end": 4.2
+          "start": 3.02,
+          "end": 3.22
         },
         {
           "word": "for",
-          "start": 4.2,
-          "end": 4.411
+          "start": 3.22,
+          "end": 3.337
         },
         {
           "word": "models",
-          "start": 4.411,
-          "end": 5.365
+          "start": 3.337,
+          "end": 3.81
         },
         {
           "word": "Captain",
-          "start": 5.365,
-          "end": 5.615
+          "start": 3.81,
+          "end": 4.0600000000000005
         }
       ],
-      "voice": "5DTSWAtuA2BoWMSMFTRP"
+      "voice": "aAsWcN5jdLdiYG7Hq0YL"
     }
   ]
 }

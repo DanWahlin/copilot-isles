@@ -13,10 +13,10 @@ Chapter 00, captions only). To add one, see [Adding a course](adding-a-course.md
 
 | File (in `courses/<id>/`) | What it controls | Who changes it | Loader (typed) |
 | --- | --- | --- | --- |
-| `course.json` | The course's id, title, tagline, description and language; its source (repository, license, copyright, chapters); the islands it uses (each one's chapter, chart label, minutes, Seal, topics, and arrival-card lines); its practice values (issue, branch, repository name); the "Your setup" forms' words (`setup`); and the lines and questions the game asks for by id (`hooks`) | You, by hand | `src/course/catalog.ts` |
+| `course.json` | The course's id, title, tagline, description and language; its source (repository, license, copyright, chapters); the islands it uses (each one's chapter, chart label, minutes, Seal, topics, and arrival-card lines); its practice values (issue, branch, repository name); the "Your setup" forms' words (`setup`); the lines and questions the game asks for by id (`hooks`); and how older saves move to today's ids (`migrations`, `legacySaves`) | You, by hand | `src/course/catalog.ts` |
 | `chapters/<chapter>.json` | A chapter's course images, quizzes, Logbook pages, chests, glossary terms, Trials, and the course sections voiced (`voiced`) and unvoiced (`cited`) teaching lines paraphrase ([course-content-authoring.md](course-content-authoring.md)) | You, by hand | `src/learn/content/index.ts` |
-| `quests/<island>.json` | An island's quests (title, task, link, what each step says), the tracker's header, where the compass points for each step, every named script its NPCs and puzzles play, which script or line each NPC offers when (`beats`), and its NPCs' barks | You, by hand | `src/course/active.ts`, `src/game/beats.ts`, `src/game/*-quests.ts` |
-| `puzzles/<name>.json` | One puzzle's content: what you sort, pick or route, the answers and the reasons a wrong pick gets, the course sections they cite, the site's signs, the overlay's and Wingman's words (`text`) and the voice lines it plays (`lines`). Each names its `mechanic`, and `"disabled": true` turns the puzzle off | You, by hand | `src/course/puzzles.ts`, the puzzle's module |
+| `quests/<island>.json` | An island's quests (title, task, link, what each step says), the tracker's header, where the compass points for each step, every named script its NPCs and puzzles play, which script or line each NPC offers when (`beats`), what the game's story conditions and events mean in its quests (`story`), and its NPCs' barks | You, by hand | `src/course/active.ts`, `src/game/beats.ts`, `src/game/story.ts`, `src/game/*-quests.ts` |
+| `puzzles/<name>.json` | One puzzle's content: what you sort, pick or route, the answers and the reasons a wrong pick gets, the course sections they cite, the site's signs, the overlay's and Wingman's words (`text`) and the voice lines it plays (`lines`). Each names its `mechanic` and the `quest` it plays in, and `"disabled": true` turns the puzzle off | You, by hand | `src/course/puzzles.ts`, the puzzle's module |
 | `labels.json` | Chart labels: what you learn at an island, a puzzle or a sea battle (docs/specs/LOWER-THIRDS.md) | You, by hand | `src/learn/content/labels.ts` |
 | `boards.json` | The course notice boards' header and pin text, and the `##` sections that aren't topics | You, by hand | `src/content/course-boards.ts` |
 | `market.json` (optional) | The Model Market: model categories (order, price, tagline), effort levels (label, price), the Auto price and the price cap, refunds and doubloons by job size, the board rule's numbers (`board.size`, `board.perFamily`), the stamps, the course quotes, the jobs on Gilda's board, and Gilda's lines | You, by hand | `src/content/market.ts` |
@@ -32,9 +32,10 @@ Don't edit `models.json`, `lock.json`, the snapshot or the voice files by hand: 
 What the game owns stays in code on purpose: the islands and their art, the characters (names,
 looks, where they stand), where each notice board stands (`src/world/islands/course-boards.ts`), the
 grading rules (`src/game/market/jobs.ts`), the board rule's order (`src/game/market/catalog.ts`), each
-puzzle's mechanic (its rules, grid, geometry and controls), the quests' trackers, saves and island
-gating. [COURSE-PACKS.md](specs/COURSE-PACKS.md) ("Still course-specific in code after step 3") lists
-what's left.
+puzzle's mechanic (its rules, grid, geometry and controls, and the quest steps it sets), where chests
+and bottles stand, the quests' trackers, saves and island gating, and the names of what the game asks
+each island's story. No game code names a quest id. [COURSE-PACKS.md](specs/COURSE-PACKS.md) ("Still
+course-specific in code after step 5") lists what's left: only the game's own.
 
 ### How the game loads a pack
 
@@ -76,7 +77,16 @@ so VS Code and other editors check your edit as you type and show each field's d
   the cabin `briefing`; each island's `welcome` (`@nav` and `@starfish` mark where its `tips` go; they're
   left out when the tips are off), `welcomeBack` and `landing`; the `sail` line; `npcVoiced` (what an
   NPC with no script says instead of a bark); `setPieces` (the gondola's line); and the sea `battles`
-  (each wave's quiz and its raiders' names, and the line when it's won).
+  (each wave's quiz and its raiders' names, and the line when it's won). A battle starts once its home
+  island's story says `sealed`.
+- **`migrations`**: how an older save moves to today's ids when it loads. `quests` are rules in the
+  story's format (below), run in order when a session starts: `{ "when": { "Q0.3": "done", "Q0.4": null },
+  "set": { "Q0.4": "start" } }`. A rule's `when` may name quests the course no longer has; what it sets
+  must exist. `$workflowsOn` is whether the mill's gate lever was pulled (left out without a save).
+  `renamed` maps an old Logbook id (a page or glossary term) to today's; `taught` gives saves that finished
+  a quest the glossary terms it teaches now. Write each rule so running it twice changes nothing.
+- **`legacySaves`**: `true` on the one course that saves from before course packs belong to (today
+  copilot-app).
 
 ### `chapters/<chapter>.json` and `quests/<island>.json`
 
@@ -93,6 +103,18 @@ so VS Code and other editors check your edit as you type and show each field's d
   started, a list of either, or `{ "not": … }`); a key starting with `$` is a flag the island passes in
   (`$lettersFiled`). A row has one of `script` (a script of the island), `say` (one line) or `none`
   (nothing: the NPC barks). No row also means a bark.
+- **Signs** (`signs`): the island's signs with course words, by the names the game asks for
+  (`ISLAND_SIGNS` in `src/course/pack.ts`): Thousand-Bough's `loft`, the board over the top deck's house
+  (`"signs": { "loft": "Chronicle Loft" }`). Every name the game asks for is required, and no others.
+- **The story** (`story`) is the island's quest skeleton: what each condition and event the game asks
+  for means in this course's quests (`src/game/story.ts`, `STORY_CONDITIONS` and `STORY_EVENTS`). A
+  condition is a `when`: `"sealed": { "Q0.10": "done" }`. An event is a list of rules, each `{ "when"?,
+  "set": { quest: step } }`, applied in order (each sees what the ones before it set): `"setSail":
+  [{ "when": { "Q0.11": "sail" }, "set": { "Q0.11": "done" } }]`. Anchorage needs `firstVisit` (the
+  first welcome), `trialStarted` (Nell waits at the pier head), `sealed`, `gangwayDown`, and the events
+  `landed` (a session starts) and `setSail` (you take the helm); Port Meridian `firstVisit` and `sealed`;
+  Thousand-Bough `firstVisit`, `gondolaOpen`, `secondBridge`, `practiceStarted`, `basketOpen`,
+  `skipCrownView` and `sealed`. Your quest ids are yours: the game never names one.
 
 ### `puzzles/<name>.json`
 
@@ -111,13 +133,32 @@ so VS Code and other editors check your edit as you type and show each field's d
   Hoist's `section` anchors are in the file's `chapter`. The content check holds them to the lock.
 - **`"disabled": true`** turns a puzzle off: its site stays as scenery, and the cue that would start it
   does nothing. Change the quests that wait on it too (their step won't finish by itself).
-- Ids the game's logic knows stay as they are: a crate's `kind` (`chat`, `project`), a letter's
-  `answer` (an alcove id or `tray`), a flag's `symbol`, the helms' modes (`interactive`, `plan`,
-  `autopilot`), the places (`worktree`, `checkout`, `cloud`) and the twist's answers' ids.
+- **`quest`**: the quest the puzzle plays in. It must have the steps the puzzle's mechanic sets and
+  waits on (`PUZZLE_STEPS` in `src/course/puzzles.ts`: the crane's `gate`, `crane`, `solved` and
+  `done`, the crate yard's `crates`, `solved` and `done`…). If the quest calls one of them something
+  else, map it in **`steps`** (game step → the quest's step: the Copilot app course's crane has
+  `"steps": { "gate": "actions" }`). The palette's `latePage` and the market's `page` are pages in the
+  course.
+- **Your ids, bound to the game's (`acts`)**: where a puzzle acts a concept out, name it with your own
+  id and bind it to what the game does, each game id once: the helms' `modes` (`steer`, `review`,
+  `auto`) and `review` options (`accept`, `takeOver`, `amend`); Channel Routing's `crews` (`blue`,
+  `green`, `teal`, with each one's treehouse `sign`) and twist answers (`reroute`, `close`, `jam`,
+  `none`; a right one reroutes or closes); the workspaces' `places` (`channel`, `hall`, `gondola`);
+  the crate yard's `bins` (`tavern`, `slipway`); the crane's `cargo` (`pennants`, `notices`, `hulls`,
+  `seals`). Your other entries (orders, wrong picks, hints, items' bins) name your ids:
+  `"modes": { "interactive": { "acts": "steer", "name": "Interactive", "says": "…" } }`.
+- The Lost Letters' bins and tray and the Flag Hoist's flags are just your ids: one bin may be
+  `"apart": true` (its plate is brown and its button stands apart), letters' answers name a bin or your
+  tray's `id`, and the flags hang on the mast in order (four halyards at most), painted with your
+  symbols. Thousand-Bough's signs with course words are Channel Routing's (`text.hallSign`,
+  `scaffoldSign`, `lookout1`, `lookout2`); the top deck's house board is the island's (below).
 
 ### `market.json`
 
-- **Prices** are starfish. `categories[].price` must go up from Lightweight to Powerful. A hire costs
+- **Categories** are your model categories (models.json names them), smallest first, each bound to a
+  size the grading reads (`"acts"`: `small`, `medium`, `large`, in that order): a quick look wants a
+  small one; a hard job a large one, or a medium one on high effort.
+- **Prices** are starfish. `categories[].price` must go up from the smallest to the largest. A hire costs
   its category's price plus its effort's price, up to `maxPrice` (at most 4). Auto costs `autoPrice`.
 - **Refunds** (`sizes.quick.refund`, `sizes.hard.refund`) are paid for a right-sized hire. A refund
   can't be more than the cheapest right-sized hire for that size, so a hire never makes starfish.
@@ -127,7 +168,7 @@ so VS Code and other editors check your edit as you type and show each field's d
 - **Quotes** are course sentences, word for word (`**bold**` included), with the section they're from:
   `chapter`, `anchor` and `hash`. Get the anchor and hash from `npm run course:refs -- 01`. The overlay
   shows the section's title from the course lock. The keys the grading uses (`cost`, `effort`,
-  `hard`, `noGuarantee`, `auto`, `autopilot`, `autoHidden`, `retry`) must stay.
+  `hard`, `noGuarantee`, `auto`, `autoAside`, `autoHidden`, `retry`) must stay.
 - **Jobs** (at most four: the cork board has four spots) name a quote key in `why`. A job's `id` is
   saved in players' progress, so don't rename it.
 - **Gilda's lines** (`gilda.*`) have a `voice` (the line's id in the pack's `voice/lines.json`), the
@@ -184,6 +225,13 @@ change. The checks (tools/content/check.ts):
   Trials, images, quest steps, other scripts), in quests and in puzzles; the compass's quest steps; the
   islands and chapters `course.json` names; the NPCs given barks or beats (the game's cast); each
   beat's quests, steps and script; the hooks' islands, NPCs and battle quizzes;
+- the quest skeleton: each island's `story` has every condition and event the game asks for (and no
+  other), and its quests and steps resolve; each enabled puzzle names a `quest` with its mechanic's
+  steps; the migrations set quests and steps, and rename to pages and terms, that exist; every chest
+  and bottle the game places on the course's islands is a chest in its chapters;
+- the bindings: each game id a puzzle acts out is bound once (`acts`: helm modes and review options,
+  crews, places, crate bins, cargo props, market sizes smallest first), and the pack's own ids resolve
+  (orders, wrong picks, hints, letters' and flags' answers, items' bins, models' categories, `steps`);
 - there's a puzzle file for each puzzle the game plays on the course's islands, with its mechanic (and no other), valid against
   that mechanic's schema; its cited sections are in the lock;
 - every voice line a script, a chapter, a beat, a hook, a puzzle or the market plays is in
@@ -223,8 +271,9 @@ text-only pack, its captions). The PR, "Weekly refresh: <course title> @ <sha>",
 Each course keeps its own save and progress (`copilot-isles.<course>.save.v1`,
 `copilot-isles.<course>.progress.v1`, `src/game/save-keys.ts`), and `copilot-isles.course` names the
 last one for Continue. Saves from before course packs (`copilot-isles.save.v1`, `copilot-isles.progress.v1`)
-are copied to copilot-app's keys once, and copilot-app's saves still write the old keys for one release so
-a rollback finds them. Export codes name their course (`c`); a code without it is copilot-app's. Never
+are copied once to the keys of the course marked `"legacySaves": true` (copilot-app), and its saves
+still write the old keys for one release so a rollback finds them. Export codes name their course
+(`c`); a code without it is that course's. Never
 rename an id that a save holds (quests, pages, chests, quizzes, puzzles, labels, market jobs).
 
 ## How a change reaches players
