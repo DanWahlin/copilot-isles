@@ -1,7 +1,7 @@
 import { createRoot, type Root } from 'react-dom/client';
 import { TitleMenu } from './TitleMenu';
 import { DEFAULT_SETTINGS, type GameBridge, type GraphicsInfo, type UiState } from './bridge';
-import { DEFAULT_COURSE_ID } from '../course/catalog';
+import { DEFAULT_COURSE_ID, PLAYABLE_COURSES } from '../course/catalog';
 import './ui.css';
 
 const PREVIEW_GRAPHICS: GraphicsInfo = {
@@ -43,7 +43,10 @@ function fallbackBridge(): GameBridge {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
-    chooseCourse: () => open('course'),
+    chooseCourse: () =>
+      PLAYABLE_COURSES.length > 1
+        ? open('course')
+        : setState({ course: DEFAULT_COURSE_ID, screen: 'captain' }),
     pickCourse: (course) => setState({ course, screen: 'captain' }),
     chooseCaptain: () => open('captain'),
     newVoyage: (captain) =>

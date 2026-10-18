@@ -68,11 +68,12 @@ The drift report lists bolded UI names you used that the chapter doesn't mention
 ```bash
 npm run typecheck && npm run lint && npm test
 npm run build && npm run check:budgets && npm run check:secrets
-npm run test:e2e                                           # tests/e2e/courses.spec.ts picks each course
+npm run test:e2e                                           # tests/e2e/courses.spec.ts plays each course
 ```
 
-In the dev server, `play.html?pack=<id>` opens the pack on Anchorage; **New Voyage** on the title lists
-every course. Each course has its own save (`copilot-isles.<id>.save.v1`).
+In the dev server, `play.html?pack=<id>` opens the pack on Anchorage. Keep `"listed": false` in its
+`course.json` until it's ready: players won't see it, and `?courses=all` on the title lists it for you.
+Remove the flag (and add the course to `tests/e2e/courses.spec.ts`'s listed run) to ship it. Each course has its own save (`copilot-isles.<id>.save.v1`).
 
 ## What a course can't change yet
 

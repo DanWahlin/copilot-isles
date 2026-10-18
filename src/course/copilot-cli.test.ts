@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { activateCourse } from './load';
-import { COURSE, COURSES, courseVoiced } from './catalog';
+import { COURSE, COURSES, DEFAULT_COURSE_ID, PLAYABLE_IDS, courseVoiced } from './catalog';
 import { coursePack } from './active';
 import { puzzleOn } from './puzzles';
 import { meridianOpen } from '../game/meridian-open';
@@ -25,6 +25,14 @@ import type { ScriptStep } from '../game/script';
  * text only. Activating it swaps every course-derived value the game keeps; activating the Copilot app
  * course again puts them back.
  */
+describe('the course list', () => {
+  it('lists only the Copilot app course (the CLI course is unlisted while it is written)', () => {
+    expect(COURSES.map((c) => c.id)).toContain('copilot-cli');
+    expect(PLAYABLE_IDS).toEqual(['copilot-app']);
+    expect(DEFAULT_COURSE_ID).toBe('copilot-app');
+  });
+});
+
 describe('the Copilot CLI course pack', () => {
   beforeAll(async () => {
     await activateCourse('copilot-cli');

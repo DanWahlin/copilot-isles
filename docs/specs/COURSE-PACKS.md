@@ -230,8 +230,12 @@ Step 1 changes no save key.
 
 ## 8. Course selection (step 3: done, see "Step 3 as built")
 
-- The title's **New Voyage** opens a course list when there's more than one (from the eager catalog:
-  title, tagline, language, chapters, minutes, license). **Continue** resumes the last course.
+- The title's **New Voyage** opens a course list when players can choose more than one (from the eager
+  catalog: title, tagline, language, chapters, minutes, license); with one, it goes straight to captain
+  select on that course. **Continue** resumes the last course played, if it's still listed.
+- A course still being written has `"listed": false` in `course.json` (copilot-cli, for now): it's in
+  the build, but the course list, Continue and Credits leave it out (`PLAYABLE_COURSES` in
+  `src/course/catalog.ts`). `?courses=all` lists it, and `play.html?pack=<id>` plays it.
 - Chart, Logbook, credits and boards read the active pack. Islands with no chapter in the pack stay as
   silhouettes (not visitable) or show as uncharted.
 - **A minimal second course needs:** `course.json` (with `source` or `null`); one chapter file with at
@@ -404,10 +408,10 @@ the interact key or the gamepad's A moves on sooner. Reduced motion turns the ca
 cabin briefing shows each line's whole text.
 
 **Course picker.** **New Voyage** opens **Choose a course** (`src/ui/screens/CourseSelect.tsx`) when
-the catalog has more than one course: title, tagline, chapters charted of the course's chapters,
+players can choose more than one course (unlisted ones only with `?courses=all`; see §8): title, tagline, chapters charted of the course's chapters,
 minutes, voiced or captions, description, license and source link; arrow keys, the gamepad and taps
 choose. **Continue** resumes the last course played (`copilot-isles.course`). The chart, Logbook,
-credits (every course, its license and link) and boards read the active pack.
+credits (every listed course, its license and link) and boards read the active pack.
 
 **Saves (§6).** `src/game/save-keys.ts`: `copilot-isles.<course>.save.v1` and
 `copilot-isles.<course>.progress.v1`. At boot, if the old keys exist and copilot-app's don't, they're
@@ -425,7 +429,7 @@ the packs, and a test checks it.
 **Proof.** The step-2 dump runs on `92c6a04` and on this tree for copilot-app. Two sections differ, both
 on purpose: `credits` (both courses are attributed) and `saveKeys` (new; the old commit records the
 legacy keys). Every other section is byte-identical. `src/course/copilot-cli.test.ts`, the content check
-(`--course=copilot-cli`), `tests/e2e/courses.spec.ts` (each course from the picker to Anchorage) and
+(`--course=copilot-cli`), `tests/e2e/courses.spec.ts` (New Voyage straight to the Copilot app course, and the CLI course from the picker with `?courses=all`) and
 `tools/clitest.mjs` (the CLI quests end to end) cover the new pack.
 
 ### Still course-specific in code after step 3

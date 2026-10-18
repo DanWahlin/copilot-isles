@@ -29,7 +29,7 @@ import { thousandBoughOpen } from './thousand-bough-open';
 import type { GameSession, StreamedIsland } from './session';
 import { LearnStore } from '../learn/store';
 import { activateCourse } from '../course/load';
-import { COURSES, selectCourse } from '../course/catalog';
+import { DEFAULT_COURSE_ID, PLAYABLE_COURSES, PLAYABLE_IDS, selectCourse } from '../course/catalog';
 import { Progress } from '../learn/progress';
 import { courseKey, lastCourse, migrateSaves, safeStorage, setLastCourse, writeCourseKey } from './save-keys';
 import type { OsId } from '../learn/setup';
@@ -175,10 +175,7 @@ export class GameFlow implements GameBridge {
     // Saves from before course packs become the Copilot app course's (their old keys stay for now).
     const storage = safeStorage();
     migrateSaves(storage);
-    this.course = lastCourse(
-      storage,
-      COURSES.map((c) => c.id),
-    );
+    this.course = lastCourse(storage, PLAYABLE_IDS);
     selectCourse(this.course);
     this.learn = new LearnStore(new Progress(storage, this.course));
     const settings = sanitizeSettings({ ...DEFAULT_SETTINGS, ...readJson<Partial<Settings>>(SETTINGS_KEY) });
@@ -264,9 +261,12 @@ export class GameFlow implements GameBridge {
     this.set({ screen: 'captain', returnTo: 'title' });
   }
 
-  /** Title → the course list (with more than one course), else straight to captain select. */
+  /** Title → the course list (with more than one course to choose), else straight to captain select. */
   chooseCourse(): void {
-    if (COURSES.length < 2) return this.chooseCaptain();
+    if (PLAYABLE_COURSES.length < 2) {
+      this.useCourse(DEFAULT_COURSE_ID);
+      return this.chooseCaptain();
+    }
     void this.unlockAudio();
     this.set({ screen: 'course', returnTo: 'title' });
   }
@@ -279,7 +279,7 @@ export class GameFlow implements GameBridge {
 
   /** Makes a course the current one: its saves, its progress, its chart and its lines. */
   private useCourse(id: string): void {
-    const known = COURSES.some((c) => c.id === id);
+    const known = PLAYABLE_IDS.includes(id);
     this.course = known ? id : this.course;
     selectCourse(this.course);
     this.learn.useCourse(this.course);
@@ -308,10 +308,7 @@ export class GameFlow implements GameBridge {
 
   continueVoyage(): void {
     // Continue resumes the last course played.
-    const last = lastCourse(
-      safeStorage(),
-      COURSES.map((c) => c.id),
-    );
+    const last = lastCourse(safeStorage(), PLAYABLE_IDS);
     if (last !== this.course) this.useCourse(last);
     setLastCourse(safeStorage(), this.course);
     const save = this.readSave();
@@ -593,7 +590,7 @@ export class GameFlow implements GameBridge {
     const hasSave = patch.hasSave ?? this.state.hasSave;
     this.state = {
       ...this.state,
-      savedCourses: COURSES.filter((c) => readJson(courseKey(c.id, 'save'))).map((c) => c.id),
+      savedCourses: PLAYABLE_IDS.filter((id) => readJson(courseKey(id, 'save'))),
       save: hasSave ? this.saveSummary() : null,
       learn: this.learnSummary(),
       ...patch,

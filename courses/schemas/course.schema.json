@@ -530,6 +530,10 @@
         }
       }
     },
+    "listed": {
+      "type": "boolean",
+      "description": "Whether players can choose the course (default true). An unlisted course is in the build for its authors, but the course list, Continue and Credits leave it out; `?courses=all` lists it (src/course/catalog.ts)."
+    },
     "legacySaves": {
       "type": "boolean",
       "description": "Saves from before course packs (keys without a course) are this course's: copied to its keys once and mirrored for a release; an export code without a course is its (src/game/save-keys.ts). One course at most."
