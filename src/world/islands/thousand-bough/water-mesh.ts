@@ -1,6 +1,7 @@
 import { createMeridianWaterMesh } from '../meridian-water-mesh';
 import type { WaterStrips } from '../../sites/water';
-import { thousandBoughWater } from './height';
+import { thousandBoughHeight, thousandBoughWater } from './height';
+import { keptStreamStones } from './stream-stones';
 import { GREAT_FALLS_CURTAIN } from './water';
 import { THOUSAND_BOUGH as TB } from './layout';
 
@@ -21,13 +22,29 @@ export const CURTAIN_FOOT_Y = 14.8;
 
 /**
  * Thousand-Bough's fresh water as one static mesh in the shared flowing-water material (no new
- * program): the pools, the Veil and Silver Thread down their cliffs, the streams, and Great Falls'
- * curtain hanging clear of its cliff (white, streaked, fast), so there's room to walk behind it.
+ * program): the pools and the streams as natural water (its depth taken from `ground`, the drawn
+ * ground), white water round the streams' stones and spreading under each fall, the Veil and Silver
+ * Thread down their cliffs, and Great Falls' curtain hanging clear of its cliff (white, streaked,
+ * fast), so there's room to walk behind it.
  */
-export function createThousandBoughWaterMesh(): WaterStrips {
+export function createThousandBoughWaterMesh(
+  ground: (x: number, z: number) => number = thousandBoughHeight,
+  /** The share of the streams' stones the tier keeps (the rocks draw the same ones). */
+  stoneShare = 1,
+): WaterStrips {
+  const falls = TB.water.falls;
   return createMeridianWaterMesh(thousandBoughWater(), {
     name: 'thousand-bough fresh water',
-    maxQuads: 1600,
+    maxQuads: 3800,
+    natural: {
+      ground,
+      plunges: [
+        { x: falls[0]!.foot.x, z: falls[0]!.foot.z, r: falls[0]!.width * 0.6 + 3 },
+        { x: falls[1]!.foot.x, z: falls[1]!.foot.z, r: falls[1]!.width + 3 },
+        { x: GREAT_FALLS_CURTAIN.lip.x, z: GREAT_FALLS_CURTAIN.footZ + 2, r: falls[2]!.width * 0.62 + 2 },
+      ],
+      stones: keptStreamStones(stoneShare).filter((s) => s.inBed),
+    },
     extra: (strips) => {
       const c = GREAT_FALLS_CURTAIN;
       for (let r = 0; r < ROWS; r++) {
@@ -86,36 +103,6 @@ export function createThousandBoughWaterMesh(): WaterStrips {
             1,
           );
         }
-      }
-      // The plunge: a churn of foam spreading out across the Mirror Pool from where the curtain lands.
-      const pool = TB.pools.mirror;
-      const y = pool.level + 0.04;
-      const SEG = 8;
-      const half = c.width * 0.62;
-      for (let k = 0; k < SEG; k++) {
-        const x0 = c.lip.x - half + (2 * half * k) / SEG;
-        const x1 = c.lip.x - half + (2 * half * (k + 1)) / SEG;
-        const z0 = c.footZ + 0.4;
-        const z1 = c.footZ + 6.5;
-        const corners: [number, number, number][] = [
-          [x0, y, z0],
-          [x1, y, z0],
-          [x0, y, z1],
-          [x1, y, z1],
-        ];
-        // Only on the pool (none on its shore).
-        if (corners.some(([x, , z]) => Math.hypot(x - pool.x, z - pool.z) > pool.r - 1.2)) continue;
-        strips.quad(
-          corners[0]!,
-          corners[1]!,
-          corners[2]!,
-          corners[3]!,
-          0,
-          6,
-          { fill: 0.7, speed: 1.6, foam: 1, kind: 0 },
-          k / SEG,
-          (k + 1) / SEG,
-        );
       }
     },
   });

@@ -303,6 +303,21 @@ Wading: every pool has a 2 m wading shelf; the deep middle stops you (Meridian's
 the player must cross is deeper than wading; the Fern Walk crosses Fernrun on plank bridge **B0**
 near (1957, −1518).
 
+**Natural courses (issue 258).** Silver Run, Fernrun (both reaches) and Thunder Run take a `course`
+(`StreamCourse` in `meridian-water.ts`, opt-in, so Port Meridian's water is unchanged): seeded
+meanders off the drawn line (Silver Run ±3.2 m every 36 m, Fernrun's upper reach ±1.4 m, its last
+reach ±2.4 m, Thunder Run ±4.5 m every 48 m), none at their ends or at a pin (Fernrun under B0
+keeps its line and 1.7 m half-width; Silver Run narrows to 1.3 m into the lowest booth pool); a
+half-width breathing between its bounds (narrow riffles, wide slow reaches, deeper where wider); a
+bed rounded across with banks that wander and ease up 0.45 m over 1.8 m; a surface that never runs
+steeper than 10 % (it cuts its own gully rather than dropping off its end). Stones stand in the
+beds, most in the riffles, and a few along the banks (`stream-stones.ts`; the rocks draw them and
+the water foams round them). Pools and streams draw as natural water in the shared water material
+(kinds 2 and 3, `fresh-water-natural.ts`): per-vertex depth over the drawn ground (clear in the
+shallows, jade `#2E9C8A` then dark in the deep, no ruled edge), ripples that flow down the course,
+rings and white water spreading from each fall's foot, and its own sky reflection and sun glints
+with water's Fresnel (F0 0.02).
+
 ### 3.4 The berth (ship and approach)
 
 | Item | Value |

@@ -11,7 +11,7 @@ import { LITE_ROCK_ERROR, simplifyInPlace } from '../../village/chunks';
 import { loadVillageKit } from '../../village/kit';
 import type { BirdsSystem } from '../../life/birds';
 import { createThousandBoughAsync, type ThousandBoughWorld } from './index';
-import { createThousandBoughRocks, type ThousandBoughRocks } from './rocks';
+import { createThousandBoughRocks, SMALL_ROCKS, type ThousandBoughRocks } from './rocks';
 import { THOUSAND_BOUGH as TB } from './layout';
 import { THOUSAND_BOUGH_FLORA } from './flora';
 import { createThousandBoughSilhouette } from './tree/silhouette';
@@ -27,8 +27,6 @@ import {
 import { freeInSlices, StreamLifecycle, type StreamState } from '../../stream-lifecycle';
 import type { VegetationPatch } from '../../vegetation/types';
 
-/** The share of the island's small stones each tier keeps. */
-const SMALL_ROCKS = { lite: 0.1, low: 0.4, medium: 1, high: 1, ultra: 1 } as const;
 /** The boulders cast the sun's shadow on High and Ultra (Low and Medium spend those triangles elsewhere). */
 const ROCK_SHADOWS = (tier: TierSettings['tier']) => tier === 'high' || tier === 'ultra';
 

@@ -278,6 +278,28 @@ hook (release it when the site is freed).
 - **Alpha-tested foliage at a distance:** thin leaf cards vanish when drawn small, leaving only their
   most opaque parts (red flowers became red blotches on the hills). Hand distant plants to impostors,
   and check authored leaf colours (the common bush's leaf map was red; it is recoloured green).
+- **LOD bands must be continuous (grass and trees popped in front of the captain, issue 257):** the
+  grass re-picks its clumps every metre or so and draws each with one of three blade geometries by
+  distance, so at a re-pick every tussock crossing a band's edge swapped its blades at once, a few
+  metres ahead of the captain. Impostors snapped between baked views 40° apart, and the kit's
+  textured plants (broadleaf, fern, banana, bushes) ignored their `fade`, so they appeared whole
+  where the field first drew them. A level of detail may only swap geometry where the shader already
+  makes both levels draw the same pixels:
+  - Make the coarse geometry a prefix of the dense one (a rank per blade, `bladeLayout`), shrink the
+    extra blades away and widen the rest with distance in the shader, and slide a near blade's middle
+    vertex onto its far triangle's edge (`bladeBandShape`, written once for CPU and shader through
+    `BandMath`). Wind both levels' triangles alike: a double-sided face wound the other way is lit
+    from behind, so the swap changed the shading.
+  - Finish every transition a re-pick's move before the swap (`bladeBands`), and measure fades and
+    bands from the same point the CPU uses (the clump's centre), or a clump left out at a re-pick is
+    one the shader still shows.
+  - Blend impostor views, and give every material of an instanced plant its dissolve (`lodMask`).
+  - Every vertex runs the whole graph: a `normalize()` of a vector that's zero for another part
+    (a flower's upright normal) is NaN, and NaN times a zero weight is still NaN (the flowers vanished).
+  - Measure with a pop metric: freeze the clock, step the camera in small equal steps, supersample
+    each still frame (thin blades alias without TAA), and flag blocks whose change is a one-step spike
+    over both neighbours' (parallax is steady). Check a swap directly by drawing one band's instances
+    with the other band's geometry and diffing.
 - **A flower species is data, never a material:** every island's species is a row in one shared
   table (`floraSpeciesTable`, uniform arrays: shape, eye, glow, form), read by the one grass material by
   the row in its instance's `grassShape.x`. Plant forms are geometries with the blades' attributes;
@@ -346,6 +368,21 @@ hook (release it when the site is freed).
   readable at the distance it's seen: the shared water material fades sub-pixel ribbons by
   `fwidth` and carries the motion in broad surges down the sheet. Measure the change per frame on
   the effect against a still patch, with TAA on and off.
+- **A canal, a grey slab and a ditch (fresh water, issue 258):** Thousand-Bough's streams read as
+  canals and its Silver Pool as a dark grey slab (a brown basin at dusk, the stream's strip broken
+  across it). Four causes, each worth checking on any water: (1) **winding**: a double-sided quad
+  wound facing down is a back face seen from above, so three turns its normal down again and the
+  water is lit from below. `WaterStrips.quad` flips the winding with the normal. (2) **a mirror of
+  the environment**: a smooth `MeshStandardNodeMaterial` reflects the bright PMREM sky; small water
+  washes white. The natural look is matte to the scene's lights and adds its own sky and sun glints
+  with water's Fresnel (F0 0.02, like the sea). (3) **the shape**: a straight centre line, one
+  width and a flat strip on the ground. A `course` meanders it (seeded, pinned at bridges, none at
+  its ends), breathes its width, rounds its bed, caps its grade, and blends the nearest reaches so
+  the ground doesn't step at a bend. Opt-in, so another island's bake hash doesn't move. (4) **the
+  tier's mesh**: Lite draws the ground every 8 m (Low 6, Medium 4), which fills a 4 m channel, so
+  the water vanished in patches. Build the water against the tier's own height field (what's
+  drawn): its depth sets the look and its middle rides just over a coarse ground. Use a
+  per-vertex depth over the drawn ground for colour and a soft shore, not a ruled edge.
 - **Props stuck through an arm:** Rhea's spyglass sat on her forearm, placed for the bind pose, and
   her commander's hip fist went on the spyglass hand, so it stuck out through her arm in talk. Now a
   carried prop goes in the fist (`holdInFist`/`inFist` in npc-accessories: on the palm bone, its

@@ -9,7 +9,7 @@
  * doesn't import `meridian.ts`.
  */
 
-import { smoothstep } from '../../util/math';
+import { mulberry32, smoothstep } from '../../util/math';
 
 export interface WaterBasinSpec {
   readonly x: number;
@@ -47,6 +47,32 @@ export interface StreamSpec {
   readonly levee?: number;
   /** How far its banks stand over the water at its edge (m; 0.1 by default, a stream in a real bed higher). */
   readonly bank?: number;
+  /**
+   * A natural course (opt-in): seeded meanders swinging off the centre line between its ends, a width
+   * that narrows into riffles and widens into slow reaches (deeper there), a bed rounded across, and
+   * banks that wander. Without it the stream keeps its centre line and `halfWidth` exactly.
+   */
+  readonly course?: StreamCourse;
+}
+
+export interface StreamCourse {
+  readonly seed: number;
+  /** How far the meanders swing either side of the centre line (m), and their wavelength (m). */
+  readonly meander: number;
+  readonly wavelength: number;
+  /** The narrowest and widest half-width (m). */
+  readonly minHalf: number;
+  readonly maxHalf: number;
+  /**
+   * Places the course passes unchanged (a bridge, a crossing): no swing within `r` m along it, and
+   * the half-width there `half` (default the stream's `halfWidth`).
+   */
+  readonly pins?: readonly {
+    readonly x: number;
+    readonly z: number;
+    readonly r: number;
+    readonly half?: number;
+  }[];
 }
 
 export const MERIDIAN_WATER_SPEC = {
@@ -148,6 +174,10 @@ export interface WaterStream {
   readonly surface: Float64Array;
   /** Metres along the stream. */
   readonly along: Float64Array;
+  /** Half the water's width at each sample (m; `halfWidth` everywhere without a natural course). */
+  readonly half: Float64Array;
+  /** How deep its bed lies under the water at each sample, in the middle (m). */
+  readonly depth: Float64Array;
   readonly count: number;
   readonly box: { minX: number; maxX: number; minZ: number; maxZ: number };
 }
@@ -165,6 +195,8 @@ export interface FreshWater<N extends string = string> {
   shoreDistance(x: number, z: number, cap?: number): number;
   /** A point on a basin's shoreline (its wobbled outline scaled by `k`) at angle `a`. */
   rimPoint(basin: WaterBasin, a: number, k?: number): [number, number];
+  /** The basin whose (wobbled) shoreline scaled by `k` holds (x, z), or null. */
+  basinAt(x: number, z: number, k?: number): WaterBasin | null;
 }
 
 const STEP = 2;
@@ -173,6 +205,16 @@ const CUT = 0.6;
 const LEVEE = 0.3;
 const LEVEE_CREST = 2.5;
 const BED_MARGIN = 1;
+/** How far a natural stream's bank rises past its water's edge (m). */
+const NATURAL_BANK = 1.8;
+/** How much nearer (m) the nearest reach of a natural stream must be to carry it alone. */
+const NEAREST_BLEND = 2.5;
+/** The steepest a natural stream runs (fall per metre). */
+const NATURAL_GRADE = 0.1;
+/** How fast a natural stream's bank falls away outside it where the ground is lower (per metre). */
+const NATURAL_LEVEE = 0.9;
+/** How far past its end a natural stream's banks ease back into the ground (m). */
+const END_EASE = 8;
 /** How far out the banks can reach before the natural ground takes over everywhere. */
 const REACH = 22;
 
@@ -242,18 +284,100 @@ function resample(points: readonly (readonly [number, number])[]): [number, numb
   return out;
 }
 
+/**
+ * A natural course from a resampled centre line: each sample swung sideways by seeded meanders (none
+ * at the ends or the pins, so it still leaves and enters its basins where the line does), with its
+ * half-width breathing between the course's bounds (narrow riffles, wide slow reaches) and a bed
+ * deepest where it's widest.
+ */
+export function naturalCourse(
+  pts: readonly (readonly [number, number])[],
+  spec: Pick<StreamSpec, 'halfWidth' | 'depth'>,
+  c: StreamCourse,
+): { pts: [number, number][]; half: number[]; depth: number[] } {
+  const n = pts.length;
+  const s = [0];
+  for (let i = 1; i < n; i++)
+    s.push(s[i - 1]! + Math.hypot(pts[i]![0] - pts[i - 1]![0], pts[i]![1] - pts[i - 1]![1]));
+  const total = s[n - 1]!;
+  const rand = mulberry32(c.seed);
+  const ph = [rand(), rand(), rand(), rand()].map((r) => r * Math.PI * 2);
+  const taper = Math.min(c.wavelength * 0.5, total / 3);
+  // Where along the line each pin lies.
+  const pins = (c.pins ?? []).map((p) => {
+    let best = 0;
+    for (let i = 1; i < n; i++)
+      if (
+        Math.hypot(pts[i]![0] - p.x, pts[i]![1] - p.z) < Math.hypot(pts[best]![0] - p.x, pts[best]![1] - p.z)
+      )
+        best = i;
+    return { at: s[best]!, r: p.r, half: p.half ?? spec.halfWidth };
+  });
+  const out: [number, number][] = [];
+  const half: number[] = [];
+  const depth: number[] = [];
+  const k = (Math.PI * 2) / c.wavelength;
+  for (let i = 0; i < n; i++) {
+    const a = s[i]!;
+    let hold = smoothstep(0, taper, a) * smoothstep(0, taper, total - a);
+    let pinHalf = 0;
+    let pinned = 0;
+    for (const p of pins) {
+      const free = smoothstep(0, p.r, Math.abs(a - p.at));
+      if (1 - free > pinned) {
+        pinned = 1 - free;
+        pinHalf = p.half;
+      }
+      hold *= free;
+    }
+    const swing =
+      c.meander * hold * (0.62 * Math.sin(a * k + ph[0]!) + 0.38 * Math.sin(a * k * 2.13 + ph[1]!));
+    const prev = pts[Math.max(0, i - 1)]!;
+    const next = pts[Math.min(n - 1, i + 1)]!;
+    const dx = next[0] - prev[0];
+    const dz = next[1] - prev[1];
+    const len = Math.hypot(dx, dz) || 1;
+    out.push([pts[i]![0] - (dz / len) * swing, pts[i]![1] + (dx / len) * swing]);
+    const kw = k * 0.8;
+    const breathe = 0.5 + 0.5 * (0.65 * Math.sin(a * kw + ph[2]!) + 0.35 * Math.sin(a * kw * 2.31 + ph[3]!));
+    const h = mix(c.minHalf, c.maxHalf, Math.min(1, Math.max(0, breathe)));
+    half.push(mix(h, pinHalf, pinned));
+    const wide = (half[i]! - c.minHalf) / Math.max(0.01, c.maxHalf - c.minHalf);
+    depth.push(spec.depth * (0.75 + 0.55 * Math.min(1, Math.max(0, wide))));
+  }
+  return { pts: out, half, depth };
+}
+
+/** How far a natural stream's edge wanders off its half-width (a share of it), by place: banks aren't ruled lines. */
+function bankWander(x: number, z: number): number {
+  return 0.11 * Math.sin(x * 0.83 + z * 0.37) * Math.sin(z * 0.71 - x * 0.29 + 1.3);
+}
+
+/** Where the water's edge lies from the centre line at (x, z): its half-width, wandering on a natural course. */
+function edgeOf(s: WaterStream, near: Nearest, x: number, z: number): number {
+  return s.spec.course ? near.half * (1 + bankWander(x, z)) : near.half;
+}
+
 /** Nearest point on a stream: distance from the centre line and the water surface there. */
 interface Nearest {
   dist: number;
   surface: number;
+  /** Half-width and bed depth there. */
+  half: number;
+  depth: number;
   /** True when the nearest point is a stream end and (x, z) lies beyond it. */
   beyondEnd: boolean;
+  /** How far (m) beyond that end, along the stream's line. */
+  past: number;
 }
 
 function nearestOnStream(s: WaterStream, x: number, z: number, out: Nearest): Nearest {
   out.dist = Infinity;
   out.surface = 0;
+  out.half = 0;
+  out.depth = 0;
   out.beyondEnd = false;
+  out.past = 0;
   const last = s.count - 2;
   for (let i = 0; i <= last; i++) {
     const ax = s.x[i]!;
@@ -266,8 +390,37 @@ function nearestOnStream(s: WaterStream, x: number, z: number, out: Nearest): Ne
     if (d < out.dist) {
       out.dist = d;
       out.surface = s.surface[i]! + (s.surface[i + 1]! - s.surface[i]!) * t;
+      out.half = s.half[i]! + (s.half[i + 1]! - s.half[i]!) * t;
+      out.depth = s.depth[i]! + (s.depth[i + 1]! - s.depth[i]!) * t;
       out.beyondEnd = (i === 0 && raw < 0) || (i === last && raw > 1);
+      out.past = out.beyondEnd ? (raw < 0 ? -raw : raw - 1) * Math.sqrt(dx * dx + dz * dz) : 0;
     }
+  }
+  // A natural course blends what it carries over the reaches nearly as close as the nearest, so the
+  // ground doesn't step where the nearest jumps from one arm of a bend to the other.
+  if (s.spec.course) {
+    let wSum = 0;
+    let surface = 0;
+    let half = 0;
+    let depth = 0;
+    for (let i = 0; i <= last; i++) {
+      const ax = s.x[i]!;
+      const az = s.z[i]!;
+      const dx = s.x[i + 1]! - ax;
+      const dz = s.z[i + 1]! - az;
+      const t = Math.min(1, Math.max(0, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz)));
+      const d = Math.hypot(x - ax - dx * t, z - az - dz * t);
+      const k = 1 - (d - out.dist) / NEAREST_BLEND;
+      if (k <= 0) continue;
+      const w = k * k;
+      wSum += w;
+      surface += w * (s.surface[i]! + (s.surface[i + 1]! - s.surface[i]!) * t);
+      half += w * (s.half[i]! + (s.half[i + 1]! - s.half[i]!) * t);
+      depth += w * (s.depth[i]! + (s.depth[i + 1]! - s.depth[i]!) * t);
+    }
+    out.surface = surface / wSum;
+    out.half = half / wSum;
+    out.depth = depth / wSum;
   }
   return out;
 }
@@ -329,12 +482,19 @@ export function createFreshWater<N extends string>(
 
   const basin = (name: string): WaterBasin => basins[name as N];
   const streams: WaterStream[] = spec.streams.map((spec: StreamSpec) => {
-    const pts = resample(spec.points);
+    let pts = resample(spec.points);
+    let halves: number[] | null = null;
+    let depths: number[] | null = null;
+    if (spec.course) ({ pts, half: halves, depth: depths } = naturalCourse(pts, spec, spec.course));
     const n = pts.length;
     const x = new Float64Array(n);
     const z = new Float64Array(n);
     const surface = new Float64Array(n);
     const along = new Float64Array(n);
+    const half = new Float64Array(n).fill(spec.halfWidth);
+    const depth = new Float64Array(n).fill(spec.depth);
+    if (halves) half.set(halves);
+    if (depths) depth.set(depths);
     const from = basin(spec.from);
     const to = spec.to === 'sea' ? null : basin(spec.to);
     const floor = to ? to.level : 0.15;
@@ -357,6 +517,11 @@ export function createFreshWater<N extends string>(
       if (to && basinRadius(to, x[i]!, z[i]!) < 1) s = to.level;
       surface[i] = Math.max(s, floor);
     }
+    // A natural stream comes down to its end gradually (riffles, cutting its own gully), never held
+    // up on a rise and dropped off its end in one fall.
+    if (spec.course)
+      for (let i = n - 2; i >= 0; i--)
+        surface[i] = Math.min(surface[i]!, surface[i + 1]! + NATURAL_GRADE * (along[i + 1]! - along[i]!));
     let minX = Infinity;
     let maxX = -Infinity;
     let minZ = Infinity;
@@ -367,13 +532,15 @@ export function createFreshWater<N extends string>(
       minZ = Math.min(minZ, z[i]!);
       maxZ = Math.max(maxZ, z[i]!);
     }
-    const m = spec.halfWidth + REACH;
+    const m = spec.course ? Math.max(...half) * 1.15 + NATURAL_BANK + REACH : spec.halfWidth + REACH;
     return {
       spec,
       x,
       z,
       surface,
       along,
+      half,
+      depth,
       count: n,
       box: { minX: minX - m, maxX: maxX + m, minZ: minZ - m, maxZ: maxZ + m },
     };
@@ -392,7 +559,7 @@ export function createFreshWater<N extends string>(
   }
   for (const s of streams) grow(s.box);
 
-  const near: Nearest = { dist: 0, surface: 0, beyondEnd: false };
+  const near: Nearest = { dist: 0, surface: 0, half: 0, depth: 0, beyondEnd: false, past: 0 };
   const inBox = (b: { minX: number; maxX: number; minZ: number; maxZ: number }, x: number, z: number) =>
     x >= b.minX && x <= b.maxX && z >= b.minZ && z <= b.maxZ;
 
@@ -403,23 +570,37 @@ export function createFreshWater<N extends string>(
     for (const s of streams) {
       if (!inBox(s.box, x, z)) continue;
       nearestOnStream(s, x, z, near);
-      const w = s.spec.halfWidth;
-      // The bed runs a metre past the water's edge, so the 2 m terrain pack always holds it.
-      const bed = w + BED_MARGIN;
-      if (near.beyondEnd && near.dist > bed) continue;
+      const natural = s.spec.course !== undefined;
+      const w = edgeOf(s, near, x, z);
+      // The bed runs a metre past the water's edge, so the 2 m terrain pack always holds it (a
+      // natural stream's bank rises over a little more).
+      const bed = w + (natural ? NATURAL_BANK : BED_MARGIN);
+      // Past its end a stream's banks stop; a natural stream's ease out over a few metres (no seam).
+      if (near.beyondEnd && (natural ? near.past > END_EASE : near.dist > bed)) continue;
       let c: number;
       const bank = s.spec.bank ?? 0.1;
-      if (near.dist < bed) {
-        c = near.surface + bank - (s.spec.depth + bank) * (1 - smoothstep(w - 0.6, bed, near.dist));
+      if (near.dist < bed && natural) {
+        // Rounded across, deepest in the middle, meeting the water at its edge; then a bank easing up.
+        if (near.dist < w) c = near.surface - near.depth * (1 - smoothstep(w * 0.3, w, near.dist));
+        else {
+          const u = 1 - (near.dist - w) / (bed - w);
+          c = near.surface + bank * (1 - u * u);
+        }
+      } else if (near.dist < bed) {
+        c = near.surface + bank - (near.depth + bank) * (1 - smoothstep(w - 0.6, bed, near.dist));
       } else {
         const out = near.dist - bed;
         if (out > REACH) continue;
         const valley = near.surface + bank + out * CUT;
         // A berm keeps a flat crest before it falls away (also wide enough for the pack).
-        const levee = near.surface + bank - Math.max(0, out - LEVEE_CREST) * (s.spec.levee ?? LEVEE);
+        // (A natural stream's bank falls straight away: no built-up berm across the valley.)
+        const levee = natural
+          ? near.surface + bank - out * NATURAL_LEVEE
+          : near.surface + bank - Math.max(0, out - LEVEE_CREST) * (s.spec.levee ?? LEVEE);
         // The banks blend back into the natural ground before the reach ends (no seam there).
         c = mix(Math.min(Math.max(h, levee), valley), h, smoothstep(REACH * 0.55, REACH, out));
       }
+      if (natural && near.beyondEnd) c = mix(c, h, smoothstep(0, END_EASE, near.past));
       // A channel only ever deepens a basin; elsewhere it shapes its own banks.
       h = insideBasin ? Math.min(h, c) : c;
     }
@@ -435,7 +616,8 @@ export function createFreshWater<N extends string>(
     for (const s of streams) {
       if (!inBox(s.box, x, z)) continue;
       nearestOnStream(s, x, z, near);
-      if (near.dist < s.spec.halfWidth && !near.beyondEnd) best = Math.max(best ?? -Infinity, near.surface);
+      if (near.dist < edgeOf(s, near, x, z) && !near.beyondEnd)
+        best = Math.max(best ?? -Infinity, near.surface);
     }
     return best;
   }
@@ -451,10 +633,24 @@ export function createFreshWater<N extends string>(
       if (!inBox(s.box, x, z)) continue;
       nearestOnStream(s, x, z, near);
       if (near.beyondEnd) continue;
-      best = Math.min(best, Math.max(0, near.dist - s.spec.halfWidth));
+      best = Math.min(best, Math.max(0, near.dist - edgeOf(s, near, x, z)));
     }
     return best;
   }
 
-  return { basins, streams, box, carve, levelAt, shoreDistance, rimPoint: rimPointOf };
+  const basinAtScaled = (x: number, z: number, k = 1): WaterBasin | null => {
+    for (const b of basinList) if (basinRadius(b, x, z) < k) return b;
+    return null;
+  };
+
+  return {
+    basins,
+    streams,
+    box,
+    carve,
+    levelAt,
+    shoreDistance,
+    rimPoint: rimPointOf,
+    basinAt: basinAtScaled,
+  };
 }

@@ -12,7 +12,7 @@ import type { CameraBlockerBox } from '../../terrain/camera-blockers';
 import { branchCameraBoxes, createBanyanAsync } from './tree';
 import { thousandBoughPlantsSliced } from './vegetation';
 import { createMist, type Mist } from './mist';
-import type { ThousandBoughRocks } from './rocks';
+import { SMALL_ROCKS, type ThousandBoughRocks } from './rocks';
 import { createGlows, type Glow, type Glows } from '../../life/fireflies';
 import { mulberry32 } from '../../../util/math';
 import { thousandBoughHeight } from './height';
@@ -190,7 +190,10 @@ export async function createThousandBoughAsync(
 ): Promise<ThousandBoughWorld> {
   const base = createThousandBoughStub();
   const group = base.group;
-  const water = createThousandBoughWaterMesh();
+  const water = createThousandBoughWaterMesh(
+    (x, z) => o.heightField.heightAt(x, z),
+    SMALL_ROCKS[o.tier.tier],
+  );
   group.add(water.mesh);
   await breathe();
   const clearance = new WalkClearance();
