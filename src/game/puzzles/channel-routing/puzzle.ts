@@ -26,7 +26,7 @@ import {
   workspacesContent,
   type Workspace,
 } from './workspaces';
-import { lineOf, puzzleQuest, textOf } from '../../../course/puzzles';
+import { lineOf, puzzleQuest, puzzleSteps, textOf } from '../../../course/puzzles';
 
 /** What Channel Routing needs beyond the usual puzzle host: the camera, voices and the screen. */
 export interface ChannelRoutingHost extends PuzzleHost {
@@ -165,15 +165,16 @@ export function createChannelRouting(
     return { x: a.x, y: a.y, z: a.z, tx: a.look.x, ty: a.look.y, tz: a.look.z };
   };
   const quest = puzzleQuest('channel-routing');
+  const S = puzzleSteps('channel-routing');
   const step = () => host.quests()[quest];
-  const playing = () => step() === 'channels' || step() === 'twist';
+  const playing = () => step() === S.channels || step() === S.twist;
   const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
   const at = anchors.gateBoard;
 
   const sfx = (id: SliceName, gain: number) => host.audio?.sfx.oneShot(id, at, gain);
 
   // Before Fen's demo the old shared trough still stands over the board.
-  if (!step() || step() === 'start') sys.flume.showSharedTrough(true);
+  if (!step() || step() === S.start) sys.flume.showSharedTrough(true);
 
   async function mount(): Promise<void> {
     if (unmount) return;
@@ -192,7 +193,7 @@ export function createChannelRouting(
     pad.edges.arm();
     host.setModal(true);
     await mount();
-    if (step() === 'twist') {
+    if (step() === S.twist) {
       // The Spire's question shows while Fen sets it up (never the board behind it).
       view.set({ open: true, busy: true, twist: { question: twistQuestion(), choices: [] } });
       await twist();
@@ -349,7 +350,7 @@ export function createChannelRouting(
       return;
     }
     await host.say([L('round3')]);
-    host.setQuest(quest, 'twist');
+    host.setQuest(quest, S.twist);
     await twist();
   }
 
@@ -400,7 +401,7 @@ export function createChannelRouting(
       await host.say([c.line]);
     }
     await host.say([L('ports')]);
-    host.setQuest(quest, 'solved');
+    host.setQuest(quest, S.solved);
     close();
     await host.beat(host.closing, 'Fen');
   }
@@ -500,7 +501,7 @@ export function createChannelRouting(
   // The board's interaction: E at the Gate Board.
   host.interactions.add({
     id: 'flume:board',
-    label: () => (step() === 'twist' ? T('backToTwist') : T('useBoard')),
+    label: () => (step() === S.twist ? T('backToTwist') : T('useBoard')),
     x: at.x,
     y: at.y,
     z: at.z,

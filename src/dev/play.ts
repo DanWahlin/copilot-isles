@@ -7,7 +7,7 @@ import { installDebug } from '../engine/debug';
 import '../game/hud.css';
 import { loadCharacterLibrary, type PlayerBody } from '../world/characters';
 import { createCove } from '../world/cove-scene';
-import { skipSunShadowsWhereOff } from '../world/sky/cached-sun-shadow';
+import { skipSunShadowsWhereOff, type CachedSunShadowNode } from '../world/sky/cached-sun-shadow';
 import { QUIZZES } from '../learn/content/index';
 import type { Answer } from '../learn/grade';
 import { Progress } from '../learn/progress';
@@ -72,6 +72,12 @@ if (learn)
 let session: GameSession | null = null;
 let starting = false;
 let body: PlayerBody = q.get('body') === 'woman' ? 'woman' : 'man';
+/** Warm-ups running (the world's, an island's, a late one's), for `__dev.settled()`. */
+let warms = 0;
+const counted = (warm: Promise<void>): Promise<void> => {
+  warms++;
+  return warm.finally(() => warms--);
+};
 
 async function begin(unlock: boolean): Promise<void> {
   if (session || starting) return;
@@ -100,10 +106,10 @@ async function begin(unlock: boolean): Promise<void> {
   // page builds the game's shaders, and its hitch guard (`window.__isles`) sees what the game's would.
   const live = () => true;
   const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
-  cove.setLateWarm((roots) => warmLate({ engine, cove, roots, post, live }));
+  cove.setLateWarm((roots) => counted(warmLate({ engine, cove, roots, post, live })));
   for (const { setup } of s.islandSetups()) setup.reveal();
-  s.onIslandSetup((id, setup) => void warmIsland({ engine, cove, id, setup, post, live }));
-  await warmWorld({ engine, cove, post, frame, terrains: [cove.terrain] });
+  s.onIslandSetup((id, setup) => void counted(warmIsland({ engine, cove, id, setup, post, live })));
+  await counted(warmWorld({ engine, cove, post, frame, terrains: [cove.terrain] }));
   engine.counters.hitches.length = 0;
   engine.counters.stalls.length = 0;
   engine.counters.arm();
@@ -238,6 +244,33 @@ const key = (code: string, down: boolean) => {
     buildMs,
     state: session?.debug.state() ?? null,
   }),
+  /**
+   * Whether the world has settled (tools/budgettest.mjs measures only then): no warm-up running (each
+   * redraws the static sun shadow map and hidden parts every frame), and every island in or out of
+   * memory, none held by a warm. Read-only.
+   */
+  settled: () => {
+    const shadow = (cove.sky.sun.shadow as typeof cove.sky.sun.shadow & { shadowNode?: CachedSunShadowNode })
+      .shadowNode;
+    const streams = {
+      anchorage: cove.anchorage,
+      meridian: cove.meridian,
+      'thousand-bough': cove.thousandBough,
+    };
+    const out = {
+      warms,
+      warming: shadow?.warming ?? 0,
+      refreshes: shadow?.refreshes ?? 0,
+      lastReason: shadow?.lastReason ?? 'none',
+      streams: Object.fromEntries(
+        Object.entries(streams).map(([id, st]) => [id, { state: st.state, held: st.held }]),
+      ),
+    };
+    const still = Object.values(out.streams).every(
+      (st) => !st.held && (st.state === 'absent' || st.state === 'resident' || st.state === 'failed'),
+    );
+    return { ok: warms === 0 && out.warming === 0 && still, ...out };
+  },
   lighthouseLit: (on: boolean) => cove.meridian.town?.setLighthouseLit(on),
   liftCar: (t: number) => cove.meridian.town?.setLiftCar(t),
   mooringLines: (on: boolean) => cove.meridian.town?.setMooringLines(on),

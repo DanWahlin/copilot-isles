@@ -70,8 +70,10 @@ so VS Code and other editors check your edit as you type and show each field's d
 - **`voice`**: `false` for a text-only pack: captions hold for a reading time, or move on with **Next**
   (a click or tap), the interact key or the gamepad's A. Leave it out for a voiced pack.
 - **`practice`**: the course's own example values, shown until the player gives theirs (Your setup).
+  Without it, the Logbook's Your setup card has no fork, issue or branch row.
 - **`setup`**: the "Your setup" forms' words (kicker, titles, intro, what each value is used for, the
-  model choices), the Logbook's notes and the Settings screen's shortcut line. `**bold**` and `` `code` ``
+  model choices), the Logbook's notes and its Your setup card's labels, and the Settings screen's
+  shortcut line. Without it, the Logbook has no Your setup card. `**bold**` and `` `code` ``
   render as such; `{issue}`, `{issueTitle}`, `{branch}`, `{os}` and `{keys}` are filled in.
 - **`hooks`**: the voice lines and questions the game asks for by id, so it never names one itself:
   the cabin `briefing`; each island's `welcome` (`@nav` and `@starfish` mark where its `tips` go; they're
@@ -134,10 +136,12 @@ so VS Code and other editors check your edit as you type and show each field's d
 - **`"disabled": true`** turns a puzzle off: its site stays as scenery, and the cue that would start it
   does nothing. Change the quests that wait on it too (their step won't finish by itself).
 - **`quest`**: the quest the puzzle plays in. It must have the steps the puzzle's mechanic sets and
-  waits on (`PUZZLE_STEPS` in `src/course/puzzles.ts`: the crane's `gate`, `crane`, `solved` and
-  `done`, the crate yard's `crates`, `solved` and `done`…). If the quest calls one of them something
-  else, map it in **`steps`** (game step → the quest's step: the Copilot app course's crane has
-  `"steps": { "gate": "actions" }`). The palette's `latePage` and the market's `page` are pages in the
+  waits on (`PUZZLE_STEPS` in `src/course/puzzles.ts`: the crane's `gate`, `crane` and `solved`, the
+  crate yard's `crates` and `solved`…). If the quest calls one of them something else, map it in
+  **`steps`** (game step → the quest's step: the Copilot app course's crane has
+  `"steps": { "gate": "actions" }`); the game reads every mechanic step through it
+  (`puzzleSteps(name)`, resolved once per course). Every quest also ends at `done`, the game's step
+  for a finished quest: a puzzle reads it as it is, and it can't be mapped. The palette's `latePage` and the market's `page` are pages in the
   course.
 - **Your ids, bound to the game's (`acts`)**: where a puzzle acts a concept out, name it with your own
   id and bind it to what the game does, each game id once: the helms' `modes` (`steer`, `review`,

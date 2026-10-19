@@ -172,7 +172,8 @@ export class GameFlow implements GameBridge {
   private chartPickTimer = 0;
 
   constructor(private readonly o: GameFlowOptions) {
-    // Saves from before course packs become the Copilot app course's (their old keys stay for now).
+    // Saves from before course packs become the course that claims them (`legacySaves`; their old
+    // keys stay for now).
     const storage = safeStorage();
     migrateSaves(storage);
     this.course = lastCourse(storage, PLAYABLE_IDS);

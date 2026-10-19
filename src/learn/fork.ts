@@ -1,4 +1,6 @@
+import { hasActiveCourse } from '../course/active';
 import { onCourseSelected } from '../course/catalog';
+import { puzzleContent, puzzleOn, textOf } from '../course/puzzles';
 
 /**
  * The player's fork of the course repository, typed into Ezra's register or at the crane. It's parsed
@@ -117,6 +119,14 @@ function notGitHub(): ForkParse {
 /** `owner/repo`, as the setup script's `Repository:` line prints it. */
 export function forkName(fork: ForkRef | null): string {
   return fork ? `${fork.owner}/${fork.repo}` : FORK_PLACEHOLDER;
+}
+
+/**
+ * The label of the crane's sign that shows your fork, in the course's words (its `repositoryEmpty`),
+ * or '' when the course has no crane.
+ */
+export function forkSignLabel(): string {
+  return hasActiveCourse() && puzzleOn('crane') ? textOf(puzzleContent('crane'), 'repositoryEmpty') : '';
 }
 
 /** The places in a fork the course sends the player (Chapter 00 · Add the Course Practice Items). */

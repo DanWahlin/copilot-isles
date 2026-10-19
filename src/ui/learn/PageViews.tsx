@@ -12,7 +12,7 @@ import { COURSE } from '../../course/catalog';
 import { StarfishLog } from './Starfish';
 import { CHAPTERS, GLOSSARY, IMAGES, PAGES, courseUrl, imageUrl } from '../../learn/content/index';
 import { chapterUrl } from '../../learn/course/chapters';
-import { forkName, forkUrl, PLACE_LABEL, type ForkPlace } from '../../learn/fork';
+import { forkName, forkSignLabel, forkUrl, PLACE_LABEL, type ForkPlace } from '../../learn/fork';
 import {
   COURSE_BRANCH,
   COURSE_ISSUE,
@@ -132,44 +132,53 @@ function SetupNotes({ kinds }: { kinds?: readonly SetupKind[] }) {
 
 /**
  * The Logbook's Your setup card: the player's fork, computer, practice issue, session branch, and
- * model, each with a way to add or change it. The one place to change them all later.
+ * model, each with a way to add or change it. The one place to change them all later. Its labels are
+ * the course's (`setup` in its course.json); a course that asks for none has no card, and one without
+ * a practice repository (`practice`) has no fork, issue or branch to note.
  */
-function SetupCard({ store }: { store: LearnStore }) {
+export function SetupCard({ store }: { store: LearnStore }) {
   const { setup, detected } = useContext(SetupContext);
+  const copy = COURSE.setup;
+  if (!copy) return null;
+  const practice = !!COURSE.practice;
   const rows: { kind: SetupKind; label: string; value: ReactNode; has: boolean }[] = [
     {
       kind: 'os',
-      label: 'Computer',
+      label: copy.os.label,
       value: setup.os ? OS_NAMES[setup.os] : `${OS_NAMES[detected]} (your browser’s guess)`,
       has: true,
     },
-    {
-      kind: 'issue',
-      label: 'Practice issue',
-      value:
-        setup.issue !== null ? (
-          `#${setup.issue} ${COURSE_ISSUE_TITLE}`
-        ) : (
-          <>Not added yet. The game uses the course’s #{COURSE_ISSUE} issue by default.</>
-        ),
-      has: setup.issue !== null,
-    },
-    {
-      kind: 'branch',
-      label: 'Session branch',
-      value:
-        setup.branch !== null ? (
-          <code>{setup.branch}</code>
-        ) : (
-          <>
-            Not added yet. The game uses <code>{COURSE_BRANCH}</code> by default.
-          </>
-        ),
-      has: setup.branch !== null,
-    },
+    ...(practice
+      ? [
+          {
+            kind: 'issue' as const,
+            label: copy.issue.label,
+            value:
+              setup.issue !== null ? (
+                `#${setup.issue} ${COURSE_ISSUE_TITLE}`
+              ) : (
+                <>Not added yet. The game uses the course’s #{COURSE_ISSUE} issue by default.</>
+              ),
+            has: setup.issue !== null,
+          },
+          {
+            kind: 'branch' as const,
+            label: copy.branch.label,
+            value:
+              setup.branch !== null ? (
+                <code>{setup.branch}</code>
+              ) : (
+                <>
+                  Not added yet. The game uses <code>{COURSE_BRANCH}</code> by default.
+                </>
+              ),
+            has: setup.branch !== null,
+          },
+        ]
+      : []),
     {
       kind: 'model',
-      label: 'Model',
+      label: copy.model.label,
       value: setup.model ? modelLabel(setup.model) : 'Not added yet.',
       has: setup.model !== null,
     },
@@ -180,7 +189,7 @@ function SetupCard({ store }: { store: LearnStore }) {
       <p className="ci-setup-card-note">
         All optional. It stays on this device, in your save, and you can change it here any time.
       </p>
-      <ForkCard store={store} />
+      {practice && <ForkCard store={store} />}
       {rows.map((r) => (
         <div key={r.kind} className="ci-fork-card ci-setup-row" data-kind={r.kind}>
           <p>
@@ -189,7 +198,7 @@ function SetupCard({ store }: { store: LearnStore }) {
           <button
             type="button"
             className="ci-btn ghost"
-            aria-label={`${r.has ? 'Change' : 'Add'} your ${r.label.toLowerCase()}`}
+            aria-label={`${r.has ? 'Change' : 'Add'} ${r.label.toLowerCase()}`}
             onClick={() => void store.askSetup(r.kind, 'logbook')}
           >
             {r.has ? 'Change' : 'Add'}
@@ -203,6 +212,7 @@ function SetupCard({ store }: { store: LearnStore }) {
 /** The Logbook's note of the player's fork, with a way to add or change it. */
 function ForkCard({ store }: { store: LearnStore }) {
   const fork = useContext(ForkContext);
+  const sign = forkSignLabel();
   return (
     <div className="ci-fork-card">
       {fork ? (
@@ -220,8 +230,13 @@ function ForkCard({ store }: { store: LearnStore }) {
         </p>
       ) : (
         <p>
-          <span className="ci-course-kicker">Your fork</span> Not added yet. Add it to see your own{' '}
-          <code>Repository:</code> line at the crane and links into your fork.
+          <span className="ci-course-kicker">Your fork</span> Not added yet. Add it to see{' '}
+          {sign && (
+            <>
+              your own <code>{sign}</code> line at the crane and{' '}
+            </>
+          )}
+          links into your fork.
         </p>
       )}
       <button type="button" className="ci-btn ghost" onClick={() => void store.askFork('logbook')}>

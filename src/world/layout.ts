@@ -34,15 +34,15 @@ export const COVE = {
    * x keeps the widest hull ~0.15 m clear of the east fender piles and cross braces.
    */
   mooring: { x: -101.35, z: -112.5, heading: Math.PI },
-  /** Juno (Q0.8) waits on the pier just north of the ship's Prompt Box and Terminal fittings. */
+  /** Juno waits on the pier just north of the ship's two rail fittings (First Words). */
   firstMate: { x: -107.3, y: 1.8, z: -101.6, heading: 2.4 },
   /**
-   * Nell waits at the pier head for the christening (Q0.11), facing back down the pier so you can
+   * Nell waits at the pier head for the christening, facing back down the pier so you can
    * walk up to her. The bow stem is about 8 m off her port side, clear of the crane.
    */
   christening: { x: -107.0, y: 1.8, z: -116.6, heading: 0 },
   /**
-   * Ezra's chart table (Q0.3) and Bo's gear rack (Q0.4) sit on the quay just west of the pier foot,
+   * Ezra's chart table and Bo's gear rack sit on the quay just west of the pier foot,
    * so Anchorage's setup runs Nell → Ezra → Bo → down the pier without doubling back.
    */
   chartTable: { x: -115.4, z: -67.6 },

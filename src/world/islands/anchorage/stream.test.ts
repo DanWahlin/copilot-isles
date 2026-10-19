@@ -4,7 +4,7 @@ import { releaseRemovedObjects } from '../../../util/dispose-three';
 import type { CreatedTerrain } from '../../terrain/terrain-mesh';
 import { createAnchorageStream } from './stream';
 
-function world(warm?: (roots: unknown[]) => Promise<void>) {
+function world(warm?: (roots: unknown[]) => Promise<void>, breathe: () => Promise<void> = async () => {}) {
   const scene = new Scene();
   const plants = new Group();
   scene.add(plants);
@@ -20,7 +20,7 @@ function world(warm?: (roots: unknown[]) => Promise<void>) {
     silhouette: new Group(),
     parts: () => [terrain, gulls, shrub],
     plantsAwake: () => {},
-    breathe: async () => {},
+    breathe,
     warm,
   });
   return { scene, plants, terrain, gulls, shrub, stream };
@@ -68,6 +68,34 @@ describe('Anchorage stream', () => {
     await sleeping;
     stream.update(new PerspectiveCamera());
     expect(stream.silhouette.visible).toBe(true);
+  });
+
+  it('always draws the island or its silhouette while it goes dormant (no blink)', async () => {
+    const seen: string[] = [];
+    const check = (at: string) => {
+      const island = !!w.terrain.parent && w.terrain.visible;
+      const silhouette = !!w.stream.silhouette.parent && w.stream.silhouette.visible;
+      seen.push(at);
+      expect(island || silhouette, `nothing drawn at ${at}`).toBe(true);
+    };
+    const w = world(
+      async ([silhouette]) => {
+        // Like warmLate: hidden between its draws, then put back as it was.
+        const was = (silhouette as Group).visible;
+        (silhouette as Group).visible = false;
+        check('warm');
+        await Promise.resolve();
+        check('warm');
+        (silhouette as Group).visible = was;
+      },
+      async () => check('breathe'),
+    );
+    await w.stream.unload();
+    check('dormant');
+    expect(seen).toContain('warm');
+    expect(seen).toContain('breathe');
+    expect(w.terrain.parent).toBeNull();
+    expect(w.stream.silhouette.visible).toBe(true);
   });
 
   it('leaves parked parts out of the scene when the voyage ends while dormant (no ghost island)', async () => {

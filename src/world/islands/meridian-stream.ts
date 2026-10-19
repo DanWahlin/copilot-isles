@@ -25,18 +25,23 @@ import { freeInSlices, StreamLifecycle, type StreamState } from '../stream-lifec
 import {
   MERIDIAN,
   createMeridianRocks,
+  meridianNaturalWater,
   meridianRockCameraBlockersSliced,
+  meridianWater,
   meridianRockShipObstacles,
 } from './meridian';
 import { meridianPlantsSliced } from './meridian-plants';
 import { MERIDIAN_FLORA } from './meridian-flora';
 import { createMeridianSilhouette } from './meridian-silhouette';
 import { footprintDistance, type IslandFootprint } from './footprint';
+import { SilhouetteSwap } from './silhouette-swap';
 import { createMeridianWaterMesh } from './meridian-water-mesh';
+import { SMALL_ROCKS } from './stream-stones';
 
 /**
  * Port Meridian's distances (m, `footprintDistance`: from its centre as if its shore were round): it
- * streams in within `load`, is drawn (not its silhouette) within `show`, and may be freed once you're
+ * streams in within `load`, is drawn (not its silhouette) within `show` (resident or not; a band
+ * either side, `SWAP_HYSTERESIS`, keeps it from flickering there), and may be freed once you're
  * past `unload` (see game/residency.ts). Its north-east cliffs are ~700 m off Thousand-Bough's
  * mooring (1 005 here): `unload` stays under that, so it's freed while you're there.
  */
@@ -122,6 +127,7 @@ export function createMeridianStream(ctx: MeridianStreamContext): MeridianStream
   const silhouette = far.group;
   scene.add(silhouette);
   let held = false;
+  const swap = new SilhouetteSwap(MERIDIAN_RANGE.show);
   let plants: VegetationPatch | null = null;
   let birds: BirdsSystem | null = null;
   let water: WaterStrips | null = null;
@@ -140,6 +146,8 @@ export function createMeridianStream(ctx: MeridianStreamContext): MeridianStream
         name: 'port-meridian-terrain',
         createRocks: createMeridianRocks,
         cloudShadowNode: ctx.cloudShadowNode,
+        // Its far levels keep under the brook, the lake and the pools (no stream hidden in the distance).
+        freshWater: meridianWater(),
       },
       ctx.breathe,
     );
@@ -147,8 +155,13 @@ export function createMeridianStream(ctx: MeridianStreamContext): MeridianStream
     self.terrain = terrain;
     await ctx.breathe();
     await coarserRocksOnLite(terrain.group, tier);
-    // The tarn, cascade, brook, lake and outflow ride with the terrain (shown and hidden with it).
-    water = createMeridianWaterMesh();
+    // The tarn, cascade, brook, lake and outflow ride with the terrain (shown and hidden with it), as
+    // natural water over the tier's drawn ground.
+    const ground = terrain.heightField;
+    water = createMeridianWaterMesh(meridianWater(), {
+      maxQuads: 2400,
+      natural: meridianNaturalWater((x, z) => ground.heightAt(x, z), SMALL_ROCKS[tier.tier]),
+    });
     terrain.group.add(water.mesh);
     singlePassWaterOnLite(water.mesh, tier);
     if (ctx.skipShadows) skipSunShadows(terrain.group);
@@ -282,7 +295,7 @@ export function createMeridianStream(ctx: MeridianStreamContext): MeridianStream
     },
     update(camera: PerspectiveCamera, dt: number, t: number) {
       const d = footprintDistance(MERIDIAN_FOOTPRINT, camera.position.x, camera.position.z);
-      const near = d < MERIDIAN_RANGE.show;
+      const near = !swap.update(d);
       const show = near || held;
       if (d < MERIDIAN_RANGE.load && (ctx.nearLoads?.() ?? true)) void life.load();
       const { terrain, foam, town } = self;

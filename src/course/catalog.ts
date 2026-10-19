@@ -155,7 +155,8 @@ export const COURSES: readonly CourseMeta[] = [meta(COPILOT_APP), meta(COPILOT_C
 
 /**
  * The courses players can choose: the listed ones, or every course with `?courses=all` (for a course
- * still being written). The course list, Continue and Credits read this; tools read `COURSES`.
+ * still being written). The course list and Continue read this; Credits and tools read `COURSES`
+ * (an unlisted course's snapshot still ships in the build, so it keeps its credit).
  */
 export const PLAYABLE_COURSES: readonly CourseMeta[] =
   typeof location !== 'undefined' && new URLSearchParams(location.search).get('courses') === 'all'

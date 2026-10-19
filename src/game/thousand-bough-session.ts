@@ -12,7 +12,7 @@ import type { ThousandBoughSystem } from '../world/islands/thousand-bough/contra
 import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
 import { createBottles, type BottleSite } from '../world/sites/bottles';
 import { loadVillageKit } from '../world/village/kit';
-import type { BoxCollider, CollisionWorld, WalkSurface } from './collision';
+import type { BoxCollider, CollisionWorld, InlandWater, WalkSurface } from './collision';
 import type { CircleObstacle } from '../world/contracts';
 import type { CameraShot } from './follow-camera';
 import type { Interactions } from './interaction';
@@ -89,8 +89,8 @@ export interface ThousandBoughHost {
 export interface ThousandBoughContent {
   /** The island's walk surfaces (decks, the stair, bridges), live once the world's streamed. */
   readonly surface: WalkSurface;
-  /** Its pools and streams, for wading. */
-  inland(x: number, z: number): number | null;
+  /** Its pools and streams, for wading (see `ThousandBoughWorld.inland`). */
+  inland(x: number, z: number, ground: number, out: InlandWater): boolean;
   /** Builds the cast, chests, bottles and set pieces once the world's in (hidden until `reveal`). */
   setup(sys: ThousandBoughSystem): Promise<{ roots: Object3D[]; reveal(): void }>;
   /**
@@ -664,7 +664,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
 
   return {
     surface,
-    inland: (x, z) => sys?.inland(x, z) ?? null,
+    inland: (x, z, ground, out) => sys?.inland(x, z, ground, out) ?? false,
     setup,
     teardown,
     get npcs() {

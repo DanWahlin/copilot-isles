@@ -19,7 +19,7 @@ import { COVE } from '../layout';
 import { deckHeightAt } from '../ship/lines';
 import { world } from '../uniforms';
 import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
-import { CRANE_CARGO, CRANE_FACINGS, craneContent, lineTone, type LineTone } from './crane-logic';
+import { CRANE_CARGO, CRANE_FACINGS, craneContent, jibLines, lineTone, type LineTone } from './crane-logic';
 import { textOf } from '../../course/puzzles';
 import { box, cylinder, merge, paint, plank, TRIM } from './geo';
 import { SignSet, type PaintedSign } from './sign';
@@ -697,18 +697,6 @@ export function createCrane(o: CraneOptions): CraneSite {
       group.removeFromParent();
     },
   };
-}
-
-/**
- * The arm sign's lettering: a `Repository: owner/name` line splits so the owner gets a line of its
- * own, big enough to read from the levers.
- */
-function jibLines(lines: readonly string[]): string[] {
-  return lines.flatMap((l) => {
-    if (l.startsWith('Default branch')) return [];
-    const m = /^Repository: (.+?)\/(.+)$/.exec(l);
-    return m ? ['Repository:', `${m[1]}/`, m[2]!] : [l];
-  });
 }
 
 const INK: Record<LineTone, string> = { cmd: '#9fb6c4', you: '#ffd98a', other: '#ffb09a', ok: '#b9ef9c' };

@@ -31,10 +31,33 @@ function walk(p: PlayerController, w: CollisionWorld, yaw: number, secs: number,
 
 describe('CollisionWorld', () => {
   it('takes fresh water above the sea (a hill lake) as the water there', () => {
-    const w = world({ inland: (x) => (x > 30 && x < 40 ? 3.6 : null) });
+    const w = world({
+      inland: (x, _z, g, out) => {
+        if (x <= 30 || x >= 40) return false;
+        out.level = 3.6;
+        out.floor = g;
+        return true;
+      },
+    });
     expect(w.waterAt(35, 0, 0)).toBeCloseTo(3.6, 5);
     expect(w.surfaceAt(35, 0, 0)).toBe('water');
     expect(w.waterAt(10, 0, 0)).toBe(0);
+    expect(w.groundAt(35, 0)).toBe(3);
+  });
+
+  it('wades on the bed fresh water gives, under a coarse ground that fills it', () => {
+    // A stream drawn 0.5 m deep over a ground that stands just under its surface.
+    const w = world({
+      inland: (x, _z, g, out) => {
+        if (x <= 30 || x >= 40) return false;
+        out.level = g + 0.02;
+        out.floor = g - 0.48;
+        return true;
+      },
+    });
+    expect(w.groundAt(35, 0)).toBeCloseTo(2.52, 5);
+    expect(w.waterAt(35, 0, 0) - w.groundAt(35, 0)).toBeCloseTo(0.5, 5);
+    expect(w.surfaceAt(35, 0, 0)).toBe('water');
   });
 
   it('pushes a circle out of a circle obstacle', () => {

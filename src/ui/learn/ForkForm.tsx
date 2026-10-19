@@ -3,6 +3,7 @@ import {
   FORK_INPUT_MAX,
   FORK_PLACEHOLDER,
   forkName,
+  forkSignLabel,
   forkUrl,
   parseFork,
   type ForkRef,
@@ -67,6 +68,7 @@ export function ForkForm({ store, from, fork }: { store: LearnStore; from: ForkF
   const ok = parsed?.ok ? parsed : null;
   const error = parsed && !parsed.ok && tried ? parsed.error : null;
   const changing = from === 'logbook' && !!fork;
+  const sign = forkSignLabel();
 
   useEffect(() => {
     input.current?.focus();
@@ -150,8 +152,14 @@ export function ForkForm({ store, from, fork }: { store: LearnStore; from: ForkF
           )}
         </div>
         <p className="ci-fork-uses">
-          The crane’s <code>Repository:</code> sign will show it, and your Logbook will link to your fork’s{' '}
-          <strong>Actions</strong> tab, issues, and pull requests.
+          {sign ? (
+            <>
+              The crane’s <code>{sign}</code> sign will show it, and your
+            </>
+          ) : (
+            'Your'
+          )}{' '}
+          Logbook will link to your fork’s <strong>Actions</strong> tab, issues, and pull requests.
         </p>
         <p id={`${ids}-privacy`} className="ci-fork-privacy">
           It stays on this device, in your save. The game doesn’t contact GitHub to check it.

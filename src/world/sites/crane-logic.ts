@@ -318,18 +318,47 @@ export type LineTone = 'cmd' | 'you' | 'other' | 'ok';
 export function lineTone(line: string, yours: string = YOUR_REPOSITORY): LineTone | undefined {
   const yourOwner = `${yours.split('/')[0]}/`;
   if (line.startsWith('$')) return 'cmd';
-  if (line.endsWith(` ${yours}`) || line === yours || line === yourOwner) return 'you';
+  const repo = repositoryIn(line);
+  if (repo === yours || line.endsWith(` ${yours}`) || line === yours || line === yourOwner) return 'you';
   const c = craneContent();
-  const repo = T('repository');
-  const repoPrefix = repo.slice(0, repo.indexOf('{repository}'));
-  if (
-    (line.startsWith(repoPrefix) && line.length > repoPrefix.length) ||
-    /^[\w-]+\/$/.test(line) ||
-    c.tones.other.some((p) => line.startsWith(p))
-  )
+  if (repo !== null || /^[\w-]+\/$/.test(line) || c.tones.other.some((p) => line.startsWith(p)))
     return 'other';
   if (c.tones.ok.includes(line) || c.tones.okPrefix.some((p) => line.startsWith(p))) return 'ok';
   return undefined;
+}
+
+/** The pack's `repository` line around its `{repository}`: the words before it and after it. */
+function repositoryWords(): { before: string; after: string } | null {
+  const t = T('repository');
+  const at = t.indexOf('{repository}');
+  return at < 0 ? null : { before: t.slice(0, at), after: t.slice(at + '{repository}'.length) };
+}
+
+/** The repository a readout line names, if it's the pack's `repository` line; else null. */
+export function repositoryIn(line: string): string | null {
+  const w = repositoryWords();
+  if (!w || line.length <= w.before.length + w.after.length) return null;
+  if (!line.startsWith(w.before) || !line.endsWith(w.after)) return null;
+  return line.slice(w.before.length, line.length - w.after.length);
+}
+
+/**
+ * The arm sign's lettering: the pack's `repository` line splits so the owner gets a line of its own,
+ * big enough to read from the levers, and its `defaultBranch` line stays in the terminal.
+ */
+export function jibLines(lines: readonly string[]): string[] {
+  const branch = T('defaultBranch');
+  return lines.flatMap((l) => {
+    if (l === branch) return [];
+    const repo = repositoryIn(l);
+    const slash = repo?.indexOf('/') ?? -1;
+    if (!repo || slash <= 0) return [l];
+    const w = repositoryWords()!;
+    const label = w.before.trim();
+    const owner = repo.slice(0, slash + 1);
+    const name = repo.slice(slash + 1) + w.after;
+    return label ? [label, owner, name] : [owner, name];
+  });
 }
 
 /** Which berth to point at for hint tier 3, and whether you're already there. */

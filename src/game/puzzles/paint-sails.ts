@@ -1,7 +1,7 @@
 import type { LearnState } from '../../learn/store';
 import { DEFAULT_SAIL_PALETTE } from '../../world/ship/sail-palettes';
 import type { PuzzleFile } from '../../course/pack';
-import { puzzleContent, puzzleQuest, textOf } from '../../course/puzzles';
+import { puzzleContent, puzzleQuest, puzzleSteps, textOf } from '../../course/puzzles';
 import type { ScriptStep } from '../script';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 
@@ -29,9 +29,10 @@ const content = () => puzzleContent<PaletteFile>('palette');
 const T = (key: string) => textOf(content(), key);
 
 /**
- * Paint Your Sails (POC §4.4, Q0.2): the palette stand beside Nell's door. The app's theme lives in
- * Settings → Themes; here, it's your sails. Pick a palette (it previews on the stand's sample sail and
- * on your ship), then select Finish. The first time, during Q0.2, Nell sends you on to Ezra. The stand
+ * Paint Your Sails (POC §4.4): the palette stand beside Nell's door, where the course's theme is your
+ * sails. Pick a palette (it previews on the stand's sample sail and on your ship), then select Finish.
+ * The first time (while the quest `puzzleQuest('palette')` names is at its `palette` step), Nell's
+ * `finished` script sends you on. The stand
  * stays open for repainting afterwards, and so does Settings → Your sails. Its scripts and words are
  * the course pack's (`puzzles/palette.json`).
  */
@@ -46,7 +47,8 @@ export function createPaintSails(
   let shown = '';
 
   const quest = puzzleQuest('palette');
-  const active = () => host.quests()[quest] === 'palette';
+  const { palette } = puzzleSteps('palette');
+  const active = () => host.quests()[quest] === palette;
   const setHint = (on: boolean) => {
     hinted = on;
     stand.setHint(on);

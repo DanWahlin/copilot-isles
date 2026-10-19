@@ -59,6 +59,10 @@ export interface QuadCorners {
   foam?: readonly number[];
   /** `v`: metres along the flow, or for a pool the distance from where its water comes in. */
   along?: readonly number[];
+  /** The look (`StripFlow.kind`), where a strip eases from one to another (a stream into a pool). */
+  kind?: readonly number[];
+  /** How full (`StripFlow.fill`), where two strips overlap and cross-fade (a stream into a pool). */
+  fill?: readonly number[];
 }
 
 /**
@@ -181,7 +185,15 @@ export class WaterStrips {
       this.pos.set([p[0]!, p[1]!, p[2]!], (i + k) * 3);
       this.nrm.set([nx, ny, nz], (i + k) * 3);
       this.tex.set([c % 2 === 0 ? u0 : u1, corners4?.along?.[c] ?? (c < 2 ? v0 : v1)], (i + k) * 2);
-      this.flw.set([f.fill, f.speed, corners4?.foam?.[c] ?? f.foam ?? 0, f.kind ?? 0], (i + k) * 4);
+      this.flw.set(
+        [
+          corners4?.fill?.[c] ?? f.fill,
+          f.speed,
+          corners4?.foam?.[c] ?? f.foam ?? 0,
+          corners4?.kind?.[c] ?? f.kind ?? 0,
+        ],
+        (i + k) * 4,
+      );
       this.bed[i + k] = corners4?.depth?.[c] ?? 1;
     }
   }

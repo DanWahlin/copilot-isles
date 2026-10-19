@@ -18,18 +18,16 @@ import { villageWalkable } from './village/surfaces';
 import { THOUSAND_BOUGH as TB } from './layout';
 import { fernWalkAt, thousandBoughHeight, thousandBoughWater } from './height';
 import { WalkClearance } from './village/clearance';
-import { streamStoneKept, thousandBoughStreamStones } from './stream-stones';
-
-/** The share of the island's small stones each tier keeps (the streams' stones thin the same way). */
-export const SMALL_ROCKS = { lite: 0.1, low: 0.4, medium: 1, high: 1, ultra: 1 } as const;
+import { thousandBoughStreamStones } from './stream-stones';
+import { ROCK_HEIGHTS, streamStoneKept } from '../stream-stones';
 import { SPIRE_LEDGE, SPIRE_TOP } from './village/surfaces';
 
 /**
  * Thousand-Bough's stone: mossy boulders round the Booth Pools (one carries a starfish), round the
  * falls' pools, at the cliffs' feet and through the jungle; stones in and along the streams
  * (`thousandBoughStreamStones`, the water foams round the ones in the beds); the rock lintel that roofs the cave behind
- * Great Falls; and the Spire, a cluster of basalt columns with its flat top (Lookout 5173) and south
- * ledge (Lookout 5174). All in the shared rock material, instanced (no new shader).
+ * Great Falls; and the Spire, a cluster of basalt columns with its flat top (the first lookout) and
+ * south ledge (the second). All in the shared rock material, instanced (no new shader).
  */
 
 export interface RockSpot {
@@ -63,13 +61,6 @@ export const CAVE_ROOF = (() => {
   const c = TB.cave;
   return { x: c.mouth.x, z: c.mouth.z - c.depth / 2 - 0.5, bottom: c.floor + c.height };
 })();
-
-/** Each rock asset's height at scale 1 (its base is at y 0). */
-export const ROCK_HEIGHTS: readonly number[] = ROCK_ASSETS.map((a) => {
-  let top = -Infinity;
-  for (let i = 1; i < a.positions.length; i += 3) top = Math.max(top, a.positions[i]!);
-  return top;
-});
 
 /** The world height of a rock's top. */
 export function rockTop(s: RockSpot): number {

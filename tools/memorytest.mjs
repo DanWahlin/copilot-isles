@@ -9,6 +9,12 @@
 // sails to Port Meridian, waits for Anchorage to go dormant, quits to the title and starts a new
 // voyage: the title must have no Anchorage, the new voyage exactly one, and memory as the first's.
 // Also logs Chrome's DOM counters and `performance.measureUserAgentSpecificMemory()` where offered.
+// The render scale is held at the tier's own (the player's manual setting): screen-sized targets are
+// ~90 MB on High, and adaptive resolution under a loaded machine would resize them between stops.
+// The ledger counts every texture at its current size (engine/memory-ledger.ts), so a comparison is
+// only like for like at one scale. Before it did, three's first-seen sizes (an image still decoding
+// counted ~0, a target sized after first use kept its first size) moved a stop by 11-27 MB from run
+// to run, and the round-trip check failed on timing, not a leak (issue 261, budgets.json `leak`).
 //   node tools/memorytest.mjs [--base=http://127.0.0.1:5301] [--tiers=high,lite] [--backends=webgpu,webgl2]
 //                             [--trips=2] [--out=<dir>] [--no-gate]
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -100,6 +106,9 @@ async function run(tier, backend) {
     await page.goto(url, { waitUntil: 'load' });
     await page.evaluate(() => localStorage.clear());
     await until('title', 180_000);
+    await page.evaluate(() =>
+      window.__flow.updateSettings({ renderScale: window.__flow.o.engine.tier.renderScale }),
+    );
     await page.waitForTimeout(2000);
     await flow('chooseCaptain()');
     await page.waitForTimeout(700);

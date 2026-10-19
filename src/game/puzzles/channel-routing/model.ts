@@ -188,9 +188,9 @@ export class ChannelRoutingModel {
   }
 
   /**
-   * Round 3's gates: a crew on a new worktree runs down its own channel to its wheel; one on the
-   * current checkout runs into the Great Hall (main); one in the cloud doesn't touch the board (its
-   * work goes off your deck). Null until every crew has a place.
+   * Round 3's gates: a crew in `channel` runs down its own channel to its wheel; one in `hall` runs
+   * into the Great Hall (main); one in `gondola` doesn't touch the board (its work goes off your
+   * deck). Null until every crew has a place.
    */
   runWorkspaces(): WorkspaceRun | null {
     if (this.s.round !== 3 || this.s.phase !== 'routing' || !this.picked) return null;

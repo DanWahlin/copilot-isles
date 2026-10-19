@@ -382,7 +382,13 @@ test('dump the course data', async () => {
     dump.puzzleQuests = Object.fromEntries(
       Object.keys(puzzles.GAME_PUZZLES).map((n) => [
         n,
-        { quest: puzzles.puzzleQuest(n), steps: puzzles.PUZZLE_STEPS[n] ?? null },
+        {
+          quest: puzzles.puzzleQuest(n),
+          steps:
+            puzzles.puzzleSteps && n in puzzles.PUZZLE_STEPS
+              ? puzzles.puzzleSteps(n)
+              : (puzzles.PUZZLE_STEPS[n] ?? null),
+        },
       ]),
     );
   }

@@ -11,11 +11,14 @@ import { LITE_ROCK_ERROR, simplifyInPlace } from '../../village/chunks';
 import { loadVillageKit } from '../../village/kit';
 import type { BirdsSystem } from '../../life/birds';
 import { createThousandBoughAsync, type ThousandBoughWorld } from './index';
-import { createThousandBoughRocks, SMALL_ROCKS, type ThousandBoughRocks } from './rocks';
+import { createThousandBoughRocks, type ThousandBoughRocks } from './rocks';
+import { thousandBoughWater } from './height';
+import { SMALL_ROCKS } from '../stream-stones';
 import { THOUSAND_BOUGH as TB } from './layout';
 import { THOUSAND_BOUGH_FLORA } from './flora';
 import { createThousandBoughSilhouette } from './tree/silhouette';
 import { footprintDistance, type IslandFootprint } from '../footprint';
+import { SilhouetteSwap } from '../silhouette-swap';
 import {
   addIslandBirds,
   addIslandGround,
@@ -31,7 +34,8 @@ import type { VegetationPatch } from '../../vegetation/types';
 const ROCK_SHADOWS = (tier: TierSettings['tier']) => tier === 'high' || tier === 'ultra';
 
 /**
- * Distances (m): it streams in within `load`, is drawn (not the silhouette) within `show`, and may be
+ * Distances (m): it streams in within `load`, is drawn (not the silhouette) within `show` (resident or
+ * not; a band either side, `SWAP_HYSTERESIS`, keeps it from flickering there), and may be
  * freed past `unload` (game/residency.ts), all by `footprintDistance` (from its centre as if its shore
  * were round); its small detail within `detail` of its centre.
  */
@@ -111,6 +115,7 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
   scene.add(silhouette);
   let disposed = false;
   let held = false;
+  const swap = new SilhouetteSwap(THOUSAND_BOUGH_RANGE.show);
   let plants: VegetationPatch | null = null;
   let birds: BirdsSystem | null = null;
   let obstacles: CircleObstacle[] = [];
@@ -128,6 +133,8 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
         data,
         name: 'thousand-bough-terrain',
         cloudShadowNode: ctx.cloudShadowNode,
+        // Its far levels keep under the streams and the pools (no stream hidden in the distance).
+        freshWater: thousandBoughWater(),
         createRocks: (hf) =>
           (rocks = createThousandBoughRocks(hf, undefined, SMALL_ROCKS[tier.tier], ROCK_SHADOWS(tier.tier)))
             .group,
@@ -282,7 +289,7 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
       mood.exposure = 1 + (TB.mood.exposure - 1) * k;
       const reach = footprintDistance(THOUSAND_BOUGH_FOOTPRINT, camera.position.x, camera.position.z);
       if (reach < THOUSAND_BOUGH_RANGE.load) void self.load();
-      const near = reach < THOUSAND_BOUGH_RANGE.show;
+      const near = !swap.update(reach);
       const show = near || held;
       if (self.ready && self.terrain && self.foam && !held) {
         self.terrain.group.visible = show;

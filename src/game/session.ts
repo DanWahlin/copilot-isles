@@ -41,6 +41,7 @@ import type { BattleRun } from './battle-run';
 
 export { ISLANDS, islandAt } from './islands';
 import { MERIDIAN, meridianQuayHeight, meridianWater } from '../world/islands/meridian';
+import { naturalWaterAt } from '../world/islands/fresh-water-natural';
 import { terrainRockCameraBlockersSliced } from '../world/terrain/terrain-rocks';
 import { meridianTownPlantColliders } from '../world/meridian-town/plantings';
 import { FlyoverPath } from './flyover';
@@ -76,7 +77,7 @@ import { createCrateYardSite } from '../world/sites/crate-yard';
 import { createThreeHelms, type HelmsHost } from './puzzles/three-helms';
 import { createLostLetters, LETTERS_ID, type LettersHost } from './puzzles/lost-letters';
 import { ALCOVES, LETTERS, lettersContent } from './puzzles/hall-letters';
-import { puzzleOn, puzzleQuest, textOf } from '../course/puzzles';
+import { puzzleOn, puzzleQuest, puzzleSteps, textOf } from '../course/puzzles';
 import { createRecordsAlcoves } from '../world/sites/records-alcoves';
 import { createModelMarketSigns } from '../world/sites/model-market';
 import { createModelMarket, type MarketHost } from './puzzles/model-market';
@@ -278,6 +279,11 @@ export interface GameSession {
     };
     /** Frees (or streams in) an island now, whatever the residency rules say (tests, screenshots). */
     unloadIsland(id: StreamedIsland): Promise<void>;
+    /**
+     * Keeps every island in memory that is (nothing's freed) while on, as if the world were busy
+     * (tests: measure an island you've arrived at with the last one still resident).
+     */
+    keepResident(on: boolean): void;
     loadIsland(id: StreamedIsland): Promise<void>;
   };
   dispose(): void;
@@ -391,8 +397,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       ...meridianTownPlantColliders(tier.tier),
     ],
     boxes: [...village.colliders.boxes, ...sites.colliders.boxes],
-    // Port Meridian's lake and streams: wade the shallows, and the deep middle stops you.
-    inland: (x, z) => meridianWater().levelAt(x, z) ?? tb?.inland(x, z) ?? null,
+    // Port Meridian's and Thousand-Bough's pools and streams, as they're drawn over this tier's ground:
+    // wade the shallows and the streams, and the deep middle stops you.
+    inland: (x, z, g, out) =>
+      naturalWaterAt(meridianWater(), x, z, g, out) || (tb?.inland(x, z, g, out) ?? false),
   });
   // Boulders and the headland cliff's overhang: only the follow camera keeps out of them.
   // In slices: all at once, the headland's blockers held a frame for ~120 ms behind the cabin.
@@ -1748,6 +1756,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   ]);
   const residencyOut: ResidencyDecision = { load: [], unload: [] };
   let residencyIn = 0;
+  /** Tests hold every island in memory (`debug.keepResident`). */
+  let keepResident = false;
   const reachable = (id: IslandId) => openIslands().some((b) => b.id === id);
   /** Where you are for residency: your feet ashore, the ship at sea (not the camera, which roams). */
   const residencyFocus = () =>
@@ -1769,6 +1779,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       tbModal ||
       cam.framing ||
       !!learn?.busy ||
+      keepResident ||
       puzzles.some((p) => p.engaged());
     const f = residencyFocus();
     residency.update(
@@ -2070,7 +2081,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     ironsNudged = false;
     hud.toast('Raise the sails with W. Steer with A and D.', 4);
     storyEvent('anchorage', 'setSail', quests(), setQuest);
-    if (island === 'meridian' && quests()[puzzleQuest('three-helms')] === 'helms') setRheaAboard(true);
+    if (island === 'meridian' && quests()[puzzleQuest('three-helms')] === puzzleSteps('three-helms').helms)
+      setRheaAboard(true);
     audio?.music.setIsland('harbour');
   }
 
@@ -3074,6 +3086,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       },
       battleRun: () => battles.current,
       unloadIsland: (id) => unloadIsland(id),
+      keepResident(on) {
+        keepResident = on;
+      },
       loadIsland: async (id) => void (await streams[id].load()),
       residency() {
         const states: Record<string, string> = {};

@@ -5,14 +5,14 @@ import { COURSE, onCourseSelected } from '../course/catalog';
  * their values in place of the course's examples. All of it is optional (every form has Skip), kept in
  * the local save, and checked here on the device only. The game never sends it anywhere.
  *
- * - `os`: the computer they run the Copilot app on, for the course's keyboard shortcuts (Chapter 01 ·
- *   Prompts and Shortcuts: "Ctrl+R (or Cmd+R on macOS)"). Detected from the browser until they pick.
- * - `issue`: the number of their practice issue **Improve the empty state copy** (Chapter 02 ·
- *   Exercise: "Type `#3` … If your seeded issue has a different number, type `#` and select it").
- * - `branch`: the working branch of the session they started with **Create from** on
- *   `practice-empty-state-copy` (Chapter 02 · the session details show its working branch).
- * - `model`: what they chose in the model control (Chapter 01 · Try the Controls: "you can keep
- *   **Auto** or your current model"). The game never says anything about a model itself.
+ * - `os`: the computer they're on, for the course's keyboard shortcuts. Detected from the browser
+ *   until they pick.
+ * - `issue`: the number of their practice issue (the course's `practice.issue` until they give it).
+ * - `branch`: the working branch of their practice session (the course's `practice.branch`).
+ * - `model`: what they chose in the model control. The game never says anything about a model itself.
+ *
+ * The forms' words are the course's (`setup` in its course.json; for the Copilot app course, Chapter
+ * 01 · Prompts and Shortcuts, Try the Controls, and Chapter 02 · Exercise).
  */
 
 export type OsId = 'mac' | 'windows' | 'linux';

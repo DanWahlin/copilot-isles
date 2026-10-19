@@ -1,5 +1,5 @@
 import type { PuzzleFile } from '../../course/pack';
-import { puzzleContent, puzzleQuest } from '../../course/puzzles';
+import { puzzleContent, puzzleQuest, puzzleSteps } from '../../course/puzzles';
 import { CATEGORIES, type ModelCategory } from '../market/catalog';
 import {
   CATEGORY_OF,
@@ -63,6 +63,7 @@ const draft = (model = ''): MarketDraft => ({
  */
 export function createModelMarket(host: MarketHost, site: ModelMarketSite): Puzzle {
   const quest = puzzleQuest('market');
+  const S = puzzleSteps('market');
   const progress = host.learn?.progress ?? null;
   const pad = new PadEdges();
   let open = false;
@@ -319,7 +320,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite): Puzz
   function greet(): void {
     if (!progress || progress.data.market.greeted) return;
     progress.markMarketGreeted();
-    if (!host.quests()[quest]) host.setQuest(quest, 'start');
+    if (!host.quests()[quest]) host.setQuest(quest, S.start);
     say(GILDA.hello);
   }
 

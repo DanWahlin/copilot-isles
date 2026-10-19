@@ -33,8 +33,9 @@ Then edit, in `courses/<id>/`:
   the game asks for means (`firstVisit`, `trialStarted`, `sealed`, `gangwayDown`; `landed`, `setSail`).
   The CLI pack shows the shape.
 - **`puzzles/<name>.json`**: content for each Anchorage puzzle the course can teach honestly, with the
-  `quest` it plays in (that quest needs the steps the puzzle sets, `PUZZLE_STEPS` in
-  `src/course/puzzles.ts`, or map them in `steps`), or `"disabled": true` (the site stays scenery).
+  `quest` it plays in (that quest needs the steps the puzzle sets and waits on, `PUZZLE_STEPS` in
+  `src/course/puzzles.ts`, under the same names or the ones you map them to in `steps`, and every
+  quest ends at `done`, which can't be renamed), or `"disabled": true` (the site stays scenery).
   Name things with your own ids; where a puzzle acts a concept out, bind each of yours to the game's
   with `"acts"` (the crane's cargo, the helms' modes…: [content-data.md](content-data.md)).
 - **`labels.json`**, **`boards.json`**, **`voice/lines.json`** (every line's id, speaker and text).

@@ -26,14 +26,28 @@ export interface WalkSurface {
   kind: SurfaceKind | ((x: number, z: number) => SurfaceKind);
 }
 
+/** Fresh water at a point (`CollisionWorldOptions.inland`). */
+export interface InlandWater {
+  /** Its surface (m). */
+  level: number;
+  /**
+   * The bed you wade on (m): the terrain, or lower where the water is drawn deeper than the tier's
+   * coarse ground under it (a stream's bed, see `naturalWaterAt`).
+   */
+  floor: number;
+}
+
 export interface CollisionWorldOptions {
   ground: HeightField;
   waves?: WaveSampler;
   surfaces?: WalkSurface[];
   circles?: readonly CircleObstacle[];
   boxes?: readonly BoxCollider[];
-  /** Fresh water above the sea (lakes, streams): its surface at (x, z), or null where there's none. */
-  inland?: (x: number, z: number) => number | null;
+  /**
+   * Fresh water above the sea (lakes, streams) at (x, z) over the terrain's height `ground` there,
+   * written to `out`; false where there's none.
+   */
+  inland?: (x: number, z: number, ground: number, out: InlandWater) => boolean;
 }
 
 interface Bucket {
@@ -59,7 +73,8 @@ const CEIL_GAP = 0.01;
 export class CollisionWorld {
   readonly ground: HeightField;
   readonly waves: WaveSampler | null;
-  private readonly inland: ((x: number, z: number) => number | null) | null;
+  private readonly inland: CollisionWorldOptions['inland'] | null;
+  private readonly fresh: InlandWater = { level: 0, floor: 0 };
   private readonly surfaces: WalkSurface[];
   private readonly grid = new Map<number, Bucket>();
   /** Camera-only blockers (addCameraBox): walkers, sight lines and audits don't see them. */
@@ -165,9 +180,15 @@ export class CollisionWorld {
     return best;
   }
 
-  /** Walkable height: the highest man-made surface, else the terrain. */
+  /** Walkable height: the highest man-made surface, else the terrain (or the bed under fresh water). */
   groundAt(x: number, z: number, y?: number): number {
-    return this.surfaceHeightAt(x, z, y) ?? this.ground.heightAt(x, z);
+    return this.surfaceHeightAt(x, z, y) ?? this.bedAt(x, z);
+  }
+
+  /** The terrain at (x, z), or the bed you wade on where fresh water lies over it. */
+  private bedAt(x: number, z: number): number {
+    const g = this.ground.heightAt(x, z);
+    return this.inland?.(x, z, g, this.fresh) ? Math.min(g, this.fresh.floor) : g;
   }
 
   /** Terrain normal y (1 = flat). Man-made surfaces count as flat. */
@@ -178,8 +199,8 @@ export class CollisionWorld {
 
   waterAt(x: number, z: number, t: number): number {
     const sea = this.waves ? this.waves.heightAt(x, z, t) : 0;
-    const fresh = this.inland?.(x, z) ?? null;
-    return fresh !== null && fresh > sea ? fresh : sea;
+    if (!this.inland?.(x, z, this.ground.heightAt(x, z), this.fresh)) return sea;
+    return Math.max(sea, this.fresh.level);
   }
 
   surfaceAt(x: number, z: number, t = 0, y?: number): SurfaceKind {
@@ -188,7 +209,7 @@ export class CollisionWorld {
       const sh = s.heightAt(x, z, y);
       if (sh !== null && sh >= g - 0.05) return typeof s.kind === 'function' ? s.kind(x, z) : s.kind;
     }
-    if (this.waterAt(x, z, t) - g > 0.12) return 'water';
+    if (this.waterAt(x, z, t) - this.bedAt(x, z) > 0.12) return 'water';
     const m = this.ground.masksAt(x, z);
     if (m.rock + m.cliff > Math.max(m.sand, m.grass)) return 'rock';
     return m.grass > m.sand ? 'grass' : 'sand';

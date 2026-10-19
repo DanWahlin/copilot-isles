@@ -604,7 +604,8 @@ export function checkContent(
         }
     }
     for (const game of Object.keys((p.steps ?? {}) as object))
-      if (!PUZZLE_STEPS[name]?.includes(game))
+      if (game === 'done') issue(rel, at('steps', game), 'every quest ends at "done": it can\'t be mapped');
+      else if (!PUZZLE_STEPS[name]?.includes(game))
         issue(rel, at('steps', game), `the game's ${name} has no step "${game}"`);
     for (const key of ['latePage', 'page'] as const)
       if (typeof p[key] === 'string' && !ids.page.has(p[key] as string))

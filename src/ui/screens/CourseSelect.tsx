@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { COURSES, courseVoiced, type CourseMeta } from '../../course/catalog';
+import { PLAYABLE_COURSES, courseVoiced, type CourseMeta } from '../../course/catalog';
 import type { GameBridge, UiState } from '../bridge';
 import { OverlayShell } from '../components/OverlayShell';
 
@@ -15,13 +15,15 @@ export function CourseSelect({ state, bridge }: { state: UiState; bridge: GameBr
   return (
     <OverlayShell title="Choose your course" eyebrow="New voyage" onBack={bridge.back} wide>
       <div ref={root} className="ci-course-list" role="list">
-        {COURSES.map((c, i) => (
+        {PLAYABLE_COURSES.map((c, i) => (
           <CourseCard
             key={c.id}
             course={c}
             current={c.id === state.course}
             saved={state.savedCourses?.includes(c.id) ?? false}
-            initial={c.id === state.course || (i === 0 && !COURSES.some((x) => x.id === state.course))}
+            initial={
+              c.id === state.course || (i === 0 && !PLAYABLE_COURSES.some((x) => x.id === state.course))
+            }
             onPick={() => bridge.pickCourse(c.id)}
           />
         ))}

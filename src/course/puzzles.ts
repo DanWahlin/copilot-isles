@@ -1,4 +1,4 @@
-import { coursePack } from './active';
+import { coursePack, onCourse } from './active';
 import { fill } from './fill';
 import type { PuzzleFile, PuzzleMechanic } from './pack';
 
@@ -53,28 +53,55 @@ export const PUZZLE_ISLANDS: Readonly<Record<string, string>> = {
 /**
  * The quest steps each puzzle's mechanic sets or waits on (the game's words, docs/specs/COURSE-PACKS.md
  * step 4). A pack names the quest the puzzle plays in (`"quest"` in its file), and that quest has
- * each of these steps, under the same name or the one its file maps it to (`"steps"`: the crane's
- * `gate`, the step the mill's gate lever ends, is the Copilot app course's `actions`). The crane also
- * reads the gear rack's quest (`done`), the mill race the crane's.
+ * each of these steps, under the same name or the one its file maps it to (`"steps"`, game step →
+ * quest step). Every quest also ends at `done`, the game's own step for a finished quest (the quest
+ * list, the tracker and the content check know it), so a puzzle reads `done` as it is: it isn't a
+ * mechanic step and can't be renamed. The gear rack sets none, but the crane reads its quest's `done`
+ * (so the gear rack needs a quest), and the mill race reads the crane's (`gate`, `crane`, `solved`).
  */
-export const PUZZLE_STEPS: Readonly<Record<string, readonly string[]>> = {
-  'gear-rack': ['done'],
+const STEPS = {
+  'gear-rack': [],
   palette: ['palette'],
   bard: ['start'],
-  christening: ['start', 'sail', 'done'],
-  sluice: ['sluice', 'solved', 'done'],
-  crane: ['gate', 'crane', 'solved', 'done'],
-  'first-words': ['pipes', 'done'],
-  'crate-yard': ['crates', 'solved', 'done'],
+  christening: ['start', 'sail'],
+  sluice: ['sluice', 'solved'],
+  crane: ['gate', 'crane', 'solved'],
+  'first-words': ['pipes'],
+  'crate-yard': ['crates', 'solved'],
   'three-helms': ['helms', 'solved'],
-  'lost-letters': ['letters', 'solved', 'done'],
-  market: ['start', 'done'],
+  'lost-letters': ['letters', 'solved'],
+  market: ['start'],
   'channel-routing': ['start', 'channels', 'twist', 'solved'],
-};
+} as const;
 
-/** The quest step a puzzle's mechanic step is in the course (its file's `"steps"`, else the same name). */
-export function puzzleStep(name: string, step: string): string {
-  return coursePack().puzzles[name]?.steps?.[step] ?? step;
+export const PUZZLE_STEPS: Readonly<Record<string, readonly string[]>> = STEPS;
+
+/** The puzzles whose mechanic sets or waits on quest steps. */
+export type StepPuzzle = keyof typeof STEPS;
+
+/** A puzzle's mechanic steps, each as the course's quest calls it. */
+export type PuzzleSteps<N extends StepPuzzle> = { readonly [S in (typeof STEPS)[N][number]]: string };
+
+/** Every puzzle's steps resolved through the active pack's `"steps"`, built once per activation. */
+let resolved: { readonly [N in StepPuzzle]: PuzzleSteps<N> } | null = null;
+
+onCourse((p) => {
+  resolved = Object.fromEntries(
+    Object.entries(STEPS).map(([name, steps]) => [
+      name,
+      Object.freeze(Object.fromEntries(steps.map((s: string) => [s, p.puzzles[name]?.steps?.[s] ?? s]))),
+    ]),
+  ) as unknown as typeof resolved;
+});
+
+/**
+ * A puzzle's mechanic steps as the active course's quest calls them (its file's `"steps"`, else the
+ * game's names): `puzzleSteps('crane').gate`. Resolved once per course, so a mechanic reads it once when
+ * it's made and compares strings after.
+ */
+export function puzzleSteps<N extends StepPuzzle>(name: N): PuzzleSteps<N> {
+  if (!resolved) throw new Error('No course pack is active yet (src/course/load.ts activates it)');
+  return resolved[name];
 }
 
 /** The quest a puzzle plays in (its file's `"quest"`), or '' when it plays in none. */

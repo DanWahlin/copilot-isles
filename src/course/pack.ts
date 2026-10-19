@@ -212,7 +212,7 @@ export function assemblePack(meta: CourseMeta, files: PackFiles): CoursePack {
     puzzles,
     labels: need<{ labels: Record<string, ChartLabelText> }>(files, 'labels.json', id).labels,
     boards: withoutMeta(need<CourseBoardsData>(files, 'boards.json', id)),
-    // The Model Market teaches the Copilot app's models: a course without one has neither file.
+    // A course without the Model Market (it's optional) has neither file.
     market: files['market.json'] ? withoutMeta(files['market.json'] as MarketData) : NO_MARKET,
     models: (files['models.json'] as ModelsFile | undefined) ?? NO_MODELS,
     lock: need<CourseLock>(files, 'lock.json', id),

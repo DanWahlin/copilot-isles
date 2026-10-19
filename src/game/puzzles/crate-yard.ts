@@ -13,7 +13,7 @@ import {
 } from '../../world/sites/crate-yard-logic';
 import { ANDERS_SOLVED } from '../meridian-quests';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
-import { puzzleContent, puzzleQuest, textOf } from '../../course/puzzles';
+import { puzzleContent, puzzleQuest, puzzleSteps, textOf } from '../../course/puzzles';
 
 /** The yard's words: the course pack's `puzzles/crate-yard.json`. */
 const T = (key: string) => textOf(puzzleContent('crate-yard'), key);
@@ -25,10 +25,10 @@ const DIR = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] } as const;
 const PAD_UNDO = 4;
 
 /**
- * P1.1 The Crate Yard (Anders, Q1.4): face a crate and press E to push it one cell. Chat work goes
- * to the tavern plates; work that needs your repository (even just to read it) goes to the slipway
- * plates. A plate refuses the wrong crate and says why. Z (or LB) takes back the last push, and the
- * lever by the gate resets the yard. Crate positions and solved are saved.
+ * P1.1 The Crate Yard (Anders): face a crate and press E to push it one cell. Each crate goes to its
+ * kind's plates, `tavern` or `slipway` (the course binds its kinds to them, `puzzles/crate-yard.json`).
+ * A plate refuses the wrong crate and says why. Z (or LB) takes back the last push, and the lever by
+ * the gate resets the yard. Crate positions and solved are saved.
  */
 export function createCrateYard(
   host: PuzzleHost,
@@ -36,6 +36,7 @@ export function createCrateYard(
   layout: YardLayout = MERIDIAN_YARD,
 ): Puzzle {
   const quest = puzzleQuest('crate-yard');
+  const S = puzzleSteps('crate-yard');
   const saved = host.learn?.progress.data.puzzles[YARD_ID];
   let state: YardState = initialState(layout);
   if (saved?.state?.length === layout.crates.length * 2) {
@@ -58,7 +59,7 @@ export function createCrateYard(
 
   const started = () => {
     const q = host.quests()[quest];
-    return q === 'crates' || q === 'solved' || q === 'done';
+    return q === S.crates || q === S.solved || q === 'done';
   };
   const save = () =>
     host.learn?.progress.setPuzzle(YARD_ID, { solved, state: state.at.flatMap(([x, z]) => [x, z]) });
@@ -71,7 +72,7 @@ export function createCrateYard(
   if (solved) state = solvedState(layout);
   state.at.forEach((cell, i) => site.setCrate(i, cell, true));
   site.setHome(home());
-  if (solved && host.quests()[quest] === 'crates') host.setQuest(quest, 'solved');
+  if (solved && host.quests()[quest] === S.crates) host.setQuest(quest, S.solved);
 
   /** The cell the player's standing in and the crate in front of them, if any. */
   const ahead = (): { from: [number, number]; dir: 'n' | 's' | 'e' | 'w'; crate: number } | null => {
@@ -191,7 +192,7 @@ export function createCrateYard(
   async function onSolved(): Promise<void> {
     solved = true;
     save();
-    host.setQuest(quest, 'solved');
+    host.setQuest(quest, S.solved);
     setHint(-1);
     await new Promise((r) => setTimeout(r, 700));
     host.audio?.sfx.oneShot('chime_solve', undefined, 0.8);

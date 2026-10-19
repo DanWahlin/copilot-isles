@@ -3,8 +3,8 @@ import type { PuzzleFile } from '../../course/pack';
 import { fill, puzzleContent, puzzleMaybe, textOf } from '../../course/puzzles';
 
 /**
- * Bo's gear check (Q0.4, POC §4.4), a checklist. Pure logic (no three.js): one piece of gear per tool
- * on Bo's rack, and what Terminal prints when you run the checks there. Every check passes: the game
+ * Bo's gear check (POC §4.4), a checklist. Pure logic (no three.js): one piece of gear per tool
+ * on Bo's rack, and what the terminal prints when you run the checks there. Every check passes: the game
  * can't see your machine, so it never claims a tool is missing. The checks themselves are the course
  * pack's (`puzzles/gear-rack.json`: for the Copilot app course, "Check your tools in Terminal").
  */

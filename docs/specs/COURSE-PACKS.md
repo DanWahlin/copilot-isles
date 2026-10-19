@@ -234,8 +234,9 @@ Step 1 changes no save key.
   catalog: title, tagline, language, chapters, minutes, license); with one, it goes straight to captain
   select on that course. **Continue** resumes the last course played, if it's still listed.
 - A course still being written has `"listed": false` in `course.json` (copilot-cli, for now): it's in
-  the build, but the course list, Continue and Credits leave it out (`PLAYABLE_COURSES` in
-  `src/course/catalog.ts`). `?courses=all` lists it, and `play.html?pack=<id>` plays it.
+  the build, but the course list and Continue leave it out (`PLAYABLE_COURSES` in
+  `src/course/catalog.ts`). Credits still names it: its snapshot ships in the build, so its license
+  needs the credit. `?courses=all` lists it, and `play.html?pack=<id>` plays it.
 - Chart, Logbook, credits and boards read the active pack. Islands with no chapter in the pack stay as
   silhouettes (not visitable) or show as uncharted.
 - **A minimal second course needs:** `course.json` (with `source` or `null`); one chapter file with at
@@ -467,9 +468,13 @@ first welcomes, the gangway, the compass on to Thousand-Bough and the Meridian S
 
 **Puzzles' quests.** A puzzle file names the quest it plays in, `"quest": "Q0.7"`, read with
 `puzzleQuest(name)` (`src/course/puzzles.ts`). The steps a mechanic sets and waits on are the game's
-words, `PUZZLE_STEPS` (the crane's `actions`, `crane`, `solved`, `done`; the letters' `letters`,
-`solved`, `done`…), and that quest must have them. The crane reads the gear rack's quest, the mill race
-the crane's. Puzzle ids, save keys (`P0.1`, `P1.3`…) and chart labels stay the game's, each named once in
+words, `PUZZLE_STEPS` (the crane's `gate`, `crane`, `solved`; the letters' `letters`, `solved`…), and
+that quest must have them, under the same names or the ones the puzzle's file maps them to
+(`"steps"`: the Copilot app course's crane calls `gate` `actions`). Mechanics read them through
+`puzzleSteps(name)`, resolved once per course activation, so every one can be renamed
+(`src/game/puzzles/steps.test.ts` renames them all). Every quest ends at `done`, the game's own step for
+a finished quest: it isn't a mechanic step and can't be mapped. The crane reads the gear rack's quest,
+the mill race the crane's. Puzzle ids, save keys (`P0.1`, `P1.3`…) and chart labels stay the game's, each named once in
 its module (`SLUICE_ID`, `LETTERS_ID`, `HOIST_ID`); Channel Routing keeps its rounds under its own key
 in the quests. The palette's late page (`latePage`) and the market's page (`page`) moved to their files.
 
@@ -557,8 +562,11 @@ bins, cargo props, market sizes in order), resolves the pack's own ids (orders, 
 letters' answers, flags' answers and choices, items' bins, models' categories), the twist's right
 answers, the mast's halyards and the puzzles' `"steps"`. `src/course/bindings.test.ts` renames every
 id of the Copilot app pack (modes, review options, crews, places, twist answers, bins, tray, flags,
-categories) and plays the same; `src/course/neutral.test.ts` scans `src/` (less tests, dev pages and
-comments) for the courses' ids and words. The dump reads back in the pack's ids and is identical,
+categories) and plays the same, and `src/game/puzzles/steps.test.ts` renames every puzzle's mechanic
+step and checks each mechanic reads and writes the new names. `src/course/neutral.test.ts` scans `src/`
+(less tests and dev pages) for the courses' ids and words with TypeScript's parser: comments are
+skipped, strings, templates and regular expressions stay code, and each JSX text's words are checked
+too. The dump reads back in the pack's ids and is identical,
 less the new bindings (`acts`, `apart`, `TIER_OF`, `CATEGORY_OF`, `nextSail`), the crane's step named
 `gate` in `puzzleQuests`, and the order of `THOUSAND_BOUGH_LINES` (the same set).
 

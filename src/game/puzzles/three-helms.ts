@@ -22,7 +22,15 @@ import { world as worldUniforms } from '../../world/uniforms';
 import type { SeaChoiceOption, SeaChoiceView } from '../../ui/puzzles/SeaChoice';
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal, SailAction } from './types';
 import { onCourse } from '../../course/active';
-import { lineOf, puzzleContent, puzzleMaybe, puzzleQuest, rekey, textOf } from '../../course/puzzles';
+import {
+  lineOf,
+  puzzleContent,
+  puzzleMaybe,
+  puzzleQuest,
+  puzzleSteps,
+  rekey,
+  textOf,
+} from '../../course/puzzles';
 
 const HELMS_ID = 'P1.2';
 const FLAG: Readonly<Record<HelmMode, string>> = {
@@ -105,17 +113,18 @@ interface Run {
 type ChoiceKind = 'order' | 'heading' | 'review';
 
 /**
- * P1.2 The Three Helms (Rhea, Q1.5): three orders sailed in your own ship out in Port Meridian's
+ * P1.2 The Three Helms (Rhea): three orders sailed in your own ship out in Port Meridian's
  * bay (helms-logic.ts has the lesson). Sail up to a buoy and press E: Rhea hands you an order card
  * and you pick the helm that fits, on a card beside the session panel (1-3, tap, or the d-pad and
  * A). Then the helm's run makes you use it: choose each heading (`steer`), review the chart and
  * amend it (`review`), or hand it over (`auto`).
  *
- * The terminal panel reads like the app's session: your ask, her steps, and where she's waiting on
+ * The terminal panel reads like a session: your ask, her steps, and where she's waiting on
  * you. The helms you've sailed are saved; a run you leave part-way starts over.
  */
 export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: QuietSea): Puzzle {
   const quest = puzzleQuest('three-helms');
+  const S = puzzleSteps('three-helms');
   const saved = host.learn?.progress.data.puzzles[HELMS_ID];
   const done: HelmMode[] = HELM_ORDER.slice(0, Math.min(3, Math.max(0, saved?.state?.[0] ?? 0)));
   let solved = saved?.solved ?? false;
@@ -183,7 +192,7 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
     await p;
   };
 
-  const active = () => host.quests()[quest] === 'helms';
+  const active = () => host.quests()[quest] === S.helms;
   // While the course is on, no dolphin or flying fish leaps among the buoys (their splashes would
   // read as something the lesson put there).
   const unquiet = quiet?.add({ ...helmsCourseArea(), when: () => active() && !solved });
@@ -419,7 +428,7 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
       run = null;
       solved = true;
       save();
-      host.setQuest(quest, 'solved');
+      host.setQuest(quest, S.solved);
       await host.say([L('done.auto')]);
       return;
     }
@@ -629,7 +638,7 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
         host.crewHelm(false);
         solved = true;
         save();
-        host.setQuest(quest, 'solved');
+        host.setQuest(quest, S.solved);
       },
     },
     dispose() {

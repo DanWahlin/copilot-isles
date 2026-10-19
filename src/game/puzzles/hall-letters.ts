@@ -1,9 +1,8 @@
 /**
- * P1.3 The Lost Letters in the Hall of Records (POC §6.5; Pell, Q1.7): captains write to Pell when
- * they can't find a setting. Each letter is a problem, not a keyword, and you file it in the alcove
- * for the Settings area that fixes it. One letter isn't a Settings job at all (the model and effort
- * for one task), so it goes back in Pell's tray. A wrong filing hands the letter back with Pell's
- * reason and the course section it comes from. Pure data and a small state machine; the puzzle
+ * P1.3 The Lost Letters in the Hall of Records (POC §6.5; Pell): captains write to Pell with a
+ * problem. Each letter is a problem, not a keyword, and you file it in the alcove that fixes it. A
+ * letter that isn't any alcove's job goes back in Pell's tray. A wrong filing hands the letter back
+ * with Pell's reason and the course section it comes from. Pure data and a small state machine; the puzzle
  * (lost-letters.ts) plays it with the alcoves in the hall and the overlay (src/ui/puzzles/LostLetters.tsx).
  *
  * The alcoves, letters, reasons and words are the course pack's `puzzles/lost-letters.json`: for the
@@ -46,7 +45,7 @@ const T = (key: string, v?: Readonly<Record<string, string | number>>) => textOf
 /** The course sections the letters and reasons cite, by key. */
 export let CITE: Readonly<Record<string, LetterCite>> = {};
 
-/** A bin's id: the course's (the Copilot app course's Settings areas). */
+/** A bin's id: the course's own (`puzzles/lost-letters.json`). */
 export type AlcoveId = string;
 
 /** Where a letter can go: an alcove, or back in Pell's tray (the game's decoy: not this kind of job). */

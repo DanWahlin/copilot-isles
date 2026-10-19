@@ -5,23 +5,17 @@ import { smoothstep } from '../../util/math';
 import { sunState } from '../sky/sun';
 import { MERIDIAN, meridianHeight, meridianMasks } from './meridian';
 import { MERIDIAN_WATER_SPEC } from './meridian-water';
-import { createIslandSilhouetteAsync, type SilhouetteBlock, type SilhouetteTower } from './silhouette';
+import {
+  createIslandSilhouetteAsync,
+  mixHex,
+  type SilhouetteBlock,
+  type SilhouetteTower,
+} from './silhouette';
 
 /** The island's sky (game/islands.ts ISLANDS.meridian.sky; a test keeps them in step). */
 export const MERIDIAN_SILHOUETTE_SKY = { hours: 17.35, azimuth: -45 } as const;
 /** The town's paint at a distance: weathered toward stone (the real walls' shading and dirt). */
 const WEATHERED = 0x9c8c74;
-
-/** sRGB hex a toward b by t. */
-function mixHex(a: number, b: number, t: number): number {
-  let out = 0;
-  for (const shift of [16, 8, 0]) {
-    const ca = (a >> shift) & 255;
-    const cb = (b >> shift) & 255;
-    out |= Math.round(ca + (cb - ca) * t) << shift;
-  }
-  return out;
-}
 
 /** A storey of the town's houses (m), and its ground floor's plinth. */
 const STOREY = 3.1;

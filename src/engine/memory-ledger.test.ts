@@ -4,22 +4,28 @@ import {
   CompressedTexture,
   DataTexture,
   InstancedInterleavedBuffer,
+  RenderTarget,
+  Texture,
   InterleavedBufferAttribute,
 } from 'three/webgpu';
 // three's own Info (not exported from three/webgpu), so the test follows its real bookkeeping.
 import Info from 'three/src/renderers/common/Info.js';
 import { compressedTextureBytes, correctMemoryInfo, type InfoWithMemory } from './memory-ledger';
 
-const fresh = () => {
-  const info = new Info() as unknown as InfoWithMemory & {
-    createAttribute(a: object): void;
-    destroyAttribute(a: object): void;
-    createTexture(t: object): void;
-    destroyTexture(t: object): void;
-  };
-  correctMemoryInfo(info);
-  return info;
+type TestInfo = InfoWithMemory & {
+  createAttribute(a: object): void;
+  destroyAttribute(a: object): void;
+  createTexture(t: object): void;
+  destroyTexture(t: object): void;
 };
+
+const withRefresh = () => {
+  const info = new Info() as unknown as TestInfo;
+  const refresh = correctMemoryInfo(info);
+  return { info, refresh };
+};
+
+const fresh = () => withRefresh().info;
 
 describe('correctMemoryInfo', () => {
   it("counts an instanced mesh's matrix buffer once, not once per column", () => {
@@ -72,5 +78,56 @@ describe('correctMemoryInfo', () => {
     const matrices = new InstancedInterleavedBuffer(new Float32Array(16), 16, 1);
     for (const o of [0, 4, 8, 12]) info.createAttribute(new InterleavedBufferAttribute(matrices, 4, o));
     expect(info.memory.total).toBe(64);
+  });
+
+  it("counts an image that was still decoding when first seen once it's there", () => {
+    const { info, refresh } = withRefresh();
+    // A loader's texture: no image yet, so three counts it as 1 × 1 (with its mip chain).
+    const t = new Texture();
+    t.image = null;
+    info.createTexture(t);
+    expect(info.memory.texturesSize).toBeLessThan(16);
+    t.image = { width: 1024, height: 1024 };
+    refresh();
+    expect(info.memory.texturesSize).toBe(Math.round(1024 * 1024 * 4 * 1.333));
+    expect(info.memory.textures).toBe(1);
+    info.destroyTexture(t);
+    expect(info.memory.texturesSize).toBe(0);
+    expect(info.memory.total).toBe(0);
+    expect(info.memory.textures).toBe(0);
+  });
+
+  it('follows a render target through a resize', () => {
+    const { info, refresh } = withRefresh();
+    const target = new RenderTarget(1, 1);
+    info.createTexture(target.texture);
+    expect(info.memory.texturesSize).toBe(4);
+    target.setSize(1600, 900);
+    refresh();
+    expect(info.memory.texturesSize).toBe(1600 * 900 * 4);
+    target.setSize(800, 450);
+    refresh();
+    expect(info.memory.texturesSize).toBe(800 * 450 * 4);
+    expect(info.memory.total).toBe(800 * 450 * 4);
+    info.destroyTexture(target.texture);
+    expect(info.memory.total).toBe(0);
+  });
+
+  it("doesn't recount what hasn't changed, or what three has forgotten", () => {
+    const { info, refresh } = withRefresh();
+    const a = new DataTexture(new Uint8Array(8 * 8 * 4), 8, 8);
+    const b = new DataTexture(new Uint8Array(4 * 4 * 4), 4, 4);
+    info.createTexture(a);
+    info.createTexture(b);
+    info.destroyTexture(a);
+    a.image = { data: new Uint8Array(64 * 64 * 4), width: 64, height: 64 };
+    refresh();
+    expect(info.memory.texturesSize).toBe(4 * 4 * 4);
+    expect(info.memory.textures).toBe(1);
+  });
+
+  it('returns the same refresh when wrapped twice', () => {
+    const { info, refresh } = withRefresh();
+    expect(correctMemoryInfo(info)).toBe(refresh);
   });
 });

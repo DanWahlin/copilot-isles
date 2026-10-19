@@ -26,7 +26,7 @@ npm run dev              # local dev server
 npm run typecheck && npm run lint && npm test
 npm run build && npm run check:budgets && npm run check:secrets
 npm run test:e2e         # builds, serves on 127.0.0.1:4173, runs Playwright (local Chrome; Chromium in CI)
-npm run check:frame-budgets -- --base=http://127.0.0.1:5353  # PLAN §12.1 draws/triangles per tier (no-HMR server)
+npm run check:frame-budgets -- --base=http://127.0.0.1:5353  # PLAN §12.1 draws/triangles per tier (no-HMR server), measured settled: no warm-up, islands you've left freed, steady frames (UNSETTLED fails; static shadow redraws reported, not gated)
 npm run check:opening -- --base=http://127.0.0.1:5353  # the opening's frame gaps (fails over 150 ms; --profile, --webgl, --tier)
 npm run build && npm run check:audio  # streaming audio on Slow 4G, served like GitHub Pages (HTTP/2 by priority): fails on a music gap > 300 ms or a voiced caption without its voice (--profile=fast3g|dsl|none, --flow=islands|full, --visits=cold,warm, --tap)
 npm run check:memory -- --base=http://127.0.0.1:5353  # GPU (renderer.info, honest) + JS heap per stop of Anchorage → Meridian → Thousand-Bough → Anchorage ×2, High+Lite × WebGPU+WebGL2: fails over budgets.json `memory` ceilings, > +10 % tracked / +15 % heap back home, growth between round trips, hitches or WebGPU errors, then quits with Anchorage dormant and starts a new voyage (one Anchorage, memory as the first) (--tiers, --backends, --trips, --out)

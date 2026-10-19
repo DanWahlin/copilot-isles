@@ -184,6 +184,7 @@ export async function warmWorld(o: {
     for (const t of o.terrains) {
       if (t) await warmTerrainLods(t, frame, { targetMs: 12, startBatch: 3, frameCost: () => engine.cpuMs });
     }
+    cove.worldWarmed();
   } finally {
     endShadowWarm?.();
     hidePrewarm();

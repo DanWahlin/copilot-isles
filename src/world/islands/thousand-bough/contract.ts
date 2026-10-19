@@ -1,5 +1,5 @@
 import type { Group, Vector3 } from 'three/webgpu';
-import type { BoxCollider, SurfaceKind } from '../../../game/collision';
+import type { BoxCollider, InlandWater, SurfaceKind } from '../../../game/collision';
 import type { CircleObstacle } from '../../contracts';
 import type { CameraBlockerBox } from '../../terrain/camera-blockers';
 import type { VillageAnchor } from '../../village/kit';
@@ -139,8 +139,11 @@ export interface ThousandBoughSystem {
   colliders(): readonly BoxCollider[];
   circles(): readonly CircleObstacle[];
   cameraBoxes(): readonly CameraBlockerBox[];
-  /** Pools and streams: the water's surface at (x, z), or null where there's none. */
-  inland(x: number, z: number): number | null;
+  /**
+   * Pools and streams at (x, z) over the drawn ground `ground` there, as they're drawn (the surface
+   * and the bed you wade on, `naturalWaterAt`), into `out`; false where there's none.
+   */
+  inland(x: number, z: number, ground: number, out: InlandWater): boolean;
   flume: FlumeTerraceView;
   spire: SpireView;
   mast: SignalMastView;

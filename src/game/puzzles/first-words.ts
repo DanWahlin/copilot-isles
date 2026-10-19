@@ -4,7 +4,7 @@ import type { ScriptStep } from '../script';
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal } from './types';
 import { sleep } from '../../util/math';
 import type { PuzzleFile } from '../../course/pack';
-import { fill, lineOf, puzzleContent, puzzleQuest, textOf } from '../../course/puzzles';
+import { fill, lineOf, puzzleContent, puzzleQuest, puzzleSteps, textOf } from '../../course/puzzles';
 import { storyHolds } from '../story';
 
 const FIRST_WORDS_ID = 'first-words';
@@ -46,7 +46,7 @@ const readout = (r: Readout): readonly TerminalLine[] =>
   r.lines.map((l) => ({ ...l, text: fill(l.text, { prompt: content().prompt }) }));
 
 /**
- * Q0.8 First Words (POC §4.4), choose the tool: two fittings on the ship's rail, the brass speaking
+ * First Words (POC §4.4), choose the tool: two fittings on the ship's rail, the brass speaking
  * tube (to the crew) and the iron hatch (to the engine room). Speaking the course's first prompt into
  * one of them answers the course's quiz. The wrong one prints what the pack says and clanks shut; the
  * right one carries it to the crew, and Juno reads back the expected output (`puzzles/first-words.json`).
@@ -63,7 +63,8 @@ export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked:
   let replyAge = 0;
 
   const quest = puzzleQuest('first-words');
-  const active = () => host.quests()[quest] === 'pipes';
+  const { pipes } = puzzleSteps('first-words');
+  const active = () => host.quests()[quest] === pipes;
   const locate = () => {
     ship.group.updateMatrixWorld();
     ship.group.localToWorld(tube.set(ship.pipes.tube.x, ship.pipes.tube.y, ship.pipes.tube.z));
@@ -161,7 +162,7 @@ export function createFirstWords(host: PuzzleHost, ship: FirstWordsShip, docked:
     },
     terminal(): PuzzleTerminal | null {
       const q = host.quests()[quest];
-      if (!lines || (q !== 'pipes' && q !== 'done') || !near(5)) return null;
+      if (!lines || (q !== pipes && q !== 'done') || !near(5)) return null;
       return { title, lines };
     },
     debug: {

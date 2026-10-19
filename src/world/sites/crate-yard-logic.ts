@@ -61,8 +61,9 @@ export const DIRS: Readonly<Record<Dir, readonly [number, number]>> = {
 
 /**
  * The tavern plates are on the west side (x = 0) and the slipway plates on the east. Each trick crate
- * starts a push from the wrong plate: the book-app tour (it changes no files, but it needs your
- * repository) beside the tavern, and the general worktree question beside the slipway. Solvable in
+ * starts a push from the wrong plate (for the Copilot app course: the book-app tour, which changes no
+ * files but needs your repository, beside the tavern, and the general worktree question beside the
+ * slipway). Solvable in
  * 15 pushes (the solver test checks it).
  */
 /** `puzzles/crate-yard.json`: classify each crate onto its kind's plates. */

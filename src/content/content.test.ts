@@ -259,6 +259,12 @@ describe('the content checks report broken edits by entry', () => {
     delete noQuest.quest;
     expect(paths(issuesWith('puzzles/crane.json', noQuest))).toEqual(['quest']);
     expect(issuesWith('puzzles/crane.json', { ...noQuest, disabled: true })).toEqual([]);
+    // `steps` maps the mechanic's steps to the quest's; `done` is every quest's own and isn't one.
+    const steps = (s: Record<string, string>) =>
+      paths(issuesWith('puzzles/crane.json', { ...crane, steps: { gate: 'actions', ...s } }));
+    expect(steps({ crane: 'lifting' })).toEqual(['quest']);
+    expect(steps({ done: 'finished' })).toEqual(['steps.done']);
+    expect(steps({ hoist: 'crane' })).toEqual(['steps.hoist']);
     const palette = json<Record<string, unknown>>(`${PACK}/puzzles/palette.json`);
     expect(paths(issuesWith('puzzles/palette.json', { ...palette, latePage: 'pg.nope' }))).toEqual([
       'latePage',

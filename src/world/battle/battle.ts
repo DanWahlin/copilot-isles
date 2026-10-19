@@ -79,8 +79,8 @@ function plan(
 }
 
 /**
- * Battle 1, the passage from Anchorage to Port Meridian, recaps Chapter 00: preview before you run
- * (wave 1), then check the target (wave 2).
+ * Battle 1, the passage from Anchorage to Port Meridian: two waves, each with the course's quiz (its
+ * `hooks.battles`).
  */
 const passage = (c: CourseMeta) =>
   plan(c, 'passage-anchorage-meridian', 'Anchorage → Port Meridian', [
@@ -90,8 +90,8 @@ const passage = (c: CourseMeta) =>
 export let PASSAGE_BATTLE: BattlePlan = passage(COURSE);
 
 /**
- * Battle 2, the passage from Port Meridian to Thousand-Bough Isle, recaps Chapter 01: a worktree for
- * each session (wave 1), know when the agent will ask (wave 2), and effort isn't a guarantee (wave 3).
+ * Battle 2, the passage from Port Meridian to Thousand-Bough Isle: three waves, each with the course's
+ * quiz (its `hooks.battles`).
  */
 const meridianPassage = (c: CourseMeta) =>
   plan(c, 'passage-meridian-thousand-bough', 'Port Meridian → Thousand-Bough Isle', [

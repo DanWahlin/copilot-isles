@@ -5,6 +5,7 @@ import type { PlantInstance } from '../../vegetation/types';
 import type { VillageAnchor, VillageKit } from '../../village/kit';
 import type { TbAnchorName, ThousandBoughSystem } from './contract';
 import { thousandBoughWater } from './height';
+import { naturalWaterAt } from '../fresh-water-natural';
 import { THOUSAND_BOUGH } from './layout';
 import { BEACON_Y } from './set-pieces';
 import { createThousandBoughWaterMesh } from './water-mesh';
@@ -12,7 +13,8 @@ import type { CameraBlockerBox } from '../../terrain/camera-blockers';
 import { branchCameraBoxes, createBanyanAsync } from './tree';
 import { thousandBoughPlantsSliced } from './vegetation';
 import { createMist, type Mist } from './mist';
-import { SMALL_ROCKS, type ThousandBoughRocks } from './rocks';
+import type { ThousandBoughRocks } from './rocks';
+import { SMALL_ROCKS } from '../stream-stones';
 import { createGlows, type Glow, type Glows } from '../../life/fireflies';
 import { mulberry32 } from '../../../util/math';
 import { thousandBoughHeight } from './height';
@@ -47,7 +49,7 @@ export function createThousandBoughStub(): ThousandBoughSystem {
     colliders: () => [],
     circles: () => [],
     cameraBoxes: () => [],
-    inland: () => null,
+    inland: () => false,
     flume: {
       setRound: done,
       setBoard: none,
@@ -232,7 +234,7 @@ export async function createThousandBoughAsync(
     colliders: () => village.out.colliders,
     circles: () => circles,
     cameraBoxes: () => camBoxes,
-    inland: (x, z) => thousandBoughWater().levelAt(x, z),
+    inland: (x, z, ground, out) => naturalWaterAt(thousandBoughWater(), x, z, ground, out),
     flume: village.flume,
     spire: {
       ...base.spire,

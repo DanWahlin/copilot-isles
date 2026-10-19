@@ -989,7 +989,7 @@ function addQuay(
 }
 
 /**
- * Ezra's chart table at the foot of the pier (Q0.3), so forking the course is a few steps from Nell
+ * Ezra's chart table at the foot of the pier, so forking the course is a few steps from Nell
  * rather than a walk up to his shop. He stands at its east end, facing the way you come from Nell.
  */
 function addChartTable(

@@ -3,16 +3,17 @@ import { WaterStrips, type StripFlow } from '../sites/water';
 import { meridianWater } from './meridian';
 import type { FreshWater, WaterBasin } from './meridian-water';
 import { smoothstep } from '../../util/math';
-import { addNaturalFreshWater, type NaturalWaterOptions } from './fresh-water-natural';
+import { addNaturalFreshWater, FALLS, steepness, type NaturalWaterOptions } from './fresh-water-natural';
 
 /** Segments round a basin's shore (the fan's rim). */
 const RIM = 40;
 
 /**
- * Port Meridian's fresh water as one static mesh (one draw) in the mill race's flowing-water material
- * (same TSL graph, so no new program): still fans for the tarn, the plunge pool and the lake, and
- * strips down the cascade, the brook and the outflow. Steep stretches run fast and white; where the
- * cascade lands, a ring of churned foam. Built once; only the shader's time moves it.
+ * An island's fresh water (Port Meridian's by default) as one static mesh (one draw) in the mill
+ * race's flowing-water material (same TSL graph, so no new program). With `natural` (both islands)
+ * its pools and streams are natural water (`addNaturalFreshWater`) and only its falls keep the
+ * falling-water look, white and fast; without it, still fans for the basins and strips down the
+ * streams, with a ring of churned foam where a fall lands. Built once; only the shader's time moves it.
  */
 export function createMeridianWaterMesh(
   water: FreshWater = meridianWater(),
@@ -43,9 +44,9 @@ export function createMeridianWaterMesh(
       const run = Math.hypot(x1 - x0, z1 - z0) || 1;
       const drop = s.surface[i]! - s.surface[i + 1]!;
       const slope = Math.max(0, drop / run);
-      const steep = Math.min(1, slope / 0.9);
+      const steep = steepness(slope);
       // Natural water draws all but the falls (and its pools foam under them).
-      if (natural && steep <= 0.6) continue;
+      if (natural && steep <= FALLS) continue;
       // Falls spread a little wider than the channel, and run fast and foamy; the width breathes.
       const w = s.spec.halfWidth * (1 + steep * 0.12) * (0.9 + 0.1 * Math.sin(s.along[i]! * 0.19 + 1));
       const tx0 = tangent(s.x, s.z, n, i);
@@ -64,7 +65,7 @@ export function createMeridianWaterMesh(
           fill: 1,
           speed: 0.8 + steep * 2.6,
           foam: smoothstep(0.12, 0.8, slope) * 0.7,
-          kind: steep > 0.6 ? -1 : 0,
+          kind: steep > FALLS ? -1 : 0,
         },
         0,
         1,

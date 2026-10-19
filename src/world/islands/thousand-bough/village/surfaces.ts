@@ -247,7 +247,7 @@ export const BRIDGES: readonly BridgeSpec[] = (() => {
 /** Bridges that only open later (R3 is rolled up until the Spire twist). */
 export const LATE_BRIDGES = new Set(['R3']);
 
-/** The Spire's lookouts: the top (5173) and the south ledge (5174). */
+/** The Spire's lookouts: the top (the first) and the south ledge (the second). */
 export const SPIRE_TOP = { x: TB.spire.x, z: TB.spire.z, r: 5.6, y: TB.spire.top } as const;
 export const SPIRE_LEDGE: Rect = {
   x: TB.spire.ledge.x,

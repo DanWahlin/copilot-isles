@@ -532,7 +532,7 @@
     },
     "listed": {
       "type": "boolean",
-      "description": "Whether players can choose the course (default true). An unlisted course is in the build for its authors, but the course list, Continue and Credits leave it out; `?courses=all` lists it (src/course/catalog.ts)."
+      "description": "Whether players can choose the course (default true). An unlisted course is in the build for its authors, but the course list and Continue leave it out (Credits still names it, since its snapshot ships); `?courses=all` lists it (src/course/catalog.ts)."
     },
     "legacySaves": {
       "type": "boolean",
