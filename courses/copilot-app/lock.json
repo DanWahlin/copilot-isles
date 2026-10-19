@@ -2,8 +2,8 @@
   "$comment": "Written by tools/course/sync.mjs (PLAN §8.2). Section hashes are the first 12 hex digits of the SHA-256 of normalizeForCompare(markdown); images keep the full SHA-256. Do not edit by hand.",
   "repo": "github/copilot-app-for-beginners",
   "ref": "main",
-  "sha": "1ba934ec5e20ad8593d128514c547028f123dbe9",
-  "syncedAt": "2026-10-15",
+  "sha": "a5cdf7dd96e1e3333cd92d9e11ee127c2bbe1669",
+  "syncedAt": "2026-10-19",
   "catalog": [
     {
       "id": "00-setup",
@@ -50,7 +50,7 @@
     "00-setup": {
       "short": "ch00",
       "title": "Setup",
-      "hash": "c9e3c3d72145",
+      "hash": "1031b787f893",
       "sections": {
         "learning-objectives": {
           "title": "Learning Objectives",
@@ -80,11 +80,11 @@
         "connect-to-your-repository": {
           "title": "Connect to Your Repository",
           "level": 2,
-          "hash": "365638d573db",
+          "hash": "fda261a1fa97",
           "images": ["00-setup/assets/app-add-project.webp"],
           "terms": [
             "+",
-            "Projects",
+            "Sessions",
             "Add GitHub repository",
             "Open folder",
             "Clone repository",
@@ -95,11 +95,11 @@
         "check-your-tools-in-terminal": {
           "title": "Check Your Tools in Terminal",
           "level": 2,
-          "hash": "cf4e4b176d0b",
+          "hash": "a098a1855e14",
           "images": ["00-setup/assets/app-current-checkout-workspace-selector.webp"],
           "terms": [
             "Terminal",
-            "Projects",
+            "Sessions",
             "+",
             "Current checkout",
             "View",
@@ -188,7 +188,7 @@
     "01-tour-the-app": {
       "short": "ch01",
       "title": "Tour the App",
-      "hash": "98dad4048f06",
+      "hash": "d26a51135593",
       "sections": {
         "learning-objectives": {
           "title": "Learning Objectives",
@@ -210,7 +210,7 @@
         "tour-the-app": {
           "title": "Tour the App",
           "level": 2,
-          "hash": "a583ed20b8e9",
+          "hash": "324629c85fee",
           "images": [
             "01-tour-the-app/assets/app-new-page.webp",
             "01-tour-the-app/assets/app-pull-requests-page.webp",
@@ -225,9 +225,7 @@
             "Created by me",
             "New issue",
             "Automations",
-            "More",
-            "Edit sidebar...",
-            "Projects",
+            "Sessions",
             "Chats"
           ]
         },
@@ -263,22 +261,16 @@
           "level": 3,
           "hash": "40d6c4c7a5bf"
         },
-        "more": {
-          "title": "More",
+        "sessions-and-chats": {
+          "title": "Sessions and Chats",
           "level": 3,
-          "hash": "16538ba2b64e",
-          "terms": ["More", "Edit sidebar..."]
-        },
-        "projects-and-chats": {
-          "title": "Projects and Chats",
-          "level": 3,
-          "hash": "2e0d39688597",
-          "terms": ["Projects", "Chats"]
+          "hash": "9bbe8aab627f",
+          "terms": ["Sessions", "Chats"]
         },
         "chats-project-sessions-and-modes": {
           "title": "Chats, Project Sessions, and Modes",
           "level": 2,
-          "hash": "b86c511bd0da",
+          "hash": "5721ac27d3ca",
           "images": [
             "01-tour-the-app/assets/producer-control-room-modes.webp",
             "01-tour-the-app/assets/app-quick-chat.webp",
@@ -286,7 +278,7 @@
           ],
           "terms": [
             "+",
-            "Projects",
+            "Sessions",
             "Chat",
             "Expected Output:",
             "New worktree",
@@ -309,9 +301,9 @@
         "chat-sessions": {
           "title": "Chat Sessions",
           "level": 3,
-          "hash": "98f6ea579753",
+          "hash": "9d8ea69782bc",
           "images": ["01-tour-the-app/assets/app-quick-chat.webp"],
-          "terms": ["+", "Projects", "Chat", "Expected Output:"]
+          "terms": ["+", "Sessions", "Chat", "Expected Output:"]
         },
         "project-sessions": {
           "title": "Project Sessions",
@@ -371,7 +363,7 @@
         "settings": {
           "title": "Settings",
           "level": 2,
-          "hash": "5b95eb5b50e3",
+          "hash": "49fadf6d109a",
           "images": ["01-tour-the-app/assets/app-settings.webp"],
           "terms": [
             "Settings",
@@ -384,7 +376,7 @@
             "Open preferences",
             "Test mic",
             "+",
-            "Projects",
+            "Sessions",
             "Chat"
           ]
         },
@@ -411,7 +403,7 @@
         "key-takeaways": {
           "title": "Key Takeaways",
           "level": 2,
-          "hash": "c91fe4b46114",
+          "hash": "863dccd1b579",
           "terms": ["Chat sessions", "Project sessions", "Automations", "Interactive", "Plan", "Autopilot"]
         },
         "whats-next": {
