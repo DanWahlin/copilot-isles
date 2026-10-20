@@ -6,6 +6,7 @@ import { AdaptiveResolution } from './adaptive-res';
 import { DayClock } from './day-clock';
 import { FixedStep } from './fixed-step';
 import { FrameCounters, limitGpuMs } from './frame-counters';
+import { trackInstanceBuffers, type InstanceBufferRenderer } from './instance-buffers';
 import type { TierSettings } from './quality';
 
 /** Anything the engine ticks. `fixed` runs at 60 Hz (physics); `frame` once per rendered frame. */
@@ -88,6 +89,8 @@ export class Engine {
     const e = new Engine(renderer, o);
     // KTX2 textures (the village kit's roughness maps) transcode to this renderer's formats.
     setKtx2Renderer(renderer);
+    // Instanced meshes free the instance buffers three made for them when disposed (issue 262).
+    trackInstanceBuffers(renderer as unknown as InstanceBufferRenderer);
     // ACES gives the quality-slice look: soft sun roll-off and warm highlights without AgX's
     // heavy desaturation of the saturated sails and chibi character palettes.
     renderer.toneMapping = ACESFilmicToneMapping;

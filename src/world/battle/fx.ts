@@ -30,7 +30,8 @@ import {
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { markInstancesChanged, sharedInstancedMesh } from '../../engine/instancing';
-import { useSpriteQuad } from '../../engine/sprite-quad';
+import { releaseInstanceAttributes } from '../../engine/instance-buffers';
+import { releaseSpriteQuad, useSpriteQuad } from '../../engine/sprite-quad';
 import type { TierSettings } from '../../engine/quality';
 import type { WaveSampler } from '../contracts';
 import { createSplashGeometry } from '../life/leaps/geometry';
@@ -381,6 +382,12 @@ export class SmokePool {
     this.mesh.count = 0;
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = 2;
+  }
+
+  /** The battle's over: the quad and the puffs' buffers go (issue 262). Never drawn again. */
+  release(): void {
+    releaseSpriteQuad(this.mesh);
+    releaseInstanceAttributes([this.posAttr, this.dataAttr]);
   }
 
   spawn(

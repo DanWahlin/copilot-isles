@@ -9,6 +9,7 @@ import {
   type Material,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { InstanceMatrices, releaseInstanceBuffers } from './instance-buffers';
 
 /**
  * three (r186) draws an InstancedMesh's matrices from a uniform buffer while they fit in one (64 KB,
@@ -87,10 +88,14 @@ export function interleaveVertexAttributes(geometry: BufferGeometry): void {
   }
 }
 
+const releaseOnDispose = (e: { target: InstancedMesh }) => void releaseInstanceBuffers(e.target);
+
 /**
  * An InstancedMesh that shares its shader with others of the same material (see above), drawing
  * `count` instances (all of them by default). A geometry with too many vertex buffers for that has
- * its per-vertex attributes interleaved into one (`interleaveVertexAttributes`) first.
+ * its per-vertex attributes interleaved into one (`interleaveVertexAttributes`) first. Its `dispose`
+ * frees the instance buffers three made for it (`releaseInstanceBuffers`, issue 262), not its
+ * geometry's: send it only when the mesh won't be drawn again.
  */
 export function sharedInstancedMesh<G extends BufferGeometry, M extends Material | Material[]>(
   geometry: G,
@@ -106,6 +111,10 @@ export function sharedInstancedMesh<G extends BufferGeometry, M extends Material
     sharedInstanceCapacity(geometry, capacity, opts.instanceColors),
   );
   mesh.count = opts.count ?? capacity;
+  const matrices = new InstanceMatrices(mesh.instanceMatrix.array, 16);
+  matrices.setUsage(mesh.instanceMatrix.usage);
+  mesh.instanceMatrix = matrices;
+  mesh.addEventListener('dispose', releaseOnDispose);
   return mesh;
 }
 

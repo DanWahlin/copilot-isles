@@ -12,6 +12,7 @@ import {
   uv,
   vec3,
 } from 'three/tsl';
+import { releaseInstanceAttributes } from '../../engine/instance-buffers';
 import { releaseSpriteQuad, useSpriteQuad } from '../../engine/sprite-quad';
 import { world } from '../uniforms';
 
@@ -59,8 +60,9 @@ export function createGlows(points: readonly Glow[], name: string): Glows {
     a.set([p.x, p.y, p.z, (i * 0.618) % 1], i * 4);
     b.set([p.wander, p.size, p.kind, 0], i * 4);
   });
-  const base = instancedBufferAttribute(new InstancedBufferAttribute(a, 4)) as AnyNode;
-  const params = instancedBufferAttribute(new InstancedBufferAttribute(b, 4)) as AnyNode;
+  const attributes = [new InstancedBufferAttribute(a, 4), new InstancedBufferAttribute(b, 4)];
+  const base = instancedBufferAttribute(attributes[0]!) as AnyNode;
+  const params = instancedBufferAttribute(attributes[1]!) as AnyNode;
   const strength = uniform(1) as AnyNode;
   const rise = uniform(0) as AnyNode;
   const haloRest = uniform(1) as AnyNode;
@@ -145,6 +147,7 @@ export function createGlows(points: readonly Glow[], name: string): Glows {
     dispose() {
       material.dispose();
       releaseSpriteQuad(sprite);
+      releaseInstanceAttributes(attributes);
     },
   };
 }
